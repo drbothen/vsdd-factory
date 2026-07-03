@@ -30,11 +30,6 @@ serde_json = { workspace = true }
 
 [dev-dependencies]
 serde_json = { workspace = true }
-vsdd-hook-sdk = { path = "../../hook-sdk" }
-# validate-burst-log is a dev-dependency for the AC-006 / INV2 symmetry test
-# in tests/exemption.rs, which calls both crates' is_precompact_flush_exempt
-# with identical inputs and asserts identical results.
-validate-burst-log = { path = "../validate-burst-log" }
 
 [lints]
 workspace = true

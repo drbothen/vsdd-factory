@@ -161,60 +161,23 @@ jobs:
           fi
           # Bundle all wasm artifacts. They are identical across platforms so
           # every leg ships them redundantly; commit-binaries uses linux-x64 as
-          # canonical source. Skip underscore-named lib-target stubs (75-103 byte
-          # wasm32-wasip1 lib outputs produced alongside each plugin's hyphen-named
-          # binary target); pass through the two legitimate underscore binaries:
-          #   vsdd_context_resolvers.wasm — cdylib of the vsdd-context-resolvers crate
-          #   wasm_resolver_export.wasm   — SDK example verifying the #[resolver] export
+          # canonical source. The glob catches all 16 native plugins.
           if compgen -G "target/wasm32-wasip1/release/*.wasm" > /dev/null; then
-            for wasm in target/wasm32-wasip1/release/*.wasm; do
-              name=$(basename "$wasm")
-              case "$name" in
-                *_*.wasm)
-                  case "$name" in
-                    vsdd_context_resolvers.wasm|wasm_resolver_export.wasm) ;;
-                    *) echo "skip lib-target stub: $name"; continue ;;
-                  esac ;;
-              esac
-              cp "$wasm" artifact/
-            done
+            cp target/wasm32-wasip1/release/*.wasm artifact/
           fi
           # hello-hook example lives under examples/
           cp target/wasm32-wasip1/release/examples/hello-hook.wasm artifact/ 2>/dev/null || true
 
-      - name: Verify registry-declared WASM plugins are staged
+      - name: Verify all 16 native WASM plugins are staged
         shell: bash
         run: |
-          # Parse all hook plugin WASMs declared in hooks-registry.toml.
-          mapfile -t declared < <(
-            grep -E '^\s*plugin\s*=\s*"hook-plugins/' \
-              plugins/vsdd-factory/hooks-registry.toml \
-              | grep -oE 'hook-plugins/[^"]+' \
-              | sed 's|hook-plugins/||' \
-              | sort -u
-          )
-          # Guard: a parse yielding fewer than 30 entries is almost certainly
-          # a regex failure — an empty parse would vacuously pass every check.
-          if [ "${#declared[@]}" -lt 30 ]; then
-            echo "::error::hooks-registry.toml parse yielded ${#declared[@]} entries (expected >= 30). Possible parse failure."
+          count=$(ls artifact/*.wasm 2>/dev/null | wc -l)
+          if [ "$count" -lt 16 ]; then
+            echo "::error::Only $count wasm files staged in artifact/; expected >= 16."
+            ls artifact/*.wasm 2>/dev/null || true
             exit 1
           fi
-          echo "Parsed ${#declared[@]} plugins from hooks-registry.toml."
-          # Assert every declared plugin exists in the staged artifact dir.
-          # Note: vsdd-context-resolvers.wasm (hyphen, git-tracked from S-12.07)
-          # is NOT produced by cargo build — it lives only in hook-plugins/ on
-          # main, not in the build artifact. Only hooks-registry entries are
-          # checked here; resolvers-registry is checked in the commit-binaries job.
-          missing=()
-          for name in "${declared[@]}"; do
-            [ -f "artifact/$name" ] || missing+=("$name")
-          done
-          if [ "${#missing[@]}" -gt 0 ]; then
-            echo "::error::${#missing[@]} registry-declared WASM(s) absent from artifact/:"
-            printf '  missing: %s\n' "${missing[@]}"
-            exit 1
-          fi
-          echo "Registry-vs-staged: all ${#declared[@]} hooks-registry plugins present in artifact/. OK"
+          echo "Staged $count wasm files."
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
@@ -287,62 +250,20 @@ jobs:
           src="/tmp/artifacts/factory-dispatcher-linux-x64"
           for wasm in "$src"/*.wasm; do
             [ -f "$wasm" ] || continue
-            name=$(basename "$wasm")
-            # Skip underscore-named lib-target stubs (75-103 byte wasm32-wasip1 lib
-            # outputs produced alongside each plugin's hyphen-named binary target).
-            # Two legitimate underscore binaries are passed through:
-            #   vsdd_context_resolvers.wasm — cdylib of vsdd-context-resolvers crate
-            #   wasm_resolver_export.wasm   — SDK example for the #[resolver] macro
-            case "$name" in
-              *_*.wasm)
-                case "$name" in
-                  vsdd_context_resolvers.wasm|wasm_resolver_export.wasm) ;;
-                  *) echo "skip lib-target stub: $name"; continue ;;
-                esac ;;
-            esac
             cp "$wasm" plugins/vsdd-factory/hook-plugins/
-            echo "staged $name"
+            echo "staged $(basename "$wasm")"
           done
 
-      - name: Verify registry-declared WASM plugins are staged
+      - name: Verify all 16 native WASM plugins are staged
         shell: bash
         run: |
-          # Parse hook plugins from hooks-registry.toml.
-          mapfile -t hooks_plugins < <(
-            grep -E '^\s*plugin\s*=\s*"hook-plugins/' \
-              plugins/vsdd-factory/hooks-registry.toml \
-              | grep -oE 'hook-plugins/[^"]+' \
-              | sed 's|hook-plugins/||' \
-              | sort -u
-          )
-          # Parse resolver WASMs from resolvers-registry.toml.
-          mapfile -t resolver_plugins < <(
-            grep -E '^\s*plugin\s*=\s*"hook-plugins/' \
-              plugins/vsdd-factory/resolvers-registry.toml 2>/dev/null \
-              | grep -oE 'hook-plugins/[^"]+' \
-              | sed 's|hook-plugins/||' \
-              | sort -u
-          )
-          # Guard: a parse yielding fewer than 30 entries is almost certainly
-          # a regex failure — an empty parse would vacuously pass every check.
-          if [ "${#hooks_plugins[@]}" -lt 30 ]; then
-            echo "::error::hooks-registry.toml parse yielded ${#hooks_plugins[@]} entries (expected >= 30). Possible parse failure."
+          count=$(ls plugins/vsdd-factory/hook-plugins/*.wasm 2>/dev/null | wc -l)
+          if [ "$count" -lt 16 ]; then
+            echo "::error::Only $count wasm files staged; expected >= 16."
+            ls plugins/vsdd-factory/hook-plugins/*.wasm 2>/dev/null || true
             exit 1
           fi
-          echo "Parsed ${#hooks_plugins[@]} hooks + ${#resolver_plugins[@]} resolvers = $((${#hooks_plugins[@]} + ${#resolver_plugins[@]})) total declared WASMs."
-          # Assert every declared plugin/resolver WASM exists in the staged hook-plugins/ dir.
-          # This includes vsdd-context-resolvers.wasm (hyphen, from resolvers-registry.toml),
-          # which is git-tracked from S-12.07 and present in the main checkout before staging.
-          missing=()
-          for name in "${hooks_plugins[@]}" "${resolver_plugins[@]}"; do
-            [ -f "plugins/vsdd-factory/hook-plugins/$name" ] || missing+=("$name")
-          done
-          if [ "${#missing[@]}" -gt 0 ]; then
-            echo "::error::${#missing[@]} registry-declared WASM(s) absent from hook-plugins/:"
-            printf '  missing: %s\n' "${missing[@]}"
-            exit 1
-          fi
-          echo "Registry-vs-staged: all $((${#hooks_plugins[@]} + ${#resolver_plugins[@]})) declared WASMs present in hook-plugins/. OK"
+          echo "Staged $count wasm files."
 
       - name: Regenerate hooks.json.<platform> variants
         run: scripts/generate-hooks-json.sh

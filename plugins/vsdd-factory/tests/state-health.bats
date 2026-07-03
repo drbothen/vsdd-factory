@@ -148,10 +148,9 @@ _generate_lines() {
 
 # ---------- Skills: content checks ----------
 
-@test "state-health: check-state-health has 8 checks" {
-  # S-18.10 added Check 8 (CLAUDE_AUTOCOMPACT_PCT_OVERRIDE settings verification).
+@test "state-health: check-state-health has 7 checks" {
   run grep -c "^### [0-9]\." "$PLUGIN_ROOT/skills/check-state-health/SKILL.md"
-  [ "$output" -eq 8 ]
+  [ "$output" -eq 7 ]
 }
 
 @test "state-health: compact-state has 6 steps" {

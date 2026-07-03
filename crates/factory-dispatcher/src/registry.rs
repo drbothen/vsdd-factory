@@ -5,17 +5,6 @@
 //! hold. S-1.2 defines the types; S-1.5 consumes capabilities during
 //! plugin instantiation; S-2.2 auto-generates the file from the existing
 //! v0.79.x hooks.json.
-//!
-//! ## S-18.00: PreCompact / PostCompact event-string parsing
-//!
-//! The [`parse_event_type`] function parses the `event` string field from a
-//! `[[hooks]]` entry in hooks-registry.toml into the typed [`crate::invoke::EventType`]
-//! enum (BC-1.15.001 INV1). `"PreCompact"` and `"PostCompact"` are valid event strings
-//! that MUST NOT produce `RegistryError::UnknownEvent`.
-//!
-//! `parse_event_type` is implemented: it delegates to
-//! [`crate::invoke::EventType::from_event_str`], the single source of truth for
-//! event-string → enum mapping (BC-1.15.001 INV1).
 
 use serde::{Deserialize, Serialize};
 use std::collections::HashSet;
@@ -448,35 +437,6 @@ impl Registry {
     }
 }
 
-// ---------------------------------------------------------------------------
-// S-18.00: event-string → EventType parsing (BC-1.15.001 INV1)
-//
-// `parse_event_type` is the registry-side bridge from the TOML `event` string
-// field to the typed `EventType` enum in `invoke.rs`. `"PreCompact"` and
-// `"PostCompact"` MUST parse without error (BC-1.15.001 Architecture Anchors).
-//
-// Implemented: delegates to `EventType::from_event_str` — single source of
-// truth for event-string → enum mapping. Unknown event strings return
-// `EventType::Other` (fail-open for novel harness event types).
-// ---------------------------------------------------------------------------
-
-/// Parse the `event` string from a hooks-registry.toml `[[hooks]]` entry into
-/// the typed [`crate::invoke::EventType`] enum.
-///
-/// `"PreCompact"` and `"PostCompact"` are valid event strings and MUST NOT produce
-/// an error (BC-1.15.001 Architecture Anchors). Unknown event strings return
-/// `EventType::Other` rather than an error so future harness event types do not
-/// cause registry-load failures (fail-open for novel event types).
-///
-/// # BC-1.15.001 INV1
-///
-/// Delegates to [`crate::invoke::EventType::from_event_str`] — single source of
-/// truth for event-string → enum mapping. The registry side bridges the typed
-/// enum into the TOML `event` string field without introducing a second dispatch table.
-pub fn parse_event_type(event: &str) -> crate::invoke::EventType {
-    crate::invoke::EventType::from_event_str(event)
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -751,8 +711,9 @@ plugin = "{abs_str}"
 // Harness 4 — serde_default: absent `async` field → false; string `async` → parse error.
 //
 // These tests exercise Registry::parse_str() directly (no I/O).
-// validate_async_block_invariant() is fully implemented (S-15.01 T-3f delivered).
-// All tests in this module are GREEN.
+// All tests must fail until T-3f is implemented (validate_async_block_invariant is todo!()).
+// The schema_version tests fail immediately because REGISTRY_SCHEMA_VERSION = 2 and
+// the existing tests use schema_version = 1 — the stub already enforces the version check.
 // ---------------------------------------------------------------------------
 
 #[cfg(test)]
@@ -766,8 +727,8 @@ mod s15_01_vp078_harness_1_lint_invariant {
 
     /// VP-078 H1: v1 registry rejected with E-REG-001 (SchemaVersion error).
     ///
-    /// validate() returns Err(SchemaVersion{got:1,expected:2}).
-    /// Enforced by REGISTRY_SCHEMA_VERSION = 2 constant.
+    /// RED: validate() returns Err(SchemaVersion{got:1,expected:2}).
+    /// Already enforced by REGISTRY_SCHEMA_VERSION = 2 constant in the stub.
     #[test]
     fn test_BC_7_06_001_schema_v1_rejected_with_e_reg_001() {
         let toml = r#"
@@ -793,7 +754,7 @@ plugin = "hook-plugins/some-validator.wasm"
 
     /// VP-078 H1: missing schema_version field rejected (E-REG-001 boundary).
     ///
-    /// TOML without schema_version key — parse fails or schema_version defaults to 0,
+    /// RED: TOML without schema_version key — parse fails or schema_version defaults to 0,
     /// which != 2; either way the registry is rejected.
     #[test]
     fn test_BC_7_06_001_missing_schema_version_rejected() {
@@ -814,7 +775,8 @@ plugin = "hook-plugins/some-validator.wasm"
 
     /// VP-078 H1: schema_version = 2 with valid entries passes.
     ///
-    /// GREEN: validate_async_block_invariant() is implemented (S-15.01 T-3f).
+    /// RED until T-3f: validate_async_block_invariant() is todo!() — will panic.
+    /// After T-3f, this should return Ok.
     #[test]
     fn test_BC_7_06_001_schema_v2_with_valid_entries_passes() {
         let toml = r#"
@@ -826,6 +788,7 @@ event = "PostToolUse"
 plugin = "hook-plugins/capture-commit-activity.wasm"
 async = true
 "#;
+        // RED: todo!() in validate_async_block_invariant panics before we get Ok.
         let result = Registry::parse_str(toml);
         assert!(
             result.is_ok(),
@@ -841,7 +804,7 @@ async = true
 
     /// VP-078 H1 / VP-078 Rust unit test: on_error=block AND async=true → E-REG-002.
     ///
-    /// GREEN: validate_async_block_invariant() is implemented (S-15.01 T-3f).
+    /// RED: validate_async_block_invariant() is todo!() — panics.
     #[test]
     fn test_BC_7_06_001_block_plus_async_true_rejected_e_reg_002() {
         let toml = r#"
@@ -858,6 +821,7 @@ priority = 400
 [hooks.config]
 script_path = "bad.sh"
 "#;
+        // RED: todo!() in validate_async_block_invariant — panics with "not yet implemented".
         let result = Registry::parse_str(toml);
         assert!(
             result.is_err(),
@@ -875,7 +839,7 @@ script_path = "bad.sh"
 
     /// VP-078 H1: on_error=block with async absent (defaults false) → accepted.
     ///
-    /// GREEN: validate_async_block_invariant() is implemented (S-15.01 T-3f).
+    /// RED: validate_async_block_invariant() is todo!() — panics before returning Ok.
     #[test]
     fn test_BC_7_06_001_block_without_async_accepted() {
         let toml = r#"
@@ -892,6 +856,7 @@ priority = 400
 script_path = "valid.sh"
 "#;
         // async absent → default false → invariant satisfied → Ok.
+        // RED: todo!() in validate_async_block_invariant panics.
         let result = Registry::parse_str(toml);
         assert!(
             result.is_ok(),
@@ -902,7 +867,7 @@ script_path = "valid.sh"
 
     /// VP-078 H1: async=true with on_error=continue (not block) → accepted.
     ///
-    /// GREEN: validate_async_block_invariant() is implemented (S-15.01 T-3f).
+    /// RED: validate_async_block_invariant() is todo!() — panics.
     #[test]
     fn test_BC_7_06_001_async_true_with_continue_accepted() {
         let toml = r#"
@@ -919,6 +884,7 @@ priority = 100
 [hooks.config]
 script_path = "telemetry.sh"
 "#;
+        // RED: todo!() in validate_async_block_invariant panics.
         let result = Registry::parse_str(toml);
         assert!(
             result.is_ok(),
@@ -940,7 +906,7 @@ mod s15_01_vp078_harness_4_serde_default {
 
     /// VP-078 H4a: explicit async=true → async_flag = true.
     ///
-    /// GREEN: validate_async_block_invariant() is implemented (S-15.01 T-3f).
+    /// RED: validate_async_block_invariant() is todo!() — panics before we can assert.
     #[test]
     fn test_BC_7_06_001_async_explicit_true_parsed_as_true() {
         let toml = r#"
@@ -957,6 +923,7 @@ priority = 100
 [hooks.config]
 script_path = "telemetry.sh"
 "#;
+        // RED: todo!() in validate_async_block_invariant panics.
         let registry = Registry::parse_str(toml).expect("valid toml must parse");
         let entry = &registry.hooks[0];
         assert!(
@@ -967,7 +934,7 @@ script_path = "telemetry.sh"
 
     /// VP-078 H4b: explicit async=false → async_flag = false.
     ///
-    /// GREEN: validate_async_block_invariant() is implemented (S-15.01 T-3f).
+    /// RED: validate_async_block_invariant() is todo!() — panics.
     #[test]
     fn test_BC_7_06_001_async_explicit_false_parsed_as_false() {
         let toml = r#"
@@ -984,6 +951,7 @@ priority = 100
 [hooks.config]
 script_path = "blocking.sh"
 "#;
+        // RED: todo!() in validate_async_block_invariant panics.
         let registry = Registry::parse_str(toml).expect("valid toml must parse");
         let entry = &registry.hooks[0];
         assert!(
@@ -994,7 +962,7 @@ script_path = "blocking.sh"
 
     /// VP-078 H4c: async field absent → async_flag = false (serde-default).
     ///
-    /// GREEN: validate_async_block_invariant() is implemented (S-15.01 T-3f).
+    /// RED: validate_async_block_invariant() is todo!() — panics.
     #[test]
     fn test_BC_7_06_001_async_absent_defaults_to_false() {
         let toml = r#"
@@ -1010,6 +978,7 @@ priority = 100
 [hooks.config]
 script_path = "blocking.sh"
 "#;
+        // RED: todo!() in validate_async_block_invariant panics.
         let registry = Registry::parse_str(toml).expect("valid toml must parse");
         let entry = &registry.hooks[0];
         assert!(
@@ -1020,7 +989,8 @@ script_path = "blocking.sh"
 
     /// VP-078 H4d: async = "true" (string, not bool) → parse error.
     ///
-    /// TOML does not allow string where bool is expected; fails at TOML parse level.
+    /// TOML does not allow string where bool is expected.
+    /// RED: this may fail at toml parse before reaching validate_async_block_invariant.
     #[test]
     fn test_BC_7_06_001_async_string_value_is_parse_error() {
         let toml = r#"

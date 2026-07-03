@@ -52,22 +52,18 @@ _require_artifacts() {
 # Extract the production path_allow for validate-dispatch-advance from hooks-registry.toml.
 # Also validates AC-19: confirms tool = "Edit|Write" (not "Write|Edit") and no file_pattern.
 _write_production_registry() {
-  # AC-19 check 1: hook entry must exist with Edit|Write tool form
-  # After S-18.04b the registry has TWO entries for validate-dispatch-advance:
-  #   - Edit|Write: structural validation of STATE.md / INDEX.md (pre-ADR-029 behavior retained)
-  #   - Bash: chain detection via git_context (ADR-029 §Decision 1 new trigger)
-  # AC-19 validates the FIRST (Edit|Write) entry for the Q5 canonical form.
+  # AC-19 check 1: hook entry must exist with correct tool form
   if ! grep -q 'name = "validate-dispatch-advance"' "$PRODUCTION_REGISTRY"; then
     echo "FAIL: validate-dispatch-advance entry not found in production registry at $PRODUCTION_REGISTRY" >&2
     return 1
   fi
 
-  # AC-19 check 2: first entry must have tool = "Edit|Write" (canonical form per Q5/Q6 — NOT "Write|Edit")
+  # AC-19 check 2: tool = "Edit|Write" (canonical form per Q5/Q6 — NOT "Write|Edit")
   local tool_line
   tool_line=$(awk '/^name = "validate-dispatch-advance"$/{found=1} found && /^tool =/{print; exit}' "$PRODUCTION_REGISTRY")
   if ! echo "$tool_line" | grep -q 'tool = "Edit|Write"'; then
-    echo "FAIL: production registry first entry uses wrong tool form: $tool_line" >&2
-    echo "FAIL: must be tool = \"Edit|Write\" (canonical Q5 form for structural validation entry)" >&2
+    echo "FAIL: production registry uses wrong tool form: $tool_line" >&2
+    echo "FAIL: must be tool = \"Edit|Write\" (canonical Q5 form)" >&2
     return 1
   fi
 
@@ -77,12 +73,10 @@ _write_production_registry() {
     return 1
   fi
 
-  # Extract path_allow from production registry for validate-dispatch-advance entry.
-  # Scope to the FIRST [[hooks]] entry with this name (Edit|Write — structural validation).
-  # After S-18.04b the registry has two entries; extract only the first.
+  # Extract path_allow from production registry for validate-dispatch-advance entry
   local prod_path_allow
   prod_path_allow=$(awk '
-    /^name = "validate-dispatch-advance"$/ && !found { in_hook=1; found=1 }
+    /^name = "validate-dispatch-advance"$/ { in_hook=1 }
     in_hook && /^path_allow = \[/ { in_pa=1; next }
     in_pa && /^\]/ { in_pa=0; in_hook=0 }
     in_pa { gsub(/^[[:space:]]+/, ""); gsub(/,$/, ""); print }

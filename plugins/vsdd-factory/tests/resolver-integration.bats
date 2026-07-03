@@ -556,17 +556,16 @@ context_key = "long_running"
 path_allow = []
 RESOLVER_TOML
 
-    local sink_file log_dir
+    local sink_file
     sink_file="${BATS_TMPDIR}/timeout-sink-${RANDOM}.jsonl"
-    log_dir="$(mktemp -d "${BATS_TMPDIR}/timeout-log-XXXXXX")"
 
     local payload='{"event_name":"SubagentStop","session_id":"bats-timeout","dispatcher_trace_id":"bats-timeout-trace","agent_type":"wave-gate-dispatch","last_assistant_message":"Wave gate adversary pass completed for this iteration of the story review cycle."}'
 
-    # Time the dispatch for diagnostic output in error messages.
+    # Time the dispatch for the timeout-fired lower-bound assertion.
     # Use python3 for millisecond timestamps (portable; date +%s%3N is GNU-only).
     local start_ms end_ms elapsed_ms
     start_ms=$(python3 -c "import time; print(int(time.time() * 1000))")
-    run bash -c "cd '${temp_plugin_root}' && printf '%s' '${payload}' | VSDD_SINK_FILE='${sink_file}' VSDD_LOG_DIR='${log_dir}' CLAUDE_PLUGIN_ROOT='${temp_plugin_root}' CLAUDE_PROJECT_DIR='${FACTORY_TMP}' '${DISPATCHER}'"
+    run bash -c "cd '${temp_plugin_root}' && printf '%s' '${payload}' | VSDD_SINK_FILE='${sink_file}' CLAUDE_PLUGIN_ROOT='${temp_plugin_root}' CLAUDE_PROJECT_DIR='${FACTORY_TMP}' '${DISPATCHER}'"
     end_ms=$(python3 -c "import time; print(int(time.time() * 1000))")
     elapsed_ms=$((end_ms - start_ms))
 
@@ -578,31 +577,36 @@ RESOLVER_TOML
         false
     }
 
-    # Assertion 1 (BEHAVIORAL — timeout fired, InternalLog JSONL evidence):
+    # Assertion 1 (timeout-fired, LOWER bound only): the long_running resolver's
+    # timeout fired and did not fire too early.
     #
-    # The dispatcher writes a resolver.error {"error_kind":"timeout"} event to its
-    # InternalLog (crates/factory-dispatcher/src/executor.rs::emit_resolver_error) when
-    # the epoch deadline fires and terminates the long_running resolver. Reading that
-    # event directly proves the timeout mechanism fired — no wall-clock timing required.
+    # The long_running resolver spins forever; the dispatcher's epoch interruption
+    # terminates it at RESOLVER_TIMEOUT_MS (the hardcoded `const RESOLVER_TIMEOUT_MS:
+    # u64 = 1500;` in crates/factory-dispatcher/src/resolver_loader.rs). Because the
+    # resolver cannot return on its own, the dispatch cannot complete faster than
+    # ~the timeout window. A lower bound of 1300ms therefore proves the timeout
+    # actually fired at ~1500ms rather than being skipped or firing prematurely.
     #
-    # Prior approach (wall-clock lower bound >= 1300ms) was flaky: on fast darwin-arm64
-    # hosts the epoch interrupt fires at ~1210ms, within the 1500ms window but below the
-    # 1300ms assertion threshold. The JSONL check is non-flaky because it directly
-    # observes the dispatcher's own timeout record rather than measuring elapsed real time
-    # which varies with WASM startup overhead and machine load.
+    # Lower-bound rationale (F-P4-005 / F-P5-007 Option A):
+    #   Measured wall time is ~1276ms+ in practice; epoch tick = 10ms. The shared
+    #   epoch ticker thread may pre-advance epochs before set_epoch_deadline is
+    #   called, slightly shrinking the effective window. 1300ms catches any deadline
+    #   reduction >13.3% (1300/1500 = 86.67% threshold) — e.g. a regression firing
+    #   at 1125ms (25% early) or 800ms is caught — while tolerating the ~200-400ms
+    #   measurement variance observed across machines/CI runners.
     #
-    # resolver.error fields (InternalLog, flattened top-level JSON):
-    #   "type":"resolver.error"  "resolver_name":"long_running"  "error_kind":"timeout"
-    local log_file="${log_dir}/logs/dispatcher-internal-$(date +%Y-%m-%d).jsonl"
-    [[ -f "${log_file}" ]] || {
-        echo "UNEXPECTED: InternalLog not written at ${log_file} (elapsed ${elapsed_ms}ms)" >&2
-        false
-    }
-    grep '"type":"resolver.error"' "${log_file}" \
-      | grep '"error_kind":"timeout"' \
-      | grep -q '"resolver_name":"long_running"' || {
-        echo "UNEXPECTED: no resolver.error/timeout record for long_running in InternalLog (elapsed ${elapsed_ms}ms)" >&2
-        cat "${log_file}" >&2
+    # There is intentionally NO wall-clock UPPER bound — see the test header NOTE
+    # (TD #67): epoch interruption guarantees completion, so a true hang is caught
+    # by the bats/CI job-level timeout, and an upper bound only produced false
+    # failures on loaded CI runners.
+    #
+    # Architecture note: resolver.error (timeout) events are written to the
+    # dispatcher's InternalLog, NOT to base_host_ctx.events, so they do NOT appear
+    # in VSDD_SINK_FILE. The timeout is therefore verified structurally via the
+    # lower bound on elapsed time rather than by reading an error record.
+    [ "${elapsed_ms}" -ge 1300 ] || {
+        echo "UNEXPECTED: dispatch took only ${elapsed_ms}ms — long_running timeout may not have fired at expected 1500ms" >&2
+        echo "Expected >= 1300ms (RESOLVER_TIMEOUT_MS=1500ms; ~200ms tolerance for bats/epoch overhead)" >&2
         false
     }
 
@@ -625,5 +629,4 @@ RESOLVER_TOML
 
     rm -rf "${temp_plugin_root}"
     rm -f "${sink_file}"
-    rm -rf "${log_dir}"
 }

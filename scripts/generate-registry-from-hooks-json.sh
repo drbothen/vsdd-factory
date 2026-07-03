@@ -70,12 +70,6 @@ NATIVE_PORTED_HOOKS=(
 POST_HISTORICAL_SCRIPTS=(
   validate-count-propagation
   validate-red-ratio
-  # S-18.00: PreCompact hook — uses PreCompact event type not present in the
-  # historical hooks.json snapshot; registered directly in hooks-registry.toml.
-  check-harness-version
-  # S-18.05: PostCompact hook — uses PostCompact event type not present in the
-  # historical hooks.json snapshot; registered directly in hooks-registry.toml.
-  postcompact-reanchor
 )
 
 # Utility scripts under hooks/ that are NOT hook plugins and must NEVER be
@@ -84,13 +78,8 @@ POST_HISTORICAL_SCRIPTS=(
 # S-15.15: update-cargo-audit-cache is a bash data provisioner (ADR-021
 # Option b) — it provisions .factory/hooks/cargo-audit-cache.json for the
 # validate-policies-schema WASM hook to read. It is not a dispatcher hook.
-# S-18.04b: precompact-flush-prune is a log-pruning utility invoked by
-# check-state-health (NOT by precompact-flush.wasm — per AC-012 / VP-090 §3,
-# the flush hook MUST NOT call prune). It is NOT a dispatcher hook
-# (explicitly tested in precompact-flush-prune.bats).
 NON_HOOK_SCRIPTS=(
   update-cargo-audit-cache
-  precompact-flush-prune
 )
 
 # Allow-list of hook basenames that MUST block on plugin error rather

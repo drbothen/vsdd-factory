@@ -557,13 +557,9 @@ jobs:
 
       - name: Cache cargo
         # Pinned to commit SHA for security (TD #74); resolves to v2.9.1.
-        # shared-key suffix -v2: busts stale cache that held a pre-F-P5-003
-        # validate-state-structure.wasm binary (built before the banner-block-scoped
-        # scan fix); without the suffix, the cache hit restores the old artifact and
-        # bats pass-real-state-md-snapshot fails with "no SIZE BUDGET banner found".
         uses: Swatinem/rust-cache@c19371144df3bb44fab255c43d04cbc2ab54d1c4  # v2.9.1
         with:
-          shared-key: bats-full-suite-linux-v2
+          shared-key: bats-full-suite-linux
           cache-on-failure: true
 
       - name: Build factory-dispatcher (release)
@@ -603,70 +599,3 @@ jobs:
         # This is the canonical gate that release.yml runs. Running it on every PR
         # catches failures before they reach the release tag.
         run: cd plugins/vsdd-factory/tests && ./run-all.sh
-
-  bats-wave-handoff-macos:
-    # BSD/macOS portability gate (F-P11-002). The bats-full-suite job above runs
-    # run-all.sh on ubuntu-latest (GNU grep/sed/awk/date). This job exercises the
-    # wave-handoff and wave-gate-hooks suites on macos-latest (BSD grep/sed/awk)
-    # to catch POSIX divergence that silently passes under GNU tooling:
-    #
-    #   * grep -E '\s' on BSD grep matches literal 's', not whitespace class
-    #   * sed -i requires an extension argument on BSD sed
-    #   * date -u formatting flags differ between GNU coreutils and BSD date
-    #   * find -regex and awk exit-condition semantics have BSD/GNU divergence
-    #
-    # Root cause: F-P11-001 (BSD-grep \s silent failure → wave misclassification)
-    # was hidden because CI only ran the full suite on Linux. This job closes that
-    # coverage gap for the operator-invoked shell skills in E-18.
-    #
-    # COVERAGE SCOPE — intentionally scoped to pure-shell suites:
-    #   INCLUDED:  wave-handoff.bats     (POSIX bash+awk+grep+git; no jq/yq/dispatcher)
-    #              wave-gate-hooks.bats  (jq only; no dispatcher/WASM/Rust)
-    #   EXCLUDED:  Full run-all.sh suite — many suites require the factory-dispatcher
-    #              native binary + WASM plugins (built by cargo build --release), which
-    #              would add ~15 min Rust cross-compile on a fresh macOS runner.
-    #              The cargo-host matrix job already runs Rust tests on macos-latest;
-    #              full bats-with-dispatcher macOS coverage is tracked as a future
-    #              enhancement once TD #70 (release pipeline build-time optimization)
-    #              lands and cache warm-up for macOS bats is economical.
-    #
-    # BLOCKING: this job is a required status check equivalent — it uses the same
-    # `on:` trigger as all other jobs (PRs to main/develop). Any failure blocks merge.
-    name: bats-wave-handoff (macos)
-    runs-on: macos-latest
-    steps:
-      - uses: actions/checkout@v6
-
-      - name: Install tools
-        # bats, jq, bash, and PyYAML are the runtime requirements for wave-handoff.bats
-        # and wave-gate-hooks.bats:
-        #   bash >= 4: associative arrays (declare -A / local -A) in write-wave-state.sh;
-        #              macOS ships bash 3.2, Homebrew bash 5 provides the required version.
-        #   PyYAML: validate-wave-gate-prerequisite.sh uses 'import yaml' for YAML parsing
-        #           (documented requirement in hook header); absent on macOS runners.
-        # Neither suite uses yq, the Rust toolchain, or the dispatcher binary.
-        run: |
-          brew install bats-core jq bash
-          pip3 install --quiet --break-system-packages pyyaml
-
-      - name: Configure git identity
-        # wave-handoff.bats creates hermetic git repos in temp dirs and makes commits
-        # inside them. A valid git user identity is required; without it git commit
-        # fails with "Please tell me who you are." on a fresh CI runner.
-        run: |
-          git config --global user.email "ci-bats@vsdd-factory.test"
-          git config --global user.name "CI Bats Runner"
-
-      - name: Run wave-handoff bats (BSD/macOS)
-        # The wave-handoff skill (and other E-18 shell skills) is operator-invoked on
-        # macOS/BSD as well as Linux. Running these suites on BSD grep/sed/awk/date
-        # catches POSIX divergence (e.g., grep -E '\s' → BSD literal 's' vs GNU
-        # whitespace class) before it reaches operators running on macOS/BSD.
-        # PATH is extended to pick up Homebrew bash 5 (required for declare -A in
-        # write-wave-state.sh) ahead of the macOS system bash 3.2.
-        shell: bash
-        run: |
-          export PATH="$(brew --prefix bash)/bin:$PATH"
-          bash --version | head -1
-          bats plugins/vsdd-factory/tests/wave-handoff.bats
-          bats plugins/vsdd-factory/tests/wave-gate-hooks.bats

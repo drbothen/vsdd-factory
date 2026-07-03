@@ -57,13 +57,6 @@ pub const HOST_ABI_VERSION: u32 = 1;
 /// rendered the validator silently inert against the real production target.
 ///
 /// F-P5-002: raise from 65536 to 524288.
-/// F-P5-003: banner-block-scoped scanning added in `extract_banner_line_count` — the
-///   wc-l pattern is now searched only within the `<!-- STATE.md SIZE BUDGET ... -->`
-///   block rather than the full document, preventing body-prose false matches on
-///   `N lines (wc-l)` occurrences in Phase Progress rows or compaction history notes.
-///   This fix is load-bearing for the `pass-real-state-md-snapshot` bats test
-///   (F-P2-002): pre-F-P5-003 WASM builds incorrectly reported "no SIZE BUDGET banner
-///   found" against a STATE.md that contains a valid banner.
 pub const MAX_BYTES_STATE_MD: u32 = 524_288;
 
 // ---------------------------------------------------------------------------
@@ -344,44 +337,30 @@ pub fn validate_dual_margin(content: &str) -> Option<Violation> {
 /// # F-P5-005 fix
 /// Promoted from `fn` to `pub fn` — visibility consistent with sibling extractor helpers
 /// (`extract_banner_line_count`, `extract_trajectory_tail_line`, `count_arrow_digit_matches`).
-/// # F-P5-006 fix
-/// Replaced `content.find(budget_marker)` first-occurrence search with an HTML-comment
-/// block scanner. The prior algorithm broke when `STATE.md SIZE BUDGET` appeared in YAML
-/// frontmatter prose (e.g., in a `last_amended:` value mentioning the compaction) BEFORE
-/// the actual HTML comment block. `content.find` returned the frontmatter offset, backward
-/// scan found no `<!--`, and `extract_banner_block` returned `None` — causing the hook to
-/// emit "no SIZE BUDGET banner found" against a fully-valid STATE.md. The fix walks each
-/// `<!--…-->` block in document order and returns the first that contains the marker.
 pub fn extract_banner_block(content: &str) -> Option<&str> {
     let budget_marker = "STATE.md SIZE BUDGET";
     let open_marker = "<!--";
     let close_marker = "-->";
 
-    // F-P5-006: walk HTML comment blocks in document order. Return the first block whose
-    // inner content contains the SIZE BUDGET marker. This correctly skips occurrences of
-    // the marker string that appear in non-comment prose (e.g., YAML frontmatter fields).
-    let mut search_pos = 0usize;
-    loop {
-        // Find the next opening `<!--` from search_pos.
-        let rel_open = content[search_pos..].find(open_marker)?;
-        let abs_open_pos = search_pos + rel_open;
-        let after_open = abs_open_pos + open_marker.len();
+    // Find the SIZE BUDGET marker.
+    let budget_pos = content.find(budget_marker)?;
 
-        // Find the closing `-->` after this opening.
-        let rel_close = content[after_open..].find(close_marker)?;
-        let close_pos = after_open + rel_close;
+    // Scan backwards from budget_pos to find the opening `<!--`.
+    // We look in the substring content[0..budget_pos].
+    let before_marker = &content[..budget_pos];
+    let open_pos = before_marker.rfind(open_marker)?;
+    let after_open = open_pos + open_marker.len();
 
-        // Verify char boundaries (ASCII delimiters, but be defensive).
-        if content.is_char_boundary(after_open) && content.is_char_boundary(close_pos) {
-            let block = &content[after_open..close_pos];
-            if block.contains(budget_marker) {
-                return Some(block);
-            }
-        }
+    // Find the closing `-->` after the opening.
+    let rel_close = content[after_open..].find(close_marker)?;
+    let close_pos = after_open + rel_close;
 
-        // Not the right block — advance past this comment's closing `-->`.
-        search_pos = close_pos + close_marker.len();
+    // Verify char boundaries (ASCII delimiters, but be defensive).
+    if !content.is_char_boundary(after_open) || !content.is_char_boundary(close_pos) {
+        return None;
     }
+
+    Some(&content[after_open..close_pos])
 }
 
 // ---------------------------------------------------------------------------
