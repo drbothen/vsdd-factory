@@ -967,6 +967,14 @@ dependencies = [
 ]
 
 [[package]]
+name = "factory-lock"
+version = "0.0.1"
+dependencies = [
+ "chrono",
+ "factory-lock-parse",
+]
+
+[[package]]
 name = "factory-lock-parse"
 version = "0.0.1"
 dependencies = [
@@ -2267,6 +2275,16 @@ name = "pr-manager-completion-guard"
 version = "0.0.1"
 dependencies = [
  "regex",
+ "serde_json",
+ "vsdd-hook-sdk",
+]
+
+[[package]]
+name = "precompact-flush"
+version = "0.0.1"
+dependencies = [
+ "chrono",
+ "factory-lock",
  "serde_json",
  "vsdd-hook-sdk",
 ]
@@ -3743,6 +3761,14 @@ version = "0.0.1"
 dependencies = [
  "serde",
  "serde_json",
+ "validate-burst-log",
+ "vsdd-hook-sdk",
+]
+
+[[package]]
+name = "validate-heavy-op-delegation"
+version = "0.0.1"
+dependencies = [
  "vsdd-hook-sdk",
 ]
 
@@ -3807,6 +3833,15 @@ version = "0.1.0"
 dependencies = [
  "serde",
  "serde_json",
+ "vsdd-hook-sdk",
+]
+
+[[package]]
+name = "validate-wave-handoff-completeness"
+version = "0.0.1"
+dependencies = [
+ "serde_json",
+ "serde_norway",
  "vsdd-hook-sdk",
 ]
 

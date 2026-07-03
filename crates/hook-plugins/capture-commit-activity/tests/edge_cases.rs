@@ -29,6 +29,7 @@ fn bash_payload(command: &str) -> HookPayload {
         subagent_name: None,
         last_assistant_message: None,
         result: None,
+        extra: std::collections::HashMap::new(),
     }
 }
 
@@ -211,6 +212,7 @@ fn test_VP_043_non_bash_tool_always_continue() {
             subagent_name: None,
             last_assistant_message: None,
             result: None,
+            extra: std::collections::HashMap::new(),
         };
         let result = commit_hook_logic(
             payload,

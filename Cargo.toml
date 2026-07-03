@@ -37,12 +37,16 @@ members = [
     "crates/hook-plugins/validate-stable-anchors",
     "crates/hook-plugins/validate-policies-schema",
     "crates/hook-plugins/validate-trajectory-tail-cell-completeness",
+    "crates/hook-plugins/validate-wave-handoff-completeness",
+    "crates/hook-plugins/validate-heavy-op-delegation",
     "crates/sink-core",
     "crates/sink-file",
     "crates/sink-otel-grpc",
     "crates/sink-http",
     "crates/sink-datadog",
     "crates/sink-honeycomb",
+    "crates/factory-lock",
+    "crates/hook-plugins/precompact-flush",
 ]
 
 [workspace.package]
@@ -121,6 +125,15 @@ non_snake_case = "allow"
 unwrap_used = "warn"
 expect_used = "warn"
 panic = "warn"
+# S-18.02: doc_lazy_continuation fires on multi-line doc comment continuation
+# lines in the Red Gate test suite (tests/unit.rs for validate-wave-handoff-
+# completeness). The test file is test-writer authored and cannot be modified
+# by the implementer; the lint fires on doc comment paragraph continuation
+# lines that follow a list-item line (e.g. `/// - item\n/// continuation`).
+# This is a style-only lint with no correctness impact; suppressed workspace-
+# wide consistent with the non_snake_case suppression for BC-tracing test
+# function names.
+doc_lazy_continuation = "allow"
 
 [workspace.lints.rust.unexpected_cfgs]
 # S-15.01 T-3b/AC-015: Kani proof harnesses use `#[cfg(kani)]` for the

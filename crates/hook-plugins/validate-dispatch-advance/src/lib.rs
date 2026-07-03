@@ -544,6 +544,86 @@ fn scan_max_d_nnn(s: &str) -> u64 {
     max
 }
 
+/// Extract the `current_cycle:` frontmatter value from YAML frontmatter.
+///
+/// Uses the same scanning strategy as `extract_current_step`: anchors to the
+/// opening `---` delimiter and scans for `current_cycle:` within the first
+/// frontmatter block, returning the trimmed value (with optional surrounding
+/// quotes stripped).
+///
+/// Returns `None` if the frontmatter block is absent or `current_cycle:` is
+/// not present. Fail-open: callers treat `None` as "unknown cycle" and apply
+/// the conservative (F5-applicable) check set.
+///
+/// # BC trace
+/// D-439(b)/D-451(c) F5-scope gate — 4-index-citation + trajectory-tail
+/// requirements apply ONLY to the F5 engine-discipline cycle
+/// (`v1.0-feature-engine-discipline-pass-1`). This helper enables the gate
+/// check in `validate_state_md`.
+fn extract_current_cycle(content: &str) -> Option<&str> {
+    // Strip BOM if present.
+    let content = content.trim_start_matches('\u{feff}');
+    let after_open = content.strip_prefix("---")?;
+    let body_start = after_open
+        .strip_prefix('\n')
+        .or_else(|| after_open.strip_prefix("\r\n"))
+        .unwrap_or(after_open);
+
+    // Find the closing `---` delimiter.
+    let mut fm_end = None;
+    let mut offset = 0usize;
+    for line in body_start.lines() {
+        if line == "---" {
+            fm_end = Some(offset);
+            break;
+        }
+        offset += line.len() + 1;
+    }
+    let fm_body = match fm_end {
+        Some(end) => {
+            if body_start.is_char_boundary(end) {
+                &body_start[..end]
+            } else {
+                body_start.get(..end)?
+            }
+        }
+        None => body_start,
+    };
+
+    // Scan frontmatter body for the `current_cycle:` key.
+    for line in fm_body.lines() {
+        let trimmed = line.trim_start();
+        let prefix = "current_cycle:";
+        if let Some(rest) = trimmed.strip_prefix(prefix) {
+            let value = rest.trim();
+            let value = value
+                .strip_prefix('\'')
+                .and_then(|v| v.strip_suffix('\''))
+                .or_else(|| value.strip_prefix('"').and_then(|v| v.strip_suffix('"')))
+                .unwrap_or(value);
+            return Some(value);
+        }
+    }
+    None
+}
+
+/// The sole F5 engine-discipline cycle identifier for which 4-index-citation
+/// and trajectory-tail checks apply (D-439(b) + D-451(c) F5-scope).
+const F5_CYCLE_ID: &str = "v1.0-feature-engine-discipline-pass-1";
+
+/// Returns `true` when `current_cycle` is the F5 engine-discipline cycle —
+/// the only cycle for which D-439(b) 4-index-citation + D-451(c)
+/// trajectory-tail checks are required.
+///
+/// All other cycles (e.g. `v1.0-brownfield-backfill`) use bare dispatch-step
+/// labels for `current_step:` and MUST NOT be subjected to these checks.
+fn is_f5_cycle(current_cycle: Option<&str>) -> bool {
+    // Conservative: if cycle is unknown (None), apply F5 checks to avoid
+    // silently disabling them on a genuinely-F5 state file that is missing
+    // the current_cycle: field.
+    current_cycle.is_none_or(|c| c == F5_CYCLE_ID)
+}
+
 /// Orchestrate all STATE.md validation checks.
 ///
 /// Extracts `current_step:` value, runs all 4 checks, accumulates non-None
@@ -555,8 +635,24 @@ fn scan_max_d_nnn(s: &str) -> u64 {
 /// skip is observable in dispatcher telemetry. This is consistent with the
 /// read-error path which also produces Continue + log_warn.
 ///
+/// # Cycle-identity gate (D-439(b)/D-451(c) F5-scope)
+///
+/// `check_index_version_cites` and `check_trajectory_tail_length` are gated
+/// on the F5 engine-discipline cycle (`v1.0-feature-engine-discipline-pass-1`).
+/// Brownfield and other cycles use bare dispatch-step labels for `current_step:`
+/// (e.g. `D-689-S18.14-3CLEAN-CONVERGED-PROMOTION-2026-06-22`) which do not
+/// contain 4-index cites or trajectory-tail markers — running these checks
+/// unconditionally produces false-positive blocks on every correct brownfield
+/// STATE.md write. The gate reads `current_cycle:` from frontmatter; if absent,
+/// the conservative path (apply F5 checks) is taken to prevent silently
+/// disabling checks on a genuine F5 state file.
+///
+/// `check_forbidden_meta_commentary` and `check_d_chain_currency` run
+/// unconditionally for all cycles.
+///
 /// # BC trace
-/// BC-5.39.006 v1.1 postcondition 1/6/7; invariant 7/9; F-P1-004.
+/// BC-5.39.006 v1.1 postcondition 1/6/7; invariant 7/9; F-P1-004;
+/// D-439(b)/D-451(c) F5-scope gate.
 pub fn validate_state_md(content: &str) -> Vec<Violation> {
     let current_step = match extract_current_step(content) {
         Some(v) => v,
@@ -567,16 +663,29 @@ pub fn validate_state_md(content: &str) -> Vec<Violation> {
         }
     };
 
+    // Determine whether F5-only checks apply (D-439(b)/D-451(c) F5-scope gate).
+    let current_cycle = extract_current_cycle(content);
+    let apply_f5_checks = is_f5_cycle(current_cycle);
+
     let mut violations: Vec<Violation> = Vec::new();
 
-    // check_forbidden_meta_commentary returns Vec — extend (F-P1-012 multi-pattern).
+    // check_forbidden_meta_commentary runs unconditionally for all cycles.
     violations.extend(check_forbidden_meta_commentary(current_step));
-    if let Some(v) = check_index_version_cites(current_step) {
-        violations.push(v);
+
+    // 4-index-citation and trajectory-tail checks are F5-cycle-specific.
+    // D-439(b) + D-451(c): required ONLY when current_cycle is the F5
+    // engine-discipline cycle. Brownfield current_step labels omit these
+    // markers by design.
+    if apply_f5_checks {
+        if let Some(v) = check_index_version_cites(current_step) {
+            violations.push(v);
+        }
+        if let Some(v) = check_trajectory_tail_length(current_step) {
+            violations.push(v);
+        }
     }
-    if let Some(v) = check_trajectory_tail_length(current_step) {
-        violations.push(v);
-    }
+
+    // D-chain currency check runs unconditionally for all cycles.
     if let Some(v) = check_d_chain_currency(content, current_step) {
         violations.push(v);
     }
@@ -732,6 +841,167 @@ fn safe_truncate(s: &str, max_chars: usize) -> String {
 }
 
 // ---------------------------------------------------------------------------
+// PreCompact flush exemption (BC-5.41.003 + S-18.04b)
+// ---------------------------------------------------------------------------
+
+/// The exact commit subject prefix produced by the `precompact-flush` PreCompact WASM plugin (`precompact-flush.wasm`, S-18.04a).
+///
+/// Matches the value of `COMMIT_PREFIX` in `crates/hook-plugins/precompact-flush/src/lib.rs`.
+/// Case-sensitive; no substring match; no regex. BC-5.41.003 invariant 3.
+pub const PRECOMPACT_FLUSH_PREFIX: &str = "PreCompact flush ";
+
+/// Determine whether a commit is exempt from the MULTI_COMMIT_CHAIN_NOT_ALLOWED
+/// detector under the PreCompact flush exemption (BC-5.41.003 PC1 three-case logic).
+///
+/// Three-case logic (BC-5.41.003 PC1):
+///
+/// - Case (a): log exists, last line FIELD-4 == `commit`, SHA matches FIELD-2 → exempt.
+/// - Case (b): log exists but last line FIELD-4 absent/empty/non-`commit` → treat
+///   as stale/corrupted; fall through to case (c).
+/// - Case (c): log absent or last line empty → prefix-match alone is sufficient.
+///
+/// SHA-mismatch with valid FIELD-4=`commit` is NOT exempt (BC-5.41.003 INV1).
+///
+/// # Parameters
+/// - `commit_subject`: the raw commit subject (first line of `git log --format=%s`).
+/// - `commit_sha`: the SHA of the commit being evaluated.
+/// - `flush_log_content`: `Some(last_line_of_log)` when the log file exists and has
+///   at least one line; `None` when the log is absent or empty.
+///
+/// # Returns
+/// `true` if the commit is exempt from chain detection; `false` otherwise.
+///
+/// # BC trace
+/// BC-5.41.003 PC1 cases (a)/(b)/(c); INV1; AC-001/AC-002/AC-003/AC-004; AC-005; AC-008.
+///
+/// # Self-check (BC-5.38.005 invariant 1)
+/// "If I include this real implementation, will the test for this function pass trivially
+/// without any implementer work?" — YES: the 3-case logic is non-trivial (branching,
+/// field parsing, SHA comparison). Body is `todo!()` per BC-5.38.001.
+pub fn is_precompact_flush_exempt(
+    commit_subject: &str,
+    commit_sha: &str,
+    flush_log_content: Option<&str>,
+) -> bool {
+    // Step 0: prefix match (case-sensitive, exact). BC-5.41.003 INV3.
+    if !commit_subject.starts_with(PRECOMPACT_FLUSH_PREFIX) {
+        return false;
+    }
+
+    // Step 1: examine log content.
+    match flush_log_content {
+        None => {
+            // Case (c): log absent → prefix-match alone is sufficient. AC-002.
+            true
+        }
+        Some(last_line) => {
+            // Parse the 4-field log line: <ISO-timestamp> <SHA> <cycle>/<step> <type>
+            // Fields are space-separated; we need FIELD-2 (SHA) and FIELD-4 (type token).
+            let mut fields = last_line.split_whitespace();
+            let _field1 = fields.next(); // ISO-timestamp
+            let field2_sha = fields.next(); // SHA
+            let _field3 = fields.next(); // cycle/step
+            let field4_type = fields.next(); // type token ("commit" or absent/corrupt)
+
+            match field4_type {
+                Some("commit") => {
+                    // Case (a): log valid, FIELD-4=commit. SHA must match. AC-001/AC-004.
+                    match field2_sha {
+                        Some(log_sha) => log_sha == commit_sha,
+                        None => {
+                            // FIELD-4=commit but FIELD-2 absent — treat as corrupted.
+                            // Case (b) → case (c): prefix-match-only. AC-003.
+                            true
+                        }
+                    }
+                }
+                _ => {
+                    // Case (b): FIELD-4 absent, empty, or non-"commit" → treat as stale.
+                    // Fall through to case (c): prefix-match-only exemption. AC-003.
+                    true
+                }
+            }
+        }
+    }
+}
+
+/// Check whether the HEAD and HEAD^ commit subjects form a `MULTI_COMMIT_CHAIN_NOT_ALLOWED`
+/// pattern (TD-VSDD-053), with the PreCompact flush exemption applied (BC-5.41.003).
+///
+/// A chain violation is triggered when BOTH of the following hold:
+/// 1. `head_subject` contains a sentinel word (`backfill`, `Stage 1`, `Stage 2`).
+/// 2. `head_parent_subject` contains a sentinel word.
+///
+/// The exemption: if either commit is exempt under `is_precompact_flush_exempt`, the
+/// chain comparison is skipped (no violation). The exemption is checked symmetrically for
+/// both HEAD and HEAD^ (BC-5.41.003 INV1 — both hooks must implement identically).
+///
+/// # Parameters
+/// - `head_subject`: commit subject of HEAD.
+/// - `head_sha`: SHA of HEAD.
+/// - `head_parent_subject`: commit subject of HEAD^.
+/// - `head_parent_sha`: SHA of HEAD^.
+/// - `flush_log_content`: last line of `.factory/hooks/precompact-flush-log`, or `None`.
+///
+/// # Returns
+/// `Some(Violation)` with `MULTI_COMMIT_CHAIN_NOT_ALLOWED` message if a violation is
+/// detected; `None` if no violation (or exemption applies).
+///
+/// # BC trace
+/// BC-5.41.003; BC-5.39.006 INV4; TD-VSDD-053.
+///
+/// # Self-check (BC-5.38.005 invariant 1)
+/// "If I include this real implementation, will the test for this function pass trivially
+/// without any implementer work?" — YES: non-trivial branching + sentinel scanning +
+/// exemption delegation. Body is `todo!()` per BC-5.38.001.
+pub fn check_multi_commit_chain(
+    head_subject: &str,
+    head_sha: &str,
+    head_parent_subject: &str,
+    head_parent_sha: &str,
+    flush_log_content: Option<&str>,
+) -> Option<Violation> {
+    // If either commit is exempt under the PreCompact flush exemption,
+    // skip the chain comparison entirely. BC-5.41.003 PC1.
+    if is_precompact_flush_exempt(head_subject, head_sha, flush_log_content) {
+        return None;
+    }
+    if is_precompact_flush_exempt(head_parent_subject, head_parent_sha, flush_log_content) {
+        return None;
+    }
+
+    // TD-VSDD-053 chain detector: MULTI_COMMIT_CHAIN_NOT_ALLOWED fires when both
+    // HEAD and HEAD^ contain a sentinel word.
+    let head_has_sentinel = contains_sentinel(head_subject);
+    let parent_has_sentinel = contains_sentinel(head_parent_subject);
+
+    if head_has_sentinel && parent_has_sentinel {
+        Some(Violation {
+            description: format!(
+                "MULTI_COMMIT_CHAIN_NOT_ALLOWED — HEAD and HEAD^ both contain chain-sentinel words; \
+                 HEAD: {:?}; HEAD^: {:?}; TD-VSDD-053",
+                head_subject, head_parent_subject
+            ),
+            cited_raw: format!("HEAD={head_subject:?}; HEAD^={head_parent_subject:?}"),
+        })
+    } else {
+        None
+    }
+}
+
+/// Returns `true` if `subject` contains any TD-VSDD-053 sentinel word.
+///
+/// Sentinels: "backfill", "Stage 1", "Stage 2" (case-insensitive for "backfill";
+/// case-sensitive for "Stage N" per existing convention).
+///
+/// # BC trace
+/// TD-VSDD-053 (single-commit-per-burst chain detector).
+fn contains_sentinel(subject: &str) -> bool {
+    let lower = subject.to_lowercase();
+    lower.contains("backfill") || subject.contains("Stage 1") || subject.contains("Stage 2")
+}
+
+// ---------------------------------------------------------------------------
 // Block message formatting
 // ---------------------------------------------------------------------------
 
@@ -777,12 +1047,24 @@ fn emit_block(hook_name: &str, violations: &[Violation]) -> HookResult {
 
 /// PostToolUse hook entry point.
 ///
-/// Called by the SDK trampoline (`__internal::run`) for every Edit/Write
-/// PostToolUse event. Dispatches to the STATE.md arm or INDEX.md arm based on
-/// path-component-strict guards, then returns the appropriate HookResult.
+/// Called by the SDK trampoline (`__internal::run`) for PostToolUse events.
+///
+/// **Dispatch path A — PostToolUse Bash (ADR-029 §Decision 1)**:
+/// When `tool_name == "Bash"`, the chain-detection gate fires via `git_context`
+/// in `payload.extra` (injected by the dispatcher host layer). This is exec-free:
+/// no `host::exec_subprocess` is called for commit-context acquisition (ADR-029
+/// §Decision 3; BC-5.41.003 PC1 addendum). Fail-open on absent/empty git_context.
+///
+/// **Dispatch path B — PostToolUse Edit|Write (STATE.md + INDEX.md validation)**:
+/// Dispatches to the STATE.md arm or INDEX.md arm based on path-component-strict
+/// guards. Runs `validate_state_md` and `validate_index_md` respectively.
 ///
 /// # Control flow
 ///
+/// Bash path: detect tool_name=="Bash" → read git_context from payload.extra →
+/// run chain detection → return Continue or Block.
+///
+/// Edit|Write path:
 /// 1. Extract `file_path` from `payload.tool_input`. If absent: Continue
 ///    (graceful degrade; log_warn).
 /// 2. If `is_state_md_target(file_path)`: read via `host::read_file`. On error:
@@ -797,10 +1079,21 @@ fn emit_block(hook_name: &str, violations: &[Violation]) -> HookResult {
 ///
 /// # BC trace
 /// BC-5.39.006 postconditions 1–10; invariants 1–10.
+/// BC-5.41.003 PC1 addendum (ADR-029 wiring); BC-1.16.001 PC1+INV3.
+/// ADR-029 §Decision 1+3+5.
 pub fn on_post_tool_use(payload: HookPayload) -> HookResult {
     use vsdd_hook_sdk::host;
 
     const HOOK_NAME: &str = "validate-dispatch-advance";
+
+    // ADR-029 §Decision 1: chain detection fires on PostToolUse Bash git-commit events.
+    // STATE.md/INDEX.md validation fires on PostToolUse Edit|Write events.
+    if payload.tool_name == "Bash" {
+        // Dispatch path A: Bash git-commit → chain detection via git_context.
+        return check_chain_from_git_context(&payload, HOOK_NAME);
+    }
+
+    // Dispatch path B: Edit|Write → STATE.md / INDEX.md validation.
 
     // Step 1: Extract file_path from tool_input.
     let file_path = match payload.tool_input.get("file_path").and_then(|v| v.as_str()) {
@@ -812,6 +1105,9 @@ pub fn on_post_tool_use(payload: HookPayload) -> HookResult {
             return HookResult::Continue;
         }
     };
+
+    // Collect violations from all active gates.
+    let mut all_violations: Vec<Violation> = Vec::new();
 
     if is_state_md_target(&file_path) {
         // STATE.md arm.
@@ -851,12 +1147,7 @@ pub fn on_post_tool_use(payload: HookPayload) -> HookResult {
             return HookResult::Continue;
         }
 
-        let violations = validate_state_md(&content);
-        if violations.is_empty() {
-            HookResult::Continue
-        } else {
-            emit_block(HOOK_NAME, &violations)
-        }
+        all_violations.extend(validate_state_md(&content));
     } else if is_index_md_target(&file_path) {
         // INDEX.md arm.
         let content = match host::read_file(&file_path, MAX_BYTES, 2000) {
@@ -885,15 +1176,120 @@ pub fn on_post_tool_use(payload: HookPayload) -> HookResult {
             }
         };
 
-        let violations = validate_index_md(&content);
-        if violations.is_empty() {
-            HookResult::Continue
-        } else {
-            emit_block(HOOK_NAME, &violations)
-        }
-    } else {
-        // Not a target path — continue without action.
+        all_violations.extend(validate_index_md(&content));
+    }
+    // else: not a STATE.md or INDEX.md target — continue without file-content validation.
+
+    if all_violations.is_empty() {
         HookResult::Continue
+    } else {
+        emit_block(HOOK_NAME, &all_violations)
+    }
+}
+
+/// Dispatch path A — PostToolUse Bash (ADR-029 §Decision 1).
+///
+/// Reads `git_context` from `payload.extra` (injected by the dispatcher host layer)
+/// and runs the MULTI_COMMIT_CHAIN_NOT_ALLOWED detector. Exec-free: no
+/// `host::exec_subprocess` is called for commit-context acquisition.
+///
+/// Fail-open semantics (BC-1.16.001 INV3; BC-5.41.003 Invariant 5):
+/// - `git_context` absent from `payload.extra` → Continue.
+/// - All four fields empty → Continue.
+/// - `head_parent_subject` empty → Continue (initial commit; no chain possible).
+///
+/// # BC trace
+/// BC-5.41.003 PC1 addendum; BC-1.16.001 PC1+INV3; ADR-029 §Decision 1+3+5.
+fn check_chain_from_git_context(payload: &HookPayload, hook_name: &str) -> HookResult {
+    use vsdd_hook_sdk::host;
+
+    // CR-002: Short-circuit for non-git-commit Bash events per ADR-029 §Decision 1.
+    // The dispatcher only injects git_context on qualifying git-commit events, but adding
+    // an explicit WASM-level filter avoids unnecessary processing of all other Bash events.
+    let command = payload
+        .tool_input
+        .get("command")
+        .and_then(|v| v.as_str())
+        .unwrap_or("");
+    if !command.contains("git") || !command.contains("commit") {
+        return HookResult::Continue;
+    }
+
+    // Step 1: Extract git_context from payload.extra. Fail-open if absent.
+    let git_context = match payload.extra.get("git_context") {
+        Some(v) => v,
+        None => return HookResult::Continue,
+    };
+
+    // Step 2: Extract the 4 required fields.
+    let head_subject = git_context
+        .get("head_subject")
+        .and_then(|v| v.as_str())
+        .unwrap_or("")
+        .trim()
+        .to_string();
+    let head_sha = git_context
+        .get("head_sha")
+        .and_then(|v| v.as_str())
+        .unwrap_or("")
+        .trim()
+        .to_string();
+    let head_parent_subject = git_context
+        .get("head_parent_subject")
+        .and_then(|v| v.as_str())
+        .unwrap_or("")
+        .trim()
+        .to_string();
+    let head_parent_sha = git_context
+        .get("head_parent_sha")
+        .and_then(|v| v.as_str())
+        .unwrap_or("")
+        .trim()
+        .to_string();
+
+    // Step 3: Fail-open if all fields empty (dispatcher fail-open path).
+    // SEC-004: emit telemetry warn so silent bypasses are observable.
+    if head_subject.is_empty() && head_parent_subject.is_empty() {
+        host::log_warn(
+            "[validate-dispatch-advance] git_context all-empty — chain check skipped (fail-open per BC-1.16.001 INV3)",
+        );
+        return HookResult::Continue;
+    }
+
+    // Step 4: Fail-open if head_parent_subject is empty (initial commit; no chain).
+    if head_parent_subject.is_empty() {
+        return HookResult::Continue;
+    }
+
+    // Step 5: Read precompact-flush-log for SHA corroboration (host::read_file; NOT exec).
+    let flush_log_last_line: Option<String> = {
+        let cwd = host::cwd();
+        if !cwd.is_empty() {
+            let flush_log_path = format!("{cwd}/.factory/hooks/precompact-flush-log");
+            match host::read_file(&flush_log_path, 4096, 500) {
+                Ok(bytes) => String::from_utf8(bytes).ok().and_then(|s| {
+                    s.lines()
+                        .rev()
+                        .find(|l| !l.trim().is_empty())
+                        .map(|l| l.to_string())
+                }),
+                Err(_) => None,
+            }
+        } else {
+            None
+        }
+    };
+
+    // Step 6: Run check_multi_commit_chain (pure logic; no I/O).
+    match check_multi_commit_chain(
+        &head_subject,
+        &head_sha,
+        &head_parent_subject,
+        &head_parent_sha,
+        flush_log_last_line.as_deref(),
+    ) {
+        Some(violation) => emit_block(hook_name, &[violation]),
+        None => HookResult::Continue,
     }
 }
 
@@ -1423,6 +1819,100 @@ mod tests {
         let content = "---\ncurrent_step: 'pass 74—D-382..D-477 →9→9→9→9'\n---\nbody\n";
         // Must not panic; correctness of returned value tested by implementer.
         let _ = extract_current_step(content);
+    }
+
+    // -- Cycle-identity gate (D-439(b)/D-451(c) F5-scope) --
+
+    /// Brownfield cycle must NOT trigger 4-index-cite or trajectory-tail violations.
+    ///
+    /// Synthetic STATE.md with `current_cycle: v1.0-brownfield-backfill` and a
+    /// bare dispatch-step `current_step:` label (D-689 form) plus a valid D-689
+    /// body reference.  validate_state_md must return ZERO violations — the
+    /// 4-index-cite and trajectory-tail checks are F5-only per D-439(b)/D-451(c).
+    ///
+    /// This is the primary RED→GREEN guard for the D-439(b)/D-451(c) F5-scope gate
+    /// fix. Before the fix it fails with two violations (missing index cites +
+    /// missing trajectory-tail prefix); after the fix it passes.
+    #[test]
+    fn test_brownfield_current_step_no_false_positive() {
+        let content = concat!(
+            "---\n",
+            "current_cycle: v1.0-brownfield-backfill\n",
+            "current_step: \"D-689-S18.14-3CLEAN-CONVERGED-PROMOTION-2026-06-22\"\n",
+            "---\n",
+            "| D-689 | some decision row |\n",
+        );
+        let violations = validate_state_md(content);
+        assert!(
+            violations.is_empty(),
+            "brownfield current_step must produce ZERO violations (D-439(b)/D-451(c) \
+             F5-only gate); violations found: {violations:?}"
+        );
+    }
+
+    /// F5 cycle still enforces 4-index-cite AND trajectory-tail.
+    ///
+    /// Synthetic STATE.md with `current_cycle: v1.0-feature-engine-discipline-pass-1`
+    /// and a bare dispatch-step label (missing 4-index cites + trajectory-tail)
+    /// must produce violations — confirming the gate does NOT disable F5 checks.
+    #[test]
+    fn test_f5_cycle_still_enforces_index_and_trajectory_checks() {
+        let content = concat!(
+            "---\n",
+            "current_cycle: v1.0-feature-engine-discipline-pass-1\n",
+            "current_step: \"D-689-some-f5-step\"\n",
+            "---\n",
+            "| D-689 | some row |\n",
+        );
+        let violations = validate_state_md(content);
+        let descs: Vec<&str> = violations.iter().map(|v| v.description.as_str()).collect();
+        // Check 1: 4-index version citations (D-439(b)) must fire.
+        assert!(
+            descs.iter().any(|d| d.contains("BC-INDEX v")),
+            "F5 cycle: missing 4-index cites (D-439(b)) must produce a violation; got: {descs:?}"
+        );
+        // Check 2: trajectory-tail LENGTH=4 (D-451(c)) must fire independently.
+        assert!(
+            descs.iter().any(|d| d.contains("trajectory-tail")),
+            "F5 cycle: missing trajectory-tail (D-451(c)) must produce a violation; got: {descs:?}"
+        );
+    }
+
+    /// extract_current_cycle returns the bare cycle value from frontmatter.
+    #[test]
+    fn test_extract_current_cycle_brownfield() {
+        let content = "---\ncurrent_cycle: v1.0-brownfield-backfill\ncurrent_step: 'x'\n---\n";
+        assert_eq!(
+            extract_current_cycle(content),
+            Some("v1.0-brownfield-backfill")
+        );
+    }
+
+    /// extract_current_cycle returns the F5 cycle id from frontmatter.
+    #[test]
+    fn test_extract_current_cycle_f5() {
+        let content =
+            "---\ncurrent_cycle: v1.0-feature-engine-discipline-pass-1\ncurrent_step: 'x'\n---\n";
+        assert_eq!(
+            extract_current_cycle(content),
+            Some("v1.0-feature-engine-discipline-pass-1")
+        );
+    }
+
+    /// extract_current_cycle returns None when field is absent.
+    #[test]
+    fn test_extract_current_cycle_absent() {
+        let content = "---\ncurrent_step: 'x'\n---\n";
+        assert_eq!(extract_current_cycle(content), None);
+    }
+
+    /// is_f5_cycle is conservative: None (unknown cycle) → true (apply F5 checks).
+    #[test]
+    fn test_is_f5_cycle_none_is_conservative() {
+        assert!(
+            is_f5_cycle(None),
+            "unknown cycle must default to applying F5 checks (conservative)"
+        );
     }
 
     // -- Production false-positive regression (AC-21 preemptive; S-15.09 lesson) --

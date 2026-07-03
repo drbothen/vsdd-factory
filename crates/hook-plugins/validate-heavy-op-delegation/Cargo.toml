@@ -1,0 +1,37 @@
+[package]
+name = "validate-heavy-op-delegation"
+version = "0.0.1"
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+authors.workspace = true
+rust-version.workspace = true
+description = "WASM hook plugin: PreToolUse advisory gate — emits DelegationRecommended advisory to stderr and plugin.log on Bash commands matching configured heavy-operation patterns; never blocks (BC-4.15.001)"
+publish = false
+
+# Hook plugins ship as WASI commands (_start entry point) built via
+# `cargo build --target wasm32-wasip1`. The [lib] target carries testable
+# logic; [[bin]] wraps the entry point that calls into the lib.
+[lib]
+path = "src/lib.rs"
+crate-type = ["cdylib", "rlib"]
+
+[[bin]]
+name = "validate-heavy-op-delegation"
+path = "src/main.rs"
+
+# Architecture Compliance Rule 1 (BC-4.15.001 INV1 / ADR-026 §Decision 8):
+# This crate MUST NOT import std::fs, std::process, std::net, or any external
+# I/O crate. Pattern matching uses str::contains() — no regex crate needed.
+# FORBIDDEN: serde_norway (not needed — pure command-string scan)
+# FORBIDDEN: factory-lock-parse (would violate INV1 pure-parse and Architecture
+#            Compliance Rule 6 — no dependency on factory-lock-parse or context-resolvers)
+# FORBIDDEN: regex (Architecture Compliance Rule 1; WASM fuel budget)
+[dependencies]
+vsdd-hook-sdk = { path = "../../hook-sdk" }
+
+[dev-dependencies]
+vsdd-hook-sdk = { path = "../../hook-sdk" }
+
+[lints]
+workspace = true

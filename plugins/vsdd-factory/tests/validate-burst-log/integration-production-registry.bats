@@ -57,15 +57,17 @@ _require_artifacts() {
 # validate — the test fails if the production path_allow is incorrect.
 _write_production_registry() {
   # Extract the path_allow value from the production registry.
-  # The production entry is the only path_allow under [hooks.capabilities.read_file]
-  # for the validate-burst-log hook. We extract it with awk scoped between the hook
-  # entry and the next hook entry.
+  # Scope to the FIRST [[hooks]] entry with name = "validate-burst-log".
+  # After S-18.04b the registry has two entries for this name (Edit|Write for
+  # structural validation; Bash for ADR-029 chain detection) — extract only the
+  # first to produce a canonical single-entry test registry.
   local prod_path_allow
   prod_path_allow=$(awk '
-    /^name = "validate-burst-log"$/ { in_hook=1 }
+    /^name = "validate-burst-log"$/ && !found { in_hook=1; found=1 }
     in_hook && /^path_allow = \[/ { in_pa=1; next }
     in_pa && /^\]/ { in_pa=0; in_hook=0 }
-    in_pa { gsub(/^[[:space:]]+/, ""); gsub(/,$/, ""); print }
+    in_pa { gsub(/^[[:space:]]+/, ""); gsub(/,$/, ""); lines[n++]=$0 }
+    END { for (i=0; i<n; i++) { printf "%s", lines[i]; if (i<n-1) printf ","; printf "\n" } }
   ' "$PRODUCTION_REGISTRY")
 
   if [ -z "$prod_path_allow" ]; then

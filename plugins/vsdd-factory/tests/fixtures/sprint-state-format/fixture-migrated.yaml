@@ -1,0 +1,40 @@
+# sprint-state-format fixture: conformant per-story format (post-migration)
+# Used by: test_sprint_state_stories_wave_order (AC-002 / BC-5.41.004 PC3)
+#           test_sprint_state_status_matches_story_index (AC-003 / BC-5.41.004 PC2+INV-2)
+#           test_wave_handoff_parses_migrated_sprint_state (AC-004 / BC-5.41.002 PC3)
+#           test_epics_coexistence_nested_stories_ignored (PC5/EC-004 regression)
+# BC-5.41.004 PC1: top-level `stories:` key present
+# BC-5.41.004 PC2: each entry has id: + status: within 8-value enum
+# BC-5.41.004 PC3: wave-ascending order (S-1.01 wave-1, then S-1.02/S-1.03 wave-2)
+# Terminal set per BC-5.41.001 PC2: {merged, withdrawn, cancelled}
+# Next-wave selector per BC-5.41.002 PC3 v1.20: {draft} (pending is reserved/no-op)
+#
+# Wave topology:
+#   wave 1: S-1.01 (no deps) — terminal (merged)
+#   wave 2: S-1.02 (depends_on: S-1.01) — draft (next-wave selector)
+#           S-1.03 (depends_on: S-1.01) — ready (non-terminal, active-but-not-next-wave)
+# S-1.02 before S-1.03 within wave-2 per lexicographic tie-break (BC-5.41.004 PC3 EC-003).
+#
+# PC5 coexistence (awk-anchor regression lock):
+# The epics: section contains nested `stories:` sub-keys with out-of-enum scalar values
+# (closed, tier-1-shipped). These MUST be ignored by the bats awk parsers.
+# The anchor /^stories:/ (column-0 only) prevents epics[*].stories: from activating
+# in_stories=1. The epics entries do NOT carry `status:` sub-keys to avoid confusing
+# parse-sprint-state.sh (which reads the whole file line-by-line without YAML structure).
+# Proof: bats awk parsers see only {merged, draft, ready}; no out-of-enum leakage.
+
+stories:
+  - id: S-1.01
+    status: merged
+  - id: S-1.02
+    status: draft
+  - id: S-1.03
+    status: ready
+
+epics:
+  E-0:
+    name: Infrastructure Prep
+    stories: closed
+  E-1:
+    name: Test Epic
+    stories: tier-1-shipped

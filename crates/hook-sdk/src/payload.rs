@@ -1,6 +1,8 @@
 //! Hook payload — the typed projection of Claude Code's stdin envelope
 //! that the dispatcher hands to a plugin's `#[hook]` function.
 
+use std::collections::HashMap;
+
 use serde::{Deserialize, Serialize};
 
 /// The data delivered to a hook on each invocation.
@@ -115,6 +117,32 @@ pub struct HookPayload {
     /// `None` when absent or JSON null.
     #[serde(default)]
     pub result: Option<String>,
+
+    /// Pass-through map for dispatcher-injected and unknown envelope fields.
+    ///
+    /// The dispatcher may inject extra top-level keys into the payload JSON
+    /// before routing to plugins — for example, `git_context` (ADR-029
+    /// §Decision 2 / BC-1.16.001) on qualifying PostToolUse Bash git-commit
+    /// events. These keys are NOT named fields in this struct; they ride in
+    /// `extra` via `#[serde(flatten)]` so they survive deserialization and
+    /// re-serialization without loss.
+    ///
+    /// Plugins that need `git_context` access it via
+    /// `payload.extra.get("git_context")`. Plugins that do not need it ignore
+    /// it. HOST_ABI_VERSION remains 1 — this is an additive, non-breaking
+    /// extension per ADR-029 §Decision 4.
+    ///
+    /// `#[serde(flatten)]` causes serde to merge `extra` into the top-level
+    /// JSON object on both serialization and deserialization, so any key
+    /// not matched by a named field above is captured here and re-emitted
+    /// at the top level when the struct is serialized. This is required for
+    /// the legacy-bash-adapter pass-through: the adapter deserializes the
+    /// dispatcher's enriched payload into `HookPayload`, strips
+    /// `plugin_config`, and re-serializes for the bash subprocess — without
+    /// the flatten map, `git_context` and any future injected keys would be
+    /// silently dropped during the re-serialization.
+    #[serde(flatten)]
+    pub extra: HashMap<String, serde_json::Value>,
 }
 
 #[cfg(test)]
