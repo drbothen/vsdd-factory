@@ -54,6 +54,77 @@ Produce `wave-schedule.md` under `.factory/cycles/**/implementation/`:
 | 2 | A | STORY-004, STORY-005 | 2 stories | 2 stories |
 | ... | | | | |
 
+### Step 5: Per-Story sprint-state.yaml Emission (BC-5.41.004)
+
+After computing wave assignments, emit the `stories:` sequence in
+`.factory/stories/sprint-state.yaml` as a producer obligation.
+
+**Authority:** BC-5.41.004 v1.4 PC3 (sprint-state.yaml producer contract) —
+producer MUST write `stories:` as a YAML sequence of `{id, status}` objects,
+not as a count-summary mapping. Ordering governed by ADR-026 §Decision 3a v1.37
+two-partition algorithm with full-graph wave-depth (PC3: terminal partition precedes
+non-terminal; within each partition depth ASC, lex ASC). EC-010 narrows the
+TopoViolation guard: tolerate supersession edges (terminal→superseded non-terminal);
+abort genuine anomalies (terminal→active non-terminal).
+
+**Consumer dependency:** BC-5.41.002 PC3 — consumer derives per-story status
+from `stories[*].status: draft` entries; `pending` is a reserved no-op token.
+
+**Two-partition ordering algorithm (BC-5.41.004 PC3 + ADR-026 §Decision 3a):**
+
+The `stories:` sequence MUST be emitted as two contiguous, non-interleaved
+partitions — Partition A (terminal) then Partition B (non-terminal):
+
+1. **Classify** each STORY-INDEX story as terminal
+   (`merged` / `withdrawn` / `cancelled`) or non-terminal (all other statuses).
+
+2. **Compute full-graph wave-depth for every story (single global pass, memoized):**
+   Root (empty `depends_on`) → depth 1; else `depth(S) = 1 + max(depth(P) for P in S.depends_on)`.
+   ALL edges included (all statuses, including cross-partition supersession edges detected by
+   `superseded_by:`). Depth is memoized; compute via longest-path DFS over the full dependency graph.
+
+3. **Sort each partition by `(full-graph-depth ASC, story-ID lex ASC)`:**
+   Partition A = terminal stories sorted by (depth, id); Partition B = non-terminal sorted by (depth, id).
+   (No restricted-edge topo-sort; sort key derived from precomputed full-graph depths.)
+
+4. **Emit** Partition A (all terminal entries) then Partition B (all
+   non-terminal entries). No terminal entry may appear after any non-terminal
+   entry (BC-5.41.001 P-SPRINT-STATE-WAVE-ORDER precondition).
+
+5. **TopoViolation guard (narrowed — ADR-026 §Decision 3a v1.37 / BC-5.41.004 v1.4 EC-010):**
+   Before sorting, for each terminal story T in the classified set:
+     for each dep_id in T.depends_on:
+       if dep_id is non-terminal in STORY-INDEX.md:
+         read dep_id's story-file frontmatter for a `superseded_by:` field
+           (plain working-tree read: `grep -m1 '^superseded_by:' .factory/stories/<dep_id>-*.md`
+            — NOT git exec; INV-4 compliant)
+         if superseded_by: PRESENT  → TOLERATE: this is a legitimate abandoned-by-supersession edge.
+           The edge IS included in the full-graph wave-depth computation (Step 2) like any other edge;
+           the dependent terminal story still lands in Partition A (placement is by status, not dependency direction).
+           Do NOT abort; continue.
+         if superseded_by: ABSENT   → HARD-ABORT: "TopoViolation: terminal story <T.id>
+           depends_on non-terminal story <dep_id>"; no sprint-state.yaml write
+
+**Wave ordinal definition (INV-3-compatible) — ADR-026 §Decision 3a v1.37 / BC-5.41.004 v1.4 PC3:**
+- Full-graph depth: `depth(S) = 1` if `depends_on` is empty; else `1 + max(depth(P) for P in depends_on)`
+  over ALL dependency edges (all statuses, including cross-partition supersession edges).
+- Within each partition, stories are sorted by `(depth ASC, story-ID lex ASC)`.
+- No `wave:` field is written to `stories:` entries. Wave ordering is expressed
+  by list position only (BC-5.41.004 INV-3).
+
+**Status values (BC-5.41.004 INV-1):**
+Exactly 8 valid values: `draft`, `ready`, `in-progress`, `partial`, `blocked`,
+`merged`, `withdrawn`, `cancelled`. Hard-abort on any other token (EC-007).
+
+**Completeness (BC-5.41.004 PC4):**
+Every non-retired story from STORY-INDEX.md MUST appear in exactly one
+partition. Retired stories are omitted. No phantom entries for stories not in
+STORY-INDEX.md.
+
+**Preserve existing sections (PC5):** `epics:`, `frontier:`, `next_refinement:`,
+and `story_updates:` are independent keys in sprint-state.yaml and MUST be
+preserved byte-identical when updating the `stories:` list.
+
 ## Templates
 
 Use `${CLAUDE_PLUGIN_ROOT}/templates/wave-schedule-template.md` for the wave schedule output format.

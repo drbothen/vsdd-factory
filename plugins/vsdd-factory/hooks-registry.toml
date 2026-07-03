@@ -569,6 +569,30 @@ binary_allow = ["bash", "jq"]
 shell_bypass_acknowledged = "legacy-bash-adapter runs unported hooks"
 env_allow = ["PATH", "HOME", "TMPDIR", "CLAUDE_PROJECT_DIR", "CLAUDE_PLUGIN_ROOT", "VSDD_SESSION_ID"]
 
+# ---------- validate-wave-handoff-completeness (PostToolUse, Write|Edit) ----------
+# BC-4.14.001 §Precondition 1 / AC-014: PostToolUse gate that validates
+# HANDOFF.md completeness on every Write/Edit tool call. Blocks with
+# HandoffIncomplete when required ADR-026 §D2 fields are missing or malformed.
+# on_error = "continue": WASM crash → fail-open Continue (BC-4.14.001 PC6).
+# async = false: synchronous gate; block must be returned before Claude proceeds.
+# timeout_ms = 5000: per ADR-026 §Decision 8 WASM completeness gate spec.
+# S-18.02 deliverable — E-18 context-durability feature (issue #173).
+
+[[hooks]]
+name = "validate-wave-handoff-completeness"
+event = "PostToolUse"
+tool = "Write|Edit"
+plugin = "hook-plugins/validate-wave-handoff-completeness.wasm"
+priority = 450
+timeout_ms = 5000
+on_error = "continue"
+async = false
+
+[hooks.capabilities.read_file]
+path_allow = [
+  ".factory/HANDOFF.md",
+]
+
 # ---------- PreToolUse ----------
 
 [[hooks]]
@@ -869,6 +893,33 @@ on_error = "continue"
 [hooks.capabilities.read_file]
 path_allow = [
   ".factory/cycles",
+  ".factory/hooks",
+]
+
+# ---------- validate-burst-log (PostToolUse, Bash — ADR-029 §Decision 1) ----------
+# Chain-detection gate: reads git_context from payload.extra (injected by dispatcher
+# host layer on PostToolUse Bash git-commit events). WASM is exec-free:
+# no exec_subprocess for commit-context acquisition (BC-5.41.003 PC1; ADR-029 §Decision 3).
+# Fail-open: absent/empty git_context → Continue (BC-5.41.003 Invariant 5; BC-1.16.001 INV3).
+# Same WASM binary as Edit|Write entry above; dispatches on tool_name == "Bash" internally.
+
+[[hooks]]
+name = "validate-burst-log"
+event = "PostToolUse"
+tool = "Bash"
+plugin = "hook-plugins/validate-burst-log.wasm"
+priority = 152
+timeout_ms = 5000
+# on_error = "continue": WASM logic handles legitimate fail-open by returning HookResult::Continue
+# (absent git_context, empty fields, initial commit). Crash-fail-open is accepted for chain
+# detection — consistent with project-wide PostToolUse fail-open stance (see Edit|Write entries).
+# A WASM crash emits a telemetry log_warn (SEC-004 fix) making silent bypasses observable.
+on_error = "continue"
+
+[hooks.capabilities.read_file]
+path_allow = [
+  ".factory/cycles",
+  ".factory/hooks",
 ]
 
 # ---------- validate-index-cite-refresh (PostToolUse, Edit|Write) ----------
@@ -934,8 +985,9 @@ path_allow = [
 # priority = 154
 # priority = 155
 # priority = 160
-# 154 appears exactly once (validate-dispatch-advance); 153 = validate-state-structure;
-# 155 = next monotone slot.
+# 154 appears exactly once per tool trigger (validate-dispatch-advance has two entries
+# after S-18.04b: Edit|Write for structural validation + Bash for chain detection);
+# 153 = validate-state-structure; 155 = next monotone slot.
 # No file_pattern field: registry schema does not support it per architect
 # Q5/Q6 canonical lock. File-pattern enforcement is in-plugin via
 # path-component-strict is_state_md_target + is_index_md_target guards.
@@ -947,6 +999,32 @@ tool = "Edit|Write"
 plugin = "hook-plugins/validate-dispatch-advance.wasm"
 priority = 154
 timeout_ms = 5000
+on_error = "continue"
+
+[hooks.capabilities.read_file]
+path_allow = [
+  ".factory",
+]
+
+# ---------- validate-dispatch-advance (PostToolUse, Bash — ADR-029 §Decision 1) ----------
+# Chain-detection gate: reads git_context from payload.extra (injected by dispatcher
+# host layer on PostToolUse Bash git-commit events). WASM is exec-free:
+# no exec_subprocess for commit-context acquisition (BC-5.41.003 PC1; ADR-029 §Decision 3).
+# Fail-open: absent/empty git_context → Continue (BC-5.41.003 Invariant 5; BC-1.16.001 INV3).
+# Same WASM binary as Edit|Write entry above; dispatches on tool_name == "Bash" internally.
+# .factory path_allow covers .factory/hooks (precompact-flush-log path).
+
+[[hooks]]
+name = "validate-dispatch-advance"
+event = "PostToolUse"
+tool = "Bash"
+plugin = "hook-plugins/validate-dispatch-advance.wasm"
+priority = 154
+timeout_ms = 5000
+# on_error = "continue": WASM logic handles legitimate fail-open by returning HookResult::Continue
+# (absent git_context, empty fields, initial commit). Crash-fail-open is accepted for chain
+# detection — consistent with project-wide PostToolUse fail-open stance (see Edit|Write entries).
+# A WASM crash emits a telemetry log_warn (SEC-004 fix) making silent bypasses observable.
 on_error = "continue"
 
 [hooks.capabilities.read_file]
@@ -1230,3 +1308,122 @@ async = false
 
 [hooks.capabilities.read_file]
 path_allow = [".factory/STATE.md"]
+
+# ---------- PreCompact (S-18.00) ----------
+# check-harness-version: verify Claude Code harness >= v2.1.105 before compaction.
+# Advisory-only (on_error=continue): dispatcher continues even if the check fails.
+# Registered as PreCompact per BC-1.15.001 INV3 and AC-008.
+# Never sets block_intent — that is reserved for the `precompact-flush` PreCompact WASM plugin (S-18.04a).
+# check-harness-version: real implementation in hooks/check-harness-version.sh (S-18.00; PreCompact advisory, on_error=continue).
+
+[[hooks]]
+name = "check-harness-version"
+event = "PreCompact"
+plugin = "hook-plugins/legacy-bash-adapter.wasm"
+priority = 50
+timeout_ms = 5000
+on_error = "continue"
+async = false
+
+[hooks.config]
+script_path = "hooks/check-harness-version.sh"
+
+[hooks.capabilities]
+env_allow = ["PATH", "HOME", "TMPDIR", "CLAUDE_PROJECT_DIR", "CLAUDE_PLUGIN_ROOT", "CLAUDE_CODE_VERSION", "CLAUDE_VERSION"]
+
+[hooks.capabilities.exec_subprocess]
+binary_allow = ["bash"]
+shell_bypass_acknowledged = "legacy-bash-adapter runs unported hooks"
+env_allow = ["PATH", "HOME", "TMPDIR", "CLAUDE_PROJECT_DIR", "CLAUDE_PLUGIN_ROOT", "CLAUDE_CODE_VERSION", "CLAUDE_VERSION"]
+
+# ---------- precompact-flush native WASM plugin (S-18.04a) ----------
+# Commits STATE.md to factory-artifacts branch BEFORE compaction proceeds.
+# Native WASM — no bash, no shell_bypass_acknowledged (ADR-028 §Decision 2).
+# binary_allow = ["git"] ONLY — PATH + SSH_AUTH_SOCK required for git push over SSH
+# (dispatcher env_clear requires explicit re-injection per F-NW-001).
+# priority = 100: fires AFTER check-harness-version (priority 50) so harness version
+# is validated before the flush commit is attempted.
+# on_error = "continue": fail-open per BC-7.07.001 INV6 (crash → advisory, not block).
+# async = false: PreCompact hooks MUST fire synchronously (ADR-019 + BC-7.07.001 §PC1).
+# (traces to AC-001 / BC-7.07.001 §Precondition 1 / ADR-028 §Decision 1)
+
+[[hooks]]
+name = "precompact-flush"
+event = "PreCompact"
+plugin = "hook-plugins/precompact-flush.wasm"
+priority = 100
+timeout_ms = 30000
+on_error = "continue"
+async = false
+
+[hooks.capabilities.read_file]
+path_allow = [".factory/"]
+
+[hooks.capabilities.write_file]
+path_allow = [".factory/"]
+
+[hooks.capabilities.exec_subprocess]
+binary_allow = ["git"]
+env_allow = ["HOME", "GIT_CONFIG_GLOBAL", "XDG_CONFIG_HOME", "PATH", "SSH_AUTH_SOCK"]
+
+# ---------- postcompact-reanchor advisory hook (S-18.05) ----------
+# Reads current_cycle + current_step from factory-artifacts:.factory/STATE.md
+# via git show; sources develop SHA from git rev-parse origin/develop at hook
+# invocation (ADR-026 §Decision 7 / F-P1-001). READ-ONLY on factory-artifacts
+# (BC-7.07.002 Inv1). on_error=continue: fail-open — PostCompact is advisory-only.
+# GIT_DIR omitted (was a bats test-fixture artifact; not a production requirement).
+# GIT_CONFIG_GLOBAL + XDG_CONFIG_HOME required by git subprocess (matches precompact-flush
+# pattern). write_file covers JSONL log append; git show reads via exec_subprocess.
+# (traces to AC-010 / BC-7.07.002 PC6 / DI-024 / ADR-026 §Decision 7)
+
+[[hooks]]
+name = "postcompact-reanchor"
+event = "PostCompact"
+plugin = "hook-plugins/legacy-bash-adapter.wasm"
+priority = 100
+timeout_ms = 10000
+on_error = "continue"
+async = false
+
+[hooks.config]
+script_path = "hooks/postcompact-reanchor.sh"
+
+[hooks.capabilities]
+env_allow = ["PATH", "HOME", "TMPDIR", "CLAUDE_PROJECT_DIR", "CLAUDE_PLUGIN_ROOT", "VSDD_SESSION_ID", "GIT_CONFIG_GLOBAL", "XDG_CONFIG_HOME"]
+
+[hooks.capabilities.exec_subprocess]
+binary_allow = ["bash", "git", "jq"]
+shell_bypass_acknowledged = "legacy-bash-adapter runs unported hooks"
+env_allow = ["PATH", "HOME", "TMPDIR", "CLAUDE_PROJECT_DIR", "CLAUDE_PLUGIN_ROOT", "VSDD_SESSION_ID", "GIT_CONFIG_GLOBAL", "XDG_CONFIG_HOME"]
+
+[hooks.capabilities.write_file]
+path_allow = [".factory/logs/"]
+
+# ---------- validate-heavy-op-delegation advisory gate (S-18.06) ----------
+# Pure-parse PreToolUse gate: emits DelegationRecommended advisory to stderr
+# and plugin.log when a Bash command matches a configured heavy-operation pattern.
+# NEVER blocks (BC-4.15.001 INV2). on_error=continue: fail-open — this gate is
+# advisory-only and must never prevent Bash commands from running.
+# tool="Bash": registry filter — non-Bash tool calls never dispatched (PC-D).
+# [hooks.config] patterns: v1 default heavy-operation pattern list (BC-4.15.001 PC1).
+# (traces to BC-4.15.001 / VP-091 / ADR-026 §Decision 12 / S-18.06 AC-008)
+
+[[hooks]]
+name = "validate-heavy-op-delegation"
+event = "PreToolUse"
+plugin = "hook-plugins/validate-heavy-op-delegation.wasm"
+tool = "Bash"
+on_error = "continue"
+async = false
+timeout_ms = 5000
+
+[hooks.config]
+patterns = [
+  "cargo test --release",
+  "grep -r",
+  "grep -R",
+  "find . -name",
+  "find . -type",
+  "./run-all.sh",
+  "./run-bats.sh"
+]

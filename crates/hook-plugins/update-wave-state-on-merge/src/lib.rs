@@ -421,6 +421,7 @@ mod tests {
             subagent_name: None,
             last_assistant_message: Some(result.to_string()),
             result: Some(result.to_string()),
+            extra: std::collections::HashMap::new(),
         }
     }
 
@@ -1256,6 +1257,7 @@ waves:
                 "STEP_COMPLETE: step=8 status=ok — no story id here".to_string(),
             ),
             result: Some("STEP_COMPLETE: step=8 status=ok — no story id here".to_string()),
+            extra: std::collections::HashMap::new(),
         };
         wave_state_hook_logic(
             payload,

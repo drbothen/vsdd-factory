@@ -1,0 +1,15 @@
+# sprint-state-format fixture: interleaved ordering — terminal entry AFTER draft entry
+# Used by: test_consumer_rejects_interleaved_ordering (regression guard for F-P1-001)
+# BC-5.41.001 PC2 P-SPRINT-STATE-WAVE-ORDER precondition: all terminal entries
+# MUST precede pending/draft entries; a terminal after a draft violates wave-order.
+#
+# Wave topology (INVALID — violates P-SPRINT-STATE-WAVE-ORDER):
+#   S-1.01: draft   — next-wave entry (non-terminal) appears FIRST
+#   S-1.02: merged  — terminal entry AFTER a draft → WaveOrderUnverifiable
+# Expected consumer outcome: exit 1, ERROR: WaveOrderUnverifiable
+
+stories:
+  - id: S-1.01
+    status: draft
+  - id: S-1.02
+    status: merged

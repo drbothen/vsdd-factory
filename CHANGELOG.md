@@ -1,5 +1,72 @@
 # Changelog
 
+## 1.0.0-rc.22 — context durability epic + release hardening (2026-07-02)
+
+Ships the complete E-18 context-durability epic (18 stories + 2 prereqs): full PreCompact/PostCompact dispatcher routing, the precompact-flush native WASM plugin, postcompact-reanchor advisory hook, wave-handoff/rehydrate-wave/wave-reset skills, validate-wave-handoff-completeness and validate-heavy-op-delegation WASM gates, pure-parse invariant consistency gate, F2 process-gap lesson gates, check-state-health autocompact verification, sprint-state per-story producer migration, portability-lint guard extension with bash-portability.md, and release-pipeline hardening (orphan WASM removal + registry-vs-staged assertion). Operators on `/plugin update vsdd-factory@claude-mp` receive the complete context-durability hook chain and a cleaner 33-plugin registry bundle.
+
+### Added
+
+- **S-18.00 — Dispatcher PreCompact/PostCompact routing + check-harness-version.sh** (ADR-026, ADR-028, ADR-029, PR #191): Dispatcher routes `PreCompact` and `PostCompact` harness events through the hook chain for the first time. `check-harness-version.sh` validates harness ABI at startup.
+
+- **S-18.01 — wave-handoff skill** (BC-6.23.001, PR #193): `/vsdd-factory:wave-handoff` skill produces HANDOFF.md + wave-state.yaml atomically at wave boundaries, capturing the canonical pre-compact state snapshot for downstream rehydration.
+
+- **S-18.02 — validate-wave-handoff-completeness WASM PostToolUse gate** (BC-4.12.001, PR #195): WASM plugin enforcing structural completeness of HANDOFF.md before any PostToolUse write is allowed to proceed past a wave boundary.
+
+- **S-18.03 — rehydrate-wave skill + wave-reset SKILL.md** (BC-6.24.001, PR #270): `/vsdd-factory:rehydrate-wave` reconstructs wave context from the git-tracked HANDOFF.md/wave-state.yaml pair after a context compaction or session clear. `/vsdd-factory:wave-reset` resets wave state without full rehydration.
+
+- **S-18.04a — precompact-flush native WASM plugin core** (ADR-028, PR #249): `precompact-flush.wasm` — a native (non-exec) WASM plugin that fires on `PreCompact` events and persists the current wave-boundary state to the `factory-artifacts` branch before context is lost.
+
+- **S-18.04b — exec-free PreCompact exemption + dispatcher git_context payload injection** (ADR-029, PR #262, #264): Dispatcher injects `git_context` payload (branch, HEAD SHA, worktree path) into every hook invocation. `PreCompact` exemption allows exec-free WASM plugins to bypass the dispatch guard that otherwise requires an active factory session.
+
+- **S-18.05 — postcompact-reanchor advisory hook** (BC-7.07.002, PR #271): `PostCompact` hook emits a `[PostCompact Re-anchor]` block to stdout so the LLM session can re-ground itself after automatic context compaction.
+
+- **S-18.06 — validate-heavy-op-delegation WASM gate** (BC-4.15.001, ADR-026 §D12, PR #284): WASM PreToolUse gate that blocks heavy operations (multi-file writes, large Agent dispatches) from running directly in a context-durability-sensitive wave without first producing a HANDOFF.md.
+
+- **S-18.07 — E-18 terminology disambiguation docs** (ADR-026 §D7, PR #301): Clarifies the three independent compaction mechanisms (`/compact-state` skill, `PreCompact` hook event, `PostCompact` hook event) and their non-overlapping triggers in CLAUDE.md and ADR-026.
+
+- **S-18.08 — pure-parse invariant consistency gate** (BC-4.14.001/BC-4.15.001, ADR-026 §D14, PR #303): WASM gate that enforces the pure-parse invariant — spec parsers may not perform side effects — as a structural consistency check across the dispatcher hook chain.
+
+- **S-18.09 — F2 process-gap lesson gate checks** (ADR-026, D-576, PR #307): Terminal wave-8 gate: checks that the F2 adversary cycle's process-gap lessons (L-EDP1-NNN) are codified before allowing the wave-8 terminal commit to proceed.
+
+- **S-18.10 — check-state-health CLAUDE_AUTOCOMPACT_PCT_OVERRIDE verification** (BC-6.25.001 v1.1, ADR-026 §F-11, PR #315): `/vsdd-factory:check-state-health` now verifies `CLAUDE_AUTOCOMPACT_PCT_OVERRIDE` is set, within the canonical ceiling, and numeric; emits ADVISORYs rather than hard blocks (non-breaking for operators without the env var set).
+
+- **S-18.11 — sprint-state per-story producer migration + def-b ordering** (BC-5.41.004, PR #340): Migrates sprint-state YAML emission from the wave-level producer to per-story producers; enforces def-b (dependency-before) ordering in the emitted YAML. Adds 14 new bats acceptance tests.
+
+- **S-18.12 — portability-lint guard extension + bash-portability.md** (E-18 wave-9, PR #384, #385): Extends the portability-lint WASM guard with array detection (`typeset -A`), while/until wrapper detection, and pip-dotted-version detection. Adds `plugins/vsdd-factory/docs/bash-portability.md` as the canonical portability reference for bash hook authors.
+
+- **wave-scheduling skill** (`/vsdd-factory:wave-scheduling`, delivered with S-18.11): New skill for scheduling and ordering story waves with def-b dependency enforcement.
+
+### Fixed
+
+- **S-18.13 — wave-handoff Write-tool gate-trigger fix** (PR #196, closes F-S1802-02): PostToolUse gate now correctly fires on HANDOFF.md writes. Previously the gate only triggered on Edit tool calls, missing Write-tool productions entirely.
+
+- **S-18.14 — dispatcher resolver WASM path resolution + cross-platform CI hardening** (PR #201): Fixes resolver WASM path resolution when the dispatcher is invoked from a non-root cwd; adds cross-platform CI matrix hardening for darwin-x64 and linux-musl.
+
+- **write_file.rs: resolve relative paths under cwd** (PR #198, facade parity with read_file + invoke.rs): `write_file` now resolves relative paths against the session cwd, matching the behavior of `read_file` and `invoke.rs`. Eliminates silent writes to the wrong directory when cwd ≠ repo root.
+
+- **compute-input-hash: awk exit-condition bug + repo-root-relative path resolution** (PR #189): Fixes awk early-exit that caused drift detection to report false-positive hash mismatches on files with no trailing newline; adds repo-root-relative path resolution.
+
+- **develop CI restoration** (PR #200, closes #197): Restores develop CI after the `validate-state-structure` validator emitted a false-positive block on `pure-parse` schema; fixes the flaky `F-P3-008` timing lower bound.
+
+- **S-18.12 detector-parity gaps** (PR #385, adversary MAJOR-1 + MINOR-2/4/5): Post-merge adversary review of the portability-lint guard found comment-stripping parity gaps in the `has_arrays` trigger loop (MAJOR-1) and three broadening mismatches (typeset -A, while/until, pip-dotted). Fixed in-cycle before rc.22.
+
+- **F-P3-008 timing flake** (PR #431): Replaces the wall-clock lower bound in the F-P3-008 timeout test with an InternalLog JSONL event check, eliminating CI flakiness on slow runners.
+
+### Operational
+
+- **11 orphan underscore-named stub WASMs removed from the bundle** (PR #431): `block_ai_attribution.wasm`, `capture_commit_activity.wasm`, `capture_pr_activity.wasm`, `lint_registry_async_invariant.wasm`, `validate_burst_log.wasm`, `validate_closes_completeness.wasm`, `validate_dispatch_advance.wasm`, `validate_index_cite_refresh.wasm`, `validate_policies_schema.wasm`, `validate_state_structure.wasm`, `validate_trajectory_tail_cell_completeness.wasm`. These were lib-target build artifacts (underscore naming, 75-byte stubs) that were never invoked by the dispatcher — the registry references their hyphen-named equivalents. Operators get a cleaner hook-plugins directory with no dead weight.
+- **Registry-vs-staged WASM assertion in release pipeline** (PR #431, #438): Both the `build` job (asserts artifact/ dir before upload) and `commit-binaries` job (asserts hook-plugins/ dir before bundle commit) now verify every registry-declared WASM is present. Parse guard: registry parse yielding < 30 entries aborts as a regex failure. Prevents silent partial-bundle publishes.
+- **Hook plugin registry count: 33** (hooks-registry.toml). Down from 44 after stub removal; the 11 removed entries were never dispatched.
+- **Dependabot #202** (PR merged to develop before this release): bumps vite and @vitejs/plugin-react in `plugins/vsdd-factory/skills/visual-companion` to current safe versions.
+- No breaking changes to hook API, registry schema, or skill invocation signatures.
+
+### Deferred
+
+- **D-749 merge-race process-gap story** (pr-manager HEAD-pinning): The pr-manager race where a story's HEAD SHA changes between adversary review and merge is tracked as D-749; deferred to next wave.
+- **vsdd-context-resolvers naming duality** (architect adjudication pending): The resolver binary uses hyphen-naming (`vsdd-context-resolvers.wasm`) while all other hook plugins use hyphen names from the registry; the duality between the resolver-registry and hooks-registry is tracked for adjudication.
+- **release.yml ADVISORY-1/2 guard floor tuning**: The registry-count guard floor (≥ 30) is conservative; a tighter floor tied to the exact declared count is deferred to post-rc.22 once the count stabilizes.
+- **Dependabot #192** (dompurify 3.4.6 → 3.4.11 in visual-companion): Deferred; no runtime security impact on the plugin's CLI surface.
+
 ## 1.0.0-rc.21 — factory-lock subsystem + dispatcher hardening + STATE.md freshness guard (2026-06-12)
 
 Ships the complete S-17 factory-lock wave (S-17.01 through S-17.04), three dispatcher/adversary/pr-manager hardening fixes, and the write-time STATE.md freshness guard. This release brings the lock-heartbeat mechanism, the `/factory-lock` and `/factory-unlock` skills, the `verify-factory-lock` and `verify-state-timestamp-refresh` WASM guards, and the new `factory-lock-parse` crate onto the operator-level cache — the first production-grade implementation of coordinated factory-state locking.

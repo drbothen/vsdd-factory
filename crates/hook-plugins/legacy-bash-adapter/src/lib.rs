@@ -215,6 +215,7 @@ mod tests {
             subagent_name: None,
             last_assistant_message: None,
             result: None,
+            extra: std::collections::HashMap::new(),
         }
     }
 
@@ -392,6 +393,89 @@ mod tests {
         assert_eq!(
             parsed.get("dispatcher_trace_id").and_then(|v| v.as_str()),
             Some("trace-1"),
+        );
+    }
+
+    /// BC-1.16.001 INV1 / ADR-029 §Decision 2: the `#[serde(flatten)] extra`
+    /// mechanism must survive a full clone → plugin_config-strip → serialize
+    /// round-trip so that context injected by the dispatcher (e.g. git_context)
+    /// reaches the bash subprocess unchanged.  Pins the load-bearing behaviour
+    /// complementing the VP-093 bats end-to-end coverage (adversary O-1).
+    #[test]
+    fn git_context_in_extra_survives_adapter_passthrough() {
+        let mut extra = std::collections::HashMap::new();
+        extra.insert(
+            "git_context".to_string(),
+            serde_json::json!({
+                "head_subject":        "feat: add git_context injection",
+                "head_sha":            "aabbccdd11223344556677889900aabbccdd1122",
+                "head_parent_subject": "chore: bump version",
+                "head_parent_sha":     "00112233445566778899aabbccdd001122334455"
+            }),
+        );
+        let payload = HookPayload {
+            event_name: "PostToolUse".to_string(),
+            tool_name: "Write".to_string(),
+            session_id: "sess-git".to_string(),
+            dispatcher_trace_id: "trace-git".to_string(),
+            tool_input: serde_json::json!({"file_path": "HANDOFF.md"}),
+            tool_response: None,
+            plugin_config: serde_json::json!({"script_path": "git-ctx.sh"}),
+            agent_type: None,
+            subagent_name: None,
+            last_assistant_message: None,
+            result: None,
+            extra,
+        };
+
+        let captured = std::cell::RefCell::new(Vec::new());
+        let r = adapter_logic(payload, |path, bytes| {
+            assert_eq!(path, "git-ctx.sh");
+            *captured.borrow_mut() = bytes.to_vec();
+            Ok(BashOutcome {
+                exit_code: 0,
+                stdout: String::new(),
+                stderr: String::new(),
+            })
+        });
+        assert!(matches!(r, HookResult::Continue));
+
+        let bytes = captured.into_inner();
+        let parsed: serde_json::Value =
+            serde_json::from_slice(&bytes).expect("adapter must emit valid JSON");
+
+        let gc = parsed
+            .get("git_context")
+            .expect("git_context must be present in adapter output");
+
+        assert_eq!(
+            gc.get("head_sha").and_then(|v| v.as_str()),
+            Some("aabbccdd11223344556677889900aabbccdd1122"),
+            "head_sha must survive round-trip unchanged"
+        );
+        assert_eq!(
+            gc.get("head_subject").and_then(|v| v.as_str()),
+            Some("feat: add git_context injection"),
+            "head_subject must survive round-trip unchanged"
+        );
+        assert_eq!(
+            gc.get("head_parent_sha").and_then(|v| v.as_str()),
+            Some("00112233445566778899aabbccdd001122334455"),
+            "head_parent_sha must survive round-trip unchanged"
+        );
+        assert_eq!(
+            gc.get("head_parent_subject").and_then(|v| v.as_str()),
+            Some("chore: bump version"),
+            "head_parent_subject must survive round-trip unchanged"
+        );
+
+        // plugin_config must still be stripped (regression guard)
+        assert!(
+            parsed
+                .get("plugin_config")
+                .map(|v| v.is_null())
+                .unwrap_or(false),
+            "plugin_config must be stripped to null even when extra is populated"
         );
     }
 

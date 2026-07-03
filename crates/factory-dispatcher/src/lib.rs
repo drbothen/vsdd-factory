@@ -52,7 +52,10 @@ pub use internal_log::{
     InternalLog, PLUGIN_COMPLETED, PLUGIN_CRASHED, PLUGIN_INVOKED, PLUGIN_LOAD_FAILED,
     PLUGIN_LOADED, PLUGIN_TIMEOUT,
 };
-pub use invoke::{InvokeError, InvokeLimits, PluginResult, StoreData, TimeoutCause, invoke_plugin};
+pub use invoke::{
+    EventType, InvokeError, InvokeLimits, PluginResult, StoreData, TimeoutCause,
+    dispatch_postcompact, dispatch_precompact, invoke_plugin,
+};
 pub use partition::{PluginPartition, partition_plugins};
 pub use payload::{HookPayload, PayloadError};
 pub use plugin_loader::{PluginCache, PluginLoadError};
