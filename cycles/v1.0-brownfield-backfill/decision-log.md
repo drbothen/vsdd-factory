@@ -5324,3 +5324,39 @@ RELEASE-SHIPPED
 2026-07-04
 
 ---
+
+## D-751
+
+### Summary
+
+RC22-POST-INSTALL-SMOKE-COMPLETE + E-19 STORY SET DRAFTED. Human directed full post-install smoke of every hook + context system (2026-07-04, session resume after D-750 wrap). 3-leg smoke complete; E-19 epic + 5 stories S-19.01..S-19.05 drafted by story-writer. Orchestrator caught S-19.04 v1.0 defect pre-commit; story-writer amended to v1.1.
+
+### Decision
+
+**(1) RC22 POST-INSTALL SMOKE 3-LEG COMPLETE.** Human authorized full post-install smoke of the rc.22 operator cache at session resume. Smoke conducted across 3 legs; evidence in `.factory/logs/dispatcher-internal-2026-07-04.jsonl` and `cycles/v1.0-brownfield-backfill/rc22-post-install-smoke.md`.
+
+**Leg 1 (cache inventory & parity): PASS-WITH-FINDINGS.** Cache `~/.claude/plugins/cache/claude-mp/vsdd-factory/1.0.0-rc.22/` byte-identical to shipped bundle a04cb303: 37/37 WASMs + darwin-arm64 dispatcher SHA-256 identical (`8f6fbef360b05036c1f053bb82d00e706db5b1749501ac05cb250ec3b0766911`). plugin.json 1.0.0-rc.22; 73 hooks-registry registrations; 33 unique hook plugins referenced; 0 referenced-but-missing; 36/36 bash hooks pass `bash -n`; resolvers-registry parses, `wave_context` → `hook-plugins/vsdd-context-resolvers.wasm` present. FINDINGS: F-1 MEDIUM — 3 orphan WASMs unreferenced by either registry (`hello-hook.wasm` 169,303B; `vsdd_context_resolvers.wasm` 341,975B underscore variant; `wasm_resolver_export.wasm` 134,799B) → anchored S-19.04. F-3 LOW cosmetic — windows-x64 exe lacks POSIX exec bit (irrelevant for PE; no action).
+
+**Leg 2 (73-registration firing matrix, D-748 protocol, CACHE dispatcher/registry/WASMs): 73/73 PASS — 0 crashes, 0 timeouts, 0 unexpected blocks.** `registry_path` confirmed CACHE on every `dispatcher.started` record. 18 positive dispatch groups + 2 negative controls all PASS. Expected handoff-validator SubagentStop exit=2 advisory-block reproduced (block reason: `subagent_truncated_result`). All 17 `on_error=block` registrations silent on benign payloads. Regex-search tool-filter semantics confirmed (`Edit|Write` fires on MultiEdit). Evidence: `.factory/logs/dispatcher-internal-2026-07-04.jsonl`. FINDINGS: FINDING-1 functional — `verify-factory-lock` internal `capability_denied read_file .factory/STATE.md reason=output_too_large` on every PreToolUse Edit/Write/MultiEdit/Agent dispatch (traces a4b26f12/bcc3e6ef/cf4c2e4d/2551d7db; `StateReadError: OutputTooLarge`) — lock gate silently degraded when STATE.md large → anchored S-19.02. FINDING-2 functional — `warn-pending-wave-gate` `capability_denied read_file .factory/wave-state.yaml reason=path_not_allowed` (trace bc687a0f); root cause: `read_file.rs path_allowed()` `canonicalize()` returning false for non-existent files, conflating absent-file with path-not-allowed → anchored S-19.03. FINDING-3 info — tool-filter regex-SEARCH semantics undocumented → anchored S-19.04. FINDING-4 info — async plugins emit `plugin.invoked` but no `plugin.completed`; async hangs invisible below 5000ms timeout (4 real `capture-pr-activity` timeouts observed in live log) → anchored S-19.05. FINDING-5 info — D-748 baseline stated 15 `on_error=block`; rc.22 registry has 17 (additions: `lint-registry-async-invariant` PostToolUse; `validate-stable-anchors` PreToolUse `Edit|Write`) → record correction per POLICY 1 append-only.
+
+**Leg 3 (context-durability system): PASS-WITH-FINDINGS.** Resolvers live-load ("Compiled 1 resolver modules"); precompact-flush PreCompact END-TO-END in `/tmp` fixture (fixture factory-artifacts HEAD advanced, flush log written; real repo untouched — verified real HEAD `ecc04c78` unchanged); postcompact-reanchor END-TO-END (`[PostCompact Re-anchor]` block + BC-7.07.002 PC2-conformant 6-field JSONL, exit 0 both paths); rehydrate-wave NEGATIVE (`RehydrationError` exit 1, BC-6.24.001 PC7), POSITIVE (`INJECTED_FILE_COUNT=6` sentinel, dedup union, operator confirmation prompt, exit 0), EC-004 + PC6 warning paths PASS; handoff-validator advisory-block on empty subagent result; git_context injection arm (ADR-029) plugin invoked fail-open no crash; wave-handoff.sh + lib scripts `bash -n` clean. FINDINGS: F1 LOW — `VSDD_SINK_FILE` sink gated `#[cfg(debug_assertions)]`; release dispatcher emits no sink JSONL → anchored S-19.05. F2 INFO — duplicate resolver WASM variants ~0.5MB → anchored S-19.04. Bonus live evidence: destructive-command-guard correctly blocked two `rm -rf .factory` compound commands during fixture teardown.
+
+**(2) RECORD CORRECTIONS (append-only per POLICY 1 — do NOT rewrite D-748/D-750 text):** (i) D-748 stated 15 `on_error=block` registrations; rc.22 registry has 17. (ii) D-750/D-749 stated PR #431 deleted 11 orphan WASMs; `git show 35b345f4 --diff-filter=D` shows 10. (iii) D-750 "zero underscore stubs" is narrowly true (deleted stubs were ≤~103B placeholders) but 2 full-size underscore-named artifacts (`vsdd_context_resolvers.wasm`, `wasm_resolver_export.wasm`) still ship unreferenced — cleanup anchored S-19.04.
+
+**(3) E-19 POST-RC22-OPERATOR-HARDENING EPIC DRAFTED.** Human authorized story dispatch for the functional findings. Story-writer authored E-19 epic + 5 stories S-19.01..S-19.05 (34pts, 2-wave DAG: W1 S-19.01/S-19.02/S-19.03 parallel; W2 S-19.04/S-19.05), all `status: draft`. STORY-INDEX v4.127→v4.129 (v4.128 authorship burst, v4.129 S-19.04 v1.0→v1.1 correction).
+
+**(4) ORCHESTRATOR CAUGHT S-19.04 v1.0 DEFECT PRE-COMMIT.** AC-002 in v1.0 wrongly listed live resolver `vsdd-context-resolvers.wasm` (referenced by `resolvers-registry.toml` line 15) for bundle exclusion — would have broken the context-resolver system in production. Story-writer cross-checked smoke Leg 1/Leg 3 evidence and amended to v1.1: keep-assertion added, dual-registry orphan rule, AC-006 regression bats test. Lesson codified: `L-BB-orphan-status-requires-dual-registry-check`.
+
+**(5) PO ROUTING FLAG.** S-19.05 requires BC-3.08.001 amendment (new `plugin.abandoned` event type) — product-owner dispatch gated at S-19.05 ready-phase; implementer MUST NOT author it.
+
+Parent-commit: ecc04c78 (D-750 SHA-patch factory-artifacts HEAD).
+
+### Phase
+
+RC22-POST-INSTALL-SMOKE-COMPLETE
+
+### Date
+
+2026-07-04
+
+---

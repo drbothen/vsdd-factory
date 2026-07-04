@@ -5480,3 +5480,20 @@ run bash -c "echo \"$executable_content\" | grep -qE \"$guard_re\""
 **Anchor:** POST-E-18 gate-story candidate (SS-04/S-18.08-class gate or standalone; concrete future dependency: POST-E-18 revisit authorization). Justified deferral per Canonical Principle Rule 3. Not blocking rc.22 (release.yml overwrites at tag time).
 
 **Cites:** D-747, RC22-SMOKE-COMPLETE, validate-state-structure.wasm 206,070 B (dirty) vs 220,640 B (fresh darwin-arm64 rustc 1.95.0 HEAD build).
+
+---
+
+## L-BB-orphan-status-requires-dual-registry-check
+
+**Context:** D-751 NEW [process-gap] [codified]. During rc.22 post-install smoke, story-writer authored S-19.04 v1.0 with AC-002 speccing `vsdd-context-resolvers.wasm` for bundle exclusion as an orphan — checking only `hooks-registry.toml` and finding it unreferenced there. Orchestrator cross-checked smoke Leg 1 and Leg 3 evidence and caught that `vsdd-context-resolvers.wasm` IS referenced by `resolvers-registry.toml` line 15 as the live `wave_context` resolver. AC-002 would have deleted an active production WASM, breaking the context-resolver system. Story-writer amended to v1.1 pre-commit: added keep-assertion for resolvers-registry-referenced WASMs, dual-registry orphan rule, and AC-006 regression bats test.
+
+**Rule:** orphan-WASM determination MUST check BOTH `hooks-registry.toml` AND `resolvers-registry.toml` — a WASM referenced only by `resolvers-registry.toml` is live, not orphan.
+
+**Root cause:** story-writer checked only `hooks-registry.toml` when classifying WASMs for Leg 1 orphan list; `resolvers-registry.toml` was only visible in Leg 3 evidence. The two registries form a union: a WASM is orphan only if absent from BOTH.
+
+**Prevention:**
+1. Any orphan sweep MUST union both registries: `grep -h 'wasm' hooks-registry.toml resolvers-registry.toml | grep -oE '[^/]+\.wasm' | sort -u` → referenced set; any WASM not in this set is truly orphan.
+2. Regression gate: S-19.04 AC-006 `bundle-orphan-detection.bats` must assert the dual-registry union logic.
+3. Sibling-class: `L-F2-deferred-table-semantics` (verify perimeter semantics before classifying) — same "check the actual semantics of the catalog" discipline applied to registry union rather than table column headings.
+
+**Cites:** D-751, S-19.04 v1.0 AC-002 defect → v1.1 correction, smoke rc22-post-install-smoke.md Leg 1 F-1 / Leg 3 F2, STORY-INDEX v4.128→v4.129.
