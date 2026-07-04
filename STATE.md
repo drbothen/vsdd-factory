@@ -135,7 +135,7 @@ dtu_services: []
 |--------------|-----|-------|
 | main | a04cb303 | rc.22 bot binary bundle commit 2026-07-03 (Release 28668124787 post-build; all 33 WASMs rebuilt, plugin.json → 1.0.0-rc.22); prior: e4285fe5 (PR #456 true-merge fix mapfile→while-read; rc.22 tag); prior: 2a4c949b (PR #455 true-merge first rc.22 release; tag later moved); prior: caf06c68 (rc.21) |
 | develop | f5242bef | rc.22 Release sync-main→develop back-merge 2026-07-03 (D-750); prior: a6cf13e8 (PR #438 D-749 registry-staged assertion) |
-| factory-artifacts | `TBD-SHA-PATCH` | D-751 RC22-POST-INSTALL-SMOKE-COMPLETE + E-19 DRAFTED 2026-07-04 (single-commit per TD-VSDD-053); prior: D-750 `cdc8bff0` |
+| factory-artifacts | `32997659` | D-751 RC22-POST-INSTALL-SMOKE-COMPLETE + E-19 DRAFTED 2026-07-04 (single-commit per TD-VSDD-053); prior: D-750 `ecc04c78` |
 | feature/S-18.12 | **DELETED** (was 9cbd9439) | Merged via PR #384 ec05606a 2026-07-01 (D-744); branch deleted post-merge |
 | fix/S-18.12-detector-parity-gaps | **DELETED** (was 717686f8) | Merged via PR #385 2879f473 2026-07-01 (D-746); branch deleted at merge |
 | origin/maintenance/rc22-pre-release-cleanup | **PENDING DELETION** | Safe to delete (recovery long complete); human authorization outstanding |
@@ -411,7 +411,7 @@ ALL ACTIVE AND MANDATORY on every dispatch:
 - **Older anchors (BC-4.14.001 v1.17 D-651; BC-5.41.001 v1.26 D-660; BC-5.41.002 v1.19 D-658; ADR-028 v1.3 D-672; S-18.04a v1.11 D-693; S-18.05 v1.9 D-700; BC-1.15.001 v1.5..VP-090 v1.2, VP-081..VP-085, L2-INDEX v1.0.13, ADR-025 v1.6, S-17.04 v1.7, ADR-027 v1.0):** see `cycles/v1.0-brownfield-backfill/decision-log.md` D-580..D-700 blocks.
 - **BC-5.41.004 v1.5 (active):** `ss-05/BC-5.41.004.md` (D-722 POL-14 lifecycle promotion: S-18.11 PR #340 squash-merged 531dacfb 2026-06-29; lifecycle_status draft→active. No behavioral change.)
 - **S-18.12 (merged, no BC):** `behavioral_contracts: []` intentional (Option 3 gate-enforcement, S-18.09 precedent, PO gate RESOLVED D-724); MERGED PR #384 ec05606a D-744 2026-07-01; no POL-14 action (nothing to promote).
-- **Verify on resume:** `git rev-parse --short origin/develop` → expect `f5242bef`; `git rev-parse --short origin/main` → expect `a04cb303`; `git -C .factory log -1 --format='%h %s'` → expect D-750 or later; `gh repo view --json nameWithOwner -q .nameWithOwner` → expect `drbothen/vsdd-factory`; `git ls-remote --tags origin | grep rc.22` → expect `e4285fe5`; `git status plugins/vsdd-factory/hook-plugins/validate-state-structure.wasm` → expect clean (PR #431 deletion COMPLETE); check STATE.md frontmatter `pipeline: PAUSED`.
+- **Verify on resume:** `git rev-parse --short origin/develop` → expect `f5242bef`; `git rev-parse --short origin/main` → expect `a04cb303`; `git -C .factory log -1 --format='%h %s'` → expect D-751 or later; `gh repo view --json nameWithOwner -q .nameWithOwner` → expect `drbothen/vsdd-factory`; `git ls-remote --tags origin | grep rc.22` → expect `e4285fe5`; `git status plugins/vsdd-factory/hook-plugins/validate-state-structure.wasm` → expect clean (PR #431 deletion COMPLETE); check STATE.md frontmatter `pipeline: ACTIVE`.
 
 ### §10. PR Status
 
