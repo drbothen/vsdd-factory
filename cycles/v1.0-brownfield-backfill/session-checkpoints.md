@@ -875,3 +875,11 @@ D-430(a) COMPACTION 2026-06-27 — §4 Tier-A D-689..D-699 entries archived from
 - D-691 (2026-06-22): DURABLE PAUSE REFINEMENT — PR #201 review cascade COMPLETED: security PASS; code-review APPROVE; pr-reviewer APPROVE; CI 12/12 GREEN. PR #201 MERGE-PENDING. D-430(a) compaction. 4-index BC v3.39/VP v2.40/STORY v4.61/ARCH v2.72.
 - D-689 (2026-06-22): S-18.14 BC-5.39.001 STRICT 3-CLEAN CONVERGED (passes 22/23/24; 24 passes/9 fix bursts); input_hash de1abd6; S-18.14 v2.12 PROMOTED draft→ready; STORY-INDEX v4.61; 4-index BC v3.39/VP v2.40/STORY v4.61/ARCH v2.72.
 Full rows: decision-log.md SoT (D-689..D-699). factory-artifacts SRC-HARDEN v4.58: git show 6242d000:.factory/STATE.md §4 for pre-compaction state.
+
+---
+
+Summary of D-749 checkpoint (archived from STATE.md 2026-07-04 by D-750 session wrap — RELEASE-COMPLETE v1.0.0-rc.22 SHIPPED):
+- D-749 (2026-07-02): RC22-PREP-COMPLETE. rc.22 prep arc closed. WASM dirty-file CLOSED (git restore + deleted by PR #431). PR #431 MERGED squash 35b345f4: 11 orphan underscore WASM stubs deleted; release.yml hardened (underscore filter + allowlist); F-P3-008 timing flake fixed (wall-clock → InternalLog JSONL behavioral assertion). MERGE-RACE PROCESS-GAP: #431 merged before LOW-1 amendment pushed; post-merge smoke SMOKE-RED caught it. RECOVERY: PR #438 MERGED squash a6cf13e8 (human direct); LOW-1 registry-staged assertion on develop. Post-merge smoke 34aa9e8f PASS. merged_count 96→98. 4-index ALL UNCHANGED. Lesson L-BB-merge-race-ready-report-stale-head codified. POSTURE: rc.22 prep COMPLETE (all evidence gates cleared); STOP-BEFORE-PR-MERGE (D-665) holds; POST-E-18 revisit (D-721/D-723) separately pending. NEXT (at time of D-749): CI green at a6cf13e8 + CHANGELOG authoring + README badge + human GO/NO-GO.
+- develop HEAD: a6cf13e8 (PR #438 registry-staged assertion D-749) / main HEAD: caf06c68 (rc.21) / factory-artifacts HEAD: eac885eb (D-749) / v1.0.0-rc.21 tag: 03054524
+- 4-index: BC v3.57 / VP v2.51 / STORY v4.127 / ARCH v2.85. L2-INDEX v1.0.13. total_bcs 1,974. merged_count 98.
+- D-range: D-001..D-749

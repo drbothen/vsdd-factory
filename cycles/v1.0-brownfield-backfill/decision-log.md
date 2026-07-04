@@ -5280,3 +5280,47 @@ RELEASE-PREP
 2026-07-02
 
 ---
+
+## D-750
+
+### Summary
+
+RC22-SHIPPED SESSION-WRAP-PAUSE. v1.0.0-rc.22 shipped end-to-end. Two process-gaps caught and codified. PIPELINE PAUSED per human /wrap directive.
+
+### Decision
+
+**Fact 1 (release branch + PR #439 squash PROCESS-GAP):** Release branch ef3461fa (CHANGELOG.md `## 1.0.0-rc.22` + README badge rc.11→rc.22) created. PR #439 → main CI 13/13. Human squash-merged PR #439 (d9f1d7f4) — first squash in rc.15..21 all-true-merge release history; violates RELEASING.md `--merge` invariant. Caught by orchestrator history inspection.
+
+**Fact 2 (Option B squash repair — PRs #454 + #455):** Option B selected: revert PR #454 (3a22cb05, merged as true merge 585b33c1); release branch re-pushed from ef3461fa; re-release PR #455 CI-green, merged as TRUE MERGE 2a4c949b (human caught squash default and corrected). develop@a6cf13e8 ancestry verified restored. Tag v1.0.0-rc.22 initially created at 2a4c949b.
+
+**Fact 3 (Release run 28659218883 FAILED — PROCESS-GAP shell-dialect):** darwin-arm64 leg FAILED. Root cause: `mapfile` (bash 4.0+ builtin) used in registry-staged assertion script introduced by PR #438. macOS GitHub runners use Apple /bin/bash 3.2.57 which lacks `mapfile`. Dev-host bash-5 validation gave false-green. No artifacts consumed; release safely aborted at build step.
+
+**Fact 4 (fix PR #456 — mapfile → while-read):** PR #456 (c10dc6ca) rewrote `mapfile` call to portable `while-read` loop. Validated under /bin/bash 3.2.57 + bash-5 regression + actionlint. Merged as TRUE MERGE e4285fe5 (human-direct). Tag v1.0.0-rc.22 deleted at 2a4c949b + re-created at e4285fe5 (human-authorized).
+
+**Fact 5 (Release run 28668124787 ALL 10 JOBS SUCCESS):** All legs passed including darwin-arm64. Registry-staged assertion validated on macOS. Full job list: Pre-release Validation, Build dispatcher (darwin-arm64), Build dispatcher (darwin-x64), Build dispatcher (linux-x64), Build dispatcher (windows-x64), Build dispatcher (linux-arm64), Commit bundled binaries + retag, Create GitHub Release, Sync main → develop, Bump claude-mp marketplace version. Bot bundle a04cb303 committed: 33 WASMs rebuilt, ZERO underscore stubs recurred (PR #431 filter worked in production), plugin.json version → 1.0.0-rc.22. GitHub Release published 2026-07-03T15:26:56Z (prerelease).
+
+**Fact 6 (tag location):** v1.0.0-rc.22 tag at e4285fe5 (PR #456 true-merge commit on main after release run bot bundle commit a04cb303 was pushed on top — bot bundle IS a04cb303, tag points to PR #456 merge commit e4285fe5 which is the ancestor). Note: actual tag location is at e4285fe5 = PR #456 true-merge HEAD; bot bundle a04cb303 is a subsequent bot commit on main.
+
+**Fact 7 (sync-develop back-merge):** Sync main → develop job produced back-merge commit f5242bef. develop HEAD f5242bef CLEAN. Ancestry repair validated (develop is now descendant of all rc.22 release commits including squash-repair chain).
+
+**Fact 8 (marketplace drbothen/claude-mp#14 MERGED 2026-07-04T16:54:49Z):** RELEASING.md Step 8 complete. Human merged marketplace PR.
+
+**Fact 9 (operator-install VERIFIED 1.0.0-rc.22):** RELEASING.md Step 9 complete. `/plugin` confirmed vsdd-factory at 1.0.0-rc.22 in live operator cache.
+
+**Fact 10 (SESSION-WRAP-PAUSE per human /wrap):** Human issued /wrap directive. PIPELINE PAUSED. State: develop f5242bef; main a04cb303; merged_count 98; 4-index ALL UNCHANGED BC v3.57/VP v2.51/STORY v4.127/ARCH v2.85; total_bcs 1,974.
+
+**2 new process-gaps codified:**
+- (i) Release-PR merge-strategy not mechanically enforced: GitHub UI defaults to squash. Proposed cure = repo ruleset `main-merge-commits-only` (allowed_merge_methods=[merge], GHA bypass actor for bot pushes). AWAITING HUMAN AUTHORIZATION. Lesson: L-BB-release-pr-squash-merge-not-mechanically-enforced.
+- (ii) Simulation-shell-dialect gap: workflow-code validated on dev-host bash-5, not darwin-runner /bin/bash 3.2.57. Fix: validation MUST run under target shell. Lesson: L-BB-simulation-shell-dialect-gap.
+
+Parent-commit: D-749 factory-artifacts HEAD (see `git -C .factory log -1 --format='%h %s'` at D-749 time).
+
+### Phase
+
+RELEASE-SHIPPED
+
+### Date
+
+2026-07-04
+
+---
