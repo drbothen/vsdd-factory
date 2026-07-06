@@ -1,7 +1,7 @@
 ---
 document_type: epic
 epic_id: "E-19"
-version: "v1.0"
+version: "v1.1"
 status: draft
 title: "Post-rc.22 Operator Hardening — pr-manager race fixes, verify-factory-lock size defect, warn-pending-wave-gate false-positive, registry/bundle hygiene, async telemetry + VSDD_SINK_FILE"
 prd_capabilities: []
@@ -21,7 +21,7 @@ inputs:
   - .factory/stories/S-19.04-bundle-hygiene-tool-filter-anchoring.md
   - .factory/stories/S-19.05-async-completion-telemetry-sink-release-mode.md
   - .factory/specs/behavioral-contracts/ss-04/BC-4.13.001.md
-input-hash: "714085e"
+input-hash: "a6d056a"
 ---
 
 # Epic E-19: Post-rc.22 Operator Hardening
@@ -87,9 +87,20 @@ context-durability epic with unrelated hardening work.
 
 No new PRD capabilities. E-19 stories fix defects in existing capabilities and add
 observability infrastructure. BC-4.13.001 (verify-factory-lock behavioral contract)
-is amended by S-19.02 to reflect the raised byte budget. BC-3.08.001 (async event
-catalog) amendment required by S-19.05 is flagged for product-owner routing and is
-NOT authored within this epic.
+is amended by S-19.02 to reflect the raised byte budget. BC-3.08.001 v1.15
+(async event catalog — `plugin.abandoned` event + Invariant 6 terminal semantics)
+amendment LANDED (product-owner, E-19 pass-1 fix burst); implementer for S-19.05
+follows BC-3.08.001 v1.15 without further routing action.
+
+## Acceptance Criteria
+
+| ID | Criterion | Validation Method | Test Scenarios |
+|----|-----------|-------------------|----------------|
+| EAC-001 | All five stories S-19.01..S-19.05 shipped and merged to `develop` within this epic's cycle | All story PRs CI-green and merged | S-19.01..S-19.05 PR merge confirmations |
+| EAC-002 | `verify-factory-lock` no longer fails with `capability_denied reason=output_too_large` when STATE.md exceeds 64 KiB | CI integration test with 90 KB STATE.md fixture | S-19.02 AC-001 test suite |
+| EAC-003 | `warn-pending-wave-gate` emits no false-positive `capability_denied reason=path_not_allowed` on fresh install with absent `.factory/wave-state.yaml` | CI integration test with absent wave-state.yaml fixture | S-19.03 AC-001 test suite |
+| EAC-004 | `VSDD_SINK_FILE` env var is honored in release-profile dispatcher builds | Release-profile CI integration test with VSDD_SINK_FILE set | S-19.05 AC-004 test suite |
+| EAC-005 | Zero orphan (unreferenced) WASM files in the rc.23 release bundle | CI bundle manifest diff gate | S-19.04 AC-001 test suite |
 
 ## Stories
 
@@ -99,7 +110,7 @@ NOT authored within this epic.
 | S-19.02 | verify-factory-lock FINDING-1: frontmatter-only STATE.md read + raised byte budget | W1 | 8 | BC-4.13.001 |
 | S-19.03 | warn-pending-wave-gate FINDING-2: read_file file_not_found semantics + graceful absent-file handling | W1 | 5 | (behavioral_contracts: []) |
 | S-19.04 | Registry/bundle hygiene: orphan WASM removal + tool-filter regex anchoring convention + lint check | W2 | 5 | (behavioral_contracts: []) |
-| S-19.05 | Observability gaps: async plugin completion telemetry + VSDD_SINK_FILE release-mode opt-in | W2 | 8 | (behavioral_contracts: []; BC-3.08.001 amendment flagged for PO routing) |
+| S-19.05 | Observability gaps: async plugin completion telemetry + VSDD_SINK_FILE release-mode opt-in | W2 | 8 | (behavioral_contracts: []; BC-3.08.001 v1.15 LANDED) |
 
 **Total:** 5 stories, 34 story points.
 
@@ -126,17 +137,21 @@ S-19.05 (W2, P2) ─┘
 
 Topological order: W1 → W2 (by priority, not hard coupling). No cycles. Acyclic confirmed.
 
+## Dependencies (External)
+
+| System | Capability Needed | Readiness |
+|--------|------------------|-----------|
+| None | E-19 is self-contained within the vsdd-factory codebase (`crates/factory-dispatcher/`, `plugins/vsdd-factory/`, `CLAUDE.md`). No external systems, APIs, or third-party services are required. | N/A |
+
 ## Out of Scope
 
-- **BC-3.08.001 async event catalog amendment:** Required by S-19.05 to add
-  `plugin.abandoned` as a new event type. Flagged for product-owner routing. This
-  epic does NOT author the BC; the implementer proceeds with the structural work and
-  routes the BC amendment separately.
+- **BC-3.08.001 async event catalog amendment:** LANDED as v1.15 (product-owner, E-19
+  pass-1 fix burst). `plugin.abandoned` event catalog and Invariant 6 terminal semantics
+  are now in the BC. S-19.05 implementer follows BC-3.08.001 v1.15 without further routing.
 
-- **ADR amendment for raised STATE_MD_MAX_BYTES:** ADR-025 Decision 5 documents the
-  original 64 KiB cap. The S-19.02 fix raises the cap to 256 KiB in source; an ADR-025
-  amendment may be authored by the implementer inline during S-19.02 or deferred to a
-  follow-up state-manager burst. This decision is left to the implementer.
+- **ADR-025 v1.7 amendment:** Authored by architect in E-19 pass-1 fix burst (Decisions
+  13+14: `codes::NOT_FOUND = -5`; `STATE_MD_MAX_BYTES = 262144` + frontmatter-only parse).
+  Amendment is complete; this item is closed for E-19.
 
 - **WASM fuel-budget increase for lessons.md:** D-442(e) documents the WASM fuel exhaustion
   issue on large lessons.md files. This is NOT part of E-19; it is tracked under S-15.03
@@ -148,12 +163,13 @@ Topological order: W1 → W2 (by priority, not hard coupling). No cycles. Acycli
 
 ## Behavioral Contract Traceability
 
-| BC ID | Title | Story |
-|-------|-------|-------|
-| BC-4.13.001 | verify-factory-lock WASM PreToolUse guard — single-writer enforcement on .factory/ | S-19.02 (amended: raised byte budget + frontmatter-only extraction) |
+| BC ID | Story |
+|-------|-------|
+| BC-4.13.001 | S-19.02 (amended: raised byte budget + frontmatter-only extraction) |
 
 ## Changelog
 
 | Version | Date | Author | Change |
 |---------|------|--------|--------|
+| v1.1 | 2026-07-06 | story-writer | F-P1-005: delete ADR amendment Out-of-Scope bullet; replace with "ADR-025 v1.7 amendment authored by architect in E-19 pass-1 fix burst (Decisions 13+14)". F-P1-012: BC Traceability table — Title column dropped; bare BC-4.13.001 used (H1 title overflows table cell). BC-3.08.001 v1.15 LANDED status updated in PRD Capabilities + Stories table + Out of Scope. |
 | v1.0 | 2026-07-04 | story-writer | Initial creation. Post-rc.22 smoke gate authorization. 5 stories S-19.01..S-19.05 spanning SS-01/SS-03/SS-04/SS-05/SS-06/SS-07/SS-09. 2 waves; 34 pts. No new PRD capabilities. BC-4.13.001 amended by S-19.02. BC-3.08.001 amendment flagged for PO routing (S-19.05). |

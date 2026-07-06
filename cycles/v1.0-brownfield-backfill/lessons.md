@@ -5497,3 +5497,23 @@ run bash -c "echo \"$executable_content\" | grep -qE \"$guard_re\""
 3. Sibling-class: `L-F2-deferred-table-semantics` (verify perimeter semantics before classifying) — same "check the actual semantics of the catalog" discipline applied to registry union rather than table column headings.
 
 **Cites:** D-751, S-19.04 v1.0 AC-002 defect → v1.1 correction, smoke rc22-post-install-smoke.md Leg 1 F-1 / Leg 3 F2, STORY-INDEX v4.128→v4.129.
+
+---
+
+## L-BB-oversized-artifact-surgical-edit-protocol
+
+**Context:** D-752 NEW [process-gap] [codified]. During the E-19 pass-1 fix burst (2026-07-06), architect agents stalled 3 consecutive times on whole-file Read/Write operations against ADR-025 (~120KB). The 4th dispatch used a surgical protocol — Bash grep structure-recon first, targeted Read with offset/limit (~120 lines), small anchored Edits with unique old_string — and succeeded on the first try.
+
+**Rule:** Agents mutating oversized artifacts (>=100KB) MUST use the surgical protocol:
+1. Bash grep to locate the target section (structure-recon).
+2. Targeted Read with offset/limit to fetch only the affected lines (never whole-file Read on a >=100KB file).
+3. Small anchored Edit with a unique old_string (never whole-file Write via /tmp staging copies of .factory files).
+4. NEVER whole-file Read/Write on files >=100KB in `.factory/`.
+
+**Root cause:** Three consecutive agent API stalls on whole-file ADR-025 operations (~120KB) during E-19 pass-1 fix burst. The 4th attempt with surgical protocol succeeded first try.
+
+**Related:** D-442(e) WASM fuel exhaustion on the same size class (PostToolUse validators time out fail-closed-advisory on >100KB files); L-BB-unknown-provenance-wasm-build-artifact (same size-class issue class).
+
+**Prevention:** Orchestrator dispatch briefs for large-file mutations MUST mandate the surgical protocol explicitly. Threshold: any `.factory/` artifact >=100KB.
+
+**Cites:** D-752, E-19 pass-1 fix burst, ADR-025 v1.6→v1.7 architect leg, L-BB-unknown-provenance-wasm-build-artifact.

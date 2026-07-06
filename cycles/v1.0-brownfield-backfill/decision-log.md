@@ -5360,3 +5360,41 @@ RC22-POST-INSTALL-SMOKE-COMPLETE
 2026-07-04
 
 ---
+
+## D-752
+
+### Summary
+
+E-19 ADV PASS-1 NOT-CLEAN (B1/H9/M5/L1) + FIX BURST COMPLETE. Fresh-context adversary reviewed E-19 epic + S-19.01..S-19.05 + STORY-INDEX E-19 section on 2026-07-06. Verdict: NOT-CLEAN — 1 BLOCKER (codes::-4 collision) + 9 HIGH + 5 MEDIUM + 1 LOW + 5 observations. All 15 findings + O-P1-001 advisory FIXED same-burst across 4 specialist legs (product-owner, architect, story-writer, state-manager). Streak 0/3. Pass-2 NEXT with fresh context.
+
+### Decision
+
+**(1) E-19 ADVERSARIAL PASS-1 VERDICT: NOT-CLEAN B1/H9/M5/L1.** Fresh-context adversary reviewed E-19 epic + S-19.01..S-19.05 + STORY-INDEX E-19 section. Findings: F-P1-001 BLOCKER (codes::NOT_FOUND=-4 collides with INVALID_ARGUMENT=-4 — ABI corruption); F-P1-002..F-P1-010 HIGH (target_module path error, POLICY 8 BC table missing, PO routing gap, architect routing violation, TD-VSDD-091 volatile line-pins, technical-claim fidelity error in SEC-003 cfg attribution, "both arms" claim wrong, lint gate grep pattern broken, darwin-CI coverage silently dropped); F-P1-011..F-P1-014 MEDIUM (AC-001 ancestor-fallback reproduces defect, POLICY 7 BC title paraphrase, AC-002 dangling race unspecified, AC-001 missing positive assertion); F-P1-015 LOW (AC-006 grep gate loosely scoped). 5 observations (O-P1-001 JoinSet/channel advisory, O-P1-002 sizing, O-P1-003 depends_on consistency, O-P1-004 amendment history positive, O-P1-005 EC-004 perf measurement deferred).
+
+**(2) FIX BURST COMPLETE — 4 specialist legs.**
+
+**Product-owner:** BC-4.13.001 v1.3→v1.4 (cap 65536→262144 + Invariant 9 frontmatter-only per F-P1-004); BC-3.08.001 v1.14→v1.15 (Event 5 plugin.abandoned + Invariant 6 abandoned-is-terminal per F-P1-013); BC-INDEX v3.57→v3.59 (v3.58 BC-3.08.001; v3.59 BC-4.13.001).
+
+**Architect:** ADR-025 v1.6→v1.7 — Decision 13 codes::NOT_FOUND=-5 (HOST_ABI_VERSION=1 unchanged; F-P1-001 BLOCKER resolved by assigning -5 not -4); Decision 14 read-cap 262144 + frontmatter-only extraction rationale; 10 TD-031 volatile line-number cites swept; ARCH-INDEX v2.85→v2.86; Linux-CI Option B (dedicated bats-darwin-leg-macos job on macos-latest — Apple patched 3.2.57 not faithful to vanilla GNU 3.2; F-P1-005 routing violation resolved by routing ADR-025 to architect; F-P1-010 architect side); O-P1-001 advisory addressed (additive channel augmentation, JoinSet optional follow-on).
+
+**Story-writer:** S-19.01 v1.0→v1.1 (target_module agents path + EC-003 macos-latest CI job + AC-001 positive READY_SHA_FETCH_FAILED assertion; closes F-P1-002/F-P1-010 story-side/F-P1-014); S-19.02 v1.0→v1.1 (body BC table + BC↔AC traceability + Token Budget per POLICY 8 + "both arms" claim corrected + PO-flag documented; closes F-P1-003/F-P1-008); S-19.03 v1.1→v1.2 (AC-001 ancestor-fallback rejoin pattern from write_file.rs resolve_path_for_allowlist + AC-003 code corrected to -5; closes F-P1-001 story-side/F-P1-011); S-19.04 v1.1→v1.2 (AC-004 lint gate grep -v 'file:' pattern replaces broken grep -v '^\^'; closes F-P1-009); S-19.05 v1.0→v1.1 (TD-VSDD-091 volatile line-pins removed + cfg(debug_assertions) attribution corrected to VSDD_ASYNC_DRAIN_WINDOW_MS SEC-003 + AC-002 dangling-race policy per BC-3.08.001 v1.15 Event 5 + AC-006 tightened; closes F-P1-006/F-P1-007/F-P1-013 story-side/F-P1-015); E-19 epic v1.0→v1.1 (POLICY 7 verbatim H1 title + Out-of-Scope ADR-025 routing corrected to architect; closes F-P1-005 epic-side/F-P1-012); STORY-INDEX v4.129→v4.131 (v4.130 architect NOT_FOUND=-5 fix; v4.131 full fix package; stale v3.56 cite corrected to v3.59). Missing template sections added to all 5 stories + 2 epic sections.
+
+**(3) OPERATIONAL NOTES.**
+
+**(a) Routing deviation accepted:** architect (before stalling) edited S-19.03 story content (-4→-5) and bumped STORY-INDEX v4.130 directly — cross-lane per Companion Principle but content-correct per Decision 13; accepted rather than churned; story-writer verified sweep completeness at v1.2. Consistent with D-628 precedent.
+
+**(b) API-instability operational note:** 3 agent deaths mid-burst (2 PO stalls, 2 architect stalls incl. 1 ConnectionRefused) required idempotent disk-state-verified resume dispatches; the ~120KB ADR-025 file stalled 3 consecutive whole-file attempts; the 4th attempt succeeded using grep-recon + targeted-offset reads + small anchored Edits. New lesson codified: L-BB-oversized-artifact-surgical-edit-protocol.
+
+**(4) 4-INDEX AT D-752 CLOSURE:** BC v3.59 / VP v2.51 / STORY v4.131 / ARCH v2.86. Streak 0/3. NEXT: E-19 adv pass-2 (fresh context).
+
+Parent-commit: 70773304 (D-751 SHA-patch factory-artifacts HEAD).
+
+### Phase
+
+E-19-ADV-PASS-1-NOT-CLEAN-CLOSED
+
+### Date
+
+2026-07-06
+
+---

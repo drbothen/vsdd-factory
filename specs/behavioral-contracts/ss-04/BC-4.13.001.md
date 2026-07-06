@@ -1,7 +1,7 @@
 ---
 document_type: behavioral-contract
 level: L3
-version: "1.3"
+version: "1.4"
 status: active
 producer: product-owner
 timestamp: 2026-06-10T00:00:00Z
@@ -13,7 +13,7 @@ inputs:
   - .factory/specs/behavioral-contracts/ss-04/BC-4.11.001.md
   - .factory/specs/behavioral-contracts/BC-INDEX.md
   - plugins/vsdd-factory/hooks-registry.toml
-input-hash: "387e9cd"
+input-hash: "117bba0"
 traces_to: .factory/specs/architecture/decisions/ADR-025-single-writer-factory-locklease-prevent-concurrent-session-races-on-factory-artifacts-orphan-branch.md
 origin: brownfield
 subsystem: "SS-04"
@@ -24,6 +24,7 @@ modified:
   - "2026-06-11 (v1.1)"
   - "2026-06-11 (v1.2)"
   - "2026-06-11 (v1.3)"
+  - "2026-07-06 (v1.4)"
 deprecated: null
 deprecated_by: null
 replacement: null
@@ -32,7 +33,7 @@ removed: null
 removal_reason: null
 bc_id: BC-4.13.001
 section: "4.13"
-last_amended: "2026-06-11 (v1.3) — POL-14 auto-promotion: lifecycle_status draft→active on PR #182 squash-merge df4f26b8 (S-17.02 MERGED 2026-06-11); BC-INDEX v2.69→v2.70; D-545. [Prior: 2026-06-11 (v1.2) — Boundary-semantics spec error (product-owner; S-17.02 testing finding; issue #170). EC-002 and PC2 prescribed `now > expires_at` as the expiry test, which is self-contradictory: `now == expires_at` would evaluate false under strict `>`, causing the guard to BLOCK at the exact-expiry instant — opposite of the stated EC-002 outcome (boundary → Continue). Corrected to `now >= expires_at` throughout (PC2 condition, EC-002 description, Invariant 3). PC1 blocking condition updated from `now ≤ expires_at` to `now < expires_at` for consistency (boundary is expired, not blocking). BC version v1.1→v1.2. [Prior: 2026-06-11 (v1.1) — Production-correctness spec gap (product-owner; S-17.02 implementation finding; issue #170). Inv 5 registry-shape UPDATED: both exec_subprocess capability blocks now REQUIRE `env_allow = [\"HOME\", \"GIT_CONFIG_GLOBAL\", \"XDG_CONFIG_HOME\"]` alongside `binary_allow = [\"git\"]`; without env_allow the dispatcher calls env_clear() → git config user.email returns empty → IdentityResolutionFailed → HookResult::Continue → lock silently inert. EC-016 added (env_allow omitted footgun). PC7 IdentityResolutionFailed extended to document env_allow dependency. BC version v1.0→v1.1. Prior: 2026-06-10 (v1.0) — Initial authoring (product-owner; brownfield-backfill issue #170; ADR-025 v1.2 D1/D2/D7/D9 deliverables). verify-factory-lock WASM guard behavioral contract. lifecycle_status: draft (POL-14 auto-promotion to active on implementing PR merge).]"
+last_amended: "2026-07-06 (v1.4) — E-19 pass-1 F-P1-004 fix burst (product-owner): Precondition 3 max_bytes raised 65536→262144 (256 KiB; rationale: STATE.md observed ~90 KB / ~466 lines; 500-line compaction hard cap implies worst-case ≤200 KiB; 256 KiB gives ≥28% headroom). Invariant 9 extended with frontmatter-only-parsing mandate: guard MUST abort after second ---\\n delimiter and MUST NOT parse file body. TD-031 in-scope fix: two volatile executor.rs line cites migrated to stable symbol anchors per TD-VSDD-091 (PC1 block path and Invariant 8 aggregation site). Closes F-P1-004. BC-INDEX v3.57→v3.58. [Prior: 2026-06-11 (v1.3) — POL-14 auto-promotion: lifecycle_status draft→active on PR #182 squash-merge df4f26b8 (S-17.02 MERGED 2026-06-11); BC-INDEX v2.69→v2.70; D-545. [Prior: 2026-06-11 (v1.2) — Boundary-semantics spec error (product-owner; S-17.02 testing finding; issue #170). EC-002 and PC2 prescribed `now > expires_at` as the expiry test, which is self-contradictory: `now == expires_at` would evaluate false under strict `>`, causing the guard to BLOCK at the exact-expiry instant — opposite of the stated EC-002 outcome (boundary → Continue). Corrected to `now >= expires_at` throughout (PC2 condition, EC-002 description, Invariant 3). PC1 blocking condition updated from `now ≤ expires_at` to `now < expires_at` for consistency (boundary is expired, not blocking). BC version v1.1→v1.2. [Prior: 2026-06-11 (v1.1) — Production-correctness spec gap (product-owner; S-17.02 implementation finding; issue #170). Inv 5 registry-shape UPDATED: both exec_subprocess capability blocks now REQUIRE `env_allow = [\"HOME\", \"GIT_CONFIG_GLOBAL\", \"XDG_CONFIG_HOME\"]` alongside `binary_allow = [\"git\"]`; without env_allow the dispatcher calls env_clear() → git config user.email returns empty → IdentityResolutionFailed → HookResult::Continue → lock silently inert. EC-016 added (env_allow omitted footgun). PC7 IdentityResolutionFailed extended to document env_allow dependency. BC version v1.0→v1.1. Prior: 2026-06-10 (v1.0) — Initial authoring (product-owner; brownfield-backfill issue #170; ADR-025 v1.2 D1/D2/D7/D9 deliverables). verify-factory-lock WASM guard behavioral contract. lifecycle_status: draft (POL-14 auto-promotion to active on implementing PR merge).]]]"
 ---
 
 # BC-4.13.001: verify-factory-lock WASM PreToolUse guard MUST block mutating tools when a foreign unexpired factory_lock is held, MUST pass all read-only tools unconditionally, MUST fail-open on crash, MUST be registered async=false with both capability blocks enumerated, and MUST treat expired/absent/malformed locks as unlocked
@@ -75,12 +76,17 @@ push fix (D6) are specified in BC-5.40.001 and BC-6.23.001 respectively.
 
 ### File read capability
 
-3. The guard MUST read `.factory/STATE.md` via `host::read_file` with `max_bytes = 65536`
-   (64 KiB — sufficient for STATE.md frontmatter; the frontmatter `factory_lock` block is in
-   the first 2 KiB of the file). The registry-level `[hooks.capabilities.read_file]` MUST
-   enumerate `path_allow = [".factory/STATE.md"]` explicitly. Without this block, the
-   dispatcher returns `CapabilityDenied` and the plugin graceful-degrades to `Continue` — the
-   lock never enforces (silent no-op; see EC-007 capability-denied footgun and Invariant 6).
+3. The guard MUST read `.factory/STATE.md` via `host::read_file` with `max_bytes = 262144`
+   (256 KiB — STATE.md observed sizes are approximately 90 KB at ~466 lines; the 500-line
+   compaction hard cap per ADR-026 implies a worst-case file size ≤200 KiB; 262144 bytes
+   gives ≥28% headroom above the worst-case size. The guard derives its lock signal
+   exclusively from the FRONTMATTER region, which is contained in the first ~2 KiB of the
+   file — `max_bytes` must only be large enough that `host::read_file` does not return
+   `OutputTooLarge` on valid STATE.md files; the full body is never parsed by this guard).
+   The registry-level `[hooks.capabilities.read_file]` MUST enumerate
+   `path_allow = [".factory/STATE.md"]` explicitly. Without this block, the dispatcher
+   returns `CapabilityDenied` and the plugin graceful-degrades to `Continue` — the lock
+   never enforces (silent no-op; see EC-007 capability-denied footgun and Invariant 6).
 
 ### Subprocess capability
 
@@ -124,10 +130,9 @@ five required fields:
   `expires_at - now`, rounded down to the nearest minute
 - `/factory-unlock --force` — the exact command string to break-glass force-release the lock
 
-The block path runs through `plugin_requests_block()` in
-`crates/factory-dispatcher/src/executor.rs` (`plugin_requests_block` function) invoked at
-`executor.rs:105–108` for sync-group plugins (the `async = false` requirement is necessary for
-this path — see Precondition 5).
+The block path runs through the `plugin_requests_block` function in
+`crates/factory-dispatcher/src/executor.rs` for sync-group plugins (the `async = false`
+requirement is necessary for this path — see Precondition 5).
 
 **Error variant:** `ForeignLockHeld`
 
@@ -275,17 +280,24 @@ are surfaced as advisory `internal.dispatcher_error` events via SS-03.
    The `timeout_ms = 5000` is a backstop for pathological conditions.
 
 8. **Block path is synchronous**: The `block_intent = true` result is only effective when the
-   plugin is in the sync-group (`async = false`). The block decision aggregates at
-   `executor.rs:100–117`. An async plugin's `block_intent` is silently discarded (advisory
-   telemetry only per ADR-019). `async = false` is therefore a correctness constraint on the
-   registration, not an optimization hint.
+   plugin is in the sync-group (`async = false`). The block decision aggregates at the
+   `plugin_requests_block` call site in `crates/factory-dispatcher/src/executor.rs`. An async
+   plugin's `block_intent` is silently discarded (advisory telemetry only per ADR-019).
+   `async = false` is therefore a correctness constraint on the registration, not an
+   optimization hint.
 
 9. **`factory_lock` block parsing is fail-open**: Frontmatter parsing uses a YAML subset
    scanner (not a full YAML parser). The guard scans for the `factory_lock:` key and its
    three sub-fields (`holder:`, `locked_at:`, `expires_at:`) using line-by-line scan within
    the frontmatter region (between first and second `---\n` delimiters). Any parse ambiguity
    (nested structures, quoted colons, missing delimiters) routes to `MalformedLockBlock`
-   (PC4 fail-open path), never to a Block.
+   (PC4 fail-open path), never to a Block. **Frontmatter-only mandate:** The guard MUST abort
+   scanning immediately after encountering the second `---\n` delimiter and MUST NOT attempt
+   to parse the file body. The lock verdict is derived exclusively from the frontmatter region;
+   no body content is read, parsed, or required. This property is preserved regardless of
+   STATE.md body size: `max_bytes = 262144` (Precondition 3) ensures the host read does not
+   return `OutputTooLarge` on valid STATE.md files, but the parser stops at the frontmatter
+   boundary and never processes the remaining bytes.
 
 ## Edge Cases
 
@@ -385,7 +397,7 @@ pattern that `verify-factory-lock` follows (ADR-025 Rationale §Why native WASM)
 | L2 Capability | CAP-031 |
 | Capability Anchor Justification | CAP-031 ("Enforce single-writer cross-session exclusivity on factory-artifacts state") per capabilities.md §CAP-031 — this BC defines the `verify-factory-lock` WASM PreToolUse guard that IS the primary enforcement mechanism for CAP-031. The guard blocks mutating tools when a foreign unexpired lock is held, which is exactly the blocking behavior CAP-031 specifies. |
 | L2 Domain Invariants | none (cross-session operational invariant, not L2 domain spec) |
-| Architecture Module | `crates/hook-plugins/verify-factory-lock/` (new crate; compiles to `hook-plugins/verify-factory-lock.wasm`); `crates/hook-sdk/src/lib.rs` (HOST_ABI_VERSION=1 anchor); `crates/factory-dispatcher/src/executor.rs` (plugin_requests_block block path; sync-group partition at lines 100–117); `plugins/vsdd-factory/hooks-registry.toml` (registry entries D2) |
+| Architecture Module | `crates/hook-plugins/verify-factory-lock/` (new crate; compiles to `hook-plugins/verify-factory-lock.wasm`); `crates/hook-sdk/src/lib.rs` (HOST_ABI_VERSION=1 anchor); `crates/factory-dispatcher/src/executor.rs` (plugin_requests_block block path; sync-group partition); `plugins/vsdd-factory/hooks-registry.toml` (registry entries D2) |
 | Stories | TBD (v1.0-brownfield-backfill issue #170 decomposition pending) |
 | ADR Reference | ADR-025 v1.2 (primary — all 10 decisions); ADR-016 (artifact path guard pattern + `on_error = "continue"` precedent); ADR-019 (sync/async partition; `async = false` CI lint invariant); ADR-020 (Class A latency budget ≤1500ms p95) |
 
@@ -415,6 +427,7 @@ TBD — VP IDs to be assigned after VP authoring pass.
 
 | Version | Date | Description |
 |---------|------|-------------|
+| 1.4 | 2026-07-06 | E-19 pass-1 F-P1-004 fix burst (product-owner): Precondition 3 `max_bytes` raised 65536→262144 (256 KiB); rationale: STATE.md observed ~90 KB / ~466 lines; 500-line compaction hard cap implies worst-case ≤200 KiB; 256 KiB gives ≥28% headroom above worst-case. Invariant 9 extended with frontmatter-only-parsing mandate: guard MUST abort scanning after second `---\n` delimiter and MUST NOT parse file body; lock verdict derived exclusively from frontmatter. TD-031 in-scope fix (TD-VSDD-091): two volatile executor.rs line cites replaced with stable symbol anchors (`plugin_requests_block` function) in PC1 block-path paragraph and Invariant 8 aggregation-site paragraph. Closes F-P1-004. BC-INDEX v3.57→v3.58. |
 | 1.3 | 2026-06-11 | POL-14 auto-promotion: lifecycle_status draft→active on PR #182 squash-merge df4f26b8 (S-17.02 MERGED 2026-06-11; D-545). BC-4.13.001 is now the enforcement BC for the deployed verify-factory-lock WASM guard. BC-INDEX v2.69→v2.70. No spec content changes. |
 | 1.2 | 2026-06-11 | Boundary-semantics spec error corrected (product-owner; S-17.02 testing; issue #170). EC-002 and PC2 prescribed `now > expires_at` as the expiry test, which is self-contradictory: under strict `>`, `now == expires_at` evaluates false → guard would BLOCK at the exact-expiry instant, contradicting EC-002's stated outcome (boundary → Continue). Corrected to `now >= expires_at` in PC2, EC-002, and Invariant 3. PC1 blocking condition corrected from `now ≤ expires_at` to `now < expires_at` (boundary is expired, not blocking). All four locations now consistently state: the lock is expired (Continue) when `now >= expires_at`; the guard blocks only when `now < expires_at`. EC-002 outcome (boundary → Continue) unchanged. BC version v1.1→v1.2. |
 | 1.1 | 2026-06-11 | Production-correctness spec gap found during S-17.02 implementation (product-owner; issue #170; S-17.02). Inv 5 registry-shape: both `[hooks.capabilities.exec_subprocess]` blocks now REQUIRE `env_allow = ["HOME", "GIT_CONFIG_GLOBAL", "XDG_CONFIG_HOME"]` alongside `binary_allow = ["git"]` — without env_allow the dispatcher's env_clear() causes `git config user.email` to return empty → IdentityResolutionFailed → HookResult::Continue → lock silently inert. Precondition 4 updated to document env_allow requirement. PC7 extended with env_allow dependency note (env_clear() path to IdentityResolutionFailed). EC-016 added (env_allow omitted footgun — same class as EC-007/EC-008 but subtler). 16 edge cases total EC-001..EC-016. BC version v1.0→v1.1. |
