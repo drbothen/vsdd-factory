@@ -1,7 +1,7 @@
 ---
 document_type: behavioral-contract
 level: L3
-version: "1.15"
+version: "1.16"
 last_amended: 2026-07-06
 status: draft
 producer: product-owner
@@ -21,6 +21,7 @@ lifecycle_status: active
 introduced: v1.0-feature-plugin-async-semantics-pass-1
 modified:
   - "2026-07-06 (v1.15)"
+  - "2026-07-06 (v1.16)"
 deprecated: null
 deprecated_by: null
 replacement: null
@@ -182,12 +183,15 @@ The `error_code` field is an enum with exactly two valid values: `"E-REG-002"` a
   "trace_id": "<uuid-v4>",
   "session_id": "<uuid-v4>",
   "plugin_name": "<string>",
+  "entry_index": <u32>,
   "drain_window_ms": <integer>,
   "timestamp": "<ISO-8601>"
 }
 ```
 
-**Mandatory fields**: `type`, `trace_id`, `session_id`, `plugin_name`, `drain_window_ms`, `timestamp`.
+**Mandatory fields**: `type`, `trace_id`, `session_id`, `plugin_name`, `entry_index`, `drain_window_ms`, `timestamp`.
+
+**`entry_index` semantics**: The ordinal position (0-based, from `enumerate()`) of this plugin's registry entry in the async partition at the time of dispatch. The registry idiom permits multiple entries per `plugin_name` (e.g., `verify-factory-lock` has two entries: one for `Edit|Write|MultiEdit|Agent` and one for `Bash`). Name-only keying collapses distinct invocations; consumers need the `(plugin_name, entry_index)` tuple to unambiguously identify which registry entry was abandoned.
 
 **`drain_window_ms` semantics**: The effective drain window value at the time the timer fired — `ASYNC_DRAIN_WINDOW_MS` in release builds, or the debug-override value from `VSDD_ASYNC_DRAIN_WINDOW_MS` in debug builds (SEC-003). This is the dispatcher-level drain window, distinct from the per-plugin `timeout_ms` carried by `plugin.timeout` events. Both may apply to the same plugin: `plugin.timeout` fires when the plugin exceeds its per-plugin budget; `plugin.abandoned` fires when the drain window expires regardless of per-plugin timeout status.
 
@@ -202,7 +206,7 @@ The `error_code` field is an enum with exactly two valid values: `"E-REG-002"` a
 3. **Events do not affect dispatcher exit code**: All four are observability-only. `plugin.async_block_discarded` and `plugin.timeout (async)` are logged and forgotten. `dispatcher.schema_mismatch` and `dispatcher.registry_invalid` accompany a hard exit (non-zero) but the event itself does not cause the exit — the validation failure does.
 4. **`plugin.async_block_discarded` reason field is the literal string `"async_plugin_block_verdict_discarded"`**: Not an error code; a diagnostic reason string for human-readable log inspection.
 5. **`trace_id` is the exclusive wire-format field name for the trace correlation value**: The dispatcher's structured-event wire format uses field name `trace_id` exclusively. The legacy field name `dispatcher_trace_id` MUST NOT appear in the serialized wire output. Plugins MUST NOT emit a `trace_id` field via `with_field()` — `trace_id` is reserved for the dispatcher (see §Implementation Notes). Reference: DI-017 (amended per F-P1-007).
-6. **`plugin.abandoned` is a terminal event within the current dispatcher invocation**: When the async drain timer fires (EC-011), `plugin.abandoned` is the last observable event for each in-flight plugin in this invocation. No `plugin.completed` event fires after `plugin.abandoned` for the same `trace_id` + `plugin_name` pair. Rationale for semantics option (a) abort-at-drain (F-P1-013): the dispatcher exits shortly after the drain window expires; in-flight Tokio tasks that complete after the `break` have no live FileSink to emit from. The `rx` channel receiver is dropped at drain timer fire, so any late result send is silently discarded. Option (b) (both events may fire) is structurally impossible under the current single-process lifecycle — the process exits before abandoned tasks can complete and write to a live sink. Option (c) (suppress `plugin.completed` after `plugin.abandoned`) is mechanically equivalent to (a) without benefit; no suppression logic is needed when the emission path is already closed.
+6. **`plugin.abandoned` is a terminal event within the current dispatcher invocation**: When the async drain timer fires (EC-011), `plugin.abandoned` is the last observable event for each in-flight plugin in this invocation. No `plugin.completed` event fires after `plugin.abandoned` for the same `trace_id` + `plugin_name` + `entry_index` tuple. Rationale for semantics option (a) abort-at-drain (F-P1-013): the dispatcher exits shortly after the drain window expires; in-flight Tokio tasks that complete after the `break` have no live FileSink to emit from. The `rx` channel receiver is dropped at drain timer fire, so any late result send is silently discarded. Option (b) (both events may fire) is structurally impossible under the current single-process lifecycle — the process exits before abandoned tasks can complete and write to a live sink. Option (c) (suppress `plugin.completed` after `plugin.abandoned`) is mechanically equivalent to (a) without benefit; no suppression logic is needed when the emission path is already closed.
 
 ## Implementation Notes
 
@@ -273,7 +277,7 @@ TBD — single story per ADR-019 §6 (no phased rollout, user decision 2026-05-0
 | EC-004b | Two or more registry entries share the same `(name, event, tool)` tuple (DuplicateEntry) | `dispatcher.registry_invalid` emitted with `error_code: "E-REG-003"`, `violation: "duplicate_hook_registration"`, `offending_plugin`/`offending_event`/`offending_tool` set to the duplicating entry's tuple; dispatcher refuses to start |
 | EC-005 | Async plugin times out | `plugin.timeout` emitted with `execution_group: "async"`; plugin process terminated; dispatcher exit code unaffected |
 | EC-006 | Multiple async plugins time out in same invocation | One `plugin.timeout` event per timed-out plugin (not a single batch event) |
-| EC-007 | Drain timer fires with N async plugins still in-flight | N `plugin.abandoned` events emitted (one per in-flight plugin), each with `drain_window_ms` set to the effective drain window value; no `plugin.completed` events follow for the abandoned plugins in this invocation (Invariant 6) |
+| EC-007 | Drain timer fires with N async plugins still in-flight | N `plugin.abandoned` events emitted (one per in-flight plugin), each with `drain_window_ms` set to the effective drain window value and `entry_index` identifying the registry partition position; no `plugin.completed` events follow for the abandoned plugins in this invocation (Invariant 6) |
 
 ## Canonical Test Vectors
 
@@ -286,7 +290,7 @@ TBD — single story per ADR-019 §6 (no phased rollout, user decision 2026-05-0
 | Async plugin times out (timeout_ms exceeded) | `plugin.timeout` with `execution_group: "async"` in events-*.jsonl; no impact on dispatcher exit | async-timeout |
 | All four original events emitted; FileSink running | All four appear as JSON lines in events-YYYY-MM-DD.jsonl; `trace_id` present on all | fan-out-happy-path |
 | All async plugins complete before drain timer | No `plugin.abandoned` events in events-*.jsonl | abandoned-none |
-| One async plugin still in-flight at drain timer expiry | `plugin.abandoned` event with `drain_window_ms` set, `plugin_name` correct, `trace_id` + `session_id` present; no `plugin.completed` follows for that plugin (Invariant 6) | abandoned-one |
+| One async plugin still in-flight at drain timer expiry | `plugin.abandoned` event with `drain_window_ms` set, `plugin_name` correct, `entry_index` correct, `trace_id` + `session_id` present; no `plugin.completed` follows for that plugin (Invariant 6) | abandoned-one |
 
 ## Verification Properties
 
@@ -324,6 +328,25 @@ TBD — single story per ADR-019 §6 (no phased rollout, user decision 2026-05-0
 | **Deterministic** | Event content is deterministic given same inputs; file timestamps vary. |
 | **Thread safety** | FileSink is designed for concurrent writes (per BC-3.x contracts). |
 | **Overall classification** | Effectful (filesystem I/O); emission is fire-and-once (no retry). |
+
+## Amendment 2026-07-06 (v1.15 → v1.16 — F-P2-008: `entry_index` field for `plugin.abandoned`; Invariant 6 tuple key extended)
+
+**Driver:** Adversary finding F-P2-008 (E-19 pass-2) — the `plugin.abandoned` event schema used `plugin_name` alone as the per-entry identifier, but the registry idiom permits multiple entries per `plugin_name` (e.g., `verify-factory-lock` has two entries). Consumers disambiguating abandoned plugins by `(trace_id, plugin_name)` would collapse two distinct in-flight invocations into one signal, making root-cause analysis impossible when both entries abandon in the same drain window.
+
+**Changes made:**
+
+1. **Event 5 wire format** (F-P2-008): `entry_index: <u32>` field added between `plugin_name` and `drain_window_ms`. Mandatory fields list updated to include `entry_index`.
+2. **Event 5 `entry_index` semantics paragraph** (F-P2-008): Added after mandatory fields. States: 0-based ordinal from `enumerate()` of the async partition at spawn time; registry allows multiple entries per `plugin_name`; consumers need `(plugin_name, entry_index)` tuple for unambiguous identification.
+3. **Invariant 6** (F-P2-008): Terminal-semantics key extended from `trace_id + plugin_name` pair to `trace_id + plugin_name + entry_index` tuple.
+4. **EC-007** (F-P2-008): Per-event description updated to mention `entry_index` alongside `drain_window_ms`.
+5. **Canonical Test Vectors `abandoned-one` row** (F-P2-008): Updated to assert `entry_index` correct.
+6. **Frontmatter** (F-P2-008): `version` bumped `"1.15"` → `"1.16"`; `modified[]` entry added; `last_amended` date retained 2026-07-06.
+
+**POLICY 1 verification:** All prior content preserved verbatim except the six changes listed above.
+**POLICY 7 verification:** H1 heading unchanged (entry_index is a field extension, not a new event type).
+**TD-031 verification:** No new line-number citations introduced.
+
+---
 
 ## Amendment 2026-07-06 (v1.14 → v1.15 — F-P1-013: `plugin.abandoned` event catalog + drain-terminal semantics codified)
 
@@ -591,6 +614,7 @@ Addresses adversary pass-2 finding F-P2-010.
 
 **Changelog:**
 
+| v1.16 | 2026-07-06 | product-owner | F-P2-008 fix burst (product-owner): Event 5 `plugin.abandoned` schema extended with mandatory field `entry_index: u32` (ordinal position of registry entry in async partition at spawn time; enumerate() order; disambiguates multiple entries per plugin_name — e.g., verify-factory-lock has 2 entries). Mandatory fields list updated. Invariant 6 terminal-semantics key extended: `trace_id+plugin_name` → `trace_id+plugin_name+entry_index`. EC-007 and abandoned-one test vector updated. Closes F-P2-008. BC-INDEX v3.60→v3.61. |
 | v1.15 | 2026-07-06 | product-owner | F-P1-013: Event 5 `plugin.abandoned` added to catalog; drain-terminal semantics codified (option a); Invariant 6; EC-007; abandoned-none/one test vectors; VP-079 scope updated; §Architecture Anchors updated. Closes F-P1-013. |
 | v1.14 | 2026-05-09 | state-manager | F-P36-001: Traceability Stories row updated TBD → S-15.01 (F3 story decomposition propagation). |
 | v1.13 | 2026-05-09 | implementer | F-P25-003: §Architecture Anchors bullet 1 corrected to main.rs + host/emit_event.rs (emission sites); §Traceability Architecture Module row corrected. F-P25-006: duplicate last_amended frontmatter field removed. |

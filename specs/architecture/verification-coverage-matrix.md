@@ -1,17 +1,21 @@
 ---
-document_type: architecture-section
+document_type: verification-coverage-matrix
 level: L4
 section: verification-coverage-matrix
-version: "1.3"
+version: "1.4"
 status: draft
 producer: architect
 timestamp: 2026-06-24T00:00:00Z
-last_amended: "2026-06-24 (v1.3) — S-18.04b-prereq BC authoring burst (architect POLICY 9 propagation): VP-093 added to SS-01 module table (integration; SS-01; DI-020, DI-025; BC-1.16.001 — dispatcher git_context injection on PostToolUse Bash git-commit events; four-field completeness; fail-open on git error; no injection on non-qualifying events). SS-01 subtotal I 6→7, row total 31→32. Grand Total I 27→28, row total 92→93. Per-tool arithmetic 4+4+46+28+10+1=93 VERIFIED. Per-subsystem row-sum 32+5+14+13+12+5+11+1=93 VERIFIED. [Prior: 2026-06-16 (v1.2) — D-615 E-18 STORY PASS-1 FIX WAVE INTEGRATION BURST (state-manager POLICY 9 propagation): VP-092 added to SS-06 module table (unit-test; SS-06; DI-020; BC-6.25.001 — check-state-health CLAUDE_AUTOCOMPACT_PCT_OVERRIDE advisory check; never blocks). SS-06 subtotal U 0→1, row total 4→5. Grand Total U 45→46, row total 91→92. Per-tool arithmetic 4+4+46+27+10+1=92 VERIFIED. Per-subsystem row-sum 31+5+14+13+12+5+11+1=92 VERIFIED. [Prior: 2026-06-16 (v1.1) — D-612 INTEGRATION BURST (state-manager POLICY 9 propagation): VP-091 added to SS-04 module table (unit-test; SS-04; DI-020; BC-4.15.001 — validate-heavy-op-delegation always-Continue advisory gate). SS-04 subtotal U 3→4, row total 12→13. Grand Total U 44→45, row total 90→91. Per-tool arithmetic 4+4+45+27+10+1=91 VERIFIED. Per-subsystem row-sum 31+5+14+13+12+4+11+1=91 VERIFIED. [Prior: 2026-06-16 (v1.0) — F2 gate decision: initial creation as a full production-grade architecture deliverable. Sources: VP-INDEX.md v2.29 (86 VPs) + VP-087..VP-090 (4 new E-18 VPs, unstaged). POST-INTEGRATION totals: total_vps=90, unit-test=44, integration=27, manual=10, static-check=1, kani-proof=4, proptest=4. Every VP assigned to its authoritative module per VP-INDEX.md scope column and VP file frontmatter. Authored per F2 gate human directive that deferred architecture derived-views be materialized now.]]"
+last_amended: "2026-07-06 (v1.4) — E-19 VP package POLICY 9 propagation (architect): VP-094 added to SS-05 module table (I; BC-5.42.001); VP-095/096 added to SS-04 (I + P; BC-4.13.001); VP-097/098/100/101 added to SS-01 (K + I + I + I; BC-2.07.001+BC-2.02.011 + BC-2.07.001 + BC-3.08.001+DI-019 + BC-1.17.001); VP-099 added to SS-07 (I; no BC). SS-01 subtotal K 2→3 (+VP-097), I 7→10 (+VP-098/100/101), row total 32→36. SS-04 subtotal P 1→2 (+VP-096), I 6→7 (+VP-095), row total 13→15. SS-05 subtotal I 5→6 (+VP-094), row total 12→13. SS-07 subtotal I 4→5 (+VP-099), row total 11→12. Grand Total K 4→5, P 4→5, I 28→34, row total 93→101. Per-tool arithmetic 5+5+46+34+10+1=101 VERIFIED. Per-subsystem row-sum 36+5+14+15+13+5+12+1=101 VERIFIED. §2 VP-100 judgment call added (SS-01 primary; SS-03 secondary). §3 Grand Totals updated. [Prior: 2026-06-24 (v1.3) — S-18.04b-prereq BC authoring burst (architect POLICY 9 propagation): VP-093 added to SS-01 module table (integration; SS-01; DI-020, DI-025; BC-1.16.001 — dispatcher git_context injection on PostToolUse Bash git-commit events; four-field completeness; fail-open on git error; no injection on non-qualifying events). SS-01 subtotal I 6→7, row total 31→32. Grand Total I 27→28, row total 92→93. Per-tool arithmetic 4+4+46+28+10+1=93 VERIFIED. Per-subsystem row-sum 32+5+14+13+12+5+11+1=93 VERIFIED. [Prior: 2026-06-16 (v1.2) — D-615 E-18 STORY PASS-1 FIX WAVE INTEGRATION BURST (state-manager POLICY 9 propagation): VP-092 added to SS-06 module table (unit-test; SS-06; DI-020; BC-6.25.001 — check-state-health CLAUDE_AUTOCOMPACT_PCT_OVERRIDE advisory check; never blocks). SS-06 subtotal U 0→1, row total 4→5. Grand Total U 45→46, row total 91→92. Per-tool arithmetic 4+4+46+27+10+1=92 VERIFIED. Per-subsystem row-sum 31+5+14+13+12+5+11+1=92 VERIFIED. [Prior: 2026-06-16 (v1.1) — D-612 INTEGRATION BURST (state-manager POLICY 9 propagation): VP-091 added to SS-04 module table (unit-test; SS-04; DI-020; BC-4.15.001 — validate-heavy-op-delegation always-Continue advisory gate). SS-04 subtotal U 3→4, row total 12→13. Grand Total U 44→45, row total 90→91. Per-tool arithmetic 4+4+45+27+10+1=91 VERIFIED. Per-subsystem row-sum 31+5+14+13+12+4+11+1=91 VERIFIED. [Prior: 2026-06-16 (v1.0) — F2 gate decision: initial creation as a full production-grade architecture deliverable. Sources: VP-INDEX.md v2.29 (86 VPs) + VP-087..VP-090 (4 new E-18 VPs, unstaged). POST-INTEGRATION totals: total_vps=90, unit-test=44, integration=27, manual=10, static-check=1, kani-proof=4, proptest=4. Every VP assigned to its authoritative module per VP-INDEX.md scope column and VP file frontmatter. Authored per F2 gate human directive that deferred architecture derived-views be materialized now.]]"
 modified:
+  - "2026-07-06 (v1.4) — E-19 VP package POLICY 9 propagation: VP-094 (SS-05), VP-095/096 (SS-04), VP-097/098/100/101 (SS-01), VP-099 (SS-07) added; K 4→5, P 4→5, I 28→34, Total 93→101; §2 VP-100 judgment call added; input-hash 61531bf→7a7ac8c"
   - "2026-06-24 (v1.3) — VP-093 added to SS-01 module; SS-01 I 6→7, total 31→32; grand total 92→93"
   - "2026-06-16 (v1.2) — D-615 VP-092 added to SS-06 module; SS-06 U 0→1, total 4→5; grand total 91→92"
   - "2026-06-16 (v1.1) — D-612 VP-091 added to SS-04 module; SS-04 U 3→4, total 12→13; grand total 90→91"
   - "2026-06-16 (v1.0 initial creation)"
+phase: 1b
+inputs: [verification-properties/VP-INDEX.md]
+input-hash: "7a7ac8c"
 traces_to: VP-INDEX.md
 subsystems_affected:
   - SS-01
@@ -46,6 +50,7 @@ subsystems_affected:
 
 | Version | Date | Author | Change |
 |---------|------|--------|--------|
+| v1.4 | 2026-07-06 | architect | E-19 VP package POLICY 9 propagation: VP-094 added to SS-05 (I; BC-5.42.001; S-19.01); VP-095/096 added to SS-04 (I + P; BC-4.13.001; S-19.02); VP-097/098/100/101 added to SS-01 (K + I + I + I; BC-2.07.001+BC-2.02.011 + BC-2.07.001 + BC-3.08.001+DI-019 + BC-1.17.001); VP-099 added to SS-07 (I; no BC; S-19.04). All 8 abbreviated titles corrected from prior placeholder values. SS-01 subtotal K 2→3, I 7→10, row 32→36. SS-04 subtotal P 1→2, I 6→7, row 13→15. SS-05 subtotal I 5→6, row 12→13. SS-07 subtotal I 4→5, row 11→12. Grand Total K 4→5, P 4→5, I 28→34, total 93→101. Per-tool arithmetic 5+5+46+34+10+1=101 VERIFIED. Per-subsystem row-sum 36+5+14+15+13+5+12+1=101 VERIFIED. §2 VP-100 judgment call added (SS-01 primary; SS-03 secondary). |
 | v1.3 | 2026-06-24 | architect | S-18.04b-prereq POLICY 9 propagation: VP-093 added to SS-01 module table (integration; SS-01; DI-020, DI-025; BC-1.16.001 — dispatcher git_context injection on PostToolUse Bash git-commit events; four-field injection; fail-open on git error; no injection on non-qualifying events; exec-free WASM boundary; HOST_ABI_VERSION unchanged; anchor S-18.04b-prereq). SS-01 subtotal I 6→7, row total 31→32. Grand Total I 27→28, row total 92→93. Per-tool arithmetic 4+4+46+28+10+1=93 VERIFIED. Per-subsystem row-sum 32+5+14+13+12+5+11+1=93 VERIFIED. |
 | v1.2 | 2026-06-16 | state-manager | D-615 POLICY 9 propagation: VP-092 added to SS-06 module table (unit-test; SS-06; DI-020; BC-6.25.001 — check-state-health CLAUDE_AUTOCOMPACT_PCT_OVERRIDE advisory check; never blocks; PC1 absent→ADVISORY; PC2 >80→ADVISORY; PC3 <=80→PASS). SS-06 subtotal U 0→1, row total 4→5. Grand Total U 45→46, row total 91→92. Per-tool arithmetic 4+4+46+27+10+1=92 VERIFIED. Per-subsystem row-sum 31+5+14+13+12+5+11+1=92 VERIFIED. |
 | v1.1 | 2026-06-16 | state-manager | D-612 POLICY 9 propagation: VP-091 added to SS-04 module table (unit-test; SS-04; DI-020; BC-4.15.001 — validate-heavy-op-delegation always-Continue advisory gate). SS-04 subtotal U 3→4, row total 12→13. Grand Total U 44→45, row total 90→91. Per-tool arithmetic 4+4+45+27+10+1=91 VERIFIED. Per-subsystem row-sum 31+5+14+13+12+4+11+1=91 VERIFIED. |
@@ -53,7 +58,7 @@ subsystems_affected:
 
 ---
 
-## §1 VP-to-Module Coverage Table
+## §1 Coverage by Module (VP-to-Module Table)
 
 Column key:
 - **K** = kani-proof
@@ -69,7 +74,7 @@ Column key:
 
 VPs whose primary subsystem is SS-01. Includes multi-subsystem VPs where SS-01 is
 first-listed (VP-007, VP-008, VP-009, VP-026, VP-051, VP-073, VP-074, VP-075, VP-077,
-VP-086 per assignment notes in §2 below).
+VP-086, VP-100 per assignment notes in §2 below).
 
 | VP ID | Title (abbreviated) | Subsystems | K | P | U | I | M | S |
 |-------|---------------------|-----------|---|---|---|---|---|---|
@@ -105,7 +110,11 @@ VP-086 per assignment notes in §2 below).
 | VP-077 | Dispatcher Partition Correctness (6 properties) | SS-01 | ✓ | | | | | |
 | VP-086 | Dispatcher Exit-2 Propagation for PreCompact Block-Intent | SS-01, SS-04 | | | | ✓ | | |
 | VP-093 | Dispatcher Injects git_context Into payload.extra on PostToolUse Bash git-commit Events; Fail-Open on Git Error | SS-01 | | | | ✓ | | |
-| **SS-01 subtotal** | | | **2** | **1** | **22** | **7** | **0** | **0** |
+| VP-097 | path_util::resolve_path_for_allowlist Traversal Defense — .. Sequences Cannot Escape Allowlist Prefixes | SS-01 | ✓ | | | | | |
+| VP-098 | Allowlisted-but-Absent File Returns NOT_FOUND (-5); Zero CAPABILITY_DENIED False-Positives | SS-01 | | | | ✓ | | |
+| VP-100 | Drain-Timer Expiry Emits Exactly One plugin.abandoned Per In-Flight; No plugin.completed Follows for Same Trace | SS-01, SS-03 | | | | ✓ | | |
+| VP-101 | host::read_prefix Returns Byte-Exact Prefix; Never OUTPUT_TOO_LARGE; Absent Returns NOT_FOUND (-5) | SS-01 | | | | ✓ | | |
+| **SS-01 subtotal** | | | **3** | **1** | **22** | **10** | **0** | **0** |
 
 ---
 
@@ -164,7 +173,9 @@ where SS-01 or SS-05 is listed first (see assignment notes in §2).
 | VP-076 | Resolver-Capability Confinement | SS-04 | | | | ✓ | | |
 | VP-083 | Completeness Gate Is No-Op on Wave-1 or Non-HANDOFF.md Writes | SS-04 | | | ✓ | | | |
 | VP-091 | validate-heavy-op-delegation Emits DelegationRecommended Advisory (Never Blocks) | SS-04 | | | ✓ | | | |
-| **SS-04 subtotal** | | | **2** | **1** | **4** | **6** | **0** | **0** |
+| VP-095 | verify-factory-lock Reads STATE.md Up to 262144 Bytes Without output_too_large | SS-04 | | | | ✓ | | |
+| VP-096 | extract_frontmatter Purity — Byte-Exact Prefix Through Second --- Delimiter; Deterministic | SS-04 | | ✓ | | | | |
+| **SS-04 subtotal** | | | **2** | **2** | **4** | **7** | **0** | **0** |
 
 ---
 
@@ -186,7 +197,8 @@ VPs where SS-05 is the first-listed or primary subsystem.
 | VP-081 | Wave Cannot Close Without Verified Handoff (wave_id > 1) | SS-04, SS-05, SS-07 | | | | ✓ | | |
 | VP-084 | PreCompact Flush Commit Is Lifecycle-Distinct | SS-05, SS-04 | | | | ✓ | | |
 | VP-087 | wave-state.yaml Produced Atomically With HANDOFF.md | SS-05 | | | | ✓ | | |
-| **SS-05 subtotal** | | | **0** | **0** | **0** | **5** | **6** | **1** |
+| VP-094 | pr-manager READY-Verdict Covered-SHA Pin, Stale-Verdict Halt, Release-PR Merge-Strategy Enforcement | SS-05 | | | | ✓ | | |
+| **SS-05 subtotal** | | | **0** | **0** | **0** | **6** | **6** | **1** |
 
 > **Assignment note (VP-081):** VP-081 lists scope SS-04, SS-05, SS-07. The primary
 > owning subsystem is SS-05 (Pipeline Orchestration) because the behavioral contract
@@ -231,7 +243,8 @@ not the dispatcher routing engine.
 | VP-085 | PreCompact Flush Hook Is Hermetic | SS-07 | | | ✓ | | | |
 | VP-089 | postcompact-reanchor.sh Emits Re-Anchor Block | SS-07 | | | ✓ | | | |
 | VP-090 | precompact-flush-log Pruning | SS-07 | | | ✓ | | | |
-| **SS-07 subtotal** | | | **0** | **1** | **3** | **4** | **3** | **0** |
+| VP-099 | hooks-registry Tool-Filter Anchoring Invariant — Every tool= Value Starts With ^ or Carries # intent: Comment | SS-07 | | | | ✓ | | |
+| **SS-07 subtotal** | | | **0** | **1** | **3** | **5** | **3** | **0** |
 
 ---
 
@@ -244,7 +257,7 @@ not the dispatcher routing engine.
 
 ---
 
-## §2 Module Assignment Judgment Calls
+## §2 Module Assignment Judgment Calls and Coverage Gaps
 
 The following VP assignments required explicit judgment due to multi-subsystem scope.
 All decisions defer to VP-INDEX.md §Full Index Scope column as authoritative; the
@@ -273,40 +286,77 @@ rationale below documents the reasoning applied when scope order determines prim
 | VP-082 | SS-07, SS-04 | SS-07 | precompact-flush.sh is a SS-07 shell script |
 | VP-084 | SS-05, SS-04 | SS-05 | Lifecycle-distinctness invariant (BC-5.41.003) is an orchestration policy |
 | VP-086 | SS-01, SS-04 | SS-01 | Dispatcher exit-2 propagation: dispatcher binary is the module under test |
+| VP-100 | SS-01, SS-03 | SS-01 | Drain-timer expiry is a dispatcher-core async-drain behavior (SS-01 primary); async-semantics event schema (SS-03) is secondary — the plugin.abandoned event must conform to BC-3.08.001 schema, but the causal mechanism is dispatcher drain-timer |
 
 ---
 
-## §3 Grand Totals
+## §3 Grand Totals — Summary by Method
 
 Each VP counted exactly once in the row for its primary subsystem. The grand-total
-per-tool column sums equal 93 (total_vps POST-INTEGRATION).
+per-tool column sums equal 101 (total_vps POST-INTEGRATION).
 
 | Subsystem | K | P | U | I | M | S | Row Total |
 |-----------|---|---|---|---|---|---|-----------|
-| SS-01 | 2 | 1 | 22 | 7 | 0 | 0 | 32 |
+| SS-01 | 3 | 1 | 22 | 10 | 0 | 0 | 36 |
 | SS-02 | 0 | 0 | 5 | 0 | 0 | 0 | 5 |
 | SS-03 | 0 | 0 | 11 | 3 | 0 | 0 | 14 |
-| SS-04 | 2 | 1 | 4 | 6 | 0 | 0 | 13 |
-| SS-05 | 0 | 0 | 0 | 5 | 6 | 1 | 12 |
+| SS-04 | 2 | 2 | 4 | 7 | 0 | 0 | 15 |
+| SS-05 | 0 | 0 | 0 | 6 | 6 | 1 | 13 |
 | SS-06 | 0 | 1 | 1 | 3 | 0 | 0 | 5 |
-| SS-07 | 0 | 1 | 3 | 4 | 3 | 0 | 11 |
+| SS-07 | 0 | 1 | 3 | 5 | 3 | 0 | 12 |
 | SS-09 | 0 | 0 | 0 | 0 | 1 | 0 | 1 |
-| **Grand Total** | **4** | **4** | **46** | **28** | **10** | **1** | **93** |
+| **Grand Total** | **5** | **5** | **46** | **34** | **10** | **1** | **101** |
 
-**Per-tool arithmetic check:** 4 + 4 + 46 + 28 + 10 + 1 = **93** ✓
+**Per-tool arithmetic check:** 5 + 5 + 46 + 34 + 10 + 1 = **101** ✓
 
-**Per-subsystem row-sum check:** 32 + 5 + 14 + 13 + 12 + 5 + 11 + 1 = **93** ✓
+**Per-subsystem row-sum check:** 36 + 5 + 14 + 15 + 13 + 5 + 12 + 1 = **101** ✓
 
 **Per-tool column matches VP-INDEX.md POST-INTEGRATION targets:**
-- kani-proof: **4** ✓ (VP-070, VP-071, VP-074, VP-077)
-- proptest: **4** ✓ (VP-059, VP-069, VP-075, VP-080)
+- kani-proof: **5** ✓ (VP-070, VP-071, VP-074, VP-077, VP-097)
+- proptest: **5** ✓ (VP-059, VP-069, VP-075, VP-080, VP-096)
 - unit-test: **46** ✓ (42 from VP-INDEX v2.29 + VP-089 + VP-090 + VP-091 + VP-092)
-- integration: **28** ✓ (25 from VP-INDEX v2.29 + VP-087 + VP-088 + VP-093)
+- integration: **34** ✓ (25 from VP-INDEX v2.29 + VP-087 + VP-088 + VP-093 + VP-094 + VP-095 + VP-098 + VP-099 + VP-100 + VP-101)
 - manual: **10** ✓ (unchanged from VP-INDEX v2.29)
 - static-check: **1** ✓ (unchanged from VP-INDEX v2.29)
 
-**SS-01 row detail:** K=2 (VP-074, VP-077), P=1 (VP-075), U=22 (VP-003..010,
-VP-014, VP-016..024, VP-026..027, VP-050, VP-052), I=7 (VP-001, VP-002, VP-025,
-VP-051, VP-073, VP-086, VP-093), M=0, S=0. Row sum = 2+1+22+7+0+0 = **32** ✓
+**SS-01 row detail:** K=3 (VP-074, VP-077, VP-097), P=1 (VP-075), U=22 (VP-003..010,
+VP-014, VP-016..024, VP-026..027, VP-050, VP-052), I=10 (VP-001, VP-002, VP-025,
+VP-051, VP-073, VP-086, VP-093, VP-098, VP-100, VP-101), M=0, S=0. Row sum = 3+1+22+10+0+0 = **36** ✓
 
-All 93 VPs are accounted for with no omissions and no double-counts.
+All 101 VPs are accounted for with no omissions and no double-counts.
+
+---
+
+## §4 Domain Invariant Verification Map
+
+Maps each active domain invariant to the VPs that directly verify it. VP assignment is
+authoritative in VP-INDEX.md §Full Index (BC/Invariant Anchor column). DI descriptions
+derive from `.factory/specs/domain-spec/invariants.md`.
+
+| DI | Description (brief) | Verified By (VP IDs) | Priority |
+|----|---------------------|----------------------|----------|
+| DI-001 | Tiers execute sequentially; plugins within a tier execute in parallel | VP-001, VP-019, VP-020, VP-052 | P0 |
+| DI-002 | A plugin crash or timeout does not block sibling plugins | VP-002, VP-020, VP-050, VP-074 | P0 |
+| DI-003 | block_intent is aggregate; tier runs to completion regardless | VP-003, VP-044, VP-047 | P0 |
+| DI-004 | Capability denial always produces a return code AND audit event | VP-004, VP-021, VP-023, VP-025, VP-076 | P0 |
+| DI-005 | Shell interpreters require explicit shell_bypass_acknowledged | VP-005, VP-021 | P0 |
+| DI-006 | Setuid/setgid binaries refused unconditionally on Unix | VP-006 | P0 |
+| DI-007 | Dispatcher self-telemetry is always-on | VP-007, VP-035, VP-051 | P1 |
+| DI-008 | Internal log filenames derived from event timestamps, not wall clock | VP-008, VP-029 | P1 |
+| DI-009 | Internal logs pruned to 30 days at dispatcher start | VP-009 | P1 |
+| DI-010 | Plugin stderr capped at 4 KiB with truncation marker | VP-010 | P1 |
+| DI-011 | Sink submit must not block the dispatcher | VP-011, VP-028, VP-030, VP-032, VP-034 | P1 |
+| DI-012 | A sink failure affects only that sink | VP-012, VP-028, VP-031, VP-037 | P1 |
+| DI-013 | Unknown sink driver types are non-fatal | VP-013, VP-036 | P1 |
+| DI-014 | Schema version mismatch is a hard load error | VP-014, VP-018, VP-022, VP-046, VP-049 | P0 |
+| DI-015 | Per-project activation required before dispatcher can run | VP-015 | P1 |
+| DI-016 | Each registry entry sees only its own plugin_config | VP-016, VP-043, VP-045 | P0 |
+| DI-017 | trace_id present on every emitted event; wire-format exclusivity | VP-017, VP-026, VP-027, VP-033, VP-051, VP-079 | P1 |
+| DI-018 | (not active — captured as KL-005) | — | — |
+| DI-019 | ASYNC_DRAIN_WINDOW_MS = 100 ms (runtime constant) | VP-079, VP-100 | P1 |
+| DI-020 | Wave/phase boundary transitions must not lose load-bearing pipeline state | VP-081, VP-082, VP-083, VP-084, VP-092, VP-093 | P0 |
+| DI-021 | Handoff claims cross-checked against verifiable external ground truth | VP-081, VP-082, VP-085 | P0 |
+| DI-022 | PreCompact flush derives state exclusively from durable persisted sources | VP-082, VP-085 | P0 |
+| DI-023 | Wave/phase identity derives from real persisted substrate; no phantom fields | VP-081, VP-087, VP-088 | P0 |
+| DI-024 | PostCompact re-anchor is best-effort; not in CAP-032 continuity-guarantee chain | VP-089 | P1 |
+| DI-025 | PreCompact flush commits lifecycle-orthogonal to state-manager burst commits | VP-082, VP-084, VP-085, VP-090, VP-093 | P0 |

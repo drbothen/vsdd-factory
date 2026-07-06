@@ -330,3 +330,19 @@ policies:
       - "An informational parenthetical `(as of vX.Y)` is acceptable ONLY if: (a) it is syntactically parenthetical (not the primary reference), AND (b) it is explicitly annotated as non-load-bearing, AND (c) the gate condition does not depend on the version token being current"
       - "Any Traceability row that would fail if the ADR were amended (because the version token would be stale) is a POLICY 19 violation — flag as HIGH"
       - "When a fix burst migrates a stale version cite, run tree-wide grep to enumerate all BC Traceability rows that still cite the ADR with version tokens; complete the migration in the same burst (sibling-sweep per POLICY 5 v1.3.3)"
+
+  - id: 20
+    name: release_bundle_no_dev_samples
+    description: "Release bundles MUST NOT include development sample artifacts (e.g. hello-hook.wasm) or WASMs unreferenced by both hooks-registry.toml and resolvers-registry.toml. Orphan status requires the dual-registry check."
+    adopted: "2026-07-06 (D-753 E-19 pass-2 fix burst; architect O-P2-001 adjudication + S-19.04 + L-BB-orphan-status-requires-dual-registry-check)"
+    severity: HIGH
+    enforced_by: [adversary-prompt, lint-hook]
+    scope: [release, bundle]
+    lint_hook: null
+    codified_at: D-753
+    verification_steps:
+      - "Check release bundle WASM contents against hooks-registry.toml + resolvers-registry.toml union set"
+      - "Flag any WASM file present in the bundle but absent from BOTH registries — this is an orphan artifact"
+      - "Apply dual-registry check: orphan status requires absence from BOTH hooks-registry.toml AND resolvers-registry.toml; presence in either registry means NOT orphan"
+      - "Development sample artifacts (e.g. hello-hook.wasm) are NEVER release artifacts regardless of registry presence; verify no hello-hook.wasm or analogous dev-sample names are included"
+      - "Verify release bundle contains zero WASMs whose name or content indicates a development/testing origin (stub size ≤103B, 'hello' prefix, 'sample' prefix, underscore-prefixed duplicates of production WASMs)"

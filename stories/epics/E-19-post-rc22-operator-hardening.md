@@ -1,18 +1,18 @@
 ---
 document_type: epic
 epic_id: "E-19"
-version: "v1.1"
+version: "v1.2"
 status: draft
-title: "Post-rc.22 Operator Hardening — pr-manager race fixes, verify-factory-lock size defect, warn-pending-wave-gate false-positive, registry/bundle hygiene, async telemetry + VSDD_SINK_FILE"
+title: "Post-rc.22 Operator Hardening — pr-manager race fixes, verify-factory-lock size defect, warn-pending-wave-gate false-positive, registry/bundle hygiene, async telemetry + VSDD_SINK_FILE, host::read_prefix bounded partial read"
 prd_capabilities: []
 subsystems_affected: [SS-01, SS-03, SS-04, SS-05, SS-06, SS-07, SS-09]
 target_release: "v1.0.0-rc.23"
-story_count: 5
+story_count: 6
 producer: story-writer
 timestamp: 2026-07-04T00:00:00Z
 phase: F3
 cycle: v1.0-feature-engine-discipline-pass-1
-depends_on: [E-18]
+depends_on: []
 inputs:
   - .factory/logs/dispatcher-internal-2026-07-04.jsonl
   - .factory/stories/S-19.01-pr-manager-hardening.md
@@ -20,18 +20,21 @@ inputs:
   - .factory/stories/S-19.03-warn-pending-wave-gate-file-not-found.md
   - .factory/stories/S-19.04-bundle-hygiene-tool-filter-anchoring.md
   - .factory/stories/S-19.05-async-completion-telemetry-sink-release-mode.md
+  - .factory/stories/S-19.06-read-prefix-bounded-partial-read.md
   - .factory/specs/behavioral-contracts/ss-04/BC-4.13.001.md
-input-hash: "a6d056a"
+input-hash: "879b1e7"
 ---
 
 # Epic E-19: Post-rc.22 Operator Hardening
 
 ## Description
 
-E-19 collects the five hardening stories authorized by the rc.22 post-install smoke gate
-(2026-07-04; 73/73 PASS-WITH-FINDINGS). The findings expose four distinct defect classes
-discovered only after the v1.0.0-rc.22 marketplace tarball was installed and exercised
-against a live production-state vsdd-factory repository:
+E-19 collects the six hardening stories authorized by the rc.22 post-install smoke gate
+(2026-07-04; 73/73 PASS-WITH-FINDINGS) and the E-19 pass-2 wiring package
+(2026-07-06). The findings expose four distinct defect classes discovered only after the
+v1.0.0-rc.22 marketplace tarball was installed and exercised against a live
+production-state vsdd-factory repository, plus one new host ABI capability added in the
+same hardening wave:
 
 1. **pr-manager process gaps (S-19.01):** Three lessons codified from the rc.22
    brownfield-backfill cycle (L-BB-merge-race-ready-report-stale-head / D-749,
@@ -62,16 +65,25 @@ against a live production-state vsdd-factory repository:
    `VSDD_SINK_FILE` is compile-gated out of release builds, making diagnostic replay
    impossible for operators.
 
-E-19 is intentionally narrow: it fixes the known defects without scope expansion. All
-five stories are production-grade closures per the Canonical Principle — no MVP deferrals,
-no `TODO for later`, no paper-fixes.
+5. **Host ABI read_prefix capability (S-19.06):** Operators issuing large file-read
+   operations via `host::read_file` have no bounded partial-read mechanism; requesting
+   oversized files returns `OUTPUT_TOO_LARGE` with no data. BC-1.17.001 (E-19 pass-2
+   fix burst) defines `host::read_prefix(path, max_bytes, timeout_ms) -> i32` as a
+   separate FFI entry point with a dedicated `capabilities.read_prefix` registry block,
+   leaving `read_file` semantics unchanged.
+
+E-19 is intentionally narrow: it fixes the known defects and adds the read_prefix
+capability without scope expansion. All six stories are production-grade closures per
+the Canonical Principle — no MVP deferrals, no `TODO for later`, no paper-fixes.
 
 ## Trigger / Motivation
 
 rc.22 post-install smoke gate (2026-07-04) run against the marketplace tarball at
 `~/.claude/plugins/cache/claude-mp/vsdd-factory/1.0.0-rc.22/`. The gate captured
-dispatcher internal log evidence for all four defect classes. Stories are authored under
-the story-writer dispatch dated 2026-07-04 with explicit human authorization.
+dispatcher internal log evidence for all four defect classes. Stories S-19.01..S-19.05
+are authored under the story-writer dispatch dated 2026-07-04 with explicit human
+authorization. S-19.06 is authorized under the E-19 pass-2 wiring package
+(2026-07-06).
 
 ## Epic Placement Justification
 
@@ -83,36 +95,48 @@ S-18.12 PR #384 ec05606a 2026-07-01). E-19 is the next free ID under POLICY 1
 classes across six subsystems. Grouping them under E-18 would conflate the
 context-durability epic with unrelated hardening work.
 
+**Sequencing context (F-P2-006):** `depends_on: []` reflects that E-18 is already
+COMPLETE at time of E-19 authoring. E-19 does not require any E-18 work to be
+in-progress or gated — E-18 is a delivered predecessor, not an active dependency.
+Human authorization for E-19 was granted independently of E-18's completion status.
+Treating E-18 as a formal `depends_on` entry would create a spurious block on a cycle
+that is already closed, which would misrepresent the actual dependency graph for tooling
+that reads this frontmatter.
+
 ## PRD Capabilities Covered
 
-No new PRD capabilities. E-19 stories fix defects in existing capabilities and add
-observability infrastructure. BC-4.13.001 (verify-factory-lock behavioral contract)
-is amended by S-19.02 to reflect the raised byte budget. BC-3.08.001 v1.15
-(async event catalog — `plugin.abandoned` event + Invariant 6 terminal semantics)
-amendment LANDED (product-owner, E-19 pass-1 fix burst); implementer for S-19.05
-follows BC-3.08.001 v1.15 without further routing action.
+No new PRD capabilities from the base defect-fix set. E-19 stories fix defects in
+existing capabilities and add observability infrastructure. BC-4.13.001 (verify-factory-
+lock behavioral contract) is amended by S-19.02 to reflect the raised byte budget.
+BC-3.08.001 v1.16 (async event catalog — `plugin.abandoned` event with `entry_index:
+u32` + Invariant 6 extended terminal key `trace_id+plugin_name+entry_index`) LANDED
+(product-owner, E-19 pass-2 fix burst); implementer for S-19.05 follows BC-3.08.001
+v1.16 without further routing action. BC-1.17.001 v1.0 (host::read_prefix bounded
+partial read) LANDED (product-owner, E-19 pass-2 fix burst); implementer for S-19.06
+follows BC-1.17.001 v1.0.
 
 ## Acceptance Criteria
 
 | ID | Criterion | Validation Method | Test Scenarios |
 |----|-----------|-------------------|----------------|
-| EAC-001 | All five stories S-19.01..S-19.05 shipped and merged to `develop` within this epic's cycle | All story PRs CI-green and merged | S-19.01..S-19.05 PR merge confirmations |
+| EAC-001 | All six stories S-19.01..S-19.06 shipped and merged to `develop` within this epic's cycle | All story PRs CI-green and merged | S-19.01..S-19.06 PR merge confirmations |
 | EAC-002 | `verify-factory-lock` no longer fails with `capability_denied reason=output_too_large` when STATE.md exceeds 64 KiB | CI integration test with 90 KB STATE.md fixture | S-19.02 AC-001 test suite |
 | EAC-003 | `warn-pending-wave-gate` emits no false-positive `capability_denied reason=path_not_allowed` on fresh install with absent `.factory/wave-state.yaml` | CI integration test with absent wave-state.yaml fixture | S-19.03 AC-001 test suite |
 | EAC-004 | `VSDD_SINK_FILE` env var is honored in release-profile dispatcher builds | Release-profile CI integration test with VSDD_SINK_FILE set | S-19.05 AC-004 test suite |
-| EAC-005 | Zero orphan (unreferenced) WASM files in the rc.23 release bundle | CI bundle manifest diff gate | S-19.04 AC-001 test suite |
+| EAC-005 | Zero WASMs unreferenced by BOTH hooks-registry.toml AND resolvers-registry.toml in the rc.23 bundle | CI bundle manifest diff gate | S-19.04 AC-001 test suite |
 
 ## Stories
 
 | Story ID | Title | Wave | Points | BCs |
 |----------|-------|------|--------|-----|
-| S-19.01 | pr-manager hardening: READY verdict HEAD-SHA pinning + release-PR merge-strategy guard + shell-dialect simulation discipline | W1 | 8 | (behavioral_contracts: []) |
+| S-19.01 | pr-manager hardening: READY verdict HEAD-SHA pinning + release-PR merge-strategy guard + shell-dialect simulation discipline | W1 | 8 | BC-5.42.001 |
 | S-19.02 | verify-factory-lock FINDING-1: frontmatter-only STATE.md read + raised byte budget | W1 | 8 | BC-4.13.001 |
-| S-19.03 | warn-pending-wave-gate FINDING-2: read_file file_not_found semantics + graceful absent-file handling | W1 | 5 | (behavioral_contracts: []) |
+| S-19.03 | warn-pending-wave-gate FINDING-2: read_file file_not_found semantics + graceful absent-file handling | W1 | 5 | BC-2.07.001 |
 | S-19.04 | Registry/bundle hygiene: orphan WASM removal + tool-filter regex anchoring convention + lint check | W2 | 5 | (behavioral_contracts: []) |
-| S-19.05 | Observability gaps: async plugin completion telemetry + VSDD_SINK_FILE release-mode opt-in | W2 | 8 | (behavioral_contracts: []; BC-3.08.001 v1.15 LANDED) |
+| S-19.05 | Observability gaps: async plugin completion telemetry + VSDD_SINK_FILE release-mode opt-in | W2 | 8 | BC-3.08.001 v1.16 |
+| S-19.06 | host::read_prefix bounded partial read | W2 | 8 | BC-1.17.001 |
 
-**Total:** 5 stories, 34 story points.
+**Total:** 6 stories, 42 story points.
 
 **Sequencing rationale:**
 
@@ -121,8 +145,11 @@ follows BC-3.08.001 v1.15 without further routing action.
   S-19.03 are P1 (process gaps and false-positive telemetry; no data-loss risk). All three
   are independent; they can run in parallel within W1.
 
-- Wave 2 (S-19.04, S-19.05): The P2 hygiene and observability stories. No hard dependency
-  on W1; wave ordering is priority-driven. Can also run in parallel within W2.
+- Wave 2 (S-19.04, S-19.05, S-19.06): The P2 hygiene, observability, and host ABI
+  extension stories. S-19.04 and S-19.05 have no hard dependency on W1; wave ordering is
+  priority-driven. S-19.06 depends on S-19.03 (the `path_allowed` fix for absent files;
+  BC-2.07.001 codes::NOT_FOUND semantics are a prerequisite for read_prefix absent-file
+  behavior). S-19.04 and S-19.05 can run in parallel; S-19.06 starts when S-19.03 merges.
 
 ## Dependency Graph
 
@@ -130,12 +157,14 @@ follows BC-3.08.001 v1.15 without further routing action.
 S-19.01 (W1, P1) ─┐
 S-19.02 (W1, P0) ─┤ (all independent; W1 can run in parallel)
 S-19.03 (W1, P1) ─┘
+                   │
+                   └──► S-19.06 (W2, P2, depends_on: S-19.03)
 
-S-19.04 (W2, P2) ─┐ (no hard deps on W1; W2 can run in parallel)
+S-19.04 (W2, P2) ─┐ (no hard deps on W1; W2 parallel except S-19.06 gate)
 S-19.05 (W2, P2) ─┘
 ```
 
-Topological order: W1 → W2 (by priority, not hard coupling). No cycles. Acyclic confirmed.
+Topological order: W1 → W2 (by priority + S-19.06 gate on S-19.03). No cycles. Acyclic confirmed.
 
 ## Dependencies (External)
 
@@ -145,9 +174,15 @@ Topological order: W1 → W2 (by priority, not hard coupling). No cycles. Acycli
 
 ## Out of Scope
 
-- **BC-3.08.001 async event catalog amendment:** LANDED as v1.15 (product-owner, E-19
-  pass-1 fix burst). `plugin.abandoned` event catalog and Invariant 6 terminal semantics
-  are now in the BC. S-19.05 implementer follows BC-3.08.001 v1.15 without further routing.
+- **BC-3.08.001 async event catalog amendment:** LANDED as v1.16 (product-owner, E-19
+  pass-2 fix burst). `plugin.abandoned` event catalog with `entry_index: u32` field and
+  extended Invariant 6 terminal key `trace_id+plugin_name+entry_index` are now in the BC.
+  S-19.05 implementer follows BC-3.08.001 v1.16 without further routing action.
+
+- **BC-1.17.001 host::read_prefix:** LANDED as v1.0 (product-owner, E-19 pass-2 fix
+  burst). FFI signature `read_prefix(path: &str, max_bytes: u32, timeout_ms: u32) -> i32`
+  and separate `capabilities.read_prefix` registry block are now in the BC. S-19.06
+  implementer follows BC-1.17.001 v1.0 without further routing action.
 
 - **ADR-025 v1.7 amendment:** Authored by architect in E-19 pass-1 fix burst (Decisions
   13+14: `codes::NOT_FOUND = -5`; `STATE_MD_MAX_BYTES = 262144` + frontmatter-only parse).
@@ -165,11 +200,16 @@ Topological order: W1 → W2 (by priority, not hard coupling). No cycles. Acycli
 
 | BC ID | Story |
 |-------|-------|
+| BC-5.42.001 | S-19.01 (pr-manager READY verdict SHA pinning + merge-strategy guard) |
 | BC-4.13.001 | S-19.02 (amended: raised byte budget + frontmatter-only extraction) |
+| BC-2.07.001 | S-19.03 (host::read_file absent-file semantics: codes::NOT_FOUND + HostError::NotFound) |
+| BC-3.08.001 | S-19.05 (amended v1.16: plugin.abandoned entry_index + Invariant 6 key extension) |
+| BC-1.17.001 | S-19.06 (new: host::read_prefix bounded partial read) |
 
 ## Changelog
 
 | Version | Date | Author | Change |
 |---------|------|--------|--------|
+| v1.2 | 2026-07-06 | story-writer | E-19 pass-2 wiring package: story_count 5→6; S-19.06 row added (W2, 8 pts, BC-1.17.001, depends_on: S-19.03); title updated to include read_prefix; depends_on: [E-18]→[] with F-P2-006 sequencing-context prose note in Epic Placement Justification; EAC-001 updated (six stories, S-19.01..S-19.06); EAC-005 reworded per O-P2-004 (BOTH hooks-registry.toml AND resolvers-registry.toml); total points 34→42; W2 sequencing note updated (S-19.06 depends_on S-19.03); Dependency Graph updated (S-19.03 → S-19.06 edge); Out of Scope: BC-3.08.001 v1.15→v1.16 with entry_index detail; BC-1.17.001 Out of Scope block added; PRD Capabilities updated (BC-3.08.001 v1.16 + BC-1.17.001 LANDED); BC Traceability table: all story BCs added (BC-5.42.001, BC-2.07.001, BC-3.08.001, BC-1.17.001); Stories table BCs column updated for S-19.01/S-19.03 per pass-2 wiring. |
 | v1.1 | 2026-07-06 | story-writer | F-P1-005: delete ADR amendment Out-of-Scope bullet; replace with "ADR-025 v1.7 amendment authored by architect in E-19 pass-1 fix burst (Decisions 13+14)". F-P1-012: BC Traceability table — Title column dropped; bare BC-4.13.001 used (H1 title overflows table cell). BC-3.08.001 v1.15 LANDED status updated in PRD Capabilities + Stories table + Out of Scope. |
 | v1.0 | 2026-07-04 | story-writer | Initial creation. Post-rc.22 smoke gate authorization. 5 stories S-19.01..S-19.05 spanning SS-01/SS-03/SS-04/SS-05/SS-06/SS-07/SS-09. 2 waves; 34 pts. No new PRD capabilities. BC-4.13.001 amended by S-19.02. BC-3.08.001 amendment flagged for PO routing (S-19.05). |

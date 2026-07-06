@@ -1,7 +1,7 @@
 ---
 document_type: behavioral-contract
 level: L3
-version: "1.3"
+version: "1.4"
 status: ready
 producer: product-owner
 timestamp: 2026-05-01T00:00:00Z
@@ -10,7 +10,7 @@ inputs:
   - .factory/stories/S-8.10-sdk-extension-write-file.md
   - crates/hook-sdk/src/host.rs
   - crates/factory-dispatcher/src/host/read_file.rs
-input-hash: "5761db0"
+input-hash: "e650b4b"
 traces_to: .factory/specs/domain-spec/capabilities.md
 origin: brownfield
 extracted_from: ".factory/stories/S-8.10-sdk-extension-write-file.md"
@@ -20,6 +20,7 @@ lifecycle_status: active
 introduced: v1.1
 modified:
   - "v1.3 (2026-06-20): S-18.04a-prereq / ADR-028 §Decision 8 — corrected Invariant 3 path-resolution base plugin_root → ctx.cwd (CLAUDE_PROJECT_DIR); corrected Postcondition 5 to match; the prior plugin_root claim was stale since S-8.07's read_file fix"
+  - "v1.4 (2026-07-06): E-19 pass-2 F-P2-004 fix burst — Architecture Anchors + Traceability Architecture Module extended with path_util.rs (shared path allowlist-resolution helper extracted at S-19.03)"
 deprecated: null
 deprecated_by: null
 replacement: null
@@ -101,6 +102,7 @@ removal_reason: null
 - `crates/hook-sdk/src/host.rs` (new `pub fn write_file` after the existing `pub fn read_file` declaration in `host.rs`, SDK wrapper)
 - `crates/hook-sdk/src/ffi.rs` (new `write_file` extern in `#[cfg(target_arch = "wasm32")]` block + `host_stubs`)
 - `crates/factory-dispatcher/src/host/write_file.rs` (new file, dispatcher binding, input-pointer protocol)
+- `crates/factory-dispatcher/src/host/path_util.rs` (shared path allowlist-resolution helper; extracted from write_file.rs at S-19.03; implements the rejoin algorithm for resolving both existing and absent file paths against the declared path_allow list; imported by both write_file.rs and read_file.rs)
 - `crates/factory-dispatcher/src/host/mod.rs` (registration call in `setup_linker`, `allow_write` test helper)
 - `crates/factory-dispatcher/src/registry.rs` (`WriteFileCaps` struct, `write_file: Option<WriteFileCaps>` field)
 - `crates/hook-sdk/HOST_ABI.md` (ABI catalog documentation, AC-8)
@@ -120,7 +122,7 @@ S-8.10 — "SDK extension: host::write_file (D-6 Option A unblocker)" resolves O
 | L2 Capability | CAP-022 |
 | Capability Anchor Justification | CAP-022 ("Port hook plugins from bash to native WASM") per capabilities.md §CAP-022. `host::write_file` is a direct enabling dependency for porting state-mutating bash hooks (S-8.04, S-8.09) to native WASM; without this SDK function those hooks cannot be ported. |
 | L2 Domain Invariants | TBD (Phase 1.5 invariant lift pass) |
-| Architecture Module | SS-02 — `crates/hook-sdk/src/host.rs`, `crates/factory-dispatcher/src/host/write_file.rs` |
+| Architecture Module | SS-02 — `crates/hook-sdk/src/host.rs`, `crates/factory-dispatcher/src/host/write_file.rs`, `crates/factory-dispatcher/src/host/path_util.rs` |
 | Stories | S-8.10 (implementing story), S-8.04 (consumer: update-wave-state-on-merge), S-8.09 (consumer: regression-gate-adapter-retirement) |
 
 ### Source Evidence
@@ -154,6 +156,7 @@ S-8.10 — "SDK extension: host::write_file (D-6 Option A unblocker)" resolves O
 
 ## Changelog
 
+- v1.4 (2026-07-06): E-19 pass-2 F-P2-004 fix burst (product-owner): §Architecture Anchors extended with `crates/factory-dispatcher/src/host/path_util.rs` bullet (shared path allowlist-resolution helper; extracted from write_file.rs at S-19.03; implements the rejoin algorithm for resolving both existing and absent file paths against the declared path_allow list; imported by both write_file.rs and read_file.rs). §Traceability Architecture Module field appended with `crates/factory-dispatcher/src/host/path_util.rs`. Closes F-P2-004. BC-INDEX v3.61→v3.62.
 - v1.3 (2026-06-20): S-18.04a-prereq / ADR-028 §Decision 8 — corrected Invariant 3 path-resolution base `plugin_root` → `ctx.cwd` (CLAUDE_PROJECT_DIR), restoring parity with `read_file.rs::resolve_for_read` and matching production `invoke.rs`; the prior `plugin_root` claim was stale since S-8.07's read_file fix. Postcondition 5 corrected to match.
 - v1.2 (2026-05-08): F-P18-002 prose-form line reference migration — 1 prose ref (`after line 187` in §Architecture Anchors) replaced with stable symbol anchor (after `pub fn read_file` declaration in `host.rs`).
 - v1.1 (2026-05-08): TD-VSDD-091 stable-anchor migration sweep (Chunk 2) — 6 body cites migrated. `read_file.rs:92/101-107/73-77/36` and `lib.rs:58/43` and `host.rs:187` replaced with stable function/struct symbol anchors. Refactoring Notes cite also migrated.

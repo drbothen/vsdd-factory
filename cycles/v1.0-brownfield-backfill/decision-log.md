@@ -5398,3 +5398,41 @@ E-19-ADV-PASS-1-NOT-CLEAN-CLOSED
 2026-07-06
 
 ---
+
+## D-753
+
+### Summary
+
+E-19 ADV PASS-2 NOT-CLEAN (B0/H3/M6/L4) + FULL-SCOPE FIX BURST COMPLETE. Fresh-context adversary reviewed E-19 epic + S-19.01..S-19.05 + STORY-INDEX E-19 section on 2026-07-06. Verdict: NOT-CLEAN B0/H3/M6/L4 + 5 observations. Full-scope burst (human-approved including S-19.06 scope expansion + full VP/BC authorship) executed across 6 specialist legs. Severity decay from pass-1 B1/H9/M5/L1 → pass-2 B0/H3/M6/L4. Streak 0/3. Pass-3 NEXT with fresh context.
+
+### Decision
+
+**(1) E-19 ADVERSARIAL PASS-2 VERDICT: NOT-CLEAN B0/H3/M6/L4.** Fresh-context adversary reviewed E-19 epic + S-19.01..S-19.05 + STORY-INDEX E-19 section. 13 findings + 5 observations: F-P2-001 HIGH (S-19.04 MultiEdit coverage gap — blanket anchoring removes MultiEdit from verify-factory-lock gate); F-P2-002 HIGH (S-19.01 ACs are LLM prompt-spec changes with no mechanical enforcement code path; pr-manager-completion-guard.wasm unreferenced); F-P2-003 HIGH (S-19.02/BC-4.13.001 headroom rationale stale — cited 90KB/466 lines; actual 193,220B/488 lines — 2× growth); F-P2-004 MED (S-19.03 path_util hoist changes BC-2.02.011 §Architecture Anchors without BC amendment); F-P2-005 MED (S-19.02 cap-raise treats symptom; read_bounded all-or-nothing; read_prefix is durable fix); F-P2-006 MED (epic depends_on:[E-18] soft ordering mis-typed as hard DAG); F-P2-007 MED (S-19.03 cites nonexistent codes.rs path — inline in host/mod.rs); F-P2-008 MED (S-19.05 name-only abandoned set fragile under multi-entry-per-name — needs (plugin_name, entry_index) key); F-P2-009 MED (S-19.04 AC-004 gate flunks legitimate singletons — no carve-out); F-P2-010 LOW (S-19.05 AC-006 CLAUDE.md gate lacks negative control); F-P2-011 LOW (S-19.02 AC-005 parity-with-full-file-parse violates Invariant 9); F-P2-012 LOW (no test-count regression baseline in Red Gate across all stories); F-P2-013 LOW (S-19.01 macos-latest pointer drift unmanaged). 5 observations (O-P2-001..005): bundle-policy authority; #[non_exhaustive] question; cfg-gated Mutex import; epic EAC-005 vs keep-assertion; verification_properties: [] across all stories.
+
+**(2) HUMAN APPROVALS.** (a) S-19.06 new story approved (F-P2-005 durable fix — read_prefix bounded partial read; scope expansion; 8pts W2 depends_on S-19.03). (b) Full VP/BC authorship in this burst (VP-094..VP-101 NEW + VP-079 amended; NEW BC-5.42.001/BC-2.07.001/BC-1.17.001). (c) Retroactive correction of BC-INDEX v3.58/v3.59 4-index quads (wrong-at-authoring during D-752 architect cross-lane edit; correctable per POLICY 1 retrospective accuracy; orchestrator-approved).
+
+**(3) FIX BURST COMPLETE — 6 specialist legs.**
+
+**Architect:** 7 decisions (D-a..D-g): MultiEdit parity via explicit entry in anchoring table (D-a); 3-component S-19.01 enforcement: completion-guard.wasm extension + check-stale-verdict.sh + enforce-merge-strategy.sh (D-b); cap RETAINED 262144 + soft_warn_threshold=200000 (D-c); read_prefix as new host fn HOST_ABI_VERSION=1 unchanged additive (D-d); (plugin_name, entry_index) composite key for abandoned set (D-e); uniform singleton anchoring carve-out (D-f); macos-latest retained with sw_vers preflight sentinel (D-g). 2 adjudications: (i) O-P2-001 bundle-policy → policies.yaml POLICY 20 (no ADR-030); (ii) O-P2-002 Other(i32) catch-all adopted, #[non_exhaustive] NOT added. ADR-025 v1.7→v1.8 (Decision 15 read_prefix; MultiEdit parity note; headroom rationale updated). ARCH-INDEX v2.86→v2.87. VP-094..VP-101 NEW (8 VPs) + VP-079 amended. VP-INDEX v2.51→v2.52. POLICY 9 propagation to verification-architecture.md + verification-coverage-matrix.md CONFIRMED.
+
+**Spec-steward:** BC-2.02.011 §Architecture Anchors + §Traceability Architecture Module updated (path_util.rs bullet; closes F-P2-004). 7-VP determination completed (O-P2-005). 2 BC gaps (BC-5.42.001, BC-2.07.001) routed to product-owner for authorship.
+
+**Product-owner:** BC-4.13.001 v1.4→v1.5 (MultiEdit enumerated; Precondition 3 rationale 193,220B/488 lines 2026-07-06; cap RETAINED; Invariant 10 soft_warn_threshold=200000; Invariant 9 F-P2-011 verification note). BC-3.08.001 v1.15→v1.16 (plugin.abandoned entry_index: u32 added; Invariant 6 terminal key extended). BC-2.02.011 v1.3→v1.4 (path_util anchors). NEW BC-5.42.001 v1.0 (pr-manager READY-verdict covered_sha pin + check-stale-verdict.sh + enforce-merge-strategy.sh; S-19.01). NEW BC-2.07.001 v1.0 (host::read_file absent-file semantics; S-19.03). NEW BC-1.17.001 v1.0 (host::read_prefix; S-19.06). BC-INDEX v3.59→v3.65 (total_bcs 1,974→1,977; 3 new BCs). RETROACTIVE REMEDIATION: v3.58/v3.59 4-index quads re-derived to live headers (wrong-at-authoring at D-752 burst).
+
+**Story-writer:** S-19.06 v1.0 NEW (8pts W2 depends_on S-19.03; BC-1.17.001/VP-101). S-19.01 v1.1→v1.2 (3-component enforcement; BC-5.42.001; VP-094/095). S-19.02 v1.1→v1.2 (AC-005 byte-boundary; soft_warn_threshold AC; VP-096/097). S-19.03 v1.2→v1.3 (codes.rs path corrected; BC-2.07.001; VP-098). S-19.04 v1.2→v1.3 (MultiEdit positive-control; singleton carve-out; VP-099). S-19.05 v1.1→v1.2 (entry_index composite key; VP-100). E-19 epic v1.1→v1.2 (depends_on: [] corrected; EAC-005 dual-registry; 6 stories 42pts). STORY-INDEX v4.131→v4.132. DRIFT ITEM surfaced: STORY-INDEX frontmatter lists legacy input `.factory/stories/v1.0/EPIC.md` (nonexistent; blocks compute-input-hash on STORY-INDEX; pre-existing; deferred to next maintenance sweep per anchor story-writer surfaced).
+
+**POLICY 20 registration:** `release_bundle_no_dev_samples` registered as POLICY 20 (id 20 per no-collision verification; task referenced "id 17" but ids 17-19 already existed; next available is 20). Scope: release, bundle. Severity: HIGH.
+
+**(4) 4-INDEX AT D-753 CLOSURE:** BC v3.65 / VP v2.52 / STORY v4.132 / ARCH v2.87. total_bcs 1,977. Streak 0/3. NEXT: E-19 adv pass-3 (fresh context).
+
+Parent-commit: 04d91d57 (D-752 SHA-patch factory-artifacts HEAD).
+
+### Phase
+
+E-19-ADV-PASS-2-NOT-CLEAN-CLOSED
+
+### Date
+
+2026-07-06
+
+---

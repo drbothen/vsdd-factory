@@ -1,0 +1,153 @@
+---
+document_type: behavioral-contract
+level: L3
+version: "1.0"
+status: draft
+producer: product-owner
+timestamp: 2026-07-06T00:00:00Z
+last_amended: "(v1.0) — initial creation (product-owner): E-19 pass-2 fix burst Package 2 — host::read_prefix bounded partial read: head-c semantics, NEVER OUTPUT_TOO_LARGE, additive FFI entry point, same path_allow + rejoin capability model as read_file (BC-2.07.001), absent file returns NOT_FOUND (-5), read_file all-or-nothing semantics unchanged (story anchor S-19.06; architect decision D-d)."
+phase: F3
+inputs:
+  - crates/factory-dispatcher/src/host/read_file.rs
+  - crates/hook-sdk/src/host.rs
+  - .factory/specs/behavioral-contracts/ss-02/BC-2.07.001.md
+input-hash: "[pending-recompute]"
+traces_to: .factory/specs/prd.md
+origin: greenfield
+extracted_from: null
+subsystem: "SS-01"
+capability: "CAP-TBD"
+lifecycle_status: draft
+introduced: v1.0-feature-engine-discipline-E19
+modified: []
+deprecated: null
+deprecated_by: null
+replacement: null
+retired: null
+removed: null
+removal_reason: null
+---
+
+# BC-1.17.001: host::read_prefix — bounded partial read (head-c semantics), NEVER OUTPUT_TOO_LARGE, additive FFI entry point, path_allow + rejoin capability model
+
+## Description
+
+`host::read_prefix` is a NEW host function that returns at most `max_bytes` bytes from the start of a file — equivalent to `head -c max_bytes` — and is guaranteed never to return OUTPUT_TOO_LARGE. It is an additive FFI entry point that does not change `read_file` semantics.
+
+**(a) Signature and semantics.** `read_prefix(path: &str, max_bytes: u32, timeout_ms: u32) -> i32`. The function returns at most `max_bytes` bytes from the start of the file (head-c semantics). If the file's total size is less than `max_bytes`, the full file content is returned. The return is byte-exact with no UTF-8 boundary trimming — the caller is responsible for interpreting partial multi-byte sequences. The function NEVER returns OUTPUT_TOO_LARGE (-3); by construction `max_bytes` IS the output cap, so the response always fits within the requested bound.
+
+**(b) read_file all-or-nothing semantics unchanged.** `host::read_file` retains its existing all-or-nothing semantics: it reads the complete file and returns OUTPUT_TOO_LARGE if the file exceeds `max_bytes`. Plugins that currently rely on `read_file` for TOML/YAML parsing correctness must continue using `read_file` — silent truncation-as-success would corrupt those plugins' parsing (D-d rationale). `read_prefix` is for plugins that explicitly want a bounded prefix (e.g., reading the first N bytes of a log for pattern matching, reading YAML front-matter from a large markdown file).
+
+**(c) Capability model.** `read_prefix` honors the same path allowlist (`path_allow`) and the same rejoin path-allowed resolution algorithm (BC-2.07.001, part b) as `read_file`. A separate capability block `capabilities.read_prefix` MUST appear in the registry entry for any plugin that calls `read_prefix`; absence of this block returns CAPABILITY_DENIED (-1) before any filesystem access. An absent-file path that is within the allowlist returns NOT_FOUND (-5), consistent with BC-2.07.001 part c.
+
+**(d) ABI treatment.** `read_prefix` is an additive FFI entry point in the `vsdd` WASM import namespace. HOST_ABI_VERSION governance for this addition is recorded in an amendment to ADR-025 (architect authors same-burst — cited as "ADR-025" with no Decision number to avoid phantom-pin on a Decision number not yet authored). Plugins that do not import `read_prefix` are unaffected; the new import is visible only to plugins that declare it.
+
+## Preconditions
+
+1. A plugin author declares `read_prefix` in the `vsdd` import namespace and invokes `host::read_prefix(path, max_bytes, timeout_ms)`.
+2. The plugin's registry entry includes a `[hooks.capabilities.read_prefix]` block with a `path_allow` list covering the target directory.
+3. `max_bytes` is a positive `u32` (0 is a valid degenerate case — see EC-001).
+4. `crates/factory-dispatcher/src/host/path_util.rs` is available (same module used by `read_file` and `write_file`; BC-2.07.001 part b).
+
+## Postconditions
+
+1. **Bounded prefix returned.** On success, the response contains at most `max_bytes` bytes from the file's start. The byte count of the response is `min(file_size, max_bytes)`.
+
+2. **Full content returned for short files.** If the file is smaller than `max_bytes`, the response contains the complete file content — no padding, no truncation marker.
+
+3. **OUTPUT_TOO_LARGE never returned.** The function never emits OUTPUT_TOO_LARGE (-3). The `max_bytes` argument IS the cap; data beyond the cap is simply not read. This is the behavioral contract distinguishing `read_prefix` from `read_file`.
+
+4. **Capability gate enforced before filesystem access.** Absent a `capabilities.read_prefix` block, the dispatcher returns CAPABILITY_DENIED (-1) and does not access the filesystem.
+
+5. **Absent-file returns NOT_FOUND (-5).** A path within the allowlist where the file does not exist returns NOT_FOUND (-5) and emits `internal.file_not_found` (same semantics as BC-2.07.001 part c).
+
+6. **Byte-exact prefix, no trimming.** The response is the raw first `max_bytes` bytes of the file content. No UTF-8 normalization, line-ending conversion, or boundary trimming is applied.
+
+## Invariants
+
+1. **Prefix determinism.** Given the same file content and the same `max_bytes`, `read_prefix` always returns the same byte sequence. No non-deterministic behavior.
+
+2. **`read_file` semantics are immutable.** This BC does not modify the behavior of `read_file`. Existing plugins calling `read_file` observe no behavioral change. The two functions are independent host entry points with different response contracts.
+
+3. **Separate capability block enforces defense-in-depth.** A plugin granted `capabilities.read_file` does NOT automatically receive `capabilities.read_prefix`. The two capabilities are independently declared in the registry. This allows operators to grant partial-read access without granting full-file-read access to large files.
+
+4. **Traversal defense identical to read_file.** The `resolve_path_for_allowlist` function from `path_util.rs` is used for `read_prefix` path validation; the same rejoin algorithm, the same `starts_with` allowlist check, and the same traversal defense applies (BC-2.07.001 Invariant 1).
+
+5. **NOT_FOUND semantics consistent with BC-2.07.001.** An absent-file path that is within the allowlist returns NOT_FOUND (-5) for both `read_file` and `read_prefix`. Plugin code handling NOT_FOUND from either function can use the same error-handling branch.
+
+## Edge Cases
+
+| ID | Description | Expected Behavior |
+|----|-------------|-------------------|
+| EC-001 | `max_bytes = 0` | Returns an empty byte sequence (0 bytes) with exit code 0. The file is not read; the response is a zero-length payload. This is a valid degenerate case — the caller asked for zero bytes. |
+| EC-002 | `max_bytes` greater than file size | Returns complete file content (no padding, no OUTPUT_TOO_LARGE). Response length is `file_size` bytes. |
+| EC-003 | File is absent and path is within allowlist | Returns NOT_FOUND (-5); emits `internal.file_not_found`. Same as BC-2.07.001 part c. |
+| EC-004 | Path is outside all allowed prefixes in `capabilities.read_prefix` | Returns CAPABILITY_DENIED (-1); emits `internal.capability_denied reason=path_not_allowed`. `capabilities.read_prefix` path_allow check is independent from `capabilities.read_file`. |
+| EC-005 | Plugin has `capabilities.read_file` but no `capabilities.read_prefix` block | Returns CAPABILITY_DENIED (-1) when `read_prefix` is called. `read_file` capability does not extend to `read_prefix`. |
+| EC-006 | Read times out before `max_bytes` are read | Returns TIMEOUT (-2); emits `internal.timeout`. Same timeout semantics as `read_file`. |
+| EC-007 | File is a directory (not a regular file) | Returns INTERNAL_ERROR (-99) or equivalent OS-level error; does not return partial content. |
+| EC-008 | Plugin compiled against a hook-sdk that does not declare `read_prefix` in the FFI module | Plugin cannot call `read_prefix` (it is simply absent from the import table). No runtime error; the capability is opt-in by declaration. |
+
+## Canonical Test Vectors
+
+| Input (path, max_bytes, file content or state) | Expected return value | Expected response bytes |
+|------------------------------------------------|----------------------|------------------------|
+| `.factory/wave-state.yaml` (20 bytes content), max_bytes=10, file present, allowlisted | 0 (ok) | First 10 bytes of file |
+| `.factory/wave-state.yaml` (5 bytes content), max_bytes=100, file present, allowlisted | 0 (ok) | Full 5-byte content |
+| `.factory/wave-state.yaml`, max_bytes=50, file absent, allowlisted | NOT_FOUND (-5) | empty |
+| `/etc/passwd`, max_bytes=50, allowlist=[`.factory/`] | CAPABILITY_DENIED (-1) | empty |
+| `.factory/wave-state.yaml`, max_bytes=0, file present, allowlisted | 0 (ok) | 0 bytes (empty payload) |
+| `.factory/wave-state.yaml`, max_bytes=50, plugin has read_file capability only, no read_prefix capability | CAPABILITY_DENIED (-1) | empty |
+| `.factory/wave-state.yaml`, max_bytes=50, timeout_ms=1, file exists but I/O stalls | TIMEOUT (-2) | empty |
+
+## Related BCs
+
+- BC-2.07.001 — host::read_file absent-file semantics; establishes codes::NOT_FOUND (-5), HostError::NotFound, rejoin algorithm, and path_util::resolve_path_for_allowlist that this BC inherits for the read_prefix code path
+- BC-2.02.002 — bounded host calls are mandatory (read_file and exec_subprocess REQUIRE timeout_ms and a byte cap); read_prefix follows the same mandatory-bounds discipline
+- BC-2.02.003 — HostError code mapping; codes -1/-2/-3/-4/-99 defined; this BC adds -5 via BC-2.07.001 (additive, not new here)
+- BC-1.05.022 — read_file reads allowed file (all-or-nothing semantics unchanged; read_prefix is a separate fn)
+- BC-1.05.024 — read_file rejects file exceeding max_bytes → OUTPUT_TOO_LARGE; read_prefix is the alternative that NEVER returns OUTPUT_TOO_LARGE
+
+## Architecture Anchors
+
+- `crates/factory-dispatcher/src/host/read_prefix.rs` — new host function implementation; imports `resolve_path_for_allowlist` from `path_util.rs`
+- `crates/factory-dispatcher/src/host/path_util.rs` — shared path-allowed resolution (see BC-2.07.001 §Architecture Anchors)
+- `crates/hook-sdk/src/host.rs` — new `read_prefix` wrapper callable from WASM plugins; parallel to existing `read_file` wrapper
+- `plugins/vsdd-factory/hooks-registry.toml` — `capabilities.read_prefix` capability block schema; separate from `capabilities.read_file`
+- ADR-025 (amendment) — HOST_ABI_VERSION governance for additive `read_prefix` FFI entry point (architect authors same-burst)
+
+## Story Anchor
+
+S-19.06 (host::read_prefix bounded partial read — story file does not exist at BC authorship time; story-writer authors next leg)
+
+## VP Anchors
+
+- VP-TBD — read_prefix returns at most max_bytes bytes; returns full content when file < max_bytes; never returns OUTPUT_TOO_LARGE; returns NOT_FOUND for allowlisted-absent paths (unit VP; to be authored as part of S-19.06)
+
+## Verification Properties
+
+| VP-NNN | Property | Proof Method |
+|--------|----------|-------------|
+| VP-TBD | read_prefix(path, max_bytes) where file_size > max_bytes returns exactly max_bytes bytes at exit code 0; never OUTPUT_TOO_LARGE | unit (Rust; S-19.06) |
+| VP-TBD | read_prefix(path, max_bytes) where file_size < max_bytes returns full file_size bytes at exit code 0 | unit (Rust; S-19.06) |
+| VP-TBD | read_prefix on absent allowlisted path returns NOT_FOUND (-5); no OUTPUT_TOO_LARGE or CAPABILITY_DENIED | unit (Rust; S-19.06, inherits AC from BC-2.07.001) |
+| VP-TBD | read_prefix without capabilities.read_prefix block returns CAPABILITY_DENIED (-1) | unit (Rust; S-19.06) |
+
+## Traceability
+
+| Field | Value |
+|-------|-------|
+| L2 Capability | CAP-TBD — pending capability mapping to S-19.06 delivery |
+| Capability Anchor Justification | TBD — read_prefix is a new host fn; capability anchor will be determined when S-19.06 is authored and the capability in capabilities.md is confirmed |
+| L2 Domain Invariants | TBD |
+| Architecture Module | SS-01 (Hook Dispatcher Core) — read_prefix host function + path_util integration |
+| ADR | ADR-025 (amendment, no Decision number — architect authors same-burst; additive FFI entry point, HOST_ABI_VERSION governance) |
+| Stories | S-19.06 |
+| Cycle | v1.0-feature-engine-discipline-E19 (F3) |
+| Feature | E-19 — Post-rc.22 Operator Hardening |
+
+## Changelog
+
+| Version | Date | Author | Change |
+|---------|------|--------|--------|
+| 1.0 | 2026-07-06 | product-owner | Initial creation. E-19 pass-2 fix burst Package 2. New host fn read_prefix: (a) head-c semantics, max_bytes cap, NEVER OUTPUT_TOO_LARGE, byte-exact no-trimming, max_bytes=0 valid; (b) read_file all-or-nothing semantics UNCHANGED (silent-truncation-as-success would corrupt TOML/YAML parsers — D-d rationale); (c) separate capabilities.read_prefix block, same path_allow + rejoin model as read_file (BC-2.07.001), absent file returns NOT_FOUND (-5); (d) additive FFI entry point in vsdd namespace; HOST_ABI_VERSION governance in ADR-025 amendment (bare cite, no Decision number). Story anchor S-19.06 (story not yet authored). |

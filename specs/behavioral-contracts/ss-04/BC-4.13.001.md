@@ -1,7 +1,7 @@
 ---
 document_type: behavioral-contract
 level: L3
-version: "1.4"
+version: "1.5"
 status: active
 producer: product-owner
 timestamp: 2026-06-10T00:00:00Z
@@ -13,9 +13,10 @@ inputs:
   - .factory/specs/behavioral-contracts/ss-04/BC-4.11.001.md
   - .factory/specs/behavioral-contracts/BC-INDEX.md
   - plugins/vsdd-factory/hooks-registry.toml
-input-hash: "117bba0"
+input-hash: "f7ea3ab"
 traces_to: .factory/specs/architecture/decisions/ADR-025-single-writer-factory-locklease-prevent-concurrent-session-races-on-factory-artifacts-orphan-branch.md
 origin: brownfield
+extracted_from: null
 subsystem: "SS-04"
 capability: "CAP-031"
 lifecycle_status: active
@@ -25,6 +26,7 @@ modified:
   - "2026-06-11 (v1.2)"
   - "2026-06-11 (v1.3)"
   - "2026-07-06 (v1.4)"
+  - "2026-07-06 (v1.5)"
 deprecated: null
 deprecated_by: null
 replacement: null
@@ -33,7 +35,7 @@ removed: null
 removal_reason: null
 bc_id: BC-4.13.001
 section: "4.13"
-last_amended: "2026-07-06 (v1.4) — E-19 pass-1 F-P1-004 fix burst (product-owner): Precondition 3 max_bytes raised 65536→262144 (256 KiB; rationale: STATE.md observed ~90 KB / ~466 lines; 500-line compaction hard cap implies worst-case ≤200 KiB; 256 KiB gives ≥28% headroom). Invariant 9 extended with frontmatter-only-parsing mandate: guard MUST abort after second ---\\n delimiter and MUST NOT parse file body. TD-031 in-scope fix: two volatile executor.rs line cites migrated to stable symbol anchors per TD-VSDD-091 (PC1 block path and Invariant 8 aggregation site). Closes F-P1-004. BC-INDEX v3.57→v3.58. [Prior: 2026-06-11 (v1.3) — POL-14 auto-promotion: lifecycle_status draft→active on PR #182 squash-merge df4f26b8 (S-17.02 MERGED 2026-06-11); BC-INDEX v2.69→v2.70; D-545. [Prior: 2026-06-11 (v1.2) — Boundary-semantics spec error (product-owner; S-17.02 testing finding; issue #170). EC-002 and PC2 prescribed `now > expires_at` as the expiry test, which is self-contradictory: `now == expires_at` would evaluate false under strict `>`, causing the guard to BLOCK at the exact-expiry instant — opposite of the stated EC-002 outcome (boundary → Continue). Corrected to `now >= expires_at` throughout (PC2 condition, EC-002 description, Invariant 3). PC1 blocking condition updated from `now ≤ expires_at` to `now < expires_at` for consistency (boundary is expired, not blocking). BC version v1.1→v1.2. [Prior: 2026-06-11 (v1.1) — Production-correctness spec gap (product-owner; S-17.02 implementation finding; issue #170). Inv 5 registry-shape UPDATED: both exec_subprocess capability blocks now REQUIRE `env_allow = [\"HOME\", \"GIT_CONFIG_GLOBAL\", \"XDG_CONFIG_HOME\"]` alongside `binary_allow = [\"git\"]`; without env_allow the dispatcher calls env_clear() → git config user.email returns empty → IdentityResolutionFailed → HookResult::Continue → lock silently inert. EC-016 added (env_allow omitted footgun). PC7 IdentityResolutionFailed extended to document env_allow dependency. BC version v1.0→v1.1. Prior: 2026-06-10 (v1.0) — Initial authoring (product-owner; brownfield-backfill issue #170; ADR-025 v1.2 D1/D2/D7/D9 deliverables). verify-factory-lock WASM guard behavioral contract. lifecycle_status: draft (POL-14 auto-promotion to active on implementing PR merge).]]]"
+last_amended: "2026-07-06 (v1.5) — E-19 pass-2 F-P2-001 + F-P2-003 + F-P2-011 fix burst (product-owner): (a) Precondition 1: MultiEdit enumerated in tool-pattern list (anchored form ^(Edit|Write|MultiEdit|Agent)$; ADR-025 2026-06-11 sibling-sweep mandate); Invariant 5 TOML tool field updated to Edit|Write|MultiEdit|Agent. (b) Precondition 3 rationale: stale ~90 KB / ~466 lines replaced with verified 193,220 bytes / 488 lines at 2026-07-06 review checkpoint; cap 262144 RETAINED (architect D-c: cap inflation without compaction discipline defers the crisis; compaction is the correct response); utilization ~74%, headroom ~35%. (c) Invariant 10 added: soft_warn_threshold = 200000 bytes; state_md_approaching_cap observability-only diagnostic event (bytes_read + cap_bytes fields); zero new registry entries. (d) Invariant 9 verification note (F-P2-011): byte-boundary correctness of frontmatter extraction; parity-with-full-file-parse FORBIDDEN. Closes F-P2-001 (BC leg), F-P2-003, F-P2-011. BC-INDEX v3.59→v3.60. [Prior: 2026-07-06 (v1.4) — E-19 pass-1 F-P1-004 fix burst (product-owner): Precondition 3 max_bytes raised 65536→262144 (256 KiB; rationale: STATE.md observed ~90 KB / ~466 lines; 500-line compaction hard cap implies worst-case ≤200 KiB; 256 KiB gives ≥28% headroom). Invariant 9 extended with frontmatter-only-parsing mandate: guard MUST abort after second ---\\n delimiter and MUST NOT parse file body. TD-031 in-scope fix: two volatile executor.rs line cites migrated to stable symbol anchors per TD-VSDD-091 (PC1 block path and Invariant 8 aggregation site). Closes F-P1-004. BC-INDEX v3.57→v3.58. [Prior: 2026-06-11 (v1.3) — POL-14 auto-promotion: lifecycle_status draft→active on PR #182 squash-merge df4f26b8 (S-17.02 MERGED 2026-06-11); BC-INDEX v2.69→v2.70; D-545. [Prior: 2026-06-11 (v1.2) — Boundary-semantics spec error (product-owner; S-17.02 testing finding; issue #170). EC-002 and PC2 prescribed `now > expires_at` as the expiry test, which is self-contradictory: `now == expires_at` would evaluate false under strict `>`, causing the guard to BLOCK at the exact-expiry instant — opposite of the stated EC-002 outcome (boundary → Continue). Corrected to `now >= expires_at` throughout (PC2 condition, EC-002 description, Invariant 3). PC1 blocking condition updated from `now ≤ expires_at` to `now < expires_at` for consistency (boundary is expired, not blocking). BC version v1.1→v1.2. [Prior: 2026-06-11 (v1.1) — Production-correctness spec gap (product-owner; S-17.02 implementation finding; issue #170). Inv 5 registry-shape UPDATED: both exec_subprocess capability blocks now REQUIRE `env_allow = [\"HOME\", \"GIT_CONFIG_GLOBAL\", \"XDG_CONFIG_HOME\"]` alongside `binary_allow = [\"git\"]`; without env_allow the dispatcher calls env_clear() → git config user.email returns empty → IdentityResolutionFailed → HookResult::Continue → lock silently inert. EC-016 added (env_allow omitted footgun). PC7 IdentityResolutionFailed extended to document env_allow dependency. BC version v1.0→v1.1. Prior: 2026-06-10 (v1.0) — Initial authoring (product-owner; brownfield-backfill issue #170; ADR-025 v1.2 D1/D2/D7/D9 deliverables). verify-factory-lock WASM guard behavioral contract. lifecycle_status: draft (POL-14 auto-promotion to active on implementing PR merge).]]]"
 ---
 
 # BC-4.13.001: verify-factory-lock WASM PreToolUse guard MUST block mutating tools when a foreign unexpired factory_lock is held, MUST pass all read-only tools unconditionally, MUST fail-open on crash, MUST be registered async=false with both capability blocks enumerated, and MUST treat expired/absent/malformed locks as unlocked
@@ -42,7 +44,7 @@ last_amended: "2026-07-06 (v1.4) — E-19 pass-1 F-P1-004 fix burst (product-own
 
 The `verify-factory-lock` native-WASM plugin enforces the cross-session single-writer invariant
 on the `factory-artifacts` orphan branch. It fires on every `PreToolUse` event for mutating tools
-(Edit, Write, Agent dispatch, and Bash commands pushing to `factory-artifacts`). On each
+(Edit, Write, MultiEdit, Agent dispatch, and Bash commands pushing to `factory-artifacts`). On each
 invocation, it reads the `factory_lock` block from `.factory/STATE.md` via `host::read_file`,
 reads the current `git config user.email` via `host::exec_subprocess`, and compares the lock holder
 to the caller's identity plus the current time to the `expires_at` field. A foreign unexpired lock
@@ -63,6 +65,7 @@ push fix (D6) are specified in BC-5.40.001 and BC-6.23.001 respectively.
    `tool` regex — see Invariant 5):
    - `Edit` — any file edit
    - `Write` — any file write
+   - `MultiEdit` — any multi-file edit (anchored form: `^(Edit|Write|MultiEdit|Agent)$`; same guard semantics as Edit/Write; ADR-025 2026-06-11 sibling-sweep mandate)
    - `Agent` — any agent dispatch
    - `Bash` whose payload matches `git.*push.*factory-artifacts` (factory-artifacts push arm)
 
@@ -71,15 +74,17 @@ push fix (D6) are specified in BC-5.40.001 and BC-6.23.001 respectively.
    in-flight mutations, not reads.
 
 2. The dispatcher has invoked the `verify-factory-lock` WASM plugin with the tool payload.
-   The guard is registered in `hooks-registry.toml` as TWO entries (one for Edit|Write|Agent,
+   The guard is registered in `hooks-registry.toml` as TWO entries (one for Edit|Write|MultiEdit|Agent,
    one for Bash) — see Invariant 5 for the mandatory registration shape.
 
 ### File read capability
 
 3. The guard MUST read `.factory/STATE.md` via `host::read_file` with `max_bytes = 262144`
-   (256 KiB — STATE.md observed sizes are approximately 90 KB at ~466 lines; the 500-line
-   compaction hard cap per ADR-026 implies a worst-case file size ≤200 KiB; 262144 bytes
-   gives ≥28% headroom above the worst-case size. The guard derives its lock signal
+   (256 KiB — STATE.md verified size is 193,220 bytes / 488 lines at the 2026-07-06 review
+   checkpoint (`wc -c .factory/STATE.md`); growth ~2× during the E-19 pass-1 burst. The
+   cap of 262144 bytes is RETAINED: cap inflation without compaction discipline defers the
+   crisis; compaction is the correct response to STATE.md growth (architect D-c). Current
+   utilization is ~74% (193,220 / 262,144), headroom ~35%. The guard derives its lock signal
    exclusively from the FRONTMATTER region, which is contained in the first ~2 KiB of the
    file — `max_bytes` must only be large enough that `host::read_file` does not return
    `OutputTooLarge` on valid STATE.md files; the full body is never parsed by this guard).
@@ -234,7 +239,7 @@ are surfaced as advisory `internal.dispatcher_error` events via SS-03.
    name = "verify-factory-lock"
    plugin = "hook-plugins/verify-factory-lock.wasm"
    event = "PreToolUse"
-   tool = "Edit|Write|Agent"
+   tool = "Edit|Write|MultiEdit|Agent"
    async = false
    on_error = "continue"
    timeout_ms = 5000
@@ -298,6 +303,24 @@ are surfaced as advisory `internal.dispatcher_error` events via SS-03.
    STATE.md body size: `max_bytes = 262144` (Precondition 3) ensures the host read does not
    return `OutputTooLarge` on valid STATE.md files, but the parser stops at the frontmatter
    boundary and never processes the remaining bytes.
+
+   **Verification note (F-P2-011):** The correct test for this invariant is byte-boundary
+   correctness of the frontmatter extraction: the extracted bytes MUST byte-equal the file
+   prefix through (and including) the second `---\n` delimiter line. Tests MUST NOT verify
+   this property by comparison against a full-file YAML parse — that path is explicitly
+   forbidden by this invariant.
+
+10. **Soft warning threshold for STATE.md utilization**: `soft_warn_threshold = 200000` bytes.
+    When a hook that already reads STATE.md in full (i.e., calls `host::read_file` on
+    `.factory/STATE.md`) observes `bytes_read > soft_warn_threshold`, it MUST emit a
+    diagnostic event of type `state_md_approaching_cap` carrying two fields:
+    `bytes_read: u64` (the observed byte count) and `cap_bytes: u64` (the current `max_bytes`
+    value, 262144). This event is observability-only — it NEVER triggers a block or alters
+    the `Continue`/`Block` verdict. It is implemented as an extension to hooks that already
+    read STATE.md in full; zero new registry entries are required. The `verify-factory-lock`
+    guard, which reads STATE.md on every mutating-tool PreToolUse invocation, MUST emit this
+    event when `bytes_read > soft_warn_threshold`. The threshold is not a hard cap; it is a
+    leading indicator for compaction scheduling.
 
 ## Edge Cases
 
@@ -427,6 +450,7 @@ TBD — VP IDs to be assigned after VP authoring pass.
 
 | Version | Date | Description |
 |---------|------|-------------|
+| 1.5 | 2026-07-06 | E-19 pass-2 F-P2-001 + F-P2-003 + F-P2-011 fix burst (product-owner): (a) Precondition 1: MultiEdit enumerated in tool-pattern list (anchored form `^(Edit\|Write\|MultiEdit\|Agent)$`; ADR-025 2026-06-11 sibling-sweep mandate); Invariant 5 TOML entry updated to `tool = "Edit\|Write\|MultiEdit\|Agent"`. (b) Precondition 3 rationale: stale ~90 KB / ~466 lines replaced with verified 193,220 bytes / 488 lines at 2026-07-06 review checkpoint; cap 262144 RETAINED (architect D-c: cap inflation without compaction discipline defers the crisis; compaction is the correct response); utilization ~74%, headroom ~35%. (c) Invariant 10 added: soft_warn_threshold = 200000 bytes; state_md_approaching_cap observability-only diagnostic event (bytes_read + cap_bytes fields); zero new registry entries; verify-factory-lock guard MUST emit when bytes_read > threshold. (d) Invariant 9 verification note (F-P2-011): required property is byte-boundary correctness of frontmatter extraction (output MUST byte-equal file prefix through second `---\n` delimiter line); parity-with-full-file-parse verification FORBIDDEN. Closes F-P2-001 (BC leg), F-P2-003, F-P2-011. BC-INDEX v3.59→v3.60. |
 | 1.4 | 2026-07-06 | E-19 pass-1 F-P1-004 fix burst (product-owner): Precondition 3 `max_bytes` raised 65536→262144 (256 KiB); rationale: STATE.md observed ~90 KB / ~466 lines; 500-line compaction hard cap implies worst-case ≤200 KiB; 256 KiB gives ≥28% headroom above worst-case. Invariant 9 extended with frontmatter-only-parsing mandate: guard MUST abort scanning after second `---\n` delimiter and MUST NOT parse file body; lock verdict derived exclusively from frontmatter. TD-031 in-scope fix (TD-VSDD-091): two volatile executor.rs line cites replaced with stable symbol anchors (`plugin_requests_block` function) in PC1 block-path paragraph and Invariant 8 aggregation-site paragraph. Closes F-P1-004. BC-INDEX v3.57→v3.58. |
 | 1.3 | 2026-06-11 | POL-14 auto-promotion: lifecycle_status draft→active on PR #182 squash-merge df4f26b8 (S-17.02 MERGED 2026-06-11; D-545). BC-4.13.001 is now the enforcement BC for the deployed verify-factory-lock WASM guard. BC-INDEX v2.69→v2.70. No spec content changes. |
 | 1.2 | 2026-06-11 | Boundary-semantics spec error corrected (product-owner; S-17.02 testing; issue #170). EC-002 and PC2 prescribed `now > expires_at` as the expiry test, which is self-contradictory: under strict `>`, `now == expires_at` evaluates false → guard would BLOCK at the exact-expiry instant, contradicting EC-002's stated outcome (boundary → Continue). Corrected to `now >= expires_at` in PC2, EC-002, and Invariant 3. PC1 blocking condition corrected from `now ≤ expires_at` to `now < expires_at` (boundary is expired, not blocking). All four locations now consistently state: the lock is expired (Continue) when `now >= expires_at`; the guard blocks only when `now < expires_at`. EC-002 outcome (boundary → Continue) unchanged. BC version v1.1→v1.2. |
