@@ -154,7 +154,7 @@ After the sync state check, invoke the shared three-state lock status helper and
 output to the health report:
 
 ```bash
-plugins/vsdd-factory/bin/factory-lock-status.sh "${WORKTREE_DIR}/STATE.md" "$(git config user.email)"
+${CLAUDE_PLUGIN_ROOT}/bin/factory-lock-status.sh "${WORKTREE_DIR}/STATE.md" "$(git config user.email)"
 ```
 
 The helper returns one of:
