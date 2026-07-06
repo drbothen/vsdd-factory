@@ -105,6 +105,11 @@ git commit -m "evidence(STORY-NNN): add demo recordings"
   not a guessed duration. Only use `Sleep` for the final frame hold (2s).
 - **Use `Hide`/`Show` for setup** — build commands, `cd`, `clear` should not appear in the demo.
   The viewer should see only the command being demonstrated.
+- **NEVER emit `Type "cd <absolute-path>"`** — your working directory is not portable.
+  Absolute worktree paths break the tape on repo relocation and after the story merges
+  (the `.worktrees/STORY-NNN` directory is cleaned up). Self-locate instead:
+  `Type "cd $(git rev-parse --show-toplevel)"` — resolves correctly from any checkout,
+  before and after merge.
 - **Use `Require`** — verify the binary exists before recording. Fail early.
 - **Both `.gif` + `.webm`** — gif for PR embed, webm for archival. Always output both.
 - **Keep under 15 seconds** — each tape demos ONE acceptance criterion. No multi-AC tapes.
