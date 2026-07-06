@@ -1007,11 +1007,11 @@ workflow:
     - name: phase-4-scenario-rotation
       type: agent
       depends_on: [phase-3-gate]
-      agent: orchestrator
+      agent: state-manager
       task: >
         Perform scenario rotation for this pipeline run. Randomly select 80% of
         holdout scenarios from .factory/holdout-scenarios/ for evaluation. Write
-        the selected scenario IDs to .factory/holdout-evaluation/scenario-selection.json.
+        the selected scenario IDs to .factory/holdout-scenarios/scenario-selection.json.
         The remaining 20% are held back as "holdout of the holdout" -- scenarios
         the evaluator has never seen for this particular run. Seed the random
         selection from the pipeline run ID for deterministic per-run, different

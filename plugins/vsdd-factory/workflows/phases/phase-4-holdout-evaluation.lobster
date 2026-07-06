@@ -13,12 +13,12 @@ workflow:
   steps:
     - name: scenario-rotation
       type: agent
-      agent: orchestrator
+      agent: state-manager
       depends_on: []
       task: >
         Perform scenario rotation for this pipeline run. Randomly select 80%
         of holdout scenarios. Write selected scenario IDs to
-        .factory/holdout-evaluation/scenario-selection.json.
+        .factory/holdout-scenarios/scenario-selection.json.
 
     - name: holdout-evaluation
       type: skill
