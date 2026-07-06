@@ -170,6 +170,28 @@ Before finalizing findings, run a self-validation loop on each finding:
 2. **Actionability check**: Can someone fix this without ambiguity? If the finding is vague ("consider improving error handling"), sharpen it or drop it.
 3. **Duplication check**: Does this finding overlap with a prior finding in this pass? Merge duplicates.
 
+### Ground-Truth Verification for CRITICAL/HIGH Implementation Findings (MANDATORY)
+
+Reasoning from spec text ("BC says the daemon MUST ACK") to a code
+conclusion ("the code doesn't do it") without reading the code produces
+false BLOCKING findings. For every finding tagged CRITICAL or HIGH
+against implementation code, BEFORE it enters the final report:
+
+1. Extract the specific code claim (missing function, absent contract
+   wiring, wrong signature, unexported symbol).
+2. Run at least one `grep` or `Read` against the alleged deficient
+   file/symbol to verify the claim against the actual source.
+3. If the grep/Read contradicts the claim, remove the finding or
+   downgrade it with the contradiction noted.
+4. Cite the verified file:line in the finding body — for absence
+   claims, state where you looked: "Verified absent — grepped
+   `<symbol>` across `src/`, no definition."
+
+A CRITICAL/HIGH implementation finding without a verification citation
+is not reportable. Compile-state is corroborating evidence: if the
+workspace tests compile and pass, claims like "X is not exported" are
+contradicted by the build itself — check before reporting.
+
 **Max 3 refinement iterations per pass.** After 3 rounds of self-validation, ship what you have. Diminishing returns beyond 3 iterations is validated by the AgenticAKM study (29 repositories).
 
 ## Convergence
