@@ -5638,3 +5638,68 @@ D-758-E19-ADV-PASS-7-CLOSED
 ### Date
 
 2026-07-07
+
+
+---
+
+---
+
+## D-759
+
+### Summary
+
+E-19 ADV PASS-8 NOT-CLEAN (B0/H3/M5/L3; 11 findings + 6 observations; counts matched enumeration; every finding carried artifact-level premise greps — the pass-7 F-P7-003 evidence-rules hardening held) + FIX BURST COMPLETE + BC-CITE DRIFT PREFLIGHT INSTITUTED. Fresh-context adversary reviewed E-19 epic + S-19.01..S-19.07 + STORY-INDEX E-19 section on 2026-07-07 under 20-policy rubric. Verdict: NOT-CLEAN B0/H3/M5/L3. Trajectory 16→14→20→9→8→5→12→11. Zero false-positives (premise-verification discipline held; adversary independently grepped ADR/BC text per F-P7-003 evidence-rules hardening). F-P8-001 HIGH S-19.07 AC-002 gate globally-unscoped: `grep -c` over whole registry returns 22 `[hooks.capabilities.read_file]` blocks; only 2 in scope (verify-factory-lock + verify-factory-lock-bash); gate asserts count=0 which is permanently unsatisfiable (20 other plugins legitimately use read_file); fix = per-entry awk-scoped gate. F-P8-002 HIGH [process-gap] S-19.02 mid-propagation BC-4.13.001 v1.6/v1.7 mixed state: pass-7 story-writer replace_all sweep missed 2 reverse-word-order sites (Phase-A scope note v1.6; Arch Rules table v1.5→v1.7 range left endpoint). F-P8-003 HIGH [process-gap] S-19.07 same class: all Phase-B body cites carried BC-4.13.001 v1.6 + 2 stray v1.5 cites in Architecture Mapping + Previous Story Intel. F-P8-002/003 = FOURTH recurrence of BC-bump→partial-propagation class (prior: F-P4-002/003/009 D-755; F-P5-003 D-756; F-P6-003 D-757); three-or-more threshold met; MECHANICAL GATE codified below. F-P8-004 MED epic Stories-table S-19.03 BCs cell missing BC-2.02.011 (§BC Traceability row present at v1.5 but not propagated back to Stories-table column; POLICY 14 parity gap). F-P8-005 MED S-19.06 AC-003 gate strips only leading-comment lines; trailing inline comments (e.g., `something(); // old: read_file`) survive filter and false-positive. F-P8-006 MED S-19.05 EC-005 stale `[SYNTHETIC]` label post-recast (pass-7 rewrote Gate but left the label). F-P8-007 MED S-19.07 "BOTH verify-factory-lock entries" naming imprecision (second entry name verify-factory-lock-bash absent from AC-002 Gate + Architecture Mapping + Architecture Compliance Rules). F-P8-008 MED S-19.02 boundary summary specifies 262145→OUTPUT_TOO_LARGE behavior but no T-NNN test row exercises this boundary. F-P8-009 LOW quote-style brittleness in S-19.07 gate patterns. F-P8-010 LOW S-19.05 AC-001 no per-field jq loop (event presence asserted but not all 9 mandatory fields). F-P8-011 LOW epic §Wave Sequencing presents W2 as parallel batch but S-19.06 depends_on S-19.04 — intra-wave ordering constraint not documented. Observations O-P8-B-1..6: O-P8-B-1 = story-impact-matrix discipline ADOPTED as two-sided BC-cite preflight (orchestrator + story-writer); O-P8-B-2/3/5 encoded in fix burst; O-P8-B-4/6 accepted-with-record.
+
+Fix-burst closure (story-writer single leg): S-19.01 v1.7 (audit carry; no normative gap; input-hash refreshed); S-19.02 v1.7 (F-P8-002 2 reverse-word-order v1.6 sites replaced + F-P8-008 Unit test E 262145-byte gate added; T-009; Task 7); S-19.04 v1.9 (audit carry; no normative gap); S-19.05 v1.7 (F-P8-006 [SYNTHETIC] dropped; F-P8-010 jq per-field loop AC-001; O-P8-B-3 EC-006 negative-control); S-19.06 v1.4 (F-P8-005 sed trailing-comment strip); S-19.07 v1.3 (F-P8-001 per-entry awk scoping; F-P8-002/003 BC-4.13.001 v1.6→v1.7 all body + v1.5 Invariant 10 2 stray sites; F-P8-007 entry names explicit; F-P8-009 quote-style; O-P8-B-2 deferral grep tightened); E-19 epic v1.8 (F-P8-004 S-19.03 BCs cell; F-P8-011 wave-model note); STORY-INDEX v4.138→v4.139. Story-writer produced full 6-BC × 9-artifact cite matrix; orchestrator independently verified ZERO stale live cites outside changelog sections — first fully cite-coherent state of the E-19 cascade. 4-INDEX: BC v3.74 / VP v2.53 / STORY v4.139 / ARCH v2.89 (BC-INDEX UNCHANGED — no BC amendments this pass). Streak 0/3. Pass-9 NEXT.
+
+### Decision
+
+**(1) E-19 ADVERSARIAL PASS-8 VERDICT: NOT-CLEAN B0/H3/M5/L3.** Fresh-context adversary reviewed E-19 epic + S-19.01..S-19.07 + STORY-INDEX E-19 section on 2026-07-07. Premise-verification discipline: every finding carries independent artifact-level ground-truth grep. 11 findings (F-P8-001..F-P8-011) + 6 observations. Adversary-stated B0/H3/M5/L3 count matches enumerated bodies (3 HIGH + 5 MEDIUM + 3 LOW = 11 total; no stated-but-unenumerated counts). Trajectory 16→14→20→9→8→5→12→11. Zero false-positives (adversary independently grepped ADR/BC text per evidence-rules hardening established at D-758).
+
+**F-P8-001 HIGH:** S-19.07 v1.2 AC-002 gate used `grep -c '\[hooks\.capabilities\.read_file\]' plugins/vsdd-factory/hooks-registry.toml` asserting count=0 — returns 22 (all plugins with read_file caps); permanently unsatisfiable. Gate was globally-scoped to the entire file rather than scoped to the 2 verify-factory-lock entries. Fix: per-entry awk range gate for each of verify-factory-lock and verify-factory-lock-bash, asserting read_file count=0 AND read_prefix count≥1 within each entry's stanza.
+
+**F-P8-002 HIGH [process-gap]:** S-19.02 v1.6 carried 2 live BC-4.13.001 v1.6 cites outside changelog sections — the Phase-A scope note sentence and the Architecture Compliance Rules table range cite (`v1.5→v1.7` with stale left endpoint). Pass-7 replace_all for "BC-4.13.001 v1.6 Phase-A" → "BC-4.13.001 v1.7 Phase-A" missed these 2 sites because their string ordering differed: "v1.6 Phase-A amendment" (version before Phase qualifier) and "v1.5→v1.7" (range cite with stale left endpoint). FOURTH recurrence of BC-bump→partial-propagation class; three-or-more threshold met; MECHANICAL GATE instituted (decision (4) below).
+
+**F-P8-003 HIGH [process-gap]:** S-19.07 v1.2 all Phase-B body cites carried BC-4.13.001 v1.6; 2 additional stray v1.5 cites in Architecture Mapping + Previous Story Intel (Invariant 10 context). S-19.07 was created at pass-4 citing v1.5/v1.6; only superficial content was updated at passes 5/7 (VP note, Task 1 sentence); BC version cite sweep never executed for S-19.07. Same BC-bump→partial-propagation class; FOURTH recurrence; same MECHANICAL GATE applies.
+
+**F-P8-004 MEDIUM:** Epic v1.7 Stories-table BCs cell for S-19.03 = "BC-2.07.001" only; BC-2.02.011 (codes::NOT_FOUND semantics — co-governing BC for S-19.03) absent from Stories-table while present in §BC Traceability table. Pass-5 added BC-2.02.011 to §BC Traceability (O-P5-002) but did not propagate to the Stories-table BCs column — POLICY 14 parity gap between two summary sites.
+
+**F-P8-005 MEDIUM:** S-19.06 v1.3 AC-003 gate `grep -vE '^\s*(//)|(#)'` strips only lines whose first non-whitespace is `//` or `#`; lines with trailing inline comments (e.g., Rust: `let x = foo(); // note: host::read_file semantics`) survive the filter and false-positive if the comment contains a forbidden symbol. Fix: `sed 's://.*::' file | grep -qE "forbidden_pattern"` strips both leading-line and trailing inline comments.
+
+**F-P8-006 MEDIUM:** S-19.05 v1.6 EC-005 row retained `[SYNTHETIC]` label from v1.4 (where it was added as a synthetic-fixture identifier). Pass-7 rewrote the Gate column content per schema-level recast but left the row label/description prefix unchanged. The label is now misleading (schema-level property tests are not synthetic runtime stimuli). Fix: drop `[SYNTHETIC]` from EC-005 row; update Expected Behavior column to explicitly state schema-level property/serialization test nature.
+
+**F-P8-007 MEDIUM:** S-19.07 v1.2 AC-002 Gate + Architecture Mapping + Architecture Compliance Rules all said "BOTH verify-factory-lock entries" without naming the second entry (verify-factory-lock-bash). An implementer could update only the first matching entry and satisfy the prose. Fix: enumerate both entry names explicitly at all three locations; awk-scoped gate rewrite for F-P8-001 must name the bash-variant entry explicitly.
+
+**F-P8-008 MEDIUM:** S-19.02 v1.6 AC-006 boundary summary specified "262145 → OUTPUT_TOO_LARGE" as a normative behavior clause but no T-NNN test row exercised the 262145-byte fixture to assert: (a) `run_check()` returns `StateReadError`; (b) zero `state_md_approaching_cap` log entries (warn range is (200000, 262144]; 262145 is outside the readable range so the warn path is never reached). Both behaviors are distinct from the 262144-exact case; both must be asserted. Fix: Unit test E added to AC-006 Gate; T-009 row added.
+
+**F-P8-009 LOW:** S-19.07 v1.2 gate patterns used mixed quoting (backslash-escaped regex in shell context) that is brittle across POSIX sh/bash/zsh. Subsumed by F-P8-001 rewrite if done with consistent single-quoted awk/grep patterns.
+
+**F-P8-010 LOW:** S-19.05 v1.6 AC-001 gate asserted event presence (jq `select(.type == "plugin.completed")`) but did not enumerate and assert all 9 mandatory fields per BC-3.08.001 v1.19 Event 6. A partial implementation emitting only type+timestamp would satisfy the gate. Fix: per-field jq assertion loop for all 9 fields.
+
+**F-P8-011 LOW:** Epic v1.7 §Wave Sequencing presented W2 (S-19.04, S-19.05, S-19.06) as a parallel batch without noting the S-19.04→S-19.06 intra-wave ordering constraint (S-19.06 depends_on S-19.04). An orchestrator dispatching W2 in parallel would violate the dependency. Fix: §Wave Sequencing updated with explicit ordering note.
+
+**Observations O-P8-B-1..6:** O-P8-B-1 = BC-cite impact matrix / story-impact-matrix discipline (ADOPTED — see decision (4) below); O-P8-B-2 = S-19.07 deferral gate tightened to Merge-pull-request pattern (actioned in fix burst); O-P8-B-3 = S-19.05 EC-006 negative-control (actioned in fix burst); O-P8-B-4 = S-19.01 AC-004 as model (ACCEPTED-WITH-RECORD); O-P8-B-5 = STORY-INDEX BC-coverage re-derivation automation superseded by preflight (encoded); O-P8-B-6 = BC-4.13.001 Invariant 10 Phase-B cross-reference note (ACCEPTED-WITH-RECORD; out of scope for story spec work).
+
+**(2) FIX BURST COMPLETE — story-writer single leg.** All 11 findings closed in a single story-writer leg: S-19.01 v1.7 (audit carry), S-19.02 v1.7 (F-P8-002 + F-P8-008), S-19.04 v1.9 (audit carry), S-19.05 v1.7 (F-P8-006 + F-P8-010 + O-P8-B-3), S-19.06 v1.4 (F-P8-005), S-19.07 v1.3 (F-P8-001 + F-P8-002/003 story leg + F-P8-007 + F-P8-009 + O-P8-B-2), E-19 epic v1.8 (F-P8-004 + F-P8-011), STORY-INDEX v4.138→v4.139. BC-INDEX UNCHANGED (no BC amendments required this pass). Orchestrator ran BC-cite preflight before declaring closure — ZERO stale live cites outside changelog sections confirmed; first fully cite-coherent state of the E-19 cascade.
+
+**(3) 4-INDEX AT D-759 CLOSURE:** BC v3.74 (UNCHANGED) / VP v2.53 (UNCHANGED) / STORY v4.139 / ARCH v2.89 (UNCHANGED). E-19 = 7 stories 45pts (W1: S-19.01/02/03 parallel; W2: S-19.04/05/06 with intra-wave ordering S-19.04→S-19.06; W3: S-19.07). Streak 0/3. NEXT: E-19 adv pass-9 (fresh context; 20-policy rubric; trajectory 16→14→20→9→8→5→12→11→pass-9).
+
+**(4) MECHANICAL GATE — BC-CITE DRIFT PREFLIGHT (two-sided; mandatory from D-759 onward; codified as cure-extension per D-497 parsimony).** The BC-bump→partial-propagation class has recurred four times in this cascade (F-P4-002/003/009; F-P5-003; F-P6-003/004 residuals; F-P8-002/003 — spanning passes 4–8). Each instance was a replace_all sweep that missed one or more sites with non-canonical cite orderings (version embedded before/after Phase qualifier; range cites with stale left endpoints; section-local templates). Three-or-more threshold for MECHANICAL GATE met per D-759 cure-extension. Gate definition:
+
+**BC-cite drift preflight (mandatory, two-sided):**
+
+(a) **Story-writer side (every fix-burst leg that bumps a BC OR advances a story's BC version cite):** Leg MUST end with a 6-BC cite matrix scan: for each of the 6 E-19 BCs (BC-4.13.001 / BC-2.07.001 / BC-2.02.011 / BC-3.08.001 / BC-5.42.001 / BC-1.17.001), run `grep -oE "BC-<ID> v[0-9]+\.[0-9]+" <all E-19 artifacts>` → classify each result as (i) live cite (outside changelog/last_amended/modified[] sections) or (ii) changelog-history cite. Assert that every live cite matches the BC's current header version (`grep "^version:" .factory/specs/behavioral-contracts/...`). Any live cite at a prior version is a stale site requiring immediate targeted edit before the leg declares done.
+
+(b) **Orchestrator side (before dispatching every adversarial pass):** Independently run the same 6-BC cite matrix scan across all 9 E-19 artifacts (7 stories + epic + STORY-INDEX). Assert zero stale live cites. Any stale live cite found by the preflight MUST be fixed before the adversary is dispatched — a dispatch with known stale cites is a preventable finding.
+
+First execution at D-759 (story-writer leg): caught 2 reverse-word-order stale cites in S-19.02 and 2 stray v1.5 sites in S-19.07 that replace_all had missed — same class as F-P8-002/003 but detectable before the adversary run. Orchestrator post-burst independent verification: ZERO stale live cites confirmed across all 9 artifacts. Codified as cure-extension to the BC-version-propagation-sibling-sweep lesson family (per D-497 parsimony; extends the existing sibling-sweep and cross-reconciliation-sweep discipline; no new lesson ID issued).
+
+Parent-commit: f18a1bd8 (D-758 SHA-patch factory-artifacts HEAD).
+
+### Phase
+
+D-759-E19-ADV-PASS-8-CLOSED
+
+### Date
+
+2026-07-07
