@@ -1,7 +1,7 @@
 ---
 document_type: epic
 epic_id: "E-19"
-version: "v1.6"
+version: "v1.7"
 status: draft
 title: "Post-rc.22 Operator Hardening — pr-manager race fixes, verify-factory-lock size defect, warn-pending-wave-gate false-positive, registry/bundle hygiene, async telemetry + VSDD_SINK_FILE, host::read_prefix bounded partial read"
 prd_capabilities: []
@@ -23,7 +23,7 @@ inputs:
   - .factory/stories/S-19.06-read-prefix-bounded-partial-read.md
   - .factory/stories/S-19.07-verify-factory-lock-read-prefix-migration.md
   - .factory/specs/behavioral-contracts/ss-04/BC-4.13.001.md
-input-hash: "70be29f"
+input-hash: "f90d42e"
 ---
 
 # Epic E-19: Post-rc.22 Operator Hardening
@@ -35,7 +35,8 @@ E-19 collects the seven hardening stories authorized by the rc.22 post-install s
 (2026-07-06). The findings expose four distinct defect classes discovered only after the
 v1.0.0-rc.22 marketplace tarball was installed and exercised against a live
 production-state vsdd-factory repository, plus one new host ABI capability added in the
-same hardening wave:
+same hardening wave, and one phased continuation (S-19.07 Phase-B read_prefix migration)
+authorized in E-19 pass-4:
 
 1. **pr-manager process gaps (S-19.01):** Three lessons codified from the rc.22
    brownfield-backfill cycle (L-BB-merge-race-ready-report-stale-head / D-749,
@@ -44,7 +45,7 @@ same hardening wave:
    verdicts with no SHA pinning, no mechanical squash-merge guard on release PRs,
    and darwin-leg scripts validated under the wrong Bash version.
 
-2. **verify-factory-lock byte-cap defect (S-19.02):** STATE.md in the rc.22 production
+2. **verify-factory-lock byte-cap defect (S-19.02 Phase-A + S-19.07 Phase-B):** STATE.md in the rc.22 production
    install is ~90 KB, exceeding the 64 KiB cap in `verify-factory-lock`
    (`STATE_MD_MAX_BYTES = 65536`). Every PreToolUse Edit/Write/Agent dispatch triggers
    `capability_denied reason=output_too_large`, causing the single-writer enforcement
@@ -109,7 +110,7 @@ that reads this frontmatter.
 No new PRD capabilities from the base defect-fix set. E-19 stories fix defects in
 existing capabilities and add observability infrastructure. BC-4.13.001 (verify-factory-
 lock behavioral contract) is amended by S-19.02 to reflect the raised byte budget.
-BC-3.08.001 v1.18 (async event catalog — Event 5 `plugin.abandoned` with all 7 mandatory fields including `type`, `timestamp`, `entry_index: u32` + Invariant 6 extended terminal key `trace_id+plugin_name+entry_index`; Event 6 `plugin.completed` async path with all 9 mandatory fields including `plugin_version`) LANDED (product-owner, E-19 pass-3/pass-5 fix bursts); implementer for S-19.05 follows BC-3.08.001 v1.18 without further routing action. BC-1.17.001 v1.1 (host::read_prefix bounded
+BC-3.08.001 v1.19 (async event catalog — Event 5 `plugin.abandoned` with all 7 mandatory fields including `type`, `timestamp`, `entry_index: u32` + Invariant 6 extended terminal key `trace_id+plugin_name+entry_index`; Event 6 `plugin.completed` async path with all 9 mandatory fields including `plugin_version`; schema-level defense for concurrent `entry_index` traceability) LANDED (product-owner, E-19 pass-3/pass-5/pass-7 fix bursts); implementer for S-19.05 follows BC-3.08.001 v1.19 without further routing action. BC-1.17.001 v1.1 (host::read_prefix bounded
 partial read) LANDED (product-owner, E-19 pass-2 fix burst); implementer for S-19.06
 follows BC-1.17.001 v1.1.
 
@@ -186,11 +187,12 @@ Topological order: W1 → W2 → W3 (by priority + S-19.06 gate on S-19.03 AND S
 
 ## Out of Scope
 
-- **BC-3.08.001 async event catalog amendment:** LANDED as v1.18 (product-owner, E-19
-  pass-2/pass-5 fix bursts). Event 5 `plugin.abandoned` catalog with `entry_index: u32`
+- **BC-3.08.001 async event catalog amendment:** LANDED as v1.19 (product-owner, E-19
+  pass-2/pass-5/pass-7 fix bursts). Event 5 `plugin.abandoned` catalog with `entry_index: u32`
   field and extended Invariant 6 terminal key `trace_id+plugin_name+entry_index`; Event 6
-  `plugin.completed` async path with all 9 mandatory fields including `plugin_version` are
-  now in the BC. S-19.05 implementer follows BC-3.08.001 v1.18 without further routing action.
+  `plugin.completed` async path with all 9 mandatory fields including `plugin_version`;
+  schema-level defense for concurrent `entry_index` traceability are now in the BC.
+  S-19.05 implementer follows BC-3.08.001 v1.19 without further routing action.
 
 - **BC-1.17.001 host::read_prefix:** LANDED as v1.1 (product-owner, E-19 pass-2 fix
   burst). FFI signature `read_prefix(path: &str, max_bytes: u32, timeout_ms: u32) -> i32`
@@ -217,13 +219,14 @@ Topological order: W1 → W2 → W3 (by priority + S-19.06 gate on S-19.03 AND S
 | BC-4.13.001 | S-19.02 (Phase-A: raised byte budget + frontmatter-only extraction) + S-19.07 (Phase-B: migrate verify-factory-lock to host::read_prefix; removes STATE_MD_MAX_BYTES + TooLarge/OutputTooLarge handling) |
 | BC-2.07.001 | S-19.03 (host::read_file absent-file semantics: codes::NOT_FOUND + HostError::NotFound) |
 | BC-2.02.011 | S-19.03 (host::read_file NOT_FOUND semantics: HostError::NotFound named variant in hook-sdk; codes::NOT_FOUND = -5) |
-| BC-3.08.001 | S-19.05 (amended v1.18: Event 5 plugin.abandoned all 7 mandatory fields including type + timestamp + entry_index; Invariant 6 key extension; Event 6 plugin.completed async path 9 mandatory fields including plugin_version) |
+| BC-3.08.001 | S-19.05 (amended v1.19: Event 5 plugin.abandoned all 7 mandatory fields including type + timestamp + entry_index; Invariant 6 key extension; Event 6 plugin.completed async path 9 mandatory fields including plugin_version; schema-level defense for concurrent entry_index traceability) |
 | BC-1.17.001 | S-19.06 (new: host::read_prefix bounded partial read) |
 
 ## Changelog
 
 | Version | Date | Author | Change |
 |---------|------|--------|--------|
+| v1.7 | 2026-07-07 | story-writer | E-19 pass-7 fix burst: F-P7-008 Description item 2 header updated to S-19.02 Phase-A + S-19.07 Phase-B; O-P7-001 one-liner phased-continuation note added to intro paragraph; PRD Capabilities BC-3.08.001 v1.18→v1.19 + pass-7 cite + schema-level defense note; Out-of-Scope BC-3.08.001 v1.18→v1.19 + pass-7 cite + schema-level defense; BC Traceability BC-3.08.001 v1.18→v1.19 + schema-level defense note. |
 | v1.6 | 2026-07-07 | story-writer | E-19 pass-6 fix burst: F-P6-003 BC-3.08.001 v1.17→v1.18 sweep (PRD Capabilities, Out-of-Scope, BC Traceability); O-P6-001 Trigger section S-19.06/S-19.07 authorization sentences added; O-P6-003 EAC-003 path_resolution_failed negative-control B added. |
 | v1.5 | 2026-07-07 | story-writer | E-19 pass-5 fix burst: O-P5-002 BC Traceability BC-2.02.011 row added (via S-19.03); last_amended + modified[] parity. |
 | v1.4 | 2026-07-07 | story-writer | E-19 pass-4 fix burst: S-19.07 row added (W3, 3 pts, BC-4.13.001 Phase-B); story_count 6→7; total 42→45 pts; title extended; inputs add S-19.07; EAC-001 seven stories S-19.01..S-19.07; EAC-005 cite → S-19.04 AC-001 + AC-007; S-19.04 BCs cell → — (config-only); W3 sequencing note; Dependency Graph S-19.07 edges; O-P4-004 DAG restatement; BC-1.17.001 v1.0→v1.1 (PRD Capabilities ×2, Out-of-Scope ×2); BC Traceability BC-4.13.001 Phase-A/Phase-B split + S-19.07; Description seven stories. |

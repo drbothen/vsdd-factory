@@ -5588,3 +5588,53 @@ E-19-ADV-PASS-6-CLOSED
 ### Date
 
 2026-07-07
+
+---
+
+---
+
+## D-758
+
+### Summary
+
+E-19 ADV PASS-7 NOT-CLEAN (B0/H2/M5/L5; 12 findings + 7 observations; counts matched enumeration this pass — pass-6 count-discrepancy class did not recur) + FIX BURST COMPLETE. Fresh-context adversary reviewed E-19 epic + S-19.01..S-19.07 + STORY-INDEX E-19 section on 2026-07-07 under 20-policy rubric; premise-verification discipline applied throughout. Verdict: NOT-CLEAN B0/H2/M5/L5. Trajectory 16→14→20→9→8→5→12 (volume tick-up reflects deeper probe layers: testability semantics, boundary tables, fixture realizability — NOT re-found classes; novelty score 1.0). One false-positive adjudicated (F-P7-003) — adversary evidence grep struck only S-19.06 narrative, never ADR-025 Decision 15 text; ground truth: ADR-025 Decision 15 carries u32/i32 since v1.9 (third premise-verification failure in this cascade; L-BB-finding-premise class; no new lesson — existing lesson extended in applicability note). F-P7-001 HIGH [process-gap] STORY-INDEX E-19 BC-coverage summary line stale (S-19.05 cell v1.18 fixed at D-757 but sibling summary line still v1.17). F-P7-002 HIGH [process-gap] S-19.04 7 volatile ~line NNN pins in normative AC prose (TD-VSDD-091) + missing POLICY 20 compliance row. F-P7-004..007 MEDIUM: BC-2.07.001 EC-007 dead-branch testability (/ always canonicalizes; injectable-mock fix); S-19.01 AC-004 mechanism gap (no bash-3.2 execution test); BC-4.13.001 Invariant 10 blind at 262144 (warn MUST fire at cap boundary); S-19.05 EC-005 synthetic fixture without runtime path + nonexistent fixture dir (entry_index schema-level recast). F-P7-008..012 LOW: epic Phase-A+B enumeration gap; T-006 redundancy; AC-004 pipefail semantics; AC-003 doc-comment scope; T-rows incomplete. Observations O-P7-001..007 (O-P7-003/004/006/007 accepted-with-record). Fix burst: product-owner 3-BC sequential leg + story-writer epic/STORY-INDEX sweep. Streak 0/3. Pass-8 NEXT.
+
+### Decision
+
+**(1) E-19 ADVERSARIAL PASS-7 VERDICT: NOT-CLEAN B0/H2/M5/L5.** Fresh-context adversary reviewed E-19 epic + S-19.01..S-19.07 + STORY-INDEX E-19 section on 2026-07-07. Premise-verification discipline: every finding carries independent ground-truth grep. 12 findings (F-P7-001..F-P7-012) + 7 observations. Pass-6 count-discrepancy class did not recur — this pass's adversary-stated B0/H2/M5/L5 count matches the enumerated bodies (2 HIGH + 5 MEDIUM + 5 LOW = 12 total; no stated-but-unenumerated count). Trajectory 16→14→20→9→8→5→12. Volume tick-up at pass-7 is diagnostic (deeper probe layers), not recurrence.
+
+**F-P7-001 HIGH [process-gap]:** STORY-INDEX E-19 BC-coverage summary line carried `BC-3.08.001 v1.17` while the D-757 F-P6-004 sweep corrected only the per-story row `head_cite` cell; the sibling summary line was missed. POLICY 14 5-leg parity requires all parity sites updated same-burst. Fix: exhaustive BC-coverage line re-derivation from live headers.
+
+**F-P7-002 HIGH [process-gap]:** S-19.04 carried 7 volatile `~line NNN` pins in normative AC prose (TD-VSDD-091 violation) AND was missing a POLICY 20 `release_bundle_no_dev_samples` compliance row in §Traceability. Fix: 7 volatile pins replaced with stable behavioral pattern anchors; POLICY 20 compliance row added.
+
+**F-P7-003 MEDIUM — FALSE-POSITIVE (orchestrator adjudication):** Adversary asserted S-19.06 note described a live ADR vs BC type conflict (u64/i64 vs u32/i32). Ground-truth grep of ADR-025 Decision 15 text confirms u32/i32 since v1.9 — no live conflict. Adversary's evidence grep struck only S-19.06's narrative, never the ADR. F-P7-003 RECLASSIFIED FALSE-POSITIVE. Narrow real defect: S-19.06 stale reconciliation note ("ADR uses u64/i64 — BC wins") describing an already-resolved conflict. Fixed as stale-note removal. This is the third orchestrator-caught premise-verification failure in the E-19 cascade (D-755 F-P4-002-class, D-757 F-P6-002; this pass F-P7-003). Existing lesson `L-BB-finding-premise-must-be-verified-before-fix` extended in applicability note to capture ADR-text-not-grepped pattern; no new lesson ID (D-497 parsimony; existing lesson covers the class).
+
+**F-P7-004 MEDIUM:** BC-2.07.001 EC-007 dead-branch testability gap — "no existing ancestor canonicalizes on real Unix filesystem" is structurally unreachable because `/` always canonicalizes. Fix: EC-007 reformulated with injectable-canonicalize testability seam (`fn(&Path) -> std::io::Result<PathBuf>` parameter); S-19.03 AC-001 negative-control B ruling: inject mock returning `Err` for every ancestor.
+
+**F-P7-005 MEDIUM [process-gap]:** S-19.01 AC-004 closed `L-BB-simulation-shell-dialect-gap` by presence-of-pattern assertion, not by execution under `/bin/bash 3.2`. Fix: AC-004 upgraded to mechanism test — concrete while-IFS-read fragment from rc.22 failure site + bash-3.2-compatible execution check.
+
+**F-P7-006 MEDIUM:** BC-4.13.001 Invariant 10 upper boundary ambiguous — `bytes_read > 200000` without explicit upper-bound qualifier; an implementation reading `> 200000 AND < 262144` (exclusive) silently omits warn at exactly-262144 (the most alarming readable state). Fix: condition restated `bytes_read > 200000 AND bytes_read ≤ 262144`; boundary table added; range explicitly `(200000, 262144]` inclusive at cap.
+
+**F-P7-007 MEDIUM:** S-19.05 EC-005 fixture path references nonexistent dir; `entry_index` field cannot be verified by a synthetic fixture (requires runtime dispatch ordinal). Fix: BC-3.08.001 v1.19 rules `entry_index` as schema-level defense verified by serialization/property tests over the event struct; S-19.05 AC-002 Gate recast accordingly; T-006 recast as grep-inspection.
+
+**F-P7-008..012 LOW:** Epic Description item 2 Phase-A+B scope gap (F-P7-008); S-19.05 T-006 redundant with T-003 (F-P7-009); S-19.04 AC-004 pipefail semantics ambiguous re `|| true` wrapping (F-P7-010); S-19.06 AC-003 doc-comment scope unguarded (F-P7-011); S-19.02 T-001..T-005/T-007..T-009 rows empty (F-P7-012).
+
+**Observations O-P7-001..007:** O-P7-001 epic phased-continuation note (actioned in epic v1.7 fix); O-P7-002 S-19.07 VP-empty rationale note (actioned); O-P7-003/004/006/007 accepted-with-record (non-blocking; no action required this pass); O-P7-005 Task 1 EAC cross-ref note (actioned in all stories).
+
+**(2) FIX BURST — 2 specialist legs (product-owner sequential + story-writer).** Sequenced per D-757 NEW RULE (index-writing legs must be sequenced). BC-INDEX legs ran first (3 incremental bumps: v3.71→v3.72→v3.73→v3.74); story-writer leg ran after, re-deriving all live BC versions.
+
+**Product-owner (sequential 3-BC leg):** BC-2.07.001 v1.1→v1.2 (EC-007 injectable-canonicalize; BC-INDEX v3.72). BC-4.13.001 v1.6→v1.7 (Invariant 10 inclusive upper-bound; boundary table; BC-INDEX v3.73). BC-3.08.001 v1.18→v1.19 (entry_index schema-level defense note; Invariant 6 schema-level predicate; BC-INDEX v3.74). total_bcs UNCHANGED 1,977. POLICY 7 H1 titles UNCHANGED.
+
+**Story-writer (epic/story/STORY-INDEX leg):** S-19.01 v1.5→v1.6 (AC-004 bash-3.2 mechanism test; O-P7-005). S-19.02 v1.5→v1.6 (T-rows full inline content; BC-4.13.001 v1.7 boundary conformance; Task 12; O-P7-005). S-19.03 v1.6→v1.7 (AC-001 negative-control B injectable-mock per BC-2.07.001 v1.2; O-P7-005). S-19.04 v1.7→v1.8 (7 volatile pins→stable anchors; POLICY 20 compliance row; AC-004 pipefail explicit; TD-VSDD-091 row; O-P7-005). S-19.05 v1.5→v1.6 (AC-002 Gate schema-level; EC-005 fixture-path removed; T-006 grep-inspection recast; BC-3.08.001 v1.19; O-P7-005). S-19.06 v1.2→v1.3 (stale reconciliation note replaced; AC-003 non-comment grep scope; O-P7-005). S-19.07 v1.1→v1.2 (VP-empty rationale note; O-P7-005). E-19 epic v1.6→v1.7 (Description item 2 Phase-A+B; O-P7-001 phased-continuation note; BC-3.08.001 v1.18→v1.19 sibling-sweep in PRD/Out-of-Scope/BC Traceability). STORY-INDEX v4.137→v4.138 (F-P7-001 BC-coverage summary line re-derived from live headers; all six BC versions live-derived: BC-4.13.001 v1.7 / BC-2.07.001 v1.2 / BC-2.02.011 v1.4 / BC-3.08.001 v1.19 / BC-5.42.001 v1.1 / BC-1.17.001 v1.1; 0 stale version tokens confirmed). Orchestrator verified zero residuals via body-scoped greps before commit.
+
+**(3) 4-INDEX AT D-758 CLOSURE:** BC v3.74 / VP v2.53 (UNCHANGED) / STORY v4.138 / ARCH v2.89 (UNCHANGED). E-19 = 7 stories 45pts (W1: S-19.01/02/03 parallel; W2: S-19.04/05/06; W3: S-19.07). Streak 0/3. NEXT: E-19 adv pass-8 (fresh context; 20-policy rubric; trajectory 16→14→20→9→8→5→12→pass-8).
+
+Parent-commit: e024e8e1 (D-757 SHA-patch factory-artifacts HEAD).
+
+### Phase
+
+D-758-E19-ADV-PASS-7-CLOSED
+
+### Date
+
+2026-07-07
