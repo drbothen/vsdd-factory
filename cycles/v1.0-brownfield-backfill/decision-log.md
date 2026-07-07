@@ -5472,3 +5472,39 @@ E-19-ADV-PASS-3-CLOSED
 2026-07-06
 
 ---
+
+---
+
+## D-755
+
+### Summary
+
+E-19 ADV PASS-4 NOT-CLEAN (B0/H1/M6/L2) + FIX BURST COMPLETE + S-19.07 ADDED. Fresh-context adversary reviewed E-19 epic + S-19.01..S-19.06 + STORY-INDEX E-19 section on 2026-07-07 under premise-verification prompt hardening (every finding carries independent ground-truth grep). Verdict: NOT-CLEAN B0/H1/M6/L2 + 7 observations. Zero false-positives. F-P4-001 (process-gap: ADR-025 D18(e) MUST-obligation unscheduled) adjudicated via architect Option B → NEW S-19.07 + HUMAN APPROVAL 2026-07-07. Full burst executed across 3 specialist legs. Severity decay resumed: B1/H9/M5/L1 → B0/H3/M6/L4 → B0/H5/M9/L6 → B0/H1/M6/L2 (finding volume 16→13→20→9). Streak 0/3. Pass-5 NEXT with fresh context.
+
+### Decision
+
+**(1) E-19 ADVERSARIAL PASS-4 VERDICT: NOT-CLEAN B0/H1/M6/L2.** Fresh-context adversary reviewed E-19 epic + S-19.01..S-19.06 + STORY-INDEX E-19 section. Premise-verification prompt hardening applied: every finding grounded in independent grep before reporting; zero false-positives this pass. 9 findings + 7 observations: F-P4-001 HIGH [process-gap] (ADR-025 D18(e) verify-factory-lock MUST-migrate to read_prefix — MUST-obligation with no story anchor across all 6 drafted stories; BC-4.13.001 v1.5 PC3 still read_file@262144; S-19.02 declares no read-primitive change; S-19.06 has zero verify-factory-lock tests); F-P4-002 MED (BC-1.17.001 v1.0 stale cites across S-19.06 + epic — 6 sites; actual v1.1 per D-754); F-P4-003 MED (BC-5.42.001 v1.0 stale cites in S-19.01 — 3 sites; actual v1.1 per D-754); F-P4-004 MED (E-19 epic EAC-005 `satisfied_by: [S-19.04 AC-001]` only — AC-007 live-bundle gate omitted; load-bearing obligation unanchored in traceability chain); F-P4-005 MED (S-19.02 narrative cites ~90KB/466 lines vs BC v1.5 ground-truth 193,220B/488 lines/74%/35% — 2× size understatement); F-P4-006 MED (S-19.03 POLICY 8 Token Budget missing BC-2.02.011 row — frontmatter updated D-754 F-P3-014 but body table not propagated per POLICY 8 same-burst requirement); F-P4-007 MED (S-19.03 §Architecture Anchors subsystem-anchor prose omits SS-02 dispatcher-core scope despite frontmatter `subsystems: [SS-01, SS-02]` corrected D-754); F-P4-008 LOW (E-19 epic story-table contains raw YAML list syntax artifact in one cell); F-P4-009 LOW (S-19.05 residual BC-3.08.001 v1.16 cite — TD-VSDD-091 sibling-sweep incomplete from D-754 burst). 7 observations O-P4-001..007 (Red-Gate staging; intent-comment matching tolerance; --merge default-injection control; DAG restatement; D18(a)-(e) mapping sweep — D18(d) PARTIAL → S-19.06 T-010 gap encoded; ci.yml job-key convention; EC-005 synthetic-fixture note).
+
+**(2) ARCHITECT ADJUDICATION F-P4-001 — OPTION B RULING.** Options evaluated: (A) Expand S-19.06 scope — REJECTED (S-19.06 scope purity; single-responsibility violation); (B) NEW dedicated story S-19.07 — SELECTED; (C) Post-E-19 defer — REJECTED (defer-pattern violation per Canonical Principle Rule 3; D18(e) is an active MUST obligation; no concrete future dependency). Option B rationale: (i) P0 lock guard must not be first consumer of unproven host fn — S-19.06 proves ABI correctness first, S-19.07 migrates; (ii) S-19.06 scope purity preserved; (iii) W1 cap-raise (S-19.02) unblocked — BC-4.13.001 Phase-A anchors S-19.02 as interim; (iv) migration yields structural improvement — max_bytes 262144→8192 (sufficient for verify-factory-lock), OutputTooLarge error class eliminated from hot path. **HUMAN APPROVED 2026-07-07: S-19.07 added to E-19 (7 stories, ~45pts).**
+
+**(3) FIX BURST COMPLETE — 3 specialist legs.**
+
+**Architect:** Option B ruling documented (see §2). No ADR changes required (D18(e) obligation already present in ADR-025 v1.9; no spec amendment needed). BC routing to product-owner for Phase-A/B dual-anchor. Story routing to story-writer for S-19.07 NEW + all pass-4 finding corrections.
+
+**Product-owner:** BC-4.13.001 v1.5→v1.6 (Precondition 3 restructured as PHASED dual-story anchor: Phase-A `read_file@262144` active per S-19.02; Phase-B `read_prefix@8192` per S-19.07; dual-story anchor documents that Phase-A is not a permanent state). BC-INDEX v3.69→v3.70. Closes F-P4-001 BC leg.
+
+**Story-writer:** S-19.07 v1.0 NEW (W3, 3pts, `depends_on: [S-19.02, S-19.06]`, `behavioral_contracts: [BC-4.13.001]`, `verification_properties: []`; AC-001 verify-factory-lock calls read_prefix not read_file; AC-002 OutputTooLarge eliminated; AC-003 verify-factory-lock-read-prefix.bats RED→GREEN; blocks reciprocals added on S-19.02 + S-19.06). S-19.06 v1.2 (T-010 timeout_expired stub + BC-1.17.001 v1.1 6-site version-pin update). S-19.01 v1.5 (BC-5.42.001 v1.1 3-site version-pin update). S-19.02 v1.4 (stale size figures corrected: 193,220B/488 lines/74%/35%; blocks: [S-19.07] added). S-19.03 v1.5 (POLICY 8 Token Budget BC-2.02.011 row added; SS-02 architecture-anchor prose extended). S-19.04 v1.5 (EAC-005 `satisfied_by` extended to AC-001+AC-007). S-19.05 v1.4 (residual BC-3.08.001 v1.16 cite → bare BC-3.08.001; orchestrator independent grep caught one additional cell). E-19 epic v1.4 (7 stories ~45pts W1:S-19.01/02/03 W2:S-19.04/05/06 W3:S-19.07; EAC-005 dual-trace AC-001+AC-007; raw frontmatter-syntax artifact removed; DAG intra-epic constraint table added per O-P4-004). STORY-INDEX v4.134→v4.135 (S-19.07 NEW row; all story version bumps; epic v1.4). Closes F-P4-002..F-P4-009 + O-P4-004/005 encoded.
+
+**No new lessons this pass.** Existing L-BB-finding-premise-must-be-verified-before-fix + L-BB-sibling-sweep-same-contract-clause lessons cover the pass-4 residual class (TD-VSDD-091 sibling-sweep incompleteness). All process-gap findings (F-P4-001) have story anchors (S-19.07); all codified lessons cover remaining finding classes. Cycle-Closing checklist: all process-gap findings have story anchors or codified lessons — no open lesson gap.
+
+**(4) 4-INDEX AT D-755 CLOSURE:** BC v3.70 / VP v2.52 / STORY v4.135 / ARCH v2.89. E-19 = 7 stories ~45pts (W1: S-19.01/02/03 parallel; W2: S-19.04/05/06; W3: S-19.07). Streak 0/3. NEXT: E-19 adv pass-5 (fresh context).
+
+Parent-commit: 467c7e21 (D-754 SHA-patch factory-artifacts HEAD).
+
+### Phase
+
+E-19-ADV-PASS-4-NOT-CLEAN-CLOSED
+
+### Date
+
+2026-07-07
