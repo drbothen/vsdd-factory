@@ -1,8 +1,8 @@
 ---
 document_type: behavioral-contract
 level: L3
-version: "1.17"
-last_amended: 2026-07-06
+version: "1.18"
+last_amended: 2026-07-07
 status: draft
 producer: product-owner
 timestamp: 2026-05-07T00:00:00Z
@@ -23,6 +23,7 @@ modified:
   - "2026-07-06 (v1.15)"
   - "2026-07-06 (v1.16)"
   - "2026-07-06 (v1.17)"
+  - "2026-07-07 (v1.18)"
 deprecated: null
 deprecated_by: null
 replacement: null
@@ -31,11 +32,11 @@ removed: null
 removal_reason: null
 ---
 
-# BC-3.08.001: dispatcher async-semantics event types are catalogued and emitted via FileSink — `plugin.async_block_discarded`, `dispatcher.schema_mismatch`, `dispatcher.registry_invalid`, `plugin.timeout` (async path), `plugin.abandoned`
+# BC-3.08.001: dispatcher async-semantics event types are catalogued and emitted via FileSink — `plugin.async_block_discarded`, `dispatcher.schema_mismatch`, `dispatcher.registry_invalid`, `plugin.timeout` (async path), `plugin.abandoned`, `plugin.completed` (async path)
 
 ## Description
 
-ADR-019 F2 introduces four new event-type strings as part of the async-semantics feature; `plugin.abandoned` is added by the F5 E-19 pass-1 fix burst (F-P1-013) to cover the async drain-window expiry path. These events are referenced in BC-1.14.001 and BC-7.06.001 but require SS-03 catalog authority to define their payload schemas and wire format. Each event is a JSON line written to `events-*.jsonl` via the standard FileSink path. This BC provides the catalog entry for all five, establishing the authoritative field set, wire format, and sink-fan-out obligation per DI-007 (amended: opt-in debug stream) and the VP-028 sink-fan-out invariant.
+ADR-019 F2 introduces four new event-type strings as part of the async-semantics feature; `plugin.abandoned` is added by the F5 E-19 pass-1 fix burst (F-P1-013) to cover the async drain-window expiry path; `plugin.completed` (async path) is added by the F5 E-19 pass-5 fix burst (F-P5-003) to cover async plugins that complete within the drain window. These events are referenced in BC-1.14.001 and BC-7.06.001 but require SS-03 catalog authority to define their payload schemas and wire format. Each event is a JSON line written to `events-*.jsonl` via the standard FileSink path. This BC provides the catalog entry for all six, establishing the authoritative field set, wire format, and sink-fan-out obligation per DI-007 (amended: opt-in debug stream) and the VP-028 sink-fan-out invariant.
 
 ## Preconditions
 
@@ -51,16 +52,17 @@ All five event types carry the following dispatcher-owned fields on the wire. Th
 |-------|------|-------------|
 | `trace_id` | UUID v4 string | Trace correlation value from the invoking hook envelope (DI-017). Canonical wire-format name; `dispatcher_trace_id` must NOT appear on wire (Invariant 5). |
 | `session_id` | UUID v4 string | Claude Code session identifier from the hook envelope context (`ctx.session_id`). Present on all five event types (O-P15-001). |
-| `plugin_name` | string | Name of the plugin registry entry, injected by the host. Present on plugin-context events (1, 4, and 5) only; absent from dispatcher-startup events (2 + 3) which have no plugin context. |
+| `plugin_name` | string | Name of the plugin registry entry, injected by the host. Present on plugin-context events (1, 4, 5, and 6) only; absent from dispatcher-startup events (2 + 3) which have no plugin context. |
 | `ts` | string | Emission timestamp (internal format). |
 | `ts_epoch` | integer | Emission timestamp as Unix epoch milliseconds. |
 | `schema_version` | integer | Registry schema version at emission time. |
 | `type` | string | The event type string (e.g. `"plugin.async_block_discarded"`). |
 
-The §Common Fields appear on the wire for ALL five event types except where noted. Wire-format examples in §Postconditions show:
-- **Plugin-context events (1, 4, and 5):** `plugin_name` explicitly shown (these are plugin-instance events). `plugin_version` is NOT emitted by these events — none of the five BC-3.08.001 emit functions call `with_plugin_version()`.
+The §Common Fields appear on the wire for ALL six event types except where noted. Wire-format examples in §Postconditions show:
+- **Plugin-context events (1, 4, and 5):** `plugin_name` explicitly shown (these are plugin-instance events). `plugin_version` is NOT emitted by Events 1, 4, and 5 — the original BC-3.08.001 emit functions for these events (in `crates/factory-dispatcher/src/host/emit_event.rs`) do not call `with_plugin_version()`.
+- **Event 6 (`plugin.completed` async path):** mirrors the sync-path `emit_lifecycle` call chain in `crates/factory-dispatcher/src/executor.rs`, which includes `with_plugin_version()`. Both `plugin_name` and `plugin_version` are explicitly shown in the Event 6 wire example.
 - **Dispatcher-startup events (2 + 3):** `plugin_name` OMITTED from examples (no plugin context at dispatcher startup).
-- All five event types: `trace_id` + `session_id` explicitly shown (verified by VP-079 payload conformance).
+- All six event types: `trace_id` + `session_id` explicitly shown (verified by VP-079 payload conformance).
 - Common fields shown only in summary: `ts`, `ts_epoch`, `schema_version` (always emitted; not in examples for readability).
 
 ## Postconditions
@@ -198,16 +200,46 @@ The `error_code` field is an enum with exactly two valid values: `"E-REG-002"` a
 
 **Abandoned-vs-late-completion semantics (F-P1-013)**: See Invariant 6.
 
-**Sink destination**: All five events are routed to `events-*.jsonl` via FileSink. They are NOT routed to the dispatcher-internal debug stream (which is opt-in per DI-007 amended). The VP-028 sink-fan-out invariant applies: if multiple sinks are configured, all five events must fan out to all applicable sinks.
+**Sink destination**: All six events are routed to `events-*.jsonl` via FileSink. They are NOT routed to the dispatcher-internal debug stream (which is opt-in per DI-007 amended). The VP-028 sink-fan-out invariant applies: if multiple sinks are configured, all six events must fan out to all applicable sinks.
+
+### Event 6: `plugin.completed` (async path)
+
+**Note**: `plugin.completed` is emitted for both sync and async plugin completions. The sync-path behavior is governed by BC-1.14.001 and the internal log. This entry covers the **async-path variant** only: when an async group plugin completes within the drain window with a non-block exit code.
+
+**Trigger**: An async group plugin's result arrives on the drain channel receiver (`rx`) before the `tokio::select!` timer arm fires (EC-011), and the result is `PluginResult::Ok` with a non-block exit code. The plugin completed within the `ASYNC_DRAIN_WINDOW_MS` budget (DI-019) without timing out or being abandoned.
+
+**Wire format** (JSON line in `events-*.jsonl`):
+
+```json
+{
+  "type": "plugin.completed",
+  "trace_id": "<uuid-v4>",
+  "session_id": "<uuid-v4>",
+  "plugin_name": "<string — registry entry name>",
+  "plugin_version": "<string>",
+  "entry_index": <u32>,
+  "exit_code": <integer>,
+  "elapsed_ms": <integer>,
+  "fuel_consumed": <integer>
+}
+```
+
+`stderr` is present only when non-empty (matching sync-path behavior per `extra_fields.retain(|(k, v)| k != "stderr" || ...)` in `crates/factory-dispatcher/src/executor.rs`).
+
+**Mandatory fields**: `type`, `trace_id`, `session_id`, `plugin_name`, `plugin_version`, `entry_index`, `exit_code`, `elapsed_ms`, `fuel_consumed`.
+
+**`entry_index` semantics**: Mirrors Event 5 (`plugin.abandoned`) — the ordinal position (0-based, from `enumerate()`) of this plugin's registry entry in the async partition at the time of dispatch. The `(plugin_name, entry_index)` tuple unambiguously identifies which registry entry completed, enabling correlation with the corresponding `plugin.invoked` event and exclusion under Invariant 6. See Event 5 `entry_index` semantics paragraph for the full disambiguation rationale.
+
+**Invariant 6 interplay**: `plugin.completed` (async path) and `plugin.abandoned` are mutually exclusive for any given `(trace_id, plugin_name, entry_index)` tuple (Invariant 6). When the drain timer fires, the `rx` channel receiver is dropped, precluding completion delivery for abandoned plugins. Conversely, a plugin that delivers its result to `rx` before the timer arm fires cannot subsequently emit `plugin.abandoned` for the same invocation.
 
 ## Invariants
 
-1. **`trace_id` is mandatory on all four event types**: Per DI-017, every emitted event carries the UUID v4 from the invoking hook envelope. These four events are no exception.
+1. **`trace_id` is mandatory on all six event types**: Per DI-017, every emitted event carries the UUID v4 from the invoking hook envelope. These six events are no exception.
 2. **Events are write-once, no retry**: These are diagnostic events; partial emission is acceptable (emit-then-crash). They are never retried on FileSink write failure.
-3. **Events do not affect dispatcher exit code**: All four are observability-only. `plugin.async_block_discarded` and `plugin.timeout (async)` are logged and forgotten. `dispatcher.schema_mismatch` and `dispatcher.registry_invalid` accompany a hard exit (non-zero) but the event itself does not cause the exit — the validation failure does.
+3. **Events do not affect dispatcher exit code**: All six are observability-only. `plugin.async_block_discarded`, `plugin.timeout (async)`, `plugin.abandoned`, and `plugin.completed` (async path) are logged and forgotten. `dispatcher.schema_mismatch` and `dispatcher.registry_invalid` accompany a hard exit (non-zero) but the event itself does not cause the exit — the validation failure does.
 4. **`plugin.async_block_discarded` reason field is the literal string `"async_plugin_block_verdict_discarded"`**: Not an error code; a diagnostic reason string for human-readable log inspection.
 5. **`trace_id` is the exclusive wire-format field name for the trace correlation value**: The dispatcher's structured-event wire format uses field name `trace_id` exclusively. The legacy field name `dispatcher_trace_id` MUST NOT appear in the serialized wire output. Plugins MUST NOT emit a `trace_id` field via `with_field()` — `trace_id` is reserved for the dispatcher (see §Implementation Notes). Reference: DI-017 (amended per F-P1-007).
-6. **`plugin.abandoned` is a terminal event within the current dispatcher invocation**: When the async drain timer fires (EC-011), `plugin.abandoned` is the last observable event for each in-flight plugin in this invocation. No `plugin.completed` event fires after `plugin.abandoned` for the same `trace_id` + `plugin_name` + `entry_index` tuple. Rationale for semantics option (a) abort-at-drain (F-P1-013): the dispatcher exits shortly after the drain window expires; in-flight Tokio tasks that complete after the `break` have no live FileSink to emit from. The `rx` channel receiver is dropped at drain timer fire, so any late result send is silently discarded. Option (b) (both events may fire) is structurally impossible under the current single-process lifecycle — the process exits before abandoned tasks can complete and write to a live sink. Option (c) (suppress `plugin.completed` after `plugin.abandoned`) is mechanically equivalent to (a) without benefit; no suppression logic is needed when the emission path is already closed.
+6. **`plugin.abandoned` and `plugin.completed` (async path) are mutually exclusive terminal outcomes per invocation**: When the async drain timer fires (EC-011), `plugin.abandoned` is the last observable event for each in-flight plugin in this invocation. No `plugin.completed` event fires after `plugin.abandoned` for the same `trace_id` + `plugin_name` + `entry_index` tuple. Conversely, a plugin that emits `plugin.completed` (async path — Event 6) within the drain window cannot subsequently emit `plugin.abandoned` for the same tuple; the drain timer fires only for plugins still in-flight at expiry. Rationale for semantics option (a) abort-at-drain (F-P1-013): the dispatcher exits shortly after the drain window expires; in-flight Tokio tasks that complete after the `break` have no live FileSink to emit from. The `rx` channel receiver is dropped at drain timer fire, so any late result send is silently discarded. Option (b) (both events may fire) is structurally impossible under the current single-process lifecycle — the process exits before abandoned tasks can complete and write to a live sink. Option (c) (suppress `plugin.completed` after `plugin.abandoned`) is mechanically equivalent to (a) without benefit; no suppression logic is needed when the emission path is already closed.
 
 ## Implementation Notes
 
@@ -250,7 +282,7 @@ For canonical HOST_ABI documentation of which fields the dispatcher enriches aut
 
 ## Architecture Anchors
 
-- `crates/factory-dispatcher/src/main.rs` (call sites) + `crates/factory-dispatcher/src/host/emit_event.rs` (emit fns) — async block discard path; timeout termination path; `plugin.abandoned` emission path (drain timer arm, EC-011 break)
+- `crates/factory-dispatcher/src/main.rs` (call sites) + `crates/factory-dispatcher/src/host/emit_event.rs` (emit fns) — async block discard path; timeout termination path; `plugin.abandoned` emission path (drain timer arm, EC-011 break); `plugin.completed` (async path) emission path (drain result arm, mirroring sync `emit_lifecycle` in `crates/factory-dispatcher/src/executor.rs`)
 - `crates/factory-dispatcher/src/registry.rs` — schema_mismatch and registry_invalid emission sites
 - `crates/sink-core/src/` — FileSink fan-out path for all five event types
 - VP-028 — sink fan-out invariant verification
@@ -261,7 +293,7 @@ TBD — single story per ADR-019 §6 (no phased rollout, user decision 2026-05-0
 
 ## VP Anchors
 
-- VP-079 — Payload schema conformance for all five event types including `plugin.abandoned`: each mandatory field is
+- VP-079 — Payload schema conformance for all six event types including `plugin.abandoned` and `plugin.completed` (async path): each mandatory field is
   present, non-null, and the `type` string matches the catalogued value; verified via
   fault-injection integration test per event-type triggering scenario (integration method, bats)
 - VP-028 — Sink fan-out invariant: once emitted, all four event types reach every
@@ -279,6 +311,7 @@ TBD — single story per ADR-019 §6 (no phased rollout, user decision 2026-05-0
 | EC-005 | Async plugin times out | `plugin.timeout` emitted with `execution_group: "async"`; plugin process terminated; dispatcher exit code unaffected |
 | EC-006 | Multiple async plugins time out in same invocation | One `plugin.timeout` event per timed-out plugin (not a single batch event) |
 | EC-007 | Drain timer fires with N async plugins still in-flight | N `plugin.abandoned` events emitted (one per in-flight plugin), each with `drain_window_ms` set to the effective drain window value and `entry_index` identifying the registry partition position; no `plugin.completed` events follow for the abandoned plugins in this invocation (Invariant 6) |
+| EC-008 | Async plugin completes within drain window with exit code 0 (non-block) | `plugin.completed` (async path) emitted with all mandatory fields present including `entry_index`; no `plugin.abandoned` follows for the same `(trace_id, plugin_name, entry_index)` tuple; dispatcher exit code unchanged (Invariant 3 and Invariant 6) |
 
 ## Canonical Test Vectors
 
@@ -290,6 +323,7 @@ TBD — single story per ADR-019 §6 (no phased rollout, user decision 2026-05-0
 | Registry with duplicate hook name entries | `dispatcher.registry_invalid` event in events-*.jsonl; `error_code: "E-REG-003"`, `violation: "duplicate_hook_registration"`; dispatcher refuses to start | registry-invalid-E-REG-003 |
 | Async plugin times out (timeout_ms exceeded) | `plugin.timeout` with `execution_group: "async"` in events-*.jsonl; no impact on dispatcher exit | async-timeout |
 | All four original events emitted; FileSink running | All four appear as JSON lines in events-YYYY-MM-DD.jsonl; `trace_id` present on all | fan-out-happy-path |
+| Async plugin exits 0 within drain window (non-block) | `plugin.completed` event in events-*.jsonl; `type = "plugin.completed"`; `entry_index` present and correct; `plugin_version` present; no `plugin.abandoned` for same `(trace_id, plugin_name, entry_index)` tuple; dispatcher exit code unchanged | async-completed |
 | All async plugins complete before drain timer | No `plugin.abandoned` events in events-*.jsonl | abandoned-none |
 | One async plugin still in-flight at drain timer expiry | `plugin.abandoned` event with `drain_window_ms` set, `plugin_name` correct, `entry_index` correct, `trace_id` + `session_id` present; no `plugin.completed` follows for that plugin (Invariant 6) | abandoned-one |
 
@@ -298,7 +332,7 @@ TBD — single story per ADR-019 §6 (no phased rollout, user decision 2026-05-0
 | VP-NNN | Property | Proof Method |
 |--------|----------|-------------|
 | VP-028 | Sink fan-out invariant — all events reach all configured sinks | integration |
-| VP-079 | Payload schema conformance for all five event types including `plugin.abandoned` — mandatory fields present, non-null, type string correct | integration |
+| VP-079 | Payload schema conformance for all six event types including `plugin.abandoned` and `plugin.completed` (async path) — mandatory fields present, non-null, type string correct | integration |
 
 ## Traceability
 
@@ -309,7 +343,7 @@ TBD — single story per ADR-019 §6 (no phased rollout, user decision 2026-05-0
 | L2 Domain Invariants | DI-017 — `trace_id` present on every emitted event; all four event types must carry `trace_id`; Invariant 5 of this BC enforces DI-017's requirement that `trace_id` be the canonical wire-field name (not `dispatcher_trace_id`); DI-019 — `ASYNC_DRAIN_WINDOW_MS` (the `plugin.timeout` async path and `plugin.async_block_discarded` events are emitted by tasks running within the drain window bounded by DI-019; VP-079 fixture timing for these events must account for the DI-019 drain window value) |
 | Architecture Module | SS-03 — `crates/sink-core/` (event routing); SS-01 — `crates/factory-dispatcher/src/main.rs` + `crates/factory-dispatcher/src/host/emit_event.rs` (emission sites); SS-01 — `crates/factory-dispatcher/src/registry.rs` (schema_mismatch + registry_invalid emission sites). Note: SS-07 owns `plugins/vsdd-factory/hooks-registry.toml` (the file format) but the emission sites in registry.rs are SS-01 Rust modules per ARCH-INDEX. |
 | ADR | ADR-019 — Async Semantics at Registry Layer; introduces the conditions that trigger these four events |
-| Stories | S-15.01 (single story per ADR-019 §6) |
+| Stories | S-15.01 (single story per ADR-019 §6); S-19.05 (Event 6 — async plugin.completed telemetry) |
 | Cycle | v1.0-feature-plugin-async-semantics-pass-1 (F2) |
 
 ### Source Evidence
@@ -631,9 +665,46 @@ Addresses adversary pass-2 finding F-P2-010.
 
 **Changelog:**
 
+| v1.18 | 2026-07-07 | product-owner | E-19 pass-5 PO fix burst (F-P5-003): Event 6 `plugin.completed` (async path) added to catalog — async-path variant for async plugins that complete within the drain window. Wire schema mirrors sync-path `emit_lifecycle` in `crates/factory-dispatcher/src/executor.rs` (`trace_id`, `session_id`, `plugin_name`, `plugin_version`, `elapsed_ms`, `fuel_consumed`, `exit_code`, `stderr` conditional) plus `entry_index: u32` for Invariant 6 tuple parity with Event 5. Invariant 6 updated to state mutual exclusivity: abandoned↔completed are terminal alternatives for any (trace_id, plugin_name, entry_index) tuple. Invariants 1 and 3 count corrected four→six. §Common Fields updated: plugin_name present on events (1,4,5,6); plugin_version note split — Events 1/4/5 do NOT emit plugin_version (original emit_event.rs fns); Event 6 DOES (mirrors executor.rs emit_lifecycle). §Description, §Sink destination, §EC-008, §async-completed test vector, §VP Anchors, §Verification Properties, §Architecture Anchors, §Traceability Stories updated. BC-INDEX v3.70→v3.71. |
 | v1.17 | 2026-07-06 | product-owner | E-19 pass-3 PO finalization (F-P3-013): `entry_index` semantics paragraph in Event 5 corrected — derivation rule stated explicitly: `plugin_name` in `plugin.abandoned` events = registry entry `name` field verbatim. Example replaced: the two production `verify-factory-lock` entries carry DIFFERENT `name` values (`verify-factory-lock` vs `verify-factory-lock-bash`) so they do NOT constitute a name-duplication example. Paragraph now cites the schema-level invariant: registry does NOT enforce `name` uniqueness, so future registries may have duplicate `name` entries that make name-only keying ambiguous — `entry_index` is the disambiguation mechanism. Invariant 6 terminal-semantics key (`trace_id + plugin_name + entry_index`) UNCHANGED. |
 | v1.16 | 2026-07-06 | product-owner | F-P2-008 fix burst (product-owner): Event 5 `plugin.abandoned` schema extended with mandatory field `entry_index: u32` (ordinal position of registry entry in async partition at spawn time; enumerate() order; disambiguates multiple entries per plugin_name — e.g., verify-factory-lock has 2 entries). Mandatory fields list updated. Invariant 6 terminal-semantics key extended: `trace_id+plugin_name` → `trace_id+plugin_name+entry_index`. EC-007 and abandoned-one test vector updated. Closes F-P2-008. BC-INDEX v3.60→v3.61. |
 | v1.15 | 2026-07-06 | product-owner | F-P1-013: Event 5 `plugin.abandoned` added to catalog; drain-terminal semantics codified (option a); Invariant 6; EC-007; abandoned-none/one test vectors; VP-079 scope updated; §Architecture Anchors updated. Closes F-P1-013. |
 | v1.14 | 2026-05-09 | state-manager | F-P36-001: Traceability Stories row updated TBD → S-15.01 (F3 story decomposition propagation). |
 | v1.13 | 2026-05-09 | implementer | F-P25-003: §Architecture Anchors bullet 1 corrected to main.rs + host/emit_event.rs (emission sites); §Traceability Architecture Module row corrected. F-P25-006: duplicate last_amended frontmatter field removed. |
 | v1.12 | 2026-05-08 | state-manager | F-P23-002 cross-subsystem sweep: HOST_ABI.md line cite migrated to stable §`emit_event` section anchor per TD-VSDD-091. |
+
+---
+
+## Amendment 2026-07-07 (v1.17 → v1.18 — F-P5-003: `plugin.completed` (async path) Event 6 catalog entry added)
+
+**Driver:** Adversary finding F-P5-003 (E-19 pass-5) — S-19.05 emits a new `plugin.completed` event for async plugins that complete within the drain window, but BC-3.08.001 v1.17 catalogues no such event. The story's AC-001 BC Trace cited "BC-3.08.001 v1.17 (Event 3 schema)" — an error on two counts: Event 3 is `dispatcher.registry_invalid`, and `plugin.completed` was absent from the catalog entirely. The story's Architecture Mapping stated "plugin.completed already exists in the sync path; confirm async variant uses same schema" without citing an owning BC. Ground-truth search (`grep -rl "plugin.completed" .factory/specs/behavioral-contracts/`) found only BC-3.02.008 (test fixture references) and BC-3.08.001 (Invariant 6 reference) — neither owned the wire schema for the async variant.
+
+**Schema derivation:** Field set derived from `crates/factory-dispatcher/src/executor.rs::emit_lifecycle` for `PluginResult::Ok { exit_code, elapsed_ms, fuel_consumed, stderr }`: `trace_id`, `session_id`, `plugin_name`, `plugin_version`, `elapsed_ms`, `fuel_consumed`, `exit_code`, `stderr` (conditional on non-empty). `entry_index: u32` added for Invariant 6 tuple parity: the abandoned↔completed mutual-exclusion check requires the same `(trace_id, plugin_name, entry_index)` key on both events.
+
+**Option chosen:** Option (a) — amend BC-3.08.001 v1.17→v1.18 to add `plugin.completed` (async path) as Event 6. No other existing BC owns this wire schema; BC-3.08.001 is the SS-03 catalog authority for async-semantics events; Event 6 is the natural complement to Event 5 under Invariant 6.
+
+**Changes made:**
+
+1. **Frontmatter** (F-P5-003): `version` bumped `"1.17"` → `"1.18"`; `last_amended` updated to 2026-07-07; `modified[]` entry added.
+2. **H1 title** (F-P5-003): `, \`plugin.completed\` (async path)` appended to event list. (POLICY 7: H1 updated; BC-INDEX row mirrors H1.)
+3. **§Description** (F-P5-003): `plugin.completed` (async path) cite added for F-P5-003 fix burst; "five" → "six" in catalog-entry count.
+4. **§Common Fields** (F-P5-003): `plugin_name` row updated — present on events (1, 4, 5, and 6). Closing paragraph split: Events 1/4/5 do NOT emit `plugin_version` (original emit_event.rs fns); Event 6 DOES (mirrors executor.rs emit_lifecycle). "All five" → "All six" in trace_id+session_id line.
+5. **§Sink destination paragraph** (F-P5-003): "All five events" → "All six events".
+6. **Event 6 postcondition section added** (F-P5-003): trigger, wire format (JSON), mandatory fields list, `entry_index` semantics, Invariant 6 interplay note.
+7. **Invariant 1** (backfill — stale since v1.15): "all four event types" → "all six event types".
+8. **Invariant 3** (backfill — stale since v1.15): "All four" → "All six"; enumeration extended to include `plugin.abandoned` and `plugin.completed` (async path).
+9. **Invariant 6** (F-P5-003): Updated to explicitly state mutual exclusivity in both directions: `plugin.abandoned` and `plugin.completed` (async path) are terminal alternatives; reference to Event 6 added.
+10. **EC-008** (F-P5-003): Edge case for async plugin completing within drain window.
+11. **§Canonical Test Vectors — `async-completed` row** (F-P5-003): Test vector for async plugin exit 0 within drain window.
+12. **§VP Anchors** (F-P5-003): VP-079 scope updated to "all six event types including `plugin.abandoned` and `plugin.completed` (async path)".
+13. **§Verification Properties table** (F-P5-003): VP-079 row scope updated.
+14. **§Architecture Anchors** (F-P5-003): First bullet extended with `plugin.completed` (async path) emission path anchor.
+15. **§Traceability Stories** (F-P5-003): S-19.05 added as anchor story for Event 6.
+
+**POLICY 1 verification:** All prior content preserved verbatim except the changes listed above. No event IDs renumbered. Events 1–5 wire-format examples unchanged.
+**POLICY 7 verification:** H1 heading updated to include `plugin.completed` (async path); BC-INDEX row mirrors H1 (BC-INDEX v3.71).
+**TD-031 verification:** No `executor.rs:[0-9]+` or `main.rs:[0-9]+` line-number citations introduced; stable function/section anchors used throughout.
+
+**VP-079 staleness flag (architect routing required):** VP-079 currently enumerates "five event types" and its mandatory-fields table does not include `plugin.completed` (async path). Adding Event 6 makes VP-079 stale on: (a) event-count prose ("five" → "six"); (b) mandatory-fields table (missing Event 6 row); (c) production caller-site list (missing the async drain result arm). Orchestrator should route VP-079 amendment to `vsdd-factory:architect`.
+
+**VP-100 cite staleness flag (architect routing required):** VP-100 `source_bc:` field cites "BC-3.08.001 v1.16 Invariant 6" and `input-hash: "1072e05"` will be stale once this amendment is persisted. The conceptual correctness of VP-100 is unaffected (Invariant 6 strengthened, not changed); only the version pin and input-hash need updating. Orchestrator should route VP-100 frontmatter update to `vsdd-factory:architect`.

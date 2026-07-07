@@ -5508,3 +5508,37 @@ E-19-ADV-PASS-4-NOT-CLEAN-CLOSED
 ### Date
 
 2026-07-07
+
+---
+
+---
+
+## D-756
+
+### Summary
+
+E-19 ADV PASS-5 NOT-CLEAN (B0/H3/M4/L1) + FIX BURST COMPLETE. Fresh-context adversary reviewed E-19 epic + S-19.01..S-19.07 + STORY-INDEX E-19 section (first pass including S-19.07) on 2026-07-07 under premise-verification discipline (every finding carries independent ground-truth grep). Verdict: NOT-CLEAN B0/H3/M4/L1 + 6 observations. Zero false-positives. Two orchestrator-caught residuals repaired in-burst (VP-INDEX Traceability row; both repaired before commit). Positive signal: fix-executors now self-apply premise-verification greps unprompted. Severity: HIGH increased 1→3 (narrative-inversion class + BC-cite-error class emerging after S-19.04/S-19.05 D-755 revisions); MEDIUM reduced 6→4; overall volume 9→8. Streak 0/3. Pass-6 NEXT with fresh context (rubric corrected to 20 policies per O-P5-001).
+
+### Decision
+
+**(1) E-19 ADVERSARIAL PASS-5 VERDICT: NOT-CLEAN B0/H3/M4/L1.** Fresh-context adversary reviewed E-19 epic + S-19.01..S-19.07 + STORY-INDEX E-19 section. Premise-verification discipline applied: every finding grounded in independent grep before reporting; zero false-positives this pass. 8 findings + 6 observations: F-P5-001 HIGH (STORY-INDEX S-19.07 Priority P1 vs story/epic P2 — wave-scheduling mismatch; STORY-INDEX P1 cell incorrect); F-P5-002 HIGH (S-19.04 narrative factually inverted — case-arm ALREADY excludes underscore WASMs at 2 sites per PR #431; hello-hook ACTIVELY built+copied; v1.4 changelog claimed correction the body never received; implementer would instrument wrong change); F-P5-003 HIGH (S-19.05 AC-001 mis-cites BC-3.08.001 Event 3 = dispatcher.registry_invalid for plugin.completed; plugin.completed async path = Event 6 per BC-3.08.001 v1.17→v1.18 pass-5 fix; no prior BC catalogued async variant = ownership gap; implementer following AC-001 would implement wrong event); F-P5-004 MED (S-19.07 AC-001 Gate B over-broad: grep -c "read_file" == 0 matches 13+ doc-comment/callback/test-closure hits not prescribed for removal; scope-of-gate vs scope-of-change mismatch); F-P5-005 MED (S-19.04 AC-001 internally contradictory: "reject new hello-hook" clause conflicts with corrected objective of removing existing steps); F-P5-006 MED (S-19.04 removal-path unspecified: 3 candidate release.yml sites for hello-hook removal not enumerated; implementer risks partial removal); F-P5-007 MED (S-19.02 stale checkpoint figures: 177,053B/438 lines actual vs 193,220B/488 lines cited; drift after D-754 compaction + D-755 advance; no drift-mitigation in story rationale); F-P5-008 LOW [process-gap] (S-19.03 Task 5 Red-Gate stub NOT_FOUND=0 collides with codes::OK=0; stub exit-0 defeats Red Gate discipline; must be non-zero sentinel). 6 observations O-P5-001..006 (O-P5-001 review-rubric policy count drift 17→20 — orchestrator prompt corrected for pass-6; O-P5-002 epic BC table missing BC-2.02.011; O-P5-003 cosmetic; O-P5-004 fixture forward-ref; O-P5-005 wave-ordering clarity; O-P5-006 positive EAC-005 wire-through well-formed).
+
+**(2) FIX BURST COMPLETE — 3 specialist legs.** No new lessons: (a) Two orchestrator-caught residuals this burst (VP-INDEX Traceability row; both repaired in-burst) — the existing lesson set covers the class (L-BB-sibling-sweep-same-contract-clause, L-BB-4index-parity-rederive-from-live-headers); no new lesson warranted. (b) Positive signal: fix-executors now self-apply premise-verification greps (story-writer included ground-truth grep output unprompted) — confirms L-BB-finding-premise-must-be-verified-before-fix adoption.
+
+**Product-owner:** BC-3.08.001 v1.17→v1.18 (NEW Event 6 `plugin.completed` async path catalogued; six-event H1 title; field set derived from actual `emit_lifecycle` chain in executor.rs including `plugin_version`; 9 mandatory fields; Invariant 6 mutual-exclusivity stated; EC-008 + async-completed test vector; §Traceability Stories S-19.05; sync-path ownership demarcated to BC-1.14.001). BC-INDEX v3.70→v3.71 (BC-3.08.001 catalog row title + version + Stories column updated; total_bcs UNCHANGED 1,977). Closes F-P5-003 (BC leg).
+
+**Architect:** VP-079 v1.18→v1.19 (five→six async-semantics event types; Full Index row + §Traceability row descriptions updated; pre-existing "four" residuals swept and corrected). VP-INDEX v2.52→v2.53 (VP-079 Full Index cell + §Traceability row updated to six-event scope; POLICY 9 tri-view: verification-architecture.md + verification-coverage-matrix.md VP-079 rows use bare stable-anchor title — no update required). Orchestrator caught VP-INDEX Traceability row as a second residual; repaired in-burst. Closes F-P5-003 (VP leg).
+
+**Story-writer:** S-19.02 v1.4→v1.5 (F-P5-007 drift-tolerant range rationale replacing stale point-in-time size cite). S-19.03 v1.5→v1.6 (F-P5-008 Task 5 stub NOT_FOUND=-1000; out-of-band non-zero; Red Gate failure guaranteed). S-19.04 v1.5→v1.6 (F-P5-002/F-P5-005/F-P5-006: narrative corrected to actual release.yml state; REMOVE hello-hook build+copy steps; PRESERVE existing case-arm exclusions; AC-001 internal contradiction resolved; 3 candidate removal sites enumerated). S-19.05 v1.4→v1.5 (F-P5-003: AC-001 Event 3 → Event 6 cite correction; all 9 BC-3.08.001 v1.18 mandatory fields enumerated). S-19.07 v1.0→v1.1 (F-P5-004: Gate B narrowed to non-comment semantic scope via `host::read_file` call-site grep with doc-comment exclusion). E-19 epic v1.4→v1.5 (O-P5-002: BC-2.02.011 row added to §BC Traceability table). STORY-INDEX v4.135→v4.136 (F-P5-001: S-19.07 Priority P1→P2; PLUS in-scope bonus: totals line story_count 129→130 and E-19 pts 42→45 corrected per TD-VSDD-060 sibling-sweep). Closes F-P5-001..F-P5-008 + O-P5-002 encoded.
+
+**(3) 4-INDEX AT D-756 CLOSURE:** BC v3.71 / VP v2.53 / STORY v4.136 / ARCH v2.89. E-19 = 7 stories 45pts (W1: S-19.01/02/03 parallel; W2: S-19.04/05/06; W3: S-19.07). Streak 0/3. NEXT: E-19 adv pass-6 (fresh context; rubric corrected to 20 policies per O-P5-001).
+
+Parent-commit: 3d9ad8a8 (D-755 SHA-patch factory-artifacts HEAD).
+
+### Phase
+
+E-19-ADV-PASS-5-NOT-CLEAN-CLOSED
+
+### Date
+
+2026-07-07
