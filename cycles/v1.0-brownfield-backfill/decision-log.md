@@ -5759,3 +5759,59 @@ D-760-E19-ADV-PASS-9-CLOSED
 ### Date
 
 2026-07-07
+
+---
+
+## D-761
+
+**E-19 ADVERSARIAL PASS-10 NOT-CLEAN B0/H2/M2/L3 CLOSED — FIX BURST COMPLETE. HUMAN CONTINUATION DIRECTIVE: STRICT 3-CLEAN, NO CAP, NO ASYMPTOTIC ACCEPTANCE. TWO EVIDENCE RULES INSTITUTED.**
+
+**(1) E-19 ADVERSARIAL PASS-10 VERDICT: NOT-CLEAN B0/H2/M2/L3.** Fresh-context adversary reviewed E-19 epic + S-19.01..S-19.07 + STORY-INDEX E-19 section on 2026-07-07. 7 findings (F-P10-001..F-P10-007) + 5 observations. Adversary-stated B0/H2/M2/L3 count matches enumerated bodies (0 BLOCKER + 2 HIGH + 2 MEDIUM + 3 LOW = 7 total). Zero false-positives; live-vs-history adjudication held (no noise findings). Trajectory 16→14→20→9→8→5→12→11→4→7. HIGH class re-emerged with two new finding categories (BC internal inconsistency; paper-fix evasion).
+
+F-P10-001 HIGH: BC-4.13.001 v1.7 three-way path_allow contradiction — registry lines 1261/1284 cite `.factory/STATE.md` (file-specific); Invariant 5 TOML shape cites `.factory/STATE.md` (file-specific; correct); PC3 Phase-A prose and Phase-B prose both cite `.factory` (directory-wide; incorrect). BC internally inconsistent; S-19.07 v1.4 "unchanged" claim factually false given the contradiction. Plugin source confirms exactly one file (`.factory/STATE.md`) ever passed to `host::read_file`.
+
+F-P10-002 HIGH [process-gap]: S-19.04 v1.9 PAPER-FIX — D-758 F-P7-002 required quote-tolerance filter in AC-004 gate body; v1.9 changelog attests "Closes F-P7-002 (Task 13 quote-tolerant awk form)" but the gate body was NOT amended (old non-quote-tolerant form physically present at v1.9). TD-VSDD-059 paper-fix; also evaded orchestrator pass-9 verification which checked version numbers and changelog text rather than gate bodies.
+
+F-P10-003 MEDIUM: STORY-INDEX v4.141 introduction block contains live stale version tokens for E-19 stories (normative citations subject to BC-cite drift preflight scope; superseded by D-759/D-760 fix bursts).
+
+F-P10-004 MEDIUM: S-19.05 v1.8 AC-001 jq gate order-dependent under mixed sync/async event streams — `jq -e '.type == "plugin.completed" ...'` returns exit code based on LAST document in JSONL stream; mixed-stream with trailing `plugin.invoked` record causes gate to fail even when a valid `plugin.completed` record exists. Fix: slurp form `jq -se 'any(.[]; ...)'` required.
+
+F-P10-005 LOW: S-19.06 v1.5 deferral-gate uses ID-substring form rather than the Merge-PR canonical pattern used by S-19.07; sibling-sweep gap.
+
+F-P10-006 LOW: S-19.04 v1.9 Task 13 count-projection under-specified — "54 raw lines" stated without deriving the expected 7 distinct-value count used in the gate assertion.
+
+F-P10-007 LOW: S-19.06 v1.5 §Compliance Rules contains stale contrastive "not ADR-025 D-15" framing; post-D-754 reconciliation, S-19.06 IMPLEMENTS `host::read_prefix` per ADR-025 Decision 15; the contrastive framing is now misleading.
+
+5 observations: O-P10-A [process-gap] orchestrator pass-9 verification checked version numbers not gate bodies (root cause of paper-fix evasion; encoded as Evidence Rule (a)); O-P10-B [process-gap] closure reports cited changelog text without body-grep parity evidence (encoded as Evidence Rule (b)); O-P10-C ADR-025 changelog D-15 lacks BC-1.17.001 cross-attest (accepted-with-record; next architect touch); O-P10-D PC-6 UTF-8-clause implicit assumption (accepted-with-record; queued for pass-11); O-P10-E consistency-validator advisory on abbreviated titles covered by O-P9-003 codified convention (accepted-with-record).
+
+### HUMAN CONTINUATION DIRECTIVE (D-761 sub-heading)
+
+**STRICT 3-CLEAN POLICY CONFIRMED 2026-07-07.** Human reviewed full trajectory context (16→14→20→9→8→5→12→11→4→7) and was presented three options: (A) accept at floor now (asymptotic acceptance; trajectory suggests floor); (B) 2 more passes then accept; (C) strict 3-CLEAN per BC-5.39.001, no pass cap, no asymptotic acceptance. **Human chose Option C.** This directive CARRIES ACROSS CLEAR (§3 User Directives) and applies to all future E-19 adversarial passes. The cascade continues under BC-5.39.001 strict 3-CLEAN until convergence — no asymptotic override available.
+
+**(2) FIX BURST COMPLETE — two specialist legs.** All 7 findings closed.
+
+**Product-owner leg:** BC-4.13.001 v1.7→v1.8 — PC3 Phase-A prose `.factory` → `.factory/STATE.md`; Phase-B prose `path_allow = [".factory"]` → `path_allow = [".factory/STATE.md"]`; Invariant 5 TOML shape unchanged (already correct); live registry lines 1261/1284 as witness; plugin-source-verified single-file read. BC-INDEX v3.74→v3.75 (BC-4.13.001 row v1.7→v1.7|v1.8; H1 UNCHANGED; total_bcs UNCHANGED 1,977). Closes F-P10-001 (BC leg).
+
+**Story-writer leg:** S-19.02 v1.7→v1.8 (BC-4.13.001 v1.8 cite sweep; zero v1.7 live tokens); S-19.04 v1.9→v1.10 (AC-004 GENUINELY amended: quote-tolerant `grep -vE 'tool = [...]'` filter physically present in gate body; v1.10 changelog records v1.9 false attestation; Task 13 distinct-projection: 54 raw → 7 distinct via `sort -u`; closes F-P10-002+F-P10-006); S-19.05 v1.8→v1.9 (AC-001 slurp form `jq -se 'any(.[]; ...)'`; ASYNC_SINK pre-filter; AC-002 mirrored 7-field loop; closes F-P10-004); S-19.06 v1.5→v1.6 (Merge-PR deferral pattern; "not ADR-025 D-15" → concurring framing "IMPLEMENTS per ADR-025 D-15; S-19.07 MIGRATES to consume it"; closes F-P10-005+F-P10-007); S-19.07 v1.4→v1.5 (4 path_allow sites `.factory` → `.factory/STATE.md`; BC cite v1.8; closes F-P10-001 story leg); STORY-INDEX v4.141→v4.142 (intro stale version tokens stripped → bare IDs; S-19.02/04/05/06/07 cells updated; BC-INDEX v3.75; closes F-P10-003).
+
+**(3) TWO EVIDENCE RULES INSTITUTED (O-P10-A + O-P10-B encoded):**
+
+**(a) Fix-executor body-amendment evidence:** Every fix-executor leg that amends a gate body or clause MUST end with a literal grep of the AMENDED body section capturing the changed text in stdout. This grep stdout MUST appear in the fix-burst closure section as body-amendment evidence. Version bump confirmation is insufficient; gate body is the ground truth. Extends D-759 MECHANICAL GATE.
+
+**(b) Closure report changelog-claim-vs-body parity evidence:** Closure reports for every file bumped in a fix burst MUST include both the changelog entry text AND a literal grep or diff showing the normative body at the claimed amendment site confirming the change landed. Orchestrators MUST verify gate bodies, not just version numbers. Extends D-759 MECHANICAL GATE.
+
+Per D-497 parsimony: both rules extend existing cure for same-class recurrence (version-check-only → body-level verification); no new lesson ID issued.
+
+**(4) ORCHESTRATOR INDEPENDENT VERIFICATION (Evidence Rule (b) applied):** Orchestrator verified ALL closure claims by reading gate bodies: (i) AC-004 quote-tolerant filter physically present in S-19.04 v1.10 body; (ii) jq -se slurp form present in S-19.05 v1.9 AC-001 body; (iii) 4 path_allow sites in S-19.07 v1.5 all corrected to `.factory/STATE.md` (0 `.factory"` hits; 4 `.factory/STATE.md` hits); (iv) zero BC-4.13.001 v1.7 live tokens across all 9 E-19 artifacts (per-file loop); (v) 4-index `grep "^version:"` → BC "3.75" / VP "2.53" / STORY "4.142" / ARCH "2.89".
+
+**(5) 4-INDEX AT D-761 CLOSURE:** BC v3.75 / VP v2.53 (UNCHANGED) / STORY v4.142 / ARCH v2.89 (UNCHANGED). BC-INDEX bumped (BC-4.13.001 v1.8). STORY-INDEX bumped (v4.142 fix burst). VP-INDEX and ARCH-INDEX UNCHANGED. Streak 0/3. NEXT: E-19 adv pass-11 (fresh context; 20-policy rubric; strict-3-CLEAN no-cap; per-file BC-cite preflight + Evidence Rules (a)+(b) mandatory; trajectory →7).
+
+Parent-commit: 43d77425 (D-760 SHA-patch factory-artifacts HEAD).
+
+### Phase
+
+D-761-E19-ADV-PASS-10-CLOSED
+
+### Date
+
+2026-07-07

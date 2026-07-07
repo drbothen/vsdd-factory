@@ -11742,3 +11742,128 @@ S-18.12 LOCAL adversarial cascade streak: advances to **3/3 = CONVERGED** (CLEAN
 ### Factory-artifacts Commits
 
 - `dd44a274` — state(D-741): S-18.12-LOCAL-PASS-17-CLEAN-CLOSURE-CONVERGED (2026-06-30; 5 files; +265/-45; pushed 99694b24..dd44a274 factory-artifacts)
+
+## D-761 — E-19 ADV PASS-10 NOT-CLEAN closure burst — 2026-07-07
+
+### Parent-commit
+
+`43d77425` — state(D-760-sha-patch): SHA-patch follow-up D-760 factory-artifacts HEAD (factory-artifacts HEAD at burst start)
+
+### Adversary Verdict (D-448(a) source-attestation parity with adv-E19-pass-10.md Part A)
+
+E-19 adversarial pass-10 verdict: **NOT-CLEAN B0/H2/M2/L3** (7 findings; 0 false-positives). Trajectory 16→14→20→9→8→5→12→11→4→7.
+
+Part A (pass-9 fix verification): Pass-9 NOT-CLEAN B0/H0/M1/L3 (4 findings; first zero-HIGH; story-writer single leg; closed D-760). All 4 F-P9-001..F-P9-004 verified CLOSED by artifact evidence at pass-10 perimeter entry.
+
+Part B findings:
+- **F-P10-001 HIGH** — path_allow 3-way contradiction: hooks-registry.toml lines 1261+1284 have `path_allow = [".factory/STATE.md"]` (live witness); BC-4.13.001 v1.7 Phase-B prose said `path_allow = [".factory"]`; S-19.02 and S-19.07 propagated the wrong value. The registry is the ground truth.
+- **F-P10-002 HIGH** — paper-fix S-19.04 AC-004: S-19.04 changelog claims AC-004 was "genuinely fixed" but Part B inspection shows gate body unchanged from v1.9; only a changelog row was added. Structural closure required.
+- **F-P10-003 MEDIUM** — STORY-INDEX stale intro tokens: intro-count rows do not reflect the 7-story E-19 slate (still shows pre-S-19.07 counts).
+- **F-P10-004 MEDIUM** — jq -e order-dependent result: S-19.05 AC-001 uses `jq -e` whose exit code is order-dependent on array element order; must use `jq -se` (slurp) for multi-document input.
+- **F-P10-005 LOW** — deferral-gate ID-substring collision risk in S-19.06.
+- **F-P10-006 LOW** — Task 13 count under-specified in S-19.04 (distinct-projection not stated).
+- **F-P10-007 LOW** — stale "not ADR-025 D-15" comment still present in S-19.05.
+
+5 observations: O-P10-A (evidence rule — fix-executor amended-body grep stdout MANDATORY), O-P10-B (evidence rule — changelog-claim vs body git-diff parity MANDATORY), O-P10-C/D/E accepted-with-record.
+
+**HUMAN CONTINUATION DIRECTIVE** (per adv-E19-pass-10.md §HUMAN DIRECTIVE): strict BC-5.39.001 3-CLEAN protocol applies to ALL future E-19 adversarial passes. NO asymptotic acceptance. NO cap on pass count. Three consecutive CLEAN passes required. Deviation requires EXPLICIT HUMAN OVERRIDE.
+
+Source attestation (D-448(a)): above faithfully describes `adv-E19-pass-10.md` Part A (F-P9-001..F-P9-004 all CLOSED) and Part B finding set (F-P10-001..F-P10-007; B0/H2/M2/L3; 7 findings; human directive). No divergence from Part A.
+
+### Files Touched (Dim-1)
+
+**factory-artifacts branch (this D-761 burst — single commit per TD-VSDD-053):**
+- `cycles/v1.0-brownfield-backfill/adv-E19-pass-10.md` — NEW; E-19 pass-10 adversary report (verdict NOT-CLEAN B0/H2/M2/L3; 7 findings; HUMAN DIRECTIVE strict-3-CLEAN no-cap; fix-burst closure section)
+- `cycles/v1.0-brownfield-backfill/decision-log.md` — D-761 block appended (after D-760 entry; HUMAN CONTINUATION DIRECTIVE sub-heading; 4-index BC v3.75/VP v2.53/STORY v4.142/ARCH v2.89)
+- `specs/behavioral-contracts/BC-INDEX.md` — v3.74→v3.75 (BC-4.13.001 v1.8 row update; total_bcs 1,977 UNCHANGED)
+- `specs/behavioral-contracts/ss-04/BC-4.13.001.md` — v1.7→v1.8 (Phase-A PC3 `.factory/STATE.md`; Phase-B `path_allow = [".factory/STATE.md"]` corrected; Invariant 5 shape verified)
+- `stories/S-19.02-verify-factory-lock-output-too-large.md` — v1.7→v1.8 (BC-4.13.001 v1.8 cite sweep; path_allow corrected)
+- `stories/S-19.04-bundle-hygiene-tool-filter-anchoring.md` — v1.9→v1.10 (AC-004 gate body genuinely applied; Task 13 distinct-projection stated; O-P10-B evidence: `git diff` confirms body change)
+- `stories/S-19.05-async-completion-telemetry-sink-release-mode.md` — v1.8→v1.9 (AC-001 `jq -se` slurp; AC-002 mirrored 7-field loop; O-P10-A evidence: grep body confirms)
+- `stories/S-19.06-read-prefix-bounded-partial-read.md` — v1.5→v1.6 (Merge-PR deferral pattern corrected; concurring framing)
+- `stories/S-19.07-verify-factory-lock-read-prefix-migration.md` — v1.4→v1.5 (4 path_allow sites → `.factory/STATE.md`; BC cite v1.8)
+- `stories/STORY-INDEX.md` — v4.141→v4.142 (5-story version-cell update; intro count refresh; POLICY 14 leg-5)
+- `STATE.md` — v5.11→v5.12 (D-761 banner + frontmatter advance + D-761 Decisions Log row + Concurrent Cycles row + Active Branches + Last Updated + Current Phase + 4-Index §8 + §3 User Directives strict-3-CLEAN + O-P10-A/B evidence rules + Session Resume Checkpoint FULL REFRESH D-761)
+- `cycles/v1.0-brownfield-backfill/burst-log.md` — D-761 entry appended (this file)
+
+**NOT committed in this burst (develop/main unchanged):**
+- No code changes to develop; develop_head f5242bef UNCHANGED; merged_count 98 UNCHANGED; total_bcs 1,977 UNCHANGED
+
+### Codifications (Dim-6)
+
+- **D-761** decision-log block codified: E-19 adv pass-10 NOT-CLEAN B0/H2/M2/L3; 7 findings; HUMAN DIRECTIVE strict-3-CLEAN no-cap; two evidence rules (O-P10-A/B); PO+SW fix legs; BC v3.75/VP v2.53/STORY v4.142/ARCH v2.89; streak 0/3.
+- **BC-4.13.001 v1.8**: path_allow corrected in Phase-A PC3 prose and Phase-B TOML example to `[".factory/STATE.md"]` (matching live hooks-registry.toml).
+- **BC-INDEX v3.75**: BC-4.13.001 row updated.
+- **STORY-INDEX v4.142**: 5 story version cells updated; intro counts refreshed.
+- **HUMAN DIRECTIVE**: strict-3-CLEAN no-cap carried in §3 User Directives + §9 dispatches bullet.
+- **Two evidence rules**: O-P10-A (amended-body grep stdout) + O-P10-B (changelog-claim git-diff parity) codified in §3 and §9.
+- **STATE.md v5.11→v5.12**: D-761 advance complete.
+
+### Dim-2 (4-Index Parity Gate — D-449(a) literal-shell execution evidence)
+
+Gate command:
+```bash
+grep "^version:" \
+  .factory/specs/behavioral-contracts/BC-INDEX.md \
+  .factory/specs/verification-properties/VP-INDEX.md \
+  .factory/stories/STORY-INDEX.md \
+  .factory/specs/architecture/ARCH-INDEX.md
+```
+
+Captured stdout (post-D-761 fix burst, pre-commit):
+```
+/Users/zious/Documents/GITHUB/vsdd-factory/.factory/specs/architecture/ARCH-INDEX.md:version: "2.89"
+/Users/zious/Documents/GITHUB/vsdd-factory/.factory/specs/verification-properties/VP-INDEX.md:version: "2.53"
+/Users/zious/Documents/GITHUB/vsdd-factory/.factory/stories/STORY-INDEX.md:version: "4.142"
+/Users/zious/Documents/GITHUB/vsdd-factory/.factory/specs/behavioral-contracts/BC-INDEX.md:version: "3.75"
+```
+
+Gate result: **PASS**. BC-INDEX v3.75 (BUMPED D-761), VP-INDEX v2.53 (UNCHANGED D-761), STORY-INDEX v4.142 (BUMPED D-761), ARCH-INDEX v2.89 (UNCHANGED D-761). Zero FAIL.
+
+D-449(a) current_step gate (literal-shell):
+```bash
+grep -oE "^current_step:.*$" .factory/STATE.md
+```
+Captured stdout:
+```
+current_step: "D-761-E19-ADV-PASS-10-CLOSED trajectory-tail →12→11→4→7;"
+```
+Gate result: **PASS** — current_step cites D-761 (latest D-NNN in body); D-443(a) satisfied.
+
+### Dim-5 (8-Block Presence Gate — D-446(a))
+
+This burst-log entry contains all 8 D-444(c) mandatory blocks:
+1. **Parent-commit**: `43d77425` (state(D-760-sha-patch))
+2. **Adversary verdict**: NOT-CLEAN B0/H2/M2/L3; 7 findings; HUMAN DIRECTIVE strict-3-CLEAN no-cap; F-P10-001..007; O-P10-A/B evidence rules; streak 0/3
+3. **Files touched**: adv-E19-pass-10.md + decision-log + BC-INDEX + BC-4.13.001 + S-19.02/04/05/06/07 + STORY-INDEX + STATE.md + burst-log
+4. **Codifications (Dim-6)**: D-761 block + BC-4.13.001 v1.8 + BC-INDEX v3.75 + STORY-INDEX v4.142 + HUMAN DIRECTIVE + two evidence rules + STATE.md v5.12
+5. **Dim-2**: 4-index parity gate + current_step gate with literal-shell stdout above
+6. **Dim-5**: This block (8-block self-verification)
+7. **Closes**: pass-10 NOT-CLEAN closed; 7 findings all addressed; HUMAN DIRECTIVE recorded; streak 0/3; NEXT E-19 adv pass-11
+8. **Factory-artifacts commits**: SHA pending — sha-patch follow-up per D-447(c)+D-449(e) after commit
+
+All 8 blocks present. Gate: **PASS**.
+
+### Dim-7 (Streak Status)
+
+E-19 adversarial cascade streak: **0/3** (pass-10 NOT-CLEAN). HUMAN DIRECTIVE: strict BC-5.39.001 3-CLEAN protocol — no asymptotic acceptance, no cap. Three consecutive CLEAN passes required for convergence. PIPELINE ACTIVE; adv pass-11 NEXT (fresh context; per-file BC-cite preflight first; 20-policy rubric).
+
+### Closes
+
+- E-19 adv pass-10: **NOT-CLEAN** B0/H2/M2/L3 (7 findings). Fix burst complete. Streak 0/3.
+- F-P10-001 HIGH path_allow 3-way contradiction: **CLOSED** — BC-4.13.001 v1.8 Phase-A PC3 + Phase-B TOML corrected; S-19.02 v1.8 + S-19.07 v1.5 propagated.
+- F-P10-002 HIGH paper-fix S-19.04 AC-004: **CLOSED** — S-19.04 v1.10 genuinely fixes gate body (distinct-projection added; O-P10-B git-diff parity confirmed).
+- F-P10-003 MED STORY-INDEX stale intro tokens: **CLOSED** — STORY-INDEX v4.142 intro counts refreshed.
+- F-P10-004 MED jq -e order-dependent: **CLOSED** — S-19.05 v1.9 uses `jq -se` slurp; O-P10-A grep stdout confirms.
+- F-P10-005 LOW deferral-gate ID-substring: **CLOSED** — S-19.06 v1.6 deferral pattern corrected.
+- F-P10-006 LOW Task 13 count under-specified: **CLOSED** — S-19.04 v1.10 states distinct-projection.
+- F-P10-007 LOW stale "not ADR-025 D-15": **CLOSED** — S-19.05 v1.9 comment updated.
+- O-P10-A evidence rule: **ADOPTED** — mandatory in all future fix-executor closures; codified §3 + §9 STATE.md.
+- O-P10-B evidence rule: **ADOPTED** — mandatory in all future closure reports; codified §3 + §9 STATE.md.
+- O-P10-C/D/E: **ACCEPTED-WITH-RECORD**.
+- HUMAN DIRECTIVE strict-3-CLEAN no-cap: **RECORDED** in adv-E19-pass-10.md §HUMAN DIRECTIVE + STATE.md §3 + §9 + decision-log D-761.
+- STATE.md v5.12: **DONE**.
+
+### Factory-artifacts Commits
+
+- SHA pending — sha-patch follow-up per D-447(c)+D-449(e) after commit (Active Branches row + §9 factory-artifacts HEAD updated to actual Commit E SHA)

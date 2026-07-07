@@ -1,20 +1,20 @@
 ---
 document_type: pipeline-state
 level: ops
-version: "5.11"
+version: "5.12"
 status: draft
 producer: state-manager
 timestamp: 2026-07-07T00:00:00Z
-phase: D-760-E19-ADV-PASS-9-CLOSED
-last_amended: "2026-07-07 (v5.11) — D-760 E-19 adv pass-9 NOT-CLEAN B0/H0/M1/L3 (4 findings; first zero-HIGH pass) closed; fix burst (story-writer single leg); STORY-INDEX v4.141; BC v3.74/VP v2.53/ARCH v2.89 UNCHANGED; fabric verified zero-drift (per-file preflight); orchestrator preflight cmd defect fixed (cross-file awk → per-file loop); streak 0/3; NEXT E-19 adv pass-10. [Prior: v5.10 D-759 E-19-ADV-PASS-8-NOT-CLEAN-CLOSED 2026-07-07.]"
+phase: D-761-E19-ADV-PASS-10-CLOSED
+last_amended: "2026-07-07 (v5.12) — D-761 E-19 adv pass-10 NOT-CLEAN B0/H2/M2/L3 (7 findings) closed; fix burst (PO leg BC-4.13.001 v1.8 + SW leg); HUMAN DIRECTIVE strict-3-CLEAN no-cap; two evidence rules instituted (O-P10-A/B); BC v3.75/VP v2.53/STORY v4.142/ARCH v2.89; streak 0/3; NEXT E-19 adv pass-11. [Prior: v5.11 D-760 E-19-ADV-PASS-9-NOT-CLEAN-CLOSED 2026-07-07.]"
 inputs: []
 input-hash: "[live-state]"
 traces_to: prd.md
 project: vsdd-factory
 mode: brownfield
 pipeline: ACTIVE
-"D-760. E-19 ADV PASS-9 NOT-CLEAN CLOSED. develop f5242bef. main a04cb303. merged_count 98. BC-INDEX v3.74 / VP-INDEX v2.53 / STORY-INDEX v4.141 / ARCH-INDEX v2.89. trajectory-tail →5→12→11→4; E-19 adv pass-9 NOT-CLEAN B0/H0/M1/L3 (4 findings; first zero-HIGH pass); fix burst (story-writer single leg); STORY v4.141; fabric verified zero-drift (per-file preflight); orchestrator preflight cmd defect fixed; streak 0/3. PIPELINE ACTIVE. PENDING: E-19 adv pass-10 (fresh context); human GO for E-19 W1; D-721/D-723 POST-E-18 revisit; merge-method ruleset human auth; Dependabot #192."
-current_step: "D-760-E19-ADV-PASS-9-CLOSED trajectory-tail →5→12→11→4;"
+"D-761. E-19 ADV PASS-10 NOT-CLEAN CLOSED. develop f5242bef. main a04cb303. merged_count 98. BC-INDEX v3.75 / VP-INDEX v2.53 / STORY-INDEX v4.142 / ARCH-INDEX v2.89. trajectory-tail →12→11→4→7; E-19 adv pass-10 NOT-CLEAN B0/H2/M2/L3 (7 findings); fix burst (PO + SW legs); BC v3.75; STORY v4.142; HUMAN DIRECTIVE strict-3-CLEAN no-cap; two evidence rules (O-P10-A/B); streak 0/3. PIPELINE ACTIVE. PENDING: E-19 adv pass-11 (fresh context; strict-3-CLEAN); human GO for E-19 W1; D-721/D-723 POST-E-18 revisit; merge-method ruleset human auth; Dependabot #192."
+current_step: "D-761-E19-ADV-PASS-10-CLOSED trajectory-tail →12→11→4→7;"
 current_cycle: v1.0-brownfield-backfill
 dtu_required: false
 dtu_assessment: 2026-04-25
@@ -55,6 +55,7 @@ dtu_services: []
   455 lines (wc-l per cap; D-758 E-19-ADV-PASS-7-NOT-CLEAN-CLOSED burst 2026-07-07; v5.09; E-19 adv pass-7 NOT-CLEAN B0/H2/M5/L5 12 findings 1 false-positive; fix burst (PO 3-BC sequential + story-writer); BC v3.74/VP v2.53/STORY v4.138/ARCH v2.89; streak 0/3; NEXT E-19 adv pass-8)
   445 lines (wc-l per cap; D-759 E-19-ADV-PASS-8-NOT-CLEAN-CLOSED burst 2026-07-07; v5.10; E-19 adv pass-8 NOT-CLEAN B0/H3/M5/L3 11 findings; fix burst (story-writer single leg); STORY v4.139; BC v3.74/VP v2.53/ARCH v2.89 UNCHANGED; BC-cite drift preflight instituted; streak 0/3; NEXT E-19 adv pass-9)
   449 lines (wc-l per cap; D-760 E-19-ADV-PASS-9-NOT-CLEAN-CLOSED burst 2026-07-07; v5.11; E-19 adv pass-9 NOT-CLEAN B0/H0/M1/L3 4 findings; first zero-HIGH pass; fix burst (story-writer single leg); STORY v4.141; BC v3.74/VP v2.53/ARCH v2.89 UNCHANGED; fabric verified zero-drift per-file preflight; orchestrator preflight cmd defect fixed; streak 0/3; NEXT E-19 adv pass-10)
+  447 lines (wc-l per cap; D-761 E-19-ADV-PASS-10-NOT-CLEAN-CLOSED burst 2026-07-07; v5.12; E-19 adv pass-10 NOT-CLEAN B0/H2/M2/L3 7 findings; fix burst (PO leg BC-4.13.001 v1.8 + SW leg 5 stories); HUMAN DIRECTIVE strict-3-CLEAN no-cap; two evidence rules (O-P10-A/B); BC v3.75/STORY v4.142/VP v2.53/ARCH v2.89; streak 0/3; NEXT E-19 adv pass-11)
 -->
 
 # Pipeline State: vsdd-factory
@@ -70,8 +71,8 @@ dtu_services: []
 | **Mode** | brownfield-onboarding |
 | **Language** | Rust + Bash + Markdown |
 | **Started** | 2026-04-25 |
-| **Last Updated** | 2026-07-07 — D-760 E-19 ADV PASS-9 NOT-CLEAN CLOSED trajectory-tail →5→12→11→4; (B0/H0/M1/L3; 4 findings; 0 false-positives); FIRST ZERO-HIGH PASS in E-19 cascade; fix burst (story-writer single leg); orchestrator preflight command defect fixed (cross-file awk → per-file loop); STORY v4.141; BC v3.74 / VP v2.53 (UNCHANGED) / ARCH v2.89 (UNCHANGED); fabric verified zero-drift (second consecutive); streak 0/3; NEXT E-19 adv pass-10. [Prior: D-759 E-19 ADV PASS-8 NOT-CLEAN CLOSED 2026-07-07.] |
-| **Current Phase** | **D-760 E-19 ADV PASS-9 NOT-CLEAN CLOSED 2026-07-07. develop f5242bef. main a04cb303. merged_count 98. 4-index BC v3.74/VP v2.53/STORY v4.141/ARCH v2.89. PIPELINE ACTIVE. E-19 adv pass-9 verdict NOT-CLEAN B0/H0/M1/L3; 4 enumerated findings; counts matched enumeration. FIRST ZERO-HIGH PASS in E-19 cascade (trajectory 16→14→20→9→8→5→12→11→4). F-P9-001 MED epic subsystems_affected SS-06 phantom (7-story union = {SS-01..SS-05, SS-07, SS-09}; F-P1-002 TD-VSDD-060 sibling-site gap). F-P9-002 LOW S-19.01 AC-001 category error (locus "pr-manager exits non-zero" → LLM agent; correct locus = check-stale-verdict.sh per BC-5.42.001 EC-001). F-P9-003 LOW S-19.06 AC-003 sed `s://.*::` misses `/* */` block comments. F-P9-004 LOW epic ASCII DAG nonexistent W1→S-19.07 edges (only S-19.02→S-19.07 + S-19.06→S-19.07 real). 5 observations all actioned. Fix burst (story-writer single leg): epic v1.9; S-19.01 v1.8; S-19.03 v1.9; S-19.05 v1.8; S-19.06 v1.5; S-19.07 v1.4; STORY-INDEX v4.141. BC-INDEX UNCHANGED. ORCHESTRATOR PREFLIGHT DEFECT FIXED: cross-file awk false-negated 8 stale BC-3.08.001 v1.18 tokens in S-19.05 (state carryover); per-file loop is now canonical. Fabric zero-drift confirmed (second consecutive). Streak 0/3. NEXT: E-19 adv pass-10 (fresh context; 20-policy rubric; per-file preflight). PENDING: human GO for E-19 W1; D-721/D-723 POST-E-18 revisit; merge-method ruleset (human auth); Dependabot #192.** |
+| **Last Updated** | 2026-07-07 — D-761 E-19 ADV PASS-10 NOT-CLEAN CLOSED trajectory-tail →12→11→4→7; (B0/H2/M2/L3; 7 findings); fix burst (PO leg BC-4.13.001 v1.8 + SW leg S-19.02/04/05/06/07); HUMAN DIRECTIVE strict-3-CLEAN no-cap instituted; two evidence rules (O-P10-A/B); BC v3.75 / VP v2.53 (UNCHANGED) / STORY v4.142 / ARCH v2.89 (UNCHANGED); streak 0/3; NEXT E-19 adv pass-11 (strict-3-CLEAN). [Prior: D-760 E-19 ADV PASS-9 NOT-CLEAN CLOSED 2026-07-07.] |
+| **Current Phase** | **D-761 E-19 ADV PASS-10 NOT-CLEAN CLOSED 2026-07-07. develop f5242bef. main a04cb303. merged_count 98. 4-index BC v3.75/VP v2.53/STORY v4.142/ARCH v2.89. PIPELINE ACTIVE. E-19 adv pass-10 verdict NOT-CLEAN B0/H2/M2/L3; 7 enumerated findings. Trajectory 16→14→20→9→8→5→12→11→4→7. F-P10-001 HIGH path_allow 3-way contradiction (hooks-registry.toml `[".factory/STATE.md"]`; BC-4.13.001 v1.7 said `[".factory"]` in Phase-B prose; S-19.02/S-19.07 said `path_allow = [".factory"]`; live registry witness: lines 1261+1284). F-P10-002 HIGH paper-fix S-19.04 AC-004 (body unchanged; only changelog row added). F-P10-003 MED STORY-INDEX stale intro tokens (latest stories not reflected). F-P10-004 MED jq -e order-dependent result. F-P10-005 LOW deferral-gate ID-substring collision. F-P10-006 LOW Task 13 count under-specified. F-P10-007 LOW stale "not ADR-025 D-15" comment. HUMAN CONTINUATION DIRECTIVE: strict BC-5.39.001 3-CLEAN protocol; no asymptotic acceptance cap; no deviation without human explicit override. Fix burst: PO leg (BC-4.13.001 v1.8 Phase-A/B path_allow `.factory/STATE.md` corrected; BC-INDEX v3.75); SW leg (S-19.02 v1.8; S-19.04 v1.10 genuine AC-004 body fix; S-19.05 v1.9 jq -e order-independence; S-19.06 v1.6 Merge-PR deferral; S-19.07 v1.5 4 path_allow sites; STORY-INDEX v4.142). Two evidence rules instituted (O-P10-A: fix-executor amended-body grep stdout; O-P10-B: closure-report changelog-claim git-diff parity). Streak 0/3. NEXT: E-19 adv pass-11 (fresh context; strict-3-CLEAN; human GO for E-19 W1 still pending). PENDING: D-721/D-723 POST-E-18 revisit; merge-method ruleset (human auth); Dependabot #192.** |
 | **Current Cycle** | v1.0-brownfield-backfill |
 
 ## Phase Progress
@@ -110,9 +111,9 @@ dtu_services: []
 | Type | Format | Authoritative Source | Count |
 |------|--------|----------------------|-------|
 | Subsystem | SS-NN | `specs/architecture/ARCH-INDEX.md` | 10 |
-| Behavioral Contract | BC-S.SS.NNN | `specs/behavioral-contracts/ss-NN/` | 1,977 (BC-INDEX v3.69 D-754; POL-14 active: BC-5.42.001/BC-2.07.001/BC-1.17.001 v1.1 D-754; BC-5.41.004/BC-5.41.001/BC-6.25.001/BC-4.15.001/BC-7.07.002/BC-6.24.001/BC-5.41.003/BC-1.16.001; decision-log.md SoT) |
-| Verification Property | VP-NNN | `specs/verification-properties/VP-INDEX.md` | 102 (VP-INDEX v2.52 D-753; VP-094..101 NEW D-753; VP-091 active D-701; VP-089 stable; decision-log.md SoT) |
-| Story | S-N.MM | `stories/S-N.MM-<short>.md` | 129 file-resident + 15 stub IDs (STORY-INDEX v4.134 D-754; E-19: S-19.01..S-19.06 draft; all E-18 stories MERGED; decision-log.md SoT) |
+| Behavioral Contract | BC-S.SS.NNN | `specs/behavioral-contracts/ss-NN/` | 1,977 (BC-INDEX v3.75 D-761; POL-14 active: BC-5.42.001/BC-2.07.001/BC-1.17.001 v1.1 D-754; BC-5.41.004/BC-5.41.001/BC-6.25.001/BC-4.15.001/BC-7.07.002/BC-6.24.001/BC-5.41.003/BC-1.16.001; decision-log.md SoT) |
+| Verification Property | VP-NNN | `specs/verification-properties/VP-INDEX.md` | 102 (VP-INDEX v2.53 D-756; VP-094..101 NEW D-753; VP-091 active D-701; VP-089 stable; decision-log.md SoT) |
+| Story | S-N.MM | `stories/S-N.MM-<short>.md` | 129 file-resident + 15 stub IDs (STORY-INDEX v4.142 D-761; E-19: S-19.01..S-19.07 draft; all E-18 stories MERGED; decision-log.md SoT) |
 | Epic | E-N | `stories/epics/E-N-<short>.md` | 20 |
 | ADR | ADR-NNN | `specs/architecture/decisions/ADR-NNN.md` | 30 (ADR-030 v1.0 D-754 NEW; ADR-029 D-694) |
 
@@ -134,7 +135,7 @@ dtu_services: []
 |--------------|-----|-------|
 | main | a04cb303 | rc.22 bot binary bundle commit 2026-07-03 (Release 28668124787 post-build; all 33 WASMs rebuilt, plugin.json → 1.0.0-rc.22); prior: e4285fe5 (PR #456 true-merge fix mapfile→while-read; rc.22 tag); prior: 2a4c949b (PR #455 true-merge first rc.22 release; tag later moved); prior: caf06c68 (rc.21) |
 | develop | f5242bef | rc.22 Release sync-main→develop back-merge 2026-07-03 (D-750); prior: a6cf13e8 (PR #438 D-749 registry-staged assertion) |
-| factory-artifacts | `44114f0c` | D-760 E-19-ADV-PASS-9-NOT-CLEAN-CLOSED 2026-07-07 (single-commit per TD-VSDD-053); prior: D-759 `a2d2bbcd`; SHA-patch follow-up pending |
+| factory-artifacts | `PENDING-D-761` | D-761 E-19-ADV-PASS-10-NOT-CLEAN-CLOSED 2026-07-07 (single-commit per TD-VSDD-053); prior: D-760 `44114f0c`; SHA-patch follow-up pending |
 | feature/S-18.12 | **DELETED** (was 9cbd9439) | Merged via PR #384 ec05606a 2026-07-01 (D-744); branch deleted post-merge |
 | fix/S-18.12-detector-parity-gaps | **DELETED** (was 717686f8) | Merged via PR #385 2879f473 2026-07-01 (D-746); branch deleted at merge |
 | origin/maintenance/rc22-pre-release-cleanup | **PENDING DELETION** | Safe to delete (recovery long complete); human authorization outstanding |
@@ -147,16 +148,17 @@ dtu_services: []
 | Cycle | Type | Status | Notes |
 |-------|------|--------|-------|
 | F-block-ai-attribution-message-file-arm | feature | F3 COMPLETE — F4 READY | F1+F2+F3 done 2026-05-12; 2 stories ready; E-16 under SS-07/SS-04; milestone v1.0.0-rc.17 |
-| v1.0-brownfield-backfill | brownfield | **D-760 E-19-ADV-PASS-9-CLOSED 2026-07-07; PIPELINE ACTIVE. develop f5242bef; main a04cb303; merged_count 98; BC-INDEX v3.74; VP-INDEX v2.53; STORY-INDEX v4.141; ARCH-INDEX v2.89; E-19 adv pass-9 NOT-CLEAN B0/H0/M1/L3 (4 findings; first zero-HIGH); 1 fix leg (story-writer); fabric zero-drift (per-file preflight; orchestrator cmd defect fixed); streak 0/3; NEXT E-19 adv pass-10. PENDING: human GO for E-19 W1; POST-E-18 revisit (D-721/D-723); merge-method ruleset (human auth).** | rc.22 100% COMPLETE D-750; D-619..D-760 (see decision-log.md for full range); develop f5242bef; main a04cb303. **PIPELINE ACTIVE.** |
+| v1.0-brownfield-backfill | brownfield | **D-761 E-19-ADV-PASS-10-CLOSED 2026-07-07; PIPELINE ACTIVE. develop f5242bef; main a04cb303; merged_count 98; BC-INDEX v3.75; VP-INDEX v2.53; STORY-INDEX v4.142; ARCH-INDEX v2.89; E-19 adv pass-10 NOT-CLEAN B0/H2/M2/L3 (7 findings); 2 fix legs (PO BC-4.13.001 v1.8 + SW S-19.02/04/05/06/07); HUMAN DIRECTIVE strict-3-CLEAN no-cap; two evidence rules (O-P10-A/B); streak 0/3; NEXT E-19 adv pass-11. PENDING: human GO for E-19 W1; POST-E-18 revisit (D-721/D-723); merge-method ruleset (human auth).** | rc.22 100% COMPLETE D-750; D-619..D-761 (see decision-log.md for full range); develop f5242bef; main a04cb303. **PIPELINE ACTIVE.** |
 | v1.0-feature-engine-discipline-pass-1 | feature | **PAUSED** | F5 pass-75 adversary complete D-510 2026-05-27; META-LEVEL-30 CANDIDATE-CONFIRMED; trajectory →9→9→9→11. Full-cycle trajectory (75 values ending): →9→9→9→9→11. |
 | v1.0-feature-plugin-async-semantics-pass-1 | feature | CLOSED | All PRs merged; rc.14 shipped |
 
 ## Decisions Log
 
-> D-001..D-606 (see decision-log.md for full range): `cycles/v1.0-brownfield-backfill/decision-log.md` + `decisions-log-archive.md`. D-379..D-454 (see decision-log.md for full range) (F5): `cycles/v1.0-feature-engine-discipline-pass-1/decision-log.md`. All archived per D-430(a) compaction bursts. D-607..D-760 (see decision-log.md for full range): this Decisions Log + decision-log.md SoT.
+> D-001..D-606 (see decision-log.md for full range): `cycles/v1.0-brownfield-backfill/decision-log.md` + `decisions-log-archive.md`. D-379..D-454 (see decision-log.md for full range) (F5): `cycles/v1.0-feature-engine-discipline-pass-1/decision-log.md`. All archived per D-430(a) compaction bursts. D-607..D-761 (see decision-log.md for full range): this Decisions Log + decision-log.md SoT.
 
 | ID | Decision | Summary | Phase | Date |
 |----|----------|---------|-------|------|
+| D-761 | E-19 ADV PASS-10 NOT-CLEAN B0/H2/M2/L3 (7 findings). Trajectory 16→14→20→9→8→5→12→11→4→7. F-P10-001 HIGH path_allow 3-way contradiction (hooks-registry.toml `[".factory/STATE.md"]` vs BC-4.13.001 v1.7 Phase-B `[".factory"]` vs story prose). F-P10-002 HIGH paper-fix S-19.04 AC-004 (body unchanged; changelog-only closure). F-P10-003 MED STORY-INDEX stale intro tokens. F-P10-004 MED jq -e order-dependent result. F-P10-005 LOW deferral-gate ID-substring. F-P10-006 LOW Task 13 count under-specified. F-P10-007 LOW stale "not ADR-025 D-15". 5 obs: O-P10-A evidence rule (fix-executor amended-body grep stdout); O-P10-B evidence rule (closure-report changelog-claim git-diff parity); O-P10-C/D/E accepted-with-record. HUMAN CONTINUATION DIRECTIVE: strict BC-5.39.001 3-CLEAN protocol; no asymptotic acceptance; no deviation without explicit human override. PO leg: BC-4.13.001 v1.8 (Phase-A/B path_allow `[".factory/STATE.md"]` corrected; PC3 prose corrected; Invariant 5 shape verified); BC-INDEX v3.75. SW leg: S-19.02 v1.8 (BC-4.13.001 v1.8 cite sweep); S-19.04 v1.10 (AC-004 gate body genuinely applied; Task 13 distinct-projection); S-19.05 v1.9 (AC-001 jq -se slurp + AC-002 mirrored 7-field loop); S-19.06 v1.6 (Merge-PR deferral + concurring framing); S-19.07 v1.5 (4 path_allow sites → `.factory/STATE.md` + BC cite v1.8); STORY-INDEX v4.142. Parent-commit: 43d77425 (D-760 SHA-patch factory-artifacts HEAD). | E-19-ADV-PASS-10-NOT-CLEAN + fix burst (PO+SW legs); HUMAN DIRECTIVE strict-3-CLEAN no-cap; two evidence rules; BC v3.75/VP v2.53/STORY v4.142/ARCH v2.89; streak 0/3 | D-761-E19-ADV-PASS-10-CLOSED | 2026-07-07 |
 | D-760 | E-19 ADV PASS-9 NOT-CLEAN B0/H0/M1/L3 (4 findings). First zero-HIGH pass in E-19 cascade. Trajectory 16→14→20→9→8→5→12→11→4. F-P9-001 MED epic SS-06 phantom (7-story union = {SS-01..SS-05, SS-07, SS-09}; F-P1-002 TD-VSDD-060 sibling-site gap). F-P9-002 LOW S-19.01 AC-001 locus category error (LLM agent → check-stale-verdict.sh; BC-5.42.001 EC-001). F-P9-003 LOW S-19.06 AC-003 sed misses `/* */` block comments. F-P9-004 LOW epic ASCII DAG nonexistent W1→S-19.07 edges. 5 obs all actioned. SW (single leg): epic v1.9; S-19.01 v1.8; S-19.03 v1.9 (canonical-site greps + name-scoped + preflight BC-2.07.001 stale); S-19.05 v1.8 (preflight 8 BC-3.08.001 v1.18 tokens); S-19.06 v1.5; S-19.07 v1.4; STORY-INDEX v4.141. BC-INDEX UNCHANGED. ORCHESTRATOR PREFLIGHT CMD DEFECT: cross-file awk false-negated stale cites (awk state carryover) → per-file loop is canonical. Fabric zero-drift confirmed. Parent-commit: c1822ab5 (D-759 SHA-patch). | E-19-ADV-PASS-9-NOT-CLEAN + fix burst; first zero-HIGH; preflight cmd fixed; BC v3.74/VP v2.53/STORY v4.141/ARCH v2.89; streak 0/3 | D-760-E19-ADV-PASS-9-CLOSED | 2026-07-07 |
 | D-759 | E-19 ADV PASS-8 NOT-CLEAN B0/H3/M5/L3 (11 findings). Trajectory 16→14→20→9→8→5→12→11. F-P8-001 HIGH S-19.07 AC-002 gate globally-unscoped (grep -c whole registry = 22; only 2 in scope; asserts count=0; permanently unsatisfiable). F-P8-002 HIGH [process-gap] S-19.02 BC-4.13.001 v1.6/v1.7 mixed state (2 reverse-word-order sites replace_all missed — FOURTH recurrence BC-bump→partial-propagation class). F-P8-003 HIGH [process-gap] S-19.07 BC-4.13.001 v1.6 Phase-B (all body) + 2 stray v1.5 sites. MECHANICAL GATE: BC-cite drift preflight codified two-sided. F-P8-004 MED epic Stories-table S-19.03 BCs cell missing BC-2.02.011. F-P8-005 MED S-19.06 AC-003 trailing-comment strip gap. F-P8-006 MED S-19.05 EC-005 stale [SYNTHETIC] label. F-P8-007 MED S-19.07 entry name imprecision (verify-factory-lock-bash absent). F-P8-008 MED S-19.02 boundary summary 262145 with no test row. F-P8-009..011 LOW. SW (single leg): S-19.01 v1.7; S-19.02 v1.7; S-19.04 v1.9; S-19.05 v1.7; S-19.06 v1.4; S-19.07 v1.3; epic v1.8; STORY-INDEX v4.139. BC-INDEX UNCHANGED. Orchestrator BC-cite preflight: ZERO stale live cites — first fully cite-coherent state. O-P8-B-1 ADOPTED as two-sided preflight. Parent-commit: f18a1bd8 (D-758 SHA-patch). | E-19-ADV-PASS-8-NOT-CLEAN + fix burst + BC-cite preflight; BC v3.74/VP v2.53/STORY v4.139/ARCH v2.89; streak 0/3 | D-759-E19-ADV-PASS-8-CLOSED | 2026-07-07 |
 | D-758 | E-19 ADV PASS-7 NOT-CLEAN B0/H2/M5/L5 (12 findings; 1 false-positive F-P7-003 adjudicated). Trajectory 16→14→20→9→8→5→12. F-P7-001 HIGH [process-gap] STORY-INDEX E-19 BC-coverage summary line stale. F-P7-002 HIGH [process-gap] S-19.04 7 volatile ~line NNN pins (TD-VSDD-091) + missing POLICY 20 compliance row. F-P7-003 MEDIUM FALSE-POSITIVE (ADR-025 Decision 15 u32/i32 since v1.9; stale reconciliation note = real defect; third premise-verification failure). F-P7-004 MEDIUM BC-2.07.001 EC-007 dead-branch testability (injectable-canonicalize seam). F-P7-005 MEDIUM S-19.01 AC-004 bash-3.2 mechanism gap. F-P7-006 MEDIUM BC-4.13.001 Inv10 blind at exactly-262144. F-P7-007 MEDIUM S-19.05 EC-005 fixture/entry_index schema-level recast. F-P7-008..012 LOW. PO 3-BC sequential leg: BC-2.07.001 v1.2; BC-4.13.001 v1.7; BC-3.08.001 v1.19; BC-INDEX v3.74. SW: S-19.01 v1.6; S-19.02 v1.6; S-19.03 v1.7; S-19.04 v1.8; S-19.05 v1.6; S-19.06 v1.3; S-19.07 v1.2; epic v1.7; STORY-INDEX v4.138. Zero live residuals. Parent-commit: e024e8e1 (D-757 SHA-patch). | E-19-ADV-PASS-7-NOT-CLEAN + fix burst; BC v3.74/VP v2.53/STORY v4.138/ARCH v2.89; streak 0/3 | D-758-E19-ADV-PASS-7-CLOSED | 2026-07-07 |
@@ -279,42 +281,34 @@ dtu_services: []
 - `cycles/v1.0-feature-plugin-async-semantics-pass-1/burst-log.md` | `session-checkpoints.md` | `lessons.md`
 - `cycles/v1.0-feature-engine-discipline-pass-1/burst-log.md` (adversary reviews at `S-12.03/`, `S-12.04/`, `S-12.05/` subdirs)
 
-## Session Resume Checkpoint (2026-07-07 — D-760 E-19-ADV-PASS-9-NOT-CLEAN-CLOSED; PIPELINE ACTIVE; E-19 adv pass-10 NEXT; streak 0/3; develop HEAD f5242bef; main a04cb303; merged_count 98; 4-index BC v3.74/VP v2.53/STORY v4.141/ARCH v2.89; first zero-HIGH pass; per-file preflight canonical; RESUME: /vsdd-factory:next-step; origin=drbothen/vsdd-factory)
+## Session Resume Checkpoint (2026-07-07 — D-761 E-19-ADV-PASS-10-NOT-CLEAN-CLOSED; PIPELINE ACTIVE; E-19 adv pass-11 NEXT; streak 0/3; develop HEAD f5242bef; main a04cb303; merged_count 98; 4-index BC v3.75/VP v2.53/STORY v4.142/ARCH v2.89; HUMAN DIRECTIVE strict-3-CLEAN no-cap; two evidence rules (O-P10-A/B); RESUME: /vsdd-factory:next-step; origin=drbothen/vsdd-factory)
 
 > **SELF-SUFFICIENT RESUME CONTEXT FOR ZERO-CONTEXT NEW SESSION OR NEW MACHINE**
 > Read this section alone to resume. Assumes ZERO prior context. All decisions, directives, and anchors stated explicitly.
 
 ### §1. Where We Are
 
+**D-761 (2026-07-07): E-19 ADV PASS-10 NOT-CLEAN CLOSED — FIX BURST COMPLETE + HUMAN DIRECTIVE STRICT-3-CLEAN RECORDED. PIPELINE ACTIVE.**
+
+E-19 adversarial pass-10 verdict: NOT-CLEAN B0/H2/M2/L3 (7 findings). Trajectory 16→14→20→9→8→5→12→11→4→7. F-P10-001 HIGH path_allow 3-way contradiction: hooks-registry.toml (live registry) has `path_allow = [".factory/STATE.md"]` at lines 1261+1284; BC-4.13.001 v1.7 Phase-B prose said `[".factory"]`; S-19.02/S-19.07 stories propagated the wrong value. F-P10-002 HIGH paper-fix S-19.04 AC-004: closure claimed but gate body was unchanged — only changelog row was added. F-P10-003 MED STORY-INDEX stale intro tokens. F-P10-004 MED jq -e order-dependent result. F-P10-005/006/007 LOW. 5 obs: O-P10-A/B become two mandatory evidence rules for future fix bursts. HUMAN CONTINUATION DIRECTIVE: strict BC-5.39.001 3-CLEAN protocol; no asymptotic acceptance; no deviation without explicit human override. PO leg: BC-4.13.001 v1.8 (Phase-A PC3 `.factory/STATE.md`; Phase-B `path_allow = [".factory/STATE.md"]` corrected; Invariant 5 shape verified); BC-INDEX v3.75. SW leg: S-19.02 v1.8; S-19.04 v1.10 (AC-004 body genuinely fixed + Task 13 distinct-projection); S-19.05 v1.9 (jq -se slurp + AC-002 mirrored); S-19.06 v1.6; S-19.07 v1.5 (4 path_allow sites corrected + BC cite v1.8); STORY-INDEX v4.142.
+
+---
+
 **D-760 (2026-07-07): E-19 ADV PASS-9 NOT-CLEAN CLOSED — FIX BURST COMPLETE + FIRST ZERO-HIGH PASS + ORCHESTRATOR PREFLIGHT CMD DEFECT FIXED. PIPELINE ACTIVE.**
 
-E-19 adversarial pass-9 verdict: NOT-CLEAN B0/H0/M1/L3 (4 findings; 0 false-positives; live-vs-history adjudication held). Trajectory 16→14→20→9→8→5→12→11→4. FIRST ZERO-HIGH PASS in E-19 cascade. F-P9-001 MED epic SS-06 phantom (7-story union = {SS-01..SS-05, SS-07, SS-09}; F-P1-002 TD-VSDD-060 sibling-site gap never propagated to epic). F-P9-002 LOW S-19.01 AC-001 category error (locus "pr-manager exits non-zero" incorrect — LLM agent has no process exit codes; correct locus = check-stale-verdict.sh per BC-5.42.001 EC-001). F-P9-003 LOW S-19.06 AC-003 `sed 's://.*::'` misses `/* */` C-style block comments. F-P9-004 LOW epic ASCII DAG implied nonexistent W1→S-19.07 edges. 5 observations all actioned. Story-writer single leg: epic v1.9; S-19.01 v1.8; S-19.03 v1.9 (O-P9 fixes + preflight 2nd catch BC-2.07.001 stale cites); S-19.05 v1.8 (preflight 3rd catch: 8 BC-3.08.001 v1.18 tokens); S-19.06 v1.5; S-19.07 v1.4; STORY-INDEX v4.141. BC-INDEX UNCHANGED. ORCHESTRATOR PREFLIGHT CMD DEFECT: cross-file awk false-negated stale cites (state carryover between files); per-file loop is now the canonical preflight command (cross-file awk FORBIDDEN). Fabric zero-drift confirmed second consecutive via per-file loop.
+E-19 adversarial pass-9 verdict: NOT-CLEAN B0/H0/M1/L3 (4 findings; 0 false-positives). Trajectory 16→14→20→9→8→5→12→11→4. FIRST ZERO-HIGH PASS in E-19 cascade. F-P9-001 MED epic SS-06 phantom. F-P9-002 LOW S-19.01 AC-001 locus category error. F-P9-003 LOW S-19.06 AC-003 block-comment gap. F-P9-004 LOW epic ASCII DAG nonexistent W1→S-19.07 edges. Story-writer single leg: epic v1.9; S-19.01 v1.8; S-19.03 v1.9; S-19.05 v1.8; S-19.06 v1.5; S-19.07 v1.4; STORY-INDEX v4.141. ORCHESTRATOR PREFLIGHT CMD DEFECT FIXED (per-file loop canonical; cross-file awk FORBIDDEN). Fabric zero-drift confirmed second consecutive.
 
 ---
 
 **D-759 (2026-07-07): E-19 ADV PASS-8 NOT-CLEAN CLOSED — FIX BURST COMPLETE + BC-CITE DRIFT PREFLIGHT INSTITUTED. PIPELINE ACTIVE.**
 
-E-19 adversarial pass-8 verdict: NOT-CLEAN B0/H3/M5/L3 (11 findings; 0 false-positives). Trajectory 16→14→20→9→8→5→12→11. F-P8-001 HIGH S-19.07 AC-002 gate globally-unscoped. F-P8-002/003 HIGH [process-gap] BC-4.13.001 v1.6 partial-propagation — FOURTH recurrence → MECHANICAL GATE: BC-cite drift preflight (two-sided; mandatory from D-759; cure-extension per D-497). F-P8-004..008 MEDIUM. F-P8-009..011 LOW. Story-writer single leg: S-19.01 v1.7; S-19.02 v1.7; S-19.04 v1.9; S-19.05 v1.7; S-19.06 v1.4; S-19.07 v1.3; epic v1.8; STORY-INDEX v4.139. BC-INDEX UNCHANGED. Orchestrator BC-cite preflight: ZERO stale live cites — first fully cite-coherent state.
+E-19 adversarial pass-8 verdict: NOT-CLEAN B0/H3/M5/L3 (11 findings). Trajectory 16→14→20→9→8→5→12→11. F-P8-002/003 HIGH [process-gap] BC-4.13.001 v1.6 partial-propagation — FOURTH recurrence → MECHANICAL GATE two-sided BC-cite drift preflight (cure-extension D-497). Story-writer single leg: S-19.01 v1.7; S-19.02 v1.7; S-19.04 v1.9; S-19.05 v1.7; S-19.06 v1.4; S-19.07 v1.3; epic v1.8; STORY-INDEX v4.139. Orchestrator BC-cite preflight: ZERO stale live cites — first fully cite-coherent state.
 
 ---
 
 **D-758 (2026-07-07): E-19 ADV PASS-7 NOT-CLEAN CLOSED — FIX BURST COMPLETE. PIPELINE ACTIVE.**
 
-E-19 adversarial pass-7 verdict: NOT-CLEAN B0/H2/M5/L5 (12 findings; 1 false-positive F-P7-003 adjudicated). Trajectory 16→14→20→9→8→5→12. F-P7-001/002 HIGH [spec-drift/process-gap]. F-P7-003 FALSE-POSITIVE (evidence-rules hardening instituted). F-P7-004..007 MEDIUM. F-P7-008..012 LOW. PO 3-BC sequential leg: BC-2.07.001 v1.2; BC-4.13.001 v1.7; BC-3.08.001 v1.19; BC-INDEX v3.74. SW: S-19.01..S-19.07 all advanced; epic v1.7; STORY-INDEX v4.138.
-
----
-
-**D-754 (2026-07-06): E-19 ADV PASS-3 NOT-CLEAN CLOSED — FIX BURST COMPLETE. PIPELINE ACTIVE. STATE.md COMPACTED 496→436.**
-
-E-19 adversarial pass-3 verdict: NOT-CLEAN B0/H5/M9/L6 + 7 obs. Dominant class: spec-vs-spec contradictions + POLICY 9 propagation gaps (pass-2 burst self-inflicted). F-P3-019 FALSE-POSITIVE adjudicated (bats-full-suite EXISTS in ci.yml). Fix burst 4 legs: architect (ADR-025 v1.9 D15+D18; ADR-030 v1.0; ARCH-INDEX v2.89); VP (VP-094..101; VP-INDEX v2.52); story-writer (9 stories); product-owner (6 BCs). STATE.md compacted 496→436 per D-430(a).
-
----
-
-**D-750 (2026-07-04): v1.0.0-rc.22 SHIPPED END-TO-END. SESSION PAUSED per human /wrap. [ARCHIVED — full detail: decision-log.md D-750]**
-
-rc.22 arc: PRs #431+#438 MERGED (develop@a6cf13e8; orphan WASMs deleted; release.yml hardened; F-P3-008 fixed; registry-staged assertion). PROCESS-GAP: #439 squash-merged → repaired via revert PR #454 (585b33c1) + re-release PR #455 (2a4c949b TRUE MERGE). RC.22 100% SHIPPED.
-
-**E-18 EPIC COMPLETE (D-744 2026-07-01):** All 18 E-18 stories + 2 prereqs merged. Full story ledger: `cycles/v1.0-brownfield-backfill/merged-stories-ledger.md`.
+E-19 adversarial pass-7 verdict: NOT-CLEAN B0/H2/M5/L5 (12 findings; 1 false-positive F-P7-003 adjudicated). Trajectory 16→14→20→9→8→5→12. F-P7-001/002 HIGH [spec-drift/process-gap]. PO 3-BC sequential leg: BC-2.07.001 v1.2; BC-4.13.001 v1.7; BC-3.08.001 v1.19; BC-INDEX v3.74. SW: S-19.01..S-19.07 all advanced; epic v1.7; STORY-INDEX v4.138.
 
 ### §2. Operating Mode
 
@@ -348,6 +342,9 @@ ALL ACTIVE AND MANDATORY on every dispatch:
 - **D-751 2026-07-04 [carry] E-19 post-rc22-operator-hardening epic drafted; S-19.01..S-19.07 all status:draft; 45pts W1:S-19.01/02/03 parallel; W2:S-19.04/05/06 (S-19.04→S-19.06 intra-wave ordering); W3:S-19.07. adv pass-9 NEXT.**
 - **D-759 2026-07-07 [carry] BC-cite drift preflight (two-sided; mandatory):** (a) story-writer side: every leg that bumps a BC MUST end with 6-BC cite matrix scan classifying live vs changelog-history cites; any live cite at prior version = stale site; fix before leg declares done. (b) orchestrator side: run independently before dispatching every adversarial pass; zero stale live cites required before dispatch. Codified as cure-extension per D-497 (no new lesson ID).
 - **D-760 2026-07-07 [carry] BC-cite preflight canonical command — per-file loop MANDATORY; cross-file awk FORBIDDEN:** Orchestrator verification-command defect identified at D-760: multi-file awk invocation (`awk '/pattern/{action}' file1 file2 ...`) false-negatives due to state carryover across file boundaries. Canonical preflight command is the per-file loop: `for f in .factory/stories/S-19.*.md .factory/stories/epics/E-19*.md .factory/stories/STORY-INDEX.md; do grep -nE "BC-<ID> v[stale-range]" "$f" && echo "  STALE: $f"; done`. Cross-file awk form is FORBIDDEN for BC-cite drift preflight. Extends D-759 MECHANICAL GATE codification.
+- **D-761 2026-07-07 [HUMAN DIRECTIVE — CARRY-ACROSS-CLEAR — STRICT 3-CLEAN NO-CAP]:** E-19 adv pass-10 HUMAN CONTINUATION DIRECTIVE (per adv-E19-pass-10.md §HUMAN DIRECTIVE): BC-5.39.001 strict 3-CLEAN convergence protocol applies to ALL future E-19 adversarial passes. NO asymptotic acceptance. NO cap on pass count. THREE consecutive CLEAN passes required for convergence. Deviation from this directive requires EXPLICIT HUMAN OVERRIDE — no AI agent may substitute asymptotic acceptance, pass-count caps, or any other convergence shortcut. Current streak: 0/3.
+- **D-761 2026-07-07 [carry] O-P10-A evidence rule — fix-executor amended-body grep stdout MANDATORY:** Every fix-executor closing an adversarial finding against a gate/clause body MUST include the literal grep stdout showing the amended body text in the closure report. Narrative-only assertions that "the gate was fixed" are NOT sufficient. Include: `grep -A<N> "AC-NNN" .factory/stories/S-XX.YY.md | head -20` or equivalent with actual captured output.
+- **D-761 2026-07-07 [carry] O-P10-B evidence rule — closure-report changelog-claim vs body git-diff parity MANDATORY:** Every closure report for a finding whose fix involves a gate/clause change MUST include a git-diff excerpt (or equivalent grep comparison of before/after) proving the changelog claim is consistent with the actual body text. Changelog row claims that exceed what the body contains = paper-fix (F-P10-002 class). Include `git diff HEAD -- <file>` with relevant hunk captured.
 
 ### §4. Tier-A Completed Log (most recent first)
 
@@ -357,11 +354,12 @@ ALL ACTIVE AND MANDATORY on every dispatch:
 - **D-757 (2026-07-07):** E-19 ADV PASS-6 NOT-CLEAN (5 HIGH; NEW RULE index-writing legs sequenced). **D-758 (2026-07-07):** E-19 ADV PASS-7 NOT-CLEAN B0/H2/M5/L5; PO 3-BC + SW legs; BC-2.07.001 v1.2 / BC-4.13.001 v1.7 / BC-3.08.001 v1.19; BC-INDEX v3.74; STORY-INDEX v4.138.
 - **D-759 (2026-07-07):** E-19 ADV PASS-8 NOT-CLEAN B0/H3/M5/L3 (11 findings); SW single leg; STORY-INDEX v4.139; BC-cite drift preflight INSTITUTED two-sided; ZERO stale live cites — first cite-coherent state; streak 0/3.
 - **D-760 (2026-07-07):** E-19 ADV PASS-9 NOT-CLEAN B0/H0/M1/L3 (4 findings; FIRST ZERO-HIGH PASS); SW single leg; epic v1.9; S-19.01 v1.8; S-19.03 v1.9; S-19.05 v1.8; S-19.06 v1.5; S-19.07 v1.4; STORY-INDEX v4.141; orchestrator preflight cmd defect fixed (per-file loop canonical); fabric zero-drift confirmed second consecutive; streak 0/3.
+- **D-761 (2026-07-07):** E-19 ADV PASS-10 NOT-CLEAN B0/H2/M2/L3 (7 findings); HUMAN DIRECTIVE strict-3-CLEAN no-cap; PO leg (BC-4.13.001 v1.8 path_allow corrected; BC-INDEX v3.75) + SW leg (S-19.02 v1.8; S-19.04 v1.10 genuine gate body fix; S-19.05 v1.9; S-19.06 v1.6; S-19.07 v1.5; STORY-INDEX v4.142); two evidence rules (O-P10-A/B); streak 0/3.
 
 ### §5. Cumulative Codifications
 
 - F5: D-379..D-454 (see decision-log.md for full range) (76 decisions) — `cycles/v1.0-feature-engine-discipline-pass-1/decision-log.md`.
-- Brownfield: D-001..D-760 (see decision-log.md for full range) — `cycles/v1.0-brownfield-backfill/decision-log.md`. Latest: **D-760 (2026-07-07) — E-19 ADV PASS-9 NOT-CLEAN CLOSED + FIX BURST (story-writer single leg) + FIRST ZERO-HIGH PASS + ORCHESTRATOR PREFLIGHT CMD DEFECT FIXED; STORY v4.141; BC/VP/ARCH UNCHANGED at D-760.** Decisions D-607..D-760 (see decision-log.md for full range) in STATE.md Decisions Log + decision-log.md SoT.
+- Brownfield: D-001..D-761 (see decision-log.md for full range) — `cycles/v1.0-brownfield-backfill/decision-log.md`. Latest: **D-761 (2026-07-07) — E-19 ADV PASS-10 NOT-CLEAN CLOSED + FIX BURST (PO+SW legs) + HUMAN DIRECTIVE strict-3-CLEAN no-cap + two evidence rules (O-P10-A/B); BC v3.75/STORY v4.142; VP/ARCH UNCHANGED at D-761.** Decisions D-607..D-761 (see decision-log.md for full range) in STATE.md Decisions Log + decision-log.md SoT.
 
 ### §6. Cumulative Lessons
 
@@ -376,18 +374,18 @@ ALL ACTIVE AND MANDATORY on every dispatch:
 
 | Index | Version | Notes |
 |-------|---------|-------|
-| BC-INDEX | v3.74 | Bumped D-758 fix burst (BC-2.07.001 v1.2 EC-007; BC-4.13.001 v1.7 Inv10; BC-3.08.001 v1.19 EC-008; 3 BCs). total_bcs 1,977. UNCHANGED D-759. [v3.71 D-756; v3.70 D-755; v3.69 D-754; prior: decision-log.md SoT.] |
-| VP-INDEX | v2.53 | Bumped D-756 fix burst (VP-079 v1.19 six-event scope). UNCHANGED D-757+D-758+D-759. POLICY 9 tri-view: verification-architecture.md + verification-coverage-matrix.md VP-079 rows use bare stable-anchor title — no update required. |
-| STORY-INDEX | v4.141 | Bumped D-760 fix burst (v4.139→v4.140: O-P9-001 intro counts 123/19→130/20; S-19.01 v1.8/S-19.03 v1.9/S-19.06 v1.5/S-19.07 v1.4/epic v1.9 cells; v4.140→v4.141: S-19.05 v1.8 preflight catch). BC-cite per-file preflight: all 6 BC cites zero-drift. [v4.139 D-759; v4.138 D-758; v4.137 D-757; v4.136 D-756; prior: decision-log.md SoT.] |
-| ARCH-INDEX | v2.89 | Bumped D-754 fix burst (ADR-025 v1.9 D15+D18; ADR-030 v1.0 NEW pr-manager-merge-integrity; verification-architecture.md v1.7). UNCHANGED at D-755..D-759 (see decision-log.md for full range). [v2.87 D-753; v2.86 D-752; v2.85 D-721.] |
-| L2-INDEX | v1.0.14 | Bumped D-754 fix burst (CAP-033 NEW capabilities.md v1.8). UNCHANGED at D-755..D-759 (see decision-log.md for full range). [v1.0.13 D-616 UNCHANGED through D-753.] |
+| BC-INDEX | v3.75 | Bumped D-761 fix burst (BC-4.13.001 v1.8 path_allow corrected Phase-A/B). UNCHANGED VP/ARCH. total_bcs 1,977. [v3.74 D-758; v3.71 D-756; v3.70 D-755; v3.69 D-754; prior: decision-log.md SoT.] |
+| VP-INDEX | v2.53 | Bumped D-756 fix burst (VP-079 v1.19 six-event scope). UNCHANGED D-757..D-761 (see decision-log.md for full range). POLICY 9 tri-view: verification-architecture.md + verification-coverage-matrix.md VP-079 rows use bare stable-anchor title — no update required. |
+| STORY-INDEX | v4.142 | Bumped D-761 fix burst (S-19.02 v1.8; S-19.04 v1.10; S-19.05 v1.9; S-19.06 v1.6; S-19.07 v1.5; 5 stories updated). BC-cite per-file preflight run. [v4.141 D-760; v4.139 D-759; v4.138 D-758; v4.137 D-757; prior: decision-log.md SoT.] |
+| ARCH-INDEX | v2.89 | Bumped D-754 fix burst (ADR-025 v1.9 D15+D18; ADR-030 v1.0 NEW pr-manager-merge-integrity; verification-architecture.md v1.7). UNCHANGED at D-755..D-761 (see decision-log.md for full range). [v2.87 D-753; v2.86 D-752; v2.85 D-721.] |
+| L2-INDEX | v1.0.14 | Bumped D-754 fix burst (CAP-033 NEW capabilities.md v1.8). UNCHANGED at D-755..D-761 (see decision-log.md for full range). [v1.0.13 D-616 UNCHANGED through D-753.] |
 
-4-index at D-760 burst (literal-shell POLICY 14 verification_step 7 gate — stdout captured 2026-07-07): `grep "^version:" .factory/specs/behavioral-contracts/BC-INDEX.md .factory/specs/verification-properties/VP-INDEX.md .factory/stories/STORY-INDEX.md .factory/specs/architecture/ARCH-INDEX.md` → BC-INDEX: "3.74" / VP-INDEX: "2.53" / STORY-INDEX: "4.141" / ARCH-INDEX: "2.89".
+4-index at D-761 burst (literal-shell POLICY 14 verification_step 7 gate — stdout captured 2026-07-07): `grep "^version:" .factory/specs/behavioral-contracts/BC-INDEX.md .factory/specs/verification-properties/VP-INDEX.md .factory/stories/STORY-INDEX.md .factory/specs/architecture/ARCH-INDEX.md` → BC-INDEX: "3.75" / VP-INDEX: "2.53" / STORY-INDEX: "4.142" / ARCH-INDEX: "2.89".
 
 ### §9. Critical Anchors
 
 - **GitHub origin repo:** `drbothen/vsdd-factory` (NOT the local git user "Zious"). All E-18/E-19 PRs live at `https://github.com/drbothen/vsdd-factory`. Use `--repo drbothen/vsdd-factory` flag with all `gh` commands.
-- **factory-artifacts HEAD:** `44114f0c` D-760 E-19-ADV-PASS-9-NOT-CLEAN-CLOSED 2026-07-07 (single-commit per TD-VSDD-053); prior: D-759 `a2d2bbcd`; SHA-patch follow-up pending.
+- **factory-artifacts HEAD:** `PENDING-D-761` D-761 E-19-ADV-PASS-10-NOT-CLEAN-CLOSED 2026-07-07 (single-commit per TD-VSDD-053); prior: D-760 `44114f0c`; SHA-patch follow-up pending.
 - **develop HEAD:** `f5242bef` (sync-develop back-merge post-Release-28668124787 CLEAN; prior: `a6cf13e8` PR #438 D-749; **E-18 EPIC COMPLETE; rc.22 100% SHIPPED**)
 - **main HEAD:** `a04cb303` (rc.22 bot bundle commit 2026-07-03; prior: `caf06c68` rc.21 bot bundle 2026-06-13)
 - **v1.0.0-rc.22 tag:** `e4285fe5` (SHIPPED; tag re-created at e4285fe5 after mapfile fix; FULLY IN OPERATOR MARKETPLACE)
@@ -400,7 +398,7 @@ ALL ACTIVE AND MANDATORY on every dispatch:
 - **Older anchors (BC-4.14.001 v1.17 D-651; BC-5.41.001 v1.26 D-660; BC-5.41.002 v1.19 D-658; ADR-028 v1.3 D-672; S-18.04a v1.11 D-693; S-18.05 v1.9 D-700; BC-1.15.001 v1.5..VP-090 v1.2, VP-081..VP-085, L2-INDEX v1.0.13, ADR-025 v1.6, S-17.04 v1.7, ADR-026 v1.22):** See decision-log.md SoT.
 - **BC-5.41.004 v1.5 (active):** `ss-05/BC-5.41.004.md` (D-722 POL-14 lifecycle promotion: S-18.11 PR #340 squash-merged 531dacfb 2026-06-29; lifecycle_status draft→active. No behavioral change.)
 - **S-18.12 (merged, no BC):** `behavioral_contracts: []` intentional (Option 3 gate-enforcement, S-18.09 precedent, PO gate RESOLVED D-724); MERGED PR #384 ec05606a D-744 2026-07-01; no POL-14 action (nothing to promote).
-- **Verify on resume:** `git rev-parse --short origin/develop` → expect `f5242bef`; `git rev-parse --short origin/main` → expect `a04cb303`; `git -C .factory log -1 --format='%h %s'` → expect D-759 commit; `gh repo view --json nameWithOwner -q .nameWithOwner --repo drbothen/vsdd-factory` → expect `drbothen/vsdd-factory`.
+- **Verify on resume:** `git rev-parse --short origin/develop` → expect `f5242bef`; `git rev-parse --short origin/main` → expect `a04cb303`; `git -C .factory log -1 --format='%h %s'` → expect D-761 commit; `gh repo view --json nameWithOwner -q .nameWithOwner --repo drbothen/vsdd-factory` → expect `drbothen/vsdd-factory`.
 
 ### §10. PR Status
 
@@ -415,27 +413,27 @@ ALL ACTIVE AND MANDATORY on every dispatch:
 - **Open maintenance:** dependabot PRs #194/#192/#187 (visual-companion deps) untouched — low priority.
 - **RELEASING.md Step 9 VERIFIED:** marketplace #13 MERGED 2026-06-13 rc.21 SHIPPED; marketplace #14 MERGED 2026-07-04 rc.22 SHIPPED. Operator cache 1.0.0-rc.22 confirmed D-750. rc.21+rc.22 end-to-end CLOSED.
 
-### §11. Post-CLEAR/Post-RESET Resume Checklist (zero-context; D-760 refresh 2026-07-07)
+### §11. Post-CLEAR/Post-RESET Resume Checklist (zero-context; D-761 refresh 2026-07-07)
 
-1. **Verify worktree state:** `git rev-parse --short origin/develop` → expect `f5242bef`. `git rev-parse --short origin/main` → expect `a04cb303`. `git -C .factory log -1 --format='%h %s'` → expect D-760 commit message. **E-18 EPIC COMPLETE; rc.22 100% SHIPPED — PIPELINE ACTIVE; E-19 adv pass-9 CLOSED.**
-2. **Read §1-§12 this checkpoint** (all of it; D-760 self-sufficient 2026-07-07).
-3. **Verify 4-index:** `grep "^version:" .factory/specs/behavioral-contracts/BC-INDEX.md` → "3.74"; ARCH-INDEX → "2.89"; VP-INDEX → "2.53"; STORY-INDEX → "4.141" (D-760 fix burst); L2-INDEX → "1.0.14" (D-754 UNCHANGED). total_bcs 1,977.
+1. **Verify worktree state:** `git rev-parse --short origin/develop` → expect `f5242bef`. `git rev-parse --short origin/main` → expect `a04cb303`. `git -C .factory log -1 --format='%h %s'` → expect D-761 commit message. **E-18 EPIC COMPLETE; rc.22 100% SHIPPED — PIPELINE ACTIVE; E-19 adv pass-10 CLOSED.**
+2. **Read §1-§12 this checkpoint** (all of it; D-761 self-sufficient 2026-07-07).
+3. **Verify 4-index:** `grep "^version:" .factory/specs/behavioral-contracts/BC-INDEX.md` → "3.75"; ARCH-INDEX → "2.89"; VP-INDEX → "2.53"; STORY-INDEX → "4.142" (D-761 fix burst); L2-INDEX → "1.0.14" (D-754 UNCHANGED). total_bcs 1,977.
 4. **E-10 CASCADE SEALED D-531.** Do NOT resume without engine-surface material change.
 5. **F5 PAUSED** — trajectory →9→9→9→11. Do NOT resume without explicit human direction.
 6. **RC.22 100% COMPLETE D-750.** NO remaining release action. Operators: `/plugin update vsdd-factory@claude-mp`. marketplace #14 MERGED; operator-install VERIFIED 1.0.0-rc.22.
-7. **D-760 E-19 ADV PASS-9 NOT-CLEAN CLOSED + FIX BURST + FIRST ZERO-HIGH PASS + PREFLIGHT CMD DEFECT FIXED (2026-07-07). POSTURE: PIPELINE ACTIVE.** develop f5242bef; main a04cb303; merged_count 98. v1.0.0-rc.22 tag at e4285fe5. E-19 pass-9 NOT-CLEAN (B0/H0/M1/L3; 4 findings; first zero-HIGH); fix burst (story-writer single leg); STORY-INDEX v4.141; BC-INDEX v3.74 UNCHANGED; fabric zero-drift (per-file preflight; cross-file awk forbidden). NEXT: E-19 adv pass-10 (fresh context; 20-policy rubric; per-file preflight first).
-8. **4-index at D-760 burst:** BC-INDEX v3.74 (UNCHANGED D-760), VP-INDEX v2.53 (BUMPED D-756; UNCHANGED D-757..D-760 (see decision-log.md for full range)), STORY-INDEX v4.141 (BUMPED D-760; v4.139 D-759), ARCH-INDEX v2.89 (BUMPED D-754; UNCHANGED D-755..D-760 (see decision-log.md for full range)), L2-INDEX v1.0.14 (BUMPED D-754; UNCHANGED D-755..D-760 (see decision-log.md for full range)).
-9. **ALL dispatches carry:** TD-VSDD-097-EXT + TD-VSDD-099 + TD-VSDD-100 + POLICY 14 5-leg + verification_step 7 4-index gate + INV-019 (a)/(b)/(c) + adversary grep origin/factory-artifacts + D-449(a) literal-shell Dim-2 + POLICY 8 v1.3 parity + POLICY 5 v1.3.x mandates + D-537 spec-drift routing + D-539 multi-family adversary + **D-759 BC-cite drift preflight (two-sided; mandatory) + D-760 per-file loop canonical (cross-file awk FORBIDDEN).**
-10. **Latest action D-760 (2026-07-07).** E-19 ADV PASS-9 NOT-CLEAN CLOSED + fix burst (story-writer single leg): adv pass-9 B0/H0/M1/L3 + 5 obs; 0 false-positives; first zero-HIGH pass in E-19 cascade; F-P9-001 SS-06 phantom; F-P9-002 AC-001 category error; F-P9-003 block-comment gap; F-P9-004 ASCII DAG nonexistent edges; epic v1.9; S-19.01 v1.8; S-19.03 v1.9; S-19.05 v1.8; S-19.06 v1.5; S-19.07 v1.4; STORY-INDEX v4.141. Orchestrator preflight cmd defect fixed (per-file loop canonical). Fabric zero-drift confirmed second consecutive. BC-INDEX v3.74 UNCHANGED. Streak 0/3.
+7. **D-761 E-19 ADV PASS-10 NOT-CLEAN CLOSED + FIX BURST + HUMAN DIRECTIVE STRICT-3-CLEAN NO-CAP (2026-07-07). POSTURE: PIPELINE ACTIVE.** develop f5242bef; main a04cb303; merged_count 98. v1.0.0-rc.22 tag at e4285fe5. E-19 pass-10 NOT-CLEAN (B0/H2/M2/L3; 7 findings); fix burst (PO leg BC-4.13.001 v1.8 + SW leg); BC-INDEX v3.75; STORY-INDEX v4.142; VP/ARCH UNCHANGED; HUMAN DIRECTIVE strict-3-CLEAN no-cap; two evidence rules (O-P10-A/B); streak 0/3. NEXT: E-19 adv pass-11 (fresh context; 20-policy rubric; strict-3-CLEAN; per-file preflight first).
+8. **4-index at D-761 burst:** BC-INDEX v3.75 (BUMPED D-761; v3.74 D-758), VP-INDEX v2.53 (BUMPED D-756; UNCHANGED D-757..D-761 (see decision-log.md for full range)), STORY-INDEX v4.142 (BUMPED D-761; v4.141 D-760), ARCH-INDEX v2.89 (BUMPED D-754; UNCHANGED D-755..D-761 (see decision-log.md for full range)), L2-INDEX v1.0.14 (BUMPED D-754; UNCHANGED D-755..D-761 (see decision-log.md for full range)).
+9. **ALL dispatches carry:** TD-VSDD-097-EXT + TD-VSDD-099 + TD-VSDD-100 + POLICY 14 5-leg + verification_step 7 4-index gate + INV-019 (a)/(b)/(c) + adversary grep origin/factory-artifacts + D-449(a) literal-shell Dim-2 + POLICY 8 v1.3 parity + POLICY 5 v1.3.x mandates + D-537 spec-drift routing + D-539 multi-family adversary + **D-759 BC-cite drift preflight (two-sided; mandatory) + D-760 per-file loop canonical (cross-file awk FORBIDDEN) + D-761 HUMAN DIRECTIVE strict-3-CLEAN no-cap + D-761 O-P10-A/B evidence rules.**
+10. **Latest action D-761 (2026-07-07).** E-19 ADV PASS-10 NOT-CLEAN CLOSED + fix burst (PO+SW legs): adv pass-10 B0/H2/M2/L3 + 5 obs; F-P10-001 path_allow 3-way contradiction; F-P10-002 paper-fix AC-004; F-P10-003 stale intro tokens; F-P10-004 jq -e order; F-P10-005/006/007 LOW; O-P10-A/B two evidence rules instituted; BC-4.13.001 v1.8; BC-INDEX v3.75; S-19.02 v1.8 / S-19.04 v1.10 / S-19.05 v1.9 / S-19.06 v1.6 / S-19.07 v1.5; STORY-INDEX v4.142. HUMAN DIRECTIVE: strict-3-CLEAN; no cap. Streak 0/3.
 
-### §12. Pending Work Items — Strict Resume Ordering (refreshed 2026-07-07 D-760; PIPELINE ACTIVE; rc.22 100% SHIPPED D-750; E-19 ADV PASS-9 CLOSED D-760; develop f5242bef; main a04cb303)
+### §12. Pending Work Items — Strict Resume Ordering (refreshed 2026-07-07 D-761; PIPELINE ACTIVE; rc.22 100% SHIPPED D-750; E-19 ADV PASS-10 CLOSED D-761; develop f5242bef; main a04cb303)
 
 | Step | Item | Tier | Gate | Status |
 |------|------|------|------|--------|
 | ~~1-prev..3e-S18.12-fix~~ | ~~E-18 F2/F3/F4 cascade + S-18.00..S-18.12 ALL MERGED — E-18 EPIC COMPLETE D-744~~ | ~~—~~ | **ALL DONE D-560..D-746 (see decision-log.md for full range) 2026-06-13..2026-07-01** | ARCHIVED per D-754 compaction. Full: decision-log.md + merged-stories-ledger.md. |
 | **3f [housekeeping]** | **registry↔ADR env_allow lint + generator tombstone** | **low-priority housekeeping** | standalone | (a) `scripts/generate-registry-from-hooks-json.sh` + `scripts/legacy/hooks-json-pre-templating.json` — add RETIRED/tombstone note; (b) env_allow lint gate for ADR-030. |
 | **3g [housekeeping]** | **`.factory/code-delivery/S-18.04b/` + `code-delivery/S-18.05/` scratch-dir cleanup** | **low-priority housekeeping** | standalone | Scratch dirs from S-18.04b and S-18.05 deliveries remain as untracked directories. No BC or story impact. |
-| **3h [E-19 hardening]** | **E-19 post-rc22-operator-hardening — S-19.01..S-19.07 (7 stories 45pts; all draft; adv pass-9 CLOSED; adv pass-10 NEXT; per-file BC-cite preflight mandatory before dispatch)** | **implementation** | adv pass-10 NEXT (human GO) | W1 parallel: S-19.01 (P1 5pts); S-19.02 (P1 8pts); S-19.03 (P1 5pts); W2 ordered: S-19.04+S-19.05 parallel (P2 5+8pts), then S-19.06 (P2 8pts); W3: S-19.07 (P3 3pts). adv pass-10 NEXT (fresh context; 20-policy rubric; per-file preflight first; trajectory 4). |
+| **3h [E-19 hardening]** | **E-19 post-rc22-operator-hardening — S-19.01..S-19.07 (7 stories 45pts; all draft; adv pass-10 CLOSED; adv pass-11 NEXT; strict-3-CLEAN required; per-file BC-cite preflight mandatory before dispatch)** | **implementation** | adv pass-11 NEXT (human GO) | W1 parallel: S-19.01 (P1 5pts); S-19.02 (P1 8pts); S-19.03 (P1 5pts); W2 ordered: S-19.04+S-19.05 parallel (P2 5+8pts), then S-19.06 (P2 8pts); W3: S-19.07 (P3 3pts). adv pass-11 NEXT (fresh context; 20-policy rubric; strict-3-CLEAN no-cap HUMAN DIRECTIVE; per-file preflight first; trajectory 7). |
 | **4** | **#173 wave-checkpoint** | **implementation** | E-18 F3 + story-approval done | State-durability chain stories S-18.02..S-18.10. Wave 3 NEXT (S-18.02, S-18.08). |
 | **5** | **#171 deferred-revalidate** | **implementation** | #173 stories done | Deferred-revalidation story. |
 | **6** | **#129 canonical-principle** | **implementation** | human-authorize | Ship canonical-principle in plugin. |
@@ -447,4 +445,4 @@ ALL ACTIVE AND MANDATORY on every dispatch:
 | **8/9** | **UNI-PLUG-001 / SK-MCP-001** | **forward** | human-authorize | PROPOSAL REVIEW-READY |
 
 **[D-414(c) acknowledgment: Section 12 is a non-standard addition for forward-backlog durability.]**
-> This checkpoint (D-759 E-19-ADV-PASS-8-NOT-CLEAN-CLOSED v5.10 2026-07-07) supersedes D-758 refresh. Full pre-burst state: `git -C .factory log --oneline -3` → D-759 factory-artifacts commit (see `git -C .factory log -1 --format='%h'`). [Prior checkpoint: D-758 v5.09 2026-07-07.]
+> This checkpoint (D-761 E-19-ADV-PASS-10-NOT-CLEAN-CLOSED v5.12 2026-07-07) supersedes D-760 refresh. Full pre-burst state: `git -C .factory log --oneline -3` → D-761 factory-artifacts commit (see `git -C .factory log -1 --format='%h'`). [Prior checkpoint: D-760 v5.11 2026-07-07.]
