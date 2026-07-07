@@ -5848,6 +5848,8 @@ F-P11-006 LOW: S-19.06 v1.6 deferral-gate uses soft language ("should not deploy
 
 **(5) 4-INDEX AT D-762 CLOSURE:** BC v3.75 (UNCHANGED) / VP v2.53 (UNCHANGED) / STORY v4.143 (BUMPED story-writer leg S-19.01/05/06 updates) / ARCH v2.90 (BUMPED architect leg ADR-025 v1.9→v1.10 + quad-race repair). BC-INDEX and VP-INDEX UNCHANGED. Streak 0/3. NEXT: E-19 adv pass-12 (fresh context; strict-3-CLEAN no-cap per human directive D-761; per-file BC-cite preflight mandatory; Evidence Rules (a)+(b) mandatory; legs SEQUENCED; trajectory →6).
 
+**(6) DRIFT ITEM RECORDED (architect-leg observation):** `validate-count-propagation` PostToolUse WASM hook fires false-positives on every ARCH-INDEX edit — its regex `([0-9]{2,}) BCs` matches changelog narrative text (e.g., "E-18 BCs", "S-19.03 BCs") rather than only count-assertion lines. `on_error=continue` so writes succeed; telemetry noise only. Root fix: scope regex to count-assertion contexts in crates source. Anchor: next maintenance sweep / hook-hardening story (candidate scope-mate with D-751 smoke-findings family). Recorded as drift item in STATE.md Drift Items table (D-762 architect-leg capture 2026-07-07).
+
 Parent-commit: afb7b02c (D-761 SHA-patch factory-artifacts HEAD).
 
 ### Phase
