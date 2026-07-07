@@ -5815,3 +5815,45 @@ D-761-E19-ADV-PASS-10-CLOSED
 ### Date
 
 2026-07-07
+
+---
+
+## D-762
+
+**E-19 ADVERSARIAL PASS-11 NOT-CLEAN B0/H1/M4/L1 CLOSED — FIX BURST COMPLETE. ORCHESTRATOR SELF-ATTRIBUTED D-757 SEQUENCING DEVIATION + QUAD-RACE REPAIR RECORDED.**
+
+**(1) E-19 ADVERSARIAL PASS-11 VERDICT: NOT-CLEAN B0/H1/M4/L1.** Fresh-context adversary reviewed E-19 epic + S-19.01..S-19.07 + STORY-INDEX E-19 section on 2026-07-07. 6 findings (F-P11-001..F-P11-006) + 9 observations. Adversary-stated B0/H1/M4/L1 count matches enumerated bodies (0 BLOCKER + 1 HIGH + 4 MEDIUM + 1 LOW = 6 total). Zero false-positives; live-vs-history adjudication held. Trajectory 16→14→20→9→8→5→12→11→4→7→6. Nine PASSED-verification observations (O-P11-A/E/F/G/H/I attest passes 7-10 fixes ALL HELD; O-P11-B resolves O-P10-D queued question — BC-1.17.001 PC-6 codifies no-UTF-8-trim, S-19.06 traces resolve cleanly; O-P11-C accepted-with-record multi-line block comments non-idiomatic; O-P11-D T-006 literal Mutex gate encoded).
+
+F-P11-001 HIGH: S-19.01 AC-001 misstates BC-5.42.001 EC-001 stderr literal — story-invented "cannot pin covered HEAD SHA" vs normative "gh pr view failed for PR #<pr_number>"; a correct implementation emitting the normative message would fail the AC gate. Third recurrence class at S-19.01 AC-001 EC-001 locus (locus-name corrected pass-9; message-literal not swept — TD-VSDD-060 partial sweep).
+
+F-P11-002 MEDIUM [process-gap]: EC-001 sibling of F-P9-002 category error — TD-VSDD-060 pass-9 sweep was partial (locus name corrected, message literal not verified); complete TD-VSDD-060 sweep required at S-19.01 AC-001 EC-001 locus (name + message literal).
+
+F-P11-003 MEDIUM: S-19.05 v1.9 AC-001 `entry_index` pre-filter causes vacuous-pass on fixtures lacking entry_index — the pre-filter erases the missing-entry_index defect class; empty slurp → `any([]; ...)` evaluates vacuously true; demonstrated with captured jq stdout.
+
+F-P11-004 MEDIUM: S-19.05 v1.9 AC-002 same vacuous-pass class on empty abandoned set — pre-filter or empty-set pattern allows gate to pass vacuously when no `plugin.abandoned` events present; POLICY 11 positive-control requirement not satisfied.
+
+F-P11-005 MEDIUM: ADR-025 D18(e) stale ambiguous 262144 read-bound — test bullet describes fixture size (262144-byte Phase-A cap) but does not distinguish it from the read bound (max_bytes=8192 per BC-4.13.001 v1.8 Phase-B); a reader cannot determine from the spec that the plugin reads only a 8192-byte prefix.
+
+F-P11-006 LOW: S-19.06 v1.6 deferral-gate uses soft language ("should not deploy") vs S-19.03 bolded hard-gate ("MUST NOT be merged") despite identical `depends_on:` semantics; asymmetry is arbitrary and potentially misleading.
+
+**(2) ORCHESTRATOR SELF-ATTRIBUTED D-757 SEQUENCING DEVIATION + QUAD-RACE REPAIR.** Orchestrator dispatched architect and story-writer legs in parallel (violating D-757 sequencing rule requiring index-writing legs to be sequential). Consequence: architect leg cited STORY-INDEX v4.142 in ARCH-INDEX v2.90 changelog entries while story-writer leg subsequently bumped STORY-INDEX to v4.143 — quad-race index-citation mismatch. Repair: ARCH-INDEX v2.90 last_amended and changelog entries corrected v4.142→v4.143 (in-burst repair; no ARCH-INDEX version bump). Verification: `grep -c "v4.142" .factory/specs/architecture/ARCH-INDEX.md` → 0. Root cause recorded; D-757 correction mandated: index-writing legs MUST be dispatched sequentially from pass-12 onward.
+
+**(3) FIX BURST COMPLETE — two specialist legs + orchestrator quad-race repair.**
+
+**Architect leg:** ADR-025 v1.9→v1.10 (F-P11-005 — D18(e) reworded: max_bytes=8192 is the read bound per BC-4.13.001 v1.8 Phase-B; 262144 is the fixture size upper bound approaching Phase-A cap; distinction explicit). ARCH-INDEX v2.89→v2.90 (ADR-025 row bumped + quad-race repair applied). Closes F-P11-005.
+
+**Story-writer leg:** S-19.01 v1.8→v1.9 (BC-5.42.001 EC-001 stderr literal verbatim at 5 AC body sites: "gh pr view failed for PR #<pr_number>"; TD-VSDD-060 full sweep EC-001 locus — locus name + message literal both verified; closes F-P11-001 + F-P11-002). S-19.05 v1.9→v1.10 (AC-001 entry_index pre-filter removed; ASYNC_SINK_EMPTY non-empty guard added; fixture mandates ≥1 affirmative record; AC-002 ABANDONED_SET_EMPTY non-empty guard added; T-006 literal Mutex gate normative test ID encoded per O-P11-D; closes F-P11-003 + F-P11-004). S-19.06 v1.6→v1.7 (deferral gate symmetric bolded hard-gate: "MUST NOT be merged until S-19.04 merges"; closes F-P11-006). STORY-INDEX v4.142→v4.143 (S-19.01/05/06 cells updated).
+
+**(4) ORCHESTRATOR INDEPENDENT VERIFICATION (Evidence Rules (a)+(b) applied):** (i) `grep -c "cannot pin covered HEAD SHA" .factory/stories/S-19.01-pr-manager-hardening.md` → 0; `grep -c "gh pr view failed" .factory/stories/S-19.01-pr-manager-hardening.md` → 5; (ii) ADR-025 D18(e) max_bytes=8192 read-bound cite confirmed; (iii) `grep -c "entry_index.*grep" .factory/stories/S-19.05-async-completion-telemetry-sink-release-mode.md` → 0 (pre-filter absent); ASYNC_SINK_EMPTY + ABANDONED_SET_EMPTY guards confirmed; (iv) S-19.06 `grep -c "MUST NOT.*S-19\.04"` → 1; zero "should not deploy" hits; (v) 4-index `grep "^version:"` → BC "3.75" / VP "2.53" / STORY "4.143" / ARCH "2.90".
+
+**(5) 4-INDEX AT D-762 CLOSURE:** BC v3.75 (UNCHANGED) / VP v2.53 (UNCHANGED) / STORY v4.143 (BUMPED story-writer leg S-19.01/05/06 updates) / ARCH v2.90 (BUMPED architect leg ADR-025 v1.9→v1.10 + quad-race repair). BC-INDEX and VP-INDEX UNCHANGED. Streak 0/3. NEXT: E-19 adv pass-12 (fresh context; strict-3-CLEAN no-cap per human directive D-761; per-file BC-cite preflight mandatory; Evidence Rules (a)+(b) mandatory; legs SEQUENCED; trajectory →6).
+
+Parent-commit: afb7b02c (D-761 SHA-patch factory-artifacts HEAD).
+
+### Phase
+
+D-762-E19-ADV-PASS-11-CLOSED
+
+### Date
+
+2026-07-07
