@@ -1,11 +1,11 @@
 ---
 document_type: epic
 epic_id: "E-19"
-version: "v1.8"
+version: "v1.9"
 status: draft
 title: "Post-rc.22 Operator Hardening — pr-manager race fixes, verify-factory-lock size defect, warn-pending-wave-gate false-positive, registry/bundle hygiene, async telemetry + VSDD_SINK_FILE, host::read_prefix bounded partial read"
 prd_capabilities: []
-subsystems_affected: [SS-01, SS-02, SS-03, SS-04, SS-05, SS-06, SS-07, SS-09]
+subsystems_affected: [SS-01, SS-02, SS-03, SS-04, SS-05, SS-07, SS-09]
 target_release: "v1.0.0-rc.23"
 story_count: 7
 producer: story-writer
@@ -23,7 +23,7 @@ inputs:
   - .factory/stories/S-19.06-read-prefix-bounded-partial-read.md
   - .factory/stories/S-19.07-verify-factory-lock-read-prefix-migration.md
   - .factory/specs/behavioral-contracts/ss-04/BC-4.13.001.md
-input-hash: "b42dd69"
+input-hash: "d0f7250"
 ---
 
 # Epic E-19: Post-rc.22 Operator Hardening
@@ -166,18 +166,15 @@ follows BC-1.17.001 v1.1.
 
 ## Dependency Graph
 
-```
-S-19.01 (W1, P1) ─┐
-S-19.02 (W1, P0) ─┤ (all W1 independent; run in parallel)    ┌──► S-19.07 (W3, P2)
-S-19.03 (W1, P1) ─┼──────────────────────────────────────────┤         ▲
-                   │                                          │         │
-                   └──► S-19.06 (W2, P2, depends_on: S-19.03, S-19.04) ┘
-                                                             ▲
-S-19.04 (W2, P2) ───────────────────────────────────────────┘
-S-19.05 (W2, P2) (independent; no S-19.03, S-19.04, or S-19.06 dependency)
+```mermaid
+graph LR
+  S-19.03 --> S-19.06
+  S-19.04 --> S-19.06
+  S-19.02 --> S-19.07
+  S-19.06 --> S-19.07
 ```
 
-Only S-19.03 and S-19.04 gate S-19.06; S-19.05 is fully independent. S-19.07 depends on S-19.02 (Phase-A cap raise) AND S-19.06 (read_prefix host implementation).
+Only S-19.02 and S-19.06 gate S-19.07; only S-19.03 and S-19.04 gate S-19.06; S-19.01 and S-19.05 block nothing.
 
 Topological order: W1 → W2 → W3 (by priority + S-19.06 gate on S-19.03 AND S-19.04 + S-19.07 gate on S-19.02 AND S-19.06). No cycles. Acyclic confirmed.
 
@@ -224,10 +221,13 @@ Topological order: W1 → W2 → W3 (by priority + S-19.06 gate on S-19.03 AND S
 | BC-3.08.001 | S-19.05 (amended v1.19: Event 5 plugin.abandoned all 7 mandatory fields including type + timestamp + entry_index; Invariant 6 key extension; Event 6 plugin.completed async path 9 mandatory fields including plugin_version; schema-level defense for concurrent entry_index traceability) |
 | BC-1.17.001 | S-19.06 (new: host::read_prefix bounded partial read) |
 
+Story BC-table rows use abbreviated titles for cell fit; the BC file H1 remains the sole authoritative title (POLICY 7); abbreviations are non-normative.
+
 ## Changelog
 
 | Version | Date | Author | Change |
 |---------|------|--------|--------|
+| v1.9 | 2026-07-07 | story-writer | E-19 pass-9 fix burst: F-P9-001 subsystems_affected SS-06 removed (phantom; union recomputation SS-01/02/03/04/05/07/09 confirmed); F-P9-004 ASCII Dependency Graph replaced with mermaid graph LR (edges: S-19.03→S-19.06, S-19.04→S-19.06, S-19.02→S-19.07, S-19.06→S-19.07); O-P9-003 BC Traceability abbreviation convention sentence added. |
 | v1.8 | 2026-07-07 | story-writer | E-19 pass-8 fix burst: F-P8-004 Stories table S-19.03 BCs cell → "BC-2.07.001, BC-2.02.011"; F-P8-011 Wave model note added to Sequencing rationale. |
 | v1.7 | 2026-07-07 | story-writer | E-19 pass-7 fix burst: F-P7-008 Description item 2 header updated to S-19.02 Phase-A + S-19.07 Phase-B; O-P7-001 one-liner phased-continuation note added to intro paragraph; PRD Capabilities BC-3.08.001 v1.18→v1.19 + pass-7 cite + schema-level defense note; Out-of-Scope BC-3.08.001 v1.18→v1.19 + pass-7 cite + schema-level defense; BC Traceability BC-3.08.001 v1.18→v1.19 + schema-level defense note. |
 | v1.6 | 2026-07-07 | story-writer | E-19 pass-6 fix burst: F-P6-003 BC-3.08.001 v1.17→v1.18 sweep (PRD Capabilities, Out-of-Scope, BC Traceability); O-P6-001 Trigger section S-19.06/S-19.07 authorization sentences added; O-P6-003 EAC-003 path_resolution_failed negative-control B added. |
