@@ -1,11 +1,11 @@
 ---
 document_type: behavioral-contract
 level: L3
-version: "1.0"
+version: "1.1"
 status: draft
 producer: product-owner
 timestamp: 2026-07-06T00:00:00Z
-last_amended: "(v1.0) — initial creation (product-owner): E-19 pass-2 fix burst Package 2 — host::read_file absent-file semantics: codes::NOT_FOUND (-5) additive error code, HostError::NotFound SDK variant (no #[non_exhaustive] per O-P2-002), rejoin path-allowed resolution via shared path_util module, zero false-positive capability_denied for allowlisted-absent paths (story anchor S-19.03; closes rc.22 smoke FINDING-2 BC leg)."
+last_amended: "(v1.1) — E-19 pass-3 PO finalization (product-owner): F-P3-004 §VP Anchors + §Verification Properties VP-TBD → VP-097 (traversal defense kani-proof; also anchored BC-2.02.011 EC-001) + VP-098 (allowlisted-absent file NOT_FOUND (-5) + zero CAPABILITY_DENIED false-positives integration). [Prior: (v1.0) — initial creation (product-owner): E-19 pass-2 fix burst Package 2 — host::read_file absent-file semantics: codes::NOT_FOUND (-5) additive error code, HostError::NotFound SDK variant (no #[non_exhaustive] per O-P2-002), rejoin path-allowed resolution via shared path_util module, zero false-positive capability_denied for allowlisted-absent paths (story anchor S-19.03; closes rc.22 smoke FINDING-2 BC leg).]"
 phase: F3
 inputs:
   - .factory/stories/S-19.03-warn-pending-wave-gate-file-not-found.md
@@ -19,7 +19,8 @@ subsystem: "SS-02"
 capability: "CAP-009"
 lifecycle_status: draft
 introduced: v1.0-feature-engine-discipline-E19
-modified: []
+modified:
+  - "2026-07-06 (v1.1)"
 deprecated: null
 deprecated_by: null
 replacement: null
@@ -117,15 +118,16 @@ S-19.03 (warn-pending-wave-gate FINDING-2: read_file file_not_found semantics + 
 
 ## VP Anchors
 
-- VP-TBD — path_allowed() returns true for allowlisted-absent paths; read_file returns NOT_FOUND (-5) and emits internal.file_not_found; zero capability_denied for allowlisted-absent paths (unit + integration VP; to be authored as part of S-19.03)
+- VP-097 — path_util::resolve_path_for_allowlist Traversal Defense — .. Sequences Cannot Resolve Outside Allowlist Prefixes (kani-proof; S-19.03; also anchored BC-2.02.011 EC-001)
+- VP-098 — Allowlisted-but-Absent File Returns internal.file_not_found Event and NOT_FOUND (-5); Zero CAPABILITY_DENIED False-Positives (integration; S-19.03)
 
 ## Verification Properties
 
 | VP-NNN | Property | Proof Method |
 |--------|----------|-------------|
-| VP-TBD | path_allowed() returns true for absent path under allowed prefix; returns false for path outside all allowed prefixes | unit (Rust; S-19.03 AC-001 test) |
-| VP-TBD | read_file on allowlisted-absent path returns codes::NOT_FOUND (-5); zero capability_denied events in captured stream | unit (Rust; S-19.03 AC-002 test) |
-| VP-TBD | codes::NOT_FOUND defined as -5; exported from hook-sdk | grep gate (S-19.03 AC-003: `grep -rq "NOT_FOUND.*=.*-5"`) |
+| VP-097 | path_allowed() returns true for absent path under allowed prefix; returns false for path outside all allowed prefixes | kani-proof (S-19.03 AC-001; also anchored BC-2.02.011 EC-001) |
+| VP-098 | read_file on allowlisted-absent path returns codes::NOT_FOUND (-5); zero capability_denied events in captured stream | integration (bats; S-19.03 AC-002) |
+| VP-098 | codes::NOT_FOUND defined as -5; exported from hook-sdk | grep gate (S-19.03 AC-003: `grep -rq "NOT_FOUND.*=.*-5"`) |
 
 ## Traceability
 
@@ -144,4 +146,5 @@ S-19.03 (warn-pending-wave-gate FINDING-2: read_file file_not_found semantics + 
 
 | Version | Date | Author | Change |
 |---------|------|--------|--------|
+| 1.1 | 2026-07-06 | product-owner | E-19 pass-3 PO finalization: F-P3-004 — §VP Anchors VP-TBD → VP-097 (path_util::resolve_path_for_allowlist Traversal Defense kani-proof; also anchored BC-2.02.011 EC-001) + VP-098 (Allowlisted-but-Absent File Returns internal.file_not_found Event and NOT_FOUND (-5); Zero CAPABILITY_DENIED False-Positives integration); §Verification Properties three VP-TBD rows → VP-097/VP-098 per property alignment. |
 | 1.0 | 2026-07-06 | product-owner | Initial creation. E-19 pass-2 fix burst Package 2. Three-layer absent-file contract: (a) codes::NOT_FOUND = -5 additive (ADR-025 Decision 13; HOST_ABI_VERSION = 1 unchanged); HostError::NotFound variant in hook-sdk; Other(i32) catch-all preserved; no #[non_exhaustive] (O-P2-002). (b) Rejoin path-allowed algorithm via shared path_util::resolve_path_for_allowlist (extracted from write_file.rs; imported by both read_file.rs and write_file.rs). (c) Allowlisted-absent path returns NOT_FOUND (-5) + internal.file_not_found event; zero false-positive capability_denied. Closes rc.22 smoke FINDING-2 BC leg (S-19.03). |

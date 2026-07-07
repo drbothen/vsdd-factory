@@ -5436,3 +5436,39 @@ E-19-ADV-PASS-2-NOT-CLEAN-CLOSED
 2026-07-06
 
 ---
+
+## D-754
+
+### Summary
+
+E-19 ADV PASS-3 NOT-CLEAN (B0/H5/M9/L6) + FIX BURST COMPLETE + STATE.md COMPACTION. Fresh-context adversary reviewed E-19 epic + S-19.01..S-19.06 + STORY-INDEX E-19 section on 2026-07-06. Verdict: NOT-CLEAN — 20 findings + 7 observations. Dominant class: spec-vs-spec contradictions (ADR-025 D15 vs BC-1.17.001) + POLICY 9 propagation gaps introduced by the pass-2 fix burst itself. F-P3-019 adjudicated FALSE-POSITIVE (bats-full-suite EXISTS in ci.yml; adversary premise factually wrong; story-writer v1.3 destructive false-premise fix REVERTED at S-19.01 v1.4). All 19 non-FALSE-POSITIVE findings closed across 4 specialist legs. Streak 0/3. Pass-4 NEXT with fresh context.
+
+### Decision
+
+**(1) E-19 ADVERSARIAL PASS-3 VERDICT: NOT-CLEAN B0/H5/M9/L6.** Fresh-context adversary reviewed E-19 epic + S-19.01..S-19.06 + STORY-INDEX E-19 section. 20 findings + 7 observations: F-P3-001 HIGH (ADR-025 D15 vs BC-1.17.001 spec-vs-spec contradiction — signature u64/i64-no-timeout vs u32/i32+timeout_ms; capability reuse-read_file-key vs separate read_prefix block; story misapplied code-vs-spec Standing Rule to spec-vs-spec situation); F-P3-002 HIGH (ADR D18 test bullets conflate FFI host-function return value with dispatcher PostToolUse process exit_code — different signals, different test paths); F-P3-003 HIGH (verification-architecture.md 8 rows carry placeholder titles disagreeing with VP-INDEX canonical titles — POLICY 9 propagation gap from pass-2 burst); F-P3-004 HIGH (BC-5.42.001/BC-2.07.001/BC-1.17.001 verification_properties: VP-TBD not wired to VP-094/095/097/098/101 — POLICY 9 reciprocal gap); F-P3-005 HIGH (STORY-INDEX subsystem cites disagree with story frontmatter: S-19.01 SS-06 ghost (correct: SS-05); S-19.06 SS-04 ghost (correct: SS-01)); F-P3-006 MED (S-19.02 AC-006 >= vs BC-4.13.001 Invariant 10 strict >); F-P3-007 MED (S-19.03 AC-002 omits type+timestamp mandatory fields from BC-2.07.001 Event 1 shape); F-P3-008 MED (S-19.04 AC-001 gate TD-VSDD-059 inert: passes against defective baseline already containing hello-hook + underscore WASMs); F-P3-009 MED (BC-1.17.001 stale same-burst authoring prose); F-P3-010 MED (S-19.06 unmodelled S-19.04 registry serialization dependency — depends_on missing S-19.04); F-P3-011 MED (S-19.03 blocks[] missing S-19.06 — bidirectional-DAG-sweep violation); F-P3-012 MED (S-19.03 + S-19.06 subsystems[] omit SS-02 dispatcher core); F-P3-013 LOW (BC-3.08.001 entry_index example misstates multi-entry reality for verify-factory-lock); F-P3-014 LOW (VP-097 anchors BC-2.02.011 but S-19.03 behavioral_contracts array omitted it); F-P3-015 LOW (BC-5.42.001 CAP-TBD/ADR-TBD unfilled); F-P3-016 LOW (BC-1.17.001 CAP-TBD unfilled); F-P3-017 LOW (D-a..D-g informal decision references in story bodies drift-prone); F-P3-018 LOW (EAC-005 lacks load-bearing bundle-side integration gate); F-P3-019 LOW (FALSE-POSITIVE: bats-full-suite EXISTS — adversary claimed ci.yml lacks it; wrong); F-P3-020 LOW (S-19.06 stale codes.rs purity row). 7 observations O-P3-001..007.
+
+**(2) F-P3-019 FALSE-POSITIVE ADJUDICATION.** Orchestrator independent ground-truth grep of `.github/workflows/ci.yml` confirmed jobs include `bats-full-suite`. Adversary premise was factually wrong. Story-writer v1.3 fix executed the false premise via `replace_all` renaming the story's own EC-003 CI deliverable job from `bats-darwin-leg-macos` to `bats-wave-handoff-macos` — a destructive fix on a false foundation. Caught by orchestrator verification. REVERTED at S-19.01 v1.4. Lesson codified: L-BB-finding-premise-must-be-verified-before-fix. Companion incident: architect grepped verification-architecture.md against itself at F-P3-003 and attested "identical to VP-INDEX" (FALSE PARITY ATTESTATION); orchestrator adjudicated with independent cross-file greps; redo verified 8/8 byte-match. Lesson: L-BB-parallel-spec-authorship-requires-cross-reconciliation-sweep.
+
+**(3) FIX BURST COMPLETE — 4 specialist legs.**
+
+**Architect:** ADR-025 v1.8→v1.9 — Decision 15 updated to BC-1.17.001 authoritative signature (u32/u32/u32/u32 → i32 with timeout_ms; separate read_prefix capability key per least-privilege); Decision 18 FFI-return/process-exit disambiguation. ADR-030 v1.0 NEW (pr-manager merge-operation integrity: 3-component architecture completion-guard.wasm + check-stale-verdict.sh + enforce-merge-strategy.sh). ARCH-INDEX v2.87→v2.89 (v2.88 ADR-025 v1.9; v2.89 ADR-030 v1.0 NEW). verification-architecture.md v1.6→v1.7 (8 placeholder-title rows updated to byte-match VP-INDEX canonical VP-094..VP-101 + VP-079 titles; independently verified after initial FALSE PARITY ATTESTATION). Closes F-P3-001, F-P3-002, F-P3-003, F-P3-015 ADR leg.
+
+**Business-analyst:** CAP-033 `pr_merge_integrity` NEW in capabilities.md v1.7→v1.8. BC-1.17.001 mapped to CAP-009 domain with read_prefix sub-capability annotation. L2-INDEX v1.0.13→v1.0.14 (CAP-033 row). Closes F-P3-015 CAP leg + F-P3-016.
+
+**Product-owner:** BC-5.42.001 v1.0→v1.1 (VP-094/VP-095 wired; CAP-033 + ADR-030 filled; stale prose removed). BC-2.07.001 v1.0→v1.1 (VP-097/VP-098 wired). BC-1.17.001 v1.0→v1.1 (VP-101 wired; stale §Background removed; signature corrected to ADR-025 v1.9). BC-3.08.001 v1.16→v1.17 (entry_index example corrected for multi-entry verify-factory-lock). BC-INDEX v3.65→v3.69 (v3.66/v3.67/v3.68/v3.69). Closes F-P3-004, F-P3-009, F-P3-013, F-P3-015 BC leg.
+
+**Story-writer:** S-19.01 v1.3→v1.4 (REVERTED false-premise fix). S-19.02 v1.2→v1.3 (AC-006 >=→>). S-19.03 v1.3→v1.4 (type+timestamp; blocks[S-19.06]; SS-02; BC-2.02.011 wired). S-19.04 v1.3→v1.4 (AC-001 baseline analysis). S-19.05 v1.2→v1.3 (version-pin drop). S-19.06 v1.0→v1.1 (depends_on+S-19.04; SS-02; codes.rs corrected). E-19 epic v1.2→v1.3 (EAC-005 gate). STORY-INDEX v4.132→v4.134 (v4.133 bumps; v4.134 SS-cite corrections). D-a..D-g informal references replaced with D-753 decision-log canonical citations.
+
+**(4) 4-INDEX AT D-754 CLOSURE:** BC v3.69 / VP v2.52 / STORY v4.134 / ARCH v2.89. capabilities.md v1.8 (CAP-033). ADR-030 NEW. Streak 0/3 per D-628. NEXT: E-19 adv pass-4 (fresh context). STATE.md compacted pre 496 → post N lines (D-744..D-753 SIZE BUDGET collapsed + §1 D-750 compressed + §3 E-18-era carries archived + §10 old PRs collapsed + §12 completed rows removed).
+
+Parent-commit: fb654b2b (D-753 SHA-patch factory-artifacts HEAD).
+
+### Phase
+
+E-19-ADV-PASS-3-CLOSED
+
+### Date
+
+2026-07-06
+
+---

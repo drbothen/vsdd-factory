@@ -2,18 +2,18 @@
 document_type: domain-spec-section
 level: L2
 section: capabilities
-version: "1.7"
+version: "1.8"
 status: accepted
 producer: business-analyst
 timestamp: 2026-04-25T00:00:00
-last_amended: 2026-06-15
+last_amended: 2026-07-06
 phase: 1.3
 inputs:
   - .factory/phase-0-ingestion/pass-2-domain-model.md
   - .factory/phase-0-ingestion/pass-8-final-synthesis.md
   - .factory/legacy-design-docs/2026-04-24-v1.0-factory-plugin-kit-design.md
   - .factory/specs/architecture/ARCH-INDEX.md
-input-hash: "a6c6f62"
+input-hash: "85c749e"
 traces_to: L2-INDEX.md
 ---
 
@@ -211,10 +211,16 @@ The factory provides durable continuity across two failure classes: (a) wave-bou
 Subsystems: SS-01, SS-04, SS-05, SS-06, SS-07. Outcome: A new session started after wave N rehydrates exactly the specs and stories needed for wave N+1 from a verified, git-committed checkpoint. Mid-wave compaction events lose no load-bearing state (SHAs, decisions, active BC IDs). Fabricated-SHA risk class is directly eliminated via anti-fabrication cross-checks in HANDOFF.md.
 Source: ADR-026 (issue #173); E-18. (First authored against ADR-026 v1.0 — informational, non-load-bearing.)
 
+**CAP-033 — Enforce pr-manager merge-operation integrity — READY-verdict SHA pinning, stale-verdict detection, and release-branch merge-strategy guard**
+Three mechanically-enforced guards close distinct unsafe-merge windows: (a) the `pr-manager-completion-guard` SubagentStop hook blocks READY verdicts lacking a `covered_sha: <40-hex>` field (`READY_SHA_MISSING`), preventing the orchestrator from ever acting on a verdict that cannot be staleness-checked; (b) `check-stale-verdict.sh` compares the live PR HEAD (`gh pr view --json headRefOid`) against the `covered_sha` embedded in the verdict immediately before any `gh pr merge` call, exiting non-zero with `STALE_READY_VERDICT` if the HEAD has advanced since review; (c) `enforce-merge-strategy.sh` wraps `gh pr merge` and forces `--merge` on branches matching `^release/v`, emitting `RELEASE_PR_SQUASH_FORBIDDEN` if `--squash` or `--rebase` is supplied for a release branch.
+Subsystems: SS-05, SS-07. Outcome: the orchestrator cannot merge on a stale READY verdict; release PRs are mechanically guaranteed to use `--merge`; the RELEASING.md `--merge` requirement is enforced at the script layer rather than by convention.
+Source: D-749 (L-BB-merge-race-ready-report-stale-head) + D-750 (L-BB-release-pr-squash-merge-not-mechanically-enforced); BC-5.42.001; S-19.01. Justification: no existing capability covers merge-operation integrity at the pr-manager level; CAP-004 covers BC→test→demo traceability (distinct concern); append-only P1 addition at next free ID.
+
 ## CHANGELOG
 
 | Version | Date | Change |
 |---------|------|--------|
+| v1.8 | 2026-07-06 | F-P3-015/F-P3-016 capability-mapping: authored CAP-033 (P1 — pr-manager merge-operation integrity; READY-verdict SHA pinning + stale-verdict detection + release-branch merge-strategy guard; SS-05+SS-07; D-749+D-750; BC-5.42.001; S-19.01). CAP count advance 32→33. |
 | v1.7 | 2026-06-15 | F-P18-O1 cosmetic fix: CHANGELOG display rows reordered into monotonic descending order (newest-first) to prevent a scrambled sequence from masking future missing-row defects. No row content, version number, or date was altered. All versions v1.0–v1.6 confirmed present. |
 | v1.6 | 2026-06-14 | O-P8-001 cite-stability fix (F2 adversarial pass-8): CAP-032 body `Source:` line migrated from volatile-pin `ADR-026 v1.0 (issue #173); E-18.` to stable anchor form `ADR-026 (issue #173); E-18.` with informational non-load-bearing parenthetical per TD-VSDD-091 / POLICY 19 spirit. Changelog row v1.4 historical version mention preserved as authoring-time record (non-normative). |
 | v1.5 | 2026-06-14 | F-P3-005 sibling-sweep fix (F2 adversarial pass-3, E-18): CAP-032 PostCompact re-anchor description updated to remove phantom `current_wave` field. Re-anchor now restates pipeline identity as `current_cycle:` + `current_step:` (engine) or sprint-state.yaml topo-sort wave-group ordinal (product pipelines), sourced from STATE.md on `factory-artifacts`. Explicit normative note added: no `current_wave:` field is emitted or read (DI-023). |

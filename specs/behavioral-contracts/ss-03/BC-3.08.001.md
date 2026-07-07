@@ -1,7 +1,7 @@
 ---
 document_type: behavioral-contract
 level: L3
-version: "1.16"
+version: "1.17"
 last_amended: 2026-07-06
 status: draft
 producer: product-owner
@@ -22,6 +22,7 @@ introduced: v1.0-feature-plugin-async-semantics-pass-1
 modified:
   - "2026-07-06 (v1.15)"
   - "2026-07-06 (v1.16)"
+  - "2026-07-06 (v1.17)"
 deprecated: null
 deprecated_by: null
 replacement: null
@@ -191,7 +192,7 @@ The `error_code` field is an enum with exactly two valid values: `"E-REG-002"` a
 
 **Mandatory fields**: `type`, `trace_id`, `session_id`, `plugin_name`, `entry_index`, `drain_window_ms`, `timestamp`.
 
-**`entry_index` semantics**: The ordinal position (0-based, from `enumerate()`) of this plugin's registry entry in the async partition at the time of dispatch. The registry idiom permits multiple entries per `plugin_name` (e.g., `verify-factory-lock` has two entries: one for `Edit|Write|MultiEdit|Agent` and one for `Bash`). Name-only keying collapses distinct invocations; consumers need the `(plugin_name, entry_index)` tuple to unambiguously identify which registry entry was abandoned.
+**`entry_index` semantics**: The ordinal position (0-based, from `enumerate()`) of this plugin's registry entry in the async partition at the time of dispatch. The `plugin_name` field in `plugin.abandoned` events is the registry entry `name` field verbatim — it is not derived from the WASM binary path or a logical plugin grouping label. The registry schema does NOT enforce `name` uniqueness across entries: it is possible to register two entries with identical `name` values for different event types or tool filters. If both such entries are in-flight at drain time, both emit `plugin.abandoned` events with the same `plugin_name`, making name-only keying ambiguous. Name-only keying collapses those distinct invocations; consumers need the `(plugin_name, entry_index)` tuple to unambiguously identify which registry entry was abandoned. (Note on the production registry: the two `verify-factory-lock` entries carry DIFFERENT `name` values — `verify-factory-lock` and `verify-factory-lock-bash` respectively — and would therefore produce distinct `plugin_name` values in any `plugin.abandoned` events; `entry_index` disambiguation is a schema-level invariant for future-proof consumers of any registry that does not enforce `name` uniqueness.)
 
 **`drain_window_ms` semantics**: The effective drain window value at the time the timer fired — `ASYNC_DRAIN_WINDOW_MS` in release builds, or the debug-override value from `VSDD_ASYNC_DRAIN_WINDOW_MS` in debug builds (SEC-003). This is the dispatcher-level drain window, distinct from the per-plugin `timeout_ms` carried by `plugin.timeout` events. Both may apply to the same plugin: `plugin.timeout` fires when the plugin exceeds its per-plugin budget; `plugin.abandoned` fires when the drain window expires regardless of per-plugin timeout status.
 
@@ -328,6 +329,22 @@ TBD — single story per ADR-019 §6 (no phased rollout, user decision 2026-05-0
 | **Deterministic** | Event content is deterministic given same inputs; file timestamps vary. |
 | **Thread safety** | FileSink is designed for concurrent writes (per BC-3.x contracts). |
 | **Overall classification** | Effectful (filesystem I/O); emission is fire-and-once (no retry). |
+
+## Amendment 2026-07-06 (v1.16 → v1.17 — F-P3-013: `entry_index` semantics paragraph corrected; derivation rule stated explicitly; verify-factory-lock example replaced)
+
+**Driver:** Adversary finding F-P3-013 (E-19 pass-3) — the `entry_index` semantics paragraph in Event 5 (`plugin.abandoned`) claimed that "the registry idiom permits multiple entries per `plugin_name`" and cited `verify-factory-lock` as an example (one entry for `Edit|Write|MultiEdit|Agent`, one for `Bash`). Ground truth: those two production registry entries carry DIFFERENT `name` field values (`verify-factory-lock` and `verify-factory-lock-bash`), so they produce distinct `plugin_name` values in any `plugin.abandoned` events and do NOT constitute a name-duplication example. The paragraph also failed to state the derivation rule for `plugin_name` explicitly.
+
+**Changes made:**
+
+1. **Event 5 `entry_index` semantics paragraph** (F-P3-013): Replaced the erroneous `verify-factory-lock` duplication example with: (a) explicit derivation rule — `plugin_name` in `plugin.abandoned` events is the registry entry `name` field verbatim; (b) the registry schema does NOT enforce `name` uniqueness across entries, making name-only keying potentially ambiguous for future registries; (c) a parenthetical note that the production `verify-factory-lock` / `verify-factory-lock-bash` pair carries DIFFERENT names and does not require `entry_index` disambiguation today, but the mechanism exists as a schema-level invariant for future-proof consumers.
+2. **Invariant 6** (unchanged): Terminal-semantics key remains `trace_id + plugin_name + entry_index` — no change to the disambiguation tuple.
+3. **Frontmatter**: `version: "1.16"` → `"1.17"`; `modified[]` entry added.
+
+**POLICY 1 verification:** All prior content preserved verbatim except the `entry_index` semantics paragraph replacement above.
+**POLICY 7 verification:** H1 heading unchanged.
+**TD-031 verification:** No new line-number citations introduced.
+
+---
 
 ## Amendment 2026-07-06 (v1.15 → v1.16 — F-P2-008: `entry_index` field for `plugin.abandoned`; Invariant 6 tuple key extended)
 
@@ -614,6 +631,7 @@ Addresses adversary pass-2 finding F-P2-010.
 
 **Changelog:**
 
+| v1.17 | 2026-07-06 | product-owner | E-19 pass-3 PO finalization (F-P3-013): `entry_index` semantics paragraph in Event 5 corrected — derivation rule stated explicitly: `plugin_name` in `plugin.abandoned` events = registry entry `name` field verbatim. Example replaced: the two production `verify-factory-lock` entries carry DIFFERENT `name` values (`verify-factory-lock` vs `verify-factory-lock-bash`) so they do NOT constitute a name-duplication example. Paragraph now cites the schema-level invariant: registry does NOT enforce `name` uniqueness, so future registries may have duplicate `name` entries that make name-only keying ambiguous — `entry_index` is the disambiguation mechanism. Invariant 6 terminal-semantics key (`trace_id + plugin_name + entry_index`) UNCHANGED. |
 | v1.16 | 2026-07-06 | product-owner | F-P2-008 fix burst (product-owner): Event 5 `plugin.abandoned` schema extended with mandatory field `entry_index: u32` (ordinal position of registry entry in async partition at spawn time; enumerate() order; disambiguates multiple entries per plugin_name — e.g., verify-factory-lock has 2 entries). Mandatory fields list updated. Invariant 6 terminal-semantics key extended: `trace_id+plugin_name` → `trace_id+plugin_name+entry_index`. EC-007 and abandoned-one test vector updated. Closes F-P2-008. BC-INDEX v3.60→v3.61. |
 | v1.15 | 2026-07-06 | product-owner | F-P1-013: Event 5 `plugin.abandoned` added to catalog; drain-terminal semantics codified (option a); Invariant 6; EC-007; abandoned-none/one test vectors; VP-079 scope updated; §Architecture Anchors updated. Closes F-P1-013. |
 | v1.14 | 2026-05-09 | state-manager | F-P36-001: Traceability Stories row updated TBD → S-15.01 (F3 story decomposition propagation). |

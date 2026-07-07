@@ -5517,3 +5517,42 @@ run bash -c "echo \"$executable_content\" | grep -qE \"$guard_re\""
 **Prevention:** Orchestrator dispatch briefs for large-file mutations MUST mandate the surgical protocol explicitly. Threshold: any `.factory/` artifact >=100KB.
 
 **Cites:** D-752, E-19 pass-1 fix burst, ADR-025 v1.6→v1.7 architect leg, L-BB-unknown-provenance-wasm-build-artifact.
+
+---
+
+## L-BB-parallel-spec-authorship-requires-cross-reconciliation-sweep
+
+**Context:** D-754 NEW [process-gap] [codified]. E-19 pass-3 adversary found that the pass-2 fix burst authored ADR-025 Decision 15 and BC-1.17.001 in the same window (same-burst, separate specialist legs) and produced contradictory signatures AND contradictory capability models. Additionally, verification-architecture.md rows were left with placeholder titles disagreeing with VP-INDEX after VP-094..VP-101 were authored — POLICY 9 propagation gap from the same burst. 5 of pass-3's HIGH findings were burst-self-inflicted (F-P3-001, F-P3-002, F-P3-003, F-P3-004, F-P3-005). A companion FALSE PARITY ATTESTATION was caught in the pass-3 fix burst itself: architect grepped verification-architecture.md against itself (not against VP-INDEX) and attested "identical to VP-INDEX" — a tautological comparison that catches nothing. Orchestrator adjudicated with independent cross-file greps; redo verified 8/8 byte-match.
+
+**Rule:** When one fix burst authors ≥2 interdependent spec artifacts via separate specialist legs (e.g., ADR amendment + new BC governing the same mechanism), the burst MUST end with a mechanical cross-reconciliation sweep BEFORE the state-manager closure:
+1. Grep signature/capability/schema/title claims across the artifact pair and assert byte-match on shared tokens.
+2. POLICY 9 propagation check: for every VP created or amended in the burst, confirm verification-architecture.md and verification-coverage-matrix.md rows carry the canonical title (grep VP-INDEX vs verification-architecture.md — NOT verification-architecture.md vs itself).
+3. POLICY 9 reciprocal check: for every BC that governs a VP created in the burst, confirm the BC's `verification_properties:` frontmatter is updated.
+
+**Root cause:** E-19 pass-2 burst authored ADR-025 Decision 15 (architect leg) and BC-1.17.001 (product-owner leg) in the same window with contradictory signatures AND capability models, plus verification-architecture.md placeholder rows and VP-TBD reciprocals — 5 of pass-3's HIGH findings were burst-self-inflicted.
+
+**Prevention:** Orchestrator adds a reconciliation verification step to every multi-artifact spec burst. The step is a literal-shell mechanical check, not a narrative attestation.
+
+**Cites:** D-754, adv-E19-pass-3.md F-P3-001..F-P3-005, POLICY 9, L-BB-oversized-artifact-surgical-edit-protocol (companion discipline for large-file edits in same burst).
+
+---
+
+## L-BB-finding-premise-must-be-verified-before-fix
+
+**Context:** D-754 NEW [process-gap] [codified]. During the E-19 pass-3 fix burst (2026-07-06), adversary finding F-P3-019 claimed that `ci.yml` lacks a job named `bats-full-suite`. Story-writer received the finding and executed a `replace_all` renaming the story's own EC-003 CI deliverable from `bats-darwin-leg-macos` to `bats-wave-handoff-macos` — matching what the adversary claimed the job should be called. Orchestrator ground-truth grep of `.github/workflows/ci.yml` confirmed `bats-full-suite` EXISTS in the job list. The adversary premise was factually wrong. The story-writer fix was destructive — it changed a correct specification to match a false adversary claim. Reverted at S-19.01 v1.4 after orchestrator verification catch.
+
+**Rule:** An adversary finding's factual premise MUST be mechanically verified (one literal grep against ground truth) by the fix-executor BEFORE editing:
+1. If the finding claims "X does not exist," grep the canonical source for X before removing or renaming anything.
+2. If the finding claims "Y is missing from Z," read Z and confirm Y is actually absent before adding it.
+3. Corollary: `replace_all` on tokens that overlap an artifact's own deliverable names is a blast-radius hazard — enumerate all hits before replacing.
+
+**Sibling-class:** TD-VSDD-059 (adversary false parity attestation in the same burst: architect grepped the wrong file and attested VP-INDEX parity; orchestrator independent-grep adjudication is the working control for this class). Both are false-premise-execution variants: one from the adversary, one from a fix-executor.
+
+**Root cause:** F-P3-019 claimed ci.yml lacks bats-full-suite (false — it exists). Story-writer executed the false premise via `replace_all` that renamed the story's own deliverable CI job (bats-darwin-leg-macos → bats-wave-handoff-macos), reverted at S-19.01 v1.4 after orchestrator ground-truth catch.
+
+**Prevention:**
+1. Every fix-burst must include a premise-verification step (one literal grep) before executing any finding that claims the absence or misname of a token in a canonical file.
+2. The orchestrator's final verification pass for each specialist leg MUST independently grep the claimed ground truth, not trust the specialist's narrative attestation.
+3. `replace_all` scope must be explicitly enumerated before execution on any token that could appear in the artifact's own deliverable names.
+
+**Cites:** D-754, adv-E19-pass-3.md F-P3-019, S-19.01 v1.3→v1.4 revert, L-BB-parallel-spec-authorship-requires-cross-reconciliation-sweep (companion), TD-VSDD-059 (sibling-class).

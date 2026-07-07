@@ -1,11 +1,11 @@
 ---
 document_type: behavioral-contract
 level: L3
-version: "1.0"
+version: "1.1"
 status: draft
 producer: product-owner
 timestamp: 2026-07-06T00:00:00Z
-last_amended: "(v1.0) — initial creation (product-owner): E-19 pass-2 fix burst Package 2 — pr-manager READY-verdict SHA pinning, stale-verdict detection script, and release-PR merge-strategy guard (story anchor S-19.01); closes L-BB-merge-race-ready-report-stale-head (D-749) + L-BB-release-pr-squash-merge-not-mechanically-enforced (D-750)."
+last_amended: "(v1.1) — E-19 pass-3 PO finalization (product-owner): F-P3-004 §VP Anchors + §Verification Properties VP-TBD → VP-094; F-P3-015 §Traceability CAP-TBD → CAP-033, ADR-TBD → ADR-030. [Prior: (v1.0) — initial creation (product-owner): E-19 pass-2 fix burst Package 2 — pr-manager READY-verdict SHA pinning, stale-verdict detection script, and release-PR merge-strategy guard (story anchor S-19.01); closes L-BB-merge-race-ready-report-stale-head (D-749) + L-BB-release-pr-squash-merge-not-mechanically-enforced (D-750).]"
 phase: F3
 inputs:
   - .factory/stories/S-19.01-pr-manager-hardening.md
@@ -16,10 +16,11 @@ traces_to: .factory/specs/prd.md
 origin: greenfield
 extracted_from: null
 subsystem: "SS-05"
-capability: "CAP-TBD"
+capability: "CAP-033"
 lifecycle_status: draft
 introduced: v1.0-feature-engine-discipline-E19
-modified: []
+modified:
+  - "2026-07-06 (v1.1)"
 deprecated: null
 deprecated_by: null
 replacement: null
@@ -124,25 +125,25 @@ S-19.01 (pr-manager hardening: READY verdict HEAD-SHA pinning + release-PR merge
 
 ## VP Anchors
 
-- VP-TBD — READY verdict without covered_sha is rejected; stale verdict gates merge; release-branch squash is blocked (integration VP; to be authored as part of S-19.01 T-series)
+- VP-094 — pr-manager READY-Verdict Covered-SHA Pin, Stale-Verdict Halt, and Release-PR Merge-Strategy Enforcement (integration; S-19.01)
 
 ## Verification Properties
 
 | VP-NNN | Property | Proof Method |
 |--------|----------|-------------|
-| VP-TBD | check-stale-verdict.sh exits non-zero with STALE_READY_VERDICT when headRefOid != covered_sha; exits 0 on match | integration (bats; S-19.01) |
-| VP-TBD | enforce-merge-strategy.sh exits non-zero with RELEASE_PR_SQUASH_FORBIDDEN when --squash on release/v* branch; passes --merge through on match | integration (bats; S-19.01) |
-| VP-TBD | pr-manager-completion-guard emits READY_SHA_MISSING advisory when SubagentStop READY verdict lacks covered_sha field | unit (WASM test harness; S-19.01) |
+| VP-094 | check-stale-verdict.sh exits non-zero with STALE_READY_VERDICT when headRefOid != covered_sha; exits 0 on match | integration (bats; S-19.01) |
+| VP-094 | enforce-merge-strategy.sh exits non-zero with RELEASE_PR_SQUASH_FORBIDDEN when --squash on release/v* branch; passes --merge through on match | integration (bats; S-19.01) |
+| VP-094 | pr-manager-completion-guard emits READY_SHA_MISSING advisory when SubagentStop READY verdict lacks covered_sha field | unit (WASM test harness; S-19.01) |
 
 ## Traceability
 
 | Field | Value |
 |-------|-------|
-| L2 Capability | CAP-TBD |
-| Capability Anchor Justification | TBD — pending capability mapping to S-19.01 delivery |
+| L2 Capability | CAP-033 |
+| Capability Anchor Justification | No existing capability covers merge-operation integrity at the pr-manager level. CAP-004 governs the BC→test→demo coverage gate — a content completeness check distinct from PR HEAD currency. BC-5.42.001 closes two separate safety windows outside CAP-004's scope: the merge-race window (stale READY verdict acting on an advanced PR HEAD, D-749) and the release-branch strategy window (accidental squash-merge violating RELEASING.md invariants, D-750). Components span SS-05 (pr-manager agent + completion-guard hook) and SS-07 (check-stale-verdict.sh + enforce-merge-strategy.sh). |
 | L2 Domain Invariants | TBD |
 | Architecture Module | SS-05 (Pipeline Orchestration) — pr-manager agent + completion-guard hook + staleness + merge-strategy scripts |
-| ADR | ADR-TBD (architect decision D-b: covered_sha mandatory on READY verdicts; check-stale-verdict.sh prerequisite; enforce-merge-strategy.sh wrapper) |
+| ADR | ADR-030 |
 | Stories | S-19.01 |
 | Cycle | v1.0-feature-engine-discipline-E19 (F3) |
 | Feature | E-19 — Post-rc.22 Operator Hardening |
@@ -151,4 +152,5 @@ S-19.01 (pr-manager hardening: READY verdict HEAD-SHA pinning + release-PR merge
 
 | Version | Date | Author | Change |
 |---------|------|--------|--------|
+| 1.1 | 2026-07-06 | product-owner | E-19 pass-3 PO finalization: (a) F-P3-004 — §VP Anchors VP-TBD → VP-094 (pr-manager READY-Verdict Covered-SHA Pin, Stale-Verdict Halt, and Release-PR Merge-Strategy Enforcement); §Verification Properties three VP-TBD rows → VP-094. (b) F-P3-015 — §Traceability L2 Capability CAP-TBD → CAP-033 with business-analyst justification; Capability Anchor Justification TBD → full text; ADR ADR-TBD → ADR-030. Frontmatter capability: "CAP-TBD" → "CAP-033". |
 | 1.0 | 2026-07-06 | product-owner | Initial creation. E-19 pass-2 fix burst Package 2. Three mechanically-enforced pr-manager behaviors: (a) covered_sha mandatory on READY verdicts + READY_SHA_MISSING advisory from pr-manager-completion-guard SubagentStop hook; (b) check-stale-verdict.sh stale-verdict detection with STALE_READY_VERDICT exit; (c) enforce-merge-strategy.sh release-branch merge-strategy enforcement with RELEASE_PR_SQUASH_FORBIDDEN exit. Closes L-BB-merge-race-ready-report-stale-head (D-749) + L-BB-release-pr-squash-merge-not-mechanically-enforced (D-750). |

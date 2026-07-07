@@ -1,11 +1,11 @@
 ---
 document_type: domain-spec-index
 level: L2
-version: "1.0.13"
+version: "1.0.14"
 status: accepted
 producer: business-analyst
 timestamp: 2026-06-16T00:00:00Z
-last_amended: 2026-06-16 (v1.0.13) — D-616 E-18 STORY PASS-2 FIX WAVE INTEGRATION BURST: Document Map invariants.md v1.22→v1.25 (business-analyst updated DI-020 BC-range += BC-6.25.001 in D-616 fix wave). 4-index: BC-INDEX v3.05 / VP-INDEX v2.35 / STORY-INDEX v4.04 / ARCH-INDEX v2.51. Refs: D-616, E-18, issue-173. [Prior: 2026-06-16 (v1.0.12) — D-607 F2 E-18 spec-completion INTEGRATION BURST: invariants.md v1.21→v1.22 (DI-023 Cited by += VP-087/VP-088; DI-024 Cited by placeholder replaced with VP-089; DI-025 Cited by += VP-090). Document Map updated invariants.md v1.21→v1.22. [Prior: 2026-06-15 (v1.0.11) — D-603 F2 E-18 ADV PASS-40 NOT-CLEAN FIX BURST 2026-06-15: F-P40-001 MED (POLICY 2) invariants.md v1.20→v1.21 — added `Cited by: VP-NNN` back-refs to DI-020..025 (DI-019 precedent; VP→DI forward arrays existed but DI→VP reverse not propagated at F-P19-003); completes bidirectional DI↔VP. Document Map updated invariants.md v1.20→v1.21. (O-P40-001 LOW) preamble corrected — CAP-032 DIs trace to Source capability+ADR, not BR-NN. Refs: F-P40-001, O-P40-001, D-603, E-18, issue-173. [Prior: 2026-06-15 (v1.0.10) — D-600 F2 E-18 ADV PASS-37 NOT-CLEAN FIX BURST: F-P37-002 MED corrected v1.0.9 changelog mislabel DI-022→DI-025 + F-P24-001→F-P24-002 (invariants.md v1.20 change was to DI-025 field-4 enforcement-owner clause; F-P24-002 was that finding); prior: 2026-06-15 (v1.0.9); prior: 2026-06-15 (v1.0.8)]
+last_amended: 2026-07-06 (v1.0.14) — F-P3-015/F-P3-016 CAP-mapping: capabilities.md v1.7→v1.8 — CAP-033 authored (P1, pr-manager merge-operation integrity, SS-05+SS-07); CAP count 32→33; Subsystem Cross-Walk SS-05+SS-07 rows += CAP-033; Priority Distribution P1 11→12; Document Map capabilities.md v1.7→v1.8 + range CAP-001..CAP-033. [Prior: 2026-06-16 (v1.0.13) — D-616 E-18 STORY PASS-2 FIX WAVE INTEGRATION BURST: Document Map invariants.md v1.22→v1.25 (business-analyst updated DI-020 BC-range += BC-6.25.001 in D-616 fix wave). 4-index: BC-INDEX v3.05 / VP-INDEX v2.35 / STORY-INDEX v4.04 / ARCH-INDEX v2.51. Refs: D-616, E-18, issue-173. [Prior: 2026-06-16 (v1.0.12) — D-607 F2 E-18 spec-completion INTEGRATION BURST: invariants.md v1.21→v1.22 (DI-023 Cited by += VP-087/VP-088; DI-024 Cited by placeholder replaced with VP-089; DI-025 Cited by += VP-090). Document Map updated invariants.md v1.21→v1.22. [Prior: 2026-06-15 (v1.0.11) — D-603 F2 E-18 ADV PASS-40 NOT-CLEAN FIX BURST 2026-06-15: F-P40-001 MED (POLICY 2) invariants.md v1.20→v1.21 — added `Cited by: VP-NNN` back-refs to DI-020..025 (DI-019 precedent; VP→DI forward arrays existed but DI→VP reverse not propagated at F-P19-003); completes bidirectional DI↔VP. Document Map updated invariants.md v1.20→v1.21. (O-P40-001 LOW) preamble corrected — CAP-032 DIs trace to Source capability+ADR, not BR-NN. Refs: F-P40-001, O-P40-001, D-603, E-18, issue-173. [Prior: 2026-06-15 (v1.0.10) — D-600 F2 E-18 ADV PASS-37 NOT-CLEAN FIX BURST: F-P37-002 MED corrected v1.0.9 changelog mislabel DI-022→DI-025 + F-P24-001→F-P24-002 (invariants.md v1.20 change was to DI-025 field-4 enforcement-owner clause; F-P24-002 was that finding); prior: 2026-06-15 (v1.0.9); prior: 2026-06-15 (v1.0.8)]
 phase: 1.3
 inputs:
   - .factory/phase-0-ingestion/pass-8-final-synthesis.md
@@ -13,7 +13,7 @@ inputs:
   - .factory/phase-0-ingestion/pass-1-architecture.md
   - .factory/legacy-design-docs/2026-04-24-v1.0-factory-plugin-kit-design.md
   - .factory/specs/architecture/ARCH-INDEX.md
-input-hash: "bda34a9"
+input-hash: "3ec4f3e"
 traces_to: phase-1-spec-crystallization
 sections:
   - core-domain-model.md
@@ -47,7 +47,7 @@ workflow management driven by LLM agents.
 |---------|------|--------|-----------------|---------|
 | Core Domain Model | core-domain-model.md | ~1,100 | architect, product-owner | 35 entities (22 Half A + 13 Half B), value objects, relationships, state machines |
 | Business Rules | business-rules.md | ~900 | product-owner, architect, story-writer | 17 cross-cutting business rules from pass-2 §2b |
-| Capabilities | capabilities.md v1.7 | ~1,200 | product-owner, architect, story-writer | CAP-001..CAP-032 user-facing capability catalog with SS-NN traceability |
+| Capabilities | capabilities.md v1.8 | ~1,250 | product-owner, architect, story-writer | CAP-001..CAP-033 user-facing capability catalog with SS-NN traceability |
 | Edge Cases | edge-cases.md | ~900 | story-writer, test-writer | DEC-001..DEC-018 domain-level exception flows |
 | Domain Events | domain-events.md | ~1,100 | architect, test-writer | DE-001..DE-022 event catalog with producer/consumer/schema |
 | Invariants | invariants.md v1.25 | ~1,400 | product-owner, architect | DI-001..DI-025 domain invariants with SS-NN enforcement owner and `Cited by: VP-NNN` back-refs |
@@ -69,7 +69,7 @@ workflow management driven by LLM agents.
 
 | ID Format | Count | Section | Range |
 |-----------|-------|---------|-------|
-| CAP-NNN | 32 | capabilities.md | CAP-001..CAP-032 |
+| CAP-NNN | 33 | capabilities.md | CAP-001..CAP-033 |
 | DI-NNN | 25 | invariants.md | DI-001..DI-025 |
 | DE-NNN | 22 | domain-events.md | DE-001..DE-022 |
 | DEC-NNN | 18 | edge-cases.md | DEC-001..DEC-018 |
@@ -82,9 +82,9 @@ workflow management driven by LLM agents.
 | SS-02 | Hook SDK and Plugin ABI | CAP-002, CAP-009 |
 | SS-03 | Event Emission (OTel-Aligned) | CAP-003, CAP-010, CAP-029, CAP-030 |
 | SS-04 | Plugin Ecosystem | CAP-002, CAP-008, CAP-013, CAP-022, CAP-031, CAP-032 |
-| SS-05 | Pipeline Orchestration | CAP-001, CAP-004, CAP-005, CAP-006, CAP-012, CAP-014, CAP-016, CAP-018, CAP-031, CAP-032 |
+| SS-05 | Pipeline Orchestration | CAP-001, CAP-004, CAP-005, CAP-006, CAP-012, CAP-014, CAP-016, CAP-018, CAP-031, CAP-032, CAP-033 |
 | SS-06 | Skill Catalog | CAP-001, CAP-004, CAP-005, CAP-006, CAP-007, CAP-014, CAP-015, CAP-016, CAP-017, CAP-018, CAP-019, CAP-020, CAP-021, CAP-022, CAP-025, CAP-026, CAP-028, CAP-031, CAP-032 |
-| SS-07 | Hook Bash Layer | CAP-008, CAP-013, CAP-027, CAP-032 |
+| SS-07 | Hook Bash Layer | CAP-008, CAP-013, CAP-027, CAP-032, CAP-033 |
 | SS-08 | Templates and Rules | CAP-014, CAP-016, CAP-025 |
 | SS-09 | Configuration and Activation | CAP-007, CAP-028 |
 | SS-10 | CLI Tools and Bin | CAP-003, CAP-010, CAP-017, CAP-024, CAP-027 |
@@ -94,13 +94,14 @@ workflow management driven by LLM agents.
 | Priority | Count | CAPs |
 |----------|-------|------|
 | P0 (must-have) | 14 | CAP-001, CAP-002, CAP-003, CAP-007, CAP-008, CAP-009, CAP-010, CAP-013, CAP-014, CAP-016, CAP-028, CAP-029, CAP-031, CAP-032 |
-| P1 (should-have) | 11 | CAP-004, CAP-005, CAP-006, CAP-011, CAP-012, CAP-015, CAP-017, CAP-018, CAP-019, CAP-020, CAP-030 |
+| P1 (should-have) | 12 | CAP-004, CAP-005, CAP-006, CAP-011, CAP-012, CAP-015, CAP-017, CAP-018, CAP-019, CAP-020, CAP-030, CAP-033 |
 | P2 (nice-to-have) | 7 | CAP-021, CAP-022, CAP-023, CAP-024, CAP-025, CAP-026, CAP-027 |
 
 ## Changelog
 
 | Version | Date | Author | Notes |
 |---------|------|--------|-------|
+| 1.0.14 | 2026-07-06 | business-analyst | F-P3-015/F-P3-016 CAP-mapping: authored CAP-033 (P1 — pr-manager merge-operation integrity; READY-verdict SHA pinning + stale-verdict detection + release-branch merge-strategy guard; SS-05+SS-07; D-749+D-750; BC-5.42.001; S-19.01) in capabilities.md v1.8. CAP count 32→33; range CAP-001..CAP-033; Subsystem Cross-Walk SS-05+SS-07 += CAP-033; Priority Distribution P1 11→12. |
 | 1.0.13 | 2026-06-16 | state-manager | D-616 E-18 STORY PASS-2 FIX WAVE INTEGRATION BURST: Document Map invariants.md v1.22→v1.25 (business-analyst: DI-020 BC-range += BC-6.25.001; invariants.md bumped v1.22→v1.23→v1.24→v1.25 across pass-2 fix wave sub-bursts). 4-index: BC-INDEX v3.05 / VP-INDEX v2.35 / STORY-INDEX v4.04 / ARCH-INDEX v2.51. Refs: D-616, E-18, issue-173. |
 | 1.0.12 | 2026-06-16 | state-manager | D-607 F2 E-18 spec-completion INTEGRATION BURST: invariants.md v1.21→v1.22 — DI-023 Cited by += VP-087 (BC-5.41.002 wave-state.yaml atomic production + real-substrate stories), VP-088 (BC-6.24.001 rehydrate-wave git-sourced manifest + no RAG). DI-024 Cited by: placeholder "(VP deferred to F3 / S-18.05 per BC-7.07.002 DEFERRED-VP disposition)" replaced with VP-089 (BC-7.07.002 postcompact-reanchor.sh commit-free; DEFERRED-VP resolved). DI-025 Cited by += VP-090 (BC-7.07.001 Inv7 precompact-flush-log pruning; last-line invariant preserved). Document Map updated invariants.md v1.21→v1.22. 4-index: BC-INDEX v3.00 / VP-INDEX v2.30 / STORY-INDEX v4.01 / ARCH-INDEX v2.48. Refs: D-607, E-18, issue-173. |
 | 1.0.11 | 2026-06-15 | state-manager | D-603 F2 E-18 ADV PASS-40 NOT-CLEAN FIX BURST 2026-06-15: (F-P40-001 MED, POLICY 2) invariants.md v1.20→v1.21 — added `Cited by: VP-NNN` back-refs to DI-020..025 completing bidirectional DI↔VP traceability (DI-019 precedent existed; VP→DI forward arrays pre-existing; DI→VP reverse was missing). Mapping: DI-020←VP-081/083/084/086, DI-021←VP-081/082/085, DI-022←VP-082/085, DI-023←VP-081, DI-024←VP-deferred-F3-S-18.05, DI-025←VP-082/084/085. Document Map updated invariants.md v1.20→v1.21. (O-P40-001 LOW) invariants.md preamble corrected — CAP-032 DIs (DI-020..025) trace to Source capability+ADR, not BR-NN business rule. (O-P40-002 LOW) BC-7.07.001 v1.3 changelog superseded-description: NO action — append-only historical record. 4-index UNCHANGED (BC-INDEX v2.99 / VP-INDEX v2.29 / STORY-INDEX v4.01 / ARCH-INDEX v2.47). Refs: F-P40-001, O-P40-001, O-P40-002, D-603, E-18, issue-173. |

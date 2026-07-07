@@ -1,11 +1,11 @@
 ---
 document_type: behavioral-contract
 level: L3
-version: "1.0"
+version: "1.1"
 status: draft
 producer: product-owner
 timestamp: 2026-07-06T00:00:00Z
-last_amended: "(v1.0) — initial creation (product-owner): E-19 pass-2 fix burst Package 2 — host::read_prefix bounded partial read: head-c semantics, NEVER OUTPUT_TOO_LARGE, additive FFI entry point, same path_allow + rejoin capability model as read_file (BC-2.07.001), absent file returns NOT_FOUND (-5), read_file all-or-nothing semantics unchanged (story anchor S-19.06; architect decision D-d)."
+last_amended: "(v1.1) — E-19 pass-3 PO finalization (product-owner): F-P3-004 §VP Anchors + §Verification Properties VP-TBD → VP-101; F-P3-009 §Description(d) cite ADR-025 Decision 15 (drop phantom-pin parenthetical), §Architecture Anchors drop '(architect authors same-burst)', §Story Anchor updated S-19.06 (W2; depends_on S-19.03); F-P3-016 §Traceability CAP-TBD → CAP-009 with justification, ADR cite updated to ADR-025 Decision 15. [Prior: (v1.0) — initial creation (product-owner): E-19 pass-2 fix burst Package 2 — host::read_prefix bounded partial read: head-c semantics, NEVER OUTPUT_TOO_LARGE, additive FFI entry point, same path_allow + rejoin capability model as read_file (BC-2.07.001), absent file returns NOT_FOUND (-5), read_file all-or-nothing semantics unchanged (story anchor S-19.06; architect decision D-d).]"
 phase: F3
 inputs:
   - crates/factory-dispatcher/src/host/read_file.rs
@@ -16,10 +16,11 @@ traces_to: .factory/specs/prd.md
 origin: greenfield
 extracted_from: null
 subsystem: "SS-01"
-capability: "CAP-TBD"
+capability: "CAP-009"
 lifecycle_status: draft
 introduced: v1.0-feature-engine-discipline-E19
-modified: []
+modified:
+  - "2026-07-06 (v1.1)"
 deprecated: null
 deprecated_by: null
 replacement: null
@@ -40,7 +41,7 @@ removal_reason: null
 
 **(c) Capability model.** `read_prefix` honors the same path allowlist (`path_allow`) and the same rejoin path-allowed resolution algorithm (BC-2.07.001, part b) as `read_file`. A separate capability block `capabilities.read_prefix` MUST appear in the registry entry for any plugin that calls `read_prefix`; absence of this block returns CAPABILITY_DENIED (-1) before any filesystem access. An absent-file path that is within the allowlist returns NOT_FOUND (-5), consistent with BC-2.07.001 part c.
 
-**(d) ABI treatment.** `read_prefix` is an additive FFI entry point in the `vsdd` WASM import namespace. HOST_ABI_VERSION governance for this addition is recorded in an amendment to ADR-025 (architect authors same-burst — cited as "ADR-025" with no Decision number to avoid phantom-pin on a Decision number not yet authored). Plugins that do not import `read_prefix` are unaffected; the new import is visible only to plugins that declare it.
+**(d) ABI treatment.** `read_prefix` is an additive FFI entry point in the `vsdd` WASM import namespace. HOST_ABI_VERSION governance for this addition is recorded in ADR-025 Decision 15. Plugins that do not import `read_prefix` are unaffected; the new import is visible only to plugins that declare it.
 
 ## Preconditions
 
@@ -114,34 +115,34 @@ removal_reason: null
 - `crates/factory-dispatcher/src/host/path_util.rs` — shared path-allowed resolution (see BC-2.07.001 §Architecture Anchors)
 - `crates/hook-sdk/src/host.rs` — new `read_prefix` wrapper callable from WASM plugins; parallel to existing `read_file` wrapper
 - `plugins/vsdd-factory/hooks-registry.toml` — `capabilities.read_prefix` capability block schema; separate from `capabilities.read_file`
-- ADR-025 (amendment) — HOST_ABI_VERSION governance for additive `read_prefix` FFI entry point (architect authors same-burst)
+- ADR-025 Decision 15 — HOST_ABI_VERSION governance for additive `read_prefix` FFI entry point
 
 ## Story Anchor
 
-S-19.06 (host::read_prefix bounded partial read — story file does not exist at BC authorship time; story-writer authors next leg)
+S-19.06 (host::read_prefix bounded partial read; W2; depends_on S-19.03)
 
 ## VP Anchors
 
-- VP-TBD — read_prefix returns at most max_bytes bytes; returns full content when file < max_bytes; never returns OUTPUT_TOO_LARGE; returns NOT_FOUND for allowlisted-absent paths (unit VP; to be authored as part of S-19.06)
+- VP-101 — host::read_prefix Returns Byte-Exact Prefix of len <= max_bytes; Never OUTPUT_TOO_LARGE; Absent File Returns NOT_FOUND (-5) (integration + proptest; S-19.06)
 
 ## Verification Properties
 
 | VP-NNN | Property | Proof Method |
 |--------|----------|-------------|
-| VP-TBD | read_prefix(path, max_bytes) where file_size > max_bytes returns exactly max_bytes bytes at exit code 0; never OUTPUT_TOO_LARGE | unit (Rust; S-19.06) |
-| VP-TBD | read_prefix(path, max_bytes) where file_size < max_bytes returns full file_size bytes at exit code 0 | unit (Rust; S-19.06) |
-| VP-TBD | read_prefix on absent allowlisted path returns NOT_FOUND (-5); no OUTPUT_TOO_LARGE or CAPABILITY_DENIED | unit (Rust; S-19.06, inherits AC from BC-2.07.001) |
-| VP-TBD | read_prefix without capabilities.read_prefix block returns CAPABILITY_DENIED (-1) | unit (Rust; S-19.06) |
+| VP-101 | read_prefix(path, max_bytes) where file_size > max_bytes returns exactly max_bytes bytes at exit code 0; never OUTPUT_TOO_LARGE | integration + proptest (S-19.06) |
+| VP-101 | read_prefix(path, max_bytes) where file_size < max_bytes returns full file_size bytes at exit code 0 | integration + proptest (S-19.06) |
+| VP-101 | read_prefix on absent allowlisted path returns NOT_FOUND (-5); no OUTPUT_TOO_LARGE or CAPABILITY_DENIED | integration (S-19.06; inherits AC from BC-2.07.001) |
+| VP-101 | read_prefix without capabilities.read_prefix block returns CAPABILITY_DENIED (-1) | integration (S-19.06) |
 
 ## Traceability
 
 | Field | Value |
 |-------|-------|
-| L2 Capability | CAP-TBD — pending capability mapping to S-19.06 delivery |
-| Capability Anchor Justification | TBD — read_prefix is a new host fn; capability anchor will be determined when S-19.06 is authored and the capability in capabilities.md is confirmed |
+| L2 Capability | CAP-009 |
+| Capability Anchor Justification | CAP-009 ('Author and publish WASM hook plugins using the Rust SDK') covers all vsdd::* host function bindings; read_prefix is an additive FFI entry point in the vsdd namespace with a parallel hook-sdk wrapper, extending the host-function set without a new capability class. The separate capabilities.read_prefix gate follows the same SDK declaration model as capabilities.read_file. SS-01 is the implementation subsystem; SS-02 the SDK-surface owner (co-subsystem per CAP-002/CAP-010/CAP-013 precedent). |
 | L2 Domain Invariants | TBD |
 | Architecture Module | SS-01 (Hook Dispatcher Core) — read_prefix host function + path_util integration |
-| ADR | ADR-025 (amendment, no Decision number — architect authors same-burst; additive FFI entry point, HOST_ABI_VERSION governance) |
+| ADR | ADR-025 Decision 15 (HOST_ABI_VERSION governance for additive read_prefix FFI entry point; HOST_ABI_VERSION = 1 unchanged) |
 | Stories | S-19.06 |
 | Cycle | v1.0-feature-engine-discipline-E19 (F3) |
 | Feature | E-19 — Post-rc.22 Operator Hardening |
@@ -150,4 +151,5 @@ S-19.06 (host::read_prefix bounded partial read — story file does not exist at
 
 | Version | Date | Author | Change |
 |---------|------|--------|--------|
+| 1.1 | 2026-07-06 | product-owner | E-19 pass-3 PO finalization: (a) F-P3-004 — §VP Anchors VP-TBD → VP-101 (host::read_prefix Returns Byte-Exact Prefix of len <= max_bytes; Never OUTPUT_TOO_LARGE; Absent File Returns NOT_FOUND (-5)); §Verification Properties four VP-TBD rows → VP-101. (b) F-P3-009 — §Description(d) cite ADR-025 Decision 15 directly (drop phantom-pin parenthetical "cited as ADR-025 with no Decision number to avoid phantom-pin on a Decision number not yet authored"); §Architecture Anchors "ADR-025 (amendment)" → "ADR-025 Decision 15", drop "(architect authors same-burst)"; §Story Anchor updated "story file does not exist at BC authorship time; story-writer authors next leg" → "W2; depends_on S-19.03" (S-19.06 now exists v1.0). (c) F-P3-016 — §Traceability L2 Capability CAP-TBD → CAP-009 with justification; Capability Anchor Justification TBD → full text; ADR "ADR-025 (amendment, no Decision number — architect authors same-burst; ...)" → "ADR-025 Decision 15 (HOST_ABI_VERSION governance for additive read_prefix FFI entry point; HOST_ABI_VERSION = 1 unchanged)". Frontmatter capability: "CAP-TBD" → "CAP-009". |
 | 1.0 | 2026-07-06 | product-owner | Initial creation. E-19 pass-2 fix burst Package 2. New host fn read_prefix: (a) head-c semantics, max_bytes cap, NEVER OUTPUT_TOO_LARGE, byte-exact no-trimming, max_bytes=0 valid; (b) read_file all-or-nothing semantics UNCHANGED (silent-truncation-as-success would corrupt TOML/YAML parsers — D-d rationale); (c) separate capabilities.read_prefix block, same path_allow + rejoin model as read_file (BC-2.07.001), absent file returns NOT_FOUND (-5); (d) additive FFI entry point in vsdd namespace; HOST_ABI_VERSION governance in ADR-025 amendment (bare cite, no Decision number). Story anchor S-19.06 (story not yet authored). |
