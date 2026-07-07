@@ -391,7 +391,7 @@ ALL ACTIVE AND MANDATORY on every dispatch:
 ### §9. Critical Anchors
 
 - **GitHub origin repo:** `drbothen/vsdd-factory` (NOT the local git user "Zious"). All E-18 PRs live at `https://github.com/drbothen/vsdd-factory`. Use `--repo drbothen/vsdd-factory` flag with all `gh` commands.
-- **factory-artifacts HEAD:** `[PENDING SHA]` D-758 E-19-ADV-PASS-7-NOT-CLEAN-CLOSED 2026-07-07 (single-commit per TD-VSDD-053); prior: D-757 `94573d11`.
+- **factory-artifacts HEAD:** `2226936b` D-758 E-19-ADV-PASS-7-NOT-CLEAN-CLOSED 2026-07-07 (single-commit per TD-VSDD-053); prior: D-757 `94573d11`.
 - **develop HEAD:** `f5242bef` (sync-develop back-merge post-Release-28668124787 CLEAN; prior: `a6cf13e8` PR #438 D-749; **E-18 EPIC COMPLETE; rc.22 100% SHIPPED**)
 - **main HEAD:** `a04cb303` (rc.22 bot bundle commit 2026-07-03; prior: `caf06c68` rc.21 bot bundle 2026-06-13)
 - **v1.0.0-rc.22 tag:** `e4285fe5` (SHIPPED; tag re-created at PR #456 true-merge after tag-delete+recreate human-authorized; FULLY IN OPERATOR MARKETPLACE)
