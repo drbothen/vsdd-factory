@@ -11866,4 +11866,4 @@ E-19 adversarial cascade streak: **0/3** (pass-10 NOT-CLEAN). HUMAN DIRECTIVE: s
 
 ### Factory-artifacts Commits
 
-- SHA pending — sha-patch follow-up per D-447(c)+D-449(e) after commit (Active Branches row + §9 factory-artifacts HEAD updated to actual Commit E SHA)
+- `9555370c` — state(D-761): E-19 adv pass-10 NOT-CLEAN closed — fix burst complete; strict-3-CLEAN directive recorded (v5.12) (2026-07-07; 12 files; +492/-115; pushed 43d77425..9555370c factory-artifacts)

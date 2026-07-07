@@ -135,7 +135,7 @@ dtu_services: []
 |--------------|-----|-------|
 | main | a04cb303 | rc.22 bot binary bundle commit 2026-07-03 (Release 28668124787 post-build; all 33 WASMs rebuilt, plugin.json → 1.0.0-rc.22); prior: e4285fe5 (PR #456 true-merge fix mapfile→while-read; rc.22 tag); prior: 2a4c949b (PR #455 true-merge first rc.22 release; tag later moved); prior: caf06c68 (rc.21) |
 | develop | f5242bef | rc.22 Release sync-main→develop back-merge 2026-07-03 (D-750); prior: a6cf13e8 (PR #438 D-749 registry-staged assertion) |
-| factory-artifacts | `PENDING-D-761` | D-761 E-19-ADV-PASS-10-NOT-CLEAN-CLOSED 2026-07-07 (single-commit per TD-VSDD-053); prior: D-760 `44114f0c`; SHA-patch follow-up pending |
+| factory-artifacts | `9555370c` | D-761 E-19-ADV-PASS-10-NOT-CLEAN-CLOSED 2026-07-07 (single-commit per TD-VSDD-053); prior: D-760 `44114f0c` |
 | feature/S-18.12 | **DELETED** (was 9cbd9439) | Merged via PR #384 ec05606a 2026-07-01 (D-744); branch deleted post-merge |
 | fix/S-18.12-detector-parity-gaps | **DELETED** (was 717686f8) | Merged via PR #385 2879f473 2026-07-01 (D-746); branch deleted at merge |
 | origin/maintenance/rc22-pre-release-cleanup | **PENDING DELETION** | Safe to delete (recovery long complete); human authorization outstanding |
@@ -385,7 +385,7 @@ ALL ACTIVE AND MANDATORY on every dispatch:
 ### §9. Critical Anchors
 
 - **GitHub origin repo:** `drbothen/vsdd-factory` (NOT the local git user "Zious"). All E-18/E-19 PRs live at `https://github.com/drbothen/vsdd-factory`. Use `--repo drbothen/vsdd-factory` flag with all `gh` commands.
-- **factory-artifacts HEAD:** `PENDING-D-761` D-761 E-19-ADV-PASS-10-NOT-CLEAN-CLOSED 2026-07-07 (single-commit per TD-VSDD-053); prior: D-760 `44114f0c`; SHA-patch follow-up pending.
+- **factory-artifacts HEAD:** `9555370c` D-761 E-19-ADV-PASS-10-NOT-CLEAN-CLOSED 2026-07-07 (single-commit per TD-VSDD-053); prior: D-760 `44114f0c`.
 - **develop HEAD:** `f5242bef` (sync-develop back-merge post-Release-28668124787 CLEAN; prior: `a6cf13e8` PR #438 D-749; **E-18 EPIC COMPLETE; rc.22 100% SHIPPED**)
 - **main HEAD:** `a04cb303` (rc.22 bot bundle commit 2026-07-03; prior: `caf06c68` rc.21 bot bundle 2026-06-13)
 - **v1.0.0-rc.22 tag:** `e4285fe5` (SHIPPED; tag re-created at e4285fe5 after mapfile fix; FULLY IN OPERATOR MARKETPLACE)
