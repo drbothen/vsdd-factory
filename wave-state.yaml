@@ -1,0 +1,20 @@
+wave: W1 (E-19)
+stories:
+  - id: S-19.01
+    spec_files:
+      - .factory/stories/S-19.01-pr-manager-hardening.md
+      - .factory/specs/behavioral-contracts/ss-05/BC-5.42.001.md
+  - id: S-19.02
+    spec_files:
+      - .factory/stories/S-19.02-verify-factory-lock-output-too-large.md
+      - .factory/specs/behavioral-contracts/ss-04/BC-4.13.001.md
+  - id: S-19.03
+    spec_files:
+      - .factory/stories/S-19.03-warn-pending-wave-gate-file-not-found.md
+      - .factory/specs/behavioral-contracts/ss-02/BC-2.07.001.md
+      - .factory/specs/behavioral-contracts/ss-02/BC-2.02.011.md
+arch_files:
+  - .factory/stories/epics/E-19-post-rc22-operator-hardening.md
+  - .factory/specs/architecture/decisions/ADR-030-pr-manager-merge-operation-integrity-enforcement.md
+  - .factory/specs/architecture/decisions/ADR-025-single-writer-factory-locklease-prevent-concurrent-session-races-on-factory-artifacts-orphan-branch.md
+state_pointer: .factory/STATE.md

@@ -12840,3 +12840,123 @@ NEXT: Confirming adversary pass-21 (fresh context; perimeter E-19 artifacts at S
 |--------|-----|-------------|
 | D-773 burst (atomic) | `a665de43` | state(D-773): convergence-gate adjudications applied — S-19.07 v1.8, 20/20 epics POLICY-17 compliant, W1 authorized contingent pass-21 (v5.24) |
 | SHA-patch follow-up | `5f6de302` | state(D-773-sha-patch): Active Branches SHA + burst-log Block 8 patch |
+
+
+## D-774 — E-19 pass-21 confirming CLEAN + W1 wave-boundary staged — 2026-07-08
+
+### Block 1 — Parent-commit
+
+Parent-commit: `cc5838f7` (D-773-sha-patch-2: SHA-patch row 5f6de302 self-reference closed; factory-artifacts HEAD before this burst).
+
+### Block 2 — Adversary Verdict (D-448(a) source-attestation)
+
+Pass-21 verdict: **CLEAN B0/H0/M0/L0** (zero findings; zero new observations). Fresh context; Claude Opus 4.7 family; Iron Law; perimeter = D-773 delta (S-19.07 v1.8 / epic v1.15 / STORY-INDEX v4.152).
+
+Source-attestation against adv-E19-pass-21.md Part A finding set: Delta Verification §Amendment 1 (S-19.07 v1.8 Gate B two-run evidence reproduces at HEAD — real lib.rs exit 0 with forbidden symbols at lines 59/331/466/838; discriminating fixture OLD exit 0 / NEW exit 1; sed chain load-bearing); §Amendment 2 (E-19 epic v1.15 POLICY 14 5-leg parity + POLICY 17 backfill non-contradicting); §Amendment 3 (STORY-INDEX v4.152 changelog head D-773 scope; O-P19-01 convention note accurate at lines 687+700; all 6 legacy epic header syncs match actual frontmatter; E-13 traces_to resolves on disk). Part B: zero new findings. Observations: zero new (O-P19-01 + O-P20-01 documented closed). **BC-5.39.001 convergence re-certified; W1 TDD dispatch AUTHORIZED per D-636/D-637 precedent.**
+
+### Block 3 — Files Touched
+
+**State-manager leg (this burst):**
+- `.factory/cycles/v1.0-brownfield-backfill/adv-E19-pass-21.md` — NEW (pass-21 CONFIRMING CLEAN report persisted verbatim; D-448(a))
+- `.factory/cycles/v1.0-brownfield-backfill/decision-log.md` — D-774 appended (convergence re-certification; W1 AUTHORIZED; wave-boundary staging)
+- `.factory/cycles/v1.0-brownfield-backfill/burst-log.md` — D-774 entry (this entry; all 8 D-444(c) blocks)
+- `.factory/wave-state.yaml` — NEW (W1 manifest: S-19.01/S-19.02/S-19.03 spec_files + arch_files + state_pointer; BC-6.24.001)
+- `.factory/STATE.md` — v5.24→v5.25 (pipeline PAUSED wave-boundary; W1 staged; Session Resume Checkpoint FULL REFRESH)
+
+### Block 4 — Codifications
+
+- **D-774** codified in decision-log.md (this burst). Entry count: 126 total (was 125).
+- **E-19 spec cascade convergence RE-CERTIFIED:** D-636/D-637 precedent satisfied — confirming pass-21 CLEAN after D-773 post-convergence spec edits. W1 TDD dispatch UNCONDITIONALLY AUTHORIZED.
+- **Wave-boundary session-reset staged:** wave-state.yaml authored for /vsdd-factory:rehydrate-wave (BC-6.24.001). ADR-026 §Decision 3 protocol: operator clears session + runs /rehydrate-wave before W1 dispatch.
+- **W1 wave composition documented in D-774:** S-19.01/S-19.02/S-19.03 parallel-eligible; W2 = S-19.04/S-19.05/S-19.06 (gated); W3 = S-19.07 (gated). artifact-path-registry.yaml → fold into S-19.04 PR (W2 kickoff checklist note).
+- Literal grep stdout for D-774 decision-log entry count: `126` (grep -c "^## D-" .factory/cycles/v1.0-brownfield-backfill/decision-log.md)
+
+### Block 5 — Dim-2 Literal Shell Gates (D-449(a))
+
+**Gate (i) — 4-index version grep (UNCHANGED this burst — no spec content changes):**
+
+```bash
+grep "^version:" \
+  .factory/specs/behavioral-contracts/BC-INDEX.md \
+  .factory/specs/verification-properties/VP-INDEX.md \
+  .factory/stories/STORY-INDEX.md \
+  .factory/specs/architecture/ARCH-INDEX.md
+```
+
+stdout:
+```
+.factory/specs/verification-properties/VP-INDEX.md:version: "2.53"
+.factory/specs/architecture/ARCH-INDEX.md:version: "2.90"
+.factory/stories/STORY-INDEX.md:version: "4.152"
+.factory/specs/behavioral-contracts/BC-INDEX.md:version: "3.76"
+```
+
+Result: BC v3.76 / VP v2.53 / STORY v4.152 / ARCH v2.90. ALL UNCHANGED (convergence re-certification + wave-boundary burst; zero spec content changes). PASS.
+
+**Gate (ii) — adv-E19-pass-21.md persist proof:**
+
+```bash
+grep -c "RE-CERTIFIED\|re-certif" .factory/cycles/v1.0-brownfield-backfill/adv-E19-pass-21.md
+```
+
+stdout: `5`
+
+Result: 5 occurrences of RE-CERTIFIED/re-certif in pass-21 report (Coverage Attestation conclusion clause present). PASS — report persisted.
+
+**Gate (iii) — wave-state.yaml pre-commit state (staged in worktree):**
+
+```bash
+result=$(git show factory-artifacts:wave-state.yaml 2>/dev/null | head -5); if [ -n "$result" ]; then echo "$result"; else echo "pre-commit: staged in worktree only"; fi
+```
+
+stdout: `pre-commit: staged in worktree only`
+
+Result: wave-state.yaml authored in worktree; will land on factory-artifacts via this commit. PASS (pre-commit state correct).
+
+**Gate (iv) — current_step diff gate (D-441(a)+D-449(a) verbatim-strict chain):**
+
+```bash
+grep '^current_step:' .factory/STATE.md
+```
+
+Before (D-773): `current_step: "D-773-ADJUDICATIONS-APPLIED trajectory-tail →2→0→0→0;"`
+After (D-774): `current_step: "D-774-E19-W1-STAGED trajectory-tail →0→0→0→0;"`
+
+Trajectory-tail advances from →2→0→0→0 to →0→0→0→0 (passes 18/19/20/21: 2→0→0→0; pass-21 = 0 findings → last 4 = →0→0→0→0). LENGTH=4 per D-433(e)+D-439(c). Phase advances from D-773-ADJUDICATIONS-APPLIED-CONFIRMING-PASS-21-PENDING to D-774-E19-W1-STAGED-SESSION-BOUNDARY. Pipeline transitions ACTIVE → PAUSED (wave-boundary). PASS.
+
+### Block 6 — Dim-5/6/7 Attestations
+
+**Dim-5 (production-grade default):** Pass-21 report persisted verbatim per D-448(a) source-attestation obligation. Wave-state.yaml authored with all spec_files verified to exist on disk before committing (zero missing paths). wave-boundary session-reset staged per ADR-026 §Decision 3. artifact-path-registry.yaml disposition carried forward explicitly (fold into S-19.04 PR) — not silently dropped. All 8 D-444(c) blocks present in this entry.
+
+**Dim-6 (no-bypass):** All edits via Write/Edit tools (POL-3). No Python/sed/echo bypass. No --no-verify. Bash used only for git operations and literal gate commands.
+
+**Dim-7 (routing):** State-manager performed only governance artifact writes. No spec/story/BC/VP/ARCH content authored. 4-index ALL UNCHANGED.
+
+**Dim-5 8-block self-verification:**
+- [x] Block 1 — Parent-commit (cc5838f7)
+- [x] Block 2 — Adversary verdict (source-attested from adv-E19-pass-21.md; CLEAN B0/H0/M0/L0; convergence RE-CERTIFIED; W1 AUTHORIZED)
+- [x] Block 3 — Files touched (5 files: adv-E19-pass-21.md NEW, decision-log D-774, burst-log this entry, wave-state.yaml NEW, STATE.md v5.25)
+- [x] Block 4 — Codifications (D-774; convergence re-certification; wave-boundary staging; W1 composition; literal grep stdout: `126`)
+- [x] Block 5 — Dim-2 literal shell gates with captured stdout (Gates i/ii/iii/iv per D-449(a))
+- [x] Block 6 — Dim-5/6/7 Attestations + 8-block self-verification (this block)
+- [x] Block 7 — Closes
+- [x] Block 8 — Factory-artifacts commits
+
+### Block 7 — Closes
+
+| Finding | Status | Notes |
+|---------|--------|-------|
+| E-19 spec cascade convergence | **RE-CERTIFIED** | Pass-21 CONFIRMING CLEAN; D-636/D-637 precedent satisfied; BC-5.39.001 3-CLEAN + confirming pass complete. |
+| W1 TDD authorization (D-773 contingent) | **UNCONDITIONALLY AUTHORIZED** | Confirming CLEAN removes contingency; human grant D-773 + confirming CLEAN D-774 = full authorization. |
+| O-P19-01 | **CLOSED** (D-773) | Convention note added. Carries closed from D-773; confirmed no residual by pass-21. |
+| O-P20-01 | **CLOSED** (D-773) | S-19.07 v1.8 Gate B block-comment strip. Carries closed from D-773; confirmed no residual by pass-21. |
+| **E-19 spec cascade (full)** | **FULLY CLOSED** | 21 passes; trajectory 16→14→20→9→8→5→12→11→4→7→6→6→3→6→7→2→2→0→0→0 + pass-21 confirming=0. Convergence + confirmation complete. W1 TDD staged. |
+
+NEXT: Operator clears session → runs /vsdd-factory:rehydrate-wave → dispatches W1 per-story TDD (S-19.01 + S-19.02 + S-19.03 parallel-eligible).
+
+### Block 8 — Factory-artifacts commits
+
+| Commit | SHA | Description |
+|--------|-----|-------------|
+| D-774 burst (atomic) | TBD — see SHA-patch | state(D-774): E-19 convergence re-certified (pass-21 confirming CLEAN) — W1 staged; wave-boundary session reset (v5.25) |
+| SHA-patch follow-up | TBD — see SHA-patch-2 | state(D-774-sha-patch): Active Branches SHA + burst-log Block 8 patch |

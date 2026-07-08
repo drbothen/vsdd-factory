@@ -6414,3 +6414,45 @@ D-773-POST-CONVERGENCE-ADJUDICATIONS-APPLIED
 ### Date
 
 2026-07-08
+
+---
+
+## D-774
+
+### Summary
+
+Pass-21 CONFIRMING CLEAN — E-19 spec cascade convergence RE-CERTIFIED (D-636/D-637 precedent satisfied). W1 TDD implementation dispatch UNCONDITIONALLY AUTHORIZED (human grant D-773 + confirming CLEAN D-774). Wave-boundary session-reset staged: wave-state.yaml authored for W1; operator clears session and runs /vsdd-factory:rehydrate-wave to start W1 with fresh context.
+
+### Detail
+
+**(1) PASS-21 CONFIRMING CLEAN — CONVERGENCE RE-CERTIFIED.**
+
+- Adversary verdict: CLEAN B0/H0/M0/L0 (zero findings; zero new observations). Fresh context; Opus family; Iron Law; perimeter = D-773 delta (S-19.07 v1.8 / epic v1.15 / STORY-INDEX v4.152).
+- All three D-773 amendments verified defect-free: (a) S-19.07 v1.8 Gate B two-run evidence reproduces at HEAD (real lib.rs exit 0 with symbols at lines 59/331/466/838; discriminating fixture OLD-gate exit 0 vs NEW-gate exit 1 — sed chain load-bearing); (b) POLICY 14 5-leg parity verified on all three bumps; (c) POLICY 17 backfill verified non-contradicting; (d) O-P19-01 convention note verified accurate at both line-687 and line-700 clauses; (e) all 6 legacy epic header syncs verified against actual frontmatter; (f) E-13 traces_to resolves on disk.
+- E-19 SPEC CASCADE CONVERGENCE RE-CERTIFIED per D-636/D-637 precedent. W1 TDD dispatch UNCONDITIONALLY AUTHORIZED.
+
+**(2) WAVE-BOUNDARY SESSION-RESET STAGED (ADR-026 §Decision 3 — prompt-the-human).**
+
+- Wave-state.yaml authored at `.factory/wave-state.yaml` (factory-artifacts branch via this commit) for rehydrate-wave skill (BC-6.24.001 manifest).
+- After this burst commits and pushes, operator clears session and runs `/vsdd-factory:rehydrate-wave` to rehydrate W1 context fresh (Iron Law compliance; wave-boundary reset per ADR-026 §Decision 3).
+
+**(3) W1 COMPOSITION AND WAVE SCHEDULE.**
+
+- **W1 (parallel-eligible):** S-19.01 (pr-manager hardening; 8pts; no deps), S-19.02 (verify-factory-lock OutputTooLarge; 8pts; no deps), S-19.03 (warn pending wave-gate file-not-found; 5pts; no deps).
+- **W2:** S-19.04 (bundle-hygiene tool-filter anchoring; 5pts), S-19.05 (async-completion telemetry sink release-mode; 8pts), S-19.06 (read_prefix migration: dispatcher + BC; 8pts; gated on S-19.03 MERGED + S-19.04 MERGED).
+- **W3:** S-19.07 (verify-factory-lock read_prefix migration; 3pts; gated on S-19.02 MERGED + S-19.06 MERGED).
+- Per-story delivery workflow: stubs → Red Gate failing tests → TDD green → LOCAL adversary 3-CLEAN per BC-5.39.001 → demo-recorder per-AC → push → pr-manager 9-step PR cycle → squash-merge → state-manager post-merge burst.
+
+**(4) WAVE-2 KICKOFF REMINDER — artifact-path-registry.yaml.**
+
+Per D-766 §7: `plugins/vsdd-factory/config/artifact-path-registry.yaml` is develop-dirty (uncommitted). Add explicit note to W2 kickoff checklist: fold this file into S-19.04 PR (per D-766 §7 standing directive) when dispatching W2.
+
+Parent-commit: cc5838f7 (D-773-sha-patch-2, factory-artifacts HEAD before this burst).
+
+### Phase
+
+D-774-E19-CONVERGENCE-RECERTIFIED-W1-STAGED
+
+### Date
+
+2026-07-08
