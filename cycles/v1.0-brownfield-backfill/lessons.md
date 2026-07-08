@@ -5605,3 +5605,20 @@ Zero matching lines + "STORY-INDEX-PROSE-PASS" = PASS. Any matching line = FAIL 
 3. Apply to both BC-version bumps (propagation to STORY-INDEX prose, epic prose, task cites) and path/value changes (propagation to all story table cells referencing the field, including narrative prose columns like "Patterns Established").
 
 **Cites:** D-769, adv-E19-pass-17.md O-P17-02, F-P17-002 (path_allow 5th site), F-P16-001 (STORY-INDEX-prose BC-cite escape), L-BB-bc-cite-preflight-must-cover-story-index-prose (D-768 companion).
+
+---
+
+## L-BB-strict-3-clean-convergence-achieved-zero-asymptotic-acceptance [codified]
+
+**Context:** D-772 [codified] 2026-07-08. E-19 spec cascade converged at pass-20 under strict-3-CLEAN with zero asymptotic acceptance. Twenty adversarial passes over 2 sessions; trajectory 16→14→20→9→8→5→12→11→4→7→6→6→3→6→7→2→2→0→0→0. D-761 HUMAN DIRECTIVE (strict BC-5.39.001 3-CLEAN; no cap; no asymptotic acceptance; no AI substitution) satisfied in full.
+
+**Key finding:** The D-766 §4 gate-execution-evidence rule + D-768 STORY-INDEX-prose preflight leg + D-769 sweep-count reconciliation gate collectively broke the fix-burst-introduced-defect recurrence pattern that dominated passes 12–15. Passes 12–15 averaged 5.5 findings/pass, all fix-burst-introduced (class: sibling-sweep escapes and propagation-leg gaps). After these three rules were codified and applied, passes 16–20 decayed 2→2→0→0→0 with zero fix-burst-introduced defects.
+
+**The three enabling rules:**
+1. **D-766 §4 gate-execution-evidence rule:** every new/changed shell gate must be executed against (a) defect fixture (exit=1) and (b) fixed fixture (exit=0) with captured stdout before encoding in AC text. Eliminated the class of vacuously-true gates that appeared correct in prose but failed at HEAD.
+2. **D-768 STORY-INDEX-prose preflight leg:** BC-cite drift preflight must additionally scan STORY-INDEX delivery-summary and BC coverage blocks. Eliminated the class of STORY-INDEX prose stale-cite escapes (11 passes of false PASS before codification).
+3. **D-769 sweep-count reconciliation gate:** when declaring "swept N sites", run `grep -c <outgoing_value> <file>` and verify N = count - intentional-keeps. Eliminated the class of narrative "N sites" undercount escapes where a prose table cell was missed.
+
+**Streak discipline observation:** The freeze discipline (no edits after streak ≥1/3 except genuine blockers; accepted-with-record for LOW observations) contributed to convergence by eliminating the churn from prospective-LOW fix attempts that could reintroduce blast-radius defects under streak pressure. Two accepted-with-record observations (O-P19-01, O-P20-01) pending human adjudication at convergence gate.
+
+**Cites:** D-772, adv-E19-pass-20.md, D-766 (gate-execution-evidence), D-768 (STORY-INDEX-prose preflight), D-769 (sweep-count gate), D-761 (HUMAN DIRECTIVE strict-3-CLEAN).
