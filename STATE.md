@@ -409,7 +409,7 @@ ALL ACTIVE AND MANDATORY on every dispatch:
 ### §9. Critical Anchors
 
 - **GitHub origin repo:** `drbothen/vsdd-factory` (NOT the local git user "Zious"). All E-18/E-19 PRs live at `https://github.com/drbothen/vsdd-factory`. Use `--repo drbothen/vsdd-factory` flag with all `gh` commands.
-- **factory-artifacts HEAD:** `1fdd8d46` D-764 E-19-ADV-PASS-13-NOT-CLEAN-CLOSED 2026-07-07 (single-commit per TD-VSDD-053); prior: D-763 `2eecafd1` (SHA-patch `04cdd1e1`).
+- **factory-artifacts HEAD:** `2af278b7` D-765 E-19-ADV-PASS-14-NOT-CLEAN-CLOSED 2026-07-08 (single-commit per TD-VSDD-053); prior: D-764 `1fdd8d46` (SHA-patch `9a7a16b9`).
 - **develop HEAD:** `f5242bef` (sync-develop back-merge post-Release-28668124787 CLEAN; prior: `a6cf13e8` PR #438 D-749; **E-18 EPIC COMPLETE; rc.22 100% SHIPPED**)
 - **main HEAD:** `a04cb303` (rc.22 bot bundle commit 2026-07-03; prior: `caf06c68` rc.21 bot bundle 2026-06-13)
 - **v1.0.0-rc.22 tag:** `e4285fe5` (SHIPPED; tag re-created at e4285fe5 after mapfile fix; FULLY IN OPERATOR MARKETPLACE)
@@ -422,7 +422,7 @@ ALL ACTIVE AND MANDATORY on every dispatch:
 - **Older anchors (BC-4.14.001 v1.17 D-651; BC-5.41.001 v1.26 D-660; BC-5.41.002 v1.19 D-658; ADR-028 v1.3 D-672; S-18.04a v1.11 D-693; S-18.05 v1.9 D-700; BC-1.15.001 v1.5..VP-090 v1.2, VP-081..VP-085, L2-INDEX v1.0.13, ADR-025 v1.6, S-17.04 v1.7, ADR-026 v1.22):** See decision-log.md SoT.
 - **BC-5.41.004 v1.5 (active):** `ss-05/BC-5.41.004.md` (D-722 POL-14 lifecycle promotion: S-18.11 PR #340 squash-merged 531dacfb 2026-06-29; lifecycle_status draft→active. No behavioral change.)
 - **S-18.12 (merged, no BC):** `behavioral_contracts: []` intentional (Option 3 gate-enforcement, S-18.09 precedent, PO gate RESOLVED D-724); MERGED PR #384 ec05606a D-744 2026-07-01; no POL-14 action (nothing to promote).
-- **Verify on resume:** `git rev-parse --short origin/develop` → expect `f5242bef`; `git rev-parse --short origin/main` → expect `a04cb303`; `git -C .factory log -1 --format='%h %s'` → expect D-764 commit; `gh repo view --json nameWithOwner -q .nameWithOwner --repo drbothen/vsdd-factory` → expect `drbothen/vsdd-factory`.
+- **Verify on resume:** `git rev-parse --short origin/develop` → expect `f5242bef`; `git rev-parse --short origin/main` → expect `a04cb303`; `git -C .factory log -1 --format='%h %s'` → expect D-765 commit; `gh repo view --json nameWithOwner -q .nameWithOwner --repo drbothen/vsdd-factory` → expect `drbothen/vsdd-factory`.
 
 ### §10. PR Status
 
