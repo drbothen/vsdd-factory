@@ -197,8 +197,9 @@ Per human direction 2026-05-14, the E-10 sub-cycle adopts asymptotic-acceptance 
 |------|------|------|---------|----------|--------|-----------|--------|
 | Pass-22 | 2026-07-08 | adv-E19-pass-22.md | NOT-CLEAN | B1/H1/M2/L0 (4 total) | 0/3 | D-776 fix burst (architect/PO×2/SW×3/SM) | CLOSED D-776 — STREAK 0/3; pass-23 NEXT |
 | Pass-23 | 2026-07-08 | adv-E19-pass-23.md | NOT-CLEAN | B0/H1/M2/L0 (3 total) | 0/3 | D-777 fix burst (architect/PO/SW×2/SM) | CLOSED D-777 — STREAK 0/3; pass-24 NEXT |
+| Pass-24 | 2026-07-08 | adv-E19-pass-24.md | NOT-CLEAN | B0/H0/M2/L2 (4 total; first zero-HIGH) | 0/3 | D-778 fix burst (PO/SW×2/SM) | CLOSED D-778 — STREAK 0/3; pass-25 NEXT |
 
-**Convergence Status (E-19 spec cascade):** IN PROGRESS — pass-23 NOT-CLEAN B0/H1/M2/L0 (3 findings + 2 obs); D-777 fix burst applied (architect ADR-030 v1.2→v1.3 F-P23-001 canonical TOML tool-removed/on_error/priority; PO BC-4.13.001 v1.8→v1.9 F-P23-002 tense-only; SW S-19.02 v1.9→v1.10 + S-19.07 v1.8→v1.9 BC-4.13.001 cite propagation; SM ARCH-INDEX ADR-030 row F-P23-003 + STORY-INDEX BC-cite sweep); streak 0/3. 4-index: BC v3.79/VP v2.53/STORY v4.155/ARCH v2.93. pass-24 NEXT.
+**Convergence Status (E-19 spec cascade):** IN PROGRESS — pass-24 NOT-CLEAN B0/H0/M2/L2 (2 findings + 2 obs; FIRST ZERO-HIGH of re-convergence cascade); D-778 fix burst applied (PO BC-2.02.011 v1.4→v1.5 F-P24-001 §Traceability bidirectional parity; SW S-19.03 v1.12→v1.13 BC-2.02.011 cite sweep; SW S-19.01 v1.13→v1.14 O-P24-002 stale-disjunction retired; SM BC-INDEX BC-2.02.011 row S-19.03 added F-P24-002 + ARCH-INDEX ADR-030 acceptance v1.0 O-P24-001 + STORY-INDEX S-19.01/S-19.03 rows); streak 0/3. 4-index: BC v3.80/VP v2.53/STORY v4.156/ARCH v2.94. pass-25 NEXT.
 
 ## Convergence Status
 

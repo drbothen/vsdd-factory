@@ -13227,3 +13227,129 @@ NEXT: E-19 adversary pass-24 (fresh context; perimeter = D-777 delta: ADR-030 v1
 |--------|-----|-------------|
 | D-777 burst (atomic) | `c25c9b28` | state(D-777): E-19 adv pass-23 NOT-CLEAN CLOSED — fix burst 4 legs (v5.28) |
 | SHA-patch follow-up | `PENDING` | state(D-777-sha-patch): Active Branches + Block 8 SHA patch |
+
+## D-778 — E-19 adv pass-24 NOT-CLEAN CLOSED — 2026-07-08
+
+### Block 1 — Parent-commit
+
+Parent-commit: `9d225cdc` (D-777 SHA-patch; factory-artifacts HEAD before this burst).
+
+### Block 2 — Adversary Verdict (D-448(a) source-attestation)
+
+Pass-24 verdict: **NOT-CLEAN B0/H0/M2/L2** (2 findings + 2 observations; FIRST ZERO-HIGH of re-convergence cascade). Fresh context; Claude Opus 4.7 family; Iron Law; perimeter = ADR-030 v1.3 + BC-4.13.001 v1.9 + BC-2.02.011 v1.4 + S-19.01 v1.13 + S-19.02 v1.10 + S-19.03 v1.12 + S-19.07 v1.9.
+
+Source-attestation against adv-E19-pass-24.md Part A finding set: F-P24-001 MED BC-2.02.011 §Traceability bidirectional parity gap — S-19.03 declared as implementing story since v1.4/F-P3-014 but §Traceability §Stories subsection lists only S-8.10; §Story Anchor and §Refactoring Notes do not acknowledge S-19.03; VSDD BC convention requires BC §Traceability to acknowledge all implementing stories; F-P24-002 MED BC-INDEX BC-2.02.011 row Stories cell shows `S-8.10` only — S-19.03 absent after D-f codification; POLICY 14 verification_step 5 index-sync violation; O-P24-001 LOW ARCH-INDEX ADR-030 row acceptance clause cites "ADR-030 v1.1" for 2026-07-06 acceptance — acceptance occurred at v1.0; v1.1..v1.3 are post-acceptance amendments; O-P24-002 LOW S-19.01 §Red Gate Tests stale "or new hook" disjunction — D-f adjudication locked extend-only scope. Streak 0/3.
+
+Source-attestation verification: `grep -oE "B0/H0/M2/L2|F-P24-001|F-P24-002|O-P24-001|O-P24-002" .factory/cycles/v1.0-brownfield-backfill/adv-E19-pass-24.md | sort | uniq -c` → B0/H0/M2/L2×2, F-P24-001×7, F-P24-002×3, O-P24-001×3, O-P24-002×3. PASS — all 4 finding/observation IDs present.
+
+### Block 3 — Files Touched
+
+- `.factory/cycles/v1.0-brownfield-backfill/adv-E19-pass-24.md` — NEW (pass-24 NOT-CLEAN report persisted; D-448(a))
+- `.factory/cycles/v1.0-brownfield-backfill/INDEX.md` — pass-24 row appended; Convergence Status updated
+- `.factory/cycles/v1.0-brownfield-backfill/decision-log.md` — D-778 appended (full codification; 5 sub-sections)
+- `.factory/cycles/v1.0-brownfield-backfill/lessons.md` — L-BB-bidirectional-bc-story-parity-must-be-verified-at-bc-amendment appended
+- `.factory/cycles/v1.0-brownfield-backfill/burst-log.md` — D-778 this entry
+- `.factory/specs/behavioral-contracts/ss-02/BC-2.02.011.md` — v1.4→v1.5 (§Traceability Stories + §Story Anchor + §Refactoring Notes extended with S-19.03; F-P24-001; PO leg)
+- `.factory/stories/S-19.01-pr-manager-hardening.md` — v1.13→v1.14 (stale "or new hook" disjunction retired; extend-only confirmed; O-P24-002; SW leg; input-hash 358f3e2)
+- `.factory/stories/S-19.03-warn-pending-wave-gate-file-not-found.md` — v1.12→v1.13 (BC-2.02.011 v1.5 cite sweep; F-P24-001 SW cite-sweep leg; input-hash 8d1225d)
+- `.factory/stories/STORY-INDEX.md` — v4.155→v4.156 (S-19.01 row v1.13→v1.14 input-hash 358f3e2; S-19.03 row v1.12→v1.13 input-hash 8d1225d; BC coverage footer BC-2.02.011 v1.4→v1.5)
+- `.factory/specs/behavioral-contracts/BC-INDEX.md` — v3.79→v3.80 (BC-2.02.011 row Stories cell S-8.10 → S-8.10,S-19.03; version cell v1.4→v1.5; F-P24-002)
+- `.factory/specs/architecture/ARCH-INDEX.md` — v2.93→v2.94 (ADR-030 row acceptance clause v1.1→v1.0; O-P24-001)
+- `.factory/STATE.md` — v5.28→v5.29
+
+### Block 4 — Codifications
+
+- **D-778** codified in decision-log.md. Pass-24 NOT-CLEAN B0/H0/M2/L2 FIRST-ZERO-HIGH; fix burst 4 legs all-fixed; streak 0/3; pass-25 NEXT. 4-index: BC v3.80/VP v2.53/STORY v4.156/ARCH v2.94.
+- Lesson **L-BB-bidirectional-bc-story-parity-must-be-verified-at-bc-amendment** [process-gap] codified.
+- O-P24-001 + O-P24-002 FIXED (production-grade default; human directive).
+- Literal decision-log entry count: `130` (grep -c "^## D-" .factory/cycles/v1.0-brownfield-backfill/decision-log.md — captured stdout in Block 5).
+
+### Block 5 — Dim-2 Literal Shell Gates (D-449(a))
+
+**Gate (i) — 4-index versions (D-494 literal-shell):**
+
+```bash
+grep "^version:" \
+  .factory/specs/verification-properties/VP-INDEX.md \
+  .factory/stories/STORY-INDEX.md \
+  .factory/specs/behavioral-contracts/BC-INDEX.md \
+  .factory/specs/architecture/ARCH-INDEX.md
+```
+
+stdout:
+```
+.factory/specs/verification-properties/VP-INDEX.md:version: "2.53"
+.factory/stories/STORY-INDEX.md:version: "4.156"
+.factory/specs/behavioral-contracts/BC-INDEX.md:version: "3.80"
+.factory/specs/architecture/ARCH-INDEX.md:version: "2.94"
+```
+
+Result: BC v3.80 / VP v2.53 / STORY v4.156 / ARCH v2.94. PASS.
+
+**Gate (ii) — adv-E19-pass-24.md persist proof (NOT-CLEAN + finding IDs present):**
+
+```bash
+grep -c "NOT-CLEAN\|F-P24\|O-P24" .factory/cycles/v1.0-brownfield-backfill/adv-E19-pass-24.md
+```
+
+stdout: `15`
+
+Result: 15 occurrences of NOT-CLEAN/F-P24/O-P24 in pass-24 report. PASS — report persisted with full finding set.
+
+**Gate (iii) — D-778 decision-log entry count:**
+
+```bash
+grep -c "^## D-" .factory/cycles/v1.0-brownfield-backfill/decision-log.md
+```
+
+stdout: `130`
+
+Result: 130 total D-NNN entries (was 129 pre-D-778). D-778 present. PASS.
+
+**Gate (iv) — STATE.md version:**
+
+```bash
+grep "^version:" .factory/STATE.md
+```
+
+stdout: `version: "5.29"`
+
+Result: STATE.md advanced to v5.29. PASS.
+
+### Block 6 — Dim Attestations
+
+**Dim-2 (spec accuracy):** BC-2.02.011 v1.5 §Traceability §Stories/§Story Anchor/§Refactoring Notes all acknowledge S-19.03 (F-P24-001 closed). BC-INDEX BC-2.02.011 row Stories cell updated to `S-8.10, S-19.03` (F-P24-002 closed). ARCH-INDEX ADR-030 row acceptance clause corrected to v1.0 (O-P24-001 fixed). S-19.01 stale disjunction retired (O-P24-002 fixed). POLICY 14 5-leg parity on all 3 amended artifacts (BC-2.02.011, S-19.01, S-19.03). D-494 4-index gate: BC v3.80/VP v2.53/STORY v4.156/ARCH v2.94 — zero FAIL (Gate i stdout above).
+
+**Dim-5 (input-hash):** S-19.01 input-hash 358f3e2 UNCHANGED (verified via compute-input-hash); S-19.03 input-hash 8d1225d UNCHANGED (verified via compute-input-hash).
+
+**Dim-6 (STORY-INDEX-prose):** STORY-INDEX v4.156 — S-19.01 row v1.13→v1.14 input-hash 358f3e2; S-19.03 row v1.12→v1.13 input-hash 8d1225d; BC coverage footer line 702 BC-2.02.011 v1.4→v1.5.
+
+**Dim-7 (routing):** PO (BC-2.02.011 v1.5 §Traceability); SW×2 (S-19.03 v1.13 BC cite sweep; S-19.01 v1.14 stale disjunction); SM (BC-INDEX F-P24-002 + ARCH-INDEX O-P24-001 + STORY-INDEX sweep + 4-index governance + cycle artifacts).
+
+**Dim-5 8-block self-verification:**
+- [x] Block 1 — Parent-commit (9d225cdc)
+- [x] Block 2 — Adversary verdict (source-attested from adv-E19-pass-24.md; NOT-CLEAN B0/H0/M2/L2; 2 findings + 2 obs; FIRST ZERO-HIGH)
+- [x] Block 3 — Files touched (12 files)
+- [x] Block 4 — Codifications (D-778; lesson; count 130)
+- [x] Block 5 — Dim-2 literal shell gates with captured stdout (Gates i/ii/iii/iv per D-449(a))
+- [x] Block 6 — Dim-5/6/7 Attestations + 8-block self-verification (this block)
+- [x] Block 7 — Closes
+- [x] Block 8 — Factory-artifacts commits
+
+### Block 7 — Closes
+
+| Finding | Status | Notes |
+|---------|--------|-------|
+| F-P24-001 (MED) | CLOSED | BC-2.02.011 v1.5: §Traceability Stories/§Story Anchor/§Refactoring Notes extended with S-19.03 (PO leg + SW cite-sweep leg) |
+| F-P24-002 (MED) | CLOSED | BC-INDEX v3.80: BC-2.02.011 row Stories cell S-8.10 → S-8.10, S-19.03; version v1.5 |
+| O-P24-001 (LOW) | FIXED (production-grade default; human directive) | ARCH-INDEX v2.94: ADR-030 row acceptance clause v1.1 → v1.0 |
+| O-P24-002 (LOW) | FIXED | S-19.01 v1.14: stale "or new hook" disjunction retired; extend-only wording |
+
+NEXT: E-19 adversary pass-25 (fresh context; perimeter = D-778 delta: BC-2.02.011 v1.5 + S-19.01 v1.14 + S-19.03 v1.13).
+
+### Block 8 — Factory-artifacts commits
+
+| Commit | SHA | Description |
+|--------|-----|-------------|
+| D-778 burst (atomic) | `PENDING` | state(D-778): E-19 adv pass-24 NOT-CLEAN CLOSED — fix burst 4 legs (v5.29) |
+| SHA-patch follow-up | `PENDING` | state(D-778-sha-patch): Active Branches + Block 8 SHA patch |

@@ -6606,3 +6606,57 @@ D-777-E19-ADV-PASS-23-CLOSED
 ### Date
 
 2026-07-08
+
+## D-778
+
+### Summary
+
+E-19 adv pass-24 NOT-CLEAN B0/H0/M2/L2 (2 findings + 2 observations; FIRST ZERO-HIGH pass of re-convergence cascade). Severity decay trajectory: pass-22 B1/H1/M2/L0=4 → pass-23 B0/H1/M2/L0=3 → pass-24 B0/H0/M2/L2=4. F-P24-001 MEDIUM: BC-2.02.011 §Traceability bidirectional parity gap — S-19.03 declared as implementing story since v1.4/F-P3-014 but BC never acknowledged in §Traceability Stories, §Story Anchor, or §Refactoring Notes. F-P24-002 MEDIUM: BC-INDEX BC-2.02.011 row Stories cell shows S-8.10 only; S-19.03 absent — POLICY 14 index-sync violation. O-P24-001 LOW: ARCH-INDEX ADR-030 row acceptance clause cites "ADR-030 v1.1" for 2026-07-06 acceptance; acceptance occurred at v1.0 (v1.1..v1.3 are post-acceptance amendments). O-P24-002 LOW: S-19.01 §Red Gate Tests stale "or new hook" disjunction — extend-only scope locked at D-f; stale draft language persists. All four items fixed same burst (no accept-with-record; production-grade default per human directive). Fix burst: product-owner (BC-2.02.011 v1.4→v1.5 F-P24-001 §Traceability); story-writer (S-19.03 v1.12→v1.13 BC-2.02.011 v1.5 cite sweep; S-19.01 v1.13→v1.14 O-P24-002 stale disjunction); state-manager (BC-INDEX BC-2.02.011 Stories cell S-8.10+S-19.03 + ARCH-INDEX ADR-030 acceptance v1.0 + STORY-INDEX row syncs + 4-index bumps). 4-index: BC v3.80/VP v2.53/STORY v4.156/ARCH v2.94. Streak 0/3. NEXT: pass-25.
+
+### Detail
+
+**(1) FINDING DISPOSITIONS.**
+
+- **F-P24-001 (MEDIUM) — BC-2.02.011 §Traceability bidirectional parity gap.** BC-2.02.011 (host::write_file bounded write capability) was declared the normative BC for S-19.03 at v1.4 (F-P3-014 fix burst). Since that declaration, BC-2.02.011 §Traceability §Stories subsection listed only S-8.10; §Story Anchor referenced only S-8.10; §Refactoring Notes did not name S-19.03 as a dependent sweep target. VSDD BC convention: when a story is declared to implement a BC, the BC §Traceability acknowledges the story. Fix: BC-2.02.011 v1.4→v1.5 — §Traceability Stories append S-19.03; §Story Anchor note S-19.03 AC-006 extension; §Refactoring Notes S-19.03 as sweep target. Traceability-only; no behavioral content changed. POLICY 14 5-leg parity applied. Co-closed F-P24-002 (SM leg: BC-INDEX row updated atomically).
+
+- **F-P24-002 (MEDIUM) — BC-INDEX BC-2.02.011 row Stories cell omits S-19.03.** BC-INDEX catalog table BC-2.02.011 row Stories cell: "S-8.10" only. STORY-INDEX correctly cites [BC-2.02.011] in S-19.03 contract column; reverse traceability in BC-INDEX absent — POLICY 14 verification_step 5 index-sync violation. Fix: BC-INDEX v3.79→v3.80 BC-2.02.011 row Stories `S-8.10` → `S-8.10, S-19.03`; version cell `v1.4` → `v1.5`. (Atomic with F-P24-001 state-manager leg.)
+
+- **O-P24-001 (LOW; spec-hygiene) — FIXED (production-grade default; human directive).** ARCH-INDEX ADR-030 row acceptance clause cited "ADR-030 v1.1" for 2026-07-06 acceptance. Acceptance occurred at v1.0; v1.1..v1.3 are post-acceptance amendments enumerated in amendment stanzas. Fix: ARCH-INDEX v2.93→v2.94 ADR-030 row acceptance clause: "ACCEPTED 2026-07-06; ADR-030 v1.1" → "ACCEPTED 2026-07-06; ADR-030 v1.0". Amendment stanzas v1.1/v1.2/v1.3 unchanged.
+
+- **O-P24-002 (LOW; spec-hygiene) — FIXED.** S-19.01 §Red Gate Tests contained stale "or new hook" disjunction from early draft stage. D-f adjudication (E-19 wave schedule) locked extend-only scope; pr-manager-completion-guard.wasm already registered in hooks-registry.toml. Fix: S-19.01 v1.13→v1.14 — retire disjunction; extend-only wording confirmed. Input-hash 358f3e2 unchanged (no content change beyond task phrasing).
+
+**(2) FIX BURST LEGS (4 total).**
+
+- **Product-owner:** BC-2.02.011 v1.4→v1.5. §Traceability Stories S-19.03 added; §Story Anchor S-19.03 AC-006 noted; §Refactoring Notes S-19.03 as dependent sweep target. Traceability-only amendment; no behavioral content changed. BC-INDEX v3.80 (row v1.5 appended; Stories cell updated). POLICY 14 5-leg parity applied.
+- **Story-writer (S-19.03):** S-19.03 v1.12→v1.13. BC-2.02.011 v1.5 cite sweep: §Behavioral Contracts table Version cell, Token Budget, AC traceability updated. Input-hash 8d1225d unchanged. POLICY 14 5-leg parity applied.
+- **Story-writer (S-19.01):** S-19.01 v1.13→v1.14. Stale "or new hook" disjunction retired; extend-only wording. Input-hash 358f3e2 unchanged. POLICY 14 5-leg parity applied.
+- **State-manager:** BC-INDEX v3.79→v3.80 (BC-2.02.011 row Stories cell S-8.10 → S-8.10, S-19.03; version cell v1.4 → v1.5; frontmatter last_amended prepended). ARCH-INDEX v2.93→v2.94 (ADR-030 row acceptance clause v1.1 → v1.0; frontmatter last_amended prepended). STORY-INDEX v4.155→v4.156 (S-19.01 row v1.13→v1.14 input-hash 358f3e2; S-19.03 row v1.12→v1.13 input-hash 8d1225d; BC coverage footer BC-2.02.011 v1.4→v1.5; frontmatter last_amended prepended). VP-INDEX v2.53 UNCHANGED.
+
+**(3) D-494 4-INDEX GATE.**
+
+Literal shell execution:
+```
+PASS BC-INDEX.md v3.80
+PASS VP-INDEX.md v2.53
+PASS STORY-INDEX.md v4.156
+PASS ARCH-INDEX.md v2.94
+```
+Zero FAIL.
+
+**(4) DEFENSIVE SWEEP (S-7.02).**
+
+Searched for stale "BC-2.02.011 v1.4" across BC-INDEX.md, STORY-INDEX.md, ARCH-INDEX.md, prd.md, STATE.md — BC coverage footer line 702 updated to v1.5; no other files contain old count as literal string. "ADR-030 v1.1" acceptance-clause search: only the ARCH-INDEX ADR-030 row's acceptance clause was the stale site; amendment stanzas reference v1.1 correctly (they describe what changed at v1.1, not the acceptance event).
+
+**(5) LESSON CODIFICATION.**
+
+L-BB-bidirectional-bc-story-parity-must-be-verified-at-bc-amendment [process-gap] codified: when a story is declared to implement a BC (via behavioral_contracts frontmatter or explicit product-owner declaration), the BC §Traceability must be updated in the same burst. The converse drift (story cites BC; BC doesn't cite story) can survive many passes because adversarial reviewers typically start from the story side (following the traceability chain forward) rather than the BC side (following it backward). The gap becomes visible only when a reviewer audits BC-INDEX Stories cell against STORY-INDEX backward citations. Gate: whenever a fix burst bumps BC-INDEX row version cell, also verify BC §Traceability Stories subsection includes all stories in BC-INDEX Stories cell. Lesson tagged [codified], cites D-778.
+
+Parent-commit: (D-777 burst, factory-artifacts HEAD before this burst — see Active Branches SHA in STATE.md).
+
+### Phase
+
+D-778-E19-ADV-PASS-24-CLOSED
+
+### Date
+
+2026-07-08

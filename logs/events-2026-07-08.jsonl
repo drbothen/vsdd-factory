@@ -69,3 +69,13 @@
 {"type":"hook.block","hook":"validate-table-cell-count","reason":"table_cell_count","ts":"2026-07-08T15:20:04-0600","ts_epoch":1783545604,"schema_version":1}
 {"type":"hook.block","hook":"validate-table-cell-count","reason":"table_cell_count","ts":"2026-07-08T15:20:12-0600","ts_epoch":1783545612,"schema_version":1}
 {"type":"hook.block","hook":"validate-table-cell-count","reason":"table_cell_count","ts":"2026-07-08T15:20:38-0600","ts_epoch":1783545638,"schema_version":1}
+{"type":"hook.block","hook":"validate-changelog-monotonicity","reason":"changelog_frontmatter_mismatch","ts":"2026-07-08T15:40:51-0600","ts_epoch":1783546851,"schema_version":1}
+{"type":"hook.block","hook":"validate-changelog-monotonicity","reason":"changelog_frontmatter_mismatch","ts":"2026-07-08T15:42:43-0600","ts_epoch":1783546963,"schema_version":1}
+{"type":"hook.block","hook":"validate-input-hash","reason":"input_hash_drift","ts":"2026-07-08T15:42:43-0600","ts_epoch":1783546963,"schema_version":1}
+{"type":"hook.block","hook":"validate-input-hash","reason":"input_hash_drift","ts":"2026-07-08T15:43:08-0600","ts_epoch":1783546988,"schema_version":1}
+{"type":"hook.block","hook":"validate-input-hash","reason":"input_hash_drift","ts":"2026-07-08T15:54:46-0600","ts_epoch":1783547686,"schema_version":1}
+{"type":"hook.block","hook":"validate-input-hash","reason":"input_hash_drift","ts":"2026-07-08T15:56:22-0600","ts_epoch":1783547782,"schema_version":1}
+{"type":"hook.block","hook":"validate-count-propagation","reason":"count_propagation_drift","ts":"2026-07-08T16:08:18-0600","ts_epoch":1783548498,"schema_version":1}
+{"type":"hook.block","hook":"validate-count-propagation","reason":"count_propagation_drift","ts":"2026-07-08T16:09:59-0600","ts_epoch":1783548599,"schema_version":1}
+{"type":"hook.block","hook":"validate-count-propagation","reason":"count_propagation_drift","ts":"2026-07-08T16:10:14-0600","ts_epoch":1783548614,"schema_version":1}
+{"type":"hook.block","hook":"validate-input-hash","reason":"input_hash_drift","ts":"2026-07-08T16:48:23-0600","ts_epoch":1783550903,"schema_version":1}

@@ -5707,3 +5707,33 @@ Zero matching lines + "STORY-INDEX-PROSE-PASS" = PASS. Any matching line = FAIL 
 3. The fix-burst preflight for any ADR touching a config stanza must include a full-stanza diff gate — "anchoring one axis correctly" does not guarantee the adjacent axes are correct.
 
 **Cites:** D-777, adv-E19-pass-23.md (F-P23-001/F-P23-003), hooks-registry.toml (ground truth), D-776 (prior fix burst), ADR-030 v1.3, D-449(a) (literal-shell-execution-evidence).
+
+## L-BB-bidirectional-bc-story-parity-must-be-verified-at-bc-amendment [process-gap] [codified]
+
+**Type:** process-gap
+**Codified:** D-778 [codified] 2026-07-08
+
+**Closes:** D-778 (F-P24-001 MEDIUM; F-P24-002 MEDIUM)
+
+**Summary:** When a story is declared to implement a BC, the BC §Traceability must acknowledge the story in the same burst. The converse direction (story cites BC; BC doesn't cite story) creates invisible traceability gaps that survive many adversary passes.
+
+**Context:** BC-2.02.011 was declared the normative BC for S-19.03 at v1.4 (F-P3-014 fix burst, D-f codification). This was the correct direction: product-owner added BC-2.02.011 to S-19.03's behavioral_contracts array and declared it in the story's §Behavioral Contracts table. However, the inverse obligation — updating BC-2.02.011 §Traceability to acknowledge S-19.03 — was not performed. Over passes 3–24 (21 passes), neither the implementer, story-writer, nor any adversary caught the gap. The reason: adversary reviewers naturally follow the traceability chain from story → BC (forward direction, starting with stories because stories are the unit of delivery). The reverse direction (from BC → story) is only audited when a reviewer specifically inspects BC-INDEX Stories cells and cross-references them with STORY-INDEX behavioral_contracts arrays.
+
+The BC-INDEX gap (F-P24-002) compounded the issue: even if a reviewer knew to check the BC, the BC-INDEX Stories cell showed only S-8.10, making the full implementing-story set invisible without reading the BC body.
+
+**Root cause:** BC amendment protocols focus on content correctness (behavioral semantics, AC coverage) and POLICY 14 5-leg parity (body/frontmatter/modified[]/last_amended/index) but do not include a bidirectional-traceability sweep gate. Specifically: "when you add a story to behavioral_contracts, also add the story to the BC §Traceability and BC-INDEX Stories cell" is an implicit obligation that is easily missed under time pressure.
+
+**Failure mode:** BC §Traceability §Stories subsection becomes stale as new implementing stories are added over cycles. The BC INDEX Stories cell drifts from the actual implementing story set. Future adversary reviews of the BC see only the original implementing stories. Future story-writers checking BC-INDEX for the implementing context miss downstream stories. BC amendment sweeps may fail to include new implementing stories because those stories are not listed in the §Traceability.
+
+**Gate (D-778 codification):** For any fix burst where a story S-NNN.MM adds BC-X.YY.ZZZ to its behavioral_contracts frontmatter array:
+1. Verify BC-X.YY.ZZZ §Traceability §Stories subsection includes S-NNN.MM. If absent, add in the same burst.
+2. Verify BC-INDEX.md BC-X.YY.ZZZ row Stories cell includes S-NNN.MM. If absent, update in the same burst (atomic with BC-INDEX version bump).
+3. When performing this sweep, check the BC §Refactoring Notes or equivalent "dependent sweep" section to ensure S-NNN.MM is listed as a sweep target for future BC amendments.
+4. Log the sweep result in the burst-log Dim-5 block.
+
+**Prevention:**
+1. Story-writer: when adding a BC to behavioral_contracts, immediately note "BC §Traceability must be updated" as a PO-leg obligation in the fix burst plan.
+2. Product-owner: BC amendment checklist should include "§Traceability Stories: are all implementing stories listed?" as a mandatory step.
+3. State-manager: BC-INDEX Stories cell is authoritative for implementing-story set; verify it matches the set of stories that cite the BC in their behavioral_contracts.
+
+**Cites:** D-778, adv-E19-pass-24.md (F-P24-001/F-P24-002), BC-2.02.011 v1.5, STORY-INDEX BC-coverage footer, POLICY 14 verification_step 5 (index sync).

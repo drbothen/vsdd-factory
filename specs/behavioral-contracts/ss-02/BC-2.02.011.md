@@ -1,7 +1,7 @@
 ---
 document_type: behavioral-contract
 level: L3
-version: "1.4"
+version: "1.5"
 status: ready
 producer: product-owner
 timestamp: 2026-05-01T00:00:00Z
@@ -21,6 +21,7 @@ introduced: v1.1
 modified:
   - "v1.3 (2026-06-20): S-18.04a-prereq / ADR-028 §Decision 8 — corrected Invariant 3 path-resolution base plugin_root → ctx.cwd (CLAUDE_PROJECT_DIR); corrected Postcondition 5 to match; the prior plugin_root claim was stale since S-8.07's read_file fix"
   - "v1.4 (2026-07-06): E-19 pass-2 F-P2-004 fix burst — Architecture Anchors + Traceability Architecture Module extended with path_util.rs (shared path allowlist-resolution helper extracted at S-19.03)"
+  - "v1.5 (2026-07-08): E-19 pass-24 F-P24-001 fix burst — §Traceability Stories + §Story Anchor extended with S-19.03 (path_util.rs extraction of resolve_path_for_allowlist + write_file.rs two-step decomposed pattern adoption; EC-001 traversal-defense anchored by VP-097); §Refactoring Notes annotated as carried out by S-19.03; closes bidirectional-parity gap (story declared BC, BC did not acknowledge story)"
 deprecated: null
 deprecated_by: null
 replacement: null
@@ -111,6 +112,8 @@ removal_reason: null
 
 S-8.10 — "SDK extension: host::write_file (D-6 Option A unblocker)" resolves OQ-1 in that story. This BC supersedes the `[OQ-1: BC-2.02.011 pending]` placeholder in S-8.10 v1.1 BC-trace table.
 
+S-19.03 — "warn-pending-wave-gate: file-not-found path_util extraction" adopts this BC's EC-001 traversal-defense (resolve_path_for_allowlist extraction into path_util.rs) and applies the write_file.rs two-step decomposed prepare() pattern. S-19.03 v1.12 declares this BC in its `behavioral_contracts: [BC-2.07.001, BC-2.02.011]` frontmatter and cites EC-001 in AC-001 BC Trace.
+
 ## VP Anchors
 
 (TBD — to be assigned in Phase 1.6b verification properties pass)
@@ -123,7 +126,7 @@ S-8.10 — "SDK extension: host::write_file (D-6 Option A unblocker)" resolves O
 | Capability Anchor Justification | CAP-022 ("Port hook plugins from bash to native WASM") per capabilities.md §CAP-022. `host::write_file` is a direct enabling dependency for porting state-mutating bash hooks (S-8.04, S-8.09) to native WASM; without this SDK function those hooks cannot be ported. |
 | L2 Domain Invariants | TBD (Phase 1.5 invariant lift pass) |
 | Architecture Module | SS-02 — `crates/hook-sdk/src/host.rs`, `crates/factory-dispatcher/src/host/write_file.rs`, `crates/factory-dispatcher/src/host/path_util.rs` |
-| Stories | S-8.10 (implementing story), S-8.04 (consumer: update-wave-state-on-merge), S-8.09 (consumer: regression-gate-adapter-retirement) |
+| Stories | S-8.10 (implementing story), S-8.04 (consumer: update-wave-state-on-merge), S-8.09 (consumer: regression-gate-adapter-retirement), S-19.03 (path_util.rs extraction of resolve_path_for_allowlist + write_file.rs two-step decomposed pattern adoption; EC-001 traversal-defense anchored by VP-097) |
 
 ### Source Evidence
 
@@ -154,8 +157,11 @@ S-8.10 — "SDK extension: host::write_file (D-6 Option A unblocker)" resolves O
 
 `path_allowed` (pure-core subset) should be extracted as a standalone function to enable unit testing without dispatcher context, matching the pattern in `read_file.rs::path_allowed`. The remaining `register`/`prepare` logic is inherently effectful-shell.
 
+The shared path allowlist-resolution helper (`resolve_path_for_allowlist`) described above was extracted into `crates/factory-dispatcher/src/host/path_util.rs` and the two-step decomposed prepare() pattern (resolve→None→path_resolution_failed; prefix_check→false→path_not_allowed) was adopted in `write_file.rs` by S-19.03 (carried out as part of the warn-pending-wave-gate path_util extraction story; EC-001 traversal-defense anchored by VP-097).
+
 ## Changelog
 
+- v1.5 (2026-07-08): E-19 pass-24 F-P24-001 fix burst (product-owner): §Traceability Stories row extended with S-19.03 (path_util.rs extraction of resolve_path_for_allowlist + write_file.rs two-step decomposed pattern adoption; EC-001 traversal-defense anchored by VP-097). §Story Anchor extended with S-19.03 anchor sentence (S-19.03 v1.12 behavioral_contracts: [BC-2.07.001, BC-2.02.011] confirmed as grounding). §Refactoring Notes annotated: resolve_path_for_allowlist extraction into path_util.rs and two-step decomposed prepare() pattern in write_file.rs carried out by S-19.03. Closes F-P24-001 bidirectional-parity drift. BC-INDEX version + Stories cell bump is state-manager same-burst.
 - v1.4 (2026-07-06): E-19 pass-2 F-P2-004 fix burst (product-owner): §Architecture Anchors extended with `crates/factory-dispatcher/src/host/path_util.rs` bullet (shared path allowlist-resolution helper; extracted from write_file.rs at S-19.03; implements the rejoin algorithm for resolving both existing and absent file paths against the declared path_allow list; imported by both write_file.rs and read_file.rs). §Traceability Architecture Module field appended with `crates/factory-dispatcher/src/host/path_util.rs`. Closes F-P2-004. BC-INDEX v3.61→v3.62.
 - v1.3 (2026-06-20): S-18.04a-prereq / ADR-028 §Decision 8 — corrected Invariant 3 path-resolution base `plugin_root` → `ctx.cwd` (CLAUDE_PROJECT_DIR), restoring parity with `read_file.rs::resolve_for_read` and matching production `invoke.rs`; the prior `plugin_root` claim was stale since S-8.07's read_file fix. Postcondition 5 corrected to match.
 - v1.2 (2026-05-08): F-P18-002 prose-form line reference migration — 1 prose ref (`after line 187` in §Architecture Anchors) replaced with stable symbol anchor (after `pub fn read_file` declaration in `host.rs`).
