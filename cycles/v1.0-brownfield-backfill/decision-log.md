@@ -5952,7 +5952,7 @@ D-765-E19-ADV-PASS-14-CLOSED
 
 ## D-766
 
-**E-19 ADV PASS-15 RECEIVED (NOT-CLEAN B0/H6/M1/L0) — SESSION-WRAP-PAUSE. FIX SWEEP PARTIALLY STARTED — STORY-WRITER MADE PARTIAL DISK CHANGES BEFORE SESSION ENDED (S-19.01 v1.10/S-19.03 v1.12/S-19.05 v1.13/S-19.06 v1.12/EPIC v1.13/STORY-INDEX v4.148; S-19.02/04/07 UNCHANGED AT PASS-14). GATE-EXECUTION-EVIDENCE RULE INSTITUTED. NEW DRIFT ITEM: BC FRONTMATTER CYCLE FIELD INCONSISTENCY.**
+**E-19 ADV PASS-15 RECEIVED (NOT-CLEAN B0/H6/M1/L0) — SESSION-WRAP-PAUSE. FIX SWEEP COMPLETE — STORY-WRITER EXECUTED FULL PASS-15 SWEEP BEFORE HALT (HALT-VS-QUEUED-BRIEF RACE; COMMITTED IN D-766 BURST): S-19.01 v1.10/S-19.03 v1.12/S-19.05 v1.13/S-19.06 v1.12/EPIC v1.13/STORY-INDEX v4.148; S-19.02/04/07 NOT IN PASS-15 SCOPE. GATE-EXECUTION-EVIDENCE RULE INSTITUTED + APPLIED TO SWEEP. NEW DRIFT ITEM: BC FRONTMATTER CYCLE FIELD INCONSISTENCY.**
 
 **(1) E-19 ADVERSARIAL PASS-15 VERDICT: NOT-CLEAN B0/H6/M1/L0.** Fresh-context adversary reviewed E-19 epic + S-19.01..S-19.07 + STORY-INDEX E-19 section on 2026-07-08. 7 findings (F-P15-001..F-P15-007) + 5 observations. Adversary-stated B0/H6/M1/L0 count matches enumerated bodies (0 BLOCKER + 6 HIGH + 1 MEDIUM + 0 LOW = 7 total). Zero false-positives. Trajectory 16→14→20→9→8→5→12→11→4→7→6→6→3→6→7. Class analysis: 6 of 7 findings introduced by pass-12/13/14 fix bursts themselves; 4 trace to gate idioms drafted in orchestrator briefs (honest attribution per §3 below).
 
@@ -5972,7 +5972,7 @@ F-P15-007 MED: S-19.03 AC-006 `set -o pipefail` wrap (added D-765 O-P14-03 fix) 
 
 5 observations: O-P15-01 BC frontmatter `cycle:` field inconsistent across E-19 BCs (three distinct values; recorded as Drift Item below); O-P15-02 EAC-006/007 numbering gap (orchestrator pass-14 brief error; EAC-008 retained per POLICY 1; changelog note needed); O-P15-03 Task-2 signature-change enumeration incomplete (addressed by F-P15-002 fix); O-P15-04 S-19.01 AC-004 CI job-presence approximate-match form vs literal YAML key form; O-P15-05 markdown-pipe-escape convention note (unescaped `\|` in E-19 story table cells).
 
-**(2) SESSION-WRAP-PAUSE — HUMAN /wrap DIRECTIVE 2026-07-08.** The pass-15 fix sweep was DISPATCHED to the story-writer specialist under the new gate-execution-evidence rule (see §3 below), but the sweep DID NOT START on disk before the human issued the /wrap directive. All E-19 artifacts remain at pass-14 versions: S-19.01 v1.9 / S-19.02 v1.9 / S-19.03 v1.11 / S-19.04 v1.11 / S-19.05 v1.12 / S-19.06 v1.11 / S-19.07 v1.6 / epic v1.12 / STORY-INDEX v4.147. This is a clean pause point. 4-index UNCHANGED: BC v3.76 / VP v2.53 / STORY v4.147 / ARCH v2.90.
+**(2) SESSION-WRAP-PAUSE — HUMAN /wrap DIRECTIVE 2026-07-08.** The pass-15 fix sweep was DISPATCHED to the story-writer specialist under the new gate-execution-evidence rule (see §3 below). HALT-VS-QUEUED-BRIEF RACE (operational observation — no harm): the story-writer processed the dispatch brief before the halt message arrived and executed the full pass-15 sweep. The wrap captures it. Fix sweep COMPLETE (gate-execution-evidence record in §8 below): S-19.01 v1.10 / S-19.03 v1.12 / S-19.05 v1.13 / S-19.06 v1.12 / epic v1.13 / STORY-INDEX v4.148. Unchanged (not in pass-15 scope): S-19.02 v1.9 / S-19.04 v1.11 / S-19.07 v1.6. 4-index at wrap: BC v3.76 / VP v2.53 / STORY v4.148 / ARCH v2.90.
 
 **(3) ORCHESTRATOR HONEST ATTRIBUTION.** Four findings trace to gate idioms drafted in orchestrator briefing material that was never executed before encoding:
 
@@ -6007,6 +6007,16 @@ Both captured outputs MUST appear in the story's AC section as inline evidence b
 **(6) NEW DRIFT ITEM (O-P15-01 BC frontmatter cycle inconsistency — added to STATE.md Drift Items table):** Three distinct `cycle:` field values exist across E-19 BCs: `v1.0-feature-engine-discipline-E19`, `v1.0-feature-engine-discipline-pass-1`, `v1.0-brownfield-backfill`. The active cycle is `v1.0-brownfield-backfill`. Human adjudication required: either normalize all E-19 BC `cycle:` fields to `v1.0-brownfield-backfill` as origin-not-current annotation OR establish that `cycle:` records the authorship context rather than the current-container context. Anchor: next maintenance sweep.
 
 **(7) DIRTY DEVELOP FILE NOTE.** One uncommitted file exists on the product repo `develop` branch: `plugins/vsdd-factory/config/artifact-path-registry.yaml` (+2 artifact-type registrations: verification-architecture + verification-coverage-matrix path patterns, enforcement block). Provenance: E-19 pass-5 architect leg side-effect (D-756 era). This file was intentionally NOT committed per the session-wrap rule (never commit to default branch during wrap). Disposition at resume: fold into an E-19 story PR (e.g., S-19.04 bundle-hygiene scope) or a small feature-branch commit before E-19 W1 kick-off.
+
+**(8) GATE-EXECUTION-EVIDENCE RESULTS (pass-15 fix sweep — discriminating-run record per D-766 §4).** Full sweep executed under gate-execution-evidence rule before session halt. Per-gate results:
+
+- **F-P15-004/005/006 (awk preceding-line gates — AC-004 static legs):** Each gate exits 1 against current `crates/factory-dispatcher/src/main.rs` (const ENV_SINK_FILE, fn flush_sink_file, use.*Mutex all cfg-gated — defect detected correctly) and exits 0 against a cfg-removed fixture (gate passes on correct artifact). Discriminating-run exit=1/exit=0 both confirmed.
+
+- **F-P15-001 (containment awk — AC-007 Gate 2 clause iii):** Exits 1 on current `hook-sdk/src/ffi.rs` (read_prefix absent at pass-15 artifact state — gate correctly detects missing implementation). Exits 0 on fixture with read_prefix declaration inside the cfg-gated extern block. Discriminating exit=1/exit=0 confirmed.
+
+- **F-P15-007 (jq-e + wc-l form — AC-006 4-case evidence):** empty file → exit 0 (happy path, V=0); matching event found → exit 1 (V>0 triggers failure-side); malformed JSON → jq exit 5 propagated under pipefail; path_resolution_failed event type excluded by jq select filter → exit 0 (correctly excluded). All 4 cases confirmed.
+
+- **O-P15-04 (ci.yml literal YAML key leg — AC-004 S-19.01):** Exits 1 pre-implementation on current `.github/workflows/ci.yml` (exact job-name key absent — correct expected pre-implementation state). Discriminating confirmed.
 
 Parent-commit: 6f7a159d (D-765 SHA-patch factory-artifacts HEAD).
 
