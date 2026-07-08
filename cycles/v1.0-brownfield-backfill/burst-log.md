@@ -12292,6 +12292,6 @@ Streak: 0/3. Next action: dispatch adv pass-18 (fresh context; reads adv-E19-pas
 
 | Commit | SHA | Description |
 |--------|-----|-------------|
-| D-769 burst (atomic) | SHA pending | state(D-769): E-19 adv pass-17 NOT-CLEAN closed — fix burst complete (v5.20) |
-| SHA-patch follow-up | SHA pending | state(D-769-sha-patch): Active Branches SHA → <D-769-burst-SHA> + burst-log Block 8 patch |
+| D-769 burst (atomic) | `3a8033bd` | state(D-769): E-19 adv pass-17 NOT-CLEAN closed — fix burst complete (v5.20) |
+| SHA-patch follow-up | SHA pending | state(D-769-sha-patch): Active Branches SHA → 3a8033bd + burst-log Block 8 patch |
 
