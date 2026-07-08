@@ -1,7 +1,7 @@
 ---
 document_type: epic
 epic_id: "E-19"
-version: "v1.10"
+version: "v1.11"
 status: draft
 title: "Post-rc.22 Operator Hardening — pr-manager race fixes, verify-factory-lock size defect, warn-pending-wave-gate false-positive, registry/bundle hygiene, async telemetry + VSDD_SINK_FILE, host::read_prefix bounded partial read"
 prd_capabilities: []
@@ -23,7 +23,7 @@ inputs:
   - .factory/stories/S-19.06-read-prefix-bounded-partial-read.md
   - .factory/stories/S-19.07-verify-factory-lock-read-prefix-migration.md
   - .factory/specs/behavioral-contracts/ss-04/BC-4.13.001.md
-input-hash: "5ec777d"
+input-hash: "c7dbafc"
 ---
 
 # Epic E-19: Post-rc.22 Operator Hardening
@@ -168,8 +168,10 @@ follows BC-1.17.001 v1.2.
 
 ```mermaid
 graph LR
+  S-19.01
   S-19.03 --> S-19.06
   S-19.04 --> S-19.06
+  S-19.05
   S-19.02 --> S-19.07
   S-19.06 --> S-19.07
 ```
@@ -227,6 +229,7 @@ Story BC-table rows use abbreviated titles for cell fit; the BC file H1 remains 
 
 | Version | Date | Author | Change |
 |---------|------|--------|--------|
+| v1.11 | 2026-07-07 | story-writer | E-19 pass-13 fix burst: O-P13-04 Dependency Graph mermaid — S-19.01 and S-19.05 added as isolated nodes to make independence visually explicit. |
 | v1.10 | 2026-07-07 | story-writer | E-19 pass-12 fix burst: F-P12-006 EAC-003 negative-control B — 'path with NO existing ancestor' framing retired; replaced with injectable mock canonicalize form per BC-2.07.001 v1.2 EC-007. BC-1.17.001 body-scope cite sweep: PRD Capabilities (line 113, layering note added), PRD Capabilities follow-on (line 115), Out-of-Scope (line 199) — all v1.1→v1.2. |
 | v1.9 | 2026-07-07 | story-writer | E-19 pass-9 fix burst: F-P9-001 subsystems_affected SS-06 removed (phantom; union recomputation SS-01/02/03/04/05/07/09 confirmed); F-P9-004 ASCII Dependency Graph replaced with mermaid graph LR (edges: S-19.03→S-19.06, S-19.04→S-19.06, S-19.02→S-19.07, S-19.06→S-19.07); O-P9-003 BC Traceability abbreviation convention sentence added. |
 | v1.8 | 2026-07-07 | story-writer | E-19 pass-8 fix burst: F-P8-004 Stories table S-19.03 BCs cell → "BC-2.07.001, BC-2.02.011"; F-P8-011 Wave model note added to Sequencing rationale. |

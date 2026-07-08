@@ -82,3 +82,14 @@
 {"type":"hook.block","hook":"validate-count-propagation","reason":"count_propagation_drift","ts":"2026-07-07T17:24:52-0600","ts_epoch":1783466692,"schema_version":1}
 {"type":"hook.block","hook":"validate-count-propagation","reason":"count_propagation_drift","ts":"2026-07-07T17:25:11-0600","ts_epoch":1783466711,"schema_version":1}
 {"type":"hook.block","hook":"validate-table-cell-count","reason":"table_cell_count","ts":"2026-07-07T17:40:01-0600","ts_epoch":1783467601,"schema_version":1}
+{"type":"hook.block","hook":"validate-changelog-monotonicity","reason":"changelog_frontmatter_mismatch","ts":"2026-07-07T18:09:28-0600","ts_epoch":1783469368,"schema_version":1}
+{"type":"hook.block","hook":"validate-input-hash","reason":"input_hash_drift","ts":"2026-07-07T18:19:52-0600","ts_epoch":1783469992,"schema_version":1}
+{"type":"hook.block","hook":"validate-changelog-monotonicity","reason":"changelog_frontmatter_mismatch","ts":"2026-07-07T18:25:41-0600","ts_epoch":1783470341,"schema_version":1}
+{"type":"hook.block","hook":"validate-input-hash","reason":"input_hash_drift","ts":"2026-07-07T18:25:42-0600","ts_epoch":1783470342,"schema_version":1}
+{"type":"hook.block","hook":"validate-input-hash","reason":"input_hash_drift","ts":"2026-07-07T18:26:03-0600","ts_epoch":1783470363,"schema_version":1}
+{"type":"hook.block","hook":"validate-input-hash","reason":"input_hash_drift","ts":"2026-07-07T18:42:33-0600","ts_epoch":1783471353,"schema_version":1}
+{"type":"hook.block","hook":"validate-input-hash","reason":"input_hash_drift","ts":"2026-07-07T18:42:46-0600","ts_epoch":1783471366,"schema_version":1}
+{"type":"hook.block","hook":"validate-input-hash","reason":"input_hash_drift","ts":"2026-07-07T18:43:01-0600","ts_epoch":1783471381,"schema_version":1}
+{"type":"hook.block","hook":"validate-changelog-monotonicity","reason":"changelog_frontmatter_mismatch","ts":"2026-07-07T19:24:11-0600","ts_epoch":1783473851,"schema_version":1}
+{"type":"hook.block","hook":"validate-input-hash","reason":"input_hash_drift","ts":"2026-07-07T19:24:11-0600","ts_epoch":1783473851,"schema_version":1}
+{"type":"hook.block","hook":"validate-input-hash","reason":"input_hash_drift","ts":"2026-07-07T19:24:24-0600","ts_epoch":1783473864,"schema_version":1}
