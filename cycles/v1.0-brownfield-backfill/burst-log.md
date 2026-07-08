@@ -12534,6 +12534,6 @@ No actionable findings closed (CLEAN pass with zero findings). Streak: **2/3**. 
 
 | Commit | SHA | Description |
 |--------|-----|-------------|
-| D-771 burst (atomic) | `[SHA-PATCH-PENDING]` | state(D-771): E-19 adv pass-19 CLEAN — streak 2/3 (v5.22) |
-| SHA-patch follow-up | `[SHA-PATCH-PENDING]` | state(D-771-sha-patch): Active Branches SHA → [D-771-burst-SHA] + burst-log Block 8 patch |
+| D-771 burst (atomic) | `b01138cc` | state(D-771): E-19 adv pass-19 CLEAN — streak 2/3 (v5.22) |
+| SHA-patch follow-up | `[SHA-PATCH-PENDING]` | state(D-771-sha-patch): Active Branches SHA → b01138cc + burst-log Block 8 patch |
 
