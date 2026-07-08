@@ -12412,3 +12412,128 @@ Streak: **1/3**. Next action: dispatch adv pass-19 (fresh context; reads adv-E19
 | D-770 burst (atomic) | `4342a97b` | state(D-770): E-19 adv pass-18 CLEAN — streak 1/3; artifacts frozen (v5.21) |
 | SHA-patch follow-up | `4f208172` | state(D-770-sha-patch): Active Branches SHA → 4342a97b + burst-log Block 8 patch |
 
+---
+
+## E-19 Adv Pass-19 CLEAN — D-771 Burst (2026-07-08)
+
+**Burst type:** GOVERNANCE-ONLY — zero story/epic/index content edits; STORY-INDEX stays v4.151 per D-770 precedent.
+
+### Block 1 — Parent-commit
+
+Parent-commit: `4f6a5026` (D-770-sha-patch-2 — "state(D-770-sha-patch-2): burst-log Block 8 SHA-patch SHA → 4f208172"; factory-artifacts HEAD before this burst).
+
+### Block 2 — Adversary Verdict (source-attested D-448(a))
+
+**Source:** `adv-E19-pass-19.md` — persisted VERBATIM at `.factory/cycles/v1.0-brownfield-backfill/adv-E19-pass-19.md`.
+
+**Verdict: CLEAN — BLOCKER 0 / HIGH 0 / MEDIUM 0 / LOW 0.**
+
+- 0 actionable findings. 1 novel observation O-P19-01 (accepted-with-record, pending intent verification).
+- Model family: Claude Opus 4.7. Iron Law: zero prior context.
+- Trajectory: 16→14→20→9→8→5→12→11→4→7→6→6→3→6→7→2→2→0→0.
+- Streak: 1/3 → 2/3 (second consecutive CLEAN; advances; strict-3-CLEAN per D-761).
+- 21-axis re-derivation PASS (15 legacy + 6 novel: registry row-count vs D-a table, STORY-INDEX row-vs-frontmatter delta, exempt-site sampling, BC-3.08.001 Event-5/6 field consistency, cross-story interface chain S-19.03→S-19.06→S-19.07, POLICY 20 codification alignment).
+- 8 story gates re-derived at HEAD with correct pre-implementation exit codes.
+- O-P19-01 (LOW, accepted-with-record): STORY-INDEX lines 687+700 W2 summary clause cites "S-19.06 (depends_on S-19.03)" omitting the S-19.04 dep. Authoritative row (line 696), epic Sequencing rationale, and mermaid all correctly carry [S-19.03, S-19.04]. Ambiguous between (a) pass-3 F-P3-010 sibling-sweep gap vs (b) compact cross-wave-only enumeration convention. Under FREEZE DISCIPLINE recorded as accepted-with-record; adjudication anchored at E-19 cycle close. The authoritative row is correct.
+
+Source attestation: `grep -c "O-P19-01" .factory/cycles/v1.0-brownfield-backfill/adv-E19-pass-19.md` → `2` (non-empty; file persisted with O-P19-01 present).
+
+### Block 3 — Files Touched
+
+| File | Change |
+|------|--------|
+| `.factory/cycles/v1.0-brownfield-backfill/adv-E19-pass-19.md` | NEW — adversary review persisted verbatim |
+| `.factory/cycles/v1.0-brownfield-backfill/decision-log.md` | APPENDED — D-771 entry |
+| `.factory/cycles/v1.0-brownfield-backfill/burst-log.md` | APPENDED — this entry (all 8 blocks) |
+| `.factory/STATE.md` | UPDATED — v5.21 → v5.22 |
+
+No story/epic/STORY-INDEX/BC-INDEX/VP-INDEX/ARCH-INDEX content edits. 4-index ALL UNCHANGED.
+
+### Block 4 — Codifications (Dim-6)
+
+**New D-NNN codified this burst:** 1 (D-771).
+
+**New L-EDP1-NNN / L-BB-NNN lessons:** 0 (no new lesson; O-P19-01 accepted-with-record; adjudication deferred to cycle close per freeze discipline).
+
+**D-NNN count in decision-log (literal-shell):**
+
+```
+grep -c "^## D-" .factory/cycles/v1.0-brownfield-backfill/decision-log.md
+```
+
+stdout: `123`
+
+### Block 5 — Dim-2 Literal Shell Gates (D-449(a))
+
+**Gate A — 4-index version verification (UNCHANGED check):**
+
+```
+grep "^version:" .factory/specs/behavioral-contracts/BC-INDEX.md \
+  .factory/specs/verification-properties/VP-INDEX.md \
+  .factory/stories/STORY-INDEX.md \
+  .factory/specs/architecture/ARCH-INDEX.md
+```
+
+stdout:
+```
+.factory/specs/verification-properties/VP-INDEX.md:version: "2.53"
+.factory/specs/architecture/ARCH-INDEX.md:version: "2.90"
+.factory/stories/STORY-INDEX.md:version: "4.151"
+.factory/specs/behavioral-contracts/BC-INDEX.md:version: "3.76"
+```
+
+Result: BC v3.76 / VP v2.53 / STORY v4.151 / ARCH v2.90 — ALL UNCHANGED (governance-only burst; STORY-INDEX stays v4.151 per D-770 precedent).
+
+**Gate B — Adversary review file persisted (O-P19-01 count):**
+
+```
+grep -c "O-P19-01" .factory/cycles/v1.0-brownfield-backfill/adv-E19-pass-19.md
+```
+
+stdout: `2`
+
+Result: PASS — file is non-empty and contains O-P19-01 in both the Observations section and Novelty Assessment table.
+
+**Gate C — current_step diff gate (verbatim-strict chain D-441(a)+D-449(a)):**
+
+Before (D-770): `current_step: "D-770-E19-PASS-18-CLEAN trajectory-tail →7→2→2→0;"`
+
+After (D-771): `current_step: "D-771-E19-PASS-19-CLEAN trajectory-tail →2→2→0→0;"`
+
+Trajectory-tail derivation: 19-value trajectory last-4 positions (16,17,18,19): 2,2,0,0 → →2→2→0→0. LENGTH=4 per D-433(e)+D-439(c). PASS.
+
+### Block 6 — Dim-5/6/7 Attestations
+
+**Dim-5 (production-grade default):** Burst is governance-only per task instructions and FREEZE DISCIPLINE (streak 2/3). Zero story/epic content edits. O-P19-01 accepted-with-record with cycle-close adjudication anchor — not silently deferred; explicit adjudication path recorded in D-771. All 8 D-444(c) blocks present in this entry.
+
+**Dim-6 (no-bypass):** All edits via Edit/Write tools (POL-3). No Python/sed/echo bypass. No `--no-verify`.
+
+**Dim-7 (routing):** State-manager performed only governance artifact writes. No spec/story content authored.
+
+**Dim-5 8-block self-verification:**
+
+Blocks verified present in this entry:
+- [x] Block 1 — Parent-commit (4f6a5026)
+- [x] Block 2 — Adversary verdict (source-attested from adv-E19-pass-19.md; CLEAN B0/H0/M0/L0; 21-axis re-derivation PASS; streak 2/3; O-P19-01 accepted-with-record)
+- [x] Block 3 — Files touched (4 files: adv-E19-pass-19.md NEW, decision-log D-771, burst-log this entry, STATE.md v5.22)
+- [x] Block 4 — Codifications Dim-6 (1 D-NNN D-771; 0 lessons; literal grep stdout: `123`)
+- [x] Block 5 — Dim-2 literal shell gates (Gates A/B/C with captured stdout per D-449(a))
+- [x] Block 6 — Dim-5/6/7 Attestations + 8-block self-verification (this block)
+- [x] Block 7 — Closes
+- [x] Block 8 — Factory-artifacts commits
+
+### Block 7 — Closes
+
+| Finding | Status | Notes |
+|---------|--------|-------|
+| O-P19-01 LOW | ACCEPTED-WITH-RECORD | STORY-INDEX W2 summary annotation omits S-19.04 dep; authoritative row correct; adjudication anchored at E-19 cycle close (3/3 CONVERGED closure burst). Not streak-breaking. |
+
+No actionable findings closed (CLEAN pass with zero findings). Streak: **2/3**. Next action: dispatch adv pass-20 (fresh context; reads adv-E19-pass-19.md findings/verdict enumeration only; strict-3-CLEAN per D-761; ONE more CLEAN → 3/3 CONVERGED).
+
+### Block 8 — Factory-artifacts commits
+
+| Commit | SHA | Description |
+|--------|-----|-------------|
+| D-771 burst (atomic) | `[SHA-PATCH-PENDING]` | state(D-771): E-19 adv pass-19 CLEAN — streak 2/3 (v5.22) |
+| SHA-patch follow-up | `[SHA-PATCH-PENDING]` | state(D-771-sha-patch): Active Branches SHA → [D-771-burst-SHA] + burst-log Block 8 patch |
+

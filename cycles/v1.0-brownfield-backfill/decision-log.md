@@ -6238,3 +6238,72 @@ D-770-E19-PASS-18-CLEAN
 ### Date
 
 2026-07-08
+
+---
+
+## D-771
+
+### Summary
+
+E-19 adv pass-19 CLEAN B0/H0/M0/L0. SECOND consecutive CLEAN. Streak 1/3 → 2/3. 21-axis re-derivation PASS (15 legacy + 6 novel). O-P19-01 accepted-with-record (adjudication anchored E-19 cycle close). FREEZE DISCIPLINE continues. 4-index ALL UNCHANGED.
+
+### Detail
+
+**(1) PASS-19 VERDICT: CLEAN B0/H0/M0/L0.**
+
+- 0 actionable findings.
+- 1 novel observation (O-P19-01): accepted-with-record under freeze discipline; NOT streak-breaking.
+- Trajectory tail (last 4 of 19 values): 2→2→0→0 (full: 16→14→20→9→8→5→12→11→4→7→6→6→3→6→7→2→2→0→0).
+- Streak: 2/3 (second consecutive CLEAN of E-19 cascade under strict-3-CLEAN per D-761).
+- Pass-18 CLEAN confirmed at entry; 21-axis re-derivation all PASS.
+
+**(2) PASS-19 ADVERSARY VERIFICATION.**
+
+21-axis re-derivation all PASS (15 legacy axes + 6 novel):
+
+Legacy (15 from pass-18):
+- Spec version parity (15 artifacts): frontmatter versions match modified[] latest + last_amended prefix; STORY-INDEX rows mirror. No drift.
+- BC live-cite currency: BC-1.17.001 v1.2 / BC-2.02.011 v1.4 / BC-2.07.001 v1.2 / BC-3.08.001 v1.19 / BC-4.13.001 v1.8 / BC-5.42.001 v1.1 — all cited versions match BC file frontmatter.
+- Story ↔ epic points sum: 7 × {8,8,5,5,8,8,3} = 45 pts ✓.
+- DAG bidirectional consistency: all blocks↔depends_on pairs bidirectional; acyclic; mermaid matches frontmatter edges; W1→W2→W3 valid.
+- Subsystems union: {SS-01, SS-02, SS-03, SS-04, SS-05, SS-07, SS-09} = epic frontmatter. STORY-INDEX row subsystems match story frontmatter.
+- Input-hashes distinct: 7 distinct at HEAD (S-19.06=617adeb).
+- Frontmatter ↔ body BC parity: all 7 stories bidirectional.
+- Frontmatter ↔ body AC BC-trace parity: every BC referenced by ≥1 AC BC-Trace cell.
+- BC subsystem alignment (POLICY 6): all match story primary anchor.
+- VP-INDEX propagation (POLICY 9): VP-094..VP-101 present in catalog + VP-to-Story mapping; story→VP frontmatter matches.
+- ADR resolution: ADR-025 + ADR-030 exist; anchored_adrs references resolve.
+- Gate-execution evidence (D-766 §4) re-derived at HEAD: all 6 gates pass (S-19.01 AC-004 → exit 1; S-19.02 AC-001 → exit 1; S-19.05 AC-004 legs 1+2 + T-006 → exit 1 each; S-19.06 AC-007 Gate 2 clause (iii) both blocks → exit 1; S-19.07 AC-001 Gate B → exit 0; S-19.04 AC-004 → exit 1).
+
+Novel (6 for pass-19, axes 16–21):
+- 16. hooks-registry.toml D-a table row count vs actual tool= entries: 54 entries covering 7 distinct current-value patterns → 7 correct anchored forms. Task 13 drift-detection load-bearing. No defect.
+- 17. STORY-INDEX row-vs-frontmatter delta (rows 691-698): all 7 rows' Depends-On/Blocks/Points/Priority/Status/BCs match story frontmatter exactly.
+- 18. POLICY 5 v1.3.5 exempt-site sampling: line 729 chronology retired with explicit closure; stale cites confined to exempt sites.
+- 19. BC-3.08.001 v1.19 Event 5 vs Event 6 field count consistency: AC-001 9 mandatory Event-6 fields; AC-002 7 mandatory Event-5 fields; semantic consistency preserved.
+- 20. Cross-story interface (S-19.03 → S-19.06 → S-19.07): path_util::resolve_path_for_allowlist, codes::NOT_FOUND=-5, host::read_prefix FFI, capabilities.read_prefix block — dependency ordering correct; no orphan interface citations.
+- 21. POLICY 20 codification: policies.yaml POLICY 20 (codified D-753) verification_steps consistent with S-19.04 AC-001/002/006/007.
+
+**(3) O-P19-01 ACCEPTED-WITH-RECORD.**
+
+Observation: STORY-INDEX lines 687 and 700 cite W2 summary as `{S-19.04, S-19.05, S-19.06 (depends_on S-19.03)}` omitting S-19.06's second dependency S-19.04. Two readings: (a) sibling-sweep gap from pass-3 F-P3-010 — MEDIUM under that reading; (b) compact cross-wave-only enumeration convention (S-19.03 is cross-wave W1→W2; S-19.04 is intra-wave) — correct under that reading. Neither convention is documented as authoritative. Authoritative row (line 696), epic Sequencing rationale (lines 155-159), and mermaid (lines 172-180) all correctly carry both [S-19.03, S-19.04] deps.
+
+Decision: Accepted-with-record under FREEZE DISCIPLINE. Not fixed now — editing under streak 2/3 would risk churn from a possible false-positive escalation; the authoritative row is correct. Adjudication anchored at E-19 cycle close (3/3 CONVERGED closure burst). At cycle close: if reading (a), sweep the summary annotation in the convergence closure burst; if reading (b), document the compact convention in STORY-INDEX conventions note.
+
+**(4) FREEZE DISCIPLINE CONTINUES.**
+
+Per streak discipline at 2/3: E-19 artifacts remain FROZEN at:
+- S-19.01 v1.11; S-19.02 v1.9; S-19.03 v1.12; S-19.04 v1.11; S-19.05 v1.13; S-19.06 v1.13; S-19.07 v1.7; epic v1.14; STORY-INDEX v4.151.
+
+GOVERNANCE-ONLY burst: zero story/epic/index content edits; STORY-INDEX stays v4.151 (per D-770 precedent: version bumps accompany content changes only). 4-index: BC v3.76 / VP v2.53 / STORY v4.151 / ARCH v2.90 — ALL UNCHANGED.
+
+**(5) NEXT: E-19 adv pass-20** (fresh context; reads adv-E19-pass-19.md findings/verdict enumeration only per Iron Law; strict-3-CLEAN per D-761; streak 2/3; ONE more CLEAN → 3/3 CONVERGED; preflights: per-file BC-cite (D-759) + STORY-INDEX-prose (D-768) + sweep-count (D-769); FREEZE DISCIPLINE active).
+
+Parent-commit: 4f6a5026 (D-770-sha-patch-2, factory-artifacts HEAD before this burst).
+
+### Phase
+
+D-771-E19-PASS-19-CLEAN
+
+### Date
+
+2026-07-08
