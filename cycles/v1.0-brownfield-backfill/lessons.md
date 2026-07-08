@@ -5678,3 +5678,32 @@ Zero matching lines + "STORY-INDEX-PROSE-PASS" = PASS. Any matching line = FAIL 
 3. The STORY-INDEX-prose BC-cite sweep (D-768) should explicitly cover BC-coverage summary paragraph and footer — not just per-story row annotations. F-P22-002 (second escape from this location) confirms the coverage gap.
 
 **Cites:** D-776, adv-E19-pass-22.md (F-P22-001/F-P22-002), hooks-registry.toml (ground truth), D-775 (prior fix burst), D-768 (STORY-INDEX-prose leg), TD-VSDD-060.
+
+## L-BB-adr-canonical-snippets-must-mirror-live-registry-shape [process-gap] [codified]
+
+**Type:** process-gap
+**Codified:** D-777 [codified] 2026-07-08
+
+**Closes:** D-777 (F-P23-001 HIGH; F-P23-003 MEDIUM)
+
+**Summary:** ADR "canonical" config snippets must be generated from or literal-shell-verified against the live registry entry they describe. Hand-authored canonical TOML survived 23 passes with 5 structural axes wrong because reviewers verified ADR internal consistency, not shape-parity against the runtime consumer.
+
+**Context:** ADR-030 Decision 1 embeds a canonical SubagentStop TOML stanza. Over passes 19–23, the following axes drifted from the live hooks-registry.toml SubagentStop entry: (1) regex unanchored `^Agent` (fixed pass-22 D-776); (2) `tool` field present but non-existent in SubagentStop entries (fixed pass-23 D-777); (3) `on_error = "advisory"` should be `on_error = "continue"` (fixed pass-23 D-777); (4) `priority = 150` should be `priority = 920` (fixed pass-23 D-777); (5) ARCH-INDEX descriptor mirrored the same stale values (fixed pass-23 D-777). Each pass-22 and pass-23 adversary verified the ADR's internal coherence and the regex anchoring correction, but neither diffed the full stanza against the live registry. The errors persisted because the review rubric asked "is the stanza internally consistent?" rather than "does the stanza match the live consumer?"
+
+**Root cause:** ADR canonical snippets are treated as documentation prose rather than derived artifacts. Prose is reviewed for correctness relative to surrounding text; derived artifacts are verified against a source of truth. When a canonical stanza is hand-authored, it accumulates drift with each adjacent fix that doesn't diff the whole stanza against the registry.
+
+**Failure mode:** Any ADR that embeds a canonical TOML/YAML/JSON stanza for a registry-managed artifact (hooks-registry.toml, Cargo.toml workspace section, etc.) will drift from the live registry unless each fix burst includes a full-stanza diff gate.
+
+**Gate (D-777 codification):** For any ADR fix burst that touches a canonical TOML/YAML stanza:
+1. Extract the stanza from the ADR (e.g., `grep -A N 'canonical.*TOML' ADR-NNN.md | sed ...`).
+2. Extract the corresponding live entry from the registry (e.g., hooks-registry.toml entry for the same plugin name).
+3. Run `diff <extracted-stanza> <live-entry>` with captured stdout.
+4. Any diff line is a required correction — fix it in the same burst before committing.
+5. Log the diff stdout (or "diff clean") in the burst-log Dim-2 block per D-449(a) literal-shell-execution-evidence discipline.
+
+**Prevention:**
+1. ADR canonical stanzas should be marked with a `<!-- source: hooks-registry.toml §plugin-name -->` comment so future reviewers know to validate against the live source.
+2. ARCH-INDEX row descriptors that paraphrase ADR canonical values must be co-updated whenever the ADR canonical stanza changes (POLICY 6 accuracy obligation).
+3. The fix-burst preflight for any ADR touching a config stanza must include a full-stanza diff gate — "anchoring one axis correctly" does not guarantee the adjacent axes are correct.
+
+**Cites:** D-777, adv-E19-pass-23.md (F-P23-001/F-P23-003), hooks-registry.toml (ground truth), D-776 (prior fix burst), ADR-030 v1.3, D-449(a) (literal-shell-execution-evidence).

@@ -196,8 +196,9 @@ Per human direction 2026-05-14, the E-10 sub-cycle adopts asymptotic-acceptance 
 | Pass | Date | File | Verdict | Findings | Streak | Fix Burst | Status |
 |------|------|------|---------|----------|--------|-----------|--------|
 | Pass-22 | 2026-07-08 | adv-E19-pass-22.md | NOT-CLEAN | B1/H1/M2/L0 (4 total) | 0/3 | D-776 fix burst (architect/PO×2/SW×3/SM) | CLOSED D-776 — STREAK 0/3; pass-23 NEXT |
+| Pass-23 | 2026-07-08 | adv-E19-pass-23.md | NOT-CLEAN | B0/H1/M2/L0 (3 total) | 0/3 | D-777 fix burst (architect/PO/SW×2/SM) | CLOSED D-777 — STREAK 0/3; pass-24 NEXT |
 
-**Convergence Status (E-19 spec cascade):** IN PROGRESS — pass-22 NOT-CLEAN B1/H1/M2/L0 (4 findings + 5 obs); D-776 fix burst applied (architect ADR-030 v1.1→v1.2 F-P22-003; PO BC-5.42.001 v1.2→v1.3 F-P22-001 + BC-1.17.001 v1.2→v1.3 F-P22-004; SW S-19.01 v1.12→v1.13 + S-19.06 v1.13→v1.14 + E-19 epic v1.15→v1.16; SM STORY-INDEX stale BC cites F-P22-002); streak 0/3. 4-index: BC v3.78/VP v2.53/STORY v4.154/ARCH v2.92. pass-23 NEXT.
+**Convergence Status (E-19 spec cascade):** IN PROGRESS — pass-23 NOT-CLEAN B0/H1/M2/L0 (3 findings + 2 obs); D-777 fix burst applied (architect ADR-030 v1.2→v1.3 F-P23-001 canonical TOML tool-removed/on_error/priority; PO BC-4.13.001 v1.8→v1.9 F-P23-002 tense-only; SW S-19.02 v1.9→v1.10 + S-19.07 v1.8→v1.9 BC-4.13.001 cite propagation; SM ARCH-INDEX ADR-030 row F-P23-003 + STORY-INDEX BC-cite sweep); streak 0/3. 4-index: BC v3.79/VP v2.53/STORY v4.155/ARCH v2.93. pass-24 NEXT.
 
 ## Convergence Status
 

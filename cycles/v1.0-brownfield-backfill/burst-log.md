@@ -12960,3 +12960,270 @@ NEXT: Operator clears session → runs /vsdd-factory:rehydrate-wave → dispatch
 |--------|-----|-------------|
 | D-774 burst (atomic) | `532810a5` | state(D-774): E-19 convergence re-certified (pass-21 confirming CLEAN) — W1 staged; wave-boundary session reset (v5.25) |
 | SHA-patch follow-up | `e80f7856` | state(D-774-sha-patch): Active Branches SHA 532810a5 + burst-log Block 8 patch |
+
+## D-775 — W1-validation fix burst CLOSED — 2026-07-08
+
+> **Retroactive entry** (burst-log entry authored at D-777 SM closure leg; content reconstructed from decision-log.md D-775 and STATE.md v5.26).
+
+### Block 1 — Parent-commit
+
+Parent-commit: `e80f7856` (D-774 SHA-patch follow-up; factory-artifacts HEAD before this burst).
+
+### Block 2 — Adversary Verdict (D-448(a) source-attestation)
+
+W1-validator (fresh-context perimeter validator, not a cycle adversary pass). Verdict: **GO-WITH-FIXES** — F-W1V-001 BLOCKER: ADR-030 canonical TOML `hooks/` vs `bin/` path conflict for check-stale-verdict.sh + enforce-merge-strategy.sh. F-W1V-002 HIGH: BC-5.42.001 invocation signatures positional vs flag discrepancy. F-W1V-003 HIGH: BC-5.42.001 4-arm named error codes missing. F-W1V-004 MED: S-19.01 exit 1 disambiguation. E-19 re-convergence required (BC-5.39.001 3-CLEAN streak RESET per human directive).
+
+Source-attestation: no adv-cycle-pass-N.md for W1-validator leg; verdict sourced from W1-validation report (not persisted separately — embedded in D-775 decision-log entry).
+
+### Block 3 — Files Touched
+
+- `.factory/specs/architecture/decisions/ADR-030-pr-manager-merge-operation-integrity-enforcement.md` — v1.0→v1.1 (F-W1V-001..004 interface drift fixes)
+- `.factory/specs/behavioral-contracts/ss-05/BC-5.42.001.md` — v1.1→v1.2 (hooks/ → bin/ path propagation)
+- `.factory/stories/S-19.01-pr-manager-hardening.md` — v1.11→v1.12 (BC-5.42.001 v1.2 cite propagation; D-775 fixes)
+- `.factory/stories/STORY-INDEX.md` — v4.152→v4.153 (S-19.01 row sync)
+- `.factory/specs/architecture/ARCH-INDEX.md` — v2.90→v2.91 (ADR-030 row v1.0→v1.1)
+- `.factory/specs/behavioral-contracts/BC-INDEX.md` — v3.76→v3.77 (BC-5.42.001 catalog row v1.1→v1.2)
+- `.factory/STATE.md` — v5.25→v5.26
+
+### Block 4 — Codifications
+
+- **D-775** codified in decision-log.md. W1-validation GO-WITH-FIXES; streak RESET 0/3; human directive: E-19 re-convergence MUST complete before W1 TDD dispatch. 4-index: BC v3.77/VP v2.53/STORY v4.153/ARCH v2.91.
+
+### Block 5 — Dim-2 Literal Shell Gates (D-449(a))
+
+Retroactive entry — literal shell gates not captured at burst time. Gates verified at D-777 commit via 4-index gate stdout (BC v3.79/VP v2.53/STORY v4.155/ARCH v2.93 at D-777; D-775 values: BC v3.77/VP v2.53/STORY v4.153/ARCH v2.91 per STATE.md v5.26 wc-l record).
+
+### Block 6 — Dim Attestations
+
+**Dim-2 (spec accuracy):** ADR-030 v1.1 bin/ paths match live hooks-registry.toml + BC-5.42.001 v1.2 + S-19.01 v1.12 — POLICY 14 5-leg parity on all 3 amended artifacts.
+**Dim-5 (input-hash):** S-19.01 input-hash updated 8ec7188→2a9f0b4 per compute-input-hash.
+**Dim-6 (STORY-INDEX-prose):** STORY-INDEX v4.153 S-19.01 row synced.
+**Dim-7 (routing):** Architect (ADR-030); product-owner (BC-5.42.001); story-writer (S-19.01); state-manager (STORY-INDEX + 4-index governance).
+
+**Dim-5 8-block self-verification:**
+- [x] Block 1 — Parent-commit (e80f7856)
+- [x] Block 2 — W1-validator verdict (GO-WITH-FIXES; 4 findings)
+- [x] Block 3 — Files touched (6 spec files + STATE.md)
+- [x] Block 4 — Codifications (D-775; streak RESET; W1 CONTINGENT)
+- [x] Block 5 — Dim-2 retroactive note
+- [x] Block 6 — Dim-5/6/7 Attestations
+- [x] Block 7 — Closes
+- [x] Block 8 — Factory-artifacts commits
+
+### Block 7 — Closes
+
+| Finding | Status | Notes |
+|---------|--------|-------|
+| F-W1V-001 (BLOCKER) | CLOSED | ADR-030 v1.0→v1.1 bin/ paths |
+| F-W1V-002 (HIGH) | CLOSED | BC-5.42.001 invocation signatures |
+| F-W1V-003 (HIGH) | CLOSED | BC-5.42.001 4-arm named error codes |
+| F-W1V-004 (MED) | CLOSED | S-19.01 exit 1 disambiguation |
+
+### Block 8 — Factory-artifacts commits
+
+| Commit | SHA | Description |
+|--------|-----|-------------|
+| D-775 burst (atomic) | `b1967f03` | state(D-775): W1-validation fix burst CLOSED (ADR-030 v1.1 + BC-5.42.001 v1.2 + S-19.01 v1.12; streak RESET 0/3; v5.26) |
+
+---
+
+## D-776 — E-19 adv pass-22 NOT-CLEAN CLOSED — 2026-07-08
+
+> **Retroactive entry** (burst-log entry authored at D-777 SM closure leg; content reconstructed from decision-log.md D-776, adv-E19-pass-22.md, and STATE.md v5.27).
+
+### Block 1 — Parent-commit
+
+Parent-commit: `b1967f03` (D-775 burst; factory-artifacts HEAD before this burst).
+
+### Block 2 — Adversary Verdict (D-448(a) source-attestation)
+
+Pass-22 verdict: **NOT-CLEAN B1/H1/M2/L0** (4 findings + 5 observations). Fresh context; Claude Opus 4.7 family; Iron Law; perimeter = ADR-030 v1.1 + BC-5.42.001 v1.2 + S-19.01 v1.12.
+
+Source-attestation against adv-E19-pass-22.md Part A finding set: F-P22-001 BLOCKER BC-5.42.001 §Architecture Anchors WASM path hooks/→hook-plugins/ (sibling-sweep miss from D-775; ground truth hooks-registry.toml plugin field = hook-plugins/pr-manager-completion-guard.wasm); F-P22-002 HIGH STORY-INDEX stale BC-coverage cites at lines 685+702 (BC-5.42.001 v1.1 + BC-1.17.001 v1.2 at both sites; should be v1.3); F-P22-003 MED ADR-030 tool filter ^Agent unanchored (should be ^Agent$ per S-19.04 D-f convention); F-P22-004 MED BC-1.17.001 §Architecture Anchors missing ffi.rs raw wire-ABI bullet (S-19.06 AC-007 Gate 2 verifies ffi.rs at 3 clauses). 5 observations O-P22-001..005. Streak 0/3 RESET.
+
+### Block 3 — Files Touched
+
+- `.factory/cycles/v1.0-brownfield-backfill/adv-E19-pass-22.md` — NEW (pass-22 NOT-CLEAN report persisted)
+- `.factory/cycles/v1.0-brownfield-backfill/INDEX.md` — pass-22 row appended; Convergence Status updated
+- `.factory/cycles/v1.0-brownfield-backfill/decision-log.md` — D-776 appended
+- `.factory/cycles/v1.0-brownfield-backfill/lessons.md` — L-BB-fix-burst-exclusion-claims-require-ground-truth-verification appended
+- `.factory/specs/architecture/decisions/ADR-030-pr-manager-merge-operation-integrity-enforcement.md` — v1.1→v1.2 (^Agent → ^Agent$ F-P22-003)
+- `.factory/specs/behavioral-contracts/ss-05/BC-5.42.001.md` — v1.2→v1.3 (WASM path hook-plugins/ F-P22-001)
+- `.factory/specs/behavioral-contracts/ss-01/BC-1.17.001.md` — v1.2→v1.3 (ffi.rs raw wire-ABI bullet F-P22-004)
+- `.factory/stories/S-19.01-pr-manager-hardening.md` — v1.12→v1.13 (BC-5.42.001 v1.3 cite; input-hash 8ec7188→2a9f0b4)
+- `.factory/stories/S-19.06-hook-sdk-read-prefix-ffi-implementation.md` — v1.13→v1.14 (BC-1.17.001 v1.3 cite 8 sites; input-hash 617adeb→5af0d9f)
+- `.factory/stories/epics/E-19-factory-lock-implementation.md` — v1.15→v1.16 (BC-1.17.001 v1.3 cite 4 sites)
+- `.factory/stories/STORY-INDEX.md` — v4.153→v4.154 (3 row syncs + stale BC-coverage cites fixed F-P22-002)
+- `.factory/specs/architecture/ARCH-INDEX.md` — v2.91→v2.92 (ADR-030 row v1.1→v1.2)
+- `.factory/specs/behavioral-contracts/BC-INDEX.md` — v3.77→v3.78 (BC-5.42.001 v1.3 + BC-1.17.001 v1.3 catalog rows)
+- `.factory/STATE.md` — v5.26→v5.27
+
+### Block 4 — Codifications
+
+- **D-776** codified in decision-log.md. Pass-22 NOT-CLEAN B1/H1/M2/L0; fix burst 5 legs; streak 0/3; pass-23 NEXT. 4-index: BC v3.78/VP v2.53/STORY v4.154/ARCH v2.92.
+- Lesson **L-BB-fix-burst-exclusion-claims-require-ground-truth-verification** codified.
+- Literal decision-log count at D-776 closure: `128` (grep -c "^## D-").
+
+### Block 5 — Dim-2 Literal Shell Gates (D-449(a))
+
+Retroactive entry — literal shell gates not captured at burst time. 4-index values at D-776 closure: BC v3.78/VP v2.53/STORY v4.154/ARCH v2.92 per STATE.md v5.27 wc-l record.
+
+### Block 6 — Dim Attestations
+
+**Dim-2 (spec accuracy):** ADR-030 v1.2 + BC-5.42.001 v1.3 + BC-1.17.001 v1.3 — POLICY 14 5-leg parity on all amended artifacts. STORY-INDEX-prose leg (D-768): lines 685+702 updated. Sibling-sweep (D-775 WASM bullet miss = F-P22-001 class): fixed.
+**Dim-5 (input-hash):** S-19.01 2a9f0b4; S-19.06 5af0d9f per compute-input-hash.
+**Dim-6 (STORY-INDEX-prose):** STORY-INDEX v4.154 — S-19.01/S-19.06/epic row syncs + BC-coverage summary fixed.
+**Dim-7 (routing):** Architect (ADR-030); PO×2 (BC-5.42.001 + BC-1.17.001); SW×3 (S-19.01 + S-19.06 + epic); SM (STORY-INDEX stale cites + 4-index governance).
+
+**Dim-5 8-block self-verification:**
+- [x] Block 1 — Parent-commit (b1967f03)
+- [x] Block 2 — Adversary verdict (source-attested from adv-E19-pass-22.md; NOT-CLEAN B1/H1/M2/L0)
+- [x] Block 3 — Files touched (14 files)
+- [x] Block 4 — Codifications (D-776; lesson; count 128)
+- [x] Block 5 — Dim-2 retroactive note
+- [x] Block 6 — Dim-5/6/7 Attestations
+- [x] Block 7 — Closes
+- [x] Block 8 — Factory-artifacts commits
+
+### Block 7 — Closes
+
+| Finding | Status | Notes |
+|---------|--------|-------|
+| F-P22-001 (BLOCKER) | CLOSED | BC-5.42.001 v1.3 WASM path hook-plugins/ |
+| F-P22-002 (HIGH) | CLOSED | STORY-INDEX stale BC-coverage cites |
+| F-P22-003 (MED) | CLOSED | ADR-030 v1.2 ^Agent$ anchored (SUPERSEDED by F-P23-001 broader shape class) |
+| F-P22-004 (MED) | CLOSED | BC-1.17.001 v1.3 ffi.rs anchor added |
+
+### Block 8 — Factory-artifacts commits
+
+| Commit | SHA | Description |
+|--------|-----|-------------|
+| D-776 burst (atomic) | `fc4981a9` | state(D-776): E-19 adv pass-22 NOT-CLEAN CLOSED — fix burst 5 legs (v5.27) |
+
+---
+
+## D-777 — E-19 adv pass-23 NOT-CLEAN CLOSED — 2026-07-08
+
+### Block 1 — Parent-commit
+
+Parent-commit: `fc4981a9` (D-776 burst; factory-artifacts HEAD before this burst).
+
+### Block 2 — Adversary Verdict (D-448(a) source-attestation)
+
+Pass-23 verdict: **NOT-CLEAN B0/H1/M2/L0** (3 findings + 2 observations). Fresh context; Claude Opus 4.7 family; Iron Law; perimeter = ADR-030 v1.2 + BC-5.42.001 v1.3 + BC-1.17.001 v1.3 + S-19.01 v1.13 + S-19.06 v1.14.
+
+Source-attestation against adv-E19-pass-23.md Part A finding set: F-P23-001 HIGH ADR-030 v1.2 Decision 1 canonical SubagentStop TOML stanza wrong on 3 structural axes — (a) `tool = "^Agent$"` field non-existent in live SubagentStop entries; (b) `on_error = "advisory"` should be `on_error = "continue"` (advisory-block-mode via stdout); (c) `priority = 150` should be `priority = 920` per live hooks-registry.toml; D-776 fixed ^Agent$ regex value but did not diff full stanza — F-P22-003 SUPERSEDED; F-P23-002 MED BC-4.13.001 v1.8 past-tense normative constructions in §ACs/§Invariants — VSDD BC convention requires present-tense imperative; tense-only, no behavioral change; affects S-19.02 + S-19.07 cite propagation; F-P23-003 MED ARCH-INDEX ADR-030 row descriptor cites stale canonical shape (on_error="advisory"/priority=150/tool= field present) independent of ADR itself — POLICY 6 accuracy violation. O-P23-001 [process-gap] ADR canonical TOML snippets not diff-gated against live registry. O-P23-002 [spec-hygiene] BC-4.13.001 tense fix mechanical propagation. Streak 0/3 RESET.
+
+### Block 3 — Files Touched
+
+- `.factory/cycles/v1.0-brownfield-backfill/adv-E19-pass-23.md` — NEW (pass-23 NOT-CLEAN report persisted; D-448(a))
+- `.factory/cycles/v1.0-brownfield-backfill/INDEX.md` — pass-23 row appended; Convergence Status updated
+- `.factory/cycles/v1.0-brownfield-backfill/decision-log.md` — D-777 appended (full codification; 5 sub-sections)
+- `.factory/cycles/v1.0-brownfield-backfill/lessons.md` — L-BB-adr-canonical-snippets-must-mirror-live-registry-shape appended
+- `.factory/cycles/v1.0-brownfield-backfill/burst-log.md` — D-775/D-776 retroactive entries + D-777 this entry
+- `.factory/specs/architecture/decisions/ADR-030-pr-manager-merge-operation-integrity-enforcement.md` — v1.2→v1.3 (canonical TOML: tool field removed; on_error="continue"; priority=920; F-P22-003 superseded note)
+- `.factory/specs/behavioral-contracts/ss-04/BC-4.13.001.md` — v1.8→v1.9 (tense-only: present-tense imperative throughout ACs/Invariants; F-P23-002)
+- `.factory/stories/S-19.02-verify-factory-lock-output-too-large.md` — v1.9→v1.10 (BC-4.13.001 v1.9 cite propagation 17 sites; input-hash 6beeac8→ccd11cf)
+- `.factory/stories/S-19.07-verify-factory-lock-read-prefix-migration.md` — v1.8→v1.9 (BC-4.13.001 v1.9 cite propagation 12 sites; input-hash 46c2ffa→01bed1d)
+- `.factory/stories/STORY-INDEX.md` — v4.154→v4.155 (S-19.02/S-19.07 row syncs + BC-coverage footer v1.8→v1.9; last_amended v4.155)
+- `.factory/specs/architecture/ARCH-INDEX.md` — v2.92→v2.93 (ADR-030 row descriptor corrected: on_error/priority/tool field; F-P22-003 superseded; Changelog v1.3; F-P23-003)
+- `.factory/specs/behavioral-contracts/BC-INDEX.md` — v3.78→v3.79 (BC-4.13.001 catalog row v1.9 appended; last_amended v3.79)
+- `.factory/STATE.md` — v5.27→v5.28
+
+### Block 4 — Codifications
+
+- **D-777** codified in decision-log.md. Pass-23 NOT-CLEAN B0/H1/M2/L0; fix burst 4 legs; streak 0/3; pass-24 NEXT. 4-index: BC v3.79/VP v2.53/STORY v4.155/ARCH v2.93.
+- Lesson **L-BB-adr-canonical-snippets-must-mirror-live-registry-shape** [process-gap] codified.
+- O-P23-001 + O-P23-002 accepted-with-record.
+- Literal decision-log entry count: `129` (grep -c "^## D-" .factory/cycles/v1.0-brownfield-backfill/decision-log.md — captured stdout above).
+
+### Block 5 — Dim-2 Literal Shell Gates (D-449(a))
+
+**Gate (i) — 4-index version grep:**
+
+```bash
+grep "^version:" \
+  .factory/specs/behavioral-contracts/BC-INDEX.md \
+  .factory/specs/verification-properties/VP-INDEX.md \
+  .factory/stories/STORY-INDEX.md \
+  .factory/specs/architecture/ARCH-INDEX.md
+```
+
+stdout:
+```
+.factory/stories/STORY-INDEX.md:version: "4.155"
+.factory/specs/verification-properties/VP-INDEX.md:version: "2.53"
+.factory/specs/architecture/ARCH-INDEX.md:version: "2.93"
+.factory/specs/behavioral-contracts/BC-INDEX.md:version: "3.79"
+```
+
+Result: BC v3.79 / VP v2.53 / STORY v4.155 / ARCH v2.93. PASS.
+
+**Gate (ii) — adv-E19-pass-23.md persist proof (NOT-CLEAN + finding IDs present):**
+
+```bash
+grep -c "NOT-CLEAN\|F-P23" .factory/cycles/v1.0-brownfield-backfill/adv-E19-pass-23.md
+```
+
+stdout: `16`
+
+Result: 16 occurrences of NOT-CLEAN/F-P23 in pass-23 report. PASS — report persisted with full finding set.
+
+**Gate (iii) — D-777 decision-log entry count:**
+
+```bash
+grep -c "^## D-" .factory/cycles/v1.0-brownfield-backfill/decision-log.md
+```
+
+stdout: `129`
+
+Result: 129 total D-NNN entries (was 128 pre-D-777). D-777 present. PASS.
+
+**Gate (iv) — STATE.md version:**
+
+```bash
+grep "^version:" .factory/STATE.md
+```
+
+stdout: `version: "5.28"`
+
+Result: STATE.md advanced to v5.28. PASS.
+
+### Block 6 — Dim Attestations
+
+**Dim-2 (spec accuracy):** ADR-030 v1.3 canonical TOML matches live hooks-registry.toml SubagentStop entry shape (tool field absent; on_error="continue"; priority=920). BC-4.13.001 v1.9 present-tense imperative throughout. POLICY 14 5-leg parity on all 4 amended artifacts (ADR-030, BC-4.13.001, S-19.02, S-19.07). D-777 ADR canonical TOML gate: diff extracted stanza vs live registry — no diff (corrected in this burst; on_error="continue", priority=920, tool field absent from both).
+
+**Dim-5 (input-hash):** S-19.02 6beeac8→ccd11cf; S-19.07 46c2ffa→01bed1d per compute-input-hash.
+
+**Dim-6 (STORY-INDEX-prose):** STORY-INDEX v4.155 — S-19.02 + S-19.07 row annotations updated; BC-coverage footer line 702 BC-4.13.001 v1.8→v1.9; delivery footer input-hash update + pass-23 record prepended.
+
+**Dim-7 (routing):** Architect (ADR-030 v1.3 canonical TOML); PO (BC-4.13.001 v1.9 tense); SW×2 (S-19.02 v1.10 + S-19.07 v1.9 BC cite propagation); SM (ARCH-INDEX descriptor F-P23-003 + STORY-INDEX sweep + 4-index governance + cycle artifacts).
+
+**Dim-5 8-block self-verification:**
+- [x] Block 1 — Parent-commit (fc4981a9)
+- [x] Block 2 — Adversary verdict (source-attested from adv-E19-pass-23.md; NOT-CLEAN B0/H1/M2/L0; 3 findings)
+- [x] Block 3 — Files touched (13 files)
+- [x] Block 4 — Codifications (D-777; lesson; count 129)
+- [x] Block 5 — Dim-2 literal shell gates with captured stdout (Gates i/ii/iii/iv per D-449(a))
+- [x] Block 6 — Dim-5/6/7 Attestations + 8-block self-verification (this block)
+- [x] Block 7 — Closes
+- [x] Block 8 — Factory-artifacts commits
+
+### Block 7 — Closes
+
+| Finding | Status | Notes |
+|---------|--------|-------|
+| F-P23-001 (HIGH) | CLOSED | ADR-030 v1.3: tool removed; on_error="continue"; priority=920 (ADR leg + ARCH-INDEX leg) |
+| F-P23-002 (MED) | CLOSED | BC-4.13.001 v1.9 tense-only; S-19.02 v1.10 + S-19.07 v1.9 propagation |
+| F-P23-003 (MED) | CLOSED | ARCH-INDEX v2.93 ADR-030 row descriptor corrected |
+| O-P23-001 | ACCEPTED-WITH-RECORD | ADR canonical TOML diff gate recommended; deferred S-15.03 PRIORITY-A |
+| O-P23-002 | ACCEPTED-WITH-RECORD | BC tense-convention preflight; deferred S-15.03 PRIORITY-A |
+
+NEXT: E-19 adversary pass-24 (fresh context; perimeter = D-777 delta: ADR-030 v1.3 + BC-4.13.001 v1.9 + S-19.02 v1.10 + S-19.07 v1.9).
+
+### Block 8 — Factory-artifacts commits
+
+| Commit | SHA | Description |
+|--------|-----|-------------|
+| D-777 burst (atomic) | `PENDING` | state(D-777): E-19 adv pass-23 NOT-CLEAN CLOSED — fix burst 4 legs (v5.28) |
+| SHA-patch follow-up | `PENDING` | state(D-777-sha-patch): Active Branches + Block 8 SHA patch |

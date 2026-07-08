@@ -2,7 +2,7 @@
 document_type: architecture-decision-record
 level: L3
 adr_id: ADR-030
-version: "1.2"
+version: "1.3"
 title: "ADR-030: pr-manager merge-operation integrity enforcement"
 status: accepted
 date: 2026-07-06
@@ -24,8 +24,9 @@ subsystems_affected:
   - SS-05
   - SS-07
   - SS-10
-last_amended: "2026-07-08 (v1.2) — F-P22-003 close (architect): Decision 1 canonical registry TOML tool field corrected ^Agent → ^Agent$ (fully-anchored singleton form per S-19.04 D-f convention; prevents substring match on AgentX-style tool names). [Prior: 2026-07-08 (v1.1) — W1-validation adjudication (architect): F-W1V-001 → bin/ confirmed (orchestrator-invoked; not dispatcher-fired; bin/ precedent factory-lock-write.sh/factory-cas-push.sh); F-W1V-002 → positional signatures + BC diagnostic wording adopted (spec-wins discipline); F-W1V-003 → named error codes (READY_SHA_FETCH_FAILED, READY_SHA_MISSING per BC test vectors) + CHECK_STALE_VERDICT_ERROR catch-all retained for non-BC-asserted arms; F-W1V-004 → exit 1 (aligns S-19.01 AC-002/RG-003; satisfies BC non-zero). [Prior: 2026-07-06 (v1.0) — initial authorship (E-19 adv-P3 F-P3-015 close-out: no existing ADR covers pr-manager merge-operation integrity domain; D-749, D-750, F-P2-002 transcribed; three-component enforcement architecture decided).]]"
+last_amended: "2026-07-08 (v1.3) — F-P23-001 close (architect): Decision 1 canonical registry TOML rewritten to live [[hooks]] array-of-tables format; tool = and tier = fields removed (invalid for SubagentStop entries); on_error corrected \"advisory\" → \"continue\" (advisory-block-mode semantics via stdout {\"outcome\":\"block\"} line; on_error controls crash semantics only); priority corrected 150 → 920; timeout_ms = 5000 and name = added per [[hooks]] convention; F-P22-003 ^Agent$ fix superseded (tool = field removed entirely); Trigger line and Behavior prose reconciled to advisory-block-mode pattern and plugin-logic agent scoping. [Prior: 2026-07-08 (v1.2) — F-P22-003 close (architect): Decision 1 canonical registry TOML tool field corrected ^Agent → ^Agent$ (fully-anchored singleton form per S-19.04 D-f convention; prevents substring match on AgentX-style tool names). [Prior: 2026-07-08 (v1.1) — W1-validation adjudication (architect): F-W1V-001 → bin/ confirmed (orchestrator-invoked; not dispatcher-fired; bin/ precedent factory-lock-write.sh/factory-cas-push.sh); F-W1V-002 → positional signatures + BC diagnostic wording adopted (spec-wins discipline); F-W1V-003 → named error codes (READY_SHA_FETCH_FAILED, READY_SHA_MISSING per BC test vectors) + CHECK_STALE_VERDICT_ERROR catch-all retained for non-BC-asserted arms; F-W1V-004 → exit 1 (aligns S-19.01 AC-002/RG-003; satisfies BC non-zero). [Prior: 2026-07-06 (v1.0) — initial authorship (E-19 adv-P3 F-P3-015 close-out: no existing ADR covers pr-manager merge-operation integrity domain; D-749, D-750, F-P2-002 transcribed; three-component enforcement architecture decided).]]]"
 modified:
+  - "2026-07-08 (v1.3)"
   - "2026-07-08 (v1.2)"
   - "2026-07-08 (v1.1)"
 ---
@@ -85,32 +86,39 @@ A new native WASM hook plugin `pr-manager-completion-guard` is added as a Subage
 hook per ADR-014 standing mandate (new hooks MUST be native WASM). It fires on
 SubagentStop events for Agent tool calls invoking the pr-manager agent.
 
-**Trigger:** SubagentStop event, `agent_name = "vsdd-factory:pr-manager"`.
+**Trigger:** SubagentStop event. Agent scoping is performed in plugin logic via `is_pr_manager` substring match: fires when `agent_type` or `subagent_name` contains `"pr-manager"` or `"pr_manager"` (mirrors bash glob `*pr-manager*|*pr_manager*` per AC-003/T-3; see `crates/hook-plugins/pr-manager-completion-guard/src/lib.rs`). No registry-level `tool` or `agent` filter field is used.
 
 **Behavior:** The plugin reads the SubagentStop payload and looks for a READY verdict in
 the agent's output. If a READY verdict is present but lacks a `covered_sha` field (empty
 string, null, or absent), the plugin emits an advisory block with error code
-`READY_SHA_MISSING`. The block is advisory (`on_error = "advisory"`): it does not prevent
-the SubagentStop from completing, but it surfaces the missing-SHA condition as a
-telemetry event so the orchestrator can detect the gap before acting on the verdict. If
-no READY verdict is present, the plugin returns Continue (exit 0). Non-READY verdicts
-are not inspected.
+`READY_SHA_MISSING`. The block is advisory-mode: advisory semantics are delivered via
+stdout `{"outcome":"block"}` line; `on_error = "continue"` controls crash semantics only
+(per advisory-block-mode pattern in `crates/hook-sdk/HOST_ABI.md`). The advisory block
+does not prevent the SubagentStop from completing, but it surfaces the missing-SHA
+condition as a telemetry event so the orchestrator can detect the gap before acting on
+the verdict. If no READY verdict is present, the plugin returns Continue (exit 0).
+Non-READY verdicts are not inspected.
 
-**Canonical registry TOML:**
+**Canonical registry TOML** (mirrored from live `plugins/vsdd-factory/hooks-registry.toml`
+ground-truth: `grep -A 10 'name = "pr-manager-completion-guard"' plugins/vsdd-factory/hooks-registry.toml`):
 
 ```toml
-[hook.pr-manager-completion-guard]
-plugin = "hook-plugins/pr-manager-completion-guard.wasm"
+[[hooks]]
+name = "pr-manager-completion-guard"
 event = "SubagentStop"
-tier = "sync"
-on_error = "advisory"
-priority = 150
-tool = "^Agent$"
+plugin = "hook-plugins/pr-manager-completion-guard.wasm"
+priority = 920
+timeout_ms = 5000
+# advisory-block-mode — block signal via stdout {"outcome":"block"} line,
+# not via crash behavior. on_error controls crash semantics only.
+# See crates/hook-sdk/HOST_ABI.md "Advisory block-mode pattern".
+on_error = "continue"
 ```
 
-The `tool = "^Agent$"` value uses the fully-anchored singleton form per S-19.04 D-f
-convention, preventing substring matches against tool names such as `AgentX` that would
-silently defeat the anchoring intent.
+SubagentStop hooks are event-triggered; no `tool =` or `tier =` registry field is used.
+Advisory semantics are implemented via the stdout `{"outcome":"block"}` outcome line
+pattern, not via an `on_error` value. The `on_error = "continue"` field governs crash
+behavior only (plugin crash → continue, not block).
 
 ### Decision 2: bin/check-stale-verdict.sh — orchestrator-invocable stale-verdict detector
 
@@ -308,6 +316,7 @@ Tools and Bin) — `check-stale-verdict.sh` and `enforce-merge-strategy.sh` bin 
 
 | Version | Date | Author | Change |
 |---------|------|--------|--------|
+| 1.3 | 2026-07-08 | architect | F-P23-001 close: Decision 1 canonical registry TOML rewritten to live `[[hooks]]` array-of-tables format. Removed `tool =` field (SubagentStop is event-triggered; no tool filter in live entry; F-P22-003 `^Agent$` fix superseded — field removed entirely) and `tier =` field (not a registry field; live uses `async = true\|false` or omits). Corrected `on_error = "advisory"` → `on_error = "continue"` (advisory-block-mode: advisory signal delivered via stdout `{"outcome":"block"}` line; `on_error` controls crash semantics only per `crates/hook-sdk/HOST_ABI.md`). Corrected `priority = 150` → `priority = 920`. Added `name = "pr-manager-completion-guard"` (required per `[[hooks]]` convention) and `timeout_ms = 5000`. Trigger line updated: SubagentStop event; agent scoping performed in plugin logic via `is_pr_manager` substring match (`contains("pr-manager") \|\| contains("pr_manager")`), not a registry-level field. Behavior prose reconciled: advisory-block-mode wording aligned to live inline-comment semantics. Ground-truth: `grep -A 10 'name = "pr-manager-completion-guard"' plugins/vsdd-factory/hooks-registry.toml` → `[[hooks]]` / `name = "pr-manager-completion-guard"` / `event = "SubagentStop"` / `plugin = "hook-plugins/pr-manager-completion-guard.wasm"` / `priority = 920` / `timeout_ms = 5000` / `on_error = "continue"`. |
 | 1.2 | 2026-07-08 | architect | F-P22-003 close: Decision 1 canonical registry TOML `tool` field corrected `^Agent` → `^Agent$`; fully-anchored singleton form per S-19.04 D-f convention prevents substring match on `AgentX`-style tool names. Added prose note after TOML block citing S-19.04 D-f convention. |
 | 1.1 | 2026-07-08 | architect | W1-validation adjudication (F-W1V-001..004). Decision 2: invocation changed from `--pr`/`--covered-sha` named flags to positional `<pr_number> <covered_sha>`; stale diagnostic aligned to BC-5.42.001 PC-2 verbatim (`STALE_READY_VERDICT: PR #<pr_number> HEAD <current_sha> != covered_sha <covered_sha>`); error taxonomy replaced flat `CHECK_STALE_VERDICT_ERROR:` catch-all with named BC codes (`READY_SHA_FETCH_FAILED` for gh failure, `READY_SHA_MISSING` for malformed arg) plus `CHECK_STALE_VERDICT_ERROR` retained for non-BC-asserted arms; exit 2 → exit 1. Decision 3: invocation changed from `--pr`/flags form to positional `<pr_number>`; `RELEASE_PR_SQUASH_FORBIDDEN` diagnostic aligned to BC wording (`branch <branch_name> requires --merge per RELEASING.md`); exit 2 → exit 1. F-W1V-001 ruling: bin/ confirmed correct (both scripts are orchestrator-invoked, not dispatcher-fired; hooks-registry.toml does not register them; precedent bin/ tools factory-lock-write.sh/factory-cas-push.sh apply). Propagation directives issued for BC-5.42.001 §Architecture Anchors and S-19.01 §Architecture Mapping + §File Structure. |
 | 1.0 | 2026-07-06 | architect | Initial authorship. E-19 adv-P3 F-P3-015 close-out: no existing ADR covers pr-manager merge-operation integrity domain; D-749, D-750, F-P2-002 transcribed; three-component enforcement architecture decided. |

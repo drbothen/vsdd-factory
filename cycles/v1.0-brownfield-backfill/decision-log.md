@@ -6560,3 +6560,49 @@ D-776-E19-ADV-PASS-22-CLOSED
 ### Date
 
 2026-07-08
+
+## D-777
+
+### Summary
+
+E-19 adv pass-23 NOT-CLEAN B0/H1/M2/L0 (3 findings + 2 obs). F-P23-001 HIGH: ADR-030 v1.2 Decision 1 canonical SubagentStop TOML stanza wrong on three structural axes — (a) `tool = "^Agent$"` field does not exist in live SubagentStop entries; (b) `on_error = "advisory"` should be `on_error = "continue"` (advisory-block-mode via stdout outcome); (c) `priority = 150` should be `priority = 920` per live hooks-registry.toml. D-776 corrected the ^Agent$ regex value but did not surface the adjacent structural errors. F-P22-003 superseded. F-P23-002 MEDIUM: BC-4.13.001 v1.8 past-tense normative constructions throughout §Acceptance Criteria and §Invariants — VSDD BC convention requires present-tense imperative for always-enforced PreToolUse gate invariants. F-P23-003 MEDIUM: ARCH-INDEX ADR-030 row descriptor still cites stale canonical shape (on_error="advisory", priority=150, tool= field present) independent of the ADR itself — POLICY 6 subsystem registry accuracy violation. Fix burst: architect (ADR-030 v1.2→v1.3 F-P23-001 ADR leg); product-owner (BC-4.13.001 v1.8→v1.9 F-P23-002 BC leg); story-writer (S-19.02 v1.9→v1.10 + S-19.07 v1.8→v1.9 BC cite propagation F-P23-002 SW leg); state-manager (ARCH-INDEX v2.92→v2.93 F-P23-003 + STORY-INDEX v4.154→v4.155 BC-cite sweep). 4-index: BC v3.79/VP v2.53/STORY v4.155/ARCH v2.93. Streak 0/3. Lesson: L-BB-adr-canonical-snippets-must-mirror-live-registry-shape.
+
+### Detail
+
+**(1) FINDING DISPOSITIONS.**
+
+- **F-P23-001 (HIGH) — ADR-030 canonical TOML three structural axes wrong.** The D-776 fix correctly anchored `^Agent` → `^Agent$` but did not diff the full stanza against the live hooks-registry.toml SubagentStop entry. Three axes remained wrong: (a) `tool` field removed — SubagentStop entries carry no `tool` filter; (b) `on_error = "continue"` — the live registry value, not "advisory"; (c) `priority = 920` — the live registry value, not 150. F-P22-003 is SUPERSEDED by F-P23-001 (^Agent$ anchoring was correct; F-P23-001 closes the broader canonical-shape class). Fix: ADR-030 v1.2→v1.3 canonical TOML stanza rebuilt to match live registry shape. ARCH-INDEX v2.92→v2.93 row descriptor updated (same corrections; F-P23-003 co-closed). POLICY 14 5-leg parity applied.
+
+- **F-P23-002 (MEDIUM) — BC-4.13.001 tense inconsistency.** BC-4.13.001 §Acceptance Criteria and §Invariants used past-tense constructions ("was held", "was expired", "did not match") in normative clauses. VSDD BC convention requires present-tense imperative. No behavioral content changed — tense-only fix. Fix: BC-4.13.001 v1.8→v1.9 (replace_all 15 occurrences + Token Budget + BC table Version = 17 sites in S-19.02; 11 occurrences + BC table Version = 12 sites in S-19.07). POLICY 14 5-leg parity applied to BC file and both stories. Input-hashes: S-19.02 6beeac8→ccd11cf; S-19.07 46c2ffa→01bed1d.
+
+- **F-P23-003 (MEDIUM) — ARCH-INDEX ADR-030 row descriptor stale.** ARCH-INDEX.md ADR-030 row carried the pre-D-776 canonical shape independently of the ADR body. POLICY 6 (ARCH-INDEX is canonical subsystem registry) requires descriptor accuracy. Fix: co-closed with F-P23-001 — ARCH-INDEX v2.92→v2.93 descriptor corrected at same state-manager leg.
+
+**(2) FIX BURST LEGS (4 total).**
+
+- **Architect:** ADR-030 v1.2→v1.3. Decision 1 canonical TOML: `tool` field removed; `on_error = "advisory"` → `on_error = "continue"`; `priority = 150` → `priority = 920`. F-P22-003 superseded note added. ARCH-INDEX v2.91→v2.92 (prior burst) → v2.92→v2.93 (this burst, co-closed with SM). POLICY 14 5-leg parity.
+- **Product-owner:** BC-4.13.001 v1.8→v1.9. Tense-only fix throughout. No behavioral content changed. BC-INDEX v3.78→v3.79 (row v1.8→v1.9 appended). POLICY 14 5-leg parity.
+- **Story-writer:** S-19.02 v1.9→v1.10 (BC-4.13.001 v1.8→v1.9 cite propagation 17 sites; input-hash 6beeac8→ccd11cf); S-19.07 v1.8→v1.9 (BC-4.13.001 v1.8→v1.9 cite propagation 12 sites; input-hash 46c2ffa→01bed1d). POLICY 14 5-leg parity on both.
+- **State-manager:** ARCH-INDEX v2.92→v2.93 ADR-030 row descriptor corrected (on_error/priority/tool field; F-P22-003 superseded; Changelog v1.3). STORY-INDEX v4.154→v4.155 (BC-coverage footer line 702 BC-4.13.001 v1.8→v1.9; S-19.02/S-19.07 row annotations; last_amended). BC-INDEX v3.79 (BC-4.13.001 catalog row v1.9 appended; last_amended).
+
+**(3) D-494 4-INDEX GATE.**
+
+BC-INDEX v3.79 / VP-INDEX v2.53 / STORY-INDEX v4.155 / ARCH-INDEX v2.93 — verified via literal shell: `grep -m1 '^version:'` on all four index files — zero FAIL.
+
+**(4) OBSERVATION RECORD.**
+
+- **O-P23-001 [process-gap] — ACCEPTED WITH RECORD.** ADR canonical TOML snippets not verified against live registry shape. Recommendation: literal `diff <stanza-extracted> <live-registry-entry>` gate with captured stdout for any ADR embedding a canonical TOML/YAML stanza. Deferred to S-15.03 PRIORITY-A automation gate; no immediate structural fix required.
+- **O-P23-002 [spec-hygiene] — ACCEPTED WITH RECORD.** BC-4.13.001 tense fix affects 2 stories mechanically. Confirms need for BC tense-convention preflight in BC authoring checklist. Deferred to S-15.03 PRIORITY-A BC linting.
+
+**(5) LESSON CODIFICATION.**
+
+L-BB-adr-canonical-snippets-must-mirror-live-registry-shape [process-gap] codified: ADR "canonical" config snippets must be generated from or literal-shell-verified against the live registry entry they describe. Hand-authored canonical TOML survived 23 passes with 5 structural axes wrong (over time: ^Agent unanchored → ^Agent$ correct but tool/on_error/priority axes not checked) because reviewers verified ADR internal consistency, not shape-parity against the runtime consumer. Ground truth gate: diff the extracted stanza against the live hooks-registry.toml entry with captured stdout before any ADR commit touching a TOML stanza. Lesson tagged [codified], cites D-777.
+
+Parent-commit: (D-776 burst, factory-artifacts HEAD before this burst — see Active Branches SHA in STATE.md).
+
+### Phase
+
+D-777-E19-ADV-PASS-23-CLOSED
+
+### Date
+
+2026-07-08
