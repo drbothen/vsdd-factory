@@ -13353,3 +13353,134 @@ NEXT: E-19 adversary pass-25 (fresh context; perimeter = D-778 delta: BC-2.02.01
 |--------|-----|-------------|
 | D-778 burst (atomic) | `9cc0c1c8` | state(D-778): E-19 adv pass-24 NOT-CLEAN CLOSED — fix burst 4 legs (v5.29) |
 | SHA-patch follow-up | `PENDING` | state(D-778-sha-patch): Active Branches + Block 8 SHA patch |
+
+---
+
+## D-779 — E-19 adv pass-25 NOT-CLEAN CLOSED (v5.30)
+
+### Block 1 — Parent-commit
+
+Parent-commit: `9cc0c1c8` (D-778 burst factory-artifacts HEAD; STATE.md v5.29).
+
+### Block 2 — Adversary verdict
+
+**Source:** adv-E19-pass-25.md (persisted this burst).
+
+Pass-25 verdict: NOT-CLEAN B0/H1/M0/L1. 1 finding + 1 observation.
+
+- **F-P25-001 HIGH:** S-19.03 body BC-table BC-2.02.011 Version cell stale v1.4. D-778 SW sweep updated Token Budget and AC traceability (15+ sites) but did not include the §Behavioral Contracts body table Version cell — a distinct cite location. Adversary novelty note: "package is one edit from CLEAN; pass-24 sweep was substantively correct across 15+ sites, one cell escaped."
+- **O-P25-001 LOW:** S-19.07 v1.9 contains 3 "shipped" present-perfect tense sites in narrative prose inconsistent with pending-merge status and BC-4.13.001 v1.9 tense convention. Human production-grade directive: fix-not-accept.
+
+### Block 3 — Files touched
+
+| File | Change |
+|------|--------|
+| `.factory/cycles/v1.0-brownfield-backfill/adv-E19-pass-25.md` | NEW — adversary pass-25 report (Part A/B + Fix Burst Closure) |
+| `.factory/cycles/v1.0-brownfield-backfill/INDEX.md` | Pass-25 row added to E-19 adversarial reviews table; Convergence Status updated |
+| `.factory/cycles/v1.0-brownfield-backfill/decision-log.md` | D-779 codification block appended |
+| `.factory/cycles/v1.0-brownfield-backfill/lessons.md` | L-BB-body-bc-table-version-cell-is-distinct-sweep-target appended |
+| `.factory/cycles/v1.0-brownfield-backfill/burst-log.md` | D-779 burst entry (this block) |
+| `.factory/stories/STORY-INDEX.md` | v4.156→v4.157; S-19.03 row v1.13→v1.14; S-19.07 row v1.9→v1.10; last_amended prepended |
+| `.factory/STATE.md` | v5.29→v5.30; frontmatter + banner + Session Resume Checkpoint |
+
+### Block 4 — Codifications
+
+- **D-779:** E-19-ADV-PASS-25-NOT-CLEAN-CLOSED (severity floor decaying 4→3→4→2; single partial-sweep escape + tense residual; governance-lean burst; NEXT pass-26)
+- **L-BB-body-bc-table-version-cell-is-distinct-sweep-target [codified]:** whole-file predicate mandatory at end of any BC cite sweep
+- **Decision-log count:**
+
+```bash
+grep -c "^## D-" /Users/zious/Documents/GITHUB/vsdd-factory/.factory/cycles/v1.0-brownfield-backfill/decision-log.md
+```
+
+stdout: `131`
+
+Result: 131 total D-NNN entries (was 130 pre-D-779). D-779 present. PASS.
+
+### Block 5 — Dim-2 literal-shell gates (D-449(a))
+
+**Gate (i) — D-494 4-index post-bump verification:**
+
+```bash
+grep -m1 "^version:" \
+  /Users/zious/Documents/GITHUB/vsdd-factory/.factory/specs/behavioral-contracts/BC-INDEX.md \
+  /Users/zious/Documents/GITHUB/vsdd-factory/.factory/specs/verification-properties/VP-INDEX.md \
+  /Users/zious/Documents/GITHUB/vsdd-factory/.factory/stories/STORY-INDEX.md \
+  /Users/zious/Documents/GITHUB/vsdd-factory/.factory/specs/architecture/ARCH-INDEX.md
+```
+
+stdout:
+```
+BC-INDEX.md:version: "3.80"
+VP-INDEX.md:version: "2.53"
+STORY-INDEX.md:version: "4.157"
+ARCH-INDEX.md:version: "2.94"
+```
+
+Result: PASS BC-INDEX.md v3.80 UNCHANGED / PASS VP-INDEX.md v2.53 UNCHANGED / PASS STORY-INDEX.md v4.157 / PASS ARCH-INDEX.md v2.94 UNCHANGED. Zero FAIL.
+
+**Gate (ii) — Source-attestation parity (D-448(a)): adv-E19-pass-25.md finding set:**
+
+```bash
+grep -c "NOT-CLEAN\|F-P25\|O-P25" /Users/zious/Documents/GITHUB/vsdd-factory/.factory/cycles/v1.0-brownfield-backfill/adv-E19-pass-25.md
+```
+
+stdout: `8`
+
+Result: 8 occurrences of NOT-CLEAN/F-P25/O-P25 in pass-25 report. PASS — report persisted with full finding set.
+
+**Gate (iii) — D-779 decision-log entry count:**
+
+```bash
+grep -c "^## D-" /Users/zious/Documents/GITHUB/vsdd-factory/.factory/cycles/v1.0-brownfield-backfill/decision-log.md
+```
+
+stdout: `131`
+
+Result: 131 total D-NNN entries (was 130 pre-D-779). D-779 present. PASS.
+
+**Gate (iv) — STATE.md version:**
+
+```bash
+grep "^version:" /Users/zious/Documents/GITHUB/vsdd-factory/.factory/STATE.md
+```
+
+stdout: `version: "5.30"`
+
+Result: STATE.md advanced to v5.30. PASS.
+
+### Block 6 — Dim Attestations
+
+**Dim-2 (spec accuracy):** F-P25-001 CLOSED — S-19.03 body BC-table BC-2.02.011 Version cell updated v1.4→v1.5; whole-file predicate re-run zero stale matches. O-P25-001 CLOSED (human-directed fix-not-accept) — S-19.07 v1.10 3 "shipped" tense sites aligned to pending-merge conditional. POLICY 14 5-leg parity on both amended stories. D-494 4-index gate: BC v3.80/VP v2.53/STORY v4.157/ARCH v2.94 — zero FAIL (Gate i stdout above).
+
+**Dim-5 (input-hash):** S-19.03 input-hash 8d1225d UNCHANGED (verified via compute-input-hash; Version cell cite-only update). S-19.07 input-hash 01bed1d UNCHANGED (verified via compute-input-hash; tense-only update).
+
+**Dim-6 (STORY-INDEX-prose):** STORY-INDEX v4.157 — S-19.03 row v1.13→v1.14 input-hash 8d1225d unchanged; S-19.07 row v1.9→v1.10 input-hash 01bed1d unchanged; last_amended prepended.
+
+**Dim-7 (routing):** SW×2 (S-19.03 v1.14 F-P25-001 body BC-table; S-19.07 v1.10 O-P25-001 tense alignment); SM (STORY-INDEX v4.157 + INDEX.md + decision-log + lessons + burst-log + STATE.md governance).
+
+**Dim-5 8-block self-verification:**
+- [x] Block 1 — Parent-commit (9cc0c1c8)
+- [x] Block 2 — Adversary verdict (source-attested from adv-E19-pass-25.md; NOT-CLEAN B0/H1/M0/L1; 1 finding + 1 obs; severity floor decaying)
+- [x] Block 3 — Files touched (7 files)
+- [x] Block 4 — Codifications (D-779; lesson; count 131)
+- [x] Block 5 — Dim-2 literal shell gates with captured stdout (Gates i/ii/iii/iv per D-449(a))
+- [x] Block 6 — Dim-5/6/7 Attestations + 8-block self-verification (this block)
+- [x] Block 7 — Closes
+- [x] Block 8 — Factory-artifacts commits
+
+### Block 7 — Closes
+
+| Finding | Status | Notes |
+|---------|--------|-------|
+| F-P25-001 (HIGH) | CLOSED | S-19.03 v1.14: body BC-table BC-2.02.011 Version cell v1.4→v1.5; whole-file predicate re-run zero stale matches |
+| O-P25-001 (LOW) | FIXED (human-directed fix-not-accept; production-grade default) | S-19.07 v1.10: 3 "shipped" tense sites → pending-merge conditional per BC-4.13.001 v1.9 tense class |
+
+NEXT: E-19 adversary pass-26 (fresh context; perimeter = D-779 delta: S-19.03 v1.14 + S-19.07 v1.10).
+
+### Block 8 — Factory-artifacts commits
+
+| Commit | SHA | Description |
+|--------|-----|-------------|
+| D-779 burst (atomic) | `PENDING` | state: D-779 E-19 adv pass-25 NOT-CLEAN closed — F-P25-001 + O-P25-001 fixed; S-19.03 v1.14 + S-19.07 v1.10; streak 0/3 |
+| SHA-patch follow-up | `PENDING` | state(D-779-sha-patch): Active Branches + Block 8 SHA patch |

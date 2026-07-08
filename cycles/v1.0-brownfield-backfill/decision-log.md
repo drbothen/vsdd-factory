@@ -6660,3 +6660,52 @@ D-778-E19-ADV-PASS-24-CLOSED
 ### Date
 
 2026-07-08
+
+## D-779
+
+### Summary
+
+E-19 adv pass-25 NOT-CLEAN B0/H1/M0/L1 (1 finding + 1 observation; severity floor decaying: 4→3→4→2 across passes 22–25). F-P25-001 HIGH: S-19.03 body BC-table Version cell for BC-2.02.011 still cites v1.4 — D-778 sweep was substantively correct across 15+ sites but the §Behavioral Contracts body table Version column was not included in the predicate (partial-sweep escape). O-P25-001 LOW: S-19.07 contains 3 "shipped" tense sites (present-perfect constructions implying delivery) inconsistent with pending-merge status and BC-4.13.001 v1.9 tense convention; human production-grade default requires fix-not-accept. Both items fixed same burst (governance-lean: no BC/ADR legs). Fix burst: story-writer (S-19.03 v1.13→v1.14 F-P25-001 body BC-table Version cell v1.4→v1.5; S-19.07 v1.9→v1.10 O-P25-001 tense alignment); state-manager (STORY-INDEX v4.156→v4.157 row syncs + governance). 4-index: BC v3.80 UNCHANGED/VP v2.53 UNCHANGED/STORY v4.157/ARCH v2.94 UNCHANGED. Streak 0/3. NEXT: pass-26.
+
+### Detail
+
+**(1) FINDING DISPOSITIONS.**
+
+- **F-P25-001 (HIGH) — S-19.03 body BC-table BC-2.02.011 Version cell stale v1.4.** D-778 SW leg swept BC-2.02.011 cites in S-19.03 at Token Budget and AC traceability, but did not include the §Behavioral Contracts body table Version cell. This cell explicitly lists each BC's current version for the story; it is a distinct cite location from the Token Budget row and AC traceability. After BC-2.02.011 advanced to v1.5 (D-778 PO leg), the body BC-table Version cell remained at v1.4. Adversary's novelty note: "package is one edit from CLEAN; pass-24 sweep was substantively correct across 15+ sites, one cell escaped." Fix: S-19.03 v1.13→v1.14 — body BC-table BC-2.02.011 Version cell v1.4→v1.5; whole-file predicate re-run confirmed no additional stale cites. Input-hash 8d1225d unchanged. POLICY 14 5-leg parity applied. **CLOSED F-P25-001.**
+
+- **O-P25-001 (LOW; spec-hygiene) — FIXED (human production-grade directive; fix-not-accept).** S-19.07 v1.9 prose contains 3 "shipped" tense sites (present-perfect constructions describing the migration outcome as already delivered). These contradict pending-merge story status and the tense convention established by BC-4.13.001 v1.9 (tense-only amendment D-777 codification). Human production-grade directive (carry-across-CLEAR per CLAUDE.md Canonical Principle): observations that can be fixed in-scope MUST be fixed. Fix: S-19.07 v1.9→v1.10 — 3 sites aligned to pending-merge conditional phrasing. Input-hash 01bed1d unchanged. POLICY 14 5-leg parity applied. **CLOSED O-P25-001.**
+
+**(2) FIX BURST LEGS (2 total; governance-lean — no BC/ADR legs).**
+
+- **Story-writer (S-19.03):** S-19.03 v1.13→v1.14. BC-2.02.011 Version cell in body BC-table: v1.4→v1.5. Whole-file predicate re-run. Input-hash 8d1225d unchanged. POLICY 14 5-leg parity applied.
+- **Story-writer (S-19.07):** S-19.07 v1.9→v1.10. Three "shipped" tense sites aligned to pending-merge conditional per BC-4.13.001 v1.9 tense class. Input-hash 01bed1d unchanged. POLICY 14 5-leg parity applied.
+- **State-manager:** STORY-INDEX v4.156→v4.157 (S-19.03 row v1.13→v1.14 input-hash 8d1225d; S-19.07 row v1.9→v1.10 input-hash 01bed1d; frontmatter last_amended prepended). BC-INDEX v3.80 UNCHANGED. VP-INDEX v2.53 UNCHANGED. ARCH-INDEX v2.94 UNCHANGED.
+
+**(3) D-494 4-INDEX GATE.**
+
+Literal shell execution:
+```
+PASS BC-INDEX.md v3.80
+PASS VP-INDEX.md v2.53
+PASS STORY-INDEX.md v4.157
+PASS ARCH-INDEX.md v2.94
+```
+Zero FAIL.
+
+**(4) DEFENSIVE SWEEP (S-7.02).**
+
+Searched for stale "BC-2.02.011 v1.4" across BC-INDEX.md, STORY-INDEX.md, ARCH-INDEX.md, prd.md, STATE.md — only S-19.03 body BC-table was the remaining stale site; updated to v1.5 by SW leg. Tense sweep for O-P25-001: 3 sites in S-19.07 confirmed aligned. No other files contain affected stale values.
+
+**(5) LESSON CODIFICATION.**
+
+L-BB-body-bc-table-version-cell-is-distinct-sweep-target [process-gap] codified: when sweeping BC version cites in a story, the §Behavioral Contracts body table Version cell is a distinct target from the Token Budget row and AC traceability. A sweep predicate that targets only Token Budget and AC sections will miss the body table. The correct sweep method is a whole-file predicate (grep of the outgoing version string across the entire story file) rather than a site-enumerated predicate. This finding escaped 15+ correctly-swept sites in pass-24 and survived into pass-25. Gate: at end of any BC cite sweep, run whole-file grep for the old version string on the target story and verify zero matches. Lesson tagged [codified], cites D-779.
+
+Parent-commit: (D-778 burst factory-artifacts HEAD — run `git -C .factory log -1 --format='%h'` for current SHA).
+
+### Phase
+
+D-779-E19-ADV-PASS-25-CLOSED
+
+### Date
+
+2026-07-08

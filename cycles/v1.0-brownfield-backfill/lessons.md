@@ -5708,6 +5708,31 @@ Zero matching lines + "STORY-INDEX-PROSE-PASS" = PASS. Any matching line = FAIL 
 
 **Cites:** D-777, adv-E19-pass-23.md (F-P23-001/F-P23-003), hooks-registry.toml (ground truth), D-776 (prior fix burst), ADR-030 v1.3, D-449(a) (literal-shell-execution-evidence).
 
+## L-BB-body-bc-table-version-cell-is-distinct-sweep-target [process-gap] [codified]
+
+**Type:** process-gap
+**Codified:** D-779 [codified] 2026-07-08
+
+**Closes:** D-779 (F-P25-001 HIGH)
+
+**Summary:** When sweeping BC version cites in a story, the §Behavioral Contracts body table Version cell is a distinct target from the Token Budget row and AC traceability. A site-enumerated predicate misses the body table; only a whole-file predicate catches all instances.
+
+**Context:** S-19.03 v1.13 performed a BC-2.02.011 cite sweep in the D-778 fix burst. The sweep correctly updated 15+ sites across Token Budget and AC traceability sections. However, the §Behavioral Contracts body table — the inline table listing each BC with its current version — was not included in the predicate. The body table Version cell for BC-2.02.011 remained at v1.4 while the BC had advanced to v1.5. This partial-sweep escape survived into pass-25, where the adversary flagged it as F-P25-001 HIGH. The adversary's novelty note: "package is one edit from CLEAN; pass-24 sweep was substantively correct across 15+ sites, one cell escaped."
+
+**Root cause:** BC cite sweeps are mentally modeled as a list of known cite locations (Token Budget row, AC traceability lines, §Behavioral Contracts table header). The body table Version cell is a fourth distinct location that is easily omitted when composing the predicate from memory. The sweep pattern `replace_all` or targeted grep only finds pre-enumerated locations; the body table is structurally separate from the other cite types.
+
+**Failure mode:** A BC cite sweep declares "input-hash unchanged; N sites updated" while the body BC-table Version cell silently retains the old version. Future adversary passes (or downstream reviewers checking story-to-BC version parity) find the stale cell. The gap is invisible to the story-writer during the fix burst because the sweep "feels complete" after updating the obvious cite locations.
+
+**Gate (D-779 codification):** At the end of any BC version cite sweep on a story file:
+1. Run whole-file grep for the old BC version string on the target story: `grep -n "BC-X.YY.ZZZ.*vN.M\|vN.M.*BC-X.YY.ZZZ" <story-file>`
+2. Verify zero matches remain for the old version string.
+3. If any matches remain, update them and re-run the sweep until zero matches.
+4. Explicitly note "whole-file predicate zero-match confirmed" in the burst-log Dim-5 block.
+
+**Prevention:** Use whole-file grep as the canonical sweep verification method, not mental enumeration of known cite locations. The §Behavioral Contracts body table is a structurally separate cite type: it is a markdown table row, not a prose citation, and thus invisible to pattern matches that target prose constructs.
+
+**Cites:** D-779, adv-E19-pass-25.md (F-P25-001), S-19.03 v1.14, BC-2.02.011 v1.5, D-778 (partial-sweep origin).
+
 ## L-BB-bidirectional-bc-story-parity-must-be-verified-at-bc-amendment [process-gap] [codified]
 
 **Type:** process-gap
