@@ -12838,5 +12838,5 @@ NEXT: Confirming adversary pass-21 (fresh context; perimeter E-19 artifacts at S
 
 | Commit | SHA | Description |
 |--------|-----|-------------|
-| D-773 burst (atomic) | [SHA-pending] | state(D-773): convergence-gate adjudications applied — S-19.07 v1.8, 20/20 epics POLICY-17 compliant, W1 authorized contingent pass-21 (v5.24) |
+| D-773 burst (atomic) | `a665de43` | state(D-773): convergence-gate adjudications applied — S-19.07 v1.8, 20/20 epics POLICY-17 compliant, W1 authorized contingent pass-21 (v5.24) |
 | SHA-patch follow-up | [SHA-pending] | state(D-773-sha-patch): Active Branches SHA + burst-log Block 8 patch |

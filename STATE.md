@@ -148,7 +148,7 @@ dtu_services: []
 |--------------|-----|-------|
 | main | a04cb303 | rc.22 bot binary bundle commit 2026-07-03 (Release 28668124787 post-build; all 33 WASMs rebuilt, plugin.json → 1.0.0-rc.22); prior: e4285fe5 (PR #456 true-merge fix mapfile→while-read; rc.22 tag); prior: 2a4c949b (PR #455 true-merge first rc.22 release; tag later moved); prior: caf06c68 (rc.21) |
 | develop | f5242bef | rc.22 Release sync-main→develop back-merge 2026-07-03 (D-750); prior: a6cf13e8 (PR #438 D-749 registry-staged assertion) |
-| factory-artifacts | `0619c5c5` (D-772 state: E-19 SPEC CASCADE CONVERGED 3/3 — HUMAN GATE (v5.23)) | D-772 E-19 CONVERGED; burst `ab7f0a7a`; sha-patch `0619c5c5`; prior D-771 `b01138cc` |
+| factory-artifacts | `a665de43` (D-773 state: ADJUDICATIONS-APPLIED confirming pass-21 NEXT (v5.24)) | D-773 burst `a665de43`; sha-patch [SHA-pending]; prior D-772 burst `ab7f0a7a`, sha-patch `0619c5c5` |
 | feature/S-18.12 | **DELETED** (was 9cbd9439) | Merged via PR #384 ec05606a 2026-07-01 (D-744); branch deleted post-merge |
 | fix/S-18.12-detector-parity-gaps | **DELETED** (was 717686f8) | Merged via PR #385 2879f473 2026-07-01 (D-746); branch deleted at merge |
 | origin/maintenance/rc22-pre-release-cleanup | **PENDING DELETION** | Safe to delete (recovery long complete); human authorization outstanding |
