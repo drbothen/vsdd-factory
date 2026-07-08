@@ -6018,6 +6018,8 @@ Both captured outputs MUST appear in the story's AC section as inline evidence b
 
 - **O-P15-04 (ci.yml literal YAML key leg — AC-004 S-19.01):** Exits 1 pre-implementation on current `.github/workflows/ci.yml` (exact job-name key absent — correct expected pre-implementation state). Discriminating confirmed.
 
+**ADDENDUM (2026-07-08 D-766-addendum):** Pass-15 sweep ran under the NEW gate-execution-evidence rule; discriminating-run results per gate: F-P15-004 ENV_SINK_FILE awk gate — exit 1 vs current cfg-gated main.rs (defect detected), exit 0 vs cfg-removed fixture; F-P15-005 flush_sink_file awk — 1/0 same pattern; F-P15-006 use-Mutex awk — 1/0 same pattern; F-P15-001 ffi.rs containment awks — exit 1 vs current ffi.rs (read_prefix absent in both blocks), exit 0 vs fixture with read_prefix added to both; F-P15-007 AC-006 4-case — empty stream exit 0, matching event exit 1, malformed JSON jq exit 5, path_resolution_failed excluded exit 0; O-P15-04 ci.yml literal leg — exit 1 pre-implementation (correct expected pre-state). Task 2 split renumbered S-19.03 Tasks 3..14→4..15. EAC-006/007 gap note landed in epic v1.13 changelog.
+
 Parent-commit: 6f7a159d (D-765 SHA-patch factory-artifacts HEAD).
 
 ### Phase
