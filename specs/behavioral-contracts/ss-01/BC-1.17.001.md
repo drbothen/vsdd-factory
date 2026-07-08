@@ -1,11 +1,11 @@
 ---
 document_type: behavioral-contract
 level: L3
-version: "1.2"
+version: "1.3"
 status: draft
 producer: product-owner
 timestamp: 2026-07-06T00:00:00Z
-last_amended: "(v1.2) — E-19 pass-12 F-P12-002 §(a) layering parenthetical (product-owner): inserted architect-recommended SDK/wire-ABI layering parenthetical after §(a) signature; closes F-P12-002 (BC leg; architect Ruling 1, amendment recommended-not-required, adopted under the production-grade default). [Prior: (v1.1) — E-19 pass-3 PO finalization (product-owner): F-P3-004 §VP Anchors + §Verification Properties VP-TBD → VP-101; F-P3-009 §Description(d) cite ADR-025 Decision 15 (drop phantom-pin parenthetical), §Architecture Anchors drop '(architect authors same-burst)', §Story Anchor updated S-19.06 (W2; depends_on S-19.03); F-P3-016 §Traceability CAP-TBD → CAP-009 with justification, ADR cite updated to ADR-025 Decision 15. [Prior: (v1.0) — initial creation (product-owner): E-19 pass-2 fix burst Package 2 — host::read_prefix bounded partial read: head-c semantics, NEVER OUTPUT_TOO_LARGE, additive FFI entry point, same path_allow + rejoin capability model as read_file (BC-2.07.001), absent file returns NOT_FOUND (-5), read_file all-or-nothing semantics unchanged (story anchor S-19.06; architect decision D-d).]"
+last_amended: "(v1.3) — E-19 pass-22 fix burst F-P22-004 BC leg (product-owner): §Architecture Anchors added crates/hook-sdk/src/ffi.rs bullet — raw wire-ABI read_prefix extern declaration (-> i32; wasm32 extern block + host_stubs non-wasm stub), the layer §Description §(a) parenthetical assigns the i32 return to; ground-truth: ffi.rs read_file at lines 25 + 92 confirms file + module structure. Anchoring addition only; behavioral content unchanged. BC-INDEX bump state-manager same-burst. [Prior: (v1.2) — E-19 pass-12 F-P12-002 §(a) layering parenthetical (product-owner): inserted architect-recommended SDK/wire-ABI layering parenthetical after §(a) signature; closes F-P12-002 (BC leg; architect Ruling 1, amendment recommended-not-required, adopted under the production-grade default). [Prior: (v1.1) — E-19 pass-3 PO finalization (product-owner): F-P3-004 §VP Anchors + §Verification Properties VP-TBD → VP-101; F-P3-009 §Description(d) cite ADR-025 Decision 15 (drop phantom-pin parenthetical), §Architecture Anchors drop '(architect authors same-burst)', §Story Anchor updated S-19.06 (W2; depends_on S-19.03); F-P3-016 §Traceability CAP-TBD → CAP-009 with justification, ADR cite updated to ADR-025 Decision 15. [Prior: (v1.0) — initial creation (product-owner): E-19 pass-2 fix burst Package 2 — host::read_prefix bounded partial read: head-c semantics, NEVER OUTPUT_TOO_LARGE, additive FFI entry point, same path_allow + rejoin capability model as read_file (BC-2.07.001), absent file returns NOT_FOUND (-5), read_file all-or-nothing semantics unchanged (story anchor S-19.06; architect decision D-d).]]]"
 phase: F3
 inputs:
   - crates/factory-dispatcher/src/host/read_file.rs
@@ -22,6 +22,7 @@ introduced: v1.0-feature-engine-discipline-E19
 modified:
   - "2026-07-07 (v1.2)"
   - "2026-07-06 (v1.1)"
+  - "2026-07-08 (v1.3)"
 deprecated: null
 deprecated_by: null
 replacement: null
@@ -115,6 +116,7 @@ removal_reason: null
 - `crates/factory-dispatcher/src/host/read_prefix.rs` — new host function implementation; imports `resolve_path_for_allowlist` from `path_util.rs`
 - `crates/factory-dispatcher/src/host/path_util.rs` — shared path-allowed resolution (see BC-2.07.001 §Architecture Anchors)
 - `crates/hook-sdk/src/host.rs` — new `read_prefix` wrapper callable from WASM plugins; parallel to existing `read_file` wrapper
+- `crates/hook-sdk/src/ffi.rs` — raw wire-ABI `read_prefix` extern declaration (`-> i32` return; wasm32 extern block + host_stubs non-wasm stub); the layer §Description §(a) parenthetical assigns the `i32` return to
 - `plugins/vsdd-factory/hooks-registry.toml` — `capabilities.read_prefix` capability block schema; separate from `capabilities.read_file`
 - ADR-025 Decision 15 — HOST_ABI_VERSION governance for additive `read_prefix` FFI entry point
 
@@ -152,6 +154,7 @@ S-19.06 (host::read_prefix bounded partial read; W2; depends_on S-19.03)
 
 | Version | Date | Author | Change |
 |---------|------|--------|--------|
+| 1.3 | 2026-07-08 | product-owner | E-19 pass-22 fix burst F-P22-004 BC leg: §Architecture Anchors added crates/hook-sdk/src/ffi.rs — raw wire-ABI read_prefix extern declaration (-> i32 return; wasm32 extern block + host_stubs non-wasm stub), the layer §Description §(a) assigns the i32 return to; sibling ground-truth: ffi.rs read_file at lines 25 + 92 confirms file + module structure. Anchoring addition only; behavioral content unchanged. BC-INDEX bump state-manager same-burst. |
 | 1.2 | 2026-07-07 | product-owner | E-19 pass-12 F-P12-002 §(a) layering parenthetical: inserted architect-recommended SDK/wire-ABI layering parenthetical after §(a) signature. Closes F-P12-002 (BC leg; architect Ruling 1, amendment recommended-not-required, adopted under the production-grade default). |
 | 1.1 | 2026-07-06 | product-owner | E-19 pass-3 PO finalization: (a) F-P3-004 — §VP Anchors VP-TBD → VP-101 (host::read_prefix Returns Byte-Exact Prefix of len <= max_bytes; Never OUTPUT_TOO_LARGE; Absent File Returns NOT_FOUND (-5)); §Verification Properties four VP-TBD rows → VP-101. (b) F-P3-009 — §Description(d) cite ADR-025 Decision 15 directly (drop phantom-pin parenthetical "cited as ADR-025 with no Decision number to avoid phantom-pin on a Decision number not yet authored"); §Architecture Anchors "ADR-025 (amendment)" → "ADR-025 Decision 15", drop "(architect authors same-burst)"; §Story Anchor updated "story file does not exist at BC authorship time; story-writer authors next leg" → "W2; depends_on S-19.03" (S-19.06 now exists v1.0). (c) F-P3-016 — §Traceability L2 Capability CAP-TBD → CAP-009 with justification; Capability Anchor Justification TBD → full text; ADR "ADR-025 (amendment, no Decision number — architect authors same-burst; ...)" → "ADR-025 Decision 15 (HOST_ABI_VERSION governance for additive read_prefix FFI entry point; HOST_ABI_VERSION = 1 unchanged)". Frontmatter capability: "CAP-TBD" → "CAP-009". |
 | 1.0 | 2026-07-06 | product-owner | Initial creation. E-19 pass-2 fix burst Package 2. New host fn read_prefix: (a) head-c semantics, max_bytes cap, NEVER OUTPUT_TOO_LARGE, byte-exact no-trimming, max_bytes=0 valid; (b) read_file all-or-nothing semantics UNCHANGED (silent-truncation-as-success would corrupt TOML/YAML parsers — D-d rationale); (c) separate capabilities.read_prefix block, same path_allow + rejoin model as read_file (BC-2.07.001), absent file returns NOT_FOUND (-5); (d) additive FFI entry point in vsdd namespace; HOST_ABI_VERSION governance in ADR-025 amendment (bare cite, no Decision number). Story anchor S-19.06 (story not yet authored). |

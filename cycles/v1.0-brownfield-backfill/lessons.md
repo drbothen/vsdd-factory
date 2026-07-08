@@ -5647,3 +5647,34 @@ Zero matching lines + "STORY-INDEX-PROSE-PASS" = PASS. Any matching line = FAIL 
 **Streak impact:** D-775 fix burst resets E-19 adversary streak to 0/3. E-19 adversary pass-22 required (fresh context; perimeter = ADR-030 v1.1 + BC-5.42.001 v1.2 + S-19.01 v1.12 delta). W1 TDD dispatch authorized only after 3-CLEAN re-convergence.
 
 **Cites:** D-775, adv-W1V-pass-1.md (F-W1V-001..004), ADR-030 v1.1, BC-5.42.001 v1.2, S-19.01 v1.12.
+
+---
+
+## L-BB-fix-burst-exclusion-claims-require-ground-truth-verification
+
+**Category:** process-gap
+**Type:** sibling-sweep discipline
+**Codified:** D-776 [codified] 2026-07-08
+
+**Closes:** D-776 (F-P22-001 BLOCKER; F-P22-002 HIGH)
+
+**Summary:** A fix burst that corrects one sub-bullet in a structured list (e.g., §Architecture Anchors) without verifying adjacent sub-bullets of the same list against ground truth produces sibling-scope drift that escapes the correcting burst and is caught only in the next adversary pass.
+
+**Context:** D-775 fix burst corrected §Architecture Anchors script path sub-bullets for check-stale-verdict.sh and enforce-merge-strategy.sh (hooks/ → bin/). The adjacent WASM plugin sub-bullet (`hooks/pr-manager-completion-guard.wasm`) was not swept against ground truth (hooks-registry.toml plugin field = `hook-plugins/pr-manager-completion-guard.wasm`). The exclusion claim ("adjacent bullets not in scope") was never verified — it was implicitly assumed. Pass-22 adversary caught the gap as F-P22-001 BLOCKER.
+
+**Root cause:** Fix bursts that touch sub-bullets in a list validate the corrected sub-bullet but implicitly exclude adjacent sub-bullets without checking whether the exclusion claim is accurate. The exclusion claim ("those bullets are correct") requires positive ground-truth verification, not just absence of intent to change.
+
+**Failure mode:** Any fix burst editing one item in a structured list (§Architecture Anchors, §File Structure, §Error Taxonomy, §Invocation Signatures) may leave adjacent items stale if they are not validated against an authoritative source.
+
+**Gate (D-776 codification):** When any sub-bullet in §Architecture Anchors (or any structured multi-item section) is edited:
+1. After applying the correction, grep the SAME SECTION for all path/symbol references.
+2. Validate EVERY path/symbol in that section against its ground-truth source (hooks-registry.toml plugin field for WASM paths; bin/ directory for CLI tools; crates/ for Rust modules).
+3. If any adjacent reference disagrees with ground truth, fix it in the same burst — do not defer.
+4. Capture the grep + ground-truth comparison stdout in the burst-log Dim-2 block.
+
+**Prevention:**
+1. TD-VSDD-060 sibling-sweep discipline applies WITHIN a list section, not only across callsites. "Section sweep" = verify all items in the same structured section, not just the item being corrected.
+2. Exclusion claims ("other bullets are correct") require positive verification, not implicit assumption.
+3. The STORY-INDEX-prose BC-cite sweep (D-768) should explicitly cover BC-coverage summary paragraph and footer — not just per-story row annotations. F-P22-002 (second escape from this location) confirms the coverage gap.
+
+**Cites:** D-776, adv-E19-pass-22.md (F-P22-001/F-P22-002), hooks-registry.toml (ground truth), D-775 (prior fix burst), D-768 (STORY-INDEX-prose leg), TD-VSDD-060.

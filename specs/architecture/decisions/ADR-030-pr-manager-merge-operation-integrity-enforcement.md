@@ -2,7 +2,7 @@
 document_type: architecture-decision-record
 level: L3
 adr_id: ADR-030
-version: "1.1"
+version: "1.2"
 title: "ADR-030: pr-manager merge-operation integrity enforcement"
 status: accepted
 date: 2026-07-06
@@ -24,8 +24,9 @@ subsystems_affected:
   - SS-05
   - SS-07
   - SS-10
-last_amended: "2026-07-08 (v1.1) — W1-validation adjudication (architect): F-W1V-001 → bin/ confirmed (orchestrator-invoked; not dispatcher-fired; bin/ precedent factory-lock-write.sh/factory-cas-push.sh); F-W1V-002 → positional signatures + BC diagnostic wording adopted (spec-wins discipline); F-W1V-003 → named error codes (READY_SHA_FETCH_FAILED, READY_SHA_MISSING per BC test vectors) + CHECK_STALE_VERDICT_ERROR catch-all retained for non-BC-asserted arms; F-W1V-004 → exit 1 (aligns S-19.01 AC-002/RG-003; satisfies BC non-zero). [Prior: 2026-07-06 (v1.0) — initial authorship (E-19 adv-P3 F-P3-015 close-out: no existing ADR covers pr-manager merge-operation integrity domain; D-749, D-750, F-P2-002 transcribed; three-component enforcement architecture decided).]"
+last_amended: "2026-07-08 (v1.2) — F-P22-003 close (architect): Decision 1 canonical registry TOML tool field corrected ^Agent → ^Agent$ (fully-anchored singleton form per S-19.04 D-f convention; prevents substring match on AgentX-style tool names). [Prior: 2026-07-08 (v1.1) — W1-validation adjudication (architect): F-W1V-001 → bin/ confirmed (orchestrator-invoked; not dispatcher-fired; bin/ precedent factory-lock-write.sh/factory-cas-push.sh); F-W1V-002 → positional signatures + BC diagnostic wording adopted (spec-wins discipline); F-W1V-003 → named error codes (READY_SHA_FETCH_FAILED, READY_SHA_MISSING per BC test vectors) + CHECK_STALE_VERDICT_ERROR catch-all retained for non-BC-asserted arms; F-W1V-004 → exit 1 (aligns S-19.01 AC-002/RG-003; satisfies BC non-zero). [Prior: 2026-07-06 (v1.0) — initial authorship (E-19 adv-P3 F-P3-015 close-out: no existing ADR covers pr-manager merge-operation integrity domain; D-749, D-750, F-P2-002 transcribed; three-component enforcement architecture decided).]]"
 modified:
+  - "2026-07-08 (v1.2)"
   - "2026-07-08 (v1.1)"
 ---
 
@@ -104,8 +105,12 @@ event = "SubagentStop"
 tier = "sync"
 on_error = "advisory"
 priority = 150
-tool = "^Agent"
+tool = "^Agent$"
 ```
+
+The `tool = "^Agent$"` value uses the fully-anchored singleton form per S-19.04 D-f
+convention, preventing substring matches against tool names such as `AgentX` that would
+silently defeat the anchoring intent.
 
 ### Decision 2: bin/check-stale-verdict.sh — orchestrator-invocable stale-verdict detector
 
@@ -303,5 +308,6 @@ Tools and Bin) — `check-stale-verdict.sh` and `enforce-merge-strategy.sh` bin 
 
 | Version | Date | Author | Change |
 |---------|------|--------|--------|
+| 1.2 | 2026-07-08 | architect | F-P22-003 close: Decision 1 canonical registry TOML `tool` field corrected `^Agent` → `^Agent$`; fully-anchored singleton form per S-19.04 D-f convention prevents substring match on `AgentX`-style tool names. Added prose note after TOML block citing S-19.04 D-f convention. |
 | 1.1 | 2026-07-08 | architect | W1-validation adjudication (F-W1V-001..004). Decision 2: invocation changed from `--pr`/`--covered-sha` named flags to positional `<pr_number> <covered_sha>`; stale diagnostic aligned to BC-5.42.001 PC-2 verbatim (`STALE_READY_VERDICT: PR #<pr_number> HEAD <current_sha> != covered_sha <covered_sha>`); error taxonomy replaced flat `CHECK_STALE_VERDICT_ERROR:` catch-all with named BC codes (`READY_SHA_FETCH_FAILED` for gh failure, `READY_SHA_MISSING` for malformed arg) plus `CHECK_STALE_VERDICT_ERROR` retained for non-BC-asserted arms; exit 2 → exit 1. Decision 3: invocation changed from `--pr`/flags form to positional `<pr_number>`; `RELEASE_PR_SQUASH_FORBIDDEN` diagnostic aligned to BC wording (`branch <branch_name> requires --merge per RELEASING.md`); exit 2 → exit 1. F-W1V-001 ruling: bin/ confirmed correct (both scripts are orchestrator-invoked, not dispatcher-fired; hooks-registry.toml does not register them; precedent bin/ tools factory-lock-write.sh/factory-cas-push.sh apply). Propagation directives issued for BC-5.42.001 §Architecture Anchors and S-19.01 §Architecture Mapping + §File Structure. |
 | 1.0 | 2026-07-06 | architect | Initial authorship. E-19 adv-P3 F-P3-015 close-out: no existing ADR covers pr-manager merge-operation integrity domain; D-749, D-750, F-P2-002 transcribed; three-component enforcement architecture decided. |

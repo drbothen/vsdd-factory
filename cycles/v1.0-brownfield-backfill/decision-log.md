@@ -6514,3 +6514,49 @@ D-775-W1-VALIDATION-FIX-BURST-CLOSED
 ### Date
 
 2026-07-08
+
+---
+
+## D-776
+
+### Summary
+
+E-19 adv pass-22 NOT-CLEAN B1/H1/M2/L0 (4 findings + 5 obs). F-P22-001 BLOCKER: BC-5.42.001 §Architecture Anchors WASM plugin path cites hooks/pr-manager-completion-guard.wasm but ground truth (hooks-registry.toml plugin field) is hook-plugins/pr-manager-completion-guard.wasm — sibling-sweep miss from D-775 fix burst (bin/ script correction swept but adjacent WASM sub-bullet not swept). F-P22-002 HIGH: STORY-INDEX E-19 BC-coverage summary stale cites at lines 685 (BC-1.17.001 v1.2) and 702 (BC-5.42.001 v1.1 + BC-1.17.001 v1.2); should be v1.3 at all four sites. F-P22-003 MEDIUM: ADR-030 Decision 1 TOML tool filter uses ^Agent (unanchored end) — S-19.04 D-f convention requires ^Agent$ (fully-anchored singleton; prevents substring match on AgentX-style tool names). F-P22-004 MEDIUM: BC-1.17.001 §Architecture Anchors cites only host.rs (safe wrapper) but omits ffi.rs (raw wire-ABI extern + host_stubs); S-19.06 AC-007 Gate 2 verifies ffi.rs at multiple clauses — BC anchor must reflect the two-layer layering. Fix burst: architect (ADR-030 v1.1→v1.2 F-P22-003); product-owner (BC-5.42.001 v1.2→v1.3 F-P22-001 + BC-1.17.001 v1.2→v1.3 F-P22-004); story-writer (S-19.01 v1.12→v1.13 + S-19.06 v1.13→v1.14 + E-19 epic v1.15→v1.16); state-manager (STORY-INDEX stale BC cites F-P22-002). 4-index: BC v3.78/VP v2.53/STORY v4.154/ARCH v2.92. Streak 0/3. Lesson: L-BB-fix-burst-exclusion-claims-require-ground-truth-verification.
+
+### Detail
+
+**(1) FINDING DISPOSITIONS.**
+
+- **F-P22-001 (BLOCKER) — BC-5.42.001 WASM path mis-citation.** D-775 corrected bin/ script paths in §Architecture Anchors but did not sweep the adjacent WASM plugin sub-bullet. Ground truth: hooks-registry.toml plugin field = `hook-plugins/pr-manager-completion-guard.wasm`. BC-5.42.001 v1.2 retained stale `hooks/pr-manager-completion-guard.wasm`. BC anchor and story (S-19.01 v1.12 §File Structure) now disagree — BLOCKER under VSDD spec-wins rule. Fix: BC-5.42.001 v1.2→v1.3 §Architecture Anchors WASM path corrected to hook-plugins/ per ground truth. S-19.01 v1.12→v1.13 BC cite propagated. POLICY 14 5-leg parity applied.
+
+- **F-P22-002 (HIGH) — STORY-INDEX stale BC-coverage summary cites.** D-768 established the STORY-INDEX-prose leg; D-769 codified sweep-count reconciliation. D-775 fix burst updated S-19.01 story row annotations but did not sweep the E-19 BC-coverage summary paragraph (line 685) or BC coverage footer (line 702). Both cite BC-5.42.001 at v1.1 and BC-1.17.001 at v1.2 — both should be v1.3 per post-D-763/D-776 state. Fix: state-manager updated four stale cite sites to v1.3.
+
+- **F-P22-003 (MEDIUM) — ADR-030 tool filter unanchored.** ADR-030 Decision 1 TOML stanza cites `tool = "^Agent"`. S-19.04 D-f convention (hooks-registry.toml tool-filter anchoring discipline) requires `^Agent$`. Production hooks-registry.toml already uses anchored form. Fix: ADR-030 v1.1→v1.2 Decision 1 TOML stanza updated to ^Agent$.
+
+- **F-P22-004 (MEDIUM) — BC-1.17.001 §Architecture Anchors missing ffi.rs.** BC-1.17.001 normatively requires two-layer implementation (host.rs safe wrapper + ffi.rs raw wire-ABI extern). §Architecture Anchors cited only host.rs. S-19.06 AC-007 Gate 2 verifies ffi.rs at three clauses (safe fn signature, wasm_import_module attr, cfg stub). Anchor gap between BC normative scope and documented anchor set. Fix: BC-1.17.001 v1.2→v1.3 §Architecture Anchors ffi.rs raw wire-ABI bullet added. S-19.06 v1.13→v1.14 BC cite propagated (8 sites). POLICY 14 5-leg parity applied.
+
+**(2) FIX BURST LEGS (5 total).**
+
+- **Architect:** ADR-030 v1.1→v1.2. Decision 1 TOML `^Agent` → `^Agent$`. ARCH-INDEX v2.91→v2.92 (row annotation v1.1→v1.2). POLICY 14 5-leg parity.
+- **Product-owner (BC-5.42.001):** BC-5.42.001 v1.2→v1.3. WASM path hooks/ → hook-plugins/. BC-INDEX v3.77→v3.78 (row v1.2→v1.3). POLICY 14 5-leg parity.
+- **Product-owner (BC-1.17.001):** BC-1.17.001 v1.2→v1.3. ffi.rs raw wire-ABI bullet added to §Architecture Anchors. BC-INDEX v3.78 (row v1.2→v1.3, same burst). POLICY 14 5-leg parity.
+- **Story-writer:** S-19.01 v1.12→v1.13 (BC-5.42.001 v1.3 cite; WASM path hook-plugins/; input-hash 8ec7188→2a9f0b4); S-19.06 v1.13→v1.14 (BC-1.17.001 v1.3 cite propagation 8 sites; input-hash 617adeb→5af0d9f); E-19 epic v1.15→v1.16 (BC-1.17.001 v1.3 cite propagation 4 sites). STORY-INDEX v4.153→v4.154 (3 row syncs). POLICY 14 5-leg parity on all three.
+- **State-manager:** STORY-INDEX BC-coverage summary: line 685 BC-1.17.001 v1.2→v1.3; line 702 BC-5.42.001 v1.1→v1.3 + BC-1.17.001 v1.2→v1.3. Delivery footer input-hashes updated (S-19.01 8610fcc→2a9f0b4; S-19.06 617adeb→5af0d9f).
+
+**(3) D-494 4-INDEX GATE.**
+
+BC-INDEX v3.78 / VP-INDEX v2.53 / STORY-INDEX v4.154 / ARCH-INDEX v2.92 — zero FAIL.
+
+**(4) LESSON CODIFICATION.**
+
+L-BB-fix-burst-exclusion-claims-require-ground-truth-verification [process-gap] codified: fix burst that corrects one sub-bullet in a structured list (§Architecture Anchors) without sweeping adjacent sub-bullets of the same list produces a class of sibling-scope drift that escapes the correcting burst but appears in the next adversary pass. The pattern is: "corrected the scripts; left the WASM bullet". Ground truth verification (grep hooks-registry.toml plugin field) must be a mandatory gate when any §Architecture Anchors sub-bullet is edited. Lesson tagged [codified], cites D-776.
+
+Parent-commit: b1967f03 (D-775 burst, factory-artifacts HEAD before this burst).
+
+### Phase
+
+D-776-E19-ADV-PASS-22-CLOSED
+
+### Date
+
+2026-07-08

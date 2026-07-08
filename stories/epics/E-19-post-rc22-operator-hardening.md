@@ -1,7 +1,7 @@
 ---
 document_type: epic
 epic_id: "E-19"
-version: "v1.15"
+version: "v1.16"
 status: draft
 title: "Post-rc.22 Operator Hardening — pr-manager race fixes, verify-factory-lock size defect, warn-pending-wave-gate false-positive, registry/bundle hygiene, async telemetry + VSDD_SINK_FILE, host::read_prefix bounded partial read"
 prd_capabilities: []
@@ -23,9 +23,10 @@ inputs:
   - .factory/stories/S-19.06-read-prefix-bounded-partial-read.md
   - .factory/stories/S-19.07-verify-factory-lock-read-prefix-migration.md
   - .factory/specs/behavioral-contracts/ss-04/BC-4.13.001.md
-input-hash: "45fa529"
-last_amended: "2026-07-08 (v1.15) — O-P16-01 human adjudication (D-773): POLICY 17 frontmatter parity backfill (modified[] + last_amended added)"
+input-hash: "c2c269d"
+last_amended: "2026-07-08 (v1.16) — E-19 pass-22 fix burst BC-1.17.001-v1.3-propagation (story-writer): BC-1.17.001 v1.2→v1.3 cite propagation; §PRD Capabilities Covered (×2 sites) + §Out of Scope (×2 sites) updated. [Prior: 2026-07-08 (v1.15) — O-P16-01 human adjudication (D-773): POLICY 17 frontmatter parity backfill (modified[] + last_amended added)]"
 modified:
+  - "v1.16 2026-07-08: BC-1.17.001-v1.3-propagation — BC-1.17.001 v1.2→v1.3 cite propagation; §PRD Capabilities Covered ×2 sites + §Out of Scope ×2 sites"
   - "v1.15 2026-07-08: O-P16-01 human adjudication (D-773) POLICY 17 frontmatter parity backfill"
 ---
 
@@ -113,9 +114,9 @@ that reads this frontmatter.
 No new PRD capabilities from the base defect-fix set. E-19 stories fix defects in
 existing capabilities and add observability infrastructure. BC-4.13.001 (verify-factory-
 lock behavioral contract) is amended by S-19.02 to reflect the raised byte budget.
-BC-3.08.001 v1.19 (async event catalog — Event 5 `plugin.abandoned` with all 7 mandatory fields including `type`, `timestamp`, `entry_index: u32` + Invariant 6 extended terminal key `trace_id+plugin_name+entry_index`; Event 6 `plugin.completed` async path with all 9 mandatory fields including `plugin_version`; schema-level defense for concurrent `entry_index` traceability) LANDED (product-owner, E-19 pass-3/pass-5/pass-7 fix bursts); implementer for S-19.05 follows BC-3.08.001 v1.19 without further routing action. BC-1.17.001 v1.2 (host::read_prefix bounded
+BC-3.08.001 v1.19 (async event catalog — Event 5 `plugin.abandoned` with all 7 mandatory fields including `type`, `timestamp`, `entry_index: u32` + Invariant 6 extended terminal key `trace_id+plugin_name+entry_index`; Event 6 `plugin.completed` async path with all 9 mandatory fields including `plugin_version`; schema-level defense for concurrent `entry_index` traceability) LANDED (product-owner, E-19 pass-3/pass-5/pass-7 fix bursts); implementer for S-19.05 follows BC-3.08.001 v1.19 without further routing action. BC-1.17.001 v1.3 (host::read_prefix bounded
 partial read — incl. wrapper/wire-ABI layering disambiguation) LANDED (product-owner, E-19 pass-2 fix burst; v1.2 layering parenthetical added E-19 pass-12); implementer for S-19.06
-follows BC-1.17.001 v1.2.
+follows BC-1.17.001 v1.3 without further routing action.
 
 ## Acceptance Criteria
 
@@ -201,10 +202,10 @@ Topological order: W1 → W2 → W3 (by priority + S-19.06 gate on S-19.03 AND S
   schema-level defense for concurrent `entry_index` traceability are now in the BC.
   S-19.05 implementer follows BC-3.08.001 v1.19 without further routing action.
 
-- **BC-1.17.001 host::read_prefix:** LANDED as v1.2 (product-owner, E-19 pass-2 fix
+- **BC-1.17.001 host::read_prefix:** LANDED as v1.3 (product-owner, E-19 pass-2 fix
   burst; v1.2 layering parenthetical added E-19 pass-12). FFI signature `read_prefix(path: &str, max_bytes: u32, timeout_ms: u32) -> i32`
   and separate `capabilities.read_prefix` registry block are now in the BC. S-19.06
-  implementer follows BC-1.17.001 v1.2 without further routing action.
+  implementer follows BC-1.17.001 v1.3 without further routing action.
 
 - **ADR-025 v1.7 amendment:** Authored by architect in E-19 pass-1 fix burst (Decisions
   13+14: `codes::NOT_FOUND = -5`; `STATE_MD_MAX_BYTES = 262144` + frontmatter-only parse).
@@ -235,6 +236,7 @@ Story BC-table rows use abbreviated titles for cell fit; the BC file H1 remains 
 
 | Version | Date | Author | Change |
 |---------|------|--------|--------|
+| v1.16 | 2026-07-08 | story-writer | BC-1.17.001-v1.3-propagation: BC-1.17.001 v1.2→v1.3 cite propagation (anchoring-only change — ffi.rs bullet added to §Architecture Anchors in BC v1.3); §PRD Capabilities Covered ×2 sites + §Out of Scope ×3 sites updated. |
 | v1.15 | 2026-07-08 | story-writer | O-P16-01 human adjudication (D-773): POLICY 17 frontmatter parity backfill (modified[] + last_amended added). |
 | v1.14 | 2026-07-08 | story-writer | O-P16-02: EAC-008 Validation Method + Test Scenarios columns split for column parity (both previously "S-19.05 AC-002 test suite"; now distinct per AC-002 gates a/b). |
 | v1.13 | 2026-07-07 | story-writer | O-P15-02: EAC-006/EAC-007 never allocated (numbering skip at pass-14 authoring; orchestrator brief error); EAC-008 retained per POLICY 1 append-only. |
