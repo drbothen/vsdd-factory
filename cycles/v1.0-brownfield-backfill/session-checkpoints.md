@@ -883,3 +883,15 @@ Summary of D-749 checkpoint (archived from STATE.md 2026-07-04 by D-750 session 
 - develop HEAD: a6cf13e8 (PR #438 registry-staged assertion D-749) / main HEAD: caf06c68 (rc.21) / factory-artifacts HEAD: eac885eb (D-749) / v1.0.0-rc.21 tag: 03054524
 - 4-index: BC v3.57 / VP v2.51 / STORY v4.127 / ARCH v2.85. L2-INDEX v1.0.13. total_bcs 1,974. merged_count 98.
 - D-range: D-001..D-749
+
+---
+
+## D-765 Checkpoint (archived 2026-07-08 by D-766 session wrap — SESSION-WRAP-PAUSE)
+
+**Superseded by D-766 SESSION-WRAP-PAUSE checkpoint (STATE.md §Session Resume Checkpoint).**
+
+Summary of D-765 checkpoint (archived reference):
+- D-765 (2026-07-08): E-19 ADV PASS-14 NOT-CLEAN CLOSED — FIX BURST COMPLETE. PIPELINE ACTIVE. E-19 adv pass-14 NOT-CLEAN B0/H3/M2/L1 (6 findings + 6 obs). Fix burst (SW single leg): S-19.03 v1.11 AC-006 pipefail; S-19.06 v1.11 AC-003 intrinsic-exit + ERE + cfg-clause; S-19.07 v1.6 EC-005 operator visibility; epic v1.12 seven-subsystems + pass-3 ×2 + EAC-008 + tally; STORY-INDEX v4.147 hash corrections + section header v1.12. Preflight extended hash+header parity. BC/VP/ARCH UNCHANGED. HUMAN DIRECTIVE: strict-3-CLEAN no-cap. Streak 0/3. NEXT: E-19 adv pass-15.
+- 4-index: BC v3.76 / VP v2.53 / STORY v4.147 / ARCH v2.90. L2-INDEX v1.0.14.
+- develop HEAD: `f5242bef` / main HEAD: `a04cb303` / factory-artifacts HEAD: `6f7a159d` (D-765 SHA-patch HEAD) / merged_count 98
+- D-range: D-001..D-765
