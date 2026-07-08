@@ -140,7 +140,7 @@ dtu_services: []
 |--------------|-----|-------|
 | main | a04cb303 | rc.22 bot binary bundle commit 2026-07-03 (Release 28668124787 post-build; all 33 WASMs rebuilt, plugin.json → 1.0.0-rc.22); prior: e4285fe5 (PR #456 true-merge fix mapfile→while-read; rc.22 tag); prior: 2a4c949b (PR #455 true-merge first rc.22 release; tag later moved); prior: caf06c68 (rc.21) |
 | develop | f5242bef | rc.22 Release sync-main→develop back-merge 2026-07-03 (D-750); prior: a6cf13e8 (PR #438 D-749 registry-staged assertion) |
-| factory-artifacts | `78d94f52` | D-766 SESSION-WRAP-PAUSE 2026-07-07 (single-commit per TD-VSDD-053); correction `78d94f52` (sweep COMPLETE + gate-evidence); prior: D-765 `2af278b7` (SHA-patch `6f7a159d`) |
+| factory-artifacts | `2a54988e` | D-766 SESSION-WRAP-PAUSE 2026-07-07 (single-commit per TD-VSDD-053); addendum `2a54988e` (sweep COMPLETE + gate-evidence persisted); prior: D-765 `2af278b7` (SHA-patch `6f7a159d`) |
 | feature/S-18.12 | **DELETED** (was 9cbd9439) | Merged via PR #384 ec05606a 2026-07-01 (D-744); branch deleted post-merge |
 | fix/S-18.12-detector-parity-gaps | **DELETED** (was 717686f8) | Merged via PR #385 2879f473 2026-07-01 (D-746); branch deleted at merge |
 | origin/maintenance/rc22-pre-release-cleanup | **PENDING DELETION** | Safe to delete (recovery long complete); human authorization outstanding |
@@ -376,6 +376,6 @@ Or directly: re-dispatch story-writer with adv-E19-pass-15.md findings + D-766 �
 
 4-index verification gate (literal-shell): `grep "^version:" .factory/specs/behavioral-contracts/BC-INDEX.md .factory/specs/verification-properties/VP-INDEX.md .factory/stories/STORY-INDEX.md .factory/specs/architecture/ARCH-INDEX.md` → BC-INDEX: "3.76" / VP-INDEX: "2.53" / STORY-INDEX: "4.148" / ARCH-INDEX: "2.90".
 
-Critical SHAs: develop `f5242bef`; main `a04cb303`; factory-artifacts HEAD = D-766 commit. v1.0.0-rc.22 at `e4285fe5`. GitHub origin: `drbothen/vsdd-factory`. total_bcs 1,977.
+Critical SHAs: develop `f5242bef`; main `a04cb303`; factory-artifacts HEAD = `2a54988e` (D-766-addendum). v1.0.0-rc.22 at `e4285fe5`. GitHub origin: `drbothen/vsdd-factory`. total_bcs 1,977.
 
 > This checkpoint (D-766 SESSION-WRAP-PAUSE v5.17 2026-07-08) supersedes D-765 v5.16. `git -C .factory log --oneline -3` → D-766 + D-765 + D-764.
