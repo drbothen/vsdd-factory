@@ -140,7 +140,7 @@ dtu_services: []
 |--------------|-----|-------|
 | main | a04cb303 | rc.22 bot binary bundle commit 2026-07-03 (Release 28668124787 post-build; all 33 WASMs rebuilt, plugin.json → 1.0.0-rc.22); prior: e4285fe5 (PR #456 true-merge fix mapfile→while-read; rc.22 tag); prior: 2a4c949b (PR #455 true-merge first rc.22 release; tag later moved); prior: caf06c68 (rc.21) |
 | develop | f5242bef | rc.22 Release sync-main→develop back-merge 2026-07-03 (D-750); prior: a6cf13e8 (PR #438 D-749 registry-staged assertion) |
-| factory-artifacts | `1fdd8d46` | D-764 E-19-ADV-PASS-13-NOT-CLEAN-CLOSED 2026-07-07 (single-commit per TD-VSDD-053); prior: D-763 `2eecafd1` (SHA-patch `04cdd1e1`) |
+| factory-artifacts | `16c673d6` | D-766 SESSION-WRAP-PAUSE 2026-07-07 (single-commit per TD-VSDD-053); prior: D-765 `2af278b7` (SHA-patch `6f7a159d`) |
 | feature/S-18.12 | **DELETED** (was 9cbd9439) | Merged via PR #384 ec05606a 2026-07-01 (D-744); branch deleted post-merge |
 | fix/S-18.12-detector-parity-gaps | **DELETED** (was 717686f8) | Merged via PR #385 2879f473 2026-07-01 (D-746); branch deleted at merge |
 | origin/maintenance/rc22-pre-release-cleanup | **PENDING DELETION** | Safe to delete (recovery long complete); human authorization outstanding |
@@ -153,7 +153,7 @@ dtu_services: []
 | Cycle | Type | Status | Notes |
 |-------|------|--------|-------|
 | F-block-ai-attribution-message-file-arm | feature | F3 COMPLETE — F4 READY | F1+F2+F3 done 2026-05-12; 2 stories ready; E-16 under SS-07/SS-04; milestone v1.0.0-rc.17 |
-| v1.0-brownfield-backfill | brownfield | **D-764 E-19-ADV-PASS-13-CLOSED 2026-07-07; PIPELINE ACTIVE. develop f5242bef; main a04cb303; merged_count 98; BC-INDEX v3.76; VP-INDEX v2.53; STORY-INDEX v4.146; ARCH-INDEX v2.90; E-19 adv pass-13 NOT-CLEAN B0/H0/M3/L0 (3 findings); second zero-HIGH pass; single finding-class remaining (gate-strength parity, swept); fix burst (SW leg S-19.05 v1.12/S-19.06 v1.10/epic v1.11); streak 0/3; trajectory-tail →7→6→6→3; NEXT E-19 adv pass-14 (strict-3-CLEAN; legs SEQUENCED). PENDING: human GO for E-19 W1; POST-E-18 revisit (D-721/D-723); merge-method ruleset (human auth).** | rc.22 100% COMPLETE D-750; D-619..D-763 (see decision-log.md for full range); develop f5242bef; main a04cb303. **PIPELINE ACTIVE.** |
+| v1.0-brownfield-backfill | brownfield | **D-766 E-19-ADV-PASS-15-RECEIVED 2026-07-07; PIPELINE PAUSED. develop f5242bef; main a04cb303; merged_count 98; BC-INDEX v3.76; VP-INDEX v2.53; STORY-INDEX v4.148; ARCH-INDEX v2.90; E-19 adv pass-15 NOT-CLEAN B0/H6/M1/L0 (7 findings + 5 obs); fix sweep PARTIALLY STARTED (S-19.01/03/05/06/epic/STORY-INDEX; S-19.02/04/07 unchanged); streak 0/3; trajectory-tail →6→3→6→7; NEXT: complete pass-15 fix sweep then adv pass-16 (strict-3-CLEAN standing per D-761). PENDING: human GO for E-19 W1; POST-E-18 revisit (D-721/D-723); merge-method ruleset (human auth).** | rc.22 100% COMPLETE D-750; D-619..D-766 (see decision-log.md for full range); develop f5242bef; main a04cb303. **PIPELINE PAUSED (D-766).** |
 | v1.0-feature-engine-discipline-pass-1 | feature | **PAUSED** | F5 pass-75 adversary complete D-510 2026-05-27; META-LEVEL-30 CANDIDATE-CONFIRMED; trajectory →9→9→9→11. Full-cycle trajectory (75 values ending): →9→9→9→9→11. |
 | v1.0-feature-plugin-async-semantics-pass-1 | feature | CLOSED | All PRs merged; rc.14 shipped |
 
