@@ -6192,3 +6192,49 @@ D-769-E19-PASS-17-CLOSED
 ### Date
 
 2026-07-08
+
+---
+
+## D-770
+
+### Summary
+
+E-19 adv pass-18 CLEAN B0/H0/M0/L0. FIRST CLEAN of E-19 cascade. Streak 0/3 → 1/3. Both pass-17 findings (F-P17-001, F-P17-002) verified CLOSED. 15-axis independent re-derivation PASS. O-P17-01 chronology retirement note verified present. Freeze discipline ACTIVE — E-19 artifacts frozen at current versions. 4-index ALL UNCHANGED.
+
+### Detail
+
+**(1) PASS-18 VERDICT: CLEAN B0/H0/M0/L0.**
+
+- 0 actionable findings.
+- 0 novel observations. O-P17-01 explicitly closed (verified); O-P17-02 remains a state-manager/lessons codification item, not a per-story artifact defect.
+- Trajectory tail (last 4 of 18 values): 7→2→2→0 (full: 16→14→20→9→8→5→12→11→4→7→6→6→3→6→7→2→2→0).
+- Streak: 1/3 (first CLEAN of E-19 cascade under strict-3-CLEAN per D-761).
+- Both pass-17 findings F-P17-001 + F-P17-002 verified CLOSED by adversary at pass-18 perimeter entry.
+
+**(2) PASS-18 ADVERSARY VERIFICATION.**
+
+Both pass-17 findings verified closed:
+- F-P17-001: S-19.07 v1.7 T-005 (line 201) now reads: "Missing capabilities.read_prefix in registry → graceful degrade to Continue + internal.capability_denied event class present in dispatcher log (no bespoke log_warn; visibility parity via denial event class per EC-005)". Zero log_warn assertion in T-005. CLOSED.
+- F-P17-002: S-19.07 v1.7 Previous Story Intel S-19.06 Patterns Established column: stale `[".factory"]` value removed; mis-attribution corrected (schema documented in preamble DISTINCT comment block; S-19.06 declares no live path_allow; this story's verify-factory-lock entry uses `path_allow = [".factory/STATE.md"]` per AC-002). CLOSED.
+- O-P17-01: STORY-INDEX line 729 explicit retirement note confirmed present.
+
+15-axis independent re-derivation all PASS: spec version parity (15 artifacts); BC live-cite currency; story↔epic count+points (7×{8,8,5,5,8,8,3}=45pts); DAG bidirectional+acyclic W1→W2→W3; subsystems union {SS-01,SS-02,SS-03,SS-04,SS-05,SS-07,SS-09}; input-hashes distinct (S-19.06=617adeb F-P16-002 closure); frontmatter↔body BC parity; frontmatter↔body AC trace; gate-execution-evidence re-derived at HEAD for S-19.06 AC-007/S-19.02 AC-001/S-19.07 AC-001/S-19.04 AC-004/S-19.01 AC-004 — all correct pre-implementation exit codes; O-P17-01 chronology closure; epic v1.14 EAC-008 columns distinct; table cell parity; S-19.02 AC-005 slice semantics; semantic anchoring 12-anchor sample; F-P16-001+F-P16-002 remain CLOSED at HEAD. Monotonic descent 7→2→2→0 across last four passes; sibling-sweep escape pattern fully remediated.
+
+**(3) FREEZE DISCIPLINE ACTIVE.**
+
+Per streak discipline at 1/3: E-19 artifacts FROZEN at the following versions:
+- S-19.01 v1.11; S-19.02 v1.9; S-19.03 v1.12; S-19.04 v1.11; S-19.05 v1.13; S-19.06 v1.13; S-19.07 v1.7; epic v1.14; STORY-INDEX v4.151.
+
+Subsequent passes FIX ONLY genuine blockers. Prospective LOWs accepted-with-record per L-EDP1/CLEAN-pass precedent (no streak reset for accepted LOWs). 4-index: BC v3.76 / VP v2.53 / STORY v4.151 / ARCH v2.90 — ALL UNCHANGED this burst.
+
+**(4) NEXT: E-19 adv pass-19** (fresh context; reads adv-E19-pass-18.md Part A/B enumeration only; strict-3-CLEAN per D-761; streak 1/3; mandatory preflights: per-file BC-cite preflight (D-759), STORY-INDEX-prose leg (D-768), sweep-count reconciliation gate (D-769)).
+
+Parent-commit: 839fd8bc (D-769 sha-patch-2, factory-artifacts HEAD before this burst).
+
+### Phase
+
+D-770-E19-PASS-18-CLEAN
+
+### Date
+
+2026-07-08

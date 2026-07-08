@@ -1,20 +1,20 @@
 ---
 document_type: pipeline-state
 level: ops
-version: "5.20"
+version: "5.21"
 status: draft
 producer: state-manager
-timestamp: 2026-07-08T12:00:00Z
-phase: D-769-E19-PASS-17-CLOSED
-last_amended: "2026-07-08 (v5.20) — D-769 E-19 adv pass-17 NOT-CLEAN B0/H0/M2/L0 CLOSED same-session; fix burst complete (SW + SM legs); S-19.07 v1.7 (T-005 no-bespoke-log_warn + Previous Story Intel S-19.06 path_allow corrected); STORY-INDEX v4.151; O-P17-01 retirement note; O-P17-02 sweep-count gate codified (D-769); streak 0/3; NEXT adv pass-18. [Prior: v5.19 D-768 E-19-ADV-PASS-16-CLOSED 2026-07-08.]"
+timestamp: 2026-07-08T12:30:00Z
+phase: D-770-E19-PASS-18-CLEAN
+last_amended: "2026-07-08 (v5.21) — D-770 E-19 adv pass-18 CLEAN B0/H0/M0/L0; FIRST CLEAN of E-19 cascade; streak 1/3; artifacts FROZEN; NEXT adv pass-19. [Prior: v5.20 D-769 E-19-ADV-PASS-17-CLOSED 2026-07-08.]"
 inputs: []
 input-hash: "[live-state]"
 traces_to: prd.md
 project: vsdd-factory
 mode: brownfield
 pipeline: ACTIVE
-"D-769. E-19 ADV PASS-17 NOT-CLEAN B0/H0/M2/L0 CLOSED. PIPELINE ACTIVE. develop f5242bef. main a04cb303. merged_count 98. BC-INDEX v3.76 / VP-INDEX v2.53 / STORY-INDEX v4.151 / ARCH-INDEX v2.90. trajectory-tail →6→7→2→2; pass-17 NOT-CLEAN CLOSED same-session; fix burst complete (SW + SM legs); S-19.07 v1.7 (T-005 log_warn→no-bespoke-warn per EC-005; Previous Story Intel S-19.06 path_allow corrected); STORY-INDEX v4.151 (S-19.07 row sync + O-P17-01 retirement note); sweep-count gate codified (O-P17-02 → D-769 + lesson); streak 0/3. PIPELINE ACTIVE. NEXT: E-19 adv pass-18 (fresh context; strict-3-CLEAN per D-761; STORY-INDEX-prose + sweep-count preflights mandatory). PENDING: D-721/D-723 POST-E-18 revisit; merge-method ruleset human auth; Dependabot #192."
-current_step: "D-769-E19-PASS-17-CLOSED trajectory-tail →6→7→2→2;"
+"D-770. E-19 ADV PASS-18 CLEAN B0/H0/M0/L0. FIRST CLEAN of E-19 cascade. PIPELINE ACTIVE. develop f5242bef. main a04cb303. merged_count 98. BC-INDEX v3.76 / VP-INDEX v2.53 / STORY-INDEX v4.151 / ARCH-INDEX v2.90. trajectory-tail →7→2→2→0; pass-18 CLEAN zero findings; both pass-17 findings CLOSED; 15-axis re-derivation PASS; artifacts FROZEN (S-19.01 v1.11 / S-19.02 v1.9 / S-19.03 v1.12 / S-19.04 v1.11 / S-19.05 v1.13 / S-19.06 v1.13 / S-19.07 v1.7 / epic v1.14 / STORY-INDEX v4.151); streak 1/3. PIPELINE ACTIVE. NEXT: E-19 adv pass-19 (fresh context; strict-3-CLEAN per D-761; preflights: per-file BC-cite + STORY-INDEX-prose (D-768) + sweep-count (D-769)). PENDING: D-721/D-723 POST-E-18 revisit; merge-method ruleset human auth; Dependabot #192."
+current_step: "D-770-E19-PASS-18-CLEAN trajectory-tail →7→2→2→0;"
 current_cycle: v1.0-brownfield-backfill
 dtu_required: false
 dtu_assessment: 2026-04-25
@@ -64,6 +64,7 @@ dtu_services: []
   [wc-l-pending] (wc-l per cap; D-767 E-19-ADV-PASS-15-CLOSED burst 2026-07-08; v5.18; fix sweep verified + residuals O-P15-04/05 COMPLETE; S-19.01 v1.11; STORY-INDEX v4.149; pipeline ACTIVE; streak 0/3; NEXT adv pass-16)
   380 lines (wc-l per cap; D-768 E-19-ADV-PASS-16-NOT-CLEAN-CLOSED burst 2026-07-08; v5.19; pass-16 NOT-CLEAN B0/H1/M1/L0; fix burst complete (SW+SM); S-19.06 v1.13 + epic v1.14 (SW); STORY-INDEX v4.150 stale-BC fix + row syncs (SM); preflight STORY-INDEX-prose leg codified; O-P16-01 pending human; streak 0/3; NEXT adv pass-17)
   383 lines (wc-l per cap; D-769 E-19-ADV-PASS-17-NOT-CLEAN-CLOSED burst 2026-07-08; v5.20; pass-17 NOT-CLEAN B0/H0/M2/L0; fix burst complete (SW+SM); S-19.07 v1.7 (T-005+PrevIntel); STORY-INDEX v4.151; O-P17-01 retirement note; sweep-count gate codified D-769; streak 0/3; NEXT adv pass-18)
+  389 lines (wc-l per cap; D-770 E-19-ADV-PASS-18-CLEAN burst 2026-07-08; v5.21; E-19 adv pass-18 CLEAN B0/H0/M0/L0; FIRST CLEAN of E-19 cascade; governance-only burst; 4-index UNCHANGED BC v3.76/VP v2.53/STORY v4.151/ARCH v2.90; streak 1/3; NEXT E-19 adv pass-19)
 -->
 
 # Pipeline State: vsdd-factory
@@ -79,8 +80,8 @@ dtu_services: []
 | **Mode** | brownfield-onboarding |
 | **Language** | Rust + Bash + Markdown |
 | **Started** | 2026-04-25 |
-| **Last Updated** | 2026-07-08 — D-769 E-19 adv pass-17 NOT-CLEAN B0/H0/M2/L0 CLOSED same-session trajectory-tail →6→7→2→2; fix burst complete (SW + SM legs); S-19.07 v1.7 (T-005 no-bespoke-log_warn per EC-005; Previous Story Intel S-19.06 path_allow corrected); STORY-INDEX v4.151 (S-19.07 row sync + O-P17-01 retirement note); O-P17-02 sweep-count gate codified (D-769); streak 0/3; NEXT adv pass-18. [Prior: D-768 E-19 adv pass-16 NOT-CLEAN CLOSED trajectory-tail →3→6→7→2 2026-07-08.] |
-| **Current Phase** | **D-769 E-19 ADV PASS-17 NOT-CLEAN CLOSED 2026-07-08. develop f5242bef. main a04cb303. merged_count 98. 4-index BC v3.76/VP v2.53/STORY v4.151/ARCH v2.90. PIPELINE ACTIVE. trajectory →6→7→2→2. Pass-17 NOT-CLEAN B0/H0/M2/L0: F-P17-001 MED S-19.07 T-005 contradicts EC-005 (log_warn vs no-bespoke-warn; TD-VSDD-060 sibling-sweep miss from v1.6 O-P14-05); F-P17-002 MED S-19.07 Previous Story Intel stale path_allow = [".factory"] (v1.5 "4 sites" undercount; 5th site Previous Story Intel cell). Fix burst COMPLETE same-session — SW leg (S-19.07 v1.7 pre-burst: T-005 rewritten; Intel cell corrected); SM leg (STORY-INDEX v4.151 row sync + O-P17-01 retirement note line 729). O-P17-02 [process-gap] codified: sweep-count must reconcile to grep-count (D-769 + lesson L-BB-sweep-count-must-reconcile-to-grep-count). O-P17-01 fixed in-scope. Streak 0/3. NEXT: adv pass-18 (fresh context; reads adv-E19-pass-17.md Part A only; STORY-INDEX-prose leg mandatory per D-768; sweep-count gate active per D-769; strict-3-CLEAN per D-761). PENDING: D-721/D-723 POST-E-18 revisit; merge-method ruleset (human auth); Dependabot #192.** |
+| **Last Updated** | 2026-07-08 — D-770 E-19 adv pass-18 CLEAN B0/H0/M0/L0 trajectory-tail →7→2→2→0; FIRST CLEAN of E-19 cascade; streak 1/3; artifacts FROZEN (S-19.01 v1.11/S-19.02 v1.9/S-19.03 v1.12/S-19.04 v1.11/S-19.05 v1.13/S-19.06 v1.13/S-19.07 v1.7/epic v1.14/STORY-INDEX v4.151); governance-only burst; 4-index ALL UNCHANGED; NEXT adv pass-19. [Prior: D-769 E-19 adv pass-17 NOT-CLEAN CLOSED trajectory-tail →6→7→2→2 2026-07-08.] |
+| **Current Phase** | **D-770 E-19 ADV PASS-18 CLEAN 2026-07-08. develop f5242bef. main a04cb303. merged_count 98. 4-index BC v3.76/VP v2.53/STORY v4.151/ARCH v2.90. PIPELINE ACTIVE. trajectory →7→2→2→0. Pass-18 CLEAN B0/H0/M0/L0 — FIRST CLEAN of E-19 cascade. Zero findings. 15-axis independent re-derivation PASS. Both pass-17 findings verified CLOSED: F-P17-001 (S-19.07 v1.7 T-005 no-bespoke-log_warn per EC-005); F-P17-002 (Previous Story Intel S-19.06 path_allow corrected per AC-002). O-P17-01 chronology retirement note verified at STORY-INDEX line 729. Streak 1/3 (FIRST CLEAN). Artifacts FROZEN: S-19.01 v1.11/S-19.02 v1.9/S-19.03 v1.12/S-19.04 v1.11/S-19.05 v1.13/S-19.06 v1.13/S-19.07 v1.7/epic v1.14/STORY-INDEX v4.151. GOVERNANCE-ONLY burst (no story/epic edits). NEXT: adv pass-19 (fresh context; reads adv-E19-pass-18.md Part A/B enumeration only; preflights: per-file BC-cite + STORY-INDEX-prose (D-768) + sweep-count (D-769); strict-3-CLEAN per D-761). PENDING: D-721/D-723 POST-E-18 revisit; merge-method ruleset (human auth); Dependabot #192.** |
 | **Current Cycle** | v1.0-brownfield-backfill |
 
 ## Phase Progress
@@ -156,16 +157,17 @@ dtu_services: []
 | Cycle | Type | Status | Notes |
 |-------|------|--------|-------|
 | F-block-ai-attribution-message-file-arm | feature | F3 COMPLETE — F4 READY | F1+F2+F3 done 2026-05-12; 2 stories ready; E-16 under SS-07/SS-04; milestone v1.0.0-rc.17 |
-| v1.0-brownfield-backfill | brownfield | **D-769 E-19-ADV-PASS-17-CLOSED 2026-07-08; PIPELINE ACTIVE. develop f5242bef; main a04cb303; merged_count 98; BC-INDEX v3.76; VP-INDEX v2.53; STORY-INDEX v4.151; ARCH-INDEX v2.90; pass-17 NOT-CLEAN B0/H0/M2/L0 CLOSED same-session; SW leg (S-19.07 v1.7 pre-burst); SM leg (STORY-INDEX v4.151 + O-P17-01 retirement note); O-P17-02 sweep-count gate codified (D-769); streak 0/3; trajectory-tail →6→7→2→2; NEXT: adv pass-18 dispatch (fresh context; STORY-INDEX-prose + sweep-count preflights; strict-3-CLEAN per D-761). PENDING: human GO for E-19 W1; POST-E-18 revisit (D-721/D-723); merge-method ruleset (human auth).** | rc.22 100% COMPLETE D-750; D-619..D-769 (see decision-log.md for full range); develop f5242bef; main a04cb303. PIPELINE ACTIVE (D-769). |
+| v1.0-brownfield-backfill | brownfield | **D-770 E-19-ADV-PASS-18-CLEAN 2026-07-08; PIPELINE ACTIVE. develop f5242bef; main a04cb303; merged_count 98; BC-INDEX v3.76; VP-INDEX v2.53; STORY-INDEX v4.151; ARCH-INDEX v2.90; pass-18 CLEAN B0/H0/M0/L0 FIRST CLEAN of cascade; streak 1/3; trajectory-tail →7→2→2→0; artifacts FROZEN (S-19.01 v1.11/S-19.02 v1.9/S-19.03 v1.12/S-19.04 v1.11/S-19.05 v1.13/S-19.06 v1.13/S-19.07 v1.7/epic v1.14); governance-only burst; NEXT: adv pass-19 dispatch (fresh context; preflights: per-file BC-cite + STORY-INDEX-prose + sweep-count; strict-3-CLEAN per D-761). PENDING: human GO for E-19 W1; POST-E-18 revisit (D-721/D-723); merge-method ruleset (human auth).** | rc.22 100% COMPLETE D-750; D-619..D-770 (see decision-log.md for full range); develop f5242bef; main a04cb303. PIPELINE ACTIVE (D-770). |
 | v1.0-feature-engine-discipline-pass-1 | feature | **PAUSED** | F5 pass-75 adversary complete D-510 2026-05-27; META-LEVEL-30 CANDIDATE-CONFIRMED; trajectory →9→9→9→11. Full-cycle trajectory (75 values ending): →9→9→9→9→11. |
 | v1.0-feature-plugin-async-semantics-pass-1 | feature | CLOSED | All PRs merged; rc.14 shipped |
 
 ## Decisions Log
 
-> D-001..D-606 (see decision-log.md for full range): `cycles/v1.0-brownfield-backfill/decision-log.md` + `decisions-log-archive.md`. D-379..D-454 (see decision-log.md for full range) (F5): `cycles/v1.0-feature-engine-discipline-pass-1/decision-log.md`. All archived per D-430(a) compaction bursts. D-607..D-769 (see decision-log.md for full range): this Decisions Log + decision-log.md SoT.
+> D-001..D-606 (see decision-log.md for full range): `cycles/v1.0-brownfield-backfill/decision-log.md` + `decisions-log-archive.md`. D-379..D-454 (see decision-log.md for full range) (F5): `cycles/v1.0-feature-engine-discipline-pass-1/decision-log.md`. All archived per D-430(a) compaction bursts. D-607..D-770 (see decision-log.md for full range): this Decisions Log + decision-log.md SoT.
 
 | ID | Decision | Summary | Phase | Date |
 |----|----------|---------|-------|------|
+| D-770 | E-19 ADV PASS-18 CLEAN B0/H0/M0/L0. FIRST CLEAN of E-19 cascade. Streak 0/3 → 1/3. Both pass-17 findings (F-P17-001 MED S-19.07 T-005 log_warn contradiction; F-P17-002 MED S-19.07 Previous Story Intel stale path_allow) verified CLOSED. 15-axis independent re-derivation PASS: spec version parity (15 artifacts); BC-cite currency; story↔epic count+points sum (45pts); DAG bidirectional+acyclic W1→W2→W3; subsystems union {SS-01..SS-05,SS-07,SS-09}; input-hashes distinct; frontmatter↔body parity; gate-execution-evidence re-derived at HEAD for S-19.06 AC-007/S-19.02 AC-001/S-19.07 AC-001/S-19.04 AC-004/S-19.01 AC-004 — all correct pre-implementation exit codes; O-P17-01 chronology closure; epic EAC-008 columns; table cell parity; S-19.02 AC-005 slice; semantic anchoring 12-anchor sample; F-P16-001+F-P16-002 remain CLOSED. Monotonic descent 7→2→2→0 across last four passes; sibling-sweep escape pattern fully remediated. GOVERNANCE-ONLY burst (no story/epic edits; feature artifacts FROZEN). Freeze discipline: S-19.01 v1.11/S-19.02 v1.9/S-19.03 v1.12/S-19.04 v1.11/S-19.05 v1.13/S-19.06 v1.13/S-19.07 v1.7/epic v1.14/STORY-INDEX v4.151. 4-index ALL UNCHANGED: BC v3.76/VP v2.53/STORY v4.151/ARCH v2.90. NEXT: adv pass-19 (fresh context; reads adv-E19-pass-18.md Part A/B enumeration only; strict-3-CLEAN per D-761; streak 1/3; preflights: per-file BC-cite + STORY-INDEX-prose (D-768) + sweep-count reconciliation (D-769)). Parent-commit: 839fd8bc. | Streak 1/3 (FIRST CLEAN of E-19 cascade); governance-only; 4-index ALL UNCHANGED; artifacts FROZEN; NEXT adv pass-19 | D-770-E19-PASS-18-CLEAN | 2026-07-08 |
 | D-769 | E-19 ADV PASS-17 NOT-CLEAN B0/H0/M2/L0 CLOSED. 2 findings (F-P17-001 MED S-19.07 T-005 asserts log_warn contradicting EC-005 no-bespoke-warn — TD-VSDD-060 sibling-sweep miss from v1.6; F-P17-002 MED S-19.07 Previous Story Intel stale path_allow = [".factory"] — v1.5 "4 sites" undercount, cell was 5th site) + 2 obs (O-P17-01 fixed in-scope; O-P17-02 [process-gap] codified). Both pass-16 findings CLOSED. Class: longstanding sibling-sweep escapes (same class as pass-16). First zero-HIGH pass since pass-13. Fix burst SAME-SESSION — SW leg: S-19.07 v1.7 (pre-burst; T-005 rewritten to no-bespoke-log_warn per EC-005; Intel cell corrected to schema-only + path_allow = [".factory/STATE.md"] per AC-002). SM leg: STORY-INDEX v4.151 (S-19.07 row v1.6→v1.7 sync; O-P17-01 retirement note line 729). O-P17-02 codification: sweep-count must reconcile to grep-count — when declaring "swept N sites", run grep -c of outgoing value and verify N = count minus intentional-keeps. Lesson: L-BB-sweep-count-must-reconcile-to-grep-count [codified]. BC/VP/ARCH-INDEX UNCHANGED. NEXT: adv pass-18. Parent-commit: ed6707f9 (D-768 sha-patch-2). | Streak 0/3; fix burst complete (SW+SM); STORY v4.151; sweep-count gate codified; O-P17-01 fixed; NEXT adv pass-18 | D-769-E19-PASS-17-CLOSED | 2026-07-08 |
 | D-768 | E-19 ADV PASS-16 NOT-CLEAN B0/H1/M1/L0 CLOSED. 2 findings (F-P16-001 HIGH STORY-INDEX stale BC cites — BC-4.13.001 v1.7→v1.8 + BC-1.17.001 v1.1→v1.2 at lines 685+701; F-P16-002 MED S-19.06 inputs missing ffi.rs) + 3 obs (O-P16-01 accepted-with-record pending human; O-P16-02 fixed in-scope; O-P16-03 [process-gap] codified). All 7 pass-15 findings CLOSED. Class: propagation-leg gaps (preflight per-file loop misses STORY-INDEX prose). Fix burst SAME-SESSION — SW leg: S-19.06 v1.13 (ffi.rs added to inputs; hash 617adeb); epic v1.14 (EAC-008 columns split). SM leg: STORY-INDEX v4.150 (stale-cite fix + row syncs). O-P16-03 codification: BC-cite preflight STORY-INDEX-prose leg mandatory (scans delivery-summary + BC coverage blocks; extends D-759/D-760); per-file loop form retained; applies to both SW end-of-leg and orchestrator pre-dispatch. O-P16-01 pending human decision: POLICY 17 epic frontmatter parity — exempt epics OR mandate modified[]/last_amended on all 12/20 epic files lacking fields; DO NOT fix pending adjudication. NEXT: adv pass-17 (fresh context; reads adv-E19-pass-16.md Part A only; STORY-INDEX-prose leg mandatory; strict-3-CLEAN per D-761). Parent-commit: 921ec4f7 (D-767 SHA-patch). | Streak 0/3; fix burst complete (SW+SM); STORY v4.150; STORY-INDEX-prose preflight codified; O-P16-01 pending human; NEXT adv pass-17 | D-768-E19-PASS-16-CLOSED | 2026-07-08 |
 | D-767 | E-19 ADV PASS-15 FIX CLOSURE. Orchestrator full-sweep verification PASS: version parity PASS (all 15 artifacts); all 7 F-P15-001..007 fixed in bodies with gate-execution evidence; zero stale `grep -B1` idiom outside changelog history; BC-cite drift preflight PASS (per-file loop; zero stale cites; BC-1.17.001 v1.2 / BC-2.07.001 v1.2 / BC-2.02.011 v1.4 / BC-3.08.001 v1.19 / BC-4.13.001 v1.8 / BC-5.42.001 v1.1); O-P10-A/B evidence chain PASS (git-diff 16c673d6 matches changelog claims). Residuals: O-P15-04 S-19.01 v1.10→v1.11 (AC-004 anchored `grep -qE '^  bats-darwin-leg-macos:$'` + POLICY 11 fixture + D-766 §4 gate-execution evidence inline; POLICY 14 quintuple parity applied); O-P15-05 pipe-escape sweep ALL CLEAN (all 8 E-19 artifacts; zero unescaped pipes; no additional bumps). STORY-INDEX v4.148→v4.149. 4-index BC v3.76 / VP v2.53 / STORY v4.149 / ARCH v2.90 (STORY only bumped). Streak 0/3. NEXT: adv pass-16 (fresh context; reads adv-E19-pass-15.md Part A only; strict-3-CLEAN per D-761). Parent-commit: 389f0480 (D-766-sha-patch-3 factory-artifacts HEAD). | Streak 0/3; fix sweep verified + residuals complete; STORY v4.149; pipeline ACTIVE; NEXT adv pass-16 | D-767-E19-PASS-15-CLOSED | 2026-07-08 |
@@ -299,31 +301,35 @@ dtu_services: []
 - `cycles/v1.0-feature-plugin-async-semantics-pass-1/burst-log.md` | `session-checkpoints.md` | `lessons.md`
 - `cycles/v1.0-feature-engine-discipline-pass-1/burst-log.md` (adversary reviews at `S-12.03/`, `S-12.04/`, `S-12.05/` subdirs)
 
-## Session Resume Checkpoint (2026-07-08 — D-769 E19 PASS-17 CLOSED; PIPELINE ACTIVE; fix burst complete (SW+SM legs); streak 0/3; develop HEAD f5242bef; main a04cb303; merged_count 98; 4-index BC v3.76/VP v2.53/STORY v4.151/ARCH v2.90; HUMAN DIRECTIVE strict-3-CLEAN no-cap; gate-execution-evidence rule (D-766 §4); STORY-INDEX-prose preflight codified (D-768); sweep-count gate codified (D-769); RESUME: /vsdd-factory:next-step; origin=drbothen/vsdd-factory)
+## Session Resume Checkpoint (2026-07-08 — D-770 E19 PASS-18 CLEAN; PIPELINE ACTIVE; streak 1/3 FIRST CLEAN; artifacts FROZEN; develop HEAD f5242bef; main a04cb303; merged_count 98; 4-index BC v3.76/VP v2.53/STORY v4.151/ARCH v2.90; HUMAN DIRECTIVE strict-3-CLEAN no-cap; gate-execution-evidence rule (D-766 §4); STORY-INDEX-prose preflight codified (D-768); sweep-count gate codified (D-769); RESUME: /vsdd-factory:next-step; origin=drbothen/vsdd-factory)
 
 > **SELF-SUFFICIENT RESUME CONTEXT FOR ZERO-CONTEXT NEW SESSION OR NEW MACHINE**
-> Read this section alone to resume. Assumes ZERO prior context. PIPELINE ACTIVE — E-19 pass-17 fix burst COMPLETE; adv pass-18 NEXT. All decisions, directives, and anchors stated explicitly.
+> Read this section alone to resume. Assumes ZERO prior context. PIPELINE ACTIVE — E-19 pass-18 CLEAN (FIRST CLEAN; streak 1/3); adv pass-19 NEXT. All decisions, directives, and anchors stated explicitly.
 
 ### §Position
 
-**E-19 post-rc22-operator-hardening adversarial cascade (BC-5.39.001 strict-3-CLEAN). PIPELINE ACTIVE (D-769).**
+**E-19 post-rc22-operator-hardening adversarial cascade (BC-5.39.001 strict-3-CLEAN). PIPELINE ACTIVE (D-770).**
 
 - **Cascade:** `v1.0-brownfield-backfill`; 7 stories S-19.01..S-19.07 (45pts); epic `E-19`.
-- **Pass 17 status:** CLOSED. Fix burst COMPLETE same-session. SW leg (pre-burst): S-19.07 v1.6→v1.7 (T-005 rewritten — no-bespoke-log_warn per EC-005; Previous Story Intel S-19.06 cell corrected — schema-only attribution, path_allow = [".factory/STATE.md"] per AC-002). SM leg: STORY-INDEX v4.150→v4.151 (S-19.07 row v1.6→v1.7 sync; O-P17-01 retirement note at line 729). Current versions: S-19.01 v1.11; S-19.02 v1.9; S-19.03 v1.12; S-19.04 v1.11; S-19.05 v1.13; S-19.06 v1.13; S-19.07 v1.7; epic v1.14; STORY-INDEX v4.151.
-- **Repo state:** develop HEAD `f5242bef`; main HEAD `a04cb303`; merged_count 98; factory-artifacts HEAD pending SHA-patch after D-769 commit. v1.0.0-rc.22 FULLY SHIPPED (marketplace #14; confirmed D-750). **E-10 CASCADE SEALED D-531 — do NOT resume. F5 PAUSED D-386 Option C — do NOT resume.**
+- **Pass 18 status:** CLEAN B0/H0/M0/L0 — FIRST CLEAN of E-19 cascade. Zero findings. Zero novel observations. Both pass-17 findings (F-P17-001, F-P17-002) verified CLOSED. 15-axis independent re-derivation PASS. GOVERNANCE-ONLY burst — no story/epic edits.
+- **FREEZE DISCIPLINE:** Artifacts frozen at: S-19.01 v1.11; S-19.02 v1.9; S-19.03 v1.12; S-19.04 v1.11; S-19.05 v1.13; S-19.06 v1.13; S-19.07 v1.7; epic v1.14; STORY-INDEX v4.151. Subsequent passes FIX ONLY genuine blockers; prospective LOWs accepted-with-record.
+- **Repo state:** develop HEAD `f5242bef`; main HEAD `a04cb303`; merged_count 98; factory-artifacts HEAD = `[D-770-BURST-SHA-TBD]` (SHA-patch pending). v1.0.0-rc.22 FULLY SHIPPED (marketplace #14; confirmed D-750). **E-10 CASCADE SEALED D-531 — do NOT resume. F5 PAUSED D-386 Option C — do NOT resume.**
 
 ### §Convergence Counter
 
-- **Current streak:** 0/3 (pass-17 NOT-CLEAN; fix closure complete; awaiting pass-18 verdict).
+- **Current streak:** **1/3** (pass-18 CLEAN; FIRST CLEAN of E-19 cascade; awaiting pass-19 verdict).
 - **HUMAN DIRECTIVE (D-761, carry-across-CLEAR):** STRICT BC-5.39.001 3-CLEAN protocol. THREE consecutive CLEAN passes required. NO asymptotic acceptance. NO pass count cap. Deviation requires EXPLICIT HUMAN OVERRIDE only.
-- **Full trajectory (pass 1→17):** 16→14→20→9→8→5→12→11→4→7→6→6→3→6→7→2→2. Target: three consecutive 0s.
-- **Decision-log SoT:** `cycles/v1.0-brownfield-backfill/decision-log.md` D-001..D-769 (see decision-log.md for full range).
+- **Full trajectory (pass 1→18):** 16→14→20→9→8→5→12→11→4→7→6→6→3→6→7→2→2→0. Target: three consecutive 0s (need 2 more CLEAN).
+- **Decision-log SoT:** `cycles/v1.0-brownfield-backfill/decision-log.md` D-001..D-770 (see decision-log.md for full range).
 
 ### §Resume Actions (EXACT ORDER — start here on session resume)
 
-**(1) Dispatch adv pass-18** (fresh context; reads adv-E19-pass-17.md Part A ONLY; 20-policy rubric; per-file BC-cite preflight first; **STORY-INDEX-prose leg mandatory per D-768**: scans delivery-summary + BC coverage blocks; **sweep-count gate active per D-769**: for any claimed "swept N sites", verify N = grep-count(outgoing-value) - intentional-keeps; strict-3-CLEAN no-cap per D-761; D-766 §4 gate-execution-evidence rule active).
+**(1) Dispatch adv pass-19** (fresh context; reads adv-E19-pass-18.md Part A/B enumeration ONLY per Iron Law; 20-policy rubric; per-file BC-cite preflight first; **STORY-INDEX-prose leg mandatory per D-768**: scans delivery-summary + BC coverage blocks; **sweep-count gate active per D-769**: for any claimed "swept N sites", verify N = grep-count(outgoing-value) - intentional-keeps; strict-3-CLEAN no-cap per D-761; D-766 §4 gate-execution-evidence rule active; **FREEZE DISCIPLINE active**: only fix genuine blockers).
 
-**(2) Process pass-18 verdict** per normal E-19 cascade flow: if NOT-CLEAN → fix burst; if CLEAN → streak 1/3; continue until 3/3.
+**(2) Process pass-19 verdict:**
+- If NOT-CLEAN → fix burst (genuine blockers only; freeze discipline); streak RESETS to 0/3.
+- If CLEAN → streak 2/3; dispatch pass-20 (same rules).
+- If pass-20 CLEAN → streak 3/3 — **E-19 cascade CONVERGED**; proceed to E-19 Wave 1 TDD (human GO required).
 
 ### §Standing Controls (ALL ACTIVE AND MANDATORY — carry-across-CLEAR)
 
@@ -365,20 +371,20 @@ dtu_services: []
 /vsdd-factory:next-step
 ```
 
-Or directly: dispatch E-19 adv pass-18 (fresh context; reads adv-E19-pass-17.md Part A ONLY; 20-policy rubric; STORY-INDEX-prose leg mandatory per D-768; sweep-count gate active per D-769).
+Or directly: dispatch E-19 adv pass-19 (fresh context; reads adv-E19-pass-18.md Part A/B enumeration ONLY; 20-policy rubric; STORY-INDEX-prose leg mandatory per D-768; sweep-count gate active per D-769; FREEZE DISCIPLINE active).
 
-### §4-Index at D-769 Closure
+### §4-Index at D-770 Closure
 
 | Index | Version | Last Change |
 |-------|---------|-------------|
-| BC-INDEX | v3.76 | D-763 (BC-1.17.001 v1.2); UNCHANGED D-764..D-769 (see decision-log.md for full range) |
-| VP-INDEX | v2.53 | D-756 (VP-079 v1.19); UNCHANGED D-757..D-769 (see decision-log.md for full range) |
-| STORY-INDEX | v4.151 | D-769 burst (STORY-INDEX v4.151: S-19.07 row v1.6→v1.7 sync + O-P17-01 retirement note line 729) |
-| ARCH-INDEX | v2.90 | D-762 (ADR-025 v1.10); UNCHANGED D-763..D-769 (see decision-log.md for full range) |
-| L2-INDEX | v1.0.14 | D-754 (CAP-033 NEW); UNCHANGED D-755..D-769 (see decision-log.md for full range) |
+| BC-INDEX | v3.76 | D-763 (BC-1.17.001 v1.2); UNCHANGED D-764..D-770 (see decision-log.md for full range) |
+| VP-INDEX | v2.53 | D-756 (VP-079 v1.19); UNCHANGED D-757..D-770 (see decision-log.md for full range) |
+| STORY-INDEX | v4.151 | D-769 burst (S-19.07 row v1.6→v1.7 sync + O-P17-01 retirement note); UNCHANGED D-770 (governance-only) |
+| ARCH-INDEX | v2.90 | D-762 (ADR-025 v1.10); UNCHANGED D-763..D-770 (see decision-log.md for full range) |
+| L2-INDEX | v1.0.14 | D-754 (CAP-033 NEW); UNCHANGED D-755..D-770 (see decision-log.md for full range) |
 
 4-index verification gate (literal-shell): `grep "^version:" .factory/specs/behavioral-contracts/BC-INDEX.md .factory/specs/verification-properties/VP-INDEX.md .factory/stories/STORY-INDEX.md .factory/specs/architecture/ARCH-INDEX.md` → BC-INDEX: "3.76" / VP-INDEX: "2.53" / STORY-INDEX: "4.151" / ARCH-INDEX: "2.90".
 
-Critical SHAs: develop `f5242bef`; main `a04cb303`; factory-artifacts HEAD = `3a8033bd` (D-769 burst; SHA-patch applied per D-447(c)+D-449(e)). v1.0.0-rc.22 at `e4285fe5`. GitHub origin: `drbothen/vsdd-factory`. total_bcs 1,977.
+Critical SHAs: develop `f5242bef`; main `a04cb303`; factory-artifacts HEAD = `[D-770-BURST-SHA-TBD]` (D-770 burst; SHA-patch pending per D-447(c)+D-449(e)). v1.0.0-rc.22 at `e4285fe5`. GitHub origin: `drbothen/vsdd-factory`. total_bcs 1,977.
 
 > This checkpoint (D-768 v5.19 2026-07-08) supersedes D-767 v5.18. `git -C .factory log --oneline -3` → D-768 + D-767 + D-766-sha-patch.

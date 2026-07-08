@@ -12295,3 +12295,120 @@ Streak: 0/3. Next action: dispatch adv pass-18 (fresh context; reads adv-E19-pas
 | D-769 burst (atomic) | `3a8033bd` | state(D-769): E-19 adv pass-17 NOT-CLEAN closed — fix burst complete (v5.20) |
 | SHA-patch follow-up | `6502e7a4` | state(D-769-sha-patch): Active Branches SHA → 3a8033bd + burst-log Block 8 patch |
 
+---
+
+## Pass 18 CLEAN Burst — D-770 — 2026-07-08
+
+**Burst type:** E-19 adv pass-18 CLEAN closure (GOVERNANCE-ONLY — no story/epic edits; feature artifacts FROZEN)
+**Decision:** D-770
+**State version:** v5.20 → v5.21
+
+### Block 1 — Parent-commit
+
+factory-artifacts HEAD at burst start: `839fd8bc` (D-769 sha-patch-2, 2026-07-08).
+
+### Block 2 — Adversary verdict
+
+Pass-18 adversary (fresh-context Claude Opus 4.7; reads adv-E19-pass-17.md Part A ONLY; 20-policy rubric) returned **CLEAN B0/H0/M0/L0 — 0 findings + 0 novel observations**.
+
+Source: `cycles/v1.0-brownfield-backfill/adv-E19-pass-18.md` Part A (pass-17 fix verification) + Part B (new findings):
+
+- **Part A verification:** 2/2 pass-17 findings CLOSED. F-P17-001: S-19.07 v1.7 T-005 now reads "no bespoke log_warn; visibility parity via denial event class per EC-005" — zero log_warn assertion confirmed. F-P17-002: S-19.07 v1.7 Previous Story Intel S-19.06 Patterns Established column stale `[".factory"]` removed; corrected to schema-only attribution with `path_allow = [".factory/STATE.md"]` per AC-002. O-P17-01: STORY-INDEX line 729 explicit retirement note confirmed present.
+- **Part B:** ZERO new findings. ZERO novel observations. O-P17-01 explicitly closed (verified); O-P17-02 is a state-manager/lessons codification item (not a per-story artifact defect).
+
+15-axis independent re-derivation ALL PASS: spec version parity (15 artifacts); BC live-cite currency; story↔epic count+points (7×{8,8,5,5,8,8,3}=45pts); DAG bidirectional+acyclic W1→W2→W3; subsystems union {SS-01,SS-02,SS-03,SS-04,SS-05,SS-07,SS-09}; input-hashes distinct; frontmatter↔body BC parity; frontmatter↔body AC trace; gate-execution-evidence re-derived at HEAD (S-19.06 AC-007/S-19.02 AC-001/S-19.07 AC-001/S-19.04 AC-004/S-19.01 AC-004 — all correct pre-implementation exit codes); O-P17-01 chronology closure; epic v1.14 EAC-008 columns distinct; table cell parity; S-19.02 AC-005 slice semantics; semantic anchoring 12-anchor sample; F-P16-001+F-P16-002 remain CLOSED at HEAD. Monotonic descent 7→2→2→0 across last four passes; sibling-sweep escape pattern fully remediated.
+
+**Streak advance:** 0/3 → **1/3** (strict-3-CLEAN per D-761).
+
+### Block 3 — Files touched
+
+| File | Change | Notes |
+|------|--------|-------|
+| `.factory/cycles/v1.0-brownfield-backfill/adv-E19-pass-18.md` | NEW | Pass-18 adversary report persisted verbatim (CLEAN B0/H0/M0/L0) |
+| `.factory/cycles/v1.0-brownfield-backfill/decision-log.md` | +D-770 | Pass-18 CLEAN verdict; freeze discipline active; 15-axis re-derivation PASS; streak 1/3 |
+| `.factory/cycles/v1.0-brownfield-backfill/burst-log.md` | +Pass-18 entry | This entry (GOVERNANCE-ONLY; no story/epic edits) |
+| `.factory/STATE.md` | v5.20→v5.21 | Frontmatter advance; D-770 decision row; Session Resume Checkpoint refresh |
+
+### Block 4 — Codifications Dim-6
+
+Literal shell: D-NNN count in decision-log.md after D-770 append:
+
+```
+grep -c "^## D-" .factory/cycles/v1.0-brownfield-backfill/decision-log.md
+```
+stdout: `122`
+
+1 new D-NNN entry (D-770) added this burst. No new lessons (CLEAN pass; no new defect class; freeze discipline is procedural, recorded in D-770 §3 and STATE.md).
+
+### Block 5 — Dim-2 literal shell gates
+
+**Gate A — 4-index version check (all UNCHANGED — governance-only burst):**
+```
+grep "^version:" .factory/specs/behavioral-contracts/BC-INDEX.md .factory/specs/verification-properties/VP-INDEX.md .factory/stories/STORY-INDEX.md .factory/specs/architecture/ARCH-INDEX.md
+```
+stdout:
+```
+.factory/specs/verification-properties/VP-INDEX.md:version: "2.53"
+.factory/specs/architecture/ARCH-INDEX.md:version: "2.90"
+.factory/specs/behavioral-contracts/BC-INDEX.md:version: "3.76"
+.factory/stories/STORY-INDEX.md:version: "4.151"
+```
+BC v3.76 / VP v2.53 / STORY v4.151 / ARCH v2.90 — ALL UNCHANGED (GOVERNANCE-ONLY burst per D-770; feature artifacts FROZEN; no story/epic edits).
+
+**Gate B — adv-E19-pass-18.md non-empty (D-448(a) source-attestation; report persisted):**
+```
+grep -c "read_prefix" .factory/cycles/v1.0-brownfield-backfill/adv-E19-pass-18.md
+```
+stdout: `2`
+
+Report persisted non-empty; 2 occurrences of "read_prefix" confirmed (coverage attestation + Part A re-derivation axis 1). Adversary verdict faithfully described in Block 2 above.
+
+**Gate C — current_step diff gate (D-444(a) verbatim-strict; STATE.md v5.20→v5.21):**
+```
+grep "^current_step:" .factory/STATE.md
+```
+stdout:
+```
+current_step: "D-770-E19-PASS-18-CLEAN trajectory-tail →7→2→2→0;"
+```
+D-770 current_step confirmed; trajectory-tail →7→2→2→0 (last 4 of 18-value series); D-444(a) verbatim-strict chain satisfied.
+
+### Block 6 — Dim-5 (8-block presence self-verification)
+
+Literal shell verification that this burst-log entry contains all 8 D-444(c) mandatory blocks:
+
+```
+awk '/^## Pass 18 CLEAN Burst.*D-770/{found=1} found{print}' \
+  .factory/cycles/v1.0-brownfield-backfill/burst-log.md | \
+  grep -c "^### Block [1-8]"
+```
+stdout: `8`
+
+Blocks verified present in this entry:
+- [x] Block 1 — Parent-commit (839fd8bc)
+- [x] Block 2 — Adversary verdict (source-attested from adv-E19-pass-18.md Part A+B; CLEAN B0/H0/M0/L0; 15-axis re-derivation PASS; streak 1/3)
+- [x] Block 3 — Files touched (4 files: adv-E19-pass-18.md, decision-log, burst-log, STATE.md)
+- [x] Block 4 — Codifications Dim-6 (1 D-NNN D-770; 0 new lessons; literal grep stdout: `122`)
+- [x] Block 5 — Dim-2 literal shell gates (Gates A/B/C with captured stdout)
+- [x] Block 6 — Dim-5 8-block self-verification (this block)
+- [x] Block 7 — Closes
+- [x] Block 8 — Factory-artifacts commits
+
+### Block 7 — Closes
+
+| Finding | Status | Notes |
+|---------|--------|-------|
+| F-P17-001 MEDIUM | VERIFIED CLOSED (pass-18) | S-19.07 v1.7 T-005 zero log_warn assertions; EC-005 parity confirmed by fresh adversary. |
+| F-P17-002 MEDIUM | VERIFIED CLOSED (pass-18) | S-19.07 v1.7 Previous Story Intel S-19.06 cell corrected; path_allow = [".factory/STATE.md"] per AC-002 confirmed. |
+| O-P17-01 | VERIFIED CLOSED (pass-18) | STORY-INDEX line 729 retirement note present; explicitly closed by adversary. |
+| O-P17-02 | CODIFIED (D-769 prior burst) | State-manager/lessons item; no per-story artifact change required. Not a finding for streak purposes. |
+
+Streak: **1/3**. Next action: dispatch adv pass-19 (fresh context; reads adv-E19-pass-18.md Part A/B enumeration only; STORY-INDEX-prose-leg preflight mandatory per D-768; sweep-count gate active per D-769; strict-3-CLEAN per D-761).
+
+### Block 8 — Factory-artifacts commits
+
+| Commit | SHA | Description |
+|--------|-----|-------------|
+| D-770 burst (atomic) | `[D-770-BURST-SHA-TBD]` | state(D-770): E-19 adv pass-18 CLEAN — streak 1/3; artifacts frozen (v5.21) |
+| SHA-patch follow-up | `[SHA-PATCH-TBD]` | state(D-770-sha-patch): Active Branches SHA → [D-770-BURST-SHA-TBD] + burst-log Block 8 patch |
+
