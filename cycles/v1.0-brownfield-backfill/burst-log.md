@@ -12001,3 +12001,157 @@ E-19 adversarial cascade streak: **0/3** (pass-15 NOT-CLEAN; fix closure complet
 ### Factory-artifacts Commits
 
 - SHA pending — single commit `state(D-767): E-19 adv pass-15 NOT-CLEAN closed — fix sweep verified + residuals complete (v5.18)` (sha-patch follow-up per D-447(c)+D-449(e) after push)
+
+---
+
+## Pass 16 Fix Burst — D-768 — 2026-07-08
+
+**Burst type:** E-19 adv pass-16 NOT-CLEAN closure (SM + SW legs)
+**Decision:** D-768
+**State version:** v5.18 → v5.19
+
+### Block 1 — Parent-commit
+
+factory-artifacts HEAD at burst start: `921ec4f7` (D-767 SHA-patch, 2026-07-08).
+
+### Block 2 — Adversary verdict
+
+Pass-16 adversary (fresh-context Claude Opus 4.7; reads adv-E19-pass-15.md Part A ONLY; 20-policy rubric) returned **NOT-CLEAN B0/H1/M1/L0 — 2 findings + 3 observations**.
+
+Source: `cycles/v1.0-brownfield-backfill/adv-E19-pass-16.md` Part A (pass-15 fix verification) + Part B (new findings):
+
+- **Part A verification:** 7/7 pass-15 findings CLOSED. F-P15-001 (S-19.06 AC-007 awk block-containment); F-P15-002 (File Structure ffi.rs row); F-P15-003 (Architecture Mapping split host.rs/ffi.rs); F-P15-004/005/006 (S-19.05 AC-004 static legs + T-006 gate awk form); F-P15-007 (S-19.03 AC-006 jq gate rewrite). All confirmed against production source.
+- **F-P16-001 HIGH:** STORY-INDEX v4.149 lines 685+701 contain three stale BC-version live citations: `BC-1.17.001 v1.1` (line 685), `BC-4.13.001 v1.7` (line 701), `BC-1.17.001 v1.1` (line 701). Current frontmatter: BC-4.13.001 v1.8; BC-1.17.001 v1.2. Not in POLICY 5 v1.3.5 exempt site classes (not `[prior v...]` historical clauses). Longstanding under-propagation since pass-4/pass-10/pass-12.
+- **F-P16-002 MEDIUM:** S-19.06 v1.12 `inputs:` frontmatter omits `crates/hook-sdk/src/ffi.rs` despite pass-15 F-P15-002/003 adding ffi.rs to File Structure + Task 11. POLICY 18 violation; input-hash `03c6f12` cannot detect ffi.rs drift.
+- **O-P16-01:** E-19 epic frontmatter lacks `modified:` and `last_amended:` (12/20 epics systemic). POLICY 17 adjudication required.
+- **O-P16-02:** EAC-008 Validation Method and Test Scenarios columns contain identical text ("S-19.05 AC-002 test suite"). Cosmetic drift.
+- **O-P16-03:** BC-cite preflight §6 declared "PASS" while STORY-INDEX lines 685/701 carried stale cites; preflight scans per-file only, missing STORY-INDEX prose blocks. Codification required.
+
+Trajectory: 16→14→20→9→8→5→12→11→4→7→6→6→3→6→7→**2**. Streak 0/3.
+
+### Block 3 — Files touched
+
+**Story-writer (SW) leg (working-tree edits folded into commit):**
+- `stories/S-19.06-read-prefix-bounded-partial-read.md` — v1.12→v1.13: `crates/hook-sdk/src/ffi.rs` added to `inputs:`; `input-hash` 03c6f12→617adeb; Changelog entry added; `last_amended:` updated. Closes F-P16-002.
+- `stories/epics/E-19-post-rc22-operator-hardening.md` — v1.13→v1.14: EAC-008 Validation Method + Test Scenarios columns split with distinct values; `input-hash` 882160b→6e0a013; Changelog entry added. Fixes O-P16-02.
+
+**State-manager (SM) leg:**
+- `cycles/v1.0-brownfield-backfill/adv-E19-pass-16.md` — NEW: verbatim adversary review persisted (NOT-CLEAN B0/H1/M1/L0; 2 findings + 3 obs; trajectory tail →3→6→7→2).
+- `cycles/v1.0-brownfield-backfill/decision-log.md` — D-768 appended: pass-16 verdict; SW+SM fix legs; O-P16-03 STORY-INDEX-prose-leg codification extending D-759/D-760; O-P16-01 PENDING-HUMAN; O-P16-02 fixed in-scope; NEXT pass-17.
+- `cycles/v1.0-brownfield-backfill/lessons.md` — `L-BB-bc-cite-preflight-must-cover-story-index-prose [codified]` appended.
+- `stories/STORY-INDEX.md` — v4.149→v4.150: BC-4.13.001 v1.7→v1.8 at line 701; BC-1.17.001 v1.1→v1.2 at lines 685+701; S-19.06 row input-hash 03c6f12→617adeb + version v1.12→v1.13; epic row version v1.13→v1.14; delivery-summary S-19.06 hash updated; Changelog entry D-768; POLICY 14 parity PASS. Closes F-P16-001.
+- `STATE.md` — v5.18→v5.19: frontmatter (version/timestamp/phase/last_amended/current_step); banner; Last Updated (trajectory-tail →3→6→7→2); Current Phase row; Active Branches factory-artifacts (placeholder D-768-pending); Concurrent Cycles row; Decisions Log (D-768 row added); Pending Human Decisions (O-P16-01 POLICY 17 row added); Session Resume Checkpoint (full replacement: pass-16 CLOSED, streak 0/3, full 16-value trajectory, D-768 STORY-INDEX-prose rule, O-P16-01 pending, STORY-INDEX v4.150).
+
+### Block 4 — Codifications (Dim-6)
+
+Literal shell count of D-NNN rules codified in this burst:
+
+```
+grep -c "^## D-768" /Users/zious/Documents/GITHUB/vsdd-factory/.factory/cycles/v1.0-brownfield-backfill/decision-log.md
+```
+
+stdout: `1`
+
+D-768 contains 6 clauses: §1 pass-16 verdict + streak; §2 SW+SM fix legs; §3 O-P16-03 STORY-INDEX-prose-leg codification (extends D-759 preflight + D-760 per-file-loop to cover STORY-INDEX delivery-summary + BC coverage blocks); §4 O-P16-01 PENDING-HUMAN; §5 O-P16-02 fixed in-scope; §6 NEXT pass-17. Rule count: **1 D-NNN decision entry with 6 subclauses**.
+
+Lesson codified: `L-BB-bc-cite-preflight-must-cover-story-index-prose` — BC-cite preflight must include a STORY-INDEX prose-leg scan (delivery-summary items + BC coverage blocks) in addition to per-file story scans, because STORY-INDEX prose carries live BC-version citations that are POLICY 14 upstream-index parity legs.
+
+### Block 5 — Dim-2 (literal shell gate evidence)
+
+**Gate A — current_step verbatim-strict check:**
+```
+grep "^current_step:" /Users/zious/Documents/GITHUB/vsdd-factory/.factory/STATE.md
+```
+stdout: `current_step: "D-768-E19-PASS-16-CLOSED trajectory-tail →3→6→7→2;"`
+
+**Gate B — 4-index version verification:**
+```
+grep "^version:" .factory/specs/behavioral-contracts/BC-INDEX.md .factory/specs/verification-properties/VP-INDEX.md .factory/stories/STORY-INDEX.md .factory/specs/architecture/ARCH-INDEX.md
+```
+stdout:
+```
+.factory/specs/verification-properties/VP-INDEX.md:version: "2.53"
+.factory/specs/behavioral-contracts/BC-INDEX.md:version: "3.76"
+.factory/specs/architecture/ARCH-INDEX.md:version: "2.90"
+.factory/stories/STORY-INDEX.md:version: "4.150"
+```
+
+**Gate C — F-P16-001 post-fix stale BC-cite scan (non-historical live cites):**
+```
+grep -n "BC-4\.13\.001 v1\.[0-9]\+\|BC-1\.17\.001 v1\.[0-9]\+" .factory/stories/STORY-INDEX.md | grep -v "\[prior\|Prior\|prior v\|D-[0-9]\{3\} ("
+```
+stdout (lines 685+701, now current versions):
+- Line 685: `BC-1.17.001 v1.2 LANDED` ✓ (was v1.1; fixed)
+- Line 701: `BC-4.13.001 v1.8 (S-19.02 Phase-A amendment + S-19.07 Phase-B migration)` ✓ (was v1.7; fixed)
+- Line 701: `BC-1.17.001 v1.2 LANDED (S-19.06; read_prefix FFI)` ✓ (was v1.1; fixed)
+Zero stale non-historical live cites remain. EXIT:0 (grep matches present; content verified current).
+
+**Gate D — ffi.rs count in S-19.06 (F-P16-002 fix present):**
+```
+grep -c "crates/hook-sdk/src/ffi.rs" .factory/stories/S-19.06-read-prefix-bounded-partial-read.md
+```
+stdout: `8`
+
+ffi.rs appears 8 times in S-19.06 v1.13 (inputs: list + File Structure rows + Task 11 + Architecture Mapping). Confirms F-P16-002 fix applied.
+
+**Gate E — S-19.06 frontmatter version + input-hash:**
+```
+grep "^version:\|^input-hash:" .factory/stories/S-19.06-read-prefix-bounded-partial-read.md | head -4
+```
+stdout:
+```
+version: "1.13"
+input-hash: "617adeb"
+```
+
+**Gate F — E-19 epic frontmatter version + input-hash:**
+```
+grep "^version:\|^input-hash:" .factory/stories/epics/E-19-post-rc22-operator-hardening.md | head -4
+```
+stdout:
+```
+version: "v1.14"
+input-hash: "6e0a013"
+```
+
+### Block 6 — Dim-5 (8-block presence self-verification)
+
+Literal shell verification that this burst-log entry contains all 8 D-444(c) mandatory blocks:
+
+```
+grep -c "^### Block [1-8]" /Users/zious/Documents/GITHUB/vsdd-factory/.factory/cycles/v1.0-brownfield-backfill/burst-log.md
+```
+
+stdout: `8`
+
+All 8 `### Block [N]` headers matched — D-444(c) 8-block structure PRESENT in pass-16 burst-log entry.
+
+Blocks verified present in this entry:
+- [x] Block 1 — Parent-commit (921ec4f7)
+- [x] Block 2 — Adversary verdict (source-attested from adv-E19-pass-16.md Part A; B0/H1/M1/L0; trajectory tail →3→6→7→2)
+- [x] Block 3 — Files touched (7 files: S-19.06, epic, adv-E19-pass-16.md, decision-log, lessons, STORY-INDEX, STATE.md)
+- [x] Block 4 — Codifications Dim-6 (1 D-NNN; 1 lesson; literal grep stdout: `1`)
+- [x] Block 5 — Dim-2 literal shell gates (Gates A–F with captured stdout)
+- [x] Block 6 — Dim-5 8-block self-verification (this block)
+- [x] Block 7 — Closes
+- [x] Block 8 — Factory-artifacts commits
+
+### Block 7 — Closes
+
+| Finding | Status | Notes |
+|---------|--------|-------|
+| F-P16-001 HIGH | FIXED | STORY-INDEX v4.150: BC-4.13.001 v1.7→v1.8 line 701; BC-1.17.001 v1.1→v1.2 lines 685+701. Post-fix Gate C confirms zero stale non-historical cites. |
+| F-P16-002 MEDIUM | FIXED | S-19.06 v1.13: ffi.rs added to inputs:; input-hash 617adeb. Gate D confirms 8 occurrences. |
+| O-P16-01 | PENDING-HUMAN | POLICY 17 epic frontmatter parity: added to STATE.md §Pending Human Decisions; DO NOT fix files pending human adjudication. |
+| O-P16-02 | FIXED | Epic v1.14: EAC-008 Validation Method + Test Scenarios columns split with distinct values. |
+| O-P16-03 | CODIFIED | D-768 §3: STORY-INDEX-prose-leg added to D-759 BC-cite preflight + D-760 per-file-loop; lesson L-BB-bc-cite-preflight-must-cover-story-index-prose appended. |
+
+Streak: 0/3. Next action: dispatch adv pass-17 (fresh context; reads adv-E19-pass-16.md Part A ONLY; STORY-INDEX-prose-leg preflight mandatory per D-768).
+
+### Block 8 — Factory-artifacts commits
+
+| Commit | SHA | Description |
+|--------|-----|-------------|
+| D-768 burst (atomic) | [pending-push] | state(D-768): E-19 adv pass-16 NOT-CLEAN closed — fix burst complete (v5.19) |
+| SHA-patch follow-up | [pending] | state(D-768-sha-patch): Active Branches SHA → actual Commit E HEAD |
+

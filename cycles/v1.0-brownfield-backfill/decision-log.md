@@ -6065,3 +6065,74 @@ D-767-E19-PASS-15-CLOSED
 ### Date
 
 2026-07-08
+
+---
+
+## D-768
+
+### Summary
+
+E-19 adv pass-16 NOT-CLEAN B0/H1/M1/L0 CLOSED. Fix burst complete (SM + SW legs). STORY-INDEX v4.150. Preflight STORY-INDEX-prose leg codified per O-P16-03. O-P16-01 pending human adjudication.
+
+### Detail
+
+**(1) PASS-16 VERDICT: NOT-CLEAN B0/H1/M1/L0.**
+
+- 2 actionable findings: F-P16-001 HIGH, F-P16-002 MEDIUM.
+- 3 observations: O-P16-01 (accepted-with-record), O-P16-02 (drift-item), O-P16-03 (process-gap, codified).
+- Trajectory tail (last 4 of 16 values): 3→6→7→2 (full: 16→14→20→9→8→5→12→11→4→7→6→6→3→6→7→2).
+- Streak: 0/3 (pass-16 NOT-CLEAN; fix closure complete; awaiting pass-17 verdict).
+- All 7 pass-15 findings F-P15-001..F-P15-007 verified CLOSED by adversary at pass-16 perimeter entry.
+
+Class analysis: Both findings are propagation-leg gaps — F-P16-001 is a longstanding under-propagation of BC bumps into STORY-INDEX prose (since pass-4/pass-10/pass-12 BC version advances); F-P16-002 is a pass-15 same-burst sibling-miss (ffi.rs added to File Structure + Task 11 but not to `inputs:` frontmatter in same burst). Root cause per adversary: preflight/parity gates operate at per-file/per-cell granularity and miss cross-artifact prose-leg propagation.
+
+**(2) FIX BURST — SAME-SESSION (SM + SW legs).**
+
+**Story-writer leg (SW):**
+- F-P16-002 FIXED: S-19.06 v1.12→v1.13 — `crates/hook-sdk/src/ffi.rs` added to `inputs:` (5 entries total); `input-hash` recomputed `03c6f12→617adeb` via literal `plugins/vsdd-factory/bin/compute-input-hash` stdout (POLICY 18 compliant). POLICY 14 legs 1-4 done in story file.
+- O-P16-02 FIXED: E-19 epic v1.13→v1.14 — EAC-008 Validation Method / Test Scenarios columns split (semantically faithful to S-19.05 AC-002 gates a/b); epic `input-hash 882160b→6e0a013` (verbatim compute-input-hash stdout). Changelog row v1.14 added. Production-grade rule applied — no deferral.
+
+**State-manager leg (SM):**
+- F-P16-001 FIXED: STORY-INDEX v4.149→v4.150 — `BC-1.17.001 v1.1→v1.2` at delivery-summary item 6 (line 685) and BC coverage block (line 701); `BC-4.13.001 v1.7→v1.8` at BC coverage block (line 701). POLICY 5 v1.3.5 non-exempt sites confirmed. Post-fix POLICY 5 verification grep captured (see burst-log Dim-2). S-19.06 row: `story v1.12→v1.13` + `input-hash 03c6f12→617adeb`. Epic section header: `v1.13→v1.14`. Delivery summary: `S-19.06=03c6f12→617adeb`. STORY-INDEX `version: 4.150`; `last_amended:` prefix updated.
+
+**(3) O-P16-03 [PROCESS-GAP] CODIFICATION — BC-CITE PREFLIGHT STORY-INDEX-PROSE LEG.**
+
+Extends D-759 BC-cite drift preflight + D-760 per-file-loop canonical form. Codification:
+
+The two-sided BC-cite drift preflight (D-759) MUST additionally scan STORY-INDEX delivery-summary items and BC coverage blocks (all non-changelog, non-[Prior:] STORY-INDEX prose) against current BC frontmatter versions. This is the **STORY-INDEX-prose leg** of the BC-cite preflight.
+
+Scope: applies to both (a) story-writer end-of-leg scan (after each specialist leg) and (b) orchestrator pre-dispatch scan (before each adversary dispatch). Per-file loop form retained per D-760. The STORY-INDEX prose leg is MANDATORY alongside the per-story per-file scan.
+
+Canonical execution form (per D-760 per-file-loop; per D-449(a) literal-shell):
+```bash
+# STORY-INDEX prose leg — non-historical BC cites
+grep -nE "BC-4\.13\.001 v1\.[0-7][^0-9]|BC-1\.17\.001 v1\.[01][^0-9]" \
+  .factory/stories/STORY-INDEX.md | \
+  grep -v "\[prior\|\[Prior:\|Changelog\|last_amended\|modified\[\]" | \
+  grep . && echo "STALE CITES FOUND" || echo "STORY-INDEX-PROSE-PASS"
+```
+Zero output (or "STORY-INDEX-PROSE-PASS") = PASS; any line output = FAIL with STORY-INDEX update required before adversary dispatch.
+
+Root cause of O-P16-03: pass-15 preflight §6 declared "zero stale live citations" while three stale cites were present on STORY-INDEX lines 685+701 — because the per-file loop only covers `S-19.01..S-19.07` + epic, not STORY-INDEX itself. STORY-INDEX is the POLICY 14 upstream-index leg; a stale cite there is a parity-leg failure by definition.
+
+This codification prevents recurrence. Applies retroactively beginning at next adversary dispatch (pass-17).
+
+**(4) O-P16-01 — PENDING HUMAN DECISION.**
+
+Observation: E-19 epic v1.13 (and 11 other epic files) lack `modified:` array and `last_amended:` field. POLICY 17 mandates 5-leg quintuple parity for epics; 12/20 epics lack these two legs; systematic convention gap.
+
+Recorded as a Pending Human Decision: adjudication required — either (a) explicitly exempt epics from `modified:[]` + `last_amended:` legs in POLICY 17, or (b) require these two legs on all future epic edits. DO NOT fix any epic files pending this adjudication. Files remain as-is.
+
+**(5) O-P16-02 — FIXED IN-SCOPE** (per production-grade rule; no deferral). Epic v1.14 EAC-008 columns split.
+
+**(6) NEXT: E-19 adv pass-17** (fresh context; reads adv-E19-pass-16.md Part A ONLY; strict-3-CLEAN per D-761; preflight now includes STORY-INDEX-prose leg per O-P16-03 codification; per-file BC-cite scan + STORY-INDEX-prose leg both mandatory before dispatch).
+
+Parent-commit: 921ec4f7 (D-767 SHA-patch, factory-artifacts HEAD before this burst).
+
+### Phase
+
+D-768-E19-PASS-16-CLOSED
+
+### Date
+
+2026-07-08

@@ -5556,3 +5556,32 @@ run bash -c "echo \"$executable_content\" | grep -qE \"$guard_re\""
 3. `replace_all` scope must be explicitly enumerated before execution on any token that could appear in the artifact's own deliverable names.
 
 **Cites:** D-754, adv-E19-pass-3.md F-P3-019, S-19.01 v1.3→v1.4 revert, L-BB-parallel-spec-authorship-requires-cross-reconciliation-sweep (companion), TD-VSDD-059 (sibling-class).
+
+## L-BB-bc-cite-preflight-must-cover-story-index-prose [codified]
+
+**Context:** D-768 NEW [process-gap] [codified] 2026-07-08. During E-19 adv pass-16, adversary O-P16-03 identified that pass-15 preflight §6 declared "BC-cite preflight PASS — zero stale live citations" while STORY-INDEX.md lines 685 and 701 already contained three stale BC version cites (BC-1.17.001 v1.1 and BC-4.13.001 v1.7, both multiple BC bumps behind current). The preflight scanned per-story/per-epic files in a per-file loop (D-759/D-760) but did NOT scan STORY-INDEX delivery-summary items and BC coverage blocks. The false PASS result persisted across passes 4 through 15 (11 passes) while the stale cites accumulated.
+
+**Rule:** The BC-cite drift preflight (D-759 two-sided; D-760 per-file-loop canonical) MUST additionally execute a **STORY-INDEX-prose leg** scanning all non-exempt STORY-INDEX prose (delivery-summary items, BC coverage blocks, epic header blocks) against current BC frontmatter versions. The STORY-INDEX is the POLICY 14 upstream-index leg for all stories; a stale BC version citation there is a parity-leg failure. This leg is mandatory in both:
+1. Story-writer end-of-leg scan (after each SW specialist leg completes).
+2. Orchestrator pre-dispatch scan (before each adversary dispatch is issued).
+
+**Canonical execution form (per D-760; per D-449(a) literal-shell required):**
+```bash
+# STORY-INDEX prose leg — scan non-historical live BC cites
+grep -nE "BC-4\.13\.001 v1\.[0-7][^0-9]|BC-1\.17\.001 v1\.[01][^0-9]" \
+  .factory/stories/STORY-INDEX.md | \
+  grep -v "\[prior\|\[Prior:\|Changelog\|last_amended\|modified\[\]" | \
+  grep . && echo "STALE CITES FOUND" || echo "STORY-INDEX-PROSE-PASS"
+```
+Zero matching lines + "STORY-INDEX-PROSE-PASS" = PASS. Any matching line = FAIL requiring STORY-INDEX update before dispatch.
+
+**Root cause:** The per-file BC-cite preflight loop was defined to scan `S-19.01..S-19.07 + E-19 epic` — the individual story and epic files. STORY-INDEX itself was not in the scan set, even though STORY-INDEX contains live BC version cites in its prose blocks (delivery-summary items at the top of each epic section; BC coverage summary block). Because STORY-INDEX is the POLICY 14 upstream-index, its BC cites must be kept current with the same discipline as story-file cites.
+
+**Sibling-class:** D-759 (per-file preflight instituted); D-760 (cross-file awk forbidden; per-file loop canonical). This lesson extends the scan scope without changing the per-file loop form.
+
+**Prevention:**
+1. Add "STORY-INDEX prose" to the mandatory preflight checklist at both story-writer and orchestrator scan points.
+2. Whenever a BC version is bumped (PO leg), immediately scan STORY-INDEX prose for stale cites in the same burst (not deferred to next adversary pass).
+3. The three specific STORY-INDEX prose blocks to scan: (a) epic description block (delivery-summary items naming BCs), (b) BC coverage block at end of epic section, (c) epic history/audit-trail blocks if they contain live version cites.
+
+**Cites:** D-768, adv-E19-pass-16.md O-P16-03, F-P16-001, L-BB-bc-cite-preflight-instituted (D-759 companion).
