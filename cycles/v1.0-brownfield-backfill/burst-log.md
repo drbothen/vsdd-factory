@@ -13351,5 +13351,5 @@ NEXT: E-19 adversary pass-25 (fresh context; perimeter = D-778 delta: BC-2.02.01
 
 | Commit | SHA | Description |
 |--------|-----|-------------|
-| D-778 burst (atomic) | `PENDING` | state(D-778): E-19 adv pass-24 NOT-CLEAN CLOSED — fix burst 4 legs (v5.29) |
+| D-778 burst (atomic) | `9cc0c1c8` | state(D-778): E-19 adv pass-24 NOT-CLEAN CLOSED — fix burst 4 legs (v5.29) |
 | SHA-patch follow-up | `PENDING` | state(D-778-sha-patch): Active Branches + Block 8 SHA patch |
