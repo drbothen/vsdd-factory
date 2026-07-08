@@ -1,7 +1,7 @@
 ---
 document_type: epic
 epic_id: "E-19"
-version: "v1.14"
+version: "v1.15"
 status: draft
 title: "Post-rc.22 Operator Hardening — pr-manager race fixes, verify-factory-lock size defect, warn-pending-wave-gate false-positive, registry/bundle hygiene, async telemetry + VSDD_SINK_FILE, host::read_prefix bounded partial read"
 prd_capabilities: []
@@ -23,7 +23,10 @@ inputs:
   - .factory/stories/S-19.06-read-prefix-bounded-partial-read.md
   - .factory/stories/S-19.07-verify-factory-lock-read-prefix-migration.md
   - .factory/specs/behavioral-contracts/ss-04/BC-4.13.001.md
-input-hash: "6e0a013"
+input-hash: "45fa529"
+last_amended: "2026-07-08 (v1.15) — O-P16-01 human adjudication (D-773): POLICY 17 frontmatter parity backfill (modified[] + last_amended added)"
+modified:
+  - "v1.15 2026-07-08: O-P16-01 human adjudication (D-773) POLICY 17 frontmatter parity backfill"
 ---
 
 # Epic E-19: Post-rc.22 Operator Hardening
@@ -232,6 +235,7 @@ Story BC-table rows use abbreviated titles for cell fit; the BC file H1 remains 
 
 | Version | Date | Author | Change |
 |---------|------|--------|--------|
+| v1.15 | 2026-07-08 | story-writer | O-P16-01 human adjudication (D-773): POLICY 17 frontmatter parity backfill (modified[] + last_amended added). |
 | v1.14 | 2026-07-08 | story-writer | O-P16-02: EAC-008 Validation Method + Test Scenarios columns split for column parity (both previously "S-19.05 AC-002 test suite"; now distinct per AC-002 gates a/b). |
 | v1.13 | 2026-07-07 | story-writer | O-P15-02: EAC-006/EAC-007 never allocated (numbering skip at pass-14 authoring; orchestrator brief error); EAC-008 retained per POLICY 1 append-only. |
 | v1.12 | 2026-07-07 | story-writer | E-19 pass-14 sweep: F-P14-004 Epic Placement Justification "six subsystems" → "seven subsystems"; F-P14-005 Out-of-Scope BC-3.08.001 pass-2 → pass-3; O-P14-04 EAC-008 added (BC-3.08.001 Invariant 6 schema-level property tests preservation gate); O-P14-06 maintenance tally drift-check note added after Stories total; input-hash f6bf703 (S-19.03 v1.11 + S-19.06 v1.11 + S-19.07 v1.6). |

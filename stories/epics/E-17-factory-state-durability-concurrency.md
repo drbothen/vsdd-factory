@@ -1,7 +1,7 @@
 ---
 document_type: epic
 epic_id: "E-17"
-version: "v1.0"
+version: "v1.1"
 status: draft
 title: "Factory State Durability and Concurrency — single-writer factory lock/lease (issue #170)"
 prd_capabilities: [CAP-031]
@@ -18,7 +18,10 @@ inputs:
   - .factory/specs/behavioral-contracts/ss-04/BC-4.13.001.md
   - .factory/specs/behavioral-contracts/ss-05/BC-5.40.001.md
   - .factory/specs/behavioral-contracts/ss-06/BC-6.23.001.md
-input-hash: "387e9cd"
+input-hash: "ac35e12"
+last_amended: "2026-06-11 (v1.1 — S-17.04 added)"
+modified:
+  - "v1.1 2026-06-11: S-17.04 added (ADR-025 v1.4 Decision 11)"
 ---
 
 # Epic E-17: Factory State Durability and Concurrency — single-writer factory lock/lease
@@ -153,5 +156,5 @@ Topological order: S-17.01 → S-17.02 → S-17.03; S-17.04 has no product deps 
 
 | Version | Date | Author | Change |
 |---------|------|--------|--------|
-| v1.0 | 2026-06-10 | story-writer | Initial authoring. brownfield-backfill issue #170; ADR-025 v1.2; D-540+D-541 codified. 3 stories S-17.01/02/03 spanning SS-04/SS-05/SS-06. |
 | v1.1 | 2026-06-11 | story-writer | S-17.04 added (ADR-025 v1.4 Decision 11; BC-5.40.001 PC4 enforcement wiring; wave 4; 5 pts; depends_on []). story_count 3→4; total pts 21→26. BC-5.40.001 traceability updated. Dependency graph note added for S-17.04 no-deps placement. |
+| v1.0 | 2026-06-10 | story-writer | Initial authoring. brownfield-backfill issue #170; ADR-025 v1.2; D-540+D-541 codified. 3 stories S-17.01/02/03 spanning SS-04/SS-05/SS-06. |

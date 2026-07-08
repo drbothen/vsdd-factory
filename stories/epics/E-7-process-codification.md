@@ -14,8 +14,11 @@ inputs:
   - .factory/stories/S-6.01-create-adr-skill.md
   - .factory/cycles/v1.0-brownfield-backfill/adversarial-reviews/s6.01-pass-1.md
   - .factory/stories/S-7.03-tdd-discipline-hardening.md
-input-hash: "6ecf12f"
+input-hash: "0d0454e"
 traces_to: .factory/STATE.md#Lessons-Learned
+last_amended: "2026-04-27 (v1.2)"
+modified:
+  - "v1.2"
 ---
 
 # Epic E-7: Process Codification (Self-Improvement)

@@ -26,7 +26,9 @@ inputs:
   - .factory/specs/architecture/SS-07-hook-bash.md
   - .factory/specs/prd.md
   - .factory/stories/STORY-INDEX.md
-input-hash: "6fb36eb"
+input-hash: "3513683"
+modified:
+  - "v1.1 2026-05-06: story IDs renumbered S-11.00..S-11.07 → S-11.01..S-11.08"
 ---
 <!-- [process-gap] Frontmatter fields tech_debt_ref, anchor_strategy, depends_on extend the canonical epic-template baseline (same as E-8 v1.9 / E-9 v1.0). Template update tracked as follow-up. -->
 
@@ -488,8 +490,8 @@ TD-014 CLOSED
 
 | Version | Date | Author | Summary |
 |---------|------|--------|---------|
-| 1.0 | 2026-05-06 | product-owner | Initial authoring to anchor 10 orphan hooks following E-10's reallocation to ADR-015 OTel emission per D-236 (2026-05-04). Supersedes the stale "future E-10" pointer in E-8 v1.10 CHANGELOG and S-8.20–S-8.27 retirement entries. 8 stories (S-11.00 + S-11.01..S-11.07). BC anchors confirmed from BC-INDEX survey. D-11.7 documents state-manager follow-up burst for STORY-INDEX pointer correction. |
 | 1.1 | 2026-05-06 | product-owner | Story ID renumber: S-11.00..S-11.07 → S-11.01..S-11.08 (collision resolution). See narrative below. |
+| 1.0 | 2026-05-06 | product-owner | Initial authoring to anchor 10 orphan hooks following E-10's reallocation to ADR-015 OTel emission per D-236 (2026-05-04). Supersedes the stale "future E-10" pointer in E-8 v1.10 CHANGELOG and S-8.20–S-8.27 retirement entries. 8 stories (S-11.00 + S-11.01..S-11.07). BC anchors confirmed from BC-INDEX survey. D-11.7 documents state-manager follow-up burst for STORY-INDEX pointer correction. |
 
 ### v1.1 — 2026-05-06 — Story ID renumber (collision resolution)
 

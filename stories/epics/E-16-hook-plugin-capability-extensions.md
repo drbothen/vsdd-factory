@@ -18,7 +18,10 @@ inputs:
   - .factory/specs/behavioral-contracts/ss-07/BC-7.03.094.md
   - .factory/specs/behavioral-contracts/ss-07/BC-7.03.095.md
   - .factory/specs/verification-properties/VP-080.md
-input-hash: "90c150e"
+input-hash: "cf678c9"
+last_amended: "2026-05-12 (v1.0 — initial authoring)"
+modified:
+  - "v1.0 2026-05-12: initial authoring"
 ---
 
 # Epic E-16: Hook Plugin Capability Extensions — block-ai-attribution message-file arm

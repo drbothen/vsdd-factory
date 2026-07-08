@@ -19,6 +19,8 @@ traces_to: .factory/tech-debt-register.md#TD-014
 inputs:
   - .factory/tech-debt-register.md#TD-014
 input-hash: "4ba3584"
+modified:
+  - "v1.10 2026-05-03: Tier 2/3 wave plan superseded (W-16 → E-9; W-17 → future E-10)"
 ---
 <!-- [process-gap] Frontmatter fields tech_debt_ref, anchor_strategy, priority, target_release extend the canonical epic-template baseline. Template update tracked as follow-up. See Change Log v1.1 F-016. -->
 

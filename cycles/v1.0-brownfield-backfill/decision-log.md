@@ -6360,3 +6360,57 @@ D-772-E19-SPEC-CASCADE-CONVERGED-HUMAN-GATE
 ### Date
 
 2026-07-08
+
+## D-773
+
+### Summary
+
+Post-convergence adjudications applied. Human gate resolved: W1 TDD AUTHORIZED (S-19.01/S-19.02/S-19.03) contingent on confirming pass-21 CLEAN (per D-636/D-637 precedent — post-convergence spec edits require one confirming pass). O-P19-01 → document convention. O-P20-01 → fix spec now (S-19.07 v1.8 DONE). O-P16-01 → fix spec now (20/20 epics POLICY 17 compliant DONE). STORY-INDEX v4.152. Confirming adversary pass-21 NEXT.
+
+### Detail
+
+**(1) HUMAN CONVERGENCE-GATE DECISIONS (2026-07-08).**
+
+- **W1 TDD AUTHORIZED:** S-19.01/S-19.02/S-19.03 TDD implementation authorized, contingent on confirming adversary pass-21 CLEAN. Per D-636/D-637 precedent: post-convergence spec edits require ONE confirming pass before implementation dispatch.
+- **O-P19-01 → document convention:** STORY-INDEX W2/W3 summary clauses use compact cross-wave-only dependency enumeration. Intra-wave deps omitted; authoritative full enumeration lives in story rows + epic mermaid. Codified as annotation note in STORY-INDEX E-19 section.
+- **O-P20-01 → fix spec now:** S-19.07 v1.7→v1.8 — AC-001 Gate B block-comment strip (F-P9-003 form) with D-766 §4 two-run discriminating evidence inline. Fixture proves sed chain load-bearing: old gate exit 0 / new gate exit 1 on block-comment-only fixture.
+- **O-P16-01 → fix spec now:** All 20 epics now POLICY 17 compliant. modified[] + last_amended backfilled on 12 legacy epics WITHOUT version bumps (bumping would falsify content history). E-19 epic v1.14→v1.15. E-17 v1.0→v1.1 (pre-existing version-mismatch fix). E-11+E-17 changelog order fixes. E-13 inputs: ADR-016 filename fixed.
+
+**(2) STORY-WRITER LEG RESULTS.**
+
+- S-19.07 v1.7→v1.8: AC-001 Gate B sed -E block-comment chain prepended to line-comment filter per S-19.06 AC-003 (F-P9-003 codification). D-766 §4 two-run execution evidence: (a) current HEAD lib.rs (Phase-A active) exit 0 — gate correctly identifies non-completion; (b) inline block-comment fixture — OLD line-comment-only gate exit 0 (wrongly counts), NEW gate exit 1 (correctly ignores). Gate B is structurally load-bearing.
+- 20/20 epics POLICY 17 compliant: modified[] + last_amended present in all epic frontmatters.
+- Legacy backfill-without-bump decision: 12 legacy epics (E-0, E-2, E-3, E-4, E-5, E-6, E-7, E-8, E-10, E-11, E-14, E-15, E-16) backfilled with modified[] + last_amended WITHOUT version bumps. Rationale: version bumps on historical epics would falsify content history — POLICY 14 v5 prescribes non-bump form for retroactive structural compliance additions.
+- E-17 v1.0→v1.1: pre-existing version-mismatch fixed (epic file said v1.0 but content reflected v1.1).
+- E-11+E-17 changelog order fixes: chronological ordering corrected.
+- E-13 inputs: ADR-016 filename corrected from ADR-016-artifact-path-registry-single-source-of-truth.md → ADR-016-artifact-path-registry-sot.md (actual on-disk filename).
+
+**(3) STATE-MANAGER LEG.**
+
+- STORY-INDEX v4.151→v4.152: S-19.07 v1.8 row sync; E-19 epic v1.15 header sync; O-P19-01 convention note added; 6 pre-existing epic header version-gap sweeps (E-9 v1.7→v1.53, E-11 v1.0→v1.1, E-12 v1.0→v1.3, E-14 v1.0→v1.2, E-15 v1.0→v1.3, E-17 v1.0→v1.1).
+- E-13 traces_to: mechanical frontmatter path sync (ADR-016-artifact-path-registry-single-source-of-truth.md → ADR-016-artifact-path-registry-sot.md).
+
+**(4) NEW DRIFT ITEM: 6 LEGACY EPICS PRE-EXISTING TEMPLATE DRIFT.**
+
+Surfaced during D-773 enumeration sweep (PostToolUse validate-template-compliance). NOT D-773-introduced; pre-existing:
+- E-9: missing "Dependencies (External)" section.
+- E-10: missing "Acceptance Criteria" + "Stories" + "Dependencies (External)" sections.
+- E-12/E-17/E-18: missing "Acceptance Criteria" + "Dependencies (External)" sections.
+- E-15: missing "Dependencies (External)" section.
+- E-8: line-635 unescaped table pipe.
+- E-8: inputs: NOINPUT (tech-debt-register.md#TD-014 missing from filesystem — same anchor).
+Anchor: next maintenance sweep via /vsdd-factory:conform-to-template (human-visible; pre-existing, not D-773-introduced).
+
+**(5) NEXT: CONFIRMING ADVERSARY PASS-21.**
+
+Fresh context. Perimeter: E-19 artifacts at S-19.07 v1.8 / epic v1.15 / STORY-INDEX v4.152. ONE CLEAN re-certifies convergence per D-636/D-637 precedent. On CLEAN → dispatch W1 per-story TDD (S-19.01, S-19.02, S-19.03). On NOT-CLEAN → fix burst + re-confirm.
+
+Parent-commit: 598e4645 (D-772-sha-patch-2, factory-artifacts HEAD before this burst).
+
+### Phase
+
+D-773-POST-CONVERGENCE-ADJUDICATIONS-APPLIED
+
+### Date
+
+2026-07-08

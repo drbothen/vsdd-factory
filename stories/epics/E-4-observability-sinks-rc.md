@@ -5,6 +5,9 @@ version: "1.0"
 prd_capabilities: []
 status: draft
 story_count: 8
+last_amended: "v1.0 — initial"
+modified:
+  - "v1.0-initial"
 ---
 
 # Epic E-4: Observability Sinks and RC Release

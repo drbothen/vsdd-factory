@@ -5,6 +5,9 @@ version: "1.0"
 prd_capabilities: []
 status: closed
 story_count: 8
+last_amended: "v1.0 — initial"
+modified:
+  - "v1.0-initial"
 ---
 
 # Epic E-2: Legacy Adapter and Beta Release

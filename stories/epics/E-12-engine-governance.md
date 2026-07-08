@@ -22,7 +22,9 @@ inputs:
   - .factory/specs/architecture/ARCH-INDEX.md
   - .factory/specs/behavioral-contracts/BC-INDEX.md
   - .factory/stories/epics/E-7-process-codification.md
-input-hash: "8c2371a"
+input-hash: "ff3bbc2"
+modified:
+  - "v1.3 2026-05-08: F-P22-003/004/005 subsystem swap fixed, frontmatter synced"
 ---
 <!-- [process-gap] Frontmatter fields anchor_strategy, depends_on extend the canonical epic-template baseline (same as E-9 v1.0 / E-11 v1.0). Template update tracked as follow-up. -->
 

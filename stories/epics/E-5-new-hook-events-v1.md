@@ -5,6 +5,9 @@ version: "1.0"
 prd_capabilities: []
 status: draft
 story_count: 7
+last_amended: "v1.0 — initial"
+modified:
+  - "v1.0-initial"
 ---
 
 # Epic E-5: New Hook Events and 1.0.0 Release

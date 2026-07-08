@@ -12,8 +12,11 @@ phase: 2
 inputs:
   - .factory/STATE.md
   - .factory/stories/S-6.01-create-adr-skill.md
-input-hash: ""
+input-hash: "57f71fd"
 traces_to: .factory/STATE.md#D-005
+last_amended: "2026-04-25 (v1.0 — initial authoring)"
+modified:
+  - "v1.0-initial"
 ---
 
 # Epic E-6: VSDD Self-Improvement / Tooling Backlog

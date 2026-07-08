@@ -12671,3 +12671,172 @@ NEXT: HUMAN CONVERGENCE GATE — E-19 W1 implementation authorization + O-P19-01
 | D-772 burst (atomic) | `ab7f0a7a` | state(D-772): E-19 spec cascade CONVERGED 3/3 — strict-3-CLEAN satisfied; human gate (v5.23) |
 | SHA-patch follow-up | `0619c5c5` | state(D-772-sha-patch): Active Branches SHA → ab7f0a7a + burst-log Block 8 patch |
 
+
+## D-773 — Post-convergence adjudication closure burst — 2026-07-08
+
+### Block 1 — Parent-commit
+
+Parent-commit: `598e4645` (D-772-sha-patch-2: burst-log Block 8 SHA-patch SHA → 0619c5c5; factory-artifacts HEAD before this burst).
+
+### Block 2 — Adversary Verdict (governing context)
+
+N/A — adjudication burst, not an adversary-dispatch burst. Governing context: adv-E19-pass-20.md CLEAN B0/H0/M0/L0 (D-772 CONVERGED 3/3). Two observations accepted-with-record at convergence gate:
+- O-P19-01 (LOW): STORY-INDEX W2 summary compact cross-wave-only convention — CLOSED by human adjudication (reading b: document convention). Convention note added to STORY-INDEX E-19 DAG wave schedule.
+- O-P20-01 (LOW): S-19.07 AC-001 Gate B block-comment strip — CLOSED by human adjudication (reading b: S-19.07 v1.8 + confirming pass). Story-writer implemented v1.8 with F-P9-003 codification and D-766 §4 discriminating evidence.
+- O-P16-01: POLICY 17 epic frontmatter parity — CLOSED by human adjudication (fix spec now). 20/20 epics brought to compliance.
+
+Source-attestation: adv-E19-pass-20.md Part A findings set = {O-P20-01 accepted-with-record; O-P19-01 accepted-with-record; no actionable findings}. Faithfully described above. This burst closes all three observations per human gate decisions.
+
+### Block 3 — Files Touched
+
+**Story-writer leg (pre-staged, uncommitted before this burst):**
+- `.factory/stories/S-19.07-verify-factory-lock-read-prefix-migration.md` — v1.7→v1.8 (O-P20-01: AC-001 Gate B block-comment strip, F-P9-003 codification, D-766 §4 two-run evidence)
+- `.factory/stories/epics/E-0-infrastructure-prep.md` — POLICY 17 backfill (modified[] + last_amended added)
+- `.factory/stories/epics/E-2-legacy-adapter-beta.md` — POLICY 17 backfill
+- `.factory/stories/epics/E-3-wasm-port-high-value-hooks.md` — POLICY 17 backfill
+- `.factory/stories/epics/E-4-observability-sinks-rc.md` — POLICY 17 backfill
+- `.factory/stories/epics/E-5-new-hook-events-v1.md` — POLICY 17 backfill
+- `.factory/stories/epics/E-6-tooling-backlog.md` — POLICY 17 backfill
+- `.factory/stories/epics/E-7-process-codification.md` — POLICY 17 backfill
+- `.factory/stories/epics/E-8-native-wasm-migration.md` — POLICY 17 backfill
+- `.factory/stories/epics/E-9-tier-2-native-wasm-migration.md` — POLICY 17 backfill
+- `.factory/stories/epics/E-10-single-stream-otel-event-emission.md` — POLICY 17 backfill
+- `.factory/stories/epics/E-11-tier-3-native-wasm-migration.md` — POLICY 17 backfill + v1.0→v1.1 version mismatch fix
+- `.factory/stories/epics/E-12-engine-governance.md` — POLICY 17 backfill
+- `.factory/stories/epics/E-13-artifact-integrity.md` — POLICY 17 backfill; inputs ADR-016 filename sync
+- `.factory/stories/epics/E-14-engine-discipline-pass-2.md` — POLICY 17 backfill
+- `.factory/stories/epics/E-15-plugin-async-semantics.md` — POLICY 17 backfill
+- `.factory/stories/epics/E-16-hook-plugin-capability-extensions.md` — POLICY 17 backfill
+- `.factory/stories/epics/E-17-factory-state-durability-concurrency.md` — POLICY 17 backfill; v1.0→v1.1 mismatch fix; changelog order fix
+- `.factory/stories/epics/E-18-factory-context-durability.md` — POLICY 17 backfill
+- `.factory/stories/epics/E-19-post-rc22-operator-hardening.md` — v1.14→v1.15 (O-P16-01 POLICY 17 backfill)
+
+**State-manager leg (this burst):**
+- `.factory/stories/STORY-INDEX.md` — v4.151→v4.152 (S-19.07 row v1.8 sync; E-19 header v1.15; O-P19-01 convention note; 6 legacy epic header syncs: E-9/E-11/E-12/E-14/E-15/E-17)
+- `.factory/stories/epics/E-13-artifact-integrity.md` — traces_to filename sync (ADR-016-artifact-path-registry-sot.md)
+- `.factory/cycles/v1.0-brownfield-backfill/decision-log.md` — D-773 appended
+- `.factory/cycles/v1.0-brownfield-backfill/burst-log.md` — D-773 entry (this entry)
+- `.factory/STATE.md` — v5.23→v5.24
+
+### Block 4 — Codifications
+
+- **D-773** codified in decision-log.md (this burst). Entry count: 125 total (was 124).
+- **O-P19-01 convention** codified: STORY-INDEX E-19 wave summary convention note added.
+- **O-P20-01** closed: S-19.07 v1.8 with F-P9-003 block-comment strip codification.
+- **O-P16-01** closed: 20/20 epics POLICY 17 compliant.
+- **Legacy-backfill-without-bump rule**: codified in D-773 — 12 legacy epics get modified[]/last_amended WITHOUT version bumps (POLICY 14 v5 non-bump form for retroactive structural compliance).
+
+### Block 5 — Dim-2 Literal Shell Gates (D-449(a))
+
+**Gate (i) — Epic POLICY 17 compliance scan (expect all m=1 l=1):**
+
+```bash
+for f in .factory/stories/epics/*.md; do
+  m=$(grep -c '^modified:' "$f" 2>/dev/null || echo 0)
+  l=$(grep -c '^last_amended:' "$f" 2>/dev/null || echo 0)
+  echo "$(basename $f) m=$m l=$l"
+done
+```
+
+stdout:
+```
+E-0-infrastructure-prep.md m=1 l=1
+E-1-dispatcher-foundation.md m=1 l=1
+E-10-single-stream-otel-event-emission.md m=1 l=1
+E-11-tier-3-native-wasm-migration.md m=1 l=1
+E-12-engine-governance.md m=1 l=1
+E-13-artifact-integrity.md m=1 l=1
+E-14-engine-discipline-pass-2.md m=1 l=1
+E-15-plugin-async-semantics.md m=1 l=1
+E-16-hook-plugin-capability-extensions.md m=1 l=1
+E-17-factory-state-durability-concurrency.md m=1 l=1
+E-18-factory-context-durability.md m=1 l=1
+E-19-post-rc22-operator-hardening.md m=1 l=1
+E-2-legacy-adapter-beta.md m=1 l=1
+E-3-wasm-port-high-value-hooks.md m=1 l=1
+E-4-observability-sinks-rc.md m=1 l=1
+E-5-new-hook-events-v1.md m=1 l=1
+E-6-tooling-backlog.md m=1 l=1
+E-7-process-codification.md m=1 l=1
+E-8-native-wasm-migration.md m=1 l=1
+E-9-tier-2-native-wasm-migration.md m=1 l=1
+```
+
+Result: ALL 20 epics m=1 l=1. PASS.
+
+**Gate (ii) — S-19.07 Gate B sed -E chain presence:**
+
+```bash
+grep -c 'sed -E' .factory/stories/S-19.07-verify-factory-lock-read-prefix-migration.md
+```
+
+stdout: `4`
+
+Result: 4 occurrences of `sed -E` in S-19.07 (AC-001 Gate B chain + execution evidence runs a+b). PASS — block-comment strip is structurally present.
+
+**Gate (iii) — 4-index version grep:**
+
+```bash
+grep "^version:" \
+  .factory/specs/behavioral-contracts/BC-INDEX.md \
+  .factory/specs/verification-properties/VP-INDEX.md \
+  .factory/stories/STORY-INDEX.md \
+  .factory/specs/architecture/ARCH-INDEX.md
+```
+
+stdout:
+```
+.factory/specs/architecture/ARCH-INDEX.md:version: "2.90"
+.factory/specs/behavioral-contracts/BC-INDEX.md:version: "3.76"
+.factory/stories/STORY-INDEX.md:version: "4.152"
+.factory/specs/verification-properties/VP-INDEX.md:version: "2.53"
+```
+
+Result: BC v3.76 / VP v2.53 / STORY v4.152 / ARCH v2.90. STORY-INDEX advanced v4.151→v4.152. BC/VP/ARCH UNCHANGED (adjudication burst; no spec content changes). PASS.
+
+**Gate (iv) — current_step diff gate (D-441(a)+D-449(a) verbatim-strict chain):**
+
+```bash
+grep '^current_step:' .factory/STATE.md
+```
+
+Before (D-772): `current_step: "D-772-E19-SPEC-CASCADE-CONVERGED trajectory-tail →2→0→0→0;"`
+After (D-773): `current_step: "D-773-ADJUDICATIONS-APPLIED trajectory-tail →2→0→0→0;"`
+
+Trajectory-tail UNCHANGED: →2→0→0→0 (last 4 of 20-pass E-19 trajectory; no adversary pass this burst; LENGTH=4 per D-433(e)+D-439(c)). Phase advances from D-772-E19-SPEC-CASCADE-CONVERGED-HUMAN-GATE to D-773-ADJUDICATIONS-APPLIED-CONFIRMING-PASS-21-PENDING. PASS.
+
+### Block 6 — Dim-5/6/7 Attestations
+
+**Dim-5 (production-grade default):** All adjudications applied faithfully per human gate decisions. Legacy epic backfill executed without version bumps per POLICY 14 v5 non-bump form (rationale: prevents falsifying content history). Pre-existing template drift on 6 legacy epics recorded as new drift item anchored to maintenance sweep; NOT deferred to tech-debt without human direction (D-773 decision log §4). E-13 traces_to filename sync is mechanical in-scope fix per Canonical Principle Rule 4. All 8 D-444(c) blocks present in this entry.
+
+**Dim-6 (no-bypass):** All edits via Edit/Write tools (POL-3). No Python/sed/echo bypass. No --no-verify. Bash used only for git operations and literal gate commands.
+
+**Dim-7 (routing):** Story-writer performed story + epic content edits. State-manager performed STORY-INDEX + cycle record + STATE.md updates. E-13 traces_to is mechanical frontmatter path sync (in state-manager scope as STORY-INDEX path-sync class). No BC/VP/ARCH content authored by state-manager.
+
+**Dim-5 8-block self-verification:**
+- [x] Block 1 — Parent-commit (598e4645)
+- [x] Block 2 — Adversary verdict (N/A adjudication burst; pass-20 CONVERGED governing context; O-P19-01/O-P20-01/O-P16-01 all CLOSED)
+- [x] Block 3 — Files touched (S-19.07 + 20 epics + STORY-INDEX + E-13 + decision-log + burst-log + STATE.md)
+- [x] Block 4 — Codifications (D-773; O-P19-01 convention; legacy-backfill-without-bump rule; 3 observations CLOSED)
+- [x] Block 5 — Dim-2 literal shell gates with captured stdout (Gates i/ii/iii/iv per D-449(a))
+- [x] Block 6 — Dim-5/6/7 Attestations + 8-block self-verification (this block)
+- [x] Block 7 — Closes
+- [x] Block 8 — Factory-artifacts commits
+
+### Block 7 — Closes
+
+| Finding | Status | Notes |
+|---------|--------|-------|
+| O-P19-01 LOW (pass-18, accepted-with-record) | **CLOSED** | STORY-INDEX convention note added per human adjudication (reading b: document cross-wave-only convention). |
+| O-P20-01 LOW (pass-20, accepted-with-record) | **CLOSED** | S-19.07 v1.8: AC-001 Gate B block-comment strip added per human adjudication (reading b: fix spec + confirming pass). |
+| O-P16-01 (D-768, pending human) | **CLOSED** | 20/20 epics POLICY 17 compliant per human adjudication (fix spec now). Legacy backfill without version bumps. |
+| **W1 TDD authorization** | **AUTHORIZED** (contingent) | S-19.01/S-19.02/S-19.03 authorized contingent on confirming pass-21 CLEAN. |
+
+NEXT: Confirming adversary pass-21 (fresh context; perimeter E-19 artifacts at S-19.07 v1.8 / epic v1.15 / STORY-INDEX v4.152). On CLEAN → dispatch W1 TDD. On NOT-CLEAN → fix burst + re-confirm.
+
+### Block 8 — Factory-artifacts commits
+
+| Commit | SHA | Description |
+|--------|-----|-------------|
+| D-773 burst (atomic) | [SHA-pending] | state(D-773): convergence-gate adjudications applied — S-19.07 v1.8, 20/20 epics POLICY-17 compliant, W1 authorized contingent pass-21 (v5.24) |
+| SHA-patch follow-up | [SHA-pending] | state(D-773-sha-patch): Active Branches SHA + burst-log Block 8 patch |

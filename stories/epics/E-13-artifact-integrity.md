@@ -14,14 +14,16 @@ subsystems_affected: [SS-04, SS-06]
 producer: product-owner
 timestamp: 2026-05-06T00:00:00Z
 phase: 2
-traces_to: .factory/specs/architecture/decisions/ADR-016-artifact-path-registry-single-source-of-truth.md
+traces_to: .factory/specs/architecture/decisions/ADR-016-artifact-path-registry-sot.md
 depends_on: []
 last_amended: "2026-05-06 (v1.0 — initial authoring for cycle v1.0-feature-engine-discipline-pass-1)"
 inputs:
-  - .factory/specs/architecture/decisions/ADR-016-artifact-path-registry-single-source-of-truth.md
+  - .factory/specs/architecture/decisions/ADR-016-artifact-path-registry-sot.md
   - .factory/specs/architecture/ARCH-INDEX.md
   - .factory/specs/behavioral-contracts/BC-INDEX.md
-input-hash: "TBD"
+input-hash: "87d2ae0"
+modified:
+  - "v1.0 2026-05-06: initial authoring for cycle v1.0-feature-engine-discipline-pass-1"
 ---
 <!-- [process-gap] Frontmatter fields anchor_strategy, depends_on extend the canonical epic-template baseline (same as E-9 v1.0 / E-11 v1.0). Template update tracked as follow-up. -->
 

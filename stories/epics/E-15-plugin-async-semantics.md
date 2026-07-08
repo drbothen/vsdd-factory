@@ -25,7 +25,10 @@ inputs:
   - .factory/specs/verification-properties/VP-078.md
   - .factory/specs/verification-properties/VP-079.md
   - .factory/specs/domain-spec/invariants.md
-input-hash: "3d920c8"
+input-hash: "3752a10"
+last_amended: "2026-05-09 (v1.3 — F-P25-001/004: dispatch loop + async_flag serde rename corrected)"
+modified:
+  - "v1.3 2026-05-09: F-P25-001/004 dispatch loop + async_flag serde rename corrected"
 ---
 
 # Epic E-15: Plugin Async Semantics — Registry-Layer Partition (single-shot delivery)
