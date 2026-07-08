@@ -30,3 +30,5 @@
 {"type":"hook.block","hook":"validate-template-compliance","reason":"template_drift","ts":"2026-07-08T11:45:14-0600","ts_epoch":1783532714,"schema_version":1}
 {"type":"hook.block","hook":"validate-template-compliance","reason":"template_drift","ts":"2026-07-08T11:45:24-0600","ts_epoch":1783532724,"schema_version":1}
 {"type":"hook.block","hook":"validate-template-compliance","reason":"template_drift","ts":"2026-07-08T12:01:33-0600","ts_epoch":1783533693,"schema_version":1}
+{"type":"hook.block","hook":"validate-changelog-monotonicity","reason":"changelog_frontmatter_mismatch","ts":"2026-07-08T13:29:10-0600","ts_epoch":1783538950,"schema_version":1}
+{"type":"hook.block","hook":"validate-input-hash","reason":"input_hash_drift","ts":"2026-07-08T13:36:14-0600","ts_epoch":1783539374,"schema_version":1}

@@ -5622,3 +5622,28 @@ Zero matching lines + "STORY-INDEX-PROSE-PASS" = PASS. Any matching line = FAIL 
 **Streak discipline observation:** The freeze discipline (no edits after streak ≥1/3 except genuine blockers; accepted-with-record for LOW observations) contributed to convergence by eliminating the churn from prospective-LOW fix attempts that could reintroduce blast-radius defects under streak pressure. Two accepted-with-record observations (O-P19-01, O-P20-01) pending human adjudication at convergence gate.
 
 **Cites:** D-772, adv-E19-pass-20.md, D-766 (gate-execution-evidence), D-768 (STORY-INDEX-prose preflight), D-769 (sweep-count gate), D-761 (HUMAN DIRECTIVE strict-3-CLEAN).
+
+---
+
+## L-BB-fresh-context-perimeter-validation-catches-cross-artifact-interface-drift [process-gap] [codified]
+
+**Context:** D-775 [codified] 2026-07-08. W1 implementation-readiness fresh-context validator fired GO-WITH-FIXES on S-19.01 with 1 BLOCKER + 2 HIGH + 1 MEDIUM cross-artifact interface drift findings (F-W1V-001..004), after 21 within-perimeter adversary passes converged under strict 3-CLEAN without detecting the drift.
+
+**Root cause:** E-19 adversary passes operated within-perimeter — each pass reviewed only the delta from the prior pass. ADR-030 established the canonical bin/ path and positional invocation signatures for check-stale-verdict.sh and enforce-merge-strategy.sh (orchestrator-invoked SS-10 CLI tools). BC-5.42.001 and S-19.01 were authored against an earlier draft that specified hooks/ and flag-form invocations. The cross-artifact interface parity dimension (ADR↔BC↔story on path/signature/prefix/exit-code) was outside every individual pass's focal perimeter, so the drift accumulated undetected across 21 passes.
+
+**Finding class:** ADR-BC-story interface parity escapes from within-perimeter convergence cascades. Analogous to the STORY-INDEX-prose BC-cite escape class (D-768) — a dimension that is absent from every individual delta scope but present at the cross-artifact level.
+
+**Gate (D-775 codification):** Before W1 TDD dispatch, run a fresh-context perimeter validator covering:
+1. ADR-030 §Script Path Canonical Location vs BC-5.42.001 §Architecture Anchors vs S-19.01 §Architecture Mapping + §File Structure — path parity (bin/ vs hooks/).
+2. ADR-030 §Invocation Signatures vs BC-5.42.001 AC text vs S-19.01 task shells — positional/flag form parity.
+3. BC error-prefix codes vs S-19.01 §Error Taxonomy — named code parity (READY_SHA_MISSING / READY_SHA_FETCH_FAILED / CHECK_STALE_VERDICT_ERROR).
+4. BC exit-code spec vs S-19.01 AC assertions — exit 0/1/N disambiguation.
+
+**Prevention:**
+1. Wave-boundary fresh-context perimeter validation (ADR↔BC↔story interface parity dimension) MUST precede every wave TDD dispatch.
+2. The perimeter validator operates orthogonally to the adversary cascade: its scope is cross-artifact interface parity, not within-artifact delta correctness.
+3. A GO-WITH-FIXES verdict from the perimeter validator triggers a fix burst + streak RESET 0/3 before TDD dispatch. W1 authorization is CONTINGENT on re-convergence.
+
+**Streak impact:** D-775 fix burst resets E-19 adversary streak to 0/3. E-19 adversary pass-22 required (fresh context; perimeter = ADR-030 v1.1 + BC-5.42.001 v1.2 + S-19.01 v1.12 delta). W1 TDD dispatch authorized only after 3-CLEAN re-convergence.
+
+**Cites:** D-775, adv-W1V-pass-1.md (F-W1V-001..004), ADR-030 v1.1, BC-5.42.001 v1.2, S-19.01 v1.12.

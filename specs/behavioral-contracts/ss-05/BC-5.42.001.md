@@ -1,11 +1,11 @@
 ---
 document_type: behavioral-contract
 level: L3
-version: "1.1"
+version: "1.2"
 status: draft
 producer: product-owner
 timestamp: 2026-07-06T00:00:00Z
-last_amended: "(v1.1) — E-19 pass-3 PO finalization (product-owner): F-P3-004 §VP Anchors + §Verification Properties VP-TBD → VP-094; F-P3-015 §Traceability CAP-TBD → CAP-033, ADR-TBD → ADR-030. [Prior: (v1.0) — initial creation (product-owner): E-19 pass-2 fix burst Package 2 — pr-manager READY-verdict SHA pinning, stale-verdict detection script, and release-PR merge-strategy guard (story anchor S-19.01); closes L-BB-merge-race-ready-report-stale-head (D-749) + L-BB-release-pr-squash-merge-not-mechanically-enforced (D-750).]"
+last_amended: "(v1.2) — W1-validation fix burst F-W1V-001 (product-owner): §Architecture Anchors script paths hooks/ → bin/ per architect ADR-030 §Decision 2/3 adjudication (bin/ = orchestrator-invoked SS-10 CLI tools; hooks/ = dispatcher-fired). [Prior: (v1.1) — E-19 pass-3 PO finalization (product-owner): F-P3-004 §VP Anchors + §Verification Properties VP-TBD → VP-094; F-P3-015 §Traceability CAP-TBD → CAP-033, ADR-TBD → ADR-030. [Prior: (v1.0) — initial creation (product-owner): E-19 pass-2 fix burst Package 2 — pr-manager READY-verdict SHA pinning, stale-verdict detection script, and release-PR merge-strategy guard (story anchor S-19.01); closes L-BB-merge-race-ready-report-stale-head (D-749) + L-BB-release-pr-squash-merge-not-mechanically-enforced (D-750).]]"
 phase: F3
 inputs:
   - .factory/stories/S-19.01-pr-manager-hardening.md
@@ -21,6 +21,7 @@ lifecycle_status: draft
 introduced: v1.0-feature-engine-discipline-E19
 modified:
   - "2026-07-06 (v1.1)"
+  - "2026-07-08 (v1.2)"
 deprecated: null
 deprecated_by: null
 replacement: null
@@ -115,8 +116,8 @@ Root lessons codified by this BC: L-BB-merge-race-ready-report-stale-head (D-749
 
 - `plugins/vsdd-factory/agents/pr-manager.md` — pr-manager agent prompt; MUST cite BC-5.42.001 PC1/PC2/PC3 as the covered_sha + stale-verdict + merge-strategy authority
 - `plugins/vsdd-factory/hooks/pr-manager-completion-guard.wasm` — SubagentStop hook enforcing (a); emits `READY_SHA_MISSING`
-- `plugins/vsdd-factory/hooks/check-stale-verdict.sh` — staleness detection script enforcing (b)
-- `plugins/vsdd-factory/hooks/enforce-merge-strategy.sh` — merge-strategy enforcement script enforcing (c)
+- `plugins/vsdd-factory/bin/check-stale-verdict.sh` — staleness detection script enforcing (b)
+- `plugins/vsdd-factory/bin/enforce-merge-strategy.sh` — merge-strategy enforcement script enforcing (c)
 - `RELEASING.md` — canonical authority for `--merge` requirement on release PRs (referenced in `RELEASE_PR_SQUASH_FORBIDDEN` diagnostic)
 
 ## Story Anchor
@@ -152,5 +153,6 @@ S-19.01 (pr-manager hardening: READY verdict HEAD-SHA pinning + release-PR merge
 
 | Version | Date | Author | Change |
 |---------|------|--------|--------|
+| 1.2 | 2026-07-08 | product-owner | W1-validation fix burst F-W1V-001: §Architecture Anchors script paths updated hooks/ → bin/ per architect ADR-030 §Decision 2 + §Decision 3 adjudication (bin/ = orchestrator-invoked SS-10 CLI tools; hooks/ = dispatcher-fired namespace). Path-only propagation; no behavioral content changed. BC-INDEX bump (v3.76→v3.77) performed by state-manager same-burst. |
 | 1.1 | 2026-07-06 | product-owner | E-19 pass-3 PO finalization: (a) F-P3-004 — §VP Anchors VP-TBD → VP-094 (pr-manager READY-Verdict Covered-SHA Pin, Stale-Verdict Halt, and Release-PR Merge-Strategy Enforcement); §Verification Properties three VP-TBD rows → VP-094. (b) F-P3-015 — §Traceability L2 Capability CAP-TBD → CAP-033 with business-analyst justification; Capability Anchor Justification TBD → full text; ADR ADR-TBD → ADR-030. Frontmatter capability: "CAP-TBD" → "CAP-033". |
 | 1.0 | 2026-07-06 | product-owner | Initial creation. E-19 pass-2 fix burst Package 2. Three mechanically-enforced pr-manager behaviors: (a) covered_sha mandatory on READY verdicts + READY_SHA_MISSING advisory from pr-manager-completion-guard SubagentStop hook; (b) check-stale-verdict.sh stale-verdict detection with STALE_READY_VERDICT exit; (c) enforce-merge-strategy.sh release-branch merge-strategy enforcement with RELEASE_PR_SQUASH_FORBIDDEN exit. Closes L-BB-merge-race-ready-report-stale-head (D-749) + L-BB-release-pr-squash-merge-not-mechanically-enforced (D-750). |

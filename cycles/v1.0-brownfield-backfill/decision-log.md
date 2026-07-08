@@ -6456,3 +6456,61 @@ D-774-E19-CONVERGENCE-RECERTIFIED-W1-STAGED
 ### Date
 
 2026-07-08
+
+---
+
+## D-775
+
+### Summary
+
+W1-validation fix burst: fresh-context perimeter validator returned GO-WITH-FIXES on S-19.01 with F-W1V-001 (BLOCKER), F-W1V-002 (HIGH), F-W1V-003 (HIGH), F-W1V-004 (MEDIUM) cross-artifact interface drift findings. Three specialist legs (architect ADR-030 v1.0→v1.1; product-owner BC-5.42.001 v1.1→v1.2; story-writer S-19.01 v1.11→v1.12) plus state-manager codification (4-index bumps) applied. Human directive: E-19 adversary cascade MUST re-run to re-convergence (streak RESET 0/3) before W1 TDD dispatch. W1 authorization CONTINGENT on re-convergence.
+
+### Detail
+
+**(1) VALIDATOR VERDICT — GO-WITH-FIXES.**
+
+Fresh-context W1 implementation-readiness validator ran on S-19.01 (pr-manager hardening; W1 gating story). Verdict: GO-WITH-FIXES — 1 BLOCKER + 2 HIGH + 1 MEDIUM cross-artifact interface drift findings; 2 INFO observations. Findings indicate ADR-030, BC-5.42.001, and S-19.01 drifted from each other across the E-19 spec cascade (21 within-perimeter adversary passes converged without checking ADR↔BC↔story interface parity on path/signature/prefix/exit-code dimensions).
+
+**(2) FINDING DISPOSITIONS.**
+
+- **F-W1V-001 (BLOCKER) — Script path conflict.** ADR-030 specified `plugins/vsdd-factory/bin/` for check-stale-verdict.sh and enforce-merge-strategy.sh; BC-5.42.001 and S-19.01 said `hooks/`. Architect ruling: `bin/` is correct. Rationale: these are orchestrator-invoked SS-10 CLI tools (not dispatcher-fired hook plugins); precedent established by factory-lock-write.sh and factory-cas-push.sh in `plugins/vsdd-factory/bin/`. Resolution: BC-5.42.001 §Architecture Anchors + S-19.01 §Architecture Mapping + §File Structure updated to `plugins/vsdd-factory/bin/`.
+
+- **F-W1V-002 (HIGH) — Invocation-signature conflict.** BC-5.42.001 prescribed positional forms (`check-stale-verdict.sh <pr-number> <sha> [--emit-ready-flag]`); S-19.01 used flag form. Spec-wins rule applied (T-003/T-004 Red Gate test assertions determine authoritative form). Resolution: S-19.01 updated to positional signatures matching BC-5.42.001 ACs.
+
+- **F-W1V-003 (HIGH) — Error-prefix naming.** Three-arm error code set was incomplete. Full 4-arm taxonomy adopted: READY_SHA_MISSING (no ready-flag file), READY_SHA_FETCH_FAILED (file unreadable), CHECK_STALE_VERDICT_ERROR (EC-003 timeout/API-failure), plus an unclassified arm for unexpected non-zero exit. Resolution: S-19.01 §Error Taxonomy updated; BC-5.42.001 error-prefix section updated with named codes.
+
+- **F-W1V-004 (MEDIUM) — Exit-code ambiguity.** "non-zero" in S-19.01 spec was ambiguous. Resolution: exit 1 adopted as canonical failure exit code, aligning AC-002 / RG-003. S-19.01 updated.
+
+- **F-W1V-005 (INFO) — Crate existence confirmed.** pr-manager-completion-guard crate already exists in crates/ workspace. S-19.01 is EXTEND not new-crate. No action required; S-19.01 §Crate Strategy annotation updated to reflect EXTEND.
+
+- **F-W1V-006 (INFO) — BC lifecycle_status.** BC-5.42.001 is `draft`; POL-14 auto-promotes to `active` on PR merge per §Lifecycle column. No action required; noted for W1 TDD dispatcher awareness.
+
+**(3) THREE SPECIALIST LEGS APPLIED.**
+
+- **Architect leg:** ADR-030 v1.0→v1.1 (2026-07-08). §Script Path Canonical Location updated: bin/ confirmed for orchestrator-invoked CLIs; §Invocation Signatures: positional form; §Error Taxonomy: 4-arm named codes + exit 1. POLICY 14 5-leg parity verified (version/last_amended/modified/Changelog/ARCH-INDEX row).
+
+- **Product-owner leg:** BC-5.42.001 v1.1→v1.2 (2026-07-08). §Architecture Anchors: hooks/ → bin/ for check-stale-verdict.sh and enforce-merge-strategy.sh. §Invocation Signatures: positional form confirmed. §Error Taxonomy: READY_SHA_MISSING / READY_SHA_FETCH_FAILED / CHECK_STALE_VERDICT_ERROR named codes. POLICY 14 5-leg parity verified.
+
+- **Story-writer leg:** S-19.01 v1.11→v1.12 (2026-07-08). §Architecture Mapping + §File Structure: hooks/ → bin/. §Invocation Signatures: positional forms. §Error Taxonomy: 4-arm named codes + exit 1. input-hash recomputed: 8ec7188 (was 8610fcc; inputs changed). POLICY 14 5-leg parity verified.
+
+**(4) STATE-MANAGER LEG — 4-INDEX BUMPS.**
+
+ARCH-INDEX v2.90→v2.91 (ADR-030 row v1.0→v1.1 annotation). BC-INDEX v3.76→v3.77 (BC-5.42.001 row v1.1→v1.2 propagation). STORY-INDEX v4.152→v4.153 (S-19.01 row v1.11→v1.12; input-hash 8610fcc→8ec7188). VP-INDEX v2.53 UNCHANGED (no VP amendments). D-494 4-index gate: BC v3.77 / VP v2.53 / STORY v4.153 / ARCH v2.91 — zero FAIL.
+
+**(5) HUMAN DIRECTIVE — RE-CONVERGENCE REQUIRED.**
+
+Operator directive: E-19 adversary cascade MUST re-run to re-convergence (BC-5.39.001 3-CLEAN streak RESET 0/3) before W1 TDD dispatch. W1 authorization is CONTINGENT on re-convergence — the S-19.01 v1.12 amendments change the authoritative interface spec; the 3-CLEAN streak must be established against the v1.12 surface. D-774's "artifacts FROZEN" superseded for S-19.01 slice only; all other W1 artifacts remain frozen. Next step: E-19 adversary pass-22 (fresh context; perimeter = D-775 delta: ADR-030 v1.1 + BC-5.42.001 v1.2 + S-19.01 v1.12).
+
+**(6) LESSON CODIFICATION.**
+
+L-BB-fresh-context-perimeter-validation-catches-cross-artifact-interface-drift [process-gap] codified: 21 within-perimeter adversary passes converged while ADR-030↔BC-5.42.001↔S-19.01 interface parity (path/signature/prefix/exit-code) went unchecked. A fresh-context consistency check at the wave-boundary (ADR↔BC↔story interface parity dimension) catches this class of drift before TDD dispatch. Lesson tagged [codified], cites D-775.
+
+Parent-commit: e80f7856 (D-774-sha-patch, factory-artifacts HEAD before this burst).
+
+### Phase
+
+D-775-W1-VALIDATION-FIX-BURST-CLOSED
+
+### Date
+
+2026-07-08

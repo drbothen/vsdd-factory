@@ -2,7 +2,7 @@
 document_type: architecture-decision-record
 level: L3
 adr_id: ADR-030
-version: "1.0"
+version: "1.1"
 title: "ADR-030: pr-manager merge-operation integrity enforcement"
 status: accepted
 date: 2026-07-06
@@ -24,7 +24,9 @@ subsystems_affected:
   - SS-05
   - SS-07
   - SS-10
-last_amended: "2026-07-06 (v1.0) — initial authorship (E-19 adv-P3 F-P3-015 close-out: no existing ADR covers pr-manager merge-operation integrity domain; D-749, D-750, F-P2-002 transcribed; three-component enforcement architecture decided)."
+last_amended: "2026-07-08 (v1.1) — W1-validation adjudication (architect): F-W1V-001 → bin/ confirmed (orchestrator-invoked; not dispatcher-fired; bin/ precedent factory-lock-write.sh/factory-cas-push.sh); F-W1V-002 → positional signatures + BC diagnostic wording adopted (spec-wins discipline); F-W1V-003 → named error codes (READY_SHA_FETCH_FAILED, READY_SHA_MISSING per BC test vectors) + CHECK_STALE_VERDICT_ERROR catch-all retained for non-BC-asserted arms; F-W1V-004 → exit 1 (aligns S-19.01 AC-002/RG-003; satisfies BC non-zero). [Prior: 2026-07-06 (v1.0) — initial authorship (E-19 adv-P3 F-P3-015 close-out: no existing ADR covers pr-manager merge-operation integrity domain; D-749, D-750, F-P2-002 transcribed; three-component enforcement architecture decided).]"
+modified:
+  - "2026-07-08 (v1.1)"
 ---
 
 # ADR-030: pr-manager merge-operation integrity enforcement
@@ -113,13 +115,25 @@ orchestrator before acting on any READY verdict. The design is a bin tool rather
 a hook because `covered_sha` comes from the pr-manager's output verdict, not from a
 structured SubagentStop payload field accessible to a WASM gate at hook time.
 
-**Invocation:** `check-stale-verdict.sh --pr <PR_NUMBER_OR_URL> --covered-sha <SHA>`
+**Invocation:** `check-stale-verdict.sh <pr_number> <covered_sha>`
 
-**Behavior:** Calls `gh pr view <PR_NUMBER_OR_URL> --json headRefOid`, compares live
-HEAD SHA against `<covered_sha>`. Match: exit 0. Mismatch: prints
-`STALE_READY_VERDICT: covered_sha=<SHA> live_head=<LIVE_SHA>` to stderr, exits 2.
-All error paths (gh unavailable, PR not found, missing arg, JSON parse failure) exit 2
-with a `CHECK_STALE_VERDICT_ERROR:` prefix (fail-closed: treat as stale).
+**Behavior:** Calls `gh pr view <pr_number> --json headRefOid`, compares live HEAD SHA
+against `<covered_sha>`. Match: exit 0. Mismatch: prints
+`STALE_READY_VERDICT: PR #<pr_number> HEAD <current_sha> != covered_sha <covered_sha>`
+to stderr, exits 1 (fail-closed). Error-path taxonomy (all exit 1, fail-closed):
+
+1. Missing or malformed `covered_sha` argument (not exactly 40 lowercase hex characters):
+   emits `READY_SHA_MISSING: covered_sha is malformed` on stderr (BC-5.42.001 Invariant 5
+   test vector; bats-asserted).
+2. `gh pr view` network failure, auth failure, or PR not found: emits
+   `READY_SHA_FETCH_FAILED: gh pr view failed for PR #<pr_number>` on stderr
+   (BC-5.42.001 EC-001 verbatim; bats-asserted).
+3. PR is closed or merged (non-open state): emits
+   `CHECK_STALE_VERDICT_ERROR: PR #<pr_number> is <state> (expected: open)` on stderr
+   (BC-5.42.001 EC-003; BC names no canonical prefix for this arm —
+   `CHECK_STALE_VERDICT_ERROR` catch-all applies).
+4. JSON parse failure or other unclassified failure: emits
+   `CHECK_STALE_VERDICT_ERROR: <description>` on stderr.
 
 **Orchestrator obligation:** The orchestrator MUST invoke `check-stale-verdict.sh` and
 verify exit 0 before invoking `gh pr merge` for any PR with a READY verdict. Merging
@@ -130,13 +144,13 @@ without this check is a BC-5.42.001 violation.
 A new shell script `plugins/vsdd-factory/bin/enforce-merge-strategy.sh` is added as an
 SS-10 CLI bin tool. It wraps `gh pr merge` and enforces `--merge` for release-branch PRs.
 
-**Invocation:** `enforce-merge-strategy.sh --pr <PR_NUMBER_OR_URL> [--merge|--squash|--rebase] [--auto] [--delete-branch]`
+**Invocation:** `enforce-merge-strategy.sh <pr_number> [--merge|--squash|--rebase]`
 
 **Behavior:**
-1. Calls `gh pr view <PR_NUMBER_OR_URL> --json headRefName` to obtain the branch name.
+1. Calls `gh pr view <pr_number> --json headRefName` to obtain the branch name.
 2. If branch matches `^release/v`: if `--squash` or `--rebase` was passed, prints
-   `RELEASE_PR_SQUASH_FORBIDDEN: PR branch=<BRANCH> requires --merge; --squash/--rebase are forbidden for release PRs (RELEASING.md + BC-5.42.001)`
-   and exits 2. Otherwise forces `--merge` regardless of flags passed.
+   `RELEASE_PR_SQUASH_FORBIDDEN: branch <branch_name> requires --merge per RELEASING.md`
+   to stderr and exits 1. Otherwise forces `--merge` regardless of flags passed.
 3. If branch does NOT match `^release/v`: passes strategy flags through unchanged.
 4. Invokes `gh pr merge` with final flags; propagates gh's exit code.
 
@@ -284,3 +298,10 @@ Tools and Bin) — `check-stale-verdict.sh` and `enforce-merge-strategy.sh` bin 
 | D-750 | — | Decision log: L-BB-release-pr-squash-merge-not-mechanically-enforced |
 | F-P2-002 | — | E-19 adversary finding: LLM prompt-spec unenforceable by bats; mechanical layer required |
 | ARCH-INDEX | v2.89 | Registration of ADR-030 |
+
+## Changelog
+
+| Version | Date | Author | Change |
+|---------|------|--------|--------|
+| 1.1 | 2026-07-08 | architect | W1-validation adjudication (F-W1V-001..004). Decision 2: invocation changed from `--pr`/`--covered-sha` named flags to positional `<pr_number> <covered_sha>`; stale diagnostic aligned to BC-5.42.001 PC-2 verbatim (`STALE_READY_VERDICT: PR #<pr_number> HEAD <current_sha> != covered_sha <covered_sha>`); error taxonomy replaced flat `CHECK_STALE_VERDICT_ERROR:` catch-all with named BC codes (`READY_SHA_FETCH_FAILED` for gh failure, `READY_SHA_MISSING` for malformed arg) plus `CHECK_STALE_VERDICT_ERROR` retained for non-BC-asserted arms; exit 2 → exit 1. Decision 3: invocation changed from `--pr`/flags form to positional `<pr_number>`; `RELEASE_PR_SQUASH_FORBIDDEN` diagnostic aligned to BC wording (`branch <branch_name> requires --merge per RELEASING.md`); exit 2 → exit 1. F-W1V-001 ruling: bin/ confirmed correct (both scripts are orchestrator-invoked, not dispatcher-fired; hooks-registry.toml does not register them; precedent bin/ tools factory-lock-write.sh/factory-cas-push.sh apply). Propagation directives issued for BC-5.42.001 §Architecture Anchors and S-19.01 §Architecture Mapping + §File Structure. |
+| 1.0 | 2026-07-06 | architect | Initial authorship. E-19 adv-P3 F-P3-015 close-out: no existing ADR covers pr-manager merge-operation integrity domain; D-749, D-750, F-P2-002 transcribed; three-component enforcement architecture decided. |

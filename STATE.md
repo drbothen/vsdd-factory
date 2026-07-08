@@ -1,20 +1,20 @@
 ---
 document_type: pipeline-state
 level: ops
-version: "5.25"
+version: "5.26"
 status: draft
 producer: state-manager
-timestamp: 2026-07-08T19:30:00Z
-phase: D-774-E19-W1-STAGED-SESSION-BOUNDARY
-last_amended: "2026-07-08 (v5.25) — D-774 pass-21 CONFIRMING CLEAN; E-19 convergence RE-CERTIFIED; W1 UNCONDITIONALLY AUTHORIZED; wave-state.yaml staged; pipeline PAUSED wave-boundary. [Prior: v5.24 D-773 W1 TDD AUTHORIZED contingent pass-21; O-P16-01/O-P19-01/O-P20-01 CLOSED; STORY-INDEX v4.152 2026-07-08.]"
+timestamp: 2026-07-08T20:00:00Z
+phase: D-775-W1-VALIDATION-FIX-BURST-CLOSED
+last_amended: "2026-07-08 (v5.26) — D-775 W1-validation fix burst CLOSED; F-W1V-001..004 cross-artifact interface drift fixed; ADR-030 v1.1 + BC-5.42.001 v1.2 + S-19.01 v1.12; 4-index BC v3.77/STORY v4.153/ARCH v2.91; streak RESET 0/3; E-19 adv pass-22 required. [Prior: v5.25 D-774 pass-21 CONFIRMING CLEAN; W1 UNCONDITIONALLY AUTHORIZED; pipeline PAUSED wave-boundary 2026-07-08.]"
 inputs: []
 input-hash: "[live-state]"
 traces_to: prd.md
 project: vsdd-factory
 mode: brownfield
 pipeline: PAUSED
-"D-774. E-19 CONVERGENCE RE-CERTIFIED. develop f5242bef. main a04cb303. merged_count 98. BC-INDEX v3.76 / VP-INDEX v2.53 / STORY-INDEX v4.152 / ARCH-INDEX v2.90. trajectory-tail →0→0→0→0; pass-21 CONFIRMING CLEAN B0/H0/M0/L0; W1 UNCONDITIONALLY AUTHORIZED; wave-state.yaml staged; PIPELINE PAUSED wave-boundary. NEXT: operator clears session → /vsdd-factory:rehydrate-wave → W1 per-story TDD S-19.01/S-19.02/S-19.03."
-current_step: "D-774-E19-W1-STAGED trajectory-tail →0→0→0→0;"
+"D-775. W1-VALIDATION FIX BURST CLOSED. develop f5242bef. main a04cb303. merged_count 98. BC-INDEX v3.77 / VP-INDEX v2.53 / STORY-INDEX v4.153 / ARCH-INDEX v2.91. trajectory-tail →0→0→0→4; W1-validator GO-WITH-FIXES F-W1V-001..004 fixed; ADR-030 v1.1 + BC-5.42.001 v1.2 + S-19.01 v1.12; STREAK RESET 0/3. NEXT: E-19 adv pass-22 (fresh context; perimeter = D-775 delta). On 3-CLEAN → W1 per-story TDD S-19.01/S-19.02/S-19.03."
+current_step: "D-775-W1-VALIDATION-FIX-BURST-CLOSED trajectory-tail →0→0→0→4;"
 current_cycle: v1.0-brownfield-backfill
 dtu_required: false
 dtu_assessment: 2026-04-25
@@ -69,6 +69,7 @@ dtu_services: []
   402 lines (wc-l per cap; D-772 E-19-SPEC-CASCADE-CONVERGED burst 2026-07-08; v5.23; E-19 adv pass-20 CLEAN B0/H0/M0/L0; THIRD consecutive CLEAN; E-19 SPEC CASCADE CONVERGED 3/3 BC-5.39.001 D-761 satisfied; 29-axis re-derivation PASS; trajectory 16→14→20→9→8→5→12→11→4→7→6→6→3→6→7→2→2→0→0→0; O-P19-01+O-P20-01 accepted-with-record; HUMAN GATE; governance-only; 4-index ALL UNCHANGED BC v3.76/VP v2.53/STORY v4.151/ARCH v2.90)
   397 lines (wc-l per cap; D-773 POST-CONVERGENCE-ADJUDICATIONS burst 2026-07-08; v5.24; adjudication-burst (no adversary pass); W1 TDD AUTHORIZED contingent pass-21; O-P19-01/O-P20-01/O-P16-01 CLOSED; S-19.07 v1.8; epic v1.15; 20/20 epics POLICY 17 compliant; STORY-INDEX v4.152; E-13 traces_to sync; legacy-epic template-drift item added; trajectory-tail →2→0→0→0 UNCHANGED; PIPELINE ACTIVE; NEXT confirming pass-21)
   375 lines (wc-l per cap; D-774 E-19-CONVERGENCE-RECERTIFIED-W1-STAGED burst 2026-07-08; v5.25; pass-21 CONFIRMING CLEAN B0/H0/M0/L0; E-19 convergence RE-CERTIFIED; W1 UNCONDITIONALLY AUTHORIZED; wave-state.yaml staged; PIPELINE PAUSED wave-boundary; 4-index ALL UNCHANGED BC v3.76/VP v2.53/STORY v4.152/ARCH v2.90; trajectory-tail →0→0→0→0)
+  378 lines (wc-l per cap; D-775 W1-VALIDATION-FIX-BURST-CLOSED burst 2026-07-08; v5.26; W1-validator GO-WITH-FIXES F-W1V-001..004; ADR-030 v1.1 + BC-5.42.001 v1.2 + S-19.01 v1.12; BC v3.77/VP v2.53/STORY v4.153/ARCH v2.91; streak RESET 0/3; NEXT E-19 adv pass-22)
 -->
 
 # Pipeline State: vsdd-factory
@@ -84,8 +85,8 @@ dtu_services: []
 | **Mode** | brownfield-onboarding |
 | **Language** | Rust + Bash + Markdown |
 | **Started** | 2026-04-25 |
-| **Last Updated** | 2026-07-08 — D-774 pass-21 CONFIRMING CLEAN B0/H0/M0/L0; E-19 convergence RE-CERTIFIED; W1 UNCONDITIONALLY AUTHORIZED; wave-state.yaml staged; PIPELINE PAUSED wave-boundary; trajectory-tail →0→0→0→0. [Prior: D-773 W1 TDD AUTHORIZED contingent pass-21; STORY-INDEX v4.152; 2026-07-08.] |
-| **Current Phase** | **D-774 E-19 CONVERGENCE RE-CERTIFIED + W1 STAGED 2026-07-08. develop f5242bef. main a04cb303. merged_count 98. 4-index BC v3.76/VP v2.53/STORY v4.152/ARCH v2.90. PIPELINE PAUSED (wave-boundary session reset staged). pass-21 CONFIRMING CLEAN B0/H0/M0/L0. trajectory →0→0→0→0. W1 UNCONDITIONALLY AUTHORIZED (human grant D-773 + confirming CLEAN D-774). wave-state.yaml staged on factory-artifacts. NEXT: operator clears session → /vsdd-factory:rehydrate-wave → W1 per-story TDD S-19.01/S-19.02/S-19.03 (parallel-eligible). artifact-path-registry.yaml → fold into S-19.04 PR (W2).** |
+| **Last Updated** | 2026-07-08 — D-775 W1-validation fix burst CLOSED; F-W1V-001..004 fixed; ADR-030 v1.1 + BC-5.42.001 v1.2 + S-19.01 v1.12; streak RESET 0/3; trajectory-tail →0→0→0→4; NEXT: E-19 adv pass-22. [Prior: D-774 pass-21 CONFIRMING CLEAN B0/H0/M0/L0; W1 UNCONDITIONALLY AUTHORIZED; trajectory-tail →0→0→0→0; 2026-07-08.] |
+| **Current Phase** | **D-775 W1-VALIDATION FIX BURST CLOSED 2026-07-08. develop f5242bef. main a04cb303. merged_count 98. 4-index BC v3.77/VP v2.53/STORY v4.153/ARCH v2.91. PIPELINE PAUSED (E-19 re-convergence required before W1 TDD). trajectory →0→0→0→4. STREAK RESET 0/3 (W1-validator F-W1V-001..004: ADR-030 v1.1 + BC-5.42.001 v1.2 + S-19.01 v1.12 applied). W1 authorization CONTINGENT on re-convergence. NEXT: E-19 adversary pass-22 (fresh context; perimeter = D-775 delta). On 3-CLEAN → W1 per-story TDD S-19.01/S-19.02/S-19.03 (parallel-eligible). artifact-path-registry.yaml → fold into S-19.04 PR (W2).** |
 | **Current Cycle** | v1.0-brownfield-backfill |
 
 ## Phase Progress
@@ -164,7 +165,7 @@ dtu_services: []
 | Cycle | Type | Status | Notes |
 |-------|------|--------|-------|
 | F-block-ai-attribution-message-file-arm | feature | F3 COMPLETE — F4 READY | F1+F2+F3 done 2026-05-12; 2 stories ready; E-16 under SS-07/SS-04; milestone v1.0.0-rc.17 |
-| v1.0-brownfield-backfill | brownfield | **D-774 E-19-CONVERGENCE-RECERTIFIED 2026-07-08; PIPELINE PAUSED wave-boundary. develop f5242bef; main a04cb303; merged_count 98; BC-INDEX v3.76; VP-INDEX v2.53; STORY-INDEX v4.152; ARCH-INDEX v2.90; pass-21 CONFIRMING CLEAN B0/H0/M0/L0; trajectory-tail →0→0→0→0; W1 UNCONDITIONALLY AUTHORIZED; wave-state.yaml staged; E-19 spec cascade FULLY CLOSED (21 passes). NEXT: operator clears session → /vsdd-factory:rehydrate-wave → W1 TDD S-19.01/02/03.** | rc.22 100% COMPLETE D-750; D-619..D-774 (see decision-log.md for full range); develop f5242bef; main a04cb303. PAUSED wave-boundary (D-774). |
+| v1.0-brownfield-backfill | brownfield | **D-775 W1-VALIDATION-FIX-BURST-CLOSED 2026-07-08; PIPELINE PAUSED (re-convergence required). develop f5242bef; main a04cb303; merged_count 98; BC-INDEX v3.77; VP-INDEX v2.53; STORY-INDEX v4.153; ARCH-INDEX v2.91; streak RESET 0/3; trajectory-tail →0→0→0→4; W1-validator F-W1V-001..004 fixed (ADR-030 v1.1 + BC-5.42.001 v1.2 + S-19.01 v1.12). NEXT: E-19 adv pass-22 (fresh context) → 3-CLEAN → W1 TDD S-19.01/02/03.** | rc.22 100% COMPLETE D-750; D-619..D-775 (see decision-log.md for full range); develop f5242bef; main a04cb303. PAUSED re-convergence (D-775). |
 | v1.0-feature-engine-discipline-pass-1 | feature | **PAUSED** | F5 pass-75 adversary complete D-510 2026-05-27; META-LEVEL-30 CANDIDATE-CONFIRMED; trajectory →9→9→9→11. Full-cycle trajectory (75 values ending): →9→9→9→9→11. |
 | v1.0-feature-plugin-async-semantics-pass-1 | feature | CLOSED | All PRs merged; rc.14 shipped |
 
@@ -174,6 +175,7 @@ dtu_services: []
 
 | ID | Decision | Summary | Phase | Date |
 |----|----------|---------|-------|------|
+| D-775 | W1-validation fix burst CLOSED. Fresh-context perimeter validator returned GO-WITH-FIXES on S-19.01: F-W1V-001 (BLOCKER) bin/ vs hooks/ path conflict; F-W1V-002 (HIGH) positional vs flag invocation-signature; F-W1V-003 (HIGH) 4-arm named error codes; F-W1V-004 (MEDIUM) exit 1 disambiguation. Three specialist legs applied: architect ADR-030 v1.0→v1.1; product-owner BC-5.42.001 v1.1→v1.2; story-writer S-19.01 v1.11→v1.12. HUMAN DIRECTIVE: E-19 adversary cascade MUST re-convergence (BC-5.39.001 3-CLEAN) before W1 TDD dispatch. W1 authorization CONTINGENT on re-convergence. streak RESET 0/3. 4-index: BC v3.77/VP v2.53/STORY v4.153/ARCH v2.91. Parent-commit: e80f7856. | W1-VALIDATION FIX BURST CLOSED; streak RESET 0/3; 4-index updated; pass-22 NEXT | D-775-W1-VALIDATION-FIX-BURST-CLOSED | 2026-07-08 |
 | D-774 | Pass-21 CONFIRMING CLEAN B0/H0/M0/L0. E-19 spec cascade convergence RE-CERTIFIED per D-636/D-637 precedent. W1 TDD dispatch UNCONDITIONALLY AUTHORIZED (human grant D-773 + confirming CLEAN D-774). Wave-boundary session-reset staged: wave-state.yaml authored for W1 (BC-6.24.001); operator clears session + runs /vsdd-factory:rehydrate-wave before W1 dispatch (ADR-026 §Decision 3). W1 = S-19.01/S-19.02/S-19.03 (parallel-eligible; per-story-delivery workflow). W2 = S-19.04/S-19.05/S-19.06 (gated). W3 = S-19.07 (gated). artifact-path-registry.yaml → fold into S-19.04 PR (W2 kickoff checklist note). 4-index ALL UNCHANGED: BC v3.76/VP v2.53/STORY v4.152/ARCH v2.90. Parent-commit: cc5838f7. | CONVERGENCE RE-CERTIFIED; W1 AUTHORIZED; wave-state.yaml staged; PIPELINE PAUSED wave-boundary | D-774-E19-CONVERGENCE-RECERTIFIED-W1-STAGED | 2026-07-08 |
 | D-773 | Post-convergence adjudications applied. W1 TDD AUTHORIZED contingent confirming pass-21 (D-636/D-637 precedent — post-convergence spec edits require one confirming pass). O-P19-01 CLOSED: STORY-INDEX W2/W3 summary clauses use compact cross-wave-only dep enumeration; intra-wave deps omitted; authoritative full enumeration = story rows + epic mermaid; convention note added to STORY-INDEX after E-19 DAG wave schedule line. O-P20-01 CLOSED: S-19.07 v1.7→v1.8 — AC-001 Gate B block-comment strip codified (F-P9-003: sed -E chain prepended to line-comment filter; D-766 §4 two-run discriminating evidence inline). O-P16-01 CLOSED: All 20 epic files backfilled with modified[]+last_amended per POLICY 17; legacy epics WITHOUT version bumps (preserve content history). STORY-INDEX v4.151→v4.152 (6 legacy epic header version syncs; O-P19-01 convention note; S-19.07 v1.8 row sync; E-19 v1.15 header sync). E-13 traces_to mechanical filename sync (ADR-016-artifact-path-registry-sot.md). New drift item: 6 legacy epics have pre-existing template drift (missing Acceptance Criteria + Dependencies External sections); anchored to next maintenance sweep. NEXT: confirming adversary pass-21 (fresh context; perimeter S-19.07 v1.8/epic v1.15/STORY-INDEX v4.152); on CLEAN → W1 TDD S-19.01/S-19.02/S-19.03. 4-index: BC v3.76/VP v2.53/STORY v4.152/ARCH v2.90. | ADJUDICATIONS-APPLIED; confirming pass-21 NEXT | D-773-ADJUDICATIONS-APPLIED | 2026-07-08 |
 | D-772 | E-19 SPEC CASCADE CONVERGED 3/3. Pass-20 CLEAN B0/H0/M0/L0. Third consecutive CLEAN. Streak 2/3 → 3/3 — BC-5.39.001 strict-3-CLEAN satisfied; D-761 HUMAN DIRECTIVE fulfilled (zero asymptotic acceptance; zero cap). 29-axis re-derivation PASS (21 legacy + 8 novel pass-20). S-7.02 checklist: O-P16-03 → D-768 codified ✓; O-P17-02 → D-769 codified ✓; zero uncodified process gaps. O-P19-01 accepted-with-record (W2 summary dep-enumeration convention — orchestrator favors reading (b): compact cross-wave-only; adjudication options: certify-as-is + document convention OR sweep + confirming pass). O-P20-01 accepted-with-record (Gate B block-comment strip — adjudication options: accept-as-is + S-19.07 test-writer hardening note OR S-19.07 v1.8 + confirming pass-21). HUMAN CONVERGENCE GATE: E-19 W1 TDD authorization + O-P16-01/O-P19-01/O-P20-01 adjudications + artifact-path-registry.yaml disposition + merge-method ruleset + rc22 branch deletion + D-721/D-723 POST-E-18 revisit. 4-index ALL UNCHANGED: BC v3.76/VP v2.53/STORY v4.151/ARCH v2.90. Parent-commit: 39426c20. | CONVERGED 3/3; HUMAN GATE; 4-index ALL UNCHANGED; D-761 satisfied | D-772-E19-SPEC-CASCADE-CONVERGED-HUMAN-GATE | 2026-07-08 |
@@ -313,32 +315,33 @@ dtu_services: []
 - `cycles/v1.0-feature-plugin-async-semantics-pass-1/burst-log.md` | `session-checkpoints.md` | `lessons.md`
 - `cycles/v1.0-feature-engine-discipline-pass-1/burst-log.md` (adversary reviews at `S-12.03/`, `S-12.04/`, `S-12.05/` subdirs)
 
-## Session Resume Checkpoint (2026-07-08 — D-774 E-19 CONVERGENCE RE-CERTIFIED; W1 STAGED; PIPELINE PAUSED wave-boundary; develop HEAD f5242bef; main a04cb303; merged_count 98; 4-index BC v3.76/VP v2.53/STORY v4.152/ARCH v2.90; RESUME: /vsdd-factory:rehydrate-wave; origin=drbothen/vsdd-factory)
+## Session Resume Checkpoint (2026-07-08 — D-775 W1-VALIDATION FIX BURST CLOSED; streak RESET 0/3; 4-index BC v3.77/VP v2.53/STORY v4.153/ARCH v2.91; RESUME: E-19 adv pass-22 (fresh context); origin=drbothen/vsdd-factory)
 
 > **SELF-SUFFICIENT RESUME CONTEXT FOR ZERO-CONTEXT NEW SESSION OR NEW MACHINE**
-> Read this section alone to resume. Assumes ZERO prior context. PIPELINE PAUSED wave-boundary — E-19 spec cascade FULLY CLOSED; W1 UNCONDITIONALLY AUTHORIZED; wave-state.yaml staged. First action: /vsdd-factory:rehydrate-wave. All decisions, directives, and anchors stated explicitly.
+> Read this section alone to resume. Assumes ZERO prior context. PIPELINE PAUSED — W1-validation fix burst CLOSED; E-19 streak RESET 0/3; re-convergence required. First action: E-19 adversary pass-22 (fresh context). All decisions, directives, and anchors stated explicitly.
 
 ### §Position
 
-**E-19 spec cascade FULLY CLOSED. W1 staged. PIPELINE PAUSED wave-boundary (D-774).**
+**W1-validation fix burst CLOSED. E-19 streak RESET 0/3. PIPELINE PAUSED — re-convergence required (D-775).**
 
 - **Cascade:** `v1.0-brownfield-backfill`; 7 stories S-19.01..S-19.07 (45pts); epic `E-19`.
-- **Convergence status:** CONVERGED 3/3 + CONFIRMING CLEAN (pass-21 B0/H0/M0/L0). BC-5.39.001 strict-3-CLEAN per D-761 + D-636/D-637 confirming-pass precedent both satisfied. E-19 spec cascade FULLY CLOSED.
-- **W1 authorization:** UNCONDITIONAL (human grant D-773 + confirming CLEAN D-774). Wave-state.yaml staged on factory-artifacts for /vsdd-factory:rehydrate-wave.
-- **Current artifact state:** S-19.01 v1.11; S-19.02 v1.9; S-19.03 v1.12; S-19.04 v1.11; S-19.05 v1.13; S-19.06 v1.13; S-19.07 v1.8; epic v1.15; STORY-INDEX v4.152. ALL FROZEN — zero spec edits needed before W1 TDD.
-- **Repo state:** develop HEAD `f5242bef`; main HEAD `a04cb303`; merged_count 98; factory-artifacts HEAD = D-774 burst (SHA in Active Branches after SHA-patch). v1.0.0-rc.22 FULLY SHIPPED (marketplace #14; confirmed D-750). **E-10 CASCADE SEALED D-531 — do NOT resume. F5 PAUSED D-386 Option C — do NOT resume.**
+- **Convergence status:** STREAK RESET 0/3. W1-validator fresh-context perimeter check returned GO-WITH-FIXES (F-W1V-001 BLOCKER + F-W1V-002 HIGH + F-W1V-003 HIGH + F-W1V-004 MEDIUM). Fix burst applied (ADR-030 v1.1 + BC-5.42.001 v1.2 + S-19.01 v1.12). E-19 adversary pass-22 required for re-convergence per D-775 HUMAN DIRECTIVE.
+- **W1 authorization:** CONTINGENT on re-convergence (3-CLEAN E-19 adversary cascade). On 3-CLEAN: dispatch W1 TDD per D-773/D-774 authorization.
+- **Current artifact state:** S-19.01 v1.12 (amended: bin/ + positional signatures + named error codes + exit 1); S-19.02 v1.9; S-19.03 v1.12; S-19.04 v1.11; S-19.05 v1.13; S-19.06 v1.13; S-19.07 v1.8; ADR-030 v1.1; BC-5.42.001 v1.2; epic v1.15; STORY-INDEX v4.153. FROZEN at D-775 — zero spec edits needed before pass-22.
+- **Repo state:** develop HEAD `f5242bef`; main HEAD `a04cb303`; merged_count 98; factory-artifacts HEAD = D-775 burst (SHA in Active Branches after SHA-patch). v1.0.0-rc.22 FULLY SHIPPED (marketplace #14; confirmed D-750). **E-10 CASCADE SEALED D-531 — do NOT resume. F5 PAUSED D-386 Option C — do NOT resume.**
 
 ### §Convergence Counter
 
-- **Current streak:** **3/3 + CONFIRMING = FULLY CLOSED** (passes 18/19/20 CLEAN + pass-21 confirming CLEAN; full trajectory 16→14→20→9→8→5→12→11→4→7→6→6→3→6→7→2→2→0→0→0→0). Floor 0 for last 4 passes.
-- **HUMAN DIRECTIVE (D-761, carry-across-CLEAR):** SATISFIED. D-636/D-637 confirming-pass satisfied. E-19 cascade CLOSED.
-- **Decision-log SoT:** `cycles/v1.0-brownfield-backfill/decision-log.md` D-001..D-774 (see decision-log.md for full range).
+- **Current streak:** **0/3 RESET** (W1-validator F-W1V-001..004 triggered fix burst D-775; trajectory tail →0→0→0→4; full trajectory 16→14→20→9→8→5→12→11→4→7→6→6→3→6→7→2→2→0→0→0→0→4). Pass-22 is streak-0 pass — 3 consecutive CLEANs required from this point.
+- **HUMAN DIRECTIVE (D-775, carry-across-CLEAR):** E-19 adversary cascade MUST re-run to re-convergence (BC-5.39.001 3-CLEAN) before W1 TDD dispatch. W1 authorization CONTINGENT on re-convergence.
+- **HUMAN DIRECTIVE (D-761, carry-across-CLEAR):** strict-3-CLEAN no-cap applies to all E-19 adversary passes including post-D-775 re-convergence streak.
+- **Decision-log SoT:** `cycles/v1.0-brownfield-backfill/decision-log.md` D-001..D-775 (see decision-log.md for full range).
 
 ### §Resume Actions (EXACT ORDER — start here on session resume)
 
-**(1) Run /vsdd-factory:rehydrate-wave.** wave-state.yaml is staged on factory-artifacts. This loads W1 context (S-19.01/S-19.02/S-19.03 spec files + E-19 epic + ADR-030/ADR-025 + STATE.md). FIRST ACTION on session resume — no other work before this.
+**(1) E-19 adversary pass-22 (fresh context; Iron Law).** Perimeter = D-775 delta: ADR-030 v1.1 + BC-5.42.001 v1.2 + S-19.01 v1.12. Streak-reset pass — 3 consecutive CLEANs from here required before W1 TDD dispatch. On NOT-CLEAN: fix burst + streak-counter reset + pass-23.
 
-**(2) Dispatch W1 per-story TDD (S-19.01 + S-19.02 + S-19.03, parallel-eligible).** Use /vsdd-factory:worktree-manage to create per-story worktrees. Per-story-delivery workflow per CLAUDE.md §orchestrator-per-story-delivery: stubs → Red Gate failing tests → TDD green → LOCAL adversary 3-CLEAN (BC-5.39.001) → demo-recorder per-AC → push → pr-manager 9-step PR cycle → squash-merge → state-manager post-merge burst.
+**(2) On 3-CLEAN re-convergence: dispatch W1 per-story TDD (S-19.01 + S-19.02 + S-19.03, parallel-eligible).** Use /vsdd-factory:worktree-manage to create per-story worktrees. Per-story-delivery workflow per CLAUDE.md §orchestrator-per-story-delivery: stubs → Red Gate failing tests → TDD green → LOCAL adversary 3-CLEAN (BC-5.39.001) → demo-recorder per-AC → push → pr-manager 9-step PR cycle → squash-merge → state-manager post-merge burst.
 
 **(3) W2 kickoff note.** After all 3 W1 stories MERGED: dispatch W2 (S-19.04/S-19.05/S-19.06). S-19.06 gated on S-19.03 MERGED + S-19.04 MERGED. **W2 checklist item:** fold `plugins/vsdd-factory/config/artifact-path-registry.yaml` (develop-dirty) into S-19.04 PR before merge (D-766 §7 / D-774).
 
@@ -359,17 +362,17 @@ dtu_services: []
 - **L-BB-merge-requires-direct-human-action [process-gap]:** pr-manager will NOT accept orchestrator-relayed merge approval — only the user's own direct action.
 - **D-723 carry-across-CLEAR:** After E-19 completes, revisit (a) ADR-015/Router-multi-sink/WASM/OTel AND (b) S-3.04 status.
 
-### §4-Index at D-774 Closure
+### §4-Index at D-775 Closure
 
 | Index | Version | Last Change |
 |-------|---------|-------------|
-| BC-INDEX | v3.76 | D-763 (BC-1.17.001 v1.2); UNCHANGED D-764..D-774 (see decision-log.md for full range) |
+| BC-INDEX | v3.77 | D-775 (BC-5.42.001 v1.2 §Architecture Anchors hooks/ → bin/ propagation per ADR-030 adjudication F-W1V-001) |
 | VP-INDEX | v2.53 | D-756 (VP-079 v1.19); UNCHANGED D-757..D-774 (see decision-log.md for full range) |
-| STORY-INDEX | v4.152 | D-773 (6 legacy epic header syncs; O-P19-01 convention note; S-19.07 v1.8 row sync; E-19 v1.15 header sync); UNCHANGED D-774 |
-| ARCH-INDEX | v2.90 | D-762 (ADR-025 v1.10); UNCHANGED D-763..D-774 (see decision-log.md for full range) |
+| STORY-INDEX | v4.153 | D-775 (S-19.01 v1.12 §Architecture Mapping + §File Structure hooks/ → bin/; input-hash 8610fcc→8ec7188) |
+| ARCH-INDEX | v2.91 | D-775 (ADR-030 v1.1: bin/ path confirmed; positional signatures; named error codes; exit 1) |
 | L2-INDEX | v1.0.14 | D-754 (CAP-033 NEW); UNCHANGED D-755..D-774 (see decision-log.md for full range) |
 
-4-index verification gate (literal-shell): `grep "^version:" .factory/specs/behavioral-contracts/BC-INDEX.md .factory/specs/verification-properties/VP-INDEX.md .factory/stories/STORY-INDEX.md .factory/specs/architecture/ARCH-INDEX.md` → BC-INDEX: "3.76" / VP-INDEX: "2.53" / STORY-INDEX: "4.152" / ARCH-INDEX: "2.90".
+4-index verification gate (literal-shell): `grep "^version:" .factory/specs/behavioral-contracts/BC-INDEX.md .factory/specs/verification-properties/VP-INDEX.md .factory/stories/STORY-INDEX.md .factory/specs/architecture/ARCH-INDEX.md` → BC-INDEX: "3.77" / VP-INDEX: "2.53" / STORY-INDEX: "4.153" / ARCH-INDEX: "2.91".
 
 Critical SHAs: develop `f5242bef`; main `a04cb303`; factory-artifacts HEAD = D-774 burst (see Active Branches after SHA-patch). v1.0.0-rc.22 at `e4285fe5`. GitHub origin: `drbothen/vsdd-factory`. total_bcs 1,977.
 
