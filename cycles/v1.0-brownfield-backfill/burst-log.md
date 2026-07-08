@@ -11867,3 +11867,137 @@ E-19 adversarial cascade streak: **0/3** (pass-10 NOT-CLEAN). HUMAN DIRECTIVE: s
 ### Factory-artifacts Commits
 
 - `9555370c` — state(D-761): E-19 adv pass-10 NOT-CLEAN closed — fix burst complete; strict-3-CLEAN directive recorded (v5.12) (2026-07-07; 12 files; +492/-115; pushed 43d77425..9555370c factory-artifacts)
+
+---
+
+## D-767 — E-19 ADV PASS-15 FIX CLOSURE burst — 2026-07-08
+
+### Parent-commit
+
+`389f0480` — state(D-766-sha-patch-3): Active Branches → addendum HEAD 2a54988e (factory-artifacts HEAD at burst start)
+
+### Adversary Verdict (D-448(a) source-attestation parity with adv-E19-pass-15.md Part A)
+
+E-19 adversarial pass-15 verdict: **NOT-CLEAN B0/H6/M1/L0** (7 findings + 5 observations; streak 0/3). Trajectory 16→14→20→9→8→5→12→11→4→7→6→6→3→6→7.
+
+Part A (pass-14 fix verification): Pass-14 NOT-CLEAN B0/H3/M2/L1 (6 findings + 6 observations; closed D-765; story-writer single leg). All 6 findings F-P14-001..F-P14-006 verified CLOSED by artifact evidence at pass-15 perimeter entry:
+
+- **F-P14-001 CLOSED** (STORY-INDEX v4.147 delivery-summary hashes S-19.02 → 6beeac8 / S-19.07 → 46c2ffa; "All 7 distinct." re-derived)
+- **F-P14-002 CLOSED** (STORY-INDEX v4.147 E-19 section header updated to v1.12)
+- **F-P14-003 CLOSED** (S-19.06 v1.11 AC-003 intrinsic-exit `[ -z "$(grep -oE ...)"]` form)
+- **F-P14-004 CLOSED** (epic v1.12 "seven subsystems" in Placement Justification)
+- **F-P14-005 CLOSED** (epic v1.12 BC-3.08.001 Out-of-Scope attribution corrected to "pass-3" at 2 sites)
+- **F-P14-006 CLOSED** (S-19.06 v1.11 Gate 2 clause (i) ERE form `grep -E`)
+
+Part B findings (pass-15 NOT-CLEAN):
+- **F-P15-001 HIGH** — S-19.06 AC-007 Gate 2 clause (iii) structurally unsatisfiable: `grep -B1 'pub fn read_prefix' ffi.rs | grep -q '#\[cfg('` fails on faithful one-outer-cfg extern block mirror (line before `read_prefix` is prior function, not cfg attr).
+- **F-P15-002 HIGH** — S-19.06 Tasks and File Structure omit `ffi.rs` entirely; Task 11 names host.rs as extern target; all three Gate 2 clauses grep ffi.rs; implementer never touches ffi.rs; all Gate 2 clauses fail at CI.
+- **F-P15-003 HIGH** — S-19.06 Architecture Mapping + File Structure describe host.rs with `-> i32` FFI extern; contradicts Gate 1 (`Result<Vec<u8>, HostError>` safe-wrapper), BC-1.17.001 v1.2 layering, and read_file precedent.
+- **F-P15-004 HIGH** [process-gap] — S-19.05 AC-004 ENV_SINK_FILE static leg vacuously true: `grep -B1 'ENV_SINK_FILE' | grep -vq '#\[cfg('` exits 0 unconditionally (const-declaration line never contains cfg attr); demonstrated against current cfg-gated main.rs.
+- **F-P15-005 HIGH** — same `grep -B1 X | grep -vq '#\[cfg('` idiom applied to `fn flush_sink_file`; same vacuous-true defect.
+- **F-P15-006 HIGH** — same idiom applied to T-006 `use.*Mutex` leg; same vacuous-true defect.
+- **F-P15-007 MED** — S-19.03 AC-006 `set -o pipefail` + `grep -c` incompatibility: `grep -c` exits 1 on zero-match (V=0 happy path); pipefail propagates; gate fails when V=0 is the correct outcome.
+
+5 observations: O-P15-01 BC frontmatter `cycle:` drift (Drift Item recorded); O-P15-02 EAC-006/007 numbering gap (POLICY 1 record); O-P15-03 Task-2 enumeration depth (covered by F-P15-002 fix); O-P15-04 S-19.01 AC-004 CI job-presence approximate vs literal YAML key; O-P15-05 markdown pipe-escape convention sweep.
+
+Source attestation (D-448(a)): above faithfully describes `adv-E19-pass-15.md` Part A (F-P14-001..F-P14-006 all CLOSED; 6/6 confirmed) and Part B finding set (F-P15-001..F-P15-007; B0/H6/M1/L0; 7 findings; 5 observations). No divergence from Part A.
+
+### Files Touched (Dim-1)
+
+**factory-artifacts branch (this D-767 burst — single commit per TD-VSDD-053):**
+- `cycles/v1.0-brownfield-backfill/decision-log.md` — D-767 block appended (after D-766 entry; orchestrator verification results; residual completions O-P15-04/05; 4-index BC v3.76/VP v2.53/STORY v4.149/ARCH v2.90)
+- `stories/S-19.01-pr-manager-hardening.md` — v1.10→v1.11 (O-P15-04: AC-004 anchored exact-YAML-key form `grep -qE '^  bats-darwin-leg-macos:$'`; POLICY 11 positive-control fixture; D-766 §4 gate-execution evidence inline; POLICY 14 quintuple parity)
+- `stories/STORY-INDEX.md` — v4.148→v4.149 (S-19.01 row v1.10→v1.11; O-P15-05 sweep-clean annotation in last_amended + changelog)
+- `STATE.md` — v5.17→v5.18 (D-767 banner + frontmatter advance + D-767 Decisions Log row + Concurrent Cycles v1.0-brownfield-backfill ACTIVE + Last Updated + Current Phase + Session Resume Checkpoint FULL REFRESH D-767 + SIZE BUDGET wc-l; pipeline PAUSED→ACTIVE)
+- `cycles/v1.0-brownfield-backfill/burst-log.md` — D-767 entry appended (this file)
+- `logs/dispatcher-internal-2026-07-07.jsonl` — telemetry carry-neutral (pre-existing dirty; included per 16c673d6 precedent)
+- `logs/dispatcher-internal-2026-07-08.jsonl` — telemetry carry-neutral (new today; included per precedent)
+- `sidecar-learning.md` — carry-neutral (pre-existing dirty)
+
+**NOT committed in this burst (develop/main unchanged):**
+- No code changes to develop; develop HEAD f5242bef UNCHANGED; merged_count 98 UNCHANGED; total_bcs 1,977 UNCHANGED
+- BC v3.76 / VP v2.53 / ARCH v2.90 UNCHANGED (4-index: STORY only)
+
+### Codifications (Dim-6)
+
+- **D-767** decision-log block codified: E-19 adv pass-15 fix closure; orchestrator full-sweep verification PASS; residuals O-P15-04 (S-19.01 v1.11 anchored CI gate + POLICY 11 fixture) + O-P15-05 (full pipe-escape sweep ALL CLEAN); STORY-INDEX v4.149; streak 0/3; NEXT adv pass-16; pipeline ACTIVE.
+- **S-19.01 v1.11**: AC-004 CI leg hardened to anchored YAML-key form `grep -qE '^  bats-darwin-leg-macos:$'`; POLICY 11 positive-control fixture; gate-execution evidence per D-766 §4.
+- **STORY-INDEX v4.149**: S-19.01 row v1.11; O-P15-05 sweep-clean annotation.
+- **STATE.md v5.18**: version + pipeline + phase + banner + current_step + Decisions Log D-767 row + Concurrent Cycles ACTIVE + Session Resume Checkpoint refresh.
+
+### Dim-2 (4-Index Parity + O-P15-04 Gate — D-449(a) literal-shell)
+
+4-index version gate:
+```bash
+grep "^version:" \
+  .factory/specs/behavioral-contracts/BC-INDEX.md \
+  .factory/specs/verification-properties/VP-INDEX.md \
+  .factory/stories/STORY-INDEX.md \
+  .factory/specs/architecture/ARCH-INDEX.md
+```
+Captured stdout (working tree, post-story-writer residual completion, pre-commit):
+```
+.factory/stories/STORY-INDEX.md:version: "4.149"
+.factory/specs/behavioral-contracts/BC-INDEX.md:version: "3.76"
+.factory/specs/verification-properties/VP-INDEX.md:version: "2.53"
+.factory/specs/architecture/ARCH-INDEX.md:version: "2.90"
+```
+Gate result: **PASS**. BC-INDEX v3.76 (UNCHANGED), VP-INDEX v2.53 (UNCHANGED), STORY-INDEX v4.149 (BUMPED D-767), ARCH-INDEX v2.90 (UNCHANGED).
+
+O-P15-04 anchored YAML-key gate (literal-shell — D-449(a); confirms fix landed in S-19.01):
+```bash
+grep -c "grep -qE '\^  bats-darwin-leg-macos:" \
+  .factory/stories/S-19.01-pr-manager-hardening.md
+```
+Captured stdout:
+```
+3
+```
+Gate result: **PASS** — anchored form present ≥1 time in S-19.01 body (3 occurrences: AC text + positive-control fixture + gate-execution evidence block). O-P15-04 fix confirmed in body.
+
+D-449(a) current_step gate (literal-shell — run against STATE.md after v5.18 update):
+```bash
+grep -oE "^current_step:.*$" .factory/STATE.md
+```
+Captured stdout:
+```
+current_step: "D-767-E19-PASS-15-CLOSED trajectory-tail →6→3→6→7;"
+```
+Gate result: **PASS** — current_step cites D-767 (latest D-NNN in body); D-443(a) satisfied.
+
+### Dim-5 (8-Block Presence Gate — D-446(a))
+
+This burst-log entry contains all 8 D-444(c) mandatory blocks:
+1. **Parent-commit**: `389f0480` (state(D-766-sha-patch-3))
+2. **Adversary verdict**: NOT-CLEAN B0/H6/M1/L0; 7 findings F-P15-001..F-P15-007; 5 observations O-P15-01..05; Part A: F-P14-001..006 all CLOSED; streak 0/3
+3. **Files touched**: decision-log + S-19.01 + STORY-INDEX + STATE.md + burst-log + telemetry logs + sidecar-learning.md
+4. **Codifications (Dim-6)**: D-767 block + S-19.01 v1.11 + STORY-INDEX v4.149 + STATE.md v5.18
+5. **Dim-2**: 4-index parity gate + O-P15-04 gate + current_step gate with literal-shell stdout above
+6. **Dim-5**: This block (8-block self-verification)
+7. **Closes**: pass-15 fix closure complete; residuals O-P15-04/05 complete; streak 0/3; NEXT adv pass-16
+8. **Factory-artifacts commits**: SHA pending — sha-patch follow-up per D-447(c)+D-449(e) after commit
+
+All 8 blocks present. Gate: **PASS**.
+
+### Dim-7 (Streak Status)
+
+E-19 adversarial cascade streak: **0/3** (pass-15 NOT-CLEAN; fix closure complete; not a new pass). HUMAN DIRECTIVE: strict BC-5.39.001 3-CLEAN protocol — no asymptotic acceptance, no cap. Three consecutive CLEAN passes required for convergence. PIPELINE ACTIVE; adv pass-16 NEXT (fresh context; reads adv-E19-pass-15.md Part A only; 20-policy rubric; per-file BC-cite preflight first).
+
+### Closes
+
+- E-19 adv pass-15 fix closure: **COMPLETE**. All 7 findings F-P15-001..007 addressed in prior sweep (D-766 burst); residuals O-P15-04/O-P15-05 completed this burst. Streak 0/3.
+- F-P15-001 HIGH AC-007 Gate 2 clause (iii) unsatisfiable: **CLOSED** — S-19.06 v1.12 awk block-containment form (D-766 burst).
+- F-P15-002 HIGH ffi.rs absent from Tasks + File Structure: **CLOSED** — S-19.06 v1.12 ffi.rs added to File Structure; Task 11 corrected (D-766 burst).
+- F-P15-003 HIGH Architecture Mapping contradicts BC-1.17.001 v1.2: **CLOSED** — S-19.06 v1.12 Architecture Mapping + File Structure corrected (D-766 burst).
+- F-P15-004/005/006 HIGH AC-004 vacuous-true static legs: **CLOSED** — S-19.05 v1.13 awk preceding-line gates (D-766 burst).
+- F-P15-007 MED AC-006 pipefail + grep-c incompatibility: **CLOSED** — S-19.03 v1.12 jq-e+wc-l form (D-766 burst).
+- O-P15-04 S-19.01 AC-004 CI leg approximate form: **CLOSED** — S-19.01 v1.11 anchored YAML-key form + POLICY 11 fixture (this burst).
+- O-P15-05 pipe-escape sweep: **CLOSED** — all 8 E-19 artifacts ALL CLEAN (this burst).
+- O-P15-01 BC frontmatter cycle drift: **OPEN** — Drift Item recorded in STATE.md; anchored to next maintenance sweep.
+- O-P15-02 EAC-006/007 numbering gap: **CLOSED** — epic v1.13 changelog note landed (D-766 burst).
+- O-P15-03 Task-2 enumeration: **CLOSED** — covered by F-P15-002 fix (D-766 burst).
+- STATE.md v5.18: **DONE**.
+
+### Factory-artifacts Commits
+
+- SHA pending — single commit `state(D-767): E-19 adv pass-15 NOT-CLEAN closed — fix sweep verified + residuals complete (v5.18)` (sha-patch follow-up per D-447(c)+D-449(e) after push)

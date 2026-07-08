@@ -1,20 +1,20 @@
 ---
 document_type: pipeline-state
 level: ops
-version: "5.17"
+version: "5.18"
 status: draft
 producer: state-manager
 timestamp: 2026-07-08T00:00:00Z
-phase: D-766-E19-PASS-15-RECEIVED-SESSION-WRAP-PAUSE
-last_amended: "2026-07-08 (v5.17) — D-766 E-19 adv pass-15 NOT-CLEAN B0/H6/M1/L0 (7 findings) RECEIVED; SESSION-WRAP-PAUSE; fix sweep pending (story-writer, not started); gate-execution-evidence rule instituted; BC frontmatter cycle drift item added; artifact-path-registry.yaml develop dirty; streak 0/3. [Prior: v5.16 D-765 E-19-ADV-PASS-14-NOT-CLEAN-CLOSED 2026-07-08.]"
+phase: D-767-E19-PASS-15-CLOSED
+last_amended: "2026-07-08 (v5.18) — D-767 E-19 adv pass-15 FIX CLOSURE; orchestrator verification PASS; residuals O-P15-04 (S-19.01 v1.11 anchored CI gate) + O-P15-05 (pipe-escape sweep ALL CLEAN); STORY-INDEX v4.149; pipeline ACTIVE; streak 0/3; NEXT adv pass-16. [Prior: v5.17 D-766 E-19-ADV-PASS-15-RECEIVED-SESSION-WRAP-PAUSE 2026-07-08.]"
 inputs: []
 input-hash: "[live-state]"
 traces_to: prd.md
 project: vsdd-factory
 mode: brownfield
-pipeline: PAUSED
-"D-766. E-19 ADV PASS-15 NOT-CLEAN RECEIVED. SESSION-WRAP-PAUSE. develop f5242bef. main a04cb303. merged_count 98. BC-INDEX v3.76 / VP-INDEX v2.53 / STORY-INDEX v4.147 / ARCH-INDEX v2.90. trajectory-tail →6→6→3→6→7; E-19 adv pass-15 NOT-CLEAN B0/H6/M1/L0 (7 findings); SESSION-WRAP-PAUSE; fix sweep PENDING (story-writer, not started); gate-execution-evidence rule; BC frontmatter cycle drift item; streak 0/3. PIPELINE PAUSED. PENDING: E-19 pass-15 fix sweep (story-writer); D-721/D-723 POST-E-18 revisit; merge-method ruleset human auth; Dependabot #192."
-current_step: "D-766-E19-PASS-15-RECEIVED-SESSION-WRAP-PAUSE trajectory-tail →6→3→6→7;"
+pipeline: ACTIVE
+"D-767. E-19 ADV PASS-15 CLOSED. PIPELINE ACTIVE. develop f5242bef. main a04cb303. merged_count 98. BC-INDEX v3.76 / VP-INDEX v2.53 / STORY-INDEX v4.149 / ARCH-INDEX v2.90. trajectory-tail →6→3→6→7; E-19 adv pass-15 fix sweep verified by orchestrator; residuals O-P15-04/05 COMPLETE; STORY-INDEX v4.149; streak 0/3. PIPELINE ACTIVE. NEXT: E-19 adv pass-16 (fresh context; strict-3-CLEAN per D-761). PENDING: D-721/D-723 POST-E-18 revisit; merge-method ruleset human auth; Dependabot #192."
+current_step: "D-767-E19-PASS-15-CLOSED trajectory-tail →6→3→6→7;"
 current_cycle: v1.0-brownfield-backfill
 dtu_required: false
 dtu_assessment: 2026-04-25
@@ -61,6 +61,7 @@ dtu_services: []
   464 lines (wc-l per cap; D-764 E-19-ADV-PASS-13-NOT-CLEAN-CLOSED burst 2026-07-07; v5.15; E-19 adv pass-13 NOT-CLEAN B0/H0/M3/L0 3 findings + 4 obs; second zero-HIGH pass; fix burst (SW leg S-19.05 v1.12/S-19.06 v1.10/epic v1.11); single finding-class remaining (gate-strength parity, swept); BC v3.76/STORY v4.146/VP v2.53/ARCH v2.90; streak 0/3; NEXT E-19 adv pass-14)
   471 lines (wc-l per cap; D-765 E-19-ADV-PASS-14-NOT-CLEAN-CLOSED burst 2026-07-08; v5.16; E-19 adv pass-14 NOT-CLEAN B0/H3/M2/L1 6 findings + 6 obs; zero spec-substance findings 2 passes; fix burst (SW leg S-19.03 v1.11/S-19.06 v1.11/S-19.07 v1.6/epic v1.12/STORY-INDEX v4.147); preflight extended hash+header parity; BC v3.76/STORY v4.147/VP v2.53/ARCH v2.90; streak 0/3; NEXT E-19 adv pass-15)
   387 lines (wc-l per cap; D-766 SESSION-WRAP-PAUSE burst 2026-07-08; v5.17; E-19 adv pass-15 NOT-CLEAN B0/H6/M1/L0 7 findings + 5 obs; SESSION-WRAP-PAUSE; fix sweep PENDING (SW, not started); gate-execution-evidence rule (D-766 §4); BC frontmatter cycle drift item (O-P15-01); 4-index UNCHANGED BC v3.76/STORY v4.147/VP v2.53/ARCH v2.90; streak 0/3; PIPELINE PAUSED)
+  [wc-l-pending] (wc-l per cap; D-767 E-19-ADV-PASS-15-CLOSED burst 2026-07-08; v5.18; fix sweep verified + residuals O-P15-04/05 COMPLETE; S-19.01 v1.11; STORY-INDEX v4.149; pipeline ACTIVE; streak 0/3; NEXT adv pass-16)
 -->
 
 # Pipeline State: vsdd-factory
@@ -76,8 +77,8 @@ dtu_services: []
 | **Mode** | brownfield-onboarding |
 | **Language** | Rust + Bash + Markdown |
 | **Started** | 2026-04-25 |
-| **Last Updated** | 2026-07-08 — D-766 SESSION-WRAP-PAUSE E-19 adv pass-15 NOT-CLEAN B0/H6/M1/L0 trajectory-tail →6→3→6→7; fix sweep COMPLETE for scoped artifacts (orchestrator spot-verified); gate-execution-evidence rule; BC frontmatter cycle drift item; artifact-path-registry.yaml develop dirty; streak 0/3; PIPELINE PAUSED. [Prior: D-765 E-19 ADV PASS-14 NOT-CLEAN CLOSED 2026-07-08.] |
-| **Current Phase** | **D-766 SESSION-WRAP-PAUSE 2026-07-08. develop f5242bef. main a04cb303. merged_count 98. 4-index BC v3.76/VP v2.53/STORY v4.148/ARCH v2.90. PIPELINE PAUSED. E-19 adv pass-15 verdict NOT-CLEAN B0/H6/M1/L0 (7 findings + 5 obs); trajectory →6→3→6→7. F-P15-001 HIGH AC-007 Gate 2 clause (iii) structurally unsatisfiable (grep -B1 cfg check vs one-outer-cfg extern block). F-P15-002 HIGH ffi.rs absent from Tasks + File Structure; Task 11 cites wrong file. F-P15-003 HIGH Architecture Mapping describes host.rs with -> i32 extern (contradicts BC-1.17.001 v1.2 layering + Gate 1). F-P15-004/005/006 HIGH [process-gap] S-19.05 AC-004 three static legs vacuously true (grep -B1 X \| grep -vq cfg idiom always exits 0). F-P15-007 MED S-19.03 AC-006 pipefail + grep-c incompatibility (V=0 happy-path exits 1 under pipefail). Gate-execution-evidence rule instituted (D-766 §4): every new/changed gate must be executed against both defect state (exit=1) and fixed fixture (exit=0) with captured output before encoding. Fix sweep COMPLETE for scoped artifacts; orchestrator spot-verified (S-19.01/03/05/06/epic/STORY-INDEX; S-19.02/04/07 not in pass-15 scope). NEXT: resume step 1 = both standing preflights + body-scoped grep verification → fix-burst closure → adv pass-16. PENDING: D-721/D-723 POST-E-18 revisit; merge-method ruleset (human auth); Dependabot #192.** |
+| **Last Updated** | 2026-07-08 — D-767 E-19 adv pass-15 FIX CLOSURE trajectory-tail →6→3→6→7; orchestrator verification PASS (version parity, body greps, BC-cite preflight, O-P10-A/B evidence chain); residuals O-P15-04 (S-19.01 v1.11 anchored CI gate) + O-P15-05 (pipe-escape sweep ALL CLEAN); STORY-INDEX v4.149; pipeline ACTIVE; streak 0/3; NEXT adv pass-16. [Prior: D-766 SESSION-WRAP-PAUSE 2026-07-08.] |
+| **Current Phase** | **D-767 E-19 ADV PASS-15 FIX CLOSURE 2026-07-08. develop f5242bef. main a04cb303. merged_count 98. 4-index BC v3.76/VP v2.53/STORY v4.149/ARCH v2.90. PIPELINE ACTIVE. trajectory →6→3→6→7. Orchestrator full-sweep verification PASS (version parity, all 7 F-P15-001..007 fixed in bodies with gate-execution evidence, zero stale grep -B1 idiom, BC-cite preflight PASS, O-P10-A/B chain PASS). Residuals: O-P15-04 S-19.01 v1.10→v1.11 (anchored exact-YAML-key CI leg + POLICY 11 fixture + D-766 §4 evidence); O-P15-05 pipe-escape sweep ALL CLEAN across all 8 E-19 artifacts. STORY-INDEX v4.149. Streak 0/3. NEXT: adv pass-16 (fresh context; reads adv-E19-pass-15.md Part A only; strict-3-CLEAN per D-761). PENDING: D-721/D-723 POST-E-18 revisit; merge-method ruleset (human auth); Dependabot #192.** |
 | **Current Cycle** | v1.0-brownfield-backfill |
 
 ## Phase Progress
@@ -140,7 +141,7 @@ dtu_services: []
 |--------------|-----|-------|
 | main | a04cb303 | rc.22 bot binary bundle commit 2026-07-03 (Release 28668124787 post-build; all 33 WASMs rebuilt, plugin.json → 1.0.0-rc.22); prior: e4285fe5 (PR #456 true-merge fix mapfile→while-read; rc.22 tag); prior: 2a4c949b (PR #455 true-merge first rc.22 release; tag later moved); prior: caf06c68 (rc.21) |
 | develop | f5242bef | rc.22 Release sync-main→develop back-merge 2026-07-03 (D-750); prior: a6cf13e8 (PR #438 D-749 registry-staged assertion) |
-| factory-artifacts | `2a54988e` | D-766 SESSION-WRAP-PAUSE 2026-07-07 (single-commit per TD-VSDD-053); addendum `2a54988e` (sweep COMPLETE + gate-evidence persisted); prior: D-765 `2af278b7` (SHA-patch `6f7a159d`) |
+| factory-artifacts | `389f0480` (pre-D-767; SHA-patch follow-up required per D-447(c)+D-449(e)) | D-767 E-19 pass-15 FIX CLOSURE (single-commit per TD-VSDD-053; SHA pending after push); prior: D-766 addendum `2a54988e`; sha-patch-3 `389f0480` |
 | feature/S-18.12 | **DELETED** (was 9cbd9439) | Merged via PR #384 ec05606a 2026-07-01 (D-744); branch deleted post-merge |
 | fix/S-18.12-detector-parity-gaps | **DELETED** (was 717686f8) | Merged via PR #385 2879f473 2026-07-01 (D-746); branch deleted at merge |
 | origin/maintenance/rc22-pre-release-cleanup | **PENDING DELETION** | Safe to delete (recovery long complete); human authorization outstanding |
@@ -153,7 +154,7 @@ dtu_services: []
 | Cycle | Type | Status | Notes |
 |-------|------|--------|-------|
 | F-block-ai-attribution-message-file-arm | feature | F3 COMPLETE — F4 READY | F1+F2+F3 done 2026-05-12; 2 stories ready; E-16 under SS-07/SS-04; milestone v1.0.0-rc.17 |
-| v1.0-brownfield-backfill | brownfield | **D-766 E-19-ADV-PASS-15-RECEIVED 2026-07-07; PIPELINE PAUSED. develop f5242bef; main a04cb303; merged_count 98; BC-INDEX v3.76; VP-INDEX v2.53; STORY-INDEX v4.148; ARCH-INDEX v2.90; E-19 adv pass-15 NOT-CLEAN B0/H6/M1/L0 (7 findings + 5 obs); fix sweep PARTIALLY STARTED (S-19.01/03/05/06/epic/STORY-INDEX; S-19.02/04/07 unchanged); streak 0/3; trajectory-tail →6→3→6→7; NEXT: complete pass-15 fix sweep then adv pass-16 (strict-3-CLEAN standing per D-761). PENDING: human GO for E-19 W1; POST-E-18 revisit (D-721/D-723); merge-method ruleset (human auth).** | rc.22 100% COMPLETE D-750; D-619..D-766 (see decision-log.md for full range); develop f5242bef; main a04cb303. **PIPELINE PAUSED (D-766).** |
+| v1.0-brownfield-backfill | brownfield | **D-767 E-19-ADV-PASS-15-CLOSED 2026-07-08; PIPELINE ACTIVE. develop f5242bef; main a04cb303; merged_count 98; BC-INDEX v3.76; VP-INDEX v2.53; STORY-INDEX v4.149; ARCH-INDEX v2.90; E-19 adv pass-15 FIX CLOSURE complete; orchestrator verification PASS; residuals O-P15-04/05 COMPLETE; S-19.01 v1.11; streak 0/3; trajectory-tail →6→3→6→7; NEXT: adv pass-16 dispatch (fresh context; strict-3-CLEAN per D-761). PENDING: human GO for E-19 W1; POST-E-18 revisit (D-721/D-723); merge-method ruleset (human auth).** | rc.22 100% COMPLETE D-750; D-619..D-767 (see decision-log.md for full range); develop f5242bef; main a04cb303. PIPELINE ACTIVE (D-767). |
 | v1.0-feature-engine-discipline-pass-1 | feature | **PAUSED** | F5 pass-75 adversary complete D-510 2026-05-27; META-LEVEL-30 CANDIDATE-CONFIRMED; trajectory →9→9→9→11. Full-cycle trajectory (75 values ending): →9→9→9→9→11. |
 | v1.0-feature-plugin-async-semantics-pass-1 | feature | CLOSED | All PRs merged; rc.14 shipped |
 
@@ -163,6 +164,7 @@ dtu_services: []
 
 | ID | Decision | Summary | Phase | Date |
 |----|----------|---------|-------|------|
+| D-767 | E-19 ADV PASS-15 FIX CLOSURE. Orchestrator full-sweep verification PASS: version parity PASS (all 15 artifacts); all 7 F-P15-001..007 fixed in bodies with gate-execution evidence; zero stale `grep -B1` idiom outside changelog history; BC-cite drift preflight PASS (per-file loop; zero stale cites; BC-1.17.001 v1.2 / BC-2.07.001 v1.2 / BC-2.02.011 v1.4 / BC-3.08.001 v1.19 / BC-4.13.001 v1.8 / BC-5.42.001 v1.1); O-P10-A/B evidence chain PASS (git-diff 16c673d6 matches changelog claims). Residuals: O-P15-04 S-19.01 v1.10→v1.11 (AC-004 anchored `grep -qE '^  bats-darwin-leg-macos:$'` + POLICY 11 fixture + D-766 §4 gate-execution evidence inline; POLICY 14 quintuple parity applied); O-P15-05 pipe-escape sweep ALL CLEAN (all 8 E-19 artifacts; zero unescaped pipes; no additional bumps). STORY-INDEX v4.148→v4.149. 4-index BC v3.76 / VP v2.53 / STORY v4.149 / ARCH v2.90 (STORY only bumped). Streak 0/3. NEXT: adv pass-16 (fresh context; reads adv-E19-pass-15.md Part A only; strict-3-CLEAN per D-761). Parent-commit: 389f0480 (D-766-sha-patch-3 factory-artifacts HEAD). | Streak 0/3; fix sweep verified + residuals complete; STORY v4.149; pipeline ACTIVE; NEXT adv pass-16 | D-767-E19-PASS-15-CLOSED | 2026-07-08 |
 | D-765 | E-19 ADV PASS-14 NOT-CLEAN B0/H3/M2/L1 (6 findings + 6 obs). Trajectory 16→14→20→9→8→5→12→11→4→7→6→6→3→6. Zero spec-substance findings 2 passes. F-P14-001 HIGH STORY-INDEX delivery-summary stale input-hashes S-19.02/S-19.07 (4 bursts behind frontmatter; POLICY 18 traceability). F-P14-002 HIGH STORY-INDEX E-19 section-header v1.9 vs epic v1.11 (2 revisions stale). F-P14-003 HIGH [process-gap] S-19.06 AC-003 inverted exit semantics — grep -q exits 0 on FAILURE case; sibling-miss of F-P7-010 intrinsic-exit fix (TD-VSDD-060). F-P14-004 MED epic "six subsystems" vs 7-entry frontmatter. F-P14-005 MED BC-3.08.001 Out-of-Scope attribution pass-2 vs pass-3 (2 sites). F-P14-006 LOW BSD-grep BRE alternation Gate 2 clause (i). 6 obs: O-P14-01 accepted-with-record (preamble-distinctness lint); O-P14-02..06 encoded. ORCHESTRATOR PREFLIGHT EXTENDED: input-hash parity + section-header version parity (2 new mandatory dimensions). Three hook catches in-burst (validate-table-cell-count/monotonicity/input-hash). Fix burst (SW single leg): S-19.03 v1.11; S-19.06 v1.11; S-19.07 v1.6; epic v1.12; STORY-INDEX v4.147. BC/VP/ARCH UNCHANGED. Parent-commit: 9a7a16b9 (D-764 SHA-patch factory-artifacts HEAD). | Streak 0/3; zero spec-substance findings 2 passes; NEXT E-19 adv pass-15 | D-765-E19-ADV-PASS-14-CLOSED | 2026-07-08 |
 | D-766 | E-19 ADV PASS-15 NOT-CLEAN B0/H6/M1/L0 (7 findings + 5 obs). Trajectory →6→3→6→7. SESSION-WRAP-PAUSE. Fix sweep PARTIALLY STARTED — story-writer made partial disk changes before session ended (S-19.01 v1.10/S-19.03 v1.12/S-19.05 v1.13/S-19.06 v1.12/epic v1.13/STORY-INDEX v4.148; S-19.02/04/07 unchanged at pass-14). F-P15-001 HIGH AC-007 Gate 2 clause (iii) structurally unsatisfiable (grep -B1 cfg check vs one-outer-cfg extern block; exits 1 on faithful mirror). F-P15-002 HIGH ffi.rs absent from Tasks + File Structure; Task 11 cites wrong file; Gate 2 greps ffi.rs in all 3 clauses. F-P15-003 HIGH Architecture Mapping + File Structure describe host.rs with -> i32 FFI extern (contradicts BC-1.17.001 v1.2 layering + Gate 1). F-P15-004/005/006 HIGH [process-gap] S-19.05 AC-004 three static legs vacuously true (grep -B1 X \| grep -vq cfg idiom; X const/fn/use line never contains cfg; always exits 0; demonstrated against current main.rs: const IS cfg-gated yet gate passes). F-P15-007 MED S-19.03 AC-006 pipefail + grep-c no-match-exits-1 incompatibility (V=0 happy-path triggers pipefail exit=1). Gate-execution-evidence rule INSTITUTED: every new/changed gate must be executed against (a) defect state (exit=1) and (b) fixed fixture (exit=0) with captured output before encoding in AC text. 4 findings trace to orchestrator brief idioms (honest attribution). New Drift Item: BC frontmatter cycle field inconsistency (O-P15-01). Dirty develop file: artifact-path-registry.yaml. 4-index UNCHANGED: BC v3.76 / VP v2.53 / STORY v4.147 / ARCH v2.90. Parent-commit: 6f7a159d (D-765 SHA-patch factory-artifacts HEAD). | Streak 0/3; SESSION-WRAP-PAUSE; fix sweep pending (story-writer); gate-execution-evidence rule; BC frontmatter cycle drift item | D-766-E19-PASS-15-RECEIVED-SESSION-WRAP-PAUSE | 2026-07-08 |
 | D-764 | E-19 ADV PASS-13 NOT-CLEAN B0/H0/M3/L0 (3 findings + 4 obs). Trajectory 16→14→20→9→8→5→12→11→4→7→6→6→3. SECOND zero-HIGH pass; single finding-class remaining: gate-strength parity. F-P13-001 MED [process-gap] S-19.05 AC-002 mixed-tool gate (jq-aware count guard + raw-grep extraction — sink-format drift path: guard passes, extraction empties, all([]) vacuous pass; O-P12-05 hardened count leg only; extraction leg was not addressed). F-P13-002 MED S-19.06 AC-007 Gate 1 grep anchors prefix only — bare `-> i32` wrapper passes while violating BC-1.17.001 v1.2 layering (return type and max_bytes param not in pattern). F-P13-003 MED Gate 2 same class — 3-param stub outside extern block would pass; wasm_import_module attr and cfg-not-wasm stub asserted in prose only, not mechanically gated. 4 obs: O-P13-01 AC-004 static legs (encoded); O-P13-02 "(representative)" hedge adjudicated (accepted); O-P13-03 restatement-surface note (accepted); O-P13-04 mermaid isolated nodes S-19.01+S-19.05 (encoded). Preamble: all 14 spec versions match; DAG bidirectionally consistent + acyclic; subsystem union exact; Phase-A/B + path_allow ground-truth aligned; five runtime premises verified in Rust source; three prior-pass bash gates hand-traced correct (quote-tolerant class, chained sed comment strip, per-entry awk isolation incl. interleaved comment block). Fix burst (story-writer single leg): S-19.05 v1.12 (AC-002 unified jq-only extraction+count via `select(.type == "plugin.abandoned")`; AC-004 ENV_SINK_FILE + flush_sink_file static defense-in-depth legs); S-19.06 v1.10 (Gate 1 full-signature grep incl. Result<Vec<u8>, HostError> return + max_bytes: u32; Gate 2 three parallel mechanical clauses — 6-param awk shape assertion, wasm_import_module attribute, cfg-not-wasm stub — each with non-zero exit); E-19 epic v1.11 (mermaid isolated nodes S-19.01+S-19.05 corrected; both connected to DAG); STORY-INDEX v4.145→v4.146. Routing note: adversary suggested PO for gate fixes; orchestrator re-routed to story-writer per standing table (story AC gates = story-writer; no BC amendment required — BC-1.17.001 v1.2 already normative). Orchestrator verification false-alarm: shell consumed `$(` in grep pattern for Gate 2 awk clause; resolved by sed direct line extraction; gates confirmed genuine. BC-INDEX v3.76 / VP-INDEX v2.53 / ARCH-INDEX v2.90 UNCHANGED. Parent-commit: 04cdd1e1 (D-763 SHA-patch factory-artifacts HEAD). | Streak 0/3; second zero-HIGH pass; NEXT E-19 adv pass-14 | D-764-E19-ADV-PASS-13-CLOSED | 2026-07-07 |
@@ -293,36 +295,31 @@ dtu_services: []
 - `cycles/v1.0-feature-plugin-async-semantics-pass-1/burst-log.md` | `session-checkpoints.md` | `lessons.md`
 - `cycles/v1.0-feature-engine-discipline-pass-1/burst-log.md` (adversary reviews at `S-12.03/`, `S-12.04/`, `S-12.05/` subdirs)
 
-## Session Resume Checkpoint (2026-07-08 — D-766 SESSION-WRAP-PAUSE; PIPELINE PAUSED; E-19 pass-15 FIX SWEEP COMPLETE; streak 0/3; develop HEAD f5242bef; main a04cb303; merged_count 98; 4-index BC v3.76/VP v2.53/STORY v4.147/ARCH v2.90; HUMAN DIRECTIVE strict-3-CLEAN no-cap; gate-execution-evidence rule (D-766 §4); RESUME: /vsdd-factory:next-step; origin=drbothen/vsdd-factory)
+## Session Resume Checkpoint (2026-07-08 — D-767 E19 PASS-15 CLOSED; PIPELINE ACTIVE; fix sweep verified + residuals complete; streak 0/3; develop HEAD f5242bef; main a04cb303; merged_count 98; 4-index BC v3.76/VP v2.53/STORY v4.149/ARCH v2.90; HUMAN DIRECTIVE strict-3-CLEAN no-cap; gate-execution-evidence rule (D-766 §4); RESUME: /vsdd-factory:next-step; origin=drbothen/vsdd-factory)
 
 > **SELF-SUFFICIENT RESUME CONTEXT FOR ZERO-CONTEXT NEW SESSION OR NEW MACHINE**
-> Read this section alone to resume. Assumes ZERO prior context. PIPELINE PAUSED — E-19 pass-15 fix sweep COMPLETE; pass-16 NEXT. All decisions, directives, and anchors stated explicitly.
+> Read this section alone to resume. Assumes ZERO prior context. PIPELINE ACTIVE — E-19 pass-15 fix sweep COMPLETE + residuals COMPLETE; adv pass-16 NEXT. All decisions, directives, and anchors stated explicitly.
 
 ### §Position
 
-**E-19 post-rc22-operator-hardening adversarial cascade (BC-5.39.001 strict-3-CLEAN). PIPELINE PAUSED (D-766 SESSION-WRAP-PAUSE).**
+**E-19 post-rc22-operator-hardening adversarial cascade (BC-5.39.001 strict-3-CLEAN). PIPELINE ACTIVE (D-767).**
 
 - **Cascade:** `v1.0-brownfield-backfill`; 7 stories S-19.01..S-19.07 (45pts); epic `E-19`.
-- **Pass 15 status:** adversary review RECEIVED AND PERSISTED at `adv-E19-pass-15.md`. Verdict NOT-CLEAN B0/H6/M1/L0 (7 findings + 5 observations). Trajectory: 16→14→20→9→8→5→12→11→4→7→6→6→3→6→7. Streak reset to 0/3.
-- **Fix sweep status:** COMPLETE for scoped artifacts; orchestrator spot-verified; full preflight verification = resume step 1. Story-writer executed full pass-15 sweep under gate-execution-evidence rule (D-766 §4); committed in D-766 burst. Updated: S-19.01 v1.10, S-19.03 v1.12 (F-P15-007 AC-006 gate: pipefail+grep-c → jq-e+wc-l), S-19.05 v1.13, S-19.06 v1.12, epic v1.13, STORY-INDEX v4.148. Unchanged (not in pass-15 scope): S-19.02 v1.9, S-19.04 v1.11, S-19.07 v1.6. Gate-execution-evidence on disk: F-P15-004/005/006 awk preceding-line gates exit 1 vs current cfg-gated main.rs (defect detected) / 0 vs cfg-removed fixture; F-P15-001 containment awks exit 1 vs current ffi.rs (read_prefix absent) / 0 vs fixture; F-P15-007 4-case evidence (empty→0, match→1, malformed→jq exit 5, path_resolution_failed excluded→0). Full evidence in D-766 decision-log entry.
-- **Repo state:** develop HEAD `f5242bef`; main HEAD `a04cb303`; merged_count 98; factory-artifacts HEAD at D-766 commit. v1.0.0-rc.22 FULLY SHIPPED (marketplace #14; confirmed D-750). **E-10 CASCADE SEALED D-531 — do NOT resume. F5 PAUSED D-386 Option C — do NOT resume.**
+- **Pass 15 status:** CLOSED. Fix sweep COMPLETE (D-766 burst); residuals COMPLETE (D-767 burst: O-P15-04 S-19.01 v1.11 anchored CI gate; O-P15-05 pipe-escape sweep ALL CLEAN). All 7 findings F-P15-001..007 addressed. Updated: S-19.01 v1.11, S-19.03 v1.12, S-19.05 v1.13, S-19.06 v1.12, epic v1.13, STORY-INDEX v4.149. Unchanged (not in scope): S-19.02 v1.9, S-19.04 v1.11, S-19.07 v1.6. Orchestrator full-sweep verification PASS (version parity, body greps, BC-cite preflight, O-P10-A/B evidence chain — all PASS). Trajectory: 16→14→20→9→8→5→12→11→4→7→6→6→3→6→7. Streak 0/3.
+- **Repo state:** develop HEAD `f5242bef`; main HEAD `a04cb303`; merged_count 98; factory-artifacts HEAD pending SHA-patch after D-767 commit. v1.0.0-rc.22 FULLY SHIPPED (marketplace #14; confirmed D-750). **E-10 CASCADE SEALED D-531 — do NOT resume. F5 PAUSED D-386 Option C — do NOT resume.**
 
 ### §Convergence Counter
 
-- **Current streak:** 0/3 (reset at pass-15 verdict: 7 findings B0/H6/M1/L0).
+- **Current streak:** 0/3 (pass-15 NOT-CLEAN; fix closure complete; awaiting pass-16 verdict).
 - **HUMAN DIRECTIVE (D-761, carry-across-CLEAR):** STRICT BC-5.39.001 3-CLEAN protocol. THREE consecutive CLEAN passes required. NO asymptotic acceptance. NO pass count cap. Deviation requires EXPLICIT HUMAN OVERRIDE only.
 - **Full trajectory (pass 1→15):** 16→14→20→9→8→5→12→11→4→7→6→6→3→6→7. Target: three consecutive 0s.
-- **Decision-log SoT:** `cycles/v1.0-brownfield-backfill/decision-log.md` D-001..D-766 (see decision-log.md for full range).
+- **Decision-log SoT:** `cycles/v1.0-brownfield-backfill/decision-log.md` D-001..D-767 (see decision-log.md for full range).
 
 ### §Resume Actions (EXACT ORDER — start here on session resume)
 
-**(1) Orchestrator re-verifies landed sweep.** Spot-verification was done pre-wrap; full verification deferred to session resume. Run body-scoped greps + both standing preflights: (a) BC-cite drift preflight (per-file loop; cross-file awk FORBIDDEN; zero stale live cites) AND (b) O-P10-A/B evidence chain (literal grep stdout + git-diff excerpt per fix closure). Sweep files: S-19.01 v1.10, S-19.03 v1.12, S-19.05 v1.13, S-19.06 v1.12, epic v1.13, STORY-INDEX v4.148 (S-19.02/04/07 not in pass-15 scope). Verify all 7 findings addressed per D-766 decision-log gate-evidence record.
+**(1) Dispatch adv pass-16** (fresh context; reads adv-E19-pass-15.md Part A ONLY; 20-policy rubric; per-file BC-cite preflight first; strict-3-CLEAN no-cap per D-761; D-766 §4 gate-execution-evidence rule active).
 
-**(2) Pass-15 fix closure burst.** Persist pass-15 fix records: burst-log pass-15 entry (D-444(c) 8 blocks), 4-index bumps as applicable, STATE.md phase advance.
-
-**(3) Dispatch adv pass-16** (fresh context; reads adv-E19-pass-15.md Part A ONLY; 20-policy rubric; strict-3-CLEAN; per-file preflight first).
-
-**(4) Process pass-16 verdict** per normal E-19 cascade flow: if NOT-CLEAN → fix burst; if CLEAN → streak 1/3; continue until 3/3.
+**(2) Process pass-16 verdict** per normal E-19 cascade flow: if NOT-CLEAN → fix burst; if CLEAN → streak 1/3; continue until 3/3.
 
 ### §Standing Controls (ALL ACTIVE AND MANDATORY — carry-across-CLEAR)
 
@@ -332,7 +329,7 @@ dtu_services: []
 - **Verification_step 7** literal-shell 4-index gate MANDATORY (D-494). INV-019 (a)/(b)/(c) MANDATORY in ALL BC changelog rows + adversary reports.
 - **D-761 HUMAN DIRECTIVE strict-3-CLEAN no-cap:** BC-5.39.001, THREE consecutive CLEAN passes, no AI substitution.
 - **D-761 O-P10-A:** fix-executor must include literal grep stdout showing amended gate body. **O-P10-B:** fix-executor must include git-diff excerpt proving changelog claim matches body.
-- **D-766 §4 gate-execution-evidence rule (NEW):** every new/changed shell gate MUST be executed against (a) defect fixture exit=1 AND (b) fixed fixture exit=0 with captured stdout before encoding in AC text. Extends D-761 O-P10-A evidence chain.
+- **D-766 §4 gate-execution-evidence rule:** every new/changed shell gate MUST be executed against (a) defect fixture exit=1 AND (b) fixed fixture exit=0 with captured stdout before encoding in AC text.
 - **D-759 BC-cite drift preflight (two-sided; mandatory):** story-writer side: 6-BC cite matrix scan at end of each leg. Orchestrator side: zero stale live cites before each adversary dispatch.
 - **D-760 per-file loop canonical (cross-file awk FORBIDDEN).**
 - **D-762 sequencing rule:** ALL bursts with multiple index-writing legs MUST dispatch sequentially (architect first, story-writer second).
@@ -352,8 +349,7 @@ dtu_services: []
 ### §In-Flight / Dirty
 
 - **develop `crates/hook-sdk/src/ffi.rs`:** unstaged local edits on develop branch (flagged at D-766 §7). Verify contents before any develop commit; do NOT include in factory-artifacts burst.
-- **factory-artifacts `logs/dispatcher-internal-2026-07-07.jsonl`:** telemetry log; pre-existing dirty before D-766 burst. Carry-neutral.
-- **factory-artifacts `sidecar-learning.md`:** pre-existing dirty before D-766 burst. Carry-neutral.
+- **develop `plugins/vsdd-factory/config/artifact-path-registry.yaml`:** uncommitted on develop (D-766 §7). Fold into E-19 story PR or small feature-branch commit before E-19 W1 kick-off.
 - **Open dependabot PRs:** #194/#192/#187 (visual-companion deps) — low priority.
 
 ### §Resume Command
@@ -362,20 +358,20 @@ dtu_services: []
 /vsdd-factory:next-step
 ```
 
-Or directly: re-dispatch story-writer with adv-E19-pass-15.md findings + D-766 §5 routing guidance per §Resume Actions step (1) above.
+Or directly: dispatch E-19 adv pass-16 (fresh context; reads adv-E19-pass-15.md Part A ONLY; 20-policy rubric; per-file BC-cite preflight first).
 
-### §4-Index at D-766 Wrap
+### §4-Index at D-767 Closure
 
 | Index | Version | Last Change |
 |-------|---------|-------------|
-| BC-INDEX | v3.76 | D-763 (BC-1.17.001 v1.2); UNCHANGED D-764..D-766 (see decision-log.md for full range) |
-| VP-INDEX | v2.53 | D-756 (VP-079 v1.19); UNCHANGED D-757..D-766 (see decision-log.md for full range) |
-| STORY-INDEX | v4.148 | D-766 burst (pass-15 fix sweep: S-19.01/03/05/06/epic captured) |
-| ARCH-INDEX | v2.90 | D-762 (ADR-025 v1.10); UNCHANGED D-763..D-766 (see decision-log.md for full range) |
-| L2-INDEX | v1.0.14 | D-754 (CAP-033 NEW); UNCHANGED D-755..D-766 (see decision-log.md for full range) |
+| BC-INDEX | v3.76 | D-763 (BC-1.17.001 v1.2); UNCHANGED D-764..D-767 (see decision-log.md for full range) |
+| VP-INDEX | v2.53 | D-756 (VP-079 v1.19); UNCHANGED D-757..D-767 (see decision-log.md for full range) |
+| STORY-INDEX | v4.149 | D-767 burst (S-19.01 v1.11 + O-P15-05 sweep annotation) |
+| ARCH-INDEX | v2.90 | D-762 (ADR-025 v1.10); UNCHANGED D-763..D-767 (see decision-log.md for full range) |
+| L2-INDEX | v1.0.14 | D-754 (CAP-033 NEW); UNCHANGED D-755..D-767 (see decision-log.md for full range) |
 
-4-index verification gate (literal-shell): `grep "^version:" .factory/specs/behavioral-contracts/BC-INDEX.md .factory/specs/verification-properties/VP-INDEX.md .factory/stories/STORY-INDEX.md .factory/specs/architecture/ARCH-INDEX.md` → BC-INDEX: "3.76" / VP-INDEX: "2.53" / STORY-INDEX: "4.148" / ARCH-INDEX: "2.90".
+4-index verification gate (literal-shell): `grep "^version:" .factory/specs/behavioral-contracts/BC-INDEX.md .factory/specs/verification-properties/VP-INDEX.md .factory/stories/STORY-INDEX.md .factory/specs/architecture/ARCH-INDEX.md` → BC-INDEX: "3.76" / VP-INDEX: "2.53" / STORY-INDEX: "4.149" / ARCH-INDEX: "2.90".
 
-Critical SHAs: develop `f5242bef`; main `a04cb303`; factory-artifacts HEAD = `2a54988e` (D-766-addendum). v1.0.0-rc.22 at `e4285fe5`. GitHub origin: `drbothen/vsdd-factory`. total_bcs 1,977.
+Critical SHAs: develop `f5242bef`; main `a04cb303`; factory-artifacts HEAD = `389f0480` (pre-D-767; SHA-patch follow-up required after D-767 commit per D-447(c)+D-449(e)). v1.0.0-rc.22 at `e4285fe5`. GitHub origin: `drbothen/vsdd-factory`. total_bcs 1,977.
 
 > This checkpoint (D-766 SESSION-WRAP-PAUSE v5.17 2026-07-08) supersedes D-765 v5.16. `git -C .factory log --oneline -3` → D-766 + D-765 + D-764.
