@@ -12409,6 +12409,6 @@ Streak: **1/3**. Next action: dispatch adv pass-19 (fresh context; reads adv-E19
 
 | Commit | SHA | Description |
 |--------|-----|-------------|
-| D-770 burst (atomic) | `[D-770-BURST-SHA-TBD]` | state(D-770): E-19 adv pass-18 CLEAN — streak 1/3; artifacts frozen (v5.21) |
-| SHA-patch follow-up | `[SHA-PATCH-TBD]` | state(D-770-sha-patch): Active Branches SHA → [D-770-BURST-SHA-TBD] + burst-log Block 8 patch |
+| D-770 burst (atomic) | `4342a97b` | state(D-770): E-19 adv pass-18 CLEAN — streak 1/3; artifacts frozen (v5.21) |
+| SHA-patch follow-up | `[SHA-PATCH-TBD]` | state(D-770-sha-patch): Active Branches SHA → 4342a97b + burst-log Block 8 patch |
 
