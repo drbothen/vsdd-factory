@@ -13225,5 +13225,5 @@ NEXT: E-19 adversary pass-24 (fresh context; perimeter = D-777 delta: ADR-030 v1
 
 | Commit | SHA | Description |
 |--------|-----|-------------|
-| D-777 burst (atomic) | `PENDING` | state(D-777): E-19 adv pass-23 NOT-CLEAN CLOSED — fix burst 4 legs (v5.28) |
+| D-777 burst (atomic) | `c25c9b28` | state(D-777): E-19 adv pass-23 NOT-CLEAN CLOSED — fix burst 4 legs (v5.28) |
 | SHA-patch follow-up | `PENDING` | state(D-777-sha-patch): Active Branches + Block 8 SHA patch |
