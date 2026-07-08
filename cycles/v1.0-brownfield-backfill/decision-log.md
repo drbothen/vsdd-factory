@@ -5859,3 +5859,47 @@ D-762-E19-ADV-PASS-11-CLOSED
 ### Date
 
 2026-07-07
+
+---
+
+## D-763
+
+**E-19 ADVERSARIAL PASS-12 NOT-CLEAN B0/H1/M3/L2 CLOSED — FIX BURST COMPLETE. ORCHESTRATOR PREFLIGHT FIFTH CONSECUTIVE-BURST CATCH (EPIC BC-1.17.001 3-SITE RESIDUAL).**
+
+**(1) E-19 ADVERSARIAL PASS-12 VERDICT: NOT-CLEAN B0/H1/M3/L2.** Fresh-context adversary reviewed E-19 epic + S-19.01..S-19.07 + STORY-INDEX E-19 section on 2026-07-08. 6 findings (F-P12-001..F-P12-006) + 5 observations. Adversary-stated B0/H1/M3/L2 count matches enumerated bodies (0 BLOCKER + 1 HIGH + 3 MEDIUM + 2 LOW = 6 total). Zero false-positives; live-vs-history adjudication held. Trajectory 16→14→20→9→8→5→12→11→4→7→6→6.
+
+F-P12-001 HIGH: S-19.04 AC-001 keep-assertion structurally unsatisfiable — `test -f plugins/vsdd-factory/hook-plugins/vsdd-context-resolvers.wasm` probes source path (always present on clean checkout; never cargo-produced); fixture cannot stage it into artifact/; release.yml's own note is the witness; gate cannot distinguish a correctly-running release pipeline from a no-op.
+
+F-P12-002 MEDIUM: S-19.06 AC-007 and BC-1.17.001 conflate safe-wrapper layer and extern wire-ABI layer; `&str` cannot cross WASM ABI; `-> i32` is the extern's return type; a single-gate assertion cannot independently verify both layers; S-19.07 consumes the safe-wrapper form that an extern-only implementation would not provide.
+
+F-P12-003 MEDIUM: S-19.05 v1.10 T-006 literal gate `^use std::sync::Mutex;` breaks under idiomatic import consolidation (`use std::sync::{Arc, Mutex};` form); gate would emit false-positive failure against a correct implementation that consolidates imports.
+
+F-P12-004 MEDIUM: path_resolution_failed emission mechanism unspecified — `path_allowed() -> bool` signature collapses both failure modes into a single false return; no mechanism for caller to distinguish reason tokens; single emission site; write_file.rs sibling unswept (TD-VSDD-060).
+
+F-P12-005 LOW: S-19.03 AC-006 blanket zero-count on capability_denied conflicts with new legitimate path_resolution_failed emissions introduced by the two-step decomposed prepare() pattern; a correct implementation emitting path_resolution_failed on genuine resolution errors would fail this AC.
+
+F-P12-006 LOW: E-19 epic EAC-003 still uses retired "no existing ancestor" framing superseded by injectable mock canonicalize form per BC-2.07.001 v1.2 EC-007 (pass-7 fix); three BC-1.17.001 v1.1 body-scope cite residuals in epic (PRD Capabilities ×2, Out-of-Scope ×1).
+
+**(2) ORCHESTRATOR PREFLIGHT — FIFTH CONSECUTIVE-BURST CATCH.** Post-sweep BC-cite preflight caught three BC-1.17.001 v1.1 residual cites in epic body (PRD Capabilities line 113 layering note, PRD Capabilities follow-on line 115, Out-of-Scope line 199). Repaired in-burst as part of epic v1.9→v1.10 leg (BC-1.17.001 v1.1→v1.2 at all three sites). This is the fifth consecutive burst where the orchestrator's post-sweep preflight has caught a residual stale BC cite that the story-writer leg missed. No new L-EDP1 lesson ID issued (per D-497 parsimony; same residual-cite class as prior catches); preflight discipline confirmed effective.
+
+**(3) FIX BURST COMPLETE — architect text rulings + product-owner leg + story-writer leg (sequenced per D-757).**
+
+**Architect text rulings:** Ruling 1 (F-P12-002): mirror read_file at BOTH layers — safe wrapper `Result<Vec<u8>, HostError>` in host.rs + 6-param ptr/len extern `-> i32` in ffi.rs + non-wasm stub; BC amendment recommended-not-required → ADOPTED under production-grade default (BC-1.17.001 v1.2 layering parenthetical). Ruling 2 (F-P12-004): two-step decomposed prepare() in BOTH read_file.rs AND write_file.rs (mandatory TD-VSDD-060 sibling sweep — NOT deferred); Step 1 resolve→None→path_resolution_failed; Step 2 prefix_check→false→path_not_allowed; no BC amendments required (EC-007 already declares the behavior).
+
+**Product-owner leg:** BC-1.17.001 v1.1→v1.2 (Ruling 1 layering parenthetical added to §(a); safe-wrapper vs wire-ABI layers explicitly distinguished). BC-INDEX v3.75→v3.76. Closes F-P12-002 BC leg.
+
+**Story-writer leg (sequenced per D-757):** S-19.02 v1.8→v1.9 (O-P12-03: AC-005 unit test A affirmative — extracted slice INCLUDES opening ---\n bytes; parse_factory_lock handles document-start marker). S-19.03 v1.9→v1.10 (F-P12-004 + F-P12-005: Architecture Mapping two-step decomposed prepare() Ruling-2 + write_file.rs sibling-sweep clause + mock-canonicalize unit test; File Structure write_file.rs decomposition note; AC-006 gate scoped to reason=path_not_allowed zero-count — path_resolution_failed excluded per EC-007). S-19.04 v1.10→v1.11 (F-P12-001 + O-P12-01: AC-001/AC-007 keep-leg restructured to two checks: (i) test -f hook-plugins/vsdd-context-resolvers.wasm source; (ii) grep resolvers-registry.toml reference; File Structure + Task 15 updated; Architecture Mapping canonical skip-arm notation added). S-19.05 v1.10→v1.11 (F-P12-003 + O-P12-02 + O-P12-05: T-006 gate broadened to consolidation-tolerant form `grep -qE '^use std::sync::(Mutex|\{[^}]*Mutex[^}]*\});'` with cfg-gate negative clause; EC-005 one-line reconciliation preface; AC-002 counting grep → JSON-aware jq form). S-19.06 v1.7→v1.9 (F-P12-002 story leg + O-P12-04: v1.8 — AC-007 three-gate formulation Gate1/Gate2/Gate3; signature-disambiguation note; BC table v1.1→v1.2; DISTINCT Capability Schemas preamble block; v1.9 — in-burst preflight catch Narrative BC-1.17.001 v1.1→v1.2). E-19 epic v1.9→v1.10 (F-P12-006 + BC-cite sweep: EAC-003 mock-canonicalize framing + BC-1.17.001 3-site cite sweep v1.1→v1.2 — orchestrator post-sweep preflight caught). STORY-INDEX v4.143→v4.145 (v4.144: S-19.03/04/05/06 + epic cells; v4.145: S-19.02 + S-19.06 + epic cells). VP-INDEX v2.53 UNCHANGED. ARCH-INDEX v2.90 UNCHANGED.
+
+**(4) ORCHESTRATOR INDEPENDENT VERIFICATION (Evidence Rules (a)+(b) applied):** (i) BC-1.17.001 v1.2 layering parenthetical confirmed in §(a); (ii) S-19.03 two-step + write_file sibling clause + AC-006 path_not_allowed scoping confirmed; (iii) S-19.04 resolvers-registry.toml gate + hook-plugins source gate confirmed; (iv) S-19.05 consolidation-tolerant T-006 + jq AC-002 form confirmed; (v) S-19.06 Gate 1/2/3 three-gate structure confirmed; (vi) epic EAC-003 mock-canonicalize form + zero "no existing ancestor" confirmed; (vii) BC-cite preflight ALL SIX BCs ZERO-DRIFT across all 9 E-19 artifacts post-sweep; (viii) 4-index `grep "^version:"` → BC "3.76" / VP "2.53" / STORY "4.145" / ARCH "2.90".
+
+**(5) 4-INDEX AT D-763 CLOSURE:** BC v3.76 (BUMPED BC-1.17.001 v1.1→v1.2) / VP v2.53 (UNCHANGED) / STORY v4.145 (BUMPED story-writer leg S-19.02..S-19.06 + epic updates) / ARCH v2.90 (UNCHANGED). Streak 0/3. NEXT: E-19 adv pass-13 (fresh context; strict-3-CLEAN no-cap per human directive D-761; per-file BC-cite preflight mandatory; Evidence Rules (a)+(b) mandatory; legs SEQUENCED per D-757; trajectory →6).
+
+Parent-commit: ffcc76af (D-762 addendum factory-artifacts HEAD).
+
+### Phase
+
+D-763-E19-ADV-PASS-12-CLOSED
+
+### Date
+
+2026-07-07

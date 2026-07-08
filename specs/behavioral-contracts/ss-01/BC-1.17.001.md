@@ -1,11 +1,11 @@
 ---
 document_type: behavioral-contract
 level: L3
-version: "1.1"
+version: "1.2"
 status: draft
 producer: product-owner
 timestamp: 2026-07-06T00:00:00Z
-last_amended: "(v1.1) — E-19 pass-3 PO finalization (product-owner): F-P3-004 §VP Anchors + §Verification Properties VP-TBD → VP-101; F-P3-009 §Description(d) cite ADR-025 Decision 15 (drop phantom-pin parenthetical), §Architecture Anchors drop '(architect authors same-burst)', §Story Anchor updated S-19.06 (W2; depends_on S-19.03); F-P3-016 §Traceability CAP-TBD → CAP-009 with justification, ADR cite updated to ADR-025 Decision 15. [Prior: (v1.0) — initial creation (product-owner): E-19 pass-2 fix burst Package 2 — host::read_prefix bounded partial read: head-c semantics, NEVER OUTPUT_TOO_LARGE, additive FFI entry point, same path_allow + rejoin capability model as read_file (BC-2.07.001), absent file returns NOT_FOUND (-5), read_file all-or-nothing semantics unchanged (story anchor S-19.06; architect decision D-d).]"
+last_amended: "(v1.2) — E-19 pass-12 F-P12-002 §(a) layering parenthetical (product-owner): inserted architect-recommended SDK/wire-ABI layering parenthetical after §(a) signature; closes F-P12-002 (BC leg; architect Ruling 1, amendment recommended-not-required, adopted under the production-grade default). [Prior: (v1.1) — E-19 pass-3 PO finalization (product-owner): F-P3-004 §VP Anchors + §Verification Properties VP-TBD → VP-101; F-P3-009 §Description(d) cite ADR-025 Decision 15 (drop phantom-pin parenthetical), §Architecture Anchors drop '(architect authors same-burst)', §Story Anchor updated S-19.06 (W2; depends_on S-19.03); F-P3-016 §Traceability CAP-TBD → CAP-009 with justification, ADR cite updated to ADR-025 Decision 15. [Prior: (v1.0) — initial creation (product-owner): E-19 pass-2 fix burst Package 2 — host::read_prefix bounded partial read: head-c semantics, NEVER OUTPUT_TOO_LARGE, additive FFI entry point, same path_allow + rejoin capability model as read_file (BC-2.07.001), absent file returns NOT_FOUND (-5), read_file all-or-nothing semantics unchanged (story anchor S-19.06; architect decision D-d).]"
 phase: F3
 inputs:
   - crates/factory-dispatcher/src/host/read_file.rs
@@ -20,6 +20,7 @@ capability: "CAP-009"
 lifecycle_status: draft
 introduced: v1.0-feature-engine-discipline-E19
 modified:
+  - "2026-07-07 (v1.2)"
   - "2026-07-06 (v1.1)"
 deprecated: null
 deprecated_by: null
@@ -35,7 +36,7 @@ removal_reason: null
 
 `host::read_prefix` is a NEW host function that returns at most `max_bytes` bytes from the start of a file — equivalent to `head -c max_bytes` — and is guaranteed never to return OUTPUT_TOO_LARGE. It is an additive FFI entry point that does not change `read_file` semantics.
 
-**(a) Signature and semantics.** `read_prefix(path: &str, max_bytes: u32, timeout_ms: u32) -> i32`. The function returns at most `max_bytes` bytes from the start of the file (head-c semantics). If the file's total size is less than `max_bytes`, the full file content is returned. The return is byte-exact with no UTF-8 boundary trimming — the caller is responsible for interpreting partial multi-byte sequences. The function NEVER returns OUTPUT_TOO_LARGE (-3); by construction `max_bytes` IS the output cap, so the response always fits within the requested bound.
+**(a) Signature and semantics.** `read_prefix(path: &str, max_bytes: u32, timeout_ms: u32) -> i32` (Layering: the SDK safe wrapper in crates/hook-sdk/src/host.rs returns `Result<Vec<u8>, HostError>`, mirroring host::read_file; the `-> i32` return belongs exclusively to the raw wire-ABI extern in the hook-sdk ffi module, whose realized shape is the 6-parameter pointer/length form mirroring ffi::read_file. Both layers are required.). The function returns at most `max_bytes` bytes from the start of the file (head-c semantics). If the file's total size is less than `max_bytes`, the full file content is returned. The return is byte-exact with no UTF-8 boundary trimming — the caller is responsible for interpreting partial multi-byte sequences. The function NEVER returns OUTPUT_TOO_LARGE (-3); by construction `max_bytes` IS the output cap, so the response always fits within the requested bound.
 
 **(b) read_file all-or-nothing semantics unchanged.** `host::read_file` retains its existing all-or-nothing semantics: it reads the complete file and returns OUTPUT_TOO_LARGE if the file exceeds `max_bytes`. Plugins that currently rely on `read_file` for TOML/YAML parsing correctness must continue using `read_file` — silent truncation-as-success would corrupt those plugins' parsing (D-d rationale). `read_prefix` is for plugins that explicitly want a bounded prefix (e.g., reading the first N bytes of a log for pattern matching, reading YAML front-matter from a large markdown file).
 
@@ -151,5 +152,6 @@ S-19.06 (host::read_prefix bounded partial read; W2; depends_on S-19.03)
 
 | Version | Date | Author | Change |
 |---------|------|--------|--------|
+| 1.2 | 2026-07-07 | product-owner | E-19 pass-12 F-P12-002 §(a) layering parenthetical: inserted architect-recommended SDK/wire-ABI layering parenthetical after §(a) signature. Closes F-P12-002 (BC leg; architect Ruling 1, amendment recommended-not-required, adopted under the production-grade default). |
 | 1.1 | 2026-07-06 | product-owner | E-19 pass-3 PO finalization: (a) F-P3-004 — §VP Anchors VP-TBD → VP-101 (host::read_prefix Returns Byte-Exact Prefix of len <= max_bytes; Never OUTPUT_TOO_LARGE; Absent File Returns NOT_FOUND (-5)); §Verification Properties four VP-TBD rows → VP-101. (b) F-P3-009 — §Description(d) cite ADR-025 Decision 15 directly (drop phantom-pin parenthetical "cited as ADR-025 with no Decision number to avoid phantom-pin on a Decision number not yet authored"); §Architecture Anchors "ADR-025 (amendment)" → "ADR-025 Decision 15", drop "(architect authors same-burst)"; §Story Anchor updated "story file does not exist at BC authorship time; story-writer authors next leg" → "W2; depends_on S-19.03" (S-19.06 now exists v1.0). (c) F-P3-016 — §Traceability L2 Capability CAP-TBD → CAP-009 with justification; Capability Anchor Justification TBD → full text; ADR "ADR-025 (amendment, no Decision number — architect authors same-burst; ...)" → "ADR-025 Decision 15 (HOST_ABI_VERSION governance for additive read_prefix FFI entry point; HOST_ABI_VERSION = 1 unchanged)". Frontmatter capability: "CAP-TBD" → "CAP-009". |
 | 1.0 | 2026-07-06 | product-owner | Initial creation. E-19 pass-2 fix burst Package 2. New host fn read_prefix: (a) head-c semantics, max_bytes cap, NEVER OUTPUT_TOO_LARGE, byte-exact no-trimming, max_bytes=0 valid; (b) read_file all-or-nothing semantics UNCHANGED (silent-truncation-as-success would corrupt TOML/YAML parsers — D-d rationale); (c) separate capabilities.read_prefix block, same path_allow + rejoin model as read_file (BC-2.07.001), absent file returns NOT_FOUND (-5); (d) additive FFI entry point in vsdd namespace; HOST_ABI_VERSION governance in ADR-025 amendment (bare cite, no Decision number). Story anchor S-19.06 (story not yet authored). |

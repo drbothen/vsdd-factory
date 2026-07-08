@@ -1,7 +1,7 @@
 ---
 document_type: epic
 epic_id: "E-19"
-version: "v1.9"
+version: "v1.10"
 status: draft
 title: "Post-rc.22 Operator Hardening — pr-manager race fixes, verify-factory-lock size defect, warn-pending-wave-gate false-positive, registry/bundle hygiene, async telemetry + VSDD_SINK_FILE, host::read_prefix bounded partial read"
 prd_capabilities: []
@@ -23,7 +23,7 @@ inputs:
   - .factory/stories/S-19.06-read-prefix-bounded-partial-read.md
   - .factory/stories/S-19.07-verify-factory-lock-read-prefix-migration.md
   - .factory/specs/behavioral-contracts/ss-04/BC-4.13.001.md
-input-hash: "d0f7250"
+input-hash: "5ec777d"
 ---
 
 # Epic E-19: Post-rc.22 Operator Hardening
@@ -110,9 +110,9 @@ that reads this frontmatter.
 No new PRD capabilities from the base defect-fix set. E-19 stories fix defects in
 existing capabilities and add observability infrastructure. BC-4.13.001 (verify-factory-
 lock behavioral contract) is amended by S-19.02 to reflect the raised byte budget.
-BC-3.08.001 v1.19 (async event catalog — Event 5 `plugin.abandoned` with all 7 mandatory fields including `type`, `timestamp`, `entry_index: u32` + Invariant 6 extended terminal key `trace_id+plugin_name+entry_index`; Event 6 `plugin.completed` async path with all 9 mandatory fields including `plugin_version`; schema-level defense for concurrent `entry_index` traceability) LANDED (product-owner, E-19 pass-3/pass-5/pass-7 fix bursts); implementer for S-19.05 follows BC-3.08.001 v1.19 without further routing action. BC-1.17.001 v1.1 (host::read_prefix bounded
-partial read) LANDED (product-owner, E-19 pass-2 fix burst); implementer for S-19.06
-follows BC-1.17.001 v1.1.
+BC-3.08.001 v1.19 (async event catalog — Event 5 `plugin.abandoned` with all 7 mandatory fields including `type`, `timestamp`, `entry_index: u32` + Invariant 6 extended terminal key `trace_id+plugin_name+entry_index`; Event 6 `plugin.completed` async path with all 9 mandatory fields including `plugin_version`; schema-level defense for concurrent `entry_index` traceability) LANDED (product-owner, E-19 pass-3/pass-5/pass-7 fix bursts); implementer for S-19.05 follows BC-3.08.001 v1.19 without further routing action. BC-1.17.001 v1.2 (host::read_prefix bounded
+partial read — incl. wrapper/wire-ABI layering disambiguation) LANDED (product-owner, E-19 pass-2 fix burst; v1.2 layering parenthetical added E-19 pass-12); implementer for S-19.06
+follows BC-1.17.001 v1.2.
 
 ## Acceptance Criteria
 
@@ -120,7 +120,7 @@ follows BC-1.17.001 v1.1.
 |----|-----------|-------------------|----------------|
 | EAC-001 | All seven stories S-19.01..S-19.07 shipped and merged to `develop` within this epic's cycle | All story PRs CI-green and merged | S-19.01..S-19.07 PR merge confirmations |
 | EAC-002 | `verify-factory-lock` no longer fails with `capability_denied reason=output_too_large` when STATE.md exceeds 64 KiB | CI integration test with 90 KB STATE.md fixture | S-19.02 AC-001 test suite |
-| EAC-003 | `warn-pending-wave-gate` emits no false-positive `capability_denied reason=path_not_allowed` on fresh install with absent `.factory/wave-state.yaml` | CI integration test with absent wave-state.yaml fixture | S-19.03 AC-001 test suite; AC-001 negative-control B: path with NO existing ancestor → path_resolution_failed, not path_not_allowed |
+| EAC-003 | `warn-pending-wave-gate` emits no false-positive `capability_denied reason=path_not_allowed` on fresh install with absent `.factory/wave-state.yaml` | CI integration test with absent wave-state.yaml fixture | S-19.03 AC-001 test suite; AC-001 negative-control B (BC-2.07.001 v1.2 EC-007): inject mock canonicalize fn returning Err for every ancestor → path_resolution_failed (not path_not_allowed) |
 | EAC-004 | `VSDD_SINK_FILE` env var is honored in release-profile dispatcher builds | Release-profile CI integration test with VSDD_SINK_FILE set | S-19.05 AC-004 test suite |
 | EAC-005 | Zero WASMs unreferenced by BOTH hooks-registry.toml AND resolvers-registry.toml in the rc.23 bundle | CI bundle manifest diff gate | S-19.04 AC-001 + AC-007 |
 
@@ -193,10 +193,10 @@ Topological order: W1 → W2 → W3 (by priority + S-19.06 gate on S-19.03 AND S
   schema-level defense for concurrent `entry_index` traceability are now in the BC.
   S-19.05 implementer follows BC-3.08.001 v1.19 without further routing action.
 
-- **BC-1.17.001 host::read_prefix:** LANDED as v1.1 (product-owner, E-19 pass-2 fix
-  burst). FFI signature `read_prefix(path: &str, max_bytes: u32, timeout_ms: u32) -> i32`
+- **BC-1.17.001 host::read_prefix:** LANDED as v1.2 (product-owner, E-19 pass-2 fix
+  burst; v1.2 layering parenthetical added E-19 pass-12). FFI signature `read_prefix(path: &str, max_bytes: u32, timeout_ms: u32) -> i32`
   and separate `capabilities.read_prefix` registry block are now in the BC. S-19.06
-  implementer follows BC-1.17.001 v1.1 without further routing action.
+  implementer follows BC-1.17.001 v1.2 without further routing action.
 
 - **ADR-025 v1.7 amendment:** Authored by architect in E-19 pass-1 fix burst (Decisions
   13+14: `codes::NOT_FOUND = -5`; `STATE_MD_MAX_BYTES = 262144` + frontmatter-only parse).
@@ -227,6 +227,7 @@ Story BC-table rows use abbreviated titles for cell fit; the BC file H1 remains 
 
 | Version | Date | Author | Change |
 |---------|------|--------|--------|
+| v1.10 | 2026-07-07 | story-writer | E-19 pass-12 fix burst: F-P12-006 EAC-003 negative-control B — 'path with NO existing ancestor' framing retired; replaced with injectable mock canonicalize form per BC-2.07.001 v1.2 EC-007. BC-1.17.001 body-scope cite sweep: PRD Capabilities (line 113, layering note added), PRD Capabilities follow-on (line 115), Out-of-Scope (line 199) — all v1.1→v1.2. |
 | v1.9 | 2026-07-07 | story-writer | E-19 pass-9 fix burst: F-P9-001 subsystems_affected SS-06 removed (phantom; union recomputation SS-01/02/03/04/05/07/09 confirmed); F-P9-004 ASCII Dependency Graph replaced with mermaid graph LR (edges: S-19.03→S-19.06, S-19.04→S-19.06, S-19.02→S-19.07, S-19.06→S-19.07); O-P9-003 BC Traceability abbreviation convention sentence added. |
 | v1.8 | 2026-07-07 | story-writer | E-19 pass-8 fix burst: F-P8-004 Stories table S-19.03 BCs cell → "BC-2.07.001, BC-2.02.011"; F-P8-011 Wave model note added to Sequencing rationale. |
 | v1.7 | 2026-07-07 | story-writer | E-19 pass-7 fix burst: F-P7-008 Description item 2 header updated to S-19.02 Phase-A + S-19.07 Phase-B; O-P7-001 one-liner phased-continuation note added to intro paragraph; PRD Capabilities BC-3.08.001 v1.18→v1.19 + pass-7 cite + schema-level defense note; Out-of-Scope BC-3.08.001 v1.18→v1.19 + pass-7 cite + schema-level defense; BC Traceability BC-3.08.001 v1.18→v1.19 + schema-level defense note. |
