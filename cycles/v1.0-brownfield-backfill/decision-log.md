@@ -5903,3 +5903,47 @@ D-763-E19-ADV-PASS-12-CLOSED
 ### Date
 
 2026-07-07
+
+---
+
+## D-765
+
+**E-19 ADVERSARIAL PASS-14 NOT-CLEAN B0/H3/M2/L1 CLOSED — FIX BURST COMPLETE. ORCHESTRATOR PREFLIGHT EXTENDED TO HASH+HEADER PARITY. THREE SAME-BURST HOOK CATCHES.**
+
+**(1) E-19 ADVERSARIAL PASS-14 VERDICT: NOT-CLEAN B0/H3/M2/L1.** Fresh-context adversary reviewed E-19 epic + S-19.01..S-19.07 + STORY-INDEX E-19 section on 2026-07-08. 6 findings (F-P14-001..F-P14-006) + 6 observations. Adversary-stated B0/H3/M2/L1 count matches enumerated bodies (0 BLOCKER + 3 HIGH + 2 MEDIUM + 1 LOW = 6 total). Zero false-positives; all premises orchestrator-re-verified before dispatch. Trajectory 16→14→20→9→8→5→12→11→4→7→6→6→3→6. Class analysis: zero spec-substance findings since pass 12 — the pass-14 set is bookkeeping drift (twin STORY-INDEX sweep misses) + one TD-VSDD-060 sibling miss of the F-P7-010 intrinsic-exit fix + narrative integers/attributions.
+
+F-P14-001 HIGH: STORY-INDEX delivery-summary stale input-hashes — S-19.02 `a6b25d1` (frontmatter `6beeac8`; 4 bursts stale) and S-19.07 `eb137f3` (frontmatter `46c2ffa`; 4 bursts stale); same document self-contradicting; POLICY 18 traceability failure; row cells correct.
+
+F-P14-002 HIGH: STORY-INDEX E-19 section-header version cite `v1.9` while epic is at `v1.11` — two epic revisions stale; not updated at pass-11 v1.10→v1.11 or pass-13 epic v1.10→v1.11 advances.
+
+F-P14-003 HIGH [process-gap]: S-19.06 AC-003 gate inverted exit semantics under CI-literal execution — `grep -q` exits 0 on the FAILURE case (cfg block present for a broader scope); intrinsic-exit form `[ -z "$(grep -oE ...)"]` required (same class as F-P7-010 fixed in S-19.04); sibling-miss: TD-VSDD-060 sweep at F-P7-010 closure did not extend to AC-003 in S-19.06.
+
+F-P14-004 MED: E-19 epic Epic Placement Justification states "six subsystems" in prose but `subsystems_affected` frontmatter lists seven entries (SS-01/02/03/04/05/07/09); integer never updated after pass-9 SS-06 removal changed the array from 7→6→7 (SS-09 was always present; SS-06 removal left 7).
+
+F-P14-005 MED: E-19 epic Out-of-Scope section attributes BC-3.08.001 landing-pass to "pass-2 adversary review" but the constraint was codified in the pass-3 fix burst (D-754); attribution contradiction at two prose locations.
+
+F-P14-006 LOW: S-19.06 Gate 2 clause (i) uses BRE `grep` for alternation pattern `pub fn read_prefix\|pub fn read_file` — silent mismatch on macOS / BSD grep (darwin runners in CI matrix); ERE form `grep -E` required per L-BB-simulation-shell-dialect-gap family.
+
+6 observations: O-P14-01 accepted-with-record (preamble-distinctness lint; deferred to PR review); O-P14-02..06 encoded in fix burst (O-P14-02 S-19.06 cfg-clause scope; O-P14-03 S-19.03 AC-006 pipefail; O-P14-04 epic EAC-008 Invariant-6 preservation gate; O-P14-05 S-19.07 EC-005 operator visibility; O-P14-06 epic maintenance tally drift-check note).
+
+**(2) ORCHESTRATOR PREFLIGHT EXTENSION RECORDED.** The pre-pass check now includes two new mandatory dimensions exposed by F-P14-001/002: (a) input-hash parity — verify delivery-summary hashes in STORY-INDEX match current story frontmatter input-hash values for all 7 E-19 stories; (b) section-header version parity — verify STORY-INDEX E-19 section header version matches current epic frontmatter version. Both checks mandatory before each future dispatch.
+
+**(3) HOOK TELEMETRY NOTE — THREE SAME-BURST CATCHES.** Three same-burst hook catches worked as designed (positive control signal): (a) `validate-table-cell-count` blocked on unescaped jq pipe in a draft table cell — resolved in-burst by backslash-escaping; (b) `validate-changelog-monotonicity` blocked on version-string ordering error in epic v1.12 draft — resolved by reordering; (c) `validate-input-hash` fired on epic after inputs list was modified without recomputing input-hash — resolved by recomputing to `f6bf703`. All three catches resolved in-burst; no write bypasses.
+
+**(4) FIX BURST COMPLETE — story-writer single leg (sequenced per D-757).**
+
+**Story-writer leg:** STORY-INDEX v4.146→v4.147 (F-P14-001+F-P14-002: delivery-summary hash corrections S-19.02 a6b25d1→6beeac8 + S-19.07 eb137f3→46c2ffa; "All 7 distinct." re-derived sentence; E-19 section header v1.9→v1.12). S-19.06 v1.10→v1.11 (F-P14-003: AC-003 gate `[ -z "$(grep -oE ...)"]` intrinsic-exit form; F-P14-006: Gate 2 clause (i) ERE alternation `grep -E`; O-P14-02: cfg-clause tightened to `read_prefix` scope). S-19.03 v1.10→v1.11 (O-P14-03: AC-006 gate wrapped with `set -o pipefail` + `$SINK_FILE` variable). S-19.07 v1.5→v1.6 (O-P14-05: EC-005 Expected Behavior column operator visibility note — `internal.capability_denied` surfaced via `.factory/logs/events-YYYY-MM-DD.jsonl`). Epic v1.11→v1.12 (F-P14-004: "six subsystems" → "seven subsystems"; F-P14-005: Out-of-Scope BC-3.08.001 attribution "pass-2" → "pass-3" at 2 sites; O-P14-04: EAC-008 BC-3.08.001 Invariant-6 preservation gate added; O-P14-06: Maintenance tally drift-check note).
+
+**(5) ORCHESTRATOR INDEPENDENT VERIFICATION (Evidence Rules (a)+(b) applied):** (i) STORY-INDEX delivery-summary `S-19.02=6beeac8` + `S-19.07=46c2ffa` confirmed; "All 7 distinct." confirmed; (ii) section header `v1.12` confirmed; (iii) S-19.06 AC-003 `[ -z` intrinsic-exit form confirmed; (iv) S-19.06 Gate 2 `grep -E` form confirmed; BRE `\\|` form absent; (v) epic "seven subsystems" confirmed; "six subsystems" absent; (vi) epic pass-3 attribution confirmed at ≥2 sites; pass-2+BC-3.08.001 form absent; (vii) BC-cite preflight ALL SIX BCs ZERO-DRIFT across all 9 E-19 artifacts; (viii) 4-index `grep "^version:"` → BC "3.76" / VP "2.53" / STORY "4.147" / ARCH "2.90".
+
+**(6) 4-INDEX AT D-765 CLOSURE:** BC v3.76 (UNCHANGED) / VP v2.53 (UNCHANGED) / STORY v4.147 (BUMPED story-writer leg STORY-INDEX delivery-summary + section header; S-19.03/06/07 + epic updates) / ARCH v2.90 (UNCHANGED). Streak 0/3. NEXT: E-19 adv pass-15 (fresh context; strict-3-CLEAN no-cap per human directive D-761; per-file BC-cite preflight mandatory; Evidence Rules (a)+(b) mandatory; legs SEQUENCED per D-757; ORCHESTRATOR PREFLIGHT EXTENSION includes input-hash parity + section-header version parity; trajectory →6).
+
+Parent-commit: 9a7a16b9 (D-764 SHA-patch factory-artifacts HEAD).
+
+### Phase
+
+D-765-E19-ADV-PASS-14-CLOSED
+
+### Date
+
+2026-07-08

@@ -1,7 +1,7 @@
 ---
 document_type: epic
 epic_id: "E-19"
-version: "v1.11"
+version: "v1.12"
 status: draft
 title: "Post-rc.22 Operator Hardening — pr-manager race fixes, verify-factory-lock size defect, warn-pending-wave-gate false-positive, registry/bundle hygiene, async telemetry + VSDD_SINK_FILE, host::read_prefix bounded partial read"
 prd_capabilities: []
@@ -23,7 +23,7 @@ inputs:
   - .factory/stories/S-19.06-read-prefix-bounded-partial-read.md
   - .factory/stories/S-19.07-verify-factory-lock-read-prefix-migration.md
   - .factory/specs/behavioral-contracts/ss-04/BC-4.13.001.md
-input-hash: "c7dbafc"
+input-hash: "f6bf703"
 ---
 
 # Epic E-19: Post-rc.22 Operator Hardening
@@ -94,7 +94,7 @@ S-18.12 PR #384 ec05606a 2026-07-01). E-19 is the next free ID under POLICY 1
 (append-only numbering; STORY-INDEX confirmed no E-19 row at time of creation
 2026-07-04). The post-rc.22 smoke findings are logically distinct from E-18
 (context-durability) and warrant a new epic because they span four different defect
-classes across six subsystems. Grouping them under E-18 would conflate the
+classes across seven subsystems. Grouping them under E-18 would conflate the
 context-durability epic with unrelated hardening work.
 
 **Sequencing context (F-P2-006):** `depends_on: []` reflects that E-18 is already
@@ -123,6 +123,7 @@ follows BC-1.17.001 v1.2.
 | EAC-003 | `warn-pending-wave-gate` emits no false-positive `capability_denied reason=path_not_allowed` on fresh install with absent `.factory/wave-state.yaml` | CI integration test with absent wave-state.yaml fixture | S-19.03 AC-001 test suite; AC-001 negative-control B (BC-2.07.001 v1.2 EC-007): inject mock canonicalize fn returning Err for every ancestor → path_resolution_failed (not path_not_allowed) |
 | EAC-004 | `VSDD_SINK_FILE` env var is honored in release-profile dispatcher builds | Release-profile CI integration test with VSDD_SINK_FILE set | S-19.05 AC-004 test suite |
 | EAC-005 | Zero WASMs unreferenced by BOTH hooks-registry.toml AND resolvers-registry.toml in the rc.23 bundle | CI bundle manifest diff gate | S-19.04 AC-001 + AC-007 |
+| EAC-008 | BC-3.08.001 Invariant 6 schema-level property tests (S-19.05 AC-002 gates a/b) pass in CI — preservation gate for the entry_index defense | S-19.05 AC-002 test suite | S-19.05 AC-002 test suite |
 
 ## Stories
 
@@ -137,6 +138,8 @@ follows BC-1.17.001 v1.2.
 | S-19.07 | verify-factory-lock read_prefix migration (D18(e)) | W3 | 3 | BC-4.13.001 |
 
 **Total:** 7 stories, 45 story points.
+
+> **Maintenance tally drift-check:** Compute story count + points from the 7 linked story frontmatters and assert equals the Stories-table totals (7 / 45); run at every epic amendment.
 
 **Sequencing rationale:**
 
@@ -189,7 +192,7 @@ Topological order: W1 → W2 → W3 (by priority + S-19.06 gate on S-19.03 AND S
 ## Out of Scope
 
 - **BC-3.08.001 async event catalog amendment:** LANDED as v1.19 (product-owner, E-19
-  pass-2/pass-5/pass-7 fix bursts). Event 5 `plugin.abandoned` catalog with `entry_index: u32`
+  pass-3/pass-5/pass-7 fix bursts). Event 5 `plugin.abandoned` catalog with `entry_index: u32`
   field and extended Invariant 6 terminal key `trace_id+plugin_name+entry_index`; Event 6
   `plugin.completed` async path with all 9 mandatory fields including `plugin_version`;
   schema-level defense for concurrent `entry_index` traceability are now in the BC.
@@ -229,6 +232,7 @@ Story BC-table rows use abbreviated titles for cell fit; the BC file H1 remains 
 
 | Version | Date | Author | Change |
 |---------|------|--------|--------|
+| v1.12 | 2026-07-07 | story-writer | E-19 pass-14 sweep: F-P14-004 Epic Placement Justification "six subsystems" → "seven subsystems"; F-P14-005 Out-of-Scope BC-3.08.001 pass-2 → pass-3; O-P14-04 EAC-008 added (BC-3.08.001 Invariant 6 schema-level property tests preservation gate); O-P14-06 maintenance tally drift-check note added after Stories total; input-hash f6bf703 (S-19.03 v1.11 + S-19.06 v1.11 + S-19.07 v1.6). |
 | v1.11 | 2026-07-07 | story-writer | E-19 pass-13 fix burst: O-P13-04 Dependency Graph mermaid — S-19.01 and S-19.05 added as isolated nodes to make independence visually explicit. |
 | v1.10 | 2026-07-07 | story-writer | E-19 pass-12 fix burst: F-P12-006 EAC-003 negative-control B — 'path with NO existing ancestor' framing retired; replaced with injectable mock canonicalize form per BC-2.07.001 v1.2 EC-007. BC-1.17.001 body-scope cite sweep: PRD Capabilities (line 113, layering note added), PRD Capabilities follow-on (line 115), Out-of-Scope (line 199) — all v1.1→v1.2. |
 | v1.9 | 2026-07-07 | story-writer | E-19 pass-9 fix burst: F-P9-001 subsystems_affected SS-06 removed (phantom; union recomputation SS-01/02/03/04/05/07/09 confirmed); F-P9-004 ASCII Dependency Graph replaced with mermaid graph LR (edges: S-19.03→S-19.06, S-19.04→S-19.06, S-19.02→S-19.07, S-19.06→S-19.07); O-P9-003 BC Traceability abbreviation convention sentence added. |
