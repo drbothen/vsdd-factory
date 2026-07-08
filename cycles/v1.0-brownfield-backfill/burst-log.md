@@ -12958,5 +12958,5 @@ NEXT: Operator clears session → runs /vsdd-factory:rehydrate-wave → dispatch
 
 | Commit | SHA | Description |
 |--------|-----|-------------|
-| D-774 burst (atomic) | TBD — see SHA-patch | state(D-774): E-19 convergence re-certified (pass-21 confirming CLEAN) — W1 staged; wave-boundary session reset (v5.25) |
-| SHA-patch follow-up | TBD — see SHA-patch-2 | state(D-774-sha-patch): Active Branches SHA + burst-log Block 8 patch |
+| D-774 burst (atomic) | `532810a5` | state(D-774): E-19 convergence re-certified (pass-21 confirming CLEAN) — W1 staged; wave-boundary session reset (v5.25) |
+| SHA-patch follow-up | TBD — see SHA-patch-2 | state(D-774-sha-patch): Active Branches SHA 532810a5 + burst-log Block 8 patch |
