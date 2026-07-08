@@ -6136,3 +6136,59 @@ D-768-E19-PASS-16-CLOSED
 ### Date
 
 2026-07-08
+
+---
+
+## D-769
+
+### Summary
+
+E-19 adv pass-17 NOT-CLEAN B0/H0/M2/L0 CLOSED. Fix burst complete (SW pre-burst + SM legs). STORY-INDEX v4.151. Sweep-count reconciliation gate codified per O-P17-02. O-P17-01 fixed in-scope (chronology retirement note appended).
+
+### Detail
+
+**(1) PASS-17 VERDICT: NOT-CLEAN B0/H0/M2/L0.**
+
+- 2 actionable findings: F-P17-001 MEDIUM, F-P17-002 MEDIUM.
+- 2 observations: O-P17-01 (drift-item, fixed in-scope), O-P17-02 (process-gap, codified).
+- Trajectory tail (last 4 of 17 values): 6→7→2→2 (full: 16→14→20→9→8→5→12→11→4→7→6→6→3→6→7→2→2).
+- Streak: 0/3 (pass-17 NOT-CLEAN; fix closure complete; awaiting pass-18 verdict).
+- First zero-HIGH pass since pass-13 (D-764). Both pass-16 findings F-P16-001/F-P16-002 verified CLOSED by adversary at pass-17 perimeter entry.
+
+Class analysis: Both findings are longstanding sibling-sweep escapes — F-P17-001 is a partial-fix propagation gap from v1.6 (O-P14-05 amended EC-005 Expected Behavior but T-005 same-file sibling was not swept; TD-VSDD-060 miss); F-P17-002 is a narrative-table row escape from the v1.5 explicit "4 sites" sweep enumeration (same defect class as pass-16 F-P16-001 — N-1 sites updated when N total sites required updating). Second consecutive pass surfacing the "narrative-table row escape from claimed N-site sibling-sweep" class, triggering O-P17-02 codification.
+
+**(2) FIX BURST — SAME-SESSION (SW pre-burst + SM legs).**
+
+Story-writer leg (S-19.07 v1.6→v1.7, present in working tree prior to SM burst dispatch):
+- F-P17-001: T-005 row rewritten to: "Missing capabilities.read_prefix in registry → graceful degrade to Continue + internal.capability_denied event class present in dispatcher log (no bespoke log_warn; visibility parity via denial event class per EC-005)". Consistent with EC-005 Expected Behavior.
+- F-P17-002: Previous Story Intel S-19.06 row, Patterns Established cell corrected: schema documented in preamble DISTINCT comment block; S-19.06 declares no live path_allow (schema only); this story's verify-factory-lock entry uses path_allow = [".factory/STATE.md"] per AC-002. Acknowledges v1.5 "4 sites" undercount (this cell was the 5th/final site).
+
+State-manager leg:
+- STORY-INDEX v4.150→v4.151: S-19.07 row v1.6→v1.7 sync (F-P17-001 T-005 fix note + F-P17-002 Previous Story Intel S-19.06 correction); O-P17-01 chronology retirement note appended to E-19 footnote line 729 (pass-13/v4.146 halt; no backfill of passes 14–17); frontmatter version + last_amended updated.
+- adv-E19-pass-17.md persisted verbatim to cycles/v1.0-brownfield-backfill/.
+- Decision-log D-769 appended (this entry). Lesson L-BB-sweep-count-must-reconcile-to-grep-count appended to lessons.md.
+- STATE.md advanced v5.19→v5.20.
+
+4-index after burst: BC v3.76 / VP v2.53 / STORY v4.151 / ARCH v2.90 (STORY only bumped; BC/VP/ARCH unchanged).
+
+**(3) O-P17-01 — FIXED IN-SCOPE.**
+
+STORY-INDEX line 729 E-19 footnote: retirement note appended: "[Chronology retired at pass-13/v4.146 — subsequent E-19 pass history tracked in frontmatter version history and cycle decision-log only.]" Explicit closure prevents silent-lapse ambiguity per production-grade rule. No backfill of passes 14–17 into footnote (unnecessary; complete pass history in frontmatter last_amended changelog + cycle decision-log).
+
+**(4) O-P17-02 — CODIFIED as sweep-count reconciliation gate.**
+
+Process-gap: Second consecutive pass surfacing a "narrative-table row escape from a claimed N-site sibling-sweep" defect. Gate codified: when a fix burst declares "swept N sites" for a structural value change, the fix-executor MUST run `grep -c <outgoing_value> <file>` (whole-file count) and N MUST equal grep-count minus the explicitly-enumerated intentional-keeps count. Any discrepancy is a gate failure requiring sweep expansion before burst closure. Cannot declare "fixed in 4 sites" when the file contains 5 occurrences of the outgoing value.
+
+Lesson appended: L-BB-sweep-count-must-reconcile-to-grep-count [codified]. See lessons.md.
+
+**(5) NEXT: E-19 adv pass-18** (fresh context; reads adv-E19-pass-17.md Part A ONLY; 20-policy rubric; STORY-INDEX-prose leg mandatory per D-768; sweep-count reconciliation gate active per D-769; strict-3-CLEAN per D-761; streak 0/3; no-cap).
+
+Parent-commit: ed6707f9 (D-768 sha-patch-2, factory-artifacts HEAD before this burst).
+
+### Phase
+
+D-769-E19-PASS-17-CLOSED
+
+### Date
+
+2026-07-08

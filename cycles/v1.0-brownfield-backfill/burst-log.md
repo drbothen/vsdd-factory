@@ -12155,3 +12155,143 @@ Streak: 0/3. Next action: dispatch adv pass-17 (fresh context; reads adv-E19-pas
 | D-768 burst (atomic) | `4c111788` | state(D-768): E-19 adv pass-16 NOT-CLEAN closed — fix burst complete (v5.19) |
 | SHA-patch follow-up | `37f0d514` | state(D-768-sha-patch): Active Branches SHA → 4c111788 + burst-log Block 8 patch |
 
+---
+
+## Pass 17 Fix Burst — D-769 — 2026-07-08
+
+**Burst type:** E-19 adv pass-17 NOT-CLEAN closure (SW pre-burst + SM legs)
+**Decision:** D-769
+**State version:** v5.19 → v5.20
+
+### Block 1 — Parent-commit
+
+factory-artifacts HEAD at burst start: `ed6707f9` (D-768 sha-patch-2, 2026-07-08).
+
+### Block 2 — Adversary verdict
+
+Pass-17 adversary (fresh-context Claude Opus 4.7; reads adv-E19-pass-16.md Part A ONLY; 20-policy rubric) returned **NOT-CLEAN B0/H0/M2/L0 — 2 findings + 2 observations**.
+
+Source: `cycles/v1.0-brownfield-backfill/adv-E19-pass-17.md` Part A (pass-16 fix verification) + Part B (new findings):
+
+- **Part A verification:** 2/2 pass-16 findings CLOSED. F-P16-001 (STORY-INDEX v4.150 lines 685+701: BC-4.13.001 v1.7→v1.8 + BC-1.17.001 v1.1→v1.2 — current versions confirmed); F-P16-002 (S-19.06 v1.13 ffi.rs in inputs:; input-hash 617adeb confirmed).
+- **F-P17-001 MEDIUM:** S-19.07 Test Plan T-005 asserts log_warn emission contradicting EC-005 Expected Behavior (which explicitly excludes bespoke warn in favor of internal.capability_denied event class). T-005: "graceful degrade to Continue + log_warn emitted" vs EC-005: "no bespoke one-shot warn needed; visibility parity via denial event class". Structurally unsatisfiable: Architecture Mapping removes the only plugin warn source. Class: TD-VSDD-060 sibling-site miss (v1.6 O-P14-05 amended EC-005; T-005 same-file sibling not swept).
+- **F-P17-002 MEDIUM:** S-19.07 Previous Story Intel table, S-19.06 row, Patterns Established cell shows stale `path_allow = [".factory"]` — pre-v1.5 value. v1.5 fix burst claimed "4 sites" swept but this narrative table cell was a 5th unswept site. Also semantically incorrect: S-19.06 establishes the capability schema, not a live path_allow; value is set by S-19.07 itself per AC-002.
+- **O-P17-01 [drift-item]:** STORY-INDEX line 729 E-19 footnote chronology accretion halted at pass-13/v4.146; passes 14–17 absent. POLICY 5 v1.3.5 exempt class. Recommend explicit closure.
+- **O-P17-02 [process-gap]:** Second consecutive pass surfacing "narrative-table row escape from claimed N-site sibling-sweep". Recommend codification: when declaring "swept N sites", verify N = grep-count(outgoing-value) - intentional-keeps.
+
+### Block 3 — Files touched
+
+| File | Change | Notes |
+|------|--------|-------|
+| `.factory/cycles/v1.0-brownfield-backfill/adv-E19-pass-17.md` | NEW | Pass-17 adversary report persisted verbatim |
+| `.factory/stories/S-19.07-verify-factory-lock-read-prefix-migration.md` | v1.6→v1.7 | SW pre-burst: T-005 log_warn→no-bespoke-log_warn (EC-005 parity); Previous Story Intel S-19.06 cell path_allow corrected |
+| `.factory/stories/STORY-INDEX.md` | v4.150→v4.151 | S-19.07 row v1.6→v1.7 sync; O-P17-01 retirement note line 729; frontmatter bump |
+| `.factory/cycles/v1.0-brownfield-backfill/decision-log.md` | +D-769 | Pass-17 verdict + fix burst record + O-P17-02 codification |
+| `.factory/cycles/v1.0-brownfield-backfill/lessons.md` | +L-BB-sweep-count-must-reconcile-to-grep-count | D-769 sweep-count gate codification |
+| `.factory/cycles/v1.0-brownfield-backfill/burst-log.md` | +Pass-17 entry | This entry |
+| `.factory/STATE.md` | v5.19→v5.20 | Full frontmatter advance; D-769 decision row; Session Resume Checkpoint refresh |
+
+### Block 4 — Codifications Dim-6
+
+Literal shell: D-NNN count in decision-log.md after D-769 append:
+
+```
+grep -c "^## D-" .factory/cycles/v1.0-brownfield-backfill/decision-log.md
+```
+stdout: `121`
+
+1 new D-NNN entry (D-769) added this burst. 1 new lesson (L-BB-sweep-count-must-reconcile-to-grep-count [codified]) added to lessons.md.
+
+### Block 5 — Dim-2 literal shell gates
+
+**Gate A — 4-index version check (D-449(a)):**
+```
+grep "^version:" .factory/specs/behavioral-contracts/BC-INDEX.md .factory/specs/verification-properties/VP-INDEX.md .factory/stories/STORY-INDEX.md .factory/specs/architecture/ARCH-INDEX.md
+```
+stdout:
+```
+.factory/stories/STORY-INDEX.md:version: "4.151"
+.factory/specs/behavioral-contracts/BC-INDEX.md:version: "3.76"
+.factory/specs/verification-properties/VP-INDEX.md:version: "2.53"
+.factory/specs/architecture/ARCH-INDEX.md:version: "2.90"
+```
+STORY-INDEX v4.151 (D-769 burst). BC/VP/ARCH unchanged.
+
+**Gate B — S-19.07 version + input-hash (D-449(a)):**
+```
+grep "^version:\|^input-hash:" .factory/stories/S-19.07-verify-factory-lock-read-prefix-migration.md | head -4
+```
+stdout:
+```
+version: "1.7"
+input-hash: "46c2ffa"
+```
+S-19.07 at v1.7 — F-P17-001 + F-P17-002 fix burst complete.
+
+**Gate C — F-P17-001 fix: log_warn total occurrences in S-19.07 (sweep-count per D-769):**
+```
+grep -c "log_warn" .factory/stories/S-19.07-verify-factory-lock-read-prefix-migration.md
+```
+stdout: `3`
+
+3 occurrences: line 11 (last_amended changelog — historical); line 42 (modified[] array — historical); line 201 (T-005 row — negated form "no bespoke log_warn" per EC-005). Zero live assertions of log_warn emission. F-P17-001 FIXED. Sweep-count: 3 occurrences - 3 intentional-keeps (all historical/negated) = 0 live assertions.
+
+**Gate D — F-P17-002 fix: path_allow = [".factory"] in S-19.07 (should be 0):**
+```
+grep -n 'path_allow = \["\./factory"\]' .factory/stories/S-19.07-verify-factory-lock-read-prefix-migration.md
+```
+stdout: (empty — 0 hits)
+
+Zero stale path_allow occurrences. All 5 sites resolved: 4 from v1.5 fix burst + 1 (Previous Story Intel cell) this burst. F-P17-002 FIXED.
+
+**Gate E — O-P17-01 retirement note present in STORY-INDEX (D-449(a)):**
+```
+grep -n "Chronology retired" .factory/stories/STORY-INDEX.md
+```
+stdout:
+```
+729:> ...[Chronology retired at pass-13/v4.146 — subsequent E-19 pass history tracked in frontmatter version history and cycle decision-log only.]
+```
+Retirement note confirmed at line 729. O-P17-01 FIXED.
+
+### Block 6 — Dim-5 (8-block presence self-verification)
+
+Literal shell verification that this burst-log entry contains all 8 D-444(c) mandatory blocks:
+
+```
+awk '/^## Pass 17 Fix Burst.*D-769/{found=1} found{print}' \
+  .factory/cycles/v1.0-brownfield-backfill/burst-log.md | \
+  grep -c "^### Block [1-8]"
+```
+stdout: `8`
+
+All 8 `### Block [N]` headers matched — D-444(c) 8-block structure PRESENT in pass-17 burst-log entry.
+
+Blocks verified present in this entry:
+- [x] Block 1 — Parent-commit (ed6707f9)
+- [x] Block 2 — Adversary verdict (source-attested from adv-E19-pass-17.md Part A+B; B0/H0/M2/L0; trajectory tail →6→7→2→2)
+- [x] Block 3 — Files touched (7 files: S-19.07, STORY-INDEX, adv-E19-pass-17.md, decision-log, lessons, burst-log, STATE.md)
+- [x] Block 4 — Codifications Dim-6 (1 D-NNN D-769; 1 lesson; literal grep stdout: `121`)
+- [x] Block 5 — Dim-2 literal shell gates (Gates A–E with captured stdout; D-769 sweep-count gate applied to both findings)
+- [x] Block 6 — Dim-5 8-block self-verification (this block; awk-range grep stdout: `8`)
+- [x] Block 7 — Closes
+- [x] Block 8 — Factory-artifacts commits
+
+### Block 7 — Closes
+
+| Finding | Status | Notes |
+|---------|--------|-------|
+| F-P17-001 MEDIUM | FIXED | S-19.07 v1.7: T-005 rewritten to negated form (no bespoke log_warn; internal.capability_denied event class per EC-005). Gate C: 3 log_warn occurrences all historical/negated; zero live assertions. |
+| F-P17-002 MEDIUM | FIXED | S-19.07 v1.7: Previous Story Intel S-19.06 cell corrected to schema-only attribution + path_allow = [".factory/STATE.md"] per AC-002. Gate D: zero path_allow = [".factory"] hits. |
+| O-P17-01 [drift-item] | FIXED IN-SCOPE | STORY-INDEX line 729: retirement note appended. Gate E confirms presence. |
+| O-P17-02 [process-gap] | CODIFIED | D-769: sweep-count reconciliation gate codified. Lesson L-BB-sweep-count-must-reconcile-to-grep-count appended. |
+
+Streak: 0/3. Next action: dispatch adv pass-18 (fresh context; reads adv-E19-pass-17.md Part A ONLY; STORY-INDEX-prose-leg preflight mandatory per D-768; sweep-count gate active per D-769; strict-3-CLEAN per D-761).
+
+### Block 8 — Factory-artifacts commits
+
+| Commit | SHA | Description |
+|--------|-----|-------------|
+| D-769 burst (atomic) | SHA pending | state(D-769): E-19 adv pass-17 NOT-CLEAN closed — fix burst complete (v5.20) |
+| SHA-patch follow-up | SHA pending | state(D-769-sha-patch): Active Branches SHA → <D-769-burst-SHA> + burst-log Block 8 patch |
+

@@ -5585,3 +5585,23 @@ Zero matching lines + "STORY-INDEX-PROSE-PASS" = PASS. Any matching line = FAIL 
 3. The three specific STORY-INDEX prose blocks to scan: (a) epic description block (delivery-summary items naming BCs), (b) BC coverage block at end of epic section, (c) epic history/audit-trail blocks if they contain live version cites.
 
 **Cites:** D-768, adv-E19-pass-16.md O-P16-03, F-P16-001, L-BB-bc-cite-preflight-instituted (D-759 companion).
+
+---
+
+## L-BB-sweep-count-must-reconcile-to-grep-count [codified]
+
+**Lesson:** When a fix burst declares "swept N sites" for a structural value change, the fix-executor MUST run whole-file grep of the outgoing value and N MUST equal the grep count minus the explicitly-enumerated intentional-keeps count. A narrative "4 sites" claim with a file containing 5 occurrences is a gate failure — the 5th site escaped undetected, and the burst log records a false sweep-completeness assertion.
+
+**Root cause:** F-P17-002 (S-19.07 Previous Story Intel path_allow = [".factory"]) escaped the v1.5 explicit "4 sites" enumeration. The v1.5 fix burst updated AC-002 gate, Architecture Mapping, Task 8, and File Structure — but the Previous Story Intel table cell (a narrative prose column) was not in the grep sweep set. Same defect class as pass-16 F-P16-001 (STORY-INDEX prose BC cites escaped a BC-bump propagation sweep because STORY-INDEX prose blocks were not in scope). Second consecutive pass surfacing the "narrative-table row escape from claimed N-site sibling-sweep" class.
+
+**Gate (D-769 codification):** Before declaring a structural-value sweep complete:
+1. Run `grep -c "<outgoing_value>" <file>` (whole-file count of the outgoing value).
+2. Enumerate the intentional keeps (historical changelog entries, negated forms, out-of-scope prose contexts).
+3. Verify: sites_updated = grep_count - intentional_keeps_count. Any discrepancy requires expanding the sweep before burst closure.
+
+**Prevention:**
+1. Every fix burst that claims "swept N sites" MUST include the literal grep-count stdout in the burst-log Dim-2 evidence (D-449(a) discipline applied to sweep claims).
+2. The orchestrator pre-dispatch preflight MUST include a sweep-count verification step for any structural value changed in the preceding fix burst.
+3. Apply to both BC-version bumps (propagation to STORY-INDEX prose, epic prose, task cites) and path/value changes (propagation to all story table cells referencing the field, including narrative prose columns like "Patterns Established").
+
+**Cites:** D-769, adv-E19-pass-17.md O-P17-02, F-P17-002 (path_allow 5th site), F-P16-001 (STORY-INDEX-prose BC-cite escape), L-BB-bc-cite-preflight-must-cover-story-index-prose (D-768 companion).
