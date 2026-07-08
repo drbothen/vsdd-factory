@@ -12668,6 +12668,6 @@ NEXT: HUMAN CONVERGENCE GATE — E-19 W1 implementation authorization + O-P19-01
 
 | Commit | SHA | Description |
 |--------|-----|-------------|
-| D-772 burst (atomic) | `[to be SHA-patched]` | state(D-772): E-19 spec cascade CONVERGED 3/3 — strict-3-CLEAN satisfied; human gate (v5.23) |
-| SHA-patch follow-up | `[pending]` | state(D-772-sha-patch): Active Branches SHA → [D-772 HEAD] + burst-log Block 8 patch |
+| D-772 burst (atomic) | `ab7f0a7a` | state(D-772): E-19 spec cascade CONVERGED 3/3 — strict-3-CLEAN satisfied; human gate (v5.23) |
+| SHA-patch follow-up | `[pending]` | state(D-772-sha-patch): Active Branches SHA → ab7f0a7a + burst-log Block 8 patch |
 

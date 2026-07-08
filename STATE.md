@@ -147,7 +147,7 @@ dtu_services: []
 |--------------|-----|-------|
 | main | a04cb303 | rc.22 bot binary bundle commit 2026-07-03 (Release 28668124787 post-build; all 33 WASMs rebuilt, plugin.json → 1.0.0-rc.22); prior: e4285fe5 (PR #456 true-merge fix mapfile→while-read; rc.22 tag); prior: 2a4c949b (PR #455 true-merge first rc.22 release; tag later moved); prior: caf06c68 (rc.21) |
 | develop | f5242bef | rc.22 Release sync-main→develop back-merge 2026-07-03 (D-750); prior: a6cf13e8 (PR #438 D-749 registry-staged assertion) |
-| factory-artifacts | `[D-772-burst-SHA]` (D-772 state: E-19 SPEC CASCADE CONVERGED 3/3 — HUMAN GATE (v5.23)) | D-772 E-19 CONVERGED; prior: D-771 `b01138cc`; sha-patch `39426c20` |
+| factory-artifacts | `ab7f0a7a` (D-772 state: E-19 SPEC CASCADE CONVERGED 3/3 — HUMAN GATE (v5.23)) | D-772 E-19 CONVERGED; prior: D-771 `b01138cc`; sha-patch `39426c20` |
 | feature/S-18.12 | **DELETED** (was 9cbd9439) | Merged via PR #384 ec05606a 2026-07-01 (D-744); branch deleted post-merge |
 | fix/S-18.12-detector-parity-gaps | **DELETED** (was 717686f8) | Merged via PR #385 2879f473 2026-07-01 (D-746); branch deleted at merge |
 | origin/maintenance/rc22-pre-release-cleanup | **PENDING DELETION** | Safe to delete (recovery long complete); human authorization outstanding |
@@ -318,7 +318,7 @@ dtu_services: []
 - **Cascade:** `v1.0-brownfield-backfill`; 7 stories S-19.01..S-19.07 (45pts); epic `E-19`.
 - **Pass 20 status:** CLEAN B0/H0/M0/L0 — THIRD consecutive CLEAN. CONVERGED 3/3. BC-5.39.001 strict-3-CLEAN per D-761 HUMAN DIRECTIVE satisfied (zero asymptotic acceptance; zero cap). 29-axis re-derivation PASS (21 legacy + 8 novel). 2 accepted-with-record observations (O-P19-01, O-P20-01) — pending human adjudication.
 - **FREEZE DISCIPLINE:** Artifacts frozen (CONVERGED) at: S-19.01 v1.11; S-19.02 v1.9; S-19.03 v1.12; S-19.04 v1.11; S-19.05 v1.13; S-19.06 v1.13; S-19.07 v1.7; epic v1.14; STORY-INDEX v4.151.
-- **Repo state:** develop HEAD `f5242bef`; main HEAD `a04cb303`; merged_count 98; factory-artifacts HEAD = `[D-772 burst SHA — to be SHA-patched]`. v1.0.0-rc.22 FULLY SHIPPED (marketplace #14; confirmed D-750). **E-10 CASCADE SEALED D-531 — do NOT resume. F5 PAUSED D-386 Option C — do NOT resume.**
+- **Repo state:** develop HEAD `f5242bef`; main HEAD `a04cb303`; merged_count 98; factory-artifacts HEAD = `ab7f0a7a` (D-772 burst). v1.0.0-rc.22 FULLY SHIPPED (marketplace #14; confirmed D-750). **E-10 CASCADE SEALED D-531 — do NOT resume. F5 PAUSED D-386 Option C — do NOT resume.**
 
 ### §Convergence Counter
 
@@ -398,6 +398,6 @@ Or directly: dispatch E-19 adv pass-20 (fresh context; reads adv-E19-pass-19.md 
 
 4-index verification gate (literal-shell): `grep "^version:" .factory/specs/behavioral-contracts/BC-INDEX.md .factory/specs/verification-properties/VP-INDEX.md .factory/stories/STORY-INDEX.md .factory/specs/architecture/ARCH-INDEX.md` → BC-INDEX: "3.76" / VP-INDEX: "2.53" / STORY-INDEX: "4.151" / ARCH-INDEX: "2.90".
 
-Critical SHAs: develop `f5242bef`; main `a04cb303`; factory-artifacts HEAD = `[D-772 burst SHA — to be SHA-patched after commit]`. v1.0.0-rc.22 at `e4285fe5`. GitHub origin: `drbothen/vsdd-factory`. total_bcs 1,977.
+Critical SHAs: develop `f5242bef`; main `a04cb303`; factory-artifacts HEAD = `ab7f0a7a` (D-772 burst). v1.0.0-rc.22 at `e4285fe5`. GitHub origin: `drbothen/vsdd-factory`. total_bcs 1,977.
 
 > This checkpoint (D-770 v5.21 2026-07-08) supersedes D-769 v5.20. `git -C .factory log --oneline -3` → D-770 + D-769-sha-patch-2 + D-769-sha-patch.
