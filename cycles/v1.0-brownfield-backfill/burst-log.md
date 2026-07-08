@@ -12152,6 +12152,6 @@ Streak: 0/3. Next action: dispatch adv pass-17 (fresh context; reads adv-E19-pas
 
 | Commit | SHA | Description |
 |--------|-----|-------------|
-| D-768 burst (atomic) | [pending-push] | state(D-768): E-19 adv pass-16 NOT-CLEAN closed — fix burst complete (v5.19) |
-| SHA-patch follow-up | [pending] | state(D-768-sha-patch): Active Branches SHA → actual Commit E HEAD |
+| D-768 burst (atomic) | `4c111788` | state(D-768): E-19 adv pass-16 NOT-CLEAN closed — fix burst complete (v5.19) |
+| SHA-patch follow-up | `[pending-sha-patch-commit]` | state(D-768-sha-patch): Active Branches SHA → 4c111788 |
 
