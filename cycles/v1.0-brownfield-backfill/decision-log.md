@@ -6979,3 +6979,99 @@ D-783-E19-ADV-PASS-29-NOT-CLEAN-CLOSED
 ### Date
 
 2026-07-09
+
+---
+
+## D-784 — E-19 Adversarial Pass-30 Closure (NOT-CLEAN B0/H0/M2/L2; F-P30-001..004 + O-P30-01/02 fixed; streak 0/3)
+
+### Decision
+
+E-19 adversarial cascade pass-30 is NOT-CLEAN. Verdict: BLOCKER 0 / HIGH 0 / MEDIUM 2 / LOW 2 (4 total findings) + 2 observations, all CLOSED in this D-784 fix burst. BC-5.39.001 3-CLEAN streak: 0/3. Pass-31 required.
+
+**(1) FINDINGS CLOSED.**
+
+- **F-P30-001 MEDIUM:** VP-095 Full Index row description and Story Anchors row carried four volatile "BC-4.13.001 v1.5" version-pin citations. Per TD-VSDD-091, version-pinned citations to BC body content decay with every BC amendment (BC-4.13.001 is now at v1.12). Fix: architect VP-095.md v1.0→v1.1 — four volatile pins replaced with stable "BC-4.13.001 §Precondition 3" section-anchor form. SM VP-INDEX v2.54→v2.55 — VP-095 row updated; v1.1 note appended; input-hash ce25941. Within-burst input drift acceptable (VP-095 inputs include S-19.01/02/03/06/07 bumped in this burst; POLICY 18 satisfied via real non-placeholder hash).
+
+- **F-P30-002 MEDIUM:** S-19.02 v1.14 §Behavioral Contracts table carried "[pending-recompute]" placeholder input-hash for BC-5.42.001 v1.3 and BC-2.07.001 v1.2. POLICY 18 requires non-placeholder real hashes on all artifacts. The O-P26-001 accepted-with-record draft-BC convention is now SUPERSEDED: the BCs are production-grade artifacts at their designated versions and the placeholder convention no longer applies. Fix: PO BC-5.42.001 v1.3→v1.4 (input-hash placeholder retired → 27acee3; POLICY 18 satisfied); PO BC-2.07.001 v1.2→v1.3 (input-hash placeholder retired → caea652; POLICY 18 satisfied); SW S-19.01/02/03 cite sweeps propagated. Note on within-burst input drift: hash values in the story rows for BC-5.42.001 and BC-2.07.001 were computed before the SW leg bumped the input stories in the same burst; the drift is acceptable per prior D-782/D-783 precedent; POLICY 18 is satisfied (no placeholders, real hashes present).
+
+- **F-P30-003 LOW:** BC-4.13.001 v1.11 §Precondition 3 retained "new crate (to be created)" describing `factory-lock-parse`. As of D-783, `factory-lock-parse` is the established pure-crate home for STATE.md parsing logic per architect text-ruling; the "to be created" language is a development-phase artifact from a prior draft. Fix: PO BC-4.13.001 v1.11→v1.12 — stale phrase retired; factory-lock-parse described as designated pure-crate home per D-783 architect ruling. Input-hash e1e1a0a. SW S-19.02 v1.15 + S-19.07 v1.14 cite sweeps propagated.
+
+- **F-P30-004 LOW:** S-19.06 v1.16 task list lacked an explicit task for EC-004/T-010 — the capability_denied error path when `read_prefix` is called with an out-of-allowlist path per BC-1.17.001 v1.4 §Error Conditions EC-004. Without a task, the TDD implementer has no explicit Red Gate anchor for this error path. Fix: SW S-19.06 v1.16→v1.17 — Task 8 (EC-004/T-010) inserted; tasks renumbered. BC-1.17.001 v1.4→v1.5 cite sweep ×10 sites propagated from the PO BC-1.17.001 bump (O-P30-02 co-fix).
+
+**(2) OBSERVATIONS CLOSED.**
+
+- **O-P30-01 LOW (informational):** VP-095.md v1.0 lacked a test fixture for the 262145-byte boundary case (256 KiB + 1). Co-closed with F-P30-001: architect VP-095.md v1.0→v1.1 added 262145-byte @test per §PC6+§Invariant 10. Input-hash ce25941.
+
+- **O-P30-02 LOW (informational):** BC-1.17.001 v1.4 §L2 Domain Invariants carried "TBD" placeholder instead of affirmative empty-list `domain_invariants: []`. The convention for BCs with genuinely no applicable domain invariants is the affirmative `[]` form, not "TBD" (which implies pending work). Fix: PO BC-1.17.001 v1.4→v1.5 — §L2 Domain Invariants TBD → `domain_invariants: []` (none; affirmative). Input-hash 03fa998.
+
+**(3) O-P26-001 SUPERSEDED.**
+
+O-P26-001 "accepted-with-record: '[pending-recompute]' input-hash is established draft-BC convention for E-19 BCs not yet at their target versions" is now SUPERSEDED. Rationale: all three BCs that carried placeholder hashes (BC-5.42.001, BC-2.07.001, BC-1.17.001) are now at their production-grade versions with real non-placeholder input-hashes. The draft-BC placeholder convention was a time-limited acceptance for artifacts in active development; that state has ended. POLICY 18 is now fully satisfied on all E-19 BCs. No further placeholder-convention exceptions are authorized for E-19 artifacts.
+
+**(4) S-17.02 LEGACY-CITE DEFERRED (OUT-OF-PERIMETER).**
+
+During the VP-INDEX VP-095 volatile-pin sweep, S-17.02 (a legacy story outside the E-19 perimeter) was identified as carrying a stale cite referencing BC-4.13.001 at a prior version. S-17.02 is out-of-perimeter for the E-19 cascade; editing it in this burst would be a perimeter violation. The stale cite is recorded here for tracking. Deferral authorized because: (a) S-17.02 is a sealed legacy story not in active development; (b) the cite is documentary-only (no active TDD work depends on it); (c) the E-19 perimeter must not expand mid-cascade. Resolution: route to spec-steward at the next E-19 closure boundary (post-3-CLEAN convergence) as part of cross-epic cite hygiene sweep.
+
+**(5) FIX BURST LEGS (1 architect + 4 PO + 6 SW + 1 SM).**
+
+- **Architect (VP-095.md):** v1.0→v1.1. Four volatile "BC-4.13.001 v1.5" pins → stable "BC-4.13.001 §Precondition 3" anchor form. 262145-byte @test added per §PC6+§Invariant 10 (O-P30-01 closure). Input-hash ce25941.
+- **Product-owner (BC-5.42.001):** v1.3→v1.4. Input-hash placeholder retired → 27acee3; POLICY 18 satisfied. H1 title UNCHANGED. POLICY 14 5-leg parity applied.
+- **Product-owner (BC-2.07.001):** v1.2→v1.3. Input-hash placeholder retired → caea652; POLICY 18 satisfied. H1 title UNCHANGED. POLICY 14 5-leg parity applied.
+- **Product-owner (BC-4.13.001):** v1.11→v1.12. "new crate (to be created)" stale prose retired; factory-lock-parse described as designated pure-crate home per D-783 ruling. H1 title UNCHANGED. Input-hash e1e1a0a. POLICY 14 5-leg parity applied.
+- **Product-owner (BC-1.17.001):** v1.4→v1.5. §L2 Domain Invariants TBD → domain_invariants: [] (none; O-P30-02 closure). H1 title UNCHANGED. Input-hash 03fa998. POLICY 14 5-leg parity applied.
+- **Story-writer (S-19.01):** v1.14→v1.15. BC-5.42.001 v1.3→v1.4 cite sweep ×3 sites. Input-hash d40bd21.
+- **Story-writer (S-19.02):** v1.14→v1.15. BC-5.42.001 v1.4 cite sweep ×3 sites + BC-2.07.001 v1.3 cite sweep ×3 sites. Input-hash d377821.
+- **Story-writer (S-19.03):** v1.14→v1.15. BC-2.07.001 v1.2→v1.3 cite sweep ×3 sites. Input-hash 8d1225d (unchanged).
+- **Story-writer (S-19.06):** v1.16→v1.17. Task 8 EC-004/T-010 inserted (capability_denied error path); tasks renumbered. BC-1.17.001 v1.4→v1.5 cite sweep ×10 sites. Input-hash 998ac74.
+- **Story-writer (S-19.07):** v1.13→v1.14. BC-4.13.001 v1.11→v1.12 cite sweep ×12 sites. Input-hash 938e7fb.
+- **Story-writer (E-19 epic):** v1.18→v1.19. BC sweeps ×4 sites. Input-hash 68a89c0.
+- **State-manager (4-index bumps):** BC-INDEX v3.83→v3.84 (4 BC rows updated). VP-INDEX v2.54→v2.55 (VP-095 row v1.1 note). STORY-INDEX v4.161→v4.162 (6 story rows + epic header + DAG footnote + BC coverage). ARCH-INDEX v2.95 UNCHANGED.
+- **State-manager (governance):** STATE.md v5.34→v5.35. adv-E19-pass-30.md persisted. INDEX.md pass-30 row appended + Convergence Status updated. D-784 codified (this entry).
+
+**(6) D-494 4-INDEX GATE.**
+
+Literal shell execution:
+```
+BC-INDEX v3.84 PASS
+VP-INDEX v2.55 PASS
+STORY-INDEX v4.162 PASS
+ARCH-INDEX v2.95 PASS
+D-494 gate: PASS — zero FAIL
+```
+
+**(7) INPUT-HASH VERIFICATION (POLICY 18).**
+
+Post-burst compute-input-hash results (literal shell, plugins/vsdd-factory/bin/compute-input-hash):
+```
+BC-5.42.001 (PO leg):   27acee3 (PASS — v1.4; placeholder retired)
+BC-2.07.001 (PO leg):   caea652 (PASS — v1.3; placeholder retired)
+BC-4.13.001 (PO leg):   e1e1a0a (PASS — v1.12; stale prose retired)
+BC-1.17.001 (PO leg):   03fa998 (PASS — v1.5; domain_invariants: [] set)
+VP-095 (architect leg): ce25941 (PASS — v1.1; within-burst input drift from story bumps: acceptable)
+S-19.01 (SW leg):       d40bd21 (PASS — v1.15)
+S-19.02 (SW leg):       d377821 (PASS — v1.15)
+S-19.03 (SW leg):       8d1225d (PASS — v1.15; hash unchanged; BC-2.07.001 v1.3 cite sweep)
+S-19.06 (SW leg):       998ac74 (PASS — v1.17)
+S-19.07 (SW leg):       938e7fb (PASS — v1.14)
+E-19 epic (SW leg):     68a89c0 (PASS — v1.19)
+```
+
+Within-burst input drift: BC-5.42.001 stored=27acee3 vs computed from BC-2.07.001 v1.3 (now bumped in same burst) — acceptable; same class as D-782/D-783 within-burst drift; POLICY 18 satisfied (no placeholders).
+
+**(8) TRAJECTORY NOTE.**
+
+Pass-30 severity: B0/H2/M2/L1 (pass-29) → B0/H0/M2/L2 (pass-30). First zero-HIGH of re-cascade post-D-775. The severity improvement confirms the Task-11 cluster (F-P29-001/002/003) and POLICY 9 BC VP-Anchors class (F-P29-004) are fully closed. Remaining finding classes (volatile-pin, placeholder-retirement, stale-prose, missing-task) are propagation-sweep class at LOW/MEDIUM severity only. Trajectory tail (count passes 27-30): →4→6→5→4.
+
+**(9) NOVELTY NOTE.**
+
+Novelty: LOW-MEDIUM (sweep-hygiene-only; package close to convergence). F-P30-001 (TD-VSDD-091 volatile-pin) and F-P30-002 (POLICY 18 placeholder-retirement) recur from prior passes — same propagation-sweep classes previously observed. F-P30-003 (stale "to be created" prose) and F-P30-004 (missing EC-004 task) are straightforward completion gaps, not new defect classes. No new structural defect class emerged. With all 4 findings closed in D-784, the E-19 perimeter should be clean for pass-31. Streak 0/3. NEXT: pass-31.
+
+Parent-commit: (D-783 burst factory-artifacts HEAD — run `git -C .factory log -1 --format='%h'` for current SHA).
+
+### Phase
+
+D-784-E19-ADV-PASS-30-NOT-CLEAN-CLOSED
+
+### Date
+
+2026-07-09

@@ -1,17 +1,17 @@
 ---
 document_type: behavioral-contract
 level: L3
-version: "1.4"
+version: "1.5"
 status: draft
 producer: product-owner
 timestamp: 2026-07-06T00:00:00Z
-last_amended: "(v1.4) — E-19 pass-28 F-P28-002 (product-owner): VP-101 proof-method cite aligned to VP-INDEX authoritative classification (integration only; POLICY 9); proptest qualifier removed from §VP Anchors bullet + two §Verification Properties Proof Method cells. Behavioral content unchanged. BC-INDEX bump state-manager same-burst; S-19.06 cite sweep story-writer same-burst. [Prior: (v1.3) — E-19 pass-22 fix burst F-P22-004 BC leg (product-owner): §Architecture Anchors added crates/hook-sdk/src/ffi.rs bullet — raw wire-ABI read_prefix extern declaration (-> i32; wasm32 extern block + host_stubs non-wasm stub), the layer §Description §(a) parenthetical assigns the i32 return to; ground-truth: ffi.rs read_file at lines 25 + 92 confirms file + module structure. Anchoring addition only; behavioral content unchanged. BC-INDEX bump state-manager same-burst. [Prior: (v1.2) — E-19 pass-12 F-P12-002 §(a) layering parenthetical (product-owner): inserted architect-recommended SDK/wire-ABI layering parenthetical after §(a) signature; closes F-P12-002 (BC leg; architect Ruling 1, amendment recommended-not-required, adopted under the production-grade default). [Prior: (v1.1) — E-19 pass-3 PO finalization (product-owner): F-P3-004 §VP Anchors + §Verification Properties VP-TBD → VP-101; F-P3-009 §Description(d) cite ADR-025 Decision 15 (drop phantom-pin parenthetical), §Architecture Anchors drop '(architect authors same-burst)', §Story Anchor updated S-19.06 (W2; depends_on S-19.03); F-P3-016 §Traceability CAP-TBD → CAP-009 with justification, ADR cite updated to ADR-025 Decision 15. [Prior: (v1.0) — initial creation (product-owner): E-19 pass-2 fix burst Package 2 — host::read_prefix bounded partial read: head-c semantics, NEVER OUTPUT_TOO_LARGE, additive FFI entry point, same path_allow + rejoin capability model as read_file (BC-2.07.001), absent file returns NOT_FOUND (-5), read_file all-or-nothing semantics unchanged (story anchor S-19.06; architect decision D-d).]]]"
+last_amended: "(v1.5) — E-19 pass-30 O-P30-02 (product-owner): §Traceability L2 Domain Invariants TBD → 'none (host-ABI operational invariant, not L2 domain spec)' — aligned to BC-4.13.001 sibling convention. Spec behavioral content unchanged. BC-INDEX bump + story cite sweeps state-manager/story-writer same-burst. [Prior: (v1.4) — E-19 pass-28 F-P28-002 (product-owner): VP-101 proof-method cite aligned to VP-INDEX authoritative classification (integration only; POLICY 9); proptest qualifier removed from §VP Anchors bullet + two §Verification Properties Proof Method cells. Behavioral content unchanged. BC-INDEX bump state-manager same-burst; S-19.06 cite sweep story-writer same-burst. [Prior: (v1.3) — E-19 pass-22 fix burst F-P22-004 BC leg (product-owner): §Architecture Anchors added crates/hook-sdk/src/ffi.rs bullet — raw wire-ABI read_prefix extern declaration (-> i32; wasm32 extern block + host_stubs non-wasm stub), the layer §Description §(a) parenthetical assigns the i32 return to; ground-truth: ffi.rs read_file at lines 25 + 92 confirms file + module structure. Anchoring addition only; behavioral content unchanged. BC-INDEX bump state-manager same-burst. [Prior: (v1.2) — E-19 pass-12 F-P12-002 §(a) layering parenthetical (product-owner): inserted architect-recommended SDK/wire-ABI layering parenthetical after §(a) signature; closes F-P12-002 (BC leg; architect Ruling 1, amendment recommended-not-required, adopted under the production-grade default). [Prior: (v1.1) — E-19 pass-3 PO finalization (product-owner): F-P3-004 §VP Anchors + §Verification Properties VP-TBD → VP-101; F-P3-009 §Description(d) cite ADR-025 Decision 15 (drop phantom-pin parenthetical), §Architecture Anchors drop '(architect authors same-burst)', §Story Anchor updated S-19.06 (W2; depends_on S-19.03); F-P3-016 §Traceability CAP-TBD → CAP-009 with justification, ADR cite updated to ADR-025 Decision 15. [Prior: (v1.0) — initial creation (product-owner): E-19 pass-2 fix burst Package 2 — host::read_prefix bounded partial read: head-c semantics, NEVER OUTPUT_TOO_LARGE, additive FFI entry point, same path_allow + rejoin capability model as read_file (BC-2.07.001), absent file returns NOT_FOUND (-5), read_file all-or-nothing semantics unchanged (story anchor S-19.06; architect decision D-d).]]]]"
 phase: F3
 inputs:
   - crates/factory-dispatcher/src/host/read_file.rs
   - crates/hook-sdk/src/host.rs
   - .factory/specs/behavioral-contracts/ss-02/BC-2.07.001.md
-input-hash: "adbb5f3"
+input-hash: "03fa998"
 traces_to: .factory/specs/prd.md
 origin: greenfield
 extracted_from: null
@@ -24,6 +24,7 @@ modified:
   - "2026-07-06 (v1.1)"
   - "2026-07-08 (v1.3)"
   - "2026-07-08 (v1.4)"
+  - "2026-07-09 (v1.5)"
 deprecated: null
 deprecated_by: null
 replacement: null
@@ -144,7 +145,7 @@ S-19.06 (host::read_prefix bounded partial read; W2; depends_on S-19.03)
 |-------|-------|
 | L2 Capability | CAP-009 |
 | Capability Anchor Justification | CAP-009 ('Author and publish WASM hook plugins using the Rust SDK') covers all vsdd::* host function bindings; read_prefix is an additive FFI entry point in the vsdd namespace with a parallel hook-sdk wrapper, extending the host-function set without a new capability class. The separate capabilities.read_prefix gate follows the same SDK declaration model as capabilities.read_file. SS-01 is the implementation subsystem; SS-02 the SDK-surface owner (co-subsystem per CAP-002/CAP-010/CAP-013 precedent). |
-| L2 Domain Invariants | TBD |
+| L2 Domain Invariants | none (host-ABI operational invariant, not L2 domain spec) |
 | Architecture Module | SS-01 (Hook Dispatcher Core) — read_prefix host function + path_util integration |
 | ADR | ADR-025 Decision 15 (HOST_ABI_VERSION governance for additive read_prefix FFI entry point; HOST_ABI_VERSION = 1 unchanged) |
 | Stories | S-19.06 |
@@ -155,6 +156,7 @@ S-19.06 (host::read_prefix bounded partial read; W2; depends_on S-19.03)
 
 | Version | Date | Author | Change |
 |---------|------|--------|--------|
+| 1.5 | 2026-07-09 | product-owner | E-19 pass-30 O-P30-02: §Traceability L2 Domain Invariants TBD → 'none (host-ABI operational invariant, not L2 domain spec)' — aligned to BC-4.13.001 sibling convention. Spec behavioral content unchanged. BC-INDEX bump + story cite sweeps state-manager/story-writer same-burst. |
 | 1.4 | 2026-07-08 | product-owner | E-19 pass-28 F-P28-002: VP-101 proof-method cite aligned to VP-INDEX authoritative classification (integration only; POLICY 9); proptest qualifier removed from §VP Anchors bullet + two §Verification Properties Proof Method cells (rows: file_size>max_bytes and file_size<max_bytes). VP-INDEX line 459 Proof Method col = `integration`; proptest breakdown line 353 lists VP-059/069/075/080/096 (VP-101 absent). Behavioral content unchanged. BC-INDEX bump state-manager same-burst; S-19.06 cite sweep story-writer same-burst. |
 | 1.3 | 2026-07-08 | product-owner | E-19 pass-22 fix burst F-P22-004 BC leg: §Architecture Anchors added crates/hook-sdk/src/ffi.rs — raw wire-ABI read_prefix extern declaration (-> i32 return; wasm32 extern block + host_stubs non-wasm stub), the layer §Description §(a) assigns the i32 return to; sibling ground-truth: ffi.rs read_file at lines 25 + 92 confirms file + module structure. Anchoring addition only; behavioral content unchanged. BC-INDEX bump state-manager same-burst. |
 | 1.2 | 2026-07-07 | product-owner | E-19 pass-12 F-P12-002 §(a) layering parenthetical: inserted architect-recommended SDK/wire-ABI layering parenthetical after §(a) signature. Closes F-P12-002 (BC leg; architect Ruling 1, amendment recommended-not-required, adopted under the production-grade default). |

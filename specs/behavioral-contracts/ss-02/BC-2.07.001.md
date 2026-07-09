@@ -1,17 +1,17 @@
 ---
 document_type: behavioral-contract
 level: L3
-version: "1.2"
+version: "1.3"
 status: draft
 producer: product-owner
 timestamp: 2026-07-06T00:00:00Z
-last_amended: "(v1.2) — E-19 pass-7 F-P7-004 adjudication (product-owner): EC-007 reformulated from 'no ancestor canonicalizes on real filesystem' (untestable dead branch on portable Unix — / always canonicalizes) to 'mock-injectable canonicalize returns Err for every ancestor' (portably testable via unit injection). Testability note added: path_util::resolve_path_for_allowlist MUST accept injectable canonicalize fn parameter; S-19.03 AC-001 negative-control B updated accordingly. BC-INDEX v3.71→v3.72. [Prior: (v1.1) — E-19 pass-3 PO finalization (product-owner): F-P3-004 §VP Anchors + §Verification Properties VP-TBD → VP-097 (traversal defense kani-proof; also anchored BC-2.02.011 EC-001) + VP-098 (allowlisted-absent file NOT_FOUND (-5) + zero CAPABILITY_DENIED false-positives integration). [Prior: (v1.0) — initial creation (product-owner): E-19 pass-2 fix burst Package 2 — host::read_file absent-file semantics: codes::NOT_FOUND (-5) additive error code, HostError::NotFound SDK variant (no #[non_exhaustive] per O-P2-002), rejoin path-allowed resolution via shared path_util module, zero false-positive capability_denied for allowlisted-absent paths (story anchor S-19.03; closes rc.22 smoke FINDING-2 BC leg).]]"
+last_amended: "(v1.3) — E-19 pass-30 F-P30-002 sibling-sweep (product-owner): input-hash placeholder retired per POLICY 18 (TD-VSDD-060; compute-input-hash --update; real digest); mechanical metadata fix; spec content unchanged. BC-INDEX bump + story cite sweeps state-manager/story-writer same-burst. [Prior: (v1.2) — E-19 pass-7 F-P7-004 adjudication (product-owner): EC-007 reformulated from 'no ancestor canonicalizes on real filesystem' (untestable dead branch on portable Unix — / always canonicalizes) to 'mock-injectable canonicalize returns Err for every ancestor' (portably testable via unit injection). Testability note added: path_util::resolve_path_for_allowlist MUST accept injectable canonicalize fn parameter; S-19.03 AC-001 negative-control B updated accordingly. BC-INDEX v3.71→v3.72. [Prior: (v1.1) — E-19 pass-3 PO finalization (product-owner): F-P3-004 §VP Anchors + §Verification Properties VP-TBD → VP-097 (traversal defense kani-proof; also anchored BC-2.02.011 EC-001) + VP-098 (allowlisted-absent file NOT_FOUND (-5) + zero CAPABILITY_DENIED false-positives integration). [Prior: (v1.0) — initial creation (product-owner): E-19 pass-2 fix burst Package 2 — host::read_file absent-file semantics: codes::NOT_FOUND (-5) additive error code, HostError::NotFound SDK variant (no #[non_exhaustive] per O-P2-002), rejoin path-allowed resolution via shared path_util module, zero false-positive capability_denied for allowlisted-absent paths (story anchor S-19.03; closes rc.22 smoke FINDING-2 BC leg).]]]"
 phase: F3
 inputs:
   - .factory/stories/S-19.03-warn-pending-wave-gate-file-not-found.md
   - crates/factory-dispatcher/src/host/read_file.rs
   - crates/hook-sdk/src/host.rs
-input-hash: "[pending-recompute]"
+input-hash: "caea652"
 traces_to: .factory/specs/prd.md
 origin: greenfield
 extracted_from: null
@@ -22,6 +22,7 @@ introduced: v1.0-feature-engine-discipline-E19
 modified:
   - "2026-07-06 (v1.1)"
   - "2026-07-07 (v1.2)"
+  - "2026-07-09 (v1.3)"
 deprecated: null
 deprecated_by: null
 replacement: null
@@ -147,6 +148,7 @@ S-19.03 (warn-pending-wave-gate FINDING-2: read_file file_not_found semantics + 
 
 | Version | Date | Author | Change |
 |---------|------|--------|--------|
+| 1.3 | 2026-07-09 | product-owner | E-19 pass-30 F-P30-002 sibling-sweep (TD-VSDD-060): input-hash placeholder retired per POLICY 18 (compute-input-hash --update; real digest); mechanical metadata fix; spec content unchanged. BC-INDEX bump + story cite sweeps state-manager/story-writer same-burst. |
 | 1.2 | 2026-07-07 | product-owner | E-19 pass-7 F-P7-004 adjudication: EC-007 reformulated — precondition changed from "no existing ancestor on real filesystem" (unreachable dead branch on portable Unix; `/` always canonicalizes) to "mock-injectable canonicalize returns Err for every ancestor attempted" (portably testable via unit injection). `path_util::resolve_path_for_allowlist` MUST accept an injectable `canonicalize` fn parameter (signature `fn(&Path) -> std::io::Result<PathBuf>`) enabling unit tests to inject a mock returning `Err` for every path. EC-007 expected-behavior column updated with testability note. S-19.03 AC-001 negative-control B ruling for story-writer: inject mock canonicalize returning `Err(...)` for every ancestor; assert `path_allowed() == false` + dispatcher emits `internal.capability_denied reason=path_resolution_failed`. BC-INDEX v3.71→v3.72. |
 | 1.1 | 2026-07-06 | product-owner | E-19 pass-3 PO finalization: F-P3-004 — §VP Anchors VP-TBD → VP-097 (path_util::resolve_path_for_allowlist Traversal Defense kani-proof; also anchored BC-2.02.011 EC-001) + VP-098 (Allowlisted-but-Absent File Returns internal.file_not_found Event and NOT_FOUND (-5); Zero CAPABILITY_DENIED False-Positives integration); §Verification Properties three VP-TBD rows → VP-097/VP-098 per property alignment. |
 | 1.0 | 2026-07-06 | product-owner | Initial creation. E-19 pass-2 fix burst Package 2. Three-layer absent-file contract: (a) codes::NOT_FOUND = -5 additive (ADR-025 Decision 13; HOST_ABI_VERSION = 1 unchanged); HostError::NotFound variant in hook-sdk; Other(i32) catch-all preserved; no #[non_exhaustive] (O-P2-002). (b) Rejoin path-allowed algorithm via shared path_util::resolve_path_for_allowlist (extracted from write_file.rs; imported by both read_file.rs and write_file.rs). (c) Allowlisted-absent path returns NOT_FOUND (-5) + internal.file_not_found event; zero false-positive capability_denied. Closes rc.22 smoke FINDING-2 BC leg (S-19.03). |
