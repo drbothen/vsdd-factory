@@ -13926,4 +13926,4 @@ NEXT: E-19 adversary pass-29 (fresh context; perimeter = D-782 delta: BC-1.17.00
 
 | Commit | SHA | Description |
 |--------|-----|-------------|
-| D-782 burst (atomic) | `[D-782-SHA-PENDING]` | state: D-782 E-19 adv pass-28 NOT-CLEAN closed — F-P28-001..003 + O-P28-02/03 fixed, O-P28-01 recorded; BC-1.17.001 v1.4 + epic v1.18 + S-19.02 v1.13 + S-19.05 v1.14 + S-19.06 v1.16 + VP-096 v1.1; streak 0/3 |
+| D-782 burst (atomic) | `55536c1c` | state: D-782 E-19 adv pass-28 NOT-CLEAN closed — F-P28-001..003 + O-P28-02/03 fixed, O-P28-01 recorded; BC-1.17.001 v1.4 + epic v1.18 + S-19.02 v1.13 + S-19.05 v1.14 + S-19.06 v1.16 + VP-096 v1.1; streak 0/3 |
