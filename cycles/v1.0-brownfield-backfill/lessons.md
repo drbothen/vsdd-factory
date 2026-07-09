@@ -5762,3 +5762,33 @@ The BC-INDEX gap (F-P24-002) compounded the issue: even if a reviewer knew to ch
 3. State-manager: BC-INDEX Stories cell is authoritative for implementing-story set; verify it matches the set of stories that cite the BC in their behavioral_contracts.
 
 **Cites:** D-778, adv-E19-pass-24.md (F-P24-001/F-P24-002), BC-2.02.011 v1.5, STORY-INDEX BC-coverage footer, POLICY 14 verification_step 5 (index sync).
+
+## L-BB-fix-executor-anchor-verification-obligation [process-gap] [codified]
+
+**Type:** process-gap
+**Codified:** D-790 [codified] 2026-07-09
+
+**Closes:** D-790 (F-P35-001 HIGH; fix-introduces-adjacent-defect escape class)
+
+**Summary:** When a fix burst writes ANY cross-artifact anchor (§Decision N, D-NN, PC-N, VP-NNN, Deliverable DN) in replacement text, the executor MUST existence-grep EVERY anchor in the replacement text against the target artifact at HEAD with captured stdout — not only the anchor flagged by the original finding. Adversary-proposed fix text is NOT pre-verified.
+
+**Context:** BC-4.13.001 D-789 fix (F-P34-001) rewrote the §Traceability ADR Reference row to stable §Decision-enumerated form. The proposed-fix text in the adversary report listed `§Decision 18` as the fourth clause. The fix executor verified that `§Decision 1` (the anchor that was specifically flagged as volatile) resolved correctly in ADR-025 v1.12, and verified `§Decision 14` and `§Decision 15` because those were familiar from prior work. However, `§Decision 18` was carried verbatim from the proposed-fix text without greping `^### Decision 18` in ADR-025 v1.12. ADR-025 v1.12 has exactly 15 Decisions (final header: `1132:### Decision 15`); D18 is a Concrete Deliverables row at line 1210 — not a Decision. The result was a mis-anchor that introduced a non-existent governance reference into the §Traceability cell, surfaced by fresh-context adversary pass-35 as F-P35-001 HIGH.
+
+**Root cause:** Fix executor scope asymmetry: verification was applied to the flagged anchor and to previously-known anchors, but not to all anchors in the replacement text. Adversary-proposed fix text is provisional — it is crafted under fresh-context analysis and may carry incorrect assumptions about the target artifact structure (specifically, Decision numbering in a living ADR). The fix executor is responsible for independently verifying the full replacement text, not accepting it as pre-verified.
+
+**Failure mode:** A fix burst writes a cross-artifact anchor (§Decision N, Deliverable DN, VP-NNN, BC-NNN, etc.) in replacement text based on an adversary-proposed fix. The adversary correctly identified the defect class but incorrectly assumed the target artifact's structure (e.g., assumed ADR-025 has at least 18 Decisions because D18 is a Concrete Deliverable). The executor verifies only the anchors mentioned in the finding description, not all anchors in the proposed-fix text. The new anchor passes immediate code review (it looks plausible) but resolves to nothing in the target artifact, creating a non-verifiable traceability claim.
+
+**Gate (D-790 codification):** For any fix burst that writes replacement text containing ANY cross-artifact anchors:
+1. For each anchor of the form `§Decision N`, `D-NN`, `PC-N`, `VP-NNN`, `Deliverable DN`, or similar structured reference to a target artifact:
+   - Run `grep -n "^### Decision N"` (or equivalent pattern for the anchor type) against the TARGET artifact at HEAD.
+   - Capture stdout.
+   - Verify the anchor resolves to a real artifact location (non-empty grep result).
+2. If ANY anchor does not resolve: reject the proposed-fix text and substitute the correct anchor.
+3. Log the per-anchor grep results in the burst-log Dim-2 block per D-449(a) (literal shell + captured stdout).
+
+**Prevention:**
+1. Fix executor: before encoding any proposed-fix text into an artifact, independently grep EVERY structured anchor against the target artifact. Do not trust the adversary report's proposed fix text as pre-verified.
+2. Adversary: when proposing fix text containing cross-artifact anchors, add a note: "Executor must verify `§Decision 18` against `^### Decision 18` grep in target ADR." (Reminder; not substitute for executor verification.)
+3. State-manager: in burst-log Dim-2, include per-anchor existence grep results for any §Decision N / Deliverable DN / VP-NNN anchors written in the fix burst.
+
+**Cites:** D-790, adv-E19-pass-35.md (F-P35-001 HIGH), BC-4.13.001 v1.14, ADR-025 v1.12, D-789 (fix-introduces-adjacent-defect escape class origination).

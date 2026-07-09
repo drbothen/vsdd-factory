@@ -7321,3 +7321,72 @@ D-789-E19-ADV-PASS-34-NOT-CLEAN-CLOSED
 ### Date
 
 2026-07-09
+
+## D-790 — E-19 Adversarial Pass-35 Closure (NOT-CLEAN B0/H1/M1/L0; F-P35-001/002 + O-P35-001 disposition; streak 0/3)
+
+### Decision
+
+E-19 adversarial cascade pass-35 is NOT-CLEAN. Verdict: BLOCKER 0 / HIGH 1 / MEDIUM 1 / LOW 0 (2 findings + 1 out-of-perimeter observation), CLOSED in this D-790 fix burst. BC-5.39.001 3-CLEAN streak: 0/3. Pass-36 required.
+
+**(1) ITEMS CLOSED.**
+
+- **F-P35-001 HIGH:** BC-4.13.001 v1.13 §Traceability ADR Reference row cited `§Decision 18` — but ADR-025 v1.12 has exactly 15 Decisions (`^### Decision` grep: final header at `1132:### Decision 15`; no `### Decision 18` exists). The intended target is Concrete Deliverables row `D18` at line 1210 (host::read_prefix). Escape class: fix-introduces-adjacent-defect. The D-789 fix executor verified `§Decision 1` (the previously-flagged anchor) and `§Decision 14`/`§Decision 15` against known grep hits, but did not existence-grep `§Decision 18` against the target ADR — carrying it verbatim from the proposed-fix wording. Per the production-grade anchor-verification obligation (this D-790 L-BB lesson), fix executors MUST existence-grep EVERY anchor in any replacement text. Fix: PO BC-4.13.001 v1.13→v1.14: §Traceability ADR Reference row: `§Decision 18` → `and Deliverable D18` (matching the same-document §D9 Concrete Deliverables convention); input-hash 86fab85→58518e8. SW S-19.02 v1.16→v1.17: BC-4.13.001 v1.13→v1.14 cite sweep ×18 sites; input-hash d208e66→604f45d. SW S-19.07 v1.15→v1.16: BC-4.13.001 v1.13→v1.14 cite sweep ×12 sites; input-hash 83e8cc4→534c85c.
+- **F-P35-002 MEDIUM:** BC-4.13.001 v1.13 §Description second paragraph stale governance enumeration: `"Decisions 1, 2, 3, 4, 7, 9, and 10, and deliverables D1, D2, and D9"` — missing Decisions 14 (added BC v1.4) and 15 (added BC v1.6) and Deliverable D18 (added BC v1.6). The stale §Description was rendered **visibly contradictory** with v1.13 §Traceability (which correctly enumerated §Decision 1/14/15/D18), creating a POLICY 4/5 same-document contradiction. S-7.01 partial-fix regression pattern: D-789 updated §Traceability correctly but left §Description stale. Fix: PO BC-4.13.001 v1.13→v1.14 (same burst as F-P35-001): §Description paragraph 2 extended to `"Decisions 1, 2, 3, 4, 7, 9, 10, 14, and 15, and deliverables D1, D2, D9, and D18"`.
+- **O-P35-001 LOW [process-gap, out-of-perimeter]:** BC-5.40.001 v1.5 §Traceability `ADR-025 v1.2 (Decisions 2, 3, 5, 8, 10 and deliverables D3, D6)` and BC-6.23.001 v1.2 §Traceability `ADR-025 v1.2 (Decisions 5 Path B, 6, 8 and deliverables D4, D5, D7, D8)` carry the same POLICY 19 volatile-pin class. Out of E-19 perimeter (S-17.01/S-17.03 lineage). DISPOSITION: STATE.md Drift Item added — target next maintenance sweep alongside D-784 S-17.02 item; route product-owner at that sweep. Input-hash restamps (58518e8 / 604f45d / 534c85c) ground-truth-verified per D-789 gates. D-779 whole-file predicates PASS zero v1.13 residuals in stories post-sweep.
+
+**(2) FIX BURST LEGS (1 PO + 2 SW + 1 SM).**
+
+- **Product-owner (BC-4.13.001):** v1.13→v1.14. §Traceability ADR Reference row: `§Decision 18` → `and Deliverable D18 (host::read_prefix deliverables; Phase-B migration path)`. §Description paragraph 2 extended: `"Decisions 1, 2, 3, 4, 7, 9, and 10, and deliverables D1, D2, and D9"` → `"Decisions 1, 2, 3, 4, 7, 9, 10, 14, and 15, and deliverables D1, D2, D9, and D18"`. Input-hash 86fab85→58518e8. POLICY 14 5-leg parity applied. Closes F-P35-001 HIGH + F-P35-002 MEDIUM. Factory-artifacts commit: 97a1b9ed.
+- **Story-writer (S-19.02):** v1.16→v1.17. BC-4.13.001 v1.13→v1.14 cite sweep ×18 sites. Input-hash d208e66→604f45d. POLICY 14 5-leg parity applied. D-779 whole-file predicate gate PASS (zero live-body v1.13 matches). D-759 two-sided preflight PASS. Factory-artifacts commit: 42c0a7e9.
+- **Story-writer (S-19.07):** v1.15→v1.16. BC-4.13.001 v1.13→v1.14 cite sweep ×12 sites. Input-hash 83e8cc4→534c85c. POLICY 14 5-leg parity applied. D-779 whole-file predicate gate PASS (zero live-body v1.13 matches). Factory-artifacts commit: 42c0a7e9.
+- **State-manager (4-index bumps):** BC-INDEX v3.87→v3.88 (BC-4.13.001 row Version cell v1.14 + F-P35-001/002/D-790 change note). STORY-INDEX v4.166→v4.167 (S-19.02 row v1.17 604f45d; S-19.07 row v1.16 534c85c; BC coverage BC-4.13.001 v1.14; delivery-summary pass-35 note). VP-INDEX v2.55 UNCHANGED (exhaustive — no VP changes in pass-35). ARCH-INDEX v2.97 UNCHANGED (exhaustive — no ADR changes by SM; BC-4.13.001 traceability/description-only change does not touch ARCH-INDEX).
+- **State-manager (governance):** STATE.md v5.40→v5.41. adv-E19-pass-35.md persisted. INDEX.md pass-35 row appended + Convergence Status updated. D-790 codified (this entry). L-BB-fix-executor-anchor-verification-obligation lesson appended to lessons.md. Drift Item O-P35-001 added to STATE.md Drift Items table. Burst-log D-790 entry appended (8 blocks).
+
+**(3) D-494 4-INDEX GATE.**
+
+Literal shell execution (captured stdout — post-update):
+```
+.factory/specs/behavioral-contracts/BC-INDEX.md:version: "3.88"
+.factory/specs/verification-properties/VP-INDEX.md:version: "2.55"
+.factory/stories/STORY-INDEX.md:version: "4.167"
+.factory/specs/architecture/ARCH-INDEX.md:version: "2.97"
+```
+
+BC-INDEX v3.88 PASS / VP-INDEX v2.55 PASS (UNCHANGED) / STORY-INDEX v4.167 PASS / ARCH-INDEX v2.97 PASS (UNCHANGED). D-494 gate: ZERO FAIL.
+
+**(4) INPUT-HASH VERIFICATION (POLICY 18).**
+
+Post-burst compute-input-hash results (from SW leg commit messages — factory-artifacts commit 42c0a7e9 + PO commit 97a1b9ed):
+```
+BC-4.13.001 (PO leg): 58518e8 (PASS — v1.14; 86fab85→58518e8; traceability + description-only amendment)
+S-19.02 (SW leg): 604f45d (PASS — v1.17; d208e66→604f45d; BC-4.13.001 v1.13→v1.14 cite sweep ×18 sites)
+S-19.07 (SW leg): 534c85c (PASS — v1.16; 83e8cc4→534c85c; BC-4.13.001 v1.13→v1.14 cite sweep ×12 sites)
+```
+
+POLICY 18 satisfied. All three input-hashes non-placeholder ✓. No new POLICY 18 placeholder gaps introduced.
+
+**(5) TRAJECTORY NOTE.**
+
+Pass-35 severity: B0/H0/M1/L0 (pass-34) → B0/H1/M1/L0 (pass-35). Severity regression (1→2). New HIGH class (fix-introduces-adjacent-defect) emerges. Trajectory tail (count passes 32–35): →3→4→1→2 (LENGTH=4). Full trajectory: 16→14→20→9→8→5→12→11→4→7→6→6→3→6→7→2→2→0→0→0→4→4→3→4→2→2→4→6→5→4→1→3→4→1→2.
+
+**(6) NOVELTY NOTE.**
+
+Novelty: MEDIUM. F-P35-001 (fix-introduces-adjacent-defect: proposed-fix text carried unverified anchor `§Decision 18` not existence-grepped against target ADR) is a fresh-context re-derivation of a known class. The fix executor confirmed `§Decision 1` (the previously-flagged anchor) but did not sweep every anchor in the replacement text — a mechanical obligation gap now codified as L-BB-fix-executor-anchor-verification-obligation. F-P35-002 (§Description / §Traceability same-document contradiction, S-7.01 partial-fix regression) is a new instance of the partial-fix class: a multi-section document updated in one section without sweeping all co-referencing sections.
+
+**(7) L-BB LESSON CODIFIED.**
+
+L-BB-fix-executor-anchor-verification-obligation [process-gap]: when a fix burst writes ANY cross-artifact anchor (§Decision N, D-NN, PC-N, VP-NNN, Deliverable DN) in replacement text, the executor MUST existence-grep EVERY anchor in the replacement text against the target artifact at HEAD with captured stdout — not only the anchor flagged by the original finding. Adversary-proposed fix text is NOT pre-verified. This closes the fix-introduces-adjacent-defect escape class of F-P35-001. Record: `cycles/v1.0-brownfield-backfill/lessons.md` [codified] tag. D-790 this entry.
+
+**(8) NEXT: pass-36.**
+
+BC-5.39.001 3-CLEAN streak: 0/3. Pass-36 required. Perimeter = D-790 delta: BC-4.13.001 v1.14 + S-19.02 v1.17 + S-19.07 v1.16 + full E-19 suite carry-forward.
+
+Parent-commit: 42c0a7e9 (D-790 burst state-manager leg parent; SW leg final factory-artifacts HEAD per D-419(b)+D-420(d)+D-421(a) convention).
+
+### Phase
+
+D-790-E19-ADV-PASS-35-NOT-CLEAN-CLOSED
+
+### Date
+
+2026-07-09

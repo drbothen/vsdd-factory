@@ -14411,3 +14411,159 @@ NEXT: E-19 adversary pass-35 (fresh context; perimeter = D-789 delta: BC-4.13.00
 |--------|-----|-------------|
 | D-789 burst (atomic) | `904ee006` | state: D-789 E-19 adv pass-34 NOT-CLEAN closed — F-P34-001 fixed; BC-4.13.001 v1.13; streak 0/3 |
 | D-789 sha-patch | `pending` | state(D-789-sha-patch): Active Branches 904ee006 + burst-log D-789 Block 8 SHA patch |
+
+---
+
+## D-790 — E-19 Adversarial Pass-35 Closure (NOT-CLEAN B0/H1/M1/L0; F-P35-001/002 CLOSED; O-P35-001 Drift Item; streak 0/3)
+
+**Date:** 2026-07-09
+**Phase:** D-790-E19-ADV-PASS-35-NOT-CLEAN-CLOSED
+
+### Block 1 — Parent-commit
+
+Parent-commit: `42c0a7e9` (D-790 burst; SW leg factory-artifacts HEAD — story-writer S-19.02 v1.17 + S-19.07 v1.16 cite sweeps per D-419(b)+D-420(d)+D-421(a) convention).
+
+### Block 2 — Adversary verdict
+
+**Source-attested from `adv-E19-pass-35.md` Part A:**
+
+Pass-35 verdict: NOT-CLEAN — BLOCKER 0 / HIGH 1 / MEDIUM 1 / LOW 0 (2 findings + 1 out-of-perimeter observation). Streak 0/3.
+
+- **F-P35-001 HIGH (POLICY 4 semantic-anchoring):** BC-4.13.001 v1.13 §Traceability ADR Reference row cited `§Decision 18` — ADR-025 v1.12 has exactly 15 Decisions (final `^### Decision` header at `1132:### Decision 15`; no `### Decision 18` exists). D18 is a Concrete Deliverables row at line 1210 (`host::read_prefix`). Escape class: fix-introduces-adjacent-defect. CLOSED: PO 97a1b9ed (BC-4.13.001 v1.13→v1.14; `§Decision 18` → `and Deliverable D18`; input-hash 86fab85→58518e8) + SW 42c0a7e9 (S-19.02 v1.16→v1.17 604f45d ×18 + S-19.07 v1.15→v1.16 534c85c ×12).
+- **F-P35-002 MEDIUM (POLICY 4/5 + S-7.01 partial-fix regression):** BC-4.13.001 v1.13 §Description second paragraph stale: `"Decisions 1, 2, 3, 4, 7, 9, and 10, and deliverables D1, D2, and D9"` — missing Decisions 14/15 + D18 added at BC v1.4/v1.6; same-document contradiction with §Traceability. CLOSED: PO 97a1b9ed (§Description extended to Decisions 1/2/3/4/7/9/10/14/15 + D1/D2/D9/D18).
+- **O-P35-001 LOW [process-gap, out-of-perimeter]:** BC-5.40.001 v1.5 + BC-6.23.001 v1.2 carry POLICY 19 volatile-pins. Out of E-19 perimeter. DISPOSITION: Drift Item added to pipeline state; target next maintenance sweep alongside D-784 S-17.02 item.
+
+5 D-789 amendment verifications all confirmed parity-complete (BC-4.13.001 v1.13 POLICY 14 5-leg; S-19.02 v1.16; S-19.07 v1.15; BC-INDEX v3.87; STORY-INDEX v4.166). Finding F-P35-001 against Amendment 1 only.
+
+### Block 3 — Files touched
+
+| File | Change | Role |
+|------|--------|------|
+| `.factory/cycles/v1.0-brownfield-backfill/adv-E19-pass-35.md` | CREATED — pass-35 adversarial review report (B0/H1/M1/L0; F-P35-001/002 + O-P35-001; Fix Burst Closure D-790) | SM |
+| `.factory/cycles/v1.0-brownfield-backfill/decision-log.md` | D-790 entry appended (POLICY 16 global-max grep: D-789 confirmed max; D-790 allocated) | SM |
+| `.factory/cycles/v1.0-brownfield-backfill/lessons.md` | L-BB-fix-executor-anchor-verification-obligation appended [codified] | SM |
+| `.factory/specs/behavioral-contracts/ss-04/BC-4.13.001.md` | v1.13→v1.14 (F-P35-001: §Traceability `§Decision 18`→`Deliverable D18`; F-P35-002: §Description Decisions 14/15+D18 added; input-hash 86fab85→58518e8) | PO |
+| `.factory/stories/S-19.02-verify-factory-lock-output-too-large.md` | v1.16→v1.17 (BC-4.13.001 v1.13→v1.14 cite sweep ×18 sites; input-hash d208e66→604f45d) | SW |
+| `.factory/stories/S-19.07-verify-factory-lock-read-prefix-migration.md` | v1.15→v1.16 (BC-4.13.001 v1.13→v1.14 cite sweep ×12 sites; input-hash 83e8cc4→534c85c) | SW |
+| `.factory/specs/behavioral-contracts/BC-INDEX.md` | v3.87→v3.88 (BC-4.13.001 row Version cell v1.14 + F-P35-001/002/D-790 change note; last_amended prepended) | SM |
+| `.factory/stories/STORY-INDEX.md` | v4.166→v4.167 (S-19.02 row v1.17; S-19.07 row v1.16; BC coverage BC-4.13.001 v1.14; delivery-summary pass-35 note + input-hash updates) | SM |
+| `.factory/cycles/v1.0-brownfield-backfill/INDEX.md` | pass-35 row appended + Convergence Status updated (trajectory →3→4→1→2; 4-index v3.88/v2.55/v4.167/v2.97; pass-36 NEXT) | SM |
+| `.factory/cycles/v1.0-brownfield-backfill/burst-log.md` | D-790 burst entry appended (this entry) | SM |
+| `.factory/STATE.md` | v5.40→v5.41 (D-790 advance; trajectory →3→4→1→2 LENGTH=4; O-P35-001 Drift Item added; checkpoint refresh for pass-36) | SM |
+
+### Block 4 — Codifications
+
+- **D-790** codified in `decision-log.md`: E-19-ADV-PASS-35-NOT-CLEAN-CLOSED. Phase: D-790-E19-ADV-PASS-35-NOT-CLEAN-CLOSED. POLICY 16 global-max grep confirmed D-789 as max prior to D-790 allocation.
+- **F-P35-001 CLOSED** — BC-4.13.001 §Traceability `§Decision 18` → `and Deliverable D18`. Fix-introduces-adjacent-defect escape class closed.
+- **F-P35-002 CLOSED** — BC-4.13.001 §Description paragraph 2 extended to Decisions 1/2/3/4/7/9/10/14/15 + D1/D2/D9/D18.
+- **O-P35-001 DISPOSITION** — BC-5.40.001 + BC-6.23.001 POLICY 19 volatile-pins added as Drift Item in pipeline state; target next maintenance sweep.
+- **L-BB-fix-executor-anchor-verification-obligation [codified]** — fix executor must existence-grep every anchor in replacement text. [process-gap] tag. D-790.
+
+Decision count: D-790. BC/VP changelog count: decision-log.md SoT.
+
+### Block 5 — Dim-2 Literal Shell Gates (D-449(a))
+
+**Gate i — POLICY 16 global-max grep (D-790 allocation):**
+
+```
+$ grep "^## D-" .factory/cycles/v1.0-brownfield-backfill/decision-log.md | tail -3
+## D-786 — E-19 Adversarial Pass-32 Closure (NOT-CLEAN B0/H0/M1/L2; F-P32-001 + O-P32-01/02 fixed; streak 0/3)
+## D-787 — E-19 Adversarial Pass-33 Closure (NOT-CLEAN B0/H0/M2/L2; F-P33-001/002 + O-P33-001/002 fixed; streak 0/3)
+## D-789 — E-19 Adversarial Pass-34 Closure (NOT-CLEAN B0/H0/M1/L0; F-P34-001 fixed; streak 0/3)
+```
+
+PASS: D-789 confirmed max → D-790 correctly allocated. POLICY 16 PASS.
+
+**Gate ii — D-494 4-index version verification (post-update):**
+
+```
+$ grep "^version:" \
+    .factory/specs/behavioral-contracts/BC-INDEX.md \
+    .factory/specs/verification-properties/VP-INDEX.md \
+    .factory/stories/STORY-INDEX.md \
+    .factory/specs/architecture/ARCH-INDEX.md
+.factory/specs/behavioral-contracts/BC-INDEX.md:version: "3.88"
+.factory/specs/verification-properties/VP-INDEX.md:version: "2.55"
+.factory/stories/STORY-INDEX.md:version: "4.167"
+.factory/specs/architecture/ARCH-INDEX.md:version: "2.97"
+```
+
+PASS: BC v3.88 / VP v2.55 / STORY v4.167 / ARCH v2.97 — all expected. Zero FAIL.
+
+**Gate iii — input-hash verification (POLICY 18):**
+
+```
+$ grep "^input-hash:" \
+    .factory/specs/behavioral-contracts/ss-04/BC-4.13.001.md \
+    .factory/stories/S-19.02-verify-factory-lock-output-too-large.md \
+    .factory/stories/S-19.07-verify-factory-lock-read-prefix-migration.md
+.factory/specs/behavioral-contracts/ss-04/BC-4.13.001.md:input-hash: "58518e8"
+.factory/stories/S-19.02-verify-factory-lock-output-too-large.md:input-hash: "604f45d"
+.factory/stories/S-19.07-verify-factory-lock-read-prefix-migration.md:input-hash: "534c85c"
+```
+
+PASS: BC-4.13.001=58518e8 (v1.14; 86fab85→58518e8); S-19.02=604f45d (v1.17; d208e66→604f45d; ×18); S-19.07=534c85c (v1.16; 83e8cc4→534c85c; ×12). All non-placeholder. POLICY 18 PASS.
+
+**Gate iv — STATE.md wc-l ≤500 gate:**
+
+```
+$ wc -l .factory/STATE.md
+     444 .factory/STATE.md
+```
+
+PASS: 444 ≤ 500. D-421(c) budget satisfied.
+
+**Gate v — D-446(a) own-burst-log 8-block presence gate:**
+
+```
+$ awk '/^## D-790/,0' .factory/cycles/v1.0-brownfield-backfill/burst-log.md | grep "^### Block [1-8]"
+### Block 1 — Parent-commit
+### Block 2 — Adversary verdict
+### Block 3 — Files touched
+### Block 4 — Codifications
+### Block 5 — Dim-2 Literal Shell Gates (D-449(a))
+### Block 6 — Dim Attestations
+### Block 7 — Closes
+### Block 8 — Factory-artifacts commits
+$ awk '/^## D-790/,0' .factory/cycles/v1.0-brownfield-backfill/burst-log.md | grep -c "^### Block [1-8]"
+8
+```
+
+PASS: All 8 D-444(c) blocks present in D-790 burst-log entry. D-446(a) PASS.
+
+### Block 6 — Dim Attestations
+
+**Dim-2 literal-shell gate summary:** Gates i–v PASS per Block 5. BC v3.88/VP v2.55/STORY v4.167/ARCH v2.97. POLICY 18 input-hashes non-placeholder. STATE.md 444 lines (≤500). D-446(a) 8-block presence PASS. D-449(a) satisfied.
+
+**Dim-5 (input-hash consistency):** POLICY 18 PASS — BC-4.13.001=58518e8, S-19.02=604f45d, S-19.07=534c85c, all non-placeholder.
+
+**Dim-6 (STORY-INDEX BC-coverage):** PASS — STORY-INDEX v4.167: S-19.02 row v1.17 604f45d; S-19.07 row v1.16 534c85c; BC coverage `BC-4.13.001 v1.14 (S-19.02 Phase-A + S-19.07 Phase-B; F-P35-001/002 D-790)`; pass-35 delivery note prepended.
+
+**Dim-7 (routing discipline):** PO (BC-4.13.001 v1.14 — spec traceability + description fix; correct specialist); SW (cite sweep — correct specialist); SM (adv report + decision-log + lessons + BC-INDEX + STORY-INDEX + INDEX.md + burst-log + pipeline state — governance only). No routing violations.
+
+**Dim-5 8-block self-verification:**
+- [x] Block 1 — Parent-commit (`42c0a7e9` SW leg)
+- [x] Block 2 — Adversary verdict (source-attested from adv-E19-pass-35.md; NOT-CLEAN B0/H1/M1/L0; 2 findings + 1 obs)
+- [x] Block 3 — Files touched (11 files; 3 legs: PO + SW + SM)
+- [x] Block 4 — Codifications (D-790; F-P35-001/002 closed; O-P35-001 Drift Item; L-BB lesson)
+- [x] Block 5 — Dim-2 literal-shell gates with captured stdout (Gates i–iii per D-449(a))
+- [x] Block 6 — Dim-5/6/7 Attestations + 8-block self-verification (this block)
+- [x] Block 7 — Closes
+- [x] Block 8 — Factory-artifacts commits
+
+### Block 7 — Closes
+
+| Finding | Status | Notes |
+|---------|--------|-------|
+| F-P35-001 (HIGH) | CLOSED | BC-4.13.001 v1.13→v1.14: §Traceability `§Decision 18`→`and Deliverable D18`; S-19.02 ×18 + S-19.07 ×12 = 30 total cite sites swept |
+| F-P35-002 (MEDIUM) | CLOSED | BC-4.13.001 v1.13→v1.14: §Description extended to Decisions 14/15 + D18; same PO burst as F-P35-001 |
+| O-P35-001 (LOW, out-of-perimeter) | DRIFT ITEM ADDED | BC-5.40.001 + BC-6.23.001 POLICY 19 volatile-pins logged; target next maintenance sweep alongside D-784 S-17.02 item |
+
+NEXT: E-19 adversary pass-36 (fresh context; perimeter = D-790 delta: BC-4.13.001 v1.14 §Traceability+§Description fix; S-19.02 v1.17 + S-19.07 v1.16 cite sweeps; full E-19 suite perimeter carries forward at D-790 versions).
+
+### Block 8 — Factory-artifacts commits
+
+| Commit | SHA | Description |
+|--------|-----|-------------|
+| D-790 burst (atomic) | `pending` | state: D-790 E-19 adv pass-35 NOT-CLEAN closed — F-P35-001/002 fixed; BC-4.13.001 v1.14; streak 0/3 |
+| D-790 sha-patch | `pending` | state(D-790-sha-patch): Active Branches SHA patch + burst-log D-790 Block 8 SHA fill |
