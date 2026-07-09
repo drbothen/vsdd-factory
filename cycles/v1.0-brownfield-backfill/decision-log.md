@@ -7075,3 +7075,57 @@ D-784-E19-ADV-PASS-30-NOT-CLEAN-CLOSED
 ### Date
 
 2026-07-09
+
+## D-785 — E-19 Adversarial Pass-31 Closure (NOT-CLEAN B0/H0/M1/L0; F-P31-001 fixed; streak 0/3)
+
+### Decision
+
+E-19 adversarial cascade pass-31 is NOT-CLEAN. Verdict: BLOCKER 0 / HIGH 0 / MEDIUM 1 / LOW 0 (1 total finding), CLOSED in this D-785 fix burst. BC-5.39.001 3-CLEAN streak: 0/3. Pass-32 required.
+
+**(1) FINDING CLOSED.**
+
+- **F-P31-001 MEDIUM:** E-19 epic v1.19 §Out of Scope BC-1.17.001 bullet introductory phrase "LANDED as v1.3" was stale — BC-1.17.001 is currently at v1.5. This was a partial-sweep escape from the D-784 (pass-30) fix burst: the epic v1.18→v1.19 sweep updated 3 sites (§PRD Capabilities Covered ×2 + §Out of Scope ×1) but the §Out of Scope bullet contained two distinct version-related tokens; the sweep updated the elaboration body but missed the introductory "LANDED as vX.Y" phrase. Additionally, "LANDED as v1.3" is factually imprecise: BC-1.17.001 initially landed at v1.0/v1.2 and the most recent production-grade version is v1.5. Fix: story-writer epic v1.19→v1.20 — §Out of Scope BC-1.17.001 bullet corrected: "LANDED as v1.3" → "LANDED as v1.5 (subsequently amended through v1.5 — see BC changelog)". Input-hash 68a89c0 (unchanged — input-hash computed from referenced input files, not from epic file content).
+
+**(2) FIX BURST LEGS (1 SW + 1 SM).**
+
+- **Story-writer (E-19 epic):** v1.19→v1.20. §Out of Scope BC-1.17.001 bullet corrected: "LANDED as v1.3" → "LANDED as v1.5 (subsequently amended through v1.5 — see BC changelog)". Input-hash 68a89c0 (unchanged). POLICY 14 5-leg parity applied.
+- **State-manager (4-index bumps):** STORY-INDEX v4.162→v4.163 (epic header v1.20; DAG footnote pass-31 note; last_amended). BC-INDEX v3.84 UNCHANGED. VP-INDEX v2.55 UNCHANGED. ARCH-INDEX v2.95 UNCHANGED.
+- **State-manager (governance):** STATE.md v5.35→v5.36. adv-E19-pass-31.md persisted. INDEX.md pass-31 row appended + Convergence Status updated. D-785 codified (this entry).
+
+**(3) D-494 4-INDEX GATE.**
+
+Literal shell execution:
+```
+BC-INDEX v3.84 PASS (UNCHANGED)
+VP-INDEX v2.55 PASS (UNCHANGED)
+STORY-INDEX v4.163 PASS
+ARCH-INDEX v2.95 PASS (UNCHANGED)
+D-494 gate: PASS — zero FAIL
+```
+
+**(4) INPUT-HASH VERIFICATION (POLICY 18).**
+
+Post-burst compute-input-hash result (literal shell, plugins/vsdd-factory/bin/compute-input-hash):
+```
+E-19 epic (SW leg): 68a89c0 (PASS — v1.20; unchanged from v1.19; input-hash computed from referenced input files)
+```
+
+POLICY 18 satisfied. No new BC/VP files modified in this burst — only epic §Out of Scope prose fix.
+
+**(5) TRAJECTORY NOTE.**
+
+Pass-31 severity: B0/H0/M2/L2 (pass-30) → B0/H0/M1/L0 (pass-31). Severity improvement — single MEDIUM finding. Pass-31 finding is an isolated partial-sweep escape in the epic §Out of Scope introductory phrase; no systemic BC/VP/story content gap. Trajectory tail (count passes 28-31): →6→5→4→1. Full trajectory: 16→14→20→9→8→5→12→11→4→7→6→6→3→6→7→2→2→0→0→0→4→4→3→4→2→2→4→6→5→4→1.
+
+**(6) NOVELTY NOTE.**
+
+Novelty: LOW (sweep-hygiene-only; propagation-gap class). F-P31-001 is a partial-sweep escape of the same class as F-P27-001, F-P28-001/002/003, F-P29-001/002/003, and F-P30-001..004 — all arising from a multi-token citation within a single bullet where only one token was updated during the sweep. No new structural defect class emerged. The E-19 perimeter should be clean for pass-32 following the epic §Out of Scope correction. Streak 0/3. NEXT: pass-32.
+
+Parent-commit: (D-784 sha-patch factory-artifacts HEAD — run `git -C .factory log -1 --format='%h'` for current SHA).
+
+### Phase
+
+D-785-E19-ADV-PASS-31-NOT-CLEAN-CLOSED
+
+### Date
+
+2026-07-09

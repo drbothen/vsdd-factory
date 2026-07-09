@@ -1,7 +1,7 @@
 ---
 document_type: epic
 epic_id: "E-19"
-version: "v1.19"
+version: "v1.20"
 status: draft
 title: "Post-rc.22 Operator Hardening — pr-manager race fixes, verify-factory-lock size defect, warn-pending-wave-gate false-positive, registry/bundle hygiene, async telemetry + VSDD_SINK_FILE, host::read_prefix bounded partial read"
 prd_capabilities: []
@@ -24,8 +24,9 @@ inputs:
   - .factory/stories/S-19.07-verify-factory-lock-read-prefix-migration.md
   - .factory/specs/behavioral-contracts/ss-04/BC-4.13.001.md
 input-hash: "68a89c0"
-last_amended: "2026-07-09 (v1.19) — E-19 pass-30 fix burst (story-writer): BC-1.17.001 v1.4→v1.5 cite sweep (metadata-only — L2 Domain Invariants TBD→none; §PRD Capabilities Covered ×2 + §Out of Scope ×1 = 3 sites). BC-2.07.001 v1.2→v1.3 cite sweep (metadata-only; EAC-003 ×1 site). [Prior: 2026-07-08 (v1.18) — E-19 pass-28 fix burst (story-writer): F-P28-001 epic leg — EAC-002 Test-Scenarios corrected to S-19.02 AC-004 integration test (70000-byte fixture; zero output_too_large events) + AC-002 block-detection test (was: S-19.02 AC-001 test suite); EAC-002 Validation-Method corrected to 70000-byte (>64 KiB) STATE.md fixture (was: 90 KB); BC-1.17.001-v1.4-propagation: v1.3→v1.4 body-scope cite sweep (§PRD Capabilities Covered ×2 + §Out of Scope ×1 = 3 sites). [Prior: 2026-07-08 (v1.17) — E-19 pass-27 fix burst (story-writer): F-P27-001 epic leg — Wave-2 sequencing note S-19.04 parenthetical fixed to DISTINCT-block form (was: 'adds capabilities.read_prefix schema documentation to that same section'; now: S-19.06 adds a DISTINCT \"Capability Schemas\" preamble block, separate from S-19.04's tool-filter-anchoring block; ordering-only dependency so two preamble blocks land without merge conflict). [Prior: 2026-07-08 (v1.16) — E-19 pass-22 fix burst BC-1.17.001-v1.3-propagation (story-writer): BC-1.17.001 v1.2→v1.3 cite propagation; §PRD Capabilities Covered (×2 sites) + §Out of Scope (×2 sites) updated. [Prior: 2026-07-08 (v1.15) — O-P16-01 human adjudication (D-773): POLICY 17 frontmatter parity backfill (modified[] + last_amended added)]"
+last_amended: "2026-07-09 (v1.20) — E-19 pass-31 F-P31-001 (story-writer): §Out of Scope BC-1.17.001 bullet stale 'LANDED as v1.3' → v1.5 (partial-sweep escape from pass-28/pass-30 sweeps; two version tokens in one bullet, only one previously updated). [Prior: 2026-07-09 (v1.19) — E-19 pass-30 fix burst (story-writer): BC-1.17.001 v1.4→v1.5 cite sweep (metadata-only — L2 Domain Invariants TBD→none; §PRD Capabilities Covered ×2 + §Out of Scope ×1 = 3 sites). BC-2.07.001 v1.2→v1.3 cite sweep (metadata-only; EAC-003 ×1 site). [Prior: 2026-07-08 (v1.18) — E-19 pass-28 fix burst (story-writer): F-P28-001 epic leg — EAC-002 Test-Scenarios corrected to S-19.02 AC-004 integration test (70000-byte fixture; zero output_too_large events) + AC-002 block-detection test (was: S-19.02 AC-001 test suite); EAC-002 Validation-Method corrected to 70000-byte (>64 KiB) STATE.md fixture (was: 90 KB); BC-1.17.001-v1.4-propagation: v1.3→v1.4 body-scope cite sweep (§PRD Capabilities Covered ×2 + §Out of Scope ×1 = 3 sites). [Prior: 2026-07-08 (v1.17) — E-19 pass-27 fix burst (story-writer): F-P27-001 epic leg — Wave-2 sequencing note S-19.04 parenthetical fixed to DISTINCT-block form (was: 'adds capabilities.read_prefix schema documentation to that same section'; now: S-19.06 adds a DISTINCT \"Capability Schemas\" preamble block, separate from S-19.04's tool-filter-anchoring block; ordering-only dependency so two preamble blocks land without merge conflict). [Prior: 2026-07-08 (v1.16) — E-19 pass-22 fix burst BC-1.17.001-v1.3-propagation (story-writer): BC-1.17.001 v1.2→v1.3 cite propagation; §PRD Capabilities Covered (×2 sites) + §Out of Scope (×2 sites) updated. [Prior: 2026-07-08 (v1.15) — O-P16-01 human adjudication (D-773): POLICY 17 frontmatter parity backfill (modified[] + last_amended added)]"
 modified:
+  - "v1.20 2026-07-09: E-19 pass-31 F-P31-001: §Out of Scope BC-1.17.001 bullet corrected 'LANDED as v1.3' → 'LANDED as v1.5 (subsequently amended through v1.5 — see BC changelog)'."
   - "v1.19 2026-07-09: E-19 pass-30 fix burst: BC-1.17.001 v1.4→v1.5 cite sweep (metadata-only — L2 Domain Invariants TBD→none; §PRD Capabilities Covered ×2 + §Out of Scope ×1 = 3 sites). BC-2.07.001 v1.2→v1.3 cite sweep (metadata-only; EAC-003 ×1 site)."
   - "v1.18 2026-07-08: F-P28-001 epic leg — EAC-002 Test-Scenarios+Validation-Method corrected; BC-1.17.001-v1.4-propagation: v1.3→v1.4 body-scope sweep (3 sites)"
   - "v1.17 2026-07-08: F-P27-001 epic leg — Wave-2 sequencing note S-19.04 parenthetical fixed to DISTINCT-block form"
@@ -207,8 +208,8 @@ Topological order: W1 → W2 → W3 (by priority + S-19.06 gate on S-19.03 AND S
   schema-level defense for concurrent `entry_index` traceability are now in the BC.
   S-19.05 implementer follows BC-3.08.001 v1.19 without further routing action.
 
-- **BC-1.17.001 host::read_prefix:** LANDED as v1.3 (product-owner, E-19 pass-2 fix
-  burst; v1.2 layering parenthetical added E-19 pass-12). FFI signature `read_prefix(path: &str, max_bytes: u32, timeout_ms: u32) -> i32`
+- **BC-1.17.001 host::read_prefix:** LANDED as v1.5 (product-owner, E-19 pass-2 fix
+  burst; subsequently amended through v1.5 — see BC changelog). FFI signature `read_prefix(path: &str, max_bytes: u32, timeout_ms: u32) -> i32`
   and separate `capabilities.read_prefix` registry block are now in the BC. S-19.06
   implementer follows BC-1.17.001 v1.5 without further routing action.
 
@@ -241,6 +242,7 @@ Story BC-table rows use abbreviated titles for cell fit; the BC file H1 remains 
 
 | Version | Date | Author | Change |
 |---------|------|--------|--------|
+| v1.20 | 2026-07-09 | story-writer | E-19 pass-31 fix burst (F-P31-001): §Out of Scope BC-1.17.001 bullet stale 'LANDED as v1.3' corrected to v1.5 (partial-sweep escape from pass-28/pass-30 sweeps; two version tokens in one bullet, only one previously updated). |
 | v1.19 | 2026-07-09 | story-writer | E-19 pass-30 fix burst: BC-1.17.001 v1.4→v1.5 cite sweep (metadata-only — L2 Domain Invariants TBD→none; §PRD Capabilities Covered ×2 + §Out of Scope ×1 = 3 sites). BC-2.07.001 v1.2→v1.3 cite sweep (metadata-only; EAC-003 ×1 site). |
 | v1.18 | 2026-07-08 | story-writer | F-P28-001 epic leg: EAC-002 Test-Scenarios corrected to S-19.02 AC-004 integration test (70000-byte fixture; zero output_too_large events) + AC-002 block-detection test (was: S-19.02 AC-001 test suite); EAC-002 Validation-Method corrected to 70000-byte (>64 KiB) STATE.md fixture (was: 90 KB); BC-1.17.001-v1.4-propagation: v1.3→v1.4 body-scope cite sweep (§PRD Capabilities Covered ×2 + §Out of Scope ×1 = 3 sites). |
 | v1.17 | 2026-07-08 | story-writer | F-P27-001 epic leg: Wave-2 sequencing note S-19.04 parenthetical fixed to DISTINCT-block form (was: 'S-19.06 adds capabilities.read_prefix schema documentation to that same section'; now: S-19.06 adds a DISTINCT "Capability Schemas" preamble block, separate from S-19.04's tool-filter-anchoring block; ordering-only dependency). |

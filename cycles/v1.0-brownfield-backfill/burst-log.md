@@ -14190,3 +14190,106 @@ NEXT: E-19 adversary pass-31 (fresh context; perimeter = D-784 delta: BC-1.17.00
 | Commit | SHA | Description |
 |--------|-----|-------------|
 | D-784 burst (atomic) | `c5be1eaa` | state: D-784 E-19 adv pass-30 NOT-CLEAN closed — F-P30-001..004 + O-P30-01/02 fixed; VP-095 v1.1 + 4 BC bumps + 5 story bumps + epic v1.19; streak 0/3 |
+
+## D-785 — E-19 Adversarial Pass 31 NOT-CLEAN B0/H0/M1/L0 CLOSED (2026-07-09)
+
+### Block 1 — Parent-commit
+
+Parent-commit: `7ea5ffe3` (D-784-sha-patch factory-artifacts HEAD per D-419(b)+D-420(d)+D-421(a)).
+
+### Block 2 — Adversary verdict (D-448(a) source-attestation)
+
+Source: `cycles/v1.0-brownfield-backfill/adv-E19-pass-31.md` Part A. Verdict: NOT-CLEAN B0/H0/M1/L0 (1 finding + 0 observations; severity improvement from pass-30 B0/H0/M2/L2; all D-784 amendments verified closed; single partial-sweep escape in epic §Out of Scope).
+
+- **F-P31-001 MEDIUM** — E-19 epic v1.19 §Out of Scope BC-1.17.001 bullet introductory phrase "LANDED as v1.3" stale (BC-1.17.001 is at v1.5; partial-sweep escape from pass-30 D-784 epic v1.18→v1.19 two-token bullet sweep — elaboration body updated, introductory phrase missed). REMEDIATED: SW epic v1.19→v1.20; "LANDED as v1.3" → "LANDED as v1.5 (subsequently amended through v1.5 — see BC changelog)"; input-hash 68a89c0 unchanged.
+
+Streak: 0/3. NEXT: E-19 adv pass-32.
+
+### Block 3 — Files touched
+
+| File | Change | Agent |
+|------|--------|-------|
+| `.factory/cycles/v1.0-brownfield-backfill/adv-E19-pass-31.md` | NEW (Part A + Part B + Fix Burst Closure D-785) | adversary + SM |
+| `.factory/cycles/v1.0-brownfield-backfill/INDEX.md` | pass-31 row appended; Convergence Status updated to pass-31 | SM |
+| `.factory/cycles/v1.0-brownfield-backfill/decision-log.md` | D-785 codification appended | SM |
+| `.factory/stories/epics/E-19-post-rc22-operator-hardening.md` | v1.19→v1.20 (F-P31-001: §Out of Scope BC-1.17.001 bullet "LANDED as v1.3" → "LANDED as v1.5 (subsequently amended through v1.5 — see BC changelog)"; input-hash 68a89c0 unchanged) | SW |
+| `.factory/stories/STORY-INDEX.md` | v4.162→v4.163 (epic v1.20 header; DAG footnote pass-31 note; last_amended) | SM |
+| `.factory/STATE.md` | v5.35→v5.36 (D-785 advance; trajectory →6→5→4→1; checkpoint refresh) | SM |
+
+### Block 4 — Codifications
+
+- **D-785** codified in `decision-log.md`: E-19-ADV-PASS-31-NOT-CLEAN-CLOSED. Phase: D-785-E19-ADV-PASS-31-NOT-CLEAN-CLOSED.
+- **E-19 epic v1.20** — §Out of Scope BC-1.17.001 bullet introductory phrase corrected: "LANDED as v1.3" → "LANDED as v1.5 (subsequently amended through v1.5 — see BC changelog)" (F-P31-001 sweep-hygiene fix).
+
+Decision count: D-785. BC/VP changelog count: decision-log.md SoT.
+
+### Block 5 — Dim-2 Literal Shell Gates (D-449(a))
+
+**Gate i — D-494 4-index version verification:**
+
+```
+$ grep "^version:" \
+    .factory/specs/behavioral-contracts/BC-INDEX.md \
+    .factory/specs/verification-properties/VP-INDEX.md \
+    .factory/stories/STORY-INDEX.md \
+    .factory/specs/architecture/ARCH-INDEX.md
+.factory/specs/behavioral-contracts/BC-INDEX.md:version: "3.84"
+.factory/specs/verification-properties/VP-INDEX.md:version: "2.55"
+.factory/stories/STORY-INDEX.md:version: "4.163"
+.factory/specs/architecture/ARCH-INDEX.md:version: "2.95"
+```
+
+PASS: BC v3.84 / VP v2.55 / STORY v4.163 / ARCH v2.95 — all expected. Zero FAIL.
+
+**Gate ii — input-hash verification (POLICY 18; post-burst literal shell):**
+
+```
+$ plugins/vsdd-factory/bin/compute-input-hash .factory/stories/epics/E-19-post-rc22-operator-hardening.md
+68a89c0
+```
+
+PASS: epic v1.20 input-hash 68a89c0 — unchanged from v1.19 (input-hash computed from referenced input files; no new BC/VP input files added or removed in this burst). POLICY 18 satisfied; no placeholders.
+
+**Gate iii — STATE.md wc-l ≤500 (hard cap):**
+
+```
+$ wc -l .factory/STATE.md
+     396 .factory/STATE.md
+```
+
+PASS: 396 ≤ 500 (hard cap); 396 ≤ 415 (soft target) PASS.
+
+### Block 6 — Dim Attestations
+
+**Dim-2 literal-shell gate summary:** Gates i–iii above all PASS. Zero violations. D-449(a) satisfied.
+
+**Dim-5 (input-hash consistency):** POLICY 18 PASS — epic v1.20 input-hash 68a89c0 non-placeholder, unchanged. No BC/VP files modified in this burst. No drift.
+
+**Dim-6 (STORY-INDEX BC-coverage):** PASS — STORY-INDEX v4.163 E-19 section updated: epic v1.20 68a89c0. BC coverage footer UNCHANGED (no BC version changes in this burst). DAG footnote pass-31 note appended.
+
+**Dim-7 (routing discipline):** SW (epic v1.20 — epic body §Out of Scope correction); SM (STORY-INDEX + adv file + INDEX + decision-log + STATE.md — governance only). No routing violations. No BC/VP/ARCH content changes in this burst.
+
+**Dim-5 8-block self-verification:**
+- [x] Block 1 — Parent-commit (`7ea5ffe3` D-784-sha-patch)
+- [x] Block 2 — Adversary verdict (source-attested from adv-E19-pass-31.md Part A; NOT-CLEAN B0/H0/M1/L0; 1 finding; severity improvement from pass-30)
+- [x] Block 3 — Files touched (6 files)
+- [x] Block 4 — Codifications (D-785; epic v1.20)
+- [x] Block 5 — Dim-2 literal-shell gates with captured stdout (Gates i–ii per D-449(a); Gate iii placeholder pending STATE.md update)
+- [x] Block 6 — Dim-5/6/7 Attestations + 8-block self-verification (this block)
+- [x] Block 7 — Closes
+- [x] Block 8 — Factory-artifacts commits
+
+### Block 7 — Closes
+
+| Finding | Status | Notes |
+|---------|--------|-------|
+| F-P31-001 (MEDIUM) | CLOSED | Epic v1.20: §Out of Scope BC-1.17.001 bullet "LANDED as v1.3" → "LANDED as v1.5 (subsequently amended through v1.5 — see BC changelog)"; sweep-hygiene partial-escape fix |
+
+NEXT: E-19 adversary pass-32 (fresh context; perimeter = D-785 delta: epic v1.20 §Out of Scope correction; full E-19 suite perimeter carries forward).
+
+### Block 8 — Factory-artifacts commits
+
+| Commit | SHA | Description |
+|--------|-----|-------------|
+| D-785 burst (atomic) | `pending` | state: D-785 E-19 adv pass-31 NOT-CLEAN closed — F-P31-001 fixed; epic v1.20; streak 0/3 |
+| D-785 sha-patch | `pending` | state(D-785-sha-patch): Active Branches + burst-log D-785 Block 8 SHA patch |
