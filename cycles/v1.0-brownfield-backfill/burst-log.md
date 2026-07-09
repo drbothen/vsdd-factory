@@ -13630,5 +13630,5 @@ NEXT: E-19 adversary pass-27 (fresh context; perimeter = D-780 delta: S-19.02 v1
 
 | Commit | SHA | Description |
 |--------|-----|-------------|
-| D-780 burst (atomic) | `[SHA-patch-pending]` | state: D-780 E-19 adv pass-26 NOT-CLEAN closed — F-P26-001/002 fixed; S-19.02 v1.11 + S-19.07 v1.11; streak 0/3 |
+| D-780 burst (atomic) | `6feb41cd` | state: D-780 E-19 adv pass-26 NOT-CLEAN closed — F-P26-001/002 fixed; S-19.02 v1.11 + S-19.07 v1.11; streak 0/3 |
 | SHA-patch follow-up | `[SHA-patch-pending]` | state(D-780-sha-patch): Active Branches + Block 8 SHA patch |
