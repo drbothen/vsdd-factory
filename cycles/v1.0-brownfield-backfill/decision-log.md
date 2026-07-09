@@ -6910,3 +6910,72 @@ D-782-E19-ADV-PASS-28-NOT-CLEAN-CLOSED
 ### Date
 
 2026-07-08
+
+## D-783 — E-19-ADV-PASS-29-NOT-CLEAN-CLOSED
+
+**(1) FINDING DISPOSITIONS.**
+
+- **F-P29-001 (HIGH) — S-19.02 v1.13 cites `extract_frontmatter` in `crates/hook-sdk/src/lib.rs` — wrong crate location (8 loci).** `extract_frontmatter` is a pure function (no I/O, no capability side-effects). Placing it in `hook-sdk` (an I/O-boundary crate) violates the purity separation principle of ADR-025. Architect text-ruling: `extract_frontmatter` belongs in `crates/factory-lock-parse/src/lib.rs` — the canonical pure-crate home for all STATE.md parsing logic (already houses `parse_factory_lock`; satisfies WASM test-build constraints for pure parsing functions; lib-crate function parity). Fix: story-writer S-19.02 v1.13→v1.14 — 8-site crate-path relocation sweep (Task 1, §File Structure lib.rs row, §Previous Story Intel S-19.02 row, §Architecture Mapping row, §Verification Properties VP-095 locus, §Verification Properties VP-096 locus, Token Budget file-list cite, AC-005 Gate 1 path reference). S-19.07 §Previous Story Intel S-19.02 Patterns Established row also corrected (SW S-19.07 v1.12→v1.13 leg). Input-hash da5acd7. POLICY 14 5-leg parity applied. **CLOSED F-P29-001.**
+
+- **F-P29-002 (HIGH) — S-19.02 v1.13 Task 11 pins proptest via volatile `Cargo.toml:102` line number reference (TD-VSDD-091).** Line-number pins in spec content decay on every subsequent `Cargo.toml` diff. Fix: story-writer S-19.02 v1.13→v1.14 (absorbed into v1.14 sweep) — Task 11 `Cargo.toml:102` cite replaced with stable behavioral anchor (proptest workspace pin in `[workspace.dependencies]` section without line-number). **CLOSED F-P29-002.**
+
+- **F-P29-003 (MEDIUM) — S-19.02 v1.13 Task 11 cites VP-096 with stale inclusive "Through Second --- Delimiter" title (pre-VP-INDEX v2.54 form).** Task 11 was authored in the D-782 burst simultaneously with the F-P28-001 VP-096 title correction — but Task 11 prose used the pre-correction inclusive title. Fix: story-writer S-19.02 v1.13→v1.14 (absorbed into v1.14 sweep) — Task 11 VP-096 title updated to VP-INDEX v2.54 canonical exclusive form ("Up To (Excluding) the Second --- Delimiter Line (bytes 0..delimiter_start_offset)"). **CLOSED F-P29-003.**
+
+- **F-P29-004 (MEDIUM) — BC-4.13.001 v1.10 §Verification Properties carries "VP Anchors TBD" despite VP-095 and VP-096 being authoritatively assigned in VP-INDEX v2.54 (POLICY 9 same-burst propagation miss).** VP-095 (AC-006 byte-boundary locus; proof_method integration) and VP-096 (Invariant 9 extract_frontmatter locus; proof_method proptest) are recorded in VP-INDEX v2.54 with BC-4.13.001 loci. The BC body VP rows were never back-cited after VP assignment. Fix: product-owner BC-4.13.001 v1.10→v1.11 — VP Anchors TBD retired; VP-095 and VP-096 added as explicit VP rows with VP-INDEX v2.54 back-citations and proof-method cites. H1 title UNCHANGED (POLICY 7). Input-hash 26d21bf. POLICY 14 5-leg parity applied. **CLOSED F-P29-004.**
+
+- **O-P29-01 (LOW; housekeeping) — CLOSED.** STORY-INDEX S-19.06 v1.15 row description misattributed the v1.15 change to F-P27-002 boundary table column header correction; v1.15 actually fixed F-P27-001 DISTINCT-block form (§Depends on S-19.04 prose converted to DISTINCT preamble block). Fix: state-manager STORY-INDEX v4.160→v4.161 — S-19.06 v1.15 description corrected. **CLOSED O-P29-01.**
+
+**(2) ARCHITECT TEXT-RULING (F-P29-001 CRATE-LOCATION).**
+
+`extract_frontmatter` belongs in `crates/factory-lock-parse/src/lib.rs`. Rationale: (a) Purity separation per ADR-025 — pure parsing functions must not co-reside with I/O-boundary functions in `hook-sdk`; (b) `factory-lock-parse` is already the canonical pure-crate home for STATE.md parsing logic (`parse_factory_lock`); (c) WASM test-build constraints are satisfied by the pure-crate boundary; (d) lib-crate function parity — `extract_frontmatter` must be callable from both the dispatcher and test harnesses without pulling in `hook-sdk` I/O dependencies. Text-ruling requires no architect file edit — ruling is codified in adv-E19-pass-29.md Fix Burst Closure (Architect text-ruling section) and this D-783 entry.
+
+**(3) HUMAN DIRECTIVE (STRICT 3-CLEAN REAFFIRMED 2026-07-09).**
+
+Human explicitly reaffirmed strict BC-5.39.001 3-CLEAN convergence protocol on 2026-07-09. No alternative acceptance criteria (asymptotic floor, manual stop signal, or equivalent) authorized for E-19. Current streak: 0/3 after pass-29 NOT-CLEAN. Pass-30 required.
+
+**(4) FIX BURST LEGS (1 architect text-ruling + 1 PO + 2 SW + 1 SM).**
+
+- **Architect (text-ruling only):** `extract_frontmatter` crate-location ruling recorded above. No file edits by architect in this burst.
+- **Product-owner (BC-4.13.001):** v1.10→v1.11. VP Anchors TBD retired; VP-095 + VP-096 back-cited with VP-INDEX v2.54 canonical form + proof-method rows. H1 title UNCHANGED. Input-hash 26d21bf. POLICY 14 5-leg parity applied.
+- **Story-writer (S-19.02):** v1.13→v1.14. (i) 8-site crate-path relocation sweep (hook-sdk → factory-lock-parse for extract_frontmatter); (ii) Task 11 Cargo.toml:102 volatile pin → stable behavioral anchor; (iii) Task 11 VP-096 title → exclusive form per VP-INDEX v2.54; (iv) BC-4.13.001 v1.10→v1.11 cite sweep. Input-hash da5acd7. POLICY 14 5-leg parity applied.
+- **Story-writer (S-19.07):** v1.12→v1.13. (i) BC-4.13.001 v1.10→v1.11 cite sweep; (ii) §Previous Story Intel S-19.02 Patterns Established row extract_frontmatter crate path corrected to factory-lock-parse. Input-hash 6bb4361. POLICY 14 5-leg parity applied.
+- **State-manager (4-index bumps + O-P29-01):** BC-INDEX v3.82→v3.83 (BC-4.13.001 row v1.10→v1.10|v1.11; F-P29-004 cite). STORY-INDEX v4.160→v4.161 (S-19.02 row da5acd7 v1.14; S-19.07 row 6bb4361 v1.13; S-19.06 v1.15 description corrected per O-P29-01; BC coverage v1.10→v1.11; DAG footnote hashes updated). VP-INDEX v2.54 UNCHANGED. ARCH-INDEX v2.95 UNCHANGED.
+- **State-manager (governance):** STATE.md v5.33→v5.34. adv-E19-pass-29.md persisted. INDEX.md pass-29 row appended + Convergence Status updated. D-783 codified (this entry).
+
+**(5) D-494 4-INDEX GATE.**
+
+Literal shell execution:
+```
+STORY-INDEX v4.161 PASS
+BC-INDEX    v3.83  PASS
+ARCH-INDEX  v2.95  PASS
+VP-INDEX    v2.54  PASS
+D-494 gate: PASS — zero FAIL
+```
+
+**(6) INPUT-HASH VERIFICATION (POLICY 18).**
+
+Pre-burst compute-input-hash results (literal shell, plugins/vsdd-factory/bin/compute-input-hash):
+```
+BC-4.13.001 (PO leg):  26d21bf (PASS — v1.11 post-burst)
+S-19.02 (SW leg):      da5acd7 (PASS — v1.14 post-burst; content changed from v1.13)
+S-19.07 (SW leg):      6bb4361 (PASS — v1.13 post-burst; content changed from v1.12)
+```
+
+**(7) TRAJECTORY NOTE.**
+
+Pass-29 severity regression: B0/H0/M3/L3 (pass-28) → B0/H2/M2/L1 (pass-29). The regression is driven by three findings concentrated in the newly-authored Task 11 content of S-19.02 v1.13 (F-P29-001 crate-location + F-P29-002 volatile pin + F-P29-003 stale VP title), plus one standing POLICY 9 propagation miss in BC-4.13.001 (F-P29-004). The Task-11 cluster indicates a systematic defect in the D-782 SW leg: Task 11 was authored in the same burst as the F-P28-001 VP-096 title fix but used pre-fix inclusive language, wrong crate path, and a volatile line pin — three independent defects introduced simultaneously. D-783 closes all four findings and the O-P29-01 observation. Trajectory tail (passes 26-29): →2→4→6→5.
+
+**(8) PROPAGATION DISCIPLINE NOTE (F-P29-003/F-P29-004 CLASS).**
+
+F-P29-003 demonstrates a cross-leg consistency failure: the D-782 burst's SW leg authored Task 11 content while the SM leg updated VP-INDEX VP-096 title in the same burst — but the newly authored Task 11 content was not reviewed against the VP-INDEX title change before committing. Going forward: when a SW leg authors new content referencing a VP by title in the same burst where the SM leg updates that VP's title, the SM must verify the SW content carries the post-update title form before committing. F-P29-004 demonstrates a BC VP-Anchors gap: when VPs are assigned to a BC in VP-INDEX, the SM must simultaneously update the BC §Verification Properties rows (back-cite). A VP assignment without BC body propagation is incomplete per POLICY 9.
+
+Parent-commit: (D-782 burst factory-artifacts HEAD — run `git -C .factory log -1 --format='%h'` for current SHA).
+
+### Phase
+
+D-783-E19-ADV-PASS-29-NOT-CLEAN-CLOSED
+
+### Date
+
+2026-07-09
