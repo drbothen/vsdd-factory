@@ -14565,5 +14565,5 @@ NEXT: E-19 adversary pass-36 (fresh context; perimeter = D-790 delta: BC-4.13.00
 
 | Commit | SHA | Description |
 |--------|-----|-------------|
-| D-790 burst (atomic) | `pending` | state: D-790 E-19 adv pass-35 NOT-CLEAN closed — F-P35-001/002 fixed; BC-4.13.001 v1.14; streak 0/3 |
-| D-790 sha-patch | `pending` | state(D-790-sha-patch): Active Branches SHA patch + burst-log D-790 Block 8 SHA fill |
+| D-790 burst (atomic) | `89773642` | state(D-790): E-19 adv pass-35 NOT-CLEAN B0/H1/M1/L0 CLOSED; F-P35-001/002 fixed; BC-4.13.001 v1.14; BC-INDEX v3.88; STORY-INDEX v4.167; STATE.md v5.41; streak 0/3; pass-36 NEXT |
+| D-790 sha-patch | `pending` | state(D-790-sha-patch): Active Branches 89773642 + burst-log Block 8 SHA fill |
