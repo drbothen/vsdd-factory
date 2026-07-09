@@ -14291,5 +14291,5 @@ NEXT: E-19 adversary pass-32 (fresh context; perimeter = D-785 delta: epic v1.20
 
 | Commit | SHA | Description |
 |--------|-----|-------------|
-| D-785 burst (atomic) | `pending` | state: D-785 E-19 adv pass-31 NOT-CLEAN closed — F-P31-001 fixed; epic v1.20; streak 0/3 |
-| D-785 sha-patch | `pending` | state(D-785-sha-patch): Active Branches + burst-log D-785 Block 8 SHA patch |
+| D-785 burst (atomic) | `fb9c3076` | state: D-785 E-19 adv pass-31 NOT-CLEAN closed — F-P31-001 fixed; epic v1.20; streak 0/3 |
+| D-785 sha-patch | `pending` | state(D-785-sha-patch): Active Branches fb9c3076 + burst-log D-785 Block 8 SHA patch |
