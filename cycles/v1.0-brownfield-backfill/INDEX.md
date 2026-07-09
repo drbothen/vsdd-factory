@@ -199,8 +199,9 @@ Per human direction 2026-05-14, the E-10 sub-cycle adopts asymptotic-acceptance 
 | Pass-23 | 2026-07-08 | adv-E19-pass-23.md | NOT-CLEAN | B0/H1/M2/L0 (3 total) | 0/3 | D-777 fix burst (architect/PO/SW×2/SM) | CLOSED D-777 — STREAK 0/3; pass-24 NEXT |
 | Pass-24 | 2026-07-08 | adv-E19-pass-24.md | NOT-CLEAN | B0/H0/M2/L2 (4 total; first zero-HIGH) | 0/3 | D-778 fix burst (PO/SW×2/SM) | CLOSED D-778 — STREAK 0/3; pass-25 NEXT |
 | Pass-25 | 2026-07-08 | adv-E19-pass-25.md | NOT-CLEAN | B0/H1/M0/L1 (2 total) | 0/3 | D-779 fix burst (SW×2/SM) | CLOSED D-779 — STREAK 0/3; pass-26 NEXT |
+| Pass-26 | 2026-07-08 | adv-E19-pass-26.md | NOT-CLEAN | B0/H0/M1/L1 (2 total; first zero-HIGH zero-BLOCKER) | 0/3 | D-780 fix burst (SW×2/SM) | CLOSED D-780 — STREAK 0/3; pass-27 NEXT |
 
-**Convergence Status (E-19 spec cascade):** IN PROGRESS — pass-25 NOT-CLEAN B0/H1/M0/L1 (1 finding + 1 obs; severity floor decaying 4→3→4→2 across passes 22-25); D-779 fix burst applied (SW S-19.03 v1.13→v1.14 F-P25-001 body BC-table Version cell v1.4→v1.5; SW S-19.07 v1.9→v1.10 O-P25-001 3 "shipped" tense sites aligned; SM STORY-INDEX v4.156→v4.157 + governance); streak 0/3. 4-index: BC v3.80/VP v2.53/STORY v4.157/ARCH v2.94. pass-26 NEXT.
+**Convergence Status (E-19 spec cascade):** IN PROGRESS — pass-26 NOT-CLEAN B0/H0/M1/L1 (2 items; first zero-HIGH zero-BLOCKER pass; severity floor stable 4→3→4→2→2 across passes 22-26); D-780 fix burst applied (SW S-19.02 v1.10→v1.11 F-P26-001 Phase-A-complete → merge-conditional; SW S-19.07 v1.10→v1.11 F-P26-002 'already works' → design-tense; SM STORY-INDEX v4.157→v4.158 + governance); streak 0/3. O-P26-001/O-P26-002 ACCEPTED-WITH-RECORD (draft-BC input-hash convention; S-19.07 deferral-gate physical-prerequisite scope). 4-index: BC v3.80/VP v2.53/STORY v4.158/ARCH v2.94. pass-27 NEXT.
 
 ## Convergence Status
 

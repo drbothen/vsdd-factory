@@ -1,20 +1,20 @@
 ---
 document_type: pipeline-state
 level: ops
-version: "5.30"
+version: "5.31"
 status: draft
 producer: state-manager
-timestamp: 2026-07-08T23:45:00Z
-phase: D-779-E19-ADV-PASS-25-CLOSED
-last_amended: "2026-07-08 (v5.30) — D-779 E-19 adv pass-25 NOT-CLEAN B0/H1/M0/L1 closed; fix burst (SW S-19.03 v1.13→v1.14 F-P25-001 body BC-table Version cell v1.4→v1.5; SW S-19.07 v1.9→v1.10 O-P25-001 3 tense sites; SM STORY-INDEX v4.156→v4.157); 4-index BC v3.80/VP v2.53 UNCHANGED/STORY v4.157/ARCH v2.94 UNCHANGED; governance-lean burst; streak 0/3; pass-26 NEXT. [Prior: 2026-07-08 (v5.29) — D-778 E-19 adv pass-24 NOT-CLEAN B0/H0/M2/L2 closed; fix burst (PO BC-2.02.011 v1.4→v1.5 F-P24-001 §Traceability bidirectional parity; SW S-19.03 v1.12→v1.13 BC-2.02.011 v1.5 cite sweep; SW S-19.01 v1.13→v1.14 O-P24-002 stale disjunction; SM BC-INDEX BC-2.02.011 row S-19.03 added F-P24-002 + ARCH-INDEX ADR-030 acceptance v1.0 O-P24-001); 4-index BC v3.80/VP v2.53 UNCHANGED/STORY v4.156/ARCH v2.94; first zero-HIGH of re-convergence cascade; streak 0/3; pass-25 NEXT. [Prior: 2026-07-08 (v5.28) — D-777 E-19 adv pass-23 NOT-CLEAN B0/H1/M2/L0 closed; fix burst (architect ADR-030 v1.2→v1.3 F-P23-001 canonical TOML tool-removed/on_error/priority + PO BC-4.13.001 v1.8→v1.9 F-P23-002 tense-only + SW S-19.02 v1.9→v1.10/S-19.07 v1.8→v1.9 BC cite propagation + SM ARCH-INDEX ADR-030 row F-P23-003/STORY-INDEX BC-cite sweep); 4-index BC v3.79/VP v2.53 UNCHANGED/STORY v4.155/ARCH v2.93; streak 0/3; pass-24 NEXT. [Prior: v5.27 D-776 E-19 adv pass-22 NOT-CLEAN B1/H1/M2/L0 closed; 4-index BC v3.78/STORY v4.154/ARCH v2.92; 2026-07-08.]"
+timestamp: 2026-07-08T23:59:00Z
+phase: D-780-E19-ADV-PASS-26-CLOSED
+last_amended: "2026-07-08 (v5.31) — D-780 E-19 adv pass-26 NOT-CLEAN B0/H0/M1/L1 closed; fix burst (SW S-19.02 v1.10→v1.11 F-P26-001 Phase-A-complete → merge-conditional; SW S-19.07 v1.10→v1.11 F-P26-002 'already works' → design-tense; SM STORY-INDEX v4.157→v4.158); 4-index BC v3.80/VP v2.53 UNCHANGED/STORY v4.158/ARCH v2.94 UNCHANGED; first zero-HIGH zero-BLOCKER pass; streak 0/3; pass-27 NEXT. [Prior: 2026-07-08 (v5.30) — D-779 E-19 adv pass-25 NOT-CLEAN B0/H1/M0/L1 closed; fix burst (SW S-19.03 v1.13→v1.14 F-P25-001 body BC-table Version cell v1.4→v1.5; SW S-19.07 v1.9→v1.10 O-P25-001 3 tense sites; SM STORY-INDEX v4.156→v4.157); 4-index BC v3.80/VP v2.53 UNCHANGED/STORY v4.157/ARCH v2.94 UNCHANGED; governance-lean burst; streak 0/3; pass-26 NEXT. [Prior: 2026-07-08 (v5.29) — D-778 E-19 adv pass-24 NOT-CLEAN B0/H0/M2/L2 closed; fix burst (PO BC-2.02.011 v1.4→v1.5 F-P24-001 §Traceability bidirectional parity; SW S-19.03 v1.12→v1.13 BC-2.02.011 v1.5 cite sweep; SW S-19.01 v1.13→v1.14 O-P24-002 stale disjunction; SM BC-INDEX BC-2.02.011 row S-19.03 added F-P24-002 + ARCH-INDEX ADR-030 acceptance v1.0 O-P24-001); 4-index BC v3.80/VP v2.53 UNCHANGED/STORY v4.156/ARCH v2.94; first zero-HIGH of re-convergence cascade; streak 0/3; pass-25 NEXT. [Prior: 2026-07-08 (v5.28) — D-777 E-19 adv pass-23 NOT-CLEAN B0/H1/M2/L0 closed; fix burst (architect ADR-030 v1.2→v1.3 F-P23-001 canonical TOML tool-removed/on_error/priority + PO BC-4.13.001 v1.8→v1.9 F-P23-002 tense-only + SW S-19.02 v1.9→v1.10/S-19.07 v1.8→v1.9 BC cite propagation + SM ARCH-INDEX ADR-030 row F-P23-003/STORY-INDEX BC-cite sweep); 4-index BC v3.79/VP v2.53 UNCHANGED/STORY v4.155/ARCH v2.93; streak 0/3; pass-24 NEXT. [Prior: v5.27 D-776 E-19 adv pass-22 NOT-CLEAN B1/H1/M2/L0 closed; 4-index BC v3.78/STORY v4.154/ARCH v2.92; 2026-07-08.]"
 inputs: []
 input-hash: "[live-state]"
 traces_to: prd.md
 project: vsdd-factory
 mode: brownfield
 pipeline: PAUSED
-"D-779. E-19 ADV PASS-25 NOT-CLEAN B0/H1/M0/L1. develop f5242bef. main a04cb303. merged_count 98. BC-INDEX v3.80 / VP-INDEX v2.53 / STORY-INDEX v4.157 / ARCH-INDEX v2.94. trajectory-tail →4→3→4→2; pass-25 NOT-CLEAN B0/H1/M0/L1 (F-P25-001 HIGH S-19.03 body BC-table Version cell v1.4 stale + O-P25-001 LOW S-19.07 "shipped" tense 3 sites; governance-lean burst SW×2+SM ALL FIXED); STREAK 0/3. NEXT: E-19 adv pass-26 (fresh context). On 3-CLEAN → W1 per-story TDD S-19.01/S-19.02/S-19.03."
-current_step: "D-779-E19-ADV-PASS-25-CLOSED trajectory-tail →4→3→4→2; streak 0/3; NEXT pass-26;"
+"D-780. E-19 ADV PASS-26 NOT-CLEAN B0/H0/M1/L1. develop f5242bef. main a04cb303. merged_count 98. BC-INDEX v3.80 / VP-INDEX v2.53 / STORY-INDEX v4.158 / ARCH-INDEX v2.94. trajectory-tail →3→4→2→2; pass-26 NOT-CLEAN B0/H0/M1/L1 (F-P26-001 MEDIUM S-19.02 Phase-A-complete assertion + F-P26-002 LOW S-19.07 'already works' frame; first zero-HIGH zero-BLOCKER; O-P26-001/O-P26-002 accepted-with-record; SW×2+SM ALL FIXED); STREAK 0/3. NEXT: E-19 adv pass-27 (fresh context). On 3-CLEAN → W1 per-story TDD S-19.01/S-19.02/S-19.03."
+current_step: "D-780-E19-ADV-PASS-26-CLOSED trajectory-tail →3→4→2→2; streak 0/3; NEXT pass-27;"
 current_cycle: v1.0-brownfield-backfill
 dtu_required: false
 dtu_assessment: 2026-04-25
@@ -74,6 +74,7 @@ dtu_services: []
   384 lines (wc-l per cap; D-777 E-19-ADV-PASS-23-CLOSED burst 2026-07-08; v5.28; pass-23 NOT-CLEAN B0/H1/M2/L0; fix burst 4 legs; BC v3.79/VP v2.53/STORY v4.155/ARCH v2.93; streak 0/3; NEXT E-19 adv pass-24)
   386 lines (wc-l per cap; D-778 E-19-ADV-PASS-24-CLOSED burst 2026-07-08; v5.29; pass-24 NOT-CLEAN B0/H0/M2/L2 FIRST-ZERO-HIGH; fix burst 4 legs all-fixed; BC v3.80/VP v2.53/STORY v4.156/ARCH v2.94; streak 0/3; NEXT E-19 adv pass-25)
   384 lines (wc-l per cap; D-779 E-19-ADV-PASS-25-CLOSED burst 2026-07-08; v5.30; pass-25 NOT-CLEAN B0/H1/M0/L1; fix burst SW×2+SM; BC v3.80/VP v2.53/STORY v4.157/ARCH v2.94 UNCHANGED; streak 0/3; NEXT E-19 adv pass-26)
+  386 lines (wc-l per cap; D-780 E-19-ADV-PASS-26-CLOSED burst 2026-07-08; v5.31; pass-26 NOT-CLEAN B0/H0/M1/L1; first zero-HIGH zero-BLOCKER; fix burst SW×2+SM; BC v3.80/VP v2.53/STORY v4.158/ARCH v2.94 UNCHANGED except STORY; streak 0/3; NEXT E-19 adv pass-27)
 -->
 
 # Pipeline State: vsdd-factory
@@ -89,8 +90,8 @@ dtu_services: []
 | **Mode** | brownfield-onboarding |
 | **Language** | Rust + Bash + Markdown |
 | **Started** | 2026-04-25 |
-| **Last Updated** | 2026-07-08 — D-779 E-19 adv pass-25 NOT-CLEAN B0/H1/M0/L1 CLOSED; fix burst SW×2+SM all-fixed; 4-index BC v3.80/VP v2.53/STORY v4.157/ARCH v2.94; streak 0/3; trajectory-tail →4→3→4→2; NEXT: E-19 adv pass-26. [Prior: D-778 E-19 adv pass-24 NOT-CLEAN B0/H0/M2/L2 CLOSED (FIRST ZERO-HIGH); fix burst 4 legs; 4-index BC v3.80/VP v2.53/STORY v4.156/ARCH v2.94; 2026-07-08.] |
-| **Current Phase** | **D-779 E-19 ADV PASS-25 NOT-CLEAN B0/H1/M0/L1 CLOSED 2026-07-08. develop f5242bef. main a04cb303. merged_count 98. 4-index BC v3.80/VP v2.53/STORY v4.157/ARCH v2.94. PIPELINE PAUSED (E-19 re-convergence required before W1 TDD). trajectory →4→3→4→2. STREAK 0/3 (pass-25 NOT-CLEAN: F-P25-001 HIGH S-19.03 body BC-table Version cell v1.4 stale + O-P25-001 LOW S-19.07 "shipped" tense 3 sites; governance-lean burst SW×2+SM ALL FIXED D-779). NEXT: E-19 adversary pass-26 (fresh context; perimeter = D-779 delta). On 3-CLEAN → W1 per-story TDD S-19.01/S-19.02/S-19.03 (parallel-eligible). artifact-path-registry.yaml → fold into S-19.04 PR (W2).** |
+| **Last Updated** | 2026-07-08 — D-780 E-19 adv pass-26 NOT-CLEAN B0/H0/M1/L1 CLOSED; first zero-HIGH zero-BLOCKER; fix burst SW×2+SM all-fixed; 4-index BC v3.80/VP v2.53/STORY v4.158/ARCH v2.94; streak 0/3; trajectory-tail →3→4→2→2; NEXT: E-19 adv pass-27. [Prior: D-779 E-19 adv pass-25 NOT-CLEAN B0/H1/M0/L1 CLOSED; fix burst SW×2+SM; 4-index BC v3.80/VP v2.53/STORY v4.157/ARCH v2.94; 2026-07-08.] |
+| **Current Phase** | **D-780 E-19 ADV PASS-26 NOT-CLEAN B0/H0/M1/L1 CLOSED 2026-07-08. develop f5242bef. main a04cb303. merged_count 98. 4-index BC v3.80/VP v2.53/STORY v4.158/ARCH v2.94. PIPELINE PAUSED (E-19 re-convergence required before W1 TDD). trajectory →3→4→2→2. STREAK 0/3 (pass-26 NOT-CLEAN: F-P26-001 MEDIUM S-19.02 Phase-A-complete assertion + F-P26-002 LOW S-19.07 'already works' frame; first zero-HIGH zero-BLOCKER pass; O-P26-001/O-P26-002 accepted-with-record; governance-lean burst SW×2+SM ALL FIXED D-780). NEXT: E-19 adversary pass-27 (fresh context; perimeter = D-780 delta). On 3-CLEAN → W1 per-story TDD S-19.01/S-19.02/S-19.03 (parallel-eligible). artifact-path-registry.yaml → fold into S-19.04 PR (W2).** |
 | **Current Cycle** | v1.0-brownfield-backfill |
 
 ## Phase Progress
@@ -123,11 +124,11 @@ dtu_services: []
 | Step | Agent | Status | Output |
 |------|-------|--------|--------|
 | F5 passes 18-60 fix bursts (archived) | state-manager | ARCHIVED | See `cycles/v1.0-feature-engine-discipline-pass-1/burst-log.md`. Passes 57-59: D-437..D-439 (see decision-log.md for full range) (META-LEVEL-12/13/14); pass-60: D-440 META-LEVEL-15 CONFIRMED. |
-| D-774 convergence re-certification + W1 staging | state-manager | COMPLETE | adv-E19-pass-21.md NEW; decision-log D-774; burst-log D-774; wave-state.yaml NEW; STATE.md v5.25; E-19 FULLY CLOSED; W1 AUTHORIZED; PAUSED wave-boundary. |
 | D-776 E-19 adv pass-22 CLOSED + fix burst | state-manager | COMPLETE | adv-E19-pass-22.md NEW; D-776 decision-log; lesson L-BB-fix-burst-exclusion-claims-require-ground-truth-verification; 4-index BC v3.78/VP v2.53/STORY v4.154/ARCH v2.92; streak 0/3; NEXT adv pass-23. |
 | D-777 E-19 adv pass-23 CLOSED + fix burst | state-manager | COMPLETE | adv-E19-pass-23.md NEW; D-777 decision-log; lesson L-BB-adr-canonical-snippets-must-mirror-live-registry-shape; 4-index BC v3.79/VP v2.53/STORY v4.155/ARCH v2.93; streak 0/3; NEXT adv pass-24. |
 | D-778 E-19 adv pass-24 CLOSED + fix burst | state-manager | COMPLETE | adv-E19-pass-24.md NEW; D-778 decision-log; lesson L-BB-bidirectional-bc-story-parity-must-be-verified-at-bc-amendment; 4-index BC v3.80/VP v2.53/STORY v4.156/ARCH v2.94; streak 0/3; NEXT adv pass-25. |
 | D-779 E-19 adv pass-25 CLOSED + fix burst | state-manager | COMPLETE | adv-E19-pass-25.md NEW; D-779 decision-log; lesson L-BB-body-bc-table-version-cell-is-distinct-sweep-target; 4-index BC v3.80/VP v2.53/STORY v4.157/ARCH v2.94 UNCHANGED; streak 0/3; NEXT adv pass-26. |
+| D-780 E-19 adv pass-26 CLOSED + fix burst | state-manager | COMPLETE | adv-E19-pass-26.md NEW; D-780 decision-log; 4-index BC v3.80/VP v2.53/STORY v4.158/ARCH v2.94 UNCHANGED except STORY; first zero-HIGH zero-BLOCKER; O-P26-001/002 accepted-with-record; streak 0/3; NEXT adv pass-27. |
 
 ## Identifier Conventions
 
@@ -171,7 +172,7 @@ dtu_services: []
 | Cycle | Type | Status | Notes |
 |-------|------|--------|-------|
 | F-block-ai-attribution-message-file-arm | feature | F3 COMPLETE — F4 READY | F1+F2+F3 done 2026-05-12; 2 stories ready; E-16 under SS-07/SS-04; milestone v1.0.0-rc.17 |
-| v1.0-brownfield-backfill | brownfield | **D-779 E-19-ADV-PASS-25-CLOSED 2026-07-08; PIPELINE PAUSED (re-convergence required). develop f5242bef; main a04cb303; merged_count 98; BC-INDEX v3.80; VP-INDEX v2.53; STORY-INDEX v4.157; ARCH-INDEX v2.94; streak 0/3; trajectory-tail →4→3→4→2; pass-25 NOT-CLEAN B0/H1/M0/L1; fix burst SW×2+SM applied. NEXT: E-19 adv pass-26 (fresh context) → 3-CLEAN → W1 TDD S-19.01/02/03.** | rc.22 100% COMPLETE D-750; D-619..D-779 (see decision-log.md for full range); develop f5242bef; main a04cb303. PAUSED re-convergence (D-779). |
+| v1.0-brownfield-backfill | brownfield | **D-780 E-19-ADV-PASS-26-CLOSED 2026-07-08; PIPELINE PAUSED (re-convergence required). develop f5242bef; main a04cb303; merged_count 98; BC-INDEX v3.80; VP-INDEX v2.53; STORY-INDEX v4.158; ARCH-INDEX v2.94; streak 0/3; trajectory-tail →3→4→2→2; pass-26 NOT-CLEAN B0/H0/M1/L1 (first zero-HIGH zero-BLOCKER); fix burst SW×2+SM applied. NEXT: E-19 adv pass-27 (fresh context) → 3-CLEAN → W1 TDD S-19.01/02/03.** | rc.22 100% COMPLETE D-750; D-619..D-780 (see decision-log.md for full range); develop f5242bef; main a04cb303. PAUSED re-convergence (D-780). |
 | v1.0-feature-engine-discipline-pass-1 | feature | **PAUSED** | F5 pass-75 adversary complete D-510 2026-05-27; META-LEVEL-30 CANDIDATE-CONFIRMED; trajectory →9→9→9→11. Full-cycle trajectory (75 values ending): →9→9→9→9→11. |
 | v1.0-feature-plugin-async-semantics-pass-1 | feature | CLOSED | All PRs merged; rc.14 shipped |
 
@@ -181,6 +182,7 @@ dtu_services: []
 
 | ID | Decision | Summary | Phase | Date |
 |----|----------|---------|-------|------|
+| D-780 | E-19 adv pass-26 NOT-CLEAN B0/H0/M1/L1 (2 items; first zero-HIGH zero-BLOCKER pass; severity floor stable 4→3→4→2→2 across passes 22–26). F-P26-001 MEDIUM: S-19.02 "Phase-A is complete" present-tense assertion — pending-merge story must use merge-conditional per BC-4.13.001 v1.9 tense class. F-P26-002 LOW: S-19.07 "already works"/"correct and operational" delivered-frame — orchestrator adjudicated tense class (not architecture); fix-not-accept per production-grade default. O-P26-001 ACCEPTED-WITH-RECORD: "[pending-recompute]" input-hash in 3 draft BCs (BC-5.42.001/BC-2.07.001/BC-1.17.001) is established draft-BC convention; no recompute this burst. O-P26-002 ACCEPTED-WITH-RECORD: S-19.07 deferral-gate cites only S-19.06 physical prerequisite (not S-19.02 logical); defensible per wave-schedule enforcement of logical constraint. Fix burst: SW (S-19.02 v1.10→v1.11 + S-19.07 v1.10→v1.11); SM (STORY-INDEX v4.157→v4.158). 4-index: BC v3.80/VP v2.53/STORY v4.158/ARCH v2.94. Streak 0/3. NEXT: pass-27. | E-19 ADV PASS-26 NOT-CLEAN B0/H0/M1/L1; first zero-HIGH zero-BLOCKER; fix burst SW×2+SM; 4-index STORY v4.158; streak 0/3; pass-27 NEXT | D-780-E19-ADV-PASS-26-CLOSED | 2026-07-08 |
 | D-775 | W1-validation fix burst CLOSED. Fresh-context perimeter validator returned GO-WITH-FIXES on S-19.01: F-W1V-001 (BLOCKER) bin/ vs hooks/ path conflict; F-W1V-002 (HIGH) positional vs flag invocation-signature; F-W1V-003 (HIGH) 4-arm named error codes; F-W1V-004 (MEDIUM) exit 1 disambiguation. Three specialist legs applied: architect ADR-030 v1.0→v1.1; product-owner BC-5.42.001 v1.1→v1.2; story-writer S-19.01 v1.11→v1.12. HUMAN DIRECTIVE: E-19 adversary cascade MUST re-convergence (BC-5.39.001 3-CLEAN) before W1 TDD dispatch. W1 authorization CONTINGENT on re-convergence. streak RESET 0/3. 4-index: BC v3.77/VP v2.53/STORY v4.153/ARCH v2.91. Parent-commit: e80f7856. | W1-VALIDATION FIX BURST CLOSED; streak RESET 0/3; 4-index updated; pass-22 NEXT | D-775-W1-VALIDATION-FIX-BURST-CLOSED | 2026-07-08 |
 | D-777 | E-19 adv pass-23 NOT-CLEAN B0/H1/M2/L0 (3 findings + 2 obs). F-P23-001 HIGH: ADR-030 v1.2 Decision 1 canonical SubagentStop TOML stanza wrong on 3 structural axes — (a) `tool` field non-existent in live SubagentStop entries; (b) `on_error="advisory"` should be `"continue"` (advisory-block-mode via stdout); (c) `priority=150` should be `920`. D-776 fixed ^Agent$ regex but did not diff full stanza against live registry — F-P22-003 SUPERSEDED. F-P23-002 MED: BC-4.13.001 v1.8 past-tense in normative ACs/Invariants — present-tense imperative required by VSDD BC convention; tense-only (no behavioral change); S-19.02 + S-19.07 cite propagation. F-P23-003 MED: ARCH-INDEX ADR-030 row descriptor cites stale canonical shape (on_error="advisory"/priority=150/tool= field present) — POLICY 6 accuracy violation. Fix burst: architect (ADR-030 v1.2→v1.3 F-P23-001 ADR leg); PO (BC-4.13.001 v1.8→v1.9 F-P23-002 BC leg); SW (S-19.02 v1.9→v1.10 + S-19.07 v1.8→v1.9 BC cite propagation); SM (ARCH-INDEX v2.92→v2.93 F-P23-003 + STORY-INDEX v4.154→v4.155 BC-cite sweep). 4-index: BC v3.79/VP v2.53/STORY v4.155/ARCH v2.93. Streak 0/3. Lesson: L-BB-adr-canonical-snippets-must-mirror-live-registry-shape. Parent-commit: fc4981a9. | E-19 ADV PASS-23 NOT-CLEAN B0/H1/M2/L0; fix burst 4 legs; 4-index updated; streak 0/3; pass-24 NEXT | D-777-E19-ADV-PASS-23-CLOSED | 2026-07-08 |
 | D-776 | E-19 adv pass-22 NOT-CLEAN B1/H1/M2/L0 (4 findings + 5 obs). F-P22-001 BLOCKER: BC-5.42.001 §Architecture Anchors sub-bullet WASM path hooks/ should be hook-plugins/ (ground truth: hooks-registry.toml plugin field; S-19.01 cites hooks/pr-manager-completion-guard.wasm but correct path is hook-plugins/pr-manager-completion-guard.wasm). F-P22-002 HIGH: STORY-INDEX E-19 BC-coverage summary stale cites (BC-5.42.001 v1.1 and BC-1.17.001 v1.2 at two sites; should be v1.3). F-P22-003 MED: ADR-030 Decision 1 TOML SubagentStop tool filter uses ^Agent (unanchored substring match) not ^Agent$ (fully-anchored); S-19.04 D-f convention requires anchored form. F-P22-004 MED: BC-1.17.001 §Architecture Anchors missing ffi.rs raw wire-ABI bullet (only host.rs safe wrapper cited; ffi.rs extern raw ABI entry not present; story S-19.06 AC-007 Gate 2 verifies ffi.rs raw ABI; BC anchor must reflect this). Fix burst: architect (ADR-030 v1.1→v1.2 F-P22-003); product-owner (BC-5.42.001 v1.2→v1.3 F-P22-001 + BC-1.17.001 v1.2→v1.3 F-P22-004); story-writer (S-19.01 v1.12→v1.13 + S-19.06 v1.13→v1.14 + E-19 epic v1.15→v1.16); state-manager (STORY-INDEX stale BC cites F-P22-002). 4-index: BC v3.78/VP v2.53/STORY v4.154/ARCH v2.92. streak 0/3. Lesson: L-BB-fix-burst-exclusion-claims-require-ground-truth-verification. Parent-commit: b1967f03. | E-19 ADV PASS-22 NOT-CLEAN B1/H1/M2/L0; fix burst 5 legs; 4-index updated; streak 0/3; pass-23 NEXT | D-776-E19-ADV-PASS-22-CLOSED | 2026-07-08 |
@@ -323,31 +325,31 @@ dtu_services: []
 - `cycles/v1.0-feature-plugin-async-semantics-pass-1/burst-log.md` | `session-checkpoints.md` | `lessons.md`
 - `cycles/v1.0-feature-engine-discipline-pass-1/burst-log.md` (adversary reviews at `S-12.03/`, `S-12.04/`, `S-12.05/` subdirs)
 
-## Session Resume Checkpoint (2026-07-08 — D-779 E-19 ADV PASS-25 NOT-CLEAN CLOSED; streak 0/3; 4-index BC v3.80/VP v2.53/STORY v4.157/ARCH v2.94; RESUME: E-19 adv pass-26 (fresh context); origin=drbothen/vsdd-factory)
+## Session Resume Checkpoint (2026-07-08 — D-780 E-19 ADV PASS-26 NOT-CLEAN CLOSED; streak 0/3; 4-index BC v3.80/VP v2.53/STORY v4.158/ARCH v2.94; RESUME: E-19 adv pass-27 (fresh context); origin=drbothen/vsdd-factory)
 
 > **SELF-SUFFICIENT RESUME CONTEXT FOR ZERO-CONTEXT NEW SESSION OR NEW MACHINE**
-> Read this section alone to resume. Assumes ZERO prior context. PIPELINE PAUSED — pass-25 NOT-CLEAN B0/H1/M0/L1; fix burst D-779 applied; streak 0/3; re-convergence required. First action: E-19 adversary pass-26 (fresh context). All decisions, directives, and anchors stated explicitly.
+> Read this section alone to resume. Assumes ZERO prior context. PIPELINE PAUSED — pass-26 NOT-CLEAN B0/H0/M1/L1; fix burst D-780 applied; streak 0/3; re-convergence required. First action: E-19 adversary pass-27 (fresh context). All decisions, directives, and anchors stated explicitly.
 
 ### §Position
 
-**E-19 adv pass-25 NOT-CLEAN B0/H1/M0/L1. Fix burst D-779 applied. STREAK 0/3. PIPELINE PAUSED — re-convergence required.**
+**E-19 adv pass-26 NOT-CLEAN B0/H0/M1/L1. Fix burst D-780 applied. STREAK 0/3. PIPELINE PAUSED — re-convergence required.**
 
 - **Cascade:** `v1.0-brownfield-backfill`; 7 stories S-19.01..S-19.07 (45pts); epic `E-19`.
-- **Convergence status:** STREAK 0/3. Pass-25 NOT-CLEAN (F-P25-001 HIGH S-19.03 body BC-table Version cell v1.4 stale + O-P25-001 LOW S-19.07 "shipped" tense 3 sites; governance-lean burst). Fix burst D-779 applied (S-19.03 v1.14 + S-19.07 v1.10 + STORY-INDEX v4.157). E-19 adversary pass-26 required.
+- **Convergence status:** STREAK 0/3. Pass-26 NOT-CLEAN (F-P26-001 MEDIUM S-19.02 Phase-A-complete assertion + F-P26-002 LOW S-19.07 'already works' frame; first zero-HIGH zero-BLOCKER pass; O-P26-001/O-P26-002 accepted-with-record). Fix burst D-780 applied (S-19.02 v1.11 + S-19.07 v1.11 + STORY-INDEX v4.158). E-19 adversary pass-27 required.
 - **W1 authorization:** CONTINGENT on re-convergence (3-CLEAN E-19 adversary cascade). On 3-CLEAN: dispatch W1 TDD per D-773/D-774 authorization.
-- **Current artifact state:** S-19.01 v1.14 (amended: O-P24-002 stale disjunction retired; input-hash 358f3e2); S-19.02 v1.10; S-19.03 v1.14 (amended: F-P25-001 body BC-table Version cell v1.4→v1.5; input-hash 8d1225d); S-19.04 v1.11; S-19.05 v1.13; S-19.06 v1.14; S-19.07 v1.10 (amended: O-P25-001 3 tense sites aligned; input-hash 01bed1d); ADR-030 v1.3; BC-2.02.011 v1.5; BC-4.13.001 v1.9; BC-5.42.001 v1.3; BC-1.17.001 v1.3; epic v1.16; STORY-INDEX v4.157; ARCH-INDEX v2.94.
-- **Repo state:** develop HEAD `f5242bef`; main HEAD `a04cb303`; merged_count 98; factory-artifacts HEAD = D-779 burst (run `git -C .factory log -1 --format='%h'`). v1.0.0-rc.22 FULLY SHIPPED (marketplace #14; confirmed D-750). **E-10 CASCADE SEALED D-531 — do NOT resume. F5 PAUSED D-386 Option C — do NOT resume.**
+- **Current artifact state:** S-19.01 v1.14 (amended: O-P24-002 stale disjunction retired; input-hash 358f3e2); S-19.02 v1.11 (amended: F-P26-001 Phase-A-complete → merge-conditional; input-hash ccd11cf); S-19.03 v1.14 (amended: F-P25-001 body BC-table Version cell v1.4→v1.5; input-hash 8d1225d); S-19.04 v1.11; S-19.05 v1.13; S-19.06 v1.14; S-19.07 v1.11 (amended: F-P26-002 'already works' → design-tense; input-hash 01bed1d); ADR-030 v1.3; BC-2.02.011 v1.5; BC-4.13.001 v1.9; BC-5.42.001 v1.3; BC-1.17.001 v1.3; epic v1.16; STORY-INDEX v4.158; ARCH-INDEX v2.94.
+- **Repo state:** develop HEAD `f5242bef`; main HEAD `a04cb303`; merged_count 98; factory-artifacts HEAD = D-780 burst (run `git -C .factory log -1 --format='%h'`). v1.0.0-rc.22 FULLY SHIPPED (marketplace #14; confirmed D-750). **E-10 CASCADE SEALED D-531 — do NOT resume. F5 PAUSED D-386 Option C — do NOT resume.**
 
 ### §Convergence Counter
 
-- **Current streak:** **0/3** (pass-25 NOT-CLEAN; fix burst D-779 applied; trajectory tail →4→3→4→2; full trajectory 16→14→20→9→8→5→12→11→4→7→6→6→3→6→7→2→2→0→0→0→4→4→3→4→2). Pass-26 is next — 3 consecutive CLEANs required from streak-0.
+- **Current streak:** **0/3** (pass-26 NOT-CLEAN; fix burst D-780 applied; trajectory tail →3→4→2→2; full trajectory 16→14→20→9→8→5→12→11→4→7→6→6→3→6→7→2→2→0→0→0→4→4→3→4→2→2). Pass-27 is next — 3 consecutive CLEANs required from streak-0.
 - **HUMAN DIRECTIVE (D-775, carry-across-CLEAR):** E-19 adversary cascade MUST re-run to re-convergence (BC-5.39.001 3-CLEAN) before W1 TDD dispatch. W1 authorization CONTINGENT on re-convergence.
 - **HUMAN DIRECTIVE (D-761, carry-across-CLEAR):** strict-3-CLEAN no-cap applies to all E-19 adversary passes including post-D-775 re-convergence streak.
-- **Decision-log SoT:** `cycles/v1.0-brownfield-backfill/decision-log.md` D-001..D-779 (see decision-log.md for full range).
+- **Decision-log SoT:** `cycles/v1.0-brownfield-backfill/decision-log.md` D-001..D-780 (see decision-log.md for full range).
 
 ### §Resume Actions (EXACT ORDER — start here on session resume)
 
-**(1) E-19 adversary pass-26 (fresh context; Iron Law).** Perimeter = D-779 delta: S-19.03 v1.14 + S-19.07 v1.10. Streak-0 pass — 3 consecutive CLEANs from here required before W1 TDD dispatch. On NOT-CLEAN: fix burst + pass-27.
+**(1) E-19 adversary pass-27 (fresh context; Iron Law).** Perimeter = D-780 delta: S-19.02 v1.11 + S-19.07 v1.11. Streak-0 pass — 3 consecutive CLEANs from here required before W1 TDD dispatch. On NOT-CLEAN: fix burst + pass-28.
 
 **(2) On 3-CLEAN re-convergence: dispatch W1 per-story TDD (S-19.01 + S-19.02 + S-19.03, parallel-eligible).** Use /vsdd-factory:worktree-manage to create per-story worktrees. Per-story-delivery workflow per CLAUDE.md §orchestrator-per-story-delivery: stubs → Red Gate failing tests → TDD green → LOCAL adversary 3-CLEAN (BC-5.39.001) → demo-recorder per-AC → push → pr-manager 9-step PR cycle → squash-merge → state-manager post-merge burst.
 
@@ -368,18 +370,18 @@ dtu_services: []
 - **L-BB-merge-requires-direct-human-action [process-gap]:** pr-manager will NOT accept orchestrator-relayed merge approval — only the user's own direct action.
 - **D-723 carry-across-CLEAR:** After E-19 completes, revisit (a) ADR-015/Router-multi-sink/WASM/OTel AND (b) S-3.04 status.
 
-### §4-Index at D-779 Closure
+### §4-Index at D-780 Closure
 
 | Index | Version | Last Change |
 |-------|---------|-------------|
-| BC-INDEX | v3.80 | D-778 (BC-2.02.011 v1.4→v1.5 §Traceability S-19.03 added); UNCHANGED D-779 |
-| VP-INDEX | v2.53 | D-756 (VP-079 v1.19); UNCHANGED D-757..D-779 (see decision-log.md for full range) |
-| STORY-INDEX | v4.157 | D-779 (S-19.03 v1.13→v1.14 input-hash 8d1225d F-P25-001; S-19.07 v1.9→v1.10 input-hash 01bed1d O-P25-001) |
-| ARCH-INDEX | v2.94 | D-778 (ADR-030 row acceptance clause v1.1→v1.0); UNCHANGED D-779 |
-| L2-INDEX | v1.0.14 | D-754 (CAP-033 NEW); UNCHANGED D-755..D-779 (see decision-log.md for full range) |
+| BC-INDEX | v3.80 | D-778 (BC-2.02.011 v1.4→v1.5 §Traceability S-19.03 added); UNCHANGED D-779..D-780 (see decision-log.md for full range) |
+| VP-INDEX | v2.53 | D-756 (VP-079 v1.19); UNCHANGED D-757..D-780 (see decision-log.md for full range) |
+| STORY-INDEX | v4.158 | D-780 (S-19.02 v1.10→v1.11 input-hash ccd11cf F-P26-001; S-19.07 v1.10→v1.11 input-hash 01bed1d F-P26-002) |
+| ARCH-INDEX | v2.94 | D-778 (ADR-030 row acceptance clause v1.1→v1.0); UNCHANGED D-779..D-780 (see decision-log.md for full range) |
+| L2-INDEX | v1.0.14 | D-754 (CAP-033 NEW); UNCHANGED D-755..D-780 (see decision-log.md for full range) |
 
-4-index verification gate (literal-shell): `grep "^version:" .factory/specs/behavioral-contracts/BC-INDEX.md .factory/specs/verification-properties/VP-INDEX.md .factory/stories/STORY-INDEX.md .factory/specs/architecture/ARCH-INDEX.md` → BC-INDEX: "3.80" / VP-INDEX: "2.53" / STORY-INDEX: "4.157" / ARCH-INDEX: "2.94".
+4-index verification gate (literal-shell): `grep "^version:" .factory/specs/behavioral-contracts/BC-INDEX.md .factory/specs/verification-properties/VP-INDEX.md .factory/stories/STORY-INDEX.md .factory/specs/architecture/ARCH-INDEX.md` → BC-INDEX: "3.80" / VP-INDEX: "2.53" / STORY-INDEX: "4.158" / ARCH-INDEX: "2.94".
 
-Critical SHAs: develop `f5242bef`; main `a04cb303`; factory-artifacts HEAD = D-779 burst (run `git -C .factory log -1 --format='%h'`). v1.0.0-rc.22 at `e4285fe5`. GitHub origin: `drbothen/vsdd-factory`. total_bcs 1,977.
+Critical SHAs: develop `f5242bef`; main `a04cb303`; factory-artifacts HEAD = D-780 burst (run `git -C .factory log -1 --format='%h'`). v1.0.0-rc.22 at `e4285fe5`. GitHub origin: `drbothen/vsdd-factory`. total_bcs 1,977.
 
-> This checkpoint (D-779 v5.30 2026-07-08) supersedes D-778 v5.29. `git -C .factory log --oneline -3` → D-779 + D-778 + D-777.
+> This checkpoint (D-780 v5.31 2026-07-08) supersedes D-779 v5.30. `git -C .factory log --oneline -3` → D-780 + D-779 + D-778.

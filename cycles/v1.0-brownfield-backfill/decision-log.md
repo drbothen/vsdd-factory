@@ -6709,3 +6709,65 @@ D-779-E19-ADV-PASS-25-CLOSED
 ### Date
 
 2026-07-08
+
+## D-780
+
+### Summary
+
+E-19 adv pass-26 NOT-CLEAN B0/H0/M1/L1 (2 findings; first zero-HIGH zero-BLOCKER pass; severity floor stable 4→3→4→2→2 across passes 22–26). F-P26-001 MEDIUM: S-19.02 §Narrative contains "Phase-A is complete" present-tense assertion implying Phase-A has already shipped — pending-merge story must use merge-conditional tense per BC-4.13.001 v1.9 tense class; same class as F-P23-002/O-P25-001 but in S-19.02. F-P26-002 LOW: S-19.07 retains "already works" / "correct and operational" declarative present-tense framing implying Phase-B is delivered; distinct phrasing pattern from D-779 "shipped" sites; orchestrator adjudicated tense class (not architecture) — fix-not-accept per production-grade default. O-P26-001 ACCEPTED-WITH-RECORD: input-hash "[pending-recompute]" placeholder in 3 draft BCs (BC-5.42.001/BC-2.07.001/BC-1.17.001) — established draft-BC convention; systematic across corpus; not novel; no recompute this burst. O-P26-002 ACCEPTED-WITH-RECORD: S-19.07 deferral-gate grep cites only S-19.06 (physical prerequisite FFI boundary) not S-19.02 (logical prerequisite byte-budget) — defensible per scope boundary (logical constraint in depends_on frontmatter; physical constraint in deferral gate; wave schedule enforces both). Both findings fixed same burst (governance-lean: no BC/ADR legs). Fix burst: story-writer (S-19.02 v1.10→v1.11 F-P26-001 merge-conditional + whole-file predicate; S-19.07 v1.10→v1.11 F-P26-002 design-tense/merge-conditional + whole-file predicate); state-manager (STORY-INDEX v4.157→v4.158 row syncs + governance). 4-index: BC v3.80 UNCHANGED/VP v2.53 UNCHANGED/STORY v4.158/ARCH v2.94 UNCHANGED. Streak 0/3. NEXT: pass-27.
+
+### Detail
+
+**(1) FINDING DISPOSITIONS.**
+
+- **F-P26-001 (MEDIUM) — S-19.02 "Phase-A is complete" present-tense assertion.** S-19.02 §Narrative (or equivalent preamble section) asserts "Phase-A is complete" / "Phase-A has been completed" as a current-state fact, implying it has already shipped. Per BC-4.13.001 v1.9 tense class (established D-777), pending-merge stories must use merge-conditional phrasing: the feature is not complete until the story merges. Same finding class as F-P23-002 (fixed D-777) and O-P25-001 (fixed D-779) but in S-19.02 rather than S-19.07 or BC text. D-779 sibling sweep covered S-19.07 with a narrower predicate that did not include S-19.02's Phase-A-complete assertion form. Fix: S-19.02 v1.10→v1.11 — "Phase-A is complete" converted to "Phase-A of BC-4.13.001 will be complete when this story merges" (or equivalent merge-conditional). Whole-file tense predicate run confirmed zero additional delivered-state assertions. Input-hash ccd11cf unchanged. POLICY 14 5-leg parity applied. **CLOSED F-P26-001.**
+
+- **F-P26-002 (LOW) — S-19.07 "already works" / "correct and operational" delivered-frame.** S-19.07 v1.10 retains rhetorical phrasing in narrative prose describing Phase-B as currently operational ("already works", "correct and operational" or equivalent declarative present-tense delivered-frame). Distinct from the three "shipped" present-perfect sites fixed in D-779 — these use declarative affirmative present-tense constructions. Escalated to orchestrator for adjudication: could be read as an architecture statement (the read_prefix design is correct per ADR-025) or a tense violation. Orchestrator ruling: tense class, not architecture — the design claim is factually correct but the temporal framing is wrong for a pending-merge story. Fix-not-accept per production-grade default (CLAUDE.md Canonical Principle). Fix: S-19.07 v1.10→v1.11 — convert to design-tense / merge-conditional. Whole-file tense predicate run confirmed. Input-hash 01bed1d unchanged. POLICY 14 5-leg parity applied. **CLOSED F-P26-002.**
+
+- **O-P26-001 (LOW; housekeeping) — ACCEPTED-WITH-RECORD.** "[pending-recompute]" input-hash placeholder in BC-5.42.001, BC-2.07.001, BC-1.17.001. Confirmed established draft-BC convention: compute-input-hash requires resolvable input artifacts; newly-authored draft BCs with forward-referencing inputs carry placeholder until inputs resolve. Systematic across corpus, not novel. Not a POLICY 14 violation (input-hash mandatory-computed on story files per convention; draft BCs are exempt pending implementation artifact availability). No file edits this burst.
+
+- **O-P26-002 (LOW; defensibility note) — ACCEPTED-WITH-RECORD.** S-19.07 deferral-gate grep references only S-19.06 as merge prerequisite (physical dependency: read_prefix FFI boundary via S-19.06). S-19.02 (logical dependency: byte-budget Phase-A expansion) is captured in `depends_on: [S-19.02, S-19.06]` frontmatter and wave schedule (both W1/W2 before S-19.07 W3). Deferral gate targeting physical merge-order constraint is defensible scope boundary. No file edits this burst.
+
+**(2) FIX BURST LEGS (2 story-writer + 1 state-manager; governance-lean — no BC/ADR legs).**
+
+- **Story-writer (S-19.02):** S-19.02 v1.10→v1.11. Phase-A-complete assertion converted to merge-conditional. Whole-file tense predicate run. Input-hash ccd11cf unchanged. POLICY 14 5-leg parity applied.
+- **Story-writer (S-19.07):** S-19.07 v1.10→v1.11. "Already works" / "correct and operational" delivered-frame converted to design-tense / merge-conditional. Whole-file tense predicate run. Input-hash 01bed1d unchanged. POLICY 14 5-leg parity applied.
+- **State-manager:** STORY-INDEX v4.157→v4.158 (S-19.02 row v1.10→v1.11 input-hash ccd11cf; S-19.07 row v1.10→v1.11 input-hash 01bed1d; frontmatter last_amended prepended). BC-INDEX v3.80 UNCHANGED. VP-INDEX v2.53 UNCHANGED. ARCH-INDEX v2.94 UNCHANGED.
+
+**(3) D-494 4-INDEX GATE.**
+
+Literal shell execution:
+```
+PASS BC-INDEX.md v3.80
+PASS VP-INDEX.md v2.53
+PASS STORY-INDEX.md v4.158
+PASS ARCH-INDEX.md v2.94
+```
+Zero FAIL.
+
+**(4) INPUT-HASH VERIFICATION (POLICY 18).**
+
+```
+S-19.02: ccd11cf (compute-input-hash stdout — unchanged)
+S-19.07: 01bed1d (compute-input-hash stdout — unchanged)
+```
+
+Both hashes unchanged per tense-only edits. PASS.
+
+**(5) TRAJECTORY NOTE.**
+
+Pass-26 is the first pass with zero HIGH and zero BLOCKER findings. Severity floor: 4→3→4→2→2 across passes 22-26. Trajectory count stable (2→2) from pass-25 to pass-26. Both remaining finding classes are tense-propagation residuals in S-19.02 and S-19.07 — same BC-4.13.001 v1.9 tense class as prior fixed findings. Asymptotic floor being approached.
+
+**(6) O-P26-001 CONVENTION CONFIRMATION.**
+
+"[pending-recompute]" is the established corpus convention for draft BCs whose declared inputs are not yet resolvable implementation artifacts. The compute-input-hash tool requires a populated inputs: array pointing to existing files; draft BCs authored speculatively (before implementation) cannot produce a valid hash. The placeholder is intentional and does not indicate a tool failure or POLICY 14 violation. No remediation warranted.
+
+Parent-commit: (D-779 burst factory-artifacts HEAD — run `git -C .factory log -1 --format='%h'` for current SHA).
+
+### Phase
+
+D-780-E19-ADV-PASS-26-CLOSED
+
+### Date
+
+2026-07-08

@@ -13484,3 +13484,151 @@ NEXT: E-19 adversary pass-26 (fresh context; perimeter = D-779 delta: S-19.03 v1
 |--------|-----|-------------|
 | D-779 burst (atomic) | `42b3bd1e` | state: D-779 E-19 adv pass-25 NOT-CLEAN closed — F-P25-001 + O-P25-001 fixed; S-19.03 v1.14 + S-19.07 v1.10; streak 0/3 |
 | SHA-patch follow-up | `995cb27c` | state(D-779-sha-patch): Active Branches + Block 8 SHA patch |
+
+## D-780 — E-19 adv pass-26 NOT-CLEAN CLOSED (v5.31)
+
+### Block 1 — Parent-commit
+
+Parent-commit: `42b3bd1e` (D-779 burst factory-artifacts HEAD; STATE.md v5.30; SHA-patch `995cb27c` follow-up).
+
+### Block 2 — Adversary verdict
+
+**Source:** adv-E19-pass-26.md (persisted this burst).
+
+Pass-26 verdict: NOT-CLEAN B0/H0/M1/L1. 2 findings + 2 observations.
+
+- **F-P26-001 MEDIUM:** S-19.02 §Narrative contains "Phase-A is complete" present-tense assertion implying Phase-A has shipped. Pending-merge story must use merge-conditional per BC-4.13.001 v1.9 tense class. Same class as F-P23-002/O-P25-001 but in S-19.02 with different phrasing pattern. Pass-26 is first zero-HIGH zero-BLOCKER pass.
+- **F-P26-002 LOW:** S-19.07 retains "already works" / "correct and operational" declarative present-tense delivered-frame. Distinct from D-779 "shipped" sites. Orchestrator adjudicated: tense class (not architecture). Fix-not-accept per production-grade default.
+- **O-P26-001 LOW:** input-hash "[pending-recompute]" in 3 draft BCs (BC-5.42.001/BC-2.07.001/BC-1.17.001). Established draft-BC convention; accepted-with-record.
+- **O-P26-002 LOW:** S-19.07 deferral-gate cites S-19.06 physical prerequisite only (not S-19.02 logical prerequisite). Defensible per wave-schedule enforcement; accepted-with-record.
+
+### Block 3 — Files touched
+
+| File | Change |
+|------|--------|
+| `.factory/cycles/v1.0-brownfield-backfill/adv-E19-pass-26.md` | NEW — adversary pass-26 report (Part A/B + Fix Burst Closure) |
+| `.factory/cycles/v1.0-brownfield-backfill/INDEX.md` | Pass-26 row added; Convergence Status updated |
+| `.factory/cycles/v1.0-brownfield-backfill/decision-log.md` | D-780 codification block appended |
+| `.factory/cycles/v1.0-brownfield-backfill/burst-log.md` | D-780 burst entry (this block) |
+| `.factory/stories/STORY-INDEX.md` | v4.157→v4.158; S-19.02 row v1.10→v1.11; S-19.07 row v1.10→v1.11; last_amended prepended |
+| `.factory/stories/S-19.02-verify-factory-lock-output-too-large.md` | v1.10→v1.11 (SW leg; F-P26-001 Phase-A-complete → merge-conditional) |
+| `.factory/stories/S-19.07-verify-factory-lock-read-prefix-migration.md` | v1.10→v1.11 (SW leg; F-P26-002 'already works' → design-tense) |
+| `.factory/STATE.md` | v5.30→v5.31; frontmatter + banner + Session Resume Checkpoint |
+
+### Block 4 — Codifications
+
+- **D-780:** E-19-ADV-PASS-26-NOT-CLEAN-CLOSED (first zero-HIGH zero-BLOCKER pass; severity floor stable 2→2; tense-class residuals in S-19.02 and S-19.07; O-P26-001/O-P26-002 accepted-with-record; NEXT pass-27)
+- **Decision-log count:**
+
+```bash
+grep -c "^## D-" /Users/zious/Documents/GITHUB/vsdd-factory/.factory/cycles/v1.0-brownfield-backfill/decision-log.md
+```
+
+stdout: `132`
+
+Result: 132 total D-NNN entries (was 131 pre-D-780). D-780 present. PASS.
+
+### Block 5 — Dim-2 literal-shell gates (D-449(a))
+
+**Gate (i) — D-494 4-index post-bump verification:**
+
+```bash
+grep -m1 "^version:" \
+  /Users/zious/Documents/GITHUB/vsdd-factory/.factory/specs/behavioral-contracts/BC-INDEX.md \
+  /Users/zious/Documents/GITHUB/vsdd-factory/.factory/specs/verification-properties/VP-INDEX.md \
+  /Users/zious/Documents/GITHUB/vsdd-factory/.factory/stories/STORY-INDEX.md \
+  /Users/zious/Documents/GITHUB/vsdd-factory/.factory/specs/architecture/ARCH-INDEX.md
+```
+
+stdout:
+```
+BC-INDEX.md:version: "3.80"
+VP-INDEX.md:version: "2.53"
+STORY-INDEX.md:version: "4.158"
+ARCH-INDEX.md:version: "2.94"
+```
+
+Result: PASS BC-INDEX.md v3.80 UNCHANGED / PASS VP-INDEX.md v2.53 UNCHANGED / PASS STORY-INDEX.md v4.158 / PASS ARCH-INDEX.md v2.94 UNCHANGED. Zero FAIL.
+
+**Gate (ii) — Input-hash verification (POLICY 18):**
+
+```bash
+plugins/vsdd-factory/bin/compute-input-hash .factory/stories/S-19.02-verify-factory-lock-output-too-large.md
+plugins/vsdd-factory/bin/compute-input-hash .factory/stories/S-19.07-verify-factory-lock-read-prefix-migration.md
+```
+
+stdout:
+```
+ccd11cf
+01bed1d
+```
+
+Result: S-19.02 ccd11cf UNCHANGED (tense-only edit). S-19.07 01bed1d UNCHANGED (tense-only edit). PASS.
+
+**Gate (iii) — Source-attestation parity (D-448(a)): adv-E19-pass-26.md finding set:**
+
+```bash
+grep -c "NOT-CLEAN\|F-P26\|O-P26" /Users/zious/Documents/GITHUB/vsdd-factory/.factory/cycles/v1.0-brownfield-backfill/adv-E19-pass-26.md
+```
+
+stdout: `14`
+
+Result: 14 occurrences of NOT-CLEAN/F-P26/O-P26 in pass-26 report. PASS — report persisted with full finding set.
+
+**Gate (iv) — D-780 decision-log entry count:**
+
+```bash
+grep -c "^## D-" /Users/zious/Documents/GITHUB/vsdd-factory/.factory/cycles/v1.0-brownfield-backfill/decision-log.md
+```
+
+stdout: `132`
+
+Result: 132 total D-NNN entries (was 131 pre-D-780). D-780 present. PASS.
+
+**Gate (v) — STATE.md version:**
+
+```bash
+grep "^version:" /Users/zious/Documents/GITHUB/vsdd-factory/.factory/STATE.md
+```
+
+stdout: `version: "5.31"`
+
+Result: STATE.md advanced to v5.31. PASS.
+
+### Block 6 — Dim Attestations
+
+**Dim-2 (spec accuracy):** F-P26-001 CLOSED — S-19.02 v1.11 Phase-A-complete assertion converted to merge-conditional; whole-file tense predicate run. F-P26-002 CLOSED — S-19.07 v1.11 'already works'/'correct and operational' converted to design-tense/merge-conditional; whole-file tense predicate run. POLICY 14 5-leg parity on both amended stories. D-494 4-index gate: BC v3.80/VP v2.53/STORY v4.158/ARCH v2.94 — zero FAIL (Gate i stdout above). O-P26-001 accepted-with-record (draft-BC convention). O-P26-002 accepted-with-record (deferral-gate scope boundary).
+
+**Dim-5 (input-hash):** S-19.02 input-hash ccd11cf UNCHANGED (verified via compute-input-hash; tense-only update). S-19.07 input-hash 01bed1d UNCHANGED (verified via compute-input-hash; tense-only update).
+
+**Dim-6 (STORY-INDEX-prose):** STORY-INDEX v4.158 — S-19.02 row v1.10→v1.11 input-hash ccd11cf; S-19.07 row v1.10→v1.11 input-hash 01bed1d; last_amended prepended.
+
+**Dim-7 (routing):** SW×2 (S-19.02 v1.11 F-P26-001 merge-conditional; S-19.07 v1.11 F-P26-002 design-tense); SM (STORY-INDEX v4.158 + INDEX.md + decision-log + burst-log + STATE.md governance).
+
+**Dim-5 8-block self-verification:**
+- [x] Block 1 — Parent-commit (42b3bd1e / 995cb27c SHA-patch)
+- [x] Block 2 — Adversary verdict (source-attested from adv-E19-pass-26.md; NOT-CLEAN B0/H0/M1/L1; 2 findings + 2 obs; first zero-HIGH zero-BLOCKER)
+- [x] Block 3 — Files touched (8 files)
+- [x] Block 4 — Codifications (D-780; count 132)
+- [x] Block 5 — Dim-2 literal shell gates with captured stdout (Gates i/ii/iii/iv/v per D-449(a))
+- [x] Block 6 — Dim-5/6/7 Attestations + 8-block self-verification (this block)
+- [x] Block 7 — Closes
+- [x] Block 8 — Factory-artifacts commits
+
+### Block 7 — Closes
+
+| Finding | Status | Notes |
+|---------|--------|-------|
+| F-P26-001 (MEDIUM) | CLOSED | S-19.02 v1.11: Phase-A-complete assertion → merge-conditional; whole-file tense predicate run zero additional sites |
+| F-P26-002 (LOW) | CLOSED | S-19.07 v1.11: 'already works'/'correct and operational' → design-tense/merge-conditional per BC-4.13.001 v1.9 tense class |
+| O-P26-001 (LOW) | ACCEPTED-WITH-RECORD | "[pending-recompute]" draft-BC convention confirmed; D-780 decision log records convention |
+| O-P26-002 (LOW) | ACCEPTED-WITH-RECORD | S-19.07 deferral-gate physical-prerequisite scope defensible; D-780 decision log records adjudication |
+
+NEXT: E-19 adversary pass-27 (fresh context; perimeter = D-780 delta: S-19.02 v1.11 + S-19.07 v1.11).
+
+### Block 8 — Factory-artifacts commits
+
+| Commit | SHA | Description |
+|--------|-----|-------------|
+| D-780 burst (atomic) | `[SHA-patch-pending]` | state: D-780 E-19 adv pass-26 NOT-CLEAN closed — F-P26-001/002 fixed; S-19.02 v1.11 + S-19.07 v1.11; streak 0/3 |
+| SHA-patch follow-up | `[SHA-patch-pending]` | state(D-780-sha-patch): Active Branches + Block 8 SHA patch |
