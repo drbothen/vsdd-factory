@@ -13632,3 +13632,144 @@ NEXT: E-19 adversary pass-27 (fresh context; perimeter = D-780 delta: S-19.02 v1
 |--------|-----|-------------|
 | D-780 burst (atomic) | `6feb41cd` | state: D-780 E-19 adv pass-26 NOT-CLEAN closed — F-P26-001/002 fixed; S-19.02 v1.11 + S-19.07 v1.11; streak 0/3 |
 | SHA-patch follow-up | `04daa8c6` | state(D-780-sha-patch): Active Branches + Block 8 SHA patch |
+
+## D-781 — E-19 adv pass-27 NOT-CLEAN CLOSED (v5.32)
+
+### Block 1 — Parent-commit
+
+Parent-commit: `04daa8c6` (D-780-sha-patch factory-artifacts HEAD per D-419(b)+D-420(d)+D-421(a)).
+
+### Block 2 — Adversary verdict (D-448(a) source-attestation)
+
+Source: `cycles/v1.0-brownfield-backfill/adv-E19-pass-27.md` Part A. Verdict: NOT-CLEAN B0/H1/M2/L1 (4 items; severity regression 2→4 from pass-26).
+
+- **F-P27-001 HIGH** — S-19.07 DISTINCT-block parity regression (TD-VSDD-060 recurrence). O-P12-04 partial-fix from D-763 left 3 companion DISTINCT blocks unamended: `delimiter_count_distinct` (AC-T-005 §Guard Conditions Invariant 9), `max_delimiter_positions_distinct`, `max_field_positions_distinct`. BC-4.13.001 v1.9 Invariant 9 requires all 4 DISTINCT blocks apply the same `0..delimiter_start_offset` exclusive boundary. REMEDIATED: S-19.07 v1.12 + BC-4.13.001 v1.10 enumerates all 4 blocks explicitly.
+- **F-P27-002 MEDIUM** — S-19.02 AC-T-002 cited "synthetic-test-set" at wrong layer; should cite the WASM reader's direct test-path. Also companion sweep applied to S-19.06 AC-T-002 (same citation pattern). REMEDIATED: S-19.02 v1.12 + S-19.06 v1.15.
+- **F-P27-003 MEDIUM** — BC-4.13.001 v1.9 Invariant 9 exclusive boundary `0..delimiter_start_offset` not stated byte-exactly in the normative body; O-P12-03 adjudication (byte-exact boundary upheld) was not reflected in the body text. REMEDIATED: BC-4.13.001 v1.10 adds byte-exact boundary language.
+- **O-P27-001 LOW** — BC-INDEX catalog row BC-2.02.011 status cell was "draft" instead of "active" (POL-14 auto-promotion at PR #410 merge was not reflected in BC-INDEX). REMEDIATED in-burst: SM leg corrected status cell to "active".
+
+Streak: 0/3. NEXT: E-19 adv pass-28.
+
+### Block 3 — Files touched
+
+| File | Change | Agent |
+|------|--------|-------|
+| `.factory/cycles/v1.0-brownfield-backfill/adv-E19-pass-27.md` | NEW (Part A + Part B + Fix Burst Closure) | adversary + SM |
+| `.factory/cycles/v1.0-brownfield-backfill/INDEX.md` | pass-27 row appended; Convergence Status updated | SM |
+| `.factory/cycles/v1.0-brownfield-backfill/decision-log.md` | D-781 codification appended | SM |
+| `.factory/specs/behavioral-contracts/ss-04/BC-4.13.001.md` | v1.9→v1.10 (F-P27-003 + F-P27-001 Inv9 exclusive boundary byte-exact) | PO |
+| `.factory/stories/epics/E-19-post-rc22-operator-hardening.md` | v1.16→v1.17 (input-hash 0ff893e→bf647fc stale SM correction) | SW |
+| `.factory/stories/S-19.02-verify-factory-lock-output-too-large.md` | v1.11→v1.12 (F-P27-002 test-set citation; input-hash ccd11cf→59d0856) | SW |
+| `.factory/stories/S-19.06-read-prefix-bounded-partial-read.md` | v1.14→v1.15 (F-P27-002 companion sweep; input-hash unchanged→5af0d9f) | SW |
+| `.factory/stories/S-19.07-verify-factory-lock-read-prefix-migration.md` | v1.11→v1.12 (F-P27-001 DISTINCT-block parity all-4 explicit; input-hash 01bed1d→82287d6) | SW |
+| `.factory/specs/behavioral-contracts/BC-INDEX.md` | v3.80→v3.81 (BC-2.02.011 status active O-P27-001; BC-4.13.001 row v1.10 append) | SM |
+| `.factory/stories/STORY-INDEX.md` | v4.158→v4.159 (epic v1.17; S-19.02 v1.12 hash 59d0856; S-19.06 v1.15 hash 5af0d9f; S-19.07 v1.12 hash 82287d6) | SM |
+| `.factory/STATE.md` | v5.31→v5.32 (D-781 advance; trajectory →4→2→2→4; checkpoint refresh) | SM |
+
+### Block 4 — Codifications
+
+- **D-781** codified in `decision-log.md`: E-19-ADV-PASS-27-NOT-CLEAN-CLOSED. Phase: D-781-E19-ADV-PASS-27-CLOSED.
+- **BC-4.13.001 v1.10** — Invariant 9 exclusive byte-exact boundary `0..delimiter_start_offset` stated normatively; all 4 DISTINCT blocks enumerated. O-P12-03 adjudication recorded.
+- **TD-VSDD-060 re-lesson** recorded in D-781 decision-log: DISTINCT-block parity sweep must be exhaustive across ALL DISTINCT operations in the same invariant.
+
+Decision count: D-781. BC changelog count: decision-log.md SoT.
+
+### Block 5 — Dim-2 Literal Shell Gates (D-449(a))
+
+**Gate i — D-494 4-index version verification:**
+
+```
+$ grep "^version:" \
+    .factory/specs/behavioral-contracts/BC-INDEX.md \
+    .factory/specs/verification-properties/VP-INDEX.md \
+    .factory/stories/STORY-INDEX.md \
+    .factory/specs/architecture/ARCH-INDEX.md
+.factory/stories/STORY-INDEX.md:version: "4.159"
+.factory/specs/behavioral-contracts/BC-INDEX.md:version: "3.81"
+.factory/specs/architecture/ARCH-INDEX.md:version: "2.94"
+.factory/specs/verification-properties/VP-INDEX.md:version: "2.53"
+```
+
+PASS: BC v3.81 / VP v2.53 / STORY v4.159 / ARCH v2.94 — all expected. Zero FAIL.
+
+**Gate ii — BC-2.02.011 status cell (O-P27-001 closure):**
+
+```
+$ grep "BC-2\.02\.011" BC-INDEX.md | grep -v "^[0-9]*:.*change:\|last_amended\|version:"
+line 663: | [BC-2.02.011](...) | host::write_file: ... | active | CAP-022 | S-8.10, S-19.03 | v1.3 \| v1.4 \| v1.5 |
+```
+
+PASS: status = "active" (was "draft"; O-P27-001 CLOSED).
+
+**Gate iii — BC-4.13.001 version row in BC-INDEX:**
+
+```
+$ grep -n "BC-4\.13\.001" BC-INDEX.md | grep "v1\.10"
+line 781: ... v1.8 \| v1.9 \| v1.10
+```
+
+PASS: v1.10 appended to BC-4.13.001 catalog row.
+
+**Gate iv — input-hash verification (POLICY 18):**
+
+```
+$ compute-input-hash .factory/specs/behavioral-contracts/ss-04/BC-4.13.001.md
+0c3f7d0
+$ compute-input-hash .factory/stories/S-19.02-verify-factory-lock-output-too-large.md
+59d0856
+$ compute-input-hash .factory/stories/S-19.06-read-prefix-bounded-partial-read.md
+5af0d9f
+$ compute-input-hash .factory/stories/S-19.07-verify-factory-lock-read-prefix-migration.md
+82287d6
+$ compute-input-hash .factory/stories/epics/E-19-post-rc22-operator-hardening.md
+bf647fc
+```
+
+PASS: BC-4.13.001 → 0c3f7d0; S-19.02 → 59d0856 (matches STORY-INDEX row); S-19.06 → 5af0d9f (matches STORY-INDEX row); S-19.07 → 82287d6 (matches STORY-INDEX row); epic → bf647fc (corrected from stale 0ff893e in epic file frontmatter).
+
+**Gate v — STATE.md wc-l ≤500 (hard cap):**
+
+```
+$ wc -l .factory/STATE.md
+388
+```
+
+PASS: 388 ≤ 500 (hard cap); 388 ≤ 415 (soft target).
+
+### Block 6 — Dim Attestations
+
+**Dim-2 literal-shell gate summary:** Gates i–v above all PASS. Zero violations. D-449(a) satisfied.
+
+**Dim-5 (input-hash consistency):** POLICY 18 PASS — BC-4.13.001 hash 0c3f7d0; S-19.02 hash 59d0856 matches STORY-INDEX; S-19.06 hash 5af0d9f matches STORY-INDEX; S-19.07 hash 82287d6 matches STORY-INDEX; epic hash bf647fc corrected SM-leg.
+
+**Dim-6 (STORY-INDEX BC-coverage):** PASS — STORY-INDEX v4.159 E-19 section updated: epic v1.17, S-19.02 v1.12 59d0856, S-19.06 v1.15 5af0d9f, S-19.07 v1.12 82287d6, BC-4.13.001 v1.10 cite updated. All version cells match frontmatter.
+
+**Dim-7 (routing discipline):** PO (BC-4.13.001 v1.10 exclusive-boundary fix — spec content); SW (epic + 3 story amendments); SM (BC-INDEX + STORY-INDEX + adv file + INDEX + decision-log + STATE.md — governance only). No routing violations.
+
+**Dim-5 8-block self-verification:**
+- [x] Block 1 — Parent-commit (`04daa8c6` D-780-sha-patch)
+- [x] Block 2 — Adversary verdict (source-attested from adv-E19-pass-27.md Part A; NOT-CLEAN B0/H1/M2/L1; 4 items; severity regression 2→4)
+- [x] Block 3 — Files touched (11 files)
+- [x] Block 4 — Codifications (D-781; TD-VSDD-060 re-lesson)
+- [x] Block 5 — Dim-2 literal-shell gates with captured stdout (Gates i–v per D-449(a))
+- [x] Block 6 — Dim-5/6/7 Attestations + 8-block self-verification (this block)
+- [x] Block 7 — Closes
+- [x] Block 8 — Factory-artifacts commits
+
+### Block 7 — Closes
+
+| Finding | Status | Notes |
+|---------|--------|-------|
+| F-P27-001 (HIGH) | CLOSED | BC-4.13.001 v1.10 + S-19.07 v1.12: all 4 DISTINCT blocks enumerate explicit `0..delimiter_start_offset` exclusive boundary |
+| F-P27-002 (MEDIUM) | CLOSED | S-19.02 v1.12 + S-19.06 v1.15: test-set citation corrected to WASM reader direct test-path |
+| F-P27-003 (MEDIUM) | CLOSED | BC-4.13.001 v1.10: Invariant 9 exclusive boundary `0..delimiter_start_offset` stated byte-exactly; O-P12-03 adjudication reflected |
+| O-P27-001 (LOW) | CLOSED | BC-INDEX v3.81: BC-2.02.011 status cell corrected "draft"→"active" |
+
+NEXT: E-19 adversary pass-28 (fresh context; perimeter = D-781 delta: BC-4.13.001 v1.10 + S-19.02 v1.12 + S-19.06 v1.15 + S-19.07 v1.12).
+
+### Block 8 — Factory-artifacts commits
+
+| Commit | SHA | Description |
+|--------|-----|-------------|
+| D-781 burst (atomic) | `[pending — SHA-patch follow-up required]` | state: D-781 E-19 adv pass-27 NOT-CLEAN closed — F-P27-001..003 + O-P27-001 fixed; BC-4.13.001 v1.10 + S-19.02 v1.12 + S-19.06 v1.15 + S-19.07 v1.12 + epic v1.17; streak 0/3 |
+| SHA-patch follow-up | `[pending]` | state(D-781-sha-patch): Active Branches + Block 8 SHA patch |

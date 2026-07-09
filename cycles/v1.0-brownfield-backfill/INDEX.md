@@ -200,8 +200,9 @@ Per human direction 2026-05-14, the E-10 sub-cycle adopts asymptotic-acceptance 
 | Pass-24 | 2026-07-08 | adv-E19-pass-24.md | NOT-CLEAN | B0/H0/M2/L2 (4 total; first zero-HIGH) | 0/3 | D-778 fix burst (PO/SW×2/SM) | CLOSED D-778 — STREAK 0/3; pass-25 NEXT |
 | Pass-25 | 2026-07-08 | adv-E19-pass-25.md | NOT-CLEAN | B0/H1/M0/L1 (2 total) | 0/3 | D-779 fix burst (SW×2/SM) | CLOSED D-779 — STREAK 0/3; pass-26 NEXT |
 | Pass-26 | 2026-07-08 | adv-E19-pass-26.md | NOT-CLEAN | B0/H0/M1/L1 (2 total; first zero-HIGH zero-BLOCKER) | 0/3 | D-780 fix burst (SW×2/SM) | CLOSED D-780 — STREAK 0/3; pass-27 NEXT |
+| Pass-27 | 2026-07-08 | adv-E19-pass-27.md | NOT-CLEAN | B0/H1/M2/L1 (4 total; severity regression 2→4; DISTINCT-block sibling-sweep miss TD-VSDD-060) | 0/3 | D-781 fix burst (PO/SW×4/SM×2) | CLOSED D-781 — STREAK 0/3; pass-28 NEXT |
 
-**Convergence Status (E-19 spec cascade):** IN PROGRESS — pass-26 NOT-CLEAN B0/H0/M1/L1 (2 items; first zero-HIGH zero-BLOCKER pass; severity floor stable 4→3→4→2→2 across passes 22-26); D-780 fix burst applied (SW S-19.02 v1.10→v1.11 F-P26-001 Phase-A-complete → merge-conditional; SW S-19.07 v1.10→v1.11 F-P26-002 'already works' → design-tense; SM STORY-INDEX v4.157→v4.158 + governance); streak 0/3. O-P26-001/O-P26-002 ACCEPTED-WITH-RECORD (draft-BC input-hash convention; S-19.07 deferral-gate physical-prerequisite scope). 4-index: BC v3.80/VP v2.53/STORY v4.158/ARCH v2.94. pass-27 NEXT.
+**Convergence Status (E-19 spec cascade):** IN PROGRESS — pass-27 NOT-CLEAN B0/H1/M2/L1 (4 items; severity regression 2→4; F-P27-001 HIGH DISTINCT-block parity TD-VSDD-060 regression; F-P27-002/003 BC-4.13.001 exclusive-boundary propagation; O-P27-001 catalog drift); D-781 fix burst applied (PO BC-4.13.001 v1.9→v1.10 F-P27-003; SW E-19 epic v1.16→v1.17 F-P27-001; SW S-19.02 v1.11→v1.12 F-P27-002; SW S-19.06 v1.14→v1.15 F-P27-002; SW S-19.07 v1.11→v1.12 F-P27-001; SM BC-INDEX v3.80→v3.81 + STORY-INDEX v4.158→v4.159 + O-P27-001 BC-2.02.011 status active); streak 0/3. Trajectory (count): 4→3→4→2→2→4 across passes 22-27. 4-index: BC v3.81/VP v2.53/STORY v4.159/ARCH v2.94. pass-28 NEXT.
 
 ## Convergence Status
 

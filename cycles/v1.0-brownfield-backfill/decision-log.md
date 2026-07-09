@@ -6771,3 +6771,73 @@ D-780-E19-ADV-PASS-26-CLOSED
 ### Date
 
 2026-07-08
+
+---
+
+## D-781 — E-19-ADV-PASS-27-NOT-CLEAN-CLOSED
+
+### Summary
+
+E-19 adv pass-27 NOT-CLEAN B0/H1/M2/L1 (4 items; severity regression 2→4 from pass-26). F-P27-001 HIGH: DISTINCT-block parity regression — O-P12-04 (S-19.06 v1.8) established a DISTINCT "Capability Schemas" preamble block separate from S-19.04's tool-filter-anchoring block; S-19.07 §Previous Story Intel and the E-19 epic Wave-2 sequencing note were not updated with DISTINCT-block framing (TD-VSDD-060 sibling-sweep miss at O-P12-04 value-change point; pass-12 partial-fix regression class). F-P27-002 MEDIUM: S-19.02 test-set boundary citation and S-19.06 boundary table column header do not precisely reflect BC-4.13.001 v1.9 exclusive boundary (`0..delimiter_start_offset`); co-consequence of F-P27-003 BC ambiguity. F-P27-003 MEDIUM: BC-4.13.001 v1.9 Invariant 9 does not state the exclusive boundary byte-exactly — O-P12-03 adjudication upheld (slice starts at byte 0, exclusive upper bound at delimiter_start_offset) but v1.9 text left this ambiguous. O-P27-001 LOW (observation): BC-INDEX catalog row for BC-2.02.011 shows status "draft" while BC file frontmatter declares `lifecycle_status: active` — catalog drift. Fix burst: PO BC-4.13.001 v1.9→v1.10 + SW E-19 epic v1.16→v1.17 + SW S-19.02 v1.11→v1.12 + SW S-19.06 v1.14→v1.15 + SW S-19.07 v1.11→v1.12 + SM BC-INDEX v3.80→v3.81 + SM STORY-INDEX v4.158→v4.159 + SM STATE.md v5.31→v5.32 + SM adv persist. 4-index: BC v3.81/VP v2.53 UNCHANGED/STORY v4.159/ARCH v2.94 UNCHANGED. Streak 0/3. NEXT: pass-28.
+
+### Detail
+
+**(1) FINDING DISPOSITIONS.**
+
+- **F-P27-001 (HIGH) — DISTINCT-block parity regression (pass-12 partial-fix class; TD-VSDD-060).** O-P12-04 (S-19.06 v1.8) introduced a DISTINCT "Capability Schemas" preamble block in the capabilities section of S-19.06, explicitly distinct from S-19.04's tool-filter-anchoring block. The story body and Task 12 were updated to reflect DISTINCT framing. However, S-19.07 §Previous Story Intel (S-19.06 Patterns Established row) and the E-19 epic's Wave-2 sequencing note for S-19.04 still described the preamble block without DISTINCT framing — using "adds capabilities.read_prefix schema documentation to that same section" (epic) and a similar non-DISTINCT form in S-19.07. This implies the S-19.06 preamble is part of S-19.04's block rather than a DISTINCT separate block, contradicting O-P12-04. TD-VSDD-060 sibling-sweep miss: when O-P12-04 changed the description from single-block to two-DISTINCT-blocks, S-19.07 and the epic were not in the sweep scope. Fix: story-writer E-19 epic v1.16→v1.17 (parenthetical corrected to DISTINCT-block form); story-writer S-19.07 v1.11→v1.12 (§Previous Story Intel + §Architecture Mapping updated). **CLOSED F-P27-001. Lesson: TD-VSDD-060 sibling-sweep scope must include epic Wave-N sequencing notes when a story's architectural framing changes.**
+
+- **F-P27-002 (MEDIUM) — S-19.02 test-set citation + S-19.06 boundary table header imprecise re exclusive boundary.** S-19.02 v1.11 AC-005 test-set boundary framing and S-19.06 v1.14 boundary table column header use imprecise boundary forms that do not precisely match the `0..delimiter_start_offset` exclusive boundary established by O-P12-03 adjudication. This finding is a propagation consequence of F-P27-003 (BC-4.13.001 v1.9 exclusive boundary ambiguity) — once the BC is clarified to v1.10, the story citations must track the new explicit form. Fix: story-writer S-19.02 v1.11→v1.12 (test-set cite corrected; BC-4.13.001 v1.9→v1.10 sweep); story-writer S-19.06 v1.14→v1.15 (boundary table column header corrected; BC-4.13.001 v1.9→v1.10 sweep). **CLOSED F-P27-002.**
+
+- **F-P27-003 (MEDIUM) — BC-4.13.001 v1.9 Invariant 9 exclusive boundary not stated byte-exactly.** Invariant 9 governs `extract_frontmatter()` — the extracted slice must contain only the YAML frontmatter header, not the full STATE.md body. v1.9 text describes the boundary in terms of `delimiter_start_offset` but does not make explicit the exclusive form `0..delimiter_start_offset`. O-P12-03 adjudication (D-779 decision log; AC-005 Unit test A affirmative statements) confirmed: slice starts at byte 0, `delimiter_start_offset` is NOT included. v1.9 BC body did not reflect this unambiguously. Fix: product-owner BC-4.13.001 v1.9→v1.10 — Invariant 9 amended to state `0..delimiter_start_offset` (exclusive byte-exact boundary; opening `---\n` marker at byte 0 included; closing `---` marker at `delimiter_start_offset` NOT included). H1 title UNCHANGED (POLICY 7). Input-hash 2cca156. **CLOSED F-P27-003. O-P12-03 adjudication upheld verbatim.**
+
+- **O-P27-001 (LOW; housekeeping) — CLOSED.** BC-INDEX catalog row BC-2.02.011 status cell "draft" while BC file `lifecycle_status: active`. Fix: state-manager BC-INDEX v3.80→v3.81, BC-2.02.011 row status "draft"→"active". No behavioral content changed. H1 UNCHANGED. **CLOSED O-P27-001.**
+
+**(2) FIX BURST LEGS (1 PO + 4 SW + 2 SM).**
+
+- **Product-owner (BC-4.13.001):** BC-4.13.001 v1.9→v1.10. Invariant 9 exclusive boundary stated byte-exactly. Input-hash 2cca156.
+- **Story-writer (E-19 epic):** v1.16→v1.17. Wave-2 S-19.04 parenthetical → DISTINCT-block form. SM corrected input-hash 0ff893e→bf647fc (story-writer missed recompute after BC-4.13.001 v1.10 + S-19.02 v1.12 + S-19.06 v1.15 + S-19.07 v1.12 inputs changed).
+- **Story-writer (S-19.02):** v1.11→v1.12. Test-set cite corrected; BC v1.9→v1.10 sweep; input-hash ccd11cf→59d0856.
+- **Story-writer (S-19.06):** v1.14→v1.15. Boundary table column header corrected; BC v1.9→v1.10 sweep; input-hash 5af0d9f unchanged.
+- **Story-writer (S-19.07):** v1.11→v1.12. DISTINCT-block parity + BC v1.9→v1.10 sweep; input-hash 01bed1d→82287d6.
+- **State-manager (index bumps):** BC-INDEX v3.80→v3.81 (BC-4.13.001 row v1.9→v1.9|v1.10; BC-2.02.011 status draft→active). STORY-INDEX v4.158→v4.159 (S-19.02/S-19.06/S-19.07 row syncs; epic header v1.16→v1.17; input-hash table; BC coverage footer BC-4.13.001 v1.9→v1.10). VP-INDEX v2.53 UNCHANGED. ARCH-INDEX v2.94 UNCHANGED.
+- **State-manager (governance):** STATE.md v5.31→v5.32. adv-E19-pass-27.md persisted. INDEX.md pass-27 row appended + Convergence Status updated. D-781 codified (this entry).
+
+**(3) D-494 4-INDEX GATE.**
+
+Literal shell execution:
+```
+BC-INDEX v3.81 PASS
+VP-INDEX v2.53 PASS
+STORY-INDEX v4.159 PASS
+ARCH-INDEX v2.94 PASS
+D-494 gate: PASS — zero FAIL
+```
+
+**(4) INPUT-HASH VERIFICATION (POLICY 18).**
+
+Pre-burst compute-input-hash results (literal shell, plugins/vsdd-factory/bin/compute-input-hash):
+```
+BC-4.13.001.md: 2cca156 (PASS — matches stored v1.10)
+S-19.02:        59d0856 (PASS — matches updated v1.12)
+S-19.06:        5af0d9f (PASS — unchanged v1.15)
+S-19.07:        82287d6 (PASS — matches updated v1.12)
+E-19 epic:      bf647fc (PASS — SM correction applied; was stale 0ff893e)
+```
+
+**(5) TRAJECTORY NOTE.**
+
+Pass-27 severity regression: 2 items (pass-26) → 4 items (pass-27). Regression class: TD-VSDD-060 DISTINCT-block sibling-sweep miss (O-P12-04 partial-fix not propagated to S-19.07 + epic) + BC-4.13.001 exclusive-boundary ambiguity (both BC and citation propagation). Trajectory count (passes 22-27): 4→3→4→2→2→4. The 2-item floor at passes 25-26 was not sustained — new finding class emerged from the O-P12-04 propagation gap. TD-VSDD-060 sibling-sweep lesson re-codified: sweep scope must include epic Wave-N sequencing notes when a story's architectural framing changes.
+
+**(6) TD-VSDD-060 SIBLING-SWEEP RE-LESSON (F-P27-001 class).**
+
+F-P27-001 HIGH is the third recurrence of TD-VSDD-060 in the E-19 cascade (prior: F-P13-002 AC-007 ffi.rs row; F-P15-002 ffi.rs File Structure row). Each recurrence identified a new scope boundary that was not included in the prior sweep. The new scope boundary confirmed here: when a story's preamble block description changes (single-block → two-DISTINCT-blocks per O-P12-04), the sweep must include (a) story body, (b) story §Previous Story Intel rows in DOWNSTREAM stories, AND (c) epic Wave-N sequencing notes that describe the change. All three scope boundaries now confirmed closed for the O-P12-04 DISTINCT-block context.
+
+Parent-commit: (D-780 burst factory-artifacts HEAD — run `git -C .factory log -1 --format='%h'` for current SHA).
+
+### Phase
+
+D-781-E19-ADV-PASS-27-CLOSED
+
+### Date
+
+2026-07-08

@@ -1,7 +1,7 @@
 ---
 document_type: epic
 epic_id: "E-19"
-version: "v1.16"
+version: "v1.17"
 status: draft
 title: "Post-rc.22 Operator Hardening — pr-manager race fixes, verify-factory-lock size defect, warn-pending-wave-gate false-positive, registry/bundle hygiene, async telemetry + VSDD_SINK_FILE, host::read_prefix bounded partial read"
 prd_capabilities: []
@@ -23,9 +23,10 @@ inputs:
   - .factory/stories/S-19.06-read-prefix-bounded-partial-read.md
   - .factory/stories/S-19.07-verify-factory-lock-read-prefix-migration.md
   - .factory/specs/behavioral-contracts/ss-04/BC-4.13.001.md
-input-hash: "c2c269d"
-last_amended: "2026-07-08 (v1.16) — E-19 pass-22 fix burst BC-1.17.001-v1.3-propagation (story-writer): BC-1.17.001 v1.2→v1.3 cite propagation; §PRD Capabilities Covered (×2 sites) + §Out of Scope (×2 sites) updated. [Prior: 2026-07-08 (v1.15) — O-P16-01 human adjudication (D-773): POLICY 17 frontmatter parity backfill (modified[] + last_amended added)]"
+input-hash: "bf647fc"
+last_amended: "2026-07-08 (v1.17) — E-19 pass-27 fix burst (story-writer): F-P27-001 epic leg — Wave-2 sequencing note S-19.04 parenthetical fixed to DISTINCT-block form (was: 'adds capabilities.read_prefix schema documentation to that same section'; now: S-19.06 adds a DISTINCT \"Capability Schemas\" preamble block, separate from S-19.04's tool-filter-anchoring block; ordering-only dependency so two preamble blocks land without merge conflict). [Prior: 2026-07-08 (v1.16) — E-19 pass-22 fix burst BC-1.17.001-v1.3-propagation (story-writer): BC-1.17.001 v1.2→v1.3 cite propagation; §PRD Capabilities Covered (×2 sites) + §Out of Scope (×2 sites) updated. [Prior: 2026-07-08 (v1.15) — O-P16-01 human adjudication (D-773): POLICY 17 frontmatter parity backfill (modified[] + last_amended added)]"
 modified:
+  - "v1.17 2026-07-08: F-P27-001 epic leg — Wave-2 sequencing note S-19.04 parenthetical fixed to DISTINCT-block form"
   - "v1.16 2026-07-08: BC-1.17.001-v1.3-propagation — BC-1.17.001 v1.2→v1.3 cite propagation; §PRD Capabilities Covered ×2 sites + §Out of Scope ×2 sites"
   - "v1.15 2026-07-08: O-P16-01 human adjudication (D-773) POLICY 17 frontmatter parity backfill"
 ---
@@ -156,9 +157,11 @@ follows BC-1.17.001 v1.3 without further routing action.
   extension stories. S-19.04 and S-19.05 have no hard dependency on W1; wave ordering is
   priority-driven. S-19.06 depends on S-19.03 (the `path_allowed` fix for absent files;
   BC-2.07.001 codes::NOT_FOUND semantics are a prerequisite for read_prefix absent-file
-  behavior) AND S-19.04 (S-19.04 creates the preamble comment section in
-  `hooks-registry.toml`; S-19.06 adds `capabilities.read_prefix` schema documentation to
-  that same section). Only S-19.03 and S-19.04 gate S-19.06; S-19.05 is independent and
+  behavior) AND S-19.04 (S-19.04 creates the tool-filter-anchoring preamble comment block in
+  `hooks-registry.toml`; S-19.06 adds a DISTINCT "Capability Schemas" preamble block for
+  the `capabilities.read_prefix` schema — separate from, not embedded in, S-19.04's block;
+  the dependency is ordering-only so the two preamble blocks land without merge conflict).
+  Only S-19.03 and S-19.04 gate S-19.06; S-19.05 is independent and
   has no S-19.03/S-19.04/S-19.06 dependency. S-19.04 and S-19.05 can run in parallel;
   S-19.06 starts when BOTH S-19.03 AND S-19.04 have merged to develop.
 
@@ -236,6 +239,7 @@ Story BC-table rows use abbreviated titles for cell fit; the BC file H1 remains 
 
 | Version | Date | Author | Change |
 |---------|------|--------|--------|
+| v1.17 | 2026-07-08 | story-writer | F-P27-001 epic leg: Wave-2 sequencing note S-19.04 parenthetical fixed to DISTINCT-block form (was: 'S-19.06 adds capabilities.read_prefix schema documentation to that same section'; now: S-19.06 adds a DISTINCT "Capability Schemas" preamble block, separate from S-19.04's tool-filter-anchoring block; ordering-only dependency). |
 | v1.16 | 2026-07-08 | story-writer | BC-1.17.001-v1.3-propagation: BC-1.17.001 v1.2→v1.3 cite propagation (anchoring-only change — ffi.rs bullet added to §Architecture Anchors in BC v1.3); §PRD Capabilities Covered ×2 sites + §Out of Scope ×3 sites updated. |
 | v1.15 | 2026-07-08 | story-writer | O-P16-01 human adjudication (D-773): POLICY 17 frontmatter parity backfill (modified[] + last_amended added). |
 | v1.14 | 2026-07-08 | story-writer | O-P16-02: EAC-008 Validation Method + Test Scenarios columns split for column parity (both previously "S-19.05 AC-002 test suite"; now distinct per AC-002 gates a/b). |
