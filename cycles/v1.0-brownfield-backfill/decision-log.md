@@ -6841,3 +6841,72 @@ D-781-E19-ADV-PASS-27-CLOSED
 ### Date
 
 2026-07-08
+
+---
+
+## D-782 — E-19 Adversarial Pass 28 NOT-CLEAN Closed
+
+**(1) FINDING DISPOSITIONS.**
+
+- **F-P28-001 (MEDIUM) — VP-INDEX VP-096 title/description uses inclusive "Through Second --- Delimiter" framing inconsistent with BC-4.13.001 v1.10 Invariant 9 exclusive `0..delimiter_start_offset` form.** D-781 fix burst amended BC-4.13.001 v1.9→v1.10 (F-P27-003) to make the exclusive boundary explicit. However, VP-INDEX v2.53 Full Index VP-096 row still carried the pre-v1.10 inclusive title "Through Second --- Delimiter" — a POLICY 9 same-burst propagation miss from D-781. The VP-INDEX title is the first artifact a reader encounters for VP-096; inclusive framing contradicts the normative BC. Fix: state-manager VP-INDEX v2.53→v2.54 — VP-096 Full Index row title updated to "Up To (Excluding) the Second --- Delimiter Line (bytes 0..delimiter_start_offset; opening ---\n included)"; description updated with explicit exclusive-boundary note; v1.1 changelog note appended; Story Anchors row updated. Architect VP-096.md v1.0→v1.1 (same exclusive-boundary title/description); verification-architecture.md v1.7→v1.8; verification-coverage-matrix.md v1.4→v1.5 (POLICY 9 propagation). **CLOSED F-P28-001.**
+
+- **F-P28-002 (MEDIUM) — BC-1.17.001 v1.3 §Traceability VP-101 proof-method characterization does not align to VP-INDEX integration-only classification per POLICY 9.** VP-INDEX VP-101 Full Index row (Proof Method column) records `integration` exclusively. BC-1.17.001 v1.3 §Traceability prose described VP-101 in terms that implied multiple proof-method paths. Per POLICY 9, proof-method classifications for VPs are authoritative in VP-INDEX; BC Traceability sections citing a VP's proof method must align to VP-INDEX canonical Proof Method column value. Fix: product-owner BC-1.17.001 v1.3→v1.4 — §Traceability VP-101 proof-method aligned to VP-INDEX `integration` classification; 10-site sweep (Narrative ×1, AC-007 ×4, BC table version ×1, Token Budget ×1, Architecture Compliance Rules ×3). H1 title UNCHANGED (POLICY 7). Input-hash adbb5f3. E-19 epic v1.17→v1.18 (BC-1.17.001 v1.3→v1.4 cite propagation; input-hash bf647fc→6e3bb2c). **CLOSED F-P28-002.**
+
+- **F-P28-003 (MEDIUM) — S-19.02 v1.12 has no proptest Task for VP-096.** VP-096 proof_method is `proptest` (VP-INDEX Proof Method column). S-19.02 v1.12 wires VP-096 in `verification_properties` but has no Task or AC for a proptest harness targeting the byte-exact prefix property and determinism (BC-4.13.001 Invariant 9). Per BC-5.39.001 convergence discipline, a VP with proof_method=proptest wired to a story requires a corresponding proptest Task. Fix: story-writer S-19.02 v1.12→v1.13 — new Task 11 (proptest harness for VP-096: `extract_frontmatter` byte-exact prefix property + determinism; BC-4.13.001 v1.10 Invariant 9 exclusive boundary authoritative); old Tasks 11→12, 12→13, 13→14 renumbered; T-010 added; Library & Framework proptest row added; File Structure lib.rs row extended. Input-hash 59d0856 unchanged. POLICY 14 5-leg parity applied. **CLOSED F-P28-003.**
+
+- **O-P28-01 (LOW; informational) — RECORDED ONLY.** S-19.07 v1.12 Coverage Attestation footnote cites BC-4.13.001 v1.9 in a parenthetical reference; normative AC content correctly cites v1.10 throughout. Documentation metadata gap; no normative content affected. No fix required. **RECORDED O-P28-01.**
+
+- **O-P28-02 (LOW; housekeeping) — CLOSED.** S-19.05 v1.13 awk gates for AC-004 (ENV_SINK_FILE, flush_sink_file) and T-006 (Mutex) lacked grep -q presence-prechecks, creating a vacuous-pass vector if symbols were renamed or removed. Fix: story-writer S-19.05 v1.13→v1.14 — all three awk gates hardened with `grep -q` / `grep -qE` presence-prechecks; absent-symbol fixture evidence added. Input-hash 9e54d68 unchanged. POLICY 14 5-leg parity applied. **CLOSED O-P28-02.**
+
+- **O-P28-03 (LOW; housekeeping) — CLOSED.** STORY-INDEX retirement note for E-19 stated "5 stories" (historical v1.0 tally) while E-19 currently has 7 stories at 45 pts. Fix: state-manager STORY-INDEX retirement note clarifier appended: `[Historical v1.0 tally; current: 7 stories/45 pts — see row summary]`. **CLOSED O-P28-03.**
+
+**(2) FIX BURST LEGS (1 architect + 1 PO + 3 SW + 2 SM).**
+
+- **Architect (VP-096.md + verification-architecture.md + verification-coverage-matrix.md):** VP-096.md v1.0→v1.1 (exclusive-boundary title + description; input-hash 6af1247). verification-architecture.md v1.7→v1.8 (VP-096 row exclusive form). verification-coverage-matrix.md v1.4→v1.5 (VP-096 SS-04 row exclusive form). POLICY 9 propagation complete.
+- **Product-owner (BC-1.17.001 + E-19 epic):** BC-1.17.001 v1.3→v1.4 (VP-101 proof-method alignment; 10-site sweep; input-hash adbb5f3). E-19 epic v1.17→v1.18 (BC cite propagation; input-hash bf647fc→6e3bb2c). NOTE: epic internal `input-hash:` frontmatter field still reflects bf647fc — stale (story-writer missed recompute); STORY-INDEX records 6e3bb2c (SM-computed post-burst).
+- **Story-writer (S-19.02):** v1.12→v1.13. VP-096 proptest Task 11 added; Tasks renumbered; T-010; proptest Library row; File Structure extended. Input-hash 59d0856 unchanged.
+- **Story-writer (S-19.05):** v1.13→v1.14. Awk gate presence-precheck hardening; absent-symbol fixture evidence. Input-hash 9e54d68 unchanged.
+- **Story-writer (S-19.06):** v1.15→v1.16. BC-1.17.001 v1.3→v1.4 body-scope cite sweep (10 sites). Input-hash 5af0d9f→a8bb758.
+- **State-manager (index bumps):** BC-INDEX v3.81→v3.82 (BC-1.17.001 row v1.3→v1.3|v1.4). VP-INDEX v2.53→v2.54 (VP-096 rows updated). STORY-INDEX v4.159→v4.160 (S-19.02/S-19.05/S-19.06 row syncs; epic v1.17→v1.18; delivery note; BC coverage footer v1.3→v1.4; retirement note clarifier). ARCH-INDEX v2.94→v2.95 (verification-architecture.md v1.8 note; verification-coverage-matrix.md v1.5 note). Input-hash verification: S-19.02=59d0856, S-19.05=9e54d68, S-19.06=a8bb758, E-19 epic=6e3bb2c (SM-computed).
+- **State-manager (governance):** STATE.md v5.32→v5.33. adv-E19-pass-28.md persisted. INDEX.md pass-28 row appended + Convergence Status updated. D-782 codified (this entry).
+
+**(3) D-494 4-INDEX GATE.**
+
+Literal shell execution:
+```
+BC-INDEX v3.82 PASS
+VP-INDEX v2.54 PASS
+STORY-INDEX v4.160 PASS
+ARCH-INDEX v2.95 PASS
+D-494 gate: PASS — zero FAIL
+```
+
+**(4) INPUT-HASH VERIFICATION (POLICY 18).**
+
+Pre-burst compute-input-hash results (literal shell, plugins/vsdd-factory/bin/compute-input-hash):
+```
+S-19.02:    59d0856 (PASS — unchanged from D-781; v1.13 proptest addition non-hash-affecting)
+S-19.05:    9e54d68 (PASS — unchanged; awk precheck hardening non-hash-affecting)
+S-19.06:    a8bb758 (PASS — refreshed from 5af0d9f; BC-1.17.001 v1.4 cite sweep content changed)
+E-19 epic:  6e3bb2c (SM-computed post-burst; story-writer missed recompute; STORY-INDEX records 6e3bb2c)
+BC-1.17.001: adbb5f3 (PASS — v1.4 post-burst)
+VP-096:     6af1247 (PASS — v1.1 post-burst)
+```
+
+**(5) TRAJECTORY NOTE.**
+
+Pass-28 severity improvement: B0/H1/M2/L1 (pass-27) → B0/H0/M3/L3 (pass-28). First zero-HIGH zero-BLOCKER pass of E-19 re-cascade. All three MEDIUM findings are known class regressions (POLICY 9 propagation miss; BC-VP proof-method alignment; missing-VP-task) at new loci. Trajectory count (passes 24-28): 2→2→4→4→6 — note the "6" count reflects full-scope review including 3 LOW observations; the "floor" finding classes (F-P28-001 POLICY 9 miss + F-P28-002 proof-method alignment) are artifacts of D-781's BC amendment not propagating completely. D-782 closes all propagation gaps. Trajectory tail STATE.md: →2→2→4→6 (LENGTH=4).
+
+**(6) POLICY 9 PROPAGATION GAP LESSON (F-P28-001 class).**
+
+F-P28-001 is a POLICY 9 same-burst propagation miss: when BC-4.13.001 was amended to v1.10 (F-P27-003 D-781 PO leg), the co-required VP-INDEX VP-096 title update was not included in the D-781 SM index-bump leg. Root cause: the D-781 SM leg swept BC-INDEX and STORY-INDEX rows but did not include VP-INDEX VP-096 title/description (the VP file itself was not amended — only the BC was amended). Going forward: when a BC Invariant/Precondition governing a named function boundary is amended with an exclusive/inclusive wording change, the SM leg must sweep all three: (a) BC-INDEX catalog row version cell, (b) VP-INDEX Full Index row for any VP whose title/description cites the same boundary, AND (c) VP file body where relevant.
+
+Parent-commit: (D-781 burst factory-artifacts HEAD — run `git -C .factory log -1 --format='%h'` for current SHA).
+
+### Phase
+
+D-782-E19-ADV-PASS-28-NOT-CLEAN-CLOSED
+
+### Date
+
+2026-07-08

@@ -1,7 +1,7 @@
 ---
 document_type: epic
 epic_id: "E-19"
-version: "v1.17"
+version: "v1.18"
 status: draft
 title: "Post-rc.22 Operator Hardening — pr-manager race fixes, verify-factory-lock size defect, warn-pending-wave-gate false-positive, registry/bundle hygiene, async telemetry + VSDD_SINK_FILE, host::read_prefix bounded partial read"
 prd_capabilities: []
@@ -24,8 +24,9 @@ inputs:
   - .factory/stories/S-19.07-verify-factory-lock-read-prefix-migration.md
   - .factory/specs/behavioral-contracts/ss-04/BC-4.13.001.md
 input-hash: "bf647fc"
-last_amended: "2026-07-08 (v1.17) — E-19 pass-27 fix burst (story-writer): F-P27-001 epic leg — Wave-2 sequencing note S-19.04 parenthetical fixed to DISTINCT-block form (was: 'adds capabilities.read_prefix schema documentation to that same section'; now: S-19.06 adds a DISTINCT \"Capability Schemas\" preamble block, separate from S-19.04's tool-filter-anchoring block; ordering-only dependency so two preamble blocks land without merge conflict). [Prior: 2026-07-08 (v1.16) — E-19 pass-22 fix burst BC-1.17.001-v1.3-propagation (story-writer): BC-1.17.001 v1.2→v1.3 cite propagation; §PRD Capabilities Covered (×2 sites) + §Out of Scope (×2 sites) updated. [Prior: 2026-07-08 (v1.15) — O-P16-01 human adjudication (D-773): POLICY 17 frontmatter parity backfill (modified[] + last_amended added)]"
+last_amended: "2026-07-08 (v1.18) — E-19 pass-28 fix burst (story-writer): F-P28-001 epic leg — EAC-002 Test-Scenarios corrected to S-19.02 AC-004 integration test (70000-byte fixture; zero output_too_large events) + AC-002 block-detection test (was: S-19.02 AC-001 test suite); EAC-002 Validation-Method corrected to 70000-byte (>64 KiB) STATE.md fixture (was: 90 KB); BC-1.17.001-v1.4-propagation: v1.3→v1.4 body-scope cite sweep (§PRD Capabilities Covered ×2 + §Out of Scope ×1 = 3 sites). [Prior: 2026-07-08 (v1.17) — E-19 pass-27 fix burst (story-writer): F-P27-001 epic leg — Wave-2 sequencing note S-19.04 parenthetical fixed to DISTINCT-block form (was: 'adds capabilities.read_prefix schema documentation to that same section'; now: S-19.06 adds a DISTINCT \"Capability Schemas\" preamble block, separate from S-19.04's tool-filter-anchoring block; ordering-only dependency so two preamble blocks land without merge conflict). [Prior: 2026-07-08 (v1.16) — E-19 pass-22 fix burst BC-1.17.001-v1.3-propagation (story-writer): BC-1.17.001 v1.2→v1.3 cite propagation; §PRD Capabilities Covered (×2 sites) + §Out of Scope (×2 sites) updated. [Prior: 2026-07-08 (v1.15) — O-P16-01 human adjudication (D-773): POLICY 17 frontmatter parity backfill (modified[] + last_amended added)]"
 modified:
+  - "v1.18 2026-07-08: F-P28-001 epic leg — EAC-002 Test-Scenarios+Validation-Method corrected; BC-1.17.001-v1.4-propagation: v1.3→v1.4 body-scope sweep (3 sites)"
   - "v1.17 2026-07-08: F-P27-001 epic leg — Wave-2 sequencing note S-19.04 parenthetical fixed to DISTINCT-block form"
   - "v1.16 2026-07-08: BC-1.17.001-v1.3-propagation — BC-1.17.001 v1.2→v1.3 cite propagation; §PRD Capabilities Covered ×2 sites + §Out of Scope ×2 sites"
   - "v1.15 2026-07-08: O-P16-01 human adjudication (D-773) POLICY 17 frontmatter parity backfill"
@@ -115,16 +116,16 @@ that reads this frontmatter.
 No new PRD capabilities from the base defect-fix set. E-19 stories fix defects in
 existing capabilities and add observability infrastructure. BC-4.13.001 (verify-factory-
 lock behavioral contract) is amended by S-19.02 to reflect the raised byte budget.
-BC-3.08.001 v1.19 (async event catalog — Event 5 `plugin.abandoned` with all 7 mandatory fields including `type`, `timestamp`, `entry_index: u32` + Invariant 6 extended terminal key `trace_id+plugin_name+entry_index`; Event 6 `plugin.completed` async path with all 9 mandatory fields including `plugin_version`; schema-level defense for concurrent `entry_index` traceability) LANDED (product-owner, E-19 pass-3/pass-5/pass-7 fix bursts); implementer for S-19.05 follows BC-3.08.001 v1.19 without further routing action. BC-1.17.001 v1.3 (host::read_prefix bounded
+BC-3.08.001 v1.19 (async event catalog — Event 5 `plugin.abandoned` with all 7 mandatory fields including `type`, `timestamp`, `entry_index: u32` + Invariant 6 extended terminal key `trace_id+plugin_name+entry_index`; Event 6 `plugin.completed` async path with all 9 mandatory fields including `plugin_version`; schema-level defense for concurrent `entry_index` traceability) LANDED (product-owner, E-19 pass-3/pass-5/pass-7 fix bursts); implementer for S-19.05 follows BC-3.08.001 v1.19 without further routing action. BC-1.17.001 v1.4 (host::read_prefix bounded
 partial read — incl. wrapper/wire-ABI layering disambiguation) LANDED (product-owner, E-19 pass-2 fix burst; v1.2 layering parenthetical added E-19 pass-12); implementer for S-19.06
-follows BC-1.17.001 v1.3 without further routing action.
+follows BC-1.17.001 v1.4 without further routing action.
 
 ## Acceptance Criteria
 
 | ID | Criterion | Validation Method | Test Scenarios |
 |----|-----------|-------------------|----------------|
 | EAC-001 | All seven stories S-19.01..S-19.07 shipped and merged to `develop` within this epic's cycle | All story PRs CI-green and merged | S-19.01..S-19.07 PR merge confirmations |
-| EAC-002 | `verify-factory-lock` no longer fails with `capability_denied reason=output_too_large` when STATE.md exceeds 64 KiB | CI integration test with 90 KB STATE.md fixture | S-19.02 AC-001 test suite |
+| EAC-002 | `verify-factory-lock` no longer fails with `capability_denied reason=output_too_large` when STATE.md exceeds 64 KiB | CI integration test with 70000-byte (>64 KiB) STATE.md fixture | S-19.02 AC-004 integration test (70000-byte fixture; zero output_too_large events) + AC-002 block-detection test |
 | EAC-003 | `warn-pending-wave-gate` emits no false-positive `capability_denied reason=path_not_allowed` on fresh install with absent `.factory/wave-state.yaml` | CI integration test with absent wave-state.yaml fixture | S-19.03 AC-001 test suite; AC-001 negative-control B (BC-2.07.001 v1.2 EC-007): inject mock canonicalize fn returning Err for every ancestor → path_resolution_failed (not path_not_allowed) |
 | EAC-004 | `VSDD_SINK_FILE` env var is honored in release-profile dispatcher builds | Release-profile CI integration test with VSDD_SINK_FILE set | S-19.05 AC-004 test suite |
 | EAC-005 | Zero WASMs unreferenced by BOTH hooks-registry.toml AND resolvers-registry.toml in the rc.23 bundle | CI bundle manifest diff gate | S-19.04 AC-001 + AC-007 |
@@ -208,7 +209,7 @@ Topological order: W1 → W2 → W3 (by priority + S-19.06 gate on S-19.03 AND S
 - **BC-1.17.001 host::read_prefix:** LANDED as v1.3 (product-owner, E-19 pass-2 fix
   burst; v1.2 layering parenthetical added E-19 pass-12). FFI signature `read_prefix(path: &str, max_bytes: u32, timeout_ms: u32) -> i32`
   and separate `capabilities.read_prefix` registry block are now in the BC. S-19.06
-  implementer follows BC-1.17.001 v1.3 without further routing action.
+  implementer follows BC-1.17.001 v1.4 without further routing action.
 
 - **ADR-025 v1.7 amendment:** Authored by architect in E-19 pass-1 fix burst (Decisions
   13+14: `codes::NOT_FOUND = -5`; `STATE_MD_MAX_BYTES = 262144` + frontmatter-only parse).
@@ -239,6 +240,7 @@ Story BC-table rows use abbreviated titles for cell fit; the BC file H1 remains 
 
 | Version | Date | Author | Change |
 |---------|------|--------|--------|
+| v1.18 | 2026-07-08 | story-writer | F-P28-001 epic leg: EAC-002 Test-Scenarios corrected to S-19.02 AC-004 integration test (70000-byte fixture; zero output_too_large events) + AC-002 block-detection test (was: S-19.02 AC-001 test suite); EAC-002 Validation-Method corrected to 70000-byte (>64 KiB) STATE.md fixture (was: 90 KB); BC-1.17.001-v1.4-propagation: v1.3→v1.4 body-scope cite sweep (§PRD Capabilities Covered ×2 + §Out of Scope ×1 = 3 sites). |
 | v1.17 | 2026-07-08 | story-writer | F-P27-001 epic leg: Wave-2 sequencing note S-19.04 parenthetical fixed to DISTINCT-block form (was: 'S-19.06 adds capabilities.read_prefix schema documentation to that same section'; now: S-19.06 adds a DISTINCT "Capability Schemas" preamble block, separate from S-19.04's tool-filter-anchoring block; ordering-only dependency). |
 | v1.16 | 2026-07-08 | story-writer | BC-1.17.001-v1.3-propagation: BC-1.17.001 v1.2→v1.3 cite propagation (anchoring-only change — ffi.rs bullet added to §Architecture Anchors in BC v1.3); §PRD Capabilities Covered ×2 sites + §Out of Scope ×3 sites updated. |
 | v1.15 | 2026-07-08 | story-writer | O-P16-01 human adjudication (D-773): POLICY 17 frontmatter parity backfill (modified[] + last_amended added). |

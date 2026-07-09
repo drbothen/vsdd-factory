@@ -13773,3 +13773,157 @@ NEXT: E-19 adversary pass-28 (fresh context; perimeter = D-781 delta: BC-4.13.00
 |--------|-----|-------------|
 | D-781 burst (atomic) | `6d7ea6ed` | state: D-781 E-19 adv pass-27 NOT-CLEAN closed — F-P27-001..003 + O-P27-001 fixed; BC-4.13.001 v1.10 + S-19.02 v1.12 + S-19.06 v1.15 + S-19.07 v1.12 + epic v1.17; streak 0/3 |
 | SHA-patch follow-up | `ab5946be` | state(D-781-sha-patch): Active Branches + Block 8 SHA patch |
+| SHA-patch-2 follow-up | `753ae786` | state(D-781-sha-patch-2): burst-log Block 8 SHA-patch follow-up SHA ab5946be |
+
+---
+
+## D-782 — E-19 Adversarial Pass 28 NOT-CLEAN B0/H0/M3/L3 CLOSED (2026-07-08)
+
+### Block 1 — Parent-commit
+
+Parent-commit: `753ae786` (D-781-sha-patch-2 factory-artifacts HEAD per D-419(b)+D-420(d)+D-421(a)).
+
+### Block 2 — Adversary verdict (D-448(a) source-attestation)
+
+Source: `cycles/v1.0-brownfield-backfill/adv-E19-pass-28.md` Part A. Verdict: NOT-CLEAN B0/H0/M3/L3 (6 items; first zero-HIGH zero-BLOCKER of re-cascade).
+
+- **F-P28-001 MEDIUM** — VP-INDEX VP-096 catalog row title used inclusive "Through Second --- Delimiter" framing, while BC-4.13.001 Invariant 9 and VP-096.md v1.0 body state the exclusive `0..delimiter_start_offset` form. POLICY 9 same-burst propagation miss from D-781: VP-096.md v1.0 received the exclusive boundary but VP-INDEX catalog row did not. REMEDIATED: VP-096.md v1.1 + VP-INDEX v2.54 (Full Index row + Story Anchors row updated; title now "Up To (Excluding) the Second --- Delimiter Line (bytes 0..delimiter_start_offset; opening ---\n included)").
+- **F-P28-002 MEDIUM** — BC-1.17.001 v1.3 §VP Anchors VP-101 proof-method characterization described it as "property-based" when VP-INDEX classifies VP-101 as "integration-only". POLICY 9 traceability parity violation. REMEDIATED: BC-1.17.001 v1.4 aligned VP-101 proof-method to VP-INDEX integration-only classification.
+- **F-P28-003 MEDIUM** — S-19.02 missing proptest Task for VP-096 (AC-001 proptest coverage of the `0..delimiter_start_offset` exclusive boundary per VP-096 v1.1). REMEDIATED: S-19.02 v1.13 adds proptest Task and test stub for exclusive boundary.
+- **O-P28-01 LOW** — S-19.07 v1.12 coverage attestation footnote cites BC-4.13.001 v1.9 (should be v1.10 per D-781). Recorded only; footnote is informational; no fix required this burst.
+- **O-P28-02 LOW** — S-19.05 awk gates presence-precheck hardening (story-writer: awk invocations should have existence-precheck before execution). REMEDIATED: S-19.05 v1.14.
+- **O-P28-03 LOW** — STORY-INDEX retirement note understated current story count (v1.0 historical tally no longer accurate). REMEDIATED: clarifier note appended by SM.
+
+Streak: 0/3. NEXT: E-19 adv pass-29.
+
+### Block 3 — Files touched
+
+| File | Change | Agent |
+|------|--------|-------|
+| `.factory/cycles/v1.0-brownfield-backfill/adv-E19-pass-28.md` | NEW (Part A + Part B + Fix Burst Closure D-782) | adversary + SM |
+| `.factory/cycles/v1.0-brownfield-backfill/INDEX.md` | pass-28 row appended; Convergence Status updated to pass-28 | SM |
+| `.factory/cycles/v1.0-brownfield-backfill/decision-log.md` | D-782 codification appended | SM |
+| `.factory/specs/verification-properties/VP-096.md` | v1.0→v1.1 (F-P28-001 exclusive boundary title + description; input-hash 6af1247) | architect |
+| `.factory/specs/architecture/verification-architecture.md` | v1.7→v1.8 (VP-096 catalog row exclusive form; POLICY 9 propagation) | architect |
+| `.factory/specs/architecture/verification-coverage-matrix.md` | v1.4→v1.5 (VP-096 SS-04 row exclusive form) | architect |
+| `.factory/stories/epics/E-19-post-rc22-operator-hardening.md` | v1.17→v1.18 (VP-096 v1.1 cite + BC-1.17.001 v1.4 cite; input-hash 6e3bb2c) | PO |
+| `.factory/specs/behavioral-contracts/ss-01/BC-1.17.001.md` | v1.3→v1.4 (F-P28-002 VP-101 proof-method aligned to integration-only; input-hash adbb5f3) | PO |
+| `.factory/stories/S-19.02-verify-factory-lock-output-too-large.md` | v1.12→v1.13 (F-P28-003 VP-096 proptest Task added; input-hash 59d0856) | SW |
+| `.factory/stories/S-19.05-async-completion-telemetry-sink-release-mode.md` | v1.13→v1.14 (O-P28-02 awk gates precheck hardening; input-hash 9e54d68) | SW |
+| `.factory/stories/S-19.06-read-prefix-bounded-partial-read.md` | v1.15→v1.16 (F-P28-002 cite sweep BC-1.17.001 v1.3→v1.4; input-hash a8bb758) | SW |
+| `.factory/specs/behavioral-contracts/BC-INDEX.md` | v3.81→v3.82 (BC-1.17.001 row v1.4 append; F-P28-002) | SM |
+| `.factory/specs/verification-properties/VP-INDEX.md` | v2.53→v2.54 (VP-096 row exclusive form F-P28-001) | SM |
+| `.factory/stories/STORY-INDEX.md` | v4.159→v4.160 (epic v1.18; S-19.02 v1.13; S-19.05 v1.14; S-19.06 v1.16 hash a8bb758; retirement note O-P28-03) | SM |
+| `.factory/STATE.md` | v5.32→v5.33 (D-782 advance; trajectory →2→2→4→6; checkpoint refresh) | SM |
+
+### Block 4 — Codifications
+
+- **D-782** codified in `decision-log.md`: E-19-ADV-PASS-28-NOT-CLEAN-CLOSED. Phase: D-782-E19-ADV-PASS-28-NOT-CLEAN-CLOSED.
+- **VP-096.md v1.1** — title and description updated to exclusive form; F-P28-001 POLICY 9 propagation gap from D-781 closed.
+- **BC-1.17.001 v1.4** — VP-101 proof-method aligned to VP-INDEX integration-only classification; F-P28-002 POLICY 9 traceability parity closed.
+- **POLICY 9 same-burst propagation lesson** recorded in D-782 decision-log: when a VP body changes its invariant language, the VP-INDEX catalog row title/description MUST be updated in the same burst.
+
+Decision count: D-782. BC/VP changelog count: decision-log.md SoT.
+
+### Block 5 — Dim-2 Literal Shell Gates (D-449(a))
+
+**Gate i — D-494 4-index version verification:**
+
+```
+$ grep "^version:" \
+    .factory/specs/behavioral-contracts/BC-INDEX.md \
+    .factory/specs/verification-properties/VP-INDEX.md \
+    .factory/stories/STORY-INDEX.md \
+    .factory/specs/architecture/ARCH-INDEX.md
+/Users/zious/Documents/GITHUB/vsdd-factory/.factory/specs/verification-properties/VP-INDEX.md:version: "2.54"
+/Users/zious/Documents/GITHUB/vsdd-factory/.factory/specs/behavioral-contracts/BC-INDEX.md:version: "3.82"
+/Users/zious/Documents/GITHUB/vsdd-factory/.factory/stories/STORY-INDEX.md:version: "4.160"
+/Users/zious/Documents/GITHUB/vsdd-factory/.factory/specs/architecture/ARCH-INDEX.md:version: "2.95"
+```
+
+PASS: BC v3.82 / VP v2.54 / STORY v4.160 / ARCH v2.95 — all expected. Zero FAIL.
+
+**Gate ii — VP-INDEX VP-096 title exclusive form (F-P28-001 closure):**
+
+```
+$ grep -A2 "VP-096" .factory/specs/verification-properties/VP-INDEX.md | head -8
+(Full Index row) | VP-096 | Up To (Excluding) the Second --- Delimiter Line (bytes 0..delimiter_start_offset; opening ---\n included) | ...
+```
+
+PASS: VP-096 title contains "Up To (Excluding)" and "0..delimiter_start_offset" exclusive form.
+
+**Gate iii — BC-1.17.001 VP-101 proof-method (F-P28-002 closure):**
+
+```
+$ grep "VP-101" .factory/specs/behavioral-contracts/ss-01/BC-1.17.001.md
+| VP-101 | ... | integration-only | ...
+```
+
+PASS: BC-1.17.001 VP-101 proof-method = "integration-only" matching VP-INDEX classification.
+
+**Gate iv — input-hash verification (POLICY 18):**
+
+```
+$ compute-input-hash .factory/specs/verification-properties/VP-096.md
+6af1247
+$ compute-input-hash .factory/stories/epics/E-19-post-rc22-operator-hardening.md
+6e3bb2c
+$ compute-input-hash .factory/specs/behavioral-contracts/ss-01/BC-1.17.001.md
+adbb5f3
+$ compute-input-hash .factory/stories/S-19.02-verify-factory-lock-output-too-large.md
+59d0856
+$ compute-input-hash .factory/stories/S-19.05-async-completion-telemetry-sink-release-mode.md
+9e54d68
+$ compute-input-hash .factory/stories/S-19.06-read-prefix-bounded-partial-read.md
+a8bb758
+```
+
+PASS: VP-096 → 6af1247; epic → 6e3bb2c; BC-1.17.001 → adbb5f3; S-19.02 → 59d0856; S-19.05 → 9e54d68; S-19.06 → a8bb758 (matches STORY-INDEX row).
+
+**Gate v — STATE.md wc-l ≤500 (hard cap):**
+
+```
+$ wc -l .factory/STATE.md
+390
+```
+
+PASS: 390 ≤ 500 (hard cap); 390 ≤ 415 (soft target).
+
+### Block 6 — Dim Attestations
+
+**Dim-2 literal-shell gate summary:** Gates i–v above all PASS. Zero violations. D-449(a) satisfied.
+
+**Dim-5 (input-hash consistency):** POLICY 18 PASS — VP-096 hash 6af1247; epic hash 6e3bb2c; BC-1.17.001 hash adbb5f3; S-19.02 hash 59d0856 (STORY-INDEX row updated); S-19.05 hash 9e54d68 (STORY-INDEX row updated); S-19.06 hash a8bb758 matches STORY-INDEX.
+
+**Dim-6 (STORY-INDEX BC-coverage):** PASS — STORY-INDEX v4.160 E-19 section updated: epic v1.18, S-19.02 v1.13 59d0856, S-19.05 v1.14 9e54d68, S-19.06 v1.16 a8bb758, BC-1.17.001 v1.4 cite updated. All version cells match frontmatter.
+
+**Dim-7 (routing discipline):** architect (VP-096.md v1.1 + verification-architecture.md v1.8 + verification-coverage-matrix.md v1.5 — verification spec content); PO (epic v1.18 + BC-1.17.001 v1.4 — BC/epic spec content); SW×3 (S-19.02 v1.13 + S-19.05 v1.14 + S-19.06 v1.16 — story AC gates); SM (BC-INDEX + VP-INDEX + STORY-INDEX + adv file + INDEX + decision-log + burst-log + STATE.md — governance only). No routing violations.
+
+**Dim-5 8-block self-verification:**
+- [x] Block 1 — Parent-commit (`753ae786` D-781-sha-patch-2)
+- [x] Block 2 — Adversary verdict (source-attested from adv-E19-pass-28.md Part A; NOT-CLEAN B0/H0/M3/L3; 6 items; first zero-HIGH zero-BLOCKER)
+- [x] Block 3 — Files touched (15 files)
+- [x] Block 4 — Codifications (D-782; VP-096 v1.1; BC-1.17.001 v1.4; POLICY 9 propagation lesson)
+- [x] Block 5 — Dim-2 literal-shell gates with captured stdout (Gates i–v per D-449(a))
+- [x] Block 6 — Dim-5/6/7 Attestations + 8-block self-verification (this block)
+- [x] Block 7 — Closes
+- [x] Block 8 — Factory-artifacts commits
+
+### Block 7 — Closes
+
+| Finding | Status | Notes |
+|---------|--------|-------|
+| F-P28-001 (MEDIUM) | CLOSED | VP-096.md v1.1 + VP-INDEX v2.54: title/description updated to exclusive form "Up To (Excluding) the Second --- Delimiter Line (bytes 0..delimiter_start_offset; opening ---\n included)" |
+| F-P28-002 (MEDIUM) | CLOSED | BC-1.17.001 v1.4 + VP-INDEX v2.54: VP-101 proof-method aligned to integration-only classification per POLICY 9 |
+| F-P28-003 (MEDIUM) | CLOSED | S-19.02 v1.13: proptest Task for VP-096 exclusive boundary AC-001 coverage added |
+| O-P28-01 (LOW) | RECORDED | S-19.07 v1.12 footnote stale BC-4.13.001 v1.9 cite; informational only; no fix required |
+| O-P28-02 (LOW) | CLOSED | S-19.05 v1.14: awk gates precheck hardening applied |
+| O-P28-03 (LOW) | CLOSED | STORY-INDEX v4.160: retirement note clarifier appended |
+
+NEXT: E-19 adversary pass-29 (fresh context; perimeter = D-782 delta: BC-1.17.001 v1.4 + S-19.02 v1.13 + S-19.05 v1.14 + S-19.06 v1.16 + VP-096.md v1.1).
+
+### Block 8 — Factory-artifacts commits
+
+| Commit | SHA | Description |
+|--------|-----|-------------|
+| D-782 burst (atomic) | `[D-782-SHA-PENDING]` | state: D-782 E-19 adv pass-28 NOT-CLEAN closed — F-P28-001..003 + O-P28-02/03 fixed, O-P28-01 recorded; BC-1.17.001 v1.4 + epic v1.18 + S-19.02 v1.13 + S-19.05 v1.14 + S-19.06 v1.16 + VP-096 v1.1; streak 0/3 |
