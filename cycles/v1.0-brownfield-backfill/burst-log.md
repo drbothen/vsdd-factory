@@ -14293,3 +14293,121 @@ NEXT: E-19 adversary pass-32 (fresh context; perimeter = D-785 delta: epic v1.20
 |--------|-----|-------------|
 | D-785 burst (atomic) | `fb9c3076` | state: D-785 E-19 adv pass-31 NOT-CLEAN closed — F-P31-001 fixed; epic v1.20; streak 0/3 |
 | D-785 sha-patch | `pending` | state(D-785-sha-patch): Active Branches fb9c3076 + burst-log D-785 Block 8 SHA patch |
+
+---
+
+## D-789 — E-19 Adversarial Pass 34 NOT-CLEAN B0/H0/M1/L0 CLOSED (2026-07-09)
+
+### Block 1 — Parent-commit
+
+**Parent-commit:** `5238e5d5` (SW leg: S-19.02 v1.15→v1.16 d208e66 ×18 sites + S-19.07 v1.14→v1.15 83e8cc4 ×12 sites; per D-419(b)+D-420(d)+D-421(a) convention).
+
+### Block 2 — Adversary verdict (source-attested from adv-E19-pass-34.md)
+
+**Verdict:** NOT-CLEAN — B0/H0/M1/L0 (1 finding). Streak: 0/3.
+
+**F-P34-001 MEDIUM** — BC-4.13.001 v1.12 §Traceability ADR Reference row contains a volatile version pin `ADR-025 v1.2 (primary — all 10 decisions)` that is both POLICY 19-violating (version-pinned reference to a living ADR) and factually stale (ADR-025 is at v1.12 with 18 decisions; BC-4.13.001 is governed by Decisions 1, 14, 15, and 18 — none of which existed at ADR-025 v1.2). Severity MEDIUM (blast radius = 1 cell in 1 BC; sibling BCs already use stable §Decision form — targeted drift, not systemic; behavioral content unaffected). Fix: PO BC-4.13.001 v1.12→v1.13 §Traceability ADR Reference row rewritten to stable §Decision-enumerated form; SW S-19.02+S-19.07 cite sweeps ×30 sites total.
+
+D-787 four delta verifications: all ✓ PASS (ADR-025 v1.12 §Decision 18 deliverables paths; BC-5.42.001 v1.5 DI-TBD resolution; epic EAC-003 BC-2.07.001 v1.4 cite; BC-INDEX BC-2.07.001 title H1-parity). No further findings in full E-19 suite (S-19.01–S-19.07 at D-787 versions). POLICY 9: 34 integration / 5 kani / 5 proptest / total 101.
+
+*Source-attestation gate (D-448(a)):* Adversary verdict paragraph above faithfully describes adv-E19-pass-34.md Part A finding set: NOT-CLEAN B0/H0/M1/L0; F-P34-001 MEDIUM volatile-pin (POLICY 19); no additional findings. Source file: `.factory/cycles/v1.0-brownfield-backfill/adv-E19-pass-34.md`.
+
+### Block 3 — Files touched
+
+| File | Change | Role |
+|------|--------|------|
+| `.factory/cycles/v1.0-brownfield-backfill/adv-E19-pass-34.md` | CREATED — pass-34 adversarial review report (B0/H0/M1/L0; F-P34-001; Fix Burst Closure D-789) | SM |
+| `.factory/cycles/v1.0-brownfield-backfill/decision-log.md` | D-789 entry appended (POLICY 16 global-max grep: D-788 → D-789 allocated) | SM |
+| `.factory/specs/behavioral-contracts/ss-04/BC-4.13.001.md` | v1.12→v1.13 (F-P34-001: §Traceability ADR Reference volatile-pin → stable §Decision 1/14/15/18 form; input-hash e1e1a0a→86fab85) | PO |
+| `.factory/stories/S-19.02-verify-factory-lock-output-too-large.md` | v1.15→v1.16 (BC-4.13.001 v1.12→v1.13 cite sweep ×18 sites; input-hash d377821→d208e66) | SW |
+| `.factory/stories/S-19.07-verify-factory-lock-read-prefix-migration.md` | v1.14→v1.15 (BC-4.13.001 v1.12→v1.13 cite sweep ×12 sites; input-hash 938e7fb→83e8cc4) | SW |
+| `.factory/specs/behavioral-contracts/BC-INDEX.md` | v3.86→v3.87 (BC-4.13.001 row Version cell v1.13 + F-P34-001/D-789 change note; last_amended prepended) | SM |
+| `.factory/stories/STORY-INDEX.md` | v4.165→v4.166 (S-19.02 row v1.16; S-19.07 row v1.15; BC coverage BC-4.13.001 v1.13; delivery-summary pass-34 note + input-hash updates) | SM |
+| `.factory/cycles/v1.0-brownfield-backfill/INDEX.md` | pass-34 row appended + Convergence Status updated (trajectory →1→3→4→1; 4-index v3.87/v2.55/v4.166/v2.97; pass-35 NEXT) | SM |
+| `.factory/cycles/v1.0-brownfield-backfill/burst-log.md` | D-789 burst entry appended (this entry) | SM |
+| `.factory/STATE.md` | v5.39→v5.40 (D-789 advance; pipeline PAUSED→ACTIVE; trajectory →1→3→4→1 LENGTH=4; checkpoint refresh for pass-35) | SM |
+
+### Block 4 — Codifications
+
+- **D-789** codified in `decision-log.md`: E-19-ADV-PASS-34-NOT-CLEAN-CLOSED. Phase: D-789-E19-ADV-PASS-34-NOT-CLEAN-CLOSED. POLICY 16 global-max grep confirmed D-788 as max prior to D-789 allocation.
+- **F-P34-001 CLOSED** — BC-4.13.001 §Traceability ADR Reference volatile version-pin fixed to stable §Decision 1/14/15/18 form (POLICY 19). BC v1.12→v1.13; S-19.02 ×18 sites; S-19.07 ×12 sites. Total: 30 cite sites swept.
+- **POLICY 19 class note** — BC §Traceability ADR Reference cells must use stable §Decision-enumerated form, not volatile "ADR-NNN vX.Y" version pins. Sibling BCs (BC-2.07.001, BC-5.42.001, BC-3.08.001, BC-1.17.001) already comply; BC-4.13.001 was the sole drift case.
+
+Decision count: D-789. BC/VP changelog count: decision-log.md SoT.
+
+### Block 5 — Dim-2 Literal Shell Gates (D-449(a))
+
+**Gate i — D-494 4-index version verification:**
+
+```
+$ grep "^version:" \
+    .factory/specs/behavioral-contracts/BC-INDEX.md \
+    .factory/specs/verification-properties/VP-INDEX.md \
+    .factory/stories/STORY-INDEX.md \
+    .factory/specs/architecture/ARCH-INDEX.md
+.factory/stories/STORY-INDEX.md:version: "4.166"
+.factory/specs/behavioral-contracts/BC-INDEX.md:version: "3.87"
+.factory/specs/architecture/ARCH-INDEX.md:version: "2.97"
+.factory/specs/verification-properties/VP-INDEX.md:version: "2.55"
+```
+
+PASS: BC v3.87 / VP v2.55 / STORY v4.166 / ARCH v2.97 — all expected. Zero FAIL.
+
+**Gate ii — input-hash verification (POLICY 18; post-burst literal shell):**
+
+```
+$ plugins/vsdd-factory/bin/compute-input-hash \
+    .factory/stories/S-19.02-verify-factory-lock-output-too-large.md
+d208e66
+$ plugins/vsdd-factory/bin/compute-input-hash \
+    .factory/stories/S-19.07-verify-factory-lock-read-prefix-migration.md
+83e8cc4
+$ grep "input-hash" .factory/specs/behavioral-contracts/ss-04/BC-4.13.001.md
+input-hash: "86fab85"
+```
+
+PASS: S-19.02=d208e66 / S-19.07=83e8cc4 — match SW-leg confirmed hashes. BC-4.13.001 declared input-hash 86fab85 non-placeholder. POLICY 18 satisfied; no placeholders.
+
+**Gate iii — STATE.md wc-l ≤500 (hard cap):**
+
+```
+$ wc -l .factory/STATE.md
+     439 .factory/STATE.md
+```
+
+Gate iii PASS: 439 ≤ 500 (hard cap). STATE.md v5.40 confirmed.
+
+### Block 6 — Dim Attestations
+
+**Dim-2 literal-shell gate summary:** Gates i–ii above PASS. Gate iii confirmed ≤500 post-STATE.md v5.40 update. Zero violations. D-449(a) satisfied.
+
+**Dim-5 (input-hash consistency):** POLICY 18 PASS — S-19.02=d208e66, S-19.07=83e8cc4, BC-4.13.001 declared 86fab85, all non-placeholder, verified via literal shell (Gates i–ii). No drift.
+
+**Dim-6 (STORY-INDEX BC-coverage):** PASS — STORY-INDEX v4.166 E-19 section: S-19.02 row v1.16 d208e66; S-19.07 row v1.15 83e8cc4; BC coverage line `BC-4.13.001 v1.13 (S-19.02 Phase-A amendment + S-19.07 Phase-B migration)`; delivery-summary canonical input-hashes S-19.02=d208e66 / S-19.07=83e8cc4 updated; pass-34 note prepended.
+
+**Dim-7 (routing discipline):** PO (BC-4.13.001 v1.13 — spec content fix, POLICY 19 volatile-pin → correct specialist); SW (S-19.02 v1.16 + S-19.07 v1.15 — story cite sweep → correct specialist); SM (adv report + decision-log D-789 + BC-INDEX + STORY-INDEX + INDEX.md + burst-log + STATE.md — governance only, no BC body/VP/ARCH architectural content). No routing violations.
+
+**Dim-5 8-block self-verification:**
+- [x] Block 1 — Parent-commit (`5238e5d5` SW leg)
+- [x] Block 2 — Adversary verdict (source-attested from adv-E19-pass-34.md Part A; NOT-CLEAN B0/H0/M1/L0; 1 finding)
+- [x] Block 3 — Files touched (10 files; 3 legs: PO + SW + SM)
+- [x] Block 4 — Codifications (D-789; F-P34-001 closed; POLICY 19 class note)
+- [x] Block 5 — Dim-2 literal-shell gates with captured stdout (Gates i–ii per D-449(a); Gate iii post-STATE.md update)
+- [x] Block 6 — Dim-5/6/7 Attestations + 8-block self-verification (this block)
+- [x] Block 7 — Closes
+- [x] Block 8 — Factory-artifacts commits
+
+### Block 7 — Closes
+
+| Finding | Status | Notes |
+|---------|--------|-------|
+| F-P34-001 (MEDIUM) | CLOSED | BC-4.13.001 v1.12→v1.13: §Traceability ADR Reference volatile-pin `ADR-025 v1.2` → stable §Decision 1/14/15/18 form (POLICY 19); S-19.02 ×18 + S-19.07 ×12 = 30 total cite sites swept |
+
+NEXT: E-19 adversary pass-35 (fresh context; perimeter = D-789 delta: BC-4.13.001 v1.13 §Traceability fix; S-19.02 v1.16 + S-19.07 v1.15 cite sweeps; full E-19 suite perimeter carries forward at D-789 versions).
+
+### Block 8 — Factory-artifacts commits
+
+| Commit | SHA | Description |
+|--------|-----|-------------|
+| D-789 burst (atomic) | `pending` | state: D-789 E-19 adv pass-34 NOT-CLEAN closed — F-P34-001 fixed; BC-4.13.001 v1.13; streak 0/3 |
+| D-789 sha-patch | `pending` | state(D-789-sha-patch): Active Branches + burst-log D-789 Block 8 SHA patch |

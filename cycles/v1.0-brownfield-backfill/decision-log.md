@@ -7258,3 +7258,66 @@ D-787-E19-ADV-PASS-33-NOT-CLEAN-CLOSED
 ### Date
 
 2026-07-09
+
+## D-789 — E-19 Adversarial Pass-34 Closure (NOT-CLEAN B0/H0/M1/L0; F-P34-001 fixed; streak 0/3)
+
+### Decision
+
+E-19 adversarial cascade pass-34 is NOT-CLEAN. Verdict: BLOCKER 0 / HIGH 0 / MEDIUM 1 / LOW 0 (1 total item: 1 MEDIUM finding), CLOSED in this D-789 fix burst. BC-5.39.001 3-CLEAN streak: 0/3. Pass-35 required.
+
+**(1) ITEMS CLOSED.**
+
+- **F-P34-001 MEDIUM:** BC-4.13.001 v1.12 §Traceability ADR Reference row contained volatile version pin `ADR-025 v1.2 (primary — all 10 decisions)` — both POLICY 19-violating (version-pinned reference to a living ADR) and factually stale (ADR-025 is at v1.12 with 18 decisions; BC-4.13.001 is governed by Decisions 1/14/15/18, none of which existed at v1.2). Novel escape class: BC-internal Traceability-row sibling-sweep against a moving ADR anchor. Sibling BCs BC-1.17.001/BC-2.07.001/BC-3.08.001/BC-5.42.001 all use stable §Decision-enumerated form — BC-4.13.001 was the sole outlier; pin present since BC v1.0, unsurfaced for 12 passes because prior sweeps targeted body-content cites (invariants, Phase clauses, VP Anchors) rather than §Traceability metadata rows. Fix: PO BC-4.13.001 v1.12→v1.13: §Traceability ADR Reference row rewritten to stable §Decision-enumerated form (ADR-025 §Decision 1/14/15/18 + ADR-016/019/020 stable citations); input-hash e1e1a0a→86fab85. SW S-19.02 v1.15→v1.16: BC-4.13.001 v1.12→v1.13 cite sweep ×18 sites; input-hash d377821→d208e66. SW S-19.07 v1.14→v1.15: BC-4.13.001 v1.12→v1.13 cite sweep ×12 sites; input-hash 938e7fb→83e8cc4.
+
+**(2) FIX BURST LEGS (1 PO + 2 SW + 1 SM).**
+
+- **Product-owner (BC-4.13.001):** v1.12→v1.13. §Traceability ADR Reference row rewritten: volatile `ADR-025 v1.2 (primary — all 10 decisions)` → stable §Decision-enumerated form: `ADR-025 §Decision 1 (verify-factory-lock guard; primary); §Decision 14 (STATE_MD_MAX_BYTES=262144 + frontmatter-only parse; Precondition 3 / Invariant 9); §Decision 15 (host::read_prefix; Phase-B activation); §Decision 18 (host::read_prefix deliverables; Phase-B migration path); ADR-016 (artifact path guard pattern + on_error="continue" precedent); ADR-019 (sync/async partition; async=false CI lint invariant); ADR-020 (Class A latency budget ≤1500ms p95)`. Input-hash e1e1a0a→86fab85. POLICY 14 5-leg parity applied. Closes F-P34-001 MEDIUM. Factory-artifacts commit: 9a3dc191.
+- **Story-writer (S-19.02):** v1.15→v1.16. BC-4.13.001 v1.12→v1.13 cite sweep ×18 sites. Input-hash d377821→d208e66. POLICY 14 5-leg parity applied. D-779 whole-file predicate gate PASS (zero live-body v1.12 matches). D-759 two-sided preflight PASS (zero v1.12 hits in epic/ADR-025/VPs). Factory-artifacts commit: 5238e5d5.
+- **Story-writer (S-19.07):** v1.14→v1.15. BC-4.13.001 v1.12→v1.13 cite sweep ×12 sites. Input-hash 938e7fb→83e8cc4. POLICY 14 5-leg parity applied. D-779 whole-file predicate gate PASS (zero live-body v1.12 matches). Factory-artifacts commit: 5238e5d5.
+- **State-manager (4-index bumps):** BC-INDEX v3.86→v3.87 (BC-4.13.001 row Version cell v1.13 + F-P34-001/D-789 change note). STORY-INDEX v4.165→v4.166 (S-19.02 row v1.16; S-19.07 row v1.15; BC coverage BC-4.13.001 v1.13; delivery-summary pass-34 note). VP-INDEX v2.55 UNCHANGED (exhaustive — no VP changes in pass-34). ARCH-INDEX v2.97 UNCHANGED (exhaustive — no ADR changes by SM; BC-4.13.001 §Traceability-only change does not touch ARCH-INDEX).
+- **State-manager (governance):** STATE.md v5.39→v5.40. adv-E19-pass-34.md persisted. INDEX.md pass-34 row appended + Convergence Status updated. D-789 codified (this entry). Burst-log D-789 entry appended (8 blocks).
+
+**(3) D-494 4-INDEX GATE.**
+
+Literal shell execution (captured stdout — post-update):
+```
+.factory/specs/behavioral-contracts/BC-INDEX.md:version: "3.87"
+.factory/specs/verification-properties/VP-INDEX.md:version: "2.55"
+.factory/stories/STORY-INDEX.md:version: "4.166"
+.factory/specs/architecture/ARCH-INDEX.md:version: "2.97"
+```
+
+BC-INDEX v3.87 PASS / VP-INDEX v2.55 PASS (UNCHANGED) / STORY-INDEX v4.166 PASS / ARCH-INDEX v2.97 PASS (UNCHANGED). D-494 gate: ZERO FAIL.
+
+**(4) INPUT-HASH VERIFICATION (POLICY 18).**
+
+Post-burst compute-input-hash results (from SW leg commit messages — factory-artifacts commit 5238e5d5 + PO commit 9a3dc191):
+```
+BC-4.13.001 (PO leg): 86fab85 (PASS — v1.13; e1e1a0a→86fab85; traceability-only ADR Reference row rewrite)
+S-19.02 (SW leg): d208e66 (PASS — v1.16; d377821→d208e66; BC-4.13.001 v1.12→v1.13 cite sweep ×18 sites)
+S-19.07 (SW leg): 83e8cc4 (PASS — v1.15; 938e7fb→83e8cc4; BC-4.13.001 v1.12→v1.13 cite sweep ×12 sites)
+```
+
+POLICY 18 satisfied. All three input-hashes non-placeholder ✓. No new POLICY 18 placeholder gaps introduced.
+
+**(5) TRAJECTORY NOTE.**
+
+Pass-34 severity: B0/H0/M2/L2 (pass-33) → B0/H0/M1/L0 (pass-34). Severity improvement (4→1). First single-finding pass since pass-31. Trajectory tail (count passes 31–34): →3→4→1 (length 3 — updated to →1→3→4→1 for LENGTH=4 per D-433(e)). Full trajectory: 16→14→20→9→8→5→12→11→4→7→6→6→3→6→7→2→2→0→0→0→4→4→3→4→2→2→4→6→5→4→1→3→4→1.
+
+**(6) NOVELTY NOTE.**
+
+Novelty: LOW. F-P34-001 (BC §Traceability volatile ADR version pin) is a novel escape sub-class: BC-internal Traceability-row volatile-pin against a moving ADR anchor. Prior sweeps addressed body-content BC cites (invariants, Phase clauses, VP Anchors, EAC cites) and ADR §Decision table cells, but did not extend to BC §Traceability ADR Reference row metadata. The §Traceability cell is metadata (not behavioral body), which explains the 12-pass miss. Sibling BCs already used stable §Decision form; this was targeted drift in BC-4.13.001 only. Zero story hits for `ADR-025 v[0-9]` confirms stories correctly use §Decision-form cites. Class is adjacent to ADR-path-drift (F-P33-002) but distinct.
+
+**(7) NEXT: pass-35.**
+
+BC-5.39.001 3-CLEAN streak: 0/3. Pass-35 required. Perimeter = D-789 delta: BC-4.13.001 v1.13 + S-19.02 v1.16 + S-19.07 v1.15 + full E-19 suite carry-forward.
+
+Parent-commit: 5238e5d5 (D-789 burst state-manager leg parent; SW leg final factory-artifacts HEAD per D-419(b)+D-420(d)+D-421(a) convention).
+
+### Phase
+
+D-789-E19-ADV-PASS-34-NOT-CLEAN-CLOSED
+
+### Date
+
+2026-07-09
