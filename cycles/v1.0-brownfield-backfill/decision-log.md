@@ -7129,3 +7129,67 @@ D-785-E19-ADV-PASS-31-NOT-CLEAN-CLOSED
 ### Date
 
 2026-07-09
+
+---
+
+## D-786 — E-19 Adversarial Pass-32 Closure (NOT-CLEAN B0/H0/M1/L2; F-P32-001 + O-P32-01/02 fixed; streak 0/3)
+
+### Decision
+
+E-19 adversarial cascade pass-32 is NOT-CLEAN. Verdict: BLOCKER 0 / HIGH 0 / MEDIUM 1 / LOW 2 (3 total items: 1 MEDIUM finding + 2 LOW observations), all CLOSED in this D-786 fix burst. BC-5.39.001 3-CLEAN streak: 0/3. Pass-33 required.
+
+**(1) ITEMS CLOSED.**
+
+- **F-P32-001 MEDIUM:** ADR-025 v1.10 §Decision 15 body stale relative to Phase-B migration defined by BC-4.13.001 and implemented by S-19.07. Two sub-defects: (a) Primary consumers paragraph described `STATE_MD_MAX_BYTES` as the byte budget used by `verify-factory-lock` when calling `read_prefix` and implied this constant persists post-migration — however, BC-4.13.001 Phase-B specifies `STATE_MD_MAX_BYTES` is removed entirely at S-19.07 and replaced with inline `max_bytes=8192` call-site argument per §Precondition 3; (b) Truncation-example sentence cited "262144 bytes" as a `read_prefix` bound — this is incorrect: 262144 bytes is the Decision 14 `host::read_file` OUTPUT_TOO_LARGE cap, not a `read_prefix` argument; the Phase-B `max_bytes` is 8192. Fix: architect ADR-025 v1.10→v1.11: (a) primary consumers paragraph reworded — STATE_MD_MAX_BYTES removed at S-19.07; read_prefix max_bytes=8192 per BC-4.13.001 §Precondition 3 Phase-B is the sole post-migration read bound; (b) truncation-example reframed — 262144 marked Phase-A-historical (Decision 14 cap, not read_prefix argument); Phase-B example uses 8192.
+- **O-P32-01 LOW:** BC-2.07.001 v1.3 §Traceability §L2 Domain Invariants cell retained "DI-TBD" placeholder — a pass-30 (D-784) sibling-sweep miss. The D-784 burst swept BC-1.17.001 (retiring DI-TBD to `[] none`) but did not extend the sweep to BC-2.07.001, which was authored in the same session with the same placeholder pattern. For BC-2.07.001 (`host::read_file absent-file semantics: codes::NOT_FOUND (-5)`), no L2 Domain Invariants apply — the NOT_FOUND error code is an additive host-ABI convention, not a domain invariant. Fix: PO BC-2.07.001 v1.3→v1.4: DI-TBD → none (host-ABI operational; no L2 domain invariants applicable); aligned to BC-1.17.001/BC-4.13.001 convention; input-hash 9d60fc5. SW S-19.03 v1.15→v1.16: BC-2.07.001 v1.3→v1.4 cite sweep ×3 sites (BC table Version cell, AC-001 gate, Token Budget); input-hash 8d1225d unchanged.
+- **O-P32-02 LOW:** E-19 epic v1.20 §Out of Scope BC-1.17.001 bullet tautological parenthetical "(subsequently amended through v1.5 — see BC changelog)" when the bullet already declares "LANDED as v1.5". The D-785 correction of F-P31-001 introduced a self-referential construction: the phrase "subsequently amended through v1.5" carries no information when the BC already "LANDED as v1.5" — "amended through v1.5" and "landed at v1.5" are the same version. Fix: SW epic v1.20→v1.21 — tautological parenthetical dropped; retain only "LANDED as v1.5". Input-hash 77985d8 (computed post-fix).
+
+**(2) FIX BURST LEGS (1 ARK + 1 PO + 2 SW + 1 SM).**
+
+- **Architect (ADR-025):** v1.10→v1.11. §Decision 15 body corrected: (a) Primary consumers paragraph — STATE_MD_MAX_BYTES removed entirely at S-19.07 per BC-4.13.001 Phase-B; read_prefix max_bytes=8192 (BC-4.13.001 §Precondition 3 Phase-B) is sole post-migration read bound. (b) Truncation-example sentence — 262144 marked Phase-A-historical (Decision 14 `host::read_file` OUTPUT_TOO_LARGE cap, not a read_prefix argument); Phase-B example uses 8192 bound. Closes F-P32-001 MEDIUM.
+- **Product-owner (BC-2.07.001):** v1.3→v1.4. §Traceability L2 Domain Invariants DI-TBD → none (host-ABI operational; no L2 domain invariants applicable); aligned to BC-1.17.001/BC-4.13.001 convention. Input-hash 9d60fc5. POLICY 14 5-leg parity applied. Closes O-P32-01 LOW.
+- **Story-writer (S-19.03):** v1.15→v1.16. BC-2.07.001 v1.3→v1.4 cite sweep ×3 sites (BC table Version cell, AC-001 gate, Token Budget). Input-hash 8d1225d (unchanged — within-burst input drift: BC-2.07.001 stored 9d60fc5 vs computed d31ddd5; S-19.03 updated in same burst; acceptable per D-782/D-783 precedent). POLICY 14 5-leg parity applied. Closes O-P32-01 SW-leg.
+- **Story-writer (E-19 epic):** v1.20→v1.21. §Out of Scope BC-1.17.001 bullet — tautological "(subsequently amended through v1.5 — see BC changelog)" parenthetical dropped; retain only "LANDED as v1.5". Input-hash 77985d8. POLICY 14 5-leg parity applied. Closes O-P32-02 LOW.
+- **State-manager (4-index bumps):** ARCH-INDEX v2.95→v2.96 (ADR-025 v1.11 row note). BC-INDEX v3.84→v3.85 (BC-2.07.001 v1.4 row note). STORY-INDEX v4.163→v4.164 (epic header v1.21; S-19.03 row v1.16; DAG footnote pass-32 note; BC coverage v1.4). VP-INDEX v2.55 UNCHANGED (no VP changes in pass-32).
+- **State-manager (governance):** STATE.md v5.36→v5.37. adv-E19-pass-32.md persisted. INDEX.md pass-32 row appended + Convergence Status updated. D-786 codified (this entry).
+
+**(3) D-494 4-INDEX GATE.**
+
+Literal shell execution (captured stdout):
+```
+/Users/zious/Documents/GITHUB/vsdd-factory/.factory/stories/STORY-INDEX.md:version: "4.164"
+/Users/zious/Documents/GITHUB/vsdd-factory/.factory/specs/behavioral-contracts/BC-INDEX.md:version: "3.85"
+/Users/zious/Documents/GITHUB/vsdd-factory/.factory/specs/architecture/ARCH-INDEX.md:version: "2.96"
+/Users/zious/Documents/GITHUB/vsdd-factory/.factory/specs/verification-properties/VP-INDEX.md:version: "2.55"
+```
+
+BC-INDEX v3.85 PASS / VP-INDEX v2.55 PASS (UNCHANGED) / STORY-INDEX v4.164 PASS / ARCH-INDEX v2.96 PASS. D-494 gate: ZERO FAIL.
+
+**(4) INPUT-HASH VERIFICATION (POLICY 18).**
+
+Post-burst compute-input-hash results (literal shell, plugins/vsdd-factory/bin/compute-input-hash):
+```
+BC-2.07.001 (PO leg): 9d60fc5 (PASS — v1.4; DI-TBD → none)
+S-19.03 (SW leg): 8d1225d (PASS UNCHANGED — v1.16; within-burst input drift acceptable per D-782/D-783)
+E-19 epic (SW leg): 77985d8 (PASS — v1.21; tautological clause dropped)
+```
+
+POLICY 18 satisfied. ADR-025 is an architecture decision record — input-hash discipline applies to BC/VP/story files; ADR amendments are tracked via ARCH-INDEX changelog rows (ARCH-INDEX v2.96 row appended for ADR-025 v1.11). No new BC/VP/story POLICY 18 placeholder gaps introduced.
+
+**(5) TRAJECTORY NOTE.**
+
+Pass-32 severity: B0/H0/M1/L0 (pass-31) → B0/H0/M1/L2 (pass-32). Severity regression (+2 LOW observations). Regression driven by three distinct items: F-P32-001 is a genuine new ADR body staleness finding from the Phase-B migration (BC-4.13.001 Phase-B predates this pass and ADR-025 §Decision 15 was not updated at Phase-B authoring); O-P32-01 is a sibling-sweep miss from D-784 (same class as earlier sweep-miss findings); O-P32-02 is a "fix introduces different gap" pattern (D-785 correction of F-P31-001 introduced tautological construction). Trajectory tail (count passes 29-32): →5→4→1→3. Full trajectory: 16→14→20→9→8→5→12→11→4→7→6→6→3→6→7→2→2→0→0→0→4→4→3→4→2→2→4→6→5→4→1→3.
+
+**(6) NOVELTY NOTE.**
+
+Novelty: LOW-MEDIUM. O-P32-02 (tautological clause) is a new sub-class of the partial-sweep-escape pattern — specifically a "fix introduces different gap" variant where the D-785 correction of F-P31-001 introduced a self-referential construction. This is distinct from the prior "sweep misses a site" pattern; it is a precision-of-correction failure. F-P32-001 (ADR §Decision 15 Phase-B stale) is a genuine new finding class: Phase-B migration removed STATE_MD_MAX_BYTES and changed the normative bound from 262144 to 8192, and ADR-025 §Decision 15 was not updated when BC-4.13.001 Phase-B was authored. O-P32-01 (DI-TBD sibling-sweep miss) is a recurrence of the sibling-sweep-miss class (F-P30-002 class). No new structural defect class beyond the tautological-correction pattern (O-P32-02). Streak 0/3. NEXT: pass-33.
+
+Parent-commit: (D-785 sha-patch factory-artifacts HEAD — run `git -C .factory log -1 --format='%h'` for current SHA).
+
+### Phase
+
+D-786-E19-ADV-PASS-32-NOT-CLEAN-CLOSED
+
+### Date
+
+2026-07-09
