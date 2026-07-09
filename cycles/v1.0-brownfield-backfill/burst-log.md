@@ -13771,5 +13771,5 @@ NEXT: E-19 adversary pass-28 (fresh context; perimeter = D-781 delta: BC-4.13.00
 
 | Commit | SHA | Description |
 |--------|-----|-------------|
-| D-781 burst (atomic) | `[pending — SHA-patch follow-up required]` | state: D-781 E-19 adv pass-27 NOT-CLEAN closed — F-P27-001..003 + O-P27-001 fixed; BC-4.13.001 v1.10 + S-19.02 v1.12 + S-19.06 v1.15 + S-19.07 v1.12 + epic v1.17; streak 0/3 |
-| SHA-patch follow-up | `[pending]` | state(D-781-sha-patch): Active Branches + Block 8 SHA patch |
+| D-781 burst (atomic) | `6d7ea6ed` | state: D-781 E-19 adv pass-27 NOT-CLEAN closed — F-P27-001..003 + O-P27-001 fixed; BC-4.13.001 v1.10 + S-19.02 v1.12 + S-19.06 v1.15 + S-19.07 v1.12 + epic v1.17; streak 0/3 |
+| SHA-patch follow-up | `[pending — this commit]` | state(D-781-sha-patch): Active Branches + Block 8 SHA patch |
