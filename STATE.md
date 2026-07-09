@@ -78,7 +78,7 @@ dtu_services: []
   388 lines (wc-l per cap; D-781 E-19-ADV-PASS-27-CLOSED burst 2026-07-08; v5.32; pass-27 NOT-CLEAN B0/H1/M2/L1; severity regression 2→4; F-P27-001 HIGH DISTINCT-block TD-VSDD-060; fix burst 7 legs (PO BC-4.13.001 v1.10 + SW×4 + SM×2); BC v3.81/VP v2.53/STORY v4.159/ARCH v2.94; streak 0/3; NEXT E-19 adv pass-28)
   390 lines (wc-l per cap; D-782 E-19-ADV-PASS-28-NOT-CLEAN-CLOSED burst 2026-07-08; v5.33; pass-28 NOT-CLEAN B0/H0/M3/L3 6 findings; first zero-HIGH zero-BLOCKER of re-cascade; VP-096 v1.1 exclusive form + BC-1.17.001 v1.4 VP-101 alignment + S-19.02 v1.13/S-19.05 v1.14/S-19.06 v1.16; BC v3.82/VP v2.54/STORY v4.160/ARCH v2.95; streak 0/3; NEXT E-19 adv pass-29)
   392 lines (wc-l per cap; D-783 E-19-ADV-PASS-29-NOT-CLEAN-CLOSED burst 2026-07-09; v5.34; pass-29 NOT-CLEAN B0/H2/M2/L1 5 findings; severity regression B0/H0→B0/H2; Task-11 cluster F-P29-001 crate-location+F-P29-002 volatile-pin+F-P29-003 stale-VP-title + F-P29-004 POLICY 9 BC VP-Anchors + O-P29-01 STORY-INDEX fix; fix burst 5 legs (architect text-ruling+PO BC-4.13.001 v1.11+SW S-19.02 v1.14+SW S-19.07 v1.13+SM); BC v3.83/VP v2.54/STORY v4.161/ARCH v2.95; streak 0/3; NEXT E-19 adv pass-30)
-  ~398 lines (wc-l per cap; D-784 E-19-ADV-PASS-30-NOT-CLEAN-CLOSED burst 2026-07-09; v5.35; pass-30 NOT-CLEAN B0/H0/M2/L2 4 findings; first zero-HIGH of re-cascade post-D-775; F-P30-001 VP-095 volatile-pin+F-P30-002 placeholder-retirement POLICY 18+F-P30-003 stale-prose+F-P30-004 missing-task+O-P30-01/02; fix burst 12 legs (architect VP-095 v1.1+PO×4 BC bumps+SW×6 story bumps+SM); BC v3.84/VP v2.55/STORY v4.162/ARCH v2.95; streak 0/3; NEXT E-19 adv pass-31)
+  395 lines (wc-l per cap; D-784 E-19-ADV-PASS-30-NOT-CLEAN-CLOSED burst 2026-07-09; v5.35; pass-30 NOT-CLEAN B0/H0/M2/L2 4 findings; first zero-HIGH of re-cascade post-D-775; F-P30-001 VP-095 volatile-pin+F-P30-002 placeholder-retirement POLICY 18+F-P30-003 stale-prose+F-P30-004 missing-task+O-P30-01/02; fix burst 12 legs (architect VP-095 v1.1+PO×4 BC bumps+SW×6 story bumps+SM); BC v3.84/VP v2.55/STORY v4.162/ARCH v2.95; streak 0/3; NEXT E-19 adv pass-31)
 -->
 
 # Pipeline State: vsdd-factory
@@ -163,7 +163,7 @@ dtu_services: []
 |--------------|-----|-------|
 | main | a04cb303 | rc.22 bot binary bundle commit 2026-07-03 (Release 28668124787 post-build; all 33 WASMs rebuilt, plugin.json → 1.0.0-rc.22); prior: e4285fe5 (PR #456 true-merge fix mapfile→while-read; rc.22 tag); prior: 2a4c949b (PR #455 true-merge first rc.22 release; tag later moved); prior: caf06c68 (rc.21) |
 | develop | f5242bef | rc.22 Release sync-main→develop back-merge 2026-07-03 (D-750); prior: a6cf13e8 (PR #438 D-749 registry-staged assertion) |
-| factory-artifacts | `pending-D-784-commit` (D-784 state: E-19-ADV-PASS-30-NOT-CLEAN-CLOSED (v5.35)) | D-784 burst pending; prior D-783 burst `d63ea864` |
+| factory-artifacts | `c5be1eaa` (D-784 state: E-19-ADV-PASS-30-NOT-CLEAN-CLOSED (v5.35)) | D-784 burst c5be1eaa; D-784 sha-patch pending; prior D-783 burst `d63ea864` |
 | feature/S-18.12 | **DELETED** (was 9cbd9439) | Merged via PR #384 ec05606a 2026-07-01 (D-744); branch deleted post-merge |
 | fix/S-18.12-detector-parity-gaps | **DELETED** (was 717686f8) | Merged via PR #385 2879f473 2026-07-01 (D-746); branch deleted at merge |
 | origin/maintenance/rc22-pre-release-cleanup | **PENDING DELETION** | Safe to delete (recovery long complete); human authorization outstanding |

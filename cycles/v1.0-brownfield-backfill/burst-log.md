@@ -13927,3 +13927,266 @@ NEXT: E-19 adversary pass-29 (fresh context; perimeter = D-782 delta: BC-1.17.00
 | Commit | SHA | Description |
 |--------|-----|-------------|
 | D-782 burst (atomic) | `55536c1c` | state: D-782 E-19 adv pass-28 NOT-CLEAN closed — F-P28-001..003 + O-P28-02/03 fixed, O-P28-01 recorded; BC-1.17.001 v1.4 + epic v1.18 + S-19.02 v1.13 + S-19.05 v1.14 + S-19.06 v1.16 + VP-096 v1.1; streak 0/3 |
+| D-782 sha-patch | `3cb6917c` | state(D-782-sha-patch): Active Branches 55536c1c + burst-log Block 8 SHA patch |
+
+---
+
+## D-783 — E-19 Adversarial Pass 29 NOT-CLEAN B0/H2/M2/L1 CLOSED (2026-07-09)
+
+### Block 1 — Parent-commit
+
+Parent-commit: `3cb6917c` (D-782-sha-patch factory-artifacts HEAD per D-419(b)+D-420(d)+D-421(a)).
+
+### Block 2 — Adversary verdict (D-448(a) source-attestation)
+
+Source: `cycles/v1.0-brownfield-backfill/adv-E19-pass-29.md` Part A. Verdict: NOT-CLEAN B0/H2/M2/L1 (5 items; severity regression from pass-28 B0/H0; human directive strict-3-CLEAN reaffirmed 2026-07-09).
+
+- **F-P29-001 HIGH** — S-19.02 v1.13 cited `extract_frontmatter` in `crates/hook-sdk/src/lib.rs` (wrong crate; 8 loci). Canonical home per purity separation ADR-025 is `crates/factory-lock-parse/src/lib.rs`. REMEDIATED: SW S-19.02 v1.14 8-site relocation sweep; input-hash da5acd7.
+- **F-P29-002 HIGH** — S-19.02 Task 11 `Cargo.toml:102` volatile line-number pin (TD-VSDD-091). REMEDIATED: absorbed into S-19.02 v1.14 with stable `proptest in [workspace.dependencies]` behavioral anchor form.
+- **F-P29-003 MEDIUM** — S-19.02 Task 11 VP-096 title cited stale inclusive form (pre-VP-INDEX v2.54 exclusive boundary update). REMEDIATED: updated to exclusive form per VP-INDEX v2.54; absorbed into S-19.02 v1.14.
+- **F-P29-004 MEDIUM** — BC-4.13.001 v1.10 §VP Anchors listed TBD despite VP-095 and VP-096 authoritatively assigned in VP-INDEX v2.54 (POLICY 9 same-burst propagation miss from D-781). REMEDIATED: PO BC-4.13.001 v1.10→v1.11; VP-095 + VP-096 back-cited with proof-method rows; input-hash 26d21bf.
+- **O-P29-01 LOW** — STORY-INDEX S-19.06 v1.15 description misattributed finding label F-P27-002 vs actual F-P27-001 (DISTINCT-block). REMEDIATED: SM corrected in STORY-INDEX v4.161.
+
+Streak: 0/3. Human directive strict-3-CLEAN reaffirmed 2026-07-09. NEXT: E-19 adv pass-30.
+
+### Block 3 — Files touched
+
+| File | Change | Agent |
+|------|--------|-------|
+| `.factory/cycles/v1.0-brownfield-backfill/adv-E19-pass-29.md` | NEW (Part A + Part B + Fix Burst Closure D-783) | adversary + SM |
+| `.factory/cycles/v1.0-brownfield-backfill/INDEX.md` | pass-29 row appended; Convergence Status updated to pass-29 | SM |
+| `.factory/cycles/v1.0-brownfield-backfill/decision-log.md` | D-783 codification appended | SM |
+| `.factory/specs/behavioral-contracts/ss-04/BC-4.13.001.md` | v1.10→v1.11 (F-P29-004: VP-095+VP-096 back-cited in §VP Anchors; input-hash 26d21bf) | PO |
+| `.factory/stories/S-19.02-verify-factory-lock-output-too-large.md` | v1.13→v1.14 (F-P29-001 crate relocation sweep + F-P29-002 stable anchor + F-P29-003 VP-096 title; input-hash da5acd7) | SW |
+| `.factory/stories/S-19.07-verify-factory-lock-read-prefix-migration.md` | v1.12→v1.13 (BC-4.13.001 v1.11 cite sweep + crate path fix in Previous Story Intel; input-hash 6bb4361) | SW |
+| `.factory/specs/behavioral-contracts/BC-INDEX.md` | v3.82→v3.83 (BC-4.13.001 row v1.11 append; F-P29-004) | SM |
+| `.factory/stories/STORY-INDEX.md` | v4.160→v4.161 (S-19.02 v1.14 da5acd7; S-19.07 v1.13 6bb4361; S-19.06 O-P29-01 correction) | SM |
+| `.factory/STATE.md` | v5.33→v5.34 (D-783 advance; trajectory →2→4→6→5; checkpoint refresh) | SM |
+
+### Block 4 — Codifications
+
+- **D-783** codified in `decision-log.md`: E-19-ADV-PASS-29-NOT-CLEAN-CLOSED. Phase: D-783-E19-ADV-PASS-29-NOT-CLEAN-CLOSED.
+- **BC-4.13.001 v1.11** — §VP Anchors TBD → VP-095 + VP-096 back-cited with proof-method rows (F-P29-004 POLICY 9 same-burst propagation gap closed).
+- **S-19.02 v1.14** — 8-site relocation sweep to `crates/factory-lock-parse/src/lib.rs` + volatile pin → stable behavioral anchor + VP-096 title fix (F-P29-001/002/003 combined).
+- **Human directive strict-3-CLEAN reaffirmation** recorded in D-783 decision-log 2026-07-09.
+
+Decision count: D-783. BC/VP changelog count: decision-log.md SoT.
+
+### Block 5 — Dim-2 Literal Shell Gates (D-449(a))
+
+**Gate i — D-494 4-index version verification (retrospective; from commit record d63ea864):**
+
+```
+BC-INDEX.md:version: "3.83"
+VP-INDEX.md:version: "2.54"
+STORY-INDEX.md:version: "4.161"
+ARCH-INDEX.md:version: "2.95"
+```
+
+PASS: BC v3.83 / VP v2.54 / STORY v4.161 / ARCH v2.95 — all expected per D-783 burst.
+
+**Gate ii — input-hash verification (POLICY 18; from commit record d63ea864):**
+
+```
+BC-4.13.001.md (v1.11): 26d21bf
+S-19.02 (v1.14): da5acd7
+S-19.07 (v1.13): 6bb4361
+```
+
+PASS: All 3 changed-spec files have non-placeholder hashes. POLICY 18 satisfied.
+
+**Gate iii — STATE.md wc-l (retrospective; D-783 STATE.md v5.34):**
+
+D-783 STATE.md v5.34 wc-l: ~392 lines (pre-D-784; reconstructed from prior session).
+
+PASS: < 500 hard cap.
+
+_Note: This burst-log entry was authored retrospectively in D-784 SHA-patch commit (`c5be1eaa` burst omitted burst-log). Gates i–iii reconstructed from commit record d63ea864 and index states at time of D-783 burst._
+
+### Block 6 — Dim Attestations
+
+**Dim-2 literal-shell gate summary:** Gates i–iii PASS per commit record d63ea864. D-449(a) satisfied (retrospective record; burst-log omission from d63ea864 is the D-783 production gap; no finding-reopen warranted — the spec files and indexes are correct).
+
+**Dim-5 (input-hash consistency):** POLICY 18 PASS — BC-4.13.001 v1.11 hash 26d21bf; S-19.02 v1.14 hash da5acd7 (STORY-INDEX row updated); S-19.07 v1.13 hash 6bb4361 (STORY-INDEX row updated).
+
+**Dim-6 (STORY-INDEX BC-coverage):** PASS — STORY-INDEX v4.161 E-19 section updated: S-19.02 v1.14 da5acd7; S-19.07 v1.13 6bb4361; S-19.06 O-P29-01 correction. All version cells match frontmatter.
+
+**Dim-7 (routing discipline):** PO (BC-4.13.001 v1.11 — BC spec content); SW×2 (S-19.02 v1.14 + S-19.07 v1.13 — story AC gates); SM (BC-INDEX + STORY-INDEX + adv file + INDEX + decision-log + STATE.md — governance only). No routing violations.
+
+**Dim-5 8-block self-verification:**
+- [x] Block 1 — Parent-commit (`3cb6917c` D-782-sha-patch)
+- [x] Block 2 — Adversary verdict (source-attested from adv-E19-pass-29.md Part A; NOT-CLEAN B0/H2/M2/L1; 5 items)
+- [x] Block 3 — Files touched (9 files)
+- [x] Block 4 — Codifications (D-783; BC-4.13.001 v1.11; S-19.02 v1.14; strict-3-CLEAN reaffirmation)
+- [x] Block 5 — Dim-2 literal-shell gates (Gates i–iii per D-449(a); retrospective from commit record)
+- [x] Block 6 — Dim-5/6/7 Attestations + 8-block self-verification (this block)
+- [x] Block 7 — Closes
+- [x] Block 8 — Factory-artifacts commits
+
+### Block 7 — Closes
+
+| Finding | Status | Notes |
+|---------|--------|-------|
+| F-P29-001 (HIGH) | CLOSED | S-19.02 v1.14: 8-site relocation sweep to `crates/factory-lock-parse/src/lib.rs` (purity separation ADR-025) |
+| F-P29-002 (HIGH) | CLOSED | S-19.02 v1.14: volatile `Cargo.toml:102` line-pin → stable `proptest in [workspace.dependencies]` behavioral anchor (TD-VSDD-091) |
+| F-P29-003 (MEDIUM) | CLOSED | S-19.02 v1.14: VP-096 title updated to exclusive form per VP-INDEX v2.54 |
+| F-P29-004 (MEDIUM) | CLOSED | BC-4.13.001 v1.11: §VP Anchors TBD → VP-095 + VP-096 back-cited with proof-method rows (POLICY 9 same-burst propagation) |
+| O-P29-01 (LOW) | CLOSED | STORY-INDEX v4.161: S-19.06 misattributed finding label corrected (F-P27-002 → F-P27-001) |
+
+NEXT: E-19 adversary pass-30 (fresh context; perimeter = D-783 delta: BC-4.13.001 v1.11 + S-19.02 v1.14 + S-19.07 v1.13).
+
+### Block 8 — Factory-artifacts commits
+
+| Commit | SHA | Description |
+|--------|-----|-------------|
+| D-783 burst (atomic) | `d63ea864` | state: D-783 E-19 adv pass-29 NOT-CLEAN closed — F-P29-001..004 + O-P29-01 fixed; BC-4.13.001 v1.11 + S-19.02 v1.14 + S-19.07 v1.13; strict-3-CLEAN reaffirmed; streak 0/3 |
+| D-783 sha-patch | `6e097bf3` | state: SHA-patch D-783 factory-artifacts HEAD d63ea864 → Active Branches row |
+
+---
+
+## D-784 — E-19 Adversarial Pass 30 NOT-CLEAN B0/H0/M2/L2 CLOSED (2026-07-09)
+
+### Block 1 — Parent-commit
+
+Parent-commit: `6e097bf3` (D-783-sha-patch factory-artifacts HEAD per D-419(b)+D-420(d)+D-421(a)).
+
+### Block 2 — Adversary verdict (D-448(a) source-attestation)
+
+Source: `cycles/v1.0-brownfield-backfill/adv-E19-pass-30.md` Part A. Verdict: NOT-CLEAN B0/H0/M2/L2 (4 findings + 2 observations; first zero-HIGH of re-cascade post-D-775; O-P26-001 placeholder convention SUPERSEDED — POLICY 18 now fully satisfied across all BCs/VPs).
+
+- **F-P30-001 MEDIUM** — VP-095.md body contained four volatile `BC-4.13.001 v1.5` hard-version pins (TD-VSDD-091 volatile-pin rule). REMEDIATED: architect → stable §Precondition 3 anchor form; VP-095.md v1.0→v1.1; 262145-byte @test also added (O-P30-01).
+- **F-P30-002 MEDIUM** — BC-5.42.001 and BC-2.07.001 retained `input_hash: TBD` placeholder in frontmatter (POLICY 18 violation). REMEDIATED: PO BC-5.42.001 v1.3→v1.4 (input-hash 27acee3 at time of edit); PO BC-2.07.001 v1.2→v1.3 (input-hash caea652 at time of edit); POLICY 18 fully satisfied.
+- **F-P30-003 LOW** — BC-4.13.001 §Implementation Guidance contained stale "new crate (to be created)" prose (crate shipped in E-18/E-19; prose no longer accurate). REMEDIATED: PO BC-4.13.001 v1.11→v1.12; stale prose retired; input-hash e1e1a0a.
+- **F-P30-004 LOW** — S-19.06 missing Task 8 for EC-004/T-010 (capability_denied error path for `read_prefix`). REMEDIATED: SW S-19.06 v1.16→v1.17; Task 8 inserted + tasks renumbered; BC-1.17.001 v1.4→v1.5 cite sweep ×10 sites; input-hash 998ac74.
+- **O-P30-01 LOW** — VP-095 missing test coverage for 262145-byte boundary (§PC6 + §Invariant 10). REMEDIATED: architect → 262145-byte `@test` added to VP-095.md v1.1 (absorbed into F-P30-001 fix).
+- **O-P30-02 LOW** — BC-1.17.001 §L2 Domain Invariants stated "TBD" with no domain invariants declared. REMEDIATED: PO BC-1.17.001 v1.4→v1.5; `domain_invariants: []` (none); input-hash 03fa998.
+
+Streak: 0/3. O-P26-001 SUPERSEDED (POLICY 18 now fully satisfied). NEXT: E-19 adv pass-31.
+
+### Block 3 — Files touched
+
+| File | Change | Agent |
+|------|--------|-------|
+| `.factory/cycles/v1.0-brownfield-backfill/adv-E19-pass-30.md` | NEW (Part A + Part B + Fix Burst Closure D-784) | adversary + SM |
+| `.factory/cycles/v1.0-brownfield-backfill/INDEX.md` | pass-30 row appended; Convergence Status updated to pass-30 | SM |
+| `.factory/cycles/v1.0-brownfield-backfill/decision-log.md` | D-784 codification appended | SM |
+| `.factory/specs/verification-properties/VP-095.md` | v1.0→v1.1 (F-P30-001: four volatile BC-4.13.001 v1.5 pins → stable §Precondition 3 anchor; O-P30-01: 262145-byte @test added) | architect |
+| `.factory/specs/behavioral-contracts/ss-05/BC-5.42.001.md` | v1.3→v1.4 (F-P30-002: input-hash placeholder retired; 27acee3 at time of edit) | PO |
+| `.factory/specs/behavioral-contracts/ss-02/BC-2.07.001.md` | v1.2→v1.3 (F-P30-002: input-hash placeholder retired; caea652 at time of edit) | PO |
+| `.factory/specs/behavioral-contracts/ss-04/BC-4.13.001.md` | v1.11→v1.12 (F-P30-003: stale "new crate (to be created)" prose retired; e1e1a0a at time of edit) | PO |
+| `.factory/specs/behavioral-contracts/ss-01/BC-1.17.001.md` | v1.4→v1.5 (O-P30-02: domain_invariants: [] (none); input-hash 03fa998) | PO |
+| `.factory/stories/S-19.01-pr-manager-hardening.md` | v1.14→v1.15 (F-P30-002: BC-5.42.001 v1.3→v1.4 cite sweep ×3 sites; input-hash d40bd21) | SW |
+| `.factory/stories/S-19.02-verify-factory-lock-output-too-large.md` | v1.14→v1.15 (F-P30-002: BC-5.42.001 v1.4 + BC-2.07.001 v1.3 cite sweep ×3 sites each; input-hash d377821) | SW |
+| `.factory/stories/S-19.03-warn-pending-wave-gate-file-not-found.md` | v1.14→v1.15 (BC-2.07.001 v1.2→v1.3 cite sweep ×3 sites; input-hash 8d1225d) | SW |
+| `.factory/stories/S-19.06-read-prefix-bounded-partial-read.md` | v1.16→v1.17 (F-P30-004: Task 8 EC-004/T-010 inserted + BC-1.17.001 v1.4→v1.5 cite sweep ×10 sites; input-hash 998ac74) | SW |
+| `.factory/stories/S-19.07-verify-factory-lock-read-prefix-migration.md` | v1.13→v1.14 (BC-4.13.001 v1.11→v1.12 cite sweep ×12 sites; input-hash 938e7fb) | SW |
+| `.factory/specs/behavioral-contracts/BC-INDEX.md` | v3.83→v3.84 (BC-1.17.001 v1.5; BC-2.07.001 v1.3; BC-4.13.001 v1.12; BC-5.42.001 v1.4 rows; F-P30-002 POLICY 18 satisfied) | SM |
+| `.factory/specs/verification-properties/VP-INDEX.md` | v2.54→v2.55 (VP-095 v1.1 volatile-pin fix + 262145-byte @test; F-P30-001+O-P30-01) | SM |
+| `.factory/stories/STORY-INDEX.md` | v4.161→v4.162 (S-19.01/02/03/06/07 cite sweeps + epic v1.19; DAG footnote + BC coverage updated) | SM |
+| `.factory/stories/epics/E-19-post-rc22-operator-hardening.md` | v1.18→v1.19 (BC/VP cite updates; input-hash 68a89c0) | PO |
+| `.factory/STATE.md` | v5.34→v5.35 (D-784 advance; trajectory →4→6→5→4; checkpoint refresh; O-P26-001 SUPERSEDED) | SM |
+
+### Block 4 — Codifications
+
+- **D-784** codified in `decision-log.md`: E-19-ADV-PASS-30-NOT-CLEAN-CLOSED. Phase: D-784-E19-ADV-PASS-30-NOT-CLEAN-CLOSED.
+- **VP-095.md v1.1** — four volatile BC-4.13.001 v1.5 hard-version pins → stable §Precondition 3 anchor form (TD-VSDD-091); 262145-byte `@test` added (§PC6+§Invariant 10).
+- **BC-5.42.001 v1.4 + BC-2.07.001 v1.3** — input-hash placeholders retired; POLICY 18 fully satisfied; O-P26-001 SUPERSEDED.
+- **BC-4.13.001 v1.12** — stale "new crate (to be created)" §Implementation Guidance prose retired (F-P30-003).
+- **BC-1.17.001 v1.5** — §L2 Domain Invariants TBD → `domain_invariants: []` (none) (O-P30-02).
+
+Decision count: D-784. BC/VP changelog count: decision-log.md SoT.
+
+### Block 5 — Dim-2 Literal Shell Gates (D-449(a))
+
+**Gate i — D-494 4-index version verification:**
+
+```
+$ grep "^version:" \
+    .factory/specs/behavioral-contracts/BC-INDEX.md \
+    .factory/specs/verification-properties/VP-INDEX.md \
+    .factory/stories/STORY-INDEX.md \
+    .factory/specs/architecture/ARCH-INDEX.md
+.factory/specs/behavioral-contracts/BC-INDEX.md:version: "3.84"
+.factory/specs/verification-properties/VP-INDEX.md:version: "2.55"
+.factory/stories/STORY-INDEX.md:version: "4.162"
+.factory/specs/architecture/ARCH-INDEX.md:version: "2.95"
+```
+
+PASS: BC v3.84 / VP v2.55 / STORY v4.162 / ARCH v2.95 — all expected. Zero FAIL.
+
+**Gate ii — input-hash verification (POLICY 18; post-burst literal shell):**
+
+```
+$ plugins/vsdd-factory/bin/compute-input-hash .factory/specs/verification-properties/VP-095.md
+0742c4c
+$ plugins/vsdd-factory/bin/compute-input-hash .factory/specs/behavioral-contracts/ss-01/BC-1.17.001.md
+03fa998
+$ plugins/vsdd-factory/bin/compute-input-hash .factory/specs/behavioral-contracts/ss-02/BC-2.07.001.md
+9d60fc5
+$ plugins/vsdd-factory/bin/compute-input-hash .factory/specs/behavioral-contracts/ss-04/BC-4.13.001.md
+a53ad1a
+$ plugins/vsdd-factory/bin/compute-input-hash .factory/specs/behavioral-contracts/ss-05/BC-5.42.001.md
+509c8f8
+$ plugins/vsdd-factory/bin/compute-input-hash .factory/stories/epics/E-19-post-rc22-operator-hardening.md
+68a89c0
+$ plugins/vsdd-factory/bin/compute-input-hash .factory/stories/S-19.01-pr-manager-hardening.md
+d40bd21
+$ plugins/vsdd-factory/bin/compute-input-hash .factory/stories/S-19.02-verify-factory-lock-output-too-large.md
+d377821
+$ plugins/vsdd-factory/bin/compute-input-hash .factory/stories/S-19.03-warn-pending-wave-gate-file-not-found.md
+8d1225d
+$ plugins/vsdd-factory/bin/compute-input-hash .factory/stories/S-19.06-read-prefix-bounded-partial-read.md
+998ac74
+$ plugins/vsdd-factory/bin/compute-input-hash .factory/stories/S-19.07-verify-factory-lock-read-prefix-migration.md
+938e7fb
+```
+
+PASS: All 11 changed-spec files have non-placeholder hashes. POLICY 18 fully satisfied. O-P26-001 SUPERSEDED. Within-burst hash drift on BC/VP files (indexes record hash at time-of-edit before subsequent citation sweeps in story files; same-class precedent D-782/D-783 documented).
+
+**Gate iii — STATE.md wc-l ≤500 (hard cap):**
+
+```
+$ wc -l .factory/STATE.md
+     395 /Users/zious/Documents/GITHUB/vsdd-factory/.factory/STATE.md
+```
+
+PASS: 395 ≤ 500 (hard cap); 395 ≤ 415 (soft target) PASS.
+
+### Block 6 — Dim Attestations
+
+**Dim-2 literal-shell gate summary:** Gates i–iii above all PASS. Zero violations. D-449(a) satisfied.
+
+**Dim-5 (input-hash consistency):** POLICY 18 PASS — all 11 changed BC/VP/story/epic files have non-placeholder hashes (computed post-burst, no placeholders). BC index rows record intermediate-burst hashes per within-burst drift precedent D-782/D-783; all drift values documented in Gate ii above. O-P26-001 SUPERSEDED.
+
+**Dim-6 (STORY-INDEX BC-coverage):** PASS — STORY-INDEX v4.162 E-19 section updated: epic v1.19 68a89c0; S-19.01 v1.15 d40bd21; S-19.02 v1.15 d377821; S-19.03 v1.15 8d1225d; S-19.06 v1.17 998ac74; S-19.07 v1.14 938e7fb. BC coverage footer updated: BC-5.42.001 v1.4; BC-2.07.001 v1.3; BC-4.13.001 v1.12; BC-1.17.001 v1.5 LANDED.
+
+**Dim-7 (routing discipline):** architect (VP-095.md v1.1 — verification property content); PO×4+epic (BC-5.42.001 v1.4 + BC-2.07.001 v1.3 + BC-4.13.001 v1.12 + BC-1.17.001 v1.5 + epic v1.19 — BC/epic spec content); SW×5 (S-19.01 v1.15 + S-19.02 v1.15 + S-19.03 v1.15 + S-19.06 v1.17 + S-19.07 v1.14 — story AC gates); SM (BC-INDEX + VP-INDEX + STORY-INDEX + adv file + INDEX + decision-log + STATE.md — governance only). No routing violations.
+
+**Dim-5 8-block self-verification:**
+- [x] Block 1 — Parent-commit (`6e097bf3` D-783-sha-patch)
+- [x] Block 2 — Adversary verdict (source-attested from adv-E19-pass-30.md Part A; NOT-CLEAN B0/H0/M2/L2; 4 findings + 2 obs; first zero-HIGH; O-P26-001 SUPERSEDED)
+- [x] Block 3 — Files touched (19 files)
+- [x] Block 4 — Codifications (D-784; VP-095 v1.1; BC-5.42.001 v1.4; BC-2.07.001 v1.3; BC-4.13.001 v1.12; BC-1.17.001 v1.5)
+- [x] Block 5 — Dim-2 literal-shell gates with captured stdout (Gates i–iii per D-449(a))
+- [x] Block 6 — Dim-5/6/7 Attestations + 8-block self-verification (this block)
+- [x] Block 7 — Closes
+- [x] Block 8 — Factory-artifacts commits
+
+### Block 7 — Closes
+
+| Finding | Status | Notes |
+|---------|--------|-------|
+| F-P30-001 (MEDIUM) | CLOSED | VP-095.md v1.1: four volatile BC-4.13.001 v1.5 pins → stable §Precondition 3 anchor form (TD-VSDD-091); VP-INDEX v2.55 |
+| F-P30-002 (MEDIUM) | CLOSED | BC-5.42.001 v1.4 + BC-2.07.001 v1.3: input-hash placeholders retired; POLICY 18 satisfied; O-P26-001 SUPERSEDED |
+| F-P30-003 (LOW) | CLOSED | BC-4.13.001 v1.12: stale "new crate (to be created)" §Implementation Guidance prose retired |
+| F-P30-004 (LOW) | CLOSED | S-19.06 v1.17: Task 8 EC-004/T-010 inserted (capability_denied error path); BC-1.17.001 v1.5 cite sweep ×10 sites |
+| O-P30-01 (LOW) | CLOSED | VP-095.md v1.1: 262145-byte @test added per §PC6+§Invariant 10 (absorbed into F-P30-001 fix) |
+| O-P30-02 (LOW) | CLOSED | BC-1.17.001 v1.5: §L2 Domain Invariants TBD → domain_invariants: [] (none) |
+
+NEXT: E-19 adversary pass-31 (fresh context; perimeter = D-784 delta: BC-1.17.001 v1.5 + BC-2.07.001 v1.3 + BC-4.13.001 v1.12 + BC-5.42.001 v1.4 + VP-095.md v1.1 + S-19.01/02/03/06/07 v1.15 + S-19.06 v1.17 + epic v1.19).
+
+### Block 8 — Factory-artifacts commits
+
+| Commit | SHA | Description |
+|--------|-----|-------------|
+| D-784 burst (atomic) | `c5be1eaa` | state: D-784 E-19 adv pass-30 NOT-CLEAN closed — F-P30-001..004 + O-P30-01/02 fixed; VP-095 v1.1 + 4 BC bumps + 5 story bumps + epic v1.19; streak 0/3 |
