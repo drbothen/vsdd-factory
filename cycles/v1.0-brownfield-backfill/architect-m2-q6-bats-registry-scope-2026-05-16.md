@@ -17,7 +17,7 @@ inputs:
   - plugins/vsdd-factory/tests/validate-index-cite-refresh/fail-multi-stale-cites.bats
   - plugins/vsdd-factory/tests/validate-index-cite-refresh/fail-stale-story-index.bats
   - plugins/vsdd-factory/tests/validate-index-cite-refresh/fail-cross-cell-state-md.bats
-input-hash: "a777108"
+input-hash: "382ba96"
 traces_to: architect-m2-q5-tool-attribute-2026-05-16.md
 related_stories: [S-15.07, S-15.11, S-15.09, S-15.14]
 closes_finding: F-S15.07-LOCAL-P2-002

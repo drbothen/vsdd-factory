@@ -14,7 +14,7 @@ inputs:
   - crates/hook-sdk/src/host.rs
   - crates/hook-sdk/src/ffi.rs
   - crates/hook-sdk/HOST_ABI.md
-input-hash: "5761db0"
+input-hash: "5afe53f"
 traces_to: prd.md
 pass: p2
 previous_review: adv-s8.10-p1.md

@@ -11,7 +11,7 @@ inputs:
   - .factory/specs/behavioral-contracts/ss-07/BC-7.03.071.md
   - .factory/cycles/v1.0-brownfield-backfill/adv-s8.09-p4.md
   - .factory/stories/S-8.10-sdk-extension-write-file.md
-input-hash: "8339f2a"
+input-hash: "93d9550"
 traces_to: prd.md
 pass: p5
 previous_review: adv-s8.09-p4.md

@@ -10,7 +10,7 @@ inputs:
   - .factory/stories/S-8.07-native-port-warn-pending-wave-gate.md
   - .factory/stories/epics/E-8-native-wasm-migration.md
   - .factory/stories/STORY-INDEX.md
-input-hash: "fe5fa5b"
+input-hash: "6891a23"
 traces_to: prd.md
 pass: 1
 previous_review: null

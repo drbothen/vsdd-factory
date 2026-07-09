@@ -15,7 +15,7 @@ inputs:
   - .factory/specs/prd.md
   - .factory/specs/behavioral-contracts/BC-INDEX.md
   - .factory/specs/architecture/SS-04-plugin-ecosystem.md
-input-hash: "c1b7dd4"
+input-hash: "6bd6730"
 traces_to: prd.md
 pass: 7
 previous_review: ADV-S5.04-P06.md

@@ -63,3 +63,13 @@
 {"type":"hook.block","hook":"validate-input-hash","reason":"input_hash_drift","ts":"2026-07-09T12:08:46-0600","ts_epoch":1783620526,"schema_version":1}
 {"type":"hook.block","hook":"validate-input-hash","reason":"input_hash_drift","ts":"2026-07-09T12:09:07-0600","ts_epoch":1783620547,"schema_version":1}
 {"type":"hook.block","hook":"validate-count-propagation","reason":"count_propagation_drift","ts":"2026-07-09T12:26:16-0600","ts_epoch":1783621576,"schema_version":1}
+{"type":"hook.block","hook":"validate-changelog-monotonicity","reason":"changelog_frontmatter_mismatch","ts":"2026-07-09T13:27:40-0600","ts_epoch":1783625260,"schema_version":1}
+{"type":"hook.block","hook":"validate-input-hash","reason":"input_hash_drift","ts":"2026-07-09T13:27:41-0600","ts_epoch":1783625261,"schema_version":1}
+{"type":"hook.block","hook":"validate-input-hash","reason":"input_hash_drift","ts":"2026-07-09T13:28:27-0600","ts_epoch":1783625307,"schema_version":1}
+{"type":"hook.block","hook":"validate-input-hash","reason":"input_hash_drift","ts":"2026-07-09T13:29:00-0600","ts_epoch":1783625340,"schema_version":1}
+{"type":"hook.block","hook":"validate-input-hash","reason":"input_hash_drift","ts":"2026-07-09T13:29:10-0600","ts_epoch":1783625350,"schema_version":1}
+{"type":"hook.block","hook":"validate-input-hash","reason":"input_hash_drift","ts":"2026-07-09T13:29:18-0600","ts_epoch":1783625358,"schema_version":1}
+{"type":"hook.block","hook":"validate-changelog-monotonicity","reason":"changelog_frontmatter_mismatch","ts":"2026-07-09T13:33:25-0600","ts_epoch":1783625605,"schema_version":1}
+{"type":"hook.block","hook":"validate-input-hash","reason":"input_hash_drift","ts":"2026-07-09T13:50:10-0600","ts_epoch":1783626610,"schema_version":1}
+{"type":"hook.block","hook":"validate-count-propagation","reason":"count_propagation_drift","ts":"2026-07-09T13:51:53-0600","ts_epoch":1783626713,"schema_version":1}
+{"type":"hook.block","hook":"validate-input-hash","reason":"input_hash_drift","ts":"2026-07-09T14:44:55-0600","ts_epoch":1783629895,"schema_version":1}

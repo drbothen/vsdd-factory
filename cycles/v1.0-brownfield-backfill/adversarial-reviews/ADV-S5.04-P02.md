@@ -14,7 +14,7 @@ inputs:
   - .factory/specs/verification-properties/VP-068.md
   - .factory/specs/prd.md
   - .factory/specs/behavioral-contracts/BC-INDEX.md
-input-hash: "c1b7dd4"
+input-hash: "411bc05"
 traces_to: .factory/stories/S-5.04-post-tool-use-failure.md
 pass: 2
 previous_review: .factory/cycles/v1.0-brownfield-backfill/adversarial-reviews/ADV-S5.04-P01.md

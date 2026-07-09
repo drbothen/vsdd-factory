@@ -12,7 +12,7 @@ inputs:
   - .factory/specs/architecture/ARCH-INDEX.md
   - .factory/specs/behavioral-contracts/BC-INDEX.md
   - crates/factory-dispatcher/src/host/read_file.rs
-input-hash: "5761db0"
+input-hash: "0b09368"
 traces_to: prd.md
 pass: p4
 story_id: "S-8.10"

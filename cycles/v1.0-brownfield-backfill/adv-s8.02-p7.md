@@ -11,7 +11,7 @@ inputs:
   - .factory/cycles/v1.0-brownfield-backfill/adv-s8.02-p6.md
   - .factory/specs/behavioral-contracts/ss-02/BC-2.02.012.md
   - .factory/specs/behavioral-contracts/ss-07/BC-7.03.045.md
-input-hash: "9961ec6"
+input-hash: "39b0644"
 traces_to: prd.md
 pass: p7
 previous_review: adv-s8.02-p6.md

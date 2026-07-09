@@ -21,7 +21,7 @@ inputs:
   - .factory/stories/STORY-INDEX.md
   - .factory/STATE.md
   - .factory/policies.yaml
-input-hash: "ae4b9ec"
+input-hash: "2660537"
 traces_to: ".factory/specs/prd.md"
 cycle: v1.0-brownfield-backfill
 sub_cycle: wave-8-ss-08-re-anchor

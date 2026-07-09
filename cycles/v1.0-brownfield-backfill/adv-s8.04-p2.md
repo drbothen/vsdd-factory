@@ -10,7 +10,7 @@ inputs:
   - .factory/stories/S-8.04-native-port-update-wave-state-on-merge.md
   - .factory/stories/epics/E-8-native-wasm-migration.md
   - .factory/stories/STORY-INDEX.md
-input-hash: "16dd014"
+input-hash: "070f0de"
 traces_to: prd.md
 pass: 2
 previous_review: adv-s8.04-p1.md

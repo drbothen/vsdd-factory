@@ -21,7 +21,7 @@ inputs:
   - .factory/stories/S-2.08-beta1-release-gate.md
   - .factory/stories/S-0.01-bump-version-prerelease.md
   - .factory/stories/STORY-INDEX.md
-input-hash: "9945d50"
+input-hash: "5b6d6ee"
 traces_to: ".factory/specs/prd.md"
 cycle: v1.0-brownfield-backfill
 sub_cycle: wave-7-ss-10-re-anchor

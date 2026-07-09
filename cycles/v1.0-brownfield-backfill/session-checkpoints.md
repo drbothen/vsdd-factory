@@ -7,7 +7,7 @@ producer: state-manager
 timestamp: 2026-04-26T12:00:00Z
 cycle: v1.0-brownfield-backfill
 inputs: [STATE.md]
-input-hash: "6ecf12f"
+input-hash: "095e905"
 traces_to: STATE.md
 ---
 
@@ -895,3 +895,15 @@ Summary of D-765 checkpoint (archived reference):
 - 4-index: BC v3.76 / VP v2.53 / STORY v4.147 / ARCH v2.90. L2-INDEX v1.0.14.
 - develop HEAD: `f5242bef` / main HEAD: `a04cb303` / factory-artifacts HEAD: `6f7a159d` (D-765 SHA-patch HEAD) / merged_count 98
 - D-range: D-001..D-765
+
+---
+
+## D-787 Checkpoint (archived 2026-07-09 by D-788 session wrap — SESSION-WRAP-PAUSED)
+
+**Superseded by D-788 SESSION-WRAP-PAUSED checkpoint (STATE.md §Session Resume Checkpoint).**
+
+Summary of D-787 checkpoint (archived reference):
+- D-787 (2026-07-09): E-19 ADV PASS-33 NOT-CLEAN CLOSED — FIX BURST COMPLETE. Pass-33 NOT-CLEAN B0/H0/M2/L2 (4 findings: F-P33-001 MED epic EAC-003 stale BC-2.07.001 v1.3 cite; F-P33-002 MED ADR-025 §Decision 18 Deliverables path column stale; O-P33-001 LOW BC-5.42.001 DI-TBD sibling-sweep miss (third recurrence); O-P33-002 LOW BC-INDEX BC-2.07.001 title cell POLICY 7). Fix burst: architect ADR-025 v1.11→v1.12; PO BC-5.42.001 v1.4→v1.5; SW epic v1.21→v1.22 + S-19.01 v1.15→v1.16; SM 4-index ARCH v2.96→v2.97 + BC v3.85→v3.86 + STORY v4.164→v4.165. Severity regression pass-32 (B0/H0/M1/L2 3 items) → pass-33 (B0/H0/M2/L2 4 items). Escape class: D-786 fix-burst BC-cite sweep missed epic EAC-003 body (cross-tree scope gap). Streak 0/3. NEXT (at time of D-787): E-19 adv pass-34. PIPELINE PAUSED D-788 (human /wrap directive).
+- 4-index: BC v3.86 / VP v2.55 / STORY v4.165 / ARCH v2.97. L2-INDEX v1.0.14. total_bcs 1,977.
+- develop HEAD: `f5242bef` / main HEAD: `a04cb303` / factory-artifacts HEAD: `986ba545` (D-787 burst) / merged_count 98
+- D-range: D-001..D-787
