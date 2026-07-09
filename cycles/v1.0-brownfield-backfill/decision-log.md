@@ -7193,3 +7193,68 @@ D-786-E19-ADV-PASS-32-NOT-CLEAN-CLOSED
 ### Date
 
 2026-07-09
+
+---
+
+## D-787 — E-19 Adversarial Pass-33 Closure (NOT-CLEAN B0/H0/M2/L2; F-P33-001/002 + O-P33-001/002 fixed; streak 0/3)
+
+### Decision
+
+E-19 adversarial cascade pass-33 is NOT-CLEAN. Verdict: BLOCKER 0 / HIGH 0 / MEDIUM 2 / LOW 2 (4 total items: 2 MEDIUM findings + 2 LOW observations), all CLOSED in this D-787 fix burst. BC-5.39.001 3-CLEAN streak: 0/3. Pass-34 required.
+
+**(1) ITEMS CLOSED.**
+
+- **F-P33-001 MEDIUM:** E-19 epic v1.21 EAC-003 §Negative control B referenced BC-2.07.001 at stale version v1.3. D-786 pass-32 fix burst advanced BC-2.07.001 to v1.4 (O-P32-01: DI-TBD → none); the epic EAC-003 body was not swept, leaving "BC-2.07.001 v1.3 EC-007" when the current authoritative version is v1.4. The S-19.03 story body was swept at D-786 for the same BC advance; EAC-003 in the epic was a missed sibling site. Fix: SW epic v1.21→v1.22: EAC-003 BC-2.07.001 v1.3→v1.4 cite updated; input-hash 77985d8→a18ea87.
+- **F-P33-002 MEDIUM:** ADR-025 v1.11 §Decision 18 Deliverables table path column listed stale working-name file paths inconsistent with the actual hook-sdk and dispatcher crate structure: (a) dispatcher host-function implementation: `host.rs` (top-level) → correct: `host/read_prefix.rs`; (b) hook-sdk safe-wrapper layer: `sdk.rs` (nonexistent) → correct: `host.rs` (crates/hook-sdk/src/host.rs); (c) hook-sdk FFI boundary: `host_ffi.rs` (working name) → correct: `ffi.rs` (crates/hook-sdk/src/ffi.rs). Working names used at §Decision 18 authoring were not corrected when the S-19.06 implementation settled on final names. Fix: architect ADR-025 v1.11→v1.12: §Decision 18 path column corrected for all three deliverable rows.
+- **O-P33-001 LOW:** BC-5.42.001 v1.4 §Traceability §L2 Domain Invariants retained TBD placeholder — the third recurrence of the DI-TBD sibling-sweep-miss class (BC-1.17.001 D-784; BC-2.07.001 D-786; BC-5.42.001 D-787). For BC-5.42.001 (pr-manager READY-verdict enforcement: SHA-pinning, stale-verdict detection, release-PR squash prevention), no L2 Domain Invariants apply — this is a CI/CD pipeline-workflow constraint, not a domain-model invariant. Orchestrator adjudication: ALIGN (PO to retire TBD; SW to sweep S-19.01 cite sites). Fix: PO BC-5.42.001 v1.4→v1.5: §Traceability L2 Domain Invariants TBD → none (pipeline-workflow constraint; no L2 domain invariants applicable); aligned to BC-1.17.001/BC-4.13.001/BC-2.07.001 convention; input-hash 509c8f8→4fd18a4 (within-burst hash refresh: S-19.01 updated same burst per D-782/D-783 precedent). SW S-19.01 v1.15→v1.16: BC-5.42.001 v1.4→v1.5 cite sweep ×3 sites; input-hash d40bd21 unchanged.
+- **O-P33-002 LOW (POLICY 7 ADVISORY):** BC-INDEX v3.85 catalog row title cell for BC-2.07.001 elided "error code" from the H1 title. H1: "codes::NOT_FOUND (-5) additive error code, HostError::NotFound SDK variant…". Catalog row: "codes::NOT_FOUND (-5) additive, HostError::NotFound SDK variant…". The elision ("additive," vs "additive error code,") was introduced at BC-INDEX row authoring — distinct from prior POLICY 7 violations where H1 was changed post-indexing. Fix: SM BC-INDEX v3.85→v3.86: BC-2.07.001 catalog row title cell — "additive," → "additive error code,".
+
+**(2) FIX BURST LEGS (1 ARK + 1 PO + 2 SW + 1 SM).**
+
+- **Architect (ADR-025):** v1.11→v1.12. §Decision 18 Deliverables path column corrected: (a) host/read_prefix.rs (dispatcher host-function implementation); (b) host.rs (hook-sdk safe-wrapper layer, crates/hook-sdk/src/host.rs); (c) ffi.rs (hook-sdk FFI boundary, crates/hook-sdk/src/ffi.rs). Closes F-P33-002 MEDIUM.
+- **Product-owner (BC-5.42.001):** v1.4→v1.5. §Traceability L2 Domain Invariants TBD → none (pipeline-workflow constraint; no L2 domain invariants applicable); aligned to BC-1.17.001/BC-4.13.001/BC-2.07.001 convention. Input-hash 509c8f8→4fd18a4 (within-burst hash refresh: S-19.01 updated same burst; see D-782/D-783 precedent). POLICY 14 5-leg parity applied. Closes O-P33-001 PO-leg.
+- **Story-writer (S-19.01):** v1.15→v1.16. BC-5.42.001 v1.4→v1.5 cite sweep ×3 sites. Input-hash d40bd21 (unchanged). POLICY 14 5-leg parity applied. Closes O-P33-001 SW-leg.
+- **Story-writer (E-19 epic):** v1.21→v1.22. EAC-003 BC-2.07.001 v1.3→v1.4 cite updated. Input-hash 77985d8→a18ea87. POLICY 14 5-leg parity applied. Closes F-P33-001 MEDIUM.
+- **State-manager (4-index bumps):** ARCH-INDEX v2.96→v2.97 (ADR-025 v1.12 row note). BC-INDEX v3.85→v3.86 (O-P33-002 title cell fix + BC-5.42.001 v1.5 row note). STORY-INDEX v4.164→v4.165 (epic header v1.22; S-19.01 row v1.16; BC coverage BC-5.42.001 v1.5; delivery summary pass-33 note). VP-INDEX v2.55 UNCHANGED (no VP changes in pass-33).
+- **State-manager (governance):** STATE.md v5.37→v5.38. adv-E19-pass-33.md persisted. INDEX.md pass-33 row appended + Convergence Status updated. D-787 codified (this entry).
+
+**(3) D-494 4-INDEX GATE.**
+
+Literal shell execution (captured stdout):
+```
+/Users/zious/Documents/GITHUB/vsdd-factory/.factory/stories/STORY-INDEX.md:version: "4.165"
+/Users/zious/Documents/GITHUB/vsdd-factory/.factory/specs/behavioral-contracts/BC-INDEX.md:version: "3.86"
+/Users/zious/Documents/GITHUB/vsdd-factory/.factory/specs/architecture/ARCH-INDEX.md:version: "2.97"
+/Users/zious/Documents/GITHUB/vsdd-factory/.factory/specs/verification-properties/VP-INDEX.md:version: "2.55"
+```
+
+BC-INDEX v3.86 PASS / VP-INDEX v2.55 PASS (UNCHANGED) / STORY-INDEX v4.165 PASS / ARCH-INDEX v2.97 PASS. D-494 gate: ZERO FAIL.
+
+**(4) INPUT-HASH VERIFICATION (POLICY 18).**
+
+Post-burst compute-input-hash results (literal shell, plugins/vsdd-factory/bin/compute-input-hash):
+```
+BC-5.42.001 (PO leg): 4fd18a4 (PASS — v1.5; within-burst hash refresh 509c8f8→4fd18a4: S-19.01 v1.16 input drift same-burst; D-782/D-783 precedent)
+S-19.01 (SW leg): d40bd21 (PASS UNCHANGED — v1.16; BC-5.42.001 cite sweep ×3; BC-5.42.001 not an input to S-19.01)
+E-19 epic (SW leg): a18ea87 (PASS — v1.22; EAC-003 BC-2.07.001 v1.3→v1.4 cite updated)
+```
+
+POLICY 18 satisfied. ADR-025 is an architecture decision record — input-hash discipline applies to BC/VP/story files; ADR amendments tracked via ARCH-INDEX changelog rows (ARCH-INDEX v2.97 row appended for ADR-025 v1.12). No new BC/VP/story POLICY 18 placeholder gaps introduced.
+
+**(5) TRAJECTORY NOTE.**
+
+Pass-33 severity: B0/H0/M1/L2 (pass-32) → B0/H0/M2/L2 (pass-33). Severity regression (+1 MEDIUM). Regression driven by four distinct items across 4 independent specialist legs. Trajectory tail (count passes 30-33): →4→1→3→4. Low-single-digit floor pattern continues. Full trajectory: 16→14→20→9→8→5→12→11→4→7→6→6→3→6→7→2→2→0→0→0→4→4→3→4→2→2→4→6→5→4→1→3→4.
+
+**(6) NOVELTY NOTE.**
+
+Novelty: LOW-MEDIUM. F-P33-001 (EAC-003 stale cite) is a recurrence of the partial-sweep-escape class: D-786 swept S-19.03 body for BC-2.07.001 v1.3→v1.4 but did not extend the sweep to the epic EAC body which also references BC-2.07.001. F-P33-002 (ADR §Decision 18 stale paths) is a new instance of the ADR-path-drift class: working-name file paths used at §Decision 18 authoring were not corrected when implementation settled on final names. O-P33-001 is the third DI-TBD sibling-sweep miss — confirmed systematic across E-19 BCs authored in the same session (BC-1.17.001, BC-2.07.001, BC-4.13.001, BC-5.42.001 all carried DI-TBD from initial authoring; three of four corrected in successive passes). O-P33-002 (BC-INDEX title cell elision) is a new POLICY 7 sub-class: elision introduced at index-write time rather than at BC-amendment time.
+
+Parent-commit: (D-786 sha-patch factory-artifacts HEAD — run `git -C .factory log -1 --format='%h'` for current SHA).
+
+### Phase
+
+D-787-E19-ADV-PASS-33-NOT-CLEAN-CLOSED
+
+### Date
+
+2026-07-09
