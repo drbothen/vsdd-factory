@@ -15432,3 +15432,158 @@ NEXT: E-19 adversary pass-42 (fresh context; Iron Law; rubric policies.yaml v1.4
 | Commit | SHA | Description |
 |--------|-----|-------------|
 | D-796 burst (atomic) | `318f8cba` | state(D-796): E-19 adv pass-41 CLEAN B0/H0/M0/L2; GOVERNANCE-ONLY; O-P41-001/002 LOW accepted-with-record; 4-index ALL UNCHANGED BC v3.89/VP v2.55/STORY v4.169/ARCH v2.98; STATE.md v5.47 462 lines; streak 0/3→1/3; pass-42 NEXT |
+
+---
+
+## D-797 — E-19 Adversarial Pass-42 Fix Burst (NOT-CLEAN B0/H0/M3/L0; F-P42-001/002/003 CLOSED same-burst; sibling-sweep VP-094/098/100/101; streak 1/3→0/3) — 2026-07-09
+
+### Block 1 — Parent-commit
+
+**Parent commit (Commit D — architect sibling-sweep):** `a0c2c62a` — `state(D-797): architect sibling-sweep VP-094/098/100/101 v1.0→v1.1 stable-anchor form`
+
+5-leg burst sequence:
+1. **architect `47b87f6e`** — VP-097 v1.0→v1.1: stable §Invariant 1 + §EC-001 anchor form replacing volatile BC-version-pin (F-P42-001)
+2. **product-owner `e4b1c8d9`** — BC-2.07.001 v1.4→v1.5: VP-097 row traversal-defense framing per VP-INDEX SoT (F-P42-002); duplicate VP-098 row consolidated (F-P42-003)
+3. **story-writer `964048de`** — S-19.03 v1.16→v1.17: BC-2.07.001 v1.4→v1.5 cite sweep ×3 sites; epic v1.22→v1.23: EAC-003 BC-2.07.001 v1.4→v1.5 cite ×1 site
+4. **architect `a0c2c62a`** — sibling-sweep: VP-094/098/100/101 all v1.0→v1.1 stable-anchor form (POLICY 5 v1.3.5 sibling-class F-P42-001 extension)
+5. **state-manager (this commit)** — 4-index bumps (BC-INDEX v3.89→v3.90; VP-INDEX v2.55→v2.56; STORY-INDEX v4.169→v4.170; ARCH-INDEX v2.98 UNCHANGED); INDEX.md Pass-42 row + Convergence Status; STATE.md v5.47→v5.48 (Decision Log D-797; banner; trajectory-tail →1→1→0→3; streak 0/3; Session Resume Checkpoint full refresh targeting pass-43); burst-log this entry
+
+### Block 2 — Adversary Verdict (Source-Attested)
+
+**Source:** `cycles/v1.0-brownfield-backfill/adv-E19-pass-42.md`
+
+**Verdict:** NOT-CLEAN B0/H0/M3/L0 (0 BLOCKERs; 0 HIGH; 3 MEDIUM; 0 LOW).
+
+**F-P42-001 MEDIUM — VP volatile BC-version-pin class (VP-097 primary; VP-094/098/100/101 sibling class):** VP-097 §Source Contract + §Postcondition rows cited `BC-2.07.001 v1.4` as a volatile version-token pin instead of the stable `§Precondition N / §Invariant N` anchor form required by POLICY 5 v1.3.5 (TD-VSDD-091). Adversary identified same volatile-pin pattern in VP-094/098/100/101 as a sibling-class defect (same-burst sweep required per POLICY 5 v1.3.5 first-occurrence-triggers-class-sweep). **CLOSED**: architect 47b87f6e (VP-097 §Invariant 1 + §EC-001 stable anchor); architect a0c2c62a (VP-094 §Postcondition 1/2/3; VP-098 §Postcondition 2/3/4; VP-100 §Invariant 6 ×6 sites; VP-101 §Postcondition 1/3/5 stable anchors).
+
+**F-P42-002 MEDIUM — BC-2.07.001 VP-097 row semantics mismatch (POLICY 9):** BC-2.07.001 §VP Properties table VP-097 row described "absent-path semantics" instead of the traversal-defense semantics stated in VP-097 per VP-INDEX SoT. POLICY 9 requires §VP Properties rows to faithfully reflect the VP-INDEX source-of-truth statement. **CLOSED**: PO e4b1c8d9 (BC-2.07.001 v1.4→v1.5; VP-097 row rewritten to traversal-defense framing per VP-INDEX).
+
+**F-P42-003 MEDIUM — BC-2.07.001 duplicate VP-098 rows:** BC-2.07.001 §VP Properties table contained two VP-098 rows with conflicting descriptions; duplicate eliminated by consolidation. **CLOSED**: PO e4b1c8d9 (duplicate VP-098 row removed; single canonical row retained).
+
+**Part B summary:** All three MEDIUM findings CLOSED same-burst across 5 legs. Zero BLOCKER / zero HIGH. Streak 1/3→0/3 (pass-42 NOT-CLEAN resets streak; three consecutive CLEANs required for 3/3 CONVERGED → W1 TDD dispatch per D-773/D-774).
+
+### Block 3 — Files Touched
+
+| File | Action | Notes |
+|------|--------|-------|
+| `cycles/v1.0-brownfield-backfill/adv-E19-pass-42.md` | PERSISTED (prior session) | Pass-42 adversary report; NOT-CLEAN B0/H0/M3/L0; F-P42-001/002/003 all MEDIUM; CLOSED same-burst |
+| `cycles/v1.0-brownfield-backfill/decision-log.md` | APPENDED (prior session) | D-797 block codified |
+| `cycles/v1.0-brownfield-backfill/lessons.md` | APPENDED (prior session) | L-BB-vp-source-contract-pins-are-sibling-class [enforcement-note][codified D-797] |
+| `specs/behavioral-contracts/BC-INDEX.md` | MODIFIED (prior session) | v3.89→v3.90; BC-2.07.001 row v1.4→v1.5 annotation; VP-094/097/098/100/101 v1.0→v1.1 stable-anchor notes |
+| `specs/verification-properties/VP-INDEX.md` | MODIFIED (prior session) | v2.55→v2.56; VP-094/097/098/100/101 v1.0→v1.1 row annotations; "136 BC IDs" wording fix (validate-count-propagation false-positive prevention) |
+| `stories/STORY-INDEX.md` | MODIFIED (prior session) | v4.169→v4.170; S-19.03 v1.16→v1.17 row sync; BC-2.07.001 v1.4→v1.5 BC coverage cite; Pass-42 wave-summary clause prepended |
+| `specs/architecture/ARCH-INDEX.md` | UNCHANGED | v2.98 — no ARCH artifacts touched by D-797 fix burst |
+| `cycles/v1.0-brownfield-backfill/INDEX.md` | MODIFIED (this session) | Pass-42 row appended; Convergence Status updated to D-797/streak 0/3/pass-43 NEXT; trajectory 4→3→4→2→2→4→6→5→4→1→3→4→1→2→1→1→0→1→1→0→3 |
+| `.factory/STATE.md` | MODIFIED (this session) | v5.47→v5.48; D-797 frontmatter advance (all 5 BC-5.39.006 v1.7 PCs); D-797 YAML snapshot key (line 16); D-797 Decisions Log row; trajectory-tail →1→1→0→3; streak 0/3; SIZE BUDGET 473 lines; Session Resume Checkpoint full refresh targeting pass-43 |
+| `cycles/v1.0-brownfield-backfill/burst-log.md` | APPENDED (this session) | This entry (D-797; 8 blocks per D-444(c)) |
+
+**Per-specialist artifact changes:**
+- architect: VP-094/097/098/100/101 all v1.0→v1.1 (stable anchor form cures)
+- product-owner: BC-2.07.001 v1.4→v1.5
+- story-writer: S-19.03 v1.16→v1.17; epic v1.22→v1.23
+- state-manager: BC-INDEX v3.89→v3.90; VP-INDEX v2.55→v2.56; STORY-INDEX v4.169→v4.170; ARCH-INDEX UNCHANGED; INDEX.md; STATE.md; burst-log
+
+### Block 4 — Codifications
+
+| Type | ID | Description |
+|------|----|-------------|
+| Decision | D-797 | E-19 adv pass-42 NOT-CLEAN B0/H0/M3/L0; F-P42-001/002/003 CLOSED same-burst; sibling-sweep VP-094/098/100/101 (POLICY 5 v1.3.5 class extension); streak 1/3→0/3; 4-index BC v3.90/VP v2.56/STORY v4.170/ARCH v2.98 |
+| Lesson | L-BB-vp-source-contract-pins-are-sibling-class | VP source_bc / §Source Contract volatile-pin defects are a sibling-sweep class: when fixing any VP file for volatile BC-version-pin, enumerate ALL same-epic VPs for the same class defect (POLICY 5 v1.3.5; D-797 F-P42-001 novel axis: VP→BC rather than BC→BC) [enforcement-note][codified D-797] |
+
+**D-NNN count:** 1 decision codified (D-797). 1 lesson appended.
+
+### Block 5 — Dim-2: Literal-Shell Gate Evidence (D-449(a))
+
+**Gate i — 4-index versions (D-494 / POLICY 14 leg-4):**
+```
+$ grep "^version:" \
+  .factory/specs/behavioral-contracts/BC-INDEX.md \
+  .factory/specs/verification-properties/VP-INDEX.md \
+  .factory/stories/STORY-INDEX.md \
+  .factory/specs/architecture/ARCH-INDEX.md
+.factory/specs/architecture/ARCH-INDEX.md:version: "2.98"
+.factory/specs/behavioral-contracts/BC-INDEX.md:version: "3.90"
+.factory/specs/verification-properties/VP-INDEX.md:version: "2.56"
+.factory/stories/STORY-INDEX.md:version: "4.170"
+EXIT:0 — PASS (BC v3.90/VP v2.56/STORY v4.170/ARCH v2.98; ARCH v2.98 UNCHANGED confirmed per D-797 scope)
+```
+
+**Gate ii — POLICY 16 global-max (D-797 allocation):**
+```
+$ grep "^## D-" .factory/cycles/v1.0-brownfield-backfill/decision-log.md | tail -3
+## D-795 — E-19 Adversarial Pass-40 Closure (NOT-CLEAN B0/H0/M1/L0; ...)
+## D-796 — E-19 Adversarial Pass-41 Closure (CLEAN B0/H0/M0/L2; ...)
+## D-797 — E-19 Adversarial Pass-42 Closure (NOT-CLEAN B0/H0/M3/L0; ...)
+EXIT:0 — PASS (D-797 confirmed max; D-796 was max before D-797 block appended; sequential allocation correct per POLICY 16)
+```
+
+**Gate iii — STATE.md size budget (hard cap ≤500 lines):**
+```
+$ wc -l .factory/STATE.md
+     473 .factory/STATE.md
+EXIT:0 — PASS (473 lines; under 500 hard cap; under 415 soft-target by +58 lines)
+```
+
+**Gate iv — D-448(a) source-attestation (adv-E19-pass-42.md verdict):**
+```
+$ grep -i "verdict" .factory/cycles/v1.0-brownfield-backfill/adv-E19-pass-42.md | head -5
+| **Verdict** | NOT-CLEAN B0/H0/M3/L0 |
+EXIT:0 — PASS (Block 2 Adversary Verdict faithfully describes adv-E19-pass-42.md Part A: NOT-CLEAN B0/H0/M3/L0; F-P42-001 MEDIUM VP volatile-pin sibling class; F-P42-002 MEDIUM BC-2.07.001 VP-097 row semantics; F-P42-003 MEDIUM BC-2.07.001 duplicate VP-098 rows; all CLOSED same-burst across 5 legs)
+```
+
+**Gate v — D-446(a) 8-block self-verification:**
+```
+Checking D-797 burst-log entry for all 8 D-444(c) mandatory blocks:
+[x] Block 1 — Parent-commit (a0c2c62a architect sibling-sweep) PRESENT
+[x] Block 2 — Adversary verdict (source-attested NOT-CLEAN B0/H0/M3/L0; F-P42-001/002/003) PRESENT
+[x] Block 3 — Files touched (10 files; 5-leg cross-specialist burst) PRESENT
+[x] Block 4 — Codifications (D-797; L-BB-vp-source-contract-pins-are-sibling-class; counts stated) PRESENT
+[x] Block 5 — Dim-2 literal-shell gates i–v with captured stdout PRESENT (this block)
+[x] Block 6 — Dim-5/6/7 Attestations + 8-block self-verification PRESENT
+[x] Block 7 — Closes (F-P42-001/002/003 CLOSED; streak 1/3→0/3; NEXT pass-43) PRESENT
+[x] Block 8 — Factory-artifacts commits (PENDING-SHA; SHA-patch follow-up) PRESENT
+EXIT:0 — PASS (all 8 D-444(c) blocks verified present per D-446(a))
+```
+
+### Block 6 — Dim-5/6/7 Attestations + 8-block Self-Verification
+
+**Dim-5 (spec-compliance):** All modified artifacts comply with VSDD governance requirements. adv-E19-pass-42.md follows standard report structure (H1 perimeter header; Part A finding set F-P42-001/002/003 with MEDIUM classifications + POLICY evidence; Part B policy attestations). decision-log.md D-797 block follows canonical 6-column format with parent-commit, phase, date, full finding dispositions, lesson anchor. INDEX.md Pass-42 row follows established column format; Convergence Status updated to streak 0/3 / pass-43 NEXT with full trajectory. BC-INDEX v3.90 and VP-INDEX v2.56 comply with POLICY 9 (VP-INDEX SoT for VP statements) and POLICY 14 5-leg quintuple parity (all 5 legs: version frontmatter + body Changelog + modified[] + last_amended + upstream-index). STORY-INDEX v4.170 BC coverage updated. STATE.md v5.48 satisfies D-443(a) verbatim-strict chain (all 5 BC-5.39.006 v1.7 PCs satisfied; D-797 YAML snapshot key updated; trajectory-tail LENGTH=4 `→1→1→0→3` per D-433(e)+D-439(c); D-797 Decisions Log row prepended). Session Resume Checkpoint fully refreshed targeting pass-43 (zero-context self-sufficient; all 11 sections updated; D-797 artifact versions; standing controls all active; O-P41-001/002 accepted-with-record carried; VP source_bc sibling-sweep D-797 novel axis recorded).
+
+**Dim-6 (STORY-INDEX BC-coverage):** BC-2.07.001 v1.4→v1.5 cite sweep completed by SW 964048de (S-19.03 ×3 sites; epic ×1 site). STORY-INDEX v4.170 BC coverage column updated for S-19.03. 4-index Gate i confirms v3.90/v2.56/v4.170/v2.98 atomically. ARCH-INDEX v2.98 UNCHANGED (no ARCH artifacts touched by D-797).
+
+**Dim-7 (routing discipline):** 5-specialist burst: architect (VP stable-anchor cures); product-owner (BC-2.07.001 content + §VP Properties correction); story-writer (story/epic BC-cite sweep); state-manager (4-index advance; INDEX.md; STATE.md; burst-log). POLICY 14 5-leg quintuple parity verified across all bumped BCs/VPs/stories. No state-manager authored spec content (routing discipline maintained: VP body changes by architect; BC body changes by PO; story/epic changes by SW; SM handles index rows + changelog sync + pipeline state only). Correct specialist assignments per CLAUDE.md Agent Routing Table.
+
+**8-block self-verification:**
+- [x] Block 1 — Parent-commit (`a0c2c62a`)
+- [x] Block 2 — Adversary verdict (source-attested from adv-E19-pass-42.md; NOT-CLEAN B0/H0/M3/L0; F-P42-001/002/003 MEDIUM CLOSED same-burst)
+- [x] Block 3 — Files touched (10 files; 5-leg cross-specialist burst; per-specialist breakdown provided)
+- [x] Block 4 — Codifications (D-797; L-BB-vp-source-contract-pins-are-sibling-class; D-NNN count 1; lesson count 1)
+- [x] Block 5 — Dim-2 literal-shell gates i–v with captured stdout per D-449(a) (META-LEVEL-24 compliance)
+- [x] Block 6 — Dim-5/6/7 Attestations + 8-block self-verification (this block)
+- [x] Block 7 — Closes
+- [x] Block 8 — Factory-artifacts commits
+
+### Block 7 — Closes
+
+| Finding | Status | Notes |
+|---------|--------|-------|
+| F-P42-001 MEDIUM: VP-097 volatile BC-version-pin + sibling class VP-094/098/100/101 | CLOSED | architect 47b87f6e (VP-097 stable anchors) + a0c2c62a (VP-094/098/100/101 sibling-sweep stable anchors); POLICY 5 v1.3.5 TD-VSDD-091 satisfied |
+| F-P42-002 MEDIUM: BC-2.07.001 VP-097 row absent-path semantics instead of traversal-defense | CLOSED | PO e4b1c8d9 BC-2.07.001 v1.4→v1.5; VP-097 row rewritten per VP-INDEX SoT; POLICY 9 satisfied |
+| F-P42-003 MEDIUM: BC-2.07.001 duplicate VP-098 rows | CLOSED | PO e4b1c8d9 BC-2.07.001 v1.4→v1.5; duplicate VP-098 row consolidated |
+| Streak reset | NOTED | Streak 1/3→0/3 (pass-42 NOT-CLEAN resets streak); three consecutive CLEANs required → 3/3 CONVERGED |
+
+**Open items carried:** O-P41-001 LOW (ADR-025 ## Changelog missing intermediate rows — accepted-with-record); O-P41-002 LOW (epic §Previous Story Intel ADR-025 provenance v1.7 cite — accepted-with-record); O-P35-001 Drift Item (BC-5.40.001/BC-6.23.001 POLICY 19 volatile-pins; deferred per D-790). artifact-path-registry.yaml deliberate (fold into S-19.04 PR at W2 per D-766 §7/D-774).
+
+NEXT: E-19 adversary pass-43 (fresh context; Iron Law; rubric policies.yaml v1.4.2; perimeter = D-797 delta + full E-19 carry-forward; streak 0/3 — three consecutive CLEANs → 3/3 CONVERGED → W1 TDD dispatch S-19.01+S-19.02+S-19.03 per D-773/D-774).
+
+### Block 8 — Factory-artifacts Commits
+
+| Commit | SHA | Description |
+|--------|-----|-------------|
+| D-797 architect VP-097 stable anchor | `47b87f6e` | VP-097 v1.0→v1.1: §Invariant 1 + §EC-001 stable anchor form (F-P42-001) |
+| D-797 PO BC-2.07.001 v1.5 | `e4b1c8d9` | BC-2.07.001 v1.4→v1.5: VP-097 row traversal-defense (POLICY 9); duplicate VP-098 consolidated (F-P42-003) |
+| D-797 SW S-19.03 v1.17 + epic v1.23 | `964048de` | S-19.03 BC-2.07.001 v1.4→v1.5 ×3; epic EAC-003 ×1 |
+| D-797 architect sibling-sweep VP-094/098/100/101 | `a0c2c62a` | VP-094/098/100/101 v1.0→v1.1 stable-anchor form (POLICY 5 v1.3.5 sibling class) |
+| D-797 SM 4-index + INDEX + STATE + burst-log (Commit E) | `PENDING-SM-SHA` | BC-INDEX v3.89→v3.90; VP-INDEX v2.55→v2.56; STORY-INDEX v4.169→v4.170; ARCH-INDEX UNCHANGED; INDEX.md Pass-42 row + Convergence Status; STATE.md v5.47→v5.48 473 lines; burst-log this entry; streak 0/3; pass-43 NEXT |
+
+> SHA-patch follow-up required: replace `PENDING-SM-SHA` above and Active Branches `factory-artifacts` row in STATE.md with actual Commit E HEAD SHA after push.

@@ -5932,3 +5932,56 @@ Zero matches expected in normative body sections. Any match is a POLICY 5 v1.3.5
 **Cites:** D-795; F-P40-001; adv-E19-pass-40.md; ADR-025 v1.13; POLICY 5 v1.3.5; POLICY 5 v1.3.6; TD-VSDD-091 (historical-exempt exemption); TD-VSDD-060 (sibling-site sweep obligation); L-BB-verbatim-parity-claims-require-char-diff-evidence (companion — same class: sweep-miss escape route).
 
 **Closes:** D-795 F-P40-001 MEDIUM FIXED (ADR-025 v1.12→v1.13; §Decision 14 stable anchor form 7a58f292); ADR-body-BC-cite-sweep-sites enforcement-note codified. `[enforcement-note; adr-body; bc-cite; sweep-site; stale-version-pin; POLICY-5; reverse-direction; ADR-to-BC; novel-axis; sibling-sweep]`
+
+---
+
+## L-BB-vp-source-contract-pins-are-sibling-class [process-gap] [codified D-797]
+
+**Category:** process-gap
+
+**Status:** codified D-797 — active in carry-forward set
+
+**Lesson:** When a stable-anchor cure lands on any VP's source_bc field or §Source Contract section, the sweep enumeration MUST include ALL same-epic VP files in the same burst. Stable-anchor migration is a sibling-class defect: if one VP in the epic carried volatile pins, its siblings are highly likely to carry the same class.
+
+**Context:** E-19 adv pass-42 found F-P42-001 MEDIUM in VP-097: source_bc `BC-2.07.001 v1.0` + `BC-2.02.011 v1.4 EC-001` were volatile pins per TD-VSDD-091. The D-784 VP-095 fix burst (pass-30) introduced the stable-anchor discipline and swept VP-095 body pins, but did not enumerate VP-097 or any other same-epic VP file as a sibling sweep site. Five VP files (VP-094/097/098/100/101) all carried the same volatile-pin class — caught only at pass-42, 12 passes later.
+
+This is structurally analogous to L-BB-adr-body-bc-cites-are-sweep-sites (D-795): a fix burst that patches one site in one file must enumerate all files of the same structural type in the same epic. The D-784 fix correctly applied the cure to VP-095 body prose (source_bc frontmatter + §Source Contract + §Traceability), but treated VP-095 as an isolated case rather than a representative of a class present across all 8 E-19 VPs.
+
+**Root cause:** Per-burst sweep enumeration for VP volatile-pins covered: story files, epic body, BC §Traceability rows, VP-INDEX BC Anchor column, BC-INDEX title cells. VP source_bc frontmatter and §Source Contract sections across all same-epic VP files were not listed as sweep sites. The gap was operational discipline: VP file enumeration was not explicit in the sweep checklist for stable-anchor cures.
+
+**Gate (D-797 enforcement):** At every fix burst that applies a stable-anchor cure to any VP source_bc / §Source Contract, enumerate ALL same-epic VP files:
+
+```bash
+# Enumerate all E-19 VP files that carry volatile BC-version pins
+grep -lnE "source_bc:.*BC-[0-9]+\.[0-9]+\.[0-9]+ v[0-9]" \
+  .factory/specs/verification-properties/VP-09[4-9].md \
+  .factory/specs/verification-properties/VP-10[0-9].md \
+  2>/dev/null
+```
+
+Zero matches expected after sweep. Any hit is a POLICY 5 v1.3.5 violation requiring stable-anchor conversion before commit.
+
+Apply the same enumeration pattern to §Source Contract and §Traceability sections across all same-epic VPs:
+
+```bash
+grep -nE "BC-[0-9]+\.[0-9]+\.[0-9]+ v[0-9]" \
+  .factory/specs/verification-properties/VP-09[4-9].md \
+  .factory/specs/verification-properties/VP-10[0-9].md \
+  2>/dev/null | grep -v "last_amended"
+```
+
+Zero matches (outside last_amended historical rows) expected.
+
+**Prevention:**
+1. At every VP stable-anchor fix burst: enumerate all same-epic VP files explicitly in the sweep checklist alongside story files, epic body, BC §Traceability rows, VP-INDEX BC Anchor column.
+2. Adversary: when finding a volatile VP source_bc pin, immediately enumerate all same-epic VPs as potential sibling-class findings (do not wait for the fix burst to discover them).
+3. Fix executor: after any VP source_bc stable-anchor fix, run the enumeration grep above with captured stdout before declaring sweep complete.
+4. Standing rule: the same class applies to all VP structural fields that carry BC-version tokens: source_bc frontmatter, §Source Contract, §Traceability, §Proof Method (if it cites a specific BC version).
+
+**The a0c2c62a same-burst sweep is the enforcement precedent:** VP-094/098/100/101 all swept in the same architect leg as VP-097 (47b87f6e) at a0c2c62a, per POLICY 5 v1.3.3 same-burst sibling obligation.
+
+**Anchors:** D-797 (this burst); F-P42-001 (VP-097 volatile pins + VP-094/098/100/101 sibling class; MEDIUM load-bearing); adv-E19-pass-42.md A.3 (full finding with verbatim evidence + sibling-sweep extension record); VP-097 v1.1 (47b87f6e); VP-094/098/100/101 v1.1 (a0c2c62a); D-784 (VP-095 fix — the missed sibling-sweep); POLICY 5 v1.3.3 (same-burst sibling sweep obligation); POLICY 5 v1.3.5 (stable-anchor enforcement); TD-VSDD-091 (line-citation ban — stable anchor rationale).
+
+**Cites:** D-797; F-P42-001; adv-E19-pass-42.md; VP-097 v1.1; VP-094/098/100/101 v1.1; D-784; POLICY 5 v1.3.3; POLICY 5 v1.3.5; TD-VSDD-091; L-BB-adr-body-bc-cites-are-sweep-sites (companion class — sweep-site enumeration gap).
+
+**Closes:** D-797 F-P42-001 MEDIUM FIXED (VP-097 47b87f6e + VP-094/098/100/101 a0c2c62a; all five E-19 VPs with volatile pins now carry stable-anchor form); vp-source-contract-pins-are-sibling-class process-gap codified; enforcement gate added to carry-forward sweep checklist. `[process-gap; vp-source-bc; stable-anchor; sibling-sweep; same-epic-enumeration; POLICY-5-v1.3.3; POLICY-5-v1.3.5; TD-VSDD-091; sweep-miss; sibling-class]`

@@ -7745,3 +7745,75 @@ D-796-E19-ADV-PASS-41-CLEAN
 ### Date
 
 2026-07-09
+
+---
+
+## D-797 — E-19 Adversarial Pass-42 Closure (NOT-CLEAN B0/H0/M3/L0; F-P42-001/002/003 CLOSED same-burst; sibling-sweep extension VP-094/098/100/101; streak 1/3→0/3)
+
+### Summary
+
+E-19 adv pass-42 NOT-CLEAN B0/H0/M3/L0 (3 MEDIUM findings; 0 LOW). No-delta confirming pass on frozen D-796 suite. Model family Claude Opus 4.7; Iron Law; rubric policies.yaml v1.4.2. 23/23 version attestations ✓; 15 fresh axes swept (12 PASS; axes 7/8/9/15 FAIL → F-P42-001/002/003). All 3 findings genuinely new axes. All 3 CLOSED same-burst by 4 prior legs (architect 47b87f6e + a0c2c62a, product-owner e4b1c8d9, story-writer 964048de). Streak 1/3→0/3. NEXT: adv pass-43.
+
+Input-hash restamps this burst: VP-097 784ee82 unchanged (47b87f6e); VP-094 4ab6a12→9eff742; VP-098 76d6259→0d7d3aa; VP-100 1072e05→a2de4e4; VP-101 4f41d79→2fe5a22 (a0c2c62a); BC-2.07.001 9d60fc5→d31ddd5 (e4b1c8d9); S-19.03 8d1225d unchanged (964048de); epic a18ea87→9a1ba40 (964048de).
+
+Lesson codified: L-BB-vp-source-contract-pins-are-sibling-class [process-gap][codified D-797] — when a stable-anchor cure lands on any VP's source_bc/§Source Contract, the sweep enumeration MUST include ALL same-epic VP files in the same burst.
+
+### Detail
+
+**(1) PASS-42 VERDICT: NOT-CLEAN B0/H0/M3/L0.**
+
+- 3 MEDIUM findings; 0 LOWs; 0 HIGH; 0 BLOCKER.
+- Model family: Claude Opus 4.7. Iron Law: zero prior context. Rubric: policies.yaml v1.4.2.
+- Trajectory (passes 22–42): 4→3→4→2→2→4→6→5→4→1→3→4→1→2→1→1→0→1→1→0→3.
+- Streak: 1/3→0/3 (reset by 3 MEDIUM findings per BC-5.39.001 strict-3-CLEAN D-761 human directive).
+- Zero BLOCKER: 20 consecutive passes (p22–p42). Zero HIGH: 7 consecutive passes (p36–p42 inclusive).
+
+**(2) F-P42-001 MEDIUM — VP-097 volatile BC-version pins (POLICY 5 v1.3.5 + v1.3.3 regression; D-784 sibling-sweep miss).**
+
+VP-097.md source_bc and §Source Contract + §Traceability carried `BC-2.07.001 v1.0` + `BC-2.02.011 v1.4 EC-001` — volatile pins per TD-VSDD-091. BC-2.07.001 is at v1.4 at time of finding; BC-2.02.011 is at v1.5. D-784 VP-095 fix burst introduced stable-anchor discipline but did not sweep VP-097 or siblings (POLICY 5 v1.3.3 gap). Sibling class also found live in VP-094/098/100/101.
+
+CLOSED: architect 47b87f6e (VP-097 v1.0→v1.1 — `§Invariant 1` + `§EC-001`; D-779 gate PASS; input-hash 784ee82 unchanged). SIBLING-SWEEP: architect a0c2c62a (VP-094/098/100/101 v1.0→v1.1; all stable-anchor form; D-779 gates PASS all 4; input-hashes updated 4ab6a12→9eff742 / 76d6259→0d7d3aa / 1072e05→a2de4e4 / 4f41d79→2fe5a22).
+
+**(3) F-P42-002 MEDIUM — BC-2.07.001 §Verification Properties VP-097 row property cell mis-anchor (POLICY 9 + POLICY 4).**
+
+BC-2.07.001 §Verification Properties VP-097 row property cell described absent-path semantics (VP-098's scope) instead of traversal-defense (VP-INDEX canonical scope for VP-097). Internal inconsistency: BC's own §VP Anchors already correctly cited VP-097 as Kani traversal-defense proof.
+
+CLOSED: product-owner e4b1c8d9 (BC-2.07.001 v1.4→v1.5 — VP-097 row corrected to traversal-defense framing per VP-INDEX SoT; input-hash 9d60fc5→d31ddd5).
+
+**(4) F-P42-003 MEDIUM — BC-2.07.001 §Verification Properties duplicate VP-098 rows (POLICY 9 + POLICY 4).**
+
+BC-2.07.001 §Verification Properties contained two VP-098 rows. Row 2 (added at pass-3 wiring) redefined VP-098 scope as "static grep-gate" — contradicting VP-INDEX canonical definition (integration postcondition). Two rows for same VP ID creates internal contradiction.
+
+CLOSED: product-owner e4b1c8d9 (BC-2.07.001 v1.4→v1.5 — duplicate VP-098 row consolidated to single canonical-postcondition row; AC-003 grep gate noted as static prerequisite, not separate VP scope; input-hash 9d60fc5→d31ddd5).
+
+**(5) STORY-WRITER PROPAGATION.**
+
+BC-2.07.001 v1.4→v1.5 cite sweep required in S-19.03 and epic E-19.
+
+- S-19.03 v1.16→v1.17 (story-writer 964048de): BC-2.07.001 v1.4→v1.5 ×3 body sites (AC-001 negative-control B gate, BC table Version cell, Token Budget). Input-hash 8d1225d unchanged (VP-table-only; EC-007 and PCs/Invariants unchanged).
+- Epic v1.22→v1.23 (story-writer 964048de): BC-2.07.001 v1.4→v1.5 at EAC-003 negative-control B (1 body site). Input-hash a18ea87→9a1ba40.
+
+**(6) LESSON CODIFIED.**
+
+L-BB-vp-source-contract-pins-are-sibling-class [process-gap][codified D-797]: when a stable-anchor cure lands on any VP's source_bc/§Source Contract, the sweep enumeration MUST include ALL same-epic VP files in the same burst. The a0c2c62a same-burst sweep is the enforcement precedent. See lessons.md for full codification.
+
+**(7) 4-INDEX GATE (POLICY 14 leg-4 literal-shell).**
+
+See burst-log Block 5 for captured stdout. BC v3.90/VP v2.56/STORY v4.170/ARCH v2.98.
+
+BC-INDEX v3.89→v3.90: BC-2.07.001 row v1.5 annotation + change note (F-P42-002/003 D-797).
+VP-INDEX v2.55→v2.56: VP-094/097/098/100/101 row v1.1 annotations (F-P42-001 sibling-sweep D-797).
+STORY-INDEX v4.169→v4.170: S-19.03 row v1.17; epic header v1.23; BC coverage BC-2.07.001 v1.4→v1.5; Pass-42 wave-summary clause prepended.
+ARCH-INDEX v2.98 UNCHANGED (exhaustive — zero findings in ARCH-INDEX perimeter).
+
+**(8) NEXT: E-19 adv pass-43** (fresh context; Iron Law; rubric policies.yaml v1.4.2; perimeter = D-797 delta: BC-2.07.001 v1.5 + VP-094/097/098/100/101 v1.1 + S-19.03 v1.17 + epic v1.23 + BC-INDEX v3.90 + VP-INDEX v2.56 + STORY-INDEX v4.170 + carry-forward; streak 0/3; three consecutive CLEANs required).
+
+Parent-commit: ac1eefdd (D-796-sha-patch, factory-artifacts HEAD before this burst).
+
+### Phase
+
+D-797-E19-ADV-PASS-42-NOT-CLEAN-CLOSED
+
+### Date
+
+2026-07-09
