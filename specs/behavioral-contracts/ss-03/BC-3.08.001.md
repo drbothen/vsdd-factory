@@ -1,8 +1,8 @@
 ---
 document_type: behavioral-contract
 level: L3
-version: "1.19"
-last_amended: 2026-07-07
+version: "1.20"
+last_amended: 2026-07-09
 status: draft
 producer: product-owner
 timestamp: 2026-05-07T00:00:00Z
@@ -25,6 +25,7 @@ modified:
   - "2026-07-06 (v1.17)"
   - "2026-07-07 (v1.18)"
   - "2026-07-07 (v1.19)"
+  - "2026-07-09 (v1.20)"
 deprecated: null
 deprecated_by: null
 replacement: null
@@ -299,8 +300,8 @@ TBD — single story per ADR-019 §6 (no phased rollout, user decision 2026-05-0
 - VP-079 — Payload schema conformance for all six event types including `plugin.abandoned` and `plugin.completed` (async path): each mandatory field is
   present, non-null, and the `type` string matches the catalogued value; verified via
   fault-injection integration test per event-type triggering scenario (integration method, bats)
-- VP-028 — Sink fan-out invariant: once emitted, all four event types reach every
-  configured accepting sink (independent of VP-079's payload conformance check)
+- VP-028 — Sink fan-out invariant: once emitted, all six event types (`plugin.async_block_discarded`, `dispatcher.schema_mismatch`, `dispatcher.registry_invalid`, `plugin.timeout` (async path), `plugin.abandoned`, `plugin.completed` (async path)) reach every configured accepting sink (independent of VP-079's payload conformance check)
+- VP-100 — Drain-Timer Expiry Emits Exactly One plugin.abandoned Per In-Flight (plugin_name, entry_index); No plugin.completed Follows for Same Trace (integration; S-19.05; Invariant 6; DI-019)
 
 ## Edge Cases
 
@@ -336,6 +337,7 @@ TBD — single story per ADR-019 §6 (no phased rollout, user decision 2026-05-0
 |--------|----------|-------------|
 | VP-028 | Sink fan-out invariant — all events reach all configured sinks | integration |
 | VP-079 | Payload schema conformance for all six event types including `plugin.abandoned` and `plugin.completed` (async path) — mandatory fields present, non-null, type string correct | integration |
+| VP-100 | drain-timer expiry guarantees plugin.abandoned emission within configured deadline_ms (Invariant 6; DI-019) | integration (S-19.05) |
 
 ## Traceability
 
@@ -668,6 +670,7 @@ Addresses adversary pass-2 finding F-P2-010.
 
 **Changelog:**
 
+| v1.20 | 2026-07-09 | product-owner | orchestrator pre-pass-43 consistency sweep: (a) §Verification Properties VP-100 row added (missing-row; integration S-19.05; Invariant 6; DI-019); §VP Anchors VP-100 bullet added. (b) §VP Anchors VP-028 stale-count fixed — "all four event types" → "all six event types" with enumeration of all six async-semantics event types. |
 | v1.18 | 2026-07-07 | product-owner | E-19 pass-5 PO fix burst (F-P5-003): Event 6 `plugin.completed` (async path) added to catalog — async-path variant for async plugins that complete within the drain window. Wire schema mirrors sync-path `emit_lifecycle` in `crates/factory-dispatcher/src/executor.rs` (`trace_id`, `session_id`, `plugin_name`, `plugin_version`, `elapsed_ms`, `fuel_consumed`, `exit_code`, `stderr` conditional) plus `entry_index: u32` for Invariant 6 tuple parity with Event 5. Invariant 6 updated to state mutual exclusivity: abandoned↔completed are terminal alternatives for any (trace_id, plugin_name, entry_index) tuple. Invariants 1 and 3 count corrected four→six. §Common Fields updated: plugin_name present on events (1,4,5,6); plugin_version note split — Events 1/4/5 do NOT emit plugin_version (original emit_event.rs fns); Event 6 DOES (mirrors executor.rs emit_lifecycle). §Description, §Sink destination, §EC-008, §async-completed test vector, §VP Anchors, §Verification Properties, §Architecture Anchors, §Traceability Stories updated. BC-INDEX v3.70→v3.71. |
 | v1.17 | 2026-07-06 | product-owner | E-19 pass-3 PO finalization (F-P3-013): `entry_index` semantics paragraph in Event 5 corrected — derivation rule stated explicitly: `plugin_name` in `plugin.abandoned` events = registry entry `name` field verbatim. Example replaced: the two production `verify-factory-lock` entries carry DIFFERENT `name` values (`verify-factory-lock` vs `verify-factory-lock-bash`) so they do NOT constitute a name-duplication example. Paragraph now cites the schema-level invariant: registry does NOT enforce `name` uniqueness, so future registries may have duplicate `name` entries that make name-only keying ambiguous — `entry_index` is the disambiguation mechanism. Invariant 6 terminal-semantics key (`trace_id + plugin_name + entry_index`) UNCHANGED. |
 | v1.16 | 2026-07-06 | product-owner | F-P2-008 fix burst (product-owner): Event 5 `plugin.abandoned` schema extended with mandatory field `entry_index: u32` (ordinal position of registry entry in async partition at spawn time; enumerate() order; disambiguates multiple entries per plugin_name — e.g., verify-factory-lock has 2 entries). Mandatory fields list updated. Invariant 6 terminal-semantics key extended: `trace_id+plugin_name` → `trace_id+plugin_name+entry_index`. EC-007 and abandoned-one test vector updated. Closes F-P2-008. BC-INDEX v3.60→v3.61. |

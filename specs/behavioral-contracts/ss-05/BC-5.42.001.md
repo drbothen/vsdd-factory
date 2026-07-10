@@ -1,11 +1,11 @@
 ---
 document_type: behavioral-contract
 level: L3
-version: "1.5"
+version: "1.6"
 status: draft
 producer: product-owner
 timestamp: 2026-07-06T00:00:00Z
-last_amended: "(v1.5) — E-19 pass-33 O-P33-001 (product-owner): §Traceability L2 Domain Invariants TBD → none (pipeline-orchestration operational) — sibling-convention alignment (BC-1.17.001/BC-4.13.001/BC-2.07.001 class); input-hash 509c8f8→4fd18a4 (within-burst hash refresh: S-19.01 v1.16 input drift — SW updated S-19.01 after PO computed hash; same-burst correction per D-782/D-783 precedent). [Prior: (v1.4) — E-19 pass-30 F-P30-002 (product-owner): input-hash placeholder retired per POLICY 18 (compute-input-hash --update; real digest); mechanical metadata fix; spec content unchanged. BC-INDEX bump + story cite sweeps state-manager/story-writer same-burst. [Prior: (v1.3) — E-19 pass-22 fix burst F-P22-001 BC leg (product-owner): §Architecture Anchors hooks/pr-manager-completion-guard.wasm → hook-plugins/pr-manager-completion-guard.wasm; ground-truth: hooks-registry.toml plugin field reads hook-plugins/pr-manager-completion-guard.wasm; hook-plugins/ dir confirms WASM present. Anchoring correction only; behavioral content unchanged. BC-INDEX bump state-manager same-burst. [Prior: (v1.2) — W1-validation fix burst F-W1V-001 (product-owner): §Architecture Anchors script paths hooks/ → bin/ per architect ADR-030 §Decision 2/3 adjudication (bin/ = orchestrator-invoked SS-10 CLI tools; hooks/ = dispatcher-fired). [Prior: (v1.1) — E-19 pass-3 PO finalization (product-owner): F-P3-004 §VP Anchors + §Verification Properties VP-TBD → VP-094; F-P3-015 §Traceability CAP-TBD → CAP-033, ADR-TBD → ADR-030. [Prior: (v1.0) — initial creation (product-owner): E-19 pass-2 fix burst Package 2 — pr-manager READY-verdict SHA pinning, stale-verdict detection script, and release-PR merge-strategy guard (story anchor S-19.01); closes L-BB-merge-race-ready-report-stale-head (D-749) + L-BB-release-pr-squash-merge-not-mechanically-enforced (D-750).]]]]]"
+last_amended: "(v1.6) — orchestrator pre-pass-43 consistency sweep (product-owner): §Verification Properties VP-094 row-3 proof-method drift fixed — `unit (WASM test harness; S-19.01)` → `integration (bats; S-19.01)` per VP-INDEX v2.56 canonical proof method. [Prior: (v1.5) — E-19 pass-33 O-P33-001 (product-owner): §Traceability L2 Domain Invariants TBD → none (pipeline-orchestration operational) — sibling-convention alignment (BC-1.17.001/BC-4.13.001/BC-2.07.001 class); input-hash 509c8f8→4fd18a4 (within-burst hash refresh: S-19.01 v1.16 input drift — SW updated S-19.01 after PO computed hash; same-burst correction per D-782/D-783 precedent). [Prior: (v1.4) — E-19 pass-30 F-P30-002 (product-owner): input-hash placeholder retired per POLICY 18 (compute-input-hash --update; real digest); mechanical metadata fix; spec content unchanged. BC-INDEX bump + story cite sweeps state-manager/story-writer same-burst. [Prior: (v1.3) — E-19 pass-22 fix burst F-P22-001 BC leg (product-owner): §Architecture Anchors hooks/pr-manager-completion-guard.wasm → hook-plugins/pr-manager-completion-guard.wasm; ground-truth: hooks-registry.toml plugin field reads hook-plugins/pr-manager-completion-guard.wasm; hook-plugins/ dir confirms WASM present. Anchoring correction only; behavioral content unchanged. BC-INDEX bump state-manager same-burst. [Prior: (v1.2) — W1-validation fix burst F-W1V-001 (product-owner): §Architecture Anchors script paths hooks/ → bin/ per architect ADR-030 §Decision 2/3 adjudication (bin/ = orchestrator-invoked SS-10 CLI tools; hooks/ = dispatcher-fired). [Prior: (v1.1) — E-19 pass-3 PO finalization (product-owner): F-P3-004 §VP Anchors + §Verification Properties VP-TBD → VP-094; F-P3-015 §Traceability CAP-TBD → CAP-033, ADR-TBD → ADR-030. [Prior: (v1.0) — initial creation (product-owner): E-19 pass-2 fix burst Package 2 — pr-manager READY-verdict SHA pinning, stale-verdict detection script, and release-PR merge-strategy guard (story anchor S-19.01); closes L-BB-merge-race-ready-report-stale-head (D-749) + L-BB-release-pr-squash-merge-not-mechanically-enforced (D-750).]]]]]]"
 phase: F3
 inputs:
   - .factory/stories/S-19.01-pr-manager-hardening.md
@@ -25,6 +25,7 @@ modified:
   - "2026-07-08 (v1.3)"
   - "2026-07-09 (v1.4)"
   - "2026-07-09 (v1.5)"
+  - "2026-07-09 (v1.6)"
 deprecated: null
 deprecated_by: null
 replacement: null
@@ -137,7 +138,7 @@ S-19.01 (pr-manager hardening: READY verdict HEAD-SHA pinning + release-PR merge
 |--------|----------|-------------|
 | VP-094 | check-stale-verdict.sh exits non-zero with STALE_READY_VERDICT when headRefOid != covered_sha; exits 0 on match | integration (bats; S-19.01) |
 | VP-094 | enforce-merge-strategy.sh exits non-zero with RELEASE_PR_SQUASH_FORBIDDEN when --squash on release/v* branch; passes --merge through on match | integration (bats; S-19.01) |
-| VP-094 | pr-manager-completion-guard emits READY_SHA_MISSING advisory when SubagentStop READY verdict lacks covered_sha field | unit (WASM test harness; S-19.01) |
+| VP-094 | pr-manager-completion-guard emits READY_SHA_MISSING advisory when SubagentStop READY verdict lacks covered_sha field | integration (bats; S-19.01) |
 
 ## Traceability
 
@@ -156,6 +157,7 @@ S-19.01 (pr-manager hardening: READY verdict HEAD-SHA pinning + release-PR merge
 
 | Version | Date | Author | Change |
 |---------|------|--------|--------|
+| 1.6 | 2026-07-09 | product-owner | orchestrator pre-pass-43 consistency sweep: §Verification Properties VP-094 row-3 proof-method drift fixed — `unit (WASM test harness; S-19.01)` → `integration (bats; S-19.01)` per VP-INDEX v2.56 canonical proof method. |
 | 1.5 | 2026-07-09 | product-owner | E-19 pass-33 O-P33-001: §Traceability L2 Domain Invariants TBD → none (pipeline-orchestration operational invariant, not L2 domain spec) — sibling-convention alignment (BC-1.17.001/BC-4.13.001/BC-2.07.001 class). Behavioral content unchanged. BC-INDEX bump state-manager same-burst; S-19.01 cite sweep story-writer same-burst. |
 | 1.4 | 2026-07-09 | product-owner | E-19 pass-30 F-P30-002: input-hash placeholder retired per POLICY 18 (compute-input-hash --update; real digest); mechanical metadata fix; spec content unchanged. BC-INDEX bump + story cite sweeps state-manager/story-writer same-burst. |
 | 1.3 | 2026-07-08 | product-owner | E-19 pass-22 fix burst F-P22-001 BC leg: §Architecture Anchors hooks/pr-manager-completion-guard.wasm → hook-plugins/pr-manager-completion-guard.wasm; ground-truth confirmed by hooks-registry.toml plugin field (hook-plugins/pr-manager-completion-guard.wasm) and hook-plugins/ directory listing (pr-manager-completion-guard.wasm). Anchoring correction only; behavioral content unchanged. BC-INDEX bump state-manager same-burst. |

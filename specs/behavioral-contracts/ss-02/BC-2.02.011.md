@@ -1,10 +1,11 @@
 ---
 document_type: behavioral-contract
 level: L3
-version: "1.5"
+version: "1.6"
 status: ready
 producer: product-owner
 timestamp: 2026-05-01T00:00:00Z
+last_amended: "(v1.6) — orchestrator pre-pass-43 consistency sweep (product-owner): §Verification Properties VP-097 row added (F-P43-class missing-row; kani-proof; S-19.03 AC-001; co-anchored with BC-2.07.001 §Invariant 1; this BC's EC-001); §VP Anchors TBD placeholder replaced with VP-097 bullet."
 phase: 1
 inputs:
   - .factory/stories/S-8.10-sdk-extension-write-file.md
@@ -21,6 +22,7 @@ introduced: v1.1
 modified:
   - "v1.3 (2026-06-20): S-18.04a-prereq / ADR-028 §Decision 8 — corrected Invariant 3 path-resolution base plugin_root → ctx.cwd (CLAUDE_PROJECT_DIR); corrected Postcondition 5 to match; the prior plugin_root claim was stale since S-8.07's read_file fix"
   - "v1.4 (2026-07-06): E-19 pass-2 F-P2-004 fix burst — Architecture Anchors + Traceability Architecture Module extended with path_util.rs (shared path allowlist-resolution helper extracted at S-19.03)"
+  - "v1.6 (2026-07-09): orchestrator pre-pass-43 consistency sweep — §Verification Properties VP-097 row added (missing-row; kani-proof; S-19.03 AC-001; co-anchored with BC-2.07.001 §Invariant 1; this BC's EC-001); §VP Anchors TBD placeholder replaced with VP-097 bullet"
   - "v1.5 (2026-07-08): E-19 pass-24 F-P24-001 fix burst — §Traceability Stories + §Story Anchor extended with S-19.03 (path_util.rs extraction of resolve_path_for_allowlist + write_file.rs two-step decomposed pattern adoption; EC-001 traversal-defense anchored by VP-097); §Refactoring Notes annotated as carried out by S-19.03; closes bidirectional-parity gap (story declared BC, BC did not acknowledge story)"
 deprecated: null
 deprecated_by: null
@@ -88,6 +90,7 @@ removal_reason: null
 
 | VP-NNN | Property | Proof Method |
 |--------|----------|-------------|
+| VP-097 | path_util::resolve_path_for_allowlist traversal defense — .. sequences cannot resolve outside allowlist prefixes | kani-proof (S-19.03 AC-001; co-anchored with BC-2.07.001; this BC's EC-001) |
 | (TBD — to be assigned in Phase 1.6b) | `path_allowed` is a pure deterministic function testable in isolation | Unit test (pure-core) |
 | (TBD) | `max_bytes` enforcement occurs before any filesystem operation | Unit test with assertion on call count |
 | (TBD) | HOST_ABI_VERSION = 1 in both crates after story merge | grep assertion (AC-3 in S-8.10) |
@@ -116,7 +119,7 @@ S-19.03 — "warn-pending-wave-gate: file-not-found path_util extraction" adopts
 
 ## VP Anchors
 
-(TBD — to be assigned in Phase 1.6b verification properties pass)
+- VP-097 — path_util::resolve_path_for_allowlist Traversal Defense — .. Sequences Cannot Resolve Outside Allowlist Prefixes (kani-proof; S-19.03; co-anchored with BC-2.07.001 §Invariant 1; this BC's EC-001)
 
 ## Traceability
 
@@ -161,6 +164,7 @@ The shared path allowlist-resolution helper (`resolve_path_for_allowlist`) descr
 
 ## Changelog
 
+- v1.6 (2026-07-09): orchestrator pre-pass-43 consistency sweep (product-owner): §Verification Properties VP-097 row added (F-P43-class missing-row; kani-proof; S-19.03 AC-001; co-anchored with BC-2.07.001 §Invariant 1; this BC's EC-001); §VP Anchors TBD placeholder replaced with VP-097 bullet.
 - v1.5 (2026-07-08): E-19 pass-24 F-P24-001 fix burst (product-owner): §Traceability Stories row extended with S-19.03 (path_util.rs extraction of resolve_path_for_allowlist + write_file.rs two-step decomposed pattern adoption; EC-001 traversal-defense anchored by VP-097). §Story Anchor extended with S-19.03 anchor sentence (S-19.03 v1.12 behavioral_contracts: [BC-2.07.001, BC-2.02.011] confirmed as grounding). §Refactoring Notes annotated: resolve_path_for_allowlist extraction into path_util.rs and two-step decomposed prepare() pattern in write_file.rs carried out by S-19.03. Closes F-P24-001 bidirectional-parity drift. BC-INDEX version + Stories cell bump is state-manager same-burst.
 - v1.4 (2026-07-06): E-19 pass-2 F-P2-004 fix burst (product-owner): §Architecture Anchors extended with `crates/factory-dispatcher/src/host/path_util.rs` bullet (shared path allowlist-resolution helper; extracted from write_file.rs at S-19.03; implements the rejoin algorithm for resolving both existing and absent file paths against the declared path_allow list; imported by both write_file.rs and read_file.rs). §Traceability Architecture Module field appended with `crates/factory-dispatcher/src/host/path_util.rs`. Closes F-P2-004. BC-INDEX v3.61→v3.62.
 - v1.3 (2026-06-20): S-18.04a-prereq / ADR-028 §Decision 8 — corrected Invariant 3 path-resolution base `plugin_root` → `ctx.cwd` (CLAUDE_PROJECT_DIR), restoring parity with `read_file.rs::resolve_for_read` and matching production `invoke.rs`; the prior `plugin_root` claim was stale since S-8.07's read_file fix. Postcondition 5 corrected to match.
