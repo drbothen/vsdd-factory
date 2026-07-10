@@ -7496,3 +7496,60 @@ D-792-E19-ADV-PASS-37-NOT-CLEAN-CLOSED
 ### Date
 
 2026-07-09
+
+---
+
+## D-793
+
+### Summary
+
+E-19 adv pass-38 CLEAN B0/H0/M0/L0. FIRST CLEAN of re-convergence streak (post-D-775 reset). Streak 0/3 → 1/3. GOVERNANCE-ONLY burst: zero story/epic/index content edits; 4-index ALL UNCHANGED (BC v3.88/VP v2.55/STORY v4.169/ARCH v2.97 per D-770/D-771 CLEAN-pass precedent — version bumps accompany content changes only). NEXT: adv pass-39.
+
+### Detail
+
+**(1) PASS-38 VERDICT: CLEAN B0/H0/M0/L0.**
+
+- 0 actionable findings. 0 observations.
+- Model family: Claude Opus 4.7. Iron Law: zero prior context. Rubric: policies.yaml v1.4.2.
+- Trajectory (passes 22–38): 4→3→4→2→2→4→6→5→4→1→3→4→1→2→1→1→0.
+- Streak: 0/3 → **1/3** (first CLEAN of re-convergence cascade; BC-5.39.001 strict-3-CLEAN per D-761 human directive).
+- First 0-finding pass since D-775 perimeter reset.
+
+**(2) PASS-38 VERIFICATIONS (5 D-792 delta verifications; all ✓).**
+
+- V1: S-19.06 v1.18 POLICY 14 5-leg parity — all 5 legs confirmed (frontmatter version 1.18 / body Changelog / modified[] / last_amended: / STORY-INDEX v4.169 upstream-index). ✓
+- V2: Token Budget Total arithmetic — 5,500+2,000+1,000+1,500+2,000+3,000+1,500+1,500+2,500+1,500=22,000 sum-exact. ✓
+- V3: STORY-INDEX v4.169 propagation — S-19.06 row v1.18; Pass-37 wave-summary clause prepended. ✓
+- V4: Wave-summary 7-hash parity — S-19.01=d40bd21; S-19.02=604f45d; S-19.03=8d1225d; S-19.04=67eee80; S-19.05=9e54d68; S-19.06=998ac74; S-19.07=534c85c; all 7 match story frontmatter. ✓
+- V5: POLICY 18 input-hash no-change mechanically correct — 998ac74 unchanged; Token Budget Total correction is category-(i) aggregation-cell maintenance, not functional content change. ✓
+
+**(3) CATEGORY-(i) 14-CELL SWEEP: 14/14 CLEAN.**
+
+All 14 category-(i) aggregation cells at D-792 versions verified CLEAN per policies.yaml v1.4.2 POLICY 5 v1.3.7. S-19.06 Token Budget Total (the pass-37 defect) now reads ~22,000 — confirmed correct. Blast-radius scan: zero residual `~22,500` defect sites outside historical changelog/audit-trail rows.
+
+**(4) PER-POLICY ATTESTATIONS: B.1–B.19 all PASS (POLICY 10/11/12 N/A non-applicable).**
+
+POLICY 1 STATE.md discipline PASS; POLICY 2 Iron Law PASS; POLICY 4 no-adjacent-escape PASS; POLICY 5 v1.3.7 category-(i) sweep PASS; POLICY 6 subsystem naming PASS; POLICY 7 BC-INDEX H1 verbatim PASS; POLICY 8 BC propagation PASS; POLICY 9 VP propagation PASS; POLICY 13 HH-N multi-axis PASS; POLICY 14 5-leg parity PASS; POLICY 15 LL-N stdout PASS; POLICY 16 global-max PASS; POLICY 17 self-scope PASS; POLICY 18 input-hash PASS; POLICY 19 stable-anchor PASS.
+
+**(5) GOVERNANCE-ONLY BURST.**
+
+Per D-770/D-771 CLEAN-pass precedent: version bumps accompany content changes only. No story/epic/BC/VP/story/STORY-INDEX/BC-INDEX/VP-INDEX/ARCH-INDEX content edits. 4-index ALL UNCHANGED: BC v3.88 / VP v2.55 / STORY v4.169 / ARCH v2.97.
+
+Files touched this burst:
+- `.factory/cycles/v1.0-brownfield-backfill/adv-E19-pass-38.md` (NEW)
+- `.factory/cycles/v1.0-brownfield-backfill/decision-log.md` (APPENDED — this D-793 block)
+- `.factory/cycles/v1.0-brownfield-backfill/INDEX.md` (UPDATED — pass-38 row + Convergence Status)
+- `.factory/cycles/v1.0-brownfield-backfill/burst-log.md` (APPENDED — D-793 burst-log entry)
+- `.factory/STATE.md` (UPDATED — v5.43 → v5.44)
+
+**(6) NEXT: E-19 adv pass-39** (fresh context; Iron Law; rubric policies.yaml v1.4.2; perimeter = full E-19 suite at D-792 versions — no delta; effectively frozen pending 3-CLEAN; fix only genuine blockers; strict-3-CLEAN per D-761; streak 1/3; TWO more CLEANs → 3/3 CONVERGED → W1 TDD dispatch S-19.01+S-19.02+S-19.03 per D-773/D-774).
+
+Parent-commit: 4c4eaebe (D-792-sha-patch-close, factory-artifacts HEAD before this burst).
+
+### Phase
+
+D-793-E19-ADV-PASS-38-CLEAN
+
+### Date
+
+2026-07-09
