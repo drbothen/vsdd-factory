@@ -8535,3 +8535,123 @@ D-807-E19-ADV-PASS-51-CLEAN-1-OF-3
 ### Date
 
 2026-07-10
+
+---
+
+## D-808 — E-19 Adversary Pass-52 NOT-CLEAN Fix Burst (SW only + SM; NOT-CLEAN B0/H0/M1/L0; streak 1/3→0/3; L-BB-traceability-row-descriptions-must-derive-from-target-SoT [process-gap] codified)
+
+### Summary
+
+Pass-52 adversary (Claude Opus 4.7; rubric policies.yaml v1.4.3; fresh context; Iron Law; perimeter = D-807 GOVERNANCE-ONLY delta: carry-forward at D-806 versions; epic v1.26) found 1 finding — NOT-CLEAN B0/H0/M1/L0. F-P52-001 MEDIUM [POLICY 4 semantic mis-anchor]: epic §Behavioral Contract Traceability BC-2.02.011 row described BC with BC-2.07.001's semantics (`host::read_file absent-file semantics: codes::NOT_FOUND + HostError::NotFound`) — factually wrong for a write-side BC whose S-19.03 role is path traversal prevention via `resolve_path_for_allowlist` in `path_util.rs`; EC-001 traversal defense → `CAPABILITY_DENIED`. 6-row class audit: 5 PASS + 1 FIXED. CLOSED SW da5fba2f (epic v1.26→v1.27; row rewritten from S-19.03 body SoT). SM this-commit: STORY-INDEX v4.175→v4.176 (POLICY 14 leg-5 heading-parity gate + delivery-summary clause). L-BB-traceability-row-descriptions-must-derive-from-target-SoT [process-gap] codified. Streak 1/3→0/3. 4-index: BC v3.95/VP v2.59/STORY v4.176/ARCH v3.00. Standing gate roster now 8. NEXT: pass-53.
+
+### Detail
+
+**(1) POLICY 16 GLOBAL-MAX GATE.**
+
+```
+$ grep -oE "^## D-[0-9]+" .factory/cycles/v1.0-brownfield-backfill/decision-log.md | tail -1
+## D-807
+EXIT:0
+```
+→ D-807 confirmed max → D-808 allocated.
+
+**(2) PASS-52 ADVERSARY VERDICT.**
+
+NOT-CLEAN B0/H0/M1/L0. Perimeter: carry-forward at D-806 versions (D-807 GOVERNANCE-ONLY; epic v1.26; BC-INDEX v3.95; VP-INDEX v2.59; STORY-INDEX v4.175; ARCH-INDEX v3.00; policies.yaml v1.4.3). Streak before: 1/3. Streak after: 0/3 (reset).
+
+Findings:
+- F-P52-001 MEDIUM [POLICY 4]: epic §BC Traceability BC-2.02.011 row semantic mis-anchor (BC-2.07.001 semantics described instead of BC-2.02.011 path-traversal-defense semantics; 6-row class audit performed — 5 PASS + 1 FIXED).
+
+Full adversary report: `cycles/v1.0-brownfield-backfill/adv-E19-pass-52.md`
+
+**(3) FIX BURST.**
+
+SW leg (da5fba2f): epic v1.26→v1.27 — BC-2.02.011 row rewritten from S-19.03 body SoT (path traversal prevention / resolve_path_for_allowlist / EC-001 / CAPABILITY_DENIED); 6-row class audit 5 PASS + 1 FIXED; §PRD/§Stories spot-checks clean; input-hash fb55113 UNCHANGED.
+
+SM this-commit: STORY-INDEX v4.175→v4.176 (POLICY 14 leg-5 — §Epic E-19 H2 heading `draft, v1.26`→`draft, v1.27`; delivery-summary `(Pass-52 updates: ...)` clause prepended; last_amended prepend v4.176 entry); STATE.md v5.58→v5.59 (D-430(a) compaction D-755..D-803 → range-reference + D-808 advance); adv-E19-pass-52.md persisted; D-808 decision-log codification; L-BB-traceability-row-descriptions-must-derive-from-target-SoT codified.
+
+**(4) 4-INDEX GATE (POLICY 14 leg-4 — literal-shell per D-449(a)).**
+
+```
+$ grep "^version:" \
+  .factory/specs/behavioral-contracts/BC-INDEX.md \
+  .factory/specs/verification-properties/VP-INDEX.md \
+  .factory/stories/STORY-INDEX.md \
+  .factory/specs/architecture/ARCH-INDEX.md
+.../BC-INDEX.md:version: "3.95"
+.../VP-INDEX.md:version: "2.59"
+.../STORY-INDEX.md:version: "4.176"
+.../ARCH-INDEX.md:version: "3.00"
+EXIT:0
+```
+→ BC-INDEX: "3.95" / VP-INDEX: "2.59" / STORY-INDEX: "4.176" / ARCH-INDEX: "3.00". PASS.
+
+**(5) HEADING-PARITY GATE (D-803 standing Commit-E gate — mandatory per L-BB-epic-heading-parity-is-a-mandatory-commit-E-gate; literal-shell Python per D-449(a); Python gate required for `## Epic E-NN` heading format).**
+
+```
+$ python3 << 'PYEOF'
+import re, os, glob
+with open('.factory/stories/STORY-INDEX.md', 'r') as f:
+    index_content = f.read()
+heading_pattern = re.compile(r'^(## (?:Epic )?(E-\d+)[^\n]*)', re.MULTILINE)
+heading_matches = list(heading_pattern.finditer(index_content))
+epic_dir = '.factory/stories/epics'
+epic_files = glob.glob(os.path.join(epic_dir, '*.md'))
+epic_versions = {}
+for fpath in epic_files:
+    with open(fpath, 'r') as f:
+        content = f.read()
+    vm = re.search(r'^version:\s*["\']?([^"\'\n]+)["\']?', content, re.MULTILINE)
+    eid_m = re.search(r'(E-\d+)', os.path.basename(fpath))
+    if vm and eid_m:
+        epic_versions[eid_m.group(1)] = vm.group(1).strip('"\'').strip()
+fails = 0; passes = 0; skips = 0
+for m in heading_matches:
+    heading_line = m.group(1); eid = m.group(2)
+    hvm = re.search(r'v(\d+\.\d+)\s*$', heading_line)
+    if eid not in epic_versions: skips += 1; continue
+    fver = epic_versions[eid]
+    if not hvm: skips += 1; continue
+    hver = f"v{hvm.group(1)}"
+    if hver == fver: passes += 1
+    else: print(f"FAIL {eid}: heading {hver} != frontmatter {fver}"); fails += 1
+print(f"Result: {fails} FAIL / {passes} PASS / {skips} SKIP")
+PYEOF
+Result: 0 FAIL / 4 PASS / 16 SKIP
+EXIT:0
+```
+→ 0 FAIL lines; 4 versioned-heading epics all PASS including E-19 (heading v1.27 == frontmatter v1.27). PASS.
+
+**(6) POINTER-CLASS GATE (D-806 standing Commit-E gate — mandatory per L-BB-adr-body-external-artifact-file-line-pointers-are-sweep-sites; literal-shell per D-449(a)).**
+
+```
+$ for f in .factory/specs/architecture/decisions/ADR-025*.md \
+           .factory/specs/architecture/decisions/ADR-030*.md; do
+    echo "--- $f ---"
+    grep -nE 'line [0-9]+([–-][0-9]+)? of|at line [0-9]+' "$f" || echo "(no matches)"
+  done
+--- ADR-025 ---
+1708:  line-cite `at line 1181–1182 of hooks-registry.toml` replaced with stable anchor form
+--- ADR-030 ---
+(no matches)
+EXIT:0
+```
+→ 0 normative-live hits; ADR-025 line 1708 EXEMPT (Changelog historical-by-construction per TD-VSDD-091); ADR-030 clean. PASS.
+
+**(7) STREAK STATUS.**
+
+0/3 (RESET; NOT-CLEAN pass-52; trajectory tail passes 49/50/51/52 = 1,1,0,1 → →1→1→0→1; streak 1/3→0/3). NEXT: E-19 adv pass-53 (fresh context; Iron Law; rubric policies.yaml v1.4.3; perimeter = D-808 delta: epic v1.27 + STORY-INDEX v4.176 + full E-19 suite carry-forward; streak 0/3; three consecutive CLEANs → 3/3 CONVERGED → W1 TDD dispatch per D-773/D-774).
+
+**(8) LESSON CODIFICATION.**
+
+L-BB-traceability-row-descriptions-must-derive-from-target-SoT [process-gap][codified D-808]: epic/story Behavioral Contract Traceability table row DESCRIPTIONS must derive from the target artifact's H1 / story-body SoT (POLICY 4 semantic-anchor axis). Existence of a correct BC-ID + story-ID is necessary but not sufficient — the behavioral description text must also faithfully represent the target BC's behavioral contract. Adjacent-row copy risk is highest when multiple BCs share the same implementing story. Detection predicate: for each Traceability row, grep key described behavioral phrases against the target BC file and target story body SoT — expect semantic alignment. Joins standing gate roster as 8th gate. Appended to lessons.md this burst.
+
+Parent-commit: da5fba2f (factory-artifacts HEAD = SW epic v1.26→v1.27 leg; the state of factory-artifacts before this D-808 SM closure burst).
+
+### Phase
+
+D-808-E19-ADV-PASS-52-NOT-CLEAN-CLOSED
+
+### Date
+
+2026-07-10

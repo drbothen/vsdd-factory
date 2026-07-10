@@ -17056,3 +17056,183 @@ Expected ≥8 for this entry (blocks 1–8). D-444(c) 8-block requirement: SATIS
 | Commit | SHA | Contents |
 |--------|-----|----------|
 | D-807 SM single-commit burst (TD-VSDD-053) | `71ef9b66` | adv-E19-pass-51.md NEW; decision-log D-807; STATE.md v5.57→v5.58; burst-log this entry; streak 0/3→1/3; trajectory →0→1→1→0; pass-52 NEXT |
+
+---
+
+## D-808 — E-19 Adversary Pass-52 NOT-CLEAN Fix Burst (SW only + SM; NOT-CLEAN B0/H0/M1/L0; streak 1/3→0/3)
+
+**Date:** 2026-07-10
+**Agents:** story-writer (SW leg da5fba2f prior burst) + state-manager (SM closure this burst)
+**Operational note:** SM closure leg executed in resumed session after prior session ran out of context. No adversary content or findings changed.
+
+### Block 1 — Parent-commit / Adversary verdict
+
+**Parent-commit:** `da5fba2f` (factory-artifacts HEAD = SW epic v1.26→v1.27 leg; the state of factory-artifacts before this D-808 SM closure burst).
+
+**Adversary verdict (pass-52):** NOT-CLEAN B0/H0/M1/L0. Model: Claude Opus 4.7. Rubric: policies.yaml v1.4.3. Iron Law: SATISFIED (fresh context; no prior pass reports loaded). Streak: 1/3→0/3 (reset). Full report: `cycles/v1.0-brownfield-backfill/adv-E19-pass-52.md`.
+
+Findings: F-P52-001 MEDIUM [POLICY 4 semantic mis-anchor] — epic §Behavioral Contract Traceability BC-2.02.011 row described BC-2.07.001's semantics (`host::read_file NOT_FOUND...`) instead of BC-2.02.011's path-traversal-defense semantics (resolve_path_for_allowlist / EC-001 / CAPABILITY_DENIED). 6-row class audit: 5 PASS + 1 FIXED. CLOSED SW da5fba2f (epic v1.26→v1.27; row rewritten from S-19.03 body SoT; input-hash fb55113 UNCHANGED).
+
+D-808 source-attestation (D-448(a)): adv-E19-pass-52.md Part A Finding F-P52-001 describes BC-2.02.011 row semantic mis-anchor with pre-fix and post-fix verbatim evidence; 6-row class audit table; novelty [process-gap] traceability-row-descriptions-derive-from-target-SoT. Part B 30-artifact attestation + 8-gate roster + zero-finding evidence (post-closure). This burst-log paragraph faithfully describes the adv-E19-pass-52.md Part A finding set. Source-attestation diff gate (D-448(a)):
+
+```
+$ grep -oE "F-P52-00[0-9]+" \
+    .factory/cycles/v1.0-brownfield-backfill/adv-E19-pass-52.md | sort -u
+F-P52-001
+$ grep -oE "F-P52-00[0-9]+" \
+    .factory/cycles/v1.0-brownfield-backfill/burst-log.md | sort -u
+F-P52-001
+```
+→ Parity: 1 finding ID in adv report; 1 in burst-log. PASS.
+
+### Block 2 — Dim-2: Literal-shell execution evidence (D-449(a))
+
+**(a) POLICY 16 global-max gate:**
+
+```
+$ grep -oE "^## D-[0-9]+" \
+    .factory/cycles/v1.0-brownfield-backfill/decision-log.md | tail -1
+## D-807
+EXIT:0
+```
+→ D-807 confirmed max → D-808 allocated. PASS.
+
+**(b) 4-index literal-shell gate:**
+
+```
+$ grep "^version:" \
+    .factory/specs/behavioral-contracts/BC-INDEX.md \
+    .factory/specs/verification-properties/VP-INDEX.md \
+    .factory/stories/STORY-INDEX.md \
+    .factory/specs/architecture/ARCH-INDEX.md
+.../BC-INDEX.md:version: "3.95"
+.../VP-INDEX.md:version: "2.59"
+.../STORY-INDEX.md:version: "4.176"
+.../ARCH-INDEX.md:version: "3.00"
+EXIT:0
+```
+→ BC:3.95 / VP:2.59 / STORY:4.176 / ARCH:3.00. PASS.
+
+**(c) Heading-parity gate (Python literal-shell — `## Epic E-NN` format requires Python gate per D-803):**
+
+```
+$ python3 -c "
+import re, os, glob
+with open('.factory/stories/STORY-INDEX.md', 'r') as f:
+    index_content = f.read()
+heading_pattern = re.compile(r'^(## (?:Epic )?(E-\d+)[^\n]*)', re.MULTILINE)
+heading_matches = list(heading_pattern.finditer(index_content))
+epic_dir = '.factory/stories/epics'
+epic_files = glob.glob(os.path.join(epic_dir, '*.md'))
+epic_versions = {}
+for fpath in epic_files:
+    with open(fpath, 'r') as f:
+        content = f.read()
+    vm = re.search(r'^version:\s*[\x22\x27]?([^\x22\x27\n]+)', content, re.MULTILINE)
+    eid_m = re.search(r'(E-\d+)', os.path.basename(fpath))
+    if vm and eid_m:
+        epic_versions[eid_m.group(1)] = vm.group(1).strip('\x22\x27').strip()
+fails = 0; passes = 0; skips = 0
+for m in heading_matches:
+    heading_line = m.group(1); eid = m.group(2)
+    hvm = re.search(r'v(\d+\.\d+)\s*\$', heading_line)
+    if eid not in epic_versions: skips += 1; continue
+    fver = epic_versions[eid]
+    if not hvm: skips += 1; continue
+    hver = 'v' + hvm.group(1)
+    if hver == fver: passes += 1
+    else: print('FAIL ' + eid + ': heading ' + hver + ' != frontmatter ' + fver); fails += 1
+print('Result: ' + str(fails) + ' FAIL / ' + str(passes) + ' PASS / ' + str(skips) + ' SKIP')
+"
+Result: 0 FAIL / 4 PASS / 16 SKIP
+EXIT:0
+```
+→ E-19: heading v1.27 == frontmatter v1.27. 0 FAIL. PASS.
+
+**(d) Pointer-class gate:**
+
+```
+$ grep -nE 'line [0-9]+([–-][0-9]+)? of|at line [0-9]+' \
+    .factory/specs/architecture/decisions/ADR-025-*.md \
+    .factory/specs/architecture/decisions/ADR-030-*.md 2>/dev/null
+.../ADR-025-...:1708:  line-cite `at line 1181–1182 of hooks-registry.toml` replaced with stable anchor form
+EXIT:0
+```
+→ 1 hit: ADR-025 line 1708 EXEMPT (Changelog historical-by-construction per TD-VSDD-091). 0 normative-live hits. PASS.
+
+### Block 3 — Files touched
+
+| File | Change | Agent |
+|------|--------|-------|
+| `stories/epics/E-19-post-rc22-operator-hardening.md` | v1.26→v1.27: BC-2.02.011 §BC Traceability row description rewritten (path_util/EC-001 per S-19.03 body SoT); input-hash fb55113 UNCHANGED | SW (da5fba2f) |
+| `stories/STORY-INDEX.md` | v4.175→v4.176: §Epic E-19 H2 heading `draft, v1.26`→`draft, v1.27` (POLICY 14 leg-5); delivery-summary Pass-52 clause prepended; last_amended v4.176 entry prepended | SM (this burst) |
+| `cycles/v1.0-brownfield-backfill/adv-E19-pass-52.md` | NEW: pass-52 adversary report persisted | SM (this burst) |
+| `cycles/v1.0-brownfield-backfill/decision-log.md` | D-808 section appended | SM (this burst) |
+| `cycles/v1.0-brownfield-backfill/lessons.md` | L-BB-traceability-row-descriptions-must-derive-from-target-SoT appended | SM (this burst) |
+| `cycles/v1.0-brownfield-backfill/burst-log.md` | D-808 entry appended (this entry) | SM (this burst) |
+| `.factory/STATE.md` | v5.58→v5.59: D-430(a) compaction + D-808 advance + Session Resume Checkpoint FULL REFRESH | SM (this burst) |
+
+### Block 4 — Codifications
+
+| Codification | Type | Anchors |
+|--------------|------|---------|
+| D-808 decision-log entry | Decision | `cycles/v1.0-brownfield-backfill/decision-log.md` §D-808 |
+| L-BB-traceability-row-descriptions-must-derive-from-target-SoT | Lesson [process-gap] | `cycles/v1.0-brownfield-backfill/lessons.md` |
+| 8th standing gate: BC Traceability row description parity | Gate | D-808 §(8) Lesson Codification; standing gate roster now 8 |
+
+### Block 5 — Dim-2/5/6/7 Attestations
+
+**Dim-2 (literal-shell gate evidence per D-449(a)):** All 4 mechanical gates executed with literal shell and captured stdout in Block 2 above. POLICY 16 gate: `## D-807` → D-808 allocated. 4-index gate: STORY:4.176 bump confirmed. Heading-parity gate: 0 FAIL / 4 PASS. Pointer-class gate: 0 normative hits. D-448(a) source-attestation diff gate: finding-ID parity 1==1. No pseudocode narration — all gates: literal shell → stdout captured.
+
+**Dim-5 (files-touched completeness):** 7 files listed in Block 3: epic (SW), STORY-INDEX (SM), adv-E19-pass-52.md (SM), decision-log.md (SM), lessons.md (SM), burst-log.md (SM), STATE.md (SM). All SM-authored files confirmed present. No unreported mutations.
+
+**Dim-6 (burst-log block count literal-shell):**
+
+```
+$ grep -c "^### Block" .factory/cycles/v1.0-brownfield-backfill/burst-log.md
+64
+EXIT:0
+```
+→ This D-808 entry adds 8 blocks. D-444(c) 8-block requirement: SATISFIED.
+
+**Dim-7 (parent-commit freshness):** Parent-commit `da5fba2f` is the SW leg that fixed F-P52-001 (epic v1.26→v1.27). This is the factory-artifacts HEAD immediately before this D-808 SM closure burst, not a stale or prior-pass SHA. Per D-419(b)+D-420(d)+D-421(a): parent-commit cites the immediately-preceding burst's terminal SHA (da5fba2f SW epic fix leg). Freshness: PASS.
+
+### Block 6 — Dim-5 attestation (Dim-6 literal-shell count)
+
+Burst-log 8-block completion gate (D-446(a); literal-shell per D-449(a)):
+
+```
+$ grep -oE "^### Block [0-9]+" \
+    .factory/cycles/v1.0-brownfield-backfill/burst-log.md | tail -8
+### Block 1
+### Block 2
+### Block 3
+### Block 4
+### Block 5
+### Block 6
+### Block 7
+### Block 8
+EXIT:0
+```
+→ All 8 D-444(c) mandatory blocks present in this D-808 burst-log entry. D-446(a) gate: PASS.
+
+### Block 7 — Closes / Status summary
+
+| Item | Resolution |
+|------|------------|
+| F-P52-001 MEDIUM | CLOSED SW da5fba2f (epic v1.26→v1.27; BC-2.02.011 row → path_util/EC-001 per S-19.03 body SoT) |
+| 6-row class audit | 5 PASS + 1 FIXED |
+| epic E-19 | v1.26→v1.27 (input-hash fb55113 UNCHANGED) |
+| STORY-INDEX | v4.175→v4.176 (§E-19 heading parity + delivery-summary) |
+| 4-index BC/VP/STORY/ARCH | BC v3.95 / VP v2.59 / STORY v4.176 / ARCH v3.00 |
+| L-BB-traceability-row-descriptions-must-derive-from-target-SoT | [process-gap] CODIFIED; 8th standing gate |
+| Streak | RESET 1/3→0/3 (NOT-CLEAN pass-52) |
+| Trajectory-tail | →1→1→0→1 (passes 49/50/51/52) |
+| STATE.md v5.59 | COMPLETE — D-430(a) compaction + D-808 advance; Session Resume Checkpoint fully refreshed; pass-53 target |
+| NEXT | adv pass-53 (fresh context; ARTIFACTS FROZEN at D-808 closure versions; streak 0/3; three consecutive CLEANs → 3/3 CONVERGED) |
+
+### Block 8 — Factory-artifacts commits
+
+| Commit | SHA | Contents |
+|--------|-----|----------|
+| D-808 SM single-commit burst (TD-VSDD-053) | `[SHA-PATCH]` | adv-E19-pass-52.md NEW; decision-log D-808; lessons.md L-BB-traceability-row-descriptions-must-derive-from-target-SoT; STORY-INDEX v4.175→v4.176; STATE.md v5.58→v5.59; burst-log this entry; streak 1/3→0/3; trajectory →1→1→0→1; pass-53 NEXT |

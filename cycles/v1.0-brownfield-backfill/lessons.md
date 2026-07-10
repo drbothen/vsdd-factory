@@ -6355,3 +6355,27 @@ Both gates are mandatory standing Commit-E controls for any burst touching E-19 
 **Cites:** D-806; F-P50-001 (MEDIUM); TD-VSDD-091 (volatile-pin/location-pointer prohibition); POLICY 19 (stable-anchor discipline); D-805 L-BB-adr-body-external-artifact-content-descriptions-are-sweep-sites (companion: content-description class); D-795 L-BB-adr-body-bc-cites-are-sweep-sites (companion: BC-pin class).
 
 **Closes:** D-806 (F-P50-001 CLOSED architect 888178f9 ADR-025 v1.14→v1.15; §12.6 line-cite → stable `[hooks.capabilities.read_file]`-block anchor; ARCH-INDEX v2.99→v3.00; 7th standing gate codified). `[process-gap; ADR-body; file-line-pointer; location-cite; sweep-site; TD-VSDD-091; POLICY-19; stable-anchor; external-artifact; hooks-registry; gradual-drift; Commit-E-gate; self-application; 7th-gate]`
+
+---
+
+## L-BB-traceability-row-descriptions-must-derive-from-target-SoT [process-gap] [codified D-808]
+
+**Category:** process-gap
+
+**Status:** CODIFIED D-808
+
+**Lesson:** Epic/story Behavioral Contract Traceability table row DESCRIPTIONS must derive from the target artifact's H1 / story-body SoT (POLICY 4 semantic-anchor axis). Existence of a correct BC-ID + story-ID in a Traceability row is necessary but not sufficient — the behavioral description text must also faithfully represent the target BC's behavioral contract.
+
+**Context:** E-19 pass-52 F-P52-001 found that epic §Behavioral Contract Traceability BC-2.02.011 row described `host::read_file absent-file semantics: codes::NOT_FOUND + HostError::NotFound` — BC-2.07.001's behavioral semantic, not BC-2.02.011's. Both BCs are implemented in S-19.03. BC-2.02.011's actual role is path traversal prevention via `resolve_path_for_allowlist` in `path_util.rs`; EC-001 traversal → `CAPABILITY_DENIED`. The row appeared structurally correct (correct BC-ID, correct story-ID) but was semantically wrong.
+
+**Root cause:** Adjacent-row copy risk: two BCs (BC-2.02.011 and BC-2.07.001) share the same implementing story (S-19.03). During epic authoring, the BC-2.07.001 row's description was copied to the BC-2.02.011 row without semantic verification against BC-2.02.011 or S-19.03 body SoT. Existing POLICY 4 audit axis did not include explicit description-prose semantic parity checking — only BC-ID and story-ID accuracy was gated. The mis-anchor went undetected through passes 1–51 because no gate explicitly compared Traceability row descriptions against target artifact semantics.
+
+**Gate:** 8th standing gate (D-808): For each Behavioral Contract Traceability row, grep key described behavioral phrases against the target BC file and target story body SoT — expect semantic alignment. Adjacent rows with shared implementing stories require extra scrutiny. Detection predicate: per-row grep of described semantics (key behavioral phrases) against `<target_BC_file>` AND `<target_story_file>` — expect hits in the correct target; if key phrases from row N are found in BC-X but row N is for BC-Y, this is a semantic mis-anchor.
+
+**Prevention:** (1) When multiple BCs share the same implementing story in a Traceability table, treat adjacent rows as high-risk for copy contamination — verify each row's description independently against its OWN target. (2) POLICY 4 adversary axis explicitly includes description-prose semantic parity, not only BC-ID/story-ID accuracy. (3) 8th standing gate: per-row description semantic parity check against target BC file + story body SoT, run at every SM burst touching any epic or story Traceability table.
+
+**Anchors:** D-808; F-P52-001 (MEDIUM POLICY 4); epic E-19 §Behavioral Contract Traceability BC-2.02.011 row (pre-fix v1.26: BC-2.07.001 semantics; post-fix v1.27: path_util/EC-001 semantics per S-19.03 body SoT); SW da5fba2f (fix); BC-2.02.011 v1.7; BC-2.07.001 v1.5; S-19.03 v1.19.
+
+**Cites:** D-808; F-P52-001 (MEDIUM); POLICY 4 (semantic anchoring); POLICY 14 5-leg parity; D-803 L-BB-epic-heading-parity-is-a-mandatory-commit-E-gate (companion Commit-E gate); D-800 L-BB-per-artifact-catalog-cell-derives-from-own-changelog-row (analogue: catalog cells must derive from own changelog — same derivation principle extended to Traceability row descriptions).
+
+**Closes:** D-808 (F-P52-001 CLOSED SW da5fba2f epic v1.26→v1.27; BC-2.02.011 row rewritten from S-19.03 body SoT; 6-row class audit 5 PASS + 1 FIXED; 8th standing gate codified). `[process-gap; BC-traceability; semantic-anchor; POLICY-4; description-prose; adjacent-row-copy; shared-implementing-story; sweep-site; Commit-E-gate; 8th-gate; self-application]`
