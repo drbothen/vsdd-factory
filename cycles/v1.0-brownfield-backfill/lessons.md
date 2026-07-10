@@ -5985,3 +5985,43 @@ Zero matches (outside last_amended historical rows) expected.
 **Cites:** D-797; F-P42-001; adv-E19-pass-42.md; VP-097 v1.1; VP-094/098/100/101 v1.1; D-784; POLICY 5 v1.3.3; POLICY 5 v1.3.5; TD-VSDD-091; L-BB-adr-body-bc-cites-are-sweep-sites (companion class — sweep-site enumeration gap).
 
 **Closes:** D-797 F-P42-001 MEDIUM FIXED (VP-097 47b87f6e + VP-094/098/100/101 a0c2c62a; all five E-19 VPs with volatile pins now carry stable-anchor form); vp-source-contract-pins-are-sibling-class process-gap codified; enforcement gate added to carry-forward sweep checklist. `[process-gap; vp-source-bc; stable-anchor; sibling-sweep; same-epic-enumeration; POLICY-5-v1.3.3; POLICY-5-v1.3.5; TD-VSDD-091; sweep-miss; sibling-class]`
+
+---
+
+## L-BB-pre-pass-class-sweeps-preempt-finding-leakage [process-gap] [codified D-798]
+
+**Category:** process-gap
+
+**Status:** codified D-798 — active in carry-forward set
+
+**Lesson:** When an adversary pass surfaces a defect CLASS verified on only one artifact, the orchestrator dispatches a targeted consistency audit of that class across all sibling artifacts BEFORE the next adversary pass; findings are fixed in a pre-pass burst. This breaks the one-finding-per-pass leakage pattern where the same defect class is discovered one artifact at a time across consecutive passes.
+
+**Context:** E-19 adv pass-42 found F-P42-001/002/003 MEDIUM — all in the BC §Verification Properties ↔ VP-INDEX SoT class — on BC-2.07.001 only. Four sibling BCs (BC-5.42.001, BC-2.02.011, BC-3.08.001, BC-4.13.001, BC-1.17.001) were NOT swept for the same class within the D-797 fix burst. Had pass-43 proceeded immediately, the adversary would have been likely to find 2–3 more MEDIUM findings of the same class in the sibling BCs, extending the cascade by one or more passes.
+
+Orchestrator-initiated consistency audit (D-798 pre-pass) swept all 5 sibling BCs for the BC §VP ↔ VP-INDEX SoT class before dispatching pass-43. Findings C-PP43-001/002/003/004 (3 MEDIUM + 1 LOW) were all CLOSED in the same pre-pass burst. Pass-43 will now face a clean perimeter on this class.
+
+**Pattern:** This generalizes L-BB-vp-source-contract-pins-are-sibling-class (D-797) from "fix-burst must sweep siblings" to "orchestrator must sweep siblings before dispatching the next adversary pass when the pass found a defect CLASS rather than an isolated instance." The distinction:
+- L-BB-vp-source-contract-pins-are-sibling-class: fix-executor obligation (fix-burst that patches one site must enumerate all same-class sites in the same burst)
+- L-BB-pre-pass-class-sweeps-preempt-finding-leakage: orchestrator obligation (when pass verdict shows a class finding, sweep the class across all siblings before dispatching the NEXT pass)
+
+Both are required. They address different escape routes.
+
+**Root cause:** The D-797 fix burst closed F-P42-001/002/003 on BC-2.07.001, VP-094/097/098/100/101. But the sibling BCs (BC-5.42.001, BC-2.02.011, BC-3.08.001) were not swept for the same BC §VP ↔ VP-INDEX SoT defect class. The adversary would have been likely to find these in pass-43, adding 2–3 MEDIUM findings and extending the cascade.
+
+**Gate (D-798 enforcement):** At every orchestrator dispatch cycle where an adversary pass returns findings classified as a DEFECT CLASS (same root cause, same POLICY violation, but found only on one artifact):
+
+1. Before dispatching the next adversary pass, instantiate a consistency-validator (fresh-context, read-only) targeting the identified class across all same-epic artifacts.
+2. Findings from the consistency audit are treated as pre-pass findings: fixed in a pre-pass burst BEFORE the next adversary pass is dispatched.
+3. Record the pre-pass audit as a cycle artifact (e.g., `pre-pass-N-<class>-consistency-audit.md`) and a D-NNN decision-log entry.
+4. The adversary pass streak is NOT reset by a pre-pass consistency burst (it is not an adversary pass). Streak UNCHANGED.
+
+**Classification criteria for "defect CLASS requiring pre-pass sweep":**
+- The pass returned findings across ONE artifact but the POLICY violation (e.g., POLICY 5 v1.3.5, POLICY 9, POLICY 14) applies equally to all same-epic artifacts of the same structural type.
+- The finding description uses language like "sibling-sweep" or "same class" or "POLICY N applies to all BCs in the epic."
+- Historical precedent: F-P42-001 said VP-094/098/100/101 were sibling class; the fix swept VPs but not the source BCs. A sibling-sweep on VPs doesn't automatically sweep BCs for the same underlying BC-VP relationship gap.
+
+**Anchors:** D-798 (this burst); C-PP43-001/002/003/004 (pre-pass findings; all MEDIUM/LOW); pre-pass-43-vp-table-consistency-audit.md (full audit); D-797 F-P42-001/002/003 (the trigger — same class found on BC-2.07.001 only); 9253c492 (PO fix); 64c87511 (SW sweep); L-BB-vp-source-contract-pins-are-sibling-class D-797 (companion — fix-executor obligation vs orchestrator obligation).
+
+**Cites:** D-798; C-PP43-001..004; pre-pass-43-vp-table-consistency-audit.md; D-797; POLICY 9 (VP-INDEX is SoT for VP statements); POLICY 14 (BC-body-parity); POLICY 5 v1.3.3 (same-burst sibling sweep obligation); L-BB-vp-source-contract-pins-are-sibling-class (companion class — fix-executor obligation); D-784 (VP-095 fix that missed VP-097..101 — the original miss that triggered both L-BB-vp-source-contract-pins and this lesson).
+
+**Closes:** D-798 pre-pass burst (C-PP43-001..004 CLOSED; 3 MEDIUM + 1 LOW; 3 BC bumps + 4 story/epic sweeps; streak UNCHANGED 0/3; pre-pass-class-sweeps-preempt-finding-leakage process-gap codified; enforcement gate added to orchestrator carry-forward checklist). `[process-gap; pre-pass-sweep; defect-class; consistency-audit; orchestrator-obligation; before-next-pass; BC-VP-SoT-alignment; sibling-sweep; POLICY-9; POLICY-14; POLICY-5-v1.3.3; streak-unchanged]`

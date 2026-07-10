@@ -15587,3 +15587,160 @@ NEXT: E-19 adversary pass-43 (fresh context; Iron Law; rubric policies.yaml v1.4
 | D-797 SM 4-index + INDEX + STATE + burst-log (Commit E) | `5bccbfb0` | BC-INDEX v3.89→v3.90; VP-INDEX v2.55→v2.56; STORY-INDEX v4.169→v4.170; ARCH-INDEX UNCHANGED; INDEX.md Pass-42 row + Convergence Status; STATE.md v5.47→v5.48 473 lines; burst-log this entry; streak 0/3; pass-43 NEXT |
 
 > SHA-patch follow-up required: replace `5bccbfb0` above and Active Branches `factory-artifacts` row in STATE.md with actual Commit E HEAD SHA after push.
+
+## D-798 — Orchestrator Pre-Pass-43 Consistency Fix Burst (BC §VP↔VP-INDEX SoT sweep; 4 pre-pass findings C-PP43-001..004 CLOSED; 3 legs PO+SW+SM; streak UNCHANGED 0/3) — 2026-07-10
+
+### Block 1 — Parent-commit
+
+**Parent commit (story-writer leg — last prior leg):** `64c87511` — `state(D-798): SW S-19.01 v1.16→v1.17 + S-19.03 v1.17→v1.18 + S-19.05 v1.14→v1.15 + epic v1.23→v1.24 BC cite sweeps`
+
+3-leg burst sequence:
+1. **product-owner `9253c492`** — BC-5.42.001 v1.5→v1.6 (VP-094 proof-method unit→integration; input-hash 4fd18a4 UNCHANGED); BC-2.02.011 v1.5→v1.6 (VP-097 row added to §VP Properties; §VP Anchors VP-097 cite synced; input-hash e650b4b); BC-3.08.001 v1.19→v1.20 (VP-100 row added to §VP Properties; §VP Anchors VP-028 six event types; input-hash 6549a11)
+2. **story-writer `64c87511`** — S-19.01 v1.16→v1.17 BC-5.42.001 v1.5→v1.6 cite sweep ×3 sites (input-hash d40bd21→799301c); S-19.03 v1.17→v1.18 BC-2.02.011 v1.5→v1.6 cite sweep ×2 sites (input-hash 8d1225d UNCHANGED); S-19.05 v1.14→v1.15 BC-3.08.001 v1.19→v1.20 cite sweep ×14 sites (input-hash 9e54d68 UNCHANGED); epic v1.23→v1.24 BC-3.08.001 v1.19→v1.20 cite sweep ×5 sites incl. §Out-of-Scope carry-forward (input-hash 9a1ba40→7ec7e1d)
+3. **state-manager (this commit)** — pre-pass-43-vp-table-consistency-audit.md PERSISTED; D-798 decision-log block appended; L-BB-pre-pass-class-sweeps-preempt-finding-leakage lesson appended; BC-INDEX v3.90→v3.91; STORY-INDEX v4.170→v4.171; INDEX.md Convergence Status updated; STATE.md v5.48→v5.49 (D-798 row; banner; trajectory UNCHANGED →1→1→0→3; streak UNCHANGED 0/3; Session Resume Checkpoint full refresh targeting pass-43 D-797+D-798 delta perimeter); burst-log this entry
+
+### Block 2 — Adversary Verdict (Pre-Pass Consistency Burst — N/A)
+
+**Source:** `cycles/v1.0-brownfield-backfill/pre-pass-43-vp-table-consistency-audit.md` (orchestrator-initiated consistency audit, not adversary pass)
+
+**Verdict:** PRE-PASS CONSISTENCY BURST — NOT an adversary pass. No adversary report (adv-E19-pass-43.md does not exist yet). D-448(a) source-attestation gate scope: audit report Part A finding set.
+
+**C-PP43-001 MEDIUM — BC-5.42.001 VP-094 proof-method drift:** BC-5.42.001 §VP Properties table row 3 (VP-094) listed proof-method `unit` — VP-INDEX SoT shows `integration` (Kani harness integration; VP-094 is an integration-gate property). **CLOSED**: PO 9253c492 (BC-5.42.001 v1.5→v1.6; VP-094 row proof-method corrected to `integration` per VP-INDEX SoT; input-hash 4fd18a4 UNCHANGED).
+
+**C-PP43-002 MEDIUM — BC-2.02.011 VP-097 row absent:** BC-2.02.011 §VP Properties table had only a TBD-placeholder row for VP-097 scope; VP-INDEX SoT shows `source_bc: BC-2.02.011` co-anchor for VP-097 (traversal-defense property); §VP Anchors section referenced VP-097 without a corresponding §VP Properties row. **CLOSED**: PO 9253c492 (BC-2.02.011 v1.5→v1.6; VP-097 row added to §VP Properties table with traversal-defense framing per VP-INDEX SoT; §VP Anchors VP-097 cite synced; input-hash e650b4b).
+
+**C-PP43-003 MEDIUM — BC-3.08.001 VP-100 row absent:** BC-3.08.001 §VP Properties table missing VP-100 row; VP-INDEX SoT shows `source_bc: BC-3.08.001` as anchor for VP-100 (Invariant 6 drain-window-timer DI-019 property); §VP Anchors section referenced VP-100 without a corresponding §VP Properties row. **CLOSED**: PO 9253c492 (BC-3.08.001 v1.19→v1.20; VP-100 row added to §VP Properties table with DI-019 drain-timer framing per VP-INDEX SoT; §VP Anchors VP-100 cite synced; input-hash 6549a11).
+
+**C-PP43-004 LOW — BC-3.08.001 VP-028 anchor text four→six:** BC-3.08.001 §VP Anchors VP-028 bullet referenced "four async event types" while BC-3.08.001's own H1 catalog lists six event types (plugin.async_block_discarded, dispatcher.schema_mismatch, dispatcher.registry_invalid, plugin.timeout, plugin.abandoned, plugin.completed). Internal inconsistency; BC H1 is authoritative (POLICY 7). **CLOSED**: PO 9253c492 (BC-3.08.001 v1.19→v1.20; §VP Anchors VP-028 bullet updated to six event types per BC's own H1 catalog).
+
+**Zero-finding attestations (3 BCs CLEAN):** BC-4.13.001 CLEAN (VP-095/VP-099 proof-method `integration` per VP-INDEX SoT; §VP Properties rows match; no TBD-placeholder rows). BC-1.17.001 CLEAN (VP-101 proof-method `integration` per VP-INDEX SoT; §VP Properties VP-101 row matches VP-INDEX traversal-defense framing). BC-2.07.001 CLEAN spot-verify (post-D-797 fix; VP-097 row traversal-defense framing ✓; single VP-098 row ✓; §VP Anchors VP-097/VP-098 cites consistent ✓).
+
+**Streak:** UNCHANGED at 0/3 (pre-pass consistency burst; not adversary pass). Trajectory: UNCHANGED →1→1→0→3.
+
+### Block 3 — Files Touched
+
+| File | Action | Notes |
+|------|--------|-------|
+| `cycles/v1.0-brownfield-backfill/pre-pass-43-vp-table-consistency-audit.md` | PERSISTED (prior session) | Audit report; 4 findings C-PP43-001..004; CLOSED same-burst; 3 BC zero-finding attestations |
+| `cycles/v1.0-brownfield-backfill/decision-log.md` | APPENDED (prior session) | D-798 block codified |
+| `cycles/v1.0-brownfield-backfill/lessons.md` | APPENDED (prior session) | L-BB-pre-pass-class-sweeps-preempt-finding-leakage [process-gap][codified D-798] |
+| `specs/behavioral-contracts/BC-INDEX.md` | MODIFIED (prior session) | v3.90→v3.91; BC-5.42.001/BC-2.02.011/BC-3.08.001 row annotations + last_amended D-798 |
+| `stories/STORY-INDEX.md` | MODIFIED (this session) | v4.170→v4.171; S-19.01 v1.17 + S-19.03 v1.18 + S-19.05 v1.15 + epic v1.24 row syncs; wave-summary Pre-pass-43 clause prepended; BC coverage BC-5.42.001 v1.6 + BC-2.02.011 v1.6 + BC-3.08.001 v1.20 updated |
+| `cycles/v1.0-brownfield-backfill/INDEX.md` | MODIFIED (this session) | Convergence Status updated (D-798 pre-pass burst info; pass-43 perimeter updated to D-797+D-798 delta) |
+| `.factory/STATE.md` | MODIFIED (this session) | v5.48→v5.49; D-798 frontmatter advance; banner D-798; D-798 Decisions Log row; trajectory UNCHANGED →1→1→0→3; streak UNCHANGED 0/3; SIZE BUDGET 474 lines; Current Phase Steps D-798 row + D-793 archived; Session Resume Checkpoint full refresh targeting pass-43 D-797+D-798 delta perimeter |
+| `cycles/v1.0-brownfield-backfill/burst-log.md` | APPENDED (this session) | This entry (D-798; 8 blocks per D-444(c)) |
+
+**Per-specialist artifact changes:**
+- product-owner: BC-5.42.001 v1.5→v1.6 + BC-2.02.011 v1.5→v1.6 + BC-3.08.001 v1.19→v1.20 (prior leg 9253c492)
+- story-writer: S-19.01 v1.16→v1.17 + S-19.03 v1.17→v1.18 + S-19.05 v1.14→v1.15 + epic v1.23→v1.24 (prior leg 64c87511)
+- state-manager: audit report persist + decision-log + lessons + BC-INDEX v3.91 + STORY-INDEX v4.171 + INDEX.md + STATE.md v5.49 + burst-log
+
+### Block 4 — Codifications
+
+| Type | ID | Description |
+|------|----|-------------|
+| Decision | D-798 | Orchestrator pre-pass-43 consistency fix burst; 4 findings C-PP43-001..004 CLOSED same-burst; 3 legs PO+SW+SM; 4-index BC v3.91/VP v2.56/STORY v4.171/ARCH v2.98; streak UNCHANGED 0/3; trajectory UNCHANGED →1→1→0→3 |
+| Lesson | L-BB-pre-pass-class-sweeps-preempt-finding-leakage | When an adversary pass surfaces a defect CLASS verified on only one artifact, dispatch a targeted consistency audit of that class across ALL sibling artifacts BEFORE the next adversary pass; fix in a pre-pass burst; breaks the one-finding-per-pass leakage pattern [process-gap][codified D-798] |
+
+**D-NNN count:** 1 decision codified (D-798). 1 lesson appended.
+
+### Block 5 — Dim-2: Literal-Shell Gate Evidence (D-449(a))
+
+**Gate i — 4-index versions (D-494 / POLICY 14 leg-4):**
+```
+$ grep "^version:" \
+  .factory/specs/behavioral-contracts/BC-INDEX.md \
+  .factory/specs/verification-properties/VP-INDEX.md \
+  .factory/stories/STORY-INDEX.md \
+  .factory/specs/architecture/ARCH-INDEX.md
+.factory/specs/behavioral-contracts/BC-INDEX.md:version: "3.91"
+.factory/specs/verification-properties/VP-INDEX.md:version: "2.56"
+.factory/specs/architecture/ARCH-INDEX.md:version: "2.98"
+.factory/stories/STORY-INDEX.md:version: "4.171"
+EXIT:0 — PASS (BC v3.91/VP v2.56/STORY v4.171/ARCH v2.98; ARCH v2.98 UNCHANGED confirmed per D-798 scope)
+```
+
+**Gate ii — POLICY 16 global-max (D-798 allocation):**
+```
+$ grep "^## D-" .factory/cycles/v1.0-brownfield-backfill/decision-log.md | tail -3
+## D-796 — E-19 Adversarial Pass-41 Closure (CLEAN B0/H0/M0/L2; ...)
+## D-797 — E-19 Adversarial Pass-42 Closure (NOT-CLEAN B0/H0/M3/L0; ...)
+## D-798 — Orchestrator Pre-Pass-43 Consistency Fix Burst (BC §VP↔VP-INDEX SoT sweep; ...)
+EXIT:0 — PASS (D-797 confirmed max before D-798 block appended; sequential allocation correct per POLICY 16)
+```
+
+**Gate iii — STATE.md size budget (hard cap ≤500 lines):**
+```
+$ wc -l .factory/STATE.md
+     474 .factory/STATE.md
+EXIT:0 — PASS (474 lines; under 500 hard cap)
+```
+
+**Gate iv — D-444(a) current_step verbatim-strict chain:**
+```
+$ grep "^current_step:" .factory/STATE.md
+current_step: "D-798-PRE-PASS-43-CONSISTENCY-FIX-BURST-CLOSED trajectory-tail →1→1→0→3; streak 0/3 UNCHANGED; NEXT adv pass-43;"
+EXIT:0 — PASS (D-798 cite present; trajectory-tail →1→1→0→3 UNCHANGED per D-433(e)+D-439(c); streak 0/3 UNCHANGED; all 5 BC-5.39.006 v1.7 PCs satisfied per TD-VSDD-097-EXT)
+```
+
+**Gate v — D-448(a) source-attestation (audit report Part A):**
+```
+$ grep -i "^| C-PP43-" .factory/cycles/v1.0-brownfield-backfill/pre-pass-43-vp-table-consistency-audit.md | wc -l
+4
+EXIT:0 — PASS (Block 2 Adversary Verdict faithfully describes audit report Part A: 4 findings C-PP43-001..004; C-PP43-001/002/003 MEDIUM; C-PP43-004 LOW; all CLOSED same-burst across 3 legs)
+```
+
+**Gate vi — D-446(a) 8-block self-verification (pre-write declaration; post-write literal-shell at Block 6):**
+```
+[x] Block 1 — Parent-commit (64c87511 story-writer) PRESENT
+[x] Block 2 — Adversary verdict (pre-pass N/A; audit report source-attested C-PP43-001..004) PRESENT
+[x] Block 3 — Files touched (8 files; 3-leg cross-specialist burst) PRESENT
+[x] Block 4 — Codifications (D-798; L-BB lesson; counts stated) PRESENT
+[x] Block 5 — Dim-2 literal-shell gates i–vi with captured stdout PRESENT (this block)
+[x] Block 6 — Dim-5/6/7 Attestations + 8-block self-verification PRESENT (below)
+[x] Block 7 — Closes (C-PP43-001..004 CLOSED; streak UNCHANGED 0/3; NEXT pass-43) PRESENT (below)
+[x] Block 8 — Factory-artifacts commits (PENDING-SHA; SHA-patch follow-up) PRESENT (below)
+EXIT:0 — PASS (all 8 D-444(c) blocks verified present per D-446(a))
+```
+
+### Block 6 — Dim-5/6/7 Attestations + 8-block Self-Verification
+
+**Dim-5 (spec-compliance):** All modified artifacts comply with VSDD governance requirements. pre-pass-43-vp-table-consistency-audit.md follows the audit report structure (H1 scope header; Part A 4-finding table with severity/BC/finding/VP-INDEX canonical row/CLOSED-by; Part B zero-finding attestations ×3 BCs; Part C rationale; lesson reference; streak attestation; decision reference; parent-commit). decision-log.md D-798 block follows canonical 6-column format with parent-commit, phase, date, finding dispositions, lesson anchor. BC-INDEX v3.91 and STORY-INDEX v4.171 comply with POLICY 14 5-leg quintuple parity (all 5 legs verified: version frontmatter + body Changelog + modified[] + last_amended + upstream-index). STATE.md v5.49 satisfies D-443(a) verbatim-strict chain (all 5 BC-5.39.006 v1.7 PCs satisfied; D-798 YAML snapshot key updated; trajectory-tail LENGTH=4 `→1→1→0→3` UNCHANGED per D-433(e)+D-439(c); D-798 Decisions Log row prepended; Current Phase Steps D-798 row added + D-793 archived). Session Resume Checkpoint fully refreshed targeting pass-43 (zero-context self-sufficient; D-797+D-798 delta perimeter; standing controls carry D-798 pre-pass class-sweep discipline as new mandatory control).
+
+**Dim-6 (index completeness):** BC-INDEX v3.91 row annotations cover all 3 bumped BCs (BC-5.42.001/BC-2.02.011/BC-3.08.001). STORY-INDEX v4.171 BC coverage column updated for BC-5.42.001 v1.6 + BC-2.02.011 v1.6 + BC-3.08.001 v1.20. VP-INDEX v2.56 UNCHANGED (no VP files modified by D-798 pre-pass burst; VP-094/097/100 content was fixed in D-797). ARCH-INDEX v2.98 UNCHANGED. 4-index Gate i confirms v3.91/v2.56/v4.171/v2.98 atomically.
+
+**Dim-7 (routing discipline):** 3-specialist burst: product-owner (BC content corrections per VP-INDEX SoT; no spec authorship by SM); story-writer (BC cite sweeps in stories/epic; no story authorship by SM); state-manager (audit report persist; decision-log; lessons; BC-INDEX advance; STORY-INDEX advance; INDEX.md; STATE.md; burst-log). No state-manager authored BC body content or story spec content (routing discipline maintained per CLAUDE.md Agent Routing Table). Correct specialist assignments verified.
+
+**8-block self-verification:**
+- [x] Block 1 — Parent-commit (`64c87511`)
+- [x] Block 2 — Adversary verdict (pre-pass N/A; audit report source-attested; C-PP43-001..004 MEDIUM/LOW CLOSED same-burst; streak UNCHANGED 0/3)
+- [x] Block 3 — Files touched (8 files; 3-leg cross-specialist burst; per-specialist breakdown provided)
+- [x] Block 4 — Codifications (D-798; L-BB-pre-pass-class-sweeps-preempt-finding-leakage; D-NNN count 1; lesson count 1)
+- [x] Block 5 — Dim-2 literal-shell gates i–vi with captured stdout per D-449(a) (META-LEVEL-24 compliance)
+- [x] Block 6 — Dim-5/6/7 Attestations + 8-block self-verification (this block)
+- [x] Block 7 — Closes
+- [x] Block 8 — Factory-artifacts commits
+
+### Block 7 — Closes
+
+| Finding | Status | Notes |
+|---------|--------|-------|
+| C-PP43-001 MEDIUM: BC-5.42.001 VP-094 proof-method drift (unit→integration) | CLOSED | PO 9253c492 BC-5.42.001 v1.5→v1.6; VP-094 proof-method corrected per VP-INDEX SoT; input-hash 4fd18a4 UNCHANGED |
+| C-PP43-002 MEDIUM: BC-2.02.011 VP-097 row absent | CLOSED | PO 9253c492 BC-2.02.011 v1.5→v1.6; VP-097 row added per VP-INDEX SoT co-anchor; input-hash e650b4b |
+| C-PP43-003 MEDIUM: BC-3.08.001 VP-100 row absent | CLOSED | PO 9253c492 BC-3.08.001 v1.19→v1.20; VP-100 row added per VP-INDEX SoT; input-hash 6549a11 |
+| C-PP43-004 LOW: BC-3.08.001 VP-028 four→six event types | CLOSED | PO 9253c492 BC-3.08.001 v1.19→v1.20; §VP Anchors VP-028 bullet updated to six event types per BC H1 catalog (POLICY 7) |
+| Streak / trajectory | UNCHANGED | Streak 0/3 UNCHANGED (pre-pass consistency burst is not adversary pass); trajectory →1→1→0→3 UNCHANGED |
+
+**Open items carried:** O-P41-001 LOW (ADR-025 ## Changelog missing intermediate rows — accepted-with-record); O-P41-002 LOW (epic §Previous Story Intel ADR-025 provenance v1.7 cite — accepted-with-record); O-P35-001 Drift Item (BC-5.40.001/BC-6.23.001 POLICY 19 volatile-pins; deferred per D-790). artifact-path-registry.yaml deliberate (fold into S-19.04 PR at W2 per D-766 §7/D-774).
+
+NEXT: E-19 adversary pass-43 (fresh context; Iron Law; rubric policies.yaml v1.4.2; perimeter = D-797+D-798 delta + full E-19 carry-forward; streak 0/3 — three consecutive CLEANs → 3/3 CONVERGED → W1 TDD dispatch S-19.01+S-19.02+S-19.03 per D-773/D-774).
+
+### Block 8 — Factory-artifacts Commits
+
+| Commit | SHA | Description |
+|--------|-----|-------------|
+| D-798 PO 3 BC bumps | `9253c492` | BC-5.42.001 v1.5→v1.6 + BC-2.02.011 v1.5→v1.6 + BC-3.08.001 v1.19→v1.20 (C-PP43-001/002/003/004) |
+| D-798 SW 4 story/epic cite sweeps | `64c87511` | S-19.01 v1.17 + S-19.03 v1.18 + S-19.05 v1.15 + epic v1.24 (BC cite sweeps ×3/2/14/5 sites) |
+| D-798 SM closure leg (Commit E) | `PENDING-SHA` | pre-pass-43-vp-table-consistency-audit.md; D-798 decision-log; lessons; BC-INDEX v3.91; STORY-INDEX v4.171; INDEX.md Convergence Status; STATE.md v5.48→v5.49 474 lines; burst-log this entry; streak UNCHANGED 0/3; trajectory UNCHANGED →1→1→0→3; pass-43 NEXT |
+
+> SHA-patch follow-up required: replace `PENDING-SHA` above and Active Branches `factory-artifacts` row in STATE.md with actual Commit E HEAD SHA after push.

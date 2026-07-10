@@ -7817,3 +7817,83 @@ D-797-E19-ADV-PASS-42-NOT-CLEAN-CLOSED
 ### Date
 
 2026-07-09
+
+---
+
+## D-798 — Orchestrator Pre-Pass-43 Consistency Fix Burst (BC §VP↔VP-INDEX SoT sweep; 3 BC bumps + 4 story/epic bumps; streak UNCHANGED 0/3)
+
+### Summary
+
+Orchestrator-initiated fresh-context consistency audit (consistency-validator, read-only) of the pass-42 defect class (BC §Verification Properties ↔ VP-INDEX SoT) across all 5 sibling E-19 BCs BEFORE dispatching adversary pass-43 — per the Fresh-Context-Consistency-Audit-at-Every-Gate duty. 4 findings (3 MEDIUM + 1 LOW), all CLOSED same-burst by 2 prior legs (PO 9253c492 + SW 64c87511). Zero-finding attestations: BC-4.13.001, BC-1.17.001 CLEAN; BC-2.07.001 spot-verify PASS. Streak UNCHANGED 0/3 (pre-pass consistency burst — not an adversary pass). NEXT: E-19 adv pass-43.
+
+### Detail
+
+**(1) CONSISTENCY AUDIT SCOPE.**
+
+Orchestrator dispatch of consistency-validator (fresh-context; read-only) to sweep BC §Verification Properties ↔ VP-INDEX SoT across all 5 sibling E-19 BCs:
+- BC-5.42.001, BC-2.02.011, BC-3.08.001: FINDINGS (C-PP43-001..004)
+- BC-4.13.001: CLEAN
+- BC-1.17.001: CLEAN
+- BC-2.07.001: SPOT-VERIFY PASS (post-D-797 confirm)
+
+Full audit report: `cycles/v1.0-brownfield-backfill/pre-pass-43-vp-table-consistency-audit.md`
+
+**(2) C-PP43-001 MEDIUM — BC-5.42.001 VP-094 row 3 proof-method drift.**
+
+BC-5.42.001 §Verification Properties VP-094 row 3 (proof-method cell): `unit` — VP-INDEX SoT shows `integration` (Kani harness integration property).
+
+CLOSED: product-owner 9253c492 (BC-5.42.001 v1.5→v1.6: VP-094 row 3 proof-method unit→integration per VP-INDEX SoT; input-hash 4fd18a4 UNCHANGED).
+
+**(3) C-PP43-002 MEDIUM — BC-2.02.011 VP-097 row missing + TBD-only §VP table.**
+
+BC-2.02.011 §Verification Properties table: VP-097 row absent — VP-INDEX v2.56 shows `source_bc: BC-2.02.011` co-anchor (Row 97); §VP Anchors section references VP-097 but §VP Properties table only had TBD-placeholder for VP-097 scope.
+
+CLOSED: product-owner 9253c492 (BC-2.02.011 v1.5→v1.6: VP-097 row added to §VP Properties table with traversal-defense framing per VP-INDEX SoT co-anchor; §VP Anchors VP-097 cite synced; input-hash e650b4b).
+
+**(4) C-PP43-003 MEDIUM — BC-3.08.001 VP-100 row missing.**
+
+BC-3.08.001 §Verification Properties table: VP-100 row absent — VP-INDEX v2.56 shows `source_bc: BC-3.08.001` anchor (Row 100; Invariant 6 / DI-019 drain-timer property); §VP Anchors section references VP-100 but §VP Properties table did not surface the drain-timer / DI-019 property.
+
+CLOSED: product-owner 9253c492 (BC-3.08.001 v1.19→v1.20: VP-100 row added to §VP Properties table with DI-019 drain-timer framing per VP-INDEX SoT; §VP Anchors VP-100 cite synced; input-hash 6549a11).
+
+**(5) C-PP43-004 LOW — BC-3.08.001 §VP Anchors VP-028 bullet four→six event types.**
+
+BC-3.08.001 §VP Anchors VP-028 bullet said "four async event types" — BC's own H1 catalog lists six event types (plugin.async_block_discarded, dispatcher.schema_mismatch, dispatcher.registry_invalid, plugin.timeout (async path), plugin.abandoned, plugin.completed (async path)). Internal inconsistency: VP-028 anchor referenced historic four-event scope.
+
+CLOSED: product-owner 9253c492 (BC-3.08.001 v1.19→v1.20: §VP Anchors VP-028 bullet updated to six event types per BC's own H1 catalog; consistent with current §Verification Properties table; input-hash 6549a11).
+
+**(6) STORY-WRITER PROPAGATION.**
+
+BC bumps required cite sweeps in stories and epic:
+- BC-5.42.001 v1.5→v1.6: S-19.01 ×3 sites (input-hash d40bd21→799301c; 64c87511)
+- BC-2.02.011 v1.5→v1.6: S-19.03 ×2 sites (input-hash 8d1225d unchanged; 64c87511)
+- BC-3.08.001 v1.19→v1.20: S-19.05 ×14 sites (input-hash 9e54d68 unchanged; 64c87511)
+- epic v1.23→v1.24 ×5 sites incl. §Out-of-Scope carry-forward "LANDED as v1.19 (carried forward through v1.20)"; input-hash 9a1ba40→7ec7e1d (64c87511)
+All D-779 whole-file predicate gates PASS (confirmed at state-manager leg).
+
+**(7) LESSON CODIFIED.**
+
+L-BB-pre-pass-class-sweeps-preempt-finding-leakage [process-gap][codified D-798]: when an adversary pass surfaces a defect CLASS verified on only one artifact, the orchestrator dispatches a targeted consistency audit of that class across all sibling artifacts BEFORE the next adversary pass; findings fixed in a pre-pass burst. See lessons.md for full codification.
+
+**(8) 4-INDEX GATE (POLICY 14 leg-4 literal-shell).**
+
+See burst-log Block 5 for captured stdout. BC v3.91/VP v2.56/STORY v4.171/ARCH v2.98.
+
+BC-INDEX v3.90→v3.91: BC-5.42.001 row v1.6 annotation + BC-2.02.011 row v1.6 annotation + BC-3.08.001 row v1.20 annotation (D-798 change notes; PO 9253c492).
+VP-INDEX v2.56 UNCHANGED (exhaustive — no VP body changes by PO in this burst; VP content changes are reflected via BC §VP table additions only).
+STORY-INDEX v4.170→v4.171: S-19.01 row v1.17 + S-19.03 row v1.18 + S-19.05 row v1.15 + epic header v1.24; wave-summary Input-hashes S-19.01=d40bd21→799301c (category (i)); BC coverage updated BC-5.42.001 v1.6/BC-2.02.011 v1.6/BC-3.08.001 v1.20; delivery-summary Pre-pass-43 clause.
+ARCH-INDEX v2.98 UNCHANGED (exhaustive).
+
+**(9) NEXT: E-19 adv pass-43** (fresh context; Iron Law; rubric policies.yaml v1.4.2; perimeter = D-797+D-798 delta: BC-2.07.001 v1.5, BC-5.42.001 v1.6 (4fd18a4), BC-2.02.011 v1.6 (e650b4b), BC-3.08.001 v1.20 (6549a11), VP-094 v1.1 (9eff742), VP-097 v1.1 (784ee82), VP-098 v1.1 (0d7d3aa), VP-100 v1.1 (a2de4e4), VP-101 v1.1 (2fe5a22), S-19.01 v1.17 (799301c), S-19.03 v1.18 (8d1225d), S-19.05 v1.15 (9e54d68), epic v1.24 (7ec7e1d), BC-INDEX v3.91, VP-INDEX v2.56, STORY-INDEX v4.171, ARCH-INDEX v2.98 + carry-forward; streak 0/3 UNCHANGED; three consecutive CLEANs → 3/3 CONVERGED → W1 TDD dispatch per D-773/D-774).
+
+POLICY 16 global-max: D-797 confirmed max → D-798 allocated.
+
+Parent-commit: 64c87511 (story-writer leg — sweep(stories): pre-pass-43 BC version cite sweep; factory-artifacts HEAD before this burst).
+
+### Phase
+
+D-798-PRE-PASS-43-CONSISTENCY-FIX-BURST-CLOSED
+
+### Date
+
+2026-07-10
