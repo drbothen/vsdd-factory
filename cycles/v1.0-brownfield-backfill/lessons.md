@@ -5855,3 +5855,41 @@ The BC-INDEX gap (F-P24-002) compounded the issue: even if a reviewer knew to ch
 **Cites:** D-792; F-P37-001; adv-E19-pass-37.md; STORY-INDEX v4.169; policies.yaml v1.4.2 POLICY 5 v1.3.7; L-BB-same-file-aggregation-cells-are-sibling-sites (companion — parent category).
 
 **Closes:** D-792 F-P37-001 MEDIUM FIXED (SW 8c32bc3a); Token-Budget-Total axis of META-33 aggregation-cell class codified; L-BB-token-budget-totals-are-category-i-cells added to carry-forward lesson set for pass-38. `[process-gap; aggregation-cell; token-budget-total; arithmetic-anchor; POLICY-4; POLICY-5-category-i; META-33-sub-route; inception-error]`
+
+## L-BB-verbatim-parity-claims-require-char-diff-evidence [process-gap] [codified D-794]
+
+**Category:** process-gap
+
+**Status:** codified (D-794)
+
+**Lesson:** Verbatim-parity claims in adversary reports and index-sync attestations REQUIRE literal-shell character-diff evidence — e.g., extract the H1 substring, `grep -cF` it against the index row, or `diff` the two strings side-by-side. Visual inspection alone is insufficient. Em-dash (` — `) vs colon-space (`: `) is visually subtle in Markdown rendering; byte-level differences cannot be reliably detected by eye.
+
+**Context:** E-19 adv pass-38 attested POLICY 7 (BC-INDEX Title ↔ H1 verbatim-parity) as PASS narratively without performing a literal-shell character-diff. Pass-39 adversary (fresh context, Iron Law) extracted H1 strings byte-by-byte and found 3 of 6 E-19 BCs had title-cell drift:
+- BC-1.17.001: separator ` — ` became `: ` AND `, path_allow` became ` with path_allow` (2 drifts)
+- BC-2.07.001: `semantics — ` became `semantics: ` (1 drift)
+- BC-5.42.001: `enforcement — ` became `enforcement: ` (1 drift)
+
+Control: BC-3.08.001 preserved its mid-title em-dash verbatim, proving no index-wide normalization convention exists — the 3 drifts are copy errors, not convention.
+
+**Root cause:** POLICY 7 attestation at pass-38 was visual. Em-dash (U+2014, `—`) vs colon (U+003A, `:`) renders identically in many terminal fonts at small sizes. The adversary attested CLEAN without executing a character-extraction shell command.
+
+**Gate (D-794 codification — POLICY 7 verbatim-parity axis):** When attesting POLICY 7 compliance for any BC-INDEX title cell (or any other verbatim-parity claim), execute:
+1. Extract H1 title substring: `H1=$(grep -m1 '^# BC-N.NN.NNN:' <bc-file>.md | sed 's/^# BC-N\.NN\.NNN: //')`
+2. Verify index contains exact string: `grep -cF "$H1" BC-INDEX.md` → must return ≥1
+3. Capture stdout per D-449(a) and include in adversary report Part A and burst-log Dim-2.
+
+The same gate applies to:
+- VP-INDEX Title column ↔ VP file H1 (POLICY 9 propagation)
+- STORY-INDEX title cells ↔ story file H1 (POLICY 5 same-file check)
+- Any "matches H1 verbatim ✓" attestation in an adversary report
+
+**Prevention:**
+1. Adversary: Never attest verbatim-parity via visual inspection. Always execute `grep -cF` with captured stdout.
+2. Fix executor: After any BC-INDEX title-cell edit, run `grep -cF "<exact-H1-title>" BC-INDEX.md` and capture stdout before declaring done.
+3. Standing control: Add verbatim-parity `grep -cF` gate to every adversary POLICY 7 checklist row.
+
+**Anchors:** D-794 (this burst); F-P39-001 (BC-INDEX v3.88 3 title-cell drifts; MEDIUM load-bearing); adv-E19-pass-39.md A.2 (byte-exact comparison table); BC-INDEX v3.89 (fix); POLICY 7 (BC-H1-is-title-SoT enforcement target (i)); D-449(a) (literal-shell gate obligation).
+
+**Cites:** D-794; F-P39-001; adv-E19-pass-39.md; BC-INDEX v3.89; POLICY 7; POLICY 5 v1.3.7; L-BB-fix-executor-anchor-verification-obligation (companion — same class: literal-shell verification obligation).
+
+**Closes:** D-794 F-P39-001 MEDIUM FIXED (BC-INDEX v3.88→v3.89; 3 title cells → verbatim H1); POLICY-7-verbatim-parity-attestation-gap process-gap codified; lesson added to carry-forward set for pass-40. `[process-gap; verbatim-parity; literal-shell; char-diff; POLICY-7; BC-INDEX; H1-is-title-SoT; visual-attestation-miss]`

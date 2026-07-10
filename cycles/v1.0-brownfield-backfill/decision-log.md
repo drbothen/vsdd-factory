@@ -7553,3 +7553,66 @@ D-793-E19-ADV-PASS-38-CLEAN
 ### Date
 
 2026-07-09
+
+## D-794 — E-19 Adversarial Pass-39 Closure (NOT-CLEAN B0/H0/M1/L0; F-P39-001 disposition; POLICY 7 BC-INDEX title-cell verbatim-parity; streak 1/3→0/3)
+
+### Summary
+
+E-19 adv pass-39 NOT-CLEAN B0/H0/M1/L0 (1 finding; zero BLOCKER/HIGH; no-delta confirming pass). F-P39-001 MEDIUM POLICY 7: BC-INDEX v3.88 title cells drifted from BC file H1 on 3 of 6 E-19 BCs. Fix burst SM-only: BC-INDEX v3.88→v3.89 (3 title cells corrected to verbatim H1 form). Lesson L-BB-verbatim-parity-claims-require-char-diff-evidence [process-gap][codified] appended to lessons.md. 4-index: BC-INDEX v3.89 / VP-INDEX v2.55 (UNCHANGED) / STORY-INDEX v4.169 (UNCHANGED) / ARCH-INDEX v2.97 (UNCHANGED). Streak 1/3→0/3. NEXT: adv pass-40.
+
+### Detail
+
+**(1) PASS-39 VERDICT: NOT-CLEAN B0/H0/M1/L0.**
+
+- 1 actionable finding (F-P39-001 MEDIUM). 0 observations.
+- Model family: Claude Opus 4.7. Iron Law: zero prior context. Rubric: policies.yaml v1.4.2.
+- Trajectory (passes 22–39): 4→3→4→2→2→4→6→5→4→1→3→4→1→2→1→1→0→1.
+- Streak: 1/3 → **0/3** (reset; BC-5.39.001 strict-3-CLEAN per D-761 human directive).
+- Zero BLOCKER: 18 consecutive passes (p22–p39). Zero HIGH: 4 consecutive passes (p35–p39; this pass included).
+
+**(2) F-P39-001 MEDIUM — POLICY 7 BC-INDEX Title-Cell Verbatim-Parity.**
+
+POLICY 7 (BC-H1-is-title-SoT) enforcement target (i): BC-INDEX Title column must be a verbatim copy of the BC file H1 text after the `# BC-N.NN.NNN: ` prefix. Byte-exact comparison of all 6 E-19 BCs revealed 3 title-cell drifts in BC-INDEX v3.88:
+
+- **BC-1.17.001** (2 drifts): separator after `host::read_prefix` was colon-space (`: `) in index vs em-dash-space (` — `) in H1; AND `additive FFI entry point with path_allow` in index vs `additive FFI entry point, path_allow` in H1 (word `with` inserted, comma replaced).
+- **BC-2.07.001** (1 drift): `absent-file semantics: codes::NOT_FOUND` in index vs `absent-file semantics — codes::NOT_FOUND` in H1 (colon-space vs em-dash-space after `semantics`).
+- **BC-5.42.001** (1 drift): `merge-strategy enforcement: covered_sha` in index vs `merge-strategy enforcement — covered_sha` in H1 (colon-space vs em-dash-space after `enforcement`).
+
+Control: BC-3.08.001 index row preserves a mid-title em-dash verbatim, proving no index-wide colon-normalization convention exists. The 3 drifted titles are copy errors.
+
+POLICY 7 scope adjudication: editorial-abbreviation exception (C-P3-001) is scoped EXCLUSIVELY to story-body Behavioral Contracts table title cells. BC-INDEX Title column ↔ H1 requires VERBATIM parity. Any prior-pass acceptance of "index colon convention" is superseded.
+
+Root-cause: The pass-38 POLICY 7 attestation was performed via visual inspection, not literal-shell character-diff. Em-dash vs colon-space is visually subtle in Markdown rendering. Class: pseudocode-attestation miss at POLICY 7 verbatim-parity axis.
+
+**(3) FIX BURST — SM-ONLY (1 leg).**
+
+BC-INDEX v3.88→v3.89 (state-manager):
+- BC-1.17.001 title cell: `: ` → ` — ` AND ` with path_allow` → `, path_allow`
+- BC-2.07.001 title cell: `semantics: ` → `semantics — `
+- BC-5.42.001 title cell: `enforcement: ` → `enforcement — `
+- `version:` frontmatter: `"3.88"` → `"3.89"`
+- `last_amended:` frontmatter: D-794 entry prepended
+- Row-change annotations added to each of 3 affected rows (Refs: D-794, F-P39-001)
+- BC files UNCHANGED. total_bcs UNCHANGED 1,977.
+
+Post-edit literal-shell fgrep gate (D-449(a)): all 6 E-19 BCs pass fgrep character-exact check against BC-INDEX (≥1 match each). See burst-log Block 5.
+
+**(4) LESSON L-BB-VERBATIM-PARITY-CLAIMS-REQUIRE-CHAR-DIFF-EVIDENCE [process-gap][codified D-794].**
+
+Verbatim-parity claims in adversary reports and index-sync attestations REQUIRE literal-shell character-diff evidence (e.g., extract H1 substring, `fgrep` it against the index row, or `diff` the two strings), not visual comparison. Applied to: POLICY 7 BC-INDEX Title column ↔ H1; POLICY 9 VP-INDEX title ↔ VP file H1; STORY-INDEX title cells ↔ story file H1. Codified in lessons.md.
+
+**(5) 4-INDEX GATE (D-494 literal-shell).**
+
+BC-INDEX v3.89 / VP-INDEX v2.55 (UNCHANGED) / STORY-INDEX v4.169 (UNCHANGED) / ARCH-INDEX v2.97 (UNCHANGED). See burst-log Block 5 Gate iv.
+
+**(6) NEXT: E-19 adv pass-40** (fresh context; Iron Law; rubric policies.yaml v1.4.2; perimeter = D-794 delta: BC-INDEX v3.89 + full E-19 suite carry-forward at D-792 versions; streak 0/3; three consecutive CLEANs required).
+
+Parent-commit: 938001ca (D-793 sha-patch-close, factory-artifacts HEAD before this burst).
+
+### Phase
+
+D-794-E19-ADV-PASS-39-NOT-CLEAN-CLOSED
+
+### Date
+
+2026-07-09

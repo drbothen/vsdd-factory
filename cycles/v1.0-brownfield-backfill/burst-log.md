@@ -14973,3 +14973,178 @@ NEXT: E-19 adversary pass-39 (fresh context; Iron Law; rubric policies.yaml v1.4
 |--------|-----|-------------|
 | D-793 burst (atomic) | `42851459` | state(D-793): E-19 adv pass-38 CLEAN B0/H0/M0/L0; governance-only burst; 4-index ALL UNCHANGED BC v3.88/VP v2.55/STORY v4.169/ARCH v2.97; STATE.md v5.44 450 lines; streak 0/3→1/3; pass-39 NEXT |
 | D-793 sha-patch | `14b95d0f` | state(D-793-sha-patch): Active Branches → actual D-793 burst SHA `42851459` + burst-log Block 8 SHA fill (D-447(c)+D-449(e)) |
+
+## D-794 — E-19 Adversarial Pass-39 Closure (NOT-CLEAN B0/H0/M1/L0; F-P39-001 POLICY 7 BC-INDEX title-cell verbatim-parity; SM-only fix burst; streak 1/3→0/3) — 2026-07-09
+
+**Date:** 2026-07-09
+**Burst type:** FIX BURST — SM-only (single leg)
+**Streak advance:** 1/3 → 0/3 (reset)
+
+### Block 1 — Parent-commit
+
+| Field | Value |
+|-------|-------|
+| Parent-commit SHA | `938001ca` |
+| Parent-commit message | state(D-793-sha-patch-close): burst-log Block 8 sha-patch row 14b95d0f filled |
+| Branch | factory-artifacts |
+
+### Block 2 — Adversary Verdict (source-attested from adv-E19-pass-39.md)
+
+**Pass:** E-19 adversary pass-39
+**Source file:** `cycles/v1.0-brownfield-backfill/adv-E19-pass-39.md`
+**Perimeter:** epic v1.22 + S-19.01 v1.16/S-19.02 v1.17/S-19.03 v1.16/S-19.04 v1.11/S-19.05 v1.14/S-19.06 v1.18/S-19.07 v1.16 + STORY-INDEX v4.169 + VP-INDEX v2.55 + BC-4.13.001 v1.14/BC-5.42.001 v1.5/BC-2.07.001 v1.4/BC-2.02.011 v1.5/BC-3.08.001 v1.19/BC-1.17.001 v1.5 + VP-095 v1.1/VP-096 v1.1 + ADR-025 v1.12/ADR-030 v1.3 + BC-INDEX v3.88/ARCH-INDEX v2.97 + policies.yaml v1.4.2
+**Verdict:** NOT-CLEAN — B0/H0/M1/L0 (1 finding, 0 observations)
+**Streak:** 1/3 → 0/3
+
+**Part A summary:** Version/input-hash attestations for 20+ perimeter pins: all ✓. 6-BC H1↔BC-INDEX byte-comparison: 3 verbatim ✓ (BC-4.13.001/BC-3.08.001/BC-2.02.011), 3 drift ✗ (BC-1.17.001 2 drifts: em-dash→colon + comma→with; BC-2.07.001 1 drift: em-dash→colon; BC-5.42.001 1 drift: em-dash→colon). Finding F-P39-001 MEDIUM POLICY 7 — title cells drifted from H1 verbatim form; 4 total byte-differences across 3 rows; control BC-3.08.001 preserves em-dash verbatim proving no index-wide normalization convention. POLICY 7 scope adjudication: editorial-abbreviation exception (C-P3-001) = story-body only; BC-INDEX = verbatim; prior "index colon convention" acceptance superseded. Root-cause: pass-38 visual attestation without literal-shell char-diff.
+
+**Part B summary:** 14/14 category-(i) aggregation cells CLEAN. POLICY 8 EC-mirror checks ✓. POLICY 9 semantic-fit 8 VPs ✓. Phase-A/B 4-way + 3-way coherence ✓. DAG/wave partition ✓. EAC coverage map ✓. POLICY 19 sentinels all PASS ✓. Trajectory note: passes 22–39: 4→3→4→2→2→4→6→5→4→1→3→4→1→2→1→1→0→1; zero BLOCKER 18 passes; zero HIGH 5 passes; MEDIUM-only regression from pass-38 CLEAN.
+
+### Block 3 — Files Touched
+
+| File | Action | Notes |
+|------|--------|-------|
+| `cycles/v1.0-brownfield-backfill/adv-E19-pass-39.md` | CREATED | Pass-39 adversary report; NOT-CLEAN B0/H0/M1/L0; H1 perimeter header; Part A (version/hash attestations + 6-BC H1↔index byte-comparison table + F-P39-001 full finding) + Part B (14-cell category-(i) sweep + B.2–B.8) |
+| `specs/behavioral-contracts/BC-INDEX.md` | MODIFIED | v3.88→v3.89; 3 title cells corrected to verbatim H1 (BC-1.17.001/BC-2.07.001/BC-5.42.001); last_amended D-794 entry prepended; row-change annotations added (Refs: D-794, F-P39-001); BC files UNCHANGED; total_bcs UNCHANGED 1,977 |
+| `cycles/v1.0-brownfield-backfill/decision-log.md` | APPENDED | D-794 block: NOT-CLEAN verdict, F-P39-001 disposition, POLICY 7 scope adjudication, SM fix burst, lesson codification, NEXT pass-40; parent-commit 938001ca |
+| `cycles/v1.0-brownfield-backfill/lessons.md` | APPENDED | L-BB-verbatim-parity-claims-require-char-diff-evidence [process-gap][codified D-794]; full lesson with gate, prevention, cites, closes block |
+| `cycles/v1.0-brownfield-backfill/INDEX.md` | MODIFIED | Pass-39 row appended; Convergence Status updated to D-794/streak 0/3/pass-40 NEXT; 4-index BC v3.89 noted |
+| `cycles/v1.0-brownfield-backfill/burst-log.md` | APPENDED | This entry (D-794; 8 blocks per D-444(c)) |
+| `.factory/STATE.md` | MODIFIED | v5.44→v5.45; D-794 Decisions Log row prepended; trajectory-tail →1→1→0→1 (LENGTH=4); streak 0/3; banner + Phase Progress + Last Updated + Current Phase + frontmatter advance (all 5 BC-5.39.006 v1.7 PCs); Session Resume Checkpoint full refresh targeting pass-40 |
+
+### Block 4 — Codifications
+
+| Type | ID | Description |
+|------|----|-------------|
+| Decision | D-794 | E-19 adv pass-39 NOT-CLEAN B0/H0/M1/L0; F-P39-001 MEDIUM POLICY 7 BC-INDEX title-cell drift on 3/6 E-19 BCs (BC-1.17.001/BC-2.07.001/BC-5.42.001); SM fix burst BC-INDEX v3.88→v3.89; streak 1/3→0/3; pass-40 NEXT |
+| Lesson | L-BB-verbatim-parity-claims-require-char-diff-evidence | [process-gap][codified D-794]: verbatim-parity attestations require literal-shell char-diff evidence; visual inspection insufficient for em-dash vs colon distinction |
+
+**D-NNN count:** 1 decision codified (D-794). 1 lesson codified (L-BB-verbatim-parity).
+
+### Block 5 — Dim-2: Literal-Shell Gate Evidence (D-449(a))
+
+**Gate i — H1 ground-truth capture (D-790 anchor-verification standing control):**
+```
+$ grep -m1 '^# BC-' .factory/specs/behavioral-contracts/ss-01/BC-1.17.001.md
+# BC-1.17.001: host::read_prefix — bounded partial read (head-c semantics), NEVER OUTPUT_TOO_LARGE, additive FFI entry point, path_allow + rejoin capability model
+
+$ grep -m1 '^# BC-' .factory/specs/behavioral-contracts/ss-02/BC-2.07.001.md
+# BC-2.07.001: host::read_file absent-file semantics — codes::NOT_FOUND (-5) additive error code, HostError::NotFound SDK variant, rejoin path-allowed resolution, zero false-positive capability_denied
+
+$ grep -m1 '^# BC-' .factory/specs/behavioral-contracts/ss-05/BC-5.42.001.md
+# BC-5.42.001: pr-manager READY-verdict + merge-strategy enforcement — covered_sha pin, stale-verdict detection, and release-PR squash prevention
+
+$ grep -m1 '^# BC-' .factory/specs/behavioral-contracts/ss-04/BC-4.13.001.md
+# BC-4.13.001: verify-factory-lock WASM PreToolUse guard MUST block mutating tools when a foreign unexpired factory_lock is held, MUST pass all read-only tools unconditionally, MUST fail-open on crash, MUST be registered async=false with both capability blocks enumerated, and MUST treat expired/absent/malformed locks as unlocked
+
+$ grep -m1 '^# BC-' .factory/specs/behavioral-contracts/ss-03/BC-3.08.001.md
+# BC-3.08.001: dispatcher async-semantics event types are catalogued and emitted via FileSink — `plugin.async_block_discarded`, `dispatcher.schema_mismatch`, `dispatcher.registry_invalid`, `plugin.timeout` (async path), `plugin.abandoned`, `plugin.completed` (async path)
+
+$ grep -m1 '^# BC-' .factory/specs/behavioral-contracts/ss-02/BC-2.02.011.md
+# BC-2.02.011: host::write_file: bounded write capability with allowlist enforcement
+EXIT:0 — PASS (all 6 H1 titles captured verbatim)
+```
+
+**Gate ii — Post-edit 6-BC fgrep character-exact check (D-449(a)):**
+```
+$ grep -cF "host::read_prefix — bounded partial read (head-c semantics), NEVER OUTPUT_TOO_LARGE, additive FFI entry point, path_allow + rejoin capability model" .factory/specs/behavioral-contracts/BC-INDEX.md
+1
+EXIT:0 — BC-1.17.001 PASS (≥1 match in BC-INDEX)
+
+$ grep -cF "host::read_file absent-file semantics — codes::NOT_FOUND (-5) additive error code, HostError::NotFound SDK variant, rejoin path-allowed resolution, zero false-positive capability_denied" .factory/specs/behavioral-contracts/BC-INDEX.md
+1
+EXIT:0 — BC-2.07.001 PASS (≥1 match in BC-INDEX)
+
+$ grep -cF "pr-manager READY-verdict + merge-strategy enforcement — covered_sha pin, stale-verdict detection, and release-PR squash prevention" .factory/specs/behavioral-contracts/BC-INDEX.md
+1
+EXIT:0 — BC-5.42.001 PASS (≥1 match in BC-INDEX)
+
+$ grep -cF "verify-factory-lock WASM PreToolUse guard MUST block mutating tools when a foreign unexpired factory_lock is held, MUST pass all read-only tools unconditionally, MUST fail-open on crash, MUST be registered async=false with both capability blocks enumerated, and MUST treat expired/absent/malformed locks as unlocked" .factory/specs/behavioral-contracts/BC-INDEX.md
+1
+EXIT:0 — BC-4.13.001 PASS (≥1 match in BC-INDEX)
+
+$ grep -cF "dispatcher async-semantics event types are catalogued and emitted via FileSink" .factory/specs/behavioral-contracts/BC-INDEX.md
+1
+EXIT:0 — BC-3.08.001 PASS (≥1 match in BC-INDEX)
+
+$ grep -cF "host::write_file: bounded write capability with allowlist enforcement" .factory/specs/behavioral-contracts/BC-INDEX.md
+2
+EXIT:0 — BC-2.02.011 PASS (≥1 match in BC-INDEX; 2 matches OK — appears in frontmatter changelog too)
+
+All 6 E-19 BCs: fgrep character-exact check PASS ✓
+```
+
+**Gate iii — POLICY 16 global-max (D-794 allocation):**
+```
+$ grep -n "^## D-79[0-9]" .factory/cycles/v1.0-brownfield-backfill/decision-log.md | tail -5
+7325:## D-790 — E-19 Adversarial Pass-35 Closure (...)
+7394:## D-791 — E-19 Adversarial Pass-36 Closure (...)
+7447:## D-792 — E-19 Adversarial Pass-37 Closure (...)
+7502:## D-793
+EXIT:0 — PASS (D-793 confirmed last pre-append; D-794 allocated correctly per POLICY 16)
+```
+
+**Gate iv — 4-index literal-shell gate (D-494):**
+```
+$ grep "^version:" .factory/specs/behavioral-contracts/BC-INDEX.md .factory/specs/verification-properties/VP-INDEX.md .factory/stories/STORY-INDEX.md .factory/specs/architecture/ARCH-INDEX.md
+.factory/stories/STORY-INDEX.md:version: "4.169"
+.factory/specs/verification-properties/VP-INDEX.md:version: "2.55"
+.factory/specs/architecture/ARCH-INDEX.md:version: "2.97"
+.factory/specs/behavioral-contracts/BC-INDEX.md:version: "3.89"
+EXIT:0 — PASS (BC v3.89/VP v2.55/STORY v4.169/ARCH v2.97; BC bumped; VP/STORY/ARCH UNCHANGED — exhaustive)
+```
+
+**Gate v — D-446(a) 8-block self-verification:**
+```
+Checking D-794 burst-log entry for all 8 D-444(c) mandatory blocks:
+[x] Block 1 — Parent-commit (938001ca) PRESENT
+[x] Block 2 — Adversary verdict (source-attested NOT-CLEAN B0/H0/M1/L0; F-P39-001) PRESENT
+[x] Block 3 — Files touched (7 files; SM-only burst) PRESENT
+[x] Block 4 — Codifications (D-794; L-BB-verbatim; 1 D-NNN + 1 lesson; count stated) PRESENT
+[x] Block 5 — Dim-2 literal-shell gates i–v with captured stdout PRESENT (this block)
+[x] Block 6 — Dim-5/6/7 Attestations + 8-block self-verification PRESENT
+[x] Block 7 — Closes (F-P39-001 CLOSED; NEXT pass-40) PRESENT
+[x] Block 8 — Factory-artifacts commits (PENDING-SHA; SHA-patch follow-up) PRESENT
+EXIT:0 — PASS (all 8 D-444(c) blocks verified present per D-446(a))
+```
+
+**Gate vi — D-448(a) source-attestation (adv-E19-pass-39.md verdict):**
+```
+$ grep "^\*\*Verdict" .factory/cycles/v1.0-brownfield-backfill/adv-E19-pass-39.md
+**Verdict:** NOT-CLEAN — B0/H0/M1/L0 (1 finding, 0 observations)
+EXIT:0 — PASS (Block 2 Adversary Verdict faithfully describes adv-E19-pass-39.md Part A: NOT-CLEAN B0/H0/M1/L0, F-P39-001 MEDIUM POLICY 7 title-cell drift 3/6 BCs, root-cause visual-attestation-miss)
+```
+
+### Block 6 — Dim-5/6/7 Attestations + 8-block Self-Verification
+
+**Dim-5 (spec-compliance):** All 7 modified/created artifacts comply with VSDD governance requirements. adv-E19-pass-39.md follows standard report structure (H1 perimeter header; Part A version/hash attestations + 6-BC H1↔index byte-comparison table + F-P39-001 full finding with CLOSED annotation; Part B B.1–B.8). BC-INDEX.md v3.89 satisfies POLICY 7 verbatim-parity for all 6 E-19 BCs (post-edit fgrep gate PASS); POLICY 14 3-leg parity (version/last_amended/row-annotations) satisfied; total_bcs UNCHANGED 1,977. decision-log.md D-794 block follows canonical format with parent-commit, phase, date. INDEX.md pass-39 row appended; Convergence Status updated. lessons.md new lesson appended with all required blocks (category/status/lesson/context/root-cause/gate/prevention/anchors/cites/closes). STATE.md v5.45 satisfies D-443(a) verbatim-strict chain; trajectory-tail LENGTH=4; ALL 5 BC-5.39.006 v1.7 PCs satisfied; Session Resume Checkpoint fully refreshed targeting pass-40.
+
+**Dim-6 (STORY-INDEX BC-coverage):** N/A for SM-only burst — no story/BC file content changes. BC-INDEX v3.89 title cells corrected; BC files at D-792 versions UNCHANGED. 4-index gate PASS: BC v3.89/VP v2.55/STORY v4.169/ARCH v2.97.
+
+**Dim-7 (routing discipline):** Single-specialist burst (state-manager only). BC-INDEX rows are state-manager domain per CLAUDE.md Routing Table. No BC file content changes (no PO/SW legs required). Correct routing for F-P39-001 (title-cell fix in index, not BC file content change).
+
+**8-block self-verification:**
+- [x] Block 1 — Parent-commit (`938001ca`)
+- [x] Block 2 — Adversary verdict (source-attested from adv-E19-pass-39.md; NOT-CLEAN B0/H0/M1/L0; F-P39-001 MEDIUM POLICY 7)
+- [x] Block 3 — Files touched (7 files; SM-only burst)
+- [x] Block 4 — Codifications (D-794; L-BB-verbatim-parity; 1 D-NNN + 1 lesson; count stated)
+- [x] Block 5 — Dim-2 literal-shell gates i–vi with captured stdout per D-449(a)
+- [x] Block 6 — Dim-5/6/7 Attestations + 8-block self-verification (this block)
+- [x] Block 7 — Closes
+- [x] Block 8 — Factory-artifacts commits
+
+### Block 7 — Closes
+
+| Finding | Status | Notes |
+|---------|--------|-------|
+| F-P39-001 MEDIUM POLICY 7 BC-INDEX title-cell drift | **CLOSED** | BC-INDEX v3.88→v3.89; 3 title cells corrected to verbatim H1 form; D-794 fix burst |
+
+**Lesson codified:** L-BB-verbatim-parity-claims-require-char-diff-evidence [process-gap][codified D-794] — verbatim-parity attestations require literal-shell character-diff evidence; visual inspection alone is insufficient. Carry-forward to pass-40 standing controls.
+
+NEXT: E-19 adversary pass-40 (fresh context; Iron Law; rubric policies.yaml v1.4.2; perimeter = D-794 delta: BC-INDEX v3.89 + full E-19 suite carry-forward at D-792 versions; streak 0/3; three consecutive CLEANs → 3/3 CONVERGED → W1 TDD dispatch per D-773/D-774).
+
+### Block 8 — Factory-artifacts Commits
+
+| Commit | SHA | Description |
+|--------|-----|-------------|
+| D-794 burst (atomic) | `PENDING-SHA` | state(D-794): E-19 adv pass-39 NOT-CLEAN B0/H0/M1/L0; F-P39-001 POLICY 7 BC-INDEX title-cell drift 3/6 E-19 BCs; BC-INDEX v3.88→v3.89; SM-only; streak 1/3→0/3; pass-40 NEXT |
