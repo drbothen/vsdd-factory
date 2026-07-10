@@ -15741,6 +15741,4 @@ NEXT: E-19 adversary pass-43 (fresh context; Iron Law; rubric policies.yaml v1.4
 |--------|-----|-------------|
 | D-798 PO 3 BC bumps | `9253c492` | BC-5.42.001 v1.5→v1.6 + BC-2.02.011 v1.5→v1.6 + BC-3.08.001 v1.19→v1.20 (C-PP43-001/002/003/004) |
 | D-798 SW 4 story/epic cite sweeps | `64c87511` | S-19.01 v1.17 + S-19.03 v1.18 + S-19.05 v1.15 + epic v1.24 (BC cite sweeps ×3/2/14/5 sites) |
-| D-798 SM closure leg (Commit E) | `PENDING-SHA` | pre-pass-43-vp-table-consistency-audit.md; D-798 decision-log; lessons; BC-INDEX v3.91; STORY-INDEX v4.171; INDEX.md Convergence Status; STATE.md v5.48→v5.49 474 lines; burst-log this entry; streak UNCHANGED 0/3; trajectory UNCHANGED →1→1→0→3; pass-43 NEXT |
-
-> SHA-patch follow-up required: replace `PENDING-SHA` above and Active Branches `factory-artifacts` row in STATE.md with actual Commit E HEAD SHA after push.
+| D-798 SM closure leg (Commit E) | `c1817040` | pre-pass-43-vp-table-consistency-audit.md; D-798 decision-log; lessons; BC-INDEX v3.91; STORY-INDEX v4.171; INDEX.md Convergence Status; STATE.md v5.48→v5.49 474 lines; burst-log this entry; streak UNCHANGED 0/3; trajectory UNCHANGED →1→1→0→3; pass-43 NEXT |
