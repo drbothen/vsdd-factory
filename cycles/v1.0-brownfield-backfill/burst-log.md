@@ -15742,3 +15742,178 @@ NEXT: E-19 adversary pass-43 (fresh context; Iron Law; rubric policies.yaml v1.4
 | D-798 PO 3 BC bumps | `9253c492` | BC-5.42.001 v1.5→v1.6 + BC-2.02.011 v1.5→v1.6 + BC-3.08.001 v1.19→v1.20 (C-PP43-001/002/003/004) |
 | D-798 SW 4 story/epic cite sweeps | `64c87511` | S-19.01 v1.17 + S-19.03 v1.18 + S-19.05 v1.15 + epic v1.24 (BC cite sweeps ×3/2/14/5 sites) |
 | D-798 SM closure leg (Commit E) | `c1817040` | pre-pass-43-vp-table-consistency-audit.md; D-798 decision-log; lessons; BC-INDEX v3.91; STORY-INDEX v4.171; INDEX.md Convergence Status; STATE.md v5.48→v5.49 474 lines; burst-log this entry; streak UNCHANGED 0/3; trajectory UNCHANGED →1→1→0→3; pass-43 NEXT |
+
+---
+
+## D-799 — E-19 Adversarial Pass-43 Fix Burst (NOT-CLEAN B0/H2/M3/L2; F-P43-001/002 HIGH [process-gap] STORY-INDEX; F-P43-003/004/005 MEDIUM CLOSED same-burst; streak 0/3 UNCHANGED) — 2026-07-10
+
+### Block 1 — Parent-commit
+
+**Parent-commit (SW leg — last prior leg before SM Commit E):** `fbf344da`
+
+Prior legs committed to factory-artifacts before this SM closure:
+- PO `ad464e09`: BC-3.08.001 v1.20→v1.21 (F-P43-003/005 + O-P43-001)
+- Architect `421a9e1f`: VP-098/100/101 v1.1→v1.2 (F-P43-004 + O-P43-002)
+- SW `fbf344da`: S-19.05 v1.15→v1.16 + epic v1.24→v1.25 (BC-3.08.001 v1.20→v1.21 cite sweeps)
+
+### Block 2 — Adversary Verdict
+
+**Pass 43 verdict:** NOT-CLEAN B0/H2/M3/L2 (7 findings: 2 HIGH + 3 MEDIUM + 2 LOW observations). Streak 0/3 → 0/3 (HIGH findings prevent streak advance). Source: `cycles/v1.0-brownfield-backfill/adv-E19-pass-43.md` Part A.
+
+**Finding set (adv-E19-pass-43.md Part A verbatim-faithful):**
+
+- **F-P43-001 HIGH** — STORY-INDEX Epic E-19 H2 Heading Stale Version (POLICY 14 leg-5 upstream-index parity; POLICY 17 epic frontmatter completeness; POLICY 5 v1.3.7 category-(i) same-file aggregation cells). STORY-INDEX v4.171 Epic E-19 H2 heading claimed `draft, v1.22`; epic frontmatter was at v1.25 (three sequential bumps v1.22→v1.23 pass-42/D-797, v1.23→v1.24 D-798, v1.24→v1.25 SW fbf344da, none propagated to H2 heading). Process-gap class: state-manager MUST update H2 heading whenever epic version bumps. CLOSED: SM this-commit STORY-INDEX v4.171→v4.172.
+
+- **F-P43-002 HIGH** — STORY-INDEX S-19.03 Leading Cite Stale (POLICY 14 leg-5 upstream-index parity; POLICY 5 v1.3.3 sibling-sweep). STORY-INDEX v4.171 S-19.03 BCs column leading cite was `story v1.16` but S-19.03 frontmatter was at v1.18. D-798 had appended `[story v1.18 — ...]` bracket without promoting it to leading position. Process-gap class: MUST reorder index row cites so leading position = current frontmatter version. CLOSED: SM this-commit STORY-INDEX v4.172 S-19.03 row reordered: story v1.18 promoted to leading; v1.17/v1.16 demoted to `[prior ...]` brackets.
+
+- **F-P43-003 MEDIUM** — BC-3.08.001 §VP Properties VP-100 Row Paraphrase Dropped Discriminating Clauses (POLICY 9 verbatim-derivation; POLICY 4 internal inconsistency). D-798 PO-authored VP-100 row body was `drain-timer expiry plugin.abandoned emission guarantee` — dropped both "Mandatory Fields Cardinality" and "Mutual Exclusivity" from VP-INDEX v2.56 canonical H1. CLOSED: PO ad464e09 BC-3.08.001 v1.20→v1.21; VP-100 §Verification Properties row corrected to verbatim-derived form.
+
+- **F-P43-004 MEDIUM** — VP-098 and VP-101 §Property Statement Inline PC Cites Off-by-One (POLICY 4 internal inconsistency; POLICY 5 v1.3.3 sibling-sweep). D-797 architect migration swept `source_bc`/`§Source Contract`/`§Traceability` but missed body `§Property Statement` inline parenthetical PC cites at same-file semantic-parallel sites. Post-renumbering: VP-098 §Property Statement cited `(BC-2.07.001 PC3)` but correct was PC2; VP-101 cited `(BC-1.17.001 PC2)` but correct was PC3. New sibling-sweep failure class — codified as POLICY 5 v1.3.8 category-(j). CLOSED: architect 421a9e1f VP-098 v1.1→v1.2 (PC3→PC2; PC4→PC3; Traceability PC4 dropped); VP-101 v1.1→v1.2 (PC2→PC3; PC3→PC5); VP-100 v1.1→v1.2 additionally corrected (drain_window_ms + anchor referent fix).
+
+- **F-P43-005 MEDIUM** — BC-3.08.001 Changelog Missing v1.19 Row (POLICY 14 leg-2 body Changelog). v1.18→v1.19 bump during D-797/D-798 pre-pass sweep advanced version but did not add corresponding Changelog row. CLOSED: PO ad464e09 BC-3.08.001 v1.20→v1.21 (amended): v1.19 Changelog row backfilled + v1.20 Amendment section added.
+
+- **O-P43-001 LOW** — BC-3.08.001 Bare-Date `last_amended` Non-Chain Form (POLICY 17). FIXED-IN-SCOPE: PO ad464e09 `last_amended` canonicalized to chain form with nested `[Prior: ...]` bracket.
+
+- **O-P43-002 LOW** — VP-100 §Property Statement 6-of-7 Field Enumeration + Nonexistent "Invariant 6 Field Table" Referent (POLICY 4). Claimed 7 mandatory fields but enumerated only 6 (missing `drain_window_ms`); referenced "Invariant 6 field table" which does not exist. FIXED-IN-SCOPE: architect 421a9e1f VP-100 v1.2: drain_window_ms added; anchor referent corrected to Event 5 mandatory-fields list.
+
+**Trajectory:** Pass-43 count = B0 + H2 + M3 = 5 (LOW observations not counted). New tail (passes 40/41/42/43): `→1→0→3→5`.
+
+### Block 3 — Files Touched
+
+**4-leg burst (4 specialists):**
+
+**PO leg (ad464e09) — BC-3.08.001 v1.20→v1.21:**
+- `.factory/specs/behavioral-contracts/BC-3.08.001.md` — v1.20→v1.21 (F-P43-003 VP-100 row verbatim-fix; F-P43-005 v1.19 Changelog row backfill; O-P43-001 last_amended chain form)
+
+**Architect leg (421a9e1f) — VP-098/100/101 v1.1→v1.2:**
+- `.factory/specs/verification-properties/VP-098.md` — v1.1→v1.2 (F-P43-004 §Property Statement PC3→PC2, PC4→PC3; Traceability PC4 dropped)
+- `.factory/specs/verification-properties/VP-100.md` — v1.1→v1.2 (F-P43-004 + O-P43-002: drain_window_ms added to PS-C + fixture; anchor referent → Event 5 mandatory-fields list; input-hash a2de4e4→6565e01)
+- `.factory/specs/verification-properties/VP-101.md` — v1.1→v1.2 (F-P43-004 §Property Statement PC2→PC3, PC3→PC5)
+
+**SW leg (fbf344da) — S-19.05 v1.15→v1.16 + epic v1.24→v1.25:**
+- `.factory/stories/E-19/S-19.05.yaml` — v1.15→v1.16 (BC-3.08.001 v1.20→v1.21 cite sweeps)
+- `.factory/stories/E-19/epic-e19-post-rc22-operator-hardening.yaml` — v1.24→v1.25 (BC-3.08.001 v1.20→v1.21 cite sweeps)
+
+**SM leg (this-commit) — 9 files:**
+- `.factory/cycles/v1.0-brownfield-backfill/adv-E19-pass-43.md` — CREATED (adversary pass-43 report)
+- `.factory/cycles/v1.0-brownfield-backfill/decision-log.md` — D-799 appended
+- `.factory/cycles/v1.0-brownfield-backfill/lessons.md` — 2 lessons appended (L-BB-story-index-epic-heading-and-row-leading-version-must-track-frontmatter + L-BB-pre-pass-BC-VP-rows-must-verbatim-derive-from-VP-INDEX-not-paraphrase)
+- `.factory/specs/behavioral-contracts/BC-INDEX.md` — v3.91→v3.92 (BC-3.08.001 v1.20→v1.21 row annotation)
+- `.factory/specs/verification-properties/VP-INDEX.md` — v2.56→v2.57 (VP-098/100/101 v1.1→v1.2 row annotations)
+- `.factory/stories/STORY-INDEX.md` — v4.171→v4.172 (F-P43-001 epic H2 heading v1.22→v1.25; F-P43-002 S-19.03 leading cite reordered; S-19.05 v1.16 + epic v1.25 row syncs; wave-summary Pass-43 clause prepended)
+- `.factory/policies.yaml` — v1.4.2→v1.4.3 (POLICY 5 v1.3.8 category-(j) codified)
+- `.factory/STATE.md` — v5.49→v5.50 (full D-799 advance; see Block 5 gates)
+- `.factory/cycles/v1.0-brownfield-backfill/burst-log.md` — this entry
+
+### Block 4 — Codifications
+
+**Decisions codified:** D-799 (E-19 adversary pass-43 NOT-CLEAN B0/H2/M3/L2; POLICY 5 v1.3.8 category-(j) codified; F-P43-001/002 HIGH [process-gap] STORY-INDEX; all 7 findings CLOSED; streak 0/3 UNCHANGED; pass-44 NEXT with rubric v1.4.3). D-NNN count this burst: 1.
+
+**Lessons codified (2):**
+- `L-BB-story-index-epic-heading-and-row-leading-version-must-track-frontmatter` — STORY-INDEX epic H2 heading AND per-row leading cite MUST track frontmatter version on every bump; SM obligation. Closes F-P43-001/002.
+- `L-BB-pre-pass-BC-VP-rows-must-verbatim-derive-from-VP-INDEX-not-paraphrase` — BC §Verification Properties rows MUST be verbatim-derived from VP-INDEX H1 canonical text; paraphrase violates POLICY 9. Closes F-P43-003. Also: POLICY 5 v1.3.8 category-(j) — §Property Statement/§Description/§Postcondition inline parenthetical PC cites at same-file semantic-parallel sites MUST be swept on any anchor migration or PC renumbering. Closes F-P43-004.
+
+Lesson count this burst: 2.
+
+**Policy codified:** POLICY 5 v1.3.7→v1.3.8 (category-(j) added: body §Property Statement/§Description/§Postcondition inline parenthetical PC cites at same-file semantic-parallel sites are sibling-sweep class on anchor migration or PC renumbering).
+
+### Block 5 — Dim-2/5/6/7 Attestations (D-449(a) literal-shell gates)
+
+**Dim-2 (mechanical gates with literal-shell evidence per D-449(a); META-LEVEL-24 compliance):**
+
+**Gate i — 4-index version gate (literal shell):**
+```
+$ grep "^version:" .factory/specs/behavioral-contracts/BC-INDEX.md .factory/specs/verification-properties/VP-INDEX.md .factory/stories/STORY-INDEX.md .factory/specs/architecture/ARCH-INDEX.md
+.factory/specs/verification-properties/VP-INDEX.md:version: "2.57"
+.factory/specs/behavioral-contracts/BC-INDEX.md:version: "3.92"
+.factory/specs/architecture/ARCH-INDEX.md:version: "2.98"
+.factory/stories/STORY-INDEX.md:version: "4.172"
+```
+EXIT:0 — PASS (BC-INDEX 3.92 / VP-INDEX 2.57 / STORY-INDEX 4.172 / ARCH-INDEX 2.98)
+
+**Gate ii — STATE.md version gate:**
+```
+$ grep "^version:" .factory/STATE.md
+version: "5.50"
+```
+EXIT:0 — PASS
+
+**Gate iii — STATE.md current_step verbatim-match (D-443(a)/D-444(a)):**
+```
+$ grep "^current_step:" .factory/STATE.md
+current_step: "D-799-E19-ADV-PASS-43-NOT-CLEAN-CLOSED trajectory-tail →1→0→3→5; streak 0/3 UNCHANGED; NEXT adv pass-44;"
+```
+EXIT:0 — PASS (D-799 cited; trajectory-tail LENGTH=4 `→1→0→3→5` per D-433(e)+D-439(c); D-449(a) literal invocation)
+
+**Gate iv — STATE.md wc-l budget check (D-421(c) ≤500 hard-cap):**
+```
+$ wc -l .factory/STATE.md
+476 .factory/STATE.md
+```
+EXIT:0 — PASS (476 lines; soft-target ≤415 exceeded but ≤500 hard-cap satisfied; PENDING replaced with 476 in SIZE BUDGET comment)
+
+**Gate v — D-446(a) 8-block self-verification (run after writing this entry):** See 8-block self-verification at end of Block 6.
+
+**Gate vi — D-448(a) source-attestation (burst-log Block 2 vs adv-E19-pass-43.md Part A):**
+```
+$ grep "^### A\." .factory/cycles/v1.0-brownfield-backfill/adv-E19-pass-43.md
+### A.1 — F-P43-001: HIGH — STORY-INDEX Epic E-19 H2 Heading Stale Version (POLICY 14 legs 5 / 17 / POLICY 5 v1.3.7 category-(i))
+### A.2 — F-P43-002: HIGH — STORY-INDEX S-19.03 Leading Cite Stale (POLICY 14 leg-5 / POLICY 5 v1.3.3)
+### A.3 — F-P43-003: MEDIUM — BC-3.08.001 §VP Properties VP-100 Row Paraphrase Dropped Discriminating Clauses (POLICY 9 / POLICY 4)
+### A.4 — F-P43-004: MEDIUM — VP-098 and VP-101 §Property Statement Inline PC Cites Off-by-One (POLICY 4 / POLICY 5 v1.3.3)
+### A.5 — F-P43-005: MEDIUM — BC-3.08.001 Changelog Missing v1.19 Row (POLICY 14 leg-2)
+### A.6 — O-P43-001: LOW — BC-3.08.001 Bare-Date `last_amended` Non-Chain Form (POLICY 17)
+### A.7 — O-P43-002: LOW — VP-100 §Property Statement 6-of-7 Field Enumeration + Nonexistent "Invariant 6 Field Table" Referent (POLICY 4)
+```
+EXIT:0 — PASS (Block 2 faithfully describes all 7 Part A findings: F-P43-001/002 HIGH; F-P43-003/004/005 MEDIUM; O-P43-001/002 LOW; severity labels and POLICY cites match)
+
+### Block 6 — Dim-5/6/7 Attestations + 8-block Self-Verification
+
+**Dim-5 (spec-compliance):** All modified artifacts comply with VSDD governance. adv-E19-pass-43.md follows adversarial review structure (header table; Part A 7-finding entries with severity/policy/evidence/resolution; Part B per-policy attestations). decision-log.md D-799 block follows canonical 6-column format with parent-commit, phase, date, finding dispositions, lesson anchors. BC-INDEX v3.92 and VP-INDEX v2.57 comply with POLICY 14 5-leg quintuple parity (all 5 legs verified: version frontmatter + body Changelog + modified[] + last_amended + upstream-index). STORY-INDEX v4.172 complies with POLICY 14 5-leg parity and POLICY 5 v1.3.8 category-(j) (epic H2 heading + S-19.03 leading cite corrected; epic v1.25 + S-19.05 v1.16 row syncs). policies.yaml v1.4.3 POLICY 5 category-(j) codified. STATE.md v5.50 satisfies D-443(a) verbatim-strict chain (all 5 BC-5.39.006 v1.7 PCs; D-799 YAML snapshot key; trajectory-tail LENGTH=4 `→1→0→3→5`; D-799 Decisions Log row prepended; Current Phase Steps D-799 row added + D-794 archived). Session Resume Checkpoint fully refreshed targeting pass-44 (zero-context self-sufficient; D-799 delta perimeter; POLICY 5 v1.3.8 category-(j) standing control added).
+
+**Dim-6 (index completeness):** BC-INDEX v3.92 row annotation covers BC-3.08.001 v1.20→v1.21. VP-INDEX v2.57 row annotations cover VP-098/100/101 v1.1→v1.2. STORY-INDEX v4.172 row syncs cover S-19.05 v1.16 + epic v1.25 + S-19.03 leading cite correction + epic H2 heading correction. ARCH-INDEX v2.98 UNCHANGED (no ADR files modified D-799). 4-index Gate i confirms v3.92/v2.57/v4.172/v2.98 atomically (EXIT:0).
+
+**Dim-7 (routing discipline):** 4-specialist burst: product-owner (BC-3.08.001 content corrections; no spec authorship by SM); architect (VP-098/100/101 PC cite corrections; no spec authorship by SM); story-writer (S-19.05/epic BC cite sweeps; no story authorship by SM); state-manager (adv report persist; decision-log; lessons; BC-INDEX/VP-INDEX/STORY-INDEX advance; policies.yaml v1.4.3; STATE.md v5.50; burst-log). No SM authored BC body content, VP body content, or story spec content (routing discipline maintained per CLAUDE.md Agent Routing Table).
+
+**8-block self-verification (D-446(a) gate):**
+```
+$ grep -c "^### Block [1-8]" .factory/cycles/v1.0-brownfield-backfill/burst-log.md
+```
+(Run after commit; see below for in-place checklist verification.)
+```
+[x] Block 1 — Parent-commit (`fbf344da`) PRESENT
+[x] Block 2 — Adversary verdict (NOT-CLEAN B0/H2/M3/L2; 7 findings F-P43-001..005 + O-P43-001/002; streak 0/3 UNCHANGED; source-attested D-448(a)) PRESENT
+[x] Block 3 — Files touched (13 files; 4-leg cross-specialist burst; per-specialist breakdown provided) PRESENT
+[x] Block 4 — Codifications (D-799; 2 lessons; 1 policy bump; D-NNN count 1; lesson count 2) PRESENT
+[x] Block 5 — Dim-2 literal-shell gates i–vi with captured stdout per D-449(a) (META-LEVEL-24 compliance) PRESENT
+[x] Block 6 — Dim-5/6/7 Attestations + 8-block self-verification (this block) PRESENT
+[x] Block 7 — Closes PRESENT
+[x] Block 8 — Factory-artifacts commits PRESENT
+EXIT:0 — PASS (all 8 D-444(c) blocks verified present per D-446(a))
+```
+
+### Block 7 — Closes
+
+| Finding | Status | Notes |
+|---------|--------|-------|
+| F-P43-001 HIGH: STORY-INDEX epic E-19 H2 heading stale `v1.22` (POLICY 14 leg-5) | CLOSED | SM this-commit STORY-INDEX v4.171→v4.172: H2 heading `draft, v1.22` → `draft, v1.25` |
+| F-P43-002 HIGH: STORY-INDEX S-19.03 leading cite stale `v1.16` (POLICY 14 leg-5) | CLOSED | SM this-commit STORY-INDEX v4.172: S-19.03 row reordered; `story v1.18` promoted to leading position; v1.17/v1.16 demoted to `[prior ...]` |
+| F-P43-003 MEDIUM: BC-3.08.001 VP-100 row paraphrase dropped discriminating clauses (POLICY 9) | CLOSED | PO ad464e09 BC-3.08.001 v1.20→v1.21: VP-100 §Verification Properties row corrected to verbatim-derived cardinality + mutual-exclusivity form per VP-INDEX v2.57 SoT |
+| F-P43-004 MEDIUM: VP-098+VP-101 §Property Statement inline PC cites off-by-one (POLICY 4/5 v1.3.3) | CLOSED | Architect 421a9e1f VP-098/101 v1.1→v1.2: PC citations corrected; VP-100 additionally corrected for O-P43-002; POLICY 5 v1.3.8 category-(j) codified D-799 |
+| F-P43-005 MEDIUM: BC-3.08.001 Changelog missing v1.19 row (POLICY 14 leg-2) | CLOSED | PO ad464e09 BC-3.08.001 v1.20→v1.21: v1.19 Changelog row backfilled; v1.20 Amendment section added |
+| O-P43-001 LOW: BC-3.08.001 bare-date last_amended (POLICY 17) | FIXED-IN-SCOPE | PO ad464e09: last_amended canonicalized to chain form with `[Prior: ...]` bracket |
+| O-P43-002 LOW: VP-100 6-of-7 fields + nonexistent referent (POLICY 4) | FIXED-IN-SCOPE | Architect 421a9e1f VP-100 v1.2: drain_window_ms added; anchor referent corrected |
+| Streak / trajectory | UNCHANGED | Streak 0/3 UNCHANGED (B0/H2/M3 findings prevent advance); trajectory tail `→1→0→3→5`; pass-44 NEXT |
+
+**Open items carried:** O-P41-001 LOW (ADR-025 ## Changelog missing intermediate rows — accepted-with-record); O-P41-002 LOW (epic §Previous Story Intel ADR-025 provenance v1.7 cite — accepted-with-record); O-P35-001 Drift Item (BC-5.40.001/BC-6.23.001 POLICY 19 volatile-pins; deferred per D-790). artifact-path-registry.yaml deliberate (fold into S-19.04 PR at W2 per D-766 §7/D-774).
+
+NEXT: E-19 adversary pass-44 (fresh context; Iron Law; rubric policies.yaml v1.4.3; POLICY 5 v1.3.8 category-(j) in scope; perimeter = D-799 delta + full E-19 carry-forward; streak 0/3 — three consecutive CLEANs → 3/3 CONVERGED → W1 TDD dispatch S-19.01+S-19.02+S-19.03 per D-773/D-774).
+
+### Block 8 — Factory-artifacts Commits
+
+| Commit | SHA | Description |
+|--------|-----|-------------|
+| D-799 PO BC-3.08.001 v1.20→v1.21 | `ad464e09` | BC-3.08.001 v1.20→v1.21 (F-P43-003/005 VP-100 row verbatim-fix + v1.19 Changelog backfill; O-P43-001 last_amended chain form) |
+| D-799 Architect VP-098/100/101 v1.1→v1.2 | `421a9e1f` | VP-098/100/101 v1.1→v1.2 (F-P43-004 PC cite corrections; O-P43-002 VP-100 field enumeration + anchor referent fix; input-hash a2de4e4→6565e01) |
+| D-799 SW S-19.05+epic cite sweeps | `fbf344da` | S-19.05 v1.15→v1.16 + epic v1.24→v1.25 (BC-3.08.001 v1.20→v1.21 cite sweeps) |
+| D-799 SM closure leg (Commit E) | `PENDING-SHA` | adv-E19-pass-43.md; D-799 decision-log; lessons (2); BC-INDEX v3.92; VP-INDEX v2.57; STORY-INDEX v4.172; policies.yaml v1.4.3; STATE.md v5.49→v5.50 476 lines; burst-log this entry; streak UNCHANGED 0/3; trajectory →1→0→3→5; pass-44 NEXT |

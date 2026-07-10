@@ -6025,3 +6025,56 @@ Both are required. They address different escape routes.
 **Cites:** D-798; C-PP43-001..004; pre-pass-43-vp-table-consistency-audit.md; D-797; POLICY 9 (VP-INDEX is SoT for VP statements); POLICY 14 (BC-body-parity); POLICY 5 v1.3.3 (same-burst sibling sweep obligation); L-BB-vp-source-contract-pins-are-sibling-class (companion class — fix-executor obligation); D-784 (VP-095 fix that missed VP-097..101 — the original miss that triggered both L-BB-vp-source-contract-pins and this lesson).
 
 **Closes:** D-798 pre-pass burst (C-PP43-001..004 CLOSED; 3 MEDIUM + 1 LOW; 3 BC bumps + 4 story/epic sweeps; streak UNCHANGED 0/3; pre-pass-class-sweeps-preempt-finding-leakage process-gap codified; enforcement gate added to orchestrator carry-forward checklist). `[process-gap; pre-pass-sweep; defect-class; consistency-audit; orchestrator-obligation; before-next-pass; BC-VP-SoT-alignment; sibling-sweep; POLICY-9; POLICY-14; POLICY-5-v1.3.3; streak-unchanged]`
+
+---
+
+### L-BB-story-index-epic-heading-and-row-leading-version-must-track-frontmatter [process-gap][codified D-799]
+
+**Context:** E-19 adversary pass-43 (F-P43-001 HIGH + F-P43-002 HIGH). STORY-INDEX Epic E-19 H2 heading read `draft, v1.22` while the epic frontmatter was at v1.25 (three consecutive bumps missed). STORY-INDEX S-19.03 row leading cite read `story v1.16` while S-19.03 frontmatter was at v1.18 (two bumps missed; D-798 appended `[story v1.18 — ...]` annotation without promoting it to leading position).
+
+**Lesson:** Whenever an epic or story is version-bumped, the state-manager MUST update TWO locations in STORY-INDEX same-burst:
+1. **Epic H2 heading** (for epic bumps): `## Epic E-NNN — ... — draft, vX.YY` → advance to new version.
+2. **Story row leading cite** (for story and epic bumps): the BCs column opens with `story vX.YY — ...` (unbracketed); the latest version MUST be the first (leading) unbracketed cite. All prior cites MUST be demoted to `[prior story vX.YY — ...]` brackets.
+
+The D-797/D-798 pattern — appending `[story v1.18 — ...]` as a NON-leading bracket while leaving `story v1.16 —` as the leading cite — is the defect pattern. The correct pattern is to REORDER: extract the new version from brackets, place it as the leading cite, bracket all prior versions.
+
+**POLICY 14 leg-5 (upstream-index) applies to EVERY epic/story bump** — not only to BC-side bumps. The STORY-INDEX row update is an index leg on every story/epic bump.
+
+**POLICY 5 v1.3.7 category-(i) applies to epic H2 headings** — the heading is a same-file aggregation cell that duplicates the epic frontmatter version. When the epic is bumped, the heading is a sibling cell requiring same-burst update.
+
+**Gate (D-799 enforcement):** At every SM burst that bumps a story or epic:
+- Step 1: grep STORY-INDEX epic H2 heading for the epic's current version. If the heading does not cite the new version, UPDATE it.
+- Step 2: grep STORY-INDEX for the story row's BCs column leading cite `story vX.YY —`. If the version in the leading cite does not match the story file frontmatter, REORDER: promote the frontmatter version to leading, demote prior to `[prior ...]`.
+- Step 3: Capture the audit stdout (7-row E-19 table or equivalent) as D-449(a) evidence in burst-log Dim-2.
+
+**Root cause:** State-manager accumulated version notes incrementally (appending brackets) without verifying that the leading cite position was promoted. The leading cite position drifted silently over multiple bursts because no gate checked it.
+
+**Anchors:** D-799; F-P43-001; F-P43-002; STORY-INDEX v4.172 (fix); D-798 (the burst that introduced the F-P43-002 regression by appending instead of promoting); D-797 (the burst that introduced the F-P43-001 regression by not updating the heading on epic v1.22→v1.23).
+
+**Cites:** D-799; F-P43-001 (HIGH); F-P43-002 (HIGH); POLICY 14 leg-5 (upstream-index); POLICY 5 v1.3.7 category-(i) (aggregation-cell same-burst sweep); POLICY 17 (epic frontmatter completeness); D-798; D-797.
+
+**Closes:** D-799 SM leg (this-commit) — F-P43-001 Epic E-19 H2 heading v1.22→v1.25; F-P43-002 S-19.03 leading cite reorder v1.16→v1.18; streak 0/3. `[process-gap; STORY-INDEX; leading-cite; epic-heading; version-tracking; POLICY-14-leg-5; POLICY-5-v1.3.7-category-i; state-manager-discipline; same-burst-reorder]`
+
+---
+
+### L-BB-pre-pass-BC-VP-rows-must-verbatim-derive-from-VP-INDEX-not-paraphrase [process-gap][codified D-799]
+
+**Context:** E-19 adversary pass-43 (F-P43-003 MEDIUM). BC-3.08.001 v1.20 §Verification Properties VP-100 row (authored by D-798 PO leg) read `drain-timer expiry plugin.abandoned emission guarantee`. VP-INDEX canonical H1 for VP-100 reads `Drain-Timer-Expiry Plugin.Abandoned Emission Guarantee — Mandatory Fields Cardinality and Mutual Exclusivity`. The PO authoring dropped both discriminating clauses ("Mandatory Fields Cardinality" and "Mutual Exclusivity"), making the BC row a paraphrase rather than a verbatim-derived title.
+
+**Lesson:** BC §Verification Properties row additions MUST be verbatim-derived from VP-INDEX canonical H1, not paraphrased. The discriminating clauses in VP H1 titles exist precisely to distinguish the VP's behavioral scope from adjacent VPs. Dropping them creates a BC row that cannot be used to uniquely identify which behavioral property is being verified.
+
+**POLICY 9 mandate (verbatim derivation):** The PO workflow for adding a §VP Properties row is:
+1. Read VP-INDEX Full Index row for the target VP.
+2. Extract the Title column text verbatim (the H1 text after the markdown link).
+3. Paste verbatim into the BC §Verification Properties row property cell.
+4. Confirm: does the BC row text match the VP-INDEX row text exactly (modulo markdown escaping)? If not, it is a POLICY 9 violation.
+
+**The adversary's POLICY 9 check:** When verifying BC §Verification Properties rows, the adversary should grep VP-INDEX for each VP ID cited in the BC's §VP Anchors and compare the BC row property cell against the VP-INDEX H1 verbatim. Partial-title cites (missing clauses) are MEDIUM findings.
+
+**Root cause:** D-798 PO authoring condensed the VP-100 title from memory rather than copying verbatim from VP-INDEX. The two dropped clauses ("Mandatory Fields Cardinality" and "Mutual Exclusivity") were the most analytically important parts of the title — they specify that VP-100 verifies not just the existence of plugin.abandoned events but their field completeness and mutual exclusivity with plugin.completed.
+
+**Anchors:** D-799; F-P43-003; BC-3.08.001 v1.20 (D-798 defective version); VP-INDEX v2.56 VP-100 H1 (canonical ground truth); PO ad464e09 (fix — verbatim row restored).
+
+**Cites:** D-799; F-P43-003 (MEDIUM); POLICY 9 (VP-INDEX is SoT for VP property statements); POLICY 4 (internal consistency — §VP Anchors said correct thing but §VP Properties row contradicted VP-INDEX); D-798 (the burst that introduced the defect); ad464e09 (the fix); VP-INDEX v2.56 VP-100 row (canonical H1).
+
+**Closes:** D-799 (F-P43-003 CLOSED by PO ad464e09; streak 0/3; verbatim-derivation process-gap codified). `[process-gap; BC-VP-verbatim; POLICY-9; verbatim-derivation; VP-INDEX-SoT; PO-authoring-discipline; BC-VP-properties-row; discriminating-clauses]`

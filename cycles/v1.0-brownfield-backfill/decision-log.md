@@ -7897,3 +7897,72 @@ D-798-PRE-PASS-43-CONSISTENCY-FIX-BURST-CLOSED
 ### Date
 
 2026-07-10
+
+---
+
+## D-799 — E-19 Adversary Pass-43 Fix Burst (SM + PO + architect + SW; NOT-CLEAN B0/H2/M3/L2; streak 0/3; policies.yaml v1.4.3 codified)
+
+### Summary
+
+Pass-43 adversary (Claude Opus 4.7; rubric v1.4.2; fresh context; Iron Law) found 5 substantive findings (B0/H2/M3/L2) + 2 LOW observations. POLICY 16 global-max: D-798 confirmed max → D-799 allocated. Four-leg fix burst: PO ad464e09 (F-P43-003/005 + O-P43-001); architect 421a9e1f (F-P43-004 + O-P43-002); SW fbf344da (cite-sweep propagation S-19.05 + epic); SM this-commit (F-P43-001/002 + STORY-INDEX v4.172 + policies.yaml v1.4.3 + 4-index). Two [process-gap] classes codified. Streak 0/3. NEXT: E-19 adv pass-44 (rubric policies.yaml v1.4.3).
+
+### Detail
+
+**(1) POLICY 16 GLOBAL-MAX GATE.**
+
+`grep -oE "^## D-[0-9]+" .factory/cycles/v1.0-brownfield-backfill/decision-log.md | tail -1` → `## D-798`. D-798 confirmed max → D-799 allocated.
+
+**(2) PASS-43 ADVERSARY VERDICT.**
+
+NOT-CLEAN B0/H2/M3/L2. Perimeter: full E-19 suite at D-798 versions (BC-3.08.001 v1.20; VP-098/101 v1.1; VP-100 v1.1; STORY-INDEX v4.171 epic heading v1.22 / S-19.03 leading v1.16). Streak before: 0/3. Streak after: 0/3.
+
+Findings:
+- F-P43-001 HIGH POLICY 14 leg-5/17/POLICY 5 v1.3.7(i): STORY-INDEX Epic E-19 H2 heading `draft, v1.22` vs epic v1.25 (three version bumps missed heading propagation; [process-gap]); CLOSED: this-commit
+- F-P43-002 HIGH POLICY 14 leg-5/POLICY 5 v1.3.3: STORY-INDEX S-19.03 leading cite `story v1.16` vs frontmatter v1.18 (D-798 appended annotation without promoting to leading; [process-gap]); CLOSED: this-commit
+- F-P43-003 MEDIUM POLICY 9/4: BC-3.08.001 VP-100 §VP Properties row paraphrase dropped discriminating clauses (Mandatory Fields Cardinality + Mutual Exclusivity); CLOSED: PO ad464e09
+- F-P43-004 MEDIUM POLICY 4/POLICY 5 v1.3.3: VP-098+VP-101 §Property Statement inline PC cites off-by-one (D-797 migration swept source_bc/§Source Contract/§Traceability but NOT body inline cites; new category-(j) class); CLOSED: architect 421a9e1f
+- F-P43-005 MEDIUM POLICY 14 leg-2: BC-3.08.001 Changelog missing v1.19 row; CLOSED: PO ad464e09
+- O-P43-001 LOW: BC-3.08.001 bare-date last_amended non-chain form; FIXED-IN-SCOPE: PO ad464e09
+- O-P43-002 LOW: VP-100 6-of-7 field enumeration + nonexistent "Invariant 6 field table" referent; FIXED-IN-SCOPE: architect 421a9e1f
+
+Full adversary report: `cycles/v1.0-brownfield-backfill/adv-E19-pass-43.md`
+
+**(3) FIX BURST LEGS.**
+
+- PO leg **ad464e09**: BC-3.08.001 v1.19→v1.20 (F-P43-003: VP-100 §VP Properties row verbatim-derived cardinality+mutual-exclusivity form; F-P43-005: v1.19 Changelog row backfill + v1.20 Amendment section; O-P43-001: last_amended canonicalized to chain form); input-hash 6549a11 unchanged.
+- Architect leg **421a9e1f**: VP-098 v1.1→v1.2 (PS-B PC3→PC2 + PS-C PC4→PC3 + Traceability PC4 dropped); VP-101 v1.1→v1.2 (PS-B PC2→PC3 + PS-C PC3→PC5); VP-100 v1.1→v1.2 (drain_window_ms added to PS-C+fixture; anchor referent → Event 5 mandatory-fields list; O-P43-002 closed); input-hash a2de4e4→6565e01 (VP-100).
+- SW leg **fbf344da**: S-19.05 v1.15→v1.16 BC-3.08.001 v1.20→v1.21 cite sweep ×19 occurrences (input-hash 9e54d68 unchanged); epic v1.24→v1.25 ×5 occurrences (input-hash 7ec7e1d→c3feb1c).
+- SM leg **this-commit**: F-P43-001 Epic E-19 H2 heading v1.22→v1.25; F-P43-002 S-19.03 leading cite reorder v1.16→v1.18; S-19.05 row v1.16 leading + BC-3.08.001 v1.21; STORY-INDEX v4.172; policies.yaml v1.4.3 (POLICY 5 v1.3.8 category-(j)); BC-INDEX v3.92 (BC-3.08.001 v1.21 row note); VP-INDEX v2.57 (VP-098/100/101 v1.2 row annotations); STATE.md v5.50; burst-log pass-43 entry; decision-log D-799; lessons.md two new lessons.
+
+**(4) CODIFICATIONS.**
+
+**POLICY 5 v1.3.8 category-(j):** `policies.yaml` v1.4.2→v1.4.3 — SIBLING-SWEEP CATEGORY EXTENSION (j): categories (a)-(i) extended with (j) body §Property Statement / §Description / §Postcondition inline parenthetical cites (e.g. `(BC-X PCn)`) at same-file semantic-parallel sites. Any anchor migration or PC renumbering MUST sweep these inline cites same-burst with per-cite ground-truth verification. Failure is MEDIUM with [regression] tag.
+
+**L-BB-story-index-epic-heading-and-row-leading-version-must-track-frontmatter** [process-gap][codified D-799]: see lessons.md.
+
+**L-BB-pre-pass-BC-VP-rows-must-verbatim-derive-from-VP-INDEX-not-paraphrase** [process-gap][codified D-799]: see lessons.md.
+
+**(5) 4-INDEX GATE (POLICY 14 leg-4 literal-shell).**
+
+See burst-log Block 5 for captured stdout. BC v3.92/VP v2.57/STORY v4.172/ARCH v2.98.
+
+BC-INDEX v3.91→v3.92: BC-3.08.001 v1.21 row note (D-799; F-P43-004 follow-on; architect 421a9e1f).
+VP-INDEX v2.56→v2.57: VP-098/100/101 v1.2 row annotations (D-799; F-P43-004+O-P43-002; architect 421a9e1f).
+STORY-INDEX v4.171→v4.172: F-P43-001 heading fix + F-P43-002 S-19.03 row reorder + S-19.05 v1.16 leading + BC-3.08.001 v1.21 + wave-summary Pass-43 clause + BC coverage v1.21 + epic heading v1.25.
+ARCH-INDEX v2.98 UNCHANGED (exhaustive).
+
+**(6) STREAK STATUS.**
+
+0/3 (NOT-CLEAN). NEXT: E-19 adv pass-44 (fresh context; Iron Law; rubric policies.yaml v1.4.3; perimeter = full E-19 suite at D-799 versions; three consecutive CLEANs → 3/3 CONVERGED → W1 TDD dispatch per D-773/D-774).
+
+POLICY 16 global-max: D-798 confirmed max → D-799 allocated.
+
+Parent-commit: fbf344da (story-writer leg — sweep(stories): pass-43 BC-3.08.001 v1.20→v1.21 cite sweep + epic v1.24→v1.25; factory-artifacts HEAD before this SM burst).
+
+### Phase
+
+D-799-PASS-43-FIX-BURST-CLOSED
+
+### Date
+
+2026-07-10
