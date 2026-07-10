@@ -5893,3 +5893,42 @@ The same gate applies to:
 **Cites:** D-794; F-P39-001; adv-E19-pass-39.md; BC-INDEX v3.89; POLICY 7; POLICY 5 v1.3.7; L-BB-fix-executor-anchor-verification-obligation (companion — same class: literal-shell verification obligation).
 
 **Closes:** D-794 F-P39-001 MEDIUM FIXED (BC-INDEX v3.88→v3.89; 3 title cells → verbatim H1); POLICY-7-verbatim-parity-attestation-gap process-gap codified; lesson added to carry-forward set for pass-40. `[process-gap; verbatim-parity; literal-shell; char-diff; POLICY-7; BC-INDEX; H1-is-title-SoT; visual-attestation-miss]`
+
+---
+
+## L-BB-adr-body-bc-cites-are-sweep-sites [enforcement-note] [codified D-795]
+
+**Category:** enforcement-note
+
+**Status:** codified D-795 — active in carry-forward set
+
+**Lesson:** ADR body prose is a sweep site for stale BC version-token cites. Fix bursts that touch E-19 BCs MUST include an ADR body audit — grep all E-19 ADRs (ADR-025, ADR-030) for the pattern `BC-N.NN.NNN v[0-9]` in non-changelog, non-amendment_reason sections — in the BC-cite preflight sweep enumeration.
+
+**Context:** E-19 adv pass-40 found F-P40-001 MEDIUM in ADR-025 v1.12 §Decision 14 Normative-twin body: `BC-4.13.001 v1.4 Precondition 3 and Invariant 9` — a stale version pin 10 versions behind HEAD (v1.14). Three materially relevant BC amendments occurred after v1.4: v1.6 Phase-A/Phase-B split, v1.7 §Precondition 3 Phase-A path_allow semantics update, v1.10 §Invariant 9 exclusive-boundary addition.
+
+This was a **novel axis**: all prior E-19 stale-cite findings (F-P34-001 through F-P37-001) were BC→ADR or story→BC direction. An ADR body citing a BC with a version pin is a **reverse-direction (ADR→BC)** stale cite class that had not been enumerated in the per-burst BC-cite preflight sweep sites.
+
+**Root cause:** Per-burst sweep enumeration covered: story files, epic body, BC §Traceability rows, VP-INDEX BC Anchor column, BC-INDEX title cells. ADR body prose was not listed as a sweep site. The escape route was a gap in sweep enumeration, not a gap in POLICY 5.
+
+POLICY 5 v1.3.5 Part A already covers this class in principle (normative body stale token). No policy amendment required. The gap is operational discipline: ADR body audits were not explicitly named in the sweep checklist.
+
+**Gate (D-795 enforcement):** At every fix burst that modifies or adds an E-19 BC, run:
+```bash
+# Sweep ADR body prose for stale BC version-token cites
+grep -nE "BC-[0-9]+\.[0-9]+\.[0-9]+ v[0-9]" \
+  .factory/specs/architecture/decisions/ADR-025-*.md \
+  .factory/specs/architecture/decisions/ADR-030-*.md \
+  2>/dev/null | grep -v "amendment_reason\|Changelog\|AMENDED v\|last_amended"
+```
+Zero matches expected in normative body sections. Any match is a POLICY 5 v1.3.5 violation requiring stable anchor conversion before commit.
+
+**Prevention:**
+1. Add ADR body prose to the per-burst BC-cite preflight sweep enumeration (alongside story files, epic body, BC §Traceability rows, VP-INDEX rows, BC-INDEX title cells).
+2. Adversary: enumerate ADR body sections explicitly when checking POLICY 5 compliance for ADR→BC cite chains.
+3. Fix executor: after any BC amendment, include ADR body grep in the sibling-sweep step per TD-VSDD-060.
+
+**Anchors:** D-795 (this burst); F-P40-001 (ADR-025 v1.12 §Decision 14 stale BC version-pin; MEDIUM load-bearing); adv-E19-pass-40.md A.3 (full finding with verbatim evidence); ADR-025 v1.13 (fix); POLICY 5 v1.3.5 Part A (enforcement principle); D-449(a) (literal-shell gate obligation).
+
+**Cites:** D-795; F-P40-001; adv-E19-pass-40.md; ADR-025 v1.13; POLICY 5 v1.3.5; POLICY 5 v1.3.6; TD-VSDD-091 (historical-exempt exemption); TD-VSDD-060 (sibling-site sweep obligation); L-BB-verbatim-parity-claims-require-char-diff-evidence (companion — same class: sweep-miss escape route).
+
+**Closes:** D-795 F-P40-001 MEDIUM FIXED (ADR-025 v1.12→v1.13; §Decision 14 stable anchor form 7a58f292); ADR-body-BC-cite-sweep-sites enforcement-note codified. `[enforcement-note; adr-body; bc-cite; sweep-site; stale-version-pin; POLICY-5; reverse-direction; ADR-to-BC; novel-axis; sibling-sweep]`

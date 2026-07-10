@@ -7616,3 +7616,64 @@ D-794-E19-ADV-PASS-39-NOT-CLEAN-CLOSED
 ### Date
 
 2026-07-09
+
+---
+
+## D-795 — E-19 Adversarial Pass-40 Closure (NOT-CLEAN B0/H0/M1/L0; F-P40-001 disposition; ADR-025 §Decision 14 Normative-twin stale BC-version-pin → stable anchor; streak 0/3)
+
+### Summary
+
+E-19 adv pass-40 NOT-CLEAN B0/H0/M1/L0 (1 finding; zero BLOCKER/HIGH; novel reverse-direction ADR→BC stale cite axis). F-P40-001 MEDIUM POLICY 5 v1.3.5 Part A: ADR-025 v1.12 §Decision 14 Normative-twin body contains `BC-4.13.001 v1.4 Precondition 3 and Invariant 9` — stale version pin (10 versions behind current v1.14; v1.6/v1.7/v1.10 amendments materially altered the cited anchors). Fix burst architect leg: ADR-025 v1.12→v1.13 (stable anchor form `§Precondition 3 (Phase-A) and §Invariant 9`; commit 7a58f292). Lesson L-BB-adr-body-bc-cites-are-sweep-sites [enforcement-note] appended to lessons.md. 4-index: ARCH-INDEX v2.97→v2.98 (ADR-025 row updated) / BC-INDEX v3.89 (UNCHANGED) / VP-INDEX v2.55 (UNCHANGED) / STORY-INDEX v4.169 (UNCHANGED). Streak 0/3. NEXT: adv pass-41.
+
+### Detail
+
+**(1) PASS-40 VERDICT: NOT-CLEAN B0/H0/M1/L0.**
+
+- 1 actionable finding (F-P40-001 MEDIUM). 0 observations.
+- Model family: Claude Opus 4.7. Iron Law: zero prior context. Rubric: policies.yaml v1.4.2.
+- Trajectory (passes 22–40): 4→3→4→2→2→4→6→5→4→1→3→4→1→2→1→1→0→1→1.
+- Streak: 0/3 (pass-40 NOT-CLEAN; streak does not advance; BC-5.39.001 strict-3-CLEAN per D-761 human directive).
+- Zero BLOCKER: 19 consecutive passes (p22–p40). Zero HIGH: 5 consecutive passes (p36–p40 inclusive).
+
+**(2) F-P40-001 MEDIUM — POLICY 5 v1.3.5 Part A + v1.3.6 HEAD-Reproducibility; ADR-025 §Decision 14 Body Stale BC-Version-Pin.**
+
+POLICY 5 v1.3.5 Part A enforcement: ADR body normative prose carries a version-pinned BC cite `BC-4.13.001 v1.4 Precondition 3 and Invariant 9`. The token `v1.4` is 10 versions behind BC-4.13.001 current HEAD (v1.14). Three materially relevant amendments occurred after v1.4: v1.6 Phase-A/Phase-B split, v1.7 §Precondition 3 Phase-A path_allow semantics update, v1.10 §Invariant 9 exclusive-boundary addition. HEAD-reproducibility violation (POLICY 5 v1.3.6): the anchor `BC-4.13.001 v1.4 Precondition 3` no longer has the same behavioral meaning as current `BC-4.13.001 §Precondition 3 (Phase-A)`.
+
+Novel axis: **reverse-direction ADR→BC** stale cite. All prior E-19 POLICY 5/19 findings (F-P34-001 through F-P37-001) were BC→ADR or story→BC direction. ADR body prose citing a BC with a version pin is a distinct escape route not previously enumerated in per-burst BC-cite preflight sweep sites.
+
+Routing: architect (ADR body content; no BC file changes required). Proposed fix: stable anchor form `BC-4.13.001 §Precondition 3 (Phase-A) and §Invariant 9` (matching sibling §Decision 15 cite style).
+
+**(3) FIX BURST — ARCHITECT LEG (1 leg; commit 7a58f292).**
+
+ADR-025 v1.12→v1.13 (architect commit 7a58f292):
+- §Decision 14 Normative-twin line: `BC-4.13.001 v1.4 Precondition 3 and Invariant 9` → `BC-4.13.001 §Precondition 3 (Phase-A) and §Invariant 9`
+- Ground-truth anchors verified against BC-4.13.001 v1.14 at HEAD: `§Precondition 3 (Phase-A)` exists as a named behavioral anchor; `§Invariant 9` exists as a named invariant.
+- Sibling-sweep ADR-025: zero non-historical `BC-4.13.001 v[0-9]` residuals in ADR body after fix (amendment_reason + Changelog entries are historical and exempt per TD-VSDD-091).
+- ADR-030 zero-match sentinel: no BC-4.13.001 version-token in ADR-030.
+- Parity legs written per ADR convention: amendment_reason YAML + Status paragraph + Changelog bullet.
+
+**(4) STATE-MANAGER LEG (this burst).**
+
+- adv-E19-pass-40.md persisted to `.factory/cycles/v1.0-brownfield-backfill/adv-E19-pass-40.md`
+- D-795 decision block appended to decision-log.md (this entry)
+- L-BB-adr-body-bc-cites-are-sweep-sites lesson appended to lessons.md
+- INDEX.md: pass-40 row added + Convergence Status updated
+- ARCH-INDEX v2.97→v2.98: ADR-025 row v1.12→v1.13 amendment note appended
+- BC-INDEX v3.89 / VP-INDEX v2.55 / STORY-INDEX v4.169 UNCHANGED (exhaustive-unchanged; zero finding in these artifacts)
+- STATE.md v5.45→v5.46: D-795 row + trajectory tail `→1→0→1→1` + streak 0/3 + Session Resume Checkpoint refresh targeting pass-41
+
+**(5) 4-INDEX GATE (POLICY 14 leg-4 literal-shell).**
+
+See burst-log Block 5 for captured stdout. Pre-update: ARCH=2.97/BC=3.89/VP=2.55/STORY=4.169. Post-update: ARCH=2.98/BC=3.89/VP=2.55/STORY=4.169.
+
+**(6) NEXT: E-19 adv pass-41** (fresh context; Iron Law; rubric policies.yaml v1.4.2; perimeter = D-795 delta: ADR-025 v1.13 + ARCH-INDEX v2.98 + full E-19 suite carry-forward; streak 0/3; three consecutive CLEANs required).
+
+Parent-commit: 9fbdaae7 (D-794 burst, factory-artifacts HEAD before this burst).
+
+### Phase
+
+D-795-E19-ADV-PASS-40-NOT-CLEAN-CLOSED
+
+### Date
+
+2026-07-09

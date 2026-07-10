@@ -15148,3 +15148,141 @@ NEXT: E-19 adversary pass-40 (fresh context; Iron Law; rubric policies.yaml v1.4
 | Commit | SHA | Description |
 |--------|-----|-------------|
 | D-794 burst (atomic) | `9fbdaae7` | state(D-794): E-19 adv pass-39 NOT-CLEAN B0/H0/M1/L0; F-P39-001 POLICY 7 BC-INDEX title-cell drift 3/6 E-19 BCs; BC-INDEX v3.88→v3.89; SM-only; streak 1/3→0/3; pass-40 NEXT |
+
+---
+
+## D-795 — E-19 Adversarial Pass-40 NOT-CLEAN Closure (2026-07-09)
+
+**Type:** Adversarial pass closure (NOT-CLEAN; 2-leg: architect + state-manager)
+**Parent-commit:** `7a58f292` (ADR-025 v1.13 architect leg; factory-artifacts HEAD pre-D-795-SM-burst)
+
+### Block 1 — Parent-commit
+
+Factory-artifacts HEAD before this state-manager burst: `7a58f292` (ADR-025 v1.13 — F-P40-001 §Decision 14 Normative-twin stale `BC-4.13.001 v1.4` pin → stable anchor form `§Precondition 3 (Phase-A) and §Invariant 9`; architect leg D-795 fix burst leg 1 of 2).
+
+### Block 2 — Adversary Verdict
+
+**Source:** `.factory/cycles/v1.0-brownfield-backfill/adv-E19-pass-40.md` (Part A)
+
+**Verdict:** NOT-CLEAN — B0/H0/M1/L0 (1 finding; 0 observations). Streak: 0/3 (does not advance).
+
+**F-P40-001 MEDIUM — POLICY 5 v1.3.5 Part A + v1.3.6 HEAD-Reproducibility:** ADR-025 v1.12 §Decision 14 body contained a load-bearing version-pinned cite `BC-4.13.001 v1.4 Precondition 3 and Invariant 9`. Violates POLICY 5 v1.3.5 Part A (normative body stale version token) and POLICY 19 stable-anchor requirement. Novel axis: reverse-direction ADR→BC stale cite class — first confirmed instance in E-19 cascade; all prior POLICY 5/19 findings (F-P34-001..F-P37-001) were BC→ADR or story→BC direction. **CLOSED:** Architect leg `7a58f292` replaced with stable-anchor form `BC-4.13.001 §Precondition 3 (Phase-A) and §Invariant 9`; ground-truth anchors verified against BC-4.13.001 v1.14 at HEAD; ADR-025 sibling-sweep: zero non-historical residuals; ADR-030 zero-match sentinel.
+
+### Block 3 — Files Touched
+
+| File | Change |
+|------|--------|
+| `.factory/cycles/v1.0-brownfield-backfill/adv-E19-pass-40.md` | CREATED — pass-40 adversary review (Part A: 23-artifact version table + F-P40-001 MEDIUM CLOSED; Part B: B.1–B.12) |
+| `.factory/cycles/v1.0-brownfield-backfill/decision-log.md` | APPENDED — D-795 block |
+| `.factory/cycles/v1.0-brownfield-backfill/lessons.md` | APPENDED — L-BB-adr-body-bc-cites-are-sweep-sites |
+| `.factory/cycles/v1.0-brownfield-backfill/INDEX.md` | APPENDED — Pass-40 row; Convergence Status updated (ARCH v2.98) |
+| `.factory/specs/architecture/ARCH-INDEX.md` | UPDATED — v2.97→v2.98 (ADR-025 row v1.12→v1.13 amendment note F-P40-001) |
+| `.factory/STATE.md` | UPDATED — v5.45→v5.46 (D-795 row; trajectory tail →1→0→1→1; streak 0/3; Session Resume Checkpoint refreshed targeting pass-41) |
+| `.factory/cycles/v1.0-brownfield-backfill/burst-log.md` | APPENDED — D-795 burst entry (this entry) |
+
+7 files modified/created (state-manager leg). Architect leg: ADR-025 v1.12→v1.13 commit `7a58f292` (separate leg; not included in state-manager file count).
+
+### Block 4 — Codifications
+
+| Item | Type | Content |
+|------|------|---------|
+| D-795 | Decision | E-19 adv pass-40 NOT-CLEAN closure; F-P40-001 MEDIUM reverse-direction ADR→BC stale cite (ADR-025 §Decision 14 `BC-4.13.001 v1.4`); fix burst 2 legs (architect 7a58f292 + state-manager); ARCH-INDEX v2.97→v2.98; STATE.md v5.46; streak 0/3; pass-41 NEXT |
+| L-BB-adr-body-bc-cites-are-sweep-sites | Lesson [enforcement-note] | ADR body prose is a sweep site for stale BC version-token cites; fix bursts touching E-19 BCs MUST grep all E-19 ADRs for `BC-N.NN.NNN v[0-9]` in non-changelog/non-amendment_reason sections |
+
+2 codifications: 1 D-NNN + 1 lesson.
+
+### Block 5 — Dim-2 (Literal-Shell Gates per D-449(a))
+
+**i. POLICY 16 gate — D-NNN global-max confirmation (D-794 was max; D-795 allocated):**
+```
+$ grep -oE "^## D-[0-9]+" .factory/cycles/v1.0-brownfield-backfill/decision-log.md | tail -5
+## D-791
+## D-792
+## D-793
+## D-794
+## D-795
+```
+→ D-794 confirmed max before D-795 block appended. D-795 allocated. PASS ✓
+
+**ii. 4-index post-update version gate (POLICY 14 leg-4; literal-shell):**
+```
+$ grep "^version:" \
+  .factory/specs/behavioral-contracts/BC-INDEX.md \
+  .factory/specs/verification-properties/VP-INDEX.md \
+  .factory/stories/STORY-INDEX.md \
+  .factory/specs/architecture/ARCH-INDEX.md
+.factory/specs/architecture/ARCH-INDEX.md:version: "2.98"
+.factory/specs/verification-properties/VP-INDEX.md:version: "2.55"
+.factory/stories/STORY-INDEX.md:version: "4.169"
+.factory/specs/behavioral-contracts/BC-INDEX.md:version: "3.89"
+```
+→ BC v3.89 / VP v2.55 / STORY v4.169 / ARCH v2.98. BC/VP/STORY UNCHANGED; ARCH v2.97→v2.98. PASS ✓
+
+**iii. D-448(a) source-attestation gate — burst-log Block 2 verdict vs adv-E19-pass-40.md Part A:**
+```
+$ grep -E "Verdict:|F-P40-001|Streak:" \
+  .factory/cycles/v1.0-brownfield-backfill/adv-E19-pass-40.md | head -5
+**Verdict:** NOT-CLEAN — B0/H0/M1/L0 (1 finding, 0 observations)
+**Streak:** 0/3 (pass-40 NOT-CLEAN; streak does not advance)
+### A.3 — F-P40-001: MEDIUM — POLICY 5 v1.3.5 Part A + v1.3.6 HEAD-Reproducibility; ADR-025 v1.12 §Decision 14 Body Stale BC-Version-Token
+**Finding ID:** F-P40-001
+**CLOSED:** Fixed in ADR-025 v1.13 by architect commit `7a58f292`...
+```
+Block 2 verdict paragraph faithfully describes: NOT-CLEAN B0/H0/M1/L0 ✓; 1 finding 0 observations ✓; streak 0/3 ✓; F-P40-001 MEDIUM POLICY 5 ✓; ADR-025 §Decision 14 stale BC-version-token ✓; reverse-direction ADR→BC novel axis ✓; CLOSED 7a58f292 ✓. PASS ✓
+
+**iv. D-762 known false-positive note:** validate-count-propagation PostToolUse hook fires on ARCH-INDEX.md edits (regex `([0-9]{2,}) BCs` matches "E-18 BCs" in changelog narrative vs "E-19 BCs" in STATE.md). on_error=continue (PostToolUse; writes succeed). Tracked D-762 OPEN. 3 PostToolUse advisory fires total on ARCH-INDEX edits in this burst.
+
+**v. D-446(a) own-burst-log 8-block gate (literal-shell; all 8 D-444(c) blocks present):**
+```
+$ for block in "### Block 1 — Parent-commit" "### Block 2 — Adversary Verdict" \
+    "### Block 3 — Files Touched" "### Block 4 — Codifications" \
+    "### Block 5 — Dim-2" "### Block 6 — Dim-5/6/7 Attestations" \
+    "### Block 7 — Closes" "### Block 8 — Factory-artifacts Commits"; do
+    found=$(tail -n +15154 burst-log.md | grep -cF "$block" || true)
+    [ "$found" -gt 0 ] && echo "PASS: $block" || echo "FAIL: $block"
+  done
+PASS: ### Block 1 — Parent-commit
+PASS: ### Block 2 — Adversary Verdict
+PASS: ### Block 3 — Files Touched
+PASS: ### Block 4 — Codifications
+PASS: ### Block 5 — Dim-2
+PASS: ### Block 6 — Dim-5/6/7 Attestations
+PASS: ### Block 7 — Closes
+PASS: ### Block 8 — Factory-artifacts Commits
+```
+→ All 8 D-444(c) blocks confirmed present in D-795 entry. PASS ✓
+
+### Block 6 — Dim-5/6/7 Attestations
+
+**Dim-5 (spec-drift):** No spec content modifications in state-manager leg. ADR-025 amended by architect leg (7a58f292). ARCH-INDEX row annotation updated (index metadata; not spec content). No routing violation.
+
+**Dim-6 (STORY-INDEX BC-coverage):** N/A — no story/BC file content changes in state-manager leg. ADR-025 §Decision 14 stable-anchor fix by architect. ARCH-INDEX v2.98 = index metadata only. 4-index gate PASS: BC v3.89/VP v2.55/STORY v4.169/ARCH v2.98.
+
+**Dim-7 (routing discipline):** 2-leg burst: architect (ADR-025 body content amendment) + state-manager (ARCH-INDEX row annotation + STATE.md + cycle files). Correct per CLAUDE.md Routing Table. No routing violation.
+
+**8-block self-verification:**
+- [x] Block 1 — Parent-commit (`7a58f292`)
+- [x] Block 2 — Adversary verdict (source-attested from adv-E19-pass-40.md Part A; NOT-CLEAN B0/H0/M1/L0; F-P40-001 MEDIUM POLICY 5 ADR→BC reverse-direction stale cite)
+- [x] Block 3 — Files touched (7 files state-manager leg + noting architect 7a58f292)
+- [x] Block 4 — Codifications (D-795; L-BB-adr-body-bc-cites-are-sweep-sites; 1 D-NNN + 1 lesson; count stated)
+- [x] Block 5 — Dim-2 literal-shell gates i–v with captured stdout per D-449(a)
+- [x] Block 6 — Dim-5/6/7 Attestations + 8-block self-verification (this block)
+- [x] Block 7 — Closes
+- [x] Block 8 — Factory-artifacts commits
+
+### Block 7 — Closes
+
+| Finding | Status | Notes |
+|---------|--------|-------|
+| F-P40-001 MEDIUM POLICY 5 ADR-025 §Decision 14 stale `BC-4.13.001 v1.4` cite | **CLOSED** | ADR-025 v1.12→v1.13; §Decision 14 Normative-twin stable anchor `§Precondition 3 (Phase-A) and §Invariant 9`; architect 7a58f292; D-795 fix burst |
+
+**Lesson codified:** L-BB-adr-body-bc-cites-are-sweep-sites [enforcement-note][codified D-795] — ADR body prose is a sweep site for stale BC version-token cites. Novel axis: ADR→BC reverse-direction class (first in E-19 cascade). Fix bursts touching E-19 BCs MUST grep all E-19 ADRs for `BC-N.NN.NNN v[0-9]` in non-changelog/non-amendment_reason sections; zero matches expected.
+
+NEXT: E-19 adversary pass-41 (fresh context; Iron Law; rubric policies.yaml v1.4.2; perimeter = D-795 delta: ADR-025 v1.13 + ARCH-INDEX v2.98 + full E-19 suite carry-forward; streak 0/3; three consecutive CLEANs → 3/3 CONVERGED → W1 TDD dispatch per D-773/D-774).
+
+### Block 8 — Factory-artifacts Commits
+
+| Commit | SHA | Description |
+|--------|-----|-------------|
+| D-795 burst (atomic) | TBD (SHA-patch follow-up) | state(D-795): E-19 adv pass-40 NOT-CLEAN B0/H0/M1/L0; F-P40-001 MED ADR-025 §Decision 14 stable anchor (7a58f292); ARCH-INDEX v2.97→v2.98; STATE.md v5.46; streak 0/3; pass-41 NEXT |
+
