@@ -14720,5 +14720,5 @@ NEXT: E-19 adversary pass-37 (fresh context; perimeter = D-791 delta: STORY-INDE
 
 | Commit | SHA | Description |
 |--------|-----|-------------|
-| D-791 burst (atomic) | `pending` | state(D-791): E-19 adv pass-36 NOT-CLEAN B0/H0/M1/L0 CLOSED; F-P36-001 wave-summary Input-hashes corrected; POLICY 5 v1.3.7 category-(i) codified; STORY-INDEX v4.168; policies.yaml v1.4.2; STATE.md v5.42 447 lines; streak 0/3; pass-37 NEXT |
+| D-791 burst (atomic) | `5dbb1781` | state(D-791): E-19 adv pass-36 NOT-CLEAN B0/H0/M1/L0 CLOSED; F-P36-001 wave-summary Input-hashes corrected; POLICY 5 v1.3.7 category-(i) codified; STORY-INDEX v4.168; policies.yaml v1.4.2; STATE.md v5.42 447 lines; streak 0/3; pass-37 NEXT |
 | D-791 sha-patch | `pending` | state(D-791-sha-patch): Active Branches → actual D-791 burst SHA + burst-log Block 8 SHA fill (D-447(c)+D-449(e)) |
