@@ -6207,3 +6207,42 @@ modified:
 **Cites:** D-802; F-P46-001 (MEDIUM POLICY 14 leg-3); F-P45-003 (MEDIUM D-801 same class); D-799 and D-798 (originating bursts); POLICY 14 leg-3 (modified[] version-monotonic); L-BB-modified-array-monotonicity-perimeter-audit (companion lesson — what to do AFTER the defect occurs); adv-E19-pass-46.md B.24 (root-cause analysis of the write-ordering process gap).
 
 **Closes:** D-802 (write-frontmatter-history-after-body-replace-all process-gap codified; prevents recurrence of F-P46-001/F-P45-003 class across all future architect/PO/SW fix bursts). `[process-gap; modified-array; frontmatter; body-replace-all; write-order; POLICY-14-leg-3; append-not-prepend; architect-discipline; PO-discipline; body-before-frontmatter]`
+
+---
+
+### L-BB-epic-heading-parity-is-a-mandatory-commit-E-gate [process-gap][codified D-803]
+
+**Context:** E-19 adversary pass-47 (F-P47-001 MEDIUM). STORY-INDEX §Epic E-19 H2 heading (line ~683) carries `draft, v1.25` while epic file E-19-post-rc22-operator-hardening.md frontmatter carries `version: "v1.26"`. The D-802 SW leg (71be7861) swept the epic v1.25→v1.26 transition across ×4 body sites in the epic file (wave-summary clause, BC-coverage line, inline citations in S-19.06 and STORY-INDEX), but did not enumerate the STORY-INDEX §-heading as a fifth sweep site. The D-802 SM burst-log and decision-log both attest "epic v1.25→v1.26 carry-forward" — but this refers to the epic FILE's body sites, not the STORY-INDEX §heading. This is a recurrence of F-P43-001 (D-799 HIGH: same heading class, STORY-INDEX §Epic E-19 heading v1.22→v1.25 at pass-43). The recurrence reveals a **META-note: self-application lag** — the D-802 burst codified two new lessons (L-BB-modified-array-monotonicity-perimeter-audit + L-BB-write-frontmatter-history-after-body-replace-all) while under-applying the D-799 enumeration lesson that specifically names the §heading as a mandatory sweep site. The codification process itself did not apply the enumeration discipline to all site classes.
+
+**Lesson:** Every SM closure burst that touches ANY epic or story version — whether via a direct epic amendment, a cite-sweep that advances an epic's version, or a carry-forward update — MUST run a literal-shell heading-parity gate before commit. For each epic with a STORY-INDEX §section heading that carries a version token, extract the §-heading version token and compare against the epic file's frontmatter version (format-normalized: strip leading `v` from both sides); zero mismatches are required. This gate is a mandatory standing Commit-E control alongside the 4-index gate.
+
+**Correct gate (literal-shell, D-449(a); run before every Commit-E touching any epic/story version):**
+
+```bash
+STORIES_INDEX=".factory/stories/STORY-INDEX.md"
+EPICS_DIR=".factory/stories/epics"
+FAIL_COUNT=0
+for EPIC_FILE in "$EPICS_DIR"/E-*.md; do
+  EPIC_ID=$(basename "$EPIC_FILE" | sed 's/^\(E-[0-9]*\)-.*/\1/')
+  FILE_VER=$(grep -m1 "^version:" "$EPIC_FILE" | sed 's/version: *//;s/"//g;s/^v//;s/ *$//')
+  HEADING=$(grep -m1 "^## Epic ${EPIC_ID} " "$STORIES_INDEX" 2>/dev/null)
+  [ -z "$HEADING" ] && continue
+  HDG_VER=$(echo "$HEADING" | grep -oE 'v[0-9]+(\.[0-9]+)+' | tail -1 | sed 's/^v//')
+  [ -z "$HDG_VER" ] && continue
+  [ "$HDG_VER" = "$FILE_VER" ] \
+    || { echo "FAIL: $EPIC_ID heading=$HDG_VER file=$FILE_VER"; FAIL_COUNT=$((FAIL_COUNT+1)); }
+done
+echo "Heading-parity gate: $FAIL_COUNT FAIL(s)"
+```
+
+Zero `FAIL:` lines required before committing. Capture and include stdout in burst-log Dim-2 per D-449(a).
+
+**Anti-pattern (causes F-P47-001 / F-P43-001 class):** After bumping an epic version (via SW leg, direct epic amendment, or SM carry-forward), assuming the STORY-INDEX §heading is "covered" by the STORY-INDEX `last_amended` entry. The §heading is a structurally distinct site from the per-row leading-cite, wave-summary, and BC-coverage lines — it requires explicit enumeration in the heading-parity gate, not implicit carry-forward.
+
+**Scope note:** Epic headings that do NOT carry version tokens (E-0 through E-8, and epics where the heading format omits the version) are SKIP entries in the gate — they cannot mismatch because they carry no token. Only headings with a version token in the form `vX.Y` at the end of the heading string require parity verification.
+
+**Anchors:** D-803; F-P47-001 (MEDIUM POLICY 14 leg-5 + POLICY 5 v1.3.3 regression); F-P43-001 (prior class occurrence D-799 HIGH — same §heading stale pattern); D-802 SW leg 71be7861 (partial sweep that missed the §-heading); adv-E19-pass-47.md B.26 (heading-parity gate FAIL; A.1 D-802 attestation contrast).
+
+**Cites:** D-803; F-P47-001 (MEDIUM); F-P43-001 (D-799 prior occurrence same class); POLICY 14 leg-5 (upstream-index parity); POLICY 5 v1.3.3 (same-burst sibling-sweep completeness [regression]); L-BB-write-frontmatter-history-after-body-replace-all (companion: body discipline); L-BB-modified-array-monotonicity-perimeter-audit (companion: perimeter-audit discipline); L-BB-pre-pass-class-sweeps-preempt-finding-leakage (D-798: pre-pass enumeration discipline).
+
+**Closes:** D-803 (F-P47-001 CLOSED by SM this-commit STORY-INDEX v4.174→v4.175 §heading v1.25→v1.26; heading-parity gate post-fix: 11 PASS, 0 FAIL, 9 SKIP across all 20 epics; gate codified as mandatory Commit-E control). `[process-gap; STORY-INDEX; epic-heading; heading-parity; sweep-completeness; POLICY-14-leg-5; POLICY-5-v1.3.3; SW-leg; SM-obligation; Commit-E-gate; recurrence-class; self-application-lag; literal-shell-gate]`

@@ -16398,3 +16398,118 @@ EXIT:0 PASS. VP-098/100/101 modified[] all version-monotonic (v1.1→v1.2) ✓.
 | D-802 PO leg (prior) | `c2a1f656` | BC-1.17.001 v1.5→v1.6 (modified[] re-sorted; input-hash 03fa998→ebf73ff; no body change) |
 | D-802 SW leg (prior) | `71be7861` | S-19.06 v1.18→v1.19 (BC-1.17.001 v1.5→v1.6 cite sweep ×10 sites; input-hash updated); epic v1.25→v1.26 (BC-1.17.001 v1.6 cite sweep ×4 sites; input-hash updated); STORY-INDEX v4.173→v4.174 |
 | D-802 SM single-commit burst (TD-VSDD-053) | `8a85fe97` | BC-INDEX v3.95; VP-INDEX v2.59; STORY-INDEX v4.174; VP-098/100/101 modified[] re-sorted; VP-101 input-hash 531cd2f; adv-E19-pass-46.md NEW; decision-log D-802; lessons L-BB-modified-array-monotonicity-perimeter-audit + L-BB-write-frontmatter-history-after-body-replace-all; STATE.md v5.52→v5.53 483 lines; burst-log this entry; streak UNCHANGED 0/3; trajectory →5→2→3→1; pass-47 NEXT |
+
+## D-803 E-19 adv pass-47 NOT-CLEAN CLOSED + fix burst (SM only) — 2026-07-10
+
+### Parent-commit
+
+| Field | Value |
+|-------|-------|
+| Parent SHA (factory-artifacts HEAD before this burst) | `8a85fe97` (D-802 SM single-commit burst 2026-07-10) |
+| develop HEAD | `f5242bef` (rc.22 Release sync-main→develop back-merge D-750) |
+
+### Adversary verdict
+
+**adv-E19-pass-47.md verdict: NOT-CLEAN B0/H0/M1/L0 (1 MEDIUM finding, 0 other findings).**
+
+Part A single finding F-P47-001 MEDIUM [POLICY 14 leg-5 + POLICY 5 v1.3.3 regression]: STORY-INDEX v4.174 §Epic E-19 H2 heading showed `draft, v1.25` while epic file frontmatter `version: "v1.26"` (D-802 SW leg 71be7861 swept ×4 body sites in the epic file but STORY-INDEX §heading was not swept — separate-file aggregation-cell class). Control verifications: E-17 §heading `v1.1` == epic `v1.1` (MATCH); E-18 §heading `v1.3` == epic `v1.3` (MATCH). META-note: self-application lag — F-P43-001 (D-799) codified `L-BB-story-index-epic-heading-and-row-leading-version-must-track-frontmatter` but no Commit-E mechanical gate was added; D-803 closes the gap with a mandatory literal-shell gate.
+
+D-802 attestation contrast: adv-E19-pass-46.md Part A showed F-P46-001 MEDIUM BC-1.17.001 modified[] non-monotonic — SW leg 71be7861 was dispatched to sweep epic body ×4 sites (v1.25→v1.26) and STORY-INDEX v4.173→v4.174 leading cite. The §heading in STORY-INDEX (a separate H2 line) was not in the SW sweep scope and was not re-checked by SM during Commit-E (heading-parity gate not yet a standing control; D-803 now codifies it).
+
+### Files touched
+
+| File | Change | Agent |
+|------|--------|-------|
+| `.factory/stories/STORY-INDEX.md` | v4.174→v4.175; §Epic E-19 H2 heading body: `draft, v1.25`→`draft, v1.26`; version: frontmatter bump; last_amended prepended (v4.175 entry with full burst description) | state-manager (SM only) |
+| `.factory/cycles/v1.0-brownfield-backfill/adv-E19-pass-47.md` | NEW — pass-47 adversary report; NOT-CLEAN B0/H0/M1/L0; F-P47-001 with evidence + D-802 attestation contrast + META-note; 26-artifact B-table | state-manager |
+| `.factory/cycles/v1.0-brownfield-backfill/decision-log.md` | D-803 block appended (after D-802) | state-manager |
+| `.factory/cycles/v1.0-brownfield-backfill/lessons.md` | L-BB-epic-heading-parity-is-a-mandatory-commit-E-gate [process-gap][codified D-803] appended | state-manager |
+| `.factory/STATE.md` | v5.53→v5.54; D-803 advance; all Session Resume Checkpoint sections refreshed (pass-48 targeting); trajectory-tail →2→3→1→1; streak 0/3; 4-index STORY v4.175; heading-parity standing control added | state-manager |
+| `.factory/cycles/v1.0-brownfield-backfill/burst-log.md` | this entry D-803 | state-manager |
+
+No files in `crates/`, `plugins/`, or develop branch changed. SM-only burst.
+
+### Codifications
+
+| Item | Description | Location |
+|------|-------------|----------|
+| D-803 | E-19 adv pass-47 NOT-CLEAN B0/H0/M1/L0 CLOSED; F-P47-001 MEDIUM STORY-INDEX §Epic E-19 heading stale v1.25→v1.26 (SM this-commit STORY-INDEX v4.174→v4.175); L-BB-epic-heading-parity-is-a-mandatory-commit-E-gate [process-gap] codified; streak 0/3 UNCHANGED; NEXT pass-48 | decision-log.md |
+| L-BB-epic-heading-parity-is-a-mandatory-commit-E-gate [process-gap] | Every SM burst touching ANY epic or story version MUST run a literal-shell heading-parity gate; zero mismatches required; gate joins standing Commit-E checklist alongside 4-index gate. Gate: for each epic with `draft\|active\|released\|amended, vX.Y` heading in STORY-INDEX, compare normalized version token vs epic file frontmatter version. | lessons.md + STATE.md §Standing Controls |
+
+### Dim-2 (Gate evidence — literal-shell per D-449(a))
+
+**POLICY 16 global-max gate (D-449(a)):**
+```
+$ grep -oE "^## D-[0-9]+" .factory/cycles/v1.0-brownfield-backfill/decision-log.md | tail -2
+## D-802
+## D-803
+```
+→ D-802 confirmed prior max; D-803 allocated. PASS.
+
+**4-index gate (D-449(a)):**
+```
+$ grep "^version:" .factory/specs/behavioral-contracts/BC-INDEX.md \
+    .factory/specs/verification-properties/VP-INDEX.md \
+    .factory/stories/STORY-INDEX.md \
+    .factory/specs/architecture/ARCH-INDEX.md
+.../BC-INDEX.md:version: "3.95"
+.../VP-INDEX.md:version: "2.59"
+.../STORY-INDEX.md:version: "4.175"
+.../ARCH-INDEX.md:version: "2.98"
+```
+→ BC-INDEX: "3.95" / VP-INDEX: "2.59" / STORY-INDEX: "4.175" / ARCH-INDEX: "2.98". PASS (STORY only bumped).
+
+**Heading-parity gate (D-803 NEW Commit-E standing gate — D-449(a)):**
+```
+$ python3 -c "
+import re, os
+epic_dir = '.factory/stories/epics'
+si_content = open('.factory/stories/STORY-INDEX.md').read()
+heading_pattern = re.compile(r'^## Epic E-(\d+)[^\n]*?(?:draft|active|released|amended),\s*(v\d+\.\d+)', re.MULTILINE)
+si_headings = {int(m.group(1)): m.group(2) for m in heading_pattern.finditer(si_content)}
+fail_count = 0; pass_count = 0
+for fname in sorted(os.listdir(epic_dir)):
+    m = re.match(r'E-(\d+)-', fname)
+    if not m or not fname.endswith('.md'): continue
+    epic_num = int(m.group(1))
+    if epic_num not in si_headings: continue
+    vm = re.search(r'^version:\s*[\"\'\"]*v?([0-9]+\.[0-9]+)', open(os.path.join(epic_dir, fname)).read(), re.MULTILINE)
+    if not vm: continue
+    epic_ver = 'v' + vm.group(1); si_ver = si_headings[epic_num]
+    if si_ver.lstrip('v') == epic_ver.lstrip('v'): pass_count += 1
+    else: print(f'FAIL E-{epic_num}: STORY-INDEX {si_ver} != epic {epic_ver}'); fail_count += 1
+print(f'SUMMARY: {pass_count} PASS, {fail_count} FAIL')
+"
+SUMMARY: 11 PASS, 0 FAIL
+```
+→ 11 versioned-heading epics: all PASS. Zero mismatches. PASS.
+
+### Attestations
+
+**Dim-5 (POLICY 14 5-leg quintuple parity for STORY-INDEX v4.175):**
+- (1) version: frontmatter `"4.175"` ✓
+- (2) body Changelog — last_amended prepended entry `2026-07-10 (v4.175) — Pass-47 D-803 fix burst...` ✓
+- (3) modified[] — `"2026-07-10 (v4.175)"` prepended to array ✓
+- (4) last_amended: chain entry prepended ✓
+- (5) upstream-index — no upstream index for STORY-INDEX itself; 4-index version gate above confirms propagation ✓
+
+**Dim-6 (Production-grade completeness):** All findings actioned in scope. F-P47-001: STORY-INDEX §Epic E-19 H2 heading `draft, v1.25`→`draft, v1.26` (SM this-commit STORY-INDEX v4.174→v4.175). Heading-parity gate run across all 11 versioned-heading epics: 11 PASS 0 FAIL. L-BB-epic-heading-parity-is-a-mandatory-commit-E-gate codified as standing Commit-E gate in STATE.md §Standing Controls + lessons.md. No tech-debt-register entries added without human direction. No deferred work.
+
+**Dim-7 (Iron Law adversary freshness):** adv-E19-pass-47.md dispatched with fresh context; prior pass reports NOT loaded per Iron Law. Rubric policies.yaml v1.4.3 confirmed. Perimeter = D-802 delta + full E-19 carry-forward at D-802 versions. One new L-BB lesson codified (L-BB-epic-heading-parity-is-a-mandatory-commit-E-gate; D-803).
+
+**D-446(a) 8-block self-verification:** This entry contains all 8 D-444(c) mandatory blocks: (1) Parent-commit ✓ (2) Adversary verdict ✓ (3) Files touched ✓ (4) Codifications ✓ (5) Dim-2 ✓ (6) Dim-5/6/7 Attestations ✓ (7) Closes ✓ (8) Factory-artifacts commits ✓.
+
+### Closes
+
+| Item | Resolution |
+|------|------------|
+| F-P47-001 MEDIUM: STORY-INDEX §Epic E-19 heading stale `draft, v1.25` vs epic file `v1.26` (POLICY 14 leg-5 + POLICY 5 v1.3.3 regression) | CLOSED — SM this-commit STORY-INDEX v4.174→v4.175 §heading corrected `draft, v1.26` |
+| D-803 decision-log codification | COMPLETE |
+| L-BB-epic-heading-parity-is-a-mandatory-commit-E-gate [process-gap] | CODIFIED — lessons.md; D-803; STATE.md §Standing Controls; recurrence class of F-P43-001 (D-799) |
+| Streak UNCHANGED 0/3 | pass-47 NOT-CLEAN B0/H0/M1/L0; NEXT adv pass-48 |
+
+### Factory-artifacts commits
+
+| Commit | SHA | Contents |
+|--------|-----|----------|
+| D-803 SM single-commit burst (TD-VSDD-053) | `PLACEHOLDER — update after push` | STORY-INDEX v4.175 §heading fix; adv-E19-pass-47.md NEW; decision-log D-803; lessons L-BB-epic-heading-parity-is-a-mandatory-commit-E-gate; STATE.md v5.53→v5.54 486 lines; burst-log this entry; streak UNCHANGED 0/3; trajectory →2→3→1→1; pass-48 NEXT |

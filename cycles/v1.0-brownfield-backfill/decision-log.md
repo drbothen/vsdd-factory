@@ -8165,3 +8165,84 @@ D-802-E19-ADV-PASS-46-NOT-CLEAN-CLOSED
 ### Date
 
 2026-07-10
+
+---
+
+## D-803 — E-19 Adversary Pass-47 Fix Burst (SM only; NOT-CLEAN B0/H0/M1/L0; streak 0/3; lesson L-BB-epic-heading-parity-is-a-mandatory-commit-E-gate [process-gap] codified)
+
+### Summary
+
+Pass-47 adversary (Claude Opus 4.7; rubric v1.4.3 + D-800/D-801/D-802 carry-forward lessons; fresh context; Iron Law; perimeter D-802 delta + full E-19 carry-forward) found 1 MEDIUM finding (B0/H0/M1/L0). F-P47-001 MEDIUM [POLICY 14 leg-5 + POLICY 5 v1.3.3 regression]: STORY-INDEX §Epic E-19 heading cites `draft, v1.25`; epic file E-19-post-rc22-operator-hardening.md carries v1.26. D-802 SW leg (71be7861) swept epic v1.25→v1.26 ×4 body sites + STORY-INDEX wave-summary clause + BC-coverage line but missed the §-heading — exact F-P43-001 class recurring (D-799). META-note: self-application lag — D-802 burst codified body-before-frontmatter + perimeter-audit lessons while under-applying the D-799 enumeration lesson that specifically names §heading as a mandatory sweep site. SM-only fix burst: STORY-INDEX v4.174→v4.175 (§heading corrected v1.25→v1.26; version frontmatter + last_amended bumped). Heading-parity gate run across all 20 epic files (format-normalized): 11 PASS, 0 FAIL, 9 SKIP (headings without version tokens). Lesson L-BB-epic-heading-parity-is-a-mandatory-commit-E-gate [process-gap] codified: every SM burst touching any epic or story version MUST run literal-shell heading-parity gate; zero mismatches required; gate joins standing Commit-E checklist alongside 4-index gate. Streak 0/3. NEXT: E-19 adv pass-48.
+
+### Detail
+
+**(1) POLICY 16 GLOBAL-MAX GATE.**
+
+`grep -oE "^## D-[0-9]+" .factory/cycles/v1.0-brownfield-backfill/decision-log.md | tail -1` → `## D-802`. D-802 confirmed max → D-803 allocated.
+
+**(2) PASS-47 ADVERSARY VERDICT.**
+
+NOT-CLEAN B0/H0/M1/L0. Perimeter: D-802 delta + full E-19 carry-forward (BC-INDEX v3.95; VP-INDEX v2.59; STORY-INDEX v4.174; BC-1.17.001 v1.6 ebf73ff; VP-098/100/101 v1.2 modified[] re-sorted; epic v1.26 fb55113; S-19.06 v1.19 e6c23de; policies.yaml v1.4.3). Streak before: 0/3. Streak after: 0/3.
+
+Findings:
+- F-P47-001 MEDIUM [POLICY 14 leg-5 + POLICY 5 v1.3.3 regression]: STORY-INDEX §Epic E-19 H2 heading (line ~683) cites `draft, v1.25`; epic file frontmatter carries `version: "v1.26"`. D-802 SW leg 71be7861 swept ×4 body sites in the epic file + STORY-INDEX wave-summary + BC-coverage lines, but did not enumerate the §-heading as a sweep site. Root class: same as F-P43-001 (D-799 HIGH). META-note: self-application lag — D-802 burst codified L-BB-modified-array-monotonicity-perimeter-audit + L-BB-write-frontmatter-history-after-body-replace-all while under-applying D-799 §heading enumeration lesson. CLOSED: SM this-commit STORY-INDEX v4.174→v4.175.
+
+Full adversary report: `cycles/v1.0-brownfield-backfill/adv-E19-pass-47.md`
+
+**(3) FIX BURST LEG.**
+
+SM leg **this-commit**: STORY-INDEX v4.174→v4.175 — line 683 §heading `draft, v1.25` → `draft, v1.26`; frontmatter `version: "4.174"` → `"4.175"`; `last_amended` prepended v4.175 entry. Body change (§heading) applied FIRST per L-BB-write-frontmatter-history-after-body-replace-all; then frontmatter updated. adv-E19-pass-47.md persisted. D-803 decision-log codification. L-BB-epic-heading-parity-is-a-mandatory-commit-E-gate [process-gap] appended to lessons.md. STATE.md v5.53→v5.54. Burst-log D-803 entry. Single SM leg; 4-index: BC-INDEX v3.95 / VP-INDEX v2.59 / STORY-INDEX v4.175 / ARCH-INDEX v2.98.
+
+**(4) HEADING-PARITY GATE (NEW STANDING GATE — L-BB-epic-heading-parity-is-a-mandatory-commit-E-gate).**
+
+Post-fix gate result (format-normalized; all 20 epic files checked):
+- E-10 through E-19 with version tokens: E-10 PASS (1.6==1.6), E-11 PASS (1.1==1.1), E-12 PASS (1.3==1.3), E-13 PASS (1.0==1.0), E-14 PASS (1.2==1.2), E-15 PASS (1.3==1.3), E-16 PASS (1.0==1.0), E-17 PASS (1.1==1.1), E-18 PASS (1.3==1.3), E-19 PASS (1.26==1.26; fixed in-scope), E-9 PASS (1.53==1.53)
+- E-0/E-1..E-8 SKIP (headings without version tokens): E-0 (1.0), E-1 (1.1.2), E-2 (1.0), E-3 (1.0), E-4 (1.0), E-5 (1.0), E-6 (1.0), E-7 (1.2), E-8 (1.10)
+- Summary: 11 PASS, 0 FAIL, 9 SKIP
+
+See burst-log Block 5 (Dim-2) for captured stdout.
+
+**(5) CODIFICATION: L-BB-epic-heading-parity-is-a-mandatory-commit-E-gate [process-gap][codified D-803].**
+
+Every SM closure burst that touches ANY epic or story version MUST run a literal-shell heading-parity gate before commit: for each epic with a STORY-INDEX section heading carrying a version token, extract the §-heading version token and diff against the epic file's frontmatter version (format-normalized: strip leading `v`); zero mismatches required. This gate joins the standing Commit-E checklist alongside the 4-index gate.
+
+Gate template (literal-shell, D-449(a)):
+```bash
+for EPIC_FILE in .factory/stories/epics/E-*.md; do
+  EPIC_ID=$(basename "$EPIC_FILE" | sed 's/^\(E-[0-9]*\)-.*/\1/')
+  FILE_VER=$(grep -m1 "^version:" "$EPIC_FILE" | sed 's/version: *//;s/"//g;s/^v//;s/ *$//')
+  HEADING=$(grep -m1 "^## Epic ${EPIC_ID} " .factory/stories/STORY-INDEX.md 2>/dev/null)
+  [ -z "$HEADING" ] && continue
+  HDG_VER=$(echo "$HEADING" | grep -oE 'v[0-9]+(\.[0-9]+)+' | tail -1 | sed 's/^v//')
+  [ -z "$HDG_VER" ] && continue
+  [ "$HDG_VER" = "$FILE_VER" ] || echo "FAIL: $EPIC_ID heading=$HDG_VER file=$FILE_VER"
+done
+echo "Heading-parity gate complete"
+```
+
+Zero `FAIL:` lines required. Codified as mandatory Commit-E gate alongside 4-index gate. See lessons.md for full lesson entry.
+
+**(6) 4-INDEX GATE (POLICY 14 leg-4 literal-shell).**
+
+See burst-log Block 5 for captured stdout. BC v3.95 / VP v2.59 / STORY v4.175 / ARCH v2.98.
+
+STORY-INDEX v4.174→v4.175: §heading v1.25→v1.26 (F-P47-001 closure; SM this-commit). version bump 4.174→4.175. last_amended prepended v4.175 entry.
+BC-INDEX v3.95 UNCHANGED (exhaustive — no BC changes in D-803 burst).
+VP-INDEX v2.59 UNCHANGED (exhaustive — no VP changes in D-803 burst).
+ARCH-INDEX v2.98 UNCHANGED (exhaustive — no ADR changes in D-803 burst).
+
+**(7) STREAK STATUS.**
+
+0/3 (NOT-CLEAN; M1 finding prevents advancement). NEXT: E-19 adv pass-48 (fresh context; Iron Law; rubric policies.yaml v1.4.3 + D-803 carry-forward lessons incl. heading-parity gate; perimeter = D-803 delta: STORY-INDEX v4.175 + full E-19 carry-forward at D-802 versions; streak 0/3; three consecutive CLEANs → 3/3 CONVERGED → W1 TDD dispatch per D-773/D-774).
+
+POLICY 16 global-max: D-802 confirmed max → D-803 allocated.
+
+Parent-commit: 8a85fe97 (factory-artifacts HEAD = D-802 SM burst; the state of factory-artifacts before this D-803 SM burst).
+
+### Phase
+
+D-803-E19-ADV-PASS-47-NOT-CLEAN-CLOSED
+
+### Date
+
+2026-07-10
