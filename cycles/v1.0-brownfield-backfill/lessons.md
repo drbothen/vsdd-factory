@@ -6246,3 +6246,73 @@ Zero `FAIL:` lines required before committing. Capture and include stdout in bur
 **Cites:** D-803; F-P47-001 (MEDIUM); F-P43-001 (D-799 prior occurrence same class); POLICY 14 leg-5 (upstream-index parity); POLICY 5 v1.3.3 (same-burst sibling-sweep completeness [regression]); L-BB-write-frontmatter-history-after-body-replace-all (companion: body discipline); L-BB-modified-array-monotonicity-perimeter-audit (companion: perimeter-audit discipline); L-BB-pre-pass-class-sweeps-preempt-finding-leakage (D-798: pre-pass enumeration discipline).
 
 **Closes:** D-803 (F-P47-001 CLOSED by SM this-commit STORY-INDEX v4.174→v4.175 §heading v1.25→v1.26; heading-parity gate post-fix: 11 PASS, 0 FAIL, 9 SKIP across all 20 epics; gate codified as mandatory Commit-E control). `[process-gap; STORY-INDEX; epic-heading; heading-parity; sweep-completeness; POLICY-14-leg-5; POLICY-5-v1.3.3; SW-leg; SM-obligation; Commit-E-gate; recurrence-class; self-application-lag; literal-shell-gate]`
+
+---
+
+## L-BB-adr-body-external-artifact-content-descriptions-are-sweep-sites
+
+**Category:** [process-gap]
+
+**One-liner:** ADR body prose that DESCRIBES the content of external artifacts (registry field values, TOML stanza text, capability blocks, path lists, WASM entry-point names) is a sweep site when those external artifacts change — just as BC volatile-pin cites (D-795) are sweep sites when BC versions change.
+
+**Context:**
+
+F-P49-001 (E-19 adversary pass-49, D-805) found that ADR-025 v1.13 §Decision 1 body and Deliverable D2 Notes described the `verify-factory-lock` plugin tool matcher as `Edit|Write|Agent` (3-tool form) while:
+- Live hooks-registry.toml line 1254: `tool = "Edit|Write|MultiEdit|Agent"` (4-tool — ground truth)
+- BC-4.13.001 v1.14 ×3 sites (Precondition 1, Invariant 5, Changelog v1.5): 4-tool correct
+- S-19.04 + S-19.07: 4-tool correct
+
+The 3-tool form in ADR-025 §D1 and D2 Notes was a description-copy of the registry entry that was never swept when the registry was extended to include MultiEdit. The sibling-sweep that added MultiEdit to BC-4.13.001 (F-P2-001, D-755) and the registry entry both carried the 4-tool form, but the ADR body description was not identified as a sweep site. This is distinct from the D-795 class (BC volatile-pin cites) — it is a content-description copy of a registry field value, not a version-pin string.
+
+**Pattern:** An ADR's §Decision body and Deliverable Notes cells often contain prose that copies or paraphrases external artifact field values:
+- Registry `tool=` strings: `"Edit|Write|Agent"` → described in §D1 body
+- TOML stanza field values: `binary_allow = ["git"]` → described in D2 Notes
+- Capability block specs: `path_allow = [".factory/STATE.md"]` → described in D2 Notes
+- WASM entry-point names: `hook-plugins/verify-factory-lock.wasm` → described in §D1
+
+When any of these external artifacts change, the ADR description-copy sites become stale. These sites are NOT covered by:
+- D-795 gate (covers `BC-N.NN.NNN v[0-9]` volatile-pin pattern only)
+- POLICY 19 stable-anchor scan (covers BC version-pin strings in story/BC bodies only)
+- Standard sibling-sweep (typically covers BC bodies, story bodies, and index rows)
+
+**Gate (literal-shell, D-449(a)):**
+
+At every fix burst amending an E-19 ADR body, before declaring closure:
+
+```bash
+# For each external artifact value that appears in ADR body prose,
+# grep ADR body for the stale form after the amendment:
+# Example for verify-factory-lock tool matcher:
+STALE_FORM="Edit|Write|Agent"
+CORRECT_FORM="Edit|Write|MultiEdit|Agent"
+ADR_FILE=".factory/specs/architecture/decisions/ADR-025-*.md"
+
+# Search normative sections (exclude amendment_reason/Changelog per TD-VSDD-091):
+grep -n "${STALE_FORM}" $ADR_FILE \
+  | grep -v "amendment_reason\|## Changelog\|## D[0-9]\|Prior:" \
+  | head -20
+# Expected: zero hits in normative sections
+```
+
+For any non-zero result: update all stale description-copy sites in the same burst before pushing.
+
+**Scope note:** The historical-by-construction exemption (TD-VSDD-091) applies to amendment_reason rows and Changelog entries that document the prior form for audit-trail purposes. These correctly carry the old value as historical record. Only forward-facing normative prose claiming to describe the CURRENT external artifact value is in scope for this gate.
+
+**Anti-pattern:** After updating a hooks-registry.toml entry, sweeping only:
+- The behavioral contracts that specify the registered behavior ✓
+- The story files that cite the BC ✓
+- The registry itself ✓
+
+But NOT checking ADR body prose that also describes the registry entry value. The ADR body is typically read by developers as the authoritative explanation of WHY and WHAT the registry entry does; a stale description there creates reader confusion and future sweep misses.
+
+**Relationship to D-795:** L-BB-adr-body-bc-cites-are-sweep-sites (D-795) covers BC volatile-pin strings (`BC-N.NN.NNN v[0-9]`) in ADR normative sections. L-BB-adr-body-external-artifact-content-descriptions-are-sweep-sites (this lesson) covers content-description copies of external artifact field values in ADR normative sections. The two gates are complementary and non-overlapping:
+- D-795: detects `BC-4.13.001 v1.4` (volatile pin) → sweeps to stable anchor
+- This gate: detects `Edit|Write|Agent` (registry field copy) → sweeps to current field value
+
+Both are mandatory standing Commit-E controls for any burst amending E-19 ADRs.
+
+**Anchors:** D-805; F-P49-001 (MEDIUM POLICY 5 v1.3.3 sibling-sweep miss); ADR-025 v1.13→v1.14 (architect 30b6680c); hooks-registry.toml line 1254 (ground truth `Edit|Write|MultiEdit|Agent`); §Decision 12 v1.6 sibling-sweep mandate (not fully executed on ADR body prose); BC-4.13.001 v1.5 F-P2-001 (2026-07-06 — partial sweep that updated BC but missed ADR body).
+
+**Cites:** D-805; F-P49-001 (MEDIUM); POLICY 5 v1.3.3 (same-burst sibling-sweep completeness); D-795 L-BB-adr-body-bc-cites-are-sweep-sites (companion: BC volatile-pin class); TD-VSDD-091 (historical-by-construction exemption); L-BB-adr-body-bc-cites-are-sweep-sites (D-795: complementary scope); L-BB-pre-pass-class-sweeps-preempt-finding-leakage (D-798: pre-pass enumeration discipline).
+
+**Closes:** D-805 (F-P49-001 CLOSED by architect 30b6680c ADR-025 v1.13→v1.14; §D1 body + D2 Notes swept `Edit|Write|Agent` → `Edit|Write|MultiEdit|Agent`; ARCH-INDEX v2.98→v2.99; gate codified as new standing control alongside D-795 and D-803). `[process-gap; ADR-body; registry-content-description; sweep-site; sibling-sweep; POLICY-5-v1.3.3; description-copy-class; D-795-scope-extension; external-artifact; TOML-stanza; tool-matcher; Commit-E-gate; self-application]`

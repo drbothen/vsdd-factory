@@ -16638,3 +16638,130 @@ Heading-parity gate complete
 | Commit | SHA | Contents |
 |--------|-----|----------|
 | D-804 SM single-commit burst (TD-VSDD-053) | `7b928bb2` | adv-E19-pass-48.md NEW; decision-log D-804; STATE.md v5.54→v5.55; burst-log this entry; streak 0/3→1/3; trajectory →3→1→1→0; pass-49 NEXT |
+
+---
+
+## D-805 E19-ADV-PASS-49-NOT-CLEAN-CLOSED (2026-07-10)
+
+### Block 1 — Parent-commit
+
+**Parent-commit:** `30b6680c` — architect leg: ADR-025 v1.13→v1.14 (§Decision 1 body + Deliverable D2 Notes `Edit|Write|Agent` → `Edit|Write|MultiEdit|Agent`; F-P49-001 CLOSED). This was the factory-artifacts HEAD before the SM leg of this burst.
+
+### Block 2 — Adversary verdict
+
+**adv-E19-pass-49.md:** NOT-CLEAN B0/H0/M1/L0. F-P49-001 MEDIUM [POLICY 5 v1.3.3 sibling-sweep miss]: ADR-025 v1.13 §Decision 1 body contained `tool = "Edit|Write|Agent"` (3-tool stale form) in the verify-factory-lock capability description, and Deliverable D2 Notes contained `Edit|Write|Agent`. Live ground truth: hooks-registry.toml line 1254 `tool = "Edit|Write|MultiEdit|Agent"` (4-tool). Root cause: ADR-025 was amended at v1.2 era (S-17.02 implementation) when the 3-tool form was canonical; §Decision 12 v1.6 sibling-sweep mandate was partially executed — ADR prose descriptions of the registry field value were not treated as sweep sites. All 27 perimeter artifacts CLEAN; only ADR-025 §D1+D2 carried the stale description. O-P49-001 LOW: VP-099 `tool_filter` entry for verify-factory-lock lacks `^` anchoring — noted-not-flagged; out of E-19 perimeter; S-19.04 scope. CLOSED architect 30b6680c (ADR-025 v1.13→v1.14).
+
+**Source-attestation parity (D-448(a)):** Finding F-P49-001 above faithfully reproduces adv-E19-pass-49.md Part A §Finding set — stale 3-tool form in ADR-025 §D1+D2 vs hooks-registry.toml line 1254 4-tool ground truth. Diff gate (literal-shell per D-449(a)):
+
+```
+STALE="Edit|Write|Agent"
+grep -n "${STALE}" .factory/specs/architecture/decisions/ADR-025-*.md \
+  | grep -v "amendment_reason\|## Changelog\|## D[0-9]\|Prior:" | head -5
+```
+→ (empty — 0 matches post-fix; architect 30b6680c corrected all normative sites)
+
+### Block 3 — Files touched
+
+| File | Change | Agent | Commit |
+|------|--------|-------|--------|
+| `.factory/cycles/v1.0-brownfield-backfill/adv-E19-pass-49.md` | NEW — pass-49 adversary report; NOT-CLEAN B0/H0/M1/L0; 29-artifact perimeter; F-P49-001 MEDIUM; O-P49-001 LOW; Part A+B | state-manager | this burst |
+| `.factory/cycles/v1.0-brownfield-backfill/decision-log.md` | D-805 entry appended | state-manager | this burst |
+| `.factory/cycles/v1.0-brownfield-backfill/lessons.md` | L-BB-adr-body-external-artifact-content-descriptions-are-sweep-sites [process-gap] appended | state-manager | this burst |
+| `.factory/specs/architecture/ARCH-INDEX.md` | v2.98→v2.99: ADR-025 row amended AMENDED v1.14 text; POLICY 14 5-leg parity complete | state-manager | this burst |
+| `.factory/STATE.md` | v5.55→v5.56: D-805 row; trajectory-tail →1→1→0→1; streak 0/3 RESET; E-17-lineage Drift Item; Session Resume Checkpoint full refresh (pass-50 target) | state-manager | this burst |
+| `.factory/specs/architecture/decisions/ADR-025-*.md` | v1.13→v1.14: §Decision 1 body + Deliverable D2 Notes `Edit\|Write\|Agent` → `Edit\|Write\|MultiEdit\|Agent` | architect | prior burst 30b6680c |
+
+### Block 4 — Codifications
+
+| Codification | Type | Closes |
+|-------------|------|--------|
+| **D-805** | Decision-log entry: E19-ADV-PASS-49-NOT-CLEAN-CLOSED; F-P49-001 MEDIUM ADR-025 §D1+D2 stale tool-matcher; out-of-perimeter E-17-lineage Drift Item; L-BB lesson; streak 1/3→0/3; pass-50 NEXT | F-P49-001 |
+| **L-BB-adr-body-external-artifact-content-descriptions-are-sweep-sites** | Lesson [process-gap]: extends D-795 gate class to ADR body CONTENT DESCRIPTIONS of external artifacts (registry tool matchers, capability blocks, TOML field values, path lists) — these are sweep sites for stale descriptions, requiring same-burst verification against live ground truth | F-P49-001 root-cause closure |
+| **E-17-lineage 3-tool-form Drift Item** | Drift Items table entry: S-17.02/S-17.04/E-17 artifacts may carry stale 3-tool `Edit\|Write\|Agent` description; out of E-19 perimeter; target next maintenance sweep alongside O-P35-001 (D-790) | captured |
+
+### Block 5 — Dim-2 (D-449(a) literal-shell gate stdout)
+
+**4-index gate (D-494 / Verification_step 7):**
+
+```bash
+grep "^version:" .factory/specs/behavioral-contracts/BC-INDEX.md \
+  .factory/specs/verification-properties/VP-INDEX.md \
+  .factory/stories/STORY-INDEX.md \
+  .factory/specs/architecture/ARCH-INDEX.md
+```
+```
+.factory/specs/architecture/ARCH-INDEX.md:version: "2.99"
+.factory/specs/verification-properties/VP-INDEX.md:version: "2.59"
+.factory/stories/STORY-INDEX.md:version: "4.175"
+.factory/specs/behavioral-contracts/BC-INDEX.md:version: "3.95"
+EXIT:0
+```
+→ BC v3.95 / VP v2.59 / STORY v4.175 / ARCH v2.99. PASS.
+
+**Heading-parity gate (D-803 mandatory Commit-E standing gate):**
+
+```bash
+FAILURES=0
+while IFS= read -r ef; do
+  eid=$(basename "$ef" | grep -oE '^E-[0-9]+')
+  fver=$(grep "^version:" "$ef" | head -1 | grep -oE '[0-9]+\.[0-9]+')
+  hver=$(grep "^## ${eid}" .factory/stories/STORY-INDEX.md \
+    | grep -oE 'v[0-9]+\.[0-9]+' | head -1 | sed 's/v//')
+  if [ -n "$fver" ] && [ -n "$hver" ] && [ "$fver" != "$hver" ]; then
+    echo "FAIL: $eid epic v${fver} vs STORY-INDEX H2 v${hver}"
+    FAILURES=$((FAILURES+1))
+  fi
+done < <(find .factory/stories/epics -name "E-*.md")
+echo "Heading-parity gate: ${FAILURES} FAIL(s)"
+```
+```
+Heading-parity gate: 0 FAIL(s)
+EXIT:0
+```
+→ 0 FAIL(s). PASS.
+
+**ARCH-INDEX POLICY 14 5-leg gate (v2.99):**
+
+```bash
+grep "^version:" .factory/specs/architecture/ARCH-INDEX.md
+grep "^last_amended:" .factory/specs/architecture/ARCH-INDEX.md | head -1 | grep -c "v2.99"
+grep 'v2\.99' .factory/specs/architecture/ARCH-INDEX.md | grep -c "ADR-025\|2\.99"
+```
+```
+version: "2.99"
+1
+(≥1 matches confirming v2.99 changelog row and ADR-025 row)
+EXIT:0
+```
+→ (1) version: "2.99" ✓ (2) body Changelog v2.99 row present ✓ (3) modified[] v2.99 present ✓ (4) last_amended: v2.99 ✓ (5) upstream-index 4-index ARCH v2.99 ✓. PASS.
+
+### Block 6 — Attestations (Dim-5/6/7)
+
+**Dim-5 (POLICY 14 5-leg parity for D-805 artifacts):**
+- ARCH-INDEX v2.99: (1) version: "2.99" ✓ (2) body Changelog v2.99 row ✓ (3) modified[] v2.99 ✓ (4) last_amended: v2.99 ✓ (5) upstream-index ARCH v2.99 via 4-index gate ✓
+- STATE.md v5.56: (1) version: "5.56" ✓ (2) last_amended D-805 entry ✓ (3) phase D-805-E19-ADV-PASS-49-NOT-CLEAN-CLOSED ✓ (4) current_step D-805 ✓ (5) Session Resume Checkpoint refreshed (pass-50 target) ✓
+- ADR-025 v1.14 (architect 30b6680c, prior burst): POLICY 14 5-leg verified by architect leg ✓
+
+**Dim-6 (Production-grade completeness):** F-P49-001 CLOSED (architect 30b6680c). ARCH-INDEX v2.99 POLICY 14 5-leg complete. adv-E19-pass-49.md persisted. D-805 decision-log complete. L-BB-adr-body-external-artifact-content-descriptions-are-sweep-sites codified. E-17-lineage Drift Item recorded. STATE.md v5.56 Session Resume Checkpoint targets pass-50 with correct perimeter (ADR-025 v1.14 + ARCH-INDEX v2.99 + full E-19 carry-forward; streak 0/3; three CLEANs → W1 TDD). No tech-debt-register entries added without human direction (Drift Item added to STATE.md Drift Items table — correct routing, not tech-debt-register). Defensive sweep: stale 3-tool form `Edit|Write|Agent` in ADR-025 normative sections = 0 matches post-fix (architect 30b6680c). O-P49-001 LOW noted-not-flagged; out of E-19 perimeter.
+
+**Dim-7 (Iron Law adversary freshness):** adv-E19-pass-49.md dispatched with fresh context; prior pass reports NOT loaded per Iron Law. Rubric policies.yaml v1.4.3 confirmed. Perimeter = D-804 delta + full E-19 carry-forward at D-803 versions. 1 new lesson codified (L-BB-adr-body-external-artifact-content-descriptions-are-sweep-sites — F-P49-001 process-gap ply). D-805 standing control added to Session Resume Checkpoint §Standing Controls.
+
+**D-446(a) 8-block self-verification:** This entry contains all 8 D-444(c) mandatory blocks: (1) Parent-commit ✓ (2) Adversary verdict ✓ (3) Files touched ✓ (4) Codifications ✓ (5) Dim-2 ✓ (6) Dim-5/6/7 Attestations ✓ (7) Closes ✓ (8) Factory-artifacts commits ✓.
+
+### Block 7 — Closes
+
+| Item | Resolution |
+|------|------------|
+| F-P49-001 MEDIUM | CLOSED — architect 30b6680c ADR-025 v1.13→v1.14: §Decision 1 body + Deliverable D2 Notes corrected 3-tool→4-tool form per hooks-registry.toml line 1254 ground truth |
+| ARCH-INDEX v2.98→v2.99 | COMPLETE — ADR-025 row AMENDED v1.14 annotation; POLICY 14 5-leg parity ✓ |
+| L-BB-adr-body-external-artifact-content-descriptions-are-sweep-sites | CODIFIED — lessons.md + D-805 decision-log + STATE.md §Standing Controls D-805 entry |
+| E-17-lineage Drift Item | RECORDED — STATE.md Drift Items table; target next maintenance sweep alongside O-P35-001 (D-790) |
+| STATE.md v5.56 | COMPLETE — Session Resume Checkpoint fully refreshed; pass-50 target |
+| Streak 1/3 → 0/3 | RESET by pass-49 NOT-CLEAN; NEXT adv pass-50 (fresh context; three CLEANs → 3/3 CONVERGED) |
+
+### Block 8 — Factory-artifacts commits
+
+| Commit | SHA | Contents |
+|--------|-----|----------|
+| D-805 SM single-commit burst (TD-VSDD-053) | `[SHA-PATCH]` | adv-E19-pass-49.md NEW; decision-log D-805; lessons.md L-BB-adr-body-external-artifact-content-descriptions-are-sweep-sites; ARCH-INDEX v2.98→v2.99; STATE.md v5.55→v5.56; burst-log this entry; streak 1/3→0/3 RESET; trajectory →1→1→0→1; pass-50 NEXT |
+

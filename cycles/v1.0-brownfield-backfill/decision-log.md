@@ -8319,3 +8319,65 @@ D-804-E19-ADV-PASS-48-CLEAN-1-OF-3
 ### Date
 
 2026-07-10
+
+---
+
+## D-805 — E-19 Adversarial Pass-49 NOT-CLEAN Closure (B0/H0/M1/L0; F-P49-001 CLOSED architect 30b6680c; streak 1/3→0/3 RESET)
+
+### Summary
+
+Pass-49 adversary (Claude Opus 4.7; rubric policies.yaml v1.4.3; fresh context; Iron Law; perimeter = D-804 governance-only UNCHANGED + full E-19 suite at D-804 versions) found 1 finding — NOT-CLEAN B0/H0/M1/L0. F-P49-001 MEDIUM: ADR-025 v1.13 §Decision 1 body + Deliverable D2 Notes stale 3-tool `Edit|Write|Agent` vs live hooks-registry.toml line 1254 ground truth `Edit|Write|MultiEdit|Agent` (POLICY 5 v1.3.3 sibling-sweep miss; §Decision 12 v1.6 sibling-sweep mandate not fully executed on ADR body prose). CLOSED same-burst architect 30b6680c (ADR-025 v1.13→v1.14). New defect class identified: ADR body CONTENT DESCRIPTIONS of external artifacts (registry field values, TOML stanza text) are sweep sites — codified L-BB-adr-body-external-artifact-content-descriptions-are-sweep-sites [process-gap] D-805. Out-of-perimeter Drift Item: E-17-lineage 3-tool-form sites in S-17.02/S-17.04/E-17 artifacts → next maintenance sweep alongside O-P35-001. ARCH-INDEX v2.98→v2.99 (ADR-025 row v1.13→v1.14). Streak 1/3→0/3 (RESET — NOT-CLEAN). NEXT: pass-50 (fresh context; rubric policies.yaml v1.4.3; perimeter = D-805 delta: ADR-025 v1.14 + ARCH-INDEX v2.99 + full E-19 suite carry-forward; streak 0/3; three CLEANs → 3/3 CONVERGED → W1 TDD dispatch S-19.01+S-19.02+S-19.03 per D-773/D-774).
+
+### Detail
+
+**(1) POLICY 16 GLOBAL-MAX GATE.**
+
+`grep -oE "^## D-[0-9]+" .factory/cycles/v1.0-brownfield-backfill/decision-log.md | tail -1` → `## D-804`. D-804 confirmed max → D-805 allocated.
+
+**(2) PASS-49 ADVERSARY VERDICT.**
+
+NOT-CLEAN B0/H0/M1/L0. Perimeter: D-804 governance-only UNCHANGED + full E-19 carry-forward (BC-INDEX v3.95; VP-INDEX v2.59; STORY-INDEX v4.175; ARCH-INDEX v2.98; ADR-025 v1.13; policies.yaml v1.4.3). Streak before: 1/3. Streak after: 0/3 (RESET).
+
+**F-P49-001 MEDIUM — POLICY 5 v1.3.3 sibling-sweep miss (ADR-025 §Decision 1 + D2 Notes stale 3-tool form):**
+- ADR-025 v1.13 §Decision 1 body described verify-factory-lock tool matcher as `Edit|Write|Agent` (3-tool).
+- ADR-025 v1.13 Deliverable D2 Notes cell described verify-factory-lock registry entry as `PreToolUse on Edit|Write|Agent` (3-tool).
+- Live hooks-registry.toml line 1254 (ground truth): `tool = "Edit|Write|MultiEdit|Agent"` (4-tool).
+- Downstream-correct: BC-4.13.001 ×3 (Precondition 1, Invariant 5, Changelog v1.5) + S-19.04 + S-19.07 + burst-log — all 4-tool.
+- Root cause: §Decision 12 v1.6 sibling-sweep mandate noted "verify-factory-lock tool matcher MUST include MultiEdit for parity" but §Decision 1 body prose + D2 Notes (description-copy sites) were never swept.
+- **CLOSED — architect 30b6680c (ADR-025 v1.13→v1.14):** §D1 body + D2 Notes swept `Edit|Write|Agent` → `Edit|Write|MultiEdit|Agent`.
+
+Full adversary report: `cycles/v1.0-brownfield-backfill/adv-E19-pass-49.md`
+
+**(3) FIX BURST.**
+
+Architect leg: `30b6680c` — ADR-025 v1.13→v1.14 (F-P49-001 §Decision 1 + D2 Notes swept). State-manager closure leg (this burst): adv-E19-pass-49.md persisted; ARCH-INDEX v2.98→v2.99 (ADR-025 row v1.13→v1.14; ARCH-INDEX POLICY 14 5-leg update); D-805 decision-log codification; L-BB-adr-body-external-artifact-content-descriptions-are-sweep-sites lesson appended to lessons.md; STATE.md v5.55→v5.56 (D-805 row, new Drift Item, trajectory-tail, streak, banner, session checkpoint refresh); burst-log D-805 entry.
+
+**(4) 4-INDEX GATE (POLICY 14 leg-4 — exhaustive; literal-shell per D-449(a)).**
+
+[STDOUT to be populated in burst-log Block 5 per D-449(a). Expected: BC v3.95 / VP v2.59 / STORY v4.175 / ARCH v2.99.]
+
+**(5) HEADING-PARITY GATE (D-803 standing Commit-E gate — mandatory per L-BB-epic-heading-parity-is-a-mandatory-commit-E-gate; literal-shell per D-449(a)).**
+
+[STDOUT to be populated in burst-log Block 5 per D-449(a). Expected: 0 FAIL lines; governance-only ARCH-INDEX bump does not affect epic headings.]
+
+**(6) STREAK STATUS.**
+
+0/3 (RESET by NOT-CLEAN; trajectory tail →1→1→0→1; streak resets from 1/3 to 0/3). NEXT: E-19 adv pass-50 (fresh context; Iron Law; rubric policies.yaml v1.4.3; perimeter = D-805 delta: ADR-025 v1.14 + ARCH-INDEX v2.99 + full E-19 suite carry-forward; streak 0/3; three consecutive CLEANs → 3/3 CONVERGED → W1 TDD dispatch per D-773/D-774).
+
+**(7) LESSON CODIFICATION.**
+
+L-BB-adr-body-external-artifact-content-descriptions-are-sweep-sites [process-gap][codified D-805]: ADR body prose that DESCRIBES external artifact content values (registry `tool=` field strings, TOML stanza field values, capability block specifications, path lists, WASM entry-point names) is a sweep site when those external artifacts change. Extends D-795 gate class (which covers BC volatile-pin cites) to registry/TOML content-description copies. Mandatory Commit-E standing control for any burst amending E-19 ADRs. Appended to lessons.md this burst.
+
+**(8) OUT-OF-PERIMETER DRIFT ITEM.**
+
+F-P49-001 root-cause analysis reveals the 3-tool form `Edit|Write|Agent` was introduced when ADR-025 was authored (v1.2 era, S-17.02 implementation). Other S-17.02/S-17.04/E-17 artifacts that describe verify-factory-lock tool scope may carry the same stale 3-tool description. These are OUT OF E-19 PERIMETER; investigation deferred to next maintenance sweep alongside O-P35-001 (D-790). Recorded as Drift Item row in STATE.md.
+
+Parent-commit: 30b6680c (factory-artifacts HEAD = architect ADR-025 v1.13→v1.14 fix; the state of factory-artifacts before this D-805 SM closure burst).
+
+### Phase
+
+D-805-E19-ADV-PASS-49-NOT-CLEAN-CLOSED
+
+### Date
+
+2026-07-10

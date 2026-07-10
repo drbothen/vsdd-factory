@@ -11,3 +11,8 @@
 {"type":"hook.block","hook":"validate-input-hash","reason":"input_hash_drift","ts":"2026-07-10T10:11:38-0600","ts_epoch":1783699898,"schema_version":1}
 {"type":"hook.block","hook":"validate-changelog-monotonicity","reason":"changelog_frontmatter_mismatch","ts":"2026-07-10T10:15:35-0600","ts_epoch":1783700135,"schema_version":1}
 {"type":"hook.block","hook":"validate-input-hash","reason":"input_hash_drift","ts":"2026-07-10T10:30:20-0600","ts_epoch":1783701020,"schema_version":1}
+{"type":"hook.block","hook":"validate-count-propagation","reason":"count_propagation_drift","ts":"2026-07-10T13:04:32-0600","ts_epoch":1783710272,"schema_version":1}
+{"type":"hook.block","hook":"validate-table-cell-count","reason":"table_cell_count","ts":"2026-07-10T13:08:17-0600","ts_epoch":1783710497,"schema_version":1}
+{"type":"hook.block","hook":"validate-count-propagation","reason":"count_propagation_drift","ts":"2026-07-10T13:08:18-0600","ts_epoch":1783710498,"schema_version":1}
+{"type":"hook.block","hook":"validate-count-propagation","reason":"count_propagation_drift","ts":"2026-07-10T13:08:44-0600","ts_epoch":1783710524,"schema_version":1}
+{"type":"hook.block","hook":"validate-table-cell-count","reason":"table_cell_count","ts":"2026-07-10T13:20:58-0600","ts_epoch":1783711258,"schema_version":1}
