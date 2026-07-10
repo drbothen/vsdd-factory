@@ -1,8 +1,8 @@
 ---
 document_type: behavioral-contract
 level: L3
-version: "1.20"
-last_amended: 2026-07-09
+version: "1.21"
+last_amended: "2026-07-10 (v1.21) — F-P43-003: §VP VP-100 row verbatim-derived from VP-INDEX (cardinality+mutual-exclusivity form); F-P43-005: v1.19 Changelog row backfilled + v1.20 Amendment section authored; O-P43-001: last_amended canonicalized to chain form. [Prior: 2026-07-09 (v1.20) — D-798 pre-pass-43 consistency sweep.]"
 status: draft
 producer: product-owner
 timestamp: 2026-05-07T00:00:00Z
@@ -26,6 +26,7 @@ modified:
   - "2026-07-07 (v1.18)"
   - "2026-07-07 (v1.19)"
   - "2026-07-09 (v1.20)"
+  - "2026-07-10 (v1.21)"
 deprecated: null
 deprecated_by: null
 replacement: null
@@ -337,7 +338,7 @@ TBD — single story per ADR-019 §6 (no phased rollout, user decision 2026-05-0
 |--------|----------|-------------|
 | VP-028 | Sink fan-out invariant — all events reach all configured sinks | integration |
 | VP-079 | Payload schema conformance for all six event types including `plugin.abandoned` and `plugin.completed` (async path) — mandatory fields present, non-null, type string correct | integration |
-| VP-100 | drain-timer expiry guarantees plugin.abandoned emission within configured deadline_ms (Invariant 6; DI-019) | integration (S-19.05) |
+| VP-100 | Drain-timer expiry emits exactly one plugin.abandoned per in-flight (plugin_name, entry_index); no plugin.completed follows for same trace_id+plugin_name+entry_index (Invariant 6; DI-019) | integration (S-19.05) |
 
 ## Traceability
 
@@ -670,7 +671,9 @@ Addresses adversary pass-2 finding F-P2-010.
 
 **Changelog:**
 
+| v1.21 | 2026-07-10 | product-owner | F-P43-003: §VP VP-100 row verbatim-derived from VP-INDEX SoT (cardinality+mutual-exclusivity form; replaces latency-paraphrase). F-P43-005: v1.19 Changelog row backfilled; Amendment 2026-07-09 (v1.19→v1.20) prose section authored for structural parity. O-P43-001: last_amended canonicalized to chain form. |
 | v1.20 | 2026-07-09 | product-owner | orchestrator pre-pass-43 consistency sweep: (a) §Verification Properties VP-100 row added (missing-row; integration S-19.05; Invariant 6; DI-019); §VP Anchors VP-100 bullet added. (b) §VP Anchors VP-028 stale-count fixed — "all four event types" → "all six event types" with enumeration of all six async-semantics event types. |
+| v1.19 | 2026-07-07 | product-owner | F-P7-007: `entry_index` semantics clarified as schema-level defense, not runtime dispatch gate. Event 5 `entry_index` semantics paragraph extended with schema-level-defense note (concurrent-same-`plugin_name` scenario has no production dispatch path; correctness verified by property/serialization tests). Event 6 `entry_index` semantics final sentence added mirroring schema-level defense. Invariant 6 schema-level predicate note added. Closes F-P7-007. |
 | v1.18 | 2026-07-07 | product-owner | E-19 pass-5 PO fix burst (F-P5-003): Event 6 `plugin.completed` (async path) added to catalog — async-path variant for async plugins that complete within the drain window. Wire schema mirrors sync-path `emit_lifecycle` in `crates/factory-dispatcher/src/executor.rs` (`trace_id`, `session_id`, `plugin_name`, `plugin_version`, `elapsed_ms`, `fuel_consumed`, `exit_code`, `stderr` conditional) plus `entry_index: u32` for Invariant 6 tuple parity with Event 5. Invariant 6 updated to state mutual exclusivity: abandoned↔completed are terminal alternatives for any (trace_id, plugin_name, entry_index) tuple. Invariants 1 and 3 count corrected four→six. §Common Fields updated: plugin_name present on events (1,4,5,6); plugin_version note split — Events 1/4/5 do NOT emit plugin_version (original emit_event.rs fns); Event 6 DOES (mirrors executor.rs emit_lifecycle). §Description, §Sink destination, §EC-008, §async-completed test vector, §VP Anchors, §Verification Properties, §Architecture Anchors, §Traceability Stories updated. BC-INDEX v3.70→v3.71. |
 | v1.17 | 2026-07-06 | product-owner | E-19 pass-3 PO finalization (F-P3-013): `entry_index` semantics paragraph in Event 5 corrected — derivation rule stated explicitly: `plugin_name` in `plugin.abandoned` events = registry entry `name` field verbatim. Example replaced: the two production `verify-factory-lock` entries carry DIFFERENT `name` values (`verify-factory-lock` vs `verify-factory-lock-bash`) so they do NOT constitute a name-duplication example. Paragraph now cites the schema-level invariant: registry does NOT enforce `name` uniqueness, so future registries may have duplicate `name` entries that make name-only keying ambiguous — `entry_index` is the disambiguation mechanism. Invariant 6 terminal-semantics key (`trace_id + plugin_name + entry_index`) UNCHANGED. |
 | v1.16 | 2026-07-06 | product-owner | F-P2-008 fix burst (product-owner): Event 5 `plugin.abandoned` schema extended with mandatory field `entry_index: u32` (ordinal position of registry entry in async partition at spawn time; enumerate() order; disambiguates multiple entries per plugin_name — e.g., verify-factory-lock has 2 entries). Mandatory fields list updated. Invariant 6 terminal-semantics key extended: `trace_id+plugin_name` → `trace_id+plugin_name+entry_index`. EC-007 and abandoned-one test vector updated. Closes F-P2-008. BC-INDEX v3.60→v3.61. |
@@ -735,3 +738,46 @@ Addresses adversary pass-2 finding F-P2-010.
 **POLICY 1 verification:** All prior content preserved verbatim except the four additions above. No event IDs renumbered. No wire-format examples changed.
 **POLICY 7 verification:** H1 heading unchanged (no new event type; this is a semantics clarification).
 **TD-031 verification:** No `registry.rs:[0-9]+` line-number citations introduced; stable function/symbol anchors used (`registry.rs` validation function, `(name, event, tool)` uniqueness invariant, E-REG-003 error code).
+
+---
+
+## Amendment 2026-07-09 (v1.19 → v1.20 — D-798 pre-pass-43 consistency sweep)
+
+**Driver:** Orchestrator pre-pass-43 consistency sweep (D-798) — two defects found and fixed.
+
+**(a) §Verification Properties VP-100 row missing (D-798):** BC-3.08.001 v1.19 had no VP-100 row in the §Verification Properties table. VP-100 was created in the E-19 VP package (architect, pass-42 sibling sweep) covering BC-3.08.001 §Invariant 6 drain-timer expiry. The §VP Anchors bullet for VP-100 was present (added in the same D-798 sweep) but the §Verification Properties table row was absent, creating inconsistency between the two sections.
+
+**(b) §VP Anchors VP-028 stale count (D-798):** The VP-028 bullet in §VP Anchors still referenced "all four event types" — stale since v1.15 when Event 5 (`plugin.abandoned`) and v1.18 when Event 6 (`plugin.completed` async path) were added. Updated to "all six event types" with explicit enumeration of all six: `plugin.async_block_discarded`, `dispatcher.schema_mismatch`, `dispatcher.registry_invalid`, `plugin.timeout` (async path), `plugin.abandoned`, `plugin.completed` (async path).
+
+**Changes made:**
+
+1. **§Verification Properties table** (D-798): VP-100 row added — property: drain-timer expiry guarantees plugin.abandoned emission (Invariant 6; DI-019); proof-method: integration (S-19.05).
+2. **§VP Anchors** (D-798): VP-100 bullet added — Drain-Timer Expiry Emits Exactly One plugin.abandoned Per In-Flight (plugin_name, entry_index); No plugin.completed Follows for Same Trace (integration; S-19.05; Invariant 6; DI-019). VP-028 bullet stale-count updated: "all four event types" → enumeration of all six async-semantics event types.
+3. **Frontmatter** (D-798): `version: "1.19"` → `"1.20"`; `last_amended: 2026-07-09`; `modified[]` entry added.
+
+**POLICY 1 verification:** All prior content preserved verbatim except the changes listed above.
+**POLICY 7 verification:** H1 heading unchanged.
+**TD-031 verification:** No new line-number citations introduced.
+
+---
+
+## Amendment 2026-07-10 (v1.20 → v1.21 — F-P43-003: VP-100 row verbatim-derived; F-P43-005: v1.19 changelog backfill + v1.20 amendment section; O-P43-001: last_amended chain form)
+
+**Driver:** Adversarial findings F-P43-003 (MEDIUM), F-P43-005 (MEDIUM), and O-P43-001 (LOW, fix-in-scope) from E-19 pass-43.
+
+**F-P43-003 — §Verification Properties VP-100 row paraphrase drift:** The VP-100 row in §Verification Properties described a latency property ("guarantees plugin.abandoned emission within configured deadline_ms") rather than the cardinality+mutual-exclusivity property defined in VP-INDEX v2.56 (SoT) and VP-100.md H1. VP-INDEX row (line 531) and VP-100.md `title:` field both define VP-100 as: "Drain-Timer Expiry Emits Exactly One plugin.abandoned Per In-Flight (plugin_name, entry_index); No plugin.completed Follows for Same Trace." The §VP Anchors bullet (added by D-798) already used the correct exactly-one form — only the §Verification Properties table row carried the paraphrase.
+
+**F-P43-005 — Changelog leg-2 gap:** The body Changelog table skipped v1.19 (the `modified[]` frontmatter array included it; a dedicated `## Amendment 2026-07-07 (v1.18 → v1.19 — F-P7-007...)` prose section exists at end-of-file). The v1.19 Changelog row has been backfilled between v1.20 and v1.18. Additionally, no `## Amendment 2026-07-09 (v1.19 → v1.20 — D-798...)` prose section existed, creating structural asymmetry with v1.15..v1.19 which each have both a Changelog row AND a prose section. The v1.19→v1.20 prose section has been authored above, sourced from the D-798 Changelog row.
+
+**O-P43-001 — last_amended chain form:** Frontmatter `last_amended: 2026-07-09` used a bare date — the only E-19 BC not using the `"(vN.M) — description [Prior: ...]"` chain form, making POLICY 14 leg-4 unverifiable. Canonicalized to standard chain form (production-grade default per CANONICAL PRINCIPLE).
+
+**Changes made:**
+
+1. **Frontmatter** (O-P43-001 + POLICY 14): `last_amended` canonicalized from bare `2026-07-09` to `"2026-07-10 (v1.21) — ..."` chain form. `version: "1.20"` → `"1.21"`. `modified[]` entry `"2026-07-10 (v1.21)"` added.
+2. **§Verification Properties VP-100 row** (F-P43-003): Property cell replaced — paraphrase ("guarantees plugin.abandoned emission within configured deadline_ms") replaced with verbatim-derived cardinality+mutual-exclusivity form sourced from VP-INDEX v2.56 SoT and VP-100.md H1: "Drain-timer expiry emits exactly one plugin.abandoned per in-flight (plugin_name, entry_index); no plugin.completed follows for same trace_id+plugin_name+entry_index (Invariant 6; DI-019)". Proof method `integration (S-19.05)` unchanged.
+3. **Changelog table** (F-P43-005): v1.21 row added at top; v1.19 row backfilled between v1.20 and v1.18 rows.
+4. **Amendment 2026-07-09 (v1.19 → v1.20) section** (F-P43-005): Prose section added for structural parity with v1.15..v1.19.
+
+**POLICY 1 verification:** All prior content preserved verbatim except the changes listed above.
+**POLICY 7 verification:** H1 heading unchanged (no new event type; this is a spec-consistency fix).
+**TD-031 verification:** No new line-number citations introduced.
