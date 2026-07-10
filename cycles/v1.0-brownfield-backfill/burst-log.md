@@ -16763,5 +16763,5 @@ EXIT:0
 
 | Commit | SHA | Contents |
 |--------|-----|----------|
-| D-805 SM single-commit burst (TD-VSDD-053) | `[SHA-PATCH]` | adv-E19-pass-49.md NEW; decision-log D-805; lessons.md L-BB-adr-body-external-artifact-content-descriptions-are-sweep-sites; ARCH-INDEX v2.98→v2.99; STATE.md v5.55→v5.56; burst-log this entry; streak 1/3→0/3 RESET; trajectory →1→1→0→1; pass-50 NEXT |
+| D-805 SM single-commit burst (TD-VSDD-053) | `94cbcf44` | adv-E19-pass-49.md NEW; decision-log D-805; lessons.md L-BB-adr-body-external-artifact-content-descriptions-are-sweep-sites; ARCH-INDEX v2.98→v2.99; STATE.md v5.55→v5.56; burst-log this entry; streak 1/3→0/3 RESET; trajectory →1→1→0→1; pass-50 NEXT |
 
