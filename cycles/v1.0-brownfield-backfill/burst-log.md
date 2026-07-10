@@ -16891,5 +16891,5 @@ Expected ≥8 for this entry (blocks 1–8). D-444(c) 8-block requirement: SATIS
 
 | Commit | SHA | Contents |
 |--------|-----|----------|
-| D-806 SM single-commit burst (TD-VSDD-053) | `[D-806-SHA-TBD]` | adv-E19-pass-50.md NEW; decision-log D-806; lessons.md L-BB-adr-body-external-artifact-file-line-pointers-are-sweep-sites; ARCH-INDEX v2.99→v3.00; STATE.md v5.56→v5.57; burst-log this entry; streak 0/3 UNCHANGED; trajectory →1→0→1→1; pass-51 NEXT |
+| D-806 SM single-commit burst (TD-VSDD-053) | `90b11d44` | adv-E19-pass-50.md NEW; decision-log D-806; lessons.md L-BB-adr-body-external-artifact-file-line-pointers-are-sweep-sites; ARCH-INDEX v2.99→v3.00; STATE.md v5.56→v5.57; burst-log this entry; streak 0/3 UNCHANGED; trajectory →1→0→1→1; pass-51 NEXT |
 
