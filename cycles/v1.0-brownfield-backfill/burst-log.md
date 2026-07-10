@@ -14971,5 +14971,5 @@ NEXT: E-19 adversary pass-39 (fresh context; Iron Law; rubric policies.yaml v1.4
 
 | Commit | SHA | Description |
 |--------|-----|-------------|
-| D-793 burst (atomic) | `PENDING-SHA` | state(D-793): E-19 adv pass-38 CLEAN B0/H0/M0/L0; governance-only burst; 4-index ALL UNCHANGED BC v3.88/VP v2.55/STORY v4.169/ARCH v2.97; STATE.md v5.44 450 lines; streak 0/3→1/3; pass-39 NEXT |
-| D-793 sha-patch | `PENDING-SHA-PATCH` | state(D-793-sha-patch): Active Branches → actual D-793 burst SHA + burst-log Block 8 SHA fill (D-447(c)+D-449(e)) |
+| D-793 burst (atomic) | `42851459` | state(D-793): E-19 adv pass-38 CLEAN B0/H0/M0/L0; governance-only burst; 4-index ALL UNCHANGED BC v3.88/VP v2.55/STORY v4.169/ARCH v2.97; STATE.md v5.44 450 lines; streak 0/3→1/3; pass-39 NEXT |
+| D-793 sha-patch | `PENDING-SHA-PATCH` | state(D-793-sha-patch): Active Branches → actual D-793 burst SHA `42851459` + burst-log Block 8 SHA fill (D-447(c)+D-449(e)) |
