@@ -15147,4 +15147,4 @@ NEXT: E-19 adversary pass-40 (fresh context; Iron Law; rubric policies.yaml v1.4
 
 | Commit | SHA | Description |
 |--------|-----|-------------|
-| D-794 burst (atomic) | `PENDING-SHA` | state(D-794): E-19 adv pass-39 NOT-CLEAN B0/H0/M1/L0; F-P39-001 POLICY 7 BC-INDEX title-cell drift 3/6 E-19 BCs; BC-INDEX v3.88→v3.89; SM-only; streak 1/3→0/3; pass-40 NEXT |
+| D-794 burst (atomic) | `9fbdaae7` | state(D-794): E-19 adv pass-39 NOT-CLEAN B0/H0/M1/L0; F-P39-001 POLICY 7 BC-INDEX title-cell drift 3/6 E-19 BCs; BC-INDEX v3.88→v3.89; SM-only; streak 1/3→0/3; pass-40 NEXT |
