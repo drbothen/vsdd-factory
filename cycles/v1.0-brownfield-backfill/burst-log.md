@@ -16218,4 +16218,4 @@ EXIT:0 PASS. BC-5.42.001 v1.6 Changelog date = 2026-07-09 ✓.
 |--------|-----|----------|
 | D-801 PO leg (prior) | `6f813e9e` | BC-2.02.011 v1.6→v1.7 (modified[] re-sorted; no body change; input-hash e650b4b UNCHANGED) |
 | D-801 SW leg (prior) | `ae37b246` | S-19.03 v1.18→v1.19 (BC-2.02.011 v1.7 cite sweep ×2 sites; input-hash 8d1225d UNCHANGED; epic ZERO cites) |
-| D-801 SM single-commit burst (TD-VSDD-053) | `SHA-PENDING` | BC-INDEX v3.94; VP-INDEX v2.58; STORY-INDEX v4.173; adv-E19-pass-45.md NEW; decision-log D-801; lessons L-BB-remediation; STATE.md v5.51→v5.52 480 lines; burst-log this entry; streak UNCHANGED 0/3; trajectory →3→5→2→3; pass-46 NEXT |
+| D-801 SM single-commit burst (TD-VSDD-053) | `bcf1f419` | BC-INDEX v3.94; VP-INDEX v2.58; STORY-INDEX v4.173; adv-E19-pass-45.md NEW; decision-log D-801; lessons L-BB-remediation; STATE.md v5.51→v5.52 480 lines; burst-log this entry; streak UNCHANGED 0/3; trajectory →3→5→2→3; pass-46 NEXT |
