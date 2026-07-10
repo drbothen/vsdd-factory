@@ -17235,4 +17235,4 @@ EXIT:0
 
 | Commit | SHA | Contents |
 |--------|-----|----------|
-| D-808 SM single-commit burst (TD-VSDD-053) | `[SHA-PATCH]` | adv-E19-pass-52.md NEW; decision-log D-808; lessons.md L-BB-traceability-row-descriptions-must-derive-from-target-SoT; STORY-INDEX v4.175→v4.176; STATE.md v5.58→v5.59; burst-log this entry; streak 1/3→0/3; trajectory →1→1→0→1; pass-53 NEXT |
+| D-808 SM single-commit burst (TD-VSDD-053) | `60c0afd4` | adv-E19-pass-52.md NEW; decision-log D-808; lessons.md L-BB-traceability-row-descriptions-must-derive-from-target-SoT; STORY-INDEX v4.175→v4.176; STATE.md v5.58→v5.59; burst-log this entry; streak 1/3→0/3; trajectory →1→1→0→1; pass-53 NEXT |
