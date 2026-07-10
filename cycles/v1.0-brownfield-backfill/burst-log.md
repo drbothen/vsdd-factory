@@ -15286,3 +15286,149 @@ NEXT: E-19 adversary pass-41 (fresh context; Iron Law; rubric policies.yaml v1.4
 |--------|-----|-------------|
 | D-795 burst (atomic) | `7b8b5863` | state(D-795): E-19 adv pass-40 NOT-CLEAN B0/H0/M1/L0; F-P40-001 MED ADR-025 §Decision 14 stable anchor (7a58f292); ARCH-INDEX v2.97→v2.98; STATE.md v5.46; streak 0/3; pass-41 NEXT |
 
+
+## D-796 — E-19 Adversarial Pass-41 CLEAN Closure (GOVERNANCE-ONLY; streak 0/3→1/3; O-P41-001/002 accepted-with-record)
+
+**Date:** 2026-07-09
+**Burst type:** GOVERNANCE-ONLY (per D-793 CLEAN-pass precedent)
+**Streak advance:** 0/3 → 1/3
+
+### Block 1 — Parent-commit
+
+| Field | Value |
+|-------|-------|
+| Parent-commit SHA | `94ba5ff2` |
+| Parent-commit message | state(D-795-sha-patch): Active Branches + burst-log Block 8 → 7b8b5863 |
+| Branch | factory-artifacts |
+
+### Block 2 — Adversary Verdict (source-attested from adv-E19-pass-41.md)
+
+**Pass:** E-19 adversary pass-41
+**Source file:** `cycles/v1.0-brownfield-backfill/adv-E19-pass-41.md`
+**Perimeter:** epic v1.22 + full E-19 suite at D-795 versions (ADR-025 v1.13 + ARCH-INDEX v2.98 + BC-INDEX v3.89 + ADR-030 v1.3/BC-4.13.001 v1.14/BC-5.42.001 v1.5/BC-2.07.001 v1.4/BC-2.02.011 v1.5/BC-3.08.001 v1.19/BC-1.17.001 v1.5 + VP-095 v1.1/VP-096 v1.1 + S-19.01 v1.16/S-19.02 v1.17/S-19.03 v1.16/S-19.04 v1.11/S-19.05 v1.14/S-19.06 v1.18/S-19.07 v1.16 + STORY-INDEX v4.169/VP-INDEX v2.55) + policies.yaml v1.4.2
+**Verdict:** CLEAN — B0/H0/M0/L2 (0 findings, 2 LOW observations)
+**Streak:** 0/3 → 1/3
+**Model family:** Claude Opus 4.7
+
+**Part A summary:** 23/23 version attestations PASS. 5 D-795 delta verifications all ✓: V1 ADR-025 v1.13 §Decision 14 stable-anchor form verbatim (`§Precondition 3 (Phase-A) and §Invariant 9`); V2 all 5 ADR parity legs verified; V3 ground-truth anchors §Precondition 3 (Phase-A) + §Invariant 9 existence + semantics verified against BC-4.13.001 v1.14 at HEAD; V4 ADR-025 body sibling-sweep 4 hits all historical-by-construction (zero non-historical residuals); V5 cross-artifact `BC-4.13.001 v1.4` sweep zero live sites; ARCH-INDEX v2.98 row parity confirmed. Fresh axes (BC-numbering-continuity, VP-body↔index-semantics, story-File-Structure↔inputs[], EAC-gates, ADR-Decisions-1–13-cite-hygiene) all PASS. New findings: none. Observations: 2 LOW (O-P41-001, O-P41-002) both accepted-with-record per freeze discipline.
+
+**O-P41-001 LOW:** ADR-025 body ## Changelog missing intermediate rows v1.8/v1.9/v1.12 — content preserved in amendment_reason [Prior:] chain + Status paragraphs; leg-2 strict check passes on latest row. DISPOSITION: accepted; opportunistic backfill at next ADR-025 amendment; NOT a Drift Item (no functional impact).
+
+**O-P41-002 LOW:** epic §Previous Story Intel ADR-025 bullet cites provenance v1.7 without carry-forward-to-current annotation; scoped historical-event cite; sibling bullets use current-version framing. DISPOSITION: accepted; optional stylization at next epic amendment (record only).
+
+**Part B summary:** B.1–B.19 all PASS. B.10/B.11/B.12 N/A (no story worktrees; no PRs; no TDD dispatch). Key attestations: POLICY 5/7/14/15/17/19 all PASS. POLICY 16 D-796 allocated correctly. 4-index ALL UNCHANGED confirmed (POLICY 14 leg-4 PASS). POLICY 19 BC table all-stable — no BC version-token in volatile-pin state introduced.
+
+**Trajectory note:** Trajectory p22–41: 4→3→4→2→2→4→6→5→4→1→3→4→1→2→1→1→0→1→1→0. Zero BLOCKER 19 passes; zero HIGH 6 passes. Novelty LOW — accepted-with-record observation class (documentation-hygiene). Streak 0/3→1/3 (two more consecutive CLEANs → 3/3 CONVERGED).
+
+### Block 3 — Files Touched
+
+| File | Action | Notes |
+|------|--------|-------|
+| `cycles/v1.0-brownfield-backfill/adv-E19-pass-41.md` | CREATED | Pass-41 adversary report; CLEAN B0/H0/M0/L2; H1 perimeter header; Part A (23 attestations + 5 D-795 delta verifications + 2 LOW observations dispositioned) + Part B (B.1–B.19, B.10/B.11/B.12 N/A) |
+| `cycles/v1.0-brownfield-backfill/decision-log.md` | APPENDED | D-796 block: CLEAN verdict, 5 delta verifications, O-P41-001/002 accepted-with-record dispositions, fresh-axis results, governance-only leg description, NEXT; parent-commit 94ba5ff2 |
+| `cycles/v1.0-brownfield-backfill/INDEX.md` | MODIFIED | Pass-41 row appended; Convergence Status updated to D-796/streak 1/3/pass-42 NEXT; 4-index ALL UNCHANGED noted |
+| `.factory/STATE.md` | MODIFIED | v5.46→v5.47; D-796 Decisions Log row prepended; trajectory-tail →0→1→1→0; streak 1/3; banner + Phase Progress + Last Updated + Current Phase + frontmatter advance (all 5 BC-5.39.006 v1.7 PCs); Session Resume Checkpoint full refresh targeting pass-42 (O-P41-001/002 accepted noted; frozen suite at D-795 versions; two more CLEANs → 3/3 → W1 TDD dispatch) |
+| `cycles/v1.0-brownfield-backfill/burst-log.md` | APPENDED | This entry (D-796; 8 blocks per D-444(c)) |
+
+**No story/BC/VP/epic/ADR/ARCH artifact changes** — governance-only burst per D-793 CLEAN-pass precedent.
+
+### Block 4 — Codifications
+
+| Type | ID | Description |
+|------|----|-------------|
+| Decision | D-796 | E-19 adv pass-41 CLEAN B0/H0/M0/L2; O-P41-001/002 LOW accepted-with-record; governance-only burst; streak 0/3→1/3; 4-index ALL UNCHANGED BC v3.89/VP v2.55/STORY v4.169/ARCH v2.98 |
+| Lessons | (none) | CLEAN governance-only pass — O-P41-001/002 accepted-with-record per freeze discipline; no new enforcement ply identified; no new lesson codified this burst |
+
+**D-NNN count:** 1 decision codified (D-796). 0 lessons.
+
+### Block 5 — Dim-2: Literal-Shell Gate Evidence (D-449(a))
+
+**Gate i — 4-index ALL UNCHANGED (D-494 / POLICY 14 leg-4):**
+```
+$ grep "^version:" \
+  .factory/specs/behavioral-contracts/BC-INDEX.md \
+  .factory/specs/verification-properties/VP-INDEX.md \
+  .factory/stories/STORY-INDEX.md \
+  .factory/specs/architecture/ARCH-INDEX.md
+.factory/specs/architecture/ARCH-INDEX.md:version: "2.98"
+.factory/specs/verification-properties/VP-INDEX.md:version: "2.55"
+.factory/stories/STORY-INDEX.md:version: "4.169"
+.factory/specs/behavioral-contracts/BC-INDEX.md:version: "3.89"
+EXIT:0 — PASS (BC v3.89/VP v2.55/STORY v4.169/ARCH v2.98; ALL UNCHANGED — governance-only burst confirmed)
+```
+
+**Gate ii — POLICY 16 global-max (D-796 allocation):**
+```
+$ grep -oE "^## D-[0-9]+" .factory/cycles/v1.0-brownfield-backfill/decision-log.md | tail -5
+## D-792
+## D-793
+## D-794
+## D-795
+## D-796
+EXIT:0 — PASS (D-795 confirmed max before D-796 block appended; D-796 allocated correctly per POLICY 16)
+```
+
+**Gate iii — STATE.md size budget (hard cap ≤500 lines):**
+```
+$ wc -l .factory/STATE.md
+     462 .factory/STATE.md
+EXIT:0 — PASS (462 lines; under 500 hard cap)
+```
+
+**Gate iv — D-448(a) source-attestation (adv-E19-pass-41.md verdict):**
+```
+$ grep "^\*\*Verdict\|^Verdict:" .factory/cycles/v1.0-brownfield-backfill/adv-E19-pass-41.md
+**Verdict:** CLEAN — B0/H0/M0/L2 (0 findings, 2 LOW observations)
+**Verdict: CLEAN — B0/H0/M0/L2.**
+EXIT:0 — PASS (Block 2 Adversary Verdict faithfully describes adv-E19-pass-41.md Part A: CLEAN B0/H0/M0/L2, 0 findings, 2 LOW observations; O-P41-001/002 dispositions faithfully transcribed)
+```
+
+**Gate v — D-446(a) 8-block self-verification:**
+```
+Checking D-796 burst-log entry for all 8 D-444(c) mandatory blocks:
+[x] Block 1 — Parent-commit (94ba5ff2) PRESENT
+[x] Block 2 — Adversary verdict (source-attested CLEAN B0/H0/M0/L2; O-P41-001/002) PRESENT
+[x] Block 3 — Files touched (5 files; governance-only) PRESENT
+[x] Block 4 — Codifications (D-796; 0 lessons; count stated) PRESENT
+[x] Block 5 — Dim-2 literal-shell gates i–v with captured stdout PRESENT (this block)
+[x] Block 6 — Dim-5/6/7 Attestations + 8-block self-verification PRESENT
+[x] Block 7 — Closes (O-P41-001/002 accepted-with-record; NEXT pass-42) PRESENT
+[x] Block 8 — Factory-artifacts commits (PENDING-SHA; SHA-patch follow-up) PRESENT
+EXIT:0 — PASS (all 8 D-444(c) blocks verified present per D-446(a))
+```
+
+### Block 6 — Dim-5/6/7 Attestations + 8-block Self-Verification
+
+**Dim-5 (spec-compliance):** All 5 modified artifacts comply with VSDD governance requirements. adv-E19-pass-41.md follows standard report structure (H1 perimeter header; Part A delta verifications + fresh-axis results + 2 LOW observation dispositions + verdict; Part B policy attestations B.1–B.19). decision-log.md D-796 block follows canonical format with parent-commit, phase, date, 5 verifications, O-P41-001/002 dispositions. INDEX.md Pass-41 row follows established column format; Convergence Status updated to streak 1/3 / pass-42 NEXT. STATE.md v5.47 satisfies D-443(a) verbatim-strict chain (version/phase/current_step/banner/last_amended all updated atomically; trajectory-tail LENGTH=4 `→0→1→1→0` per D-433(e)+D-439(c); ALL 5 BC-5.39.006 v1.7 PCs satisfied). Session Resume Checkpoint fully refreshed targeting pass-42 (zero-context self-sufficient; all 11 sections updated; frozen suite at D-795 versions; O-P41-001/002 dispositions noted).
+
+**Dim-6 (STORY-INDEX BC-coverage):** N/A for governance-only burst — no story/BC/VP artifact changes. 4-index ALL UNCHANGED confirmed by Gate i literal-shell (BC v3.89/VP v2.55/STORY v4.169/ARCH v2.98).
+
+**Dim-7 (routing discipline):** Single-specialist burst (state-manager only). Governance artifacts only: adv report persist, decision-log codification, INDEX.md convergence advance, STATE.md pipeline advance, burst-log entry. No story/BC/VP content modifications. Correct specialist per CLAUDE.md Routing Table. Per D-793 CLEAN-pass governance-only precedent.
+
+**8-block self-verification:**
+- [x] Block 1 — Parent-commit (`94ba5ff2`)
+- [x] Block 2 — Adversary verdict (source-attested from adv-E19-pass-41.md; CLEAN B0/H0/M0/L2; 0 findings; O-P41-001/002 LOW accepted-with-record)
+- [x] Block 3 — Files touched (5 files; governance-only burst)
+- [x] Block 4 — Codifications (D-796; 0 lessons; 1 D-NNN count)
+- [x] Block 5 — Dim-2 literal-shell gates i–v with captured stdout per D-449(a)
+- [x] Block 6 — Dim-5/6/7 Attestations + 8-block self-verification (this block)
+- [x] Block 7 — Closes
+- [x] Block 8 — Factory-artifacts commits
+
+### Block 7 — Closes
+
+| Finding | Status | Notes |
+|---------|--------|-------|
+| Pass-41 CLEAN verdict | CODIFIED | D-796 governance-only burst; streak 0/3→1/3; no open findings |
+| O-P41-001 LOW ADR-025 ## Changelog missing intermediate rows v1.8/v1.9/v1.12 | ACCEPTED-WITH-RECORD | Opportunistic backfill at next ADR-025 amendment; NOT a Drift Item; no functional impact |
+| O-P41-002 LOW epic §Previous Story Intel ADR-025 bullet cites provenance v1.7 without carry-forward annotation | ACCEPTED-WITH-RECORD | Optional stylization at next epic amendment; record only |
+
+**Open items carried:** None. All prior cycle findings closed by D-795 or earlier bursts.
+
+NEXT: E-19 adversary pass-42 (fresh context; Iron Law; rubric policies.yaml v1.4.2; perimeter = D-796 frozen suite — full E-19 suite at D-795 versions: ADR-025 v1.13 + ARCH-INDEX v2.98 + BC-INDEX v3.89 + full suite carry-forward; no delta; streak 1/3; two more consecutive CLEANs → 3/3 CONVERGED → W1 TDD dispatch S-19.01+S-19.02+S-19.03 per D-773/D-774).
+
+### Block 8 — Factory-artifacts Commits
+
+| Commit | SHA | Description |
+|--------|-----|-------------|
+| D-796 burst (atomic) | `PENDING-SHA` | state(D-796): E-19 adv pass-41 CLEAN B0/H0/M0/L2; GOVERNANCE-ONLY; O-P41-001/002 LOW accepted-with-record; 4-index ALL UNCHANGED BC v3.89/VP v2.55/STORY v4.169/ARCH v2.98; STATE.md v5.47 462 lines; streak 0/3→1/3; pass-42 NEXT |

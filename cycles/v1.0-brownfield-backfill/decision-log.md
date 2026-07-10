@@ -7677,3 +7677,71 @@ D-795-E19-ADV-PASS-40-NOT-CLEAN-CLOSED
 ### Date
 
 2026-07-09
+
+---
+
+## D-796 — E-19 Adversarial Pass-41 Closure (CLEAN B0/H0/M0/L2; O-P41-001/002 accepted-with-record; GOVERNANCE-ONLY; streak 0/3→1/3)
+
+### Summary
+
+E-19 adv pass-41 CLEAN B0/H0/M0/L2 (0 findings; 2 LOW observations). GOVERNANCE-ONLY burst per D-793 CLEAN-pass governance-only precedent. 5 D-795 delta verifications all PASS. O-P41-001 LOW ADR-025 body ## Changelog missing intermediate rows v1.8/v1.9/v1.12 — accepted-with-record (content preserved in amendment_reason [Prior:] chain; opportunistic backfill at next ADR-025 amendment). O-P41-002 LOW epic §Previous Story Intel ADR-025 provenance cite v1.7 without carry-forward annotation — accepted-with-record (historical-event cite; POLICY 19 does not apply; optional stylization at next epic amendment). 4-index ALL UNCHANGED: BC v3.89/VP v2.55/STORY v4.169/ARCH v2.98. Streak 0/3→1/3. NEXT: adv pass-42.
+
+### Detail
+
+**(1) PASS-41 VERDICT: CLEAN B0/H0/M0/L2.**
+
+- 0 actionable findings. 2 LOW observations (both accepted-with-record per freeze discipline).
+- Model family: Claude Opus 4.7. Iron Law: zero prior context. Rubric: policies.yaml v1.4.2.
+- Trajectory (passes 22–41): 4→3→4→2→2→4→6→5→4→1→3→4→1→2→1→1→0→1→1→0.
+- Streak: 0/3→1/3 (pass-41 CLEAN advances streak per BC-5.39.001 strict-3-CLEAN per D-761 human directive).
+- Zero BLOCKER: 19 consecutive passes (p22–p41). Zero HIGH: 6 consecutive passes (p36–p41 inclusive).
+
+**(2) D-795 DELTA VERIFICATIONS (5/5 PASS).**
+
+V1: ADR-025 v1.13 §Decision 14 Normative-twin stable-anchor verbatim `§Precondition 3 (Phase-A) and §Invariant 9` confirmed. Stale `BC-4.13.001 v1.4` token absent. ✓
+
+V2: All 5 ADR parity legs confirmed — (a) amendment_reason YAML; (b) Status paragraph; (c) ## Changelog latest row v1.13; (d) body §Decision 14 form matches sibling §Decision 15 stable-anchor convention; (e) ARCH-INDEX v2.98 upstream-index row ADR-025 v1.13 annotation. ✓
+
+V3: Ground-truth anchors verified against BC-4.13.001 v1.14 at HEAD — `§Precondition 3 (Phase-A)` section heading exists with 65536-byte Phase-A behavioral constraint; `§Invariant 9` section heading exists with exclusive `0..delimiter_start_offset` boundary semantics. Both anchors load-bearing and current. ✓
+
+V4: ADR-025 body sibling-sweep — 4 `BC-4.13.001 v[0-9]` hits found; all 4 are in amendment_reason YAML or ## Changelog rows (historical-by-construction; exempt per TD-VSDD-091). Zero hits in normative § Decision body sections. ✓
+
+V5: Cross-artifact `BC-4.13.001 v1.4` sweep across E-19 perimeter — zero live sites (ADR-025 normative sections, ADR-030, epic v1.22, S-19.01..S-19.07 all clear). ARCH-INDEX v2.98 row parity confirmed (ADR-025 row shows v1.13 with amendment note). ✓
+
+**(3) OBSERVATIONS — ACCEPTED-WITH-RECORD PER FREEZE DISCIPLINE.**
+
+**O-P41-001 LOW — ADR-025 v1.13 ## Changelog missing intermediate rows v1.8/v1.9/v1.12.**
+
+Evidence: ADR-025 Changelog contains v1.1/v1.2/v1.3/v1.4/v1.5/v1.6/v1.7/v1.10/v1.11/v1.13; rows for v1.8, v1.9, and v1.12 absent. Content preserved in amendment_reason [Prior:] chain and Status paragraph history. No functional impact; POLICY 14 leg-2 strict check passes on latest row. Disposition: accepted-with-record; opportunistic backfill of three summary rows recommended at next ADR-025 amendment; NOT a Drift Item; no enforcement implication.
+
+**O-P41-002 LOW — epic v1.22 §Previous Story Intel ADR-025 bullet cites provenance v1.7 without carry-forward annotation.**
+
+Evidence: Bullet reads with ADR-025 v1.7 as historical-event provenance cite for a specific architectural decision established at that version. Sibling bullets use current-version framing. Provenance cite convention is consistent with historical-event bullets elsewhere in the epic. POLICY 19 stable-anchor enforcement scope: normative BC/VP/story File-Structure/ADR Decision body references; not historical-event provenance bullets in epic §Previous Story Intel. No functional impact. Disposition: accepted-with-record; optional carry-forward annotation (e.g., appending `(current v1.13)`) at next epic amendment; NOT a correctness defect.
+
+**(4) FRESH-AXIS EXAMINATION (all PASS).**
+
+BC numbering continuity: PASS. VP body↔index semantics: PASS. Story File-Structure↔inputs[]: PASS. EAC gates: PASS. ADR Decisions 1–13 cite hygiene: PASS. POLICY 5 v1.3.7 category-(i) aggregation cells: PASS (confirmed stable). POLICY 7 BC-INDEX title-cell verbatim: PASS (D-794 fix confirmed stable; D-795 ARCH-INDEX change is index metadata, not BC body change).
+
+**(5) STATE-MANAGER LEG (GOVERNANCE-ONLY — this burst).**
+
+- adv-E19-pass-41.md persisted to `.factory/cycles/v1.0-brownfield-backfill/adv-E19-pass-41.md`
+- D-796 decision block appended to decision-log.md (this entry)
+- INDEX.md: pass-41 row added + Convergence Status updated
+- BC-INDEX v3.89 / VP-INDEX v2.55 / STORY-INDEX v4.169 / ARCH-INDEX v2.98 ALL UNCHANGED (exhaustive-unchanged; zero findings in these artifacts)
+- STATE.md v5.46→v5.47: D-796 row + trajectory tail `→0→1→1→0` + streak 1/3 + Session Resume Checkpoint refresh targeting pass-42
+
+**(6) 4-INDEX GATE (POLICY 14 leg-4 literal-shell).**
+
+See burst-log Block 5 for captured stdout. BC v3.89/VP v2.55/STORY v4.169/ARCH v2.98 ALL UNCHANGED.
+
+**(7) NEXT: E-19 adv pass-42** (fresh context; Iron Law; rubric policies.yaml v1.4.2; perimeter = full E-19 suite at D-795 versions; no delta — artifacts frozen; streak 1/3; two more CLEANs → 3/3 CONVERGED → W1 TDD dispatch per D-773/D-774).
+
+Parent-commit: 94ba5ff2 (D-795-sha-patch, factory-artifacts HEAD before this burst).
+
+### Phase
+
+D-796-E19-ADV-PASS-41-CLEAN
+
+### Date
+
+2026-07-09
