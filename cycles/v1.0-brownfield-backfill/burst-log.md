@@ -15584,6 +15584,6 @@ NEXT: E-19 adversary pass-43 (fresh context; Iron Law; rubric policies.yaml v1.4
 | D-797 PO BC-2.07.001 v1.5 | `e4b1c8d9` | BC-2.07.001 v1.4→v1.5: VP-097 row traversal-defense (POLICY 9); duplicate VP-098 consolidated (F-P42-003) |
 | D-797 SW S-19.03 v1.17 + epic v1.23 | `964048de` | S-19.03 BC-2.07.001 v1.4→v1.5 ×3; epic EAC-003 ×1 |
 | D-797 architect sibling-sweep VP-094/098/100/101 | `a0c2c62a` | VP-094/098/100/101 v1.0→v1.1 stable-anchor form (POLICY 5 v1.3.5 sibling class) |
-| D-797 SM 4-index + INDEX + STATE + burst-log (Commit E) | `PENDING-SM-SHA` | BC-INDEX v3.89→v3.90; VP-INDEX v2.55→v2.56; STORY-INDEX v4.169→v4.170; ARCH-INDEX UNCHANGED; INDEX.md Pass-42 row + Convergence Status; STATE.md v5.47→v5.48 473 lines; burst-log this entry; streak 0/3; pass-43 NEXT |
+| D-797 SM 4-index + INDEX + STATE + burst-log (Commit E) | `5bccbfb0` | BC-INDEX v3.89→v3.90; VP-INDEX v2.55→v2.56; STORY-INDEX v4.169→v4.170; ARCH-INDEX UNCHANGED; INDEX.md Pass-42 row + Convergence Status; STATE.md v5.47→v5.48 473 lines; burst-log this entry; streak 0/3; pass-43 NEXT |
 
-> SHA-patch follow-up required: replace `PENDING-SM-SHA` above and Active Branches `factory-artifacts` row in STATE.md with actual Commit E HEAD SHA after push.
+> SHA-patch follow-up required: replace `5bccbfb0` above and Active Branches `factory-artifacts` row in STATE.md with actual Commit E HEAD SHA after push.
