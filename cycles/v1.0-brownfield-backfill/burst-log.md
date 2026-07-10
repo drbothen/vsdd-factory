@@ -17055,4 +17055,4 @@ Expected ≥8 for this entry (blocks 1–8). D-444(c) 8-block requirement: SATIS
 
 | Commit | SHA | Contents |
 |--------|-----|----------|
-| D-807 SM single-commit burst (TD-VSDD-053) | `[SHA-PATCH PENDING]` | adv-E19-pass-51.md NEW; decision-log D-807; STATE.md v5.57→v5.58; burst-log this entry; streak 0/3→1/3; trajectory →0→1→1→0; pass-52 NEXT |
+| D-807 SM single-commit burst (TD-VSDD-053) | `71ef9b66` | adv-E19-pass-51.md NEW; decision-log D-807; STATE.md v5.57→v5.58; burst-log this entry; streak 0/3→1/3; trajectory →0→1→1→0; pass-52 NEXT |
