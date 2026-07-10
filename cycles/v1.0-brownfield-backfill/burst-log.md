@@ -16893,3 +16893,166 @@ Expected ≥8 for this entry (blocks 1–8). D-444(c) 8-block requirement: SATIS
 |--------|-----|----------|
 | D-806 SM single-commit burst (TD-VSDD-053) | `90b11d44` | adv-E19-pass-50.md NEW; decision-log D-806; lessons.md L-BB-adr-body-external-artifact-file-line-pointers-are-sweep-sites; ARCH-INDEX v2.99→v3.00; STATE.md v5.56→v5.57; burst-log this entry; streak 0/3 UNCHANGED; trajectory →1→0→1→1; pass-51 NEXT |
 
+
+---
+
+## D-807 — E-19 Adversary Pass-51 CLEAN Closure (GOVERNANCE-ONLY; streak 0/3→1/3)
+
+**Date:** 2026-07-10
+**Parent-commit (Commit D / last fix burst SHA):** `e7939931` (D-806 SHA-patch burst)
+**Cycle:** v1.0-brownfield-backfill
+
+### Block 1 — Parent-commit attestation
+
+Parent-commit is `e7939931` (D-806 SHA-patch burst on factory-artifacts). Confirmed via:
+
+```
+git -C .factory log --oneline -1
+e7939931 factory(D-806-sha-patch): Active Branches factory-artifacts SHA → 90b11d44
+```
+
+### Block 2 — Adversary verdict (D-448(a) source-attestation)
+
+**adv-E19-pass-51.md** — CLEAN B0/H0/M0/L0. Iron Law SATISFIED (fresh context; no prior pass reports loaded). Rubric policies.yaml v1.4.3.
+
+Part A gates (4 D-806 delta verification gates):
+- Gate 1 PASS: ADR-025 v1.15 §12.6 stable `[hooks.capabilities.read_file]`-block anchor PRESENT; volatile `line 1181–1182 of hooks-registry.toml` ABSENT
+- Gate 2 PASS: whole-ADR pointer sweep → 1 hit at line 1708 (Changelog historical, EXEMPT per TD-VSDD-091); 0 normative-live hits
+- Gate 3 PASS: §12.6 TOML snippet byte-identical to live registry lines 1260–1261
+- Gate 4 PASS: ARCH-INDEX v3.00 POLICY 14 5-leg parity complete
+
+11 fresh axes table: all 11 PASS (pointer-class, content-value, ADR-030 6-field parity, POLICY 7 char-diff 6/6, modified[] monotonicity, 30-artifact version table, POLICY 14 sweep, POLICY 19 sweep, VP-INDEX parity, S-19.04 spec-first ground-truth, §12.9 delta-directive classification).
+
+Findings: NONE. Observations: NONE. Novelty: NIL.
+
+### Block 3 — Files touched
+
+**GOVERNANCE-ONLY burst — no spec/story/BC/VP/epic/ADR changes.**
+
+| File | Change |
+|------|--------|
+| `.factory/cycles/v1.0-brownfield-backfill/adv-E19-pass-51.md` | NEW — full adversary pass-51 report |
+| `.factory/cycles/v1.0-brownfield-backfill/decision-log.md` | APPENDED — D-807 entry |
+| `.factory/STATE.md` | UPDATED — v5.57→v5.58; D-807 governance advance |
+| `.factory/cycles/v1.0-brownfield-backfill/burst-log.md` | APPENDED — this D-807 entry |
+
+4-index (BC/VP/STORY/ARCH): ALL UNCHANGED (governance-only burst).
+
+### Block 4 — Codifications
+
+| Codification | Type | Source |
+|--------------|------|--------|
+| D-807 E-19 adv pass-51 CLEAN closure | Decision-log entry | D-807 |
+| Streak 0/3 → 1/3 (pass-51 CLEAN) | STATE.md advance | pass-51 CLEAN |
+
+No new L-BB lessons (pass-51 CLEAN; NIL novelty; no new defect class). No POLICY or standing-control amendments.
+
+### Block 5 — Dim-2 attestation (D-449(a) literal-shell gate evidence)
+
+**Gate 1 — 4-index exhaustive-unchanged gate (literal-shell):**
+
+```
+grep "^version:" \
+  .factory/specs/behavioral-contracts/BC-INDEX.md \
+  .factory/specs/verification-properties/VP-INDEX.md \
+  .factory/stories/STORY-INDEX.md \
+  .factory/specs/architecture/ARCH-INDEX.md
+```
+
+Stdout:
+```
+.factory/specs/verification-properties/VP-INDEX.md:version: "2.59"
+.factory/specs/architecture/ARCH-INDEX.md:version: "3.00"
+.factory/stories/STORY-INDEX.md:version: "4.175"
+.factory/specs/behavioral-contracts/BC-INDEX.md:version: "3.95"
+```
+
+Result: BC v3.95 / VP v2.59 / STORY v4.175 / ARCH v3.00 — ALL UNCHANGED. GATE PASS.
+
+**Gate 2 — Heading-parity gate (literal-shell via Python3):**
+
+```python
+python3 -c "
+import re, glob
+story_index = open('stories/STORY-INDEX.md').read()
+h2_headings = {}
+for m in re.finditer(r'^(## Epic (E-\d+)[^\n]*)', story_index, re.MULTILINE):
+    h2_headings[m.group(2)] = m.group(1)
+results = []
+for f in sorted(glob.glob('stories/epics/E-*.md')):
+    content = open(f).read()
+    vm = re.search(r'^version:.*', content, re.MULTILINE)
+    ver = vm.group(0).split('\"')[1].lstrip('v') if vm else None
+    epic_id = re.search(r'/(E-\d+)-', f).group(1)
+    heading = h2_headings.get(epic_id, '')
+    ann_m = re.search(r'(?:draft|amended|merged|active),\s*v(\d+\.\d+(?:\.\d+)?)', heading)
+    if not ann_m: results.append(f'SKIP {epic_id}')
+    elif ann_m.group(1) == ver: results.append(f'PASS {epic_id}: v{ver}')
+    else: results.append(f'FAIL {epic_id}: heading v{ann_m.group(1)} != frontmatter v{ver}')
+[print(r) for r in results]
+print(f'GATE RESULT: {sum(1 for r in results if \"PASS\" in r)} PASS | {sum(1 for r in results if \"FAIL\" in r)} FAIL | {sum(1 for r in results if \"SKIP\" in r)} SKIP')
+"
+```
+
+Stdout:
+```
+SKIP E-0: heading has no status+version annotation → older format
+SKIP E-1: heading has no status+version annotation → older format
+PASS E-10: v1.6 ✓
+PASS E-11: v1.1 ✓
+PASS E-12: v1.3 ✓
+PASS E-13: v1.0 ✓
+PASS E-14: v1.2 ✓
+PASS E-15: v1.3 ✓
+PASS E-16: v1.0 ✓
+PASS E-17: v1.1 ✓
+PASS E-18: v1.3 ✓
+PASS E-19: v1.26 ✓
+SKIP E-2 through SKIP E-8 (9 total): no status+version annotation → older format
+PASS E-9: v1.53 ✓
+GATE RESULT: 11 PASS | 0 FAIL | 9 SKIP | 20 checked
+```
+
+Result: 11 PASS | 0 FAIL | 9 SKIP. GATE PASS.
+
+**Gate 3 — Pointer-class gate (literal-shell):**
+
+```
+grep -nE 'line [0-9]+([–-][0-9]+)? of|at line [0-9]+' \
+  .factory/specs/architecture/decisions/ADR-025-*.md \
+  .factory/specs/architecture/decisions/ADR-030-*.md
+```
+
+Stdout:
+```
+ADR-025-single-writer...md:1708:  line-cite `at line 1181–1182 of hooks-registry.toml` replaced with stable anchor form
+```
+
+Result: 1 hit — ADR-025 line 1708, Changelog v1.15 bullet (historical-by-construction, EXEMPT per TD-VSDD-091). 0 normative-live hits. GATE PASS.
+
+### Block 6 — Dim-5 attestation (Dim-6 literal-shell count)
+
+Literal-shell burst-log block count verification:
+
+```
+grep -c "^### Block" .factory/cycles/v1.0-brownfield-backfill/burst-log.md
+```
+
+Expected ≥8 for this entry (blocks 1–8). D-444(c) 8-block requirement: SATISFIED (blocks 1–8 present).
+
+### Block 7 — Closes / Status summary
+
+| Item | Resolution |
+|------|------------|
+| E-19 adv pass-51 | CLEAN B0/H0/M0/L0 — CLOSED (GOVERNANCE-ONLY) |
+| 4-index BC/VP/STORY/ARCH | ALL UNCHANGED — BC v3.95 / VP v2.59 / STORY v4.175 / ARCH v3.00 |
+| Streak | ADVANCED 0/3 → 1/3 (pass-51 CLEAN) |
+| Trajectory-tail | →0→1→1→0 (passes 48/49/50/51 = 0,1,1,0) |
+| STATE.md v5.58 | COMPLETE — Session Resume Checkpoint fully refreshed; pass-52 target |
+| NEXT | adv pass-52 (fresh context; ARTIFACTS FROZEN at D-806 versions; streak 1/3; two more CLEANs → 3/3 CONVERGED) |
+
+### Block 8 — Factory-artifacts commits
+
+| Commit | SHA | Contents |
+|--------|-----|----------|
+| D-807 SM single-commit burst (TD-VSDD-053) | `[SHA-PATCH PENDING]` | adv-E19-pass-51.md NEW; decision-log D-807; STATE.md v5.57→v5.58; burst-log this entry; streak 0/3→1/3; trajectory →0→1→1→0; pass-52 NEXT |

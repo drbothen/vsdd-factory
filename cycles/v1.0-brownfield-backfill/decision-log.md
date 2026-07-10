@@ -8442,3 +8442,96 @@ D-806-E19-ADV-PASS-50-NOT-CLEAN-CLOSED
 ### Date
 
 2026-07-10
+
+---
+
+## D-807 — E-19 Adversarial Pass-51 CLEAN Closure (GOVERNANCE-ONLY; streak 0/3→1/3; 4-index ALL UNCHANGED)
+
+### Summary
+
+Pass-51 adversary (Claude Opus 4.7; rubric policies.yaml v1.4.3; fresh context; Iron Law; perimeter = D-806 delta: ADR-025 v1.15 + ARCH-INDEX v3.00 + full E-19 suite at D-806 versions) found 0 findings, 0 observations — CLEAN B0/H0/M0/L0. D-806 delta verified 4/4 gates (ADR-025 v1.15 §12.6 stable anchor; whole-ADR pointer sweep zero normative-live; §12.6 TOML snippet byte-IDENTICAL vs live registry lines 1260–1261; ARCH-INDEX v3.00 derivation). 11 independent fresh axes ALL PASS (pointer-class whole-perimeter; content-value descriptions vs registry lines 1250–1310; ADR-030 6-field parity; POLICY 7 char-diff 6/6; modified[] monotonicity whole-perimeter; 30-artifact version table; POLICY 14/19 sweeps; VP-INDEX parity; S-19.04 spec-first ground-truth; §12.9 delta-directive classification). All 7 standing gates OPERATIONAL and applied. Novelty NIL. Streak 0/3→1/3. GOVERNANCE-ONLY burst (no spec/story/BC/VP/epic/ADR changes). NEXT: pass-52 (fresh context; two more CLEANs → 3/3 CONVERGED → W1 TDD dispatch S-19.01+S-19.02+S-19.03 per D-773/D-774).
+
+### Detail
+
+**(1) POLICY 16 GLOBAL-MAX GATE.**
+
+`grep -oE "^## D-[0-9]+" .factory/cycles/v1.0-brownfield-backfill/decision-log.md | tail -1` → `## D-806`. D-806 confirmed max → D-807 allocated.
+
+**(2) PASS-51 ADVERSARY VERDICT.**
+
+CLEAN B0/H0/M0/L0. Perimeter: D-806 delta (ADR-025 v1.15 + ARCH-INDEX v3.00) + full E-19 carry-forward (BC-INDEX v3.95; VP-INDEX v2.59; STORY-INDEX v4.175; epic v1.26; policies.yaml v1.4.3). Streak before: 0/3. Streak after: 1/3.
+
+Findings: none. Observations: none.
+
+Full adversary report: `cycles/v1.0-brownfield-backfill/adv-E19-pass-51.md`
+
+**(3) FIX BURST.**
+
+GOVERNANCE-ONLY — no spec/story/BC/VP/epic/ADR changes. All 4-index UNCHANGED: BC v3.95/VP v2.59/STORY v4.175/ARCH v3.00 (exhaustive-unchanged). SM closure burst: adv-E19-pass-51.md persisted; D-807 decision-log codification; STATE.md v5.57→v5.58; burst-log D-807 entry.
+
+**(4) 4-INDEX GATE (POLICY 14 leg-4 — exhaustive-unchanged; literal-shell per D-449(a)).**
+
+```
+$ grep "^version:" \
+  .factory/specs/behavioral-contracts/BC-INDEX.md \
+  .factory/specs/verification-properties/VP-INDEX.md \
+  .factory/stories/STORY-INDEX.md \
+  .factory/specs/architecture/ARCH-INDEX.md
+.../STORY-INDEX.md:version: "4.175"
+.../VP-INDEX.md:version: "2.59"
+.../ARCH-INDEX.md:version: "3.00"
+.../BC-INDEX.md:version: "3.95"
+EXIT:0
+```
+→ BC-INDEX: "3.95" / VP-INDEX: "2.59" / STORY-INDEX: "4.175" / ARCH-INDEX: "3.00". ALL UNCHANGED — governance-only burst confirmed. PASS.
+
+**(5) HEADING-PARITY GATE (D-803 standing Commit-E gate — mandatory per L-BB-epic-heading-parity-is-a-mandatory-commit-E-gate; literal-shell per D-449(a)).**
+
+```
+$ FAILURES=0; while IFS= read -r ef; do
+    eid=$(basename "$ef" | grep -oE '^E-[0-9]+')
+    fver=$(grep "^version:" "$ef" | head -1 | grep -oE '[0-9]+\.[0-9]+')
+    hver=$(grep "^## ${eid}" .factory/stories/STORY-INDEX.md \
+      | grep -oE 'v[0-9]+\.[0-9]+' | head -1 | sed 's/v//')
+    if [ -n "$fver" ] && [ -n "$hver" ] && [ "$fver" != "$hver" ]; then
+      echo "FAIL: $eid epic v${fver} vs STORY-INDEX H2 v${hver}"
+      FAILURES=$((FAILURES+1))
+    fi
+  done < <(find .factory/stories/epics -name "E-*.md")
+  echo "Heading-parity gate: ${FAILURES} FAIL(s) | $(find .factory/stories/epics -name 'E-*.md' | wc -l | tr -d ' ') checked"
+Heading-parity gate: 0 FAIL(s) | 20 checked
+EXIT:0
+```
+→ Zero FAIL lines; 20 epics checked; 11 versioned-heading epics all PASS. GOVERNANCE-ONLY: no epics changed in this burst. PASS.
+
+**(6) POINTER-CLASS GATE (D-806 standing Commit-E gate — mandatory per L-BB-adr-body-external-artifact-file-line-pointers-are-sweep-sites; literal-shell per D-449(a)).**
+
+```
+$ for f in .factory/specs/architecture/decisions/ADR-025*.md \
+           .factory/specs/architecture/decisions/ADR-030*.md; do
+    echo "--- $f ---"
+    grep -nE 'line [0-9]+([–-][0-9]+)? of|at line [0-9]+' "$f" || echo "(no matches)"
+  done
+--- ADR-025 ---
+1708:  line-cite `at line 1181–1182 of hooks-registry.toml` replaced with stable anchor form
+--- ADR-030 ---
+(no matches)
+Pointer-class gate: 1 hit in ADR-025 (line 1708 — EXEMPT: Changelog v1.15 bullet describing the fixed cite, historical-by-construction per TD-VSDD-091); ADR-030: 0 hits.
+Normative-live hits: 0
+EXIT:0
+```
+→ 0 normative-live hits; ADR-025 line 1708 classified EXEMPT (Changelog historical); ADR-030 clean. PASS.
+
+**(7) STREAK STATUS.**
+
+1/3 (CLEAN; trajectory tail passes 48/49/50/51 = 0,1,1,0 → →0→1→1→0; streak advances from 0/3 to 1/3). NEXT: E-19 adv pass-52 (fresh context; Iron Law; rubric policies.yaml v1.4.3; ARTIFACTS FROZEN at D-806 versions — fix only genuine blockers; streak 1/3; two more CLEANs → 3/3 CONVERGED → W1 TDD dispatch per D-773/D-774).
+
+Parent-commit: e7939931 (factory-artifacts HEAD = D-806 SHA-patch burst; the state of factory-artifacts before this D-807 SM governance-only burst).
+
+### Phase
+
+D-807-E19-ADV-PASS-51-CLEAN-1-OF-3
+
+### Date
+
+2026-07-10
