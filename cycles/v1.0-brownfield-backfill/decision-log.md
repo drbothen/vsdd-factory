@@ -7966,3 +7966,65 @@ D-799-PASS-43-FIX-BURST-CLOSED
 ### Date
 
 2026-07-10
+
+---
+
+## D-800 — E-19 Adversary Pass-44 Fix Burst (SM only; NOT-CLEAN B0/H0/M2/L1; streak 0/3; L-BB lesson codified)
+
+### Summary
+
+Pass-44 adversary (Claude Opus 4.7; rubric v1.4.3; fresh context; Iron Law) found 2 MEDIUM findings + 1 LOW observation (B0/H0/M2/L1), both in BC-INDEX catalog cells authored during D-799 SM leg. POLICY 16 global-max: D-799 confirmed max → D-800 allocated. Single-leg fix burst: SM this-commit (BC-INDEX v3.92→v3.93: F-P44-001 v1.21 cell corrected + F-P44-002 v1.20 date corrected; adv-E19-pass-44.md persisted; D-800 decision-log; L-BB lesson codified). O-P44-001 accepted-with-record. Streak 0/3. NEXT: E-19 adv pass-45 (rubric policies.yaml v1.4.3).
+
+### Detail
+
+**(1) POLICY 16 GLOBAL-MAX GATE.**
+
+`grep -oE "^## D-[0-9]+" .factory/cycles/v1.0-brownfield-backfill/decision-log.md | tail -1` → `## D-799`. D-799 confirmed max → D-800 allocated.
+
+**(2) PASS-44 ADVERSARY VERDICT.**
+
+NOT-CLEAN B0/H0/M2/L1. Perimeter: D-799 delta + full E-19 carry-forward (BC-3.08.001 v1.21 6549a11; VP-098/100/101 v1.2; BC-INDEX v3.92; STORY-INDEX v4.172; VP-INDEX v2.57; S-19.05 v1.16; epic v1.25; policies.yaml v1.4.3). Streak before: 0/3. Streak after: 0/3.
+
+Findings:
+- F-P44-001 MEDIUM POLICY 4/POLICY 14 leg-5: BC-INDEX v3.92 BC-3.08.001 v1.21 catalog cell — 4-error mis-attribution (wrong finding IDs: `F-P43-004` vs actual `F-P43-003+F-P43-005+O-P43-001`; wrong policy/content: `§Property Statement PC cite fix` vs actual `§Verification Properties VP-100 row verbatim-derived`; wrong author: `architect 421a9e1f` vs actual `product-owner ad464e09`; wrong commit: `421a9e1f` vs actual `ad464e09`). Root cause: D-799 SM leg sourced cell from burst-level aggregate description rather than BC-3.08.001 Changelog row. [process-gap] class L-BB-per-artifact-catalog-cell-derives-from-own-changelog-row codified. CLOSED: this-commit.
+- F-P44-002 MEDIUM POLICY 14 leg-5/POLICY 4: BC-INDEX v3.92 BC-3.08.001 v1.20 catalog cell date `2026-07-10` — wrong by one day; all authoritative sources (BC-3.08.001 Changelog row, modified[], Amendment header, D-798 dispatch date) say `2026-07-09`. Same authoring session as F-P44-001. CLOSED: this-commit.
+- O-P44-001 LOW: BC-3.08.001 v1.21 §VP VP-100 row uses same Title-Case as VP-INDEX H1; semantically equivalent. ACCEPTED-WITH-RECORD per POLICY 9 (verbatim derivation already present; no behavioral ambiguity).
+
+All D-799 content fixes verified correct by pass-44 adversary: 9-of-9 category-(j) audit PASS (VP-098/100/101 PC cites); 7-of-7 leading-cite audit PASS (S-19.01..S-19.07 STORY-INDEX rows); VP-100 7-field enumeration PASS; BC-3.08.001 v1.19 backfill + chain-form last_amended PASS; STORY-INDEX heading/leading-cite fixes PASS.
+
+Full adversary report: `cycles/v1.0-brownfield-backfill/adv-E19-pass-44.md`
+
+**(3) FIX BURST LEGS (single leg — SM only).**
+
+- SM leg **this-commit**: BC-INDEX v3.92→v3.93 (F-P44-001: BC-3.08.001 v1.21 catalog cell corrected per Changelog SoT — findings F-P43-003+F-P43-005+O-P43-001, author product-owner ad464e09, input-hash 6549a11 unchanged; F-P44-002: BC-3.08.001 v1.20 catalog cell date 2026-07-10→2026-07-09 per Changelog SoT); adv-E19-pass-44.md persisted; decision-log D-800; L-BB-per-artifact-catalog-cell-derives-from-own-changelog-row lesson codified; STATE.md v5.50→v5.51; burst-log pass-44 entry; 4-index: BC-INDEX v3.93 / VP-INDEX v2.57 UNCHANGED / STORY-INDEX v4.172 UNCHANGED / ARCH-INDEX v2.98 UNCHANGED.
+
+**(4) CODIFICATION: L-BB-per-artifact-catalog-cell-derives-from-own-changelog-row [process-gap][codified D-800].**
+
+On multi-artifact fix bursts, each upstream-index catalog cell (BC-INDEX version cell, VP-INDEX version cell, STORY-INDEX version cell) MUST be sourced from THAT artifact's own Changelog row of the same version (verbatim-condensed), never from the burst-level aggregate description. Correct workflow: for each artifact bump, grep that artifact's Changelog row for that version (literal shell with captured stdout), then derive the catalog cell text from it. Apply at Commit E discipline: before writing any BC-INDEX / STORY-INDEX / VP-INDEX version cell, grep the target artifact's Changelog row for that version and derive the cell text from it (captured stdout).
+
+See lessons.md for full codification.
+
+**(5) 4-INDEX GATE (POLICY 14 leg-4 literal-shell).**
+
+See burst-log Block 5 for captured stdout. BC v3.93 / VP v2.57 UNCHANGED / STORY v4.172 UNCHANGED / ARCH v2.98 UNCHANGED.
+
+BC-INDEX v3.92→v3.93: BC-3.08.001 v1.21 cell corrected (F-P44-001) + v1.20 date corrected (F-P44-002). last_amended prepended v3.93 entry. version bump 3.92→3.93.
+VP-INDEX v2.57 UNCHANGED (exhaustive — no VP changes in D-800 burst).
+STORY-INDEX v4.172 UNCHANGED (exhaustive — no story changes in D-800 burst).
+ARCH-INDEX v2.98 UNCHANGED (exhaustive — no ADR changes in D-800 burst).
+
+**(6) STREAK STATUS.**
+
+0/3 (NOT-CLEAN; M2 findings prevent advancement). NEXT: E-19 adv pass-45 (fresh context; Iron Law; rubric policies.yaml v1.4.3; perimeter = D-800 delta: BC-INDEX v3.93 + full E-19 carry-forward at D-799 versions; streak 0/3; three consecutive CLEANs → 3/3 CONVERGED → W1 TDD dispatch per D-773/D-774).
+
+POLICY 16 global-max: D-799 confirmed max → D-800 allocated.
+
+Parent-commit: b737bd4c (factory-artifacts HEAD = D-799 SM burst; the state of factory-artifacts before this D-800 SM burst).
+
+### Phase
+
+D-800-PASS-44-FIX-BURST-CLOSED
+
+### Date
+
+2026-07-10

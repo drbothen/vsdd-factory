@@ -6078,3 +6078,30 @@ The D-797/D-798 pattern — appending `[story v1.18 — ...]` as a NON-leading b
 **Cites:** D-799; F-P43-003 (MEDIUM); POLICY 9 (VP-INDEX is SoT for VP property statements); POLICY 4 (internal consistency — §VP Anchors said correct thing but §VP Properties row contradicted VP-INDEX); D-798 (the burst that introduced the defect); ad464e09 (the fix); VP-INDEX v2.56 VP-100 row (canonical H1).
 
 **Closes:** D-799 (F-P43-003 CLOSED by PO ad464e09; streak 0/3; verbatim-derivation process-gap codified). `[process-gap; BC-VP-verbatim; POLICY-9; verbatim-derivation; VP-INDEX-SoT; PO-authoring-discipline; BC-VP-properties-row; discriminating-clauses]`
+
+---
+
+### L-BB-per-artifact-catalog-cell-derives-from-own-changelog-row [process-gap][codified D-800]
+
+**Context:** E-19 adversary pass-44 (F-P44-001 MEDIUM + F-P44-002 MEDIUM). BC-INDEX v3.92 BC-3.08.001 row contained two errors in the version annotation cells authored during the D-799 SM leg: (1) the v1.21 cell mis-attributed the change to finding F-P43-004 / `§Property Statement PC cite fix` / `architect 421a9e1f` — all wrong; the actual change was F-P43-003+F-P43-005+O-P43-001 / `§Verification Properties VP-100 row verbatim-derived` / `product-owner ad464e09`; (2) the v1.20 cell date was `2026-07-10` — off by one day from the actual authoring date `2026-07-09` per BC-3.08.001 Changelog SoT, modified[], Amendment header, and D-798 dispatch date.
+
+**Lesson:** On multi-artifact fix bursts, each upstream-index catalog cell (BC-INDEX version annotation cell, VP-INDEX version annotation cell, STORY-INDEX version annotation cell) MUST be sourced from THAT artifact's own Changelog row of the same version (verbatim-condensed), never from the burst-level aggregate description. The burst-level aggregate description emphasizes the most dramatic or complex finding, but individual artifacts may have been amended for completely different reasons in the same burst.
+
+**Root cause:** The D-799 SM leg authored the BC-INDEX BC-3.08.001 v1.21 cell from the D-799 burst context (which was dominated by F-P43-004 and the architect leg). BC-3.08.001 was actually amended by the PO leg (F-P43-003/005 + O-P43-001 — a §Verification Properties row fix and Changelog backfill). The v1.20 date error occurred because the SM used the D-799 burst date (2026-07-10) as a default instead of reading the BC-3.08.001 Changelog row for v1.20.
+
+**Correct SM workflow (Commit E discipline):** Before writing any BC-INDEX / STORY-INDEX / VP-INDEX version cell for a specific artifact version, execute:
+
+```bash
+grep -A2 'v1\.21\|v1\.20' .factory/specs/behavioral-contracts/ss-03/BC-3.08.001.md \
+  | grep -E "^\| v1\.(21|20)"
+```
+
+Capture the stdout. Derive the catalog cell text from the Changelog row for that exact version. This ground-truth capture was introduced as the first enforcement step in D-800 (literal shell evidence per D-449(a)).
+
+**The adversary's check (POLICY 4/14 leg-5):** When verifying BC-INDEX (or any upstream-index) version cells, the adversary should grep the target artifact's Changelog section for the cited version and verify the cell text faithfully describes that Changelog row (correct finding IDs, correct author, correct commit, correct date, correct content description). Four-error mis-attribution is a MEDIUM finding; date-only error is a MEDIUM finding (POLICY 14 leg-5).
+
+**Anchors:** D-800; F-P44-001; F-P44-002; BC-INDEX v3.92 (defective cells); BC-3.08.001 v1.21 Changelog row (ground truth for v1.21); BC-3.08.001 v1.20 Changelog row (ground truth for v1.20 date); SM this-commit (fix — BC-INDEX v3.93 corrected cells).
+
+**Cites:** D-800; F-P44-001 (MEDIUM POLICY 4/14-leg-5); F-P44-002 (MEDIUM POLICY 14-leg-5/4); POLICY 4 (internal consistency); POLICY 14 leg-5 (upstream-index parity); D-799 (the burst that introduced the defect in the SM leg); ad464e09 (PO leg — the actual BC-3.08.001 v1.21 author); 421a9e1f (architect leg — incorrectly cited in the BC-INDEX v1.21 cell).
+
+**Closes:** D-800 (F-P44-001 + F-P44-002 CLOSED by SM this-commit BC-INDEX v3.93; O-P44-001 accepted-with-record; streak 0/3; per-artifact-catalog-cell-derives-from-own-changelog-row process-gap codified). `[process-gap; BC-INDEX-catalog-cell; upstream-index-parity; POLICY-4; POLICY-14-leg-5; SM-authoring-discipline; multi-artifact-burst; changelog-SoT-derivation; ground-truth-capture]`

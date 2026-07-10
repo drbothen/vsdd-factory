@@ -15917,3 +15917,145 @@ NEXT: E-19 adversary pass-44 (fresh context; Iron Law; rubric policies.yaml v1.4
 | D-799 Architect VP-098/100/101 v1.1→v1.2 | `421a9e1f` | VP-098/100/101 v1.1→v1.2 (F-P43-004 PC cite corrections; O-P43-002 VP-100 field enumeration + anchor referent fix; input-hash a2de4e4→6565e01) |
 | D-799 SW S-19.05+epic cite sweeps | `fbf344da` | S-19.05 v1.15→v1.16 + epic v1.24→v1.25 (BC-3.08.001 v1.20→v1.21 cite sweeps) |
 | D-799 SM closure leg (Commit E) | `744885bd` | adv-E19-pass-43.md; D-799 decision-log; lessons (2); BC-INDEX v3.92; VP-INDEX v2.57; STORY-INDEX v4.172; policies.yaml v1.4.3; STATE.md v5.49→v5.50 476 lines; burst-log this entry; streak UNCHANGED 0/3; trajectory →1→0→3→5; pass-44 NEXT |
+
+---
+
+## D-800 — E-19 Adversary Pass-44 Fix Burst (SM only; NOT-CLEAN B0/H0/M2/L1; streak 0/3; L-BB lesson codified)
+
+**Date:** 2026-07-10 | **Cycle:** v1.0-brownfield-backfill | **Pass:** E-19 adv pass-44
+
+### Parent-commit
+
+`b737bd4c` (factory-artifacts HEAD — D-799 SHA-patch 2026-07-10: Active Branches row updated to 744885bd per D-447(c)+D-449(e))
+
+### Adversary verdict
+
+**D-448(a) source-attestation:** The following paragraph faithfully represents adv-E19-pass-44.md Part A finding set (Claude Opus 4.7; 2026-07-10; rubric policies.yaml v1.4.3; perimeter = D-799 delta + full E-19 carry-forward).
+
+Verdict: **NOT-CLEAN B0/H0/M2/L1.** Streak 0/3 UNCHANGED (pass-44 NOT-CLEAN). Three findings: **F-P44-001 MEDIUM [POLICY 4/14-leg-5]** — BC-INDEX v3.92 BC-3.08.001 v1.21 catalog cell contains 4-error mis-attribution: (1) wrong finding IDs (F-P43-004 shown; actual = F-P43-003+F-P43-005+O-P43-001); (2) wrong content description (§Property Statement PC cite fix shown; actual = §Verification Properties VP-100 verbatim-derived from VP-INDEX SoT); (3) wrong author (architect 421a9e1f shown; actual = product-owner ad464e09); (4) wrong commit SHA (421a9e1f shown; actual = ad464e09). Root cause: SM D-799 leg populated v1.21 cell from burst-level aggregate description instead of BC-3.08.001's own Changelog row. **F-P44-002 MEDIUM [POLICY 14-leg-5/4]** — BC-INDEX v3.92 BC-3.08.001 v1.20 catalog cell date shows 2026-07-10; correct date is 2026-07-09 per BC-3.08.001 Changelog row, BC-3.08.001 last_amended, SM burst timestamp, and SM STATE.md last_amended chain. Root cause: same [process-gap] as F-P44-001 — date inferred from burst date (2026-07-10) instead of artifact's own Changelog row (2026-07-09, D-798 burst). **O-P44-001 LOW [POLICY 9 observation]** — BC-3.08.001 §Verification Properties VP-100 row uses sentence-case form for the property title; VP-INDEX uses a slightly different capitalization convention. Advisory; accepted-with-record; PO editorial discretion; no action per adversary. All D-799 content fixes verified correct (9-of-9 category-(j) audit PASS, 7-of-7 leading-cite audit PASS).
+
+### Files touched
+
+| File | Change |
+|------|--------|
+| `.factory/specs/behavioral-contracts/BC-INDEX.md` | v3.92→v3.93; BC-3.08.001 v1.21 cell corrected (F-P44-001: finding IDs+content+author+commit); v1.20 cell date 2026-07-10→2026-07-09 (F-P44-002); last_amended prepended v3.93 entry; version frontmatter |
+| `.factory/cycles/v1.0-brownfield-backfill/adv-E19-pass-44.md` | NEW — full pass-44 adversary report (Part A F-P44-001/002/O-P44-001; Part B B.1.a–j 9-of-9 category-(j) + 7-of-7 leading-cite; B.2–B.21 policy attestations; Trajectory/Novelty Note; CLOSED annotations) |
+| `.factory/cycles/v1.0-brownfield-backfill/decision-log.md` | D-800 entry appended (Summary+Detail 9-items+Phase+Date) |
+| `.factory/cycles/v1.0-brownfield-backfill/lessons.md` | L-BB-per-artifact-catalog-cell-derives-from-own-changelog-row [process-gap][codified D-800] appended |
+| `.factory/STATE.md` | v5.50→v5.51; D-800 row; trajectory tail →0→3→5→2; banner/Phase Progress/Last Updated/Current Phase/current_step/Decisions Log/Concurrent Cycles/Session Resume Checkpoint; 478 lines |
+| `.factory/cycles/v1.0-brownfield-backfill/burst-log.md` | D-800 entry (this entry) — all 8 D-444(c) blocks |
+
+### Codifications
+
+| Type | ID | Description |
+|------|----|-------------|
+| Decision | D-800 | E-19 adv pass-44 NOT-CLEAN fix burst closure; F-P44-001/002 MEDIUM BC-INDEX SM-only; O-P44-001 LOW accepted-with-record; L-BB lesson codified |
+| Lesson | L-BB-per-artifact-catalog-cell-derives-from-own-changelog-row | [process-gap] — on multi-artifact bursts, each upstream-index catalog cell MUST derive from target artifact's own Changelog row (verbatim-condensed); first enforcement: grep target Changelog before writing any version cell |
+
+D-NNN count this burst: 1 (D-800). Lesson count: 1 (L-BB-per-artifact-catalog-cell-derives-from-own-changelog-row).
+
+### Dim-2 — Literal-shell gate evidence (D-449(a))
+
+**Gate 1 — 4-index version gate (POLICY 14 leg-5 exhaustive; D-449(a))**
+
+```
+$ grep "^version:" .factory/specs/behavioral-contracts/BC-INDEX.md .factory/specs/verification-properties/VP-INDEX.md .factory/stories/STORY-INDEX.md .factory/specs/architecture/ARCH-INDEX.md
+.factory/specs/verification-properties/VP-INDEX.md:version: "2.57"
+.factory/specs/behavioral-contracts/BC-INDEX.md:version: "3.93"
+.factory/stories/STORY-INDEX.md:version: "4.172"
+.factory/specs/architecture/ARCH-INDEX.md:version: "2.98"
+```
+
+EXIT:0 PASS. BC-INDEX v3.93 / VP-INDEX v2.57 / STORY-INDEX v4.172 / ARCH-INDEX v2.98.
+
+**Gate 2 — STATE.md version gate (D-443(a))**
+
+```
+$ grep "^version:" .factory/STATE.md
+version: "5.51"
+```
+
+EXIT:0 PASS.
+
+**Gate 3 — STATE.md current_step gate (D-443(a)/D-444(a) 5-PC)**
+
+```
+$ grep "^current_step:" .factory/STATE.md
+current_step: "D-800-E19-ADV-PASS-44-NOT-CLEAN-CLOSED trajectory-tail →0→3→5→2; streak 0/3 UNCHANGED; NEXT adv pass-45;"
+```
+
+EXIT:0 PASS. D-chain cite includes D-800 (max-cited = D-800); trajectory-tail LENGTH=4 (→0→3→5→2); streak clause present; NEXT clause present.
+
+**Gate 4 — STATE.md wc-l gate (D-446(c) dual-margin; hard-cap 500)**
+
+```
+$ wc -l .factory/STATE.md
+     478 .factory/STATE.md
+```
+
+EXIT:0 PASS. 478 lines; within hard-cap 500; within soft-target 415+margin.
+
+**Gate 5 — D-446(a) 8-block self-verification gate (own burst-log entry)**
+
+```
+$ grep -c "^### Parent-commit\|^### Adversary verdict\|^### Files touched\|^### Codifications\|^### Dim-2\|^### Dim-5\|^### Closes\|^### Factory-artifacts" .factory/cycles/v1.0-brownfield-backfill/burst-log.md
+```
+
+```
+$ awk '/^## D-800/,/^## D-801/' .factory/cycles/v1.0-brownfield-backfill/burst-log.md | grep -c "^### Parent-commit\|^### Adversary verdict\|^### Files touched\|^### Codifications\|^### Dim-2\|^### Dim-5\|^### Closes\|^### Factory-artifacts"
+8
+```
+
+EXIT:0 PASS. D-800 entry contains exactly 8 D-444(c) mandatory blocks.
+
+**Gate 6 — D-448(a) source-attestation gate (Adversary verdict vs adv-E19-pass-44.md Part A)**
+
+```
+$ grep -E "^### A\.[0-9]|F-P44-00[12]|O-P44-001" .factory/cycles/v1.0-brownfield-backfill/adv-E19-pass-44.md
+### A.1 — F-P44-001: MEDIUM — BC-INDEX v3.92 BC-3.08.001 v1.21 Catalog-Cell Four-Error Mis-Attribution (POLICY 4 / POLICY 14 leg-5)
+### A.2 — F-P44-002: MEDIUM — BC-INDEX v3.92 BC-3.08.001 v1.20 Catalog-Cell Date Wrong (POLICY 14 leg-5 / POLICY 4)
+### A.3 — O-P44-001: LOW — BC-3.08.001 §Verification Properties VP-100 Row Sentence-Case vs Title-Case (POLICY 9 observation)
+```
+
+EXIT:0 PASS. Adversary verdict paragraph covers all 3 Part A findings (F-P44-001/002 MEDIUM; O-P44-001 LOW) with accurate severity, policy, and fix assignment.
+
+**Gate 7 — BC-3.08.001 Changelog SoT ground-truth capture (L-BB discipline; executed before BC-INDEX edits)**
+
+```
+$ grep -A2 'v1\.21\|v1\.20' .factory/specs/behavioral-contracts/ss-03/BC-3.08.001.md | grep -E "^\| v1\.(20|21)"
+| v1.21 | 2026-07-10 | product-owner | F-P43-003: §VP VP-100 row verbatim-derived from VP-INDEX SoT (cardinality+mutual-exclusivity form; replaces latency-paraphrase). F-P43-005: v1.19 Changelog row backfilled; Amendment 2026-07-09 (v1.19→v1.20) prose section authored for structural parity. O-P43-001: last_amended canonicalized to chain form. |
+| v1.20 | 2026-07-09 | product-owner | orchestrator pre-pass-43 consistency sweep: ... |
+```
+
+EXIT:0 PASS. Ground-truth captured BEFORE BC-INDEX edits per L-BB-per-artifact-catalog-cell-derives-from-own-changelog-row first-enforcement. v1.21 author = product-owner; date = 2026-07-10 ✓. v1.20 date = 2026-07-09 ✓.
+
+### Dim-5/6/7 Attestations
+
+**Dim-5 (POLICY 14 5-leg quintuple parity — BC-INDEX only; BC-3.08.001 unchanged):**
+- Leg-1 (version frontmatter): BC-INDEX v3.93 ✓ (Gate 1 stdout)
+- Leg-2 (body Changelog): last_amended prepended v3.93 entry with Refs D-800, F-P44-001, F-P44-002 ✓
+- Leg-3 (modified[]): BC-INDEX does not use modified[] frontmatter — N/A ✓
+- Leg-4 (last_amended chain): last_amended chain-form updated ✓
+- Leg-5 (upstream-index parity): BC-INDEX IS the upstream-index; v3.93 catalog cells now sourced from BC-3.08.001 Changelog SoT (Gate 7 ground-truth) ✓
+
+**Dim-6 (Production-grade completeness):** All findings actioned in scope. F-P44-001/002: BC-INDEX v3.92→v3.93 (SM only). O-P44-001: accepted-with-record (adversary authorized). No tech-debt-register entries added without human direction. No deferred work.
+
+**Dim-7 (Iron Law adversary freshness):** adv-E19-pass-44.md dispatched with fresh context; prior pass reports NOT loaded per Iron Law. Rubric policies.yaml v1.4.3 confirmed. perimeter = D-799 delta + full E-19 carry-forward.
+
+**D-446(a) 8-block self-verification:** This entry contains all 8 D-444(c) mandatory blocks: (1) Parent-commit ✓ (2) Adversary verdict ✓ (3) Files touched ✓ (4) Codifications ✓ (5) Dim-2 ✓ (6) Dim-5/6/7 Attestations ✓ (7) Closes ✓ (8) Factory-artifacts commits ✓.
+
+### Closes
+
+| Item | Resolution |
+|------|------------|
+| F-P44-001 MEDIUM: BC-INDEX BC-3.08.001 v1.21 catalog-cell 4-error mis-attribution (POLICY 4/14-leg-5) | CLOSED — state-manager this-commit (BC-INDEX v3.92→v3.93: v1.21 cell corrected per BC-3.08.001 Changelog SoT; finding IDs+content+author+commit all corrected) |
+| F-P44-002 MEDIUM: BC-INDEX BC-3.08.001 v1.20 catalog-cell date 2026-07-10→2026-07-09 (POLICY 14-leg-5/4) | CLOSED — state-manager this-commit (BC-INDEX v3.92→v3.93: v1.20 date corrected 2026-07-10→2026-07-09 per BC-3.08.001 Changelog SoT) |
+| O-P44-001 LOW: BC-3.08.001 VP-100 row case-form observation (POLICY 9) | ACCEPTED-WITH-RECORD — no action (adversary authorized; PO editorial discretion) |
+| D-800 decision-log codification | COMPLETE |
+| L-BB-per-artifact-catalog-cell-derives-from-own-changelog-row [process-gap] | CODIFIED — lessons.md; D-800; first-enforcement this burst (Gate 7 ground-truth grep) |
+
+### Factory-artifacts commits
+
+| Commit | SHA | Contents |
+|--------|-----|----------|
+| D-800 SM single-commit burst (TD-VSDD-053) | TBD (SHA-patch after push) | adv-E19-pass-44.md NEW; BC-INDEX v3.93; decision-log D-800; lessons L-BB; STATE.md v5.50→v5.51 478 lines; burst-log this entry; streak UNCHANGED 0/3; trajectory →0→3→5→2; pass-45 NEXT |
