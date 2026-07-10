@@ -8246,3 +8246,76 @@ D-803-E19-ADV-PASS-47-NOT-CLEAN-CLOSED
 ### Date
 
 2026-07-10
+
+---
+
+## D-804 — E-19 Adversarial Pass-48 CLEAN Closure (GOVERNANCE-ONLY; streak 0/3→1/3; 4-index ALL UNCHANGED)
+
+### Summary
+
+Pass-48 adversary (Claude Opus 4.7; rubric policies.yaml v1.4.3; fresh context; Iron Law; perimeter = D-803 delta: STORY-INDEX v4.175 + full E-19 suite at D-803 versions) found 0 findings, 0 observations — CLEAN B0/H0/M0/L0. D-803 delta verified (F-P47-001 CLOSED; STORY-INDEX v4.175 heading-parity gate independently re-derived 11 PASS/0 FAIL/9 SKIP matching D-803 attestation exactly). 29/29 perimeter artifacts at expected versions. All 20 policies attested PASS (or N/A-prospective). All 5 standing L-BB gates verified operational. Category-(i)/(j) sweeps zero drift. POLICY 5 v1.3.5 stale-token spot-checks all historical-by-construction. POLICY 9 arithmetic 34-item integration enumeration verified. 3 self-validation refinement iterations — all candidates collapsed to exclusions. Streak 0/3→1/3. GOVERNANCE-ONLY burst (no spec/story/BC/VP/epic/ADR changes). NEXT: pass-49 (fresh context; two more CLEANs → 3/3 CONVERGED → W1 TDD dispatch S-19.01+S-19.02+S-19.03 per D-773/D-774).
+
+### Detail
+
+**(1) POLICY 16 GLOBAL-MAX GATE.**
+
+`grep -oE "^## D-[0-9]+" .factory/cycles/v1.0-brownfield-backfill/decision-log.md | tail -1` → `## D-803`. D-803 confirmed max → D-804 allocated.
+
+**(2) PASS-48 ADVERSARY VERDICT.**
+
+CLEAN B0/H0/M0/L0. Perimeter: D-803 delta + full E-19 carry-forward (BC-INDEX v3.95; VP-INDEX v2.59; STORY-INDEX v4.175; epic v1.26; S-19.06 v1.19; policies.yaml v1.4.3). Streak before: 0/3. Streak after: 1/3.
+
+Findings: none. Observations: none.
+
+Full adversary report: `cycles/v1.0-brownfield-backfill/adv-E19-pass-48.md`
+
+**(3) FIX BURST.**
+
+GOVERNANCE-ONLY — no spec/story/BC/VP/epic/ADR changes. All 4-index UNCHANGED: BC v3.95/VP v2.59/STORY v4.175/ARCH v2.98. SM closure burst: adv-E19-pass-48.md persisted; D-804 decision-log codification; STATE.md v5.54→v5.55; burst-log D-804 entry.
+
+**(4) 4-INDEX GATE (POLICY 14 leg-4 — exhaustive-unchanged; literal-shell per D-449(a)).**
+
+```
+$ grep "^version:" \
+  .factory/specs/behavioral-contracts/BC-INDEX.md \
+  .factory/specs/verification-properties/VP-INDEX.md \
+  .factory/stories/STORY-INDEX.md \
+  .factory/specs/architecture/ARCH-INDEX.md
+.../STORY-INDEX.md:version: "4.175"
+.../VP-INDEX.md:version: "2.59"
+.../ARCH-INDEX.md:version: "2.98"
+.../BC-INDEX.md:version: "3.95"
+EXIT:0
+```
+→ BC-INDEX: "3.95" / VP-INDEX: "2.59" / STORY-INDEX: "4.175" / ARCH-INDEX: "2.98". ALL UNCHANGED — governance-only burst confirmed. PASS.
+
+**(5) HEADING-PARITY GATE (D-803 standing Commit-E gate — mandatory per L-BB-epic-heading-parity-is-a-mandatory-commit-E-gate; literal-shell per D-449(a)).**
+
+```
+$ for EPIC_FILE in .factory/stories/epics/E-*.md; do
+    EPIC_ID=$(basename "$EPIC_FILE" | sed 's/^\(E-[0-9]*\)-.*/\1/')
+    FILE_VER=$(grep -m1 "^version:" "$EPIC_FILE" | sed 's/version: *//;s/"//g;s/^v//;s/ *$//')
+    HEADING=$(grep -m1 "^## Epic ${EPIC_ID} " .factory/stories/STORY-INDEX.md 2>/dev/null)
+    [ -z "$HEADING" ] && continue
+    HDG_VER=$(echo "$HEADING" | grep -oE 'v[0-9]+(\.[0-9]+)+' | tail -1 | sed 's/^v//')
+    [ -z "$HDG_VER" ] && continue
+    [ "$HDG_VER" = "$FILE_VER" ] || echo "FAIL: $EPIC_ID heading=$HDG_VER file=$FILE_VER"
+  done
+  echo "Heading-parity gate complete"
+Heading-parity gate complete
+```
+→ Zero FAIL lines; 11 versioned-heading epics all PASS. GOVERNANCE-ONLY: no epics changed in this burst. PASS.
+
+**(6) STREAK STATUS.**
+
+1/3 (CLEAN; trajectory tail →3→1→1→0; streak advances from 0/3 to 1/3). NEXT: E-19 adv pass-49 (fresh context; Iron Law; rubric policies.yaml v1.4.3; ARTIFACTS FROZEN at D-803 versions — fix only genuine blockers; streak 1/3; two more CLEANs → 3/3 CONVERGED → W1 TDD dispatch per D-773/D-774).
+
+Parent-commit: 59df8a68 (factory-artifacts HEAD = D-803 SHA-patch burst; the state of factory-artifacts before this D-804 SM governance-only burst).
+
+### Phase
+
+D-804-E19-ADV-PASS-48-CLEAN-1-OF-3
+
+### Date
+
+2026-07-10
