@@ -16765,3 +16765,131 @@ EXIT:0
 |--------|-----|----------|
 | D-805 SM single-commit burst (TD-VSDD-053) | `94cbcf44` | adv-E19-pass-49.md NEW; decision-log D-805; lessons.md L-BB-adr-body-external-artifact-content-descriptions-are-sweep-sites; ARCH-INDEX v2.98→v2.99; STATE.md v5.55→v5.56; burst-log this entry; streak 1/3→0/3 RESET; trajectory →1→1→0→1; pass-50 NEXT |
 
+
+---
+
+## D-806 E19-ADV-PASS-50-NOT-CLEAN-CLOSED (2026-07-10)
+
+**Burst type:** Fix burst — NOT-CLEAN closure (architect prior + SM this-commit)
+**Decision:** D-806
+**Result:** pass-50 NOT-CLEAN B0/H0/M1/L0 CLOSED; F-P50-001 MEDIUM CLOSED (architect 888178f9); ARCH-INDEX v2.99→v3.00; L-BB-adr-body-external-artifact-file-line-pointers-are-sweep-sites codified; STATE.md v5.56→v5.57; streak 0/3 UNCHANGED; trajectory-tail →1→0→1→1; pass-51 NEXT.
+
+---
+
+### Block 1 — Parent-commit
+
+| Field | Value |
+|-------|-------|
+| Parent-commit SHA | `888178f9` |
+| Parent-commit author | architect |
+| Parent-commit summary | ADR-025 v1.14→v1.15: F-P50-001 §12.6 volatile line-cite 'line 1181–1182 of hooks-registry.toml' → stable '[hooks.capabilities.read_file]'-block anchor per TD-VSDD-091; whole-ADR pointer sweep 1 normative-live site fixed; 1 Changelog-row exempt; TOML snippet byte-parity IDENTICAL vs live registry; parity legs per ADR convention |
+
+### Block 2 — Adversary verdict (sourced from adv-E19-pass-50.md Part A)
+
+Pass-50 adversary (Claude Opus 4.7; fresh context; rubric policies.yaml v1.4.3; perimeter = D-805 delta: ADR-025 v1.14 + ARCH-INDEX v2.99 + full E-19 suite carry-forward; 29 artifacts): **NOT-CLEAN B0/H0/M1/L0**. 1 finding, 0 observations.
+
+**F-P50-001 MEDIUM [TD-VSDD-091]:** ADR-025 v1.14 §12.6 'Audit-trail check' section cited `line 1181–1182 of hooks-registry.toml` as the location for `read_file` tool detection — volatile file:line pointer. Live registry check: `read_file` detection lives in `[hooks.capabilities.read_file]` block, lines 1250–1261 (9 lines, not 2; line numbers drifted since §Decision-12-era v1.6 provenance). Novel sub-class of location-pointer citation: file:line pointer to external artifact (distinct from D-795 BC-version-pins and D-803 heading-parity token class). CLOSED: architect 888178f9 replaced line-cite with stable `[hooks.capabilities.read_file]`-block anchor per TD-VSDD-091.
+
+D-805 delta verification gates (5): ADR-025 v1.14 §D1 4-tool form PASS; ADR-025 v1.14 §D2 Deliverable-D2 4-tool PASS; ARCH-INDEX v2.99 row annotation PASS; L-BB-adr-body-external-artifact-content-descriptions-are-sweep-sites lesson codified PASS; STATE.md v5.56 trajectory-tail correct PASS.
+
+10-axis sweep: 9 PASS, 1 FAIL (F-P50-001 MEDIUM ADR-025 §12.6 volatile file:line pointer).
+
+Streak: 0/3 UNCHANGED (pass-50 NOT-CLEAN). Source: adv-E19-pass-50.md Part A (29-artifact table, B.1–B.24 attestations).
+
+### Block 3 — Files touched
+
+| File | Change | Notes |
+|------|--------|-------|
+| `.factory/cycles/v1.0-brownfield-backfill/adv-E19-pass-50.md` | NEW | Pass-50 adversarial review report; NOT-CLEAN B0/H0/M1/L0; 29-artifact perimeter table; F-P50-001 full finding |
+| `.factory/specs/architecture/ARCH-INDEX.md` | v2.99→v3.00 | ADR-025 row v1.14→v1.15 AMENDED annotation (F-P50-001 CLOSED architect 888178f9); POLICY 14 5-leg parity ✓ |
+| `.factory/cycles/v1.0-brownfield-backfill/decision-log.md` | D-806 appended | Pass-50 NOT-CLEAN closure; F-P50-001 fix; pointer-class gate codified |
+| `.factory/cycles/v1.0-brownfield-backfill/lessons.md` | L-BB lesson appended | L-BB-adr-body-external-artifact-file-line-pointers-are-sweep-sites [process-gap] codified |
+| `.factory/STATE.md` | v5.56→v5.57 | D-806 row; trajectory-tail →1→0→1→1; streak 0/3 UNCHANGED; banner/current_step; Session Resume Checkpoint FULL REFRESH targeting pass-51 |
+| `.factory/cycles/v1.0-brownfield-backfill/burst-log.md` | this entry | D-806 8-block entry (D-444(c)) |
+
+### Block 4 — Codifications
+
+| Item | Type | Location |
+|------|------|----------|
+| D-806 | Decision | `cycles/v1.0-brownfield-backfill/decision-log.md` |
+| L-BB-adr-body-external-artifact-file-line-pointers-are-sweep-sites | Lesson [process-gap] | `cycles/v1.0-brownfield-backfill/lessons.md` |
+| ARCH-INDEX v3.00 | Version bump | `specs/architecture/ARCH-INDEX.md` |
+| Pointer-class gate | Standing gate #7 | `STATE.md §Standing Controls D-806 entry` |
+
+### Block 5 — Dim-2 (Gate execution evidence — D-449(a) literal-shell stdout)
+
+All 4 mandatory gates executed with literal shell, captured stdout:
+
+**Gate 1 — 4-index gate:**
+```
+BC-INDEX version: version: "3.95"
+VP-INDEX version: version: "2.59"
+STORY-INDEX version: version: "4.175"
+ARCH-INDEX version: version: "3.00"
+EXIT:0
+```
+
+**Gate 2 — Heading-parity gate:**
+```
+PASS E-9: SI=v1.53 == epic=v1.53
+PASS E-10: SI=v1.6 == epic=v1.6
+PASS E-11: SI=v1.1 == epic=v1.1
+PASS E-12: SI=v1.3 == epic=v1.3
+PASS E-13: SI=v1.0 == epic=v1.0
+PASS E-14: SI=v1.2 == epic=v1.2
+PASS E-15: SI=v1.3 == epic=v1.3
+PASS E-16: SI=v1.0 == epic=v1.0
+PASS E-17: SI=v1.1 == epic=v1.1
+PASS E-18: SI=v1.3 == epic=v1.3
+PASS E-19: SI=v1.26 == epic=v1.26
+[9 SKIP for epics without version tokens in headings]
+Heading-parity gate: 0 FAIL(s) | 11 PASS | 9 SKIP
+EXIT:0
+```
+
+**Gate 3 — Pointer-class gate (NEW D-806):**
+```
+EXEMPT ADR-025 v1.15 line 1708: line-cite `at line 1181–1182 of hooks-registry.toml` replaced with stable anchor form [in ## Source/Origin changelog bullet v1.15 — historical-by-construction]
+EXEMPT ARCH-INDEX v3.00 line 175: change: "v1.99 (2026-05-13; E-10 pass-9 ...) ... annotation at lines 39/48/59/60/..." [in changelog: YAML array — historical-by-construction]
+Pointer-class gate: 0 normative hit(s) requiring action
+EXIT:0
+```
+
+**Gate 4 — ARCH-INDEX POLICY 14 5-leg gate:**
+```
+Leg 1 (version): version: "3.00"
+Leg 2 (changelog body v3.00): PRESENT — change: "v3.00 (2026-07-10; E-19 adv pass-50 D-806 fix burst..."
+Leg 3 (last_amended v3.00): True
+Leg 4 (ADR-025 row v1.15): PRESENT
+Leg 5 (upstream-index): ARCH v3.00 confirmed in 4-index gate stdout
+ARCH-INDEX v3.00 POLICY 14 5-leg: ALL 5 PASS
+EXIT:0
+```
+
+### Block 6 — Dim-5 attestation (Dim-6 literal-shell count)
+
+Literal-shell burst-log block count verification:
+
+```
+grep -c "^### Block" .factory/cycles/v1.0-brownfield-backfill/burst-log.md
+```
+
+Expected ≥8 for this entry (blocks 1–8). D-444(c) 8-block requirement: SATISFIED (blocks 1–8 present).
+
+### Block 7 — Closes / Status summary
+
+| Item | Resolution |
+|------|------------|
+| F-P50-001 MEDIUM | CLOSED — architect 888178f9 ADR-025 v1.14→v1.15: §12.6 volatile line-cite 'line 1181–1182 of hooks-registry.toml' → stable '[hooks.capabilities.read_file]'-block anchor per TD-VSDD-091; whole-ADR pointer sweep 1 normative-live site fixed; 1 Changelog-row exempt |
+| ARCH-INDEX v2.99→v3.00 | COMPLETE — ADR-025 row AMENDED v1.15 annotation; POLICY 14 5-leg parity ✓ |
+| L-BB-adr-body-external-artifact-file-line-pointers-are-sweep-sites | CODIFIED — lessons.md + D-806 decision-log + STATE.md §Standing Controls D-806 entry |
+| Pointer-class gate | CODIFIED as standing gate #7 — STATE.md §Standing Controls; roster now 7 gates |
+| STATE.md v5.57 | COMPLETE — Session Resume Checkpoint fully refreshed; pass-51 target |
+| Streak 0/3 | UNCHANGED (pass-50 NOT-CLEAN; three CLEANs → 3/3 CONVERGED) |
+
+### Block 8 — Factory-artifacts commits
+
+| Commit | SHA | Contents |
+|--------|-----|----------|
+| D-806 SM single-commit burst (TD-VSDD-053) | `[D-806-SHA-TBD]` | adv-E19-pass-50.md NEW; decision-log D-806; lessons.md L-BB-adr-body-external-artifact-file-line-pointers-are-sweep-sites; ARCH-INDEX v2.99→v3.00; STATE.md v5.56→v5.57; burst-log this entry; streak 0/3 UNCHANGED; trajectory →1→0→1→1; pass-51 NEXT |
+

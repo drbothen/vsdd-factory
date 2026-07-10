@@ -8381,3 +8381,64 @@ D-805-E19-ADV-PASS-49-NOT-CLEAN-CLOSED
 ### Date
 
 2026-07-10
+
+---
+
+## D-806 — E-19 Adversarial Pass-50 NOT-CLEAN Closure (B0/H0/M1/L0; F-P50-001 CLOSED architect 888178f9; streak 0/3)
+
+### Summary
+
+Pass-50 adversary (Claude Opus 4.7; rubric policies.yaml v1.4.3; fresh context; Iron Law; perimeter = D-805 delta: ADR-025 v1.14 + ARCH-INDEX v2.99 + full E-19 suite carry-forward) found 1 finding — NOT-CLEAN B0/H0/M1/L0. F-P50-001 MEDIUM: ADR-025 v1.14 §12.6 volatile line-cite `line 1181–1182 of hooks-registry.toml` — cited lines now contain unrelated plugin content after registry growth; §12.6 "Compare"/"Identical" claims false at cited location (TD-VSDD-091 location-pointer class; POLICY 19 stable-anchor discipline; novel sub-class extending D-805 gate family). CLOSED same-burst architect 888178f9 (ADR-025 v1.14→v1.15: stable `[hooks.capabilities.read_file]`-block anchor substituted; whole-ADR pointer sweep 1 normative-live site fixed). New gate: L-BB-adr-body-external-artifact-file-line-pointers-are-sweep-sites [process-gap] codified D-806 (7th standing gate). ARCH-INDEX v2.99→v3.00 (ADR-025 row v1.14→v1.15). Streak 0/3 (pass-50 NOT-CLEAN; unchanged). NEXT: pass-51 (fresh context; rubric policies.yaml v1.4.3; perimeter = D-806 delta: ADR-025 v1.15 + ARCH-INDEX v3.00 + full E-19 suite carry-forward; streak 0/3; three CLEANs → 3/3 CONVERGED → W1 TDD dispatch S-19.01+S-19.02+S-19.03 per D-773/D-774).
+
+### Detail
+
+**(1) POLICY 16 GLOBAL-MAX GATE.**
+
+`grep -oE "^## D-[0-9]+" .factory/cycles/v1.0-brownfield-backfill/decision-log.md | tail -1` → `## D-805`. D-805 confirmed max → D-806 allocated.
+
+**(2) PASS-50 ADVERSARY VERDICT.**
+
+NOT-CLEAN B0/H0/M1/L0. Perimeter: D-805 delta (ADR-025 v1.14 + ARCH-INDEX v2.99) + full E-19 carry-forward (BC-INDEX v3.95; VP-INDEX v2.59; STORY-INDEX v4.175; policies.yaml v1.4.3). Streak before: 0/3. Streak after: 0/3 (unchanged — NOT-CLEAN).
+
+**F-P50-001 MEDIUM — TD-VSDD-091 / POLICY 19 / novel location-pointer sub-class:**
+- ADR-025 v1.14 §12.6 cited `line 1181–1182 of hooks-registry.toml` for the verify-factory-lock `[hooks.capabilities.read_file]` block location.
+- Registry growth (E-17/E-18/E-19 hook addition bursts) shifted the verify-factory-lock stanza to approximately lines 1253–1262; lines 1181–1182 now contain content from an earlier unrelated plugin.
+- §12.6 "Compare with the existing `verify-factory-lock` entry's `[hooks.capabilities.read_file]` block" claims at cited lines 1181–1182 are false.
+- Novel sub-class: ADR-body FILE:LINE location-pointer citations to external artifacts — distinct from D-795 BC-pin class, D-803 heading-parity class, D-805 content-description class.
+- **CLOSED — architect 888178f9 (ADR-025 v1.14→v1.15):** §12.6 `(line 1181–1182 of hooks-registry.toml)` parenthetical removed; stable `[hooks.capabilities.read_file]`-block anchor substituted per TD-VSDD-091. Whole-ADR pointer sweep: 1 normative-live site found and fixed; amendment_reason and Changelog historical citations exempt per TD-VSDD-091.
+
+Full adversary report: `cycles/v1.0-brownfield-backfill/adv-E19-pass-50.md`
+
+**(3) FIX BURST.**
+
+Architect leg: `888178f9` — ADR-025 v1.14→v1.15 (F-P50-001 §12.6 volatile line-cite → stable block anchor; whole-ADR pointer sweep). State-manager closure leg (this burst): adv-E19-pass-50.md persisted; ARCH-INDEX v2.99→v3.00 (ADR-025 row v1.14→v1.15; ARCH-INDEX POLICY 14 5-leg update); D-806 decision-log codification; L-BB-adr-body-external-artifact-file-line-pointers-are-sweep-sites lesson appended to lessons.md; STATE.md v5.56→v5.57 (D-806 row, trajectory-tail →1→0→1→1, streak 0/3, banner, session checkpoint refresh); burst-log D-806 entry.
+
+**(4) 4-INDEX GATE (POLICY 14 leg-4 — exhaustive; literal-shell per D-449(a)).**
+
+[STDOUT populated in burst-log Block 5 per D-449(a). Expected: BC v3.95 / VP v2.59 / STORY v4.175 / ARCH v3.00.]
+
+**(5) HEADING-PARITY GATE (D-803 standing Commit-E gate — mandatory per L-BB-epic-heading-parity-is-a-mandatory-commit-E-gate; literal-shell per D-449(a)).**
+
+[STDOUT populated in burst-log Block 5 per D-449(a). Expected: 0 FAIL lines; governance-only ARCH-INDEX bump does not affect epic headings.]
+
+**(6) POINTER-CLASS GATE (NEW D-806 standing Commit-E gate — mandatory per L-BB-adr-body-external-artifact-file-line-pointers-are-sweep-sites; literal-shell per D-449(a)).**
+
+[STDOUT populated in burst-log Block 5 per D-449(a). Expected: 0 normative hits in touched artifacts (ADR-025 v1.15 line-cite removed by architect 888178f9; ARCH-INDEX v3.00 governance-only).]
+
+**(7) STREAK STATUS.**
+
+0/3 (UNCHANGED by NOT-CLEAN pass-50; trajectory tail passes 47/48/49/50 = 1,0,1,1 → →1→0→1→1; streak UNCHANGED at 0/3). NEXT: E-19 adv pass-51 (fresh context; Iron Law; rubric policies.yaml v1.4.3; perimeter = D-806 delta: ADR-025 v1.15 + ARCH-INDEX v3.00 + full E-19 suite carry-forward; streak 0/3; three consecutive CLEANs → 3/3 CONVERGED → W1 TDD dispatch per D-773/D-774).
+
+**(8) LESSON CODIFICATION.**
+
+L-BB-adr-body-external-artifact-file-line-pointers-are-sweep-sites [process-gap][codified D-806]: ADR/BC/VP/story normative body text containing file:line location-pointer forms (`line N–M of <file>`, `at line N`) is a TD-VSDD-091 violation — FORBIDDEN in normative sections; use stable structural anchors (stanza/block/section names, TOML key paths). Pre-burst detection predicate: `grep -nE 'line [0-9]+([–-][0-9]+)? of|at line [0-9]+'` with normative-vs-historical classification. Joins the standing gate roster (7th gate). Appended to lessons.md this burst.
+
+Parent-commit: 888178f9 (factory-artifacts HEAD = architect ADR-025 v1.14→v1.15 fix; the state of factory-artifacts before this D-806 SM closure burst).
+
+### Phase
+
+D-806-E19-ADV-PASS-50-NOT-CLEAN-CLOSED
+
+### Date
+
+2026-07-10

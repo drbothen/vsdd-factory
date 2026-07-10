@@ -6316,3 +6316,42 @@ Both are mandatory standing Commit-E controls for any burst amending E-19 ADRs.
 **Cites:** D-805; F-P49-001 (MEDIUM); POLICY 5 v1.3.3 (same-burst sibling-sweep completeness); D-795 L-BB-adr-body-bc-cites-are-sweep-sites (companion: BC volatile-pin class); TD-VSDD-091 (historical-by-construction exemption); L-BB-adr-body-bc-cites-are-sweep-sites (D-795: complementary scope); L-BB-pre-pass-class-sweeps-preempt-finding-leakage (D-798: pre-pass enumeration discipline).
 
 **Closes:** D-805 (F-P49-001 CLOSED by architect 30b6680c ADR-025 v1.13→v1.14; §D1 body + D2 Notes swept `Edit|Write|Agent` → `Edit|Write|MultiEdit|Agent`; ARCH-INDEX v2.98→v2.99; gate codified as new standing control alongside D-795 and D-803). `[process-gap; ADR-body; registry-content-description; sweep-site; sibling-sweep; POLICY-5-v1.3.3; description-copy-class; D-795-scope-extension; external-artifact; TOML-stanza; tool-matcher; Commit-E-gate; self-application]`
+
+---
+
+### L-BB-adr-body-external-artifact-file-line-pointers-are-sweep-sites [process-gap][codified D-806]
+
+**Lesson:** Normative body text in ADR/BC/VP/story artifacts that contains file:line location-pointer forms — `line N–M of <file>`, `at line N`, `lines N–M of ...` — is a TD-VSDD-091 violation and a structural sweep site. These citations MUST be replaced with stable structural anchors (stanza/block/section names, TOML key paths, function signatures) before the artifact is declared normatively correct.
+
+**Root cause of F-P50-001:** ADR-025 §12.6 (authored at v1.6, 2026-06-11) cited `(line 1181–1182 of hooks-registry.toml)` as the location of the `verify-factory-lock` capability block. Each E-17/E-18/E-19 hook addition burst appended new `[[hooks]]` stanzas to hooks-registry.toml, gradually shifting the verify-factory-lock stanza from ~line 1181 to ~line 1253. No single burst triggered a sweep of the stale line-number cite because no existing gate predicate matched `line [0-9]+ of` patterns. The §12.6 "Compare"/"Identical" claims became false at the cited location.
+
+**Detection predicate (mandatory pre-burst gate):**
+
+```bash
+# Run before any burst touching ADR/BC/VP/story normative sections:
+grep -nE 'line [0-9]+([–-][0-9]+)? of|at line [0-9]+' <artifact> \
+  | grep -v "amendment_reason\|## Changelog\|## D[0-9]\|Prior:\|# "
+# Expected: zero normative hits
+```
+
+For any non-zero result: replace all file:line citations with stable structural anchors (block/stanza/section name) before pushing.
+
+**Normative-vs-historical classification (per TD-VSDD-091):**
+
+- **Normative sections (in scope):** `##` section bodies, decision description tables, deliverable rows, §Decision N prose, `[hooks.capabilities...]` stanza specs — any text claiming to describe current artifact state.
+- **Exempt sections (out of scope):** `amendment_reason:` YAML prose, `## Changelog` body rows, `Prior:` nested history — historical-by-construction; correctly document what the text said at a prior version for audit trail. A `(line N at time of authoring)` historical note is acceptable if explicitly marked historical.
+
+**Relationship to D-805 gate (orthogonal coverage):**
+
+| Gate | Predicate | Catches |
+|------|-----------|---------|
+| D-805 (L-BB-adr-body-external-artifact-content-descriptions-are-sweep-sites) | Field-value strings (`tool=`, `path_allow`, TOML values) | External artifact FIELD VALUES copied into normative prose |
+| D-806 (this gate) | `line [0-9]+ of`, `at line [0-9]+` | External artifact LINE-NUMBER POINTERS in normative prose |
+
+Both gates are mandatory standing Commit-E controls for any burst touching E-19 ADRs or spec artifacts. Together they close the known volatile-reference classes in ADR normative bodies.
+
+**Anchors:** D-806; F-P50-001 (MEDIUM TD-VSDD-091 location-pointer); ADR-025 v1.14→v1.15 (architect 888178f9); hooks-registry.toml ~line 1253 (verify-factory-lock stanza current location); §12.6 historical provenance (ADR-025 v1.6 authoring 2026-06-11; stale cite accumulated via gradual registry growth).
+
+**Cites:** D-806; F-P50-001 (MEDIUM); TD-VSDD-091 (volatile-pin/location-pointer prohibition); POLICY 19 (stable-anchor discipline); D-805 L-BB-adr-body-external-artifact-content-descriptions-are-sweep-sites (companion: content-description class); D-795 L-BB-adr-body-bc-cites-are-sweep-sites (companion: BC-pin class).
+
+**Closes:** D-806 (F-P50-001 CLOSED architect 888178f9 ADR-025 v1.14→v1.15; §12.6 line-cite → stable `[hooks.capabilities.read_file]`-block anchor; ARCH-INDEX v2.99→v3.00; 7th standing gate codified). `[process-gap; ADR-body; file-line-pointer; location-cite; sweep-site; TD-VSDD-091; POLICY-19; stable-anchor; external-artifact; hooks-registry; gradual-drift; Commit-E-gate; self-application; 7th-gate]`
