@@ -6105,3 +6105,29 @@ Capture the stdout. Derive the catalog cell text from the Changelog row for that
 **Cites:** D-800; F-P44-001 (MEDIUM POLICY 4/14-leg-5); F-P44-002 (MEDIUM POLICY 14-leg-5/4); POLICY 4 (internal consistency); POLICY 14 leg-5 (upstream-index parity); D-799 (the burst that introduced the defect in the SM leg); ad464e09 (PO leg — the actual BC-3.08.001 v1.21 author); 421a9e1f (architect leg — incorrectly cited in the BC-INDEX v1.21 cell).
 
 **Closes:** D-800 (F-P44-001 + F-P44-002 CLOSED by SM this-commit BC-INDEX v3.93; O-P44-001 accepted-with-record; streak 0/3; per-artifact-catalog-cell-derives-from-own-changelog-row process-gap codified). `[process-gap; BC-INDEX-catalog-cell; upstream-index-parity; POLICY-4; POLICY-14-leg-5; SM-authoring-discipline; multi-artifact-burst; changelog-SoT-derivation; ground-truth-capture]`
+
+---
+
+### L-BB-remediation-predicate-must-enumerate-all-same-burst-touched-artifacts [process-gap][codified D-801]
+
+**Context:** E-19 adversary pass-45 (F-P45-001 MEDIUM + F-P45-002 MEDIUM). BC-INDEX v3.93 contained date errors in two more v1.6 catalog cells: BC-2.02.011 v1.6 cell had date `2026-07-10` (should be `2026-07-09`) and BC-5.42.001 v1.6 cell had date `2026-07-10` (should be `2026-07-09`). Both cells were authored during the D-798 SM leg (commit 9253c492) which ran the pre-pass-43 consistency sweep amending BC-2.02.011 v1.5→v1.6 (C-PP43-002) and BC-5.42.001 v1.5→v1.6 (C-PP43-001). The D-800 SM leg fixed BC-3.08.001 v1.21/v1.20 cells under the new L-BB-per-artifact-catalog-cell-derives-from-own-changelog-row discipline but did NOT sweep ALL other catalog cells authored in the same D-798 SM commit, leaving these two date errors unaddressed.
+
+**Lesson:** When closing an L-BB catalog-cell finding (wrong date, wrong content, or wrong attribution in a BC-INDEX / VP-INDEX / STORY-INDEX version cell), the remediation sweep predicate MUST enumerate ALL catalog cells authored in the SAME burst-leg (same commit SHA) as the defective cell — not just the single reported defective cell. A single SM commit often amends multiple BCs (cite sweeps, consistency passes, multi-BC fix bursts); each BC's catalog cell is a distinct potential defect site.
+
+**Root cause:** D-800 SM leg scoped its remediation to the two specifically reported cells (BC-3.08.001 v1.21 and v1.20) without extending the L-BB sweep to BC-2.02.011 and BC-5.42.001, which were authored in the same D-798 SM commit (9253c492). Remediation of a finding class must be predicate-complete: cover all instances in the same authoring context, not just the flagged instances.
+
+**Correct SM workflow (L-BB remediation-predicate closure):** When closing an L-BB catalog-cell finding attributed to a specific SM commit SHA (e.g., 9253c492), execute:
+
+```bash
+git -C .factory show 9253c492 --name-only | grep 'BC-INDEX\|VP-INDEX\|STORY-INDEX'
+grep -n 'v[0-9]\+\.[0-9]\+ 2026-07-' .factory/specs/behavioral-contracts/BC-INDEX.md \
+  | grep -E "D-798|9253c492"
+```
+
+Capture stdout. Sweep EVERY catalog row touched by that commit for the same defect class. Close all instances in a single SM leg. Do not declare L-BB remediation complete until zero defects remain across ALL cells authored in the same commit.
+
+**Anchors:** D-801; F-P45-001; F-P45-002; BC-INDEX v3.93 (defective cells); BC-2.02.011 v1.6 Changelog row (ground truth: 2026-07-09); BC-5.42.001 v1.6 Changelog row (ground truth: 2026-07-09); D-798 SM leg commit 9253c492 (the authoring session for all three defective cells); SM this-commit (fix — BC-INDEX v3.94).
+
+**Cites:** D-801; F-P45-001 (MEDIUM POLICY 4/14-leg-5); F-P45-002 (MEDIUM POLICY 4/14-leg-5); D-800 (prior pass — L-BB-per-artifact-catalog-cell-derives-from-own-changelog-row codified but sweep-predicate incomplete); D-798 SM leg 9253c492 (authoring session that introduced all three defective cells); POLICY 4 (internal consistency); POLICY 14 leg-5 (upstream-index parity); L-BB-per-artifact-catalog-cell-derives-from-own-changelog-row (the prior lesson that this refines).
+
+**Closes:** D-801 (F-P45-001 + F-P45-002 CLOSED by SM this-commit BC-INDEX v3.94; F-P45-003 CLOSED by PO 6f813e9e; O-P45-001 CLOSED by SM this-commit VP-INDEX v2.58; streak 0/3; remediation-predicate-must-enumerate-all-same-burst-touched-artifacts process-gap codified). `[process-gap; BC-INDEX-catalog-cell; upstream-index-parity; POLICY-4; POLICY-14-leg-5; SM-authoring-discipline; L-BB-remediation; sweep-predicate; same-commit-coverage; multi-BC-burst]`

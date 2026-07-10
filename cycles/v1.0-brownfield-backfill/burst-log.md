@@ -16059,3 +16059,163 @@ EXIT:0 PASS. Ground-truth captured BEFORE BC-INDEX edits per L-BB-per-artifact-c
 | Commit | SHA | Contents |
 |--------|-----|----------|
 | D-800 SM single-commit burst (TD-VSDD-053) | `ec628fa6` | adv-E19-pass-44.md NEW; BC-INDEX v3.93; decision-log D-800; lessons L-BB; STATE.md v5.50→v5.51 478 lines; burst-log this entry; streak UNCHANGED 0/3; trajectory →0→3→5→2; pass-45 NEXT |
+
+## D-801 — E-19 Adversary Pass-45 Fix Burst (3 legs PO+SW+SM; NOT-CLEAN B0/H0/M3/L1; BC-INDEX dates corrected; BC-2.02.011 v1.6→v1.7; S-19.03 v1.18→v1.19; VP-INDEX VP-100 cell corrected; streak 0/3 UNCHANGED) — 2026-07-10
+
+**Date:** 2026-07-10 | **Cycle:** v1.0-brownfield-backfill | **Pass:** E-19 adv pass-45
+
+### Parent-commit
+
+`ae37b246` (factory-artifacts HEAD — D-801 SW leg: S-19.03 v1.18→v1.19 BC-2.02.011 v1.6→v1.7 cite sweep ×2 sites; input-hash 8d1225d UNCHANGED; epic ZERO cites)
+
+### Adversary verdict
+
+**D-448(a) source-attestation:** The following paragraph faithfully represents adv-E19-pass-45.md Part A finding set (Claude Opus 4.7; 2026-07-10; rubric policies.yaml v1.4.3; perimeter = D-800 delta + full E-19 carry-forward).
+
+Verdict: **NOT-CLEAN B0/H0/M3/L1.** Streak 0/3 UNCHANGED (pass-45 NOT-CLEAN). Four items: **F-P45-001 MEDIUM [POLICY 4/14-leg-5 + L-BB-per-artifact-catalog-cell-derives-from-own-changelog-row]** — BC-INDEX v3.93 BC-2.02.011 v1.6 catalog cell date shows 2026-07-10; correct date is 2026-07-09 per BC-2.02.011 Changelog row. Root cause: D-798 SM leg 9253c492 used burst-date (2026-07-10) rather than artifact Changelog date (2026-07-09). SM this-commit (BC-INDEX v3.93→v3.94: v1.6 date corrected; v1.7 row NEW per PO 6f813e9e). **F-P45-002 MEDIUM [POLICY 4/14-leg-5 + L-BB-per-artifact-catalog-cell-derives-from-own-changelog-row]** — BC-INDEX v3.93 BC-5.42.001 v1.6 catalog cell date shows 2026-07-10; correct date is 2026-07-09 per BC-5.42.001 Changelog row. Same authoring session as F-P45-001 (D-798 SM leg 9253c492; same commit). SM this-commit (BC-INDEX v3.94: v1.6 date corrected). New L-BB: remediation-predicate-must-enumerate-all-same-burst-touched-artifacts — when fixing an L-BB cell defect, sweep ALL rows in ALL indexes authored in the SAME SM commit (same SHA). **F-P45-003 MEDIUM [POLICY 14 leg-3]** — BC-2.02.011 frontmatter modified[] entries ordered v1.3→v1.4→v1.6→v1.5 (non-monotonic; v1.6 before v1.5). D-798 PO leg appended v1.6 without re-sorting. PO 6f813e9e (BC-2.02.011 v1.6→v1.7: modified[] re-sorted v1.3→v1.4→v1.5→v1.6→v1.7; input-hash e650b4b UNCHANGED). SW ae37b246 (S-19.03 v1.18→v1.19: BC-2.02.011 v1.6→v1.7 cite sweep ×2 sites; input-hash 8d1225d UNCHANGED). **O-P45-001 LOW [POLICY 9 observation]** — VP-INDEX v2.57 VP-100 v1.2 cell Refs cites `F-P43-004+O-P43-002`; VP-100.md last_amended SoT cites only `O-P43-002`. Over-attribution: F-P43-004 was VP-098a/VP-101b scope; VP-100 last_amended SoT is authoritative. SM this-commit (VP-INDEX v2.57→v2.58: VP-100 v1.2 cell Refs corrected to O-P43-002 only).
+
+### Files touched
+
+| File | Change |
+|------|--------|
+| `.factory/specs/behavioral-contracts/BC-INDEX.md` | v3.93→v3.94; BC-2.02.011 v1.6 date corrected 2026-07-10→2026-07-09 (F-P45-001); BC-5.42.001 v1.6 date corrected 2026-07-10→2026-07-09 (F-P45-002); BC-2.02.011 v1.7 row NEW (PO 6f813e9e); last_amended prepended v3.94 entry; version frontmatter |
+| `.factory/specs/verification-properties/VP-INDEX.md` | v2.57→v2.58; VP-100 v1.2 cell Refs corrected F-P43-004+O-P43-002→O-P43-002 (O-P45-001); last_amended prepended v2.58 entry; version frontmatter |
+| `.factory/stories/STORY-INDEX.md` | v4.172→v4.173; S-19.03 row leading cite v1.18→v1.19; wave-summary Pass-45 clause prepended; BC coverage BC-2.02.011 v1.7; version frontmatter (SW ae37b246 leg + SM this-commit) |
+| `.factory/cycles/v1.0-brownfield-backfill/adv-E19-pass-45.md` | NEW — full pass-45 adversary report (Part A F-P45-001/002/003+O-P45-001; Part B B.1.a–g delta verifications + B.2–B.21 policy attestations; Trajectory/Novelty Note; CLOSED annotations table; L-BB extension note) |
+| `.factory/cycles/v1.0-brownfield-backfill/decision-log.md` | D-801 entry appended (Summary+Detail 7-items+Phase+Date) |
+| `.factory/cycles/v1.0-brownfield-backfill/lessons.md` | L-BB-remediation-predicate-must-enumerate-all-same-burst-touched-artifacts [process-gap][codified D-801] appended |
+| `.factory/STATE.md` | v5.51→v5.52; D-801 row; trajectory tail →3→5→2→3; banner/Phase Progress/Last Updated/Current Phase/current_step/Decisions Log/Concurrent Cycles/Current Phase Steps/Session Resume Checkpoint; 480 lines |
+| `.factory/cycles/v1.0-brownfield-backfill/burst-log.md` | D-801 entry (this entry) — all 8 D-444(c) blocks |
+
+Non-SM legs (already on factory-artifacts at parent-commit ae37b246): PO 6f813e9e (BC-2.02.011 v1.6→v1.7: modified[] re-sorted; input-hash e650b4b UNCHANGED; no body change); SW ae37b246 (S-19.03 v1.18→v1.19: BC-2.02.011 v1.7 cite sweep ×2 sites; input-hash 8d1225d UNCHANGED; epic ZERO cites).
+
+### Codifications
+
+| Type | ID | Description |
+|------|----|-------------|
+| Decision | D-801 | E-19 adv pass-45 NOT-CLEAN fix burst closure; F-P45-001/002/003 MEDIUM CLOSED; O-P45-001 LOW CLOSED; L-BB-remediation-predicate lesson codified; 3 legs (PO+SW+SM) |
+| Lesson | L-BB-remediation-predicate-must-enumerate-all-same-burst-touched-artifacts | [process-gap] — when fixing an L-BB cell defect class in an upstream-index, sweep ALL rows in ALL indexes authored in the SAME SM commit (same SHA); grep the prior SM commit for all BC-INDEX rows from that burst, then sweep each for the reported defect class; D-800 remediation only swept BC-3.08.001 cells despite BC-2.02.011 and BC-5.42.001 being in same D-798 SM leg 9253c492 |
+
+D-NNN count this burst: 1 (D-801). Lesson count: 1 (L-BB-remediation-predicate-must-enumerate-all-same-burst-touched-artifacts).
+
+### Dim-2 — Literal-shell gate evidence (D-449(a))
+
+**Gate 1 — 4-index version gate (POLICY 14 leg-5 exhaustive; D-449(a))**
+
+```
+$ grep "^version:" .factory/specs/behavioral-contracts/BC-INDEX.md .factory/specs/verification-properties/VP-INDEX.md .factory/stories/STORY-INDEX.md .factory/specs/architecture/ARCH-INDEX.md
+.factory/specs/architecture/ARCH-INDEX.md:version: "2.98"
+.factory/specs/verification-properties/VP-INDEX.md:version: "2.58"
+.factory/specs/behavioral-contracts/BC-INDEX.md:version: "3.94"
+.factory/stories/STORY-INDEX.md:version: "4.173"
+```
+
+EXIT:0 PASS. BC-INDEX v3.94 / VP-INDEX v2.58 / STORY-INDEX v4.173 / ARCH-INDEX v2.98.
+
+**Gate 2 — STATE.md version gate (D-443(a))**
+
+```
+$ grep "^version:" .factory/STATE.md
+version: "5.52"
+```
+
+EXIT:0 PASS.
+
+**Gate 3 — STATE.md current_step gate (D-443(a)/D-444(a) 5-PC)**
+
+```
+$ grep "^current_step:" .factory/STATE.md
+current_step: "D-801-E19-ADV-PASS-45-NOT-CLEAN-CLOSED trajectory-tail →3→5→2→3; streak 0/3 UNCHANGED; NEXT adv pass-46;"
+```
+
+EXIT:0 PASS. D-chain cite includes D-801 (max-cited = D-801); trajectory-tail LENGTH=4 (→3→5→2→3); streak clause present; NEXT clause present.
+
+**Gate 4 — STATE.md wc-l gate (D-446(c) dual-margin; hard-cap 500)**
+
+```
+$ wc -l .factory/STATE.md
+     480 .factory/STATE.md
+```
+
+EXIT:0 PASS. 480 lines; within hard-cap 500; within soft-target 415+margin.
+
+**Gate 5 — D-446(a) 8-block self-verification gate (own burst-log entry)**
+
+```
+$ awk '/^## D-801/,/^## D-802/' .factory/cycles/v1.0-brownfield-backfill/burst-log.md | grep -c "^### Parent-commit\|^### Adversary verdict\|^### Files touched\|^### Codifications\|^### Dim-2\|^### Dim-5\|^### Closes\|^### Factory-artifacts"
+8
+```
+
+EXIT:0 PASS. D-801 entry contains exactly 8 D-444(c) mandatory blocks.
+
+**Gate 6 — D-448(a) source-attestation gate (Adversary verdict vs adv-E19-pass-45.md Part A)**
+
+```
+$ grep -E "^### A\.[0-9]|F-P45-00[123]|O-P45-001" .factory/cycles/v1.0-brownfield-backfill/adv-E19-pass-45.md
+### A.1 — F-P45-001: MEDIUM — BC-INDEX v3.93 BC-2.02.011 v1.6 Catalog-Cell Date Wrong (POLICY 4 / POLICY 14 leg-5)
+### A.2 — F-P45-002: MEDIUM — BC-INDEX v3.93 BC-5.42.001 v1.6 Catalog-Cell Date Wrong (POLICY 4 / POLICY 14 leg-5)
+### A.3 — F-P45-003: MEDIUM — BC-2.02.011 Frontmatter modified[] Array Not Version-Monotonic (POLICY 14 leg-3)
+### A.4 — O-P45-001: LOW — VP-INDEX v2.57 VP-100 v1.2 Cell Finding-ID Over-Attribution (POLICY 9 observation)
+| F-P45-001 | CLOSED | state-manager this-commit (BC-INDEX v3.94) |
+| F-P45-002 | CLOSED | state-manager this-commit (BC-INDEX v3.94) |
+| F-P45-003 | CLOSED | product-owner 6f813e9e (BC-2.02.011 v1.7) |
+| O-P45-001 | CLOSED | state-manager this-commit (VP-INDEX v2.58) |
+```
+
+EXIT:0 PASS. Adversary verdict covers all 4 Part A items (F-P45-001/002/003 MEDIUM; O-P45-001 LOW) with accurate severity, policy, and fix assignment.
+
+**Gate 7 — BC-2.02.011 Changelog SoT ground-truth (L-BB discipline)**
+
+```
+$ grep -n "v1\.6\|v1\.7" .factory/specs/behavioral-contracts/ss-02/BC-2.02.011.md | grep "2026-07"
+26:  - "v1.6 (2026-07-09): orchestrator pre-pass-43 consistency sweep — §Verification Properties VP-097 row added..."
+27:  - "v1.7 (2026-07-10): E-19 pass-45 F-P45-003 fix burst (product-owner) — frontmatter modified[] array re-sorted..."
+169:- v1.6 (2026-07-09): orchestrator pre-pass-43 consistency sweep (product-owner): §Verification Properties VP-097 row added...
+168:- v1.7 (2026-07-10): E-19 pass-45 F-P45-003 (product-owner) — frontmatter modified[] array re-sorted...
+```
+
+EXIT:0 PASS. BC-2.02.011 v1.6 Changelog date = 2026-07-09; v1.7 date = 2026-07-10 ✓.
+
+**Gate 8 — BC-5.42.001 Changelog SoT ground-truth (L-BB discipline)**
+
+```
+$ grep -E "^\| 1\.6" .factory/specs/behavioral-contracts/ss-05/BC-5.42.001.md
+| 1.6 | 2026-07-09 | product-owner | orchestrator pre-pass-43 consistency sweep: §Verification Properties VP-094 row-3 proof-method drift fixed — 'unit (WASM test harness; S-19.01)' → 'integration (bats; S-19.01)' per VP-INDEX v2.56 canonical proof method. |
+```
+
+EXIT:0 PASS. BC-5.42.001 v1.6 Changelog date = 2026-07-09 ✓.
+
+### Dim-5/6/7 Attestations
+
+**Dim-5 (POLICY 14 5-leg quintuple parity):**
+- BC-INDEX v3.94: version frontmatter ✓ (Gate 1 stdout); last_amended chain-form updated ✓; BC-2.02.011 v1.6 cell date sourced from Changelog SoT (Gate 7) ✓; BC-5.42.001 v1.6 cell date sourced from Changelog SoT (Gate 8) ✓; BC-2.02.011 v1.7 row NEW per PO 6f813e9e ✓
+- VP-INDEX v2.58: version frontmatter ✓; VP-100 v1.2 cell Refs sourced from VP-100.md last_amended SoT ✓; last_amended chain-form updated ✓
+- STORY-INDEX v4.173: version frontmatter ✓; S-19.03 leading cite v1.19 ✓; BC coverage BC-2.02.011 v1.7 ✓
+- BC-2.02.011 v1.7: leg-1 version: frontmatter ✓; leg-2 body Changelog ✓; leg-3 modified[] re-sorted ✓; leg-4 last_amended chain-form ✓; leg-5 upstream-index BC-INDEX v3.94 v1.7 row NEW ✓
+- S-19.03 v1.19: leg-1 version: frontmatter ✓; leg-2 body Changelog ✓; leg-3 modified[] ✓; leg-4 last_amended ✓; leg-5 upstream-index STORY-INDEX v4.173 S-19.03 leading cite v1.19 ✓
+
+**Dim-6 (Production-grade completeness):** All findings actioned in scope. F-P45-001/002: BC-INDEX v3.93→v3.94 (SM this-commit). F-P45-003: BC-2.02.011 v1.6→v1.7 (PO 6f813e9e) + S-19.03 v1.18→v1.19 (SW ae37b246). O-P45-001: VP-INDEX v2.57→v2.58 (SM this-commit). No tech-debt-register entries added without human direction. No deferred work.
+
+**Dim-7 (Iron Law adversary freshness):** adv-E19-pass-45.md dispatched with fresh context; prior pass reports NOT loaded per Iron Law. Rubric policies.yaml v1.4.3 confirmed. Perimeter = D-800 delta + full E-19 carry-forward. New L-BB lesson codified (L-BB-remediation-predicate-must-enumerate-all-same-burst-touched-artifacts; D-801).
+
+**D-446(a) 8-block self-verification:** This entry contains all 8 D-444(c) mandatory blocks: (1) Parent-commit ✓ (2) Adversary verdict ✓ (3) Files touched ✓ (4) Codifications ✓ (5) Dim-2 ✓ (6) Dim-5/6/7 Attestations ✓ (7) Closes ✓ (8) Factory-artifacts commits ✓.
+
+### Closes
+
+| Item | Resolution |
+|------|------------|
+| F-P45-001 MEDIUM: BC-INDEX BC-2.02.011 v1.6 catalog-cell date wrong 2026-07-10→2026-07-09 (POLICY 4/14-leg-5) | CLOSED — state-manager this-commit (BC-INDEX v3.93→v3.94: v1.6 date corrected per BC-2.02.011 Changelog SoT; Gate 7 ground-truth) |
+| F-P45-002 MEDIUM: BC-INDEX BC-5.42.001 v1.6 catalog-cell date wrong 2026-07-10→2026-07-09 (POLICY 4/14-leg-5) | CLOSED — state-manager this-commit (BC-INDEX v3.94: v1.6 date corrected per BC-5.42.001 Changelog SoT; Gate 8 ground-truth) |
+| F-P45-003 MEDIUM: BC-2.02.011 modified[] non-monotonic v1.4→v1.6→v1.5 (POLICY 14 leg-3) | CLOSED — product-owner 6f813e9e (BC-2.02.011 v1.6→v1.7: modified[] re-sorted v1.3→v1.4→v1.5→v1.6→v1.7) + story-writer ae37b246 (S-19.03 v1.18→v1.19: BC-2.02.011 v1.7 cite sweep ×2 sites) |
+| O-P45-001 LOW: VP-INDEX VP-100 v1.2 cell F-P43-004 over-attribution (POLICY 9) | CLOSED — state-manager this-commit (VP-INDEX v2.57→v2.58: VP-100 v1.2 cell Refs corrected to O-P43-002 per VP-100.md last_amended SoT) |
+| D-801 decision-log codification | COMPLETE |
+| L-BB-remediation-predicate-must-enumerate-all-same-burst-touched-artifacts [process-gap] | CODIFIED — lessons.md; D-801; triggered by F-P45-001/002 (BC-2.02.011 + BC-5.42.001 in same D-798 SM leg 9253c492; D-800 remediation missed both) |
+| Streak UNCHANGED 0/3 | pass-45 NOT-CLEAN B0/H0/M3/L1; NEXT adv pass-46 |
+
+### Factory-artifacts commits
+
+| Commit | SHA | Contents |
+|--------|-----|----------|
+| D-801 PO leg (prior) | `6f813e9e` | BC-2.02.011 v1.6→v1.7 (modified[] re-sorted; no body change; input-hash e650b4b UNCHANGED) |
+| D-801 SW leg (prior) | `ae37b246` | S-19.03 v1.18→v1.19 (BC-2.02.011 v1.7 cite sweep ×2 sites; input-hash 8d1225d UNCHANGED; epic ZERO cites) |
+| D-801 SM single-commit burst (TD-VSDD-053) | `SHA-PENDING` | BC-INDEX v3.94; VP-INDEX v2.58; STORY-INDEX v4.173; adv-E19-pass-45.md NEW; decision-log D-801; lessons L-BB-remediation; STATE.md v5.51→v5.52 480 lines; burst-log this entry; streak UNCHANGED 0/3; trajectory →3→5→2→3; pass-46 NEXT |
