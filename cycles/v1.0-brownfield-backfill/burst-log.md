@@ -16219,3 +16219,182 @@ EXIT:0 PASS. BC-5.42.001 v1.6 Changelog date = 2026-07-09 ✓.
 | D-801 PO leg (prior) | `6f813e9e` | BC-2.02.011 v1.6→v1.7 (modified[] re-sorted; no body change; input-hash e650b4b UNCHANGED) |
 | D-801 SW leg (prior) | `ae37b246` | S-19.03 v1.18→v1.19 (BC-2.02.011 v1.7 cite sweep ×2 sites; input-hash 8d1225d UNCHANGED; epic ZERO cites) |
 | D-801 SM single-commit burst (TD-VSDD-053) | `bcf1f419` | BC-INDEX v3.94; VP-INDEX v2.58; STORY-INDEX v4.173; adv-E19-pass-45.md NEW; decision-log D-801; lessons L-BB-remediation; STATE.md v5.51→v5.52 480 lines; burst-log this entry; streak UNCHANGED 0/3; trajectory →3→5→2→3; pass-46 NEXT |
+
+## D-802 E-19 adv pass-46 NOT-CLEAN fix burst — STATE-MANAGER LEG
+
+### Parent-commit
+
+`71be7861` (story-writer leg; S-19.06 v1.18→v1.19 BC-1.17.001 v1.5→v1.6 cite sweep ×10 + epic v1.25→v1.26 ×4; factory-artifacts HEAD before this SM leg).
+
+### Adversary verdict
+
+**D-448(a) source-attestation:** The following paragraph faithfully represents adv-E19-pass-46.md Part A finding set (Claude Opus 4.7; 2026-07-10; rubric policies.yaml v1.4.3; perimeter = D-801 delta + full E-19 carry-forward).
+
+Verdict: **NOT-CLEAN B0/H0/M1/L2.** Streak 0/3 UNCHANGED (pass-46 NOT-CLEAN). Three items: **F-P46-001 MEDIUM [POLICY 14 leg-3]** — BC-1.17.001 v1.5 frontmatter modified[] entries non-monotonic: v1.2 entry appears before v1.1 entry (last entry v1.1 while version is 1.5). Same pattern as F-P45-003 and F-P44-001/002: multi-step architectural fix burst (D-799 architect 421a9e1f) applied body replace_all sweep for PC cites then wrote frontmatter history at FRONT of modified[] rather than END. PO c2a1f656 (BC-1.17.001 v1.5→v1.6: modified[] re-sorted v1.0→v1.1→v1.2→v1.3→v1.4→v1.5→v1.6; input-hash 03fa998→ebf73ff). SW 71be7861 (S-19.06 v1.18→v1.19: BC-1.17.001 v1.5→v1.6 cite sweep ×10 sites; epic v1.25→v1.26 ×4 sites; STORY-INDEX v4.173→v4.174). **O-P46-001 LOW [POLICY 9 annotation parity / D-800 L-BB SoT-derivation rule]** — VP-INDEX v2.58 Full Index descriptor rows for VP-098/100/101 stop at v1.1 while Story Anchors rows carry v1.2 annotations. Split-table annotation parity gap: D-799 SM leg updated Story Anchors but did not enumerate Full Index rows as same-burst affected artifacts. SM this-commit (VP-INDEX v2.58→v2.59: Full Index VP-098/100/101 each appended v1.2 annotation per VP file last_amended SoT; Story Anchors VP-098 F-P43-004→F-P43-004a; Story Anchors VP-101 F-P43-004→F-P43-004b). **O-P46-002 LOW [D-800 L-BB SoT-derivation rule / POLICY 16 finding-ID precision]** — VP-INDEX v2.58 Story Anchors VP-098 cites unsuffixed F-P43-004 while VP-098.md last_amended SoT cites F-P43-004a; VP-101 cites unsuffixed F-P43-004 while VP-101.md last_amended SoT cites F-P43-004b. SM this-commit (VP-INDEX v2.59: Story Anchors VP-098 F-P43-004→F-P43-004a; VP-101 F-P43-004→F-P43-004b per VP file SoT). O-P46-002 fix is subsumed by O-P46-001 same-burst VP-INDEX edit. Perimeter audit (L-BB-modified-array-monotonicity-perimeter-audit): VP-094..VP-101 modified[] class check — 3 FAILs (VP-098/100/101 had [v1.2, v1.1] order pre-burst); all re-sorted monotonic same-burst (D-802 SM leg). Two new L-BB lessons codified: L-BB-modified-array-monotonicity-perimeter-audit + L-BB-write-frontmatter-history-after-body-replace-all [process-gap].
+
+### Files touched
+
+| File | Change |
+|------|--------|
+| `.factory/specs/behavioral-contracts/BC-INDEX.md` | v3.94→v3.95; BC-1.17.001 v1.6 catalog cell appended (F-P46-001 PO fix; input-hash 03fa998→ebf73ff); last_amended prepended v3.95 entry; version frontmatter |
+| `.factory/specs/verification-properties/VP-INDEX.md` | v2.58→v2.59; Full Index VP-098/100/101 v1.2 annotations appended (O-P46-001); Story Anchors VP-098 F-P43-004→F-P43-004a + VP-101 F-P43-004→F-P43-004b (O-P46-002); last_amended prepended v2.59 entry; version frontmatter |
+| `.factory/specs/verification-properties/VP-098.md` | modified[] re-sorted version-monotonic: v1.1 (2026-07-09) before v1.2 (2026-07-10); perimeter audit Task 1 (L-BB-modified-array-monotonicity-perimeter-audit) |
+| `.factory/specs/verification-properties/VP-100.md` | modified[] re-sorted version-monotonic: v1.1 (2026-07-09) before v1.2 (2026-07-10); perimeter audit Task 1 |
+| `.factory/specs/verification-properties/VP-101.md` | modified[] re-sorted version-monotonic: v1.1 (2026-07-09) before v1.2 (2026-07-10); perimeter audit Task 1; input-hash 2fe5a22→531cd2f (BC-1.17.001 v1.6 input drift PO c2a1f656 + re-sort; compute-input-hash --update) |
+| `.factory/stories/STORY-INDEX.md` | v4.173→v4.174; S-19.06 row v1.18→v1.19 leading cite + wave-summary Pass-46 clause prepended + BC coverage BC-1.17.001 v1.6 LANDED; epic v1.25→v1.26; version frontmatter (SW 71be7861 leg + SM this-commit) |
+| `.factory/cycles/v1.0-brownfield-backfill/adv-E19-pass-46.md` | NEW — full pass-46 adversary report (Part A F-P46-001 MEDIUM + O-P46-001/002 LOW; Part B B.1–B.26 + B.23/B.25/B.26 novel gates; Trajectory/Novelty Note; CLOSED annotations table; L-BB extension note) |
+| `.factory/cycles/v1.0-brownfield-backfill/decision-log.md` | D-802 entry appended (Summary+Detail 7-items+Phase+Date) |
+| `.factory/cycles/v1.0-brownfield-backfill/lessons.md` | L-BB-modified-array-monotonicity-perimeter-audit + L-BB-write-frontmatter-history-after-body-replace-all [process-gap] appended |
+| `.factory/STATE.md` | v5.52→v5.53; D-802 row; trajectory-tail →5→2→3→1; banner/Phase Progress/Last Updated/Current Phase/current_step/Decisions Log/Concurrent Cycles/Current Phase Steps (D-797 archived + D-802 NEW)/Session Resume Checkpoint refresh; 483 lines |
+| `.factory/cycles/v1.0-brownfield-backfill/burst-log.md` | D-802 entry (this entry) — all 8 D-444(c) blocks |
+
+Non-SM legs (already on factory-artifacts at parent-commit 71be7861): PO c2a1f656 (BC-1.17.001 v1.5→v1.6: modified[] re-sorted; input-hash 03fa998→ebf73ff); SW 71be7861 (S-19.06 v1.18→v1.19: cite sweep ×10 + epic v1.25→v1.26 ×4; STORY-INDEX v4.173→v4.174).
+
+### Codifications
+
+| Type | ID | Description |
+|------|----|-------------|
+| Decision | D-802 | E-19 adv pass-46 NOT-CLEAN fix burst closure; F-P46-001 MEDIUM CLOSED; O-P46-001/002 LOW CLOSED; 2 L-BB lessons codified; 3 legs (PO+SW+SM) |
+| Lesson | L-BB-modified-array-monotonicity-perimeter-audit | [perimeter-audit] — when POLICY 14 leg-3 defect found in one perimeter artifact, run modified[] class audit across ALL perimeter siblings same-burst; D-802 Task 1 audit VP-094..VP-101 found 3 additional FAILs (VP-098/100/101); all fixed in-scope |
+| Lesson | L-BB-write-frontmatter-history-after-body-replace-all | [process-gap] — body sweeps FIRST via replace_all to completion, THEN frontmatter history entries appended at END of modified[]; D-799 architect 421a9e1f applied body replace_all then front-prepended v1.2 entries; resulted in [v1.2, v1.1] non-monotonic order |
+
+D-NNN count this burst: 1 (D-802). Lesson count: 2 (L-BB-modified-array-monotonicity-perimeter-audit + L-BB-write-frontmatter-history-after-body-replace-all).
+
+### Dim-2 — Literal-shell gate evidence (D-449(a))
+
+**Gate 1 — 4-index version gate (POLICY 14 leg-5 exhaustive; D-449(a))**
+
+```
+$ grep "^version:" .factory/specs/behavioral-contracts/BC-INDEX.md .factory/specs/verification-properties/VP-INDEX.md .factory/stories/STORY-INDEX.md .factory/specs/architecture/ARCH-INDEX.md
+.factory/specs/verification-properties/VP-INDEX.md:version: "2.59"
+.factory/specs/behavioral-contracts/BC-INDEX.md:version: "3.95"
+.factory/specs/architecture/ARCH-INDEX.md:version: "2.98"
+.factory/stories/STORY-INDEX.md:version: "4.174"
+```
+
+EXIT:0 PASS. BC-INDEX v3.95 / VP-INDEX v2.59 / STORY-INDEX v4.174 / ARCH-INDEX v2.98.
+
+**Gate 2 — STATE.md version gate (D-443(a))**
+
+```
+$ grep "^version:" .factory/STATE.md
+version: "5.53"
+```
+
+EXIT:0 PASS.
+
+**Gate 3 — STATE.md current_step gate (D-443(a)/D-444(a) 5-PC)**
+
+```
+$ grep "^current_step:" .factory/STATE.md
+current_step: "D-802-E19-ADV-PASS-46-NOT-CLEAN-CLOSED trajectory-tail →5→2→3→1; streak 0/3 UNCHANGED; NEXT adv pass-47;"
+```
+
+EXIT:0 PASS. D-chain cite includes D-802 (max-cited = D-802); trajectory-tail LENGTH=4 (→5→2→3→1); streak clause present; NEXT clause present.
+
+**Gate 4 — STATE.md wc-l gate (D-446(c) dual-margin; hard-cap 500)**
+
+```
+$ wc -l .factory/STATE.md
+     483 .factory/STATE.md
+```
+
+EXIT:0 PASS. 483 lines; within hard-cap 500; within soft-target 415+margin.
+
+**Gate 5 — D-446(a) 8-block self-verification gate (own burst-log entry)**
+
+```
+$ awk '/^## D-802/,/^## D-803/' .factory/cycles/v1.0-brownfield-backfill/burst-log.md | grep -c "^### Parent-commit\|^### Adversary verdict\|^### Files touched\|^### Codifications\|^### Dim-2\|^### Dim-5\|^### Closes\|^### Factory-artifacts"
+8
+```
+
+EXIT:0 PASS. D-802 entry contains exactly 8 D-444(c) mandatory blocks.
+
+**Gate 6 — D-448(a) source-attestation gate (Adversary verdict vs adv-E19-pass-46.md Part A)**
+
+```
+$ grep -E "^### A\.[0-9]|F-P46-00[12]|O-P46-00[12]" .factory/cycles/v1.0-brownfield-backfill/adv-E19-pass-46.md
+### A.1 — F-P46-001: MEDIUM — BC-1.17.001 modified[] Non-Monotonic: v1.2 Entry Before v1.1 Entry (POLICY 14 leg-3)
+### A.2 — O-P46-001: LOW (fix-in-scope: state-manager domain) — VP-INDEX Full Index Descriptor Rows for VP-098/100/101 Stop at v1.1; Story Anchors Carry v1.2 (POLICY 9 annotation parity)
+### A.3 — O-P46-002: LOW (adjudicated: state-manager domain) — VP-INDEX Story Anchors VP-098 and VP-101 Cite Parent F-P43-004 (Unsuffixed); Artifact SoTs Cite Sub-Scoped F-P43-004a / F-P43-004b
+| F-P46-001 | CLOSED | product-owner c2a1f656 (BC-1.17.001 v1.6; modified[] re-sorted [v1.1, v1.2]) |
+| O-P46-001 | CLOSED | state-manager this-commit (VP-INDEX v2.59 Full Index rows appended v1.2 annotations; VP-098/100/101 modified[] re-sorted; VP-101 input-hash 2fe5a22→531cd2f) |
+| O-P46-002 | CLOSED | state-manager this-commit (VP-INDEX v2.59 Story Anchors VP-098 F-P43-004→F-P43-004a; VP-101 F-P43-004→F-P43-004b per VP file last_amended SoT) |
+```
+
+EXIT:0 PASS. Adversary verdict covers all 3 Part A items (F-P46-001 MEDIUM; O-P46-001/002 LOW) with accurate severity, policy, and fix assignment.
+
+**Gate 7 — BC-1.17.001 modified[] monotonic order ground-truth**
+
+```
+$ grep -A10 "^modified:" .factory/specs/behavioral-contracts/ss-01/BC-1.17.001.md
+modified:
+  - "2026-07-06 (v1.1)"
+  - "2026-07-07 (v1.2)"
+  - "2026-07-08 (v1.3)"
+  - "2026-07-08 (v1.4)"
+  - "2026-07-09 (v1.5)"
+  - "2026-07-10 (v1.6) — E-19 pass-46 F-P46-001 fix burst (product-owner): frontmatter modified[] array re-sorted version-monotonic (was v1.2→v1.1→v1.3→v1.4→v1.5; POLICY 14 leg-3); no body content change."
+deprecated: null
+deprecated_by: null
+replacement: null
+retired: null
+```
+
+EXIT:0 PASS. BC-1.17.001 modified[] is version-monotonic (v1.1→v1.2→v1.3→v1.4→v1.5→v1.6) ✓.
+
+**Gate 8 — VP-098/100/101 modified[] monotonic order (perimeter audit Task 1 ground-truth)**
+
+```
+$ for vp in VP-098 VP-100 VP-101; do echo "=== $vp ==="; grep -A4 "^modified:" .factory/specs/verification-properties/${vp}.md; done
+=== VP-098 ===
+modified:
+  - "2026-07-09 (v1.1) — E-19 pass-42: stable-anchor BC cites (TD-VSDD-091); ..."
+  - "2026-07-10 (v1.2) — E-19 pass-43: off-by-one PC cites corrected (F-P43-004a): ..."
+=== VP-100 ===
+modified:
+  - "2026-07-09 (v1.1) — E-19 pass-42: stable-anchor BC cites (TD-VSDD-091); ..."
+  - "2026-07-10 (v1.2) — E-19 pass-43: drain_window_ms added to PS C field list + bats fixture ..."
+=== VP-101 ===
+modified:
+  - "2026-07-09 (v1.1) — E-19 pass-42: stable-anchor BC cites (TD-VSDD-091); ..."
+  - "2026-07-10 (v1.2) — E-19 pass-43: off-by-one PC cites corrected (F-P43-004b): ..."
+```
+
+EXIT:0 PASS. VP-098/100/101 modified[] all version-monotonic (v1.1→v1.2) ✓.
+
+### Dim-5/6/7 Attestations
+
+**Dim-5 (POLICY 14 5-leg quintuple parity):**
+- BC-INDEX v3.95: version frontmatter ✓ (Gate 1 stdout); last_amended chain-form updated ✓; BC-1.17.001 v1.6 cell sourced from BC-1.17.001 Changelog SoT (PO c2a1f656; input-hash ebf73ff) ✓
+- VP-INDEX v2.59: version frontmatter ✓; Full Index VP-098/100/101 v1.2 annotations sourced from each VP file's last_amended SoT (D-800 L-BB SoT-derivation rule) ✓; Story Anchors suffixed IDs per VP file SoT ✓; last_amended chain-form updated ✓
+- STORY-INDEX v4.174: version frontmatter ✓; S-19.06 leading cite v1.19 ✓; BC coverage BC-1.17.001 v1.6 LANDED ✓; epic v1.26 ✓
+- VP-098/100/101: modified[] re-sorted version-monotonic (leg-3 ✓); no body content change (leg-5 VP-INDEX carries correct annotations) ✓
+- S-19.06 v1.19: version frontmatter ✓; body cite sweep ×10 sites ✓; last_amended ✓; upstream-index STORY-INDEX v4.174 S-19.06 row leading cite v1.19 ✓
+- epic v1.26: version frontmatter ✓; body cite sweep ×4 sites ✓; last_amended ✓; upstream-index STORY-INDEX v4.174 epic row v1.26 ✓
+
+**Dim-6 (Production-grade completeness):** All findings actioned in scope. F-P46-001: BC-1.17.001 v1.5→v1.6 (PO c2a1f656) + S-19.06 v1.18→v1.19 (SW 71be7861) + BC-INDEX v3.94→v3.95 (SM this-commit) + STORY-INDEX v4.173→v4.174 (SW+SM). O-P46-001: VP-INDEX v2.58→v2.59 Full Index annotations (SM this-commit) + VP-098/100/101 modified[] re-sorted (SM this-commit). O-P46-002: VP-INDEX Story Anchors suffixed IDs (SM this-commit; covered by O-P46-001 fix). Perimeter audit (L-BB-modified-array-monotonicity-perimeter-audit): VP-094..VP-101 all PASS (Gate 8; VP-094/095/096/097 UNCHANGED; VP-098/100/101 re-sorted; VP-101 input-hash updated via compute-input-hash). No tech-debt-register entries added without human direction. No deferred work.
+
+**Dim-7 (Iron Law adversary freshness):** adv-E19-pass-46.md dispatched with fresh context; prior pass reports NOT loaded per Iron Law. Rubric policies.yaml v1.4.3 confirmed. Perimeter = D-801 delta + full E-19 carry-forward. Two new L-BB lessons codified (L-BB-modified-array-monotonicity-perimeter-audit + L-BB-write-frontmatter-history-after-body-replace-all; D-802).
+
+**D-446(a) 8-block self-verification:** This entry contains all 8 D-444(c) mandatory blocks: (1) Parent-commit ✓ (2) Adversary verdict ✓ (3) Files touched ✓ (4) Codifications ✓ (5) Dim-2 ✓ (6) Dim-5/6/7 Attestations ✓ (7) Closes ✓ (8) Factory-artifacts commits ✓.
+
+### Closes
+
+| Item | Resolution |
+|------|------------|
+| F-P46-001 MEDIUM: BC-1.17.001 modified[] non-monotonic v1.2 before v1.1 (POLICY 14 leg-3) | CLOSED — product-owner c2a1f656 (BC-1.17.001 v1.5→v1.6: modified[] re-sorted ascending; input-hash 03fa998→ebf73ff) + story-writer 71be7861 (S-19.06 v1.18→v1.19 cite sweep ×10; epic v1.25→v1.26 ×4) + SM this-commit (BC-INDEX v3.94→v3.95 v1.6 cell; STORY-INDEX v4.173→v4.174) |
+| O-P46-001 LOW: VP-INDEX Full Index VP-098/100/101 missing v1.2 annotations; VP files modified[] non-monotonic (POLICY 9 / D-800 L-BB) | CLOSED — SM this-commit (VP-INDEX v2.58→v2.59: Full Index VP-098/100/101 v1.2 annotations per VP file SoT; Story Anchors VP-098 F-P43-004→F-P43-004a + VP-101 F-P43-004→F-P43-004b; VP-098/100/101 modified[] re-sorted; VP-101 input-hash 2fe5a22→531cd2f) |
+| O-P46-002 LOW: VP-INDEX Story Anchors unsuffixed F-P43-004 vs VP file SoT F-P43-004a/b (D-800 L-BB SoT-derivation rule) | CLOSED — SM this-commit (VP-INDEX v2.59 Story Anchors VP-098/101 corrected; covered by O-P46-001 fix) |
+| D-802 decision-log codification | COMPLETE |
+| L-BB-modified-array-monotonicity-perimeter-audit | CODIFIED — lessons.md; D-802; triggered by F-P46-001 + same-burst audit VP-094..VP-101 finding 3 additional FAILs |
+| L-BB-write-frontmatter-history-after-body-replace-all [process-gap] | CODIFIED — lessons.md; D-802; root cause of F-P46-001 + O-P46-001 class: body replace_all sweep precedes frontmatter history append |
+| Streak UNCHANGED 0/3 | pass-46 NOT-CLEAN B0/H0/M1/L2; NEXT adv pass-47 |
+
+### Factory-artifacts commits
+
+| Commit | SHA | Contents |
+|--------|-----|----------|
+| D-802 PO leg (prior) | `c2a1f656` | BC-1.17.001 v1.5→v1.6 (modified[] re-sorted; input-hash 03fa998→ebf73ff; no body change) |
+| D-802 SW leg (prior) | `71be7861` | S-19.06 v1.18→v1.19 (BC-1.17.001 v1.5→v1.6 cite sweep ×10 sites; input-hash updated); epic v1.25→v1.26 (BC-1.17.001 v1.6 cite sweep ×4 sites; input-hash updated); STORY-INDEX v4.173→v4.174 |
+| D-802 SM single-commit burst (TD-VSDD-053) | `<COMMIT-E-SHA>` | BC-INDEX v3.95; VP-INDEX v2.59; STORY-INDEX v4.174; VP-098/100/101 modified[] re-sorted; VP-101 input-hash 531cd2f; adv-E19-pass-46.md NEW; decision-log D-802; lessons L-BB-modified-array-monotonicity-perimeter-audit + L-BB-write-frontmatter-history-after-body-replace-all; STATE.md v5.52→v5.53 483 lines; burst-log this entry; streak UNCHANGED 0/3; trajectory →5→2→3→1; pass-47 NEXT |

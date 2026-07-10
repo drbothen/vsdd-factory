@@ -6131,3 +6131,79 @@ Capture stdout. Sweep EVERY catalog row touched by that commit for the same defe
 **Cites:** D-801; F-P45-001 (MEDIUM POLICY 4/14-leg-5); F-P45-002 (MEDIUM POLICY 4/14-leg-5); D-800 (prior pass — L-BB-per-artifact-catalog-cell-derives-from-own-changelog-row codified but sweep-predicate incomplete); D-798 SM leg 9253c492 (authoring session that introduced all three defective cells); POLICY 4 (internal consistency); POLICY 14 leg-5 (upstream-index parity); L-BB-per-artifact-catalog-cell-derives-from-own-changelog-row (the prior lesson that this refines).
 
 **Closes:** D-801 (F-P45-001 + F-P45-002 CLOSED by SM this-commit BC-INDEX v3.94; F-P45-003 CLOSED by PO 6f813e9e; O-P45-001 CLOSED by SM this-commit VP-INDEX v2.58; streak 0/3; remediation-predicate-must-enumerate-all-same-burst-touched-artifacts process-gap codified). `[process-gap; BC-INDEX-catalog-cell; upstream-index-parity; POLICY-4; POLICY-14-leg-5; SM-authoring-discipline; L-BB-remediation; sweep-predicate; same-commit-coverage; multi-BC-burst]`
+
+---
+
+### L-BB-modified-array-monotonicity-perimeter-audit [codified D-802]
+
+**Context:** E-19 adversary pass-46 (F-P46-001 MEDIUM + O-P46-001 LOW observations). BC-1.17.001 frontmatter modified[] entries were ordered [v1.2, v1.1] — non-monotonic (v1.2 before v1.1). VP-098, VP-100, and VP-101 had the same defect: [v1.2, v1.1] non-monotonic. All four artifacts were amended during the D-799 fix burst (architect 421a9e1f). The BC defect escalated to MEDIUM (F-P46-001, PO domain). The VP defects were LOW observations (SM domain), fixed in-scope by the SM perimeter audit. Prior passes did not surface VP-file modified[] ordering because adversary reviews focused on BC-INDEX catalog cells rather than VP file frontmatter directly.
+
+**Lesson:** When a modified[] non-monotonic ordering defect (POLICY 14 leg-3) is found in any artifact during an adversarial pass, the SM perimeter audit for the same fix burst MUST extend the monotonicity check to ALL artifacts from the same originating fix burst (same architect/PO/SW commit SHA range). A single multi-artifact fix burst (e.g., the D-799 architect leg that fixed VP-098/100/101 and BC-1.17.001 in the same context) may introduce the same ordering defect across multiple artifacts simultaneously. Fixing only the flagged artifact leaves siblings unaudited and guarantees adversary observation on the next pass.
+
+**Root cause:** D-799 architect leg (421a9e1f) applied a body-replace_all sweep for PC cites (F-P43-004a/b) and simultaneously wrote modified[] history entries. The write order placed v1.2 entries at the front of the modified[] list (rather than appending at end) across all four artifacts amended in the same session. The F-P46-001 finding on BC-1.17.001 exposed the pattern; the perimeter audit then confirmed the same defect on VP-098/100/101.
+
+**Correct SM workflow (monotonicity perimeter audit):** When any modified[] ordering defect is found:
+
+```bash
+# Step 1: identify the originating commit SHA from the finding's "Root cause" note
+# Step 2: enumerate all artifacts amended in that commit
+git -C .factory show <sha> --name-only | grep -E '\.(md)$'
+# Step 3: check modified[] ordering for each enumerated artifact
+for f in <artifact-list>; do
+  grep -A10 "^modified:" "$f" | grep -E '^\s+- "' | head -5
+done
+# Step 4: audit each modified[] array: entries must be ascending date order
+# Step 5: fix any non-monotonic ordering in the same SM burst
+```
+
+Capture stdout. Attest: monotonic AND last entry == version field. Fix ALL failures in the same SM burst before committing.
+
+**Anchors:** D-802; F-P46-001 (MEDIUM BC-1.17.001); O-P46-001 (VP-098/100/101 SM domain); D-799 architect leg 421a9e1f (originating burst); PO c2a1f656 (BC-1.17.001 fix); SM this-commit (VP-098/100/101 fix + VP-101 input-hash 2fe5a22→531cd2f).
+
+**Cites:** D-802; F-P46-001 (MEDIUM POLICY 14 leg-3); O-P46-001 (LOW SM domain); D-799 (originating burst); POLICY 14 leg-3 (modified[] version-monotonic); L-BB-write-frontmatter-history-after-body-replace-all (companion lesson — explains HOW the ordering defect arose); adv-E19-pass-46.md B.24 (perimeter audit table 15 items).
+
+**Closes:** D-802 (F-P46-001 CLOSED by PO c2a1f656; O-P46-001 CLOSED by SM this-commit; monotonicity-perimeter-audit codified as mandatory SM obligation). `[modified-array; monotonicity; perimeter-audit; POLICY-14-leg-3; same-burst-siblings; SM-obligation; VP-files; BC-files; architect-leg; multi-artifact-fix-burst]`
+
+---
+
+### L-BB-write-frontmatter-history-after-body-replace-all [process-gap][codified D-802]
+
+**Context:** E-19 adversary pass-46 (F-P46-001 MEDIUM) and prior passes-45/44/41 exhibiting the same pattern (BC-2.02.011 v1.6 D-798; BC-3.08.001 v1.20 D-798). The recurring root cause across multiple non-monotonic modified[] defects and incorrect catalog cells: the agent performing a fix burst writes frontmatter history entries (modified[] array, last_amended field) BEFORE completing body replace_all sweeps. The body replace_all can then overwrite or misplace the freshly-written frontmatter entries, or the write ordering causes frontmatter entries to be prepended (inserted at front of list) rather than appended (added at end of list). This creates the characteristic [v1.2, v1.1] pattern rather than the correct [v1.1, v1.2] pattern.
+
+**Lesson:** On any fix burst that involves both (a) a body replace_all sweep (BC-version cite propagation, finding-ID correction, stable-anchor migration) AND (b) frontmatter history entry additions (modified[] array, last_amended, version bump): body operations MUST complete and be verified first; frontmatter history entries MUST be appended LAST. The append must be to the END of the modified[] list, not prepended to the front.
+
+**Correct workflow (body-before-frontmatter discipline):**
+
+Step 1 — Perform ALL body replace_all sweeps:
+```bash
+grep -c "old_cite_string" <artifact.md>   # count before
+# perform Edit/replace_all
+grep -c "old_cite_string" <artifact.md>   # count after (should be 0)
+grep -c "new_cite_string" <artifact.md>   # verify replacements landed
+```
+
+Step 2 — Verify body sweep is complete (captured stdout per D-449(a)).
+
+Step 3 — THEN append the new version entry at the END of modified[]:
+```yaml
+modified:
+  - "YYYY-MM-DD (v1.1) — ..."   # existing entry (unchanged)
+  - "YYYY-MM-DD (v1.2) — ..."   # NEW entry: appended at END
+```
+
+Step 4 — Verify monotonic ordering: grep modified[] entries and confirm dates ascend.
+
+**Anti-pattern (causes F-P46-001 class defects):**
+```yaml
+modified:
+  - "YYYY-MM-DD (v1.2) — ..."   # NEW entry: PREPENDED at FRONT (WRONG)
+  - "YYYY-MM-DD (v1.1) — ..."   # existing entry (displaced)
+```
+
+**Root cause pattern:** Architect/PO agents that apply body-replace_all sweeps sometimes write frontmatter first (as documentation of the change) and then perform the replace_all. If the replace_all scope includes a pattern that appears in both body AND frontmatter, the frontmatter entry can be corrupted. Even if frontmatter is not overwritten, the habit of "write history first, then sweep body" creates the prepend defect class.
+
+**Anchors:** D-802; F-P46-001 (MEDIUM BC-1.17.001); F-P45-003 (MEDIUM BC-2.02.011); D-799 architect leg 421a9e1f (introduced BC-1.17.001 + VP-098/100/101 defects); D-798 PO leg (introduced BC-2.02.011 v1.6 defect); PO c2a1f656 (BC-1.17.001 fix); SM this-commit (VP-098/100/101 fix).
+
+**Cites:** D-802; F-P46-001 (MEDIUM POLICY 14 leg-3); F-P45-003 (MEDIUM D-801 same class); D-799 and D-798 (originating bursts); POLICY 14 leg-3 (modified[] version-monotonic); L-BB-modified-array-monotonicity-perimeter-audit (companion lesson — what to do AFTER the defect occurs); adv-E19-pass-46.md B.24 (root-cause analysis of the write-ordering process gap).
+
+**Closes:** D-802 (write-frontmatter-history-after-body-replace-all process-gap codified; prevents recurrence of F-P46-001/F-P45-003 class across all future architect/PO/SW fix bursts). `[process-gap; modified-array; frontmatter; body-replace-all; write-order; POLICY-14-leg-3; append-not-prepend; architect-discipline; PO-discipline; body-before-frontmatter]`
