@@ -6379,3 +6379,27 @@ Both gates are mandatory standing Commit-E controls for any burst touching E-19 
 **Cites:** D-808; F-P52-001 (MEDIUM); POLICY 4 (semantic anchoring); POLICY 14 5-leg parity; D-803 L-BB-epic-heading-parity-is-a-mandatory-commit-E-gate (companion Commit-E gate); D-800 L-BB-per-artifact-catalog-cell-derives-from-own-changelog-row (analogue: catalog cells must derive from own changelog — same derivation principle extended to Traceability row descriptions).
 
 **Closes:** D-808 (F-P52-001 CLOSED SW da5fba2f epic v1.26→v1.27; BC-2.02.011 row rewritten from S-19.03 body SoT; 6-row class audit 5 PASS + 1 FIXED; 8th standing gate codified). `[process-gap; BC-traceability; semantic-anchor; POLICY-4; description-prose; adjacent-row-copy; shared-implementing-story; sweep-site; Commit-E-gate; 8th-gate; self-application]`
+
+---
+
+## L-BB-description-bearing-anchor-prose-derives-from-target-SoT [process-gap] [codified D-809]
+
+**Category:** process-gap
+
+**Status:** CODIFIED D-809
+
+**Lesson:** VP frontmatter `module:` fields, §Traceability Function-anchor/Subsystem/Anchor-story bullets, and §Feasibility Artifact cells are ALL description-bearing anchor prose per POLICY 4 and MUST derive from the target artifact's SoT (BC §Architecture Anchors, story §File Structure/body BC-table). These path-anchor fields participate in the same derivation principle as BC Traceability row descriptions (D-808 8th gate) — extended adjacent-axis coverage.
+
+**Context:** E-19 pass-53 F-P53-001 + F-P53-002 found VP-097 v1.1 citing `src/path_util.rs` (missing `host/` component; 10 SoT sites canonical `src/host/path_util.rs`) and VP-101 v1.2 citing `host/read_file.rs` (wrong file; 6 SoT sites say NEW file `host/read_prefix.rs` per S-19.06 Architecture Mapping; read_file.rs is NOT modified). Both VPs were correct in their BC-ID and property statement; only the path-anchor description-prose fields were stale.
+
+**Root cause:** F-P42-001 (D-797) stable-anchor sweep was scoped exclusively to BC-version-pin cites (volatile `BC-N.NN.NNN vN.N` → stable `§SectionName` form). Path-anchor fields (`module:`, Artifact cells, harness `// File:` comments, Function-anchor bullets) were not recognized as a sweep category and received no treatment. VP-097 was created with a pre-`host/` path; VP-101 was created before S-19.06 Architecture Mapping finalized the new-file form. Neither F-P42-001 nor F-P43-004b (D-799, which touched VP-101's PC cites) extended to path-field correctness. The D-808 8th gate (BC Traceability row description parity) established the principle but was scoped to epic Traceability tables, not VP frontmatter/body anchor fields.
+
+**Gate:** POLICY 4 verification_steps extension (v1.4.4; D-809): DESCRIPTION-BEARING ANCHOR-PROSE PARITY. For each VP path-anchor field (frontmatter `module:`, §Feasibility Artifact cell, §Traceability Function-anchor/Subsystem/Anchor-story bullets), grep the cited path/semantics against the target BC file's §Architecture Anchors and the anchor story's §File Structure — zero-match or contradiction = POLICY 4 mis-anchor MEDIUM+. Extends the same detection principle of D-808 (per-row grep against target SoT) to all VP spec-level anchor-prose fields.
+
+**Prevention:** (1) When authoring or modifying any VP, ALL path-anchor fields (module:, §Feasibility Artifact, §Traceability Function-anchor/Subsystem/Anchor-story) must be cross-checked against the target BC's §Architecture Anchors and the anchor story's §File Structure — not inferred from the VP's own prior version or from sibling VPs. (2) When a story's Architecture Mapping changes the module file (e.g., S-19.06 establishing `read_prefix.rs` as NEW file), a sweep of all VPs anchored to that story (`anchor_story: S-19.06`) must be triggered same-burst to verify path-anchor fields. (3) F-P42-001-class stable-anchor sweeps should be broadened to include VP path-anchor fields as a sweep category, not only BC-version-pin cites.
+
+**Anchors:** D-809; F-P53-001 (MEDIUM POLICY 4; VP-097 v1.1 `module:` + §Feasibility + harness comment missing `host/`); F-P53-002 (MEDIUM POLICY 4; VP-101 v1.2 `module:` + §Traceability Function-anchor citing `read_file.rs` instead of `read_prefix.rs`); architect 8cd9e391 (fix: VP-097 v1.1→v1.2; VP-101 v1.2→v1.3; 8-VP class sweep 14 CLEAN + 2 FIXED); policies.yaml v1.4.4 (POLICY 4 verification_steps extension).
+
+**Cites:** D-809; F-P53-001 + F-P53-002 (MEDIUM POLICY 4); POLICY 4 (semantic anchoring — description-bearing anchor-prose extended scope); D-808 L-BB-traceability-row-descriptions-must-derive-from-target-SoT (direct precedent: same POLICY 4 derivation principle; D-809 extends from epic Traceability table descriptions to all VP path-anchor fields); D-797 L-BB-vp-source-bc-sibling-sweep (companion: BC-pin stable-anchor discipline; F-P53-001/002 are the adjacent path-anchor axis the same principle covers); TD-VSDD-091 (volatile-pin prohibition — stable symbol/structural anchors; path-anchor fields follow same discipline).
+
+**Closes:** D-809 (F-P53-001 CLOSED architect 8cd9e391 VP-097 v1.1→v1.2; F-P53-002 CLOSED architect 8cd9e391 VP-101 v1.2→v1.3; policies.yaml v1.4.4 POLICY 4 extension codified; VP-INDEX v2.59→v2.60; 8-VP class sweep 14 CLEAN + 2 FIXED; L-BB codified). `[process-gap; VP-path-anchor; description-bearing-anchor-prose; POLICY-4; module-field; feasibility-artifact; traceability-function-anchor; missing-host-component; new-file-form; sweep-site; POLICY-4-extension; adjacent-axis-8th-gate; self-application]`

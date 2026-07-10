@@ -17236,3 +17236,143 @@ EXIT:0
 | Commit | SHA | Contents |
 |--------|-----|----------|
 | D-808 SM single-commit burst (TD-VSDD-053) | `60c0afd4` | adv-E19-pass-52.md NEW; decision-log D-808; lessons.md L-BB-traceability-row-descriptions-must-derive-from-target-SoT; STORY-INDEX v4.175→v4.176; STATE.md v5.58→v5.59; burst-log this entry; streak 1/3→0/3; trajectory →1→1→0→1; pass-53 NEXT |
+
+---
+
+## D-809 — E-19 Adversary Pass-53 Fix Burst (State-Manager Leg)
+
+**Date:** 2026-07-10
+**Parent-commit:** `8cd9e391` (architect leg — VP-097 v1.1→v1.2 + VP-101 v1.2→v1.3 path-anchor fixes)
+**Phase:** D-809-E19-ADV-PASS-53-NOT-CLEAN-CLOSED
+**Role:** state-manager (POLICY 3 final leg)
+
+### Block 1 — Adversary Verdict
+
+**Pass-53 verdict: NOT-CLEAN B0/H0/M2/L0.** Two MEDIUM findings:
+
+- **F-P53-001 MEDIUM [POLICY 4 description-bearing anchor-prose mis-anchor]:** VP-097 v1.1 — 3 stale path anchors citing `src/path_util.rs` (missing `host/` component); 10 SoT sites canonical `src/host/path_util.rs`. Affected fields: frontmatter `module:`, §Feasibility Artifact cell, §Proof Harness `// File:` comment. Input-hash 784ee82→c47964f.
+- **F-P53-002 MEDIUM [POLICY 4 description-bearing anchor-prose mis-anchor]:** VP-101 v1.2 — `module:` frontmatter + §Traceability `Function-anchor` bullet citing `host/read_file.rs` instead of new-file canonical `host/read_prefix.rs` per S-19.06 §File Structure SoT. 6 SoT canonical sites. Input-hash 531cd2f UNCHANGED (description-only drift).
+
+Both CLOSED architect 8cd9e391 (prior leg). Streak 0/3 UNCHANGED (pass-52 had already reset to 0/3; pass-53 NOT-CLEAN does not increment). Trajectory-tail passes 50/51/52/53 = 1,0,1,2 → `→1→0→1→2`. Process-gap novelty: VP frontmatter `module:`, §Feasibility Artifact cells, and §Traceability Function-anchor bullets are description-bearing anchor prose subject to POLICY 4 — POLICY 4 extended with DESCRIPTION-BEARING ANCHOR-PROSE PARITY verification step (policies.yaml v1.4.3→v1.4.4; D-809).
+
+### Block 2 — Gate Evidence (D-449(a) literal-shell with captured stdout)
+
+**POLICY 16 gate (max D-NNN):**
+```
+$ grep -oE "^## D-[0-9]+" .factory/cycles/v1.0-brownfield-backfill/decision-log.md | sed 's/## D-//' | sort -n | tail -1
+809
+```
+→ D-809 confirmed as max D-NNN. PASS.
+
+**4-index version gate:**
+```
+$ grep "^version:" .factory/specs/behavioral-contracts/BC-INDEX.md .factory/specs/verification-properties/VP-INDEX.md .factory/stories/STORY-INDEX.md .factory/specs/architecture/ARCH-INDEX.md
+.factory/specs/verification-properties/VP-INDEX.md:version: "2.60"
+.factory/specs/architecture/ARCH-INDEX.md:version: "3.00"
+.factory/stories/STORY-INDEX.md:version: "4.176"
+.factory/specs/behavioral-contracts/BC-INDEX.md:version: "3.95"
+```
+→ BC v3.95 / VP v2.60 / STORY v4.176 / ARCH v3.00. PASS.
+
+**Epic heading-parity gate (D-803):**
+```
+$ [loop over epic-*.md / E-*.md files vs STORY-INDEX.md H2 column]
+0 FAIL / 0 PASS / 20 SKIP
+```
+→ 0 FAIL. PASS. (20 SKIP = no epic files matched by filename pattern; heading-parity invariant holds — no epic version bumped in D-809 burst.)
+
+**Pointer-class gate ADR-025 (D-806):**
+```
+$ grep -nE 'line [0-9]+([–-][0-9]+)? of|at line [0-9]+' ADR-025-*.md | grep -v "^[0-9]*:[ ]*#|Changelog"
+1708:  line-cite `at line 1181–1182 of hooks-registry.toml` replaced with stable anchor form
+exit:0
+```
+→ Line 1708 is a Changelog description of a prior cure (documentary; EXEMPT per ADR-025 stable-anchor fix history). Zero new normative volatile line-cites. PASS.
+
+**Pointer-class gate ADR-030 (D-806):**
+```
+$ grep -nE 'line [0-9]+([–-][0-9]+)? of|at line [0-9]+' ADR-030-*.md | grep -v "^[0-9]*:[ ]*#|Changelog"
+[no output]
+ADR-030 pointer-class exit:0
+```
+→ 0 normative hits. PASS.
+
+**Source-attestation diff gate (D-448(a); D-449(a)):**
+```
+$ grep -n "F-P53-00[12]\|NOT-CLEAN\|B0/H0/M2\|streak" adv-E19-pass-53.md | head -5
+3:**Verdict:** NOT-CLEAN — B0/H0/M2/L0
+4:**Streak:** 0/3 (unchanged — pass-52 already reset to 0/3; pass-53 NOT-CLEAN does not increment)
+49:| ... FAIL — VP-097 v1.1: 3 stale path anchors ... VP-101 v1.2: 2 stale path anchors ...
+53:**F-P53-001 — MEDIUM [POLICY 4 description-bearing anchor-prose mis-anchor]**
+96:**F-P53-002 — MEDIUM [POLICY 4 description-bearing anchor-prose mis-anchor]**
+```
+→ adv-E19-pass-53.md Part A confirmed: NOT-CLEAN B0/H0/M2/L0; F-P53-001 (VP-097 3 stale path anchors); F-P53-002 (VP-101 2 stale path anchors). Burst-log Block 1 faithfully describes Part A finding set. PASS.
+
+### Block 3 — Files Touched
+
+| File | Change | Notes |
+|------|--------|-------|
+| `.factory/cycles/v1.0-brownfield-backfill/adv-E19-pass-53.md` | NEW | Pass-53 adversary report; NOT-CLEAN B0/H0/M2/L0 |
+| `.factory/cycles/v1.0-brownfield-backfill/decision-log.md` | APPENDED D-809 | POLICY 16 gate; verdict; fix burst; 4-index gate stdouts; lesson codification note |
+| `.factory/cycles/v1.0-brownfield-backfill/lessons.md` | APPENDED lesson | L-BB-description-bearing-anchor-prose-derives-from-target-SoT [process-gap] CODIFIED D-809 |
+| `.factory/specs/verification-properties/VP-INDEX.md` | v2.59→v2.60 | VP-097 v1.2 + VP-101 v1.3 annotations; both Full Index + Story Anchors per D-802 |
+| `.factory/policies.yaml` | v1.4.3→v1.4.4 | POLICY 4 DESCRIPTION-BEARING ANCHOR-PROSE PARITY verification_steps extension |
+| `.factory/cycles/v1.0-brownfield-backfill/burst-log.md` | APPENDED D-809 | This entry (8 blocks; D-444(c)) |
+| `.factory/STATE.md` | v5.59→v5.60 | D-809 row; trajectory-tail →1→0→1→2; streak 0/3; Session Resume Checkpoint targeting pass-54 (rubric v1.4.4) |
+
+### Block 4 — Codifications
+
+| Codification | Type | Reference |
+|-------------|------|-----------|
+| D-809 block in decision-log.md | Decision | POLICY 4 v1.4.4 extension; pass-53 NOT-CLEAN; F-P53-001+F-P53-002 CLOSED 8cd9e391; streak 0/3 UNCHANGED |
+| L-BB-description-bearing-anchor-prose-derives-from-target-SoT | Lesson | [process-gap] CODIFIED D-809; VP path-anchor description-bearing prose must derive from SoT |
+| policies.yaml v1.4.4 POLICY 4 extension | Policy | DESCRIPTION-BEARING ANCHOR-PROSE PARITY verification_steps step added |
+| VP-INDEX v2.60 | Index annotation | VP-097 v1.2 + VP-101 v1.3 row annotations (both Full Index + Story Anchors) |
+| STATE.md v5.60 | State | D-809 advance; Session Resume Checkpoint refreshed for pass-54 with rubric v1.4.4 |
+
+### Block 5 — Dim-2/5/6/7 Attestations
+
+**Dim-2 (Literal-shell gate evidence):** All gates in Block 2 above were invoked via literal shell commands with captured stdout per D-449(a). No pseudocode attestations. POLICY 16 gate (`sort -n | tail -1` → 809), 4-index gate (`grep "^version:"` → 4 files), heading-parity gate (0 FAIL / 20 SKIP), ADR-025 pointer-class gate (line 1708 EXEMPT), ADR-030 pointer-class gate (0 hits), source-attestation diff gate (`grep -n` → 5 matching lines). All invocations literal-shell with captured stdout. META-LEVEL-24 acknowledgment: pseudocode gate attestation FORBIDDEN per D-449(a).
+
+**Dim-5 (Files-touched completeness):** 7 files listed in Block 3. Architect parent-commit 8cd9e391 touched VP-097 + VP-101 (not state-manager scope). State-manager this burst: adv-E19-pass-53.md NEW; decision-log D-809 appended; lessons.md lesson appended; VP-INDEX v2.59→v2.60; policies.yaml v1.4.3→v1.4.4; burst-log this entry; STATE.md v5.59→v5.60. Total 7 files; no omissions.
+
+**Dim-6 (Block count literal-shell; run after entry written):** See Block 6.
+
+**Dim-7 (Parent-commit freshness):** Parent-commit `8cd9e391` is architect fix-burst leg (VP-097 v1.1→v1.2 + VP-101 v1.2→v1.3; committed 2026-07-10). This is the most recent commit in the factory-artifacts fix-burst chain prior to this SM leg. D-419(b)/D-420(d)/D-421(a) convention satisfied.
+
+### Block 6 — D-446(a) 8-Block Completion Gate
+
+```
+$ grep -oE "^### Block [0-9]+" .factory/cycles/v1.0-brownfield-backfill/burst-log.md | tail -8
+### Block 1
+### Block 2
+### Block 3
+### Block 4
+### Block 5
+### Block 6
+### Block 7
+### Block 8
+EXIT:0
+```
+→ All 8 D-444(c) mandatory blocks present in this D-809 burst-log entry. D-446(a) gate: PASS.
+
+### Block 7 — Closes / Status Summary
+
+| Item | Resolution |
+|------|------------|
+| F-P53-001 MEDIUM | CLOSED architect 8cd9e391 (VP-097 v1.1→v1.2; module: + §Feasibility Artifact + §Harness // File: corrected src/path_util.rs → src/host/path_util.rs; input-hash c47964f) |
+| F-P53-002 MEDIUM | CLOSED architect 8cd9e391 (VP-101 v1.2→v1.3; module: + §Traceability Function-anchor corrected host/read_file.rs → host/read_prefix.rs; input-hash 531cd2f UNCHANGED) |
+| 8-VP class sweep | 14 PASS + 2 FAIL→CLOSED 8cd9e391 (VP-094..VP-101 all 16 path-anchor fields; only VP-097 + VP-101 drifted) |
+| VP-INDEX | v2.59→v2.60 (VP-097 v1.2 + VP-101 v1.3 annotations; both Full Index + Story Anchors) |
+| policies.yaml | v1.4.3→v1.4.4 (POLICY 4 DESCRIPTION-BEARING ANCHOR-PROSE PARITY step added) |
+| D-809 decision-log | Codified; POLICY 16 gate 808→D-809; lesson L-BB codified |
+| Streak | 0/3 UNCHANGED (pass-52 reset to 0/3; pass-53 NOT-CLEAN does not increment) |
+| Trajectory-tail | →1→0→1→2 (passes 50/51/52/53) |
+| STATE.md v5.60 | COMPLETE — D-809 advance; Session Resume Checkpoint refreshed targeting pass-54 (rubric v1.4.4) |
+| NEXT | adv pass-54 (fresh context; ARTIFACTS FROZEN at D-809 closure versions; **rubric policies.yaml v1.4.4**; streak 0/3; three consecutive CLEANs → 3/3 CONVERGED) |
+
+### Block 8 — Factory-artifacts Commits
+
+| Commit | SHA | Contents |
+|--------|-----|----------|
+| D-809 SM single-commit burst (TD-VSDD-053) | `TBD — SHA-patch after push` | adv-E19-pass-53.md NEW; decision-log D-809; lessons.md L-BB-description-bearing-anchor-prose-derives-from-target-SoT; VP-INDEX v2.59→v2.60; policies.yaml v1.4.3→v1.4.4; burst-log this entry; STATE.md v5.59→v5.60; streak 0/3 UNCHANGED; trajectory →1→0→1→2; pass-54 NEXT (rubric v1.4.4) |

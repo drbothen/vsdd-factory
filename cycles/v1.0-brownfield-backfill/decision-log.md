@@ -8655,3 +8655,122 @@ D-808-E19-ADV-PASS-52-NOT-CLEAN-CLOSED
 ### Date
 
 2026-07-10
+
+## D-809 — E-19 Adversary Pass-53 NOT-CLEAN Fix Burst (architect + SM; NOT-CLEAN B0/H0/M2/L0; streak 0/3 unchanged; L-BB-description-bearing-anchor-prose-derives-from-target-SoT [process-gap] codified)
+
+### Summary
+
+Pass-53 adversary (Claude Opus 4.7; rubric policies.yaml v1.4.3; fresh context; Iron Law; perimeter = D-808 delta: epic v1.27 + STORY-INDEX v4.176 + full E-19 suite at D-808 versions) found 2 findings — NOT-CLEAN B0/H0/M2/L0. F-P53-001 + F-P53-002 MEDIUM [POLICY 4 description-bearing anchor-prose mis-anchor]: VP path-anchor fields (module:, §Feasibility Artifact cell, §Traceability Function-anchor) are description-bearing anchor prose per POLICY 4 — VP-097 v1.1 cited `src/path_util.rs` (missing host/; 10 SoT canonical); VP-101 v1.2 cited `host/read_file.rs` (should be new-file `host/read_prefix.rs`; 6 SoT canonical). Root cause: F-P42-001 stable-anchor sweep scoped to BC-version-pin cites only; path fields never swept. CLOSED architect 8cd9e391 (VP-097 v1.1→v1.2; VP-101 v1.2→v1.3; 8-VP class sweep 14 CLEAN + 2 FIXED). SM this-commit: VP-INDEX v2.59→v2.60 (VP-097 + VP-101 annotation updates in both tables per D-802; POLICY 14 legs); policies.yaml v1.4.3→v1.4.4 (POLICY 4 DESCRIPTION-BEARING ANCHOR-PROSE PARITY verification_steps extension); STATE.md v5.59→v5.60; adv-E19-pass-53.md persisted; D-809 decision-log codification; L-BB-description-bearing-anchor-prose-derives-from-target-SoT [process-gap] codified. Streak unchanged 0/3 (NOT-CLEAN pass-53; streak was already reset at pass-52). 4-index: BC v3.95/VP v2.60/STORY v4.176/ARCH v3.00. NEXT: pass-54.
+
+### Detail
+
+**(1) POLICY 16 GLOBAL-MAX GATE.**
+
+```
+$ grep -oE "^## D-[0-9]+" .factory/cycles/v1.0-brownfield-backfill/decision-log.md | sed 's/## D-//' | sort -n | tail -1
+808
+EXIT:0
+```
+→ 808 confirmed max → D-809 allocated.
+
+**(2) PASS-53 ADVERSARY VERDICT.**
+
+NOT-CLEAN B0/H0/M2/L0. Perimeter: D-808 delta (epic v1.27 + STORY-INDEX v4.176 + full E-19 suite at D-808 versions). Streak before: 0/3. Streak after: 0/3 (NOT-CLEAN; streak already reset by pass-52; does not re-reset).
+
+Findings:
+- F-P53-001 MEDIUM [POLICY 4]: VP-097 v1.1 `module:`, §Feasibility Artifact cell, §Proof Harness `// File:` comment cited `src/path_util.rs` (missing `host/` component); 10 SoT sites canonical `src/host/path_util.rs`.
+- F-P53-002 MEDIUM [POLICY 4]: VP-101 v1.2 `module:` + §Traceability Function-anchor cited `host/read_file.rs`; 6 SoT sites (incl. S-19.06 explicit "read_file.rs is NOT modified") say NEW file `host/read_prefix.rs`.
+
+Full adversary report: `cycles/v1.0-brownfield-backfill/adv-E19-pass-53.md`
+
+**(3) FIX BURST.**
+
+Architect leg (8cd9e391): VP-097 v1.1→v1.2 (F-P53-001: module: + §Feasibility Artifact + §Proof Harness // File: corrected; `src/path_util.rs` → `src/host/path_util.rs`; input-hash re-stamped c47964f — BC inputs updated since v1.1); VP-101 v1.2→v1.3 (F-P53-002: module: + §Traceability Function-anchor corrected; `host/read_file.rs` → `host/read_prefix.rs` new-file form; input-hash 531cd2f UNCHANGED); 8-VP class sweep (16 path-anchor fields VP-094..VP-101): VP-097 + VP-101 FIXED, 14 CLEAN.
+
+SM this-commit: policies.yaml v1.4.3→v1.4.4 (POLICY 4 DESCRIPTION-BEARING ANCHOR-PROSE PARITY verification_steps extension appended; version + last_amended updated); VP-INDEX v2.59→v2.60 (VP-097 row v1.1→v1.2 annotation + VP-101 row v1.2→v1.3 annotation; BOTH Full Index AND Story Anchors tables per D-802; POLICY 14 legs: version:/Changelog/modified[]/last_amended:/upstream-index all updated); adv-E19-pass-53.md persisted; D-809 decision-log codification; L-BB-description-bearing-anchor-prose-derives-from-target-SoT codified; STATE.md v5.59→v5.60 (trajectory tail + Session Resume Checkpoint refresh).
+
+**(4) 4-INDEX GATE (POLICY 14 leg-4 — literal-shell per D-449(a)).**
+
+```
+$ grep "^version:" \
+  .factory/specs/behavioral-contracts/BC-INDEX.md \
+  .factory/specs/verification-properties/VP-INDEX.md \
+  .factory/stories/STORY-INDEX.md \
+  .factory/specs/architecture/ARCH-INDEX.md
+.../BC-INDEX.md:version: "3.95"
+.../VP-INDEX.md:version: "2.60"
+.../STORY-INDEX.md:version: "4.176"
+.../ARCH-INDEX.md:version: "3.00"
+EXIT:0
+```
+→ BC-INDEX: "3.95" / VP-INDEX: "2.60" / STORY-INDEX: "4.176" / ARCH-INDEX: "3.00". PASS.
+
+**(5) HEADING-PARITY GATE (D-803 standing Commit-E gate — literal-shell Python per D-449(a)).**
+
+```
+$ python3 -c "
+import re, os, glob
+with open('.factory/stories/STORY-INDEX.md', 'r') as f:
+    index_content = f.read()
+heading_pattern = re.compile(r'^(## (?:Epic )?(E-\d+)[^\n]*)', re.MULTILINE)
+heading_matches = list(heading_pattern.finditer(index_content))
+epic_dir = '.factory/stories/epics'
+epic_files = glob.glob(os.path.join(epic_dir, '*.md'))
+epic_versions = {}
+for fpath in epic_files:
+    with open(fpath, 'r') as f:
+        content = f.read()
+    vm = re.search(r'^version:\s*[\x22\x27]?([^\x22\x27\n]+)', content, re.MULTILINE)
+    eid_m = re.search(r'(E-\d+)', os.path.basename(fpath))
+    if vm and eid_m:
+        epic_versions[eid_m.group(1)] = vm.group(1).strip('\x22\x27').strip()
+fails = 0; passes = 0; skips = 0
+for m in heading_matches:
+    heading_line = m.group(1); eid = m.group(2)
+    hvm = re.search(r'v(\d+\.\d+)\s*$', heading_line)
+    if eid not in epic_versions: skips += 1; continue
+    fver = epic_versions[eid]
+    if not hvm: skips += 1; continue
+    hver = 'v' + hvm.group(1)
+    if hver == fver: passes += 1
+    else: print('FAIL ' + eid + ': heading ' + hver + ' != frontmatter ' + fver); fails += 1
+print('Result: ' + str(fails) + ' FAIL / ' + str(passes) + ' PASS / ' + str(skips) + ' SKIP')
+"
+Result: 0 FAIL / 4 PASS / 16 SKIP
+EXIT:0
+```
+→ 0 FAIL lines; 4 versioned-heading epics PASS (E-19 heading v1.27 == frontmatter v1.27). PASS.
+
+**(6) POINTER-CLASS GATE (D-806 standing Commit-E gate — literal-shell per D-449(a)).**
+
+```
+$ for f in .factory/specs/architecture/decisions/ADR-025*.md \
+           .factory/specs/architecture/decisions/ADR-030*.md; do
+    echo "--- $f ---"
+    grep -nE 'line [0-9]+([–-][0-9]+)? of|at line [0-9]+' "$f" || echo "(no matches)"
+  done
+--- ADR-025 ---
+1708:  line-cite `at line 1181–1182 of hooks-registry.toml` replaced with stable anchor form
+--- ADR-030 ---
+(no matches)
+EXIT:0
+```
+→ 0 normative-live hits; ADR-025 line 1708 EXEMPT (Changelog historical-by-construction per TD-VSDD-091); ADR-030 clean. PASS.
+
+**(7) STREAK STATUS.**
+
+0/3 (UNCHANGED; NOT-CLEAN pass-53; trajectory tail passes 50/51/52/53 = 1,0,1,2 → →1→0→1→2; streak was 0/3 after pass-52 reset; does not re-reset at 0). NEXT: E-19 adv pass-54 (fresh context; Iron Law; rubric policies.yaml v1.4.4; perimeter = D-809 delta: VP-097 v1.2, VP-101 v1.3, VP-INDEX v2.60, policies.yaml v1.4.4 + full E-19 suite carry-forward; streak 0/3; three consecutive CLEANs → 3/3 CONVERGED → W1 TDD dispatch per D-773/D-774).
+
+**(8) LESSON CODIFICATION.**
+
+L-BB-description-bearing-anchor-prose-derives-from-target-SoT [process-gap][codified D-809]: VP frontmatter `module:` fields, §Traceability Function-anchor/Subsystem/Anchor-story bullets, and §Feasibility Artifact cells are ALL description-bearing anchor prose per POLICY 4 and MUST derive from the target artifact's SoT (BC §Architecture Anchors, story §File Structure). These path-anchor fields share the same derivation principle as BC Traceability row descriptions (D-808 8th gate) — extended adjacent-axis coverage. Detection predicate: for each VP path-anchor field, grep the cited path/semantics against the target BC file's §Architecture Anchors and the anchor story's §File Structure — zero-match or contradiction = POLICY 4 mis-anchor MEDIUM+. POLICY 4 verification_steps codified in policies.yaml v1.4.4. Supersedes-extends D-808 lesson scope from epic Traceability tables to all VP spec-level anchor-prose fields. Appended to lessons.md this burst.
+
+Parent-commit: 8cd9e391 (factory-artifacts HEAD = architect VP-097 v1.1→v1.2 + VP-101 v1.2→v1.3 fix burst; the state of factory-artifacts before this D-809 SM closure burst).
+
+### Phase
+
+D-809-E19-ADV-PASS-53-NOT-CLEAN-CLOSED
+
+### Date
+
+2026-07-10
