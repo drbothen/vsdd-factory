@@ -16637,4 +16637,4 @@ Heading-parity gate complete
 
 | Commit | SHA | Contents |
 |--------|-----|----------|
-| D-804 SM single-commit burst (TD-VSDD-053) | `[SHA-to-be-patched]` | adv-E19-pass-48.md NEW; decision-log D-804; STATE.md v5.54→v5.55; burst-log this entry; streak 0/3→1/3; trajectory →3→1→1→0; pass-49 NEXT |
+| D-804 SM single-commit burst (TD-VSDD-053) | `7b928bb2` | adv-E19-pass-48.md NEW; decision-log D-804; STATE.md v5.54→v5.55; burst-log this entry; streak 0/3→1/3; trajectory →3→1→1→0; pass-49 NEXT |
