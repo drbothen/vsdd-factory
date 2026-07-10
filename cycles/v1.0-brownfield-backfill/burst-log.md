@@ -15431,4 +15431,4 @@ NEXT: E-19 adversary pass-42 (fresh context; Iron Law; rubric policies.yaml v1.4
 
 | Commit | SHA | Description |
 |--------|-----|-------------|
-| D-796 burst (atomic) | `PENDING-SHA` | state(D-796): E-19 adv pass-41 CLEAN B0/H0/M0/L2; GOVERNANCE-ONLY; O-P41-001/002 LOW accepted-with-record; 4-index ALL UNCHANGED BC v3.89/VP v2.55/STORY v4.169/ARCH v2.98; STATE.md v5.47 462 lines; streak 0/3→1/3; pass-42 NEXT |
+| D-796 burst (atomic) | `318f8cba` | state(D-796): E-19 adv pass-41 CLEAN B0/H0/M0/L2; GOVERNANCE-ONLY; O-P41-001/002 LOW accepted-with-record; 4-index ALL UNCHANGED BC v3.89/VP v2.55/STORY v4.169/ARCH v2.98; STATE.md v5.47 462 lines; streak 0/3→1/3; pass-42 NEXT |
