@@ -14834,5 +14834,5 @@ NEXT: E-19 adversary pass-38 (fresh context; perimeter = D-792 delta: S-19.06 v1
 
 | Commit | SHA | Description |
 |--------|-----|-------------|
-| D-792 burst (atomic) | `TBD-D-792` | state(D-792): E-19 adv pass-37 NOT-CLEAN B0/H0/M1/L0 CLOSED; F-P37-001 S-19.06 Token Budget Total ~22,500→~22,000; input-hash 998ac74 UNCHANGED; STORY-INDEX v4.169; STATE.md v5.43 449 lines; streak 0/3; pass-38 NEXT |
-| D-792 sha-patch | `pending` | state(D-792-sha-patch): Active Branches → actual D-792 burst SHA + burst-log Block 8 SHA fill (D-447(c)+D-449(e)) |
+| D-792 burst (atomic) | `84e6f495` | state(D-792): E-19 adv pass-37 NOT-CLEAN B0/H0/M1/L0 CLOSED; F-P37-001 S-19.06 Token Budget Total ~22,500→~22,000; input-hash 998ac74 UNCHANGED; STORY-INDEX v4.169; STATE.md v5.43 449 lines; streak 0/3; pass-38 NEXT |
+| D-792 sha-patch | `pending` | state(D-792-sha-patch): Active Branches → actual D-792 burst SHA `84e6f495` + burst-log Block 8 SHA fill (D-447(c)+D-449(e)) |
