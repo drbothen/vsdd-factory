@@ -15284,5 +15284,5 @@ NEXT: E-19 adversary pass-41 (fresh context; Iron Law; rubric policies.yaml v1.4
 
 | Commit | SHA | Description |
 |--------|-----|-------------|
-| D-795 burst (atomic) | TBD (SHA-patch follow-up) | state(D-795): E-19 adv pass-40 NOT-CLEAN B0/H0/M1/L0; F-P40-001 MED ADR-025 §Decision 14 stable anchor (7a58f292); ARCH-INDEX v2.97→v2.98; STATE.md v5.46; streak 0/3; pass-41 NEXT |
+| D-795 burst (atomic) | `7b8b5863` | state(D-795): E-19 adv pass-40 NOT-CLEAN B0/H0/M1/L0; F-P40-001 MED ADR-025 §Decision 14 stable anchor (7a58f292); ARCH-INDEX v2.97→v2.98; STATE.md v5.46; streak 0/3; pass-41 NEXT |
 
