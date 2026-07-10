@@ -7443,3 +7443,56 @@ D-791-E19-ADV-PASS-36-NOT-CLEAN-CLOSED
 ### Date
 
 2026-07-09
+
+## D-792 — E-19 Adversarial Pass-37 Closure (NOT-CLEAN B0/H0/M1/L0; F-P37-001 disposition; Token Budget aggregation-cell parity; streak 0/3)
+
+### Decision
+
+E-19 adversarial cascade pass-37 is NOT-CLEAN. Verdict: BLOCKER 0 / HIGH 0 / MEDIUM 1 / LOW 0 (1 finding), CLOSED in this D-792 fix burst. BC-5.39.001 3-CLEAN streak: 0/3. Pass-38 required.
+
+**(1) ITEMS CLOSED.**
+
+- **F-P37-001 MEDIUM [POLICY 5 v1.3.7 category-(i) aggregation-cell parity + POLICY 4 arithmetic anchor]:** S-19.06 v1.17 `**Token Budget Total**` row states `~22,500`. awk row-sum of the 10 component rows: 5500+2000+1000+1500+2000+3000+1500+1500+2500+1500 = 22,000. Discrepancy = 500 tokens. 6/7 sibling stories sum-exact (S-19.01/02/03/04/05/07); S-19.06 sole violator. Novel META-33 sub-route: aggregation-cell/Token-Budget-Total axis (first confirmed Token Budget Total defect; enabled by D-791 POLICY 5 v1.3.7 category-(i) retro-application). Adjudication (a): inception error from initial draft bfab9ad7; 10-row table stable across all 17 versions; no dropped row. Fix: SW S-19.06 v1.17→v1.18 `**Total**` `~22,500`→`~22,000`; input-hash UNCHANGED 998ac74 (no inputs[] file changed). D-449(a) sum gate: awk stdout `22000`; stated `22000`; `22000==22000 PASS`.
+
+**(2) FIX BURST LEGS.**
+
+- **Story-writer (S-19.06):** S-19.06 v1.17→v1.18 Token Budget Total `~22,500`→`~22,000`. Commit `8c32bc3a` (prior leg; already pushed to origin/factory-artifacts at burst start — verified via git ls-remote).
+- **State-manager (governance):** adv-E19-pass-37.md persisted. INDEX.md pass-37 row appended + Convergence Status updated. D-792 codified (this entry). L-BB-token-budget-totals-are-category-i-cells lesson appended to lessons.md. STORY-INDEX v4.168→v4.169 (S-19.06 row v1.17→v1.18; Pass-37 wave-summary clause prepended; input-hash 998ac74 UNCHANGED verified). Burst-log D-792 entry appended (4 Dim blocks per TD-VSDD-099/100). STATE.md v5.42→v5.43.
+
+**(3) D-494 4-INDEX GATE.**
+
+Literal shell execution (captured stdout — post-update):
+```
+.factory/specs/behavioral-contracts/BC-INDEX.md:version: "3.88"
+.factory/specs/verification-properties/VP-INDEX.md:version: "2.55"
+.factory/stories/STORY-INDEX.md:version: "4.169"
+.factory/specs/architecture/ARCH-INDEX.md:version: "2.97"
+```
+
+BC-INDEX v3.88 PASS (UNCHANGED — exhaustive) / VP-INDEX v2.55 PASS (UNCHANGED — exhaustive) / STORY-INDEX v4.169 PASS / ARCH-INDEX v2.97 PASS (UNCHANGED — exhaustive). D-494 gate: ZERO FAIL.
+
+**(4) INPUT-HASH VERIFICATION (POLICY 18).**
+
+S-19.06 input-hash UNCHANGED at `998ac74`: F-P37-001 is an arithmetic error in the Token Budget Total aggregation cell only. No inputs[] file changed; no new story content authored. Wave-summary aggregation S-19.06=998ac74 correct (UNCHANGED since D-784). POLICY 18 satisfied.
+
+**(5) TRAJECTORY NOTE.**
+
+Pass-37 severity: B0/H0/M1/L0 (pass-36) → B0/H0/M1/L0 (pass-37). Severity identical (1→1). Trajectory tail (passes 34–37): →1→2→1→1 (LENGTH=4 per D-433(e)). Full trajectory: 16→14→20→9→8→5→12→11→4→7→6→6→3→6→7→2→2→0→0→0→4→4→3→4→2→2→4→6→5→4→1→3→4→1→2→1→1.
+
+**(6) NOVELTY NOTE.**
+
+Novelty: MEDIUM. F-P37-001 confirms a novel META-33 sub-route: aggregation-cell/Token-Budget-Total axis. The Token Budget `**Total**` row is a same-file aggregation cell covered by POLICY 5 v1.3.7 category-(i) (codified D-791). This is the first confirmed instance on the Token Budget axis — prior META-33 sub-routes targeted hash-value aggregation (F-P36-001) and delivery-summary prose. Lesson: `L-BB-token-budget-totals-are-category-i-cells` codified (this burst).
+
+**(7) NEXT: pass-38.**
+
+BC-5.39.001 3-CLEAN streak: 0/3. Pass-38 required. Perimeter = D-792 delta: S-19.06 v1.18 + STORY-INDEX v4.169 + full E-19 suite carry-forward at D-792 versions. **Adversary rubric for pass-38 MUST cite policies.yaml v1.4.2.**
+
+Parent-commit: SW leg `8c32bc3a` (per D-419(b)+D-420(d)+D-421(a) convention — this burst's Commit E parent is the SW leg tip).
+
+### Phase
+
+D-792-E19-ADV-PASS-37-NOT-CLEAN-CLOSED
+
+### Date
+
+2026-07-09

@@ -14722,3 +14722,117 @@ NEXT: E-19 adversary pass-37 (fresh context; perimeter = D-791 delta: STORY-INDE
 |--------|-----|-------------|
 | D-791 burst (atomic) | `5dbb1781` | state(D-791): E-19 adv pass-36 NOT-CLEAN B0/H0/M1/L0 CLOSED; F-P36-001 wave-summary Input-hashes corrected; POLICY 5 v1.3.7 category-(i) codified; STORY-INDEX v4.168; policies.yaml v1.4.2; STATE.md v5.42 447 lines; streak 0/3; pass-37 NEXT |
 | D-791 sha-patch | `pending` | state(D-791-sha-patch): Active Branches → actual D-791 burst SHA + burst-log Block 8 SHA fill (D-447(c)+D-449(e)) |
+
+---
+
+## D-792 — E-19 Adversarial Pass-37 Closure (NOT-CLEAN B0/H0/M1/L0; F-P37-001 disposition; Token Budget aggregation-cell parity; streak 0/3) — 2026-07-09
+
+### Block 1 — Parent-commit
+
+`8c32bc3a` — story-writer D-792 prior leg: S-19.06 v1.17→v1.18 Token Budget Total ~22,500→~22,000 (F-P37-001 fix; awk verified; input-hash 998ac74 UNCHANGED).
+
+### Block 2 — Adversary verdict (source-attested from adv-E19-pass-37.md)
+
+Pass-37 adversary review (fresh context; perimeter = epic v1.22 + S-19.01 v1.16 / S-19.02 v1.17 / S-19.03 v1.16 / S-19.04 v1.11 / S-19.05 v1.14 / S-19.06 v1.17 / S-19.07 v1.16 + STORY-INDEX v4.168 + VP-INDEX v2.55 + 6 BCs + VP-095/096 v1.1 + ADR-025 v1.12/ADR-030 v1.3 + BC-INDEX v3.88 + ARCH-INDEX v2.97 + policies.yaml v1.4.2) returned **NOT-CLEAN B0/H0/M1/L0** (1 finding total).
+
+**F-P37-001 MEDIUM [POLICY 5 v1.3.7 category-(i)]:** S-19.06 v1.17 Token Budget Total cell showed `~22,500` while awk row-sum of all 10 component rows = 22,000 (delta = 500). Adjudication (a) — inception error from initial draft `bfab9ad7`; the 10-row table has been stable across all 17 versions (v1.1..v1.17); no row was ever dropped or added; the total was simply never correct. Closed by SW `8c32bc3a` (S-19.06 v1.17→v1.18; Token Budget Total `~22,500→~22,000`; awk-verified).
+
+Part B attestations: B.1–B.13 all PASS. POLICY 5 v1.3.7 compliance confirmed for all other category-(i) aggregation cells; POLICY 16 satisfied (D-791 was max; D-792 newly allocated). Convergence note: streak 0/3; pass-38 next.
+
+### Block 3 — Files touched
+
+| File | Change |
+|------|--------|
+| `.factory/cycles/v1.0-brownfield-backfill/adv-E19-pass-37.md` | NEW — full adversary pass-37 report persisted |
+| `.factory/cycles/v1.0-brownfield-backfill/decision-log.md` | D-792 block appended after D-791 (ascending order; POLICY 16 PASS) |
+| `.factory/cycles/v1.0-brownfield-backfill/lessons.md` | `L-BB-token-budget-totals-are-category-i-cells` appended after `L-BB-same-file-aggregation-cells-are-sibling-sites` |
+| `.factory/cycles/v1.0-brownfield-backfill/INDEX.md` | Pass-37 row added; Convergence Status updated to D-792/STORY v4.169/trajectory 4→2→2→4→6→5→4→1→3→4→1→2→1→1 |
+| `.factory/stories/STORY-INDEX.md` | v4.168→v4.169; S-19.06 row v1.17→v1.18; Pass-37 wave-summary clause prepended; input-hash 998ac74 UNCHANGED |
+| `.factory/STATE.md` | v5.42→v5.43; phase/current_step/last_amended/banner/SIZE BUDGET/Last Updated/Current Phase/Current Phase Steps/Active Branches/Concurrent Cycles/Decisions Log/Session Resume Checkpoint all updated |
+| `.factory/cycles/v1.0-brownfield-backfill/burst-log.md` | This D-792 entry appended |
+
+### Block 4 — Codifications
+
+| Item | Type | Notes |
+|------|------|-------|
+| D-792 | Decision | E-19 adv pass-37 NOT-CLEAN B0/H0/M1/L0; F-P37-001 MEDIUM CLOSED; adjudication (a) inception error; SW 8c32bc3a; input-hash 998ac74 UNCHANGED; streak 0/3; pass-38 NEXT |
+| F-P37-001 | Finding closure | S-19.06 v1.17 Token Budget Total ~22,500→~22,000; POLICY 5 v1.3.7 category-(i); awk row-sum verified |
+| L-BB-token-budget-totals-are-category-i-cells | Lesson | Token Budget Total rows in story tables are POLICY 5 v1.3.7 category-(i) aggregation cells; awk gate codified; first confirmed instance D-792 |
+
+### Block 5 — Dim-2 literal-shell gates (D-449(a) captured stdout)
+
+**Gate i — D-494 4-index version gate:**
+```
+$ grep "^version:" .factory/specs/behavioral-contracts/BC-INDEX.md .factory/specs/verification-properties/VP-INDEX.md .factory/stories/STORY-INDEX.md .factory/specs/architecture/ARCH-INDEX.md
+.factory/stories/STORY-INDEX.md:version: "4.169"
+.factory/specs/behavioral-contracts/BC-INDEX.md:version: "3.88"
+.factory/specs/architecture/ARCH-INDEX.md:version: "2.97"
+.factory/specs/verification-properties/VP-INDEX.md:version: "2.55"
+EXIT:0 — PASS (BC v3.88 / VP v2.55 / STORY v4.169 / ARCH v2.97)
+```
+
+**Gate ii — POLICY 16 global-max (D-792 is highest D-NNN):**
+```
+$ grep -n "^## D-" .factory/cycles/v1.0-brownfield-backfill/decision-log.md | tail -5
+7199:## D-787 — E-19 Adversarial Pass-33 Closure ...
+7262:## D-789 — E-19 Adversarial Pass-34 Closure ...
+7325:## D-790 — E-19 Adversarial Pass-35 Closure ...
+7394:## D-791 — E-19 Adversarial Pass-36 Closure ...
+7447:## D-792 — E-19 Adversarial Pass-37 Closure ...
+EXIT:0 — PASS (D-792 at line 7447 is last entry)
+```
+
+**Gate iii — Wave-summary input-hash integrity (S-19.06=998ac74 present):**
+```
+$ grep -n "S-19.06.*998ac74" .factory/stories/STORY-INDEX.md | head -3
+701:...S-19.06=998ac74...
+EXIT:0 — PASS (wave-summary input-hash 998ac74 UNCHANGED confirmed)
+```
+
+**Gate iv — STATE.md size budget (≤500 hard cap):**
+```
+$ wc -l .factory/STATE.md
+449 .factory/STATE.md
+EXIT:0 — PASS (449 lines; under 500 hard cap)
+```
+
+**Gate v — D-448(a) source-attestation (F-P37-001 in adv-E19-pass-37.md):**
+```
+$ grep -c "F-P37-001" .factory/cycles/v1.0-brownfield-backfill/adv-E19-pass-37.md
+9
+EXIT:0 — PASS (9 occurrences; F-P37-001 faithfully described in Part A)
+```
+
+### Block 6 — Dim-5/6/7 Attestations + 8-block self-verification
+
+**Dim-5 (spec-compliance):** All 5 modified artifacts comply with VSDD governance requirements. adv-E19-pass-37.md follows standard report structure (H1 perimeter header; Part A findings; Part B policy attestations). decision-log.md D-792 block follows canonical 6-column format. lessons.md L-BB lesson follows template. STORY-INDEX v4.169 S-19.06 row reflects v1.18 with pass-37 wave-summary clause. STATE.md v5.43 satisfies D-443(a) verbatim-strict chain (phase: + current_step: updated atomically; trajectory-tail LENGTH=4 per D-433(e)+D-439(c)).
+
+**Dim-6 (STORY-INDEX BC-coverage):** PASS — STORY-INDEX v4.169: S-19.06 row v1.18 998ac74 ✓; Pass-37 wave-summary clause prepended; wave-summary input-hash UNCHANGED; STORY-INDEX v4.169 consistent with all other index versions.
+
+**Dim-7 (routing discipline):** 2-leg burst: SW prior leg (S-19.06 v1.17→v1.18; story-writer scope — spec content change) + SM closure leg (governance artifacts: adv report persist, decision-log codification, lessons codification, INDEX.md convergence advance, STORY-INDEX wave-summary row update, burst-log entry, STATE.md pipeline advance). Correct specialist throughout per CLAUDE.md Routing Table.
+
+**Dim-5 8-block self-verification:**
+- [x] Block 1 — Parent-commit (`8c32bc3a` SW prior leg)
+- [x] Block 2 — Adversary verdict (source-attested from adv-E19-pass-37.md; NOT-CLEAN B0/H0/M1/L0; 1 finding)
+- [x] Block 3 — Files touched (7 files; 2-leg burst SW+SM)
+- [x] Block 4 — Codifications (D-792; F-P37-001 CLOSED; L-BB-token-budget-totals-are-category-i-cells)
+- [x] Block 5 — Dim-2 literal-shell gates with captured stdout (Gates i–v per D-449(a))
+- [x] Block 6 — Dim-5/6/7 Attestations + 8-block self-verification (this block)
+- [x] Block 7 — Closes
+- [x] Block 8 — Factory-artifacts commits
+
+### Block 7 — Closes
+
+| Finding | Status | Notes |
+|---------|--------|-------|
+| F-P37-001 (MEDIUM) | CLOSED | S-19.06 v1.17→v1.18: Token Budget Total ~22,500→~22,000; awk row-sum verified; input-hash 998ac74 UNCHANGED; adjudication (a) inception error from initial draft bfab9ad7; 10-row table stable across all 17 versions |
+| Token-Budget-Total META-33 axis | CODIFIED | L-BB-token-budget-totals-are-category-i-cells: Token Budget Total rows are POLICY 5 v1.3.7 category-(i) cells; awk gate `awk 'NR>1 {sum+=$NF} END {print sum}'` required before declaring Token Budget Total correct |
+
+NEXT: E-19 adversary pass-38 (fresh context; perimeter = D-792 delta: S-19.06 v1.18 Token Budget Total fixed (998ac74 UNCHANGED); STORY-INDEX v4.169 S-19.06 row v1.18 + Pass-37 wave-summary clause; full E-19 suite carries forward at D-792 versions; adversary rubric: policies.yaml v1.4.2).
+
+### Block 8 — Factory-artifacts commits
+
+| Commit | SHA | Description |
+|--------|-----|-------------|
+| D-792 burst (atomic) | `TBD-D-792` | state(D-792): E-19 adv pass-37 NOT-CLEAN B0/H0/M1/L0 CLOSED; F-P37-001 S-19.06 Token Budget Total ~22,500→~22,000; input-hash 998ac74 UNCHANGED; STORY-INDEX v4.169; STATE.md v5.43 449 lines; streak 0/3; pass-38 NEXT |
+| D-792 sha-patch | `pending` | state(D-792-sha-patch): Active Branches → actual D-792 burst SHA + burst-log Block 8 SHA fill (D-447(c)+D-449(e)) |

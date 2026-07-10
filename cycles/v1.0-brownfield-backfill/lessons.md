@@ -5822,3 +5822,36 @@ The BC-INDEX gap (F-P24-002) compounded the issue: even if a reviewer knew to ch
 3. POLICY 5 category (i) now mandates this sweep — the adversary will check aggregation cells explicitly from pass-37 onward.
 
 **Cites:** D-791, adv-E19-pass-36.md (F-P36-001 MEDIUM), STORY-INDEX v4.168, POLICY 5 v1.3.7 (policies.yaml v1.4.2).
+
+---
+
+## L-BB-token-budget-totals-are-category-i-cells [process-gap] [codified D-792]
+
+**Category:** process-gap
+
+**Status:** codified (D-792)
+
+**Lesson:** The Token Budget Estimate `**Total**` row in every story spec is a same-file aggregation cell covered by POLICY 5 v1.3.7 category-(i). It MUST equal the arithmetic sum of the per-row token estimates above it. Any discrepancy — even a 500-token over-statement where every component value is a multiple of ~500 — is a MEDIUM finding under POLICY 4 (arithmetic anchor) + POLICY 5 category-(i) (aggregation-cell parity). Adjudication: inception errors (present since the initial draft, stable across all subsequent versions) default to adjudication (a); no dropped-row hypothesis required.
+
+**Context:** S-19.06 v1.17 Token Budget `**Total**` row stated `~22,500`. The 10 component rows sum to exactly 22,000 (awk verification: 5500+2000+1000+1500+2000+3000+1500+1500+2500+1500=22000). The discrepancy existed in the initial draft commit bfab9ad7 and persisted unchanged through all 17 versions (v1.0–v1.17). The adversary caught this at pass-37 as F-P37-001 MEDIUM via retro-application of the D-791 POLICY 5 v1.3.7 category-(i) sweep — the same sweep that caught the wave-summary Input-hashes stale in pass-36 now exposed the Token Budget Total axis.
+
+**Root cause:** POLICY 5 v1.3.7 category-(i) was freshly codified at D-791. Before category-(i), no enumerated sweep category covered same-file aggregation cells — the Token Budget `**Total**` row is visually distinct from per-row cells (bold formatting, different text label) and was never swept as part of the standard POLICY 5 sibling-sweep. Fix executors correctly updated component rows without checking whether the aggregate Total cell was consistent. The D-791 category-(i) retro-application sweep is what surface this defect class on the Token Budget axis.
+
+**Failure mode:** Story spec authored with a mistyped Token Budget Total (inception error). Subsequent versions fix other content; the Total cell is never touched because it is not a named per-row cell that any standard sweep targets. After category-(i) is codified, a fresh-context adversary running the retro-application sweep detects the arithmetic mismatch immediately.
+
+**Gate (D-792 codification — POLICY 5 v1.3.7 category-(i) Token Budget axis):** When any Token Budget component row is changed in a fix burst, OR when a category-(i) retro-application sweep is mandated:
+1. Extract the stated Total: `grep -m1 '\*\*Total\*\*.*~[0-9]' <story>.md | grep -oE '~[0-9,]+'`
+2. Sum the component rows: `awk -F'|' '/^\|/ && !/Total/ && /~[0-9]/ { val=$3; gsub(/[^0-9]/, "", val); sum += val } END { print sum }' <story>.md`
+3. Compare: stated Total (numeric) must equal row-sum. Any gap is a MEDIUM finding.
+4. Capture awk stdout per D-449(a) and include in burst-log Dim-2.
+
+**Prevention:**
+1. During story authorship, verify the Token Budget Total equals the sum of component rows before submitting.
+2. During any POLICY 5 category-(i) sweep, include all 7 E-19 story Token Budget Total cells in the aggregation-cell checklist.
+3. The category-(i) sweep table in the adversary report MUST include a row for each story's Token Budget Total.
+
+**Anchors:** D-792 (this burst); F-P37-001 (S-19.06 v1.17 Total ~22,500 vs row-sum 22,000; MEDIUM load-bearing); adv-E19-pass-37.md A.2/A.3; SW commit 8c32bc3a (S-19.06 v1.17→v1.18 fix); POLICY 4 (arithmetic anchor); POLICY 5 v1.3.7 category-(i).
+
+**Cites:** D-792; F-P37-001; adv-E19-pass-37.md; STORY-INDEX v4.169; policies.yaml v1.4.2 POLICY 5 v1.3.7; L-BB-same-file-aggregation-cells-are-sibling-sites (companion — parent category).
+
+**Closes:** D-792 F-P37-001 MEDIUM FIXED (SW 8c32bc3a); Token-Budget-Total axis of META-33 aggregation-cell class codified; L-BB-token-budget-totals-are-category-i-cells added to carry-forward lesson set for pass-38. `[process-gap; aggregation-cell; token-budget-total; arithmetic-anchor; POLICY-4; POLICY-5-category-i; META-33-sub-route; inception-error]`
