@@ -14566,4 +14566,159 @@ NEXT: E-19 adversary pass-36 (fresh context; perimeter = D-790 delta: BC-4.13.00
 | Commit | SHA | Description |
 |--------|-----|-------------|
 | D-790 burst (atomic) | `89773642` | state(D-790): E-19 adv pass-35 NOT-CLEAN B0/H1/M1/L0 CLOSED; F-P35-001/002 fixed; BC-4.13.001 v1.14; BC-INDEX v3.88; STORY-INDEX v4.167; STATE.md v5.41; streak 0/3; pass-36 NEXT |
-| D-790 sha-patch | `pending` | state(D-790-sha-patch): Active Branches 89773642 + burst-log Block 8 SHA fill |
+| D-790 sha-patch | `9ea11745` | state(D-790-sha-patch): Active Branches 89773642 + burst-log Block 8 SHA fill |
+
+---
+
+## D-791 — E-19 Adversarial Pass-36 Fix Burst (SM-only; 2026-07-09)
+
+### Block 1 — Parent-commit
+
+**Parent-commit SHA:** `9ea11745` (D-790 sha-patch tip; SM-only burst — no PO/SW legs required)
+
+### Block 2 — Adversary verdict
+
+Source-attested from adv-E19-pass-36.md Part A (perimeter: epic v1.22 + S-19.01 v1.16 / S-19.02 v1.17 / S-19.03 v1.16 / S-19.04 v1.11 / S-19.05 v1.14 / S-19.06 v1.17 / S-19.07 v1.16 + STORY-INDEX v4.167 + BC-INDEX v3.88 + VP-INDEX v2.55 + ARCH-INDEX v2.97 + BC-4.13.001 v1.14 + full E-19 BC suite; rubric policies.yaml v1.4.1).
+
+**Verdict:** NOT-CLEAN — B0/H0/M1/L0 (1 finding)
+
+**Findings:**
+
+- **F-P36-001 MEDIUM** [POLICY 5 v1.3.3/v1.3.5 sibling-sweep + S-7.01 partial-fix regression]: STORY-INDEX v4.167 wave-summary aggregation `Input-hashes:` line carries stale values (S-19.02=d208e66 stale → 604f45d; S-19.07=83e8cc4 stale → 534c85c). Novel META-33 sub-route: POLICY 5 categories (a)–(h) do not enumerate same-file aggregation cells. D-790 swept per-row cells correctly but missed the wave-summary aggregation cell. **CLOSED** — STORY-INDEX v4.167→v4.168 + POLICY 5 v1.3.7 category-(i) codification (policies.yaml v1.4.1→v1.4.2).
+
+**POLICY sweeps (Part B):** B1-POLICY 19 (ADR volatile-pins) CLEAN for E-19 perimeter (BC-5.40.001 + BC-6.23.001 out-of-perimeter drift items already tracked in STATE.md). B2-POLICY 4 CLEAN. B3-POLICY 5 CLEAN except F-P36-001 (CLOSED this burst). B4-POLICY 6 CLEAN. B5-POLICY 7 CLEAN. B6-POLICY 8 CLEAN. B7-POLICY 9 CLEAN. B8-POLICY 13 CLEAN. B9-POLICY 14 CLEAN. B10-POLICY 15 CLEAN. B11-POLICY 16 D-791 allocated. B12-POLICY 17 N/A. B13-POLICY 18 CLEAN (wave-summary defect closed this burst).
+
+### Block 3 — Files touched
+
+| File | Change |
+|------|--------|
+| `.factory/cycles/v1.0-brownfield-backfill/adv-E19-pass-36.md` | CREATED — adversarial review pass-36 report; NOT-CLEAN B0/H0/M1/L0 |
+| `.factory/cycles/v1.0-brownfield-backfill/decision-log.md` | D-791 codification block appended |
+| `.factory/cycles/v1.0-brownfield-backfill/lessons.md` | L-BB-same-file-aggregation-cells-are-sibling-sites appended |
+| `.factory/cycles/v1.0-brownfield-backfill/INDEX.md` | Pass-36 row added; Convergence Status updated (trajectory →4→1→2→1; streak 0/3) |
+| `.factory/stories/STORY-INDEX.md` | v4.167→v4.168: wave-summary Input-hashes S-19.02 d208e66→604f45d + S-19.07 83e8cc4→534c85c; Pass-35 clause prepended |
+| `.factory/policies.yaml` | v1.4.1→v1.4.2: POLICY 5 v1.3.7 category-(i) codification appended |
+| `.factory/cycles/v1.0-brownfield-backfill/burst-log.md` | D-791 entry appended (this file); D-790 sha-patch SHA filled (`pending`→`9ea11745`) |
+| `.factory/STATE.md` | v5.41→v5.42: trajectory tail advanced →4→1→2→1; Session Resume Checkpoint refresh for pass-37; D-791 Decisions Log row |
+
+### Block 4 — Codifications
+
+| ID | Type | Description |
+|----|------|-------------|
+| D-791 | Decision | E-19 adv pass-36 NOT-CLEAN B0/H0/M1/L0 closure; F-P36-001 MEDIUM CLOSED; POLICY 5 v1.3.7 category-(i) codified; streak 0/3; parent-commit `9ea11745` |
+| F-P36-001 | Finding (CLOSED) | STORY-INDEX wave-summary aggregation Input-hashes stale values corrected; category-(i) gap in POLICY 5 closed |
+| POLICY 5 v1.3.7 | Policy amendment | Category (i) appended: same-file aggregation cells that duplicate per-row values (delivery summaries, "All N distinct" attests, wave-summary Input-hashes lines, index aggregation paragraphs) are sibling sites requiring sweep |
+| L-BB-same-file-aggregation-cells-are-sibling-sites | Lesson (process-gap) | Same-file aggregation cells are structurally distinct sibling sites; not covered by POLICY 5 categories (a)–(h) prior to v1.3.7; closes D-791 |
+
+### Block 5 — Dim-2 Literal Shell Gates (D-449(a))
+
+**Gate i — POLICY 16 global-max (D-791 must be final entry in decision-log):**
+
+```
+$ grep "^## D-" .factory/cycles/v1.0-brownfield-backfill/decision-log.md | tail -5
+## D-786 — E-19 Adversarial Pass-32 Closure (NOT-CLEAN B0/H0/M1/L2; F-P32-001 + O-P32-01/02 fixed; streak 0/3)
+## D-787 — E-19 Adversarial Pass-33 Closure (NOT-CLEAN B0/H0/M2/L2; F-P33-001/002 + O-P33-001/002 fixed; streak 0/3)
+## D-789 — E-19 Adversarial Pass-34 Closure (NOT-CLEAN B0/H0/M1/L0; F-P34-001 fixed; streak 0/3)
+## D-790 — E-19 Adversarial Pass-35 Closure (NOT-CLEAN B0/H1/M1/L0; F-P35-001/002 + O-P35-001 disposition; streak 0/3)
+## D-791 — E-19 Adversarial Pass-36 Closure (NOT-CLEAN B0/H0/M1/L0; F-P36-001 disposition; POLICY 5 v1.3.7 category-(i) codification; streak 0/3)
+```
+
+PASS: D-791 confirmed global max.
+
+**Gate ii — D-494 4-index version gate:**
+
+```
+$ grep "^version:" \
+    .factory/specs/behavioral-contracts/BC-INDEX.md \
+    .factory/specs/verification-properties/VP-INDEX.md \
+    .factory/stories/STORY-INDEX.md \
+    .factory/specs/architecture/ARCH-INDEX.md
+.factory/specs/behavioral-contracts/BC-INDEX.md:version: "3.88"
+.factory/specs/verification-properties/VP-INDEX.md:version: "2.55"
+.factory/stories/STORY-INDEX.md:version: "4.168"
+.factory/specs/architecture/ARCH-INDEX.md:version: "2.97"
+```
+
+PASS: BC v3.88 / VP v2.55 / STORY v4.168 / ARCH v2.97 — BC/VP/ARCH UNCHANGED; STORY advanced v4.167→v4.168 (F-P36-001 wave-summary fix). Zero FAIL.
+
+**Gate iii — input-hash verification (POLICY 18; wave-summary aggregation parity):**
+
+```
+$ grep "^input-hash:" \
+    .factory/stories/S-19.02-verify-factory-lock-output-too-large.md \
+    .factory/stories/S-19.07-verify-factory-lock-read-prefix-migration.md
+.factory/stories/S-19.07-verify-factory-lock-read-prefix-migration.md:input-hash: "534c85c"
+.factory/stories/S-19.02-verify-factory-lock-output-too-large.md:input-hash: "604f45d"
+```
+
+```
+$ grep "S-19.02=604f45d\|S-19.07=534c85c" .factory/stories/STORY-INDEX.md | grep "Input-hashes:"
+> **E-19 delivery:** W1: {S-19.01, S-19.02, S-19.03} → W2: {S-19.04, S-19.05, S-19.06 (depends_on S-19.03)} → W3: {S-19.07 (depends_on S-19.02, S-19.06)}. 7 stories total. 45 pts. DAG has no cycles. Input-hashes: S-19.01=d40bd21; S-19.02=604f45d; S-19.03=8d1225d; S-19.04=67eee80; S-19.05=9e54d68; S-19.06=998ac74; S-19.07=534c85c. All 7 distinct. ...
+```
+
+PASS: Per-story input-hashes S-19.02=604f45d; S-19.07=534c85c both non-placeholder. Wave-summary aggregation line confirmed containing S-19.02=604f45d and S-19.07=534c85c (stale d208e66 and 83e8cc4 removed). POLICY 18 PASS.
+
+**Gate iv — STATE.md wc-l ≤500 gate:**
+
+```
+$ wc -l .factory/STATE.md
+     447 .factory/STATE.md
+```
+
+PASS: 447 ≤ 500. D-421(c) budget satisfied.
+
+**Gate v — D-446(a) own-burst-log 8-block presence gate:**
+
+Note: D-791 is the last entry; Block 5 embeds quoted expected Gate v output containing `### Block N` lines, which causes the raw `grep -c` to return 16 (8 real + 8 quoted in code fence). Unique-name verification via `sort -u` correctly returns 8.
+
+```
+$ awk '/^## D-791/,0' .factory/cycles/v1.0-brownfield-backfill/burst-log.md | grep "^### Block [1-8]" | sort -u
+### Block 1 — Parent-commit
+### Block 2 — Adversary verdict
+### Block 3 — Files touched
+### Block 4 — Codifications
+### Block 5 — Dim-2 Literal Shell Gates (D-449(a))
+### Block 6 — Dim Attestations
+### Block 7 — Closes
+### Block 8 — Factory-artifacts commits
+$ awk '/^## D-791/,0' .factory/cycles/v1.0-brownfield-backfill/burst-log.md | grep "^### Block [1-8]" | sort -u | wc -l
+       8
+```
+
+PASS: All 8 D-444(c) blocks present (unique names confirmed). D-446(a) PASS.
+
+### Block 6 — Dim Attestations
+
+**Dim-2 literal-shell gate summary:** Gates i–v PASS. D-791 global max PASS. BC v3.88 / VP v2.55 / STORY v4.168 / ARCH v2.97. POLICY 18 per-story input-hashes non-placeholder; wave-summary aggregation values synced (S-19.02=604f45d; S-19.07=534c85c). STATE.md 447 lines (≤500). D-446(a) 8-block presence PASS. D-449(a) satisfied.
+
+**Dim-5 (input-hash consistency):** POLICY 18 PASS — S-19.02=604f45d (corrected from d208e66); S-19.07=534c85c (corrected from 83e8cc4). Wave-summary aggregation cell now consistent with per-row cells. F-P36-001 root cause eliminated.
+
+**Dim-6 (STORY-INDEX BC-coverage):** PASS — STORY-INDEX v4.168: S-19.02 row v1.17 604f45d ✓; S-19.07 row v1.16 534c85c ✓; wave-summary Input-hashes aggregation corrected and consistent with per-row; Pass-35 clause prepended to update chain.
+
+**Dim-7 (routing discipline):** SM-only burst. All changes are governance artifacts: adv report persist, decision-log codification, lessons codification, INDEX.md convergence advance, STORY-INDEX wave-summary aggregation correction (policy-sweep fix — state-manager scope per F-P36-001 CLOSED routing), policies.yaml POLICY 5 extension, burst-log entry, STATE.md pipeline advance. No PO/SW legs required — no spec content changes, no story body changes, no BC modifications. Correct specialist throughout.
+
+**Dim-5 8-block self-verification:**
+- [x] Block 1 — Parent-commit (`9ea11745` D-790 sha-patch)
+- [x] Block 2 — Adversary verdict (source-attested from adv-E19-pass-36.md; NOT-CLEAN B0/H0/M1/L0; 1 finding)
+- [x] Block 3 — Files touched (8 files; SM-only leg)
+- [x] Block 4 — Codifications (D-791; F-P36-001 CLOSED; POLICY 5 v1.3.7 category-(i); L-BB lesson)
+- [x] Block 5 — Dim-2 literal-shell gates with captured stdout (Gates i–v per D-449(a))
+- [x] Block 6 — Dim-5/6/7 Attestations + 8-block self-verification (this block)
+- [x] Block 7 — Closes
+- [x] Block 8 — Factory-artifacts commits
+
+### Block 7 — Closes
+
+| Finding | Status | Notes |
+|---------|--------|-------|
+| F-P36-001 (MEDIUM) | CLOSED | STORY-INDEX v4.167→v4.168: S-19.02 d208e66→604f45d; S-19.07 83e8cc4→534c85c; Pass-35 clause prepended to wave-summary update chain |
+| POLICY 5 gap (category-(i) absent) | CODIFIED | policies.yaml v1.4.1→v1.4.2: POLICY 5 v1.3.7 category-(i) added; same-file aggregation cells enumerated as sibling sites |
+
+NEXT: E-19 adversary pass-37 (fresh context; perimeter = D-791 delta: STORY-INDEX v4.168 wave-summary Input-hashes correction + policies.yaml v1.4.2 POLICY 5 v1.3.7 category-(i) codification; full E-19 suite carries forward at D-791 versions; adversary rubric: policies.yaml v1.4.2).
+
+### Block 8 — Factory-artifacts commits
+
+| Commit | SHA | Description |
+|--------|-----|-------------|
+| D-791 burst (atomic) | `pending` | state(D-791): E-19 adv pass-36 NOT-CLEAN B0/H0/M1/L0 CLOSED; F-P36-001 wave-summary Input-hashes corrected; POLICY 5 v1.3.7 category-(i) codified; STORY-INDEX v4.168; policies.yaml v1.4.2; STATE.md v5.42 447 lines; streak 0/3; pass-37 NEXT |
+| D-791 sha-patch | `pending` | state(D-791-sha-patch): Active Branches → actual D-791 burst SHA + burst-log Block 8 SHA fill (D-447(c)+D-449(e)) |

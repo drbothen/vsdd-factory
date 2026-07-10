@@ -5792,3 +5792,33 @@ The BC-INDEX gap (F-P24-002) compounded the issue: even if a reviewer knew to ch
 3. State-manager: in burst-log Dim-2, include per-anchor existence grep results for any §Decision N / Deliverable DN / VP-NNN anchors written in the fix burst.
 
 **Cites:** D-790, adv-E19-pass-35.md (F-P35-001 HIGH), BC-4.13.001 v1.14, ADR-025 v1.12, D-789 (fix-introduces-adjacent-defect escape class origination).
+
+---
+
+## L-BB-same-file-aggregation-cells-are-sibling-sites [process-gap] [codified D-791]
+
+**Category:** process-gap
+
+**Status:** codified (D-791)
+
+**Lesson:** Same-file aggregation cells that restate per-row values (delivery summaries, "All N distinct" attestations, wave-summary Input-hashes lines, index aggregation paragraphs) are sibling sites of the per-row cells they duplicate. When a per-row cell is bumped during a fix burst, ALL same-file aggregation cells duplicating that value MUST be swept in the same burst. Failure is MEDIUM with [regression] tag.
+
+**Context:** STORY-INDEX v4.167 contains a wave-summary blockquote (`> **E-19 delivery:** ...`) with an `Input-hashes:` line that aggregates the per-row input-hash values for all 7 E-19 stories. At D-790, the per-row cells for S-19.02 (→604f45d) and S-19.07 (→534c85c) were correctly updated, but the wave-summary `Input-hashes:` aggregation line still showed `S-19.02=d208e66` and `S-19.07=83e8cc4` (two-version-stale values). Additionally, the `(Pass-NN updates:...)` chain did not include a Pass-35 entry. The adversary caught this at pass-36 as F-P36-001 MEDIUM.
+
+**Root cause:** POLICY 5 v1.3.5 Part C sibling-sweep categories (a)–(h) enumerate 8 explicit site types but do not cover same-file aggregation cells. The D-790 fix executor swept per-row cells (correctly, per categories (a)–(h)) but had no enumerated category to check for same-file aggregation lines. The gap is structural: aggregation cells are downstream of per-row cells, are in the same file, but use a different syntactic form (blockquote paragraph vs table row) that evades the per-row sweep pattern.
+
+**Failure mode:** Fix burst updates per-row cells (table rows in a story-index or epic) and declares sweep complete. An aggregation paragraph or delivery summary in the same file restates the old values and is not swept because (1) it's not a table row, (2) POLICY 5 category enumeration doesn't cover it explicitly, and (3) the fix-burst executor doesn't think to look beyond the table rows. Fresh-context adversary catches the stale aggregation cell in the next pass.
+
+**Gate (D-791 codification — POLICY 5 v1.3.7 category-(i)):** When any per-row cell containing version/hash/count data is bumped in a fix burst, before declaring sweep complete:
+1. Search the SAME FILE for blockquote paragraphs, delivery summaries, aggregation lines, or "All N distinct" attestations that may duplicate the changed value.
+2. Grep: `grep -nE 'S-NN\.MM=<old_hash>' <file>` (or equivalent) to find all same-file occurrences of the old value.
+3. If any aggregation cell is found with the stale value, update it in the same burst.
+4. Also check for completeness of any `(Pass-NN updates: ...)` chain — prepend the current pass clause.
+5. Capture grep stdout per D-449(a) and include in burst-log Dim-2.
+
+**Prevention:**
+1. Whenever a per-row hash/version cell is updated, immediately grep the whole file for the old value to find aggregation sites.
+2. Update the `(Pass-NN updates: ...)` chain in any aggregation paragraph in the same burst as the per-row update.
+3. POLICY 5 category (i) now mandates this sweep — the adversary will check aggregation cells explicitly from pass-37 onward.
+
+**Cites:** D-791, adv-E19-pass-36.md (F-P36-001 MEDIUM), STORY-INDEX v4.168, POLICY 5 v1.3.7 (policies.yaml v1.4.2).

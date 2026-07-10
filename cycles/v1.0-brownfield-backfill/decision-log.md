@@ -7390,3 +7390,56 @@ D-790-E19-ADV-PASS-35-NOT-CLEAN-CLOSED
 ### Date
 
 2026-07-09
+
+## D-791 — E-19 Adversarial Pass-36 Closure (NOT-CLEAN B0/H0/M1/L0; F-P36-001 disposition; POLICY 5 v1.3.7 category-(i) codification; streak 0/3)
+
+### Decision
+
+E-19 adversarial cascade pass-36 is NOT-CLEAN. Verdict: BLOCKER 0 / HIGH 0 / MEDIUM 1 / LOW 0 (1 finding), CLOSED in this D-791 fix burst. BC-5.39.001 3-CLEAN streak: 0/3. Pass-37 required.
+
+**(1) ITEMS CLOSED.**
+
+- **F-P36-001 MEDIUM [POLICY 5 v1.3.3/v1.3.5 sibling-sweep + S-7.01 partial-fix regression]:** STORY-INDEX v4.167 wave-summary aggregation paragraph `Input-hashes:` line carries stale values `S-19.02=d208e66` (current: 604f45d) and `S-19.07=83e8cc4` (current: 534c85c). D-790 swept per-row cells (S-19.02 row: v1.17/604f45d; S-19.07 row: v1.16/534c85c) but missed the same-file aggregation line because POLICY 5 categories (a)–(h) do not enumerate same-file aggregation cells as a sibling-sweep category. Additionally, the trailing `(Pass-NN updates: ...)` chain lacked a Pass-35 clause. Escape class: novel sub-route of META-33. Fix: SM STORY-INDEX v4.167→v4.168 (Input-hashes: S-19.02=d208e66→604f45d; S-19.07=83e8cc4→534c85c; Pass-35 clause prepended). POLICY 5 v1.3.7 codification: category (i) same-file aggregation cells appended to policies.yaml v1.4.1→v1.4.2.
+
+**(2) FIX BURST LEG (1 SM only — no PO/SW legs this burst).**
+
+- **State-manager (STORY-INDEX + policies.yaml):** STORY-INDEX v4.167→v4.168 (wave-summary Input-hashes corrected; Pass-35 clause prepended). policies.yaml v1.4.1→v1.4.2 (POLICY 5 v1.3.7 category-(i) verification_steps entry appended). 4-index: STORY-INDEX v4.168 BUMPED; BC-INDEX v3.88 / VP-INDEX v2.55 / ARCH-INDEX v2.97 UNCHANGED (exhaustive — no BC/VP/ARCH changes in pass-36 fix). STATE.md v5.41→v5.42.
+- **State-manager (governance):** adv-E19-pass-36.md persisted. INDEX.md pass-36 row appended + Convergence Status updated. D-791 codified (this entry). L-BB-same-file-aggregation-cells-are-sibling-sites lesson appended to lessons.md. Burst-log D-791 entry appended (4 Dim blocks per TD-VSDD-099/100).
+
+**(3) D-494 4-INDEX GATE.**
+
+Literal shell execution (captured stdout — post-update):
+```
+.factory/specs/behavioral-contracts/BC-INDEX.md:version: "3.88"
+.factory/specs/verification-properties/VP-INDEX.md:version: "2.55"
+.factory/stories/STORY-INDEX.md:version: "4.168"
+.factory/specs/architecture/ARCH-INDEX.md:version: "2.97"
+```
+
+BC-INDEX v3.88 PASS (UNCHANGED — exhaustive) / VP-INDEX v2.55 PASS (UNCHANGED — exhaustive) / STORY-INDEX v4.168 PASS / ARCH-INDEX v2.97 PASS (UNCHANGED — exhaustive). D-494 gate: ZERO FAIL.
+
+**(4) INPUT-HASH VERIFICATION (POLICY 18).**
+
+No new input-hashes minted in this burst (SM-only; no story or BC content change). STORY-INDEX wave-summary now restates correct non-placeholder hashes (604f45d, 534c85c) already established at D-790. POLICY 18 satisfied.
+
+**(5) TRAJECTORY NOTE.**
+
+Pass-36 severity: B0/H1/M1/L0 (pass-35) → B0/H0/M1/L0 (pass-36). Severity improvement (2→1). Trajectory tail (passes 33–36): →4→1→2→1 (LENGTH=4 per D-433(e)). Full trajectory: 16→14→20→9→8→5→12→11→4→7→6→6→3→6→7→2→2→0→0→0→4→4→3→4→2→2→4→6→5→4→1→3→4→1→2→1.
+
+**(6) NOVELTY NOTE.**
+
+Novelty: MEDIUM. F-P36-001 reveals a novel sub-route of META-33 (sibling-sweep-inside-policy-cure): same-file aggregation cells that duplicate per-row values are distinct from the 8 categories (a)–(h) enumerated in POLICY 5 v1.3.5 Part C. Category (i) closes the enumeration gap. Lesson: same-file aggregation lines (delivery summaries, "All N distinct" attestations, wave-summary Input-hashes, index aggregation paragraphs) are sibling sites of the per-row cells they aggregate — must be swept whenever per-row cells change.
+
+**(7) NEXT: pass-37.**
+
+BC-5.39.001 3-CLEAN streak: 0/3. Pass-37 required. Perimeter = D-791 delta: STORY-INDEX v4.168 + policies.yaml v1.4.2 POLICY 5 v1.3.7 category-(i) + full E-19 suite carry-forward at D-791 versions. **Adversary rubric for pass-37 MUST cite policies.yaml v1.4.2.**
+
+Parent-commit: SW/SM chain tip `9ea11745` (per task instruction D-791 parent-commit per D-419(b)+D-420(d)+D-421(a) convention — this burst's Commit E parent is the prior leg tip).
+
+### Phase
+
+D-791-E19-ADV-PASS-36-NOT-CLEAN-CLOSED
+
+### Date
+
+2026-07-09
