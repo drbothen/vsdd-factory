@@ -16058,4 +16058,4 @@ EXIT:0 PASS. Ground-truth captured BEFORE BC-INDEX edits per L-BB-per-artifact-c
 
 | Commit | SHA | Contents |
 |--------|-----|----------|
-| D-800 SM single-commit burst (TD-VSDD-053) | TBD (SHA-patch after push) | adv-E19-pass-44.md NEW; BC-INDEX v3.93; decision-log D-800; lessons L-BB; STATE.md v5.50→v5.51 478 lines; burst-log this entry; streak UNCHANGED 0/3; trajectory →0→3→5→2; pass-45 NEXT |
+| D-800 SM single-commit burst (TD-VSDD-053) | `ec628fa6` | adv-E19-pass-44.md NEW; BC-INDEX v3.93; decision-log D-800; lessons L-BB; STATE.md v5.50→v5.51 478 lines; burst-log this entry; streak UNCHANGED 0/3; trajectory →0→3→5→2; pass-45 NEXT |
