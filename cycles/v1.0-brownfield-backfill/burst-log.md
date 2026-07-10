@@ -15916,4 +15916,4 @@ NEXT: E-19 adversary pass-44 (fresh context; Iron Law; rubric policies.yaml v1.4
 | D-799 PO BC-3.08.001 v1.20→v1.21 | `ad464e09` | BC-3.08.001 v1.20→v1.21 (F-P43-003/005 VP-100 row verbatim-fix + v1.19 Changelog backfill; O-P43-001 last_amended chain form) |
 | D-799 Architect VP-098/100/101 v1.1→v1.2 | `421a9e1f` | VP-098/100/101 v1.1→v1.2 (F-P43-004 PC cite corrections; O-P43-002 VP-100 field enumeration + anchor referent fix; input-hash a2de4e4→6565e01) |
 | D-799 SW S-19.05+epic cite sweeps | `fbf344da` | S-19.05 v1.15→v1.16 + epic v1.24→v1.25 (BC-3.08.001 v1.20→v1.21 cite sweeps) |
-| D-799 SM closure leg (Commit E) | `PENDING-SHA` | adv-E19-pass-43.md; D-799 decision-log; lessons (2); BC-INDEX v3.92; VP-INDEX v2.57; STORY-INDEX v4.172; policies.yaml v1.4.3; STATE.md v5.49→v5.50 476 lines; burst-log this entry; streak UNCHANGED 0/3; trajectory →1→0→3→5; pass-44 NEXT |
+| D-799 SM closure leg (Commit E) | `744885bd` | adv-E19-pass-43.md; D-799 decision-log; lessons (2); BC-INDEX v3.92; VP-INDEX v2.57; STORY-INDEX v4.172; policies.yaml v1.4.3; STATE.md v5.49→v5.50 476 lines; burst-log this entry; streak UNCHANGED 0/3; trajectory →1→0→3→5; pass-44 NEXT |
