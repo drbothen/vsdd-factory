@@ -78,4 +78,10 @@ fi
 
 # Step 4: Delegate to gh pr merge, propagating its exit code.
 # Invariant 4: non-release branches pass caller-supplied flag unchanged.
-gh pr merge "${PR_NUMBER}" ${MERGE_FLAG}
+# Quote MERGE_FLAG when non-empty; omit entirely when empty (no flag supplied
+# for a non-release branch) so gh does not receive a spurious empty argument.
+if [[ -n "${MERGE_FLAG}" ]]; then
+    gh pr merge "${PR_NUMBER}" "${MERGE_FLAG}"
+else
+    gh pr merge "${PR_NUMBER}"
+fi
