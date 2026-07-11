@@ -9795,3 +9795,85 @@ D-823-E19-ADV-PASS-61-CLEAN-3-OF-3-CONVERGED
 ### Date
 
 2026-07-11
+
+---
+
+## D-824 — PRE-W1-INPUT-DRIFT-GATE-RESOLVED (POLICY 18 bookkeeping; 6 E-19 artifact input-hashes acknowledged post-convergence)
+
+### Summary
+
+PRE-W1-INPUT-DRIFT-GATE-RESOLVED. POLICY 18 bookkeeping burst. 6 E-19 artifact input-hashes acknowledged post-convergence (hash-bookkeeping lag; semantic content verified by 3-CLEAN adversary cascade passes 59+60+61). 4-index ALL UNCHANGED. W1 TDD pending human gate approval.
+
+### Decision
+
+**(1) POLICY 16 GLOBAL-MAX GATE (literal-shell):**
+
+```
+grep -n "^## D-" .factory/cycles/v1.0-brownfield-backfill/decision-log.md | tail -3
+```
+
+Output: `9687:## D-823 — E-19 Adversarial Pass-61 CLEAN Closure (...)` `9793:## D-823-E19-ADV-PASS-61-CLEAN-3-OF-3-CONVERGED` (phase tag only). Max heading `## D-823` confirmed → **D-824 allocated**.
+
+**(2) POLICY 18 HASH UPDATES — per-file update+check captured stdout:**
+
+Six artifacts had STALE input-hashes post-convergence due to hash-bookkeeping lag (spec content was verified correct by 3-CLEAN adversary cascade; only hash metadata was outdated):
+
+```
+VP-095.md:  stored=55bebb2 computed=55bebb2 check_exit=0 MATCH=YES
+VP-096.md:  stored=55bebb2 computed=55bebb2 check_exit=0 MATCH=YES
+BC-4.13.001.md: stored=77bb0d1 computed=77bb0d1 check_exit=0 MATCH=YES
+BC-5.42.001.md: stored=95907cf computed=95907cf check_exit=0 MATCH=YES
+BC-2.07.001.md: stored=a694373 computed=a694373 check_exit=0 MATCH=YES
+S-19.01-pr-manager-hardening.md: stored=c9b2529 computed=c9b2529 check_exit=0 MATCH=YES
+```
+
+Hash transitions applied:
+- `VP-095.md`: ff96898 → 55bebb2 (cascade from BC-4.13.001 update)
+- `VP-096.md`: ff96898 → 55bebb2 (cascade from BC-4.13.001 update)
+- `BC-4.13.001.md`: 58518e8 → 77bb0d1
+- `BC-5.42.001.md`: 4fd18a4 → 95907cf (cascade from S-19.01 update)
+- `BC-2.07.001.md`: d31ddd5 → a694373
+- `S-19.01-pr-manager-hardening.md`: 799301c → c9b2529
+
+Cascade notes: (a) Updating BC-4.13.001 changes its content → VP-095 and VP-096 (which list BC-4.13.001 as input) computed different hashes → re-updated VP-095/VP-096. (b) Updating S-19.01 changes its content → BC-5.42.001 (which lists S-19.01 as input) computed a different hash → re-updated BC-5.42.001. Required two-pass: first update all 6 → detect 3 still-DRIFT (cascade) → update those 3 → final --check all 6 EXIT:0 MATCH.
+
+**(3) POLICY 14 GATE:**
+
+Not applicable. POLICY 18 hash-bookkeeping changes are frontmatter `input-hash:` field only — no artifact version bumps, no body content changes. Per POLICY 18 design intent: hash updates acknowledge existing semantic content; 5-leg POLICY 14 parity (version + body Changelog + modified[] + last_amended + upstream-index) is NOT required.
+
+**(4) 4-INDEX GATE (D-494; literal-shell):**
+
+```
+grep "^version:" .factory/specs/behavioral-contracts/BC-INDEX.md \
+  .factory/specs/verification-properties/VP-INDEX.md \
+  .factory/stories/STORY-INDEX.md \
+  .factory/specs/architecture/ARCH-INDEX.md
+```
+
+Output:
+```
+.factory/specs/verification-properties/VP-INDEX.md:version: "2.64"
+.factory/specs/architecture/ARCH-INDEX.md:version: "3.00"
+.factory/specs/behavioral-contracts/BC-INDEX.md:version: "3.95"
+.factory/stories/STORY-INDEX.md:version: "4.176"
+```
+
+ALL UNCHANGED: BC v3.95 / VP v2.64 / STORY v4.176 / ARCH v3.00. ✓
+
+**(5) PERPETUAL-DRIFT-INPUT PROCESS NOTE:**
+
+S-19.01 input-hash (799301c→c9b2529) is a perpetual-drift candidate: the story is a W1 TDD target and will be amended during TDD cycles. Each story amendment will cause BC-5.42.001 (which lists S-19.01 as input) to re-drift. Process: re-run `compute-input-hash S-19.01 --update` + `compute-input-hash BC-5.42.001 --update` after each S-19.01 TDD cycle and before the next adversary pass. Lesson to capture in lessons.md at S-19.01 story close: stories with active TDD cycles require re-hash after each merge cycle.
+
+BC-4.13.001 input-hash (58518e8→77bb0d1): BC-INDEX.md does not list BC-4.13.001 as a direct input; no BC-INDEX hash update required (BC-INDEX derives from BC file version rows, not input-hash fields).
+
+**(6) STATE.md v5.69→v5.70:**
+
+STATE.md updated: version 5.70; timestamp 2026-07-11T08:00:00Z; phase D-824-PRE-W1-INPUT-DRIFT-GATE-RESOLVED; D-824 Decision row inserted; D-824 Current Phase Steps row added; Session Resume Checkpoint updated to drift-RESOLVED state; Active Branches factory-artifacts placeholder updated; Concurrent Cycles row updated; Decisions Log header D-607..D-823 → D-607..D-824. burst-log D-824 appended.
+
+### Phase
+
+D-824-PRE-W1-INPUT-DRIFT-GATE-RESOLVED
+
+### Date
+
+2026-07-11

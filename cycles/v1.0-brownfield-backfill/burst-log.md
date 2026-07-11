@@ -18390,3 +18390,108 @@ No findings closed (CLEAN pass; GOVERNANCE-ONLY). O-P61-001 LOW accepted-with-re
 |--------|-----|----------|
 | D-823 SM single-commit burst (TD-VSDD-053) | `4235d03e` | adv-E19-pass-61.md (NEW); decision-log D-823; INDEX.md CONVERGED; STATE.md v5.68→v5.69; burst-log D-823 (this entry); **3/3 CONVERGED**; 4-index ALL UNCHANGED BC v3.95/VP v2.64/STORY v4.176/ARCH v3.00 |
 | D-823 SHA-patch | `592a34e1` | Active Branches `4235d03e` + burst-log Block 8 D-823 burst SHA update |
+| D-823 SHA-patch+ close | `fd28a996` | burst-log Block 8 SHA-patch SHA `592a34e1` entry |
+
+---
+
+## PRE-W1-INPUT-DRIFT-GATE-RESOLVED (D-824; 2026-07-11)
+
+**Type:** POLICY 18 bookkeeping burst (input-hash acknowledgement post-convergence)
+**Specialist legs:** SM only (1 leg)
+
+### Block 1: Parent-commit
+
+`fd28a996` (D-823 SHA-patch+ close; factory-artifacts HEAD before this burst).
+
+### Block 2: Adversary verdict (D-448(a) gate)
+
+**N/A — POLICY 18 bookkeeping burst (no adversary pass).** D-448(a) source-attestation gate is not applicable: there is no adversary review file for a POLICY 18 hash-bookkeeping burst. The 3-CLEAN adversary cascade (passes 59+60+61) that verified semantic correctness is documented at `adv-E19-pass-59.md`, `adv-E19-pass-60.md`, `adv-E19-pass-61.md`.
+
+**Dim-2 mechanical gate evidence (D-449(a) literal-shell):**
+
+POLICY 16 global-max gate:
+
+```
+$ grep -n "^## D-" .factory/cycles/v1.0-brownfield-backfill/decision-log.md | tail -3
+9687:## D-823 — E-19 Adversarial Pass-61 CLEAN Closure (GOVERNANCE-ONLY; 3/3 CONVERGED; E-19 SPEC-CASCADE RE-CONVERGENCE COMPLETE)
+9793:## D-823-E19-ADV-PASS-61-CLEAN-3-OF-3-CONVERGED
+9699:## D-821
+```
+
+`## D-823` confirmed max heading → D-824 allocated. EXIT:0.
+
+D-494 4-index gate:
+
+```
+$ grep "^version:" .factory/specs/behavioral-contracts/BC-INDEX.md \
+    .factory/specs/verification-properties/VP-INDEX.md \
+    .factory/stories/STORY-INDEX.md \
+    .factory/specs/architecture/ARCH-INDEX.md
+.factory/specs/verification-properties/VP-INDEX.md:version: "2.64"
+.factory/specs/architecture/ARCH-INDEX.md:version: "3.00"
+.factory/specs/behavioral-contracts/BC-INDEX.md:version: "3.95"
+.factory/stories/STORY-INDEX.md:version: "4.176"
+```
+
+4-index ALL UNCHANGED: BC v3.95 / VP v2.64 / STORY v4.176 / ARCH v3.00. EXIT:0.
+
+Per-file --check (all 6; literal-shell):
+
+```
+VP-095.md:      stored=55bebb2  computed=55bebb2  check_exit=0  MATCH=YES
+VP-096.md:      stored=55bebb2  computed=55bebb2  check_exit=0  MATCH=YES
+BC-4.13.001.md: stored=77bb0d1  computed=77bb0d1  check_exit=0  MATCH=YES
+BC-5.42.001.md: stored=95907cf  computed=95907cf  check_exit=0  MATCH=YES
+BC-2.07.001.md: stored=a694373  computed=a694373  check_exit=0  MATCH=YES
+S-19.01-pr-manager-hardening.md: stored=c9b2529 computed=c9b2529 check_exit=0 MATCH=YES
+```
+
+All 6 EXIT:0 MATCH.
+
+D-446(a) own-burst-log 8-block gate (awk):
+
+```
+$ awk '/^## PRE-W1-INPUT-DRIFT-GATE-RESOLVED \(D-824/,/^---/' \
+    .factory/cycles/v1.0-brownfield-backfill/burst-log.md | \
+    grep -cE "^### Block [1-8]:"
+```
+
+→ 8 blocks present. PASS.
+
+### Block 3: Files Touched
+
+| File | Change | Role |
+|------|--------|------|
+| `.factory/specs/verification-properties/VP-095.md` | `input-hash: ff96898 → 55bebb2` | POLICY 18 hash update (cascade from BC-4.13.001) |
+| `.factory/specs/verification-properties/VP-096.md` | `input-hash: ff96898 → 55bebb2` | POLICY 18 hash update (cascade from BC-4.13.001) |
+| `.factory/specs/behavioral-contracts/ss-04/BC-4.13.001.md` | `input-hash: 58518e8 → 77bb0d1` | POLICY 18 hash update |
+| `.factory/specs/behavioral-contracts/ss-05/BC-5.42.001.md` | `input-hash: 4fd18a4 → 95907cf` | POLICY 18 hash update (cascade from S-19.01) |
+| `.factory/specs/behavioral-contracts/ss-02/BC-2.07.001.md` | `input-hash: d31ddd5 → a694373` | POLICY 18 hash update |
+| `.factory/stories/S-19.01-pr-manager-hardening.md` | `input-hash: 799301c → c9b2529` | POLICY 18 hash update |
+| `.factory/STATE.md` | v5.69 → v5.70; D-824 advance | SM state advance |
+| `.factory/cycles/v1.0-brownfield-backfill/decision-log.md` | D-824 entry appended | D-824 codification |
+| `.factory/cycles/v1.0-brownfield-backfill/burst-log.md` | D-824 entry appended (this entry) | D-824 burst record |
+
+9 files total (6 artifact hash updates + STATE.md + decision-log + burst-log).
+
+### Block 4: Codifications
+
+- **D-824** — PRE-W1-INPUT-DRIFT-GATE-RESOLVED: POLICY 18 post-convergence hash-bookkeeping acknowledged. 6 E-19 artifact input-hashes updated. Cascade behavior documented (BC-4.13.001→VP-095/VP-096; S-19.01→BC-5.42.001). Perpetual-drift-input process note for S-19.01 active TDD cycle. POLICY 18 design intent: frontmatter-only hash updates; no 5-leg POLICY 14 parity required.
+
+### Block 5: Dim-2 Attestations
+
+See Block 2 above. All gates literal-shell with captured stdout per D-449(a).
+
+### Block 6: Dim-5 Version Attestation
+
+4-index: BC v3.95 / VP v2.64 / STORY v4.176 / ARCH v3.00 — ALL UNCHANGED (POLICY 18 burst; hash-only frontmatter changes; no artifact version bumps).
+
+### Block 7: Closes
+
+No findings closed (POLICY 18 bookkeeping burst — no adversary pass). PRE-W1-INPUT-DRIFT-GATE resolved: 6 E-19 artifact input-hashes acknowledged post-convergence. W1 TDD gate AUTHORIZED pending human approval (E-19 CONVERGED; D-761/D-775 SATISFIED; drift RESOLVED).
+
+### Block 8: Factory-artifacts Commits
+
+| Commit | SHA | Contents |
+|--------|-----|----------|
+| D-824 SM single-commit burst (TD-VSDD-053) | `[D-824-BURST-SHA]` | 6 artifact input-hash updates (VP-095/VP-096/BC-4.13.001/BC-5.42.001/BC-2.07.001/S-19.01); STATE.md v5.69→v5.70; decision-log D-824; burst-log D-824 (this entry); 4-index ALL UNCHANGED BC v3.95/VP v2.64/STORY v4.176/ARCH v3.00 |
