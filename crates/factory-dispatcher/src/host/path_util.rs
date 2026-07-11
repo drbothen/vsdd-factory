@@ -10,6 +10,22 @@
 
 use std::path::{Path, PathBuf};
 
+/// Result of the two-step path allowlist check (architect Ruling-2 / S-19.03 AC-001).
+///
+/// Shared by `read_file.rs` and `write_file.rs` — both use the same two-step
+/// decomposed pattern with distinct reason tokens per the Architecture Mapping.
+#[derive(Debug, PartialEq, Eq)]
+pub enum PathAllowDecision {
+    /// Path resolved and lies within an allowed prefix.
+    Allowed,
+    /// Ancestor-walk failed to canonicalize any ancestor — filesystem/traversal error.
+    /// Caller emits `internal.capability_denied reason=path_resolution_failed`.
+    DeniedResolutionFailed,
+    /// Path resolved successfully but lies outside all allowed prefixes.
+    /// Caller emits `internal.capability_denied reason=path_not_allowed`.
+    DeniedNotAllowed,
+}
+
 /// Resolve a target path for allowlist comparison using an ancestor-walk + rejoin
 /// algorithm, canonicalizing to defeat `..` traversal attacks.
 ///

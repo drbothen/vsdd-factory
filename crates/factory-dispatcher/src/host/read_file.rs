@@ -19,7 +19,7 @@ use wasmtime::Linker;
 
 use crate::internal_log::InternalEvent;
 use super::memory::{read_wasm_string, write_wasm_bytes, write_wasm_u32};
-use super::path_util::resolve_path_for_allowlist;
+use super::path_util::{PathAllowDecision, resolve_path_for_allowlist};
 use super::{HostCallError, HostCaller, HostContext, codes};
 
 pub fn register(linker: &mut Linker<HostContext>) -> Result<(), HostCallError> {
@@ -133,18 +133,6 @@ pub(crate) fn prepare(
         }
         Err(ReadErr::Other) => Err(codes::INTERNAL_ERROR),
     }
-}
-
-/// Result of the two-step path allowlist check (architect Ruling-2).
-enum PathAllowDecision {
-    /// Path resolved and lies within an allowed prefix.
-    Allowed,
-    /// Ancestor-walk failed to canonicalize any ancestor — filesystem/traversal error.
-    /// Caller emits `internal.capability_denied reason=path_resolution_failed`.
-    DeniedResolutionFailed,
-    /// Path resolved successfully but lies outside all allowed prefixes.
-    /// Caller emits `internal.capability_denied reason=path_not_allowed`.
-    DeniedNotAllowed,
 }
 
 enum ReadErr {
