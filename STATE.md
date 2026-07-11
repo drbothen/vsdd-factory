@@ -154,7 +154,7 @@ dtu_services: []
 |--------------|-----|-------|
 | main | a04cb303 | rc.22 bot binary bundle commit 2026-07-03 (Release 28668124787 post-build; all 33 WASMs rebuilt, plugin.json → 1.0.0-rc.22); prior: e4285fe5 (PR #456 true-merge fix mapfile→while-read; rc.22 tag); prior: 2a4c949b (PR #455 true-merge first rc.22 release; tag later moved); prior: caf06c68 (rc.21) |
 | develop | f5242bef | rc.22 Release sync-main→develop back-merge 2026-07-03 (D-750); prior: a6cf13e8 (PR #438 D-749 registry-staged assertion) |
-| factory-artifacts | `75019cb6` (D-825 SM burst 2026-07-11) | D-824 burst `5438907e`; D-824 SHA-patch `41add6c7`; D-824 SHA-patch+ close `4d2cb00a`; D-823 SHA-patch+ close `fd28a996` |
+| factory-artifacts | `ddb3af7a` (D-826 SM burst 2026-07-11) | D-825 burst `75019cb6`; D-825 SHA-patch `ef25d67a`; D-825 SHA-patch+ close `dd578c66`; D-826 SHA-patch `9ef0a843` |
 | feature/S-18.12 | **DELETED** (was 9cbd9439) | Merged via PR #384 ec05606a 2026-07-01 (D-744); branch deleted post-merge |
 | fix/S-18.12-detector-parity-gaps | **DELETED** (was 717686f8) | Merged via PR #385 2879f473 2026-07-01 (D-746); branch deleted at merge |
 | origin/maintenance/rc22-pre-release-cleanup | **PENDING DELETION** | Safe to delete (recovery long complete); human authorization outstanding |
@@ -380,9 +380,9 @@ dtu_services: []
 - **Cascade:** `v1.0-brownfield-backfill`; 7 stories S-19.01..S-19.07 (45pts); epic `E-19`.
 - **Convergence trajectory (passes 22–61):** 4→3→4→2→2→4→6→5→4→1→3→4→1→2→1→1→0→1→1→0→3→5→2→3→1→1→0→1→1→0→1→2→0→1→1→3→2→0→0→0. Zero BLOCKER since p22. E-19 CONVERGED pass-61 CLEAN B0/H0/M0/L1 (streak 3/3; O-P61-001 LOW accepted-with-record). 12 standing gates codified (D-794..D-817). policies.yaml v1.4.6 current.
 - **W1 authorization:** **APPROVED and DISPATCHED** (human "Approve — parallel" 2026-07-11; D-825; D-773/D-774 gate satisfied; E-19 CONVERGED; POLICY 18 RESOLVED). S-19.01+S-19.02+S-19.03 active.
-- **Repo state:** develop HEAD `f5242bef`; main HEAD `a04cb303`; merged_count 98; factory-artifacts HEAD = D-825 burst (run `git -C .factory log -1 --format='%h'`). v1.0.0-rc.22 FULLY SHIPPED (marketplace #14; confirmed D-750). **E-10 CASCADE SEALED D-531 — do NOT resume. F5 PAUSED D-386 Option C — do NOT resume.**
+- **Repo state:** develop HEAD `f5242bef`; main HEAD `a04cb303`; merged_count 98; factory-artifacts HEAD = D-826 burst `ddb3af7a` (run `git -C .factory log -1 --format='%h'`). v1.0.0-rc.22 FULLY SHIPPED (marketplace #14; confirmed D-750). **E-10 CASCADE SEALED D-531 — do NOT resume. F5 PAUSED D-386 Option C — do NOT resume.**
 
-### §Artifact Versions at D-825 Closure
+### §Artifact Versions at D-826 Closure
 
 | Artifact | Version | Input-hash / Notes |
 |----------|---------|-------------------|
