@@ -938,4 +938,80 @@ mod tests {
             Some("READY_SHA_MISSING")
         );
     }
+
+    // ── S-19.01 additional Red Gate: boundary conditions for has_ready_verdict ──
+    // BC-5.42.001 EC-007: non-READY SubagentStop → hook does not apply.
+
+    /// S-19.01 Red Gate: has_ready_verdict returns false when no READY token is present.
+    /// EC-007: hook must not fire on non-READY SubagentStop messages.
+    /// Panics with todo!() until implemented (Red Gate).
+    #[test]
+    fn test_s19_01_has_ready_verdict_no_token_red_gate() {
+        // Intentionally calls todo!() — test MUST FAIL until implemented.
+        assert!(!has_ready_verdict(
+            "PR #42 review complete. No READY token present in this message."
+        ));
+    }
+
+    // ── S-19.01 additional Red Gate: boundary conditions for has_valid_covered_sha ──
+    // BC-5.42.001 Invariant 5: exactly 40 lowercase hex characters required.
+    // EC-002: 40 chars but non-lowercase hex → same as absent (READY_SHA_MISSING).
+
+    /// S-19.01 Red Gate: has_valid_covered_sha rejects 40-char uppercase hex (BC-5.42.001 Invariant 5 / EC-002).
+    /// Uppercase hex is not valid lowercase hex — must return false.
+    /// Panics with todo!() until implemented (Red Gate).
+    #[test]
+    fn test_s19_01_has_valid_covered_sha_uppercase_red_gate() {
+        // Intentionally calls todo!() — test MUST FAIL until implemented.
+        let uppercase_sha = "A".repeat(40);
+        assert!(!has_valid_covered_sha(&format!(
+            "covered_sha: {uppercase_sha}"
+        )));
+    }
+
+    /// S-19.01 Red Gate: has_valid_covered_sha rejects SHA shorter than 40 chars (BC-5.42.001 Invariant 5).
+    /// Wrong length (even valid hex chars) → must return false.
+    /// Panics with todo!() until implemented (Red Gate).
+    #[test]
+    fn test_s19_01_has_valid_covered_sha_too_short_red_gate() {
+        // Intentionally calls todo!() — test MUST FAIL until implemented.
+        assert!(!has_valid_covered_sha("covered_sha: abc123"));
+    }
+
+    /// S-19.01 Red Gate: has_valid_covered_sha rejects 40-char non-hex string (BC-5.42.001 Invariant 5).
+    /// Non-hex characters (e.g., 'z') are invalid — must return false.
+    /// Panics with todo!() until implemented (Red Gate).
+    #[test]
+    fn test_s19_01_has_valid_covered_sha_nonhex_red_gate() {
+        // Intentionally calls todo!() — test MUST FAIL until implemented.
+        let nonhex = "z".repeat(40); // 'z' is not a valid hex character
+        assert!(!has_valid_covered_sha(&format!("covered_sha: {nonhex}")));
+    }
+
+    // ── S-19.01 additional Red Gate: boundary conditions for check_ready_sha_completeness ──
+    // BC-5.42.001 PC-1 positive path: READY verdict with valid covered_sha → no advisory.
+    // BC-5.42.001 EC-007: no READY verdict → no advisory.
+
+    /// S-19.01 Red Gate: check_ready_sha_completeness returns None when READY verdict carries valid covered_sha.
+    /// PC-1 positive path: no advisory emitted when field is present and well-formed.
+    /// Panics with todo!() until implemented (Red Gate).
+    #[test]
+    fn test_s19_01_check_ready_sha_completeness_with_valid_sha_red_gate() {
+        // Intentionally calls todo!() — test MUST FAIL until implemented.
+        let sha40 = "a".repeat(40);
+        let text = format!("READY: PR #42 covered_sha: {sha40}");
+        assert_eq!(check_ready_sha_completeness(&text), None);
+    }
+
+    /// S-19.01 Red Gate: check_ready_sha_completeness returns None when no READY verdict present (EC-007).
+    /// Hook must not fire on non-READY SubagentStop messages — no READY_SHA_MISSING emitted.
+    /// Panics with todo!() until implemented (Red Gate).
+    #[test]
+    fn test_s19_01_check_ready_sha_completeness_no_ready_verdict_red_gate() {
+        // Intentionally calls todo!() — test MUST FAIL until implemented.
+        assert_eq!(
+            check_ready_sha_completeness("PR review complete. No READY token here."),
+            None
+        );
+    }
 }
