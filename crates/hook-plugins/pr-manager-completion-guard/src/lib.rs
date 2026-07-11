@@ -209,14 +209,44 @@ where
         .or(payload.result.as_deref())
         .unwrap_or("");
 
-    // T-4: STEP_COMPLETE count >= 8 → pass (BC-7.03.046 / AC-003 / EC-005)
-    let step_count = count_step_complete_lines(result);
-    if step_count >= 8 {
+    // T-5: BLOCKED detection (BC-7.03.047 / AC-004)
+    if is_blocked(result) {
         return HookResult::Continue;
     }
 
-    // T-5: BLOCKED detection (BC-7.03.047 / AC-004)
-    if is_blocked(result) {
+    // S-19.01: READY verdict covered_sha completeness check (BC-5.42.001 part a).
+    // Runs before the step count gate so it fires on complete (8+ step) verdicts
+    // that carry a READY token without a valid covered_sha field.
+    if let Some(advisory_code) = check_ready_sha_completeness(result) {
+        emit(
+            "hook.block",
+            &[
+                ("hook", "pr-manager-completion-guard"),
+                ("matcher", "SubagentStop"),
+                ("reason", advisory_code),
+                ("subagent", agent),
+            ],
+        );
+        let stderr_msg = format!(
+            "\npr-manager-completion-guard: READY verdict missing covered_sha.\n\
+             \n\
+             A READY verdict token was detected but no valid covered_sha: <40-hex>\n\
+             field is present (BC-5.42.001 Invariant 5 / ADR-030 §Decision 1).\n\
+             \n\
+             Advisory code: {}\n\
+             \n\
+             Re-emit the READY verdict with covered_sha: <40-lowercase-hex> recording\n\
+             the PR's headRefOid at assessment time (BC-5.42.001 PC-1).\n",
+            advisory_code
+        );
+        block_stderr(&stderr_msg);
+        println!(r#"{{"outcome":"block","reason":"{}"}}"#, advisory_code);
+        return HookResult::Continue;
+    }
+
+    // T-4: STEP_COMPLETE count >= 8 → pass (BC-7.03.046 / AC-003 / EC-005)
+    let step_count = count_step_complete_lines(result);
+    if step_count >= 8 {
         return HookResult::Continue;
     }
 
@@ -273,7 +303,7 @@ where
 }
 
 // ---------------------------------------------------------------------------
-// S-19.01: READY-verdict covered_sha completeness inspection (Red Gate stubs)
+// S-19.01: READY-verdict covered_sha completeness inspection
 //
 // These three functions extend the SubagentStop hook to enforce BC-5.42.001
 // part (a): every READY verdict must carry a valid covered_sha field.
@@ -285,37 +315,54 @@ where
 
 /// Detect a READY verdict token in `text`.
 ///
-/// Returns true when `text` contains a READY verdict (e.g., a line starting
-/// with "READY:" or containing a structured READY verdict token). Used by the
-/// SubagentStop hook to scope the covered_sha inspection to READY-verdict
-/// stop events only (BC-5.42.001 part a; ADR-030 §Decision 1 Trigger).
-///
-/// Non-READY stops pass through without inspection (BC-5.42.001 EC-007).
-pub fn has_ready_verdict(_text: &str) -> bool {
-    todo!("S-19.01: has_ready_verdict — Red Gate stub; implement in story delivery step")
+/// Returns true when `text` contains a READY verdict — specifically, any line
+/// that starts (after optional whitespace) with "READY:" (BC-5.42.001 part a;
+/// ADR-030 §Decision 1 Trigger). Non-READY stops pass through (EC-007).
+pub fn has_ready_verdict(text: &str) -> bool {
+    use regex::RegexBuilder;
+    // Multiline: match any line that starts (after optional whitespace) with "READY"
+    // followed by ":" or whitespace. This covers:
+    //   "READY: PR #42 ..."  (colon-form from pr-manager verdict)
+    //   "READY verdict ..."  (space-form)
+    // Non-line-start occurrences (e.g., "No READY token") do NOT match.
+    let re = RegexBuilder::new(r"(?m)^\s*READY[:\s]")
+        .build()
+        .expect("READY verdict regex is valid");
+    re.is_match(text)
 }
 
 /// Validate `covered_sha: <40-lowercase-hex>` presence in `text`.
 ///
-/// Returns true if `text` contains a `covered_sha:` key followed by exactly
-/// 40 lowercase hexadecimal characters (BC-5.42.001 Invariant 5 format rule).
-/// Returns false for absent field, wrong length, non-hex characters, or
-/// uppercase hex — all malformed cases trigger READY_SHA_MISSING per EC-002.
-pub fn has_valid_covered_sha(_text: &str) -> bool {
-    todo!("S-19.01: has_valid_covered_sha — Red Gate stub; implement in story delivery step")
+/// Returns true if `text` contains a `covered_sha:` key followed by optional
+/// whitespace and then exactly 40 lowercase hexadecimal characters
+/// (BC-5.42.001 Invariant 5 format rule). Returns false for absent field,
+/// wrong length, non-hex characters, or uppercase hex — all malformed cases
+/// trigger READY_SHA_MISSING per EC-002.
+pub fn has_valid_covered_sha(text: &str) -> bool {
+    use regex::Regex;
+    // Match "covered_sha:" followed by whitespace and exactly 40 lowercase hex chars,
+    // followed by a non-hex character or end of string/line (to prevent 41+ char false-positives).
+    let re = Regex::new(r"covered_sha:\s+([0-9a-f]{40})(?:[^0-9a-f]|$)")
+        .expect("covered_sha regex is valid");
+    re.is_match(text)
 }
 
-/// Check READY verdict covered_sha completeness; emit advisory code if missing.
+/// Check READY verdict covered_sha completeness; return advisory code if missing.
 ///
 /// Returns `Some("READY_SHA_MISSING")` when `text` contains a READY verdict
-/// but lacks a valid `covered_sha:` field — the hook emits this advisory code
-/// in the block event (BC-5.42.001 PC-1; ADR-030 §Decision 1 Behavior).
+/// but lacks a valid `covered_sha:` field (BC-5.42.001 PC-1; ADR-030 §Decision 1).
 ///
 /// Returns `None` when:
 /// - No READY verdict is present in `text` (hook does not apply; EC-007)
 /// - READY verdict is present AND a valid covered_sha field exists (no advisory)
-pub fn check_ready_sha_completeness(_text: &str) -> Option<&'static str> {
-    todo!("S-19.01: check_ready_sha_completeness — Red Gate stub; implement in story delivery step")
+pub fn check_ready_sha_completeness(text: &str) -> Option<&'static str> {
+    if !has_ready_verdict(text) {
+        return None;
+    }
+    if has_valid_covered_sha(text) {
+        return None;
+    }
+    Some("READY_SHA_MISSING")
 }
 
 // ---------------------------------------------------------------------------
