@@ -23,7 +23,7 @@ use serde_json::{Map, Value};
 use wasmtime::Linker;
 
 use super::memory::read_wasm_bytes;
-use super::path_util::{PathAllowDecision, resolve_path_for_allowlist};
+use super::path_util::{PathAllowDecision, check_path_allowed};
 use super::{HostCallError, HostCaller, HostContext, codes};
 
 pub fn register(linker: &mut Linker<HostContext>) -> Result<(), HostCallError> {
@@ -126,48 +126,6 @@ fn resolve_for_write(path: &Path, base: &Path) -> PathBuf {
     } else {
         base.join(path)
     }
-}
-
-/// Two-step allowlist check for write_file (architect Ruling-2 / S-19.03 sibling-sweep).
-///
-/// Mirrors `read_file::check_path_allowed`. Write targets may not exist yet (new file
-/// creation is normal), so the shared `path_util::resolve_path_for_allowlist` is used
-/// which handles absent files via ancestor-walk+rejoin — same algorithm as read_file.
-///
-/// Returns `DeniedResolutionFailed` when no ancestor canonicalizes (structurally
-/// impossible on real Unix; testable via mock per BC-2.07.001 EC-007).
-/// Returns `DeniedNotAllowed` when the path resolves but lies outside all prefixes.
-///
-/// BC-2.02.011 invariant 3 + invariant 6 (traversal defeat via starts_with).
-pub(crate) fn check_path_allowed(
-    resolved: &Path,
-    allow: &[String],
-    base: &Path,
-    canonicalize_fn: impl Fn(&Path) -> std::io::Result<PathBuf> + Copy,
-) -> PathAllowDecision {
-    let canon_resolved = match resolve_path_for_allowlist(resolved, canonicalize_fn) {
-        Some(p) => p,
-        None => return PathAllowDecision::DeniedResolutionFailed,
-    };
-
-    // Apply ancestor-walk+rejoin to the allow-list prefix too, for parity with the
-    // target resolution. This handles file-scoped entries like ".factory/wave-state.yaml"
-    // where the file may not yet exist but its parent directory does.
-    for pref in allow {
-        let pref_path = if Path::new(pref).is_absolute() {
-            PathBuf::from(pref)
-        } else {
-            base.join(pref)
-        };
-        let canon_pref = match resolve_path_for_allowlist(&pref_path, canonicalize_fn) {
-            Some(p) => p,
-            None => continue,
-        };
-        if canon_resolved.starts_with(&canon_pref) {
-            return PathAllowDecision::Allowed;
-        }
-    }
-    PathAllowDecision::DeniedNotAllowed
 }
 
 fn emit_denial(ctx: &HostContext, requested: &str, reason: &str, resolved: Option<&Path>) {

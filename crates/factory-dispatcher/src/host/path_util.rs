@@ -81,6 +81,58 @@ pub fn resolve_path_for_allowlist(
     }
 }
 
+/// Two-step allowlist check shared by `read_file.rs` and `write_file.rs`
+/// (architect Ruling-2 / S-19.03 AC-001; BC-2.07.001 Invariant 5).
+///
+/// Step 1: resolve via ancestor-walk+rejoin (handles absent files correctly,
+///   unlike `Path::canonicalize()` which returns Err for non-existent files).
+///   Returns `DeniedResolutionFailed` when even the root ancestor fails —
+///   structurally impossible on real Unix filesystems, but testable via the
+///   injectable mock (BC-2.07.001 EC-007).
+///
+/// Step 2: pure `starts_with` prefix check against each allow-list entry.
+///   Allow-list entries that are relative are expanded under `base`.
+///   Returns `DeniedNotAllowed` when the resolved path lies outside all prefixes.
+///
+/// Separating resolution failure from allowlist failure lets operators distinguish
+/// filesystem errors from genuine access-policy violations in telemetry.
+///
+/// The injectable `canonicalize_fn` (production callers pass `|p| p.canonicalize()`)
+/// makes the `DeniedResolutionFailed` arm reachable under test (BC-2.07.001 EC-007).
+pub(crate) fn check_path_allowed(
+    resolved: &Path,
+    allow: &[String],
+    base: &Path,
+    canonicalize_fn: impl Fn(&Path) -> std::io::Result<PathBuf> + Copy,
+) -> PathAllowDecision {
+    // Step 1: resolve with ancestor-walk+rejoin so absent-but-allowlisted files
+    // get a synthesized canonical path instead of an opaque resolution failure.
+    let canon_resolved = match resolve_path_for_allowlist(resolved, canonicalize_fn) {
+        Some(p) => p,
+        None => return PathAllowDecision::DeniedResolutionFailed,
+    };
+
+    // Step 2: prefix check. Allow-list entries are also resolved via ancestor-walk+rejoin
+    // so that file-scoped allow-list entries (e.g. ".factory/wave-state.yaml") work
+    // correctly even when the file does not yet exist. If the prefix's entire ancestor
+    // chain fails canonicalization, that prefix is skipped.
+    for pref in allow {
+        let pref_path = if Path::new(pref).is_absolute() {
+            PathBuf::from(pref)
+        } else {
+            base.join(pref)
+        };
+        let canon_pref = match resolve_path_for_allowlist(&pref_path, canonicalize_fn) {
+            Some(p) => p,
+            None => continue, // configured prefix's ancestors also absent — skip
+        };
+        if canon_resolved.starts_with(&canon_pref) {
+            return PathAllowDecision::Allowed;
+        }
+    }
+    PathAllowDecision::DeniedNotAllowed
+}
+
 // VP-097 Kani traversal-defense proof harness (compiled only under `cargo kani`).
 #[cfg(kani)]
 mod path_util_kani;

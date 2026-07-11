@@ -23,7 +23,7 @@
 //!     Option<PathBuf>`. Pure ancestor-walk + rejoin. Does NOT perform the
 //!     allowlist check; by design it returns `Some` even for escaping inputs
 //!     (the `..` is absorbed by ancestor canonicalization).
-//!   * [`check_path_allowed`] (in `read_file.rs`) — performs the `starts_with`
+//!   * [`check_path_allowed`] (in `path_util.rs`, shared by `read_file.rs` and `write_file.rs`) — performs the `starts_with`
 //!     containment check that is the actual traversal-defense gate.
 //!
 //! The harnesses below therefore target BOTH functions and prove the property
@@ -61,8 +61,8 @@
 
 #[cfg(kani)]
 mod proofs {
+    use crate::host::path_util::check_path_allowed;
     use crate::host::path_util::{PathAllowDecision, resolve_path_for_allowlist};
-    use crate::host::read_file::check_path_allowed;
     use std::path::{Component, Path, PathBuf};
 
     /// Maximum number of symbolic tail components appended to the base.
