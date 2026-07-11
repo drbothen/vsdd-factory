@@ -273,6 +273,52 @@ where
 }
 
 // ---------------------------------------------------------------------------
+// S-19.01: READY-verdict covered_sha completeness inspection (Red Gate stubs)
+//
+// These three functions extend the SubagentStop hook to enforce BC-5.42.001
+// part (a): every READY verdict must carry a valid covered_sha field.
+// The hook emits READY_SHA_MISSING advisory when the field is absent or malformed.
+//
+// ADR-030 §Decision 1: advisory-block-mode; on_error = "continue".
+// BC-5.42.001 Invariant 5: covered_sha must be exactly 40 lowercase hex chars.
+// ---------------------------------------------------------------------------
+
+/// Detect a READY verdict token in `text`.
+///
+/// Returns true when `text` contains a READY verdict (e.g., a line starting
+/// with "READY:" or containing a structured READY verdict token). Used by the
+/// SubagentStop hook to scope the covered_sha inspection to READY-verdict
+/// stop events only (BC-5.42.001 part a; ADR-030 §Decision 1 Trigger).
+///
+/// Non-READY stops pass through without inspection (BC-5.42.001 EC-007).
+pub fn has_ready_verdict(_text: &str) -> bool {
+    todo!("S-19.01: has_ready_verdict — Red Gate stub; implement in story delivery step")
+}
+
+/// Validate `covered_sha: <40-lowercase-hex>` presence in `text`.
+///
+/// Returns true if `text` contains a `covered_sha:` key followed by exactly
+/// 40 lowercase hexadecimal characters (BC-5.42.001 Invariant 5 format rule).
+/// Returns false for absent field, wrong length, non-hex characters, or
+/// uppercase hex — all malformed cases trigger READY_SHA_MISSING per EC-002.
+pub fn has_valid_covered_sha(_text: &str) -> bool {
+    todo!("S-19.01: has_valid_covered_sha — Red Gate stub; implement in story delivery step")
+}
+
+/// Check READY verdict covered_sha completeness; emit advisory code if missing.
+///
+/// Returns `Some("READY_SHA_MISSING")` when `text` contains a READY verdict
+/// but lacks a valid `covered_sha:` field — the hook emits this advisory code
+/// in the block event (BC-5.42.001 PC-1; ADR-030 §Decision 1 Behavior).
+///
+/// Returns `None` when:
+/// - No READY verdict is present in `text` (hook does not apply; EC-007)
+/// - READY verdict is present AND a valid covered_sha field exists (no advisory)
+pub fn check_ready_sha_completeness(_text: &str) -> Option<&'static str> {
+    todo!("S-19.01: check_ready_sha_completeness — Red Gate stub; implement in story delivery step")
+}
+
+// ---------------------------------------------------------------------------
 // Unit tests
 // ---------------------------------------------------------------------------
 
@@ -857,6 +903,39 @@ mod tests {
         assert!(
             emitted_fields.iter().any(|(k, _)| k == "subagent"),
             "subagent field must always be emitted, never omitted (AC-005)"
+        );
+    }
+
+    // ── S-19.01 Red Gate: READY-verdict covered_sha completeness stubs ────
+    // These tests FAIL (panic) until the three stub functions are implemented.
+    // They enforce the Red Gate: no S-19.01 covered_sha behavior passes before
+    // story delivery. All three functions contain todo!() bodies.
+
+    /// S-19.01 T-001 Red Gate: has_ready_verdict detects READY token.
+    /// Panics with todo!() until implemented (Red Gate).
+    #[test]
+    fn test_s19_01_has_ready_verdict_red_gate() {
+        // Intentionally calls todo!() — test MUST FAIL until implemented.
+        assert!(has_ready_verdict("READY: PR #42 covered_sha: abc..."));
+    }
+
+    /// S-19.01 T-001 Red Gate: has_valid_covered_sha detects valid 40-hex SHA.
+    /// Panics with todo!() until implemented (Red Gate).
+    #[test]
+    fn test_s19_01_has_valid_covered_sha_red_gate() {
+        // Intentionally calls todo!() — test MUST FAIL until implemented.
+        let sha40 = "a".repeat(40);
+        assert!(has_valid_covered_sha(&format!("covered_sha: {sha40}")));
+    }
+
+    /// S-19.01 T-001 Red Gate: check_ready_sha_completeness returns READY_SHA_MISSING.
+    /// Panics with todo!() until implemented (Red Gate).
+    #[test]
+    fn test_s19_01_check_ready_sha_completeness_red_gate() {
+        // Intentionally calls todo!() — test MUST FAIL until implemented.
+        assert_eq!(
+            check_ready_sha_completeness("READY verdict with no sha field"),
+            Some("READY_SHA_MISSING")
         );
     }
 }

@@ -670,3 +670,47 @@ jobs:
           bash --version | head -1
           bats plugins/vsdd-factory/tests/wave-handoff.bats
           bats plugins/vsdd-factory/tests/wave-gate-hooks.bats
+
+  bats-darwin-leg-macos:
+    # Darwin-leg interpreter discipline gate (S-19.01 AC-004; ADR-030 §Decision 3).
+    # Validates release.yml darwin-leg scripts under /bin/bash 3.2.x (Apple's
+    # patched system bash), NOT Homebrew bash 5.x, to detect bash 3.2 regressions
+    # before they reach production macOS runners.
+    #
+    # INTERPRETER DISCIPLINE: all generated temp scripts use #!/bin/bash.
+    # /bin/bash 3.2 preflight is the drift sentinel: if Apple ships a future
+    # macOS release with a different system bash, the preflight catches it.
+    #
+    # L-BB-simulation-shell-dialect-gap (D-750): this job closes the gap where
+    # scripts failed on macOS CI (bash 3.2.57) but passed locally (Homebrew 5.x).
+    #
+    # BLOCKING: required status check equivalent — same on: trigger as other jobs.
+    #
+    # S-19.01 STUB: this job is a placeholder. The actual darwin-leg bats suite
+    # will be implemented in story delivery. The job key is present to satisfy
+    # the AC-004 literal CI-config gate (O-P15-04):
+    #   grep -qE '^  bats-darwin-leg-macos:$' .github/workflows/ci.yml
+    name: bats-darwin-leg (macos, /bin/bash 3.2)
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Install bats
+        run: brew install bats-core jq
+
+      - name: Verify /bin/bash is 3.2.x (drift sentinel)
+        run: |
+          /bin/bash --version | head -1
+          /bin/bash --version | head -1 | grep -q "version 3\.2" || {
+            echo "DARWIN_LEG_WRONG_INTERPRETER: expected /bin/bash 3.2.x, got $(/bin/bash --version | head -1)" >&2
+            exit 1
+          }
+          echo "Interpreter OK: $(/bin/bash --version | head -1)"
+
+      - name: Run darwin-leg bats suite (S-19.01 stub — not yet implemented)
+        # STUB: this step will run the pr-manager-hardening.bats darwin-leg tests
+        # once S-19.01 implementation is complete. Currently exits 1 to signal
+        # the stub status until the bats-darwin-leg-macos suite is implemented.
+        run: |
+          echo "UNIMPLEMENTED: bats-darwin-leg-macos suite not yet implemented (S-19.01)" >&2
+          exit 1
