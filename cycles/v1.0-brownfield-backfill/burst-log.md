@@ -18578,5 +18578,5 @@ No findings closed (W1 TDD governance dispatch burst — no adversary pass, no f
 
 | Commit | SHA | Contents |
 |--------|-----|----------|
-| D-825 SM single-commit burst (TD-VSDD-053) | `[D-825-BURST-SHA]` | STATE.md v5.70→v5.71 (D-825 advance; SRC refresh; §4-Index at D-825; Session Resume Checkpoint W1 TDD); decision-log D-825; burst-log D-825 (this entry); 4-index ALL UNCHANGED BC v3.95/VP v2.64/STORY v4.176/ARCH v3.00 |
-| D-825 SHA-patch | `[D-825-SHA-PATCH-SHA]` | Active Branches `[D-825-BURST-SHA]` + burst-log Block 8 D-825 burst SHA update |
+| D-825 SM single-commit burst (TD-VSDD-053) | `75019cb6` | STATE.md v5.70→v5.71 (D-825 advance; SRC refresh; §4-Index at D-825; Session Resume Checkpoint W1 TDD); decision-log D-825; burst-log D-825 (this entry); 4-index ALL UNCHANGED BC v3.95/VP v2.64/STORY v4.176/ARCH v3.00 |
+| D-825 SHA-patch | `[D-825-SHA-PATCH-SHA]` | Active Branches `75019cb6` + burst-log Block 8 D-825 burst SHA update |
