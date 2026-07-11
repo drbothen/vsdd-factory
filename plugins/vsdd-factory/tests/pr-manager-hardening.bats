@@ -761,40 +761,35 @@ GHEOF
     )
 
     # ── POSITIVE TEST ────────────────────────────────────────────────────────
-    # Write the while IFS= read -r fragment (verbatim from release.yml lines
-    # 191-220 as of c10dc6ca) into a temp script that cd-s to the fixture dir.
+    # Extract the "Verify registry-declared WASM plugins are staged" step shell
+    # body from .github/workflows/release.yml at test time (awk strips the
+    # 10-space YAML indent). If mapfile is ever reintroduced into release.yml
+    # this extraction picks it up → fragment fails under /bin/bash 3.2 → suite RED.
     local pos_script="${work_dir}/fragment-positive.sh"
     {
         printf '#!/bin/bash\n'
         printf 'set -euo pipefail\n'
         printf 'cd %q\n' "${work_dir}"
-        cat << 'RELEASE_FRAGMENT'
-declared=()
-while IFS= read -r __line; do [ -n "$__line" ] && declared+=("$__line"); done < <(
-  grep -E '^\s*plugin\s*=\s*"hook-plugins/' \
-    plugins/vsdd-factory/hooks-registry.toml \
-    | grep -oE 'hook-plugins/[^"]+' \
-    | sed 's|hook-plugins/||' \
-    | sort -u
-)
-if [ "${#declared[@]}" -lt 30 ]; then
-  echo "::error::hooks-registry.toml parse yielded ${#declared[@]} entries (expected >= 30). Possible parse failure."
-  exit 1
-fi
-echo "Parsed ${#declared[@]} plugins from hooks-registry.toml."
-missing=()
-for name in "${declared[@]}"; do
-  [ -f "artifact/$name" ] || missing+=("$name")
-done
-if [ "${#missing[@]}" -gt 0 ]; then
-  echo "::error::${#missing[@]} registry-declared WASM(s) absent from artifact/:"
-  printf '  missing: %s\n' "${missing[@]}"
-  exit 1
-fi
-echo "Registry-vs-staged: all ${#declared[@]} hooks-registry plugins present in artifact/. OK"
-RELEASE_FRAGMENT
+        awk '
+            /- name: Verify registry-declared WASM plugins are staged/ && !found { found=1 }
+            found && /^        run: [|]/ { in_run=1; next }
+            in_run && /^      - / { exit }
+            in_run { sub(/^          /, ""); print }
+        ' "${REPO_ROOT}/.github/workflows/release.yml"
     } > "${pos_script}"
     chmod +x "${pos_script}"
+
+    # Pre-flight: confirm extraction captured the while-IFS-read-r fix, not mapfile.
+    grep -q "while IFS= read -r" "${pos_script}" || {
+        echo "FAIL: extracted fragment missing 'while IFS= read -r' — release.yml may have lost the rc.22 fix"
+        cat "${pos_script}"
+        return 1
+    }
+    if grep -qE '^\s*mapfile\b' "${pos_script}"; then
+        echo "FAIL: extracted fragment invokes mapfile — rc.22 regression reintroduced in release.yml"
+        cat "${pos_script}"
+        return 1
+    fi
 
     run /bin/bash "${pos_script}" 2>&1
     [ "${status}" -eq 0 ] || {
@@ -879,8 +874,8 @@ GHEOF
 
     [ "${status}" -ne 0 ] || {
         echo "FAIL: expected non-zero exit when PR is closed (EC-003); got exit 0"
-        echo "RED gate defect: current script does not fetch/check PR state"
-        echo "ADR-030 §Decision 2 arm 3 requires: CHECK_STALE_VERDICT_ERROR: PR #<n> is closed (expected: open)"
+        echo "arm 3 is implemented: expected non-zero exit; script must fetch state and emit"
+        echo "ADR-030 §Decision 2 arm 3: CHECK_STALE_VERDICT_ERROR: PR #<n> is closed (expected: open)"
         echo "Output: ${output}"
         return 1
     }
@@ -942,8 +937,8 @@ GHEOF
     }
     echo "${output}" | grep -q "CHECK_STALE_VERDICT_ERROR" || {
         echo "FAIL: CHECK_STALE_VERDICT_ERROR not found in output (ADR-030 §Decision 2 arm 4)"
-        echo "RED gate defect: current script emits READY_SHA_FETCH_FAILED for this arm;"
-        echo "  implementation must distinguish gh failure (arm 1) from parse failure (arm 4)"
+        echo "arm 4 is implemented: expected CHECK_STALE_VERDICT_ERROR (parse failure)"
+        echo "  distinct from arm 1 (READY_SHA_FETCH_FAILED = gh failure)"
         echo "Output: ${output}"
         return 1
     }
