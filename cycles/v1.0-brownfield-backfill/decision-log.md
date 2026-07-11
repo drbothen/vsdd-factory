@@ -9949,3 +9949,41 @@ D-825-W1-TDD-DISPATCHED
 ### Date
 
 2026-07-11
+
+---
+
+## D-826
+
+### Decision
+
+W1-CASCADE-TRACKED-ITEMS. Governance burst to durably record W1 in-flight tracking items so they survive context reset.
+
+(1) POLICY 16 GLOBAL-MAX GATE: `## D-825` confirmed max → D-826 allocated.
+
+(2) KANI INFRA GAP (repo-wide, HIGH-visibility): VP-097 Kani harness (S-19.03, commit f64b47c2) written + cfg(kani)-gated but UNRUN — Kani 0.67.0 bundles rustc 1.93-nightly; workspace pins rust-toolchain 1.95 + MSRV 1.95, so `cargo kani` is rejected by cargo's rust-version gate. Confirmed repo-wide: pre-existing `partition.rs` VP-077 harness fails identically. Affects ALL Kani VPs in the repo, not just VP-097. Needs a CI Kani job providing a Kani build bundling ≥1.95 toolchain OR a gate relaxation. Route: devops/human infra decision. Anchor: surface at S-19.03 PR gate + candidate maintenance story. NOT a W1 blocker (pre-existing, repo-wide, harness correctly authored+gated).
+
+(3) VP-097 SPEC-DRIFT (architect-queued): VP-097 v1.2 §Property Statement + §Proof Harness Skeleton use a stale monolithic signature `resolve_path_for_allowlist(path:&str, allowlist:&[&str])->Result<PathBuf,CapabilityDenied>` predating S-19.03's two-function split (`resolve_path_for_allowlist(&Path, canonicalize_fn)->Option<PathBuf>` + `check_path_allowed`). Architect to refresh VP-097 skeleton to match; also a one-line EC-003 clarification (absent-tail "rejoined verbatim" vs Task-9 "contains no `..`" — consistent via the file_name()-None short-circuit). Status: QUEUED for architect on .factory after po-crlf + VP-096.
+
+(4) PRE-EXISTING FORCE-TRACKED SIBLING WASMs (~10): `plugins/vsdd-factory/hook-plugins/*.wasm` are force-tracked against .gitignore's stated "release workflow ships them; source control does not" intent. W1 untracked only its two own WASMs (S-19.01 pr-manager-completion-guard, S-19.03 warn-pending-wave-gate). The ~10 siblings are a repo-wide pre-existing condition → candidate maintenance-sweep story.
+
+(5) S-19.03 F-005 (LOW, pre-existing TOCTOU): read_file/write_file check the canonicalized path but open the raw resolved path — symlink swap between check and open. Predates W1, not a regression. Anchor: S-19.03 PR-body disclosure for human decision at PR gate.
+
+(6) SPEC-EVOLUTION IN PROGRESS (human-approved): BC-4.13.001 v1.14→v1.15 (product-owner, CRLF delimiter enumeration, F-S1902-P1-001) + VP-096 off-by-one (architect, F-S1902-P1-003) + VP-097 refresh (item 3 above). These mutate the just-converged E-19 spec set with human approval (2026-07-11). A follow-up state-manager reconcile burst will do the 4-index update + spec-evolution D-NNN once product-owner + architect land all spec edits.
+
+(7) W1 CASCADE STATUS: 3 stories in LOCAL adversary cascade; per-story streaks all 0/3; pass-2 dispatched for S-19.01; S-19.02/S-19.03 fix bursts closing.
+
+(8) 4-INDEX GATE: BC v3.95/VP v2.64/STORY v4.176/ARCH v3.00 ALL UNCHANGED (spec-evolution items not yet finalized; 4-index will advance in follow-up reconcile burst).
+
+(9) STATE.md v5.71→v5.72; D-826 decision-log codified; burst-log D-826 entry appended. Parent-commit: dd578c66 (D-825 SHA-patch+ close).
+
+### Summary
+
+W1-CASCADE-TRACKED-ITEMS: 5 in-flight tracking items durably recorded for context-reset survival. Kani infra gap (repo-wide, pre-existing, HIGH-visibility); VP-097 spec-drift (architect-queued); force-tracked sibling WASMs pre-existing; S-19.03 F-005 TOCTOU pre-existing; spec-evolution BC-4.13.001/VP-096/VP-097 in progress (human-approved). 4-index ALL UNCHANGED pending spec-evolution reconcile burst.
+
+### Phase
+
+D-826-W1-CASCADE-TRACKED-ITEMS
+
+### Date
+
+2026-07-11

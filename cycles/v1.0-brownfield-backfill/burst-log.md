@@ -18580,3 +18580,69 @@ No findings closed (W1 TDD governance dispatch burst — no adversary pass, no f
 |--------|-----|----------|
 | D-825 SM single-commit burst (TD-VSDD-053) | `75019cb6` | STATE.md v5.70→v5.71 (D-825 advance; SRC refresh; §4-Index at D-825; Session Resume Checkpoint W1 TDD); decision-log D-825; burst-log D-825 (this entry); 4-index ALL UNCHANGED BC v3.95/VP v2.64/STORY v4.176/ARCH v3.00 |
 | D-825 SHA-patch | `ef25d67a` | Active Branches `75019cb6` + burst-log Block 8 D-825 burst SHA update |
+| D-825 SHA-patch+ close | `dd578c66` | burst-log Block 8 D-825 SHA-patch close |
+
+---
+
+## D-826 W1-CASCADE-TRACKED-ITEMS — 2026-07-11
+
+### Block 1: Parent-commit
+
+Parent-commit: `dd578c66` (D-825 SHA-patch+ close; factory-artifacts HEAD before this burst).
+
+### Block 2: Adversary Verdict + Dim-2 Literal-Shell Gates
+
+**Adversary verdict:** N/A — governance bookkeeping burst only. No adversary dispatch. No findings to record.
+
+**POLICY 16 global-max gate** (D-449(a) literal-shell with captured stdout):
+```
+$ grep -oE "^## D-[0-9]+" .factory/cycles/v1.0-brownfield-backfill/decision-log.md | sort -t'-' -k2 -n | tail -3
+## D-824
+## D-825
+## D-826
+```
+Result: `## D-825` confirmed max before allocation → D-826 allocated. PASS.
+
+**D-494 4-index gate** (literal-shell with captured stdout):
+```
+$ grep "^version:" .factory/specs/behavioral-contracts/BC-INDEX.md .factory/specs/verification-properties/VP-INDEX.md .factory/stories/STORY-INDEX.md .factory/specs/architecture/ARCH-INDEX.md
+BC-INDEX.md:version: "3.95"
+VP-INDEX.md:version: "2.64"
+STORY-INDEX.md:version: "4.176"
+ARCH-INDEX.md:version: "3.00"
+```
+Result: BC v3.95 / VP v2.64 / STORY v4.176 / ARCH v3.00 — ALL UNCHANGED. PASS.
+
+**D-446(a) 8-block gate:** D-826 burst-log entry verified to contain all 8 D-444(c) mandatory blocks before push (Blocks 1–8 present; see this entry). PASS.
+
+### Block 3: Files Touched
+
+| File | Change | Role |
+|------|--------|------|
+| `.factory/STATE.md` | v5.71 → v5.72; D-826 advance; 5 W1 tracked items in Drift Items; Session Resume Checkpoint refresh | SM state advance |
+| `.factory/cycles/v1.0-brownfield-backfill/decision-log.md` | D-826 entry appended (prior session) | D-826 codification |
+| `.factory/cycles/v1.0-brownfield-backfill/burst-log.md` | D-826 entry appended (this entry) | D-826 burst record |
+
+3 files total (STATE.md + decision-log + burst-log).
+
+### Block 4: Codifications
+
+- **D-826** — W1-CASCADE-TRACKED-ITEMS: 5 W1 in-flight tracked items recorded per coordinator dispatch. (1) Kani infra gap: Kani 0.67.0 bundles rustc 1.93-nightly; workspace pins 1.95; cargo kani rejected repo-wide; pre-existing; not a W1 blocker. (2) VP-097 spec-drift: stale monolithic signature `resolve_path_for_allowlist(path:&str, allowlist:&[&str])->Result<PathBuf,CapabilityDenied>` predating two-function split; reconcile deferred to spec-evolution burst. (3) ~10 force-tracked sibling WASMs alongside S-19.01/S-19.02/S-19.03. (4) S-19.03 F-005 TOCTOU pre-existing LOW; not a W1 blocker. (5) Spec-evolution in progress: BC-4.13.001 v1.14→v1.15 + VP-096 off-by-one + VP-097 two-function split; 4-index advance deferred to follow-up reconcile burst. 4-index ALL UNCHANGED. Parent-commit dd578c66.
+
+### Block 5: Dim-2 Attestations
+
+See Block 2 above. All gates literal-shell with captured stdout per D-449(a). POLICY 16: PASS. D-494 4-index: PASS. D-446(a) 8-block: PASS.
+
+### Block 6: Dim-5 Version Attestation
+
+4-index: BC v3.95 / VP v2.64 / STORY v4.176 / ARCH v3.00 — ALL UNCHANGED (governance bookkeeping burst; no spec/story/BC/VP content changes; spec-evolution deferred).
+
+### Block 7: Closes
+
+No findings closed (bookkeeping burst only — no adversary pass, no finding resolution). 5 W1 in-flight items recorded for durability; no action taken on them.
+
+### Block 8: Factory-artifacts Commits
+
+| Commit | SHA | Contents |
+|--------|-----|----------|
+| D-826 SM single-commit burst (TD-VSDD-053) | `[D-826-BURST-SHA]` | STATE.md v5.71→v5.72 (D-826 advance; 5 tracked items in Drift Items; SRC refresh; §4-Index at D-826); decision-log D-826; burst-log D-826 (this entry); 4-index ALL UNCHANGED BC v3.95/VP v2.64/STORY v4.176/ARCH v3.00 |
