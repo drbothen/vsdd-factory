@@ -18645,4 +18645,4 @@ No findings closed (bookkeeping burst only — no adversary pass, no finding res
 
 | Commit | SHA | Contents |
 |--------|-----|----------|
-| D-826 SM single-commit burst (TD-VSDD-053) | `[D-826-BURST-SHA]` | STATE.md v5.71→v5.72 (D-826 advance; 5 tracked items in Drift Items; SRC refresh; §4-Index at D-826); decision-log D-826; burst-log D-826 (this entry); 4-index ALL UNCHANGED BC v3.95/VP v2.64/STORY v4.176/ARCH v3.00 |
+| D-826 SM single-commit burst (TD-VSDD-053) | `ddb3af7a` | STATE.md v5.71→v5.72 (D-826 advance; 5 tracked items in Drift Items; SRC refresh; §4-Index at D-826); decision-log D-826; burst-log D-826 (this entry); 4-index ALL UNCHANGED BC v3.95/VP v2.64/STORY v4.176/ARCH v3.00 |
