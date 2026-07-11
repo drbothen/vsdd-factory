@@ -25,7 +25,11 @@ if [[ "$(uname)" != "Darwin" ]]; then
 fi
 
 # Step 2: Run /bin/bash --version and capture first line.
-BASH_VERSION_LINE="$(/bin/bash --version 2>/dev/null | head -1)"
+# PREFLIGHT_BASH_BIN is an injectable test seam — default is /bin/bash.
+# Production callers never set it; bats T-008 sets it to a mock binary so the
+# wrong-interpreter path can be exercised without requiring a real bash 5.x.
+PREFLIGHT_BASH_BIN="${PREFLIGHT_BASH_BIN:-/bin/bash}"
+BASH_VERSION_LINE="$("${PREFLIGHT_BASH_BIN}" --version 2>/dev/null | head -1)"
 
 # Step 3: Check if the version line contains "version 3.2".
 # Apple's system bash on macOS is 3.2.x (Apple patched variant).
