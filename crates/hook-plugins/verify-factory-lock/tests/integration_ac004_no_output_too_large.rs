@@ -1,3 +1,12 @@
+// Red-gate test: asserts on a constant intentionally (wrong value until Task 9 lands).
+// Uses expect/unwrap for test failure reporting. Padded fixture uses repeat().take().
+#![allow(
+    clippy::expect_used,
+    clippy::unwrap_used,
+    clippy::assertions_on_constants,
+    clippy::manual_repeat_n
+)]
+
 //! T-006 (AC-004): Integration test — 70 KiB STATE.md → zero output_too_large events.
 //!
 //! AC-004: No `internal.capability_denied reason=output_too_large` events are
@@ -24,7 +33,7 @@ use std::sync::{Arc, Mutex};
 
 use serde_json::json;
 use verify_factory_lock::{guard_logic, GuardCallbacks, STATE_MD_MAX_BYTES};
-use vsdd_hook_sdk::{HookPayload, HookResult};
+use vsdd_hook_sdk::HookPayload;
 
 /// Build a minimal HookPayload for a mutating tool (replicates unit test helper).
 fn payload_for_tool(tool_name: &str) -> HookPayload {

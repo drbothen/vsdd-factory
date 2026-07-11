@@ -51,7 +51,9 @@ proptest! {
                 prop_assert_eq!(
                     extracted,
                     &input[..offset],
-                    "When \\n---\\n present at offset {offset}, extracted must equal input[0..{offset}]"
+                    "When \\n---\\n present at offset {}, extracted must equal input[0..{}]",
+                    offset,
+                    offset
                 );
             }
             None => {

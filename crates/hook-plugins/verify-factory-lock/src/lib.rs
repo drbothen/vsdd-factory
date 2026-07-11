@@ -510,8 +510,16 @@ pub fn on_pre_tool_use(payload: HookPayload) -> HookResult {
 // ---------------------------------------------------------------------------
 #[cfg(test)]
 mod tests {
-    // Test files may use expect/unwrap/panic for failure reporting.
-    #![allow(clippy::expect_used, clippy::unwrap_used, clippy::panic)]
+    // Test files may use expect/unwrap/panic for failure reporting. Red-gate tests assert on
+    // constants intentionally (the constant has the wrong value until the implementation lands).
+    // Padded fixture helpers use repeat().take() for clarity, not performance.
+    #![allow(
+        clippy::expect_used,
+        clippy::unwrap_used,
+        clippy::panic,
+        clippy::assertions_on_constants,
+        clippy::manual_repeat_n
+    )]
 
     use super::*;
     use serde_json::json;
