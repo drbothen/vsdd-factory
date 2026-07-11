@@ -18279,6 +18279,6 @@ No findings closed (CLEAN pass; GOVERNANCE-ONLY). O-P60-001 LOW accepted-with-re
 
 | Commit | SHA | Contents |
 |--------|-----|----------|
-| D-821 SM single-commit burst (TD-VSDD-053) | `[D-821-BURST-SHA]` | adv-E19-pass-60.md (NEW); decision-log D-821; STATE.md v5.67→v5.68; burst-log D-821 (this entry); streak 1/3→2/3; 4-index ALL UNCHANGED BC v3.95/VP v2.64/STORY v4.176/ARCH v3.00 |
-| D-821 SHA-patch | `[D-821-SHA-PATCH-SHA]` | Active Branches [D-821-BURST-SHA] + burst-log Block 8 D-821 burst SHA update |
+| D-821 SM single-commit burst (TD-VSDD-053) | `3c916672` | adv-E19-pass-60.md (NEW); decision-log D-821; STATE.md v5.67→v5.68; burst-log D-821 (this entry); streak 1/3→2/3; 4-index ALL UNCHANGED BC v3.95/VP v2.64/STORY v4.176/ARCH v3.00 |
+| D-821 SHA-patch | `[D-821-SHA-PATCH-SHA]` | Active Branches `3c916672` + burst-log Block 8 D-821 burst SHA update |
 | D-821 SHA-patch+ | `[D-821-SHA-PATCH-PLUS-SHA]` | burst-log Block 8 D-821 SHA-patch SHA update |
