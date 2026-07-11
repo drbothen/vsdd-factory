@@ -67,37 +67,59 @@ pub struct LockState {
 
 /// Extract the YAML frontmatter prefix from raw STATE.md bytes.
 ///
-/// Scans `bytes` for the closing frontmatter delimiter (`\n---\n`, or `\n---`
-/// at EOF). The returned slice covers bytes `0..delimiter_start_offset`:
-/// - The opening `---\n` IS included (slice starts at byte 0).
-/// - The closing delimiter bytes are NOT included.
-/// - If no closing delimiter is found, the entire input is returned.
+/// Scans `bytes` for the closing frontmatter delimiter in LF or CRLF form
+/// and returns the prefix `bytes[0..delimiter_start_offset]`:
 ///
-/// `delimiter_start_offset` is the byte index of the leading `\n` in `\n---\n`
-/// (exclusive boundary per BC-4.13.001 v1.14 Invariant 9 / AC-005 / VP-096).
+/// - **LF inline** `\n---\n`: `delimiter_start_offset` = byte index of the
+///   leading `\n`. Returned slice = `bytes[0..pos]`.
+/// - **CRLF inline** `\r\n---\r\n`: `delimiter_start_offset` = byte index of
+///   the leading `\r`. Returned slice = `bytes[0..pos]`.
+/// - **CRLF EOF** `\r\n---` at EOF (no trailing newline): `delimiter_start_offset`
+///   = `len - 5`. Must be checked before LF-EOF because `\r\n---` also ends
+///   with `\n---`.
+/// - **LF EOF** `\n---` at EOF (no trailing newline): `delimiter_start_offset`
+///   = `len - 4`.
+/// - **None found**: returns the full input unchanged.
+///
+/// The opening delimiter (`---\n` for LF files; `---\r\n` for CRLF files) IS
+/// included in the returned slice (slice starts at byte 0). The closing
+/// delimiter bytes are NOT included.
 ///
 /// This function is pure: deterministic, no I/O, side-effect free.
 ///
 /// # BC Traces
-/// - BC-4.13.001 v1.14 Phase-A Invariant 9 (frontmatter-only-parsing mandate)
+/// - BC-4.13.001 v1.15 Phase-A Invariant 9 (frontmatter-only-parsing mandate;
+///   CRLF delimiter forms `\r\n---\r\n` / `\r\n---`-EOF added in v1.15 / EC-017)
 /// - AC-005, VP-096 (extract_frontmatter byte-exact boundary purity)
 /// - F-P29-001 (architect ruling: this function lives in factory-lock-parse)
 pub fn extract_frontmatter(bytes: &[u8]) -> &[u8] {
-    // Search for the inline closing delimiter `\n---\n`.
-    // delimiter_start_offset = byte index of the leading `\n` byte.
-    // Extracted slice = bytes[0..delimiter_start_offset] (exclusive).
-    let inline_delimiter = b"\n---\n";
+    // 1. LF inline `\n---\n` — most common case (pure-LF STATE.md).
+    //    delimiter_start_offset = byte index of the leading `\n`.
+    let lf_inline = b"\n---\n";
+    if let Some(pos) = bytes.windows(lf_inline.len()).position(|w| w == lf_inline) {
+        return &bytes[..pos];
+    }
+    // 2. CRLF inline `\r\n---\r\n` — Windows autocrlf checkout (EC-017).
+    //    delimiter_start_offset = byte index of the leading `\r`.
+    let crlf_inline = b"\r\n---\r\n";
     if let Some(pos) = bytes
-        .windows(inline_delimiter.len())
-        .position(|w| w == inline_delimiter)
+        .windows(crlf_inline.len())
+        .position(|w| w == crlf_inline)
     {
         return &bytes[..pos];
     }
-    // Search for `\n---` at EOF (no trailing newline after the closing delimiter).
-    // This handles the case where STATE.md ends without a trailing newline.
-    let eof_delimiter = b"\n---";
-    if bytes.ends_with(eof_delimiter) {
-        return &bytes[..bytes.len() - eof_delimiter.len()];
+    // 3. CRLF EOF `\r\n---` — CRLF file with no trailing newline after delimiter.
+    //    Checked BEFORE LF-EOF because `\r\n---` also ends with `\n---` and
+    //    the LF-EOF check would strip only 4 bytes instead of 5, leaving a
+    //    stray `\r` in the returned slice.
+    let crlf_eof = b"\r\n---";
+    if bytes.ends_with(crlf_eof) {
+        return &bytes[..bytes.len() - crlf_eof.len()];
+    }
+    // 4. LF EOF `\n---` — LF file with no trailing newline after delimiter.
+    let lf_eof = b"\n---";
+    if bytes.ends_with(lf_eof) {
+        return &bytes[..bytes.len() - lf_eof.len()];
     }
     // No closing delimiter found: return the full input.
     bytes
