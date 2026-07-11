@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+#!/bin/sh
 # stub-bash-version.sh — mock /bin/bash for S-19.01 darwin-leg preflight tests.
 #
 # Simulates a /bin/bash that reports a configurable version string.

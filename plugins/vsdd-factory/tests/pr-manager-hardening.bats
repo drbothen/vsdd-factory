@@ -337,29 +337,18 @@ GHEOF
 #   CI-config gate will be added in implementation step.
 # After implementation: exits 1 + DARWIN_LEG_WRONG_INTERPRETER when wrong interpreter.
 @test "T-008: darwin-leg preflight: wrong interpreter exits 1 + DARWIN_LEG_WRONG_INTERPRETER" {
-    # Set up a mock /bin/bash that reports version 5.1 (wrong — should be 3.2)
-    local mock_bash="${MOCK_BIN}/bash"
-    cat > "${mock_bash}" <<'MOCKEOF'
-#!/usr/bin/env bash
-if [[ "$1" == "--version" ]]; then
-    printf 'GNU bash, version 5.1.16(1)-release (x86_64-apple-darwin21)\n'
-    printf 'Copyright (C) 2020 Free Software Foundation, Inc.\n'
-    exit 0
-fi
-exec /bin/bash "$@"
-MOCKEOF
-    chmod +x "${mock_bash}"
-
-    # Symlink mock into expected /bin/bash position for the fixture
-    local mock_bin_bash="${MOCK_BIN}/bin/bash"
-    mkdir -p "${MOCK_BIN}/bin"
-    cp "${mock_bash}" "${mock_bin_bash}"
-
-    # Invoke darwin-leg preflight with MOCK_BIN on PATH (overrides /bin/bash lookup)
-    run env PATH="${MOCK_BIN}:${PATH}" bash "${FIXTURES_DIR}/darwin-leg-preflight.sh" 2>&1
+    # PREFLIGHT_BASH_BIN seam (commit 9e0a5453): production script uses
+    #   PREFLIGHT_BASH_BIN="${PREFLIGHT_BASH_BIN:-/bin/bash}"
+    # Point it at stub-bash-version.sh which reports bash 5.1.x by default (wrong).
+    # No PATH manipulation needed; no recursion risk — absolute-path seam injection.
+    #
+    # POLICY 11: drives darwin-leg-preflight.sh (production script) via the seam;
+    # seam was explicitly added for testability (not a test-only workaround).
+    run env PREFLIGHT_BASH_BIN="${FIXTURES_DIR}/stub-bash-version.sh" \
+        bash "${FIXTURES_DIR}/darwin-leg-preflight.sh" 2>&1
 
     [ "${status}" -ne 0 ] || {
-        echo "FAIL: darwin-leg preflight should exit non-zero on wrong bash version"
+        echo "FAIL: darwin-leg preflight should exit non-zero when stub reports bash 5.1"
         echo "Output: ${output}"
         return 1
     }
@@ -370,7 +359,7 @@ MOCKEOF
     }
 
     # Literal CI-config gate (O-P15-04, AC-004 drift-proof anchor):
-    # After implementation, bats-darwin-leg-macos job must be present in ci.yml.
+    # bats-darwin-leg-macos job must be present in ci.yml.
     grep -qE '^  bats-darwin-leg-macos:$' "${REPO_ROOT}/.github/workflows/ci.yml" || {
         echo "FAIL (AC-004 CI-config gate): bats-darwin-leg-macos job not found in ci.yml"
         echo "Expected: job key '  bats-darwin-leg-macos:' (two-space indented, exact)"
