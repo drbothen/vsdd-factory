@@ -1337,6 +1337,337 @@ mod tests {
         assert_eq!(result, "dev@example.com");
     }
 
+    // -----------------------------------------------------------------------
+    // S-19.02 Red Gate tests (T-001, T-002, T-003, T-009)
+    //
+    // These tests FAIL with the current stub/unimplemented state and will pass
+    // only after the implementation tasks for S-19.02 are complete.
+    //
+    // T-001: Asserts STATE_MD_MAX_BYTES == 262144 (AC-001).
+    //   RED because: current value is 65536.
+    //
+    // T-002: 70 KiB fixture + foreign lock → Block (AC-002).
+    //   This test verifies guard_logic handles a 70 KiB mock read correctly.
+    //   The mock bypasses the host cap; the test also asserts the constant is
+    //   at least 70000 (which fails now, ensuring Red Gate).
+    //
+    // T-003: 70 KiB fixture + no lock → Continue (AC-002).
+    //   Same cap assertion makes this a Red Gate.
+    //
+    // T-009: Soft-warning tests A–E (AC-006, BC-4.13.001 Invariant 10).
+    //   RED because: guard_logic does not yet emit state_md_approaching_cap.
+    // -----------------------------------------------------------------------
+
+    /// T-001 (AC-001): STATE_MD_MAX_BYTES == 262144 (256 KiB).
+    ///
+    /// BC-4.13.001 v1.14 Phase-A Precondition 3: the plugin-side compile-time
+    /// cap MUST be 262144. ADR-025 Decision 14.
+    ///
+    /// RED: current value is 65536; assertion fails until Task 9.
+    #[test]
+    fn test_S1902_T001_state_md_max_bytes_is_262144() {
+        assert_eq!(
+            STATE_MD_MAX_BYTES,
+            262144u32,
+            "AC-001: STATE_MD_MAX_BYTES must equal 262144 (256 KiB) per \
+             BC-4.13.001 v1.14 Phase-A Precondition 3 / ADR-025 Decision 14. \
+             Current value: {}",
+            STATE_MD_MAX_BYTES
+        );
+    }
+
+    /// Build a STATE.md fixture padded to `target_size` bytes.
+    ///
+    /// The frontmatter contains a foreign unexpired factory_lock block. The
+    /// body is padded with comment lines to reach the target byte count.
+    fn state_md_padded_with_foreign_lock(target_size: usize) -> Vec<u8> {
+        let header = concat!(
+            "---\n",
+            "document_type: state\n",
+            "version: \"0.0.1-test\"\n",
+            "phase: test\n",
+            "factory_lock:\n",
+            "  holder: \"other@example.com\"\n",
+            "  locked_at: \"2026-06-10T14:00:00Z\"\n",
+            "  expires_at: \"2099-01-01T00:00:00Z\"\n",
+            "---\n",
+            "\n",
+            "# STATE\n",
+        );
+        let mut bytes = header.as_bytes().to_vec();
+        // Pad with `# padding\n` lines until we reach the target size.
+        let pad_line = b"# padding\n";
+        while bytes.len() < target_size {
+            let remaining = target_size - bytes.len();
+            if remaining >= pad_line.len() {
+                bytes.extend_from_slice(pad_line);
+            } else {
+                bytes.extend(std::iter::repeat(b'#').take(remaining));
+            }
+        }
+        bytes.truncate(target_size);
+        bytes
+    }
+
+    /// Build a STATE.md fixture padded to `target_size` bytes with NO lock.
+    fn state_md_padded_no_lock(target_size: usize) -> Vec<u8> {
+        let header = concat!(
+            "---\n",
+            "document_type: state\n",
+            "version: \"0.0.1-test\"\n",
+            "phase: test\n",
+            "---\n",
+            "\n",
+            "# STATE\n",
+        );
+        let mut bytes = header.as_bytes().to_vec();
+        let pad_line = b"# padding\n";
+        while bytes.len() < target_size {
+            let remaining = target_size - bytes.len();
+            if remaining >= pad_line.len() {
+                bytes.extend_from_slice(pad_line);
+            } else {
+                bytes.extend(std::iter::repeat(b'#').take(remaining));
+            }
+        }
+        bytes.truncate(target_size);
+        bytes
+    }
+
+    /// T-002 (AC-002): 70 KiB fixture with foreign unexpired lock → Block.
+    ///
+    /// AC-002: Plugin reads STATE.md successfully when the file is between 64 KiB
+    /// and 256 KiB and the factory_lock: block is present; correctly detects a
+    /// foreign unexpired lock and returns block intent.
+    ///
+    /// The test also asserts STATE_MD_MAX_BYTES >= 70000 as a compile-time Red
+    /// Gate for the cap-raise requirement.
+    ///
+    /// RED: STATE_MD_MAX_BYTES < 70000 currently (65536); cap assertion fails
+    /// until Task 9 raises it to 262144.
+    #[test]
+    fn test_S1902_T002_70kib_fixture_foreign_lock_returns_block() {
+        // Pre-condition: cap must be at least 70 KiB for this test to be valid.
+        // This assertion is the Red Gate: fails until STATE_MD_MAX_BYTES = 262144.
+        assert!(
+            STATE_MD_MAX_BYTES >= 70_000u32,
+            "AC-002: STATE_MD_MAX_BYTES ({}) must be >= 70000 for this test to exercise \
+             the raised-cap behavior. Raise STATE_MD_MAX_BYTES to 262144 (Task 9).",
+            STATE_MD_MAX_BYTES
+        );
+
+        let fixture = state_md_padded_with_foreign_lock(70_000);
+        assert_eq!(fixture.len(), 70_000, "fixture must be exactly 70000 bytes");
+
+        let warn_log = Arc::new(Mutex::new(Vec::new()));
+        let callbacks = make_callbacks_success(fixture, "self@example.com", warn_log);
+        let payload = payload_for_tool("Edit");
+
+        let result = guard_logic(payload, callbacks);
+
+        match result {
+            HookResult::Block { .. } => {
+                // Correct: 70 KiB fixture with foreign unexpired lock must Block.
+            }
+            other => panic!(
+                "AC-002: 70 KiB fixture with foreign lock must return Block. Got: {:?}",
+                other
+            ),
+        }
+    }
+
+    /// T-003 (AC-002): 70 KiB fixture with no lock → Continue.
+    ///
+    /// AC-002 complement: when a > 64 KiB STATE.md has no lock, the guard
+    /// must return Continue (factory is unlocked).
+    ///
+    /// RED: STATE_MD_MAX_BYTES < 70000 currently; cap assertion fails until
+    /// Task 9 raises it to 262144.
+    #[test]
+    fn test_S1902_T003_70kib_fixture_no_lock_returns_continue() {
+        // Pre-condition Red Gate: same cap assertion as T-002.
+        assert!(
+            STATE_MD_MAX_BYTES >= 70_000u32,
+            "AC-002: STATE_MD_MAX_BYTES ({}) must be >= 70000. Raise to 262144 (Task 9).",
+            STATE_MD_MAX_BYTES
+        );
+
+        let fixture = state_md_padded_no_lock(70_000);
+        assert_eq!(fixture.len(), 70_000, "fixture must be exactly 70000 bytes");
+
+        let warn_log = Arc::new(Mutex::new(Vec::new()));
+        let callbacks = make_callbacks_success(fixture, "self@example.com", warn_log);
+        let payload = payload_for_tool("Edit");
+
+        let result = guard_logic(payload, callbacks);
+
+        assert_eq!(
+            result,
+            HookResult::Continue,
+            "AC-002: 70 KiB fixture with no lock must return Continue (unlocked path)"
+        );
+    }
+
+    /// T-009 (AC-006): Soft-warning emission tests A–E.
+    ///
+    /// BC-4.13.001 v1.14 Invariant 10: guard must emit a `plugin.log` warn entry
+    /// containing `state_md_approaching_cap` when bytes_read is strictly > 200000
+    /// and at or below 262144.
+    ///
+    /// Five sub-tests:
+    ///   A: 210000 bytes → state_md_approaching_cap warn emitted.
+    ///   B: 150000 bytes → zero state_md_approaching_cap log entries.
+    ///   C: 200000 bytes exactly → zero state_md_approaching_cap log entries (strict > threshold).
+    ///   D: 262144 bytes exactly → warn AND read succeeds (cap-exact; inclusive upper bound).
+    ///   E: 262145 bytes → StateReadError (OUTPUT_TOO_LARGE/fail-open) AND zero warn.
+    ///
+    /// RED: guard_logic does not yet emit state_md_approaching_cap; all sub-tests
+    /// that assert warn presence will fail until Task 13.
+    #[test]
+    fn test_S1902_T009_state_md_approaching_cap_warn_logic() {
+        // Pre-condition: constants must be set correctly for these tests.
+        // This assertion is also a Red Gate for the cap raise (Task 9).
+        assert_eq!(
+            STATE_MD_MAX_BYTES, 262144u32,
+            "T-009 requires STATE_MD_MAX_BYTES == 262144 (Task 9 must complete first)"
+        );
+
+        // ---- Sub-test A: 210000 bytes → warn emitted ----
+        {
+            let fixture = state_md_padded_no_lock(210_000);
+            assert_eq!(fixture.len(), 210_000);
+            let warn_log = Arc::new(Mutex::new(Vec::new()));
+            let callbacks = make_callbacks_success(fixture, "self@example.com", warn_log.clone());
+            let payload = payload_for_tool("Edit");
+            let _ = guard_logic(payload, callbacks);
+            let warns = warn_log.lock().unwrap();
+            assert!(
+                warns.iter().any(|w| w.contains("state_md_approaching_cap")),
+                "T-009 A: 210000-byte fixture must emit state_md_approaching_cap warn. Got: {:?}",
+                warns
+            );
+        }
+
+        // ---- Sub-test B: 150000 bytes → NO warn ----
+        {
+            let fixture = state_md_padded_no_lock(150_000);
+            assert_eq!(fixture.len(), 150_000);
+            let warn_log = Arc::new(Mutex::new(Vec::new()));
+            let callbacks = make_callbacks_success(fixture, "self@example.com", warn_log.clone());
+            let payload = payload_for_tool("Edit");
+            let _ = guard_logic(payload, callbacks);
+            let warns = warn_log.lock().unwrap();
+            let approaching_warns: Vec<_> = warns
+                .iter()
+                .filter(|w| w.contains("state_md_approaching_cap"))
+                .collect();
+            assert!(
+                approaching_warns.is_empty(),
+                "T-009 B: 150000-byte fixture must NOT emit state_md_approaching_cap warn. Got: {:?}",
+                approaching_warns
+            );
+        }
+
+        // ---- Sub-test C: 200000 bytes exactly → NO warn (strict > threshold) ----
+        {
+            let fixture = state_md_padded_no_lock(200_000);
+            assert_eq!(fixture.len(), 200_000);
+            let warn_log = Arc::new(Mutex::new(Vec::new()));
+            let callbacks = make_callbacks_success(fixture, "self@example.com", warn_log.clone());
+            let payload = payload_for_tool("Edit");
+            let _ = guard_logic(payload, callbacks);
+            let warns = warn_log.lock().unwrap();
+            let approaching_warns: Vec<_> = warns
+                .iter()
+                .filter(|w| w.contains("state_md_approaching_cap"))
+                .collect();
+            assert!(
+                approaching_warns.is_empty(),
+                "T-009 C: 200000-byte fixture (exact threshold) must NOT emit warn \
+                 (threshold is strictly > 200000). Got: {:?}",
+                approaching_warns
+            );
+        }
+
+        // ---- Sub-test D: 262144 bytes exactly → warn AND read succeeds ----
+        {
+            let fixture = state_md_padded_no_lock(262_144);
+            assert_eq!(fixture.len(), 262_144);
+            let warn_log = Arc::new(Mutex::new(Vec::new()));
+            let callbacks = make_callbacks_success(fixture, "self@example.com", warn_log.clone());
+            let payload = payload_for_tool("Edit");
+            let result = guard_logic(payload, callbacks);
+            // Read must succeed (not StateReadError).
+            let read_errored = match &result {
+                HookResult::Continue => false,
+                HookResult::Block { .. } => false,
+                // If we had a StateReadError variant surfaced, detect via warn.
+                _ => false,
+            };
+            let warns = warn_log.lock().unwrap();
+            let has_read_error_warn = warns.iter().any(|w| w.contains("StateReadError"));
+            assert!(
+                !has_read_error_warn && !read_errored,
+                "T-009 D: 262144-byte fixture must NOT return StateReadError (read succeeds at cap). \
+                 Warns: {:?}",
+                warns
+            );
+            assert!(
+                warns.iter().any(|w| w.contains("state_md_approaching_cap")),
+                "T-009 D: 262144-byte fixture must emit state_md_approaching_cap warn (inclusive upper bound). \
+                 Got: {:?}",
+                warns
+            );
+        }
+
+        // ---- Sub-test E: 262145 bytes → StateReadError + zero warn ----
+        {
+            let fixture_len = 262_145usize;
+            // Simulate OUTPUT_TOO_LARGE: mock read_file returns Err for oversized files.
+            let warn_log = Arc::new(Mutex::new(Vec::new()));
+            let wl = warn_log.clone();
+            let callbacks = GuardCallbacks {
+                read_file: move |_path, max_bytes, _timeout| {
+                    if fixture_len as u32 > max_bytes {
+                        Err("OutputTooLarge".to_string())
+                    } else {
+                        Ok(state_md_padded_no_lock(fixture_len))
+                    }
+                },
+                exec_subprocess: |_argv| Ok((0, "self@example.com\n".to_string())),
+                log_warn: move |msg: &str| {
+                    wl.lock().unwrap().push(msg.to_string());
+                },
+            };
+            let payload = payload_for_tool("Edit");
+            let result = guard_logic(payload, callbacks);
+            // Must return Continue (fail-open on OutputTooLarge per PC6).
+            assert_eq!(
+                result,
+                HookResult::Continue,
+                "T-009 E: 262145-byte fixture must return Continue (fail-open per PC6 / EC-002)"
+            );
+            let warns = warn_log.lock().unwrap();
+            // Must emit StateReadError warn (fail-open log).
+            assert!(
+                warns.iter().any(|w| w.contains("StateReadError") || w.contains("OutputTooLarge")),
+                "T-009 E: 262145-byte fixture must emit StateReadError/OutputTooLarge warn. Got: {:?}",
+                warns
+            );
+            // Must NOT emit state_md_approaching_cap (file exceeded cap; warn path not reached).
+            let approaching_warns: Vec<_> = warns
+                .iter()
+                .filter(|w| w.contains("state_md_approaching_cap"))
+                .collect();
+            assert!(
+                approaching_warns.is_empty(),
+                "T-009 E: 262145-byte fixture must NOT emit state_md_approaching_cap \
+                 (exceeds cap; warn path never reached). Got: {:?}",
+                approaching_warns
+            );
+        }
+    }
+
     /// build_block_message: all 5 fields present in the message.
     ///
     /// GREEN: pure helper implemented; test verifies this case.

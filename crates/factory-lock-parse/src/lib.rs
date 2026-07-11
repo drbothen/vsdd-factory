@@ -65,6 +65,29 @@ pub struct LockState {
 // Public API
 // ---------------------------------------------------------------------------
 
+/// Extract the YAML frontmatter prefix from raw STATE.md bytes.
+///
+/// Scans `bytes` for the closing frontmatter delimiter (`\n---\n`, or `\n---`
+/// at EOF). The returned slice covers bytes `0..delimiter_start_offset`:
+/// - The opening `---\n` IS included (slice starts at byte 0).
+/// - The closing `\n---\n` delimiter is NOT included.
+/// - If no closing delimiter is found, the entire input is returned.
+///
+/// This function is pure: deterministic, no I/O, side-effect free.
+///
+/// # Red Gate (S-19.02 stub)
+///
+/// This function body is a stub (`todo!()`). Implementation is deferred to
+/// the TDD green phase (S-19.02 Task 10).
+///
+/// # BC Traces
+/// - BC-4.13.001 v1.14 Phase-A Invariant 9 (frontmatter-only-parsing mandate)
+/// - AC-005, VP-096 (extract_frontmatter byte-exact boundary purity)
+/// - F-P29-001 (architect ruling: this function lives in factory-lock-parse)
+pub fn extract_frontmatter(_bytes: &[u8]) -> &[u8] {
+    todo!("S-19.02 stub: implement extract_frontmatter per BC-4.13.001 Invariant 9")
+}
+
 /// Scan the YAML frontmatter of STATE.md content for the `factory_lock:` block.
 ///
 /// Reads only the region between the first and second `---\n` delimiters.
@@ -292,6 +315,120 @@ mod tests {
             "  expires_at: \"2099-01-01T00:00:00Z\"\n",
             "---\n\n# STATE\n",
         )
+    }
+
+    // -----------------------------------------------------------------------
+    // S-19.02 extract_frontmatter tests (T-004, T-005, T-007, T-008)
+    //
+    // RED GATE: extract_frontmatter is currently a todo!() stub; all four
+    // tests will fail until the implementation is complete (Task 10).
+    // -----------------------------------------------------------------------
+
+    /// T-004 (AC-003): extract_frontmatter with a `\n---\n` delimiter present.
+    ///
+    /// Fixture: `---\nfactory_lock: null\n---\nbody content`
+    /// Expected: extracted slice contains only the frontmatter region (bytes
+    /// 0..delimiter_start_offset), ending before the closing `\n---\n`.
+    ///
+    /// RED: extract_frontmatter is a todo!() stub.
+    #[test]
+    fn test_S1902_extract_frontmatter_delimiter_present_excludes_body() {
+        let input = b"---\nfactory_lock: null\n---\nbody content here";
+        let extracted = extract_frontmatter(input);
+        // Body content must not appear in the extracted slice.
+        let extracted_str = std::str::from_utf8(extracted).expect("extracted slice must be UTF-8");
+        assert!(
+            !extracted_str.contains("body content here"),
+            "extracted slice must NOT contain body bytes past the delimiter. Got: {extracted_str:?}"
+        );
+        // Extracted slice must start with the opening `---\n`.
+        assert!(
+            extracted_str.starts_with("---\n"),
+            "extracted slice must start with opening `---\\n` (byte 0). Got: {extracted_str:?}"
+        );
+    }
+
+    /// T-005 (AC-003): extract_frontmatter with no `\n---\n` delimiter → full slice returned.
+    ///
+    /// Fixture: bytes with no closing `---` delimiter.
+    /// Expected: returned slice byte-equals the full input.
+    ///
+    /// RED: extract_frontmatter is a todo!() stub.
+    #[test]
+    fn test_S1902_extract_frontmatter_no_delimiter_returns_full_slice() {
+        let input = b"---\nfactory_lock: null\nphase: test\n";
+        let extracted = extract_frontmatter(input);
+        assert_eq!(
+            extracted, input,
+            "When no closing delimiter present, extract_frontmatter must return the full input slice"
+        );
+    }
+
+    /// T-007 (AC-005): extract_frontmatter byte-exact boundary — body bytes absent from extracted slice.
+    ///
+    /// Unit test A (boundary): fixture = `---\nfactory_lock: null\n---\nbody content here`
+    ///   - Extracted slice must start at byte 0 (includes opening `---\n`).
+    ///   - extracted_len must equal delimiter_start_offset (index of `\n` beginning `\n---\n`).
+    ///   - `body content here` must NOT appear in the extracted slice.
+    ///
+    /// RED: extract_frontmatter is a todo!() stub.
+    #[test]
+    fn test_S1902_extract_frontmatter_byte_exact_boundary_body_absent() {
+        // Fixture: known structure; delimiter_start_offset = byte index of the `\n` in `\n---\n`
+        // "---\nfactory_lock: null" = 22 bytes; then `\n---\nbody content here`
+        // So delimiter_start_offset = 22, extracted_len must == 22.
+        let input = b"---\nfactory_lock: null\n---\nbody content here";
+        let extracted = extract_frontmatter(input);
+
+        // delimiter_start_offset = index of the '\n' that starts '\n---\n'
+        // input[22] == b'\n', input[23..27] == b"---\n"
+        let delimiter_start_offset = 22usize;
+
+        assert_eq!(
+            extracted.len(),
+            delimiter_start_offset,
+            "extracted_len must equal delimiter_start_offset ({}). Got: {}",
+            delimiter_start_offset,
+            extracted.len()
+        );
+        assert_eq!(
+            extracted,
+            &input[..delimiter_start_offset],
+            "extracted slice must byte-equal input[0..delimiter_start_offset]"
+        );
+        // Opening `---\n` is included (starts at byte 0).
+        assert!(
+            extracted.starts_with(b"---\n"),
+            "extracted slice must start with opening `---\\n`"
+        );
+        // No body bytes leak through.
+        assert!(
+            !extracted.windows(4).any(|w| w == b"body"),
+            "body bytes must NOT appear in extracted slice"
+        );
+    }
+
+    /// T-008 (AC-005): extract_frontmatter EOF delimiter — `\n---` at EOF, no trailing body.
+    ///
+    /// Unit test B (EOF delimiter): fixture = `---\nfactory_lock: null\n---`
+    /// Expected: extracted slice contains only frontmatter content (no trailing `\n---`).
+    ///
+    /// RED: extract_frontmatter is a todo!() stub.
+    #[test]
+    fn test_S1902_extract_frontmatter_eof_delimiter_no_trailing_body() {
+        let input = b"---\nfactory_lock: null\n---";
+        let extracted = extract_frontmatter(input);
+        let extracted_str = std::str::from_utf8(extracted).expect("extracted slice must be UTF-8");
+        // The `\n---` EOF delimiter itself must not appear in the extracted content.
+        // Extracted slice should be the frontmatter up to (but not including) `\n---`.
+        assert!(
+            !extracted_str.ends_with("\n---"),
+            "extracted slice must NOT end with the `\\n---` EOF delimiter. Got: {extracted_str:?}"
+        );
+        assert!(
+            extracted_str.starts_with("---\n"),
+            "extracted slice must start with opening `---\\n`. Got: {extracted_str:?}"
+        );
     }
 
     // -----------------------------------------------------------------------
