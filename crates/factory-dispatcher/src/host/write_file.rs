@@ -393,4 +393,90 @@ mod tests {
             "write_file sibling-sweep: path outside allow-list must return CAPABILITY_DENIED"
         );
     }
+
+    // -----------------------------------------------------------------------
+    // F-S1903-P1-002 — NC-B emit-level tests (adversary pass-1, write sibling)
+    //
+    // Sibling-sweep parity with read_file.rs NC-B emit-level tests.
+    // The DeniedResolutionFailed arm in write_file::prepare() must also be
+    // exercised end-to-end at the emit level.
+    // -----------------------------------------------------------------------
+
+    /// test_S19_03_P1_002_NC_B_check_path_allowed_mock_returns_denied_resolution_failed_write
+    ///
+    /// F-S1903-P1-002 (write_file sibling): `write_file::check_path_allowed` with
+    /// injectable all-fail mock canonicalize must return `DeniedResolutionFailed`
+    /// (not `DeniedNotAllowed`).
+    ///
+    /// Mirrors `read_file::test_S19_03_P1_002_NC_B_check_path_allowed_mock_returns_denied_resolution_failed`
+    /// for write_file sibling parity (TD-VSDD-060).
+    ///
+    /// Traces to: BC-2.07.001 EC-007; S-19.03 adversary pass-1 F-S1903-P1-002.
+    #[test]
+    #[allow(non_snake_case)]
+    fn test_S19_03_P1_002_NC_B_check_path_allowed_mock_returns_denied_resolution_failed_write() {
+        let target = std::path::Path::new(".factory/STATE.md");
+        let allow = vec![".factory/".to_string()];
+        let base = std::path::Path::new("/tmp");
+
+        let decision = check_path_allowed(target, &allow, base, |_p| {
+            Err(std::io::Error::from(std::io::ErrorKind::NotFound))
+        });
+        assert_eq!(
+            decision,
+            PathAllowDecision::DeniedResolutionFailed,
+            "P1-002 NC-B (write sibling): when mock canonicalize fails for ALL ancestors, \
+             write_file::check_path_allowed must return DeniedResolutionFailed — \
+             NOT DeniedNotAllowed. Caller must emit reason=path_resolution_failed."
+        );
+    }
+
+    /// test_S19_03_P1_002_NC_B_denied_resolution_failed_emits_path_resolution_failed_reason_write
+    ///
+    /// F-S1903-P1-002 (write_file sibling): exercises the `DeniedResolutionFailed` arm's
+    /// emit path end-to-end via `emit_denial(..., "path_resolution_failed", ...)` and
+    /// verifies the captured `internal.capability_denied` event carries
+    /// `reason=path_resolution_failed`.
+    ///
+    /// Mirrors `read_file::test_S19_03_P1_002_NC_B_denied_resolution_failed_emits_path_resolution_failed_reason`
+    /// for write_file sibling parity (TD-VSDD-060).
+    ///
+    /// Traces to: BC-2.07.001 EC-007; S-19.03 adversary pass-1 F-S1903-P1-002.
+    #[test]
+    #[allow(non_snake_case)]
+    fn test_S19_03_P1_002_NC_B_denied_resolution_failed_emits_path_resolution_failed_reason_write()
+    {
+        use crate::host::test_support::bare_context;
+
+        let ctx = bare_context();
+        let resolved = std::path::PathBuf::from(".factory/STATE.md");
+
+        // Directly exercise the emit path that prepare() takes for DeniedResolutionFailed.
+        emit_denial(
+            &ctx,
+            ".factory/STATE.md",
+            "path_resolution_failed",
+            Some(&resolved),
+        );
+
+        let events = ctx.drain_events();
+        assert_eq!(
+            events.len(),
+            1,
+            "P1-002 NC-B (write sibling): emit_denial must produce exactly one event"
+        );
+        let ev = &events[0];
+        assert_eq!(
+            ev.type_, "internal.capability_denied",
+            "P1-002 NC-B (write): DeniedResolutionFailed arm must emit type=internal.capability_denied"
+        );
+        let reason = ev.fields.get("reason").and_then(|v| v.as_str());
+        assert_eq!(
+            reason,
+            Some("path_resolution_failed"),
+            "P1-002 NC-B (write) emit-level: DeniedResolutionFailed must emit \
+             reason=path_resolution_failed (NOT path_not_allowed). Got {:?}.",
+            reason
+        );
+    }
 }

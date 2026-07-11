@@ -197,4 +197,72 @@ mod tests {
             canonical_dir
         );
     }
+
+    /// test_S19_03_P1_001_escape_rejection_absent_path_resolves_outside_prefix
+    ///
+    /// F-S1903-P1-001 (BC-2.07.001 EC-003 canonical vector, resolve level):
+    ///
+    /// An ABSENT target whose `..` components cross OUT OF the declared prefix
+    /// (e.g. `.factory/../secrets/key` with allow=[`.factory/`]) must:
+    ///   1. Still return `Some` — the function resolves via ancestor-walk+rejoin.
+    ///   2. Return a path that is OUTSIDE the `.factory/` prefix so that the
+    ///      `starts_with` check in `check_path_allowed` returns `DeniedNotAllowed`.
+    ///
+    /// This test covers the escaping case that was missing in the red-gate suite.
+    /// The stays-inside dotdot case is covered by
+    /// `test_S19_03_absent_path_with_dotdot_in_tail_still_resolves_to_some` above.
+    ///
+    /// Traces to: BC-2.07.001 EC-003; BC-2.02.011 EC-001;
+    ///            S-19.03 adversary pass-1 F-S1903-P1-001.
+    #[test]
+    #[allow(non_snake_case)]
+    fn test_S19_03_P1_001_escape_rejection_absent_path_resolves_outside_prefix() {
+        let dir = tempfile::tempdir().unwrap();
+        let factory_dir = dir.path().join(".factory");
+        let secrets_dir = dir.path().join("secrets");
+        std::fs::create_dir_all(&factory_dir).unwrap();
+        std::fs::create_dir_all(&secrets_dir).unwrap();
+
+        // Target: .factory/../secrets/key — attempts to escape .factory/ into secrets/.
+        // The file does not exist.
+        let target = factory_dir.join("..").join("secrets").join("key");
+        assert!(
+            !target.exists(),
+            "test setup: escaping absent target must not exist"
+        );
+
+        let result = resolve_path_for_allowlist(&target, |p| p.canonicalize());
+        assert!(
+            result.is_some(),
+            "P1-001 EC-003 (resolve level): escaping absent path must return Some — \
+             the `..` is absorbed by ancestor canonicalization. The starts_with check \
+             in check_path_allowed is where traversal escapes are detected and denied."
+        );
+
+        let resolved = result.unwrap();
+        let canonical_factory = factory_dir.canonicalize().unwrap();
+
+        // The critical assertion: resolved path must be OUTSIDE .factory/
+        // so that starts_with(.factory/) returns false → DeniedNotAllowed.
+        assert!(
+            !resolved.starts_with(&canonical_factory),
+            "P1-001 EC-003 (resolve level): escaping absent path {:?} must resolve to a \
+             canonical path OUTSIDE the .factory/ prefix {:?}; got {:?}. \
+             The ancestor-walk canonicalized .factory/../secrets → secrets/, so the \
+             result must start with secrets/ not .factory/. \
+             The starts_with check in check_path_allowed must deny this as DeniedNotAllowed.",
+            target,
+            canonical_factory,
+            resolved
+        );
+
+        // Confirm it resolved into secrets/ as expected.
+        let canonical_secrets = secrets_dir.canonicalize().unwrap();
+        assert!(
+            resolved.starts_with(&canonical_secrets),
+            "P1-001 EC-003: escaping path must canonicalize into secrets/ ({:?}), got {:?}",
+            canonical_secrets,
+            resolved
+        );
+    }
 }

@@ -431,6 +431,9 @@ mod tests {
         assert_eq!(HostError::from_code(-2), HostError::Timeout);
         assert_eq!(HostError::from_code(-3), HostError::OutputTooLarge);
         assert_eq!(HostError::from_code(-4), HostError::InvalidArgument);
+        // F-S1903-P1-004: -5 must map to NotFound (S-19.03 / ADR-025 Decision 13).
+        // Absent-file path distinct from genuine allowlist violation (-1).
+        assert_eq!(HostError::from_code(-5), HostError::NotFound);
         assert_eq!(HostError::from_code(-99), HostError::Other(-99));
     }
 
