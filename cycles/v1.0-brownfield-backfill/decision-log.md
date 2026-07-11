@@ -9014,3 +9014,127 @@ D-811-E19-ADV-PASS-55-NOT-CLEAN-CLOSED
 ### Date
 
 2026-07-10
+
+## D-812 — E-19 Adversarial Pass-56 NOT-CLEAN Closure (B0/H0/M1/L0; F-P56-001 CLOSED architect 93d3ca03; streak 0/3 (unchanged); L-BB-anchor-prose-parity-includes-diagnostic-strings-and-exit-codes [process-gap] codified)
+
+### Summary
+
+Pass-56 adversary (Claude Opus 4.7; rubric policies.yaml v1.4.4; fresh context; Iron Law; perimeter = D-811 delta: VP-094 v1.2 + VP-INDEX v2.61 + full E-19 carry-forward at D-811 versions; 30 artifacts) found 1 finding — NOT-CLEAN B0/H0/M1/L0. 29/30 version attestations PASS (VP-094 FINDING). D-811 delta re-verified PASS (8 fix sites: 6 VP-094.md + 2 VP-INDEX; all correct).
+
+Sole finding: **F-P56-001 MEDIUM (POLICY 4 v1.4.4 — novel axis: content-of-anchored-postcondition parity)** — VP-094 v1.2 §Property Statement PS-B and PS-C asserted stale sentinel strings (VERDICT_STALE instead of STALE_READY_VERDICT; MERGE_STRATEGY_REQUIRED instead of RELEASE_PR_SQUASH_FORBIDDEN) and stale exit codes (exit-2 fail-closed instead of exit-1 fail-closed per ADR-030 §Decision 2/3 + S-19.01 RG-003/RG-004). PS-B also directed STALE_READY_VERDICT emission to stdout where ADR-030 §Decision 2 specifies stderr. PS-C message text was non-canonical vs BC-5.42.001 §Description (c). §Proof Harness Skeleton propagated all stale values (16 total sites). VP-094 v1.2 contained the stale content inherited from v1.0 initial creation; passes 22–55 (32 passes) never extracted and compared sentinel-string values from source BC §VP-table canonical test vectors — the prior 9 standing gates verified path/namespace anchors and description-bearing prose parity but not literal sentinel-string values or exit-code integers inside §Property Statement descriptions and §Proof Harness test assertions. CLOSED: architect 93d3ca03 (16 sites corrected; input-hash e2f422f UNCHANGED). Class sweep: VP-095..VP-101 ALL CLEAN vs source BCs (no sentinel/exit-code drift in sibling VPs).
+
+Trajectory p22–56: ...→2→0→1→1. Tail passes 53/54/55/56 = 2,0,1,1 → `→2→0→1→1`. Zero HIGH 16 passes; zero BLOCKER 34. Streak 0/3 (was 0/3 entering pass-56; F-P56-001 prevents advancement; streak unchanged at 0/3).
+
+Lesson codified: **L-BB-anchor-prose-parity-includes-diagnostic-strings-and-exit-codes** [process-gap] — POLICY 4 v1.4.4 anchor-prose-parity extends to sentinel-string values and exit-code integers in VP §Property Statement PS-* descriptions and §Proof Harness assertions; these are load-bearing test-fidelity anchors because they determine whether the proof harness tests for the correct observable behavior; detection: per-field grep per policies.yaml v1.4.4 DESCRIPTION-BEARING ANCHOR-PROSE PARITY step; 10th standing gate.
+
+NEXT: pass-57 (fresh context; Iron Law; rubric policies.yaml v1.4.4; perimeter = D-812 delta: VP-094 v1.3 + VP-INDEX v2.62 + full E-19 suite carry-forward; 4-index BC v3.95/VP v2.62/STORY v4.176/ARCH v3.00; streak 0/3).
+
+### Detail
+
+**(1) POLICY 16 GLOBAL-MAX GATE (POLICY 16; literal-shell per D-449(a)).**
+
+```
+$ grep -oE "^## D-[0-9]+" .factory/cycles/v1.0-brownfield-backfill/decision-log.md | sort -t'-' -k3 -n | tail -1
+## D-811
+EXIT:0
+```
+→ D-811 confirmed max → D-812 allocated. PASS.
+
+**(2) PASS-56 ADVERSARY VERDICT.**
+
+NOT-CLEAN B0/H0/M1/L0. Perimeter: D-811 delta (VP-094 v1.2 + VP-INDEX v2.61) + full E-19 carry-forward (BC-INDEX v3.95; STORY-INDEX v4.176; ARCH-INDEX v3.00; epic v1.27; L2-INDEX v1.0.14; ADR-025 v1.15; ADR-030 v1.3; 6 BCs; 8 VPs; 7 stories; policies.yaml v1.4.4). Streak before: 0/3. Streak after: 0/3 (unchanged).
+
+F-P56-001 MEDIUM: VP-094 §Property Statement PS-B/PS-C + §Proof Harness Skeleton asserted stale sentinel strings and exit codes vs BC-5.42.001 §VP-table canonical test vectors + ADR-030 §Decision 2/3. 16 sites total (VERDICT_STALE ×5; MERGE_STRATEGY_REQUIRED ×3; exit-2 ×4+prose; PS-C message text ×1; stdout→stderr ×1). Survived 32 passes (VP-094 v1.0 through v1.2). Novel axis: content-of-anchored-postcondition parity — sentinel-string and exit-code VALUES inside anchored §Postcondition claims and §Proof Harness assertions are not verified by prior 9 standing gates.
+
+Class sweep: VP-095..VP-101 ALL CLEAN vs source BCs — VP-098/VP-101 carry numeric return codes that derive from their source BCs and are correct; VP-095/096/097/099/100 have no string sentinel drift.
+
+Full adversary report: `cycles/v1.0-brownfield-backfill/adv-E19-pass-56.md`
+
+**(3) FIX BURST.**
+
+Single leg: architect 93d3ca03 — VP-094 v1.2→v1.3 (16 sites: VERDICT_STALE→STALE_READY_VERDICT ×5; MERGE_STRATEGY_REQUIRED→RELEASE_PR_SQUASH_FORBIDDEN ×3; exit-2→exit-1 ×4+prose; PS-C message text canonicalized; PS-B stdout→stderr; input-hash e2f422f UNCHANGED). SM this-commit: VP-INDEX v2.61→v2.62 (Full Index VP-094 row + Story Anchors VP-094 row v1.3 annotations; frontmatter version + last_amended + changelog entry prepended; POLICY 9 zero-match confirmed).
+
+L-BB-anchor-prose-parity-includes-diagnostic-strings-and-exit-codes [process-gap] appended to lessons.md.
+
+**(4) 4-INDEX GATE (POLICY 14 leg-4; literal-shell per D-449(a)).**
+
+```
+$ grep "^version:" \
+  .factory/specs/behavioral-contracts/BC-INDEX.md \
+  .factory/specs/verification-properties/VP-INDEX.md \
+  .factory/stories/STORY-INDEX.md \
+  .factory/specs/architecture/ARCH-INDEX.md
+.factory/specs/verification-properties/VP-INDEX.md:version: "2.62"
+.factory/specs/behavioral-contracts/BC-INDEX.md:version: "3.95"
+.factory/stories/STORY-INDEX.md:version: "4.176"
+.factory/specs/architecture/ARCH-INDEX.md:version: "3.00"
+EXIT:0
+```
+→ BC-INDEX v3.95 / VP-INDEX v2.62 / STORY-INDEX v4.176 / ARCH-INDEX v3.00. VP-INDEX advanced v2.61→v2.62 (VP-094 v1.3 annotation); BC/STORY/ARCH UNCHANGED. PASS.
+
+**(5) HEADING-PARITY GATE (D-803 standing Commit-E gate; literal-shell per D-449(a)).**
+
+```
+$ python3 -c "
+import re, os, glob
+with open('.factory/stories/STORY-INDEX.md', 'r') as f:
+    index_content = f.read()
+heading_pattern = re.compile(r'^(## (?:Epic )?(E-\d+)[^\n]*)', re.MULTILINE)
+heading_matches = list(heading_pattern.finditer(index_content))
+epic_dir = '.factory/stories/epics'
+epic_files = glob.glob(os.path.join(epic_dir, '*.md'))
+epic_versions = {}
+for fpath in epic_files:
+    with open(fpath, 'r') as f:
+        content = f.read()
+    vm = re.search(r'^version:\s*[\x22\x27]?([^\x22\x27\n]+)', content, re.MULTILINE)
+    eid_m = re.search(r'(E-\d+)', os.path.basename(fpath))
+    if vm and eid_m:
+        epic_versions[eid_m.group(1)] = vm.group(1).strip('\x22\x27').strip()
+fails = 0; passes = 0; skips = 0
+for m in heading_matches:
+    heading_line = m.group(1); eid = m.group(2)
+    hvm = re.search(r'v(\d+\.\d+)\s*$', heading_line)
+    if eid not in epic_versions: skips += 1; continue
+    fver = epic_versions[eid]
+    if not hvm: skips += 1; continue
+    hver = 'v' + hvm.group(1)
+    if hver == fver: passes += 1
+    else: print('FAIL ' + eid + ': heading ' + hver + ' != frontmatter ' + fver)
+    if hver != fver: fails += 1
+print('Result: ' + str(fails) + ' FAIL / ' + str(passes) + ' PASS / ' + str(skips) + ' SKIP')
+"
+Result: 0 FAIL / 4 PASS / 16 SKIP
+EXIT:0
+```
+→ 0 FAIL lines; 4 versioned-heading epics PASS (E-19 heading v1.27 == frontmatter v1.27). PASS.
+
+**(6) POINTER-CLASS GATE (D-806 standing Commit-E gate; literal-shell per D-449(a)).**
+
+```
+$ for f in .factory/specs/architecture/decisions/ADR-025*.md \
+           .factory/specs/architecture/decisions/ADR-030*.md; do
+    echo "--- $f ---"
+    grep -nE 'line [0-9]+([–-][0-9]+)? of|at line [0-9]+' "$f" || echo "(no matches)"
+  done
+--- .factory/specs/architecture/decisions/ADR-025-single-writer...md ---
+1708:  line-cite `at line 1181–1182 of hooks-registry.toml` replaced with stable anchor form
+--- .factory/specs/architecture/decisions/ADR-030-pr-manager-merge-operation-integrity-enforcement.md ---
+(no matches)
+EXIT:0
+```
+→ 0 normative-live hits; ADR-025 line 1708 EXEMPT (Changelog historical-by-construction per TD-VSDD-091); ADR-030 clean. PASS.
+
+**(7) STREAK STATUS.**
+
+0/3 (F-P56-001 MEDIUM; streak was already 0/3 entering pass-56; no advancement). Trajectory tail passes 53/54/55/56 = 2,0,1,1 → `→2→0→1→1`. Zero HIGH 16 passes; zero BLOCKER 34. NEXT: E-19 adv pass-57 (fresh context; Iron Law; rubric policies.yaml v1.4.4; perimeter = D-812 delta: VP-094 v1.3 + VP-INDEX v2.62 + full E-19 suite carry-forward; streak 0/3).
+
+Parent-commit: 93d3ca03 (architect VP-094 v1.2→v1.3 fix burst; factory-artifacts HEAD prior to this D-812 SM closure burst).
+
+### Phase
+
+D-812-E19-ADV-PASS-56-NOT-CLEAN-CLOSED
+
+### Date
+
+2026-07-10
