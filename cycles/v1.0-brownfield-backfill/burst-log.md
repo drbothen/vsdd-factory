@@ -18282,3 +18282,111 @@ No findings closed (CLEAN pass; GOVERNANCE-ONLY). O-P60-001 LOW accepted-with-re
 | D-821 SM single-commit burst (TD-VSDD-053) | `3c916672` | adv-E19-pass-60.md (NEW); decision-log D-821; STATE.md v5.67→v5.68; burst-log D-821 (this entry); streak 1/3→2/3; 4-index ALL UNCHANGED BC v3.95/VP v2.64/STORY v4.176/ARCH v3.00 |
 | D-821 SHA-patch | `91b7c78f` | Active Branches `3c916672` + burst-log Block 8 D-821 burst SHA update |
 | D-821 SHA-patch+ | `2e870f51` | burst-log Block 8 D-821 SHA-patch SHA update |
+
+## E19-ADV-PASS-61-CLEAN-3-OF-3-CONVERGED (D-823; 2026-07-11)
+
+**Parent-commit:** `b7ee5fed` (D-822 dispatch-side advance; factory-artifacts HEAD prior to this D-823 SM governance-only convergence burst).
+
+### Block 1: Adversary Verdict
+
+Pass-61 adversary (Claude Opus 4.7; rubric policies.yaml v1.4.6; fresh context; Iron Law) returned **CLEAN B0/H0/M0/L1**. Streak 2/3→**3/3 CONVERGED**. One LOW observation accepted-with-record:
+
+**O-P61-001 | LOW | POLICY 4 v1.4.4 DESCRIPTION-BEARING ANCHOR-PROSE PARITY | VP-097 §Source Contract §Invariant 1:** The §Source Contract §Invariant 1 bullet contains the clause "absent-but-allowlisted files return NOT_FOUND (-5) not CAPABILITY_DENIED (-1)" which does not derive from the target §Invariant 1 SoT (traversal defense only; §Invariant 1 contains zero NOT_FOUND/CAPABILITY_DENIED semantics). This clause derives from BC-2.07.001 PC2/PC3 (VP-098's scope). The §Traceability bullet for the same anchor correctly omits this clause. Severity LOW: anchor ID correct; §Property Statement correct; Kani harness tests traversal defense correctly; §Traceability clean; no implementer misled. Accepted-with-record per FREEZE precedent. Does NOT reset streak. Routing: architect at next VP-097 touch (drop the NOT_FOUND clause from §Invariant 1 §Source Contract bullet — already covered by sibling ADR-025 §Decision 13 bullet).
+
+**BC-5.39.001 strict 3-CLEAN protocol SATISFIED (passes 59+60+61 consecutive CLEAN). D-761/D-775 human directives SATISFIED. E-19 SPEC-CASCADE RE-CONVERGENCE COMPLETE. W1 TDD AUTHORIZED per D-773/D-774.**
+
+Full adversary report: `cycles/v1.0-brownfield-backfill/adv-E19-pass-61.md`
+
+### Block 2: Dim-2 (Literal-Shell Gate Evidence — D-449(a))
+
+**(A) D-494 4-index gate — BC/VP/STORY/ARCH versions unchanged (GOVERNANCE-ONLY):**
+```
+$ grep "^version:" \
+  .factory/specs/behavioral-contracts/BC-INDEX.md \
+  .factory/specs/verification-properties/VP-INDEX.md \
+  .factory/stories/STORY-INDEX.md \
+  .factory/specs/architecture/ARCH-INDEX.md
+.factory/specs/architecture/ARCH-INDEX.md:version: "3.00"
+.factory/specs/verification-properties/VP-INDEX.md:version: "2.64"
+.factory/specs/behavioral-contracts/BC-INDEX.md:version: "3.95"
+.factory/stories/STORY-INDEX.md:version: "4.176"
+EXIT:0
+```
+→ BC-INDEX: "3.95" / VP-INDEX: "2.64" / STORY-INDEX: "4.176" / ARCH-INDEX: "3.00". ALL UNCHANGED — governance-only burst confirmed. PASS.
+
+**(B) D-444(a) gate — current_step cites D-823 as max:**
+```
+$ grep -E "^current_step:" .factory/STATE.md
+current_step: "D-823-E19-ADV-PASS-61-CLEAN-3-OF-3-CONVERGED; streak 2/3→3/3 CONVERGED; CLEAN B0/H0/M0/L1; trajectory-tail →2→0→0→0; 4-index ALL UNCHANGED BC v3.95/VP v2.64/STORY v4.176/ARCH v3.00; E-19 CONVERGED; W1 TDD AUTHORIZED per D-773/D-774; parent-commit b7ee5fed"
+EXIT:0
+```
+→ current_step cites D-823 as max. PASS.
+
+**(C) D-448(a) source-attestation gate — burst-log adversary verdict vs adv-E19-pass-61.md Part A:**
+```
+$ grep -A5 "^## Part A" .factory/cycles/v1.0-brownfield-backfill/adv-E19-pass-61.md
+## Part A — Findings
+
+No blocking findings (B0/H0/M0).
+
+**O-P61-001 | LOW | POLICY 4 (semantic_anchoring_integrity, v1.4.4 DESCRIPTION-BEARING ANCHOR-PROSE PARITY axis) | `.factory/specs/verification-properties/VP-097.md` §Source Contract (first `**BC:**` bullet)**
+EXIT:0
+```
+→ Part A says "No blocking findings (B0/H0/M0)" + O-P61-001 LOW (VP-097 §Source Contract §Invariant 1 NOT_FOUND clause misattributed from PC2/PC3) — burst-log Block 1 adversary verdict faithfully reproduces this (B0/H0/M0/L1; O-P61-001 LOW accepted-with-record; correct routing and severity). PASS.
+
+**(D) Heading-parity gate (captured at decision-log D-823 authoring time):**
+```
+Result: 0 FAIL / 4 PASS / 16 SKIP
+EXIT:0
+```
+→ N/A (GOVERNANCE-ONLY; no epic/story bumps); captured for completeness. PASS.
+
+**(E) Pointer-class gate (captured at decision-log D-823 authoring time):**
+```
+ADR-025 line 1708 EXEMPT (Changelog historical)
+ADR-030: (no matches)
+EXIT:0
+```
+→ 0 normative hits; ADR-025 line 1708 EXEMPT per TD-VSDD-091. PASS.
+
+### Block 3: Files Touched
+
+| File | Change |
+|------|--------|
+| `cycles/v1.0-brownfield-backfill/adv-E19-pass-61.md` | NEW — pass-61 adversarial review report (CLEAN B0/H0/M0/L1; O-P61-001 accepted-with-record; **3/3 CONVERGED**) |
+| `cycles/v1.0-brownfield-backfill/decision-log.md` | MODIFIED — D-823 entry appended |
+| `cycles/v1.0-brownfield-backfill/INDEX.md` | MODIFIED — E-19 Convergence Status row updated to CONVERGED at pass-61; streak 3/3; D-761/D-775 SATISFIED |
+| `STATE.md` | MODIFIED — v5.68→v5.69 (version, timestamp, phase, last_amended, banner, current_step, SIZE BUDGET ~482, Last Updated, Current Phase, Current Phase Steps archived D-819+D-821+added D-823, Active Branches placeholder, Concurrent Cycles, Decisions Log header+D-823 row, Drift Items O-P61-001, Session Resume Checkpoint full refresh CONVERGED state targeting W1 TDD; streak 2/3→3/3 CONVERGED; trajectory-tail →2→0→0→0) |
+| `cycles/v1.0-brownfield-backfill/burst-log.md` | MODIFIED — D-823 burst-log entry (this entry) |
+
+No changes to: specs/, behavioral-contracts/, verification-properties/, stories/, architecture/, policies.yaml (4-index ALL UNCHANGED).
+
+### Block 4: Codifications
+
+D-823 decision-log entry codified. **E-19 SPEC-CASCADE RE-CONVERGENCE COMPLETE — BC-5.39.001 strict 3-CLEAN satisfied by passes 59+60+61.** O-P61-001 LOW accepted-with-record (VP-097 §Source Contract §Invariant 1 NOT_FOUND clause; architect-deferred to next VP-097 touch; added to do-not-re-report list; Drift Item added to STATE.md §In-Flight). INDEX.md E-19 Convergence Status updated to CONVERGED. GOVERNANCE-ONLY burst — no new D-NNN decisions beyond D-823 itself; no new lessons (CLEAN pass; accepted-with-record LOW only); no policy changes.
+
+### Block 5: Dim-5
+
+No cross-agent coordination required. GOVERNANCE-ONLY burst: state-manager only. Architect's VP-094 v1.5 (commit 3558b9ca) and all E-19 specs are final and sealed. O-P61-001 LOW routing deferred to architect at next VP-097 touch — non-blocking; no architect dispatch required this burst. W1 TDD dispatch (S-19.01+S-19.02+S-19.03) will be authorized after orchestrator input-hash drift check + human gate approval per D-773/D-774.
+
+### Block 6: D-446(a) 8-block gate (post-entry)
+
+```
+$ awk '/^## E19-ADV-PASS-61/,0' \
+  .factory/cycles/v1.0-brownfield-backfill/burst-log.md \
+  | grep "^### Block [1-8]" | sort -u | wc -l
+8
+EXIT:0
+```
+→ 8 blocks present. PASS.
+
+### Block 7: Closes
+
+No findings closed (CLEAN pass; GOVERNANCE-ONLY). O-P61-001 LOW accepted-with-record (not closed — deferred to architect at next VP-097 touch). **E-19 SPEC-CASCADE RE-CONVERGENCE COMPLETE** — this closure satisfies D-761 (strict-3-CLEAN no-cap) and D-775 (W1 TDD gated on re-convergence).
+
+### Block 8: Factory-artifacts Commits
+
+| Commit | SHA | Contents |
+|--------|-----|----------|
+| D-823 SM single-commit burst (TD-VSDD-053) | `[D-823-BURST-SHA]` | adv-E19-pass-61.md (NEW); decision-log D-823; INDEX.md CONVERGED; STATE.md v5.68→v5.69; burst-log D-823 (this entry); **3/3 CONVERGED**; 4-index ALL UNCHANGED BC v3.95/VP v2.64/STORY v4.176/ARCH v3.00 |
+| D-823 SHA-patch | `[D-823-SHA-PATCH-SHA]` | Active Branches `[D-823-BURST-SHA]` + burst-log Block 8 D-823 burst SHA update |

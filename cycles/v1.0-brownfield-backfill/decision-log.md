@@ -9683,3 +9683,115 @@ D-821-E19-ADV-PASS-60-CLEAN-2-OF-3
 ### Date
 
 2026-07-11
+
+## D-823 — E-19 Adversarial Pass-61 CLEAN Closure (GOVERNANCE-ONLY; 3/3 CONVERGED; E-19 SPEC-CASCADE RE-CONVERGENCE COMPLETE)
+
+### Summary
+
+Pass-61 adversary (Claude Opus 4.7; rubric policies.yaml v1.4.6; fresh context; Iron Law; perimeter = NO new delta (pass-60 GOVERNANCE-ONLY) + D-817 delta (VP-094 v1.5 + VP-INDEX v2.64 + policies.yaml v1.4.6) + full E-19 carry-forward; streak 2/3) found 0 blocking findings, 1 observation — CLEAN B0/H0/M0/L1. O-P61-001 LOW: VP-097 §Source Contract §Invariant 1 bullet contains the clause "absent-but-allowlisted files return NOT_FOUND (-5) not CAPABILITY_DENIED (-1)" — this clause derives from BC-2.07.001 PC2/PC3 (VP-098's scope: allowlist gating), not §Invariant 1 (traversal defense only). §Traceability bullet for the same anchor correctly omits this clause. Severity LOW (anchor ID correct; §Property Statement correct; Kani harness correct; §Traceability clean; implementer not misled by §Property Statement). Accepted-with-record per FREEZE precedent; routing: architect at next VP-097 touch. All 12 standing gates PASS. Do-not-re-report honored: O-P41-001, O-P41-002, O-P44-001, O-P49-001, O-P60-001 not re-raised. Trajectory passes 58/59/60/61 = 2,0,0,0 → `→2→0→0→0`. Zero HIGH 20 passes; zero BLOCKER 39. **Streak 2/3→3/3 CONVERGED. BC-5.39.001 strict 3-CLEAN protocol SATISFIED. D-761/D-775 human directives SATISFIED. E-19 SPEC-CASCADE RE-CONVERGENCE COMPLETE.** GOVERNANCE-ONLY burst (no spec/story/BC/VP/epic/ADR changes). NEXT: orchestrator `/vsdd-factory:check-input-drift` → human W1 gate approval → W1 TDD dispatch S-19.01+S-19.02+S-19.03 per D-773/D-774.
+
+### Detail
+
+**(1) POLICY 16 GLOBAL-MAX GATE (POLICY 16; literal-shell per D-449(a)).**
+
+```
+$ grep -oE "^## D-[0-9]+" .factory/cycles/v1.0-brownfield-backfill/decision-log.md | sort -t'-' -k3 -n | tail -1
+## D-821
+EXIT:0
+```
+D-821 confirmed max (D-822 consumed by dispatch-side advance D-417(b) strict) → D-823 allocated. PASS.
+
+**(2) PASS-61 ADVERSARY VERDICT.**
+
+CLEAN B0/H0/M0/L1. Perimeter: NO new delta (pass-60 GOVERNANCE-ONLY) + D-817 delta (VP-094 v1.5 + VP-INDEX v2.64 + policies.yaml v1.4.6) + full E-19 carry-forward (BC-INDEX v3.95; STORY-INDEX v4.176; ARCH-INDEX v3.00; epic v1.27; L2-INDEX v1.0.14; ADR-025 v1.15; ADR-030 v1.3; 6 BCs; 8 VPs; 7 stories). Streak before: 2/3. Streak after: 3/3 CONVERGED.
+
+Findings: none. Observations: O-P61-001 LOW (VP-097 §Source Contract §Invariant 1 over-broad NOT_FOUND clause from BC-2.07.001 PC2/PC3 scope; accepted-with-record; do-not-re-report; routing architect at next VP-097 touch).
+
+Full adversary report: `cycles/v1.0-brownfield-backfill/adv-E19-pass-61.md`
+
+**(3) FIX BURST.**
+
+GOVERNANCE-ONLY — no spec/story/BC/VP/epic/ADR changes. All 4-index UNCHANGED: BC v3.95/VP v2.64/STORY v4.176/ARCH v3.00 (exhaustive-unchanged). O-P61-001 accepted-with-record — architect deferred to next VP-097 touch (LOW severity; §Property Statement + Kani harness + §Traceability all correct; §Source Contract §Invariant 1 prose over-breadth only). SM closure burst: adv-E19-pass-61.md persisted; D-823 decision-log codification; STATE.md v5.68→v5.69; burst-log D-823 entry; INDEX.md E-19 Convergence Status updated to CONVERGED; Drift Item O-P61-001 added to STATE.md. **E-19 SPEC-CASCADE RE-CONVERGENCE COMPLETE (D-761/D-775 SATISFIED).**
+
+**(4) 4-INDEX GATE (POLICY 14 leg-4 — exhaustive-unchanged; literal-shell per D-449(a)).**
+
+```
+$ grep "^version:" \
+  .factory/specs/behavioral-contracts/BC-INDEX.md \
+  .factory/specs/verification-properties/VP-INDEX.md \
+  .factory/stories/STORY-INDEX.md \
+  .factory/specs/architecture/ARCH-INDEX.md
+.factory/specs/architecture/ARCH-INDEX.md:version: "3.00"
+.factory/specs/verification-properties/VP-INDEX.md:version: "2.64"
+.factory/specs/behavioral-contracts/BC-INDEX.md:version: "3.95"
+.factory/stories/STORY-INDEX.md:version: "4.176"
+EXIT:0
+```
+→ BC-INDEX: "3.95" / VP-INDEX: "2.64" / STORY-INDEX: "4.176" / ARCH-INDEX: "3.00". ALL UNCHANGED — governance-only burst confirmed. PASS.
+
+**(5) HEADING-PARITY GATE (D-803 standing Commit-E gate — mandatory; literal-shell per D-449(a)).**
+
+```
+$ python3 -c "
+import re, os, glob
+with open('.factory/stories/STORY-INDEX.md', 'r') as f:
+    index_content = f.read()
+heading_pattern = re.compile(r'^(## (?:Epic )?(E-\d+)[^\n]*)', re.MULTILINE)
+heading_matches = list(heading_pattern.finditer(index_content))
+epic_dir = '.factory/stories/epics'
+epic_files = glob.glob(os.path.join(epic_dir, '*.md'))
+epic_versions = {}
+for fpath in epic_files:
+    with open(fpath, 'r') as f:
+        content = f.read()
+    vm = re.search(r'^version:\s*[\x22\x27]?([^\x22\x27\n]+)', content, re.MULTILINE)
+    eid_m = re.search(r'(E-\d+)', os.path.basename(fpath))
+    if vm and eid_m:
+        epic_versions[eid_m.group(1)] = vm.group(1).strip('\x22\x27').strip()
+fails = 0; passes = 0; skips = 0
+for m in heading_matches:
+    heading_line = m.group(1); eid = m.group(2)
+    hvm = re.search(r'v(\d+\.\d+)\s*$', heading_line)
+    if eid not in epic_versions: skips += 1; continue
+    fver = epic_versions[eid]
+    if not hvm: skips += 1; continue
+    hver = 'v' + hvm.group(1)
+    if hver == fver: passes += 1
+    else: print('FAIL ' + eid + ': heading ' + hver + ' != frontmatter ' + fver)
+    if hver != fver: fails += 1
+print('Result: ' + str(fails) + ' FAIL / ' + str(passes) + ' PASS / ' + str(skips) + ' SKIP')
+"
+Result: 0 FAIL / 4 PASS / 16 SKIP
+EXIT:0
+```
+→ 0 FAIL lines; 4 versioned-heading epics PASS. PASS.
+
+**(6) POINTER-CLASS GATE (D-806 standing Commit-E gate — mandatory; literal-shell per D-449(a)).**
+
+```
+$ for f in .factory/specs/architecture/decisions/ADR-025*.md \
+           .factory/specs/architecture/decisions/ADR-030*.md; do
+    echo "--- $f ---"
+    grep -nE 'line [0-9]+([–-][0-9]+)? of|at line [0-9]+' "$f" || echo "(no matches)"
+  done
+--- .factory/specs/architecture/decisions/ADR-025-single-writer...md ---
+1708:  line-cite `at line 1181–1182 of hooks-registry.toml` replaced with stable anchor form
+--- .factory/specs/architecture/decisions/ADR-030-pr-manager-merge-operation-integrity-enforcement.md ---
+(no matches)
+EXIT:0
+```
+→ 0 normative-live hits; ADR-025 line 1708 EXEMPT (Changelog historical-by-construction per TD-VSDD-091); ADR-030 clean. PASS.
+
+**(7) STREAK STATUS.**
+
+**3/3 CONVERGED** (CLEAN B0/H0/M0/L1; trajectory tail passes 58/59/60/61 = 2,0,0,0 → `→2→0→0→0`; streak advances from 2/3 to 3/3 CONVERGED). BC-5.39.001 strict 3-CLEAN protocol SATISFIED (passes 59+60+61 consecutive CLEAN). D-761/D-775 human directives SATISFIED. E-19 SPEC-CASCADE RE-CONVERGENCE COMPLETE. Zero HIGH 20 passes; zero BLOCKER 39. W1 TDD AUTHORIZED per D-773/D-774 (S-19.01+S-19.02+S-19.03, parallel-eligible; gated on input-hash drift check + human W1 gate approval). O-P61-001 added to do-not-re-report list.
+
+Parent-commit: b7ee5fed (D-822 dispatch-side advance; factory-artifacts HEAD prior to this D-823 SM governance-only convergence burst).
+
+### Phase
+
+D-823-E19-ADV-PASS-61-CLEAN-3-OF-3-CONVERGED
+
+### Date
+
+2026-07-11
