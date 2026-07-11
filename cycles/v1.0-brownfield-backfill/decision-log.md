@@ -9327,3 +9327,131 @@ D-815-E19-ADV-PASS-57-NOT-CLEAN-CLOSED
 ### Date
 
 2026-07-11
+
+## D-817 — E-19 Adversarial Pass-58 NOT-CLEAN Closure (B0/H1/M0/L1; F-P58-001 CLOSED architect 3558b9ca; O-P58-001 [process-gap] CODIFIED by SM; streak 0/3 (unchanged); L-BB-adr-anchor-fields-must-propagate-with-governing-adr [process-gap] codified)
+
+### Summary
+
+Pass-58 adversary (Claude Opus 4.7; rubric policies.yaml v1.4.5; fresh context; Iron Law; perimeter = D-815 delta: VP-094 v1.4 + VP-INDEX v2.63 + full E-19 carry-forward; streak 0/3) found 1 finding + 1 observation — NOT-CLEAN B0/H1/M0/L1. 29/30 version attestations PASS (VP-094 FINDING). D-815 delta re-verified PASS (full §Proof Harness invocation-form + VP-INDEX v2.63 + 11 standing gates).
+
+Sole HIGH finding: **F-P58-001 HIGH (POLICY 4 semantic-anchoring-integrity — novel axis: ADR-anchor-field denial)** — VP-094 v1.4 §Source Contract `**ADR:**` bullet states "RELEASING.md §Merge requirements (merge-strategy invariant is an established release procedure constraint, not an ADR-documented decision; BC-5.42.001 formalizes it)." This is false: ADR-030 §Decision 3 documents the merge-strategy enforcement decision verbatim; ADR-030 §Decision 2 documents the stale-verdict decision. VP-094 §Property Statement PS-B cites "per ADR-030 §Decision 2" and PS-C cites "per ADR-030 §Decision 3" — a same-document contradiction with §Source Contract. §Traceability omits the `**ADR:**` bullet entirely, contradicting sibling VPs VP-095/097/098. Blast radius = 2 sections within VP-094. Same dormant-survivor class as F-P57-001: ADR-030 v1.1 propagation directives (F-W1V-002) enumerated BC + S-19.01 but not VP-094 §Source Contract/§Traceability `**ADR:**` anchor fields. CLOSED: architect 3558b9ca (VP-094 v1.4→v1.5; §Source Contract ADR bullet → `ADR-030 §Decision 1 + §Decision 2 + §Decision 3`; §Traceability ADR bullet added; sibling class-sweep VP-095..VP-101 PASS; POLICY 5 v1.3.4 sweep gate zero non-historical matches; input-hash e2f422f UNCHANGED).
+
+One LOW observation O-P58-001 CODIFIED by state-manager this burst (no standing gate for `**ADR:**` anchor fields; 12th standing gate added).
+
+Trajectory tail passes 55/56/57/58 = 1,1,3,2 → `→1→1→3→2`. Zero BLOCKER 36 passes. Streak 0/3 (was 0/3 entering pass-58; F-P58-001 HIGH prevents advancement; streak unchanged).
+
+Lesson codified: **L-BB-adr-anchor-fields-must-propagate-with-governing-adr** [process-gap] — ADR propagation directives MUST enumerate VP §Source Contract and §Traceability `**ADR:**` anchor fields for every VP whose §Property Statement cites that ADR. A 'not an ADR-documented decision' claim in §Source Contract is forbidden when an ADR §Decision governs the postcondition in the same VP's §Property Statement. §Traceability MUST include a parallel `**ADR:**` bullet when §Source Contract names an ADR (sibling-VP convention). 12th standing gate (POLICY 4 v1.4.6).
+
+VP-INDEX advanced v2.63→v2.64 (VP-094 v1.5 annotation in Full Index row + Story Anchors row; POLICY 9 zero-match confirmed). policies.yaml v1.4.5→v1.4.6 (ADR-ANCHOR-FIELD PARITY verification_step appended to POLICY 4).
+
+NEXT: pass-59 (fresh context; Iron Law; rubric policies.yaml v1.4.6; perimeter = D-817 delta: VP-094 v1.5 + VP-INDEX v2.64 + full E-19 suite carry-forward; 4-index BC v3.95/VP v2.64/STORY v4.176/ARCH v3.00; streak 0/3; do-NOT-re-report: O-P41-001, O-P41-002, O-P44-001, O-P49-001, O-P58-001 — F-P58-001 CLOSED, do not re-report).
+
+### Detail
+
+**(1) POLICY 16 GLOBAL-MAX GATE (POLICY 16; literal-shell per D-449(a)).**
+
+```
+$ grep -oE "^## D-[0-9]+" .factory/cycles/v1.0-brownfield-backfill/decision-log.md | sort -t'-' -k3 -n | tail -1
+## D-815
+EXIT:0
+```
+→ D-815 confirmed max in decision-log; D-816 consumed by dispatch-side advance (STATE.md frontmatter only per D-417(b) strict) → D-817 allocated. PASS.
+
+**(2) PASS-58 ADVERSARY VERDICT.**
+
+NOT-CLEAN B0/H1/M0/L1. Perimeter: D-815 delta (VP-094 v1.4 + VP-INDEX v2.63) + full E-19 carry-forward (BC-INDEX v3.95; STORY-INDEX v4.176; ARCH-INDEX v3.00; epic v1.27; L2-INDEX v1.0.14; ADR-025 v1.15; ADR-030 v1.3; 6 BCs; 8 VPs; 7 stories; policies.yaml v1.4.5). Streak before: 0/3. Streak after: 0/3 (unchanged).
+
+F-P58-001 HIGH: VP-094 v1.4 §Source Contract `**ADR:**` bullet names RELEASING.md and claims merge-strategy invariant is "not an ADR-documented decision" — contradicts ADR-030 §Decision 3 (merge-strategy enforcement) and ADR-030 §Decision 2 (stale-verdict exit 1 fail-closed) which both govern VP-094 postconditions. VP-094 §Property Statement PS-B cites "per ADR-030 §Decision 2" and PS-C cites "per ADR-030 §Decision 3" — same-document contradiction. §Traceability omits `**ADR:**` bullet entirely; sibling VPs VP-095/097/098 all have §Source Contract + §Traceability `**ADR:**` bullets naming governing ADR. Blast radius = 2 sections within VP-094. Same dormant-survivor class as F-P57-001: ADR-030 v1.1 propagation directives listed BC + S-19.01 but excluded VP §Source Contract/§Traceability structured ADR-anchor fields.
+
+O-P58-001 LOW [process-gap]: no standing gate covers VP §Source Contract/§Traceability `**ADR:**` anchor-field consistency with §Property Statement ADR cites. Codified by state-manager as 12th standing gate (POLICY 4 v1.4.6 ADR-ANCHOR-FIELD PARITY).
+
+Full adversary report: `cycles/v1.0-brownfield-backfill/adv-E19-pass-58.md`
+
+**(3) FIX BURST.**
+
+Single architect leg: 3558b9ca — VP-094 v1.4→v1.5 (§Source Contract `**ADR:**` bullet: RELEASING.md → "ADR-030 §Decision 1 + §Decision 2 + §Decision 3 — pr-manager-completion-guard.wasm SubagentStop READY-SHA completeness gate (§Decision 1); check-stale-verdict.sh stale-verdict detection exit 1 fail-closed (§Decision 2); enforce-merge-strategy.sh release-PR merge-strategy enforcement exit 1 fail-closed (§Decision 3). Procedural origin: RELEASING.md."; §Traceability `**ADR:**` bullet added per sibling convention; sibling class-sweep VP-095..VP-101 PASS; POLICY 5 v1.3.4 sweep gate: zero non-historical matches; input-hash e2f422f UNCHANGED).
+
+SM this-commit: VP-INDEX v2.63→v2.64 (Full Index VP-094 row + Story Anchors VP-094 row v1.5 annotations; frontmatter version + last_amended + changelog entry prepended; POLICY 9 zero-match confirmed — VP-094 title unchanged). policies.yaml v1.4.5→v1.4.6 (ADR-ANCHOR-FIELD PARITY verification_step appended to POLICY 4; version + last_amended bumped). L-BB-adr-anchor-fields-must-propagate-with-governing-adr [process-gap] appended to lessons.md.
+
+**(4) 4-INDEX GATE (POLICY 14 leg-4; literal-shell per D-449(a)).**
+
+```
+$ grep "^version:" \
+  .factory/specs/behavioral-contracts/BC-INDEX.md \
+  .factory/specs/verification-properties/VP-INDEX.md \
+  .factory/stories/STORY-INDEX.md \
+  .factory/specs/architecture/ARCH-INDEX.md
+.factory/specs/verification-properties/VP-INDEX.md:version: "2.64"
+.factory/specs/architecture/ARCH-INDEX.md:version: "3.00"
+.factory/specs/behavioral-contracts/BC-INDEX.md:version: "3.95"
+.factory/stories/STORY-INDEX.md:version: "4.176"
+EXIT:0
+```
+→ BC-INDEX v3.95 / VP-INDEX v2.64 / STORY-INDEX v4.176 / ARCH-INDEX v3.00. VP-INDEX advanced v2.63→v2.64 (VP-094 v1.5 annotation); BC/STORY/ARCH UNCHANGED. PASS.
+
+**(5) HEADING-PARITY GATE (D-803 standing Commit-E gate; literal-shell per D-449(a)).**
+
+```
+$ python3 -c "
+import re, os, glob
+with open('.factory/stories/STORY-INDEX.md', 'r') as f:
+    index_content = f.read()
+heading_pattern = re.compile(r'^(## (?:Epic )?(E-\d+)[^\n]*)', re.MULTILINE)
+heading_matches = list(heading_pattern.finditer(index_content))
+epic_dir = '.factory/stories/epics'
+epic_files = glob.glob(os.path.join(epic_dir, '*.md'))
+epic_versions = {}
+for fpath in epic_files:
+    with open(fpath, 'r') as f:
+        content = f.read()
+    vm = re.search(r'^version:\s*[\x22\x27]?([^\x22\x27\n]+)', content, re.MULTILINE)
+    eid_m = re.search(r'(E-\d+)', os.path.basename(fpath))
+    if vm and eid_m:
+        epic_versions[eid_m.group(1)] = vm.group(1).strip('\x22\x27').strip()
+fails = 0; passes = 0; skips = 0
+for m in heading_matches:
+    heading_line = m.group(1); eid = m.group(2)
+    hvm = re.search(r'v(\d+\.\d+)\s*$', heading_line)
+    if eid not in epic_versions: skips += 1; continue
+    fver = epic_versions[eid]
+    if not hvm: skips += 1; continue
+    hver = 'v' + hvm.group(1)
+    if hver == fver: passes += 1
+    else: print('FAIL ' + eid + ': heading ' + hver + ' != frontmatter ' + fver)
+    if hver != fver: fails += 1
+print('Result: ' + str(fails) + ' FAIL / ' + str(passes) + ' PASS / ' + str(skips) + ' SKIP')
+"
+Result: 0 FAIL / 4 PASS / 16 SKIP
+EXIT:0
+```
+→ 0 FAIL lines; 4 versioned-heading epics PASS (E-19 heading v1.27 == frontmatter v1.27). PASS.
+
+**(6) POINTER-CLASS GATE (D-806 standing Commit-E gate; literal-shell per D-449(a)).**
+
+```
+$ for f in .factory/specs/architecture/decisions/ADR-025*.md \
+           .factory/specs/architecture/decisions/ADR-030*.md; do
+    echo "--- $f ---"
+    grep -nE 'line [0-9]+([–-][0-9]+)? of|at line [0-9]+' "$f" || echo "(no matches)"
+  done
+--- .factory/specs/architecture/decisions/ADR-025-single-writer...md ---
+1708:  line-cite `at line 1181–1182 of hooks-registry.toml` replaced with stable anchor form
+--- .factory/specs/architecture/decisions/ADR-030-pr-manager-merge-operation-integrity-enforcement.md ---
+(no matches)
+EXIT:0
+```
+→ 0 normative-live hits; ADR-025 line 1708 EXEMPT (Changelog historical-by-construction per TD-VSDD-091); ADR-030 clean. PASS.
+
+**(7) STREAK STATUS.**
+
+0/3 (F-P58-001 HIGH; streak was 0/3 entering pass-58; no advancement). Trajectory tail passes 55/56/57/58 = 1,1,3,2 → `→1→1→3→2`. Zero HIGH 18 passes; zero BLOCKER 36. NEXT: E-19 adv pass-59 (fresh context; Iron Law; rubric policies.yaml v1.4.6; perimeter = D-817 delta: VP-094 v1.5 + VP-INDEX v2.64 + full E-19 suite carry-forward; streak 0/3).
+
+Parent-commit: dc8db4be (D-815 SM closure SHA-patch+; factory-artifacts HEAD prior to this D-816 dispatch-side advance; D-816 consumed by dispatch-side, so D-817 SM burst parent-commit is the D-816 dispatch-side commit 6e939900).
+
+### Phase
+
+D-817-E19-ADV-PASS-58-NOT-CLEAN-CLOSED
+
+### Date
+
+2026-07-11

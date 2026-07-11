@@ -17959,3 +17959,98 @@ Result: All 8 D-444(c) mandatory blocks present (Blocks 1–8 confirmed in this 
 | D-815 SM single-commit burst (TD-VSDD-053) | `f5e3f372` | adv-E19-pass-57.md (NEW); decision-log D-815; lessons L-BB-invocation-signature-migrations-must-sweep-vp-proof-harness-skeleton; policies.yaml v1.4.4→v1.4.5; VP-INDEX v2.62→v2.63; STATE.md v5.64→v5.65; burst-log D-815 (this entry); streak 0/3 UNCHANGED; 4-index BC v3.95/VP v2.63/STORY v4.176/ARCH v3.00 |
 | D-815 SHA-patch | `a975ff41` | Active Branches f5e3f372 + burst-log Block 8 SHA update |
 
+
+---
+
+## D-817
+
+### Block 1 — Parent-commit
+
+Parent-commit: `6e939900` (D-816 dispatch-side advance: E-19 adv pass-58 DISPATCHED; rubric policies.yaml v1.4.5; perimeter D-815 delta (VP-094 v1.4 + VP-INDEX v2.63) + full E-19 carry-forward; streak 0/3; factory-artifacts HEAD prior to this D-817 SM closure burst).
+
+### Block 2 — Adversary Verdict + Dim-2 Literal-Shell Evidence
+
+**Pass verdict:** NOT-CLEAN — B0/H1/M0/L1. Pass-58 adversary (adv-E19-pass-58.md) found 1 HIGH finding (F-P58-001) + 1 LOW observation (O-P58-001). F-P58-001 HIGH [POLICY 4 semantic-anchoring-integrity: same-document contradiction]: VP-094 v1.4 §Source Contract `**ADR:**` bullet stated `RELEASING.md §Merge requirements (merge-strategy invariant is an established release procedure constraint, not an ADR-documented decision; BC-5.42.001 formalizes it)`, directly contradicting VP-094 §Property Statement PS-B ("per ADR-030 §Decision 2") and PS-C ("per ADR-030 §Decision 3"); §Traceability omitted `**ADR:**` bullet entirely — CLOSED architect 3558b9ca (VP-094 v1.4→v1.5: §Source Contract `**ADR:**` → `ADR-030 §Decision 1 + §Decision 2 + §Decision 3`; §Traceability `**ADR:**` bullet added per sibling-VP convention; input-hash e2f422f UNCHANGED). O-P58-001 LOW [process-gap] (no standing gate for VP `**ADR:**` anchor fields) — CODIFIED as 12th standing gate this SM burst. Streak 0/3 UNCHANGED (F-P58-001 HIGH blocks advancement; was already 0/3 entering pass-58). Axis-count pass-58 = 2 (H1+L1).
+
+**D-449(a) Dim-2 Literal-Shell Evidence:**
+
+Gate 1 — D-444(a) current_step D-chain cite (`grep "^current_step:" .factory/STATE.md`):
+```
+current_step: "D-817-E19-ADV-PASS-58-NOT-CLEAN-CLOSED; trajectory-tail →1→1→3→2; streak 0/3; F-P58-001 HIGH CLOSED architect 3558b9ca; VP-INDEX v2.63→v2.64; policies.yaml v1.4.5→v1.4.6; 12th standing gate; pass-59 NEXT; parent-commit 6e939900;"
+```
+Result: current_step cites D-817 as max. D-443(a)/D-444(a) satisfied. PASS.
+
+Gate 2 — D-494 4-index versions (`grep "^version:" BC-INDEX.md VP-INDEX.md STORY-INDEX.md ARCH-INDEX.md`):
+```
+.factory/specs/behavioral-contracts/BC-INDEX.md:version: "3.95"
+.factory/specs/verification-properties/VP-INDEX.md:version: "2.64"
+.factory/stories/STORY-INDEX.md:version: "4.176"
+.factory/specs/architecture/ARCH-INDEX.md:version: "3.00"
+```
+Result: BC v3.95 / VP v2.64 / STORY v4.176 / ARCH v3.00. VP-INDEX advanced from v2.63→v2.64 this burst. All others UNCHANGED. PASS.
+
+Gate 3 — STATE.md wc-l ≤500 (`wc -l .factory/STATE.md`):
+```
+     472 .factory/STATE.md
+```
+Result: 472 ≤ 500. D-421(c) budget satisfied. PASS.
+
+Gate 4 — Single Session Resume Checkpoint heading (`grep -n "^## Session Resume Checkpoint" .factory/STATE.md | wc -l`):
+```
+       1
+```
+Result: Exactly 1 heading. Prior D-815 checkpoint archived to session-checkpoints.md. PASS.
+
+Gate 5 — D-448(a) source-attestation parity (`grep -c "F-P58-001\|O-P58-001\|3558b9ca\|NOT-CLEAN\|B0/H1/M0/L1" .factory/cycles/v1.0-brownfield-backfill/adv-E19-pass-58.md`):
+```
+24
+```
+Result: adv-E19-pass-58.md Part A finding set (F-P58-001 HIGH VP-094 §Source Contract ADR-anchor contradiction; O-P58-001 LOW [process-gap]; verdict NOT-CLEAN B0/H1/M0/L1; architect 3558b9ca closure) faithfully described in Block 2 adversary verdict paragraph. Zero omissions. PASS.
+
+### Block 3 — Files Touched
+
+| File | Change | Agent | SHA |
+|------|--------|-------|-----|
+| `.factory/cycles/v1.0-brownfield-backfill/adv-E19-pass-58.md` | NEW — adversary pass-58 review (NOT-CLEAN B0/H1/M0/L1; F-P58-001 HIGH CLOSED architect 3558b9ca; O-P58-001 LOW CODIFIED 12th gate; streak 0/3 UNCHANGED; full 30-artifact perimeter attestation table) | state-manager | this commit |
+| `.factory/cycles/v1.0-brownfield-backfill/decision-log.md` | D-817 appended (canonical 6-column row + 7-subsection appendix; E19-ADV-PASS-58-NOT-CLEAN-CLOSED; F-P58-001 HIGH CLOSED architect 3558b9ca; O-P58-001 LOW CODIFIED; L-BB-adr-anchor-fields-must-propagate-with-governing-adr codified; 12th standing gate) | state-manager | this commit |
+| `.factory/cycles/v1.0-brownfield-backfill/lessons.md` | L-BB-adr-anchor-fields-must-propagate-with-governing-adr [process-gap] appended; 12th standing gate added | state-manager | this commit |
+| `.factory/policies.yaml` | v1.4.5→v1.4.6 (POLICY 4 ADR-ANCHOR-FIELD PARITY verification_steps extension; 12th standing gate) | state-manager | this commit |
+| `.factory/specs/verification-properties/VP-INDEX.md` | v2.63→v2.64 (VP-094 v1.5 annotation added; Full Index + Story Anchors per D-802; frontmatter 5-leg POLICY 14 parity) | state-manager | this commit |
+| `.factory/STATE.md` | v5.65→v5.66 (D-817; banner; current_step; phase; last_amended; timestamp; Last Updated; Current Phase Steps; Concurrent Cycles; Decisions Log; SRC §Position/convergence/repo-state/artifact-versions/§Convergence-Counter/§In-Flight/(g)/§Resume-Actions/(1)/§Standing-Controls D-817 12th gate added/§4-Index/Critical-SHAs/checkpoint-note; size-budget wc-l 472) | state-manager | this commit |
+| `.factory/cycles/v1.0-brownfield-backfill/burst-log.md` | D-817 burst entry appended (this entry; 8 blocks) | state-manager | this commit |
+
+### Block 4 — Codifications
+
+| ID | Type | Description |
+|----|------|-------------|
+| D-817 | Decision | E19-ADV-PASS-58-NOT-CLEAN-CLOSED; adv pass-58 NOT-CLEAN B0/H1/M0/L1; F-P58-001 HIGH [POLICY 4 semantic-anchoring-integrity: same-document contradiction] VP-094 v1.4→v1.5 (architect 3558b9ca; §Source Contract **ADR:** RELEASING.md → ADR-030 §Decision 1+2+3; §Traceability **ADR:** bullet added; sibling class-sweep VP-095..101 PASS; input-hash e2f422f UNCHANGED); O-P58-001 LOW [process-gap] CODIFIED 12th standing gate; streak 0/3 UNCHANGED; trajectory-tail →1→1→3→2; VP-INDEX v2.63→v2.64; policies.yaml v1.4.5→v1.4.6; L-BB-adr-anchor-fields-must-propagate-with-governing-adr [process-gap] codified; 12th standing gate added; pass-59 NEXT |
+| L-BB-adr-anchor-fields-must-propagate-with-governing-adr | Lesson [process-gap] | When an ADR is created or updated, its propagation directives MUST enumerate VP §Source Contract and §Traceability **ADR:** anchor fields for every VP whose §Property Statement cites that ADR. A same-document contradiction between §Property Statement ADR cites and §Source Contract **ADR:** bullet is HIGH severity under POLICY 4. 12th standing gate: VP §Source Contract **ADR:** and §Traceability **ADR:** must both name the governing ADR consistent with §Property Statement PS-* ADR cites. |
+
+### Block 5 — Dim-5: Files-Touched Completeness
+
+All 7 files modified in this SM burst are listed in Block 3. Architect's VP-094.md changes were committed by architect at 3558b9ca (separate commit on factory-artifacts, not part of this SM burst). BC/story/epic/ADR files: UNCHANGED this burst. 4-index advance: VP-INDEX v2.63→v2.64 (annotation-only; VP-094 v1.5); BC-INDEX/STORY-INDEX/ARCH-INDEX UNCHANGED. policies.yaml v1.4.5→v1.4.6 (POLICY 4 ADR-ANCHOR-FIELD PARITY verification_steps extension; governance-only). All 7 listed files are the complete set; no omissions.
+
+### Block 6 — D-446(a) 8-Block Completion Gate
+
+Gate command (`awk '/^## D-817/,0' .factory/cycles/v1.0-brownfield-backfill/burst-log.md | grep "^### Block [1-8]" | sort -u | wc -l`):
+```
+       8
+```
+Result: All 8 D-444(c) mandatory blocks present (Blocks 1–8 confirmed in this entry). D-446(a) gate PASS.
+
+### Block 7 — Closes / Status Summary
+
+| Item | Verdict | Resolution |
+|------|---------|------------|
+| F-P58-001 HIGH VP-094 §Source Contract ADR-anchor contradiction | CLOSED | Architect 3558b9ca: VP-094 v1.4→v1.5; §Source Contract `**ADR:**` bullet corrected from RELEASING.md to ADR-030 §Decision 1+2+3; §Traceability `**ADR:**` bullet added per sibling-VP convention; sibling class-sweep VP-095..101 PASS; input-hash e2f422f UNCHANGED |
+| O-P58-001 LOW [process-gap] missing 12th standing gate | CODIFIED | SM this burst: policies.yaml v1.4.5→v1.4.6 (POLICY 4 ADR-ANCHOR-FIELD PARITY; 12th gate); lessons.md L-BB-adr-anchor-fields-must-propagate-with-governing-adr; decision-log D-817; NOT accepted-with-record |
+| D-817 E19-ADV-PASS-58-NOT-CLEAN-CLOSED | CLOSED | STATE.md v5.66; VP-INDEX v2.64; policies.yaml v1.4.6; decision-log D-817; burst-log D-817; lessons + 12th standing gate |
+| Streak | 0/3 UNCHANGED | Pass-58 NOT-CLEAN; three consecutive CLEANs required; no advancement this burst |
+| 4-index | VP advanced | BC v3.95 / VP v2.63→v2.64 / STORY v4.176 / ARCH v3.00 |
+
+### Block 8 — Factory-artifacts Commits
+
+| Commit | SHA | Contents |
+|--------|-----|----------|
+| D-817 SM single-commit burst (TD-VSDD-053) | `[D-817-burst-SHA]` | adv-E19-pass-58.md (NEW); decision-log D-817; lessons L-BB-adr-anchor-fields-must-propagate-with-governing-adr; policies.yaml v1.4.5→v1.4.6; VP-INDEX v2.63→v2.64; STATE.md v5.65→v5.66; burst-log D-817 (this entry); streak 0/3 UNCHANGED; 4-index BC v3.95/VP v2.64/STORY v4.176/ARCH v3.00 |
+| D-817 SHA-patch | `[D-817-SHA-patch-SHA]` | Active Branches [D-817-burst-SHA] + burst-log Block 8 SHA update |
