@@ -907,3 +907,16 @@ Summary of D-787 checkpoint (archived reference):
 - 4-index: BC v3.86 / VP v2.55 / STORY v4.165 / ARCH v2.97. L2-INDEX v1.0.14. total_bcs 1,977.
 - develop HEAD: `f5242bef` / main HEAD: `a04cb303` / factory-artifacts HEAD: `986ba545` (D-787 burst) / merged_count 98
 - D-range: D-001..D-787
+
+---
+
+## D-812 Checkpoint (archived 2026-07-10 by D-813 session wrap — SESSION-WRAP-PAUSED)
+
+**Superseded by D-813 SESSION-WRAP-PAUSED checkpoint (STATE.md §Session Resume Checkpoint).**
+
+Summary of D-812 checkpoint (archived reference):
+- D-812 (2026-07-10): E-19 ADV PASS-56 NOT-CLEAN CLOSED — FIX BURST COMPLETE. Pass-56 NOT-CLEAN B0/H0/M1/L0 (F-P56-001 MEDIUM VP-094 v1.2 sentinel-string/exit-code content parity: VERDICT_STALE→STALE_READY_VERDICT ×5, MERGE_STRATEGY_REQUIRED→RELEASE_PR_SQUASH_FORBIDDEN ×3, exit-2→exit-1 ×4+prose, PS-C message text canonicalized, stdout→stderr; 16 sites total). CLOSED architect 93d3ca03 (VP-094 v1.2→v1.3; class sweep VP-095..VP-101 CLEAN; input-hash e2f422f UNCHANGED). SM: VP-INDEX v2.61→v2.62; L-BB-anchor-prose-parity-includes-diagnostic-strings-and-exit-codes [process-gap] codified (10th standing gate). Streak 0/3 UNCHANGED. trajectory-tail →2→0→1→1. NEXT (at time of D-812): E-19 adv pass-57. Session then wrapped at D-813 (human /wrap directive).
+- Session context: 2026-07-09 resume → 2026-07-10 wrap; passes 34–56 complete (23 passes); zero BLOCKER 34 passes; zero HIGH 16 passes; 10 standing mechanical gates codified (D-794..D-812); policies.yaml advanced v1.4.1→v1.4.4.
+- 4-index: BC v3.95 / VP v2.62 / STORY v4.176 / ARCH v3.00. L2-INDEX v1.0.14. total_bcs 1,977.
+- develop HEAD: `f5242bef` / main HEAD: `a04cb303` / factory-artifacts HEAD: `72c31007` (D-812 SHA-patch) / merged_count 98
+- D-range: D-001..D-812

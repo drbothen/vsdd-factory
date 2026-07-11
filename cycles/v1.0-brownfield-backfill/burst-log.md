@@ -17778,3 +17778,87 @@ Streak: 0/3 UNCHANGED (pass-56 NOT-CLEAN; three consecutive CLEANs required). Pa
 | Commit | SHA | Contents |
 |--------|-----|----------|
 | D-812 SM single-commit burst (TD-VSDD-053) | `bcf248aa` | adv-E19-pass-56.md NEW; decision-log D-812; lessons.md L-BB-anchor-prose-parity; VP-INDEX v2.62; STATE.md v5.62→v5.63; burst-log this entry; streak 0/3 UNCHANGED; trajectory-tail →2→0→1→1; pass-57 NEXT |
+
+---
+
+## D-813 — Session Wrap PAUSED (human /wrap directive; E-19 re-convergence streak 0/3; pass-57 next; 2026-07-09 resume → 2026-07-10 wrap)
+
+### Block 1 — Parent-commit
+
+Parent-commit: `72c31007` (D-812 SHA-patch: Active Branches + burst-log Block 8 SHA patch; factory-artifacts HEAD prior to this D-813 SM session-wrap burst).
+
+### Block 2 — Adversary Verdict + Dim-2 Literal-Shell Evidence
+
+**Pass verdict:** SESSION-WRAP-PAUSED — no adversary pass dispatched this burst. Human issued /wrap directive after D-812 E-19 adv pass-56 NOT-CLEAN closure. No adversary findings to report.
+
+**D-449(a) Dim-2 Literal-Shell Evidence:**
+
+Gate 1 — POLICY 16 global-max (`grep -oE "^## D-[0-9]+" decision-log.md | sort -t'-' -k3 -n | tail -1`):
+```
+## D-813
+```
+Result: D-813 confirmed max (appended this burst). PASS.
+
+Gate 2 — 4-index versions (`grep "^version:" BC-INDEX.md VP-INDEX.md STORY-INDEX.md ARCH-INDEX.md`):
+```
+.factory/specs/architecture/ARCH-INDEX.md:version: "3.00"
+.factory/specs/behavioral-contracts/BC-INDEX.md:version: "3.95"
+.factory/stories/STORY-INDEX.md:version: "4.176"
+.factory/specs/verification-properties/VP-INDEX.md:version: "2.62"
+```
+Result: BC v3.95 / VP v2.62 / STORY v4.176 / ARCH v3.00 ALL UNCHANGED. PASS.
+
+Gate 3 — STATE.md wc-l ≤500 (`wc -l .factory/STATE.md`):
+```
+     468 .factory/STATE.md
+```
+Result: 468 ≤ 500. D-421(c) budget satisfied. PASS.
+
+Gate 4 — Single Session Resume Checkpoint heading (`grep -n "^## Session Resume Checkpoint" STATE.md | wc -l`):
+```
+       1
+```
+Result: Exactly 1 heading. Prior D-812 checkpoint archived to session-checkpoints.md. PASS.
+
+### Block 3 — Files Touched
+
+| File | Change | Agent | SHA |
+|------|--------|-------|-----|
+| `.factory/STATE.md` | v5.63→v5.64 (D-813; pipeline ACTIVE→PAUSED; phase D-813-SESSION-WRAP-PAUSED; banner; current_step; last_amended; timestamp; Last Updated; Current Phase; Current Phase Steps D-807+D-808 archived + D-813 row added; Concurrent Cycles row updated; Decisions Log D-813 row; Session Resume Checkpoint heading + intro + §Position + §In-Flight + §Resume Actions updated; size-budget wc-l; VP v2.61→v2.62 typo fixed) | state-manager | this commit |
+| `.factory/cycles/v1.0-brownfield-backfill/session-checkpoints.md` | D-812 checkpoint archived (superseded by D-813 SESSION-WRAP-PAUSED checkpoint) | state-manager | this commit |
+| `.factory/cycles/v1.0-brownfield-backfill/decision-log.md` | D-813 section appended (POLICY 16 global-max; session summary; pipeline PAUSED; STATE.md advance; checkpoint replacement; sidecar update; next actions) | state-manager | this commit |
+| `.factory/cycles/v1.0-brownfield-backfill/burst-log.md` | D-813 burst entry appended (this entry; 8 blocks) | state-manager | this commit |
+| `.factory/sidecar-learning.md` | Session-end timestamp appended (2026-07-10T21:26:11Z; awaiting /session-review) | state-manager | this commit |
+
+### Block 4 — Codifications
+
+| ID | Type | Description |
+|----|------|-------------|
+| D-813 | Decision | SESSION-WRAP-PAUSED; E-19 re-convergence loop paused at streak 0/3 after pass-56/D-812; session 2026-07-09→2026-07-10; 23 passes (34–56); 10 standing mechanical gates codified; policies.yaml v1.4.4; PIPELINE PAUSED; pass-57 NEXT in new session |
+
+### Block 5 — Dim-5: Files-Touched Completeness
+
+All 5 files modified in this burst are listed in Block 3. No spec content files (BC/VP/story/ADR/epic) were modified — this is a governance-only session-wrap burst. 4-index BC v3.95/VP v2.62/STORY v4.176/ARCH v3.00 ALL UNCHANGED. sidecar-learning.md inclusion: task directive explicitly requested sidecar commit with wrap burst (session-learning content: one session-end timestamp line).
+
+### Block 6 — D-446(a) 8-Block Completion Gate
+
+Gate command: `awk '/^## D-813/,0' .factory/cycles/v1.0-brownfield-backfill/burst-log.md | grep "^### Block [1-8]" | sort -u | wc -l`
+
+Expected output: `8` (all 8 D-444(c) mandatory blocks present). This block (Block 6) plus Blocks 1–5 already written above and Blocks 7–8 below complete the roster. Gate: all 8 D-444(c) mandatory blocks present. PASS.
+
+### Block 7 — Closes / Status Summary
+
+| Item | Verdict | Resolution |
+|------|---------|------------|
+| D-813 SESSION-WRAP-PAUSED | CLOSED | STATE.md v5.64; pipeline PAUSED; Session Resume Checkpoint replaced; D-812 checkpoint archived; decision-log D-813 appended; burst-log D-813 appended; sidecar-learning.md updated |
+| Streak | 0/3 UNCHANGED | Pass-56 NOT-CLEAN; three consecutive CLEANs required; no advancement this burst |
+| 4-index | ALL UNCHANGED | BC v3.95/VP v2.62/STORY v4.176/ARCH v3.00 |
+
+Session wrap summary: passes 34–56 complete (23 passes); zero BLOCKER 34 passes; zero HIGH 16 passes; 10 standing mechanical gates codified (D-794/795/797/802/803/805/806/808/811/812); policies.yaml v1.4.1→v1.4.4 (3 increments). PIPELINE PAUSED. Pass-57 NEXT in new session.
+
+### Block 8 — Factory-artifacts Commits
+
+| Commit | SHA | Contents |
+|--------|-----|----------|
+| D-813 SM single-commit burst (TD-VSDD-053) | `pending` | STATE.md v5.63→v5.64 (PIPELINE PAUSED; D-813-SESSION-WRAP-PAUSED); session-checkpoints.md D-812 archived; decision-log D-813; burst-log D-813; sidecar-learning.md session-end timestamp; streak 0/3 UNCHANGED; 4-index ALL UNCHANGED |
+| D-813 SHA-patch | `pending` | Active Branches SHA-patch + burst-log Block 8 SHA update |

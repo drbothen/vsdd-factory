@@ -9138,3 +9138,59 @@ D-812-E19-ADV-PASS-56-NOT-CLEAN-CLOSED
 ### Date
 
 2026-07-10
+
+---
+
+## D-813 — Session Wrap PAUSED (human /wrap directive; session 2026-07-09 resume → 2026-07-10 wrap; E-19 re-convergence streak 0/3; pass-57 next)
+
+### Decision
+
+SESSION-WRAP-PAUSED.
+
+**(1) POLICY 16 GLOBAL-MAX GATE (literal-shell per D-449(a)):**
+
+```
+$ grep -oE "^## D-[0-9]+" .factory/cycles/v1.0-brownfield-backfill/decision-log.md | sort -t'-' -k3 -n | tail -1
+## D-812
+```
+
+Result: D-812 confirmed max → D-813 allocated. PASS.
+
+**(2) SESSION SUMMARY:**
+
+Session ran from 2026-07-09 resume (D-789) through 2026-07-10 wrap (D-813). Scope: E-19 re-convergence loop, adversary passes 34–56 (23 passes) + fix bursts D-789–D-812 (24 bursts incl. 2 orchestrator pre-pass class sweeps at D-798/D-801-adjacent).
+
+Key metrics:
+- Zero BLOCKER findings: 34 consecutive passes (since pass-22)
+- Zero HIGH findings: 16 consecutive passes (since pass-41)
+- CLEANs at p38/p41/p48/p51/p54 (streak peaked 1/3 × 5 times)
+- 10 standing mechanical gates now codified (D-794/795/797/802/803/805/806/808/811/812)
+- policies.yaml advanced v1.4.1→v1.4.4 (3 increments)
+- Notable: F-P56-001 caught VP-094 false-red harness vector (wrong sentinel strings + exit codes) — a pre-TDD safety catch before W1
+
+**(3) PIPELINE STATE:** ACTIVE → PAUSED (human /wrap directive).
+
+**(4) STATE.md ADVANCE:**
+- v5.63 → v5.64
+- phase: D-812-E19-ADV-PASS-56-NOT-CLEAN-CLOSED → D-813-SESSION-WRAP-PAUSED
+- pipeline: ACTIVE → PAUSED
+- streak 0/3 UNCHANGED; trajectory-tail →2→0→1→1
+- 4-index BC v3.95/VP v2.62/STORY v4.176/ARCH v3.00 ALL UNCHANGED
+
+**(5) SESSION RESUME CHECKPOINT:** Replaced with D-813 wrap state. Prior D-812 checkpoint archived to `cycles/v1.0-brownfield-backfill/session-checkpoints.md`.
+
+**(6) SIDECAR:** `sidecar-learning.md` session-end timestamp appended (2026-07-10T21:26:11Z). Committed with this burst per task instructions.
+
+**(7) PENDING HUMAN DECISIONS:** None open. Strict-3-CLEAN directive D-761/D-775 carries into next session.
+
+**(8) NEXT:** New session → `/vsdd-factory:next-step` → dispatch E-19 adversary pass-57 (fresh context; Iron Law; rubric policies.yaml v1.4.4; do-NOT-re-report: O-P41-001, O-P41-002, O-P44-001, O-P49-001; perimeter = D-812 delta: VP-094 v1.3 + VP-INDEX v2.62 + full E-19 carry-forward; streak 0/3; three CLEANs → 3/3 CONVERGED → W1 TDD S-19.01+S-19.02+S-19.03 per D-773/D-774).
+
+Parent-commit: 72c31007 (D-812 SHA-patch; factory-artifacts HEAD prior to this D-813 SM session-wrap burst).
+
+### Phase
+
+D-813-SESSION-WRAP-PAUSED
+
+### Date
+
+2026-07-10
