@@ -54,9 +54,11 @@ use vsdd_hook_sdk::{HookPayload, HookResult};
 pub const HOST_ABI_VERSION: u32 = 1;
 
 /// Maximum bytes to read from STATE.md via `host::read_file`.
-/// 64 KiB is sufficient for the STATE.md frontmatter; the `factory_lock` block
-/// appears within the first 2 KiB of the file (per BC-4.13.001 Precondition 3).
-pub const STATE_MD_MAX_BYTES: u32 = 65536;
+///
+/// 256 KiB cap per BC-4.13.001 v1.14 Phase-A Precondition 3 (ADR-025 Decision 14).
+/// Worst-case observed STATE.md is <200 KiB under 500-line compaction discipline
+/// (ADR-026); 262144 gives ≥25% headroom over the observed range.
+pub const STATE_MD_MAX_BYTES: u32 = 262144;
 
 /// Timeout in milliseconds for the `host::read_file` call.
 pub const READ_FILE_TIMEOUT_MS: u32 = 5000;
