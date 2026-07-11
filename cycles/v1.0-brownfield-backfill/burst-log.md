@@ -18724,5 +18724,6 @@ No findings closed (spec-evolution reconcile burst — no adversary pass, no fin
 
 | Commit | SHA | Contents |
 |--------|-----|----------|
-| D-827 SM single-commit burst (TD-VSDD-053) | `BURST-SHA-PENDING` | BC-INDEX v3.96 + VP-INDEX v2.65 (POLICY 14 leg-5: BC-4.13.001 v1.15 + VP-096 v1.2 + VP-097 v1.3 cells); decision-log D-827; STATE.md v5.72→v5.73; burst-log D-827 (this entry); 4-index BC v3.96/VP v2.65/STORY v4.176/ARCH v3.00 |
-| D-827 SHA-patch | `SHA-PATCH-PENDING` | burst-log Block 8 D-827 burst SHA update |
+| D-827 SM single-commit burst (TD-VSDD-053) | `e198b026` | BC-INDEX v3.96 + VP-INDEX v2.65 (POLICY 14 leg-5: BC-4.13.001 v1.15 + VP-096 v1.2 + VP-097 v1.3 cells); decision-log D-827; STATE.md v5.72→v5.73; burst-log D-827 (this entry); 4-index BC v3.96/VP v2.65/STORY v4.176/ARCH v3.00 |
+| D-827 SHA-patch | `6a30f7b8` | STATE.md Active Branches factory-artifacts HEAD → e198b026 |
+| D-827 SHA-patch+ close | `SHA-PATCH-PLUS-PENDING` | STATE.md Active Branches 6a30f7b8 + SRC §Artifact Versions D-827 Closure + burst-log Block 8 SHA-patch+ close |

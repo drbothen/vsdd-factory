@@ -155,7 +155,7 @@ dtu_services: []
 |--------------|-----|-------|
 | main | a04cb303 | rc.22 bot binary bundle commit 2026-07-03 (Release 28668124787 post-build; all 33 WASMs rebuilt, plugin.json → 1.0.0-rc.22); prior: e4285fe5 (PR #456 true-merge fix mapfile→while-read; rc.22 tag); prior: 2a4c949b (PR #455 true-merge first rc.22 release; tag later moved); prior: caf06c68 (rc.21) |
 | develop | f5242bef | rc.22 Release sync-main→develop back-merge 2026-07-03 (D-750); prior: a6cf13e8 (PR #438 D-749 registry-staged assertion) |
-| factory-artifacts | `e198b026` (D-827 SM burst 2026-07-11) | D-826 burst `ddb3af7a`; D-826 SHA-patch `9ef0a843`; D-826 SHA-patch+ close `f548b612`/`c33b25f9`; D-827 SHA-patch `SHA-PATCH-PENDING` |
+| factory-artifacts | `e198b026` (D-827 SM burst 2026-07-11) | D-826 burst `ddb3af7a`; D-826 SHA-patch `9ef0a843`; D-826 SHA-patch+ close `f548b612`/`c33b25f9`; D-827 SHA-patch `6a30f7b8` |
 | feature/S-18.12 | **DELETED** (was 9cbd9439) | Merged via PR #384 ec05606a 2026-07-01 (D-744); branch deleted post-merge |
 | fix/S-18.12-detector-parity-gaps | **DELETED** (was 717686f8) | Merged via PR #385 2879f473 2026-07-01 (D-746); branch deleted at merge |
 | origin/maintenance/rc22-pre-release-cleanup | **PENDING DELETION** | Safe to delete (recovery long complete); human authorization outstanding |
@@ -384,13 +384,13 @@ dtu_services: []
 - **W1 authorization:** **APPROVED and DISPATCHED** (human "Approve — parallel" 2026-07-11; D-825; D-773/D-774 gate satisfied; E-19 CONVERGED; POLICY 18 RESOLVED). S-19.01+S-19.02+S-19.03 active.
 - **Repo state:** develop HEAD `f5242bef`; main HEAD `a04cb303`; merged_count 98; factory-artifacts HEAD = D-826 burst `ddb3af7a` (run `git -C .factory log -1 --format='%h'`). v1.0.0-rc.22 FULLY SHIPPED (marketplace #14; confirmed D-750). **E-10 CASCADE SEALED D-531 — do NOT resume. F5 PAUSED D-386 Option C — do NOT resume.**
 
-### §Artifact Versions at D-826 Closure
+### §Artifact Versions at D-827 Closure
 
 | Artifact | Version | Input-hash / Notes |
 |----------|---------|-------------------|
 | ADR-025 | v1.15 | §12.6 stable '[hooks.capabilities.read_file]'-block anchor (D-806 888178f9); UNCHANGED D-807..D-825 |
 | ADR-030 | v1.3 | SubagentStop canonical TOML stanza (D-777); UNCHANGED D-797..D-825 |
-| BC-4.13.001 | v1.14 | §Traceability `and Deliverable D18`; input-hash 77bb0d1 (D-824 POLICY 18); UNCHANGED version D-797..D-825 |
+| BC-4.13.001 | v1.15 | D-827 POLICY 14 leg-5 (po-crlf 70f04a73): CRLF frontmatter delimiter forms in Invariant 9; EC-017 added; input-hash 77bb0d1 (stored; POLICY 18 pending recompute) |
 | BC-1.17.001 | v1.6 | modified[] re-sorted; ebf73ff (D-802 PO c2a1f656); UNCHANGED D-803..D-825 |
 | BC-2.07.001 | v1.5 | §VP Properties VP-097 traversal-defense framing; input-hash a694373 (D-824 POLICY 18); UNCHANGED version D-798..D-825 |
 | BC-2.02.011 | v1.7 | modified[] re-sorted (D-801 PO 6f813e9e); UNCHANGED D-802..D-825 |
@@ -398,8 +398,8 @@ dtu_services: []
 | BC-5.42.001 | v1.6 | VP-094 proof-method; input-hash 95907cf (D-824 POLICY 18); UNCHANGED version D-799..D-825 |
 | VP-094.md | v1.5 | D-817 (F-P58-001): §Source Contract `**ADR:**` bullet corrected to ADR-030 §Decision 1+2+3; §Traceability `**ADR:**` bullet added; input-hash e2f422f; UNCHANGED D-818..D-825 |
 | VP-095.md | v1.1 | stable §Precondition 3 anchor; input-hash 55bebb2 (D-824 POLICY 18 cascade from BC-4.13.001 update); UNCHANGED version D-797..D-825 |
-| VP-096.md | v1.1 | exclusive boundary form (D-782); input-hash 55bebb2 (D-824 POLICY 18 cascade from BC-4.13.001 update); UNCHANGED version D-797..D-825 |
-| VP-097.md | v1.2 | D-809 (F-P53-001): module: + §Feasibility Artifact + §Harness // File: path corrected; input-hash c47964f; UNCHANGED D-810..D-825 |
+| VP-096.md | v1.2 | D-827 POLICY 14 leg-5 (arch-vp 9c5d0462): fence-offset oracle corrected (find_second_fence_start returns leading-newline byte index; was off-by-1); CRLF proptest added; input-hash 55bebb2→3576592 |
+| VP-097.md | v1.3 | D-827 POLICY 14 leg-5 (arch-vp 14e26c7e): two-function signature refresh (resolve_path_for_allowlist → resolve_path_for_allowlist(&Path, canonicalize_fn) + check_path_allowed(...)); 4 Kani proofs H1..H4; input-hash c47964f→f482502 |
 | VP-098.md | v1.2 | modified[] re-sorted D-802; UNCHANGED D-803..D-825 |
 | VP-100.md | v1.2 | modified[] re-sorted + drain_window_ms D-802; UNCHANGED D-803..D-825 |
 | VP-101.md | v1.3 | D-809 (F-P53-002): module: + §Traceability Function-anchor corrected; input-hash 531cd2f; UNCHANGED D-810..D-825 |
@@ -412,12 +412,12 @@ dtu_services: []
 | S-19.07 | v1.16 | BC-4.13.001 cite sweep ×12 (D-790 534c85c); UNCHANGED D-797..D-825 |
 | epic (E-19) | v1.27 | §BC Traceability BC-2.02.011 row rewritten (D-808 SW da5fba2f; F-P52-001); UNCHANGED D-809..D-825 |
 | policies.yaml | v1.4.6 | D-817 SM this-commit: POLICY 4 ADR-ANCHOR-FIELD PARITY; 12th standing gate; UNCHANGED D-818..D-825 |
-| BC-INDEX | v3.95 | D-802 (BC-1.17.001 v1.6 cell); UNCHANGED D-803..D-825 (exhaustive) |
-| VP-INDEX | v2.64 | D-817 SM this-commit: VP-094 v1.5 annotation (F-P58-001; both Full Index + Story Anchors per D-802); UNCHANGED D-818..D-825 |
+| BC-INDEX | v3.96 | D-827 POLICY 14 leg-5: BC-4.13.001 v1.15 cell appended (was v3.95 D-802..D-826) |
+| VP-INDEX | v2.65 | D-827 POLICY 14 leg-5: VP-096 v1.2 + VP-097 v1.3 cells appended (was v2.64 D-817..D-826) |
 | STORY-INDEX | v4.176 | D-808 (§Epic E-19 heading v1.26→v1.27; da5fba2f); UNCHANGED D-809..D-825 |
 | ARCH-INDEX | v3.00 | D-806 SM this-commit (ADR-025 v1.14→v1.15); UNCHANGED D-807..D-825 (exhaustive) |
 
-4-index: BC v3.95 / VP v2.64 / STORY v4.176 / ARCH v3.00.
+4-index: BC v3.96 / VP v2.65 / STORY v4.176 / ARCH v3.00.
 
 ### §Convergence Counter
 
