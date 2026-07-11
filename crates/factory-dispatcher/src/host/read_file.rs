@@ -97,12 +97,21 @@ pub(crate) fn prepare(
             emit_denial(ctx, path, "output_too_large", Some(&resolved));
             Err(codes::OUTPUT_TOO_LARGE)
         }
+        Err(ReadErr::NotFound) => {
+            // S-19.03 stub (AC-002): emit `internal.file_not_found` + return
+            // `codes::NOT_FOUND`. Implementation in S-19.03 TDD phase.
+            todo!("S-19.03: emit internal.file_not_found event and return codes::NOT_FOUND")
+        }
         Err(ReadErr::Other) => Err(codes::INTERNAL_ERROR),
     }
 }
 
 enum ReadErr {
     TooLarge,
+    /// Path is in the allow-list but the file does not exist.
+    /// S-19.03: triggers `internal.file_not_found` + `codes::NOT_FOUND` (AC-002).
+    #[allow(dead_code)]
+    NotFound,
     Other,
 }
 

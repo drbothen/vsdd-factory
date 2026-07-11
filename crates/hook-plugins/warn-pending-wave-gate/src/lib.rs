@@ -56,6 +56,22 @@ struct WaveState {
     pub waves: Vec<WaveEntry>,
 }
 
+/// S-19.03 stub: logic entry-point with explicit `HostError` dispatch.
+///
+/// Distinguishes `HostError::NotFound` (wave-state.yaml absent → Continue silently,
+/// AC-004) from `HostError::CapabilityDenied` (genuine allowlist violation → WARN,
+/// AC-006). Replaces the `Err(_) => None` collapse in `main.rs` once implemented.
+///
+/// BC-2.07.001 part c; AC-004; AC-006.
+pub fn warn_pending_wave_gate_logic_with_error_dispatch(
+    _payload: HookPayload,
+    _read_wave_state_result: impl FnOnce() -> Result<Vec<u8>, vsdd_hook_sdk::host::HostError>,
+    _emit: impl FnOnce(&str, &[(&str, &str)]),
+    _write_stderr: impl FnOnce(&str),
+) -> HookResult {
+    todo!("S-19.03: implement NOT_FOUND → Continue (silent) vs CapabilityDenied → WARN dispatch")
+}
+
 /// Top-level hook logic. Reads wave-state.yaml, finds pending waves, and
 /// emits the advisory warning if any are found.
 ///

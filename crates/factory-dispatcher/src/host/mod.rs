@@ -33,6 +33,7 @@ pub mod env;
 pub mod exec_subprocess;
 pub mod log;
 pub mod memory;
+pub mod path_util;
 pub mod read_file;
 pub mod write_file;
 
@@ -207,6 +208,10 @@ pub mod codes {
     pub const TIMEOUT: i32 = -2;
     pub const OUTPUT_TOO_LARGE: i32 = -3;
     pub const INVALID_ARGUMENT: i32 = -4;
+    // S-19.03 stub (O-P4-001 Red Gate discipline): value is -1000 (outside occupied
+    // range 0/-1/-2/-3/-4/-99) so the `== -5` assertion in T-005 compiles but FAILS.
+    // Implementation phase changes this to -5 (ADR-025 Decision 13).
+    pub const NOT_FOUND: i32 = -1000;
     pub const INTERNAL_ERROR: i32 = -99;
 }
 

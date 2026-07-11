@@ -77,6 +77,14 @@ fn encode_fields(fields: &[(&str, &str)]) -> Vec<u8> {
     buf
 }
 
+/// Error code returned by `read_file` when the path is in the allow-list but
+/// the file does not exist. Distinct from `CapabilityDenied` so plugins can
+/// distinguish "absent file" from "genuine allowlist violation".
+///
+/// S-19.03 / ADR-025 Decision 13: -5 is the next free code in the compact
+/// negative sequence (occupied: 0/-1/-2/-3/-4/-99).
+pub const NOT_FOUND: i32 = -5;
+
 /// Errors returned by bounded host calls.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum HostError {
@@ -88,6 +96,13 @@ pub enum HostError {
     OutputTooLarge,
     /// The argument failed host-side validation (path traversal, etc.).
     InvalidArgument,
+    /// The path is in the allow-list but the file does not exist.
+    /// S-19.03 (BC-2.07.001): plugins MUST treat this as "file absent" and
+    /// handle it silently (no WARN) when absence is expected (e.g. wave-state.yaml
+    /// in a fresh install). Do NOT add `#[non_exhaustive]` — exhaustive pattern
+    /// matching on HostError is required for correct abandoned-path handling
+    /// in plugin code (O-P2-002).
+    NotFound,
     /// The host operation failed for a reason not classified above.
     /// `code` is the negative error number returned by the host.
     Other(i32),
@@ -100,6 +115,7 @@ impl HostError {
             -2 => HostError::Timeout,
             -3 => HostError::OutputTooLarge,
             -4 => HostError::InvalidArgument,
+            -5 => HostError::NotFound,
             other => HostError::Other(other),
         }
     }
