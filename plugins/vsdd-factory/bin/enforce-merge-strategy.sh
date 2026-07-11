@@ -40,16 +40,42 @@ fi
 PR_NUMBER="$1"
 MERGE_FLAG="${2:-}"
 
-# UNIMPLEMENTED — Red Gate stub (S-19.01 T-005 / T-006 / T-007)
-# Implementation will:
-#   1. Invoke: gh pr view "$PR_NUMBER" --json headRefName
-#      on failure: treat as non-release (fail-open per ADR-030 §Decision 3 rationale)
-#   2. Parse headRefName from JSON
-#   3. If branch matches ^release/v:
-#      a. If MERGE_FLAG is --squash or --rebase:
-#         printf 'RELEASE_PR_SQUASH_FORBIDDEN: branch %s requires --merge per RELEASING.md\n' "$branch" >&2
-#         exit 1
-#      b. Force MERGE_FLAG=--merge regardless of input
-#   4. Invoke: gh pr merge "$PR_NUMBER" $MERGE_FLAG; propagate exit code
-printf 'UNIMPLEMENTED: enforce-merge-strategy.sh not yet implemented (S-19.01)\n' >&2
-exit 99
+# Step 1: Fetch headRefName to determine the PR branch.
+# ADR-030 §Decision 3: fetch branch via --json headRefName.
+# On failure: treat as non-release (fail-open for branch resolution per rationale).
+BRANCH_NAME=""
+GH_OUTPUT=""
+if GH_OUTPUT="$(gh pr view "${PR_NUMBER}" --json headRefName 2>/dev/null)"; then
+    # Parse headRefName from JSON — bash-3.2 compatible (no mapfile; while-read pattern).
+    while IFS= read -r line; do
+        if printf '%s' "${line}" | grep -q '"headRefName"'; then
+            BRANCH_NAME="$(printf '%s' "${line}" | grep -oE '"headRefName":"[^"]*"' | grep -oE '"[^"]*"$' | tr -d '"')"
+        fi
+    done <<EOF
+${GH_OUTPUT}
+EOF
+fi
+
+# Step 2: Check if branch matches ^release/v pattern.
+IS_RELEASE="false"
+if printf '%s' "${BRANCH_NAME}" | grep -qE '^release/v'; then
+    IS_RELEASE="true"
+fi
+
+# Step 3: Enforce merge strategy for release branches.
+if [[ "${IS_RELEASE}" == "true" ]]; then
+    # BC-5.42.001 Invariant 3: release-branch squash/rebase is mechanically impossible.
+    # Reject --squash or --rebase before any GitHub API call.
+    if [[ "${MERGE_FLAG}" == "--squash" || "${MERGE_FLAG}" == "--rebase" ]]; then
+        printf 'RELEASE_PR_SQUASH_FORBIDDEN: branch %s requires --merge per RELEASING.md\n' \
+            "${BRANCH_NAME}" >&2
+        exit 1
+    fi
+    # EC-005: no explicit flag on release branch → inject --merge.
+    # EC-004: explicit --merge on release branch → pass through.
+    MERGE_FLAG="--merge"
+fi
+
+# Step 4: Delegate to gh pr merge, propagating its exit code.
+# Invariant 4: non-release branches pass caller-supplied flag unchanged.
+gh pr merge "${PR_NUMBER}" ${MERGE_FLAG}
