@@ -728,9 +728,16 @@ jobs:
           chmod +x target/release/factory-dispatcher
           echo "Dispatcher: $(target/release/factory-dispatcher --version 2>/dev/null || echo 'binary staged')"
 
+      - name: Install Rust wasm32-wasip1 target
+        # pr-manager-hardening.bats setup_file() builds pr-manager-completion-guard.wasm
+        # on first use when the WASM is absent (not tracked in the repo per F-S1901-P1-002).
+        # Rust is pre-installed on macos-latest; this step adds the cross-compile target.
+        run: rustup target add wasm32-wasip1
+
       - name: Run pr-manager-hardening bats suite (darwin-leg)
         # Runs pr-manager-hardening.bats on macOS under /bin/bash 3.2.x.
         # T-009 legitimately skips on Darwin (EC-003).
         # darwin-leg-preflight.sh is invoked by T-008/T-009 under /bin/bash.
+        # setup_file() builds pr-manager-completion-guard.wasm if absent (T-001 gate).
         run: |
           bats plugins/vsdd-factory/tests/pr-manager-hardening.bats

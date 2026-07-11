@@ -39,7 +39,23 @@ MOCK_BIN=""
 # On macOS: verifies /bin/bash --version contains "version 3.2" before any test runs.
 # On Linux: no-op (darwin-leg tests individually skip via 'skip' bats directive).
 # Exit 1 here aborts the whole file — intentional for the bats-darwin-leg-macos CI job.
+#
+# Also builds pr-manager-completion-guard.wasm on first use if absent (mirrors the
+# S-19.03 on-demand build pattern from warn-pending-wave-gate.bats commit 5c3dbae9).
+# In CI the WASM is not tracked in the repo; in local dev it may be absent after
+# git rm --cached. The build step requires the wasm32-wasip1 target to be installed.
 setup_file() {
+    local repo_root
+    repo_root="$(cd "${BATS_TEST_DIRNAME}/../../.." && pwd)"
+    local wasm_dir="${repo_root}/plugins/vsdd-factory/hook-plugins"
+    local wasm="${wasm_dir}/pr-manager-completion-guard.wasm"
+    if [ ! -f "$wasm" ]; then
+        echo "# setup_file: pr-manager-completion-guard.wasm absent; building..." >&3
+        cargo build --release --target wasm32-wasip1 -p pr-manager-completion-guard 2>&1 | tail -5 >&2
+        mkdir -p "$wasm_dir"
+        cp "${repo_root}/target/wasm32-wasip1/release/pr-manager-completion-guard.wasm" "$wasm"
+    fi
+    # Darwin-leg /bin/bash 3.2 preflight — macOS only.
     if [[ "$(uname)" != "Darwin" ]]; then
         return 0
     fi
