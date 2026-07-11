@@ -81,6 +81,10 @@ pub fn resolve_path_for_allowlist(
     }
 }
 
+// VP-097 Kani traversal-defense proof harness (compiled only under `cargo kani`).
+#[cfg(kani)]
+mod path_util_kani;
+
 // ---------------------------------------------------------------------------
 // S-19.03 Red Gate tests for path_util::resolve_path_for_allowlist
 // ---------------------------------------------------------------------------
