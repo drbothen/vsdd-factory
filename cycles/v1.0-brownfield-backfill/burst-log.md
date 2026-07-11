@@ -17553,4 +17553,4 @@ Expected ≥8 for this entry (blocks 1–8 present). D-444(c) 8-block requiremen
 
 | Commit | SHA | Contents |
 |--------|-----|----------|
-| D-810 SM single-commit burst (TD-VSDD-053) | TBD — SHA-patch per D-447(c)/D-449(e) | adv-E19-pass-54.md NEW; decision-log D-810; STATE.md v5.60→v5.61; burst-log this entry; streak 0/3→1/3; trajectory-tail →0→1→2→0; pass-55 NEXT |
+| D-810 SM single-commit burst (TD-VSDD-053) | `2675a6b9` | adv-E19-pass-54.md NEW; decision-log D-810; STATE.md v5.60→v5.61; burst-log this entry; streak 0/3→1/3; trajectory-tail →0→1→2→0; pass-55 NEXT |
