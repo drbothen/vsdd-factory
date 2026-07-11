@@ -145,15 +145,18 @@ fn check_path_allowed(resolved: &Path, allow: &[String], base: &Path) -> PathAll
         None => return PathAllowDecision::DeniedResolutionFailed,
     };
 
+    // Apply ancestor-walk+rejoin to the allow-list prefix too, for parity with the
+    // target resolution. This handles file-scoped entries like ".factory/wave-state.yaml"
+    // where the file may not yet exist but its parent directory does.
     for pref in allow {
         let pref_path = if Path::new(pref).is_absolute() {
             PathBuf::from(pref)
         } else {
             base.join(pref)
         };
-        let canon_pref = match pref_path.canonicalize() {
-            Ok(p) => p,
-            Err(_) => continue,
+        let canon_pref = match resolve_path_for_allowlist(&pref_path, |p| p.canonicalize()) {
+            Some(p) => p,
+            None => continue,
         };
         if canon_resolved.starts_with(&canon_pref) {
             return PathAllowDecision::Allowed;

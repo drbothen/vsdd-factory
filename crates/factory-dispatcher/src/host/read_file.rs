@@ -176,17 +176,19 @@ fn check_path_allowed(resolved: &Path, allow: &[String], base: &Path) -> PathAll
         None => return PathAllowDecision::DeniedResolutionFailed,
     };
 
-    // Step 2: prefix check. Allow-list entries canonicalize normally (they must
-    // exist for the check to succeed; absent allow-list prefixes are skipped).
+    // Step 2: prefix check. Allow-list entries are also resolved via ancestor-walk+rejoin
+    // so that file-scoped allow-list entries (e.g. ".factory/wave-state.yaml") work
+    // correctly even when the file does not yet exist. If the prefix's entire ancestor
+    // chain fails canonicalization, that prefix is skipped.
     for pref in allow {
         let pref_path = if Path::new(pref).is_absolute() {
             PathBuf::from(pref)
         } else {
             base.join(pref)
         };
-        let canon_pref = match pref_path.canonicalize() {
-            Ok(p) => p,
-            Err(_) => continue, // configured prefix doesn't exist — skip
+        let canon_pref = match resolve_path_for_allowlist(&pref_path, |p| p.canonicalize()) {
+            Some(p) => p,
+            None => continue, // configured prefix's ancestors also absent — skip
         };
         if canon_resolved.starts_with(&canon_pref) {
             return PathAllowDecision::Allowed;
