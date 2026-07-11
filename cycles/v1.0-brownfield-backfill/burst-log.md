@@ -17956,6 +17956,6 @@ Result: All 8 D-444(c) mandatory blocks present (Blocks 1–8 confirmed in this 
 
 | Commit | SHA | Contents |
 |--------|-----|----------|
-| D-815 SM single-commit burst (TD-VSDD-053) | `TBD-PENDING-PUSH` | adv-E19-pass-57.md (NEW); decision-log D-815; lessons L-BB-invocation-signature-migrations-must-sweep-vp-proof-harness-skeleton; policies.yaml v1.4.4→v1.4.5; VP-INDEX v2.62→v2.63; STATE.md v5.64→v5.65; burst-log D-815 (this entry); streak 0/3 UNCHANGED; 4-index BC v3.95/VP v2.63/STORY v4.176/ARCH v3.00 |
-| D-815 SHA-patch | `TBD-PENDING-PUSH` | Active Branches + burst-log Block 8 SHA update (D-815 SM commit SHA) |
+| D-815 SM single-commit burst (TD-VSDD-053) | `f5e3f372` | adv-E19-pass-57.md (NEW); decision-log D-815; lessons L-BB-invocation-signature-migrations-must-sweep-vp-proof-harness-skeleton; policies.yaml v1.4.4→v1.4.5; VP-INDEX v2.62→v2.63; STATE.md v5.64→v5.65; burst-log D-815 (this entry); streak 0/3 UNCHANGED; 4-index BC v3.95/VP v2.63/STORY v4.176/ARCH v3.00 |
+| D-815 SHA-patch | `TBD-PENDING-PUSH` | Active Branches f5e3f372 + burst-log Block 8 SHA update |
 
