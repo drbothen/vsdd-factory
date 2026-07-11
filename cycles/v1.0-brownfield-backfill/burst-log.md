@@ -18166,5 +18166,5 @@ No findings closed (CLEAN pass; GOVERNANCE-ONLY).
 
 | Commit | SHA | Contents |
 |--------|-----|----------|
-| D-819 SM single-commit burst (TD-VSDD-053) | `[D-819-burst-SHA]` | adv-E19-pass-59.md (NEW); decision-log D-819; STATE.md v5.66→v5.67; burst-log D-819 (this entry); streak 0/3→1/3; 4-index ALL UNCHANGED BC v3.95/VP v2.64/STORY v4.176/ARCH v3.00 |
+| D-819 SM single-commit burst (TD-VSDD-053) | `d519081a` | adv-E19-pass-59.md (NEW); decision-log D-819; STATE.md v5.66→v5.67; burst-log D-819 (this entry); streak 0/3→1/3; 4-index ALL UNCHANGED BC v3.95/VP v2.64/STORY v4.176/ARCH v3.00 |
 | D-819 SHA-patch | `[D-819-SHA-patch-SHA]` | Active Branches [D-819-burst-SHA] + burst-log Block 8 D-819 burst SHA update |
