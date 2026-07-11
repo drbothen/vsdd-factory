@@ -18168,3 +18168,117 @@ No findings closed (CLEAN pass; GOVERNANCE-ONLY).
 |--------|-----|----------|
 | D-819 SM single-commit burst (TD-VSDD-053) | `d519081a` | adv-E19-pass-59.md (NEW); decision-log D-819; STATE.md v5.66→v5.67; burst-log D-819 (this entry); streak 0/3→1/3; 4-index ALL UNCHANGED BC v3.95/VP v2.64/STORY v4.176/ARCH v3.00 |
 | D-819 SHA-patch | `84f06b73` | Active Branches d519081a + burst-log Block 8 D-819 burst SHA update |
+
+---
+
+## D-821 E19-ADV-PASS-60-CLEAN-2-OF-3 — SM GOVERNANCE-ONLY burst (2026-07-11)
+
+### Block 1: Parent-commit
+
+`a5b0d28f` (D-820 dispatch-side advance — factory-artifacts HEAD entering this D-821 SM governance-only burst)
+
+### Block 2: Adversary Verdict + Dim-2
+
+**Adversary verdict:** adv-E19-pass-60.md Part A: No blocking findings (B0/H0/M0). O-P60-001 LOW (ADR-025 §Decision intro line 108 says "ten numbered decisions" vs 15 Decision headings present; line 53 header says "Fifteen decisions are confirmed" — partial-fix propagation miss; label-only stale; severity LOW because all 15 decision headings physically present and correctly numbered; proposed routing architect at next ADR-025 touch; accepted-with-record). Pass-60 CLEAN B0/H0/M0/L1 (streak 1/3→2/3). D-821 is GOVERNANCE-ONLY — no spec/BC/VP/story/ADR changes; 4-index ALL UNCHANGED.
+
+**Dim-2 (D-449(a) literal-shell gate evidence):**
+
+**(A) POLICY 16 gate — max D-NNN before D-821 appended (captured at decision-log D-821 authoring time):**
+```
+$ grep -oE "^## D-[0-9]+" .factory/cycles/v1.0-brownfield-backfill/decision-log.md | sort -t'-' -k3 -n | tail -1
+## D-819
+EXIT:0
+```
+→ `## D-819` confirmed max before D-821 appended; D-820 consumed by dispatch-side advance D-417(b) strict; D-821 allocated. PASS.
+
+**(B) 4-index gate (captured at decision-log D-821 authoring time):**
+```
+$ grep "^version:" \
+  .factory/specs/behavioral-contracts/BC-INDEX.md \
+  .factory/specs/verification-properties/VP-INDEX.md \
+  .factory/stories/STORY-INDEX.md \
+  .factory/specs/architecture/ARCH-INDEX.md
+.factory/specs/verification-properties/VP-INDEX.md:version: "2.64"
+.factory/stories/STORY-INDEX.md:version: "4.176"
+.factory/specs/architecture/ARCH-INDEX.md:version: "3.00"
+.factory/specs/behavioral-contracts/BC-INDEX.md:version: "3.95"
+EXIT:0
+```
+→ BC-INDEX: "3.95" / VP-INDEX: "2.64" / STORY-INDEX: "4.176" / ARCH-INDEX: "3.00". ALL UNCHANGED — governance-only burst confirmed. PASS.
+
+**(C) D-444(a) gate — current_step cites D-821 as max:**
+```
+$ grep -E "^current_step:" .factory/STATE.md
+current_step: "D-821-E19-ADV-PASS-60-CLEAN-2-OF-3; streak 1/3→2/3; CLEAN B0/H0/M0/L1; trajectory-tail →3→2→0→0; 4-index ALL UNCHANGED BC v3.95/VP v2.64/STORY v4.176/ARCH v3.00; pass-61 NEXT; parent-commit a5b0d28f"
+EXIT:0
+```
+→ current_step: cites D-821 as max. PASS.
+
+**(D) D-448(a) source-attestation gate — burst-log adversary verdict vs adv-E19-pass-60.md Part A:**
+```
+$ grep -A5 "^## Part A" .factory/cycles/v1.0-brownfield-backfill/adv-E19-pass-60.md
+## Part A — Findings
+
+No blocking findings (B0/H0/M0).
+
+**O-P60-001 | LOW | POLICY 4 (semantic_anchoring_integrity, general internal-contradiction axis) | `.factory/specs/architecture/decisions/ADR-025-...orphan-branch.md` §Decision (section intro paragraph)**
+EXIT:0
+```
+→ Part A says "No blocking findings (B0/H0/M0)" + O-P60-001 LOW — burst-log adversary verdict faithfully reproduces this (B0/H0/M0/L1; O-P60-001 low accepted-with-record). PASS.
+
+**(E) Heading-parity gate (captured at decision-log D-821 authoring time):**
+```
+Result: 0 FAIL / 4 PASS / 16 SKIP
+EXIT:0
+```
+→ N/A (GOVERNANCE-ONLY; no epic/story bumps); captured for completeness. PASS.
+
+**(F) Pointer-class gate (captured at decision-log D-821 authoring time):**
+```
+ADR-025 line 1708 EXEMPT (Changelog historical)
+ADR-030: (no matches)
+EXIT:0
+```
+→ 0 normative hits; ADR-025 line 1708 EXEMPT per TD-VSDD-091. PASS.
+
+### Block 3: Files Touched
+
+| File | Change |
+|------|--------|
+| `cycles/v1.0-brownfield-backfill/adv-E19-pass-60.md` | NEW — pass-60 adversarial review report (CLEAN B0/H0/M0/L1; O-P60-001 accepted-with-record) |
+| `cycles/v1.0-brownfield-backfill/decision-log.md` | MODIFIED — D-821 entry appended |
+| `STATE.md` | MODIFIED — v5.67→v5.68 (version, timestamp, phase, last_amended, banner, current_step, SIZE BUDGET ~477, Last Updated, Current Phase, Current Phase Steps archived D-812 row+added D-821, Active Branches placeholder, Concurrent Cycles, Decisions Log header+D-821 row, Drift Items O-P60-001, §4-Index heading+rows, Critical SHAs, Checkpoint footer, Session Resume Checkpoint full refresh targeting pass-61; streak 1/3→2/3; trajectory-tail →3→2→0→0) |
+| `cycles/v1.0-brownfield-backfill/burst-log.md` | MODIFIED — D-821 burst-log entry (this entry) |
+
+No changes to: specs/, behavioral-contracts/, verification-properties/, stories/, architecture/, policies.yaml (4-index ALL UNCHANGED).
+
+### Block 4: Codifications
+
+D-821 decision-log entry codified. O-P60-001 LOW accepted-with-record (ADR-025 §Decision intro "ten" vs 15; architect-deferred to next ADR-025 touch; added to do-not-re-report list from pass-61 onward; Drift Item added to STATE.md §In-Flight). GOVERNANCE-ONLY burst — no new D-NNN decisions beyond D-821 itself; no new lessons (CLEAN pass; accepted-with-record LOW only); no policy changes.
+
+### Block 5: Dim-5
+
+No cross-agent coordination required. GOVERNANCE-ONLY burst: state-manager only. Architect's VP-094 v1.5 (commit 3558b9ca) is final and sealed. pass-61 perimeter = NO new delta; rubric policies.yaml v1.4.6 unchanged. O-P60-001 LOW routing deferred to architect at next ADR-025 amendment touch — non-blocking; no architect dispatch required this burst.
+
+### Block 6: D-446(a) 8-block gate (post-entry)
+
+```
+$ awk '/^## D-821/,0' \
+  .factory/cycles/v1.0-brownfield-backfill/burst-log.md \
+  | grep "^### Block [1-8]" | sort -u | wc -l
+8
+EXIT:0
+```
+→ 8 blocks present. PASS.
+
+### Block 7: Closes
+
+No findings closed (CLEAN pass; GOVERNANCE-ONLY). O-P60-001 LOW accepted-with-record (not closed — deferred to architect at next ADR-025 touch).
+
+### Block 8: Factory-artifacts Commits
+
+| Commit | SHA | Contents |
+|--------|-----|----------|
+| D-821 SM single-commit burst (TD-VSDD-053) | `[D-821-BURST-SHA]` | adv-E19-pass-60.md (NEW); decision-log D-821; STATE.md v5.67→v5.68; burst-log D-821 (this entry); streak 1/3→2/3; 4-index ALL UNCHANGED BC v3.95/VP v2.64/STORY v4.176/ARCH v3.00 |
+| D-821 SHA-patch | `[D-821-SHA-PATCH-SHA]` | Active Branches [D-821-BURST-SHA] + burst-log Block 8 D-821 burst SHA update |
+| D-821 SHA-patch+ | `[D-821-SHA-PATCH-PLUS-SHA]` | burst-log Block 8 D-821 SHA-patch SHA update |

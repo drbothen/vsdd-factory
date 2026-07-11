@@ -9569,3 +9569,117 @@ D-819-E19-ADV-PASS-59-CLEAN-1-OF-3
 ### Date
 
 2026-07-11
+
+---
+
+## D-821 — E-19 Adversarial Pass-60 CLEAN Closure (GOVERNANCE-ONLY; streak 1/3→2/3; 4-index ALL UNCHANGED)
+
+### Summary
+
+Pass-60 adversary (Claude Opus 4.7; rubric policies.yaml v1.4.6; fresh context; Iron Law; perimeter = NO new delta (pass-59 GOVERNANCE-ONLY) + D-817 delta (VP-094 v1.5 + VP-INDEX v2.64) + full E-19 carry-forward; streak 1/3) found 0 blocking findings, 1 observation — CLEAN B0/H0/M0/L1. O-P60-001 LOW: ADR-025 §Decision section intro phrase "ten numbered decisions" vs 15 Decision headings present (line 108 states "ten" but count is 15; line 53 cross-check contradiction; partial-fix propagation miss from prior amendments; label-only stale; routing: architect at next ADR-025 amendment touch) — accepted-with-record per disposition analysis: LOW severity, cosmetic label inconsistency only, no behavioral impact, fix deferred to next ADR-025 amendment per architect-routing requirement. All 12 standing gates PASS. Do-not-re-report honored: O-P41-001, O-P41-002, O-P44-001, O-P49-001 not re-raised. Trajectory passes 57/58/59/60 = 3,2,0,0 → `→3→2→0→0`. Zero HIGH 19 passes; zero BLOCKER 38. Streak 1/3→2/3. GOVERNANCE-ONLY burst (no spec/story/BC/VP/epic/ADR changes). NEXT: pass-61 (fresh context; ONE more CLEAN → 3/3 CONVERGED → W1 TDD per D-773/D-774).
+
+### Detail
+
+**(1) POLICY 16 GLOBAL-MAX GATE (POLICY 16; literal-shell per D-449(a)).**
+
+```
+$ grep -oE "^## D-[0-9]+" .factory/cycles/v1.0-brownfield-backfill/decision-log.md | sort -t'-' -k3 -n | tail -1
+## D-819
+EXIT:0
+```
+D-819 confirmed max (D-820 consumed by dispatch-side advance phase field) → D-821 allocated. PASS.
+
+**(2) PASS-60 ADVERSARY VERDICT.**
+
+CLEAN B0/H0/M0/L1. Perimeter: NO new delta (pass-59 GOVERNANCE-ONLY) + D-817 delta (VP-094 v1.5 + VP-INDEX v2.64) + full E-19 carry-forward (BC-INDEX v3.95; STORY-INDEX v4.176; ARCH-INDEX v3.00; epic v1.27; L2-INDEX v1.0.14; ADR-025 v1.15; ADR-030 v1.3; 6 BCs; 8 VPs; 7 stories). Streak before: 1/3. Streak after: 2/3.
+
+Findings: none. Observations: O-P60-001 LOW (ADR-025 §Decision intro "ten" vs 15 decisions; accepted-with-record; do-not-re-report from pass-61 onward; routing architect at next ADR-025 amendment touch).
+
+Full adversary report: `cycles/v1.0-brownfield-backfill/adv-E19-pass-60.md`
+
+**(3) FIX BURST.**
+
+GOVERNANCE-ONLY — no spec/story/BC/VP/epic/ADR changes. All 4-index UNCHANGED: BC v3.95/VP v2.64/STORY v4.176/ARCH v3.00 (exhaustive-unchanged). O-P60-001 accepted-with-record — architect deferred to next ADR-025 amendment (LOW severity; cosmetic only; no behavioral impact). SM closure burst: adv-E19-pass-60.md persisted; D-821 decision-log codification; STATE.md v5.67→v5.68; burst-log D-821 entry.
+
+**(4) 4-INDEX GATE (POLICY 14 leg-4 — exhaustive-unchanged; literal-shell per D-449(a)).**
+
+```
+$ grep "^version:" \
+  .factory/specs/behavioral-contracts/BC-INDEX.md \
+  .factory/specs/verification-properties/VP-INDEX.md \
+  .factory/stories/STORY-INDEX.md \
+  .factory/specs/architecture/ARCH-INDEX.md
+.factory/specs/verification-properties/VP-INDEX.md:version: "2.64"
+.factory/stories/STORY-INDEX.md:version: "4.176"
+.factory/specs/architecture/ARCH-INDEX.md:version: "3.00"
+.factory/specs/behavioral-contracts/BC-INDEX.md:version: "3.95"
+EXIT:0
+```
+→ BC-INDEX: "3.95" / VP-INDEX: "2.64" / STORY-INDEX: "4.176" / ARCH-INDEX: "3.00". ALL UNCHANGED — governance-only burst confirmed. PASS.
+
+**(5) HEADING-PARITY GATE (D-803 standing Commit-E gate — mandatory; literal-shell per D-449(a)).**
+
+```
+$ python3 -c "
+import re, os, glob
+with open('.factory/stories/STORY-INDEX.md', 'r') as f:
+    index_content = f.read()
+heading_pattern = re.compile(r'^(## (?:Epic )?(E-\d+)[^\n]*)', re.MULTILINE)
+heading_matches = list(heading_pattern.finditer(index_content))
+epic_dir = '.factory/stories/epics'
+epic_files = glob.glob(os.path.join(epic_dir, '*.md'))
+epic_versions = {}
+for fpath in epic_files:
+    with open(fpath, 'r') as f:
+        content = f.read()
+    vm = re.search(r'^version:\s*[\x22\x27]?([^\x22\x27\n]+)', content, re.MULTILINE)
+    eid_m = re.search(r'(E-\d+)', os.path.basename(fpath))
+    if vm and eid_m:
+        epic_versions[eid_m.group(1)] = vm.group(1).strip('\x22\x27').strip()
+fails = 0; passes = 0; skips = 0
+for m in heading_matches:
+    heading_line = m.group(1); eid = m.group(2)
+    hvm = re.search(r'v(\d+\.\d+)\s*$', heading_line)
+    if eid not in epic_versions: skips += 1; continue
+    fver = epic_versions[eid]
+    if not hvm: skips += 1; continue
+    hver = 'v' + hvm.group(1)
+    if hver == fver: passes += 1
+    else: print('FAIL ' + eid + ': heading ' + hver + ' != frontmatter ' + fver)
+    if hver != fver: fails += 1
+print('Result: ' + str(fails) + ' FAIL / ' + str(passes) + ' PASS / ' + str(skips) + ' SKIP')
+"
+Result: 0 FAIL / 4 PASS / 16 SKIP
+EXIT:0
+```
+→ 0 FAIL lines; 4 versioned-heading epics PASS. PASS.
+
+**(6) POINTER-CLASS GATE (D-806 standing Commit-E gate — mandatory; literal-shell per D-449(a)).**
+
+```
+$ for f in .factory/specs/architecture/decisions/ADR-025*.md \
+           .factory/specs/architecture/decisions/ADR-030*.md; do
+    echo "--- $f ---"
+    grep -nE 'line [0-9]+([–-][0-9]+)? of|at line [0-9]+' "$f" || echo "(no matches)"
+  done
+--- .factory/specs/architecture/decisions/ADR-025-single-writer...md ---
+1708:  line-cite `at line 1181–1182 of hooks-registry.toml` replaced with stable anchor form
+--- .factory/specs/architecture/decisions/ADR-030-pr-manager-merge-operation-integrity-enforcement.md ---
+(no matches)
+EXIT:0
+```
+→ 0 normative-live hits; ADR-025 line 1708 EXEMPT (Changelog historical-by-construction per TD-VSDD-091); ADR-030 clean. PASS.
+
+**(7) STREAK STATUS.**
+
+2/3 (CLEAN B0/H0/M0/L1; trajectory tail passes 57/58/59/60 = 3,2,0,0 → `→3→2→0→0`; streak advances from 1/3 to 2/3). Zero HIGH 19 passes; zero BLOCKER 38. NEXT: E-19 adv pass-61 (fresh context; Iron Law; rubric policies.yaml v1.4.6; ARTIFACTS FROZEN at D-817 versions — fix only genuine blockers; streak 2/3; ONE more CLEAN → 3/3 CONVERGED → W1 TDD dispatch per D-773/D-774). O-P60-001 added to do-not-re-report list from pass-61 onward.
+
+Parent-commit: a5b0d28f (D-820 dispatch-side advance; factory-artifacts HEAD prior to this D-821 SM governance-only burst).
+
+### Phase
+
+D-821-E19-ADV-PASS-60-CLEAN-2-OF-3
+
+### Date
+
+2026-07-11
