@@ -14,15 +14,28 @@
 #
 # Stderr diagnostics (AC-004 verbatim):
 #   DARWIN_LEG_WRONG_INTERPRETER: expected /bin/bash 3.2.x, got <actual>
-#
-# S-19.01: Red Gate stub — UNIMPLEMENTED.
-# Implementation will:
-#   1. Check uname; if not Darwin, exit 0 (graceful skip per EC-003)
-#   2. Run /bin/bash --version; capture first line
-#   3. If version line contains "version 3.2": exit 0
-#   4. Otherwise: emit DARWIN_LEG_WRONG_INTERPRETER diagnostic to stderr; exit 1
 
 set -euo pipefail
 
-printf 'UNIMPLEMENTED: darwin-leg-preflight.sh not yet implemented (S-19.01)\n' >&2
-exit 99
+# Step 1: Non-Darwin platforms exit 0 (graceful skip per EC-003).
+# The bats-darwin-leg-macos CI job only runs on macOS; Linux runners
+# do not have Apple's patched Bash 3.2 and the suite is intentionally absent.
+if [[ "$(uname)" != "Darwin" ]]; then
+    exit 0
+fi
+
+# Step 2: Run /bin/bash --version and capture first line.
+BASH_VERSION_LINE="$(/bin/bash --version 2>/dev/null | head -1)"
+
+# Step 3: Check if the version line contains "version 3.2".
+# Apple's system bash on macOS is 3.2.x (Apple patched variant).
+# The preflight is the drift sentinel: if this fails, investigate before running
+# darwin-leg script validation.
+if printf '%s' "${BASH_VERSION_LINE}" | grep -q 'version 3\.2'; then
+    exit 0
+fi
+
+# Step 4: Wrong interpreter — emit diagnostic and exit 1.
+printf 'DARWIN_LEG_WRONG_INTERPRETER: expected /bin/bash 3.2.x, got %s\n' \
+    "${BASH_VERSION_LINE}" >&2
+exit 1
