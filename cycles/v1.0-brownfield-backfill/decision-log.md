@@ -8888,3 +8888,129 @@ D-810-E19-ADV-PASS-54-CLEAN-1-OF-3
 ### Date
 
 2026-07-10
+
+---
+
+## D-811 — E-19 Adversarial Pass-55 NOT-CLEAN Closure (B0/H0/M1/L0; F-P55-001 CLOSED architect 364cfd2c; streak 1/3→0/3; L-BB-namespace-migrations-must-sweep-vp-traceability-and-harness-blocks [process-gap] codified)
+
+### Summary
+
+Pass-55 adversary (Claude Opus 4.7; rubric policies.yaml v1.4.4; fresh context; Iron Law; perimeter = D-810 delta: VP-INDEX v2.60 + full E-19 carry-forward at D-809 versions; 30 artifacts) found 1 finding — NOT-CLEAN B0/H0/M1/L0. 30/30 version attestations PASS. D-810 delta re-verified PASS (governance-only; VP-INDEX v2.60 at D-809 versions confirmed frozen).
+
+Sole finding: **F-P55-001 MEDIUM (POLICY 4 v1.4.4 + POLICY 5 v1.3.3 regression)** — VP-094 §Traceability bullet + 5 §Proof Harness Skeleton invocation lines cited `plugins/vsdd-factory/hooks/` for check-stale-verdict.sh and enforce-merge-strategy.sh; canonical SoT (BC-5.42.001 §Architecture Anchors + S-19.01 §File Structure + ADR-030 §Decision 2/3) = `plugins/vsdd-factory/bin/` (bin/ = orchestrator-invoked SS-10 CLI tools; hooks/ = dispatcher-fired namespace; D-775-era BC-5.42.001 v1.2 migration sweep never enumerated VP §Traceability bullets or §Proof Harness Skeleton code blocks as sweep sites; survived 32 passes 23–54). CLOSED: architect 364cfd2c (6 sites corrected + §Traceability label "Hook scripts:" → "Enforcement scripts:" per bin/-semantics; input-hash 9eff742→e2f422f; BC-5.42.001 v1.4→v1.6 input drift). Class sweep: 8 genuine-hook VPs verified clean — VP-081/082/083/084/085/086/093/099 all cite genuine dispatcher-fired hooks/ correctly; zero other stale sites; stories/BCs zero stale hits.
+
+Trajectory p22–55: ...→1→2→0→1. Tail passes 52/53/54/55 = 1,2,0,1 → `→1→2→0→1`. Zero HIGH 15 passes; zero BLOCKER 33. Streak 1/3→0/3 (F-P55-001 resets streak).
+
+Lesson codified: **L-BB-namespace-migrations-must-sweep-vp-traceability-and-harness-blocks** [process-gap] — when a path/namespace migration lands in a BC, the sweep enumeration includes VP §Traceability bullets AND §Proof Harness Skeleton code blocks citing the migrated paths; harness code blocks are load-bearing for test-writers even though fenced code, not prose.
+
+NEXT: pass-56 (fresh context; Iron Law; rubric policies.yaml v1.4.4; perimeter = D-811 delta: VP-094 v1.2 + VP-INDEX v2.61 + full E-19 suite carry-forward; 4-index BC v3.95/VP v2.61/STORY v4.176/ARCH v3.00; streak 0/3).
+
+### Detail
+
+**(1) POLICY 16 GLOBAL-MAX GATE (POLICY 16; literal-shell per D-449(a)).**
+
+```
+$ grep -oE "^## D-[0-9]+" .factory/cycles/v1.0-brownfield-backfill/decision-log.md | sort -t'-' -k3 -n | tail -1
+## D-810
+EXIT:0
+```
+→ D-810 confirmed max → D-811 allocated. PASS.
+
+**(2) PASS-55 ADVERSARY VERDICT.**
+
+NOT-CLEAN B0/H0/M1/L0. Perimeter: D-810 delta (VP-INDEX v2.60 governance-only) + full E-19 carry-forward (BC-INDEX v3.95; STORY-INDEX v4.176; ARCH-INDEX v3.00; epic v1.27; L2-INDEX v1.0.14; ADR-025 v1.15; ADR-030 v1.3; 6 BCs; 8 VPs; 7 stories; policies.yaml v1.4.4). Streak before: 1/3. Streak after: 0/3.
+
+F-P55-001 MEDIUM: VP-094 §Traceability bullet + 5 §Proof Harness Skeleton lines cited stale `hooks/` namespace for check-stale-verdict.sh and enforce-merge-strategy.sh. Canonical SoT = `bin/` (BC-5.42.001 §Architecture Anchors + S-19.01 §File Structure + ADR-030 §Decision 2/3). D-775 migration gap (BC-5.42.001 v1.2 hooks/→bin/ split; VP-094 §Traceability + §Proof Harness were not enumerated as sweep sites). Survived 32 passes.
+
+Class sweep: 8 genuine-hook VPs (VP-081/082/083/084/085/086/093/099) verified — all cite genuine dispatcher-fired hooks/ correctly; zero other stale sites.
+
+Full adversary report: `cycles/v1.0-brownfield-backfill/adv-E19-pass-55.md`
+
+**(3) FIX BURST.**
+
+Single leg: architect 364cfd2c — VP-094 v1.1→v1.2 (6 sites: 1 §Traceability bullet + 5 §Proof Harness Skeleton lines; hooks/→bin/ corrected; §Traceability label "Hook scripts:" → "Enforcement scripts:"; input-hash 9eff742→e2f422f). SM this-commit: VP-INDEX v2.60→v2.61 (Full Index VP-094 row + Story Anchors VP-094 row v1.2 annotations; frontmatter version + last_amended + changelog entry).
+
+L-BB-namespace-migrations-must-sweep-vp-traceability-and-harness-blocks [process-gap] appended to lessons.md.
+
+**(4) 4-INDEX GATE (POLICY 14 leg-4; literal-shell per D-449(a)).**
+
+```
+$ grep "^version:" \
+  .factory/specs/behavioral-contracts/BC-INDEX.md \
+  .factory/specs/verification-properties/VP-INDEX.md \
+  .factory/stories/STORY-INDEX.md \
+  .factory/specs/architecture/ARCH-INDEX.md
+.factory/specs/verification-properties/VP-INDEX.md:version: "2.61"
+.factory/specs/behavioral-contracts/BC-INDEX.md:version: "3.95"
+.factory/stories/STORY-INDEX.md:version: "4.176"
+.factory/specs/architecture/ARCH-INDEX.md:version: "3.00"
+EXIT:0
+```
+→ BC-INDEX v3.95 / VP-INDEX v2.61 / STORY-INDEX v4.176 / ARCH-INDEX v3.00. VP-INDEX advanced v2.60→v2.61 (VP-094 v1.2 annotation); BC/STORY/ARCH UNCHANGED. PASS.
+
+**(5) HEADING-PARITY GATE (D-803 standing Commit-E gate; literal-shell per D-449(a)).**
+
+```
+$ python3 -c "
+import re, os, glob
+with open('.factory/stories/STORY-INDEX.md', 'r') as f:
+    index_content = f.read()
+heading_pattern = re.compile(r'^(## (?:Epic )?(E-\d+)[^\n]*)', re.MULTILINE)
+heading_matches = list(heading_pattern.finditer(index_content))
+epic_dir = '.factory/stories/epics'
+epic_files = glob.glob(os.path.join(epic_dir, '*.md'))
+epic_versions = {}
+for fpath in epic_files:
+    with open(fpath, 'r') as f:
+        content = f.read()
+    vm = re.search(r'^version:\s*[\x22\x27]?([^\x22\x27\n]+)', content, re.MULTILINE)
+    eid_m = re.search(r'(E-\d+)', os.path.basename(fpath))
+    if vm and eid_m:
+        epic_versions[eid_m.group(1)] = vm.group(1).strip('\x22\x27').strip()
+fails = 0; passes = 0; skips = 0
+for m in heading_matches:
+    heading_line = m.group(1); eid = m.group(2)
+    hvm = re.search(r'v(\d+\.\d+)\s*$', heading_line)
+    if eid not in epic_versions: skips += 1; continue
+    fver = epic_versions[eid]
+    if not hvm: skips += 1; continue
+    hver = 'v' + hvm.group(1)
+    if hver == fver: passes += 1
+    else: print('FAIL ' + eid + ': heading ' + hver + ' != frontmatter ' + fver)
+    if hver != fver: fails += 1
+print('Result: ' + str(fails) + ' FAIL / ' + str(passes) + ' PASS / ' + str(skips) + ' SKIP')
+"
+Result: 0 FAIL / 4 PASS / 16 SKIP
+EXIT:0
+```
+→ 0 FAIL lines; 4 versioned-heading epics PASS (E-19 heading v1.27 == frontmatter v1.27). PASS.
+
+**(6) POINTER-CLASS GATE (D-806 standing Commit-E gate; literal-shell per D-449(a)).**
+
+```
+$ for f in .factory/specs/architecture/decisions/ADR-025*.md \
+           .factory/specs/architecture/decisions/ADR-030*.md; do
+    echo "--- $f ---"
+    grep -nE 'line [0-9]+([–-][0-9]+)? of|at line [0-9]+' "$f" || echo "(no matches)"
+  done
+--- .factory/specs/architecture/decisions/ADR-025-single-writer...md ---
+1708:  line-cite `at line 1181–1182 of hooks-registry.toml` replaced with stable anchor form
+--- .factory/specs/architecture/decisions/ADR-030-pr-manager-merge-operation-integrity-enforcement.md ---
+(no matches)
+EXIT:0
+```
+→ 0 normative-live hits; ADR-025 line 1708 EXEMPT (Changelog historical-by-construction per TD-VSDD-091); ADR-030 clean. PASS.
+
+**(7) STREAK STATUS.**
+
+0/3 (F-P55-001 MEDIUM resets streak from 1/3). Trajectory tail passes 52/53/54/55 = 1,2,0,1 → `→1→2→0→1`. Zero HIGH 15 passes; zero BLOCKER 33. NEXT: E-19 adv pass-56 (fresh context; Iron Law; rubric policies.yaml v1.4.4; perimeter = D-811 delta: VP-094 v1.2 + VP-INDEX v2.61 + full E-19 suite carry-forward; streak 0/3).
+
+Parent-commit: 364cfd2c (architect VP-094 v1.1→v1.2 fix burst; factory-artifacts HEAD prior to this D-811 SM closure burst).
+
+### Phase
+
+D-811-E19-ADV-PASS-55-NOT-CLEAN-CLOSED
+
+### Date
+
+2026-07-10

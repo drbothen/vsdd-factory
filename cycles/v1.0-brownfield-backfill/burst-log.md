@@ -17554,3 +17554,127 @@ Expected ≥8 for this entry (blocks 1–8 present). D-444(c) 8-block requiremen
 | Commit | SHA | Contents |
 |--------|-----|----------|
 | D-810 SM single-commit burst (TD-VSDD-053) | `2675a6b9` | adv-E19-pass-54.md NEW; decision-log D-810; STATE.md v5.60→v5.61; burst-log this entry; streak 0/3→1/3; trajectory-tail →0→1→2→0; pass-55 NEXT |
+
+---
+
+## D-811 — E-19 Adversary Pass-55 NOT-CLEAN Fix Burst (2026-07-10)
+
+**Burst type:** architect + state-manager  
+**Verdict:** NOT-CLEAN B0/H0/M1/L0 (F-P55-001 MEDIUM — VP-094 hooks/→bin/ namespace drift)  
+**Streak:** 1/3 → 0/3 RESET  
+**Trajectory-tail:** →1→2→0→1 (passes 52/53/54/55 = 1,2,0,1)
+
+### Block 1 — Parent-commit
+
+| Field | Value |
+|-------|-------|
+| Factory-artifacts parent (D-810 burst) | `2675a6b9` |
+| Architect VP-094 fix commit | `364cfd2c` |
+| develop HEAD | `f5242bef` |
+| main HEAD | `a04cb303` |
+
+### Block 2 — Adversary Verdict + Dim-2 D-449(a) Literal-Shell Gate Evidence
+
+**Adversary verdict (adv-E19-pass-55.md Part A — source-attestation gate D-448(a)):**
+
+Pass-55 found 1 MEDIUM finding (F-P55-001). Part A: 30-artifact perimeter PASS (VP-094 attested at v1.1 — the carried version at D-810). No prior findings to verify (pass-54 CLEAN). F-P55-001 MEDIUM: VP-094 v1.1 §Traceability bullet and §Proof Harness Skeleton 5 invocation lines cited `plugins/vsdd-factory/hooks/check-stale-verdict.sh` and `plugins/vsdd-factory/hooks/enforce-merge-strategy.sh` — stale namespace; canonical per BC-5.42.001/S-19.01/ADR-030 is `plugins/vsdd-factory/bin/`. D-775 migration missed VP §Traceability and §Proof Harness Skeleton sweep sites. Class sweep: 8 genuine-hook VPs confirmed CLEAN. CLOSED architect 364cfd2c (VP-094 v1.1→v1.2; input-hash 9eff742→e2f422f).
+
+**D-449(a) literal-shell gate evidence (all 4 gates):**
+
+**Gate 1 — 4-index version parity:**
+
+```
+$ grep "^version:" .factory/specs/behavioral-contracts/BC-INDEX.md .factory/specs/verification-properties/VP-INDEX.md .factory/stories/STORY-INDEX.md .factory/specs/architecture/ARCH-INDEX.md
+.factory/specs/behavioral-contracts/BC-INDEX.md:version: "3.95"
+.factory/specs/verification-properties/VP-INDEX.md:version: "2.61"
+.factory/stories/STORY-INDEX.md:version: "4.176"
+.factory/specs/architecture/ARCH-INDEX.md:version: "3.00"
+```
+
+RESULT: BC v3.95 / VP v2.61 / STORY v4.176 / ARCH v3.00 — PASS.
+
+**Gate 2 — heading-parity gate (epic E-19 + all stories):**
+
+No epics or stories were bumped in this SM burst (architect VP-094-only fix; SM leg is VP-INDEX + STATE.md + cycle files). Heading-parity gate: 0 FAIL (per D-810 0-FAIL established; no version bumps introduced in this burst that would invalidate heading parity). PASS.
+
+**Gate 3 — pointer-class gate (ADR-025 normative sections):**
+
+```
+$ awk '/^## Changelog/,0{next} {print NR": "$0}' .factory/specs/architecture/decisions/ADR-025.md | grep -E 'line [0-9]+([–-][0-9]+)? of|at line [0-9]+'
+(no output)
+```
+
+RESULT: 0 normative hits. ADR-025 line 1708 Changelog historical exempt (per D-810 record). PASS.
+
+**Gate 4 — D-448(a) source-attestation gate:**
+
+```
+$ grep "^verdict:\|^severity_summary:\|^streak_before:\|^streak_after:" .factory/cycles/v1.0-brownfield-backfill/adv-E19-pass-55.md
+verdict: NOT-CLEAN
+severity_summary: "B0/H0/M1/L0"
+streak_before: "1/3"
+streak_after: "0/3"
+```
+
+RESULT: Adversary report verdict/severity/streak match STATE.md — PASS. F-P55-001 CLOSED annotation in Part B confirms architect 364cfd2c fix.
+
+### Block 3 — Files Touched
+
+| File | Change | Leg |
+|------|--------|-----|
+| `.factory/specs/verification-properties/VP-094.md` | v1.1→v1.2: 6 stale hooks/→bin/ sites corrected (1 §Traceability + 5 §Harness); input-hash 9eff742→e2f422f | architect 364cfd2c |
+| `.factory/cycles/v1.0-brownfield-backfill/adv-E19-pass-55.md` | NEW (template-compliant; verdict NOT-CLEAN B0/H0/M1/L0; F-P55-001 CLOSED) | SM this-commit |
+| `.factory/cycles/v1.0-brownfield-backfill/decision-log.md` | D-811 entry appended | SM this-commit |
+| `.factory/cycles/v1.0-brownfield-backfill/lessons.md` | L-BB-namespace-migrations-must-sweep-vp-traceability-and-harness-blocks [process-gap] appended | SM this-commit |
+| `.factory/specs/verification-properties/VP-INDEX.md` | v2.60→v2.61: VP-094 v1.2 annotation in Full Index + Story Anchors (D-802 both-tables) | SM this-commit |
+| `.factory/STATE.md` | v5.61→v5.62: banner/frontmatter/phase/current_step/D-811 Decisions row/Concurrent Cycles/Current Phase Steps/Session Resume Checkpoint | SM this-commit |
+| `.factory/cycles/v1.0-brownfield-backfill/burst-log.md` | D-811 entry (this entry) | SM this-commit |
+
+### Block 4 — Codifications
+
+| Item | Type | Commit |
+|------|------|--------|
+| D-811 | Decision-log entry (POLICY 16 gate; pass-55 verdict; F-P55-001 fix; streak 0/3; NEXT pass-56) | SM this-commit |
+| L-BB-namespace-migrations-must-sweep-vp-traceability-and-harness-blocks | Lesson [process-gap] (namespace migrations must sweep VP §Traceability AND §Proof Harness Skeleton code blocks) | SM this-commit |
+
+### Block 5 — Dim-5 Files-Touched Completeness
+
+Files-touched count: 7 (VP-094.md, adv-E19-pass-55.md, decision-log.md, lessons.md, VP-INDEX.md, STATE.md, burst-log.md).
+
+No additional files required: VP-094 is the sole VP with F-P55-001 defect (class sweep confirmed 8 genuine-hook VPs CLEAN). POLICY 14 5-leg: VP only — no BC/story/epic bumps in this burst (architect VP-094 fix is description-only; no POLICY 9 propagation to verification-architecture.md or verification-coverage-matrix.md per VP-INDEX last_amended). BC-5.42.001 v1.6 already has correct bin/ namespace per D-798. Completeness: SATISFIED.
+
+### Block 6 — D-446(a) 8-Block Completion Gate
+
+```
+$ grep "^### Block " .factory/cycles/v1.0-brownfield-backfill/burst-log.md | tail -8
+### Block 1 — Parent-commit
+### Block 2 — Adversary Verdict + Dim-2 D-449(a) Literal-Shell Gate Evidence
+### Block 3 — Files Touched
+### Block 4 — Codifications
+### Block 5 — Dim-5 Files-Touched Completeness
+### Block 6 — D-446(a) 8-Block Completion Gate
+### Block 7 — Closes / Status summary
+### Block 8 — Factory-artifacts Commits
+```
+
+Expected ≥8 for this entry (blocks 1–8 present). D-444(c) 8-block requirement: SATISFIED (blocks 1–8 present in this D-811 entry).
+
+### Block 7 — Closes / Status summary
+
+| Item | Resolution |
+|------|------------|
+| E-19 adv pass-55 | NOT-CLEAN B0/H0/M1/L0 — CLOSED (F-P55-001 MEDIUM fixed architect 364cfd2c) |
+| VP-094 | v1.1→v1.2: 6 stale hooks/→bin/ sites corrected; input-hash 9eff742→e2f422f |
+| VP-INDEX | v2.60→v2.61: VP-094 v1.2 annotation (Full Index + Story Anchors) |
+| 4-index BC/VP/STORY/ARCH | BC v3.95 / VP v2.61 / STORY v4.176 / ARCH v3.00 |
+| Streak | RESET 1/3 → 0/3 (F-P55-001) |
+| Trajectory-tail | →1→2→0→1 (passes 52/53/54/55 = 1,2,0,1) |
+| L-BB lesson | L-BB-namespace-migrations-must-sweep-vp-traceability-and-harness-blocks [process-gap] CODIFIED D-811 |
+| STATE.md v5.62 | COMPLETE — Session Resume Checkpoint fully refreshed; pass-56 target; streak 0/3 |
+| NEXT | adv pass-56 (fresh context; Iron Law; rubric policies.yaml v1.4.4; perimeter D-811 delta: VP-094 v1.2 + VP-INDEX v2.61; streak 0/3; three CLEANs → 3/3 CONVERGED → W1 TDD S-19.01+S-19.02+S-19.03 per D-773/D-774) |
+
+### Block 8 — Factory-artifacts Commits
+
+| Commit | SHA | Contents |
+|--------|-----|----------|
+| D-811 SM single-commit burst (TD-VSDD-053) | `[TBD-post-push]` | adv-E19-pass-55.md NEW; decision-log D-811; lessons.md L-BB; VP-INDEX v2.61; STATE.md v5.61→v5.62; burst-log this entry; streak 1/3→0/3 RESET; trajectory-tail →1→2→0→1; pass-56 NEXT |
