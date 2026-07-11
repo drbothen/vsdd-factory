@@ -18052,5 +18052,5 @@ Result: All 8 D-444(c) mandatory blocks present (Blocks 1–8 confirmed in this 
 
 | Commit | SHA | Contents |
 |--------|-----|----------|
-| D-817 SM single-commit burst (TD-VSDD-053) | `[D-817-burst-SHA]` | adv-E19-pass-58.md (NEW); decision-log D-817; lessons L-BB-adr-anchor-fields-must-propagate-with-governing-adr; policies.yaml v1.4.5→v1.4.6; VP-INDEX v2.63→v2.64; STATE.md v5.65→v5.66; burst-log D-817 (this entry); streak 0/3 UNCHANGED; 4-index BC v3.95/VP v2.64/STORY v4.176/ARCH v3.00 |
-| D-817 SHA-patch | `[D-817-SHA-patch-SHA]` | Active Branches [D-817-burst-SHA] + burst-log Block 8 SHA update |
+| D-817 SM single-commit burst (TD-VSDD-053) | `58d1c475` | adv-E19-pass-58.md (NEW); decision-log D-817; lessons L-BB-adr-anchor-fields-must-propagate-with-governing-adr; policies.yaml v1.4.5→v1.4.6; VP-INDEX v2.63→v2.64; STATE.md v5.65→v5.66; burst-log D-817 (this entry); streak 0/3 UNCHANGED; 4-index BC v3.95/VP v2.64/STORY v4.176/ARCH v3.00 |
+| D-817 SHA-patch | `[D-817-SHA-patch-SHA]` | Active Branches 58d1c475 + burst-log Block 8 SHA update |
