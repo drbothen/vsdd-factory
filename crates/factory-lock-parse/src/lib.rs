@@ -70,22 +70,37 @@ pub struct LockState {
 /// Scans `bytes` for the closing frontmatter delimiter (`\n---\n`, or `\n---`
 /// at EOF). The returned slice covers bytes `0..delimiter_start_offset`:
 /// - The opening `---\n` IS included (slice starts at byte 0).
-/// - The closing `\n---\n` delimiter is NOT included.
+/// - The closing delimiter bytes are NOT included.
 /// - If no closing delimiter is found, the entire input is returned.
 ///
+/// `delimiter_start_offset` is the byte index of the leading `\n` in `\n---\n`
+/// (exclusive boundary per BC-4.13.001 v1.14 Invariant 9 / AC-005 / VP-096).
+///
 /// This function is pure: deterministic, no I/O, side-effect free.
-///
-/// # Red Gate (S-19.02 stub)
-///
-/// This function body is a stub (`todo!()`). Implementation is deferred to
-/// the TDD green phase (S-19.02 Task 10).
 ///
 /// # BC Traces
 /// - BC-4.13.001 v1.14 Phase-A Invariant 9 (frontmatter-only-parsing mandate)
 /// - AC-005, VP-096 (extract_frontmatter byte-exact boundary purity)
 /// - F-P29-001 (architect ruling: this function lives in factory-lock-parse)
-pub fn extract_frontmatter(_bytes: &[u8]) -> &[u8] {
-    todo!("S-19.02 stub: implement extract_frontmatter per BC-4.13.001 Invariant 9")
+pub fn extract_frontmatter(bytes: &[u8]) -> &[u8] {
+    // Search for the inline closing delimiter `\n---\n`.
+    // delimiter_start_offset = byte index of the leading `\n` byte.
+    // Extracted slice = bytes[0..delimiter_start_offset] (exclusive).
+    let inline_delimiter = b"\n---\n";
+    if let Some(pos) = bytes
+        .windows(inline_delimiter.len())
+        .position(|w| w == inline_delimiter)
+    {
+        return &bytes[..pos];
+    }
+    // Search for `\n---` at EOF (no trailing newline after the closing delimiter).
+    // This handles the case where STATE.md ends without a trailing newline.
+    let eof_delimiter = b"\n---";
+    if bytes.ends_with(eof_delimiter) {
+        return &bytes[..bytes.len() - eof_delimiter.len()];
+    }
+    // No closing delimiter found: return the full input.
+    bytes
 }
 
 /// Scan the YAML frontmatter of STATE.md content for the `factory_lock:` block.
