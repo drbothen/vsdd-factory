@@ -24,8 +24,8 @@
 #   T-018 AC-002 — check-stale-verdict.sh: closed PR (matching SHA) → CHECK_STALE_VERDICT_ERROR (EC-003)
 #   T-019 AC-002 — check-stale-verdict.sh: malformed gh JSON → CHECK_STALE_VERDICT_ERROR (arm 4)
 #
-# Red Gate status: T-001..T-016 pass after implementation; T-017 green (positive + neg-control);
-#   T-018/T-019 are RED gates (ADR-030 §Decision 2 arms 3+4 not yet implemented).
+# Green status: T-001..T-016 pass after implementation; T-017 green (positive + neg-control);
+#   T-018/T-019 GREEN — positive verification of ADR-030 §Decision 2 arms 3+4 (post-implementation).
 #
 # BC trace: BC-5.42.001 PC-1 (T-001/T-002/T-014), PC-2 (T-003/T-004/T-010/T-013/T-016/T-018/T-019),
 #           PC-3 (T-005/T-006/T-007/T-011/T-012/T-015), AC-004 (T-008/T-009/T-017)
@@ -843,9 +843,9 @@ MAPFILE_FRAGMENT
 }
 
 # ─────────────────────────────────────────────────────────────────────────────
-# F-S1901-P1-004 (MEDIUM) — ADR-030 §Decision 2 arms 3+4 untested
-# T-018: EC-003 (closed/merged PR) — RED gate
-# T-019: arm 4 (malformed/unparseable gh JSON) — RED gate
+# F-S1901-P1-004 (MEDIUM, closed) — ADR-030 §Decision 2 arms 3+4 now covered
+# T-018: EC-003 (closed/merged PR) — GREEN: arm 3 verified post-implementation
+# T-019: arm 4 (malformed/unparseable gh JSON) — GREEN: arm 4 verified post-implementation
 # ─────────────────────────────────────────────────────────────────────────────
 
 # T-018: check-stale-verdict.sh: closed PR with matching headRefOid → exit 1 + CHECK_STALE_VERDICT_ERROR
@@ -854,16 +854,16 @@ MAPFILE_FRAGMENT
 # Sentinel (ADR-030 §Decision 2 arm 3):
 #   CHECK_STALE_VERDICT_ERROR: PR #<n> is <state> (expected: open)
 #
-# RED gate: current script fetches only --json headRefOid, never inspects state.
-# With matching SHAs + closed state, current script exits 0 (silently wrong).
-# Implementation must also fetch state and fail-close when state != "open".
+# Verification: implementation fetches state alongside headRefOid; even with matching
+# SHAs, non-open state triggers arm 3 — exits non-zero with:
+# CHECK_STALE_VERDICT_ERROR: PR #<n> is <state> (expected: open).
 @test "T-018: check-stale-verdict.sh: closed PR (matching SHA) → exit 1 + CHECK_STALE_VERDICT_ERROR (EC-003)" {
     local pr_number="42"
     local sha="dddd333333333333333333333333333333333333"
 
     # Mock gh: returns state=closed + headRefOid MATCHING covered_sha.
-    # The SHAs match, so the current script (which ignores state) exits 0 — that is the bug.
-    # Future implementation must fetch state and emit CHECK_STALE_VERDICT_ERROR.
+    # The SHAs match; the implementation correctly checks state regardless and emits
+    # CHECK_STALE_VERDICT_ERROR when state != "open" (ADR-030 §Decision 2 arm 3).
     cat > "${MOCK_BIN}/gh" <<GHEOF
 #!/usr/bin/env bash
 if [[ "\$1" == "pr" && "\$2" == "view" ]]; then
@@ -912,17 +912,16 @@ GHEOF
 # ADR-030 §Decision 2 arm 4: gh exits 0 but returns non-JSON that cannot be parsed.
 # BC-5.42.001 EC-004 catch-all: CHECK_STALE_VERDICT_ERROR: <description> on stderr.
 #
-# RED gate: current script emits READY_SHA_FETCH_FAILED when LIVE_SHA is empty after
-# parsing — wrong sentinel for this arm. EC-004 requires CHECK_STALE_VERDICT_ERROR.
-# Implementation must distinguish gh-failure (arm 1: READY_SHA_FETCH_FAILED) from
-# parse-failure (arm 4: CHECK_STALE_VERDICT_ERROR).
+# Verification: implementation distinguishes gh-failure (arm 1: READY_SHA_FETCH_FAILED)
+# from parse-failure (arm 4: CHECK_STALE_VERDICT_ERROR). gh exits 0 but with
+# non-JSON output triggers the arm 4 catch-all: CHECK_STALE_VERDICT_ERROR: <description>.
 @test "T-019: check-stale-verdict.sh: malformed gh JSON → exit 1 + CHECK_STALE_VERDICT_ERROR (arm 4)" {
     local pr_number="99"
     local covered_sha="eeee444444444444444444444444444444444444"
 
     # Mock gh: exits 0 (no network failure) but returns non-JSON garbage.
-    # Current script: gh succeeds, LIVE_SHA is empty → emits READY_SHA_FETCH_FAILED.
-    # Correct behavior: emits CHECK_STALE_VERDICT_ERROR: <description> (arm 4 catch-all).
+    # Implementation: gh succeeds but JSON parse fails → emits CHECK_STALE_VERDICT_ERROR: <description>
+    # (arm 4 catch-all), distinguishing parse failure from gh failure (arm 1: READY_SHA_FETCH_FAILED).
     cat > "${MOCK_BIN}/gh" <<'GHEOF'
 #!/usr/bin/env bash
 if [[ "$1" == "pr" && "$2" == "view" ]]; then
