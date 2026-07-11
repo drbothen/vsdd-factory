@@ -346,14 +346,61 @@ where
         }
     };
 
-    let content = match String::from_utf8(state_bytes) {
-        Ok(s) => s,
-        Err(e) => {
-            (callbacks.log_warn)(&format!(
-                "StateReadError: STATE.md is not valid UTF-8: {}",
-                e
-            ));
-            return HookResult::Continue;
+    // BC-4.13.001 Invariant 10 soft-warning: emit diagnostic when
+    // bytes_read > soft_warn_threshold (200000) AND bytes_read <= STATE_MD_MAX_BYTES (262144).
+    // Observability-only; never alters the Continue/Block verdict.
+    let bytes_read = state_bytes.len();
+    if bytes_read > 200_000 && bytes_read <= STATE_MD_MAX_BYTES as usize {
+        (callbacks.log_warn)(&format!(
+            "state_md_approaching_cap: bytes_read={} cap_bytes={}",
+            bytes_read, STATE_MD_MAX_BYTES
+        ));
+    }
+
+    // BC-4.13.001 Invariant 9 frontmatter-only mandate: extract the YAML
+    // frontmatter prefix before passing bytes to the YAML parser. The guard
+    // MUST NOT parse file body content.
+    //
+    // extract_frontmatter returns bytes[0..delimiter_start_offset] (exclusive
+    // boundary per AC-005/VP-096) when a closing `\n---\n` or `\n---`-at-EOF
+    // delimiter is found, or the full input when absent. Calling `.to_vec()`
+    // immediately releases the borrow on state_bytes so state_bytes can be
+    // moved below without borrow-checker conflict.
+    let frontmatter_owned: Vec<u8> = flp::extract_frontmatter(&state_bytes).to_vec();
+
+    // When a closing delimiter was found (frontmatter_owned is strictly shorter
+    // than state_bytes), the extracted bytes omit the delimiter itself. Append
+    // a synthetic `\n---\n` so parse_factory_lock can locate its boundary.
+    //
+    // When no delimiter was found (frontmatter_owned == state_bytes), pass the
+    // original full content unchanged so parse_factory_lock returns
+    // MalformedLockBlock("missing closing --- delimiter") per EC-013/PC4.
+    let delimiter_found = frontmatter_owned.len() < state_bytes.len();
+
+    let content = if delimiter_found {
+        let mut parse_input = frontmatter_owned;
+        parse_input.extend_from_slice(b"\n---\n");
+        match String::from_utf8(parse_input) {
+            Ok(s) => s,
+            Err(e) => {
+                (callbacks.log_warn)(&format!(
+                    "StateReadError: STATE.md frontmatter is not valid UTF-8: {}",
+                    e
+                ));
+                return HookResult::Continue;
+            }
+        }
+    } else {
+        // Delimiter absent: move state_bytes (borrow by frontmatter_owned has ended).
+        match String::from_utf8(state_bytes) {
+            Ok(s) => s,
+            Err(e) => {
+                (callbacks.log_warn)(&format!(
+                    "StateReadError: STATE.md is not valid UTF-8: {}",
+                    e
+                ));
+                return HookResult::Continue;
+            }
         }
     };
 
@@ -1377,8 +1424,7 @@ mod tests {
     #[test]
     fn test_S1902_T001_state_md_max_bytes_is_262144() {
         assert_eq!(
-            STATE_MD_MAX_BYTES,
-            262144u32,
+            STATE_MD_MAX_BYTES, 262144u32,
             "AC-001: STATE_MD_MAX_BYTES must equal 262144 (256 KiB) per \
              BC-4.13.001 v1.14 Phase-A Precondition 3 / ADR-025 Decision 14. \
              Current value: {}",
@@ -1660,7 +1706,9 @@ mod tests {
             let warns = warn_log.lock().unwrap();
             // Must emit StateReadError warn (fail-open log).
             assert!(
-                warns.iter().any(|w| w.contains("StateReadError") || w.contains("OutputTooLarge")),
+                warns
+                    .iter()
+                    .any(|w| w.contains("StateReadError") || w.contains("OutputTooLarge")),
                 "T-009 E: 262145-byte fixture must emit StateReadError/OutputTooLarge warn. Got: {:?}",
                 warns
             );

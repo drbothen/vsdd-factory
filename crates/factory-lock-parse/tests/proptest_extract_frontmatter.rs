@@ -29,9 +29,7 @@ use proptest::prelude::*;
 fn find_delimiter_offset(input: &[u8]) -> Option<usize> {
     // Search for b"\n---\n" as a contiguous sequence.
     let needle = b"\n---\n";
-    input
-        .windows(needle.len())
-        .position(|w| w == needle)
+    input.windows(needle.len()).position(|w| w == needle)
 }
 
 proptest! {

@@ -32,7 +32,7 @@
 use std::sync::{Arc, Mutex};
 
 use serde_json::json;
-use verify_factory_lock::{guard_logic, GuardCallbacks, STATE_MD_MAX_BYTES};
+use verify_factory_lock::{GuardCallbacks, STATE_MD_MAX_BYTES, guard_logic};
 use vsdd_hook_sdk::HookPayload;
 
 /// Build a minimal HookPayload for a mutating tool (replicates unit test helper).
@@ -126,7 +126,10 @@ fn t006_ac004_70kib_state_md_no_output_too_large() {
     let warns = warn_log.lock().unwrap();
     let too_large_events: Vec<_> = warns
         .iter()
-        .filter(|w| w.to_lowercase().contains("output_too_large") || w.to_lowercase().contains("outputtoolarge"))
+        .filter(|w| {
+            w.to_lowercase().contains("output_too_large")
+                || w.to_lowercase().contains("outputtoolarge")
+        })
         .collect();
 
     assert!(
