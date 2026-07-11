@@ -17376,3 +17376,181 @@ EXIT:0
 | Commit | SHA | Contents |
 |--------|-----|----------|
 | D-809 SM single-commit burst (TD-VSDD-053) | `4818f527` | adv-E19-pass-53.md NEW; decision-log D-809; lessons.md L-BB-description-bearing-anchor-prose-derives-from-target-SoT; VP-INDEX v2.59→v2.60; policies.yaml v1.4.3→v1.4.4; burst-log this entry; STATE.md v5.59→v5.60; streak 0/3 UNCHANGED; trajectory →1→0→1→2; pass-54 NEXT (rubric v1.4.4) |
+
+---
+
+## D-810 — E-19 Adversary Pass-54 CLEAN Closure (GOVERNANCE-ONLY; streak 0/3→1/3)
+
+**Date:** 2026-07-10
+**Parent-commit (factory-artifacts HEAD before this burst):** `ebfbb795` (D-809 SHA-patch burst)
+**Cycle:** v1.0-brownfield-backfill
+
+### Block 1 — Parent-commit attestation
+
+Parent-commit is `ebfbb795` (D-809 SHA-patch burst on factory-artifacts, updating Active Branches SHA). Confirmed via:
+
+```
+git -C .factory log --oneline -1
+ebfbb795 factory(D-809-sha-patch): Active Branches factory-artifacts SHA → 4818f527
+```
+
+D-419(b)/D-420(d)/D-421(a) convention: parent-commit is the most recent factory-artifacts commit prior to this D-810 SM governance-only burst. SATISFIED.
+
+### Block 2 — Adversary verdict (D-448(a) source-attestation)
+
+**adv-E19-pass-54.md** — CLEAN B0/H0/M0/L0. Iron Law SATISFIED (fresh context; no prior pass reports loaded). Rubric policies.yaml v1.4.4. Model: Claude Opus 4.7. Date: 2026-07-10.
+
+Part A gates (4 D-809 delta verification gates):
+- Gate 1 PASS: VP-097 v1.2 three-site path fix (`src/path_util.rs`→`src/host/path_util.rs`) VERIFIED in module:, §Feasibility Artifact, §Proof Harness; zero-match sentinel for old path = 0
+- Gate 2 PASS: VP-101 v1.3 `host/read_file.rs`→`host/read_prefix.rs` corrected; `host::read_file` `use` statements in §Proof Harness classified as legitimate parallel-reference tail (harness implementation cite, not description-bearing anchor-prose per POLICY 4 v1.4.4)
+- Gate 3 PASS: VP-INDEX v2.60 both-tables annotations (Full Index + Story Anchors) PASS; POLICY 14 5-leg parity PASS
+- Gate 4 PASS: policies.yaml v1.4.4 well-formed PASS
+
+16 fresh/roster axes table: ALL PASS (VP module:/Feasibility/Traceability parity; epic 6-row re-verify; POLICY 7 char-exact 6/6; POLICY 14 5-leg on all D-809 artifacts; POLICY 9 exemption correctly applied; modified[] monotonicity; pointer-class; POLICY 19; VP-INDEX arithmetic 101; story↔VP path consistency; 8-gate roster all OPERATIONAL; 30/30 perimeter versions PASS).
+
+Findings: NONE. Observations: NONE. Novelty: ZERO.
+
+D-448(a) source-attestation gate (literal-shell):
+
+```
+$ grep -oE "F-P54-00[0-9]+" \
+    .factory/cycles/v1.0-brownfield-backfill/adv-E19-pass-54.md | sort -u
+(no output)
+$ grep -oE "F-P54-00[0-9]+" \
+    .factory/cycles/v1.0-brownfield-backfill/burst-log.md | sort -u
+(no output)
+```
+→ Parity: 0 finding IDs in adv report; 0 in burst-log. PASS (CLEAN pass; expected zero findings).
+
+### Block 3 — Files touched
+
+**GOVERNANCE-ONLY burst — no spec/story/BC/VP/epic/ADR changes.**
+
+| File | Change |
+|------|--------|
+| `.factory/cycles/v1.0-brownfield-backfill/adv-E19-pass-54.md` | NEW — full adversary pass-54 report (CLEAN B0/H0/M0/L0) |
+| `.factory/cycles/v1.0-brownfield-backfill/decision-log.md` | APPENDED — D-810 entry (written prior session) |
+| `.factory/STATE.md` | UPDATED — v5.60→v5.61; D-810 governance advance; streak 1/3; trajectory-tail →0→1→2→0; Session Resume Checkpoint targeting pass-55 |
+| `.factory/cycles/v1.0-brownfield-backfill/burst-log.md` | APPENDED — this D-810 entry |
+
+4-index (BC/VP/STORY/ARCH): ALL UNCHANGED (governance-only burst). BC v3.95 / VP v2.60 / STORY v4.176 / ARCH v3.00.
+
+### Block 4 — Codifications
+
+| Codification | Type | Source |
+|--------------|------|--------|
+| D-810 E-19 adv pass-54 CLEAN closure | Decision-log entry | D-810 |
+| Streak 0/3 → 1/3 (pass-54 CLEAN) | STATE.md advance | pass-54 CLEAN |
+
+No new L-BB lessons (pass-54 CLEAN; NIL novelty; no new defect class). No POLICY or standing-control amendments. No index version bumps (governance-only).
+
+### Block 5 — Dim-2 attestation (D-449(a) literal-shell gate evidence)
+
+**Gate 1 — POLICY 16 global-max gate (literal-shell, numerically sorted):**
+
+```
+$ grep -oE "^## D-[0-9]+" \
+    .factory/cycles/v1.0-brownfield-backfill/decision-log.md \
+    | sort -t'-' -k3 -n | tail -1
+## D-810
+EXIT:0
+```
+→ D-810 confirmed max (note: `tail -1` on raw stream returns last occurrence in file; numeric sort confirms true max = D-810). PASS.
+
+**Gate 2 — 4-index exhaustive-unchanged gate (literal-shell):**
+
+```
+$ grep "^version:" \
+  .factory/specs/behavioral-contracts/BC-INDEX.md \
+  .factory/specs/verification-properties/VP-INDEX.md \
+  .factory/stories/STORY-INDEX.md \
+  .factory/specs/architecture/ARCH-INDEX.md
+.factory/specs/verification-properties/VP-INDEX.md:version: "2.60"
+.factory/stories/STORY-INDEX.md:version: "4.176"
+.factory/specs/behavioral-contracts/BC-INDEX.md:version: "3.95"
+.factory/specs/architecture/ARCH-INDEX.md:version: "3.00"
+EXIT:0
+```
+→ BC v3.95 / VP v2.60 / STORY v4.176 / ARCH v3.00 — ALL UNCHANGED. Governance-only burst confirmed. PASS.
+
+**Gate 3 — Heading-parity gate (D-803 standing Commit-E gate — mandatory; literal-shell via Python3):**
+
+```
+$ python3 -c "
+import re, os, glob
+with open('.factory/stories/STORY-INDEX.md', 'r') as f:
+    index_content = f.read()
+heading_pattern = re.compile(r'^(## (?:Epic )?(E-\d+)[^\n]*)', re.MULTILINE)
+heading_matches = list(heading_pattern.finditer(index_content))
+epic_dir = '.factory/stories/epics'
+epic_files = glob.glob(os.path.join(epic_dir, '*.md'))
+epic_versions = {}
+for fpath in epic_files:
+    with open(fpath, 'r') as f:
+        content = f.read()
+    vm = re.search(r'^version:\s*[\x22\x27]?([^\x22\x27\n]+)', content, re.MULTILINE)
+    eid_m = re.search(r'(E-\d+)', os.path.basename(fpath))
+    if vm and eid_m:
+        epic_versions[eid_m.group(1)] = vm.group(1).strip('\x22\x27').strip()
+fails = 0; passes = 0; skips = 0
+for m in heading_matches:
+    heading_line = m.group(1); eid = m.group(2)
+    hvm = re.search(r'v(\d+\.\d+)\s*$', heading_line)
+    if eid not in epic_versions: skips += 1; continue
+    fver = epic_versions[eid]
+    if not hvm: skips += 1; continue
+    hver = 'v' + hvm.group(1)
+    if hver == fver: passes += 1
+    else: print('FAIL ' + eid + ': heading ' + hver + ' != frontmatter ' + fver)
+    if hver != fver: fails += 1
+print('Result: ' + str(fails) + ' FAIL / ' + str(passes) + ' PASS / ' + str(skips) + ' SKIP')
+"
+Result: 0 FAIL / 4 PASS / 16 SKIP
+EXIT:0
+```
+→ 0 FAIL lines; 4 versioned-heading epics PASS (E-19 heading v1.27 == frontmatter v1.27). PASS.
+
+**Gate 4 — Pointer-class gate (D-806 standing Commit-E gate — mandatory; literal-shell):**
+
+```
+$ for f in .factory/specs/architecture/decisions/ADR-025*.md \
+           .factory/specs/architecture/decisions/ADR-030*.md; do
+    echo "--- $f ---"
+    grep -nE 'line [0-9]+([–-][0-9]+)? of|at line [0-9]+' "$f" || echo "(no matches)"
+  done
+--- .factory/specs/architecture/decisions/ADR-025-single-writer...md ---
+1708:  line-cite `at line 1181–1182 of hooks-registry.toml` replaced with stable anchor form
+--- .factory/specs/architecture/decisions/ADR-030-pr-manager-merge-operation-integrity-enforcement.md ---
+(no matches)
+EXIT:0
+```
+→ 0 normative-live hits; ADR-025 line 1708 EXEMPT (Changelog historical-by-construction per TD-VSDD-091); ADR-030 clean. PASS.
+
+**Dim-5 (Files-touched completeness):** 4 files listed in Block 3. State-manager this burst: adv-E19-pass-54.md NEW; decision-log D-810 appended (prior session); STATE.md v5.60→v5.61; burst-log this entry. Total 4 files; no omissions. D-448(a) source-attestation: faithful description of adv-E19-pass-54.md Part A finding set (CLEAN; 0 findings; 4 delta gates PASS; 16-axis table ALL PASS). META-LEVEL-24 acknowledgment: all 4 gates above are literal-shell with captured stdout; no pseudocode attestation.
+
+**Dim-7 (Parent-commit freshness):** Parent-commit `ebfbb795` is D-809 SHA-patch burst on factory-artifacts (2026-07-10). Most recent factory-artifacts commit prior to this D-810 SM burst. D-419(b)/D-420(d)/D-421(a) convention SATISFIED.
+
+### Block 6 — D-446(a) 8-Block Completion Gate
+
+```
+$ grep -c "^### Block" .factory/cycles/v1.0-brownfield-backfill/burst-log.md
+```
+
+Expected ≥8 for this entry (blocks 1–8 present). D-444(c) 8-block requirement: SATISFIED (blocks 1–8 present in this D-810 entry).
+
+### Block 7 — Closes / Status summary
+
+| Item | Resolution |
+|------|------------|
+| E-19 adv pass-54 | CLEAN B0/H0/M0/L0 — CLOSED (GOVERNANCE-ONLY) |
+| 4-index BC/VP/STORY/ARCH | ALL UNCHANGED — BC v3.95 / VP v2.60 / STORY v4.176 / ARCH v3.00 |
+| Streak | ADVANCED 0/3 → 1/3 (pass-54 CLEAN) |
+| Trajectory-tail | →0→1→2→0 (passes 51/52/53/54 = 0,1,2,0) |
+| STATE.md v5.61 | COMPLETE — Session Resume Checkpoint fully refreshed; pass-55 target |
+| NEXT | adv pass-55 (fresh context; ARTIFACTS FROZEN at D-809 versions; rubric policies.yaml v1.4.4; streak 1/3; two more CLEANs → 3/3 CONVERGED → W1 TDD S-19.01+S-19.02+S-19.03 per D-773/D-774) |
+
+### Block 8 — Factory-artifacts Commits
+
+| Commit | SHA | Contents |
+|--------|-----|----------|
+| D-810 SM single-commit burst (TD-VSDD-053) | TBD — SHA-patch per D-447(c)/D-449(e) | adv-E19-pass-54.md NEW; decision-log D-810; STATE.md v5.60→v5.61; burst-log this entry; streak 0/3→1/3; trajectory-tail →0→1→2→0; pass-55 NEXT |

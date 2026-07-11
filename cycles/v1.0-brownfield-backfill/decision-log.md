@@ -8774,3 +8774,117 @@ D-809-E19-ADV-PASS-53-NOT-CLEAN-CLOSED
 ### Date
 
 2026-07-10
+
+---
+
+## D-810 — E-19 Adversarial Pass-54 CLEAN Closure (GOVERNANCE-ONLY; streak 0/3→1/3; 4-index ALL UNCHANGED)
+
+### Summary
+
+Pass-54 adversary (Claude Opus 4.7; rubric policies.yaml v1.4.4; fresh context; Iron Law; perimeter = D-809 delta: VP-097 v1.2 + VP-101 v1.3 + VP-INDEX v2.60 + policies.yaml v1.4.4 + epic v1.27 + full E-19 suite at D-809 versions; 30 artifacts) found 0 findings, 0 observations — CLEAN B0/H0/M0/L0. D-809 delta verified 4/4 gates (VP-097 v1.2 three-site path fix zero-match sentinel clean; VP-101 v1.3 module+Function-anchor corrected with legitimate parallel-reference tail classified CLEAN; VP-INDEX v2.60 both-tables annotations PASS; policies.yaml v1.4.4 well-formed PASS). 16 fresh/roster axes ALL PASS (v1.4.4 lens across all 8 VP module:/Feasibility/Traceability fields; epic 6-row re-verify; POLICY 7 6/6 char-exact; POLICY 14 5-leg on all D-809 artifacts; POLICY 9 exemption correctly applied; modified[] monotonicity; pointer-class; POLICY 19; VP-INDEX arithmetic 101; story↔VP path consistency). All 8 standing gates OPERATIONAL. 30/30 perimeter versions PASS. Novelty: ZERO findings — perimeter converged on this pass. Trajectory p22–54: ...→1→1→0→1→2→0; tail passes 51/52/53/54 = 0,1,2,0 → `→0→1→2→0`. Zero HIGH 14 passes; zero BLOCKER 32. Streak 0/3→1/3. GOVERNANCE-ONLY burst (no spec/story/BC/VP/epic/ADR changes). NEXT: pass-55 (fresh context; two more CLEANs → 3/3 CONVERGED → W1 TDD dispatch S-19.01+S-19.02+S-19.03 per D-773/D-774).
+
+### Detail
+
+**(1) POLICY 16 GLOBAL-MAX GATE (POLICY 16; literal-shell per D-449(a)).**
+
+```
+$ grep -oE "^## D-[0-9]+" .factory/cycles/v1.0-brownfield-backfill/decision-log.md | tail -1
+## D-809
+EXIT:0
+```
+D-809 confirmed max → D-810 allocated.
+
+**(2) PASS-54 ADVERSARY VERDICT.**
+
+CLEAN B0/H0/M0/L0. Perimeter: D-809 delta (VP-097 v1.2 + VP-101 v1.3 + VP-INDEX v2.60 + policies.yaml v1.4.4) + full E-19 carry-forward (BC-INDEX v3.95; STORY-INDEX v4.176; ARCH-INDEX v3.00; epic v1.27; L2-INDEX v1.0.14; ADR-025 v1.15; ADR-030 v1.3; 6 BCs; 8 VPs; 7 stories). Streak before: 0/3. Streak after: 1/3.
+
+Findings: none. Observations: none.
+
+Full adversary report: `cycles/v1.0-brownfield-backfill/adv-E19-pass-54.md`
+
+**(3) FIX BURST.**
+
+GOVERNANCE-ONLY — no spec/story/BC/VP/epic/ADR changes. All 4-index UNCHANGED: BC v3.95/VP v2.60/STORY v4.176/ARCH v3.00 (exhaustive-unchanged). SM closure burst: adv-E19-pass-54.md persisted; D-810 decision-log codification; STATE.md v5.60→v5.61; burst-log D-810 entry.
+
+**(4) 4-INDEX GATE (POLICY 14 leg-4 — exhaustive-unchanged; literal-shell per D-449(a)).**
+
+```
+$ grep "^version:" \
+  .factory/specs/behavioral-contracts/BC-INDEX.md \
+  .factory/specs/verification-properties/VP-INDEX.md \
+  .factory/stories/STORY-INDEX.md \
+  .factory/specs/architecture/ARCH-INDEX.md
+.factory/specs/behavioral-contracts/BC-INDEX.md:version: "3.95"
+.factory/stories/STORY-INDEX.md:version: "4.176"
+.factory/specs/verification-properties/VP-INDEX.md:version: "2.60"
+.factory/specs/architecture/ARCH-INDEX.md:version: "3.00"
+EXIT:0
+```
+→ BC-INDEX: "3.95" / VP-INDEX: "2.60" / STORY-INDEX: "4.176" / ARCH-INDEX: "3.00". ALL UNCHANGED — governance-only burst confirmed. PASS.
+
+**(5) HEADING-PARITY GATE (D-803 standing Commit-E gate — mandatory; literal-shell per D-449(a)).**
+
+```
+$ python3 -c "
+import re, os, glob
+with open('.factory/stories/STORY-INDEX.md', 'r') as f:
+    index_content = f.read()
+heading_pattern = re.compile(r'^(## (?:Epic )?(E-\d+)[^\n]*)', re.MULTILINE)
+heading_matches = list(heading_pattern.finditer(index_content))
+epic_dir = '.factory/stories/epics'
+epic_files = glob.glob(os.path.join(epic_dir, '*.md'))
+epic_versions = {}
+for fpath in epic_files:
+    with open(fpath, 'r') as f:
+        content = f.read()
+    vm = re.search(r'^version:\s*[\x22\x27]?([^\x22\x27\n]+)', content, re.MULTILINE)
+    eid_m = re.search(r'(E-\d+)', os.path.basename(fpath))
+    if vm and eid_m:
+        epic_versions[eid_m.group(1)] = vm.group(1).strip('\x22\x27').strip()
+fails = 0; passes = 0; skips = 0
+for m in heading_matches:
+    heading_line = m.group(1); eid = m.group(2)
+    hvm = re.search(r'v(\d+\.\d+)\s*$', heading_line)
+    if eid not in epic_versions: skips += 1; continue
+    fver = epic_versions[eid]
+    if not hvm: skips += 1; continue
+    hver = 'v' + hvm.group(1)
+    if hver == fver: passes += 1
+    else: print('FAIL ' + eid + ': heading ' + hver + ' != frontmatter ' + fver)
+    if hver != fver: fails += 1
+print('Result: ' + str(fails) + ' FAIL / ' + str(passes) + ' PASS / ' + str(skips) + ' SKIP')
+"
+Result: 0 FAIL / 4 PASS / 16 SKIP
+EXIT:0
+```
+→ 0 FAIL lines; 4 versioned-heading epics PASS (E-19 heading v1.27 == frontmatter v1.27). PASS.
+
+**(6) POINTER-CLASS GATE (D-806 standing Commit-E gate — mandatory; literal-shell per D-449(a)).**
+
+```
+$ for f in .factory/specs/architecture/decisions/ADR-025*.md \
+           .factory/specs/architecture/decisions/ADR-030*.md; do
+    echo "--- $f ---"
+    grep -nE 'line [0-9]+([–-][0-9]+)? of|at line [0-9]+' "$f" || echo "(no matches)"
+  done
+--- .factory/specs/architecture/decisions/ADR-025-single-writer-factory-locklease-prevent-concurrent-session-races-on-factory-artifacts-orphan-branch.md ---
+1708:  line-cite `at line 1181–1182 of hooks-registry.toml` replaced with stable anchor form
+--- .factory/specs/architecture/decisions/ADR-030-pr-manager-merge-operation-integrity-enforcement.md ---
+(no matches)
+EXIT:0
+```
+→ 0 normative-live hits; ADR-025 line 1708 EXEMPT (Changelog historical-by-construction per TD-VSDD-091); ADR-030 clean. PASS.
+
+**(7) STREAK STATUS.**
+
+1/3 (CLEAN; trajectory tail passes 51/52/53/54 = 0,1,2,0 → `→0→1→2→0`; streak advances from 0/3 to 1/3). Zero HIGH 14 passes; zero BLOCKER 32. NEXT: E-19 adv pass-55 (fresh context; Iron Law; rubric policies.yaml v1.4.4; ARTIFACTS FROZEN at D-809 versions — fix only genuine blockers; streak 1/3; two more CLEANs → 3/3 CONVERGED → W1 TDD dispatch per D-773/D-774).
+
+Parent-commit: ebfbb795 (factory-artifacts HEAD = D-809 SHA-patch burst; the state of factory-artifacts before this D-810 SM governance-only burst).
+
+### Phase
+
+D-810-E19-ADV-PASS-54-CLEAN-1-OF-3
+
+### Date
+
+2026-07-10
