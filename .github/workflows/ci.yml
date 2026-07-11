@@ -686,10 +686,14 @@ jobs:
     #
     # BLOCKING: required status check equivalent — same on: trigger as other jobs.
     #
-    # S-19.01 STUB: this job is a placeholder. The actual darwin-leg bats suite
-    # will be implemented in story delivery. The job key is present to satisfy
-    # the AC-004 literal CI-config gate (O-P15-04):
+    # S-19.01 (implemented): pr-manager-hardening.bats darwin-leg test suite.
+    # The AC-004 literal CI-config gate (O-P15-04) requires this exact key:
     #   grep -qE '^  bats-darwin-leg-macos:$' .github/workflows/ci.yml
+    #
+    # SCOPE: runs pr-manager-hardening.bats on macOS under /bin/bash 3.2.x.
+    #   T-001 skips if factory-dispatcher not pre-built (set-up step copies from
+    #   the bundled darwin binary to target/release/ to enable T-001).
+    #   T-009 skips on Darwin (EC-003: Linux-runner test).
     name: bats-darwin-leg (macos, /bin/bash 3.2)
     runs-on: macos-latest
     steps:
@@ -707,10 +711,26 @@ jobs:
           }
           echo "Interpreter OK: $(/bin/bash --version | head -1)"
 
-      - name: Run darwin-leg bats suite (S-19.01 stub — not yet implemented)
-        # STUB: this step will run the pr-manager-hardening.bats darwin-leg tests
-        # once S-19.01 implementation is complete. Currently exits 1 to signal
-        # the stub status until the bats-darwin-leg-macos suite is implemented.
+      - name: Set up dispatcher binary for T-001
+        # T-001 looks for target/release/factory-dispatcher. Copy the pre-built
+        # darwin binary from the repository bundle to avoid a full cargo build
+        # (~15 min) on each macOS CI run. Architecture detection selects
+        # darwin-arm64 (M1/M2/M3 runner) or darwin-x64 (Intel runner).
         run: |
-          echo "UNIMPLEMENTED: bats-darwin-leg-macos suite not yet implemented (S-19.01)" >&2
-          exit 1
+          mkdir -p target/release
+          ARCH="$(uname -m)"
+          if [[ "${ARCH}" == "arm64" ]]; then
+            DARWIN_BIN="plugins/vsdd-factory/hooks/dispatcher/bin/darwin-arm64/factory-dispatcher"
+          else
+            DARWIN_BIN="plugins/vsdd-factory/hooks/dispatcher/bin/darwin-x64/factory-dispatcher"
+          fi
+          cp "${DARWIN_BIN}" target/release/factory-dispatcher
+          chmod +x target/release/factory-dispatcher
+          echo "Dispatcher: $(target/release/factory-dispatcher --version 2>/dev/null || echo 'binary staged')"
+
+      - name: Run pr-manager-hardening bats suite (darwin-leg)
+        # Runs pr-manager-hardening.bats on macOS under /bin/bash 3.2.x.
+        # T-009 legitimately skips on Darwin (EC-003).
+        # darwin-leg-preflight.sh is invoked by T-008/T-009 under /bin/bash.
+        run: |
+          bats plugins/vsdd-factory/tests/pr-manager-hardening.bats
