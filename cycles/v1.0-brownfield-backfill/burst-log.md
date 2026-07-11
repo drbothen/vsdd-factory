@@ -17860,5 +17860,5 @@ Session wrap summary: passes 34–56 complete (23 passes); zero BLOCKER 34 passe
 
 | Commit | SHA | Contents |
 |--------|-----|----------|
-| D-813 SM single-commit burst (TD-VSDD-053) | `pending` | STATE.md v5.63→v5.64 (PIPELINE PAUSED; D-813-SESSION-WRAP-PAUSED); session-checkpoints.md D-812 archived; decision-log D-813; burst-log D-813; sidecar-learning.md session-end timestamp; streak 0/3 UNCHANGED; 4-index ALL UNCHANGED |
-| D-813 SHA-patch | `pending` | Active Branches SHA-patch + burst-log Block 8 SHA update |
+| D-813 SM single-commit burst (TD-VSDD-053) | `ba386c73` | STATE.md v5.63→v5.64 (PIPELINE PAUSED; D-813-SESSION-WRAP-PAUSED); session-checkpoints.md D-812 archived; decision-log D-813; burst-log D-813; sidecar-learning.md session-end timestamp; streak 0/3 UNCHANGED; 4-index ALL UNCHANGED |
+| D-813 SHA-patch | `pending` | Active Branches ba386c73 + burst-log Block 8 SHA update (this commit) |
