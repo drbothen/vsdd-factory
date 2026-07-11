@@ -9877,3 +9877,75 @@ D-824-PRE-W1-INPUT-DRIFT-GATE-RESOLVED
 ### Date
 
 2026-07-11
+
+---
+
+## D-825 — W1-TDD-DISPATCHED (human gate approval; E-19 W1 parallel dispatch S-19.01+S-19.02+S-19.03; drift-backlog deferral human-directed)
+
+### Summary
+
+W1-TDD-DISPATCHED. Human W1 gate approval received 2026-07-11 via AskUserQuestion: (a) "Approve — parallel" for S-19.01+S-19.02+S-19.03 concurrent dispatch; (b) "Yes, defer" the ~1,198 legacy stale-hash backlog to a future maintenance sweep. Phase 3 W1 TDD IN PROGRESS (E-19). 4-index ALL UNCHANGED.
+
+### Decision
+
+**(1) POLICY 16 GLOBAL-MAX GATE (literal-shell):**
+
+```
+$ grep -n "^## D-" .factory/cycles/v1.0-brownfield-backfill/decision-log.md | tail -3
+```
+
+Output: `## D-824 — PRE-W1-INPUT-DRIFT-GATE-RESOLVED ...` confirmed max → **D-825 allocated**.
+
+**(2) HUMAN W1 GATE APPROVAL:**
+
+Human responded to AskUserQuestion 2026-07-11:
+- **(a) Dispatch mode:** "Approve — parallel" — S-19.01 + S-19.02 + S-19.03 dispatched concurrently per D-773/D-774. All three are parallel-eligible per wave schedule.
+- **(b) Drift-backlog deferral:** "Yes, defer" — ~1,198 legacy stale-hash artifacts (tree-wide STALE count from D-824 perpetual-drift-input notes) deferred to a future maintenance sweep. This satisfies Canonical Principle Rule 3 for the deferral: (i) explicit human direction received; (ii) maintenance-sweep is the concrete future dependency; (iii) anchored to the designated maintenance sweep story/wave. No AI-initiated deferral.
+
+**(3) W1 AUTHORIZATION BASIS:**
+
+- E-19 SPEC-CASCADE RE-CONVERGENCE COMPLETE (D-823; streak 3/3; D-761/D-775 SATISFIED)
+- POLICY 18 input-hash drift RESOLVED (D-824; all 6 E-19 artifact hashes acknowledged)
+- W1 TDD pre-authorized at D-773/D-774 (confirming CLEAN pass-21 + human grant)
+- Human W1 gate approval received this burst (D-825)
+
+**(4) W1 DISPATCH CONFIGURATION:**
+
+| Story | Title | Status | Dispatch mode |
+|-------|-------|--------|---------------|
+| S-19.01 | pr-manager-hardening | DISPATCHED | Parallel (W1) |
+| S-19.02 | verify-factory-lock-output-too-large | DISPATCHED | Parallel (W1) |
+| S-19.03 | warn-pending-wave-gate-file-not-found | DISPATCHED | Parallel (W1) |
+
+Per-story-delivery workflow per CLAUDE.md §orchestrator-per-story-delivery: stubs → Red Gate failing tests → TDD green → LOCAL adversary 3-CLEAN (BC-5.39.001) → demo-recorder per-AC → push → pr-manager 9-step PR cycle → squash-merge → state-manager post-merge burst.
+
+**STOP-BEFORE-PR-MERGE** (D-665 precedent; L-BB-merge-requires-direct-human-action [process-gap]) holds for all W1 stories: pr-manager will NOT accept orchestrator-relayed merge approval — only the user's own direct merge action.
+
+**(5) DRIFT-BACKLOG DEFERRAL RECORD (Canonical Principle Rule 3):**
+
+~1,198 legacy stale-hash artifacts (tree-wide STALE count; hash-bookkeeping backlog accumulated prior to E-19 cascade). Human explicitly directed deferral ("Yes, defer") to a future maintenance sweep. Future anchor: designated maintenance sweep (to be scheduled as maintenance story post-W1 completion). This is NOT an AI-initiated deferral — human authorization received per Rule 3 requirements.
+
+**(6) 4-INDEX GATE (D-494; literal-shell):**
+
+```
+$ grep "^version:" .factory/specs/behavioral-contracts/BC-INDEX.md \
+    .factory/specs/verification-properties/VP-INDEX.md \
+    .factory/stories/STORY-INDEX.md \
+    .factory/specs/architecture/ARCH-INDEX.md
+.factory/specs/verification-properties/VP-INDEX.md:version: "2.64"
+.factory/specs/architecture/ARCH-INDEX.md:version: "3.00"
+.factory/specs/behavioral-contracts/BC-INDEX.md:version: "3.95"
+.factory/stories/STORY-INDEX.md:version: "4.176"
+```
+
+ALL UNCHANGED: BC v3.95 / VP v2.64 / STORY v4.176 / ARCH v3.00. ✓
+
+**(7) STATE.md v5.70→v5.71:** Current Phase → Phase 3 W1 TDD IN PROGRESS (E-19); Current Phase Steps rows for S-19.01/S-19.02/S-19.03 DISPATCHED; Session Resume Checkpoint refreshed for W1 in-progress; D-825 Decisions row inserted; burst-log D-825 appended.
+
+### Phase
+
+D-825-W1-TDD-DISPATCHED
+
+### Date
+
+2026-07-11

@@ -18496,3 +18496,87 @@ No findings closed (POLICY 18 bookkeeping burst — no adversary pass). PRE-W1-I
 |--------|-----|----------|
 | D-824 SM single-commit burst (TD-VSDD-053) | `5438907e` | 6 artifact input-hash updates (VP-095/VP-096/BC-4.13.001/BC-5.42.001/BC-2.07.001/S-19.01); STATE.md v5.69→v5.70; decision-log D-824; burst-log D-824 (this entry); 4-index ALL UNCHANGED BC v3.95/VP v2.64/STORY v4.176/ARCH v3.00 |
 | D-824 SHA-patch | `41add6c7` | Active Branches `5438907e` + burst-log Block 8 D-824 burst SHA update |
+
+---
+
+## W1-TDD-DISPATCHED (D-825; 2026-07-11)
+
+**Type:** W1 TDD dispatch governance burst (human gate approval received; per-story pipelines initiated)
+**Specialist legs:** SM only (1 leg)
+
+### Block 1: Parent-commit
+
+`4d2cb00a` (D-824 SHA-patch+ close; factory-artifacts HEAD before this burst).
+
+### Block 2: Adversary verdict (D-448(a) gate)
+
+**N/A — W1 TDD dispatch governance burst (no adversary pass).** D-448(a) source-attestation gate is not applicable: there is no adversary review file for a governance dispatch burst. The 3-CLEAN adversary cascade (passes 59+60+61) that authorized W1 TDD is documented at `adv-E19-pass-59.md`, `adv-E19-pass-60.md`, `adv-E19-pass-61.md`.
+
+**Dim-2 mechanical gate evidence (D-449(a) literal-shell):**
+
+POLICY 16 global-max gate:
+
+```
+$ grep -oE "^## D-[0-9]+" .factory/cycles/v1.0-brownfield-backfill/decision-log.md | sort -t'-' -k2 -n | tail -3
+## D-823
+## D-824
+## D-825
+```
+
+`## D-824` confirmed max before this burst → D-825 allocated. EXIT:0. PASS.
+
+D-494 4-index gate (literal-shell):
+
+```
+$ grep "^version:" .factory/specs/behavioral-contracts/BC-INDEX.md .factory/specs/verification-properties/VP-INDEX.md .factory/stories/STORY-INDEX.md .factory/specs/architecture/ARCH-INDEX.md
+/Users/zious/Documents/GITHUB/vsdd-factory/.factory/specs/behavioral-contracts/BC-INDEX.md:version: "3.95"
+/Users/zious/Documents/GITHUB/vsdd-factory/.factory/specs/verification-properties/VP-INDEX.md:version: "2.64"
+/Users/zious/Documents/GITHUB/vsdd-factory/.factory/stories/STORY-INDEX.md:version: "4.176"
+/Users/zious/Documents/GITHUB/vsdd-factory/.factory/specs/architecture/ARCH-INDEX.md:version: "3.00"
+```
+
+BC v3.95 / VP v2.64 / STORY v4.176 / ARCH v3.00 — ALL UNCHANGED. EXIT:0. PASS.
+
+D-446(a) own-burst-log 8-block gate (awk): [D-825-BURST-SHA-PLACEHOLDER — to be updated at SHA-patch]
+
+```
+$ awk '/^## W1-TDD-DISPATCHED \(D-825/,/^---/' \
+    .factory/cycles/v1.0-brownfield-backfill/burst-log.md | \
+    grep -cE "^### Block [1-8]:"
+8
+```
+
+→ 8 blocks present. PASS.
+
+### Block 3: Files Touched
+
+| File | Change | Role |
+|------|--------|------|
+| `.factory/STATE.md` | v5.70 → v5.71; D-825 advance; Session Resume Checkpoint refresh | SM state advance |
+| `.factory/cycles/v1.0-brownfield-backfill/decision-log.md` | D-825 entry appended | D-825 codification |
+| `.factory/cycles/v1.0-brownfield-backfill/burst-log.md` | D-825 entry appended (this entry) | D-825 burst record |
+
+3 files total (STATE.md + decision-log + burst-log).
+
+### Block 4: Codifications
+
+- **D-825** — W1-TDD-DISPATCHED: Human W1 gate approval received ("Approve — parallel"; 2026-07-11). S-19.01+S-19.02+S-19.03 dispatched concurrently per D-773/D-774. Drift-backlog (~1,198 legacy stale-hash entries) deferred to maintenance sweep per Canonical Principle Rule 3 (explicit human direction "Yes, defer"; concrete future dependency = maintenance sweep; specific anchor = maintenance sweep cycle post-W1). STOP-BEFORE-PR-MERGE: D-665 + L-BB-merge-requires-direct-human-action carry. 4-index ALL UNCHANGED.
+
+### Block 5: Dim-2 Attestations
+
+See Block 2 above. All gates literal-shell with captured stdout per D-449(a).
+
+### Block 6: Dim-5 Version Attestation
+
+4-index: BC v3.95 / VP v2.64 / STORY v4.176 / ARCH v3.00 — ALL UNCHANGED (governance dispatch burst; no spec/story/BC/VP content changes).
+
+### Block 7: Closes
+
+No findings closed (W1 TDD governance dispatch burst — no adversary pass, no finding resolution). W1 TDD gate OPENED: S-19.01+S-19.02+S-19.03 DISPATCHED parallel. STOP-BEFORE-PR-MERGE enforced. Drift-backlog deferral authorized by human.
+
+### Block 8: Factory-artifacts Commits
+
+| Commit | SHA | Contents |
+|--------|-----|----------|
+| D-825 SM single-commit burst (TD-VSDD-053) | `[D-825-BURST-SHA]` | STATE.md v5.70→v5.71 (D-825 advance; SRC refresh; §4-Index at D-825; Session Resume Checkpoint W1 TDD); decision-log D-825; burst-log D-825 (this entry); 4-index ALL UNCHANGED BC v3.95/VP v2.64/STORY v4.176/ARCH v3.00 |
+| D-825 SHA-patch | `[D-825-SHA-PATCH-SHA]` | Active Branches `[D-825-BURST-SHA]` + burst-log Block 8 D-825 burst SHA update |
