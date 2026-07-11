@@ -508,9 +508,10 @@ mod tests {
     /// F-S1902-P1-001 / T-011-B: extract_frontmatter CRLF byte-exact boundary.
     ///
     /// Fixture: `---\r\nfactory_lock: null\r\n---\r\nbody`
-    ///   - `---\r\nfactory_lock: null` = 22 bytes; then `\r\n---\r\n` begins at byte 22.
-    ///   - delimiter_start_offset (index of `\r` in `\r\n---\r\n`) = 22.
-    ///   - Extracted slice must byte-equal input[0..22].
+    ///   - `---\r\nfactory_lock: null` = 23 bytes (---=3 + \r\n=2 + factory_lock: null=18);
+    ///     then `\r\n---\r\n` begins at byte 23.
+    ///   - delimiter_start_offset (index of `\r` in `\r\n---\r\n`) = 23.
+    ///   - Extracted slice must byte-equal input[0..23].
     ///
     /// RED: current implementation does not recognize `\r\n---\r\n` → returns full input.
     #[test]
@@ -518,8 +519,8 @@ mod tests {
         let input = b"---\r\nfactory_lock: null\r\n---\r\nbody";
         let extracted = extract_frontmatter(input);
         // delimiter_start_offset: index of the `\r` that starts `\r\n---\r\n`.
-        // input[0..22] = b"---\r\nfactory_lock: null"
-        let delimiter_start_offset = 22usize;
+        // input[0..23] = b"---\r\nfactory_lock: null" (23 bytes: ---=3 + \r\n=2 + factory_lock: null=18)
+        let delimiter_start_offset = 23usize;
         assert_eq!(
             extracted.len(),
             delimiter_start_offset,
