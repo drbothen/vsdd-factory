@@ -82,7 +82,7 @@ fn prepare(ctx: &HostContext, path: &str, contents: &[u8], max_bytes: u32) -> Re
     let resolved = resolve_for_write(Path::new(path), &ctx.cwd);
 
     // Postcondition 1: two-step path allowlist + traversal denial (Ruling-2 / S-19.03).
-    match check_path_allowed(&resolved, &caps.path_allow, &ctx.cwd) {
+    match check_path_allowed(&resolved, &caps.path_allow, &ctx.cwd, |p| p.canonicalize()) {
         PathAllowDecision::Allowed => {}
         PathAllowDecision::DeniedResolutionFailed => {
             emit_denial(ctx, path, "path_resolution_failed", Some(&resolved));
@@ -139,8 +139,13 @@ fn resolve_for_write(path: &Path, base: &Path) -> PathBuf {
 /// Returns `DeniedNotAllowed` when the path resolves but lies outside all prefixes.
 ///
 /// BC-2.02.011 invariant 3 + invariant 6 (traversal defeat via starts_with).
-fn check_path_allowed(resolved: &Path, allow: &[String], base: &Path) -> PathAllowDecision {
-    let canon_resolved = match resolve_path_for_allowlist(resolved, |p| p.canonicalize()) {
+pub(crate) fn check_path_allowed(
+    resolved: &Path,
+    allow: &[String],
+    base: &Path,
+    canonicalize_fn: impl Fn(&Path) -> std::io::Result<PathBuf> + Copy,
+) -> PathAllowDecision {
+    let canon_resolved = match resolve_path_for_allowlist(resolved, canonicalize_fn) {
         Some(p) => p,
         None => return PathAllowDecision::DeniedResolutionFailed,
     };
@@ -154,7 +159,7 @@ fn check_path_allowed(resolved: &Path, allow: &[String], base: &Path) -> PathAll
         } else {
             base.join(pref)
         };
-        let canon_pref = match resolve_path_for_allowlist(&pref_path, |p| p.canonicalize()) {
+        let canon_pref = match resolve_path_for_allowlist(&pref_path, canonicalize_fn) {
             Some(p) => p,
             None => continue,
         };

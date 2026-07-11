@@ -93,7 +93,7 @@ pub(crate) fn prepare(
     //   Step 2 — pure prefix check against the allow-list.
     // The two denial reasons are emitted separately so operators can distinguish
     // filesystem resolution errors from genuine allowlist violations.
-    match check_path_allowed(&resolved, &caps.path_allow, &ctx.cwd) {
+    match check_path_allowed(&resolved, &caps.path_allow, &ctx.cwd, |p| p.canonicalize()) {
         PathAllowDecision::Allowed => {}
         PathAllowDecision::DeniedResolutionFailed => {
             emit_denial(ctx, path, "path_resolution_failed", Some(&resolved));
@@ -168,10 +168,15 @@ fn resolve_for_read(path: &Path, base: &Path) -> PathBuf {
 ///
 /// Separating resolution failure from allowlist failure lets operators distinguish
 /// filesystem errors from genuine access-policy violations in telemetry.
-fn check_path_allowed(resolved: &Path, allow: &[String], base: &Path) -> PathAllowDecision {
+pub(crate) fn check_path_allowed(
+    resolved: &Path,
+    allow: &[String],
+    base: &Path,
+    canonicalize_fn: impl Fn(&Path) -> std::io::Result<PathBuf> + Copy,
+) -> PathAllowDecision {
     // Step 1: resolve with ancestor-walk+rejoin so absent-but-allowlisted files
     // get a synthesized canonical path instead of an opaque resolution failure.
-    let canon_resolved = match resolve_path_for_allowlist(resolved, |p| p.canonicalize()) {
+    let canon_resolved = match resolve_path_for_allowlist(resolved, canonicalize_fn) {
         Some(p) => p,
         None => return PathAllowDecision::DeniedResolutionFailed,
     };
@@ -186,7 +191,7 @@ fn check_path_allowed(resolved: &Path, allow: &[String], base: &Path) -> PathAll
         } else {
             base.join(pref)
         };
-        let canon_pref = match resolve_path_for_allowlist(&pref_path, |p| p.canonicalize()) {
+        let canon_pref = match resolve_path_for_allowlist(&pref_path, canonicalize_fn) {
             Some(p) => p,
             None => continue, // configured prefix's ancestors also absent — skip
         };
