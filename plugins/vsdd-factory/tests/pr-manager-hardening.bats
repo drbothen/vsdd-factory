@@ -3,7 +3,7 @@
 #
 # Covers AC-001..AC-004 per BC-5.42.001 / VP-094 / ADR-030 §Decision 2 / §Decision 3.
 #
-# Test plan (T-001..T-009):
+# Test plan (T-001..T-019):
 #   T-001 AC-001 — READY verdict without covered_sha triggers READY_SHA_MISSING advisory
 #   T-002 AC-001 — gh failure on covered_sha fetch → READY_SHA_FETCH_FAILED on stderr
 #   T-003 AC-002 — check-stale-verdict.sh: stale SHA → exit 1 + STALE_READY_VERDICT
@@ -13,16 +13,44 @@
 #   T-007 AC-003 — enforce-merge-strategy.sh: non-release + --squash → exit 0 (delegated)
 #   T-008 AC-004 — darwin-leg preflight: wrong interpreter exits 1 + DARWIN_LEG_WRONG_INTERPRETER
 #   T-009 AC-004 — darwin-leg preflight: Linux runners skip gracefully (exit 0)
+#   T-010 AC-002 — check-stale-verdict.sh: malformed covered_sha → READY_SHA_MISSING (TV4)
+#   T-011 AC-003 — enforce-merge-strategy.sh: release/v* + --rebase → RELEASE_PR_SQUASH_FORBIDDEN (TV3)
+#   T-012 AC-003 — enforce-merge-strategy.sh: release/v* + no flag → defaults --merge (EC-005/TV5)
+#   T-013 AC-002 — check-stale-verdict.sh: STALE_READY_VERDICT exact canonical format (BC-5.42.001 §b)
+#   T-014 AC-001 — check-stale-verdict.sh: READY_SHA_FETCH_FAILED exact canonical format (EC-001)
+#   T-015 AC-003 — enforce-merge-strategy.sh: RELEASE_PR_SQUASH_FORBIDDEN exact canonical format (§c)
+#   T-016 AC-002 — check-stale-verdict.sh: 40-char uppercase-hex → READY_SHA_MISSING (EC-002)
+#   T-017 AC-004 — darwin-leg fragment: while IFS= read -r bash-3.2 compat (regression pin rc.22)
+#   T-018 AC-002 — check-stale-verdict.sh: closed PR (matching SHA) → CHECK_STALE_VERDICT_ERROR (EC-003)
+#   T-019 AC-002 — check-stale-verdict.sh: malformed gh JSON → CHECK_STALE_VERDICT_ERROR (arm 4)
 #
-# Red Gate status: ALL tests must FAIL before S-19.01 implementation.
-# After implementation, all tests must PASS.
+# Red Gate status: T-001..T-016 pass after implementation; T-017 green (positive + neg-control);
+#   T-018/T-019 are RED gates (ADR-030 §Decision 2 arms 3+4 not yet implemented).
 #
-# BC trace: BC-5.42.001 PC-1 (T-001/T-002), PC-2 (T-003/T-004), PC-3 (T-005/T-006/T-007)
+# BC trace: BC-5.42.001 PC-1 (T-001/T-002/T-014), PC-2 (T-003/T-004/T-010/T-013/T-016/T-018/T-019),
+#           PC-3 (T-005/T-006/T-007/T-011/T-012/T-015), AC-004 (T-008/T-009/T-017)
 
 PLUGIN_ROOT=""
 BIN_DIR=""
 FIXTURES_DIR=""
 MOCK_BIN=""
+
+# Darwin-leg suite preflight (AC-004 mechanism gate, F-S1901-P1-003).
+# On macOS: verifies /bin/bash --version contains "version 3.2" before any test runs.
+# On Linux: no-op (darwin-leg tests individually skip via 'skip' bats directive).
+# Exit 1 here aborts the whole file — intentional for the bats-darwin-leg-macos CI job.
+setup_file() {
+    if [[ "$(uname)" != "Darwin" ]]; then
+        return 0
+    fi
+    local bash_version
+    bash_version="$(/bin/bash --version 2>/dev/null | head -1)"
+    if ! printf '%s' "${bash_version}" | grep -q 'version 3\.2'; then
+        printf 'DARWIN_LEG_WRONG_INTERPRETER: expected /bin/bash 3.2.x, got %s\n' \
+            "${bash_version}" >&2
+        return 1
+    fi
+}
 
 setup() {
     PLUGIN_ROOT="$(cd "${BATS_TEST_DIRNAME}/.." && pwd)"
@@ -668,6 +696,239 @@ GHEOF
     }
     echo "${output}" | grep -q "READY_SHA_MISSING" || {
         echo "FAIL: READY_SHA_MISSING not found for uppercase covered_sha (BC-5.42.001 EC-002 / Invariant 5)"
+        echo "Output: ${output}"
+        return 1
+    }
+}
+
+# ─────────────────────────────────────────────────────────────────────────────
+# F-S1901-P1-003 (HIGH) — AC-004 mandatory mechanism test (pass-1 adversary gap)
+# T-017: darwin-leg fragment execution — while IFS= read -r bash-3.2 compat regression pin
+# ─────────────────────────────────────────────────────────────────────────────
+
+# T-017: Regression pin for release.yml rc.22 failure site (commit c10dc6ca).
+# The "Verify registry-declared WASM plugins are staged" step previously used
+# mapfile (bash 4.0+ only), failing on macOS /bin/bash 3.2. This test extracts
+# the while IFS= read -r loop fragment from the fixed release.yml, runs it
+# under /bin/bash with a fixture registry, and asserts exit 0 + staging verdict.
+#
+# GREEN on Darwin (fix is already in release.yml at c10dc6ca) — acceptable per
+# F-S1901-P1-003: this is a regression-pinning mechanism test.
+# Negative control: mapfile variant FAILS under /bin/bash 3.2 → confirms the
+# test is load-bearing (reverts to mapfile = suite turns red again).
+#
+# Skipped on Linux: /bin/bash there is bash 5.x so mapfile would pass, making
+# the negative control meaningless; the darwin-leg CI job runs on macOS only.
+@test "T-017: darwin-leg fragment: while IFS= read -r bash-3.2 compat (regression pin rc.22)" {
+    if [[ "$(uname)" != "Darwin" ]]; then
+        skip "T-017 is macOS-only: negative control (mapfile) requires /bin/bash 3.2.x"
+    fi
+
+    # Build fixture work directory with:
+    #   plugins/vsdd-factory/hooks-registry.toml  (copied from repo — 73 entries, ≥ 30 guard)
+    #   artifact/<name>.wasm                       (stub empty files for each declared plugin)
+    local work_dir
+    work_dir="$(mktemp -d "${BATS_TMPDIR}/T017-work-XXXXXX")"
+    mkdir -p "${work_dir}/plugins/vsdd-factory" "${work_dir}/artifact"
+    cp "${REPO_ROOT}/plugins/vsdd-factory/hooks-registry.toml" \
+        "${work_dir}/plugins/vsdd-factory/hooks-registry.toml"
+
+    # Create stub WASMs for every declared plugin (mirrors the real artifact/ from cargo build).
+    while IFS= read -r name; do
+        [ -n "$name" ] && touch "${work_dir}/artifact/${name}"
+    done < <(
+        grep -E '^\s*plugin\s*=\s*"hook-plugins/' \
+            "${work_dir}/plugins/vsdd-factory/hooks-registry.toml" \
+            | grep -oE 'hook-plugins/[^"]+' \
+            | sed 's|hook-plugins/||' \
+            | sort -u
+    )
+
+    # ── POSITIVE TEST ────────────────────────────────────────────────────────
+    # Write the while IFS= read -r fragment (verbatim from release.yml lines
+    # 191-220 as of c10dc6ca) into a temp script that cd-s to the fixture dir.
+    local pos_script="${work_dir}/fragment-positive.sh"
+    {
+        printf '#!/bin/bash\n'
+        printf 'set -euo pipefail\n'
+        printf 'cd %q\n' "${work_dir}"
+        cat << 'RELEASE_FRAGMENT'
+declared=()
+while IFS= read -r __line; do [ -n "$__line" ] && declared+=("$__line"); done < <(
+  grep -E '^\s*plugin\s*=\s*"hook-plugins/' \
+    plugins/vsdd-factory/hooks-registry.toml \
+    | grep -oE 'hook-plugins/[^"]+' \
+    | sed 's|hook-plugins/||' \
+    | sort -u
+)
+if [ "${#declared[@]}" -lt 30 ]; then
+  echo "::error::hooks-registry.toml parse yielded ${#declared[@]} entries (expected >= 30). Possible parse failure."
+  exit 1
+fi
+echo "Parsed ${#declared[@]} plugins from hooks-registry.toml."
+missing=()
+for name in "${declared[@]}"; do
+  [ -f "artifact/$name" ] || missing+=("$name")
+done
+if [ "${#missing[@]}" -gt 0 ]; then
+  echo "::error::${#missing[@]} registry-declared WASM(s) absent from artifact/:"
+  printf '  missing: %s\n' "${missing[@]}"
+  exit 1
+fi
+echo "Registry-vs-staged: all ${#declared[@]} hooks-registry plugins present in artifact/. OK"
+RELEASE_FRAGMENT
+    } > "${pos_script}"
+    chmod +x "${pos_script}"
+
+    run /bin/bash "${pos_script}" 2>&1
+    [ "${status}" -eq 0 ] || {
+        echo "FAIL: while-IFS-read-r fragment should exit 0 under /bin/bash 3.2 (c10dc6ca fix)"
+        echo "Output: ${output}"
+        return 1
+    }
+    echo "${output}" | grep -q "Registry-vs-staged: all" || {
+        echo "FAIL: expected 'Registry-vs-staged: all' staging verdict in output"
+        echo "Output: ${output}"
+        return 1
+    }
+
+    # ── NEGATIVE CONTROL ─────────────────────────────────────────────────────
+    # mapfile is bash 4.0+; must fail under /bin/bash 3.2. If this passes,
+    # the test is not load-bearing (we are not running under bash 3.2).
+    local neg_script="${work_dir}/fragment-mapfile.sh"
+    {
+        printf '#!/bin/bash\n'
+        printf 'set -euo pipefail\n'
+        printf 'cd %q\n' "${work_dir}"
+        cat << 'MAPFILE_FRAGMENT'
+# mapfile requires bash 4.0+; this MUST fail under /bin/bash 3.2 on macOS.
+mapfile -t declared < <(
+  grep -E '^\s*plugin\s*=\s*"hook-plugins/' \
+    plugins/vsdd-factory/hooks-registry.toml \
+    | grep -oE 'hook-plugins/[^"]+' \
+    | sed 's|hook-plugins/||' \
+    | sort -u
+)
+echo "mapfile-form: ${#declared[@]} entries (should not reach here under bash 3.2)"
+MAPFILE_FRAGMENT
+    } > "${neg_script}"
+    chmod +x "${neg_script}"
+
+    run /bin/bash "${neg_script}" 2>&1
+    [ "${status}" -ne 0 ] || {
+        echo "FAIL (negative control): mapfile form should fail under /bin/bash 3.2"
+        echo "If this passes, /bin/bash is not 3.2 — check interpreter version:"
+        /bin/bash --version 2>&1 | head -1
+        echo "Output: ${output}"
+        return 1
+    }
+    # Documented: negative control confirms mapfile not portable to bash 3.2;
+    # reverting c10dc6ca's while-IFS-read-r fix would cause this test to fail.
+}
+
+# ─────────────────────────────────────────────────────────────────────────────
+# F-S1901-P1-004 (MEDIUM) — ADR-030 §Decision 2 arms 3+4 untested
+# T-018: EC-003 (closed/merged PR) — RED gate
+# T-019: arm 4 (malformed/unparseable gh JSON) — RED gate
+# ─────────────────────────────────────────────────────────────────────────────
+
+# T-018: check-stale-verdict.sh: closed PR with matching headRefOid → exit 1 + CHECK_STALE_VERDICT_ERROR
+# ADR-030 §Decision 2 arm 3: PR closed/merged between READY verdict and check invocation.
+# BC-5.42.001 EC-003: gh returns non-open state; script exits non-zero with diagnostic.
+# Sentinel (ADR-030 §Decision 2 arm 3):
+#   CHECK_STALE_VERDICT_ERROR: PR #<n> is <state> (expected: open)
+#
+# RED gate: current script fetches only --json headRefOid, never inspects state.
+# With matching SHAs + closed state, current script exits 0 (silently wrong).
+# Implementation must also fetch state and fail-close when state != "open".
+@test "T-018: check-stale-verdict.sh: closed PR (matching SHA) → exit 1 + CHECK_STALE_VERDICT_ERROR (EC-003)" {
+    local pr_number="42"
+    local sha="dddd333333333333333333333333333333333333"
+
+    # Mock gh: returns state=closed + headRefOid MATCHING covered_sha.
+    # The SHAs match, so the current script (which ignores state) exits 0 — that is the bug.
+    # Future implementation must fetch state and emit CHECK_STALE_VERDICT_ERROR.
+    cat > "${MOCK_BIN}/gh" <<GHEOF
+#!/usr/bin/env bash
+if [[ "\$1" == "pr" && "\$2" == "view" ]]; then
+    printf '{"headRefOid":"${sha}","state":"closed"}\n'
+    exit 0
+fi
+printf 'MOCK_GH_UNHANDLED: %s\n' "\$*" >&2; exit 1
+GHEOF
+    chmod +x "${MOCK_BIN}/gh"
+
+    run env PATH="${MOCK_BIN}:${PATH}" bash "${BIN_DIR}/check-stale-verdict.sh" \
+        "${pr_number}" "${sha}" 2>&1
+
+    [ "${status}" -ne 0 ] || {
+        echo "FAIL: expected non-zero exit when PR is closed (EC-003); got exit 0"
+        echo "RED gate defect: current script does not fetch/check PR state"
+        echo "ADR-030 §Decision 2 arm 3 requires: CHECK_STALE_VERDICT_ERROR: PR #<n> is closed (expected: open)"
+        echo "Output: ${output}"
+        return 1
+    }
+    echo "${output}" | grep -q "CHECK_STALE_VERDICT_ERROR" || {
+        echo "FAIL: CHECK_STALE_VERDICT_ERROR not found in output (ADR-030 §Decision 2 arm 3)"
+        echo "Output: ${output}"
+        return 1
+    }
+    echo "${output}" | grep -q "PR #${pr_number}" || {
+        echo "FAIL: PR number not in CHECK_STALE_VERDICT_ERROR message"
+        echo "Output: ${output}"
+        return 1
+    }
+    echo "${output}" | grep -q "closed" || {
+        echo "FAIL: PR state 'closed' not in CHECK_STALE_VERDICT_ERROR message"
+        echo "Expected substring: CHECK_STALE_VERDICT_ERROR: PR #${pr_number} is closed (expected: open)"
+        echo "Output: ${output}"
+        return 1
+    }
+    echo "${output}" | grep -q "expected: open" || {
+        echo "FAIL: '(expected: open)' not in CHECK_STALE_VERDICT_ERROR message (ADR-030 §Decision 2 arm 3 form)"
+        echo "Expected: CHECK_STALE_VERDICT_ERROR: PR #${pr_number} is closed (expected: open)"
+        echo "Output: ${output}"
+        return 1
+    }
+}
+
+# T-019: check-stale-verdict.sh: malformed/unparseable gh JSON → exit 1 + CHECK_STALE_VERDICT_ERROR
+# ADR-030 §Decision 2 arm 4: gh exits 0 but returns non-JSON that cannot be parsed.
+# BC-5.42.001 EC-004 catch-all: CHECK_STALE_VERDICT_ERROR: <description> on stderr.
+#
+# RED gate: current script emits READY_SHA_FETCH_FAILED when LIVE_SHA is empty after
+# parsing — wrong sentinel for this arm. EC-004 requires CHECK_STALE_VERDICT_ERROR.
+# Implementation must distinguish gh-failure (arm 1: READY_SHA_FETCH_FAILED) from
+# parse-failure (arm 4: CHECK_STALE_VERDICT_ERROR).
+@test "T-019: check-stale-verdict.sh: malformed gh JSON → exit 1 + CHECK_STALE_VERDICT_ERROR (arm 4)" {
+    local pr_number="99"
+    local covered_sha="eeee444444444444444444444444444444444444"
+
+    # Mock gh: exits 0 (no network failure) but returns non-JSON garbage.
+    # Current script: gh succeeds, LIVE_SHA is empty → emits READY_SHA_FETCH_FAILED.
+    # Correct behavior: emits CHECK_STALE_VERDICT_ERROR: <description> (arm 4 catch-all).
+    cat > "${MOCK_BIN}/gh" <<'GHEOF'
+#!/usr/bin/env bash
+if [[ "$1" == "pr" && "$2" == "view" ]]; then
+    printf 'not-json-garbage\n'
+    exit 0
+fi
+printf 'MOCK_GH_UNHANDLED: %s\n' "$*" >&2; exit 1
+GHEOF
+    chmod +x "${MOCK_BIN}/gh"
+
+    run env PATH="${MOCK_BIN}:${PATH}" bash "${BIN_DIR}/check-stale-verdict.sh" \
+        "${pr_number}" "${covered_sha}" 2>&1
+
+    [ "${status}" -ne 0 ] || {
+        echo "FAIL: expected non-zero exit on malformed gh JSON; got exit 0"
+        echo "Output: ${output}"
+        return 1
+    }
+    echo "${output}" | grep -q "CHECK_STALE_VERDICT_ERROR" || {
+        echo "FAIL: CHECK_STALE_VERDICT_ERROR not found in output (ADR-030 §Decision 2 arm 4)"
+        echo "RED gate defect: current script emits READY_SHA_FETCH_FAILED for this arm;"
+        echo "  implementation must distinguish gh failure (arm 1) from parse failure (arm 4)"
         echo "Output: ${output}"
         return 1
     }
