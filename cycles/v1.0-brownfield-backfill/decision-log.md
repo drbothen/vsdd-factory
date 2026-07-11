@@ -9987,3 +9987,46 @@ D-826-W1-CASCADE-TRACKED-ITEMS
 ### Date
 
 2026-07-11
+
+---
+
+## D-827
+
+### Decision
+
+W1-SPEC-EVOLUTION-RECONCILE. State-manager 4-index leg-5 reconcile burst for three human-approved spec amendments that landed on factory-artifacts during W1 LOCAL adversary cascade.
+
+**(1) POLICY 16 GLOBAL-MAX GATE:** `grep "^## D-" .factory/cycles/v1.0-brownfield-backfill/decision-log.md | tail -1` → `## D-826` confirmed max → D-827 allocated. PASS.
+
+**(2) Spec edits verified at HEAD (pre-reconcile):**
+- BC-4.13.001 v1.15 (po-crlf 70f04a73): CRLF frontmatter delimiter forms enumerated in Invariant 9; EC-017 added (CRLF STATE.md scenario; Windows autocrlf). Input-hash 77bb0d1 (stored; POLICY 18 pending recompute).
+- VP-096 v1.2 (arch-vp 9c5d0462): fence-offset oracle corrected (find_second_fence_start returns leading-newline byte index; was off-by-1); CRLF delimiter coverage added (prop_byte_exact_prefix_crlf proptest); input-hash 55bebb2→3576592.
+- VP-097 v1.3 (arch-vp 14e26c7e): two-function signature refresh (resolve_path_for_allowlist → resolve_path_for_allowlist(&Path, canonicalize_fn) + check_path_allowed(...)); 4 Kani proofs H1..H4 replacing stale single-harness; input-hash c47964f→f482502.
+
+**(3) POLICY 14 leg-5 executed:**
+- BC-INDEX v3.95→v3.96: BC-4.13.001 catalog row v1.15 appended; last_amended prepended.
+- VP-INDEX v2.64→v2.65: VP-096 Full Index + Story Anchors v1.2 appended; VP-097 Full Index + Story Anchors v1.3 appended; last_amended prepended.
+
+**(4) POLICY 9 CHECK — PASS:** VP-096 H1 title UNCHANGED from v1.1→v1.2 (confirmed via grep; verification-architecture.md line 163 and verification-coverage-matrix.md row match pre-existing form — abbreviated coverage-matrix form pre-dates these bumps; not introduced by v1.2). VP-097 H1 title UNCHANGED from v1.2→v1.3 (confirmed; verification-architecture.md line 105 matches; coverage-matrix abbreviated form pre-existing). No same-burst propagation to verification-architecture.md or verification-coverage-matrix.md required.
+
+**(5) EC-017 PROPAGATION CHECK (POLICY 8) — FINDING:** S-19.02 Edge Cases section contains EC-001..EC-004 only; EC-017 NOT present. BC-4.13.001 version cite in S-19.02 body is v1.14 (stale → v1.15). Story body is story-writer domain (state-manager MUST NOT edit story bodies). Finding routed to coordinator for story-writer dispatch: (a) add EC-017 to S-19.02 Edge Cases table; (b) update BC-4.13.001 version cite v1.14→v1.15. NOT a blocker for this reconcile burst (spec evolution propagation; story-writer scope).
+
+**(6) E-19 CONVERGENCE NOT RESET:** Per VSDD feedback loop semantics, post-convergence Phase-3 spec amendments triggered by LOCAL adversary findings are expected same-cycle spec evolution. Human approved all three edits (2026-07-11). E-19 per-story LOCAL adversary cascades (S-19.01/S-19.02/S-19.03 at 0/3 each) are not reset by this spec reconcile — the spec amendments resolve active findings (VP-097 stale signature, VP-096 oracle off-by-one, CRLF coverage); they do not introduce new behavioral regression risk.
+
+**(7) 4-INDEX ADVANCE:** BC-INDEX v3.96 / VP-INDEX v2.65 / STORY-INDEX v4.176 (UNCHANGED) / ARCH-INDEX v3.00 (UNCHANGED).
+
+**(8) STATE.md v5.72→v5.73; burst-log D-827 8-block entry appended.**
+
+**(9) Lesson warranted:** Process — post-convergence Phase-3 spec gaps triggered by adversary findings are expected VSDD feedback loops, not cycle-resets. Record in lessons.md as L-BB-NNN.
+
+### Summary
+
+W1-SPEC-EVOLUTION-RECONCILE: POLICY 14 leg-5 executed for BC-4.13.001 v1.15 + VP-096 v1.2 + VP-097 v1.3. BC-INDEX v3.95→v3.96; VP-INDEX v2.64→v2.65. POLICY 9 PASS (no VP title changes; pre-existing abbreviated form in coverage-matrix not introduced by these bumps). EC-017 propagation finding surfaced (story-writer dispatch needed for S-19.02). E-19 convergence NOT reset. Parent-commit: f548b612 (D-826 SHA-patch+ close backfill — c33b25f9 is the follow-up backfill commit; actual D-826 burst HEAD: f548b612).
+
+### Phase
+
+D-827-W1-SPEC-EVOLUTION-RECONCILE
+
+### Date
+
+2026-07-11

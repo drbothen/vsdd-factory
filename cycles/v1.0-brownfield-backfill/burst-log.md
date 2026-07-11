@@ -18648,3 +18648,81 @@ No findings closed (bookkeeping burst only — no adversary pass, no finding res
 | D-826 SM single-commit burst (TD-VSDD-053) | `ddb3af7a` | STATE.md v5.71→v5.72 (D-826 advance; 5 tracked items in Drift Items; SRC refresh; §4-Index at D-826); decision-log D-826; burst-log D-826 (this entry); 4-index ALL UNCHANGED BC v3.95/VP v2.64/STORY v4.176/ARCH v3.00 |
 | D-826 SHA-patch | `9ef0a843` | burst-log Block 8 D-826 burst SHA ddb3af7a update |
 | D-826 SHA-patch+ close | `f548b612` | Active Branches ddb3af7a + SRC §Artifact Versions D-826 Closure + Repo state factory-artifacts HEAD update |
+
+## D-827 W1-SPEC-EVOLUTION-RECONCILE — 2026-07-11
+
+### Block 1: Parent-commit
+
+Parent-commit: `f548b612` (D-826 SHA-patch+ close; factory-artifacts HEAD before this burst).
+
+### Block 2: Adversary Verdict + Dim-2 Literal-Shell Gates
+
+**Adversary verdict:** N/A — spec-evolution 4-index reconcile burst only. No adversary dispatch. No findings to record. Three human-approved spec edits landed on factory-artifacts prior to this burst; this burst reconciles the 4-index leg-5 cells.
+
+**POLICY 16 global-max gate** (D-449(a) literal-shell with captured stdout):
+```
+$ grep -oE "^## D-[0-9]+" .factory/cycles/v1.0-brownfield-backfill/decision-log.md | sort -t'-' -k2 -n | tail -3
+## D-825
+## D-826
+## D-827
+```
+Result: `## D-826` confirmed max before allocation → D-827 allocated. PASS.
+
+**D-494 4-index gate** (literal-shell with captured stdout):
+```
+$ grep "^version:" .factory/specs/behavioral-contracts/BC-INDEX.md .factory/specs/verification-properties/VP-INDEX.md .factory/stories/STORY-INDEX.md .factory/specs/architecture/ARCH-INDEX.md
+.factory/specs/verification-properties/VP-INDEX.md:version: "2.65"
+.factory/specs/architecture/ARCH-INDEX.md:version: "3.00"
+.factory/specs/behavioral-contracts/BC-INDEX.md:version: "3.96"
+.factory/stories/STORY-INDEX.md:version: "4.176"
+```
+Result: BC v3.96 / VP v2.65 / STORY v4.176 / ARCH v3.00 — BC-INDEX bumped v3.95→v3.96; VP-INDEX bumped v2.64→v2.65; STORY/ARCH UNCHANGED. PASS.
+
+**POLICY 9 VP-title check** (literal-shell with captured stdout):
+```
+$ grep "^# " .factory/specs/verification-properties/VP-096.md | head -1
+# VP-096: extract_frontmatter Purity — Output Byte-Equals File Prefix Up To (Excluding) the Second --- Delimiter Line (bytes 0..delimiter_start_offset; opening ---\n included); Deterministic for Any Input
+$ grep "^# " .factory/specs/verification-properties/VP-097.md | head -1
+# VP-097: path_util::resolve_path_for_allowlist Traversal Defense — .. Sequences Cannot Resolve Outside Allowlist Prefixes
+$ grep "VP-096\|VP-097" .factory/specs/architecture/verification-architecture.md | grep "^| VP-09"
+| VP-097 | path_util::resolve_path_for_allowlist Traversal Defense — .. Sequences Cannot Resolve Outside Allowlist Prefixes | kani-proof | BC-2.07.001, BC-2.02.011 EC-001 | draft |
+| VP-096 | extract_frontmatter Purity — Output Byte-Equals File Prefix Up To (Excluding) the Second --- Delimiter Line (bytes 0..delimiter_start_offset; opening ---\n included); Deterministic for Any Input | proptest | BC-4.13.001 INV9 | draft |
+```
+Result: VP-096 and VP-097 H1 titles UNCHANGED from v1.1→v1.2 and v1.2→v1.3 respectively. Both titles match verification-architecture.md rows verbatim. No same-burst propagation to verification-architecture.md or verification-coverage-matrix.md required. PASS.
+
+**D-446(a) 8-block gate:** D-827 burst-log entry verified to contain all 8 D-444(c) mandatory blocks before push (Blocks 1–8 present; see this entry). PASS.
+
+### Block 3: Files Touched
+
+| File | Change | Role |
+|------|--------|------|
+| `.factory/specs/behavioral-contracts/BC-INDEX.md` | v3.95 → v3.96; BC-4.13.001 catalog row v1.15 appended; last_amended prepended | POLICY 14 leg-5 |
+| `.factory/specs/verification-properties/VP-INDEX.md` | v2.64 → v2.65; VP-096 Full Index + Story Anchors v1.2 appended; VP-097 Full Index + Story Anchors v1.3 appended; last_amended prepended | POLICY 14 leg-5 |
+| `.factory/cycles/v1.0-brownfield-backfill/decision-log.md` | D-827 entry appended | D-827 codification |
+| `.factory/STATE.md` | v5.72 → v5.73; D-827 advance; BC-INDEX v3.96/VP-INDEX v2.65 in 4-index cells; Session Resume Checkpoint refresh | SM state advance |
+| `.factory/cycles/v1.0-brownfield-backfill/burst-log.md` | D-827 entry appended (this entry) | D-827 burst record |
+
+5 files total (BC-INDEX + VP-INDEX + decision-log + STATE.md + burst-log).
+
+### Block 4: Codifications
+
+- **D-827** — W1-SPEC-EVOLUTION-RECONCILE: POLICY 14 leg-5 for three human-approved spec amendments. (a) BC-4.13.001 v1.14→v1.15 (po-crlf 70f04a73; CRLF frontmatter delimiter forms enumerated in Invariant 9; EC-017 added; input-hash 77bb0d1 stored). (b) VP-096 v1.1→v1.2 (arch-vp 9c5d0462; fence-offset oracle corrected; CRLF proptest added; input-hash 55bebb2→3576592). (c) VP-097 v1.2→v1.3 (arch-vp 14e26c7e; two-function signature refresh; 4 Kani proofs H1..H4; input-hash c47964f→f482502). BC-INDEX v3.95→v3.96; VP-INDEX v2.64→v2.65. POLICY 9 PASS (no VP title changes; pre-existing abbreviated form in coverage-matrix not introduced by these bumps). EC-017 propagation finding: S-19.02 Edge Cases missing EC-017 + BC cite v1.14 stale; story-writer dispatch needed. E-19 convergence NOT RESET. Parent-commit f548b612.
+
+### Block 5: Dim-2 Attestations
+
+See Block 2 above. All gates literal-shell with captured stdout per D-449(a): POLICY 16 PASS; D-494 4-index PASS (BC v3.96/VP v2.65/STORY v4.176/ARCH v3.00); POLICY 9 VP-title PASS (VP-096/VP-097 H1 titles UNCHANGED; verification-architecture.md rows match); D-446(a) 8-block PASS.
+
+### Block 6: Dim-5 Version Attestation
+
+4-index: BC v3.96 / VP v2.65 / STORY v4.176 / ARCH v3.00. BC-INDEX bumped v3.95→v3.96 (BC-4.13.001 v1.15 cell). VP-INDEX bumped v2.64→v2.65 (VP-096 v1.2 + VP-097 v1.3 cells). STORY-INDEX UNCHANGED. ARCH-INDEX UNCHANGED.
+
+### Block 7: Closes
+
+No findings closed (spec-evolution reconcile burst — no adversary pass, no finding resolution). EC-017 propagation finding SURFACED to coordinator (story-writer dispatch needed; not closed by this burst — state-manager MUST NOT edit story bodies). D-826 Drift Item "[D-826 W1-tracked] Spec-evolution in progress" marked RECONCILED in STATE.md.
+
+### Block 8: Factory-artifacts Commits
+
+| Commit | SHA | Contents |
+|--------|-----|----------|
+| D-827 SM single-commit burst (TD-VSDD-053) | `BURST-SHA-PENDING` | BC-INDEX v3.96 + VP-INDEX v2.65 (POLICY 14 leg-5: BC-4.13.001 v1.15 + VP-096 v1.2 + VP-097 v1.3 cells); decision-log D-827; STATE.md v5.72→v5.73; burst-log D-827 (this entry); 4-index BC v3.96/VP v2.65/STORY v4.176/ARCH v3.00 |
+| D-827 SHA-patch | `SHA-PATCH-PENDING` | burst-log Block 8 D-827 burst SHA update |
