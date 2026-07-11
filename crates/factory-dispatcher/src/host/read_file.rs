@@ -17,7 +17,9 @@ use std::path::{Path, PathBuf};
 use serde_json::{Map, Value};
 use wasmtime::Linker;
 
+use crate::internal_log::InternalEvent;
 use super::memory::{read_wasm_string, write_wasm_bytes, write_wasm_u32};
+use super::path_util::resolve_path_for_allowlist;
 use super::{HostCallError, HostCaller, HostContext, codes};
 
 pub fn register(linker: &mut Linker<HostContext>) -> Result<(), HostCallError> {
@@ -86,9 +88,21 @@ pub(crate) fn prepare(
     // found in the project directory, not the plugin directory.
     let resolved = resolve_for_read(Path::new(path), &ctx.cwd);
 
-    if !path_allowed(&resolved, &caps.path_allow, &ctx.cwd) {
-        emit_denial(ctx, path, "path_not_allowed", Some(&resolved));
-        return Err(codes::CAPABILITY_DENIED);
+    // Two-step decomposed path check (architect Ruling-2 / S-19.03):
+    //   Step 1 — resolve via ancestor-walk+rejoin (handles absent files correctly).
+    //   Step 2 — pure prefix check against the allow-list.
+    // The two denial reasons are emitted separately so operators can distinguish
+    // filesystem resolution errors from genuine allowlist violations.
+    match check_path_allowed(&resolved, &caps.path_allow, &ctx.cwd) {
+        PathAllowDecision::Allowed => {},
+        PathAllowDecision::DeniedResolutionFailed => {
+            emit_denial(ctx, path, "path_resolution_failed", Some(&resolved));
+            return Err(codes::CAPABILITY_DENIED);
+        }
+        PathAllowDecision::DeniedNotAllowed => {
+            emit_denial(ctx, path, "path_not_allowed", Some(&resolved));
+            return Err(codes::CAPABILITY_DENIED);
+        }
     }
 
     match read_bounded(&resolved, max_bytes as usize) {
@@ -98,19 +112,45 @@ pub(crate) fn prepare(
             Err(codes::OUTPUT_TOO_LARGE)
         }
         Err(ReadErr::NotFound) => {
-            // S-19.03 stub (AC-002): emit `internal.file_not_found` + return
-            // `codes::NOT_FOUND`. Implementation in S-19.03 TDD phase.
-            todo!("S-19.03: emit internal.file_not_found event and return codes::NOT_FOUND")
+            // AC-002 (S-19.03): path is allowlisted but file is absent.
+            // Emit `internal.file_not_found` (NOT `internal.capability_denied`)
+            // and return `codes::NOT_FOUND (-5)` so plugins can distinguish
+            // "absent file" from "genuine allowlist violation".
+            let ev = InternalEvent::now("internal.file_not_found")
+                .with_trace_id(&ctx.dispatcher_trace_id)
+                .with_session_id(&ctx.session_id)
+                .with_plugin_name(&ctx.plugin_name)
+                .with_plugin_version(&ctx.plugin_version)
+                .with_field("function", Value::String("read_file".to_string()))
+                .with_field("reason", Value::String("file_not_found".to_string()))
+                .with_field("path", Value::String(path.to_string()))
+                .with_field(
+                    "resolved",
+                    Value::String(resolved.to_string_lossy().into_owned()),
+                );
+            ctx.emit_internal(ev);
+            Err(codes::NOT_FOUND)
         }
         Err(ReadErr::Other) => Err(codes::INTERNAL_ERROR),
     }
 }
 
+/// Result of the two-step path allowlist check (architect Ruling-2).
+enum PathAllowDecision {
+    /// Path resolved and lies within an allowed prefix.
+    Allowed,
+    /// Ancestor-walk failed to canonicalize any ancestor — filesystem/traversal error.
+    /// Caller emits `internal.capability_denied reason=path_resolution_failed`.
+    DeniedResolutionFailed,
+    /// Path resolved successfully but lies outside all allowed prefixes.
+    /// Caller emits `internal.capability_denied reason=path_not_allowed`.
+    DeniedNotAllowed,
+}
+
 enum ReadErr {
     TooLarge,
     /// Path is in the allow-list but the file does not exist.
-    /// S-19.03: triggers `internal.file_not_found` + `codes::NOT_FOUND` (AC-002).
-    #[allow(dead_code)]
+    /// Triggers `internal.file_not_found` + `codes::NOT_FOUND` (AC-002).
     NotFound,
     Other,
 }
@@ -126,19 +166,30 @@ fn resolve_for_read(path: &Path, base: &Path) -> PathBuf {
     }
 }
 
-/// Check whether a resolved path is within the allow-list. Allow-list entries
-/// that are relative are expanded under `base` (the project working directory).
-fn path_allowed(resolved: &Path, allow: &[String], base: &Path) -> bool {
-    // Canonicalize the target path to remove any `..` components, defeating
-    // traversal attacks (BC-2.02.001 EC-001 / sibling-consistency with BC-2.02.011).
-    // For read_file the file must already exist, so full canonicalize() works.
-    let canon_resolved = match resolved.canonicalize() {
-        Ok(p) => p,
-        // File doesn't exist or I/O error — deny (will produce INTERNAL_ERROR
-        // downstream when read_bounded opens the file).
-        Err(_) => return false,
+/// Two-step allowlist check (architect Ruling-2 / S-19.03 AC-001).
+///
+/// Step 1: resolve via ancestor-walk+rejoin (handles absent files correctly,
+///   unlike `Path::canonicalize()` which returns Err for non-existent files).
+///   Returns `DeniedResolutionFailed` when even the root ancestor fails —
+///   structurally impossible on real Unix filesystems, but testable via the
+///   injectable mock in path_util tests (BC-2.07.001 EC-007).
+///
+/// Step 2: pure `starts_with` prefix check against each allow-list entry.
+///   Allow-list entries that are relative are expanded under `base`.
+///   Returns `DeniedNotAllowed` when the resolved path lies outside all prefixes.
+///
+/// Separating resolution failure from allowlist failure lets operators distinguish
+/// filesystem errors from genuine access-policy violations in telemetry.
+fn check_path_allowed(resolved: &Path, allow: &[String], base: &Path) -> PathAllowDecision {
+    // Step 1: resolve with ancestor-walk+rejoin so absent-but-allowlisted files
+    // get a synthesized canonical path instead of an opaque resolution failure.
+    let canon_resolved = match resolve_path_for_allowlist(resolved, |p| p.canonicalize()) {
+        Some(p) => p,
+        None => return PathAllowDecision::DeniedResolutionFailed,
     };
 
+    // Step 2: prefix check. Allow-list entries canonicalize normally (they must
+    // exist for the check to succeed; absent allow-list prefixes are skipped).
     for pref in allow {
         let pref_path = if Path::new(pref).is_absolute() {
             PathBuf::from(pref)
@@ -147,18 +198,23 @@ fn path_allowed(resolved: &Path, allow: &[String], base: &Path) -> bool {
         };
         let canon_pref = match pref_path.canonicalize() {
             Ok(p) => p,
-            // Configured allowlist prefix doesn't exist — skip.
-            Err(_) => continue,
+            Err(_) => continue, // configured prefix doesn't exist — skip
         };
         if canon_resolved.starts_with(&canon_pref) {
-            return true;
+            return PathAllowDecision::Allowed;
         }
     }
-    false
+    PathAllowDecision::DeniedNotAllowed
 }
 
 fn read_bounded(path: &Path, max_bytes: usize) -> Result<Vec<u8>, ReadErr> {
-    let mut file = File::open(path).map_err(|_| ReadErr::Other)?;
+    let mut file = File::open(path).map_err(|e| {
+        if e.kind() == std::io::ErrorKind::NotFound {
+            ReadErr::NotFound
+        } else {
+            ReadErr::Other
+        }
+    })?;
     let metadata = file.metadata().map_err(|_| ReadErr::Other)?;
     if metadata.len() as usize > max_bytes {
         return Err(ReadErr::TooLarge);

@@ -208,10 +208,13 @@ pub mod codes {
     pub const TIMEOUT: i32 = -2;
     pub const OUTPUT_TOO_LARGE: i32 = -3;
     pub const INVALID_ARGUMENT: i32 = -4;
-    // S-19.03 stub (O-P4-001 Red Gate discipline): value is -1000 (outside occupied
-    // range 0/-1/-2/-3/-4/-99) so the `== -5` assertion in T-005 compiles but FAILS.
-    // Implementation phase changes this to -5 (ADR-025 Decision 13).
-    pub const NOT_FOUND: i32 = -1000;
+    /// Path is in the allow-list but the file does not exist.
+    /// Distinct from `CAPABILITY_DENIED` so callers can distinguish "absent file"
+    /// from "genuine allowlist violation". ADR-025 Decision 13: -5 is the next
+    /// free code in the compact negative sequence after INVALID_ARGUMENT=-4.
+    /// Occupied codes: 0 (OK), -1 (CAPABILITY_DENIED), -2 (TIMEOUT),
+    /// -3 (OUTPUT_TOO_LARGE), -4 (INVALID_ARGUMENT), -99 (INTERNAL_ERROR).
+    pub const NOT_FOUND: i32 = -5;
     pub const INTERNAL_ERROR: i32 = -99;
 }
 

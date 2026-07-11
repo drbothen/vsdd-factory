@@ -26,10 +26,43 @@ use std::path::{Path, PathBuf};
 /// Purity classification: pure-core (path manipulation only; no filesystem I/O
 /// beyond the injected canonicalize_fn calls).
 pub fn resolve_path_for_allowlist(
-    _target: &Path,
-    _canonicalize_fn: impl Fn(&Path) -> std::io::Result<PathBuf>,
+    target: &Path,
+    canonicalize_fn: impl Fn(&Path) -> std::io::Result<PathBuf>,
 ) -> Option<PathBuf> {
-    todo!("S-19.03: implement ancestor-walk + rejoin algorithm — see Architecture Mapping in S-19.03 story spec")
+    // Fast path: the full path canonicalizes (file exists or all symlinks resolve).
+    if let Ok(canon) = canonicalize_fn(target) {
+        return Some(canon);
+    }
+    // Slow path: walk ancestors bottom-up collecting the non-existent tail
+    // components, then canonicalize the deepest existing ancestor and rejoin
+    // the tail in original (top-to-bottom) order.
+    //
+    // Example: target = /project/.factory/wave-state.yaml
+    //   1. canonicalize_fn(full path) → Err (file absent)
+    //   2. tail.push("wave-state.yaml"), cur = /project/.factory
+    //   3. canonicalize_fn(/project/.factory) → Ok(/project/.factory) (exists)
+    //   4. rejoin: /project/.factory/wave-state.yaml → return Some
+    //
+    // If NO ancestor canonicalizes (EC-007 / injectable-mock failure), returns None.
+    // Caller emits `internal.capability_denied reason=path_resolution_failed`.
+    let mut tail: Vec<std::ffi::OsString> = Vec::new();
+    let mut cur = target.to_path_buf();
+    loop {
+        // `file_name()` returns None for a root path (e.g. "/") — stop here.
+        let filename = cur.file_name()?.to_os_string();
+        tail.push(filename);
+        let parent = cur.parent()?.to_path_buf();
+        if let Ok(canon_parent) = canonicalize_fn(&parent) {
+            // Deepest canonicalizable ancestor found. Rejoin the collected tail
+            // in original order (tail was collected bottom-up, so iterate in reverse).
+            let mut result = canon_parent;
+            for component in tail.iter().rev() {
+                result = result.join(component);
+            }
+            return Some(result);
+        }
+        cur = parent;
+    }
 }
 
 // ---------------------------------------------------------------------------
