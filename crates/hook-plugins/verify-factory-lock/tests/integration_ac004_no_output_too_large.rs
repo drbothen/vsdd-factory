@@ -1,41 +1,49 @@
-// Red-gate test: asserts on a constant intentionally (wrong value until Task 9 lands).
-// Uses expect/unwrap for test failure reporting. Padded fixture uses repeat().take().
+// VP-095 / AC-004 real-cap-enforcement integration test (F-S1902-P1-002 replacement).
+//
+// REPLACES the tautological T-006 test that mocked read_file to return Ok(fixture)
+// regardless of max_bytes (POLICY 11 violation: the mock bypassed the cap check,
+// so the test could not detect OutputTooLarge even at the old 65536 cap).
+//
+// This test uses a cap-enforcement mock that mirrors real host::read_file behavior:
+//   if fixture_size > max_bytes → Err("OutputTooLarge..."), else → Ok(fixture).
+// The cap check is NOT mocked away; max_bytes is read from STATE_MD_MAX_BYTES at
+// test time, so this test would have been RED at the old cap (65536) and is GREEN
+// at the raised cap (262144).
 #![allow(
     clippy::expect_used,
     clippy::unwrap_used,
+    clippy::panic,
     clippy::assertions_on_constants,
     clippy::manual_repeat_n
 )]
 
-//! T-006 (AC-004): Integration test — 70 KiB STATE.md → zero output_too_large events.
+//! T-006 (AC-004 / VP-095): Real-cap-enforcement integration test.
 //!
-//! AC-004: No `internal.capability_denied reason=output_too_large` events are
-//! emitted in the dispatcher log for `verify-factory-lock` when STATE.md is ≤ 256 KiB.
+//! AC-004: No `output_too_large` denial for STATE.md files ≤ 262144 bytes.
+//! VP-095: verify-factory-lock handles STATE.md files up to 262144 bytes without
+//!   output_too_large denial (ADR-025 Decision 14).
 //!
-//! This test exercises the guard via its injectable-callback surface (same as
-//! unit tests): a 70 KiB fixture is injected via the mock `read_file` callback,
-//! and the test asserts that:
-//!   1. No `output_too_large` denial event appears in the captured log.
-//!   2. The guard does NOT return the OutputTooLarge-triggered fail-open path.
-//!   3. The cap constant `STATE_MD_MAX_BYTES` is high enough to accept 70 KiB.
-//!
-//! # Red Gate
-//!
-//! `STATE_MD_MAX_BYTES` is currently 65536 (< 70000). The assertion on line
-//! `STATE_MD_MAX_BYTES >= 70000` fails until Task 9 raises it to 262144.
+//! Assertion matrix (with STATE_MD_MAX_BYTES = 262144):
+//!   65535 bytes  → mock returns Ok → guard runs → Block (foreign lock detected)
+//!   65536 bytes  → mock returns Ok → guard runs → Block
+//!   131072 bytes → mock returns Ok → guard runs → Block
+//!   262144 bytes → mock returns Ok → guard runs → Block (at-cap; inclusive upper bound)
+//!   262145 bytes → mock returns Err(OutputTooLarge) → Continue (fail-open per EC-002)
+//!                  + StateReadError warn emitted
 //!
 //! # BC Traces
-//! - BC-4.13.001 v1.14 Phase-A Precondition 3 (max_bytes = 262144; operational at new cap)
+//! - BC-4.13.001 v1.14 Phase-A Precondition 3 (max_bytes = 262144)
 //! - VP-095: verify-factory-lock handles STATE.md files up to 262144 bytes without
 //!   output_too_large denial (ADR-025 Decision 14)
+//! - BC-4.13.001 PC6: STATE.md read failure → fail-open Continue (for 262145 bytes)
 
 use std::sync::{Arc, Mutex};
 
 use serde_json::json;
 use verify_factory_lock::{GuardCallbacks, STATE_MD_MAX_BYTES, guard_logic};
-use vsdd_hook_sdk::HookPayload;
+use vsdd_hook_sdk::{HookPayload, HookResult};
 
-/// Build a minimal HookPayload for a mutating tool (replicates unit test helper).
+/// Build a minimal HookPayload for a mutating tool.
 fn payload_for_tool(tool_name: &str) -> HookPayload {
     serde_json::from_value(json!({
         "event_name": "PreToolUse",
@@ -47,10 +55,10 @@ fn payload_for_tool(tool_name: &str) -> HookPayload {
     .expect("fixture HookPayload must deserialize")
 }
 
-/// Build a STATE.md fixture of exactly `target_size` bytes containing a
-/// factory_lock block with a foreign unexpired lock in the frontmatter.
-/// The body is padded with comment lines.
-fn build_70k_fixture_with_foreign_lock(target_size: usize) -> Vec<u8> {
+/// Build a STATE.md fixture of exactly `target_size` bytes with a foreign unexpired lock.
+///
+/// The frontmatter contains a foreign lock. The body is padded with comment lines.
+fn build_fixture_with_foreign_lock(target_size: usize) -> Vec<u8> {
     let header = concat!(
         "---\n",
         "document_type: state\n",
@@ -78,35 +86,28 @@ fn build_70k_fixture_with_foreign_lock(target_size: usize) -> Vec<u8> {
     bytes
 }
 
-/// T-006 (AC-004): 70 KiB STATE.md with a foreign lock.
+/// Run the guard with a cap-enforcement mock for the given `fixture_size`.
 ///
-/// Asserts:
-///   1. `STATE_MD_MAX_BYTES >= 70000` — Red Gate; fails until Task 9.
-///   2. The mock read_file returns `Ok(fixture)` (no output_too_large denial).
-///   3. The guard result is NOT a StateReadError (no OutputTooLarge emitted).
-///   4. Zero `output_too_large` strings in the captured log.
+/// The mock returns `Err("OutputTooLarge...")` if `fixture_size > max_bytes`, else
+/// `Ok(fixture)`. This is the cap-enforcement contract that mirrors real host::read_file.
 ///
-/// RED: `STATE_MD_MAX_BYTES = 65536 < 70000`; assertion (1) fails.
-#[test]
-fn t006_ac004_70kib_state_md_no_output_too_large() {
-    // Red Gate assertion: cap must be >= 70000 for the raised-cap behavior to apply.
-    assert!(
-        STATE_MD_MAX_BYTES >= 70_000u32,
-        "AC-004: STATE_MD_MAX_BYTES ({}) must be >= 70000. \
-         Raise to 262144 per BC-4.13.001 Precondition 3 / ADR-025 Decision 14 (Task 9).",
-        STATE_MD_MAX_BYTES
-    );
-
-    let fixture = build_70k_fixture_with_foreign_lock(70_000);
-    assert_eq!(fixture.len(), 70_000, "fixture must be exactly 70000 bytes");
-
+/// Returns `(HookResult, Vec<String>)` — the guard result and captured warn log.
+fn run_with_cap_enforcement(fixture_size: usize) -> (HookResult, Vec<String>) {
     let warn_log: Arc<Mutex<Vec<String>>> = Arc::new(Mutex::new(Vec::new()));
     let wl = warn_log.clone();
 
     let callbacks = GuardCallbacks {
-        read_file: move |_path, _max_bytes, _timeout| {
-            // Mock returns the full fixture — no host cap enforcement at this layer.
-            Ok(fixture.clone())
+        read_file: move |_path, max_bytes, _timeout| {
+            // Cap-enforcement: mirrors real host::read_file — returns OutputTooLarge
+            // when the file would exceed the plugin's declared max_bytes cap.
+            if fixture_size as u64 > u64::from(max_bytes) {
+                Err(format!(
+                    "OutputTooLarge: file size {} exceeds max_bytes {}",
+                    fixture_size, max_bytes
+                ))
+            } else {
+                Ok(build_fixture_with_foreign_lock(fixture_size))
+            }
         },
         exec_subprocess: |_argv| Ok((0, "self@example.com\n".to_string())),
         log_warn: move |msg: &str| {
@@ -116,27 +117,91 @@ fn t006_ac004_70kib_state_md_no_output_too_large() {
 
     let payload = payload_for_tool("Edit");
     let result = guard_logic(payload, callbacks);
+    let warns = warn_log.lock().unwrap().clone();
+    (result, warns)
+}
 
-    // Assert: no StateReadError in the result (read must have succeeded).
-    // The guard should return Block (foreign lock) or Continue — either is
-    // acceptable here; what matters is the ABSENCE of an output_too_large path.
-    let _ = result; // Result not the focus; captures correct with no read error.
+/// T-006 / VP-095 real-cap-enforcement: sizes ≤ 262144 produce no output_too_large.
+///
+/// Tests that the guard runs without triggering OutputTooLarge for five calibrated
+/// fixture sizes (65535 / 65536 / 131072 / 262144 / 262145).
+///
+/// GREEN with STATE_MD_MAX_BYTES = 262144: all ≤262144 sizes succeed;
+///   262145 fails-open correctly.
+/// Would have been RED at the old cap (65536): sizes >65536 would produce OutputTooLarge
+///   even though the spec requires them to succeed.
+#[test]
+fn t006_vp095_real_cap_enforcement_sizes() {
+    // Sizes ≤ STATE_MD_MAX_BYTES: guard must run (no OutputTooLarge), fixture has foreign
+    // lock → result must be Block (confirms guard ran to completion, not StateReadError).
+    let below_cap_sizes: &[usize] = &[65535, 65536, 131072, 262144];
+    for &size in below_cap_sizes {
+        let (result, warns) = run_with_cap_enforcement(size);
 
-    // Assert: no `output_too_large` events in captured logs.
-    let warns = warn_log.lock().unwrap();
-    let too_large_events: Vec<_> = warns
-        .iter()
-        .filter(|w| {
-            w.to_lowercase().contains("output_too_large")
-                || w.to_lowercase().contains("outputtoolarge")
-        })
-        .collect();
+        // No output_too_large or StateReadError warns for sizes ≤ cap.
+        let too_large_warns: Vec<_> = warns
+            .iter()
+            .filter(|w| {
+                let lower = w.to_lowercase();
+                lower.contains("output_too_large")
+                    || lower.contains("outputtoolarge")
+                    || w.contains("StateReadError")
+            })
+            .collect();
 
+        assert!(
+            too_large_warns.is_empty(),
+            "VP-095: size {} bytes must NOT produce output_too_large/StateReadError with \
+             STATE_MD_MAX_BYTES={}. Got warns: {:?}",
+            size,
+            STATE_MD_MAX_BYTES,
+            too_large_warns
+        );
+
+        // Guard must have run to completion: foreign lock fixture → Block.
+        match result {
+            HookResult::Block { .. } => {
+                // Correct: guard ran, foreign lock detected.
+            }
+            HookResult::Continue => {
+                panic!(
+                    "VP-095: size {} bytes with foreign lock must return Block (guard ran). \
+                     Got Continue. STATE_MD_MAX_BYTES={}. Warns: {:?}",
+                    size, STATE_MD_MAX_BYTES, warns
+                );
+            }
+            other => panic!(
+                "VP-095: size {} bytes unexpected result: {:?}. Warns: {:?}",
+                size, other, warns
+            ),
+        }
+    }
+
+    // Size 262145 (one byte over cap): mock returns OutputTooLarge → fail-open Continue
+    // per BC-4.13.001 PC6 / EC-002.
+    let over_cap_size = 262145usize;
+    let (result, warns) = run_with_cap_enforcement(over_cap_size);
+
+    assert_eq!(
+        result,
+        HookResult::Continue,
+        "VP-095: size {} bytes (over cap) must return Continue (fail-open per PC6). \
+         STATE_MD_MAX_BYTES={}. Warns: {:?}",
+        over_cap_size,
+        STATE_MD_MAX_BYTES,
+        warns
+    );
+
+    let has_read_error_warn = warns.iter().any(|w| {
+        let lower = w.to_lowercase();
+        lower.contains("output_too_large")
+            || lower.contains("outputtoolarge")
+            || w.contains("StateReadError")
+    });
     assert!(
-        too_large_events.is_empty(),
-        "AC-004: zero output_too_large events expected for a 70 KiB STATE.md \
-         when STATE_MD_MAX_BYTES = {STATE_MD_MAX_BYTES}. \
-         Got events: {:?}",
-        too_large_events
+        has_read_error_warn,
+        "VP-095: size {} bytes must emit OutputTooLarge/StateReadError warn (fail-open log). \
+         STATE_MD_MAX_BYTES={}. Got warns: {:?}",
+        over_cap_size, STATE_MD_MAX_BYTES, warns
     );
 }

@@ -80,4 +80,53 @@ proptest! {
             "extract_frontmatter must be deterministic: two invocations on same input must produce identical slices"
         );
     }
+
+    /// VP-096 Property 3 (CRLF): output is a byte-exact prefix for CRLF-delimited inputs.
+    ///
+    /// F-S1902-P1-001: BC-4.13.001 v1.14→v1.15 amendment (human approved): extract_frontmatter
+    /// MUST recognize the `\r\n---\r\n` CRLF delimiter form in addition to `\n---\n`.
+    ///
+    /// For any input constructed as `prefix + "\r\n---\r\n" + suffix` where prefix contains
+    /// no `\n` bytes:
+    ///   - `extract_frontmatter(input)` must byte-equal `input[0..prefix.len()]`
+    ///     (exclusive of the `\r\n---\r\n` delimiter itself).
+    ///
+    /// The prefix is filtered to contain no `\n` bytes so no LF delimiter (`\n---\n`)
+    /// can appear in the prefix and accidentally match before the CRLF form. The suffix
+    /// is also filtered to contain no `\n` bytes, preventing a spurious LF delimiter
+    /// after the injected CRLF delimiter from changing the expected offset.
+    ///
+    /// RED: extract_frontmatter only recognizes `\n---\n`; the CRLF form `\r\n---\r\n`
+    /// is not found → full input returned → byte-exact-prefix property fails.
+    #[test]
+    fn prop_extract_frontmatter_crlf_byte_equals_prefix(
+        prefix in proptest::collection::vec(
+            any::<u8>().prop_filter("no-lf", |b| *b != b'\n'),
+            0..=100
+        ),
+        suffix in proptest::collection::vec(
+            any::<u8>().prop_filter("no-lf", |b| *b != b'\n'),
+            1..=50
+        )
+    ) {
+        // Build the CRLF-delimited input: prefix + "\r\n---\r\n" + suffix.
+        let crlf_delimiter = b"\r\n---\r\n";
+        let mut input = prefix.clone();
+        input.extend_from_slice(crlf_delimiter);
+        input.extend_from_slice(&suffix);
+
+        let extracted = extract_frontmatter(&input);
+        let expected = &input[..prefix.len()];
+
+        prop_assert_eq!(
+            extracted,
+            expected,
+            "CRLF: extracted must byte-equal input[0..{}] (exclusive of \\r\\n---\\r\\n). \
+             Got {} bytes; expected {} bytes. \
+             Fix: update extract_frontmatter to recognize \\r\\n---\\r\\n (BC-4.13.001 v1.15).",
+            prefix.len(),
+            extracted.len(),
+            expected.len()
+        );
+    }
 }

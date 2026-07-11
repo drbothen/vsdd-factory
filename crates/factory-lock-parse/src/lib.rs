@@ -447,6 +447,74 @@ mod tests {
     }
 
     // -----------------------------------------------------------------------
+    // F-S1902-P1-001: CRLF extract_frontmatter tests (pass-1 adversary finding)
+    //
+    // BC-4.13.001 v1.14→v1.15 amendment (human approved): extract_frontmatter
+    // MUST recognize CRLF delimiter forms (`\r\n---\r\n` and `\r\n---` at EOF)
+    // in addition to the LF forms already implemented.
+    //
+    // These tests are RED because the current implementation only searches for
+    // `b"\n---\n"` and `b"\n---"` (LF-only). CRLF inputs return the full slice.
+    // -----------------------------------------------------------------------
+
+    /// F-S1902-P1-001 / T-011-A: extract_frontmatter CRLF inline delimiter — body excluded.
+    ///
+    /// Fixture: `---\r\nfactory_lock: null\r\n---\r\nbody content`
+    /// Expected: extracted slice starts with `---\r\n` and does NOT contain `body content`.
+    ///
+    /// RED: current implementation searches only for `\n---\n`; the CRLF form
+    /// `\r\n---\r\n` is not recognized → full input returned including body bytes.
+    #[test]
+    fn test_S1902_crlf_extract_frontmatter_excludes_body() {
+        let input = b"---\r\nfactory_lock: null\r\n---\r\nbody content";
+        let extracted = extract_frontmatter(input);
+        let extracted_str = std::str::from_utf8(extracted).expect("extracted slice must be UTF-8");
+        // Body bytes must not appear in the extracted frontmatter slice.
+        assert!(
+            !extracted_str.contains("body content"),
+            "CRLF: extracted slice must NOT contain body bytes past the \\r\\n---\\r\\n delimiter. \
+             Got: {extracted_str:?}. \
+             Fix: update extract_frontmatter to recognize `\\r\\n---\\r\\n` (BC-4.13.001 v1.15)."
+        );
+        // Slice must start with opening `---\r\n`.
+        assert!(
+            extracted_str.starts_with("---\r\n"),
+            "CRLF: extracted slice must start with opening `---\\r\\n` (byte 0). Got: {extracted_str:?}"
+        );
+    }
+
+    /// F-S1902-P1-001 / T-011-B: extract_frontmatter CRLF byte-exact boundary.
+    ///
+    /// Fixture: `---\r\nfactory_lock: null\r\n---\r\nbody`
+    ///   - `---\r\nfactory_lock: null` = 22 bytes; then `\r\n---\r\n` begins at byte 22.
+    ///   - delimiter_start_offset (index of `\r` in `\r\n---\r\n`) = 22.
+    ///   - Extracted slice must byte-equal input[0..22].
+    ///
+    /// RED: current implementation does not recognize `\r\n---\r\n` → returns full input.
+    #[test]
+    fn test_S1902_crlf_extract_frontmatter_byte_exact_boundary() {
+        let input = b"---\r\nfactory_lock: null\r\n---\r\nbody";
+        let extracted = extract_frontmatter(input);
+        // delimiter_start_offset: index of the `\r` that starts `\r\n---\r\n`.
+        // input[0..22] = b"---\r\nfactory_lock: null"
+        let delimiter_start_offset = 22usize;
+        assert_eq!(
+            extracted.len(),
+            delimiter_start_offset,
+            "CRLF: extracted_len ({}) must equal delimiter_start_offset ({}). \
+             Full input returned instead of frontmatter-only slice.",
+            extracted.len(),
+            delimiter_start_offset
+        );
+        assert_eq!(
+            extracted,
+            &input[..delimiter_start_offset],
+            "CRLF: extracted slice must byte-equal input[0..delimiter_start_offset ({})]",
+            delimiter_start_offset
+        );
+    }
+
+    // -----------------------------------------------------------------------
     // parse_factory_lock tests
     // -----------------------------------------------------------------------
 

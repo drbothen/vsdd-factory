@@ -1726,6 +1726,95 @@ mod tests {
         }
     }
 
+    // -----------------------------------------------------------------------
+    // F-S1902-P1-001: CRLF wiring test (pass-1 adversary finding)
+    //
+    // BC-4.13.001 v1.14→v1.15 amendment (human approved): extract_frontmatter
+    // must recognize `\r\n---\r\n` CRLF delimiter. The wiring test verifies
+    // Invariant 9 via a CRLF STATE.md whose body contains non-UTF-8 bytes.
+    //
+    // With LF-only extract_frontmatter (current):
+    //   - extract_frontmatter returns full content (no CRLF delimiter matched)
+    //   - delimiter_found = false → full bytes passed to String::from_utf8
+    //   - Non-UTF-8 body bytes cause String::from_utf8 to fail
+    //   - guard returns Continue + StateReadError log_warn (fail-open, Invariant 9 violated)
+    //
+    // With CRLF-aware extract_frontmatter (after implementation):
+    //   - extract_frontmatter finds \r\n---\r\n → returns frontmatter-only (UTF-8 valid)
+    //   - delimiter_found = true → frontmatter + "\n---\n" passed to parse_factory_lock
+    //   - Foreign lock detected → guard returns Block
+    // -----------------------------------------------------------------------
+
+    /// F-S1902-P1-001 / T-012: Wiring test — CRLF STATE.md with non-UTF-8 body bytes.
+    ///
+    /// Verifies that guard_logic takes the frontmatter-only path (Invariant 9) for
+    /// CRLF-delimited STATE.md inputs by constructing a fixture where:
+    ///   - The CRLF frontmatter has a valid foreign unexpired factory_lock block.
+    ///   - The body contains `\xFF\xFE` (invalid UTF-8) bytes.
+    ///
+    /// Correct behavior (after fix): Block — frontmatter-only bytes are valid UTF-8;
+    ///   foreign lock is detected and the guard blocks.
+    ///
+    /// Current behavior (RED): Continue + StateReadError warn — the LF-only
+    ///   extract_frontmatter returns the full content including non-UTF-8 body bytes;
+    ///   String::from_utf8 fails on the non-UTF-8 bytes; guard takes the fail-open path.
+    #[test]
+    fn test_S1902_crlf_wiring_non_utf8_body_blocks_on_foreign_lock() {
+        // CRLF frontmatter with foreign unexpired lock — all UTF-8 valid bytes.
+        let mut crlf_bytes: Vec<u8> = b"---\r\n\
+            document_type: state\r\n\
+            version: \"0.0.1-test\"\r\n\
+            phase: test\r\n\
+            factory_lock:\r\n\
+            \x20\x20holder: \"other@example.com\"\r\n\
+            \x20\x20locked_at: \"2026-06-10T14:00:00Z\"\r\n\
+            \x20\x20expires_at: \"2099-01-01T00:00:00Z\"\r\n\
+            ---\r\n"
+            .to_vec();
+        // Append body with non-UTF-8 bytes (\xFF\xFE = invalid UTF-8 start sequence).
+        // The body follows the CRLF closing delimiter.
+        crlf_bytes.extend_from_slice(b"\r\n# Body section\r\n\xFF\xFE padding body\r\n");
+
+        let warn_log: Arc<Mutex<Vec<String>>> = Arc::new(Mutex::new(Vec::new()));
+        let wl = warn_log.clone();
+        let callbacks = GuardCallbacks {
+            read_file: move |_path, _max, _timeout| Ok(crlf_bytes),
+            exec_subprocess: move |_argv| Ok((0, "self@example.com\n".to_string())),
+            log_warn: move |msg: &str| {
+                wl.lock().unwrap().push(msg.to_string());
+            },
+        };
+        let payload = payload_for_tool("Edit");
+
+        let result = guard_logic(payload, callbacks);
+
+        // Must be Block: CRLF frontmatter has a valid foreign unexpired lock.
+        // Correct path (after fix): extract_frontmatter recognizes \r\n---\r\n →
+        //   frontmatter-only bytes (UTF-8 valid) → parse succeeds → Block.
+        match result {
+            HookResult::Block { .. } => {
+                // Correct: frontmatter-only path taken; non-UTF-8 body bytes did not interfere.
+            }
+            HookResult::Continue => {
+                let warns = warn_log.lock().unwrap();
+                panic!(
+                    "F-S1902-P1-001: CRLF STATE.md with foreign unexpired lock must return Block. \
+                     Got Continue. Warns: {:?}. \
+                     Likely cause: extract_frontmatter (LF-only) returned full content including \
+                     non-UTF-8 body bytes; String::from_utf8 failed → fail-open StateReadError path. \
+                     Fix: update extract_frontmatter to recognize \\r\\n---\\r\\n \
+                     per BC-4.13.001 v1.15.",
+                    warns
+                );
+            }
+            other => panic!(
+                "F-S1902-P1-001: expected HookResult::Block for CRLF STATE.md with foreign lock, \
+                 got: {:?}",
+                other
+            ),
+        }
+    }
+
     /// build_block_message: all 5 fields present in the message.
     ///
     /// GREEN: pure helper implemented; test verifies this case.
