@@ -30,6 +30,24 @@
 # Setup / teardown helpers
 # ---------------------------------------------------------------------------
 
+# Build the WASM plugin on demand if it is absent (e.g. fresh checkout with
+# no prior wasm32-wasip1 build). Runs once per bats invocation before any
+# test. CI stages WASM via the "Stage WASM plugins" step so this is only
+# exercised on local runs where the developer hasn't built yet.
+setup_file() {
+  local repo_root
+  repo_root="$(cd "${BATS_TEST_DIRNAME}/../../.." && pwd)"
+  local wasm_dir="${repo_root}/plugins/vsdd-factory/hook-plugins"
+  local wasm="${wasm_dir}/warn-pending-wave-gate.wasm"
+  if [ ! -f "$wasm" ]; then
+    echo "# setup_file: warn-pending-wave-gate.wasm absent; building (--release --target wasm32-wasip1)..." >&3
+    cargo build --release --target wasm32-wasip1 -p warn-pending-wave-gate 2>&1 | tail -5 >&2
+    mkdir -p "$wasm_dir"
+    cp "${repo_root}/target/wasm32-wasip1/release/warn-pending-wave-gate.wasm" "$wasm"
+    echo "# setup_file: build complete; WASM staged to ${wasm}" >&3
+  fi
+}
+
 setup() {
   REPO_ROOT="$(cd "${BATS_TEST_DIRNAME}/../../.." && pwd)"
   PLUGIN_ROOT="${REPO_ROOT}/plugins/vsdd-factory"
