@@ -220,6 +220,48 @@ pub mod codes {
 pub type HostCaller<'a> = Caller<'a, HostContext>;
 
 // ---------------------------------------------------------------------------
+// S-19.03 Red Gate test — T-005 (AC-003): codes::NOT_FOUND == -5
+// ---------------------------------------------------------------------------
+
+#[cfg(test)]
+mod s19_03_codes_tests {
+    use super::codes;
+
+    /// test_S19_03_T005_NOT_FOUND_constant_equals_minus_5
+    ///
+    /// T-005 (AC-003): `codes::NOT_FOUND` MUST equal `-5`.
+    ///
+    /// ADR-025 Decision 13 allocates -5 as the next compact-negative slot after
+    /// INVALID_ARGUMENT=-4. Occupied codes: 0 (OK), -1 (CAPABILITY_DENIED),
+    /// -2 (TIMEOUT), -3 (OUTPUT_TOO_LARGE), -4 (INVALID_ARGUMENT), -99 (INTERNAL_ERROR).
+    ///
+    /// The canonical constant definition site is `pub mod codes` in this file
+    /// (F-P2-007 concrete site; "codes.rs or equivalent" language retired).
+    ///
+    /// Gate from S-19.03 AC-003:
+    ///   `grep -q "pub const NOT_FOUND: i32 = -5;" crates/factory-dispatcher/src/host/mod.rs`
+    ///   exits 0 (canonical constant definition site).
+    ///
+    /// Red Gate: FAILS — stub value is -1000 (outside occupied range 0/-1/-2/-3/-4/-99;
+    /// not 0 so it doesn't collide with codes::OK; per O-P4-001 Red Gate discipline:
+    /// stub must be outside the occupied range so the `== -5` assertion compiles
+    /// but fails at Red Gate).
+    ///
+    /// Traces to: BC-2.07.001 (NOT_FOUND = -5); S-19.03 AC-003; ADR-025 Decision 13.
+    #[test]
+    #[allow(clippy::assertions_on_constants, non_snake_case)]
+    fn test_S19_03_T005_NOT_FOUND_constant_equals_minus_5() {
+        assert_eq!(
+            codes::NOT_FOUND,
+            -5_i32,
+            "T-005 AC-003: codes::NOT_FOUND must be -5 (ADR-025 Decision 13; next compact-negative \
+             slot after INVALID_ARGUMENT=-4; occupied: 0/-1/-2/-3/-4/-99). \
+             Red Gate stub is -1000 — this assertion MUST fail at Red Gate."
+        );
+    }
+}
+
+// ---------------------------------------------------------------------------
 // AC-008 / AC-009 unit tests — resolver linker capability enforcement
 //
 // BC-4.12.003 postconditions 1–3:
