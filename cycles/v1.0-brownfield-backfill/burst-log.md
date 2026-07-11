@@ -17677,4 +17677,4 @@ Expected ≥8 for this entry (blocks 1–8 present). D-444(c) 8-block requiremen
 
 | Commit | SHA | Contents |
 |--------|-----|----------|
-| D-811 SM single-commit burst (TD-VSDD-053) | `[TBD-post-push]` | adv-E19-pass-55.md NEW; decision-log D-811; lessons.md L-BB; VP-INDEX v2.61; STATE.md v5.61→v5.62; burst-log this entry; streak 1/3→0/3 RESET; trajectory-tail →1→2→0→1; pass-56 NEXT |
+| D-811 SM single-commit burst (TD-VSDD-053) | `4fabc9a9` | adv-E19-pass-55.md NEW; decision-log D-811; lessons.md L-BB; VP-INDEX v2.61; STATE.md v5.61→v5.62; burst-log this entry; streak 1/3→0/3 RESET; trajectory-tail →1→2→0→1; pass-56 NEXT |
