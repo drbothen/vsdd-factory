@@ -333,7 +333,7 @@ pub fn has_ready_verdict(text: &str) -> bool {
 
 /// Validate `covered_sha: <40-lowercase-hex>` presence in `text`.
 ///
-/// Returns true if `text` contains a `covered_sha:` key followed by optional
+/// Returns true if `text` contains a `covered_sha:` key followed by
 /// whitespace and then exactly 40 lowercase hexadecimal characters
 /// (BC-5.42.001 Invariant 5 format rule). Returns false for absent field,
 /// wrong length, non-hex characters, or uppercase hex — all malformed cases
