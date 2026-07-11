@@ -17,10 +17,10 @@ use std::path::{Path, PathBuf};
 use serde_json::{Map, Value};
 use wasmtime::Linker;
 
-use crate::internal_log::InternalEvent;
 use super::memory::{read_wasm_string, write_wasm_bytes, write_wasm_u32};
 use super::path_util::{PathAllowDecision, resolve_path_for_allowlist};
 use super::{HostCallError, HostCaller, HostContext, codes};
+use crate::internal_log::InternalEvent;
 
 pub fn register(linker: &mut Linker<HostContext>) -> Result<(), HostCallError> {
     linker
@@ -94,7 +94,7 @@ pub(crate) fn prepare(
     // The two denial reasons are emitted separately so operators can distinguish
     // filesystem resolution errors from genuine allowlist violations.
     match check_path_allowed(&resolved, &caps.path_allow, &ctx.cwd) {
-        PathAllowDecision::Allowed => {},
+        PathAllowDecision::Allowed => {}
         PathAllowDecision::DeniedResolutionFailed => {
             emit_denial(ctx, path, "path_resolution_failed", Some(&resolved));
             return Err(codes::CAPABILITY_DENIED);
@@ -392,7 +392,10 @@ mod tests {
         let _ = prepare(&ctx, absent_path.to_str().unwrap(), 65536);
         let events = ctx.drain_events();
 
-        let file_not_found_count = events.iter().filter(|e| e.type_ == "internal.file_not_found").count();
+        let file_not_found_count = events
+            .iter()
+            .filter(|e| e.type_ == "internal.file_not_found")
+            .count();
         assert_eq!(
             file_not_found_count,
             1,

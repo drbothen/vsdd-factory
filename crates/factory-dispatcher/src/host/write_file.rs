@@ -83,7 +83,7 @@ fn prepare(ctx: &HostContext, path: &str, contents: &[u8], max_bytes: u32) -> Re
 
     // Postcondition 1: two-step path allowlist + traversal denial (Ruling-2 / S-19.03).
     match check_path_allowed(&resolved, &caps.path_allow, &ctx.cwd) {
-        PathAllowDecision::Allowed => {},
+        PathAllowDecision::Allowed => {}
         PathAllowDecision::DeniedResolutionFailed => {
             emit_denial(ctx, path, "path_resolution_failed", Some(&resolved));
             return Err(codes::CAPABILITY_DENIED);

@@ -174,7 +174,10 @@ mod tests {
         std::fs::create_dir_all(&sub).unwrap();
         // Target: subdir/../wave-state.yaml — `..` in the absent-tail region.
         let target = sub.join("..").join("wave-state.yaml");
-        assert!(!target.exists(), "test setup: target with .. must not exist");
+        assert!(
+            !target.exists(),
+            "test setup: target with .. must not exist"
+        );
 
         let result = resolve_path_for_allowlist(&target, |p| p.canonicalize());
         assert!(
