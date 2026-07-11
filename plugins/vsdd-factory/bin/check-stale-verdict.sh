@@ -51,27 +51,51 @@ fi
 # Step 2: Invoke gh pr view to fetch live headRefOid.
 # EC-001: gh failure (network/auth) → READY_SHA_FETCH_FAILED, exit 1.
 GH_OUTPUT=""
-if ! GH_OUTPUT="$(gh pr view "${PR_NUMBER}" --json headRefOid 2>/dev/null)"; then
+if ! GH_OUTPUT="$(gh pr view "${PR_NUMBER}" --json headRefOid,state 2>/dev/null)"; then
     printf 'READY_SHA_FETCH_FAILED: gh pr view failed for PR #%s\n' "${PR_NUMBER}" >&2
     exit 1
 fi
 
-# Step 3: Parse headRefOid from JSON output.
-# Use grep + sed for bash-3.2 compatibility (no mapfile, no process substitution
+# Step 3: Parse headRefOid and state from JSON output.
+# Use grep for bash-3.2 compatibility (no mapfile, no process substitution
 # with readarray). Bash-3.2 safe: while-read pattern per repo convention (c10dc6ca).
 LIVE_SHA=""
+PR_STATE=""
 while IFS= read -r line; do
     # Extract value of "headRefOid" from JSON: "headRefOid":"<value>"
     if printf '%s' "${line}" | grep -q '"headRefOid"'; then
         # Extract the SHA value between quotes after "headRefOid":
         LIVE_SHA="$(printf '%s' "${line}" | grep -oE '"headRefOid":"[^"]*"' | grep -oE '"[^"]*"$' | tr -d '"')"
     fi
+    # Extract value of "state" from JSON: "state":"<value>"
+    if printf '%s' "${line}" | grep -q '"state"'; then
+        PR_STATE="$(printf '%s' "${line}" | grep -oE '"state":"[^"]*"' | grep -oE '"[^"]*"$' | tr -d '"')"
+    fi
 done <<EOF
 ${GH_OUTPUT}
 EOF
 
+# Arm 4: both fields empty — gh returned exit 0 but output is unparseable (non-JSON).
+# ADR-030 §Decision 2 arm 4: catch-all for malformed JSON response.
+if [[ -z "${LIVE_SHA}" && -z "${PR_STATE}" ]]; then
+    printf 'CHECK_STALE_VERDICT_ERROR: unable to parse gh JSON response for PR #%s\n' "${PR_NUMBER}" >&2
+    exit 1
+fi
+
+# Arm 3: PR is not in OPEN state (closed, merged, etc.).
+# ADR-030 §Decision 2 arm 3: PR closed/merged between READY verdict and check invocation.
+if [[ -n "${PR_STATE}" ]]; then
+    PR_STATE_UPPER="$(printf '%s' "${PR_STATE}" | tr '[:lower:]' '[:upper:]')"
+    if [[ "${PR_STATE_UPPER}" != "OPEN" ]]; then
+        printf 'CHECK_STALE_VERDICT_ERROR: PR #%s is %s (expected: open)\n' "${PR_NUMBER}" "${PR_STATE}" >&2
+        exit 1
+    fi
+fi
+
+# headRefOid absent from otherwise valid JSON (state was OPEN but SHA field missing).
+# ADR-030 §Decision 2 arm 4 catch-all: cannot perform staleness comparison.
 if [[ -z "${LIVE_SHA}" ]]; then
-    printf 'READY_SHA_FETCH_FAILED: gh pr view failed for PR #%s\n' "${PR_NUMBER}" >&2
+    printf 'CHECK_STALE_VERDICT_ERROR: unable to parse headRefOid from gh JSON response for PR #%s\n' "${PR_NUMBER}" >&2
     exit 1
 fi
 
