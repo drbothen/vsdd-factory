@@ -56,20 +56,70 @@ struct WaveState {
     pub waves: Vec<WaveEntry>,
 }
 
-/// S-19.03 stub: logic entry-point with explicit `HostError` dispatch.
+/// Logic entry-point with explicit `HostError` dispatch (S-19.03 AC-004).
 ///
-/// Distinguishes `HostError::NotFound` (wave-state.yaml absent → Continue silently,
-/// AC-004) from `HostError::CapabilityDenied` (genuine allowlist violation → WARN,
-/// AC-006). Replaces the `Err(_) => None` collapse in `main.rs` once implemented.
+/// Distinguishes `HostError::NotFound` (wave-state.yaml absent → Continue silently)
+/// from `HostError::CapabilityDenied` (genuine allowlist violation → WARN to operator).
 ///
-/// BC-2.07.001 part c; AC-004; AC-006.
+/// | Result                  | Behavior                                              |
+/// |-------------------------|-------------------------------------------------------|
+/// | `Ok(bytes)`             | Parse YAML, scan waves, emit WARN if pending found    |
+/// | `Err(NotFound)`         | Silent `Continue` — absent file is not an error       |
+/// | `Err(CapabilityDenied)` | WARN to stderr (`write_stderr`), then `Continue`      |
+/// | `Err(other)`            | WARN to stderr (`write_stderr`), then `Continue`      |
+///
+/// The `main.rs` entry point calls this function and passes the real host callbacks.
+/// The old `warn_pending_wave_gate_logic` (which collapsed all errors to `None`) is kept
+/// for backward compatibility with the existing integration test harness.
+///
+/// BC-2.07.001 part c; S-19.03 AC-004; AC-006.
 pub fn warn_pending_wave_gate_logic_with_error_dispatch(
-    _payload: HookPayload,
-    _read_wave_state_result: impl FnOnce() -> Result<Vec<u8>, vsdd_hook_sdk::host::HostError>,
-    _emit: impl FnOnce(&str, &[(&str, &str)]),
-    _write_stderr: impl FnOnce(&str),
+    payload: HookPayload,
+    read_wave_state_result: impl FnOnce() -> Result<Vec<u8>, vsdd_hook_sdk::host::HostError>,
+    emit: impl FnOnce(&str, &[(&str, &str)]),
+    write_stderr: impl FnOnce(&str),
 ) -> HookResult {
-    todo!("S-19.03: implement NOT_FOUND → Continue (silent) vs CapabilityDenied → WARN dispatch")
+    use vsdd_hook_sdk::host::HostError;
+
+    let bytes = match read_wave_state_result() {
+        Ok(b) => b,
+        Err(HostError::NotFound) => {
+            // AC-004 (S-19.03): wave-state.yaml is absent (fresh install or no wave
+            // handed off). This is the normal case; continue silently with zero output.
+            // Matches the old `None` early-exit in warn_pending_wave_gate_logic.
+            return HookResult::Continue;
+        }
+        Err(HostError::CapabilityDenied) => {
+            // AC-006 (S-19.03): genuine allowlist violation — capability misconfiguration
+            // in hooks-registry.toml. Surface to the operator so they can diagnose.
+            // The hook is still advisory (never blocks Stop).
+            write_stderr(
+                "[warn-pending-wave-gate] WARN: CapabilityDenied reading \
+                 .factory/wave-state.yaml — check hooks-registry.toml \
+                 read_file.path_allow configuration.\n",
+            );
+            return HookResult::Continue;
+        }
+        Err(_) => {
+            // Other errors (Timeout, OutputTooLarge, InternalError, InvalidArgument).
+            // Surface as a WARN; do not block Stop.
+            write_stderr(
+                "[warn-pending-wave-gate] WARN: unexpected error reading \
+                 .factory/wave-state.yaml.\n",
+            );
+            return HookResult::Continue;
+        }
+    };
+
+    // Convert the raw bytes to UTF-8; silently continue on invalid encoding.
+    let yaml_content = match String::from_utf8(bytes) {
+        Ok(s) => s,
+        Err(_) => return HookResult::Continue,
+    };
+
+    // Delegate YAML parse + pending scan + emit/stderr to the existing logic.
+    // Passes Some(yaml_content) to model the "file found and readable" path.
+    warn_pending_wave_gate_logic(payload, move || Some(yaml_content), emit, write_stderr)
 }
 
 /// Top-level hook logic. Reads wave-state.yaml, finds pending waves, and
