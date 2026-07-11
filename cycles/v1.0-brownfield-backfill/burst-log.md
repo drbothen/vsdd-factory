@@ -17862,3 +17862,100 @@ Session wrap summary: passes 34–56 complete (23 passes); zero BLOCKER 34 passe
 |--------|-----|----------|
 | D-813 SM single-commit burst (TD-VSDD-053) | `ba386c73` | STATE.md v5.63→v5.64 (PIPELINE PAUSED; D-813-SESSION-WRAP-PAUSED); session-checkpoints.md D-812 archived; decision-log D-813; burst-log D-813; sidecar-learning.md session-end timestamp; streak 0/3 UNCHANGED; 4-index ALL UNCHANGED |
 | D-813 SHA-patch | `cbbc9550` | Active Branches ba386c73 + burst-log Block 8 SHA update |
+
+---
+
+## D-815
+
+### Block 1 — Parent-commit
+
+Parent-commit: `6716b14b` (architect VP-094 v1.3→v1.4 fix burst; all five §Proof Harness @test blocks → positional SoT invocation form + gh mock per ADR-030 §Decision 2/3 + BC-5.42.001; O-P57-001/O-P57-002 FIXED same-burst; factory-artifacts HEAD prior to this D-815 SM closure burst).
+
+### Block 2 — Adversary Verdict + Dim-2 Literal-Shell Evidence
+
+**Pass verdict:** NOT-CLEAN — B0/H0/M1/L2. Pass-57 adversary (adv-E19-pass-57.md) found 1 MEDIUM finding (F-P57-001) + 2 LOW observations (O-P57-001, O-P57-002). F-P57-001 MEDIUM [POLICY 4 + POLICY 5 novel axis: invocation-signature-form parity]: VP-094 v1.3 §Proof Harness all five @test blocks invoked `check-stale-verdict.sh` / `enforce-merge-strategy.sh` via superseded named-flag signatures (`--covered-sha`, `--live-sha`, `--branch`, `--strategy`) contradicting ADR-030 §Decision 2/3 + BC-5.42.001 positional canonical forms — CLOSED architect 6716b14b (VP-094 v1.3→v1.4). O-P57-001 LOW (VP-094-B false-RED exit-code capture) + O-P57-002 LOW (VP-094 PS-C "Exits 0 Unconditionally" imprecise) — both FIXED same-burst by architect 6716b14b; NOT accepted-with-record. Streak 0/3 UNCHANGED. Axis-count pass-57 = 3 (M1+L2).
+
+**D-449(a) Dim-2 Literal-Shell Evidence:**
+
+Gate 1 — D-444(a) current_step D-chain cite (`grep "^current_step:" .factory/STATE.md`):
+```
+current_step: "D-815-E19-ADV-PASS-57-NOT-CLEAN-CLOSED; trajectory-tail →0→1→1→3; streak 0/3; adv pass-57 NOT-CLEAN B0/H0/M1/L2 CLOSED; F-P57-001 MEDIUM POLICY 4 + POLICY 5 novel axis: invocation-signature-form parity; VP-094 v1.4 LANDED (architect 6716b14b; all five @test blocks → positional SoT form + gh mock per ADR-030 §Decision 2/3 + BC-5.42.001; O-P57-001/O-P57-002 FIXED same-burst; input-hash e2f422f UNCHANGED); VP-INDEX v2.63 LANDED; policies.yaml v1.4.5 LANDED; L-BB-invocation-signature-migrations-must-sweep-vp-proof-harness-skeleton [process-gap] codified; 4-index BC v3.95/VP v2.63/STORY v4.176/ARCH v3.00; pass-58 NEXT; parent-commit: 6716b14b"
+```
+Result: current_step cites D-815 as max. D-443(a)/D-444(a) satisfied. PASS.
+
+Gate 2 — D-494 4-index versions (`grep "^version:" BC-INDEX.md VP-INDEX.md STORY-INDEX.md ARCH-INDEX.md`):
+```
+.factory/specs/verification-properties/VP-INDEX.md:version: "2.63"
+.factory/specs/behavioral-contracts/BC-INDEX.md:version: "3.95"
+.factory/stories/STORY-INDEX.md:version: "4.176"
+.factory/specs/architecture/ARCH-INDEX.md:version: "3.00"
+```
+Result: BC v3.95 / VP v2.63 / STORY v4.176 / ARCH v3.00. VP-INDEX advanced from v2.62→v2.63 this burst. All others UNCHANGED. PASS.
+
+Gate 3 — STATE.md wc-l ≤500 (`wc -l .factory/STATE.md`):
+```
+     471 .factory/STATE.md
+```
+Result: 471 ≤ 500. D-421(c) budget satisfied. PASS.
+
+Gate 4 — Single Session Resume Checkpoint heading (`grep -n "^## Session Resume Checkpoint" .factory/STATE.md | wc -l`):
+```
+       1
+```
+Result: Exactly 1 heading. PASS.
+
+Gate 5 — D-448(a) source-attestation parity (`grep -c "F-P57-001\|O-P57-001\|O-P57-002\|B0/H0/M1/L2\|NOT-CLEAN" .factory/cycles/v1.0-brownfield-backfill/adv-E19-pass-57.md`):
+```
+22
+```
+Result: adv-E19-pass-57.md Part A finding set (F-P57-001 MEDIUM; O-P57-001/O-P57-002 LOW FIXED; verdict NOT-CLEAN B0/H0/M1/L2) faithfully described in Block 2 adversary verdict paragraph. Zero omissions. PASS.
+
+### Block 3 — Files Touched
+
+| File | Change | Agent | SHA |
+|------|--------|-------|-----|
+| `.factory/cycles/v1.0-brownfield-backfill/adv-E19-pass-57.md` | NEW — adversary pass-57 review (NOT-CLEAN B0/H0/M1/L2; F-P57-001 MEDIUM; O-P57-001/O-P57-002 LOW FIXED same-burst; streak 0/3 UNCHANGED) | state-manager | this commit |
+| `.factory/cycles/v1.0-brownfield-backfill/decision-log.md` | D-815 appended (canonical 6-column row + 7-subsection appendix; E19-ADV-PASS-57-NOT-CLEAN-CLOSED; F-P57-001 CLOSED architect 6716b14b; O-P57-001/O-P57-002 FIXED same-burst; L-BB-invocation-signature-migrations-must-sweep-vp-proof-harness-skeleton codified) | state-manager | this commit |
+| `.factory/cycles/v1.0-brownfield-backfill/lessons.md` | L-BB-invocation-signature-migrations-must-sweep-vp-proof-harness-skeleton [process-gap] appended; 11th standing gate added | state-manager | this commit |
+| `.factory/policies.yaml` | v1.4.4→v1.4.5 (POLICY 4 INVOCATION-SIGNATURE-FORM PARITY verification_steps extension; 11th standing gate) | state-manager | this commit |
+| `.factory/specs/verification-properties/VP-INDEX.md` | v2.62→v2.63 (VP-094 v1.4 annotation added; Full Index + Story Anchors per D-802; frontmatter 5-leg POLICY 14 parity) | state-manager | this commit |
+| `.factory/STATE.md` | v5.64→v5.65 (D-815; banner; current_step; phase; last_amended; timestamp; Last Updated; Current Phase Steps; Concurrent Cycles; Decisions Log; SRC §Position/convergence/repo-state/artifact-versions/§Convergence-Counter/§In-Flight/(g)/§Resume-Actions/(1)/§Standing-Controls D-815 gate added/§4-Index/Critical-SHAs/checkpoint-note; size-budget wc-l) | state-manager | this commit |
+| `.factory/cycles/v1.0-brownfield-backfill/burst-log.md` | D-815 burst entry appended (this entry; 8 blocks) | state-manager | this commit |
+
+### Block 4 — Codifications
+
+| ID | Type | Description |
+|----|------|-------------|
+| D-815 | Decision | E19-ADV-PASS-57-NOT-CLEAN-CLOSED; adv pass-57 NOT-CLEAN B0/H0/M1/L2; F-P57-001 MEDIUM [POLICY 4 + POLICY 5 novel axis: invocation-signature-form parity] VP-094 v1.3→v1.4 (architect 6716b14b; all five @test blocks positional SoT form + gh mock); O-P57-001/O-P57-002 LOW FIXED same-burst; NOT accepted-with-record; streak 0/3 UNCHANGED; trajectory-tail →0→1→1→3; VP-INDEX v2.62→v2.63; policies.yaml v1.4.4→v1.4.5; L-BB-invocation-signature-migrations-must-sweep-vp-proof-harness-skeleton [process-gap] codified; 11th standing gate added; pass-58 NEXT |
+| L-BB-invocation-signature-migrations-must-sweep-vp-proof-harness-skeleton | Lesson [process-gap] | Invocation-signature migrations (deprecated named-flag → canonical positional/positional+gh) MUST enumerate VP §Proof Harness @test blocks as sweep sites alongside BC/ADR prose. The @test blocks in VP §Proof Harness Skeleton contain concrete invocation commands with `--flag` patterns that decay independently from BC §Description and ADR §Decision canonical forms. Standing gate 11: grep VP §Proof Harness for `-- ` named-flag patterns; zero matches expected. |
+
+### Block 5 — Dim-5: Files-Touched Completeness
+
+All 7 files modified in this SM burst are listed in Block 3. Architect's VP-094.md changes were committed by architect at 6716b14b (separate commit, not part of this SM burst). BC/story/epic/ADR files: UNCHANGED this burst. 4-index advance: VP-INDEX v2.62→v2.63 (annotation-only; VP-094 v1.4); BC-INDEX/STORY-INDEX/ARCH-INDEX UNCHANGED. policies.yaml v1.4.4→v1.4.5 (POLICY 4 verification_steps extension; governance-only). All 7 listed files are the complete set; no omissions.
+
+### Block 6 — D-446(a) 8-Block Completion Gate
+
+Gate command (`awk '/^## D-815/,0' .factory/cycles/v1.0-brownfield-backfill/burst-log.md | grep "^### Block [1-8]" | sort -u | wc -l`):
+```
+       8
+```
+Result: All 8 D-444(c) mandatory blocks present (Blocks 1–8 confirmed in this entry). D-446(a) gate PASS.
+
+### Block 7 — Closes / Status Summary
+
+| Item | Verdict | Resolution |
+|------|---------|------------|
+| F-P57-001 MEDIUM VP-094 invocation-signature-form parity | CLOSED | Architect 6716b14b: VP-094 v1.3→v1.4; all five @test blocks rewritten to positional canonical form + gh mock; ADR-030 §Decision 2/3 + BC-5.42.001 §Description alignment confirmed |
+| O-P57-001 LOW VP-094-B false-RED exit-code capture | FIXED same-burst | Architect 6716b14b: corrected bats `run` + `$status` pattern; NOT accepted-with-record |
+| O-P57-002 LOW VP-094 PS-C "Exits 0 Unconditionally" imprecise | FIXED same-burst | Architect 6716b14b: PS-C text tightened per ADR-030 §Decision 3; NOT accepted-with-record |
+| D-815 E19-ADV-PASS-57-NOT-CLEAN-CLOSED | CLOSED | STATE.md v5.65; VP-INDEX v2.63; policies.yaml v1.4.5; decision-log D-815; burst-log D-815; lessons + 11th standing gate |
+| Streak | 0/3 UNCHANGED | Pass-57 NOT-CLEAN; three consecutive CLEANs required; no advancement this burst |
+| 4-index | VP advanced | BC v3.95 / VP v2.62→v2.63 / STORY v4.176 / ARCH v3.00 |
+
+### Block 8 — Factory-artifacts Commits
+
+| Commit | SHA | Contents |
+|--------|-----|----------|
+| D-815 SM single-commit burst (TD-VSDD-053) | `TBD-PENDING-PUSH` | adv-E19-pass-57.md (NEW); decision-log D-815; lessons L-BB-invocation-signature-migrations-must-sweep-vp-proof-harness-skeleton; policies.yaml v1.4.4→v1.4.5; VP-INDEX v2.62→v2.63; STATE.md v5.64→v5.65; burst-log D-815 (this entry); streak 0/3 UNCHANGED; 4-index BC v3.95/VP v2.63/STORY v4.176/ARCH v3.00 |
+| D-815 SHA-patch | `TBD-PENDING-PUSH` | Active Branches + burst-log Block 8 SHA update (D-815 SM commit SHA) |
+

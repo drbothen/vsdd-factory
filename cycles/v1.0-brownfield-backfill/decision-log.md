@@ -9194,3 +9194,136 @@ D-813-SESSION-WRAP-PAUSED
 ### Date
 
 2026-07-10
+
+---
+
+## D-815 — E-19 Adversarial Pass-57 NOT-CLEAN Closure (B0/H0/M1/L2; F-P57-001 CLOSED architect 6716b14b; O-P57-001/O-P57-002 FIXED same-burst; streak 0/3 (unchanged); L-BB-invocation-signature-migrations-must-sweep-vp-proof-harness-skeleton [process-gap] codified)
+
+### Summary
+
+Pass-57 adversary (Claude Opus 4.7; rubric policies.yaml v1.4.4; fresh context; Iron Law; perimeter = D-812 delta: VP-094 v1.3 + VP-INDEX v2.62 + full E-19 carry-forward; streak 0/3) found 1 finding + 2 observations — NOT-CLEAN B0/H0/M1/L2. 29/30 version attestations PASS (VP-094 FINDING). D-812 delta re-verified PASS (16 VP-094.md sites + 2 VP-INDEX rows; sentinel/exit all correct).
+
+Sole MEDIUM finding: **F-P57-001 MEDIUM (POLICY 4 + POLICY 5 — novel axis: invocation-signature-form parity)** — VP-094 v1.3 §Proof Harness Skeleton all five script-invoking @test blocks invoke scripts with superseded named-flag signatures (`--covered-sha`/`--live-sha`; `--branch`/`--strategy`) contradicting ADR-030 §Decision 2/3 canonical positional forms (`check-stale-verdict.sh <pr_number> <covered_sha>`; `enforce-merge-strategy.sh <pr_number> [--merge|--squash|--rebase]`) and BC-5.42.001 §Description. No `<pr_number>` argument passed at all. The named-flag form defeats the design: `--live-sha` bypasses the `gh pr view` fetch that is the load-bearing behavior of `check-stale-verdict.sh`; `--branch` bypasses the `gh pr view` fetch that is the load-bearing behavior of `enforce-merge-strategy.sh`. ADR-030 v1.1 recorded this exact named→positional migration (F-W1V-002) with propagation directives for BC-5.42.001 + S-19.01 — VP-094 §Proof Harness was not enumerated in those directives. Blast radius = 1 file. CLOSED: architect 6716b14b (all five script-invoking @test blocks rewritten to positional SoT form + gh mock; O-P57-001 VP-094-B false-RED exit-code capture → bats run/$status; O-P57-002 PS-C 'exits 0 unconditionally' → 'delegates to gh pr merge and propagates its exit code'; VP-094 v1.3→v1.4; input-hash e2f422f UNCHANGED; class sweep VP-095..VP-101 + E-19 stories CLEAN).
+
+Two LOW observations FIXED same-burst (NOT accepted-with-record): O-P57-001 (VP-094-B false-RED exit-code capture) and O-P57-002 (PS-C 'exits 0 unconditionally' imprecise). Both CLOSED by architect 6716b14b; do NOT re-report in pass-58.
+
+Trajectory p22–57: ...→0→1→1→3. Tail passes 54/55/56/57 = 0,1,1,3 → `→0→1→1→3`. Zero HIGH 17 passes; zero BLOCKER 35. Streak 0/3 (was 0/3 entering pass-57; F-P57-001 prevents advancement; streak unchanged at 0/3).
+
+Lesson codified: **L-BB-invocation-signature-migrations-must-sweep-vp-proof-harness-skeleton** [process-gap] — POLICY 4 v1.4.5 anchor-prose-parity extends to §Proof Harness script invocation-form: the argument signature (positional vs named-flag, including required arguments like `<pr_number>`) must match the ADR §Decision canonical invocation form; a mismatched invocation form defeats the test's ability to validate the load-bearing behavior; when an ADR adjudicates an invocation-form migration, propagation directives MUST enumerate VP §Proof Harness invocation signatures as sweep sites; 11th standing gate.
+
+VP-INDEX advanced v2.62→v2.63 (VP-094 v1.4 annotation in Full Index row + Story Anchors row; POLICY 9 zero-match confirmed). policies.yaml v1.4.4→v1.4.5 (INVOCATION-SIGNATURE-FORM PARITY verification_step appended to POLICY 4).
+
+NEXT: pass-58 (fresh context; Iron Law; rubric policies.yaml v1.4.5; perimeter = D-815 delta: VP-094 v1.4 + VP-INDEX v2.63 + full E-19 suite carry-forward; 4-index BC v3.95/VP v2.63/STORY v4.176/ARCH v3.00; streak 0/3; do-NOT-re-report: O-P41-001, O-P41-002, O-P44-001, O-P49-001 — O-P57-001/O-P57-002 CLOSED, do not re-report).
+
+### Detail
+
+**(1) POLICY 16 GLOBAL-MAX GATE (POLICY 16; literal-shell per D-449(a)).**
+
+```
+$ grep -oE "^## D-[0-9]+" .factory/cycles/v1.0-brownfield-backfill/decision-log.md | sort -t'-' -k3 -n | tail -1
+## D-813
+EXIT:0
+```
+→ D-813 confirmed max in decision-log; D-814 consumed by dispatch-side advance (STATE.md frontmatter only per D-417(b) strict) → D-815 allocated. PASS.
+
+**(2) PASS-57 ADVERSARY VERDICT.**
+
+NOT-CLEAN B0/H0/M1/L2. Perimeter: D-812 delta (VP-094 v1.3 + VP-INDEX v2.62) + full E-19 carry-forward (BC-INDEX v3.95; STORY-INDEX v4.176; ARCH-INDEX v3.00; epic v1.27; L2-INDEX v1.0.14; ADR-025 v1.15; ADR-030 v1.3; 6 BCs; 8 VPs; 7 stories; policies.yaml v1.4.4). Streak before: 0/3. Streak after: 0/3 (unchanged).
+
+F-P57-001 MEDIUM: VP-094 v1.3 §Proof Harness all five script-invoking @test blocks invoke scripts with superseded named-flag signatures (`--covered-sha`/`--live-sha`; `--branch`/`--strategy`) contradicting ADR-030 §Decision 2/3 + BC-5.42.001 positional/gh-fetch canonical forms. No `<pr_number>` argument passed. Named-flag `--live-sha` bypasses `gh pr view` fetch that is load-bearing behavior of check-stale-verdict.sh. Survived ADR-030 v1.1 propagation-directive enumeration (F-W1V-002 listed BC + S-19.01, not VP §Proof Harness). Blast radius = 1 file.
+
+O-P57-001 LOW (FIXED same-burst; NOT accepted-with-record): VP-094-B false-RED exit-code capture — `|| true` captures exit of `true` (always 0); fixed with bats `run`+`$status`. CLOSED.
+O-P57-002 LOW (FIXED same-burst; NOT accepted-with-record): PS-C 'exits 0 unconditionally' imprecise vs ADR-030 §Decision 3 step 4; fixed to 'delegates to gh pr merge and propagates its exit code'. CLOSED.
+
+Class sweep: VP-095..VP-101 CLEAN — no other VP invokes the pr-manager scripts; sibling invocation-signature-form parity confirmed.
+
+Full adversary report: `cycles/v1.0-brownfield-backfill/adv-E19-pass-57.md`
+
+**(3) FIX BURST.**
+
+Single architect leg: 6716b14b — VP-094 v1.3→v1.4 (all five script-invoking @test blocks: check-stale-verdict.sh `<pr_number> <covered_sha>` + gh mock per ADR-030 §Decision 2; enforce-merge-strategy.sh `<pr_number> [--squash|--merge]` + gh mock per ADR-030 §Decision 3; O-P57-001 VP-094-B false-RED exit-code capture fixed → bats run/$status; O-P57-002 PS-C 'exits 0 unconditionally' → 'delegates to gh pr merge and propagates its exit code'; input-hash e2f422f UNCHANGED; class sweep VP-095..VP-101 + E-19 stories CLEAN).
+
+SM this-commit: VP-INDEX v2.62→v2.63 (Full Index VP-094 row + Story Anchors VP-094 row v1.4 annotations; frontmatter version + last_amended + changelog entry prepended; POLICY 9 zero-match confirmed — VP-094 title unchanged). policies.yaml v1.4.4→v1.4.5 (INVOCATION-SIGNATURE-FORM PARITY verification_step appended to POLICY 4; version + last_amended bumped). L-BB-invocation-signature-migrations-must-sweep-vp-proof-harness-skeleton [process-gap] appended to lessons.md.
+
+**(4) 4-INDEX GATE (POLICY 14 leg-4; literal-shell per D-449(a)).**
+
+```
+$ grep "^version:" \
+  .factory/specs/behavioral-contracts/BC-INDEX.md \
+  .factory/specs/verification-properties/VP-INDEX.md \
+  .factory/stories/STORY-INDEX.md \
+  .factory/specs/architecture/ARCH-INDEX.md
+.factory/specs/behavioral-contracts/BC-INDEX.md:version: "3.95"
+.factory/specs/verification-properties/VP-INDEX.md:version: "2.63"
+.factory/stories/STORY-INDEX.md:version: "4.176"
+.factory/specs/architecture/ARCH-INDEX.md:version: "3.00"
+EXIT:0
+```
+→ BC-INDEX v3.95 / VP-INDEX v2.63 / STORY-INDEX v4.176 / ARCH-INDEX v3.00. VP-INDEX advanced v2.62→v2.63 (VP-094 v1.4 annotation); BC/STORY/ARCH UNCHANGED. PASS.
+
+**(5) HEADING-PARITY GATE (D-803 standing Commit-E gate; literal-shell per D-449(a)).**
+
+```
+$ python3 -c "
+import re, os, glob
+with open('.factory/stories/STORY-INDEX.md', 'r') as f:
+    index_content = f.read()
+heading_pattern = re.compile(r'^(## (?:Epic )?(E-\d+)[^\n]*)', re.MULTILINE)
+heading_matches = list(heading_pattern.finditer(index_content))
+epic_dir = '.factory/stories/epics'
+epic_files = glob.glob(os.path.join(epic_dir, '*.md'))
+epic_versions = {}
+for fpath in epic_files:
+    with open(fpath, 'r') as f:
+        content = f.read()
+    vm = re.search(r'^version:\s*[\x22\x27]?([^\x22\x27\n]+)', content, re.MULTILINE)
+    eid_m = re.search(r'(E-\d+)', os.path.basename(fpath))
+    if vm and eid_m:
+        epic_versions[eid_m.group(1)] = vm.group(1).strip('\x22\x27').strip()
+fails = 0; passes = 0; skips = 0
+for m in heading_matches:
+    heading_line = m.group(1); eid = m.group(2)
+    hvm = re.search(r'v(\d+\.\d+)\s*$', heading_line)
+    if eid not in epic_versions: skips += 1; continue
+    fver = epic_versions[eid]
+    if not hvm: skips += 1; continue
+    hver = 'v' + hvm.group(1)
+    if hver == fver: passes += 1
+    else: print('FAIL ' + eid + ': heading ' + hver + ' != frontmatter ' + fver)
+    if hver != fver: fails += 1
+print('Result: ' + str(fails) + ' FAIL / ' + str(passes) + ' PASS / ' + str(skips) + ' SKIP')
+"
+Result: 0 FAIL / 4 PASS / 16 SKIP
+EXIT:0
+```
+→ 0 FAIL lines; 4 versioned-heading epics PASS (E-19 heading v1.27 == frontmatter v1.27). PASS.
+
+**(6) POINTER-CLASS GATE (D-806 standing Commit-E gate; literal-shell per D-449(a)).**
+
+```
+$ for f in .factory/specs/architecture/decisions/ADR-025*.md \
+           .factory/specs/architecture/decisions/ADR-030*.md; do
+    echo "--- $f ---"
+    grep -nE 'line [0-9]+([–-][0-9]+)? of|at line [0-9]+' "$f" || echo "(no matches)"
+  done
+--- .factory/specs/architecture/decisions/ADR-025-single-writer...md ---
+1708:  line-cite `at line 1181–1182 of hooks-registry.toml` replaced with stable anchor form
+--- .factory/specs/architecture/decisions/ADR-030-pr-manager-merge-operation-integrity-enforcement.md ---
+(no matches)
+EXIT:0
+```
+→ 0 normative-live hits; ADR-025 line 1708 EXEMPT (Changelog historical-by-construction per TD-VSDD-091); ADR-030 clean. PASS.
+
+**(7) STREAK STATUS.**
+
+0/3 (F-P57-001 MEDIUM; streak was already 0/3 entering pass-57; no advancement). Trajectory tail passes 54/55/56/57 = 0,1,1,3 → `→0→1→1→3`. Zero HIGH 17 passes; zero BLOCKER 35. NEXT: E-19 adv pass-58 (fresh context; Iron Law; rubric policies.yaml v1.4.5; perimeter = D-815 delta: VP-094 v1.4 + VP-INDEX v2.63 + full E-19 suite carry-forward; streak 0/3).
+
+Parent-commit: 6716b14b (architect VP-094 v1.3→v1.4 fix burst; factory-artifacts HEAD prior to this D-815 SM closure burst).
+
+### Phase
+
+D-815-E19-ADV-PASS-57-NOT-CLEAN-CLOSED
+
+### Date
+
+2026-07-11
