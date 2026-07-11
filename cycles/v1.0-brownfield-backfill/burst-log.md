@@ -18494,4 +18494,4 @@ No findings closed (POLICY 18 bookkeeping burst — no adversary pass). PRE-W1-I
 
 | Commit | SHA | Contents |
 |--------|-----|----------|
-| D-824 SM single-commit burst (TD-VSDD-053) | `[D-824-BURST-SHA]` | 6 artifact input-hash updates (VP-095/VP-096/BC-4.13.001/BC-5.42.001/BC-2.07.001/S-19.01); STATE.md v5.69→v5.70; decision-log D-824; burst-log D-824 (this entry); 4-index ALL UNCHANGED BC v3.95/VP v2.64/STORY v4.176/ARCH v3.00 |
+| D-824 SM single-commit burst (TD-VSDD-053) | `5438907e` | 6 artifact input-hash updates (VP-095/VP-096/BC-4.13.001/BC-5.42.001/BC-2.07.001/S-19.01); STATE.md v5.69→v5.70; decision-log D-824; burst-log D-824 (this entry); 4-index ALL UNCHANGED BC v3.95/VP v2.64/STORY v4.176/ARCH v3.00 |
