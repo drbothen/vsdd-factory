@@ -1,11 +1,11 @@
 ---
 document_type: behavioral-contract
 level: L3
-version: "1.6"
+version: "1.7"
 status: draft
 producer: product-owner
 timestamp: 2026-07-06T00:00:00Z
-last_amended: "(v1.6) — orchestrator pre-pass-43 consistency sweep (product-owner): §Verification Properties VP-094 row-3 proof-method drift fixed — `unit (WASM test harness; S-19.01)` → `integration (bats; S-19.01)` per VP-INDEX v2.56 canonical proof method. [Prior: (v1.5) — E-19 pass-33 O-P33-001 (product-owner): §Traceability L2 Domain Invariants TBD → none (pipeline-orchestration operational) — sibling-convention alignment (BC-1.17.001/BC-4.13.001/BC-2.07.001 class); input-hash 509c8f8→4fd18a4 (within-burst hash refresh: S-19.01 v1.16 input drift — SW updated S-19.01 after PO computed hash; same-burst correction per D-782/D-783 precedent). [Prior: (v1.4) — E-19 pass-30 F-P30-002 (product-owner): input-hash placeholder retired per POLICY 18 (compute-input-hash --update; real digest); mechanical metadata fix; spec content unchanged. BC-INDEX bump + story cite sweeps state-manager/story-writer same-burst. [Prior: (v1.3) — E-19 pass-22 fix burst F-P22-001 BC leg (product-owner): §Architecture Anchors hooks/pr-manager-completion-guard.wasm → hook-plugins/pr-manager-completion-guard.wasm; ground-truth: hooks-registry.toml plugin field reads hook-plugins/pr-manager-completion-guard.wasm; hook-plugins/ dir confirms WASM present. Anchoring correction only; behavioral content unchanged. BC-INDEX bump state-manager same-burst. [Prior: (v1.2) — W1-validation fix burst F-W1V-001 (product-owner): §Architecture Anchors script paths hooks/ → bin/ per architect ADR-030 §Decision 2/3 adjudication (bin/ = orchestrator-invoked SS-10 CLI tools; hooks/ = dispatcher-fired). [Prior: (v1.1) — E-19 pass-3 PO finalization (product-owner): F-P3-004 §VP Anchors + §Verification Properties VP-TBD → VP-094; F-P3-015 §Traceability CAP-TBD → CAP-033, ADR-TBD → ADR-030. [Prior: (v1.0) — initial creation (product-owner): E-19 pass-2 fix burst Package 2 — pr-manager READY-verdict SHA pinning, stale-verdict detection script, and release-PR merge-strategy guard (story anchor S-19.01); closes L-BB-merge-race-ready-report-stale-head (D-749) + L-BB-release-pr-squash-merge-not-mechanically-enforced (D-750).]]]]]]"
+last_amended: "(v1.7) — S-19.01 F-P7-001 (product-owner): ADR-030 §Decision 3 governed-pass-through wrapper contract mirror (human-directed): §Description (c) expanded with sole-gateway obligation, positional strategy $2, residual ${@:3} governed pass-through, deny-list STRATEGY_SMUGGLING_FORBIDDEN, best-effort-delete note; Invariants 6–7 added; EC-009 added; Canonical Test Vectors 2 new rows. [Prior: (v1.6) — orchestrator pre-pass-43 consistency sweep (product-owner): §Verification Properties VP-094 row-3 proof-method drift fixed — `unit (WASM test harness; S-19.01)` → `integration (bats; S-19.01)` per VP-INDEX v2.56 canonical proof method. [Prior: (v1.5) — E-19 pass-33 O-P33-001 (product-owner): §Traceability L2 Domain Invariants TBD → none (pipeline-orchestration operational) — sibling-convention alignment (BC-1.17.001/BC-4.13.001/BC-2.07.001 class); input-hash 509c8f8→4fd18a4 (within-burst hash refresh: S-19.01 v1.16 input drift — SW updated S-19.01 after PO computed hash; same-burst correction per D-782/D-783 precedent). [Prior: (v1.4) — E-19 pass-30 F-P30-002 (product-owner): input-hash placeholder retired per POLICY 18 (compute-input-hash --update; real digest); mechanical metadata fix; spec content unchanged. BC-INDEX bump + story cite sweeps state-manager/story-writer same-burst. [Prior: (v1.3) — E-19 pass-22 fix burst F-P22-001 BC leg (product-owner): §Architecture Anchors hooks/pr-manager-completion-guard.wasm → hook-plugins/pr-manager-completion-guard.wasm; ground-truth: hooks-registry.toml plugin field reads hook-plugins/pr-manager-completion-guard.wasm; hook-plugins/ dir confirms WASM present. Anchoring correction only; behavioral content unchanged. BC-INDEX bump state-manager same-burst. [Prior: (v1.2) — W1-validation fix burst F-W1V-001 (product-owner): §Architecture Anchors script paths hooks/ → bin/ per architect ADR-030 §Decision 2/3 adjudication (bin/ = orchestrator-invoked SS-10 CLI tools; hooks/ = dispatcher-fired). [Prior: (v1.1) — E-19 pass-3 PO finalization (product-owner): F-P3-004 §VP Anchors + §Verification Properties VP-TBD → VP-094; F-P3-015 §Traceability CAP-TBD → CAP-033, ADR-TBD → ADR-030. [Prior: (v1.0) — initial creation (product-owner): E-19 pass-2 fix burst Package 2 — pr-manager READY-verdict SHA pinning, stale-verdict detection script, and release-PR merge-strategy guard (story anchor S-19.01); closes L-BB-merge-race-ready-report-stale-head (D-749) + L-BB-release-pr-squash-merge-not-mechanically-enforced (D-750).]]]]]]]"
 phase: F3
 inputs:
   - .factory/stories/S-19.01-pr-manager-hardening.md
@@ -26,6 +26,7 @@ modified:
   - "2026-07-09 (v1.4)"
   - "2026-07-09 (v1.5)"
   - "2026-07-09 (v1.6)"
+  - "2026-07-11 (v1.7)"
 deprecated: null
 deprecated_by: null
 replacement: null
@@ -44,7 +45,11 @@ Three mechanically-enforced behaviors close the window between a pr-reviewer's R
 
 **(b) Stale-verdict detection before merge (check-stale-verdict.sh).** Before the orchestrator calls `gh pr merge` on any READY verdict, it MUST invoke `check-stale-verdict.sh <pr_number> <covered_sha>`. The script calls `gh pr view <pr_number> --json headRefOid` and compares the returned SHA against `covered_sha`. If the SHAs differ (PR HEAD advanced since the verdict was issued), the script exits non-zero with diagnostic line `STALE_READY_VERDICT: PR #<pr_number> HEAD <current_sha> != covered_sha <covered_sha>` on stderr. The orchestrator MUST treat a non-zero exit as blocking: re-dispatch pr-reviewer for a fresh review of the new HEAD before any merge action.
 
-**(c) Release-PR merge-strategy guard (enforce-merge-strategy.sh).** The `enforce-merge-strategy.sh` script wraps `gh pr merge`. Before delegating to `gh`, it reads the PR's headRefName via `gh pr view <pr_number> --json headRefName`. If the branch name matches the pattern `^release/v`, the script forces `--merge` (non-squash merge). If the caller supplied `--squash` or `--rebase` alongside a release-branch PR, the script exits non-zero with `RELEASE_PR_SQUASH_FORBIDDEN: branch <name> requires --merge per RELEASING.md`. All non-release-branch PRs delegate the merge flag unchanged to `gh pr merge`.
+**(c) Release-PR merge-strategy guard (enforce-merge-strategy.sh — governed pass-through wrapper).** The `enforce-merge-strategy.sh` script is the **sole gateway** for all `gh pr merge` invocations in the pr-manager operative flow; direct `gh pr merge` calls bypassing this wrapper are a protocol violation (ADR-030 §Decision 3). Invocation: `enforce-merge-strategy.sh <pr_number> [--merge|--squash|--rebase] [residual-args…]`. The merge strategy is owned positionally as `$2`; residual arguments `"${@:3}"` (e.g., `--delete-branch`) are forwarded verbatim to `gh pr merge` after the resolved strategy flag, making the wrapper a faithful governed pass-through for non-strategy flags.
+
+Before forwarding, the wrapper scans `"${@:3}"` against a residual-arg deny-list. Any argument matching a strategy override or privilege-escalation flag — `--squash`, `--merge`, `--rebase`, `--admin` in long form, `=`-fused form (e.g., `--squash=auto`), bare-short form (`-s`, `-m`, `-r`, `-A`), or combined short-flag clusters containing any of those characters — is rejected: the wrapper prints `STRATEGY_SMUGGLING_FORBIDDEN: residual arg <arg> is a strategy or admin flag` to stderr and exits 1 before any `gh` invocation. Non-strategy flags (e.g., `--delete-branch`, `-d`) pass through in residual position.
+
+The release rule is unchanged: before delegating to `gh`, the script reads the PR's headRefName via `gh pr view <pr_number> --json headRefName`. If the branch matches `^release/v`, the strategy resolves to `--merge` regardless of `$2`; if `$2` is `--squash` or `--rebase`, the script exits non-zero with `RELEASE_PR_SQUASH_FORBIDDEN: branch <name> requires --merge per RELEASING.md`. Non-release-branch PRs pass `$2` unchanged. `--delete-branch` may be passed as a residual arg and is forwarded, but merge success is NOT gated on deletion success; see EC-009.
 
 Root lessons codified by this BC: L-BB-merge-race-ready-report-stale-head (D-749) and L-BB-release-pr-squash-merge-not-mechanically-enforced (D-750).
 
@@ -76,6 +81,10 @@ Root lessons codified by this BC: L-BB-merge-race-ready-report-stale-head (D-749
 
 5. **covered_sha format: 40 hex characters, lowercase.** The `pr-manager-completion-guard` hook and `check-stale-verdict.sh` both validate that `covered_sha` is exactly 40 lowercase hex characters. A malformed value (wrong length, non-hex chars) is treated the same as absent: `READY_SHA_MISSING` or `STALE_READY_VERDICT` respectively.
 
+6. **enforce-merge-strategy.sh is the sole gateway for all `gh pr merge` invocations.** The pr-manager operative flow MUST NOT invoke `gh pr merge` directly; all such calls go through `enforce-merge-strategy.sh`. Direct bypass is a protocol violation (ADR-030 §Decision 3). This structural constraint ensures merge-strategy enforcement is architecturally guaranteed rather than prompt-dependent.
+
+7. **Strategy-smuggling via residual args is mechanically rejected.** The wrapper scans `"${@:3}"` against the residual-arg deny-list before any `gh` invocation. Any arg matching `--squash`, `--merge`, `--rebase`, or `--admin` in long, `=`-fused, bare-short (`-s`/`-m`/`-r`/`-A`), or combined-short-cluster form exits 1 with `STRATEGY_SMUGGLING_FORBIDDEN: residual arg <arg> is a strategy or admin flag`. Non-strategy flags (e.g., `--delete-branch`, `-d`) are permitted in residual position.
+
 ## Edge Cases
 
 | ID | Description | Expected Behavior |
@@ -88,6 +97,7 @@ Root lessons codified by this BC: L-BB-merge-race-ready-report-stale-head (D-749
 | EC-006 | `enforce-merge-strategy.sh` invoked with `--merge` on a non-release branch | Script passes `--merge` through unchanged; no enforcement action needed. |
 | EC-007 | pr-manager-completion-guard hook is invoked on a SubagentStop that is NOT a READY verdict | Hook takes no action (READY verdict detection is the trigger; other stop messages pass through). |
 | EC-008 | READY verdict message contains multiple `covered_sha:` occurrences with conflicting values | Hook treats the first 40-hex value matching the `covered_sha:` pattern as authoritative. `check-stale-verdict.sh` requires the single value passed as an argument; ambiguity is the orchestrator's responsibility to resolve before invocation. |
+| EC-009 | `--delete-branch` passed as a residual arg; `gh pr merge` reports success but remote branch deletion fails or emits a false-success "Deleted remote branch" stdout line | Merge success is NOT gated on branch deletion success. Per cli/cli #13380 (non-main worktree partial-failure: GitHub API merge succeeds but local base-checkout step fails) and cli/cli #12980 (false-success stdout regression), the "Deleted remote branch" stdout line MUST NOT be trusted as confirmation of deletion. Caller MUST verify the remote branch is gone by calling `gh api repos/{owner}/{repo}/git/refs/heads/{branch}` and expecting HTTP 404. If the branch persists (non-404), caller issues an explicit `gh api -X DELETE repos/{owner}/{repo}/git/refs/heads/{branch}` as a follow-up. The merged PR state is unaffected by deletion status. |
 
 ## Canonical Test Vectors
 
@@ -109,6 +119,8 @@ Root lessons codified by this BC: L-BB-merge-race-ready-report-stale-head (D-749
 | pr=10, headRefName=`release/v1.0.0-rc.23`, flag=`--rebase` | Prints `RELEASE_PR_SQUASH_FORBIDDEN: ...`; no gh call | non-zero |
 | pr=10, headRefName=`feature/S-19.01`, flag=`--squash` | Delegates `gh pr merge 10 --squash` unchanged | 0 (pass-through) |
 | pr=10, headRefName=`release/v1.0.0-rc.23`, no flag supplied | Defaults to `--merge`; delegates `gh pr merge 10 --merge` | 0 |
+| pr=10, headRefName=`release/v1.0.0-rc.23`, flag=`--merge`, residual=`--delete-branch` | Deny-list passes (`--delete-branch` is non-strategy); delegates `gh pr merge 10 --merge --delete-branch` | 0 (pass-through) |
+| pr=10, headRefName=`feature/S-19.01`, flag=`--squash`, residual=`--squash` | Deny-list rejects residual `--squash` before branch check; prints `STRATEGY_SMUGGLING_FORBIDDEN: residual arg --squash is a strategy or admin flag`; no gh call | non-zero |
 
 ## Related BCs
 
@@ -157,6 +169,7 @@ S-19.01 (pr-manager hardening: READY verdict HEAD-SHA pinning + release-PR merge
 
 | Version | Date | Author | Change |
 |---------|------|--------|--------|
+| 1.7 | 2026-07-11 | product-owner | S-19.01 F-P7-001 (human-directed): ADR-030 §Decision 3 governed-pass-through wrapper contract mirror — §Description (c) expanded with sole-gateway obligation, positional strategy `$2`, residual `"${@:3}"` governed pass-through, deny-list (`STRATEGY_SMUGGLING_FORBIDDEN`); Invariants 6–7 added; EC-009 (best-effort-delete) added; Canonical Test Vectors: 2 new enforce-merge-strategy.sh rows (delete-branch pass-through; residual strategy-smuggling). ADR-030 §Decision 3 cited via stable anchor per POLICY 19. |
 | 1.6 | 2026-07-09 | product-owner | orchestrator pre-pass-43 consistency sweep: §Verification Properties VP-094 row-3 proof-method drift fixed — `unit (WASM test harness; S-19.01)` → `integration (bats; S-19.01)` per VP-INDEX v2.56 canonical proof method. |
 | 1.5 | 2026-07-09 | product-owner | E-19 pass-33 O-P33-001: §Traceability L2 Domain Invariants TBD → none (pipeline-orchestration operational invariant, not L2 domain spec) — sibling-convention alignment (BC-1.17.001/BC-4.13.001/BC-2.07.001 class). Behavioral content unchanged. BC-INDEX bump state-manager same-burst; S-19.01 cite sweep story-writer same-burst. |
 | 1.4 | 2026-07-09 | product-owner | E-19 pass-30 F-P30-002: input-hash placeholder retired per POLICY 18 (compute-input-hash --update; real digest); mechanical metadata fix; spec content unchanged. BC-INDEX bump + story cite sweeps state-manager/story-writer same-burst. |
