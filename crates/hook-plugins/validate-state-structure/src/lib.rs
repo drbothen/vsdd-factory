@@ -3046,4 +3046,95 @@ mod tests {
             v.map(|viol| viol.description)
         );
     }
+
+    // ── F-VSS-002: count must be bounded to leading adjacent run, not EOL ──────
+
+    /// F-VSS-002 PRIMARY RED: the current fix anchors on the `trajectory-tail ` token
+    /// but runs `count_arrow_digit_matches` to end-of-line on the remainder. A banner
+    /// line with trailing `→digit` content AFTER the canonical tail run — such as a
+    /// pass-range annotation `pass-61→62` — inflates the count by 1, producing a false
+    /// "5 components" violation.
+    ///
+    /// Example line: `"D-999 ...; trajectory-tail →2→0→0→0; pass-61→62"`
+    ///
+    /// - `count_target` after token-strip = `"→2→0→0→0; pass-61→62"`
+    /// - `count_arrow_digit_matches(count_target)` = 5 (→2, →0, →0, →0 from tail +
+    ///   →62 from `pass-61→62`): the `;` does NOT stop the full-line count.
+    /// - Correct behavior: count only the LEADING adjacent `→digit` run from the start
+    ///   of `count_target` (`→2→0→0→0` = 4); stop at the first non-adjacent character.
+    ///
+    /// POLICY 11: drives `validate_trajectory_tail`, `extract_trajectory_tail_line`,
+    /// `count_arrow_digit_matches` — real production functions.
+    ///
+    /// RED against current impl (730e5a47; EOL count = 5, false violation fired).
+    /// GREEN after the leading-adjacent-run-bounded fix.
+    ///
+    /// F-VSS-003 note: `trajectory-tail:` (spaceless, colon-separated) is NOT a
+    /// plausible real STATE.md form — the canonical form always uses
+    /// `trajectory-tail <space>→...`. No test added for F-VSS-003; the `.find`
+    /// fallback to full-line count is acceptable for non-canonical spellings, which
+    /// cannot appear in production STATE.md.
+    #[test]
+    fn test_BC_5_39_005_f_vss_002_trailing_arrow_after_tail_false_5_count_red() {
+        // Banner line: canonical 4-component tail followed by `; pass-61→62`.
+        // The `→62` in `pass-61→62` is an `→digit` match that end-of-line counting
+        // picks up, inflating the count to 5.
+        let banner_line = "D-999 fix-burst burst-E; trajectory-tail \u{2192}2\u{2192}0\u{2192}0\u{2192}0; pass-61\u{2192}62";
+
+        // Precondition A: verify that count_arrow_digit_matches on the count_target
+        // substring (what the current fix passes to the counter) returns 5.
+        // This confirms the EOL-count bug is present and the test exercises it.
+        let token = "trajectory-tail ";
+        let count_target = banner_line
+            .find(token)
+            .map(|pos| &banner_line[pos + token.len()..])
+            .expect("token must be present in banner_line");
+        assert_eq!(
+            count_target, "\u{2192}2\u{2192}0\u{2192}0\u{2192}0; pass-61\u{2192}62",
+            "precondition: count_target must be the substring after 'trajectory-tail '"
+        );
+        let eol_count = count_arrow_digit_matches(count_target);
+        assert_eq!(
+            eol_count, 5,
+            "precondition: EOL count on count_target must be 5 \
+             (→2→0→0→0 = 4 + →62 from pass-61→62 = 5); confirms F-VSS-002 bug present"
+        );
+
+        // Precondition B: the LEADING adjacent run of count_target is exactly 4.
+        // Documents the target behavior: a run-bounded count stops at `;`.
+        // count_arrow_digit_matches on just the leading portion returns 4.
+        let leading_tail_only = "\u{2192}2\u{2192}0\u{2192}0\u{2192}0";
+        assert_eq!(
+            count_arrow_digit_matches(leading_tail_only),
+            4,
+            "precondition: count of the leading adjacent run →2→0→0→0 must be 4; \
+             this is the count a run-bounded fix must produce"
+        );
+
+        // Wrap in a minimal SIZE BUDGET banner so extract_trajectory_tail_line
+        // picks this line up from the banner block (primary extraction path).
+        let content =
+            format!("<!--\n  STATE.md SIZE BUDGET (per D-421(c)):\n  {banner_line}\n-->\n");
+
+        // Confirm the line is identified as a tail line (i.e., the test exercises the
+        // full validate_trajectory_tail path, not a no-op short-circuit).
+        let found = extract_trajectory_tail_line(&content);
+        assert!(
+            found.is_some(),
+            "extract_trajectory_tail_line must find the trailing-arrow banner line; got None"
+        );
+
+        // PRIMARY ASSERTION (RED): validate_trajectory_tail must return None.
+        // The canonical tail →2→0→0→0 has exactly 4 components; `pass-61→62` is
+        // metadata, not part of the tail. A leading-adjacent-run-bounded count = 4.
+        // Current EOL-count impl returns "5 components" — FALSE FAIL.
+        let v = validate_trajectory_tail(&content);
+        assert!(
+            v.is_none(),
+            "trajectory-tail →2→0→0→0 with trailing pass-61→62 annotation MUST pass \
+             (4 leading adjacent components); validate_trajectory_tail must return None; \
+             got violation: {:?}",
+            v.map(|viol| viol.description)
+        );
+    }
 }
