@@ -2,7 +2,7 @@
 document_type: architecture-decision-record
 level: L3
 adr_id: ADR-030
-version: "1.3"
+version: "1.4"
 title: "ADR-030: pr-manager merge-operation integrity enforcement"
 status: accepted
 date: 2026-07-06
@@ -24,8 +24,9 @@ subsystems_affected:
   - SS-05
   - SS-07
   - SS-10
-last_amended: "2026-07-08 (v1.3) — F-P23-001 close (architect): Decision 1 canonical registry TOML rewritten to live [[hooks]] array-of-tables format; tool = and tier = fields removed (invalid for SubagentStop entries); on_error corrected \"advisory\" → \"continue\" (advisory-block-mode semantics via stdout {\"outcome\":\"block\"} line; on_error controls crash semantics only); priority corrected 150 → 920; timeout_ms = 5000 and name = added per [[hooks]] convention; F-P22-003 ^Agent$ fix superseded (tool = field removed entirely); Trigger line and Behavior prose reconciled to advisory-block-mode pattern and plugin-logic agent scoping. [Prior: 2026-07-08 (v1.2) — F-P22-003 close (architect): Decision 1 canonical registry TOML tool field corrected ^Agent → ^Agent$ (fully-anchored singleton form per S-19.04 D-f convention; prevents substring match on AgentX-style tool names). [Prior: 2026-07-08 (v1.1) — W1-validation adjudication (architect): F-W1V-001 → bin/ confirmed (orchestrator-invoked; not dispatcher-fired; bin/ precedent factory-lock-write.sh/factory-cas-push.sh); F-W1V-002 → positional signatures + BC diagnostic wording adopted (spec-wins discipline); F-W1V-003 → named error codes (READY_SHA_FETCH_FAILED, READY_SHA_MISSING per BC test vectors) + CHECK_STALE_VERDICT_ERROR catch-all retained for non-BC-asserted arms; F-W1V-004 → exit 1 (aligns S-19.01 AC-002/RG-003; satisfies BC non-zero). [Prior: 2026-07-06 (v1.0) — initial authorship (E-19 adv-P3 F-P3-015 close-out: no existing ADR covers pr-manager merge-operation integrity domain; D-749, D-750, F-P2-002 transcribed; three-component enforcement architecture decided).]]]"
+last_amended: "2026-07-11 (v1.4) — §D3 governed-pass-through contract (S-19.01 F-P7-001; research-informed; human-directed spec-evolution): Decision 3 heading updated; strategy fixed to positional $2; residual args ${@:3} forwarded verbatim as faithful sole-gateway; deny-list added rejecting --squash/--merge/--rebase/--admin in all forms (long, =-fused, bare short, combined short-cluster) with STRATEGY_SMUGGLING_FORBIDDEN exit 1; best-effort-with-verify branch-deletion obligation codified (cli/cli #13380 worktree partial-failure + #12980 false-success stdout; caller verifies via gh api ref 404, falls back to explicit DELETE); bash-3.2 idiom noted (case globs + ${@:3} empty-slice safe). [Prior: 2026-07-08 (v1.3) — F-P23-001 close (architect): Decision 1 canonical registry TOML rewritten to live [[hooks]] array-of-tables format; tool = and tier = fields removed (invalid for SubagentStop entries); on_error corrected \"advisory\" → \"continue\" (advisory-block-mode semantics via stdout {\"outcome\":\"block\"} line; on_error controls crash semantics only); priority corrected 150 → 920; timeout_ms = 5000 and name = added per [[hooks]] convention; F-P22-003 ^Agent$ fix superseded (tool = field removed entirely); Trigger line and Behavior prose reconciled to advisory-block-mode pattern and plugin-logic agent scoping. [Prior: 2026-07-08 (v1.2) — F-P22-003 close (architect): Decision 1 canonical registry TOML tool field corrected ^Agent → ^Agent$ (fully-anchored singleton form per S-19.04 D-f convention; prevents substring match on AgentX-style tool names). [Prior: 2026-07-08 (v1.1) — W1-validation adjudication (architect): F-W1V-001 → bin/ confirmed (orchestrator-invoked; not dispatcher-fired; bin/ precedent factory-lock-write.sh/factory-cas-push.sh); F-W1V-002 → positional signatures + BC diagnostic wording adopted (spec-wins discipline); F-W1V-003 → named error codes (READY_SHA_FETCH_FAILED, READY_SHA_MISSING per BC test vectors) + CHECK_STALE_VERDICT_ERROR catch-all retained for non-BC-asserted arms; F-W1V-004 → exit 1 (aligns S-19.01 AC-002/RG-003; satisfies BC non-zero). [Prior: 2026-07-06 (v1.0) — initial authorship (E-19 adv-P3 F-P3-015 close-out: no existing ADR covers pr-manager merge-operation integrity domain; D-749, D-750, F-P2-002 transcribed; three-component enforcement architecture decided).]]]]"
 modified:
+  - "2026-07-11 (v1.4)"
   - "2026-07-08 (v1.3)"
   - "2026-07-08 (v1.2)"
   - "2026-07-08 (v1.1)"
@@ -152,23 +153,74 @@ to stderr, exits 1 (fail-closed). Error-path taxonomy (all exit 1, fail-closed):
 verify exit 0 before invoking `gh pr merge` for any PR with a READY verdict. Merging
 without this check is a BC-5.42.001 violation.
 
-### Decision 3: bin/enforce-merge-strategy.sh — release-PR merge-strategy enforcement wrapper
+### Decision 3: bin/enforce-merge-strategy.sh — governed pass-through release-PR merge-strategy wrapper
 
 A new shell script `plugins/vsdd-factory/bin/enforce-merge-strategy.sh` is added as an
-SS-10 CLI bin tool. It wraps `gh pr merge` and enforces `--merge` for release-branch PRs.
+SS-10 CLI bin tool. It wraps `gh pr merge`, enforces `--merge` for release-branch PRs, and
+serves as the **sole gateway** for all `gh pr merge` invocations from the pr-manager
+operative flow (Step 8 and equivalents).
 
 **Invocation:** `enforce-merge-strategy.sh <pr_number> [--merge|--squash|--rebase]`
 
+The signature is fixed and positional. `$1` is the PR number. `$2` is the explicit strategy
+flag (`--merge`, `--squash`, or `--rebase`); the strategy is owned as `$2` — it is never
+sniffed from a free-form argument list. Residual arguments `"${@:3}"` are forwarded verbatim
+to `gh pr merge` after the resolved strategy flag, making the wrapper a faithful sole
+gateway — for example, `--delete-branch` passes through as a residual arg.
+
+**Residual-arg deny-list (strategy-smuggling prevention):** Before forwarding, the wrapper
+scans `"${@:3}"` and rejects any argument that matches a strategy override or
+privilege-escalation flag. Rejected forms:
+
+- Long flags: `--squash`, `--merge`, `--rebase`, `--admin`
+- `=`-fused long flags (e.g., `--squash=auto`, `--merge=...`)
+- Bare short flags: `-s`, `-m`, `-r`, `-A`
+- Combined short-flag clusters containing `s`, `m`, `r`, or `A`
+  (gh/cobra splits clusters — `-sd` is equivalent to `-s -d`; a cluster containing any
+  strategy or admin character is rejected as a whole)
+
+On rejection: prints `STRATEGY_SMUGGLING_FORBIDDEN: residual arg <arg> is a strategy or
+admin flag` to stderr and exits 1. `--delete-branch`/`-d` and all other non-strategy,
+non-admin flags are permitted in residual args.
+
+Rationale: blind `"$@"` forwarding would allow a second `--squash` flag to reach
+`gh pr merge` on a release PR through the residual args, recreating the D-750 defect in a
+new location.
+
+**Implementation idiom (bash-3.2 compatible):**
+- Forward residual via positional slice: `"${@:3}"` (empty slice does not trip `set -u`)
+- Deny-list enforcement via `case` glob patterns (no associative arrays; no `mapfile`)
+
 **Behavior:**
-1. Calls `gh pr view <pr_number> --json headRefName` to obtain the branch name.
-2. If branch matches `^release/v`: if `--squash` or `--rebase` was passed, prints
+1. Calls `gh pr view <pr_number> --json headRefName` to obtain the head branch name.
+2. Scans `"${@:3}"` against the residual-arg deny-list (above); exits 1 with
+   `STRATEGY_SMUGGLING_FORBIDDEN` if any residual arg matches.
+3. If branch matches `^release/v`: if `$2` is `--squash` or `--rebase`, prints
    `RELEASE_PR_SQUASH_FORBIDDEN: branch <branch_name> requires --merge per RELEASING.md`
-   to stderr and exits 1. Otherwise forces `--merge` regardless of flags passed.
-3. If branch does NOT match `^release/v`: passes strategy flags through unchanged.
-4. Invokes `gh pr merge` with final flags; propagates gh's exit code.
+   to stderr and exits 1. Otherwise resolves strategy to `--merge` regardless of `$2`.
+4. If branch does NOT match `^release/v`: resolved strategy is `$2` unchanged.
+5. Invokes `gh pr merge <pr_number> <resolved_strategy> "${@:3}"`; propagates gh's exit
+   code.
+
+**Branch deletion — best-effort-with-verify, not assumed:** `--delete-branch` may be
+passed in residual args and is forwarded. However, per cli/cli issue #13380 (worktree
+partial-failure: the GitHub API merge call succeeds but the local base-checkout step fails
+when invoked from a non-main worktree — as in this repository's `.worktrees/` merge
+pattern) and issue #12980 (false-success stdout regression where "Deleted remote branch"
+may appear in gh output without the deletion having completed), merge success MUST NOT be
+gated on branch deletion success, and the "Deleted remote branch" stdout line MUST NOT be
+trusted as confirmation. The caller of `enforce-merge-strategy.sh` MUST:
+
+- Verify merge success independently (e.g., `gh pr view <pr_number> --json state` →
+  expect `"merged"`), not infer it from branch-deletion stdout.
+- After a successful merge, verify the remote branch is actually gone by calling
+  `gh api repos/{owner}/{repo}/git/refs/heads/{branch}` and expecting HTTP 404.
+- If the remote branch persists (non-404), issue an explicit
+  `gh api -X DELETE repos/{owner}/{repo}/git/refs/heads/{branch}` as a follow-up,
+  rather than assuming deletion succeeded.
 
 Branch name resolution failure is fail-open (treat as non-release; the release guard
-requires affirmative `^release/v` match — a resolution failure cannot bypass release
+requires an affirmative `^release/v` match — a resolution failure cannot bypass release
 enforcement by causing a false non-match, because release enforcement only fires on
 positive match).
 
@@ -234,6 +286,11 @@ couple unrelated invariants and complicate independent testability.
   This is a caller obligation, not an automatic guard.
 - `enforce-merge-strategy.sh` requires one additional `gh pr view` call before the
   merge call (~500ms p50 additional latency per merge invocation).
+- The residual-arg deny-list scan adds an O(n) pass over `"${@:3}"` args at wrapper
+  entry, where n is typically 1–3 args — negligible in practice.
+- Branch deletion is best-effort-with-verify: the caller must independently verify the
+  remote branch is gone via `gh api` ref-check (expecting HTTP 404) and fall back to an
+  explicit DELETE if it persists. This adds one API call per story branch teardown.
 - Residual stale-verdict window: a push could arrive between `check-stale-verdict.sh`
   and the `gh pr merge` call. The window is accepted: it is deterministically bounded
   (execution time of the two scripts) rather than unbounded.
@@ -316,6 +373,7 @@ Tools and Bin) — `check-stale-verdict.sh` and `enforce-merge-strategy.sh` bin 
 
 | Version | Date | Author | Change |
 |---------|------|--------|--------|
+| 1.4 | 2026-07-11 | architect | §D3 S-19.01 F-P7-001 governed-pass-through wrapper contract (research-informed; human-directed spec-evolution): Decision 3 rewritten as sole-gateway wrapper with explicit positional strategy (`$2`) and verbatim residual forwarding (`"${@:3}"`). Deny-list added for strategy-smuggling prevention — any residual arg matching `--squash`/`--merge`/`--rebase`/`--admin` in long, `=`-fused, bare-short (`-s`/`-m`/`-r`/`-A`), or combined-short-cluster form exits 1 with `STRATEGY_SMUGGLING_FORBIDDEN`. Best-effort-with-verify branch-deletion obligation codified: `--delete-branch` is forwarded but merge success MUST NOT be gated on it; caller MUST verify remote branch gone via `gh api` ref → 404 and fall back to explicit DELETE (per cli/cli #13380 worktree partial-failure + #12980 false-success stdout). bash-3.2 idiom: `"${@:3}"` empty-slice safe; deny-list via `case` globs. Section heading updated to "governed pass-through release-PR merge-strategy wrapper". |
 | 1.3 | 2026-07-08 | architect | F-P23-001 close: Decision 1 canonical registry TOML rewritten to live `[[hooks]]` array-of-tables format. Removed `tool =` field (SubagentStop is event-triggered; no tool filter in live entry; F-P22-003 `^Agent$` fix superseded — field removed entirely) and `tier =` field (not a registry field; live uses `async = true\|false` or omits). Corrected `on_error = "advisory"` → `on_error = "continue"` (advisory-block-mode: advisory signal delivered via stdout `{"outcome":"block"}` line; `on_error` controls crash semantics only per `crates/hook-sdk/HOST_ABI.md`). Corrected `priority = 150` → `priority = 920`. Added `name = "pr-manager-completion-guard"` (required per `[[hooks]]` convention) and `timeout_ms = 5000`. Trigger line updated: SubagentStop event; agent scoping performed in plugin logic via `is_pr_manager` substring match (`contains("pr-manager") \|\| contains("pr_manager")`), not a registry-level field. Behavior prose reconciled: advisory-block-mode wording aligned to live inline-comment semantics. Ground-truth: `grep -A 10 'name = "pr-manager-completion-guard"' plugins/vsdd-factory/hooks-registry.toml` → `[[hooks]]` / `name = "pr-manager-completion-guard"` / `event = "SubagentStop"` / `plugin = "hook-plugins/pr-manager-completion-guard.wasm"` / `priority = 920` / `timeout_ms = 5000` / `on_error = "continue"`. |
 | 1.2 | 2026-07-08 | architect | F-P22-003 close: Decision 1 canonical registry TOML `tool` field corrected `^Agent` → `^Agent$`; fully-anchored singleton form per S-19.04 D-f convention prevents substring match on `AgentX`-style tool names. Added prose note after TOML block citing S-19.04 D-f convention. |
 | 1.1 | 2026-07-08 | architect | W1-validation adjudication (F-W1V-001..004). Decision 2: invocation changed from `--pr`/`--covered-sha` named flags to positional `<pr_number> <covered_sha>`; stale diagnostic aligned to BC-5.42.001 PC-2 verbatim (`STALE_READY_VERDICT: PR #<pr_number> HEAD <current_sha> != covered_sha <covered_sha>`); error taxonomy replaced flat `CHECK_STALE_VERDICT_ERROR:` catch-all with named BC codes (`READY_SHA_FETCH_FAILED` for gh failure, `READY_SHA_MISSING` for malformed arg) plus `CHECK_STALE_VERDICT_ERROR` retained for non-BC-asserted arms; exit 2 → exit 1. Decision 3: invocation changed from `--pr`/flags form to positional `<pr_number>`; `RELEASE_PR_SQUASH_FORBIDDEN` diagnostic aligned to BC wording (`branch <branch_name> requires --merge per RELEASING.md`); exit 2 → exit 1. F-W1V-001 ruling: bin/ confirmed correct (both scripts are orchestrator-invoked, not dispatcher-fired; hooks-registry.toml does not register them; precedent bin/ tools factory-lock-write.sh/factory-cas-push.sh apply). Propagation directives issued for BC-5.42.001 §Architecture Anchors and S-19.01 §Architecture Mapping + §File Structure. |
