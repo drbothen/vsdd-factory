@@ -71,8 +71,17 @@ pub fn register(linker: &mut Linker<HostContext>) -> Result<(), HostCallError> {
 /// All of write_file's host-side logic that doesn't touch guest memory,
 /// split out so it's unit-testable without a live wasm instance.
 ///
+/// `pub(crate)` so that `invoke.rs`'s `setup_host_on_store_data` can
+/// delegate to this function instead of maintaining a duplicate inline
+/// allowlist check (F-S1903-P6-001 dedup; mirrors `read_file::prepare`).
+///
 /// BC-2.02.011 postconditions 1-5.
-fn prepare(ctx: &HostContext, path: &str, contents: &[u8], max_bytes: u32) -> Result<(), i32> {
+pub(crate) fn prepare(
+    ctx: &HostContext,
+    path: &str,
+    contents: &[u8],
+    max_bytes: u32,
+) -> Result<(), i32> {
     // Postcondition 1: deny-by-default capability check (BC-2.02.011 §1).
     let caps = ctx.capabilities.write_file.as_ref().ok_or_else(|| {
         emit_denial(ctx, path, "no_write_file_capability", None);
