@@ -2797,4 +2797,216 @@ mod tests {
              when no archive preamble is present; got None"
         );
     }
+
+    // ── vss-fix: trajectory-tail count must anchor on token, ignore streak arrow ──
+
+    /// vss-fix PRIMARY RED: a banner line containing BOTH a streak fraction arrow
+    /// (`streak 0/3→1/3`) AND the canonical `trajectory-tail →3→2→0→0` token causes
+    /// `count_arrow_digit_matches` to find 5 `→digit` matches when applied to the
+    /// full line (1 from streak `→1` + 4 from tail `→3→2→0→0`).
+    /// `validate_trajectory_tail` currently fires a FALSE "5 components" violation.
+    ///
+    /// The canonical tail portion `→3→2→0→0` IS exactly 4 components. A correct
+    /// token-anchored count (anchoring on the `trajectory-tail ` literal) returns 4
+    /// and `validate_trajectory_tail` must return None.
+    ///
+    /// Realistic banner line mirrors actual STATE.md D-810..D-823 pass-61 burst form.
+    ///
+    /// POLICY 11: drives `count_arrow_digit_matches`, `extract_trajectory_tail_line`,
+    /// and `validate_trajectory_tail` — real production functions.
+    ///
+    /// RED against current impl (full-line count=5, false violation fired).
+    /// GREEN after the token-anchored fix.
+    #[test]
+    fn test_BC_5_39_005_streak_plus_canonical_tail_false_5_count_red() {
+        // Realistic banner line: streak fraction arrow precedes the trajectory-tail token.
+        // streak 0/3→1/3 contributes one →digit match (→1, since `3` before → fires
+        // F-P3-001 in has_adjacent_arrow_digit_run keeping it OUT of the adjacent run,
+        // but count_arrow_digit_matches counts it unconditionally).
+        // trajectory-tail →3→2→0→0 contributes four →digit matches.
+        let banner_line = "D-823 fix-burst burst-A-D complete; streak 0/3\u{2192}1/3; \
+             trajectory-tail \u{2192}3\u{2192}2\u{2192}0\u{2192}0; pass-61 NEXT";
+
+        // Precondition: current impl over-counts to 5 on the full line (confirms bug present).
+        let full_count = count_arrow_digit_matches(banner_line);
+        assert_eq!(
+            full_count, 5,
+            "precondition: count_arrow_digit_matches on the full banner line must find 5 \
+             (→1 from streak + →3→2→0→0 from tail = 5); confirms the over-count bug is present"
+        );
+
+        // Also verify that count_arrow_digit_matches on just the tail portion returns 4.
+        // This documents what a token-anchored implementation must achieve.
+        let tail_portion = "\u{2192}3\u{2192}2\u{2192}0\u{2192}0";
+        assert_eq!(
+            count_arrow_digit_matches(tail_portion),
+            4,
+            "count_arrow_digit_matches on the isolated tail →3→2→0→0 must return 4; \
+             a token-anchored fix must produce this count for the full banner line"
+        );
+
+        // Wrap in a minimal SIZE BUDGET banner document so extract_trajectory_tail_line
+        // picks the line up from the banner block (primary extraction path).
+        let content =
+            format!("<!--\n  STATE.md SIZE BUDGET (per D-421(c)):\n  {banner_line}\n-->\n");
+
+        // Confirm extract_trajectory_tail_line returns the streak+tail line
+        // (not None and not a different line), driving that production function too.
+        let found_tail = extract_trajectory_tail_line(&content);
+        assert!(
+            found_tail.is_some(),
+            "extract_trajectory_tail_line must find a tail in the streak+tail banner; got None"
+        );
+        assert!(
+            found_tail.as_ref().unwrap().contains("trajectory-tail"),
+            "extracted tail line must contain the 'trajectory-tail' token; \
+             got: {:?}",
+            found_tail
+        );
+
+        // PRIMARY ASSERTION (RED): validate_trajectory_tail must return None.
+        // The canonical trajectory-tail token holds exactly 4 components; the streak
+        // arrow must NOT inflate the count. Current impl fails here with "5 components".
+        let v = validate_trajectory_tail(&content);
+        assert!(
+            v.is_none(),
+            "streak + canonical trajectory-tail →3→2→0→0 MUST pass (4 components); \
+             validate_trajectory_tail must return None; got violation: {:?}",
+            v.map(|viol| viol.description)
+        );
+    }
+
+    /// vss-fix PRIMARY RED (CONVERGED form): mirrors the exact banner line form from the
+    /// bug report — `streak 2/3→3/3 CONVERGED` — where the streak arrow contributes `→3`
+    /// and the tail `trajectory-tail →2→0→0→0` contributes four components.
+    ///
+    /// Current impl counts all five `→digit` matches on the full line and fires a false
+    /// "5 components" violation. After the token-anchored fix it must return None.
+    ///
+    /// Mirrors actual STATE.md D-829 CONVERGED form per bug report.
+    ///
+    /// RED against current impl. GREEN after fix.
+    #[test]
+    fn test_BC_5_39_005_converged_streak_form_false_5_count_red() {
+        // CONVERGED streak form: "streak 2/3→3/3 CONVERGED" contributes →3 (one →digit match).
+        // trajectory-tail →2→0→0→0 contributes four →digit matches.
+        // Total via full-line count: 5. Correct token-anchored count: 4.
+        let banner_line = "D-829 fix-burst burst-E complete; streak 2/3\u{2192}3/3 CONVERGED; \
+             trajectory-tail \u{2192}2\u{2192}0\u{2192}0\u{2192}0; pass-61 NEXT";
+
+        // Precondition: full-line count is 5 (1 streak + 4 tail).
+        let full_count = count_arrow_digit_matches(banner_line);
+        assert_eq!(
+            full_count, 5,
+            "precondition: CONVERGED streak form must yield count=5 on full line \
+             (→3 from streak + →2→0→0→0 from tail = 5)"
+        );
+
+        let content =
+            format!("<!--\n  STATE.md SIZE BUDGET (per D-421(c)):\n  {banner_line}\n-->\n");
+
+        // PRIMARY ASSERTION (RED): must return None after fix.
+        let v = validate_trajectory_tail(&content);
+        assert!(
+            v.is_none(),
+            "CONVERGED streak + canonical trajectory-tail →2→0→0→0 MUST pass (4 components); \
+             validate_trajectory_tail must return None; got violation: {:?}",
+            v.map(|viol| viol.description)
+        );
+    }
+
+    /// vss-fix REGRESSION GUARD: a banner line containing a streak arrow but NO
+    /// `trajectory-tail` token must NOT be falsely identified as a trajectory tail.
+    ///
+    /// A streak-only line has exactly 1 `→digit` match (< 3 threshold), so
+    /// `is_trajectory_tail_line` correctly returns false.
+    ///
+    /// GREEN before and after fix (the fix must not introduce false-positive tail
+    /// detection on streak-only lines).
+    #[test]
+    fn test_BC_5_39_005_streak_only_no_tail_token_not_a_tail_line() {
+        // Streak arrow only — no trajectory-tail token present.
+        let streak_only_line =
+            "D-823 fix-burst burst-A complete; streak 0/3\u{2192}1/3; pass-61 NEXT";
+
+        // Exactly 1 →digit match — below the is_trajectory_tail_line threshold of 3.
+        assert_eq!(
+            count_arrow_digit_matches(streak_only_line),
+            1,
+            "streak-only line must have exactly 1 →digit match"
+        );
+        assert!(
+            !is_trajectory_tail_line(streak_only_line),
+            "streak-only line must NOT qualify as a trajectory tail line \
+             (only 1 →digit match, below threshold of 3)"
+        );
+
+        // A document with only this streak-only line in the banner and no body tail
+        // must yield None from extract_trajectory_tail_line (no tail found anywhere).
+        let content = format!(
+            "<!--\n  STATE.md SIZE BUDGET (per D-421(c)):\n  {streak_only_line}\n-->\nsome body\n"
+        );
+        let tail = extract_trajectory_tail_line(&content);
+        assert!(
+            tail.is_none(),
+            "streak-only banner + empty body must yield no trajectory tail; got: {:?}",
+            tail
+        );
+    }
+
+    /// vss-fix REGRESSION GUARD: a line with a GENUINELY wrong trajectory-tail (5 real
+    /// components in the `trajectory-tail` token itself) must STILL fail cardinality
+    /// validation after the token-anchored fix.
+    ///
+    /// Ensures the fix does not over-relax and allow genuine over-count tails to pass.
+    ///
+    /// GREEN before and after fix (correctly fails today; must continue to fail after fix).
+    #[test]
+    fn test_BC_5_39_005_genuine_5component_tail_still_fails_after_fix() {
+        // No streak arrow — five genuine components after the trajectory-tail token.
+        // Current impl: count_arrow_digit_matches on full line = 5 → correctly fires.
+        // After token-anchored fix: count on tail portion "→1→2→3→4→5" = 5 → still fires.
+        let banner_line = "trajectory-tail \u{2192}1\u{2192}2\u{2192}3\u{2192}4\u{2192}5";
+
+        let content =
+            format!("<!--\n  STATE.md SIZE BUDGET (per D-421(c)):\n  {banner_line}\n-->\n");
+
+        let v = validate_trajectory_tail(&content);
+        assert!(
+            v.is_some(),
+            "genuine 5-component trajectory-tail (→1→2→3→4→5) must STILL fail after \
+             the token-anchored fix; got None"
+        );
+        let viol = v.unwrap();
+        assert!(
+            viol.description.contains('5'),
+            "violation must name the count 5; got: {}",
+            viol.description
+        );
+        assert!(
+            viol.description.contains("D-433"),
+            "violation must cite D-433(e); got: {}",
+            viol.description
+        );
+    }
+
+    /// vss-fix REGRESSION GUARD: a clean canonical `trajectory-tail →9→9→9→9` banner line
+    /// with no streak arrow must continue to PASS (the fix must not break clean inputs).
+    ///
+    /// GREEN before and after fix.
+    #[test]
+    fn test_BC_5_39_005_clean_canonical_tail_4components_regression_guard() {
+        let banner_line = "trajectory-tail \u{2192}9\u{2192}9\u{2192}9\u{2192}9";
+
+        let content =
+            format!("<!--\n  STATE.md SIZE BUDGET (per D-421(c)):\n  {banner_line}\n-->\n");
+
+        let v = validate_trajectory_tail(&content);
+        assert!(
+            v.is_none(),
+            "clean canonical trajectory-tail →9→9→9→9 must PASS (no violation); \
+             got: {:?}",
+            v.map(|viol| viol.description)
+        );
+    }
 }
