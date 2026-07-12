@@ -10030,3 +10030,23 @@ D-827-W1-SPEC-EVOLUTION-RECONCILE
 ### Date
 
 2026-07-11
+
+---
+
+## D-828
+
+### Decision
+
+W1-RECONCILE-2: POLICY 14 leg-5 for two spec/story bumps landed since D-827. (1) POLICY 16 GLOBAL-MAX GATE: `## D-827` confirmed max → D-828 allocated. (2) VP-097 v1.3→v1.4 verified at HEAD (arch-vp 7fdf8297): containment-gate anchor re-pointed read_file→path_util (S-19.03 F-P2-001 hoist follow-up; shared read/write host fn path_util canonical entry; input-hash f482502 unchanged). (3) S-19.02 v1.17→v1.18 verified at HEAD (sw-ec017 7c32459b): EC-017 propagation + BC-4.13.001 v1.14→v1.15 cite sweep (D-827 follow-up); input-hash 604f45d→bb1288e. (4) POLICY 14 leg-5: VP-INDEX v2.65→v2.66 (VP-097 Full Index + Story Anchors v1.4 cell appended); STORY-INDEX v4.176→v4.177 (S-19.02 v1.18 cell + wave-summary bb1288e + BC coverage v1.15). (5) POLICY 9 PASS: VP-097 H1 title UNCHANGED (grep confirmed; verification-architecture.md + verification-coverage-matrix.md rows match pre-existing form; no same-burst propagation required). (6) D-803 EPIC-HEADING-PARITY GATE PASS: 11 epics with version-headings (E-9..E-19) all match file frontmatter versions; 0 FAIL. (7) E-19 convergence NOT RESET: human-approved same-cycle spec evolution; per-story cascades unchanged. (8) 4-INDEX: BC v3.96/VP v2.66/STORY v4.177/ARCH v3.00. Parent-commit: 640e9164 (D-827 SHA-patch+ close backfill).
+
+### Summary
+
+POLICY 14 leg-5 reconcile for VP-097 v1.4 (arch-vp 7fdf8297) and S-19.02 v1.18 (sw-ec017 7c32459b); VP-INDEX v2.65→v2.66; STORY-INDEX v4.176→v4.177; POLICY 9 PASS; D-803 heading-parity 11/11 PASS; E-19 convergence NOT RESET.
+
+### Phase
+
+D-828-W1-RECONCILE-2
+
+### Date
+
+2026-07-12

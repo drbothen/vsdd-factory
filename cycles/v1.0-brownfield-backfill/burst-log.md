@@ -18727,3 +18727,116 @@ No findings closed (spec-evolution reconcile burst — no adversary pass, no fin
 | D-827 SM single-commit burst (TD-VSDD-053) | `e198b026` | BC-INDEX v3.96 + VP-INDEX v2.65 (POLICY 14 leg-5: BC-4.13.001 v1.15 + VP-096 v1.2 + VP-097 v1.3 cells); decision-log D-827; STATE.md v5.72→v5.73; burst-log D-827 (this entry); 4-index BC v3.96/VP v2.65/STORY v4.176/ARCH v3.00 |
 | D-827 SHA-patch | `6a30f7b8` | STATE.md Active Branches factory-artifacts HEAD → e198b026 |
 | D-827 SHA-patch+ close | `67274e11` | STATE.md Active Branches 6a30f7b8 + SRC §Artifact Versions D-827 Closure + burst-log Block 8 SHA-patch+ close |
+
+---
+
+## D-828 W1-RECONCILE-2
+
+**D-828 combined reconcile burst — POLICY 14 leg-5 for VP-097 v1.4 + S-19.02 v1.18. 2026-07-12. Parent-commit: 640e9164 (D-827 SHA-patch+ close backfill).**
+
+### Block 1: Parent-commit
+
+Parent-commit: `640e9164` (D-827 SHA-patch+ close backfill — factory-artifacts HEAD at D-828 dispatch). factory-artifacts chain: `e198b026` (D-827 burst) → `6a30f7b8` (D-827 SHA-patch) → `67274e11` (D-827 SHA-patch+ close) → `640e9164` (D-827 SHA-patch+ close backfill) → D-828 burst (this commit).
+
+### Block 2: Adversary verdict
+
+**No adversary pass this burst** — D-828 is a state-manager spec-evolution reconcile burst. No adversary was dispatched. Gate evidence per D-449(a) literal-shell:
+
+**POLICY 16 GLOBAL-MAX GATE:**
+```
+$ grep "^## D-[0-9]" .factory/cycles/v1.0-brownfield-backfill/decision-log.md | tail -5
+## D-824 — PRE-W1-INPUT-DRIFT-GATE-RESOLVED (POLICY 18 bookkeeping; 6 E-19 artifact input-hashes acknowledged post-convergence)
+## D-825 — W1-TDD-DISPATCHED (human gate approval; E-19 W1 parallel dispatch S-19.01+S-19.02+S-19.03; drift-backlog deferral human-directed)
+## D-826
+## D-827
+## D-828
+```
+→ `## D-827` confirmed max at dispatch → D-828 allocated. (D-828 entry appended by prior session before STATE.md advance.) PASS.
+
+**D-494 4-INDEX VERSION GATE:**
+```
+$ grep "^version:" \
+  .factory/specs/verification-properties/VP-INDEX.md \
+  .factory/specs/behavioral-contracts/BC-INDEX.md \
+  .factory/specs/architecture/ARCH-INDEX.md \
+  .factory/stories/STORY-INDEX.md
+.factory/specs/verification-properties/VP-INDEX.md:version: "2.66"
+.factory/stories/STORY-INDEX.md:version: "4.177"
+.factory/specs/architecture/ARCH-INDEX.md:version: "3.00"
+.factory/specs/behavioral-contracts/BC-INDEX.md:version: "3.96"
+```
+→ VP-INDEX v2.66 / BC-INDEX v3.96 / ARCH-INDEX v3.00 / STORY-INDEX v4.177. PASS.
+
+**POLICY 9 VP-TITLE CHECK:**
+```
+$ grep -m1 "^# " .factory/specs/verification-properties/VP-097.md
+# path_util::resolve_path_for_allowlist Traversal Defense — .. Sequences Cannot Resolve Outside Allowlist Prefixes
+```
+→ VP-097 H1 title UNCHANGED from v1.3 to v1.4 (anchor re-pointed; no title change). PASS.
+
+**D-803 EPIC HEADING-PARITY GATE (11 epics E-9..E-19):**
+```
+--- D-803 heading-parity gate (normalized) ---
+PASS: E-10 heading=v1.6 file=v1.6
+PASS: E-11 heading=v1.1 file=v1.1
+PASS: E-12 heading=v1.3 file=v1.3
+PASS: E-13 heading=v1.0 file=v1.0
+PASS: E-14 heading=v1.2 file=v1.2
+PASS: E-15 heading=v1.3 file=v1.3
+PASS: E-16 heading=v1.0 file=v1.0
+PASS: E-17 heading=v1.1 file=v1.1
+PASS: E-18 heading=v1.3 file=v1.3
+PASS: E-19 heading=v1.27 file=v1.27
+PASS: E-9 heading=v1.53 file=v1.53
+Total: PASS=11 FAIL=0
+```
+→ 11/11 PASS. PASS.
+
+**D-444(a) CURRENT_STEP GATE:**
+```
+$ grep "^current_step:" .factory/STATE.md
+current_step: "D-828-W1-RECONCILE-2; Phase 3 W1 TDD IN PROGRESS; VP-097 v1.4+S-19.02 v1.18 reconciled; trajectory-tail →2→0→0→0; 4-index BC v3.96/VP v2.66/STORY v4.177/ARCH v3.00; STOP-BEFORE-PR-MERGE per L-BB; parent-commit 640e9164"
+```
+→ Verbatim-strict D-828 form. PASS.
+
+**D-446(a) OWN-BURST-LOG 8-BLOCK GATE:** (run post-append)
+```
+$ awk '/^## D-828 W1-RECONCILE-2/ { in_entry=1 } in_entry && /^### Block [0-9]+:/ { block_count++ } END { print "blocks found: " block_count; if (block_count==8) print "PASS" ; else print "FAIL" }' .factory/cycles/v1.0-brownfield-backfill/burst-log.md
+blocks found: 8
+PASS
+```
+→ 8 blocks confirmed. PASS.
+
+### Block 3: Files touched
+
+| File | Version | Change |
+|------|---------|--------|
+| `.factory/specs/verification-properties/VP-INDEX.md` | v2.66 | POLICY 14 leg-5: VP-097 Full Index v1.4 annotation appended; VP-097 Story Anchors v1.4 appended (arch-vp 7fdf8297) |
+| `.factory/stories/STORY-INDEX.md` | v4.177 | POLICY 14 leg-5: S-19.02 catalog-cell v1.18 leading entry updated; wave-summary input-hash 604f45d→bb1288e; BC coverage v1.15 (sw-ec017 7c32459b) |
+| `.factory/STATE.md` | v5.74 | v5.73→v5.74: frontmatter, banner, current_step, Phase Progress, Current Phase Steps (D-828 added; D-824+D-825 archived), Concurrent Cycles, Decisions Log (D-828 row), §Artifact Versions at D-828 Closure, §4-Index at D-828 Closure, Session Resume Checkpoint |
+| `.factory/cycles/v1.0-brownfield-backfill/decision-log.md` | D-828 | D-828 W1-RECONCILE-2 entry appended (already done in prior session) |
+| `.factory/cycles/v1.0-brownfield-backfill/burst-log.md` | (this entry) | D-828 8-block entry appended (this file) |
+
+### Block 4: Codifications
+
+**D-828 — W1-RECONCILE-2:** Combined POLICY 14 leg-5 reconcile for two W1 spec/story bumps landed since D-827 (factory-artifacts HEAD `7c32459b` at dispatch). VP-097 v1.3→v1.4 (arch-vp 7fdf8297; containment-gate anchor re-pointed read_file→path_util; S-19.03 F-P2-001 hoist follow-up; input-hash f482502 UNCHANGED). S-19.02 v1.17→v1.18 (sw-ec017 7c32459b; EC-017 propagation + BC-4.13.001 v1.14→v1.15 cite sweep; input-hash 604f45d→bb1288e). POLICY 14 leg-5: VP-INDEX v2.65→v2.66; STORY-INDEX v4.176→v4.177. POLICY 9 PASS. D-803 11/11 PASS. E-19 convergence NOT RESET (human-approved same-cycle spec evolution). 4-INDEX: BC v3.96/VP v2.66/STORY v4.177/ARCH v3.00.
+
+### Block 5: Dim-2 Attestations
+
+See Block 2 above. All gates literal-shell with captured stdout per D-449(a): POLICY 16 PASS (D-827 max confirmed → D-828 allocated); D-494 4-index PASS (BC v3.96/VP v2.66/STORY v4.177/ARCH v3.00); POLICY 9 VP-title PASS (VP-097 H1 UNCHANGED v1.3→v1.4); D-803 heading-parity PASS 11/11 (E-9..E-19 all PASS); D-444(a) current_step PASS (verbatim D-828 form); D-446(a) 8-block PASS.
+
+### Block 6: Dim-5 Version Attestation
+
+4-index: BC v3.96 / VP v2.66 / STORY v4.177 / ARCH v3.00. VP-INDEX bumped v2.65→v2.66 (VP-097 v1.4 Full Index + Story Anchors appended). STORY-INDEX bumped v4.176→v4.177 (S-19.02 v1.18 catalog-cell + wave-summary + BC coverage v1.15). BC-INDEX UNCHANGED v3.96. ARCH-INDEX UNCHANGED v3.00.
+
+### Block 7: Closes
+
+EC-017 propagation COMPLETE (D-827 surfaced finding; D-828 confirms sw-ec017 `7c32459b` has landed S-19.02 v1.18 with EC-017 in Edge Cases + BC-4.13.001 v1.15 cite sweep). VP-097 v1.4 reconciled (arch-vp `7fdf8297` containment-gate anchor; LANDED). D-826 Drift Item "[D-826 W1-tracked] Spec-evolution in progress" → FULLY RECONCILED (BC-4.13.001 v1.15 D-827 + VP-096 v1.2 D-827 + VP-097 v1.4 D-828 + EC-017 propagation S-19.02 v1.18 D-828; all items resolved). S-19.02 and S-19.03 cleared for pass-3 per coordinator note.
+
+### Block 8: Factory-artifacts Commits
+
+| Commit | SHA | Contents |
+|--------|-----|----------|
+| D-828 SM single-commit burst (TD-VSDD-053) | `SHA-BURST-PENDING` | VP-INDEX v2.66 + STORY-INDEX v4.177 (POLICY 14 leg-5: VP-097 v1.4 + S-19.02 v1.18 cells); decision-log D-828; STATE.md v5.73→v5.74; burst-log D-828 (this entry); 4-index BC v3.96/VP v2.66/STORY v4.177/ARCH v3.00 |
+| D-828 SHA-patch | `SHA-PATCH-PENDING` | STATE.md Active Branches factory-artifacts HEAD → SHA-BURST-PENDING |
+| D-828 SHA-patch+ close | `SHA-PATCH-PLUS-PENDING` | STATE.md Active Branches SHA-PATCH-PENDING + §Artifact Versions D-828 Closure + burst-log Block 8 SHA-patch+ close |
