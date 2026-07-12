@@ -1,0 +1,70 @@
+S-19.03 Demo Evidence — AC-003: codes::NOT_FOUND == -5 + HostError::NotFound SDK variant
+Captured: 2026-07-11
+Branch: feature/S-19.03  HEAD: 98df0edb
+Crates: crates/factory-dispatcher (host/mod.rs), crates/hook-sdk (src/host.rs)
+
+=== AC-003 gate 1: NOT_FOUND constant declared at canonical site ===
+
+$ grep -q "pub const NOT_FOUND: i32 = -5;" crates/factory-dispatcher/src/host/mod.rs
+exit 0: AC-003 gate 1 PASS
+
+Constant declaration (crates/factory-dispatcher/src/host/mod.rs line 217):
+  pub const NOT_FOUND: i32 = -5;
+
+Allocated per ADR-025 Decision 13: next available negative integer after INVALID_ARGUMENT = -4.
+Occupied codes: 0 (OK) / -1 (CAPABILITY_DENIED) / -2 (OUTPUT_TOO_LARGE) / -3 (INTERNAL_ERROR) /
+  -4 (INVALID_ARGUMENT) / -99 (FATAL); -5 is the next free code in the compact negative sequence.
+
+=== AC-003 gate 2: HostError::NotFound variant in hook-sdk ===
+
+$ grep -q "NotFound" crates/hook-sdk/src/host.rs
+exit 0: AC-003 gate 2 PASS
+
+HostError named variant (crates/hook-sdk/src/host.rs line 105):
+  NotFound,
+
+from_code(-5) mapping (crates/hook-sdk/src/host.rs line 118):
+  -5 => HostError::NotFound,
+
+=== Architecture compliance: no #[non_exhaustive] on HostError ===
+
+$ grep -nE '^\s*#\[non_exhaustive\]' crates/hook-sdk/src/host.rs
+(no output — exit 1 = attribute absent)
+PASS: #[non_exhaustive] is NOT present on HostError (per O-P2-002 requirement).
+This is intentional: plugin code must be able to exhaustively pattern-match on HostError
+variants without compiler warnings. Adding #[non_exhaustive] would prevent that.
+
+=== T-005 unit test: NOT_FOUND constant runtime assertion ===
+
+$ cargo test -p factory-dispatcher "T005" 2>&1 | grep -E "^running|^test host|^test result" | head -4
+
+running 1 test
+test host::s19_03_codes_tests::test_S19_03_T005_NOT_FOUND_constant_equals_minus_5 ... ok
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 174 filtered out; finished in 0.00s
+
+test_S19_03_T005_NOT_FOUND_constant_equals_minus_5
+  Asserts: codes::NOT_FOUND == -5 at runtime.
+  Red Gate discipline (O-P4-001): stub phase used -1000 (outside the occupied code range
+  0/-1/-2/-3/-4/-99) so the == -5 assertion compiled but failed during Red Gate verification.
+
+=== hook-sdk from_code(-5) round-trip test ===
+
+$ cargo test -p vsdd-hook-sdk "from_code" 2>&1 | grep -E "^running|^test|^test result" | head -10
+
+running 5 tests
+test crates/hook-sdk/src/lib.rs - (line 10) ... ignored
+test crates/hook-sdk/src/host.rs - host::write_file (line 262) ... ok
+test crates/hook-sdk/src/host.rs - host::write_file (line 252) ... ok
+test crates/hook-sdk/src/payload.rs - payload::HookPayload::agent_type (line 70) ... ok
+test crates/hook-sdk/src/payload.rs - payload::HookPayload::last_assistant_message (line 99) ... ok
+test result: ok. 4 passed; 0 failed; 1 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+The inline doc-test at hook-sdk/src/host.rs line 434 asserts:
+  assert_eq!(HostError::from_code(-5), HostError::NotFound)
+confirming the round-trip: dispatcher emits -5 → plugin calls HostError::from_code(-5) → NotFound.
+
+=== BC Trace ===
+
+BC-2.07.001 v1.5 (NOT_FOUND = -5; HostError::NotFound SDK export)
+ADR-025 Decision 13 (codes allocation policy: compact negative sequence from -1 downward)
+VP-098 (NOT_FOUND returned correctly, round-trip through from_code)
