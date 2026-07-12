@@ -1653,20 +1653,22 @@ mod tests {
             let callbacks = make_callbacks_success(fixture, "self@example.com", warn_log.clone());
             let payload = payload_for_tool("Edit");
             let result = guard_logic(payload, callbacks);
-            // Read must succeed (not StateReadError).
-            let read_errored = match &result {
-                HookResult::Continue => false,
-                HookResult::Block { .. } => false,
-                // If we had a StateReadError variant surfaced, detect via warn.
-                _ => false,
-            };
             let warns = warn_log.lock().unwrap();
+            // Read must succeed at the cap — no StateReadError in warn log, and the no-lock
+            // fixture must return Continue (not Block). StateReadError surfaces via plugin.log
+            // warn entries, not as a distinct HookResult variant.
             let has_read_error_warn = warns.iter().any(|w| w.contains("StateReadError"));
             assert!(
-                !has_read_error_warn && !read_errored,
-                "T-009 D: 262144-byte fixture must NOT return StateReadError (read succeeds at cap). \
+                !has_read_error_warn,
+                "T-009 D: 262144-byte fixture must NOT produce StateReadError (read succeeds at cap). \
                  Warns: {:?}",
                 warns
+            );
+            assert!(
+                matches!(result, HookResult::Continue),
+                "T-009 D: 262144-byte no-lock fixture must return Continue (read succeeded, no lock held). \
+                 Got: {:?}",
+                result
             );
             assert!(
                 warns.iter().any(|w| w.contains("state_md_approaching_cap")),
