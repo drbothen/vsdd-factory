@@ -18839,4 +18839,4 @@ EC-017 propagation COMPLETE (D-827 surfaced finding; D-828 confirms sw-ec017 `7c
 |--------|-----|----------|
 | D-828 SM single-commit burst (TD-VSDD-053) | `d11d6232` | VP-INDEX v2.66 + STORY-INDEX v4.177 (POLICY 14 leg-5: VP-097 v1.4 + S-19.02 v1.18 cells); decision-log D-828; STATE.md v5.73→v5.74; burst-log D-828 (this entry); 4-index BC v3.96/VP v2.66/STORY v4.177/ARCH v3.00 |
 | D-828 SHA-patch | `605ad6b8` | STATE.md Active Branches factory-artifacts HEAD → d11d6232 |
-| D-828 SHA-patch+ close | `SHA-PATCH-PLUS-PENDING` | STATE.md Active Branches 605ad6b8 + §Artifact Versions D-828 Closure + burst-log Block 8 SHA-patch+ close |
+| D-828 SHA-patch+ close | `28b1071d` | STATE.md Active Branches 605ad6b8 + §Artifact Versions D-828 Closure + burst-log Block 8 SHA-patch+ close |
