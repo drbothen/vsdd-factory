@@ -18937,3 +18937,92 @@ See Block 2 above. All gates literal-shell with captured stdout per D-449(a): PO
 |--------|-----|----------|
 | D-829 SM single-commit burst (TD-VSDD-053) — BURST 2 | `d92f3c29` | ARCH-INDEX v3.01 + BC-INDEX v3.97 + STORY-INDEX v4.178 (POLICY 14 leg-5: ADR-030 v1.4 + BC-5.42.001 v1.7 + S-19.03 v1.20 cells); decision-log D-829; STATE.md v5.75→v5.76; burst-log D-829 (this entry); 4-index BC v3.97/VP v2.66/STORY v4.178/ARCH v3.01 |
 | D-829 SHA-patch+ close | `98d2904c` | STATE.md Active Branches HEAD → d92f3c29; burst-log Block 8 SHA-patch row filled |
+
+---
+
+## D-830 W1-RECONCILE-4 (2026-07-12; SM state-manager)
+
+### Block 1: Parent-commit
+
+`5ec6c65f` — arch-vp097-harness (spec: VP-097 v1.4→v1.5 harness-location reconcile; S-19.03 F-P4-001). Prior: `066f7944` (spec: S-19.01 v1.17→v1.18 BC-5.42.001 v1.7 cite sweep F-P7-001; sw-s1901-cites). Prior SM burst: `f729d7f2` (D-829 SHA-patch+ close).
+
+### Block 2: Adversary verdict
+
+**N/A — RECONCILE burst (no adversary dispatch).** W1-RECONCILE-4 is a POLICY 14 leg-5 4-index bookkeeping burst. Two spec amendments landed on factory-artifacts since D-829: (1) S-19.01 v1.17→v1.18 (sw-s1901-cites `066f7944`; BC-5.42.001 v1.7 cite sweep + EC-005 best-effort-delete + AC-003 sole-gateway/deny-list expansion + RG-008/009 + T-010/011; F-P7-001 wrapper-contract); (2) VP-097 v1.4→v1.5 (arch-vp097-harness `5ec6c65f`; harness-location reconciled to inline kani_proofs; S-19.03 F-P4-001; input-hash f482502 unchanged). E-19 convergence NOT RESET. 4-index BC v3.97 / VP v2.67 / STORY v4.179 / ARCH v3.01.
+
+**POLICY 16 GATE:**
+```
+$ grep "^## D-" .factory/cycles/v1.0-brownfield-backfill/decision-log.md | tail -3
+## D-828
+## D-829
+## D-830
+```
+→ D-829 confirmed max → D-830 allocated. PASS.
+
+**POLICY 9 VP-097 TITLE CHECK:**
+```
+$ grep -m1 "^# " .factory/specs/verification-properties/VP-097.md
+# VP-097: path_util::resolve_path_for_allowlist Traversal Defense — .. Sequences Cannot Resolve Outside Allowlist Prefixes
+```
+→ VP-097 H1 title UNCHANGED v1.4→v1.5 (harness-location reconcile only; no title change). PASS.
+
+**D-494 4-INDEX GATE:**
+```
+$ grep "^version:" .factory/specs/behavioral-contracts/BC-INDEX.md .factory/specs/verification-properties/VP-INDEX.md .factory/stories/STORY-INDEX.md .factory/specs/architecture/ARCH-INDEX.md
+.factory/specs/verification-properties/VP-INDEX.md:version: "2.67"
+.factory/specs/behavioral-contracts/BC-INDEX.md:version: "3.97"
+.factory/stories/STORY-INDEX.md:version: "4.179"
+.factory/specs/architecture/ARCH-INDEX.md:version: "3.01"
+```
+→ BC-INDEX v3.97 / VP-INDEX v2.67 / STORY-INDEX v4.179 / ARCH-INDEX v3.01. PASS.
+
+**D-803 EPIC HEADING-PARITY GATE (11 epics E-9..E-19):**
+```
+--- D-803 heading-parity gate (normalized) ---
+PASS: E-10 heading=v1.6 file=v1.6
+PASS: E-11 heading=v1.1 file=v1.1
+PASS: E-12 heading=v1.3 file=v1.3
+PASS: E-13 heading=v1.0 file=v1.0
+PASS: E-14 heading=v1.2 file=v1.2
+PASS: E-15 heading=v1.3 file=v1.3
+PASS: E-16 heading=v1.0 file=v1.0
+PASS: E-17 heading=v1.1 file=v1.1
+PASS: E-18 heading=v1.3 file=v1.3
+PASS: E-19 heading=v1.27 file=v1.27
+PASS: E-9 heading=v1.53 file=v1.53
+Total: PASS=11 FAIL=0
+```
+→ 11/11 PASS. PASS.
+
+### Block 3: Files touched
+
+| File | Version | Change |
+|------|---------|--------|
+| `.factory/specs/verification-properties/VP-INDEX.md` | v2.67 | D-830 POLICY 14 leg-5: VP-097 Full Index v1.5 annotation appended; VP-097 Story Anchors v1.5 appended (arch-vp097-harness 5ec6c65f; harness-location reconciled to inline kani_proofs; S-19.03 F-P4-001). v2.66→v2.67. |
+| `.factory/stories/STORY-INDEX.md` | v4.179 | D-830 POLICY 14 leg-5: S-19.01 catalog-cell v1.17→v1.18 updated (sw-s1901-cites 066f7944; BC-5.42.001 v1.7 cite sweep + EC-005 + AC-003 + RG-008/009 + T-010/011 F-P7-001). Wave-summary D-830 clause prepended. v4.178→v4.179. |
+| `.factory/STATE.md` | v5.77 | v5.76→v5.77: frontmatter, banner, phase, current_step, timestamp, last_amended; Project Metadata; Concurrent Cycles; Decisions Log D-830 row added; §Artifact Versions (VP-097 v1.5, S-19.01 v1.18); §4-Index table (VP v2.67, STORY v4.179); Session Resume Checkpoint. |
+| `.factory/cycles/v1.0-brownfield-backfill/decision-log.md` | D-830 | D-830 W1-RECONCILE-4 entry appended. |
+| `.factory/cycles/v1.0-brownfield-backfill/burst-log.md` | (this entry) | D-830 8-block entry appended. |
+
+### Block 4: Codifications
+
+**D-830 — W1-RECONCILE-4:** POLICY 14 leg-5 reconcile for S-19.01 v1.18 + VP-097 v1.5 landed on factory-artifacts since D-829. (1) POLICY 16 PASS: D-829 max confirmed → D-830 allocated. (2) Spec edits verified at HEAD 5ec6c65f: S-19.01 v1.18 (sw-s1901-cites `066f7944`; F-P7-001 wrapper-contract BC-5.42.001 v1.7 cite sweep + EC-005 + AC-003 expansion + RG-008/009 + T-010/011); VP-097 v1.5 (arch-vp097-harness `5ec6c65f`; harness-location reconciled to inline kani_proofs; S-19.03 F-P4-001; input-hash f482502 unchanged). (3) POLICY 14 leg-5: STORY-INDEX v4.178→v4.179; VP-INDEX v2.66→v2.67 (Full Index + Story Anchors per D-802). BC-INDEX UNCHANGED v3.97; ARCH-INDEX UNCHANGED v3.01. (4) POLICY 9 PASS: VP-097 H1 UNCHANGED. (5) D-803 11/11 PASS. (6) E-19 convergence NOT RESET. (7) 4-INDEX: BC v3.97/VP v2.67/STORY v4.179/ARCH v3.01. Parent-commit: `5ec6c65f`.
+
+### Block 5: Dim-2 Attestations
+
+See Block 2 above. All gates literal-shell with captured stdout per D-449(a): POLICY 16 PASS (D-829 max confirmed → D-830 allocated); POLICY 9 PASS (VP-097 H1 UNCHANGED); D-494 4-index PASS (BC v3.97/VP v2.67/STORY v4.179/ARCH v3.01); D-803 heading-parity PASS 11/11 (E-9..E-19 all PASS).
+
+### Block 6: Dim-5 Version Attestation
+
+4-index: BC v3.97 / VP v2.67 / STORY v4.179 / ARCH v3.01. VP-INDEX bumped v2.66→v2.67 (VP-097 v1.5 Full Index + Story Anchors appended per D-802). STORY-INDEX bumped v4.178→v4.179 (S-19.01 v1.18 catalog cell + wave-summary D-830 clause). BC-INDEX UNCHANGED v3.97. ARCH-INDEX UNCHANGED v3.01.
+
+### Block 7: Closes
+
+No explicit blockers closed. Per coordinator: S-19.03 already cleared for pass-4 (D-829). S-19.01 spec current at v1.18 (F-P7-001 wrapper-contract fully reconciled). VP-097 spec current at v1.5 (harness-location reconcile). 4-index fully current.
+
+### Block 8: Factory-artifacts Commits
+
+| Commit | SHA | Contents |
+|--------|-----|----------|
+| D-830 SM single-commit burst (TD-VSDD-053) | TBD (SHA-patch to follow) | VP-INDEX v2.67 + STORY-INDEX v4.179 (POLICY 14 leg-5: VP-097 v1.5 + S-19.01 v1.18 cells); decision-log D-830; STATE.md v5.76→v5.77; burst-log D-830 (this entry); 4-index BC v3.97/VP v2.67/STORY v4.179/ARCH v3.01 |
+| D-830 SHA-patch | TBD | STATE.md Active Branches factory-artifacts HEAD → BURST SHA |

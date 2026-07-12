@@ -10096,3 +10096,47 @@ D-829-W1-RECONCILE-3
 ### Date
 
 2026-07-12
+
+---
+
+## D-830
+
+### Title
+
+W1-RECONCILE-4 — POLICY 14 leg-5 for S-19.01 v1.18 + VP-097 v1.5 (wrapper-contract cite + harness-location reconcile)
+
+### Context
+
+Two additional spec amendments landed on factory-artifacts since D-829: (1) S-19.01 v1.17→v1.18 (sw-s1901-cites `066f7944`): BC-5.42.001 v1.7 cite sweep + EC-005 best-effort-delete + AC-003 sole-gateway/deny-list expansion + RG-008/009 + T-010/011 (F-P7-001 wrapper-contract). (2) VP-097 v1.4→v1.5 (arch-vp097-harness `5ec6c65f`): harness-location reconciled to inline kani_proofs module (S-19.03 F-P4-001); input-hash f482502 unchanged; no title change. POLICY 14 leg-5 requires state-manager to update STORY-INDEX + VP-INDEX to reflect both bumps. E-19 convergence is NOT reset (human-approved same-cycle spec evolution per per-story cascade workflow).
+
+### Decision
+
+(1) POLICY 16 GLOBAL-MAX GATE: `## D-829` confirmed max in decision-log.md → D-830 allocated.
+
+(2) Spec edits verified at HEAD (`5ec6c65f`):
+- S-19.01 v1.18 (sw-s1901-cites `066f7944`): BC-5.42.001 v1.7 cite sweep + EC-005 best-effort-delete + AC-003 sole-gateway/deny-list expansion + RG-008 SubagentStop test vector + RG-009 propagation test vector + T-010/T-011 (F-P7-001 governed-pass-through wrapper-contract).
+- VP-097 v1.5 (arch-vp097-harness `5ec6c65f`): harness-location reconciled to inline kani_proofs module (S-19.03 F-P4-001); input-hash f482502 unchanged.
+
+(3) POLICY 14 leg-5: STORY-INDEX v4.178→v4.179 (S-19.01 v1.18 catalog-cell updated + wave-summary D-830 clause prepended). VP-INDEX v2.66→v2.67 (VP-097 Full Index v1.5 annotation appended + Story Anchors v1.5 appended per D-802). BC-INDEX UNCHANGED v3.97 (no BC bumped). ARCH-INDEX UNCHANGED v3.01 (no ADR bumped).
+
+(4) POLICY 9 PASS: VP-097 H1 title UNCHANGED v1.4→v1.5 (harness-location reconcile only; title unchanged confirmed).
+
+(5) D-803 heading-parity gate 11/11 PASS: all E-9..E-19 epic headings match file frontmatter versions.
+
+(6) E-19 convergence NOT RESET: both bumps are human-approved same-cycle spec evolution within the per-story cascade; per-story adversary streak counters unchanged.
+
+(7) 4-INDEX: BC v3.97/VP v2.67/STORY v4.179/ARCH v3.01.
+
+Parent-commit: `5ec6c65f` (arch-vp097-harness; latest landed spec commit after D-829 closure).
+
+### Implications
+
+STORY-INDEX v4.179 and VP-INDEX v2.67 are the new authoritative index versions. S-19.01 spec is now current at v1.18; VP-097 is now current at v1.5. Per-story cascade status unchanged.
+
+### Status
+
+CODIFIED
+
+### Date
+
+2026-07-12
