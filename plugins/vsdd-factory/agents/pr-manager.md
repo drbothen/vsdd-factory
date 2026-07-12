@@ -232,9 +232,14 @@ Do not gate on additional user confirmation. The orchestrator's dispatch IS the 
 
 After all gates pass (security + review + CI + deps), execute the merge in two mandatory steps.
 
-**Step 8-pre-A — Stale-verdict check (BC-5.42.001 PC-2, Invariant 2).** BEFORE any merge call,
+**Step 8-pre-A — Stale-verdict check (BC-5.42.001 PC-1, PC-2, Invariant 2).** BEFORE any merge call,
 invoke `check-stale-verdict.sh` via github-ops with the `covered_sha` from the pr-reviewer READY
-verdict. Use `gh pr view <PR_NUMBER> --json headRefOid` to obtain the SHA if not already recorded:
+verdict. The `covered_sha` MUST be the value RECORDED in the READY verdict at review time — never
+re-fetched at merge time (re-fetching makes the guard vacuous: live-vs-live always exits 0, so
+unreviewed commits would be silently merged).
+
+If `covered_sha` is absent from the READY verdict: HALT — do NOT re-fetch; re-dispatch pr-reviewer
+to re-assess and emit a READY verdict with `covered_sha` (BC-5.42.001 PC-1/Invariant 2).
 
 ```
 Agent(subagent_type="vsdd-factory:github-ops", prompt="cd <project-path> && plugins/vsdd-factory/bin/check-stale-verdict.sh <PR_NUMBER> <covered_sha>")
