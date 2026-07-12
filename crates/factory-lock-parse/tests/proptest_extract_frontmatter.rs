@@ -1,9 +1,10 @@
 //! VP-096 proptest harness for `extract_frontmatter` purity (T-010; S-19.02).
 //!
 //! Property: `extract_frontmatter(bytes)` output byte-equals the input prefix
-//! `bytes[0..delimiter_start_offset]` when `\n---\n` is present (exclusive
-//! boundary), or the full input when absent. Additionally, two invocations on
-//! the same input must produce byte-identical results (determinism).
+//! `bytes[0..delimiter_start_offset]` for whichever delimiter form is present
+//! (LF-inline `\n---\n`, CRLF-inline `\r\n---\r\n`, CRLF-EOF `\r\n---`, or
+//! LF-EOF `\n---`), or the full input when no delimiter is present. Two
+//! invocations on the same input must produce byte-identical results (determinism).
 //!
 //! # Red Gate
 //!
@@ -11,7 +12,8 @@
 //! in this file will panic until the implementation is complete.
 //!
 //! # BC Traces
-//! - BC-4.13.001 v1.14 Phase-A Invariant 9 (frontmatter-only-parsing mandate)
+//! - BC-4.13.001 v1.15 Phase-A Invariant 9 (frontmatter-only-parsing mandate;
+//!   CRLF forms added in v1.15 / EC-017)
 //! - VP-096: extract_frontmatter Purity — output byte-equals file prefix up to
 //!   (excluding) the second `---` delimiter line; deterministic for any input.
 //! - AC-005 (byte-exact boundary; parity-with-full-file-parse FORBIDDEN per F-P2-011)
@@ -19,26 +21,60 @@
 use factory_lock_parse::extract_frontmatter;
 use proptest::prelude::*;
 
-/// Find the byte offset of the `\n---\n` delimiter in `input`, if present.
+/// Find the byte offset of the first recognized delimiter in `input`, modelling
+/// all four forms that `extract_frontmatter` recognizes per BC-4.13.001 v1.15.
 ///
-/// Returns `Some(i)` where `i` is the index of the leading `\n` byte of the
-/// `\n---\n` sequence. Returns `None` if no such delimiter is found (the EOF
-/// `\n---` form is considered a delimiter only when it appears at the very end
-/// of the input, but for proptest simplicity we check only the `\n---\n` form;
-/// the EOF form is exercised in unit tests T-008).
+/// Returns `Some(offset)` where `offset` is the byte index of the leading
+/// byte of the delimiter sequence (i.e. the first byte NOT included in the
+/// returned frontmatter prefix). Returns `None` if no delimiter form is found.
+///
+/// Precedence mirrors the implementation exactly (BC-4.13.001 v1.15 §Search-Order):
+///   1. LF-inline  `\n---\n`   — most common; inline delimiter, trailing newline.
+///   2. CRLF-inline `\r\n---\r\n` — Windows autocrlf checkout (EC-017).
+///   3. CRLF-EOF  `\r\n---` at end of input — CRLF file, no trailing newline.
+///      Checked BEFORE LF-EOF: `\r\n---` ends with `\n---`; checking LF-EOF
+///      first would yield wrong offset and leave a stray `\r` in the prefix.
+///   4. LF-EOF    `\n---` at end of input — LF file, no trailing newline.
+///
+/// This is an independent oracle: it does NOT call `extract_frontmatter`.
+/// Using the same primitives (window-scan, ends_with) but expressed separately
+/// avoids POLICY 11 tautology while guaranteeing the same contract semantics.
 fn find_delimiter_offset(input: &[u8]) -> Option<usize> {
-    // Search for b"\n---\n" as a contiguous sequence.
-    let needle = b"\n---\n";
-    input.windows(needle.len()).position(|w| w == needle)
+    // 1. LF-inline \n---\n
+    let lf_inline = b"\n---\n";
+    if let Some(pos) = input.windows(lf_inline.len()).position(|w| w == lf_inline) {
+        return Some(pos);
+    }
+    // 2. CRLF-inline \r\n---\r\n
+    let crlf_inline = b"\r\n---\r\n";
+    if let Some(pos) = input
+        .windows(crlf_inline.len())
+        .position(|w| w == crlf_inline)
+    {
+        return Some(pos);
+    }
+    // 3. CRLF-EOF \r\n--- at end of input (checked before LF-EOF).
+    let crlf_eof = b"\r\n---";
+    if input.ends_with(crlf_eof) {
+        return Some(input.len() - crlf_eof.len());
+    }
+    // 4. LF-EOF \n--- at end of input.
+    let lf_eof = b"\n---";
+    if input.ends_with(lf_eof) {
+        return Some(input.len() - lf_eof.len());
+    }
+    None
 }
 
 proptest! {
     /// VP-096 Property 1: output is a byte-exact prefix bounded by the delimiter.
     ///
-    /// For any arbitrary byte input:
-    /// - If `\n---\n` is present at offset `i`, then `extract_frontmatter(input)` must
-    ///   byte-equal `input[0..i]`.
-    /// - If `\n---\n` is absent, `extract_frontmatter(input)` must byte-equal `input`.
+    /// For any arbitrary byte input, the oracle searches for the first delimiter
+    /// in precedence order (LF-inline → CRLF-inline → CRLF-EOF → LF-EOF):
+    /// - If a delimiter is found at offset `i`, then `extract_frontmatter(input)`
+    ///   must byte-equal `input[0..i]`.
+    /// - If no delimiter form is present, `extract_frontmatter(input)` must
+    ///   byte-equal the full input.
     ///
     /// RED: extract_frontmatter is a todo!() stub; this test panics until Task 10.
     #[test]
@@ -49,7 +85,7 @@ proptest! {
                 prop_assert_eq!(
                     extracted,
                     &input[..offset],
-                    "When \\n---\\n present at offset {}, extracted must equal input[0..{}]",
+                    "Delimiter found at offset {}; extracted must equal input[0..{}]",
                     offset,
                     offset
                 );
@@ -58,7 +94,7 @@ proptest! {
                 prop_assert_eq!(
                     extracted,
                     input.as_slice(),
-                    "When no \\n---\\n delimiter, extracted must byte-equal full input"
+                    "No delimiter found; extracted must byte-equal full input"
                 );
             }
         }
