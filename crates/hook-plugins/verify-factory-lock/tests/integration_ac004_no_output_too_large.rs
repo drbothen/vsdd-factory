@@ -32,7 +32,7 @@
 //!                  + StateReadError warn emitted
 //!
 //! # BC Traces
-//! - BC-4.13.001 v1.14 Phase-A Precondition 3 (max_bytes = 262144)
+//! - BC-4.13.001 v1.15 Phase-A Precondition 3 (max_bytes = 262144)
 //! - VP-095: verify-factory-lock handles STATE.md files up to 262144 bytes without
 //!   output_too_large denial (ADR-025 Decision 14)
 //! - BC-4.13.001 PC6: STATE.md read failure → fail-open Continue (for 262145 bytes)

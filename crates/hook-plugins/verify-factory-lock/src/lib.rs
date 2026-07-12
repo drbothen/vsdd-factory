@@ -55,7 +55,7 @@ pub const HOST_ABI_VERSION: u32 = 1;
 
 /// Maximum bytes to read from STATE.md via `host::read_file`.
 ///
-/// 256 KiB cap per BC-4.13.001 v1.14 Phase-A Precondition 3 (ADR-025 Decision 14).
+/// 256 KiB cap per BC-4.13.001 v1.15 Phase-A Precondition 3 (ADR-025 Decision 14).
 /// Worst-case observed STATE.md is <200 KiB under 500-line compaction discipline
 /// (ADR-026); 262144 gives ≥25% headroom over the observed range.
 pub const STATE_MD_MAX_BYTES: u32 = 262144;
@@ -1417,7 +1417,7 @@ mod tests {
 
     /// T-001 (AC-001): STATE_MD_MAX_BYTES == 262144 (256 KiB).
     ///
-    /// BC-4.13.001 v1.14 Phase-A Precondition 3: the plugin-side compile-time
+    /// BC-4.13.001 v1.15 Phase-A Precondition 3: the plugin-side compile-time
     /// cap MUST be 262144. ADR-025 Decision 14.
     ///
     /// RED: current value is 65536; assertion fails until Task 9.
@@ -1426,7 +1426,7 @@ mod tests {
         assert_eq!(
             STATE_MD_MAX_BYTES, 262144u32,
             "AC-001: STATE_MD_MAX_BYTES must equal 262144 (256 KiB) per \
-             BC-4.13.001 v1.14 Phase-A Precondition 3 / ADR-025 Decision 14. \
+             BC-4.13.001 v1.15 Phase-A Precondition 3 / ADR-025 Decision 14. \
              Current value: {}",
             STATE_MD_MAX_BYTES
         );
@@ -1566,7 +1566,7 @@ mod tests {
 
     /// T-009 (AC-006): Soft-warning emission tests A–E.
     ///
-    /// BC-4.13.001 v1.14 Invariant 10: guard must emit a `plugin.log` warn entry
+    /// BC-4.13.001 v1.15 Invariant 10: guard must emit a `plugin.log` warn entry
     /// containing `state_md_approaching_cap` when bytes_read is strictly > 200000
     /// and at or below 262144.
     ///
