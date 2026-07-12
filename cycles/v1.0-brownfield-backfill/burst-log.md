@@ -18840,3 +18840,100 @@ EC-017 propagation COMPLETE (D-827 surfaced finding; D-828 confirms sw-ec017 `7c
 | D-828 SM single-commit burst (TD-VSDD-053) | `d11d6232` | VP-INDEX v2.66 + STORY-INDEX v4.177 (POLICY 14 leg-5: VP-097 v1.4 + S-19.02 v1.18 cells); decision-log D-828; STATE.md v5.73→v5.74; burst-log D-828 (this entry); 4-index BC v3.96/VP v2.66/STORY v4.177/ARCH v3.00 |
 | D-828 SHA-patch | `605ad6b8` | STATE.md Active Branches factory-artifacts HEAD → d11d6232 |
 | D-828 SHA-patch+ close | `28b1071d` | STATE.md Active Branches 605ad6b8 + §Artifact Versions D-828 Closure + burst-log Block 8 SHA-patch+ close |
+
+---
+
+## D-829 W1-RECONCILE-3 (2026-07-12; SM state-manager)
+
+### Block 1: Parent-commit
+
+`0c6b3e19` — D-828 compaction BURST 1 (STATE.md compact: 500→369 lines; subject `state: compact STATE.md below size cap (extract history to cycle files)`). Prior spec-commits on factory-artifacts: `2da0c089` (sw-gate-fix S-19.03 v1.19→v1.20 non_exhaustive gate narrowing), `32b0663f` (po-wrapper BC-5.42.001 v1.6→v1.7 Invariants 6/7+EC-009+2 TVs), `447bff71` (arch-wrapper ADR-030 v1.3→v1.4 §D3 governed-pass-through wrapper contract).
+
+### Block 2: Adversary verdict
+
+**N/A — RECONCILE burst (no adversary dispatch).** W1-RECONCILE-3 is a POLICY 14 leg-5 4-index bookkeeping burst. Three spec amendments landed on factory-artifacts since D-828: (1) ADR-030 v1.3→v1.4 (arch-wrapper `447bff71`; §D3 governed-pass-through wrapper contract; S-19.01 F-P7-001); (2) BC-5.42.001 v1.6→v1.7 (po-wrapper `32b0663f`; Invariants 6–7 + EC-009 + 2 new TVs; S-19.01 F-P7-001); (3) S-19.03 v1.19→v1.20 (sw-gate-fix `2da0c089`; non_exhaustive gate narrowing F-P3-002; input-hash 8d1225d UNCHANGED). E-19 convergence NOT RESET (human-approved same-cycle spec evolution). No adversary findings. 4-index BC v3.97 / VP v2.66 / STORY v4.178 / ARCH v3.01.
+
+**POLICY 16 GATE:**
+```
+$ grep "^## D-" .factory/cycles/v1.0-brownfield-backfill/decision-log.md | tail -3
+## D-827
+## D-828
+## D-829
+```
+→ D-829 confirmed max in decision-log.md. D-829 allocated. PASS.
+
+**D-494 4-INDEX GATE:**
+```
+$ grep "^version:" .factory/specs/behavioral-contracts/BC-INDEX.md .factory/specs/verification-properties/VP-INDEX.md .factory/stories/STORY-INDEX.md .factory/specs/architecture/ARCH-INDEX.md
+.factory/specs/verification-properties/VP-INDEX.md:version: "2.66"
+.factory/specs/behavioral-contracts/BC-INDEX.md:version: "3.97"
+.factory/specs/architecture/ARCH-INDEX.md:version: "3.01"
+.factory/stories/STORY-INDEX.md:version: "4.178"
+```
+→ BC-INDEX v3.97 / VP-INDEX v2.66 / STORY-INDEX v4.178 / ARCH-INDEX v3.01. PASS.
+
+**POLICY 9 ADR-030 TITLE CHECK:**
+```
+$ grep -m1 "^# " ".factory/specs/architecture/decisions/ADR-030-pr-manager-merge-operation-integrity-enforcement.md"
+# ADR-030: pr-manager merge-operation integrity enforcement
+```
+→ ADR-030 H1 title UNCHANGED v1.3→v1.4 (§D3 addition; no title change). PASS.
+
+**POLICY 9 BC-5.42.001 TITLE CHECK:**
+```
+$ grep -m1 "^# " .factory/specs/behavioral-contracts/ss-05/BC-5.42.001.md
+# BC-5.42.001: pr-manager READY-verdict + merge-strategy enforcement — covered_sha pin, stale-verdict detection, and release-PR squash prevention
+```
+→ BC-5.42.001 H1 title UNCHANGED v1.6→v1.7 (Invariants 6–7 + EC-009 + TVs addition; no title change). PASS.
+
+**D-803 EPIC HEADING-PARITY GATE (11 epics E-9..E-19):**
+```
+--- D-803 heading-parity gate (normalized) ---
+PASS: E-10 heading=v1.6 file=v1.6
+PASS: E-11 heading=v1.1 file=v1.1
+PASS: E-12 heading=v1.3 file=v1.3
+PASS: E-13 heading=v1.0 file=v1.0
+PASS: E-14 heading=v1.2 file=v1.2
+PASS: E-15 heading=v1.3 file=v1.3
+PASS: E-16 heading=v1.0 file=v1.0
+PASS: E-17 heading=v1.1 file=v1.1
+PASS: E-18 heading=v1.3 file=v1.3
+PASS: E-19 heading=v1.27 file=v1.27
+PASS: E-9 heading=v1.53 file=v1.53
+Total: PASS=11 FAIL=0
+```
+→ 11/11 PASS. PASS.
+
+### Block 3: Files touched
+
+| File | Version | Change |
+|------|---------|--------|
+| `.factory/specs/architecture/ARCH-INDEX.md` | v3.01 | D-829 POLICY 14 leg-5: ADR-030 catalog row v1.3→v1.4 cell appended (arch-wrapper 447bff71; §D3 governed-pass-through wrapper contract; S-19.01 F-P7-001). H1 title UNCHANGED (POLICY 6). v3.00→v3.01. |
+| `.factory/specs/behavioral-contracts/BC-INDEX.md` | v3.97 | D-829 POLICY 14 leg-5: BC-5.42.001 catalog row v1.6→v1.7 cell appended (po-wrapper 32b0663f; §D3 governed-pass-through wrapper contract — Invariants 6–7 + EC-009 + 2 new TVs; S-19.01 F-P7-001). v3.96→v3.97. |
+| `.factory/stories/STORY-INDEX.md` | v4.178 | D-829 POLICY 14 leg-5: S-19.03 catalog row v1.19→v1.20 cell updated (sw-gate-fix 2da0c089; non_exhaustive gate narrowing F-P3-002; input-hash 8d1225d UNCHANGED). Wave-summary prepended with D-829 clause. v4.177→v4.178. |
+| `.factory/STATE.md` | v5.76 | v5.75→v5.76: frontmatter, banner, phase, current_step, timestamp, last_amended; Project Metadata Last Updated + Current Phase; Concurrent Cycles v1.0-brownfield-backfill row; Decisions Log D-829 row added; §Artifact Versions (ADR-030 v1.4, BC-5.42.001 v1.7, S-19.03 v1.20); §4-Index table (BC v3.97, STORY v4.178, ARCH v3.01); 4-index gate line; Session Resume Checkpoint; Active Branches BURST-2 TBD. |
+| `.factory/cycles/v1.0-brownfield-backfill/decision-log.md` | D-829 | D-829 W1-RECONCILE-3 entry appended (prior session). |
+| `.factory/cycles/v1.0-brownfield-backfill/burst-log.md` | (this entry) | D-829 8-block entry appended (this file). |
+
+### Block 4: Codifications
+
+**D-829 — W1-RECONCILE-3:** POLICY 14 leg-5 reconcile for three W1 spec amendments landed on factory-artifacts since D-828. (1) POLICY 16 GLOBAL-MAX GATE: `## D-828` confirmed max → D-829 allocated. (2) Spec edits verified at HEAD: ADR-030 v1.4 (arch-wrapper `447bff71`; §D3 governed-pass-through wrapper contract for pr-manager SubagentStop wrapping; S-19.01 F-P7-001); BC-5.42.001 v1.7 (po-wrapper `32b0663f`; §D3 governed-pass-through Invariant 6 SubagentStop forwarding + Invariant 7 arg-pass-through + EC-009 SubagentStop propagation + 2 new test vectors; S-19.01 F-P7-001); S-19.03 v1.20 (sw-gate-fix `2da0c089`; non_exhaustive gate narrowed to exact Err-match variants only; F-P3-002). (3) POLICY 14 leg-5: ARCH-INDEX v3.00→v3.01 (ADR-030 row v1.4 annotation appended); BC-INDEX v3.96→v3.97 (BC-5.42.001 row v1.7 annotation appended); STORY-INDEX v4.177→v4.178 (S-19.03 catalog cell v1.20 updated + wave-summary). VP-INDEX UNCHANGED v2.66 (no VP bumped). (4) POLICY 9 PASS: ADR-030 H1 UNCHANGED; BC-5.42.001 H1 UNCHANGED. (5) D-803 heading-parity 11/11 PASS (ALL E-9..E-19 PASS). (6) E-19 convergence NOT RESET (human-approved same-cycle spec evolution). (7) 4-INDEX: BC v3.97/VP v2.66/STORY v4.178/ARCH v3.01. Parent-commit: `0c6b3e19` (D-828 compaction BURST 1).
+
+### Block 5: Dim-2 Attestations
+
+See Block 2 above. All gates literal-shell with captured stdout per D-449(a): POLICY 16 PASS (D-828 max confirmed → D-829 allocated); D-494 4-index PASS (BC v3.97/VP v2.66/STORY v4.178/ARCH v3.01); POLICY 9 ADR-030 PASS (H1 UNCHANGED v1.3→v1.4); POLICY 9 BC-5.42.001 PASS (H1 UNCHANGED v1.6→v1.7); D-803 heading-parity PASS 11/11 (E-9..E-19 all PASS).
+
+### Block 6: Dim-5 Version Attestation
+
+4-index: BC v3.97 / VP v2.66 / STORY v4.178 / ARCH v3.01. ARCH-INDEX bumped v3.00→v3.01 (ADR-030 v1.4 catalog row appended). BC-INDEX bumped v3.96→v3.97 (BC-5.42.001 v1.7 catalog row appended). STORY-INDEX bumped v4.177→v4.178 (S-19.03 v1.20 catalog cell + wave-summary D-829 clause). VP-INDEX UNCHANGED v2.66 (no VP bumped this burst).
+
+### Block 7: Closes
+
+**S-19.03 cleared for pass-4:** non_exhaustive gate narrowing (F-P3-002) landed via sw-gate-fix `2da0c089` (S-19.03 v1.20); 4-index reconciled D-829. S-19.03 spec is now current at v1.20; per coordinator note S-19.03 is cleared for next adversary pass.
+
+### Block 8: Factory-artifacts Commits
+
+| Commit | SHA | Contents |
+|--------|-----|----------|
+| D-829 SM single-commit burst (TD-VSDD-053) — BURST 2 | TBD (SHA-patch to follow) | ARCH-INDEX v3.01 + BC-INDEX v3.97 + STORY-INDEX v4.178 (POLICY 14 leg-5: ADR-030 v1.4 + BC-5.42.001 v1.7 + S-19.03 v1.20 cells); decision-log D-829; STATE.md v5.75→v5.76; burst-log D-829 (this entry); 4-index BC v3.97/VP v2.66/STORY v4.178/ARCH v3.01 |
+| D-829 SHA-patch | TBD | STATE.md Active Branches factory-artifacts HEAD → BURST 2 SHA |

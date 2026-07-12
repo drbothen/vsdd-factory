@@ -10050,3 +10050,49 @@ D-828-W1-RECONCILE-2
 ### Date
 
 2026-07-12
+
+---
+
+## D-829
+
+### Decision
+
+**W1-RECONCILE-3.** Combined POLICY 14 leg-5 reconcile for three W1 spec/story bumps (arch-wrapper, po-wrapper, sw-gate-fix) landed on factory-artifacts since D-828.
+
+**(1) POLICY 16 GLOBAL-MAX GATE:** `## D-828` confirmed max → D-829 allocated.
+
+**(2) Spec edits verified at HEAD:**
+- ADR-030 v1.4 (arch-wrapper 447bff71; §D3 governed-pass-through wrapper contract — enforce-merge-strategy.sh rewritten as sole-gateway with positional strategy $2, residual ${@:3} forwarding, deny-list STRATEGY_SMUGGLING_FORBIDDEN, best-effort-delete obligation; S-19.01 F-P7-001; human-directed spec-evolution)
+- BC-5.42.001 v1.7 (po-wrapper 32b0663f; mirrors ADR-030 §D3 — §Description (c) expanded, Invariants 6–7 added, EC-009 added, 2 new Canonical Test Vectors; S-19.01 F-P7-001)
+- S-19.03 v1.20 (sw-gate-fix 2da0c089; Architecture-Compliance non_exhaustive gate narrowed from broad grep-rq to attribute-only grep-nE per #[non_exhaustive] real-attribute semantics; F-P3-002; input-hash 8d1225d unchanged)
+
+**(3) POLICY 14 leg-5:**
+- ARCH-INDEX v3.00→v3.01 (ADR-030 v1.3→v1.4 cell annotation appended; §D3 governed-pass-through clause)
+- BC-INDEX v3.96→v3.97 (BC-5.42.001 v1.6→v1.7 cell annotation appended)
+- STORY-INDEX v4.177→v4.178 (S-19.03 v1.19→v1.20 catalog-cell + wave-summary D-829 delivery-summary appended)
+
+**(4) POLICY 9 PASS:**
+- ADR-030 H1 title `ADR-030: pr-manager merge-operation integrity enforcement` UNCHANGED (POLICY 6)
+- BC-5.42.001 H1 title `BC-5.42.001: pr-manager READY-verdict + merge-strategy enforcement — covered_sha pin, stale-verdict detection, and release-PR squash prevention` UNCHANGED (POLICY 7)
+
+**(5) D-803 heading-parity gate:** 11/11 PASS — all versioned epic headings match file frontmatter versions.
+
+**(6) D-494 4-INDEX GATE:** BC v3.97 / VP v2.66 / STORY v4.178 / ARCH v3.01. All match.
+
+**(7) E-19 convergence NOT RESET:** all three bumps are human-approved same-cycle spec evolution (S-19.01 F-P7-001 closure, F-P3-002 closure); per-story cascades unchanged.
+
+**(8) STATE.md v5.75→v5.76.**
+
+**Parent-commit:** 0c6b3e19 (D-828 compaction BURST 1).
+
+### Summary
+
+W1-RECONCILE-3; POLICY 14 leg-5 ADR-030 v1.4 + BC-5.42.001 v1.7 + S-19.03 v1.20; ARCH-INDEX v3.01; BC-INDEX v3.97; STORY-INDEX v4.178; D-803 11/11 PASS; D-494 PASS; E-19 convergence NOT RESET; 4-index BC v3.97/VP v2.66/STORY v4.178/ARCH v3.01
+
+### Phase
+
+D-829-W1-RECONCILE-3
+
+### Date
+
+2026-07-12
