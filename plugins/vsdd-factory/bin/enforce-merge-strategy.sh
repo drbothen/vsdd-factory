@@ -21,12 +21,15 @@ set -euo pipefail
 #   0   merge delegated to gh pr merge and succeeded (exit code propagated)
 #   1   RELEASE_PR_SQUASH_FORBIDDEN — --squash/--rebase on release/v* branch
 #       (no gh API call is made; exits before any GitHub API invocation)
-#   2   STRATEGY_SMUGGLING_FORBIDDEN — a residual arg ($3+) is a strategy or admin flag
+#   1   STRATEGY_SMUGGLING_FORBIDDEN — a residual arg ($3+) is a strategy or admin flag
 #       (deny-list rejects before any gh API call)
+#   1   INVALID_STRATEGY — $2 is not one of --merge|--squash|--rebase
+#       (rejects before any gh API call)
 #
 # STDERR DIAGNOSTICS (BC-5.42.001 §Canonical Test Vectors verbatim):
 #   RELEASE_PR_SQUASH_FORBIDDEN: branch <branch_name> requires --merge per RELEASING.md
 #   STRATEGY_SMUGGLING_FORBIDDEN: residual arg <arg> is a strategy or admin flag
+#   INVALID_STRATEGY: <arg> is not a valid merge strategy (expected --merge|--squash|--rebase)
 #
 # RESIDUAL-ARG DENY-LIST (strategy-smuggling prevention; ADR-030 §Decision 3 v1.4):
 #   Rejected: --squash/--merge/--rebase/--admin (long), =-fused (e.g. --squash=auto),
@@ -78,36 +81,50 @@ for _residual_arg in "${@:3}"; do
         --squash|--merge|--rebase|--admin)
             # Long exact forms.
             printf 'STRATEGY_SMUGGLING_FORBIDDEN: residual arg %s is a strategy or admin flag\n' "${_residual_arg}" >&2
-            exit 2
+            exit 1
             ;;
         --squash=*|--merge=*|--rebase=*|--admin=*)
             # =-fused long forms (e.g. --squash=auto, --merge=commit).
             printf 'STRATEGY_SMUGGLING_FORBIDDEN: residual arg %s is a strategy or admin flag\n' "${_residual_arg}" >&2
-            exit 2
+            exit 1
             ;;
         -[smrA]*)
             # Bare short forms (-s, -m, -r, -A) and clusters starting with a strategy char
             # (-sd, -sm, etc.). -[smrA]* matches -s, -sd, -sX for any X.
             printf 'STRATEGY_SMUGGLING_FORBIDDEN: residual arg %s is a strategy or admin flag\n' "${_residual_arg}" >&2
-            exit 2
+            exit 1
             ;;
         -[!-]*[smrA]*)
             # Combined short-flag clusters not starting with a strategy char but containing
             # one (e.g. -ds, -dA, -dmr). -[!-] = non-dash first char; *[smrA]* = contains
             # at least one strategy/admin char.
             printf 'STRATEGY_SMUGGLING_FORBIDDEN: residual arg %s is a strategy or admin flag\n' "${_residual_arg}" >&2
-            exit 2
+            exit 1
             ;;
     esac
 done
 
-# Step 3: Check if branch matches ^release/v pattern.
+# Step 3: Validate $2 is a legal merge strategy when provided.
+# ADR-030 §Decision 3: MERGE_FLAG must be --merge, --squash, or --rebase when non-empty.
+# Illegal values (e.g. --admin, -A, garbage) are rejected here with INVALID_STRATEGY before
+# any gh API call. Legal values continue to the release-rule check in Step 4.
+if [[ -n "${MERGE_FLAG}" ]]; then
+    case "${MERGE_FLAG}" in
+        --merge|--squash|--rebase) ;;
+        *)
+            printf 'INVALID_STRATEGY: %s is not a valid merge strategy (expected --merge|--squash|--rebase)\n' "${MERGE_FLAG}" >&2
+            exit 1
+            ;;
+    esac
+fi
+
+# Step 4: Check if branch matches ^release/v pattern.
 IS_RELEASE="false"
 if printf '%s' "${BRANCH_NAME}" | grep -qE '^release/v'; then
     IS_RELEASE="true"
 fi
 
-# Step 4: Enforce merge strategy for release branches.
+# Step 5: Enforce merge strategy for release branches.
 if [[ "${IS_RELEASE}" == "true" ]]; then
     # BC-5.42.001 Invariant 3: release-branch squash/rebase is mechanically impossible.
     # Reject --squash or --rebase before any GitHub API call.
@@ -121,7 +138,7 @@ if [[ "${IS_RELEASE}" == "true" ]]; then
     MERGE_FLAG="--merge"
 fi
 
-# Step 5: Delegate to gh pr merge, forwarding residual args ("${@:3}") verbatim.
+# Step 6: Delegate to gh pr merge, forwarding residual args ("${@:3}") verbatim.
 # ADR-030 §Decision 3: wrapper is a faithful governed pass-through; "${@:3}" is forwarded
 # after the resolved strategy flag. Bash-3.2: positional slice; empty slice safe under set -u.
 # Quote MERGE_FLAG when non-empty; omit entirely when empty (no flag supplied for a
