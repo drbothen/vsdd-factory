@@ -3,7 +3,7 @@
 #
 # Covers AC-001..AC-004 per BC-5.42.001 / VP-094 / ADR-030 §Decision 2 / §Decision 3.
 #
-# Test plan (T-001..T-031):
+# Test plan (T-001..T-032):
 #   T-001 AC-001 — READY verdict without covered_sha triggers READY_SHA_MISSING advisory
 #   T-002 AC-001 — gh failure on covered_sha fetch → READY_SHA_FETCH_FAILED on stderr
 #   T-003 AC-002 — check-stale-verdict.sh: stale SHA → exit 1 + STALE_READY_VERDICT
@@ -35,15 +35,15 @@
 #   T-029 AC-003 — enforce-merge-strategy.sh: --admin as $2 (primary strategy slot) → exit 1 (F-P8-003)
 #   T-030 AC-003 — enforce-merge-strategy.sh: -A as $2 (short form of --admin) → exit 1 (F-P8-003)
 #   T-031 AC-003 — enforce-merge-strategy.sh: --merge/$2 still works (F-P8-003 positive regression guard)
+#   T-032 AC-001 — pr-manager.md Step 8-pre-A must not contain re-fetch-covered_sha fallback (F-S1901-P12-001)
 #
 # Green status: T-001..T-016 pass after implementation; T-017 green (positive + neg-control);
 #   T-018/T-019 GREEN — positive verification of ADR-030 §Decision 2 arms 3+4 (post-implementation);
 #   T-020/T-021 GREEN (F-P5-001 fixed); T-031 GREEN (positive regression guard);
-#   T-022..T-030 RED gates (F-P7-001 wiring/pass-through/deny-list; F-P8-001 WASM hint;
-#                           F-P8-002 exit-1 correction; F-P8-003 $2 validation).
+#   T-022..T-030 RED gates (F-P7-001/F-P8-001/F-P8-002/F-P8-003); T-032 RED gate (F-S1901-P12-001).
 #   Note: F-P8-001 RED gates are Rust cargo tests (lib.rs), not bats.
 #
-# BC trace: BC-5.42.001 PC-1 (T-001/T-002/T-014), PC-2 (T-003/T-004/T-010/T-013/T-016/T-018/T-019/T-020),
+# BC trace: BC-5.42.001 PC-1 (T-001/T-002/T-014/T-032), PC-2 (T-003/T-004/T-010/T-013/T-016/T-018/T-019/T-020),
 #           PC-3 (T-005/T-006/T-007/T-011/T-012/T-015/T-021/T-022/T-023/T-024/T-025/T-026/T-027/T-028/T-029/T-030/T-031),
 #           AC-004 (T-008/T-009/T-017)
 
@@ -1445,4 +1445,58 @@ GHEOF
         echo "Output: ${output}"
         return 1
     }
+}
+
+# T-032: pr-manager.md Step 8-pre-A must NOT contain a re-fetch-covered_sha fallback (F-S1901-P12-001).
+#
+# The defect: Step 8-pre-A currently reads "Use `gh pr view <PR_NUMBER> --json headRefOid` to
+# obtain the SHA if not already recorded". This makes the stale-verdict guard vacuous:
+# if covered_sha is re-fetched as the live HEAD at merge time, check-stale-verdict.sh sees
+# live-vs-live → always exit 0 → merges code that was never reviewed (D-749 recurrence).
+#
+# BC-5.42.001 authoritative requirements:
+#   - Part a: covered_sha is recorded AT THE MOMENT OF ASSESSMENT (review time, not merge time)
+#   - Precondition 4: covered_sha is "recorded in the most recent READY verdict"
+#   - PC-1/Invariant 1+2: a READY verdict without covered_sha is NOT ACTIONABLE → HALT +
+#     re-dispatch pr-reviewer (never re-fetch)
+#
+# The sibling "Stale-Verdict Detection (BC-5.42.001 PC2)" section already states this correctly
+# (bare <covered_sha> arg, no fetch-fallback). Step 8-pre-A must align with it.
+#
+# Two assertions (both RED now):
+#   Assertion 1 (negative — RED): "obtain the SHA if not already recorded" IS present in Step 8-pre-A.
+#   Assertion 2 (positive — RED): "PC-1" is NOT cited in Step 8-pre-A (absent-covered_sha HALT path missing).
+# After implementation: fallback line removed; absent-covered_sha path cites PC-1 → both assertions GREEN.
+@test "T-032: pr-manager.md Step 8-pre-A must not contain a re-fetch-covered_sha fallback (F-S1901-P12-001)" {
+    local pm_md="${PLUGIN_ROOT}/agents/pr-manager.md"
+
+    # Assertion 1 (negative): Step 8-pre-A MUST NOT contain the re-fetch fallback instruction.
+    # The awk range extracts from the Step 8-pre-A header to the Step 8-pre-B header (inclusive).
+    # Current behavior (RED): "obtain the SHA if not already recorded" is present in that range.
+    if awk '/Step 8-pre-A/,/Step 8-pre-B/' "${pm_md}" | grep -qF "obtain the SHA if not already recorded"; then
+        echo "FAIL (F-S1901-P12-001): Step 8-pre-A contains a re-fetch-covered_sha fallback"
+        echo "Found: 'obtain the SHA if not already recorded' in Step 8-pre-A body"
+        echo "This makes the stale-verdict guard vacuous:"
+        echo "  Re-fetching covered_sha at merge time → check-stale-verdict.sh compares live-vs-live"
+        echo "  → always exit 0 → unreviewed code merged (D-749 merge-race recurrence)"
+        echo "Required (BC-5.42.001 PC-1/Part a/Precondition 4):"
+        echo "  covered_sha MUST be the value recorded in the READY verdict at review time"
+        echo "  If absent: HALT — do NOT re-fetch; re-dispatch pr-reviewer (BC-5.42.001 PC-1/Invariant 2)"
+        echo "Offending lines in Step 8-pre-A:"
+        awk '/Step 8-pre-A/,/Step 8-pre-B/' "${pm_md}" | grep -n "obtain\|if not already" | head -5
+        return 1
+    fi
+
+    # Assertion 2 (positive): Step 8-pre-A MUST cite BC-5.42.001 PC-1 for the absent-covered_sha HALT path.
+    # BC-5.42.001 PC-1: a READY verdict without covered_sha is NOT ACTIONABLE → HALT + re-dispatch pr-reviewer.
+    # Current behavior (RED): Step 8-pre-A header cites PC-2/Invariant 2 only; PC-1 is absent.
+    # The absent-covered_sha HALT instruction (citing PC-1) must be added when the fetch-fallback is removed.
+    if ! awk '/Step 8-pre-A/,/Step 8-pre-B/' "${pm_md}" | grep -q "PC-1"; then
+        echo "FAIL (F-S1901-P12-001): Step 8-pre-A does not cite BC-5.42.001 PC-1"
+        echo "Required: the absent-covered_sha HALT path must cite BC-5.42.001 PC-1/Invariant 2"
+        echo "  Example: 'If covered_sha is absent: HALT — re-dispatch pr-reviewer (BC-5.42.001 PC-1/Invariant 2)'"
+        echo "Current BC-5.42.001 citations in Step 8-pre-A:"
+        awk '/Step 8-pre-A/,/Step 8-pre-B/' "${pm_md}" | grep "BC-5\.42" | head -5
+        return 1
+    fi
 }
