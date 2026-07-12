@@ -1,0 +1,132 @@
+S-19.02 Demo Evidence — AC-003 + AC-005: extract_frontmatter byte-exact boundary
+Captured: 2026-07-11
+Branch: feature/S-19.02  HEAD: 492f01c2
+Crate: crates/factory-lock-parse
+
+=== T-004: delimiter present -> body excluded (AC-003) ===
+
+$ cargo test -p factory-lock-parse test_S1902_extract_frontmatter_delimiter_present
+
+     Running unittests src/lib.rs (target/debug/deps/factory_lock_parse-...)
+
+running 1 test
+test tests::test_S1902_extract_frontmatter_delimiter_present_excludes_body ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 14 filtered out; finished in 0.00s
+
+Fixture: b"---\nfactory_lock: null\n---\nbody content here"
+Assertions:
+  extracted does NOT contain "body content here" (no body byte leaks)
+  extracted starts with "---\n" (opening delimiter included at byte 0)
+
+=== T-005: no delimiter -> full slice returned (AC-003) ===
+
+$ cargo test -p factory-lock-parse test_S1902_extract_frontmatter_no_delimiter
+
+     Running unittests src/lib.rs (target/debug/deps/factory_lock_parse-...)
+
+running 1 test
+test tests::test_S1902_extract_frontmatter_no_delimiter_returns_full_slice ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 14 filtered out; finished in 0.00s
+
+Fixture: b"---\nfactory_lock: null\nphase: test\n" (no closing ---)
+Assertion: extracted == full input (EC-004 fallback: full content as frontmatter)
+
+=== T-007: byte-exact boundary, body absent (AC-005 Unit test A) ===
+
+$ cargo test -p factory-lock-parse test_S1902_extract_frontmatter_byte_exact_boundary_body
+
+     Running unittests src/lib.rs (target/debug/deps/factory_lock_parse-...)
+
+running 1 test
+test tests::test_S1902_extract_frontmatter_byte_exact_boundary_body_absent ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 14 filtered out; finished in 0.00s
+
+Fixture: b"---\nfactory_lock: null\n---\nbody content here"
+  delimiter_start_offset = 22 (byte index of the '\n' beginning '\n---\n')
+  input[22] == b'\n', input[23..27] == b"---\n"
+Assertions:
+  extracted.len() == 22 (delimiter_start_offset)
+  extracted == input[0..22]  (byte-exact prefix)
+  extracted starts with b"---\n"  (opening delimiter at byte 0 included)
+  "body" does NOT appear in extracted slice  (no body byte leaks)
+  parse_factory_lock handles the "---" document-start marker correctly
+
+=== T-008: EOF delimiter, no trailing body (AC-005 Unit test B) ===
+
+$ cargo test -p factory-lock-parse test_S1902_extract_frontmatter_eof_delimiter
+
+     Running unittests src/lib.rs (target/debug/deps/factory_lock_parse-...)
+
+running 1 test
+test tests::test_S1902_extract_frontmatter_eof_delimiter_no_trailing_body ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 14 filtered out; finished in 0.00s
+
+Fixture: b"---\nfactory_lock: null\n---" (LF file, no trailing newline after delimiter)
+Assertions:
+  extracted does NOT end with "\n---" (EOF delimiter not included)
+  extracted starts with "---\n"
+
+=== CRLF tests (AC-003 + AC-005, EC-017) ===
+
+$ cargo test -p factory-lock-parse test_S1902_crlf
+
+     Running unittests src/lib.rs (target/debug/deps/factory_lock_parse-...)
+
+running 2 tests
+test tests::test_S1902_crlf_extract_frontmatter_excludes_body ... ok
+test tests::test_S1902_crlf_extract_frontmatter_byte_exact_boundary ... ok
+
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 13 filtered out; finished in 0.00s
+
+test_S1902_crlf_extract_frontmatter_excludes_body:
+  Fixture: b"---\r\nfactory_lock: null\r\n---\r\nbody content"
+  Assertions:
+    extracted does NOT contain "body content" (CRLF body excluded)
+    extracted starts with "---\r\n"
+
+test_S1902_crlf_extract_frontmatter_byte_exact_boundary:
+  Fixture: b"---\r\nfactory_lock: null\r\n---\r\nbody"
+  delimiter_start_offset = 23 (byte index of '\r' in '\r\n---\r\n')
+    ---=3 bytes + \r\n=2 bytes + "factory_lock: null"=18 bytes = 23 total
+  Assertions:
+    extracted.len() == 23
+    extracted == input[0..23]  (byte-exact prefix for CRLF form)
+
+=== All AC-003/AC-005 unit tests (combined run) ===
+
+$ cargo test -p factory-lock-parse S1902_extract S1902_crlf_extract
+
+test tests::test_S1902_crlf_extract_frontmatter_byte_exact_boundary ... ok
+test tests::test_S1902_crlf_extract_frontmatter_excludes_body ... ok
+test tests::test_S1902_extract_frontmatter_byte_exact_boundary_body_absent ... ok
+test tests::test_S1902_extract_frontmatter_delimiter_present_excludes_body ... ok
+test tests::test_S1902_extract_frontmatter_eof_delimiter_no_trailing_body ... ok
+test tests::test_S1902_extract_frontmatter_no_delimiter_returns_full_slice ... ok
+
+test result: ok. 6 passed; 0 failed; 0 ignored; 0 measured; finished in 0.00s
+
+=== extract_frontmatter implementation summary ===
+
+Function: pub fn extract_frontmatter(bytes: &[u8]) -> &[u8]
+File: crates/factory-lock-parse/src/lib.rs:95
+
+Search order (priority):
+  1. LF inline  \n---\n      -> return bytes[0..pos]
+  2. CRLF inline \r\n---\r\n -> return bytes[0..pos]  (EC-017)
+  3. CRLF EOF   \r\n---      -> return bytes[0..len-5]  (checked before LF-EOF)
+  4. LF EOF     \n---        -> return bytes[0..len-4]
+  5. No delimiter             -> return bytes unchanged (EC-004 fallback)
+
+Pure function: deterministic, no I/O, side-effect free.
+
+=== BC Trace ===
+
+BC-4.13.001 v1.15 Phase-A Invariant 9: guard MUST abort scanning after the second ---\n
+  delimiter and MUST NOT parse file body content; CRLF delimiter forms \r\n---\r\n /
+  \r\n--- -EOF added in v1.15 (EC-017)
+AC-005: byte-exact boundary; parity-with-full-file-parse FORBIDDEN (F-P2-011)
+F-P29-001: architect ruling — this function lives in factory-lock-parse pure crate

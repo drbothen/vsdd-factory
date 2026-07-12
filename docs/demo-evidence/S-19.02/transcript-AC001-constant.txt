@@ -1,0 +1,37 @@
+S-19.02 Demo Evidence — AC-001: STATE_MD_MAX_BYTES == 262144
+Captured: 2026-07-11
+Branch: feature/S-19.02  HEAD: 492f01c2
+Crate: crates/hook-plugins/verify-factory-lock
+
+=== Story gate (grep command from AC-001) ===
+
+$ grep -q "STATE_MD_MAX_BYTES.*262144" crates/hook-plugins/verify-factory-lock/src/lib.rs
+exit 0: AC-001 gate PASS
+
+=== Constant declaration (crates/hook-plugins/verify-factory-lock/src/lib.rs:61) ===
+
+pub const STATE_MD_MAX_BYTES: u32 = 262144;
+
+=== T-001 unit test (test_S1902_T001_state_md_max_bytes_is_262144) ===
+
+$ cargo test -p verify-factory-lock test_S1902_T001
+
+     Running unittests src/lib.rs (target/debug/deps/verify_factory_lock-...)
+
+running 1 test
+test tests::test_S1902_T001_state_md_max_bytes_is_262144 ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 27 filtered out; finished in 0.00s
+
+=== BC Trace ===
+
+BC-4.13.001 v1.15 Phase-A Precondition 3: max_bytes = 262144 (256 KiB)
+ADR-025 Decision 14: cap is a plugin-side compile-time constant
+
+=== Relevance ===
+
+AC-001 closes rc.22 FINDING-1 root cause: read_bounded() checks metadata.len() BEFORE
+reading. At the old cap (65536) the 90 KB production STATE.md was rejected immediately
+with OUTPUT_TOO_LARGE before any bytes were returned. Raising to 262144 gives >=25%
+headroom over the worst-case observed STATE.md size (<200 KB under 500-line compaction
+discipline per ADR-026).
