@@ -2,12 +2,17 @@
 # stub-gh.sh — mock gh CLI for S-19.01 bats fixture tests.
 #
 # Configurable via environment variables:
-#   STUB_GH_HEAD_REF_OID   — headRefOid value (default: aaaa000...000)
-#   STUB_GH_HEAD_REF_NAME  — headRefName value (default: feature/stub)
-#   STUB_GH_STATE          — PR state field (default: open; set to "closed"/"merged" for EC-003)
-#   STUB_GH_FAIL_VIEW      — if "1", exits non-zero on `gh pr view` calls (simulates gh failure)
-#   STUB_GH_MALFORMED_JSON — if "1", returns non-JSON garbage from `gh pr view` (simulates arm 4)
-#   STUB_GH_MERGE_EXIT     — exit code for `gh pr merge` calls (default: 0)
+#   STUB_GH_HEAD_REF_OID          — headRefOid value (default: aaaa000...000)
+#   STUB_GH_HEAD_REF_NAME         — headRefName value (default: feature/stub)
+#   STUB_GH_STATE                 — PR state field (default: open; set to "closed"/"merged" for EC-003)
+#   STUB_GH_FAIL_VIEW             — if "1", exits non-zero on `gh pr view` calls (simulates gh failure)
+#   STUB_GH_MALFORMED_JSON        — if "1", returns non-JSON garbage from `gh pr view` (simulates arm 4)
+#   STUB_GH_MERGE_EXIT            — exit code for `gh pr merge` calls (default: 0)
+#   STUB_GH_NULL_OID              — if "1", returns null for headRefOid value (simulates F-P5-001)
+#   STUB_GH_NULL_HEAD_REF_NAME    — if "1", returns null for headRefName value (simulates F-P5-001 sibling)
+#   STUB_GH_ARGV_LOG              — if set to a file path, gh pr merge appends all argv (one per
+#                                   line) to that file so tests can assert which flags were forwarded
+#                                   through enforce-merge-strategy.sh (F-P7-001 arg-forwarding gate).
 #
 # Notes:
 #   - When headRefOid is requested, response always includes both headRefOid AND state so
@@ -22,6 +27,7 @@ STUB_GH_MERGE_EXIT="${STUB_GH_MERGE_EXIT:-0}"
 STUB_GH_STATE="${STUB_GH_STATE:-open}"
 STUB_GH_NULL_OID="${STUB_GH_NULL_OID:-0}"
 STUB_GH_NULL_HEAD_REF_NAME="${STUB_GH_NULL_HEAD_REF_NAME:-0}"
+STUB_GH_ARGV_LOG="${STUB_GH_ARGV_LOG:-}"
 
 case "${1:-}" in
     pr)
@@ -60,6 +66,10 @@ case "${1:-}" in
                     "${STUB_GH_HEAD_REF_NAME:-feature/stub}"
                 ;;
             merge)
+                # Record forwarded argv for arg-forwarding gate tests (F-P7-001).
+                if [[ -n "${STUB_GH_ARGV_LOG}" ]]; then
+                    printf '%s\n' "$@" >> "${STUB_GH_ARGV_LOG}"
+                fi
                 exit "${STUB_GH_MERGE_EXIT}"
                 ;;
             *)

@@ -3,7 +3,7 @@
 #
 # Covers AC-001..AC-004 per BC-5.42.001 / VP-094 / ADR-030 §Decision 2 / §Decision 3.
 #
-# Test plan (T-001..T-021):
+# Test plan (T-001..T-028):
 #   T-001 AC-001 — READY verdict without covered_sha triggers READY_SHA_MISSING advisory
 #   T-002 AC-001 — gh failure on covered_sha fetch → READY_SHA_FETCH_FAILED on stderr
 #   T-003 AC-002 — check-stale-verdict.sh: stale SHA → exit 1 + STALE_READY_VERDICT
@@ -25,13 +25,22 @@
 #   T-019 AC-002 — check-stale-verdict.sh: malformed gh JSON → CHECK_STALE_VERDICT_ERROR (arm 4)
 #   T-020 AC-002 — check-stale-verdict.sh: headRefOid null value → CHECK_STALE_VERDICT_ERROR (arm-4 bypass)
 #   T-021 AC-003 — enforce-merge-strategy.sh: headRefName null value → fail-open delegate (Decision 3)
+#   T-022 AC-003 — pr-manager.md Step 8 must route through wrappers not direct gh pr merge (F-P7-001 wiring)
+#   T-023 AC-003 — enforce-merge-strategy.sh forwards --delete-branch residual arg to gh (F-P7-001 pass-through)
+#   T-024 AC-003 — enforce-merge-strategy.sh: --merge --squash (two strategies) → exit 2 (F-P7-001 deny-list)
+#   T-025 AC-003 — enforce-merge-strategy.sh: --merge --admin → exit 2 (F-P7-001 deny-list)
+#   T-026 AC-003 — enforce-merge-strategy.sh: --merge -sd (combined short cluster, s=squash) → exit 2 (F-P7-001)
+#   T-027 AC-003 — enforce-merge-strategy.sh: --merge --delete-branch allowed + forwarded (F-P7-001 positive)
+#   T-028 AC-003 — enforce-merge-strategy.sh: release + --merge --delete-branch → delegates both (F-P7-001)
 #
 # Green status: T-001..T-016 pass after implementation; T-017 green (positive + neg-control);
 #   T-018/T-019 GREEN — positive verification of ADR-030 §Decision 2 arms 3+4 (post-implementation);
-#   T-020/T-021 RED gates (F-P5-001: arm-4 bypass on non-string OID + fail-open on non-string headRefName).
+#   T-020/T-021 RED gates (F-P5-001: arm-4 bypass on non-string OID + fail-open on non-string headRefName);
+#   T-022..T-028 RED gates (F-P7-001: wiring + governed pass-through deny-list).
 #
 # BC trace: BC-5.42.001 PC-1 (T-001/T-002/T-014), PC-2 (T-003/T-004/T-010/T-013/T-016/T-018/T-019/T-020),
-#           PC-3 (T-005/T-006/T-007/T-011/T-012/T-015/T-021), AC-004 (T-008/T-009/T-017)
+#           PC-3 (T-005/T-006/T-007/T-011/T-012/T-015/T-021/T-022/T-023/T-024/T-025/T-026/T-027/T-028),
+#           AC-004 (T-008/T-009/T-017)
 
 PLUGIN_ROOT=""
 BIN_DIR=""
@@ -1017,4 +1026,285 @@ GHEOF
         echo "Output: ${output}"
         return 1
     fi
+}
+
+# ─────────────────────────────────────────────────────────────────────────────
+# F-P7-001 (HIGH) — wrapper scripts (check-stale-verdict.sh, enforce-merge-strategy.sh)
+#   are correct but NOT wired into pr-manager.md's operative Step 8.  Step 8 still
+#   dispatches a direct 'gh pr merge <PR> --squash --delete-branch' via github-ops,
+#   recreating D-750 on release PRs. Additionally, enforce-merge-strategy.sh drops
+#   residual args ($3+) and has no deny-list for injected second strategy flags.
+#
+# ADOPTED CONTRACT (research-backed; architect/PO will document in ADR-030/BC-5.42.001):
+#   enforce-merge-strategy.sh is a GOVERNED PASS-THROUGH:
+#   - Signature stays: <pr_number> [--merge|--squash|--rebase] [residual-args...]
+#   - Residual args "${@:3}" are forwarded to gh pr merge (allows --delete-branch etc.)
+#   - DENY-LIST rejects (exit 2) any residual arg matching a second strategy flag or --admin:
+#     long (--squash/--merge/--rebase/--admin), =-fused, bare short (-s/-m/-r/-A),
+#     combined short clusters containing s/m/r/A (e.g. -sd)
+#   - --delete-branch/-d MUST be allowed through (not in deny-list)
+#   - Release rule unchanged: ^release/v head → force --merge; reject --squash/--rebase
+#   - Merge success is NOT gated on branch deletion (best-effort; see note below)
+#
+# T-022: pr-manager.md Step 8 wiring — RED gate
+# T-023: enforce-merge-strategy.sh arg pass-through — RED gate
+# T-024: deny-list --squash as second strategy — RED gate
+# T-025: deny-list --admin — RED gate
+# T-026: deny-list -sd combined short cluster — RED gate
+# T-027: deny-list positive (--delete-branch allowed + forwarded) — RED gate
+# T-028: release + --merge --delete-branch → delegates both — RED gate
+#
+# Best-effort delete note (no separate RED test):
+#   enforce-merge-strategy.sh delegates to 'gh pr merge "${PR_NUMBER}" "${MERGE_FLAG}" "${@:3}"'
+#   and propagates gh's exit code directly. The wrapper has NO separate branch-deletion step;
+#   it does not independently verify deletion or gate on it. When gh pr merge --delete-branch
+#   exits 0, the wrapper exits 0 regardless of whether GitHub's async deletion completed
+#   (see cli/cli #13380, cli/cli #12980). A separate RED test for this property would be
+#   trivially GREEN today (wrapper already propagates exit codes). Any future regression
+#   where the wrapper independently gates on deletion would be caught by T-023/T-027/T-028.
+# ─────────────────────────────────────────────────────────────────────────────
+
+# T-022: pr-manager.md operative Step 8 must NOT dispatch a direct 'gh pr merge' and
+# MUST reference both enforce-merge-strategy.sh and check-stale-verdict.sh in the step body.
+# BC-5.42.001 PC-3: "Direct gh pr merge calls outside this wrapper are a protocol violation."
+# BC-5.42.001 PC-2: "orchestrator MUST invoke check-stale-verdict.sh before every gh pr merge."
+#
+# RED now: Step 8 contains:
+#   Agent(subagent_type="vsdd-factory:github-ops", prompt="cd <project-path> && gh pr merge <PR_NUMBER> --squash --delete-branch")
+# and neither enforce-merge-strategy.sh nor check-stale-verdict.sh appear in the Step 8 body.
+@test "T-022: pr-manager.md Step 8 must route through wrappers not direct gh pr merge (F-P7-001 wiring)" {
+    local pm_md="${PLUGIN_ROOT}/agents/pr-manager.md"
+
+    # Assertion 1: zero direct 'gh pr merge' in any Agent dispatch prompt.
+    # The only permitted pattern is routing through enforce-merge-strategy.sh.
+    # Current: Step 8 has prompt="cd <project-path> && gh pr merge <PR_NUMBER> --squash --delete-branch"
+    if grep -qE '"[^"]*gh pr merge' "${pm_md}"; then
+        echo "FAIL: direct 'gh pr merge' found in agent dispatch prompt in pr-manager.md"
+        echo "Step 8 must route ALL merges through plugins/vsdd-factory/bin/enforce-merge-strategy.sh"
+        echo "Per BC-5.42.001 PC-3: direct gh pr merge outside the wrapper is a protocol violation"
+        grep -nE '"[^"]*gh pr merge' "${pm_md}" | head -5
+        return 1
+    fi
+
+    # Assertion 2: enforce-merge-strategy.sh must appear in the Step 8 operative body.
+    # Current: enforce-merge-strategy.sh is only in the separate gate-docs section (after Step 9),
+    # not in the operative Step 8 dispatch block.
+    if ! awk '/^### Step 8:/,/^### Step 9:/' "${pm_md}" | grep -q 'enforce-merge-strategy.sh'; then
+        echo "FAIL: enforce-merge-strategy.sh not referenced in Step 8 body"
+        echo "Step 8 must dispatch via: plugins/vsdd-factory/bin/enforce-merge-strategy.sh"
+        echo "Required by BC-5.42.001 PC-3 (governed pass-through wrapper)"
+        return 1
+    fi
+
+    # Assertion 3: check-stale-verdict.sh must appear in the Step 8 operative body.
+    # Current: check-stale-verdict.sh is only in the stale-verdict docs section (after Step 9),
+    # not in the operative Step 8 dispatch block.
+    if ! awk '/^### Step 8:/,/^### Step 9:/' "${pm_md}" | grep -q 'check-stale-verdict.sh'; then
+        echo "FAIL: check-stale-verdict.sh not referenced in Step 8 body"
+        echo "Step 8 must invoke check-stale-verdict.sh BEFORE delegating to enforce-merge-strategy.sh"
+        echo "Required by BC-5.42.001 PC-2 (stale-verdict detection)"
+        return 1
+    fi
+}
+
+# T-023: enforce-merge-strategy.sh must forward residual args (${@:3}) to gh pr merge.
+# The governed pass-through contract (F-P7-001) requires --delete-branch and other
+# non-denied residual args to be passed through to gh pr merge unchanged.
+#
+# RED now: wrapper ends with 'gh pr merge "${PR_NUMBER}" "${MERGE_FLAG}"' — drops $3+.
+# After implementation: 'gh pr merge "${PR_NUMBER}" "${MERGE_FLAG}" "${@:3}"'.
+@test "T-023: enforce-merge-strategy.sh forwards --delete-branch residual arg to gh (F-P7-001 pass-through)" {
+    local pr_number="55"
+    local argv_log
+    argv_log="$(mktemp "${BATS_TMPDIR}/gh-argv-T023-XXXXXX.txt")"
+
+    cp "${FIXTURES_DIR}/stub-gh.sh" "${MOCK_BIN}/gh"
+    chmod +x "${MOCK_BIN}/gh"
+
+    run env PATH="${MOCK_BIN}:${PATH}" \
+        STUB_GH_HEAD_REF_NAME="feature/S-19.01" \
+        STUB_GH_ARGV_LOG="${argv_log}" \
+        bash "${BIN_DIR}/enforce-merge-strategy.sh" \
+        "${pr_number}" "--merge" "--delete-branch" 2>&1
+
+    [ "${status}" -eq 0 ] || {
+        echo "FAIL: expected exit 0 for non-release branch --merge --delete-branch; got ${status}"
+        echo "Output: ${output}"
+        return 1
+    }
+
+    # Assert --delete-branch was forwarded to stub-gh's gh pr merge handler.
+    { [[ -f "${argv_log}" ]] && grep -q -- "--delete-branch" "${argv_log}"; } || {
+        echo "FAIL: --delete-branch not forwarded to gh pr merge"
+        echo "Current behavior: wrapper delegates 'gh pr merge \${PR_NUMBER} \${MERGE_FLAG}' — drops \$3+"
+        echo "Required (F-P7-001): wrapper must forward residual args '\${@:3}' to gh pr merge"
+        echo "argv_log contents: $(cat "${argv_log}" 2>/dev/null || echo '(gh pr merge not called or log empty)')"
+        return 1
+    }
+
+    rm -f "${argv_log}"
+}
+
+# T-024: enforce-merge-strategy.sh deny-list: passing --squash as a residual arg after the
+# primary strategy flag → exit 2 (second strategy injection blocked).
+# A caller passing '--merge --squash' is attempting to override the release-branch enforcement
+# by smuggling a second strategy token; the deny-list must reject this.
+#
+# RED now: no deny-list exists; --squash is silently dropped (wrapper uses only $2).
+# After implementation: residual strategy flags → exit 2.
+@test "T-024: enforce-merge-strategy.sh: --merge --squash (two strategies) → exit 2 (F-P7-001 deny-list)" {
+    local pr_number="60"
+
+    cp "${FIXTURES_DIR}/stub-gh.sh" "${MOCK_BIN}/gh"
+    chmod +x "${MOCK_BIN}/gh"
+
+    run env PATH="${MOCK_BIN}:${PATH}" \
+        STUB_GH_HEAD_REF_NAME="feature/S-19.01" \
+        bash "${BIN_DIR}/enforce-merge-strategy.sh" \
+        "${pr_number}" "--merge" "--squash" 2>&1
+
+    [ "${status}" -eq 2 ] || {
+        echo "FAIL: expected exit 2 for second strategy flag --squash; got ${status}"
+        echo "Current behavior: no deny-list — --squash silently dropped (only \$2 used)"
+        echo "Required (F-P7-001): residual args containing a second strategy flag → exit 2"
+        echo "Deny-list must reject: --squash/--merge/--rebase/--admin and short clusters s/m/r/A"
+        echo "Output: ${output}"
+        return 1
+    }
+}
+
+# T-025: enforce-merge-strategy.sh deny-list: --admin as residual arg → exit 2.
+# --admin bypasses branch-protection rules on GitHub; it must never be forwarded.
+#
+# RED now: no deny-list; --admin silently dropped.
+# After implementation: --admin in residual args → exit 2.
+@test "T-025: enforce-merge-strategy.sh: --merge --admin → exit 2 (F-P7-001 deny-list --admin)" {
+    local pr_number="61"
+
+    cp "${FIXTURES_DIR}/stub-gh.sh" "${MOCK_BIN}/gh"
+    chmod +x "${MOCK_BIN}/gh"
+
+    run env PATH="${MOCK_BIN}:${PATH}" \
+        STUB_GH_HEAD_REF_NAME="feature/S-19.01" \
+        bash "${BIN_DIR}/enforce-merge-strategy.sh" \
+        "${pr_number}" "--merge" "--admin" 2>&1
+
+    [ "${status}" -eq 2 ] || {
+        echo "FAIL: expected exit 2 for --admin residual arg; got ${status}"
+        echo "Current behavior: no deny-list — --admin silently dropped"
+        echo "Required (F-P7-001): --admin in residual args → exit 2 (branch-protection bypass blocked)"
+        echo "Output: ${output}"
+        return 1
+    }
+}
+
+# T-026: enforce-merge-strategy.sh deny-list: combined short flag cluster -sd → exit 2.
+# -s is the short form of --squash; -sd combines squash (-s) with delete-branch (-d).
+# The deny-list must reject any combined short-flag cluster containing s, m, r, or A —
+# it cannot forward -sd even though -d alone is allowed.
+#
+# RED now: no deny-list; -sd silently dropped.
+# After implementation: combined short clusters containing s/m/r/A → exit 2.
+@test "T-026: enforce-merge-strategy.sh: --merge -sd (combined short, s=squash) → exit 2 (F-P7-001 deny-list)" {
+    local pr_number="62"
+
+    cp "${FIXTURES_DIR}/stub-gh.sh" "${MOCK_BIN}/gh"
+    chmod +x "${MOCK_BIN}/gh"
+
+    run env PATH="${MOCK_BIN}:${PATH}" \
+        STUB_GH_HEAD_REF_NAME="feature/S-19.01" \
+        bash "${BIN_DIR}/enforce-merge-strategy.sh" \
+        "${pr_number}" "--merge" "-sd" 2>&1
+
+    [ "${status}" -eq 2 ] || {
+        echo "FAIL: expected exit 2 for combined short cluster -sd (s=squash); got ${status}"
+        echo "Current behavior: no deny-list — -sd silently dropped"
+        echo "Required (F-P7-001): combined short flags containing s/m/r/A → exit 2"
+        echo "  -sd contains s (squash) → denied, even though -d (delete-branch) alone is allowed"
+        echo "Output: ${output}"
+        return 1
+    }
+}
+
+# T-027: enforce-merge-strategy.sh deny-list positive: --delete-branch MUST be allowed through
+# and forwarded to gh pr merge (--delete-branch is NOT in the deny-list).
+# This test guards against an overly-broad deny-list that blocks -d/--delete-branch.
+#
+# RED now on forwarding: --delete-branch reaches stub-gh only after arg-forwarding is implemented.
+# Currently, wrapper drops $3+, so argv_log won't contain --delete-branch.
+@test "T-027: enforce-merge-strategy.sh: --merge --delete-branch allowed + forwarded (F-P7-001 deny-list positive)" {
+    local pr_number="63"
+    local argv_log
+    argv_log="$(mktemp "${BATS_TMPDIR}/gh-argv-T027-XXXXXX.txt")"
+
+    cp "${FIXTURES_DIR}/stub-gh.sh" "${MOCK_BIN}/gh"
+    chmod +x "${MOCK_BIN}/gh"
+
+    run env PATH="${MOCK_BIN}:${PATH}" \
+        STUB_GH_HEAD_REF_NAME="feature/S-19.01" \
+        STUB_GH_ARGV_LOG="${argv_log}" \
+        bash "${BIN_DIR}/enforce-merge-strategy.sh" \
+        "${pr_number}" "--merge" "--delete-branch" 2>&1
+
+    [ "${status}" -eq 0 ] || {
+        echo "FAIL: expected exit 0 (--delete-branch must be allowed through deny-list); got ${status}"
+        echo "Deny-list must NOT reject --delete-branch (only second-strategy flags and --admin are denied)"
+        echo "Output: ${output}"
+        return 1
+    }
+
+    # --delete-branch must be forwarded to gh pr merge (deny-list allows it).
+    { [[ -f "${argv_log}" ]] && grep -q -- "--delete-branch" "${argv_log}"; } || {
+        echo "FAIL: --delete-branch not forwarded to gh pr merge"
+        echo "Current behavior: wrapper drops \$3+ — arg forwarding not yet implemented"
+        echo "Required: deny-list allows --delete-branch; wrapper forwards it via '\${@:3}'"
+        echo "argv_log: $(cat "${argv_log}" 2>/dev/null || echo '(gh pr merge not called or log empty)')"
+        return 1
+    }
+
+    rm -f "${argv_log}"
+}
+
+# T-028: enforce-merge-strategy.sh: release/v* branch + --merge --delete-branch → exit 0,
+# both --merge and --delete-branch forwarded to gh pr merge.
+# The release rule (^release/v → force --merge, reject --squash/--rebase) must coexist with
+# arg pass-through: --delete-branch must survive the release-branch path.
+#
+# RED now: wrapper drops $3+ regardless of branch type; --delete-branch not forwarded.
+# After implementation: release branch forces --merge (already passed) and forwards --delete-branch.
+@test "T-028: enforce-merge-strategy.sh: release + --merge --delete-branch → delegates both (F-P7-001)" {
+    local pr_number="64"
+    local release_branch="release/v1.0.0-rc.23"
+    local argv_log
+    argv_log="$(mktemp "${BATS_TMPDIR}/gh-argv-T028-XXXXXX.txt")"
+
+    cp "${FIXTURES_DIR}/stub-gh.sh" "${MOCK_BIN}/gh"
+    chmod +x "${MOCK_BIN}/gh"
+
+    run env PATH="${MOCK_BIN}:${PATH}" \
+        STUB_GH_HEAD_REF_NAME="${release_branch}" \
+        STUB_GH_ARGV_LOG="${argv_log}" \
+        bash "${BIN_DIR}/enforce-merge-strategy.sh" \
+        "${pr_number}" "--merge" "--delete-branch" 2>&1
+
+    [ "${status}" -eq 0 ] || {
+        echo "FAIL: expected exit 0 for release branch with --merge --delete-branch; got ${status}"
+        echo "Output: ${output}"
+        return 1
+    }
+
+    # Both --merge and --delete-branch must reach gh pr merge on the release path.
+    { [[ -f "${argv_log}" ]] && grep -q -- "--merge" "${argv_log}"; } || {
+        echo "FAIL: --merge not forwarded to gh pr merge for release branch"
+        echo "argv_log: $(cat "${argv_log}" 2>/dev/null || echo '(gh pr merge not called or log empty)')"
+        return 1
+    }
+    { [[ -f "${argv_log}" ]] && grep -q -- "--delete-branch" "${argv_log}"; } || {
+        echo "FAIL: --delete-branch not forwarded to gh pr merge (release path must also forward \${@:3})"
+        echo "Current behavior: wrapper drops \$3+ — only MERGE_FLAG=\$2 is forwarded"
+        echo "argv_log: $(cat "${argv_log}" 2>/dev/null || echo '(gh pr merge not called or log empty)')"
+        return 1
+    }
+
+    rm -f "${argv_log}"
 }
