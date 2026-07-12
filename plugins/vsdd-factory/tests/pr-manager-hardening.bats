@@ -398,6 +398,9 @@ GHEOF
 #   CI-config gate will be added in implementation step.
 # After implementation: exits 1 + DARWIN_LEG_WRONG_INTERPRETER when wrong interpreter.
 @test "T-008: darwin-leg preflight: wrong interpreter exits 1 + DARWIN_LEG_WRONG_INTERPRETER" {
+    if [[ "$(uname)" != "Darwin" ]]; then
+        skip "T-008 is macOS-only: darwin-leg-preflight.sh exits 0 on non-Darwin (platform guard at line 23); wrong-interpreter path requires Darwin semantics"
+    fi
     # PREFLIGHT_BASH_BIN seam (commit 9e0a5453): production script uses
     #   PREFLIGHT_BASH_BIN="${PREFLIGHT_BASH_BIN:-/bin/bash}"
     # Point it at stub-bash-version.sh which reports bash 5.1.x by default (wrong).

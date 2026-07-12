@@ -602,6 +602,15 @@ jobs:
       - name: Run full bats suite (run-all.sh)
         # This is the canonical gate that release.yml runs. Running it on every PR
         # catches failures before they reach the release tag.
+        #
+        # pr-manager-hardening.bats is included via the tests/*.bats glob in run-all.sh
+        # (F-S1901-P9-001): platform-independent security tests (T-001..T-007, T-009..T-016,
+        # T-018..T-031) run and gate on this Linux job; platform-specific tests
+        # (T-008 darwin-leg wrong-interpreter, T-017 bash-3.2 fragment negative-control)
+        # self-skip on non-Darwin via [[ "$(uname)" != "Darwin" ]] guards. T-009 (Linux
+        # runner exits 0) executes its real path exclusively on this Linux job.
+        # WASM: pr-manager-completion-guard.wasm is staged above (workspace build);
+        # setup_file() on-demand build is a no-op when the artifact is already present.
         run: cd plugins/vsdd-factory/tests && ./run-all.sh
 
   bats-wave-handoff-macos:
