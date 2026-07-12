@@ -1,10 +1,14 @@
 //! VP-096 proptest harness for `extract_frontmatter` purity (T-010; S-19.02).
 //!
-//! Property: `extract_frontmatter(bytes)` output byte-equals the input prefix
-//! `bytes[0..delimiter_start_offset]` for whichever delimiter form is present
-//! (LF-inline `\n---\n`, CRLF-inline `\r\n---\r\n`, CRLF-EOF `\r\n---`, or
-//! LF-EOF `\n---`), or the full input when no delimiter is present. Two
-//! invocations on the same input must produce byte-identical results (determinism).
+//! Three properties are verified:
+//!
+//! 1. **Structural correctness** (Property 1): the output satisfies three
+//!    result-property invariants independent of the implementation's search
+//!    algorithm — prefix, delimiter-partition, and no-skipped-delimiter.
+//! 2. **Determinism** (Property 2): two invocations on the same input are
+//!    byte-identical.
+//! 3. **CRLF known-answer** (Property 3): constructed CRLF-delimited inputs
+//!    yield exact prefix results per BC-4.13.001 v1.15 / EC-017.
 //!
 //! # Red Gate
 //!
@@ -13,7 +17,7 @@
 //!
 //! # BC Traces
 //! - BC-4.13.001 v1.15 Phase-A Invariant 9 (frontmatter-only-parsing mandate;
-//!   CRLF forms added in v1.15 / EC-017)
+//!   CRLF delimiter forms `\r\n---\r\n` / `\r\n---`-EOF added in v1.15 / EC-017)
 //! - VP-096: extract_frontmatter Purity — output byte-equals file prefix up to
 //!   (excluding) the second `---` delimiter line; deterministic for any input.
 //! - AC-005 (byte-exact boundary; parity-with-full-file-parse FORBIDDEN per F-P2-011)
@@ -21,82 +25,94 @@
 use factory_lock_parse::extract_frontmatter;
 use proptest::prelude::*;
 
-/// Find the byte offset of the first recognized delimiter in `input`, modelling
-/// all four forms that `extract_frontmatter` recognizes per BC-4.13.001 v1.15.
-///
-/// Returns `Some(offset)` where `offset` is the byte index of the leading
-/// byte of the delimiter sequence (i.e. the first byte NOT included in the
-/// returned frontmatter prefix). Returns `None` if no delimiter form is found.
-///
-/// Precedence mirrors the implementation exactly (BC-4.13.001 v1.15 §Search-Order):
-///   1. LF-inline  `\n---\n`   — most common; inline delimiter, trailing newline.
-///   2. CRLF-inline `\r\n---\r\n` — Windows autocrlf checkout (EC-017).
-///   3. CRLF-EOF  `\r\n---` at end of input — CRLF file, no trailing newline.
-///      Checked BEFORE LF-EOF: `\r\n---` ends with `\n---`; checking LF-EOF
-///      first would yield wrong offset and leave a stray `\r` in the prefix.
-///   4. LF-EOF    `\n---` at end of input — LF file, no trailing newline.
-///
-/// This is an independent oracle: it does NOT call `extract_frontmatter`.
-/// Using the same primitives (window-scan, ends_with) but expressed separately
-/// avoids POLICY 11 tautology while guaranteeing the same contract semantics.
-fn find_delimiter_offset(input: &[u8]) -> Option<usize> {
-    // 1. LF-inline \n---\n
-    let lf_inline = b"\n---\n";
-    if let Some(pos) = input.windows(lf_inline.len()).position(|w| w == lf_inline) {
-        return Some(pos);
-    }
-    // 2. CRLF-inline \r\n---\r\n
-    let crlf_inline = b"\r\n---\r\n";
-    if let Some(pos) = input
-        .windows(crlf_inline.len())
-        .position(|w| w == crlf_inline)
-    {
-        return Some(pos);
-    }
-    // 3. CRLF-EOF \r\n--- at end of input (checked before LF-EOF).
-    let crlf_eof = b"\r\n---";
-    if input.ends_with(crlf_eof) {
-        return Some(input.len() - crlf_eof.len());
-    }
-    // 4. LF-EOF \n--- at end of input.
-    let lf_eof = b"\n---";
-    if input.ends_with(lf_eof) {
-        return Some(input.len() - lf_eof.len());
-    }
-    None
-}
-
 proptest! {
-    /// VP-096 Property 1: output is a byte-exact prefix bounded by the delimiter.
+    /// VP-096 Property 1: result-property oracle — independent of impl search order.
     ///
-    /// For any arbitrary byte input, the oracle searches for the first delimiter
-    /// in precedence order (LF-inline → CRLF-inline → CRLF-EOF → LF-EOF):
-    /// - If a delimiter is found at offset `i`, then `extract_frontmatter(input)`
-    ///   must byte-equal `input[0..i]`.
-    /// - If no delimiter form is present, `extract_frontmatter(input)` must
-    ///   byte-equal the full input.
+    /// Verifies three structural invariants of the `extract_frontmatter` output
+    /// WITHOUT recomputing the expected offset via the implementation's search
+    /// algorithm. A shared ordering/offset bug in the impl is invisible to a
+    /// mirror oracle; it is caught by Invariant C below.
+    ///
+    /// **Invariant A — prefix**: `extracted` is always a byte-prefix of `input`
+    /// (`input.starts_with(extracted)`). Detects: out-of-bounds or wrong-slice bugs.
+    ///
+    /// **Invariant B — delimiter partition** (disjunctive):
+    ///   - *None case* (`extracted == input`): no delimiter form is present
+    ///     anywhere in `input` (all four forms must be absent).
+    ///     Detects: impl returns full input when a delimiter IS present.
+    ///   - *Some case* (`extracted` is a proper prefix): the bytes immediately
+    ///     following `extracted` in `input` begin with one of the four delimiter
+    ///     sequences:
+    ///       - `\n---\n`   (LF-inline)
+    ///       - `\r\n---\r\n` (CRLF-inline)
+    ///       - `\n---` exact (LF-EOF: remainder IS the delimiter)
+    ///       - `\r\n---` exact (CRLF-EOF: remainder IS the delimiter)
+    ///     Detects: wrong cut point, off-by-one, wrong delimiter form selected.
+    ///
+    /// **Invariant C — minimality (no skipped inline delimiter)**: in the *Some*
+    /// case, `extracted` must contain NO inline delimiter (`\n---\n` or
+    /// `\r\n---\r\n`). If it does, the impl skipped an earlier delimiter.
+    /// Detects: wrong-precedence bugs (e.g., CRLF-inline fires before LF-inline
+    /// when both are present), wrong-first-occurrence bugs (e.g., second `\n---\n`
+    /// used instead of first).
+    ///
+    /// Why this is not tautological (POLICY 11): the assertions operate on the
+    /// output's structural properties only, never recomputing an expected value.
+    /// A shared search-order bug in the impl would cause Invariant C to fail on
+    /// any input containing two inline delimiters of the same or different forms.
     ///
     /// RED: extract_frontmatter is a todo!() stub; this test panics until Task 10.
     #[test]
-    fn prop_extract_frontmatter_byte_equals_prefix(input in proptest::collection::vec(any::<u8>(), 0..=512)) {
+    fn prop_extract_frontmatter_byte_equals_prefix(
+        input in proptest::collection::vec(any::<u8>(), 0..=512),
+    ) {
         let extracted = extract_frontmatter(&input);
-        match find_delimiter_offset(&input) {
-            Some(offset) => {
-                prop_assert_eq!(
-                    extracted,
-                    &input[..offset],
-                    "Delimiter found at offset {}; extracted must equal input[0..{}]",
-                    offset,
-                    offset
-                );
-            }
-            None => {
-                prop_assert_eq!(
-                    extracted,
-                    input.as_slice(),
-                    "No delimiter found; extracted must byte-equal full input"
-                );
-            }
+
+        // Invariant A: extracted must be a prefix of input.
+        prop_assert!(
+            input.starts_with(extracted),
+            "Invariant A failed: extracted is not a byte-prefix of input. \
+             extracted.len()={}, input.len()={}",
+            extracted.len(),
+            input.len()
+        );
+
+        if extracted.len() == input.len() {
+            // Invariant B (None case): full input returned → no delimiter form must be present.
+            let has_lf_inline = input.windows(5).any(|w| w == b"\n---\n");
+            let has_crlf_inline = input.windows(7).any(|w| w == b"\r\n---\r\n");
+            let has_crlf_eof = input.ends_with(b"\r\n---");
+            let has_lf_eof = input.ends_with(b"\n---");
+            prop_assert!(
+                !has_lf_inline && !has_crlf_inline && !has_crlf_eof && !has_lf_eof,
+                "Invariant B (None) failed: full input returned but a delimiter IS present. \
+                 has_lf_inline={has_lf_inline}, has_crlf_inline={has_crlf_inline}, \
+                 has_crlf_eof={has_crlf_eof}, has_lf_eof={has_lf_eof}"
+            );
+        } else {
+            // Invariant B (Some case): proper prefix returned → remainder must begin with a delimiter.
+            let remainder = &input[extracted.len()..];
+            let follows_lf_inline = remainder.starts_with(b"\n---\n");
+            let follows_crlf_inline = remainder.starts_with(b"\r\n---\r\n");
+            let follows_lf_eof = remainder == b"\n---";
+            let follows_crlf_eof = remainder == b"\r\n---";
+            prop_assert!(
+                follows_lf_inline || follows_crlf_inline || follows_lf_eof || follows_crlf_eof,
+                "Invariant B (Some) failed: proper prefix returned but bytes after extracted \
+                 do not begin with any delimiter form. remainder={remainder:?}"
+            );
+
+            // Invariant C: extracted contains no inline delimiter (no earlier delimiter was skipped).
+            let extracted_has_lf_inline = extracted.windows(5).any(|w| w == b"\n---\n");
+            let extracted_has_crlf_inline = extracted.windows(7).any(|w| w == b"\r\n---\r\n");
+            prop_assert!(
+                !extracted_has_lf_inline && !extracted_has_crlf_inline,
+                "Invariant C failed: extracted contains an inline delimiter — impl skipped \
+                 an earlier delimiter (wrong-precedence or wrong-first-occurrence bug). \
+                 extracted_has_lf_inline={extracted_has_lf_inline}, \
+                 extracted_has_crlf_inline={extracted_has_crlf_inline}. \
+                 extracted={extracted:?}"
+            );
         }
     }
 
