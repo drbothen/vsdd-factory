@@ -3,7 +3,7 @@
 #
 # Covers AC-001..AC-004 per BC-5.42.001 / VP-094 / ADR-030 §Decision 2 / §Decision 3.
 #
-# Test plan (T-001..T-028):
+# Test plan (T-001..T-031):
 #   T-001 AC-001 — READY verdict without covered_sha triggers READY_SHA_MISSING advisory
 #   T-002 AC-001 — gh failure on covered_sha fetch → READY_SHA_FETCH_FAILED on stderr
 #   T-003 AC-002 — check-stale-verdict.sh: stale SHA → exit 1 + STALE_READY_VERDICT
@@ -27,19 +27,24 @@
 #   T-021 AC-003 — enforce-merge-strategy.sh: headRefName null value → fail-open delegate (Decision 3)
 #   T-022 AC-003 — pr-manager.md Step 8 must route through wrappers not direct gh pr merge (F-P7-001 wiring)
 #   T-023 AC-003 — enforce-merge-strategy.sh forwards --delete-branch residual arg to gh (F-P7-001 pass-through)
-#   T-024 AC-003 — enforce-merge-strategy.sh: --merge --squash (two strategies) → exit 2 (F-P7-001 deny-list)
-#   T-025 AC-003 — enforce-merge-strategy.sh: --merge --admin → exit 2 (F-P7-001 deny-list)
-#   T-026 AC-003 — enforce-merge-strategy.sh: --merge -sd (combined short cluster, s=squash) → exit 2 (F-P7-001)
+#   T-024 AC-003 — enforce-merge-strategy.sh: --merge --squash (two strategies) → exit 1 (F-P7-001/F-P8-002)
+#   T-025 AC-003 — enforce-merge-strategy.sh: --merge --admin → exit 1 (F-P7-001/F-P8-002 deny-list)
+#   T-026 AC-003 — enforce-merge-strategy.sh: --merge -sd (combined short, s=squash) → exit 1 (F-P7-001/F-P8-002)
 #   T-027 AC-003 — enforce-merge-strategy.sh: --merge --delete-branch allowed + forwarded (F-P7-001 positive)
 #   T-028 AC-003 — enforce-merge-strategy.sh: release + --merge --delete-branch → delegates both (F-P7-001)
+#   T-029 AC-003 — enforce-merge-strategy.sh: --admin as $2 (primary strategy slot) → exit 1 (F-P8-003)
+#   T-030 AC-003 — enforce-merge-strategy.sh: -A as $2 (short form of --admin) → exit 1 (F-P8-003)
+#   T-031 AC-003 — enforce-merge-strategy.sh: --merge/$2 still works (F-P8-003 positive regression guard)
 #
 # Green status: T-001..T-016 pass after implementation; T-017 green (positive + neg-control);
 #   T-018/T-019 GREEN — positive verification of ADR-030 §Decision 2 arms 3+4 (post-implementation);
-#   T-020/T-021 RED gates (F-P5-001: arm-4 bypass on non-string OID + fail-open on non-string headRefName);
-#   T-022..T-028 RED gates (F-P7-001: wiring + governed pass-through deny-list).
+#   T-020/T-021 GREEN (F-P5-001 fixed); T-031 GREEN (positive regression guard);
+#   T-022..T-030 RED gates (F-P7-001 wiring/pass-through/deny-list; F-P8-001 WASM hint;
+#                           F-P8-002 exit-1 correction; F-P8-003 $2 validation).
+#   Note: F-P8-001 RED gates are Rust cargo tests (lib.rs), not bats.
 #
 # BC trace: BC-5.42.001 PC-1 (T-001/T-002/T-014), PC-2 (T-003/T-004/T-010/T-013/T-016/T-018/T-019/T-020),
-#           PC-3 (T-005/T-006/T-007/T-011/T-012/T-015/T-021/T-022/T-023/T-024/T-025/T-026/T-027/T-028),
+#           PC-3 (T-005/T-006/T-007/T-011/T-012/T-015/T-021/T-022/T-023/T-024/T-025/T-026/T-027/T-028/T-029/T-030/T-031),
 #           AC-004 (T-008/T-009/T-017)
 
 PLUGIN_ROOT=""
@@ -1146,13 +1151,16 @@ GHEOF
 }
 
 # T-024: enforce-merge-strategy.sh deny-list: passing --squash as a residual arg after the
-# primary strategy flag → exit 2 (second strategy injection blocked).
+# primary strategy flag → exit 1 (second strategy injection blocked).
 # A caller passing '--merge --squash' is attempting to override the release-branch enforcement
 # by smuggling a second strategy token; the deny-list must reject this.
 #
+# F-P8-002 correction: exit code is 1 (not 2) per BC-5.42.001 §Description(c)/Invariant 7 +
+# ADR-030 §Decision 3 which mandate exit 1 for STRATEGY_SMUGGLING_FORBIDDEN. Spec wins.
+#
 # RED now: no deny-list exists; --squash is silently dropped (wrapper uses only $2).
-# After implementation: residual strategy flags → exit 2.
-@test "T-024: enforce-merge-strategy.sh: --merge --squash (two strategies) → exit 2 (F-P7-001 deny-list)" {
+# After implementation: residual strategy flags → exit 1 + STRATEGY_SMUGGLING_FORBIDDEN.
+@test "T-024: enforce-merge-strategy.sh: --merge --squash (two strategies) → exit 1 (F-P7-001/F-P8-002 deny-list)" {
     local pr_number="60"
 
     cp "${FIXTURES_DIR}/stub-gh.sh" "${MOCK_BIN}/gh"
@@ -1163,22 +1171,24 @@ GHEOF
         bash "${BIN_DIR}/enforce-merge-strategy.sh" \
         "${pr_number}" "--merge" "--squash" 2>&1
 
-    [ "${status}" -eq 2 ] || {
-        echo "FAIL: expected exit 2 for second strategy flag --squash; got ${status}"
+    [ "${status}" -eq 1 ] || {
+        echo "FAIL: expected exit 1 for second strategy flag --squash; got ${status}"
         echo "Current behavior: no deny-list — --squash silently dropped (only \$2 used)"
-        echo "Required (F-P7-001): residual args containing a second strategy flag → exit 2"
-        echo "Deny-list must reject: --squash/--merge/--rebase/--admin and short clusters s/m/r/A"
+        echo "Required (F-P8-002 + BC-5.42.001 Invariant 7): residual strategy flags → exit 1"
+        echo "  STRATEGY_SMUGGLING_FORBIDDEN per BC-5.42.001 §Description(c) + ADR-030 §Decision 3"
         echo "Output: ${output}"
         return 1
     }
 }
 
-# T-025: enforce-merge-strategy.sh deny-list: --admin as residual arg → exit 2.
+# T-025: enforce-merge-strategy.sh deny-list: --admin as residual arg → exit 1.
 # --admin bypasses branch-protection rules on GitHub; it must never be forwarded.
 #
+# F-P8-002 correction: exit code is 1 per BC-5.42.001 §Description(c)/Invariant 7.
+#
 # RED now: no deny-list; --admin silently dropped.
-# After implementation: --admin in residual args → exit 2.
-@test "T-025: enforce-merge-strategy.sh: --merge --admin → exit 2 (F-P7-001 deny-list --admin)" {
+# After implementation: --admin in residual args → exit 1 + STRATEGY_SMUGGLING_FORBIDDEN.
+@test "T-025: enforce-merge-strategy.sh: --merge --admin → exit 1 (F-P7-001/F-P8-002 deny-list --admin)" {
     local pr_number="61"
 
     cp "${FIXTURES_DIR}/stub-gh.sh" "${MOCK_BIN}/gh"
@@ -1189,23 +1199,25 @@ GHEOF
         bash "${BIN_DIR}/enforce-merge-strategy.sh" \
         "${pr_number}" "--merge" "--admin" 2>&1
 
-    [ "${status}" -eq 2 ] || {
-        echo "FAIL: expected exit 2 for --admin residual arg; got ${status}"
+    [ "${status}" -eq 1 ] || {
+        echo "FAIL: expected exit 1 for --admin residual arg; got ${status}"
         echo "Current behavior: no deny-list — --admin silently dropped"
-        echo "Required (F-P7-001): --admin in residual args → exit 2 (branch-protection bypass blocked)"
+        echo "Required (F-P8-002 + BC-5.42.001 Invariant 7): --admin → exit 1 (branch-protection bypass blocked)"
         echo "Output: ${output}"
         return 1
     }
 }
 
-# T-026: enforce-merge-strategy.sh deny-list: combined short flag cluster -sd → exit 2.
+# T-026: enforce-merge-strategy.sh deny-list: combined short flag cluster -sd → exit 1.
 # -s is the short form of --squash; -sd combines squash (-s) with delete-branch (-d).
 # The deny-list must reject any combined short-flag cluster containing s, m, r, or A —
 # it cannot forward -sd even though -d alone is allowed.
 #
+# F-P8-002 correction: exit code is 1 per BC-5.42.001 §Description(c)/Invariant 7.
+#
 # RED now: no deny-list; -sd silently dropped.
-# After implementation: combined short clusters containing s/m/r/A → exit 2.
-@test "T-026: enforce-merge-strategy.sh: --merge -sd (combined short, s=squash) → exit 2 (F-P7-001 deny-list)" {
+# After implementation: combined short clusters containing s/m/r/A → exit 1 + STRATEGY_SMUGGLING_FORBIDDEN.
+@test "T-026: enforce-merge-strategy.sh: --merge -sd (combined short, s=squash) → exit 1 (F-P7-001/F-P8-002 deny-list)" {
     local pr_number="62"
 
     cp "${FIXTURES_DIR}/stub-gh.sh" "${MOCK_BIN}/gh"
@@ -1216,10 +1228,10 @@ GHEOF
         bash "${BIN_DIR}/enforce-merge-strategy.sh" \
         "${pr_number}" "--merge" "-sd" 2>&1
 
-    [ "${status}" -eq 2 ] || {
-        echo "FAIL: expected exit 2 for combined short cluster -sd (s=squash); got ${status}"
+    [ "${status}" -eq 1 ] || {
+        echo "FAIL: expected exit 1 for combined short cluster -sd (s=squash); got ${status}"
         echo "Current behavior: no deny-list — -sd silently dropped"
-        echo "Required (F-P7-001): combined short flags containing s/m/r/A → exit 2"
+        echo "Required (F-P8-002 + BC-5.42.001 Invariant 7): combined short flags containing s/m/r/A → exit 1"
         echo "  -sd contains s (squash) → denied, even though -d (delete-branch) alone is allowed"
         echo "Output: ${output}"
         return 1
@@ -1307,4 +1319,127 @@ GHEOF
     }
 
     rm -f "${argv_log}"
+}
+
+# T-029: enforce-merge-strategy.sh: --admin as $2 (primary strategy slot) → exit 1.
+# The signature is <pr_number> [--merge|--squash|--rebase] [residual-args...].
+# $2 is the *strategy* slot; only --merge/--squash/--rebase are valid values.
+# --admin is a GitHub branch-protection override flag, not a merge strategy.
+# Current behavior (RED): no $2 validation; --admin stored in MERGE_FLAG and forwarded
+# as "gh pr merge 10 --admin", which is a privilege-escalation bypass.
+# After implementation (F-P8-003): invalid $2 → exit 1 + non-empty stderr + gh pr merge NOT called.
+@test "T-029: enforce-merge-strategy.sh: --admin as \$2 (primary strategy slot) → exit 1 + non-empty stderr + gh pr merge NOT called (F-P8-003)" {
+    local pr_number="10"
+    local argv_log
+    argv_log="$(mktemp "${BATS_TMPDIR}/gh-argv-T029-XXXXXX.txt")"
+    # Remove so we can detect whether gh pr merge was called at all.
+    rm -f "${argv_log}"
+
+    cp "${FIXTURES_DIR}/stub-gh.sh" "${MOCK_BIN}/gh"
+    chmod +x "${MOCK_BIN}/gh"
+
+    run env PATH="${MOCK_BIN}:${PATH}" \
+        STUB_GH_HEAD_REF_NAME="feature/S-19.01" \
+        STUB_GH_ARGV_LOG="${argv_log}" \
+        bash "${BIN_DIR}/enforce-merge-strategy.sh" \
+        "${pr_number}" "--admin" 2>&1
+
+    [ "${status}" -eq 1 ] || {
+        echo "FAIL: expected exit 1 for --admin as \$2 (invalid strategy slot); got ${status}"
+        echo "Required (F-P8-003): \$2 must be one of --merge/--squash/--rebase"
+        echo "  --admin is a privilege-escalation flag, not a merge strategy"
+        echo "  INVALID_STRATEGY or equivalent sentinel required on stderr; exit 1; no gh pr merge call"
+        echo "Output: ${output}"
+        return 1
+    }
+
+    [[ -n "${output}" ]] || {
+        echo "FAIL: expected non-empty stderr/stdout for --admin as \$2 rejection; got empty output"
+        echo "Required (F-P8-003): diagnostic sentinel must appear on stderr before exit 1"
+        return 1
+    }
+
+    # gh pr merge must NOT have been called — the wrapper must reject before delegating.
+    { [[ ! -f "${argv_log}" ]] || [[ ! -s "${argv_log}" ]]; } || {
+        echo "FAIL: gh pr merge was called despite --admin as \$2 rejection (argv_log present + non-empty)"
+        echo "argv_log content: $(cat "${argv_log}")"
+        echo "Required (F-P8-003): script must exit 1 before invoking gh pr merge"
+        rm -f "${argv_log}"
+        return 1
+    }
+
+    rm -f "${argv_log}"
+}
+
+# T-030: enforce-merge-strategy.sh: -A as $2 (short form of --admin in strategy slot) → exit 1.
+# -A is the short form of --admin (GitHub CLI). Same semantics as T-029 but using the
+# abbreviated flag. Must be rejected identically — short forms of admin flags are not
+# merge strategies.
+# Current behavior (RED): no $2 validation; -A stored in MERGE_FLAG and forwarded as
+# "gh pr merge 10 -A", bypassing branch protection.
+@test "T-030: enforce-merge-strategy.sh: -A as \$2 (short admin flag in strategy slot) → exit 1 + non-empty stderr + gh pr merge NOT called (F-P8-003)" {
+    local pr_number="10"
+    local argv_log
+    argv_log="$(mktemp "${BATS_TMPDIR}/gh-argv-T030-XXXXXX.txt")"
+    rm -f "${argv_log}"
+
+    cp "${FIXTURES_DIR}/stub-gh.sh" "${MOCK_BIN}/gh"
+    chmod +x "${MOCK_BIN}/gh"
+
+    run env PATH="${MOCK_BIN}:${PATH}" \
+        STUB_GH_HEAD_REF_NAME="feature/S-19.01" \
+        STUB_GH_ARGV_LOG="${argv_log}" \
+        bash "${BIN_DIR}/enforce-merge-strategy.sh" \
+        "${pr_number}" "-A" 2>&1
+
+    [ "${status}" -eq 1 ] || {
+        echo "FAIL: expected exit 1 for -A as \$2 (short admin flag in strategy slot); got ${status}"
+        echo "Required (F-P8-003): \$2 must be one of --merge/--squash/--rebase"
+        echo "  -A is the short form of --admin — not a valid merge strategy"
+        echo "  INVALID_STRATEGY or equivalent sentinel required on stderr; exit 1; no gh pr merge call"
+        echo "Output: ${output}"
+        return 1
+    }
+
+    [[ -n "${output}" ]] || {
+        echo "FAIL: expected non-empty stderr/stdout for -A as \$2 rejection; got empty output"
+        echo "Required (F-P8-003): diagnostic sentinel must appear on stderr before exit 1"
+        return 1
+    }
+
+    { [[ ! -f "${argv_log}" ]] || [[ ! -s "${argv_log}" ]]; } || {
+        echo "FAIL: gh pr merge was called despite -A as \$2 rejection (argv_log present + non-empty)"
+        echo "argv_log content: $(cat "${argv_log}")"
+        echo "Required (F-P8-003): script must exit 1 before invoking gh pr merge"
+        rm -f "${argv_log}"
+        return 1
+    }
+
+    rm -f "${argv_log}"
+}
+
+# T-031: enforce-merge-strategy.sh: --merge as $2 on feature branch → exit 0 (regression guard).
+# Confirms that adding $2 strategy validation in F-P8-003 does not break the valid-strategy
+# path. --merge is a canonical strategy flag; feature branches must continue to work after
+# the $2 validation gate is introduced.
+# This test is a GREEN positive regression guard — it should pass before and after F-P8-003.
+@test "T-031: enforce-merge-strategy.sh: --merge as \$2 (feature branch) → exit 0 (F-P8-003 positive regression guard)" {
+    local pr_number="10"
+
+    cp "${FIXTURES_DIR}/stub-gh.sh" "${MOCK_BIN}/gh"
+    chmod +x "${MOCK_BIN}/gh"
+
+    run env PATH="${MOCK_BIN}:${PATH}" \
+        STUB_GH_HEAD_REF_NAME="feature/S-19.01" \
+        STUB_GH_MERGE_EXIT="0" \
+        bash "${BIN_DIR}/enforce-merge-strategy.sh" \
+        "${pr_number}" "--merge" 2>&1
+
+    [ "${status}" -eq 0 ] || {
+        echo "FAIL: expected exit 0 for --merge as \$2 on feature branch; got ${status}"
+        echo "Required (F-P8-003 regression guard): valid strategy flags must continue to work"
+        echo "  --merge is a canonical strategy; \$2 validation must allow it through"
+        echo "Output: ${output}"
+        return 1
+    }
 }

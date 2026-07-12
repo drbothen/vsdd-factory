@@ -696,7 +696,7 @@ mod tests {
         );
         let msg = stderr_msg.unwrap();
         assert!(
-            msg.contains("CONTINUE TO STEP 8 NOW: spawn github-ops: gh pr merge --squash --delete-branch (AUTHORIZE_MERGE=yes mode)"),
+            msg.contains("CONTINUE TO STEP 8 NOW: spawn github-ops: check-stale-verdict.sh then enforce-merge-strategy.sh (AUTHORIZE_MERGE=yes mode; never direct gh pr merge)"),
             "stderr must contain verbatim hint line for step 8"
         );
     }
@@ -719,7 +719,7 @@ mod tests {
             (7, "verify all dependency PRs merged"),
             (
                 8,
-                "spawn github-ops: gh pr merge --squash --delete-branch (AUTHORIZE_MERGE=yes mode)",
+                "spawn github-ops: check-stale-verdict.sh then enforce-merge-strategy.sh (AUTHORIZE_MERGE=yes mode; never direct gh pr merge)",
             ),
             (
                 9,
