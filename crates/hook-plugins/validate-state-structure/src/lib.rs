@@ -3228,4 +3228,112 @@ mod tests {
             v.map(|viol| viol.description)
         );
     }
+
+    // ── F-VSS-C-001: UNCHANGED annotation must not false-block (primary RED) ──────
+    //
+    // Real STATE.md banner line (line 9 of the live document after pass-57):
+    //   "D-813 fix-burst burst-E; trajectory-tail UNCHANGED →1→1→0→3; pass-57 NEXT"
+    //
+    // After token-anchor the leading-adjacent-run function receives:
+    //   tail_segment = "UNCHANGED →1→1→0→3; pass-57 NEXT"
+    // bytes[0] = 'U' (not →), so count_leading_adjacent_arrow_digit_run returns 0
+    // immediately → validate_trajectory_tail emits "0 components" → FALSE FAIL.
+    //
+    // Correct behavior (sibling approach per validate-dispatch-advance):
+    //   token-anchor → truncate at first ';' → count_arrow_digit_matches
+    //   = count_arrow_digit_matches("UNCHANGED →1→1→0→3") = 4 → None.
+    #[test]
+    fn test_bc_5_39_005_f_vss_c_001_unchanged_annotation_false_zero_count_red() {
+        let banner_line = "D-813 fix-burst burst-E; trajectory-tail UNCHANGED \
+                           \u{2192}1\u{2192}1\u{2192}0\u{2192}3; pass-57 NEXT";
+        let token = "trajectory-tail ";
+        let tail_segment = banner_line
+            .find(token)
+            .map(|pos| &banner_line[pos + token.len()..])
+            .expect("token must be present in banner_line");
+        assert_eq!(
+            tail_segment, "UNCHANGED \u{2192}1\u{2192}1\u{2192}0\u{2192}3; pass-57 NEXT",
+            "precondition: tail_segment must be the substring after 'trajectory-tail '"
+        );
+
+        // Precondition A: count_leading_adjacent_arrow_digit_run returns 0 for this segment.
+        // Segment starts with 'U' (UNCHANGED), not →, so the run function breaks
+        // immediately at byte 0. This documents the F-VSS-C-001 bug in the current impl.
+        let bug_count = count_leading_adjacent_arrow_digit_run(tail_segment);
+        assert_eq!(
+            bug_count, 0,
+            "precondition: count_leading_adjacent_arrow_digit_run must return 0 for \
+             UNCHANGED-prefixed segment (bytes[0]='U', not →); confirms F-VSS-C-001 bug"
+        );
+
+        // Precondition B: count_arrow_digit_matches on the pre-semicolon portion = 4.
+        // Documents the target behavior of the sibling-approach fix:
+        //   truncate "UNCHANGED →1→1→0→3; pass-57 NEXT" at first ';'
+        //   → count_arrow_digit_matches("UNCHANGED →1→1→0→3") = 4.
+        let pre_semi = "UNCHANGED \u{2192}1\u{2192}1\u{2192}0\u{2192}3";
+        assert_eq!(
+            count_arrow_digit_matches(pre_semi),
+            4,
+            "precondition: count_arrow_digit_matches on pre-semicolon segment must return 4; \
+             this is the count the sibling-approach fix must produce"
+        );
+
+        // Wrap in a minimal SIZE BUDGET banner so extract_trajectory_tail_line
+        // picks this line up from the banner block (primary extraction path).
+        let content =
+            format!("<!--\n  STATE.md SIZE BUDGET (per D-421(c)):\n  {banner_line}\n-->\n");
+
+        let found = extract_trajectory_tail_line(&content);
+        assert!(
+            found.is_some(),
+            "extract_trajectory_tail_line must find the UNCHANGED-annotation banner line; \
+             got None"
+        );
+
+        // PRIMARY ASSERTION (RED): validate_trajectory_tail must return None.
+        // The canonical tail →1→1→0→3 has exactly 4 components; UNCHANGED is an
+        // annotation token, not a count component. Correct count = 4 → None.
+        // Current leading-adjacent-run impl returns "0 components" — FALSE FAIL.
+        let v = validate_trajectory_tail(&content);
+        assert!(
+            v.is_none(),
+            "trajectory-tail UNCHANGED →1→1→0→3 MUST pass (4 components after annotation); \
+             validate_trajectory_tail must return None; \
+             got violation: {:?}",
+            v.map(|viol| viol.description)
+        );
+    }
+
+    // ── F-VSS-C-001: over-relax guard — UNCHANGED annotation + genuine 5 must FAIL ─
+    //
+    // Regression guard: after fixing F-VSS-C-001 the UNCHANGED annotation form with a
+    // genuine 5-component run must still be rejected (over-relax prevention).
+    // "trajectory-tail UNCHANGED →1→2→3→4→5" — 5 →digit sequences after annotation.
+    // Expected: Some(Violation).  Current: Some(Violation, count=0).
+    // After fix: Some(Violation, count=5).  The assertion holds either way.
+    #[test]
+    fn test_bc_5_39_005_f_vss_c_001_unchanged_annotation_genuine_5_still_fails() {
+        let banner_line = "D-813 fix-burst burst-E; trajectory-tail UNCHANGED \
+                           \u{2192}1\u{2192}2\u{2192}3\u{2192}4\u{2192}5";
+        let content =
+            format!("<!--\n  STATE.md SIZE BUDGET (per D-421(c)):\n  {banner_line}\n-->\n");
+
+        let found = extract_trajectory_tail_line(&content);
+        assert!(
+            found.is_some(),
+            "extract_trajectory_tail_line must find the 5-component UNCHANGED banner line; \
+             got None"
+        );
+
+        // The violation MUST be returned — 5 components, not 4.
+        // (Currently Some because count=0; after fix Some because count=5.
+        // Either way the fix must not silently accept 5-component UNCHANGED forms.)
+        let v = validate_trajectory_tail(&content);
+        assert!(
+            v.is_some(),
+            "trajectory-tail UNCHANGED →1→2→3→4→5 has 5 components and MUST fail \
+             validation; validate_trajectory_tail must return Some(Violation); \
+             got None (over-relax regression)"
+        );
+    }
 }
