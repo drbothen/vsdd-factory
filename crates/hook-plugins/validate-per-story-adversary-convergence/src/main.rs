@@ -76,6 +76,8 @@ fn on_hook(payload: HookPayload) -> HookResult {
                 }
                 Err(vsdd_hook_sdk::host::HostError::InvalidArgument) => Ok(None),
                 Err(vsdd_hook_sdk::host::HostError::CapabilityDenied) => Ok(None),
+                // Allowlisted-but-absent file (S-19.03): treat as absent, not an error.
+                Err(vsdd_hook_sdk::host::HostError::NotFound) => Ok(None),
                 Err(e) => Err(IoError(format!("host read_file error: {:?}", e))),
             }
         }
