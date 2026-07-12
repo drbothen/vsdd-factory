@@ -19024,5 +19024,5 @@ No explicit blockers closed. Per coordinator: S-19.03 already cleared for pass-4
 
 | Commit | SHA | Contents |
 |--------|-----|----------|
-| D-830 SM single-commit burst (TD-VSDD-053) | TBD (SHA-patch to follow) | VP-INDEX v2.67 + STORY-INDEX v4.179 (POLICY 14 leg-5: VP-097 v1.5 + S-19.01 v1.18 cells); decision-log D-830; STATE.md v5.76→v5.77; burst-log D-830 (this entry); 4-index BC v3.97/VP v2.67/STORY v4.179/ARCH v3.01 |
-| D-830 SHA-patch | TBD | STATE.md Active Branches factory-artifacts HEAD → BURST SHA |
+| D-830 SM single-commit burst (TD-VSDD-053) | `949c8690` | VP-INDEX v2.67 + STORY-INDEX v4.179 (POLICY 14 leg-5: VP-097 v1.5 + S-19.01 v1.18 cells); decision-log D-830; STATE.md v5.76→v5.77; burst-log D-830 (this entry); 4-index BC v3.97/VP v2.67/STORY v4.179/ARCH v3.01 |
+| D-830 SHA-patch | TBD (this commit) | STATE.md Active Branches factory-artifacts HEAD → `949c8690`; burst-log Block 8 SHA-patch filled |
