@@ -18935,5 +18935,5 @@ See Block 2 above. All gates literal-shell with captured stdout per D-449(a): PO
 
 | Commit | SHA | Contents |
 |--------|-----|----------|
-| D-829 SM single-commit burst (TD-VSDD-053) — BURST 2 | TBD (SHA-patch to follow) | ARCH-INDEX v3.01 + BC-INDEX v3.97 + STORY-INDEX v4.178 (POLICY 14 leg-5: ADR-030 v1.4 + BC-5.42.001 v1.7 + S-19.03 v1.20 cells); decision-log D-829; STATE.md v5.75→v5.76; burst-log D-829 (this entry); 4-index BC v3.97/VP v2.66/STORY v4.178/ARCH v3.01 |
-| D-829 SHA-patch | TBD | STATE.md Active Branches factory-artifacts HEAD → BURST 2 SHA |
+| D-829 SM single-commit burst (TD-VSDD-053) — BURST 2 | `d92f3c29` | ARCH-INDEX v3.01 + BC-INDEX v3.97 + STORY-INDEX v4.178 (POLICY 14 leg-5: ADR-030 v1.4 + BC-5.42.001 v1.7 + S-19.03 v1.20 cells); decision-log D-829; STATE.md v5.75→v5.76; burst-log D-829 (this entry); 4-index BC v3.97/VP v2.66/STORY v4.178/ARCH v3.01 |
+| D-829 SHA-patch | TBD | STATE.md Active Branches factory-artifacts HEAD → d92f3c29 |
