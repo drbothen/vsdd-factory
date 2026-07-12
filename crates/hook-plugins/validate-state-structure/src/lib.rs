@@ -717,6 +717,27 @@ pub fn count_arrow_digit_matches(s: &str) -> usize {
 /// Returns a `Violation` if the count is not 4 (or no tail line found).
 /// Returns `None` if the count is exactly 4.
 ///
+/// # Token-anchored counting (streak-arrow isolation)
+///
+/// Real STATE.md banner lines embed both a streak fraction and the trajectory-tail
+/// on the same line, for example:
+///
+/// ```text
+/// D-823 fix-burst burst-A-D complete; streak 0/3→1/3; trajectory-tail →3→2→0→0; pass-61 NEXT
+/// ```
+///
+/// The streak notation `0/3→1/3` contains one `→digit` match (`→1`). Counting
+/// `→N` occurrences across the full extracted line yields 5 (1 streak + 4 tail),
+/// producing a false "5 components" violation against a valid 4-component tail.
+///
+/// The fix anchors the count to the substring that follows the literal
+/// `"trajectory-tail "` token. For bare forms (`→9→9→9→9`, `trajectory →9→9→9→9`)
+/// that contain no `"trajectory-tail "` token, the full-line count is used, which
+/// is correct for those forms.
+///
+/// The `cited_raw` field in the returned `Violation` always contains the full
+/// extracted line (not just the tail segment), for diagnostic legibility.
+///
 /// # BC trace
 /// BC-5.39.005 postcondition 4; EC-005, EC-006, EC-008.
 pub fn validate_trajectory_tail(content: &str) -> Option<Violation> {
@@ -728,7 +749,23 @@ pub fn validate_trajectory_tail(content: &str) -> Option<Violation> {
             cited_raw: String::new(),
         }),
         Some(tail_line) => {
-            let count = count_arrow_digit_matches(&tail_line);
+            // Anchor the count to the portion of the line after the "trajectory-tail "
+            // token, if present. Banner lines in real STATE.md can embed streak notation
+            // like "streak 0/3→1/3" before the tail token — counting the full line
+            // inflates the component count by 1 (the →digit in the streak fraction
+            // contributes a false extra match). Token-anchoring scopes the count to the
+            // tail segment itself, matching the D-433(e)+D-439(c)+D-451(c)+D-432(b)
+            // LENGTH=4 requirement.
+            // Lines without the token (bare "→9→9→9→9" form or "trajectory →9→9→9→9")
+            // fall through to the full-line count, which is correct for those forms.
+            // "trajectory-tail " is all ASCII, so the byte offset is always a valid
+            // UTF-8 char boundary.
+            let count_target: &str = if let Some(pos) = tail_line.find("trajectory-tail ") {
+                &tail_line[pos + "trajectory-tail ".len()..]
+            } else {
+                &tail_line
+            };
+            let count = count_arrow_digit_matches(count_target);
             if count == 4 {
                 None
             } else {
