@@ -751,8 +751,12 @@ pub fn count_arrow_digit_matches(s: &str) -> usize {
 ///
 /// # BC trace
 /// BC-5.39.005 invariant 5 — `→(\d+)` match count must equal 4.
-/// F-VSS-002: leading-adjacent-run bound prevents post-tail metadata arrows from
-///            inflating the cardinality count.
+/// F-VSS-002: originally introduced as the counting strategy in `validate_trajectory_tail`
+///            to isolate post-tail metadata arrows. Superseded by the sibling-aligned
+///            semicolon-truncation strategy (F-VSS-C-001), which also handles
+///            UNCHANGED-annotation forms where the segment does not start with `→`.
+///            Preserved as a `pub fn` because the F-VSS-C-001 test uses it as a
+///            precondition assertion to document the exact failure mode it was replaced for.
 pub fn count_leading_adjacent_arrow_digit_run(s: &str) -> usize {
     let arrow_utf8: &[u8] = b"\xe2\x86\x92"; // U+2192 in UTF-8
     let arrow_byte_len = 3usize;
@@ -793,28 +797,32 @@ pub fn count_leading_adjacent_arrow_digit_run(s: &str) -> usize {
 /// Returns a `Violation` if the count is not 4 (or no tail line found).
 /// Returns `None` if the count is exactly 4.
 ///
-/// # Token-anchored, leading-adjacent-run-bounded counting
+/// # Token-anchored, semicolon-truncated counting (sibling strategy)
 ///
-/// Real STATE.md banner lines embed the trajectory-tail in a sentence that may also
-/// carry a streak fraction BEFORE the tail and pass-range metadata AFTER it, e.g.:
+/// Real STATE.md banner lines embed the trajectory-tail in a sentence that may carry
+/// a streak fraction BEFORE the tail and pass-range / phase metadata AFTER it, and
+/// may include an UNCHANGED annotation BETWEEN the token and the arrow run:
 ///
 /// ```text
-/// D-829 fix-burst burst-E; streak 2/3→3/3 CONVERGED; trajectory-tail →2→0→0→0; pass-61→62
+/// D-829 fix-burst; streak 2/3→3/3 CONVERGED; trajectory-tail →2→0→0→0; pass-61→62
+/// D-813 fix-burst burst-E; trajectory-tail UNCHANGED →1→1→0→3; pass-57 NEXT
 /// ```
 ///
-/// Two distinct stray-arrow hazards must be neutralised:
+/// Three stray-arrow hazards are neutralised by the same two-step strategy used by
+/// the sibling validator `validate-dispatch-advance::check_trajectory_tail_length`:
 ///
-/// 1. **Pre-tail streak arrow** (F-VSS-001 fix): `streak 2/3→3/3` contributes one
-///    `→digit` match (`→3`). Fixed by anchoring the count to the substring that
-///    follows the literal `"trajectory-tail "` token — the streak is before the token
-///    and is therefore excluded.
+/// 1. **Pre-tail streak arrow** (F-VSS-001): `streak 2/3→3/3` contributes one
+///    `→digit` match. Fixed by anchoring to the substring AFTER `"trajectory-tail "`.
 ///
-/// 2. **Post-tail metadata arrow** (F-VSS-002 fix): `pass-61→62` contributes one
-///    `→digit` match (`→62`) after the canonical tail run ends at `;`. Fixed by
-///    counting only the **leading adjacent run** of the token-anchored substring
-///    (i.e., `count_leading_adjacent_arrow_digit_run`) rather than walking to
-///    end-of-line (`count_arrow_digit_matches`). The `;` terminates the leading run
-///    after the 4 canonical components are consumed.
+/// 2. **Post-tail metadata arrow** (F-VSS-002): `pass-61→62` contributes one
+///    `→digit` match after the canonical tail run. Fixed by truncating the
+///    token-anchored segment at the first `;` before counting.
+///
+/// 3. **UNCHANGED annotation** (F-VSS-C-001): `UNCHANGED` precedes the `→` run but
+///    falls in the pre-semicolon segment. `count_arrow_digit_matches` on
+///    `UNCHANGED →1→1→0→3` correctly skips the non-arrow prefix and counts 4.
+///    (The superseded `count_leading_adjacent_arrow_digit_run` failed here because
+///    it broke immediately on the non-`→` byte at offset 0.)
 ///
 /// For bare forms (`→9→9→9→9`, `trajectory →9→9→9→9`) that contain no
 /// `"trajectory-tail "` token, the full-line `count_arrow_digit_matches` is used.
@@ -826,7 +834,8 @@ pub fn count_leading_adjacent_arrow_digit_run(s: &str) -> usize {
 /// # BC trace
 /// BC-5.39.005 postcondition 4; EC-005, EC-006, EC-008.
 /// F-VSS-001: token-anchor isolates streak arrows.
-/// F-VSS-002: leading-run bound isolates post-tail metadata arrows.
+/// F-VSS-002: semicolon-truncation isolates post-tail metadata arrows.
+/// F-VSS-C-001: sibling strategy handles UNCHANGED-annotation forms.
 pub fn validate_trajectory_tail(content: &str) -> Option<Violation> {
     match extract_trajectory_tail_line(content) {
         None => Some(Violation {
@@ -845,15 +854,27 @@ pub fn validate_trajectory_tail(content: &str) -> Option<Violation> {
             //
             // When the token is absent (bare "→9→9→9→9" or "trajectory →9→9→9→9"),
             // fall back to count_arrow_digit_matches on the full line. These forms
-            // carry no trailing metadata, so EOL counting is safe and the leading-run
-            // function would return 0 for forms like "trajectory →..." where the line
-            // does not start with →.
+            // carry no trailing metadata, so EOL counting is safe.
             //
             // "trajectory-tail " is all ASCII, so the byte offset is always a valid
-            // UTF-8 char boundary.
+            // UTF-8 char boundary. The semicolon `;` that terminates the tail segment
+            // is also ASCII, so the byte slice `[..semi_pos]` is always a valid char
+            // boundary — safe to use directly as a str slice.
             let count = if let Some(pos) = tail_line.find("trajectory-tail ") {
                 let tail_segment = &tail_line[pos + "trajectory-tail ".len()..];
-                count_leading_adjacent_arrow_digit_run(tail_segment)
+                // Truncate the segment at the first `;` (sibling strategy per
+                // validate-dispatch-advance::check_trajectory_tail_length). Everything
+                // after `;` is metadata — pass-range annotations (`; pass-61→62`),
+                // phase labels (`; pass-57 NEXT`), etc. — not part of the tail run.
+                // This also handles UNCHANGED-annotation forms like
+                // `UNCHANGED →1→1→0→3; pass-57 NEXT`: after truncation the segment is
+                // `UNCHANGED →1→1→0→3`, and count_arrow_digit_matches correctly finds
+                // the 4 arrow-digit matches inside it.
+                let scan_target = match tail_segment.find(';') {
+                    Some(semi_pos) => &tail_segment[..semi_pos],
+                    None => tail_segment,
+                };
+                count_arrow_digit_matches(scan_target)
             } else {
                 count_arrow_digit_matches(&tail_line)
             };
