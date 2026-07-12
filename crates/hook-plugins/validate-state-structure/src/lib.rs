@@ -846,11 +846,12 @@ pub fn validate_trajectory_tail(content: &str) -> Option<Violation> {
         }),
         Some(tail_line) => {
             // When the "trajectory-tail " token is present, anchor to the substring
-            // after the token and count only its leading adjacent →digit run
-            // (F-VSS-001 + F-VSS-002). The token-anchored substring always starts
-            // with → in canonical STATE.md, so count_leading_adjacent_arrow_digit_run
-            // is the correct counter: it stops at the first non-adjacent character
-            // (e.g. `;` before a pass-range annotation) rather than walking to EOL.
+            // after the token, truncate at the first `;` (drops post-tail metadata
+            // such as `; pass-61→62`), then call count_arrow_digit_matches on the
+            // truncated segment (F-VSS-001 + F-VSS-002 + F-VSS-C-001; sibling
+            // strategy from validate-dispatch-advance::check_trajectory_tail_length).
+            // count_arrow_digit_matches naturally skips non-→ prefixes, so
+            // UNCHANGED-annotation forms (`UNCHANGED →1→1→0→3`) are handled correctly.
             //
             // When the token is absent (bare "→9→9→9→9" or "trajectory →9→9→9→9"),
             // fall back to count_arrow_digit_matches on the full line. These forms
