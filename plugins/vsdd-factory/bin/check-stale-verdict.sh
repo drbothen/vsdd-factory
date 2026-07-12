@@ -65,11 +65,11 @@ while IFS= read -r line; do
     # Extract value of "headRefOid" from JSON: "headRefOid":"<value>"
     if printf '%s' "${line}" | grep -q '"headRefOid"'; then
         # Extract the SHA value between quotes after "headRefOid":
-        LIVE_SHA="$(printf '%s' "${line}" | grep -oE '"headRefOid":"[^"]*"' | grep -oE '"[^"]*"$' | tr -d '"')"
+        LIVE_SHA="$(printf '%s' "${line}" | grep -oE '"headRefOid":"[^"]*"' | grep -oE '"[^"]*"$' | tr -d '"' || true)"
     fi
     # Extract value of "state" from JSON: "state":"<value>"
     if printf '%s' "${line}" | grep -q '"state"'; then
-        PR_STATE="$(printf '%s' "${line}" | grep -oE '"state":"[^"]*"' | grep -oE '"[^"]*"$' | tr -d '"')"
+        PR_STATE="$(printf '%s' "${line}" | grep -oE '"state":"[^"]*"' | grep -oE '"[^"]*"$' | tr -d '"' || true)"
     fi
 done <<EOF
 ${GH_OUTPUT}

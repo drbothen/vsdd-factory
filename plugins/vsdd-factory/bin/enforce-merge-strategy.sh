@@ -49,7 +49,7 @@ if GH_OUTPUT="$(gh pr view "${PR_NUMBER}" --json headRefName 2>/dev/null)"; then
     # Parse headRefName from JSON — bash-3.2 compatible (no mapfile; while-read pattern).
     while IFS= read -r line; do
         if printf '%s' "${line}" | grep -q '"headRefName"'; then
-            BRANCH_NAME="$(printf '%s' "${line}" | grep -oE '"headRefName":"[^"]*"' | grep -oE '"[^"]*"$' | tr -d '"')"
+            BRANCH_NAME="$(printf '%s' "${line}" | grep -oE '"headRefName":"[^"]*"' | grep -oE '"[^"]*"$' | tr -d '"' || true)"
         fi
     done <<EOF
 ${GH_OUTPUT}
