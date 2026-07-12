@@ -3,7 +3,7 @@
 #
 # Covers AC-001..AC-004 per BC-5.42.001 / VP-094 / ADR-030 §Decision 2 / §Decision 3.
 #
-# Test plan (T-001..T-019):
+# Test plan (T-001..T-021):
 #   T-001 AC-001 — READY verdict without covered_sha triggers READY_SHA_MISSING advisory
 #   T-002 AC-001 — gh failure on covered_sha fetch → READY_SHA_FETCH_FAILED on stderr
 #   T-003 AC-002 — check-stale-verdict.sh: stale SHA → exit 1 + STALE_READY_VERDICT
@@ -23,12 +23,15 @@
 #   T-017 AC-004 — darwin-leg fragment: while IFS= read -r bash-3.2 compat (regression pin rc.22)
 #   T-018 AC-002 — check-stale-verdict.sh: closed PR (matching SHA) → CHECK_STALE_VERDICT_ERROR (EC-003)
 #   T-019 AC-002 — check-stale-verdict.sh: malformed gh JSON → CHECK_STALE_VERDICT_ERROR (arm 4)
+#   T-020 AC-002 — check-stale-verdict.sh: headRefOid null value → CHECK_STALE_VERDICT_ERROR (arm-4 bypass)
+#   T-021 AC-003 — enforce-merge-strategy.sh: headRefName null value → fail-open delegate (Decision 3)
 #
 # Green status: T-001..T-016 pass after implementation; T-017 green (positive + neg-control);
-#   T-018/T-019 GREEN — positive verification of ADR-030 §Decision 2 arms 3+4 (post-implementation).
+#   T-018/T-019 GREEN — positive verification of ADR-030 §Decision 2 arms 3+4 (post-implementation);
+#   T-020/T-021 RED gates (F-P5-001: arm-4 bypass on non-string OID + fail-open on non-string headRefName).
 #
-# BC trace: BC-5.42.001 PC-1 (T-001/T-002/T-014), PC-2 (T-003/T-004/T-010/T-013/T-016/T-018/T-019),
-#           PC-3 (T-005/T-006/T-007/T-011/T-012/T-015), AC-004 (T-008/T-009/T-017)
+# BC trace: BC-5.42.001 PC-1 (T-001/T-002/T-014), PC-2 (T-003/T-004/T-010/T-013/T-016/T-018/T-019/T-020),
+#           PC-3 (T-005/T-006/T-007/T-011/T-012/T-015/T-021), AC-004 (T-008/T-009/T-017)
 
 PLUGIN_ROOT=""
 BIN_DIR=""
@@ -942,4 +945,76 @@ GHEOF
         echo "Output: ${output}"
         return 1
     }
+}
+
+# ─────────────────────────────────────────────────────────────────────────────
+# F-S1901-P5-001 (MEDIUM) — arm-4 catch-all bypassed by set -euo pipefail
+#   on non-string JSON values (key present, value is not a quoted string)
+# T-020: check-stale-verdict.sh: headRefOid null value — RED gate
+# T-021: enforce-merge-strategy.sh: headRefName null value — RED gate (fail-open)
+# ─────────────────────────────────────────────────────────────────────────────
+
+# T-020: check-stale-verdict.sh: headRefOid is null (not a quoted string) → arm-4 bypass.
+# ADR-030 §Decision 2 arm 4: any unparseable JSON → CHECK_STALE_VERDICT_ERROR on stderr.
+# The key "headRefOid" IS present, so the outer `grep -q '"headRefOid"'` matches, entering
+# the extraction. But grep -oE '"headRefOid":"[^"]*"' finds no quoted-string value → exits 1.
+# With set -euo pipefail, the script aborts BEFORE reaching arm-4 (lines ~80-83).
+# Current behavior: bare exit 1, empty stderr. Spec-correct: CHECK_STALE_VERDICT_ERROR.
+@test "T-020: check-stale-verdict.sh: headRefOid null value → exit 1 + CHECK_STALE_VERDICT_ERROR (F-P5-001)" {
+    local pr_number="77"
+    local covered_sha="ffff555555555555555555555555555555555555"
+
+    # stub-gh: exits 0 but returns null for headRefOid (not a quoted string).
+    cp "${FIXTURES_DIR}/stub-gh.sh" "${MOCK_BIN}/gh"
+    chmod +x "${MOCK_BIN}/gh"
+
+    run env PATH="${MOCK_BIN}:${PATH}" STUB_GH_NULL_OID="1" \
+        bash "${BIN_DIR}/check-stale-verdict.sh" \
+        "${pr_number}" "${covered_sha}" 2>&1
+
+    [ "${status}" -ne 0 ] || {
+        echo "FAIL: expected non-zero exit when headRefOid value is null"
+        echo "Output: ${output}"
+        return 1
+    }
+    echo "${output}" | grep -q "CHECK_STALE_VERDICT_ERROR" || {
+        echo "FAIL: CHECK_STALE_VERDICT_ERROR not found in output (arm-4 bypass under set -euo pipefail)"
+        echo "Current behavior: set -e aborts at LIVE_SHA assignment → bare exit 1, empty stderr"
+        echo "Spec (ADR-030 §Decision 2 arm 4): CHECK_STALE_VERDICT_ERROR: unable to parse gh JSON response for PR #${pr_number}"
+        echo "Output: ${output}"
+        return 1
+    }
+}
+
+# T-021: enforce-merge-strategy.sh: headRefName null value → fail-open delegate.
+# ADR-030 §Decision 3: branch resolution failure is fail-open — treat as non-release,
+# delegate to gh pr merge with the caller-supplied flag (no error sentinel emitted).
+# The key "headRefName" IS present, so the outer grep matches, entering the extraction.
+# But grep -oE '"headRefName":"[^"]*"' finds no quoted-string value → exits 1.
+# With set -euo pipefail, the script aborts at BRANCH_NAME assignment (BEFORE delegating).
+# Current behavior: bare exit 1. Spec-correct: exit 0 (gh pr merge delegated).
+@test "T-021: enforce-merge-strategy.sh: headRefName null value → fail-open delegate (F-P5-001 sibling)" {
+    local pr_number="88"
+
+    # stub-gh: exits 0 but returns null for headRefName; gh pr merge exits 0.
+    cp "${FIXTURES_DIR}/stub-gh.sh" "${MOCK_BIN}/gh"
+    chmod +x "${MOCK_BIN}/gh"
+
+    run env PATH="${MOCK_BIN}:${PATH}" STUB_GH_NULL_HEAD_REF_NAME="1" \
+        bash "${BIN_DIR}/enforce-merge-strategy.sh" \
+        "${pr_number}" "--merge" 2>&1
+
+    [ "${status}" -eq 0 ] || {
+        echo "FAIL: expected exit 0 (fail-open delegate) when headRefName value is null"
+        echo "Current behavior: set -e aborts at BRANCH_NAME assignment → bare exit 1"
+        echo "Spec (ADR-030 §Decision 3): branch resolution failure is fail-open;"
+        echo "  treat as non-release and delegate to gh pr merge (exit 0)"
+        echo "Output: ${output}"
+        return 1
+    }
+    if echo "${output}" | grep -q "RELEASE_PR_SQUASH_FORBIDDEN"; then
+        echo "FAIL: unexpected RELEASE_PR_SQUASH_FORBIDDEN — null headRefName must not match ^release/v"
+        echo "Output: ${output}"
+        return 1
+    fi
 }

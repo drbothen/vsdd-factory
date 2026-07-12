@@ -20,6 +20,8 @@ STUB_GH_FAIL_VIEW="${STUB_GH_FAIL_VIEW:-0}"
 STUB_GH_MALFORMED_JSON="${STUB_GH_MALFORMED_JSON:-0}"
 STUB_GH_MERGE_EXIT="${STUB_GH_MERGE_EXIT:-0}"
 STUB_GH_STATE="${STUB_GH_STATE:-open}"
+STUB_GH_NULL_OID="${STUB_GH_NULL_OID:-0}"
+STUB_GH_NULL_HEAD_REF_NAME="${STUB_GH_NULL_HEAD_REF_NAME:-0}"
 
 case "${1:-}" in
     pr)
@@ -35,12 +37,20 @@ case "${1:-}" in
                 fi
                 # Include state in every headRefOid response (ADR-030 §Decision 2 arm 3 support).
                 if [[ "${*}" == *"headRefOid"* ]]; then
+                    if [[ "${STUB_GH_NULL_OID}" == "1" ]]; then
+                        printf '{"headRefOid":null,"state":"%s"}\n' "${STUB_GH_STATE}"
+                        exit 0
+                    fi
                     printf '{"headRefOid":"%s","state":"%s"}\n' \
                         "${STUB_GH_HEAD_REF_OID:-aaaa000000000000000000000000000000000000}" \
                         "${STUB_GH_STATE}"
                     exit 0
                 fi
                 if [[ "${*}" == *"headRefName"* ]]; then
+                    if [[ "${STUB_GH_NULL_HEAD_REF_NAME}" == "1" ]]; then
+                        printf '{"headRefName":null}\n'
+                        exit 0
+                    fi
                     printf '{"headRefName":"%s"}\n' "${STUB_GH_HEAD_REF_NAME:-feature/stub}"
                     exit 0
                 fi
