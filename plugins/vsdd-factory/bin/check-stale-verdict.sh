@@ -23,6 +23,7 @@ set -euo pipefail
 #   READY_SHA_FETCH_FAILED: gh pr view failed for PR #<pr_number>
 #   READY_SHA_MISSING: covered_sha is malformed
 #   CHECK_STALE_VERDICT_ERROR: PR #<n> is <state> (expected: open)
+#   CHECK_STALE_VERDICT_ERROR: unable to determine PR state for PR #<n>
 #   CHECK_STALE_VERDICT_ERROR: <description>
 
 _usage() {
@@ -82,8 +83,21 @@ if [[ -z "${LIVE_SHA}" && -z "${PR_STATE}" ]]; then
     exit 1
 fi
 
-# Arm 3: PR is not in OPEN state (closed, merged, etc.).
+# Arm 3a: state field present in JSON but value is null/unparseable — fail-closed (F-P15-001).
+# Detects: gh returned "state":null (unquoted JSON null) or another non-string state value.
+# Our grep -oE '"state":"[^"]*"' cannot match unquoted null, leaving PR_STATE empty.
+# We distinguish this from a wholly-absent state field by checking whether "state": appears
+# in the raw JSON output. If the field is present but unparseable, we must fail-closed —
+# we cannot confirm the PR is open. ADR-030 §Decision 2 arm-4 catch-all.
+if [[ -z "${PR_STATE}" ]] && printf '%s' "${GH_OUTPUT}" | grep -q '"state":'; then
+    printf 'CHECK_STALE_VERDICT_ERROR: unable to determine PR state for PR #%s\n' "${PR_NUMBER}" >&2
+    exit 1
+fi
+
+# Arm 3b: PR is not in OPEN state (closed, merged, etc.).
 # ADR-030 §Decision 2 arm 3: PR closed/merged between READY verdict and check invocation.
+# Only evaluated when PR_STATE is non-empty (arm 3a handles the empty+state-field-present case;
+# empty+state-field-absent falls through to SHA comparison for backward compatibility).
 if [[ -n "${PR_STATE}" ]]; then
     PR_STATE_UPPER="$(printf '%s' "${PR_STATE}" | tr '[:lower:]' '[:upper:]')"
     if [[ "${PR_STATE_UPPER}" != "OPEN" ]]; then
