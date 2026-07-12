@@ -77,8 +77,8 @@ use vsdd_hook_sdk::{HookPayload, HookResult};
 /// (pr-manager-completion-guard.sh lines 65-76). The wildcard arm fires
 /// for NEXT_STEP >= 10 (or any value not in 1..=9).
 ///
-/// These strings MUST match the bash source verbatim — any wording drift
-/// will be caught by the bats parity tests (AC-006).
+/// Strings are verified verbatim by the Rust parity test
+/// `test_BC_7_03_048_hint_table_all_nine_steps_verbatim` (AC-006).
 pub fn hint_for_step(next_step: u64) -> &'static str {
     match next_step {
         1 => "populate PR description from template",
@@ -88,7 +88,9 @@ pub fn hint_for_step(next_step: u64) -> &'static str {
         5 => "spawn pr-reviewer/pr-review-triage via Agent tool; handle findings; converge",
         6 => "spawn github-ops: gh pr checks --watch",
         7 => "verify all dependency PRs merged",
-        8 => "spawn github-ops: gh pr merge --squash --delete-branch (AUTHORIZE_MERGE=yes mode)",
+        8 => {
+            "spawn github-ops: check-stale-verdict.sh then enforce-merge-strategy.sh (AUTHORIZE_MERGE=yes mode; never direct gh pr merge)"
+        }
         9 => "confirm branch deletion; write review-findings.md; emit final STEP_COMPLETE",
         _ => "continue the 9-step lifecycle",
     }
