@@ -230,11 +230,32 @@ After completing this step, emit:
 instruction, or when the dispatch prompt includes `AUTHORIZE_MERGE=yes`, merge is PRE-AUTHORIZED.
 Do not gate on additional user confirmation. The orchestrator's dispatch IS the authorization.
 
-After all gates pass (security + review + CI + deps), spawn github-ops to merge:
+After all gates pass (security + review + CI + deps), execute the merge in two mandatory steps.
+
+**Step 8-pre-A — Stale-verdict check (BC-5.42.001 PC-2, Invariant 2).** BEFORE any merge call,
+invoke `check-stale-verdict.sh` via github-ops with the `covered_sha` from the pr-reviewer READY
+verdict. Use `gh pr view <PR_NUMBER> --json headRefOid` to obtain the SHA if not already recorded:
 
 ```
-Agent(subagent_type="vsdd-factory:github-ops", prompt="cd <project-path> && gh pr merge <PR_NUMBER> --squash --delete-branch")
+Agent(subagent_type="vsdd-factory:github-ops", prompt="cd <project-path> && plugins/vsdd-factory/bin/check-stale-verdict.sh <PR_NUMBER> <covered_sha>")
 ```
+
+- Exit 0: SHA matches live PR HEAD; proceed to Step 8-pre-B.
+- Non-zero: STALE_READY_VERDICT or other error; HALT. Re-dispatch pr-reviewer for a fresh review
+  of the new HEAD before any merge action (BC-5.42.001 Invariant 2).
+
+**Step 8-pre-B — Merge via governed wrapper (BC-5.42.001 PC-3, Invariant 6).** ALL merges MUST
+go through `enforce-merge-strategy.sh`; direct `gh pr merge` calls bypassing this wrapper are a
+protocol violation (ADR-030 §Decision 3):
+
+```
+Agent(subagent_type="vsdd-factory:github-ops", prompt="cd <project-path> && plugins/vsdd-factory/bin/enforce-merge-strategy.sh <PR_NUMBER> <strategy_flag> --delete-branch")
+```
+
+The wrapper enforces release-branch strategy (`^release/v` → `--merge`) and forwards
+`--delete-branch` as a residual arg. Do NOT trust the "Deleted remote branch" stdout line from
+`gh pr merge --delete-branch` as confirmation of deletion (cli/cli #12980 false-success regression;
+EC-009). Verify deletion separately via the sequence below.
 
 Read `.factory/merge-config.yaml` for autonomy level:
 - **Level 3:** Add `needs-review` label, wait for human
@@ -244,7 +265,7 @@ Read `.factory/merge-config.yaml` for autonomy level:
 After github-ops returns, YOU must verify the merge succeeded.
 Do NOT treat the sub-agent's response as terminal.
 
-**Verify remote branch deletion** — `gh pr merge --delete-branch` only *requests*
+**Verify remote branch deletion** — `enforce-merge-strategy.sh --delete-branch` only *requests*
 deletion; it is asynchronous and not guaranteed (especially under merge queues,
 see cli/cli#9073). You MUST verify the branch is actually gone before emitting
 STEP_COMPLETE for step 8. Follow this sequence:
