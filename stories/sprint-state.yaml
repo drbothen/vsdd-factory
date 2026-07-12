@@ -241,6 +241,16 @@ stories:
     status: draft
   - id: S-15.03
     status: draft
+  - id: S-19.01
+    status: draft
+  - id: S-19.02
+    status: draft
+  - id: S-19.03
+    status: draft
+  - id: S-19.04
+    status: draft
+  - id: S-19.05
+    status: draft
   - id: S-4.11
     status: draft
   - id: S-7.04
@@ -257,9 +267,13 @@ stories:
     status: draft
   - id: S-15.02
     status: draft
+  - id: S-19.06
+    status: draft
   - id: S-10.05
     status: draft
   - id: S-14.04
+    status: draft
+  - id: S-19.07
     status: draft
   - id: S-2.05
     status: partial
