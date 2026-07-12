@@ -712,34 +712,121 @@ pub fn count_arrow_digit_matches(s: &str) -> usize {
     count
 }
 
+/// Count the number of `→N` components in the **leading adjacent run** starting
+/// at byte 0 of `s`.
+///
+/// Walks `s` from the beginning. Each step must find `→` (U+2192, 3 UTF-8 bytes)
+/// immediately followed by one or more ASCII digits. As soon as any other byte is
+/// encountered — `;`, space, `→` not followed by a digit, end-of-string, etc. —
+/// the walk stops and the accumulated count is returned.
+///
+/// # Why a leading-run count (F-VSS-002)
+///
+/// Banner lines in real STATE.md may contain metadata after the canonical tail run,
+/// for example a pass-range annotation `; pass-61→62`. The `→62` there is an
+/// `→digit` match, but it is separated from the tail run by a `;`. Using
+/// `count_arrow_digit_matches` on the full tail-segment substring walks all the way
+/// to end-of-line and counts that stray arrow, inflating the cardinality by 1.
+///
+/// Leading-run counting stops at the first character that does not continue the
+/// adjacent run — the `;` in `→2→0→0→0; pass-61→62` stops the walk after the
+/// 4-component tail is consumed, returning 4 rather than 5.
+///
+/// # Over-relax guard
+///
+/// A genuinely over-length tail `→1→2→3→4→5` has NO intervening gap characters —
+/// the leading run is 5 — so the LENGTH=4 violation is still correctly raised.
+///
+/// # Precondition
+///
+/// `s` must begin with `→` (U+2192) for a non-zero count. Callers that invoke this
+/// function must ensure `s` is the substring immediately following the
+/// `"trajectory-tail "` token, which always starts with `→` in canonical STATE.md.
+///
+/// # UTF-8 safety
+///
+/// Identical to `has_adjacent_arrow_digit_run`: `→` encodes as `[0xE2, 0x86, 0x92]`
+/// (3 bytes); ASCII digit bytes (0x30–0x39) have the high bit clear and are never
+/// UTF-8 continuation bytes. The raw-byte walk is safe.
+///
+/// # BC trace
+/// BC-5.39.005 invariant 5 — `→(\d+)` match count must equal 4.
+/// F-VSS-002: leading-adjacent-run bound prevents post-tail metadata arrows from
+///            inflating the cardinality count.
+pub fn count_leading_adjacent_arrow_digit_run(s: &str) -> usize {
+    let arrow_utf8: &[u8] = b"\xe2\x86\x92"; // U+2192 in UTF-8
+    let arrow_byte_len = 3usize;
+    let bytes = s.as_bytes();
+    let len = bytes.len();
+
+    let mut count = 0usize;
+    let mut i = 0usize;
+
+    loop {
+        // Must find → at exactly position i to continue the run.
+        if i + arrow_byte_len > len {
+            break;
+        }
+        if &bytes[i..i + arrow_byte_len] != arrow_utf8 {
+            break;
+        }
+        // → found — must be followed by at least one ASCII digit.
+        let after_arrow = i + arrow_byte_len;
+        if after_arrow >= len || !bytes[after_arrow].is_ascii_digit() {
+            break;
+        }
+        // Consume all trailing digits.
+        let mut j = after_arrow;
+        while j < len && bytes[j].is_ascii_digit() {
+            j += 1;
+        }
+        count += 1;
+        i = j;
+        // Next iteration: the run continues only if the next bytes are → again.
+    }
+
+    count
+}
+
 /// Validate that the trajectory-tail contains exactly 4 `→N` matches.
 ///
 /// Returns a `Violation` if the count is not 4 (or no tail line found).
 /// Returns `None` if the count is exactly 4.
 ///
-/// # Token-anchored counting (streak-arrow isolation)
+/// # Token-anchored, leading-adjacent-run-bounded counting
 ///
-/// Real STATE.md banner lines embed both a streak fraction and the trajectory-tail
-/// on the same line, for example:
+/// Real STATE.md banner lines embed the trajectory-tail in a sentence that may also
+/// carry a streak fraction BEFORE the tail and pass-range metadata AFTER it, e.g.:
 ///
 /// ```text
-/// D-823 fix-burst burst-A-D complete; streak 0/3→1/3; trajectory-tail →3→2→0→0; pass-61 NEXT
+/// D-829 fix-burst burst-E; streak 2/3→3/3 CONVERGED; trajectory-tail →2→0→0→0; pass-61→62
 /// ```
 ///
-/// The streak notation `0/3→1/3` contains one `→digit` match (`→1`). Counting
-/// `→N` occurrences across the full extracted line yields 5 (1 streak + 4 tail),
-/// producing a false "5 components" violation against a valid 4-component tail.
+/// Two distinct stray-arrow hazards must be neutralised:
 ///
-/// The fix anchors the count to the substring that follows the literal
-/// `"trajectory-tail "` token. For bare forms (`→9→9→9→9`, `trajectory →9→9→9→9`)
-/// that contain no `"trajectory-tail "` token, the full-line count is used, which
-/// is correct for those forms.
+/// 1. **Pre-tail streak arrow** (F-VSS-001 fix): `streak 2/3→3/3` contributes one
+///    `→digit` match (`→3`). Fixed by anchoring the count to the substring that
+///    follows the literal `"trajectory-tail "` token — the streak is before the token
+///    and is therefore excluded.
+///
+/// 2. **Post-tail metadata arrow** (F-VSS-002 fix): `pass-61→62` contributes one
+///    `→digit` match (`→62`) after the canonical tail run ends at `;`. Fixed by
+///    counting only the **leading adjacent run** of the token-anchored substring
+///    (i.e., `count_leading_adjacent_arrow_digit_run`) rather than walking to
+///    end-of-line (`count_arrow_digit_matches`). The `;` terminates the leading run
+///    after the 4 canonical components are consumed.
+///
+/// For bare forms (`→9→9→9→9`, `trajectory →9→9→9→9`) that contain no
+/// `"trajectory-tail "` token, the full-line `count_arrow_digit_matches` is used.
+/// These forms have no trailing metadata in practice, so EOL counting is safe.
 ///
 /// The `cited_raw` field in the returned `Violation` always contains the full
 /// extracted line (not just the tail segment), for diagnostic legibility.
 ///
 /// # BC trace
 /// BC-5.39.005 postcondition 4; EC-005, EC-006, EC-008.
+/// F-VSS-001: token-anchor isolates streak arrows.
+/// F-VSS-002: leading-run bound isolates post-tail metadata arrows.
 pub fn validate_trajectory_tail(content: &str) -> Option<Violation> {
     match extract_trajectory_tail_line(content) {
         None => Some(Violation {
@@ -749,23 +836,27 @@ pub fn validate_trajectory_tail(content: &str) -> Option<Violation> {
             cited_raw: String::new(),
         }),
         Some(tail_line) => {
-            // Anchor the count to the portion of the line after the "trajectory-tail "
-            // token, if present. Banner lines in real STATE.md can embed streak notation
-            // like "streak 0/3→1/3" before the tail token — counting the full line
-            // inflates the component count by 1 (the →digit in the streak fraction
-            // contributes a false extra match). Token-anchoring scopes the count to the
-            // tail segment itself, matching the D-433(e)+D-439(c)+D-451(c)+D-432(b)
-            // LENGTH=4 requirement.
-            // Lines without the token (bare "→9→9→9→9" form or "trajectory →9→9→9→9")
-            // fall through to the full-line count, which is correct for those forms.
+            // When the "trajectory-tail " token is present, anchor to the substring
+            // after the token and count only its leading adjacent →digit run
+            // (F-VSS-001 + F-VSS-002). The token-anchored substring always starts
+            // with → in canonical STATE.md, so count_leading_adjacent_arrow_digit_run
+            // is the correct counter: it stops at the first non-adjacent character
+            // (e.g. `;` before a pass-range annotation) rather than walking to EOL.
+            //
+            // When the token is absent (bare "→9→9→9→9" or "trajectory →9→9→9→9"),
+            // fall back to count_arrow_digit_matches on the full line. These forms
+            // carry no trailing metadata, so EOL counting is safe and the leading-run
+            // function would return 0 for forms like "trajectory →..." where the line
+            // does not start with →.
+            //
             // "trajectory-tail " is all ASCII, so the byte offset is always a valid
             // UTF-8 char boundary.
-            let count_target: &str = if let Some(pos) = tail_line.find("trajectory-tail ") {
-                &tail_line[pos + "trajectory-tail ".len()..]
+            let count = if let Some(pos) = tail_line.find("trajectory-tail ") {
+                let tail_segment = &tail_line[pos + "trajectory-tail ".len()..];
+                count_leading_adjacent_arrow_digit_run(tail_segment)
             } else {
-                &tail_line
+                count_arrow_digit_matches(&tail_line)
             };
-            let count = count_arrow_digit_matches(count_target);
             if count == 4 {
                 None
             } else {
