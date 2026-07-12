@@ -10,6 +10,9 @@
 #   STUB_GH_MERGE_EXIT            — exit code for `gh pr merge` calls (default: 0)
 #   STUB_GH_NULL_OID              — if "1", returns null for headRefOid value (simulates F-P5-001)
 #   STUB_GH_NULL_HEAD_REF_NAME    — if "1", returns null for headRefName value (simulates F-P5-001 sibling)
+#   STUB_GH_NULL_STATE            — if "1", returns null (JSON null, unquoted) for state value
+#                                   while headRefOid remains a quoted string (simulates F-P15-001:
+#                                   state absent/unparseable + SHA present)
 #   STUB_GH_ARGV_LOG              — if set to a file path, gh pr merge appends all argv (one per
 #                                   line) to that file so tests can assert which flags were forwarded
 #                                   through enforce-merge-strategy.sh (F-P7-001 arg-forwarding gate).
@@ -26,6 +29,7 @@ STUB_GH_MALFORMED_JSON="${STUB_GH_MALFORMED_JSON:-0}"
 STUB_GH_MERGE_EXIT="${STUB_GH_MERGE_EXIT:-0}"
 STUB_GH_STATE="${STUB_GH_STATE:-open}"
 STUB_GH_NULL_OID="${STUB_GH_NULL_OID:-0}"
+STUB_GH_NULL_STATE="${STUB_GH_NULL_STATE:-0}"
 STUB_GH_NULL_HEAD_REF_NAME="${STUB_GH_NULL_HEAD_REF_NAME:-0}"
 STUB_GH_ARGV_LOG="${STUB_GH_ARGV_LOG:-}"
 
@@ -45,6 +49,15 @@ case "${1:-}" in
                 if [[ "${*}" == *"headRefOid"* ]]; then
                     if [[ "${STUB_GH_NULL_OID}" == "1" ]]; then
                         printf '{"headRefOid":null,"state":"%s"}\n' "${STUB_GH_STATE}"
+                        exit 0
+                    fi
+                    if [[ "${STUB_GH_NULL_STATE}" == "1" ]]; then
+                        # Return headRefOid as a valid quoted string but state as JSON null (unquoted).
+                        # Simulates the F-P15-001 scenario: gh returns a valid SHA but state is absent/
+                        # unparseable — grep -oE '"state":"[^"]*"' cannot match null, leaving PR_STATE
+                        # empty and bypassing arm 3.
+                        printf '{"headRefOid":"%s","state":null}\n' \
+                            "${STUB_GH_HEAD_REF_OID:-aaaa000000000000000000000000000000000000}"
                         exit 0
                     fi
                     printf '{"headRefOid":"%s","state":"%s"}\n' \

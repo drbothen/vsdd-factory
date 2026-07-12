@@ -3,7 +3,7 @@
 #
 # Covers AC-001..AC-004 per BC-5.42.001 / VP-094 / ADR-030 §Decision 2 / §Decision 3.
 #
-# Test plan (T-001..T-032):
+# Test plan (T-001..T-033):
 #   T-001 AC-001 — READY verdict without covered_sha triggers READY_SHA_MISSING advisory
 #   T-002 AC-001 — gh failure on covered_sha fetch → READY_SHA_FETCH_FAILED on stderr
 #   T-003 AC-002 — check-stale-verdict.sh: stale SHA → exit 1 + STALE_READY_VERDICT
@@ -36,14 +36,16 @@
 #   T-030 AC-003 — enforce-merge-strategy.sh: -A as $2 (short form of --admin) → exit 1 (F-P8-003)
 #   T-031 AC-003 — enforce-merge-strategy.sh: --merge/$2 still works (F-P8-003 positive regression guard)
 #   T-032 AC-001 — pr-manager.md Step 8-pre-A must not contain re-fetch-covered_sha fallback (F-S1901-P12-001)
+#   T-033 AC-002 — check-stale-verdict.sh: matching SHA + null state → fail-closed (F-P15-001)
 #
 # Green status: T-001..T-016 pass after implementation; T-017 green (positive + neg-control);
 #   T-018/T-019 GREEN — positive verification of ADR-030 §Decision 2 arms 3+4 (post-implementation);
 #   T-020/T-021 GREEN (F-P5-001 fixed); T-031 GREEN (positive regression guard);
-#   T-022..T-030 RED gates (F-P7-001/F-P8-001/F-P8-002/F-P8-003); T-032 RED gate (F-S1901-P12-001).
+#   T-022..T-030 RED gates (F-P7-001/F-P8-001/F-P8-002/F-P8-003); T-032 RED gate (F-S1901-P12-001);
+#   T-033 RED gate (F-P15-001: null state + SHA match must fail-closed).
 #   Note: F-P8-001 RED gates are Rust cargo tests (lib.rs), not bats.
 #
-# BC trace: BC-5.42.001 PC-1 (T-001/T-002/T-014/T-032), PC-2 (T-003/T-004/T-010/T-013/T-016/T-018/T-019/T-020),
+# BC trace: BC-5.42.001 PC-1 (T-001/T-002/T-014/T-032), PC-2 (T-003/T-004/T-010/T-013/T-016/T-018/T-019/T-020/T-033),
 #           PC-3 (T-005/T-006/T-007/T-011/T-012/T-015/T-021/T-022/T-023/T-024/T-025/T-026/T-027/T-028/T-029/T-030/T-031),
 #           AC-004 (T-008/T-009/T-017)
 
@@ -1499,4 +1501,63 @@ GHEOF
         awk '/Step 8-pre-A/,/Step 8-pre-B/' "${pm_md}" | grep "BC-5\.42" | head -5
         return 1
     fi
+}
+
+# T-033: check-stale-verdict.sh: headRefOid matches covered_sha but state field is JSON null
+# (absent/unparseable) → must fail-closed with exit 1 + CHECK_STALE_VERDICT_ERROR.
+#
+# The defect path (F-P15-001):
+#   gh returns: {"headRefOid":"<matching-sha>","state":null}
+#   Parser: grep -oE '"state":"[^"]*"' does NOT match "state":null (null is unquoted JSON)
+#   → PR_STATE="" (empty string)
+#   → Arm 4 first check: LIVE_SHA non-empty → skipped
+#   → Arm 3 (state check): if [[ -n "${PR_STATE}" ]] → false, skipped
+#   → SHA match: LIVE_SHA == COVERED_SHA → exit 0 ← BUG (silent success despite unknown state)
+#
+# Required (ADR-030 §Decision 2 arm 4 catch-all; F-P15-001 hardening):
+#   PR_STATE must be present AND non-empty AND == OPEN before SHA-match exits 0.
+#   If PR_STATE is absent/null/unparseable: fail-closed via arm 4 CHECK_STALE_VERDICT_ERROR,
+#   even when headRefOid exactly matches covered_sha.
+#
+# The test uses STUB_GH_NULL_STATE=1 which makes stub-gh emit:
+#   {"headRefOid":"<covered_sha>","state":null}
+# ensuring the SHA would match so any exit 1 is due to the null-state path, not SHA mismatch.
+#
+# RED now: exits 0 (arm 3 skipped; SHA match succeeds despite null state).
+# After implementation: exits 1 + CHECK_STALE_VERDICT_ERROR.
+@test "T-033: check-stale-verdict.sh: matching headRefOid but null state → exit 1 + CHECK_STALE_VERDICT_ERROR (F-P15-001)" {
+    local pr_number="42"
+    local covered_sha="dddd333333333333333333333333333333333333"
+
+    # stub-gh: headRefOid = covered_sha (would match), but state = JSON null (unquoted).
+    # The state-null path is distinct from: null headRefOid (T-020), closed PR (T-018),
+    # malformed JSON (T-019). This specifically tests the matching-SHA + absent-state arm.
+    cp "${FIXTURES_DIR}/stub-gh.sh" "${MOCK_BIN}/gh"
+    chmod +x "${MOCK_BIN}/gh"
+
+    run env PATH="${MOCK_BIN}:${PATH}" \
+        STUB_GH_HEAD_REF_OID="${covered_sha}" \
+        STUB_GH_NULL_STATE="1" \
+        bash "${BIN_DIR}/check-stale-verdict.sh" \
+        "${pr_number}" "${covered_sha}" 2>&1
+
+    [ "${status}" -ne 0 ] || {
+        echo "FAIL (F-P15-001): expected non-zero exit for matching SHA + null state; got exit 0"
+        echo "Current behavior: arm 3 (state check) is skipped because PR_STATE is empty"
+        echo "  (null JSON value does not match grep -oE '\"state\":\"[^\"]*\"')"
+        echo "  → SHA match at Step 4 returns exit 0 despite unknown/absent PR state"
+        echo "Required (ADR-030 §Decision 2 arm 4; F-P15-001 hardening):"
+        echo "  PR_STATE must be present AND == OPEN before SHA-match exits 0"
+        echo "  null/absent state → fail-closed via arm 4 CHECK_STALE_VERDICT_ERROR"
+        echo "Output: ${output}"
+        return 1
+    }
+
+    echo "${output}" | grep -q "CHECK_STALE_VERDICT_ERROR" || {
+        echo "FAIL (F-P15-001): CHECK_STALE_VERDICT_ERROR not found in output"
+        echo "Required: CHECK_STALE_VERDICT_ERROR sentinel on stderr for null/absent state"
+        echo "  (arm 4 catch-all: state unparseable → fail-closed, same class as T-020)"
+        echo "Output: ${output}"
+        return 1
+    }
 }
