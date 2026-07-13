@@ -712,13 +712,130 @@ pub fn count_arrow_digit_matches(s: &str) -> usize {
     count
 }
 
+/// Count the number of `→N` components in the **leading adjacent run** starting
+/// at byte 0 of `s`.
+///
+/// Walks `s` from the beginning. Each step must find `→` (U+2192, 3 UTF-8 bytes)
+/// immediately followed by one or more ASCII digits. As soon as any other byte is
+/// encountered — `;`, space, `→` not followed by a digit, end-of-string, etc. —
+/// the walk stops and the accumulated count is returned.
+///
+/// # Why a leading-run count (F-VSS-002)
+///
+/// Banner lines in real STATE.md may contain metadata after the canonical tail run,
+/// for example a pass-range annotation `; pass-61→62`. The `→62` there is an
+/// `→digit` match, but it is separated from the tail run by a `;`. Using
+/// `count_arrow_digit_matches` on the full tail-segment substring walks all the way
+/// to end-of-line and counts that stray arrow, inflating the cardinality by 1.
+///
+/// Leading-run counting stops at the first character that does not continue the
+/// adjacent run — the `;` in `→2→0→0→0; pass-61→62` stops the walk after the
+/// 4-component tail is consumed, returning 4 rather than 5.
+///
+/// # Over-relax guard
+///
+/// A genuinely over-length tail `→1→2→3→4→5` has NO intervening gap characters —
+/// the leading run is 5 — so the LENGTH=4 violation is still correctly raised.
+///
+/// # Precondition
+///
+/// `s` must begin with `→` (U+2192) for a non-zero count. Callers that invoke this
+/// function must ensure `s` is the substring immediately following the
+/// `"trajectory-tail "` token, which always starts with `→` in canonical STATE.md.
+///
+/// # UTF-8 safety
+///
+/// Identical to `has_adjacent_arrow_digit_run`: `→` encodes as `[0xE2, 0x86, 0x92]`
+/// (3 bytes); ASCII digit bytes (0x30–0x39) have the high bit clear and are never
+/// UTF-8 continuation bytes. The raw-byte walk is safe.
+///
+/// # BC trace
+/// BC-5.39.005 invariant 5 — `→(\d+)` match count must equal 4.
+/// F-VSS-002: originally introduced as the counting strategy in `validate_trajectory_tail`
+///            to isolate post-tail metadata arrows. Superseded by the sibling-aligned
+///            semicolon-truncation strategy (F-VSS-C-001), which also handles
+///            UNCHANGED-annotation forms where the segment does not start with `→`.
+///            Preserved as a `pub fn` because the F-VSS-C-001 test uses it as a
+///            precondition assertion to document the exact failure mode it was replaced for.
+pub fn count_leading_adjacent_arrow_digit_run(s: &str) -> usize {
+    let arrow_utf8: &[u8] = b"\xe2\x86\x92"; // U+2192 in UTF-8
+    let arrow_byte_len = 3usize;
+    let bytes = s.as_bytes();
+    let len = bytes.len();
+
+    let mut count = 0usize;
+    let mut i = 0usize;
+
+    loop {
+        // Must find → at exactly position i to continue the run.
+        if i + arrow_byte_len > len {
+            break;
+        }
+        if &bytes[i..i + arrow_byte_len] != arrow_utf8 {
+            break;
+        }
+        // → found — must be followed by at least one ASCII digit.
+        let after_arrow = i + arrow_byte_len;
+        if after_arrow >= len || !bytes[after_arrow].is_ascii_digit() {
+            break;
+        }
+        // Consume all trailing digits.
+        let mut j = after_arrow;
+        while j < len && bytes[j].is_ascii_digit() {
+            j += 1;
+        }
+        count += 1;
+        i = j;
+        // Next iteration: the run continues only if the next bytes are → again.
+    }
+
+    count
+}
+
 /// Validate that the trajectory-tail contains exactly 4 `→N` matches.
 ///
 /// Returns a `Violation` if the count is not 4 (or no tail line found).
 /// Returns `None` if the count is exactly 4.
 ///
+/// # Token-anchored, semicolon-truncated counting (sibling strategy)
+///
+/// Real STATE.md banner lines embed the trajectory-tail in a sentence that may carry
+/// a streak fraction BEFORE the tail and pass-range / phase metadata AFTER it, and
+/// may include an UNCHANGED annotation BETWEEN the token and the arrow run:
+///
+/// ```text
+/// D-829 fix-burst; streak 2/3→3/3 CONVERGED; trajectory-tail →2→0→0→0; pass-61→62
+/// D-813 fix-burst burst-E; trajectory-tail UNCHANGED →1→1→0→3; pass-57 NEXT
+/// ```
+///
+/// Three stray-arrow hazards are neutralised by the same two-step strategy used by
+/// the sibling validator `validate-dispatch-advance::check_trajectory_tail_length`:
+///
+/// 1. **Pre-tail streak arrow** (F-VSS-001): `streak 2/3→3/3` contributes one
+///    `→digit` match. Fixed by anchoring to the substring AFTER `"trajectory-tail "`.
+///
+/// 2. **Post-tail metadata arrow** (F-VSS-002): `pass-61→62` contributes one
+///    `→digit` match after the canonical tail run. Fixed by truncating the
+///    token-anchored segment at the first `;` before counting.
+///
+/// 3. **UNCHANGED annotation** (F-VSS-C-001): `UNCHANGED` precedes the `→` run but
+///    falls in the pre-semicolon segment. `count_arrow_digit_matches` on
+///    `UNCHANGED →1→1→0→3` correctly skips the non-arrow prefix and counts 4.
+///    (The superseded `count_leading_adjacent_arrow_digit_run` failed here because
+///    it broke immediately on the non-`→` byte at offset 0.)
+///
+/// For bare forms (`→9→9→9→9`, `trajectory →9→9→9→9`) that contain no
+/// `"trajectory-tail "` token, the full-line `count_arrow_digit_matches` is used.
+/// These forms have no trailing metadata in practice, so EOL counting is safe.
+///
+/// The `cited_raw` field in the returned `Violation` always contains the full
+/// extracted line (not just the tail segment), for diagnostic legibility.
+///
 /// # BC trace
 /// BC-5.39.005 postcondition 4; EC-005, EC-006, EC-008.
+/// F-VSS-001: token-anchor isolates streak arrows.
+/// F-VSS-002: semicolon-truncation isolates post-tail metadata arrows.
+/// F-VSS-C-001: sibling strategy handles UNCHANGED-annotation forms.
 pub fn validate_trajectory_tail(content: &str) -> Option<Violation> {
     match extract_trajectory_tail_line(content) {
         None => Some(Violation {
@@ -728,7 +845,40 @@ pub fn validate_trajectory_tail(content: &str) -> Option<Violation> {
             cited_raw: String::new(),
         }),
         Some(tail_line) => {
-            let count = count_arrow_digit_matches(&tail_line);
+            // When the "trajectory-tail " token is present, anchor to the substring
+            // after the token, truncate at the first `;` (drops post-tail metadata
+            // such as `; pass-61→62`), then call count_arrow_digit_matches on the
+            // truncated segment (F-VSS-001 + F-VSS-002 + F-VSS-C-001; sibling
+            // strategy from validate-dispatch-advance::check_trajectory_tail_length).
+            // count_arrow_digit_matches naturally skips non-→ prefixes, so
+            // UNCHANGED-annotation forms (`UNCHANGED →1→1→0→3`) are handled correctly.
+            //
+            // When the token is absent (bare "→9→9→9→9" or "trajectory →9→9→9→9"),
+            // fall back to count_arrow_digit_matches on the full line. These forms
+            // carry no trailing metadata, so EOL counting is safe.
+            //
+            // "trajectory-tail " is all ASCII, so the byte offset is always a valid
+            // UTF-8 char boundary. The semicolon `;` that terminates the tail segment
+            // is also ASCII, so the byte slice `[..semi_pos]` is always a valid char
+            // boundary — safe to use directly as a str slice.
+            let count = if let Some(pos) = tail_line.find("trajectory-tail ") {
+                let tail_segment = &tail_line[pos + "trajectory-tail ".len()..];
+                // Truncate the segment at the first `;` (sibling strategy per
+                // validate-dispatch-advance::check_trajectory_tail_length). Everything
+                // after `;` is metadata — pass-range annotations (`; pass-61→62`),
+                // phase labels (`; pass-57 NEXT`), etc. — not part of the tail run.
+                // This also handles UNCHANGED-annotation forms like
+                // `UNCHANGED →1→1→0→3; pass-57 NEXT`: after truncation the segment is
+                // `UNCHANGED →1→1→0→3`, and count_arrow_digit_matches correctly finds
+                // the 4 arrow-digit matches inside it.
+                let scan_target = match tail_segment.find(';') {
+                    Some(semi_pos) => &tail_segment[..semi_pos],
+                    None => tail_segment,
+                };
+                count_arrow_digit_matches(scan_target)
+            } else {
+                count_arrow_digit_matches(&tail_line)
+            };
             if count == 4 {
                 None
             } else {
@@ -2795,6 +2945,417 @@ mod tests {
             result.is_some(),
             "check_row_coalescence must detect coalescence (two D-NNN cells on one line) \
              when no archive preamble is present; got None"
+        );
+    }
+
+    // ── vss-fix: trajectory-tail count must anchor on token, ignore streak arrow ──
+
+    /// vss-fix PRIMARY RED: a banner line containing BOTH a streak fraction arrow
+    /// (`streak 0/3→1/3`) AND the canonical `trajectory-tail →3→2→0→0` token causes
+    /// `count_arrow_digit_matches` to find 5 `→digit` matches when applied to the
+    /// full line (1 from streak `→1` + 4 from tail `→3→2→0→0`).
+    /// `validate_trajectory_tail` currently fires a FALSE "5 components" violation.
+    ///
+    /// The canonical tail portion `→3→2→0→0` IS exactly 4 components. A correct
+    /// token-anchored count (anchoring on the `trajectory-tail ` literal) returns 4
+    /// and `validate_trajectory_tail` must return None.
+    ///
+    /// Realistic banner line mirrors actual STATE.md D-810..D-823 pass-61 burst form.
+    ///
+    /// POLICY 11: drives `count_arrow_digit_matches`, `extract_trajectory_tail_line`,
+    /// and `validate_trajectory_tail` — real production functions.
+    ///
+    /// RED against current impl (full-line count=5, false violation fired).
+    /// GREEN after the token-anchored fix.
+    #[test]
+    fn test_BC_5_39_005_streak_plus_canonical_tail_false_5_count_red() {
+        // Realistic banner line: streak fraction arrow precedes the trajectory-tail token.
+        // streak 0/3→1/3 contributes one →digit match (→1, since `3` before → fires
+        // F-P3-001 in has_adjacent_arrow_digit_run keeping it OUT of the adjacent run,
+        // but count_arrow_digit_matches counts it unconditionally).
+        // trajectory-tail →3→2→0→0 contributes four →digit matches.
+        let banner_line = "D-823 fix-burst burst-A-D complete; streak 0/3\u{2192}1/3; \
+             trajectory-tail \u{2192}3\u{2192}2\u{2192}0\u{2192}0; pass-61 NEXT";
+
+        // Precondition: current impl over-counts to 5 on the full line (confirms bug present).
+        let full_count = count_arrow_digit_matches(banner_line);
+        assert_eq!(
+            full_count, 5,
+            "precondition: count_arrow_digit_matches on the full banner line must find 5 \
+             (→1 from streak + →3→2→0→0 from tail = 5); confirms the over-count bug is present"
+        );
+
+        // Also verify that count_arrow_digit_matches on just the tail portion returns 4.
+        // This documents what a token-anchored implementation must achieve.
+        let tail_portion = "\u{2192}3\u{2192}2\u{2192}0\u{2192}0";
+        assert_eq!(
+            count_arrow_digit_matches(tail_portion),
+            4,
+            "count_arrow_digit_matches on the isolated tail →3→2→0→0 must return 4; \
+             a token-anchored fix must produce this count for the full banner line"
+        );
+
+        // Wrap in a minimal SIZE BUDGET banner document so extract_trajectory_tail_line
+        // picks the line up from the banner block (primary extraction path).
+        let content =
+            format!("<!--\n  STATE.md SIZE BUDGET (per D-421(c)):\n  {banner_line}\n-->\n");
+
+        // Confirm extract_trajectory_tail_line returns the streak+tail line
+        // (not None and not a different line), driving that production function too.
+        let found_tail = extract_trajectory_tail_line(&content);
+        assert!(
+            found_tail.is_some(),
+            "extract_trajectory_tail_line must find a tail in the streak+tail banner; got None"
+        );
+        assert!(
+            found_tail.as_ref().unwrap().contains("trajectory-tail"),
+            "extracted tail line must contain the 'trajectory-tail' token; \
+             got: {:?}",
+            found_tail
+        );
+
+        // PRIMARY ASSERTION (RED): validate_trajectory_tail must return None.
+        // The canonical trajectory-tail token holds exactly 4 components; the streak
+        // arrow must NOT inflate the count. Current impl fails here with "5 components".
+        let v = validate_trajectory_tail(&content);
+        assert!(
+            v.is_none(),
+            "streak + canonical trajectory-tail →3→2→0→0 MUST pass (4 components); \
+             validate_trajectory_tail must return None; got violation: {:?}",
+            v.map(|viol| viol.description)
+        );
+    }
+
+    /// vss-fix PRIMARY RED (CONVERGED form): mirrors the exact banner line form from the
+    /// bug report — `streak 2/3→3/3 CONVERGED` — where the streak arrow contributes `→3`
+    /// and the tail `trajectory-tail →2→0→0→0` contributes four components.
+    ///
+    /// Current impl counts all five `→digit` matches on the full line and fires a false
+    /// "5 components" violation. After the token-anchored fix it must return None.
+    ///
+    /// Mirrors actual STATE.md D-829 CONVERGED form per bug report.
+    ///
+    /// RED against current impl. GREEN after fix.
+    #[test]
+    fn test_BC_5_39_005_converged_streak_form_false_5_count_red() {
+        // CONVERGED streak form: "streak 2/3→3/3 CONVERGED" contributes →3 (one →digit match).
+        // trajectory-tail →2→0→0→0 contributes four →digit matches.
+        // Total via full-line count: 5. Correct token-anchored count: 4.
+        let banner_line = "D-829 fix-burst burst-E complete; streak 2/3\u{2192}3/3 CONVERGED; \
+             trajectory-tail \u{2192}2\u{2192}0\u{2192}0\u{2192}0; pass-61 NEXT";
+
+        // Precondition: full-line count is 5 (1 streak + 4 tail).
+        let full_count = count_arrow_digit_matches(banner_line);
+        assert_eq!(
+            full_count, 5,
+            "precondition: CONVERGED streak form must yield count=5 on full line \
+             (→3 from streak + →2→0→0→0 from tail = 5)"
+        );
+
+        let content =
+            format!("<!--\n  STATE.md SIZE BUDGET (per D-421(c)):\n  {banner_line}\n-->\n");
+
+        // PRIMARY ASSERTION (RED): must return None after fix.
+        let v = validate_trajectory_tail(&content);
+        assert!(
+            v.is_none(),
+            "CONVERGED streak + canonical trajectory-tail →2→0→0→0 MUST pass (4 components); \
+             validate_trajectory_tail must return None; got violation: {:?}",
+            v.map(|viol| viol.description)
+        );
+    }
+
+    /// vss-fix REGRESSION GUARD: a banner line containing a streak arrow but NO
+    /// `trajectory-tail` token must NOT be falsely identified as a trajectory tail.
+    ///
+    /// A streak-only line has exactly 1 `→digit` match (< 3 threshold), so
+    /// `is_trajectory_tail_line` correctly returns false.
+    ///
+    /// GREEN before and after fix (the fix must not introduce false-positive tail
+    /// detection on streak-only lines).
+    #[test]
+    fn test_BC_5_39_005_streak_only_no_tail_token_not_a_tail_line() {
+        // Streak arrow only — no trajectory-tail token present.
+        let streak_only_line =
+            "D-823 fix-burst burst-A complete; streak 0/3\u{2192}1/3; pass-61 NEXT";
+
+        // Exactly 1 →digit match — below the is_trajectory_tail_line threshold of 3.
+        assert_eq!(
+            count_arrow_digit_matches(streak_only_line),
+            1,
+            "streak-only line must have exactly 1 →digit match"
+        );
+        assert!(
+            !is_trajectory_tail_line(streak_only_line),
+            "streak-only line must NOT qualify as a trajectory tail line \
+             (only 1 →digit match, below threshold of 3)"
+        );
+
+        // A document with only this streak-only line in the banner and no body tail
+        // must yield None from extract_trajectory_tail_line (no tail found anywhere).
+        let content = format!(
+            "<!--\n  STATE.md SIZE BUDGET (per D-421(c)):\n  {streak_only_line}\n-->\nsome body\n"
+        );
+        let tail = extract_trajectory_tail_line(&content);
+        assert!(
+            tail.is_none(),
+            "streak-only banner + empty body must yield no trajectory tail; got: {:?}",
+            tail
+        );
+    }
+
+    /// vss-fix REGRESSION GUARD: a line with a GENUINELY wrong trajectory-tail (5 real
+    /// components in the `trajectory-tail` token itself) must STILL fail cardinality
+    /// validation after the token-anchored fix.
+    ///
+    /// Ensures the fix does not over-relax and allow genuine over-count tails to pass.
+    ///
+    /// GREEN before and after fix (correctly fails today; must continue to fail after fix).
+    #[test]
+    fn test_BC_5_39_005_genuine_5component_tail_still_fails_after_fix() {
+        // No streak arrow — five genuine components after the trajectory-tail token.
+        // Current impl: count_arrow_digit_matches on full line = 5 → correctly fires.
+        // After token-anchored fix: count on tail portion "→1→2→3→4→5" = 5 → still fires.
+        let banner_line = "trajectory-tail \u{2192}1\u{2192}2\u{2192}3\u{2192}4\u{2192}5";
+
+        let content =
+            format!("<!--\n  STATE.md SIZE BUDGET (per D-421(c)):\n  {banner_line}\n-->\n");
+
+        let v = validate_trajectory_tail(&content);
+        assert!(
+            v.is_some(),
+            "genuine 5-component trajectory-tail (→1→2→3→4→5) must STILL fail after \
+             the token-anchored fix; got None"
+        );
+        let viol = v.unwrap();
+        assert!(
+            viol.description.contains('5'),
+            "violation must name the count 5; got: {}",
+            viol.description
+        );
+        assert!(
+            viol.description.contains("D-433"),
+            "violation must cite D-433(e); got: {}",
+            viol.description
+        );
+    }
+
+    /// vss-fix REGRESSION GUARD: a clean canonical `trajectory-tail →9→9→9→9` banner line
+    /// with no streak arrow must continue to PASS (the fix must not break clean inputs).
+    ///
+    /// GREEN before and after fix.
+    #[test]
+    fn test_BC_5_39_005_clean_canonical_tail_4components_regression_guard() {
+        let banner_line = "trajectory-tail \u{2192}9\u{2192}9\u{2192}9\u{2192}9";
+
+        let content =
+            format!("<!--\n  STATE.md SIZE BUDGET (per D-421(c)):\n  {banner_line}\n-->\n");
+
+        let v = validate_trajectory_tail(&content);
+        assert!(
+            v.is_none(),
+            "clean canonical trajectory-tail →9→9→9→9 must PASS (no violation); \
+             got: {:?}",
+            v.map(|viol| viol.description)
+        );
+    }
+
+    // ── F-VSS-002: count must be bounded to leading adjacent run, not EOL ──────
+
+    /// F-VSS-002 PRIMARY RED: the current fix anchors on the `trajectory-tail ` token
+    /// but runs `count_arrow_digit_matches` to end-of-line on the remainder. A banner
+    /// line with trailing `→digit` content AFTER the canonical tail run — such as a
+    /// pass-range annotation `pass-61→62` — inflates the count by 1, producing a false
+    /// "5 components" violation.
+    ///
+    /// Example line: `"D-999 ...; trajectory-tail →2→0→0→0; pass-61→62"`
+    ///
+    /// - `count_target` after token-strip = `"→2→0→0→0; pass-61→62"`
+    /// - `count_arrow_digit_matches(count_target)` = 5 (→2, →0, →0, →0 from tail +
+    ///   →62 from `pass-61→62`): the `;` does NOT stop the full-line count.
+    /// - Correct behavior: count only the LEADING adjacent `→digit` run from the start
+    ///   of `count_target` (`→2→0→0→0` = 4); stop at the first non-adjacent character.
+    ///
+    /// POLICY 11: drives `validate_trajectory_tail`, `extract_trajectory_tail_line`,
+    /// `count_arrow_digit_matches` — real production functions.
+    ///
+    /// RED against current impl (730e5a47; EOL count = 5, false violation fired).
+    /// GREEN after the leading-adjacent-run-bounded fix.
+    ///
+    /// F-VSS-003 note: `trajectory-tail:` (spaceless, colon-separated) is NOT a
+    /// plausible real STATE.md form — the canonical form always uses
+    /// `trajectory-tail <space>→...`. No test added for F-VSS-003; the `.find`
+    /// fallback to full-line count is acceptable for non-canonical spellings, which
+    /// cannot appear in production STATE.md.
+    #[test]
+    fn test_BC_5_39_005_f_vss_002_trailing_arrow_after_tail_false_5_count_red() {
+        // Banner line: canonical 4-component tail followed by `; pass-61→62`.
+        // The `→62` in `pass-61→62` is an `→digit` match that end-of-line counting
+        // picks up, inflating the count to 5.
+        let banner_line = "D-999 fix-burst burst-E; trajectory-tail \u{2192}2\u{2192}0\u{2192}0\u{2192}0; pass-61\u{2192}62";
+
+        // Precondition A: verify that count_arrow_digit_matches on the count_target
+        // substring (what the current fix passes to the counter) returns 5.
+        // This confirms the EOL-count bug is present and the test exercises it.
+        let token = "trajectory-tail ";
+        let count_target = banner_line
+            .find(token)
+            .map(|pos| &banner_line[pos + token.len()..])
+            .expect("token must be present in banner_line");
+        assert_eq!(
+            count_target, "\u{2192}2\u{2192}0\u{2192}0\u{2192}0; pass-61\u{2192}62",
+            "precondition: count_target must be the substring after 'trajectory-tail '"
+        );
+        let eol_count = count_arrow_digit_matches(count_target);
+        assert_eq!(
+            eol_count, 5,
+            "precondition: EOL count on count_target must be 5 \
+             (→2→0→0→0 = 4 + →62 from pass-61→62 = 5); confirms F-VSS-002 bug present"
+        );
+
+        // Precondition B: the LEADING adjacent run of count_target is exactly 4.
+        // Documents the target behavior: a run-bounded count stops at `;`.
+        // count_arrow_digit_matches on just the leading portion returns 4.
+        let leading_tail_only = "\u{2192}2\u{2192}0\u{2192}0\u{2192}0";
+        assert_eq!(
+            count_arrow_digit_matches(leading_tail_only),
+            4,
+            "precondition: count of the leading adjacent run →2→0→0→0 must be 4; \
+             this is the count a run-bounded fix must produce"
+        );
+
+        // Wrap in a minimal SIZE BUDGET banner so extract_trajectory_tail_line
+        // picks this line up from the banner block (primary extraction path).
+        let content =
+            format!("<!--\n  STATE.md SIZE BUDGET (per D-421(c)):\n  {banner_line}\n-->\n");
+
+        // Confirm the line is identified as a tail line (i.e., the test exercises the
+        // full validate_trajectory_tail path, not a no-op short-circuit).
+        let found = extract_trajectory_tail_line(&content);
+        assert!(
+            found.is_some(),
+            "extract_trajectory_tail_line must find the trailing-arrow banner line; got None"
+        );
+
+        // PRIMARY ASSERTION (RED): validate_trajectory_tail must return None.
+        // The canonical tail →2→0→0→0 has exactly 4 components; `pass-61→62` is
+        // metadata, not part of the tail. A leading-adjacent-run-bounded count = 4.
+        // Current EOL-count impl returns "5 components" — FALSE FAIL.
+        let v = validate_trajectory_tail(&content);
+        assert!(
+            v.is_none(),
+            "trajectory-tail →2→0→0→0 with trailing pass-61→62 annotation MUST pass \
+             (4 leading adjacent components); validate_trajectory_tail must return None; \
+             got violation: {:?}",
+            v.map(|viol| viol.description)
+        );
+    }
+
+    // ── F-VSS-C-001: UNCHANGED annotation must not false-block (primary RED) ──────
+    //
+    // Real STATE.md banner line (line 9 of the live document after pass-57):
+    //   "D-813 fix-burst burst-E; trajectory-tail UNCHANGED →1→1→0→3; pass-57 NEXT"
+    //
+    // After token-anchor the leading-adjacent-run function receives:
+    //   tail_segment = "UNCHANGED →1→1→0→3; pass-57 NEXT"
+    // bytes[0] = 'U' (not →), so count_leading_adjacent_arrow_digit_run returns 0
+    // immediately → validate_trajectory_tail emits "0 components" → FALSE FAIL.
+    //
+    // Correct behavior (sibling approach per validate-dispatch-advance):
+    //   token-anchor → truncate at first ';' → count_arrow_digit_matches
+    //   = count_arrow_digit_matches("UNCHANGED →1→1→0→3") = 4 → None.
+    #[test]
+    fn test_bc_5_39_005_f_vss_c_001_unchanged_annotation_false_zero_count_red() {
+        let banner_line = "D-813 fix-burst burst-E; trajectory-tail UNCHANGED \
+                           \u{2192}1\u{2192}1\u{2192}0\u{2192}3; pass-57 NEXT";
+        let token = "trajectory-tail ";
+        let tail_segment = banner_line
+            .find(token)
+            .map(|pos| &banner_line[pos + token.len()..])
+            .expect("token must be present in banner_line");
+        assert_eq!(
+            tail_segment, "UNCHANGED \u{2192}1\u{2192}1\u{2192}0\u{2192}3; pass-57 NEXT",
+            "precondition: tail_segment must be the substring after 'trajectory-tail '"
+        );
+
+        // Precondition A: count_leading_adjacent_arrow_digit_run returns 0 for this segment.
+        // Segment starts with 'U' (UNCHANGED), not →, so the run function breaks
+        // immediately at byte 0. This documents the F-VSS-C-001 bug in the current impl.
+        let bug_count = count_leading_adjacent_arrow_digit_run(tail_segment);
+        assert_eq!(
+            bug_count, 0,
+            "precondition: count_leading_adjacent_arrow_digit_run must return 0 for \
+             UNCHANGED-prefixed segment (bytes[0]='U', not →); confirms F-VSS-C-001 bug"
+        );
+
+        // Precondition B: count_arrow_digit_matches on the pre-semicolon portion = 4.
+        // Documents the target behavior of the sibling-approach fix:
+        //   truncate "UNCHANGED →1→1→0→3; pass-57 NEXT" at first ';'
+        //   → count_arrow_digit_matches("UNCHANGED →1→1→0→3") = 4.
+        let pre_semi = "UNCHANGED \u{2192}1\u{2192}1\u{2192}0\u{2192}3";
+        assert_eq!(
+            count_arrow_digit_matches(pre_semi),
+            4,
+            "precondition: count_arrow_digit_matches on pre-semicolon segment must return 4; \
+             this is the count the sibling-approach fix must produce"
+        );
+
+        // Wrap in a minimal SIZE BUDGET banner so extract_trajectory_tail_line
+        // picks this line up from the banner block (primary extraction path).
+        let content =
+            format!("<!--\n  STATE.md SIZE BUDGET (per D-421(c)):\n  {banner_line}\n-->\n");
+
+        let found = extract_trajectory_tail_line(&content);
+        assert!(
+            found.is_some(),
+            "extract_trajectory_tail_line must find the UNCHANGED-annotation banner line; \
+             got None"
+        );
+
+        // PRIMARY ASSERTION (RED): validate_trajectory_tail must return None.
+        // The canonical tail →1→1→0→3 has exactly 4 components; UNCHANGED is an
+        // annotation token, not a count component. Correct count = 4 → None.
+        // Current leading-adjacent-run impl returns "0 components" — FALSE FAIL.
+        let v = validate_trajectory_tail(&content);
+        assert!(
+            v.is_none(),
+            "trajectory-tail UNCHANGED →1→1→0→3 MUST pass (4 components after annotation); \
+             validate_trajectory_tail must return None; \
+             got violation: {:?}",
+            v.map(|viol| viol.description)
+        );
+    }
+
+    // ── F-VSS-C-001: over-relax guard — UNCHANGED annotation + genuine 5 must FAIL ─
+    //
+    // Regression guard: after fixing F-VSS-C-001 the UNCHANGED annotation form with a
+    // genuine 5-component run must still be rejected (over-relax prevention).
+    // "trajectory-tail UNCHANGED →1→2→3→4→5" — 5 →digit sequences after annotation.
+    // Expected: Some(Violation).  Current: Some(Violation, count=0).
+    // After fix: Some(Violation, count=5).  The assertion holds either way.
+    #[test]
+    fn test_bc_5_39_005_f_vss_c_001_unchanged_annotation_genuine_5_still_fails() {
+        let banner_line = "D-813 fix-burst burst-E; trajectory-tail UNCHANGED \
+                           \u{2192}1\u{2192}2\u{2192}3\u{2192}4\u{2192}5";
+        let content =
+            format!("<!--\n  STATE.md SIZE BUDGET (per D-421(c)):\n  {banner_line}\n-->\n");
+
+        let found = extract_trajectory_tail_line(&content);
+        assert!(
+            found.is_some(),
+            "extract_trajectory_tail_line must find the 5-component UNCHANGED banner line; \
+             got None"
+        );
+
+        // The violation MUST be returned — 5 components, not 4.
+        // (Currently Some because count=0; after fix Some because count=5.
+        // Either way the fix must not silently accept 5-component UNCHANGED forms.)
+        let v = validate_trajectory_tail(&content);
+        assert!(
+            v.is_some(),
+            "trajectory-tail UNCHANGED →1→2→3→4→5 has 5 components and MUST fail \
+             validation; validate_trajectory_tail must return Some(Violation); \
+             got None (over-relax regression)"
         );
     }
 }
