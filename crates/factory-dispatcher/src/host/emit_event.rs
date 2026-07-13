@@ -306,6 +306,82 @@ pub fn emit_plugin_timeout_async(ctx: &HostContext, plugin_name: &str, timeout_m
     ctx.emit_internal(ev);
 }
 
+/// Emit `plugin.abandoned` event (BC-3.08.001 v1.21 Event 5). [S-19.05]
+///
+/// Fired when the async drain timer fires (`tokio::select!` timer arm in `main.rs`,
+/// EC-011) with this plugin still in-flight. One event emitted per in-flight plugin.
+///
+/// Mandatory fields per BC-3.08.001 v1.21 Event 5:
+///   `type`, `trace_id`, `session_id`, `plugin_name`, `entry_index: u32`,
+///   `drain_window_ms`, `timestamp`.
+///
+/// `entry_index` SEMANTICS: the 0-based ordinal from `enumerate()` of the
+/// async plugin partition at spawn time. Combined with `plugin_name` and `trace_id`
+/// as the Invariant 6 terminal disambiguation tuple: (trace_id, plugin_name, entry_index).
+/// After drain-timer fire, the `rx` channel receiver is dropped so no `plugin.completed`
+/// event can follow for the same triple (Invariant 6).
+///
+/// `drain_window_ms` SEMANTICS: effective drain window at timer fire — `ASYNC_DRAIN_WINDOW_MS`
+/// in release builds; debug-override value from `VSDD_ASYNC_DRAIN_WINDOW_MS` in debug builds.
+/// Distinct from per-plugin `timeout_ms` (which is carried by `plugin.timeout` events).
+///
+/// # BC traces
+/// - BC-3.08.001 v1.21 Event 5 — `plugin.abandoned` wire format + mandatory fields
+/// - BC-3.08.001 v1.21 Invariant 6 — terminal semantics; no `plugin.completed` follows
+/// - VP-100 — drain-timer expiry emits exactly one per in-flight (plugin_name, entry_index)
+pub fn emit_plugin_abandoned(
+    _ctx: &HostContext,
+    _plugin_name: &str,
+    _entry_index: u32,
+    _drain_window_ms: u64,
+) {
+    todo!(
+        "S-19.05 stub: implement emit_plugin_abandoned per BC-3.08.001 v1.21 Event 5 — \
+         mandatory fields: type, trace_id, session_id, plugin_name, entry_index, \
+         drain_window_ms, timestamp"
+    )
+}
+
+/// Emit `plugin.completed` event for async path (BC-3.08.001 v1.21 Event 6). [S-19.05]
+///
+/// Fired when an async plugin's result arrives on the drain channel receiver (`rx`)
+/// before the `tokio::select!` timer arm fires (EC-011), and the result is
+/// `PluginResult::Ok` with a non-block exit code.
+///
+/// Mandatory fields per BC-3.08.001 v1.21 Event 6:
+///   `type`, `trace_id`, `session_id`, `plugin_name`, `plugin_version`, `entry_index`,
+///   `exit_code`, `elapsed_ms`, `fuel_consumed`.
+///
+/// NOTE: Unlike Events 1, 4, and 5 (which omit `plugin_version`), Event 6 INCLUDES
+/// `plugin_version`. This mirrors the sync-path `emit_lifecycle` call chain in
+/// `crates/factory-dispatcher/src/executor.rs` which includes `with_plugin_version()`.
+///
+/// NOTE: `entry_index` mirrors Event 5 semantics — the 0-based ordinal from
+/// `enumerate()` of the async plugin partition at spawn time. Used with `plugin_name`
+/// and `trace_id` to correlate with the corresponding `plugin.invoked` event and
+/// confirm Invariant 6 (no `plugin.abandoned` follows for the same triple).
+///
+/// # BC traces
+/// - BC-3.08.001 v1.21 Event 6 — `plugin.completed` async path wire format + mandatory fields
+/// - BC-3.08.001 v1.21 Invariant 6 — terminal semantics; no `plugin.abandoned` follows
+/// - BC-3.08.001 v1.21 §Common Fields — `plugin_version` present for Event 6 (sync-path parity)
+/// - VP-100 — drain-timer expiry implies no `plugin.completed` for abandoned entries
+pub fn emit_plugin_completed_async(
+    _ctx: &HostContext,
+    _plugin_name: &str,
+    _plugin_version: &str,
+    _entry_index: u32,
+    _exit_code: i32,
+    _elapsed_ms: u64,
+    _fuel_consumed: u64,
+) {
+    todo!(
+        "S-19.05 stub: implement emit_plugin_completed_async per BC-3.08.001 v1.21 Event 6 — \
+         mandatory fields: type, trace_id, session_id, plugin_name, plugin_version, \
+         entry_index, exit_code, elapsed_ms, fuel_consumed"
+    )
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -380,6 +456,137 @@ mod tests {
         assert!(
             is_reserved_field("dispatcher_trace_id"),
             "dispatcher_trace_id must remain in RESERVED_FIELDS for defense-in-depth per BC-3.08.001 v1.7"
+        );
+    }
+
+    // -----------------------------------------------------------------------
+    // S-19.05 T-003 — Schema-level defense for plugin.abandoned entry_index
+    // (BC-3.08.001 v1.21 Event 5 + Invariant 6; AC-002 EAC-008 gates a+b)
+    //
+    // T-003(a): property test — enumerate() ordinal correctly marshalled into
+    //           entry_index of plugin.abandoned event
+    // T-003(b): synthetic-distinctness test — two plugin.abandoned events with
+    //           same plugin_name but distinct entry_index are independently traceable
+    //
+    // RED gate: emit_plugin_abandoned is a todo!() stub — both tests panic with
+    // "not yet implemented" until the implementer fills in the function body.
+    // -----------------------------------------------------------------------
+
+    fn make_test_ctx_for_t003() -> super::HostContext {
+        super::HostContext::new(
+            "test-plugin-t003",
+            "0.0.1",
+            "test-session-s19-05",
+            "test-trace-s19-05",
+        )
+    }
+
+    /// T-003(a) — EAC-008 gate (a): property test that the 0-based enumerate()
+    /// ordinal is correctly marshalled into the `entry_index` field of a
+    /// `plugin.abandoned` event (BC-3.08.001 v1.21 Event 5).
+    ///
+    /// Validates schema-level defense: `entry_index` must preserve the ordinal
+    /// from `enumerate()` of the async partition at spawn time. Consumers use
+    /// (plugin_name, entry_index) as unambiguous identification tuple for any
+    /// registry that does not enforce `name` uniqueness (Invariant 6 key).
+    ///
+    /// RED gate: emit_plugin_abandoned is todo!() — panics ("not yet implemented").
+    /// GREEN after implementation inserts `with_field("entry_index", entry_index as i64)`.
+    #[test]
+    fn test_BC_3_08_001_s19_05_t003a_enumerate_ordinal_marshalled_into_entry_index() {
+        let ctx = make_test_ctx_for_t003();
+        // Simulate the 0-based ordinal a caller would pass from enumerate()
+        let entry_index: u32 = 2;
+        let drain_window_ms: u64 = 5_000;
+        // RED gate: todo!() panics here
+        super::emit_plugin_abandoned(&ctx, "test-plugin-t003", entry_index, drain_window_ms);
+        let events = ctx.drain_events();
+        assert_eq!(
+            events.len(),
+            1,
+            "T-003(a): exactly one plugin.abandoned event must be emitted"
+        );
+        let ev = &events[0];
+        assert_eq!(
+            ev.type_, "plugin.abandoned",
+            "T-003(a): event type must be plugin.abandoned (BC-3.08.001 v1.21 Event 5)"
+        );
+        let stored_index = ev
+            .fields
+            .get("entry_index")
+            .and_then(|v| v.as_u64())
+            .map(|v| v as u32);
+        assert_eq!(
+            stored_index,
+            Some(entry_index),
+            "T-003(a): entry_index in emitted event must equal the enumerate() ordinal \
+             (BC-3.08.001 v1.21 Event 5 schema-level defense; EAC-008 gate a)"
+        );
+    }
+
+    /// T-003(b) — EAC-008 gate (b): synthetic-distinctness test — two `plugin.abandoned`
+    /// events with the same `plugin_name` but distinct `entry_index` values must be
+    /// independently traceable (BC-3.08.001 v1.21 Invariant 6 tuple key).
+    ///
+    /// Validates that `(plugin_name, entry_index)` provides unambiguous identification
+    /// for concurrent same-named plugin invocations. This is a schema-level defense:
+    /// no runtime concurrent-dispatch fixture required; the correctness is verifiable
+    /// by property/serialization tests over the event struct (F-P7-007).
+    ///
+    /// RED gate: emit_plugin_abandoned is todo!() — panics on first call.
+    /// GREEN after implementation emits distinct entry_index values.
+    #[test]
+    fn test_BC_3_08_001_s19_05_t003b_same_plugin_name_distinct_entry_index_independently_traceable()
+    {
+        let ctx_a = make_test_ctx_for_t003();
+        let ctx_b = make_test_ctx_for_t003();
+        let drain_window_ms: u64 = 5_000;
+        // RED gate: todo!() panics on first call
+        super::emit_plugin_abandoned(&ctx_a, "shared-plugin-name", 0, drain_window_ms);
+        super::emit_plugin_abandoned(&ctx_b, "shared-plugin-name", 1, drain_window_ms);
+        let events_a = ctx_a.drain_events();
+        let events_b = ctx_b.drain_events();
+        assert_eq!(events_a.len(), 1, "T-003(b): first event emitted");
+        assert_eq!(events_b.len(), 1, "T-003(b): second event emitted");
+        let ev_a = &events_a[0];
+        let ev_b = &events_b[0];
+        // Both carry same plugin_name
+        assert_eq!(
+            ev_a.plugin_name.as_deref(),
+            Some("shared-plugin-name"),
+            "T-003(b): first event plugin_name"
+        );
+        assert_eq!(
+            ev_b.plugin_name.as_deref(),
+            Some("shared-plugin-name"),
+            "T-003(b): second event plugin_name"
+        );
+        // entry_index must differ — ensures independent traceability
+        let idx_a = ev_a
+            .fields
+            .get("entry_index")
+            .and_then(|v| v.as_u64())
+            .map(|v| v as u32);
+        let idx_b = ev_b
+            .fields
+            .get("entry_index")
+            .and_then(|v| v.as_u64())
+            .map(|v| v as u32);
+        assert_eq!(
+            idx_a,
+            Some(0u32),
+            "T-003(b): first invocation entry_index = 0"
+        );
+        assert_eq!(
+            idx_b,
+            Some(1u32),
+            "T-003(b): second invocation entry_index = 1"
+        );
+        assert_ne!(
+            idx_a, idx_b,
+            "T-003(b): entry_index must differ for distinct invocations — \
+             (plugin_name, entry_index) must be an unambiguous identification tuple \
+             per BC-3.08.001 v1.21 Invariant 6 and EAC-008 gate (b)"
         );
     }
 
