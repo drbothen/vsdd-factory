@@ -35,13 +35,38 @@
 //! Story: S-19.04
 //! VP Trace: — (AC-006 wires EAC-005 as load-bearing leg; no BC mapping)
 
+use std::collections::HashSet;
 use std::fs;
 use std::path::Path;
 use tempfile::tempdir;
 
 // ---------------------------------------------------------------------------
-// Detection helpers (RED GATE stubs — implementer fills these in)
+// Detection helpers
 // ---------------------------------------------------------------------------
+
+/// Parse all `plugin = "hook-plugins/<name>"` references from a TOML registry file.
+///
+/// Scans every line for the pattern `plugin = "hook-plugins/<filename>"` and extracts
+/// the bare filename (e.g., `"hooks-only.wasm"`).  Works for both `hooks-registry.toml`
+/// (which uses `[[hooks]]` sections) and `resolvers-registry.toml` (which uses
+/// `[[resolvers]]` sections) because both registries use the same `plugin =` key form.
+fn parse_plugin_refs(registry: &Path) -> HashSet<String> {
+    let content = fs::read_to_string(registry)
+        .unwrap_or_else(|e| panic!("failed to read registry {}: {}", registry.display(), e));
+    let mut refs = HashSet::new();
+    for line in content.lines() {
+        let line = line.trim();
+        // Match:  plugin = "hook-plugins/<name>"
+        // Also handles single-quote TOML values.
+        if let Some(rest) = line.strip_prefix("plugin = ") {
+            let value = rest.trim_matches(|c| c == '"' || c == '\'');
+            if let Some(filename) = value.strip_prefix("hook-plugins/") {
+                refs.insert(filename.to_string());
+            }
+        }
+    }
+    refs
+}
 
 /// Enumerate orphan WASMs from `hook_plugins_dir` using DUAL-registry detection.
 ///
@@ -52,19 +77,29 @@ use tempfile::tempdir;
 /// Returns a `Vec<String>` of orphan WASM base-names (e.g., `"neither-registry.wasm"`).
 /// Returns an empty Vec when every WASM in the directory is referenced by at least one
 /// registry (EAC-005: zero-orphan assertion passes).
-///
-/// # RED GATE
-/// Contains `todo!()` — implementation pending (S-19.04 implementer task).
-/// All tests that call this function fail at Red Gate with "not yet implemented".
 fn collect_orphans_dual(
     hook_plugins_dir: &Path,
     hooks_registry: &Path,
     resolvers_registry: &Path,
 ) -> Vec<String> {
-    let _ = (hook_plugins_dir, hooks_registry, resolvers_registry);
-    todo!("S-19.04 AC-006: implement dual-registry orphan detection — \
-           enumerate hook_plugins_dir/*.wasm, parse both registry TOMLs for \
-           plugin = \"hook-plugins/<name>\" references, return names absent from both")
+    let hooks_refs = parse_plugin_refs(hooks_registry);
+    let resolvers_refs = parse_plugin_refs(resolvers_registry);
+
+    let mut orphans = Vec::new();
+    let entries = fs::read_dir(hook_plugins_dir)
+        .unwrap_or_else(|e| panic!("failed to read dir {}: {}", hook_plugins_dir.display(), e));
+    for entry in entries {
+        let entry = entry.expect("dir entry must be readable");
+        let filename = entry.file_name().to_string_lossy().into_owned();
+        if filename.ends_with(".wasm")
+            && !hooks_refs.contains(&filename)
+            && !resolvers_refs.contains(&filename)
+        {
+            orphans.push(filename);
+        }
+    }
+    orphans.sort(); // deterministic order for test assertions
+    orphans
 }
 
 /// Enumerate orphan WASMs from `hook_plugins_dir` using HOOKS-ONLY detection.
@@ -76,14 +111,21 @@ fn collect_orphans_dual(
 /// Used for T-008 negative-control (F-P2-010): calling this function with only the
 /// hooks-registry data must classify a resolvers-only WASM as orphan, confirming
 /// the dual-registry check in [`collect_orphans_dual`] is load-bearing, not advisory.
-///
-/// # RED GATE
-/// Contains `todo!()` — implementation pending (S-19.04 implementer task).
 fn collect_orphans_hooks_only(hook_plugins_dir: &Path, hooks_registry: &Path) -> Vec<String> {
-    let _ = (hook_plugins_dir, hooks_registry);
-    todo!("S-19.04 AC-006: implement hooks-only orphan detection — \
-           enumerate hook_plugins_dir/*.wasm, parse only hooks_registry TOML for \
-           plugin = \"hook-plugins/<name>\" references, return names absent from it")
+    let hooks_refs = parse_plugin_refs(hooks_registry);
+
+    let mut orphans = Vec::new();
+    let entries = fs::read_dir(hook_plugins_dir)
+        .unwrap_or_else(|e| panic!("failed to read dir {}: {}", hook_plugins_dir.display(), e));
+    for entry in entries {
+        let entry = entry.expect("dir entry must be readable");
+        let filename = entry.file_name().to_string_lossy().into_owned();
+        if filename.ends_with(".wasm") && !hooks_refs.contains(&filename) {
+            orphans.push(filename);
+        }
+    }
+    orphans.sort();
+    orphans
 }
 
 // ---------------------------------------------------------------------------
@@ -145,8 +187,7 @@ fn test_S_19_04_ac006_T006_resolvers_registry_only_wasm_is_non_orphan() {
 
     let hooks_reg = tmp.path().join("hooks-registry.toml");
     let resolvers_reg = tmp.path().join("resolvers-registry.toml");
-    fs::write(&hooks_reg, HOOKS_REGISTRY_FIXTURE)
-        .expect("hooks-registry fixture must be written");
+    fs::write(&hooks_reg, HOOKS_REGISTRY_FIXTURE).expect("hooks-registry fixture must be written");
     fs::write(&resolvers_reg, RESOLVERS_REGISTRY_FIXTURE)
         .expect("resolvers-registry fixture must be written");
 
@@ -196,8 +237,7 @@ fn test_S_19_04_ac006_T007_neither_registry_wasm_is_orphan_with_orphan_line() {
 
     let hooks_reg = tmp.path().join("hooks-registry.toml");
     let resolvers_reg = tmp.path().join("resolvers-registry.toml");
-    fs::write(&hooks_reg, HOOKS_REGISTRY_FIXTURE)
-        .expect("hooks-registry fixture must be written");
+    fs::write(&hooks_reg, HOOKS_REGISTRY_FIXTURE).expect("hooks-registry fixture must be written");
     fs::write(&resolvers_reg, RESOLVERS_REGISTRY_FIXTURE)
         .expect("resolvers-registry fixture must be written");
 
@@ -260,8 +300,7 @@ fn test_S_19_04_ac006_T008_negative_control_resolvers_only_is_orphan_with_hooks_
         .expect("resolvers-only.wasm fixture must be written");
 
     let hooks_reg = tmp.path().join("hooks-registry.toml");
-    fs::write(&hooks_reg, HOOKS_REGISTRY_FIXTURE)
-        .expect("hooks-registry fixture must be written");
+    fs::write(&hooks_reg, HOOKS_REGISTRY_FIXTURE).expect("hooks-registry fixture must be written");
 
     // Hooks-only detection (NO resolvers-registry argument):
     // resolvers-only.wasm is NOT in hooks-registry → classified as orphan
