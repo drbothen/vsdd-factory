@@ -19681,4 +19681,4 @@ Reconcile burst scope: BC spec bodies (BC-5.40.001/BC-7.03.079/BC-4.13.001) + st
 | Commit | SHA | Message |
 |--------|-----|---------|
 | D-836 SM SHA-patch (parent HEAD) | `9a3b0e20` | factory(D-836): SHA-patch — Active Branches TBD→6fd31c0f; burst-log Block 8 TBD→6fd31c0f |
-| D-837 SM single-commit burst (TD-VSDD-053) | `TBD` | factory(D-837): W2-SPEC-RECONCILE burst — spec bodies committed; BC-INDEX v4.01; STORY-INDEX v4.184; S-19.04 LOCAL pass-1 CLOSED; S-19.05 LOCAL pass-2 CLEAN / pass-3 CLOSED; STATE.md v5.83→v5.84 |
+| D-837 SM single-commit burst (TD-VSDD-053) | `c12b5fb6` | factory(D-837): W2-SPEC-RECONCILE burst — spec bodies committed; BC-INDEX v4.01; STORY-INDEX v4.184; S-19.04 LOCAL pass-1 CLOSED; S-19.05 LOCAL pass-2 CLEAN / pass-3 CLOSED; STATE.md v5.83→v5.84 |
