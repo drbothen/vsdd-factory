@@ -199,9 +199,14 @@ mod tests {
     /// cross-process O_APPEND semantics defined by POSIX and exercises the same write-
     /// racing window that the production fix targets.
     ///
-    /// Each event payload is padded to ~440 bytes (well under PIPE_BUF = 512 on macOS /
-    /// 4096 on Linux), so every single `write_all("payload\n")` call in the **fixed form**
-    /// is a POSIX-atomic write. Under the **broken two-write form** (`write_all(payload)`
+    /// Each event payload is padded to ~440 bytes so every single
+    /// `write_all("payload\n")` call in the **fixed form** is one `write(2)` syscall.
+    /// On Linux and macOS, individual `write(2)` calls to `O_APPEND` regular files are
+    /// serialized at the VFS layer — the kernel holds the inode lock for the duration of
+    /// each syscall, so the seek-to-end and the byte write are atomic together. (Note:
+    /// `PIPE_BUF` governs atomicity for pipes/FIFOs only, not regular files; the
+    /// operative guarantee here is single-`write(2)`-per-line VFS serialization.)
+    /// Under the **broken two-write form** (`write_all(payload)`
     /// then `write_all(b"\n")` as two separate syscalls), a scheduling window exists
     /// between the two calls; concurrent threads can insert their payload bytes before the
     /// newline lands, producing merged physical lines such as `{...}{...}\n` which are not
@@ -253,10 +258,12 @@ mod tests {
                             Some(format!("trace-t{thread_idx}-i{iter_idx:04}"));
                         ev.session_id = Some(format!("session-t{thread_idx}-i{iter_idx:04}"));
                         ev.plugin_name = Some("concurrent-atomicity-test".to_string());
-                        // Pad to ~440-byte total JSON line (under PIPE_BUF on macOS=512 /
-                        // Linux=4096) so each single write_all("payload\n") is POSIX-atomic
-                        // while the payload is large enough to make interleaving windows
-                        // realistic for the broken two-write form.
+                        // Pad event payload to ~440-byte total JSON line.
+                        // Single write_all("payload\n") = one write(2) syscall,
+                        // serialized by the VFS O_APPEND inode lock on Linux/macOS.
+                        // (PIPE_BUF governs pipes/FIFOs, not regular files.)
+                        // Two separate write_alls = two syscalls with an
+                        // interleave window between them (broken form).
                         ev.fields.insert(
                             "pad".to_string(),
                             serde_json::Value::String("P".repeat(250)),
@@ -299,18 +306,61 @@ mod tests {
     }
 
     /// Verify SEC-003 path traversal rejection (functional guard, complements T-007).
+    ///
+    /// Discriminating design: all intermediate path components exist so that,
+    /// absent the guard, `open(O_CREAT | O_APPEND)` would SUCCEED and create the
+    /// file at the canonically-resolved escape location. With the guard active the
+    /// `".."` check fires before `open()` is ever called.
+    ///
+    /// Path layout: `{tmpdir}/inner/../../{unique}.jsonl`
+    ///   resolves to: `{tmpdir_parent}/{unique}.jsonl`  (OS temp dir — writable)
+    ///   `{tmpdir}/inner` is created explicitly below.
     #[test]
     fn test_flush_sink_file_rejects_traversal_path() {
+        let tmp = tempfile::tempdir().expect("SEC-003: tempdir");
+        // Create the intermediate directory so ALL components of the traversal
+        // path exist. Without the ".." guard, open() would succeed.
+        let inner = tmp.path().join("inner");
+        std::fs::create_dir_all(&inner).expect("SEC-003: create inner dir");
+
+        // Derive unique escape-filename from tmpdir's random component to avoid
+        // collision between parallel test runs.
+        let dirname = tmp
+            .path()
+            .file_name()
+            .and_then(|n| n.to_str())
+            .unwrap_or("x");
+        let escaped_name = format!("sec003-escape-{dirname}.jsonl");
+        let traversal_path = format!("{}/inner/../../{escaped_name}", tmp.path().display());
+
         let queue: Arc<Mutex<Vec<InternalEvent>>> =
             Arc::new(Mutex::new(vec![InternalEvent::now("plugin.completed")]));
-        let traversal = "/tmp/../etc/passwd";
-        flush_sink_file(traversal, &queue);
-        // If the traversal were followed, /etc/passwd would be clobbered — assert not created.
-        // (The path itself doesn't exist as a target, so just verify no write occurred.)
+        flush_sink_file(&traversal_path, &queue);
+
+        // Canonical escape target: the resolved location open() would write to
+        // if the guard were absent.
+        let escaped_target = tmp
+            .path()
+            .parent()
+            .expect("SEC-003: tmpdir has parent")
+            .join(&escaped_name);
+
+        // Dual assertion: guard must prevent file creation at both the
+        // traversal-string path and the canonically-resolved escape location.
         assert!(
-            !std::path::Path::new("/etc/passwd.jsonl").exists()
-                || !std::path::Path::new(traversal).exists(),
-            "SEC-003: traversal path must not be written"
+            !std::path::Path::new(&traversal_path).exists(),
+            "SEC-003 in-module: guard must reject traversal path {:?}; \
+             file must not appear at the resolved location",
+            traversal_path
         );
+        assert!(
+            !escaped_target.exists(),
+            "SEC-003 in-module: escaped file must not be created at {:?}",
+            escaped_target
+        );
+
+        // Best-effort cleanup (no-op when guard is active; removes evidence
+        // file if guard was temporarily removed for discrimination capture).
+        let _ = std::fs::remove_file(&escaped_target);
     }
 }

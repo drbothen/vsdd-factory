@@ -895,8 +895,33 @@ fn test_BC_3_08_001_s19_05_t006_mutex_import_not_cfg_gated() {
 fn test_BC_3_08_001_s19_05_t007_sec003_traversal_rejection_release_profile() {
     // AC-005 implementation: SEC-003 path traversal sanitization applies in ALL builds
     // (debug and release) via flush_sink_file's internal check.
+    //
+    // Discriminating design: ALL intermediate path components exist so that,
+    // absent the guard, open(O_CREAT | O_APPEND) would SUCCEED and write the
+    // escaped file to the OS temp dir.
+    //
+    // Path layout: {tmpdir}/inner/../../{unique}.jsonl
+    //   resolves to: {tmpdir_parent}/{unique}.jsonl  (OS temp dir — writable)
+    //   {tmpdir}/inner is created explicitly below.
+    //
+    // With guard active: ".." detection fires before open() → no file.
+    // Without guard:     open() succeeds → escaped file created → FAIL.
     let tmp = tempfile::tempdir().expect("T-007: should create tempdir");
-    let traversal_path = format!("{}/subdir/../../sec003-target.jsonl", tmp.path().display());
+
+    // Create the intermediate directory so ALL components of the traversal
+    // path exist. Without the guard, open() would succeed.
+    let inner = tmp.path().join("inner");
+    std::fs::create_dir_all(&inner).expect("T-007: create inner subdir");
+
+    // Unique escaped filename derived from tmpdir's random component to avoid
+    // collision between parallel test runs.
+    let dirname = tmp
+        .path()
+        .file_name()
+        .and_then(|n| n.to_str())
+        .unwrap_or("x");
+    let escaped_name = format!("sec003-escape-{dirname}.jsonl");
+    let traversal_path = format!("{}/inner/../../{escaped_name}", tmp.path().display());
 
     // Populate the event queue — flush_sink_file should reject the traversal path
     // without creating any file.
@@ -906,14 +931,32 @@ fn test_BC_3_08_001_s19_05_t007_sec003_traversal_rejection_release_profile() {
     // Call flush_sink_file with the traversal path — SEC-003 check must reject it.
     flush_sink_file(&traversal_path, &ctx.events);
 
-    // Assert no file was created at the traversal target path.
-    // Path::new resolves ".." components when checking existence, so we check
-    // both the string path and the resolved canonical target.
+    // Canonical escape target: the resolved location open() would write to
+    // absent the guard.
+    let escaped_target = tmp
+        .path()
+        .parent()
+        .expect("T-007: tmpdir has parent")
+        .join(&escaped_name);
+
+    // Dual assertion: guard must prevent file creation at both the traversal
+    // string path and the canonically-resolved escape location.
     assert!(
         !std::path::Path::new(&traversal_path).exists(),
-        "T-007 AC-005: flush_sink_file must NOT create a file when the path contains '..' \
-         (SEC-003 path traversal rejection applies in all build profiles)"
+        "T-007 AC-005: flush_sink_file must NOT create a file at traversal path {:?}; \
+         SEC-003 path traversal rejection must apply in all build profiles",
+        traversal_path
     );
+    assert!(
+        !escaped_target.exists(),
+        "T-007 AC-005: escaped file must NOT be created at {:?}; \
+         SEC-003 path traversal rejection must apply in all build profiles",
+        escaped_target
+    );
+
+    // Best-effort cleanup (no-op when guard is active; removes evidence file
+    // if guard was temporarily removed for discrimination evidence capture).
+    let _ = std::fs::remove_file(&escaped_target);
 }
 
 // ---------------------------------------------------------------------------
