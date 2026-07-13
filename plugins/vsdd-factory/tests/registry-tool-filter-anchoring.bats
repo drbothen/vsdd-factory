@@ -11,7 +11,8 @@
 #   T-002  AC-004/AC-005  Fixture anchored entry → lint clean
 #   T-003  AC-005         Intent-comment entry → lint clean (EC-001 exemption)
 #   T-004  AC-004/AC-005  Actual hooks-registry.toml post-fix → lint clean (FAILS at Red Gate)
-#   T-005  AC-004         verify-factory-lock pattern is anchored + includes MultiEdit (FAILS at Red Gate)
+#   T-005  AC-004         verify-factory-lock pattern is fully anchored (^ AND $) + includes MultiEdit (FAILS at Red Gate)
+#   T-006  AC-004/AC-005  Prefix-only fixture (^Bash, no trailing $) → lint detects violation (negative control)
 #
 # Red Gate status:
 #   T-001..T-003  PASS (test the detection algorithm against controlled fixtures)
@@ -29,26 +30,32 @@ setup() {
 
 # ---------------------------------------------------------------------------
 # AC-004 lint logic (inline).
-# Extracts tool= values that are unanchored (no leading ^) and carry no
-# # intent: comment.  Empty output = all entries compliant.
+# Extracts tool= values that are NOT fully anchored (missing leading ^ OR
+# trailing $ before the closing quote) and carry no # intent: comment.
+# Empty output = all entries compliant.
+#
+# FULLY-ANCHORED means: value begins with ^ AND ends with $ immediately
+# before the closing quote (either " or ').  A leading-^-only value such
+# as "^Bash" is a violation — it anchors the start but not the end, so
+# regex-SEARCH still matches "BashAsync" as a substring.
 #
 # Implements the gate from AC-004:
 #   grep -E '^tool = ' <file> \
-#     | grep -vE 'tool = ["'"'"']\^' \
+#     | grep -vE 'tool = ["'"'"']\^.*\$["'"'"']' \
 #     | grep -vi '# *intent:'
 #
 # The trailing "|| true" prevents the pipeline from propagating a non-zero
-# exit code when grep -v finds no lines (all entries are anchored/exempted).
+# exit code when grep -v finds no lines (all entries are fully anchored/exempted).
 # grep -v returns exit code 1 for "no lines matched", which is the success
 # case here; we must not let that propagate as a test failure.
 #
 # Usage: result=$(_lint_tool_filter <registry-file>)
-#        [ -z "$result" ]   # passes when all entries are anchored or intent-commented
+#        [ -z "$result" ]   # passes when all entries are fully anchored or intent-commented
 # ---------------------------------------------------------------------------
 _lint_tool_filter() {
   local toml="$1"
   grep -E '^tool = ' "$toml" \
-    | grep -vE 'tool = ["'"'"']\^' \
+    | grep -vE 'tool = ["'"'"']\^.*\$["'"'"']' \
     | grep -vi '# *intent:' \
     || true
 }
@@ -138,15 +145,47 @@ _lint_tool_filter() {
     false
   fi
 
-  # (a) Pattern must start with ^ (anchored).
+  # (a) Pattern must start with ^ (leading anchor).
   if [[ "$result" != ^* ]]; then
     echo "FAIL: verify-factory-lock tool pattern is not anchored (no leading ^): $result"
     false
   fi
 
-  # (b) Pattern must include MultiEdit (positive-scope confirmation).
+  # (b) Pattern must end with $ before the closing quote (trailing anchor).
+  # Leading-^-only values (e.g. "^Bash") still match BashAsync via regex-SEARCH;
+  # only ^...$ fully-anchored patterns prevent substring matches.
+  if [[ "$result" != *'$' ]]; then
+    echo "FAIL: verify-factory-lock tool pattern is not fully anchored (no trailing \$): $result"
+    false
+  fi
+
+  # (c) Pattern must include MultiEdit (positive-scope confirmation).
   if [[ "$result" != *MultiEdit* ]]; then
     echo "FAIL: verify-factory-lock tool pattern does not include MultiEdit: $result"
+    false
+  fi
+}
+
+# ---------------------------------------------------------------------------
+# T-006  AC-004/AC-005 — negative control: prefix-only anchor is a violation
+#
+# A value like "^Bash" (leading ^ present, trailing $ absent) must be
+# detected as a violation by _lint_tool_filter.  This is the load-bearing
+# negative control that proves the tightened lint checks BOTH anchors, not
+# just the leading one.  Without this test, a leading-^-only check silently
+# passes "^Bash" even though regex-SEARCH still matches "BashAsync".
+#
+# Fixture: fixtures/registry-tool-filter/prefix-only-anchor.toml
+#   tool = "^Bash"   (leading ^ present, trailing $ absent → violation)
+# ---------------------------------------------------------------------------
+@test "T-006 AC-004/AC-005: prefix-only anchor (^Bash, no trailing \$) detected as violation" {
+  local fixture="$FIXTURES_DIR/prefix-only-anchor.toml"
+  [ -f "$fixture" ]
+  result=$(_lint_tool_filter "$fixture")
+  # Lint must produce non-empty output — prefix-only anchor is a violation.
+  if [ -z "$result" ]; then
+    echo "FAIL: _lint_tool_filter passed 'tool = \"^Bash\"' (no trailing \$); " \
+         "lint must FLAG prefix-only anchors as violations"
     false
   fi
 }
