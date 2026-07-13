@@ -254,6 +254,26 @@ workflow:
                     Re-run tests. Micro-commit each fix.
 
     # =========================================================================
+    # Step 4b-backup: Persist Holdout Evaluation Results (state-manager)
+    # Mirrors backup-story-holdout-gate in phase-3-tdd-implementation.lobster.
+    # This step is the sole write-owner for evaluation artifacts and consumed
+    # scenario marking — holdout-evaluator has Denied: Write by design.
+    # =========================================================================
+
+    - name: backup-story-holdout
+      type: agent
+      agent: state-manager
+      depends_on: [story-holdout-gate]
+      task: >
+        Persist story holdout evaluation results for story [story_id]:
+        1. Write evaluation report to
+           .factory/holdout-scenarios/evaluations/story-[story_id]/story-holdout-evaluation.json
+           (content from holdout-evaluator stdout)
+        2. For each scenario in .factory/holdout-scenarios/story-scenarios/[story_id]/:
+           set lifecycle_status: consumed and consumed: <ISO timestamp>
+        3. Update STATE.md: step: story-holdout-gate, status: complete, story: [story_id]
+
+    # =========================================================================
     # Step 5: E2E Tests (UI/full-stack only)
     # =========================================================================
 
@@ -333,7 +353,7 @@ workflow:
     - name: demo-recording
       type: agent
       agent: demo-recorder
-      depends_on: [story-holdout-gate]
+      depends_on: [backup-story-holdout]
       task: >
         Record per-AC demo evidence for [story_id] in [worktree_path]:
         1. Read story acceptance criteria

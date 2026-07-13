@@ -26,7 +26,7 @@ Triggered by: `story-holdout-gate` step during per-story delivery (Phase 3).
 
 **Scope:** Single story's touched public surface only — not the full pipeline. Execution should complete in minutes, not hours.
 
-**Scenario source:** `.factory/holdout-scenarios/story-scenarios/STORY-NNN/` (2–4 files). These are SINGLE-USE: mark each scenario `lifecycle_status: consumed` after evaluation. Write evaluation output to `.factory/holdout-scenarios/evaluations/story-STORY-NNN/`.
+**Scenario source:** `.factory/holdout-scenarios/story-scenarios/STORY-NNN/` (2–4 files). These are SINGLE-USE. After you report your evaluation results to stdout, the state-manager backup step marks each scenario `lifecycle_status: consumed` and writes the evaluation report to `.factory/holdout-scenarios/evaluations/story-STORY-NNN/` — you do not write files directly (your tool profile is `Bash, Read` only).
 
 **Gate threshold:** Every scenario score >= 0.80; mean >= 0.80 across all 2–4 scenarios.
 
@@ -80,7 +80,7 @@ From the worktree path specified in your task:
 
 ### 3. Score each scenario
 
-Use the 0.0–1.0 scale below. You have `Read` and `Bash` access only — you do NOT write files directly. Output the evaluation JSON to stdout; the `backup-story-holdout-gate` state-manager step writes it to `.factory/holdout-scenarios/evaluations/story-STORY-NNN/story-holdout-evaluation.json` and marks each scenario `lifecycle_status: consumed`.
+Use the 0.0–1.0 scale below. You have `Read` and `Bash` access only — you do NOT write files directly. Output the evaluation JSON to stdout; the state-manager backup step (named `backup-story-holdout` in code-delivery.lobster and `backup-story-holdout-gate` in phase-3-tdd-implementation.lobster) writes it to `.factory/holdout-scenarios/evaluations/story-STORY-NNN/story-holdout-evaluation.json` and marks each scenario `lifecycle_status: consumed`.
 
 ### 4. Report gate result
 
