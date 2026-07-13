@@ -10289,3 +10289,32 @@ D-836-POST-W1-REGISTRATION
 ### Date
 
 2026-07-13
+
+---
+
+## D-837 — W2-SPEC-RECONCILE: SPEC BODIES + INDEX UPDATES + CASCADE RECORDS
+
+| # | Gate | Detail | Result |
+|---|------|--------|--------|
+| 1 | POLICY 16 GLOBAL-MAX | `## D-836` confirmed max in decision-log.md → D-837 allocated. | PASS |
+| 2 | D-836 GAP CLOSURE | D-836 skip root-cause codified: state-manager misread "Do NOT touch BC/VP/story/epic bodies" as a commit prohibition. Correct interpretation: that constraint governs AUTHORSHIP only. State-manager is the sole committer to factory-artifacts and MUST commit all specialist-authored spec bodies in the same burst as index updates to maintain index-vs-artifact coherence. This gap is a new META-LEVEL-class lesson. | CODIFIED |
+| 3 | SPEC BODIES COMMITTED | BC-5.40.001 v1.2 (PO-authored; input-hash 688e195); BC-7.03.079 v1.4 (PO-authored; Invariant 1 tuple-scoping per architect ruling; anchored ^Agent$ cites; input-hash 118ab49); BC-4.13.001 v1.16 (PO-authored; Invariant 5 TOML snippet tool-pattern fields anchored ^(Edit\|Write\|MultiEdit\|Agent)$ + ^Bash$; input-hash 14c1190); S-19.04 v1.14 (SW-authored; architect D-a correction; Task-13 count=5; T-009/T-010; 3 WASM deletes; implementer HEAD 2c6bd1ca); S-19.05 v1.17 (SW-authored; F-P3-001 fix vsdd_sink.rs File-Structure row + AC-004 re-anchor + AC-005; input-hash 9e54d68); S-19.08 v1.1 (SW-authored NEW; input-hash 9db5836); E-19 v1.28 (SW-authored; S-19.08 added; 8 stories; 50 pts); sidecar-learning.md (session-reviewer telemetry); regression-state.json (hook telemetry; was already staged). | PASS |
+| 4 | BC-INDEX v4.01 | BC-7.03.079 v1.4 cell appended: Invariant 1 tuple-scoping per architect ruling; anchored ^Agent$ cites; S-19.04 W2 pending-merge tense; input-hash 118ab49. BC-4.13.001 v1.16 cell appended: Invariant 5 TOML snippet tool-pattern fields anchored — primary entry ^(Edit\|Write\|MultiEdit\|Agent)$; Bash arm ^Bash$ per D-a table singleton convention; input-hash 14c1190. BC-INDEX v4.00→v4.01. total_bcs UNCHANGED 1,977. H1 title UNCHANGED (POLICY 7). | PASS |
+| 5 | STORY-INDEX v4.184 | S-19.04 cell: story v1.14 — architect D-a correction: ^(Edit\|Write\|MultiEdit)$ anchored regex; Task-13 count=5; T-009/T-010 rows; 3 orphan WASM delete rows; implementer HEAD 2c6bd1ca. S-19.05 cell: story v1.17 — F-P3-001 fix vsdd_sink.rs File-Structure row + AC-004 gate re-anchor + AC-005 absolute-path acceptance note. Wave-summary D-837 clause prepended. BC coverage: BC-4.13.001 v1.16 row added. STORY-INDEX v4.183→v4.184. D-803 heading-parity PASS: E-19 H2 heading v1.28 = epic file v1.28. | PASS |
+| 6 | S-19.04 LOCAL PASS-1 | s-19.04-local-adversary-pass-1.md created at cycle root (NOT-CLEAN B0/H2/M2/L3; all 8 findings CLOSED same-session). F-1 HIGH MultiEdit guard regression → implementer 2c6bd1ca; F-2 HIGH T-009 missing → test-writer 298389b0; F-3 MEDIUM preamble inversion → implementer 2c6bd1ca; F-4 MEDIUM T-010 missing → test-writer 298389b0; O-1/O-2/O-3 LOW accepted-with-record. INDEX.md: S-19.04 LOCAL Adversary Reviews section added with pass-1 row. streak 0/3. | PASS |
+| 7 | S-19.05 LOCAL PASS-2 + PASS-3 | s-19.05-local-adversary-pass-2.md: CLEAN B0/H0/M0/L0 streak 1/3 (all pass-1 findings verified closed; source HEAD 5e3d392a). s-19.05-local-adversary-pass-3.md: NOT-CLEAN B0/H0/M1/L3; F-P3-001 MEDIUM POLICY-4 mis-anchor in S-19.05 vsdd_sink.rs File-Structure row → story-writer S-19.05 v1.17 CLOSED same-session; O-P3-001..003 LOW accepted-with-record; streak 1/3→0/3. INDEX.md: pass-2 + pass-3 rows added to S-19.05 section; Convergence Status updated NOT-CLEAN streak 0/3 (pass-3). | PASS |
+| 8 | 4-index | BC-INDEX v4.00→v4.01; VP-INDEX UNCHANGED v2.67; STORY-INDEX v4.183→v4.184; ARCH-INDEX UNCHANGED v3.01. | PASS |
+| 9 | D-803 heading-parity | E-19 epic H2 heading v1.28 = epic file v1.28 PASS. | PASS |
+| 10 | CODIFICATION | D-837 decision-log entry appended (this entry); D-837 burst-log entry appended (8-block D-444(c)); STATE.md v5.83→v5.84. | PASS |
+
+### Summary
+
+W2-SPEC-RECONCILE; D-836 gap closed (authorship-prohibition vs commit-prohibition root-cause codified); spec bodies committed: BC-5.40.001 v1.2 + BC-7.03.079 v1.4 + BC-4.13.001 v1.16 + S-19.04 v1.14 + S-19.05 v1.17 + S-19.08 v1.1 + E-19 v1.28 + sidecar-learning.md + regression-state.json; BC-INDEX v4.00→v4.01; STORY-INDEX v4.183→v4.184; S-19.04 LOCAL pass-1 NOT-CLEAN B0/H2/M2/L3 ALL CLOSED; S-19.05 LOCAL pass-2 CLEAN (streak 1/3) + pass-3 NOT-CLEAN F-P3-001 CLOSED (streak 0/3); 4-index BC v4.01/VP v2.67/STORY v4.184/ARCH v3.01
+
+### Phase
+
+D-837-W2-SPEC-RECONCILE
+
+### Date
+
+2026-07-13

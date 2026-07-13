@@ -246,9 +246,19 @@ Per human direction 2026-05-14, the E-10 sub-cycle adopts asymptotic-acceptance 
 
 | Pass | Date | File | Severity | Findings | Streak | Spec SHA | Source SHA | Status |
 |------|------|------|----------|----------|--------|----------|------------|--------|
-| 1 | 2026-07-13 | `s-19.05-local-adversary-pass-1.md` | BLOCKER | 5 (1B+2H+2M+0L) | 0/3 | TBD | TBD | fix-burst pending (F-P1-001→implementer+test-writer; F-P1-002→test-writer; F-P1-003→story-writer+product-owner; F-P1-004→implementer; F-P1-005→implementer) |
+| 1 | 2026-07-13 | `s-19.05-local-adversary-pass-1.md` | BLOCKER | 5 (1B+2H+2M+0L) | 0/3 | TBD | TBD | CLOSED — all 5 findings fixed (implementer+test-writer+story-writer legs); pass-2 CLEAN confirmed |
+| 2 | 2026-07-13 | `s-19.05-local-adversary-pass-2.md` | CLEAN | 0 (0B+0H+0M+0L) | 1/3 | TBD | 5e3d392a | CLEAN — all pass-1 findings verified closed; streak 0/3→1/3 |
+| 3 | 2026-07-13 | `s-19.05-local-adversary-pass-3.md` | NOT-CLEAN | 4 (0B+0H+1M+3L) | 0/3 | TBD | 5e3d392a | F-P3-001 POLICY-4 mis-anchor → story-writer CLOSED same-session (S-19.05 v1.17); streak 1/3→0/3 |
 
-**Convergence Status (S-19.05 LOCAL cascade):** **NOT-CLEAN — streak 0/3** (pass-1 BLOCKER B1/H2/M2/L0; fix-burst required before pass-2). F-P1-001 BLOCKER: emit fns dead-code, drain loop never wired. F-P1-002 HIGH: T-001/T-002/T-004 tautological (test body matches stub, never fails). F-P1-003 HIGH: main-task-emission design constraint missing from story. F-P1-004 MED: missing Mutex acquisition in drain loop. F-P1-005 MED: ENV_SINK_FILE static leg vacuous pass. Cascade trajectory: pass-1 BLOCKER(5). Fix-burst dispatch pending: implementer (F-P1-001/004/005) + test-writer (F-P1-001/002) + story-writer/PO (F-P1-003).
+**Convergence Status (S-19.05 LOCAL cascade):** **NOT-CLEAN — streak 0/3** (pass-3 NOT-CLEAN B0/H0/M1/L3; F-P3-001 POLICY-4 mis-anchor CLOSED same-session by S-19.05 v1.17; pass-4 required). Cascade trajectory: pass-1 BLOCKER(5) → pass-2 CLEAN(0) → pass-3 NOT-CLEAN(1M+3L). Source HEAD: 5e3d392a. Awaiting pass-4 dispatch.
+
+## S-19.04 LOCAL Adversary Reviews (BC-5.39.001 cascade)
+
+| Pass | Date | File | Severity | Findings | Streak | Spec SHA | Source SHA | Status |
+|------|------|------|----------|----------|--------|----------|------------|--------|
+| 1 | 2026-07-13 | `s-19.04-local-adversary-pass-1.md` | HIGH-security | 8 (0B+2H+2M+3L) | 0/3 | TBD | TBD | CLOSED same-session — F-1 MultiEdit guard regression (architect adjudication + implementer re-anchor 2c6bd1ca); F-2/F-4 real-bundle gates (test-writer T-009/T-010 298389b0); F-3 preamble inversion (implementer 2c6bd1ca); all 8 findings closed |
+
+**Convergence Status (S-19.04 LOCAL cascade):** **NOT-CLEAN — streak 0/3** (pass-1 B0/H2/M2/L3; all findings CLOSED same-session; fix chain: architect ruling + test-writer 298389b0 + implementer 2c6bd1ca). Source HEAD: 2c6bd1ca. Cascade trajectory: pass-1 HIGH-security(8). Awaiting pass-2 dispatch.
 
 ## Artifact Size Budgets (IP-003 / D-835)
 

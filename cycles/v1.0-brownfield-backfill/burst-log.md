@@ -19552,3 +19552,133 @@ Registration burst scope: STORY-INDEX + BC-INDEX + policies.yaml + cycle dir new
 |--------|-----|---------|
 | D-835 SM single-commit burst (parent HEAD) | `520f8f50` | factory(D-835): POST-W1-GOVERNANCE burst — session-review W1-merge; 5 lessons; IP-003 decision-log size budget; 4 human decisions; STATE.md v5.81→v5.82 |
 | D-836 SM single-commit burst (TD-VSDD-053) | `6fd31c0f` | factory(D-836): POST-W1-REGISTRATION burst — S-19.08 registered; POLICY 21; BC-5.40.001 v1.2; S-19.05 LOCAL pass-1 persisted; ADR-030 §D3 research persisted; STATE.md v5.82→v5.83 |
+
+---
+
+## D-837 — W2-SPEC-RECONCILE burst (2026-07-13)
+
+### Block 1: Parent-commit
+
+| Field | Value |
+|-------|-------|
+| Parent-commit SHA | `9a3b0e20` |
+| Parent-commit description | D-836 SHA-patch commit — STATE.md + burst-log Active Branches TBD→`6fd31c0f` |
+| develop HEAD at dispatch | `091ce499` (origin; unchanged since D-831) |
+| Burst type | Reconcile (gap-close + spec-bodies + index updates + LOCAL cascade records) |
+
+### Block 2: Adversary Verdict
+
+**In-scope LOCAL adversary passes processed this burst:**
+
+**S-19.04 LOCAL pass-1 (s-19.04-local-adversary-pass-1.md) — NOT-CLEAN B0/H2/M2/L3:**
+F-1 HIGH MultiEdit guard regression: implementer produced ^(Edit|Write|Agent)$ omitting MultiEdit — BC-4.13.001 Invariant 5 requires ^(Edit|Write|MultiEdit|Agent)$. CLOSED by implementer 2c6bd1ca.
+F-2 HIGH T-009 missing: AC-004 real-bundle gate T-009 absent. CLOSED by test-writer 298389b0.
+F-3 MEDIUM preamble inversion: AC-004/AC-005 preamble ordering incorrect. CLOSED by implementer 2c6bd1ca.
+F-4 MEDIUM T-010 missing: AC-005 negative-control T-010 absent. CLOSED by test-writer 298389b0.
+O-1/O-2/O-3 LOW: Task-13 count, orphan WASM delete rows, stage_release_bundle — accepted-with-record and corrected in S-19.04 v1.14.
+ALL 8 findings CLOSED same-session. Streak 0/3.
+
+**S-19.05 LOCAL pass-2 (s-19.05-local-adversary-pass-2.md) — CLEAN B0/H0/M0/L0:**
+All 5 pass-1 findings verified closed. No new findings. Streak 0/3→1/3.
+
+**S-19.05 LOCAL pass-3 (s-19.05-local-adversary-pass-3.md) — NOT-CLEAN B0/H0/M1/L3:**
+F-P3-001 MEDIUM POLICY-4 mis-anchor: S-19.05 vsdd_sink.rs File-Structure row + AC-004 gate anchor inconsistent. CLOSED same-session by story-writer S-19.05 v1.17.
+O-P3-001/O-P3-002/O-P3-003 LOW accepted-with-record. Streak 1/3→0/3.
+
+**D-836 gap root-cause codified:** "Do NOT touch BC/VP/story/epic bodies" = authorship prohibition only. State-manager must commit all specialist-authored spec bodies in same burst as index updates.
+
+### Block 3: Files Touched
+
+| File | Change |
+|------|--------|
+| `.factory/specs/behavioral-contracts/ss-05/BC-5.40.001.md` | spec body committed (PO-authored v1.2; already in worktree from D-836 gap) |
+| `.factory/specs/behavioral-contracts/ss-07/BC-7.03.079.md` | spec body committed (PO-authored v1.4; Invariant 1 tuple-scoping) |
+| `.factory/specs/behavioral-contracts/ss-04/BC-4.13.001.md` | spec body committed (PO-authored v1.16; Invariant 5 anchored tool-pattern fields) |
+| `.factory/stories/S-19.04-bundle-hygiene-tool-filter-anchoring.md` | spec body committed (SW-authored v1.14; architect D-a correction; T-009/T-010; 3 WASM deletes) |
+| `.factory/stories/S-19.05-async-completion-telemetry-sink-release-mode.md` | spec body committed (SW-authored v1.17; F-P3-001 fix) |
+| `.factory/stories/S-19.08-verify-state-timestamp-refresh-byte-cap.md` | NEW spec body committed (SW-authored v1.1; input-hash 9db5836) |
+| `.factory/stories/epics/E-19-post-rc22-operator-hardening.md` | spec body committed (SW-authored v1.28; S-19.08 added) |
+| `.factory/sidecar-learning.md` | session-reviewer telemetry committed |
+| `.factory/regression-state.json` | hook telemetry committed (was pre-staged) |
+| `.factory/specs/behavioral-contracts/BC-INDEX.md` | BC-7.03.079 v1.4 + BC-4.13.001 v1.16 cells appended; version v4.00→v4.01 |
+| `.factory/stories/STORY-INDEX.md` | S-19.04 v1.14 + S-19.05 v1.17 cells; wave-summary D-837 clause; BC coverage updated; version v4.183→v4.184 |
+| `.factory/cycles/v1.0-brownfield-backfill/INDEX.md` | S-19.04 LOCAL Adversary Reviews section added; S-19.05 pass-2 + pass-3 rows added; Convergence Status updated |
+| `.factory/cycles/v1.0-brownfield-backfill/s-19.04-local-adversary-pass-1.md` | NEW — S-19.04 LOCAL pass-1 NOT-CLEAN B0/H2/M2/L3 record |
+| `.factory/cycles/v1.0-brownfield-backfill/s-19.05-local-adversary-pass-2.md` | NEW — S-19.05 LOCAL pass-2 CLEAN B0/H0/M0/L0 record |
+| `.factory/cycles/v1.0-brownfield-backfill/s-19.05-local-adversary-pass-3.md` | NEW — S-19.05 LOCAL pass-3 NOT-CLEAN B0/H0/M1/L3 record |
+| `.factory/STATE.md` | v5.83→v5.84; phase D-837; current_step D-837; banner D-837; last_amended prepended; D-837 Decisions Log row; D-837 Phase Steps row; Active Branches TBD; Concurrent Cycles updated; Session Resume Checkpoint refreshed (D-837) |
+| `.factory/cycles/v1.0-brownfield-backfill/decision-log.md` | D-837 entry appended |
+| `.factory/cycles/v1.0-brownfield-backfill/burst-log.md` | D-837 entry appended (this entry) |
+
+### Block 4: Codifications
+
+| Item | Codification |
+|------|-------------|
+| D-836 skip root-cause | authorship-prohibition vs commit-prohibition distinction; state-manager is sole committer and must commit all specialist-authored spec bodies with index updates |
+| BC-4.13.001 v1.16 | BC-INDEX v4.01 cell; Invariant 5 anchored ^(Edit\|Write\|MultiEdit\|Agent)$ + ^Bash$ |
+| BC-7.03.079 v1.4 | BC-INDEX v4.01 cell; Invariant 1 tuple-scoping; ^Agent$ cites |
+| S-19.04 v1.14 | STORY-INDEX v4.184 cell; architect D-a correction; T-009/T-010 |
+| S-19.05 v1.17 | STORY-INDEX v4.184 cell; F-P3-001 closure |
+| S-19.04 LOCAL pass-1 | s-19.04-local-adversary-pass-1.md + INDEX.md section; all 8 findings CLOSED |
+| S-19.05 LOCAL pass-2 | s-19.05-local-adversary-pass-2.md + INDEX.md row; CLEAN streak 1/3 |
+| S-19.05 LOCAL pass-3 | s-19.05-local-adversary-pass-3.md + INDEX.md row; F-P3-001 CLOSED streak 0/3 |
+| D-837 decision | decision-log.md D-837 entry |
+
+### Block 5: Dim-2 Attestation (D-449(a) literal-shell gates)
+
+**Gate G1 — 4-index version verification (literal shell):**
+
+```
+$ grep "^version:" .factory/specs/behavioral-contracts/BC-INDEX.md .factory/specs/verification-properties/VP-INDEX.md .factory/stories/STORY-INDEX.md .factory/specs/architecture/ARCH-INDEX.md
+.factory/specs/verification-properties/VP-INDEX.md:version: "2.67"
+.factory/specs/architecture/ARCH-INDEX.md:version: "3.01"
+.factory/specs/behavioral-contracts/BC-INDEX.md:version: "4.01"
+.factory/stories/STORY-INDEX.md:version: "4.184"
+```
+
+Result: BC v4.01 / VP v2.67 / STORY v4.184 / ARCH v3.01. PASS.
+
+**Gate G2 — D-803 heading-parity (E-19 H2 vs epic file frontmatter):**
+
+```
+$ grep -n "^## Epic E-19" .factory/stories/STORY-INDEX.md | head -3
+683:## Epic E-19 — Post-rc.22 Operator Hardening (v1.0-feature-engine-discipline-pass-1 / E-19 F3) — draft, v1.28
+
+$ grep -oE "^version:.*" .factory/stories/epics/E-19-post-rc22-operator-hardening.md | head -1
+version: "v1.28"
+```
+
+Result: STORY-INDEX H2 cites v1.28; epic file frontmatter = v1.28. PASS.
+
+**Gate G3 — D-448(a) source-attestation (3 adversary pass files indexed in INDEX.md):**
+
+```
+$ grep -c "s-19.04-local-adversary-pass-1\|s-19.05-local-adversary-pass-2\|s-19.05-local-adversary-pass-3" .factory/cycles/v1.0-brownfield-backfill/INDEX.md
+3
+```
+
+Result: All 3 adversary pass files referenced in INDEX.md. PASS.
+
+### Block 6: Dim-5 Scope Attestation
+
+Reconcile burst scope: BC spec bodies (BC-5.40.001/BC-7.03.079/BC-4.13.001) + story spec bodies (S-19.04/S-19.05/S-19.08/E-19) + telemetry files (sidecar-learning.md/regression-state.json) + BC-INDEX + STORY-INDEX + INDEX.md + 3 new adversary pass files + STATE.md + decision-log + burst-log. State-manager did NOT author any BC/VP/story/epic spec content — all bodies were authored by specialist agents (PO, SW) and committed by state-manager in its role as sole committer to factory-artifacts. No source code, tests, or configuration files outside `.factory/` touched.
+
+### Block 7: Closes
+
+| Item | Status |
+|------|--------|
+| D-836 gap (uncommitted spec bodies) | CLOSED — all 9 spec body/telemetry files committed |
+| D-836 skip root-cause codification | CLOSED — authorship-prohibition vs commit-prohibition codified in decision-log D-837 + this burst-log |
+| BC-INDEX BC-4.13.001 v1.16 cell | CLOSED — BC-INDEX v4.01 |
+| BC-INDEX BC-7.03.079 v1.4 cell | CLOSED — BC-INDEX v4.01 |
+| STORY-INDEX S-19.04 v1.14 cell | CLOSED — STORY-INDEX v4.184 |
+| STORY-INDEX S-19.05 v1.17 cell | CLOSED — STORY-INDEX v4.184 |
+| S-19.04 LOCAL pass-1 persistence | CLOSED — pass file + INDEX.md section |
+| S-19.05 LOCAL pass-2+3 persistence | CLOSED — pass files + INDEX.md rows |
+
+### Block 8: Factory-Artifacts Commits
+
+| Commit | SHA | Message |
+|--------|-----|---------|
+| D-836 SM SHA-patch (parent HEAD) | `9a3b0e20` | factory(D-836): SHA-patch — Active Branches TBD→6fd31c0f; burst-log Block 8 TBD→6fd31c0f |
+| D-837 SM single-commit burst (TD-VSDD-053) | `TBD` | factory(D-837): W2-SPEC-RECONCILE burst — spec bodies committed; BC-INDEX v4.01; STORY-INDEX v4.184; S-19.04 LOCAL pass-1 CLOSED; S-19.05 LOCAL pass-2 CLEAN / pass-3 CLOSED; STATE.md v5.83→v5.84 |

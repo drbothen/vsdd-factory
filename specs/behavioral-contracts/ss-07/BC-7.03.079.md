@@ -1,7 +1,7 @@
 ---
 document_type: behavioral-contract
 level: L3
-version: "1.3"
+version: "v1.4"
 status: draft
 producer: "PHASE_1_4_B_BCS_AGENT_9"
 timestamp: 2026-04-25T00:00:00
@@ -15,7 +15,8 @@ subsystem: "SS-07"
 capability: "TBD"
 lifecycle_status: active
 introduced: v1.0.0-beta.4
-modified: []
+modified:
+  - "2026-07-13 (v1.4)"
 deprecated: null
 deprecated_by: null
 replacement: null
@@ -33,11 +34,11 @@ track-agent-start: identity & registry binding. Telemetry; never blocks; on_erro
 **Source category:** Routing hooks (PreToolUse, PostToolUse, lifecycle).
 **Audit ID:** `BC-AUDIT-1078` (extracted from `pass-3-deep-hooks.md` line 884).
 **Hook script:** ``plugins/vsdd-factory/hooks/track-agent-start.sh``.
-**Registry entry:** `hooks-registry.toml::track-agent-start` (PreToolUse, tool=Agent, priority=110, timeout_ms=5000, on_error=continue)..
+**Registry entry:** `hooks-registry.toml::track-agent-start` (PreToolUse, tool=`^Agent$` (anchored; implemented by S-19.04, W2 — pending merge), priority=110, timeout_ms=5000, on_error=continue)..
 
 ## Preconditions
 
-1. Hook event/tool match: PreToolUse Agent..
+1. Hook event/tool match: PreToolUse `^Agent$` (anchored form; implemented by S-19.04, W2 — pending merge)..
 2. Trigger: Every Agent dispatch.
 
 ## Postconditions
@@ -48,7 +49,7 @@ track-agent-start: identity & registry binding. Telemetry; never blocks; on_erro
 
 ## Invariants
 
-1. Hook script identity (script path) and registry binding remain stable across the contract lifetime.
+1. The hook's identity and dispatch characteristics — name, event, plugin, priority, on_error, timeout_ms — remain stable across the contract lifetime. This constraint does NOT freeze the `tool` pattern field against corrections where the prior value was an incorrect narrowing or incidental substring over-match of the guard's semantic intent. S-19.04's re-anchoring of `tool = "Agent"` to the anchored regex `tool = "^Agent$"` (per the S-19.04 D-a table) is a semantic-intent correction: anchoring prevents false-fires on hypothetical future tool names with `Agent` as a substring (e.g., `AgentAsync`) while preserving full routing to all PreToolUse Agent events. This is NOT a binding-tuple migration change. Post-S-19.04 binding tuple (implemented by S-19.04, W2 — pending merge): event=PreToolUse, tool=`^Agent$`, priority=110, on_error=continue.
 2. Exit-code semantics conform to the dispatcher contract: 0 = allow / advisory, 2 = block, 1 = jq-missing-fail-closed (where applicable).
 
 ## Edge Cases
@@ -138,6 +139,7 @@ Bash hook scripts are inherently effectful (stdin/stderr, optional event emit, o
 
 | Version | Date | Author | Change |
 |---------|------|--------|--------|
-| v1.1 | 2026-04-25 | PHASE_1_4_B_BCS_AGENT_9 | Initial authoring. |
-| v1.2 | 2026-05-08 | implementer | TD-VSDD-091 Chunk 5 — migrated `hooks-registry.toml:698-716` → `hooks-registry.toml::track-agent-start`. |
+| v1.4 | 2026-07-13 | product-owner | S-19.04 adversary pass-1 F-1 (architect ruling 2026-07-13): Invariant 1 amended — "binding tuple unchanged" constraint clarified to cover identity/dispatch characteristics (name, event, plugin, priority, on_error, timeout_ms) and explicitly NOT freeze the tool-pattern field against semantic-intent corrections. S-19.04's re-anchoring of `tool = "Agent"` → `tool = "^Agent$"` (D-a table) is a semantic-intent correction, not a binding-tuple migration change. Description registry entry and Precondition 1 updated to post-S-19.04 anchored form `^Agent$` (implemented by S-19.04, W2 — pending merge). Changelog reordered newest-first (pre-existing ascending-order corrected in same burst; v1.2 row volatile line cite removed — symbol anchor form retained, line number omitted per scanner requirements; historical record in git). |
 | v1.3 | 2026-05-09 | state-manager | F-P47-001 fix-burst-43: Traceability Stories TBD→S-8.08 (S-8.08 behavioral_contracts frontmatter cites this BC; bidirectional L-P28-001 propagation). |
+| v1.2 | 2026-05-08 | implementer | TD-VSDD-091 Chunk 5 — migrated `hooks-registry.toml` entry `track-agent-start` from script-path form to symbol-anchor form `hooks-registry.toml::track-agent-start`. |
+| v1.1 | 2026-04-25 | PHASE_1_4_B_BCS_AGENT_9 | Initial authoring. |
