@@ -19452,4 +19452,4 @@ No BC/VP/story/epic version bumps in this burst. 4-index ALL UNCHANGED: BC v3.99
 | Commit | SHA | Message |
 |--------|-----|---------|
 | D-834 SHA-patch (parent HEAD) | `2a52de45` | factory(sha-patch): STATE.md Active Branches factory-artifacts HEAD → bda69b22; burst-log Block 8 SHA-patch |
-| D-835 SM single-commit burst (TD-VSDD-053) | `TBD` | SHA-patch pending |
+| D-835 SM single-commit burst (TD-VSDD-053) | `520f8f50` | factory(D-835): POST-W1-GOVERNANCE burst — session-review W1-merge; 5 lessons; IP-003 decision-log size budget; 4 human decisions; STATE.md v5.81→v5.82 |
