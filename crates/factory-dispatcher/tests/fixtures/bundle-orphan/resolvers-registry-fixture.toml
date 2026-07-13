@@ -1,0 +1,17 @@
+# resolvers-registry-fixture.toml
+# Fixture for S-19.04 AC-006 Rust tests (T-006..T-008).
+#
+# References ONLY resolvers-only.wasm (not hooks-only.wasm, not neither-registry.wasm).
+# Used to verify dual-registry orphan detection:
+#   - resolvers-only.wasm is classified as NON-orphan when this registry is checked.
+#   - When ONLY hooks-registry is used (negative-control T-008), resolvers-only.wasm IS
+#     classified as an orphan — confirming the dual-registry check is load-bearing (F-P2-010).
+#
+# Story: S-19.04
+schema_version = 1
+
+[[resolvers]]
+name = "resolvers_only"
+plugin = "hook-plugins/resolvers-only.wasm"
+context_key = "resolvers_only"
+path_allow = [".factory/wave-state.yaml"]
