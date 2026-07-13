@@ -206,16 +206,34 @@ fn workspace_root() -> PathBuf {
 ///
 /// AC-007 / EAC-005: the staged `dst_dir` must contain zero dual-registry-orphan WASMs.
 fn stage_release_bundle(src_dir: &Path, dst_dir: &Path) {
-    // Red Gate stub — implementer writes the exclusion logic here.
-    // The implementation must mirror the fixed release.yml inner case-arm:
-    //   vsdd_context_resolvers.wasm|wasm_resolver_export.wasm) echo "skip..."; continue ;;
-    // and the removed hello-hook build+copy steps.
-    let _ = (src_dir, dst_dir); // suppress unused-variable warnings at Red Gate
-    todo!(
-        "AC-007: implement staging logic that mirrors the fixed release.yml exclusion — \
-         skip hello-hook.wasm, vsdd_context_resolvers.wasm, wasm_resolver_export.wasm; \
-         copy all other WASMs from src_dir to dst_dir"
-    )
+    // Mirror the fixed release.yml inner case-arm exclusion (AC-001 / S-19.04):
+    //   hello-hook.wasm           — removed from release build; never bundle (AC-001)
+    //   vsdd_context_resolvers.wasm — stale underscore artifact; skipped by case-arm
+    //   wasm_resolver_export.wasm   — stale resolver export; skipped by case-arm
+    //
+    // vsdd-context-resolvers.wasm (hyphen) is referenced by resolvers-registry.toml
+    // and MUST be copied (AC-007 keep-assertion (i)).
+    const EXCLUDED: &[&str] = &[
+        "hello-hook.wasm",
+        "vsdd_context_resolvers.wasm",
+        "wasm_resolver_export.wasm",
+    ];
+
+    let entries = fs::read_dir(src_dir)
+        .unwrap_or_else(|e| panic!("failed to read src_dir {}: {}", src_dir.display(), e));
+    for entry in entries {
+        let entry = entry.expect("dir entry must be readable");
+        let filename = entry.file_name().to_string_lossy().into_owned();
+        if !filename.ends_with(".wasm") {
+            continue;
+        }
+        if EXCLUDED.contains(&filename.as_str()) {
+            continue;
+        }
+        let dst = dst_dir.join(&filename);
+        fs::copy(entry.path(), &dst)
+            .unwrap_or_else(|e| panic!("failed to copy {} to {}: {}", filename, dst.display(), e));
+    }
 }
 
 // ---------------------------------------------------------------------------

@@ -126,7 +126,7 @@ jobs:
             cargo build --release --target ${{ matrix.target }} -p factory-dispatcher
           fi
 
-      - name: Build wasm plugins + example (release)
+      - name: Build wasm plugins (release)
         shell: bash
         run: |
           # legacy-bash-adapter is the production WASI command every
