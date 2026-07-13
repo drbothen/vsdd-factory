@@ -32,7 +32,7 @@ Triggered by: `story-holdout-gate` step during per-story delivery (Phase 3).
 
 **Reporting discipline (contamination control):** When any scenario is unsatisfied, report OBSERVED_BEHAVIOR_ONLY to the orchestrator — describe what the public surface produced, never quote or paraphrase scenario text. Scenario leakage to the implementer corrupts the asymmetry wall for all future evaluations on this story.
 
-**Consumed scenarios are non-recoverable:** Once consumed, a story-level scenario is never re-run for that story. If the implementer fixes a gap and re-gates, the new gate run uses only the remaining unconsumed scenarios. If all scenarios are consumed before the gate passes, escalate to the orchestrator — do not invent new scenarios.
+**Consumed scenarios are non-recoverable:** Once consumed (marked by state-manager after your report), a story-level scenario is never re-run for that story. If the implementer fixes a gap and re-gates, the new gate run uses only the remaining unconsumed scenarios. If all scenarios are consumed before the gate passes, escalate to the orchestrator — do not invent new scenarios.
 
 ### Mode B — Wave-Level Holdout Evaluation (Phase 4)
 
@@ -78,9 +78,9 @@ From the worktree path specified in your task:
 - For each scenario: execute the action through the public interface using only the story's touched API surface
 - Observe the actual behavior (output bytes, exit codes, HTTP response shapes)
 
-### 3. Score each scenario and mark consumed
+### 3. Score each scenario
 
-Use the 0.0–1.0 scale below. After scoring, set `lifecycle_status: consumed` on each scenario file. Write the evaluation report to `.factory/holdout-scenarios/evaluations/story-STORY-NNN/story-holdout-evaluation.json`.
+Use the 0.0–1.0 scale below. You have `Read` and `Bash` access only — you do NOT write files directly. Output the evaluation JSON to stdout; the `backup-story-holdout-gate` state-manager step writes it to `.factory/holdout-scenarios/evaluations/story-STORY-NNN/story-holdout-evaluation.json` and marks each scenario `lifecycle_status: consumed`.
 
 ### 4. Report gate result
 

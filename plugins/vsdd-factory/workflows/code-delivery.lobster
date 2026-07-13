@@ -165,6 +165,11 @@ workflow:
       loop:
         max_iterations: 5
         exit_condition: "story_holdout.gate == 'PASS'"
+        # DESIGN: Each iteration = holdout run → (if FAIL) implementer fix →
+        # adversary re-convergence → next holdout attempt.
+        # The adversary re-convergence step is MANDATORY on any holdout failure:
+        # the implementer fix may introduce regressions and the adversary streak
+        # must restart from 0/3 (per-story-delivery.md step c3, BC-5.39.003).
         steps:
           - name: run-story-holdout
             type: agent
@@ -177,7 +182,8 @@ workflow:
                 .factory/holdout-scenarios/story-scenarios/[story_id]/
               Build and exercise the binary from [worktree_path].
               Gate: every scenario must score >= 0.80; mean >= 0.80.
-              On completion: mark each scenario lifecycle_status: consumed.
+              Report evaluation results for state-manager to persist — do NOT write files
+              directly (state-manager owns the evaluation write and consumed-scenario marking).
               Report format: OBSERVED_BEHAVIOR_ONLY — never include scenario text
               in findings (contamination control prevents scenario leakage to implementer).
             context:
@@ -205,8 +211,47 @@ workflow:
               You receive ONLY observed-behavior descriptions — no scenario text.
               Re-run tests to verify fixes. Micro-commit each fix with message:
               fix([story_id]): address story holdout observed behavior gap
-              NOTE: adversary convergence streak resets to 0/3 after this fix;
-              per-story-adversarial-review re-gates before next holdout attempt.
+
+          - name: re-converge-after-holdout-fix
+            type: loop
+            depends_on: [fix-story-holdout-findings]
+            condition: "story_holdout.gate == 'FAIL'"
+            # Adversary streak resets to 0/3 after any holdout-driven fix.
+            # This nested loop enforces BC-5.39.001 3-CLEAN before the outer
+            # loop retries the holdout evaluation.
+            loop:
+              max_iterations: 10
+              exit_condition: "adversary.verdict == 'CONVERGENCE_REACHED'"
+              steps:
+                - name: re-run-adversary-after-holdout
+                  type: agent
+                  agent: adversary
+                  model_tier: adversary
+                  task: >
+                    Re-run adversarial convergence for story [story_id] after a
+                    story holdout fix. The implementer fixed a behavioral gap;
+                    verify no regression was introduced. Streak resets to 0/3.
+                    Report CONVERGENCE_REACHED only when 3 consecutive passes
+                    are CLEAN (strict: zero findings of any severity).
+                  context:
+                    include:
+                      - "[worktree_path]/src/**"
+                      - "[worktree_path]/tests/**"
+                      - ".factory/stories/[story_id].md"
+                      - ".factory/specs/behavioral-contracts/**"
+                    exclude:
+                      - ".factory/holdout-scenarios/**"
+                      - ".factory/cycles/**/adversarial-reviews/**"
+                      - ".factory/semport/**"
+
+                - name: fix-regression-after-holdout
+                  type: agent
+                  agent: implementer
+                  depends_on: [re-run-adversary-after-holdout]
+                  condition: "adversary.has_blocking_findings == true"
+                  task: >
+                    Fix adversary findings introduced by the holdout fix in [worktree_path].
+                    Re-run tests. Micro-commit each fix.
 
     # =========================================================================
     # Step 5: E2E Tests (UI/full-stack only)
