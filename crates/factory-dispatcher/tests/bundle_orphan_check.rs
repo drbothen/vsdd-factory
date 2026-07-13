@@ -296,18 +296,42 @@ fn git_tracked_wasm_names(root: &Path) -> Vec<String> {
 ///
 /// AC-007 / EAC-005: `dst_dir` must contain zero dual-registry-orphan WASMs after staging.
 fn stage_release_bundle(src_dir: &Path, dst_dir: &Path) {
-    // Red Gate stub — implementer replaces todo!() with:
-    //   for each .wasm in src_dir:
-    //     basename = filename of the wasm
-    //     if basename.contains('_') { continue }  // outer *_*.wasm glob
-    //     fs::copy(src, dst_dir/basename)
-    let _ = (src_dir, dst_dir); // suppress unused-variable lint at Red Gate
-    todo!(
-        "AC-007: implement underscore-glob staging — skip any .wasm basename containing '_' \
-         (mirrors release.yml *_*.wasm outer case arm); copy all non-underscore WASMs from \
-         src_dir to dst_dir; then add reciprocal anchor comment to both release.yml \
-         staging steps citing this function"
-    )
+    // Mirrors the *_*.wasm outer case arm from release.yml steps "Stage artifact
+    // directory" and "Stage wasm plugins":
+    //
+    //   *_*.wasm)            <- outer arm: skip any WASM basename containing '_'
+    //     case "$name" in
+    //       vsdd_context_resolvers.wasm|wasm_resolver_export.wasm) ... continue ;;
+    //       *) echo "skip lib-target stub: $name"; continue ;;
+    //     esac ;;
+    //
+    // The outer *_*.wasm glob is the governing rule. The inner named arms in
+    // release.yml document specific stale artifacts but do not restrict the outer
+    // glob — all underscore-named WASMs are skipped, including future lib-target
+    // stubs not enumerated in the inner case (proven by some_new_stub_lib.wasm
+    // fixture in T-010 assertion 3). Non-underscore (hyphen-named) WASMs are copied.
+    //
+    // hello-hook.wasm exclusion is via BUILD-OMISSION (AC-001: the --example hello-hook
+    // build step was removed from release.yml); it has no underscore so the staging
+    // logic would copy it if present. The T-010 fixture omits hello-hook.wasm to
+    // faithfully represent post-build-omission staging inputs.
+
+    let entries = fs::read_dir(src_dir)
+        .unwrap_or_else(|e| panic!("failed to read src_dir {}: {}", src_dir.display(), e));
+    for entry in entries {
+        let entry = entry.expect("dir entry must be readable");
+        let filename = entry.file_name().to_string_lossy().into_owned();
+        if !filename.ends_with(".wasm") {
+            continue;
+        }
+        // Outer *_*.wasm glob: skip any .wasm whose basename contains an underscore.
+        if filename.contains('_') {
+            continue;
+        }
+        let dst = dst_dir.join(&filename);
+        fs::copy(entry.path(), &dst)
+            .unwrap_or_else(|e| panic!("failed to copy {} to {}: {}", filename, dst.display(), e));
+    }
 }
 
 // ---------------------------------------------------------------------------

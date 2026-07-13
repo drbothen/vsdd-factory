@@ -170,6 +170,7 @@ jobs:
             for wasm in target/wasm32-wasip1/release/*.wasm; do
               name=$(basename "$wasm")
               case "$name" in
+                # Test gate: crates/factory-dispatcher/tests/bundle_orphan_check.rs::stage_release_bundle
                 *_*.wasm)
                   case "$name" in
                     vsdd_context_resolvers.wasm|wasm_resolver_export.wasm) echo "skip stale resolver artifact: $name"; continue ;;
@@ -304,6 +305,7 @@ jobs:
             #                                 vsdd-context-resolvers.wasm (hyphen)
             #   wasm_resolver_export.wasm   — orphaned SDK example; not in any registry
             case "$name" in
+              # Test gate: crates/factory-dispatcher/tests/bundle_orphan_check.rs::stage_release_bundle
               *_*.wasm)
                 case "$name" in
                   vsdd_context_resolvers.wasm|wasm_resolver_export.wasm) echo "skip stale resolver artifact: $name"; continue ;;
