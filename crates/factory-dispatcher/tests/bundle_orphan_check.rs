@@ -16,7 +16,7 @@
 //! | T-007 | AC-006   | GREEN    | fixture-c: neither-registry WASM → orphan, ORPHAN: <name> line confirmed |
 //! | T-008 | AC-006   | GREEN    | fixture-d: negative-control (F-P2-010) — resolvers-only WASM is orphan when only hooks-registry used |
 //! | T-009 | AC-006   | GREEN†   | Hermetic real-bundle gate: enumerates GIT-TRACKED set (`git ls-files`) against both real registries; asserts zero tracked orphans (EAC-005 standing regression gate) |
-//! | T-010 | AC-007   | RED      | Bundle-simulation: stages fixture with underscore-named WASMs through `stage_release_bundle` todo!() stub; asserts staged artifact has zero orphans per real registries and proves underscore-glob semantics |
+//! | T-010 | AC-007   | GREEN    | Bundle-simulation: stages fixture with underscore-named WASMs through `stage_release_bundle`; asserts staged artifact has zero orphans per real registries and proves underscore-glob semantics (RED at 298389b0 via todo!(); GREEN since d9502701) |
 //!
 //! † T-009 is a STANDING GREEN GATE — passes immediately on any clean checkout where no
 //! orphan WASMs are tracked in git, and remains green on contaminated worktrees because
@@ -59,10 +59,14 @@
 //! accidentally committed. T-010 fixture therefore does NOT include hello-hook.wasm,
 //! faithfully representing post-build-omission staging inputs.
 //!
-//! Reciprocal anchor: `stage_release_bundle` mirrors release.yml steps "Stage artifact
-//! directory" and "Stage wasm plugins". **IMPLEMENTER FLAG**: once implemented, add the
-//! inverse anchor to both release.yml staging steps:
+//! Reciprocal anchor: `stage_release_bundle` mirrors the workflow underscore-glob staging
+//! logic. The inverse anchor
 //! `# Test gate: crates/factory-dispatcher/tests/bundle_orphan_check.rs::stage_release_bundle`
+//! is present at all four workflow staging sites (satisfied at d9502701):
+//!   - release.yml "Stage artifact directory" step
+//!   - release.yml "Stage wasm plugins" step (commit-binaries job)
+//!   - ci.yml "Stage WASM plugins to hook-plugins directory" step
+//!   - ci.yml "Stage WASM plugins for run-all.sh" step
 //!
 //! ## Fixture Layout
 //!
@@ -287,12 +291,11 @@ fn git_tracked_wasm_names(root: &Path) -> Vec<String> {
 ///
 /// # Reciprocal anchor
 ///
-/// Mirrors release.yml "Stage artifact directory" and "Stage wasm plugins" steps.
-/// **IMPLEMENTER FLAG**: after implementing this stub, add the inverse anchor to BOTH
-/// release.yml staging steps (search for the two `*_*.wasm)` case arms):
-/// `# Test gate: crates/factory-dispatcher/tests/bundle_orphan_check.rs::stage_release_bundle`
-///
-/// **At Red Gate this function panics with `todo!()`.**
+/// The inverse anchor `# Test gate: ...::stage_release_bundle` is present at all four
+/// workflow staging sites (applied at d9502701): release.yml "Stage artifact directory",
+/// release.yml "Stage wasm plugins" (commit-binaries job), ci.yml "Stage WASM plugins to
+/// hook-plugins directory", and ci.yml "Stage WASM plugins for run-all.sh".
+/// (Was IMPLEMENTER FLAG at 2bd3c898; satisfied at d9502701.)
 ///
 /// AC-007 / EAC-005: `dst_dir` must contain zero dual-registry-orphan WASMs after staging.
 fn stage_release_bundle(src_dir: &Path, dst_dir: &Path) {
@@ -571,8 +574,8 @@ fn test_S_19_04_ac006_T009_hermetic_tracked_bundle_zero_orphans() {
 // logic would copy it if present (no underscore). The fixture faithfully represents
 // post-build-omission inputs; T-009 provides the secondary tracked-file guarantee.
 //
-// Red Gate: `stage_release_bundle` panics with todo!() → test FAILS ✓
-// After implementation: underscore names skipped, vsdd-context-resolvers.wasm copied →
+// TDD history: RED at 298389b0 (todo!() stub); GREEN since d9502701 (underscore-glob impl).
+// stage_release_bundle skips underscore names, copies vsdd-context-resolvers.wasm →
 //   - zero orphans per real registries (EAC-005)
 //   - vsdd-context-resolvers.wasm present in artifact (keep-assertion i)
 //   - some_new_stub_lib.wasm NOT in artifact (glob-semantics proof)
@@ -610,8 +613,7 @@ fn test_S_19_04_ac007_T010_release_staging_underscore_glob_excludes_orphans() {
     let artifact = tmp.path().join("artifact");
     fs::create_dir_all(&artifact).expect("artifact dir must be created");
 
-    // Red Gate: panics with todo!() here.
-    // After implementation: underscore names excluded; vsdd-context-resolvers.wasm copied.
+    // Implemented since d9502701: underscore names excluded; vsdd-context-resolvers.wasm copied.
     stage_release_bundle(&pre_staging, &artifact);
 
     // Zero orphans in staged bundle per real registries (EAC-005)
