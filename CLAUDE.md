@@ -375,6 +375,18 @@ Look for `plugin.log` entries with `level: warn` for advisory context, or `plugi
 | **WASM fuel exhaustion on lessons.md** | Large lessons.md (>3000 lines) triggers fuel timeout in PostToolUse validators | Per D-442(e), size budget ≤3500 soft / ≤4000 hard; PostToolUse cannot revert writes; advisory. Compact at next cycle boundary OR after S-15.03 PRIORITY-A automation. |
 | **Pseudocode-attested gate (META-LEVEL-24)** | burst-log Dim-2 contains `extract <foo>` narrative without literal shell command | Re-invoke gate via literal `grep -oE` / `diff` / `printf %s` with captured stdout per D-449(a); update Dim-2 with actual evidence |
 
+### VSDD_SINK_FILE diagnostic capture (debug and release builds)
+
+As of S-19.05 AC-004, `VSDD_SINK_FILE` is honored in both debug and release builds of the dispatcher. Set it to an absolute path before launching Claude to capture all observable plugin events as JSONL:
+
+```bash
+VSDD_SINK_FILE=/tmp/disp-events.jsonl claude --plugin vsdd-factory <args>
+```
+
+The file is appended-to on each dispatch; inspect it for `plugin.completed`, `plugin.abandoned`, `plugin.timeout`, and other BC-3.08.001 domain events. Internal lifecycle events (`internal.*`) are excluded.
+
+**SEC-003 path constraint:** paths containing `..` (traversal sequences) or null bytes are rejected silently — a `tracing::warn` is emitted and no file is written. Use absolute paths from `mktemp` or a fixed `/tmp/` location.
+
 ### Step 4 — Re-run validators before re-dispatching
 
 ```bash

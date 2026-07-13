@@ -37,6 +37,8 @@ pub mod resolver_loader;
 pub use resolver_loader::{ResolverLoadError, ResolverLoader};
 pub mod routing;
 pub mod sinks;
+pub mod vsdd_sink;
+pub use vsdd_sink::flush_sink_file;
 
 pub use aggregator::{PluginResult as AggregatorPluginResult, aggregate_exit_code};
 pub use engine::{EPOCH_TICK_MS, EngineError, EpochTicker, build_engine};

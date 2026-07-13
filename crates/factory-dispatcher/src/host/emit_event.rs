@@ -330,16 +330,21 @@ pub fn emit_plugin_timeout_async(ctx: &HostContext, plugin_name: &str, timeout_m
 /// - BC-3.08.001 v1.21 Invariant 6 — terminal semantics; no `plugin.completed` follows
 /// - VP-100 — drain-timer expiry emits exactly one per in-flight (plugin_name, entry_index)
 pub fn emit_plugin_abandoned(
-    _ctx: &HostContext,
-    _plugin_name: &str,
-    _entry_index: u32,
-    _drain_window_ms: u64,
+    ctx: &HostContext,
+    plugin_name: &str,
+    entry_index: u32,
+    drain_window_ms: u64,
 ) {
-    todo!(
-        "S-19.05 stub: implement emit_plugin_abandoned per BC-3.08.001 v1.21 Event 5 — \
-         mandatory fields: type, trace_id, session_id, plugin_name, entry_index, \
-         drain_window_ms, timestamp"
-    )
+    let ev = InternalEvent::now("plugin.abandoned");
+    let ts = ev.ts.clone();
+    let ev = ev
+        .with_trace_id(&ctx.dispatcher_trace_id)
+        .with_session_id(&ctx.session_id)
+        .with_field("timestamp", ts.as_str())
+        .with_plugin_name(plugin_name)
+        .with_field("entry_index", u64::from(entry_index))
+        .with_field("drain_window_ms", drain_window_ms);
+    ctx.emit_internal(ev);
 }
 
 /// Emit `plugin.completed` event for async path (BC-3.08.001 v1.21 Event 6). [S-19.05]
@@ -367,19 +372,25 @@ pub fn emit_plugin_abandoned(
 /// - BC-3.08.001 v1.21 §Common Fields — `plugin_version` present for Event 6 (sync-path parity)
 /// - VP-100 — drain-timer expiry implies no `plugin.completed` for abandoned entries
 pub fn emit_plugin_completed_async(
-    _ctx: &HostContext,
-    _plugin_name: &str,
-    _plugin_version: &str,
-    _entry_index: u32,
-    _exit_code: i32,
-    _elapsed_ms: u64,
-    _fuel_consumed: u64,
+    ctx: &HostContext,
+    plugin_name: &str,
+    plugin_version: &str,
+    entry_index: u32,
+    exit_code: i32,
+    elapsed_ms: u64,
+    fuel_consumed: u64,
 ) {
-    todo!(
-        "S-19.05 stub: implement emit_plugin_completed_async per BC-3.08.001 v1.21 Event 6 — \
-         mandatory fields: type, trace_id, session_id, plugin_name, plugin_version, \
-         entry_index, exit_code, elapsed_ms, fuel_consumed"
-    )
+    let ev = InternalEvent::now("plugin.completed");
+    let ev = ev
+        .with_trace_id(&ctx.dispatcher_trace_id)
+        .with_session_id(&ctx.session_id)
+        .with_plugin_name(plugin_name)
+        .with_plugin_version(plugin_version)
+        .with_field("entry_index", u64::from(entry_index))
+        .with_field("exit_code", exit_code as i64)
+        .with_field("elapsed_ms", elapsed_ms)
+        .with_field("fuel_consumed", fuel_consumed);
+    ctx.emit_internal(ev);
 }
 
 #[cfg(test)]
