@@ -40,8 +40,9 @@ use factory_dispatcher::executor::{
 };
 use factory_dispatcher::host::HostContext;
 use factory_dispatcher::host::emit_event::{
-    emit_dispatcher_schema_mismatch, emit_plugin_async_block_discarded, emit_plugin_timeout_async,
-    emit_registry_invalid_e_reg002, emit_registry_invalid_e_reg003,
+    emit_dispatcher_schema_mismatch, emit_plugin_abandoned, emit_plugin_async_block_discarded,
+    emit_plugin_completed_async, emit_plugin_timeout_async, emit_registry_invalid_e_reg002,
+    emit_registry_invalid_e_reg003,
 };
 use factory_dispatcher::internal_log::{
     DEFAULT_RETENTION_DAYS, DISPATCHER_STARTED, INTERNAL_DISPATCHER_ERROR, InternalEvent,
@@ -479,6 +480,21 @@ async fn run(internal_log: Arc<InternalLog>) -> anyhow::Result<i32> {
         #[cfg(not(debug_assertions))]
         let effective_drain_window = ASYNC_DRAIN_WINDOW_MS;
 
+        // Capture entry_index (0-based enumerate ordinal) for each async plugin BEFORE
+        // consuming async_group. Used by emit_plugin_completed_async (Event 6) and
+        // emit_plugin_abandoned (Event 5) as the BC-3.08.001 v1.21 Invariant 6
+        // disambiguation key: (trace_id, plugin_name, entry_index).
+        let spawned_entries: Vec<(String, u32)> = partition
+            .async_group
+            .iter()
+            .enumerate()
+            .map(|(i, entry)| (entry.name.clone(), i as u32))
+            .collect();
+
+        // Drain window in milliseconds — used as drain_window_ms field in plugin.abandoned events
+        // (BC-3.08.001 v1.21 Event 5, mandatory field 6).
+        let drain_window_ms_u64 = effective_drain_window.as_millis() as u64;
+
         // Spawn each async plugin as an independent task with a results channel.
         // BC-1.14.001 v1.9 PC4: tokio::spawn per-plugin, NOT execute_tiers.
         // Invariant 3: MUST NOT call group_by_priority on async-group plugins.
@@ -552,13 +568,35 @@ async fn run(internal_log: Arc<InternalLog>) -> anyhow::Result<i32> {
         for outcome in &partial_outcomes {
             match &outcome.result {
                 PluginResult::Ok {
-                    exit_code, stdout, ..
+                    exit_code,
+                    stdout,
+                    elapsed_ms,
+                    fuel_consumed,
+                    ..
                 } => {
                     let has_block_json = stdout.contains(r#""outcome":"block""#);
                     let has_exit_2 = *exit_code == 2;
                     if has_block_json || has_exit_2 {
                         // BC-3.08.001 Event 1: async plugin returned block verdict (discarded).
                         emit_plugin_async_block_discarded(&base_host_ctx, &outcome.plugin_name, 2);
+                    } else {
+                        // BC-3.08.001 v1.21 Event 6: async plugin completed normally.
+                        // All 9 mandatory fields: type, trace_id, session_id, plugin_name,
+                        // plugin_version, entry_index, exit_code, elapsed_ms, fuel_consumed.
+                        let entry_index = spawned_entries
+                            .iter()
+                            .find(|(name, _)| name == &outcome.plugin_name)
+                            .map(|(_, idx)| *idx)
+                            .unwrap_or(0);
+                        emit_plugin_completed_async(
+                            &base_host_ctx,
+                            &outcome.plugin_name,
+                            &outcome.plugin_version,
+                            entry_index,
+                            *exit_code,
+                            *elapsed_ms,
+                            *fuel_consumed,
+                        );
                     }
                 }
                 PluginResult::Timeout { .. } => {
@@ -571,7 +609,27 @@ async fn run(internal_log: Arc<InternalLog>) -> anyhow::Result<i32> {
                         .unwrap_or(registry.defaults.timeout_ms);
                     emit_plugin_timeout_async(&base_host_ctx, &outcome.plugin_name, timeout_ms);
                 }
-                _ => {} // Crash or non-block result — no structured event emitted
+                _ => {} // Crashed — lifecycle event already emitted by executor; no terminal event here
+            }
+        }
+
+        // BC-3.08.001 v1.21 Event 5: emit plugin.abandoned for each async plugin that was
+        // spawned but did not return an outcome before the drain timer fired.
+        // Invariant 6: plugin.abandoned is terminal — no plugin.completed follows for the
+        // same (trace_id, plugin_name, entry_index) triple.
+        // VP-100: exactly one plugin.abandoned per in-flight (plugin_name, entry_index) at drain.
+        let collected_names: std::collections::HashSet<&str> = partial_outcomes
+            .iter()
+            .map(|o| o.plugin_name.as_str())
+            .collect();
+        for (plugin_name, entry_index) in &spawned_entries {
+            if !collected_names.contains(plugin_name.as_str()) {
+                emit_plugin_abandoned(
+                    &base_host_ctx,
+                    plugin_name,
+                    *entry_index,
+                    drain_window_ms_u64,
+                );
             }
         }
     }

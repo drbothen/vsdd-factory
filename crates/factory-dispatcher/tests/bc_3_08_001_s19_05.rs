@@ -180,10 +180,7 @@ fn run_binary(
         .env("VSDD_SINK_FILE", sink_path)
         // Debug-only override for the async drain window (SEC-003 gate).
         // Allows T-001 to use a generous drain and T-002 to use a short drain.
-        .env(
-            "VSDD_ASYNC_DRAIN_WINDOW_MS",
-            drain_window_ms.to_string(),
-        )
+        .env("VSDD_ASYNC_DRAIN_WINDOW_MS", drain_window_ms.to_string())
         // Silence log-dir creation in the test's working directory by pointing
         // CLAUDE_PROJECT_DIR at the plugin_root tempdir.
         .env("CLAUDE_PROJECT_DIR", plugin_root)
@@ -307,30 +304,21 @@ fn test_BC_3_08_001_s19_05_t001_async_exit0_within_drain_emits_plugin_completed(
     );
 
     // Mandatory field 2: trace_id (dispatcher-assigned UUID per DI-017)
-    let trace_id = ev
-        .get("trace_id")
-        .and_then(|v| v.as_str())
-        .unwrap_or("");
+    let trace_id = ev.get("trace_id").and_then(|v| v.as_str()).unwrap_or("");
     assert!(
         !trace_id.is_empty(),
         "T-001: trace_id must be present and non-empty (BC-3.08.001 v1.21 Invariant 1 + DI-017)"
     );
 
     // Mandatory field 3: session_id
-    let session_id = ev
-        .get("session_id")
-        .and_then(|v| v.as_str())
-        .unwrap_or("");
+    let session_id = ev.get("session_id").and_then(|v| v.as_str()).unwrap_or("");
     assert!(
         !session_id.is_empty(),
         "T-001: session_id must be present and non-empty (BC-3.08.001 v1.21 §Common Fields)"
     );
 
     // Mandatory field 4: plugin_name
-    let plugin_name = ev
-        .get("plugin_name")
-        .and_then(|v| v.as_str())
-        .unwrap_or("");
+    let plugin_name = ev.get("plugin_name").and_then(|v| v.as_str()).unwrap_or("");
     assert_eq!(
         plugin_name, "test-async-exit0",
         "T-001: plugin_name must match the registry entry name (BC-3.08.001 v1.21 Event 6)"
@@ -532,20 +520,14 @@ fn test_BC_3_08_001_s19_05_t002_drain_timer_fires_with_in_flight_plugin_emits_ab
     );
 
     // Mandatory field 2: trace_id
-    let trace_id = ev
-        .get("trace_id")
-        .and_then(|v| v.as_str())
-        .unwrap_or("");
+    let trace_id = ev.get("trace_id").and_then(|v| v.as_str()).unwrap_or("");
     assert!(
         !trace_id.is_empty(),
         "T-002: trace_id must be present and non-empty (BC-3.08.001 v1.21 Invariant 1)"
     );
 
     // Mandatory field 3: session_id
-    let session_id = ev
-        .get("session_id")
-        .and_then(|v| v.as_str())
-        .unwrap_or("");
+    let session_id = ev.get("session_id").and_then(|v| v.as_str()).unwrap_or("");
     assert!(
         !session_id.is_empty(),
         "T-002: session_id must be present and non-empty (BC-3.08.001 v1.21 §Common Fields O-P15-001)"
@@ -580,10 +562,7 @@ fn test_BC_3_08_001_s19_05_t002_drain_timer_fires_with_in_flight_plugin_emits_ab
     );
 
     // Mandatory field 7: timestamp (ISO-8601, non-empty)
-    let timestamp = ev
-        .get("timestamp")
-        .and_then(|v| v.as_str())
-        .unwrap_or("");
+    let timestamp = ev.get("timestamp").and_then(|v| v.as_str()).unwrap_or("");
     assert!(
         !timestamp.is_empty(),
         "T-002: timestamp must be present and non-empty (BC-3.08.001 v1.21 Event 5)"
