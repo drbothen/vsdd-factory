@@ -19551,4 +19551,4 @@ Registration burst scope: STORY-INDEX + BC-INDEX + policies.yaml + cycle dir new
 | Commit | SHA | Message |
 |--------|-----|---------|
 | D-835 SM single-commit burst (parent HEAD) | `520f8f50` | factory(D-835): POST-W1-GOVERNANCE burst — session-review W1-merge; 5 lessons; IP-003 decision-log size budget; 4 human decisions; STATE.md v5.81→v5.82 |
-| D-836 SM single-commit burst (TD-VSDD-053) | `TBD` (SHA-patch pending) | factory(D-836): POST-W1-REGISTRATION burst — S-19.08 registered; POLICY 21; BC-5.40.001 v1.2; S-19.05 LOCAL pass-1 persisted; ADR-030 §D3 research persisted; STATE.md v5.82→v5.83 |
+| D-836 SM single-commit burst (TD-VSDD-053) | `6fd31c0f` | factory(D-836): POST-W1-REGISTRATION burst — S-19.08 registered; POLICY 21; BC-5.40.001 v1.2; S-19.05 LOCAL pass-1 persisted; ADR-030 §D3 research persisted; STATE.md v5.82→v5.83 |
