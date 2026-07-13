@@ -1,0 +1,12 @@
+# Fixture: unanchored tool= entry (no leading ^).
+# Used by T-001 / RG-001: lint must detect this as a violation.
+# The entry represents the pre-fix form of any Edit|Write hook.
+schema_version = 2
+
+[[hooks]]
+name = "test-unanchored-hook"
+event = "PostToolUse"
+tool = "Edit|Write"
+plugin = "hook-plugins/test-unanchored-hook.wasm"
+timeout_ms = 5000
+on_error = "continue"

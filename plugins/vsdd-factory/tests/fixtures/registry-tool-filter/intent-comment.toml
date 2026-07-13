@@ -1,0 +1,12 @@
+# Fixture: unanchored tool= entry with # intent: inline comment.
+# Used by T-003 / RG-003: lint must accept intentionally-unanchored entries
+# that carry an # intent: comment (EC-001 exemption).
+schema_version = 2
+
+[[hooks]]
+name = "test-intent-comment-hook"
+event = "PostToolUse"
+tool = "Edit|Write" # intent: unanchored — matches future Tool* extensions
+plugin = "hook-plugins/test-intent-comment-hook.wasm"
+timeout_ms = 5000
+on_error = "continue"
