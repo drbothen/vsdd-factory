@@ -54,9 +54,11 @@ use vsdd_hook_sdk::{HookPayload, HookResult};
 pub const HOST_ABI_VERSION: u32 = 1;
 
 /// Maximum bytes to read from STATE.md via `host::read_file`.
-/// 64 KiB is sufficient for the STATE.md frontmatter; the `factory_lock` block
-/// appears within the first 2 KiB of the file (per BC-4.13.001 Precondition 3).
-pub const STATE_MD_MAX_BYTES: u32 = 65536;
+///
+/// 256 KiB cap per BC-4.13.001 v1.15 Phase-A Precondition 3 (ADR-025 Decision 14).
+/// Worst-case observed STATE.md is <200 KiB under 500-line compaction discipline
+/// (ADR-026); 262144 gives ≥25% headroom over the observed range.
+pub const STATE_MD_MAX_BYTES: u32 = 262144;
 
 /// Timeout in milliseconds for the `host::read_file` call.
 pub const READ_FILE_TIMEOUT_MS: u32 = 5000;
@@ -344,14 +346,61 @@ where
         }
     };
 
-    let content = match String::from_utf8(state_bytes) {
-        Ok(s) => s,
-        Err(e) => {
-            (callbacks.log_warn)(&format!(
-                "StateReadError: STATE.md is not valid UTF-8: {}",
-                e
-            ));
-            return HookResult::Continue;
+    // BC-4.13.001 Invariant 10 soft-warning: emit diagnostic when
+    // bytes_read > soft_warn_threshold (200000) AND bytes_read <= STATE_MD_MAX_BYTES (262144).
+    // Observability-only; never alters the Continue/Block verdict.
+    let bytes_read = state_bytes.len();
+    if bytes_read > 200_000 && bytes_read <= STATE_MD_MAX_BYTES as usize {
+        (callbacks.log_warn)(&format!(
+            "state_md_approaching_cap: bytes_read={} cap_bytes={}",
+            bytes_read, STATE_MD_MAX_BYTES
+        ));
+    }
+
+    // BC-4.13.001 Invariant 9 frontmatter-only mandate: extract the YAML
+    // frontmatter prefix before passing bytes to the YAML parser. The guard
+    // MUST NOT parse file body content.
+    //
+    // extract_frontmatter returns bytes[0..delimiter_start_offset] (exclusive
+    // boundary per AC-005/VP-096) when a closing `\n---\n` or `\n---`-at-EOF
+    // delimiter is found, or the full input when absent. Calling `.to_vec()`
+    // immediately releases the borrow on state_bytes so state_bytes can be
+    // moved below without borrow-checker conflict.
+    let frontmatter_owned: Vec<u8> = flp::extract_frontmatter(&state_bytes).to_vec();
+
+    // When a closing delimiter was found (frontmatter_owned is strictly shorter
+    // than state_bytes), the extracted bytes omit the delimiter itself. Append
+    // a synthetic `\n---\n` so parse_factory_lock can locate its boundary.
+    //
+    // When no delimiter was found (frontmatter_owned == state_bytes), pass the
+    // original full content unchanged so parse_factory_lock returns
+    // MalformedLockBlock("missing closing --- delimiter") per EC-013/PC4.
+    let delimiter_found = frontmatter_owned.len() < state_bytes.len();
+
+    let content = if delimiter_found {
+        let mut parse_input = frontmatter_owned;
+        parse_input.extend_from_slice(b"\n---\n");
+        match String::from_utf8(parse_input) {
+            Ok(s) => s,
+            Err(e) => {
+                (callbacks.log_warn)(&format!(
+                    "StateReadError: STATE.md frontmatter is not valid UTF-8: {}",
+                    e
+                ));
+                return HookResult::Continue;
+            }
+        }
+    } else {
+        // Delimiter absent: move state_bytes (borrow by frontmatter_owned has ended).
+        match String::from_utf8(state_bytes) {
+            Ok(s) => s,
+            Err(e) => {
+                (callbacks.log_warn)(&format!(
+                    "StateReadError: STATE.md is not valid UTF-8: {}",
+                    e
+                ));
+                return HookResult::Continue;
+            }
         }
     };
 
@@ -510,8 +559,16 @@ pub fn on_pre_tool_use(payload: HookPayload) -> HookResult {
 // ---------------------------------------------------------------------------
 #[cfg(test)]
 mod tests {
-    // Test files may use expect/unwrap/panic for failure reporting.
-    #![allow(clippy::expect_used, clippy::unwrap_used, clippy::panic)]
+    // Test files may use expect/unwrap/panic for failure reporting. Red-gate tests assert on
+    // constants intentionally (the constant has the wrong value until the implementation lands).
+    // Padded fixture helpers use repeat().take() for clarity, not performance.
+    #![allow(
+        clippy::expect_used,
+        clippy::unwrap_used,
+        clippy::panic,
+        clippy::assertions_on_constants,
+        clippy::manual_repeat_n
+    )]
 
     use super::*;
     use serde_json::json;
@@ -1335,6 +1392,429 @@ mod tests {
     fn test_BC_4_13_001_trim_git_email_unchanged_when_no_newline() {
         let result = trim_git_email("dev@example.com");
         assert_eq!(result, "dev@example.com");
+    }
+
+    // -----------------------------------------------------------------------
+    // S-19.02 Red Gate tests (T-001, T-002, T-003, T-009)
+    //
+    // These tests FAIL with the current stub/unimplemented state and will pass
+    // only after the implementation tasks for S-19.02 are complete.
+    //
+    // T-001: Asserts STATE_MD_MAX_BYTES == 262144 (AC-001).
+    //   RED because: current value is 65536.
+    //
+    // T-002: 70 KiB fixture + foreign lock → Block (AC-002).
+    //   This test verifies guard_logic handles a 70 KiB mock read correctly.
+    //   The mock bypasses the host cap; the test also asserts the constant is
+    //   at least 70000 (which fails now, ensuring Red Gate).
+    //
+    // T-003: 70 KiB fixture + no lock → Continue (AC-002).
+    //   Same cap assertion makes this a Red Gate.
+    //
+    // T-009: Soft-warning tests A–E (AC-006, BC-4.13.001 Invariant 10).
+    //   RED because: guard_logic does not yet emit state_md_approaching_cap.
+    // -----------------------------------------------------------------------
+
+    /// T-001 (AC-001): STATE_MD_MAX_BYTES == 262144 (256 KiB).
+    ///
+    /// BC-4.13.001 v1.15 Phase-A Precondition 3: the plugin-side compile-time
+    /// cap MUST be 262144. ADR-025 Decision 14.
+    ///
+    /// RED: current value is 65536; assertion fails until Task 9.
+    #[test]
+    fn test_S1902_T001_state_md_max_bytes_is_262144() {
+        assert_eq!(
+            STATE_MD_MAX_BYTES, 262144u32,
+            "AC-001: STATE_MD_MAX_BYTES must equal 262144 (256 KiB) per \
+             BC-4.13.001 v1.15 Phase-A Precondition 3 / ADR-025 Decision 14. \
+             Current value: {}",
+            STATE_MD_MAX_BYTES
+        );
+    }
+
+    /// Build a STATE.md fixture padded to `target_size` bytes.
+    ///
+    /// The frontmatter contains a foreign unexpired factory_lock block. The
+    /// body is padded with comment lines to reach the target byte count.
+    fn state_md_padded_with_foreign_lock(target_size: usize) -> Vec<u8> {
+        let header = concat!(
+            "---\n",
+            "document_type: state\n",
+            "version: \"0.0.1-test\"\n",
+            "phase: test\n",
+            "factory_lock:\n",
+            "  holder: \"other@example.com\"\n",
+            "  locked_at: \"2026-06-10T14:00:00Z\"\n",
+            "  expires_at: \"2099-01-01T00:00:00Z\"\n",
+            "---\n",
+            "\n",
+            "# STATE\n",
+        );
+        let mut bytes = header.as_bytes().to_vec();
+        // Pad with `# padding\n` lines until we reach the target size.
+        let pad_line = b"# padding\n";
+        while bytes.len() < target_size {
+            let remaining = target_size - bytes.len();
+            if remaining >= pad_line.len() {
+                bytes.extend_from_slice(pad_line);
+            } else {
+                bytes.extend(std::iter::repeat(b'#').take(remaining));
+            }
+        }
+        bytes.truncate(target_size);
+        bytes
+    }
+
+    /// Build a STATE.md fixture padded to `target_size` bytes with NO lock.
+    fn state_md_padded_no_lock(target_size: usize) -> Vec<u8> {
+        let header = concat!(
+            "---\n",
+            "document_type: state\n",
+            "version: \"0.0.1-test\"\n",
+            "phase: test\n",
+            "---\n",
+            "\n",
+            "# STATE\n",
+        );
+        let mut bytes = header.as_bytes().to_vec();
+        let pad_line = b"# padding\n";
+        while bytes.len() < target_size {
+            let remaining = target_size - bytes.len();
+            if remaining >= pad_line.len() {
+                bytes.extend_from_slice(pad_line);
+            } else {
+                bytes.extend(std::iter::repeat(b'#').take(remaining));
+            }
+        }
+        bytes.truncate(target_size);
+        bytes
+    }
+
+    /// T-002 (AC-002): 70 KiB fixture with foreign unexpired lock → Block.
+    ///
+    /// AC-002: Plugin reads STATE.md successfully when the file is between 64 KiB
+    /// and 256 KiB and the factory_lock: block is present; correctly detects a
+    /// foreign unexpired lock and returns block intent.
+    ///
+    /// The test also asserts STATE_MD_MAX_BYTES >= 70000 as a compile-time Red
+    /// Gate for the cap-raise requirement.
+    ///
+    /// RED: STATE_MD_MAX_BYTES < 70000 currently (65536); cap assertion fails
+    /// until Task 9 raises it to 262144.
+    #[test]
+    fn test_S1902_T002_70kib_fixture_foreign_lock_returns_block() {
+        // Pre-condition: cap must be at least 70 KiB for this test to be valid.
+        // This assertion is the Red Gate: fails until STATE_MD_MAX_BYTES = 262144.
+        assert!(
+            STATE_MD_MAX_BYTES >= 70_000u32,
+            "AC-002: STATE_MD_MAX_BYTES ({}) must be >= 70000 for this test to exercise \
+             the raised-cap behavior. Raise STATE_MD_MAX_BYTES to 262144 (Task 9).",
+            STATE_MD_MAX_BYTES
+        );
+
+        let fixture = state_md_padded_with_foreign_lock(70_000);
+        assert_eq!(fixture.len(), 70_000, "fixture must be exactly 70000 bytes");
+
+        let warn_log = Arc::new(Mutex::new(Vec::new()));
+        let callbacks = make_callbacks_success(fixture, "self@example.com", warn_log);
+        let payload = payload_for_tool("Edit");
+
+        let result = guard_logic(payload, callbacks);
+
+        match result {
+            HookResult::Block { .. } => {
+                // Correct: 70 KiB fixture with foreign unexpired lock must Block.
+            }
+            other => panic!(
+                "AC-002: 70 KiB fixture with foreign lock must return Block. Got: {:?}",
+                other
+            ),
+        }
+    }
+
+    /// T-003 (AC-002): 70 KiB fixture with no lock → Continue.
+    ///
+    /// AC-002 complement: when a > 64 KiB STATE.md has no lock, the guard
+    /// must return Continue (factory is unlocked).
+    ///
+    /// RED: STATE_MD_MAX_BYTES < 70000 currently; cap assertion fails until
+    /// Task 9 raises it to 262144.
+    #[test]
+    fn test_S1902_T003_70kib_fixture_no_lock_returns_continue() {
+        // Pre-condition Red Gate: same cap assertion as T-002.
+        assert!(
+            STATE_MD_MAX_BYTES >= 70_000u32,
+            "AC-002: STATE_MD_MAX_BYTES ({}) must be >= 70000. Raise to 262144 (Task 9).",
+            STATE_MD_MAX_BYTES
+        );
+
+        let fixture = state_md_padded_no_lock(70_000);
+        assert_eq!(fixture.len(), 70_000, "fixture must be exactly 70000 bytes");
+
+        let warn_log = Arc::new(Mutex::new(Vec::new()));
+        let callbacks = make_callbacks_success(fixture, "self@example.com", warn_log);
+        let payload = payload_for_tool("Edit");
+
+        let result = guard_logic(payload, callbacks);
+
+        assert_eq!(
+            result,
+            HookResult::Continue,
+            "AC-002: 70 KiB fixture with no lock must return Continue (unlocked path)"
+        );
+    }
+
+    /// T-009 (AC-006): Soft-warning emission tests A–E.
+    ///
+    /// BC-4.13.001 v1.15 Invariant 10: guard must emit a `plugin.log` warn entry
+    /// containing `state_md_approaching_cap` when bytes_read is strictly > 200000
+    /// and at or below 262144.
+    ///
+    /// Five sub-tests:
+    ///   A: 210000 bytes → state_md_approaching_cap warn emitted.
+    ///   B: 150000 bytes → zero state_md_approaching_cap log entries.
+    ///   C: 200000 bytes exactly → zero state_md_approaching_cap log entries (strict > threshold).
+    ///   D: 262144 bytes exactly → warn AND read succeeds (cap-exact; inclusive upper bound).
+    ///   E: 262145 bytes → StateReadError (OUTPUT_TOO_LARGE/fail-open) AND zero warn.
+    ///
+    /// RED: guard_logic does not yet emit state_md_approaching_cap; all sub-tests
+    /// that assert warn presence will fail until Task 13.
+    #[test]
+    fn test_S1902_T009_state_md_approaching_cap_warn_logic() {
+        // Pre-condition: constants must be set correctly for these tests.
+        // This assertion is also a Red Gate for the cap raise (Task 9).
+        assert_eq!(
+            STATE_MD_MAX_BYTES, 262144u32,
+            "T-009 requires STATE_MD_MAX_BYTES == 262144 (Task 9 must complete first)"
+        );
+
+        // ---- Sub-test A: 210000 bytes → warn emitted ----
+        {
+            let fixture = state_md_padded_no_lock(210_000);
+            assert_eq!(fixture.len(), 210_000);
+            let warn_log = Arc::new(Mutex::new(Vec::new()));
+            let callbacks = make_callbacks_success(fixture, "self@example.com", warn_log.clone());
+            let payload = payload_for_tool("Edit");
+            let _ = guard_logic(payload, callbacks);
+            let warns = warn_log.lock().unwrap();
+            assert!(
+                warns.iter().any(|w| w.contains("state_md_approaching_cap")),
+                "T-009 A: 210000-byte fixture must emit state_md_approaching_cap warn. Got: {:?}",
+                warns
+            );
+        }
+
+        // ---- Sub-test B: 150000 bytes → NO warn ----
+        {
+            let fixture = state_md_padded_no_lock(150_000);
+            assert_eq!(fixture.len(), 150_000);
+            let warn_log = Arc::new(Mutex::new(Vec::new()));
+            let callbacks = make_callbacks_success(fixture, "self@example.com", warn_log.clone());
+            let payload = payload_for_tool("Edit");
+            let _ = guard_logic(payload, callbacks);
+            let warns = warn_log.lock().unwrap();
+            let approaching_warns: Vec<_> = warns
+                .iter()
+                .filter(|w| w.contains("state_md_approaching_cap"))
+                .collect();
+            assert!(
+                approaching_warns.is_empty(),
+                "T-009 B: 150000-byte fixture must NOT emit state_md_approaching_cap warn. Got: {:?}",
+                approaching_warns
+            );
+        }
+
+        // ---- Sub-test C: 200000 bytes exactly → NO warn (strict > threshold) ----
+        {
+            let fixture = state_md_padded_no_lock(200_000);
+            assert_eq!(fixture.len(), 200_000);
+            let warn_log = Arc::new(Mutex::new(Vec::new()));
+            let callbacks = make_callbacks_success(fixture, "self@example.com", warn_log.clone());
+            let payload = payload_for_tool("Edit");
+            let _ = guard_logic(payload, callbacks);
+            let warns = warn_log.lock().unwrap();
+            let approaching_warns: Vec<_> = warns
+                .iter()
+                .filter(|w| w.contains("state_md_approaching_cap"))
+                .collect();
+            assert!(
+                approaching_warns.is_empty(),
+                "T-009 C: 200000-byte fixture (exact threshold) must NOT emit warn \
+                 (threshold is strictly > 200000). Got: {:?}",
+                approaching_warns
+            );
+        }
+
+        // ---- Sub-test D: 262144 bytes exactly → warn AND read succeeds ----
+        {
+            let fixture = state_md_padded_no_lock(262_144);
+            assert_eq!(fixture.len(), 262_144);
+            let warn_log = Arc::new(Mutex::new(Vec::new()));
+            let callbacks = make_callbacks_success(fixture, "self@example.com", warn_log.clone());
+            let payload = payload_for_tool("Edit");
+            let result = guard_logic(payload, callbacks);
+            let warns = warn_log.lock().unwrap();
+            // Read must succeed at the cap — no StateReadError in warn log, and the no-lock
+            // fixture must return Continue (not Block). StateReadError surfaces via plugin.log
+            // warn entries, not as a distinct HookResult variant.
+            let has_read_error_warn = warns.iter().any(|w| w.contains("StateReadError"));
+            assert!(
+                !has_read_error_warn,
+                "T-009 D: 262144-byte fixture must NOT produce StateReadError (read succeeds at cap). \
+                 Warns: {:?}",
+                warns
+            );
+            assert!(
+                matches!(result, HookResult::Continue),
+                "T-009 D: 262144-byte no-lock fixture must return Continue (read succeeded, no lock held). \
+                 Got: {:?}",
+                result
+            );
+            assert!(
+                warns.iter().any(|w| w.contains("state_md_approaching_cap")),
+                "T-009 D: 262144-byte fixture must emit state_md_approaching_cap warn (inclusive upper bound). \
+                 Got: {:?}",
+                warns
+            );
+        }
+
+        // ---- Sub-test E: 262145 bytes → StateReadError + zero warn ----
+        {
+            let fixture_len = 262_145usize;
+            // Simulate OUTPUT_TOO_LARGE: mock read_file returns Err for oversized files.
+            let warn_log = Arc::new(Mutex::new(Vec::new()));
+            let wl = warn_log.clone();
+            let callbacks = GuardCallbacks {
+                read_file: move |_path, max_bytes, _timeout| {
+                    if fixture_len as u32 > max_bytes {
+                        Err("OutputTooLarge".to_string())
+                    } else {
+                        Ok(state_md_padded_no_lock(fixture_len))
+                    }
+                },
+                exec_subprocess: |_argv| Ok((0, "self@example.com\n".to_string())),
+                log_warn: move |msg: &str| {
+                    wl.lock().unwrap().push(msg.to_string());
+                },
+            };
+            let payload = payload_for_tool("Edit");
+            let result = guard_logic(payload, callbacks);
+            // Must return Continue (fail-open on OutputTooLarge per PC6).
+            assert_eq!(
+                result,
+                HookResult::Continue,
+                "T-009 E: 262145-byte fixture must return Continue (fail-open per PC6 / EC-002)"
+            );
+            let warns = warn_log.lock().unwrap();
+            // Must emit StateReadError warn (fail-open log).
+            assert!(
+                warns
+                    .iter()
+                    .any(|w| w.contains("StateReadError") || w.contains("OutputTooLarge")),
+                "T-009 E: 262145-byte fixture must emit StateReadError/OutputTooLarge warn. Got: {:?}",
+                warns
+            );
+            // Must NOT emit state_md_approaching_cap (file exceeded cap; warn path not reached).
+            let approaching_warns: Vec<_> = warns
+                .iter()
+                .filter(|w| w.contains("state_md_approaching_cap"))
+                .collect();
+            assert!(
+                approaching_warns.is_empty(),
+                "T-009 E: 262145-byte fixture must NOT emit state_md_approaching_cap \
+                 (exceeds cap; warn path never reached). Got: {:?}",
+                approaching_warns
+            );
+        }
+    }
+
+    // -----------------------------------------------------------------------
+    // F-S1902-P1-001: CRLF wiring test (pass-1 adversary finding)
+    //
+    // BC-4.13.001 v1.14→v1.15 amendment (human approved): extract_frontmatter
+    // must recognize `\r\n---\r\n` CRLF delimiter. The wiring test verifies
+    // Invariant 9 via a CRLF STATE.md whose body contains non-UTF-8 bytes.
+    //
+    // With LF-only extract_frontmatter (current):
+    //   - extract_frontmatter returns full content (no CRLF delimiter matched)
+    //   - delimiter_found = false → full bytes passed to String::from_utf8
+    //   - Non-UTF-8 body bytes cause String::from_utf8 to fail
+    //   - guard returns Continue + StateReadError log_warn (fail-open, Invariant 9 violated)
+    //
+    // With CRLF-aware extract_frontmatter (after implementation):
+    //   - extract_frontmatter finds \r\n---\r\n → returns frontmatter-only (UTF-8 valid)
+    //   - delimiter_found = true → frontmatter + "\n---\n" passed to parse_factory_lock
+    //   - Foreign lock detected → guard returns Block
+    // -----------------------------------------------------------------------
+
+    /// F-S1902-P1-001 / T-012: Wiring test — CRLF STATE.md with non-UTF-8 body bytes.
+    ///
+    /// Verifies that guard_logic takes the frontmatter-only path (Invariant 9) for
+    /// CRLF-delimited STATE.md inputs by constructing a fixture where:
+    ///   - The CRLF frontmatter has a valid foreign unexpired factory_lock block.
+    ///   - The body contains `\xFF\xFE` (invalid UTF-8) bytes.
+    ///
+    /// Correct behavior (after fix): Block — frontmatter-only bytes are valid UTF-8;
+    ///   foreign lock is detected and the guard blocks.
+    ///
+    /// Current behavior (RED): Continue + StateReadError warn — the LF-only
+    ///   extract_frontmatter returns the full content including non-UTF-8 body bytes;
+    ///   String::from_utf8 fails on the non-UTF-8 bytes; guard takes the fail-open path.
+    #[test]
+    fn test_S1902_crlf_wiring_non_utf8_body_blocks_on_foreign_lock() {
+        // CRLF frontmatter with foreign unexpired lock — all UTF-8 valid bytes.
+        let mut crlf_bytes: Vec<u8> = b"---\r\n\
+            document_type: state\r\n\
+            version: \"0.0.1-test\"\r\n\
+            phase: test\r\n\
+            factory_lock:\r\n\
+            \x20\x20holder: \"other@example.com\"\r\n\
+            \x20\x20locked_at: \"2026-06-10T14:00:00Z\"\r\n\
+            \x20\x20expires_at: \"2099-01-01T00:00:00Z\"\r\n\
+            ---\r\n"
+            .to_vec();
+        // Append body with non-UTF-8 bytes (\xFF\xFE = invalid UTF-8 start sequence).
+        // The body follows the CRLF closing delimiter.
+        crlf_bytes.extend_from_slice(b"\r\n# Body section\r\n\xFF\xFE padding body\r\n");
+
+        let warn_log: Arc<Mutex<Vec<String>>> = Arc::new(Mutex::new(Vec::new()));
+        let wl = warn_log.clone();
+        let callbacks = GuardCallbacks {
+            read_file: move |_path, _max, _timeout| Ok(crlf_bytes),
+            exec_subprocess: move |_argv| Ok((0, "self@example.com\n".to_string())),
+            log_warn: move |msg: &str| {
+                wl.lock().unwrap().push(msg.to_string());
+            },
+        };
+        let payload = payload_for_tool("Edit");
+
+        let result = guard_logic(payload, callbacks);
+
+        // Must be Block: CRLF frontmatter has a valid foreign unexpired lock.
+        // Correct path (after fix): extract_frontmatter recognizes \r\n---\r\n →
+        //   frontmatter-only bytes (UTF-8 valid) → parse succeeds → Block.
+        match result {
+            HookResult::Block { .. } => {
+                // Correct: frontmatter-only path taken; non-UTF-8 body bytes did not interfere.
+            }
+            HookResult::Continue => {
+                let warns = warn_log.lock().unwrap();
+                panic!(
+                    "F-S1902-P1-001: CRLF STATE.md with foreign unexpired lock must return Block. \
+                     Got Continue. Warns: {:?}. \
+                     Likely cause: extract_frontmatter (LF-only) returned full content including \
+                     non-UTF-8 body bytes; String::from_utf8 failed → fail-open StateReadError path. \
+                     Fix: update extract_frontmatter to recognize \\r\\n---\\r\\n \
+                     per BC-4.13.001 v1.15.",
+                    warns
+                );
+            }
+            other => panic!(
+                "F-S1902-P1-001: expected HookResult::Block for CRLF STATE.md with foreign lock, \
+                 got: {:?}",
+                other
+            ),
+        }
     }
 
     /// build_block_message: all 5 fields present in the message.
