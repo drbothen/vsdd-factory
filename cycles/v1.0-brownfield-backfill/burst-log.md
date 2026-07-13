@@ -19245,4 +19245,4 @@ S-19.01 MERGED PR #613 8d1721f7 2026-07-13T14:49:50Z. Story status: draft→merg
 | Commit | SHA | Contents |
 |--------|-----|----------|
 | D-832 SHA-patch (parent HEAD) | `7b9871aa` | factory(sha-patch): STATE.md Active Branches factory-artifacts HEAD → 9ea81f55; burst-log Block 8 SHA-patch |
-| D-833 SM single-commit burst (TD-VSDD-053) | `TBD` | BC-5.42.001 v1.8 POL-14 promotion; BC-INDEX v3.98; sprint-state.yaml S-19.01 merged; merged-stories-ledger S-19.01 row; decision-log D-833; STORY-INDEX v4.181; STATE.md v5.80; burst-log D-833 (this entry); 4-index BC v3.98/VP v2.67/STORY v4.181/ARCH v3.01 |
+| D-833 SM single-commit burst (TD-VSDD-053) | `828616af` | BC-5.42.001 v1.8 POL-14 promotion; BC-INDEX v3.98; sprint-state.yaml S-19.01 merged; merged-stories-ledger S-19.01 row; decision-log D-833; STORY-INDEX v4.181; STATE.md v5.80; burst-log D-833 (this entry); 4-index BC v3.98/VP v2.67/STORY v4.181/ARCH v3.01 |
