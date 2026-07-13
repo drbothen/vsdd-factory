@@ -1,5 +1,5 @@
 # prefix-only-anchor.toml
-# Fixture for S-19.04 AC-004/AC-005 T-006: prefix-only anchor negative control.
+# Fixture for S-19.04 AC-004/AC-005 T-011 / RG-006: prefix-only anchor negative control.
 #
 # Contains tool = "^Bash" — a value with a leading ^ but NO trailing $.
 # The tightened _lint_tool_filter must FLAG this as a violation because:
