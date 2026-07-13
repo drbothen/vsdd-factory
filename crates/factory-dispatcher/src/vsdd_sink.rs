@@ -128,16 +128,19 @@ mod tests {
 
     use super::flush_sink_file;
 
-    /// F-P5-001: each flushed record must land as its own standalone JSONL line.
+    /// F-P5-001 (well-formedness guard): each flushed record is a standalone JSONL line.
     ///
-    /// Flushes two events and reads the sink file back line-by-line. Every line must:
-    ///   (a) parse independently as valid JSON (no merged lines from split writes), and
-    ///   (b) the file must contain exactly two lines (one per event).
+    /// Flushes two events in a SINGLE-THREADED sequential call and reads the sink back
+    /// line-by-line. Every line must:
+    ///   (a) parse independently as valid JSON, and
+    ///   (b) carry `type == "plugin.completed"` (not a merged partial).
     ///
-    /// This asserts the per-record single-buffer construction that closes F-P5-001:
-    /// `line.push('\n'); file.write_all(line.as_bytes())` is one syscall, so O_APPEND
-    /// provides per-record atomicity for concurrent dispatcher processes writing to the
-    /// same VSDD_SINK_FILE.
+    /// **Scope:** this test verifies newline-presence and JSON well-formedness only.
+    /// It does NOT discriminate between the single-write form (`line.push('\n');
+    /// write_all(line)`) and the broken two-write form (`write_all(payload); write_all("\n")`),
+    /// because single-threaded sequential execution produces byte-identical output for both
+    /// forms. Concurrent O_APPEND atomicity is guarded by the companion test
+    /// `test_flush_sink_file_concurrent_append_no_line_merging_f_p6_001` (#[cfg(unix)]).
     #[test]
     fn test_flush_sink_file_per_record_single_write_atomicity() {
         let tmp = tempfile::tempdir().expect("tempdir");
@@ -184,6 +187,113 @@ mod tests {
                 Some("plugin.completed"),
                 "F-P5-001: line {} type must be 'plugin.completed'",
                 i + 1
+            );
+        }
+    }
+
+    /// F-P6-001: concurrent O_APPEND atomicity discrimination.
+    ///
+    /// Spawns `N_THREADS` threads each calling `flush_sink_file` `ITERS_PER_THREAD` times
+    /// against the SAME sink path. Every call opens its own `O_APPEND` file description
+    /// independently (same-process, different file descriptions) — this reproduces the
+    /// cross-process O_APPEND semantics defined by POSIX and exercises the same write-
+    /// racing window that the production fix targets.
+    ///
+    /// Each event payload is padded to ~440 bytes (well under PIPE_BUF = 512 on macOS /
+    /// 4096 on Linux), so every single `write_all("payload\n")` call in the **fixed form**
+    /// is a POSIX-atomic write. Under the **broken two-write form** (`write_all(payload)`
+    /// then `write_all(b"\n")` as two separate syscalls), a scheduling window exists
+    /// between the two calls; concurrent threads can insert their payload bytes before the
+    /// newline lands, producing merged physical lines such as `{...}{...}\n` which are not
+    /// valid standalone JSON.
+    ///
+    /// **Discrimination criterion:** `total_non_empty_lines == N_THREADS * ITERS_PER_THREAD`
+    /// AND every line parses as valid JSON. Under the two-write form this fails with
+    /// overwhelming probability on any multi-core host; under the single-write form it
+    /// always passes.
+    ///
+    /// **Detection probability (two-write form):** 8 threads × 100 iterations = 800
+    /// concurrent flush calls, each racing at the syscall boundary. On a 4+-core machine
+    /// at least one interleave is virtually certain. If the test runs on a single-core
+    /// environment it may not detect the broken form (but CI hosts are always multi-core).
+    ///
+    /// `#[cfg(unix)]` because the O_APPEND atomicity reasoning is specific to POSIX
+    /// `write(2)` semantics. Windows uses `FILE_APPEND_DATA` with different write-ordering
+    /// guarantees that are not verified here.
+    #[test]
+    #[cfg(unix)]
+    fn test_flush_sink_file_concurrent_append_no_line_merging_f_p6_001() {
+        const N_THREADS: usize = 8;
+        const ITERS_PER_THREAD: usize = 100;
+        const TOTAL_EVENTS: usize = N_THREADS * ITERS_PER_THREAD;
+
+        let tmp = tempfile::tempdir().expect("tempdir");
+        let sink_path = tmp.path().join("concurrent-atomicity.jsonl");
+        let sink_path_str = Arc::new(sink_path.to_str().expect("UTF-8 path").to_string());
+
+        // Use a Barrier so all threads begin their write loops simultaneously,
+        // maximising concurrent-write pressure from the very first iteration.
+        let barrier = Arc::new(std::sync::Barrier::new(N_THREADS));
+
+        let mut handles = Vec::with_capacity(N_THREADS);
+        for thread_idx in 0..N_THREADS {
+            let path = Arc::clone(&sink_path_str);
+            let bar = Arc::clone(&barrier);
+            let handle = std::thread::spawn(move || {
+                bar.wait(); // synchronise all threads before first write
+                for iter_idx in 0..ITERS_PER_THREAD {
+                    // Each call to flush_sink_file opens its own O_APPEND handle.
+                    // Use a fresh per-iteration queue so there is no mutex contention
+                    // on the queue itself — the race is on the FILE, not the queue.
+                    let queue: Arc<Mutex<Vec<InternalEvent>>> =
+                        Arc::new(Mutex::new(Vec::with_capacity(1)));
+                    {
+                        let mut ev = InternalEvent::now("plugin.completed");
+                        ev.dispatcher_trace_id =
+                            Some(format!("trace-t{thread_idx}-i{iter_idx:04}"));
+                        ev.session_id = Some(format!("session-t{thread_idx}-i{iter_idx:04}"));
+                        ev.plugin_name = Some("concurrent-atomicity-test".to_string());
+                        // Pad to ~440-byte total JSON line (under PIPE_BUF on macOS=512 /
+                        // Linux=4096) so each single write_all("payload\n") is POSIX-atomic
+                        // while the payload is large enough to make interleaving windows
+                        // realistic for the broken two-write form.
+                        ev.fields.insert(
+                            "pad".to_string(),
+                            serde_json::Value::String("P".repeat(250)),
+                        );
+                        queue.lock().expect("queue lock").push(ev);
+                    }
+                    flush_sink_file(&path, &queue);
+                }
+            });
+            handles.push(handle);
+        }
+
+        for handle in handles {
+            handle.join().expect("thread join");
+        }
+
+        let content = std::fs::read_to_string(sink_path.as_path()).expect("read concurrent sink");
+        let lines: Vec<&str> = content.lines().filter(|l| !l.is_empty()).collect();
+
+        assert_eq!(
+            lines.len(),
+            TOTAL_EVENTS,
+            "F-P6-001: expected {TOTAL_EVENTS} non-empty JSONL lines (one per event), \
+             got {}; suggests concurrent line merging from split write_all calls \
+             (two-write form interleave detected)",
+            lines.len(),
+        );
+
+        for (i, line) in lines.iter().enumerate() {
+            let parsed: Result<serde_json::Value, _> = serde_json::from_str(line);
+            assert!(
+                parsed.is_ok(),
+                "F-P6-001: line {} is not valid standalone JSON; suggests concurrent \
+                 threads merged their payload bytes from the broken two-write form. \
+                 First 140 chars: {:?}",
+                i + 1,
+                &line[..line.len().min(140)],
             );
         }
     }
