@@ -242,7 +242,7 @@ stories:
   - id: S-15.03
     status: draft
   - id: S-19.01
-    status: draft
+    status: merged
   - id: S-19.02
     status: merged
   - id: S-19.03

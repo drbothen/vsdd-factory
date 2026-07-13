@@ -19133,3 +19133,116 @@ S-19.02 MERGED PR #610 f5ea12e9 2026-07-13T14:33:57Z. Story status: draft→merg
 |--------|-----|----------|
 | D-831 session-wrap (prior HEAD) | `2d7e8124` | factory(pause): note develop-worktree uncommitted state in resume checkpoint |
 | D-832 SM single-commit burst (TD-VSDD-053) | `9ea81f55` | sprint-state.yaml S-19.02 merged; merged-stories-ledger S-19.02 row; decision-log D-832 (POL-3 audit: bash cat >>); STORY-INDEX v4.180; STATE.md v5.79; burst-log D-832 (this entry); 4-index BC v3.97/VP v2.67/STORY v4.180/ARCH v3.01 |
+
+---
+
+## D-833 W1-S1901-MERGED — S-19.01 PR #613 8d1721f7 squash-merged to develop 2026-07-13
+
+### Block 1: Parent-commit
+
+Parent commit: `7b9871aa` (D-832 SHA-patch — factory(sha-patch): STATE.md Active Branches factory-artifacts HEAD → 9ea81f55; burst-log Block 8 SHA-patch). Branch: factory-artifacts. Date: 2026-07-13T14:49:50Z.
+
+### Block 2: Adversary verdict
+
+**Post-merge burst — no adversary pass. D-448(a) source-attestation gate N/A.**
+
+This is a standard post-merge burst for S-19.01 (PR #613). No adv-cycle-pass-N.md was produced. D-448(a) does not apply to post-merge bookkeeping bursts.
+
+**Dim-2 Attestations (literal-shell with captured stdout per D-449(a)):**
+
+**(a) D-444(a) current_step gate:**
+```
+$ grep "^current_step:" .factory/STATE.md
+current_step: "D-833-W1-S1901-MERGED; PIPELINE ACTIVE (2026-07-13); S-19.01 MERGED PR #613 8d1721f7 2026-07-13T14:49:50Z; POL-14 PROMOTED BC-5.42.001 draft→active v1.7→v1.8 (BC-INDEX v3.97→v3.98); merged_count 99→100; develop 8d1721f7; BC-INDEX v3.97→v3.98; STORY-INDEX v4.180→v4.181; trajectory-tail →2→0→0→0; 4-index BC v3.98/VP v2.67/STORY v4.181/ARCH v3.01; PR #611 awaits CI→merge-gate; parent-commit 7b9871aa"
+```
+PASS: current_step cites D-833-W1-S1901-MERGED.
+
+**(b) POLICY 16 gate:**
+```
+$ grep "^## D-" .factory/cycles/v1.0-brownfield-backfill/decision-log.md | tail -5
+## D-828
+## D-829
+## D-830
+## D-832
+## D-833
+```
+PASS: D-833 is next after D-832 (D-831 was session-wrap, STATE.md-only per session-wrap convention; no decision-log.md entry).
+
+**(c) POL-14 gate (BC-5.42.001 lifecycle_status):**
+```
+$ grep "lifecycle_status" .factory/specs/behavioral-contracts/ss-05/BC-5.42.001.md
+lifecycle_status: active
+```
+PASS: BC-5.42.001 lifecycle_status is now `active` — POL-14 promotion completed draft→active at v1.8 (input-hash 95907cf→8d50681).
+
+**(d) 4-index versions:**
+```
+$ grep "^version:" .factory/specs/behavioral-contracts/BC-INDEX.md
+version: "3.98"
+$ grep "^version:" .factory/specs/verification-properties/VP-INDEX.md
+version: "2.67"
+$ grep "^version:" .factory/stories/STORY-INDEX.md
+version: "4.181"
+$ grep "^version:" .factory/specs/architecture/ARCH-INDEX.md
+version: "3.01"
+```
+PASS: BC v3.98 / VP v2.67 / STORY v4.181 / ARCH v3.01. BC-INDEX bumped v3.97→v3.98 (BC-5.42.001 POL-14 promotion cell). STORY-INDEX bumped v4.180→v4.181 (S-19.01 merged). VP/ARCH UNCHANGED.
+
+**(e) D-803 epic heading-parity gate (E-9..E-19, 11 epics):**
+```
+$ for epic_num in 9 10 11 12 13 14 15 16 17 18 19; do
+    epic_file=$(ls ".factory/stories/epics/E-${epic_num}-"*.md 2>/dev/null | head -1)
+    file_ver=$(grep "^version:" "$epic_file" | awk -F'"' '{print $2}' | sed 's/^v//')
+    heading_ver=$(grep "^## Epic E-${epic_num}" .factory/stories/STORY-INDEX.md | grep -oE 'v[0-9]+\.[0-9]+' | tail -1)
+    [ "v${file_ver}" = "$heading_ver" ] && echo "PASS: E-${epic_num} heading=${heading_ver} file=v${file_ver}" || echo "FAIL: E-${epic_num} heading=${heading_ver} file=v${file_ver}"
+  done
+PASS: E-9 heading=v1.53 file=v1.53
+PASS: E-10 heading=v1.6 file=v1.6
+PASS: E-11 heading=v1.1 file=v1.1
+PASS: E-12 heading=v1.3 file=v1.3
+PASS: E-13 heading=v1.0 file=v1.0
+PASS: E-14 heading=v1.2 file=v1.2
+PASS: E-15 heading=v1.3 file=v1.3
+PASS: E-16 heading=v1.0 file=v1.0
+PASS: E-17 heading=v1.1 file=v1.1
+PASS: E-18 heading=v1.3 file=v1.3
+PASS: E-19 heading=v1.27 file=v1.27
+Summary: PASS=11 FAIL=0 Total=11
+```
+PASS: All 11 versioned-heading epics match. D-833 burst did not touch any epic files or ## Epic E-N heading lines.
+
+### Block 3: Files touched
+
+| File | Version | Change |
+|------|---------|--------|
+| `.factory/specs/behavioral-contracts/ss-05/BC-5.42.001.md` | v1.8 | POL-14 auto-promotion: `status: draft→active`; `lifecycle_status: draft→active`; `version: "1.7"→"1.8"`; `timestamp: 2026-07-06T00:00:00Z→2026-07-13T14:49:50Z`; changelog row v1.8 prepended; `last_amended` prepended with v1.8 clause; `modified[]` appended `2026-07-13 (v1.8)`; `input-hash: "95907cf"→"8d50681"` (compute-input-hash --update) |
+| `.factory/specs/behavioral-contracts/BC-INDEX.md` | v3.98 | v3.97→v3.98: `version`; `timestamp`; `last_amended` prepended with D-833 clause; BC-5.42.001 catalog row line 1447 `\| draft \|` → `\| active \|`; v1.8 annotation appended to row |
+| `.factory/stories/sprint-state.yaml` | — | S-19.01 `status: draft` → `status: merged` |
+| `.factory/cycles/v1.0-brownfield-backfill/merged-stories-ledger.md` | — | S-19.01 row appended: `\| S-19.01 \| #613 \| 8d1721f7 \| 2026-07-13 \|` |
+| `.factory/cycles/v1.0-brownfield-backfill/decision-log.md` | D-833 | D-833 W1-S1901-MERGED entry appended (10-clause table + summary; Edit tool per POL-3) |
+| `.factory/stories/STORY-INDEX.md` | v4.181 | v4.180→v4.181: frontmatter version + last_amended; S-19.01 catalog row `draft→merged` + `MERGED PR #613 8d1721f7 2026-07-13T14:49:50Z (D-833).` prefix; wave-summary D-833 clause prepended. WASM fuel timeout on PostToolUse (pre-existing large-file infra; writes succeeded) |
+| `.factory/STATE.md` | v5.80 | v5.79→v5.80: frontmatter (version/timestamp/phase/pipeline-banner/current_step/last_amended); SIZE BUDGET D-833 line; Project Metadata Last Updated + Current Phase; Current Phase Steps S-19.01 DISPATCHED→MERGED + D-833 row; Story Status (merged 97→98, draft 36→35, S-19.01 moved); Active Branches develop 8d1721f7 + factory-artifacts TBD + S-19.01 DELETED row; Concurrent Cycles brownfield row; Decisions Log D-833 row; Session Resume Checkpoint refresh (D-833 checkpoint) |
+| `.factory/cycles/v1.0-brownfield-backfill/burst-log.md` | (this entry) | D-833 8-block entry appended |
+
+### Block 4: Codifications
+
+**D-833 — W1-S1901-MERGED:** S-19.01 (pr-manager-hardening) PR #613 (head 83cfc670) SQUASH-MERGED to develop 8d1721f7 at 2026-07-13T14:49:50Z. Merge commit 8d1721f7b6d034a224a9cd433cf3b859a5129737. CI GREEN pre-merge. (1) POL-14 PROMOTED: BC-5.42.001 lifecycle_status `draft→active` v1.7→v1.8; 5-leg parity: frontmatter status+lifecycle_status active, changelog row v1.8 prepended, modified[] 2026-07-13 appended, last_amended v1.8 prepended, BC-INDEX v3.97→v3.98 catalog cell status draft→active + v1.8 annotation + input-hash 95907cf→8d50681. (2) merged_count 99→100. (3) STORY-INDEX v4.180→v4.181 (S-19.01 draft→merged; wave-summary D-833 clause prepended; MERGED PR #613 8d1721f7 prefix). (4) sprint-state.yaml S-19.01 draft→merged. (5) merged-stories-ledger.md S-19.01 row appended. (6) STATE.md v5.79→v5.80; phase D-832-W1-S1902-MERGED → D-833-W1-S1901-MERGED; develop HEAD f5ea12e9 → 8d1721f7. (7) BC-INDEX v3.97→v3.98; STORY-INDEX v4.180→v4.181; VP-INDEX UNCHANGED v2.67; ARCH-INDEX UNCHANGED v3.01. (8) D-803 11/11 PASS (no epic heading changes in STORY-INDEX this burst). (9) feature/S-19.01 DELETED at merge (HTTP 404 confirmed). (10) 4-index: BC v3.98/VP v2.67/STORY v4.181/ARCH v3.01. Parent-commit: `7b9871aa`.
+
+### Block 5: Dim-2 Attestations
+
+See Block 2 above. All gates literal-shell with captured stdout per D-449(a): D-444(a) current_step PASS (D-833-W1-S1901-MERGED); POLICY 16 PASS (D-832 max in decision-log → D-833 allocated); POL-14 PASS (BC-5.42.001 lifecycle_status: active — PROMOTED); 4-index PASS (BC v3.98/VP v2.67/STORY v4.181/ARCH v3.01); D-803 heading-parity PASS 11/11 (E-9..E-19 all PASS).
+
+### Block 6: Dim-5 Version Attestation
+
+4-index: BC v3.98 / VP v2.67 / STORY v4.181 / ARCH v3.01. BC-INDEX bumped v3.97→v3.98 (BC-5.42.001 POL-14 promotion catalog cell). STORY-INDEX bumped v4.180→v4.181 (S-19.01 merged; wave-summary D-833 clause). VP-INDEX UNCHANGED v2.67. ARCH-INDEX UNCHANGED v3.01.
+
+### Block 7: Closes
+
+S-19.01 MERGED PR #613 8d1721f7 2026-07-13T14:49:50Z. Story status: draft→merged. BC-5.42.001 POL-14 auto-promotion: draft→active v1.7→v1.8 (D-833). feature/S-19.01 DELETED. PR #611 (S-19.03) remains open awaiting CI→merge-gate.
+
+### Block 8: Factory-artifacts Commits
+
+| Commit | SHA | Contents |
+|--------|-----|----------|
+| D-832 SHA-patch (parent HEAD) | `7b9871aa` | factory(sha-patch): STATE.md Active Branches factory-artifacts HEAD → 9ea81f55; burst-log Block 8 SHA-patch |
+| D-833 SM single-commit burst (TD-VSDD-053) | `TBD` | BC-5.42.001 v1.8 POL-14 promotion; BC-INDEX v3.98; sprint-state.yaml S-19.01 merged; merged-stories-ledger S-19.01 row; decision-log D-833; STORY-INDEX v4.181; STATE.md v5.80; burst-log D-833 (this entry); 4-index BC v3.98/VP v2.67/STORY v4.181/ARCH v3.01 |
