@@ -12,7 +12,8 @@
 #   T-003  AC-005         Intent-comment entry → lint clean (EC-001 exemption)
 #   T-004  AC-004/AC-005  Actual hooks-registry.toml post-fix → lint clean (FAILS at Red Gate)
 #   T-005  AC-004         verify-factory-lock pattern is fully anchored (^ AND $) + includes MultiEdit (FAILS at Red Gate)
-#   T-006  AC-004/AC-005  Prefix-only fixture (^Bash, no trailing $) → lint detects violation (negative control)
+#   T-011  AC-004/AC-005  Prefix-only fixture (^Bash, no trailing $) → lint detects violation (negative control)
+#   T-012  AC-004/AC-005  Comment-injection fixture (^Edit" # note "$") → lint detects violation (greedy-dot bypass class)
 #
 # Red Gate status:
 #   T-001..T-003  PASS (test the detection algorithm against controlled fixtures)
@@ -41,7 +42,7 @@ setup() {
 #
 # Implements the gate from AC-004:
 #   grep -E '^tool = ' <file> \
-#     | grep -vE 'tool = ["'"'"']\^.*\$["'"'"']' \
+#     | grep -vE 'tool = ["'"'"']\^[^"'"'"']*\$["'"'"']' \
 #     | grep -vi '# *intent:'
 #
 # The trailing "|| true" prevents the pipeline from propagating a non-zero
@@ -55,7 +56,7 @@ setup() {
 _lint_tool_filter() {
   local toml="$1"
   grep -E '^tool = ' "$toml" \
-    | grep -vE 'tool = ["'"'"']\^.*\$["'"'"']' \
+    | grep -vE 'tool = ["'"'"']\^[^"'"'"']*\$["'"'"']' \
     | grep -vi '# *intent:' \
     || true
 }
@@ -167,7 +168,7 @@ _lint_tool_filter() {
 }
 
 # ---------------------------------------------------------------------------
-# T-006  AC-004/AC-005 — negative control: prefix-only anchor is a violation
+# T-011  AC-004/AC-005 — negative control: prefix-only anchor is a violation
 #
 # A value like "^Bash" (leading ^ present, trailing $ absent) must be
 # detected as a violation by _lint_tool_filter.  This is the load-bearing
@@ -178,7 +179,7 @@ _lint_tool_filter() {
 # Fixture: fixtures/registry-tool-filter/prefix-only-anchor.toml
 #   tool = "^Bash"   (leading ^ present, trailing $ absent → violation)
 # ---------------------------------------------------------------------------
-@test "T-006 AC-004/AC-005: prefix-only anchor (^Bash, no trailing \$) detected as violation" {
+@test "T-011 AC-004/AC-005: prefix-only anchor (^Bash, no trailing \$) detected as violation" {
   local fixture="$FIXTURES_DIR/prefix-only-anchor.toml"
   [ -f "$fixture" ]
   result=$(_lint_tool_filter "$fixture")
@@ -186,6 +187,36 @@ _lint_tool_filter() {
   if [ -z "$result" ]; then
     echo "FAIL: _lint_tool_filter passed 'tool = \"^Bash\"' (no trailing \$); " \
          "lint must FLAG prefix-only anchors as violations"
+    false
+  fi
+}
+
+# ---------------------------------------------------------------------------
+# T-012  AC-004/AC-005 — greedy-dot bypass class: comment-injected $ must be flagged
+#
+# A value like:
+#   tool = "^Edit" # note "$"
+# has a TOML string value of "^Edit" (no trailing $) but a trailing comment
+# containing "$".  A greedy-dot pattern (\^.*\$) would incorrectly match
+# across the closing quote into the comment, falsely classifying this as
+# a compliant fully-anchored entry.
+#
+# The [^"']* quantifier stops at the first quote character, preventing the
+# match from spanning outside the string literal.  This test proves that
+# the bypass class is closed.
+#
+# Fixture: fixtures/registry-tool-filter/comment-inject.toml
+#   tool = "^Edit" # note "$"   (value lacks trailing $; comment has $ → bypass class)
+# ---------------------------------------------------------------------------
+@test "T-012 AC-004/AC-005: comment-injection fixture (^Edit with \$ in comment) flagged as violation" {
+  local fixture="$FIXTURES_DIR/comment-inject.toml"
+  [ -f "$fixture" ]
+  result=$(_lint_tool_filter "$fixture")
+  # Lint must produce non-empty output — trailing $ lives in the COMMENT, not
+  # the string value; the entry has no trailing anchor and must be flagged.
+  if [ -z "$result" ]; then
+    echo "FAIL: _lint_tool_filter passed 'tool = \"^Edit\" # note \"\$\"'; " \
+         "the \$ is in the comment, not the string value — greedy-dot bypass is open"
     false
   fi
 }

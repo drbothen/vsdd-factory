@@ -27,11 +27,13 @@ schema_version = 2
 #   Without anchoring,  tool = "Edit"       matches MultiEdit, MultiEdit*, etc.
 #   Without anchoring,  tool = "Write"      would match a hypothetical MultiWrite.
 #   Without anchoring,  tool = "Bash"       would match a hypothetical BashAsync.
+#   With prefix-only,   tool = "^Bash"      STILL matches BashAsync via regex-SEARCH — both anchors required.
 #
 # Entries that intentionally rely on unanchored (prefix/substring) matching MUST
 # carry an inline `# intent:` comment explaining the design choice (EC-001).
 # The AC-005 bats lint test enforces this invariant in CI:
-#   Every tool= line must either start with ^ or carry an # intent: comment.
+#   Every tool= line must be fully anchored (leading ^ AND trailing $ immediately
+#   before the closing quote) or carry an # intent: comment.
 # ---------------------------------------------------------------------------
 
 # ---------- SessionStart ----------
