@@ -16,3 +16,13 @@
 {"type":"hook.block","hook":"validate-count-propagation","reason":"count_propagation_drift","ts":"2026-07-10T13:08:18-0600","ts_epoch":1783710498,"schema_version":1}
 {"type":"hook.block","hook":"validate-count-propagation","reason":"count_propagation_drift","ts":"2026-07-10T13:08:44-0600","ts_epoch":1783710524,"schema_version":1}
 {"type":"hook.block","hook":"validate-table-cell-count","reason":"table_cell_count","ts":"2026-07-10T13:20:58-0600","ts_epoch":1783711258,"schema_version":1}
+{"type":"hook.block","hook":"protect-secrets","reason":"secret_var_echo","ts":"2026-07-10T14:11:33-0600","ts_epoch":1783714293,"schema_version":1}
+{"type":"hook.block","hook":"protect-secrets","reason":"secret_var_echo","ts":"2026-07-10T14:11:40-0600","ts_epoch":1783714300,"schema_version":1}
+{"type":"hook.block","hook":"validate-table-cell-count","reason":"table_cell_count","ts":"2026-07-10T14:55:35-0600","ts_epoch":1783716935,"schema_version":1}
+{"type":"hook.block","hook":"validate-table-cell-count","reason":"table_cell_count","ts":"2026-07-10T14:55:51-0600","ts_epoch":1783716951,"schema_version":1}
+{"type":"hook.block","hook":"validate-changelog-monotonicity","reason":"changelog_frontmatter_mismatch","ts":"2026-07-10T15:32:44-0600","ts_epoch":1783719164,"schema_version":1}
+{"type":"hook.block","hook":"validate-input-hash","reason":"input_hash_drift","ts":"2026-07-10T16:52:17-0600","ts_epoch":1783723937,"schema_version":1}
+{"type":"hook.block","hook":"validate-input-hash","reason":"input_hash_drift","ts":"2026-07-10T18:19:57-0600","ts_epoch":1783729197,"schema_version":1}
+{"type":"hook.block","hook":"validate-template-compliance","reason":"template_drift","ts":"2026-07-10T18:28:12-0600","ts_epoch":1783729692,"schema_version":1}
+{"type":"hook.block","hook":"validate-input-hash","reason":"input_hash_format","ts":"2026-07-10T18:30:11-0600","ts_epoch":1783729811,"schema_version":1}
+{"type":"hook.block","hook":"validate-template-compliance","reason":"template_drift","ts":"2026-07-10T19:18:21-0600","ts_epoch":1783732701,"schema_version":1}

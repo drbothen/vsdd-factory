@@ -7,7 +7,7 @@ producer: state-manager
 timestamp: 2026-04-26T12:00:00Z
 cycle: v1.0-brownfield-backfill
 inputs: [STATE.md]
-input-hash: "095e905"
+input-hash: "f528d6b"
 traces_to: STATE.md
 ---
 
@@ -907,6 +907,19 @@ Summary of D-787 checkpoint (archived reference):
 - 4-index: BC v3.86 / VP v2.55 / STORY v4.165 / ARCH v2.97. L2-INDEX v1.0.14. total_bcs 1,977.
 - develop HEAD: `f5242bef` / main HEAD: `a04cb303` / factory-artifacts HEAD: `986ba545` (D-787 burst) / merged_count 98
 - D-range: D-001..D-787
+
+---
+
+## D-830 Checkpoint (archived 2026-07-13 by D-831 session wrap — SESSION-WRAP-PAUSED)
+
+**Superseded by D-831 SESSION-WRAP-PAUSED checkpoint (STATE.md §Session Resume Checkpoint).**
+
+Summary of D-830 checkpoint (archived reference):
+- D-830 (2026-07-12): W1-RECONCILE-4 — POLICY 14 leg-5 reconcile for VP-097 v1.5 + S-19.01 v1.18. VP-INDEX v2.66→v2.67 (VP-097 v1.5 Full+Story Anchors appended); STORY-INDEX v4.178→v4.179 (S-19.01 v1.18 catalog-cell + wave-summary). POLICY 9 PASS (VP-097 H1 title UNCHANGED). D-803 heading-parity 11/11 PASS. E-19 convergence NOT RESET. 4-index BC v3.97/VP v2.67/STORY v4.179/ARCH v3.01. S-19.01 pass-10 running streak 0/3; S-19.02 CONVERGED PR#610 merge-blocked-on-vss-CI-fix; S-19.03 pass-5 streak 0/3. validate-state-structure CI-fix in flight on fix/vss-trajectory-tail-count (develop bats-full-suite RED since July 10).
+- Session context (2026-07-11→2026-07-13): E-19 converged 3/3 (passes 59/60/61); W1 TDD dispatched (D-825); spec-evolution fully reconciled D-827..D-830; W1 merge-choreography in progress; develop CI RED. Session then wrapped D-831 (human /wrap directive) after: PR #612 squash-merged da2f648f (trajectory-tail fix; 13/13 CI GREEN); sprint-state.yaml fix (67b81a92); W1 merge-choreography COMPLETED cleanly (feature/S-19.01 → 83cfc670; feature/S-19.02 → 6e247a6b; feature/S-19.03 → 673490c7).
+- 4-index: BC v3.97 / VP v2.67 / STORY v4.179 / ARCH v3.01. L2-INDEX v1.0.14. total_bcs 1,977.
+- develop HEAD: `da2f648f` (origin; local `f5242bef` 1-behind) / main HEAD: `a04cb303` / factory-artifacts HEAD: `949c8690` (D-830 burst) / merged_count 98
+- D-range: D-001..D-830 (see decision-log.md for full range)
 
 ---
 
