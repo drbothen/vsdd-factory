@@ -126,7 +126,7 @@ dtu_services: []
 |--------------|-----|-------|
 | main | a04cb303 | rc.22 bot binary bundle commit 2026-07-03 (Release 28668124787 post-build; all 33 WASMs rebuilt, plugin.json → 1.0.0-rc.22); prior: e4285fe5 (PR #456 true-merge fix mapfile→while-read; rc.22 tag); prior: 2a4c949b (PR #455 true-merge first rc.22 release; tag later moved); prior: caf06c68 (rc.21) |
 | develop | 091ce499 | PR #611 S-19.03 squash-merge 2026-07-13T15:54:21Z; prior: 8d1721f7 (PR #613 S-19.01 squash-merge 2026-07-13); prior: f5ea12e9 (PR #610 S-19.02 squash-merge 2026-07-13) |
-| factory-artifacts | TBD (D-834 post-merge burst in progress) | D-834-BURST TBD; D-833-BURST `828616af`; D-832-BURST `9ea81f55`; D-831-session-wrap-1 `a3c8f0e4` |
+| factory-artifacts | `bda69b22` (D-834 post-merge burst 2026-07-13) | D-834-BURST `bda69b22`; D-833-BURST `828616af`; D-832-BURST `9ea81f55`; D-831-session-wrap-1 `a3c8f0e4` |
 | feature/S-19.03 | **DELETED** (was 673490c7) | Merged via PR #611 091ce499 2026-07-13 (D-834); branch deleted at merge |
 | feature/S-19.01 | **DELETED** (was 83cfc670) | Merged via PR #613 8d1721f7 2026-07-13 (D-833); branch deleted at merge |
 | feature/S-18.12 | **DELETED** (was 9cbd9439) | Merged via PR #384 ec05606a 2026-07-01 (D-744); branch deleted post-merge |

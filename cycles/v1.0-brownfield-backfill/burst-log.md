@@ -19344,4 +19344,4 @@ merged_count 100→101. S-19.03 row appended to merged-stories-ledger.md (| S-19
 | Commit | SHA | Message |
 |--------|-----|---------|
 | D-833 SHA-patch (parent HEAD) | `04c8564a` | factory(sha-patch): STATE.md Active Branches factory-artifacts HEAD → 828616af; burst-log Block 8 SHA-patch |
-| D-834 SM single-commit burst (TD-VSDD-053) | TBD | BC-2.07.001 v1.6 POL-14 promotion; BC-INDEX v3.99; sprint-state.yaml S-19.03 merged; merged-stories-ledger S-19.03 row; decision-log D-834; STORY-INDEX v4.182; STATE.md v5.81; burst-log D-834 (this entry); 4-index BC v3.99/VP v2.67/STORY v4.182/ARCH v3.01; WAVE 1 COMPLETE |
+| D-834 SM single-commit burst (TD-VSDD-053) | `bda69b22` | BC-2.07.001 v1.6 POL-14 promotion; BC-INDEX v3.99; sprint-state.yaml S-19.03 merged; merged-stories-ledger S-19.03 row; decision-log D-834; STORY-INDEX v4.182; STATE.md v5.81; burst-log D-834 (this entry); 4-index BC v3.99/VP v2.67/STORY v4.182/ARCH v3.01; WAVE 1 COMPLETE |
