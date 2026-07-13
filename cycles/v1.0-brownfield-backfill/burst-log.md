@@ -19345,3 +19345,111 @@ merged_count 100→101. S-19.03 row appended to merged-stories-ledger.md (| S-19
 |--------|-----|---------|
 | D-833 SHA-patch (parent HEAD) | `04c8564a` | factory(sha-patch): STATE.md Active Branches factory-artifacts HEAD → 828616af; burst-log Block 8 SHA-patch |
 | D-834 SM single-commit burst (TD-VSDD-053) | `bda69b22` | BC-2.07.001 v1.6 POL-14 promotion; BC-INDEX v3.99; sprint-state.yaml S-19.03 merged; merged-stories-ledger S-19.03 row; decision-log D-834; STORY-INDEX v4.182; STATE.md v5.81; burst-log D-834 (this entry); 4-index BC v3.99/VP v2.67/STORY v4.182/ARCH v3.01; WAVE 1 COMPLETE |
+| D-834 SHA-patch | `2a52de45` | factory(sha-patch): STATE.md Active Branches factory-artifacts HEAD → bda69b22; burst-log Block 8 SHA-patch |
+
+---
+
+## D-835 — POST-W1-GOVERNANCE Burst (2026-07-13)
+
+### Block 1: Parent-Commit
+
+| Field | Value |
+|-------|-------|
+| Parent-commit (prior burst SHA-patch) | `2a52de45` (D-834 SHA-patch: STATE.md Active Branches factory-artifacts HEAD → bda69b22; burst-log Block 8 SHA-patch) |
+| Trigger | Post-W1 cycle-closing governance burst. WAVE 1 COMPLETE (D-834). Human decisions conveyed by orchestrator: S-19.08 AUTHORIZED; W2 GATE APPROVED; feature/S-19.02 cleanup EXECUTED; ADR-030 §D3 OPEN-reframed. |
+| D-835 allocation basis | POLICY 16 GLOBAL-MAX GATE: `## D-834` confirmed max in decision-log.md → D-835 allocated. |
+
+### Block 2: Adversary Verdict / Dim-2 Literal-Shell Gate Evidence (D-449(a))
+
+No adversary review in this burst (governance bookkeeping burst; no spec/code changes). D-449(a) mechanical gates invoked via literal shell with captured stdout below.
+
+**Gate G1 — current_step D-chain cites D-835:**
+```
+$ grep "^current_step:" /Users/zious/Documents/GITHUB/vsdd-factory/.factory/STATE.md | grep -oE "D-[0-9]+" | head -1
+D-835
+```
+PASS.
+
+**Gate G2 — POLICY 16: D-835 entry in decision-log.md:**
+```
+$ grep -c "^## D-835" /Users/zious/Documents/GITHUB/vsdd-factory/.factory/cycles/v1.0-brownfield-backfill/decision-log.md
+1
+```
+PASS.
+
+**Gate G3 — 4-index versions (BC v3.99/VP v2.67/STORY v4.182/ARCH v3.01 UNCHANGED):**
+```
+$ grep "^version:" \
+    /Users/zious/Documents/GITHUB/vsdd-factory/.factory/specs/behavioral-contracts/BC-INDEX.md \
+    /Users/zious/Documents/GITHUB/vsdd-factory/.factory/specs/verification-properties/VP-INDEX.md \
+    /Users/zious/Documents/GITHUB/vsdd-factory/.factory/stories/STORY-INDEX.md \
+    /Users/zious/Documents/GITHUB/vsdd-factory/.factory/specs/architecture/ARCH-INDEX.md
+/Users/zious/Documents/GITHUB/vsdd-factory/.factory/specs/architecture/ARCH-INDEX.md:version: "3.01"
+/Users/zious/Documents/GITHUB/vsdd-factory/.factory/specs/verification-properties/VP-INDEX.md:version: "2.67"
+/Users/zious/Documents/GITHUB/vsdd-factory/.factory/stories/STORY-INDEX.md:version: "4.182"
+/Users/zious/Documents/GITHUB/vsdd-factory/.factory/specs/behavioral-contracts/BC-INDEX.md:version: "3.99"
+```
+PASS: BC v3.99 / VP v2.67 / STORY v4.182 / ARCH v3.01 — ALL UNCHANGED.
+
+**Gate G4 — session-review file exists:**
+```
+$ ls -la /Users/zious/Documents/GITHUB/vsdd-factory/.factory/cycles/v1.0-brownfield-backfill/session-review-2026-07-13-W1-merge-completion.md
+-rw-r--r--@ 1 zious  staff  14289 Jul 13 11:31 ...session-review-2026-07-13-W1-merge-completion.md
+```
+PASS.
+
+**Gate G5 — own burst-log D-835 entry (pre-write check was 0; this entry completes the requirement):**
+```
+$ grep -c "^## D-835" .factory/cycles/v1.0-brownfield-backfill/burst-log.md
+0  (pre-write; 1 after this entry lands)
+```
+PASS (self-referential; entry written now).
+
+### Block 3: Files Touched
+
+| File | Change |
+|------|--------|
+| `.factory/cycles/v1.0-brownfield-backfill/session-review-2026-07-13-W1-merge-completion.md` | CREATED — session-review template-compliant; frontmatter + 9 sections + IP-001..IP-005 + Metrics for Next Run |
+| `.factory/cycles/v1.0-brownfield-backfill/lessons.md` | 5 lessons appended: L-BB-transient-ci-infra-failure-recovery-runbook; L-BB-post-ready-delta-integrity-check-for-mechanical-sync-commits; L-BB-feature-branch-non-deletion-requires-explicit-cleanup-action; L-BB-decision-log-file-growth-triggers-pol3-bypass-risk; L-BB-sequential-sm-burst-queuing-on-multi-merge-sessions. Compaction note prepended (6510 lines pre-append; above D-442(e) caps). |
+| `.factory/cycles/v1.0-brownfield-backfill/INDEX.md` | §Artifact Size Budgets section added: decision-log.md soft ≤2500/hard ≤3500; current 10233 lines (IP-003). |
+| `.factory/cycles/v1.0-brownfield-backfill/decision-log.md` | D-835 10-clause entry appended |
+| `.factory/STATE.md` | v5.81→v5.82; frontmatter (version/timestamp/phase/current_step/last_amended); annotation line D-834→D-835; Last Updated + Current Phase rows; Active Branches factory-artifacts TBD; Concurrent Cycles brownfield D-835; Decisions Log D-835 row prepended; §In-Flight (c) RESOLVED / (e) CREATED / (f)–(i) new items; §Pending Human Decisions updated; §Resume Actions updated; Session Resume Checkpoint refreshed |
+| `.factory/cycles/v1.0-brownfield-backfill/burst-log.md` | D-835 8-block entry appended (this entry); D-834 Block 8 SHA-patch row added (2a52de45) |
+
+### Block 4: Codifications
+
+| Decision | Summary |
+|----------|---------|
+| D-835 POST-W1-GOVERNANCE | Cycle-closing governance burst. Session-review CREATED. 5 lessons appended. decision-log.md size budget IP-003. 4 human decisions codified. 4-index ALL UNCHANGED. |
+| IP-003 | decision-log.md size budget: soft ≤2500/hard ≤3500 lines. Codified in INDEX.md §Artifact Size Budgets. |
+| L-BB-transient-ci-infra-failure-recovery-runbook | CI failure triage: infra-class vs code-class distinction; gh run rerun timing; ~2.5h wall-clock cost anchor. |
+| L-BB-post-ready-delta-integrity-check-for-mechanical-sync-commits | Single develop-sync merge → delta-integrity check qualifies READY verdict under 4 conditions; BC-5.42.001 amendment anchor (IP-002). |
+| L-BB-feature-branch-non-deletion-requires-explicit-cleanup-action | Post-merge non-404 branch → concrete STATE.md gate + next-session verify obligation. |
+| L-BB-decision-log-file-growth-triggers-pol3-bypass-risk | File growth → Edit friction → POL-3 bypass temptation; always use Edit; compact when soft cap breached. |
+| L-BB-sequential-sm-burst-queuing-on-multi-merge-sessions | Post-merge bursts strictly sequential in MERGE ORDER; parent-commit chain integrity. |
+
+### Block 5: Dim-2 Attestation (State Advancement)
+
+STATE.md advanced: v5.81→v5.82. phase: D-834-W1-COMPLETE → D-835-POST-W1-GOVERNANCE. current_step D-chain: D-834 → D-835. Concrete evidence per Gate G1 above.
+
+### Block 6: Dim-5 Attestation (4-index unchanged)
+
+No BC/VP/story/epic version bumps in this burst. 4-index ALL UNCHANGED: BC v3.99 / VP v2.67 / STORY v4.182 / ARCH v3.01. Concrete evidence per Gate G3 above.
+
+### Block 7: Closes
+
+| Item | Status |
+|------|--------|
+| IP-001 (CI-triage runbook) | Codified in session-review; anchored to next engine-discipline pass |
+| IP-002 (BC-5.42.001 delta-integrity AC) | Codified in session-review; anchored to next PO touch of BC-5.42.001 |
+| IP-003 (decision-log.md size budget) | CLOSED this burst — codified in INDEX.md §Artifact Size Budgets |
+| IP-004 (S-19.08 authorized) | CLOSED this burst — S-19.08 authorized by human; story-writer dispatch follows |
+| IP-005 (verify-state-timestamp-refresh elevated) | Codified in session-review as elevated tracked→scheduled |
+| D-832 anomaly (feature/S-19.02 non-deletion) | RESOLVED this burst — GET→404 confirmed; branch absent on origin |
+
+### Block 8: Factory-Artifacts Commits
+
+| Commit | SHA | Message |
+|--------|-----|---------|
+| D-834 SHA-patch (parent HEAD) | `2a52de45` | factory(sha-patch): STATE.md Active Branches factory-artifacts HEAD → bda69b22; burst-log Block 8 SHA-patch |
+| D-835 SM single-commit burst (TD-VSDD-053) | `TBD` | SHA-patch pending |

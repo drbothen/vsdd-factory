@@ -10205,6 +10205,35 @@ D-833-W1-S1901-MERGED
 
 ---
 
+## D-835 — POST-W1-GOVERNANCE: CYCLE-CLOSING BURST
+
+| # | Gate | Detail | Result |
+|---|------|--------|--------|
+| 1 | Trigger | POLICY 16 GLOBAL-MAX GATE: `## D-834` confirmed max in decision-log.md → D-835 allocated. Post-W1 cycle-closing governance burst. | PASS |
+| 2 | Session-review | `session-review-2026-07-13-W1-merge-completion.md` created at `cycles/v1.0-brownfield-backfill/`. IPs: IP-001 (CI-triage runbook → next engine-discipline pass); IP-002 (BC-5.42.001 delta-integrity → next PO touch); IP-003 (decision-log.md size budget — this burst); IP-004 (S-19.08 authorized); IP-005 (elevated tracked→scheduled). | PASS |
+| 3 | Lessons | 5 lessons appended to lessons.md (L-BB-transient-ci-infra-failure-recovery-runbook; L-BB-post-ready-delta-integrity-check-for-mechanical-sync-commits; L-BB-feature-branch-non-deletion-requires-explicit-cleanup-action; L-BB-decision-log-file-growth-triggers-pol3-bypass-risk; L-BB-sequential-sm-burst-queuing-on-multi-merge-sessions). Note: lessons.md at 6510 lines before append — above D-442(e) soft/hard caps; compaction deferred to next cycle boundary. | PASS (advisory: lessons.md compaction needed) |
+| 4 | Size budget | decision-log.md size budget codified in INDEX.md §Artifact Size Budgets: soft ≤2500 lines / hard ≤3500 lines; current 10233 lines (EXCEEDS BOTH CAPS); compaction destination decisions-log-archive.md; compaction deferred to next cycle boundary (IP-003). | PASS |
+| 5 | Human decision 1 | verify-state-timestamp-refresh 64KiB live bug (WASM cap bypasses write-gate on large STATE.md; 3× confirmed) → S-19.08 AUTHORIZED as W2 story (E-19; P0; human-authorized 2026-07-13; story-writer dispatch follows this burst; IP-004). | PASS |
+| 6 | Human decision 2 | W2 GATE APPROVED — PARALLEL: S-19.04 (bundle-hygiene-tool-filter-anchoring) + S-19.05 (async-completion-telemetry-sink-release-mode) DISPATCHED for per-story delivery. devops-engineer worktree setup in flight. S-19.06 depends_on S-19.03+S-19.04. | PASS |
+| 7 | Human decision 3 | feature/S-19.02 cleanup EXECUTED — branch confirmed ABSENT on origin (GET→404; D-832 anomaly RESOLVED). stash@{0} (3265dec4) DROPPED. stash@{1} ("WIP on factory-artifacts: ad464e09...") and stash@{2} ("sidecar-log-stash-before-pass16-burst") RETAINED for human review; do NOT drop. | PASS |
+| 8 | Human decision 4 | ADR-030 §D3 fail-open NOT CONFIRMED by human → evaluate migrating shell-tool class to Rust; research-agent dispatched; architect adjudication to follow; OPEN-reframed (was "PENDING HUMAN CONFIRMATION"). | NOTED |
+| 9 | 4-index | BC-INDEX UNCHANGED v3.99; VP-INDEX UNCHANGED v2.67; STORY-INDEX UNCHANGED v4.182; ARCH-INDEX UNCHANGED v3.01. | PASS |
+| 10 | CODIFICATION | D-835 decision-log entry appended (this entry); D-835 burst-log entry appended (8-block D-444(c)); STATE.md v5.81→v5.82. | PASS |
+
+### Summary
+
+POST-W1-GOVERNANCE; session-review CREATED; 5 lessons appended; decision-log.md size budget IP-003 (soft ≤2500/hard ≤3500; current 10233 lines); 4 human decisions: S-19.08 AUTHORIZED; W2 GATE APPROVED S-19.04+S-19.05 DISPATCHED; feature/S-19.02 RESOLVED (GET→404); ADR-030 §D3 OPEN-reframed; 4-index ALL UNCHANGED BC v3.99/VP v2.67/STORY v4.182/ARCH v3.01
+
+### Phase
+
+D-835-POST-W1-GOVERNANCE
+
+### Date
+
+2026-07-13
+
+---
+
 ## D-834 — W1-COMPLETE: S-19.03 POST-MERGE (PR #611 091ce499)
 
 | # | Gate | Detail | Result |

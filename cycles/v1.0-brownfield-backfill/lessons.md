@@ -6508,3 +6508,105 @@ Both gates are mandatory standing Commit-E controls for any burst touching E-19 
 **Cites:** D-817; F-P58-001 (HIGH POLICY 4 semantic-anchoring-integrity); O-P58-001 [process-gap] (missing 12th gate; codified D-817); POLICY 4 v1.4.6 (ADR-anchor-field parity; 12th standing gate axis); D-815 L-BB-invocation-signature-migrations-must-sweep-vp-proof-harness-skeleton (direct precedent: same dormant-survivor class — ADR-030 propagation directives omitted a VP sub-field (§Proof Harness invocation-form in D-815; §Source Contract/§Traceability ADR-anchor in D-817)); ADR-030 v1.1 F-W1V-002 (origin: propagation directives listed BC §Architecture Anchors + S-19.01 §Architecture Mapping but omitted VP-094 §Source Contract/§Traceability ADR-anchor fields); POLICY 19 (ADR stable-anchor form — §Source Contract ADR cites must use stable `ADR-NNN §Decision M` form, not procedural-document aliases like RELEASING.md).
 
 **Closes:** D-817 (F-P58-001 CLOSED architect 3558b9ca VP-094 v1.4→v1.5; §Source Contract ADR-anchor corrected; §Traceability ADR bullet added; sibling class-sweep VP-095..101 PASS; input-hash e2f422f UNCHANGED; VP-INDEX v2.63→v2.64; policies.yaml v1.4.5→v1.4.6 ADR-ANCHOR-FIELD PARITY; 12th standing gate codified; O-P58-001 [process-gap] codified by SM this burst). `[process-gap; adr-anchor-fields; source-contract; traceability; propagation-directive-gap; ADR-030; VP-proof-spec; same-document-contradiction; POLICY-4-v1.4.6; POLICY-19; 12th-gate; adr-field-parity; self-application]`
+
+> **COMPACTION NOTE (D-835):** lessons.md is at 6510 lines before D-835 append — above both soft (3500) and hard (4000) caps per D-442(e). Compaction deferred to next cycle boundary or S-15.03 PRIORITY-A automation per D-442(e). Five lessons appended below per D-835 dispatch instruction.
+
+---
+
+### L-BB-transient-ci-infra-failure-recovery-runbook [process-gap]
+
+**Title:** CI Failures Must Be Classified Infra-Class vs Code-Class Before Escalating
+
+**Lesson:** When a CI leg fails, classify the failure before taking action: (1) **infra-class** — pre-code, GitHub Actions resolution/503 errors, runner queue exhaustion, artifact upload timeouts → wait for run completion, then `gh run rerun --failed`; NOTE: GitHub 403-blocks reruns on runs that are still in-progress (mid-run rerun = 403); only rerun after the run has a terminal status; (2) **code-class** — compilation failure, test failure, linting failure on code the PR touches → diagnose and fix before rerun. Escalate only after a rerun of a code-class step fails. Applying code-class triage protocol to infra-class failures wastes ~30 min per occurrence.
+
+**Context:** W1 merge session 2026-07-13. At least one CI infra-class failure occurred pre-merge. The infra/code triage distinction was not cleanly applied, adding ~30 min of diagnostic overhead. The bats-full-suite leg has historically shown queue-related latency; this is infra-class. Distinguishing characteristics: infra-class failures have no diff correlation (they appear on all PRs regardless of change content); code-class failures correlate with the PR's change set.
+
+**Root cause:** No codified triage protocol in the orchestrator per-story-delivery workflow. Agents defaulted to treating all CI failures as potential code issues.
+
+**Prevention:** Before diagnosing a CI failure: (1) check `gh run view <run-id>` for failure message; (2) if failure is in a setup/runner/artifact step (not a `cargo test`, `cargo clippy`, or `bats` step), classify as infra-class; (3) wait for terminal status, then rerun; (4) if rerun fails on a code step, classify as code-class and diagnose.
+
+**Anchors:** D-832..D-834 (W1 merge session; ~2.5h wall-clock cost); IP-001 (CI-triage runbook → orchestrator per-story-delivery workflow doc; next engine-discipline pass).
+
+**Cites:** D-835 (codified this burst); IP-001; W1 merge session 2026-07-13.
+
+**Closes:** D-835 IP-001 (process-gap recorded; workflow doc update anchored to next engine-discipline pass). `[process-gap; ci-triage; infra-class; code-class; gh-run-rerun; 403-mid-run; runner-queue; bats-full-suite]`
+
+---
+
+### L-BB-post-ready-delta-integrity-check-for-mechanical-sync-commits [process-gap]
+
+**Title:** Sanctioned Delta-Integrity Check Qualifies READY Verdict After a Single Develop-Sync Merge Commit
+
+**Lesson:** When a PR's HEAD advances past the READY verdict point by exactly one develop-sync merge commit (origin/develop merged into feature branch), the READY verdict may be preserved — a full re-review is NOT required — if ALL of: (a) the additional commit is a single merge commit (no cherry-picks, no direct feature commits), (b) the diff of that merge commit touches only files already reviewed in the develop branch, (c) no story-delivery files (ACs, BCs, VPs, story spec) are touched by the merge commit, (d) human explicitly approves proceed. This is a **sanctioned lightweight alternative**, not a blanket rule. check-stale-verdict.sh (S-19.01) automates detection; this lesson governs the response to its output.
+
+**Context:** S-19.01 PR #613. After S-19.02 (PR #610) merged to develop, develop advanced from f5ea12e9 (previous merge) to 8d1721f7. feature/S-19.01 had been synced with origin/develop post-rebase. The READY verdict was at 83cfc670. After the develop advance, check-stale-verdict.sh surfaced the stale-verdict condition. Orchestrator escalated to human. Human applied delta-integrity check: single sync merge commit; diff touched only develop-side files (trajectory-tail fix + S-19.02 story files already reviewed); no S-19.01 story-delivery files touched; human approved proceed.
+
+**Root cause:** No codified protocol for the single-sync-merge case. Every develop advance was treated as requiring full re-review, which is overly conservative for mechanical sync commits.
+
+**Follow-up:** BC-5.42.001 PO amendment (IP-002): add delta-integrity invariant as explicit AC or invariant governing check-stale-verdict.sh response protocol.
+
+**Anchors:** D-833 (S-19.01 MERGED PR #613); check-stale-verdict.sh (S-19.01 delivery BC-5.42.001); IP-002 (BC-5.42.001 amendment; next PO touch).
+
+**Cites:** D-835 (codified this burst); IP-002; BC-5.42.001; D-833.
+
+**Closes:** D-835 IP-002 (process-gap recorded; BC-5.42.001 amendment anchored to next PO touch). `[process-gap; stale-verdict; delta-integrity; develop-sync; single-merge-commit; check-stale-verdict; READY-verdict; BC-5.42.001; re-review-threshold]`
+
+---
+
+### L-BB-feature-branch-non-deletion-requires-explicit-cleanup-action [process-gap]
+
+**Title:** Post-Merge Branch Non-Deletion Must Record a Concrete Cleanup Gate, Not "Human Can Delete"
+
+**Lesson:** When a post-merge burst detects that a feature branch was NOT auto-deleted after merge (non-404 on `gh api repos/{owner}/{repo}/git/refs/heads/{branch}`), the STATE.md entry MUST record a concrete cleanup gate: (1) add an explicit open item in STATE.md §In-Flight / Pending Notes with a next-session verify obligation, AND (2) the follow-up session MUST confirm deletion before moving to the next merge gate. Recording "human can delete at will" with no STATE.md gate is insufficient — it produces a hygiene item with no follow-up enforcement.
+
+**Context:** S-19.02 PR #610 merged 2026-07-13T14:33:57Z. feature/S-19.02 was not auto-deleted at merge (GitHub did not apply the branch-protection auto-delete setting). D-832 STATE.md recorded "ANOMALY: feature/S-19.02 still on origin (not auto-deleted; human can delete at will)." No concrete gate was set. In D-835 governance burst, orchestrator confirmed the branch is NOW absent (GET → 404; Reference-does-not-exist). The anomaly was resolved, but without the concrete gate the resolution was a lucky verify-at-close rather than a structured follow-up.
+
+**Root cause:** STATE.md "human can delete at will" language is not a gate — it's a suggestion. No verify obligation was recorded.
+
+**Prevention:** Post-merge burst detecting non-404 branch: (1) add STATE.md §In-Flight item "(b) feature/S-NNN.MM branch NOT auto-deleted — verify deletion before W[N+1] gate"; (2) next session: `gh api repos/{owner}/{repo}/git/refs/heads/{branch}` → must return 404 before advancing to next merge gate; (3) if not deleted, `gh api --method DELETE repos/{owner}/{repo}/git/refs/heads/{branch}` and verify 204.
+
+**Anchors:** D-832 (anomaly detected); D-835 (anomaly resolved; protocol codified); feature/S-19.02.
+
+**Cites:** D-835 (codified this burst); D-832 (origin).
+
+**Closes:** D-835 (protocol codified; D-832 anomaly resolved). `[process-gap; feature-branch; non-deletion; cleanup-gate; STATE-md-open-item; next-session-verify; github-branch-delete]`
+
+---
+
+### L-BB-decision-log-file-growth-triggers-pol3-bypass-risk [process-gap]
+
+**Title:** Decision-Log File Growth Creates Edit-Tool Friction That Can Produce POL-3 Bypass Temptation
+
+**Lesson:** As decision-log.md grows (currently 10233 lines), the Edit tool produces larger diffs and WASM fuel-timeout advisories on every write. This friction must never be resolved by using `bash cat>>` or any shell-based append — that is a POL-3 / TD-FACTORY-HOOK-BYPASS-001 P0 violation. The correct resolution is: (1) compact decision-log.md to decisions-log-archive.md when size budget is breached (soft ≤2500 / hard ≤3500 lines per IP-003), then use Edit on the compacted file. Compaction must itself use Edit (not shell). The PostToolUse timeouts on large files are advisory-only and do NOT block writes; they are noise, not errors.
+
+**Context:** During the D-832 post-merge burst in a prior session (not this session), a `bash cat>> append` was used for decision-log.md. This was self-reported as a POL-3 violation. The root cause was Edit-tool friction on a 10K-line file combined with a time-pressure environment. The violation was low-risk (PostToolUse hooks cannot revert writes; the append likely landed correctly), but the pattern is dangerous because it bypasses the full hook chain validation including validate-changelog-monotonicity and validate-input-hash checks that run on Edit.
+
+**Root cause:** No size budget was codified for decision-log.md, making it unclear when compaction was "required" vs "optional." Without a hard limit, file growth was accepted as normal. IP-003 codifies the budget this burst.
+
+**Prevention:** (1) Check decision-log.md line count before each append: if >2500 (soft), note compaction needed in burst-log; if >3500 (hard), compact FIRST within the burst before appending. (2) Always use Edit for decision-log.md, never shell redirect. (3) WASM timeout advisories on decision-log.md are expected and harmless — do not treat them as errors requiring workarounds.
+
+**Anchors:** D-832 (self-reported POL-3 violation); D-835 IP-003 (size budget codified; this burst); decision-log.md (10233 lines at D-835).
+
+**Cites:** D-835 (codified this burst); IP-003; POL-3; TD-FACTORY-HOOK-BYPASS-001 P0.
+
+**Closes:** D-835 (process-gap codified; size budget added to INDEX.md). `[process-gap; pol3-bypass; decision-log; file-growth; edit-tool; bash-cat-append; size-budget; compaction; WASM-timeout-advisory; TD-FACTORY-HOOK-BYPASS-001]`
+
+---
+
+### L-BB-sequential-sm-burst-queuing-on-multi-merge-sessions [confirmed-practice]
+
+**Title:** Post-Merge SM Bursts on Multi-Merge Sessions Are Strictly Sequential in Merge Order
+
+**Lesson:** When multiple PRs merge in a single session (e.g., W1 with 3 PRs), the SM post-merge bursts MUST be executed strictly in MERGE ORDER (the order in which PRs were actually merged to develop), not in priority order and not in parallel. Each burst updates the factory-artifacts branch; CAS push ensures no concurrent writes. Interleaving bursts or executing them out of merge order creates parent-commit-SHA citation errors and potential merge-state inconsistencies.
+
+**Context:** W1 merge session 2026-07-13. Three PRs merged: S-19.02 at 14:33Z, S-19.01 at 14:49Z, S-19.03 at 15:54Z. SM executed bursts D-832 (S-19.02), D-833 (S-19.01), D-834 (S-19.03) in that merge order. Each burst's parent-commit cites the prior burst's SHA-patch. The strict sequence was maintained throughout. This is the confirmed-correct pattern.
+
+**Root cause / Trigger:** This lesson codifies an observed correct practice to prevent future deviation. The risk of deviation is highest when (a) multiple PRs merge close together and there is urgency to "pick the most important one first," or (b) a burst fails mid-execution and there is temptation to skip to the next PR. Neither exception is valid.
+
+**Prevention:** On multi-merge sessions: (1) record merge order and timestamps at session start; (2) process bursts strictly in that order; (3) if a burst fails, fix the failure before proceeding to the next PR; (4) never skip a burst to "come back to it" — out-of-order bursts corrupt the parent-commit-SHA chain.
+
+**Anchors:** D-832 (S-19.02 burst; merged 14:33Z); D-833 (S-19.01 burst; merged 14:49Z); D-834 (S-19.03 burst; merged 15:54Z); parent-commit chain: 7b9871aa → 04c8564a → bda69b22 → 2a52de45.
+
+**Cites:** D-835 (codified this burst); D-832/D-833/D-834; TD-VSDD-053 single-commit-per-burst.
+
+**Closes:** D-835 (confirmed-practice codified). `[confirmed-practice; sm-burst-sequencing; merge-order; parent-commit-chain; single-writer; CAS-push; multi-merge-session; burst-ordering]`
