@@ -62,11 +62,11 @@
 //! Reciprocal anchor: `stage_release_bundle` mirrors the workflow underscore-glob staging
 //! logic. The inverse anchor
 //! `# Test gate: crates/factory-dispatcher/tests/bundle_orphan_check.rs::stage_release_bundle`
-//! is present at all four workflow staging sites (satisfied at d9502701):
+//! is present at both release.yml staging steps (satisfied at d9502701):
 //!   - release.yml "Stage artifact directory" step
 //!   - release.yml "Stage wasm plugins" step (commit-binaries job)
-//!   - ci.yml "Stage WASM plugins to hook-plugins directory" step
-//!   - ci.yml "Stage WASM plugins for run-all.sh" step
+//! ci.yml staging consumers additionally carry the `# Test gate:` comment pointing here
+//! (one-directional; this test does not reference ci.yml step names — see S-19.04 T-010).
 //!
 //! ## Fixture Layout
 //!
@@ -291,10 +291,11 @@ fn git_tracked_wasm_names(root: &Path) -> Vec<String> {
 ///
 /// # Reciprocal anchor
 ///
-/// The inverse anchor `# Test gate: ...::stage_release_bundle` is present at all four
-/// workflow staging sites (applied at d9502701): release.yml "Stage artifact directory",
-/// release.yml "Stage wasm plugins" (commit-binaries job), ci.yml "Stage WASM plugins to
-/// hook-plugins directory", and ci.yml "Stage WASM plugins for run-all.sh".
+/// The inverse anchor `# Test gate: ...::stage_release_bundle` is present at both
+/// release.yml staging steps (applied at d9502701): "Stage artifact directory" and
+/// "Stage wasm plugins" (commit-binaries job). ci.yml staging consumers additionally
+/// carry the `# Test gate:` comment pointing here (one-directional; this test does not
+/// reference ci.yml step names — see S-19.04 T-010).
 /// (Was IMPLEMENTER FLAG at 2bd3c898; satisfied at d9502701.)
 ///
 /// AC-007 / EAC-005: `dst_dir` must contain zero dual-registry-orphan WASMs after staging.
@@ -499,7 +500,7 @@ fn test_S_19_04_ac006_T008_negative_control_resolvers_only_is_orphan_with_hooks_
 // the filesystem dirlist. A worktree containing extra untracked orphan files passes this
 // test unchanged.
 //
-// STANDING GREEN GATE: passes immediately in the current clean checkout (all 32 tracked
+// STANDING GREEN GATE: passes immediately in the current clean checkout (all git-tracked
 // WASMs are referenced by hooks-registry or resolvers-registry as of S-19.04 implementation).
 // Catches future regressions where an unreferenced WASM is accidentally committed to git.
 // ---------------------------------------------------------------------------
