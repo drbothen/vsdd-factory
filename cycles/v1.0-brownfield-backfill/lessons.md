@@ -6610,3 +6610,123 @@ Both gates are mandatory standing Commit-E controls for any burst touching E-19 
 **Cites:** D-835 (codified this burst); D-832/D-833/D-834; TD-VSDD-053 single-commit-per-burst.
 
 **Closes:** D-835 (confirmed-practice codified). `[confirmed-practice; sm-burst-sequencing; merge-order; parent-commit-chain; single-writer; CAS-push; multi-merge-session; burst-ordering]`
+
+---
+
+### L-BB-same-pass-fix-directives-must-be-mutually-consistent [process-gap]
+
+**Title:** Same-Pass Fix Directives Issued to Multiple Agents Must Be Mutually Consistent Before Dispatch
+
+**Lesson:** When a single adversary pass produces findings that route to multiple specialist agents (story-writer, implementer, business-analyst), the fix directives for all agents must be mutually consistent before any agent is dispatched. If agent A's fix depends on the output of agent B, dispatch B first. If two agents are dispatched concurrently and their fixes conflict (e.g., story-writer adds a §File Structure row for a file that the implementer deletes), the result is a story v1.N that is incoherent at the moment it is committed. The subsequent pass then finds a new finding rather than verifying the prior pass's closure.
+
+**Context:** S-19.04 pass-3 (2026-07-13) — BUILD-OMISSION HIGH findings F-P3-001/002 were routed to both the story-writer (AC gate update) and the implementer (git ls-files hermeticity fix, commit f066c8d4). The implementer's fix and the story's gate update were compatible, but the sequencing was important: the implementer fix happened first, then the story-writer verified the gate against the new code state. Where the sequence was inverted (story-writer drafted gate before implementer committed), the gate referenced code that didn't exist yet, requiring a re-draft.
+
+**Root cause:** Dispatch protocols do not explicitly check for mutual consistency of fix directives before issuing concurrent dispatches. Agents independently interpret findings and may make locally-correct decisions that are globally inconsistent.
+
+**Prevention:** (1) Before dispatching multiple agents for the same pass, write out the expected post-fix state for each artifact and verify no artifact's expected state contradicts another's. (2) If agent A's fix requires knowing agent B's output (e.g., story gate must reference implementer's new function name), dispatch B before A and pass B's output SHA to A. (3) In fix chains where story-writer + implementer both act on same file, implementer acts first.
+
+**Anchors:** S-19.04 pass-3 (F-P3-001/002 BUILD-OMISSION HIGH); commits f066c8d4; story v1.16; D-838.
+
+**Cites:** D-838 (codified this burst); S-19.04 pass-3; BC-5.39.001.
+
+**Closes:** D-838. `[process-gap; fix-directive-consistency; multi-agent-dispatch; story-writer; implementer; sequencing; same-pass; cascade-fix]`
+
+---
+
+### L-BB-fix-legs-touching-new-files-require-story-propagation-co-dispatch [process-gap]
+
+**Title:** Fix Legs That Introduce New Implementation Files Must Co-Dispatch Story-Writer for §File Structure Update
+
+**Lesson:** Whenever an implementer fix leg introduces a new file (new source file, new test fixture, new Cargo feature), or modifies a file's compile-time gate (e.g., changing `#[cfg(not(test))]` to `#[cfg(any(not(test), feature = "test-support"))]`), a story-writer co-dispatch is mandatory in the same fix chain. The story's §File Structure table must biject with the post-fix branch diff. Omitting the story-writer dispatch leaves the §File Structure with a bijection gap that the next adversary pass immediately flags as a finding.
+
+**Context:** S-19.05 passes 7-9 (2026-07-13) — Three consecutive passes (7, 8, 9) each found §File Structure gaps from the preceding implementer fix. Pass-7 implementer added `test-support` Cargo feature and `cfg(any())` guard; story v1.17 did not reflect these. Pass-8 fixed v1.18. Pass-9 implementer added SEC-003 fixture file and cfg guard entry; story v1.18 did not reflect these. Pass-9 fixed v1.19. Each extra pass was unnecessary if the story co-dispatch had been included in the original fix chain.
+
+**Root cause:** Implementers do not automatically trigger story-writer co-dispatch when adding new files. The story-writer is dispatched only when a finding explicitly says "story needs update" — but §File Structure bijection gaps are a structural consequence of any new-file addition, not a finding that needs to be explicitly identified each time.
+
+**Prevention:** (1) Codify: any implementer fix leg that adds a new file OR changes a compile-time cfg gate on an existing file MUST include a story-writer co-dispatch in the same fix chain. (2) Story-writer verifies §File Structure bijection against the implementer's commit diff before declaring the story updated. (3) Orchestrator checks: "did implementer add any new files?" → if yes, include story-writer in same-pass fix chain.
+
+**Anchors:** S-19.05 pass-7 (b9dea7ce test-support feature; story v1.18 co-dispatch needed but deferred); S-19.05 pass-8 (§File Structure gap found); S-19.05 pass-9 (965f4e32 SEC-003 fixture; §File Structure gap found); D-838.
+
+**Cites:** D-838 (codified this burst); S-19.05 passes 7-9; POLICY 4; S-7.02.
+
+**Closes:** D-838. `[process-gap; file-structure-bijection; new-file-co-dispatch; story-writer; implementer; cascade-fix; cfg-gate; test-support-feature]`
+
+---
+
+### L-BB-file-structure-manifest-must-biject-with-branch-diff [process-gap]
+
+**Title:** Story §File Structure Table Must Biject With the Branch Diff at Every Story Version
+
+**Lesson:** The story §File Structure table is a bijection claim: every file in the branch diff must appear in the table, and every file in the table must appear in the branch diff. This bijection is a standing structural invariant (S-7.02 defensive sweep discipline), not a finding-triggered check. Each time the story is updated (any version bump), the story-writer must verify bijection against the current branch diff HEAD — not just "add the missing rows the adversary found." Bijection checks are cumulative: if two prior passes added separate files and only one was caught per pass, the second pass finds only one missing file but the story is still out of bijection for both.
+
+**Context:** S-19.04 pass-8 (2026-07-13) — The story §Fix Chain and §Cascade Trajectory tables cited fabricated SHAs (C-P8-001). The root cause was a story-writer who updated story v1.19 after pass-7 by adding the pass-7 fix chain rows but did not verify that the cited SHAs existed in the actual worktree history. The bijection discipline extends beyond §File Structure to all table cells that claim SHA traceability.
+
+**Root cause:** Bijection verification is treated as a reactive check (run when an adversary finding says "missing row") rather than a proactive discipline (run at every story version bump). Story-writers assume the adversary will catch any gap on the next pass, which is correct in theory but adds an unnecessary pass per gap.
+
+**Prevention:** (1) Every story version bump must include: run `git -C <repo> diff --name-only <base>..HEAD` and verify all files appear in §File Structure. (2) Every §Fix Chain SHA citation must be verified with `git -C <repo> log --oneline | grep <sha>` before story commit. (3) If bijection cannot be verified at update time (e.g., SHA not yet known), use TBD notation — do not fabricate a SHA.
+
+**Anchors:** S-19.04 pass-8 (F-P8-001 fabricated SHA citations; story v1.20 bijection correction); S-19.05 passes 5/8/9 (§File Structure bijection gaps); D-838.
+
+**Cites:** D-838 (codified this burst); S-7.02; POLICY 4; S-19.04 passes 8; S-19.05 passes 5/8/9.
+
+**Closes:** D-838. `[process-gap; file-structure-bijection; sha-fabrication; story-writer; defensive-sweep; S-7.02; cascade-fix; fix-chain-traceability]`
+
+---
+
+### L-BB-upstream-version-bumps-require-downstream-cite-sweep-co-dispatch [process-gap]
+
+**Title:** When a Spec File Version Bumps, All Downstream Documents Citing Its Version Must Be Swept in the Same Burst
+
+**Lesson:** When a spec file version advances (invariants.md v1.25→v1.30, VP-099 v1.0→v1.1), all downstream documents that cite that file's version must be updated in the same burst. This includes: L2-INDEX Document Map (invariants.md), VP-INDEX catalog + §Traceability rows (VP files), STORY-INDEX catalog cells (story files), ARCH-INDEX subsystem rows (ADR files), BC-INDEX catalog cells (BC files), and any inline version cites in story bodies. Failing to sweep downstream cites at the time of the upstream bump creates stale cites that the adversary finds on the next pass — each gap costs one pass.
+
+**Context:** L2-INDEX remained at `invariants.md v1.25` through six invariants.md version bumps (v1.25→v1.30), only discovered at S-19.05 pass-12 (F-P12-001 HIGH). The gap was created because the business-analyst updated invariants.md without co-dispatching the state-manager to update L2-INDEX in the same burst. Similarly, VP-099 v1.0→v1.1 required VP-INDEX description sweep at two sites, only caught at S-19.04 pass-11 (F-P11-001 BLOCKER).
+
+**Root cause:** Upstream spec owners (business-analyst for invariants.md, architect for VP files) do not automatically trigger state-manager co-dispatch for index updates. The split of responsibility between content ownership and index ownership creates a gap: the content owner knows what changed, but the index owner does not receive the signal to update.
+
+**Prevention:** (1) Codify: every business-analyst invariants.md bump must include state-manager co-dispatch for L2-INDEX Document Map update in the same burst. (2) Every architect VP file bump that changes the VP title must include state-manager co-dispatch for VP-INDEX POLICY 9 propagation. (3) Add to the orchestrator's pre-commit checklist: "did any spec file version change? → check all index documents for downstream cite staleness."
+
+**Anchors:** S-19.05 pass-12 (F-P12-001 L2-INDEX stale invariants.md v1.25 — 6 versions behind); S-19.04 pass-11 (F-P11-001 VP-INDEX stale VP-099 title — leading-only vs both-ends); D-838.
+
+**Cites:** D-838 (codified this burst); POLICY 9; S-7.02; L2-INDEX v1.0.15; VP-INDEX v2.68.
+
+**Closes:** D-838. `[process-gap; upstream-version-bump; downstream-cite-sweep; co-dispatch; L2-INDEX; VP-INDEX; state-manager; architect; business-analyst; POLICY-9]`
+
+---
+
+### L-BB-manifest-descriptions-derive-from-actual-diff-hunks [process-gap]
+
+**Title:** Story §File Structure Descriptions Must Derive From the Actual Diff Hunk, Not From the Fix Directive
+
+**Lesson:** The "Change" column in the story §File Structure table must describe what actually changed in the file, as verified against the git diff hunk — not what the fix directive said would change. Fix directives often describe the intended change at a higher level of abstraction than what actually landed (e.g., "add cfg(any()) gate" may produce both a `#[cfg(any())]` attribute AND a new Cargo.toml feature entry). If the §File Structure row is written from the directive rather than verified against the actual diff, it will misrepresent the actual change and create a bijection gap or inaccurate description.
+
+**Context:** S-19.05 pass-8 (2026-07-13) — The fix directive for pass-7 said "add cfg(any()) to VSDD_ASYNC_DRAIN_WINDOW_MS read site." The story-writer updated story v1.18 by adding a §File Structure row for `vsdd_sink.rs` with "cfg(any(not(test), feature="test-support")) gate added." But the actual diff (b9dea7ce) also added `test-support` as a Cargo feature in `Cargo.toml` and a new test fixture. The story-writer's description was derived from the directive (single-file assumption) rather than from `git diff b9dea7ce`. Result: §File Structure missing two files → pass-9 F-P9-001.
+
+**Root cause:** Story-writers use the fix directive as the source of truth for §File Structure instead of the actual commit diff. The directive is a planning artifact; the commit is the authoritative artifact.
+
+**Prevention:** (1) Codify: after every implementer commit, the story-writer MUST run `git diff <prior-HEAD>..<implementer-SHA> --name-only` and populate §File Structure from the output, not from the directive. (2) If the diff shows more files than the directive mentioned, ALL files must be added to §File Structure. (3) "Derived from directive" is explicitly forbidden as a story-writer practice — only "derived from diff" is acceptable.
+
+**Anchors:** S-19.05 pass-8 (F-P8-001 story propagation gap); S-19.05 pass-9 (F-P9-001 §File Structure missing entries from b9dea7ce+965f4e32); D-838.
+
+**Cites:** D-838 (codified this burst); S-7.02; POLICY 4; S-19.05 passes 8-9.
+
+**Closes:** D-838. `[process-gap; file-structure-manifest; diff-derivation; story-writer; fix-directive; bijection; implementer-sha; cargo-toml-drift]`
+
+---
+
+### L-BB-convention-evolutions-must-sweep-traceability-target-vps [process-gap]
+
+**Title:** When a Convention Evolves Mid-Cascade, Its Traceability-Target VPs Must Be Updated in the Same Burst
+
+**Lesson:** When a convention evolves during a cascade (e.g., from leading-only `^` anchoring to both-ends `^...$` anchoring at S-19.04 pass-6), all VPs that formalize that convention must be updated in the same fix burst that establishes the evolved convention. VPs are the canonical specification of behavioral invariants; if the convention changes but the VP body and title still describe the old form, the VP is a specification lie — it claims a weaker invariant than what is actually enforced. This creates a deferred BLOCKER that the adversary will find on a future pass, resetting the 3-CLEAN streak.
+
+**Context:** S-19.04 passes 6-11 (2026-07-13) — The both-ends anchoring convention (F6-1) was established by pass-6 fix (implementer commits e0464b7b + 3d065c4e). VP-099 was NOT updated at pass-6 time; its title and body still described the old leading-only form. Five passes later (pass-11), the adversary found F-P11-001 BLOCKER: VP-099 stale. Streak was reset from 2/3→0/3. If VP-099 had been updated at pass-6 (same burst as the convention establishment), passes 9-10 would have been CLEAN and pass-11 would have been the third CLEAN, achieving convergence 5 passes earlier.
+
+**Root cause:** The architect who established the both-ends convention at pass-6 did not own VP-099 authorship in the same burst. The state-manager who updated the fix burst records did not check POLICY 9 for same-burst VP propagation. Ownership split between convention implementer and VP author created the gap.
+
+**Prevention:** (1) Whenever an implementer establishes a new constraint pattern (anchoring convention, gate form, cfg pattern), the fix burst must include an architect co-dispatch to update the corresponding VP. (2) Add to pass-N fix burst orchestration checklist: "did this fix introduce a new behavioral constraint? → check VP registry for existing VPs that should formalize it, update in same burst." (3) State-manager must verify POLICY 9 compliance for any VP touched in a burst — if VP title changes, VA + VCM + VP-INDEX propagate atomically.
+
+**Anchors:** S-19.04 pass-6 (F6-1 both-ends convention established; VP-099 not updated); S-19.04 pass-11 (F-P11-001 BLOCKER VP-099 stale title; streak 2/3→0/3); VP-099 v1.1 (D-838: architect correction); D-838.
+
+**Cites:** D-838 (codified this burst); POLICY 9; S-19.04 passes 6+11; VP-INDEX v2.68; VP-099 v1.1.
+
+**Closes:** D-838. `[process-gap; convention-evolution; VP-update; POLICY-9; same-burst-propagation; traceability; architect; state-manager; both-ends-anchoring; streak-reset]`

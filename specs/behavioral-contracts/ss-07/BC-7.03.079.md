@@ -1,8 +1,8 @@
 ---
 document_type: behavioral-contract
 level: L3
-version: "v1.4"
-status: draft
+version: "v1.5"
+status: active
 producer: "PHASE_1_4_B_BCS_AGENT_9"
 timestamp: 2026-04-25T00:00:00
 phase: 1a
@@ -17,6 +17,7 @@ lifecycle_status: active
 introduced: v1.0.0-beta.4
 modified:
   - "2026-07-13 (v1.4)"
+  - "2026-07-13 (v1.5)"
 deprecated: null
 deprecated_by: null
 replacement: null
@@ -139,6 +140,7 @@ Bash hook scripts are inherently effectful (stdin/stderr, optional event emit, o
 
 | Version | Date | Author | Change |
 |---------|------|--------|--------|
+| v1.5 | 2026-07-13 | product-owner | S-19.04 pass-5 adversary observation: frontmatter `status: draft` / `lifecycle_status: active` mismatch — missed POL-14 auto-promotion. Verification: S-8.08 (behavioral_contracts: ["BC-7.03.079"]) carries status=merged, merged_at=2026-05-02, merged_in=PR-52, merge_sha=638bb6b; POL-14 mandates draft→active on PR merge; lifecycle_status was already active. Fix: `status: draft` → `status: active`. Frontmatter-only; no body content change. |
 | v1.4 | 2026-07-13 | product-owner | S-19.04 adversary pass-1 F-1 (architect ruling 2026-07-13): Invariant 1 amended — "binding tuple unchanged" constraint clarified to cover identity/dispatch characteristics (name, event, plugin, priority, on_error, timeout_ms) and explicitly NOT freeze the tool-pattern field against semantic-intent corrections. S-19.04's re-anchoring of `tool = "Agent"` → `tool = "^Agent$"` (D-a table) is a semantic-intent correction, not a binding-tuple migration change. Description registry entry and Precondition 1 updated to post-S-19.04 anchored form `^Agent$` (implemented by S-19.04, W2 — pending merge). Changelog reordered newest-first (pre-existing ascending-order corrected in same burst; v1.2 row volatile line cite removed — symbol anchor form retained, line number omitted per scanner requirements; historical record in git). |
 | v1.3 | 2026-05-09 | state-manager | F-P47-001 fix-burst-43: Traceability Stories TBD→S-8.08 (S-8.08 behavioral_contracts frontmatter cites this BC; bidirectional L-P28-001 propagation). |
 | v1.2 | 2026-05-08 | implementer | TD-VSDD-091 Chunk 5 — migrated `hooks-registry.toml` entry `track-agent-start` from script-path form to symbol-anchor form `hooks-registry.toml::track-agent-start`. |

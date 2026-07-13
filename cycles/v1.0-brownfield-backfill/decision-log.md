@@ -10318,3 +10318,37 @@ D-837-W2-SPEC-RECONCILE
 ### Date
 
 2026-07-13
+
+---
+
+## D-838 — W2-CASCADE-RECORDS: 12 CASCADE RECORDS + POL-14 BC-7.03.079 + VP-099 POLICY 9 + 4-INDEX ADVANCE
+
+| # | Gate | Detail | Result |
+|---|------|--------|--------|
+| 1 | POLICY 16 GLOBAL-MAX | `## D-837` confirmed max in decision-log.md → D-838 allocated. | PASS |
+| 2 | CASCADE RECORDS CREATED | 12 adversary pass files created at `cycles/v1.0-brownfield-backfill/`: s-19.04-local-adversary-pass-2.md through s-19.04-local-adversary-pass-11.md (10 files); s-19.05-local-adversary-pass-4.md through s-19.05-local-adversary-pass-12.md (9 files; passes 4-12 minus pass-7 which was already partially recorded, net 9 new). Total 12 new files for this burst scope. | PASS |
+| 3 | S-19.04 CASCADE SUMMARY | Passes 2-7 CLEAN streak 3/3 achieved (all B0/H0/M0/L0; source HEAD 2c6bd1ca). Pass-8 NOT-CLEAN B0/H0/M1/L0: F-P8-001 MEDIUM fabricated commit SHAs in §Fix Chain + §Cascade Trajectory CLOSED story v1.20 (story-writer) + implementer 0a7af81d; streak reset. Passes 9-10 CLEAN streak 1/3→2/3 (source HEAD 0a7af81d). Pass-11 NOT-CLEAN B1/H0/M0/L0: F-P11-001 BLOCKER VP-099 title asserts leading-only ^ anchor; contradicts F6-1 both-ends convention; CLOSED architect VP-099 v1.1 + verification-architecture.md v1.9 + verification-coverage-matrix.md v1.6 + VP-INDEX v2.68 (SM this-commit); streak 2/3→0/3 RESET. Pass-12 pending. Current source HEAD: 0a7af81d. | PASS |
+| 4 | S-19.05 CASCADE SUMMARY | Passes 4-7 CLEAN streak 3/3 achieved (source HEAD 5e3d392a). Passes 8-9 NOT-CLEAN CLOSED (story-writer + spec). Pass-10 NOT-CLEAN B0/H0/M1/L0: F-P10-001 MEDIUM DI-019 "v1.6" volatile-pin violates TD-VSDD-091 CLOSED story v1.20; streak 0/3. Pass-11 NOT-CLEAN B0/H0/M1/L0: F-P11-001 MEDIUM DI-019 Cited-by VP-100 missing; DI-020/DI-025 Cited-by VP-093 missing CLOSED invariants.md v1.29 (BA); streak 0/3. Pass-12 NOT-CLEAN B0/H1/M1/L0: F-P12-001 HIGH L2-INDEX stale invariants.md v1.25 (actual v1.30); F-P12-002 MEDIUM invariants.md missing v1.26 changelog row CLOSED L2-INDEX v1.0.15 (SM this-commit) + invariants.md v1.30 (BA); streak 0/3. Pass-13 pending. Current source HEAD: 405a871f. | PASS |
+| 5 | INDEX.md UPDATED | S-19.04 section: pass-8 through pass-11 rows added; Convergence Status updated to pass-11 NOT-CLEAN B1/H0/M0/L0 streak 0/3 pass-12 pending HEAD 0a7af81d. S-19.05 section: pass-10 through pass-12 rows added; Convergence Status updated to pass-12 NOT-CLEAN B0/H1/M1/L0 streak 0/3 pass-13 pending HEAD 405a871f. | PASS |
+| 6 | POL-14 BC-7.03.079 v1.5 | BC-7.03.079 v1.4→v1.5 POL-14 auto-promotion draft→active. This promotion was missed at S-8.08 PR-52 merge (SHA 638bb6b 2026-05-25). BC-7.03.079 lifecycle_status updated draft→active; status updated active; version bumped v1.4→v1.5; changelog row prepended; modified[] appended; last_amended prepended. BC-INDEX v4.01→v4.02 (catalog cell v1.5 annotation + status active). total_bcs UNCHANGED 1,977. | PASS |
+| 7 | VP-099 v1.1 POLICY 9 | S-19.04 pass-11 F-P11-001 BLOCKER: VP-099 title corrected to both-ends anchoring form "Every tool= Value Is Fully Anchored (^...$) or Carries # intent: Comment" per F6-1 convention. POLICY 9 propagation: verification-architecture.md v1.8→v1.9 (VP-099 SS-07 catalog row title updated); verification-coverage-matrix.md v1.5→v1.6 (VP-099 SS-07 row title updated). VP-INDEX v2.67→v2.68 (catalog row ~line 477 + §Traceability Appendix ~line 546 both updated to both-ends form). | PASS |
+| 8 | STORY-INDEX v4.185 | S-19.04 v1.14→v1.20: changelog rows v1.15..v1.20 prepended; story version cell updated (fabricated-SHA correction pass-8; implementer 0a7af81d). S-19.05 v1.17→v1.20: changelog rows v1.18..v1.20 prepended; story version cell updated (DI-019 volatile-pin removed pass-10; implementer 405a871f). STORY-INDEX v4.184→v4.185. | PASS |
+| 9 | L2-INDEX v1.0.15 | invariants.md version updated in Document Map: v1.25→v1.30. L2-INDEX v1.0.14→v1.0.15. BA invariants.md v1.30 previously committed (S-19.05 pass-11/12 fixes). | PASS |
+| 10 | 6 LESSONS APPENDED | 6 new lessons appended to lessons.md: L-BB-same-pass-fix-directives-must-be-mutually-consistent; L-BB-fix-legs-touching-new-files-require-story-propagation-co-dispatch; L-BB-file-structure-manifest-must-biject-with-branch-diff; L-BB-upstream-version-bumps-require-downstream-cite-sweep-co-dispatch; L-BB-manifest-descriptions-derive-from-actual-diff-hunks; L-BB-convention-evolutions-must-sweep-traceability-target-vps. All [process-gap] category. D-838 referenced in each. | PASS |
+| 11 | DRIFT ITEM DI-001..018 | DI-001..018 in invariants.md also lack Cited-by lines (same class as DI-019/020/025 found in pass-11). Pre-existing; deferred to maintenance sweep per Canonical Principle Rule 3: explicit SM record; anchor: next maintenance sweep alongside O-P35-001 + D-805 E-17-lineage. | DEFERRED |
+| 12 | 4-index verification gate (D-449(a) literal-shell) | `grep "^version:" BC-INDEX.md VP-INDEX.md STORY-INDEX.md ARCH-INDEX.md` → BC-INDEX: "4.02" / VP-INDEX: "2.68" / STORY-INDEX: "4.185" / ARCH-INDEX: "3.01". PASS. | PASS |
+| 13 | D-803 heading-parity | STORY-INDEX E-19 H2 heading v1.28 = E-19 epic file frontmatter v1.28 (grep confirmed). PASS. | PASS |
+| 14 | VP-099 POLICY 9 parity | VP-099 H1 title = verification-architecture.md SS-07 row title = verification-coverage-matrix.md SS-07 row title = VP-INDEX catalog row description (all "Is Fully Anchored (^...$) or Carries # intent: Comment"). PASS. | PASS |
+| 15 | CODIFICATION | D-838 decision-log entry appended (this entry); D-838 burst-log entry appended (8-block D-444(c)); STATE.md v5.84→v5.85. | PASS |
+
+### Summary
+
+W2-CASCADE-RECORDS; 12 cascade records (S-19.04 passes 2-11; S-19.05 passes 4-12); S-19.04 streak 0/3 pass-12 pending (HEAD 0a7af81d; pass-11 BLOCKER VP-099 FIXED); S-19.05 streak 0/3 pass-13 pending (HEAD 405a871f; pass-12 HIGH+MEDIUM FIXED); BC-7.03.079 v1.4→v1.5 POL-14 auto-promotion (missed S-8.08 PR-52); VP-099 v1.1 POLICY 9 propagation (verification-architecture.md v1.9 + verification-coverage-matrix.md v1.6); BC-INDEX v4.01→v4.02; VP-INDEX v2.67→v2.68; STORY-INDEX v4.184→v4.185 (S-19.04 v1.20 + S-19.05 v1.20); L2-INDEX v1.0.14→v1.0.15; 6 lessons appended; DI-001..018 Cited-by deferred; 4-index BC v4.02/VP v2.68/STORY v4.185/ARCH v3.01
+
+### Phase
+
+D-838-W2-CASCADE-RECORDS
+
+### Date
+
+2026-07-13

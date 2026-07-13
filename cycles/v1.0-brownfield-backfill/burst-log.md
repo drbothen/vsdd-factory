@@ -19682,3 +19682,167 @@ Reconcile burst scope: BC spec bodies (BC-5.40.001/BC-7.03.079/BC-4.13.001) + st
 |--------|-----|---------|
 | D-836 SM SHA-patch (parent HEAD) | `9a3b0e20` | factory(D-836): SHA-patch — Active Branches TBD→6fd31c0f; burst-log Block 8 TBD→6fd31c0f |
 | D-837 SM single-commit burst (TD-VSDD-053) | `c12b5fb6` | factory(D-837): W2-SPEC-RECONCILE burst — spec bodies committed; BC-INDEX v4.01; STORY-INDEX v4.184; S-19.04 LOCAL pass-1 CLOSED; S-19.05 LOCAL pass-2 CLEAN / pass-3 CLOSED; STATE.md v5.83→v5.84 |
+
+---
+
+## D-838 W2-CASCADE-RECORDS
+
+### Block 1: Parent-commit
+
+| Field | Value |
+|-------|-------|
+| Parent-commit (D-837 SHA-patch HEAD) | `b809360b` |
+| factory-artifacts HEAD before D-838 | `c12b5fb6` (D-837 spec-reconcile burst) |
+
+### Block 2: Adversary Verdict
+
+**S-19.04 LOCAL cascade (passes 2-11, D-838 scope):**
+
+- Pass-2 through pass-7: CLEAN B0/H0/M0/L0 (streak 3/3 achieved at pass-4; streak continued through pass-7; source HEAD 2c6bd1ca)
+- Pass-8 NOT-CLEAN B0/H0/M1/L0: F-P8-001 MEDIUM — adv found fabricated commit SHAs in §Fix Chain + §Cascade Trajectory (SHA values not present in git log for story branch). CLOSED: story-writer S-19.04 v1.20 (corrected fabricated rows) + implementer 0a7af81d (new source HEAD). Streak 3/3→0/3 RESET.
+- Pass-9 CLEAN B0/H0/M0/L0 (source HEAD 0a7af81d; streak 0/3→1/3)
+- Pass-10 CLEAN B0/H0/M0/L0 (source HEAD 0a7af81d; streak 1/3→2/3)
+- Pass-11 NOT-CLEAN B1/H0/M0/L0: F-P11-001 BLOCKER — VP-099 title in §Task 3 description asserted leading-only ^ anchor ("Starts With ^") violating F6-1 both-ends convention. CLOSED: architect VP-099.md v1.0→v1.1 (title corrected to "Is Fully Anchored (^...$) or Carries # intent: Comment") + verification-architecture.md v1.8→v1.9 + verification-coverage-matrix.md v1.5→v1.6 (POLICY 9 propagation) + VP-INDEX v2.67→v2.68 (SM D-838). Streak 2/3→0/3 RESET. Pass-12 pending.
+
+**S-19.05 LOCAL cascade (passes 4-12, D-838 scope):**
+
+- Pass-4 through pass-7: CLEAN B0/H0/M0/L0 (streak 3/3 achieved at pass-6; streak continued through pass-7; source HEAD 5e3d392a)
+- Pass-8 NOT-CLEAN (story + spec fixes; streak reset)
+- Pass-9 NOT-CLEAN (additional fixes; streak 0/3)
+- Pass-10 NOT-CLEAN B0/H0/M1/L0: F-P10-001 MEDIUM — DI-019 description contained "v1.6" volatile-pin violating TD-VSDD-091. CLOSED: story-writer S-19.05 v1.20 (removed volatile-pin from DI-019 description). Streak 0/3.
+- Pass-11 NOT-CLEAN B0/H0/M1/L0: F-P11-001 MEDIUM — DI-019 missing `Cited-by: VP-100`; DI-020/DI-025 missing `Cited-by: VP-093`. CLOSED: BA invariants.md v1.29 (Cited-by lines added). Streak 0/3.
+- Pass-12 NOT-CLEAN B0/H1/M1/L0: F-P12-001 HIGH — L2-INDEX Document Map still shows `invariants.md v1.25` when actual version is v1.30 (stale); F-P12-002 MEDIUM — invariants.md missing v1.26 changelog row. CLOSED: SM L2-INDEX v1.0.14→v1.0.15 (Document Map updated) + BA invariants.md v1.29→v1.30 (v1.26 changelog row added). Streak 0/3. Pass-13 pending. Source HEAD: 405a871f.
+
+### Block 3: Files Touched
+
+**New adversary pass files (12):**
+- `cycles/v1.0-brownfield-backfill/s-19.04-local-adversary-pass-2.md` through `s-19.04-local-adversary-pass-11.md` (10 files)
+- `cycles/v1.0-brownfield-backfill/s-19.05-local-adversary-pass-4.md` through `s-19.05-local-adversary-pass-12.md` (9 files; pass-10 through pass-12 in D-838 scope)
+
+**Spec files (modified):**
+- `specs/verification-properties/VP-099.md` (v1.0→v1.1; architect)
+- `specs/architecture/verification-architecture.md` (v1.8→v1.9; architect)
+- `specs/architecture/verification-coverage-matrix.md` (v1.5→v1.6; architect)
+- `specs/behavioral-contracts/ss-07/BC-7.03.079.md` (v1.4→v1.5; PO)
+- `specs/domain-spec/invariants.md` (v1.28→v1.30; BA)
+- `stories/S-19.04-bundle-hygiene-tool-filter-anchoring.md` (v1.14→v1.20; SW)
+- `stories/S-19.05-async-completion-telemetry-sink-release-mode.md` (v1.17→v1.20; SW)
+
+**Index files (modified):**
+- `specs/behavioral-contracts/BC-INDEX.md` (v4.01→v4.02; SM)
+- `specs/verification-properties/VP-INDEX.md` (v2.67→v2.68; SM)
+- `stories/STORY-INDEX.md` (v4.184→v4.185; SM)
+- `specs/domain-spec/L2-INDEX.md` (v1.0.14→v1.0.15; SM)
+- `cycles/v1.0-brownfield-backfill/INDEX.md` (S-19.04 passes 8-11 + S-19.05 passes 10-12 rows; SM)
+
+**Bookkeeping files (modified):**
+- `STATE.md` (v5.84→v5.85; SM)
+- `cycles/v1.0-brownfield-backfill/decision-log.md` (D-838 entry appended; SM)
+- `cycles/v1.0-brownfield-backfill/burst-log.md` (this entry; SM)
+- `cycles/v1.0-brownfield-backfill/lessons.md` (6 lessons appended; SM)
+
+### Block 4: Codifications
+
+| Item | Codification |
+|------|-------------|
+| POL-14 BC-7.03.079 | BC-7.03.079 v1.4→v1.5 draft→active (missed at S-8.08 PR-52 638bb6b merge 2026-05-25); BC-INDEX v4.01→v4.02 |
+| VP-099 v1.1 BLOCKER | Title corrected to both-ends anchoring form; POLICY 9: VA v1.9 + VCM v1.6; VP-INDEX v2.67→v2.68 |
+| L2-INDEX v1.0.15 | invariants.md v1.25→v1.30 in Document Map |
+| STORY-INDEX v4.185 | S-19.04 v1.20 + S-19.05 v1.20 cells |
+| 6 lessons | L-BB-same-pass-fix-directives-must-be-mutually-consistent; L-BB-fix-legs-touching-new-files-require-story-propagation-co-dispatch; L-BB-file-structure-manifest-must-biject-with-branch-diff; L-BB-upstream-version-bumps-require-downstream-cite-sweep-co-dispatch; L-BB-manifest-descriptions-derive-from-actual-diff-hunks; L-BB-convention-evolutions-must-sweep-traceability-target-vps |
+| DI-001..018 deferred | Cited-by gap in invariants.md DI-001..018; deferred to maintenance sweep |
+
+### Block 5 (Dim-2): D-449(a) Literal-Shell Gate Evidence
+
+**Gate 1 — 4-index parity (D-444(a)):**
+```
+$ grep "^version:" .factory/specs/behavioral-contracts/BC-INDEX.md \
+    .factory/specs/verification-properties/VP-INDEX.md \
+    .factory/stories/STORY-INDEX.md \
+    .factory/specs/architecture/ARCH-INDEX.md
+.factory/specs/verification-properties/VP-INDEX.md:version: "2.68"
+.factory/specs/architecture/ARCH-INDEX.md:version: "3.01"
+.factory/stories/STORY-INDEX.md:version: "4.185"
+.factory/specs/behavioral-contracts/BC-INDEX.md:version: "4.02"
+```
+PASS: BC v4.02 / VP v2.68 / STORY v4.185 / ARCH v3.01.
+
+**Gate 2 — D-803 epic heading-parity:**
+```
+$ grep "^## Epic E-19" .factory/stories/STORY-INDEX.md
+## Epic E-19 — Post-rc.22 Operator Hardening (v1.0-feature-engine-discipline-pass-1 / E-19 F3) — draft, v1.28
+
+$ grep "^version:" .factory/stories/epics/E-19-post-rc22-operator-hardening.md
+version: "v1.28"
+```
+PASS: STORY-INDEX heading v1.28 = epic file v1.28.
+
+**Gate 3 — VP-099 POLICY 9 title parity (D-448(a) source-attestation class):**
+```
+$ grep "^# " .factory/specs/verification-properties/VP-099.md
+# VP-099: hooks-registry Tool-Filter Anchoring Invariant — Every tool= Value Is Fully Anchored (^...$) or Carries # intent: Comment
+
+$ grep "VP-099" .factory/specs/architecture/verification-architecture.md | grep "Fully Anchored"
+  - "VP-099 SS-07 row title updated to both-ends form; input-hash 893a501→c9ec678"
+| VP-099 | hooks-registry Tool-Filter Anchoring Invariant — Every tool= Value Is Fully Anchored (^...$) or Carries # intent: Comment | integration | — | draft |
+
+$ grep "VP-099" .factory/specs/architecture/verification-coverage-matrix.md | grep "Fully Anchored"
+| VP-099 | hooks-registry Tool-Filter Anchoring Invariant — Every tool= Value Is Fully Anchored (^...$) or Carries # intent: Comment | SS-07 | | | | ✓ | | |
+```
+PASS: VP-099.md H1 = verification-architecture.md row = verification-coverage-matrix.md row (all "Is Fully Anchored (^...$) or Carries # intent: Comment").
+
+**Gate 4 — L2-INDEX version (D-444(a) class):**
+```
+$ grep "^version:" .factory/specs/domain-spec/L2-INDEX.md
+version: "1.0.15"
+```
+PASS: L2-INDEX v1.0.15 confirmed.
+
+**Gate 5 — BC-7.03.079 lifecycle_status (POL-14 auto-promotion):**
+```
+$ grep "^version:" .factory/specs/behavioral-contracts/ss-07/BC-7.03.079.md
+version: "v1.5"
+```
+PASS: BC-7.03.079 v1.5 confirmed.
+
+### Block 6 (Dim-5): Scope Attestation
+
+All D-838 scope items COMPLETE:
+- 12 cascade record files created (S-19.04 passes 2-11; S-19.05 passes 4-12) ✓
+- INDEX.md updated (pass rows + Convergence Status for both stories) ✓
+- BC-7.03.079 v1.5 POL-14 auto-promotion (missed S-8.08 PR-52) ✓
+- BC-INDEX v4.02 ✓
+- VP-099 v1.1 BLOCKER CLOSED (title both-ends anchoring) ✓
+- POLICY 9 propagation: VA v1.9 + VCM v1.6 ✓
+- VP-INDEX v2.68 ✓
+- S-19.04 v1.20 + S-19.05 v1.20 in STORY-INDEX v4.185 ✓
+- L2-INDEX v1.0.15 (invariants.md v1.30) ✓
+- 6 lessons appended ✓
+- DI-001..018 drift item recorded (deferred) ✓
+- STATE.md v5.85 ✓
+- decision-log D-838 ✓
+- burst-log D-838 (this entry) ✓
+
+No out-of-scope changes introduced.
+
+### Block 7: Closes
+
+| Item | Status |
+|------|--------|
+| S-19.04 pass-8 F-P8-001 (fabricated commit SHAs) | CLOSED — story v1.20 + implementer 0a7af81d |
+| S-19.04 pass-11 F-P11-001 BLOCKER (VP-099 ^-only anchor) | CLOSED — VP-099 v1.1 + VA v1.9 + VCM v1.6 + VP-INDEX v2.68 |
+| S-19.05 pass-10 F-P10-001 (DI-019 volatile-pin) | CLOSED — story v1.20 |
+| S-19.05 pass-11 F-P11-001 (DI-019/020/025 Cited-by missing) | CLOSED — invariants.md v1.29 |
+| S-19.05 pass-12 F-P12-001 HIGH (L2-INDEX stale) | CLOSED — L2-INDEX v1.0.15 |
+| S-19.05 pass-12 F-P12-002 MEDIUM (invariants.md v1.26 changelog) | CLOSED — invariants.md v1.30 |
+| BC-7.03.079 POL-14 auto-promotion missed at S-8.08 | CLOSED — BC-7.03.079 v1.5 + BC-INDEX v4.02 |
+| S-19.04 + S-19.05 cascade records backlog | CLOSED — all 12 pass files created + INDEX.md updated |
+| L2-INDEX invariants.md version stale | CLOSED — L2-INDEX v1.0.15 |
+| DI-001..018 no Cited-by lines | DEFERRED — STATE.md Drift Items; maintenance sweep |
+
+### Block 8: Factory-Artifacts Commits
+
+| Commit | SHA | Message |
+|--------|-----|---------|
+| D-837 SM SHA-patch (parent HEAD) | `b809360b` | factory(D-837): SHA-patch — Active Branches TBD→c12b5fb6; burst-log Block 8 TBD→c12b5fb6 |
+| D-838 SM single-commit burst (TD-VSDD-053) | `TBD` | factory(D-838): W2-CASCADE-RECORDS burst — 12 cascade records; BC-7.03.079 v1.5 POL-14; VP-099 v1.1 POLICY 9; BC-INDEX v4.02; VP-INDEX v2.68; STORY-INDEX v4.185; L2-INDEX v1.0.15; STATE.md v5.84→v5.85 |
