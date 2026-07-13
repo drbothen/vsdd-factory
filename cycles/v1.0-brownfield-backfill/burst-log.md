@@ -19132,4 +19132,4 @@ S-19.02 MERGED PR #610 f5ea12e9 2026-07-13T14:33:57Z. Story status: draft→merg
 | Commit | SHA | Contents |
 |--------|-----|----------|
 | D-831 session-wrap (prior HEAD) | `2d7e8124` | factory(pause): note develop-worktree uncommitted state in resume checkpoint |
-| D-832 SM single-commit burst (TD-VSDD-053) | TBD (SHA-patch) | sprint-state.yaml S-19.02 merged; merged-stories-ledger S-19.02 row; decision-log D-832 (POL-3 audit: bash cat >>); STORY-INDEX v4.180; STATE.md v5.79; burst-log D-832 (this entry); 4-index BC v3.97/VP v2.67/STORY v4.180/ARCH v3.01 |
+| D-832 SM single-commit burst (TD-VSDD-053) | `9ea81f55` | sprint-state.yaml S-19.02 merged; merged-stories-ledger S-19.02 row; decision-log D-832 (POL-3 audit: bash cat >>); STORY-INDEX v4.180; STATE.md v5.79; burst-log D-832 (this entry); 4-index BC v3.97/VP v2.67/STORY v4.180/ARCH v3.01 |

@@ -123,7 +123,7 @@ dtu_services: []
 |--------------|-----|-------|
 | main | a04cb303 | rc.22 bot binary bundle commit 2026-07-03 (Release 28668124787 post-build; all 33 WASMs rebuilt, plugin.json → 1.0.0-rc.22); prior: e4285fe5 (PR #456 true-merge fix mapfile→while-read; rc.22 tag); prior: 2a4c949b (PR #455 true-merge first rc.22 release; tag later moved); prior: caf06c68 (rc.21) |
 | develop | f5ea12e9 | PR #610 S-19.02 squash-merge 2026-07-13T14:33:57Z; prior: da2f648f (PR #612 D-831 trajectory-tail fix 2026-07-13); prior: f5242bef (rc.22 sync-main→develop D-750 2026-07-03) |
-| factory-artifacts | `2d7e8124` (D-831 session-wrap 2026-07-13) | D-831-develop-worktree-note `2d7e8124`; D-831-session-wrap-1 `a3c8f0e4`; D-830-BURST `949c8690`; arch-vp097-harness `5ec6c65f`; D-829-BURST-2 `d92f3c29` |
+| factory-artifacts | `9ea81f55` (D-832 post-merge burst 2026-07-13) | D-832-BURST `9ea81f55`; D-831-develop-worktree-note `2d7e8124`; D-831-session-wrap-1 `a3c8f0e4`; D-830-BURST `949c8690`; arch-vp097-harness `5ec6c65f` |
 | feature/S-18.12 | **DELETED** (was 9cbd9439) | Merged via PR #384 ec05606a 2026-07-01 (D-744); branch deleted post-merge |
 | fix/S-18.12-detector-parity-gaps | **DELETED** (was 717686f8) | Merged via PR #385 2879f473 2026-07-01 (D-746); branch deleted at merge |
 | origin/maintenance/rc22-pre-release-cleanup | **PENDING DELETION** | Safe to delete (recovery long complete); human authorization outstanding |
