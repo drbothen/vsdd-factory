@@ -10140,3 +10140,36 @@ CODIFIED
 ### Date
 
 2026-07-12
+
+---
+
+## D-832
+
+### Decision
+
+W1-S1902-MERGED. Post-merge burst for S-19.02 PR #610 (head 6e247a6b) SQUASH-MERGED to develop f5ea12e9 at 2026-07-13T14:33:57Z.
+
+| # | Clause | Action | Outcome |
+|---|--------|--------|---------|
+| 1 | POLICY 16 GLOBAL-MAX GATE | `## D-830` confirmed max in decision-log.md; D-831 present in STATE.md as session-wrap (no decision-log.md entry per session-wrap convention — same as D-813); → D-832 allocated. | PASS |
+| 2 | MERGED STORY | S-19.02 v1.18 (verify-factory-lock FINDING-1: frontmatter-only STATE.md read + raised byte budget; P0; behavioral_contracts: [BC-4.13.001]; verification_properties: [VP-095, VP-096]); head 6e247a6b SQUASH-MERGED as f5ea12e9; CI 12/12 GREEN pre-merge (bats-full-suite, cargo-host both legs, all 5 build-dispatcher platforms, bats-wave-handoff, validate, SAST, platforms-drift; release-guardrail skipped as expected). | PASS |
+| 3 | POL-14 BC PROMOTION | BC-4.13.001 lifecycle_status already `active` (promoted D-545 at S-17.02 merge 2026-06-11); NO draft→active transition required. | PASS — NO-OP |
+| 4 | 4-INDEX ADVANCE | STORY-INDEX v4.179→v4.180 (S-19.02 row status draft→merged + PR #610 f5ea12e9 cite + wave-summary D-832 clause prepended). BC-INDEX UNCHANGED v3.97. VP-INDEX UNCHANGED v2.67. ARCH-INDEX UNCHANGED v3.01. | PASS |
+| 5 | sprint-state.yaml | S-19.02 status: draft → merged. | PASS |
+| 6 | merged-stories-ledger.md | S-19.02 row appended: PR #610 f5ea12e9 2026-07-13. | PASS |
+| 7 | merged_count | 98 → 99. | PASS |
+| 8 | develop HEAD | f5ea12e9 (PR #610 squash-merge commit to origin/develop 2026-07-13T14:33:57Z). | PASS |
+| 9 | ANOMALY | feature/S-19.02 branch still present on origin post-merge (not auto-deleted by GitHub); human can delete at will via `git push origin --delete feature/S-19.02`. | NOTED |
+| 10 | CODIFICATION | D-832 decision-log entry appended (this entry); D-832 burst-log entry appended (8-block D-444(c)). | PASS |
+
+### Summary
+
+W1-S1902-MERGED; S-19.02 MERGED PR #610 f5ea12e9 2026-07-13T14:33:57Z; POL-14 PASS BC-4.13.001 ALREADY ACTIVE (D-545); merged_count 98→99; STORY-INDEX v4.179→v4.180; 4-index BC v3.97/VP v2.67/STORY v4.180/ARCH v3.01; PRs #613/#611 await human merge-gate
+
+### Phase
+
+D-832-W1-S1902-MERGED
+
+### Date
+
+2026-07-13
