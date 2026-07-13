@@ -1,0 +1,64 @@
+S-19.05 Demo Evidence — AC-005: SEC-003 path traversal sanitization in all builds
+Captured: 2026-07-13
+Branch: feature/S-19.05  HEAD: 405a871f
+Files: crates/factory-dispatcher/src/vsdd_sink.rs
+
+=== T-007 (AC-005): SEC-003 traversal rejection — integration test ===
+
+$ cargo test -p factory-dispatcher --test bc_3_08_001_s19_05 -- t007
+
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.20s
+     Running tests/bc_3_08_001_s19_05.rs (target/debug/deps/bc_3_08_001_s19_05-a19cfa4d0bf23343)
+
+running 1 test
+test test_BC_3_08_001_s19_05_t007_sec003_traversal_rejection_release_profile ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 9 filtered out; finished in 0.00s
+
+T-007 design: calls factory_dispatcher::flush_sink_file directly with a path containing ".."
+(e.g., "/tmp/safe/../../../etc/passwd"). Asserts no file written and function returns
+without error (silent rejection with tracing::warn). Exercises the production-grade guard in
+crates/factory-dispatcher/src/vsdd_sink.rs that rejects:
+  (a) paths containing ".." traversal sequences
+  (b) paths containing null bytes
+
+=== SEC-003 unit test in vsdd_sink.rs ===
+
+$ cargo test -p factory-dispatcher -- 'vsdd_sink::tests::test_flush_sink_file_rejects_traversal_path'
+
+running 1 test
+test vsdd_sink::tests::test_flush_sink_file_rejects_traversal_path ... ok
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 179 filtered out; finished in 0.00s
+
+=== SEC-003 concurrent O_APPEND atomicity test (#[cfg(unix)] 8-thread) ===
+
+$ cargo test -p factory-dispatcher -- 'vsdd_sink::tests::test_flush_sink_file_concurrent_append_no_line_merging_f_p6_001'
+
+running 1 test
+test vsdd_sink::tests::test_flush_sink_file_concurrent_append_no_line_merging_f_p6_001 ... ok
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 179 filtered out; finished in 0.03s
+
+Concurrent test design: 8 threads simultaneously call flush_sink_file. Asserts no JSON lines
+are merged (each line is a valid, distinct JSON object). Uses O_APPEND atomic write semantics
+on POSIX (PIPE_BUF atomic guarantee via OpenOptions::append(true)) per F-P6-001 fix.
+
+=== Absolute-path trust model (AC-005 note) ===
+
+Absolute paths (e.g., VSDD_SINK_FILE=/tmp/disp-events.jsonl) are accepted — operator-controlled,
+same-user local trust model consistent with SEC-004 TOCTOU ACCEPTED posture. SEC-003 sanitization
+scopes only ".." components and null bytes, not absolute paths.
+
+=== cfg gates in vsdd_sink.rs (no cfg(debug_assertions) around SEC-003 guard) ===
+
+$ grep -n 'cfg' crates/factory-dispatcher/src/vsdd_sink.rs
+
+17://! and release builds. The previous `#[cfg(debug_assertions)]` gate in
+120:#[cfg(test)]
+143:    /// `test_flush_sink_file_concurrent_append_no_line_merging_f_p6_001` (#[cfg(unix)]).
+225:    /// `#[cfg(unix)]` because the O_APPEND atomicity reasoning is specific to POSIX
+229:    #[cfg(unix)]
+
+No cfg(debug_assertions) gates — SEC-003 path sanitization is unconditional in all builds.
+Only #[cfg(test)] (test module) and #[cfg(unix)] (POSIX-specific atomicity test) remain.
+
+BC Trace: CLAUDE.md Conventions SEC-003 path sanitization; AC-005.
