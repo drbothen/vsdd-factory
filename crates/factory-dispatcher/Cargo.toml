@@ -17,6 +17,14 @@ path = "src/main.rs"
 name = "factory_dispatcher"
 path = "src/lib.rs"
 
+[features]
+# test-support: enables VSDD_ASYNC_DRAIN_WINDOW_MS env-override in release builds.
+# CI integration tests (bc_3_08_001_s19_05, bats VP-079 S1/S4) use this feature
+# to accommodate WASM cold-start time with generous drain windows.
+# DI-019 v1.6 preserved: release.yml builds factory-dispatcher WITHOUT this feature
+# so shipped artifacts always use ASYNC_DRAIN_WINDOW_MS = 100 ms.
+test-support = []
+
 [dependencies]
 serde.workspace = true
 serde_json.workspace = true

@@ -266,10 +266,10 @@ fn test_BC_3_08_001_s19_05_t001_async_exit0_within_drain_emits_plugin_completed(
 
     let sink_path = dir.path().join("t001-sink.jsonl");
 
-    // O-P5-3: VSDD_ASYNC_DRAIN_WINDOW_MS is debug-build-only (SEC-003 gate); this 10 s window
-    // relies on the debug cfg gate — under `cargo test --release` the 100 ms default applies
-    // and WASM cold-start (2–5 s) would cause T-001 to flap. Release-profile CI would need
-    // a pre-compiled WASM fixture strategy (out of scope for S-19.05).
+    // O-P5-3 RESOLVED (S-19.05 F-P7-001): With feature = "test-support" enabled in ci.yml's
+    // build-dispatcher Test (cargo) step, VSDD_ASYNC_DRAIN_WINDOW_MS is honored in release
+    // builds. The 10s drain window is sufficient for WASM cold-start (2-5s on CI).
+    // DI-019 preserved: shipped artifacts (release.yml) never include this feature.
     // Run the binary. 10 s drain window is generous for debug WASM cold-start
     // (observed 2-5 s on CI). The plugin exits in microseconds once compiled.
     let output = run_binary(dir.path(), &sink_path, 10_000);

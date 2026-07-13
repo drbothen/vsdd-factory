@@ -68,12 +68,13 @@ const ENV_PROJECT_DIR: &str = "CLAUDE_PROJECT_DIR";
 // SEC-003 path sanitization (no ".." traversal) is applied inside flush_sink_file.
 const ENV_SINK_FILE: &str = "VSDD_SINK_FILE";
 
-// VSDD_ASYNC_DRAIN_WINDOW_MS: debug-only override for the async drain window.
-// Used by bats integration tests (VP-079 S1/S4) to account for WASM cold-start
-// time in debug builds. Release builds always use ASYNC_DRAIN_WINDOW_MS (DI-019).
-// SEC-003: compiled out in release builds so the env var name does not appear in
-// production binaries.
-#[cfg(debug_assertions)]
+// VSDD_ASYNC_DRAIN_WINDOW_MS: env override for the async drain window.
+// Active in debug builds AND release builds compiled with feature=test-support
+// (CI integration tests only — never enabled in shipped artifacts per release.yml).
+// Shipped artifacts (release.yml: no features) always use ASYNC_DRAIN_WINDOW_MS
+// per DI-019 v1.6. SEC-003: compiled out in shipped release builds so the env var
+// name does not appear in production binaries.
+#[cfg(any(debug_assertions, feature = "test-support"))]
 const ENV_ASYNC_DRAIN_WINDOW_MS: &str = "VSDD_ASYNC_DRAIN_WINDOW_MS";
 
 #[tokio::main(flavor = "current_thread")]
@@ -467,17 +468,18 @@ async fn run(internal_log: Arc<InternalLog>) -> anyhow::Result<i32> {
     //   - Completed plugins' terminal events MUST emit (EC-012).
     //   - In-flight plugins when drain timer fires are abandoned (EC-011).
     //
-    // In debug builds, VSDD_ASYNC_DRAIN_WINDOW_MS env var can override the window
-    // to account for WASM cold-start time in bats integration tests (VP-079 S1/S4).
-    // Release builds always use ASYNC_DRAIN_WINDOW_MS (DI-019). SEC-003.
+    // In debug builds AND release builds with feature=test-support, VSDD_ASYNC_DRAIN_WINDOW_MS
+    // can override the window for CI integration tests (VP-079 S1/S4, bc_3_08_001_s19_05).
+    // Shipped release builds (release.yml: no features) always use ASYNC_DRAIN_WINDOW_MS
+    // per DI-019 v1.6. SEC-003: compiled out in shipped release builds.
     if !partition.async_group.is_empty() {
-        #[cfg(debug_assertions)]
+        #[cfg(any(debug_assertions, feature = "test-support"))]
         let effective_drain_window = std::env::var(ENV_ASYNC_DRAIN_WINDOW_MS)
             .ok()
             .and_then(|s| s.parse::<u64>().ok())
             .map(std::time::Duration::from_millis)
             .unwrap_or(ASYNC_DRAIN_WINDOW_MS);
-        #[cfg(not(debug_assertions))]
+        #[cfg(not(any(debug_assertions, feature = "test-support")))]
         let effective_drain_window = ASYNC_DRAIN_WINDOW_MS;
 
         // Capture entry_index (0-based enumerate ordinal) for each async plugin BEFORE
