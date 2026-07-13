@@ -10,25 +10,59 @@
 //!
 //! ## Test Plan
 //!
-//! | ID    | Story AC | Description |
-//! |-------|----------|-------------|
-//! | T-006 | AC-006   | fixture-a: resolvers-registry-only WASM → non-orphan (dual-registry regression gate) |
-//! | T-007 | AC-006   | fixture-c: neither-registry WASM → orphan, ORPHAN: <name> line confirmed |
-//! | T-008 | AC-006   | fixture-d: negative-control (F-P2-010) — resolvers-only WASM is orphan when only hooks-registry used |
-//! | T-009 | AC-006   | Real-bundle gate: enumerates real `plugins/vsdd-factory/hook-plugins/*.wasm` against both real registries; asserts zero orphans (EAC-005 load-bearing gate) |
-//! | T-010 | AC-007   | Bundle-simulation: stages fixture pre-staging dir (3 known orphans + live WASM); asserts staged artifact has zero orphans per real registries (EAC-005 post-staging assertion) |
+//! | ID    | Story AC | Status   | Description |
+//! |-------|----------|----------|-------------|
+//! | T-006 | AC-006   | GREEN    | fixture-a: resolvers-registry-only WASM → non-orphan (dual-registry regression gate) |
+//! | T-007 | AC-006   | GREEN    | fixture-c: neither-registry WASM → orphan, ORPHAN: <name> line confirmed |
+//! | T-008 | AC-006   | GREEN    | fixture-d: negative-control (F-P2-010) — resolvers-only WASM is orphan when only hooks-registry used |
+//! | T-009 | AC-006   | GREEN†   | Hermetic real-bundle gate: enumerates GIT-TRACKED set (`git ls-files`) against both real registries; asserts zero tracked orphans (EAC-005 standing regression gate) |
+//! | T-010 | AC-007   | RED      | Bundle-simulation: stages fixture with underscore-named WASMs through `stage_release_bundle` todo!() stub; asserts staged artifact has zero orphans per real registries and proves underscore-glob semantics |
 //!
-//! ## Red Gate Status
+//! † T-009 is a STANDING GREEN GATE — passes immediately on any clean checkout where no
+//! orphan WASMs are tracked in git, and remains green on contaminated worktrees because
+//! local build artifacts (untracked per .gitignore) are excluded from the git-tracked set.
 //!
-//! T-006, T-007, T-008: GREEN — [`collect_orphans_dual`] and [`collect_orphans_hooks_only`]
-//! are implemented; fixture-based tests pass against the inline fixture content.
+//! ## Hermetic Design for T-009
 //!
-//! T-009: RED — real `hook-plugins/` contains orphan WASMs (hello-hook.wasm,
-//! vsdd_context_resolvers.wasm, wasm_resolver_export.wasm); assert fails listing each
-//! `ORPHAN: <name>`. Implementer must delete/exclude the 3 orphan files to green this test.
+//! `plugins/vsdd-factory/hook-plugins/` is listed in `.gitignore` (~L64). Running
+//! `cargo build --target wasm32-wasip1 --workspace` deposits underscore-named lib-target
+//! stub WASMs there as untracked files. A raw `fs::read_dir` enumeration would find
+//! these build artifacts and false-fail the orphan assertion on any post-build dev machine,
+//! making `cargo test --workspace` (the documented pre-push gate) unreliable. T-009
+//! instead calls `git ls-files plugins/vsdd-factory/hook-plugins/` which returns ONLY
+//! the tracked set — the explicitly committed, versioned plugin binaries that release.yml
+//! stages from a clean checkout. Untracked build artifacts are invisible to git ls-files
+//! and cannot contaminate the result.
 //!
-//! T-010: RED — [`stage_release_bundle`] contains `todo!()` stub; test panics at runtime.
-//! Implementer replaces the stub with logic mirroring the fixed release.yml exclusion.
+//! ## Staging Semantics for T-010
+//!
+//! The release.yml steps "Stage artifact directory" and "Stage wasm plugins" use an
+//! underscore-glob case arm as the governing exclusion rule:
+//!
+//! ```yaml
+//! *_*.wasm)
+//!   case "$name" in
+//!     vsdd_context_resolvers.wasm|wasm_resolver_export.wasm) echo "skip stale..."; continue ;;
+//!     *) echo "skip lib-target stub: $name"; continue ;;
+//!   esac ;;
+//! ```
+//!
+//! The outer `*_*.wasm` arm matches ANY WASM whose basename contains an underscore.
+//! The inner arms are legacy documentation of specific stale artifacts; they do not limit
+//! the outer glob — all underscore-named WASMs are skipped, including future lib-target
+//! stubs not enumerated in the inner case. Non-underscore (hyphen-named) WASMs pass through.
+//!
+//! `hello-hook.wasm` has NO underscore → staging logic would copy it if it appeared in
+//! build output. Its exclusion is via BUILD-OMISSION: `cargo build --example hello-hook`
+//! was removed from release.yml in AC-001; hello-hook.wasm is never produced by the
+//! release build. T-009 (tracked-set gate) provides the secondary guarantee if it were
+//! accidentally committed. T-010 fixture therefore does NOT include hello-hook.wasm,
+//! faithfully representing post-build-omission staging inputs.
+//!
+//! Reciprocal anchor: `stage_release_bundle` mirrors release.yml steps "Stage artifact
+//! directory" and "Stage wasm plugins". **IMPLEMENTER FLAG**: once implemented, add the
+//! inverse anchor to both release.yml staging steps:
+//! `# Test gate: crates/factory-dispatcher/tests/bundle_orphan_check.rs::stage_release_bundle`
 //!
 //! ## Fixture Layout
 //!
@@ -36,14 +70,8 @@
 //!   `crates/factory-dispatcher/tests/fixtures/bundle-orphan/hooks-registry-fixture.toml`
 //!   `crates/factory-dispatcher/tests/fixtures/bundle-orphan/resolvers-registry-fixture.toml`
 //!
-//! These files are embedded at compile time via `include_str!()` into `HOOKS_REGISTRY_FIXTURE`
-//! and `RESOLVERS_REGISTRY_FIXTURE`. The fixture .toml files are the single source of truth;
-//! any edits must be made there, not to the constants.
-//!
-//! Each test creates a temporary directory containing:
-//! - `hook-plugins/` directory with fixture `.wasm` files (empty; only filename matters)
-//! - A `hooks-registry.toml` written from the fixture content
-//! - A `resolvers-registry.toml` written from the fixture content
+//! Embedded at compile time via `include_str!()` — the .toml files are the single source
+//! of truth; edits must be made there, not to the constants.
 //!
 //! Story: S-19.04
 //! VP Trace: — (AC-006 wires EAC-005 as load-bearing leg; no BC mapping)
@@ -51,6 +79,7 @@
 use std::collections::HashSet;
 use std::fs;
 use std::path::{Path, PathBuf};
+use std::process::Command;
 use tempfile::tempdir;
 
 // ---------------------------------------------------------------------------
@@ -186,54 +215,99 @@ fn workspace_root() -> PathBuf {
     }
 }
 
+/// Return the git-tracked WASM basenames under `plugins/vsdd-factory/hook-plugins/`.
+///
+/// Runs `git ls-files plugins/vsdd-factory/hook-plugins/` from `root`, filters for
+/// `.wasm` extension, and returns bare filenames (no directory prefix).
+///
+/// # Hermetic contract
+///
+/// `plugins/vsdd-factory/hook-plugins/` is gitignored (.gitignore ~L64). Local cargo
+/// builds deposit underscore-named lib-target stub WASMs there as untracked files.
+/// Using `git ls-files` instead of `fs::read_dir` ensures only the committed, versioned
+/// set is examined — identical to what `release.yml` stages from a clean `git checkout`.
+/// Untracked build artifacts cannot contaminate the result on any post-build dev machine.
+fn git_tracked_wasm_names(root: &Path) -> Vec<String> {
+    let output = Command::new("git")
+        .args(["ls-files", "plugins/vsdd-factory/hook-plugins/"])
+        .current_dir(root)
+        .output()
+        .expect("git ls-files must execute; ensure git is on PATH in the test environment");
+
+    assert!(
+        output.status.success(),
+        "git ls-files exited with status {}: {}",
+        output.status,
+        String::from_utf8_lossy(&output.stderr)
+    );
+
+    String::from_utf8(output.stdout)
+        .expect("git ls-files output must be valid UTF-8")
+        .lines()
+        .filter(|line| line.ends_with(".wasm"))
+        .map(|line| {
+            Path::new(line)
+                .file_name()
+                .expect("every git ls-files path must have a filename component")
+                .to_string_lossy()
+                .into_owned()
+        })
+        .collect()
+}
+
 // ---------------------------------------------------------------------------
 // AC-007 staging simulation stub
 // ---------------------------------------------------------------------------
 
-/// Simulate the release.yml artifact-staging inner case-arm exclusion logic.
+/// Simulate the release.yml artifact-staging underscore-glob exclusion logic.
 ///
-/// Copies every `.wasm` from `src_dir/` into `dst_dir/` EXCEPT the three known orphan
-/// files that the fixed `release.yml` excludes:
-/// - `hello-hook.wasm`           — dev sample; REMOVED from release.yml build+copy steps (AC-001)
-/// - `vsdd_context_resolvers.wasm` — stale underscore artifact; moved to skip path (AC-001)
-/// - `wasm_resolver_export.wasm`   — stale resolver export; moved to skip path (AC-001)
+/// Mirrors the outer case arm from release.yml steps "Stage artifact directory" and
+/// "Stage wasm plugins" (commit-binaries job):
 ///
-/// `vsdd-context-resolvers.wasm` (hyphen, live WaveContextResolver) IS copied; it is
-/// referenced by `resolvers-registry.toml` and must survive staging (AC-007 keep-assertion (i)).
+/// ```yaml
+/// *_*.wasm)          # <- outer arm: skip any WASM with underscore in basename
+///   case "$name" in
+///     vsdd_context_resolvers.wasm|wasm_resolver_export.wasm) ... continue ;;
+///     *) echo "skip lib-target stub: $name"; continue ;;
+///   esac ;;
+/// ```
 ///
-/// **At Red Gate this function panics with `todo!()`.**  The implementer replaces this
-/// stub with logic that matches the corrected release.yml inner case-arm behavior.
+/// **Semantics: skip any `.wasm` whose basename contains an underscore (`'_'`).**
+/// The outer `*_*.wasm` glob is the governing rule. The inner named arms document
+/// specific stale artifacts but do not restrict the outer glob — any new underscore-named
+/// lib-target stub is skipped automatically. Non-underscore (hyphen-named) WASMs are
+/// copied from `src_dir/` to `dst_dir/`.
 ///
-/// AC-007 / EAC-005: the staged `dst_dir` must contain zero dual-registry-orphan WASMs.
+/// # `hello-hook.wasm` exclusion mechanism
+///
+/// `hello-hook.wasm` contains no underscore — the staging logic would copy it if
+/// present in build output. Its exclusion from release bundles is via BUILD-OMISSION
+/// (`cargo build --example hello-hook` removed from release.yml in AC-001). The T-010
+/// fixture does not include hello-hook.wasm; it represents post-build-omission inputs.
+///
+/// # Reciprocal anchor
+///
+/// Mirrors release.yml "Stage artifact directory" and "Stage wasm plugins" steps.
+/// **IMPLEMENTER FLAG**: after implementing this stub, add the inverse anchor to BOTH
+/// release.yml staging steps (search for the two `*_*.wasm)` case arms):
+/// `# Test gate: crates/factory-dispatcher/tests/bundle_orphan_check.rs::stage_release_bundle`
+///
+/// **At Red Gate this function panics with `todo!()`.**
+///
+/// AC-007 / EAC-005: `dst_dir` must contain zero dual-registry-orphan WASMs after staging.
 fn stage_release_bundle(src_dir: &Path, dst_dir: &Path) {
-    // Mirror the fixed release.yml inner case-arm exclusion (AC-001 / S-19.04):
-    //   hello-hook.wasm           — removed from release build; never bundle (AC-001)
-    //   vsdd_context_resolvers.wasm — stale underscore artifact; skipped by case-arm
-    //   wasm_resolver_export.wasm   — stale resolver export; skipped by case-arm
-    //
-    // vsdd-context-resolvers.wasm (hyphen) is referenced by resolvers-registry.toml
-    // and MUST be copied (AC-007 keep-assertion (i)).
-    const EXCLUDED: &[&str] = &[
-        "hello-hook.wasm",
-        "vsdd_context_resolvers.wasm",
-        "wasm_resolver_export.wasm",
-    ];
-
-    let entries = fs::read_dir(src_dir)
-        .unwrap_or_else(|e| panic!("failed to read src_dir {}: {}", src_dir.display(), e));
-    for entry in entries {
-        let entry = entry.expect("dir entry must be readable");
-        let filename = entry.file_name().to_string_lossy().into_owned();
-        if !filename.ends_with(".wasm") {
-            continue;
-        }
-        if EXCLUDED.contains(&filename.as_str()) {
-            continue;
-        }
-        let dst = dst_dir.join(&filename);
-        fs::copy(entry.path(), &dst)
-            .unwrap_or_else(|e| panic!("failed to copy {} to {}: {}", filename, dst.display(), e));
-    }
+    // Red Gate stub — implementer replaces todo!() with:
+    //   for each .wasm in src_dir:
+    //     basename = filename of the wasm
+    //     if basename.contains('_') { continue }  // outer *_*.wasm glob
+    //     fs::copy(src, dst_dir/basename)
+    let _ = (src_dir, dst_dir); // suppress unused-variable lint at Red Gate
+    todo!(
+        "AC-007: implement underscore-glob staging — skip any .wasm basename containing '_' \
+         (mirrors release.yml *_*.wasm outer case arm); copy all non-underscore WASMs from \
+         src_dir to dst_dir; then add reciprocal anchor comment to both release.yml \
+         staging steps citing this function"
+    )
 }
 
 // ---------------------------------------------------------------------------
@@ -248,8 +322,8 @@ fn stage_release_bundle(src_dir: &Path, dst_dir: &Path) {
 // Expected: collect_orphans_dual returns [] (no orphans).
 // resolvers-only.wasm must NOT be flagged as orphan when the dual-registry check is used.
 //
-// This is the regression gate for EC-003: vsdd-context-resolvers.wasm (hyphen) was
-// falsely classified as orphan in v1.0 because only hooks-registry.toml was checked.
+// Regression gate for EC-003: vsdd-context-resolvers.wasm (hyphen) was falsely classified
+// as orphan in v1.0 because only hooks-registry.toml was checked.
 // ---------------------------------------------------------------------------
 #[test]
 fn test_S_19_04_ac006_T006_resolvers_registry_only_wasm_is_non_orphan() {
@@ -318,7 +392,6 @@ fn test_S_19_04_ac006_T007_neither_registry_wasm_is_orphan_with_orphan_line() {
     // Dual-registry detection: neither-registry.wasm is in neither registry → orphan
     let orphans = collect_orphans_dual(&hook_plugins, &hooks_reg, &resolvers_reg);
 
-    // Verify the orphan is detected
     assert!(
         orphans.contains(&"neither-registry.wasm".to_string()),
         "T-007 AC-006: neither-registry.wasm must be classified as orphan \
@@ -327,8 +400,7 @@ fn test_S_19_04_ac006_T007_neither_registry_wasm_is_orphan_with_orphan_line() {
         orphans
     );
 
-    // Verify the ORPHAN: <name> format required by AC-006 spec
-    // (EAC-005 assertion would emit: ORPHAN: <name> per AC-006 clause d)
+    // Verify the ORPHAN: <name> format required by AC-006 spec clause (d)
     let orphan_lines: Vec<String> = orphans
         .iter()
         .map(|name| format!("ORPHAN: {}", name))
@@ -353,13 +425,8 @@ fn test_S_19_04_ac006_T007_neither_registry_wasm_is_orphan_with_orphan_line() {
 //
 // Expected:
 //   collect_orphans_hooks_only returns ["resolvers-only.wasm"].
-//   This confirms the dual-registry check is LOAD-BEARING: when the resolvers-registry
-//   check is omitted, a resolvers-only WASM IS classified as orphan (false-positive).
-//   The dual-registry check in collect_orphans_dual removes this false positive.
-//
-// This test guards against regression to the v1.0 defect (EC-003): if someone
-// removes the resolvers-registry check from collect_orphans_dual, it would start
-// producing false-positive orphans for vsdd-context-resolvers.wasm.
+//   Confirms the dual-registry check is LOAD-BEARING: omitting the resolvers-registry
+//   check produces a false-positive orphan. Regression gate for EC-003 v1.0 defect.
 // ---------------------------------------------------------------------------
 #[test]
 fn test_S_19_04_ac006_T008_negative_control_resolvers_only_is_orphan_with_hooks_only_detection() {
@@ -367,7 +434,6 @@ fn test_S_19_04_ac006_T008_negative_control_resolvers_only_is_orphan_with_hooks_
     let hook_plugins = tmp.path().join("hook-plugins");
     fs::create_dir_all(&hook_plugins).expect("hook-plugins dir must be created");
 
-    // fixture-d: one WASM referenced only by resolvers-registry
     fs::write(hook_plugins.join("resolvers-only.wasm"), b"")
         .expect("resolvers-only.wasm fixture must be written");
 
@@ -381,47 +447,41 @@ fn test_S_19_04_ac006_T008_negative_control_resolvers_only_is_orphan_with_hooks_
     assert!(
         orphans.contains(&"resolvers-only.wasm".to_string()),
         "T-008 AC-006 F-P2-010 negative-control: resolvers-only.wasm MUST be classified \
-         as orphan when only hooks-registry is used — this confirms the dual-registry check \
-         in collect_orphans_dual is load-bearing, not advisory (EC-003); \
+         as orphan when only hooks-registry is used — confirms dual-registry check in \
+         collect_orphans_dual is load-bearing, not advisory (EC-003); \
          got orphans: {:?}",
         orphans
     );
 }
 
 // ---------------------------------------------------------------------------
-// T-009 — AC-006 EAC-005: real-bundle zero-orphan gate
+// T-009 — AC-006 EAC-005: hermetic tracked-bundle zero-orphan standing gate
 //
-// Enumerates the REAL `plugins/vsdd-factory/hook-plugins/*.wasm` against the REAL
-// `hooks-registry.toml` AND `resolvers-registry.toml`. Asserts zero orphans.
+// Enumerates the GIT-TRACKED set under `plugins/vsdd-factory/hook-plugins/` via
+// `git ls-files` and asserts every tracked WASM is referenced by at least one registry.
 //
-// This is the load-bearing EAC-005 gate: it fails as long as orphan WASM files
-// remain in the source directory (hello-hook.wasm, vsdd_context_resolvers.wasm,
-// wasm_resolver_export.wasm confirmed present at Red Gate on 2026-07-13).
+// HERMETIC DESIGN: `hook-plugins/` is gitignored. Local `cargo build --target
+// wasm32-wasip1` deposits underscore-named lib-target stub WASMs there as UNTRACKED
+// files. Using `git ls-files` (not `fs::read_dir`) ensures only the committed set is
+// examined — identical to what release.yml stages from a clean git checkout. Untracked
+// build artifacts (hello-hook.wasm, vsdd_context_resolvers.wasm, wasm_resolver_export.wasm
+// and any lib-target stubs) are invisible to git ls-files and cannot false-fail this test
+// on any post-build dev machine, making `cargo test --workspace` reliable as a pre-push gate.
 //
-// Red Gate failure message will list:
-//   ORPHAN: hello-hook.wasm
-//   ORPHAN: vsdd_context_resolvers.wasm
-//   ORPHAN: wasm_resolver_export.wasm
+// CONTAMINATION RESISTANCE: the enumeration source is the stdout of `git ls-files`, not
+// the filesystem dirlist. A worktree containing extra untracked orphan files passes this
+// test unchanged.
 //
-// Implementer fix: delete the 3 orphan source files from plugins/vsdd-factory/hook-plugins/.
-// After fix, this test passes because zero WASMs remain unreferenced by either registry.
-//
-// Locates workspace root robustly via `workspace_root()` — walks up from
-// CARGO_MANIFEST_DIR until `plugins/vsdd-factory/` is found (2 hops for current layout).
+// STANDING GREEN GATE: passes immediately in the current clean checkout (all 32 tracked
+// WASMs are referenced by hooks-registry or resolvers-registry as of S-19.04 implementation).
+// Catches future regressions where an unreferenced WASM is accidentally committed to git.
 // ---------------------------------------------------------------------------
 #[test]
-fn test_S_19_04_ac006_T009_real_bundle_zero_orphans() {
+fn test_S_19_04_ac006_T009_hermetic_tracked_bundle_zero_orphans() {
     let root = workspace_root();
-    let hook_plugins_dir = root.join("plugins/vsdd-factory/hook-plugins");
     let hooks_registry = root.join("plugins/vsdd-factory/hooks-registry.toml");
     let resolvers_registry = root.join("plugins/vsdd-factory/resolvers-registry.toml");
 
-    assert!(
-        hook_plugins_dir.exists(),
-        "T-009: plugins/vsdd-factory/hook-plugins/ not found under workspace root {}; \
-         workspace_root() walk may be misconfigured",
-        root.display()
-    );
     assert!(
         hooks_registry.exists(),
         "T-009: plugins/vsdd-factory/hooks-registry.toml not found under workspace root {}",
@@ -433,13 +493,31 @@ fn test_S_19_04_ac006_T009_real_bundle_zero_orphans() {
         root.display()
     );
 
-    let orphans = collect_orphans_dual(&hook_plugins_dir, &hooks_registry, &resolvers_registry);
+    // Enumerate ONLY git-tracked WASMs (hermetic: untracked build artifacts excluded)
+    let tracked_names = git_tracked_wasm_names(&root);
+
+    assert!(
+        !tracked_names.is_empty(),
+        "T-009: git ls-files returned no tracked WASMs under \
+         plugins/vsdd-factory/hook-plugins/ — check workspace_root() detection"
+    );
+
+    let hooks_refs = parse_plugin_refs(&hooks_registry);
+    let resolvers_refs = parse_plugin_refs(&resolvers_registry);
+
+    let mut orphans: Vec<&str> = tracked_names
+        .iter()
+        .filter(|name| !hooks_refs.contains(*name) && !resolvers_refs.contains(*name))
+        .map(String::as_str)
+        .collect();
+    orphans.sort();
 
     assert!(
         orphans.is_empty(),
-        "T-009 AC-006 EAC-005: zero orphan WASMs expected in real hook-plugins/ bundle; \
-         found {} orphan(s) — implementer must delete these files from \
-         plugins/vsdd-factory/hook-plugins/:\n{}",
+        "T-009 AC-006 EAC-005: zero tracked-orphan WASMs expected in \
+         plugins/vsdd-factory/hook-plugins/ (git-tracked set via git ls-files); \
+         found {} orphan(s) — these tracked WASMs must be removed from git or \
+         added to the appropriate registry:\n{}",
         orphans.len(),
         orphans
             .iter()
@@ -452,54 +530,67 @@ fn test_S_19_04_ac006_T009_real_bundle_zero_orphans() {
 // ---------------------------------------------------------------------------
 // T-010 — AC-007 EAC-005: release.yml bundle-simulation zero-orphan gate
 //
-// Simulates the release.yml artifact-staging step against a fixture pre-staging
-// directory containing the 3 known orphan WASMs + the live vsdd-context-resolvers.wasm.
+// Simulates the release.yml "Stage artifact directory" step against a fixture
+// pre-staging directory representing build output AFTER the AC-001 fix (hello-hook
+// build step removed). Calls `stage_release_bundle(pre_staging, artifact)` and asserts
+// the staged artifact has zero orphans per the real registries.
 //
-// Calls `stage_release_bundle(pre_staging_dir, artifact_dir)` — the stub that the
-// implementer fills with logic mirroring the fixed release.yml inner case-arm exclusion.
+// Fixture pre-staging contents (representing post-build-omission cargo output):
+//   vsdd_context_resolvers.wasm   — underscore → outer *_*.wasm glob skips it
+//   wasm_resolver_export.wasm     — underscore → outer *_*.wasm glob skips it
+//   some_new_stub_lib.wasm        — underscore, NOT in inner named denylist → proves
+//                                   the outer glob governs, not a hardcoded name list
+//   vsdd-context-resolvers.wasm   — hyphen, no underscore → copied (keep-assertion)
 //
-// Red Gate: `stage_release_bundle` panics with `todo!()` → test FAILS.
-// After implementation: orphans are excluded from artifact_dir; the assert passes.
+// NOTE: hello-hook.wasm is ABSENT from the fixture. Its exclusion is via BUILD-OMISSION
+// (AC-001: cargo build --example hello-hook removed), not the staging glob. The staging
+// logic would copy it if present (no underscore). The fixture faithfully represents
+// post-build-omission inputs; T-009 provides the secondary tracked-file guarantee.
 //
-// This gate is DISTINCT from T-009:
-//   T-009 verifies SOURCE state (no orphan files in source after implementer deletes them)
-//   T-010 verifies STAGING LOGIC (release.yml exclusion correctly suppresses orphans even
-//         when they are present as inputs — i.e., the staging logic itself is correct)
+// Red Gate: `stage_release_bundle` panics with todo!() → test FAILS ✓
+// After implementation: underscore names skipped, vsdd-context-resolvers.wasm copied →
+//   - zero orphans per real registries (EAC-005)
+//   - vsdd-context-resolvers.wasm present in artifact (keep-assertion i)
+//   - some_new_stub_lib.wasm NOT in artifact (glob-semantics proof)
+//   - resolvers-registry still references vsdd-context-resolvers.wasm (keep-assertion ii)
 //
-// AC-007 keep-assertion (i): vsdd-context-resolvers.wasm must survive staging (live WASM).
-// AC-007 keep-assertion (ii): the real resolvers-registry.toml must still reference it.
-//
-// EAC-005: staged bundle dual-registry-orphan count must equal 0.
+// DISTINCT FROM T-009:
+//   T-009 verifies TRACKED SOURCE STATE — regression gate for accidental commit of orphans
+//   T-010 verifies STAGING LOGIC CORRECTNESS — the underscore-glob exclusion mechanism
+//         itself; exercises stage_release_bundle against fixture inputs
 // ---------------------------------------------------------------------------
 #[test]
-fn test_S_19_04_ac007_T010_release_staging_excludes_orphans() {
-    // Build the pre-staging fixture directory: 3 known orphans + 1 live WASM
+fn test_S_19_04_ac007_T010_release_staging_underscore_glob_excludes_orphans() {
+    // Build the pre-staging fixture: underscore-named orphans + live hyphen WASM.
+    // Represents cargo build output after hello-hook build step removal (AC-001).
     let tmp = tempdir().expect("tempdir must create successfully");
     let pre_staging = tmp.path().join("pre-staging");
     fs::create_dir_all(&pre_staging).expect("pre-staging dir must be created");
 
-    // The 3 known orphan WASMs from the rc.22 smoke finding (S-19.04 narrative)
+    // Underscore-named WASMs: outer *_*.wasm glob must skip all of these.
+    //   vsdd_context_resolvers.wasm, wasm_resolver_export.wasm — the two named stale artifacts.
+    //   some_new_stub_lib.wasm — new underscore name NOT in inner denylist; proves glob scope.
     for name in &[
-        "hello-hook.wasm",
         "vsdd_context_resolvers.wasm",
         "wasm_resolver_export.wasm",
+        "some_new_stub_lib.wasm",
     ] {
         fs::write(pre_staging.join(name), b"")
             .unwrap_or_else(|e| panic!("write fixture {}: {}", name, e));
     }
-    // The live WaveContextResolver that MUST appear in the staged bundle (keep-assertion (i))
+
+    // Hyphen-named live WaveContextResolver: no underscore → must be copied to artifact/.
     fs::write(pre_staging.join("vsdd-context-resolvers.wasm"), b"")
         .expect("vsdd-context-resolvers.wasm fixture must be written");
 
-    // Create empty artifact (destination) directory
     let artifact = tmp.path().join("artifact");
     fs::create_dir_all(&artifact).expect("artifact dir must be created");
 
-    // Red Gate: stage_release_bundle panics with todo!() here.
-    // After implementation: exclusion logic copies only non-orphan WASMs to artifact/.
+    // Red Gate: panics with todo!() here.
+    // After implementation: underscore names excluded; vsdd-context-resolvers.wasm copied.
     stage_release_bundle(&pre_staging, &artifact);
 
-    // Verify zero orphans in staged bundle against the real registries
+    // Zero orphans in staged bundle per real registries (EAC-005)
     let root = workspace_root();
     let hooks_reg = root.join("plugins/vsdd-factory/hooks-registry.toml");
     let resolvers_reg = root.join("plugins/vsdd-factory/resolvers-registry.toml");
@@ -507,8 +598,9 @@ fn test_S_19_04_ac007_T010_release_staging_excludes_orphans() {
 
     assert!(
         orphans.is_empty(),
-        "T-010 AC-007 EAC-005: staged artifact bundle must contain zero dual-registry-orphan \
-         WASMs; found {} orphan(s) — release.yml staging logic is not excluding them:\n{}",
+        "T-010 AC-007 EAC-005: staged artifact must contain zero dual-registry-orphan \
+         WASMs; found {} orphan(s) — staging logic is not applying underscore-glob \
+         exclusion correctly:\n{}",
         orphans.len(),
         orphans
             .iter()
@@ -517,15 +609,30 @@ fn test_S_19_04_ac007_T010_release_staging_excludes_orphans() {
             .join("\n")
     );
 
-    // AC-007 keep-assertion (i): live WaveContextResolver must survive staging
+    // AC-007 keep-assertion (i): live WaveContextResolver must survive staging.
+    // vsdd-context-resolvers.wasm has no underscore → must be copied to artifact/.
     assert!(
         artifact.join("vsdd-context-resolvers.wasm").exists(),
-        "T-010 AC-007 keep-assertion (i): vsdd-context-resolvers.wasm must be present in \
-         staged artifact/ — the live WaveContextResolver must not be excluded by the \
-         staging logic (EC-003)"
+        "T-010 AC-007 keep-assertion (i): vsdd-context-resolvers.wasm must be present \
+         in staged artifact/ — hyphen-named, no underscore, must not be excluded \
+         by the *_*.wasm glob (EC-003)"
     );
 
-    // AC-007 keep-assertion (ii): real resolvers-registry.toml must still reference it
+    // Glob-semantics proof: some_new_stub_lib.wasm has underscore but is NOT named in
+    // the legacy inner denylist (vsdd_context_resolvers.wasm|wasm_resolver_export.wasm).
+    // Must NOT appear in artifact/ — proving the outer *_*.wasm glob governs all
+    // underscore-named WASMs, not merely those enumerated in the inner case arms.
+    // A hardcoded-denylist implementation would erroneously copy this file (test would fail).
+    assert!(
+        !artifact.join("some_new_stub_lib.wasm").exists(),
+        "T-010 AC-007 glob-semantics proof: some_new_stub_lib.wasm must NOT be in \
+         staged artifact/ — the outer *_*.wasm underscore glob must skip ALL \
+         underscore-named WASMs, not only the two in the inner legacy denylist; \
+         a hardcoded-denylist implementation would incorrectly copy this file"
+    );
+
+    // AC-007 keep-assertion (ii): real resolvers-registry.toml must still reference
+    // vsdd-context-resolvers.wasm (registry reference must remain intact).
     let resolvers_reg_content = fs::read_to_string(&resolvers_reg)
         .expect("resolvers-registry.toml must be readable for keep-assertion (ii)");
     assert!(
