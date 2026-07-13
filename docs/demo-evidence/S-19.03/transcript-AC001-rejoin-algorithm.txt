@@ -1,0 +1,105 @@
+S-19.03 Demo Evidence — AC-001: path_allowed() rejoin algorithm
+Captured: 2026-07-11
+Branch: feature/S-19.03  HEAD: 98df0edb
+Crate: crates/factory-dispatcher (host::path_util + host::read_file)
+
+=== Story gate (AC-001 positive: absent allowlisted file → path_allowed() returns true) ===
+
+$ cargo test -p factory-dispatcher "T001" 2>&1 | grep -E "^running|^test host|^test result" | head -5
+
+running 3 tests
+test host::read_file::tests::test_S19_03_T001_NC_B_path_resolution_failed_token_via_path_util ... ok
+test host::path_util::tests::test_S19_03_T001_helper_absent_target_under_existing_parent_returns_some ... ok
+test host::read_file::tests::test_S19_03_T001_absent_allowlisted_file_returns_NOT_FOUND ... ok
+test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 172 filtered out; finished in 0.00s
+
+=== T-001 test descriptions ===
+
+test_S19_03_T001_helper_absent_target_under_existing_parent_returns_some
+  (path_util): absent target under an existing parent → resolve_path_for_allowlist returns Some(canonical_path)
+  Asserts: the rejoin algorithm canonicalizes the parent, rejoins the non-existent tail, and returns Some.
+
+test_S19_03_T001_absent_allowlisted_file_returns_NOT_FOUND
+  (read_file): absent allowlisted file → prepare() returns Err(NOT_FOUND); path was allowed (not CAPABILITY_DENIED)
+  Asserts: codes::NOT_FOUND (-5) is returned, not codes::CAPABILITY_DENIED (-1).
+
+test_S19_03_T001_NC_B_path_resolution_failed_token_via_path_util
+  (read_file, NC-B): when resolve_path_for_allowlist returns None (all ancestors exhausted),
+  prepare() emits internal.capability_denied with reason=path_resolution_failed (NOT path_not_allowed).
+  Asserts: exact reason token in emitted event; exit non-zero if reason is path_not_allowed.
+
+=== AC-001 Negative Control A (escape rejection): absent path resolves outside allowlist prefix ===
+
+$ cargo test -p factory-dispatcher "escape" 2>&1 | grep -E "^running|^test host|^test result" | head -5
+
+running 3 tests
+test host::read_file::tests::test_S19_03_P1_001_escape_check_path_allowed_returns_denied_not_allowed ... ok
+test host::path_util::tests::test_S19_03_P1_001_escape_rejection_absent_path_resolves_outside_prefix ... ok
+test host::read_file::tests::test_S19_03_P1_001_escape_prepare_returns_CAPABILITY_DENIED_reason_path_not_allowed ... ok
+test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 172 filtered out; finished in 0.00s
+
+test_S19_03_P1_001_escape_rejection_absent_path_resolves_outside_prefix
+  (path_util): path ".factory/../secrets/key" (absent, parent exists) → synthesized canonical path
+  resolves to /.../secrets/key which lies outside the allowed prefix → returns None.
+  Asserts: escape via `..` in the non-existent tail is correctly rejected.
+
+test_S19_03_P1_001_escape_check_path_allowed_returns_denied_not_allowed
+  (read_file): escape path → check_path_allowed returns DeniedNotAllowed (path_not_allowed reason).
+
+test_S19_03_P1_001_escape_prepare_returns_CAPABILITY_DENIED_reason_path_not_allowed
+  (read_file): escape path → prepare() returns CAPABILITY_DENIED and emits
+  internal.capability_denied reason=path_not_allowed (genuine allowlist violation path preserved).
+
+=== AC-001 Negative Control B (EC-007 mock-canonicalize all-fail) ===
+
+$ cargo test -p factory-dispatcher "EC007" 2>&1 | grep -E "^running|^test host|^test result" | head -5
+
+running 1 test
+test host::path_util::tests::test_S19_03_EC007_mock_canonicalize_all_fail_returns_none ... ok
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 174 filtered out; finished in 0.00s
+
+test_S19_03_EC007_mock_canonicalize_all_fail_returns_none
+  (path_util): injectable mock canonicalize fn returns Err(NotFound) for every ancestor →
+  resolve_path_for_allowlist exhausts all ancestors without finding one that canonicalizes →
+  returns None (all-fail case). Asserts: None returned (not Some with a spurious path).
+
+$ cargo test -p factory-dispatcher "path_resolution_failed" 2>&1 | grep -E "^running|^test host|^test result" | head -6
+
+running 4 tests
+test host::read_file::tests::test_S19_03_T001_NC_B_path_resolution_failed_token_via_path_util ... ok
+test host::read_file::tests::test_S19_03_P1_002_NC_B_denied_resolution_failed_emits_path_resolution_failed_reason ... ok
+test host::write_file::tests::test_S19_03_P1_002_NC_B_denied_resolution_failed_emits_path_resolution_failed_reason_write ... ok
+test host::write_file::tests::test_S19_03_write_sibling_sweep_path_resolution_failed_vs_path_not_allowed ... ok
+test result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 171 filtered out; finished in 0.00s
+
+Sibling sweep confirmed: write_file.rs also verifies path_resolution_failed vs path_not_allowed distinction
+per mandatory Architecture Mapping sibling-sweep (TD-VSDD-060).
+
+=== T-002 (NC-A): path_util callable from read_file context ===
+
+$ cargo test -p factory-dispatcher "T002" 2>&1 | grep -E "^running|^test host|^test result" | head -4
+
+running 1 test
+test host::read_file::tests::test_S19_03_T002_NC_A_path_util_callable_from_read_file_context ... ok
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 174 filtered out; finished in 0.00s
+
+test_S19_03_T002_NC_A_path_util_callable_from_read_file_context
+  (read_file, NC-A): asserts path_util::resolve_path_for_allowlist is imported from the shared module
+  and callable from read_file.rs context; path outside allowlist → None → DeniedNotAllowed.
+
+=== BC Trace ===
+
+BC-2.07.001 v1.5 part b (rejoin algorithm: canonicalize deepest existing ancestor, rejoin tail,
+  check starts_with allowed prefix; injectable canonicalize fn per EC-007)
+BC-2.02.011 v1.7 EC-001 (traversal → CAPABILITY_DENIED via shared resolve_path_for_allowlist
+  in path_util.rs; write_file.rs depends on the same function; VP-097 Kani proof anchors both)
+VP-097 (Kani traversal-defense: synthesized canonical path is traversal-safe; no `..` injection possible)
+
+=== Root cause closed ===
+
+The old path_allowed() called resolved.canonicalize() directly. For absent files, canonicalize()
+returns Err, and path_allowed() returned false unconditionally, emitting capability_denied
+reason=path_not_allowed even when the path WAS in the allowlist. The rejoin algorithm in
+resolve_path_for_allowlist (shared path_util.rs) correctly handles absent-file cases by walking
+to the deepest existing ancestor, rejoining the non-existent tail, and then checking prefix
+membership — separating "file absent but path allowed" from "path genuinely not allowed."

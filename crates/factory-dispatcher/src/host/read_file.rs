@@ -18,7 +18,9 @@ use serde_json::{Map, Value};
 use wasmtime::Linker;
 
 use super::memory::{read_wasm_string, write_wasm_bytes, write_wasm_u32};
+use super::path_util::{PathAllowDecision, check_path_allowed};
 use super::{HostCallError, HostCaller, HostContext, codes};
+use crate::internal_log::InternalEvent;
 
 pub fn register(linker: &mut Linker<HostContext>) -> Result<(), HostCallError> {
     linker
@@ -86,9 +88,21 @@ pub(crate) fn prepare(
     // found in the project directory, not the plugin directory.
     let resolved = resolve_for_read(Path::new(path), &ctx.cwd);
 
-    if !path_allowed(&resolved, &caps.path_allow, &ctx.cwd) {
-        emit_denial(ctx, path, "path_not_allowed", Some(&resolved));
-        return Err(codes::CAPABILITY_DENIED);
+    // Two-step decomposed path check (architect Ruling-2 / S-19.03):
+    //   Step 1 — resolve via ancestor-walk+rejoin (handles absent files correctly).
+    //   Step 2 — pure prefix check against the allow-list.
+    // The two denial reasons are emitted separately so operators can distinguish
+    // filesystem resolution errors from genuine allowlist violations.
+    match check_path_allowed(&resolved, &caps.path_allow, &ctx.cwd, |p| p.canonicalize()) {
+        PathAllowDecision::Allowed => {}
+        PathAllowDecision::DeniedResolutionFailed => {
+            emit_denial(ctx, path, "path_resolution_failed", Some(&resolved));
+            return Err(codes::CAPABILITY_DENIED);
+        }
+        PathAllowDecision::DeniedNotAllowed => {
+            emit_denial(ctx, path, "path_not_allowed", Some(&resolved));
+            return Err(codes::CAPABILITY_DENIED);
+        }
     }
 
     match read_bounded(&resolved, max_bytes as usize) {
@@ -97,12 +111,35 @@ pub(crate) fn prepare(
             emit_denial(ctx, path, "output_too_large", Some(&resolved));
             Err(codes::OUTPUT_TOO_LARGE)
         }
+        Err(ReadErr::NotFound) => {
+            // AC-002 (S-19.03): path is allowlisted but file is absent.
+            // Emit `internal.file_not_found` (NOT `internal.capability_denied`)
+            // and return `codes::NOT_FOUND (-5)` so plugins can distinguish
+            // "absent file" from "genuine allowlist violation".
+            let ev = InternalEvent::now("internal.file_not_found")
+                .with_trace_id(&ctx.dispatcher_trace_id)
+                .with_session_id(&ctx.session_id)
+                .with_plugin_name(&ctx.plugin_name)
+                .with_plugin_version(&ctx.plugin_version)
+                .with_field("function", Value::String("read_file".to_string()))
+                .with_field("reason", Value::String("file_not_found".to_string()))
+                .with_field("path", Value::String(path.to_string()))
+                .with_field(
+                    "resolved",
+                    Value::String(resolved.to_string_lossy().into_owned()),
+                );
+            ctx.emit_internal(ev);
+            Err(codes::NOT_FOUND)
+        }
         Err(ReadErr::Other) => Err(codes::INTERNAL_ERROR),
     }
 }
 
 enum ReadErr {
     TooLarge,
+    /// Path is in the allow-list but the file does not exist.
+    /// Triggers `internal.file_not_found` + `codes::NOT_FOUND` (AC-002).
+    NotFound,
     Other,
 }
 
@@ -117,39 +154,14 @@ fn resolve_for_read(path: &Path, base: &Path) -> PathBuf {
     }
 }
 
-/// Check whether a resolved path is within the allow-list. Allow-list entries
-/// that are relative are expanded under `base` (the project working directory).
-fn path_allowed(resolved: &Path, allow: &[String], base: &Path) -> bool {
-    // Canonicalize the target path to remove any `..` components, defeating
-    // traversal attacks (BC-2.02.001 EC-001 / sibling-consistency with BC-2.02.011).
-    // For read_file the file must already exist, so full canonicalize() works.
-    let canon_resolved = match resolved.canonicalize() {
-        Ok(p) => p,
-        // File doesn't exist or I/O error — deny (will produce INTERNAL_ERROR
-        // downstream when read_bounded opens the file).
-        Err(_) => return false,
-    };
-
-    for pref in allow {
-        let pref_path = if Path::new(pref).is_absolute() {
-            PathBuf::from(pref)
-        } else {
-            base.join(pref)
-        };
-        let canon_pref = match pref_path.canonicalize() {
-            Ok(p) => p,
-            // Configured allowlist prefix doesn't exist — skip.
-            Err(_) => continue,
-        };
-        if canon_resolved.starts_with(&canon_pref) {
-            return true;
-        }
-    }
-    false
-}
-
 fn read_bounded(path: &Path, max_bytes: usize) -> Result<Vec<u8>, ReadErr> {
-    let mut file = File::open(path).map_err(|_| ReadErr::Other)?;
+    let mut file = File::open(path).map_err(|e| {
+        if e.kind() == std::io::ErrorKind::NotFound {
+            ReadErr::NotFound
+        } else {
+            ReadErr::Other
+        }
+    })?;
     let metadata = file.metadata().map_err(|_| ReadErr::Other)?;
     if metadata.len() as usize > max_bytes {
         return Err(ReadErr::TooLarge);
@@ -232,5 +244,378 @@ mod tests {
         ctx.cwd = dir.path().to_path_buf();
         let (bytes, _) = prepare(&ctx, "rel.txt", 1024).unwrap();
         assert_eq!(bytes, b"yes");
+    }
+
+    // -----------------------------------------------------------------------
+    // S-19.03 Red Gate tests (T-001..T-004 + NC-B)
+    //
+    // These tests ALL fail or panic at Red Gate (stubs not implemented):
+    //   T-001 — FAILS: returns CAPABILITY_DENIED (old path_allowed) not NOT_FOUND
+    //   T-002 NC-A — PANICS: path_util::resolve_path_for_allowlist is todo!()
+    //   T-003 — FAILS: emits capability_denied event, not file_not_found
+    //   T-004 — FAILS: emits one capability_denied event (not zero)
+    //   T-001 NC-B — PANICS: path_util::resolve_path_for_allowlist is todo!()
+    // -----------------------------------------------------------------------
+
+    /// test_S19_03_T001_absent_allowlisted_file_returns_NOT_FOUND
+    ///
+    /// T-001 (AC-001): when a file's path is within the allowlist but the file does
+    /// not yet exist, `prepare()` must return `Err(codes::NOT_FOUND)` — NOT
+    /// `Err(codes::CAPABILITY_DENIED)`.
+    ///
+    /// Root defect: old `path_allowed()` calls `canonicalize()` which fails for absent
+    /// files and returns `false`, causing `prepare()` to return CAPABILITY_DENIED even
+    /// when the path IS within the declared `path_allow` prefix.
+    ///
+    /// Red Gate: FAILS — `codes::NOT_FOUND` is currently -1000 (stub) and the
+    /// old `path_allowed()` returns `false` for absent files, so `prepare()` returns
+    /// `Err(CAPABILITY_DENIED = -1)`, not `Err(NOT_FOUND = -1000)`.
+    ///
+    /// Traces to: BC-2.07.001 part b+c; S-19.03 AC-001/AC-002; VP-098.
+    #[test]
+    #[allow(non_snake_case)]
+    fn test_S19_03_T001_absent_allowlisted_file_returns_NOT_FOUND() {
+        let dir = tempfile::tempdir().unwrap();
+        let factory_dir = dir.path().join(".factory");
+        std::fs::create_dir_all(&factory_dir).unwrap();
+        // Allow the .factory/ directory; wave-state.yaml does NOT exist.
+        let mut ctx = context_with_caps(allow_read(&[factory_dir.to_str().unwrap()]));
+        ctx.cwd = dir.path().to_path_buf();
+        let absent_path = factory_dir.join("wave-state.yaml");
+        assert!(!absent_path.exists(), "test setup: target must not exist");
+
+        let result = prepare(&ctx, absent_path.to_str().unwrap(), 65536);
+        assert_eq!(
+            result.unwrap_err(),
+            codes::NOT_FOUND,
+            "T-001 AC-001: absent file within allowlist must return NOT_FOUND (-5), \
+             not CAPABILITY_DENIED (-1). Red Gate: currently returns CAPABILITY_DENIED \
+             because old path_allowed() uses canonicalize() which fails for absent files."
+        );
+    }
+
+    /// test_S19_03_T002_NC_A_path_util_callable_from_read_file_context
+    ///
+    /// T-002 Negative Control A (AC-001): `path_util::resolve_path_for_allowlist` is
+    /// callable from the `read_file` module context. For an EXISTING path, it must
+    /// return `Some(canonical_path)`. The allowlist `starts_with` check is done in
+    /// `path_allowed`, not in `resolve_path_for_allowlist` itself.
+    ///
+    /// This test verifies the shared module is importable and the function callable —
+    /// a prerequisite for the new `path_allowed()` implementation.
+    ///
+    /// Red Gate: PANICS — `resolve_path_for_allowlist` is `todo!()`.
+    ///
+    /// Traces to: BC-2.07.001 part b; S-19.03 AC-001 negative-control A (shared module
+    /// extraction prerequisite).
+    #[test]
+    #[allow(non_snake_case)]
+    fn test_S19_03_T002_NC_A_path_util_callable_from_read_file_context() {
+        let dir = tempfile::tempdir().unwrap();
+        let outside_file = dir.path().join("outside.txt");
+        std::fs::write(&outside_file, b"x").unwrap();
+
+        // Call shared path_util function from read_file module context.
+        // Red Gate: panics (todo!()) — that IS the evidence this is not yet implemented.
+        let result =
+            crate::host::path_util::resolve_path_for_allowlist(&outside_file, |p| p.canonicalize());
+        assert!(
+            result.is_some(),
+            "T-002 NC-A: existing path must resolve to Some(canonical_path); \
+             allowlist check is done separately via starts_with in path_allowed."
+        );
+    }
+
+    /// test_S19_03_T003_absent_allowlisted_file_emits_file_not_found_event
+    ///
+    /// T-003 (AC-002): when a file's path is allowlisted but the file is absent,
+    /// `prepare()` must emit `internal.file_not_found` (NOT `internal.capability_denied`).
+    ///
+    /// Red Gate: FAILS — old `path_allowed()` returns `false` for absent files,
+    /// causing `prepare()` to emit `internal.capability_denied reason=path_not_allowed`
+    /// instead of `internal.file_not_found`.
+    ///
+    /// Traces to: BC-2.07.001 part c; S-19.03 AC-002; VP-098.
+    #[test]
+    #[allow(non_snake_case)]
+    fn test_S19_03_T003_absent_allowlisted_file_emits_file_not_found_event() {
+        let dir = tempfile::tempdir().unwrap();
+        let factory_dir = dir.path().join(".factory");
+        std::fs::create_dir_all(&factory_dir).unwrap();
+        let mut ctx = context_with_caps(allow_read(&[factory_dir.to_str().unwrap()]));
+        ctx.cwd = dir.path().to_path_buf();
+        let absent_path = factory_dir.join("wave-state.yaml");
+
+        let _ = prepare(&ctx, absent_path.to_str().unwrap(), 65536);
+        let events = ctx.drain_events();
+
+        let file_not_found_count = events
+            .iter()
+            .filter(|e| e.type_ == "internal.file_not_found")
+            .count();
+        assert_eq!(
+            file_not_found_count,
+            1,
+            "T-003 AC-002: absent allowlisted file must emit exactly one 'internal.file_not_found' \
+             event; got events with types: {:?}. Red Gate: currently emits capability_denied.",
+            events.iter().map(|e| &e.type_).collect::<Vec<_>>()
+        );
+    }
+
+    /// test_S19_03_T004_absent_allowlisted_file_zero_capability_denied_events
+    ///
+    /// T-004 (AC-002): when a file's path is allowlisted but the file does not exist,
+    /// `prepare()` must emit ZERO `internal.capability_denied` events for
+    /// `plugin_name=warn-pending-wave-gate`.
+    ///
+    /// Red Gate: FAILS — old code emits one `capability_denied reason=path_not_allowed`
+    /// event (the original defect: `canonicalize()` failure masquerades as an allowlist
+    /// violation, traced in rc.22 smoke FINDING-2, dispatcher trace bc687a0f).
+    ///
+    /// Traces to: BC-2.07.001 part c; S-19.03 AC-002 zero-false-positive; VP-098.
+    #[test]
+    #[allow(non_snake_case)]
+    fn test_S19_03_T004_absent_allowlisted_file_zero_capability_denied_events() {
+        let dir = tempfile::tempdir().unwrap();
+        let factory_dir = dir.path().join(".factory");
+        std::fs::create_dir_all(&factory_dir).unwrap();
+        let mut ctx = context_with_caps(allow_read(&[factory_dir.to_str().unwrap()]));
+        ctx.plugin_name = "warn-pending-wave-gate".to_string();
+        ctx.cwd = dir.path().to_path_buf();
+        let absent_path = factory_dir.join("wave-state.yaml");
+
+        let _ = prepare(&ctx, absent_path.to_str().unwrap(), 65536);
+        let events = ctx.drain_events();
+
+        let cap_denied: Vec<_> = events
+            .iter()
+            .filter(|e| e.type_ == "internal.capability_denied")
+            .collect();
+        assert_eq!(
+            cap_denied.len(),
+            0,
+            "T-004 AC-002: absent allowlisted file must emit ZERO 'internal.capability_denied' \
+             events for plugin_name=warn-pending-wave-gate; got: {:?}. \
+             Red Gate: currently emits one capability_denied with reason=path_not_allowed.",
+            cap_denied
+        );
+    }
+
+    /// test_S19_03_T001_NC_B_path_resolution_failed_token_via_path_util
+    ///
+    /// T-001 Negative Control B (AC-001, BC-2.07.001 EC-007): when `resolve_path_for_allowlist`
+    /// returns `None` (injected mock returns Err for ALL ancestors), the dispatcher MUST
+    /// emit `internal.capability_denied` with `reason=path_resolution_failed` — NOT
+    /// `reason=path_not_allowed`. The two reason tokens are semantically distinct:
+    ///   - `path_resolution_failed`: filesystem resolution error (traversal-defense exhausted)
+    ///   - `path_not_allowed`: path resolves fine but is outside all allowed prefixes
+    ///
+    /// This test calls `path_util::resolve_path_for_allowlist` directly with the mock
+    /// to verify the injectable parameter works (prerequisite for read_file integration).
+    ///
+    /// Red Gate: PANICS — `resolve_path_for_allowlist` is `todo!()`. Panic IS the Red Gate.
+    ///
+    /// Traces to: BC-2.07.001 EC-007; S-19.03 AC-001 negative-control B.
+    #[test]
+    #[allow(non_snake_case)]
+    fn test_S19_03_T001_NC_B_path_resolution_failed_token_via_path_util() {
+        let target = std::path::Path::new(".factory/wave-state.yaml");
+        // Mock: always fails — simulates EC-007 (all ancestors fail canonicalization).
+        let result = crate::host::path_util::resolve_path_for_allowlist(target, |_p| {
+            Err(std::io::Error::from(std::io::ErrorKind::NotFound))
+        });
+        // After implementation: None → caller emits path_resolution_failed.
+        assert!(
+            result.is_none(),
+            "T-001 NC-B: mock-canonicalize-all-fail must return None; \
+             the calling path_allowed must then emit reason=path_resolution_failed \
+             (NOT path_not_allowed). Red Gate: panics (todo!())."
+        );
+    }
+
+    // -----------------------------------------------------------------------
+    // F-S1903-P1-001 — escape-rejection tests (adversary pass-1)
+    //
+    // BC-2.07.001 EC-003 canonical vector: target `.factory/../secrets/key`
+    // with allow=[`.factory/`] must be DENIED with capability_denied
+    // reason=path_not_allowed. These tests verify both the check_path_allowed
+    // decision and the prepare() emit path.
+    // -----------------------------------------------------------------------
+
+    /// test_S19_03_P1_001_escape_check_path_allowed_returns_denied_not_allowed
+    ///
+    /// F-S1903-P1-001 (BC-2.07.001 EC-003): `check_path_allowed` with an absent
+    /// escaping target (`.factory/../secrets/key`, allow=[`.factory/`]) must
+    /// return `DeniedNotAllowed`. The `..` traversal is absorbed by ancestor-walk
+    /// canonicalization so `resolve_path_for_allowlist` returns `Some(secrets/key)`,
+    /// and then `starts_with(.factory/)` returns false → DeniedNotAllowed.
+    ///
+    /// This is the ESCAPE case (distinct from the stays-inside dotdot case in
+    /// the red-gate test suite). Missing at red-gate per adversary pass-1.
+    ///
+    /// Traces to: BC-2.07.001 EC-003; S-19.03 adversary pass-1 F-S1903-P1-001.
+    #[test]
+    #[allow(non_snake_case)]
+    fn test_S19_03_P1_001_escape_check_path_allowed_returns_denied_not_allowed() {
+        let dir = tempfile::tempdir().unwrap();
+        let factory_dir = dir.path().join(".factory");
+        let secrets_dir = dir.path().join("secrets");
+        std::fs::create_dir_all(&factory_dir).unwrap();
+        std::fs::create_dir_all(&secrets_dir).unwrap();
+
+        let target = factory_dir.join("..").join("secrets").join("key");
+        assert!(
+            !target.exists(),
+            "test setup: escaping target must not exist"
+        );
+
+        let decision = check_path_allowed(
+            &target,
+            &[factory_dir.to_str().unwrap().to_string()],
+            dir.path(),
+            |p| p.canonicalize(),
+        );
+        assert_eq!(
+            decision,
+            PathAllowDecision::DeniedNotAllowed,
+            "P1-001 EC-003: absent escaping target (.factory/../secrets/key) with \
+             allow=[.factory/] must return DeniedNotAllowed — the .. is canonicalized \
+             out of .factory/ into secrets/, and starts_with(.factory/) fails. \
+             Must NOT return Allowed or DeniedResolutionFailed."
+        );
+    }
+
+    /// test_S19_03_P1_001_escape_prepare_returns_CAPABILITY_DENIED_reason_path_not_allowed
+    ///
+    /// F-S1903-P1-001 (BC-2.07.001 EC-003): `prepare()` with an absent escaping target
+    /// must return `Err(CAPABILITY_DENIED)` AND emit `internal.capability_denied` with
+    /// `reason=path_not_allowed` — NOT `reason=path_resolution_failed`, and NOT
+    /// `Err(NOT_FOUND)` (which is reserved for allowlisted absent files, not escaping ones).
+    ///
+    /// Traces to: BC-2.07.001 EC-003; S-19.03 AC-001/AC-002;
+    ///            S-19.03 adversary pass-1 F-S1903-P1-001.
+    #[test]
+    #[allow(non_snake_case)]
+    fn test_S19_03_P1_001_escape_prepare_returns_CAPABILITY_DENIED_reason_path_not_allowed() {
+        let dir = tempfile::tempdir().unwrap();
+        let factory_dir = dir.path().join(".factory");
+        let secrets_dir = dir.path().join("secrets");
+        std::fs::create_dir_all(&factory_dir).unwrap();
+        std::fs::create_dir_all(&secrets_dir).unwrap();
+
+        let target = factory_dir.join("..").join("secrets").join("key");
+        let mut ctx = context_with_caps(allow_read(&[factory_dir.to_str().unwrap()]));
+        ctx.cwd = dir.path().to_path_buf();
+
+        let result = prepare(&ctx, target.to_str().unwrap(), 65536);
+        assert_eq!(
+            result.unwrap_err(),
+            codes::CAPABILITY_DENIED,
+            "P1-001 EC-003: escaping absent target must return CAPABILITY_DENIED \
+             (not NOT_FOUND — NOT_FOUND is reserved for allowlisted absent files only)"
+        );
+
+        let events = ctx.drain_events();
+        let denied: Vec<_> = events
+            .iter()
+            .filter(|e| e.type_ == "internal.capability_denied")
+            .collect();
+        assert_eq!(
+            denied.len(),
+            1,
+            "P1-001 EC-003: escaping target must emit exactly one capability_denied event; \
+             got events: {:?}",
+            events.iter().map(|e| &e.type_).collect::<Vec<_>>()
+        );
+        let reason = denied[0].fields.get("reason").and_then(|v| v.as_str());
+        assert_eq!(
+            reason,
+            Some("path_not_allowed"),
+            "P1-001 EC-003: escaping target must emit reason=path_not_allowed (not \
+             path_resolution_failed — which is reserved for filesystem errors); got {:?}",
+            reason
+        );
+    }
+
+    // -----------------------------------------------------------------------
+    // F-S1903-P1-002 — NC-B emit-level tests (adversary pass-1)
+    //
+    // The previously-dead DeniedResolutionFailed arm in prepare() must be
+    // exercised end-to-end at the emit level via check_path_allowed + emit_denial.
+    // Read-file leg; write-file leg mirrors in write_file.rs (sibling parity).
+    // -----------------------------------------------------------------------
+
+    /// test_S19_03_P1_002_NC_B_check_path_allowed_mock_returns_denied_resolution_failed
+    ///
+    /// F-S1903-P1-002: `check_path_allowed` with injectable all-fail mock canonicalize
+    /// must return `DeniedResolutionFailed` (not `DeniedNotAllowed`). The two variants
+    /// have distinct operator semantics — filesystem error vs policy violation.
+    ///
+    /// Traces to: BC-2.07.001 EC-007; S-19.03 adversary pass-1 F-S1903-P1-002.
+    #[test]
+    #[allow(non_snake_case)]
+    fn test_S19_03_P1_002_NC_B_check_path_allowed_mock_returns_denied_resolution_failed() {
+        let target = std::path::Path::new(".factory/wave-state.yaml");
+        let allow = vec![".factory/".to_string()];
+        let base = std::path::Path::new("/tmp");
+
+        let decision = check_path_allowed(target, &allow, base, |_p| {
+            Err(std::io::Error::from(std::io::ErrorKind::NotFound))
+        });
+        assert_eq!(
+            decision,
+            PathAllowDecision::DeniedResolutionFailed,
+            "P1-002 NC-B: when mock canonicalize fails for ALL ancestors, \
+             check_path_allowed must return DeniedResolutionFailed — NOT DeniedNotAllowed. \
+             Caller must emit reason=path_resolution_failed (not path_not_allowed)."
+        );
+    }
+
+    /// test_S19_03_P1_002_NC_B_denied_resolution_failed_emits_path_resolution_failed_reason
+    ///
+    /// F-S1903-P1-002: exercises the `DeniedResolutionFailed` arm's emit path end-to-end
+    /// via `emit_denial(..., "path_resolution_failed", ...)` and verifies the captured
+    /// `internal.capability_denied` event carries `reason=path_resolution_failed`.
+    ///
+    /// This exercises the previously-dead branch that was unreachable with the old
+    /// hard-coded `canonicalize()` (EC-007 injectable-mock requirement).
+    ///
+    /// Traces to: BC-2.07.001 EC-007; S-19.03 adversary pass-1 F-S1903-P1-002.
+    #[test]
+    #[allow(non_snake_case)]
+    fn test_S19_03_P1_002_NC_B_denied_resolution_failed_emits_path_resolution_failed_reason() {
+        let ctx = bare_context();
+        let resolved = std::path::PathBuf::from(".factory/wave-state.yaml");
+
+        // Directly exercise the emit path that prepare() takes for DeniedResolutionFailed.
+        emit_denial(
+            &ctx,
+            ".factory/wave-state.yaml",
+            "path_resolution_failed",
+            Some(&resolved),
+        );
+
+        let events = ctx.drain_events();
+        assert_eq!(
+            events.len(),
+            1,
+            "P1-002 NC-B: emit_denial must produce exactly one internal event"
+        );
+        let ev = &events[0];
+        assert_eq!(
+            ev.type_, "internal.capability_denied",
+            "P1-002 NC-B: DeniedResolutionFailed arm must emit type=internal.capability_denied"
+        );
+        let reason = ev.fields.get("reason").and_then(|v| v.as_str());
+        assert_eq!(
+            reason,
+            Some("path_resolution_failed"),
+            "P1-002 NC-B emit-level: DeniedResolutionFailed must emit \
+             reason=path_resolution_failed (NOT path_not_allowed). \
+             The two tokens are semantically distinct: \
+             path_resolution_failed=filesystem/traversal error, \
+             path_not_allowed=policy violation. Got {:?}.",
+            reason
+        );
     }
 }

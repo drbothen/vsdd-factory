@@ -1,0 +1,64 @@
+S-19.03 Demo Evidence — AC-004 + AC-005: plugin NOT_FOUND + CAPABILITY_DENIED handling + positive control
+Captured: 2026-07-11
+Branch: feature/S-19.03  HEAD: 98df0edb
+Crate: crates/hook-plugins/warn-pending-wave-gate (integration tests)
+
+=== AC-004: NOT_FOUND → Continue, zero WARN log entries ===
+
+$ cargo test -p warn-pending-wave-gate "T006" 2>&1 | grep -E "^running|^test|^test result" | head -6
+
+running 2 tests
+test warn_pending_wave_gate_integration::test_S19_03_T006b_capability_denied_emits_warn_not_silent ... ok
+test warn_pending_wave_gate_integration::test_S19_03_T006_NOT_FOUND_returns_continue_with_zero_warn_output ... ok
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 23 filtered out; finished in 0.00s
+
+test_S19_03_T006_NOT_FOUND_returns_continue_with_zero_warn_output (T-006)
+  Fixture: mock host::read_file returns codes::NOT_FOUND (-5).
+  Asserts: plugin returns HookResult::Continue; zero plugin.log entries at WARN level.
+  This is the "wave-state.yaml absent → no pending gate → Continue" code path.
+
+test_S19_03_T006b_capability_denied_emits_warn_not_silent (T-006b)
+  Fixture: mock host::read_file returns codes::CAPABILITY_DENIED (-1).
+  Asserts: plugin emits a WARN-level log entry (not the silent Continue path).
+  Contrast: genuine allowlist violations → WARN (operator alert), NOT_FOUND → silent Continue.
+  This positive control for CAPABILITY_DENIED is the T-006b coverage that was added per
+  AC-004 requirement to distinguish the two paths.
+
+=== AC-005: positive-control — pending_gate: true → WAVE GATE REMINDER + exit 0 (bats T-007) ===
+
+$ bats plugins/vsdd-factory/tests/warn-pending-wave-gate.bats 2>&1
+
+1..2
+ok 1 T-007: warn-pending-wave-gate: wave-state.yaml with gate_status:pending emits WAVE GATE REMINDER to stderr and exits 0
+ok 2 T-008: warn-pending-wave-gate: absent wave-state.yaml emits zero internal.capability_denied reason=path_not_allowed events
+
+T-007 test description:
+  - Creates wave-state.yaml with content: waves:\n  - wave: "W-01"\n    gate_status: pending
+  - Invokes the real dispatcher binary (target/debug/factory-dispatcher) with a Stop event.
+  - CLAUDE_PLUGIN_ROOT points at plugins/vsdd-factory (real plugin root).
+  - CLAUDE_PROJECT_DIR is a temp dir containing the .factory/ fixture.
+  - Asserts: dispatcher exits 0 (on_error=continue; plugin is advisory).
+  - Asserts: combined output contains "WAVE GATE REMINDER".
+  Pre-fix: T-007 also PASSES with old WASM (positive path; read file works when file exists).
+  Post-fix: T-007 still PASSES (same positive path preserved).
+
+=== Full plugin test suite (25 integration tests) ===
+
+$ cargo test -p warn-pending-wave-gate 2>&1 | tail -8
+
+running 25 tests
+test warn_pending_wave_gate_integration::test_BC_7_03_091_ac002_bash_script_deleted ... ok
+test warn_pending_wave_gate_integration::test_BC_7_03_091_silent_exit_when_wave_state_absent ... ok
+test warn_pending_wave_gate_integration::test_BC_7_03_091_ec009_capability_denied_silent_exit ... ok
+...
+test warn_pending_wave_gate_integration::test_S19_03_T006_NOT_FOUND_returns_continue_with_zero_warn_output ... ok
+test warn_pending_wave_gate_integration::test_S19_03_T006b_capability_denied_emits_warn_not_silent ... ok
+...
+test result: ok. 25 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s
+
+All 25 integration tests pass; S-19.03 T-006 and T-006b are the two new tests added for AC-004.
+
+=== BC Trace ===
+
+BC-2.07.001 v1.5 part c (plugin behavior on NOT_FOUND: Continue, suppress WARN)
+BC-2.07.001 v1.5 (positive-path operation: pending_gate: true → WAVE GATE REMINDER)

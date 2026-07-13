@@ -7,7 +7,7 @@
 //! BCs: BC-7.03.091 (identity & registry binding), BC-7.03.092 (stderr warning).
 
 use vsdd_hook_sdk::{HookPayload, HookResult};
-use warn_pending_wave_gate::warn_pending_wave_gate_logic;
+use warn_pending_wave_gate::warn_pending_wave_gate_logic_with_error_dispatch;
 
 /// Path to the wave state file (relative to project root).
 const WAVE_STATE_PATH: &str = ".factory/wave-state.yaml";
@@ -24,16 +24,12 @@ const MAX_BYTES: u32 = 524_288;
 const TIMEOUT_MS: u32 = 1000;
 
 fn on_hook(payload: HookPayload) -> HookResult {
-    warn_pending_wave_gate_logic(
+    // S-19.03 (AC-004): use error-dispatch variant to distinguish NotFound (silent
+    // Continue) from CapabilityDenied (operator WARN). The old Err(_) => None collapse
+    // in warn_pending_wave_gate_logic masked genuine capability misconfigurations.
+    warn_pending_wave_gate_logic_with_error_dispatch(
         payload,
-        || {
-            // AC-001 / AC-004(a): read wave-state.yaml via host::read_file.
-            // Returns None if absent or CapabilityDenied (EC-009).
-            match vsdd_hook_sdk::host::read_file(WAVE_STATE_PATH, MAX_BYTES, TIMEOUT_MS) {
-                Ok(bytes) => String::from_utf8(bytes).ok(),
-                Err(_) => None,
-            }
-        },
+        || vsdd_hook_sdk::host::read_file(WAVE_STATE_PATH, MAX_BYTES, TIMEOUT_MS),
         |event_type, fields| {
             vsdd_hook_sdk::host::emit_event(event_type, fields);
         },

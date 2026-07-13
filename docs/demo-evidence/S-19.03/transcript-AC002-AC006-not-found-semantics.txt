@@ -1,0 +1,74 @@
+S-19.03 Demo Evidence — AC-002 + AC-006: NOT_FOUND semantics + zero false-positive capability_denied
+Captured: 2026-07-11
+Branch: feature/S-19.03  HEAD: 98df0edb
+Crates: crates/factory-dispatcher (host::read_file), plugins/vsdd-factory/tests/warn-pending-wave-gate.bats
+
+=== AC-002: path allowed, file absent → NOT_FOUND + internal.file_not_found event ===
+
+$ cargo test -p factory-dispatcher "T003" 2>&1 | grep -E "^running|^test host|^test result" | head -4
+
+running 1 test
+test host::read_file::tests::test_S19_03_T003_absent_allowlisted_file_emits_file_not_found_event ... ok
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 174 filtered out; finished in 0.00s
+
+test_S19_03_T003_absent_allowlisted_file_emits_file_not_found_event
+  (read_file): allowed path, absent file → emitted event has type=internal.file_not_found,
+  reason=file_not_found. The captured event stream contains ZERO capability_denied events
+  for this path. Asserts: event type and reason token; exits non-zero if capability_denied present.
+
+$ cargo test -p factory-dispatcher "T004" 2>&1 | grep -E "^running|^test host|^test result" | head -4
+
+running 1 test
+test host::read_file::tests::test_S19_03_T004_absent_allowlisted_file_zero_capability_denied_events ... ok
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 174 filtered out; finished in 0.00s
+
+test_S19_03_T004_absent_allowlisted_file_zero_capability_denied_events
+  (read_file): allowed path, absent file → zero internal.capability_denied events in captured
+  stream. This directly closes rc.22 FINDING-2 at the unit-test level (dispatcher trace bc687a0f).
+  Asserts: event_type filter on capability_denied returns empty; exits non-zero if any found.
+
+=== AC-006: T-008 bats integration test — absent wave-state.yaml → zero path_not_allowed events ===
+
+$ cd /Users/zious/Documents/GITHUB/vsdd-factory/.worktrees/S-19.03
+$ bats plugins/vsdd-factory/tests/warn-pending-wave-gate.bats 2>&1
+
+1..2
+ok 1 T-007: warn-pending-wave-gate: wave-state.yaml with gate_status:pending emits WAVE GATE REMINDER to stderr and exits 0
+ok 2 T-008: warn-pending-wave-gate: absent wave-state.yaml emits zero internal.capability_denied reason=path_not_allowed events
+
+T-008 test description:
+  - wave-state.yaml is intentionally NOT created (fresh install / no wave handed off).
+  - Dispatcher is invoked with a Stop event via the real debug binary.
+  - Plugin receives NOT_FOUND (-5) from host::read_file (path allowed but file absent).
+  - Plugin exits silently (Continue) with zero WARN-level output.
+  - Internal log file is checked: zero internal.capability_denied reason=path_not_allowed events
+    for plugin_name=warn-pending-wave-gate.
+  - Gate uses jq-e + wc-l form (F-P15-007: avoids grep -c exit-1-on-zero-matches defect).
+
+AC-006 gate (verbatim from story):
+  { [ ! -s "$SINK_FILE" ] || jq -e 'true' < "$SINK_FILE" >/dev/null 2>&1; } &&
+  [ "$(jq -r 'select(.type == "internal.capability_denied" and .reason == "path_not_allowed"
+      and .plugin_name == "warn-pending-wave-gate") | .plugin_name' "$SINK_FILE" 2>/dev/null
+      | wc -l)" -eq 0 ]
+  → cap_denied_count=0 → PASS
+
+Note: reason=path_resolution_failed is a LEGITIMATE distinct emission per EC-007 (mock-canonicalize
+failure path) and is explicitly excluded from this count — only reason=path_not_allowed constitutes
+a false-positive under the original defect.
+
+=== BC Trace ===
+
+BC-2.07.001 v1.5 part c (NOT_FOUND for absent allowlisted file; zero false-positive capability_denied)
+VP-098 (functional: NOT_FOUND returned, zero false-positive capability_denied emitted)
+
+=== Root cause closed (rc.22 smoke FINDING-2) ===
+
+Pre-fix behavior (dispatcher trace bc687a0f): absent wave-state.yaml → canonicalize() fails →
+path_allowed() returns false → prepare() emits internal.capability_denied reason=path_not_allowed
+→ plugin receives CAPABILITY_DENIED → plugin emits warn log "capability configuration error" →
+T-008 would FAIL (cap_denied_count > 0).
+
+Post-fix behavior: absent wave-state.yaml → rejoin algorithm → path_allowed() returns true →
+read_bounded() fails to open → ReadErr::NotFound → emits internal.file_not_found →
+returns codes::NOT_FOUND (-5) → plugin receives NOT_FOUND → plugin exits silently (Continue) →
+zero capability_denied events → T-008 PASSES.

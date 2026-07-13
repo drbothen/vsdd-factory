@@ -769,101 +769,17 @@ fn setup_host_on_store_data(
                     Ok(b) => b,
                     Err(_) => return codes::INVALID_ARGUMENT,
                 };
+                // Delegate to the shared host-side gate (F-S1903-P6-001 dedup).
+                // Mirrors the read_file delegation above: `prepare` enforces
+                // deny-by-default capability check, path resolution, byte cap,
+                // allowlist check (shared path_util::check_path_allowed), and
+                // emit_denial with the correct reason tokens
+                // (path_resolution_failed / path_not_allowed / output_too_large).
+                // BC-2.02.011 postconditions 1-5.
                 let host = caller.data().host.clone();
-                // Capability check: deny-by-default (BC-2.02.011 postcondition 1).
-                let caps = match &host.capabilities.write_file {
-                    Some(c) => c.clone(),
-                    None => return codes::CAPABILITY_DENIED,
-                };
-                // Resolve path against cwd (CLAUDE_PROJECT_DIR) for relative paths.
-                let cwd = &host.cwd;
-                let resolved = if std::path::Path::new(&path).is_absolute() {
-                    std::path::PathBuf::from(&path)
-                } else {
-                    cwd.join(&path)
-                };
-                // Byte cap: minimum of call arg and per-capability override.
-                let effective_cap = match caps.max_bytes_per_call {
-                    Some(cap_override) => max_bytes.min(cap_override),
-                    None => max_bytes,
-                };
-                if contents.len() as u64 > effective_cap as u64 {
-                    return codes::OUTPUT_TOO_LARGE;
-                }
-                // Check path is under an allowed prefix (rooted at cwd).
-                // Use the same canonicalize-with-ancestor-fallback as write_file.rs
-                // to handle files that don't yet exist.
-                let allowed = caps.path_allow.iter().any(|pref| {
-                    let pref_path = if std::path::Path::new(pref).is_absolute() {
-                        std::path::PathBuf::from(pref)
-                    } else {
-                        cwd.join(pref)
-                    };
-                    // Apply ancestor fallback to the pref path too so that
-                    // symlinks in the host path (e.g. macOS /var → /private/var)
-                    // do not cause false capability denials when the target file
-                    // is new (doesn't exist yet). Without this, `canon_resolved`
-                    // resolves symlinks via ancestor fallback but `canon_pref`
-                    // retains the unresolved symlink, causing starts_with to
-                    // fail on macOS bats temp dirs (/var/folders → /private/var/folders).
-                    let canon_pref = pref_path.canonicalize().unwrap_or_else(|_| {
-                        // Ancestor fallback for pref_path: walk ancestors until one canonicalizes.
-                        let mut pref_tail: Vec<std::ffi::OsString> = Vec::new();
-                        let mut cur = pref_path.clone();
-                        loop {
-                            match cur.file_name() {
-                                None => break pref_path.clone(),
-                                Some(f) => pref_tail.push(f.to_os_string()),
-                            }
-                            match cur.parent() {
-                                None => break pref_path.clone(),
-                                Some(p) => {
-                                    if let Ok(canon_p) = p.canonicalize() {
-                                        let mut result = canon_p;
-                                        for component in pref_tail.iter().rev() {
-                                            result = result.join(component);
-                                        }
-                                        return result;
-                                    }
-                                    cur = p.to_path_buf();
-                                }
-                            }
-                        }
-                    });
-                    // For the target, canonicalize with ancestor fallback.
-                    let canon_resolved = resolved.canonicalize().unwrap_or_else(|_| {
-                        // Walk ancestors until one exists.
-                        let mut tail: Vec<std::ffi::OsString> = Vec::new();
-                        let mut cur = resolved.clone();
-                        loop {
-                            match cur.file_name() {
-                                None => break resolved.clone(),
-                                Some(f) => tail.push(f.to_os_string()),
-                            }
-                            match cur.parent() {
-                                None => break resolved.clone(),
-                                Some(p) => {
-                                    if let Ok(canon_p) = p.canonicalize() {
-                                        let mut result = canon_p;
-                                        for component in tail.iter().rev() {
-                                            result = result.join(component);
-                                        }
-                                        return result;
-                                    }
-                                    cur = p.to_path_buf();
-                                }
-                            }
-                        }
-                    });
-                    canon_resolved.starts_with(&canon_pref)
-                });
-                if !allowed {
-                    return codes::CAPABILITY_DENIED;
-                }
-                // Write to disk.
-                match std::fs::write(&resolved, &contents) {
+                match crate::host::write_file::prepare(&host, &path, &contents, max_bytes) {
                     Ok(()) => codes::OK,
-                    Err(_) => codes::INTERNAL_ERROR,
+                    Err(code) => code,
                 }
             },
         )
