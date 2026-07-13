@@ -602,6 +602,15 @@ jobs:
       - name: Run full bats suite (run-all.sh)
         # This is the canonical gate that release.yml runs. Running it on every PR
         # catches failures before they reach the release tag.
+        #
+        # pr-manager-hardening.bats is included via the tests/*.bats glob in run-all.sh
+        # (F-S1901-P9-001): platform-independent security tests (T-001..T-007, T-009..T-016,
+        # T-018..T-031) run and gate on this Linux job; platform-specific tests
+        # (T-008 darwin-leg wrong-interpreter, T-017 bash-3.2 fragment negative-control)
+        # self-skip on non-Darwin via [[ "$(uname)" != "Darwin" ]] guards. T-009 (Linux
+        # runner exits 0) executes its real path exclusively on this Linux job.
+        # WASM: pr-manager-completion-guard.wasm is staged above (workspace build);
+        # setup_file() on-demand build is a no-op when the artifact is already present.
         run: cd plugins/vsdd-factory/tests && ./run-all.sh
 
   bats-wave-handoff-macos:
@@ -670,3 +679,74 @@ jobs:
           bash --version | head -1
           bats plugins/vsdd-factory/tests/wave-handoff.bats
           bats plugins/vsdd-factory/tests/wave-gate-hooks.bats
+
+  bats-darwin-leg-macos:
+    # Darwin-leg interpreter discipline gate (S-19.01 AC-004; ADR-030 §Decision 3).
+    # Validates release.yml darwin-leg scripts under /bin/bash 3.2.x (Apple's
+    # patched system bash), NOT Homebrew bash 5.x, to detect bash 3.2 regressions
+    # before they reach production macOS runners.
+    #
+    # INTERPRETER DISCIPLINE: all generated temp scripts use #!/bin/bash.
+    # /bin/bash 3.2 preflight is the drift sentinel: if Apple ships a future
+    # macOS release with a different system bash, the preflight catches it.
+    #
+    # L-BB-simulation-shell-dialect-gap (D-750): this job closes the gap where
+    # scripts failed on macOS CI (bash 3.2.57) but passed locally (Homebrew 5.x).
+    #
+    # BLOCKING: required status check equivalent — same on: trigger as other jobs.
+    #
+    # S-19.01 (implemented): pr-manager-hardening.bats darwin-leg test suite.
+    # The AC-004 literal CI-config gate (O-P15-04) requires this exact key:
+    #   grep -qE '^  bats-darwin-leg-macos:$' .github/workflows/ci.yml
+    #
+    # SCOPE: runs pr-manager-hardening.bats on macOS under /bin/bash 3.2.x.
+    #   T-001 skips if factory-dispatcher not pre-built (set-up step copies from
+    #   the bundled darwin binary to target/release/ to enable T-001).
+    #   T-009 skips on Darwin (EC-003: Linux-runner test).
+    name: bats-darwin-leg (macos, /bin/bash 3.2)
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Install bats
+        run: brew install bats-core jq
+
+      - name: Verify /bin/bash is 3.2.x (drift sentinel)
+        run: |
+          /bin/bash --version | head -1
+          /bin/bash --version | head -1 | grep -q "version 3\.2" || {
+            echo "DARWIN_LEG_WRONG_INTERPRETER: expected /bin/bash 3.2.x, got $(/bin/bash --version | head -1)" >&2
+            exit 1
+          }
+          echo "Interpreter OK: $(/bin/bash --version | head -1)"
+
+      - name: Set up dispatcher binary for T-001
+        # T-001 looks for target/release/factory-dispatcher. Copy the pre-built
+        # darwin binary from the repository bundle to avoid a full cargo build
+        # (~15 min) on each macOS CI run. Architecture detection selects
+        # darwin-arm64 (M1/M2/M3 runner) or darwin-x64 (Intel runner).
+        run: |
+          mkdir -p target/release
+          ARCH="$(uname -m)"
+          if [[ "${ARCH}" == "arm64" ]]; then
+            DARWIN_BIN="plugins/vsdd-factory/hooks/dispatcher/bin/darwin-arm64/factory-dispatcher"
+          else
+            DARWIN_BIN="plugins/vsdd-factory/hooks/dispatcher/bin/darwin-x64/factory-dispatcher"
+          fi
+          cp "${DARWIN_BIN}" target/release/factory-dispatcher
+          chmod +x target/release/factory-dispatcher
+          echo "Dispatcher: $(target/release/factory-dispatcher --version 2>/dev/null || echo 'binary staged')"
+
+      - name: Install Rust wasm32-wasip1 target
+        # pr-manager-hardening.bats setup_file() builds pr-manager-completion-guard.wasm
+        # on first use when the WASM is absent (not tracked in the repo per F-S1901-P1-002).
+        # Rust is pre-installed on macos-latest; this step adds the cross-compile target.
+        run: rustup target add wasm32-wasip1
+
+      - name: Run pr-manager-hardening bats suite (darwin-leg)
+        # Runs pr-manager-hardening.bats on macOS under /bin/bash 3.2.x.
+        # T-009 legitimately skips on Darwin (EC-003).
+        # darwin-leg-preflight.sh is invoked by T-008/T-009 under /bin/bash.
+        # setup_file() builds pr-manager-completion-guard.wasm if absent (T-001 gate).
+        run: |
+          bats plugins/vsdd-factory/tests/pr-manager-hardening.bats
