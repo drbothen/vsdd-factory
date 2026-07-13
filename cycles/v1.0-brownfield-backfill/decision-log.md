@@ -10260,3 +10260,32 @@ D-834-W1-COMPLETE
 ### Date
 
 2026-07-13
+
+---
+
+## D-836 — POST-W1-REGISTRATION: SINGLE-COMMIT REGISTRATION BURST
+
+| # | Gate | Detail | Result |
+|---|------|--------|--------|
+| 1 | POLICY 16 GLOBAL-MAX | `## D-835` confirmed max in decision-log.md → D-836 allocated. | PASS |
+| 2 | S-19.08 NEW STORY | verify-state-timestamp-refresh WASM hook 64KiB write-gate + refresh timestamp on every Edit/Write (E-19; W2; 5 pts; P2; draft; BC-5.40.001; subsystems SS-05; tdd_mode strict; input-hash 9db5836; story v1.1; authorized D-835 human 2026-07-13). STORY-INDEX v4.182→v4.183 (S-19.08 new row; E-19 H2 v1.27→v1.28; 7→8 stories; 45→50 pts; BC-5.40.001 v1.2 coverage appended; D-803 heading-parity PASS 11/11). | PASS |
+| 3 | S-19.04 CATALOG-CELL | S-19.04 v1.11→v1.13: v1.12 AC-006 bats+.sh→Rust workspace test per POLICY 21; v1.13 purity-table + Task-12 residual. input-hash 67eee80 UNCHANGED. STORY-INDEX cell updated. | PASS |
+| 4 | BC-INDEX v4.00 | BC-5.40.001 v1.2 catalog-cell updated: Precondition 6 max_bytes=262144 + extract_frontmatter mandate; Invariants 7-8; EC-010; 7 VP rows; dual-story anchors S-17.01+S-19.08; extracted_from:null template-drift fix; input-hash 688e195. Story anchor TBD→S-17.01, S-19.08. BC-INDEX v3.99→v4.00. total_bcs UNCHANGED 1,977. H1 title UNCHANGED (POLICY 7). | PASS |
+| 5 | POLICY 21 | policies.yaml v1.4.6→v1.4.7: POLICY 21 no_new_shell_scripts appended (no new .sh scripts; new tooling MUST be platform-agnostic: Rust workspace tests, Rust binaries, or WASM plugins; FULL SCOPE: operational bin/ tools, hooks, CI/test helpers; existing .sh grandfathered until class-migration E-20; human-directed 2026-07-13; severity: blocking; enforced_by: [adversary-prompt, state-manager-prompt]; codified_at: D-836). | PASS |
+| 6 | S-19.05 LOCAL PASS-1 | s-19.05-local-adversary-pass-1.md created in cycle dir. INDEX.md section `## S-19.05 LOCAL Adversary Reviews (BC-5.39.001 cascade)` added before Artifact Size Budgets. NOT-CLEAN B1/H2/M2/L0 streak 0/3. Fix-burst dispatch pending: implementer (F-P1-001/004/005) + test-writer (F-P1-001/002) + story-writer/PO (F-P1-003). | RECORDED |
+| 7 | ADR-030 §D3 RESEARCH | rust-migration-merge-integrity-tools-2026-07-13.md created at cycle root (cycle-document pattern; cycles/{cycle-id}/research/ subdirectory not registered in artifact-path-registry.yaml). Both ADR-030 §D3 tools VIABLE as Rust/WASM: check-stale-verdict.sh→Rust workspace test in crates/factory-integrity/ (~50 lines); enforce-merge-strategy.sh→WASM PreToolUse hook (~120 lines Rust + registry). Both grandfathered E-20. Architect adjudication pending: confirm crate boundary + WASM plugin naming. | RECORDED |
+| 8 | 4-index | BC-INDEX v3.99→v4.00; VP-INDEX UNCHANGED v2.67; STORY-INDEX v4.182→v4.183; ARCH-INDEX UNCHANGED v3.01. | PASS |
+| 9 | D-803 heading-parity | E-19 H2 v1.27→v1.28 PASS. All 11 version-heading epics verified consistent. | PASS |
+| 10 | CODIFICATION | D-836 decision-log entry appended (this entry); D-836 burst-log entry appended (8-block D-444(c)); STATE.md v5.82→v5.83. | PASS |
+
+### Summary
+
+POST-W1-REGISTRATION; S-19.08 NEW story registered (draft; W2; E-19; 5 pts; BC-5.40.001; authorized D-835 human 2026-07-13; input-hash 9db5836; story v1.1); S-19.04 v1.11→v1.13 catalog-cell (POLICY 21 + purity-table); E-19 H2 v1.27→v1.28; 7→8 stories; 45→50 pts; BC-INDEX v3.99→v4.00 (BC-5.40.001 v1.2); policies.yaml v1.4.6→v1.4.7 (POLICY 21); S-19.05 LOCAL pass-1 NOT-CLEAN B1/H2/M2/L0 streak 0/3; ADR-030 §D3 research persisted; 4-index BC v4.00/VP v2.67/STORY v4.183/ARCH v3.01
+
+### Phase
+
+D-836-POST-W1-REGISTRATION
+
+### Date
+
+2026-07-13

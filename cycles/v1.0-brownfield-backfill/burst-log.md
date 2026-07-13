@@ -19453,3 +19453,102 @@ No BC/VP/story/epic version bumps in this burst. 4-index ALL UNCHANGED: BC v3.99
 |--------|-----|---------|
 | D-834 SHA-patch (parent HEAD) | `2a52de45` | factory(sha-patch): STATE.md Active Branches factory-artifacts HEAD → bda69b22; burst-log Block 8 SHA-patch |
 | D-835 SM single-commit burst (TD-VSDD-053) | `520f8f50` | factory(D-835): POST-W1-GOVERNANCE burst — session-review W1-merge; 5 lessons; IP-003 decision-log size budget; 4 human decisions; STATE.md v5.81→v5.82 |
+
+---
+
+## D-836 — POST-W1-REGISTRATION burst (2026-07-13)
+
+### Block 1: Parent-Commit
+
+| Field | Value |
+|-------|-------|
+| Parent-commit SHA | `b2a22f9a` |
+| Parent-commit description | D-835 SHA-patch — factory(sha-patch): STATE.md Active Branches factory-artifacts HEAD → 520f8f50; burst-log Block 8 SHA-patch |
+| factory-artifacts HEAD at burst-start | `b2a22f9a` |
+
+### Block 2: Adversary Verdict
+
+N/A — this is a registration/governance burst, not an adversary-driven fix burst. No adversary pass dispatched. S-19.05 LOCAL pass-1 NOT-CLEAN B1/H2/M2/L0 persisted as-is (finding record, not remediation). Adversary review file `s-19.05-local-adversary-pass-1.md` created and indexed.
+
+### Block 3: Files Touched
+
+| File | Change |
+|------|--------|
+| `.factory/specs/behavioral-contracts/BC-INDEX.md` | BC-5.40.001 v1.2 catalog-cell (story anchor TBD→S-17.01,S-19.08; Precondition 6 + Invariants 7-8 + EC-010); version v3.99→v4.00 |
+| `.factory/policies.yaml` | POLICY 21 appended; version v1.4.6→v1.4.7 |
+| `.factory/stories/STORY-INDEX.md` | S-19.08 new row; E-19 H2 v1.27→v1.28; 8 stories; 50 pts; S-19.04 v1.13 cell; BC-5.40.001 v1.2 coverage; 131 stories agg cell; total pts 506+; version v4.182→v4.183 |
+| `.factory/cycles/v1.0-brownfield-backfill/INDEX.md` | S-19.05 LOCAL adversary reviews section added |
+| `.factory/cycles/v1.0-brownfield-backfill/s-19.05-local-adversary-pass-1.md` | NEW — S-19.05 LOCAL pass-1 NOT-CLEAN B1/H2/M2/L0 finding record |
+| `.factory/cycles/v1.0-brownfield-backfill/rust-migration-merge-integrity-tools-2026-07-13.md` | NEW — ADR-030 §D3 Rust migration research findings |
+| `.factory/STATE.md` | v5.82→v5.83; phase D-836; current_step D-836; banner D-836; last_amended prepended; D-836 Decisions Log row; D-836 Phase Steps row; Active Branches TBD; Concurrent Cycles updated; Session Resume Checkpoint refreshed; §4-Index D-836 |
+| `.factory/cycles/v1.0-brownfield-backfill/decision-log.md` | D-836 entry appended |
+| `.factory/cycles/v1.0-brownfield-backfill/burst-log.md` | D-836 entry appended (this entry) |
+
+### Block 4: Codifications
+
+| Item | Codification |
+|------|-------------|
+| POLICY 21 no_new_shell_scripts | policies.yaml v1.4.7; D-836; human-directed 2026-07-13; severity blocking |
+| S-19.08 story registration | STORY-INDEX v4.183 row; E-19; W2; 5 pts; BC-5.40.001; input-hash 9db5836 |
+| BC-5.40.001 v1.2 | BC-INDEX v4.00 catalog-cell; dual-story anchors S-17.01+S-19.08 |
+| S-19.04 v1.13 | STORY-INDEX cell; POLICY 21 compliance + purity-table |
+| S-19.05 LOCAL pass-1 | s-19.05-local-adversary-pass-1.md + INDEX.md section |
+| ADR-030 §D3 research | rust-migration-merge-integrity-tools-2026-07-13.md |
+| D-836 decision | decision-log.md D-836 entry |
+
+### Block 5: Dim-2 Attestation (D-449(a) literal-shell gates)
+
+**Gate G1 — 4-index version verification (literal shell):**
+
+```
+$ grep "^version:" .factory/specs/behavioral-contracts/BC-INDEX.md .factory/specs/verification-properties/VP-INDEX.md .factory/stories/STORY-INDEX.md .factory/specs/architecture/ARCH-INDEX.md
+.factory/specs/behavioral-contracts/BC-INDEX.md:version: "4.00"
+.factory/specs/verification-properties/VP-INDEX.md:version: "2.67"
+.factory/architecture/ARCH-INDEX.md:version: "3.01"
+.factory/stories/STORY-INDEX.md:version: "4.183"
+```
+
+Result: BC v4.00 / VP v2.67 / STORY v4.183 / ARCH v3.01. PASS.
+
+**Gate G2 — D-803 heading-parity (E-19 H2 vs epic file frontmatter):**
+
+```
+$ grep -n "^## Epic E-19" .factory/stories/STORY-INDEX.md
+683:## Epic E-19 — Post-rc.22 Operator Hardening (v1.0-feature-engine-discipline-pass-1 / E-19 F3) — draft, v1.28
+
+$ grep "^version:" .factory/stories/epics/E-19-post-rc22-operator-hardening.md
+version: "v1.28"
+```
+
+Result: STORY-INDEX H2 cites v1.28; epic file frontmatter = v1.28. PASS.
+
+**Gate G3 — D-448(a) source-attestation (S-19.05 adv pass-1 file present and indexed):**
+
+```
+$ grep "s-19.05-local-adversary-pass-1" .factory/cycles/v1.0-brownfield-backfill/INDEX.md | head -2
+| 1 | 2026-07-13 | `s-19.05-local-adversary-pass-1.md` | BLOCKER | 5 (1B+2H+2M+0L) | 0/3 | TBD | TBD | fix-burst pending...
+```
+
+Result: Adversary pass-1 file indexed in INDEX.md. PASS.
+
+### Block 6: Dim-5 Scope Attestation
+
+Registration burst scope: STORY-INDEX + BC-INDEX + policies.yaml + cycle dir new files + STATE.md + decision-log + burst-log. No BC/VP/story/epic bodies touched (state-manager does NOT write spec content per routing table). No source code, tests, or configuration files outside `.factory/` touched. Scope is correct and complete.
+
+### Block 7: Closes
+
+| Item | Status |
+|------|--------|
+| S-19.08 story authoring (IP-004) | CLOSED — S-19.08 registered in STORY-INDEX as draft v1.1; story file dispatch is story-writer's lane |
+| ADR-030 §D3 research (D-835 item) | CLOSED this burst — research findings persisted; architect adjudication OPEN (next) |
+| S-19.04 v1.11→v1.13 catalog-cell | CLOSED — STORY-INDEX updated |
+| BC-5.40.001 v1.2 BC-INDEX cell | CLOSED — BC-INDEX v4.00 |
+| POLICY 21 codification | CLOSED — policies.yaml v1.4.7 |
+| S-19.05 LOCAL pass-1 persistence | CLOSED — finding record + INDEX.md section |
+
+### Block 8: Factory-Artifacts Commits
+
+| Commit | SHA | Message |
+|--------|-----|---------|
+| D-835 SM single-commit burst (parent HEAD) | `520f8f50` | factory(D-835): POST-W1-GOVERNANCE burst — session-review W1-merge; 5 lessons; IP-003 decision-log size budget; 4 human decisions; STATE.md v5.81→v5.82 |
+| D-836 SM single-commit burst (TD-VSDD-053) | `TBD` (SHA-patch pending) | factory(D-836): POST-W1-REGISTRATION burst — S-19.08 registered; POLICY 21; BC-5.40.001 v1.2; S-19.05 LOCAL pass-1 persisted; ADR-030 §D3 research persisted; STATE.md v5.82→v5.83 |
