@@ -131,7 +131,7 @@ dtu_services: []
 |--------------|-----|-------|
 | main | a04cb303 | rc.22 bot binary bundle commit 2026-07-03 (Release 28668124787 post-build; all 33 WASMs rebuilt, plugin.json → 1.0.0-rc.22); prior: e4285fe5 (PR #456 true-merge fix mapfile→while-read; rc.22 tag); prior: 2a4c949b (PR #455 true-merge first rc.22 release; tag later moved); prior: caf06c68 (rc.21) |
 | develop | 091ce499 | PR #611 S-19.03 squash-merge 2026-07-13T15:54:21Z; prior: 8d1721f7 (PR #613 S-19.01 squash-merge 2026-07-13); prior: f5ea12e9 (PR #610 S-19.02 squash-merge 2026-07-13) |
-| factory-artifacts | `TBD` (D-838 W2-cascade-records burst 2026-07-13) | D-838-BURST `TBD`; D-837-BURST `c12b5fb6`; D-836-BURST `6fd31c0f`; D-835-BURST `520f8f50` |
+| factory-artifacts | `42a4cf33` (D-838 W2-cascade-records burst 2026-07-13) | D-838-BURST `42a4cf33`; D-837-BURST `c12b5fb6`; D-836-BURST `6fd31c0f`; D-835-BURST `520f8f50` |
 | feature/S-19.03 | **DELETED** (was 673490c7) | Merged via PR #611 091ce499 2026-07-13 (D-834); branch deleted at merge |
 | feature/S-19.01 | **DELETED** (was 83cfc670) | Merged via PR #613 8d1721f7 2026-07-13 (D-833); branch deleted at merge |
 | feature/S-18.12 | **DELETED** (was 9cbd9439) | Merged via PR #384 ec05606a 2026-07-01 (D-744); branch deleted post-merge |
@@ -282,7 +282,7 @@ dtu_services: []
 - **Convergence trajectory (passes 22–61):** 4→3→4→2→2→4→6→5→4→1→3→4→1→2→1→1→0→1→1→0→3→5→2→3→1→1→0→1→1→0→1→2→0→1→1→3→2→0→0→0. Zero BLOCKER since p22. E-19 CONVERGED pass-61 CLEAN B0/H0/M0/L1 (streak 3/3; O-P61-001 LOW accepted-with-record). 12 standing gates codified. policies.yaml v1.4.7 current (POLICY 21 added D-836).
 - **W1 authorization:** **APPROVED, DISPATCHED, and COMPLETE** (human "Approve — parallel" 2026-07-11; D-825). All three stories LOCAL-converged 3/3, all PRs merged.
 - **Per-story PR status:** **S-19.01 PR #613 MERGED 8d1721f7 2026-07-13T14:49:50Z**; **S-19.02 PR #610 MERGED f5ea12e9 2026-07-13T14:33:57Z**; **S-19.03 PR #611 MERGED 091ce499 2026-07-13T15:54:21Z**. WAVE 1 COMPLETE.
-- **Repo state:** develop HEAD `091ce499` (origin); main HEAD `a04cb303`; merged_count 101; factory-artifacts HEAD = D-838 burst `TBD`. v1.0.0-rc.22 FULLY SHIPPED. **E-10 CASCADE SEALED D-531 — do NOT resume. F5 PAUSED D-386 Option C — do NOT resume.**
+- **Repo state:** develop HEAD `091ce499` (origin); main HEAD `a04cb303`; merged_count 101; factory-artifacts HEAD = D-838 burst `42a4cf33`. v1.0.0-rc.22 FULLY SHIPPED. **E-10 CASCADE SEALED D-531 — do NOT resume. F5 PAUSED D-386 Option C — do NOT resume.**
 - **POLICY 21:** no_new_shell_scripts ACTIVE (blocking; human-directed 2026-07-13). No new .sh files allowed; Rust workspace tests / Rust binaries / WASM plugins only. Existing .sh grandfathered E-20.
 
 ### §Major Events Since D-837
@@ -419,6 +419,6 @@ PR #611 (feature/S-19.03 HEAD 673490c7) SQUASH-MERGED to develop by direct human
 
 4-index verification gate (literal-shell): `grep "^version:" .factory/specs/behavioral-contracts/BC-INDEX.md .factory/specs/verification-properties/VP-INDEX.md .factory/stories/STORY-INDEX.md .factory/specs/architecture/ARCH-INDEX.md` → BC-INDEX: "4.02" / VP-INDEX: "2.68" / STORY-INDEX: "4.185" / ARCH-INDEX: "3.01".
 
-Critical SHAs: develop `091ce499` (origin); main `a04cb303`; factory-artifacts HEAD = D-838 burst `TBD`. v1.0.0-rc.22 at `e4285fe5`. GitHub origin: `drbothen/vsdd-factory`. total_bcs 1,977.
+Critical SHAs: develop `091ce499` (origin); main `a04cb303`; factory-artifacts HEAD = D-838 burst `42a4cf33`. v1.0.0-rc.22 at `e4285fe5`. GitHub origin: `drbothen/vsdd-factory`. total_bcs 1,977.
 
-> This checkpoint (D-838 v5.85 2026-07-13) supersedes D-837 v5.84. `git -C .factory log --oneline -3` → D-838 cascade-records burst `TBD` + D-837 spec-reconcile burst `c12b5fb6` + D-836 burst `6fd31c0f`.
+> This checkpoint (D-838 v5.85 2026-07-13) supersedes D-837 v5.84. `git -C .factory log --oneline -3` → D-838 cascade-records burst `42a4cf33` + D-837 spec-reconcile burst `c12b5fb6` + D-836 burst `6fd31c0f`.

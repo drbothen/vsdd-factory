@@ -19845,4 +19845,4 @@ No out-of-scope changes introduced.
 | Commit | SHA | Message |
 |--------|-----|---------|
 | D-837 SM SHA-patch (parent HEAD) | `b809360b` | factory(D-837): SHA-patch — Active Branches TBD→c12b5fb6; burst-log Block 8 TBD→c12b5fb6 |
-| D-838 SM single-commit burst (TD-VSDD-053) | `TBD` | factory(D-838): W2-CASCADE-RECORDS burst — 12 cascade records; BC-7.03.079 v1.5 POL-14; VP-099 v1.1 POLICY 9; BC-INDEX v4.02; VP-INDEX v2.68; STORY-INDEX v4.185; L2-INDEX v1.0.15; STATE.md v5.84→v5.85 |
+| D-838 SM single-commit burst (TD-VSDD-053) | `42a4cf33` | factory(D-838): W2-CASCADE-RECORDS burst — 12 cascade records; BC-7.03.079 v1.5 POL-14; VP-099 v1.1 POLICY 9; BC-INDEX v4.02; VP-INDEX v2.68; STORY-INDEX v4.185; L2-INDEX v1.0.15; STATE.md v5.84→v5.85 |
