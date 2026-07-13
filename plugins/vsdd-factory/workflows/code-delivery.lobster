@@ -4,8 +4,9 @@ workflow:
     Reusable per-story delivery sub-workflow. Invoked by greenfield.lobster,
     feature.lobster, maintenance.lobster, and multi-repo.lobster for each
     story that needs to be delivered. Encapsulates the complete flow:
-    worktree -> stubs -> Red Gate -> implement -> micro-commits -> demo ->
-    squash -> PR -> AI review -> security review -> converge -> merge -> cleanup.
+    worktree -> stubs -> Red Gate -> implement -> micro-commits -> adversarial
+    convergence -> story holdout gate -> demo -> squash -> PR -> AI review ->
+    security review -> converge -> merge -> cleanup.
 
     Cross-cutting infrastructure (DF-020-028) applies throughout. See
     docs/factory-paths.md Cross-Cutting Infrastructure section for shared baseline.
@@ -16,6 +17,10 @@ workflow:
     DF-037 additions: Storybook component test loop (D11/D18) with self-healing
     (max 10 iterations), per-story UI quality gate (D16) checking token compliance,
     a11y, component contract compliance, and async state coverage.
+    DF-038 additions: Story-level holdout gate (Step 4b, BC-5.39.003) — 2-4 hidden
+    single-use scenarios per story authored by product-owner at story-materialization
+    time; strict information asymmetry wall; wire-level output assertions scoped to
+    the story's touched surface; BLOCKING before demo recording.
   version: "2.0.0"
 
   inputs:
@@ -145,6 +150,65 @@ workflow:
               Micro-commit each fix.
 
     # =========================================================================
+    # Step 4b: Story-Level Holdout Gate (BC-5.39.003)
+    # 2-4 hidden, single-use scenarios per story authored by product-owner at
+    # story-materialization time. Strict information asymmetry wall: evaluator
+    # sees ONLY story-scenarios/STORY-NNN/ + product-brief.md + running binary.
+    # Wire-level output assertions scoped to the story's touched surface.
+    # BLOCKING: unsatisfied scenario (score < 0.80) → observed-behavior report to
+    # orchestrator (no scenario text) → implementer fix → adversary streak reset.
+    # =========================================================================
+
+    - name: story-holdout-gate
+      type: loop
+      depends_on: [per-story-adversarial-review]
+      loop:
+        max_iterations: 5
+        exit_condition: "story_holdout.gate == 'PASS'"
+        steps:
+          - name: run-story-holdout
+            type: agent
+            agent: holdout-evaluator
+            model_tier: adversary
+            task: >
+              Run story-level holdout evaluation for story [story_id].
+              Scope: bounded to this story's touched public surface only (minutes, not hours).
+              Read 2–4 hidden single-use scenarios from:
+                .factory/holdout-scenarios/story-scenarios/[story_id]/
+              Build and exercise the binary from [worktree_path].
+              Gate: every scenario must score >= 0.80; mean >= 0.80.
+              On completion: mark each scenario lifecycle_status: consumed.
+              Report format: OBSERVED_BEHAVIOR_ONLY — never include scenario text
+              in findings (contamination control prevents scenario leakage to implementer).
+            context:
+              include:
+                - ".factory/holdout-scenarios/story-scenarios/[story_id]/**"
+                - ".factory/specs/product-brief.md"
+              exclude:
+                # ▓ WALL: information asymmetry — no specs, no source, no prior passes
+                - ".factory/specs/prd.md"
+                - ".factory/specs/behavioral-contracts/**"
+                - ".factory/specs/architecture/**"
+                - ".factory/specs/prd-supplements/**"
+                - ".factory/cycles/**"
+                - ".factory/semport/**"
+                - "[worktree_path]/src/**"
+                - "[worktree_path]/tests/**"
+
+          - name: fix-story-holdout-findings
+            type: agent
+            agent: implementer
+            depends_on: [run-story-holdout]
+            condition: "story_holdout.gate == 'FAIL'"
+            task: >
+              Fix implementation gaps identified by story holdout gate.
+              You receive ONLY observed-behavior descriptions — no scenario text.
+              Re-run tests to verify fixes. Micro-commit each fix with message:
+              fix([story_id]): address story holdout observed behavior gap
+              NOTE: adversary convergence streak resets to 0/3 after this fix;
+              per-story-adversarial-review re-gates before next holdout attempt.
+
+    # =========================================================================
     # Step 5: E2E Tests (UI/full-stack only)
     # =========================================================================
 
@@ -224,7 +288,7 @@ workflow:
     - name: demo-recording
       type: agent
       agent: demo-recorder
-      depends_on: [per-story-adversarial-review]
+      depends_on: [story-holdout-gate]
       task: >
         Record per-AC demo evidence for [story_id] in [worktree_path]:
         1. Read story acceptance criteria
