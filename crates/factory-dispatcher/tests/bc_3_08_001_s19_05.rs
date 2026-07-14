@@ -137,18 +137,24 @@ fn write_async_registry(
     plugin_path: &std::path::Path,
     timeout_ms: u64,
 ) -> PathBuf {
+    // Normalize path separators to forward slashes before embedding in TOML.
+    // On Windows, backslashes in TOML string literals are interpreted as escape
+    // sequences (e.g. `\U` → invalid 8-digit Unicode escape), causing registry
+    // parse failures. Windows accepts forward slashes for all file operations, so
+    // this normalization is safe and WASM-loader-compatible on all platforms.
+    let plugin_path_toml = plugin_path.to_string_lossy().replace('\\', "/");
     let registry_toml = format!(
         "schema_version = 2\n\n\
          [[hooks]]\n\
          name = \"{plugin_name}\"\n\
          event = \"PostToolUse\"\n\
-         plugin = \"{plugin_path}\"\n\
+         plugin = \"{plugin_path_toml}\"\n\
          async = true\n\
          on_error = \"continue\"\n\
          timeout_ms = {timeout_ms}\n\
          fuel_cap = 1000000000\n",
         plugin_name = plugin_name,
-        plugin_path = plugin_path.display(),
+        plugin_path_toml = plugin_path_toml,
         timeout_ms = timeout_ms,
     );
     let reg_path = dir.join("hooks-registry.toml");
