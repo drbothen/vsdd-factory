@@ -19846,3 +19846,135 @@ No out-of-scope changes introduced.
 |--------|-----|---------|
 | D-837 SM SHA-patch (parent HEAD) | `b809360b` | factory(D-837): SHA-patch — Active Branches TBD→c12b5fb6; burst-log Block 8 TBD→c12b5fb6 |
 | D-838 SM single-commit burst (TD-VSDD-053) | `42a4cf33` | factory(D-838): W2-CASCADE-RECORDS burst — 12 cascade records; BC-7.03.079 v1.5 POL-14; VP-099 v1.1 POLICY 9; BC-INDEX v4.02; VP-INDEX v2.68; STORY-INDEX v4.185; L2-INDEX v1.0.15; STATE.md v5.84→v5.85 |
+
+---
+
+## D-839 W2-CONVERGENCE — 2026-07-13
+
+### Block 1 — Parent-commit
+
+Parent-commit: `a6b360e5` (D-838 SHA-patch commit; factory-artifacts). Per D-419(b), this burst's Commit E `current_step` cites `a6b360e5`.
+
+### Block 2 — Adversary verdict (D-448(a) source-attestation)
+
+**S-19.04 LOCAL cascade passes 12-16 (source HEAD 0a7af81d):**
+- pass-12: CLEAN B0/H0/M0/L0 streak 1/3. No findings.
+- pass-13: NOT-CLEAN B0/H0/M1/L0 streak 0/3. F-P13-001 MEDIUM: stale §In-Flight Note annotation in S-19.04 story body. The cascade-state note "Cascade state persisted to INDEX.md 2026-07-13 (D-838); pass-12 CLEAN; adversary pass-13 pending" was not removed at pass-12 landing — per L-BB-in-flight-annotations-rot-resolve-at-landing, in-flight cascade-state annotations must be removed at the landing pass. Fix: story-writer S-19.04 v1.21 (stale in-flight note removed).
+- pass-14: CLEAN B0/H0/M0/L0 streak 1/3.
+- pass-15: CLEAN B0/H0/M0/L0 streak 2/3.
+- pass-16: CLEAN B0/H0/M0/L0 streak 3/3 **CONVERGED** (passes 14+15+16). S-19.04 v1.21 PRODUCTION-GRADE READY. Source-attestation literal-shell: `grep -n "CONVERGED\|streak 3/3" .factory/cycles/v1.0-brownfield-backfill/s-19.04-local-adversary-pass-16.md | head -3` → `1:# S-19.04 LOCAL Adversary Pass-16 — CLEAN — CONVERGED` / `7:**Streak:** 3/3 — BC-5.39.001 3-CLEAN CONVERGED` / `25:**S-19.04 CONVERGED — 2026-07-13 — BC-5.39.001 3-CLEAN protocol SATISFIED**`.
+
+**S-19.05 LOCAL cascade passes 13-17 (source HEAD 405a871f):**
+- pass-13: CLEAN B0/H0/M0/L0 streak 1/3. pass-12 fixes (L2-INDEX v1.0.15+invariants.md v1.30) verified.
+- pass-14: NOT-CLEAN B0/H0/M1/L0 streak 0/3. F-P14-001 MEDIUM: volatile BC-3.08.001 version pins "v1.21" in narrative prose (5 sites in §Domain Invariants, §Architecture Compliance Rules, AC-005/AC-006 narrative) violate TD-VSDD-091. Fix: story-writer S-19.05 v1.21 (5 volatile "v1.21" sites replaced with stable §-anchor forms: "BC-3.08.001 §Invariants", "BC-3.08.001 §Preconditions", "DI-019 §Malformed+§Pathological").
+- pass-15: CLEAN B0/H0/M0/L0 streak 1/3. Non-resetting hygiene: story v1.22 (DI-019 versionless + E-19 v1.29 pin sweep; input-hash 9e54d68 UNCHANGED; adversary confirmed non-finding-generating).
+- pass-16: CLEAN B0/H0/M0/L0 streak 2/3.
+- pass-17: CLEAN B0/H0/M0/L0 streak 3/3 **CONVERGED** (passes 15+16+17). S-19.05 v1.22 PRODUCTION-GRADE READY. Source-attestation literal-shell: `grep -n "CONVERGED\|streak 3/3" .factory/cycles/v1.0-brownfield-backfill/s-19.05-local-adversary-pass-17.md | head -3` → `1:# S-19.05 LOCAL Adversary Pass-17 — CLEAN — CONVERGED` / `7:**Streak:** 3/3 — BC-5.39.001 3-CLEAN CONVERGED` / `25:**S-19.05 CONVERGED — 2026-07-13 — BC-5.39.001 3-CLEAN protocol SATISFIED**`.
+
+### Block 3 — Files touched
+
+**New files created:**
+- `.factory/cycles/v1.0-brownfield-backfill/s-19.04-local-adversary-pass-12.md`
+- `.factory/cycles/v1.0-brownfield-backfill/s-19.04-local-adversary-pass-13.md`
+- `.factory/cycles/v1.0-brownfield-backfill/s-19.04-local-adversary-pass-14.md`
+- `.factory/cycles/v1.0-brownfield-backfill/s-19.04-local-adversary-pass-15.md`
+- `.factory/cycles/v1.0-brownfield-backfill/s-19.04-local-adversary-pass-16.md`
+- `.factory/cycles/v1.0-brownfield-backfill/s-19.05-local-adversary-pass-13.md`
+- `.factory/cycles/v1.0-brownfield-backfill/s-19.05-local-adversary-pass-14.md`
+- `.factory/cycles/v1.0-brownfield-backfill/s-19.05-local-adversary-pass-15.md`
+- `.factory/cycles/v1.0-brownfield-backfill/s-19.05-local-adversary-pass-16.md`
+- `.factory/cycles/v1.0-brownfield-backfill/s-19.05-local-adversary-pass-17.md`
+
+**Modified files:**
+- `.factory/cycles/v1.0-brownfield-backfill/INDEX.md` — S-19.04 passes 12-16 rows + CONVERGED status; S-19.05 passes 13-17 rows + CONVERGED status
+- `.factory/cycles/v1.0-brownfield-backfill/decision-log.md` — D-839 entry appended
+- `.factory/cycles/v1.0-brownfield-backfill/burst-log.md` — D-839 entry (this file)
+- `.factory/cycles/v1.0-brownfield-backfill/lessons.md` — 4 lessons appended (L-BB-in-flight-annotations-rot-resolve-at-landing; L-BB-stories-use-stable-section-anchors-single-volatile-pin; L-BB-policy5-exemption-classes-must-cover-amendment-prose-sections; L-BB-missed-pol14-status-vs-lifecycle-audit)
+- `.factory/specs/behavioral-contracts/BC-INDEX.md` — v4.02→v4.03 (BC-3.08.001 v1.22+v1.23 cells)
+- `.factory/stories/STORY-INDEX.md` — v4.185→v4.186 (S-19.04 v1.21 + S-19.05 v1.22; E-19 v1.29; wave-summary; BC coverage footnote)
+- `.factory/stories/sprint-state.yaml` — T-14 depth-ordering + T-12 status fidelity fixed
+- `.factory/STATE.md` — v5.85→v5.86 (D-839 advance)
+
+### Block 4 — Codifications (D-NNN + L-EDP1-NNN)
+
+- **D-839:** W2-CONVERGENCE burst codified (decision-log.md + STATE.md Decisions Log).
+- **L-BB-in-flight-annotations-rot-resolve-at-landing [process-gap]:** In-flight cascade-state annotations in story bodies must be removed at the landing pass. Triggered by S-19.04 pass-13 F-P13-001.
+- **L-BB-stories-use-stable-section-anchors-single-volatile-pin [process-gap → template/policy candidate]:** TD-VSDD-091 check must cover ALL prose locations; a single volatile version pin constitutes a MEDIUM finding. Triggered by S-19.05 pass-14 F-P14-001.
+- **L-BB-policy5-exemption-classes-must-cover-amendment-prose-sections [process-gap]:** POLICY 5 cite sweeps must exempt §Amendment sections and Changelog table rows (historical records). Triggered by S-19.05 cascade passes 8-14 recurring exemption gaps.
+- **L-BB-missed-pol14-status-vs-lifecycle-audit [drift-pattern]:** POL-14 auto-promotion must update BOTH `status:` AND `lifecycle_status:` fields; partial promotion (only `status:` updated) leaves lifecycle_status stale. Triggered by BC-3.08.001 v1.23 D-839 (missed at S-15.01 PR-106 453eee1).
+
+### Block 5 — Dim-2 (D-449(a) literal-shell gate evidence)
+
+**4-index parity gate (D-444(a)-class):**
+```
+$ grep "^version:" .factory/specs/behavioral-contracts/BC-INDEX.md .factory/specs/verification-properties/VP-INDEX.md .factory/stories/STORY-INDEX.md .factory/specs/architecture/ARCH-INDEX.md
+.factory/stories/STORY-INDEX.md:version: "4.186"
+.factory/specs/verification-properties/VP-INDEX.md:version: "2.68"
+.factory/specs/architecture/ARCH-INDEX.md:version: "3.01"
+.factory/specs/behavioral-contracts/BC-INDEX.md:version: "4.03"
+```
+Result: BC-INDEX "4.03" / VP-INDEX "2.68" / STORY-INDEX "4.186" / ARCH-INDEX "3.01". PASS.
+
+**D-803 heading-parity gate (D-446(a)-class standing gate):**
+```
+$ grep "^## Epic E-19" .factory/stories/STORY-INDEX.md
+## Epic E-19 — Post-rc.22 Operator Hardening (v1.0-feature-engine-discipline-pass-1 / E-19 F3) — draft, v1.29
+```
+E-19 heading shows v1.29 matching STORY-INDEX Epic E-19 delivery footer update. PASS.
+
+**Sprint-state bats gate (D-449(a) literal-shell):**
+```
+$ cd plugins/vsdd-factory/tests && bats sprint-state-format.bats
+1..14
+ok 1 test_sprint_state_stories_list_present
+ok 2 test_sprint_state_stories_wave_order
+ok 3 test_sprint_state_status_matches_story_index
+ok 4 test_wave_handoff_parses_migrated_sprint_state
+ok 5 test_wave_id_wave_group_ordinal
+ok 6 test_epics_coexistence_nested_stories_ignored
+ok 7 test_real_production_file_round_trip
+ok 8 test_consumer_accepts_partial_status
+ok 9 test_consumer_rejects_interleaved_ordering
+ok 10 test_consumer_partial_only_raises_broken_sprint_state
+ok 11 test_consumer_rejects_complete_status
+ok 12 test_real_production_file_completeness_and_status_fidelity
+ok 13 test_supersession_edge_tolerated_partition_placement
+ok 14 test_partitions_sorted_by_full_graph_depth_def_b
+```
+14/14 PASS. T-12 (ok 12) PASS — status fidelity. T-14 (ok 14) PASS — depth-ordering. META-LEVEL-24 acknowledgment: gate invoked via literal shell with captured stdout; pseudocode narrative FORBIDDEN per D-449(a).
+
+**D-448(a) source-attestation gate (literal-shell):**
+```
+$ grep -c "CONVERGED" .factory/cycles/v1.0-brownfield-backfill/s-19.04-local-adversary-pass-16.md
+3
+$ grep -c "CONVERGED" .factory/cycles/v1.0-brownfield-backfill/s-19.05-local-adversary-pass-17.md
+3
+```
+Both convergence files contain CONVERGED declarations. PASS.
+
+### Block 6 — Dim-5 attestation
+
+This burst IS a state-manager burst. All changes are factory-artifacts only. No source code (`crates/`, `plugins/vsdd-factory/`) was modified. No spec content was authored (no new BCs, no new VPs, no new ADRs). STATE.md updated in scope of state-manager domain. BC-INDEX/STORY-INDEX/sprint-state updates are index/tracking updates within state-manager scope.
+
+### Block 7 — Dim-6 literal-shell finding count
+
+S-19.04 cascade finding count per pass: pass-12=0, pass-13=1(MEDIUM), pass-14=0, pass-15=0, pass-16=0. Total findings closed: 1.
+S-19.05 cascade finding count per pass: pass-13=0, pass-14=1(MEDIUM), pass-15=0, pass-16=0, pass-17=0. Total findings closed: 1.
+
+```
+$ grep -c "^### F-P" .factory/cycles/v1.0-brownfield-backfill/s-19.04-local-adversary-pass-13.md
+1
+$ grep -c "^### F-P" .factory/cycles/v1.0-brownfield-backfill/s-19.05-local-adversary-pass-14.md
+1
+```
+
+### Block 8 — Closes + factory-artifacts commits
+
+**Closes:**
+- F-P13-001 (S-19.04 pass-13): stale §In-Flight Note CLOSED story v1.21.
+- F-P14-001 (S-19.05 pass-14): volatile BC-pin drift CLOSED story v1.21 stable §-anchors.
+
+**factory-artifacts commits:**
+- D-839 main burst: `TBD` (SHA-patch pending)
+- D-838 SHA-patch: `a6b360e5` (parent-commit)
+- D-838 main burst: `42a4cf33`

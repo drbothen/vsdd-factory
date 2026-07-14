@@ -6730,3 +6730,83 @@ Both gates are mandatory standing Commit-E controls for any burst touching E-19 
 **Cites:** D-838 (codified this burst); POLICY 9; S-19.04 passes 6+11; VP-INDEX v2.68; VP-099 v1.1.
 
 **Closes:** D-838. `[process-gap; convention-evolution; VP-update; POLICY-9; same-burst-propagation; traceability; architect; state-manager; both-ends-anchoring; streak-reset]`
+
+---
+
+### L-BB-in-flight-annotations-rot-resolve-at-landing [process-gap]
+
+**Title:** In-Flight Cascade-State Annotations in Story Bodies Must Be Removed at the Landing Pass, Not Left to Accumulate
+
+**Lesson:** Embedding cascade progress notes (e.g., "LOCAL adversary cascade IN PROGRESS (pass-12 complete; streak 1/3; awaiting pass-13)") inside the story body document is a decay pattern. These annotations describe the cascade state at a single moment; they become stale immediately on the next pass, and they appear in the permanent PR history if not removed before merge. The story body is a specification artifact; it describes the WHAT and HOW of a feature, not the bookkeeping state of its validation cascade.
+
+**Context:** S-19.04 pass-13 (2026-07-13) — F-P13-001 MEDIUM: stale §In-Flight Note found in S-19.04 story body. The note had been added during the D-838 W2-CASCADE-RECORDS burst to capture cascade state, but was not designed for removal at any specific pass. Story-writer fixed it in S-19.04 v1.21 (note removed, content archived to cascade record file). Streak reset 1/3→0/3 — cost one additional pass.
+
+**Root cause:** There was no convention for when to remove in-flight annotations from story bodies. Story-writers added them as helpful context for the next adversary, but the adversary correctly identified them as specification pollution.
+
+**Prevention:** (1) Cascade progress state belongs in cascade record files (this `INDEX.md`, `s-NNN-local-adversary-pass-N.md`), NOT in story body documents. (2) If a story body contains a §In-Flight Note or §Cascade State section, it MUST be removed before the first CLEAN pass is claimed. (3) Add to per-story-delivery checklist: "Does story body contain any in-flight annotation? → remove before pass-N dispatch."
+
+**Anchors:** S-19.04 pass-13 (F-P13-001 stale §In-Flight Note MEDIUM); S-19.04 v1.21 (fix: note removed); D-839.
+
+**Cites:** D-839 (codified this burst); BC-5.39.001; S-19.04 pass-13; S-19.04 v1.21; POLICY 4.
+
+**Closes:** D-839. `[process-gap; in-flight-annotations; cascade-state; story-body; annotation-decay; specification-pollution; story-writer; per-story-delivery-checklist]`
+
+---
+
+### L-BB-stories-use-stable-section-anchors-single-volatile-pin [process-gap → template/policy candidate]
+
+**Title:** Story Narrative Must Use Stable §-Anchor Forms for BC Citations; a Single Volatile Version Pin Is Sufficient Cause for a MEDIUM Finding
+
+**Lesson:** TD-VSDD-091 (anti-volatile-pin discipline) was codified specifically to prevent specification drift when BCs are amended. Despite this, S-19.05 v1.20 carried five volatile BC version pins ("BC-3.08.001 v1.21") in its narrative prose for 13 passes without being caught. When finally found at pass-14 (F-P14-001 MEDIUM), fixing all five sites required a new story version (v1.21), breaking the streak. The finding was not novel — TD-VSDD-091 was already in the policy registry. The gap was that the adversary in passes 3-13 did not apply TD-VSDD-091 to inline narrative BC cites, only to task-table and gate-form citations.
+
+**Context:** S-19.05 passes 14-15 (2026-07-13) — F-P14-001: "BC-3.08.001 v1.21" volatile pins in §Domain Invariants, §Architecture Compliance Rules, and AC-005/AC-006 narrative paragraphs. Fix: story v1.21 with stable §-anchor forms. Then v1.22 pre-emptive hygiene applied DI-versionless form. Total: 1 extra story version + 1 extra adversary pass + streak reset.
+
+**Root cause:** The adversary's TD-VSDD-091 checklist was applied to formal AC gate expressions but not to inline prose narratives. TD-VSDD-091 is a global constraint that applies to ALL narrative spec content — not just gates.
+
+**Prevention:** (1) The adversary's TD-VSDD-091 check MUST cover ALL prose locations in the story body, not just gate forms. (2) Story-writers MUST run a self-audit: `grep -oE 'v[0-9]+\.[0-9]+' story.md | grep -v "^v[0-9]"` to find bare version pins in narrative before submitting for adversary review. (3) Template candidate: add to story template a §Stable Anchor Policy box reminding: "All BC references in narrative prose must use §SectionName anchor form, not v1.NN version pin."
+
+**Anchors:** S-19.05 pass-14 (F-P14-001 volatile BC-pin drift; TD-VSDD-091); S-19.05 v1.21 (fix: stable §-anchors); D-839.
+
+**Cites:** D-839 (codified this burst); TD-VSDD-091; BC-5.39.001; S-19.05 passes 14-15; S-19.05 v1.21; POLICY 4.
+
+**Closes:** D-839. `[process-gap; volatile-pin; TD-VSDD-091; stable-section-anchors; narrative-prose; adversary-checklist; story-template-candidate; BC-cite; version-pin-decay]`
+
+---
+
+### L-BB-policy5-exemption-classes-must-cover-amendment-prose-sections [process-gap]
+
+**Title:** POLICY 5 (Spec-Language Cite Currency) Exemption Classes Must Explicitly Cover Amendment Prose Sections, or Every Old Amendment Becomes a Persistent Finding Source
+
+**Lesson:** BC spec files accumulate §Amendment sections as history. These sections intentionally cite the BC version as it was at the time of the amendment ("v1.19 → v1.20 cite sweep"). If POLICY 5's exemption classes do not explicitly cover §Amendment prose, every amendment section becomes a source of "stale BC version pin" findings when the adversary applies TD-VSDD-091 globally. The adversary finds `v1.19` in an amendment section, classifies it as a volatile pin, and the finding is technically correct-by-rule — but it represents stable historical documentation, not a drift.
+
+**Context:** S-19.05 cascade passes 8-13 — Multiple story versions were created to sweep BC-3.08.001 version cites. Several of these sweeps may have unnecessarily modified §Amendment prose (which should be stable historical records). The correct exemption boundary: §Amendment sections, §Changelog rows, and the body Changelog table are HISTORICAL — they reference past versions at the time of amendment and MUST NOT be updated to current version. Only "live" narrative sections (§Behavioral Invariants, §Preconditions, §Acceptance Criteria, §Architecture Mapping) require current version cites.
+
+**Root cause:** The story-writer's "whole-file version pin sweep" applied TD-VSDD-091 uniformly without distinguishing historical amendment records from live narrative. This corrupted historical records.
+
+**Prevention:** (1) TD-VSDD-091 cite sweeps MUST be scoped to the story body's "live" sections only. (2) §Amendment sections, §Changelog rows, and the Changelog table in spec files are historical; they must not be updated in cite sweeps. (3) Adversary TD-VSDD-091 check must explicitly exempt `## Amendment YYYY-MM-DD` sections and `| v1.NN |` changelog table rows from volatile-pin classification.
+
+**Anchors:** S-19.05 passes 8-14 (repeated BC-cite sweeps; some sweeping historical amendment text); D-839.
+
+**Cites:** D-839 (codified this burst); TD-VSDD-091; POLICY 5; S-19.05 cascade; POLICY 4.
+
+**Closes:** D-839. `[process-gap; policy5; TD-VSDD-091; amendment-sections; historical-records; cite-sweep-scope; story-writer; adversary-checklist; changelog-exemption]`
+
+---
+
+### L-BB-missed-pol14-status-vs-lifecycle-audit [drift-pattern]
+
+**Title:** POL-14 Auto-Promotion on PR Merge Must Sweep Both `status:` and `lifecycle_status:` Fields; Single-Field Promotion Leaves a Persistent Drift
+
+**Lesson:** POL-14 (BC auto-promotion at PR merge: `draft → active`) applies to two fields in BC frontmatter: `status:` and `lifecycle_status:`. When S-15.01 merged at PR-106 (2026-05-08), BC-3.08.001 received a POL-14 `lifecycle_status: draft → active` promotion but its `status: draft` field was not updated. This one-field gap persisted undetected for 65+ days (from 2026-05-08 to 2026-07-13) across dozens of adversary passes and state-manager fix bursts. It was finally caught as a discovery finding at S-19.05 pass-13 and closed in BC-3.08.001 v1.23 (D-839).
+
+**Context:** BC-3.08.001 v1.23 (2026-07-13, D-839) — POL-14 missed at S-15.01 PR-106 merge 453eee1. `status: draft` remained while `lifecycle_status: active` was set. A systematic audit of all BCs for `status: draft` / `lifecycle_status: active` mismatch would surface any similar gaps.
+
+**Root cause:** POL-14 dispatch checklist likely specified only `lifecycle_status` as the promotion target, not `status`. Or the state-manager applied POL-14 with a partial template that omitted the `status` field.
+
+**Prevention:** (1) POL-14 auto-promotion MUST update BOTH `status:` AND `lifecycle_status:` in the same commit. (2) State-manager should run a systematic audit: `grep -B5 "lifecycle_status: active" .factory/specs/behavioral-contracts/**/*.md | grep -A3 "status: draft"` — any result indicates a POL-14 partial-promotion. (3) Add to post-merge state-manager checklist: "verify both `status:` and `lifecycle_status:` updated to `active` in the same commit." (4) Attach systematic sweep as S-15.03 PRIORITY-A work item.
+
+**Anchors:** BC-3.08.001 v1.23 (D-839: POL-14 missed-promotion closure); S-19.05 pass-13 discovery; S-15.01 PR-106 453eee1 (original merge where gap was introduced); D-839.
+
+**Cites:** D-839 (codified this burst); POL-14; BC-3.08.001 v1.23; S-15.01; S-15.03 PRIORITY-A.
+
+**Closes:** D-839. `[drift-pattern; POL-14; status-lifecycle-mismatch; auto-promotion; state-manager-checklist; BC-frontmatter; systematic-audit; S-15.03]`

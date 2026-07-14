@@ -10352,3 +10352,49 @@ D-838-W2-CASCADE-RECORDS
 ### Date
 
 2026-07-13
+
+---
+
+## D-839
+
+### Summary
+
+W2-CONVERGENCE. Single-commit convergence burst. (1) POLICY 16 GLOBAL-MAX GATE: `## D-838` confirmed max in decision-log.md → D-839 allocated. (2) CASCADE RECORDS: 10 adversary pass files created (S-19.04 passes 12-16; S-19.05 passes 13-17). S-19.04: pass-12 CLEAN streak 1/3; pass-13 NOT-CLEAN F-P13-001 MEDIUM stale §In-Flight Note annotation CLOSED story v1.21; passes 14-16 CLEAN streak 3/3 CONVERGED (passes 14+15+16). S-19.05: pass-13 CLEAN streak 1/3; pass-14 NOT-CLEAN F-P14-001 MEDIUM volatile BC-3.08.001 version pins CLOSED story v1.21 stable §-anchor forms TD-VSDD-091; pass-15 CLEAN non-resetting hygiene story v1.22 (DI-019 versionless + E-19 v1.29 pin sweep; input-hash 9e54d68 unchanged) streak 1/3; pass-16 CLEAN streak 2/3; pass-17 CLEAN streak 3/3 CONVERGED (passes 15+16+17). (3) BC-3.08.001 v1.21→v1.23: v1.22 S-19.05 pass-13 F-P13-001 five stale count phrases ("0 hooks-registry.toml hooks", "0 resolvers-registry.toml resolvers", "0 hook-plugins", "0 registered hook-plugins", "all 0 hook-plugins") + §Traceability ADR row "ADR-030 v1.6 Decision 7" → stable §Decision 7 anchor form disambiguated (input-hash 6549a11 unchanged); v1.23 POL-14 status draft→active + lifecycle_status draft→active (missed at S-15.01 PR-106 453eee1 merge 2026-05-08; both fields now active per POL-14 5-leg parity). BC-INDEX v4.02→v4.03 (BC-3.08.001 v1.22+v1.23 catalog cells appended). (4) STORY-INDEX v4.185→v4.186: S-19.04 v1.21 status draft→ready + BC-4.13.001 coverage cell added; S-19.05 v1.22 status draft→ready; E-19 H2 heading v1.28→v1.29; delivery footer prepended (BOTH W2 stories CONVERGED); BC-3.08.001 coverage footnote updated (S-19.04 behavioral_contracts: [BC-4.13.001] ready D-839 W2-CONVERGENCE). (5) sprint-state.yaml T-14 depth-ordering fixed: S-19.01/S-19.02/S-19.03 (depth=1) repositioned from after S-5.06 to between S-18.14 and S-5.05 in terminal partition; S-19.08 (depth=1) repositioned from after S-19.07 (depth=3) to between S-19.05 and S-4.11 in non-terminal partition. T-12 status fidelity fixed: S-19.04+S-19.05 status draft→ready. 14/14 bats PASS. (6) 4 LESSONS appended to lessons.md: L-BB-in-flight-annotations-rot-resolve-at-landing [process-gap]; L-BB-stories-use-stable-section-anchors-single-volatile-pin [process-gap → template/policy candidate]; L-BB-policy5-exemption-classes-must-cover-amendment-prose-sections [process-gap]; L-BB-missed-pol14-status-vs-lifecycle-audit [drift-pattern]. (7) 4-INDEX: BC v4.03/VP v2.68/STORY v4.186/ARCH v3.01. (8) D-839 decision-log codified; D-839 burst-log entry appended (8-block D-444(c)).
+
+### Details
+
+**Gate 1 — POLICY 16 GLOBAL-MAX:** `grep -n "^## D-" .factory/cycles/v1.0-brownfield-backfill/decision-log.md | tail -1` → `## D-838`. Max = D-838 → D-839 allocated.
+
+**Gate 2 — CASCADE RECORDS CREATED:**
+- S-19.04: 5 files created (pass-12..pass-16). pass-12 CLEAN B0/H0/M0/L0 streak 1/3. pass-13 NOT-CLEAN B0/H0/M1/L0 F-P13-001 stale §In-Flight Note CLOSED story v1.21. pass-14 CLEAN streak 1/3. pass-15 CLEAN streak 2/3. pass-16 CLEAN streak 3/3 CONVERGED.
+- S-19.05: 5 files created (pass-13..pass-17). pass-13 CLEAN B0/H0/M0/L0 streak 1/3. pass-14 NOT-CLEAN B0/H0/M1/L0 F-P14-001 volatile BC-pins CLOSED story v1.21. pass-15 CLEAN non-resetting hygiene story v1.22 streak 1/3. pass-16 CLEAN streak 2/3. pass-17 CLEAN streak 3/3 CONVERGED.
+
+**Gate 3 — BC-3.08.001 POL-14:** v1.22 five stale count phrases + §Traceability ADR row; v1.23 status+lifecycle draft→active. input-hash 6549a11 unchanged.
+
+**Gate 4 — 4-INDEX PARITY (D-449(a) literal-shell):**
+```
+grep "^version:" .factory/specs/behavioral-contracts/BC-INDEX.md .factory/specs/verification-properties/VP-INDEX.md .factory/stories/STORY-INDEX.md .factory/specs/architecture/ARCH-INDEX.md
+→ BC-INDEX: "4.03" / VP-INDEX: "2.68" / STORY-INDEX: "4.186" / ARCH-INDEX: "3.01"
+```
+
+**Gate 5 — D-803 HEADING-PARITY:** `grep "^## Epic E-19" .factory/stories/STORY-INDEX.md` → `## Epic E-19 — Post-rc.22 Operator Hardening ... — draft, v1.29`. PASS.
+
+**Gate 6 — SPRINT-STATE BATS (D-449(a) literal-shell):**
+```
+bats plugins/vsdd-factory/tests/sprint-state-format.bats → 1..14 ... ok 14 test_partitions_sorted_by_full_graph_depth_def_b
+```
+14/14 PASS. T-12 (ok 12 test_real_production_file_completeness_and_status_fidelity) PASS. T-14 (ok 14 test_partitions_sorted_by_full_graph_depth_def_b) PASS.
+
+**Gate 7 — STORY-INDEX STATUS PROPAGATION:** S-19.04 status draft→ready (BC-4.13.001 coverage added). S-19.05 status draft→ready. E-19 H2 v1.28→v1.29. wave-summary BOTH CONVERGED prepended.
+
+**Gate 8 — 4 LESSONS APPENDED:** grep count of L-BB-in-flight-annotations-rot-resolve-at-landing in lessons.md confirms presence.
+
+**parent-commit:** a6b360e5 (D-838 SHA-patch commit)
+
+### Phase
+
+D-839-W2-CONVERGENCE
+
+### Date
+
+2026-07-13

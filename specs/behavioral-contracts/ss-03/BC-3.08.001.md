@@ -1,9 +1,9 @@
 ---
 document_type: behavioral-contract
 level: L3
-version: "1.21"
-last_amended: "2026-07-10 (v1.21) — F-P43-003: §VP VP-100 row verbatim-derived from VP-INDEX (cardinality+mutual-exclusivity form); F-P43-005: v1.19 Changelog row backfilled + v1.20 Amendment section authored; O-P43-001: last_amended canonicalized to chain form. [Prior: 2026-07-09 (v1.20) — D-798 pre-pass-43 consistency sweep.]"
-status: draft
+version: "1.23"
+last_amended: "2026-07-13 (v1.23) — S-19.05 pass-13 fix-burst discovery: frontmatter status: draft / lifecycle_status: active mismatch — missed POL-14 auto-promotion at S-15.01 PR-106 merge (2026-05-08, merge_sha=453eee1). [Prior: 2026-07-13 (v1.22) — S-19.05 pass-13 F-P13-001: five stale count phrases corrected (§Common Fields intro; session_id row; §Architecture Anchors FileSink row; §Traceability CAJ; §Traceability DI-017); §Traceability ADR row disambiguated (original-ADR four scope explicitly stated; Events 5–6 provenance noted). Whole-file count-phrase sweep conducted. [Prior: 2026-07-10 (v1.21) — F-P43-003: §VP VP-100 row verbatim-derived from VP-INDEX (cardinality+mutual-exclusivity form); F-P43-005: v1.19 Changelog row backfilled + v1.20 Amendment section authored; O-P43-001: last_amended canonicalized to chain form. [Prior: 2026-07-09 (v1.20) — D-798 pre-pass-43 consistency sweep.]]]"
+status: active
 producer: product-owner
 timestamp: 2026-05-07T00:00:00Z
 phase: F2
@@ -27,6 +27,8 @@ modified:
   - "2026-07-07 (v1.19)"
   - "2026-07-09 (v1.20)"
   - "2026-07-10 (v1.21)"
+  - "2026-07-13 (v1.22)"
+  - "2026-07-13 (v1.23)"
 deprecated: null
 deprecated_by: null
 replacement: null
@@ -49,12 +51,12 @@ ADR-019 F2 introduces four new event-type strings as part of the async-semantics
 
 ## Common Fields
 
-All five event types carry the following dispatcher-owned fields on the wire. These fields are injected by the host (see `emit_event.rs` enrichment path) and are never supplied by plugins (they are RESERVED_FIELDS — see §Implementation Notes):
+All six event types carry the following dispatcher-owned fields on the wire. These fields are injected by the host (see `emit_event.rs` enrichment path) and are never supplied by plugins (they are RESERVED_FIELDS — see §Implementation Notes):
 
 | Field | Type | Description |
 |-------|------|-------------|
 | `trace_id` | UUID v4 string | Trace correlation value from the invoking hook envelope (DI-017). Canonical wire-format name; `dispatcher_trace_id` must NOT appear on wire (Invariant 5). |
-| `session_id` | UUID v4 string | Claude Code session identifier from the hook envelope context (`ctx.session_id`). Present on all five event types (O-P15-001). |
+| `session_id` | UUID v4 string | Claude Code session identifier from the hook envelope context (`ctx.session_id`). Present on all six event types (O-P15-001). |
 | `plugin_name` | string | Name of the plugin registry entry, injected by the host. Present on plugin-context events (1, 4, 5, and 6) only; absent from dispatcher-startup events (2 + 3) which have no plugin context. |
 | `ts` | string | Emission timestamp (internal format). |
 | `ts_epoch` | integer | Emission timestamp as Unix epoch milliseconds. |
@@ -289,7 +291,7 @@ For canonical HOST_ABI documentation of which fields the dispatcher enriches aut
 
 - `crates/factory-dispatcher/src/main.rs` (call sites) + `crates/factory-dispatcher/src/host/emit_event.rs` (emit fns) — async block discard path; timeout termination path; `plugin.abandoned` emission path (drain timer arm, EC-011 break); `plugin.completed` (async path) emission path (drain result arm, mirroring sync `emit_lifecycle` in `crates/factory-dispatcher/src/executor.rs`)
 - `crates/factory-dispatcher/src/registry.rs` — schema_mismatch and registry_invalid emission sites
-- `crates/sink-core/src/` — FileSink fan-out path for all five event types
+- `crates/sink-core/src/` — FileSink fan-out path for all six event types
 - VP-028 — sink fan-out invariant verification
 
 ## Story Anchor
@@ -345,10 +347,10 @@ TBD — single story per ADR-019 §6 (no phased rollout, user decision 2026-05-0
 | Field | Value |
 |-------|-------|
 | L2 Capability | CAP-003 ("Stream observability events to multiple configurable sinks") per capabilities.md §CAP-003 |
-| Capability Anchor Justification | CAP-003 ("Stream observability events to multiple configurable sinks") per capabilities.md §CAP-003 — these four event types are observability events that operators and the VSDD engine consume to diagnose async plugin behavior; cataloguing them here fulfills the "stream observability events" promise by defining the wire format and sink-fan-out obligation |
-| L2 Domain Invariants | DI-017 — `trace_id` present on every emitted event; all four event types must carry `trace_id`; Invariant 5 of this BC enforces DI-017's requirement that `trace_id` be the canonical wire-field name (not `dispatcher_trace_id`); DI-019 — `ASYNC_DRAIN_WINDOW_MS` (the `plugin.timeout` async path and `plugin.async_block_discarded` events are emitted by tasks running within the drain window bounded by DI-019; VP-079 fixture timing for these events must account for the DI-019 drain window value) |
+| Capability Anchor Justification | CAP-003 ("Stream observability events to multiple configurable sinks") per capabilities.md §CAP-003 — these six event types are observability events that operators and the VSDD engine consume to diagnose async plugin behavior; cataloguing them here fulfills the "stream observability events" promise by defining the wire format and sink-fan-out obligation |
+| L2 Domain Invariants | DI-017 — `trace_id` present on every emitted event; all six event types must carry `trace_id`; Invariant 5 of this BC enforces DI-017's requirement that `trace_id` be the canonical wire-field name (not `dispatcher_trace_id`); DI-019 — `ASYNC_DRAIN_WINDOW_MS` (the `plugin.timeout` async path and `plugin.async_block_discarded` events are emitted by tasks running within the drain window bounded by DI-019; VP-079 fixture timing for these events must account for the DI-019 drain window value) |
 | Architecture Module | SS-03 — `crates/sink-core/` (event routing); SS-01 — `crates/factory-dispatcher/src/main.rs` + `crates/factory-dispatcher/src/host/emit_event.rs` (emission sites); SS-01 — `crates/factory-dispatcher/src/registry.rs` (schema_mismatch + registry_invalid emission sites). Note: SS-07 owns `plugins/vsdd-factory/hooks-registry.toml` (the file format) but the emission sites in registry.rs are SS-01 Rust modules per ARCH-INDEX. |
-| ADR | ADR-019 — Async Semantics at Registry Layer; introduces the conditions that trigger these four events |
+| ADR | ADR-019 — Async Semantics at Registry Layer; introduces the original four ADR-019 async-semantics events (Events 1–4); Events 5 (`plugin.abandoned`) and 6 (`plugin.completed` async path) were added by E-19 fix bursts F-P1-013 and F-P5-003 respectively |
 | Stories | S-15.01 (single story per ADR-019 §6); S-19.05 (Event 6 — async plugin.completed telemetry) |
 | Cycle | v1.0-feature-plugin-async-semantics-pass-1 (F2) |
 
@@ -671,6 +673,8 @@ Addresses adversary pass-2 finding F-P2-010.
 
 **Changelog:**
 
+| 1.23 | 2026-07-13 | product-owner | S-19.05 pass-13 fix-burst discovery: frontmatter status: draft / lifecycle_status: active mismatch — missed POL-14 auto-promotion. Verification: S-15.01 (behavioral_contracts includes BC-3.08.001) carries status=merged, merged_at=2026-05-08, merged_in=PR-106, merge_sha=453eee1; POL-14 mandates draft→active on PR merge; lifecycle_status was already active. |
+| 1.22 | 2026-07-13 | product-owner | S-19.05 pass-13 F-P13-001: five stale count phrases corrected — §Common Fields intro "All five event types" → "All six event types"; session_id row "all five event types" → "all six event types"; §Architecture Anchors FileSink row "all five event types" → "all six event types"; §Traceability CAJ "these four event types" → "these six event types"; §Traceability DI-017 "all four event types" → "all six event types". §Traceability ADR row disambiguated: four-count scoped to original ADR-019 events (Events 1–4); Events 5–6 provenance noted. Whole-file count-phrase sweep conducted per F-P13-001 method; all remaining hits classified. |
 | v1.21 | 2026-07-10 | product-owner | F-P43-003: §VP VP-100 row verbatim-derived from VP-INDEX SoT (cardinality+mutual-exclusivity form; replaces latency-paraphrase). F-P43-005: v1.19 Changelog row backfilled; Amendment 2026-07-09 (v1.19→v1.20) prose section authored for structural parity. O-P43-001: last_amended canonicalized to chain form. |
 | v1.20 | 2026-07-09 | product-owner | orchestrator pre-pass-43 consistency sweep: (a) §Verification Properties VP-100 row added (missing-row; integration S-19.05; Invariant 6; DI-019); §VP Anchors VP-100 bullet added. (b) §VP Anchors VP-028 stale-count fixed — "all four event types" → "all six event types" with enumeration of all six async-semantics event types. |
 | v1.19 | 2026-07-07 | product-owner | F-P7-007: `entry_index` semantics clarified as schema-level defense, not runtime dispatch gate. Event 5 `entry_index` semantics paragraph extended with schema-level-defense note (concurrent-same-`plugin_name` scenario has no production dispatch path; correctness verified by property/serialization tests). Event 6 `entry_index` semantics final sentence added mirroring schema-level defense. Invariant 6 schema-level predicate note added. Closes F-P7-007. |
