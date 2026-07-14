@@ -12,7 +12,9 @@
 //!      - MultiEdit → reconstruct: on-disk + sequential `edits[]` apply (AC-013)
 //!   3. Read the on-disk `.factory/STATE.md` via `host::read_file`.
 //!      On error (HostError or NotFound): return `Continue` (fail-open per §12.3 / AC-015).
-//!      Emit `state_md_approaching_cap` diagnostic warn if bytes_read > 200000 (Invariant 8).
+//!      Emit `state_md_approaching_cap` diagnostic warn if bytes_read > 200000
+//!      and bytes_read <= 262144 (STATE_MD_MAX_BYTES cap; reads exceeding the
+//!      cap fail before reaching this warn path; Invariant 8).
 //!      Call `factory_lock_parse::extract_frontmatter` on raw bytes before UTF-8 conversion
 //!      (Invariant 7 frontmatter-only mandate; BC-5.40.001 v1.2).
 //!   4. Extract `timestamp:` from both proposed content and the on-disk content.
