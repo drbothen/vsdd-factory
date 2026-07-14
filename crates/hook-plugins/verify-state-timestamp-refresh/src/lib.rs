@@ -4020,4 +4020,146 @@ mod tests {
             ),
         }
     }
+
+    // -----------------------------------------------------------------------
+    // F-P3-001 regression lock — Edit payload, delimiter-present fixture with
+    //   non-UTF-8 body bytes, old_string targets frontmatter field (phase:),
+    //   timestamp NOT advanced → MUST Block(TimestampStale)
+    //
+    // Traces: F-P3-001 / AC-012 / BC-5.40.001 PC4 / ADR-025 D12 §12.2
+    //
+    // Context: the F-P2-001 fix introduced a fallback in on_disk_reconstruction_base.
+    // When String::from_utf8(full on_disk_bytes) fails because body bytes are non-UTF-8
+    // (delimiter found, but \xFF\xFE body bytes after the closing ---), the
+    // reconstruction base falls back to on_disk_field_content.clone() (frontmatter
+    // only, with synthetic \n---\n re-attached per Invariant 7).
+    //
+    // Behavior under correct code: an Edit whose old_string targets a frontmatter
+    // field ("phase: test") IS present in the frontmatter-only fallback base →
+    // extract_edit_proposed reconstructs the proposed content → proposed has TS_OLD
+    // (timestamp not advanced) → stale → Block(TimestampStale).
+    //
+    // This test is a REGRESSION LOCK (TD-VSDD-059): the behavior is already correct.
+    // It exists to catch a value-regression in the fallback arm — e.g., if the arm
+    // were changed to return String::new() instead of on_disk_field_content.clone(),
+    // old_string would not be found → FailOpen → Continue (incorrect).
+    //
+    // Mutation check (TD-VSDD-059):
+    //   Temporarily changing the fallback arm (on_disk_reconstruction_base non-UTF-8
+    //   body path) from `on_disk_field_content.clone()` to `String::new()` causes
+    //   this test to FAIL with the Continue panic message below — confirming it is
+    //   load-bearing. The mutation must be fully reverted before committing.
+    // -----------------------------------------------------------------------
+
+    #[test]
+    fn test_edit_non_utf8_body_fallback_stale_timestamp_blocks() {
+        // Base fixture: valid UTF-8 frontmatter with TS_OLD, closing --- delimiter.
+        // state_md_no_lock(TS_OLD) produces:
+        //   "---\n...\ntimestamp: \"TS_OLD\"\nphase: test\n---\n\n# STATE\n"
+        // The frontmatter region contains "phase: test" (the Edit target).
+        let valid_portion = state_md_no_lock(TS_OLD);
+
+        // Confirm the fixture has the closing --- delimiter (ensures delimiter_found=true).
+        assert!(
+            valid_portion.contains("\n---\n"),
+            "F-P3-001 fixture must contain closing '\\n---\\n' delimiter (delimiter_found=true path)"
+        );
+        let old_str = "phase: test";
+        // Confirm old_string is in the frontmatter region (not just the body).
+        assert!(
+            valid_portion.contains(old_str),
+            "F-P3-001 fixture must contain old_string '{old_str}' in the frontmatter"
+        );
+
+        // Append non-UTF-8 body bytes after the valid content.
+        // \xFF\xFE are invalid UTF-8 start bytes — String::from_utf8(full bytes) fails.
+        // This triggers the fallback: on_disk_reconstruction_base = on_disk_field_content.clone()
+        // (frontmatter only). The frontmatter is valid UTF-8 so on_disk_field_content succeeds.
+        let mut on_disk_bytes = valid_portion.into_bytes();
+        on_disk_bytes.extend_from_slice(b"\xFF\xFE non-utf8-body-bytes-after-delimiter\n");
+
+        let warn_log = Arc::new(Mutex::new(Vec::new()));
+        let callbacks = make_callbacks_with_raw_bytes(on_disk_bytes, warn_log.clone());
+
+        // Edit payload: old_string targets a frontmatter field; timestamp NOT advanced.
+        // After fallback, on_disk_reconstruction_base = on_disk_field_content (frontmatter+---).
+        // "phase: test" IS found in the frontmatter-only base → reconstruction succeeds.
+        // Proposed content has TS_OLD → same as on_disk_ts → Block(TimestampStale).
+        let new_str = "phase: complete";
+        let payload = payload_edit(old_str, new_str);
+
+        let result = guard_logic(payload, callbacks);
+
+        let expected_msg = canonical_timestamp_stale_message();
+        match result {
+            HookResult::Block { reason } => {
+                assert_eq!(
+                    reason, expected_msg,
+                    "test_edit_non_utf8_body_fallback_stale_timestamp_blocks: \
+                     Block message must be FULL canonical TimestampStale string. \
+                     Expected: {expected_msg:?}. Got: {reason:?}"
+                );
+            }
+            HookResult::Continue => panic!(
+                "test_edit_non_utf8_body_fallback_stale_timestamp_blocks: \
+                 expected Block(TimestampStale) but got Continue. \
+                 F-P3-001 REGRESSION DETECTED: Edit with old_string='{}' targeting \
+                 frontmatter on a delimiter-present fixture whose body bytes are \
+                 non-UTF-8 (\\xFF\\xFE) must Block when timestamp is NOT advanced. \
+                 Root cause: on_disk_reconstruction_base fallback arm (triggered when \
+                 String::from_utf8 fails on non-UTF-8 body bytes) returned an empty or \
+                 wrong base — old_string not found → FailOpen → Continue (incorrect). \
+                 Fix: the fallback must return on_disk_field_content.clone() so that \
+                 frontmatter-targeted edits are reconstructable from the frontmatter-only \
+                 base (F-P2-001 fix / AC-012 / Invariant 7).",
+                old_str
+            ),
+            other => panic!(
+                "test_edit_non_utf8_body_fallback_stale_timestamp_blocks: \
+                 expected Block, got: {:?}",
+                other
+            ),
+        }
+    }
+
+    // -----------------------------------------------------------------------
+    // F-P3-001 companion — same non-UTF-8-body fixture, Edit advances timestamp
+    //   → MUST Continue (fallback base still enables valid timestamp advancement)
+    //
+    // Traces: F-P3-001 / AC-012 / AC-003 / BC-5.40.001 PC4 success path / PC6
+    //
+    // Proves the fallback reconstruction (on_disk_field_content.clone()) also
+    // permits valid advanced-timestamp edits: old_string targets the timestamp
+    // line in the frontmatter, which IS present in the frontmatter-only fallback
+    // base. After reconstruction the proposed content has TS_NEW → Continue.
+    // -----------------------------------------------------------------------
+
+    #[test]
+    fn test_edit_non_utf8_body_fallback_advanced_timestamp_continues() {
+        // Same fixture construction as the primary F-P3-001 test.
+        let mut on_disk_bytes = state_md_no_lock(TS_OLD).into_bytes();
+        on_disk_bytes.extend_from_slice(b"\xFF\xFE non-utf8-body-bytes-after-delimiter\n");
+
+        // Edit advances the timestamp: old_string = timestamp line in frontmatter.
+        // The frontmatter-only fallback base contains this line → reconstruction succeeds.
+        let old_str = format!("timestamp: \"{}\"", TS_OLD);
+        let new_str = format!("timestamp: \"{}\"", TS_NEW);
+
+        let warn_log = Arc::new(Mutex::new(Vec::new()));
+        let callbacks = make_callbacks_with_raw_bytes(on_disk_bytes, warn_log.clone());
+        let payload = payload_edit(&old_str, &new_str);
+
+        let result = guard_logic(payload, callbacks);
+
+        assert_eq!(
+            result,
+            HookResult::Continue,
+            "test_edit_non_utf8_body_fallback_advanced_timestamp_continues: \
+             Edit that advances timestamp on a delimiter-present non-UTF-8-body fixture \
+             must return Continue (F-P3-001 companion). Fallback base (frontmatter only) \
+             contains the old timestamp line → reconstruction succeeds → proposed has \
+             TS_NEW → different from on-disk TS_OLD → Continue \
+             (BC-5.40.001 PC4 success path / PC6)."
+        );
+    }
 }
