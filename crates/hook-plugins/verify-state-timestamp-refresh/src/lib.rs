@@ -717,27 +717,30 @@ where
     }
 
     // BC-5.40.001 Invariant 7 frontmatter-only mandate: extract the YAML
-    // frontmatter prefix before passing bytes to String::from_utf8. The guard
-    // MUST NOT parse file body content.
+    // frontmatter prefix before field extraction. The guard MUST NOT scan body
+    // content when extracting timestamp: or factory_lock: fields (Steps 5 + 7).
     //
     // extract_frontmatter returns bytes[0..delimiter_start_offset] when a
     // closing `\n---\n` or `\n---`-at-EOF delimiter is found, or the full
     // input when absent (VP-096 / AC-005 boundary purity). Calling .to_vec()
-    // releases the borrow on on_disk_bytes immediately, allowing it to be
-    // moved in the delimiter-absent branch below.
+    // releases the borrow on on_disk_bytes immediately.
     let frontmatter_owned: Vec<u8> =
         factory_lock_parse::extract_frontmatter(&on_disk_bytes).to_vec();
 
-    // When a closing delimiter was found (frontmatter_owned is strictly shorter
-    // than on_disk_bytes), the extracted bytes omit the delimiter itself. Append
-    // a synthetic `\n---\n` so extract_top_level_field can locate the boundary.
-    //
-    // When no delimiter was found (frontmatter_owned.len() == on_disk_bytes.len()),
-    // pass the original full content unchanged — extract_top_level_field returns
-    // Malformed (no closing delimiter) → fail-open Continue per AC-008 §12.3 row 1.
     let delimiter_found = frontmatter_owned.len() < on_disk_bytes.len();
 
-    let on_disk_content = if delimiter_found {
+    // on_disk_field_content: frontmatter-only string for field extraction (Steps 5 + 7).
+    //
+    // When delimiter found: frontmatter bytes + synthetic `\n---\n` so
+    // extract_top_level_field can locate the boundary. Non-UTF-8 frontmatter bytes
+    // → fail-open Continue. Body bytes need not be valid UTF-8 for field extraction
+    // (T-004: non-UTF-8 body bytes are excluded here; the frontmatter slice is
+    // guaranteed valid UTF-8 by the factory write discipline).
+    //
+    // When delimiter absent: frontmatter_owned is a full-content clone (extract_frontmatter
+    // returned the full slice when no delimiter was found). extract_top_level_field returns
+    // Malformed → fail-open Continue per AC-008 §12.3 row 1.
+    let on_disk_field_content = if delimiter_found {
         let mut parse_input = frontmatter_owned;
         parse_input.extend_from_slice(b"\n---\n");
         match String::from_utf8(parse_input) {
@@ -754,9 +757,9 @@ where
             }
         }
     } else {
-        // Delimiter absent: pass full bytes so extract_top_level_field returns
-        // Malformed → fail-open Continue per AC-008 §12.3 row 1.
-        match String::from_utf8(on_disk_bytes) {
+        // Delimiter absent: frontmatter_owned is the full-content clone.
+        // Pass it so extract_top_level_field returns Malformed → fail-open.
+        match String::from_utf8(frontmatter_owned) {
             Ok(s) => s,
             Err(_) => {
                 // Non-UTF-8 on-disk content (no delimiter) — fail-open.
@@ -769,6 +772,38 @@ where
                 return HookResult::Continue;
             }
         }
+    };
+
+    // on_disk_reconstruction_base: FULL on-disk content for Edit/MultiEdit reconstruction
+    // (Step 3 — AC-012/AC-013). The reconstruction base must be the complete file so
+    // that edits targeting body content (after the closing --- delimiter) are found.
+    //
+    // F-P2-001 fix: the prior code passed the frontmatter-only on_disk_field_content as
+    // the reconstruction base. Edits whose old_string targets body content were absent
+    // from the truncated base → ProposedContent::FailOpen → Continue (guard bypass).
+    // Restoring full-content reconstruction preserves pre-diff semantics.
+    //
+    // When delimiter found: attempt String::from_utf8 on the full on_disk_bytes.
+    //   - Succeeds (normal UTF-8 file): full content used for reconstruction.
+    //   - Fails (non-UTF-8 body, e.g., T-004 fixture with \xFF\xFE body bytes): fall back
+    //     to on_disk_field_content. An Edit/MultiEdit cannot match inside invalid-UTF-8
+    //     body bytes; extract_edit_proposed/extract_multiedit_proposed return FailOpen via
+    //     AC-014 (old_string absent from frontmatter-only base) → Continue (correct).
+    //
+    // When delimiter absent: on_disk_field_content already holds the full content (it was
+    // constructed from frontmatter_owned which was a full-content clone).
+    let on_disk_reconstruction_base: String = if delimiter_found {
+        match String::from_utf8(on_disk_bytes) {
+            Ok(s) => s,
+            Err(_) => {
+                // Non-UTF-8 body bytes: full-content conversion fails.
+                // Fall back to frontmatter-only base for reconstruction.
+                on_disk_field_content.clone()
+            }
+        }
+    } else {
+        // No delimiter: on_disk_field_content holds the full content already.
+        on_disk_field_content.clone()
     };
 
     // Step 3: Extract proposed content per tool type.
@@ -785,7 +820,7 @@ where
                 return HookResult::Continue;
             }
         },
-        "Edit" => match extract_edit_proposed(&payload, &on_disk_content) {
+        "Edit" => match extract_edit_proposed(&payload, &on_disk_reconstruction_base) {
             ProposedContent::Content(s) => s,
             ProposedContent::FailOpen => {
                 (callbacks.log_warn)(
@@ -797,7 +832,7 @@ where
                 return HookResult::Continue;
             }
         },
-        "MultiEdit" => match extract_multiedit_proposed(&payload, &on_disk_content) {
+        "MultiEdit" => match extract_multiedit_proposed(&payload, &on_disk_reconstruction_base) {
             ProposedContent::Content(s) => s,
             ProposedContent::FailOpen => {
                 (callbacks.log_warn)(
@@ -859,8 +894,8 @@ where
         };
     }
 
-    // Step 5: Extract timestamp: from on-disk content.
-    let on_disk_ts = match extract_top_level_field(&on_disk_content, "timestamp") {
+    // Step 5: Extract timestamp: from on-disk content (frontmatter-only per Invariant 7).
+    let on_disk_ts = match extract_top_level_field(&on_disk_field_content, "timestamp") {
         FieldResult::Found(v) => v,
         FieldResult::NotFound | FieldResult::Malformed => {
             // Absent or malformed on-disk timestamp — first write ever (AC-008 §12.3 row 5 / EC-004).
@@ -925,7 +960,7 @@ where
             }
 
             // expires_at present, non-whitespace — compare byte-for-byte with on-disk (AC-006).
-            let on_disk_subfields = extract_lock_subfields(&on_disk_content);
+            let on_disk_subfields = extract_lock_subfields(&on_disk_field_content);
             let on_disk_expires = on_disk_subfields
                 .as_ref()
                 .and_then(|sf| sf.expires_at.as_deref())
@@ -3810,17 +3845,11 @@ mod tests {
         // This substring exists in the FULL on_disk content (verified below) but
         // is absent from the truncated frontmatter-only content (which ends at
         // "phase: test\n---\n" without the "\n# STATE" body portion).
-        let old_str_owned = format!(
-            "timestamp: \"{}\"\nphase: test\n---\n\n# STATE",
-            TS_OLD
-        );
+        let old_str_owned = format!("timestamp: \"{}\"\nphase: test\n---\n\n# STATE", TS_OLD);
         let old_str = old_str_owned.as_str();
 
         // new_string: same region but with TS_NEW — advances timestamp, body intact.
-        let new_str_owned = format!(
-            "timestamp: \"{}\"\nphase: test\n---\n\n# STATE",
-            TS_NEW
-        );
+        let new_str_owned = format!("timestamp: \"{}\"\nphase: test\n---\n\n# STATE", TS_NEW);
         let new_str = new_str_owned.as_str();
 
         // Verify old_string IS present in the full on-disk content (post-fix base).
@@ -3940,7 +3969,11 @@ mod tests {
         // state_md_padded_with_timestamp_bytes builds:
         //   "---\n...\ntimestamp: \"TS_OLD\"\n...\n---\n\n# STATE\n" + padding lines.
         let fixture_bytes = state_md_padded_with_timestamp_bytes(TS_OLD, 70_000);
-        assert_eq!(fixture_bytes.len(), 70_000, "fixture must be exactly 70000 bytes");
+        assert_eq!(
+            fixture_bytes.len(),
+            70_000,
+            "fixture must be exactly 70000 bytes"
+        );
 
         let fixture_str = std::str::from_utf8(&fixture_bytes).expect("fixture is valid UTF-8");
         let body_target = "# STATE";
