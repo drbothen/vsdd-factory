@@ -184,6 +184,12 @@ fn run_binary(
         // Silence log-dir creation in the test's working directory by pointing
         // CLAUDE_PROJECT_DIR at the plugin_root tempdir.
         .env("CLAUDE_PROJECT_DIR", plugin_root)
+        // Redirect internal log writes to the test tempdir via Level A resolver
+        // (VSDD_LOG_DIR). This bypasses all git-based resolution (Level F) and
+        // prevents creation of .factory/logs/ in the workspace root, which would
+        // cause the CI "Mount factory artifacts" worktree step to fail with
+        // "fatal: '.factory' already exists".
+        .env("VSDD_LOG_DIR", plugin_root.join("logs"))
         .stdin(std::process::Stdio::piped())
         .stdout(std::process::Stdio::piped())
         .stderr(std::process::Stdio::piped())
