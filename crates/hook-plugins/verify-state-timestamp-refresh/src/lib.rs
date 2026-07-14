@@ -3578,12 +3578,12 @@ mod tests {
             let result = guard_logic(payload, callbacks);
             let warns = warn_log.lock().unwrap();
 
-            // Read must succeed at cap — no StateReadError warn.
-            let has_read_error = warns.iter().any(|w| w.contains("StateReadError"));
+            // Read must succeed at cap — no fail-open read-error warn.
+            let has_read_error = warns.iter().any(|w| w.contains("fail-open read-error"));
             assert!(
                 !has_read_error,
-                "T-007 D (AC-005): 262144-byte fixture must NOT produce StateReadError \
-                 (read must succeed at cap-exact boundary). Got: {:?}",
+                "T-007 D (AC-005): 262144-byte fixture must NOT produce fail-open read-error \
+                 warn (read must succeed at cap-exact boundary). Got: {:?}",
                 warns
             );
             // Guard must return Continue (advanced timestamp; no lock held).
