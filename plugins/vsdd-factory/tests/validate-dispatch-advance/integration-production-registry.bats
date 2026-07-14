@@ -50,24 +50,24 @@ _require_artifacts() {
 }
 
 # Extract the production path_allow for validate-dispatch-advance from hooks-registry.toml.
-# Also validates AC-19: confirms tool = "Edit|Write" (not "Write|Edit") and no file_pattern.
+# Also validates AC-19: confirms tool = "^(Edit|Write|MultiEdit)$" (not "Write|Edit") and no file_pattern.
 _write_production_registry() {
-  # AC-19 check 1: hook entry must exist with Edit|Write tool form
+  # AC-19 check 1: hook entry must exist with anchored tool form
   # After S-18.04b the registry has TWO entries for validate-dispatch-advance:
-  #   - Edit|Write: structural validation of STATE.md / INDEX.md (pre-ADR-029 behavior retained)
-  #   - Bash: chain detection via git_context (ADR-029 §Decision 1 new trigger)
-  # AC-19 validates the FIRST (Edit|Write) entry for the Q5 canonical form.
+  #   - ^(Edit|Write|MultiEdit)$: structural validation of STATE.md / INDEX.md (pre-ADR-029 behavior retained)
+  #   - ^Bash$: chain detection via git_context (ADR-029 §Decision 1 new trigger)
+  # AC-19 validates the FIRST (Edit|Write|MultiEdit) entry for the anchored canonical form (S-19.04).
   if ! grep -q 'name = "validate-dispatch-advance"' "$PRODUCTION_REGISTRY"; then
     echo "FAIL: validate-dispatch-advance entry not found in production registry at $PRODUCTION_REGISTRY" >&2
     return 1
   fi
 
-  # AC-19 check 2: first entry must have tool = "Edit|Write" (canonical form per Q5/Q6 — NOT "Write|Edit")
+  # AC-19 check 2: first entry must have tool = "^(Edit|Write|MultiEdit)$" (anchored canonical form per S-19.04)
   local tool_line
   tool_line=$(awk '/^name = "validate-dispatch-advance"$/{found=1} found && /^tool =/{print; exit}' "$PRODUCTION_REGISTRY")
-  if ! echo "$tool_line" | grep -q 'tool = "Edit|Write"'; then
+  if ! echo "$tool_line" | grep -qF 'tool = "^(Edit|Write|MultiEdit)$"'; then
     echo "FAIL: production registry first entry uses wrong tool form: $tool_line" >&2
-    echo "FAIL: must be tool = \"Edit|Write\" (canonical Q5 form for structural validation entry)" >&2
+    echo "FAIL: must be tool = \"^(Edit|Write|MultiEdit)$\" (anchored canonical form for structural validation entry)" >&2
     return 1
   fi
 
@@ -78,7 +78,7 @@ _write_production_registry() {
   fi
 
   # Extract path_allow from production registry for validate-dispatch-advance entry.
-  # Scope to the FIRST [[hooks]] entry with this name (Edit|Write — structural validation).
+  # Scope to the FIRST [[hooks]] entry with this name (^(Edit|Write|MultiEdit)$ — structural validation).
   # After S-18.04b the registry has two entries; extract only the first.
   local prod_path_allow
   prod_path_allow=$(awk '
@@ -106,7 +106,7 @@ schema_version = 2
 [[hooks]]
 name = "validate-dispatch-advance"
 event = "PostToolUse"
-tool = "Edit|Write"
+tool = "^(Edit|Write|MultiEdit)$"
 plugin = "hook-plugins/validate-dispatch-advance.wasm"
 timeout_ms = 5000
 on_error = "continue"

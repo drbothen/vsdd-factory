@@ -1,0 +1,19 @@
+# hooks-registry-fixture.toml
+# Fixture for S-19.04 AC-006 Rust tests (T-006..T-008).
+#
+# References ONLY hooks-only.wasm (not resolvers-only.wasm, not neither-registry.wasm).
+# Used to verify dual-registry orphan detection:
+#   - hooks-only.wasm     → non-orphan (in hooks-registry)
+#   - resolvers-only.wasm → non-orphan only when resolvers-registry is also checked (EC-003)
+#   - neither-registry.wasm → orphan (in neither registry)
+#
+# Story: S-19.04
+schema_version = 2
+
+[[hooks]]
+name = "hooks-only-hook"
+event = "PostToolUse"
+tool = "^(Edit|Write)$"
+plugin = "hook-plugins/hooks-only.wasm"
+timeout_ms = 5000
+on_error = "continue"

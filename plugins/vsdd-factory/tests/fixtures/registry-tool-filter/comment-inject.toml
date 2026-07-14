@@ -1,0 +1,5 @@
+[[hooks]]
+name = "comment-inject-hook"
+event = "PostToolUse"
+tool = "^Edit" # note "$"
+plugin = "hook-plugins/comment-inject-hook.wasm"

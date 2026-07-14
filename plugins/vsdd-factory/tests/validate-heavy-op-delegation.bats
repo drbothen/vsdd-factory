@@ -129,7 +129,7 @@ _require_artifacts() {
 # Write the canonical validate-heavy-op-delegation registry entry per AC-008.
 # async = false (no async variant for PreToolUse Bash gate per BC-4.15.001 PC1).
 # on_error = "continue" (fail-open; INV2 + PC-C).
-# tool = "Bash" (registry tool filter; PC-D).
+# tool = "^Bash$" (registry tool filter; PC-D).
 # [hooks.config] patterns = [...] (v1 default set; BC-4.15.001 PC1).
 _write_full_registry() {
   cat > "$WORK/hooks-registry.toml" <<'TOML'
@@ -138,7 +138,7 @@ schema_version = 2
 # validate-heavy-op-delegation: PreToolUse advisory gate (BC-4.15.001)
 # on_error = "continue" is mandatory — fail-open per BC-4.15.001 INV2 + PC-C.
 # async = false: gate evaluates before the Bash command executes (PreToolUse).
-# tool = "Bash": PC-D registry filter — non-Bash tool calls never dispatched.
+# tool = "^Bash$": PC-D registry filter — non-Bash tool calls never dispatched.
 
 [[hooks]]
 name = "validate-heavy-op-delegation"
@@ -727,7 +727,7 @@ TOML
 #   - name = "validate-heavy-op-delegation"
 #   - event = "PreToolUse"
 #   - plugin = "hook-plugins/validate-heavy-op-delegation.wasm"
-#   - tool = "Bash"
+#   - tool = "^Bash$"
 #   - on_error = "continue"
 #   - async = false
 #   - timeout_ms = 5000
@@ -773,7 +773,7 @@ TOML
     /^\[\[hooks\]\]/ && in_section && !/name = "validate-heavy-op-delegation"/ { in_section = 0 }
     in_section && /^event = "PreToolUse"/ { s++ }
     in_section && /^plugin = "hook-plugins\/validate-heavy-op-delegation\.wasm"/ { s++ }
-    in_section && /^tool = "Bash"/ { s++ }
+    in_section && /^tool = "\^Bash\$"/ { s++ }
     in_section && /^on_error = "continue"/ { s++ }
     in_section && /^async = false/ { s++ }
     in_section && /^timeout_ms = 5000/ { s++ }
@@ -787,7 +787,7 @@ TOML
     echo "Required fields:"
     echo "  1. event = \"PreToolUse\"              (BC-4.15.001 PC1)"
     echo "  2. plugin = \"hook-plugins/validate-heavy-op-delegation.wasm\"  (canonical native-WASM shape)"
-    echo "  3. tool = \"Bash\"                      (BC-4.15.001 PC-D registry filter)"
+    echo "  3. tool = \"^Bash$\"                    (BC-4.15.001 PC-D registry filter)"
     echo "  4. on_error = \"continue\"              (BC-4.15.001 PC-C fail-open MANDATORY)"
     echo "  5. async = false                       (sync PreToolUse gate)"
     echo "  6. timeout_ms = 5000                   (BC-4.15.001 PC1 / ADR-026 §Decision 8)"
