@@ -3618,4 +3618,373 @@ mod tests {
             );
         }
     }
+
+    // -----------------------------------------------------------------------
+    // F-P2-002 Red Gate tests: body-target Edit/MultiEdit reconstruction
+    //
+    // Finding F-P2-001 (HIGH): guard_logic passes frontmatter-only on_disk_content
+    // to extract_edit_proposed/extract_multiedit_proposed after extract_frontmatter
+    // truncation. An Edit/MultiEdit whose old_string targets BODY content (after the
+    // closing ---) is not found in the truncated base → ProposedContent::FailOpen →
+    // Continue, even with an unchanged/stale timestamp. Pre-fix behaviour (full-content
+    // base) was Block(TimestampStale).
+    //
+    // Finding F-P2-002: existing Edit/MultiEdit reconstruction tests all use frontmatter
+    // fields as old_string, so the suite never exercises the body-target path.
+    //
+    // The four tests below (plus a >64 KiB variant) close F-P2-002.
+    //
+    // RED GATE tests (FAIL against current HEAD, PASS after the S-19.08 fix):
+    //   test_edit_body_target_delimiter_present_stale_timestamp_blocks     (test 1)
+    //   test_multiedit_body_target_stale_timestamp_blocks                  (test 2)
+    //   test_edit_body_target_70kib_delimiter_present_stale_timestamp_blocks (large variant)
+    //
+    // GREEN tests (PASS against current HEAD and after fix):
+    //   test_edit_boundary_spanning_advanced_timestamp_continues           (test 3)
+    //   test_multiedit_mixed_frontmatter_body_edits_advanced_timestamp_continues (test 4)
+    // -----------------------------------------------------------------------
+
+    // -----------------------------------------------------------------------
+    // F-P2-002 test 1 — Edit payload, delimiter-present fixture,
+    //   old_string = body content, timestamp NOT advanced → MUST Block
+    //
+    // Traces: F-P2-001/F-P2-002 / AC-012 / BC-5.40.001 PC4
+    //
+    // Scenario:
+    //   - On-disk: state_md_no_lock(TS_OLD) — has closing --- delimiter and
+    //     "# STATE" body heading after it.
+    //   - Edit payload: old_string = "# STATE" (body content after closing ---),
+    //     new_string = body replacement. Timestamp NOT advanced.
+    //
+    // Root cause path (F-P2-001):
+    //   extract_frontmatter truncates on_disk_bytes to frontmatter-only + synthetic
+    //   \n---\n. "# STATE" is absent from the truncated on_disk_content.
+    //   extract_edit_proposed: old_string not found → FailOpen → Continue.
+    //
+    // Expected after fix: full on_disk_content (including body) used as base →
+    //   "# STATE" found → proposed reconstruction has TS_OLD (unchanged) →
+    //   Step 6 byte-identical timestamp → Block(TimestampStale).
+    //
+    // RED GATE: currently FAILS — guard returns Continue (incorrect FailOpen).
+    // -----------------------------------------------------------------------
+
+    #[test]
+    fn test_edit_body_target_delimiter_present_stale_timestamp_blocks() {
+        let on_disk = state_md_no_lock(TS_OLD);
+        let body_target = "# STATE";
+
+        // Confirm body content is in the full on-disk string (required for the fix to
+        // reconstruct correctly) but will be absent from the truncated frontmatter slice.
+        assert!(
+            on_disk.contains(body_target),
+            "test fixture (full content) must contain body target {body_target:?}; \
+             truncated frontmatter-only slice will NOT contain it (root of F-P2-001)"
+        );
+
+        // Edit targets body content only; timestamp NOT advanced in any way.
+        let old_str = body_target; // "# STATE" lives after the closing ---
+        let new_str = "# STATE\n\nBody text added by edit.";
+
+        let warn_log = Arc::new(Mutex::new(Vec::new()));
+        let callbacks = make_callbacks_with_disk(on_disk, warn_log.clone());
+        let payload = payload_edit(old_str, new_str);
+
+        let result = guard_logic(payload, callbacks);
+
+        let expected_msg = canonical_timestamp_stale_message();
+        match result {
+            HookResult::Block { reason } => {
+                assert_eq!(
+                    reason, expected_msg,
+                    "test_edit_body_target_delimiter_present_stale_timestamp_blocks: \
+                     Block message must be FULL canonical TimestampStale string. \
+                     Expected: {expected_msg:?}. Got: {reason:?}"
+                );
+            }
+            HookResult::Continue => panic!(
+                "test_edit_body_target_delimiter_present_stale_timestamp_blocks: \
+                 expected Block(TimestampStale) but got Continue. \
+                 F-P2-002 RED GATE: Edit payload with old_string = '# STATE' (body \
+                 content after closing ---) and unchanged/stale timestamp MUST Block. \
+                 Current defect (F-P2-001): guard_logic passes frontmatter-only \
+                 on_disk_content to extract_edit_proposed after extract_frontmatter \
+                 truncation. '# STATE' absent from truncated slice → FailOpen → \
+                 Continue (incorrect; should be Block(TimestampStale))."
+            ),
+            other => panic!(
+                "test_edit_body_target_delimiter_present_stale_timestamp_blocks: \
+                 expected Block, got: {:?}",
+                other
+            ),
+        }
+    }
+
+    // -----------------------------------------------------------------------
+    // F-P2-002 test 2 — MultiEdit payload, first edit targets body content,
+    //   timestamp NOT advanced → MUST Block
+    //
+    // Traces: F-P2-001/F-P2-002 / AC-013 / BC-5.40.001 PC4
+    //
+    // Same root cause as test 1 but exercises extract_multiedit_proposed.
+    // MultiEdit with a single edit whose old_string = "# STATE" (body content).
+    // Timestamp NOT advanced. Expected: Block(TimestampStale).
+    //
+    // RED GATE: currently FAILS — guard returns Continue (incorrect FailOpen).
+    // -----------------------------------------------------------------------
+
+    #[test]
+    fn test_multiedit_body_target_stale_timestamp_blocks() {
+        let on_disk = state_md_no_lock(TS_OLD);
+        let body_target = "# STATE";
+
+        assert!(
+            on_disk.contains(body_target),
+            "test fixture (full content) must contain body target {body_target:?}"
+        );
+
+        // Single edit targeting body content; timestamp NOT advanced.
+        let edit1_old = body_target;
+        let edit1_new = "# STATE\n\nBody text added by multiedit.";
+
+        let warn_log = Arc::new(Mutex::new(Vec::new()));
+        let callbacks = make_callbacks_with_disk(on_disk, warn_log.clone());
+        let payload = payload_multiedit(vec![(edit1_old, edit1_new)]);
+
+        let result = guard_logic(payload, callbacks);
+
+        let expected_msg = canonical_timestamp_stale_message();
+        match result {
+            HookResult::Block { reason } => {
+                assert_eq!(
+                    reason, expected_msg,
+                    "test_multiedit_body_target_stale_timestamp_blocks: \
+                     Block message must be FULL canonical TimestampStale string. \
+                     Expected: {expected_msg:?}. Got: {reason:?}"
+                );
+            }
+            HookResult::Continue => panic!(
+                "test_multiedit_body_target_stale_timestamp_blocks: \
+                 expected Block(TimestampStale) but got Continue. \
+                 F-P2-002 RED GATE: MultiEdit with first old_string = '# STATE' \
+                 (body content after closing ---) and unchanged/stale timestamp \
+                 MUST Block. Current defect (F-P2-001): extract_multiedit_proposed \
+                 receives frontmatter-only on_disk_content → '# STATE' absent → \
+                 FailOpen → Continue (incorrect; should be Block(TimestampStale))."
+            ),
+            other => panic!(
+                "test_multiedit_body_target_stale_timestamp_blocks: expected Block, got: {:?}",
+                other
+            ),
+        }
+    }
+
+    // -----------------------------------------------------------------------
+    // F-P2-002 test 3 — Edit payload, old_string spans frontmatter/body boundary,
+    //   new_string advances timestamp → MUST Continue
+    //
+    // Traces: F-P2-001/F-P2-002 / AC-012 / BC-5.40.001 PC4 success path / PC6
+    //
+    // Note on pure body-only positive path: a body-only Edit with an unchanged
+    // timestamp would always Block after the fix (body old_string found in full
+    // content → proposed has TS_OLD → Step 6 → Block(TimestampStale)). There is
+    // no meaningful pure-body-only Edit path that legitimately returns Continue
+    // without also advancing the timestamp.
+    //
+    // Nearest meaningful positive path (covers body-region reconstruction):
+    //   old_string spans the closing --- delimiter into the body heading, and
+    //   new_string advances the timestamp while preserving the body heading.
+    //   After the fix, full on_disk_content is used → boundary-spanning old_string
+    //   found → proposed has TS_NEW → Continue.
+    //
+    // Under current code (before fix): frontmatter-only on_disk_content used →
+    //   boundary-spanning old_string NOT found (body portion absent) → FailOpen →
+    //   Continue (same outcome, wrong path). Test is GREEN under both; no regression.
+    // -----------------------------------------------------------------------
+
+    #[test]
+    fn test_edit_boundary_spanning_advanced_timestamp_continues() {
+        let on_disk = state_md_no_lock(TS_OLD);
+
+        // Build old_string spanning the frontmatter/body boundary:
+        //   "timestamp: \"TS_OLD\"\nphase: test\n---\n\n# STATE"
+        // This substring exists in the FULL on_disk content (verified below) but
+        // is absent from the truncated frontmatter-only content (which ends at
+        // "phase: test\n---\n" without the "\n# STATE" body portion).
+        let old_str_owned = format!(
+            "timestamp: \"{}\"\nphase: test\n---\n\n# STATE",
+            TS_OLD
+        );
+        let old_str = old_str_owned.as_str();
+
+        // new_string: same region but with TS_NEW — advances timestamp, body intact.
+        let new_str_owned = format!(
+            "timestamp: \"{}\"\nphase: test\n---\n\n# STATE",
+            TS_NEW
+        );
+        let new_str = new_str_owned.as_str();
+
+        // Verify old_string IS present in the full on-disk content (post-fix base).
+        assert!(
+            on_disk.contains(old_str),
+            "test fixture (full content) must contain boundary-spanning old_string: \
+             {old_str:?}"
+        );
+
+        let warn_log = Arc::new(Mutex::new(Vec::new()));
+        let callbacks = make_callbacks_with_disk(on_disk, warn_log.clone());
+        let payload = payload_edit(old_str, new_str);
+
+        let result = guard_logic(payload, callbacks);
+
+        assert_eq!(
+            result,
+            HookResult::Continue,
+            "test_edit_boundary_spanning_advanced_timestamp_continues: \
+             Edit with old_string spanning the frontmatter/body boundary and new_string \
+             advancing the timestamp must return Continue (F-P2-002 positive path). \
+             After fix, full-content reconstruction finds the boundary-spanning \
+             old_string and applies the advancement (TS_OLD → TS_NEW) → Continue. \
+             Before fix, returns Continue via FailOpen (boundary portion absent from \
+             truncated content) — same outcome, wrong path; no regression either way."
+        );
+    }
+
+    // -----------------------------------------------------------------------
+    // F-P2-002 test 4 — MultiEdit: one frontmatter edit advancing timestamp +
+    //   one body edit → MUST Continue (regression guard)
+    //
+    // Traces: F-P2-001/F-P2-002 / AC-013 / BC-5.40.001 PC4 success path / PC6
+    //
+    // Regression guard: after the fix, agents can combine a timestamp advance with
+    // a body update in a single MultiEdit. The fix must NOT over-block this sequence.
+    //
+    // Under fixed code: full on_disk_content used for sequential reconstruction.
+    //   Edit 1: old_string "timestamp: \"TS_OLD\"" in frontmatter → TS_NEW applied.
+    //   Edit 2: old_string "# STATE" in body of intermediate content → body updated.
+    //   Final proposed content has TS_NEW → different from on-disk TS_OLD → Continue.
+    //
+    // Under current code (before fix): frontmatter-only on_disk_content used.
+    //   Edit 1: found in truncated content → TS_NEW applied to intermediate.
+    //   Edit 2: "# STATE" NOT in intermediate (body stripped) → FailOpen → Continue.
+    //   (Same Continue outcome, wrong path.) Test GREEN under both; ensures no
+    //   regression to Block on valid mixed-edit sequences after the fix.
+    // -----------------------------------------------------------------------
+
+    #[test]
+    fn test_multiedit_mixed_frontmatter_body_edits_advanced_timestamp_continues() {
+        let on_disk = state_md_no_lock(TS_OLD);
+
+        let ts_old_line = format!("timestamp: \"{}\"", TS_OLD);
+        let ts_new_line = format!("timestamp: \"{}\"", TS_NEW);
+        let body_old = "# STATE";
+        let body_new = "# STATE\n\nBody text added by mixed multiedit.";
+
+        assert!(
+            on_disk.contains(ts_old_line.as_str()),
+            "fixture must contain old timestamp line"
+        );
+        assert!(
+            on_disk.contains(body_old),
+            "fixture must contain body target"
+        );
+
+        let warn_log = Arc::new(Mutex::new(Vec::new()));
+        let callbacks = make_callbacks_with_disk(on_disk, warn_log.clone());
+        let payload = payload_multiedit(vec![
+            (ts_old_line.as_str(), ts_new_line.as_str()),
+            (body_old, body_new),
+        ]);
+
+        let result = guard_logic(payload, callbacks);
+
+        assert_eq!(
+            result,
+            HookResult::Continue,
+            "test_multiedit_mixed_frontmatter_body_edits_advanced_timestamp_continues: \
+             MultiEdit with one frontmatter edit advancing timestamp and one body edit \
+             must return Continue (F-P2-002 regression guard — fix must NOT over-block \
+             valid mixed edit sequences). Fixed code: full reconstruction, TS_NEW in \
+             proposed → Continue. Current code: FailOpen on body edit → Continue \
+             (same outcome, wrong path)."
+        );
+    }
+
+    // -----------------------------------------------------------------------
+    // F-P2-002 large-fixture variant — Edit, >64 KiB delimiter-present fixture,
+    //   old_string = body content, timestamp NOT advanced → MUST Block
+    //
+    // Traces: F-P2-001/F-P2-002 / AC-012 / BC-5.40.001 v1.2 Precondition 6 / PC4
+    //
+    // Same scenario as test 1 but with a 70000-byte (>64 KiB) fixture. Locks the
+    // F-P2-001/F-P2-002 fix against regression across the raised-cap range used by
+    // T-002/T-003 (BC-5.40.001 v1.2 Precondition 6, cap = 262144).
+    //
+    // RED GATE 1 (fails until Task 9): STATE_MD_MAX_BYTES must be >= 70000.
+    // RED GATE 2 (fails after Task 9 until F-P2-001 fix): body-targeting Edit still
+    //   returns Continue (truncation bug). Fails until the S-19.08 wiring fix.
+    // -----------------------------------------------------------------------
+
+    #[test]
+    fn test_edit_body_target_70kib_delimiter_present_stale_timestamp_blocks() {
+        // Red Gate 1: cap constant must be >= 70000.
+        // Fails until Task 9 raises STATE_MD_MAX_BYTES to 262144.
+        assert!(
+            STATE_MD_MAX_BYTES >= 70_000u32,
+            "test_edit_body_target_70kib_delimiter_present_stale_timestamp_blocks: \
+             STATE_MD_MAX_BYTES ({}) must be >= 70000. \
+             Raise to 262144 per BC-5.40.001 v1.2 Precondition 6 (Task 9).",
+            STATE_MD_MAX_BYTES
+        );
+
+        // 70 KiB fixture with TS_OLD in frontmatter; body includes "# STATE" heading.
+        // state_md_padded_with_timestamp_bytes builds:
+        //   "---\n...\ntimestamp: \"TS_OLD\"\n...\n---\n\n# STATE\n" + padding lines.
+        let fixture_bytes = state_md_padded_with_timestamp_bytes(TS_OLD, 70_000);
+        assert_eq!(fixture_bytes.len(), 70_000, "fixture must be exactly 70000 bytes");
+
+        let fixture_str = std::str::from_utf8(&fixture_bytes).expect("fixture is valid UTF-8");
+        let body_target = "# STATE";
+        assert!(
+            fixture_str.contains(body_target),
+            "70 KiB fixture must contain body content {body_target:?} (after closing ---)"
+        );
+
+        let warn_log = Arc::new(Mutex::new(Vec::new()));
+        let callbacks = make_callbacks_with_raw_bytes(fixture_bytes, warn_log.clone());
+
+        // Edit targets body content; timestamp NOT advanced.
+        let old_str = body_target; // "# STATE" is after the closing ---
+        let new_str = "# STATE\n\nBody text added by edit.";
+        let payload = payload_edit(old_str, new_str);
+
+        let result = guard_logic(payload, callbacks);
+
+        let expected_msg = canonical_timestamp_stale_message();
+        match result {
+            HookResult::Block { reason } => {
+                assert_eq!(
+                    reason, expected_msg,
+                    "test_edit_body_target_70kib_delimiter_present_stale_timestamp_blocks: \
+                     Block message must be FULL canonical TimestampStale string. \
+                     Expected: {expected_msg:?}. Got: {reason:?}"
+                );
+            }
+            HookResult::Continue => panic!(
+                "test_edit_body_target_70kib_delimiter_present_stale_timestamp_blocks: \
+                 expected Block(TimestampStale) but got Continue. \
+                 F-P2-002 RED GATE (large fixture): Edit with old_string = '# STATE' \
+                 (body content after closing ---) in a 70 KiB fixture and \
+                 unchanged/stale timestamp MUST Block. \
+                 Current defect (F-P2-001): extract_edit_proposed receives \
+                 frontmatter-only on_disk_content after extract_frontmatter truncation \
+                 → '# STATE' absent from truncated slice → FailOpen → Continue \
+                 (incorrect; should be Block(TimestampStale))."
+            ),
+            other => panic!(
+                "test_edit_body_target_70kib_delimiter_present_stale_timestamp_blocks: \
+                 expected Block, got: {:?}",
+                other
+            ),
+        }
+    }
 }
