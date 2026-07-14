@@ -1,7 +1,7 @@
 ---
 document_type: behavioral-contract
 level: L3
-version: "1.2"
+version: "1.3"
 status: active
 producer: product-owner
 timestamp: 2026-06-11T00:00:00Z
@@ -12,7 +12,7 @@ inputs:
   - .factory/specs/behavioral-contracts/ss-05/BC-5.39.009.md
   - .factory/specs/behavioral-contracts/BC-INDEX.md
   - plugins/vsdd-factory/skills/state-burst/SKILL.md
-input-hash: "688e195"
+input-hash: "9f45a8d"
 traces_to: .factory/specs/architecture/decisions/ADR-025-single-writer-factory-locklease-prevent-concurrent-session-races-on-factory-artifacts-orphan-branch.md
 origin: brownfield
 extracted_from: null
@@ -23,6 +23,7 @@ introduced: v1.0-brownfield-backfill
 modified:
   - "2026-06-11 (v1.1)"
   - "2026-07-13 (v1.2)"
+  - "2026-07-14 (v1.3)"
 deprecated: null
 deprecated_by: null
 replacement: null
@@ -31,7 +32,7 @@ removed: null
 removal_reason: null
 bc_id: BC-5.40.001
 section: "5.40"
-last_amended: "2026-07-13 (v1.2) — S-19.08 Spec-First amendment (human-authorized; D-826/D-835): Precondition 6 added (verify-state-timestamp-refresh read capability: max_bytes=262144 (256 KiB); frontmatter-only via factory_lock_parse::extract_frontmatter (crates/factory-lock-parse/; S-19.02 PR #610; reuse-not-duplicate); cap mirrors BC-4.13.001 Phase-A Precondition 3 + ADR-025 §Decision 12 §12.5 parity; fail-open on OutputTooLarge per ADR-025 Decision 7). Invariant 7 added: frontmatter-only mandate for verify-state-timestamp-refresh (extract_frontmatter exclusive; mirrors BC-4.13.001 Invariant 9). Invariant 8 added: soft-warn threshold adjudication — verify-state-timestamp-refresh reads STATE.md in full → BC-4.13.001 Invariant 10 scope confirmed → state_md_approaching_cap MUST emit at bytes_read > 200000 AND ≤ 262144 (boundary table parity with BC-4.13.001 Invariant 10). EC-010 added (STATE.md exceeds 262144 bytes: OutputTooLarge → guard fail-open). Verification Properties updated: unit-test rows T-001..T-007 added; VP-096 back-cited (extract_frontmatter reuse). Story Anchor updated: S-17.01 + S-19.08. Traceability Stories updated: S-17.01 + S-19.08. Architecture Anchors: crates/factory-lock-parse/ added. [Prior: 2026-06-11 (v1.1) — POL-14 auto-promotion: lifecycle_status draft→active on PR #181 squash-merge c64b46d2 (S-17.01 merged); status draft→active; D-544 codified. [Prior: 2026-06-10 (v1.0) — Initial authoring (product-owner; brownfield-backfill issue #170; ADR-025 v1.2 D3/D6 deliverables). factory_lock STATE.md frontmatter schema, TTL auto-expiry, mid-burst renewal, state-burst CAS push fix.]]"
+last_amended: "2026-07-14 (v1.3) — F-P1-002 resolution (product-owner; post-merge burst; S-19.08 PR #646 squash 1304d280 2026-07-14): VP Anchors pending-placeholder replaced with definitive statement — S-19.08 verification delivered via BC-anchored unit/integration tests T-001..T-007 (no VP-NNN IDs assigned; per-story unit tests follow (unit-test) row convention); VP-096 reused by transitivity. [Prior: 2026-07-13 (v1.2) — S-19.08 Spec-First amendment (human-authorized; D-826/D-835): Precondition 6 added (verify-state-timestamp-refresh read capability: max_bytes=262144 (256 KiB); frontmatter-only via factory_lock_parse::extract_frontmatter (crates/factory-lock-parse/; S-19.02 PR #610; reuse-not-duplicate); cap mirrors BC-4.13.001 Phase-A Precondition 3 + ADR-025 §Decision 12 §12.5 parity; fail-open on OutputTooLarge per ADR-025 Decision 7). Invariant 7 added: frontmatter-only mandate for verify-state-timestamp-refresh (extract_frontmatter exclusive; mirrors BC-4.13.001 Invariant 9). Invariant 8 added: soft-warn threshold adjudication — verify-state-timestamp-refresh reads STATE.md in full → BC-4.13.001 Invariant 10 scope confirmed → state_md_approaching_cap MUST emit at bytes_read > 200000 AND ≤ 262144 (boundary table parity with BC-4.13.001 Invariant 10). EC-010 added (STATE.md exceeds 262144 bytes: OutputTooLarge → guard fail-open). Verification Properties updated: unit-test rows T-001..T-007 added; VP-096 back-cited (extract_frontmatter reuse). Story Anchor updated: S-17.01 + S-19.08. Traceability Stories updated: S-17.01 + S-19.08. Architecture Anchors: crates/factory-lock-parse/ added. [Prior: 2026-06-11 (v1.1) — POL-14 auto-promotion: lifecycle_status draft→active on PR #181 squash-merge c64b46d2 (S-17.01 merged); status draft→active; D-544 codified. [Prior: 2026-06-10 (v1.0) — Initial authoring (product-owner; brownfield-backfill issue #170; ADR-025 v1.2 D3/D6 deliverables). factory_lock STATE.md frontmatter schema, TTL auto-expiry, mid-burst renewal, state-burst CAS push fix.]]]"
 ---
 
 # BC-5.40.001: STATE.md MUST carry a factory_lock frontmatter block (holder, locked_at, expires_at) as the authoritative lock state, state-manager MUST be its sole writer, TTL auto-expiry MUST be enforced at 45 minutes, state-manager MUST renew expires_at at each intermediate burst commit, and state-burst MUST use fetch-then-force-with-lease CAS push
@@ -347,12 +348,31 @@ Dual-story anchor: S-17.01 (initial implementation; `factory_lock` schema + stat
 ## VP Anchors
 
 - VP-096 — `extract_frontmatter` Purity — Output Byte-Equals File Prefix Up To (Excluding) the Second `---` Delimiter Line (bytes 0..delimiter_start_offset; opening `---\n` included); Deterministic for Any Input (proptest; S-19.02; `crates/factory-lock-parse/tests/proptest_extract_frontmatter.rs`); back-cited per Invariant 7 reuse obligation — `verify-state-timestamp-refresh` calls the same pure function; VP-096 covers its correctness by transitivity.
-- (S-19.08 unit-test VPs) — VP IDs for `STATE_MD_MAX_BYTES = 262144` assertion, 70 KiB fixture guard-operational, `state_md_approaching_cap` boundary tests, and integration zero-`output_too_large` test to be assigned by state-manager after S-19.08 VP authoring pass.
+- (S-19.08 unit/integration tests T-001..T-007) — S-19.08 verification is delivered via BC-anchored unit and integration tests following the `(unit-test)` / `(integration)` convention used throughout this BC. No VP-NNN IDs are assigned to per-story unit tests (established pattern; VP-096 is the load-bearing catalogued VP for the shared `extract_frontmatter` function, already active from S-19.02 and reused by Invariant 7 transitivity). Shipped test function names verified from commit 1304d280 (`origin/develop`, PR #646, 2026-07-14):
+
+  ```
+  # crates/hook-plugins/verify-state-timestamp-refresh/src/lib.rs
+  # grep -E "fn (test_BC_5_40_001_T[0-9]+)" src/lib.rs
+  fn test_BC_5_40_001_T001_state_md_max_bytes_is_262144()
+  fn test_BC_5_40_001_T002_70kib_fixture_stale_timestamp_blocks()
+  fn test_BC_5_40_001_T003_70kib_fixture_advanced_timestamp_continues()
+  fn test_BC_5_40_001_T004_extract_frontmatter_wired_body_bytes_excluded()
+  fn test_BC_5_40_001_T005_no_delimiter_full_content_fail_open()
+  fn test_BC_5_40_001_T007_state_md_approaching_cap_warn_boundary()
+
+  # crates/hook-plugins/verify-state-timestamp-refresh/tests/integration_t006_no_output_too_large.rs
+  # grep -E "^fn t006_" tests/integration_t006_no_output_too_large.rs
+  fn t006_zero_output_too_large_on_70kib_state_md()
+  fn t006_companion_advanced_timestamp_70kib_continues()
+  ```
+
+  T-001 covers `STATE_MD_MAX_BYTES = 262144` constant assertion (AC-001). T-002/T-003 cover 70 KiB fixture guard-operational (AC-002). T-004/T-005 cover `extract_frontmatter` wiring and no-delimiter fail-open (AC-003). T-006 is the integration cap-enforcement test for zero `output_too_large` on a 70 KiB file (AC-004). T-007 covers `state_md_approaching_cap` soft-warn boundary sub-tests A–E (AC-005). VP-096 (`extract_frontmatter` purity proptest) covers Invariant 7 by transitivity — the same pure function, same correctness guarantee.
 
 ## Changelog
 
 | Version | Date | Description |
 |---------|------|-------------|
+| 1.3 | 2026-07-14 | F-P1-002 resolution (product-owner; post-merge burst; S-19.08 merged PR #646 squash 1304d280 2026-07-14): VP Anchors pending-placeholder "to be assigned by state-manager after S-19.08 VP authoring pass" replaced with definitive statement — S-19.08 verification delivered via BC-anchored unit/integration tests T-001..T-007 following the `(unit-test)` / `(integration)` convention in the VP table; no new VP-NNN IDs assigned (per-story unit tests follow established `(unit-test)` row convention); VP-096 (`extract_frontmatter` proptest, active from S-19.02) reused by transitivity for Invariant 7. Shipped test function names cited from commit 1304d280 (`origin/develop`). Canonical Principle Rule 6 compliance: placeholder was answerable in scope. modified[] appended 2026-07-14 (v1.3). |
 | 1.2 | 2026-07-13 | S-19.08 Spec-First amendment (human-authorized; D-826/D-835): Precondition 6 added (`verify-state-timestamp-refresh` read capability: `max_bytes = 262144` (256 KiB); frontmatter-only via `factory_lock_parse::extract_frontmatter` (`crates/factory-lock-parse/`; S-19.02 PR #610; reuse-not-duplicate); cap rationale mirrors BC-4.13.001 Phase-A Precondition 3 + ADR-025 §Decision 12 §12.5 parity; fail-open on `OutputTooLarge` per ADR-025 Decision 7). Invariant 7 added: frontmatter-only mandate for `verify-state-timestamp-refresh` (`extract_frontmatter` exclusive; mirrors BC-4.13.001 Invariant 9). Invariant 8 added: soft-warn threshold adjudication — `verify-state-timestamp-refresh` reads STATE.md in full → Invariant 10 scope confirmed → `state_md_approaching_cap` MUST emit at `bytes_read > 200000 AND ≤ 262144` (boundary table parity with BC-4.13.001 Invariant 10). EC-010 added (STATE.md exceeds 262144 bytes: `OutputTooLarge` → guard fail-open). Verification Properties updated: unit-test rows T-001..T-007 added; VP-096 back-cited (extract_frontmatter reuse). Story Anchor updated: S-17.01 + S-19.08. Traceability Stories updated: S-17.01 + S-19.08. modified[] appended 2026-07-13 (v1.2). |
 | 1.1 | 2026-06-11 | POL-14 auto-promotion (state-manager; D-544; PR #181 squash-merged c64b46d2 2026-06-11; S-17.01 MERGED; status draft→active; lifecycle_status draft→active; modified[] appended 2026-06-11 (v1.1)). No BC content changes. BC-INDEX v2.66→v2.67 (body row draft→active). |
 | 1.0 | 2026-06-10 | Initial authoring (product-owner; brownfield-backfill issue #170; ADR-025 v1.2 D3/D6 deliverables). factory_lock STATE.md schema (holder, locked_at, expires_at); TTL=45min; mid-burst renewal; state-burst CAS push fix; fail-open on malformed; sole-writer invariant. PC1 (schema correctness), PC2 (unlock clears block), PC3 (TTL expiry guard), PC4 (mid-burst renewal), PC5 (CAS push), PC6 (single-dev zero friction). 4 error variants: SchemaViolation, StaleNullBlock, RenewalMissed, CASPushRejected. 9 edge cases EC-001..EC-009. CAP-031 registered same burst. lifecycle_status: draft (POL-14 auto-promotion pending). |
