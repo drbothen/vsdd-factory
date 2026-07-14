@@ -19978,3 +19978,103 @@ $ grep -c "^### F-P" .factory/cycles/v1.0-brownfield-backfill/s-19.05-local-adve
 - D-839 main burst: `2c6a815b`
 - D-838 SHA-patch: `a6b360e5` (parent-commit)
 - D-838 main burst: `42a4cf33`
+
+---
+
+## D-840 — SESSION-WRAP-PAUSED (2026-07-14)
+
+### Block 1 — Parent-commit
+
+`e5f5df66` (D-839 SHA-patch commit 2026-07-14)
+
+### Block 2 — Adversary verdict
+
+N/A — session-wrap burst. No adversary cascade dispatched. Pipeline PAUSED per human /wrap directive 2026-07-14. W2 both stories CONVERGED (S-19.04 pass-16 CLEAN 3/3; S-19.05 pass-17 CLEAN 3/3); PRs #639/#640 at human merge-gate.
+
+### Block 3 — Files touched
+
+**factory-artifacts changes:**
+- `STATE.md` — version 5.86→5.87; timestamp 2026-07-13T23:45:00Z→2026-07-14T00:30:00Z; phase D-839-W2-CONVERGENCE→D-840-SESSION-WRAP-PAUSED; pipeline ACTIVE→PAUSED; current_step D-840 full content; pipeline state field D-840 PAUSED PR details; last_amended D-840 prepended; size budget D-840 line; Last Updated 2026-07-14 D-840; Current Phase D-840 PAUSED; Current Phase Steps archived D-826..D-835 (see decision-log.md for full range) + D-840 row; Active Branches factory-artifacts TBD (SHA-patch pending); Concurrent Cycles v1.0-brownfield-backfill D-840 PAUSED; Decisions Log D-607..D-840; D-840 row prepended; Session Resume Checkpoint FULL REPLACEMENT (D-839→D-840 PAUSED, including stale blockquote removal).
+- `cycles/v1.0-brownfield-backfill/session-checkpoints.md` — D-839 checkpoint archive entry appended (input-hash updated b76bd23).
+- `cycles/v1.0-brownfield-backfill/decision-log.md` — D-840 entry appended (## D-840 block; lines 10401+).
+- `cycles/v1.0-brownfield-backfill/burst-log.md` — D-840 8-block entry appended (this entry).
+
+**W1 session artifacts committed (previously untracked/modified):**
+- `code-delivery/S-19.01/pr-description.md` (new untracked; 2338 bytes)
+- `code-delivery/S-19.01/security-review.md` (new untracked; 571 bytes)
+- `code-delivery/S-19.02/pr-description.md` (new untracked; 1686 bytes)
+- `code-delivery/S-19.02/security-review.md` (new untracked; 334 bytes)
+- `code-delivery/S-19.03/pr-description.md` (new untracked; 1686 bytes)
+- `code-delivery/S-19.03/security-review.md` (new untracked; 334 bytes)
+- `sidecar-learning.md` (modified)
+- `regression-state.json` (modified)
+
+**Not committed (operational telemetry — no prior commit convention):**
+- `logs/dispatcher-internal-2026-07-14.jsonl`
+- `logs/events-2026-07-14.jsonl`
+
+### Block 4 — Codifications
+
+D-840 decision-log entry appended to `cycles/v1.0-brownfield-backfill/decision-log.md`: SESSION-WRAP-PAUSED; POLICY 16 GLOBAL-MAX GATE (`## D-839` confirmed line 10358 → D-840 allocated); PIPELINE PAUSED human /wrap directive 2026-07-14; W1 artifacts committed (8 files); PR status S-19.04 PR #639 + S-19.05 PR #640; 4-index ALL UNCHANGED; Session Resume Checkpoint replaced.
+
+### Block 5 — Dim-2 (D-449(a) literal-shell gate evidence)
+
+**Gate 1 — POLICY 16 GLOBAL-MAX GATE:**
+```
+$ grep -n "^## D-" .factory/cycles/v1.0-brownfield-backfill/decision-log.md | tail -1
+10404:## D-840
+```
+D-840 confirmed as new max. PASS.
+
+**Gate 2 — 4-INDEX PARITY (D-449(a) literal-shell):**
+```
+$ grep "^version:" .factory/specs/behavioral-contracts/BC-INDEX.md .factory/specs/verification-properties/VP-INDEX.md .factory/stories/STORY-INDEX.md .factory/specs/architecture/ARCH-INDEX.md
+.factory/specs/architecture/ARCH-INDEX.md:version: "3.01"
+.factory/specs/verification-properties/VP-INDEX.md:version: "2.68"
+.factory/stories/STORY-INDEX.md:version: "4.186"
+.factory/specs/behavioral-contracts/BC-INDEX.md:version: "4.03"
+```
+BC v4.03 / VP v2.68 / STORY v4.186 / ARCH v3.01. ALL UNCHANGED from D-839. PASS.
+
+**Gate 3 — DIRTY FILES INVENTORY (literal-shell):**
+```
+$ git -C .factory status --porcelain
+ M STATE.md
+ M cycles/v1.0-brownfield-backfill/decision-log.md
+ M cycles/v1.0-brownfield-backfill/session-checkpoints.md
+ M regression-state.json
+ M sidecar-learning.md
+?? code-delivery/S-19.01/pr-description.md
+?? code-delivery/S-19.01/security-review.md
+?? code-delivery/S-19.02/pr-description.md
+?? code-delivery/S-19.02/security-review.md
+?? code-delivery/S-19.03/pr-description.md
+?? code-delivery/S-19.03/security-review.md
+?? logs/dispatcher-internal-2026-07-14.jsonl
+?? logs/events-2026-07-14.jsonl
+```
+All expected dirty files present. burst-log.md additionally staged before commit. logs/* LEAVE UNCOMMITTED (operational telemetry). PASS.
+
+### Block 6 — Dim-5 attestation
+
+This burst IS a state-manager burst. All changes are factory-artifacts only. No source code (`crates/`, `plugins/vsdd-factory/`) was modified. No spec content was authored (no new BCs, no new VPs, no new ADRs, no new architecture docs). STATE.md update, session-checkpoints.md archive, decision-log.md D-840 codification, and burst-log.md entry are within state-manager domain. W1 code-delivery artifacts (pr-description.md, security-review.md x3 stories) are read-only delivery artifacts produced by other specialists being committed to factory-artifacts as part of session-wrap artifact backup per standard obligation.
+
+### Block 7 — Dim-6 literal-shell finding count
+
+Session-wrap burst — no adversary cascade dispatched. Finding count: 0.
+
+```
+$ ls .factory/cycles/v1.0-brownfield-backfill/s-19.0*-local-adversary-pass-1*.md | tail -2
+.factory/cycles/v1.0-brownfield-backfill/s-19.04-local-adversary-pass-16.md
+.factory/cycles/v1.0-brownfield-backfill/s-19.05-local-adversary-pass-17.md
+```
+Latest adversary files remain D-839 passes. No new adversary file for D-840. Finding count: 0.
+
+### Block 8 — Closes + factory-artifacts commits
+
+**Closes:** None. Session-wrap burst — no adversary findings to close.
+
+**factory-artifacts commits:**
+- D-840 main burst: `TBD` (SHA-patch pending)
+- D-839 SHA-patch: `e5f5df66` (parent-commit)
+- D-839 main burst: `2c6a815b`

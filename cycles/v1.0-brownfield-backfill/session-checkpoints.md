@@ -7,7 +7,7 @@ producer: state-manager
 timestamp: 2026-04-26T12:00:00Z
 cycle: v1.0-brownfield-backfill
 inputs: [STATE.md]
-input-hash: "f528d6b"
+input-hash: "b76bd23"
 traces_to: STATE.md
 ---
 
@@ -933,3 +933,15 @@ Summary of D-812 checkpoint (archived reference):
 - 4-index: BC v3.95 / VP v2.62 / STORY v4.176 / ARCH v3.00. L2-INDEX v1.0.14. total_bcs 1,977.
 - develop HEAD: `f5242bef` / main HEAD: `a04cb303` / factory-artifacts HEAD: `72c31007` (D-812 SHA-patch) / merged_count 98
 - D-range: D-001..D-812
+
+---
+
+## D-839 Checkpoint (archived 2026-07-14 by D-840 session wrap — SESSION-WRAP-PAUSED)
+
+**Superseded by D-840 SESSION-WRAP-PAUSED checkpoint (STATE.md §Session Resume Checkpoint).**
+
+Summary of D-839 checkpoint (archived reference):
+- D-839 (2026-07-13): W2-CONVERGENCE burst COMPLETE — both W2 stories CONVERGED and PR READY. S-19.04 CONVERGED pass-16 3-CLEAN (passes 14+15+16); story v1.21; implementer HEAD 0a7af81d; PR READY. S-19.05 CONVERGED pass-17 3-CLEAN (passes 15+16+17); story v1.22; implementer HEAD 405a871f; PR READY. BC-3.08.001 v1.21→v1.23 (v1.22: F-P13-001 stale count phrases + §Traceability ADR row; v1.23: POL-14 status+lifecycle draft→active missed S-15.01 PR-106 453eee1). BC-INDEX v4.02→v4.03. STORY-INDEX v4.185→v4.186 (S-19.04 v1.21 draft→ready; S-19.05 v1.22 draft→ready; E-19 v1.29). 4 lessons appended. sprint-state.yaml T-12+T-14 fixed 14/14 bats PASS. NEXT (at time of D-839): pr-manager 9-step lifecycle for S-19.04 then S-19.05.
+- 4-index: BC v4.03 / VP v2.68 / STORY v4.186 / ARCH v3.01. L2-INDEX v1.0.15. total_bcs 1,977.
+- develop HEAD: `091ce499` (origin) / main HEAD: `a04cb303` / factory-artifacts HEAD: `e5f5df66` (D-839 SHA-patch) / merged_count 101
+- D-range: D-001..D-839 (see decision-log.md for full range)
