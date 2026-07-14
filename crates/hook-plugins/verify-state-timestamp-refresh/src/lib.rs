@@ -3451,6 +3451,24 @@ mod tests {
     //   D: 262144 bytes exactly → warn emitted AND read succeeds (cap-exact inclusive).
     //   E: 262145 bytes (cap-enforcement) → Continue (fail-open) AND zero warn.
     //
+    // Mock strategy per sub-test (TD-VSDD-060 same-form sweep / F-P7-001 fix):
+    //   A/B/C: cap-ignoring mock (make_callbacks_with_raw_bytes) — cap is NOT load-bearing.
+    //          Fixture sizes 210000 / 150000 / 200000 are all strictly less than 262144.
+    //          The Err branch (fixture_len > max_bytes) is unreachable regardless of
+    //          comparator, so cap-enforcement adds no falsifiability here. The assertions
+    //          test warn-threshold semantics (>200000 strict / <=200000 silent), which are
+    //          fully exercised by the cap-ignoring mock. ADJUDICATED: cap-ignoring mock is
+    //          correct and sufficient for A/B/C.
+    //   D:     cap-enforcement mock (GuardCallbacks inline, production comparator len as u32 >
+    //          max_bytes). At 262144-exact with max_bytes=262144: 262144 > 262144 = false →
+    //          Ok (read succeeds, warn fires, guard runs to expected verdict). Falsifiable: a
+    //          >= comparator regression → 262144 >= 262144 = true → Err → fail-open read-error
+    //          warn fires → the !has_read_error assertion fires. Previously, make_callbacks_with_raw_bytes
+    //          ignored max_bytes entirely, making that assertion structurally incapable of failing
+    //          under any production regression (F-P7-001).
+    //   E:     cap-enforcement mock — same pattern as D; fixture_len=262145 > max_bytes=262144 →
+    //          Err → Continue (fail-open). E was already correct before this fix.
+    //
     // RED GATE: assert_eq!(STATE_MD_MAX_BYTES, 262144u32) fails with current 65536.
     // After Task 9 (cap raise), sub-tests A and D additionally fail until Task 11
     // (soft-warn emission implemented). Sub-tests B/C pass tautologically after
@@ -3564,6 +3582,12 @@ mod tests {
         // ---- Sub-test D: 262144 bytes exactly → warn AND read succeeds ----
         // bytes_read = 262144 = cap → inclusive upper bound: warn MUST fire AND read succeeds.
         // RED (after Task 9): warn not yet emitted → fails until Task 11.
+        //
+        // Cap-enforcement mock (F-P7-001 fix): read_file compares fixture.len() as u32 > max_bytes
+        // using the byte-identical production comparator. At cap-exact (262144 == 262144) the
+        // read succeeds → warn fires → guard completes with expected verdict. A >= regression
+        // in the mock (mirroring a production regression) yields Err → fail-open warn fires →
+        // the !has_read_error assertion fires, making the boundary provably falsifiable.
         {
             let fixture = state_md_padded_with_timestamp_bytes(TS_OLD, 262_144);
             assert_eq!(
@@ -3572,7 +3596,26 @@ mod tests {
                 "T-007 D: fixture must be exactly 262144 bytes"
             );
             let warn_log = Arc::new(Mutex::new(Vec::new()));
-            let callbacks = make_callbacks_with_raw_bytes(fixture, warn_log.clone());
+            let wl = warn_log.clone();
+            // Cap-enforcement mock: mirrors real host::read_file OutputTooLarge behaviour.
+            // Uses production comparator (>) — 262144 > 262144 = false → Ok at cap-exact.
+            let callbacks = GuardCallbacks {
+                read_file: move |_path, max_bytes, _timeout| {
+                    if fixture.len() as u32 > max_bytes {
+                        Err(format!(
+                            "OutputTooLarge: fixture_len={} > max_bytes={}",
+                            fixture.len(),
+                            max_bytes
+                        ))
+                    } else {
+                        Ok(fixture)
+                    }
+                },
+                log_warn: move |msg: &str| {
+                    wl.lock().unwrap().push(msg.to_string());
+                },
+                write_stderr: |_msg| {},
+            };
             let proposed_advanced = state_md_no_lock(TS_NEW);
             let payload = payload_write(&proposed_advanced);
             let result = guard_logic(payload, callbacks);
