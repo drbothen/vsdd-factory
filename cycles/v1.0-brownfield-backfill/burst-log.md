@@ -19975,6 +19975,6 @@ $ grep -c "^### F-P" .factory/cycles/v1.0-brownfield-backfill/s-19.05-local-adve
 - F-P14-001 (S-19.05 pass-14): volatile BC-pin drift CLOSED story v1.21 stable §-anchors.
 
 **factory-artifacts commits:**
-- D-839 main burst: `TBD` (SHA-patch pending)
+- D-839 main burst: `2c6a815b`
 - D-838 SHA-patch: `a6b360e5` (parent-commit)
 - D-838 main burst: `42a4cf33`
