@@ -6809,4 +6809,40 @@ Both gates are mandatory standing Commit-E controls for any burst touching E-19 
 
 **Cites:** D-839 (codified this burst); POL-14; BC-3.08.001 v1.23; S-15.01; S-15.03 PRIORITY-A.
 
+---
+
+### L-BB-remediation-sweeps-must-cover-the-entire-crate-for-the-finding-class [process-gap] [codified]
+
+**Title:** Remediation Dispatch Instructions Must Scope Dead-Pattern Sweeps to the Entire Target Crate, Not a Single File
+
+**Lesson:** When F-P5-001 (S-19.08 pass-5) discovered a dead string literal — a residual `STATE_MD_MAX_BYTES` comment string surviving a constant rename in `src/lib.rs` — the orchestrator's fix-burst dispatch instruction scoped the sweep to that one file. F-P6-001 (pass-6) then found the byte-identical dead filter in a unit-test assertion in the `tests/` subdirectory of the same crate. This is a TD-VSDD-060 sibling-site miss: TD-VSDD-060 explicitly applies to test assertions (assert_eq!, assert!, grep-pattern strings in test fixtures) as well as production code. The sibling was not in a different crate or a different module of `lib.rs` — it was in the same crate's `tests/` directory, the first place a crate-scope sweep would have found it.
+
+**Root cause:** The orchestrator's remediation dispatch instruction for dead-literal/dead-string finding classes specified a single-file scope (`src/lib.rs`). The implementer applied the TD-VSDD-060 sweep within the named file only and did not extend it to `tests/` subdirectory files in the same crate. The orchestrator's dispatch instruction template did not include "all files in the target crate" as the required sweep scope for dead-pattern finding classes.
+
+**Prevention:** (1) Orchestrator fix-burst dispatch instructions for dead-literal, dead-string, or removed-constant finding classes MUST specify sweep scope as "all files in the target crate" — covering `src/`, `tests/`, `benches/`, and `examples/` subdirectories. (2) TD-VSDD-060 sibling sweep applies to test assertions as well as production code; the implementer self-check command is `grep -r "<old_identifier>" crates/<target>/` (not just `crates/<target>/src/`). (3) Adversary should explicitly verify the sweep scope when reviewing fix-bursts for dead-pattern classes: if the fix-burst report only mentions `src/` files, the adversary must independently check `tests/`.
+
+**Anchors:** S-19.08 cascade passes 5-7 (F-P5-001 dead-string in `src/lib.rs` → F-P6-001 sibling miss in `tests/` → F-P7-001 dead-harness three-finding escalation; TD-VSDD-060 applied to test assertions); S-19.08 pass-6 adversary.
+
+**Cites:** TD-VSDD-060 (sibling-site sweep); S-19.08 F-P5-001 (original dead-string find); S-19.08 F-P6-001 (sibling miss in test assertions); S-19.08 convergence burst (2026-07-14).
+
+**Closes:** S-19.08 convergence burst (2026-07-14). `[process-gap; TD-VSDD-060; dead-string; sibling-sweep; test-assertions; remediation-dispatch; orchestrator; crate-scope; codified]`
+
+---
+
+### L-BB-assertion-liveness-is-judged-against-the-harness [process-gap] [codified]
+
+**Title:** An Assertion Is Live Only If Its Harness Can Produce the Failing Condition; Cap-Enforcing Boundary Tests Require Cap-Enforcing Mocks
+
+**Lesson:** The three-finding escalation at S-19.08 (F-P5 dead-string → F-P6 sibling-miss → F-P7 dead-harness) illustrates a property of test liveness: an assertion that can never fail under the test harness is functionally dead regardless of what it appears to assert. The T-007-E sub-test (262145-byte fixture → `StateReadError` + zero `state_md_approaching_cap` warn) initially used a mock whose `OutputTooLarge` return was not conditioned on the production `READ_BOUNDED_CAP_BYTES` constant. The mock fired for inputs above a hardcoded threshold that did not match the cap constant. If a future regression raised `READ_BOUNDED_CAP_BYTES` above 262145, T-007-E would still pass — the harness could not detect the change. The assertion was live in the text but dead in the harness.
+
+**Root cause:** The test-writer's fix for F-P7-001 replaced the assertion text but did not update the mock semantics. The mock's comparator was a static condition, not `raw_len > READ_BOUNDED_CAP_BYTES`. TD-VSDD-059 (mutation-check evidence required at remediation) was not applied at the fix-burst stage: no mutation reasoning was provided to show the test would fail if the cap were regressed.
+
+**Prevention:** (1) Boundary tests where cap semantics are load-bearing (e.g., "above-cap → X; at-cap → Y") MUST use cap-enforcing mocks: the mock comparator must reference the same production constant and apply the identical comparison. A static stub is not sufficient for boundary coverage. (2) TD-VSDD-059 mutation-check evidence is REQUIRED at remediation for any dead-harness finding class: the fix-burst report must show (or reason through) the scenario where the test would fail if the corrected condition were regressed. (3) Adversary reviewing a cap/boundary fix-burst must explicitly ask: "if the cap constant were changed, would this test still pass?" If the answer is yes, the harness is still dead.
+
+**Anchors:** S-19.08 cascade passes 5-8 (F-P5-001 dead-string → F-P6-001 sibling-miss → F-P7-001 dead-harness → pass-8 first clean; three-finding escalation); T-007-E boundary sub-test (262145-byte fixture); S-19.08 pass-8 fix burst (cap-enforcing mock implemented).
+
+**Cites:** TD-VSDD-059 (mutation-check evidence at remediation); S-19.08 F-P7-001 (dead-harness: mock not conditioned on cap constant); S-19.08 passes 5+6+7 (three-finding escalation class); S-19.08 pass-8 fix burst (cap-enforcing mock); S-19.08 convergence burst (2026-07-14).
+
+**Closes:** S-19.08 convergence burst (2026-07-14). `[process-gap; TD-VSDD-059; assertion-liveness; cap-enforcing-mock; boundary-test; dead-harness; test-writer; adversary-checklist; mutation-check; codified]`
+
 **Closes:** D-839. `[drift-pattern; POL-14; status-lifecycle-mismatch; auto-promotion; state-manager-checklist; BC-frontmatter; systematic-audit; S-15.03]`
