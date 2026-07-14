@@ -125,17 +125,27 @@ fn run_with_stale_fixture_cap_enforcement(fixture_size: usize) -> (HookResult, V
     (result, warns)
 }
 
-/// T-006 (AC-004): 70 KiB fixture produces zero `output_too_large` denials.
+/// T-006 (AC-004): 70 KiB fixture produces zero fail-open read-error warns and
+/// results in `Block(TimestampStale)` — the operational proxy for AC-004.
 ///
-/// Red Gate: with `STATE_MD_MAX_BYTES = 65536`, the cap-enforcement mock returns
-/// `Err("OutputTooLarge…")` for a 70000-byte fixture → guard returns Continue
-/// (fail-open read-error) → test asserts `Block` → FAILS.
+/// # AC-004 observability in this harness
 ///
-/// Green: with `STATE_MD_MAX_BYTES = 262144`, mock returns `Ok(fixture)` →
-/// guard processes stale timestamp → `Block(TimestampStale)`.
+/// AC-004's host-level `internal.capability_denied reason=output_too_large` event
+/// is emitted by the host's `read_file.rs` TooLarge arm, not by this guard.  That
+/// event is unobservable in this mocked Rust harness; real-event capture requires a
+/// dispatcher-level run with `VSDD_SINK_FILE`.
 ///
-/// The primary Red Gate is the `assert!(STATE_MD_MAX_BYTES >= 70_000u32)`
-/// pre-condition, which fails until Task 9 raises the cap.
+/// The operational proxy used here: `Block(TimestampStale)` at 70 000 bytes PLUS
+/// zero `"fail-open read-error"` warns.  When the cap is too low the mock returns
+/// `Err("OutputTooLarge…")` → guard calls
+/// `log_warn("verify-state-timestamp-refresh: fail-open read-error (STATE.md unreadable)")`
+/// and returns `Continue`.  The two-part assertion is therefore live:
+///
+/// - **Red Gate** (`STATE_MD_MAX_BYTES = 65536`): mock → `Err` → guard emits
+///   `"fail-open read-error"` warn → `fail_open_warns` non-empty → assertion FAILS.
+///   The `assert!(STATE_MD_MAX_BYTES >= 70_000u32)` pre-condition also fails.
+/// - **Green** (`STATE_MD_MAX_BYTES = 262144`): mock → `Ok(fixture)` → guard
+///   processes the stale timestamp → `Block(TimestampStale)`, zero fail-open warns.
 #[test]
 fn t006_zero_output_too_large_on_70kib_state_md() {
     // Pre-condition: cap must be at least 70 KiB for this test to exercise the
@@ -150,24 +160,28 @@ fn t006_zero_output_too_large_on_70kib_state_md() {
     let fixture_size: usize = 70_000;
     let (result, warns) = run_with_stale_fixture_cap_enforcement(fixture_size);
 
-    // Assert zero output_too_large / StateReadError in captured warn stream.
-    // These events indicate the guard was denied access to the file due to the cap.
-    let too_large_warns: Vec<_> = warns
+    // Assert zero "fail-open read-error" warns in the captured log_warn stream.
+    //
+    // This is a LIVE assertion.  When the cap is too low the cap-enforcement mock
+    // returns Err → guard_logic emits exactly:
+    //   "verify-state-timestamp-refresh: fail-open read-error (STATE.md unreadable)"
+    // via log_warn.  At STATE_MD_MAX_BYTES = 65536, fail_open_warns would be
+    // non-empty and this assert! would FAIL with the actual warn text in the message.
+    // At STATE_MD_MAX_BYTES = 262144 the mock returns Ok(fixture), no such warn is
+    // emitted, and the assertion passes.
+    let fail_open_warns: Vec<_> = warns
         .iter()
-        .filter(|w| {
-            let lower = w.to_lowercase();
-            lower.contains("output_too_large")
-                || lower.contains("outputtoolarge")
-                || w.contains("StateReadError")
-        })
+        .filter(|w| w.contains("fail-open read-error"))
         .collect();
 
     assert!(
-        too_large_warns.is_empty(),
-        "T-006 (AC-004): 70 KiB fixture must NOT produce output_too_large or StateReadError \
-         warns with STATE_MD_MAX_BYTES={}. Got: {:?}",
+        fail_open_warns.is_empty(),
+        "T-006 (AC-004): 70 KiB fixture must NOT produce fail-open read-error warns \
+         with STATE_MD_MAX_BYTES={}.  Got: {:?}.  \
+         (A non-empty list means the mock cap is below fixture_size=70000; \
+         raise STATE_MD_MAX_BYTES to 262144 per BC-5.40.001 v1.2 Precondition 6.)",
         STATE_MD_MAX_BYTES,
-        too_large_warns
+        fail_open_warns
     );
 
     // Guard must have run to completion: stale timestamp fixture → Block.
