@@ -1,0 +1,56 @@
+S-19.05 Demo Evidence — AC-006: CLAUDE.md Factory Hook Diagnostics documentation
+Captured: 2026-07-13
+Branch: feature/S-19.05  HEAD: 405a871f
+File: CLAUDE.md (root of worktree)
+
+=== AC-006 gate: VSDD_SINK_FILE documented in debug and release builds ===
+
+$ grep -nE "VSDD_SINK_FILE.{1,60}(debug and release|release builds)" CLAUDE.md
+378:### VSDD_SINK_FILE diagnostic capture (debug and release builds)
+380:As of S-19.05 AC-004, `VSDD_SINK_FILE` is honored in both debug and release builds of the dispatcher. Set it to an absolute path before launching Claude to capture all observable plugin events as JSONL:
+
+exit code: 0
+
+Gate passes (line 378: section heading matches "debug and release builds" pattern).
+
+=== Full VSDD_SINK_FILE section context ===
+
+$ grep -A20 "VSDD_SINK_FILE diagnostic capture" CLAUDE.md | head -22
+
+### VSDD_SINK_FILE diagnostic capture (debug and release builds)
+
+As of S-19.05 AC-004, `VSDD_SINK_FILE` is honored in both debug and release builds of the
+dispatcher. Set it to an absolute path before launching Claude to capture all observable
+plugin events as JSONL:
+
+```bash
+VSDD_SINK_FILE=/tmp/disp-events.jsonl claude --plugin vsdd-factory <args>
+```
+
+The file is appended-to on each dispatch; inspect it for `plugin.completed`, `plugin.abandoned`,
+`plugin.timeout`, and other BC-3.08.001 domain events. Internal lifecycle events (`internal.*`)
+are excluded.
+
+**SEC-003 path constraint:** paths containing `..` (traversal sequences) or null bytes are
+rejected silently — a `tracing::warn` is emitted and no file is written. Use absolute paths
+from `mktemp` or a fixed `/tmp/` location.
+
+=== T-008 (AC-006): automated check in test suite ===
+
+$ cargo test -p factory-dispatcher --test bc_3_08_001_s19_05 -- t008
+
+running 1 test
+test test_BC_3_08_001_s19_05_t008_claude_md_vsdd_sink_file_release_documentation_present ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 9 filtered out; finished in 0.00s
+
+T-008 design: greps CLAUDE.md for the AC-006 gate pattern
+("VSDD_SINK_FILE" followed by "debug and release" or "release builds" within 60 chars).
+Asserts the documentation is present and machine-verifiable.
+
+Documentation covers all three AC-006 requirements:
+  (1) VSDD_SINK_FILE honored in debug AND release builds (line 380)
+  (2) Usage example: VSDD_SINK_FILE=/tmp/disp-events.jsonl claude ... (example block)
+  (3) SEC-003 path constraint: no ".." components or null bytes (final paragraph)
+
+BC Trace: AC-006 documentation gate.

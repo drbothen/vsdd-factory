@@ -457,7 +457,7 @@ jobs:
         # mounted) exercises these tests without the env var.
         env:
           VSDD_SKIP_PRODUCTION_STATE_MD_TEST: "1"
-        run: cargo test --release --target ${{ matrix.target }} --workspace
+        run: cargo test --release --features factory-dispatcher/test-support --target ${{ matrix.target }} --workspace
 
       - name: Build all native WASM plugins (release)
         # Build all hook-plugin crates on every matrix entry —

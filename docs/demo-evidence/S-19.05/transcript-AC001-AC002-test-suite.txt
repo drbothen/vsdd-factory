@@ -1,0 +1,67 @@
+S-19.05 Demo Evidence — AC-001 + AC-002: Integration Test Suite (bc_3_08_001_s19_05)
+Captured: 2026-07-13
+Branch: feature/S-19.05  HEAD: 405a871f
+Test file: crates/factory-dispatcher/tests/bc_3_08_001_s19_05.rs
+
+=== Full 10/10 integration test suite (debug profile) ===
+
+$ cargo test -p factory-dispatcher --test bc_3_08_001_s19_05
+
+   Compiling factory-dispatcher v0.0.1 (crates/factory-dispatcher)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 6.59s
+     Running tests/bc_3_08_001_s19_05.rs (target/debug/deps/bc_3_08_001_s19_05-a19cfa4d0bf23343)
+
+running 10 tests
+test test_BC_3_08_001_s19_05_t002_ec002_all_complete_before_drain_no_abandoned_events ... ok
+test test_BC_3_08_001_s19_05_t006_mutex_import_not_cfg_gated ... ok
+test test_BC_3_08_001_s19_05_t008_claude_md_vsdd_sink_file_release_documentation_present ... ok
+test test_BC_3_08_001_s19_05_t007_sec003_traversal_rejection_release_profile ... ok
+test test_BC_3_08_001_s19_05_t005_vsdd_sink_file_honored_in_release_profile ... ok
+test test_BC_3_08_001_s19_05_t001_async_exit0_within_drain_emits_plugin_completed ... ok
+test test_BC_3_08_001_s19_05_t001_ec001_async_nonzero_exit_emits_completed_with_actual_exit_code ... ok
+test test_BC_3_08_001_s19_05_t004_async_completed_event_not_relayed_to_stderr ... ok
+test test_BC_3_08_001_s19_05_t004_async_abandoned_event_not_relayed_to_stderr ... ok
+test test_BC_3_08_001_s19_05_t002_drain_timer_fires_with_in_flight_plugin_emits_abandoned ... ok
+
+test result: ok. 10 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 1.36s
+
+=== T-001 (AC-001): async exit-0 within drain → plugin.completed (2 tests) ===
+
+$ cargo test -p factory-dispatcher --test bc_3_08_001_s19_05 -- t001
+
+running 2 tests
+test test_BC_3_08_001_s19_05_t001_async_exit0_within_drain_emits_plugin_completed ... ok
+test test_BC_3_08_001_s19_05_t001_ec001_async_nonzero_exit_emits_completed_with_actual_exit_code ... ok
+
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 8 filtered out; finished in 1.30s
+
+Test design: Binary invocation (CARGO_BIN_EXE_factory-dispatcher) with WAT_EXIT_0 fixture.
+  - T-001: 10s drain window, plugin exits 0 within drain → VSDD_SINK_FILE contains plugin.completed
+    with all 9 mandatory fields (type, trace_id, session_id, plugin_name, plugin_version,
+    entry_index, exit_code, elapsed_ms, fuel_consumed) per BC-3.08.001 §Event 6.
+  - T-001-EC-001: WAT_EXIT_1 fixture → plugin.completed with exit_code=1 (non-zero exit still
+    emits plugin.completed; EC-001 confirms actual exit_code propagated).
+
+BC Trace: BC-3.08.001 §Event 6 (async-path plugin.completed, 9 mandatory fields); VP-100.
+
+=== T-002 (AC-002): drain timer fires with in-flight plugin → plugin.abandoned (2 tests) ===
+
+$ cargo test -p factory-dispatcher --test bc_3_08_001_s19_05 -- t002
+
+running 2 tests
+test test_BC_3_08_001_s19_05_t002_ec002_all_complete_before_drain_no_abandoned_events ... ok
+test test_BC_3_08_001_s19_05_t002_drain_timer_fires_with_in_flight_plugin_emits_abandoned ... ok
+
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 8 filtered out; finished in 1.39s
+
+Test design: Binary invocation with WAT_INFINITE_LOOP fixture.
+  - T-002: 50ms drain window, infinite-loop plugin never completes → VSDD_SINK_FILE contains
+    plugin.abandoned with all 7 mandatory fields (type, trace_id, session_id, plugin_name,
+    entry_index, drain_window_ms, timestamp) per BC-3.08.001 §Event 5.
+    Also asserts: zero plugin.completed follows for same trace_id+plugin_name+entry_index
+    triple (Invariant 6 terminal semantics); dispatcher exit code unchanged (0).
+  - T-002-EC-002: all plugins complete before drain timer fires → zero plugin.abandoned events
+    (negative control: EC-006 gate holds for empty-in-flight path).
+
+BC Trace: BC-3.08.001 §Event 5 (plugin.abandoned, 7 mandatory fields + entry_index: u32);
+          BC-3.08.001 §Invariant 6 (terminal key trace_id+plugin_name+entry_index); VP-100.

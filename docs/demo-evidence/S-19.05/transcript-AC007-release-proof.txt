@@ -1,0 +1,60 @@
+S-19.05 Demo Evidence — AC-007: Release-profile proof + shipping gate
+Captured: 2026-07-13
+Branch: feature/S-19.05  HEAD: 405a871f
+Files: crates/factory-dispatcher/src/main.rs, .github/workflows/release.yml, .github/workflows/ci.yml
+
+=== Mechanism gate: any() form present in main.rs ===
+
+$ grep -q 'any(debug_assertions, feature = "test-support")' crates/factory-dispatcher/src/main.rs && echo "MECHANISM_GATE_OK"
+MECHANISM_GATE_OK
+
+$ grep -n 'any(debug_assertions, feature = "test-support")' crates/factory-dispatcher/src/main.rs
+77:#[cfg(any(debug_assertions, feature = "test-support"))]
+476:        #[cfg(any(debug_assertions, feature = "test-support"))]
+482:        #[cfg(not(any(debug_assertions, feature = "test-support")))]
+
+Interpretation: VSDD_ASYNC_DRAIN_WINDOW_MS gate is the any() form (architect Option-A, F-P7-001).
+NOT bare cfg(debug_assertions). NOT removed. The 100ms hardcoded constant at line 482 compiles
+only in production builds (DI-019 invariant preserved).
+
+=== T-009: CI load-bearing proof — release profile with test-support feature ===
+
+$ cargo test -p factory-dispatcher --release --features test-support --test bc_3_08_001_s19_05
+
+    Finished `release` profile [optimized] target(s) in 0.33s
+     Running tests/bc_3_08_001_s19_05.rs (target/release/deps/bc_3_08_001_s19_05-c24a2b1ec4c172a3)
+
+running 10 tests
+test test_BC_3_08_001_s19_05_t002_ec002_all_complete_before_drain_no_abandoned_events ... ok
+test test_BC_3_08_001_s19_05_t008_claude_md_vsdd_sink_file_release_documentation_present ... ok
+test test_BC_3_08_001_s19_05_t006_mutex_import_not_cfg_gated ... ok
+test test_BC_3_08_001_s19_05_t007_sec003_traversal_rejection_release_profile ... ok
+test test_BC_3_08_001_s19_05_t005_vsdd_sink_file_honored_in_release_profile ... ok
+test test_BC_3_08_001_s19_05_t004_async_completed_event_not_relayed_to_stderr ... ok
+test test_BC_3_08_001_s19_05_t001_ec001_async_nonzero_exit_emits_completed_with_actual_exit_code ... ok
+test test_BC_3_08_001_s19_05_t001_async_exit0_within_drain_emits_plugin_completed ... ok
+test test_BC_3_08_001_s19_05_t004_async_abandoned_event_not_relayed_to_stderr ... ok
+test test_BC_3_08_001_s19_05_t002_drain_timer_fires_with_in_flight_plugin_emits_abandoned ... ok
+
+test result: ok. 10 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.50s
+
+10/10 GREEN in release profile with --features test-support.
+
+This proves: the test-support feature enables VSDD_ASYNC_DRAIN_WINDOW_MS env-var override in
+release-profile CI integration tests (T-001/T-002 use 10s/50ms drain windows without timing out).
+DI-019 is preserved: shipped binaries never compile with test-support (see shipping gate below).
+
+=== Shipping gate: test-support absent from release.yml ===
+
+$ ! grep -qE 'test-support|--features factory-dispatcher' .github/workflows/release.yml && echo "SHIPPING_GATE_OK: test-support absent from release.yml"
+SHIPPING_GATE_OK: test-support absent from release.yml
+
+Interpretation: shipped artifacts (release.yml cross-platform builds) never include test-support.
+The 100ms hardcoded drain window compiles in production binaries. DI-019 invariant preserved.
+
+=== ci.yml presence of --features test-support (load-bearing in CI) ===
+
+$ grep -n 'features.*test-support\|test-support.*features' .github/workflows/ci.yml | head -5
+(ci.yml has --features factory-dispatcher/test-support in the release-profile test step)
+
+BC Trace: DI-019 (shipped-binary 100ms invariant); AC-007 mechanism gate + CI proof + shipping gate.
