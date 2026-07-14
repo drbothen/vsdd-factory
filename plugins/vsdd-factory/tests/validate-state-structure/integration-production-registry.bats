@@ -87,7 +87,7 @@ schema_version = 2
 [[hooks]]
 name = "validate-state-structure"
 event = "PostToolUse"
-tool = "Edit|Write"
+tool = "^(Edit|Write|MultiEdit)$"
 plugin = "hook-plugins/validate-state-structure.wasm"
 timeout_ms = 5000
 on_error = "continue"
