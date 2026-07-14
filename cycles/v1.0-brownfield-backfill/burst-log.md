@@ -20075,6 +20075,6 @@ Latest adversary files remain D-839 passes. No new adversary file for D-840. Fin
 **Closes:** None. Session-wrap burst — no adversary findings to close.
 
 **factory-artifacts commits:**
-- D-840 main burst: `TBD` (SHA-patch pending)
+- D-840 main burst: `fd54e70b`
 - D-839 SHA-patch: `e5f5df66` (parent-commit)
 - D-839 main burst: `2c6a815b`
