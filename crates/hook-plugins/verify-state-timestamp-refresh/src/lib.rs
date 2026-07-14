@@ -2983,4 +2983,553 @@ mod tests {
             ),
         }
     }
+
+    // -----------------------------------------------------------------------
+    // S-19.08 Red Gate tests: T-001, T-002, T-003, T-004, T-005, T-007
+    //
+    // These tests FAIL against current production code and PASS only after the
+    // S-19.08 implementation tasks complete:
+    //   Task 9:  Raise STATE_MD_MAX_BYTES to 262144 (closes T-001, T-002, T-003, T-005)
+    //   Task 10: Wire factory_lock_parse::extract_frontmatter (closes T-004)
+    //   Task 11: Implement state_md_approaching_cap soft-warn emission (closes T-007 A/D)
+    //
+    // BC Traces: BC-5.40.001 v1.2 Precondition 6 (T-001/T-002/T-003/T-005),
+    //            Invariant 7 (T-004/T-005), Invariant 8 (T-007).
+    //
+    // NOTE on T-005: The behavioural assertion (guard returns Continue on
+    // malformed/no-delimiter on-disk content) already holds in current code.
+    // The Red Gate for T-005 is the STATE_MD_MAX_BYTES >= 70_000 pre-condition,
+    // which fails until Task 9. T-005 is a regression-prevention test that
+    // confirms the fail-open behaviour is preserved after the cap-raise + wiring
+    // fix. Flagged as expected: not a tautological-test defect — the pre-condition
+    // is the intentional gate.
+    // -----------------------------------------------------------------------
+
+    // -----------------------------------------------------------------------
+    // Fixture helpers for S-19.08 tests
+    // -----------------------------------------------------------------------
+
+    /// Build STATE.md bytes padded to `target_size` with `timestamp: "<ts>"` in
+    /// frontmatter. The closing `---` delimiter is present; the body is padded
+    /// with `# padding\n` comment lines (all valid ASCII/UTF-8).
+    ///
+    /// Used by T-002/T-003 (70 KiB fixture) and T-007 (soft-warn boundary fixtures).
+    fn state_md_padded_with_timestamp_bytes(ts: &str, target_size: usize) -> Vec<u8> {
+        let header = format!(
+            "---\ndocument_type: state\nversion: \"0.0.1-test\"\ntimestamp: \"{}\"\nphase: test\n---\n\n# STATE\n",
+            ts
+        );
+        let mut bytes = header.into_bytes();
+        let pad_line = b"# padding\n";
+        while bytes.len() < target_size {
+            let remaining = target_size - bytes.len();
+            if remaining >= pad_line.len() {
+                bytes.extend_from_slice(pad_line);
+            } else {
+                // Partial pad with '#' bytes to reach exactly target_size.
+                bytes.extend(std::iter::repeat(b'#').take(remaining));
+            }
+        }
+        bytes.truncate(target_size);
+        bytes
+    }
+
+    /// Build callbacks where `read_file` returns the given bytes unconditionally.
+    ///
+    /// The `max_bytes` argument from the guard is IGNORED — bytes are returned
+    /// regardless of cap. This isolates behavioural logic from cap-enforcement.
+    /// The Red Gate for T-002/T-003/T-005 comes from the `STATE_MD_MAX_BYTES >= 70_000`
+    /// pre-condition assertion, NOT from cap-enforcement at the mock level.
+    #[allow(clippy::type_complexity)]
+    fn make_callbacks_with_raw_bytes(
+        on_disk_bytes: Vec<u8>,
+        warn_log: Arc<Mutex<Vec<String>>>,
+    ) -> GuardCallbacks<
+        impl FnOnce(&str, u32, u32) -> Result<Vec<u8>, String>,
+        impl FnMut(&str),
+        impl FnMut(&str),
+    > {
+        let wl = warn_log.clone();
+        GuardCallbacks {
+            read_file: move |_path, _max, _timeout| Ok(on_disk_bytes),
+            log_warn: move |msg: &str| {
+                wl.lock().unwrap().push(msg.to_string());
+            },
+            write_stderr: |_msg| {},
+        }
+    }
+
+    // -----------------------------------------------------------------------
+    // T-001 (AC-001): STATE_MD_MAX_BYTES == 262144
+    //
+    // BC Trace: BC-5.40.001 v1.2 Precondition 6 (max_bytes = 262144).
+    // RED: current value is 65536; assert_eq! fails until Task 9.
+    // -----------------------------------------------------------------------
+
+    /// T-001 (AC-001): `STATE_MD_MAX_BYTES` must equal 262144 (256 KiB).
+    ///
+    /// BC-5.40.001 v1.2 Precondition 6 mandates `STATE_MD_MAX_BYTES = 262144`
+    /// for the `verify-state-timestamp-refresh` guard. Mirrors BC-4.13.001
+    /// Phase-A Precondition 3 + ADR-025 §Decision 12 §12.5 parity with
+    /// `verify-factory-lock` (S-19.02).
+    ///
+    /// RED: current value is 65536; assert_eq! fails until Task 9 (implementer).
+    #[test]
+    fn test_BC_5_40_001_T001_state_md_max_bytes_is_262144() {
+        assert_eq!(
+            STATE_MD_MAX_BYTES, 262144u32,
+            "T-001 (AC-001): STATE_MD_MAX_BYTES must equal 262144 (256 KiB) per \
+             BC-5.40.001 v1.2 Precondition 6 / ADR-025 §Decision 12 §12.5. \
+             Current value: {}",
+            STATE_MD_MAX_BYTES
+        );
+    }
+
+    // -----------------------------------------------------------------------
+    // T-002 (AC-002): 70 KiB fixture + stale timestamp → TimestampStale block
+    //
+    // BC Trace: BC-5.40.001 PC4 (operational at new cap).
+    // RED: assert!(STATE_MD_MAX_BYTES >= 70_000) fails with 65536 (Task 9).
+    // -----------------------------------------------------------------------
+
+    /// T-002 (AC-002): 70 KiB fixture with stale timestamp → Block(TimestampStale).
+    ///
+    /// AC-002: plugin reads STATE.md successfully when the file is between 64 KiB
+    /// and 256 KiB; correctly detects a stale timestamp and returns block intent.
+    ///
+    /// - On-disk: 70000-byte STATE.md with `timestamp: TS_OLD` in frontmatter.
+    /// - Proposed (Write): stale `timestamp: TS_OLD` (same as on-disk).
+    /// - Expected: Block(TimestampStale) — guard ran to completion.
+    ///
+    /// RED: `assert!(STATE_MD_MAX_BYTES >= 70_000u32)` fails with current cap 65536.
+    #[test]
+    fn test_BC_5_40_001_T002_70kib_fixture_stale_timestamp_blocks() {
+        // Primary Red Gate: cap must be at least 70 KiB for this test to exercise
+        // raised-cap behaviour. Fails until Task 9 raises cap to 262144.
+        assert!(
+            STATE_MD_MAX_BYTES >= 70_000u32,
+            "T-002 (AC-002): STATE_MD_MAX_BYTES ({}) must be >= 70000. \
+             Raise to 262144 per BC-5.40.001 v1.2 Precondition 6.",
+            STATE_MD_MAX_BYTES
+        );
+
+        let fixture_bytes = state_md_padded_with_timestamp_bytes(TS_OLD, 70_000);
+        assert_eq!(fixture_bytes.len(), 70_000, "fixture must be exactly 70000 bytes");
+
+        let warn_log = Arc::new(Mutex::new(Vec::new()));
+        let callbacks = make_callbacks_with_raw_bytes(fixture_bytes, warn_log.clone());
+        // Proposed: Write payload with STALE timestamp (same as on-disk TS_OLD).
+        let proposed_stale = state_md_no_lock(TS_OLD);
+        let payload = payload_write(&proposed_stale);
+
+        let result = guard_logic(payload, callbacks);
+
+        let expected_msg = canonical_timestamp_stale_message();
+        match result {
+            HookResult::Block { reason } => {
+                assert_eq!(
+                    reason, expected_msg,
+                    "T-002: Block reason must be full canonical TimestampStale string. \
+                     Expected: {expected_msg:?}. Got: {reason:?}"
+                );
+            }
+            HookResult::Continue => panic!(
+                "T-002 (AC-002): 70 KiB fixture with stale timestamp must return \
+                 Block(TimestampStale). Got Continue. Guard must be operational at \
+                 the new 262144 cap (BC-5.40.001 PC4)."
+            ),
+            other => panic!("T-002: unexpected result: {:?}", other),
+        }
+    }
+
+    // -----------------------------------------------------------------------
+    // T-003 (AC-002): 70 KiB fixture + advanced timestamp → Continue
+    //
+    // BC Trace: BC-5.40.001 PC4 success path / PC6 (single-dev zero friction).
+    // RED: same STATE_MD_MAX_BYTES >= 70_000 pre-condition fails until Task 9.
+    // -----------------------------------------------------------------------
+
+    /// T-003 (AC-002): 70 KiB fixture with advanced timestamp → Continue.
+    ///
+    /// AC-002 complement: guard returns Continue (allow write) when the timestamp
+    /// is advanced on a STATE.md between 64 KiB and 256 KiB.
+    ///
+    /// - On-disk: 70000-byte STATE.md with `timestamp: TS_OLD`.
+    /// - Proposed (Write): advanced `timestamp: TS_NEW`.
+    /// - Expected: Continue — guard ran to completion; write is permitted.
+    ///
+    /// RED: `assert!(STATE_MD_MAX_BYTES >= 70_000u32)` fails with current cap 65536.
+    #[test]
+    fn test_BC_5_40_001_T003_70kib_fixture_advanced_timestamp_continues() {
+        assert!(
+            STATE_MD_MAX_BYTES >= 70_000u32,
+            "T-003 (AC-002): STATE_MD_MAX_BYTES ({}) must be >= 70000. \
+             Raise to 262144 per BC-5.40.001 v1.2 Precondition 6.",
+            STATE_MD_MAX_BYTES
+        );
+
+        let fixture_bytes = state_md_padded_with_timestamp_bytes(TS_OLD, 70_000);
+        assert_eq!(fixture_bytes.len(), 70_000, "fixture must be exactly 70000 bytes");
+
+        let warn_log = Arc::new(Mutex::new(Vec::new()));
+        let callbacks = make_callbacks_with_raw_bytes(fixture_bytes, warn_log.clone());
+        // Proposed: Write payload with ADVANCED timestamp.
+        let proposed_advanced = state_md_no_lock(TS_NEW);
+        let payload = payload_write(&proposed_advanced);
+
+        let result = guard_logic(payload, callbacks);
+
+        assert_eq!(
+            result,
+            HookResult::Continue,
+            "T-003 (AC-002): 70 KiB fixture with advanced timestamp must return Continue. \
+             Guard must allow the write when timestamp is advanced (BC-5.40.001 PC6)."
+        );
+    }
+
+    // -----------------------------------------------------------------------
+    // T-004 (AC-003): extract_frontmatter wired — body bytes excluded from parsed slice
+    //
+    // BC Trace: BC-5.40.001 v1.2 Invariant 7 (extract_frontmatter exclusive use).
+    //
+    // Observable Red Gate: without extract_frontmatter wiring, String::from_utf8
+    // on the FULL on-disk bytes (including non-UTF-8 body) fails → guard returns
+    // Continue (fail-open). The test asserts Block(TimestampStale) → FAILS.
+    //
+    // After fix: extract_frontmatter strips non-UTF-8 body → frontmatter-only
+    // bytes are valid UTF-8 → timestamp extracted → stale → Block.
+    // -----------------------------------------------------------------------
+
+    /// T-004 (AC-003): `extract_frontmatter` wired — non-UTF-8 body excluded from parse.
+    ///
+    /// Fixture:
+    /// - On-disk bytes: valid UTF-8 frontmatter with `timestamp: TS_OLD`,
+    ///   closing `---` delimiter, then non-UTF-8 body bytes (`\xFF\xFE`).
+    /// - Proposed (Write): stale `timestamp: TS_OLD`.
+    ///
+    /// Without `extract_frontmatter` wiring (current):
+    ///   `String::from_utf8(full_bytes)` fails on `\xFF\xFE` body bytes →
+    ///   guard returns Continue (fail-open). Test asserts Block → FAILS.
+    ///
+    /// After fix (Task 10 — extract_frontmatter wired):
+    ///   `extract_frontmatter` returns frontmatter-only bytes (valid UTF-8);
+    ///   re-attach `\n---\n`; `String::from_utf8` succeeds; timestamp extracted;
+    ///   stale → Block(TimestampStale).
+    ///
+    /// RED: guard currently returns Continue; test asserts Block → ASSERTION FAILS.
+    #[test]
+    fn test_BC_5_40_001_T004_extract_frontmatter_wired_body_bytes_excluded() {
+        // Build on-disk fixture: valid frontmatter + closing --- + non-UTF-8 body.
+        // state_md_no_lock(TS_OLD) produces:
+        //   "---\n...\ntimestamp: \"TS_OLD\"\n...\n---\n\n# STATE\n"
+        // We append non-UTF-8 bytes AFTER the valid content to simulate body bytes
+        // that String::from_utf8 cannot handle on the full byte slice.
+        let mut on_disk_bytes = state_md_no_lock(TS_OLD).into_bytes();
+        // \xFF\xFE are invalid UTF-8 start bytes. These appear after the closing
+        // `---` delimiter. extract_frontmatter must strip them. Without wiring,
+        // String::from_utf8 fails on the full bytes → fail-open Continue (RED GATE).
+        on_disk_bytes.extend_from_slice(b"\xFF\xFE non-utf8-body-bytes-must-not-reach-parser\n");
+
+        let warn_log = Arc::new(Mutex::new(Vec::new()));
+        let callbacks = make_callbacks_with_raw_bytes(on_disk_bytes, warn_log.clone());
+        // Proposed: Write payload with STALE timestamp (same as on-disk TS_OLD).
+        let proposed_stale = state_md_no_lock(TS_OLD);
+        let payload = payload_write(&proposed_stale);
+
+        let result = guard_logic(payload, callbacks);
+
+        // Expected: Block(TimestampStale).
+        // extract_frontmatter strips non-UTF-8 body; frontmatter bytes are valid
+        // UTF-8; timestamp found → stale → Block.
+        //
+        // Current (without extract_frontmatter): String::from_utf8(full_bytes) Err
+        // → fail-open Continue. This assertion FAILS → RED GATE.
+        let expected_msg = canonical_timestamp_stale_message();
+        match result {
+            HookResult::Block { reason } => {
+                assert_eq!(
+                    reason, expected_msg,
+                    "T-004: Block reason must equal canonical TimestampStale. \
+                     Expected: {expected_msg:?}. Got: {reason:?}"
+                );
+            }
+            HookResult::Continue => panic!(
+                "T-004 (AC-003): Guard must Block on stale timestamp when on-disk bytes \
+                 include non-UTF-8 body bytes after the closing delimiter. Got Continue. \
+                 Root cause: factory_lock_parse::extract_frontmatter NOT wired — \
+                 String::from_utf8 fails on full bytes → fail-open Continue. \
+                 Fix: wire extract_frontmatter before String::from_utf8 \
+                 (BC-5.40.001 Invariant 7, Task 10)."
+            ),
+            other => panic!("T-004: unexpected result: {:?}", other),
+        }
+    }
+
+    // -----------------------------------------------------------------------
+    // T-005 (AC-003): no delimiter → full content returned (fail-open)
+    //
+    // BC Trace: BC-5.40.001 v1.2 Invariant 7 (fail-open when delimiter absent).
+    //
+    // Verifies graceful degradation is PRESERVED after the extract_frontmatter
+    // wiring fix: when on-disk content has no closing `---` delimiter,
+    // extract_frontmatter returns the full bytes → guard returns Continue
+    // (fail-open, no crash or hard error).
+    //
+    // RED GATE: assert!(STATE_MD_MAX_BYTES >= 70_000) fails until Task 9.
+    // See module-level NOTE on T-005 for expected-pass rationale.
+    // -----------------------------------------------------------------------
+
+    /// T-005 (AC-003): no closing delimiter → guard returns Continue without error.
+    ///
+    /// Fixture: on-disk bytes with no closing `---` delimiter (malformed content).
+    /// Proposed: Write payload with advanced `timestamp: TS_NEW`.
+    ///
+    /// BC-5.40.001 Invariant 7: when `extract_frontmatter` returns the full bytes
+    /// (delimiter absent → fail-open per function contract), the guard proceeds
+    /// gracefully and returns Continue (fail-open on malformed on-disk content).
+    ///
+    /// RED GATE: `assert!(STATE_MD_MAX_BYTES >= 70_000u32)` fails until Task 9.
+    #[test]
+    fn test_BC_5_40_001_T005_no_delimiter_full_content_fail_open() {
+        // Red Gate pre-condition: same cap assertion as T-002/T-003.
+        assert!(
+            STATE_MD_MAX_BYTES >= 70_000u32,
+            "T-005 (AC-003): STATE_MD_MAX_BYTES ({}) must be >= 70000. \
+             Raise to 262144 per BC-5.40.001 v1.2 Precondition 6.",
+            STATE_MD_MAX_BYTES
+        );
+
+        // On-disk bytes: STATE.md content with NO closing `---` delimiter.
+        // extract_frontmatter returns the full bytes (fail-open per function contract).
+        // Downstream: extract_top_level_field on the on-disk string → Malformed
+        // (no closing delimiter) → guard returns Continue (fail-open).
+        let on_disk_no_delimiter: Vec<u8> =
+            b"---\ndocument_type: state\ntimestamp: \"2026-06-11T10:00:00Z\"\nphase: test\n"
+                .to_vec();
+        // Intentionally omitting the closing `---` delimiter.
+
+        let warn_log = Arc::new(Mutex::new(Vec::new()));
+        let callbacks = make_callbacks_with_raw_bytes(on_disk_no_delimiter, warn_log.clone());
+        // Proposed: advanced timestamp (different from on-disk value).
+        let proposed_advanced = state_md_no_lock(TS_NEW);
+        let payload = payload_write(&proposed_advanced);
+
+        let result = guard_logic(payload, callbacks);
+
+        // Guard must return Continue without panicking:
+        // on-disk has no closing delimiter → extract_frontmatter returns full bytes
+        // → extract_top_level_field returns Malformed → fail-open Continue.
+        assert_eq!(
+            result,
+            HookResult::Continue,
+            "T-005 (AC-003): On-disk with no closing delimiter must return Continue \
+             (fail-open per BC-5.40.001 Invariant 7 / ADR-025 §12.3 row 1). \
+             Guard must not panic or hard-error on malformed on-disk content."
+        );
+    }
+
+    // -----------------------------------------------------------------------
+    // T-007 (AC-005): state_md_approaching_cap soft-warn boundary tests A–E
+    //
+    // BC Trace: BC-5.40.001 v1.2 Invariant 8.
+    //   Soft-warn range: bytes_read ∈ (200000, 262144]; inclusive at cap.
+    //   Event fields: bytes_read: u64, cap_bytes: u64 (262144).
+    //   Threshold is STRICT (> 200000, not >=).
+    //
+    // Sub-tests:
+    //   A: 210000 bytes → state_md_approaching_cap warn emitted.
+    //   B: 150000 bytes → zero state_md_approaching_cap warns.
+    //   C: 200000 bytes exactly → zero warns (strict > threshold).
+    //   D: 262144 bytes exactly → warn emitted AND read succeeds (cap-exact inclusive).
+    //   E: 262145 bytes (cap-enforcement) → Continue (fail-open) AND zero warn.
+    //
+    // RED GATE: assert_eq!(STATE_MD_MAX_BYTES, 262144u32) fails with current 65536.
+    // After Task 9 (cap raise), sub-tests A and D additionally fail until Task 11
+    // (soft-warn emission implemented). Sub-tests B/C pass tautologically after
+    // Task 9 (no warn is expected and no warn is emitted before Task 11).
+    // -----------------------------------------------------------------------
+
+    /// T-007 (AC-005): `state_md_approaching_cap` soft-warn boundary tests A–E.
+    ///
+    /// BC-5.40.001 v1.2 Invariant 8: guard MUST emit `state_md_approaching_cap`
+    /// warn carrying `bytes_read: u64` and `cap_bytes: u64 = 262144` when
+    /// `bytes_read > 200000 AND bytes_read <= 262144`. This event is
+    /// observability-only — it never alters the Continue/Block verdict.
+    ///
+    /// RED GATE: `assert_eq!(STATE_MD_MAX_BYTES, 262144u32)` fails until Task 9.
+    /// Sub-tests A and D additionally fail until Task 11 (soft-warn emission).
+    #[test]
+    fn test_BC_5_40_001_T007_state_md_approaching_cap_warn_boundary() {
+        // Pre-condition: cap constant must be 262144 for all sub-tests.
+        // Primary Red Gate — fails until Task 9 (cap raise to 262144).
+        assert_eq!(
+            STATE_MD_MAX_BYTES, 262144u32,
+            "T-007 (AC-005): STATE_MD_MAX_BYTES must equal 262144. \
+             Current value: {}. Raise to 262144 (Task 9) before soft-warn tests run.",
+            STATE_MD_MAX_BYTES
+        );
+
+        // ---- Sub-test A: 210000 bytes → state_md_approaching_cap warn emitted ----
+        // bytes_read = 210000 > 200000 threshold, ≤ 262144 cap → warn MUST fire.
+        // RED (after Task 9): warn not yet emitted → assertion fails until Task 11.
+        {
+            let fixture = state_md_padded_with_timestamp_bytes(TS_OLD, 210_000);
+            assert_eq!(fixture.len(), 210_000, "T-007 A: fixture must be exactly 210000 bytes");
+            let warn_log = Arc::new(Mutex::new(Vec::new()));
+            let callbacks = make_callbacks_with_raw_bytes(fixture, warn_log.clone());
+            let proposed_advanced = state_md_no_lock(TS_NEW);
+            let payload = payload_write(&proposed_advanced);
+            let _ = guard_logic(payload, callbacks);
+            let warns = warn_log.lock().unwrap();
+            assert!(
+                warns.iter().any(|w| {
+                    w.contains("state_md_approaching_cap")
+                        && w.contains("bytes_read=210000")
+                        && w.contains("cap_bytes=262144")
+                }),
+                "T-007 A (AC-005): 210000-byte fixture must emit state_md_approaching_cap warn \
+                 with bytes_read=210000 and cap_bytes=262144 \
+                 (bytes_read=210000 > 200000 threshold). Got: {:?}",
+                warns
+            );
+        }
+
+        // ---- Sub-test B: 150000 bytes → zero state_md_approaching_cap warns ----
+        // bytes_read = 150000 ≤ 200000 threshold → warn must NOT fire.
+        {
+            let fixture = state_md_padded_with_timestamp_bytes(TS_OLD, 150_000);
+            assert_eq!(fixture.len(), 150_000, "T-007 B: fixture must be exactly 150000 bytes");
+            let warn_log = Arc::new(Mutex::new(Vec::new()));
+            let callbacks = make_callbacks_with_raw_bytes(fixture, warn_log.clone());
+            let proposed_advanced = state_md_no_lock(TS_NEW);
+            let payload = payload_write(&proposed_advanced);
+            let _ = guard_logic(payload, callbacks);
+            let warns = warn_log.lock().unwrap();
+            let approaching: Vec<_> = warns
+                .iter()
+                .filter(|w| w.contains("state_md_approaching_cap"))
+                .collect();
+            assert!(
+                approaching.is_empty(),
+                "T-007 B (AC-005): 150000-byte fixture must NOT emit state_md_approaching_cap \
+                 (bytes_read=150000 ≤ 200000 threshold). Got: {:?}",
+                approaching
+            );
+        }
+
+        // ---- Sub-test C: 200000 bytes exactly → zero warns (strict > threshold) ----
+        // bytes_read = 200000 is NOT strictly > 200000 → warn must NOT fire.
+        {
+            let fixture = state_md_padded_with_timestamp_bytes(TS_OLD, 200_000);
+            assert_eq!(fixture.len(), 200_000, "T-007 C: fixture must be exactly 200000 bytes");
+            let warn_log = Arc::new(Mutex::new(Vec::new()));
+            let callbacks = make_callbacks_with_raw_bytes(fixture, warn_log.clone());
+            let proposed_advanced = state_md_no_lock(TS_NEW);
+            let payload = payload_write(&proposed_advanced);
+            let _ = guard_logic(payload, callbacks);
+            let warns = warn_log.lock().unwrap();
+            let approaching: Vec<_> = warns
+                .iter()
+                .filter(|w| w.contains("state_md_approaching_cap"))
+                .collect();
+            assert!(
+                approaching.is_empty(),
+                "T-007 C (AC-005): 200000-byte fixture (exact threshold) must NOT emit \
+                 state_md_approaching_cap (threshold is strictly > 200000, not >=). \
+                 Got: {:?}",
+                approaching
+            );
+        }
+
+        // ---- Sub-test D: 262144 bytes exactly → warn AND read succeeds ----
+        // bytes_read = 262144 = cap → inclusive upper bound: warn MUST fire AND read succeeds.
+        // RED (after Task 9): warn not yet emitted → fails until Task 11.
+        {
+            let fixture = state_md_padded_with_timestamp_bytes(TS_OLD, 262_144);
+            assert_eq!(fixture.len(), 262_144, "T-007 D: fixture must be exactly 262144 bytes");
+            let warn_log = Arc::new(Mutex::new(Vec::new()));
+            let callbacks = make_callbacks_with_raw_bytes(fixture, warn_log.clone());
+            let proposed_advanced = state_md_no_lock(TS_NEW);
+            let payload = payload_write(&proposed_advanced);
+            let result = guard_logic(payload, callbacks);
+            let warns = warn_log.lock().unwrap();
+
+            // Read must succeed at cap — no StateReadError warn.
+            let has_read_error = warns.iter().any(|w| w.contains("StateReadError"));
+            assert!(
+                !has_read_error,
+                "T-007 D (AC-005): 262144-byte fixture must NOT produce StateReadError \
+                 (read must succeed at cap-exact boundary). Got: {:?}",
+                warns
+            );
+            // Guard must return Continue (advanced timestamp; no lock held).
+            assert!(
+                matches!(result, HookResult::Continue),
+                "T-007 D (AC-005): 262144-byte fixture with advanced timestamp must return \
+                 Continue (read succeeded at cap; no lock held). Got: {:?}",
+                result
+            );
+            // Warn must be emitted at the inclusive cap boundary.
+            assert!(
+                warns.iter().any(|w| {
+                    w.contains("state_md_approaching_cap")
+                        && w.contains("cap_bytes=262144")
+                }),
+                "T-007 D (AC-005): 262144-byte fixture must emit state_md_approaching_cap warn \
+                 (inclusive upper bound: bytes_read=262144 ≤ cap=262144). Got: {:?}",
+                warns
+            );
+        }
+
+        // ---- Sub-test E: 262145 bytes → fail-open Continue AND zero approaching_cap ----
+        // Uses cap-enforcement mock: fixture_size > max_bytes → Err(OutputTooLarge).
+        // Guard must return Continue (fail-open per ADR-025 Decision 7) AND must NOT
+        // emit state_md_approaching_cap (warn path not reached after Err).
+        {
+            let fixture_len = 262_145usize;
+            let warn_log = Arc::new(Mutex::new(Vec::new()));
+            let wl = warn_log.clone();
+            // Cap-enforcement mock: mirrors real host::read_file OutputTooLarge behaviour.
+            let callbacks = GuardCallbacks {
+                read_file: move |_path, max_bytes, _timeout| {
+                    if fixture_len as u32 > max_bytes {
+                        Err(format!(
+                            "OutputTooLarge: fixture_len={} > max_bytes={}",
+                            fixture_len, max_bytes
+                        ))
+                    } else {
+                        Ok(state_md_padded_with_timestamp_bytes(TS_OLD, fixture_len))
+                    }
+                },
+                log_warn: move |msg: &str| {
+                    wl.lock().unwrap().push(msg.to_string());
+                },
+                write_stderr: |_msg| {},
+            };
+            let proposed_advanced = state_md_no_lock(TS_NEW);
+            let payload = payload_write(&proposed_advanced);
+            let result = guard_logic(payload, callbacks);
+
+            // Must return Continue (fail-open on OutputTooLarge per ADR-025 Decision 7 / EC-010).
+            assert_eq!(
+                result,
+                HookResult::Continue,
+                "T-007 E (AC-005): 262145-byte fixture must return Continue \
+                 (fail-open on OutputTooLarge per ADR-025 Decision 7 / BC-5.40.001 EC-010)."
+            );
+            let warns = warn_log.lock().unwrap();
+            // Must NOT emit state_md_approaching_cap (OutputTooLarge → read failed before
+            // soft-warn check; warn path not reached).
+            let approaching: Vec<_> = warns
+                .iter()
+                .filter(|w| w.contains("state_md_approaching_cap"))
+                .collect();
+            assert!(
+                approaching.is_empty(),
+                "T-007 E (AC-005): 262145-byte fixture must NOT emit state_md_approaching_cap \
+                 (exceeds cap → read fails → warn path never reached). Got: {:?}",
+                approaching
+            );
+        }
+    }
 }
