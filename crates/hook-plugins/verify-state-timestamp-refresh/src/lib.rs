@@ -12,6 +12,9 @@
 //!      - MultiEdit → reconstruct: on-disk + sequential `edits[]` apply (AC-013)
 //!   3. Read the on-disk `.factory/STATE.md` via `host::read_file`.
 //!      On error (HostError or NotFound): return `Continue` (fail-open per §12.3 / AC-015).
+//!      Emit `state_md_approaching_cap` diagnostic warn if bytes_read > 200000 (Invariant 8).
+//!      Call `factory_lock_parse::extract_frontmatter` on raw bytes before UTF-8 conversion
+//!      (Invariant 7 frontmatter-only mandate; BC-5.40.001 v1.2).
 //!   4. Extract `timestamp:` from both proposed content and the on-disk content.
 //!   5. If `timestamp:` is absent in proposed content → Block: TimestampStale (AC-008 §12.3 row 6).
 //!   6. If `timestamp:` is absent in on-disk content → Continue (first write ever, AC-015/AC-008).
@@ -702,17 +705,69 @@ where
             }
         };
 
-    let on_disk_content = match String::from_utf8(on_disk_bytes) {
-        Ok(s) => s,
-        Err(_) => {
-            // Non-UTF-8 on-disk content — fail-open.
-            (callbacks.log_warn)(
-                "verify-state-timestamp-refresh: fail-open utf8 (STATE.md is not valid UTF-8)",
-            );
-            (callbacks.write_stderr)(
-                "verify-state-timestamp-refresh: guard_ran (continue: fail-open utf8)\n",
-            );
-            return HookResult::Continue;
+    // BC-5.40.001 Invariant 8 soft-warning: emit diagnostic when
+    // bytes_read > soft_warn_threshold (200000) AND bytes_read <= STATE_MD_MAX_BYTES (262144).
+    // Observability-only — never alters the Continue/Block verdict.
+    let bytes_read = on_disk_bytes.len();
+    if bytes_read > 200_000 && bytes_read <= STATE_MD_MAX_BYTES as usize {
+        (callbacks.log_warn)(&format!(
+            "state_md_approaching_cap: bytes_read={} cap_bytes={}",
+            bytes_read, STATE_MD_MAX_BYTES
+        ));
+    }
+
+    // BC-5.40.001 Invariant 7 frontmatter-only mandate: extract the YAML
+    // frontmatter prefix before passing bytes to String::from_utf8. The guard
+    // MUST NOT parse file body content.
+    //
+    // extract_frontmatter returns bytes[0..delimiter_start_offset] when a
+    // closing `\n---\n` or `\n---`-at-EOF delimiter is found, or the full
+    // input when absent (VP-096 / AC-005 boundary purity). Calling .to_vec()
+    // releases the borrow on on_disk_bytes immediately, allowing it to be
+    // moved in the delimiter-absent branch below.
+    let frontmatter_owned: Vec<u8> =
+        factory_lock_parse::extract_frontmatter(&on_disk_bytes).to_vec();
+
+    // When a closing delimiter was found (frontmatter_owned is strictly shorter
+    // than on_disk_bytes), the extracted bytes omit the delimiter itself. Append
+    // a synthetic `\n---\n` so extract_top_level_field can locate the boundary.
+    //
+    // When no delimiter was found (frontmatter_owned.len() == on_disk_bytes.len()),
+    // pass the original full content unchanged — extract_top_level_field returns
+    // Malformed (no closing delimiter) → fail-open Continue per AC-008 §12.3 row 1.
+    let delimiter_found = frontmatter_owned.len() < on_disk_bytes.len();
+
+    let on_disk_content = if delimiter_found {
+        let mut parse_input = frontmatter_owned;
+        parse_input.extend_from_slice(b"\n---\n");
+        match String::from_utf8(parse_input) {
+            Ok(s) => s,
+            Err(_) => {
+                // Non-UTF-8 frontmatter bytes — fail-open.
+                (callbacks.log_warn)(
+                    "verify-state-timestamp-refresh: fail-open utf8 (STATE.md frontmatter is not valid UTF-8)",
+                );
+                (callbacks.write_stderr)(
+                    "verify-state-timestamp-refresh: guard_ran (continue: fail-open utf8)\n",
+                );
+                return HookResult::Continue;
+            }
+        }
+    } else {
+        // Delimiter absent: pass full bytes so extract_top_level_field returns
+        // Malformed → fail-open Continue per AC-008 §12.3 row 1.
+        match String::from_utf8(on_disk_bytes) {
+            Ok(s) => s,
+            Err(_) => {
+                // Non-UTF-8 on-disk content (no delimiter) — fail-open.
+                (callbacks.log_warn)(
+                    "verify-state-timestamp-refresh: fail-open utf8 (STATE.md is not valid UTF-8)",
+                );
+                (callbacks.write_stderr)(
+                    "verify-state-timestamp-refresh: guard_ran (continue: fail-open utf8)\n",
+                );
+                return HookResult::Continue;
+            }
         }
     };
 
@@ -948,7 +1003,12 @@ pub fn on_pre_tool_use(payload: HookPayload) -> HookResult {
 // ---------------------------------------------------------------------------
 #[cfg(test)]
 mod tests {
-    #![allow(clippy::expect_used, clippy::unwrap_used, clippy::panic)]
+    #![allow(
+        clippy::expect_used,
+        clippy::unwrap_used,
+        clippy::panic,
+        clippy::assertions_on_constants
+    )]
 
     use super::*;
     use serde_json::json;
@@ -3030,7 +3090,7 @@ mod tests {
                 bytes.extend_from_slice(pad_line);
             } else {
                 // Partial pad with '#' bytes to reach exactly target_size.
-                bytes.extend(std::iter::repeat(b'#').take(remaining));
+                bytes.extend(std::iter::repeat_n(b'#', remaining));
             }
         }
         bytes.truncate(target_size);
@@ -3117,7 +3177,11 @@ mod tests {
         );
 
         let fixture_bytes = state_md_padded_with_timestamp_bytes(TS_OLD, 70_000);
-        assert_eq!(fixture_bytes.len(), 70_000, "fixture must be exactly 70000 bytes");
+        assert_eq!(
+            fixture_bytes.len(),
+            70_000,
+            "fixture must be exactly 70000 bytes"
+        );
 
         let warn_log = Arc::new(Mutex::new(Vec::new()));
         let callbacks = make_callbacks_with_raw_bytes(fixture_bytes, warn_log.clone());
@@ -3172,7 +3236,11 @@ mod tests {
         );
 
         let fixture_bytes = state_md_padded_with_timestamp_bytes(TS_OLD, 70_000);
-        assert_eq!(fixture_bytes.len(), 70_000, "fixture must be exactly 70000 bytes");
+        assert_eq!(
+            fixture_bytes.len(),
+            70_000,
+            "fixture must be exactly 70000 bytes"
+        );
 
         let warn_log = Arc::new(Mutex::new(Vec::new()));
         let callbacks = make_callbacks_with_raw_bytes(fixture_bytes, warn_log.clone());
@@ -3377,7 +3445,11 @@ mod tests {
         // RED (after Task 9): warn not yet emitted → assertion fails until Task 11.
         {
             let fixture = state_md_padded_with_timestamp_bytes(TS_OLD, 210_000);
-            assert_eq!(fixture.len(), 210_000, "T-007 A: fixture must be exactly 210000 bytes");
+            assert_eq!(
+                fixture.len(),
+                210_000,
+                "T-007 A: fixture must be exactly 210000 bytes"
+            );
             let warn_log = Arc::new(Mutex::new(Vec::new()));
             let callbacks = make_callbacks_with_raw_bytes(fixture, warn_log.clone());
             let proposed_advanced = state_md_no_lock(TS_NEW);
@@ -3401,7 +3473,11 @@ mod tests {
         // bytes_read = 150000 ≤ 200000 threshold → warn must NOT fire.
         {
             let fixture = state_md_padded_with_timestamp_bytes(TS_OLD, 150_000);
-            assert_eq!(fixture.len(), 150_000, "T-007 B: fixture must be exactly 150000 bytes");
+            assert_eq!(
+                fixture.len(),
+                150_000,
+                "T-007 B: fixture must be exactly 150000 bytes"
+            );
             let warn_log = Arc::new(Mutex::new(Vec::new()));
             let callbacks = make_callbacks_with_raw_bytes(fixture, warn_log.clone());
             let proposed_advanced = state_md_no_lock(TS_NEW);
@@ -3424,7 +3500,11 @@ mod tests {
         // bytes_read = 200000 is NOT strictly > 200000 → warn must NOT fire.
         {
             let fixture = state_md_padded_with_timestamp_bytes(TS_OLD, 200_000);
-            assert_eq!(fixture.len(), 200_000, "T-007 C: fixture must be exactly 200000 bytes");
+            assert_eq!(
+                fixture.len(),
+                200_000,
+                "T-007 C: fixture must be exactly 200000 bytes"
+            );
             let warn_log = Arc::new(Mutex::new(Vec::new()));
             let callbacks = make_callbacks_with_raw_bytes(fixture, warn_log.clone());
             let proposed_advanced = state_md_no_lock(TS_NEW);
@@ -3449,7 +3529,11 @@ mod tests {
         // RED (after Task 9): warn not yet emitted → fails until Task 11.
         {
             let fixture = state_md_padded_with_timestamp_bytes(TS_OLD, 262_144);
-            assert_eq!(fixture.len(), 262_144, "T-007 D: fixture must be exactly 262144 bytes");
+            assert_eq!(
+                fixture.len(),
+                262_144,
+                "T-007 D: fixture must be exactly 262144 bytes"
+            );
             let warn_log = Arc::new(Mutex::new(Vec::new()));
             let callbacks = make_callbacks_with_raw_bytes(fixture, warn_log.clone());
             let proposed_advanced = state_md_no_lock(TS_NEW);
@@ -3475,8 +3559,7 @@ mod tests {
             // Warn must be emitted at the inclusive cap boundary.
             assert!(
                 warns.iter().any(|w| {
-                    w.contains("state_md_approaching_cap")
-                        && w.contains("cap_bytes=262144")
+                    w.contains("state_md_approaching_cap") && w.contains("cap_bytes=262144")
                 }),
                 "T-007 D (AC-005): 262144-byte fixture must emit state_md_approaching_cap warn \
                  (inclusive upper bound: bytes_read=262144 ≤ cap=262144). Got: {:?}",
