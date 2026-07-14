@@ -248,9 +248,9 @@ stories:
   - id: S-15.03
     status: draft
   - id: S-19.04
-    status: ready
+    status: merged
   - id: S-19.05
-    status: ready
+    status: merged
   - id: S-19.08
     status: draft
   - id: S-4.11

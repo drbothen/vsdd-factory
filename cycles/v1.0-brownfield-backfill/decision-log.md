@@ -10414,3 +10414,19 @@ D-840-SESSION-WRAP-PAUSED
 ### Date
 
 2026-07-14
+
+---
+
+## D-841
+
+### Summary
+
+POST-W2-MERGE burst. Both W2 story PRs merged by human on 2026-07-14. (1) POLICY 16 GLOBAL-MAX GATE: `## D-840` confirmed max in decision-log.md (line 10404 via `grep -n "^## D-" decision-log.md | tail -1`) → D-841 allocated. (2) SPRINT-STATE: S-19.04 status ready→merged; S-19.05 status ready→merged. (3) STORY-INDEX v4.186→v4.187: S-19.04 row merged + MERGED PR #639 d4a23a02 2026-07-14T14:39:00Z cite; S-19.05 row merged + MERGED PR #640 7b35c8e4 2026-07-14T14:39:33Z cite. (4) POL-14 S-19.04: N/A (behavioral_contracts: []). (5) POL-14 S-19.05: BC-3.08.001 PASS-ALREADY-ACTIVE (promoted to active v1.23 at D-839; no BC file or BC-INDEX changes required). (6) STATE.md v5.87→v5.88: banner merged_count 101→103; develop HEAD 091ce499→7b35c8e4; Active Branches factory-artifacts updated; D-841 Phase Progress row; D-841 Decisions Log row; Session Resume Checkpoint refreshed; 4-index cite STORY-INDEX v4.186→v4.187 (BC/VP/ARCH unchanged). (7) sidecar-learning.md unstaged modification (human-approved) included in burst. (8) develop HEAD post-merge: 7b35c8e4 (S-19.05 squash-merge). parent-commit: 4400026a (D-840 SHA-patch factory-artifacts HEAD).
+
+### Phase
+
+D-841-POST-W2-MERGE
+
+### Date
+
+2026-07-14
