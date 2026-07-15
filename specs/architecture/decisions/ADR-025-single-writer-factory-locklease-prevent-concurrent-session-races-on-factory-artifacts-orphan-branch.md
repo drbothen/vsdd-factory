@@ -1186,6 +1186,166 @@ unchanged.
 
 **Cites:** VP-101, VP-095, S-19.01, S-19.03.
 
+### Decision 16 — Host ABI `read_prefix` production path registration gap
+
+`read_prefix` is registered in `setup_linker` (`Linker<HostContext>`, the unit-test
+invocation path, `crates/factory-dispatcher/src/host/mod.rs`) but is **absent from
+`setup_host_on_store_data`** (`Linker<StoreData>`, the production dispatch path,
+`crates/factory-dispatcher/src/invoke.rs`).
+
+**SDK-grounding evidence (literal grep, 2026-07-15):**
+
+```
+$ grep -n "read_prefix" crates/factory-dispatcher/src/invoke.rs
+(no output — 0 hits confirmed)
+```
+
+`proxy_host_imports` in `invoke.rs` ignores the `_host_linker_reference` argument and
+calls `setup_host_on_store_data` directly. The `host/mod.rs::setup_linker` registration
+of `read_prefix` (added S-19.06) does not propagate to `setup_host_on_store_data`, which
+was not updated in S-19.06. Any plugin compiled with a `vsdd::read_prefix` import will
+fail at plugin instantiation time on the production dispatch path with a wasmtime link
+error (missing import). No operator-visible `read_prefix` call is currently functional.
+
+**Decision:** add `read_prefix` to `setup_host_on_store_data` in
+`crates/factory-dispatcher/src/invoke.rs`. The production implementation MUST follow the
+memory-grow protocol established for `read_file` in the same function: grow WASM linear
+memory by `ceil(body_len / 65536)` pages, write body at `current_bytes` (the prior memory
+end, always `> 0` for non-empty body), and return the real write offset via `out_ptr_out`.
+Capability enforcement gates on `ctx.capabilities.read_prefix.path_allow`.
+For an empty body (file exists, zero bytes) the implementation writes `ptr=0, len=0` —
+the same as the `read_file` production path for empty files — which the hook-sdk
+`read_owned_bytes` ptr==0 guard handles correctly.
+
+**HOST_ABI_VERSION:** remains `1`. This is a production-path implementation fill for a
+function that Decision 15 already allocated; no ABI wire shape changes.
+
+**Deliverable:** D19. **Cites:** Decision 15, S-19.06.
+
+### Decision 17 — Host ABI two-linker `out_ptr=0` protocol boundary
+
+The factory dispatcher has two distinct linker and invocation paths that share the
+`vsdd::read_file` (and `vsdd::read_prefix`) import name but differ in their
+memory-write protocol:
+
+**Test path** (`Linker<HostContext>`, built by `setup_linker` in `host/mod.rs`):
+`host/read_file.rs::register()` uses `write_wasm_bytes(&mut caller, out_ptr, ...)` where
+`out_ptr` is the value returned by `read_file::prepare()`, which returns `Ok((bytes, 0))`
+— always 0. Data is written to WASM address 0; `out_ptr_out` is set to 0. The hook-sdk
+`read_owned_bytes(0, ...)` triggers the `if ptr == 0 || len == 0` guard and returns
+`Vec::new()`. This path is for dispatcher-internal unit tests; it is not the production
+dispatch path.
+
+**Production path** (`Linker<StoreData>`, built by `setup_host_on_store_data` in
+`invoke.rs`): the `read_file` implementation grows WASM linear memory, writes body at
+`current_bytes` (the prior memory end, always `> 0` after growth for non-empty files),
+and returns the real address via `out_ptr_out`. For non-empty files, `out_ptr_out` is
+always `> 0` and `read_owned_bytes` reads data correctly.
+
+**SDK-grounding evidence (literal grep, 2026-07-15):**
+
+```
+$ grep -n "proxy_host_imports\|_host_linker_reference" crates/factory-dispatcher/src/invoke.rs | head -4
+(proxy_host_imports ignores _host_linker_reference and calls setup_host_on_store_data)
+
+$ grep -n "if ptr == 0 || len == 0" crates/hook-sdk/src/host.rs
+(null-pointer guard confirmed in read_owned_bytes)
+```
+
+The SEC-001 CRITICAL finding in the S-19.06 PR review correctly identified the test-path
+`out_ptr=0` behavior. The accepted-with-record status is appropriate: the test-path write
+at address 0 is intentional for unit-test use; the production path always returns a real
+non-zero address for non-empty files. This two-path duality is architectural design, not
+a defect.
+
+**Documentation fix required (Deliverable D20, partial):** the comment in `read_file.rs`
+on the `prepare()` return form is potentially misleading to implementers who might conflate
+the two paths. D20 corrects the comment to distinguish the test-path constant-0 return
+from the production-path memory-grow protocol.
+
+**HOST_ABI_VERSION:** unchanged. No behavioral change; documentation only.
+**Deliverable:** D20 (partial). **Cites:** S-19.06 SEC-001.
+
+### Decision 18 — `timeout_ms` non-enforcement protocol boundary
+
+`read_file` and `read_prefix` accept a `timeout_ms: u32` parameter per their 6-parameter
+wire ABI (BC-2.02.002 mandatory-timeout-ms discipline) but drop it:
+
+```rust
+let _ = timeout_ms; // accepted for ABI stability; enforced via epoch interruption
+```
+
+The comment "enforced via epoch interruption" is technically incorrect and is retracted by
+this decision. Epoch interruption (`EpochTicker` in `engine.rs`) fires at WASM yield
+points — bytecode-level control-flow transfers within the guest module. A synchronous
+`func_wrap` host closure executes on the dispatcher thread in native Rust; no WASM yield
+point exists during its execution. Once `std::fs::File::open` or `read_to_end` begins
+inside the closure, no epoch tick can interrupt it.
+
+The per-plugin store-level deadline (`store.set_epoch_deadline(timeout_ms_to_epochs(
+limits.timeout_ms))` in `invoke_plugin`) provides a coarse plugin-level time budget that
+fires when the WASM guest next executes a yield point after the host function returns. It
+does not enforce per-host-function `timeout_ms`.
+
+**Decision:** `timeout_ms` in `read_file` and `read_prefix` is ABI-forward-reserved — the
+parameter slot exists for a potential future architecture using async host functions
+(which could be interrupted at await points). The current synchronous `func_wrap`
+implementation drops it. This is a known and accepted protocol limitation.
+
+**SEC-003 severity (CWE-833):** a plugin calling `read_file` or `read_prefix` on a path
+that blocks indefinitely (e.g., a FIFO with no writer, an unresponsive NFS mount) holds
+the dispatcher thread permanently, preventing subsequent plugin dispatches for that
+session. This is classified LOW severity because:
+
+1. `path_allow` contents are operator-configured, not user-controlled. Normal local-SSD
+   paths never block.
+2. An operator who places FIFOs or NFS mounts in `path_allow` accepts the associated
+   risk; this is a configuration choice, not an exploitable condition.
+3. No external user input can influence `path_allow` contents at runtime.
+
+The SEC-003 LOW classification from the S-19.06 PR review is confirmed. No escalation
+to MEDIUM or CRITICAL is warranted.
+
+**Deliverable D20** corrects the misleading comment in both
+`crates/factory-dispatcher/src/host/read_file.rs` and
+`crates/factory-dispatcher/src/host/read_prefix.rs`. The corrected form: "accepted for
+ABI forward-compatibility; per-host-function timeout is structurally unenforced in the
+current synchronous func_wrap dispatch path; the store-level epoch deadline governs
+coarse plugin-level time."
+
+**HOST_ABI_VERSION:** unchanged. No behavioral change; documentation correction only.
+**Deliverable:** D20. **Cites:** S-19.06 EC-006, SEC-003.
+
+### Decision 19 — INVALID_ARGUMENT (-4) absent from `read_prefix` capability schema table
+
+`codes::INVALID_ARGUMENT = -4` is returned by host functions only when guest-side
+marshalling fails: a path argument that is not valid UTF-8, or a guest `out_ptr_out` /
+`out_len_out` pointer that resolves outside the WASM memory bounds. Well-formed SDK
+calls (`crates/hook-sdk/src/host.rs`) construct paths from Rust `&str` (always valid
+UTF-8) and pass stack-allocated `u32` output slots (always in WASM memory bounds).
+Plugin authors using the hook-sdk cannot trigger -4 through correct usage.
+
+`-4` is not listed in the `read_file` capability schema in `hooks-registry.toml` or in
+`crates/hook-sdk/src/ffi.rs`. The `read_prefix` preamble added in S-19.06 (AC-007) also
+omits `-4`. This is consistent treatment across both host read functions.
+
+**SDK-grounding evidence (literal grep, 2026-07-15):**
+
+```
+$ grep -n "INVALID_ARGUMENT" crates/factory-dispatcher/src/host/mod.rs | head -3
+(INVALID_ARGUMENT = -4 named constant confirmed in codes module; comment confirms -5
+is next free after -4, per Decision 13)
+```
+
+**Decision:** do NOT add `INVALID_ARGUMENT (-4)` to the `[hooks.capabilities.read_prefix]`
+error code table in `hooks-registry.toml`. The preamble documents operator-visible
+outcomes — codes that plugin logic should handle. `-4` is a dispatcher-internal
+marshalling code unreachable via correct SDK usage. Adding it would mislead operators
+into treating it as a recoverable runtime condition requiring explicit handling.
+The current preamble table (0, -1, -2, -5, -99) is complete and correct.
+
+No deliverable required. **Cites:** S-19.06 EC-006, `host/mod.rs::codes` module.
+
 ## Concrete Deliverables
 
 The following artifacts are required to implement this ADR. Story decomposition MUST
@@ -1211,6 +1371,10 @@ trace to each entry:
 | D16 | `verify-state-timestamp-refresh` WASM plugin + registry entry + priority amendment to `verify-factory-lock` entry | `crates/hook-plugins/verify-state-timestamp-refresh/` → `plugins/vsdd-factory/hook-plugins/verify-state-timestamp-refresh.wasm`; registry entry in `plugins/vsdd-factory/hooks-registry.toml`; also add `priority = 142` to existing `verify-factory-lock` entry | New PreToolUse guard. See Decision 12 for full spec. Crate pattern identical to `verify-factory-lock`: `[lib]` with pure `guard_logic(payload, callbacks)` injectable for unit tests + `[[bin]]` WASI entry point. Uses `factory-lock-parse` for `parse_factory_lock` and `extract_yaml_string_value`. Registry entry: `event = "PreToolUse"`, `tool = "Edit\|Write\|MultiEdit"`, `async = false` (REQUIRED per ADR-019), `on_error = "continue"`, `priority = 143`, `timeout_ms = 5000`. Capability block: `[hooks.capabilities.read_file]` with `path_allow = [".factory/STATE.md"]` ONLY — NO `max_bytes`/`timeout_ms` (ReadFileCaps is `#[serde(deny_unknown_fields)]` with only `path_allow: Vec<String>`; extra fields break registry load). No `exec_subprocess` capability needed. `max_bytes` and `timeout_ms` values are passed as arguments in the WASM plugin source code at `host::read_file` call sites, not in TOML. |
 | D17 | Rust `#[test]` unit coverage + bats integration tests for `verify-state-timestamp-refresh` | `crates/hook-plugins/verify-state-timestamp-refresh/src/lib.rs`; `plugins/vsdd-factory/tests/verify-state-timestamp-refresh.bats` | Table-driven unit tests via injectable callbacks (matching `verify-factory-lock` test pattern). MUST cover: (a) Write payload, lock held, `factory_lock.expires_at` unchanged → Block LockExpiryStale; (b) Write payload, lock held, `expires_at` advanced → Continue; (c) Write payload, no lock held, `timestamp:` unchanged → Block TimestampStale; (d) Write payload, no lock held, `timestamp:` advanced → Continue; (e) Write payload, proposed content frontmatter unparseable → Continue (fail-open); (f) on-disk `host::read_file` fails (any HostError) → Continue (fail-open); (g) `file_path` not STATE.md (after normalization) → Continue immediately (no read_file called); (h) `timestamp:` absent in on-disk content → Continue; (i) `timestamp:` absent in proposed content → Block TimestampStale; (j) Edit payload, `old_string` found, reconstructed full content has stale `timestamp:` → Block TimestampStale; (k) Edit payload, `old_string` found, reconstructed full content has advanced `timestamp:` → Continue; (l) Edit payload, `old_string` NOT found in on-disk content → Continue (fail-open); (m) Edit payload with `replace_all=true`, all occurrences replaced, reconstructed content has advanced `timestamp:` → Continue; (n) MultiEdit payload, all edits apply, reconstructed content has stale `timestamp:` → Block TimestampStale; (o) MultiEdit payload, first edit's `old_string` not found → Continue (fail-open); (p) quoted `timestamp:` value normalization — on-disk unquoted, proposed quoted but different value → Continue (no false positive); (q) quoted `timestamp:` value normalization — both sides same quoted value → Block TimestampStale; (r) canonical-path normalization — `file_path = "./.factory/STATE.md"` (leading `./`) → triggers guard after strip (same as unadorned path); (s) absolute-path trigger — `file_path = "/Users/alice/project/.factory/STATE.md"` → triggers guard via `ends_with("/.factory/STATE.md")` (WASM-correct; no env var required); NOTE: `std::env::var("CLAUDE_PROJECT_DIR")` MUST NOT appear in the implementation — always returns Err in WASM sandbox. Bats integration tests MUST cover: Write happy path (advanced timestamp → exit 0), Write stale path (unchanged timestamp → exit 2 with `BLOCKED by verify-state-timestamp-refresh` canonical message), Edit happy path (reconstructed content has advanced timestamp → exit 0), non-STATE.md path (`file_path = ".factory/OTHER.md"` → exit 0 without read_file), AND (e2e-abs) absolute `file_path` = `"/abs/project/.factory/STATE.md"` with stale timestamp through actual wasmtime runtime → exit 2 (validates suffix/equality rule in WASM context, not just native binary). |
 | D18 | `host::read_prefix` host function | `crates/factory-dispatcher/src/host/read_prefix.rs` (new dispatcher host fn); `crates/hook-sdk/src/host.rs` (new safe wrapper); `crates/hook-sdk/src/ffi.rs` (new raw wire-ABI extern; wasm32 block + host_stubs) | Additive host function per Decision 15. Signature: `read_prefix(path: &str, max_bytes: u32, timeout_ms: u32) -> i32`. Contract: never returns `OUTPUT_TOO_LARGE`; truncates output to `max_bytes` bytes and returns truncated byte count. Returns `NOT_FOUND (-5)` for absent path (per Decision 13); `CAPABILITY_DENIED (-1)` for path not in `read_prefix.path_allow`; `INTERNAL_ERROR (-99)` for I/O fault. Requires a separate `[hooks.capabilities.read_prefix]` capability block per Decision 15 and BC-1.17.001 Invariant 3; absence returns `CAPABILITY_DENIED (-1)` before filesystem access. HOST_ABI_VERSION = 1 unchanged. Bats unit tests MUST cover: (a) prefix ≤ file_length → byte-exact prefix content returned, exit 0; (b) prefix > file_length → entire file content returned without error, exit 0; (c) absent path → FFI return NOT_FOUND (-5); plugin process exits 0 (Continue); (d) path outside `read_prefix.path_allow` → FFI return CAPABILITY_DENIED (-1); plugin process exits 0 (Continue); (e) `verify-factory-lock` plugin replaces `read_file` call with `read_prefix` (max_bytes=8192 per BC-4.13.001 Phase-B) and STATE.md frontmatter is parsed correctly from the 8192-byte prefix even when the full file approaches the 262144-byte Phase-A cap (fixture body padded past 8192). |
+| D19 | `read_prefix` registration in `setup_host_on_store_data` | `crates/factory-dispatcher/src/invoke.rs` | Per Decision 16. Add `read_prefix` host function binding to `setup_host_on_store_data` following the `read_file` memory-grow protocol in the same function: (1) parse capability block `ctx.capabilities.read_prefix.path_allow`; (2) run capability + path checks (same deny-by-default sequence as `read_file`); (3) call `host::read_prefix::prepare(&ctx, &path, max_bytes)` for the actual bounded read; (4) if body is empty write `ptr=0, len=0` and return `codes::OK`; (5) grow WASM memory by `ceil(body.len() / 65536)` pages, write body at `current_bytes` (always `> 0`), write real address to `out_ptr_out` and length to `out_len_out`. Must also pass through correct `CAPABILITY_DENIED`, `NOT_FOUND`, and `INVALID_ARGUMENT` error-code returns matching the `read_file` production implementation. HOST_ABI_VERSION = 1 unchanged. Cargo test MUST verify: (a) `vsdd::read_prefix` import resolves at plugin instantiation (no wasmtime link error); (b) a round-trip read via `setup_host_on_store_data` returns the correct bytes and a non-zero `out_ptr`; (c) capability absence returns `CAPABILITY_DENIED (-1)`. |
+| D20 | `timeout_ms` and `out_ptr=0` doc comment corrections | `crates/factory-dispatcher/src/host/read_file.rs`; `crates/factory-dispatcher/src/host/read_prefix.rs` | Per Decisions 17 and 18. (a) In both `read_file.rs` and `read_prefix.rs`, replace the comment `// accepted for ABI stability; enforced via epoch interruption` (or equivalent) with: `// accepted for ABI forward-compatibility; per-host-function timeout is structurally unenforced in the current synchronous func_wrap dispatch path; the store-level epoch deadline governs coarse plugin-level time`. (b) In `read_file.rs`, add a comment distinguishing the `prepare()` return convention used by the test-path `register()` (always returns `out_ptr=0`) from the production memory-grow protocol in `invoke.rs::setup_host_on_store_data` (writes at `current_bytes > 0`). No behavioral changes; documentation corrections only. |
+| D21 | Telemetry named-constant promotion — F-WG-002 | `crates/factory-dispatcher/src/internal_log.rs`; `crates/factory-dispatcher/src/host/read_file.rs`; `crates/factory-dispatcher/src/host/read_prefix.rs`; `crates/factory-dispatcher/src/host/emit_event.rs` | Per F-WG-002. Add `pub const INTERNAL_FILE_NOT_FOUND: &str = "internal.file_not_found";` and `pub const PLUGIN_ABANDONED: &str = "plugin.abandoned";` to `internal_log.rs`. Sweep all call sites in `read_file.rs`, `read_prefix.rs`, and `emit_event.rs` that use the bare string literals and replace with the named constants. Existing test assertions that match on the event type string `"internal.file_not_found"` or `"plugin.abandoned"` MUST continue to pass unmodified (the constant value does not change, only the reference form). |
+| D22 | `plugin.completed` async `timestamp` field — F-WG-003 | `crates/factory-dispatcher/src/host/emit_event.rs` | Per F-WG-003. In `emit_plugin_completed_async`, add `.with_field("timestamp", ts.as_str())` before the final `ctx.emit_internal(ev)` call, mirroring all sibling event emitters (`emit_plugin_abandoned`, `emit_plugin_timeout_async`, and others in the file). The `ts` variable pattern matches existing code in the same file — capture `let ts = ...` in the same form. Cargo test MUST verify that the emitted `plugin.completed` event contains a `timestamp` field with a non-empty string value matching the BC-3.08.001 wire format. |
 
 ## Rationale
 
@@ -1714,3 +1878,28 @@ canonical registry form specifies MUST route an architect ADR amendment in the s
   Changelog rows not in scope). TOML snippet byte-match with live hooks-registry.toml lines
   1260–1261 confirmed: `[hooks.capabilities.read_file]` / `path_allow = [".factory/STATE.md"]`
   is identical. ADR-030 pointer sweep: 0 hits (no matching pattern). Architect: E-19, issue #170.
+
+- **v1.16 (2026-07-15):** post-E-19 host ABI adjudication (human-authorized 2026-07-15).
+  Decision 16: `read_prefix` absent from `setup_host_on_store_data` (production dispatch
+  path, `invoke.rs`); confirmed via `grep -n "read_prefix" crates/factory-dispatcher/src/invoke.rs`
+  returning 0 hits; D19 added requiring implementer to register `read_prefix` in
+  `setup_host_on_store_data` following the `read_file` memory-grow protocol.
+  Decision 17: two-linker `out_ptr=0` protocol boundary documented — test path
+  (`Linker<HostContext>`, `host/read_file.rs::register`) writes at WASM addr 0 and
+  returns `ptr=0`; production path (`Linker<StoreData>`, `invoke.rs::setup_host_on_store_data`)
+  grows memory and writes at `current_bytes > 0`; SEC-001 CRITICAL accepted-with-record
+  status confirmed appropriate; D20 (partial) corrects misleading comment in `read_file.rs`.
+  Decision 18: `timeout_ms` non-enforcement framing corrected — epoch interruption fires
+  at WASM yield points only and cannot preempt blocking `func_wrap` host calls;
+  "enforced via epoch interruption" comment in `read_file.rs` and `read_prefix.rs`
+  retracted; `timeout_ms` is ABI-forward-reserved; SEC-003 CWE-833 LOW severity confirmed;
+  D20 corrects both comments.
+  Decision 19: INVALID_ARGUMENT (-4) not added to `[hooks.capabilities.read_prefix]`
+  schema preamble in `hooks-registry.toml`; current table (0,-1,-2,-5,-99) confirmed
+  complete and correct.
+  F-WG-002: D21 added — `INTERNAL_FILE_NOT_FOUND` and `PLUGIN_ABANDONED` named constants
+  added to `internal_log.rs`; bare literal sweep in `read_file.rs`, `read_prefix.rs`,
+  `emit_event.rs`.
+  F-WG-003: D22 added — `plugin.completed` async path gains `timestamp` field in
+  `emit_plugin_completed_async` matching all sibling event emitters.
+  Deliverables D19–D22 added. No HOST_ABI_VERSION change. Architect: post-E-19, issue #170.
