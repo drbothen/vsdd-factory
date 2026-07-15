@@ -35,6 +35,7 @@ pub mod log;
 pub mod memory;
 pub mod path_util;
 pub mod read_file;
+pub mod read_prefix;
 pub mod write_file;
 
 /// Per-invocation state available to every host function. Lives in the
@@ -192,6 +193,7 @@ pub fn setup_linker(engine: &Engine) -> Result<Linker<HostContext>, HostCallErro
     log::register(&mut linker)?;
     emit_event::register(&mut linker)?;
     read_file::register(&mut linker)?;
+    read_prefix::register(&mut linker)?;
     write_file::register(&mut linker)?;
     exec_subprocess::register(&mut linker)?;
     env::register(&mut linker)?;
