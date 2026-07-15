@@ -66,6 +66,8 @@ stories:
     status: merged
   - id: S-19.05
     status: merged
+  - id: S-19.08
+    status: merged
   - id: S-5.05
     status: merged
   - id: S-6.01
@@ -231,8 +233,6 @@ stories:
   - id: S-5.04
     status: merged
   - id: S-5.06
-    status: merged
-  - id: S-19.08
     status: merged
   # --- non-terminal (depth-ascending, lex tie-break within depth; def-b full-graph wave-depth) ---
   - id: S-10.01
