@@ -1,0 +1,28 @@
+# AC-004 — Capability independence (deny-by-default + read_file cap does not grant read_prefix)
+# Story S-19.06 — branch feature/S-19.06 HEAD 7156a4c3
+# BC-1.17.001 PC-4 + Invariant 3
+#
+# Tests: T-005 (no capabilities.read_prefix block → CAPABILITY_DENIED (-1))
+#        T-006 (capabilities.read_file only, no read_prefix → CAPABILITY_DENIED (-1))
+#        T-013a (no capability block + max_bytes=0 → still CAPABILITY_DENIED (-1);
+#                deny-by-default fires before the max_bytes=0 short-circuit)
+#
+# T-013a is the deny-by-default max0 variant. It verifies that the capability
+# check fires first (step 1), before the max_bytes=0 short-circuit (step 3),
+# even when max_bytes=0. This locks the step-ordering invariant.
+
+# ── cargo test run ──────────────────────────────────────────────────────────
+$ cargo test -p factory-dispatcher --lib -- \
+  host::read_prefix::tests::test_S19_06_T005 \
+  host::read_prefix::tests::test_S19_06_T006 \
+  host::read_prefix::tests::test_S19_06_T013a
+
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.38s
+     Running unittests src/lib.rs (target/debug/deps/factory_dispatcher-cdf061c0a73efe1d)
+
+running 3 tests
+test host::read_prefix::tests::test_S19_06_T006_read_file_cap_only_returns_capability_denied ... ok
+test host::read_prefix::tests::test_S19_06_T005_no_capability_block_returns_capability_denied ... ok
+test host::read_prefix::tests::test_S19_06_T013a_no_capability_max_bytes_zero_returns_capability_denied ... ok
+
+test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 191 filtered out; finished in 0.00s

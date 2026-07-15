@@ -1,0 +1,40 @@
+# AC-007 — Two-layer hook-sdk + dispatcher registration + wasm32-wasip1 fixture build
+# Story S-19.06 — branch feature/S-19.06 HEAD 7156a4c3
+# BC-1.17.001 v1.6 §(a) layering parenthetical + §Architecture Anchors + Invariant 2
+#
+# Full bats read-prefix-wasm.bats run — T-009a..T-009h (8 tests)
+#
+# Gate 1 (T-009a): safe wrapper `pub fn read_prefix(path: &str, max_bytes: u32,
+#   timeout_ms: u32) -> Result<Vec<u8>, HostError>` in crates/hook-sdk/src/host.rs.
+#   Asserts FULL signature including return type (rejects -> i32 wire ABI in wrapper).
+#
+# Gate 2 (T-009b/T-009c/T-009d): raw wire-ABI extern in crates/hook-sdk/src/ffi.rs:
+#   (i) pub safe fn read_prefix( with path_len + out_ptr_out 6-param shape
+#   (ii) #[link(wasm_import_module = "vsdd")] attribute present
+#   (iii) fn read_prefix present in BOTH wasm32 extern block AND host_stubs block
+#
+# Gate 3 (T-009e): read_prefix::register present in factory-dispatcher/src/host/mod.rs
+#   dispatch table (additive entry; no existing entries modified).
+#
+# Gate 4 (T-009f): fixture crate crates/hook-plugins/read-prefix-fixture/ compiles
+#   and links for wasm32-wasip1 target (cargo build -p read-prefix-fixture
+#   --target wasm32-wasip1 exits 0). This is the AC-007 FFI boundary proof.
+#
+# T-009g (also AC-003 static gate): OUTPUT_TOO_LARGE absent from non-comment
+#   production code of read_prefix.rs (awk/sed/grep pipeline; exits 0 = absent).
+#
+# T-009h (POLICY 20): read-prefix-fixture excluded in all wasm32-wasip1 --workspace
+#   builds and staging loops (presence of exclusion flags in CI/release YAMLs).
+
+# ── bats run ────────────────────────────────────────────────────────────────
+$ cd plugins/vsdd-factory/tests && bats read-prefix-wasm.bats -t
+
+1..8
+ok 1 T-009a AC-007 Gate 1: safe wrapper pub fn read_prefix signature in hook-sdk/src/host.rs
+ok 2 T-009b AC-007 Gate 2(i): raw extern pub safe fn read_prefix in hook-sdk/src/ffi.rs
+ok 3 T-009c AC-007 Gate 2(ii): #[link(wasm_import_module = "vsdd")] attribute in ffi.rs
+ok 4 T-009d AC-007 Gate 2(iii): read_prefix in wasm32 extern block AND host_stubs in ffi.rs
+ok 5 T-009e AC-007 Gate 3: read_prefix::register in factory-dispatcher/src/host/mod.rs
+ok 6 T-009f AC-007 Gate 4: fixture WASM read-prefix-fixture builds for wasm32-wasip1
+ok 7 T-009g AC-003 static gate: OUTPUT_TOO_LARGE absent from non-comment production code in read_prefix.rs
+ok 8 T-009h POLICY 20 exclusion presence-gate: read-prefix-fixture excluded in all wasm32-wasip1 --workspace builds and staging loops

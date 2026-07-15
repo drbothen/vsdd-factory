@@ -72,6 +72,31 @@ unsafe extern "C" {
         max_bytes: u32,
         timeout_ms: u32,
     ) -> i32;
+
+    /// Raw wire-ABI for `host::read_prefix` (BC-1.17.001 v1.6, S-19.06).
+    ///
+    /// 6-parameter pointer/length shape mirrors `ffi::read_file` exactly
+    /// (BC-1.17.001 v1.6 §(a) layering parenthetical: the `-> i32` return
+    /// belongs to this raw wire-ABI extern; the SDK safe wrapper in
+    /// `crate::host::read_prefix` returns `Result<Vec<u8>, HostError>`).
+    ///
+    /// Parameters:
+    ///   - `(path_ptr, path_len)` — UTF-8 path bytes
+    ///   - `max_bytes` — hard byte cap; NEVER returns OUTPUT_TOO_LARGE
+    ///   - `timeout_ms` — epoch timeout budget
+    ///   - `(out_ptr_out, out_len_out)` — output pointer/length out-params
+    ///
+    /// Returns `0` on success or a negative error code (CAPABILITY_DENIED=-1,
+    /// TIMEOUT=-2, NOT_FOUND=-5, INTERNAL_ERROR=-99). OUTPUT_TOO_LARGE (-3)
+    /// is NEVER returned.
+    pub safe fn read_prefix(
+        path_ptr: *const u8,
+        path_len: u32,
+        max_bytes: u32,
+        timeout_ms: u32,
+        out_ptr_out: *mut u32,
+        out_len_out: *mut u32,
+    ) -> i32;
 }
 
 // Host-side stubs so `cargo test` and `cargo check` work on non-wasm
@@ -148,6 +173,21 @@ pub mod host_stubs {
         _contents_len: u32,
         _max_bytes: u32,
         _timeout_ms: u32,
+    ) -> i32 {
+        -1
+    }
+
+    /// Non-wasm stub for `read_prefix` (BC-1.17.001, S-19.06).
+    /// 6-parameter pointer/length shape mirrors `ffi::read_file` exactly.
+    /// Returns -1 (CAPABILITY_DENIED) — no dispatcher is present on non-wasm
+    /// targets, so the capability gate fires before any filesystem access.
+    pub fn read_prefix(
+        _path_ptr: *const u8,
+        _path_len: u32,
+        _max_bytes: u32,
+        _timeout_ms: u32,
+        _out_ptr_out: *mut u32,
+        _out_len_out: *mut u32,
     ) -> i32 {
         -1
     }

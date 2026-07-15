@@ -220,6 +220,47 @@ pub fn read_file(path: &str, max_bytes: u32, timeout_ms: u32) -> Result<Vec<u8>,
     Ok(read_owned_bytes(out_ptr, out_len))
 }
 
+/// Read at most `max_bytes` bytes from the start of a file (head-c semantics).
+///
+/// This wrapper is the hook-author interface (BC-1.17.001 v1.6 §(a) layering
+/// parenthetical). Returns `Result<Vec<u8>, HostError>` — NOT `-> i32`. The
+/// raw wire-ABI (`-> i32` with 6-parameter ptr/len shape) lives in `ffi::read_prefix`.
+///
+/// Guaranteed never to return `HostError::OutputTooLarge` — by construction,
+/// `max_bytes` IS the cap; data beyond the cap is simply not read.
+/// If the file's total size is less than `max_bytes`, the full file content is
+/// returned with no padding (BC-1.17.001 PC-2).
+///
+/// # Capability requirement
+///
+/// The plugin's registry entry MUST include a `[hooks.capabilities.read_prefix]`
+/// block. Having only `[hooks.capabilities.read_file]` is NOT sufficient —
+/// the two capabilities are independent (BC-1.17.001 Invariant 3).
+///
+/// # BC-1.17.001 v1.6 contract
+///
+/// - `max_bytes = 0` → empty payload, `Ok(Vec::new())` (BC-1.17.001 EC-001).
+/// - Absent allowlisted file → `Err(HostError::NotFound)` (BC-1.17.001 PC-5).
+/// - No capability block → `Err(HostError::CapabilityDenied)` (BC-1.17.001 PC-4).
+/// - `OutputTooLarge` is NEVER returned (BC-1.17.001 PC-3).
+pub fn read_prefix(path: &str, max_bytes: u32, timeout_ms: u32) -> Result<Vec<u8>, HostError> {
+    let path_bytes = path.as_bytes();
+    let mut out_ptr: u32 = 0;
+    let mut out_len: u32 = 0;
+    let code = ffi::read_prefix(
+        path_bytes.as_ptr(),
+        path_bytes.len() as u32,
+        max_bytes,
+        timeout_ms,
+        &mut out_ptr,
+        &mut out_len,
+    );
+    if code < 0 {
+        return Err(HostError::from_code(code));
+    }
+    Ok(read_owned_bytes(out_ptr, out_len))
+}
+
 /// Write a file at the given path through the dispatcher's bounded host function.
 ///
 /// This is the write-side symmetric counterpart to [`read_file`].  Both
