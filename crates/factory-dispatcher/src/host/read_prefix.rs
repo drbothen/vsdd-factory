@@ -621,8 +621,7 @@ mod tests {
             .filter(|e| e.type_ == "internal.file_not_found")
             .count();
         assert_eq!(
-            file_not_found_count,
-            0,
+            file_not_found_count, 0,
             "T-012 EC-001: max_bytes=0 short-circuit must emit ZERO 'internal.file_not_found' \
              events — the existence check (step 4) is never reached. Got {} events. \
              BC-1.17.001 EC-001.",
@@ -634,8 +633,7 @@ mod tests {
             .filter(|e| e.type_ == "internal.capability_denied")
             .count();
         assert_eq!(
-            cap_denied_count,
-            0,
+            cap_denied_count, 0,
             "T-012 EC-001: must emit ZERO 'internal.capability_denied' events — \
              the file is within path_allow and is never read (max_bytes=0 short-circuit). \
              Got {} events. BC-1.17.001 EC-001.",
@@ -671,9 +669,11 @@ mod tests {
             max_bytes: u32,
         ) -> Result<(Vec<u8>, u32), i32> {
             // Step 1: capability check (unchanged)
-            let caps = ctx.capabilities.read_prefix.as_ref().ok_or_else(|| {
-                codes::CAPABILITY_DENIED
-            })?;
+            let caps = ctx
+                .capabilities
+                .read_prefix
+                .as_ref()
+                .ok_or(codes::CAPABILITY_DENIED)?;
             // Step 2: path check (unchanged)
             let resolved = resolve_for_read(std::path::Path::new(path), &ctx.cwd);
             match super::super::path_util::check_path_allowed(
@@ -690,13 +690,11 @@ mod tests {
             match read_prefix_bounded(&resolved, max_bytes as usize) {
                 Ok(bytes) => Ok((bytes, 0)),
                 Err(PrefixReadErr::NotFound) => {
-                    let ev = crate::internal_log::InternalEvent::now(
-                        "internal.file_not_found",
-                    )
-                    .with_trace_id(&ctx.dispatcher_trace_id)
-                    .with_session_id(&ctx.session_id)
-                    .with_plugin_name(&ctx.plugin_name)
-                    .with_plugin_version(&ctx.plugin_version);
+                    let ev = crate::internal_log::InternalEvent::now("internal.file_not_found")
+                        .with_trace_id(&ctx.dispatcher_trace_id)
+                        .with_session_id(&ctx.session_id)
+                        .with_plugin_name(&ctx.plugin_name)
+                        .with_plugin_version(&ctx.plugin_version);
                     ctx.emit_internal(ev);
                     Err(codes::NOT_FOUND)
                 }
@@ -729,8 +727,7 @@ mod tests {
             .filter(|e| e.type_ == "internal.file_not_found")
             .count();
         assert_eq!(
-            file_not_found_count,
-            1,
+            file_not_found_count, 1,
             "T-012 mutation witness: mutant must emit exactly 1 'internal.file_not_found' \
              event (existence check fires before short-circuit). Got {}.",
             file_not_found_count
