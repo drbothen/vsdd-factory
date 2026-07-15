@@ -292,7 +292,7 @@ pub fn emit_registry_invalid_e_reg003(
 /// - BC-1.14.001 postcondition 4 — async group best-effort lifetime
 /// - DI-019 — ASYNC_DRAIN_WINDOW_MS (drain window, not per-plugin timeout)
 pub fn emit_plugin_timeout_async(ctx: &HostContext, plugin_name: &str, timeout_ms: u32) {
-    let ev = InternalEvent::now("plugin.timeout");
+    let ev = InternalEvent::now(crate::internal_log::PLUGIN_TIMEOUT);
     // BC-3.08.001 wire format: mandatory `trace_id` and `timestamp` fields (DI-017).
     // `with_trace_id` now serializes as `"trace_id"` on the wire (BC-3.08.001 v1.7 Invariant 5).
     let ts = ev.ts.clone();
@@ -380,7 +380,7 @@ pub fn emit_plugin_completed_async(
     elapsed_ms: u64,
     fuel_consumed: u64,
 ) {
-    let ev = InternalEvent::now("plugin.completed");
+    let ev = InternalEvent::now(crate::internal_log::PLUGIN_COMPLETED);
     // BC-3.08.001 §Common Fields: mandatory `timestamp` field for all plugin.* events.
     // Capture ts before moving ev into the builder chain (mirrors all sibling emitters
     // in this file: emit_plugin_abandoned, emit_plugin_timeout_async, etc.).
