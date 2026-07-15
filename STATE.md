@@ -132,7 +132,7 @@ dtu_services: []
 |--------------|-----|-------|
 | main | a04cb303 | rc.22 bot binary bundle commit 2026-07-03 (Release 28668124787 post-build; all 33 WASMs rebuilt, plugin.json → 1.0.0-rc.22); prior: e4285fe5 (PR #456 true-merge fix mapfile→while-read; rc.22 tag); prior: 2a4c949b (PR #455 true-merge first rc.22 release; tag later moved); prior: caf06c68 (rc.21) |
 | develop | 9787c056 | PR #657 S-19.06 squash-merge 2026-07-15T14:53:16Z; prior: 1304d280 (PR #646 S-19.08 squash-merge 2026-07-14); prior: 7b35c8e4 (PR #640 S-19.05 squash-merge 2026-07-14) |
-| factory-artifacts | D-844-BURST `[SHA pending]` | D-844-BURST `[SHA pending]` (pushed 2026-07-15; prior: D-843-BURST `b6047107` 2026-07-15); d45c17bb (pr-manager sprint-state fix); D-842-BURST `89dc1438` (2026-07-14 pushed) |
+| factory-artifacts | D-844-BURST `f9493f3b` | D-844-BURST `f9493f3b` (pushed 2026-07-15; prior: D-843-BURST `b6047107` 2026-07-15); d45c17bb (pr-manager sprint-state fix); D-842-BURST `89dc1438` (2026-07-14 pushed) |
 | feature/S-19.06 | **DELETED** (was 7156a4c3) | Merged via PR #657 9787c056 2026-07-15T14:53:16Z (D-843); branch deleted at merge |
 | feature/S-19.05 | **DELETED** (was 28f28465) | Merged via PR #640 7b35c8e4 2026-07-14 (D-841); branch deleted at merge |
 | feature/S-19.04 | **DELETED** (was 82aeb073) | Merged via PR #639 d4a23a02 2026-07-14 (D-841); branch deleted at merge |
@@ -417,4 +417,4 @@ BC-INDEX v4.05 (BC-1.17.001 v1.7 cell D-843; POL-14 PROMOTED). STORY-INDEX v4.19
 
 4-index verification gate (literal-shell): `grep "^version:" .factory/specs/behavioral-contracts/BC-INDEX.md .factory/specs/verification-properties/VP-INDEX.md .factory/stories/STORY-INDEX.md .factory/specs/architecture/ARCH-INDEX.md` → BC-INDEX: "4.05" / VP-INDEX: "2.68" / STORY-INDEX: "4.193" / ARCH-INDEX: "3.01".
 
-Critical SHAs: develop `9787c056` (origin; S-19.06 squash-merge PR #657); main `a04cb303`; factory-artifacts HEAD = D-844 burst `[SHA pending]` (pushed 2026-07-15; prior: D-843 b6047107). v1.0.0-rc.22 at `e4285fe5`. GitHub origin: `drbothen/vsdd-factory`. total_bcs 1,977. merged_count 105.
+Critical SHAs: develop `9787c056` (origin; S-19.06 squash-merge PR #657); main `a04cb303`; factory-artifacts HEAD = D-844 burst `f9493f3b` (pushed 2026-07-15; prior: D-843 b6047107). v1.0.0-rc.22 at `e4285fe5`. GitHub origin: `drbothen/vsdd-factory`. total_bcs 1,977. merged_count 105.
