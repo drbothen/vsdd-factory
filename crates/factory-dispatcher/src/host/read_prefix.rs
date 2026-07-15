@@ -558,6 +558,186 @@ mod tests {
     }
 
     // -----------------------------------------------------------------------
+    // T-012 (F-P2-001 / EC-001 composite degenerate):
+    //   ABSENT allowlisted file + max_bytes=0 → Ok(empty payload, exit 0)
+    //   NO NOT_FOUND; ZERO internal.file_not_found events;
+    //   ZERO capability_denied events.
+    //
+    // BC-1.17.001 EC-001: the max_bytes=0 short-circuit in prepare() step 3
+    // precedes the existence check (step 4). When max_bytes=0, prepare()
+    // returns Ok(empty, 0) WITHOUT opening the file and WITHOUT consulting
+    // file existence — even when the path points to an absent file.
+    //
+    // Regression lock: the ordering invariant is structural, not accidental.
+    // If the short-circuit were moved after the existence check, the absent
+    // file would reach read_prefix_bounded → PrefixReadErr::NotFound →
+    // internal.file_not_found emitted → Err(codes::NOT_FOUND). The
+    // `result.expect(...)` below would then fail.
+    //
+    // Mutation evidence (TD-VSDD-059): see test_S19_06_T012_MUTANT_VERIFY
+    // below for the mechanical mutation witness that confirms gate liveness.
+    //
+    // Red Gate note: PASSES at Red Gate — prepare() implements the
+    // max_bytes=0 short-circuit (step 3) before the existence check (step 4).
+    // -----------------------------------------------------------------------
+
+    #[test]
+    fn test_S19_06_T012_absent_file_max_bytes_zero_short_circuits_before_existence_check() {
+        let dir = tempfile::tempdir().unwrap();
+        let factory_dir = dir.path().join(".factory");
+        std::fs::create_dir_all(&factory_dir).unwrap();
+        // Allow .factory/; wave-state.yaml does NOT exist.
+        let mut ctx = context_with_caps(allow_read_prefix(&[factory_dir.to_str().unwrap()]));
+        ctx.cwd = dir.path().to_path_buf();
+        let absent_path = factory_dir.join("wave-state.yaml");
+        assert!(
+            !absent_path.exists(),
+            "test setup: target file must not exist"
+        );
+
+        // BC-1.17.001 EC-001: max_bytes=0 short-circuit (prepare step 3)
+        // precedes the existence check (prepare step 4). An absent allowlisted
+        // file with max_bytes=0 must succeed — file existence is never consulted.
+        let result = prepare(&ctx, absent_path.to_str().unwrap(), 0);
+
+        let (bytes, _) = result.expect(
+            "T-012 F-P2-001 EC-001: absent allowlisted file + max_bytes=0 must succeed \
+             (exit 0, empty payload). The max_bytes=0 short-circuit precedes the existence \
+             check; file existence is NOT consulted. BC-1.17.001 EC-001. \
+             Mutation: if short-circuit were moved after existence check, this would be \
+             Err(NOT_FOUND) instead of Ok.",
+        );
+
+        assert!(
+            bytes.is_empty(),
+            "T-012 EC-001: max_bytes=0 must return empty payload (0 bytes); got {} bytes.",
+            bytes.len()
+        );
+
+        let events = ctx.drain_events();
+
+        let file_not_found_count = events
+            .iter()
+            .filter(|e| e.type_ == "internal.file_not_found")
+            .count();
+        assert_eq!(
+            file_not_found_count,
+            0,
+            "T-012 EC-001: max_bytes=0 short-circuit must emit ZERO 'internal.file_not_found' \
+             events — the existence check (step 4) is never reached. Got {} events. \
+             BC-1.17.001 EC-001.",
+            file_not_found_count
+        );
+
+        let cap_denied_count = events
+            .iter()
+            .filter(|e| e.type_ == "internal.capability_denied")
+            .count();
+        assert_eq!(
+            cap_denied_count,
+            0,
+            "T-012 EC-001: must emit ZERO 'internal.capability_denied' events — \
+             the file is within path_allow and is never read (max_bytes=0 short-circuit). \
+             Got {} events. BC-1.17.001 EC-001.",
+            cap_denied_count
+        );
+    }
+
+    // -----------------------------------------------------------------------
+    // T-012 mutation-liveness witness (TD-VSDD-059 mechanical mutation check)
+    //
+    // Demonstrates that T-012 is a live gate by exercising a local helper
+    // `prepare_mutant` that implements the WRONG ordering: existence check
+    // before max_bytes=0 short-circuit. The absent file triggers NotFound in
+    // the mutant, whereas the correct implementation short-circuits first.
+    //
+    // This is NOT a passing test of the real prepare() — it is an in-module
+    // proof that the T-012 assertions would have failed against the mutant
+    // implementation.
+    //
+    // Evidence format: `prepare_mutant(absent, max_bytes=0)` returns
+    // `Err(codes::NOT_FOUND)` (the mutation failure mode), confirming that
+    // T-012's `result.expect(...)` would catch any reordering regression.
+    // -----------------------------------------------------------------------
+
+    #[test]
+    fn test_S19_06_T012_MUTANT_VERIFY_short_circuit_reorder_causes_not_found() {
+        // A local helper that mirrors prepare() but with the short-circuit
+        // MOVED AFTER the existence check — the mutant ordering that T-012
+        // is designed to catch.
+        fn prepare_mutant(
+            ctx: &HostContext,
+            path: &str,
+            max_bytes: u32,
+        ) -> Result<(Vec<u8>, u32), i32> {
+            // Step 1: capability check (unchanged)
+            let caps = ctx.capabilities.read_prefix.as_ref().ok_or_else(|| {
+                codes::CAPABILITY_DENIED
+            })?;
+            // Step 2: path check (unchanged)
+            let resolved = resolve_for_read(std::path::Path::new(path), &ctx.cwd);
+            match super::super::path_util::check_path_allowed(
+                &resolved,
+                &caps.path_allow,
+                &ctx.cwd,
+                |p| p.canonicalize(),
+            ) {
+                super::super::path_util::PathAllowDecision::Allowed => {}
+                _ => return Err(codes::CAPABILITY_DENIED),
+            }
+            // Step 3 MUTANT: existence check BEFORE max_bytes=0 short-circuit.
+            // This is the wrong ordering — the real prepare() checks max_bytes=0 first.
+            match read_prefix_bounded(&resolved, max_bytes as usize) {
+                Ok(bytes) => Ok((bytes, 0)),
+                Err(PrefixReadErr::NotFound) => {
+                    let ev = crate::internal_log::InternalEvent::now(
+                        "internal.file_not_found",
+                    )
+                    .with_trace_id(&ctx.dispatcher_trace_id)
+                    .with_session_id(&ctx.session_id)
+                    .with_plugin_name(&ctx.plugin_name)
+                    .with_plugin_version(&ctx.plugin_version);
+                    ctx.emit_internal(ev);
+                    Err(codes::NOT_FOUND)
+                }
+                Err(PrefixReadErr::Other) => Err(codes::INTERNAL_ERROR),
+            }
+        }
+
+        let dir = tempfile::tempdir().unwrap();
+        let factory_dir = dir.path().join(".factory");
+        std::fs::create_dir_all(&factory_dir).unwrap();
+        let mut ctx = context_with_caps(allow_read_prefix(&[factory_dir.to_str().unwrap()]));
+        ctx.cwd = dir.path().to_path_buf();
+        let absent_path = factory_dir.join("wave-state.yaml");
+        assert!(!absent_path.exists(), "test setup: file must not exist");
+
+        // Mutation evidence: the mutant returns NOT_FOUND for absent+max_bytes=0.
+        // This is the behavior that T-012 would have caught via its `expect(...)`.
+        let mutant_result = prepare_mutant(&ctx, absent_path.to_str().unwrap(), 0);
+        assert_eq!(
+            mutant_result.unwrap_err(),
+            codes::NOT_FOUND,
+            "T-012 mutation witness: prepare_mutant (short-circuit AFTER existence check) \
+             must return NOT_FOUND for absent+max_bytes=0. This proves the gate in \
+             test_S19_06_T012 is live: the real prepare() would pass where mutant fails."
+        );
+
+        let events = ctx.drain_events();
+        let file_not_found_count = events
+            .iter()
+            .filter(|e| e.type_ == "internal.file_not_found")
+            .count();
+        assert_eq!(
+            file_not_found_count,
+            1,
+            "T-012 mutation witness: mutant must emit exactly 1 'internal.file_not_found' \
+             event (existence check fires before short-circuit). Got {}.",
+            file_not_found_count
+        );
+    }
+
+    // -----------------------------------------------------------------------
     // T-010 (EC-004): capabilities.read_prefix present, path_allow lists a different
     //   path → CAPABILITY_DENIED (-1) + capability_denied event reason=path_not_allowed
     //

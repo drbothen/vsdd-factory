@@ -343,19 +343,34 @@ setup() {
 #     case that continues, so a stale build artifact from a prior caching
 #     layer is never promoted to the registry.
 #
-# Assertions (exact counts — both removal AND un-swept new-build-additions fire):
-#   (a) release.yml  --exclude read-prefix-fixture count == 1
-#   (b) ci.yml       --exclude read-prefix-fixture count == 3  (lines ~181/~480/~624)
-#   (c) ci.yml       staging case-skip count           == 3
-#   (d) release.yml  staging case-skip count           == 2
+# Layer 1 assertions (COUPLED counts — fires on both removal AND new-build-without-exclusion):
+#   The gate counts wasm32-wasip1 --workspace build invocations and asserts
+#   '--exclude read-prefix-fixture' count EQUALS that build count.  This is
+#   stronger than a hardcoded exact-count check: adding a new --workspace build
+#   WITHOUT the exclusion causes the counts to diverge and the gate fires.
+#   A workspace build is detected by: a 'cargo build.*wasm32-wasip1.*\' line
+#   immediately followed by a '--workspace' line (the adjacency is reliable
+#   because the workspace flag is always the first continuation flag).
 #
-# Mutation-liveness check: a temp copy of ci.yml with one --exclude line deleted
-# produces a count != 3, confirming the count assertion would fire on removal.
+#   (a) release.yml  --exclude count == wasm32-wasip1 --workspace build count
+#   (b) ci.yml       --exclude count == wasm32-wasip1 --workspace build count
+#
+# Layer 2 assertions (exact counts — staging loops are independent of build count):
+#   (c) ci.yml       staging case-skip count == 3
+#   (d) release.yml  staging case-skip count == 2
+#
+# Mutation-liveness fixture (TWO directions, both verified in-test):
+#   Direction 1 (deletion): ci.yml temp copy with one --exclude line deleted
+#     → exclusion count drops below workspace count → coupled assertion fires.
+#   Direction 2 (new-build-without-exclusion): ci.yml temp copy with a synthetic
+#     'cargo build --release --target wasm32-wasip1 \ --workspace' appended
+#     WITHOUT --exclude read-prefix-fixture → workspace count increases, exclusion
+#     count stays same → coupled assertion fires.
 #
 # Red Gate note: PASSES at Red Gate — both layers present since the first
 #   exclusion commit.
 # ---------------------------------------------------------------------------
-@test "T-009h POLICY 20 exclusion presence-gate: read-prefix-fixture excluded in all wasm32-wasip1 builds and staging loops" {
+@test "T-009h POLICY 20 exclusion presence-gate: read-prefix-fixture excluded in all wasm32-wasip1 --workspace builds and staging loops" {
   [ -f "$CI_YML" ] || {
     echo "FAIL: ci.yml not found at $CI_YML"
     false
@@ -365,33 +380,54 @@ setup() {
     false
   }
 
-  # --- (a) release.yml: --exclude read-prefix-fixture present (exact count == 1) ---
+  # --- Count wasm32-wasip1 --workspace build invocations ---
+  # A workspace build is identified by: a 'cargo build.*wasm32-wasip1.*\' line
+  # immediately followed by a line containing '--workspace'.  This adjacency is
+  # the reliable anchor: every workspace build has --workspace as its first
+  # continuation flag, and single-package builds (-p <crate>) do not.
+  local ci_workspace_count
+  ci_workspace_count=$(awk '
+    prev ~ /cargo build.*wasm32-wasip1.*\\/ && /--workspace/ { count++ }
+    { prev = $0 }
+    END { print count+0 }
+  ' "$CI_YML")
+
+  local release_workspace_count
+  release_workspace_count=$(awk '
+    prev ~ /cargo build.*wasm32-wasip1.*\\/ && /--workspace/ { count++ }
+    { prev = $0 }
+    END { print count+0 }
+  ' "$RELEASE_YML")
+
+  # --- (a) release.yml: --exclude count must equal workspace build count ---
   local release_excl_count
   release_excl_count=$(grep -c '\-\-exclude read-prefix-fixture' "$RELEASE_YML" || true)
-  if [ "$release_excl_count" -ne 1 ]; then
-    echo "FAIL: release.yml '--exclude read-prefix-fixture' count: expected 1, got $release_excl_count"
-    echo "  The wasm32-wasip1 workspace build in release.yml must carry exactly one"
-    echo "  '--exclude read-prefix-fixture' flag (POLICY 20)."
+  if [ "$release_excl_count" -ne "$release_workspace_count" ]; then
+    echo "FAIL: release.yml '--exclude read-prefix-fixture' count ($release_excl_count) != wasm32-wasip1 --workspace build count ($release_workspace_count)"
+    echo "  Every wasm32-wasip1 --workspace build must carry '--exclude read-prefix-fixture' (POLICY 20)."
+    echo "  Adding a new --workspace build without the exclusion causes this gate to fire."
     false
   fi
 
-  # --- (b) ci.yml: --exclude read-prefix-fixture in every wasm32-wasip1 --workspace build (count == 3) ---
+  # --- (b) ci.yml: --exclude count must equal workspace build count ---
   local ci_excl_count
   ci_excl_count=$(grep -c '\-\-exclude read-prefix-fixture' "$CI_YML" || true)
-  if [ "$ci_excl_count" -ne 3 ]; then
-    echo "FAIL: ci.yml '--exclude read-prefix-fixture' count: expected 3, got $ci_excl_count"
-    echo "  All three wasm32-wasip1 --workspace builds (~lines 181/480/624) must"
-    echo "  carry '--exclude read-prefix-fixture' (POLICY 20)."
-    echo "  If a new --workspace build was added without the exclusion, this gate fires."
+  if [ "$ci_excl_count" -ne "$ci_workspace_count" ]; then
+    echo "FAIL: ci.yml '--exclude read-prefix-fixture' count ($ci_excl_count) != wasm32-wasip1 --workspace build count ($ci_workspace_count)"
+    echo "  Every wasm32-wasip1 --workspace build must carry '--exclude read-prefix-fixture' (POLICY 20)."
+    echo "  Adding a new --workspace build without the exclusion causes this gate to fire."
     false
   fi
 
   # --- (c) ci.yml: staging case-skip read-prefix-fixture.wasm) count == 3 ---
+  # Staging loops are independent of workspace builds; exact count is the
+  # appropriate anchor here.
   local ci_staging_count
   ci_staging_count=$(grep -c 'read-prefix-fixture\.wasm)' "$CI_YML" || true)
   if [ "$ci_staging_count" -ne 3 ]; then
     echo "FAIL: ci.yml staging case-skip 'read-prefix-fixture.wasm)' count: expected 3, got $ci_staging_count"
-    echo "  All three staging loops in ci.yml must skip the fixture artifact (POLICY 20)."
+    echo "  All staging loops in ci.yml that iterate over wasm artifacts must skip the"
+    echo "  fixture (POLICY 20). Adding a new staging loop without the case-skip fires this gate."
     false
   fi
 
@@ -400,33 +436,58 @@ setup() {
   release_staging_count=$(grep -c 'read-prefix-fixture\.wasm)' "$RELEASE_YML" || true)
   if [ "$release_staging_count" -ne 2 ]; then
     echo "FAIL: release.yml staging case-skip 'read-prefix-fixture.wasm)' count: expected 2, got $release_staging_count"
-    echo "  Both staging loops in release.yml must skip the fixture artifact (POLICY 20)."
+    echo "  All staging loops in release.yml that iterate over wasm artifacts must skip the"
+    echo "  fixture (POLICY 20). Adding a new staging loop without the case-skip fires this gate."
     false
   fi
 
-  # --- Mutation-liveness check: delete one --exclude line from a temp copy of ci.yml ---
-  # Assert that the --exclude count drops below 3 (the gate would fire on the mutant).
-  local mut_ci
-  mut_ci=$(mktemp /tmp/t009h_ci_mutant_XXXXXX.yml)
-
-  # Delete exactly the FIRST occurrence of '--exclude read-prefix-fixture' so the
-  # temp copy has count == 2, confirming the == 3 assertion would fail on removal.
+  # --- Mutation-liveness direction 1 (deletion): delete one --exclude line from ci.yml ---
+  # After deletion the exclusion count drops below the workspace count, proving
+  # the coupled assertion (b) would fire on any --exclude removal.
+  local mut_ci_del
+  mut_ci_del=$(mktemp /tmp/t009h_ci_del_XXXXXX.yml)
   awk 'seen==0 && /--exclude read-prefix-fixture/{seen=1;next}{print}' \
-    "$CI_YML" > "$mut_ci"
-
-  local mut_count
-  mut_count=$(grep -c '\-\-exclude read-prefix-fixture' "$mut_ci" || true)
-  rm -f "$mut_ci"
-
-  if [ "$mut_count" -eq 3 ]; then
-    echo "FAIL: mutation-liveness check — deleting one '--exclude read-prefix-fixture' line"
-    echo "  still gives count == 3; the gate would NOT fire on removal."
-    echo "  Expected mutant count != 3 to confirm gate liveness."
+    "$CI_YML" > "$mut_ci_del"
+  local mut_del_excl_count
+  mut_del_excl_count=$(grep -c '\-\-exclude read-prefix-fixture' "$mut_ci_del" || true)
+  rm -f "$mut_ci_del"
+  if [ "$mut_del_excl_count" -eq "$ci_workspace_count" ]; then
+    echo "FAIL: mutation-liveness (deletion) — deleting one '--exclude read-prefix-fixture' line"
+    echo "  still gives excl count ($mut_del_excl_count) == workspace count ($ci_workspace_count)."
+    echo "  The coupled gate would NOT fire on removal; the gate is not live."
     false
   fi
-  echo "PASS mutation-liveness: mutant ci.yml --exclude count = $mut_count (expected != 3)"
+  echo "PASS mutation-liveness (deletion): after deletion excl=$mut_del_excl_count != workspace=$ci_workspace_count (gate fires)"
 
-  echo "PASS T-009h: release.yml --exclude=$release_excl_count; ci.yml --exclude=$ci_excl_count; ci.yml staging=$ci_staging_count; release.yml staging=$release_staging_count"
+  # --- Mutation-liveness direction 2 (new-build-without-exclusion): append a synthetic ---
+  # workspace build without --exclude read-prefix-fixture to a temp copy of ci.yml.
+  # The workspace count increases by 1 but the exclusion count stays the same,
+  # proving assertion (b) fires when a new workspace build lacks the exclusion.
+  local mut_ci_add
+  mut_ci_add=$(mktemp /tmp/t009h_ci_add_XXXXXX.yml)
+  {
+    cat "$CI_YML"
+    printf '          cargo build --release --target wasm32-wasip1 \\\n'
+    printf '            --workspace\n'
+  } > "$mut_ci_add"
+  local mut_add_workspace_count
+  mut_add_workspace_count=$(awk '
+    prev ~ /cargo build.*wasm32-wasip1.*\\/ && /--workspace/ { count++ }
+    { prev = $0 }
+    END { print count+0 }
+  ' "$mut_ci_add")
+  local mut_add_excl_count
+  mut_add_excl_count=$(grep -c '\-\-exclude read-prefix-fixture' "$mut_ci_add" || true)
+  rm -f "$mut_ci_add"
+  if [ "$mut_add_excl_count" -eq "$mut_add_workspace_count" ]; then
+    echo "FAIL: mutation-liveness (new-build-without-exclusion) — appending a workspace build"
+    echo "  without '--exclude read-prefix-fixture' still gives excl ($mut_add_excl_count) == workspace ($mut_add_workspace_count)."
+    echo "  The coupled gate would NOT fire; adding a build without exclusion goes undetected."
+    false
+  fi
+  echo "PASS mutation-liveness (new-build-without-exclusion): workspace=$mut_add_workspace_count, excl=$mut_add_excl_count (diverge; gate fires)"
+
+  echo "PASS T-009h: release.yml excl=$release_excl_count==workspace=$release_workspace_count; ci.yml excl=$ci_excl_count==workspace=$ci_workspace_count; ci.yml staging=$ci_staging_count; release.yml staging=$release_staging_count"
 }
 
 # ---------------------------------------------------------------------------
