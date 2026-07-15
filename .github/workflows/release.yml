@@ -177,6 +177,7 @@ jobs:
                     vsdd_context_resolvers.wasm|wasm_resolver_export.wasm) echo "skip stale resolver artifact: $name"; continue ;;
                     *) echo "skip lib-target stub: $name"; continue ;;
                   esac ;;
+                read-prefix-fixture.wasm) echo "skip stale-cache fixture artifact: $name (POLICY 20)"; continue ;;
               esac
               cp "$wasm" artifact/
             done
@@ -312,6 +313,7 @@ jobs:
                   vsdd_context_resolvers.wasm|wasm_resolver_export.wasm) echo "skip stale resolver artifact: $name"; continue ;;
                   *) echo "skip lib-target stub: $name"; continue ;;
                 esac ;;
+              read-prefix-fixture.wasm) echo "skip stale-cache fixture artifact: $name (POLICY 20)"; continue ;;
             esac
             cp "$wasm" plugins/vsdd-factory/hook-plugins/
             echo "staged $name"

@@ -241,6 +241,7 @@ jobs:
             name=$(basename "$wasm")
             case "$name" in
               *_*.wasm) echo "skip lib-target stub: $name"; continue ;;
+              read-prefix-fixture.wasm) echo "skip stale-cache fixture artifact: $name (POLICY 20)"; continue ;;
             esac
             cp "$wasm" plugins/vsdd-factory/hook-plugins/
           done
@@ -516,6 +517,7 @@ jobs:
             name=$(basename "$wasm")
             case "$name" in
               *_*.wasm) echo "skip lib-target stub: $name"; continue ;;
+              read-prefix-fixture.wasm) echo "skip stale-cache fixture artifact: $name (POLICY 20)"; continue ;;
             esac
             cp "$wasm" artifact-staging/
           done
@@ -631,6 +633,7 @@ jobs:
             name=$(basename "$wasm")
             case "$name" in
               *_*.wasm) echo "skip lib-target stub: $name"; continue ;;
+              read-prefix-fixture.wasm) echo "skip stale-cache fixture artifact: $name (POLICY 20)"; continue ;;
             esac
             cp "$wasm" plugins/vsdd-factory/hook-plugins/
           done
