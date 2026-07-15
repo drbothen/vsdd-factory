@@ -243,9 +243,22 @@ pub fn read_file(path: &str, max_bytes: u32, timeout_ms: u32) -> Result<Vec<u8>,
 /// - Absent allowlisted file → `Err(HostError::NotFound)` (BC-1.17.001 PC-5).
 /// - No capability block → `Err(HostError::CapabilityDenied)` (BC-1.17.001 PC-4).
 /// - `OutputTooLarge` is NEVER returned (BC-1.17.001 PC-3).
-#[allow(unused_variables)]
 pub fn read_prefix(path: &str, max_bytes: u32, timeout_ms: u32) -> Result<Vec<u8>, HostError> {
-    todo!("S-19.06: implement read_prefix safe wrapper")
+    let path_bytes = path.as_bytes();
+    let mut out_ptr: u32 = 0;
+    let mut out_len: u32 = 0;
+    let code = ffi::read_prefix(
+        path_bytes.as_ptr(),
+        path_bytes.len() as u32,
+        max_bytes,
+        timeout_ms,
+        &mut out_ptr,
+        &mut out_len,
+    );
+    if code < 0 {
+        return Err(HostError::from_code(code));
+    }
+    Ok(read_owned_bytes(out_ptr, out_len))
 }
 
 /// Write a file at the given path through the dispatcher's bounded host function.

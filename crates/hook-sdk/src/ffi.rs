@@ -179,9 +179,8 @@ pub mod host_stubs {
 
     /// Non-wasm stub for `read_prefix` (BC-1.17.001, S-19.06).
     /// 6-parameter pointer/length shape mirrors `ffi::read_file` exactly.
-    /// Panics: no dispatcher is present on non-wasm targets; the SDK safe
-    /// wrapper in `crate::host::read_prefix` is the correct call site and
-    /// its `todo!()` body will panic before this stub is reached.
+    /// Returns -1 (CAPABILITY_DENIED) — no dispatcher is present on non-wasm
+    /// targets, so the capability gate fires before any filesystem access.
     pub fn read_prefix(
         _path_ptr: *const u8,
         _path_len: u32,
@@ -190,7 +189,7 @@ pub mod host_stubs {
         _out_ptr_out: *mut u32,
         _out_len_out: *mut u32,
     ) -> i32 {
-        todo!("S-19.06: host_stubs::read_prefix — dispatcher not present on non-wasm targets")
+        -1
     }
 }
 
