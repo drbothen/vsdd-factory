@@ -10460,3 +10460,31 @@ D-843-S1906-MERGED-W2-COMPLETE
 ### Date
 
 2026-07-15
+
+## D-844
+
+### Summary
+
+GATE1-HYGIENE-REMEDIATION. Single-commit hygiene burst (gate-1-exposed D-843 defects). (1) POLICY 16 GLOBAL-MAX GATE: `## D-843` confirmed max in decision-log.md → D-844 allocated. (2) sprint-state.yaml S-19.06 PC3 done-first violation FIXED: S-19.06 (status=merged, depth=2) moved from non-terminal section (ordinal 129) to terminal prefix ordinal 53 (depth-ascending lex tie-break between S-18.05 and S-8.06 per ADR-026 §Decision 3a / BC-5.41.004 v1.4 PC3). (3) STATE.md SIZE BUDGET D-843 `~NNN`→`417` FIXED (D-843 burst appended lines without updating placeholder). (4) version v5.90→v5.91. (5) 4-INDEX: BC v4.05/VP v2.68/STORY v4.193/ARCH v3.01 ALL UNCHANGED. (6) D-844 Phase Progress row; D-844 Decisions Log row; Session Resume Checkpoint refreshed. (7) NOTE: D-844 decision-log.md codification was missed by sm-gate1-fix and retroactively added by D-845 WAVE-GATE-W1-W2-PASSED burst. parent-commit: 38dc451b (D-843 SHA-patch).
+
+### Phase
+
+D-844-GATE1-HYGIENE-REMEDIATION
+
+### Date
+
+2026-07-15
+
+## D-845
+
+### Summary
+
+WAVE-GATE-W1-W2-PASSED. Single-commit wave-gate burst. E-19 combined W1+W2 (7 stories: S-19.01 #613 8d1721f7, S-19.02 #610 f5ea12e9, S-19.03 #611 091ce499, S-19.04 #639 d4a23a02, S-19.05 #640 7b35c8e4, S-19.08 #646 1304d280, S-19.06 #657 9787c056). Develop base da2f648f → HEAD 9787c056. (1) POLICY 16 GLOBAL-MAX GATE: `## D-843` confirmed max in decision-log.md at gate-time (D-844 retroactively codified in this same burst above); D-844 retroactive → D-845 allocated. (2) WAVE-GATE REPORT: `cycles/v1.0-brownfield-backfill/e-19-wave-gate-w1-w2.md` created with 6 GATE_CHECK lines + mutation-testing note. (3) PRE-COMMIT GATES: POLICY 14 4-index gate PASS (BC v4.05/VP v2.68/STORY v4.193/ARCH v3.01 literal shell — all UNCHANGED); cargo test -p validate-state-structure --lib PASS (65/65; banner wc-l assertion green). (4) GATE 1 PASS: 2045 cargo tests 0 failures + full bats suite green on develop 9787c056; first-run FAILED (2 cargo + 4 bats); decomposed into environment litter (stale mktemp sinks) + 1 timing flake + 3 REAL live-state defects fixed at D-844 f9493f3b (sprint-state.yaml S-19.06 PC3 done-first; derive_wave_id abort same root cause; STATE.md banner wc-l 413→417→420); full re-run PASSED. (5) GATE 2 SKIP: dtu_required false; no module-criticality registry; no DTU clones. (6) GATE 3 PASS: adversarial-review 0 CRITICAL; 1 HIGH F-WG-001 POLICY-21-vs-S-19.01 timing collision documented — 5 new .sh from S-19.01 (bin/check-stale-verdict.sh, bin/enforce-merge-strategy.sh, 3 test fixtures) spec frozen v1.18 2026-07-11 pre-POLICY-21 merged 2026-07-13 post-D-836; architect-approved ADR-030 §D2/D3; no grandfather entry exists; CONDITION: recorded disposition (grandfather-vs-E-20 or migration story) required before next wave opens — PENDING HUMAN DECISION; 2 LOW (F-WG-002 telemetry const hygiene; F-WG-003 plugin.completed missing timestamp) routed as candidate opportunistic fix PR or architect story. Positive attestations: byte-cap 262144 consistent; registry 54 anchored filters zero regressions; bundle floor math reconciles 34 staged; telemetry namespaces coherent; zero squash-merge artifacts; POLICY 10/20 pass; release-merge-strategy guard unexercised until next release cut. (7) GATE 4 PASS: 7 stories story-scoped evidence dirs + AC-referenced reports on develop POLICY 10 re-verified. (8) GATE 5 SKIP: no holdout scenarios holdout-evaluations/ empty; precedented across all E-18/E-19 waves. (9) GATE 6 PASS: sprint-state already terminal (merged); STATE.md wave-gate record this burst. (10) mutation-testing step skipped: all 7 stories tdd_mode strict; zero mutation_testing_required. (11) 4-INDEX: BC v4.05/VP v2.68/STORY v4.193/ARCH v3.01 ALL UNCHANGED. (12) STATE.md v5.91→v5.92: banner D-845 WAVE-GATE-W1-W2-PASSED; D-845 Phase Progress row; D-845 Decisions Log row; Session Resume Checkpoint refreshed (F-WG-001 disposition + F-WG-002/003 routing added to §Pending Human Decisions); trajectory-tail →2→0→0→0 UNCHANGED; §4-Index D-844→D-845; Active Branches factory-artifacts D-845 pending SHA-patch. parent-commit: f9493f3b (D-844 SHA-patch).
+
+### Phase
+
+D-845-WAVE-GATE-W1-W2-PASSED
+
+### Date
+
+2026-07-15

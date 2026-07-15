@@ -1,1 +1,1 @@
-{"status":"pass","timestamp":"2026-07-15T05:02:26Z","command":"\\\ncargo test -p factory-dispatcher --lib -- host::read_prefix::tests::test_S19_06_T008 host::read_prefix::tests::test_S19_06_T012_absent_file_max_bytes_zero_short_circuits_before_existence_check 2>&1"}
+{"status":"pass","timestamp":"2026-07-15T17:16:40Z","command":"cd /Users/zious/Documents/GITHUB/vsdd-factory && cargo test -p validate-state-structure --lib 2>&1 | tail -10"}
