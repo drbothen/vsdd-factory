@@ -1,1 +1,1 @@
-{"status":"pass","timestamp":"2026-07-15T19:51:52Z","command":"cd /Users/zious/Documents/GITHUB/vsdd-factory && cargo test -p validate-state-structure --lib 2>&1"}
+{"status":"pass","timestamp":"2026-07-15T21:10:01Z","command":"cd /Users/zious/Documents/GITHUB/vsdd-factory && cargo test -p validate-state-structure --lib 2>&1 | tail -5"}

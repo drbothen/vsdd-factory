@@ -10475,6 +10475,20 @@ D-844-GATE1-HYGIENE-REMEDIATION
 
 2026-07-15
 
+## D-847
+
+### Summary
+
+S-19.09-REGISTERED. Single-commit registration burst. (1) POLICY 16 GLOBAL-MAX GATE: `## D-846` confirmed max in decision-log.md → D-847 allocated. (2) ARCH-INDEX.md v3.01→v3.02: ADR-025 row v1.15→v1.16 (architect bba417b8 2026-07-15): Decision 16 — read_prefix production-path registration gap CRITICAL (absent from setup_host_on_store_data in invoke.rs; grep -n 'read_prefix' crates/factory-dispatcher/src/invoke.rs → 0 hits; D19 added: implementer registers read_prefix in setup_host_on_store_data mirroring read_file memory-grow protocol); Decision 17 — two-linker out_ptr=0 protocol boundary documented (test path Linker<HostContext> writes at addr 0; production path Linker<StoreData> grows memory and writes at current_bytes > 0; SEC-001 CRITICAL accepted-with-record confirmed appropriate; D20 corrects misleading doc comments); Decision 18 — timeout_ms non-enforcement framing retracted (epoch interruption cannot preempt blocking func_wrap host calls; timeout_ms is ABI-forward-reserved; SEC-003 CWE-833 LOW severity confirmed; D20 corrects doc comments in read_file.rs + read_prefix.rs); Decision 19 — INVALID_ARGUMENT (-4) not added to read_prefix capability schema (marshalling-internal code, not operator-visible; current preamble table 0,-1,-2,-5,-99 correct and complete; no table change required); F-WG-002+F-WG-003 routed to implementer via design-brief-post-e19-host-abi-fixes.md; Deliverables D19–D22 added. (3) STORY-INDEX.md v4.193→v4.194: S-19.09 NEW row (draft; W3; E-19; 5 pts; P1; BC-1.17.001+BC-3.08.001; depends_on [S-19.06,S-19.08]; blocks [S-19.07]; input-hash 2db5764; authorized 2026-07-15 architect-follow-up + D19 CRITICAL production-path gap); S-19.07 v1.16→v1.17 (depends_on [S-19.02,S-19.06]→[S-19.02,S-19.06,S-19.09]; input-hash 534c85c→8de858c; story-writer 42c61112); E-19 H2 v1.29→v1.30 (nine hardening stories; 9 stories; 55 pts; W3 DAG updated; BC coverage extended). (4) sprint-state.yaml: S-19.09 inserted at non-terminal depth=3 position (lex between S-14.04 and S-2.05); S-19.07 moved from depth=3 to depth=4 position (lex between S-10.06 and S-3.04); bats T-14 monotone-depth invariant maintained. (5) decision-log.md: this D-847 block. (6) STATE.md v5.93→v5.94: banner + Phase Progress + Decisions Log + Session Resume Checkpoint advanced; trajectory-tail →2→0→0→0 UNCHANGED; 4-index BC v4.05/VP v2.68/STORY v4.194/ARCH v3.02. (7) lessons.md: L-BB-additive-host-abi-functions-require-production-path-instantiation [process-gap] [codified D-847] appended. (8) PRE-COMMIT GATES: POLICY 14 4-index gate; cargo test -p validate-state-structure --lib; bats plugins/vsdd-factory/tests/sprint-state-format.bats — results recorded in STATE.md current_step. parent-commit: b56baade (D-846 SHA-patch).
+
+### Phase
+
+D-847-S-19.09-REGISTERED
+
+### Date
+
+2026-07-15
+
 ## D-846
 
 ### Summary

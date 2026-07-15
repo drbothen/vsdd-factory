@@ -6882,3 +6882,21 @@ Both gates are mandatory standing Commit-E controls for any burst touching E-19 
 **Cites:** S-19.06 F-P3-001 (clippy red surviving partial gate); S-19.06 pass-3 adversary; S-19.06 convergence burst (2026-07-14); CLAUDE.md §Build/Test/Lint (canonical four-leg gate).
 
 **Closes:** S-19.06 convergence burst (2026-07-14). `[process-gap; exit-gate; clippy; partial-gate; remediation-commit; post-remediation-verification; orchestrator; four-leg-gate; codified]`
+
+---
+
+### L-BB-additive-host-abi-functions-require-production-path-instantiation [process-gap] [codified D-847]
+
+**Title:** Additive Host ABI Functions Must Be Registered on Both the Test Linker and the Production Linker; Registration on the Test Linker Alone Is Invisible to Deployed Plugins
+
+**Lesson:** When a new host ABI function is introduced as an additive extension (per ADR-006 HOST_ABI_VERSION=1 unchanged), it must be registered on BOTH `Linker<HostContext>` (test path, `setup_linker` in `crates/factory-dispatcher/src/host/mod.rs`) AND `Linker<StoreData>` (production path, `setup_host_on_store_data` in `crates/factory-dispatcher/src/invoke.rs`). Registration on the test-path linker alone means the function exists in unit tests but is absent from the wasmtime production dispatch table. Any plugin that imports `vsdd::read_prefix` will fail at wasmtime link time on the production path, silently degrading to `on_error=continue` (fail-open). The defect is invisible in unit tests and integration tests that exercise the `HostContext` path because those tests use the test linker where the function IS registered.
+
+**Root cause:** The S-19.06 implementation registered `read_prefix` in `setup_linker` (test path) but not in `setup_host_on_store_data` (production path). The two-linker architecture is an existing pattern for `read_file` and other host functions, but the dual-site registration requirement was not documented as a mandatory invariant. The post-E-19 adversarial review confirmed the gap: `grep -n 'read_prefix' crates/factory-dispatcher/src/invoke.rs` → 0 hits (architect bba417b8, ADR-025 v1.16 Decision 16 CRITICAL).
+
+**Prevention:** (1) When adding any new host ABI function, the implementation checklist MUST verify registration at BOTH sites: `grep -n 'fn_name' crates/factory-dispatcher/src/host/mod.rs` → hit AND `grep -n 'fn_name' crates/factory-dispatcher/src/invoke.rs` → hit. (2) The implementer's Red Gate tests MUST include an end-to-end fixture that exercises the production path (`Linker<StoreData>`), not only unit tests using `HostContext` mocks. (3) Story test-writer for any host ABI function story MUST add an AC explicitly verifying the production-path dispatch registration (`setup_host_on_store_data` grep gate). (4) ADR-025 Decision 16 codifies this as deliverable D19; production-path verification is now a mandatory gate for all future host ABI additions.
+
+**Anchors:** ADR-025 v1.16 Decision 16 CRITICAL (post-E-19 adjudication; architect bba417b8 2026-07-15; 0-hit grep confirmed); S-19.06 v1.22 MERGED PR #657 9787c056 (read_prefix FFI landing; test-path-only registration); S-19.09 D-847 (production-path registration as deliverable D19).
+
+**Cites:** ADR-025 v1.16 Decision 16 (production-path registration gap + D19 deliverable); S-19.06 v1.22 (read_prefix implementation; test-path registration); S-19.09 D-847 S-19.09-REGISTERED; `crates/factory-dispatcher/src/invoke.rs` `setup_host_on_store_data`; `crates/factory-dispatcher/src/host/mod.rs` `setup_linker`.
+
+**Closes:** D-847 S-19.09-REGISTERED burst (2026-07-15). `[process-gap; host-abi; two-linker; production-path; registration-gap; additive-function; wasmtime; setup_host_on_store_data; S-19.09; D-847; codified]`

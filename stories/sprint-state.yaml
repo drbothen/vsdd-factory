@@ -275,11 +275,13 @@ stories:
     status: draft
   - id: S-14.04
     status: draft
-  - id: S-19.07
+  - id: S-19.09
     status: draft
   - id: S-2.05
     status: partial
   - id: S-10.06
+    status: draft
+  - id: S-19.07
     status: draft
   - id: S-3.04
     status: partial
