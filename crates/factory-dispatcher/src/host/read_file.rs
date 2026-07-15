@@ -47,15 +47,17 @@ pub fn register(linker: &mut Linker<HostContext>) -> Result<(), HostCallError> {
                 //
                 // Test path (Linker<HostContext> / setup_linker in host/mod.rs):
                 //   prepare() returns Ok((bytes, 0)) — out_ptr=0 is a constant sentinel.
-                //   The hook-sdk read_owned_bytes ptr==0 guard handles this correctly
-                //   by returning Vec::new() for empty files and 0 for non-empty (the
-                //   test path does not perform WASM memory-grow or byte-copy).
+                //   write_wasm_bytes is then called with out_ptr=0: bytes are written at
+                //   guest address 0 without growing memory. The hook-sdk read_owned_bytes
+                //   ptr==0 guard returns Vec::new() for BOTH empty and non-empty reads —
+                //   non-empty test-path read-backs yield an empty Vec (bytes discarded).
+                //   The test path is NOT a real data-return path.
                 //
                 // Production path (Linker<StoreData> / setup_host_on_store_data in invoke.rs):
                 //   Ignores the out_ptr sentinel from prepare(). Instead it grows WASM
                 //   linear memory and writes the bytes at current_bytes (always > 0),
-                //   returning the real address via out_ptr_out. See invoke.rs for the
-                //   memory-grow protocol.
+                //   returning the real address via out_ptr_out — the only path returning
+                //   real content at ptr>0. See invoke.rs for the memory-grow protocol.
                 let (body, out_ptr) = {
                     let ctx = caller.data();
                     match prepare(ctx, &path, max_bytes) {
