@@ -1,23 +1,23 @@
 ---
 document_type: behavioral-contract
 level: L3
-version: "1.6"
-status: draft
+version: "1.7"
+status: active
 producer: product-owner
 timestamp: 2026-07-06T00:00:00Z
-last_amended: "2026-07-10 (v1.6) — E-19 pass-46 F-P46-001 fix burst (product-owner): frontmatter modified[] array re-sorted version-monotonic (was v1.2→v1.1→v1.3→v1.4→v1.5; POLICY 14 leg-3); no body content change. [Prior: (v1.5) — E-19 pass-30 O-P30-02 (product-owner): §Traceability L2 Domain Invariants TBD → 'none (host-ABI operational invariant, not L2 domain spec)' — aligned to BC-4.13.001 sibling convention. Spec behavioral content unchanged. BC-INDEX bump + story cite sweeps state-manager/story-writer same-burst. [Prior: (v1.4) — E-19 pass-28 F-P28-002 (product-owner): VP-101 proof-method cite aligned to VP-INDEX authoritative classification (integration only; POLICY 9); proptest qualifier removed from §VP Anchors bullet + two §Verification Properties Proof Method cells. Behavioral content unchanged. BC-INDEX bump state-manager same-burst; S-19.06 cite sweep story-writer same-burst. [Prior: (v1.3) — E-19 pass-22 fix burst F-P22-004 BC leg (product-owner): §Architecture Anchors added crates/hook-sdk/src/ffi.rs bullet — raw wire-ABI read_prefix extern declaration (-> i32; wasm32 extern block + host_stubs non-wasm stub), the layer §Description §(a) parenthetical assigns the i32 return to; ground-truth: ffi.rs read_file at lines 25 + 92 confirms file + module structure. Anchoring addition only; behavioral content unchanged. BC-INDEX bump state-manager same-burst. [Prior: (v1.2) — E-19 pass-12 F-P12-002 §(a) layering parenthetical (product-owner): inserted architect-recommended SDK/wire-ABI layering parenthetical after §(a) signature; closes F-P12-002 (BC leg; architect Ruling 1, amendment recommended-not-required, adopted under the production-grade default). [Prior: (v1.1) — E-19 pass-3 PO finalization (product-owner): F-P3-004 §VP Anchors + §Verification Properties VP-TBD → VP-101; F-P3-009 §Description(d) cite ADR-025 Decision 15 (drop phantom-pin parenthetical), §Architecture Anchors drop '(architect authors same-burst)', §Story Anchor updated S-19.06 (W2; depends_on S-19.03); F-P3-016 §Traceability CAP-TBD → CAP-009 with justification, ADR cite updated to ADR-025 Decision 15. [Prior: (v1.0) — initial creation (product-owner): E-19 pass-2 fix burst Package 2 — host::read_prefix bounded partial read: head-c semantics, NEVER OUTPUT_TOO_LARGE, additive FFI entry point, same path_allow + rejoin capability model as read_file (BC-2.07.001), absent file returns NOT_FOUND (-5), read_file all-or-nothing semantics unchanged (story anchor S-19.06; architect decision D-d).]]]]]"
+last_amended: "2026-07-15 (v1.7) — D-843 S1906-MERGED-W2-COMPLETE (state-manager): POL-14 auto-promotion — S-19.06 PR #657 9787c056 squash-merged 2026-07-15T14:53:16Z; status+lifecycle_status draft→active; input-hash ebf73ff UNCHANGED. BC-INDEX v4.04→v4.05 (v1.7 cell + active). [Prior: 2026-07-10 (v1.6) — E-19 pass-46 F-P46-001 fix burst (product-owner): frontmatter modified[] array re-sorted version-monotonic (was v1.2→v1.1→v1.3→v1.4→v1.5; POLICY 14 leg-3); no body content change. [Prior: (v1.5) — E-19 pass-30 O-P30-02 (product-owner): §Traceability L2 Domain Invariants TBD → 'none (host-ABI operational invariant, not L2 domain spec)' — aligned to BC-4.13.001 sibling convention. Spec behavioral content unchanged. BC-INDEX bump + story cite sweeps state-manager/story-writer same-burst. [Prior: (v1.4) — E-19 pass-28 F-P28-002 (product-owner): VP-101 proof-method cite aligned to VP-INDEX authoritative classification (integration only; POLICY 9); proptest qualifier removed from §VP Anchors bullet + two §Verification Properties Proof Method cells. Behavioral content unchanged. BC-INDEX bump state-manager same-burst; S-19.06 cite sweep story-writer same-burst. [Prior: (v1.3) — E-19 pass-22 fix burst F-P22-004 BC leg (product-owner): §Architecture Anchors added crates/hook-sdk/src/ffi.rs bullet — raw wire-ABI read_prefix extern declaration (-> i32; wasm32 extern block + host_stubs non-wasm stub), the layer §Description §(a) parenthetical assigns the i32 return to; ground-truth: ffi.rs read_file at lines 25 + 92 confirms file + module structure. Anchoring addition only; behavioral content unchanged. BC-INDEX bump state-manager same-burst. [Prior: (v1.2) — E-19 pass-12 F-P12-002 §(a) layering parenthetical (product-owner): inserted architect-recommended SDK/wire-ABI layering parenthetical after §(a) signature; closes F-P12-002 (BC leg; architect Ruling 1, amendment recommended-not-required, adopted under the production-grade default). [Prior: (v1.1) — E-19 pass-3 PO finalization (product-owner): F-P3-004 §VP Anchors + §Verification Properties VP-TBD → VP-101; F-P3-009 §Description(d) cite ADR-025 Decision 15 (drop phantom-pin parenthetical), §Architecture Anchors drop '(architect authors same-burst)', §Story Anchor updated S-19.06 (W2; depends_on S-19.03); F-P3-016 §Traceability CAP-TBD → CAP-009 with justification, ADR cite updated to ADR-025 Decision 15. [Prior: (v1.0) — initial creation (product-owner): E-19 pass-2 fix burst Package 2 — host::read_prefix bounded partial read: head-c semantics, NEVER OUTPUT_TOO_LARGE, additive FFI entry point, same path_allow + rejoin capability model as read_file (BC-2.07.001), absent file returns NOT_FOUND (-5), read_file all-or-nothing semantics unchanged (story anchor S-19.06; architect decision D-d).]]]]]"
 phase: F3
 inputs:
   - crates/factory-dispatcher/src/host/read_file.rs
   - crates/hook-sdk/src/host.rs
   - .factory/specs/behavioral-contracts/ss-02/BC-2.07.001.md
-input-hash: "ebf73ff"
+input-hash: "e6afd11"
 traces_to: .factory/specs/prd.md
 origin: greenfield
 extracted_from: null
 subsystem: "SS-01"
 capability: "CAP-009"
-lifecycle_status: draft
+lifecycle_status: active
 introduced: v1.0-feature-engine-discipline-E19
 modified:
   - "2026-07-06 (v1.1)"
@@ -26,6 +26,7 @@ modified:
   - "2026-07-08 (v1.4)"
   - "2026-07-09 (v1.5)"
   - "2026-07-10 (v1.6) — E-19 pass-46 F-P46-001 fix burst (product-owner): frontmatter modified[] array re-sorted version-monotonic (was v1.2→v1.1→v1.3→v1.4→v1.5; POLICY 14 leg-3); no body content change."
+  - "2026-07-15 (v1.7) — D-843 S1906-MERGED-W2-COMPLETE (state-manager): POL-14 auto-promotion; status+lifecycle_status draft→active; S-19.06 PR #657 9787c056 2026-07-15T14:53:16Z; input-hash ebf73ff UNCHANGED."
 deprecated: null
 deprecated_by: null
 replacement: null
@@ -157,6 +158,7 @@ S-19.06 (host::read_prefix bounded partial read; W2; depends_on S-19.03)
 
 | Version | Date | Author | Change |
 |---------|------|--------|--------|
+| 1.7 | 2026-07-15 | state-manager | D-843 POL-14 auto-promotion: S-19.06 PR #657 9787c056 squash-merged 2026-07-15T14:53:16Z; status+lifecycle_status draft→active; input-hash ebf73ff UNCHANGED. |
 | 1.6 | 2026-07-10 | product-owner | F-P46-001: frontmatter modified[] re-sorted version-monotonic; no body content change. |
 | 1.5 | 2026-07-09 | product-owner | E-19 pass-30 O-P30-02: §Traceability L2 Domain Invariants TBD → 'none (host-ABI operational invariant, not L2 domain spec)' — aligned to BC-4.13.001 sibling convention. Spec behavioral content unchanged. BC-INDEX bump + story cite sweeps state-manager/story-writer same-burst. |
 | 1.4 | 2026-07-08 | product-owner | E-19 pass-28 F-P28-002: VP-101 proof-method cite aligned to VP-INDEX authoritative classification (integration only; POLICY 9); proptest qualifier removed from §VP Anchors bullet + two §Verification Properties Proof Method cells (rows: file_size>max_bytes and file_size<max_bytes). VP-INDEX line 459 Proof Method col = `integration`; proptest breakdown line 353 lists VP-059/069/075/080/096 (VP-101 absent). Behavioral content unchanged. BC-INDEX bump state-manager same-burst; S-19.06 cite sweep story-writer same-burst. |

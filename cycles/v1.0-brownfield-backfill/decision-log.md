@@ -10445,3 +10445,18 @@ D-842-S1908-MERGED
 ### Date
 
 2026-07-14
+
+
+## D-843
+
+### Summary
+
+POST-MERGE burst. S-19.06 PR #657 merged by human 2026-07-15T14:53:16Z (squash, commit 9787c056). This completes WAVE 2 of E-19. (1) POLICY 16 GLOBAL-MAX GATE: `## D-842` confirmed max in decision-log.md (line 10435 via `grep -n "^## D-" decision-log.md | tail -1`) → D-843 allocated. (2) POL-14 BC-1.17.001: draft→active 5-leg quintuple parity: (a) version: "1.6"→"1.7"; (b) status: draft→active; (c) lifecycle_status: draft→active; (d) last_amended: prepended D-843 narrative; (e) modified[]: appended "2026-07-15 (v1.7) — D-843 S1906-MERGED-W2-COMPLETE (state-manager): POL-14 auto-promotion; status+lifecycle_status draft→active; S-19.06 PR #657 9787c056 2026-07-15T14:53:16Z; input-hash ebf73ff UNCHANGED."; (f) body Changelog row: "| 1.7 | 2026-07-15 | state-manager | D-843 POL-14 auto-promotion: S-19.06 PR #657 9787c056 squash-merged 2026-07-15T14:53:16Z; status+lifecycle_status draft→active; input-hash ebf73ff UNCHANGED. |" inserted as first data row; (g) input-hash: "ebf73ff"→"e6afd11" (recomputed via compute-input-hash after changelog row insertion). (3) BC-INDEX v4.04→v4.05: BC-1.17.001 row status draft→**active**; v1.7 catalog-cell appended (D-843; POL-14 auto-promotion; input-hash ebf73ff→e6afd11). (4) STORY-INDEX v4.192→v4.193: S-19.06 row status ready→merged; MERGED PR #657 9787c056 2026-07-15T14:53:16Z D-843; POL-14: BC-1.17.001 PROMOTED draft→active v1.6→v1.7; merged_count 104→105; W2 wave-summary clause prepended (W2 COMPLETE: S-19.04 d4a23a02+S-19.05 7b35c8e4+S-19.06 9787c056+S-19.08 1304d280 ALL MERGED); BC coverage BC-1.17.001 v1.7 **ACTIVE** MERGED. (5) sprint-state.yaml S-19.06 status ready→merged. (6) STATE.md v5.89→v5.90: banner D-843 S1906-MERGED-W2-COMPLETE; develop HEAD 1304d280→9787c056; merged_count 104→105; Active Branches factory-artifacts D-843-BURST; D-843 Phase Progress row; D-843 Decisions Log row; 4-index BC v4.05/VP v2.68/STORY v4.193/ARCH v3.01; W2 ALL MERGED; W3 S-19.07 unblocked; Session Resume Checkpoint refreshed; §Pending Human Decisions (1) S-19.06→S-19.07; §Resume Actions items (2)+(3) updated for S-19.07; §4-Index heading D-842→D-843; second 4-index table updated; Critical SHAs develop 1304d280→9787c056 merged_count 104→105. (7) WAVE 2 COMPLETE: all 4 W2 stories merged (S-19.04+S-19.05+S-19.06+S-19.08). W3 S-19.07 depends_on S-19.02+S-19.06 — BOTH MERGED → unblocked. NEXT: human decision → S-19.07 dispatch. parent-commit: d45c17bb (pr-manager sprint-state fix — last pushed commit to origin/factory-artifacts before D-843 burst).
+
+### Phase
+
+D-843-S1906-MERGED-W2-COMPLETE
+
+### Date
+
+2026-07-15

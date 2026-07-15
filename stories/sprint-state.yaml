@@ -270,7 +270,7 @@ stories:
   - id: S-15.02
     status: draft
   - id: S-19.06
-    status: ready
+    status: merged
   - id: S-10.05
     status: draft
   - id: S-14.04
