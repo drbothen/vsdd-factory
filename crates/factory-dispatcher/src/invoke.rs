@@ -805,8 +805,7 @@ fn setup_host_on_store_data(
                 let write_offset = current_bytes as u32;
 
                 // Write prefix bytes at the newly allocated offset.
-                if write_wasm_bytes_sd(&mut caller, write_offset, body.len() as u32, &body)
-                    .is_err()
+                if write_wasm_bytes_sd(&mut caller, write_offset, body.len() as u32, &body).is_err()
                 {
                     return codes::INTERNAL_ERROR;
                 }

@@ -50,7 +50,10 @@ pub fn register(linker: &mut Linker<HostContext>) -> Result<(), HostCallError> {
              out_ptr_out: u32,
              out_len_out: u32|
              -> i32 {
-                let _ = timeout_ms; // accepted for ABI stability; enforced via epoch interruption
+                // accepted for ABI forward-compatibility; per-host-function timeout is
+                // structurally unenforced in the current synchronous func_wrap dispatch
+                // path; the store-level epoch deadline governs coarse plugin-level time.
+                let _ = timeout_ms;
                 let path = match read_wasm_string(&mut caller, path_ptr, path_len) {
                     Ok(s) => s,
                     Err(_) => return codes::INVALID_ARGUMENT,

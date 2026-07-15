@@ -35,11 +35,27 @@ pub fn register(linker: &mut Linker<HostContext>) -> Result<(), HostCallError> {
              out_ptr_out: u32,
              out_len_out: u32|
              -> i32 {
-                let _ = timeout_ms; // accepted for ABI stability; enforced in S-1.5 via epoch interruption
+                // accepted for ABI forward-compatibility; per-host-function timeout is
+                // structurally unenforced in the current synchronous func_wrap dispatch
+                // path; the store-level epoch deadline governs coarse plugin-level time.
+                let _ = timeout_ms;
                 let path = match read_wasm_string(&mut caller, path_ptr, path_len) {
                     Ok(s) => s,
                     Err(_) => return codes::INVALID_ARGUMENT,
                 };
+                // Two-linker protocol note (ADR-025 §Decision 17):
+                //
+                // Test path (Linker<HostContext> / setup_linker in host/mod.rs):
+                //   prepare() returns Ok((bytes, 0)) — out_ptr=0 is a constant sentinel.
+                //   The hook-sdk read_owned_bytes ptr==0 guard handles this correctly
+                //   by returning Vec::new() for empty files and 0 for non-empty (the
+                //   test path does not perform WASM memory-grow or byte-copy).
+                //
+                // Production path (Linker<StoreData> / setup_host_on_store_data in invoke.rs):
+                //   Ignores the out_ptr sentinel from prepare(). Instead it grows WASM
+                //   linear memory and writes the bytes at current_bytes (always > 0),
+                //   returning the real address via out_ptr_out. See invoke.rs for the
+                //   memory-grow protocol.
                 let (body, out_ptr) = {
                     let ctx = caller.data();
                     match prepare(ctx, &path, max_bytes) {
