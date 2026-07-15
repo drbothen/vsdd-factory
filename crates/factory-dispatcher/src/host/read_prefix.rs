@@ -207,25 +207,37 @@ fn emit_denial(ctx: &HostContext, requested: &str, reason: &str, resolved: Optio
 }
 
 // ---------------------------------------------------------------------------
-// S-19.06 Red Gate tests — T-001..T-008 + T-010
+// S-19.06 tests — T-001..T-008, T-010, T-012, T-012_MUTANT_VERIFY,
+//                 T-013a, T-013b, T-013_MUTANT_VERIFY  (14 tests total)
 //
-// All tests call `prepare()` which is `todo!()` in the stub.  Every test
-// therefore PANICS at Red Gate (todo!() unwinds with a panic message
-// "not yet implemented: S-19.06: implement read_prefix prepare function").
+// History: T-001..T-008 + T-010 (9 tests) were written against the
+// `todo!()`-body stub.  At that stub phase every call to prepare() panicked
+// with "not yet implemented: S-19.06: implement read_prefix prepare function";
+// that panic was the Red Gate.  After implementation, prepare() is fully
+// replaced; these 9 tests now serve as correctness gates (assertions that
+// were preempted by the panic now run and verify actual return values).
 //
-// The test names, assertion messages, and expected values are the load-bearing
-// specification.  Once `prepare()` is implemented the assertions become the
-// correctness gate; the panic IS the Red Gate.
+// T-012, T-012_MUTANT_VERIFY, T-013a, T-013b, and T-013_MUTANT_VERIFY are
+// cascade-remediation regression locks added after implementation (findings
+// F-P2-001 and F-P4-001).  They were written green — the correct prepare()
+// already passed them at commit time.  Each MUTANT_VERIFY companion injects
+// the specific ordering violation the lock is designed to catch, proving the
+// gate is live (TD-VSDD-059).
 //
-// T-001  AC-001  BC-1.17.001 PC-1 + PC-6   bounded prefix: 100-byte file → 50 bytes
-// T-002  AC-001  BC-1.17.001 PC-6           byte-exact: partial UTF-8 seq returned untrimmed
-// T-003  AC-002  BC-1.17.001 PC-2           short file: 30-byte file → 30 bytes, no padding
-// T-004  AC-003  BC-1.17.001 PC-3           NEVER OUTPUT_TOO_LARGE: 10000-byte file
-// T-005  AC-004  BC-1.17.001 PC-4           no capability block → CAPABILITY_DENIED (-1)
-// T-006  AC-004  BC-1.17.001 Invariant 3    read_file cap only → CAPABILITY_DENIED (-1)
-// T-007  AC-005  BC-1.17.001 PC-5           absent allowlisted → NOT_FOUND + file_not_found event
-// T-008  AC-006  BC-1.17.001 EC-001         max_bytes=0 → empty payload, exit 0
-// T-010  EC-004  BC-1.17.001 EC-004         path outside path_allow → CAPABILITY_DENIED + event
+// T-001  AC-001  BC-1.17.001 PC-1 + PC-6    bounded prefix: 100-byte file → 50 bytes
+// T-002  AC-001  BC-1.17.001 PC-6            byte-exact: partial UTF-8 seq returned untrimmed
+// T-003  AC-002  BC-1.17.001 PC-2            short file: 30-byte file → 30 bytes, no padding
+// T-004  AC-003  BC-1.17.001 PC-3            NEVER OUTPUT_TOO_LARGE: 10000-byte file
+// T-005  AC-004  BC-1.17.001 PC-4            no capability block → CAPABILITY_DENIED (-1)
+// T-006  AC-004  BC-1.17.001 Invariant 3     read_file cap only → CAPABILITY_DENIED (-1)
+// T-007  AC-005  BC-1.17.001 PC-5            absent allowlisted → NOT_FOUND + file_not_found event
+// T-008  AC-006  BC-1.17.001 EC-001          max_bytes=0 → empty payload, exit 0
+// T-012  F-P2-001 BC-1.17.001 EC-001         absent + max_bytes=0 → Ok(empty), no NOT_FOUND
+// T-012_MUTANT_VERIFY  TD-VSDD-059           mutation witness: reorder short-circuit → NOT_FOUND
+// T-013a F-P4-001 BC-1.17.001 Inv 3/PC-4    no-cap + max_bytes=0 → CAPABILITY_DENIED
+// T-013b F-P4-001 BC-1.17.001 Inv 3/PC-4    outside path_allow + max_bytes=0 → CAPABILITY_DENIED
+// T-013_MUTANT_VERIFY  TD-VSDD-059           mutation witness: hoist short-circuit → leaks Ok(empty)
+// T-010  EC-004  BC-1.17.001 EC-004          path outside path_allow → CAPABILITY_DENIED + event
 // ---------------------------------------------------------------------------
 
 #[cfg(test)]
@@ -258,7 +270,7 @@ mod tests {
     // T-001 (AC-001): 100-byte file, max_bytes=50 → exactly 50 bytes, exit 0
     //
     // BC-1.17.001 PC-1 (bounded prefix) + PC-6 (byte-exact).
-    // Red Gate: PANICS — prepare() is todo!(). Panic IS the Red Gate evidence.
+    // Red Gate history: panicked at stub phase (prepare() was todo!()). Now a correctness gate.
     // -----------------------------------------------------------------------
 
     #[test]
@@ -299,7 +311,7 @@ mod tests {
     // BC-1.17.001 PC-6: no UTF-8 boundary trimming — the raw 50 bytes are returned
     // even though they contain a partial multi-byte sequence.
     //
-    // Red Gate: PANICS — prepare() is todo!().
+    // Red Gate history: panicked at stub phase (prepare() was todo!()). Now a correctness gate.
     // -----------------------------------------------------------------------
 
     #[test]
@@ -344,7 +356,7 @@ mod tests {
     // T-003 (AC-002): 30-byte file, max_bytes=100 → full 30 bytes, no padding, exit 0
     //
     // BC-1.17.001 PC-2: when file_size < max_bytes, full content returned, no padding.
-    // Red Gate: PANICS — prepare() is todo!().
+    // Red Gate history: panicked at stub phase (prepare() was todo!()). Now a correctness gate.
     // -----------------------------------------------------------------------
 
     #[test]
@@ -384,7 +396,7 @@ mod tests {
     // OUTPUT_TOO_LARGE does not appear in non-comment source; this test confirms
     // it is not returned at runtime either).
     //
-    // Red Gate: PANICS — prepare() is todo!().
+    // Red Gate history: panicked at stub phase (prepare() was todo!()). Now a correctness gate.
     // -----------------------------------------------------------------------
 
     #[test]
@@ -426,7 +438,7 @@ mod tests {
     // T-005 (AC-004 negative): no capabilities.read_prefix → CAPABILITY_DENIED (-1)
     //
     // BC-1.17.001 PC-4: capability gate enforced before any filesystem access.
-    // Red Gate: PANICS — prepare() is todo!().
+    // Red Gate history: panicked at stub phase (prepare() was todo!()). Now a correctness gate.
     // -----------------------------------------------------------------------
 
     #[test]
@@ -449,7 +461,7 @@ mod tests {
     //
     // BC-1.17.001 Invariant 3: read_file capability does NOT grant read_prefix access.
     // The two capabilities are independently declared (defense-in-depth).
-    // Red Gate: PANICS — prepare() is todo!().
+    // Red Gate history: panicked at stub phase (prepare() was todo!()). Now a correctness gate.
     // -----------------------------------------------------------------------
 
     #[test]
@@ -474,7 +486,7 @@ mod tests {
     //   internal.file_not_found event + ZERO capability_denied events
     //
     // BC-1.17.001 PC-5 + Invariant 5.
-    // Red Gate: PANICS — prepare() is todo!().
+    // Red Gate history: panicked at stub phase (prepare() was todo!()). Now a correctness gate.
     // -----------------------------------------------------------------------
 
     #[test]
@@ -532,7 +544,7 @@ mod tests {
     //   File is NOT opened (degenerate input; caller asked for zero bytes).
     //
     // BC-1.17.001 EC-001.
-    // Red Gate: PANICS — prepare() is todo!().
+    // Red Gate history: panicked at stub phase (prepare() was todo!()). Now a correctness gate.
     // -----------------------------------------------------------------------
 
     #[test]
@@ -932,7 +944,7 @@ mod tests {
     //   path → CAPABILITY_DENIED (-1) + capability_denied event reason=path_not_allowed
     //
     // BC-1.17.001 EC-004.
-    // Red Gate: PANICS — prepare() is todo!().
+    // Red Gate history: panicked at stub phase (prepare() was todo!()). Now a correctness gate.
     // -----------------------------------------------------------------------
 
     #[test]

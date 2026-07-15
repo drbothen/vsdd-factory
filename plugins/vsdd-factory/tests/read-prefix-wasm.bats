@@ -32,9 +32,12 @@
 #   created at crates/hook-plugins/read-prefix-fixture/ and registered in the
 #   workspace.  This IS the Red Gate for the FFI boundary.
 #
-#   The load-bearing behavioral Red Gate for AC-007 (host-side logic) is the
-#   unit test suite T-001..T-008+T-010 in read_prefix.rs.  T-009f closes the
-#   compile/link gap; runtime dispatch exercise is out of scope.
+#   The load-bearing behavioral gate for AC-007 (host-side logic) is the unit
+#   test suite in read_prefix.rs: T-001..T-008 + T-010 (original 9, Red Gate
+#   at stub phase) plus T-012, T-012_MUTANT_VERIFY, T-013a, T-013b, and
+#   T-013_MUTANT_VERIFY (5 cascade-remediation regression locks, written green;
+#   14 tests total).  T-009f closes the compile/link gap; runtime dispatch
+#   exercise is out of scope.
 #
 # VP Trace: VP-101
 # Story: S-19.06
@@ -204,7 +207,8 @@ setup() {
 #       [dependencies] vsdd-hook-sdk = { path = "../../hook-sdk" }
 #       [[bin]] name = "read-prefix-fixture" path = "src/main.rs"
 #     crates/hook-plugins/read-prefix-fixture/src/main.rs
-#       calls vsdd_hook_sdk::host::read_prefix("", 0, 0) in a no-op hook body
+#       plain fn main() WASI-command entry point (no #[hook] macro);
+#       calls host::read_prefix("", 0, 0) to exercise the wasm32 extern linkage
 #     Cargo.toml (workspace root): "crates/hook-plugins/read-prefix-fixture"
 #       is registered in the workspace members list
 #
@@ -516,13 +520,17 @@ setup() {
 #
 # T-009h (POLICY 20 exclusion presence-gate): PASSES at Red Gate — both
 #   --exclude flags and staging case-skips are present in ci.yml and
-#   release.yml.  Exact-count assertions fire on both removal and un-swept
-#   new-build additions.  Includes a self-verifying mutation-liveness check
-#   (deletes one --exclude from a temp ci.yml copy, asserts count != 3).
-#   Closes F-P1-002 single-point-defense gap.
+#   release.yml.  Coupled-count assertions fire on both removal and un-swept
+#   new-build additions.  Includes a self-verifying mutation-liveness check in
+#   two directions: (1) deletes one --exclude from a temp ci.yml copy and
+#   asserts the exclusion count no longer equals the workspace build count;
+#   (2) appends a workspace build without --exclude and asserts the counts
+#   diverge.  Closes F-P1-002 single-point-defense gap.
 #
-# The load-bearing behavioral Red Gate for AC-007 overall remains the unit
-# test suite (T-001..T-008+T-010 in read_prefix.rs), which tests the host-side
-# logic.  T-009f closes the FFI-boundary gap: it proves the wasm32 extern
-# block compiles and links against the real hook-sdk.
+# The load-bearing behavioral gate for AC-007 overall is the unit test suite
+# in read_prefix.rs (14 tests: T-001..T-008, T-010 (original 9, Red Gate at
+# stub phase) + T-012, T-012_MUTANT_VERIFY, T-013a, T-013b, T-013_MUTANT_VERIFY
+# (5 cascade-remediation regression locks, written green)), which tests the
+# host-side logic.  T-009f closes the FFI-boundary gap: it proves the wasm32
+# extern block compiles and links against the real hook-sdk.
 # ---------------------------------------------------------------------------
