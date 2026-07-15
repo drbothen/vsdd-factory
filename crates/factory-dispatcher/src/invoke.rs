@@ -743,6 +743,86 @@ fn setup_host_on_store_data(
         )
         .map_err(|e| HostCallError::Linker(e.to_string()))?;
 
+    // read_prefix: bounded partial read (head-c semantics). Uses the same
+    // output-pointer protocol as read_file: grow WASM linear memory by
+    // ceil(body_len / 65536) pages, write body at current_bytes (always > 0
+    // for non-empty files), and return the write offset via out_ptr_out.
+    // Capability enforcement delegates to crate::host::read_prefix::prepare,
+    // which checks ctx.capabilities.read_prefix.path_allow (deny-by-default;
+    // independent of read_file capability per BC-1.17.001 Invariant 3).
+    //
+    // ADR-025 §Decision 16: production-path fill for vsdd::read_prefix.
+    // S-19.06 registered read_prefix in setup_linker (Linker<HostContext>,
+    // test path in host/mod.rs). This block makes it available on the
+    // Linker<StoreData> production dispatch path called by proxy_host_imports.
+    linker
+        .func_wrap(
+            "vsdd",
+            "read_prefix",
+            |mut caller: Caller<'_, StoreData>,
+             path_ptr: u32,
+             path_len: u32,
+             max_bytes: u32,
+             _timeout_ms: u32,
+             out_ptr_out: u32,
+             out_len_out: u32|
+             -> i32 {
+                let path = match read_wasm_string_sd(&mut caller, path_ptr, path_len) {
+                    Ok(s) => s,
+                    Err(_) => return codes::INVALID_ARGUMENT,
+                };
+
+                // Capability check + bounded file read (host-side logic, no WASM memory).
+                let body = {
+                    let ctx = caller.data().host.clone();
+                    match crate::host::read_prefix::prepare(&ctx, &path, max_bytes) {
+                        Ok((bytes, _)) => bytes,
+                        Err(code) => return code,
+                    }
+                };
+
+                if body.is_empty() {
+                    // Empty file or max_bytes=0: write ptr=0, len=0.  SDK
+                    // read_owned_bytes guards ptr==0 → returns Vec::new().
+                    let _ = write_wasm_u32_sd(&mut caller, out_ptr_out, 0);
+                    let _ = write_wasm_u32_sd(&mut caller, out_len_out, 0);
+                    return codes::OK;
+                }
+
+                // Find the current end of WASM linear memory, then grow by
+                // enough pages to hold `body`.  Writing at current_bytes gives
+                // a valid, unused address (> 0 for any non-empty WASM module).
+                let memory = match get_memory_sd(&mut caller) {
+                    Ok(m) => m,
+                    Err(_) => return codes::INTERNAL_ERROR,
+                };
+                let current_bytes = memory.data_size(&caller);
+                let pages_needed = body.len().div_ceil(65536) as u64;
+                if memory.grow(&mut caller, pages_needed).is_err() {
+                    return codes::INTERNAL_ERROR;
+                }
+
+                let write_offset = current_bytes as u32;
+
+                // Write prefix bytes at the newly allocated offset.
+                if write_wasm_bytes_sd(&mut caller, write_offset, body.len() as u32, &body)
+                    .is_err()
+                {
+                    return codes::INTERNAL_ERROR;
+                }
+
+                // Return (ptr, len) to the guest via the out-params.
+                if write_wasm_u32_sd(&mut caller, out_ptr_out, write_offset).is_err() {
+                    return codes::INVALID_ARGUMENT;
+                }
+                if write_wasm_u32_sd(&mut caller, out_len_out, body.len() as u32).is_err() {
+                    return codes::INVALID_ARGUMENT;
+                }
+                codes::OK
+            },
+        )
+        .map_err(|e| HostCallError::Linker(e.to_string()))?;
+
     // write_file: real implementation rooted at cwd (CLAUDE_PROJECT_DIR).
     // Relative paths in the request and path_allow are resolved against
     // ctx.cwd so plugins can write project-relative files (e.g.
@@ -1170,6 +1250,7 @@ mod tests {
         store
             .set_fuel(1_000_000)
             .expect("engine has fuel metering enabled");
+        store.set_epoch_deadline(u64::MAX);
 
         // The load-bearing assertion: instantiation MUST succeed.
         // Fails today with InvokeError::Instantiate (unresolved import).
@@ -1259,6 +1340,7 @@ mod tests {
         store
             .set_fuel(1_000_000)
             .expect("engine has fuel metering enabled");
+        store.set_epoch_deadline(u64::MAX);
 
         let instance = linker.instantiate(&mut store, &module).expect(
             "T-002: instantiation must succeed via production path (setup_host_on_store_data)",
@@ -1356,6 +1438,7 @@ mod tests {
         store
             .set_fuel(1_000_000)
             .expect("engine has fuel metering enabled");
+        store.set_epoch_deadline(u64::MAX);
 
         let instance = linker.instantiate(&mut store, &module).expect(
             "T-003: instantiation must succeed via production path (setup_host_on_store_data)",
