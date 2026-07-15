@@ -735,6 +735,199 @@ mod tests {
     }
 
     // -----------------------------------------------------------------------
+    // T-013a (F-P4-001): NO capabilities.read_prefix block + max_bytes=0
+    //   → CAPABILITY_DENIED (-1) + capability_denied event
+    //   (capability check step 1 precedes max_bytes=0 short-circuit step 3)
+    //
+    // Ordering lock: every existing max_bytes=0 test (T-008, T-012) exercises a
+    // caller that has BOTH capability AND an allowed path — a mutation hoisting
+    // the step-3 short-circuit above steps 1+2 would still pass all prior tests
+    // because the authorized callers reach step 3 unimpeded. T-013a locks step 1
+    // ordering: a no-cap caller with max_bytes=0 MUST receive CAPABILITY_DENIED,
+    // not Ok(empty). BC-1.17.001 Invariant 3 / PC-4 deny-by-default.
+    // -----------------------------------------------------------------------
+
+    #[test]
+    fn test_S19_06_T013a_no_capability_max_bytes_zero_returns_capability_denied() {
+        let ctx = bare_context(); // no capabilities at all
+
+        let err = prepare(&ctx, "any/path.txt", 0).unwrap_err();
+
+        assert_eq!(
+            err,
+            codes::CAPABILITY_DENIED,
+            "T-013a F-P4-001: no capabilities.read_prefix block + max_bytes=0 must return \
+             CAPABILITY_DENIED (-1). The capability check (step 1) precedes the max_bytes=0 \
+             short-circuit (step 3) — an unauthorized caller must be denied even when \
+             asking for zero bytes. BC-1.17.001 Invariant 3 / PC-4 deny-by-default."
+        );
+
+        let events = ctx.drain_events();
+        let cap_denied_count = events
+            .iter()
+            .filter(|e| e.type_ == "internal.capability_denied")
+            .count();
+        assert_eq!(
+            cap_denied_count, 1,
+            "T-013a F-P4-001: CAPABILITY_DENIED must emit exactly one \
+             'internal.capability_denied' event; got {} events. \
+             BC-1.17.001 PC-4.",
+            cap_denied_count
+        );
+    }
+
+    // -----------------------------------------------------------------------
+    // T-013b (F-P4-001): capabilities.read_prefix present, path OUTSIDE
+    //   path_allow + max_bytes=0 → CAPABILITY_DENIED (-1) + event
+    //   reason=path_not_allowed
+    //   (path check step 2 precedes max_bytes=0 short-circuit step 3)
+    //
+    // Ordering lock: a mutation hoisting the step-3 short-circuit above step 2
+    // would bypass the path-allowlist check for max_bytes=0 callers, returning
+    // Ok(empty) to a caller whose path is outside the declared allow-list.
+    // T-013b locks step 2 ordering. BC-1.17.001 Invariant 3 / PC-4.
+    // -----------------------------------------------------------------------
+
+    #[test]
+    fn test_S19_06_T013b_path_outside_allowlist_max_bytes_zero_returns_capability_denied() {
+        let dir = tempfile::tempdir().unwrap();
+        let allowed_dir = dir.path().join("allowed");
+        let other_dir = dir.path().join("other");
+        std::fs::create_dir_all(&allowed_dir).unwrap();
+        std::fs::create_dir_all(&other_dir).unwrap();
+        // File exists so canonicalization succeeds; capability covers `allowed/` NOT `other/`.
+        let target_file = other_dir.join("secret.txt");
+        std::fs::write(&target_file, b"secret data").unwrap();
+
+        let mut ctx = context_with_caps(allow_read_prefix(&[allowed_dir.to_str().unwrap()]));
+        ctx.cwd = dir.path().to_path_buf();
+
+        let result = prepare(&ctx, target_file.to_str().unwrap(), 0);
+
+        assert_eq!(
+            result.unwrap_err(),
+            codes::CAPABILITY_DENIED,
+            "T-013b F-P4-001: path outside capabilities.read_prefix path_allow + max_bytes=0 \
+             must return CAPABILITY_DENIED (-1). The path check (step 2) precedes the \
+             max_bytes=0 short-circuit (step 3) — a caller with a non-allowed path must be \
+             denied even when asking for zero bytes. BC-1.17.001 Invariant 3 / PC-4."
+        );
+
+        let events = ctx.drain_events();
+        let cap_denied: Vec<_> = events
+            .iter()
+            .filter(|e| e.type_ == "internal.capability_denied")
+            .collect();
+        assert_eq!(
+            cap_denied.len(),
+            1,
+            "T-013b F-P4-001: path_allow mismatch + max_bytes=0 must emit exactly one \
+             'internal.capability_denied' event; got {} events.",
+            cap_denied.len()
+        );
+
+        let reason = cap_denied[0].fields.get("reason").and_then(|v| v.as_str());
+        assert_eq!(
+            reason,
+            Some("path_not_allowed"),
+            "T-013b F-P4-001: capability_denied event must carry reason=path_not_allowed; \
+             got {:?}. BC-1.17.001 EC-004.",
+            reason
+        );
+    }
+
+    // -----------------------------------------------------------------------
+    // T-013 mutation-liveness witness (TD-VSDD-059 mechanical mutation check)
+    //
+    // Demonstrates that T-013a/b are live gates by exercising a local helper
+    // `prepare_mutant_hoisted_short_circuit` that implements the WRONG ordering:
+    // max_bytes=0 short-circuit BEFORE the capability check (and path check).
+    // A no-cap caller with max_bytes=0 gets Ok(empty) from the mutant where the
+    // real prepare() returns Err(CAPABILITY_DENIED) — BC-1.17.001 Invariant 3
+    // violated undetected by all prior tests that combined cap+path+max_bytes=0.
+    //
+    // This is NOT a passing test of the real prepare() — it is an in-module
+    // proof that the T-013a/b assertions would have failed against this mutant
+    // implementation, confirming the tests are not vacuous.
+    //
+    // Evidence format:
+    //   `prepare_mutant_hoisted_short_circuit(no_cap_ctx, max_bytes=0)` →
+    //   Ok(empty) (the mutation leak mode);
+    //   `prepare(no_cap_ctx, max_bytes=0)` → Err(CAPABILITY_DENIED) (correct).
+    // -----------------------------------------------------------------------
+
+    #[test]
+    fn test_S19_06_T013_MUTANT_VERIFY_hoisted_short_circuit_leaks_to_unauthorized_caller() {
+        // A local helper that mirrors prepare() but with the max_bytes=0 short-circuit
+        // MOVED ABOVE both the capability check (step 1) and path check (step 2).
+        // This is the mutation that T-013a/b are designed to catch.
+        fn prepare_mutant_hoisted_short_circuit(
+            ctx: &HostContext,
+            path: &str,
+            max_bytes: u32,
+        ) -> Result<(Vec<u8>, u32), i32> {
+            // MUTANT step 3 HOISTED: max_bytes=0 short-circuit before steps 1+2.
+            // Real prepare(): step 1 (capability) → step 2 (path) → step 3 (max_bytes=0).
+            if max_bytes == 0 {
+                return Ok((Vec::new(), 0));
+            }
+            // Step 1 (never reached for max_bytes=0 in the mutant)
+            let caps = ctx
+                .capabilities
+                .read_prefix
+                .as_ref()
+                .ok_or(codes::CAPABILITY_DENIED)?;
+            // Step 2 (never reached for max_bytes=0 in the mutant)
+            let resolved = resolve_for_read(std::path::Path::new(path), &ctx.cwd);
+            match super::super::path_util::check_path_allowed(
+                &resolved,
+                &caps.path_allow,
+                &ctx.cwd,
+                |p| p.canonicalize(),
+            ) {
+                super::super::path_util::PathAllowDecision::Allowed => {}
+                _ => return Err(codes::CAPABILITY_DENIED),
+            }
+            // Step 4+5: bounded read
+            match read_prefix_bounded(&resolved, max_bytes as usize) {
+                Ok(bytes) => Ok((bytes, 0)),
+                Err(PrefixReadErr::NotFound) => Err(codes::NOT_FOUND),
+                Err(PrefixReadErr::Other) => Err(codes::INTERNAL_ERROR),
+            }
+        }
+
+        // Mutation evidence: no-cap caller + max_bytes=0 → Ok(empty) from mutant.
+        // This is the BC-1.17.001 Invariant 3 / PC-4 violation the mutation introduces.
+        let no_cap_ctx = bare_context();
+        let mutant_result = prepare_mutant_hoisted_short_circuit(&no_cap_ctx, "any/path.txt", 0);
+        assert!(
+            mutant_result.is_ok(),
+            "T-013 mutation witness: prepare_mutant_hoisted_short_circuit (max_bytes=0 \
+             short-circuit BEFORE capability check) must return Ok(empty) for no-cap caller \
+             + max_bytes=0. This confirms T-013a is a live gate: the real prepare() would \
+             return Err(CAPABILITY_DENIED) where the mutant leaks Ok(empty) to an \
+             unauthorized caller. BC-1.17.001 Invariant 3 / PC-4."
+        );
+        let (bytes, _) = mutant_result.unwrap();
+        assert!(
+            bytes.is_empty(),
+            "T-013 mutation witness: mutant must leak an empty payload (not bytes from file) \
+             to the no-cap caller — Ok(empty) is the security-relevant leak mode."
+        );
+
+        // Cross-check: the real prepare() DOES deny the no-cap caller even with max_bytes=0,
+        // confirming T-013a's assertion is meaningful (not vacuous).
+        let real_result = prepare(&no_cap_ctx, "any/path.txt", 0);
+        assert_eq!(
+            real_result.unwrap_err(),
+            codes::CAPABILITY_DENIED,
+            "T-013 mutation witness: real prepare() must return CAPABILITY_DENIED for \
+             no-cap + max_bytes=0 (proving T-013a is live: the real prepare denies where \
+             the hoisted mutant leaks). BC-1.17.001 Invariant 3 / PC-4."
+        );
+    }
+
+    // -----------------------------------------------------------------------
     // T-010 (EC-004): capabilities.read_prefix present, path_allow lists a different
     //   path → CAPABILITY_DENIED (-1) + capability_denied event reason=path_not_allowed
     //
