@@ -176,32 +176,83 @@ setup() {
 }
 
 # ---------------------------------------------------------------------------
-# T-009 DOCUMENTED GAP: fixture WASM compile/link
+# T-009f  AC-007 Gate 4 — fixture WASM compile/link
 #
-# AC-007 Gate 4 (integration): "a fixture WASM plugin that imports and calls
-# read_prefix compiles and links successfully."
+# Gate 4 asserts that a fixture WASM plugin which imports and calls
+# hook_sdk::host::read_prefix compiles and links for the wasm32-wasip1 target.
+# This is the FFI boundary integration gate: it exercises the full call path
+# from wasm32 extern→safe wrapper in a real WASM binary, catching link errors
+# that static grep checks (T-009a..T-009e) cannot detect.
 #
-# This gate CANNOT be expressed in the current bats suite:
-#   - No WASM compilation harness exists (no .rs→.wasm fixture build pattern
-#     in plugins/vsdd-factory/tests/ or its fixtures/).
-#   - No pattern in the bats suite for running a WASM plugin under the
-#     dispatcher sandbox and observing its output.
+# FIXTURE CRATE: crates/hook-plugins/read-prefix-fixture/
+#   Package name: read-prefix-fixture
+#   Build target: wasm32-wasip1
+#   Convention:   mirrors all other hook-plugin crates under crates/hook-plugins/
+#                 (e.g., precompact-flush, regression-gate, validate-burst-log)
+#   Minimum structure the implementer must create:
+#     crates/hook-plugins/read-prefix-fixture/Cargo.toml
+#       [package] name = "read-prefix-fixture"
+#       [dependencies] vsdd-hook-sdk = { path = "../../hook-sdk" }
+#       [[bin]] name = "read-prefix-fixture" path = "src/main.rs"
+#     crates/hook-plugins/read-prefix-fixture/src/main.rs
+#       calls vsdd_hook_sdk::host::read_prefix("", 0, 0) in a no-op hook body
+#     Cargo.toml (workspace root): add "crates/hook-plugins/read-prefix-fixture"
+#       to the workspace members list
 #
-# What T-009 CAN assert (implemented above, T-009a..T-009e):
-#   - Correct signature and parameter shape in hook-sdk/src/host.rs (Gate 1)
-#   - Correct raw extern in hook-sdk/src/ffi.rs with vsdd module + both
-#     cfg blocks (Gate 2 clauses i/ii/iii)
-#   - Registration in the dispatcher dispatch table (Gate 3)
+# RED GATE STATUS: FAILS at Red Gate — the fixture crate does not exist yet.
+#   `cargo build -p read-prefix-fixture --target wasm32-wasip1` exits non-zero
+#   ("package ID specification ... did not match any packages").
+#   Will turn GREEN when the implementer creates the fixture crate.
 #
-# What T-009 CANNOT assert without a WASM compilation harness:
-#   - That a fixture plugin importing vsdd::read_prefix compiles without error
-#   - That the compiled plugin links against the dispatcher's vsdd namespace
-#   - That calling read_prefix in the fixture produces the correct return value
-#     (the behavioral correctness gate — the unit tests T-001..T-008 cover
-#     the host-side logic; this gate covers the FFI boundary end-to-end)
+# TIMEOUT: 120 seconds (WASM compile of a minimal crate; network-free).
+# ---------------------------------------------------------------------------
+@test "T-009f AC-007 Gate 4: fixture WASM read-prefix-fixture builds for wasm32-wasip1" {
+  REPO_ROOT="$(cd "${BATS_TEST_DIRNAME}/../../.." && pwd)"
+  # This test must run from the repo root so Cargo picks up the workspace.
+  cd "$REPO_ROOT"
+
+  # Select platform-compatible timeout command.
+  # macOS ships without GNU coreutils `timeout`; gtimeout is the homebrew alias.
+  # If neither is available (rare CI case), fall through to plain cargo — the
+  # package-not-found error fires in <1 s at Red Gate so no hang risk then.
+  local timeout_cmd=""
+  if command -v timeout &>/dev/null; then
+    timeout_cmd="timeout 120"
+  elif command -v gtimeout &>/dev/null; then
+    timeout_cmd="gtimeout 120"
+  fi
+
+  local output
+  local exit_code=0
+  # shellcheck disable=SC2086  # word-split intentional: timeout_cmd may be empty
+  output=$(${timeout_cmd} cargo build -p read-prefix-fixture --target wasm32-wasip1 2>&1) \
+    || exit_code=$?
+
+  if [ "$exit_code" -ne 0 ]; then
+    echo "FAIL: cargo build -p read-prefix-fixture --target wasm32-wasip1 exited $exit_code"
+    echo "--- cargo output (last 30 lines) ---"
+    echo "$output" | tail -30
+    echo "---"
+    echo "ACTION: implement the fixture crate at crates/hook-plugins/read-prefix-fixture/"
+    echo "  See the T-009f comment block above for the minimum structure."
+    return 1
+  fi
+}
+
+# ---------------------------------------------------------------------------
+# T-009 status summary (post T-009f addition)
 #
-# Pre-implementation behavior of T-009a..T-009e:
-#   PASSES — all static gates pass because the stubs at e422a30e already
-#   carry the correct signatures. The behavioral Red Gate for AC-007 is
-#   the cargo test suite (T-001..T-010 unit tests), not these bats tests.
+# T-009a..T-009e (static file checks): PASS at Red Gate — stubs at e422a30e
+#   already carry the correct signatures and registrations.  These tests are
+#   regression guards; they do NOT constitute a meaningful Red Gate.
+#
+# T-009f (fixture compile/link): FAILS at Red Gate — the fixture crate does
+#   not exist.  This IS the Red Gate for AC-007 Gate 4.  It turns GREEN when
+#   the implementer creates crates/hook-plugins/read-prefix-fixture/ and
+#   registers it in the workspace Cargo.toml.
+#
+# The load-bearing behavioral Red Gate for AC-007 overall remains the unit
+# test suite (T-001..T-008+T-010 in read_prefix.rs), which tests the host-side
+# logic.  T-009f closes the FFI-boundary gap: it proves the wasm32 extern
+# block compiles and links against the real hook-sdk.
 # ---------------------------------------------------------------------------
