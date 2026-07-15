@@ -12,8 +12,10 @@
 //! with an unresolved-import error; no return value is produced.
 //!
 //! Non-wasm (host_stubs) target: the stub returns -1, which maps to
-//! `HostError::CapabilityDenied`. This path is exercised by
-//! `cargo test -p factory-dispatcher -- host::read_prefix`.
+//! `HostError::CapabilityDenied` via `HostError::from_code`. The stub
+//! exists solely so the fixture compiles on non-wasm targets; it is not
+//! exercised by any test (the fixture is never executed — only its
+//! compile/link is asserted, bats T-009f).
 //!
 //! BC-1.17.001 v1.6, S-19.06 AC-007.
 
