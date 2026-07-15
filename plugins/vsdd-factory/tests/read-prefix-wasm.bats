@@ -11,15 +11,16 @@
 # bats harness supports: static file analysis via grep/awk on source files.
 #
 # FIXTURE WASM COMPILE/LINK (Gate 4 — integration):
-#   AC-007 also requires "a fixture WASM plugin that imports and calls
-#   read_prefix compiles and links successfully."  The current bats suite
-#   contains no WASM compilation harness (no pattern in plugins/vsdd-factory/
-#   tests/ for compiling a .rs fixture to .wasm and running it under the
-#   dispatcher).  This assertion CANNOT be expressed in the current suite.
-#   The compile/link gate is therefore listed here as a documented gap:
-#     - Pre-implementation: gate cannot pass regardless (todo!() stubs)
-#     - Post-implementation: gate must be exercised via a future WASM fixture
-#       harness (out of scope for the bats suite at this story)
+#   AC-007 requires "a fixture WASM plugin that imports and calls read_prefix
+#   compiles and links successfully."  T-009f is this compile/link harness:
+#   it invokes `cargo build -p read-prefix-fixture --target wasm32-wasip1`
+#   and asserts exit 0.  The fixture crate lives at
+#   crates/hook-plugins/read-prefix-fixture/.
+#
+#   What remains out of scope for this bats suite: RUNTIME execution of the
+#   fixture under a live dispatcher.  No wasm-execution harness exists in
+#   this suite; compile/link (T-009f) is the extent of what is exercised.
+#   Runtime dispatch exercise is a future integration concern beyond S-19.06.
 #
 # RED GATE STATUS:
 #   T-009a..T-009e (static file checks): PASS at Red Gate because the stubs
@@ -27,8 +28,13 @@
 #   These tests provide regression protection post-implementation but do NOT
 #   constitute a meaningful Red Gate test for the behavioral contract.
 #
-#   The load-bearing Red Gate for AC-007 is the unit test for T-001..T-008+T-010
-#   (via cargo test on read_prefix.rs), not this bats suite.
+#   T-009f (fixture compile/link, AC-007 Gate 4): PASSES — fixture crate
+#   created at crates/hook-plugins/read-prefix-fixture/ and registered in the
+#   workspace.  This IS the Red Gate for the FFI boundary.
+#
+#   The load-bearing behavioral Red Gate for AC-007 (host-side logic) is the
+#   unit test suite T-001..T-008+T-010 in read_prefix.rs.  T-009f closes the
+#   compile/link gap; runtime dispatch exercise is out of scope.
 #
 # VP Trace: VP-101
 # Story: S-19.06
@@ -192,20 +198,20 @@ setup() {
 #   Build target: wasm32-wasip1
 #   Convention:   mirrors all other hook-plugin crates under crates/hook-plugins/
 #                 (e.g., precompact-flush, regression-gate, validate-burst-log)
-#   Minimum structure the implementer must create:
+#   Structure (as implemented):
 #     crates/hook-plugins/read-prefix-fixture/Cargo.toml
 #       [package] name = "read-prefix-fixture"
 #       [dependencies] vsdd-hook-sdk = { path = "../../hook-sdk" }
 #       [[bin]] name = "read-prefix-fixture" path = "src/main.rs"
 #     crates/hook-plugins/read-prefix-fixture/src/main.rs
 #       calls vsdd_hook_sdk::host::read_prefix("", 0, 0) in a no-op hook body
-#     Cargo.toml (workspace root): add "crates/hook-plugins/read-prefix-fixture"
-#       to the workspace members list
+#     Cargo.toml (workspace root): "crates/hook-plugins/read-prefix-fixture"
+#       is registered in the workspace members list
 #
-# RED GATE STATUS: FAILS at Red Gate — the fixture crate does not exist yet.
-#   `cargo build -p read-prefix-fixture --target wasm32-wasip1` exits non-zero
-#   ("package ID specification ... did not match any packages").
-#   Will turn GREEN when the implementer creates the fixture crate.
+# RED GATE STATUS: PASSES — the fixture crate exists at
+#   crates/hook-plugins/read-prefix-fixture/ and is registered in the
+#   workspace Cargo.toml.  `cargo build -p read-prefix-fixture
+#   --target wasm32-wasip1` exits 0.
 #
 # TIMEOUT: 120 seconds (WASM compile of a minimal crate; network-free).
 # ---------------------------------------------------------------------------
@@ -497,10 +503,10 @@ setup() {
 #   already carry the correct signatures and registrations.  These tests are
 #   regression guards; they do NOT constitute a meaningful Red Gate.
 #
-# T-009f (fixture compile/link): FAILS at Red Gate — the fixture crate does
-#   not exist.  This IS the Red Gate for AC-007 Gate 4.  It turns GREEN when
-#   the implementer creates crates/hook-plugins/read-prefix-fixture/ and
-#   registers it in the workspace Cargo.toml.
+# T-009f (fixture compile/link): PASSES — the fixture crate exists at
+#   crates/hook-plugins/read-prefix-fixture/ and is registered in the
+#   workspace Cargo.toml.  This IS the Red Gate for AC-007 Gate 4 (FFI
+#   boundary compile/link verification).
 #
 # T-009g (AC-003 static gate): PASSES at Red Gate — production region contains
 #   OUTPUT_TOO_LARGE only in // and //! comments, all stripped by stage 3 sed.
