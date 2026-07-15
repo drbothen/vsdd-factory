@@ -381,9 +381,14 @@ pub fn emit_plugin_completed_async(
     fuel_consumed: u64,
 ) {
     let ev = InternalEvent::now("plugin.completed");
+    // BC-3.08.001 §Common Fields: mandatory `timestamp` field for all plugin.* events.
+    // Capture ts before moving ev into the builder chain (mirrors all sibling emitters
+    // in this file: emit_plugin_abandoned, emit_plugin_timeout_async, etc.).
+    let ts = ev.ts.clone();
     let ev = ev
         .with_trace_id(&ctx.dispatcher_trace_id)
         .with_session_id(&ctx.session_id)
+        .with_field("timestamp", ts.as_str())
         .with_plugin_name(plugin_name)
         .with_plugin_version(plugin_version)
         .with_field("entry_index", u64::from(entry_index))
