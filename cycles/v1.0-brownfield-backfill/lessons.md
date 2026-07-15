@@ -6846,3 +6846,39 @@ Both gates are mandatory standing Commit-E controls for any burst touching E-19 
 **Closes:** S-19.08 convergence burst (2026-07-14). `[process-gap; TD-VSDD-059; assertion-liveness; cap-enforcing-mock; boundary-test; dead-harness; test-writer; adversary-checklist; mutation-check; codified]`
 
 **Closes:** D-839. `[drift-pattern; POL-14; status-lifecycle-mismatch; auto-promotion; state-manager-checklist; BC-frontmatter; systematic-audit; S-15.03]`
+
+---
+
+### L-BB-doc-accuracy-findings-trigger-full-perimeter-comment-sweep-at-first-occurrence [process-gap] [codified]
+
+**Title:** Doc-Accuracy Finding Classes Escalate Across Consecutive Passes Under Per-Instance Remediation; a Full-File Perimeter Sweep at First Occurrence Ends the Class
+
+**Lesson:** The S-19.06 cascade produced doc-accuracy findings on three consecutive passes (F-P6-001 at pass-6, F-P7-001/F-P7-002 at pass-7, F-P8-001/F-P8-002 at pass-8) while each fix-burst addressed only the specific instance flagged. The pattern: adversary finds one inaccurate comment → remediation fixes that comment → next adversary finds another inaccurate comment in an adjacent location → repeat. At pass-8 the fix-burst performed a full-file sweep with a per-claim verification table (every doc-comment claim compared to the live implementation). The falsification attempt at pass-9 found nothing; passes 9+10+11 were all CLEAN on doc-accuracy.
+
+**Root cause:** Per-instance remediation creates a whack-a-mole dynamic for doc-accuracy finding classes: each fix-burst proves only that the specific flagged comment is now accurate, leaving adjacent comments unverified. The adversary re-enters each pass with fresh context and finds the next inaccurate comment with no knowledge of the prior fix history.
+
+**Prevention:** (1) On the FIRST doc-accuracy finding in a cascade, the remediation fix-burst MUST perform a full-file perimeter sweep — enumerate every doc-comment or doc-string claim in the affected file(s) against the live implementation and produce a per-claim verification table. (2) The per-claim verification table is the evidence that the class is closed, not just fixing the specific flagged instance. (3) This is a one-time cost at first occurrence: the full sweep produces evidence that passes forward-confirm (falsification attempts fail).
+
+**Anchors:** S-19.06 cascade passes 6+7+8 (F-P6-001 → F-P7-001/002 → F-P8-001/002; doc-accuracy class; per-instance remediation causing three-pass escalation); S-19.06 pass-8 fix-burst (full perimeter sweep + per-claim verification table); S-19.06 passes 9+10+11 CLEAN (falsification failed; class closed).
+
+**Cites:** S-19.06 F-P6-001 (first doc-accuracy instance); S-19.06 F-P7-001/002 (second-pass escalation); S-19.06 F-P8-001/002 (third-pass escalation); S-19.06 pass-8 fix-burst (perimeter sweep closure); S-19.06 convergence burst (2026-07-14).
+
+**Closes:** S-19.06 convergence burst (2026-07-14). `[process-gap; doc-accuracy; full-perimeter-sweep; per-claim-verification; adversary-checklist; fix-burst; escalation-prevention; codified]`
+
+---
+
+### L-BB-remediation-commits-rerun-the-full-exit-gate [process-gap] [codified]
+
+**Title:** Every Remediation Commit Requires the Complete Exit Gate (clippy+fmt+workspace-test+bats); Partial Gate Reruns Miss Fix-Introduced Regressions
+
+**Lesson:** F-P3-001 in the S-19.06 cascade was a clippy CI-red introduced by a prior fix-burst. It survived one orchestrator verification round because post-remediation verification ran the unit test suite and the bats integration suite but did not re-run `cargo clippy`. The clippy failure was caught on the NEXT adversary pass. The complete exit gate for this project is: `cargo clippy --workspace --all-targets -- -D warnings` AND `cargo fmt --check --all` AND `cargo test --workspace` AND `plugins/vsdd-factory/tests/run-all.sh`. Omitting any leg creates a window where a fix-introduced regression in that leg survives into the next pass.
+
+**Root cause:** The orchestrator's post-remediation verification step ran unit+bats but omitted clippy+fmt. This is a partial-gate pattern: the gate looks sufficient because the most obviously relevant checks pass, but the full gate is required because fix-bursts can introduce regressions in any leg (especially clippy, which catches newly-introduced warning patterns that compile and test correctly).
+
+**Prevention:** (1) Every remediation commit MUST re-run the complete exit gate: `cargo fmt --check --all && cargo clippy --workspace --all-targets -- -D warnings && cargo test --workspace && cd plugins/vsdd-factory/tests && ./run-all.sh`. (2) The orchestrator's post-remediation verification dispatch instruction MUST name all four legs explicitly. (3) Adversary should check the gate evidence in any fix-burst report: if the report only shows unit+bats but not clippy+fmt, treat the gate as unverified and re-run clippy+fmt independently.
+
+**Anchors:** S-19.06 cascade pass-3 (F-P3-001: clippy CI-red survived partial-gate verification; introduced by a prior fix-burst; caught at the next adversary pass); S-19.06 convergence burst (2026-07-14).
+
+**Cites:** S-19.06 F-P3-001 (clippy red surviving partial gate); S-19.06 pass-3 adversary; S-19.06 convergence burst (2026-07-14); CLAUDE.md §Build/Test/Lint (canonical four-leg gate).
+
+**Closes:** S-19.06 convergence burst (2026-07-14). `[process-gap; exit-gate; clippy; partial-gate; remediation-commit; post-remediation-verification; orchestrator; four-leg-gate; codified]`

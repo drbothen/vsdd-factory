@@ -1,1 +1,1 @@
-{"status":"pass","timestamp":"2026-07-14T19:51:12Z","command":"cargo test -p verify-state-timestamp-refresh -- --nocapture 2>&1"}
+{"status":"pass","timestamp":"2026-07-15T05:02:26Z","command":"\\\ncargo test -p factory-dispatcher --lib -- host::read_prefix::tests::test_S19_06_T008 host::read_prefix::tests::test_S19_06_T012_absent_file_max_bytes_zero_short_circuits_before_existence_check 2>&1"}
