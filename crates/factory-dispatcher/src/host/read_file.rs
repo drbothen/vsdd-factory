@@ -116,7 +116,7 @@ pub(crate) fn prepare(
             // Emit `internal.file_not_found` (NOT `internal.capability_denied`)
             // and return `codes::NOT_FOUND (-5)` so plugins can distinguish
             // "absent file" from "genuine allowlist violation".
-            let ev = InternalEvent::now("internal.file_not_found")
+            let ev = InternalEvent::now(crate::internal_log::INTERNAL_FILE_NOT_FOUND)
                 .with_trace_id(&ctx.dispatcher_trace_id)
                 .with_session_id(&ctx.session_id)
                 .with_plugin_name(&ctx.plugin_name)

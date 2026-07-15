@@ -134,7 +134,7 @@ pub(crate) fn prepare(
     match read_prefix_bounded(&resolved, max_bytes as usize) {
         Ok(bytes) => Ok((bytes, 0)),
         Err(PrefixReadErr::NotFound) => {
-            let ev = InternalEvent::now("internal.file_not_found")
+            let ev = InternalEvent::now(crate::internal_log::INTERNAL_FILE_NOT_FOUND)
                 .with_trace_id(&ctx.dispatcher_trace_id)
                 .with_session_id(&ctx.session_id)
                 .with_plugin_name(&ctx.plugin_name)

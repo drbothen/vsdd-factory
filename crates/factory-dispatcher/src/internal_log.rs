@@ -94,6 +94,19 @@ pub const INTERNAL_DISPATCHER_ERROR: &str = "internal.dispatcher_error";
 /// One entry per (event, filtering-sink) pair.
 pub const INTERNAL_EVENT_FILTERED: &str = "internal.event_filtered";
 
+/// Event type for absent-but-allowlisted file reads (AC-002 S-19.03; AC-001
+/// S-19.06 T-007). Emitted by `read_file::prepare` and `read_prefix::prepare`
+/// when the path is within the allow-list but the file does not exist on disk.
+/// Named constant replaces bare literals across read_file.rs, read_prefix.rs
+/// (D21, F-WG-002, S-19.09).
+pub const INTERNAL_FILE_NOT_FOUND: &str = "internal.file_not_found";
+
+/// Event type for async plugin drain-timer expiry (BC-3.08.001 v1.21 Event 5;
+/// AC-002 S-19.05). Emitted by `emit_plugin_abandoned` when the async drain
+/// timer fires with the plugin still in-flight. Named constant replaces bare
+/// literals in emit_event.rs (D21, F-WG-002, S-19.09).
+pub const PLUGIN_ABANDONED: &str = "plugin.abandoned";
+
 /// One line in `dispatcher-internal-YYYY-MM-DD.jsonl`.
 ///
 /// The top-level fields form the stable shape every log line carries;

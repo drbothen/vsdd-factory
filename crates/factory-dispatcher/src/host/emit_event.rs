@@ -335,7 +335,7 @@ pub fn emit_plugin_abandoned(
     entry_index: u32,
     drain_window_ms: u64,
 ) {
-    let ev = InternalEvent::now("plugin.abandoned");
+    let ev = InternalEvent::now(crate::internal_log::PLUGIN_ABANDONED);
     let ts = ev.ts.clone();
     let ev = ev
         .with_trace_id(&ctx.dispatcher_trace_id)
