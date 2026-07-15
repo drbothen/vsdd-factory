@@ -128,7 +128,7 @@ dtu_services: []
 |--------------|-----|-------|
 | main | a04cb303 | rc.22 bot binary bundle commit 2026-07-03 (Release 28668124787 post-build; all 33 WASMs rebuilt, plugin.json → 1.0.0-rc.22); prior: e4285fe5 (PR #456 true-merge fix mapfile→while-read; rc.22 tag); prior: 2a4c949b (PR #455 true-merge first rc.22 release; tag later moved); prior: caf06c68 (rc.21) |
 | develop | 1304d280 | PR #646 S-19.08 squash-merge 2026-07-14T23:18:08Z; prior: 7b35c8e4 (PR #640 S-19.05 squash-merge 2026-07-14); prior: d4a23a02 (PR #639 S-19.04 squash-merge 2026-07-14) |
-| factory-artifacts | D-842 burst (SHA-patch pending) | D-842-BURST pending; D-841-BURST `59a71000` (last known pushed); D-840-BURST `fd54e70b`; D-839-SHA-PATCH `e5f5df66` |
+| factory-artifacts | 89dc1438 | D-842-BURST `89dc1438` (2026-07-14 pushed); D-841-BURST `59a71000`; D-840-BURST `fd54e70b`; D-839-SHA-PATCH `e5f5df66` |
 | feature/S-19.05 | **DELETED** (was 28f28465) | Merged via PR #640 7b35c8e4 2026-07-14 (D-841); branch deleted at merge |
 | feature/S-19.04 | **DELETED** (was 82aeb073) | Merged via PR #639 d4a23a02 2026-07-14 (D-841); branch deleted at merge |
 | feature/S-19.03 | **DELETED** (was 673490c7) | Merged via PR #611 091ce499 2026-07-13 (D-834); branch deleted at merge |
@@ -286,7 +286,7 @@ dtu_services: []
 - **W1 authorization:** **APPROVED, DISPATCHED, and COMPLETE** (human "Approve — parallel" 2026-07-11; D-825). All three stories LOCAL-converged 3/3, all PRs merged.
 - **Per-story PR status:** **S-19.01 PR #613 MERGED 8d1721f7 2026-07-13T14:49:50Z**; **S-19.02 PR #610 MERGED f5ea12e9 2026-07-13T14:33:57Z**; **S-19.03 PR #611 MERGED 091ce499 2026-07-13T15:54:21Z**; **S-19.04 PR #639 MERGED d4a23a02 2026-07-14T14:39:00Z** (D-841); **S-19.05 PR #640 MERGED 7b35c8e4 2026-07-14T14:39:33Z** (D-841); **S-19.08 PR #646 MERGED 1304d280 2026-07-14T23:18:08Z** (D-842). WAVE 1+2 code COMPLETE (S-19.04+S-19.05+S-19.08 all merged; S-19.06 W2 draft unblocked).
 - **Covered SHAs (historical — PRs merged):** S-19.04 covered_sha `82aeb07382a69923651c7cca8ab21b03158f384f` (squash-merged d4a23a02); S-19.05 covered_sha `28f2846525ef75b73aa91d15bd41f8df58fc4116` (squash-merged 7b35c8e4).
-- **Repo state:** develop HEAD `1304d280` (origin; S-19.08 squash-merge PR #646); main HEAD `a04cb303`; merged_count 104; factory-artifacts HEAD = D-842 burst (SHA-patch pending push). v1.0.0-rc.22 FULLY SHIPPED. **E-10 CASCADE SEALED D-531 — do NOT resume. F5 PAUSED D-386 Option C — do NOT resume.**
+- **Repo state:** develop HEAD `1304d280` (origin; S-19.08 squash-merge PR #646); main HEAD `a04cb303`; merged_count 104; factory-artifacts HEAD `89dc1438` (D-842 burst; pushed 2026-07-14). v1.0.0-rc.22 FULLY SHIPPED. **E-10 CASCADE SEALED D-531 — do NOT resume. F5 PAUSED D-386 Option C — do NOT resume.**
 - **POLICY 21:** no_new_shell_scripts ACTIVE (blocking; human-directed 2026-07-13). No new .sh files allowed; Rust workspace tests / Rust binaries / WASM plugins only. Existing .sh grandfathered E-20.
 
 ### §Major Events Since D-839
@@ -375,9 +375,7 @@ BC-INDEX v4.04 (BC-5.40.001 v1.3 cell D-842). STORY-INDEX v4.189 (S-19.08 ready�
 
 **(3) S-19.06 per-story delivery dispatch** (human authorizes → devops-engineer worktree setup → TDD dispatch).
 
-**(4) SHA-patch follow-up.** Active Branches factory-artifacts SHA needs updating to actual D-842 burst commit HEAD per D-447(c)+D-449(e). Run `git -C .factory rev-parse HEAD` after push and update Active Branches row.
-
-**(5) Session-review for this session** (W2 PR lifecycle + S-19.08 post-merge session).
+**(4) Session-review for this session** (W2 PR lifecycle + S-19.08 post-merge session).
 
 ### §Standing Controls (ALL ACTIVE AND MANDATORY — carry-across-CLEAR)
 
@@ -410,4 +408,4 @@ BC-INDEX v4.04 (BC-5.40.001 v1.3 cell D-842). STORY-INDEX v4.189 (S-19.08 ready�
 
 4-index verification gate (literal-shell): `grep "^version:" .factory/specs/behavioral-contracts/BC-INDEX.md .factory/specs/verification-properties/VP-INDEX.md .factory/stories/STORY-INDEX.md .factory/specs/architecture/ARCH-INDEX.md` → BC-INDEX: "4.04" / VP-INDEX: "2.68" / STORY-INDEX: "4.189" / ARCH-INDEX: "3.01".
 
-Critical SHAs: develop `1304d280` (origin; S-19.08 squash-merge PR #646); main `a04cb303`; factory-artifacts HEAD = D-842 burst (SHA-patch pending). v1.0.0-rc.22 at `e4285fe5`. GitHub origin: `drbothen/vsdd-factory`. total_bcs 1,977. merged_count 104.
+Critical SHAs: develop `1304d280` (origin; S-19.08 squash-merge PR #646); main `a04cb303`; factory-artifacts HEAD = D-842 burst `89dc1438` (pushed 2026-07-14). v1.0.0-rc.22 at `e4285fe5`. GitHub origin: `drbothen/vsdd-factory`. total_bcs 1,977. merged_count 104.
