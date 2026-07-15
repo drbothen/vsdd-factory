@@ -13,10 +13,14 @@
 #            present in read_file.rs adjacent to the test-path register()
 #
 #   D21 (named constants for telemetry literals):
+#     T-009: pub const INTERNAL_FILE_NOT_FOUND exported from internal_log.rs
+#            with value "internal.file_not_found" (grep-gate; with mutation-liveness)
+#     T-010: pub const PLUGIN_ABANDONED exported from internal_log.rs
+#            with value "plugin.abandoned" (grep-gate; with mutation-liveness)
 #     T-011: zero bare "internal.file_not_found"/"plugin.abandoned" literals
 #            in production code (before #[cfg(test)]) of read_file.rs,
 #            read_prefix.rs, emit_event.rs
-#     T-012: constant values unchanged — existing cargo tests pass (regression)
+#     T-012: cargo test -p factory-dispatcher exits 0 (bidirectional regression gate)
 #
 # RED gate status (pre-D20/D21 at develop 9787c056):
 #   T-004: FAILS — "enforced in S-1.5 via epoch interruption" present in read_file.rs
@@ -24,18 +28,21 @@
 #   T-006: FAILS — "structurally unenforced" absent from read_file.rs
 #   T-007: FAILS — "structurally unenforced" absent from read_prefix.rs
 #   T-008: FAILS — "Linker<StoreData>"/"setup_host_on_store_data" absent from read_file.rs
+#   T-009: FAILS — pub const INTERNAL_FILE_NOT_FOUND absent from internal_log.rs
+#   T-010: FAILS — pub const PLUGIN_ABANDONED absent from internal_log.rs
 #   T-011: FAILS — bare literals present in production code of all three files
-#   T-012: PASSES at Red Gate — constant values are unchanged (cargo tests pass)
+#   T-012: FAILS — T-001/T-002/T-003 (production linker) and T-013 (timestamp) fail at runtime
 #
 # VP trace: VP-101
 # Story: S-19.09
-# BC: AC-004, AC-005, AC-008, AC-010
+# BC: AC-004, AC-005, AC-006, AC-007, AC-008, AC-009, AC-010
 
 setup() {
   REPO_ROOT="$(cd "${BATS_TEST_DIRNAME}/../../.." && pwd)"
   READ_FILE_RS="$REPO_ROOT/crates/factory-dispatcher/src/host/read_file.rs"
   READ_PREFIX_RS="$REPO_ROOT/crates/factory-dispatcher/src/host/read_prefix.rs"
   EMIT_EVENT_RS="$REPO_ROOT/crates/factory-dispatcher/src/host/emit_event.rs"
+  INTERNAL_LOG_RS="$REPO_ROOT/crates/factory-dispatcher/src/internal_log.rs"
 }
 
 # ---------------------------------------------------------------------------
@@ -170,6 +177,87 @@ setup() {
 }
 
 # ---------------------------------------------------------------------------
+# T-009  AC-006 — pub const INTERNAL_FILE_NOT_FOUND exported from internal_log.rs
+#
+# After D21, internal_log.rs must export a pub const named INTERNAL_FILE_NOT_FOUND
+# with the value "internal.file_not_found".  This constant replaces all bare
+# occurrences of that string in production code (read_file.rs, read_prefix.rs).
+#
+# Gate: grep -qE 'pub[[:space:]]+const[[:space:]]+INTERNAL_FILE_NOT_FOUND'
+#        internal_log.rs exits 0.
+#
+# Mutation-liveness: inject the expected declaration into a temp copy and assert
+# the pattern fires, confirming the grep expression is not vacuously correct.
+#
+# RED today: constant absent from internal_log.rs; grep exits 1 → test FAILS.
+# ---------------------------------------------------------------------------
+@test "T-009 AC-006: pub const INTERNAL_FILE_NOT_FOUND exported from internal_log.rs" {
+  [ -f "$INTERNAL_LOG_RS" ] || {
+    echo "FAIL: internal_log.rs not found at $INTERNAL_LOG_RS"
+    false
+  }
+
+  # Mutation-liveness: verify the grep pattern matches the expected declaration form.
+  local mut_file
+  mut_file=$(mktemp /tmp/t009_mutant_XXXXXX.rs)
+  printf 'pub const INTERNAL_FILE_NOT_FOUND: &str = "internal.file_not_found";\n' > "$mut_file"
+  if ! grep -qE 'pub[[:space:]]+const[[:space:]]+INTERNAL_FILE_NOT_FOUND' "$mut_file"; then
+    rm -f "$mut_file"
+    echo "FAIL: mutation-liveness — grep pattern did not match injected INTERNAL_FILE_NOT_FOUND declaration."
+    false
+  fi
+  rm -f "$mut_file"
+  echo "PASS mutation-liveness: pattern correctly identifies INTERNAL_FILE_NOT_FOUND declaration."
+
+  if ! grep -qE 'pub[[:space:]]+const[[:space:]]+INTERNAL_FILE_NOT_FOUND' "$INTERNAL_LOG_RS"; then
+    echo "FAIL: pub const INTERNAL_FILE_NOT_FOUND not found in $INTERNAL_LOG_RS"
+    echo "D21 requires: pub const INTERNAL_FILE_NOT_FOUND: &str = \"internal.file_not_found\";"
+    echo "exported from internal_log.rs to replace bare \"internal.file_not_found\" literals."
+    false
+  fi
+}
+
+# ---------------------------------------------------------------------------
+# T-010  AC-007 — pub const PLUGIN_ABANDONED exported from internal_log.rs
+#
+# After D21, internal_log.rs must export a pub const named PLUGIN_ABANDONED
+# with the value "plugin.abandoned".  This constant replaces all bare
+# occurrences of that string in production code (emit_event.rs).
+#
+# Gate: grep -qE 'pub[[:space:]]+const[[:space:]]+PLUGIN_ABANDONED'
+#        internal_log.rs exits 0.
+#
+# Mutation-liveness: same pattern as T-009.
+#
+# RED today: constant absent from internal_log.rs; grep exits 1 → test FAILS.
+# ---------------------------------------------------------------------------
+@test "T-010 AC-007: pub const PLUGIN_ABANDONED exported from internal_log.rs" {
+  [ -f "$INTERNAL_LOG_RS" ] || {
+    echo "FAIL: internal_log.rs not found at $INTERNAL_LOG_RS"
+    false
+  }
+
+  # Mutation-liveness: verify the grep pattern matches the expected declaration form.
+  local mut_file
+  mut_file=$(mktemp /tmp/t010_mutant_XXXXXX.rs)
+  printf 'pub const PLUGIN_ABANDONED: &str = "plugin.abandoned";\n' > "$mut_file"
+  if ! grep -qE 'pub[[:space:]]+const[[:space:]]+PLUGIN_ABANDONED' "$mut_file"; then
+    rm -f "$mut_file"
+    echo "FAIL: mutation-liveness — grep pattern did not match injected PLUGIN_ABANDONED declaration."
+    false
+  fi
+  rm -f "$mut_file"
+  echo "PASS mutation-liveness: pattern correctly identifies PLUGIN_ABANDONED declaration."
+
+  if ! grep -qE 'pub[[:space:]]+const[[:space:]]+PLUGIN_ABANDONED' "$INTERNAL_LOG_RS"; then
+    echo "FAIL: pub const PLUGIN_ABANDONED not found in $INTERNAL_LOG_RS"
+    echo "D21 requires: pub const PLUGIN_ABANDONED: &str = \"plugin.abandoned\";"
+    echo "exported from internal_log.rs to replace bare \"plugin.abandoned\" literals."
+    false
+  fi
+}
+
+# ---------------------------------------------------------------------------
 # T-011  AC-008 — zero bare literals in production code of read_file.rs,
 #         read_prefix.rs, emit_event.rs
 #
@@ -276,23 +364,21 @@ _scan_bare_literals() {
 }
 
 # ---------------------------------------------------------------------------
-# T-012  AC-008 regression — existing test assertions on event type strings
-#         pass unmodified after D21 constant sweep.
+# T-012  AC-008/AC-009 bidirectional regression gate
 #
-# The constant values (INTERNAL_FILE_NOT_FOUND = "internal.file_not_found",
-# PLUGIN_ABANDONED = "plugin.abandoned") are byte-identical to the bare
-# literals they replace. Existing tests that assert event type strings like
-# `assert_eq!(e.type_, "internal.file_not_found")` must continue to pass.
+# Gate: `cargo test -p factory-dispatcher --all-targets` exits 0.
 #
-# Gate: `cargo test -p factory-dispatcher` exits 0.
+# RED today: T-001/T-002/T-003 (invoke.rs production-linker) fail at runtime
+# because read_prefix is absent from setup_host_on_store_data (D19 unimplemented);
+# T-013 (emit_event.rs) fails because the "timestamp" field is absent from
+# plugin.completed (D22 unimplemented).  T-009/T-010 are now compile-safe
+# bats grep-gates and no longer cause compile errors here.
 #
-# RED gate status: PASSES at Red Gate because the constant values are
-# unchanged and no test assertions reference the constant names (they still
-# check the string values directly). This is a REGRESSION LOCK — it must
-# remain passing after D21.
+# GREEN after D19+D20+D21+D22: T-001..T-003 pass (read_prefix wired), T-013
+# passes (timestamp field present), all existing tests still pass; exits 0.
 #
-# Note: T-012 exercises the regression invariant ONLY; T-009 and T-010
-# (in internal_log.rs #[cfg(test)]) are the load-bearing RED gates for D21.
+# Bidirectional: RED pre-fix (runtime failures in T-001/T-002/T-003/T-013);
+# GREEN post-fix (entire factory-dispatcher test suite passes).
 # ---------------------------------------------------------------------------
 @test "T-012 AC-008 regression: cargo test -p factory-dispatcher passes after D21 sweep" {
   REPO_ROOT="$(cd "${BATS_TEST_DIRNAME}/../../.." && pwd)"

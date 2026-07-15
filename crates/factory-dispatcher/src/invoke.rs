@@ -1145,11 +1145,12 @@ mod tests {
         let engine = build_engine().unwrap();
 
         // Module imports only vsdd::read_prefix — no WASI imports needed.
+        // WAT requires all imports before memory declarations.
         let module = compile(
             &engine,
             r#"(module
-              (memory (export "memory") 2)
               (import "vsdd" "read_prefix" (func (param i32 i32 i32 i32 i32 i32) (result i32)))
+              (memory (export "memory") 2)
               (func (export "_start"))
             )"#,
         );
@@ -1227,11 +1228,12 @@ mod tests {
         //
         // call_rp(path_ptr, path_len) → host return code (0 = codes::OK)
         // get_out_ptr()               → i32 loaded from memory[0:4]
+        // WAT requires all imports before memory declarations.
         let module = compile(
             &engine,
             r#"(module
-              (memory (export "memory") 2)
               (import "vsdd" "read_prefix" (func $rp (param i32 i32 i32 i32 i32 i32) (result i32)))
+              (memory (export "memory") 2)
               (func (export "call_rp") (param $path_ptr i32) (param $path_len i32) (result i32)
                 (call $rp
                   (local.get $path_ptr)
@@ -1326,11 +1328,12 @@ mod tests {
         // RED gate: fails today — read_prefix not in setup_host_on_store_data.
         setup_host_on_store_data(&mut linker).expect("setup_host_on_store_data must not error");
 
+        // WAT requires all imports before memory declarations.
         let module = compile(
             &engine,
             r#"(module
-              (memory (export "memory") 2)
               (import "vsdd" "read_prefix" (func $rp (param i32 i32 i32 i32 i32 i32) (result i32)))
+              (memory (export "memory") 2)
               (func (export "call_rp") (param $path_ptr i32) (param $path_len i32) (result i32)
                 (call $rp
                   (local.get $path_ptr)
