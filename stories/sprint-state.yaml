@@ -232,6 +232,8 @@ stories:
     status: merged
   - id: S-5.06
     status: merged
+  - id: S-19.08
+    status: merged
   # --- non-terminal (depth-ascending, lex tie-break within depth; def-b full-graph wave-depth) ---
   - id: S-10.01
     status: draft
@@ -251,8 +253,6 @@ stories:
     status: draft
   - id: S-15.03
     status: draft
-  - id: S-19.08
-    status: merged
   - id: S-4.11
     status: draft
   - id: S-7.04
@@ -270,7 +270,7 @@ stories:
   - id: S-15.02
     status: draft
   - id: S-19.06
-    status: draft
+    status: ready
   - id: S-10.05
     status: draft
   - id: S-14.04
