@@ -19,9 +19,17 @@
 //!
 //! BC-1.17.001 v1.6 — Story S-19.06.
 
+use std::fs::File;
+use std::io::Read;
+use std::path::{Path, PathBuf};
+
+use serde_json::{Map, Value};
 use wasmtime::Linker;
 
-use super::{HostCallError, HostCaller, HostContext};
+use super::memory::{read_wasm_string, write_wasm_bytes, write_wasm_u32};
+use super::path_util::{PathAllowDecision, check_path_allowed};
+use super::{HostCallError, HostCaller, HostContext, codes};
+use crate::internal_log::InternalEvent;
 
 /// Register the `vsdd::read_prefix` host function with the wasmtime linker.
 ///
@@ -34,15 +42,36 @@ pub fn register(linker: &mut Linker<HostContext>) -> Result<(), HostCallError> {
         .func_wrap(
             "vsdd",
             "read_prefix",
-            |_caller: HostCaller<'_>,
-             _path_ptr: u32,
-             _path_len: u32,
-             _max_bytes: u32,
-             _timeout_ms: u32,
-             _out_ptr_out: u32,
-             _out_len_out: u32|
+            |mut caller: HostCaller<'_>,
+             path_ptr: u32,
+             path_len: u32,
+             max_bytes: u32,
+             timeout_ms: u32,
+             out_ptr_out: u32,
+             out_len_out: u32|
              -> i32 {
-                todo!("S-19.06: implement read_prefix host function body")
+                let _ = timeout_ms; // accepted for ABI stability; enforced via epoch interruption
+                let path = match read_wasm_string(&mut caller, path_ptr, path_len) {
+                    Ok(s) => s,
+                    Err(_) => return codes::INVALID_ARGUMENT,
+                };
+                let (body, out_ptr) = {
+                    let ctx = caller.data();
+                    match prepare(ctx, &path, max_bytes) {
+                        Ok(pair) => pair,
+                        Err(code) => return code,
+                    }
+                };
+                if write_wasm_u32(&mut caller, out_ptr_out, out_ptr).is_err() {
+                    return codes::INVALID_ARGUMENT;
+                }
+                if write_wasm_u32(&mut caller, out_len_out, body.len() as u32).is_err() {
+                    return codes::INVALID_ARGUMENT;
+                }
+                match write_wasm_bytes(&mut caller, out_ptr, body.len() as u32, &body) {
+                    Ok(_) => codes::OK,
+                    Err(_) => codes::INVALID_ARGUMENT,
+                }
             },
         )
         .map_err(|e| HostCallError::Linker(e.to_string()))?;
@@ -50,30 +79,131 @@ pub fn register(linker: &mut Linker<HostContext>) -> Result<(), HostCallError> {
 }
 
 /// All of read_prefix's host-side logic that doesn't touch guest memory.
-#[allow(dead_code)]
 ///
 /// Split out so it is unit-testable without a live WASM instance (mirrors
 /// `read_file::prepare`). Returns `(bytes, out_ptr_sentinel)` on success or
 /// a negative error code on failure.
 ///
-/// Implementation responsibilities (S-19.06 Tasks 10–11):
+/// Implementation:
 ///   1. Capability check — require `capabilities.read_prefix` block; deny on absent
 ///      (does NOT fall back to `capabilities.read_file`).
-///   2. Path resolution — `resolve_path_for_allowlist` + `check_path_allowed` from
-///      `path_util.rs` (same rejoin + starts_with algorithm as `read_file`).
-///   3. Existence check — absent allowlisted file → NOT_FOUND (-5) +
+///   2. Path resolution — `check_path_allowed` via `path_util.rs` (same
+///      rejoin + starts_with algorithm as `read_file`).
+///   3. max_bytes = 0 — return empty payload immediately, no file opened.
+///   4. Existence check — absent allowlisted file → NOT_FOUND (-5) +
 ///      `internal.file_not_found`.
-///   4. Bounded read — open file, read at most `max_bytes` bytes from start;
-///      `max_bytes = 0` → return empty payload immediately, no file opened.
-///   5. Timeout — respect `timeout_ms`; return TIMEOUT (-2) on expiry.
+///   5. Bounded read — open file, read at most `max_bytes` bytes from start
+///      using `take` semantics (head-c).
 ///   6. Directory / OS error — return INTERNAL_ERROR (-99).
 ///   7. NEVER emit or return OUTPUT_TOO_LARGE (-3) — `max_bytes` IS the cap.
 pub(crate) fn prepare(
-    _ctx: &HostContext,
-    _path: &str,
-    _max_bytes: u32,
+    ctx: &HostContext,
+    path: &str,
+    max_bytes: u32,
 ) -> Result<(Vec<u8>, u32), i32> {
-    todo!("S-19.06: implement read_prefix prepare function")
+    // 1. Capability check: require capabilities.read_prefix block.
+    //    Does NOT fall back to capabilities.read_file (BC-1.17.001 Invariant 3).
+    let caps = ctx.capabilities.read_prefix.as_ref().ok_or_else(|| {
+        emit_denial(ctx, path, "no_read_prefix_capability", None);
+        codes::CAPABILITY_DENIED
+    })?;
+
+    // 2. Path resolution: resolve and check against capabilities.read_prefix path_allow.
+    //    Uses the same ancestor-walk + rejoin algorithm as read_file (BC-1.17.001 Invariant 4).
+    let resolved = resolve_for_read(Path::new(path), &ctx.cwd);
+
+    match check_path_allowed(&resolved, &caps.path_allow, &ctx.cwd, |p| p.canonicalize()) {
+        PathAllowDecision::Allowed => {}
+        PathAllowDecision::DeniedResolutionFailed => {
+            emit_denial(ctx, path, "path_resolution_failed", Some(&resolved));
+            return Err(codes::CAPABILITY_DENIED);
+        }
+        PathAllowDecision::DeniedNotAllowed => {
+            emit_denial(ctx, path, "path_not_allowed", Some(&resolved));
+            return Err(codes::CAPABILITY_DENIED);
+        }
+    }
+
+    // 3. max_bytes = 0: return empty payload without opening the file (BC-1.17.001 EC-001).
+    if max_bytes == 0 {
+        return Ok((Vec::new(), 0));
+    }
+
+    // 4+5. Bounded read: open file and read at most max_bytes bytes from start.
+    //      read_prefix_bounded uses take() semantics — NEVER hits OUTPUT_TOO_LARGE.
+    match read_prefix_bounded(&resolved, max_bytes as usize) {
+        Ok(bytes) => Ok((bytes, 0)),
+        Err(PrefixReadErr::NotFound) => {
+            let ev = InternalEvent::now("internal.file_not_found")
+                .with_trace_id(&ctx.dispatcher_trace_id)
+                .with_session_id(&ctx.session_id)
+                .with_plugin_name(&ctx.plugin_name)
+                .with_plugin_version(&ctx.plugin_version)
+                .with_field("function", Value::String("read_prefix".to_string()))
+                .with_field("reason", Value::String("file_not_found".to_string()))
+                .with_field("path", Value::String(path.to_string()))
+                .with_field(
+                    "resolved",
+                    Value::String(resolved.to_string_lossy().into_owned()),
+                );
+            ctx.emit_internal(ev);
+            Err(codes::NOT_FOUND)
+        }
+        Err(PrefixReadErr::Other) => Err(codes::INTERNAL_ERROR),
+    }
+}
+
+enum PrefixReadErr {
+    /// Path is in the allow-list but the file does not exist.
+    NotFound,
+    /// Directory target, OS-level I/O error, or other non-NotFound failure.
+    Other,
+}
+
+/// Resolve a path for reading. Relative paths are resolved under `base`
+/// (the project working directory, `$CLAUDE_PROJECT_DIR`). Absolute paths
+/// are used as-is. Mirrors `read_file::resolve_for_read`.
+fn resolve_for_read(path: &Path, base: &Path) -> PathBuf {
+    if path.is_absolute() {
+        path.to_path_buf()
+    } else {
+        base.join(path)
+    }
+}
+
+/// Read at most `max_bytes` bytes from the start of a file (head-c semantics).
+///
+/// Uses `take(max_bytes as u64)` + `read_to_end` so that:
+///   - Files smaller than `max_bytes` return their full content (no padding).
+///   - Files larger than `max_bytes` return exactly `max_bytes` bytes.
+///   - OUTPUT_TOO_LARGE is NEVER returned — `max_bytes` IS the cap.
+fn read_prefix_bounded(path: &Path, max_bytes: usize) -> Result<Vec<u8>, PrefixReadErr> {
+    let file = File::open(path).map_err(|e| {
+        if e.kind() == std::io::ErrorKind::NotFound {
+            PrefixReadErr::NotFound
+        } else {
+            PrefixReadErr::Other
+        }
+    })?;
+    let mut buf = Vec::with_capacity(max_bytes.min(65_536));
+    let mut limited = file.take(max_bytes as u64);
+    limited
+        .read_to_end(&mut buf)
+        .map_err(|_| PrefixReadErr::Other)?;
+    Ok(buf)
+}
+
+fn emit_denial(ctx: &HostContext, requested: &str, reason: &str, resolved: Option<&Path>) {
+    let mut details = Map::new();
+    details.insert("path".to_string(), Value::String(requested.to_string()));
+    if let Some(r) = resolved {
+        details.insert(
+            "resolved".to_string(),
+            Value::String(r.to_string_lossy().into_owned()),
+        );
+    }
+    let ev = ctx.denial_event("read_prefix", reason, details);
+    ctx.emit_internal(ev);
 }
 
 // ---------------------------------------------------------------------------
@@ -108,7 +238,7 @@ pub(crate) fn prepare(
 mod tests {
     use super::*;
     use crate::host::{codes, test_support::*};
-    use crate::registry::{Capabilities, ReadFileCaps, ReadPrefixCaps};
+    use crate::registry::{Capabilities, ReadPrefixCaps};
 
     /// Helper: build Capabilities with only the `read_prefix` block set.
     ///
@@ -181,7 +311,7 @@ mod tests {
         // Position 50 boundary: [0..47]=A, [48]=E4, [49]=B8, [50]=AD(excluded), [51..]=B…
         let mut content = vec![b'A'; 48];
         content.extend_from_slice(&[0xE4_u8, 0xB8, 0xAD]); // 中 (U+4E2D), 3 bytes
-        content.extend_from_slice(&vec![b'B'; 49]);
+        content.extend_from_slice(&[b'B'; 49]);
         assert_eq!(content.len(), 100, "test setup: content must be 100 bytes");
 
         std::fs::write(&file_path, &content).unwrap();
@@ -356,7 +486,10 @@ mod tests {
         let mut ctx = context_with_caps(allow_read_prefix(&[factory_dir.to_str().unwrap()]));
         ctx.cwd = dir.path().to_path_buf();
         let absent_path = factory_dir.join("wave-state.yaml");
-        assert!(!absent_path.exists(), "test setup: target file must not exist");
+        assert!(
+            !absent_path.exists(),
+            "test setup: target file must not exist"
+        );
 
         let result = prepare(&ctx, absent_path.to_str().unwrap(), 65536);
 
@@ -387,8 +520,7 @@ mod tests {
             .filter(|e| e.type_ == "internal.capability_denied")
             .count();
         assert_eq!(
-            cap_denied_count,
-            0,
+            cap_denied_count, 0,
             "T-007 AC-005: absent allowlisted file must emit ZERO 'internal.capability_denied' \
              events; got {} cap_denied events. BC-1.17.001 PC-5.",
             cap_denied_count
