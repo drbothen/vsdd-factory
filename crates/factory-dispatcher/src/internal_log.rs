@@ -1262,4 +1262,50 @@ mod tests {
             lines.len()
         );
     }
+
+    // -----------------------------------------------------------------------
+    // S-19.09 T-009 — AC-006 (D21 RED gate)
+    //
+    // INTERNAL_FILE_NOT_FOUND constant must be exported from internal_log.rs
+    // with value exactly equal to the bare literal it replaces.
+    //
+    // RED today: INTERNAL_FILE_NOT_FOUND is not defined in internal_log.rs;
+    // compilation fails with "cannot find value `INTERNAL_FILE_NOT_FOUND`".
+    //
+    // GREEN after D21: pub const INTERNAL_FILE_NOT_FOUND: &str = "internal.file_not_found"
+    // is added; this assertion passes.
+    //
+    // AC trace: AC-006; F-WG-002.
+    // -----------------------------------------------------------------------
+    #[test]
+    fn test_s19_09_t009_internal_file_not_found_constant_value() {
+        assert_eq!(
+            INTERNAL_FILE_NOT_FOUND, "internal.file_not_found",
+            "T-009 AC-006: INTERNAL_FILE_NOT_FOUND must equal the bare literal it replaces \
+             (F-WG-002; value must be byte-identical to preserve all existing test assertions)"
+        );
+    }
+
+    // -----------------------------------------------------------------------
+    // S-19.09 T-010 — AC-007 (D21 RED gate)
+    //
+    // PLUGIN_ABANDONED constant must be exported from internal_log.rs with
+    // value exactly equal to the bare literal it replaces.
+    //
+    // RED today: PLUGIN_ABANDONED is not defined in internal_log.rs;
+    // compilation fails with "cannot find value `PLUGIN_ABANDONED`".
+    //
+    // GREEN after D21: pub const PLUGIN_ABANDONED: &str = "plugin.abandoned"
+    // is added; this assertion passes.
+    //
+    // AC trace: AC-007; F-WG-002.
+    // -----------------------------------------------------------------------
+    #[test]
+    fn test_s19_09_t010_plugin_abandoned_constant_value() {
+        assert_eq!(
+            PLUGIN_ABANDONED, "plugin.abandoned",
+            "T-010 AC-007: PLUGIN_ABANDONED must equal the bare literal it replaces \
+             (F-WG-002; value must be byte-identical to preserve all existing test assertions)"
+        );
+    }
 }

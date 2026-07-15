@@ -601,6 +601,61 @@ mod tests {
         );
     }
 
+    // -----------------------------------------------------------------------
+    // S-19.09 T-013 — AC-009 (D22 RED gate)
+    //
+    // emit_plugin_completed_async must emit a plugin.completed event with a
+    // non-empty "timestamp" field, matching the pattern of all sibling async
+    // event emitters (emit_plugin_abandoned, emit_plugin_async_block_discarded,
+    // emit_dispatcher_schema_mismatch, etc.) in this file.
+    //
+    // RED today: emit_plugin_completed_async does not capture `let ts = ev.ts.clone()`
+    // or chain `.with_field("timestamp", ts.as_str())`, so the emitted event has
+    // no "timestamp" key in its fields map.
+    //
+    // GREEN after D22: the timestamp field is added matching sibling emitters.
+    //
+    // AC trace: AC-009; BC-3.08.001 §Common Fields (mandatory timestamp for all
+    // plugin.* events); F-WG-003.
+    // -----------------------------------------------------------------------
+    fn make_ctx_for_t013() -> super::HostContext {
+        super::HostContext::new(
+            "test-plugin-t013",
+            "0.1.0",
+            "test-session-s19-09",
+            "test-trace-s19-09",
+        )
+    }
+
+    #[test]
+    fn test_s19_09_t013_emit_plugin_completed_async_has_timestamp_field() {
+        let ctx = make_ctx_for_t013();
+        super::emit_plugin_completed_async(&ctx, "test-plugin-t013", "0.1.0", 0, 0, 100, 5000);
+        let events = ctx.drain_events();
+        assert_eq!(
+            events.len(),
+            1,
+            "T-013: emit_plugin_completed_async must emit exactly one event"
+        );
+        let ev = &events[0];
+        assert_eq!(
+            ev.type_, "plugin.completed",
+            "T-013: emitted event type must be plugin.completed"
+        );
+        let ts_value = ev.fields.get("timestamp");
+        assert!(
+            ts_value.is_some(),
+            "T-013 AC-009: emit_plugin_completed_async must emit a 'timestamp' field \
+             (BC-3.08.001 §Common Fields mandatory for all plugin.* events; F-WG-003); \
+             field is absent — D22 fix is required"
+        );
+        let ts_str = ts_value.and_then(|v| v.as_str()).unwrap_or("");
+        assert!(
+            !ts_str.is_empty(),
+            "T-013 AC-009: 'timestamp' field value must be non-empty; got empty string"
+        );
+    }
+
     /// BC-3.08.001 v1.7 Invariant 5: InternalEvent must serialize as "trace_id" on wire,
     /// never as "dispatcher_trace_id". Verifies zero occurrences of the legacy field name.
     #[test]

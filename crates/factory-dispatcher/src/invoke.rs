@@ -1124,6 +1124,263 @@ mod tests {
             panic!("expected Ok");
         }
     }
+
+    // -----------------------------------------------------------------------
+    // S-19.09 T-001 — AC-001 (D19 RED gate)
+    //
+    // A WASM module importing vsdd::read_prefix must instantiate without a
+    // link error via setup_host_on_store_data (the production dispatch path).
+    //
+    // RED today: read_prefix is absent from setup_host_on_store_data (0-hit
+    // grep at develop 9787c056); instantiation fails with wasmtime link error
+    // "unknown import: `vsdd::read_prefix`".
+    //
+    // GREEN after D19: setup_host_on_store_data registers read_prefix,
+    // satisfying the import and allowing instantiation to succeed.
+    //
+    // AC trace: AC-001; ADR-025 §Decision 16; BC-1.17.001.
+    // -----------------------------------------------------------------------
+    #[test]
+    fn t001_s19_09_read_prefix_instantiates_without_link_error_via_production_linker() {
+        let engine = build_engine().unwrap();
+
+        // Module imports only vsdd::read_prefix — no WASI imports needed.
+        let module = compile(
+            &engine,
+            r#"(module
+              (memory (export "memory") 2)
+              (import "vsdd" "read_prefix" (func (param i32 i32 i32 i32 i32 i32) (result i32)))
+              (func (export "_start"))
+            )"#,
+        );
+
+        let mut linker: wasmtime::Linker<StoreData> = wasmtime::Linker::new(&engine);
+        // RED gate: setup_host_on_store_data does not register read_prefix today;
+        // linker.instantiate below returns Err("unknown import: vsdd::read_prefix").
+        setup_host_on_store_data(&mut linker)
+            .expect("setup_host_on_store_data must not error on registration");
+
+        let wasi_ctx = WasiCtxBuilder::new().build_p1();
+        let store_data = StoreData {
+            host: bare_ctx(),
+            wasi: wasi_ctx,
+        };
+        let mut store = Store::new(&engine, store_data);
+        store
+            .set_fuel(1_000_000)
+            .expect("engine has fuel metering enabled");
+
+        // The load-bearing assertion: instantiation MUST succeed.
+        // Fails today with InvokeError::Instantiate (unresolved import).
+        linker.instantiate(&mut store, &module).expect(
+            "T-001 AC-001: read_prefix import must be satisfied by setup_host_on_store_data \
+             (production dispatch path, ADR-025 §Decision 16); \
+             got link error — read_prefix not registered today (0-hit grep at 9787c056)",
+        );
+    }
+
+    // -----------------------------------------------------------------------
+    // S-19.09 T-002 — AC-002 (D19 RED gate)
+    //
+    // Round-trip: production path reads an allowlisted file; returned bytes
+    // match expected content; out_ptr written to WASM memory is > 0 (the
+    // memory-grow protocol at current_bytes, ADR-025 §Decision 16).
+    //
+    // RED today: setup_host_on_store_data does not register read_prefix;
+    // instantiation fails before the round-trip can be exercised.
+    //
+    // GREEN after D19: read_prefix production binding registered; memory-grow
+    // protocol writes bytes at current_bytes (> 0 for non-empty files).
+    //
+    // AC trace: AC-002; ADR-025 §Decision 16 (memory-grow at current_bytes);
+    // BC-1.17.001 PC-1 + PC-2.
+    // -----------------------------------------------------------------------
+    #[test]
+    fn t002_s19_09_read_prefix_round_trip_bytes_correct_and_out_ptr_nonzero_via_production_path() {
+        use crate::registry::{Capabilities, ReadPrefixCaps};
+
+        // Write a tmp file with known content.
+        let content = b"hello-read-prefix-content";
+        let tmp_path = std::env::temp_dir().join("s19_09_t002_read_prefix.txt");
+        std::fs::write(&tmp_path, content).expect("write tmp file for T-002");
+        let path_str = tmp_path.to_str().expect("path to str").to_string();
+        let path_bytes = path_str.as_bytes();
+
+        // HostContext with read_prefix capability allowing the tmp path.
+        let mut ctx = bare_ctx();
+        ctx.capabilities = Capabilities {
+            read_prefix: Some(ReadPrefixCaps {
+                path_allow: vec![path_str.clone()],
+            }),
+            ..Capabilities::default()
+        };
+
+        let engine = build_engine().unwrap();
+        let mut linker: wasmtime::Linker<StoreData> = wasmtime::Linker::new(&engine);
+        // RED gate: fails today — read_prefix not in setup_host_on_store_data.
+        setup_host_on_store_data(&mut linker).expect("setup_host_on_store_data must not error");
+
+        // WAT module layout:
+        //   memory[0:4]   — out_ptr_out (written by host)
+        //   memory[4:8]   — out_len_out (written by host)
+        //   memory[128..] — path bytes (written by test before call)
+        //
+        // call_rp(path_ptr, path_len) → host return code (0 = codes::OK)
+        // get_out_ptr()               → i32 loaded from memory[0:4]
+        let module = compile(
+            &engine,
+            r#"(module
+              (memory (export "memory") 2)
+              (import "vsdd" "read_prefix" (func $rp (param i32 i32 i32 i32 i32 i32) (result i32)))
+              (func (export "call_rp") (param $path_ptr i32) (param $path_len i32) (result i32)
+                (call $rp
+                  (local.get $path_ptr)
+                  (local.get $path_len)
+                  (i32.const 64)
+                  (i32.const 0)
+                  (i32.const 0)
+                  (i32.const 4)
+                )
+              )
+              (func (export "get_out_ptr") (result i32)
+                (i32.load (i32.const 0))
+              )
+            )"#,
+        );
+
+        let wasi_ctx = WasiCtxBuilder::new().build_p1();
+        let store_data = StoreData {
+            host: ctx,
+            wasi: wasi_ctx,
+        };
+        let mut store = Store::new(&engine, store_data);
+        store
+            .set_fuel(1_000_000)
+            .expect("engine has fuel metering enabled");
+
+        let instance = linker.instantiate(&mut store, &module).expect(
+            "T-002: instantiation must succeed via production path (setup_host_on_store_data)",
+        );
+
+        // Write path bytes to WASM memory at offset 128.
+        let memory = instance
+            .get_memory(&mut store, "memory")
+            .expect("module exports memory");
+        memory
+            .write(&mut store, 128, path_bytes)
+            .expect("write path bytes to WASM memory");
+
+        // Call read_prefix via the WAT wrapper; assert return code == 0 (OK).
+        let call_rp = instance
+            .get_typed_func::<(i32, i32), i32>(&mut store, "call_rp")
+            .expect("module exports call_rp");
+        let ret = call_rp
+            .call(&mut store, (128, path_bytes.len() as i32))
+            .expect("call_rp must not trap");
+        assert_eq!(
+            ret, 0,
+            "T-002 AC-002: read_prefix must return codes::OK (0) for allowed file; got {}",
+            ret
+        );
+
+        // Assert out_ptr > 0 (production memory-grow protocol writes at current_bytes > 0).
+        let get_out_ptr = instance
+            .get_typed_func::<(), i32>(&mut store, "get_out_ptr")
+            .expect("module exports get_out_ptr");
+        let out_ptr = get_out_ptr
+            .call(&mut store, ())
+            .expect("get_out_ptr must not trap");
+        assert!(
+            out_ptr > 0,
+            "T-002 AC-002: out_ptr must be > 0 for non-empty file via production path \
+             (ADR-025 §Decision 16: memory-grow protocol writes at current_bytes > 0); \
+             got out_ptr={}",
+            out_ptr
+        );
+
+        let _ = std::fs::remove_file(&tmp_path);
+    }
+
+    // -----------------------------------------------------------------------
+    // S-19.09 T-003 — AC-003 (D19 RED gate)
+    //
+    // read_prefix call with no read_prefix capability block must return
+    // CAPABILITY_DENIED (-1) via setup_host_on_store_data (production path),
+    // matching the deny-by-default behavior of read_file on the same path.
+    //
+    // RED today: instantiation fails with link error (read_prefix not in
+    // setup_host_on_store_data); the CAPABILITY_DENIED assertion is never reached.
+    //
+    // GREEN after D19: instantiation succeeds; the function returns -1 because
+    // the HostContext has no capabilities.read_prefix block.
+    //
+    // AC trace: AC-003; ADR-025 §Decision 16; BC-1.17.001 PC-4.
+    // -----------------------------------------------------------------------
+    #[test]
+    fn t003_s19_09_read_prefix_capability_absent_returns_capability_denied_via_production_path() {
+        // bare_ctx() → Capabilities::default() → read_prefix: None (deny-by-default).
+        let ctx = bare_ctx();
+
+        let engine = build_engine().unwrap();
+        let mut linker: wasmtime::Linker<StoreData> = wasmtime::Linker::new(&engine);
+        // RED gate: fails today — read_prefix not in setup_host_on_store_data.
+        setup_host_on_store_data(&mut linker).expect("setup_host_on_store_data must not error");
+
+        let module = compile(
+            &engine,
+            r#"(module
+              (memory (export "memory") 2)
+              (import "vsdd" "read_prefix" (func $rp (param i32 i32 i32 i32 i32 i32) (result i32)))
+              (func (export "call_rp") (param $path_ptr i32) (param $path_len i32) (result i32)
+                (call $rp
+                  (local.get $path_ptr)
+                  (local.get $path_len)
+                  (i32.const 64)
+                  (i32.const 0)
+                  (i32.const 0)
+                  (i32.const 4)
+                )
+              )
+            )"#,
+        );
+
+        let wasi_ctx = WasiCtxBuilder::new().build_p1();
+        let store_data = StoreData {
+            host: ctx,
+            wasi: wasi_ctx,
+        };
+        let mut store = Store::new(&engine, store_data);
+        store
+            .set_fuel(1_000_000)
+            .expect("engine has fuel metering enabled");
+
+        let instance = linker.instantiate(&mut store, &module).expect(
+            "T-003: instantiation must succeed via production path (setup_host_on_store_data)",
+        );
+
+        let path = b"/some/path.txt";
+        let memory = instance
+            .get_memory(&mut store, "memory")
+            .expect("module exports memory");
+        memory
+            .write(&mut store, 128, path)
+            .expect("write path to WASM memory");
+
+        let call_rp = instance
+            .get_typed_func::<(i32, i32), i32>(&mut store, "call_rp")
+            .expect("module exports call_rp");
+        let ret = call_rp
+            .call(&mut store, (128, path.len() as i32))
+            .expect("call_rp must not trap");
+
+        assert_eq!(
+            ret, -1,
+            "T-003 AC-003: read_prefix with no capabilities.read_prefix block must return \
+             CAPABILITY_DENIED (-1) via production path (setup_host_on_store_data); \
+             deny-by-default per BC-1.17.001 PC-4; got {}",
+            ret
+        );
+    }
 }
 
 // S-18.04b-prereq: git_context payload injection (ADR-029)
