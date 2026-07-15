@@ -1,14 +1,19 @@
 //! FFI boundary integration gate fixture for S-19.06 AC-007 Gate 4.
 //!
-//! Proves that `vsdd_hook_sdk::host::read_prefix` compiles and links
-//! successfully when built for the `wasm32-wasip1` target. The call is
-//! a no-op (max_bytes = 0, path = ""); on the wasm target the return value
-//! is HostError::CapabilityDenied because no dispatcher is present in the
-//! fixture binary. On the host target the stub returns -1 (CAPABILITY_DENIED).
+//! This crate is the compile/link witness for bats T-009f: it proves that
+//! `vsdd_hook_sdk::host::read_prefix` resolves to the correct
+//! `#[link(wasm_import_module = "vsdd")]` import when built for
+//! `wasm32-wasip1`. The fixture is NEVER executed — it exists only to
+//! confirm the import resolves at link time.
 //!
-//! This file must remain as a minimal, import-only fixture. It is NOT a
-//! production hook plugin — it exists only to satisfy T-009f (cargo build
-//! -p read-prefix-fixture --target wasm32-wasip1 exits 0).
+//! Wasm32 target: the `vsdd::read_prefix` import is satisfiable only by a
+//! real dispatcher. Attempting to instantiate this fixture standalone (without
+//! a dispatcher providing the `vsdd` import namespace) fails at instantiation
+//! with an unresolved-import error; no return value is produced.
+//!
+//! Non-wasm (host_stubs) target: the stub returns -1, which maps to
+//! `HostError::CapabilityDenied`. This path is exercised by
+//! `cargo test -p factory-dispatcher -- host::read_prefix`.
 //!
 //! BC-1.17.001 v1.6, S-19.06 AC-007.
 
