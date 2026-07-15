@@ -1,13 +1,13 @@
 ---
 document_type: epic
 epic_id: "E-19"
-version: "v1.29"
+version: "v1.30"
 status: draft
-title: "Post-rc.22 Operator Hardening — pr-manager race fixes, verify-factory-lock size defect, warn-pending-wave-gate false-positive, registry/bundle hygiene, async telemetry + VSDD_SINK_FILE, host::read_prefix bounded partial read, verify-state-timestamp-refresh byte-cap fix"
+title: "Post-rc.22 Operator Hardening — pr-manager race fixes, verify-factory-lock size defect, warn-pending-wave-gate false-positive, registry/bundle hygiene, async telemetry + VSDD_SINK_FILE, host::read_prefix bounded partial read, verify-state-timestamp-refresh byte-cap fix, post-E-19 host ABI production-path + telemetry fixes"
 prd_capabilities: []
 subsystems_affected: [SS-01, SS-02, SS-03, SS-04, SS-05, SS-07, SS-09]
 target_release: "v1.0.0-rc.23"
-story_count: 8
+story_count: 9
 producer: story-writer
 timestamp: 2026-07-04T00:00:00Z
 phase: F3
@@ -24,10 +24,12 @@ inputs:
   - .factory/stories/S-19.07-verify-factory-lock-read-prefix-migration.md
   - .factory/specs/behavioral-contracts/ss-04/BC-4.13.001.md
   - .factory/stories/S-19.08-verify-state-timestamp-refresh-byte-cap.md
+  - .factory/stories/S-19.09-post-e19-host-abi-fixes.md
   - .factory/specs/behavioral-contracts/ss-05/BC-5.40.001.md
-input-hash: "db3fe49"
-last_amended: "2026-07-13 (v1.29) — pass-15 BC/DI version-pin sweep (story-writer): PRD Capabilities BC-3.08.001 v1.21→v1.23; 'implementer follows' sentences drop version (×2: PRD Capabilities + Out-of-Scope); EAC-003 BC-2.07.001 v1.5→v1.6; Out-of-Scope carried-forward v1.21→v1.23; BC Traceability amended v1.21→v1.23; input-hash refreshed db3fe49; D-803 heading-parity intact; POLICY 14 parity. [Prior: 2026-07-13 (v1.28) — S-19.08 story added (story-writer): story_count 7→8; total 45→50 pts; S-19.08 isolated node in Dependency Graph; W2 sequencing note updated; EAC-001 8 stories; Description eighth story + fifth defect class added (same defect class as S-19.02 for verify-state-timestamp-refresh guard; D-826/D-835); BC Traceability BC-5.40.001 row; Trigger S-19.08 authorization cite; title extended; S-19.04 v1.12 no-new-.sh amendment noted in changelog; input-hash refreshed (S-19.04 v1.12 drift + S-19.08 + BC-5.40.001 addition). [Prior: 2026-07-10 (v1.27) — E-19 pass-52 F-P52-001: §Behavioral Contract Traceability BC-2.02.011 row description mis-anchor (BC-2.07.001 semantics duplicated) → path_util/EC-001 role per S-19.03 body SoT; full-table class audit. [Prior: 2026-07-10 (v1.26) — E-19 pass-46 F-P46-001 propagation: BC-1.17.001 v1.5→v1.6 cite sweep (frontmatter-ordering-only amendment — §PRD Capabilities Covered ×2, §Out of Scope LANDED provenance carried-forward through v1.6 + implementer cite ×1). [Prior: 2026-07-10 (v1.25) — E-19 pass-43 F-P43-003/005 propagation: BC-3.08.001 v1.20→v1.21 cite sweep (VP-table/changelog-only amendment). [Prior: 2026-07-09 (v1.24) — pre-pass-43 consistency sweep propagation: BC-3.08.001 v1.20 cite sweep (VP-table-only amendment — §PRD Capabilities Covered ×2, §Out of Scope carry-forward + v1.20 ×2, BC Traceability table amended-version cell ×1). [Prior: 2026-07-09 (v1.23) — E-19 pass-42 F-P42-002/003 propagation (story-writer): BC-2.07.001 v1.4→v1.5 cite sweep (VP-table-only amendment — EC-007 and all PCs/Invariants unchanged; 1 body site: EAC-003 negative-control B). [Prior: 2026-07-09 (v1.22) — E-19 pass-33 F-P33-001 (story-writer): EAC-003 BC-2.07.001 v1.3→v1.4 — pass-32 partial-sweep escape at epic layer; input-hash 77985d8→a18ea87 (within-burst hash refresh: S-19.01 v1.16 input drift; SW did not recompute after cite sweep; same-burst correction per D-782/D-783 precedent). [Prior: 2026-07-09 (v1.21) — E-19 pass-32 O-P32-02 (story-writer): §Out of Scope BC-1.17.001 bullet — drop tautological 'subsequently amended through v1.5 — ' parenthetical clause. [Prior: 2026-07-09 (v1.20) — E-19 pass-31 F-P31-001 (story-writer): §Out of Scope BC-1.17.001 bullet stale 'LANDED as v1.3' → v1.5 (partial-sweep escape from pass-28/pass-30 sweeps; two version tokens in one bullet, only one previously updated). [Prior: 2026-07-09 (v1.19) — E-19 pass-30 fix burst (story-writer): BC-1.17.001 v1.4→v1.5 cite sweep (metadata-only — L2 Domain Invariants TBD→none; §PRD Capabilities Covered ×2 + §Out of Scope ×1 = 3 sites). BC-2.07.001 v1.2→v1.3 cite sweep (metadata-only; EAC-003 ×1 site). [Prior: 2026-07-08 (v1.18) — E-19 pass-28 fix burst (story-writer): F-P28-001 epic leg — EAC-002 Test-Scenarios corrected to S-19.02 AC-004 integration test (70000-byte fixture; zero output_too_large events) + AC-002 block-detection test (was: S-19.02 AC-001 test suite); EAC-002 Validation-Method corrected to 70000-byte (>64 KiB) STATE.md fixture (was: 90 KB); BC-1.17.001-v1.4-propagation: v1.3→v1.4 body-scope cite sweep (§PRD Capabilities Covered ×2 + §Out of Scope ×1 = 3 sites). [Prior: 2026-07-08 (v1.17) — E-19 pass-27 fix burst (story-writer): F-P27-001 epic leg — Wave-2 sequencing note S-19.04 parenthetical fixed to DISTINCT-block form (was: 'adds capabilities.read_prefix schema documentation to that same section'; now: S-19.06 adds a DISTINCT \"Capability Schemas\" preamble block, separate from S-19.04's tool-filter-anchoring block; ordering-only dependency so two preamble blocks land without merge conflict). [Prior: 2026-07-08 (v1.16) — E-19 pass-22 fix burst BC-1.17.001-v1.3-propagation (story-writer): BC-1.17.001 v1.2→v1.3 cite propagation; §PRD Capabilities Covered (×2 sites) + §Out of Scope (×2 sites) updated. [Prior: 2026-07-08 (v1.15) — O-P16-01 human adjudication (D-773): POLICY 17 frontmatter parity backfill (modified[] + last_amended added)]]"
+input-hash: "3f8b3c4"
+last_amended: "2026-07-15 (v1.30) — S-19.09 added (story-writer): story_count 8→9; total 50→55 pts; S-19.09 row in Stories table (W3, 5 pts, BC-1.17.001 + BC-3.08.001); Description ninth story + seventh defect class (post-E-19 host ABI fixes D19–D22; authorized 2026-07-15); Dependency Graph S-19.06→S-19.09 + S-19.08→S-19.09 + S-19.09→S-19.07 edges (S-19.08 no longer isolated); W3 sequencing note expanded (S-19.09 now gates S-19.07); EAC-001 9 stories S-19.01..S-19.09; BC Traceability BC-1.17.001 D19 production-path row + BC-3.08.001 D22 timestamp row; Trigger S-19.09 authorization cite; title extended; inputs add S-19.09; hash refreshed (S-19.09 + input drift). [Prior: 2026-07-13 (v1.29) — pass-15 BC/DI version-pin sweep (story-writer): PRD Capabilities BC-3.08.001 v1.21→v1.23; 'implementer follows' sentences drop version (×2: PRD Capabilities + Out-of-Scope); EAC-003 BC-2.07.001 v1.5→v1.6; Out-of-Scope carried-forward v1.21→v1.23; BC Traceability amended v1.21→v1.23; input-hash refreshed db3fe49; D-803 heading-parity intact; POLICY 14 parity. [Prior: 2026-07-13 (v1.28) — S-19.08 story added (story-writer): story_count 7→8; total 45→50 pts; S-19.08 isolated node in Dependency Graph; W2 sequencing note updated; EAC-001 8 stories; Description eighth story + fifth defect class added (same defect class as S-19.02 for verify-state-timestamp-refresh guard; D-826/D-835); BC Traceability BC-5.40.001 row; Trigger S-19.08 authorization cite; title extended; S-19.04 v1.12 no-new-.sh amendment noted in changelog; input-hash refreshed (S-19.04 v1.12 drift + S-19.08 + BC-5.40.001 addition). [Prior: 2026-07-10 (v1.27) — E-19 pass-52 F-P52-001: §Behavioral Contract Traceability BC-2.02.011 row description mis-anchor (BC-2.07.001 semantics duplicated) → path_util/EC-001 role per S-19.03 body SoT; full-table class audit. [Prior: 2026-07-10 (v1.26) — E-19 pass-46 F-P46-001 propagation: BC-1.17.001 v1.5→v1.6 cite sweep (frontmatter-ordering-only amendment — §PRD Capabilities Covered ×2, §Out of Scope LANDED provenance carried-forward through v1.6 + implementer cite ×1). [Prior: 2026-07-10 (v1.25) — E-19 pass-43 F-P43-003/005 propagation: BC-3.08.001 v1.20→v1.21 cite sweep (VP-table/changelog-only amendment). [Prior: 2026-07-09 (v1.24) — pre-pass-43 consistency sweep propagation: BC-3.08.001 v1.20 cite sweep (VP-table-only amendment — §PRD Capabilities Covered ×2, §Out of Scope carry-forward + v1.20 ×2, BC Traceability table amended-version cell ×1). [Prior: 2026-07-09 (v1.23) — E-19 pass-42 F-P42-002/003 propagation (story-writer): BC-2.07.001 v1.4→v1.5 cite sweep (VP-table-only amendment — EC-007 and all PCs/Invariants unchanged; 1 body site: EAC-003 negative-control B). [Prior: 2026-07-09 (v1.22) — E-19 pass-33 F-P33-001 (story-writer): EAC-003 BC-2.07.001 v1.3→v1.4 — pass-32 partial-sweep escape at epic layer; input-hash 77985d8→a18ea87 (within-burst hash refresh: S-19.01 v1.16 input drift; SW did not recompute after cite sweep; same-burst correction per D-782/D-783 precedent). [Prior: 2026-07-09 (v1.21) — E-19 pass-32 O-P32-02 (story-writer): §Out of Scope BC-1.17.001 bullet — drop tautological 'subsequently amended through v1.5 — ' parenthetical clause. [Prior: 2026-07-09 (v1.20) — E-19 pass-31 F-P31-001 (story-writer): §Out of Scope BC-1.17.001 bullet stale 'LANDED as v1.3' → v1.5 (partial-sweep escape from pass-28/pass-30 sweeps; two version tokens in one bullet, only one previously updated). [Prior: 2026-07-09 (v1.19) — E-19 pass-30 fix burst (story-writer): BC-1.17.001 v1.4→v1.5 cite sweep (metadata-only — L2 Domain Invariants TBD→none; §PRD Capabilities Covered ×2 + §Out of Scope ×1 = 3 sites). BC-2.07.001 v1.2→v1.3 cite sweep (metadata-only; EAC-003 ×1 site). [Prior: 2026-07-08 (v1.18) — E-19 pass-28 fix burst (story-writer): F-P28-001 epic leg — EAC-002 Test-Scenarios corrected to S-19.02 AC-004 integration test (70000-byte fixture; zero output_too_large events) + AC-002 block-detection test (was: S-19.02 AC-001 test suite); EAC-002 Validation-Method corrected to 70000-byte (>64 KiB) STATE.md fixture (was: 90 KB); BC-1.17.001-v1.4-propagation: v1.3→v1.4 body-scope cite sweep (§PRD Capabilities Covered ×2 + §Out of Scope ×1 = 3 sites). [Prior: 2026-07-08 (v1.17) — E-19 pass-27 fix burst (story-writer): F-P27-001 epic leg — Wave-2 sequencing note S-19.04 parenthetical fixed to DISTINCT-block form (was: 'adds capabilities.read_prefix schema documentation to that same section'; now: S-19.06 adds a DISTINCT \"Capability Schemas\" preamble block, separate from S-19.04's tool-filter-anchoring block; ordering-only dependency so two preamble blocks land without merge conflict). [Prior: 2026-07-08 (v1.16) — E-19 pass-22 fix burst BC-1.17.001-v1.3-propagation (story-writer): BC-1.17.001 v1.2→v1.3 cite propagation; §PRD Capabilities Covered (×2 sites) + §Out of Scope (×2 sites) updated. [Prior: 2026-07-08 (v1.15) — O-P16-01 human adjudication (D-773): POLICY 17 frontmatter parity backfill (modified[] + last_amended added)]]"
 modified:
+  - "v1.30 2026-07-15: S-19.09 added (story-writer): Stories table row; story_count 8→9; total 50→55 pts; Dependency Graph S-19.06→S-19.09 + S-19.08→S-19.09 + S-19.09→S-19.07 edges; W3 sequencing note expanded; EAC-001 9 stories; Description ninth story + seventh defect class; BC Traceability BC-1.17.001 D19 + BC-3.08.001 D22 rows; Trigger S-19.09 authorization; title extended; inputs add S-19.09; hash refreshed"
   - "v1.29 2026-07-13: pass-15 BC/DI version-pin sweep (story-writer): PRD Capabilities BC-3.08.001 v1.21→v1.23 + drop version from 'implementer follows' sentence (×2 sites); EAC-003 BC-2.07.001 v1.5→v1.6; Out-of-Scope carried-forward v1.21→v1.23; BC Traceability amended v1.21→v1.23; input-hash refreshed db3fe49; POLICY 14 parity"
   - "v1.28 2026-07-13: S-19.08 added (story-writer): Stories table row; story_count 7→8; 45→50 pts; Dependency Graph isolated node; W2 sequencing note; EAC-001 8 stories; Description eighth story + fifth defect class; BC Traceability BC-5.40.001 row; Trigger S-19.08 authorization; title extended; inputs + hash refreshed; S-19.04 v1.12 no-new-.sh amendment cited in changelog"
   - "v1.27 2026-07-10: E-19 pass-52 F-P52-001: §Behavioral Contract Traceability BC-2.02.011 row description mis-anchor (BC-2.07.001 semantics duplicated) → path_util/EC-001 role per S-19.03 body SoT; full-table class audit (5 other rows PASS)"
@@ -49,7 +51,7 @@ modified:
 
 ## Description
 
-E-19 collects the eight hardening stories authorized by the rc.22 post-install smoke gate
+E-19 collects the nine hardening stories authorized by the rc.22 post-install smoke gate
 (2026-07-04; 73/73 PASS-WITH-FINDINGS) and the E-19 pass-2 wiring package
 (2026-07-06). The findings expose five distinct defect classes discovered only after the
 v1.0.0-rc.22 marketplace tarball was installed and exercised against a live
@@ -103,8 +105,22 @@ authorized in E-19 pass-4:
    dispatcher-log traces (D-826 + D-835). Fix mirrors S-19.02: raise cap to 262144 and
    wire `factory_lock_parse::extract_frontmatter`. Authorized 2026-07-13.
 
+7. **Post-E-19 host ABI implementation gaps (S-19.09):** The E-19 cascade reviews surface
+   four systemic items requiring a follow-on story. D19 (CRITICAL): `read_prefix` is absent
+   from `setup_host_on_store_data` (`invoke.rs`) — the production dispatch path
+   (`Linker<StoreData>`) — though registered in `setup_linker` (test path,
+   `Linker<HostContext>`), causing a wasmtime link error for any plugin importing
+   `vsdd::read_prefix` on the production path despite S-19.06 appearing CI green. D20:
+   incorrect `timeout_ms` doc comments in `read_file.rs` and `read_prefix.rs` claim
+   epoch-interruption enforcement that is structurally impossible in `func_wrap` synchronous
+   host calls (ADR-025 Decision 18). D21: bare string literals `"internal.file_not_found"`
+   and `"plugin.abandoned"` duplicated without named constants across `read_file.rs`,
+   `read_prefix.rs`, and `emit_event.rs` (F-WG-002). D22: `emit_plugin_completed_async`
+   missing mandatory `timestamp` field present on all sibling async emitters (F-WG-003;
+   BC-3.08.001 §Common Fields). Authorized 2026-07-15 (ADR-025 Decisions 16–19).
+
 E-19 is intentionally narrow: it fixes the known defects and adds the read_prefix
-capability without scope expansion. All eight stories are production-grade closures per
+capability without scope expansion. All nine stories are production-grade closures per
 the Canonical Principle — no MVP deferrals, no `TODO for later`, no paper-fixes.
 
 ## Trigger / Motivation
@@ -117,6 +133,8 @@ authorization. S-19.06 is authorized under the E-19 pass-2 wiring package
 (2026-07-06). S-19.07 is authorized under the E-19 pass-4 fix burst (2026-07-07).
 S-19.08 is authorized by human directive 2026-07-13 (same defect class as S-19.02
 FINDING-1; confirmed via three production dispatcher-log traces D-826 + D-835).
+S-19.09 is authorized by human directive 2026-07-15 (post-E-19 cascade reviews; ADR-025
+Decisions 16–19; design-brief-post-e19-host-abi-fixes.md v1.0).
 
 ## Epic Placement Justification
 
@@ -149,7 +167,7 @@ follows BC-1.17.001 v1.6 without further routing action.
 
 | ID | Criterion | Validation Method | Test Scenarios |
 |----|-----------|-------------------|----------------|
-| EAC-001 | All eight stories S-19.01..S-19.08 shipped and merged to `develop` within this epic's cycle | All story PRs CI-green and merged | S-19.01..S-19.08 PR merge confirmations |
+| EAC-001 | All nine stories S-19.01..S-19.09 shipped and merged to `develop` within this epic's cycle | All story PRs CI-green and merged | S-19.01..S-19.09 PR merge confirmations |
 | EAC-002 | `verify-factory-lock` no longer fails with `capability_denied reason=output_too_large` when STATE.md exceeds 64 KiB | CI integration test with 70000-byte (>64 KiB) STATE.md fixture | S-19.02 AC-004 integration test (70000-byte fixture; zero output_too_large events) + AC-002 block-detection test |
 | EAC-003 | `warn-pending-wave-gate` emits no false-positive `capability_denied reason=path_not_allowed` on fresh install with absent `.factory/wave-state.yaml` | CI integration test with absent wave-state.yaml fixture | S-19.03 AC-001 test suite; AC-001 negative-control B (BC-2.07.001 v1.6 EC-007): inject mock canonicalize fn returning Err for every ancestor → path_resolution_failed (not path_not_allowed) |
 | EAC-004 | `VSDD_SINK_FILE` env var is honored in release-profile dispatcher builds | Release-profile CI integration test with VSDD_SINK_FILE set | S-19.05 AC-004 test suite |
@@ -168,10 +186,11 @@ follows BC-1.17.001 v1.6 without further routing action.
 | S-19.06 | host::read_prefix bounded partial read | W2 | 8 | BC-1.17.001 |
 | S-19.07 | verify-factory-lock read_prefix migration (D18(e)) | W3 | 3 | BC-4.13.001 |
 | S-19.08 | verify-state-timestamp-refresh: raise 64 KiB byte cap to 256 KiB + wire extract_frontmatter | W2 | 5 | BC-5.40.001 |
+| S-19.09 | post-E-19 host ABI fixes: read_prefix production path registration, timeout_ms framing, telemetry hygiene | W3 | 5 | BC-1.17.001, BC-3.08.001 |
 
-**Total:** 8 stories, 50 story points.
+**Total:** 9 stories, 55 story points.
 
-> **Maintenance tally drift-check:** Compute story count + points from the 8 linked story frontmatters and assert equals the Stories-table totals (8 / 50); run at every epic amendment.
+> **Maintenance tally drift-check:** Compute story count + points from the 9 linked story frontmatters and assert equals the Stories-table totals (9 / 55); run at every epic amendment.
 
 **Sequencing rationale:**
 
@@ -195,12 +214,16 @@ follows BC-1.17.001 v1.6 without further routing action.
   have no S-19.03/S-19.04/S-19.06 dependency. S-19.04, S-19.05, and S-19.08 can run in
   parallel; S-19.06 starts when BOTH S-19.03 AND S-19.04 have merged to develop.
 
-- Wave 3 (S-19.07): BC-4.13.001 Phase-B migration — `verify-factory-lock` migrates from
-  `host::read_file` to `host::read_prefix`. Depends on S-19.02 (Phase-A cap raise must be
-  merged first; Phase-B removes `STATE_MD_MAX_BYTES` and all `TooLarge`/`OutputTooLarge`
-  handling) AND S-19.06 (`host::read_prefix` FFI entry point must exist in the codebase
-  before the plugin can import it). S-19.07 MUST NOT begin implementation until S-19.06
-  PR has merged to develop.
+- Wave 3 (S-19.09, S-19.07 in sequence): S-19.09 fills the post-E-19 host ABI gaps —
+  D19 (CRITICAL): `read_prefix` production-path registration in `invoke.rs::setup_host_on_store_data`
+  (`Linker<StoreData>`); D20/D21/D22: doc corrections, named constants, and telemetry timestamp
+  field. S-19.09 depends on S-19.06 (test-path `read_prefix` must exist) AND S-19.08
+  (wave-ordering: all W2 stories merged before W3 begins). S-19.07 (BC-4.13.001 Phase-B
+  migration) depends on S-19.02 (Phase-A cap raise), S-19.06 (`host::read_prefix` FFI entry
+  point), AND S-19.09 (production-path registration — without D19, the migrated
+  `verify-factory-lock` plugin fails wasmtime link on production dispatch). S-19.09 MUST NOT
+  begin until S-19.06 AND S-19.08 have merged to develop. S-19.07 MUST NOT begin until S-19.09
+  has additionally merged to develop.
 
 **Wave model note:** W2 tolerates the internal S-19.04→S-19.06 edge (doc-section ordering); waves here group by priority tier, with intra-wave sequencing expressed solely via depends_on — the scheduler honors depends_on, not wave co-membership.
 
@@ -212,14 +235,16 @@ graph LR
   S-19.03 --> S-19.06
   S-19.04 --> S-19.06
   S-19.05
-  S-19.08
+  S-19.06 --> S-19.09
+  S-19.08 --> S-19.09
   S-19.02 --> S-19.07
   S-19.06 --> S-19.07
+  S-19.09 --> S-19.07
 ```
 
-Only S-19.02 and S-19.06 gate S-19.07; only S-19.03 and S-19.04 gate S-19.06; S-19.01, S-19.05, and S-19.08 block nothing.
+S-19.02, S-19.06, and S-19.09 gate S-19.07; S-19.06 and S-19.08 gate S-19.09; S-19.03 and S-19.04 gate S-19.06; S-19.01 and S-19.05 block nothing.
 
-Topological order: W1 → W2 → W3 (by priority + S-19.06 gate on S-19.03 AND S-19.04 + S-19.07 gate on S-19.02 AND S-19.06). S-19.08 is an isolated W2 node with no predecessors or successors. No cycles. Acyclic confirmed.
+Topological order: W1 → W2 → W3 (by priority + S-19.06 gate on S-19.03 AND S-19.04 + S-19.09 gate on S-19.06 AND S-19.08 + S-19.07 gate on S-19.02 AND S-19.06 AND S-19.09). S-19.01 and S-19.05 are isolated W1/W2 nodes. No cycles. Acyclic confirmed.
 
 ## Dependencies (External)
 
@@ -261,8 +286,8 @@ Topological order: W1 → W2 → W3 (by priority + S-19.06 gate on S-19.03 AND S
 | BC-4.13.001 | S-19.02 (Phase-A: raised byte budget + frontmatter-only extraction) + S-19.07 (Phase-B: migrate verify-factory-lock to host::read_prefix; removes STATE_MD_MAX_BYTES + TooLarge/OutputTooLarge handling) |
 | BC-2.07.001 | S-19.03 (host::read_file absent-file semantics: codes::NOT_FOUND + HostError::NotFound) |
 | BC-2.02.011 | S-19.03 (path traversal prevention via resolve_path_for_allowlist in path_util.rs; EC-001 traversal → CAPABILITY_DENIED) |
-| BC-3.08.001 | S-19.05 (amended v1.23: Event 5 plugin.abandoned all 7 mandatory fields including type + timestamp + entry_index; Invariant 6 key extension; Event 6 plugin.completed async path 9 mandatory fields including plugin_version; schema-level defense for concurrent entry_index traceability) |
-| BC-1.17.001 | S-19.06 (new: host::read_prefix bounded partial read) |
+| BC-1.17.001 | S-19.06 (new: host::read_prefix bounded partial read) + S-19.09 (D19: production-path read_prefix registration in invoke.rs::setup_host_on_store_data; AC-001 instantiation gate, AC-002 round-trip bytes + non-zero out_ptr, AC-003 CAPABILITY_DENIED via production path) |
+| BC-3.08.001 | S-19.05 (amended v1.23: Event 5 plugin.abandoned all 7 mandatory fields including type + timestamp + entry_index; Invariant 6 key extension; Event 6 plugin.completed async path 9 mandatory fields including plugin_version; schema-level defense for concurrent entry_index traceability) + S-19.09 (D22: emit_plugin_completed_async missing mandatory timestamp field; §Common Fields requires timestamp for all plugin.* events; AC-009) |
 | BC-5.40.001 | S-19.08 (verify-state-timestamp-refresh: raise 64 KiB byte cap to 256 KiB + wire extract_frontmatter; PC4 mid-burst TTL renewal enforcement operational at production STATE.md sizes) |
 
 Story BC-table rows use abbreviated titles for cell fit; the BC file H1 remains the sole authoritative title (POLICY 7); abbreviations are non-normative.
@@ -271,6 +296,7 @@ Story BC-table rows use abbreviated titles for cell fit; the BC file H1 remains 
 
 | Version | Date | Author | Change |
 |---------|------|--------|--------|
+| v1.30 | 2026-07-15 | story-writer | S-19.09 added (post-E-19 host ABI fixes; ADR-025 D19–D22; authorized 2026-07-15): Stories table S-19.09 row; story_count 8→9; total 50→55 pts; Description ninth story + seventh defect class; Dependency Graph S-19.06→S-19.09 + S-19.08→S-19.09 + S-19.09→S-19.07 edges; W3 sequencing note expanded (S-19.09 now gates S-19.07); EAC-001 9 stories; BC Traceability BC-1.17.001 D19 row + BC-3.08.001 D22 row; Trigger S-19.08 authorization cite; title extended; inputs + hash refreshed; S-19.07 depends_on propagated (→ S-19.09 added). |
 | v1.29 | 2026-07-13 | story-writer | Pass-15 BC/DI version-pin sweep: PRD Capabilities BC-3.08.001 v1.21→v1.23 + drop version from "implementer follows" sentence; EAC-003 BC-2.07.001 v1.5→v1.6; Out-of-Scope BC-3.08.001 "carried forward through v1.21"→v1.23 + drop version from "implementer follows" sentence; BC Traceability cell "amended v1.21"→"amended v1.23"; D-803 heading-parity intact. POLICY 14 parity. |
 | v1.28 | 2026-07-13 | story-writer | S-19.08 added (verify-state-timestamp-refresh 64 KiB byte-cap fix; D-826/D-835; W2 parallel-eligible, 5 pts, BC-5.40.001): Stories table S-19.08 row; story_count 7→8; total 45→50 pts; S-19.08 isolated node in Dependency Graph; W2 sequencing note updated; EAC-001 8 stories; Description eighth story + fifth defect class; BC Traceability BC-5.40.001 row; Trigger section S-19.08 authorization cite; title extended. S-19.04 v1.12 no-new-.sh policy amendment (AC-006 orphan-detection gate: bats+.sh → Rust cargo test) noted; EAC-005 test-scenarios cite (AC-001+AC-007) unaffected. |
 | v1.27 | 2026-07-10 | story-writer | E-19 pass-52 F-P52-001: §Behavioral Contract Traceability BC-2.02.011 row description mis-anchor (BC-2.07.001 semantics duplicated) → path traversal prevention/resolve_path_for_allowlist/EC-001 role per S-19.03 body SoT; full-table class audit (5 other rows PASS). |
