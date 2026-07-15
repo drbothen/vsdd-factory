@@ -1,0 +1,23 @@
+# AC-001 — Bounded prefix (head-c semantics) + grep gate
+# Story S-19.06 — branch feature/S-19.06 HEAD 7156a4c3
+# BC-1.17.001 PC-1 + PC-6
+#
+# Tests: T-001 (100-byte file, max_bytes=50 → 50 bytes, exit 0)
+#        T-002 (byte-exact: partial multi-byte UTF-8 sequence at boundary, no trimming)
+# Gate:  grep -q "fn read_prefix" crates/factory-dispatcher/src/host/read_prefix.rs
+
+# ── cargo test run ──────────────────────────────────────────────────────────
+$ cargo test -p factory-dispatcher --lib -- host::read_prefix::tests::test_S19_06_T001 host::read_prefix::tests::test_S19_06_T002
+
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.22s
+     Running unittests src/lib.rs (target/debug/deps/factory_dispatcher-cdf061c0a73efe1d)
+
+running 2 tests
+test host::read_prefix::tests::test_S19_06_T002_byte_exact_no_utf8_trimming_at_boundary ... ok
+test host::read_prefix::tests::test_S19_06_T001_bounded_prefix_returns_exactly_max_bytes ... ok
+
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 192 filtered out; finished in 0.02s
+
+# ── grep gate ───────────────────────────────────────────────────────────────
+$ grep -q "fn read_prefix" crates/factory-dispatcher/src/host/read_prefix.rs && echo "EXIT 0" || echo "EXIT 1"
+EXIT 0
