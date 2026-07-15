@@ -44,6 +44,8 @@ setup() {
   READ_PREFIX_RS="$REPO_ROOT/crates/factory-dispatcher/src/host/read_prefix.rs"
   EMIT_EVENT_RS="$REPO_ROOT/crates/factory-dispatcher/src/host/emit_event.rs"
   INTERNAL_LOG_RS="$REPO_ROOT/crates/factory-dispatcher/src/internal_log.rs"
+  EXECUTOR_RS="$REPO_ROOT/crates/factory-dispatcher/src/executor.rs"
+  VSDD_SINK_RS="$REPO_ROOT/crates/factory-dispatcher/src/vsdd_sink.rs"
 }
 
 # ---------------------------------------------------------------------------
@@ -260,7 +262,8 @@ setup() {
 
 # ---------------------------------------------------------------------------
 # T-011  AC-008 — zero bare literals in production code of read_file.rs,
-#         read_prefix.rs, emit_event.rs (extended to four classes, story v1.1)
+#         read_prefix.rs, emit_event.rs, executor.rs, vsdd_sink.rs
+#         (extended to four classes, story v1.1; perimeter widened F-P2-001)
 #
 # After D21 (original sweep) + D22 sweep (8913c2e9), all bare occurrences of
 # all four telemetry literal classes in production code (the region before
@@ -285,10 +288,13 @@ setup() {
 #   (b) extension: inject "plugin.completed" and assert gate fires — proves
 #       the two new D22 classes ("plugin.completed"/"plugin.timeout") are
 #       live in the gate, not merely subsumed by the original two patterns.
+#   (c) executor.rs extension: inject "plugin.completed" into executor.rs
+#       and assert gate fires — proves the F-P2-001 perimeter widening is live.
 #
 # RED today (pre-sweep): production code of all three files contains bare
 # literals; the gate returns non-empty output for each file.
 # GREEN post-D22 (8913c2e9): all four classes swept to named constants.
+# executor.rs/vsdd_sink.rs: already const-clean; perimeter widened F-P2-001.
 # ---------------------------------------------------------------------------
 
 # Helper: run the 4-stage bare-literal scan on a file path (arg $1).
@@ -318,11 +324,11 @@ _scan_bare_literals() {
     | grep -oE '"internal\.file_not_found"|"plugin\.abandoned"|"plugin\.completed"|"plugin\.timeout"' || true
 }
 
-@test "T-011 AC-008: zero bare literals in production code of read_file.rs, read_prefix.rs, emit_event.rs" {
+@test "T-011 AC-008: zero bare literals in production code of read_file.rs, read_prefix.rs, emit_event.rs, executor.rs, vsdd_sink.rs" {
   local files_with_literals=""
   local failed=0
 
-  for target in "$READ_FILE_RS" "$READ_PREFIX_RS" "$EMIT_EVENT_RS"; do
+  for target in "$READ_FILE_RS" "$READ_PREFIX_RS" "$EMIT_EVENT_RS" "$EXECUTOR_RS" "$VSDD_SINK_RS"; do
     [ -f "$target" ] || {
       echo "FAIL: $target not found"
       failed=1
@@ -387,6 +393,32 @@ _scan_bare_literals() {
     failed=1
   else
     echo "PASS mutation-liveness (b): gate output on mutant = '$mutant_output2'"
+  fi
+
+  # Mutation-liveness check (c): verify executor.rs perimeter extension is live.
+  # Inject "plugin.completed" before the #[cfg(test)] boundary in executor.rs
+  # and assert the 4-stage scan fires — proves the widened perimeter detects
+  # a future bare literal in executor.rs production code (F-P2-001).
+  local mut_file3
+  mut_file3=$(mktemp /tmp/t011_mutant3_XXXXXX.rs)
+  awk '{
+    if (/^#\[cfg\(test\)\]/) {
+      print "    let _ = \"plugin.completed\"; // mutation-liveness injection (executor.rs extension)"
+    }
+    print
+  }' "$EXECUTOR_RS" > "$mut_file3"
+
+  local mutant_output3
+  mutant_output3=$(_scan_bare_literals "$mut_file3")
+  rm -f "$mut_file3"
+
+  if [ -z "$mutant_output3" ]; then
+    echo "FAIL: mutation-liveness (c) — gate did NOT fire on a temp copy of executor.rs"
+    echo "  with 'plugin.completed' injected before the #[cfg(test)] boundary."
+    echo "  The executor.rs perimeter extension (F-P2-001) is not live in T-011."
+    failed=1
+  else
+    echo "PASS mutation-liveness (c): gate output on mutant = '$mutant_output3'"
   fi
 
   if [ "$failed" -ne 0 ]; then

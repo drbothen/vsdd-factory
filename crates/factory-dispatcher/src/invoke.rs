@@ -1280,9 +1280,11 @@ mod tests {
     fn t002_s19_09_read_prefix_round_trip_bytes_correct_and_out_ptr_nonzero_via_production_path() {
         use crate::registry::{Capabilities, ReadPrefixCaps};
 
-        // Write a tmp file with known content.
+        // Write a tmp file with known content; tempdir gives per-test isolation
+        // (F-P2-002: replace fixed std::env::temp_dir path with tempfile::tempdir).
         let content = b"hello-read-prefix-content";
-        let tmp_path = std::env::temp_dir().join("s19_09_t002_read_prefix.txt");
+        let dir = tempfile::tempdir().expect("create temp dir for T-002");
+        let tmp_path = dir.path().join("s19_09_t002_read_prefix.txt");
         std::fs::write(&tmp_path, content).expect("write tmp file for T-002");
         let path_str = tmp_path.to_str().expect("path to str").to_string();
         let path_bytes = path_str.as_bytes();
@@ -1381,7 +1383,169 @@ mod tests {
             out_ptr
         );
 
-        let _ = std::fs::remove_file(&tmp_path);
+        // Read out_len from memory[4:8] (little-endian u32; host writes at out_len_out=4).
+        // F-P2-001: extend T-002 to verify both out_len and byte content, not just out_ptr.
+        let mem_data: Vec<u8> = memory.data(&store).to_vec();
+        let out_len = u32::from_le_bytes(
+            mem_data[4..8]
+                .try_into()
+                .expect("memory[4:8] must be 4 bytes"),
+        );
+        assert_eq!(
+            out_len,
+            content.len() as u32,
+            "T-002 AC-002: out_len must equal fixture content length ({} bytes); got {}; \
+             production marshalling correctness (ADR-025 §Decision 16)",
+            content.len(),
+            out_len
+        );
+
+        // Read back memory[out_ptr..out_ptr+out_len] and assert byte equality.
+        // Mutation-check (TD-VSDD-059): this assertion is load-bearing — changing
+        // `content` to any other byte string causes an immediate assertion failure,
+        // proving the host correctly marshalled the fixture bytes into WASM linear memory.
+        let start = out_ptr as u32 as usize;
+        let end = start + out_len as usize;
+        assert_eq!(
+            &mem_data[start..end],
+            content.as_slice(),
+            "T-002 AC-002: bytes read back from WASM memory[{}..{}] must equal fixture content; \
+             production marshalling correctness (ADR-025 §Decision 16)",
+            start,
+            end
+        );
+        // dir goes out of scope here; tempfile::TempDir::drop auto-cleans the directory.
+    }
+
+    // -----------------------------------------------------------------------
+    // S-19.09 T-002b — AC-002 head-c bound (D19 GREEN gate)
+    //
+    // read_prefix with a file LARGER than max_bytes must:
+    //   1. Return codes::OK (0).
+    //   2. Write out_len == max_bytes exactly (head-c truncation at the bound).
+    //   3. Write the first max_bytes bytes of the file content to WASM memory.
+    //
+    // ADR-025 §Decision 16 / BC-1.17.001 PC-2: head-c semantics — the function
+    // behaves like `head -c max_bytes`; content beyond the bound is discarded.
+    //
+    // AC trace: AC-002; ADR-025 §Decision 16; BC-1.17.001 PC-2.
+    // -----------------------------------------------------------------------
+    #[test]
+    fn t002b_s19_09_read_prefix_head_c_bound_clamps_out_len_to_max_bytes() {
+        use crate::registry::{Capabilities, ReadPrefixCaps};
+
+        const MAX_BYTES: usize = 10;
+        // 40-byte content — deliberately larger than max_bytes = 10.
+        let content: &[u8] = b"abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMN";
+        let dir = tempfile::tempdir().expect("create temp dir for T-002b");
+        let tmp_path = dir.path().join("s19_09_t002b_read_prefix.txt");
+        std::fs::write(&tmp_path, content).expect("write tmp file for T-002b");
+        let path_str = tmp_path.to_str().expect("path to str").to_string();
+        let path_bytes = path_str.as_bytes();
+
+        let mut ctx = bare_ctx();
+        ctx.capabilities = Capabilities {
+            read_prefix: Some(ReadPrefixCaps {
+                path_allow: vec![path_str.clone()],
+            }),
+            ..Capabilities::default()
+        };
+
+        let engine = build_engine().unwrap();
+        let mut linker: wasmtime::Linker<StoreData> = wasmtime::Linker::new(&engine);
+        setup_host_on_store_data(&mut linker).expect("setup_host_on_store_data must not error");
+
+        // WAT layout same as T-002 but max_bytes = 10 (hardcoded in i32.const).
+        let module = compile(
+            &engine,
+            r#"(module
+              (import "vsdd" "read_prefix" (func $rp (param i32 i32 i32 i32 i32 i32) (result i32)))
+              (memory (export "memory") 2)
+              (func (export "call_rp") (param $path_ptr i32) (param $path_len i32) (result i32)
+                (call $rp
+                  (local.get $path_ptr)
+                  (local.get $path_len)
+                  (i32.const 10)
+                  (i32.const 0)
+                  (i32.const 0)
+                  (i32.const 4)
+                )
+              )
+            )"#,
+        );
+
+        let wasi_ctx = WasiCtxBuilder::new().build_p1();
+        let store_data = StoreData {
+            host: ctx,
+            wasi: wasi_ctx,
+        };
+        let mut store = Store::new(&engine, store_data);
+        store
+            .set_fuel(1_000_000)
+            .expect("engine has fuel metering enabled");
+        store.set_epoch_deadline(u64::MAX);
+
+        let instance = linker
+            .instantiate(&mut store, &module)
+            .expect("T-002b: instantiation must succeed");
+
+        let memory = instance
+            .get_memory(&mut store, "memory")
+            .expect("module exports memory");
+        memory
+            .write(&mut store, 128, path_bytes)
+            .expect("write path bytes to WASM memory");
+
+        let call_rp = instance
+            .get_typed_func::<(i32, i32), i32>(&mut store, "call_rp")
+            .expect("module exports call_rp");
+        let ret = call_rp
+            .call(&mut store, (128, path_bytes.len() as i32))
+            .expect("call_rp must not trap");
+        assert_eq!(
+            ret, 0,
+            "T-002b AC-002: read_prefix must return codes::OK (0) for file > max_bytes; got {}",
+            ret
+        );
+
+        // Read out_ptr (memory[0:4]) and out_len (memory[4:8]) directly.
+        let mem_data: Vec<u8> = memory.data(&store).to_vec();
+        let out_ptr = u32::from_le_bytes(
+            mem_data[0..4]
+                .try_into()
+                .expect("memory[0:4] must be 4 bytes"),
+        );
+        let out_len = u32::from_le_bytes(
+            mem_data[4..8]
+                .try_into()
+                .expect("memory[4:8] must be 4 bytes"),
+        );
+
+        assert!(
+            out_ptr > 0,
+            "T-002b AC-002: out_ptr must be > 0 for non-empty truncated result; got {}",
+            out_ptr
+        );
+        assert_eq!(
+            out_len,
+            MAX_BYTES as u32,
+            "T-002b AC-002: out_len must be clamped to max_bytes ({}) not full content length ({}); \
+             head-c semantics per ADR-025 §Decision 16 / BC-1.17.001 PC-2",
+            MAX_BYTES,
+            content.len()
+        );
+
+        // Byte equality: returned bytes must match the FIRST max_bytes of content.
+        let start = out_ptr as usize;
+        let end = start + out_len as usize;
+        assert_eq!(
+            &mem_data[start..end],
+            &content[..MAX_BYTES],
+            "T-002b AC-002: read-back bytes must equal the first {} bytes of fixture content; \
+             head-c truncation correctness (ADR-025 §Decision 16 / BC-1.17.001 PC-2)",
+            MAX_BYTES
+        );
+        // dir goes out of scope here; tempfile::TempDir::drop auto-cleans the directory.
     }
 
     // -----------------------------------------------------------------------
