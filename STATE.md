@@ -136,7 +136,7 @@ dtu_services: []
 |--------------|-----|-------|
 | main | a04cb303 | rc.22 bot binary bundle commit 2026-07-03 (Release 28668124787 post-build; all 33 WASMs rebuilt, plugin.json → 1.0.0-rc.22); prior: e4285fe5 (PR #456 true-merge fix mapfile→while-read; rc.22 tag); prior: 2a4c949b (PR #455 true-merge first rc.22 release; tag later moved); prior: caf06c68 (rc.21) |
 | develop | 9787c056 | PR #657 S-19.06 squash-merge 2026-07-15T14:53:16Z; prior: 1304d280 (PR #646 S-19.08 squash-merge 2026-07-14); prior: 7b35c8e4 (PR #640 S-19.05 squash-merge 2026-07-14) |
-| factory-artifacts | D-846-BURST `pending-SHA-patch` | D-846-BURST pending SHA-patch (this burst 2026-07-15); prior: D-845-BURST `96c0cdcc` (pushed 2026-07-15); D-844-BURST `f9493f3b` 2026-07-15; D-843-BURST `b6047107` (2026-07-15) |
+| factory-artifacts | D-846-BURST `a376865c` | D-846-BURST `a376865c3a290a2907e2ef1463147390a130d5a5` (pushed 2026-07-15); prior: D-845-BURST `96c0cdcc` (pushed 2026-07-15); D-844-BURST `f9493f3b` 2026-07-15; D-843-BURST `b6047107` (2026-07-15) |
 | feature/S-19.06 | **DELETED** (was 7156a4c3) | Merged via PR #657 9787c056 2026-07-15T14:53:16Z (D-843); branch deleted at merge |
 | feature/S-19.05 | **DELETED** (was 28f28465) | Merged via PR #640 7b35c8e4 2026-07-14 (D-841); branch deleted at merge |
 | feature/S-19.04 | **DELETED** (was 82aeb073) | Merged via PR #639 d4a23a02 2026-07-14 (D-841); branch deleted at merge |
@@ -299,7 +299,7 @@ dtu_services: []
 - **W1 authorization:** **APPROVED, DISPATCHED, and COMPLETE** (human "Approve — parallel" 2026-07-11; D-825). All three stories LOCAL-converged 3/3, all PRs merged.
 - **Per-story PR status:** **S-19.01 PR #613 MERGED 8d1721f7 2026-07-13T14:49:50Z**; **S-19.02 PR #610 MERGED f5ea12e9 2026-07-13T14:33:57Z**; **S-19.03 PR #611 MERGED 091ce499 2026-07-13T15:54:21Z**; **S-19.04 PR #639 MERGED d4a23a02 2026-07-14T14:39:00Z** (D-841); **S-19.05 PR #640 MERGED 7b35c8e4 2026-07-14T14:39:33Z** (D-841); **S-19.06 PR #657 MERGED 9787c056 2026-07-15T14:53:16Z** (D-843); **S-19.08 PR #646 MERGED 1304d280 2026-07-14T23:18:08Z** (D-842). WAVE 1+2 COMPLETE. S-19.07 W3 AUTHORIZED.
 - **Covered SHAs (historical — PRs merged):** S-19.04 covered_sha `82aeb07382a69923651c7cca8ab21b03158f384f` (squash-merged d4a23a02); S-19.05 covered_sha `28f2846525ef75b73aa91d15bd41f8df58fc4116` (squash-merged 7b35c8e4).
-- **Repo state:** develop HEAD `9787c056` (origin; S-19.06 squash-merge PR #657); main HEAD `a04cb303`; merged_count 105; factory-artifacts HEAD pending SHA-patch (D-846 burst; prior: D-845 `96c0cdcc`). v1.0.0-rc.22 FULLY SHIPPED. **E-10 CASCADE SEALED D-531 — do NOT resume. F5 PAUSED D-386 Option C — do NOT resume.**
+- **Repo state:** develop HEAD `9787c056` (origin; S-19.06 squash-merge PR #657); main HEAD `a04cb303`; merged_count 105; factory-artifacts HEAD `a376865c3a290a2907e2ef1463147390a130d5a5` (D-846 burst pushed 2026-07-15; prior: D-845 `96c0cdcc`). v1.0.0-rc.22 FULLY SHIPPED. **E-10 CASCADE SEALED D-531 — do NOT resume. F5 PAUSED D-386 Option C — do NOT resume.**
 - **POLICY 21:** no_new_shell_scripts ACTIVE (blocking; human-directed 2026-07-13). No new .sh files allowed; Rust workspace tests / Rust binaries / WASM plugins only. 5 S-19.01 files EXPLICITLY GRANDFATHERED D-846 (policies.yaml v1.4.8 `grandfather_clause`). Migration anchored E-20.
 
 ### §Major Events Since D-845
@@ -427,4 +427,4 @@ policies.yaml v1.4.8 (POLICY 21 grandfather_clause D-846). All other artifacts U
 
 4-index verification gate (literal-shell): `grep "^version:" .factory/specs/behavioral-contracts/BC-INDEX.md .factory/specs/verification-properties/VP-INDEX.md .factory/stories/STORY-INDEX.md .factory/specs/architecture/ARCH-INDEX.md` → BC-INDEX: "4.05" / VP-INDEX: "2.68" / STORY-INDEX: "4.193" / ARCH-INDEX: "3.01".
 
-Critical SHAs: develop `9787c056` (origin; S-19.06 squash-merge PR #657); main `a04cb303`; factory-artifacts HEAD = D-846 burst pending SHA-patch (prior: D-845 `96c0cdcc68bf9b094dbec0c8bee46dbf843fa0c8` pushed 2026-07-15). v1.0.0-rc.22 at `e4285fe5`. GitHub origin: `drbothen/vsdd-factory`. total_bcs 1,977. merged_count 105.
+Critical SHAs: develop `9787c056` (origin; S-19.06 squash-merge PR #657); main `a04cb303`; factory-artifacts HEAD = D-846 burst `a376865c3a290a2907e2ef1463147390a130d5a5` (pushed 2026-07-15; prior: D-845 `96c0cdcc68bf9b094dbec0c8bee46dbf843fa0c8`). v1.0.0-rc.22 at `e4285fe5`. GitHub origin: `drbothen/vsdd-factory`. total_bcs 1,977. merged_count 105.
