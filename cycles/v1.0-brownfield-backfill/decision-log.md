@@ -10475,6 +10475,20 @@ D-844-GATE1-HYGIENE-REMEDIATION
 
 2026-07-15
 
+## D-846
+
+### Summary
+
+POLICY-21-GRANDFATHER-CLAUSE. Single-commit disposition burst. Human decision 2026-07-15: Option A, grandfather. (1) POLICY 16 GLOBAL-MAX GATE: `## D-845` confirmed max in decision-log.md → D-846 allocated. (2) POLICIES.YAML v1.4.7→v1.4.8: POLICY 21 `no_new_shell_scripts` amended with explicit `grandfather_clause:` field enumerating 5 S-19.01 files — `plugins/vsdd-factory/bin/check-stale-verdict.sh`; `plugins/vsdd-factory/bin/enforce-merge-strategy.sh`; `plugins/vsdd-factory/tests/fixtures/pr-manager/darwin-leg-preflight.sh`; `plugins/vsdd-factory/tests/fixtures/pr-manager/stub-bash-version.sh`; `plugins/vsdd-factory/tests/fixtures/pr-manager/stub-gh.sh`. Rationale: S-19.01 spec frozen v1.18 2026-07-11 PRE-POLICY (POLICY 21 codified D-836 2026-07-13); architect-approved ADR-030 §Decision 2/3; merged PR #613 2026-07-13 post-policy — timing collision surfaced at E-19 W1+W2 wave-gate (F-WG-001, D-845); human-directed grandfather 2026-07-15; migration anchored to E-20 factory-tools class migration alongside all other grandfathered .sh. POLICY 21 `description` updated to mention explicit 5-file grandfather; `adopted` field amended with D-846 reference; `amended_at: D-846` added; verification_steps updated (step 3 extended + new GRANDFATHER CLAUSE GATE step added). `last_amended` prepended v1.4.8 entry. (3) WAVE-GATE REPORT `cycles/v1.0-brownfield-backfill/e-19-wave-gate-w1-w2.md`: F-WG-001 condition updated from PENDING HUMAN DECISION to RESOLVED D-846 grandfather; GATE_CHECK gate=3 note updated; Gate 3 status updated; Summary updated to PASSED unconditionally; W3 may open. (4) STATE.md v5.92→v5.93: banner/Phase Progress/Decisions Log/Session Resume Checkpoint advanced — F-WG-001 RESOLVED grandfather; S-19.07 DISPATCH AUTHORIZED (W3 opens on this burst completion); architect follow-up story AUTHORIZED for EC-006/SEC-003/-4 schema/F-WG-002/003 routing; trajectory-tail →2→0→0→0 UNCHANGED; 4-index ALL UNCHANGED BC v4.05/VP v2.68/STORY v4.193/ARCH v3.01. (5) PRE-COMMIT GATES: POLICY 14 4-index PASS (BC v4.05/VP v2.68/STORY v4.193/ARCH v3.01 literal shell — UNCHANGED); cargo test -p validate-state-structure --lib PASS (65/65). parent-commit: 96c0cdcc (D-845 burst).
+
+### Phase
+
+D-846-POLICY-21-GRANDFATHER-CLAUSE
+
+### Date
+
+2026-07-15
+
 ## D-845
 
 ### Summary

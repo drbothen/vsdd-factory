@@ -35,7 +35,7 @@ GATE_CHECK: gate=1 name=test-suite status=pass note=2045 cargo tests 0 failures 
 
 GATE_CHECK: gate=2 name=dtu-validation status=skip note=dtu_required false; no module-criticality registry; no DTU clones
 
-GATE_CHECK: gate=3 name=adversarial-review status=pass note=0 CRITICAL; 1 HIGH F-WG-001 POLICY-21-vs-S-19.01 timing collision documented pending human disposition; 2 LOW opportunistic
+GATE_CHECK: gate=3 name=adversarial-review status=pass note=0 CRITICAL; 1 HIGH F-WG-001 RESOLVED D-846 grandfather 2026-07-15 (human-directed); 2 LOW routed opportunistic
 
 GATE_CHECK: gate=4 name=demo-evidence status=pass note=7 stories, story-scoped evidence dirs + AC-referenced reports on develop (POLICY 10 re-verified by Gate 3)
 
@@ -67,9 +67,9 @@ First run failed with 2 cargo test failures + 4 bats failures. Root causes decom
 
 ## Gate 3: Adversarial Review
 
-**Status:** PASS (with F-WG-001 HIGH pending human disposition)
+**Status:** PASS (F-WG-001 HIGH RESOLVED D-846 grandfather 2026-07-15)
 
-**Findings summary:** 0 CRITICAL; 1 HIGH; 2 LOW.
+**Findings summary:** 0 CRITICAL; 1 HIGH (RESOLVED D-846); 2 LOW.
 
 ### F-WG-001 HIGH: POLICY 21 timing collision — S-19.01 shell scripts
 
@@ -80,11 +80,9 @@ First run failed with 2 cargo test failures + 4 bats failures. Root causes decom
 
 **Architect approval:** ADR-030 §D2/D3 architect-approved (existing architecture decision). The scripts implement merge-strategy enforcement and stale-verdict detection per the ADR.
 
-**CONDITION:** A recorded disposition is required before the next wave opens. The disposition must be one of:
-- **(A) Grandfather entry:** Add these 5 files explicitly to a POLICY 21 grandfather clause (requires POLICY 21 amendment at `policies.yaml` by architect/product-owner).
-- **(B) Migration story:** Create an E-20 migration story to convert these scripts to WASM plugins or Rust workspace tests per POLICY 21 requirements.
+**CONDITION:** RESOLVED. Human decision 2026-07-15: Option A — grandfather. D-846 POLICY-21-GRANDFATHER-CLAUSE burst (state-manager 2026-07-15): `grandfather_clause` field added to POLICY 21 in `policies.yaml` v1.4.7→v1.4.8, enumerating all 5 S-19.01 files with rationale. Migration anchored to E-20 factory-tools class migration.
 
-**Status:** PENDING HUMAN DECISION. Blocked on F-WG-001 disposition before next wave opens.
+**Status:** RESOLVED D-846 (grandfather, human-directed 2026-07-15). Wave gate now unconditionally PASSED. W3 may open.
 
 ### F-WG-002 LOW: Telemetry const hygiene
 
@@ -152,8 +150,8 @@ Result: 65/65 PASS. Banner `wc -l` assertion passes against current STATE.md.
 
 ## Summary
 
-E-19 combined W1+W2 wave gate: **PASSED** with one condition (F-WG-001 HIGH pending human disposition).
+E-19 combined W1+W2 wave gate: **PASSED unconditionally**. F-WG-001 HIGH RESOLVED D-846 grandfather (human-directed 2026-07-15).
 
 All 7 stories are merged to develop at HEAD 9787c056. Test suite green. DTU and holdout skipped per standing project policy. Demo evidence present. State updated this burst.
 
-**Blocker before next wave:** F-WG-001 disposition (grandfather-vs-E-20 migration story for S-19.01 shell scripts).
+**W3 may open:** F-WG-001 RESOLVED D-846. No blockers remaining. S-19.07 unblocked (depends_on S-19.02+S-19.06 both merged); authorize S-19.07 TDD dispatch.
