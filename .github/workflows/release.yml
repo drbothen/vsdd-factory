@@ -146,7 +146,8 @@ jobs:
             --exclude factory-dispatcher \
             --exclude sink-core --exclude sink-file --exclude sink-otel-grpc \
             --exclude sink-http --exclude sink-datadog --exclude sink-honeycomb \
-            --exclude vsdd-hook-sdk-macros
+            --exclude vsdd-hook-sdk-macros \
+            --exclude read-prefix-fixture  # fixture crate for S-19.06 AC-007 compile/link gate (bats T-009f); test-only, never a release artifact (POLICY 20)
       - name: Stage artifact directory
         shell: bash
         run: |

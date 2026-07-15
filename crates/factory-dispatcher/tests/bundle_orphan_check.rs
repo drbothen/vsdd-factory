@@ -17,6 +17,7 @@
 //! | T-008 | AC-006   | GREEN    | fixture-d: negative-control (F-P2-010) — resolvers-only WASM is orphan when only hooks-registry used |
 //! | T-009 | AC-006   | GREEN†   | Hermetic real-bundle gate: enumerates GIT-TRACKED set (`git ls-files`) against both real registries; asserts zero tracked orphans (EAC-005 standing regression gate) |
 //! | T-010 | AC-007   | GREEN    | Bundle-simulation: stages fixture with underscore-named WASMs through `stage_release_bundle`; asserts staged artifact has zero orphans per real registries and proves underscore-glob semantics (RED at 298389b0 via todo!(); GREEN since d9502701) |
+//! | T-011 | AC-007   | GREEN    | POLICY 20 defense proof: read-prefix-fixture.wasm (hyphen-named) passes the *_*.wasm staging glob and is an orphan per both registries; proves `--exclude read-prefix-fixture` in release.yml is the governing defense (S-19.06) |
 //!
 //! † T-009 is a STANDING GREEN GATE — passes immediately on any clean checkout where no
 //! orphan WASMs are tracked in git, and remains green on contaminated worktrees because
@@ -666,5 +667,68 @@ fn test_S_19_04_ac007_T010_release_staging_underscore_glob_excludes_orphans() {
         resolvers_reg_content.contains("hook-plugins/vsdd-context-resolvers.wasm"),
         "T-010 AC-007 keep-assertion (ii): resolvers-registry.toml must contain \
          'hook-plugins/vsdd-context-resolvers.wasm' — registry reference must remain intact"
+    );
+}
+
+// ---------------------------------------------------------------------------
+// T-011 — POLICY 20 / S-19.06 AC-007 build-exclusion-is-governing-defense
+//
+// `read-prefix-fixture.wasm` is hyphen-named (no underscore). The *_*.wasm
+// staging glob does NOT exclude it. Its absence from release bundles is
+// governed solely by `--exclude read-prefix-fixture` in the workspace
+// `cargo build --target wasm32-wasip1` step of release.yml.
+//
+// This test proves:
+//   1. stage_release_bundle DOES copy read-prefix-fixture.wasm to artifact/
+//      (hyphen-named: the *_*.wasm outer case arm does not skip it)
+//   2. collect_orphans_dual classifies it as ORPHAN (absent from both registries)
+//
+// Combined: if `--exclude read-prefix-fixture` were removed from release.yml,
+// read-prefix-fixture.wasm would exist in build output, pass through staging,
+// and ship as a registry-orphan release artifact — violating POLICY 20.
+// The build-exclusion flag is therefore the necessary and sufficient defense.
+//
+// Story: S-19.06
+// ---------------------------------------------------------------------------
+#[test]
+fn test_S_19_06_policy20_T011_read_prefix_fixture_passes_staging_and_is_orphan() {
+    let tmp = tempdir().expect("tempdir must create successfully");
+    let pre_staging = tmp.path().join("pre-staging");
+    fs::create_dir_all(&pre_staging).expect("pre-staging dir must be created");
+
+    // Simulate: read-prefix-fixture.wasm present in build output
+    // (hypothetically, if --exclude read-prefix-fixture were removed from release.yml).
+    fs::write(pre_staging.join("read-prefix-fixture.wasm"), b"")
+        .expect("read-prefix-fixture.wasm fixture must be written");
+
+    let artifact = tmp.path().join("artifact");
+    fs::create_dir_all(&artifact).expect("artifact dir must be created");
+
+    stage_release_bundle(&pre_staging, &artifact);
+
+    // Proof 1: hyphen-named → staging logic copies it.
+    // read-prefix-fixture.wasm contains no underscore, so the *_*.wasm outer
+    // case arm does NOT match — it passes through to `cp "$wasm" artifact/`.
+    assert!(
+        artifact.join("read-prefix-fixture.wasm").exists(),
+        "T-011 POLICY 20: read-prefix-fixture.wasm has no underscore — the *_*.wasm \
+         staging glob does NOT exclude it; it must be copied to artifact/ if present \
+         in build output; proves --exclude read-prefix-fixture in release.yml is the \
+         governing defense (S-19.06 AC-007)"
+    );
+
+    // Proof 2: absent from both registries → dual-registry orphan.
+    let root = workspace_root();
+    let hooks_reg = root.join("plugins/vsdd-factory/hooks-registry.toml");
+    let resolvers_reg = root.join("plugins/vsdd-factory/resolvers-registry.toml");
+    let orphans = collect_orphans_dual(&artifact, &hooks_reg, &resolvers_reg);
+
+    assert!(
+        orphans.contains(&"read-prefix-fixture.wasm".to_string()),
+        "T-011 POLICY 20: read-prefix-fixture.wasm must be classified as orphan — \
+         absent from both hooks-registry.toml and resolvers-registry.toml; \
+         without --exclude it would ship as a POLICY 20 violation; \
+         got orphans: {:?}",
+        orphans
     );
 }
