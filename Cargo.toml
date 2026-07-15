@@ -47,6 +47,7 @@ members = [
     "crates/sink-honeycomb",
     "crates/factory-lock",
     "crates/hook-plugins/precompact-flush",
+    "crates/hook-plugins/read-prefix-fixture",
 ]
 
 [workspace.package]
