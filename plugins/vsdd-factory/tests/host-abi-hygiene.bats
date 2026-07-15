@@ -17,9 +17,10 @@
 #            with value "internal.file_not_found" (grep-gate; with mutation-liveness)
 #     T-010: pub const PLUGIN_ABANDONED exported from internal_log.rs
 #            with value "plugin.abandoned" (grep-gate; with mutation-liveness)
-#     T-011: zero bare "internal.file_not_found"/"plugin.abandoned" literals
-#            in production code (before #[cfg(test)]) of read_file.rs,
-#            read_prefix.rs, emit_event.rs
+#     T-011: zero bare "internal.file_not_found"/"plugin.abandoned"/
+#            "plugin.completed"/"plugin.timeout" literals in production
+#            code (before #[cfg(test)]) of read_file.rs, read_prefix.rs,
+#            emit_event.rs (extended to four classes per story v1.1/AC-008)
 #     T-012: cargo test -p factory-dispatcher exits 0 (bidirectional regression gate)
 #
 # RED gate status (pre-D20/D21 at develop 9787c056):
@@ -259,12 +260,15 @@ setup() {
 
 # ---------------------------------------------------------------------------
 # T-011  AC-008 — zero bare literals in production code of read_file.rs,
-#         read_prefix.rs, emit_event.rs
+#         read_prefix.rs, emit_event.rs (extended to four classes, story v1.1)
 #
-# After D21, all bare occurrences of "internal.file_not_found" and
-# "plugin.abandoned" in production code (the region before the
-# #[cfg(test)] boundary) must be replaced by the named constants
-# INTERNAL_FILE_NOT_FOUND and PLUGIN_ABANDONED respectively.
+# After D21 (original sweep) + D22 sweep (8913c2e9), all bare occurrences of
+# all four telemetry literal classes in production code (the region before
+# the #[cfg(test)] boundary) must be replaced by named constants:
+#   "internal.file_not_found" → INTERNAL_FILE_NOT_FOUND
+#   "plugin.abandoned"        → PLUGIN_ABANDONED
+#   "plugin.completed"        → PLUGIN_COMPLETED
+#   "plugin.timeout"          → PLUGIN_TIMEOUT
 #
 # Pipeline (per AC-008):
 #   Stage 1: awk '/^#\[cfg\(test\)\]/{exit} {print}'
@@ -272,14 +276,19 @@ setup() {
 #   Stage 2: stateful awk block-comment stripper (strips /* ... */ spans).
 #   Stage 3: sed 's://.*::'
 #            Strips // line comments.
-#   Stage 4: grep -oE '"internal\.file_not_found"|"plugin\.abandoned"'
+#   Stage 4: grep -oE '"internal\.file_not_found"|"plugin\.abandoned"|
+#                      "plugin\.completed"|"plugin\.timeout"'
 #            Emits literal matches; empty output → gate passes.
 #
-# Mutation-liveness check per TD-VSDD-059: inject a bare literal into a temp
-# copy of the production region and assert the gate fires.
+# Mutation-liveness checks per TD-VSDD-059:
+#   (a) original: inject "internal.file_not_found" and assert gate fires.
+#   (b) extension: inject "plugin.completed" and assert gate fires — proves
+#       the two new D22 classes ("plugin.completed"/"plugin.timeout") are
+#       live in the gate, not merely subsumed by the original two patterns.
 #
-# RED today: production code of all three files contains bare literals;
-# the gate returns non-empty output for each file.
+# RED today (pre-sweep): production code of all three files contains bare
+# literals; the gate returns non-empty output for each file.
+# GREEN post-D22 (8913c2e9): all four classes swept to named constants.
 # ---------------------------------------------------------------------------
 
 # Helper: run the 4-stage bare-literal scan on a file path (arg $1).
@@ -306,7 +315,7 @@ _scan_bare_literals() {
         print
       }' \
     | sed 's://.*::' \
-    | grep -oE '"internal\.file_not_found"|"plugin\.abandoned"' || true
+    | grep -oE '"internal\.file_not_found"|"plugin\.abandoned"|"plugin\.completed"|"plugin\.timeout"' || true
 }
 
 @test "T-011 AC-008: zero bare literals in production code of read_file.rs, read_prefix.rs, emit_event.rs" {
@@ -347,18 +356,45 @@ _scan_bare_literals() {
   rm -f "$mut_file"
 
   if [ -z "$mutant_output" ]; then
-    echo "FAIL: mutation-liveness check — gate did NOT fire on a temp copy of read_file.rs"
+    echo "FAIL: mutation-liveness (a) — gate did NOT fire on a temp copy of read_file.rs"
     echo "  with 'internal.file_not_found' injected into the production region."
     echo "  The gate is not live and cannot detect the violation it is designed to catch."
     failed=1
   else
-    echo "PASS mutation-liveness: gate output on mutant = '$mutant_output'"
+    echo "PASS mutation-liveness (a): gate output on mutant = '$mutant_output'"
+  fi
+
+  # Mutation-liveness check (b): verify the D22 extension classes are live.
+  # Inject "plugin.completed" (one of the two new D22 classes) immediately
+  # before the #[cfg(test)] boundary and assert the gate fires on it.
+  local mut_file2
+  mut_file2=$(mktemp /tmp/t011_mutant2_XXXXXX.rs)
+  awk '{
+    if (/^#\[cfg\(test\)\]/) {
+      print "    let _ = \"plugin.completed\"; // mutation-liveness injection (D22 extension)"
+    }
+    print
+  }' "$READ_FILE_RS" > "$mut_file2"
+
+  local mutant_output2
+  mutant_output2=$(_scan_bare_literals "$mut_file2")
+  rm -f "$mut_file2"
+
+  if [ -z "$mutant_output2" ]; then
+    echo "FAIL: mutation-liveness (b) — gate did NOT fire on a temp copy of read_file.rs"
+    echo "  with 'plugin.completed' injected into the production region."
+    echo "  The D22-class extension ('plugin.completed'/'plugin.timeout') is not live."
+    failed=1
+  else
+    echo "PASS mutation-liveness (b): gate output on mutant = '$mutant_output2'"
   fi
 
   if [ "$failed" -ne 0 ]; then
-    echo "ACTION: replace bare literals with named constants (D21):"
+    echo "ACTION: replace bare literals with named constants (D21+D22):"
     echo "  INTERNAL_FILE_NOT_FOUND (from crate::internal_log)"
     echo "  PLUGIN_ABANDONED (from crate::internal_log)"
+    echo "  PLUGIN_COMPLETED (from crate::internal_log)"
+    echo "  PLUGIN_TIMEOUT (from crate::internal_log)"
     false
   fi
 }
