@@ -1189,6 +1189,63 @@ mod tests {
     // byte 256, well within the 4096 window).
     // -----------------------------------------------------------------------
 
+    // -----------------------------------------------------------------------
+    // T-009 (S-19.09 AC-006): value-pin for INTERNAL_FILE_NOT_FOUND
+    //
+    // Locks the string literal "internal.file_not_found" to the named
+    // constant so a typo or rename in the production source is caught
+    // immediately by cargo test rather than surfacing as a silent runtime
+    // mismatch in log consumers.
+    //
+    // Same class as S-19.08 T-001 const-pin precedent.
+    // -----------------------------------------------------------------------
+
+    /// T-009 — value-pin: INTERNAL_FILE_NOT_FOUND == "internal.file_not_found".
+    #[test]
+    fn t_009_internal_file_not_found_value_pin() {
+        assert_eq!(INTERNAL_FILE_NOT_FOUND, "internal.file_not_found");
+    }
+
+    // -----------------------------------------------------------------------
+    // T-010 (S-19.09 AC-007): value-pin for PLUGIN_ABANDONED
+    //
+    // Locks the string literal "plugin.abandoned" to the named constant.
+    // Same rationale as T-009 above.
+    // -----------------------------------------------------------------------
+
+    /// T-010 — value-pin: PLUGIN_ABANDONED == "plugin.abandoned".
+    #[test]
+    fn t_010_plugin_abandoned_value_pin() {
+        assert_eq!(PLUGIN_ABANDONED, "plugin.abandoned");
+    }
+
+    // -----------------------------------------------------------------------
+    // Adjudicated value-pins for PLUGIN_COMPLETED and PLUGIN_TIMEOUT
+    //
+    // S-19.09 refactors four literals in emit_event.rs as a group
+    // (INTERNAL_FILE_NOT_FOUND, PLUGIN_ABANDONED, PLUGIN_COMPLETED,
+    // PLUGIN_TIMEOUT — the "v1.1 four-literal extension").  PLUGIN_COMPLETED
+    // and PLUGIN_TIMEOUT were pre-existing constants, so AC-006/AC-007 did not
+    // mandate test IDs for them.  However, adding value-pins here is
+    // consistent with the S-19.08 T-001 precedent and protects all four
+    // callsite constants with the same regression class.  These tests are
+    // additive and trivially satisfy the production-grade default.
+    // -----------------------------------------------------------------------
+
+    /// Adjudicated value-pin: PLUGIN_COMPLETED == "plugin.completed".
+    #[test]
+    fn plugin_completed_value_pin() {
+        assert_eq!(PLUGIN_COMPLETED, "plugin.completed");
+    }
+
+    /// Adjudicated value-pin: PLUGIN_TIMEOUT == "plugin.timeout".
+    #[test]
+    fn plugin_timeout_value_pin() {
+        assert_eq!(PLUGIN_TIMEOUT, "plugin.timeout");
+    }
+
+    // -----------------------------------------------------------------------
+
     /// M-5 adversary finding: two distinct errors sharing a 256-byte JSON
     /// prefix must BOTH be logged (no false dedup).
     ///
