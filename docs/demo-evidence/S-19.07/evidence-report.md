@@ -160,6 +160,19 @@ Operator visibility is preserved via the standard `internal.capability_denied` e
 
 ---
 
+## Pre-implementation Baseline (Machine-Captured)
+
+Retroactive machine capture per D-449(a) discipline (literal shell + captured stdout; no narrative substitution). Full transcript in `transcript-baseline-workspace-tests.txt`.
+
+| Scope | Baseline @ 13ece92c | Post @ 0f11a387 | Delta |
+|-------|---------------------|-----------------|-------|
+| `cargo test -p verify-factory-lock --lib` | 28 passed / 0 failed | 31 passed / 0 failed | +3 |
+| `cargo test --workspace --all-targets` | 2055 passed / 0 failed | 2057 passed / 0 failed | +2 |
+
+The prior derived count of 26 crate lib tests was inaccurate. The machine capture at 13ece92c (pre-S-19.07 develop tip, S-19.09 #659 squash commit) shows the actual baseline was 28. The crate delta is therefore 28 → 31 (+3), not the anticipated 26 → 31 (+5). The workspace delta is +2 rather than +3 because one unrelated 1-test suite present at the baseline commit is absent from the post commit — expected drift from other stories committed to develop between 13ece92c and 0f11a387 outside the S-19.07 scope.
+
+---
+
 ## Notes on Evidence Mode
 
 S-19.07 migrates the `verify-factory-lock` WASM hook plugin (`crates/hook-plugins/verify-factory-lock/src/lib.rs`) from `host::read_file` to `host::read_prefix`, and updates both registry entries in `plugins/vsdd-factory/hooks-registry.toml`. There is no UI or interactive CLI entry point. Evidence is captured-stdout transcripts per the VSDD library/test-harness demo-recorder mode. All transcripts are reproducible by running `cargo test -p verify-factory-lock --lib` and `cd plugins/vsdd-factory/tests && bats verify-factory-lock-read-prefix.bats` on branch `feature/S-19.07` (HEAD `b0b18dce`).
@@ -180,4 +193,5 @@ None. All 31 unit tests and 5 bats tests pass against the implementation on `fea
 | `transcript-AC002-registry-capability.txt` | T-002-vfl + T-002-vfl-bash (bats) + grep showing both `[hooks.capabilities.read_prefix]` blocks with `path_allow` + negative assertion 0 read\_file (AC-002) |
 | `transcript-AC003-262144-unit-family.txt` | Full 31-test cargo output + targeted 5-test AC-003 run: T-003/T-004 FP1002 real-shape, T-006/T-007 regression, EC-001 boundary (AC-003) |
 | `transcript-EC005-capability-denied-degrade.txt` | T-005-ec005 (bats) — real dispatcher, read\_prefix-only registry, foreign lock, exit 0 Continue (EC-005) |
+| `transcript-baseline-workspace-tests.txt` | Retroactive machine capture: workspace + crate-level tests at baseline (13ece92c) and post (0f11a387) with literal command lines + stdout (D-449(a)) |
 | `evidence-report.md` | This file — coverage matrix + per-AC narrative |
