@@ -1891,7 +1891,8 @@ mod tests {
     ///   "last_amended: \"" + [34791 bytes of 'x'] + "\"\n"
     ///   factory_lock block (126 bytes: key + 3 sub-fields)
     ///   "---\n" (closing delimiter — at byte 34996 from start)
-    ///   body padding beyond 35000 bytes
+    ///   body padded to ≥ 272_144 bytes total (EC-001 sizing convention:
+    ///     262144 cap + 10000 extra so the mock actually truncates)
     ///
     /// The factory_lock block sits at ~34870 bytes depth — well past the old
     /// 8192-byte cap, ensuring it would be missed by an 8192-capped guard.
@@ -1935,7 +1936,7 @@ mod tests {
 
         bytes.extend_from_slice(b"\n# STATE body\n");
         let body_pad = b"# body padding\n";
-        while bytes.len() < 45_000 {
+        while bytes.len() < 272_144 {
             bytes.extend_from_slice(body_pad);
         }
         bytes
@@ -1943,8 +1944,9 @@ mod tests {
 
     /// Build a STATE.md fixture with ~35KB frontmatter and NO factory_lock block.
     ///
-    /// Same size as `state_md_giant_frontmatter_with_lock_at_35kb` but the
-    /// lock block space is absorbed into the `last_amended` value padding.
+    /// Same size as `state_md_giant_frontmatter_with_lock_at_35kb` (padded to
+    /// ≥ 272_144 bytes total, EC-001 sizing convention) but the lock block
+    /// space is absorbed into the `last_amended` value padding.
     fn state_md_giant_frontmatter_no_lock_at_35kb() -> Vec<u8> {
         let header = concat!(
             "---\n",
@@ -1973,7 +1975,7 @@ mod tests {
 
         bytes.extend_from_slice(b"\n# STATE body\n");
         let body_pad = b"# body padding\n";
-        while bytes.len() < 45_000 {
+        while bytes.len() < 272_144 {
             bytes.extend_from_slice(body_pad);
         }
         bytes
@@ -2052,7 +2054,8 @@ mod tests {
                          got max_bytes={max_bytes}"
                     ));
                 }
-                // Return up to 262144 bytes; full 35KB fixture is < 262144 → all returned.
+                // Fixture is ≥272144 bytes; truncate at 262144 — frontmatter ends
+                // at byte 35000, well within the prefix, so lock is still found.
                 let end = 262144.min(fixture_for_real.len());
                 Ok(fixture_for_real[..end].to_vec())
             },
