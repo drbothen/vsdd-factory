@@ -639,7 +639,7 @@ mod tests {
     // -----------------------------------------------------------------------
 
     /// Build callbacks where:
-    ///   - read_file returns `Ok(content)` immediately (success path)
+    ///   - read_prefix returns `Ok(content)` immediately (success path)
     ///   - exec_subprocess returns `Ok((0, git_email))` (success path)
     ///   - log_warn captures messages into `warn_log`
     #[allow(clippy::type_complexity)]
@@ -663,7 +663,7 @@ mod tests {
         }
     }
 
-    /// Build callbacks where read_file returns an error string.
+    /// Build callbacks where read_prefix returns an error string.
     #[allow(clippy::type_complexity)]
     fn make_callbacks_read_error(
         error_msg: &str,
@@ -713,7 +713,7 @@ mod tests {
     /// PC1: Foreign unexpired lock → Block with all 5 required fields.
     ///
     /// Mock setup:
-    ///   - read_file returns STATE.md with foreign holder "other@example.com",
+    ///   - read_prefix returns STATE.md with foreign holder "other@example.com",
     ///     expires_at "2099-01-01T00:00:00Z" (far future, unexpired).
     ///   - exec_subprocess returns "self@example.com" (different from holder).
     ///
@@ -769,7 +769,7 @@ mod tests {
     /// PC2: Foreign holder + expired lock → Continue (LockExpired path).
     ///
     /// Mock setup:
-    ///   - read_file returns STATE.md with holder "other@example.com",
+    ///   - read_prefix returns STATE.md with holder "other@example.com",
     ///     expires_at "2020-01-01T00:45:00Z" (well in the past).
     ///   - exec_subprocess returns "self@example.com".
     ///
@@ -805,7 +805,7 @@ mod tests {
     /// PC3: Self-held lock → Continue unconditionally.
     ///
     /// Mock setup:
-    ///   - read_file returns STATE.md with holder "self@example.com",
+    ///   - read_prefix returns STATE.md with holder "self@example.com",
     ///     expires_at "2099-01-01T00:00:00Z" (unexpired).
     ///   - exec_subprocess returns "self@example.com" (same as holder).
     ///
@@ -834,7 +834,7 @@ mod tests {
     /// PC4: Malformed lock block (empty holder) → Continue + log_warn("MalformedLockBlock…").
     ///
     /// Mock setup:
-    ///   - read_file returns STATE.md with factory_lock.holder = "" (EC-004).
+    ///   - read_prefix returns STATE.md with factory_lock.holder = "" (EC-004).
     ///   - exec_subprocess would return "self@example.com" (but should not be called).
     ///
     /// Expected: HookResult::Continue, AND log_warn captured containing "MalformedLockBlock".
@@ -898,7 +898,7 @@ mod tests {
     /// PC7: git subprocess failure → Continue + log_warn (IdentityResolutionFailed).
     ///
     /// Mock setup:
-    ///   - read_file returns a valid STATE.md with a foreign unexpired lock.
+    ///   - read_prefix returns a valid STATE.md with a foreign unexpired lock.
     ///   - exec_subprocess returns Err("Timeout") simulating a subprocess failure.
     ///
     /// Expected: HookResult::Continue + log_warn containing identity-resolution info.
@@ -962,7 +962,7 @@ mod tests {
     ///
     /// Mock setup:
     ///   - payload.tool_name = "Bash"; tool_input.command = "git push origin factory-artifacts"
-    ///   - read_file returns a foreign unexpired lock.
+    ///   - read_prefix returns a foreign unexpired lock.
     ///   - exec_subprocess returns "self@example.com".
     ///
     /// Expected: HookResult::Block (push arm intercepted by internal push-regex).
@@ -994,10 +994,10 @@ mod tests {
     /// T-7 (D9) + EC-011: Non-push Bash command → Continue immediately WITHOUT reading STATE.md.
     ///
     /// The guard must return Continue immediately for non-push Bash without calling
-    /// read_file at all (sub-millisecond path per BC-4.13.001 EC-011 + AC-013).
+    /// read_prefix at all (sub-millisecond path per BC-4.13.001 EC-011 + AC-013).
     ///
-    /// Test verifies via a call-counting mock on read_file: if read_file is called,
-    /// the test fails (assert read_file_call_count == 0).
+    /// Test verifies via a call-counting mock on read_prefix: if read_prefix is called,
+    /// the test fails (assert read_prefix_call_count == 0).
     ///
     /// GREEN: guard_logic implemented; test exercises this BC path.
     #[test]
@@ -1379,27 +1379,6 @@ mod tests {
         let result = trim_git_email("dev@example.com");
         assert_eq!(result, "dev@example.com");
     }
-
-    // -----------------------------------------------------------------------
-    // S-19.02 Red Gate tests (T-001, T-002, T-003, T-009)
-    //
-    // These tests FAIL with the current stub/unimplemented state and will pass
-    // only after the implementation tasks for S-19.02 are complete.
-    //
-    // T-001: Asserts STATE_MD_MAX_BYTES == 262144 (AC-001).
-    //   RED because: current value is 65536.
-    //
-    // T-002: 70 KiB fixture + foreign lock → Block (AC-002).
-    //   This test verifies guard_logic handles a 70 KiB mock read correctly.
-    //   The mock bypasses the host cap; the test also asserts the constant is
-    //   at least 70000 (which fails now, ensuring Red Gate).
-    //
-    // T-003: 70 KiB fixture + no lock → Continue (AC-002).
-    //   Same cap assertion makes this a Red Gate.
-    //
-    // T-009: Soft-warning tests A–E (AC-006, BC-4.13.001 Invariant 10).
-    //   RED because: guard_logic does not yet emit state_md_approaching_cap.
-    // -----------------------------------------------------------------------
 
     /// Build a STATE.md fixture padded to `target_size` bytes.
     ///
@@ -1887,10 +1866,10 @@ mod tests {
     /// immediately before the closing delimiter.
     ///
     /// Layout:
-    ///   "---\n" + minimal header fields (61 bytes)
-    ///   "last_amended: \"" + [34791 bytes of 'x'] + "\"\n"
-    ///   factory_lock block (126 bytes: key + 3 sub-fields)
-    ///   "---\n" (closing delimiter — at byte 34996 from start)
+    ///   "---\n" + minimal header fields
+    ///   "last_amended: \"" + [padding bytes of 'x'] + "\"\n"
+    ///   factory_lock block (key + 3 sub-fields)
+    ///   "---\n" (closing delimiter — frontmatter region ends at exactly 35000 bytes)
     ///   body padded to ≥ 272_144 bytes total (EC-001 sizing convention:
     ///     262144 cap + 10000 extra so the mock actually truncates)
     ///
