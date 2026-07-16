@@ -446,4 +446,4 @@ ADR-025 v1.16 (architect bba417b8 D-847). STORY-INDEX v4.198 / ARCH-INDEX v3.02 
 
 4-index verification gate (literal-shell): `grep "^version:" .factory/specs/behavioral-contracts/BC-INDEX.md .factory/specs/verification-properties/VP-INDEX.md .factory/stories/STORY-INDEX.md .factory/specs/architecture/ARCH-INDEX.md` → BC-INDEX: "4.05" / VP-INDEX: "2.68" / STORY-INDEX: "4.198" / ARCH-INDEX: "3.02".
 
-Critical SHAs: develop `9787c056` (origin; S-19.06 squash-merge PR #657); main `a04cb303`; factory-artifacts HEAD = S-19.09-CONVERGENCE burst `[SHA-PATCH-PENDING]` (this burst; prior: D-847 burst factory-artifacts). v1.0.0-rc.22 at `e4285fe5`. GitHub origin: `drbothen/vsdd-factory`. total_bcs 1,977. merged_count 105.
+Critical SHAs: develop `9787c056` (origin; S-19.06 squash-merge PR #657); main `a04cb303`; factory-artifacts HEAD = S-19.09-CONVERGENCE burst `1227cd41` (pushed 2026-07-15; prior: D-847 burst factory-artifacts). v1.0.0-rc.22 at `e4285fe5`. GitHub origin: `drbothen/vsdd-factory`. total_bcs 1,977. merged_count 105.
