@@ -1439,7 +1439,7 @@ mod tests {
         bytes
     }
 
-    /// T-002 (AC-002): 70 KiB mock content with foreign unexpired lock in frontmatter → Block.
+    /// S-19.02 T-002 (AC-002): 70 KiB mock content with foreign unexpired lock in frontmatter → Block.
     ///
     /// The mock callback (make_callbacks_success) ignores max_bytes and returns all content
     /// bytes; guard_logic calls extract_frontmatter on the returned bytes to locate the lock.
@@ -1471,7 +1471,7 @@ mod tests {
         }
     }
 
-    /// T-003 (AC-002): 70 KiB mock content with no lock → Continue.
+    /// S-19.02 T-003 (AC-002): 70 KiB mock content with no lock → Continue.
     ///
     /// AC-002 complement: when a large mock STATE.md has no lock, the guard
     /// must return Continue (factory is unlocked).
@@ -1619,7 +1619,7 @@ mod tests {
     }
 
     // -----------------------------------------------------------------------
-    // S-19.07 Phase-B tests (T-003, T-004, EC-001) — adapted for 262144 bound
+    // S-19.07 Phase-B tests (T-006, T-007, EC-001) — adapted for 262144 bound
     //
     // These tests are GREEN after the Phase-B implementation migrates
     // host::read_file → host::read_prefix (S-19.07) AND the bound was raised to
@@ -1702,7 +1702,7 @@ mod tests {
         bytes
     }
 
-    /// T-003 (AC-003): Large STATE.md (20KB) with foreign unexpired lock in frontmatter.
+    /// T-006 (AC-003): Large STATE.md (20KB) with foreign unexpired lock in frontmatter.
     ///
     /// The mock callback enforces max_bytes == 262144 (STATE.md byte envelope per
     /// ADR-025 §D15 v1.17). Since 20000 < 262144, the mock returns the full 20KB
@@ -1744,7 +1744,7 @@ mod tests {
         );
     }
 
-    /// T-004 (AC-003): Large STATE.md (20KB) with NO factory_lock in frontmatter.
+    /// T-007 (AC-003): Large STATE.md (20KB) with NO factory_lock in frontmatter.
     ///
     /// The mock callback enforces max_bytes == 262144 (STATE.md byte envelope per
     /// ADR-025 §D15 v1.17). Since 20000 < 262144, the mock returns the full 20KB
