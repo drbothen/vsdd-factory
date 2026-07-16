@@ -29,7 +29,7 @@
 #           Test asserts exit 0 → RED today.
 #
 # Story: S-19.07
-# BC: BC-4.13.001 v1.16 Phase-B (capabilities.read_prefix, max_bytes=262144, ADR-025 §D15 v1.17)
+# BC: BC-4.13.001 Phase-B (capabilities.read_prefix, max_bytes=262144, ADR-025 §D15)
 
 # ---------------------------------------------------------------------------
 # setup / teardown
@@ -110,7 +110,7 @@ _require_artifacts() {
 # ---------------------------------------------------------------------------
 # T-001b  AC-001 Gate B — Phase-A symbols absent from non-comment production code
 #
-# Gate pipeline (from BC-4.13.001 v1.16 AC-001):
+# Gate pipeline (from BC-4.13.001 AC-001):
 #   sed -E -e ':a' -e 's:/\*[^*]*\*+([^/*][^*]*\*+)*/::' -e 'ta' LIB_RS
 #     | grep -vE '^\s*(//|//!|///)'
 #     | grep -qE 'host::read_file|STATE_MD_MAX_BYTES|TooLarge'
@@ -192,7 +192,7 @@ _require_artifacts() {
 # ---------------------------------------------------------------------------
 # T-002-vfl  AC-002 — verify-factory-lock registry entry migrated to read_prefix
 #
-# Per-entry awk scoping (from BC-4.13.001 v1.16 AC-002 gate spec):
+# Per-entry awk scoping (from BC-4.13.001 AC-002 gate spec):
 #   Isolate lines belonging to the 'verify-factory-lock' entry only.
 #   The entry starts at 'name = "verify-factory-lock"' and resets at '[[hooks]]'.
 #
@@ -228,7 +228,7 @@ _require_artifacts() {
   if [ "$read_prefix_count" -lt 1 ]; then
     echo "FAIL: verify-factory-lock entry has no [hooks.capabilities.read_prefix] (count=$read_prefix_count)."
     echo "  After Phase-B migration, the entry must declare [hooks.capabilities.read_prefix]"
-    echo "  with path_allow = [\".factory/STATE.md\"] (BC-4.13.001 v1.16 Phase-B Precondition 3)."
+    echo "  with path_allow = [\".factory/STATE.md\"] (BC-4.13.001 Phase-B §Precondition 3)."
     failed=1
   fi
 
