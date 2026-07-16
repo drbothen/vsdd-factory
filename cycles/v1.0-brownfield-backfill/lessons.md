@@ -6900,3 +6900,75 @@ Both gates are mandatory standing Commit-E controls for any burst touching E-19 
 **Cites:** ADR-025 v1.16 Decision 16 (production-path registration gap + D19 deliverable); S-19.06 v1.22 (read_prefix implementation; test-path registration); S-19.09 D-847 S-19.09-REGISTERED; `crates/factory-dispatcher/src/invoke.rs` `setup_host_on_store_data`; `crates/factory-dispatcher/src/host/mod.rs` `setup_linker`.
 
 **Closes:** D-847 S-19.09-REGISTERED burst (2026-07-15). `[process-gap; host-abi; two-linker; production-path; registration-gap; additive-function; wasmtime; setup_host_on_store_data; S-19.09; D-847; codified]`
+
+---
+
+### L-BB-red-gate-authoring-must-not-use-compile-error-red-forms [process-gap] [codified S-19.09-CONVERGENCE]
+
+**Title:** Red Gates for Named-Constant Existence Must Use Runtime Assertion Forms, Not Compile-Error Forms; Compile-Error Red Gates Require Restructuring When the Symbol Is Later Added and Blur Red-Phase Boundary Verification
+
+**Lesson:** When writing a TDD red gate to verify that a named constant does not yet exist (e.g., `PLUGIN_COMPLETED`, `INTERNAL_FILE_NOT_FOUND`), the gate must use a **runtime assertion form** — typically `todo!()` or `assert!(false, "red gate: CONST_NAME not yet defined")` inside the test body — rather than a **compile-error form** that relies on an undefined symbol causing a link failure. Compile-error red gates work for the initial red phase, but once the implementer introduces the constant, the compile-error gate can no longer distinguish "symbol absent" from "symbol present with wrong value." The test-writer must then restructure the test to a runtime form before the green phase begins. This restructure (commit `faf127ce` in the S-19.09 cascade) constituted an extra commit between the D21 feat commit and the epoch-deadline assertion, which blurred the commit ordering and caused a pass-1 accepted-with-record observation about test/feat commit sequence.
+
+**Root cause:** The D21 red gates in the S-19.09 story initial draft used compile-error forms (`assert_eq!(INTERNAL_FILE_NOT_FOUND, "...")`) where `INTERNAL_FILE_NOT_FOUND` was not yet defined. These forms correctly fail during the red phase. However, once `internal_log.rs` defines `INTERNAL_FILE_NOT_FOUND`, the assert_eq! no longer fails at compile time — it now compiles and the assertion checks the value, which is the intended green-phase behavior. The test was structured correctly for green, but the red-to-green transition was blurred because no explicit restructuring was needed. The issue surfaced differently for the naming-constant-existence check pattern: the original red gate for `T-009`/`T-010` was a cargo unit test form, not a bats assertion, which meant the adversary in pass-3 (F-P3-001) found that the story spec cited only bats gates for AC-006/AC-007 but the implementation used cargo unit tests. The epoch-deadline assertion (`740f01d8`) committed after the D21 feat commit (`083dd89a`) due to the restructure.
+
+**Prevention:** (1) For named-constant existence tests, use the form: `assert_eq!(CONST_NAME, "expected_literal_value")` directly — this is both a red gate (compile-fails without the const) AND a green gate (asserts correct value). This form does not require restructuring. (2) If using a compile-error red gate is unavoidable (e.g., for type existence), document explicitly in the test file that restructuring is required before the green phase. (3) Test-writer must verify that the red gate form matches the test file type (cargo unit test vs bats) cited in the story spec's AC column before committing.
+
+**Anchors:** S-19.09 cascade faf127ce (tests: restructure D21 red gates compile-safe); S-19.09 cascade 740f01d8 (epoch-deadline fix, post-restructure commit ordering); S-19.09 F-P3-001 (LOW, pass-3): T-009/T-010 cargo unit test form not cited in story; s-19.09-local-adversary-pass-1.md accepted-with-record (commit ordering observation).
+
+**Cites:** S-19.09 cascade faf127ce; S-19.09 cascade 740f01d8; s-19.09-local-adversary-pass-1.md; s-19.09-local-adversary-pass-3.md F-P3-001; `crates/factory-dispatcher/src/internal_log.rs` PLUGIN_COMPLETED/PLUGIN_TIMEOUT const pattern.
+
+**Closes:** S-19.09 CONVERGENCE burst (2026-07-15). `[process-gap; tdd; red-gate; compile-error; runtime-assertion; named-constant; test-restructuring; commit-ordering; S-19.09; codified]`
+
+---
+
+### L-BB-claim-class-corrections-gate-across-all-in-scope-artifacts [process-gap] [codified S-19.09-CONVERGENCE]
+
+**Title:** When Correcting a Semantic Claim Class, the Remediation Sweep Must Gate Across ALL In-Scope Artifacts (Spec + Story + Code + Tests) in a Single Dispatch — Not One Artifact Per Pass
+
+**Lesson:** When a finding identifies a **semantic claim class** that is incorrect (e.g., "§Common Fields is the source of the timestamp mandate" when the correct source is "§Postconditions Event 6 Mandatory-fields"), the remediation sweep must cover **all in-scope artifacts** — spec (BC), story, code, and tests — in a single dispatch. Correcting only the artifact where the finding was originally reported leaves sibling artifacts carrying the same incorrect claim, triggering additional NOT-CLEAN passes. The S-19.09 cascade required three separate passes (8, 9, 10) to close the §Common Fields timestamp claim-class across BC, story, and code respectively, each pass finding the class still present in an artifact not swept in the prior fix.
+
+**Root cause:** The §Common Fields timestamp misattribution was found first in BC-3.08.001 Event 6 (F-P8-001, pass-8). The PO dispatch fixed the BC. The story-writer dispatch at pass-9 (F-P9-001) corrected AC-009 BC-trace in the story but left four other §Common Fields body citations. The story-writer dispatch at pass-9 closure (v1.5) corrected the story completely. The implementer was not dispatched to sweep code at that point. Pass-10 (F-P10-001) found three §Common Fields timestamp code-comment sites in `emit_event.rs`. The correct action at pass-8 was to dispatch all three specialists simultaneously (PO for spec, story-writer for story, implementer for code), running a class-general grep across all six changed files before declaring the claim-class correction complete.
+
+**Prevention:** (1) When a finding identifies a semantic claim class that is wrong (a statement that X is the source/authority for Y), treat it as a **class-wide correction** requiring a simultaneous sweep of all artifact types that may contain the claim. (2) The class-general gate command is: `grep -n "<claim-class-text>" <all-six-changed-files>` with per-hit adjudication before closure. (3) The dispatch note must name all artifact types explicitly: "BC sweep + story sweep + code sweep" — not "BC sweep" alone. (4) See also [[L-BB-sweep-patterns-must-be-class-general-never-instance-derived]] for the syntactic-level analogue of this principle.
+
+**Anchors:** S-19.09 cascade passes 8, 9, 10: F-P8-001 (BC leg), F-P9-001 (story leg), F-P10-001 (code leg); s-19.09-local-adversary-pass-8.md; s-19.09-local-adversary-pass-9.md; s-19.09-local-adversary-pass-10.md; HEAD 923ebff4 (F-P10-001 closure — `grep -n "Common Fields"` gate over all six files PASS).
+
+**Cites:** s-19.09-local-adversary-pass-8.md F-P8-001; s-19.09-local-adversary-pass-9.md F-P9-001; s-19.09-local-adversary-pass-10.md F-P10-001; `crates/factory-dispatcher/src/host/emit_event.rs` at HEAD 923ebff4 (three corrected comment sites); BC-3.08.001 v1.24 §Postconditions Event 6 Mandatory-fields.
+
+**Closes:** S-19.09 CONVERGENCE burst (2026-07-15). `[process-gap; semantic-class; claim-correction; cross-artifact-sweep; spec; story; code; simultaneous-dispatch; Common-Fields; S-19.09; codified]`
+
+---
+
+### L-BB-shared-worktree-agents-commit-with-explicit-pathspecs [process-gap] [codified S-19.09-CONVERGENCE]
+
+**Title:** Agents Committing in a Shared Worktree Must Use Explicit File Pathspecs — Broad Staging Commands Bundle Pending Changes from Other Agents' Incomplete Work
+
+**Lesson:** When multiple specialist agents operate sequentially in the same git worktree (e.g., feature/S-19.09), each agent's commit must stage files using **explicit pathspecs** (`git add -- <file1> <file2>`) rather than broad staging commands (`git add .` or `git add -A`). Broad staging picks up any unstaged changes that a prior agent left pending but did not commit — for example, a test-writer's draft test file that was written but not yet committed when an implementer starts work. The bundled commit then contains both the implementer's changes and the test-writer's uncommitted changes, blurring the commit boundary and making the commit ordering appear illogical (implementation after test, or test modification after implementation green).
+
+**Root cause:** In the S-19.09 cascade, the epoch-deadline test commit (740f01d8) appeared after the D21 feat commit (083dd89a) in the git log because the test-writer's red-gate restructure (faf127ce) had not been staged when the implementer committed the D21 feat. The epoch-deadline test changes were staged by `git add .` in the implementer's working session, inadvertently bundling them into a commit that logically post-dates the implementation. The accepted-with-record observation at pass-1 noted the ordering issue; the production-grade default is to prevent it by discipline.
+
+**Prevention:** (1) Every agent commit in a feature worktree must enumerate the exact files being committed: `git add -- crates/factory-dispatcher/src/internal_log.rs plugins/vsdd-factory/tests/host-abi-hygiene.bats`. (2) Before staging, run `git status --short` and inspect the output — any file not in this agent's task scope must NOT be staged. (3) If a prior agent's changes appear as unstaged modifications, either stash them (`git stash`) before committing, or confirm explicitly with the orchestrator before including them. (4) In multi-agent feature sessions, the orchestrator must confirm that each agent's working tree is clean before dispatching the next agent.
+
+**Anchors:** S-19.09 cascade commit 740f01d8 (epoch-deadline bundling, post-feat ordering); s-19.09-local-adversary-pass-1.md accepted-with-record (test/feat commit sequence observation); faf127ce (red-gate restructure that introduced the ordering issue).
+
+**Cites:** s-19.09-local-adversary-pass-1.md accepted-with-record; feature/S-19.09 git log (740f01d8, 083dd89a, faf127ce); CLAUDE.md git workflow discipline (explicit pathspecs).
+
+**Closes:** S-19.09 CONVERGENCE burst (2026-07-15). `[process-gap; git; pathspec; staging; shared-worktree; commit-ordering; multi-agent; bundling; S-19.09; codified]`
+
+---
+
+### L-BB-sweep-patterns-must-be-class-general-never-instance-derived [process-gap] [codified S-19.09-CONVERGENCE]
+
+**Title:** Remediation Sweep Grep Patterns Must Target the General Syntactic Class of the Defect, Never the Specific Instance — Instance-Derived Patterns Leave Sibling Forms Undetected
+
+**Lesson:** When constructing the grep pattern for a remediation sweep, use the **class-general form** that matches all syntactic instances of the defect, not a pattern derived from the specific token(s) cited in the finding. Instance-derived patterns pass on the specific case the adversary found while leaving sibling forms of the same defect undetected in the same artifact. The S-19.09 cascade produced F-P5-001 (pass-5) because the F-P4-001 remediation used `grep -E "670|744|lines?"` — a pattern derived from the specific line numbers in the finding (`lines 670–744 of invoke.rs`). This matched the multi-range `lines NNN–NNN` form at seven sites but missed two singular `line NN` forms (`read_file.rs line 38`, `read_prefix.rs line 53`) in §Narrative D20.
+
+**Root cause:** The F-P4-001 finding cited `lines 670–744 of invoke.rs`. The story-writer's remediation sweep was constructed by extracting the specific numbers from the finding (`670`, `744`) and adding a `lines?` suffix. This matched the seven cited multi-range instances but did not generalize to `line [0-9]+` (singular, any line number). The correct class-general pattern for any line-number volatile pin is `line[s]? [0-9]+` — matching both singular and plural forms with any numeric value. See also [[L-BB-claim-class-corrections-gate-across-all-in-scope-artifacts]] for the semantic-level analogue of this principle (both lessons share the root: "address the general class, not the specific instance").
+
+**Prevention:** (1) Before running a remediation sweep, ask: "What is the general syntactic class of this defect?" — not "What are the specific tokens in this finding?" (2) For line-number volatile pins: use `grep -nE "lines? [0-9]+"` (any line number, singular or plural). For file-path volatile pins: use `grep -nE "[a-z_]+\.rs:[0-9]+"` (any file:line pattern). For BC-version pins: use `grep -nE "v[0-9]+\.[0-9]+ \(BC"` (any version cite). (3) After constructing the pattern, run it against the FULL artifact scope — all body sections, not just the cited section — and adjudicate every hit before closing. (4) Note: class-general patterns may produce hits that are historical-by-construction (changelog rows, frontmatter, closed-finding rationale). These must be adjudicated as non-load-bearing, not silently included in the remediation count.
+
+**Anchors:** S-19.09 cascade F-P4-001 (pass-4): seven `lines 670–744 of invoke.rs` volatile pins; F-P5-001 (pass-5): two `line NN` singular forms missed by the F-P4-001 narrow sweep pattern; story v1.3 (26e9f677): general-pattern sweep (`grep -nE "line [0-9]+"`) found exactly two body-text sites; s-19.09-local-adversary-pass-5.md.
+
+**Cites:** s-19.09-local-adversary-pass-4.md F-P4-001; s-19.09-local-adversary-pass-5.md F-P5-001; story v1.2 (00fd8a70) narrow sweep; story v1.3 (26e9f677) class-general sweep; [[L-BB-claim-class-corrections-gate-across-all-in-scope-artifacts]].
+
+**Closes:** S-19.09 CONVERGENCE burst (2026-07-15). `[process-gap; grep-pattern; class-general; instance-derived; volatile-pin; remediation-sweep; line-number; TD-VSDD-091; S-19.09; codified]`
