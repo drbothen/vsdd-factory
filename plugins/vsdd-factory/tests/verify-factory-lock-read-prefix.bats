@@ -29,7 +29,7 @@
 #           Test asserts exit 0 → RED today.
 #
 # Story: S-19.07
-# BC: BC-4.13.001 v1.16 Phase-B (capabilities.read_prefix, max_bytes=8192, no TooLarge handling)
+# BC: BC-4.13.001 v1.16 Phase-B (capabilities.read_prefix, max_bytes=262144, ADR-025 §D15 v1.17)
 
 # ---------------------------------------------------------------------------
 # setup / teardown
@@ -100,7 +100,7 @@ _require_artifacts() {
   if [ -z "$prod_output" ]; then
     echo "FAIL: AC-001 Gate A — host::read_prefix not found in production code of lib.rs."
     echo "  Expected: Phase-B migration complete — on_pre_tool_use must call"
-    echo "  host::read_prefix(path, max_bytes=8192, timeout_ms) instead of host::read_file."
+    echo "  host::read_prefix(path, max_bytes=262144, timeout_ms) instead of host::read_file."
     echo "  Current Phase-A state: only host::read_file is called in production code."
     echo "  (Test module mentions of read_prefix are excluded from this gate.)"
     false
