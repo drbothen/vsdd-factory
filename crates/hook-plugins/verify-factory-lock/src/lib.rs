@@ -8,7 +8,8 @@
 //!   1. For Bash tool payloads: checks the internal push-regex
 //!      (`git.*push.*factory-artifacts`). If no match, returns Continue immediately
 //!      (sub-millisecond; no STATE.md read).
-//!   2. Reads the first 8192 bytes of `.factory/STATE.md` via `host::read_prefix`.
+//!   2. Reads the first 262144 bytes of `.factory/STATE.md` via `host::read_prefix`
+//!      (STATE.md byte envelope per ADR-025 §Decision 15).
 //!   3. Parses the YAML frontmatter region (line-by-line scan between `---\n`
 //!      delimiters) for the `factory_lock:` block and its three sub-fields.
 //!   4. Resolves the caller's identity via `host::exec_subprocess(["git", "config",
@@ -278,7 +279,8 @@ pub fn trim_git_email(raw: &str) -> String {
 ///   1. Extract `tool` from payload. If tool is "Bash":
 ///      - Extract `tool_input.command`. If command does NOT match push pattern:
 ///        return Continue immediately (EC-011).
-///   2. Read STATE.md prefix (8192 bytes) via `read_prefix`. On error: log_warn + return Continue (PC6).
+///   2. Read STATE.md prefix (262144 bytes — STATE.md byte envelope, ADR-025 §Decision 15) via
+///      `read_prefix`. On error: log_warn + return Continue (PC6).
 ///   3. Parse frontmatter for `factory_lock`. On absent: return Continue (EC-001).
 ///      On malformed: log_warn + return Continue (PC4).
 ///   4. Parse `expires_at`. On parse fail: log_warn + return Continue (EC-005).
@@ -322,10 +324,10 @@ where
     }
 
     // Step 2: Read STATE.md prefix via read_prefix. On HostError: log_warn + return Continue (PC6).
-    // Phase-B (BC-4.13.001 v1.14): max_bytes=8192 covers all realistic STATE.md frontmatter
-    // (<2 KB under compaction discipline; 8192 ≥ 4× worst-case). OutputTooLarge is structurally
-    // impossible from read_prefix (BC-1.17.001 PC-3).
-    let state_bytes = match (callbacks.read_prefix)(".factory/STATE.md", 8192, READ_TIMEOUT_MS) {
+    // ADR-025 §Decision 15: max_bytes=262144 is the STATE.md byte envelope — ensures the
+    // complete frontmatter is always read regardless of file growth. OutputTooLarge is
+    // structurally impossible from read_prefix (BC-1.17.001 PC-3).
+    let state_bytes = match (callbacks.read_prefix)(".factory/STATE.md", 262144, READ_TIMEOUT_MS) {
         Ok(bytes) => bytes,
         Err(e) => {
             // PC6 + Invariant 6 capability-denied graceful degrade.
