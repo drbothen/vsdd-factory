@@ -325,11 +325,7 @@ where
     // Phase-B (BC-4.13.001 v1.14): max_bytes=8192 covers all realistic STATE.md frontmatter
     // (<2 KB under compaction discipline; 8192 ≥ 4× worst-case). OutputTooLarge is structurally
     // impossible from read_prefix (BC-1.17.001 PC-3).
-    let state_bytes = match (callbacks.read_prefix)(
-        ".factory/STATE.md",
-        8192,
-        READ_TIMEOUT_MS,
-    ) {
+    let state_bytes = match (callbacks.read_prefix)(".factory/STATE.md", 8192, READ_TIMEOUT_MS) {
         Ok(bytes) => bytes,
         Err(e) => {
             // PC6 + Invariant 6 capability-denied graceful degrade.
