@@ -59,6 +59,7 @@ dtu_services: []
   428 lines (wc-l post-update; D-845 WAVE-GATE-W1-W2-PASSED 2026-07-15; v5.92; SM wave-gate burst; E-19 combined W1+W2 gate PASSED; F-WG-001 HIGH PENDING HUMAN disposition; 4-index ALL UNCHANGED BC v4.05/VP v2.68/STORY v4.193/ARCH v3.01)
   430 lines (wc-l post-update; D-846 POLICY-21-GRANDFATHER-CLAUSE 2026-07-15; v5.93; SM grandfather burst; F-WG-001 RESOLVED policies.yaml v1.4.8 grandfather_clause 5 S-19.01 files; wave-gate PASSED unconditionally; Session Resume Checkpoint refreshed D-846; 4-index ALL UNCHANGED BC v4.05/VP v2.68/STORY v4.193/ARCH v3.01; soft-target margin 415-430=-15)
   445 lines (wc-l post-update; D-847 S-19.09-REGISTERED 2026-07-15; v5.94; SM registration burst; S-19.09 NEW story registered; S-19.07 v1.17 depends_on propagation; E-19 v1.30; ARCH-INDEX v3.02; STORY-INDEX v4.194; sprint-state.yaml updated; lessons.md L-BB-additive-host-abi-functions [process-gap] codified; 4-index BC v4.05/VP v2.68/STORY v4.194/ARCH v3.02; soft-target margin 415-445=-30)
+  450 lines (wc-l post-update; D-847 S-19.09-CONVERGENCE 2026-07-15; v5.95; SM convergence burst; S-19.09 CONVERGED pass-13 3-CLEAN; story v1.5→v1.6 draft→ready; STORY-INDEX v4.197→v4.198; sprint-state.yaml S-19.09 draft→ready (PR #659 fidelity fix); 4-index BC v4.06/VP v2.68/STORY v4.198/ARCH v3.02; soft-target margin 415-450=-35)
 -->
 
 # Pipeline State: vsdd-factory
