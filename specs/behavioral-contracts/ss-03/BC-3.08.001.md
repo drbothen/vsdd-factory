@@ -1,8 +1,8 @@
 ---
 document_type: behavioral-contract
 level: L3
-version: "1.23"
-last_amended: "2026-07-13 (v1.23) — S-19.05 pass-13 fix-burst discovery: frontmatter status: draft / lifecycle_status: active mismatch — missed POL-14 auto-promotion at S-15.01 PR-106 merge (2026-05-08, merge_sha=453eee1). [Prior: 2026-07-13 (v1.22) — S-19.05 pass-13 F-P13-001: five stale count phrases corrected (§Common Fields intro; session_id row; §Architecture Anchors FileSink row; §Traceability CAJ; §Traceability DI-017); §Traceability ADR row disambiguated (original-ADR four scope explicitly stated; Events 5–6 provenance noted). Whole-file count-phrase sweep conducted. [Prior: 2026-07-10 (v1.21) — F-P43-003: §VP VP-100 row verbatim-derived from VP-INDEX (cardinality+mutual-exclusivity form); F-P43-005: v1.19 Changelog row backfilled + v1.20 Amendment section authored; O-P43-001: last_amended canonicalized to chain form. [Prior: 2026-07-09 (v1.20) — D-798 pre-pass-43 consistency sweep.]]]"
+version: "1.24"
+last_amended: "2026-07-15 (v1.24) — F-P8-001 (LOW, S-19.09 D22): Event 6 wire format and mandatory-fields enumeration amended to include `timestamp` field (ISO-8601 alias of `ts`, matching Events 1–5 sibling parity). [Prior: 2026-07-13 (v1.23) — S-19.05 pass-13 fix-burst discovery: frontmatter status: draft / lifecycle_status: active mismatch — missed POL-14 auto-promotion at S-15.01 PR-106 merge (2026-05-08, merge_sha=453eee1). [Prior: 2026-07-13 (v1.22) — S-19.05 pass-13 F-P13-001: five stale count phrases corrected (§Common Fields intro; session_id row; §Architecture Anchors FileSink row; §Traceability CAJ; §Traceability DI-017); §Traceability ADR row disambiguated (original-ADR four scope explicitly stated; Events 5–6 provenance noted). Whole-file count-phrase sweep conducted. [Prior: 2026-07-10 (v1.21) — F-P43-003: §VP VP-100 row verbatim-derived from VP-INDEX (cardinality+mutual-exclusivity form); F-P43-005: v1.19 Changelog row backfilled + v1.20 Amendment section authored; O-P43-001: last_amended canonicalized to chain form. [Prior: 2026-07-09 (v1.20) — D-798 pre-pass-43 consistency sweep.]]]]"
 status: active
 producer: product-owner
 timestamp: 2026-05-07T00:00:00Z
@@ -29,6 +29,7 @@ modified:
   - "2026-07-10 (v1.21)"
   - "2026-07-13 (v1.22)"
   - "2026-07-13 (v1.23)"
+  - "2026-07-15 (v1.24)"
 deprecated: null
 deprecated_by: null
 replacement: null
@@ -227,13 +228,14 @@ The `error_code` field is an enum with exactly two valid values: `"E-REG-002"` a
   "entry_index": <u32>,
   "exit_code": <integer>,
   "elapsed_ms": <integer>,
-  "fuel_consumed": <integer>
+  "fuel_consumed": <integer>,
+  "timestamp": "<ISO-8601>"
 }
 ```
 
 `stderr` is present only when non-empty (matching sync-path behavior per `extra_fields.retain(|(k, v)| k != "stderr" || ...)` in `crates/factory-dispatcher/src/executor.rs`).
 
-**Mandatory fields**: `type`, `trace_id`, `session_id`, `plugin_name`, `plugin_version`, `entry_index`, `exit_code`, `elapsed_ms`, `fuel_consumed`.
+**Mandatory fields**: `type`, `trace_id`, `session_id`, `plugin_name`, `plugin_version`, `entry_index`, `exit_code`, `elapsed_ms`, `fuel_consumed`, `timestamp`.
 
 **`entry_index` semantics**: Mirrors Event 5 (`plugin.abandoned`) — the ordinal position (0-based, from `enumerate()`) of this plugin's registry entry in the async partition at the time of dispatch. The `(plugin_name, entry_index)` tuple unambiguously identifies which registry entry completed, enabling correlation with the corresponding `plugin.invoked` event and exclusion under Invariant 6. See Event 5 `entry_index` semantics paragraph for the full disambiguation rationale. The same schema-level defense applies: correctness of `entry_index` in `plugin.completed` events is verified by property/serialization tests over the event struct, not by a runtime concurrent-dispatch fixture (F-P7-007).
 
@@ -673,6 +675,7 @@ Addresses adversary pass-2 finding F-P2-010.
 
 **Changelog:**
 
+| 1.24 | 2026-07-15 | product-owner | F-P8-001 (LOW, S-19.09 D22): Event 6 wire format and mandatory-fields enumeration amended to include `timestamp` field (ISO-8601 alias of `ts`, byte-consistent with Events 1–5 sibling form). SDK grounding: `emit_plugin_completed_async` in `crates/factory-dispatcher/src/host/emit_event.rs` chains `.with_field("timestamp", ts.as_str())`. |
 | 1.23 | 2026-07-13 | product-owner | S-19.05 pass-13 fix-burst discovery: frontmatter status: draft / lifecycle_status: active mismatch — missed POL-14 auto-promotion. Verification: S-15.01 (behavioral_contracts includes BC-3.08.001) carries status=merged, merged_at=2026-05-08, merged_in=PR-106, merge_sha=453eee1; POL-14 mandates draft→active on PR merge; lifecycle_status was already active. |
 | 1.22 | 2026-07-13 | product-owner | S-19.05 pass-13 F-P13-001: five stale count phrases corrected — §Common Fields intro "All five event types" → "All six event types"; session_id row "all five event types" → "all six event types"; §Architecture Anchors FileSink row "all five event types" → "all six event types"; §Traceability CAJ "these four event types" → "these six event types"; §Traceability DI-017 "all four event types" → "all six event types". §Traceability ADR row disambiguated: four-count scoped to original ADR-019 events (Events 1–4); Events 5–6 provenance noted. Whole-file count-phrase sweep conducted per F-P13-001 method; all remaining hits classified. |
 | v1.21 | 2026-07-10 | product-owner | F-P43-003: §VP VP-100 row verbatim-derived from VP-INDEX SoT (cardinality+mutual-exclusivity form; replaces latency-paraphrase). F-P43-005: v1.19 Changelog row backfilled; Amendment 2026-07-09 (v1.19→v1.20) prose section authored for structural parity. O-P43-001: last_amended canonicalized to chain form. |
@@ -785,3 +788,28 @@ Addresses adversary pass-2 finding F-P2-010.
 **POLICY 1 verification:** All prior content preserved verbatim except the changes listed above.
 **POLICY 7 verification:** H1 heading unchanged (no new event type; this is a spec-consistency fix).
 **TD-031 verification:** No new line-number citations introduced.
+
+---
+
+## Amendment 2026-07-15 (v1.23 → v1.24 — F-P8-001: Event 6 wire format and mandatory fields updated to include `timestamp`)
+
+**Driver:** Adversary finding F-P8-001 (LOW, S-19.09 D22) — Event 6 (`plugin.completed` async path) was the only event in BC-3.08.001 whose `timestamp` field was absent from both the wire-format JSON example and the mandatory-fields enumeration. Events 1–5 all document `timestamp` as a mandatory ISO-8601 field (alias of the internal `ts` wire field, set via `.with_field("timestamp", ts.as_str())`). The implementation (`emit_plugin_completed_async` in `crates/factory-dispatcher/src/host/emit_event.rs`) already emits `timestamp` — the post-D22 (S-19.09) fix burst added `.with_field("timestamp", ts.as_str())` to align with sibling emitters. The spec omission was a documentation gap; the wire reality was correct.
+
+**SDK grounding (POLICY 5):** Literal grep capture from the S-19.09 worktree (`/Users/zious/Documents/GITHUB/vsdd-factory/.worktrees/S-19.09/crates/factory-dispatcher/src/host/emit_event.rs`), stable function anchor `emit_plugin_completed_async`:
+
+```
+.with_field("timestamp", ts.as_str())
+```
+
+Call chain: `emit_plugin_completed_async` captures `let ts = ev.ts.clone()` before moving `ev` into the builder chain, then chains `.with_field("timestamp", ts.as_str())` as the third call (after `.with_trace_id` and `.with_session_id`), mirroring all sibling emitters in the same file (`emit_plugin_async_block_discarded`, `emit_dispatcher_schema_mismatch`, `emit_dispatcher_registry_invalid`, `emit_plugin_timeout_async`, `emit_plugin_abandoned`).
+
+**Changes made:**
+
+1. **Frontmatter** (POLICY 14 legs 1–4): `version: "1.23"` → `"1.24"`; `last_amended` chain form prepended with v1.24 entry; `modified[]` entry `"2026-07-15 (v1.24)"` added.
+2. **Event 6 wire-format JSON example**: `"timestamp": "<ISO-8601>"` field added after `"fuel_consumed"`, consistent with Event 4 and Event 5 placement (timestamp as final non-conditional field before closing brace).
+3. **Event 6 mandatory fields**: `timestamp` appended to the mandatory-fields enumeration.
+4. **Changelog table**: v1.24 row added at top with F-P8-001 citation and SDK grounding reference.
+
+**POLICY 1 verification:** All prior content preserved verbatim except the four changes listed above. No event IDs renumbered. Events 1–5 wire-format examples unchanged.
+**POLICY 7 verification:** H1 heading unchanged (no new event type; this is a documentation parity fix).
+**TD-031 verification:** No `emit_event.rs:[0-9]+` line-number citations introduced; stable function anchor (`emit_plugin_completed_async`) used throughout.
