@@ -1,7 +1,9 @@
 // T-006 (AC-004 / VP-097): Real-cap-enforcement integration test.
 //
-// Mirrors the S-19.02 integration pattern in
-// crates/hook-plugins/verify-factory-lock/tests/integration_ac004_no_output_too_large.rs.
+// Follows the S-19.02-era real-cap-enforcement integration pattern; the sibling
+// verify-factory-lock instance of that pattern (integration_ac004_no_output_too_large.rs)
+// was retired by S-19.07 Phase-B — VP-095 v1.3+ re-anchored the lock guard to a
+// unit+static harness, superseding the integration-level file.
 //
 // Uses a cap-enforcement mock that mirrors real host::read_file behavior:
 //   if fixture_size > max_bytes → Err("OutputTooLarge…"), else → Ok(fixture).
