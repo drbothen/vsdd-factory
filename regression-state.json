@@ -1,1 +1,1 @@
-{"status":"pass","timestamp":"2026-07-16T01:51:11Z","command":"cargo test --workspace --all-targets 2>&1 | awk '/^test result:/{passed+=$4; failed+=$6; ignored+=$8} END{print \"Total: \" passed \" passed, \" failed \" failed, \" ignored \" ignored\"}'"}
+{"status":"pass","timestamp":"2026-07-16T13:47:15Z","command":"echo \"=== COMMAND: cargo test --workspace --all-targets 2>&1 | grep -E '^test result'\" && cargo test --workspace --all-targets 2>&1 | grep -E \"^test result\""}

@@ -7,7 +7,7 @@ producer: state-manager
 timestamp: 2026-04-26T12:00:00Z
 cycle: v1.0-brownfield-backfill
 inputs: [STATE.md]
-input-hash: "b76bd23"
+input-hash: "92de842"
 traces_to: STATE.md
 ---
 
@@ -945,3 +945,15 @@ Summary of D-839 checkpoint (archived reference):
 - 4-index: BC v4.03 / VP v2.68 / STORY v4.186 / ARCH v3.01. L2-INDEX v1.0.15. total_bcs 1,977.
 - develop HEAD: `091ce499` (origin) / main HEAD: `a04cb303` / factory-artifacts HEAD: `e5f5df66` (D-839 SHA-patch) / merged_count 101
 - D-range: D-001..D-839 (see decision-log.md for full range)
+
+---
+
+## D-848 Checkpoint (archived 2026-07-16 by D-849 session wrap — SESSION-WRAP-PAUSED)
+
+**Superseded by D-849 SESSION-WRAP-PAUSED checkpoint (STATE.md §Session Resume Checkpoint).**
+
+Summary of D-848 checkpoint (archived reference):
+- D-848 (2026-07-16): S-19.09-MERGED post-merge burst COMPLETE. S-19.09 PR #659 merged 2026-07-16T04:01:30Z (squash 13ece92c). POL-14: BC-1.17.001 PASS-ALREADY-ACTIVE (v1.7; D-843); BC-3.08.001 PASS-ALREADY-ACTIVE (v1.24; D-839). BC-INDEX v4.06→v4.07. STORY-INDEX v4.198→v4.199 (S-19.09 ready→merged; merged_count 105→106; E-19 wave-summary updated). sprint-state.yaml S-19.09 ready→merged (terminal depth=3). lessons.md: L-BB-convergence-burst-flips-status-in-all-three-state-surfaces appended. S-19.07 AUTHORIZED-AND-RESUMING (depends_on S-19.02+S-19.06+S-19.09 ALL MERGED; Red Gate c2dc48b5 live). STATE.md v5.95→v5.96. NEXT (at time of D-848): S-19.07 TDD dispatch. NOTE: The S-19.07 LOCAL cascade ran 18 passes on factory-artifacts after D-848 without updating STATE.md D-NNN (state commits used `state(S-19.07):` prefix). 18 adversary pass records committed; factory-artifacts advanced from 3bdc79ad to 71523955 (LOCAL-ADV-P18-CONVERGED). 4-index updated during S-19.07 cascade: BC-INDEX v4.07→v4.08; VP-INDEX v2.68→v2.71; STORY-INDEX v4.199→v4.217; ARCH-INDEX v3.02→v3.05. Session then wrapped D-849 (human /wrap directive) after: S-19.07 CONVERGED 3/3 (passes 16+17+18 CLEAN; 21 total findings B1/H3/M10/L7); PR #670 OPEN MERGE-READY at e7b518e7 (feature/S-19.07 → develop; 19 commits); security APPROVE (2 LOW); pr-reviewer findings resolved.
+- 4-index at D-849 wrap: BC v4.08 / VP v2.71 / STORY v4.217 / ARCH v3.05. L2-INDEX v1.0.15. total_bcs 1,977.
+- develop HEAD: `13ece92c` (origin) / main HEAD: `a04cb303` / factory-artifacts HEAD: `71523955` (S-19.07 LOCAL-ADV-P18-CONVERGED, 2026-07-16) / merged_count 106
+- D-range: D-001..D-849 (see decision-log.md for full range)
