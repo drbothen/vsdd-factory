@@ -2,12 +2,13 @@
 document_type: verification-coverage-matrix
 level: L4
 section: verification-coverage-matrix
-version: "1.6"
+version: "1.7"
 status: draft
 producer: architect
 timestamp: 2026-06-24T00:00:00Z
-last_amended: "2026-07-13 (v1.6) — pass-11 F-P11-001 POLICY 9 propagation (architect): VP-099 SS-07 row title updated to both-ends form ('Starts With ^' → 'Is Fully Anchored (^...$)'); input-hash 893a501→c9ec678. [Prior: 2026-07-08 (v1.5) — E-19 pass-28 VP-096 boundary-wording sync (architect): VP-096 SS-04 row title updated to exclusive form per BC-4.13.001 §Invariant 9 adjudication (D-781): 'Byte-Exact Prefix Through Second --- Delimiter' → 'Byte-Exact Prefix Up To (Excluding) Second --- Delimiter Line'. input-hash 7a7ac8c→893a501. [Prior: 2026-07-06 (v1.4) — E-19 VP package POLICY 9 propagation (architect): VP-094 added to SS-05 module table (I; BC-5.42.001); VP-095/096 added to SS-04 (I + P; BC-4.13.001); VP-097/098/100/101 added to SS-01 (K + I + I + I; BC-2.07.001+BC-2.02.011 + BC-2.07.001 + BC-3.08.001+DI-019 + BC-1.17.001); VP-099 added to SS-07 (I; no BC). SS-01 subtotal K 2→3 (+VP-097), I 7→10 (+VP-098/100/101), row total 32→36. SS-04 subtotal P 1→2 (+VP-096), I 6→7 (+VP-095), row total 13→15. SS-05 subtotal I 5→6 (+VP-094), row total 12→13. SS-07 subtotal I 4→5 (+VP-099), row total 11→12. Grand Total K 4→5, P 4→5, I 28→34, row total 93→101. Per-tool arithmetic 5+5+46+34+10+1=101 VERIFIED. Per-subsystem row-sum 36+5+14+15+13+5+12+1=101 VERIFIED. §2 VP-100 judgment call added (SS-01 primary; SS-03 secondary). §3 Grand Totals updated. [Prior: 2026-06-24 (v1.3) — S-18.04b-prereq BC authoring burst (architect POLICY 9 propagation): VP-093 added to SS-01 module table (integration; SS-01; DI-020, DI-025; BC-1.16.001 — dispatcher git_context injection on PostToolUse Bash git-commit events; four-field completeness; fail-open on git error; no injection on non-qualifying events). SS-01 subtotal I 6→7, row total 31→32. Grand Total I 27→28, row total 92→93. Per-tool arithmetic 4+4+46+28+10+1=93 VERIFIED. Per-subsystem row-sum 32+5+14+13+12+5+11+1=93 VERIFIED. [Prior: 2026-06-16 (v1.2) — D-615 E-18 STORY PASS-1 FIX WAVE INTEGRATION BURST (state-manager POLICY 9 propagation): VP-092 added to SS-06 module table (unit-test; SS-06; DI-020; BC-6.25.001 — check-state-health CLAUDE_AUTOCOMPACT_PCT_OVERRIDE advisory check; never blocks). SS-06 subtotal U 0→1, row total 4→5. Grand Total U 45→46, row total 91→92. Per-tool arithmetic 4+4+46+27+10+1=92 VERIFIED. Per-subsystem row-sum 31+5+14+13+12+5+11+1=92 VERIFIED. [Prior: 2026-06-16 (v1.1) — D-612 INTEGRATION BURST (state-manager POLICY 9 propagation): VP-091 added to SS-04 module table (unit-test; SS-04; DI-020; BC-4.15.001 — validate-heavy-op-delegation always-Continue advisory gate). SS-04 subtotal U 3→4, row total 12→13. Grand Total U 44→45, row total 90→91. Per-tool arithmetic 4+4+45+27+10+1=91 VERIFIED. Per-subsystem row-sum 31+5+14+13+12+4+11+1=91 VERIFIED. [Prior: 2026-06-16 (v1.0) — F2 gate decision: initial creation as a full production-grade architecture deliverable. Sources: VP-INDEX.md v2.29 (86 VPs) + VP-087..VP-090 (4 new E-18 VPs, unstaged). POST-INTEGRATION totals: total_vps=90, unit-test=44, integration=27, manual=10, static-check=1, kani-proof=4, proptest=4. Every VP assigned to its authoritative module per VP-INDEX.md scope column and VP file frontmatter. Authored per F2 gate human directive that deferred architecture derived-views be materialized now.]]"
+last_amended: "2026-07-16 (v1.7) — S-19.07 Phase-B POLICY 9 propagation (architect): VP-095 SS-04 row title updated to Phase-B form; ✓ moved from I column to U column; SS-04 subtotal U 4→5, I 7→6; Grand Total U 46→47, I 34→33; input-hash c9ec678→f0fab9c. [Prior: 2026-07-13 (v1.6) — pass-11 F-P11-001 POLICY 9 propagation (architect): VP-099 SS-07 row title updated to both-ends form ('Starts With ^' → 'Is Fully Anchored (^...$)'); input-hash 893a501→c9ec678. [Prior: 2026-07-08 (v1.5) — E-19 pass-28 VP-096 boundary-wording sync (architect): VP-096 SS-04 row title updated to exclusive form per BC-4.13.001 §Invariant 9 adjudication (D-781): 'Byte-Exact Prefix Through Second --- Delimiter' → 'Byte-Exact Prefix Up To (Excluding) Second --- Delimiter Line'. input-hash 7a7ac8c→893a501. [Prior: 2026-07-06 (v1.4) — E-19 VP package POLICY 9 propagation (architect): VP-094 added to SS-05 module table (I; BC-5.42.001); VP-095/096 added to SS-04 (I + P; BC-4.13.001); VP-097/098/100/101 added to SS-01 (K + I + I + I; BC-2.07.001+BC-2.02.011 + BC-2.07.001 + BC-3.08.001+DI-019 + BC-1.17.001); VP-099 added to SS-07 (I; no BC). SS-01 subtotal K 2→3 (+VP-097), I 7→10 (+VP-098/100/101), row total 32→36. SS-04 subtotal P 1→2 (+VP-096), I 6→7 (+VP-095), row total 13→15. SS-05 subtotal I 5→6 (+VP-094), row total 12→13. SS-07 subtotal I 4→5 (+VP-099), row total 11→12. Grand Total K 4→5, P 4→5, I 28→34, row total 93→101. Per-tool arithmetic 5+5+46+34+10+1=101 VERIFIED. Per-subsystem row-sum 36+5+14+15+13+5+12+1=101 VERIFIED. §2 VP-100 judgment call added (SS-01 primary; SS-03 secondary). §3 Grand Totals updated. [Prior: 2026-06-24 (v1.3) — S-18.04b-prereq BC authoring burst (architect POLICY 9 propagation): VP-093 added to SS-01 module table (integration; SS-01; DI-020, DI-025; BC-1.16.001 — dispatcher git_context injection on PostToolUse Bash git-commit events; four-field completeness; fail-open on git error; no injection on non-qualifying events). SS-01 subtotal I 6→7, row total 31→32. Grand Total I 27→28, row total 92→93. Per-tool arithmetic 4+4+46+28+10+1=93 VERIFIED. Per-subsystem row-sum 32+5+14+13+12+5+11+1=93 VERIFIED. [Prior: 2026-06-16 (v1.2) — D-615 E-18 STORY PASS-1 FIX WAVE INTEGRATION BURST (state-manager POLICY 9 propagation): VP-092 added to SS-06 module table (unit-test; SS-06; DI-020; BC-6.25.001 — check-state-health CLAUDE_AUTOCOMPACT_PCT_OVERRIDE advisory check; never blocks). SS-06 subtotal U 0→1, row total 4→5. Grand Total U 45→46, row total 91→92. Per-tool arithmetic 4+4+46+27+10+1=92 VERIFIED. Per-subsystem row-sum 31+5+14+13+12+5+11+1=92 VERIFIED. [Prior: 2026-06-16 (v1.1) — D-612 INTEGRATION BURST (state-manager POLICY 9 propagation): VP-091 added to SS-04 module table (unit-test; SS-04; DI-020; BC-4.15.001 — validate-heavy-op-delegation always-Continue advisory gate). SS-04 subtotal U 3→4, row total 12→13. Grand Total U 44→45, row total 90→91. Per-tool arithmetic 4+4+45+27+10+1=91 VERIFIED. Per-subsystem row-sum 31+5+14+13+12+4+11+1=91 VERIFIED. [Prior: 2026-06-16 (v1.0) — F2 gate decision: initial creation as a full production-grade architecture deliverable. Sources: VP-INDEX.md v2.29 (86 VPs) + VP-087..VP-090 (4 new E-18 VPs, unstaged). POST-INTEGRATION totals: total_vps=90, unit-test=44, integration=27, manual=10, static-check=1, kani-proof=4, proptest=4. Every VP assigned to its authoritative module per VP-INDEX.md scope column and VP file frontmatter. Authored per F2 gate human directive that deferred architecture derived-views be materialized now.]]"
 modified:
+  - "2026-07-16 (v1.7) — S-19.07 Phase-B POLICY 9 propagation: VP-095 SS-04 row title→Phase-B form; ✓ I→U; SS-04 subtotal U 4→5, I 7→6; Grand Total U 46→47, I 34→33; input-hash c9ec678→f0fab9c"
   - "2026-07-13 (v1.6) — pass-11 F-P11-001 POLICY 9 propagation: VP-099 SS-07 row title updated to both-ends form; input-hash 893a501→c9ec678"
   - "2026-07-08 (v1.5) — E-19 pass-28 VP-096 boundary-wording sync: VP-096 SS-04 row title updated to exclusive form per BC-4.13.001 §Invariant 9 (D-781); input-hash 7a7ac8c→893a501"
   - "2026-07-06 (v1.4) — E-19 VP package POLICY 9 propagation: VP-094 (SS-05), VP-095/096 (SS-04), VP-097/098/100/101 (SS-01), VP-099 (SS-07) added; K 4→5, P 4→5, I 28→34, Total 93→101; §2 VP-100 judgment call added; input-hash 61531bf→7a7ac8c"
@@ -17,7 +18,7 @@ modified:
   - "2026-06-16 (v1.0 initial creation)"
 phase: 1b
 inputs: [verification-properties/VP-INDEX.md]
-input-hash: "c9ec678"
+input-hash: "f0fab9c"
 traces_to: VP-INDEX.md
 subsystems_affected:
   - SS-01
@@ -45,13 +46,16 @@ subsystems_affected:
 > their additional subsystem affiliations are noted in the Subsystems column.
 >
 > **Grand-total arithmetic invariant:** Each VP is counted exactly once in the grand-
-> total row. The per-tool column sums (K+P+U+I+M+S) must equal 93. This invariant
+> total row. The per-tool column sums (K+P+U+I+M+S) must equal 101. This invariant
 > must be verified on every update to this document.
 
 ## §Changelog
 
 | Version | Date | Author | Change |
 |---------|------|--------|--------|
+| v1.7 | 2026-07-16 | architect | S-19.07 Phase-B POLICY 9 propagation: VP-095 SS-04 row title updated to Phase-B form ('verify-factory-lock Never Receives output_too_large for Any STATE.md Size — Structural Guarantee via host::read_prefix(8192) (BC-1.17.001 PC-3); Large-STATE.md Frontmatter Correctly Parsed from 8192-Byte Prefix'); ✓ moved from I column to U column (proof_method integration→unit+static per VP-095 v1.2 amendment). SS-04 subtotal U 4→5, I 7→6, row total 15 unchanged. Grand Total U 46→47, I 34→33, total 101 unchanged. Per-tool arithmetic 5+5+47+33+10+1=101 VERIFIED. Per-subsystem row-sum 36+5+14+15+13+5+12+1=101 VERIFIED. input-hash c9ec678→f0fab9c. |
+| v1.6 | 2026-07-13 | architect | pass-11 F-P11-001 POLICY 9 propagation: VP-099 SS-07 row title updated to both-ends form ('Starts With ^' → 'Is Fully Anchored (^...$)'). input-hash 893a501→c9ec678. |
+| v1.5 | 2026-07-08 | architect | E-19 pass-28 VP-096 boundary-wording sync: VP-096 SS-04 row title updated to exclusive form per BC-4.13.001 §Invariant 9 adjudication (D-781) — 'Byte-Exact Prefix Through Second --- Delimiter' → 'Byte-Exact Prefix Up To (Excluding) Second --- Delimiter Line'. input-hash 7a7ac8c→893a501. |
 | v1.4 | 2026-07-06 | architect | E-19 VP package POLICY 9 propagation: VP-094 added to SS-05 (I; BC-5.42.001; S-19.01); VP-095/096 added to SS-04 (I + P; BC-4.13.001; S-19.02); VP-097/098/100/101 added to SS-01 (K + I + I + I; BC-2.07.001+BC-2.02.011 + BC-2.07.001 + BC-3.08.001+DI-019 + BC-1.17.001); VP-099 added to SS-07 (I; no BC; S-19.04). All 8 abbreviated titles corrected from prior placeholder values. SS-01 subtotal K 2→3, I 7→10, row 32→36. SS-04 subtotal P 1→2, I 6→7, row 13→15. SS-05 subtotal I 5→6, row 12→13. SS-07 subtotal I 4→5, row 11→12. Grand Total K 4→5, P 4→5, I 28→34, total 93→101. Per-tool arithmetic 5+5+46+34+10+1=101 VERIFIED. Per-subsystem row-sum 36+5+14+15+13+5+12+1=101 VERIFIED. §2 VP-100 judgment call added (SS-01 primary; SS-03 secondary). |
 | v1.3 | 2026-06-24 | architect | S-18.04b-prereq POLICY 9 propagation: VP-093 added to SS-01 module table (integration; SS-01; DI-020, DI-025; BC-1.16.001 — dispatcher git_context injection on PostToolUse Bash git-commit events; four-field injection; fail-open on git error; no injection on non-qualifying events; exec-free WASM boundary; HOST_ABI_VERSION unchanged; anchor S-18.04b-prereq). SS-01 subtotal I 6→7, row total 31→32. Grand Total I 27→28, row total 92→93. Per-tool arithmetic 4+4+46+28+10+1=93 VERIFIED. Per-subsystem row-sum 32+5+14+13+12+5+11+1=93 VERIFIED. |
 | v1.2 | 2026-06-16 | state-manager | D-615 POLICY 9 propagation: VP-092 added to SS-06 module table (unit-test; SS-06; DI-020; BC-6.25.001 — check-state-health CLAUDE_AUTOCOMPACT_PCT_OVERRIDE advisory check; never blocks; PC1 absent→ADVISORY; PC2 >80→ADVISORY; PC3 <=80→PASS). SS-06 subtotal U 0→1, row total 4→5. Grand Total U 45→46, row total 91→92. Per-tool arithmetic 4+4+46+27+10+1=92 VERIFIED. Per-subsystem row-sum 31+5+14+13+12+5+11+1=92 VERIFIED. |
@@ -175,9 +179,9 @@ where SS-01 or SS-05 is listed first (see assignment notes in §2).
 | VP-076 | Resolver-Capability Confinement | SS-04 | | | | ✓ | | |
 | VP-083 | Completeness Gate Is No-Op on Wave-1 or Non-HANDOFF.md Writes | SS-04 | | | ✓ | | | |
 | VP-091 | validate-heavy-op-delegation Emits DelegationRecommended Advisory (Never Blocks) | SS-04 | | | ✓ | | | |
-| VP-095 | verify-factory-lock Reads STATE.md Up to 262144 Bytes Without output_too_large | SS-04 | | | | ✓ | | |
+| VP-095 | verify-factory-lock Never Receives output_too_large for Any STATE.md Size — Structural Guarantee via host::read_prefix(8192) (BC-1.17.001 PC-3); Large-STATE.md Frontmatter Correctly Parsed from 8192-Byte Prefix | SS-04 | | | ✓ | | | |
 | VP-096 | extract_frontmatter Purity — Byte-Exact Prefix Up To (Excluding) Second --- Delimiter Line; Deterministic | SS-04 | | ✓ | | | | |
-| **SS-04 subtotal** | | | **2** | **2** | **4** | **7** | **0** | **0** |
+| **SS-04 subtotal** | | | **2** | **2** | **5** | **6** | **0** | **0** |
 
 ---
 
@@ -307,17 +311,17 @@ per-tool column sums equal 101 (total_vps POST-INTEGRATION).
 | SS-06 | 0 | 1 | 1 | 3 | 0 | 0 | 5 |
 | SS-07 | 0 | 1 | 3 | 5 | 3 | 0 | 12 |
 | SS-09 | 0 | 0 | 0 | 0 | 1 | 0 | 1 |
-| **Grand Total** | **5** | **5** | **46** | **34** | **10** | **1** | **101** |
+| **Grand Total** | **5** | **5** | **47** | **33** | **10** | **1** | **101** |
 
-**Per-tool arithmetic check:** 5 + 5 + 46 + 34 + 10 + 1 = **101** ✓
+**Per-tool arithmetic check:** 5 + 5 + 47 + 33 + 10 + 1 = **101** ✓
 
 **Per-subsystem row-sum check:** 36 + 5 + 14 + 15 + 13 + 5 + 12 + 1 = **101** ✓
 
 **Per-tool column matches VP-INDEX.md POST-INTEGRATION targets:**
 - kani-proof: **5** ✓ (VP-070, VP-071, VP-074, VP-077, VP-097)
 - proptest: **5** ✓ (VP-059, VP-069, VP-075, VP-080, VP-096)
-- unit-test: **46** ✓ (42 from VP-INDEX v2.29 + VP-089 + VP-090 + VP-091 + VP-092)
-- integration: **34** ✓ (25 from VP-INDEX v2.29 + VP-087 + VP-088 + VP-093 + VP-094 + VP-095 + VP-098 + VP-099 + VP-100 + VP-101)
+- unit-test: **47** ✓ (42 from VP-INDEX v2.29 + VP-089 + VP-090 + VP-091 + VP-092 + VP-095)
+- integration: **33** ✓ (25 from VP-INDEX v2.29 + VP-087 + VP-088 + VP-093 + VP-094 + VP-098 + VP-099 + VP-100 + VP-101)
 - manual: **10** ✓ (unchanged from VP-INDEX v2.29)
 - static-check: **1** ✓ (unchanged from VP-INDEX v2.29)
 
