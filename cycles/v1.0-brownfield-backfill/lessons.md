@@ -6972,3 +6972,21 @@ Both gates are mandatory standing Commit-E controls for any burst touching E-19 
 **Cites:** s-19.09-local-adversary-pass-4.md F-P4-001; s-19.09-local-adversary-pass-5.md F-P5-001; story v1.2 (00fd8a70) narrow sweep; story v1.3 (26e9f677) class-general sweep; [[L-BB-claim-class-corrections-gate-across-all-in-scope-artifacts]].
 
 **Closes:** S-19.09 CONVERGENCE burst (2026-07-15). `[process-gap; grep-pattern; class-general; instance-derived; volatile-pin; remediation-sweep; line-number; TD-VSDD-091; S-19.09; codified]`
+
+---
+
+### L-BB-convergence-burst-flips-status-in-all-three-state-surfaces [process-gap] [codified D-848]
+
+**Title:** Convergence Burst Must Update Story Status in All Three State Surfaces Atomically — sprint-state.yaml Is a Mandatory Surface Alongside STORY-INDEX and STATE.md
+
+**Lesson:** When a story's status transitions (draft→ready, ready→merged, etc.), the convergence/post-merge burst MUST update the story's status in ALL THREE state surfaces simultaneously: (1) STORY-INDEX.md table row, (2) STATE.md Story Status section, and (3) sprint-state.yaml. Failing to update sprint-state.yaml in the same burst is a process gap that forces a follow-up hygiene commit (e.g., d45c17bb for D-843 S-19.06, 2e83e053 for D-848 S-19.09).
+
+**Root cause:** sprint-state.yaml is a derived state surface that mirrors STORY-INDEX status. In prior bursts (D-843: S-19.06, D-847/D-848: S-19.09), the post-merge state-manager burst correctly updated STORY-INDEX and STATE.md Story Status but omitted sprint-state.yaml. This forced a follow-up pr-manager commit to sync the YAML, creating a multi-commit correction chain. The D-844 lesson (L-BB-lesson about S-19.06 sprint-state fix) was the first occurrence; D-848 is the second.
+
+**Prevention:** Post-merge burst checklist must explicitly include sprint-state.yaml as a mandatory update surface: (1) STORY-INDEX.md: status column update + MERGED cite. (2) STATE.md: Story Status section (Merged count bump, story entry). (3) sprint-state.yaml: status update + move to terminal prefix at correct BC-5.41.004 def-b depth position. These three updates are atomic — they all happen in the single TD-VSDD-053 burst commit.
+
+**Anchors:** D-843 burst (S-19.06 post-merge): sprint-state.yaml not updated → d45c17bb pr-manager follow-up. D-848 burst (S-19.09 post-merge): sprint-state.yaml correctly updated in-burst (this burst applies the lesson). D-844 decision: PC3 done-first violation FIXED (sprint-state S-19.06 ordinal 53 depth=2 remediation). BC-5.41.004 def-b depth-ascending terminal prefix invariant.
+
+**Cites:** d45c17bb (pr-manager sprint-state fix for S-19.06, 2nd D-843 commit); 2e83e053 (sprint-state sync for S-19.09 convergence burst); D-844 GATE1-HYGIENE-REMEDIATION; D-847 Summary parent-commit note.
+
+**Closes:** S-19.09 POST-MERGE burst (2026-07-16). `[process-gap; sprint-state; three-surfaces; atomic-update; post-merge; convergence-burst; S-19.09; codified]`
