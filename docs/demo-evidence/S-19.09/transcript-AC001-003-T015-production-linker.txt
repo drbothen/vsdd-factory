@@ -1,0 +1,49 @@
+# S-19.09 — D19 Production Linker Tests (AC-001, AC-002, AC-003 + T-002b, T-015)
+# Branch: feature/S-19.09
+# HEAD: 923ebff4
+# Command: cargo test -p factory-dispatcher --lib <test-name>
+
+$ cargo test -p factory-dispatcher --lib "t001_s19_09"
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.17s
+     Running unittests src/lib.rs (target/debug/deps/factory_dispatcher-cdf061c0a73efe1d)
+
+running 1 test
+test invoke::tests::t001_s19_09_read_prefix_instantiates_without_link_error_via_production_linker ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 203 filtered out; finished in 0.06s
+
+$ cargo test -p factory-dispatcher --lib "t002_s19_09"
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.16s
+     Running unittests src/lib.rs (target/debug/deps/factory_dispatcher-cdf061c0a73efe1d)
+
+running 1 test
+test invoke::tests::t002_s19_09_read_prefix_round_trip_bytes_correct_and_out_ptr_nonzero_via_production_path ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 203 filtered out; finished in 0.01s
+
+$ cargo test -p factory-dispatcher --lib "t002b_s19_09"
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.17s
+     Running unittests src/lib.rs (target/debug/deps/factory_dispatcher-cdf061c0a73efe1d)
+
+running 1 test
+test invoke::tests::t002b_s19_09_read_prefix_head_c_bound_clamps_out_len_to_max_bytes ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 203 filtered out; finished in 0.01s
+
+$ cargo test -p factory-dispatcher --lib "t003_s19_09"
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.16s
+     Running unittests src/lib.rs (target/debug/deps/factory_dispatcher-cdf061c0a73efe1d)
+
+running 1 test
+test invoke::tests::t003_s19_09_read_prefix_capability_absent_returns_capability_denied_via_production_path ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 203 filtered out; finished in 0.00s
+
+$ cargo test -p factory-dispatcher --lib "t015_s19_09"
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.15s
+     Running unittests src/lib.rs (target/debug/deps/factory_dispatcher-cdf061c0a73efe1d)
+
+running 1 test
+test invoke::tests::t015_s19_09_read_prefix_empty_file_returns_ok_with_zero_ptr_len_no_grow ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 203 filtered out; finished in 0.01s
