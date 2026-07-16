@@ -1630,6 +1630,168 @@ mod tests {
             ret
         );
     }
+
+    // -----------------------------------------------------------------------
+    // S-19.09 T-015 — AC-002 (F-P6-001 closure: EC-002 coverage gap)
+    //
+    // read_prefix on a 0-byte (empty) allowlisted file via setup_host_on_store_data
+    // (the D19 production path) must:
+    //   1. Return codes::OK (0).
+    //   2. Write out_ptr == 0 to memory[0:4]  (empty-body fast path skips grow).
+    //   3. Write out_len == 0 to memory[4:8]  (no bytes to transfer).
+    //   4. Leave WASM linear memory size unchanged (no grow call on empty body).
+    //
+    // The `if body.is_empty()` branch in setup_host_on_store_data's read_prefix
+    // closure (EC-002) writes ptr=0, len=0 and returns codes::OK immediately —
+    // it does NOT call memory.grow.  t001/t002/t002b/t003 cover only
+    // link/non-empty/clamp/denial; none exercise this branch.
+    //
+    // Mutation-check (TD-VSDD-059): if the `if body.is_empty()` early-return
+    // were removed, the code falls through to the memory-grow protocol.
+    // grow(0 pages) succeeds but write_offset = current_bytes (nonzero for
+    // any loaded WASM module), so out_ptr would be written as current_bytes
+    // rather than 0 — the assert_eq!(out_ptr, 0) assertion flips to FAIL,
+    // demonstrating this test is load-bearing for the EC-002 branch.
+    //
+    // AC trace: AC-002; BC-1.17.001 PC-1; ADR-025 §Decision 16; EC-002.
+    // -----------------------------------------------------------------------
+    #[test]
+    fn t015_s19_09_read_prefix_empty_file_returns_ok_with_zero_ptr_len_no_grow() {
+        use crate::registry::{Capabilities, ReadPrefixCaps};
+
+        // Write a 0-byte file; tempdir gives per-test isolation (sibling convention).
+        let dir = tempfile::tempdir().expect("create temp dir for T-015");
+        let tmp_path = dir.path().join("s19_09_t015_empty.txt");
+        std::fs::write(&tmp_path, b"").expect("write empty file for T-015");
+        let path_str = tmp_path.to_str().expect("path to str").to_string();
+        let path_bytes = path_str.as_bytes();
+
+        // HostContext with read_prefix capability allowing the empty file.
+        let mut ctx = bare_ctx();
+        ctx.capabilities = Capabilities {
+            read_prefix: Some(ReadPrefixCaps {
+                path_allow: vec![path_str.clone()],
+            }),
+            ..Capabilities::default()
+        };
+
+        let engine = build_engine().unwrap();
+        let mut linker: wasmtime::Linker<StoreData> = wasmtime::Linker::new(&engine);
+        setup_host_on_store_data(&mut linker).expect("setup_host_on_store_data must not error");
+
+        // WAT layout (mirrors T-002):
+        //   memory[0:4]   — out_ptr_out location (host writes the returned pointer here)
+        //   memory[4:8]   — out_len_out location (host writes the returned length here)
+        //   memory[128..] — path bytes (written by test before call)
+        //
+        // call_rp(path_ptr, path_len) → host return code (0 = codes::OK)
+        let module = compile(
+            &engine,
+            r#"(module
+              (import "vsdd" "read_prefix" (func $rp (param i32 i32 i32 i32 i32 i32) (result i32)))
+              (memory (export "memory") 2)
+              (func (export "call_rp") (param $path_ptr i32) (param $path_len i32) (result i32)
+                (call $rp
+                  (local.get $path_ptr)
+                  (local.get $path_len)
+                  (i32.const 64)
+                  (i32.const 0)
+                  (i32.const 0)
+                  (i32.const 4)
+                )
+              )
+            )"#,
+        );
+
+        let wasi_ctx = WasiCtxBuilder::new().build_p1();
+        let store_data = StoreData {
+            host: ctx,
+            wasi: wasi_ctx,
+        };
+        let mut store = Store::new(&engine, store_data);
+        store
+            .set_fuel(1_000_000)
+            .expect("engine has fuel metering enabled");
+        store.set_epoch_deadline(u64::MAX);
+
+        let instance = linker.instantiate(&mut store, &module).expect(
+            "T-015: instantiation must succeed via production path (setup_host_on_store_data)",
+        );
+
+        let memory = instance
+            .get_memory(&mut store, "memory")
+            .expect("module exports memory");
+        memory
+            .write(&mut store, 128, path_bytes)
+            .expect("write path bytes to WASM memory");
+
+        // Capture memory size BEFORE the read_prefix call so we can assert
+        // that the empty-body fast path skips the grow call.
+        let memory_size_before = memory.data_size(&store);
+
+        let call_rp = instance
+            .get_typed_func::<(i32, i32), i32>(&mut store, "call_rp")
+            .expect("module exports call_rp");
+        let ret = call_rp
+            .call(&mut store, (128, path_bytes.len() as i32))
+            .expect("call_rp must not trap");
+
+        // Capture memory size AFTER the read_prefix call.
+        let memory_size_after = memory.data_size(&store);
+
+        // Assert 1: return code must be codes::OK (0).
+        assert_eq!(
+            ret, 0,
+            "T-015 AC-002: read_prefix on an empty file must return codes::OK (0); \
+             EC-002 empty-body fast path; got {}",
+            ret
+        );
+
+        // Read out_ptr (memory[0:4]) and out_len (memory[4:8]).
+        let mem_data: Vec<u8> = memory.data(&store).to_vec();
+        let out_ptr = u32::from_le_bytes(
+            mem_data[0..4]
+                .try_into()
+                .expect("memory[0:4] must be 4 bytes"),
+        );
+        let out_len = u32::from_le_bytes(
+            mem_data[4..8]
+                .try_into()
+                .expect("memory[4:8] must be 4 bytes"),
+        );
+
+        // Assert 2: out_ptr must be 0 — empty-body fast path writes ptr=0, skips grow.
+        // Mutation-check: removing the `if body.is_empty()` early-return causes the code
+        // to fall through to memory-grow.  grow(0 pages) succeeds but write_offset =
+        // current_bytes (nonzero for any loaded WASM module), so out_ptr would equal
+        // current_bytes rather than 0 — this assertion flips to FAIL, proving the test
+        // detects regression of the EC-002 branch.
+        assert_eq!(
+            out_ptr, 0,
+            "T-015 AC-002: out_ptr must be 0 for empty file — empty-body fast path writes \
+             ptr=0, skips grow (ADR-025 §Decision 16; EC-002); got out_ptr={}",
+            out_ptr
+        );
+
+        // Assert 3: out_len must be 0 (no bytes to transfer).
+        assert_eq!(
+            out_len, 0,
+            "T-015 AC-002: out_len must be 0 for empty file (EC-002: 0 bytes to transfer); \
+             got out_len={}",
+            out_len
+        );
+
+        // Assert 4: WASM linear memory size must be unchanged — empty-body fast path
+        // exits before the grow call, so no page allocation occurs.
+        assert_eq!(
+            memory_size_before, memory_size_after,
+            "T-015 AC-002: WASM linear memory must NOT grow for empty file — empty-body fast \
+             path skips the grow call (EC-002 no-memory-growth invariant); \
+             before={} after={}",
+            memory_size_before, memory_size_after
+        );
+        // dir goes out of scope here; tempfile::TempDir::drop auto-cleans the directory.
+    }
 }
 
 // S-18.04b-prereq: git_context payload injection (ADR-029)
