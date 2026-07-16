@@ -447,9 +447,9 @@ SECTION 3 — DELTA SUMMARY
 Note: The anticipated delta was +5 crate lib tests (26 -> 31). The machine
 capture shows the actual baseline was 28, not 26 — the prior derived count of
 26 was inaccurate. Machine-captured delta is 28 -> 31 (+3 crate). Workspace
-delta is +2 (not +3) because one unrelated test result present at the baseline
-commit (1-test suite) is absent from the post commit; this is expected drift
-from other stories committed to develop between 13ece92c and 0f11a387 that
-affect test suites outside the S-19.07 scope.
+delta is +2 (not +3): workspace delta +2 = (+3 new crate lib tests) +
+(-1 integration_ac004_no_output_too_large test, deleted by S-19.07 Phase-B
+per the story's File Structure delete row; VP-095 v1.5 re-anchored
+unit+static).
 
 All results: ok (0 failures) at both commits.

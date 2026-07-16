@@ -169,7 +169,7 @@ Retroactive machine capture per D-449(a) discipline (literal shell + captured st
 | `cargo test -p verify-factory-lock --lib` | 28 passed / 0 failed | 31 passed / 0 failed | +3 |
 | `cargo test --workspace --all-targets` | 2055 passed / 0 failed | 2057 passed / 0 failed | +2 |
 
-The prior derived count of 26 crate lib tests was inaccurate. The machine capture at 13ece92c (pre-S-19.07 develop tip, S-19.09 #659 squash commit) shows the actual baseline was 28. The crate delta is therefore 28 → 31 (+3), not the anticipated 26 → 31 (+5). The workspace delta is +2 rather than +3 because one unrelated 1-test suite present at the baseline commit is absent from the post commit — expected drift from other stories committed to develop between 13ece92c and 0f11a387 outside the S-19.07 scope.
+The prior derived count of 26 crate lib tests was inaccurate. The machine capture at 13ece92c (pre-S-19.07 develop tip, S-19.09 #659 squash commit) shows the actual baseline was 28. The crate delta is therefore 28 → 31 (+3), not the anticipated 26 → 31 (+5). The workspace delta is +2 rather than +3: workspace delta +2 = (+3 new crate lib tests) + (−1 `integration_ac004_no_output_too_large` test, deleted by S-19.07 Phase-B per the story's File Structure delete row; VP-095 v1.5 re-anchored unit+static).
 
 ---
 
