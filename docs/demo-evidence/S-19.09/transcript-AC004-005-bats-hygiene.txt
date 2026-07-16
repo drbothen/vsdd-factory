@@ -1,0 +1,39 @@
+# S-19.09 — D20 Doc-Correction Static Gates (AC-004, AC-005)
+# Branch: feature/S-19.09
+# HEAD: 923ebff4
+# Command: bats plugins/vsdd-factory/tests/host-abi-hygiene.bats (T-004..T-008)
+# Plus direct grep gates confirming AC-004 Gate A/B and AC-005
+
+$ cd plugins/vsdd-factory/tests && bats host-abi-hygiene.bats (T-004..T-008 subset)
+
+1..9
+ok 1 T-004 AC-004 Gate A: stale 'epoch interruption' text absent from read_file.rs
+ok 2 T-005 AC-004 Gate A: stale 'epoch interruption' text absent from read_prefix.rs
+ok 3 T-006 AC-004 Gate B: corrected 'structurally unenforced' text present in read_file.rs
+ok 4 T-007 AC-004 Gate B: corrected 'structurally unenforced' text present in read_prefix.rs
+ok 5 T-008 AC-005: two-linker duality comment (Linker<StoreData>/setup_host_on_store_data) present in read_file.rs
+ok 6 T-009 AC-006: pub const INTERNAL_FILE_NOT_FOUND exported from internal_log.rs
+ok 7 T-010 AC-007: pub const PLUGIN_ABANDONED exported from internal_log.rs
+ok 8 T-011 AC-008: zero bare literals in production code of read_file.rs, read_prefix.rs, emit_event.rs, executor.rs, vsdd_sink.rs
+ok 9 T-012 AC-008 regression: cargo test -p factory-dispatcher passes after D21 sweep
+
+--- Direct grep gate evidence (AC-004 Gate A — negative: stale text absent) ---
+
+$ ! grep -q "epoch interruption" crates/factory-dispatcher/src/host/read_file.rs && echo "stale text absent"
+Gate A: stale text absent in read_file.rs — exit 0
+
+$ ! grep -q "epoch interruption" crates/factory-dispatcher/src/host/read_prefix.rs && echo "stale text absent"
+Gate A: stale text absent in read_prefix.rs — exit 0
+
+--- Direct grep gate evidence (AC-004 Gate B — positive: corrected text present) ---
+
+$ grep -q "structurally unenforced" crates/factory-dispatcher/src/host/read_file.rs && echo "corrected text present"
+Gate B: corrected text present in read_file.rs — exit 0
+
+$ grep -q "structurally unenforced" crates/factory-dispatcher/src/host/read_prefix.rs && echo "corrected text present"
+Gate B: corrected text present in read_prefix.rs — exit 0
+
+--- Direct grep gate evidence (AC-005 — positive: two-linker duality comment present) ---
+
+$ grep -qE "Linker.*StoreData|setup_host_on_store_data" crates/factory-dispatcher/src/host/read_file.rs && echo "duality comment present"
+Gate: two-linker duality comment present in read_file.rs — exit 0

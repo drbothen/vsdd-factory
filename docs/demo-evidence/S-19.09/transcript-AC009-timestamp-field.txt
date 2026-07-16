@@ -1,0 +1,18 @@
+# S-19.09 — D22 Timestamp Field in plugin.completed (AC-009)
+# Branch: feature/S-19.09
+# HEAD: 923ebff4
+# Command: cargo test -p factory-dispatcher --lib "test_s19_09_t013"
+
+$ cargo test -p factory-dispatcher --lib "test_s19_09_t013"
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.16s
+     Running unittests src/lib.rs (target/debug/deps/factory_dispatcher-cdf061c0a73efe1d)
+
+running 1 test
+test host::emit_event::tests::test_s19_09_t013_emit_plugin_completed_async_has_timestamp_field ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 203 filtered out; finished in 0.00s
+
+# T-013 constructs a HostContext with a capturing sink, calls emit_plugin_completed_async,
+# retrieves the captured InternalEvent, and asserts event.fields["timestamp"] is present
+# and non-empty. This closes F-WG-003 and satisfies BC-3.08.001 §Postconditions Event 6
+# Mandatory-fields (timestamp; per-event alias convention, Events 1-6 parity).

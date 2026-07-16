@@ -292,7 +292,7 @@ pub fn emit_registry_invalid_e_reg003(
 /// - BC-1.14.001 postcondition 4 — async group best-effort lifetime
 /// - DI-019 — ASYNC_DRAIN_WINDOW_MS (drain window, not per-plugin timeout)
 pub fn emit_plugin_timeout_async(ctx: &HostContext, plugin_name: &str, timeout_ms: u32) {
-    let ev = InternalEvent::now("plugin.timeout");
+    let ev = InternalEvent::now(crate::internal_log::PLUGIN_TIMEOUT);
     // BC-3.08.001 wire format: mandatory `trace_id` and `timestamp` fields (DI-017).
     // `with_trace_id` now serializes as `"trace_id"` on the wire (BC-3.08.001 v1.7 Invariant 5).
     let ts = ev.ts.clone();
@@ -335,7 +335,7 @@ pub fn emit_plugin_abandoned(
     entry_index: u32,
     drain_window_ms: u64,
 ) {
-    let ev = InternalEvent::now("plugin.abandoned");
+    let ev = InternalEvent::now(crate::internal_log::PLUGIN_ABANDONED);
     let ts = ev.ts.clone();
     let ev = ev
         .with_trace_id(&ctx.dispatcher_trace_id)
@@ -380,10 +380,15 @@ pub fn emit_plugin_completed_async(
     elapsed_ms: u64,
     fuel_consumed: u64,
 ) {
-    let ev = InternalEvent::now("plugin.completed");
+    let ev = InternalEvent::now(crate::internal_log::PLUGIN_COMPLETED);
+    // BC-3.08.001 §Postconditions Event 6 Mandatory-fields: mandatory `timestamp` field for all plugin.* events.
+    // Capture ts before moving ev into the builder chain (mirrors all sibling emitters
+    // in this file: emit_plugin_abandoned, emit_plugin_timeout_async, etc.).
+    let ts = ev.ts.clone();
     let ev = ev
         .with_trace_id(&ctx.dispatcher_trace_id)
         .with_session_id(&ctx.session_id)
+        .with_field("timestamp", ts.as_str())
         .with_plugin_name(plugin_name)
         .with_plugin_version(plugin_version)
         .with_field("entry_index", u64::from(entry_index))
@@ -598,6 +603,61 @@ mod tests {
             "T-003(b): entry_index must differ for distinct invocations — \
              (plugin_name, entry_index) must be an unambiguous identification tuple \
              per BC-3.08.001 v1.21 Invariant 6 and EAC-008 gate (b)"
+        );
+    }
+
+    // -----------------------------------------------------------------------
+    // S-19.09 T-013 — AC-009 (D22 RED gate)
+    //
+    // emit_plugin_completed_async must emit a plugin.completed event with a
+    // non-empty "timestamp" field, matching the pattern of all sibling async
+    // event emitters (emit_plugin_abandoned, emit_plugin_async_block_discarded,
+    // emit_dispatcher_schema_mismatch, etc.) in this file.
+    //
+    // RED today: emit_plugin_completed_async does not capture `let ts = ev.ts.clone()`
+    // or chain `.with_field("timestamp", ts.as_str())`, so the emitted event has
+    // no "timestamp" key in its fields map.
+    //
+    // GREEN after D22: the timestamp field is added matching sibling emitters.
+    //
+    // AC trace: AC-009; BC-3.08.001 §Postconditions Event 6 Mandatory-fields (mandatory timestamp for all
+    // plugin.* events); F-WG-003.
+    // -----------------------------------------------------------------------
+    fn make_ctx_for_t013() -> super::HostContext {
+        super::HostContext::new(
+            "test-plugin-t013",
+            "0.1.0",
+            "test-session-s19-09",
+            "test-trace-s19-09",
+        )
+    }
+
+    #[test]
+    fn test_s19_09_t013_emit_plugin_completed_async_has_timestamp_field() {
+        let ctx = make_ctx_for_t013();
+        super::emit_plugin_completed_async(&ctx, "test-plugin-t013", "0.1.0", 0, 0, 100, 5000);
+        let events = ctx.drain_events();
+        assert_eq!(
+            events.len(),
+            1,
+            "T-013: emit_plugin_completed_async must emit exactly one event"
+        );
+        let ev = &events[0];
+        assert_eq!(
+            ev.type_, "plugin.completed",
+            "T-013: emitted event type must be plugin.completed"
+        );
+        let ts_value = ev.fields.get("timestamp");
+        assert!(
+            ts_value.is_some(),
+            "T-013 AC-009: emit_plugin_completed_async must emit a 'timestamp' field \
+             (BC-3.08.001 §Postconditions Event 6 Mandatory-fields mandatory for all plugin.* events; F-WG-003); \
+             field is absent — D22 fix is required"
+        );
+        let ts_str = ts_value.and_then(|v| v.as_str()).unwrap_or("");
+        assert!(
+            !ts_str.is_empty(),
+            "T-013 AC-009: 'timestamp' field value must be non-empty; got empty string"
         );
     }
 

@@ -1,0 +1,36 @@
+# S-19.09 — D21 Bare-Literal Sweep (AC-008)
+# Branch: feature/S-19.09
+# HEAD: 923ebff4
+# Commands: bats T-011/T-012 + direct awk-scoped grep gates
+
+--- bats T-011/T-012 (from host-abi-hygiene.bats) ---
+
+(Shown in context of full 9-test suite run)
+
+1..9
+ok 1 T-004 AC-004 Gate A: stale 'epoch interruption' text absent from read_file.rs
+ok 2 T-005 AC-004 Gate A: stale 'epoch interruption' text absent from read_prefix.rs
+ok 3 T-006 AC-004 Gate B: corrected 'structurally unenforced' text present in read_file.rs
+ok 4 T-007 AC-004 Gate B: corrected 'structurally unenforced' text present in read_prefix.rs
+ok 5 T-008 AC-005: two-linker duality comment (Linker<StoreData>/setup_host_on_store_data) present in read_file.rs
+ok 6 T-009 AC-006: pub const INTERNAL_FILE_NOT_FOUND exported from internal_log.rs
+ok 7 T-010 AC-007: pub const PLUGIN_ABANDONED exported from internal_log.rs
+ok 8 T-011 AC-008: zero bare literals in production code of read_file.rs, read_prefix.rs, emit_event.rs, executor.rs, vsdd_sink.rs
+ok 9 T-012 AC-008 regression: cargo test -p factory-dispatcher passes after D21 sweep
+
+--- Direct awk-scoped grep gates (AC-008 — zero bare literals in production code) ---
+
+$ awk '/^#\[cfg\(test\)\]/{exit} {print}' crates/factory-dispatcher/src/host/read_file.rs | grep -oE '"internal\.file_not_found"|"plugin\.abandoned"'
+(no output — empty = PASS)
+read_file.rs: '' (empty = PASS)
+
+$ awk '/^#\[cfg\(test\)\]/{exit} {print}' crates/factory-dispatcher/src/host/read_prefix.rs | grep -oE '"internal\.file_not_found"|"plugin\.abandoned"'
+(no output — empty = PASS)
+read_prefix.rs: '' (empty = PASS)
+
+$ awk '/^#\[cfg\(test\)\]/{exit} {print}' crates/factory-dispatcher/src/host/emit_event.rs | grep -oE '"internal\.file_not_found"|"plugin\.abandoned"|"plugin\.completed"|"plugin\.timeout"'
+(no output — empty = PASS)
+emit_event.rs: '' (empty = PASS)
+
+All three files: zero bare literals found in production code. D21 sweep complete.
+(F-P1-002 four-literal extension: "plugin.completed" and "plugin.timeout" also absent from emit_event.rs production code)

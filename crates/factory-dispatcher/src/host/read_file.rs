@@ -35,11 +35,29 @@ pub fn register(linker: &mut Linker<HostContext>) -> Result<(), HostCallError> {
              out_ptr_out: u32,
              out_len_out: u32|
              -> i32 {
-                let _ = timeout_ms; // accepted for ABI stability; enforced in S-1.5 via epoch interruption
+                // accepted for ABI forward-compatibility; per-host-function timeout is
+                // structurally unenforced in the current synchronous func_wrap dispatch
+                // path; the store-level epoch deadline governs coarse plugin-level time.
+                let _ = timeout_ms;
                 let path = match read_wasm_string(&mut caller, path_ptr, path_len) {
                     Ok(s) => s,
                     Err(_) => return codes::INVALID_ARGUMENT,
                 };
+                // Two-linker protocol note (ADR-025 §Decision 17):
+                //
+                // Test path (Linker<HostContext> / setup_linker in host/mod.rs):
+                //   prepare() returns Ok((bytes, 0)) — out_ptr=0 is a constant sentinel.
+                //   write_wasm_bytes is then called with out_ptr=0: bytes are written at
+                //   guest address 0 without growing memory. The hook-sdk read_owned_bytes
+                //   ptr==0 guard returns Vec::new() for BOTH empty and non-empty reads —
+                //   non-empty test-path read-backs yield an empty Vec (bytes discarded).
+                //   The test path is NOT a real data-return path.
+                //
+                // Production path (Linker<StoreData> / setup_host_on_store_data in invoke.rs):
+                //   Ignores the out_ptr sentinel from prepare(). Instead it grows WASM
+                //   linear memory and writes the bytes at current_bytes (always > 0),
+                //   returning the real address via out_ptr_out — the only path returning
+                //   real content at ptr>0. See invoke.rs for the memory-grow protocol.
                 let (body, out_ptr) = {
                     let ctx = caller.data();
                     match prepare(ctx, &path, max_bytes) {
@@ -116,7 +134,7 @@ pub(crate) fn prepare(
             // Emit `internal.file_not_found` (NOT `internal.capability_denied`)
             // and return `codes::NOT_FOUND (-5)` so plugins can distinguish
             // "absent file" from "genuine allowlist violation".
-            let ev = InternalEvent::now("internal.file_not_found")
+            let ev = InternalEvent::now(crate::internal_log::INTERNAL_FILE_NOT_FOUND)
                 .with_trace_id(&ctx.dispatcher_trace_id)
                 .with_session_id(&ctx.session_id)
                 .with_plugin_name(&ctx.plugin_name)
