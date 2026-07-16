@@ -381,7 +381,7 @@ pub fn emit_plugin_completed_async(
     fuel_consumed: u64,
 ) {
     let ev = InternalEvent::now(crate::internal_log::PLUGIN_COMPLETED);
-    // BC-3.08.001 §Common Fields: mandatory `timestamp` field for all plugin.* events.
+    // BC-3.08.001 §Postconditions Event 6 Mandatory-fields: mandatory `timestamp` field for all plugin.* events.
     // Capture ts before moving ev into the builder chain (mirrors all sibling emitters
     // in this file: emit_plugin_abandoned, emit_plugin_timeout_async, etc.).
     let ts = ev.ts.clone();
@@ -620,7 +620,7 @@ mod tests {
     //
     // GREEN after D22: the timestamp field is added matching sibling emitters.
     //
-    // AC trace: AC-009; BC-3.08.001 §Common Fields (mandatory timestamp for all
+    // AC trace: AC-009; BC-3.08.001 §Postconditions Event 6 Mandatory-fields (mandatory timestamp for all
     // plugin.* events); F-WG-003.
     // -----------------------------------------------------------------------
     fn make_ctx_for_t013() -> super::HostContext {
@@ -651,7 +651,7 @@ mod tests {
         assert!(
             ts_value.is_some(),
             "T-013 AC-009: emit_plugin_completed_async must emit a 'timestamp' field \
-             (BC-3.08.001 §Common Fields mandatory for all plugin.* events; F-WG-003); \
+             (BC-3.08.001 §Postconditions Event 6 Mandatory-fields mandatory for all plugin.* events; F-WG-003); \
              field is absent — D22 fix is required"
         );
         let ts_str = ts_value.and_then(|v| v.as_str()).unwrap_or("");
