@@ -623,7 +623,8 @@ mod tests {
     }
 
     /// STATE.md content with a malformed block — expires_at not ISO-8601 (EC-005).
-    /// Used by bats T-9 fixture builder; defined here for parity with other fixtures.
+    /// Retained as a parity reference fixture; no bats test in the S-19.07 suite
+    /// currently exercises this scenario.
     #[allow(dead_code)]
     fn state_md_malformed_expires_at() -> Vec<u8> {
         b"---\ndocument_type: state\nversion: \"0.0.1-test\"\nphase: test\nfactory_lock:\n  holder: \"other@example.com\"\n  locked_at: \"2026-06-10T14:00:00Z\"\n  expires_at: \"not-a-timestamp\"\n---\n\n# STATE\n"
@@ -1443,7 +1444,8 @@ mod tests {
     /// The mock callback (make_callbacks_success) ignores max_bytes and returns all content
     /// bytes; guard_logic calls extract_frontmatter on the returned bytes to locate the lock.
     /// This exercises guard_logic with a large in-memory fixture; the actual read_prefix
-    /// max_bytes bound is verified by the bats T-003/T-004 integration tests.
+    /// max_bytes bound is verified by test_S1907_FP1002_real_shape_35kb_frontmatter_foreign_lock_blocks
+    /// (assertion (a): rejects max_bytes != 262144; plus the embedded 8192→Continue mutation check).
     ///
     /// Phase-B adapted (S-19.07): STATE_MD_MAX_BYTES constant removed; pre-condition
     /// assertion deleted. Core behavioral assertion (foreign lock → Block) retained unchanged.
