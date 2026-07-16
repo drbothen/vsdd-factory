@@ -12,7 +12,8 @@
 //!
 //! # Compliance notes (BC-4.13.001)
 //! - HOST_ABI_VERSION = 1 (no new host functions introduced; ADR-025 Decision 1).
-//! - Uses only host::read_file, host::exec_subprocess, host::log_warn (ABI v1).
+//! - Phase-B (S-19.07): uses host::read_prefix, host::exec_subprocess, host::log_warn (ABI v1).
+//!   Phase-A used host::read_file; Phase-B migrated to host::read_prefix per BC-4.13.001 v1.17.
 //! - Block messages use HookResult::Block (block_intent = true; exit code 2).
 //! - async = false REQUIRED in both registry entries — see ADR-019 + ADR-025.
 //! - No dependency on factory-dispatcher or other workspace crates (forbidden).
