@@ -313,9 +313,9 @@ dtu_services: []
 
 ### §In-Flight at Wrap
 
-**ABANDONED MID-STEP:** pr-manager was ticking the PR #670 description baseline-checklist item and re-verifying CI at e7b518e7. Resuming session MUST verify:
-- **(a) PR #670 description baseline-checklist item ticked.** Baseline machine-captured: pre @ 13ece92c = 28 crate lib files / 2055 workspace lines; post @ e7b518e7 lineage = 31 / 2057; delta +3 crate files −1 deleted integration_ac004 = net +2. Transcripts at docs/demo-evidence/S-19.07/.
-- **(b) CI green at e7b518e7.** The 4d4f60bc + 0f11a387 + 70a65829 + e7b518e7 commits are docs-only / binary rebuild — expected CI green; verify via `gh pr checks 670`.
+**PR #670 FULLY MERGE-READY — all checks green, checklist complete, zero open items; sole remaining action is the D-665 human merge.**
+
+CI run 29504190851 COMPLETE — all 15 checks SUCCESS at e7b518e7 (incl. all 5 build-dispatcher platform legs). PR description baseline checklist item ticked with machine-captured numbers: pre @ 13ece92c = 28 crate lib files / 2055 workspace lines; post @ e7b518e7 = 31 / 2057; delta +3 crate −1 deleted integration_ac004 = net +2. Transcripts at docs/demo-evidence/S-19.07/. mergeable=MERGEABLE, mergeStateStatus=CLEAN, state=OPEN. No verification steps remain on resume — go directly to presenting D-665 human merge gate.
 
 ### §Pending Human Decisions
 
