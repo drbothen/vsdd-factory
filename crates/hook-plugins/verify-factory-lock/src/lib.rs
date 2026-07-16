@@ -1736,7 +1736,7 @@ mod tests {
         let result = guard_logic(payload, callbacks);
         assert!(
             matches!(result, HookResult::Block { .. }),
-            "T-003 S-19.07: 20KB STATE.md with foreign unexpired lock must return Block \
+            "T-006 S-19.07: 20KB STATE.md with foreign unexpired lock must return Block \
              (guard calls read_prefix with max_bytes=262144 per ADR-025 §D15 v1.17). \
              Got: {:?}. Warns: {:?}",
             result,
@@ -1778,14 +1778,14 @@ mod tests {
         let result = guard_logic(payload, callbacks);
         assert!(
             matches!(result, HookResult::Continue),
-            "T-004 S-19.07: 20KB STATE.md with no lock must return Continue. \
+            "T-007 S-19.07: 20KB STATE.md with no lock must return Continue. \
              Got: {:?}",
             result
         );
         let warns = warn_log.lock().unwrap();
         assert!(
             warns.is_empty(),
-            "T-004 S-19.07: no-lock large fixture must produce no warns \
+            "T-007 S-19.07: no-lock large fixture must produce no warns \
              (clean unlocked path, max_bytes=262144). Warns: {:?}",
             *warns
         );
