@@ -1,1 +1,1 @@
-{"status":"pass","timestamp":"2026-07-16T13:47:15Z","command":"echo \"=== COMMAND: cargo test --workspace --all-targets 2>&1 | grep -E '^test result'\" && cargo test --workspace --all-targets 2>&1 | grep -E \"^test result\""}
+{"status":"pass","timestamp":"2026-07-17T20:32:38Z","command":"cargo test -p validate-state-structure --lib 2>&1 | tail -15"}

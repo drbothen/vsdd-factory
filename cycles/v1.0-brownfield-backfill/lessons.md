@@ -6990,3 +6990,21 @@ Both gates are mandatory standing Commit-E controls for any burst touching E-19 
 **Cites:** d45c17bb (pr-manager sprint-state fix for S-19.06, 2nd D-843 commit); 2e83e053 (sprint-state sync for S-19.09 convergence burst); D-844 GATE1-HYGIENE-REMEDIATION; D-847 Summary parent-commit note.
 
 **Closes:** S-19.09 POST-MERGE burst (2026-07-16). `[process-gap; sprint-state; three-surfaces; atomic-update; post-merge; convergence-burst; S-19.09; codified]`
+
+---
+
+### L-BB-per-story-pr-review-reports-must-persist-at-review-time [process-gap] [codified D-850]
+
+**Title:** Per-Story PR Review Reports (pr-reviewer + security-reviewer) Must Be Persisted to code-delivery/<story>/ at Review Time — Session Context Is Not Durable Storage
+
+**Lesson:** When a story's PR is reviewed by the pr-reviewer and security-reviewer specialists, their output reports must be immediately written to `.factory/code-delivery/<story-id>/` and committed to factory-artifacts in the same state-manager burst as the convergence event. Leaving the reports only in conversation context means they are lost at session end (wrap, clear, or compaction), requiring a fresh re-run in the next session — wasting compute, consuming a context window, and creating an audit gap where the factory has no durable record of the review that informed the merge decision. The S-19.07 session-wrap burst (D-849) swept `code-delivery/S-19.09/` (correctly committed) but missed that S-19.07 had no `code-delivery/` artifacts at all — the story was converged and PR-ready, but neither the pr-reviewer report nor the security-reviewer report were ever committed.
+
+**Root cause:** The S-19.07 LOCAL adversarial cascade converged at pass-18 and the pr-reviewer + security-reviewer were dispatched. Their reports were returned as conversation text but were not written to `.factory/code-delivery/S-19.07/` at review time. The D-849 session-wrap burst checklist verified that `code-delivery/S-19.09/` existed (it was committed) but did not verify that S-19.07 had corresponding artifacts. The S-19.01..03 pattern (D-840 session-wrap burst) correctly committed six files: `code-delivery/S-19.01/{pr-description,security-review}.md` × 3 stories. S-19.07 was handled in a different session flow where the reviews happened but the filesystem writes did not follow.
+
+**Prevention:** (1) At convergence burst (3-CLEAN streak achieved), the state-manager checklist MUST include: "verify `code-delivery/<story-id>/security-review.md` and `code-delivery/<story-id>/pr-review-<pr-number>.md` exist on disk before staging." (2) Review specialists (pr-reviewer, security-reviewer) MUST write their output to the `code-delivery/` path, not only return it as conversation text. (3) Session-wrap burst checklist must verify: for every story at `ready` status, `code-delivery/<story-id>/` is non-empty and committed to factory-artifacts. (4) Delta re-review reports (`pr-review-<pr-number>-delta.md`) must also be committed when produced.
+
+**Anchors:** D-849 SESSION-WRAP-PAUSED (2026-07-16): S-19.07 converged but code-delivery/S-19.07/ entirely absent from factory-artifacts; D-840 SESSION-WRAP-PAUSED (2026-07-14): S-19.01/02/03 code-delivery artifacts correctly committed (6 files: pr-description.md × 3 + security-review.md × 3); D-850 PR-REVIEW-EVIDENCE-BURST (2026-07-17): fresh re-run closes the gap (3 new files: security-review.md, pr-review-670.md, pr-review-670-delta.md).
+
+**Cites:** D-849 SESSION-WRAP-PAUSED (gap origin); D-840 SESSION-WRAP-PAUSED (correct pattern reference); D-850 PR-REVIEW-EVIDENCE-BURST (closure); `.factory/code-delivery/` artifact standard; [[L-BB-convergence-burst-flips-status-in-all-three-state-surfaces]].
+
+**Closes:** D-850 PR-REVIEW-EVIDENCE-BURST burst (2026-07-17). `[process-gap; code-delivery; pr-review; security-review; artifact-persistence; session-wrap; convergence-burst; S-19.07; D-850; codified]`
