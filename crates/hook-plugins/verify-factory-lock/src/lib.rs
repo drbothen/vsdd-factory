@@ -57,6 +57,13 @@ pub const HOST_ABI_VERSION: u32 = 1;
 /// Timeout in milliseconds for the `host::read_prefix` call.
 pub const READ_TIMEOUT_MS: u32 = 5000;
 
+/// STATE.md prefix byte length for `host::read_prefix` — the established STATE.md byte
+/// envelope (ADR-025 §Decision 15). Guarantees the closing `---` delimiter and
+/// `factory_lock` block are within the prefix for any on-envelope STATE.md.
+/// Tests use independent hardcoded 262144 literals as an intentional oracle to detect
+/// accidental changes to this constant.
+pub const STATE_MD_PREFIX_BYTES: u32 = 262144;
+
 /// Regex (literal string) for the factory-artifacts Bash push arm.
 /// This is used internally by the plugin for Bash payloads — NOT a dependency
 /// on the `regex` crate. The pattern is matched via a simple substring/contains
@@ -324,10 +331,14 @@ where
     }
 
     // Step 2: Read STATE.md prefix via read_prefix. On HostError: log_warn + return Continue (PC6).
-    // ADR-025 §Decision 15: max_bytes=262144 is the STATE.md byte envelope — ensures the
+    // ADR-025 §Decision 15: STATE_MD_PREFIX_BYTES is the STATE.md byte envelope — ensures the
     // complete frontmatter is always read regardless of file growth. OutputTooLarge is
     // structurally impossible from read_prefix (BC-1.17.001 PC-3).
-    let state_bytes = match (callbacks.read_prefix)(".factory/STATE.md", 262144, READ_TIMEOUT_MS) {
+    let state_bytes = match (callbacks.read_prefix)(
+        ".factory/STATE.md",
+        STATE_MD_PREFIX_BYTES,
+        READ_TIMEOUT_MS,
+    ) {
         Ok(bytes) => bytes,
         Err(e) => {
             // PC6 + Invariant 6 capability-denied graceful degrade.
@@ -619,15 +630,6 @@ mod tests {
     /// STATE.md content with a malformed block — holder field is empty string (EC-004).
     fn state_md_malformed_empty_holder() -> Vec<u8> {
         b"---\ndocument_type: state\nversion: \"0.0.1-test\"\nphase: test\nfactory_lock:\n  holder: \"\"\n  locked_at: \"2026-06-10T14:00:00Z\"\n  expires_at: \"2099-01-01T00:00:00Z\"\n---\n\n# STATE\n"
-            .to_vec()
-    }
-
-    /// STATE.md content with a malformed block — expires_at not ISO-8601 (EC-005).
-    /// Retained as a parity reference fixture; no bats test in the S-19.07 suite
-    /// currently exercises this scenario.
-    #[allow(dead_code)]
-    fn state_md_malformed_expires_at() -> Vec<u8> {
-        b"---\ndocument_type: state\nversion: \"0.0.1-test\"\nphase: test\nfactory_lock:\n  holder: \"other@example.com\"\n  locked_at: \"2026-06-10T14:00:00Z\"\n  expires_at: \"not-a-timestamp\"\n---\n\n# STATE\n"
             .to_vec()
     }
 
@@ -1623,10 +1625,10 @@ mod tests {
     //
     // These tests are GREEN after the Phase-B implementation migrates
     // host::read_file → host::read_prefix (S-19.07) AND the bound was raised to
-    // 262144 per ADR-025 §D15 v1.17 (F-P1-001 fix, S-19.07).
+    // 262144 per ADR-025 §Decision 15 (F-P1-001 fix, S-19.07).
     //
     // Each test builds inline GuardCallbacks where the `read_prefix` closure
-    // enforces max_bytes == 262144 (the STATE.md byte envelope per ADR-025 §D15 v1.17).
+    // enforces max_bytes == 262144 (the STATE.md byte envelope per ADR-025 §Decision 15).
     //
     //   GREEN: guard calls (callbacks.read_prefix)("...", 262144, ...)
     //          → 262144 == 262144 → mock returns prefix bytes → guard logic runs
@@ -1702,10 +1704,11 @@ mod tests {
         bytes
     }
 
+    // Story Test Plan row T-006: function name retains original T-003 task numbering per spec citation (v1.19 §Test Plan).
     /// T-006 (AC-003): Large STATE.md (20KB) with foreign unexpired lock in frontmatter.
     ///
     /// The mock callback enforces max_bytes == 262144 (STATE.md byte envelope per
-    /// ADR-025 §D15 v1.17). Since 20000 < 262144, the mock returns the full 20KB
+    /// ADR-025 §Decision 15). Since 20000 < 262144, the mock returns the full 20KB
     /// fixture containing the complete frontmatter with factory_lock.
     ///
     /// GREEN: guard calls with max_bytes=262144 → mock returns full 20KB fixture →
@@ -1719,7 +1722,7 @@ mod tests {
             read_prefix: move |_path, max_bytes, _timeout| {
                 if max_bytes != 262144 {
                     return Err(format!(
-                        "ADR-025 §D15 v1.17: guard must call read_prefix with max_bytes=262144; \
+                        "ADR-025 §Decision 15: guard must call read_prefix with max_bytes=262144; \
                          got max_bytes={max_bytes}"
                     ));
                 }
@@ -1737,17 +1740,18 @@ mod tests {
         assert!(
             matches!(result, HookResult::Block { .. }),
             "T-006 S-19.07: 20KB STATE.md with foreign unexpired lock must return Block \
-             (guard calls read_prefix with max_bytes=262144 per ADR-025 §D15 v1.17). \
+             (guard calls read_prefix with max_bytes=262144 per ADR-025 §Decision 15). \
              Got: {:?}. Warns: {:?}",
             result,
             warn_log.lock().unwrap()
         );
     }
 
+    // Story Test Plan row T-007: function name retains original T-004 task numbering per spec citation (v1.19 §Test Plan).
     /// T-007 (AC-003): Large STATE.md (20KB) with NO factory_lock in frontmatter.
     ///
     /// The mock callback enforces max_bytes == 262144 (STATE.md byte envelope per
-    /// ADR-025 §D15 v1.17). Since 20000 < 262144, the mock returns the full 20KB
+    /// ADR-025 §Decision 15). Since 20000 < 262144, the mock returns the full 20KB
     /// fixture. No lock → Continue, no warns (clean unlocked path).
     ///
     /// GREEN: guard calls with max_bytes=262144 → mock returns full 20KB fixture →
@@ -1761,7 +1765,7 @@ mod tests {
             read_prefix: move |_path, max_bytes, _timeout| {
                 if max_bytes != 262144 {
                     return Err(format!(
-                        "ADR-025 §D15 v1.17: guard must call read_prefix with max_bytes=262144; \
+                        "ADR-025 §Decision 15: guard must call read_prefix with max_bytes=262144; \
                          got max_bytes={max_bytes}"
                     ));
                 }
@@ -1795,8 +1799,8 @@ mod tests {
     /// falls at exactly the last 4 bytes of the 262144-byte read_prefix result.
     ///
     /// Verifies `extract_frontmatter` finds `\n---\n` when it ends at the last byte of
-    /// the 262144-byte prefix window (ADR-025 §D15 v1.17 boundary). This is the
-    /// delimiter-at-boundary edge case per VP-095 v1.3 representative depth.
+    /// the 262144-byte prefix window (ADR-025 §Decision 15 boundary). This is the
+    /// delimiter-at-boundary edge case per VP-095 v1.5 representative depth.
     ///
     /// GREEN: guard calls with max_bytes=262144 → mock returns exactly 262144 bytes
     ///   (frontmatter with factory_lock + closing `---\n` at the final 4 bytes)
@@ -1815,7 +1819,7 @@ mod tests {
             read_prefix: move |_path, max_bytes, _timeout| {
                 if max_bytes != 262144 {
                     return Err(format!(
-                        "ADR-025 §D15 v1.17: guard must call read_prefix with max_bytes=262144; \
+                        "ADR-025 §Decision 15: guard must call read_prefix with max_bytes=262144; \
                          got max_bytes={max_bytes}"
                     ));
                 }
@@ -1832,7 +1836,7 @@ mod tests {
             matches!(result, HookResult::Block { .. }),
             "EC-001 S-19.07: closing delimiter at 262144-byte boundary must return Block. \
              extract_frontmatter must find \\n---\\n ending at the last byte of the prefix \
-             (ADR-025 §D15 v1.17). Got: {:?}. Warns: {:?}",
+             (ADR-025 §Decision 15). Got: {:?}. Warns: {:?}",
             result,
             warn_log.lock().unwrap()
         );
@@ -1858,10 +1862,11 @@ mod tests {
     //       (proves the correct bound covers the realistic lock position)
     //   (b) no lock, same giant frontmatter → Continue, zero warns
     //
-    // Mutation-check (TD-VSDD-059): assertion (a) includes an embedded
-    // mini-mutation that proves with the OLD 8192-byte cap the lock is MISSED
-    // (returns Continue), and only with the 262144-byte cap is the lock FOUND
-    // (returns Block). This is executed evidence per D-449(a).
+    // Old-cap regression branch (TD-VSDD-059, D-449(a)): assertion (a) includes an embedded
+    // branch that simulates the bug's observable effect by hardcoding fixture[..8192]. This
+    // does NOT mutate the production bound — the real production-bound proof is the
+    // max_bytes != 262144 → Err assertion in ASSERTION (a) below. Shows: 8192-byte prefix
+    // → lock missed → Continue; 262144-byte prefix → lock found → Block.
     // -----------------------------------------------------------------------
 
     /// Build a STATE.md fixture with ~35KB frontmatter and a factory_lock block
@@ -1968,13 +1973,12 @@ mod tests {
     /// With the factory_lock block at ~34870-byte depth, any bound ≤ 8192 silently misses
     /// the lock and returns Continue (fail-open). The correct 262144-byte bound finds it.
     ///
-    /// Mutation-check (TD-VSDD-059, D-449(a) executed evidence):
-    ///   With old 8192-byte cap: prefix truncated at 8192 — lock block not present in
-    ///   prefix → extract_frontmatter finds no closing delimiter in 8192 bytes →
-    ///   parse_factory_lock returns MalformedLockBlock → guard returns Continue.
-    ///   This PROVES the old bound missed the foreign lock. Evidence captured inline.
-    ///
-    ///   With new 262144-byte cap: full frontmatter returned → lock found → Block.
+    /// Old-cap regression branch (TD-VSDD-059, D-449(a) executed evidence):
+    ///   Simulates the bug's observable effect by hardcoding `fixture[..8192]`; does NOT
+    ///   mutate the production bound. Real proof production uses max_bytes=262144: the
+    ///   sibling `max_bytes != 262144 → Err` assertion in ASSERTION (a) enforces the value.
+    ///   8192-byte branch: prefix too short → MalformedLockBlock → Continue (lock missed).
+    ///   262144-byte branch: full frontmatter returned → lock found → Block.
     #[test]
     fn test_S1907_FP1002_real_shape_35kb_frontmatter_foreign_lock_blocks() {
         let fixture = state_md_giant_frontmatter_with_lock_at_35kb();
@@ -1985,8 +1989,10 @@ mod tests {
         );
 
         // ------------------------------------------------------------------
-        // MUTATION CHECK (TD-VSDD-059, D-449(a)): demonstrate the old 8192-byte
-        // cap misses the lock at ~35KB depth.
+        // OLD-CAP REGRESSION BRANCH (TD-VSDD-059, D-449(a)): simulates the
+        // observable effect of the old 8192-byte cap (hardcodes fixture[..8192]).
+        // Does NOT mutate the production bound — real proof is max_bytes != 262144
+        // → Err in ASSERTION (a). Shows: short prefix → lock missed → Continue.
         // ------------------------------------------------------------------
         {
             let fixture_clone = fixture.clone();
@@ -2006,8 +2012,8 @@ mod tests {
             // → parse_factory_lock sees no closing delimiter → MalformedLockBlock → Continue.
             assert!(
                 matches!(old_result, HookResult::Continue),
-                "MUTATION CHECK: old 8192-byte cap must miss the lock at ~35KB depth and \
-                 return Continue. Got: {:?}. Warns: {:?}",
+                "OLD-CAP REGRESSION BRANCH: 8192-byte prefix must miss the lock at ~35KB \
+                 depth and return Continue. Got: {:?}. Warns: {:?}",
                 old_result,
                 wl_mut.lock().unwrap()
             );
@@ -2015,11 +2021,11 @@ mod tests {
             let warns = wl_mut.lock().unwrap();
             assert!(
                 !warns.is_empty(),
-                "MUTATION CHECK: old 8192-byte cap must emit a MalformedLockBlock warn. \
+                "OLD-CAP REGRESSION BRANCH: 8192-byte prefix must emit a MalformedLockBlock warn. \
                  No warns captured."
             );
         }
-        // Mutation check PASSED — old 8192-byte cap returned Continue (missed the lock).
+        // Old-cap branch PASSED — 8192-byte prefix returned Continue (lock missed as expected).
 
         // ------------------------------------------------------------------
         // ASSERTION (a): 262144-byte cap finds the lock → Block.
@@ -2031,7 +2037,7 @@ mod tests {
             read_prefix: move |_path, max_bytes, _timeout| {
                 if max_bytes != 262144 {
                     return Err(format!(
-                        "ADR-025 §D15 v1.17: guard must call read_prefix with max_bytes=262144; \
+                        "ADR-025 §Decision 15: guard must call read_prefix with max_bytes=262144; \
                          got max_bytes={max_bytes}"
                     ));
                 }
@@ -2069,7 +2075,7 @@ mod tests {
             read_prefix: move |_path, max_bytes, _timeout| {
                 if max_bytes != 262144 {
                     return Err(format!(
-                        "ADR-025 §D15 v1.17: guard must call read_prefix with max_bytes=262144; \
+                        "ADR-025 §Decision 15: guard must call read_prefix with max_bytes=262144; \
                          got max_bytes={max_bytes}"
                     ));
                 }

@@ -44,7 +44,7 @@ The production code region of `crates/hook-plugins/verify-factory-lock/src/lib.r
 line 330:    let state_bytes = match (callbacks.read_prefix)(".factory/STATE.md", 262144, READ_TIMEOUT_MS) {
 ```
 
-`max_bytes=262144` is the ADR-025 §Decision 15 v1.18 adjudicated envelope bound. `extract_frontmatter` is retained unchanged.
+`max_bytes=262144` is the ADR-025 §Decision 15 adjudicated envelope bound. `extract_frontmatter` is retained unchanged.
 
 **Gate B** (sed block-comment strip + line-comment filter + grep, exits non-zero):
 Phase-A symbols (`host::read_file`, `STATE_MD_MAX_BYTES`, `TooLarge`) are absent from non-comment production code. The gate uses:
