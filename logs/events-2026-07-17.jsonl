@@ -1,1 +1,3 @@
 {"type":"hook.block","hook":"validate-table-cell-count","reason":"table_cell_count","ts":"2026-07-17T15:11:11-0500","ts_epoch":1784319071,"schema_version":1}
+{"type":"hook.block","hook":"validate-input-hash","reason":"input_hash_drift","ts":"2026-07-17T17:40:48-0500","ts_epoch":1784328048,"schema_version":1}
+{"type":"hook.block","hook":"validate-table-cell-count","reason":"table_cell_count","ts":"2026-07-17T17:54:23-0500","ts_epoch":1784328863,"schema_version":1}
