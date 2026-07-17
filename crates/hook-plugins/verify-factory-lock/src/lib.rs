@@ -1704,7 +1704,7 @@ mod tests {
         bytes
     }
 
-    // Story Test Plan row T-006: function name retains original T-003 task numbering per spec citation (v1.19 §Test Plan).
+    // Story Test Plan row T-006: function name retains original T-003 task numbering per story §Test Plan (spec-cited function name; rows T-006/T-007).
     /// T-006 (AC-003): Large STATE.md (20KB) with foreign unexpired lock in frontmatter.
     ///
     /// The mock callback enforces max_bytes == 262144 (STATE.md byte envelope per
@@ -1747,7 +1747,7 @@ mod tests {
         );
     }
 
-    // Story Test Plan row T-007: function name retains original T-004 task numbering per spec citation (v1.19 §Test Plan).
+    // Story Test Plan row T-007: function name retains original T-004 task numbering per story §Test Plan (spec-cited function name; rows T-006/T-007).
     /// T-007 (AC-003): Large STATE.md (20KB) with NO factory_lock in frontmatter.
     ///
     /// The mock callback enforces max_bytes == 262144 (STATE.md byte envelope per
