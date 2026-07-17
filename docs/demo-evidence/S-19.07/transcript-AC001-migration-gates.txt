@@ -1,0 +1,46 @@
+S-19.07 AC-001 — Migration Gates: host::read_prefix present + Phase-A symbols absent
+Branch: feature/S-19.07  HEAD: b0b18dce
+Recorded: 2026-07-16
+
+=== T-001a: Gate A — host::read_prefix present in production code ===
+
+$ bats plugins/vsdd-factory/tests/verify-factory-lock-read-prefix.bats -f "T-001a"
+
+1..1
+ok 1 T-001a S-19.07 AC-001 Gate A: host::read_prefix called in verify-factory-lock/src/lib.rs
+
+=== T-001b: Gate B — Phase-A symbols absent from non-comment production code ===
+
+$ bats plugins/vsdd-factory/tests/verify-factory-lock-read-prefix.bats -f "T-001b"
+
+1..1
+ok 2 T-001b S-19.07 AC-001 Gate B: Phase-A symbols absent from non-comment code in verify-factory-lock/src/lib.rs
+
+=== Full bats run (5/5) ===
+
+$ bats plugins/vsdd-factory/tests/verify-factory-lock-read-prefix.bats
+
+1..5
+ok 1 T-001a S-19.07 AC-001 Gate A: host::read_prefix called in verify-factory-lock/src/lib.rs
+ok 2 T-001b S-19.07 AC-001 Gate B: Phase-A symbols absent from non-comment code in verify-factory-lock/src/lib.rs
+ok 3 T-002-vfl S-19.07 AC-002: verify-factory-lock registry entry has capabilities.read_prefix not capabilities.read_file
+ok 4 T-002-vfl-bash S-19.07 AC-002: verify-factory-lock-bash registry entry has capabilities.read_prefix not capabilities.read_file
+ok 5 T-005-ec005 S-19.07 EC-005: capabilities.read_prefix absent → graceful degrade to Continue
+
+=== Production call site grep: read_prefix with 262144 ===
+
+$ grep -n "read_prefix" crates/hook-plugins/verify-factory-lock/src/lib.rs | grep "262144"
+
+330:    let state_bytes = match (callbacks.read_prefix)(".factory/STATE.md", 262144, READ_TIMEOUT_MS) {
+
+Gate A confirms: host::read_prefix is called in production code (before #[cfg(test)] region)
+  with max_bytes=262144 — the ADR-025 §Decision 15 v1.18 adjudicated envelope bound.
+
+Gate B mutation-liveness (block-comment discriminating fixture):
+  Fixture: fn read_data() -> i32 { /* host::read_file(path, STATE_MD_MAX_BYTES) TooLarge check */ 0 }
+  sed block-comment strip + grep: output empty (symbols inside block comment correctly excluded)
+  → proves the sed chain is load-bearing; old line-comment-only gate would have found them.
+
+Gate B primary (production code of lib.rs, awk-scoped to stop at #[cfg(test)]):
+  Output: empty (host::read_file, STATE_MD_MAX_BYTES, TooLarge absent from non-comment code)
+  → Phase-B migration complete.

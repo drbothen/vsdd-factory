@@ -8,7 +8,8 @@
 //!   1. For Bash tool payloads: checks the internal push-regex
 //!      (`git.*push.*factory-artifacts`). If no match, returns Continue immediately
 //!      (sub-millisecond; no STATE.md read).
-//!   2. Reads `.factory/STATE.md` via `host::read_file`.
+//!   2. Reads the first 262144 bytes of `.factory/STATE.md` via `host::read_prefix`
+//!      (STATE.md byte envelope per ADR-025 §Decision 15).
 //!   3. Parses the YAML frontmatter region (line-by-line scan between `---\n`
 //!      delimiters) for the `factory_lock:` block and its three sub-fields.
 //!   4. Resolves the caller's identity via `host::exec_subprocess(["git", "config",
@@ -53,15 +54,15 @@ use vsdd_hook_sdk::{HookPayload, HookResult};
 /// against. The dispatcher reads this before any host call. Must remain 1.
 pub const HOST_ABI_VERSION: u32 = 1;
 
-/// Maximum bytes to read from STATE.md via `host::read_file`.
-///
-/// 256 KiB cap per BC-4.13.001 v1.15 Phase-A Precondition 3 (ADR-025 Decision 14).
-/// Worst-case observed STATE.md is <200 KiB under 500-line compaction discipline
-/// (ADR-026); 262144 gives ≥25% headroom over the observed range.
-pub const STATE_MD_MAX_BYTES: u32 = 262144;
+/// Timeout in milliseconds for the `host::read_prefix` call.
+pub const READ_TIMEOUT_MS: u32 = 5000;
 
-/// Timeout in milliseconds for the `host::read_file` call.
-pub const READ_FILE_TIMEOUT_MS: u32 = 5000;
+/// STATE.md prefix byte length for `host::read_prefix` — the established STATE.md byte
+/// envelope (ADR-025 §Decision 15). Guarantees the closing `---` delimiter and
+/// `factory_lock` block are within the prefix for any on-envelope STATE.md.
+/// Tests use independent hardcoded 262144 literals as an intentional oracle to detect
+/// accidental changes to this constant.
+pub const STATE_MD_PREFIX_BYTES: u32 = 262144;
 
 /// Regex (literal string) for the factory-artifacts Bash push arm.
 /// This is used internally by the plugin for Bash payloads — NOT a dependency
@@ -87,7 +88,7 @@ pub enum LockCheckError {
     LockExpired,
     /// PC4: `factory_lock` block absent, null, or malformed.
     MalformedLockBlock(String),
-    /// PC6: `host::read_file` returned a HostError.
+    /// PC6: `host::read_prefix` returned a HostError.
     StateReadError(String),
     /// PC7: `host::exec_subprocess` failed, returned non-zero, or returned empty output.
     IdentityResolutionFailed(String),
@@ -118,9 +119,10 @@ where
     E: FnOnce(&[&str]) -> Result<(i32, String), String>,
     L: FnMut(&str),
 {
-    /// Read a file by path with `(path, max_bytes, timeout_ms)`.
+    /// Read the first `max_bytes` bytes of a file via `host::read_prefix`.
+    /// `(path, max_bytes, timeout_ms)` — never returns `OutputTooLarge` (BC-1.17.001 PC-3).
     /// Returns `Ok(bytes)` or `Err(host_error_description)` on failure.
-    pub read_file: R,
+    pub read_prefix: R,
     /// Execute a subprocess with the given argv slice.
     /// Returns `Ok((exit_code, stdout))` or `Err(host_error_description)` on failure.
     pub exec_subprocess: E,
@@ -284,7 +286,8 @@ pub fn trim_git_email(raw: &str) -> String {
 ///   1. Extract `tool` from payload. If tool is "Bash":
 ///      - Extract `tool_input.command`. If command does NOT match push pattern:
 ///        return Continue immediately (EC-011).
-///   2. Read STATE.md via `read_file`. On error: log_warn + return Continue (PC6).
+///   2. Read STATE.md prefix (262144 bytes — STATE.md byte envelope, ADR-025 §Decision 15) via
+///      `read_prefix`. On error: log_warn + return Continue (PC6).
 ///   3. Parse frontmatter for `factory_lock`. On absent: return Continue (EC-001).
 ///      On malformed: log_warn + return Continue (PC4).
 ///   4. Parse `expires_at`. On parse fail: log_warn + return Continue (EC-005).
@@ -327,17 +330,20 @@ where
         }
     }
 
-    // Step 2: Read STATE.md. On HostError: log_warn + return Continue (PC6).
-    let state_bytes = match (callbacks.read_file)(
+    // Step 2: Read STATE.md prefix via read_prefix. On HostError: log_warn + return Continue (PC6).
+    // ADR-025 §Decision 15: STATE_MD_PREFIX_BYTES is the STATE.md byte envelope — ensures the
+    // complete frontmatter is always read regardless of file growth. OutputTooLarge is
+    // structurally impossible from read_prefix (BC-1.17.001 PC-3).
+    let state_bytes = match (callbacks.read_prefix)(
         ".factory/STATE.md",
-        STATE_MD_MAX_BYTES,
-        READ_FILE_TIMEOUT_MS,
+        STATE_MD_PREFIX_BYTES,
+        READ_TIMEOUT_MS,
     ) {
         Ok(bytes) => bytes,
         Err(e) => {
             // PC6 + Invariant 6 capability-denied graceful degrade.
             let msg = if e.contains("CapabilityDenied") {
-                format!("capability_denied: read_file ({})", e)
+                format!("capability_denied: read_prefix ({})", e)
             } else {
                 format!("StateReadError: {}", e)
             };
@@ -345,17 +351,6 @@ where
             return HookResult::Continue;
         }
     };
-
-    // BC-4.13.001 Invariant 10 soft-warning: emit diagnostic when
-    // bytes_read > soft_warn_threshold (200000) AND bytes_read <= STATE_MD_MAX_BYTES (262144).
-    // Observability-only; never alters the Continue/Block verdict.
-    let bytes_read = state_bytes.len();
-    if bytes_read > 200_000 && bytes_read <= STATE_MD_MAX_BYTES as usize {
-        (callbacks.log_warn)(&format!(
-            "state_md_approaching_cap: bytes_read={} cap_bytes={}",
-            bytes_read, STATE_MD_MAX_BYTES
-        ));
-    }
 
     // BC-4.13.001 Invariant 9 frontmatter-only mandate: extract the YAML
     // frontmatter prefix before passing bytes to the YAML parser. The guard
@@ -512,7 +507,7 @@ pub fn on_pre_tool_use(payload: HookPayload) -> HookResult {
     guard_logic(
         payload,
         GuardCallbacks {
-            read_file: |path, max_bytes, timeout_ms| match host::read_file(
+            read_prefix: |path, max_bytes, timeout_ms| match host::read_prefix(
                 path, max_bytes, timeout_ms,
             ) {
                 Ok(bytes) => Ok(bytes),
@@ -638,14 +633,6 @@ mod tests {
             .to_vec()
     }
 
-    /// STATE.md content with a malformed block — expires_at not ISO-8601 (EC-005).
-    /// Used by bats T-9 fixture builder; defined here for parity with other fixtures.
-    #[allow(dead_code)]
-    fn state_md_malformed_expires_at() -> Vec<u8> {
-        b"---\ndocument_type: state\nversion: \"0.0.1-test\"\nphase: test\nfactory_lock:\n  holder: \"other@example.com\"\n  locked_at: \"2026-06-10T14:00:00Z\"\n  expires_at: \"not-a-timestamp\"\n---\n\n# STATE\n"
-            .to_vec()
-    }
-
     // -----------------------------------------------------------------------
     // Helper: build GuardCallbacks with FnOnce-compatible closures.
     //
@@ -655,7 +642,7 @@ mod tests {
     // -----------------------------------------------------------------------
 
     /// Build callbacks where:
-    ///   - read_file returns `Ok(content)` immediately (success path)
+    ///   - read_prefix returns `Ok(content)` immediately (success path)
     ///   - exec_subprocess returns `Ok((0, git_email))` (success path)
     ///   - log_warn captures messages into `warn_log`
     #[allow(clippy::type_complexity)]
@@ -671,7 +658,7 @@ mod tests {
         let email = git_email.to_string();
         let wl = warn_log.clone();
         GuardCallbacks {
-            read_file: move |_path, _max, _timeout| Ok(content),
+            read_prefix: move |_path, _max, _timeout| Ok(content),
             exec_subprocess: move |_argv| Ok((0, format!("{}\n", email))),
             log_warn: move |msg: &str| {
                 wl.lock().unwrap().push(msg.to_string());
@@ -679,7 +666,7 @@ mod tests {
         }
     }
 
-    /// Build callbacks where read_file returns an error string.
+    /// Build callbacks where read_prefix returns an error string.
     #[allow(clippy::type_complexity)]
     fn make_callbacks_read_error(
         error_msg: &str,
@@ -692,7 +679,7 @@ mod tests {
         let err = error_msg.to_string();
         let wl = warn_log.clone();
         GuardCallbacks {
-            read_file: move |_path, _max, _timeout| Err(err),
+            read_prefix: move |_path, _max, _timeout| Err(err),
             exec_subprocess: |_argv| Ok((0, "self@example.com\n".to_string())),
             log_warn: move |msg: &str| {
                 wl.lock().unwrap().push(msg.to_string());
@@ -714,7 +701,7 @@ mod tests {
         let err = error_msg.to_string();
         let wl = warn_log.clone();
         GuardCallbacks {
-            read_file: move |_path, _max, _timeout| Ok(content),
+            read_prefix: move |_path, _max, _timeout| Ok(content),
             exec_subprocess: move |_argv| Err(err),
             log_warn: move |msg: &str| {
                 wl.lock().unwrap().push(msg.to_string());
@@ -729,7 +716,7 @@ mod tests {
     /// PC1: Foreign unexpired lock → Block with all 5 required fields.
     ///
     /// Mock setup:
-    ///   - read_file returns STATE.md with foreign holder "other@example.com",
+    ///   - read_prefix returns STATE.md with foreign holder "other@example.com",
     ///     expires_at "2099-01-01T00:00:00Z" (far future, unexpired).
     ///   - exec_subprocess returns "self@example.com" (different from holder).
     ///
@@ -785,7 +772,7 @@ mod tests {
     /// PC2: Foreign holder + expired lock → Continue (LockExpired path).
     ///
     /// Mock setup:
-    ///   - read_file returns STATE.md with holder "other@example.com",
+    ///   - read_prefix returns STATE.md with holder "other@example.com",
     ///     expires_at "2020-01-01T00:45:00Z" (well in the past).
     ///   - exec_subprocess returns "self@example.com".
     ///
@@ -821,7 +808,7 @@ mod tests {
     /// PC3: Self-held lock → Continue unconditionally.
     ///
     /// Mock setup:
-    ///   - read_file returns STATE.md with holder "self@example.com",
+    ///   - read_prefix returns STATE.md with holder "self@example.com",
     ///     expires_at "2099-01-01T00:00:00Z" (unexpired).
     ///   - exec_subprocess returns "self@example.com" (same as holder).
     ///
@@ -850,7 +837,7 @@ mod tests {
     /// PC4: Malformed lock block (empty holder) → Continue + log_warn("MalformedLockBlock…").
     ///
     /// Mock setup:
-    ///   - read_file returns STATE.md with factory_lock.holder = "" (EC-004).
+    ///   - read_prefix returns STATE.md with factory_lock.holder = "" (EC-004).
     ///   - exec_subprocess would return "self@example.com" (but should not be called).
     ///
     /// Expected: HookResult::Continue, AND log_warn captured containing "MalformedLockBlock".
@@ -881,18 +868,20 @@ mod tests {
         );
     }
 
-    /// PC6: read_file HostError → Continue + log_warn (StateReadError).
+    /// PC6: read_prefix HostError → Continue + log_warn (StateReadError).
     ///
     /// Mock setup:
-    ///   - read_file returns Err("OutputTooLarge") simulating a HostError variant.
+    ///   - read_prefix returns Err("NotFound") simulating a HostError variant.
+    ///   - OutputTooLarge is structurally impossible from read_prefix (BC-1.17.001 PC-3);
+    ///     NotFound is used as a representative read_prefix error path.
     ///
     /// Expected: HookResult::Continue + log_warn containing the error description.
     ///
     /// GREEN: guard_logic implemented; test exercises this BC path.
     #[test]
-    fn test_BC_4_13_001_read_file_host_error_returns_continue() {
+    fn test_BC_4_13_001_read_prefix_host_error_returns_continue() {
         let warn_log = Arc::new(Mutex::new(Vec::new()));
-        let callbacks = make_callbacks_read_error("OutputTooLarge", warn_log.clone());
+        let callbacks = make_callbacks_read_error("NotFound", warn_log.clone());
         let payload = payload_for_tool("Edit");
 
         let result = guard_logic(payload, callbacks);
@@ -905,14 +894,14 @@ mod tests {
         let warns = warn_log.lock().unwrap();
         assert!(
             !warns.is_empty(),
-            "read_file HostError must emit log_warn. No warns captured."
+            "read_prefix HostError must emit log_warn. No warns captured."
         );
     }
 
     /// PC7: git subprocess failure → Continue + log_warn (IdentityResolutionFailed).
     ///
     /// Mock setup:
-    ///   - read_file returns a valid STATE.md with a foreign unexpired lock.
+    ///   - read_prefix returns a valid STATE.md with a foreign unexpired lock.
     ///   - exec_subprocess returns Err("Timeout") simulating a subprocess failure.
     ///
     /// Expected: HookResult::Continue + log_warn containing identity-resolution info.
@@ -942,10 +931,10 @@ mod tests {
         );
     }
 
-    /// Invariant 6: CapabilityDenied on read_file → Continue + log_warn("capability_denied: ...").
+    /// Invariant 6: CapabilityDenied on read_prefix → Continue + log_warn("capability_denied: ...").
     ///
     /// The error string "CapabilityDenied" simulates what the host returns when the
-    /// [hooks.capabilities.read_file] block is omitted from the registry (EC-007).
+    /// [hooks.capabilities.read_prefix] block is omitted from the registry (EC-005).
     ///
     /// Expected: HookResult::Continue + log_warn containing "capability_denied:".
     ///
@@ -962,7 +951,7 @@ mod tests {
         assert_eq!(
             result,
             HookResult::Continue,
-            "CapabilityDenied on read_file must graceful-degrade to Continue (BC-4.13.001 Invariant 6)"
+            "CapabilityDenied on read_prefix must graceful-degrade to Continue (BC-4.13.001 Invariant 6)"
         );
         let warns = warn_log.lock().unwrap();
         assert!(
@@ -976,7 +965,7 @@ mod tests {
     ///
     /// Mock setup:
     ///   - payload.tool_name = "Bash"; tool_input.command = "git push origin factory-artifacts"
-    ///   - read_file returns a foreign unexpired lock.
+    ///   - read_prefix returns a foreign unexpired lock.
     ///   - exec_subprocess returns "self@example.com".
     ///
     /// Expected: HookResult::Block (push arm intercepted by internal push-regex).
@@ -1008,10 +997,10 @@ mod tests {
     /// T-7 (D9) + EC-011: Non-push Bash command → Continue immediately WITHOUT reading STATE.md.
     ///
     /// The guard must return Continue immediately for non-push Bash without calling
-    /// read_file at all (sub-millisecond path per BC-4.13.001 EC-011 + AC-013).
+    /// read_prefix at all (sub-millisecond path per BC-4.13.001 EC-011 + AC-013).
     ///
-    /// Test verifies via a call-counting mock on read_file: if read_file is called,
-    /// the test fails (assert read_file_call_count == 0).
+    /// Test verifies via a call-counting mock on read_prefix: if read_prefix is called,
+    /// the test fails (assert read_prefix_call_count == 0).
     ///
     /// GREEN: guard_logic implemented; test exercises this BC path.
     #[test]
@@ -1022,7 +1011,7 @@ mod tests {
         let wl = warn_log.clone();
 
         let callbacks = GuardCallbacks {
-            read_file: move |_path, _max, _timeout| {
+            read_prefix: move |_path, _max, _timeout| {
                 *read_count_clone.lock().unwrap() += 1;
                 // If this closure is called, the test will detect it via the counter.
                 Ok(state_md_foreign_unexpired_lock())
@@ -1044,7 +1033,7 @@ mod tests {
         let calls = *read_call_count.lock().unwrap();
         assert_eq!(
             calls, 0,
-            "Non-push Bash command must NOT call read_file (sub-millisecond short-circuit). read_file was called {} time(s).",
+            "Non-push Bash command must NOT call read_prefix (sub-millisecond short-circuit). read_prefix was called {} time(s).",
             calls
         );
     }
@@ -1276,7 +1265,7 @@ mod tests {
         let email = "self@example.com";
         let wl = warn_log.clone();
         let callbacks = GuardCallbacks {
-            read_file: move |_path, _max, _timeout| Ok(content_bytes),
+            read_prefix: move |_path, _max, _timeout| Ok(content_bytes),
             exec_subprocess: move |_argv| Ok((0, format!("{}\n", email))),
             log_warn: move |msg: &str| {
                 wl.lock().unwrap().push(msg.to_string());
@@ -1345,7 +1334,7 @@ mod tests {
         let email = "self@example.com";
         let wl = warn_log.clone();
         let callbacks = GuardCallbacks {
-            read_file: move |_path, _max, _timeout| Ok(content_bytes),
+            read_prefix: move |_path, _max, _timeout| Ok(content_bytes),
             exec_subprocess: move |_argv| Ok((0, format!("{}\n", email))),
             log_warn: move |msg: &str| {
                 wl.lock().unwrap().push(msg.to_string());
@@ -1392,44 +1381,6 @@ mod tests {
     fn test_BC_4_13_001_trim_git_email_unchanged_when_no_newline() {
         let result = trim_git_email("dev@example.com");
         assert_eq!(result, "dev@example.com");
-    }
-
-    // -----------------------------------------------------------------------
-    // S-19.02 Red Gate tests (T-001, T-002, T-003, T-009)
-    //
-    // These tests FAIL with the current stub/unimplemented state and will pass
-    // only after the implementation tasks for S-19.02 are complete.
-    //
-    // T-001: Asserts STATE_MD_MAX_BYTES == 262144 (AC-001).
-    //   RED because: current value is 65536.
-    //
-    // T-002: 70 KiB fixture + foreign lock → Block (AC-002).
-    //   This test verifies guard_logic handles a 70 KiB mock read correctly.
-    //   The mock bypasses the host cap; the test also asserts the constant is
-    //   at least 70000 (which fails now, ensuring Red Gate).
-    //
-    // T-003: 70 KiB fixture + no lock → Continue (AC-002).
-    //   Same cap assertion makes this a Red Gate.
-    //
-    // T-009: Soft-warning tests A–E (AC-006, BC-4.13.001 Invariant 10).
-    //   RED because: guard_logic does not yet emit state_md_approaching_cap.
-    // -----------------------------------------------------------------------
-
-    /// T-001 (AC-001): STATE_MD_MAX_BYTES == 262144 (256 KiB).
-    ///
-    /// BC-4.13.001 v1.15 Phase-A Precondition 3: the plugin-side compile-time
-    /// cap MUST be 262144. ADR-025 Decision 14.
-    ///
-    /// RED: current value is 65536; assertion fails until Task 9.
-    #[test]
-    fn test_S1902_T001_state_md_max_bytes_is_262144() {
-        assert_eq!(
-            STATE_MD_MAX_BYTES, 262144u32,
-            "AC-001: STATE_MD_MAX_BYTES must equal 262144 (256 KiB) per \
-             BC-4.13.001 v1.15 Phase-A Precondition 3 / ADR-025 Decision 14. \
-             Current value: {}",
-            STATE_MD_MAX_BYTES
-        );
     }
 
     /// Build a STATE.md fixture padded to `target_size` bytes.
@@ -1490,28 +1441,18 @@ mod tests {
         bytes
     }
 
-    /// T-002 (AC-002): 70 KiB fixture with foreign unexpired lock → Block.
+    /// S-19.02 T-002 (AC-002): 70 KiB mock content with foreign unexpired lock in frontmatter → Block.
     ///
-    /// AC-002: Plugin reads STATE.md successfully when the file is between 64 KiB
-    /// and 256 KiB and the factory_lock: block is present; correctly detects a
-    /// foreign unexpired lock and returns block intent.
+    /// The mock callback (make_callbacks_success) ignores max_bytes and returns all content
+    /// bytes; guard_logic calls extract_frontmatter on the returned bytes to locate the lock.
+    /// This exercises guard_logic with a large in-memory fixture; the actual read_prefix
+    /// max_bytes bound is verified by test_S1907_FP1002_real_shape_35kb_frontmatter_foreign_lock_blocks
+    /// (assertion (a): rejects max_bytes != 262144; plus the embedded 8192→Continue mutation check).
     ///
-    /// The test also asserts STATE_MD_MAX_BYTES >= 70000 as a compile-time Red
-    /// Gate for the cap-raise requirement.
-    ///
-    /// RED: STATE_MD_MAX_BYTES < 70000 currently (65536); cap assertion fails
-    /// until Task 9 raises it to 262144.
+    /// Phase-B adapted (S-19.07): STATE_MD_MAX_BYTES constant removed; pre-condition
+    /// assertion deleted. Core behavioral assertion (foreign lock → Block) retained unchanged.
     #[test]
     fn test_S1902_T002_70kib_fixture_foreign_lock_returns_block() {
-        // Pre-condition: cap must be at least 70 KiB for this test to be valid.
-        // This assertion is the Red Gate: fails until STATE_MD_MAX_BYTES = 262144.
-        assert!(
-            STATE_MD_MAX_BYTES >= 70_000u32,
-            "AC-002: STATE_MD_MAX_BYTES ({}) must be >= 70000 for this test to exercise \
-             the raised-cap behavior. Raise STATE_MD_MAX_BYTES to 262144 (Task 9).",
-            STATE_MD_MAX_BYTES
-        );
-
         let fixture = state_md_padded_with_foreign_lock(70_000);
         assert_eq!(fixture.len(), 70_000, "fixture must be exactly 70000 bytes");
 
@@ -1532,22 +1473,15 @@ mod tests {
         }
     }
 
-    /// T-003 (AC-002): 70 KiB fixture with no lock → Continue.
+    /// S-19.02 T-003 (AC-002): 70 KiB mock content with no lock → Continue.
     ///
-    /// AC-002 complement: when a > 64 KiB STATE.md has no lock, the guard
+    /// AC-002 complement: when a large mock STATE.md has no lock, the guard
     /// must return Continue (factory is unlocked).
     ///
-    /// RED: STATE_MD_MAX_BYTES < 70000 currently; cap assertion fails until
-    /// Task 9 raises it to 262144.
+    /// Phase-B adapted (S-19.07): STATE_MD_MAX_BYTES constant removed; pre-condition
+    /// assertion deleted. Core behavioral assertion (no lock → Continue) retained unchanged.
     #[test]
     fn test_S1902_T003_70kib_fixture_no_lock_returns_continue() {
-        // Pre-condition Red Gate: same cap assertion as T-002.
-        assert!(
-            STATE_MD_MAX_BYTES >= 70_000u32,
-            "AC-002: STATE_MD_MAX_BYTES ({}) must be >= 70000. Raise to 262144 (Task 9).",
-            STATE_MD_MAX_BYTES
-        );
-
         let fixture = state_md_padded_no_lock(70_000);
         assert_eq!(fixture.len(), 70_000, "fixture must be exactly 70000 bytes");
 
@@ -1562,170 +1496,6 @@ mod tests {
             HookResult::Continue,
             "AC-002: 70 KiB fixture with no lock must return Continue (unlocked path)"
         );
-    }
-
-    /// T-009 (AC-006): Soft-warning emission tests A–E.
-    ///
-    /// BC-4.13.001 v1.15 Invariant 10: guard must emit a `plugin.log` warn entry
-    /// containing `state_md_approaching_cap` when bytes_read is strictly > 200000
-    /// and at or below 262144.
-    ///
-    /// Five sub-tests:
-    ///   A: 210000 bytes → state_md_approaching_cap warn emitted.
-    ///   B: 150000 bytes → zero state_md_approaching_cap log entries.
-    ///   C: 200000 bytes exactly → zero state_md_approaching_cap log entries (strict > threshold).
-    ///   D: 262144 bytes exactly → warn AND read succeeds (cap-exact; inclusive upper bound).
-    ///   E: 262145 bytes → StateReadError (OUTPUT_TOO_LARGE/fail-open) AND zero warn.
-    ///
-    /// RED: guard_logic does not yet emit state_md_approaching_cap; all sub-tests
-    /// that assert warn presence will fail until Task 13.
-    #[test]
-    fn test_S1902_T009_state_md_approaching_cap_warn_logic() {
-        // Pre-condition: constants must be set correctly for these tests.
-        // This assertion is also a Red Gate for the cap raise (Task 9).
-        assert_eq!(
-            STATE_MD_MAX_BYTES, 262144u32,
-            "T-009 requires STATE_MD_MAX_BYTES == 262144 (Task 9 must complete first)"
-        );
-
-        // ---- Sub-test A: 210000 bytes → warn emitted ----
-        {
-            let fixture = state_md_padded_no_lock(210_000);
-            assert_eq!(fixture.len(), 210_000);
-            let warn_log = Arc::new(Mutex::new(Vec::new()));
-            let callbacks = make_callbacks_success(fixture, "self@example.com", warn_log.clone());
-            let payload = payload_for_tool("Edit");
-            let _ = guard_logic(payload, callbacks);
-            let warns = warn_log.lock().unwrap();
-            assert!(
-                warns.iter().any(|w| w.contains("state_md_approaching_cap")),
-                "T-009 A: 210000-byte fixture must emit state_md_approaching_cap warn. Got: {:?}",
-                warns
-            );
-        }
-
-        // ---- Sub-test B: 150000 bytes → NO warn ----
-        {
-            let fixture = state_md_padded_no_lock(150_000);
-            assert_eq!(fixture.len(), 150_000);
-            let warn_log = Arc::new(Mutex::new(Vec::new()));
-            let callbacks = make_callbacks_success(fixture, "self@example.com", warn_log.clone());
-            let payload = payload_for_tool("Edit");
-            let _ = guard_logic(payload, callbacks);
-            let warns = warn_log.lock().unwrap();
-            let approaching_warns: Vec<_> = warns
-                .iter()
-                .filter(|w| w.contains("state_md_approaching_cap"))
-                .collect();
-            assert!(
-                approaching_warns.is_empty(),
-                "T-009 B: 150000-byte fixture must NOT emit state_md_approaching_cap warn. Got: {:?}",
-                approaching_warns
-            );
-        }
-
-        // ---- Sub-test C: 200000 bytes exactly → NO warn (strict > threshold) ----
-        {
-            let fixture = state_md_padded_no_lock(200_000);
-            assert_eq!(fixture.len(), 200_000);
-            let warn_log = Arc::new(Mutex::new(Vec::new()));
-            let callbacks = make_callbacks_success(fixture, "self@example.com", warn_log.clone());
-            let payload = payload_for_tool("Edit");
-            let _ = guard_logic(payload, callbacks);
-            let warns = warn_log.lock().unwrap();
-            let approaching_warns: Vec<_> = warns
-                .iter()
-                .filter(|w| w.contains("state_md_approaching_cap"))
-                .collect();
-            assert!(
-                approaching_warns.is_empty(),
-                "T-009 C: 200000-byte fixture (exact threshold) must NOT emit warn \
-                 (threshold is strictly > 200000). Got: {:?}",
-                approaching_warns
-            );
-        }
-
-        // ---- Sub-test D: 262144 bytes exactly → warn AND read succeeds ----
-        {
-            let fixture = state_md_padded_no_lock(262_144);
-            assert_eq!(fixture.len(), 262_144);
-            let warn_log = Arc::new(Mutex::new(Vec::new()));
-            let callbacks = make_callbacks_success(fixture, "self@example.com", warn_log.clone());
-            let payload = payload_for_tool("Edit");
-            let result = guard_logic(payload, callbacks);
-            let warns = warn_log.lock().unwrap();
-            // Read must succeed at the cap — no StateReadError in warn log, and the no-lock
-            // fixture must return Continue (not Block). StateReadError surfaces via plugin.log
-            // warn entries, not as a distinct HookResult variant.
-            let has_read_error_warn = warns.iter().any(|w| w.contains("StateReadError"));
-            assert!(
-                !has_read_error_warn,
-                "T-009 D: 262144-byte fixture must NOT produce StateReadError (read succeeds at cap). \
-                 Warns: {:?}",
-                warns
-            );
-            assert!(
-                matches!(result, HookResult::Continue),
-                "T-009 D: 262144-byte no-lock fixture must return Continue (read succeeded, no lock held). \
-                 Got: {:?}",
-                result
-            );
-            assert!(
-                warns.iter().any(|w| w.contains("state_md_approaching_cap")),
-                "T-009 D: 262144-byte fixture must emit state_md_approaching_cap warn (inclusive upper bound). \
-                 Got: {:?}",
-                warns
-            );
-        }
-
-        // ---- Sub-test E: 262145 bytes → StateReadError + zero warn ----
-        {
-            let fixture_len = 262_145usize;
-            // Simulate OUTPUT_TOO_LARGE: mock read_file returns Err for oversized files.
-            let warn_log = Arc::new(Mutex::new(Vec::new()));
-            let wl = warn_log.clone();
-            let callbacks = GuardCallbacks {
-                read_file: move |_path, max_bytes, _timeout| {
-                    if fixture_len as u32 > max_bytes {
-                        Err("OutputTooLarge".to_string())
-                    } else {
-                        Ok(state_md_padded_no_lock(fixture_len))
-                    }
-                },
-                exec_subprocess: |_argv| Ok((0, "self@example.com\n".to_string())),
-                log_warn: move |msg: &str| {
-                    wl.lock().unwrap().push(msg.to_string());
-                },
-            };
-            let payload = payload_for_tool("Edit");
-            let result = guard_logic(payload, callbacks);
-            // Must return Continue (fail-open on OutputTooLarge per PC6).
-            assert_eq!(
-                result,
-                HookResult::Continue,
-                "T-009 E: 262145-byte fixture must return Continue (fail-open per PC6 / EC-002)"
-            );
-            let warns = warn_log.lock().unwrap();
-            // Must emit StateReadError warn (fail-open log).
-            assert!(
-                warns
-                    .iter()
-                    .any(|w| w.contains("StateReadError") || w.contains("OutputTooLarge")),
-                "T-009 E: 262145-byte fixture must emit StateReadError/OutputTooLarge warn. Got: {:?}",
-                warns
-            );
-            // Must NOT emit state_md_approaching_cap (file exceeded cap; warn path not reached).
-            let approaching_warns: Vec<_> = warns
-                .iter()
-                .filter(|w| w.contains("state_md_approaching_cap"))
-                .collect();
-            assert!(
-                approaching_warns.is_empty(),
-                "T-009 E: 262145-byte fixture must NOT emit state_md_approaching_cap \
-                 (exceeds cap; warn path never reached). Got: {:?}",
-                approaching_warns
-            );
-        }
     }
 
     // -----------------------------------------------------------------------
@@ -1780,7 +1550,7 @@ mod tests {
         let warn_log: Arc<Mutex<Vec<String>>> = Arc::new(Mutex::new(Vec::new()));
         let wl = warn_log.clone();
         let callbacks = GuardCallbacks {
-            read_file: move |_path, _max, _timeout| Ok(crlf_bytes),
+            read_prefix: move |_path, _max, _timeout| Ok(crlf_bytes),
             exec_subprocess: move |_argv| Ok((0, "self@example.com\n".to_string())),
             log_warn: move |msg: &str| {
                 wl.lock().unwrap().push(msg.to_string());
@@ -1847,6 +1617,488 @@ mod tests {
         assert!(
             msg.contains("/factory-unlock --force"),
             "Block message must contain '/factory-unlock --force'. Got: {msg}"
+        );
+    }
+
+    // -----------------------------------------------------------------------
+    // S-19.07 Phase-B tests (T-006, T-007, EC-001) — adapted for 262144 bound
+    //
+    // These tests are GREEN after the Phase-B implementation migrates
+    // host::read_file → host::read_prefix (S-19.07) AND the bound was raised to
+    // 262144 per ADR-025 §Decision 15 (F-P1-001 fix, S-19.07).
+    //
+    // Each test builds inline GuardCallbacks where the `read_prefix` closure
+    // enforces max_bytes == 262144 (the STATE.md byte envelope per ADR-025 §Decision 15).
+    //
+    //   GREEN: guard calls (callbacks.read_prefix)("...", 262144, ...)
+    //          → 262144 == 262144 → mock returns prefix bytes → guard logic runs
+    //          → assertions pass.
+    // -----------------------------------------------------------------------
+
+    /// Build a 20,000-byte STATE.md fixture with a foreign unexpired lock in the
+    /// frontmatter. `read_prefix(262144)` returns the first 262144 bytes (all 20KB
+    /// of the fixture since 20000 < 262144), which contains the complete frontmatter.
+    /// Used by test_S1907_T003.
+    fn state_md_large_with_lock_in_prefix() -> Vec<u8> {
+        state_md_padded_with_foreign_lock(20_000)
+    }
+
+    /// Build a 20,000-byte STATE.md fixture with NO factory_lock block.
+    /// `read_prefix(262144)` returns all 20KB of the fixture (20000 < 262144),
+    /// containing the complete frontmatter (no lock). Used by test_S1907_T004.
+    fn state_md_large_no_lock_in_prefix() -> Vec<u8> {
+        state_md_padded_no_lock(20_000)
+    }
+
+    /// Build a STATE.md fixture where the closing frontmatter delimiter `---\n`
+    /// ends at the last byte of the 262144-byte read_prefix result.
+    ///
+    /// Layout:
+    ///   header (opening --- through expires_at line; h bytes)
+    ///   "pad: \""   (6 bytes)
+    ///   pad_content (262144 - h - 12 bytes of 'x')
+    ///   "\"\n"      (2 bytes)
+    ///   "---\n"     (4 bytes — final bytes of the 262144-byte prefix)
+    ///   body        (≥10,000 bytes beyond the prefix)
+    ///
+    /// `extract_frontmatter` must correctly find `\n---\n` when it ends at the
+    /// last byte of the 262144-byte prefix. Used by test_S1907_EC001.
+    fn state_md_with_foreign_lock_delimiter_at_262144_boundary() -> Vec<u8> {
+        let header = concat!(
+            "---\n",
+            "document_type: state\n",
+            "version: \"0.0.1-test\"\n",
+            "phase: test\n",
+            "factory_lock:\n",
+            "  holder: \"other@example.com\"\n",
+            "  locked_at: \"2026-06-10T14:00:00Z\"\n",
+            "  expires_at: \"2099-01-01T00:00:00Z\"\n",
+        );
+        // "pad: \""  = 6 bytes
+        // "\"\n"     = 2 bytes
+        // "---\n"    = 4 bytes
+        // total overhead (beyond header) = 12 bytes
+        let h = header.len();
+        assert!(
+            h + 12 < 262144,
+            "header ({h} bytes) too large for 262144-byte boundary fixture"
+        );
+        let pad_content_len = 262144 - h - 12;
+
+        let mut bytes = header.as_bytes().to_vec();
+        bytes.extend_from_slice(b"pad: \"");
+        bytes.extend(std::iter::repeat(b'x').take(pad_content_len));
+        bytes.extend_from_slice(b"\"\n");
+        bytes.extend_from_slice(b"---\n");
+        assert_eq!(
+            bytes.len(),
+            262144,
+            "fixture must be exactly 262144 bytes before body"
+        );
+
+        bytes.extend_from_slice(b"\n# Body content (beyond read_prefix(262144) boundary)\n");
+        let body_pad = b"# body padding line\n";
+        while bytes.len() < 272_144 {
+            bytes.extend_from_slice(body_pad);
+        }
+        bytes
+    }
+
+    // Story Test Plan row T-006: function name retains original T-003 task numbering per story §Test Plan (spec-cited function name; rows T-006/T-007).
+    /// T-006 (AC-003): Large STATE.md (20KB) with foreign unexpired lock in frontmatter.
+    ///
+    /// The mock callback enforces max_bytes == 262144 (STATE.md byte envelope per
+    /// ADR-025 §Decision 15). Since 20000 < 262144, the mock returns the full 20KB
+    /// fixture containing the complete frontmatter with factory_lock.
+    ///
+    /// GREEN: guard calls with max_bytes=262144 → mock returns full 20KB fixture →
+    ///   frontmatter with factory_lock found → Block.
+    #[test]
+    fn test_S1907_T003_read_prefix_262144_large_fixture_foreign_lock_blocks() {
+        let content = state_md_large_with_lock_in_prefix();
+        let warn_log = Arc::new(Mutex::new(Vec::new()));
+        let wl = warn_log.clone();
+        let callbacks = GuardCallbacks {
+            read_prefix: move |_path, max_bytes, _timeout| {
+                if max_bytes != 262144 {
+                    return Err(format!(
+                        "ADR-025 §Decision 15: guard must call read_prefix with max_bytes=262144; \
+                         got max_bytes={max_bytes}"
+                    ));
+                }
+                let mut prefix = content;
+                prefix.truncate(262144);
+                Ok(prefix)
+            },
+            exec_subprocess: |_argv| Ok((0, "self@example.com\n".to_string())),
+            log_warn: move |msg: &str| {
+                wl.lock().unwrap().push(msg.to_string());
+            },
+        };
+        let payload = payload_for_tool("Edit");
+        let result = guard_logic(payload, callbacks);
+        assert!(
+            matches!(result, HookResult::Block { .. }),
+            "T-006 S-19.07: 20KB STATE.md with foreign unexpired lock must return Block \
+             (guard calls read_prefix with max_bytes=262144 per ADR-025 §Decision 15). \
+             Got: {:?}. Warns: {:?}",
+            result,
+            warn_log.lock().unwrap()
+        );
+    }
+
+    // Story Test Plan row T-007: function name retains original T-004 task numbering per story §Test Plan (spec-cited function name; rows T-006/T-007).
+    /// T-007 (AC-003): Large STATE.md (20KB) with NO factory_lock in frontmatter.
+    ///
+    /// The mock callback enforces max_bytes == 262144 (STATE.md byte envelope per
+    /// ADR-025 §Decision 15). Since 20000 < 262144, the mock returns the full 20KB
+    /// fixture. No lock → Continue, no warns (clean unlocked path).
+    ///
+    /// GREEN: guard calls with max_bytes=262144 → mock returns full 20KB fixture →
+    ///   no lock found → Continue with zero warns.
+    #[test]
+    fn test_S1907_T004_read_prefix_262144_large_fixture_no_lock_continues_without_warns() {
+        let content = state_md_large_no_lock_in_prefix();
+        let warn_log = Arc::new(Mutex::new(Vec::new()));
+        let wl = warn_log.clone();
+        let callbacks = GuardCallbacks {
+            read_prefix: move |_path, max_bytes, _timeout| {
+                if max_bytes != 262144 {
+                    return Err(format!(
+                        "ADR-025 §Decision 15: guard must call read_prefix with max_bytes=262144; \
+                         got max_bytes={max_bytes}"
+                    ));
+                }
+                let mut prefix = content;
+                prefix.truncate(262144);
+                Ok(prefix)
+            },
+            exec_subprocess: |_argv| Ok((0, "self@example.com\n".to_string())),
+            log_warn: move |msg: &str| {
+                wl.lock().unwrap().push(msg.to_string());
+            },
+        };
+        let payload = payload_for_tool("Edit");
+        let result = guard_logic(payload, callbacks);
+        assert!(
+            matches!(result, HookResult::Continue),
+            "T-007 S-19.07: 20KB STATE.md with no lock must return Continue. \
+             Got: {:?}",
+            result
+        );
+        let warns = warn_log.lock().unwrap();
+        assert!(
+            warns.is_empty(),
+            "T-007 S-19.07: no-lock large fixture must produce no warns \
+             (clean unlocked path, max_bytes=262144). Warns: {:?}",
+            *warns
+        );
+    }
+
+    /// EC-001 (AC-003 boundary): STATE.md where the closing frontmatter delimiter `---\n`
+    /// falls at exactly the last 4 bytes of the 262144-byte read_prefix result.
+    ///
+    /// Verifies `extract_frontmatter` finds `\n---\n` when it ends at the last byte of
+    /// the 262144-byte prefix window (ADR-025 §Decision 15 boundary). This is the
+    /// delimiter-at-boundary edge case per VP-095 v1.5 representative depth.
+    ///
+    /// GREEN: guard calls with max_bytes=262144 → mock returns exactly 262144 bytes
+    ///   (frontmatter with factory_lock + closing `---\n` at the final 4 bytes)
+    ///   → extract_frontmatter finds the delimiter at the boundary → Block.
+    #[test]
+    fn test_S1907_EC001_read_prefix_262144_delimiter_at_boundary_blocks_on_foreign_lock() {
+        let content = state_md_with_foreign_lock_delimiter_at_262144_boundary();
+        assert!(
+            content.len() >= 262144,
+            "EC-001 fixture must be at least 262144 bytes; got {}",
+            content.len()
+        );
+        let warn_log = Arc::new(Mutex::new(Vec::new()));
+        let wl = warn_log.clone();
+        let callbacks = GuardCallbacks {
+            read_prefix: move |_path, max_bytes, _timeout| {
+                if max_bytes != 262144 {
+                    return Err(format!(
+                        "ADR-025 §Decision 15: guard must call read_prefix with max_bytes=262144; \
+                         got max_bytes={max_bytes}"
+                    ));
+                }
+                Ok(content[..262144].to_vec())
+            },
+            exec_subprocess: |_argv| Ok((0, "self@example.com\n".to_string())),
+            log_warn: move |msg: &str| {
+                wl.lock().unwrap().push(msg.to_string());
+            },
+        };
+        let payload = payload_for_tool("Edit");
+        let result = guard_logic(payload, callbacks);
+        assert!(
+            matches!(result, HookResult::Block { .. }),
+            "EC-001 S-19.07: closing delimiter at 262144-byte boundary must return Block. \
+             extract_frontmatter must find \\n---\\n ending at the last byte of the prefix \
+             (ADR-025 §Decision 15). Got: {:?}. Warns: {:?}",
+            result,
+            warn_log.lock().unwrap()
+        );
+    }
+
+    // -----------------------------------------------------------------------
+    // F-P1-002: Real-shape 35KB-frontmatter regression fixture
+    //
+    // F-P1-002 (HIGH, coverage gap): The bug class that shipped in the original
+    // Phase-B implementation — a bound of 8192 silently missed factory_lock
+    // blocks when STATE.md frontmatter grew beyond ~8KB. Real STATE.md files
+    // have frontmatter that easily exceeds 30KB (long `last_amended` values,
+    // accumulated decision-log narrative, etc.).
+    //
+    // This regression fixture models the ACTUAL live STATE.md shape:
+    //   - Frontmatter closing `---` at ~35,000 bytes from file start
+    //   - factory_lock block injected immediately before the closing delimiter
+    //     (mirroring factory-lock-write.sh placement)
+    //   - Body padded beyond 35KB
+    //
+    // Two assertions:
+    //   (a) foreign lock at 35KB depth → Block with 262144-byte cap
+    //       (proves the correct bound covers the realistic lock position)
+    //   (b) no lock, same giant frontmatter → Continue, zero warns
+    //
+    // Old-cap regression branch (TD-VSDD-059, D-449(a)): assertion (a) includes an embedded
+    // branch that simulates the bug's observable effect by hardcoding fixture[..8192]. This
+    // does NOT mutate the production bound — the real production-bound proof is the
+    // max_bytes != 262144 → Err assertion in ASSERTION (a) below. Shows: 8192-byte prefix
+    // → lock missed → Continue; 262144-byte prefix → lock found → Block.
+    // -----------------------------------------------------------------------
+
+    /// Build a STATE.md fixture with ~35KB frontmatter and a factory_lock block
+    /// immediately before the closing delimiter.
+    ///
+    /// Layout:
+    ///   "---\n" + minimal header fields
+    ///   "last_amended: \"" + [padding bytes of 'x'] + "\"\n"
+    ///   factory_lock block (key + 3 sub-fields)
+    ///   "---\n" (closing delimiter — frontmatter region ends at exactly 35000 bytes)
+    ///   body padded to ≥ 272_144 bytes total (EC-001 sizing convention:
+    ///     262144 cap + 10000 extra so the mock actually truncates)
+    ///
+    /// The factory_lock block sits at ~34870 bytes depth — well past the old
+    /// 8192-byte cap, ensuring it would be missed by an 8192-capped guard.
+    fn state_md_giant_frontmatter_with_lock_at_35kb() -> Vec<u8> {
+        let header = concat!(
+            "---\n",
+            "document_type: state\n",
+            "version: \"0.0.1-test\"\n",
+            "phase: test\n",
+        );
+        let lock_block = concat!(
+            "factory_lock:\n",
+            "  holder: \"other@example.com\"\n",
+            "  locked_at: \"2026-06-10T14:00:00Z\"\n",
+            "  expires_at: \"2099-01-01T00:00:00Z\"\n",
+        );
+        let close = "---\n";
+        // "last_amended: \"" = 15 bytes, "\"\n" = 2 bytes → key overhead = 17 bytes
+        let key_head: &[u8] = b"last_amended: \"";
+        let key_tail: &[u8] = b"\"\n";
+
+        let target = 35_000usize; // closing `---\n` ends at byte 35000
+        let fixed = header.len() + 17 + lock_block.len() + close.len();
+        assert!(
+            fixed < target,
+            "fixed overhead ({fixed}) must be < target ({target})"
+        );
+        let padding_len = target - fixed;
+
+        let mut bytes = header.as_bytes().to_vec();
+        bytes.extend_from_slice(key_head);
+        bytes.extend(std::iter::repeat(b'x').take(padding_len));
+        bytes.extend_from_slice(key_tail);
+        bytes.extend_from_slice(lock_block.as_bytes());
+        bytes.extend_from_slice(close.as_bytes());
+        assert_eq!(
+            bytes.len(),
+            target,
+            "frontmatter region must be exactly {target} bytes"
+        );
+
+        bytes.extend_from_slice(b"\n# STATE body\n");
+        let body_pad = b"# body padding\n";
+        while bytes.len() < 272_144 {
+            bytes.extend_from_slice(body_pad);
+        }
+        bytes
+    }
+
+    /// Build a STATE.md fixture with ~35KB frontmatter and NO factory_lock block.
+    ///
+    /// Same size as `state_md_giant_frontmatter_with_lock_at_35kb` (padded to
+    /// ≥ 272_144 bytes total, EC-001 sizing convention) but the lock block
+    /// space is absorbed into the `last_amended` value padding.
+    fn state_md_giant_frontmatter_no_lock_at_35kb() -> Vec<u8> {
+        let header = concat!(
+            "---\n",
+            "document_type: state\n",
+            "version: \"0.0.1-test\"\n",
+            "phase: test\n",
+        );
+        let close = "---\n";
+        let key_head: &[u8] = b"last_amended: \"";
+        let key_tail: &[u8] = b"\"\n";
+
+        let target = 35_000usize;
+        let fixed = header.len() + 17 + close.len(); // no lock_block
+        assert!(
+            fixed < target,
+            "fixed overhead ({fixed}) must be < target ({target})"
+        );
+        let padding_len = target - fixed;
+
+        let mut bytes = header.as_bytes().to_vec();
+        bytes.extend_from_slice(key_head);
+        bytes.extend(std::iter::repeat(b'x').take(padding_len));
+        bytes.extend_from_slice(key_tail);
+        bytes.extend_from_slice(close.as_bytes());
+        assert_eq!(bytes.len(), target);
+
+        bytes.extend_from_slice(b"\n# STATE body\n");
+        let body_pad = b"# body padding\n";
+        while bytes.len() < 272_144 {
+            bytes.extend_from_slice(body_pad);
+        }
+        bytes
+    }
+
+    /// F-P1-002 assertion (a): Real-shape 35KB-frontmatter fixture with foreign lock → Block.
+    ///
+    /// This is the regression fixture whose absence allowed F-P1-001 (BLOCKER) to ship.
+    /// With the factory_lock block at ~34870-byte depth, any bound ≤ 8192 silently misses
+    /// the lock and returns Continue (fail-open). The correct 262144-byte bound finds it.
+    ///
+    /// Old-cap regression branch (TD-VSDD-059, D-449(a) executed evidence):
+    ///   Simulates the bug's observable effect by hardcoding `fixture[..8192]`; does NOT
+    ///   mutate the production bound. Real proof production uses max_bytes=262144: the
+    ///   sibling `max_bytes != 262144 → Err` assertion in ASSERTION (a) enforces the value.
+    ///   8192-byte branch: prefix too short → MalformedLockBlock → Continue (lock missed).
+    ///   262144-byte branch: full frontmatter returned → lock found → Block.
+    #[test]
+    fn test_S1907_FP1002_real_shape_35kb_frontmatter_foreign_lock_blocks() {
+        let fixture = state_md_giant_frontmatter_with_lock_at_35kb();
+        assert!(
+            fixture.len() >= 35_000,
+            "F-P1-002 fixture must be at least 35000 bytes; got {}",
+            fixture.len()
+        );
+
+        // ------------------------------------------------------------------
+        // OLD-CAP REGRESSION BRANCH (TD-VSDD-059, D-449(a)): simulates the
+        // observable effect of the old 8192-byte cap (hardcodes fixture[..8192]).
+        // Does NOT mutate the production bound — real proof is max_bytes != 262144
+        // → Err in ASSERTION (a). Shows: short prefix → lock missed → Continue.
+        // ------------------------------------------------------------------
+        {
+            let fixture_clone = fixture.clone();
+            let wl_mut = Arc::new(Mutex::new(Vec::<String>::new()));
+            let wl_mut2 = wl_mut.clone();
+            let old_cap_callbacks = GuardCallbacks {
+                // Old bound: return only the first 8192 bytes.
+                read_prefix: move |_path, _max_bytes, _timeout| Ok(fixture_clone[..8192].to_vec()),
+                exec_subprocess: |_argv| Ok((0, "self@example.com\n".to_string())),
+                log_warn: move |msg: &str| {
+                    wl_mut2.lock().unwrap().push(msg.to_string());
+                },
+            };
+            let old_result = guard_logic(payload_for_tool("Edit"), old_cap_callbacks);
+            // With only 8192 bytes, the closing `---` is not present in the prefix
+            // → extract_frontmatter returns the full 8192 bytes (no delimiter found)
+            // → parse_factory_lock sees no closing delimiter → MalformedLockBlock → Continue.
+            assert!(
+                matches!(old_result, HookResult::Continue),
+                "OLD-CAP REGRESSION BRANCH: 8192-byte prefix must miss the lock at ~35KB \
+                 depth and return Continue. Got: {:?}. Warns: {:?}",
+                old_result,
+                wl_mut.lock().unwrap()
+            );
+            // Verify the guard emitted a warn (MalformedLockBlock from missing delimiter).
+            let warns = wl_mut.lock().unwrap();
+            assert!(
+                !warns.is_empty(),
+                "OLD-CAP REGRESSION BRANCH: 8192-byte prefix must emit a MalformedLockBlock warn. \
+                 No warns captured."
+            );
+        }
+        // Old-cap branch PASSED — 8192-byte prefix returned Continue (lock missed as expected).
+
+        // ------------------------------------------------------------------
+        // ASSERTION (a): 262144-byte cap finds the lock → Block.
+        // ------------------------------------------------------------------
+        let warn_log = Arc::new(Mutex::new(Vec::new()));
+        let wl = warn_log.clone();
+        let fixture_for_real = fixture;
+        let callbacks = GuardCallbacks {
+            read_prefix: move |_path, max_bytes, _timeout| {
+                if max_bytes != 262144 {
+                    return Err(format!(
+                        "ADR-025 §Decision 15: guard must call read_prefix with max_bytes=262144; \
+                         got max_bytes={max_bytes}"
+                    ));
+                }
+                // Fixture is ≥272144 bytes; truncate at 262144 — frontmatter ends
+                // at byte 35000, well within the prefix, so lock is still found.
+                let end = 262144.min(fixture_for_real.len());
+                Ok(fixture_for_real[..end].to_vec())
+            },
+            exec_subprocess: |_argv| Ok((0, "self@example.com\n".to_string())),
+            log_warn: move |msg: &str| {
+                wl.lock().unwrap().push(msg.to_string());
+            },
+        };
+        let result = guard_logic(payload_for_tool("Edit"), callbacks);
+        assert!(
+            matches!(result, HookResult::Block { .. }),
+            "F-P1-002 (a): 35KB-frontmatter STATE.md with foreign lock at ~35KB depth must Block \
+             with 262144-byte cap. The lock sits beyond 8192 bytes — this fixture would have caught \
+             F-P1-001 had it existed. Got: {:?}. Warns: {:?}",
+            result,
+            warn_log.lock().unwrap()
+        );
+    }
+
+    /// F-P1-002 assertion (b): Real-shape 35KB-frontmatter fixture with NO lock → Continue, no warns.
+    ///
+    /// Same frontmatter depth (~35KB) but no factory_lock block. Guard must return Continue
+    /// cleanly (unlocked path) with zero warns.
+    #[test]
+    fn test_S1907_FP1002_real_shape_35kb_frontmatter_no_lock_continues_without_warns() {
+        let fixture = state_md_giant_frontmatter_no_lock_at_35kb();
+        let warn_log = Arc::new(Mutex::new(Vec::new()));
+        let wl = warn_log.clone();
+        let callbacks = GuardCallbacks {
+            read_prefix: move |_path, max_bytes, _timeout| {
+                if max_bytes != 262144 {
+                    return Err(format!(
+                        "ADR-025 §Decision 15: guard must call read_prefix with max_bytes=262144; \
+                         got max_bytes={max_bytes}"
+                    ));
+                }
+                let end = 262144.min(fixture.len());
+                Ok(fixture[..end].to_vec())
+            },
+            exec_subprocess: |_argv| Ok((0, "self@example.com\n".to_string())),
+            log_warn: move |msg: &str| {
+                wl.lock().unwrap().push(msg.to_string());
+            },
+        };
+        let result = guard_logic(payload_for_tool("Edit"), callbacks);
+        assert!(
+            matches!(result, HookResult::Continue),
+            "F-P1-002 (b): 35KB-frontmatter STATE.md with no lock must return Continue. \
+             Got: {:?}",
+            result
+        );
+        let warns = warn_log.lock().unwrap();
+        assert!(
+            warns.is_empty(),
+            "F-P1-002 (b): no-lock 35KB-frontmatter must produce zero warns. Got: {:?}",
+            *warns
         );
     }
 }

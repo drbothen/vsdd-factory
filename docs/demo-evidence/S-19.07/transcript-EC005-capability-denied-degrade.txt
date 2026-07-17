@@ -1,0 +1,48 @@
+S-19.07 EC-005 — capability-denied graceful degrade: real dispatcher, read_prefix absent, exit 0 Continue
+Branch: feature/S-19.07  HEAD: b0b18dce
+Recorded: 2026-07-16
+
+=== T-005-ec005: EC-005 — capabilities.read_prefix absent → graceful degrade to Continue ===
+
+$ bats plugins/vsdd-factory/tests/verify-factory-lock-read-prefix.bats -f "T-005-ec005"
+
+1..1
+ok 5 T-005-ec005 S-19.07 EC-005: capabilities.read_prefix absent → graceful degrade to Continue
+
+=== Test scenario description ===
+
+Setup:
+  - Registry: capabilities.read_file present (NOT read_prefix) + exec_subprocess.
+    EC-005 misconfiguration fixture — deployer forgot to migrate from read_file to read_prefix.
+  - STATE.md: foreign unexpired lock (holder=other@example.com, expires_at=2099-01-01T00:00:00Z)
+  - Real factory-dispatcher binary used (target/release/factory-dispatcher)
+
+Phase-B behavior (GREEN after migration):
+  guard calls host::read_prefix (capability absent in registry)
+  → dispatcher returns CAPABILITY_DENIED (-1)
+  → verify-factory-lock maps CapabilityDenied as StateReadError → HookResult::Continue (fail-open per PC6)
+  → dispatcher exit 0
+  → test asserts exit 0 → PASS
+
+Phase-A behavior (was RED gate):
+  guard calls host::read_file (capability present in registry) → reads STATE.md
+  → finds foreign unexpired lock → BLOCKS (exit 2)
+  → test asserts exit 0 → FAIL
+
+=== Operator visibility ===
+
+The internal.capability_denied event class is logged by the dispatcher on every denied call.
+No bespoke log_warn is needed in the plugin — the standard denial event provides parity
+with Phase-A's soft-warn (BC-4.13.001 v1.17 Invariant 10 removed in Phase-B; visibility
+preserved via internal.capability_denied per EC-005 Expected Behavior note).
+
+=== Full bats run confirming all 5 tests GREEN ===
+
+$ bats plugins/vsdd-factory/tests/verify-factory-lock-read-prefix.bats
+
+1..5
+ok 1 T-001a S-19.07 AC-001 Gate A: host::read_prefix called in verify-factory-lock/src/lib.rs
+ok 2 T-001b S-19.07 AC-001 Gate B: Phase-A symbols absent from non-comment code in verify-factory-lock/src/lib.rs
+ok 3 T-002-vfl S-19.07 AC-002: verify-factory-lock registry entry has capabilities.read_prefix not capabilities.read_file
+ok 4 T-002-vfl-bash S-19.07 AC-002: verify-factory-lock-bash registry entry has capabilities.read_prefix not capabilities.read_file
+ok 5 T-005-ec005 S-19.07 EC-005: capabilities.read_prefix absent → graceful degrade to Continue

@@ -1,0 +1,88 @@
+S-19.07 AC-003 — 262144 bound + lock semantics unit family: 31/31 cargo test
+Branch: feature/S-19.07  HEAD: b0b18dce
+Recorded: 2026-07-16
+
+=== Full unit test suite: cargo test -p verify-factory-lock --lib ===
+
+$ cargo test -p verify-factory-lock --lib 2>&1
+
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.06s
+     Running unittests src/lib.rs (target/debug/deps/verify_factory_lock-21c9069c627ce351)
+
+running 31 tests
+test tests::test_BC_4_13_001_build_block_message_contains_all_five_fields ... ok
+test tests::test_BC_4_13_001_capability_denied_graceful_degrades_to_continue ... ok
+test tests::test_BC_4_13_001_format_time_remaining_returns_n_min_remaining ... ok
+test tests::test_BC_4_13_001_is_expired_now_equals_expires_at_is_expired ... ok
+test tests::test_BC_4_13_001_bash_factory_artifacts_push_blocked_when_foreign_lock ... ok
+test tests::test_BC_4_13_001_crlf_state_md_foreign_lock_blocks ... ok
+test tests::test_BC_4_13_001_expired_lock_returns_continue ... ok
+test tests::test_BC_4_13_001_git_subprocess_failure_returns_continue ... ok
+test tests::test_BC_4_13_001_foreign_unexpired_lock_blocks_with_all_five_fields ... ok
+test tests::test_BC_4_13_001_missing_closing_delimiter_returns_continue ... ok
+test tests::test_BC_4_13_001_malformed_block_returns_continue_with_log_warn ... ok
+test tests::test_BC_4_13_001_parse_factory_lock_errors_on_empty_holder ... ok
+test tests::test_BC_4_13_001_non_push_bash_returns_continue_immediately ... ok
+test tests::test_BC_4_13_001_parse_factory_lock_returns_none_on_absent_block ... ok
+test tests::test_BC_4_13_001_parse_factory_lock_returns_some_on_valid_block ... ok
+test tests::test_BC_4_13_001_parse_iso8601_errors_on_invalid_timestamp ... ok
+test tests::test_BC_4_13_001_parse_iso8601_succeeds_on_valid_timestamp ... ok
+test tests::test_BC_4_13_001_push_regex_does_not_match_non_push_command ... ok
+test tests::test_BC_4_13_001_push_regex_matches_factory_artifacts_push ... ok
+test tests::test_BC_4_13_001_read_prefix_host_error_returns_continue ... ok
+test tests::test_BC_4_13_001_trim_git_email_strips_trailing_newline ... ok
+test tests::test_BC_4_13_001_self_held_lock_returns_continue ... ok
+test tests::test_BC_4_13_001_trim_git_email_unchanged_when_no_newline ... ok
+test tests::test_S1902_crlf_wiring_non_utf8_body_blocks_on_foreign_lock ... ok
+test tests::test_S1907_T004_read_prefix_262144_large_fixture_no_lock_continues_without_warns ... ok    [T-007 regression]
+test tests::test_S1907_T003_read_prefix_262144_large_fixture_foreign_lock_blocks ... ok                [T-006 regression]
+test tests::test_S1902_T002_70kib_fixture_foreign_lock_returns_block ... ok
+test tests::test_S1902_T003_70kib_fixture_no_lock_returns_continue ... ok
+test tests::test_S1907_FP1002_real_shape_35kb_frontmatter_no_lock_continues_without_warns ... ok      [T-004 FP1002 real-shape]
+test tests::test_S1907_FP1002_real_shape_35kb_frontmatter_foreign_lock_blocks ... ok                  [T-003 FP1002 real-shape]
+test tests::test_S1907_EC001_read_prefix_262144_delimiter_at_boundary_blocks_on_foreign_lock ... ok   [EC-001 boundary]
+
+test result: ok. 31 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s
+
+=== AC-003 targeted run: FP1002 + T-006/T-007 regression + EC-001 boundary ===
+
+$ cargo test -p verify-factory-lock --lib -- tests::test_S1907_FP1002 tests::test_S1907_T003 tests::test_S1907_T004 tests::test_S1907_EC001
+
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.06s
+     Running unittests src/lib.rs (target/debug/deps/verify_factory_lock-21c9069c627ce351)
+
+running 5 tests
+test tests::test_S1907_T003_read_prefix_262144_large_fixture_foreign_lock_blocks ... ok
+test tests::test_S1907_T004_read_prefix_262144_large_fixture_no_lock_continues_without_warns ... ok
+test tests::test_S1907_FP1002_real_shape_35kb_frontmatter_no_lock_continues_without_warns ... ok
+test tests::test_S1907_FP1002_real_shape_35kb_frontmatter_foreign_lock_blocks ... ok
+test tests::test_S1907_EC001_read_prefix_262144_delimiter_at_boundary_blocks_on_foreign_lock ... ok
+
+test result: ok. 5 passed; 0 failed; 0 ignored; 0 measured; 26 filtered out; finished in 0.01s
+
+=== Test descriptions (AC-003 family) ===
+
+test_S1907_FP1002_real_shape_35kb_frontmatter_foreign_lock_blocks  [T-003]
+  Real-shape fixture: frontmatter ~35 KB (factory_lock: block at ~35 KB offset from start,
+  immediately before closing ---; ~27 KB beyond the retracted 8192-byte window).
+  Body padded to >= 262144 bytes total. Foreign unexpired lock → Block.
+  This is the mutation-check test that closed F-P1-001 BLOCKER:
+  the old 8192-byte bound would have been silently inert (frontmatter beyond the window).
+
+test_S1907_FP1002_real_shape_35kb_frontmatter_no_lock_continues_without_warns  [T-004]
+  Real-shape fixture: same 35 KB frontmatter + >= 262144-byte total.
+  factory_lock: absent from prefix → Continue (fail-open per PC4).
+
+test_S1907_T003_read_prefix_262144_large_fixture_foreign_lock_blocks  [T-006]
+  Regression fixture: factory_lock in first ~512B (small-frontmatter STATE.md),
+  body > 8192 bytes. Foreign unexpired lock → Block.
+  Baseline: Phase-B must not regress on small-frontmatter STATE.md.
+
+test_S1907_T004_read_prefix_262144_large_fixture_no_lock_continues_without_warns  [T-007]
+  Regression fixture: factory_lock in first ~512B, body > 8192 bytes.
+  factory_lock: absent → Continue. Absent-lock Continue path preserved.
+
+test_S1907_EC001_read_prefix_262144_delimiter_at_boundary_blocks_on_foreign_lock  [EC-001]
+  STATE.md closing --- delimiter at the 262144-byte boundary (byte 262143 = last byte of delimiter).
+  read_prefix returns full 262144 bytes; extract_frontmatter finds closing --- at end of prefix;
+  verdict correct. Phase-B works at the byte-envelope boundary (VP-095 v1.5).

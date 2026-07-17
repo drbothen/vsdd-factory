@@ -1,0 +1,56 @@
+S-19.07 AC-002 — Registry Capability Migration: both entries use read_prefix not read_file
+Branch: feature/S-19.07  HEAD: b0b18dce
+Recorded: 2026-07-16
+
+=== T-002-vfl: verify-factory-lock entry migrated to capabilities.read_prefix ===
+
+$ bats plugins/vsdd-factory/tests/verify-factory-lock-read-prefix.bats -f "T-002-vfl"
+
+1..1
+ok 3 T-002-vfl S-19.07 AC-002: verify-factory-lock registry entry has capabilities.read_prefix not capabilities.read_file
+
+=== T-002-vfl-bash: verify-factory-lock-bash entry migrated to capabilities.read_prefix ===
+
+$ bats plugins/vsdd-factory/tests/verify-factory-lock-read-prefix.bats -f "T-002-vfl-bash"
+
+1..1
+ok 4 T-002-vfl-bash S-19.07 AC-002: verify-factory-lock-bash registry entry has capabilities.read_prefix not capabilities.read_file
+
+=== Grep: [hooks.capabilities.read_prefix] blocks with path_allow in hooks-registry.toml ===
+
+-- verify-factory-lock entry:
+$ awk 'BEGIN{p=0} /^\[\[hooks\]\]/{p=0} /^name = "verify-factory-lock"$/{p=1} p' \
+    plugins/vsdd-factory/hooks-registry.toml | grep -A3 '\[hooks\.capabilities\.read_prefix\]'
+
+[hooks.capabilities.read_prefix]
+path_allow = [".factory/STATE.md"]
+
+[hooks.capabilities.exec_subprocess]
+
+-- verify-factory-lock-bash entry:
+$ awk 'BEGIN{p=0} /^\[\[hooks\]\]/{p=0} /^name = "verify-factory-lock-bash"$/{p=1} p' \
+    plugins/vsdd-factory/hooks-registry.toml | grep -A3 '\[hooks\.capabilities\.read_prefix\]'
+
+[hooks.capabilities.read_prefix]
+path_allow = [".factory/STATE.md"]
+
+[hooks.capabilities.exec_subprocess]
+
+=== Negative assertion: no capabilities.read_file remains for either entry ===
+
+-- verify-factory-lock:
+$ awk 'BEGIN{p=0} /^\[\[hooks\]\]/{p=0} /^name = "verify-factory-lock"$/{p=1} p' \
+    plugins/vsdd-factory/hooks-registry.toml | grep -c '\[hooks\.capabilities\.read_file\]'
+
+0
+
+-- verify-factory-lock-bash:
+$ awk 'BEGIN{p=0} /^\[\[hooks\]\]/{p=0} /^name = "verify-factory-lock-bash"$/{p=1} p' \
+    plugins/vsdd-factory/hooks-registry.toml | grep -c '\[hooks\.capabilities\.read_file\]'
+
+0
+
+Both entries confirmed: capabilities.read_file = 0, capabilities.read_prefix >= 1,
+  path_allow = [".factory/STATE.md"] preserved in both.
+  BC-1.17.001 Invariant 3 upheld: capability independence enforced — read_file does not
+  grant read_prefix access; the migration explicitly updates the capability declaration.
