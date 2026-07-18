@@ -1,17 +1,17 @@
 ---
 document_type: behavioral-contract
 level: L3
-version: "1.7"
-status: ready
+version: "1.8"
+status: active
 producer: product-owner
 timestamp: 2026-05-01T00:00:00Z
-last_amended: "2026-07-10 (v1.7) — E-19 pass-45 F-P45-003 fix burst (product-owner): frontmatter modified[] array re-sorted version-monotonic (was v1.3→v1.4→v1.6→v1.5; POLICY 14 leg-3 violation: last entry v1.5 vs Changelog top v1.6); no body content change. [Prior: (v1.6) — orchestrator pre-pass-43 consistency sweep (product-owner): §Verification Properties VP-097 row added (F-P43-class missing-row; kani-proof; S-19.03 AC-001; co-anchored with BC-2.07.001 §Invariant 1; this BC's EC-001); §VP Anchors TBD placeholder replaced with VP-097 bullet.]"
+last_amended: "2026-07-17 (v1.8) — RETROACTIVE-POL-14 (state-manager, D-852): status ready→active; POL-14 applied retroactively at S-19.03 PR #611 merge 2026-07-13T15:54:21Z (D-834); S-19.03 behavioral_contracts: [BC-2.07.001, BC-2.02.011]; corrected in same D-852 burst per F-004; input-hash e650b4b→a7ae268 (inputs drifted). [Prior: 2026-07-10 (v1.7) — E-19 pass-45 F-P45-003 fix burst (product-owner): frontmatter modified[] array re-sorted version-monotonic (was v1.3→v1.4→v1.6→v1.5; POLICY 14 leg-3 violation: last entry v1.5 vs Changelog top v1.6); no body content change. [Prior: (v1.6) — orchestrator pre-pass-43 consistency sweep (product-owner): §Verification Properties VP-097 row added (F-P43-class missing-row; kani-proof; S-19.03 AC-001; co-anchored with BC-2.07.001 §Invariant 1; this BC's EC-001); §VP Anchors TBD placeholder replaced with VP-097 bullet.]]"
 phase: 1
 inputs:
   - .factory/stories/S-8.10-sdk-extension-write-file.md
   - crates/hook-sdk/src/host.rs
   - crates/factory-dispatcher/src/host/read_file.rs
-input-hash: "e650b4b"
+input-hash: "a7ae268"
 traces_to: .factory/specs/domain-spec/capabilities.md
 origin: brownfield
 extracted_from: ".factory/stories/S-8.10-sdk-extension-write-file.md"
@@ -25,6 +25,7 @@ modified:
   - "v1.5 (2026-07-08): E-19 pass-24 F-P24-001 fix burst — §Traceability Stories + §Story Anchor extended with S-19.03 (path_util.rs extraction of resolve_path_for_allowlist + write_file.rs two-step decomposed pattern adoption; EC-001 traversal-defense anchored by VP-097); §Refactoring Notes annotated as carried out by S-19.03; closes bidirectional-parity gap (story declared BC, BC did not acknowledge story)"
   - "v1.6 (2026-07-09): orchestrator pre-pass-43 consistency sweep — §Verification Properties VP-097 row added (missing-row; kani-proof; S-19.03 AC-001; co-anchored with BC-2.07.001 §Invariant 1; this BC's EC-001); §VP Anchors TBD placeholder replaced with VP-097 bullet"
   - "v1.7 (2026-07-10): E-19 pass-45 F-P45-003 fix burst (product-owner) — frontmatter modified[] array re-sorted version-monotonic (was v1.3→v1.4→v1.6→v1.5; POLICY 14 leg-3 violation: last entry v1.5 vs Changelog top v1.6); no body content change"
+  - "v1.8 (2026-07-17): RETROACTIVE-POL-14 (state-manager, D-852) — status ready→active; POL-14 applied retroactively at S-19.03 PR #611 merge 2026-07-13T15:54:21Z (D-834); S-19.03 behavioral_contracts: [BC-2.07.001, BC-2.02.011]; corrected in same D-852 burst per F-004; input-hash e650b4b→a7ae268"
 deprecated: null
 deprecated_by: null
 replacement: null
@@ -165,6 +166,7 @@ The shared path allowlist-resolution helper (`resolve_path_for_allowlist`) descr
 
 ## Changelog
 
+- v1.8 (2026-07-17): RETROACTIVE-POL-14 (state-manager, D-852) — status ready→active; POL-14 applied retroactively at S-19.03 PR #611 merge 2026-07-13T15:54:21Z (D-834); S-19.03 behavioral_contracts: [BC-2.07.001, BC-2.02.011]; corrected in D-852 burst per F-004; input-hash e650b4b→a7ae268.
 - v1.7 (2026-07-10): E-19 pass-45 F-P45-003 (product-owner) — frontmatter modified[] array re-sorted version-monotonic (was v1.3→v1.4→v1.6→v1.5; POLICY 14 leg-3 violation: last entry v1.5 vs Changelog top v1.6); no body content change.
 - v1.6 (2026-07-09): orchestrator pre-pass-43 consistency sweep (product-owner): §Verification Properties VP-097 row added (F-P43-class missing-row; kani-proof; S-19.03 AC-001; co-anchored with BC-2.07.001 §Invariant 1; this BC's EC-001); §VP Anchors TBD placeholder replaced with VP-097 bullet.
 - v1.5 (2026-07-08): E-19 pass-24 F-P24-001 fix burst (product-owner): §Traceability Stories row extended with S-19.03 (path_util.rs extraction of resolve_path_for_allowlist + write_file.rs two-step decomposed pattern adoption; EC-001 traversal-defense anchored by VP-097). §Story Anchor extended with S-19.03 anchor sentence (S-19.03 v1.12 behavioral_contracts: [BC-2.07.001, BC-2.02.011] confirmed as grounding). §Refactoring Notes annotated: resolve_path_for_allowlist extraction into path_util.rs and two-step decomposed prepare() pattern in write_file.rs carried out by S-19.03. Closes F-P24-001 bidirectional-parity drift. BC-INDEX version + Stories cell bump is state-manager same-burst.
