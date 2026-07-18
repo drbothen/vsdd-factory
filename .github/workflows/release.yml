@@ -31,6 +31,16 @@ jobs:
           sudo wget -qO /usr/local/bin/yq https://github.com/mikefarah/yq/releases/latest/download/yq_linux_amd64
           sudo chmod +x /usr/local/bin/yq
 
+      - name: Pre-build factory-dispatcher test binaries
+        # T-012 in host-abi-hygiene.bats runs `timeout 120 cargo test -p
+        # factory-dispatcher --all-targets`. On a cold runner without a Rust
+        # cargo cache, compilation alone can exceed the 120-second bats timeout
+        # (exit code 124, rc.23 release run 29656342082). Pre-building here
+        # warms target/ so the bats test only executes the already-compiled
+        # binary within its window. --no-run = compile only; the actual test
+        # assertions still run inside the bats 120-second timeout as intended.
+        run: cargo test -p factory-dispatcher --all-targets --no-run
+
       - name: Run test suite
         run: cd plugins/vsdd-factory/tests && ./run-all.sh
 
