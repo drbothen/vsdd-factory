@@ -10600,3 +10600,15 @@ D-854-E19-WAVE-GATE-HUMAN-DISPOSITION
 ### Date
 
 2026-07-17
+
+## D-855
+
+RC23-SMOKE-TEST-EVIDENCE. Single-commit evidence burst (TD-VSDD-053) persisting rc.23-candidate smoke-test results (devops-engineer dry-run 2026-07-18 against develop `6db4c9fc`). (1) POLICY 16 GLOBAL-MAX GATE: `grep -n "^## D-" .factory/cycles/v1.0-brownfield-backfill/decision-log.md | tail -3` → `10568:## D-852 / 10580:## D-853 / 10592:## D-854`; `## D-854` confirmed max at line 10592 → D-855 allocated. (2) rc23-candidate-smoke-test.md CREATED: `cycles/v1.0-brownfield-backfill/rc23-candidate-smoke-test.md`; VERDICT READY-EXCEPT-KNOWN-BLOCKER; 8 checks completed dry-run only; no branches/tags/releases created. Check results: (1) release procedure readiness PASS; (2) POLICY 20 bundle hygiene PASS (34 WASMs = 33 hooks-registry + 1 resolvers-registry; 0 orphans; 0 missing); (3) committed darwin-arm64 binary PASS (loaded_plugin_count=73; 7/7 invoked/completed; 0 plugin.crashed; exit 0); (4) stale linux/x64/arm64/windows-x64 CONFIRMED BLOCKER — rc.22 bundle `a04cb303` (Jul 4) vs darwin rebuilt Jul 17 (PR #670); deny_unknown_fields error on stale platforms if consumed from develop; resolution path: release.yml build-binaries job rebuilds all 5 platforms at tag-push (zero pre-release manual action required); (5) WASM blast radius PASS (exactly 1 WASM imports vsdd::read_prefix = verify-factory-lock.wasm; 2 registry entries; all other 71 plugins unaffected); (6) bats 23/23 PASS (regression-v1.0 9 + read-prefix 5 + host-abi-hygiene 9); (7) VSDD_SINK_FILE release-mode opt-in PASS (file created; 2 plugin.completed; 0 internal.* leaked); (8) plugin manifest sanity PASS (agents 37 / skills 128 / hooks 49 / hook-plugins 34; registry 73 entries). NEW FINDINGS (both benign, E-20 roster candidates pending E-20 authorization D-854): FINDING-A vestigial release-config.yaml marketplace.json reference (devops cleanup); FINDING-B dispatcher_version emits "0.0.1" in internal logs (pre-existing polish). (3) STATE.md v6.01→v6.02: D-855 Phase Progress + Decisions Log rows; §Pending Human Decisions rc.23 item annotated SMOKE-TESTED-READY-EXCEPT-KNOWN-BLOCKER 2026-07-18; Session Resume Checkpoint annotation; banner wc-l recomputed. (4) DIRTY TREE SWEPT: logs/dispatcher-internal-2026-07-17.jsonl (M); logs/dispatcher-internal-2026-06-17.jsonl (D); logs/dispatcher-internal-2026-07-18.jsonl (untracked); logs/events-2026-07-18.jsonl (untracked); regression-state.json (M); sidecar-learning.md (M). (5) 4-INDEX LITERAL-SHELL: `grep "^version:" .factory/specs/behavioral-contracts/BC-INDEX.md .factory/specs/verification-properties/VP-INDEX.md .factory/stories/STORY-INDEX.md .factory/specs/architecture/ARCH-INDEX.md` → BC-INDEX: "4.10" / VP-INDEX: "2.72" / STORY-INDEX: "4.219" / ARCH-INDEX: "3.06"; ALL UNCHANGED. trajectory-tail →2→0→0→0 UNCHANGED. parent-commit: 40da9bed (D-854-SHA-PATCH; factory-artifacts HEAD before D-855 burst).
+
+### Phase
+
+D-855-RC23-SMOKE-TEST-EVIDENCE
+
+### Date
+
+2026-07-18
