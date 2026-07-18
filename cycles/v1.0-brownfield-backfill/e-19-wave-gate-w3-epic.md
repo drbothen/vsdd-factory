@@ -149,4 +149,23 @@ Result: 65/65 PASS. Banner `wc -l` assertion passes against updated STATE.md (ba
 
 ## Summary
 
-E-19 W3 + epic-level wave gate: **PASS-PENDING-HUMAN**. Gate 3 NOT-CLEAN 0B/1H/1M/3L — W3G-001 CLOSED D-852, W3G-002+W3G-003 CLOSED D-853, W3G-004+W3G-005 accepted-with-record with future story anchors. All other gates PASS or SKIP. E-19 COMPLETE 9/9 ALL MERGED. Epic status advance to complete. Next: E-20 roster authorization (human decision pending).
+E-19 W3 + epic-level wave gate: **PASSED** (human approval 2026-07-17, D-854). Gate 3 NOT-CLEAN 0B/1H/1M/3L — W3G-001 CLOSED D-852, W3G-002+W3G-003 CLOSED D-853, W3G-004+W3G-005 accepted-with-record with future story anchors. All other gates PASS or SKIP. E-19 COMPLETE 9/9 ALL MERGED. Epic status advance to complete. W3G-001 residual risk (envelope-overflow silent fail-open; spec-fixed BC-4.13.001 v1.18; implementation deferred to E-20-ARCH-02; ~7x headroom) explicitly ACCEPTED by human 2026-07-17. E-20 DECOMPOSITION DEFERRED (human directive 2026-07-17). rc.23 DECLINED FOR NOW — RELEASE-GATE BLOCKER persists (active; never-lose class).
+
+## Human Disposition (D-854)
+
+**Decision date:** 2026-07-17  
+**Decision:** D-854
+
+### Gate Disposition
+
+**GATE STATUS: PASSED** — Human approval 2026-07-17 (D-854). Wave gate transition: PASS-PENDING-HUMAN → PASSED.
+
+### W3G-001 Residual Risk Acceptance
+
+W3G-001 (envelope-overflow silent fail-open for `read_prefix`): The spec-level fix (BC-4.13.001 v1.18 Invariant 10, EC-018/EC-019, ADR-025 §Decision 20) is complete and landed at D-852. The implementation-level fix is deferred to E-20-ARCH-02 (PENDING-REGISTRATION — roster reference; not a live story ID until E-20 is authorized). Human explicitly ACCEPTED this residual risk: ~7x headroom exists between current usage and the overflow boundary; the spec contract is correct; the implementation path is documented.
+
+### Concurrent Decisions (D-854)
+
+**(1) rc.23 RELEASE CUT: DECLINED FOR NOW.** Human declined to cut rc.23 at this time. The architect's RELEASE-GATE BLOCKER classification STANDS UNRESOLVED: develop's `hooks-registry.toml` is unparseable by rc.22-era linux/windows bundled binaries (`deny_unknown_fields` on `[hooks.capabilities.read_prefix]`); develop-based linux/windows operator use remains broken until a release ships. This item carries as an ACTIVE BLOCKING item in Session Resume Checkpoint §Pending Human Decisions — never-lose class.
+
+**(2) E-20 DECOMPOSITION: DEFERRED.** Human deferred E-20 epic/story authoring ("skip e20 for now"). The E-20 roster remains recorded in e-19-arch-post-epic-report.md + e-19-sw-post-epic-report.md + D-852's F-006 DF-030-migration requirement + W3G-004/W3G-005 accepted-with-record anchors. E-20-ARCH-02 and other E-20 anchors are PENDING-REGISTRATION (roster references; not live story IDs until E-20 is authorized). S-19.09 micro-cleanups (emit_dispatcher_schema_mismatch drift; darwin mktemp bug; memory.grow untested branch) folded into E-20 roster.

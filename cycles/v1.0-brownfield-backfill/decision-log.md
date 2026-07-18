@@ -10588,3 +10588,15 @@ D-853-E19-W3-EPIC-WAVE-GATE-CLOSURE-BURST2
 ### Date
 
 2026-07-17
+
+## D-854
+
+E-19-WAVE-GATE-HUMAN-DISPOSITION. Single-commit governance burst (TD-VSDD-053) codifying E-19 epic wave-gate human decisions (2026-07-17). (1) POLICY 16 GLOBAL-MAX GATE: `grep -n "^## D-" .factory/cycles/v1.0-brownfield-backfill/decision-log.md | tail -3` → `10556:## D-851 / 10568:## D-852 / 10580:## D-853`; `## D-853` confirmed max at line 10580 → D-854 allocated. (2) HUMAN DECISION 1 — E-19 EPIC CLOSURE: APPROVED. e-19-wave-gate-w3-epic.md GATE STATUS updated PASS-PENDING-HUMAN → PASSED (human approval 2026-07-17); W3G-001 residual risk (envelope-overflow silent fail-open; spec-fixed BC-4.13.001 v1.18 Invariant 10; implementation deferred E-20-ARCH-02; ~7x headroom) explicitly ACCEPTED by human; Human Disposition section added D-854. (3) HUMAN DECISION 2 — rc.23 RELEASE CUT: DECLINED FOR NOW. Human declined to cut rc.23 at this time ("Not yet"). Architect's RELEASE-GATE BLOCKER classification STANDS UNRESOLVED: develop's `hooks-registry.toml` is unparseable by rc.22-era linux/windows bundled binaries (`deny_unknown_fields` on `[hooks.capabilities.read_prefix]`); develop-based linux/windows operator use remains broken until a release ships. Recorded as ACTIVE BLOCKING item in STATE.md Blocking Issues + Session Resume Checkpoint §Pending Human Decisions (never-lose class; same class as prior RELEASE-GATE directive). (4) HUMAN DECISION 3 — E-20 DECOMPOSITION: DEFERRED. Human deferred E-20 epic/story authoring ("skip e20 for now"). No epic/story authoring authorized. E-20 roster recorded in e-19-arch-post-epic-report.md + e-19-sw-post-epic-report.md + D-852 F-006 DF-030-migration requirement + W3G-004/W3G-005 accepted-with-record anchors. E-20-ARCH-02 and other E-20 anchors are PENDING-REGISTRATION (roster references; not live story IDs). S-19.09 micro-cleanups folded into E-20 roster. (5) STATE.md v6.00→v6.01: D-854 Phase Progress + Decisions Log rows; Blocking Issues rc.23 RELEASE-GATE BLOCKER added; Session Resume Checkpoint FULL REPLACEMENT (NEXT: human decides — rc.23 cut/E-20/other; standing items: rc.23 blocker + E-20 roster + S-19.09 micro-cleanups + stash hygiene + .lazyclaude). (6) 4-INDEX LITERAL-SHELL: `grep "^version:" BC-INDEX.md VP-INDEX.md STORY-INDEX.md ARCH-INDEX.md` → BC v4.10 / VP v2.72 / STORY v4.219 / ARCH v3.06; ALL UNCHANGED. trajectory-tail →2→0→0→0 UNCHANGED. parent-commit: 8520dcdb (D-853-SHA-PATCH; factory-artifacts HEAD before D-854 burst).
+
+### Phase
+
+D-854-E19-WAVE-GATE-HUMAN-DISPOSITION
+
+### Date
+
+2026-07-17
