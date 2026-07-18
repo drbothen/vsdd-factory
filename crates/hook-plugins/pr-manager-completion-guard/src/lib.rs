@@ -77,8 +77,8 @@ use vsdd_hook_sdk::{HookPayload, HookResult};
 /// (pr-manager-completion-guard.sh lines 65-76). The wildcard arm fires
 /// for NEXT_STEP >= 10 (or any value not in 1..=9).
 ///
-/// These strings MUST match the bash source verbatim — any wording drift
-/// will be caught by the bats parity tests (AC-006).
+/// Strings are verified verbatim by the Rust parity test
+/// `test_BC_7_03_048_hint_table_all_nine_steps_verbatim` (AC-006).
 pub fn hint_for_step(next_step: u64) -> &'static str {
     match next_step {
         1 => "populate PR description from template",
@@ -88,7 +88,9 @@ pub fn hint_for_step(next_step: u64) -> &'static str {
         5 => "spawn pr-reviewer/pr-review-triage via Agent tool; handle findings; converge",
         6 => "spawn github-ops: gh pr checks --watch",
         7 => "verify all dependency PRs merged",
-        8 => "spawn github-ops: gh pr merge --squash --delete-branch (AUTHORIZE_MERGE=yes mode)",
+        8 => {
+            "spawn github-ops: check-stale-verdict.sh then enforce-merge-strategy.sh (AUTHORIZE_MERGE=yes mode; never direct gh pr merge)"
+        }
         9 => "confirm branch deletion; write review-findings.md; emit final STEP_COMPLETE",
         _ => "continue the 9-step lifecycle",
     }
@@ -209,14 +211,44 @@ where
         .or(payload.result.as_deref())
         .unwrap_or("");
 
-    // T-4: STEP_COMPLETE count >= 8 → pass (BC-7.03.046 / AC-003 / EC-005)
-    let step_count = count_step_complete_lines(result);
-    if step_count >= 8 {
+    // T-5: BLOCKED detection (BC-7.03.047 / AC-004)
+    if is_blocked(result) {
         return HookResult::Continue;
     }
 
-    // T-5: BLOCKED detection (BC-7.03.047 / AC-004)
-    if is_blocked(result) {
+    // S-19.01: READY verdict covered_sha completeness check (BC-5.42.001 part a).
+    // Runs before the step count gate so it fires on complete (8+ step) verdicts
+    // that carry a READY token without a valid covered_sha field.
+    if let Some(advisory_code) = check_ready_sha_completeness(result) {
+        emit(
+            "hook.block",
+            &[
+                ("hook", "pr-manager-completion-guard"),
+                ("matcher", "SubagentStop"),
+                ("reason", advisory_code),
+                ("subagent", agent),
+            ],
+        );
+        let stderr_msg = format!(
+            "\npr-manager-completion-guard: READY verdict missing covered_sha.\n\
+             \n\
+             A READY verdict token was detected but no valid covered_sha: <40-hex>\n\
+             field is present (BC-5.42.001 Invariant 5 / ADR-030 §Decision 1).\n\
+             \n\
+             Advisory code: {}\n\
+             \n\
+             Re-emit the READY verdict with covered_sha: <40-lowercase-hex> recording\n\
+             the PR's headRefOid at assessment time (BC-5.42.001 PC-1).\n",
+            advisory_code
+        );
+        block_stderr(&stderr_msg);
+        println!(r#"{{"outcome":"block","reason":"{}"}}"#, advisory_code);
+        return HookResult::Continue;
+    }
+
+    // T-4: STEP_COMPLETE count >= 8 → pass (BC-7.03.046 / AC-003 / EC-005)
+    let step_count = count_step_complete_lines(result);
+    if step_count >= 8 {
         return HookResult::Continue;
     }
 
@@ -270,6 +302,69 @@ where
     println!(r#"{{"outcome":"block","reason":"pr_manager_incomplete_lifecycle"}}"#);
 
     HookResult::Continue
+}
+
+// ---------------------------------------------------------------------------
+// S-19.01: READY-verdict covered_sha completeness inspection
+//
+// These three functions extend the SubagentStop hook to enforce BC-5.42.001
+// part (a): every READY verdict must carry a valid covered_sha field.
+// The hook emits READY_SHA_MISSING advisory when the field is absent or malformed.
+//
+// ADR-030 §Decision 1: advisory-block-mode; on_error = "continue".
+// BC-5.42.001 Invariant 5: covered_sha must be exactly 40 lowercase hex chars.
+// ---------------------------------------------------------------------------
+
+/// Detect a READY verdict token in `text`.
+///
+/// Returns true when `text` contains a READY verdict — specifically, any line
+/// that starts (after optional whitespace) with "READY:" (BC-5.42.001 part a;
+/// ADR-030 §Decision 1 Trigger). Non-READY stops pass through (EC-007).
+pub fn has_ready_verdict(text: &str) -> bool {
+    use regex::RegexBuilder;
+    // Multiline: match any line that starts (after optional whitespace) with "READY"
+    // followed by ":" or whitespace. This covers:
+    //   "READY: PR #42 ..."  (colon-form from pr-manager verdict)
+    //   "READY verdict ..."  (space-form)
+    // Non-line-start occurrences (e.g., "No READY token") do NOT match.
+    let re = RegexBuilder::new(r"(?m)^\s*READY[:\s]")
+        .build()
+        .expect("READY verdict regex is valid");
+    re.is_match(text)
+}
+
+/// Validate `covered_sha: <40-lowercase-hex>` presence in `text`.
+///
+/// Returns true if `text` contains a `covered_sha:` key followed by
+/// whitespace and then exactly 40 lowercase hexadecimal characters
+/// (BC-5.42.001 Invariant 5 format rule). Returns false for absent field,
+/// wrong length, non-hex characters, or uppercase hex — all malformed cases
+/// trigger READY_SHA_MISSING per EC-002.
+pub fn has_valid_covered_sha(text: &str) -> bool {
+    use regex::Regex;
+    // Match "covered_sha:" followed by whitespace and exactly 40 lowercase hex chars,
+    // followed by a non-hex character or end of string/line (to prevent 41+ char false-positives).
+    let re = Regex::new(r"covered_sha:\s+([0-9a-f]{40})(?:[^0-9a-f]|$)")
+        .expect("covered_sha regex is valid");
+    re.is_match(text)
+}
+
+/// Check READY verdict covered_sha completeness; return advisory code if missing.
+///
+/// Returns `Some("READY_SHA_MISSING")` when `text` contains a READY verdict
+/// but lacks a valid `covered_sha:` field (BC-5.42.001 PC-1; ADR-030 §Decision 1).
+///
+/// Returns `None` when:
+/// - No READY verdict is present in `text` (hook does not apply; EC-007)
+/// - READY verdict is present AND a valid covered_sha field exists (no advisory)
+pub fn check_ready_sha_completeness(text: &str) -> Option<&'static str> {
+    if !has_ready_verdict(text) {
+        return None;
+    }
+    if has_valid_covered_sha(text) {
+        return None;
+    }
+    Some("READY_SHA_MISSING")
 }
 
 // ---------------------------------------------------------------------------
@@ -603,7 +698,7 @@ mod tests {
         );
         let msg = stderr_msg.unwrap();
         assert!(
-            msg.contains("CONTINUE TO STEP 8 NOW: spawn github-ops: gh pr merge --squash --delete-branch (AUTHORIZE_MERGE=yes mode)"),
+            msg.contains("CONTINUE TO STEP 8 NOW: spawn github-ops: check-stale-verdict.sh then enforce-merge-strategy.sh (AUTHORIZE_MERGE=yes mode; never direct gh pr merge)"),
             "stderr must contain verbatim hint line for step 8"
         );
     }
@@ -626,7 +721,7 @@ mod tests {
             (7, "verify all dependency PRs merged"),
             (
                 8,
-                "spawn github-ops: gh pr merge --squash --delete-branch (AUTHORIZE_MERGE=yes mode)",
+                "spawn github-ops: check-stale-verdict.sh then enforce-merge-strategy.sh (AUTHORIZE_MERGE=yes mode; never direct gh pr merge)",
             ),
             (
                 9,
@@ -857,6 +952,97 @@ mod tests {
         assert!(
             emitted_fields.iter().any(|(k, _)| k == "subagent"),
             "subagent field must always be emitted, never omitted (AC-005)"
+        );
+    }
+
+    // ── S-19.01: READY-verdict covered_sha completeness verification ─────
+    // These tests verify the three implemented functions (has_ready_verdict,
+    // has_valid_covered_sha, check_ready_sha_completeness) behave per
+    // BC-5.42.001. All functions are implemented; 41/41 pass.
+
+    /// S-19.01: has_ready_verdict detects READY token (BC-5.42.001 PC-1).
+    #[test]
+    fn test_s19_01_has_ready_verdict_detects_ready_token() {
+        assert!(has_ready_verdict("READY: PR #42 covered_sha: abc..."));
+    }
+
+    /// S-19.01: has_valid_covered_sha accepts exactly 40 lowercase hex chars (BC-5.42.001 Invariant 5).
+    #[test]
+    fn test_s19_01_has_valid_covered_sha_accepts_40hex() {
+        let sha40 = "a".repeat(40);
+        assert!(has_valid_covered_sha(&format!("covered_sha: {sha40}")));
+    }
+
+    /// S-19.01: check_ready_sha_completeness returns READY_SHA_MISSING when covered_sha absent (BC-5.42.001 PC-1).
+    #[test]
+    fn test_s19_01_check_ready_sha_completeness_emits_missing() {
+        assert_eq!(
+            check_ready_sha_completeness("READY verdict with no sha field"),
+            Some("READY_SHA_MISSING")
+        );
+    }
+
+    // ── S-19.01: boundary conditions for has_ready_verdict ───────────────
+    // BC-5.42.001 EC-007: non-READY SubagentStop → hook does not apply.
+
+    /// S-19.01: has_ready_verdict returns false when no READY token is present (EC-007).
+    /// Hook must not fire on non-READY SubagentStop messages.
+    #[test]
+    fn test_s19_01_has_ready_verdict_returns_false_without_token() {
+        assert!(!has_ready_verdict(
+            "PR #42 review complete. No READY token present in this message."
+        ));
+    }
+
+    // ── S-19.01: boundary conditions for has_valid_covered_sha ───────────
+    // BC-5.42.001 Invariant 5: exactly 40 lowercase hex characters required.
+    // EC-002: 40 chars but non-lowercase hex → same as absent (READY_SHA_MISSING).
+
+    /// S-19.01: has_valid_covered_sha rejects 40-char uppercase hex (BC-5.42.001 Invariant 5 / EC-002).
+    /// Uppercase hex is not valid lowercase hex — must return false.
+    #[test]
+    fn test_s19_01_has_valid_covered_sha_rejects_uppercase() {
+        let uppercase_sha = "A".repeat(40);
+        assert!(!has_valid_covered_sha(&format!(
+            "covered_sha: {uppercase_sha}"
+        )));
+    }
+
+    /// S-19.01: has_valid_covered_sha rejects SHA shorter than 40 chars (BC-5.42.001 Invariant 5).
+    /// Wrong length (even valid hex chars) → must return false.
+    #[test]
+    fn test_s19_01_has_valid_covered_sha_rejects_short() {
+        assert!(!has_valid_covered_sha("covered_sha: abc123"));
+    }
+
+    /// S-19.01: has_valid_covered_sha rejects 40-char non-hex string (BC-5.42.001 Invariant 5).
+    /// Non-hex characters (e.g., 'z') are invalid — must return false.
+    #[test]
+    fn test_s19_01_has_valid_covered_sha_rejects_nonhex() {
+        let nonhex = "z".repeat(40); // 'z' is not a valid hex character
+        assert!(!has_valid_covered_sha(&format!("covered_sha: {nonhex}")));
+    }
+
+    // ── S-19.01: boundary conditions for check_ready_sha_completeness ────
+    // BC-5.42.001 PC-1 positive path: READY verdict with valid covered_sha → no advisory.
+    // BC-5.42.001 EC-007: no READY verdict → no advisory.
+
+    /// S-19.01: check_ready_sha_completeness returns None when READY verdict carries valid covered_sha (PC-1 positive path).
+    /// No advisory emitted when field is present and well-formed.
+    #[test]
+    fn test_s19_01_check_ready_sha_completeness_returns_none_with_valid_sha() {
+        let sha40 = "a".repeat(40);
+        let text = format!("READY: PR #42 covered_sha: {sha40}");
+        assert_eq!(check_ready_sha_completeness(&text), None);
+    }
+
+    /// S-19.01: check_ready_sha_completeness returns None when no READY verdict present (EC-007).
+    /// Hook must not fire on non-READY SubagentStop messages — no READY_SHA_MISSING emitted.
+    #[test]
+    fn test_s19_01_check_ready_sha_completeness_returns_none_without_ready() {
+        assert_eq!(
+            check_ready_sha_completeness("PR review complete. No READY token here."),
+            None
         );
     }
 }

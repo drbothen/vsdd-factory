@@ -1,0 +1,35 @@
+S-19.05 Demo Evidence — AC-003: Async events not relayed to dispatcher stderr
+Captured: 2026-07-13
+Branch: feature/S-19.05  HEAD: 405a871f
+Test file: crates/factory-dispatcher/tests/bc_3_08_001_s19_05.rs (T-004)
+
+=== T-004 (AC-003): async events NOT relayed to dispatcher stderr ===
+
+$ cargo test -p factory-dispatcher --test bc_3_08_001_s19_05 -- t004
+
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.18s
+     Running tests/bc_3_08_001_s19_05.rs (target/debug/deps/bc_3_08_001_s19_05-a19cfa4d0bf23343)
+
+running 2 tests
+test test_BC_3_08_001_s19_05_t004_async_completed_event_not_relayed_to_stderr ... ok
+test test_BC_3_08_001_s19_05_t004_async_abandoned_event_not_relayed_to_stderr ... ok
+
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 8 filtered out; finished in 1.35s
+
+Test design (T-004): Binary invocation tests.
+  - t004_async_completed_event_not_relayed_to_stderr: runs WAT_EXIT_0 async plugin, captures
+    dispatcher stderr. Asserts the captured stderr contains no "plugin.completed" text — events
+    go to VSDD_SINK_FILE and internal log only. Parity with BC-1.14.001 Invariant 4 (async
+    plugin stderr not relayed to dispatcher stderr).
+  - t004_async_abandoned_event_not_relayed_to_stderr: runs WAT_INFINITE_LOOP async plugin with
+    short drain window. Asserts the captured stderr contains no "plugin.abandoned" text.
+
+Observed dispatcher stderr (nominal — summary line only, no event text):
+  factory-dispatcher trace=<UUID> event=PostToolUse tool=Bash host_abi=1 sync_plugins=0 async_plugins=1
+    plugins_run=0 total_ms=0 block_intent=false exit_code=0
+
+The summary line contains no plugin.completed or plugin.abandoned fields.
+Events route exclusively to: (1) VSDD_SINK_FILE, (2) internal log (.factory/logs/dispatcher-internal-YYYY-MM-DD.jsonl).
+
+BC Trace: BC-3.08.001 §Postconditions (event routing to FileSink, not stderr);
+          BC-1.14.001 Invariant 4 (async plugin stderr not relayed); VP-079.

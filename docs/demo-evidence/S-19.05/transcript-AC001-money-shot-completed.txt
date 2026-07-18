@@ -1,0 +1,74 @@
+S-19.05 Demo Evidence — AC-001 Money Shot: Live plugin.completed JSONL from real dispatcher binary
+Captured: 2026-07-13
+Branch: feature/S-19.05  HEAD: 405a871f
+Binary: target/debug/factory-dispatcher (CARGO_BIN_EXE_factory-dispatcher)
+Fixture: WAT_EXIT_0 (async WASM that exits 0 immediately on _start return)
+
+=== Setup ===
+
+WAT fixture (WAT_EXIT_0):
+  (module
+    (memory (export "memory") 1)
+    (func (export "_start")))
+
+Registry (hooks-registry.toml):
+  schema_version = 2
+  [[hooks]]
+  name = "demo-async-exit0"
+  event = "PostToolUse"
+  plugin = "<tmpdir>/exit0.wasm"
+  async = true
+  on_error = "continue"
+  timeout_ms = 60000
+  fuel_cap = 1000000000
+
+Payload (stdin):
+  {"event_name":"PostToolUse","tool_name":"Bash","session_id":"money-shot-completed","tool_input":{}}
+
+Environment:
+  VSDD_SINK_FILE=<tmpdir>/sink-completed.jsonl
+  VSDD_ASYNC_DRAIN_WINDOW_MS=10000
+  CLAUDE_PLUGIN_ROOT=<tmpdir>
+
+=== Dispatcher run ===
+
+$ factory-dispatcher < payload.json
+
+factory-dispatcher trace=26160c7d-ab71-4f8c-8f63-75f32722901d event=PostToolUse tool=Bash host_abi=1 sync_plugins=0 async_plugins=1
+  plugins_run=0 total_ms=0 block_intent=false exit_code=0
+
+=== VSDD_SINK_FILE content (plugin.completed) ===
+
+{
+  "type": "plugin.completed",
+  "ts": "2026-07-13T18:30:09-0500",
+  "ts_epoch": 1783985409,
+  "schema_version": 1,
+  "trace_id": "26160c7d-ab71-4f8c-8f63-75f32722901d",
+  "session_id": "money-shot-completed",
+  "plugin_name": "demo-async-exit0",
+  "plugin_version": "0.0.1",
+  "elapsed_ms": 0,
+  "entry_index": 0,
+  "exit_code": 0,
+  "fuel_consumed": 1
+}
+
+=== Field-by-field AC-001 gate verification ===
+
+All 9 mandatory fields per BC-3.08.001 §Event 6 are present and non-null:
+
+  type:           "plugin.completed"  [PRESENT]
+  trace_id:       "26160c7d-ab71-4f8c-8f63-75f32722901d"  [PRESENT — dispatcher-assigned UUID per DI-017]
+  session_id:     "money-shot-completed"  [PRESENT]
+  plugin_name:    "demo-async-exit0"  [PRESENT — verbatim from registry name field]
+  plugin_version: "0.0.1"  [PRESENT — async-path variant includes plugin_version per §Event 6]
+  entry_index:    0  [PRESENT — u32, 0-based ordinal from enumerate() of async plugin partition]
+  exit_code:      0  [PRESENT — plugin exited cleanly]
+  elapsed_ms:     0  [PRESENT — WASM cold-start time in ms]
+  fuel_consumed:  1  [PRESENT — fuel units consumed by WAT_EXIT_0 minimal module]
+
+Gate: [ "$(grep -c '"type":"plugin.completed"' "$SINK_FILE")" -ge 1 ] || exit 1 → PASS (1 event)
+Gate: per-field jq slurp loop over all 9 fields → all fields non-null → PASS
+
+BC Trace: BC-3.08.001 §Event 6 (plugin.completed async path); VP-100 (drain-timer telemetry).

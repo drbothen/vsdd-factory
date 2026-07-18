@@ -1,0 +1,24 @@
+[package]
+name = "read-prefix-fixture"
+version = "0.0.1"
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+authors.workspace = true
+rust-version.workspace = true
+description = "FFI boundary integration gate fixture: proves read_prefix compiles and links for wasm32-wasip1 (S-19.06 AC-007 Gate 4, BC-1.17.001 v1.6)"
+publish = false
+
+# Fixture plugin ships as a WASI command built via
+# `cargo build --target wasm32-wasip1`.  The [[bin]] target is the sole
+# compilation unit; no [lib] is needed because this crate exists only to
+# prove the FFI boundary compiles and links successfully.
+[[bin]]
+name = "read-prefix-fixture"
+path = "src/main.rs"
+
+[dependencies]
+vsdd-hook-sdk = { path = "../../hook-sdk" }
+
+[lints]
+workspace = true

@@ -1,0 +1,27 @@
+# AC-006 — max_bytes=0 → empty payload, exit 0 (file not opened)
+# Story S-19.06 — branch feature/S-19.06 HEAD 7156a4c3
+# BC-1.17.001 EC-001
+#
+# Tests: T-008 (file present, max_bytes=0 → 0 bytes, exit 0)
+#        T-012 (EC-001 composite: absent allowlisted file, max_bytes=0 →
+#               empty payload, exit 0, NO NOT_FOUND (-5), NO file_not_found event)
+#
+# T-012 pins the critical architectural invariant: the max_bytes=0 short-circuit
+# fires at step 3 (BEFORE the existence check at step 4). An absent file with
+# max_bytes=0 returns exit 0 with empty payload — the file is not opened and
+# existence is never consulted. This ordering lock is verified by the mutant
+# tests T-012_MUTANT_VERIFY and T-013_MUTANT_VERIFY (included in the full suite).
+
+# ── cargo test run ──────────────────────────────────────────────────────────
+$ cargo test -p factory-dispatcher --lib -- \
+  host::read_prefix::tests::test_S19_06_T008 \
+  host::read_prefix::tests::test_S19_06_T012_absent_file_max_bytes_zero_short_circuits_before_existence_check
+
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.20s
+     Running unittests src/lib.rs (target/debug/deps/factory_dispatcher-cdf061c0a73efe1d)
+
+running 2 tests
+test host::read_prefix::tests::test_S19_06_T008_max_bytes_zero_returns_empty_payload_exit_0 ... ok
+test host::read_prefix::tests::test_S19_06_T012_absent_file_max_bytes_zero_short_circuits_before_existence_check ... ok
+
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 192 filtered out; finished in 0.00s

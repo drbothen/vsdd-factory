@@ -1,0 +1,40 @@
+S-19.05 Demo Evidence — Workspace Test Summary + fmt/clippy
+Captured: 2026-07-13
+Branch: feature/S-19.05  HEAD: 405a871f
+
+=== Workspace test suite (cargo test --workspace --all-targets) ===
+
+Selected test result lines (all crates, all targets):
+
+  test result: ok. 10 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out  [bc_3_08_001_s19_05]
+  test result: ok. 65 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out
+  test result: ok. 63 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out
+  test result: ok. 52 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out
+  test result: ok. 28 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out
+  test result: ok. 37 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out
+  test result: ok. 26 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out  [factory-dispatcher]
+  test result: ok. 43 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out
+  test result: ok.  5 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out
+  test result: ok. 16 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out
+  test result: ok. 25 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out
+  test result: ok. 11 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out
+
+Total: 2010 passed, 0 failed (across all workspace crates and targets, debug profile)
+
+=== fmt check ===
+
+$ cargo fmt --check --all
+exit code: 0 — FMT: PASS
+
+=== clippy check ===
+
+$ cargo clippy --workspace --all-targets -- -D warnings
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.45s
+exit code: 0 — CLIPPY: PASS
+
+=== Release profile (T-009 AC-007 proof, see transcript-AC007-release-proof.txt) ===
+
+$ cargo test -p factory-dispatcher --release --features test-support --test bc_3_08_001_s19_05
+test result: ok. 10 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out
+
+All gates GREEN. Pre-push gate (fmt + clippy + test) mirrors CI requirements per CLAUDE.md.

@@ -1,0 +1,28 @@
+# S-19.09 — Workspace Regression Gate (AC-010)
+# Branch: feature/S-19.09
+# HEAD: 923ebff4
+# Command: cargo test --workspace --all-targets
+
+$ cargo test --workspace --all-targets 2>&1 | awk '/^test result:/{passed+=$4; failed+=$6; ignored+=$8} END{print "Total: " passed " passed, " failed " failed, " ignored " ignored"}'
+
+Total: 2055 passed, 0 failed, 5 ignored
+
+# All 2055 tests pass. 0 failures. 5 ignored (pre-existing; not related to S-19.09).
+# The workspace includes: factory-dispatcher (204 lib tests), hook-sdk, context-resolvers,
+# hook-plugins (verify-state-timestamp-refresh, convergence-resolver, and others),
+# worktree-hooks, and all other crates in the workspace.
+
+# Breakdown of relevant crates:
+#   factory-dispatcher: 204 passed (includes T-001/T-002/T-002b/T-003/T-013/T-015)
+#   internal_log (within factory-dispatcher): T-009/T-010 included in the 204
+#   All other workspace crates: 1851 passed
+
+# Note on bats run-all.sh:
+# The host-abi-hygiene.bats suite (9/9) passes cleanly.
+# Two pre-existing environmental failures in run-all.sh unrelated to S-19.09:
+#   - resolver-integration: stale temp file race (passes when run independently after cleanup)
+#   - pass-real-state-md-snapshot: requires .factory/STATE.md which is not mounted
+#     in the S-19.09 feature worktree (factory-artifacts branch is a separate worktree);
+#     this is a worktree environment issue, not a code regression from S-19.09 changes.
+# S-19.09 changes are confined to crates/factory-dispatcher/ and plugins/vsdd-factory/tests/;
+# neither failing suite references those files.

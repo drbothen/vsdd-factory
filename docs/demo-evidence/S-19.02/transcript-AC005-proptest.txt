@@ -1,0 +1,53 @@
+S-19.02 Demo Evidence — AC-005 VP-096: extract_frontmatter proptest harness
+Captured: 2026-07-11
+Branch: feature/S-19.02  HEAD: 492f01c2
+Crate: crates/factory-lock-parse (tests/proptest_extract_frontmatter.rs)
+
+=== VP-096 proptest: 3 property tests ===
+
+$ cargo test -p factory-lock-parse --test proptest_extract_frontmatter
+
+     Running tests/proptest_extract_frontmatter.rs (target/debug/deps/proptest_extract_frontmatter-...)
+
+running 3 tests
+test prop_extract_frontmatter_byte_equals_prefix ... ok
+test prop_extract_frontmatter_crlf_byte_equals_prefix ... ok
+test prop_extract_frontmatter_is_deterministic ... ok
+
+test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.05s
+
+=== Property descriptions ===
+
+prop_extract_frontmatter_byte_equals_prefix (Property 1 — structural oracle):
+  Input: arbitrary Vec<u8> up to 512 bytes
+  Verifies three independent structural invariants:
+  A. Prefix invariant: extracted is always a byte-prefix of input (starts_with check)
+  B. Delimiter partition (None case): if extracted == input, no delimiter form is
+     present anywhere in input (all 4 forms: \n---\n, \r\n---\r\n, \n---/\r\n--- at EOF)
+  B. Delimiter partition (Some case): if extracted is a proper prefix, the bytes
+     immediately after extracted begin with one of the 4 delimiter sequences
+  C. Minimality: extracted contains no inline delimiter (\n---\n or \r\n---\r\n) —
+     ensures the first occurrence is used, not a later one
+  Oracle is NOT tautological: it never recomputes expected offset via impl's search
+  algorithm. A shared ordering/offset bug is caught by Invariant C.
+
+prop_extract_frontmatter_is_deterministic (Property 2 — determinism):
+  Input: arbitrary Vec<u8> up to 512 bytes
+  Verifies: two consecutive calls with same input produce byte-identical output slices
+  Closes: VP-096 determinism requirement
+
+prop_extract_frontmatter_crlf_byte_equals_prefix (Property 3 — CRLF known-answer):
+  Input: prefix (Vec<u8> no-LF, 0..100) + "\r\n---\r\n" + suffix (Vec<u8> no-LF, 1..50)
+  Verifies: extracted == input[0..prefix.len()] exactly (exclusive of delimiter)
+  The prefix and suffix are LF-free so no LF delimiter can appear before the CRLF form,
+  making the expected offset deterministic.
+  Closes: EC-017 (CRLF line endings) + BC-4.13.001 v1.15 Invariant 9 CRLF clause
+
+=== BC / VP Trace ===
+
+VP-096 v1.1: extract_frontmatter Purity — output byte-equals file prefix up to
+  (excluding) the second --- delimiter line; deterministic for any input
+BC-4.13.001 v1.15 Phase-A Invariant 9 (frontmatter-only-parsing mandate;
+  CRLF delimiter forms \r\n---\r\n / \r\n--- -EOF added in v1.15 / EC-017)
+AC-005 (byte-exact boundary; parity-with-full-file-parse FORBIDDEN per F-P2-011)
+T-010 task anchor (story v1.18)

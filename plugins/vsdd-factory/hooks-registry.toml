@@ -10,6 +10,75 @@
 
 schema_version = 2
 
+# ---------------------------------------------------------------------------
+# TOOL-FILTER REGEX SEMANTICS (S-19.04 AC-003)
+#
+# The `tool` field in [[hooks]] entries is matched using regex SEARCH semantics
+# (substring match), NOT fullmatch.  This means an unanchored value such as
+#   tool = "Edit|Write"
+# will also fire on "MultiEdit" (because "Edit" is a substring of "MultiEdit")
+# and on any future tool whose name contains "Write" or "Edit" as a substring.
+#
+# ANCHORING CONVENTION — required for all new and existing entries:
+#   Single tool:     tool = "^Bash$"
+#   Multiple tools:  tool = "^(Edit|Write|MultiEdit)$"
+#
+# Why anchoring matters:
+#   Without anchoring,  tool = "Edit"       matches MultiEdit, MultiEdit*, etc.
+#   Without anchoring,  tool = "Write"      would match a hypothetical MultiWrite.
+#   Without anchoring,  tool = "Bash"       would match a hypothetical BashAsync.
+#   With prefix-only,   tool = "^Bash"      STILL matches BashAsync via regex-SEARCH — both anchors required.
+#
+# Entries that intentionally rely on unanchored (prefix/substring) matching MUST
+# carry an inline `# intent:` comment explaining the design choice (EC-001).
+# The AC-005 bats lint test enforces this invariant in CI:
+#   Every tool= line must be fully anchored (leading ^ AND trailing $ immediately
+#   before the closing quote) or carry an # intent: comment.
+# ---------------------------------------------------------------------------
+
+# ---------------------------------------------------------------------------
+# CAPABILITY SCHEMAS (S-19.06 AC-007)
+#
+# The following capability blocks are available for declaring in [[hooks]]
+# entries. Each block documents the fields and semantics of the corresponding
+# capability. This section is separate from the TOOL-FILTER REGEX SEMANTICS
+# block above (S-19.04 AC-003); do NOT embed capability schema documentation
+# inside the tool-filter anchoring section.
+#
+# CAPABILITY: [hooks.capabilities.read_prefix]
+#   Enables the `vsdd::read_prefix` host function for a hook plugin.
+#   Returns at most `max_bytes` bytes from the start of a file (head-c
+#   semantics). GUARANTEED never to return OUTPUT_TOO_LARGE (-3) — by
+#   construction, `max_bytes` IS the cap; data beyond the cap is simply
+#   not read.
+#
+#   INDEPENDENT of `capabilities.read_file` — a plugin granted
+#   `capabilities.read_file` does NOT automatically receive
+#   `capabilities.read_prefix` (BC-1.17.001 Invariant 3, defense-in-depth).
+#   Both capabilities must be declared separately when a plugin needs both.
+#
+#   Schema:
+#     [hooks.capabilities.read_prefix]
+#     path_allow = ["/absolute/path/to/allowed/directory"]
+#
+#   Fields:
+#     path_allow — required; list of absolute paths or directory prefixes
+#                  the plugin is permitted to read from using read_prefix.
+#                  The dispatcher uses the same rejoin+starts_with algorithm
+#                  as capabilities.read_file (BC-1.17.001 Invariant 4).
+#
+#   Error codes:
+#     0   OK              — success; response is at most max_bytes bytes
+#     -1  CAPABILITY_DENIED — capability block absent or path not in path_allow
+#     -2  TIMEOUT           — call exceeded timeout_ms budget
+#     -5  NOT_FOUND         — path in path_allow but file does not exist
+#     -99 INTERNAL_ERROR    — directory target, OS-level I/O failure
+#
+#   Note: OUTPUT_TOO_LARGE (-3) is NEVER returned by read_prefix.
+#         Use capabilities.read_file when complete, untruncated file
+#         content is required (e.g., parsing a full TOML/YAML document).
+# ---------------------------------------------------------------------------
+
 # ---------- SessionStart ----------
 
 [[hooks]]
@@ -97,7 +166,7 @@ env_allow = ["PATH", "HOME", "TMPDIR", "CLAUDE_PROJECT_DIR", "CLAUDE_PLUGIN_ROOT
 [[hooks]]
 name = "convergence-tracker"
 event = "PostToolUse"
-tool = "Edit|Write"
+tool = "^(Edit|Write|MultiEdit)$"
 plugin = "hook-plugins/legacy-bash-adapter.wasm"
 priority = 210
 timeout_ms = 10000
@@ -118,7 +187,7 @@ env_allow = ["PATH", "HOME", "TMPDIR", "CLAUDE_PROJECT_DIR", "CLAUDE_PLUGIN_ROOT
 [[hooks]]
 name = "purity-check"
 event = "PostToolUse"
-tool = "Edit|Write"
+tool = "^(Edit|Write|MultiEdit)$"
 plugin = "hook-plugins/legacy-bash-adapter.wasm"
 priority = 220
 timeout_ms = 5000
@@ -152,7 +221,7 @@ path_allow = [".factory/regression-state.json"]
 [[hooks]]
 name = "validate-anchor-capabilities-union"
 event = "PostToolUse"
-tool = "Edit|Write"
+tool = "^(Edit|Write|MultiEdit)$"
 plugin = "hook-plugins/legacy-bash-adapter.wasm"
 priority = 240
 timeout_ms = 10000
@@ -172,7 +241,7 @@ env_allow = ["PATH", "HOME", "TMPDIR", "CLAUDE_PROJECT_DIR", "CLAUDE_PLUGIN_ROOT
 [[hooks]]
 name = "validate-bc-title"
 event = "PostToolUse"
-tool = "Edit|Write"
+tool = "^(Edit|Write|MultiEdit)$"
 plugin = "hook-plugins/legacy-bash-adapter.wasm"
 priority = 250
 timeout_ms = 5000
@@ -192,7 +261,7 @@ env_allow = ["PATH", "HOME", "TMPDIR", "CLAUDE_PROJECT_DIR", "CLAUDE_PLUGIN_ROOT
 [[hooks]]
 name = "validate-changelog-monotonicity"
 event = "PostToolUse"
-tool = "Edit|Write"
+tool = "^(Edit|Write|MultiEdit)$"
 plugin = "hook-plugins/legacy-bash-adapter.wasm"
 priority = 260
 timeout_ms = 5000
@@ -212,7 +281,7 @@ env_allow = ["PATH", "HOME", "TMPDIR", "CLAUDE_PROJECT_DIR", "CLAUDE_PLUGIN_ROOT
 [[hooks]]
 name = "validate-demo-evidence-story-scoped"
 event = "PostToolUse"
-tool = "Edit|Write"
+tool = "^(Edit|Write|MultiEdit)$"
 plugin = "hook-plugins/legacy-bash-adapter.wasm"
 priority = 270
 timeout_ms = 5000
@@ -232,7 +301,7 @@ env_allow = ["PATH", "HOME", "TMPDIR", "CLAUDE_PROJECT_DIR", "CLAUDE_PLUGIN_ROOT
 [[hooks]]
 name = "validate-factory-path-root"
 event = "PostToolUse"
-tool = "Edit|Write"
+tool = "^(Edit|Write|MultiEdit)$"
 plugin = "hook-plugins/legacy-bash-adapter.wasm"
 priority = 280
 timeout_ms = 5000
@@ -252,7 +321,7 @@ env_allow = ["PATH", "HOME", "TMPDIR", "CLAUDE_PROJECT_DIR", "CLAUDE_PLUGIN_ROOT
 [[hooks]]
 name = "validate-finding-format"
 event = "PostToolUse"
-tool = "Edit|Write"
+tool = "^(Edit|Write|MultiEdit)$"
 plugin = "hook-plugins/legacy-bash-adapter.wasm"
 priority = 290
 timeout_ms = 5000
@@ -272,7 +341,7 @@ env_allow = ["PATH", "HOME", "TMPDIR", "CLAUDE_PROJECT_DIR", "CLAUDE_PLUGIN_ROOT
 [[hooks]]
 name = "validate-index-self-reference"
 event = "PostToolUse"
-tool = "Edit|Write"
+tool = "^(Edit|Write|MultiEdit)$"
 plugin = "hook-plugins/legacy-bash-adapter.wasm"
 priority = 300
 timeout_ms = 5000
@@ -292,7 +361,7 @@ env_allow = ["PATH", "HOME", "TMPDIR", "CLAUDE_PROJECT_DIR", "CLAUDE_PLUGIN_ROOT
 [[hooks]]
 name = "validate-input-hash"
 event = "PostToolUse"
-tool = "Edit|Write"
+tool = "^(Edit|Write|MultiEdit)$"
 plugin = "hook-plugins/legacy-bash-adapter.wasm"
 priority = 310
 timeout_ms = 10000
@@ -312,7 +381,7 @@ env_allow = ["PATH", "HOME", "TMPDIR", "CLAUDE_PROJECT_DIR", "CLAUDE_PLUGIN_ROOT
 [[hooks]]
 name = "validate-novelty-assessment"
 event = "PostToolUse"
-tool = "Edit|Write"
+tool = "^(Edit|Write|MultiEdit)$"
 plugin = "hook-plugins/legacy-bash-adapter.wasm"
 priority = 320
 timeout_ms = 5000
@@ -332,7 +401,7 @@ env_allow = ["PATH", "HOME", "TMPDIR", "CLAUDE_PROJECT_DIR", "CLAUDE_PLUGIN_ROOT
 [[hooks]]
 name = "validate-pr-description-completeness"
 event = "PostToolUse"
-tool = "Edit|Write"
+tool = "^(Edit|Write|MultiEdit)$"
 plugin = "hook-plugins/legacy-bash-adapter.wasm"
 priority = 330
 timeout_ms = 5000
@@ -352,7 +421,7 @@ env_allow = ["PATH", "HOME", "TMPDIR", "CLAUDE_PROJECT_DIR", "CLAUDE_PLUGIN_ROOT
 [[hooks]]
 name = "validate-state-index-status-coherence"
 event = "PostToolUse"
-tool = "Edit|Write"
+tool = "^(Edit|Write|MultiEdit)$"
 plugin = "hook-plugins/legacy-bash-adapter.wasm"
 priority = 340
 timeout_ms = 10000
@@ -372,7 +441,7 @@ env_allow = ["PATH", "HOME", "TMPDIR", "CLAUDE_PROJECT_DIR", "CLAUDE_PLUGIN_ROOT
 [[hooks]]
 name = "validate-state-pin-freshness"
 event = "PostToolUse"
-tool = "Edit|Write"
+tool = "^(Edit|Write|MultiEdit)$"
 plugin = "hook-plugins/legacy-bash-adapter.wasm"
 priority = 350
 timeout_ms = 10000
@@ -392,7 +461,7 @@ env_allow = ["PATH", "HOME", "TMPDIR", "CLAUDE_PROJECT_DIR", "CLAUDE_PLUGIN_ROOT
 [[hooks]]
 name = "validate-state-size"
 event = "PostToolUse"
-tool = "Edit|Write"
+tool = "^(Edit|Write|MultiEdit)$"
 plugin = "hook-plugins/legacy-bash-adapter.wasm"
 priority = 360
 timeout_ms = 5000
@@ -412,7 +481,7 @@ env_allow = ["PATH", "HOME", "TMPDIR", "CLAUDE_PROJECT_DIR", "CLAUDE_PLUGIN_ROOT
 [[hooks]]
 name = "validate-story-bc-sync"
 event = "PostToolUse"
-tool = "Edit|Write"
+tool = "^(Edit|Write|MultiEdit)$"
 plugin = "hook-plugins/legacy-bash-adapter.wasm"
 priority = 370
 timeout_ms = 5000
@@ -432,7 +501,7 @@ env_allow = ["PATH", "HOME", "TMPDIR", "CLAUDE_PROJECT_DIR", "CLAUDE_PLUGIN_ROOT
 [[hooks]]
 name = "validate-subsystem-names"
 event = "PostToolUse"
-tool = "Edit|Write"
+tool = "^(Edit|Write|MultiEdit)$"
 plugin = "hook-plugins/legacy-bash-adapter.wasm"
 priority = 380
 timeout_ms = 5000
@@ -452,7 +521,7 @@ env_allow = ["PATH", "HOME", "TMPDIR", "CLAUDE_PROJECT_DIR", "CLAUDE_PLUGIN_ROOT
 [[hooks]]
 name = "validate-table-cell-count"
 event = "PostToolUse"
-tool = "Edit|Write"
+tool = "^(Edit|Write|MultiEdit)$"
 plugin = "hook-plugins/legacy-bash-adapter.wasm"
 priority = 390
 timeout_ms = 5000
@@ -472,7 +541,7 @@ env_allow = ["PATH", "HOME", "TMPDIR", "CLAUDE_PROJECT_DIR", "CLAUDE_PLUGIN_ROOT
 [[hooks]]
 name = "validate-template-compliance"
 event = "PostToolUse"
-tool = "Edit|Write"
+tool = "^(Edit|Write|MultiEdit)$"
 plugin = "hook-plugins/legacy-bash-adapter.wasm"
 priority = 400
 timeout_ms = 10000
@@ -492,7 +561,7 @@ env_allow = ["PATH", "HOME", "TMPDIR", "CLAUDE_PROJECT_DIR", "CLAUDE_PLUGIN_ROOT
 [[hooks]]
 name = "validate-vp-consistency"
 event = "PostToolUse"
-tool = "Edit|Write"
+tool = "^(Edit|Write|MultiEdit)$"
 plugin = "hook-plugins/legacy-bash-adapter.wasm"
 priority = 410
 timeout_ms = 10000
@@ -512,7 +581,7 @@ env_allow = ["PATH", "HOME", "TMPDIR", "CLAUDE_PROJECT_DIR", "CLAUDE_PLUGIN_ROOT
 [[hooks]]
 name = "validate-wave-gate-completeness"
 event = "PostToolUse"
-tool = "Edit|Write"
+tool = "^(Edit|Write|MultiEdit)$"
 plugin = "hook-plugins/legacy-bash-adapter.wasm"
 priority = 420
 timeout_ms = 10000
@@ -532,7 +601,7 @@ env_allow = ["PATH", "HOME", "TMPDIR", "CLAUDE_PROJECT_DIR", "CLAUDE_PLUGIN_ROOT
 [[hooks]]
 name = "validate-count-propagation"
 event = "PostToolUse"
-tool = "Edit|Write"
+tool = "^(Edit|Write|MultiEdit)$"
 plugin = "hook-plugins/legacy-bash-adapter.wasm"
 priority = 430
 timeout_ms = 5000
@@ -552,7 +621,7 @@ env_allow = ["PATH", "HOME", "TMPDIR", "CLAUDE_PROJECT_DIR", "CLAUDE_PLUGIN_ROOT
 [[hooks]]
 name = "validate-red-ratio"
 event = "PostToolUse"
-tool = "Edit|Write"
+tool = "^(Edit|Write|MultiEdit)$"
 plugin = "hook-plugins/legacy-bash-adapter.wasm"
 priority = 440
 timeout_ms = 5000
@@ -581,7 +650,7 @@ env_allow = ["PATH", "HOME", "TMPDIR", "CLAUDE_PROJECT_DIR", "CLAUDE_PLUGIN_ROOT
 [[hooks]]
 name = "validate-wave-handoff-completeness"
 event = "PostToolUse"
-tool = "Write|Edit"
+tool = "^(Edit|Write|MultiEdit)$"
 plugin = "hook-plugins/validate-wave-handoff-completeness.wasm"
 priority = 450
 timeout_ms = 5000
@@ -598,7 +667,7 @@ path_allow = [
 [[hooks]]
 name = "block-ai-attribution"
 event = "PreToolUse"
-tool = "Bash"
+tool = "^Bash$"
 plugin = "hook-plugins/block-ai-attribution.wasm"
 priority = 20
 timeout_ms = 5000
@@ -610,7 +679,7 @@ env_allow = []
 [[hooks]]
 name = "brownfield-discipline"
 event = "PreToolUse"
-tool = "Edit|Write"
+tool = "^(Edit|Write|MultiEdit)$"
 plugin = "hook-plugins/legacy-bash-adapter.wasm"
 priority = 30
 timeout_ms = 5000
@@ -630,7 +699,7 @@ env_allow = ["PATH", "HOME", "TMPDIR", "CLAUDE_PROJECT_DIR", "CLAUDE_PLUGIN_ROOT
 [[hooks]]
 name = "check-factory-commit"
 event = "PreToolUse"
-tool = "Bash"
+tool = "^Bash$"
 plugin = "hook-plugins/legacy-bash-adapter.wasm"
 priority = 40
 timeout_ms = 5000
@@ -650,7 +719,7 @@ env_allow = ["PATH", "HOME", "TMPDIR", "CLAUDE_PROJECT_DIR", "CLAUDE_PLUGIN_ROOT
 [[hooks]]
 name = "destructive-command-guard"
 event = "PreToolUse"
-tool = "Bash"
+tool = "^Bash$"
 plugin = "hook-plugins/legacy-bash-adapter.wasm"
 priority = 50
 timeout_ms = 5000
@@ -670,7 +739,7 @@ env_allow = ["PATH", "HOME", "TMPDIR", "CLAUDE_PROJECT_DIR", "CLAUDE_PLUGIN_ROOT
 [[hooks]]
 name = "factory-branch-guard"
 event = "PreToolUse"
-tool = "Edit|Write"
+tool = "^(Edit|Write|MultiEdit)$"
 plugin = "hook-plugins/legacy-bash-adapter.wasm"
 priority = 60
 timeout_ms = 5000
@@ -690,7 +759,7 @@ env_allow = ["PATH", "HOME", "TMPDIR", "CLAUDE_PROJECT_DIR", "CLAUDE_PLUGIN_ROOT
 [[hooks]]
 name = "protect-bc"
 event = "PreToolUse"
-tool = "Edit|Write"
+tool = "^(Edit|Write|MultiEdit)$"
 plugin = "hook-plugins/legacy-bash-adapter.wasm"
 priority = 70
 timeout_ms = 5000
@@ -710,7 +779,7 @@ env_allow = ["PATH", "HOME", "TMPDIR", "CLAUDE_PROJECT_DIR", "CLAUDE_PLUGIN_ROOT
 [[hooks]]
 name = "protect-secrets"
 event = "PreToolUse"
-tool = "Bash"
+tool = "^Bash$"
 plugin = "hook-plugins/legacy-bash-adapter.wasm"
 priority = 80
 timeout_ms = 5000
@@ -730,7 +799,7 @@ env_allow = ["PATH", "HOME", "TMPDIR", "CLAUDE_PROJECT_DIR", "CLAUDE_PLUGIN_ROOT
 [[hooks]]
 name = "protect-secrets"
 event = "PreToolUse"
-tool = "Read"
+tool = "^Read$"
 plugin = "hook-plugins/legacy-bash-adapter.wasm"
 priority = 80
 timeout_ms = 5000
@@ -750,7 +819,7 @@ env_allow = ["PATH", "HOME", "TMPDIR", "CLAUDE_PROJECT_DIR", "CLAUDE_PLUGIN_ROOT
 [[hooks]]
 name = "protect-vp"
 event = "PreToolUse"
-tool = "Edit|Write"
+tool = "^(Edit|Write|MultiEdit)$"
 plugin = "hook-plugins/legacy-bash-adapter.wasm"
 priority = 90
 timeout_ms = 5000
@@ -770,7 +839,7 @@ env_allow = ["PATH", "HOME", "TMPDIR", "CLAUDE_PROJECT_DIR", "CLAUDE_PLUGIN_ROOT
 [[hooks]]
 name = "red-gate"
 event = "PreToolUse"
-tool = "Edit|Write"
+tool = "^(Edit|Write|MultiEdit)$"
 plugin = "hook-plugins/legacy-bash-adapter.wasm"
 priority = 100
 timeout_ms = 5000
@@ -790,7 +859,7 @@ env_allow = ["PATH", "HOME", "TMPDIR", "CLAUDE_PROJECT_DIR", "CLAUDE_PLUGIN_ROOT
 [[hooks]]
 name = "track-agent-start"
 event = "PreToolUse"
-tool = "Agent"
+tool = "^Agent$"
 plugin = "hook-plugins/track-agent-start.wasm"
 priority = 110
 timeout_ms = 5000
@@ -800,7 +869,7 @@ async = true
 [[hooks]]
 name = "validate-pr-merge-prerequisites"
 event = "PreToolUse"
-tool = "Agent"
+tool = "^Agent$"
 plugin = "hook-plugins/legacy-bash-adapter.wasm"
 priority = 120
 timeout_ms = 10000
@@ -820,7 +889,7 @@ env_allow = ["PATH", "HOME", "TMPDIR", "CLAUDE_PROJECT_DIR", "CLAUDE_PLUGIN_ROOT
 [[hooks]]
 name = "validate-wave-gate-prerequisite"
 event = "PreToolUse"
-tool = "Agent"
+tool = "^Agent$"
 plugin = "hook-plugins/legacy-bash-adapter.wasm"
 priority = 130
 timeout_ms = 10000
@@ -840,7 +909,7 @@ env_allow = ["PATH", "HOME", "TMPDIR", "CLAUDE_PROJECT_DIR", "CLAUDE_PLUGIN_ROOT
 [[hooks]]
 name = "verify-git-push"
 event = "PreToolUse"
-tool = "Bash"
+tool = "^Bash$"
 plugin = "hook-plugins/legacy-bash-adapter.wasm"
 priority = 140
 timeout_ms = 10000
@@ -865,7 +934,7 @@ env_allow = ["PATH", "HOME", "TMPDIR", "CLAUDE_PROJECT_DIR", "CLAUDE_PLUGIN_ROOT
 [[hooks]]
 name = "validate-artifact-path"
 event = "PreToolUse"
-tool = "Edit|Write"
+tool = "^(Edit|Write|MultiEdit)$"
 plugin = "hook-plugins/validate-artifact-path.wasm"
 priority = 150
 timeout_ms = 5000
@@ -884,7 +953,7 @@ path_allow = ["plugins/vsdd-factory/config/artifact-path-registry.yaml"]
 [[hooks]]
 name = "validate-burst-log"
 event = "PostToolUse"
-tool = "Edit|Write"
+tool = "^(Edit|Write|MultiEdit)$"
 plugin = "hook-plugins/validate-burst-log.wasm"
 priority = 152
 timeout_ms = 5000
@@ -906,7 +975,7 @@ path_allow = [
 [[hooks]]
 name = "validate-burst-log"
 event = "PostToolUse"
-tool = "Bash"
+tool = "^Bash$"
 plugin = "hook-plugins/validate-burst-log.wasm"
 priority = 152
 timeout_ms = 5000
@@ -930,7 +999,7 @@ path_allow = [
 [[hooks]]
 name = "validate-index-cite-refresh"
 event = "PostToolUse"
-tool = "Edit|Write"
+tool = "^(Edit|Write|MultiEdit)$"
 plugin = "hook-plugins/validate-index-cite-refresh.wasm"
 priority = 151
 timeout_ms = 5000
@@ -956,7 +1025,7 @@ path_allow = [
 [[hooks]]
 name = "validate-state-structure"
 event = "PostToolUse"
-tool = "Edit|Write"
+tool = "^(Edit|Write|MultiEdit)$"
 plugin = "hook-plugins/validate-state-structure.wasm"
 priority = 153
 timeout_ms = 5000
@@ -995,7 +1064,7 @@ path_allow = [
 [[hooks]]
 name = "validate-dispatch-advance"
 event = "PostToolUse"
-tool = "Edit|Write"
+tool = "^(Edit|Write|MultiEdit)$"
 plugin = "hook-plugins/validate-dispatch-advance.wasm"
 priority = 154
 timeout_ms = 5000
@@ -1017,7 +1086,7 @@ path_allow = [
 [[hooks]]
 name = "validate-dispatch-advance"
 event = "PostToolUse"
-tool = "Bash"
+tool = "^Bash$"
 plugin = "hook-plugins/validate-dispatch-advance.wasm"
 priority = 154
 timeout_ms = 5000
@@ -1046,7 +1115,7 @@ path_allow = [
 [[hooks]]
 name = "validate-closes-completeness"
 event = "PostToolUse"
-tool = "Edit|Write"
+tool = "^(Edit|Write|MultiEdit)$"
 plugin = "hook-plugins/validate-closes-completeness.wasm"
 priority = 156
 timeout_ms = 5000
@@ -1065,7 +1134,7 @@ path_allow = [
 [[hooks]]
 name = "validate-policies-schema"
 event = "PostToolUse"
-tool = "Edit|Write"
+tool = "^(Edit|Write|MultiEdit)$"
 plugin = "hook-plugins/validate-policies-schema.wasm"
 priority = 157
 timeout_ms = 5000
@@ -1085,7 +1154,7 @@ path_allow = [
 [[hooks]]
 name = "validate-trajectory-tail-cell-completeness"
 event = "PostToolUse"
-tool = "Edit|Write"
+tool = "^(Edit|Write|MultiEdit)$"
 plugin = "hook-plugins/validate-trajectory-tail-cell-completeness.wasm"
 priority = 158
 timeout_ms = 5000
@@ -1214,7 +1283,7 @@ path_allow = [".factory/cycles"]
 [[hooks]]
 name = "validate-stable-anchors"
 event = "PreToolUse"
-tool = "Edit|Write"
+tool = "^(Edit|Write|MultiEdit)$"
 plugin = "hook-plugins/validate-stable-anchors.wasm"
 priority = 155
 timeout_ms = 5000
@@ -1232,7 +1301,7 @@ path_allow = [".factory/specs"]
 [[hooks]]
 name = "lint-registry-async-invariant"
 event = "PostToolUse"
-tool = "Edit|Write"
+tool = "^(Edit|Write|MultiEdit)$"
 plugin = "hook-plugins/lint-registry-async-invariant.wasm"
 priority = 160
 timeout_ms = 5000
@@ -1251,13 +1320,13 @@ path_allow = ["plugins/vsdd-factory/hooks-registry.toml"]
 name = "verify-factory-lock"
 plugin = "hook-plugins/verify-factory-lock.wasm"
 event = "PreToolUse"
-tool = "Edit|Write|MultiEdit|Agent"
+tool = "^(Edit|Write|MultiEdit|Agent)$"
 priority = 142
 async = false
 on_error = "continue"
 timeout_ms = 5000
 
-[hooks.capabilities.read_file]
+[hooks.capabilities.read_prefix]
 path_allow = [".factory/STATE.md"]
 
 [hooks.capabilities.exec_subprocess]
@@ -1274,13 +1343,13 @@ env_allow = ["HOME", "GIT_CONFIG_GLOBAL", "XDG_CONFIG_HOME"]
 name = "verify-factory-lock-bash"
 plugin = "hook-plugins/verify-factory-lock.wasm"
 event = "PreToolUse"
-tool = "Bash"
+tool = "^Bash$"
 priority = 142
 async = false
 on_error = "continue"
 timeout_ms = 5000
 
-[hooks.capabilities.read_file]
+[hooks.capabilities.read_prefix]
 path_allow = [".factory/STATE.md"]
 
 [hooks.capabilities.exec_subprocess]
@@ -1299,7 +1368,7 @@ env_allow = ["HOME", "GIT_CONFIG_GLOBAL", "XDG_CONFIG_HOME"]
 [[hooks]]
 name = "verify-state-timestamp-refresh"
 event = "PreToolUse"
-tool = "Edit|Write|MultiEdit"
+tool = "^(Edit|Write|MultiEdit)$"
 plugin = "hook-plugins/verify-state-timestamp-refresh.wasm"
 priority = 143
 timeout_ms = 5000
@@ -1412,7 +1481,7 @@ path_allow = [".factory/logs/"]
 name = "validate-heavy-op-delegation"
 event = "PreToolUse"
 plugin = "hook-plugins/validate-heavy-op-delegation.wasm"
-tool = "Bash"
+tool = "^Bash$"
 on_error = "continue"
 async = false
 timeout_ms = 5000

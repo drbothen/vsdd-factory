@@ -78,8 +78,9 @@ pub fn resolve_impl(input: ResolverInput) -> ResolverOutput {
 
     // Read wave-state.yaml. Missing/unreadable → value: None (AC-002, AC-005).
     // Log unexpected read errors at warn level to aid operator diagnosis.
-    // HostError::Other(-N) codes include file-not-found; those are expected and
-    // produce no log output. CapabilityDenied / Timeout get a warn-level log.
+    // HostError::NotFound means allowlisted-but-absent (S-19.03); expected on fresh projects.
+    // HostError::Other(_) covers other non-fatal cases (e.g., timeout-as-Other).
+    // CapabilityDenied / unrecognized errors get a warn-level log.
     let wave_bytes = match vsdd_hook_sdk::host::read_file(
         &wave_state_path,
         MAX_STATE_FILE_BYTES,
@@ -88,9 +89,12 @@ pub fn resolve_impl(input: ResolverInput) -> ResolverOutput {
         Ok(b) => b,
         Err(e) => {
             match &e {
-                vsdd_hook_sdk::host::HostError::Other(_) => {
-                    // Likely file-not-found — expected on fresh projects.
+                vsdd_hook_sdk::host::HostError::NotFound => {
+                    // File absent — expected on fresh projects (no wave handoff yet).
                     // No log output for this case.
+                }
+                vsdd_hook_sdk::host::HostError::Other(_) => {
+                    // Other non-fatal code — no log output.
                 }
                 _ => {
                     vsdd_hook_sdk::host::log_warn(&format!(

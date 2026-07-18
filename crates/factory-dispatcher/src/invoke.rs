@@ -743,6 +743,85 @@ fn setup_host_on_store_data(
         )
         .map_err(|e| HostCallError::Linker(e.to_string()))?;
 
+    // read_prefix: bounded partial read (head-c semantics). Uses the same
+    // output-pointer protocol as read_file: grow WASM linear memory by
+    // ceil(body_len / 65536) pages, write body at current_bytes (always > 0
+    // for non-empty files), and return the write offset via out_ptr_out.
+    // Capability enforcement delegates to crate::host::read_prefix::prepare,
+    // which checks ctx.capabilities.read_prefix.path_allow (deny-by-default;
+    // independent of read_file capability per BC-1.17.001 Invariant 3).
+    //
+    // ADR-025 §Decision 16: production-path fill for vsdd::read_prefix.
+    // S-19.06 registered read_prefix in setup_linker (Linker<HostContext>,
+    // test path in host/mod.rs). This block makes it available on the
+    // Linker<StoreData> production dispatch path called by proxy_host_imports.
+    linker
+        .func_wrap(
+            "vsdd",
+            "read_prefix",
+            |mut caller: Caller<'_, StoreData>,
+             path_ptr: u32,
+             path_len: u32,
+             max_bytes: u32,
+             _timeout_ms: u32,
+             out_ptr_out: u32,
+             out_len_out: u32|
+             -> i32 {
+                let path = match read_wasm_string_sd(&mut caller, path_ptr, path_len) {
+                    Ok(s) => s,
+                    Err(_) => return codes::INVALID_ARGUMENT,
+                };
+
+                // Capability check + bounded file read (host-side logic, no WASM memory).
+                let body = {
+                    let ctx = caller.data().host.clone();
+                    match crate::host::read_prefix::prepare(&ctx, &path, max_bytes) {
+                        Ok((bytes, _)) => bytes,
+                        Err(code) => return code,
+                    }
+                };
+
+                if body.is_empty() {
+                    // Empty file or max_bytes=0: write ptr=0, len=0.  SDK
+                    // read_owned_bytes guards ptr==0 → returns Vec::new().
+                    let _ = write_wasm_u32_sd(&mut caller, out_ptr_out, 0);
+                    let _ = write_wasm_u32_sd(&mut caller, out_len_out, 0);
+                    return codes::OK;
+                }
+
+                // Find the current end of WASM linear memory, then grow by
+                // enough pages to hold `body`.  Writing at current_bytes gives
+                // a valid, unused address (> 0 for any non-empty WASM module).
+                let memory = match get_memory_sd(&mut caller) {
+                    Ok(m) => m,
+                    Err(_) => return codes::INTERNAL_ERROR,
+                };
+                let current_bytes = memory.data_size(&caller);
+                let pages_needed = body.len().div_ceil(65536) as u64;
+                if memory.grow(&mut caller, pages_needed).is_err() {
+                    return codes::INTERNAL_ERROR;
+                }
+
+                let write_offset = current_bytes as u32;
+
+                // Write prefix bytes at the newly allocated offset.
+                if write_wasm_bytes_sd(&mut caller, write_offset, body.len() as u32, &body).is_err()
+                {
+                    return codes::INTERNAL_ERROR;
+                }
+
+                // Return (ptr, len) to the guest via the out-params.
+                if write_wasm_u32_sd(&mut caller, out_ptr_out, write_offset).is_err() {
+                    return codes::INVALID_ARGUMENT;
+                }
+                if write_wasm_u32_sd(&mut caller, out_len_out, body.len() as u32).is_err() {
+                    return codes::INVALID_ARGUMENT;
+                }
+                codes::OK
+            },
+        )
+        .map_err(|e| HostCallError::Linker(e.to_string()))?;
+
     // write_file: real implementation rooted at cwd (CLAUDE_PROJECT_DIR).
     // Relative paths in the request and path_allow are resolved against
     // ctx.cwd so plugins can write project-relative files (e.g.
@@ -769,101 +848,17 @@ fn setup_host_on_store_data(
                     Ok(b) => b,
                     Err(_) => return codes::INVALID_ARGUMENT,
                 };
+                // Delegate to the shared host-side gate (F-S1903-P6-001 dedup).
+                // Mirrors the read_file delegation above: `prepare` enforces
+                // deny-by-default capability check, path resolution, byte cap,
+                // allowlist check (shared path_util::check_path_allowed), and
+                // emit_denial with the correct reason tokens
+                // (path_resolution_failed / path_not_allowed / output_too_large).
+                // BC-2.02.011 postconditions 1-5.
                 let host = caller.data().host.clone();
-                // Capability check: deny-by-default (BC-2.02.011 postcondition 1).
-                let caps = match &host.capabilities.write_file {
-                    Some(c) => c.clone(),
-                    None => return codes::CAPABILITY_DENIED,
-                };
-                // Resolve path against cwd (CLAUDE_PROJECT_DIR) for relative paths.
-                let cwd = &host.cwd;
-                let resolved = if std::path::Path::new(&path).is_absolute() {
-                    std::path::PathBuf::from(&path)
-                } else {
-                    cwd.join(&path)
-                };
-                // Byte cap: minimum of call arg and per-capability override.
-                let effective_cap = match caps.max_bytes_per_call {
-                    Some(cap_override) => max_bytes.min(cap_override),
-                    None => max_bytes,
-                };
-                if contents.len() as u64 > effective_cap as u64 {
-                    return codes::OUTPUT_TOO_LARGE;
-                }
-                // Check path is under an allowed prefix (rooted at cwd).
-                // Use the same canonicalize-with-ancestor-fallback as write_file.rs
-                // to handle files that don't yet exist.
-                let allowed = caps.path_allow.iter().any(|pref| {
-                    let pref_path = if std::path::Path::new(pref).is_absolute() {
-                        std::path::PathBuf::from(pref)
-                    } else {
-                        cwd.join(pref)
-                    };
-                    // Apply ancestor fallback to the pref path too so that
-                    // symlinks in the host path (e.g. macOS /var → /private/var)
-                    // do not cause false capability denials when the target file
-                    // is new (doesn't exist yet). Without this, `canon_resolved`
-                    // resolves symlinks via ancestor fallback but `canon_pref`
-                    // retains the unresolved symlink, causing starts_with to
-                    // fail on macOS bats temp dirs (/var/folders → /private/var/folders).
-                    let canon_pref = pref_path.canonicalize().unwrap_or_else(|_| {
-                        // Ancestor fallback for pref_path: walk ancestors until one canonicalizes.
-                        let mut pref_tail: Vec<std::ffi::OsString> = Vec::new();
-                        let mut cur = pref_path.clone();
-                        loop {
-                            match cur.file_name() {
-                                None => break pref_path.clone(),
-                                Some(f) => pref_tail.push(f.to_os_string()),
-                            }
-                            match cur.parent() {
-                                None => break pref_path.clone(),
-                                Some(p) => {
-                                    if let Ok(canon_p) = p.canonicalize() {
-                                        let mut result = canon_p;
-                                        for component in pref_tail.iter().rev() {
-                                            result = result.join(component);
-                                        }
-                                        return result;
-                                    }
-                                    cur = p.to_path_buf();
-                                }
-                            }
-                        }
-                    });
-                    // For the target, canonicalize with ancestor fallback.
-                    let canon_resolved = resolved.canonicalize().unwrap_or_else(|_| {
-                        // Walk ancestors until one exists.
-                        let mut tail: Vec<std::ffi::OsString> = Vec::new();
-                        let mut cur = resolved.clone();
-                        loop {
-                            match cur.file_name() {
-                                None => break resolved.clone(),
-                                Some(f) => tail.push(f.to_os_string()),
-                            }
-                            match cur.parent() {
-                                None => break resolved.clone(),
-                                Some(p) => {
-                                    if let Ok(canon_p) = p.canonicalize() {
-                                        let mut result = canon_p;
-                                        for component in tail.iter().rev() {
-                                            result = result.join(component);
-                                        }
-                                        return result;
-                                    }
-                                    cur = p.to_path_buf();
-                                }
-                            }
-                        }
-                    });
-                    canon_resolved.starts_with(&canon_pref)
-                });
-                if !allowed {
-                    return codes::CAPABILITY_DENIED;
-                }
-                // Write to disk.
-                match std::fs::write(&resolved, &contents) {
+                match crate::host::write_file::prepare(&host, &path, &contents, max_bytes) {
                     Ok(()) => codes::OK,
-                    Err(_) => codes::INTERNAL_ERROR,
+                    Err(code) => code,
                 }
             },
         )
@@ -1207,6 +1202,595 @@ mod tests {
         } else {
             panic!("expected Ok");
         }
+    }
+
+    // -----------------------------------------------------------------------
+    // S-19.09 T-001 — AC-001 (D19 RED gate)
+    //
+    // A WASM module importing vsdd::read_prefix must instantiate without a
+    // link error via setup_host_on_store_data (the production dispatch path).
+    //
+    // RED today: read_prefix is absent from setup_host_on_store_data (0-hit
+    // grep at develop 9787c056); instantiation fails with wasmtime link error
+    // "unknown import: `vsdd::read_prefix`".
+    //
+    // GREEN after D19: setup_host_on_store_data registers read_prefix,
+    // satisfying the import and allowing instantiation to succeed.
+    //
+    // AC trace: AC-001; ADR-025 §Decision 16; BC-1.17.001.
+    // -----------------------------------------------------------------------
+    #[test]
+    fn t001_s19_09_read_prefix_instantiates_without_link_error_via_production_linker() {
+        let engine = build_engine().unwrap();
+
+        // Module imports only vsdd::read_prefix — no WASI imports needed.
+        // WAT requires all imports before memory declarations.
+        let module = compile(
+            &engine,
+            r#"(module
+              (import "vsdd" "read_prefix" (func (param i32 i32 i32 i32 i32 i32) (result i32)))
+              (memory (export "memory") 2)
+              (func (export "_start"))
+            )"#,
+        );
+
+        let mut linker: wasmtime::Linker<StoreData> = wasmtime::Linker::new(&engine);
+        // RED gate: setup_host_on_store_data does not register read_prefix today;
+        // linker.instantiate below returns Err("unknown import: vsdd::read_prefix").
+        setup_host_on_store_data(&mut linker)
+            .expect("setup_host_on_store_data must not error on registration");
+
+        let wasi_ctx = WasiCtxBuilder::new().build_p1();
+        let store_data = StoreData {
+            host: bare_ctx(),
+            wasi: wasi_ctx,
+        };
+        let mut store = Store::new(&engine, store_data);
+        store
+            .set_fuel(1_000_000)
+            .expect("engine has fuel metering enabled");
+        store.set_epoch_deadline(u64::MAX);
+
+        // The load-bearing assertion: instantiation MUST succeed.
+        // Fails today with InvokeError::Instantiate (unresolved import).
+        linker.instantiate(&mut store, &module).expect(
+            "T-001 AC-001: read_prefix import must be satisfied by setup_host_on_store_data \
+             (production dispatch path, ADR-025 §Decision 16); \
+             got link error — read_prefix not registered today (0-hit grep at 9787c056)",
+        );
+    }
+
+    // -----------------------------------------------------------------------
+    // S-19.09 T-002 — AC-002 (D19 RED gate)
+    //
+    // Round-trip: production path reads an allowlisted file; returned bytes
+    // match expected content; out_ptr written to WASM memory is > 0 (the
+    // memory-grow protocol at current_bytes, ADR-025 §Decision 16).
+    //
+    // RED today: setup_host_on_store_data does not register read_prefix;
+    // instantiation fails before the round-trip can be exercised.
+    //
+    // GREEN after D19: read_prefix production binding registered; memory-grow
+    // protocol writes bytes at current_bytes (> 0 for non-empty files).
+    //
+    // AC trace: AC-002; ADR-025 §Decision 16 (memory-grow at current_bytes);
+    // BC-1.17.001 PC-1 + PC-2.
+    // -----------------------------------------------------------------------
+    #[test]
+    fn t002_s19_09_read_prefix_round_trip_bytes_correct_and_out_ptr_nonzero_via_production_path() {
+        use crate::registry::{Capabilities, ReadPrefixCaps};
+
+        // Write a tmp file with known content; tempdir gives per-test isolation
+        // (F-P2-002: replace fixed std::env::temp_dir path with tempfile::tempdir).
+        let content = b"hello-read-prefix-content";
+        let dir = tempfile::tempdir().expect("create temp dir for T-002");
+        let tmp_path = dir.path().join("s19_09_t002_read_prefix.txt");
+        std::fs::write(&tmp_path, content).expect("write tmp file for T-002");
+        let path_str = tmp_path.to_str().expect("path to str").to_string();
+        let path_bytes = path_str.as_bytes();
+
+        // HostContext with read_prefix capability allowing the tmp path.
+        let mut ctx = bare_ctx();
+        ctx.capabilities = Capabilities {
+            read_prefix: Some(ReadPrefixCaps {
+                path_allow: vec![path_str.clone()],
+            }),
+            ..Capabilities::default()
+        };
+
+        let engine = build_engine().unwrap();
+        let mut linker: wasmtime::Linker<StoreData> = wasmtime::Linker::new(&engine);
+        // RED gate: fails today — read_prefix not in setup_host_on_store_data.
+        setup_host_on_store_data(&mut linker).expect("setup_host_on_store_data must not error");
+
+        // WAT module layout:
+        //   memory[0:4]   — out_ptr_out (written by host)
+        //   memory[4:8]   — out_len_out (written by host)
+        //   memory[128..] — path bytes (written by test before call)
+        //
+        // call_rp(path_ptr, path_len) → host return code (0 = codes::OK)
+        // get_out_ptr()               → i32 loaded from memory[0:4]
+        // WAT requires all imports before memory declarations.
+        let module = compile(
+            &engine,
+            r#"(module
+              (import "vsdd" "read_prefix" (func $rp (param i32 i32 i32 i32 i32 i32) (result i32)))
+              (memory (export "memory") 2)
+              (func (export "call_rp") (param $path_ptr i32) (param $path_len i32) (result i32)
+                (call $rp
+                  (local.get $path_ptr)
+                  (local.get $path_len)
+                  (i32.const 64)
+                  (i32.const 0)
+                  (i32.const 0)
+                  (i32.const 4)
+                )
+              )
+              (func (export "get_out_ptr") (result i32)
+                (i32.load (i32.const 0))
+              )
+            )"#,
+        );
+
+        let wasi_ctx = WasiCtxBuilder::new().build_p1();
+        let store_data = StoreData {
+            host: ctx,
+            wasi: wasi_ctx,
+        };
+        let mut store = Store::new(&engine, store_data);
+        store
+            .set_fuel(1_000_000)
+            .expect("engine has fuel metering enabled");
+        store.set_epoch_deadline(u64::MAX);
+
+        let instance = linker.instantiate(&mut store, &module).expect(
+            "T-002: instantiation must succeed via production path (setup_host_on_store_data)",
+        );
+
+        // Write path bytes to WASM memory at offset 128.
+        let memory = instance
+            .get_memory(&mut store, "memory")
+            .expect("module exports memory");
+        memory
+            .write(&mut store, 128, path_bytes)
+            .expect("write path bytes to WASM memory");
+
+        // Call read_prefix via the WAT wrapper; assert return code == 0 (OK).
+        let call_rp = instance
+            .get_typed_func::<(i32, i32), i32>(&mut store, "call_rp")
+            .expect("module exports call_rp");
+        let ret = call_rp
+            .call(&mut store, (128, path_bytes.len() as i32))
+            .expect("call_rp must not trap");
+        assert_eq!(
+            ret, 0,
+            "T-002 AC-002: read_prefix must return codes::OK (0) for allowed file; got {}",
+            ret
+        );
+
+        // Assert out_ptr > 0 (production memory-grow protocol writes at current_bytes > 0).
+        let get_out_ptr = instance
+            .get_typed_func::<(), i32>(&mut store, "get_out_ptr")
+            .expect("module exports get_out_ptr");
+        let out_ptr = get_out_ptr
+            .call(&mut store, ())
+            .expect("get_out_ptr must not trap");
+        assert!(
+            out_ptr > 0,
+            "T-002 AC-002: out_ptr must be > 0 for non-empty file via production path \
+             (ADR-025 §Decision 16: memory-grow protocol writes at current_bytes > 0); \
+             got out_ptr={}",
+            out_ptr
+        );
+
+        // Read out_len from memory[4:8] (little-endian u32; host writes at out_len_out=4).
+        // F-P2-001: extend T-002 to verify both out_len and byte content, not just out_ptr.
+        let mem_data: Vec<u8> = memory.data(&store).to_vec();
+        let out_len = u32::from_le_bytes(
+            mem_data[4..8]
+                .try_into()
+                .expect("memory[4:8] must be 4 bytes"),
+        );
+        assert_eq!(
+            out_len,
+            content.len() as u32,
+            "T-002 AC-002: out_len must equal fixture content length ({} bytes); got {}; \
+             production marshalling correctness (ADR-025 §Decision 16)",
+            content.len(),
+            out_len
+        );
+
+        // Read back memory[out_ptr..out_ptr+out_len] and assert byte equality.
+        // Mutation-check (TD-VSDD-059): this assertion is load-bearing — changing
+        // `content` to any other byte string causes an immediate assertion failure,
+        // proving the host correctly marshalled the fixture bytes into WASM linear memory.
+        let start = out_ptr as u32 as usize;
+        let end = start + out_len as usize;
+        assert_eq!(
+            &mem_data[start..end],
+            content.as_slice(),
+            "T-002 AC-002: bytes read back from WASM memory[{}..{}] must equal fixture content; \
+             production marshalling correctness (ADR-025 §Decision 16)",
+            start,
+            end
+        );
+        // dir goes out of scope here; tempfile::TempDir::drop auto-cleans the directory.
+    }
+
+    // -----------------------------------------------------------------------
+    // S-19.09 T-002b — AC-002 head-c bound (D19 GREEN gate)
+    //
+    // read_prefix with a file LARGER than max_bytes must:
+    //   1. Return codes::OK (0).
+    //   2. Write out_len == max_bytes exactly (head-c truncation at the bound).
+    //   3. Write the first max_bytes bytes of the file content to WASM memory.
+    //
+    // ADR-025 §Decision 16 / BC-1.17.001 PC-2: head-c semantics — the function
+    // behaves like `head -c max_bytes`; content beyond the bound is discarded.
+    //
+    // AC trace: AC-002; ADR-025 §Decision 16; BC-1.17.001 PC-2.
+    // -----------------------------------------------------------------------
+    #[test]
+    fn t002b_s19_09_read_prefix_head_c_bound_clamps_out_len_to_max_bytes() {
+        use crate::registry::{Capabilities, ReadPrefixCaps};
+
+        const MAX_BYTES: usize = 10;
+        // 40-byte content — deliberately larger than max_bytes = 10.
+        let content: &[u8] = b"abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMN";
+        let dir = tempfile::tempdir().expect("create temp dir for T-002b");
+        let tmp_path = dir.path().join("s19_09_t002b_read_prefix.txt");
+        std::fs::write(&tmp_path, content).expect("write tmp file for T-002b");
+        let path_str = tmp_path.to_str().expect("path to str").to_string();
+        let path_bytes = path_str.as_bytes();
+
+        let mut ctx = bare_ctx();
+        ctx.capabilities = Capabilities {
+            read_prefix: Some(ReadPrefixCaps {
+                path_allow: vec![path_str.clone()],
+            }),
+            ..Capabilities::default()
+        };
+
+        let engine = build_engine().unwrap();
+        let mut linker: wasmtime::Linker<StoreData> = wasmtime::Linker::new(&engine);
+        setup_host_on_store_data(&mut linker).expect("setup_host_on_store_data must not error");
+
+        // WAT layout same as T-002 but max_bytes = 10 (hardcoded in i32.const).
+        let module = compile(
+            &engine,
+            r#"(module
+              (import "vsdd" "read_prefix" (func $rp (param i32 i32 i32 i32 i32 i32) (result i32)))
+              (memory (export "memory") 2)
+              (func (export "call_rp") (param $path_ptr i32) (param $path_len i32) (result i32)
+                (call $rp
+                  (local.get $path_ptr)
+                  (local.get $path_len)
+                  (i32.const 10)
+                  (i32.const 0)
+                  (i32.const 0)
+                  (i32.const 4)
+                )
+              )
+            )"#,
+        );
+
+        let wasi_ctx = WasiCtxBuilder::new().build_p1();
+        let store_data = StoreData {
+            host: ctx,
+            wasi: wasi_ctx,
+        };
+        let mut store = Store::new(&engine, store_data);
+        store
+            .set_fuel(1_000_000)
+            .expect("engine has fuel metering enabled");
+        store.set_epoch_deadline(u64::MAX);
+
+        let instance = linker
+            .instantiate(&mut store, &module)
+            .expect("T-002b: instantiation must succeed");
+
+        let memory = instance
+            .get_memory(&mut store, "memory")
+            .expect("module exports memory");
+        memory
+            .write(&mut store, 128, path_bytes)
+            .expect("write path bytes to WASM memory");
+
+        let call_rp = instance
+            .get_typed_func::<(i32, i32), i32>(&mut store, "call_rp")
+            .expect("module exports call_rp");
+        let ret = call_rp
+            .call(&mut store, (128, path_bytes.len() as i32))
+            .expect("call_rp must not trap");
+        assert_eq!(
+            ret, 0,
+            "T-002b AC-002: read_prefix must return codes::OK (0) for file > max_bytes; got {}",
+            ret
+        );
+
+        // Read out_ptr (memory[0:4]) and out_len (memory[4:8]) directly.
+        let mem_data: Vec<u8> = memory.data(&store).to_vec();
+        let out_ptr = u32::from_le_bytes(
+            mem_data[0..4]
+                .try_into()
+                .expect("memory[0:4] must be 4 bytes"),
+        );
+        let out_len = u32::from_le_bytes(
+            mem_data[4..8]
+                .try_into()
+                .expect("memory[4:8] must be 4 bytes"),
+        );
+
+        assert!(
+            out_ptr > 0,
+            "T-002b AC-002: out_ptr must be > 0 for non-empty truncated result; got {}",
+            out_ptr
+        );
+        assert_eq!(
+            out_len,
+            MAX_BYTES as u32,
+            "T-002b AC-002: out_len must be clamped to max_bytes ({}) not full content length ({}); \
+             head-c semantics per ADR-025 §Decision 16 / BC-1.17.001 PC-2",
+            MAX_BYTES,
+            content.len()
+        );
+
+        // Byte equality: returned bytes must match the FIRST max_bytes of content.
+        let start = out_ptr as usize;
+        let end = start + out_len as usize;
+        assert_eq!(
+            &mem_data[start..end],
+            &content[..MAX_BYTES],
+            "T-002b AC-002: read-back bytes must equal the first {} bytes of fixture content; \
+             head-c truncation correctness (ADR-025 §Decision 16 / BC-1.17.001 PC-2)",
+            MAX_BYTES
+        );
+        // dir goes out of scope here; tempfile::TempDir::drop auto-cleans the directory.
+    }
+
+    // -----------------------------------------------------------------------
+    // S-19.09 T-003 — AC-003 (D19 RED gate)
+    //
+    // read_prefix call with no read_prefix capability block must return
+    // CAPABILITY_DENIED (-1) via setup_host_on_store_data (production path),
+    // matching the deny-by-default behavior of read_file on the same path.
+    //
+    // RED today: instantiation fails with link error (read_prefix not in
+    // setup_host_on_store_data); the CAPABILITY_DENIED assertion is never reached.
+    //
+    // GREEN after D19: instantiation succeeds; the function returns -1 because
+    // the HostContext has no capabilities.read_prefix block.
+    //
+    // AC trace: AC-003; ADR-025 §Decision 16; BC-1.17.001 PC-4.
+    // -----------------------------------------------------------------------
+    #[test]
+    fn t003_s19_09_read_prefix_capability_absent_returns_capability_denied_via_production_path() {
+        // bare_ctx() → Capabilities::default() → read_prefix: None (deny-by-default).
+        let ctx = bare_ctx();
+
+        let engine = build_engine().unwrap();
+        let mut linker: wasmtime::Linker<StoreData> = wasmtime::Linker::new(&engine);
+        // RED gate: fails today — read_prefix not in setup_host_on_store_data.
+        setup_host_on_store_data(&mut linker).expect("setup_host_on_store_data must not error");
+
+        // WAT requires all imports before memory declarations.
+        let module = compile(
+            &engine,
+            r#"(module
+              (import "vsdd" "read_prefix" (func $rp (param i32 i32 i32 i32 i32 i32) (result i32)))
+              (memory (export "memory") 2)
+              (func (export "call_rp") (param $path_ptr i32) (param $path_len i32) (result i32)
+                (call $rp
+                  (local.get $path_ptr)
+                  (local.get $path_len)
+                  (i32.const 64)
+                  (i32.const 0)
+                  (i32.const 0)
+                  (i32.const 4)
+                )
+              )
+            )"#,
+        );
+
+        let wasi_ctx = WasiCtxBuilder::new().build_p1();
+        let store_data = StoreData {
+            host: ctx,
+            wasi: wasi_ctx,
+        };
+        let mut store = Store::new(&engine, store_data);
+        store
+            .set_fuel(1_000_000)
+            .expect("engine has fuel metering enabled");
+        store.set_epoch_deadline(u64::MAX);
+
+        let instance = linker.instantiate(&mut store, &module).expect(
+            "T-003: instantiation must succeed via production path (setup_host_on_store_data)",
+        );
+
+        let path = b"/some/path.txt";
+        let memory = instance
+            .get_memory(&mut store, "memory")
+            .expect("module exports memory");
+        memory
+            .write(&mut store, 128, path)
+            .expect("write path to WASM memory");
+
+        let call_rp = instance
+            .get_typed_func::<(i32, i32), i32>(&mut store, "call_rp")
+            .expect("module exports call_rp");
+        let ret = call_rp
+            .call(&mut store, (128, path.len() as i32))
+            .expect("call_rp must not trap");
+
+        assert_eq!(
+            ret, -1,
+            "T-003 AC-003: read_prefix with no capabilities.read_prefix block must return \
+             CAPABILITY_DENIED (-1) via production path (setup_host_on_store_data); \
+             deny-by-default per BC-1.17.001 PC-4; got {}",
+            ret
+        );
+    }
+
+    // -----------------------------------------------------------------------
+    // S-19.09 T-015 — AC-002 (F-P6-001 closure: EC-002 coverage gap)
+    //
+    // read_prefix on a 0-byte (empty) allowlisted file via setup_host_on_store_data
+    // (the D19 production path) must:
+    //   1. Return codes::OK (0).
+    //   2. Write out_ptr == 0 to memory[0:4]  (empty-body fast path skips grow).
+    //   3. Write out_len == 0 to memory[4:8]  (no bytes to transfer).
+    //   4. Leave WASM linear memory size unchanged (no grow call on empty body).
+    //
+    // The `if body.is_empty()` branch in setup_host_on_store_data's read_prefix
+    // closure (EC-002) writes ptr=0, len=0 and returns codes::OK immediately —
+    // it does NOT call memory.grow.  t001/t002/t002b/t003 cover only
+    // link/non-empty/clamp/denial; none exercise this branch.
+    //
+    // Mutation-check (TD-VSDD-059): if the `if body.is_empty()` early-return
+    // were removed, the code falls through to the memory-grow protocol.
+    // grow(0 pages) succeeds but write_offset = current_bytes (nonzero for
+    // any loaded WASM module), so out_ptr would be written as current_bytes
+    // rather than 0 — the assert_eq!(out_ptr, 0) assertion flips to FAIL,
+    // demonstrating this test is load-bearing for the EC-002 branch.
+    //
+    // AC trace: AC-002; BC-1.17.001 PC-1; ADR-025 §Decision 16; EC-002.
+    // -----------------------------------------------------------------------
+    #[test]
+    fn t015_s19_09_read_prefix_empty_file_returns_ok_with_zero_ptr_len_no_grow() {
+        use crate::registry::{Capabilities, ReadPrefixCaps};
+
+        // Write a 0-byte file; tempdir gives per-test isolation (sibling convention).
+        let dir = tempfile::tempdir().expect("create temp dir for T-015");
+        let tmp_path = dir.path().join("s19_09_t015_empty.txt");
+        std::fs::write(&tmp_path, b"").expect("write empty file for T-015");
+        let path_str = tmp_path.to_str().expect("path to str").to_string();
+        let path_bytes = path_str.as_bytes();
+
+        // HostContext with read_prefix capability allowing the empty file.
+        let mut ctx = bare_ctx();
+        ctx.capabilities = Capabilities {
+            read_prefix: Some(ReadPrefixCaps {
+                path_allow: vec![path_str.clone()],
+            }),
+            ..Capabilities::default()
+        };
+
+        let engine = build_engine().unwrap();
+        let mut linker: wasmtime::Linker<StoreData> = wasmtime::Linker::new(&engine);
+        setup_host_on_store_data(&mut linker).expect("setup_host_on_store_data must not error");
+
+        // WAT layout (mirrors T-002):
+        //   memory[0:4]   — out_ptr_out location (host writes the returned pointer here)
+        //   memory[4:8]   — out_len_out location (host writes the returned length here)
+        //   memory[128..] — path bytes (written by test before call)
+        //
+        // call_rp(path_ptr, path_len) → host return code (0 = codes::OK)
+        let module = compile(
+            &engine,
+            r#"(module
+              (import "vsdd" "read_prefix" (func $rp (param i32 i32 i32 i32 i32 i32) (result i32)))
+              (memory (export "memory") 2)
+              (func (export "call_rp") (param $path_ptr i32) (param $path_len i32) (result i32)
+                (call $rp
+                  (local.get $path_ptr)
+                  (local.get $path_len)
+                  (i32.const 64)
+                  (i32.const 0)
+                  (i32.const 0)
+                  (i32.const 4)
+                )
+              )
+            )"#,
+        );
+
+        let wasi_ctx = WasiCtxBuilder::new().build_p1();
+        let store_data = StoreData {
+            host: ctx,
+            wasi: wasi_ctx,
+        };
+        let mut store = Store::new(&engine, store_data);
+        store
+            .set_fuel(1_000_000)
+            .expect("engine has fuel metering enabled");
+        store.set_epoch_deadline(u64::MAX);
+
+        let instance = linker.instantiate(&mut store, &module).expect(
+            "T-015: instantiation must succeed via production path (setup_host_on_store_data)",
+        );
+
+        let memory = instance
+            .get_memory(&mut store, "memory")
+            .expect("module exports memory");
+        memory
+            .write(&mut store, 128, path_bytes)
+            .expect("write path bytes to WASM memory");
+
+        // Capture memory size BEFORE the read_prefix call so we can assert
+        // that the empty-body fast path skips the grow call.
+        let memory_size_before = memory.data_size(&store);
+
+        let call_rp = instance
+            .get_typed_func::<(i32, i32), i32>(&mut store, "call_rp")
+            .expect("module exports call_rp");
+        let ret = call_rp
+            .call(&mut store, (128, path_bytes.len() as i32))
+            .expect("call_rp must not trap");
+
+        // Capture memory size AFTER the read_prefix call.
+        let memory_size_after = memory.data_size(&store);
+
+        // Assert 1: return code must be codes::OK (0).
+        assert_eq!(
+            ret, 0,
+            "T-015 AC-002: read_prefix on an empty file must return codes::OK (0); \
+             EC-002 empty-body fast path; got {}",
+            ret
+        );
+
+        // Read out_ptr (memory[0:4]) and out_len (memory[4:8]).
+        let mem_data: Vec<u8> = memory.data(&store).to_vec();
+        let out_ptr = u32::from_le_bytes(
+            mem_data[0..4]
+                .try_into()
+                .expect("memory[0:4] must be 4 bytes"),
+        );
+        let out_len = u32::from_le_bytes(
+            mem_data[4..8]
+                .try_into()
+                .expect("memory[4:8] must be 4 bytes"),
+        );
+
+        // Assert 2: out_ptr must be 0 — empty-body fast path writes ptr=0, skips grow.
+        // Mutation-check: removing the `if body.is_empty()` early-return causes the code
+        // to fall through to memory-grow.  grow(0 pages) succeeds but write_offset =
+        // current_bytes (nonzero for any loaded WASM module), so out_ptr would equal
+        // current_bytes rather than 0 — this assertion flips to FAIL, proving the test
+        // detects regression of the EC-002 branch.
+        assert_eq!(
+            out_ptr, 0,
+            "T-015 AC-002: out_ptr must be 0 for empty file — empty-body fast path writes \
+             ptr=0, skips grow (ADR-025 §Decision 16; EC-002); got out_ptr={}",
+            out_ptr
+        );
+
+        // Assert 3: out_len must be 0 (no bytes to transfer).
+        assert_eq!(
+            out_len, 0,
+            "T-015 AC-002: out_len must be 0 for empty file (EC-002: 0 bytes to transfer); \
+             got out_len={}",
+            out_len
+        );
+
+        // Assert 4: WASM linear memory size must be unchanged — empty-body fast path
+        // exits before the grow call, so no page allocation occurs.
+        assert_eq!(
+            memory_size_before, memory_size_after,
+            "T-015 AC-002: WASM linear memory must NOT grow for empty file — empty-body fast \
+             path skips the grow call (EC-002 no-memory-growth invariant); \
+             before={} after={}",
+            memory_size_before, memory_size_after
+        );
+        // dir goes out of scope here; tempfile::TempDir::drop auto-cleans the directory.
     }
 }
 

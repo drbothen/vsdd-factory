@@ -1,0 +1,75 @@
+S-19.02 Demo Evidence — AC-002 + AC-004: Cap enforcement at 70 KiB and above
+Captured: 2026-07-11
+Branch: feature/S-19.02  HEAD: 492f01c2
+Crates: crates/hook-plugins/verify-factory-lock
+
+=== T-002: 70 KiB fixture + foreign lock -> Block (AC-002) ===
+
+$ cargo test -p verify-factory-lock test_S1902_T002
+
+     Running unittests src/lib.rs (target/debug/deps/verify_factory_lock-...)
+
+running 1 test
+test tests::test_S1902_T002_70kib_fixture_foreign_lock_returns_block ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 27 filtered out; finished in 0.00s
+
+Test assertion:
+  fixture = 70000-byte STATE.md (foreign unexpired lock in frontmatter, body padded)
+  guard_logic() with mock returning Ok(fixture) -> HookResult::Block
+
+Red Gate proof: the test also asserts STATE_MD_MAX_BYTES >= 70000. At the old cap (65536)
+this assertion fired before the block check, preventing the guard from running at all.
+
+=== T-003: 70 KiB fixture + no lock -> Continue (AC-002 complement) ===
+
+$ cargo test -p verify-factory-lock test_S1902_T003
+
+     Running unittests src/lib.rs (target/debug/deps/verify_factory_lock-...)
+
+running 1 test
+test tests::test_S1902_T003_70kib_fixture_no_lock_returns_continue ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 27 filtered out; finished in 0.00s
+
+Test assertion:
+  fixture = 70000-byte STATE.md (no factory_lock key in frontmatter)
+  guard_logic() -> HookResult::Continue (unlocked path correct)
+
+=== T-006 / VP-095: Real-cap-enforcement integration test (AC-004) ===
+
+$ cargo test -p verify-factory-lock t006
+
+     Running tests/integration_ac004_no_output_too_large.rs (target/debug/deps/...)
+
+running 1 test
+test t006_vp095_real_cap_enforcement_sizes ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+Test assertion matrix (cap-enforcement mock mirrors real host::read_file behavior):
+  65535 bytes  -> mock Ok -> guard runs -> Block (foreign lock)  [no output_too_large]
+  65536 bytes  -> mock Ok -> guard runs -> Block                 [no output_too_large]
+  131072 bytes -> mock Ok -> guard runs -> Block                 [no output_too_large]
+  262144 bytes -> mock Ok -> guard runs -> Block (at-cap; incl.) [no output_too_large]
+  262145 bytes -> mock Err(OutputTooLarge) -> Continue (fail-open per EC-002)
+                   + StateReadError warn emitted (verified)
+
+Key: the mock returns Err if fixture_size > max_bytes (=STATE_MD_MAX_BYTES). Unlike the
+original T-006 which bypassed the cap entirely, this mock cannot produce green results
+at the old cap — 65536-byte and larger inputs would have returned Err and the Block
+assertions would have failed.
+
+=== BC Trace ===
+
+BC-4.13.001 v1.15 Phase-A Precondition 3: operational at new cap
+VP-095: verify-factory-lock handles STATE.md files up to 262144 bytes without
+  output_too_large denial (ADR-025 Decision 14)
+BC-4.13.001 PC6: STATE.md read failure -> fail-open Continue (for 262145-byte case)
+
+=== What this proves ===
+
+No output_too_large denial events are emitted for STATE.md files <= 262144 bytes.
+The prior rc.22 production failures (dispatcher traces a4b26f12, bcc3e6ef, cf4c2e4d,
+2551d7db showing capability_denied reason=output_too_large on ~90 KB STATE.md) are
+closed: 90 KB = 92160 bytes << 262144 cap.

@@ -10,7 +10,7 @@
 #
 # CRITICAL per PG-S-15.11 (Drift Item): bats inline _write_registry() path_allow arrays
 #   MUST be byte-identical to the eventual production hooks-registry.toml entry for this hook:
-#   priority = 158, PostToolUse, tool = "Edit|Write", path_allow = [".factory"]
+#   priority = 158, PostToolUse, tool = "^(Edit|Write|MultiEdit)$", path_allow = [".factory"]
 #
 # Three scenarios:
 #   A. Production-shape registry + valid STATE.md (all sites present) => exit 0 (Continue)
@@ -21,7 +21,7 @@
 # Also validates AC-1 structural checks:
 #   - validate-trajectory-tail-cell-completeness entry present in production registry
 #   - priority = 158 (NOT 157 or lower)
-#   - tool = "Edit|Write" (canonical form; NOT "Write|Edit")
+#   - tool = "^(Edit|Write|MultiEdit)$" (anchored canonical form per S-19.04; NOT "Write|Edit")
 #   - on_error = "continue" (invariant 12)
 #   - path_allow = [".factory"] (NOT [".factory/**"] — bare path, no glob)
 #   - no "**" glob in path_allow (S-15.11 F-P2-001 preemptive lesson)
@@ -74,12 +74,12 @@ _write_production_registry() {
     return 1
   fi
 
-  # AC-1 check 3: tool = "Edit|Write" (canonical form)
+  # AC-1 check 3: tool = "^(Edit|Write|MultiEdit)$" (anchored canonical form per S-19.04)
   local tool_line
   tool_line=$(awk '/^name = "validate-trajectory-tail-cell-completeness"$/{found=1} found && /^tool =/{print; exit}' "$PRODUCTION_REGISTRY")
-  if ! echo "$tool_line" | grep -q 'tool = "Edit|Write"'; then
+  if ! echo "$tool_line" | grep -qF 'tool = "^(Edit|Write|MultiEdit)$"'; then
     echo "FAIL: production registry uses wrong tool form: $tool_line" >&2
-    echo "FAIL: must be tool = \"Edit|Write\" (canonical form)" >&2
+    echo "FAIL: must be tool = \"^(Edit|Write|MultiEdit)$\" (anchored canonical form per S-19.04)" >&2
     return 1
   fi
 
@@ -123,7 +123,7 @@ schema_version = 2
 [[hooks]]
 name = "validate-trajectory-tail-cell-completeness"
 event = "PostToolUse"
-tool = "Edit|Write"
+tool = "^(Edit|Write|MultiEdit)$"
 plugin = "hook-plugins/validate-trajectory-tail-cell-completeness.wasm"
 priority = 158
 timeout_ms = 5000

@@ -65,6 +65,66 @@ pub struct LockState {
 // Public API
 // ---------------------------------------------------------------------------
 
+/// Extract the YAML frontmatter prefix from raw STATE.md bytes.
+///
+/// Scans `bytes` for the closing frontmatter delimiter in LF or CRLF form
+/// and returns the prefix `bytes[0..delimiter_start_offset]`:
+///
+/// - **LF inline** `\n---\n`: `delimiter_start_offset` = byte index of the
+///   leading `\n`. Returned slice = `bytes[0..pos]`.
+/// - **CRLF inline** `\r\n---\r\n`: `delimiter_start_offset` = byte index of
+///   the leading `\r`. Returned slice = `bytes[0..pos]`.
+/// - **CRLF EOF** `\r\n---` at EOF (no trailing newline): `delimiter_start_offset`
+///   = `len - 5`. Must be checked before LF-EOF because `\r\n---` also ends
+///   with `\n---`.
+/// - **LF EOF** `\n---` at EOF (no trailing newline): `delimiter_start_offset`
+///   = `len - 4`.
+/// - **None found**: returns the full input unchanged.
+///
+/// The opening delimiter (`---\n` for LF files; `---\r\n` for CRLF files) IS
+/// included in the returned slice (slice starts at byte 0). The closing
+/// delimiter bytes are NOT included.
+///
+/// This function is pure: deterministic, no I/O, side-effect free.
+///
+/// # BC Traces
+/// - BC-4.13.001 v1.15 Phase-A Invariant 9 (frontmatter-only-parsing mandate;
+///   CRLF delimiter forms `\r\n---\r\n` / `\r\n---`-EOF added in v1.15 / EC-017)
+/// - AC-005, VP-096 (extract_frontmatter byte-exact boundary purity)
+/// - F-P29-001 (architect ruling: this function lives in factory-lock-parse)
+pub fn extract_frontmatter(bytes: &[u8]) -> &[u8] {
+    // 1. LF inline `\n---\n` — most common case (pure-LF STATE.md).
+    //    delimiter_start_offset = byte index of the leading `\n`.
+    let lf_inline = b"\n---\n";
+    if let Some(pos) = bytes.windows(lf_inline.len()).position(|w| w == lf_inline) {
+        return &bytes[..pos];
+    }
+    // 2. CRLF inline `\r\n---\r\n` — Windows autocrlf checkout (EC-017).
+    //    delimiter_start_offset = byte index of the leading `\r`.
+    let crlf_inline = b"\r\n---\r\n";
+    if let Some(pos) = bytes
+        .windows(crlf_inline.len())
+        .position(|w| w == crlf_inline)
+    {
+        return &bytes[..pos];
+    }
+    // 3. CRLF EOF `\r\n---` — CRLF file with no trailing newline after delimiter.
+    //    Checked BEFORE LF-EOF because `\r\n---` also ends with `\n---` and
+    //    the LF-EOF check would strip only 4 bytes instead of 5, leaving a
+    //    stray `\r` in the returned slice.
+    let crlf_eof = b"\r\n---";
+    if bytes.ends_with(crlf_eof) {
+        return &bytes[..bytes.len() - crlf_eof.len()];
+    }
+    // 4. LF EOF `\n---` — LF file with no trailing newline after delimiter.
+    let lf_eof = b"\n---";
+    if bytes.ends_with(lf_eof) {
+        return &bytes[..bytes.len() - lf_eof.len()];
+    }
+    // No closing delimiter found: return the full input.
+    bytes
+}
+
 /// Scan the YAML frontmatter of STATE.md content for the `factory_lock:` block.
 ///
 /// Reads only the region between the first and second `---\n` delimiters.
@@ -292,6 +352,189 @@ mod tests {
             "  expires_at: \"2099-01-01T00:00:00Z\"\n",
             "---\n\n# STATE\n",
         )
+    }
+
+    // -----------------------------------------------------------------------
+    // S-19.02 extract_frontmatter tests (T-004, T-005, T-007, T-008)
+    //
+    // RED GATE: extract_frontmatter is currently a todo!() stub; all four
+    // tests will fail until the implementation is complete (Task 10).
+    // -----------------------------------------------------------------------
+
+    /// T-004 (AC-003): extract_frontmatter with a `\n---\n` delimiter present.
+    ///
+    /// Fixture: `---\nfactory_lock: null\n---\nbody content`
+    /// Expected: extracted slice contains only the frontmatter region (bytes
+    /// 0..delimiter_start_offset), ending before the closing `\n---\n`.
+    ///
+    /// RED: extract_frontmatter is a todo!() stub.
+    #[test]
+    fn test_S1902_extract_frontmatter_delimiter_present_excludes_body() {
+        let input = b"---\nfactory_lock: null\n---\nbody content here";
+        let extracted = extract_frontmatter(input);
+        // Body content must not appear in the extracted slice.
+        let extracted_str = std::str::from_utf8(extracted).expect("extracted slice must be UTF-8");
+        assert!(
+            !extracted_str.contains("body content here"),
+            "extracted slice must NOT contain body bytes past the delimiter. Got: {extracted_str:?}"
+        );
+        // Extracted slice must start with the opening `---\n`.
+        assert!(
+            extracted_str.starts_with("---\n"),
+            "extracted slice must start with opening `---\\n` (byte 0). Got: {extracted_str:?}"
+        );
+    }
+
+    /// T-005 (AC-003): extract_frontmatter with no `\n---\n` delimiter → full slice returned.
+    ///
+    /// Fixture: bytes with no closing `---` delimiter.
+    /// Expected: returned slice byte-equals the full input.
+    ///
+    /// RED: extract_frontmatter is a todo!() stub.
+    #[test]
+    fn test_S1902_extract_frontmatter_no_delimiter_returns_full_slice() {
+        let input = b"---\nfactory_lock: null\nphase: test\n";
+        let extracted = extract_frontmatter(input);
+        assert_eq!(
+            extracted, input,
+            "When no closing delimiter present, extract_frontmatter must return the full input slice"
+        );
+    }
+
+    /// T-007 (AC-005): extract_frontmatter byte-exact boundary — body bytes absent from extracted slice.
+    ///
+    /// Unit test A (boundary): fixture = `---\nfactory_lock: null\n---\nbody content here`
+    ///   - Extracted slice must start at byte 0 (includes opening `---\n`).
+    ///   - extracted_len must equal delimiter_start_offset (index of `\n` beginning `\n---\n`).
+    ///   - `body content here` must NOT appear in the extracted slice.
+    ///
+    /// RED: extract_frontmatter is a todo!() stub.
+    #[test]
+    fn test_S1902_extract_frontmatter_byte_exact_boundary_body_absent() {
+        // Fixture: known structure; delimiter_start_offset = byte index of the `\n` in `\n---\n`
+        // "---\nfactory_lock: null" = 22 bytes; then `\n---\nbody content here`
+        // So delimiter_start_offset = 22, extracted_len must == 22.
+        let input = b"---\nfactory_lock: null\n---\nbody content here";
+        let extracted = extract_frontmatter(input);
+
+        // delimiter_start_offset = index of the '\n' that starts '\n---\n'
+        // input[22] == b'\n', input[23..27] == b"---\n"
+        let delimiter_start_offset = 22usize;
+
+        assert_eq!(
+            extracted.len(),
+            delimiter_start_offset,
+            "extracted_len must equal delimiter_start_offset ({}). Got: {}",
+            delimiter_start_offset,
+            extracted.len()
+        );
+        assert_eq!(
+            extracted,
+            &input[..delimiter_start_offset],
+            "extracted slice must byte-equal input[0..delimiter_start_offset]"
+        );
+        // Opening `---\n` is included (starts at byte 0).
+        assert!(
+            extracted.starts_with(b"---\n"),
+            "extracted slice must start with opening `---\\n`"
+        );
+        // No body bytes leak through.
+        assert!(
+            !extracted.windows(4).any(|w| w == b"body"),
+            "body bytes must NOT appear in extracted slice"
+        );
+    }
+
+    /// T-008 (AC-005): extract_frontmatter EOF delimiter — `\n---` at EOF, no trailing body.
+    ///
+    /// Unit test B (EOF delimiter): fixture = `---\nfactory_lock: null\n---`
+    /// Expected: extracted slice contains only frontmatter content (no trailing `\n---`).
+    ///
+    /// RED: extract_frontmatter is a todo!() stub.
+    #[test]
+    fn test_S1902_extract_frontmatter_eof_delimiter_no_trailing_body() {
+        let input = b"---\nfactory_lock: null\n---";
+        let extracted = extract_frontmatter(input);
+        let extracted_str = std::str::from_utf8(extracted).expect("extracted slice must be UTF-8");
+        // The `\n---` EOF delimiter itself must not appear in the extracted content.
+        // Extracted slice should be the frontmatter up to (but not including) `\n---`.
+        assert!(
+            !extracted_str.ends_with("\n---"),
+            "extracted slice must NOT end with the `\\n---` EOF delimiter. Got: {extracted_str:?}"
+        );
+        assert!(
+            extracted_str.starts_with("---\n"),
+            "extracted slice must start with opening `---\\n`. Got: {extracted_str:?}"
+        );
+    }
+
+    // -----------------------------------------------------------------------
+    // F-S1902-P1-001: CRLF extract_frontmatter tests (pass-1 adversary finding)
+    //
+    // BC-4.13.001 v1.14→v1.15 amendment (human approved): extract_frontmatter
+    // MUST recognize CRLF delimiter forms (`\r\n---\r\n` and `\r\n---` at EOF)
+    // in addition to the LF forms already implemented.
+    //
+    // These tests are RED because the current implementation only searches for
+    // `b"\n---\n"` and `b"\n---"` (LF-only). CRLF inputs return the full slice.
+    // -----------------------------------------------------------------------
+
+    /// F-S1902-P1-001 / T-011-A: extract_frontmatter CRLF inline delimiter — body excluded.
+    ///
+    /// Fixture: `---\r\nfactory_lock: null\r\n---\r\nbody content`
+    /// Expected: extracted slice starts with `---\r\n` and does NOT contain `body content`.
+    ///
+    /// RED: current implementation searches only for `\n---\n`; the CRLF form
+    /// `\r\n---\r\n` is not recognized → full input returned including body bytes.
+    #[test]
+    fn test_S1902_crlf_extract_frontmatter_excludes_body() {
+        let input = b"---\r\nfactory_lock: null\r\n---\r\nbody content";
+        let extracted = extract_frontmatter(input);
+        let extracted_str = std::str::from_utf8(extracted).expect("extracted slice must be UTF-8");
+        // Body bytes must not appear in the extracted frontmatter slice.
+        assert!(
+            !extracted_str.contains("body content"),
+            "CRLF: extracted slice must NOT contain body bytes past the \\r\\n---\\r\\n delimiter. \
+             Got: {extracted_str:?}. \
+             Fix: update extract_frontmatter to recognize `\\r\\n---\\r\\n` (BC-4.13.001 v1.15)."
+        );
+        // Slice must start with opening `---\r\n`.
+        assert!(
+            extracted_str.starts_with("---\r\n"),
+            "CRLF: extracted slice must start with opening `---\\r\\n` (byte 0). Got: {extracted_str:?}"
+        );
+    }
+
+    /// F-S1902-P1-001 / T-011-B: extract_frontmatter CRLF byte-exact boundary.
+    ///
+    /// Fixture: `---\r\nfactory_lock: null\r\n---\r\nbody`
+    ///   - `---\r\nfactory_lock: null` = 23 bytes (---=3 + \r\n=2 + factory_lock: null=18);
+    ///     then `\r\n---\r\n` begins at byte 23.
+    ///   - delimiter_start_offset (index of `\r` in `\r\n---\r\n`) = 23.
+    ///   - Extracted slice must byte-equal input[0..23].
+    ///
+    /// RED: current implementation does not recognize `\r\n---\r\n` → returns full input.
+    #[test]
+    fn test_S1902_crlf_extract_frontmatter_byte_exact_boundary() {
+        let input = b"---\r\nfactory_lock: null\r\n---\r\nbody";
+        let extracted = extract_frontmatter(input);
+        // delimiter_start_offset: index of the `\r` that starts `\r\n---\r\n`.
+        // input[0..23] = b"---\r\nfactory_lock: null" (23 bytes: ---=3 + \r\n=2 + factory_lock: null=18)
+        let delimiter_start_offset = 23usize;
+        assert_eq!(
+            extracted.len(),
+            delimiter_start_offset,
+            "CRLF: extracted_len ({}) must equal delimiter_start_offset ({}). \
+             Full input returned instead of frontmatter-only slice.",
+            extracted.len(),
+            delimiter_start_offset
+        );
+        assert_eq!(
+            extracted,
+            &input[..delimiter_start_offset],
+            "CRLF: extracted slice must byte-equal input[0..delimiter_start_offset ({})]",
+            delimiter_start_offset
+        );
     }
 
     // -----------------------------------------------------------------------

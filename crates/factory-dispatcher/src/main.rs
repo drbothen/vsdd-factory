@@ -22,19 +22,17 @@
 //! the dispatch path: `dispatcher.schema_mismatch`, `dispatcher.registry_invalid`,
 //! `plugin.async_block_discarded`, `plugin.timeout` (async path).
 //!
-//! ## VSDD_SINK_FILE (test/development hook)
+//! ## VSDD_SINK_FILE (diagnostic + test hook)
 //!
 //! When `VSDD_SINK_FILE` is set to a path, all plugin-emitted events
 //! (from `host::emit_event`) are appended as JSONL to that file after
-//! execution completes. This is used by bats integration tests to
-//! capture and assert on emitted events without a full observability
-//! sink pipeline. Best-effort: write failures are silently dropped.
+//! execution completes. Honored in both debug and release builds
+//! (S-19.05 AC-004). SEC-003 path sanitization (no ".." traversal) is
+//! applied. Used by bats integration tests and operators for diagnostics.
+//! Best-effort: write failures are silently dropped.
 
 use std::path::PathBuf;
-use std::sync::Arc;
-// Mutex is only needed in debug builds for the VSDD_SINK_FILE flush path (SEC-003).
-#[cfg(debug_assertions)]
-use std::sync::Mutex;
+use std::sync::{Arc, Mutex};
 
 use factory_dispatcher::engine::{EpochTicker, build_engine};
 use factory_dispatcher::executor::{
@@ -42,8 +40,9 @@ use factory_dispatcher::executor::{
 };
 use factory_dispatcher::host::HostContext;
 use factory_dispatcher::host::emit_event::{
-    emit_dispatcher_schema_mismatch, emit_plugin_async_block_discarded, emit_plugin_timeout_async,
-    emit_registry_invalid_e_reg002, emit_registry_invalid_e_reg003,
+    emit_dispatcher_schema_mismatch, emit_plugin_abandoned, emit_plugin_async_block_discarded,
+    emit_plugin_completed_async, emit_plugin_timeout_async, emit_registry_invalid_e_reg002,
+    emit_registry_invalid_e_reg003,
 };
 use factory_dispatcher::internal_log::{
     DEFAULT_RETENTION_DAYS, DISPATCHER_STARTED, INTERNAL_DISPATCHER_ERROR, InternalEvent,
@@ -64,18 +63,18 @@ use tokio::sync::mpsc;
 
 const ENV_PLUGIN_ROOT: &str = "CLAUDE_PLUGIN_ROOT";
 const ENV_PROJECT_DIR: &str = "CLAUDE_PROJECT_DIR";
-// SECURITY: VSDD_SINK_FILE is debug-only; see SEC-003 (W-15 wave gate fix).
-// The constant and all logic reading it are gated behind #[cfg(debug_assertions)]
-// so the env var name does not appear in release binaries.
-#[cfg(debug_assertions)]
+// VSDD_SINK_FILE: runtime-gated structured-event sink for bats integration tests
+// and operator diagnostics. Honored in both debug and release builds (S-19.05 AC-004).
+// SEC-003 path sanitization (no ".." traversal) is applied inside flush_sink_file.
 const ENV_SINK_FILE: &str = "VSDD_SINK_FILE";
 
-// VSDD_ASYNC_DRAIN_WINDOW_MS: debug-only override for the async drain window.
-// Used by bats integration tests (VP-079 S1/S4) to account for WASM cold-start
-// time in debug builds. Release builds always use ASYNC_DRAIN_WINDOW_MS (DI-019).
-// SEC-003: compiled out in release builds so the env var name does not appear in
-// production binaries.
-#[cfg(debug_assertions)]
+// VSDD_ASYNC_DRAIN_WINDOW_MS: env override for the async drain window.
+// Active in debug builds AND release builds compiled with feature=test-support
+// (CI integration tests only — never enabled in shipped artifacts per release.yml).
+// Shipped artifacts (release.yml: no features) always use ASYNC_DRAIN_WINDOW_MS
+// per DI-019 v1.6. SEC-003: compiled out in shipped release builds so the env var
+// name does not appear in production binaries.
+#[cfg(any(debug_assertions, feature = "test-support"))]
 const ENV_ASYNC_DRAIN_WINDOW_MS: &str = "VSDD_ASYNC_DRAIN_WINDOW_MS";
 
 #[tokio::main(flavor = "current_thread")]
@@ -212,16 +211,13 @@ async fn run(internal_log: Arc<InternalLog>) -> anyhow::Result<i32> {
                     // semantic invariant violations. Fail-open per BC-1.08.001.
                     _ => 0,
                 };
-                // Flush structured events to VSDD_SINK_FILE (debug builds / bats harness only).
+                // Flush structured events to VSDD_SINK_FILE (debug and release builds).
                 // VP-079 S2/S3 verify these events appear in the sink.
-                // SEC-003: VSDD_SINK_FILE is debug-only; only reject path traversal sequences.
-                // Absolute paths are allowed — bats tests use mktemp which produces absolute paths.
-                #[cfg(debug_assertions)]
+                // SEC-003 path sanitization (no ".." traversal) is applied inside flush_sink_file.
                 if let Ok(sink_path) = std::env::var(ENV_SINK_FILE)
                     && !sink_path.is_empty()
-                    && !sink_path.contains("..")
                 {
-                    flush_sink_file(&sink_path, &err_ctx.events);
+                    factory_dispatcher::vsdd_sink::flush_sink_file(&sink_path, &err_ctx.events);
                 }
                 return Ok(exit_code);
             }
@@ -390,10 +386,11 @@ async fn run(internal_log: Arc<InternalLog>) -> anyhow::Result<i32> {
     // ExecutorInputs. All plugin contexts share this Arc (every clone
     // of HostContext shares the same Mutex<Vec<_>>), so draining it
     // after execute_tiers completes yields all plugin-emitted events.
-    // In release builds the VSDD_SINK_FILE path is compiled out (SEC-003);
-    // allow(unused_variables) silences the resulting lint.
-    #[allow(unused_variables)]
-    let event_queue = Arc::clone(&base_host_ctx.events);
+    // Flushed to VSDD_SINK_FILE at the end of run() in both debug and
+    // release builds (S-19.05 AC-004). The explicit Mutex type annotation
+    // is intentional: it names the sync primitive so the import is not
+    // elided (O-P2-003 compliance: Mutex MUST be unconditionally imported).
+    let event_queue: Arc<Mutex<Vec<InternalEvent>>> = Arc::clone(&base_host_ctx.events);
 
     // S-12.04: Load the resolver registry from disk.
     // BC-1.13.001 INV2: absent resolvers-registry.toml → empty registry, not an error.
@@ -471,18 +468,34 @@ async fn run(internal_log: Arc<InternalLog>) -> anyhow::Result<i32> {
     //   - Completed plugins' terminal events MUST emit (EC-012).
     //   - In-flight plugins when drain timer fires are abandoned (EC-011).
     //
-    // In debug builds, VSDD_ASYNC_DRAIN_WINDOW_MS env var can override the window
-    // to account for WASM cold-start time in bats integration tests (VP-079 S1/S4).
-    // Release builds always use ASYNC_DRAIN_WINDOW_MS (DI-019). SEC-003.
+    // In debug builds AND release builds with feature=test-support, VSDD_ASYNC_DRAIN_WINDOW_MS
+    // can override the window for CI integration tests (VP-079 S1/S4, bc_3_08_001_s19_05).
+    // Shipped release builds (release.yml: no features) always use ASYNC_DRAIN_WINDOW_MS
+    // per DI-019 v1.6. SEC-003: compiled out in shipped release builds.
     if !partition.async_group.is_empty() {
-        #[cfg(debug_assertions)]
+        #[cfg(any(debug_assertions, feature = "test-support"))]
         let effective_drain_window = std::env::var(ENV_ASYNC_DRAIN_WINDOW_MS)
             .ok()
             .and_then(|s| s.parse::<u64>().ok())
             .map(std::time::Duration::from_millis)
             .unwrap_or(ASYNC_DRAIN_WINDOW_MS);
-        #[cfg(not(debug_assertions))]
+        #[cfg(not(any(debug_assertions, feature = "test-support")))]
         let effective_drain_window = ASYNC_DRAIN_WINDOW_MS;
+
+        // Capture entry_index (0-based enumerate ordinal) for each async plugin BEFORE
+        // consuming async_group. Used by emit_plugin_completed_async (Event 6) and
+        // emit_plugin_abandoned (Event 5) as the BC-3.08.001 v1.21 Invariant 6
+        // disambiguation key: (trace_id, plugin_name, entry_index).
+        let spawned_entries: Vec<(String, u32)> = partition
+            .async_group
+            .iter()
+            .enumerate()
+            .map(|(i, entry)| (entry.name.clone(), i as u32))
+            .collect();
+
+        // Drain window in milliseconds — used as drain_window_ms field in plugin.abandoned events
+        // (BC-3.08.001 v1.21 Event 5, mandatory field 6).
+        let drain_window_ms_u64 = effective_drain_window.as_millis() as u64;
 
         // Spawn each async plugin as an independent task with a results channel.
         // BC-1.14.001 v1.9 PC4: tokio::spawn per-plugin, NOT execute_tiers.
@@ -557,13 +570,35 @@ async fn run(internal_log: Arc<InternalLog>) -> anyhow::Result<i32> {
         for outcome in &partial_outcomes {
             match &outcome.result {
                 PluginResult::Ok {
-                    exit_code, stdout, ..
+                    exit_code,
+                    stdout,
+                    elapsed_ms,
+                    fuel_consumed,
+                    ..
                 } => {
                     let has_block_json = stdout.contains(r#""outcome":"block""#);
                     let has_exit_2 = *exit_code == 2;
                     if has_block_json || has_exit_2 {
                         // BC-3.08.001 Event 1: async plugin returned block verdict (discarded).
                         emit_plugin_async_block_discarded(&base_host_ctx, &outcome.plugin_name, 2);
+                    } else {
+                        // BC-3.08.001 v1.21 Event 6: async plugin completed normally.
+                        // All 9 mandatory fields: type, trace_id, session_id, plugin_name,
+                        // plugin_version, entry_index, exit_code, elapsed_ms, fuel_consumed.
+                        let entry_index = spawned_entries
+                            .iter()
+                            .find(|(name, _)| name == &outcome.plugin_name)
+                            .map(|(_, idx)| *idx)
+                            .unwrap_or(0);
+                        emit_plugin_completed_async(
+                            &base_host_ctx,
+                            &outcome.plugin_name,
+                            &outcome.plugin_version,
+                            entry_index,
+                            *exit_code,
+                            *elapsed_ms,
+                            *fuel_consumed,
+                        );
                     }
                 }
                 PluginResult::Timeout { .. } => {
@@ -576,7 +611,27 @@ async fn run(internal_log: Arc<InternalLog>) -> anyhow::Result<i32> {
                         .unwrap_or(registry.defaults.timeout_ms);
                     emit_plugin_timeout_async(&base_host_ctx, &outcome.plugin_name, timeout_ms);
                 }
-                _ => {} // Crash or non-block result — no structured event emitted
+                _ => {} // Crashed — lifecycle event already emitted by executor; no terminal event here
+            }
+        }
+
+        // BC-3.08.001 v1.21 Event 5: emit plugin.abandoned for each async plugin that was
+        // spawned but did not return an outcome before the drain timer fired.
+        // Invariant 6: plugin.abandoned is terminal — no plugin.completed follows for the
+        // same (trace_id, plugin_name, entry_index) triple.
+        // VP-100: exactly one plugin.abandoned per in-flight (plugin_name, entry_index) at drain.
+        let collected_names: std::collections::HashSet<&str> = partial_outcomes
+            .iter()
+            .map(|o| o.plugin_name.as_str())
+            .collect();
+        for (plugin_name, entry_index) in &spawned_entries {
+            if !collected_names.contains(plugin_name.as_str()) {
+                emit_plugin_abandoned(
+                    &base_host_ctx,
+                    plugin_name,
+                    *entry_index,
+                    drain_window_ms_u64,
+                );
             }
         }
     }
@@ -671,23 +726,17 @@ async fn run(internal_log: Arc<InternalLog>) -> anyhow::Result<i32> {
         );
     }
 
-    // SECURITY: VSDD_SINK_FILE is debug-only; see SEC-003 (W-15 wave gate fix).
-    // VSDD_SINK_FILE: drain plugin events and append as JSONL for
-    // bats integration tests (S-8.08 AC-005). Best-effort — any I/O
-    // error is silently dropped so the dispatcher always exits 0 on
-    // non-block dispatches regardless of sink write outcome.
-    #[cfg(debug_assertions)]
+    // VSDD_SINK_FILE: drain plugin events and append as JSONL for bats
+    // integration tests and operator diagnostics (S-8.08 AC-005).
+    // Honored in both debug and release builds (S-19.05 AC-004).
+    // SEC-003 path sanitization (no ".." traversal) is applied inside
+    // flush_sink_file. Best-effort — any I/O error is silently dropped
+    // so the dispatcher always exits 0 on non-block dispatches regardless
+    // of sink write outcome.
     if let Ok(sink_path) = std::env::var(ENV_SINK_FILE)
         && !sink_path.is_empty()
     {
-        // Reject path traversal sequences (SEC-003). Absolute paths are allowed —
-        // bats integration tests use mktemp which produces absolute paths.
-        // VSDD_SINK_FILE is debug-only (compiled out in release builds per SEC-003).
-        if sink_path.contains("..") {
-            eprintln!("VSDD_SINK_FILE: rejected path traversal in: {sink_path}");
-        } else {
-            flush_sink_file(&sink_path, &event_queue);
-        }
+        factory_dispatcher::vsdd_sink::flush_sink_file(&sink_path, &event_queue);
     }
 
     Ok(final_exit_code)
@@ -798,69 +847,8 @@ fn resolve_log_dir() -> PathBuf {
     factory_dispatcher::log_dir::resolve_log_dir_from(project_dir.as_deref(), &cwd)
 }
 
-/// Write plugin-emitted events as JSONL to the `VSDD_SINK_FILE` path.
-///
-/// Only called when `VSDD_SINK_FILE` is set (bats test harness). Best-
-/// effort: any I/O or serialization error is silently swallowed.
-///
-/// ## Event filtering (S-15.01 T-3e update)
-///
-/// All events EXCEPT `internal.*` are written to the sink. This allows:
-/// - `dispatcher.schema_mismatch` (BC-3.08.001 Event 2, VP-079 S2)
-/// - `dispatcher.registry_invalid` (BC-3.08.001 Event 3, VP-079 S3)
-/// - `plugin.async_block_discarded` (BC-3.08.001 Event 1, VP-079 S1)
-/// - `plugin.timeout` with execution_group=async (BC-3.08.001 Event 4, VP-079 S4)
-/// - All other plugin-domain events (e.g. `agent.start`, VP-028 fan-out)
-///
-/// `internal.*` events (dispatcher lifecycle diagnostics: `internal.dispatcher_error`,
-/// `internal.capability_denied`, etc.) are excluded — these are internal log
-/// events and should not appear in the observable events-*.jsonl stream.
-///
-/// Used by S-8.08 AC-005 + VP-079 bats integration tests.
-/// SECURITY: debug-only; see SEC-003 (W-15 wave gate fix).
-#[cfg(debug_assertions)]
-fn flush_sink_file(sink_path: &str, event_queue: &Arc<Mutex<Vec<InternalEvent>>>) {
-    use std::io::Write;
-
-    let events = {
-        match event_queue.lock() {
-            Ok(mut guard) => std::mem::take(&mut *guard),
-            Err(_) => return,
-        }
-    };
-
-    // Exclude only internal.* lifecycle noise — all observable events pass through.
-    // internal.* events are dispatcher-private diagnostics (dispatcher_error,
-    // capability_denied, plugin_invoked, plugin_completed, plugin_timeout lifecycle
-    // events emitted by the executor's internal log path). Everything else —
-    // including dispatcher.* and plugin.* domain events per BC-3.08.001 — is observable.
-    let domain_events: Vec<_> = events
-        .iter()
-        .filter(|ev| !ev.type_.starts_with("internal."))
-        .collect();
-
-    if domain_events.is_empty() {
-        return;
-    }
-
-    // Open (or create) the sink file for appending.
-    let file = std::fs::OpenOptions::new()
-        .create(true)
-        .append(true)
-        .open(sink_path);
-
-    let mut file = match file {
-        Ok(f) => f,
-        Err(_) => return, // best-effort: silently drop
-    };
-
-    for ev in domain_events {
-        if let Ok(line) = serde_json::to_string(ev) {
-            let _ = file.write_all(line.as_bytes());
-            let _ = file.write_all(b"\n");
-        }
-    }
-}
+// flush_sink_file is now in factory_dispatcher::vsdd_sink (S-19.05 AC-004).
+// main.rs callers use factory_dispatcher::vsdd_sink::flush_sink_file directly.
 
 /// Emit `internal.dispatcher_error` via the internal log, mirroring to
 /// stderr as a last-resort fallback. The stderr line is the same shape

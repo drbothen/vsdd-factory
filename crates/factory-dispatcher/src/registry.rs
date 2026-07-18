@@ -100,6 +100,11 @@ pub struct Capabilities {
     /// call to return `CAPABILITY_DENIED (-1)`.
     #[serde(default)]
     pub write_file: Option<WriteFileCaps>,
+    /// Bounded prefix-read capability (BC-1.17.001, S-19.06).
+    /// Independent of `read_file` — a plugin with only `read_file` capability
+    /// cannot call `read_prefix` (BC-1.17.001 Invariant 3).
+    #[serde(default)]
+    pub read_prefix: Option<ReadPrefixCaps>,
     /// Environment variable names the plugin is allowed to read.
     #[serde(default)]
     pub env_allow: Vec<String>,
@@ -131,6 +136,20 @@ pub struct ExecSubprocessCaps {
 pub struct ReadFileCaps {
     /// Path prefixes the plugin is allowed to read, rooted at
     /// `CLAUDE_PROJECT_DIR` unless absolute.
+    pub path_allow: Vec<String>,
+}
+
+/// Capability declaration for `host::read_prefix` (BC-1.17.001, S-19.06).
+/// Independent of [`ReadFileCaps`] — a plugin with `capabilities.read_file`
+/// does NOT automatically receive `capabilities.read_prefix` (defense-in-depth,
+/// BC-1.17.001 Invariant 3). Deny-by-default: absence of this block causes
+/// every `vsdd::read_prefix` host call to return `CAPABILITY_DENIED (-1)`.
+#[derive(Debug, Clone, Default, Deserialize, Serialize, PartialEq, Eq)]
+#[serde(deny_unknown_fields)]
+pub struct ReadPrefixCaps {
+    /// Path prefixes the plugin is allowed to read via `read_prefix`, rooted at
+    /// `CLAUDE_PROJECT_DIR` unless absolute. Same path-allow semantics as
+    /// `ReadFileCaps::path_allow`.
     pub path_allow: Vec<String>,
 }
 

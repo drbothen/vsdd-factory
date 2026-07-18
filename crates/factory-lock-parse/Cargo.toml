@@ -20,7 +20,9 @@ path = "src/lib.rs"
 chrono = { workspace = true }
 
 [dev-dependencies]
-# No test-only dependencies needed; parse functions are pure.
+# proptest for VP-096 property-based testing of extract_frontmatter purity
+# (T-010; harness at tests/proptest_extract_frontmatter.rs; S-19.02).
+proptest = { workspace = true }
 
 [lints]
 workspace = true

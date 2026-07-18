@@ -640,7 +640,7 @@ _run_dispatcher() {
 #   - [hooks.capabilities.read_file] block present
 #   - path_allow includes ".factory/STATE.md"
 #   - priority = 143 (runs after verify-factory-lock at priority 142 — AC-010)
-#   - tool = "Edit|Write|MultiEdit" (all three content tools — AC-010)
+#   - tool = "^(Edit|Write|MultiEdit)$" (all three content tools — AC-010)
 #   - NO max_bytes or timeout_ms in the capability block (ReadFileCaps is
 #     #[serde(deny_unknown_fields)] with path_allow ONLY — AC-010 / Arch Rule 5)
 #
@@ -739,7 +739,7 @@ _run_dispatcher() {
     in_section && /\[hooks\.capabilities\.read_file\]/ { has_read_file_cap = 1 }
     in_section && has_read_file_cap && /\.factory\/STATE\.md/ { has_path_allow_state_md = 1 }
     in_section && /^priority = 143/ { has_priority_143 = 1 }
-    in_section && /tool = "Edit\|Write\|MultiEdit"/ { has_tool_multiedit = 1 }
+    in_section && /tool = "\^\(Edit\|Write\|MultiEdit\)\$"/ { has_tool_multiedit = 1 }
     END {
       # Flush last section if awk hit EOF inside it.
       total = has_async_false + has_read_file_cap + has_path_allow_state_md + has_priority_143 + has_tool_multiedit
@@ -755,7 +755,7 @@ _run_dispatcher() {
     echo "  2. [hooks.capabilities.read_file]  (mandatory capability block — AC-010)"
     echo "  3. path_allow = [\".factory/STATE.md\"]  (AC-010)"
     echo "  4. priority = 143             (runs after verify-factory-lock at 142 — AC-010)"
-    echo "  5. tool = \"Edit|Write|MultiEdit\"  (MultiEdit must be covered — AC-010)"
+    echo "  5. tool = \"^(Edit|Write|MultiEdit)$\"  (MultiEdit must be covered — AC-010)"
     echo "See ADR-025 Decision 12 §12.6 / S-17.04 AC-010 / Registry Entry Spec."
     return 1
   }

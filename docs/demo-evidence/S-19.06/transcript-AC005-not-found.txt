@@ -1,0 +1,23 @@
+# AC-005 — NOT_FOUND (-5) + file_not_found event for absent allowlisted file
+# Story S-19.06 — branch feature/S-19.06 HEAD 7156a4c3
+# BC-1.17.001 PC-5 + Invariant 5
+#
+# Test: T-007
+#   Input: allowlisted path, file does not exist, capabilities.read_prefix present
+#   Expected: return code -5; event stream contains type=internal.file_not_found;
+#             zero capability_denied events in captured stream
+#
+# Denial path verification: zero capability_denied events confirms the path
+# proceeded past the capability check (step 1) and path-resolution check
+# (step 2) before the existence check (step 4) fired NOT_FOUND.
+
+# ── cargo test run ──────────────────────────────────────────────────────────
+$ cargo test -p factory-dispatcher --lib -- host::read_prefix::tests::test_S19_06_T007
+
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.23s
+     Running unittests src/lib.rs (target/debug/deps/factory_dispatcher-cdf061c0a73efe1d)
+
+running 1 test
+test host::read_prefix::tests::test_S19_06_T007_absent_allowlisted_file_returns_not_found_and_emits_event ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 193 filtered out; finished in 0.00s

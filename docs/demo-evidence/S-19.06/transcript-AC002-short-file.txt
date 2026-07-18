@@ -1,0 +1,16 @@
+# AC-002 — Short file returns full content, no padding
+# Story S-19.06 — branch feature/S-19.06 HEAD 7156a4c3
+# BC-1.17.001 PC-2
+#
+# Test: T-003 (30-byte file, max_bytes=100 → 30 bytes, exit 0; no padding to max_bytes)
+
+# ── cargo test run ──────────────────────────────────────────────────────────
+$ cargo test -p factory-dispatcher --lib -- host::read_prefix::tests::test_S19_06_T003
+
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.30s
+     Running unittests src/lib.rs (target/debug/deps/factory_dispatcher-cdf061c0a73efe1d)
+
+running 1 test
+test host::read_prefix::tests::test_S19_06_T003_short_file_returns_full_content_no_padding ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 193 filtered out; finished in 0.02s

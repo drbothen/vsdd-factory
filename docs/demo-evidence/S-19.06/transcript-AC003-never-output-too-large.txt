@@ -1,0 +1,37 @@
+# AC-003 — NEVER OUTPUT_TOO_LARGE (runtime + static gate)
+# Story S-19.06 — branch feature/S-19.06 HEAD 7156a4c3
+# BC-1.17.001 PC-3
+#
+# Tests: T-004 (runtime: 10000-byte file, max_bytes=50 → return code ≠ -3)
+#        T-009g (static gate: awk production-code-only strip + block/line comment
+#                strip → OUTPUT_TOO_LARGE absent from non-comment production code
+#                of read_prefix.rs; executed in bats read-prefix-wasm.bats)
+#
+# The runtime test (T-004) is the load-bearing check that OUTPUT_TOO_LARGE is
+# never returned. T-009g is the static defense-in-depth gate that the constant
+# does not appear in non-comment production code.
+
+# ── T-004 cargo test run ────────────────────────────────────────────────────
+$ cargo test -p factory-dispatcher --lib -- host::read_prefix::tests::test_S19_06_T004
+
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.36s
+     Running unittests src/lib.rs (target/debug/deps/factory_dispatcher-cdf061c0a73efe1d)
+
+running 1 test
+test host::read_prefix::tests::test_S19_06_T004_never_returns_output_too_large ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 193 filtered out; finished in 0.00s
+
+# ── T-009g static gate (bats) ───────────────────────────────────────────────
+$ cd plugins/vsdd-factory/tests && bats read-prefix-wasm.bats --filter "T-009g"
+1..1
+ok 1 T-009g AC-003 static gate: OUTPUT_TOO_LARGE absent from non-comment production code in read_prefix.rs
+
+# ── T-009g gate command (direct invocation) ─────────────────────────────────
+$ [ -z "$(awk '/^#\[cfg\(test\)\]/{exit} {print}' crates/factory-dispatcher/src/host/read_prefix.rs \
+  | awk 'BEGIN{b=0}{if(b){if(sub(/.*\*\//,""))b=0;else next};while(match($0,/\/\*/)){s=substr($0,1,RSTART-1);r=substr($0,RSTART+2);if(match(r,/\*\//)){$0=s substr(r,RSTART+RLENGTH)}else{$0=s;b=1;break}};print}' \
+  | sed 's://.*::' \
+  | grep -oE 'OUTPUT_TOO_LARGE')" ] \
+  && echo "EXIT 0: OUTPUT_TOO_LARGE absent from non-comment production code" \
+  || echo "EXIT 1: OUTPUT_TOO_LARGE found in non-comment production code"
+EXIT 0: OUTPUT_TOO_LARGE absent from non-comment production code

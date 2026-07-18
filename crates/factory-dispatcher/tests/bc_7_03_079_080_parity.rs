@@ -167,9 +167,10 @@ fn test_BC_7_03_079_invariant_1_binding_tuple_preserved_after_migration() {
     );
     assert_eq!(
         entry.tool.as_deref().unwrap_or(""),
-        "Agent",
-        "track-agent-start tool binding must remain Agent \
-         (BC-7.03.079 invariant 1)"
+        "^Agent$",
+        "track-agent-start tool binding must remain Agent (anchored form ^Agent$ per S-19.04 D-a table; \
+         anchoring prevents false-fires on hypothetical future AgentAsync-class tool names while \
+         preserving full routing to PreToolUse Agent events — BC-7.03.079 invariant 1)"
     );
     assert_eq!(
         entry.priority.unwrap_or(0),

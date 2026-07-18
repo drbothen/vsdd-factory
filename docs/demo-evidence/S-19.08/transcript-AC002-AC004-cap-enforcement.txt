@@ -1,0 +1,65 @@
+$ cargo test -p verify-state-timestamp-refresh "T002" -- --nocapture
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.05s
+     Running unittests src/lib.rs (target/debug/deps/verify_state_timestamp_refresh-2359b5c15e4c0389)
+
+running 1 test
+test tests::test_BC_5_40_001_T002_70kib_fixture_stale_timestamp_blocks ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 49 filtered out; finished in 0.00s
+
+     Running unittests src/main.rs (target/debug/deps/verify_state_timestamp_refresh-3e1fcf1975e91ade)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/integration_t006_no_output_too_large.rs (target/debug/deps/integration_t006_no_output_too_large-90f77c03d4a75501)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 2 filtered out; finished in 0.00s
+
+$ cargo test -p verify-state-timestamp-refresh "T003" -- --nocapture
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.06s
+     Running unittests src/lib.rs (target/debug/deps/verify_state_timestamp_refresh-2359b5c15e4c0389)
+
+running 1 test
+test tests::test_BC_5_40_001_T003_70kib_fixture_advanced_timestamp_continues ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 49 filtered out; finished in 0.00s
+
+     Running unittests src/main.rs (target/debug/deps/verify_state_timestamp_refresh-3e1fcf1975e91ade)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/integration_t006_no_output_too_large.rs (target/debug/deps/integration_t006_no_output_too_large-90f77c03d4a75501)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 2 filtered out; finished in 0.00s
+
+--- AC-004 Integration (T-006): zero output_too_large on 70 KiB fixture ---
+
+$ cargo test -p verify-state-timestamp-refresh "t006" -- --nocapture
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.05s
+     Running unittests src/lib.rs (target/debug/deps/verify_state_timestamp_refresh-2359b5c15e4c0389)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 50 filtered out; finished in 0.00s
+
+     Running unittests src/main.rs (target/debug/deps/verify_state_timestamp_refresh-3e1fcf1975e91ade)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/integration_t006_no_output_too_large.rs (target/debug/deps/integration_t006_no_output_too_large-90f77c03d4a75501)
+
+running 2 tests
+test t006_companion_advanced_timestamp_70kib_continues ... ok
+test t006_zero_output_too_large_on_70kib_state_md ... ok
+
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s

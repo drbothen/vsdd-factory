@@ -1085,4 +1085,116 @@ waves:
             );
         }
     }
+
+    // -----------------------------------------------------------------------
+    // S-19.03 Red Gate tests — T-006 (AC-004): error dispatch
+    //
+    // These tests call warn_pending_wave_gate_logic_with_error_dispatch, which
+    // is todo!() at Red Gate. All tests in this section PANIC at Red Gate.
+    // -----------------------------------------------------------------------
+
+    /// test_S19_03_T006_NOT_FOUND_returns_continue_with_zero_warn_output
+    ///
+    /// T-006 (AC-004): when `host::read_file` returns `HostError::NotFound`
+    /// (wave-state.yaml absent in a fresh install), the plugin must:
+    ///   1. Return `HookResult::Continue` (no block)
+    ///   2. Emit ZERO WARN-level output (no stderr write)
+    ///   3. Not call `emit()` (no events)
+    ///
+    /// This is the "file absent = no pending gate = silently continue" path.
+    ///
+    /// Red Gate: PANICS — `warn_pending_wave_gate_logic_with_error_dispatch` is `todo!()`.
+    ///
+    /// Traces to: BC-2.07.001 part c; S-19.03 AC-004.
+    #[test]
+    fn test_S19_03_T006_NOT_FOUND_returns_continue_with_zero_warn_output() {
+        use std::sync::{Arc, Mutex};
+        use vsdd_hook_sdk::host::HostError;
+        use warn_pending_wave_gate::warn_pending_wave_gate_logic_with_error_dispatch;
+
+        let stderr_writes: Arc<Mutex<Vec<String>>> = Arc::new(Mutex::new(Vec::new()));
+        let stderr_clone = stderr_writes.clone();
+        let emit_called: Arc<Mutex<bool>> = Arc::new(Mutex::new(false));
+        let emit_clone = emit_called.clone();
+
+        let payload = make_stop_payload();
+        let result = warn_pending_wave_gate_logic_with_error_dispatch(
+            payload,
+            // Simulate NOT_FOUND: wave-state.yaml absent (fresh install, no wave handed off).
+            || Err(HostError::NotFound),
+            // emit must NOT be called for a file-not-found case.
+            |_event_type, _fields| {
+                *emit_clone.lock().unwrap() = true;
+            },
+            // write_stderr must NOT be called (no WARN for absent file).
+            |msg| {
+                stderr_clone.lock().unwrap().push(msg.to_string());
+            },
+        );
+
+        assert_eq!(
+            result,
+            vsdd_hook_sdk::HookResult::Continue,
+            "T-006 AC-004: NOT_FOUND (wave-state.yaml absent) must return HookResult::Continue. \
+             Absent file = no pending gate = continue silently."
+        );
+        assert_eq!(
+            stderr_writes.lock().unwrap().len(),
+            0,
+            "T-006 AC-004: NOT_FOUND must emit ZERO stderr/WARN entries; \
+             file absent is not an error condition for this plugin."
+        );
+        assert!(
+            !*emit_called.lock().unwrap(),
+            "T-006 AC-004: NOT_FOUND must not call emit() — no event for absent file."
+        );
+    }
+
+    /// test_S19_03_T006b_capability_denied_emits_warn_not_silent
+    ///
+    /// T-006b (AC-004 complement, AC-006): when `host::read_file` returns
+    /// `HostError::CapabilityDenied` (genuine allowlist violation — misconfiguration),
+    /// the plugin must NOT be silent. It must emit a WARN-level message so operators
+    /// can detect the capability misconfiguration.
+    ///
+    /// The plugin still returns `HookResult::Continue` (advisory; never blocks Stop).
+    ///
+    /// Red Gate: PANICS — `warn_pending_wave_gate_logic_with_error_dispatch` is `todo!()`.
+    ///
+    /// Traces to: BC-2.07.001 part c; S-19.03 AC-004/AC-006.
+    #[test]
+    fn test_S19_03_T006b_capability_denied_emits_warn_not_silent() {
+        use std::sync::{Arc, Mutex};
+        use vsdd_hook_sdk::host::HostError;
+        use warn_pending_wave_gate::warn_pending_wave_gate_logic_with_error_dispatch;
+
+        let stderr_writes: Arc<Mutex<Vec<String>>> = Arc::new(Mutex::new(Vec::new()));
+        let stderr_clone = stderr_writes.clone();
+
+        let payload = make_stop_payload();
+        let result = warn_pending_wave_gate_logic_with_error_dispatch(
+            payload,
+            // Simulate CapabilityDenied: genuine allowlist violation (misconfiguration).
+            || Err(HostError::CapabilityDenied),
+            // emit: not asserted on — capability errors may or may not emit an event.
+            |_event_type, _fields| {},
+            |msg| {
+                stderr_clone.lock().unwrap().push(msg.to_string());
+            },
+        );
+
+        // Always continues (advisory hook — never blocks Stop).
+        assert_eq!(
+            result,
+            vsdd_hook_sdk::HookResult::Continue,
+            "T-006b: CapabilityDenied must still return HookResult::Continue (advisory)"
+        );
+        // WARN must surface so operators know the plugin cannot read wave-state.yaml.
+        let warn_count = stderr_writes.lock().unwrap().len();
+        assert!(
+            warn_count >= 1,
+            "T-006b AC-004: CapabilityDenied must emit at least one WARN/stderr entry; \
+             capability misconfiguration must be surfaced to operators, not swallowed."
+        );
+    }
 }

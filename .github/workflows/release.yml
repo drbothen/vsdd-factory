@@ -126,7 +126,7 @@ jobs:
             cargo build --release --target ${{ matrix.target }} -p factory-dispatcher
           fi
 
-      - name: Build wasm plugins + example (release)
+      - name: Build wasm plugins (release)
         shell: bash
         run: |
           # legacy-bash-adapter is the production WASI command every
@@ -146,10 +146,8 @@ jobs:
             --exclude factory-dispatcher \
             --exclude sink-core --exclude sink-file --exclude sink-otel-grpc \
             --exclude sink-http --exclude sink-datadog --exclude sink-honeycomb \
-            --exclude vsdd-hook-sdk-macros
-          # Build the hello-hook example artifact.
-          cargo build --release --target wasm32-wasip1 -p vsdd-hook-sdk --example hello-hook
-
+            --exclude vsdd-hook-sdk-macros \
+            --exclude read-prefix-fixture  # fixture crate for S-19.06 AC-007 compile/link gate (bats T-009f); test-only, never a release artifact (POLICY 20)
       - name: Stage artifact directory
         shell: bash
         run: |
@@ -163,24 +161,35 @@ jobs:
           # every leg ships them redundantly; commit-binaries uses linux-x64 as
           # canonical source. Skip underscore-named lib-target stubs (75-103 byte
           # wasm32-wasip1 lib outputs produced alongside each plugin's hyphen-named
-          # binary target); pass through the two legitimate underscore binaries:
-          #   vsdd_context_resolvers.wasm — cdylib of the vsdd-context-resolvers crate
-          #   wasm_resolver_export.wasm   — SDK example verifying the #[resolver] export
+          # binary target). The stale underscore resolver artifacts are also excluded:
+          #   vsdd_context_resolvers.wasm — stale cdylib artifact; live resolver is
+          #                                 vsdd-context-resolvers.wasm (hyphen)
+          #   wasm_resolver_export.wasm   — orphaned SDK example; not in any registry
+          # Both are absent from hooks-registry.toml AND resolvers-registry.toml
+          # (dual-registry orphan check, S-19.04 AC-006; POLICY 20).
           if compgen -G "target/wasm32-wasip1/release/*.wasm" > /dev/null; then
             for wasm in target/wasm32-wasip1/release/*.wasm; do
               name=$(basename "$wasm")
               case "$name" in
+                # Test gate: crates/factory-dispatcher/tests/bundle_orphan_check.rs::stage_release_bundle
                 *_*.wasm)
                   case "$name" in
-                    vsdd_context_resolvers.wasm|wasm_resolver_export.wasm) ;;
+                    vsdd_context_resolvers.wasm|wasm_resolver_export.wasm) echo "skip stale resolver artifact: $name"; continue ;;
                     *) echo "skip lib-target stub: $name"; continue ;;
                   esac ;;
+                read-prefix-fixture.wasm) echo "skip stale-cache fixture artifact: $name (POLICY 20)"; continue ;;
               esac
               cp "$wasm" artifact/
             done
           fi
-          # hello-hook example lives under examples/
-          cp target/wasm32-wasip1/release/examples/hello-hook.wasm artifact/ 2>/dev/null || true
+          # Keep-assertion (i): vsdd-context-resolvers.wasm (hyphen) is git-tracked
+          # in hook-plugins/ as the live WaveContextResolver; never produced by cargo.
+          # Its absence would indicate an unintended filesystem change (S-19.04 AC-001).
+          test -f plugins/vsdd-factory/hook-plugins/vsdd-context-resolvers.wasm || \
+            { echo "::error::keep-assertion (i) failed: plugins/vsdd-factory/hook-plugins/vsdd-context-resolvers.wasm missing"; exit 1; }
+          # Keep-assertion (ii): registry reference must remain intact.
+          grep -q "hook-plugins/vsdd-context-resolvers.wasm" plugins/vsdd-factory/resolvers-registry.toml || \
+            { echo "::error::keep-assertion (ii) failed: vsdd-context-resolvers.wasm reference missing from resolvers-registry.toml"; exit 1; }
 
       - name: Verify registry-declared WASM plugins are staged
         shell: bash
@@ -293,15 +302,18 @@ jobs:
             name=$(basename "$wasm")
             # Skip underscore-named lib-target stubs (75-103 byte wasm32-wasip1 lib
             # outputs produced alongside each plugin's hyphen-named binary target).
-            # Two legitimate underscore binaries are passed through:
-            #   vsdd_context_resolvers.wasm — cdylib of vsdd-context-resolvers crate
-            #   wasm_resolver_export.wasm   — SDK example for the #[resolver] macro
+            # The stale underscore resolver artifacts are also excluded (POLICY 20):
+            #   vsdd_context_resolvers.wasm — stale cdylib; live resolver is
+            #                                 vsdd-context-resolvers.wasm (hyphen)
+            #   wasm_resolver_export.wasm   — orphaned SDK example; not in any registry
             case "$name" in
+              # Test gate: crates/factory-dispatcher/tests/bundle_orphan_check.rs::stage_release_bundle
               *_*.wasm)
                 case "$name" in
-                  vsdd_context_resolvers.wasm|wasm_resolver_export.wasm) ;;
+                  vsdd_context_resolvers.wasm|wasm_resolver_export.wasm) echo "skip stale resolver artifact: $name"; continue ;;
                   *) echo "skip lib-target stub: $name"; continue ;;
                 esac ;;
+              read-prefix-fixture.wasm) echo "skip stale-cache fixture artifact: $name (POLICY 20)"; continue ;;
             esac
             cp "$wasm" plugins/vsdd-factory/hook-plugins/
             echo "staged $name"

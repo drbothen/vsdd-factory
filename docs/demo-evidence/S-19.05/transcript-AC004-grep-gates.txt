@@ -1,0 +1,56 @@
+S-19.05 Demo Evidence — AC-004: VSDD_SINK_FILE cfg-gate removal + any() gate preservation
+Captured: 2026-07-13
+Branch: feature/S-19.05  HEAD: 405a871f
+Files: crates/factory-dispatcher/src/main.rs, crates/factory-dispatcher/src/vsdd_sink.rs
+
+=== Gate 1: ENV_SINK_FILE const NOT cfg-gated in main.rs ===
+
+$ grep -q 'const ENV_SINK_FILE:' crates/factory-dispatcher/src/main.rs && \
+  awk '/^#\[cfg\(/{c=1; next} /const ENV_SINK_FILE:/{exit c} {c=0}' crates/factory-dispatcher/src/main.rs
+exit code: 0 (symbol present AND not immediately preceded by #[cfg( line)
+
+Interpretation: ENV_SINK_FILE constant is unconditional (runtime env-var check, not compile-gated).
+
+=== Gate 2: flush_sink_file NOT cfg-gated in vsdd_sink.rs (F-P3-001: relocated from main.rs) ===
+
+$ grep -q 'fn flush_sink_file' crates/factory-dispatcher/src/vsdd_sink.rs && \
+  awk '/^#\[cfg\(/{c=1; next} /fn flush_sink_file/{exit c} {c=0}' crates/factory-dispatcher/src/vsdd_sink.rs
+exit code: 0 (symbol present in vsdd_sink.rs AND not cfg-gated)
+
+Interpretation: flush_sink_file fn definition is in crates/factory-dispatcher/src/vsdd_sink.rs,
+not main.rs (POLICY 4 mis-anchor fixed per F-P3-001), and is unconditional (no cfg gate).
+
+=== Gate 3: zero #[cfg(debug_assertions)] remaining in main.rs ===
+
+$ grep -n 'cfg(debug_assertions)' crates/factory-dispatcher/src/main.rs
+(no cfg(debug_assertions) found in main.rs)
+
+Interpretation: all debug_assertions gates removed from main.rs. The sink code (ENV_SINK_FILE,
+flush_sink_file call site, sink Mutex) is now unconditional — runtime env-var check only.
+
+=== Gate 4: VSDD_ASYNC_DRAIN_WINDOW_MS gate is any() form (AC-007 overlap) ===
+
+$ grep -n 'any(debug_assertions, feature = "test-support")' crates/factory-dispatcher/src/main.rs
+77:#[cfg(any(debug_assertions, feature = "test-support"))]
+476:        #[cfg(any(debug_assertions, feature = "test-support"))]
+482:        #[cfg(not(any(debug_assertions, feature = "test-support")))]
+
+Interpretation: VSDD_ASYNC_DRAIN_WINDOW_MS gate is expanded to any(debug_assertions,
+feature = "test-support") per F-P7-001 architect Option-A. NOT removed. NOT bare
+cfg(debug_assertions). DI-019 100ms invariant preserved in production builds.
+
+=== Gate 5: use std::sync::Mutex NOT cfg-gated (O-P2-003; T-006) ===
+
+$ cargo test -p factory-dispatcher --test bc_3_08_001_s19_05 -- t006
+
+running 1 test
+test test_BC_3_08_001_s19_05_t006_mutex_import_not_cfg_gated ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 9 filtered out; finished in 0.00s
+
+T-006 design: grep -qE '^use std::sync::.*Mutex' crates/factory-dispatcher/src/main.rs &&
+  awk '/^#\[cfg\(/{c=1; next} /^use std::sync::.*Mutex/{exit c} {c=0}' crates/factory-dispatcher/src/main.rs
+exits 0 (import present and unconditional). Failure would mean O-P2-003 violation — Mutex
+inside a cfg block would cause compilation error in release mode where sink code is unconditional.
+
+BC Trace: AC-004 gate — runtime opt-in VSDD_SINK_FILE in both debug and release builds.

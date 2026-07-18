@@ -48,6 +48,16 @@ artifacts:
     description: Per-subsystem architecture document
     enforcement_level: block
 
+  - artifact_type: verification-architecture
+    canonical_path_pattern: ".factory/specs/architecture/verification-architecture.md"
+    description: Verification architecture derived view (POLICY 9 propagation target from VP-INDEX)
+    enforcement_level: block
+
+  - artifact_type: verification-coverage-matrix
+    canonical_path_pattern: ".factory/specs/architecture/verification-coverage-matrix.md"
+    description: Verification coverage matrix derived view (POLICY 9 propagation target from VP-INDEX)
+    enforcement_level: block
+
   # ── Verification Properties ──────────────────────────────────────────────
   - artifact_type: verification-property
     canonical_path_pattern: ".factory/specs/verification-properties/VP-{vp-id}.md"

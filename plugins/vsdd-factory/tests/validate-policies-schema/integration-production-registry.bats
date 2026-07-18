@@ -24,7 +24,7 @@
 # Also validates AC-25 structural checks:
 #   - validate-policies-schema entry present in production registry
 #   - priority = 157 (NOT 155 or 156)
-#   - tool = "Edit|Write" (canonical Q5 form, NOT "Write|Edit")
+#   - tool = "^(Edit|Write|MultiEdit)$" (anchored canonical form per S-19.04, NOT "Write|Edit")
 #   - no "**" glob in path_allow
 #
 # RED GATE PHASE: test skips if validate-policies-schema.wasm is not yet compiled.
@@ -61,7 +61,7 @@ _require_artifacts() {
 # Also validates AC-25 structural assertions:
 #   - entry exists
 #   - priority = 157
-#   - tool = "Edit|Write" (canonical Q5 form)
+#   - tool = "^(Edit|Write|MultiEdit)$" (anchored canonical form per S-19.04)
 #   - no "**" glob in path_allow
 _write_production_registry() {
   # AC-25 check 1: hook entry must exist
@@ -80,12 +80,12 @@ _write_production_registry() {
     return 1
   fi
 
-  # AC-25 check 3: tool = "Edit|Write" (canonical Q5 form — NOT "Write|Edit")
+  # AC-25 check 3: tool = "^(Edit|Write|MultiEdit)$" (anchored canonical form per S-19.04 — NOT "Write|Edit")
   local tool_line
   tool_line=$(awk '/^name = "validate-policies-schema"$/{found=1} found && /^tool =/{print; exit}' "$PRODUCTION_REGISTRY")
-  if ! echo "$tool_line" | grep -q 'tool = "Edit|Write"'; then
+  if ! echo "$tool_line" | grep -qF 'tool = "^(Edit|Write|MultiEdit)$"'; then
     echo "FAIL: production registry uses wrong tool form: $tool_line" >&2
-    echo "FAIL: must be tool = \"Edit|Write\" (canonical Q5 form)" >&2
+    echo "FAIL: must be tool = \"^(Edit|Write|MultiEdit)$\" (anchored canonical form per S-19.04)" >&2
     return 1
   fi
 
@@ -123,7 +123,7 @@ schema_version = 2
 [[hooks]]
 name = "validate-policies-schema"
 event = "PostToolUse"
-tool = "Edit|Write"
+tool = "^(Edit|Write|MultiEdit)$"
 plugin = "hook-plugins/validate-policies-schema.wasm"
 priority = 157
 timeout_ms = 5000

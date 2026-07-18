@@ -77,6 +77,14 @@ fn encode_fields(fields: &[(&str, &str)]) -> Vec<u8> {
     buf
 }
 
+/// Error code returned by `read_file` when the path is in the allow-list but
+/// the file does not exist. Distinct from `CapabilityDenied` so plugins can
+/// distinguish "absent file" from "genuine allowlist violation".
+///
+/// S-19.03 / ADR-025 Decision 13: -5 is the next free code in the compact
+/// negative sequence (occupied: 0/-1/-2/-3/-4/-99).
+pub const NOT_FOUND: i32 = -5;
+
 /// Errors returned by bounded host calls.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum HostError {
@@ -88,6 +96,13 @@ pub enum HostError {
     OutputTooLarge,
     /// The argument failed host-side validation (path traversal, etc.).
     InvalidArgument,
+    /// The path is in the allow-list but the file does not exist.
+    /// S-19.03 (BC-2.07.001): plugins MUST treat this as "file absent" and
+    /// handle it silently (no WARN) when absence is expected (e.g. wave-state.yaml
+    /// in a fresh install). Do NOT add `#[non_exhaustive]` — exhaustive pattern
+    /// matching on HostError is required for correct abandoned-path handling
+    /// in plugin code (O-P2-002).
+    NotFound,
     /// The host operation failed for a reason not classified above.
     /// `code` is the negative error number returned by the host.
     Other(i32),
@@ -100,6 +115,7 @@ impl HostError {
             -2 => HostError::Timeout,
             -3 => HostError::OutputTooLarge,
             -4 => HostError::InvalidArgument,
+            -5 => HostError::NotFound,
             other => HostError::Other(other),
         }
     }
@@ -201,6 +217,47 @@ pub fn read_file(path: &str, max_bytes: u32, timeout_ms: u32) -> Result<Vec<u8>,
     }
     // The host writes into a buffer it owns; we copy it before the
     // call returns so the SDK doesn't expose pointer lifetimes.
+    Ok(read_owned_bytes(out_ptr, out_len))
+}
+
+/// Read at most `max_bytes` bytes from the start of a file (head-c semantics).
+///
+/// This wrapper is the hook-author interface (BC-1.17.001 v1.6 §(a) layering
+/// parenthetical). Returns `Result<Vec<u8>, HostError>` — NOT `-> i32`. The
+/// raw wire-ABI (`-> i32` with 6-parameter ptr/len shape) lives in `ffi::read_prefix`.
+///
+/// Guaranteed never to return `HostError::OutputTooLarge` — by construction,
+/// `max_bytes` IS the cap; data beyond the cap is simply not read.
+/// If the file's total size is less than `max_bytes`, the full file content is
+/// returned with no padding (BC-1.17.001 PC-2).
+///
+/// # Capability requirement
+///
+/// The plugin's registry entry MUST include a `[hooks.capabilities.read_prefix]`
+/// block. Having only `[hooks.capabilities.read_file]` is NOT sufficient —
+/// the two capabilities are independent (BC-1.17.001 Invariant 3).
+///
+/// # BC-1.17.001 v1.6 contract
+///
+/// - `max_bytes = 0` → empty payload, `Ok(Vec::new())` (BC-1.17.001 EC-001).
+/// - Absent allowlisted file → `Err(HostError::NotFound)` (BC-1.17.001 PC-5).
+/// - No capability block → `Err(HostError::CapabilityDenied)` (BC-1.17.001 PC-4).
+/// - `OutputTooLarge` is NEVER returned (BC-1.17.001 PC-3).
+pub fn read_prefix(path: &str, max_bytes: u32, timeout_ms: u32) -> Result<Vec<u8>, HostError> {
+    let path_bytes = path.as_bytes();
+    let mut out_ptr: u32 = 0;
+    let mut out_len: u32 = 0;
+    let code = ffi::read_prefix(
+        path_bytes.as_ptr(),
+        path_bytes.len() as u32,
+        max_bytes,
+        timeout_ms,
+        &mut out_ptr,
+        &mut out_len,
+    );
+    if code < 0 {
+        return Err(HostError::from_code(code));
+    }
     Ok(read_owned_bytes(out_ptr, out_len))
 }
 
@@ -415,6 +472,9 @@ mod tests {
         assert_eq!(HostError::from_code(-2), HostError::Timeout);
         assert_eq!(HostError::from_code(-3), HostError::OutputTooLarge);
         assert_eq!(HostError::from_code(-4), HostError::InvalidArgument);
+        // F-S1903-P1-004: -5 must map to NotFound (S-19.03 / ADR-025 Decision 13).
+        // Absent-file path distinct from genuine allowlist violation (-1).
+        assert_eq!(HostError::from_code(-5), HostError::NotFound);
         assert_eq!(HostError::from_code(-99), HostError::Other(-99));
     }
 

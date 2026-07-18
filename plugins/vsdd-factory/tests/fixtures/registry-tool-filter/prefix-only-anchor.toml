@@ -1,0 +1,19 @@
+# prefix-only-anchor.toml
+# Fixture for S-19.04 AC-004/AC-005 T-011 / RG-006: prefix-only anchor negative control.
+#
+# Contains tool = "^Bash" — a value with a leading ^ but NO trailing $.
+# The tightened _lint_tool_filter must FLAG this as a violation because:
+#   - Leading-^-only values still match via regex-SEARCH (e.g. "^Bash" matches
+#     "BashAsync" as a substring — the preamble's own counter-example).
+#   - Only fully-anchored patterns (^...$) prevent all substring matches.
+#
+# Story: S-19.04
+schema_version = 2
+
+[[hooks]]
+name = "prefix-only-hook"
+event = "PostToolUse"
+tool = "^Bash"
+plugin = "hook-plugins/prefix-only-hook.wasm"
+timeout_ms = 5000
+on_error = "continue"

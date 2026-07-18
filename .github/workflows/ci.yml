@@ -177,7 +177,8 @@ jobs:
             --exclude factory-dispatcher \
             --exclude sink-core --exclude sink-file --exclude sink-otel-grpc \
             --exclude sink-http --exclude sink-datadog --exclude sink-honeycomb \
-            --exclude vsdd-hook-sdk-macros
+            --exclude vsdd-hook-sdk-macros \
+            --exclude read-prefix-fixture  # fixture crate for S-19.06 AC-007 compile/link gate (bats T-009f); test-only, never a release artifact (POLICY 20)
 
       - name: cargo build (hello-hook example, wasm32-wasip1)
         # Compiling the example end-to-end exercises the #[hook] macro
@@ -196,7 +197,7 @@ jobs:
           # this assertion fail even when all real plugins built successfully.
           # The [[bin]] grep is robust: it returns the right floor both before and after
           # the implementer relocates any lib-only crate out of hook-plugins/.
-          expected=$(grep -rl '^\[\[bin\]\]' crates/hook-plugins/*/Cargo.toml | wc -l | tr -d ' ')
+          expected=$(grep -rl '^\[\[bin\]\]' crates/hook-plugins/*/Cargo.toml | grep -v read-prefix-fixture | wc -l | tr -d ' ')
           count=$(ls target/wasm32-wasip1/debug/*.wasm 2>/dev/null | wc -l | tr -d ' ')
           if [ "$count" -lt "$expected" ]; then
             echo "::error::Only $count wasm files built; expected >= $expected (wasm-producing crates in crates/hook-plugins/ with [[bin]])."
@@ -230,11 +231,24 @@ jobs:
         shell: bash
         run: |
           mkdir -p plugins/vsdd-factory/hook-plugins
-          cp target/wasm32-wasip1/debug/*.wasm plugins/vsdd-factory/hook-plugins/ 2>/dev/null || true
+          # Skip underscore-named lib-target stubs (wasm32-wasip1 produces both a
+          # hyphen-named binary and an underscore-named lib for each crate). The outer
+          # *_*.wasm glob matches any WASM basename containing '_'; those files are
+          # not in any registry and must not contaminate hook-plugins/.
+          # Test gate: crates/factory-dispatcher/tests/bundle_orphan_check.rs::stage_release_bundle
+          for wasm in target/wasm32-wasip1/debug/*.wasm; do
+            [ -f "$wasm" ] || continue
+            name=$(basename "$wasm")
+            case "$name" in
+              *_*.wasm) echo "skip lib-target stub: $name"; continue ;;
+              read-prefix-fixture.wasm) echo "skip stale-cache fixture artifact: $name (POLICY 20)"; continue ;;
+            esac
+            cp "$wasm" plugins/vsdd-factory/hook-plugins/
+          done
           # P5-H1 (S-17.04): derive floor from wasm-producing crates only (those with [[bin]])
           # so that a lib-only crate under hook-plugins/ does not inflate the floor and
           # cause false failures when all real plugins built successfully.
-          expected=$(grep -rl '^\[\[bin\]\]' crates/hook-plugins/*/Cargo.toml | wc -l | tr -d ' ')
+          expected=$(grep -rl '^\[\[bin\]\]' crates/hook-plugins/*/Cargo.toml | grep -v read-prefix-fixture | wc -l | tr -d ' ')
           count=$(ls plugins/vsdd-factory/hook-plugins/*.wasm 2>/dev/null | wc -l | tr -d ' ')
           if [ "$count" -lt "$expected" ]; then
             echo "::error::Only $count WASM plugins staged; expected >= $expected (wasm-producing crates in crates/hook-plugins/ with [[bin]]). Build output:"
@@ -445,7 +459,7 @@ jobs:
         # mounted) exercises these tests without the env var.
         env:
           VSDD_SKIP_PRODUCTION_STATE_MD_TEST: "1"
-        run: cargo test --release --target ${{ matrix.target }} --workspace
+        run: cargo test --release --features factory-dispatcher/test-support --target ${{ matrix.target }} --workspace
 
       - name: Build all native WASM plugins (release)
         # Build all hook-plugin crates on every matrix entry —
@@ -463,7 +477,8 @@ jobs:
             --exclude factory-dispatcher \
             --exclude sink-core --exclude sink-file --exclude sink-otel-grpc \
             --exclude sink-http --exclude sink-datadog --exclude sink-honeycomb \
-            --exclude vsdd-hook-sdk-macros
+            --exclude vsdd-hook-sdk-macros \
+            --exclude read-prefix-fixture  # fixture crate for S-19.06 AC-007 compile/link gate (bats T-009f); test-only, never a release artifact (POLICY 20)
 
       - name: Build wasm hello-hook example
         run: cargo build -p vsdd-hook-sdk --example hello-hook --target wasm32-wasip1 --release
@@ -474,7 +489,7 @@ jobs:
           # P5-H1 (S-17.04): derive floor from wasm-producing crates only (those with [[bin]])
           # so that a lib-only crate under hook-plugins/ does not inflate the floor and
           # cause false failures when all real plugins built successfully.
-          expected=$(grep -rl '^\[\[bin\]\]' crates/hook-plugins/*/Cargo.toml | wc -l | tr -d ' ')
+          expected=$(grep -rl '^\[\[bin\]\]' crates/hook-plugins/*/Cargo.toml | grep -v read-prefix-fixture | wc -l | tr -d ' ')
           count=$(ls target/wasm32-wasip1/release/*.wasm 2>/dev/null | wc -l | tr -d ' ')
           if [ "$count" -lt "$expected" ]; then
             echo "::error::Only $count wasm files built (release); expected >= $expected (wasm-producing crates in crates/hook-plugins/ with [[bin]])."
@@ -493,15 +508,27 @@ jobs:
           set -e
           mkdir -p artifact-staging
           cp "target/${{ matrix.target }}/release/factory-dispatcher${{ matrix.exe_suffix }}" artifact-staging/
-          # Glob may not match on a fresh clean build; gate with `ls`.
-          if ls target/wasm32-wasip1/release/*.wasm >/dev/null 2>&1; then
-            cp target/wasm32-wasip1/release/*.wasm artifact-staging/
-          fi
+          # Skip underscore-named lib-target stubs (mirrors *_*.wasm outer case arm
+          # in release.yml "Stage artifact directory" and "Stage wasm plugins" steps).
+          # [ -f ] guard handles glob-matches-nothing (no wasm files built on this run).
+          # Test gate: crates/factory-dispatcher/tests/bundle_orphan_check.rs::stage_release_bundle
+          for wasm in target/wasm32-wasip1/release/*.wasm; do
+            [ -f "$wasm" ] || continue
+            name=$(basename "$wasm")
+            case "$name" in
+              *_*.wasm) echo "skip lib-target stub: $name"; continue ;;
+              read-prefix-fixture.wasm) echo "skip stale-cache fixture artifact: $name (POLICY 20)"; continue ;;
+            esac
+            cp "$wasm" artifact-staging/
+          done
           ls -la artifact-staging/
 
       - name: Upload artifacts
         # 14-day retention is the GH Actions default; explicit for clarity.
-        # S-2.4's release workflow downloads these by name when a tag ships.
+        # These artifacts are CI inspection output only (available in the Actions UI
+        # for debugging cross-platform build issues). release.yml's build-binaries job
+        # produces its own staged artifacts independently via separate build runs;
+        # nothing downstream downloads this upload for bundling.
         uses: actions/upload-artifact@v4
         with:
           name: factory-dispatcher-${{ matrix.platform }}
@@ -595,13 +622,34 @@ jobs:
             --exclude factory-dispatcher \
             --exclude sink-core --exclude sink-file --exclude sink-otel-grpc \
             --exclude sink-http --exclude sink-datadog --exclude sink-honeycomb \
-            --exclude vsdd-hook-sdk-macros
+            --exclude vsdd-hook-sdk-macros \
+            --exclude read-prefix-fixture  # fixture crate for S-19.06 AC-007 compile/link gate (bats T-009f); test-only, never a release artifact (POLICY 20)
           mkdir -p plugins/vsdd-factory/hook-plugins
-          cp target/wasm32-wasip1/release/*.wasm plugins/vsdd-factory/hook-plugins/ 2>/dev/null || true
+          # Skip underscore-named lib-target stubs (mirrors *_*.wasm outer case arm in
+          # release.yml "Stage artifact directory" and "Stage wasm plugins" steps).
+          # Test gate: crates/factory-dispatcher/tests/bundle_orphan_check.rs::stage_release_bundle
+          for wasm in target/wasm32-wasip1/release/*.wasm; do
+            [ -f "$wasm" ] || continue
+            name=$(basename "$wasm")
+            case "$name" in
+              *_*.wasm) echo "skip lib-target stub: $name"; continue ;;
+              read-prefix-fixture.wasm) echo "skip stale-cache fixture artifact: $name (POLICY 20)"; continue ;;
+            esac
+            cp "$wasm" plugins/vsdd-factory/hook-plugins/
+          done
 
       - name: Run full bats suite (run-all.sh)
         # This is the canonical gate that release.yml runs. Running it on every PR
         # catches failures before they reach the release tag.
+        #
+        # pr-manager-hardening.bats is included via the tests/*.bats glob in run-all.sh
+        # (F-S1901-P9-001): platform-independent security tests (T-001..T-007, T-009..T-016,
+        # T-018..T-031) run and gate on this Linux job; platform-specific tests
+        # (T-008 darwin-leg wrong-interpreter, T-017 bash-3.2 fragment negative-control)
+        # self-skip on non-Darwin via [[ "$(uname)" != "Darwin" ]] guards. T-009 (Linux
+        # runner exits 0) executes its real path exclusively on this Linux job.
+        # WASM: pr-manager-completion-guard.wasm is staged above (workspace build);
+        # setup_file() on-demand build is a no-op when the artifact is already present.
         run: cd plugins/vsdd-factory/tests && ./run-all.sh
 
   bats-wave-handoff-macos:
@@ -670,3 +718,74 @@ jobs:
           bash --version | head -1
           bats plugins/vsdd-factory/tests/wave-handoff.bats
           bats plugins/vsdd-factory/tests/wave-gate-hooks.bats
+
+  bats-darwin-leg-macos:
+    # Darwin-leg interpreter discipline gate (S-19.01 AC-004; ADR-030 §Decision 3).
+    # Validates release.yml darwin-leg scripts under /bin/bash 3.2.x (Apple's
+    # patched system bash), NOT Homebrew bash 5.x, to detect bash 3.2 regressions
+    # before they reach production macOS runners.
+    #
+    # INTERPRETER DISCIPLINE: all generated temp scripts use #!/bin/bash.
+    # /bin/bash 3.2 preflight is the drift sentinel: if Apple ships a future
+    # macOS release with a different system bash, the preflight catches it.
+    #
+    # L-BB-simulation-shell-dialect-gap (D-750): this job closes the gap where
+    # scripts failed on macOS CI (bash 3.2.57) but passed locally (Homebrew 5.x).
+    #
+    # BLOCKING: required status check equivalent — same on: trigger as other jobs.
+    #
+    # S-19.01 (implemented): pr-manager-hardening.bats darwin-leg test suite.
+    # The AC-004 literal CI-config gate (O-P15-04) requires this exact key:
+    #   grep -qE '^  bats-darwin-leg-macos:$' .github/workflows/ci.yml
+    #
+    # SCOPE: runs pr-manager-hardening.bats on macOS under /bin/bash 3.2.x.
+    #   T-001 skips if factory-dispatcher not pre-built (set-up step copies from
+    #   the bundled darwin binary to target/release/ to enable T-001).
+    #   T-009 skips on Darwin (EC-003: Linux-runner test).
+    name: bats-darwin-leg (macos, /bin/bash 3.2)
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Install bats
+        run: brew install bats-core jq
+
+      - name: Verify /bin/bash is 3.2.x (drift sentinel)
+        run: |
+          /bin/bash --version | head -1
+          /bin/bash --version | head -1 | grep -q "version 3\.2" || {
+            echo "DARWIN_LEG_WRONG_INTERPRETER: expected /bin/bash 3.2.x, got $(/bin/bash --version | head -1)" >&2
+            exit 1
+          }
+          echo "Interpreter OK: $(/bin/bash --version | head -1)"
+
+      - name: Set up dispatcher binary for T-001
+        # T-001 looks for target/release/factory-dispatcher. Copy the pre-built
+        # darwin binary from the repository bundle to avoid a full cargo build
+        # (~15 min) on each macOS CI run. Architecture detection selects
+        # darwin-arm64 (M1/M2/M3 runner) or darwin-x64 (Intel runner).
+        run: |
+          mkdir -p target/release
+          ARCH="$(uname -m)"
+          if [[ "${ARCH}" == "arm64" ]]; then
+            DARWIN_BIN="plugins/vsdd-factory/hooks/dispatcher/bin/darwin-arm64/factory-dispatcher"
+          else
+            DARWIN_BIN="plugins/vsdd-factory/hooks/dispatcher/bin/darwin-x64/factory-dispatcher"
+          fi
+          cp "${DARWIN_BIN}" target/release/factory-dispatcher
+          chmod +x target/release/factory-dispatcher
+          echo "Dispatcher: $(target/release/factory-dispatcher --version 2>/dev/null || echo 'binary staged')"
+
+      - name: Install Rust wasm32-wasip1 target
+        # pr-manager-hardening.bats setup_file() builds pr-manager-completion-guard.wasm
+        # on first use when the WASM is absent (not tracked in the repo per F-S1901-P1-002).
+        # Rust is pre-installed on macos-latest; this step adds the cross-compile target.
+        run: rustup target add wasm32-wasip1
+
+      - name: Run pr-manager-hardening bats suite (darwin-leg)
+        # Runs pr-manager-hardening.bats on macOS under /bin/bash 3.2.x.
+        # T-009 legitimately skips on Darwin (EC-003).
+        # darwin-leg-preflight.sh is invoked by T-008/T-009 under /bin/bash.
+        # setup_file() builds pr-manager-completion-guard.wasm if absent (T-001 gate).
+        run: |
+          bats plugins/vsdd-factory/tests/pr-manager-hardening.bats

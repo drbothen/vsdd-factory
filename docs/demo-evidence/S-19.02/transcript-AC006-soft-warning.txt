@@ -1,0 +1,78 @@
+S-19.02 Demo Evidence — AC-006: state_md_approaching_cap soft-warning
+Captured: 2026-07-11
+Branch: feature/S-19.02  HEAD: 492f01c2
+Crate: crates/hook-plugins/verify-factory-lock
+
+=== T-009: five sub-tests A-E covering the full boundary matrix (AC-006) ===
+
+$ cargo test -p verify-factory-lock test_S1902_T009
+
+     Running unittests src/lib.rs (target/debug/deps/verify_factory_lock-...)
+
+running 1 test
+test tests::test_S1902_T009_state_md_approaching_cap_warn_logic ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 27 filtered out; finished in 0.00s
+
+=== Sub-test coverage ===
+
+Sub-test A: 210000 bytes (in (200000, 262144] band)
+  fixture = state_md_padded_no_lock(210_000)
+  guard_logic() invoked
+  Assertion: warn_log contains an entry with "state_md_approaching_cap"
+  Result: PASS
+
+Sub-test B: 150000 bytes (below soft_warn_threshold of 200000)
+  fixture = state_md_padded_no_lock(150_000)
+  guard_logic() invoked
+  Assertion: warn_log does NOT contain "state_md_approaching_cap"
+  Result: PASS
+
+Sub-test C: 200000 bytes exactly (strict > threshold: 200000 is NOT in warning band)
+  fixture = state_md_padded_no_lock(200_000)
+  guard_logic() invoked
+  Assertion: warn_log does NOT contain "state_md_approaching_cap"
+    (threshold is strictly > 200000; the 200000-byte file must NOT trigger the warning)
+  Result: PASS
+
+Sub-test D: 262144 bytes exactly (cap-exact; inclusive upper bound)
+  fixture = state_md_padded_no_lock(262_144)
+  guard_logic() invoked
+  Assertions:
+    warn_log contains "state_md_approaching_cap"  (in warning band)
+    result != StateReadError  (read succeeds at cap; file readable at cap-exact size)
+  Result: PASS
+
+Sub-test E: 262145 bytes (one byte over cap; outside readable range)
+  fixture = state_md_padded_with_foreign_lock(262_145)
+  mock returns Err(OutputTooLarge) when fixture_size > STATE_MD_MAX_BYTES
+  Assertions:
+    result matches StateReadError variant  (fail-open per EC-002)
+    warn_log does NOT contain "state_md_approaching_cap"
+      (warn range is (200000, 262144]; 262145 is over cap, warn path never reached)
+  Result: PASS
+
+=== Boundary summary (verified by T-009) ===
+
+  200000 -> no warn    (strict > threshold; exact boundary excluded)
+  200001 -> warn       (first byte above threshold)
+  210000 -> warn       (representative mid-range; Sub-test A)
+  262144 -> warn AND read succeeds  (cap-exact; inclusive upper bound; Sub-test D)
+  262145 -> StateReadError (OUTPUT_TOO_LARGE; fail-open) + no warn (Sub-test E)
+
+=== Implementation site ===
+
+crates/hook-plugins/verify-factory-lock/src/lib.rs (guard_logic function)
+  if bytes_read > 200_000 && bytes_read <= STATE_MD_MAX_BYTES as usize {
+      callbacks.log_warn(&format!(
+          "state_md_approaching_cap: bytes_read={} cap={}",
+          bytes_read, STATE_MD_MAX_BYTES
+      ));
+  }
+
+=== BC Trace ===
+
+BC-4.13.001 v1.15 Invariant 10: soft_warn_threshold=200000 strict >, upper bound
+  inclusive at cap 262144 (warn fires AND read succeeds at cap)
+VP-096 (proptest covers determinism property; T-010)
+AC-006 Gate: Unit tests A-E above per story spec (v1.18)
