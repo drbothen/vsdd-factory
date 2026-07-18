@@ -159,7 +159,7 @@ dtu_services: []
 |--------------|-----|-------|
 | main | 80e5cd7b | rc.23 bot binary bundle commit 2026-07-18 (run 29660640970; all 34 WASMs present; 5 platform binaries fresh; plugin.json → 1.0.0-rc.23); prior: 0f8b2a89 (PR #689 --merge fix/rc23-release-validate; 2 WASMs git add -f + bats pre-build); prior: 45050445 (PR #688 --merge release/v1.0.0-rc.23); prior: a04cb303 (rc.22 bot bundle) |
 | develop | 584b0518 | sync main→develop after v1.0.0-rc.23 bundle (run 29660640970 sync-develop job 2026-07-18); prior: 6db4c9fc (PR #670 S-19.07 squash-merge 2026-07-17T22:25:06Z); prior: 13ece92c (PR #659 S-19.09 squash-merge 2026-07-16) |
-| factory-artifacts | D-856-BURST `TBD` (SHA-patch follow-up) | D-856-BURST pending push; prior: D-855-BURST `f6db8d9d` (pushed 2026-07-18); prior: D-854-BURST `a2fd22bb` (pushed 2026-07-17) |
+| factory-artifacts | D-856-BURST `cce316f0` (pushed 2026-07-18) | D-856-BURST pushed 2026-07-18; prior: D-855-BURST `f6db8d9d` (pushed 2026-07-18); prior: D-854-BURST `a2fd22bb` (pushed 2026-07-17) |
 | feature/S-19.06 | **DELETED** (was 7156a4c3) | Merged via PR #657 9787c056 2026-07-15T14:53:16Z (D-843); branch deleted at merge |
 | feature/S-19.05 | **DELETED** (was 28f28465) | Merged via PR #640 7b35c8e4 2026-07-14 (D-841); branch deleted at merge |
 | feature/S-19.04 | **DELETED** (was 82aeb073) | Merged via PR #639 d4a23a02 2026-07-14 (D-841); branch deleted at merge |
@@ -333,7 +333,7 @@ dtu_services: []
 - **Cascade:** `v1.0-brownfield-backfill`; 9 stories S-19.01..S-19.09 (55 pts); epic `E-19` COMPLETE (v1.31; complete; completion_date 2026-07-17).
 - **Wave-gate record:** cycles/v1.0-brownfield-backfill/e-19-wave-gate-w3-epic.md (D-853 basis; D-854 human disposition; GATE STATUS PASSED; Gate3 NOT-CLEAN 0B/1H/1M/3L; all findings disposed; W3G-001 residual risk ACCEPTED; Human Disposition section added D-854).
 - **Per-story PR status (E-19):** S-19.01 MERGED PR #613 8d1721f7 2026-07-13; S-19.02 MERGED PR #610 f5ea12e9 2026-07-13; S-19.03 MERGED PR #611 091ce499 2026-07-13; S-19.04 MERGED PR #639 d4a23a02 2026-07-14; S-19.05 MERGED PR #640 7b35c8e4 2026-07-14; S-19.06 MERGED PR #657 9787c056 2026-07-15; S-19.08 MERGED PR #646 1304d280 2026-07-14; S-19.09 MERGED PR #659 13ece92c 2026-07-16; **S-19.07 MERGED PR #670 6db4c9fc 2026-07-17T22:25:06Z** (squash-merge; 21 commits feature/S-19.07 → develop; GitHub branch auto-deleted). E-19 COMPLETE 9/9. merged_count 107.
-- **Repo state:** develop HEAD `584b0518` (origin; sync main→develop after rc.23 bundle 2026-07-18); main HEAD `80e5cd7b` (bot bundle commit 2026-07-18); factory-artifacts HEAD TBD (D-856-BURST; SHA-patch pending). v1.0.0-rc.23 SHIPPED (tag at 0f8b2a89; bot commit 80e5cd7b on main). v1.0.0-rc.22 FULLY SHIPPED. **E-10 CASCADE SEALED D-531 — do NOT resume. F5 PAUSED D-386 Option C — do NOT resume.**
+- **Repo state:** develop HEAD `584b0518` (origin; sync main→develop after rc.23 bundle 2026-07-18); main HEAD `80e5cd7b` (bot bundle commit 2026-07-18); factory-artifacts HEAD `cce316f0` (D-856-BURST; pushed 2026-07-18). v1.0.0-rc.23 SHIPPED (tag at 0f8b2a89; bot commit 80e5cd7b on main). v1.0.0-rc.22 FULLY SHIPPED. **E-10 CASCADE SEALED D-531 — do NOT resume. F5 PAUSED D-386 Option C — do NOT resume.**
 - **POLICY 21:** no_new_shell_scripts ACTIVE (blocking; human-directed 2026-07-13). 5 S-19.01 files EXPLICITLY GRANDFATHERED D-846 (policies.yaml v1.4.8 `grandfather_clause`). Migration anchored E-20.
 
 ### §In-Flight at Wrap
@@ -362,7 +362,7 @@ Release record at D-856: first pipeline failed (run 29656342082 — 2 WASMs giti
 
 **(2) Human decides next directive:** options are (a) confirm operator-install verification for rc.23, (b) authorize E-20 decomposition (story-writer dispatch follows), or (c) other directive. No pipeline work proceeds until human decides.
 
-**(3) SHA-patch follow-up:** D-856-BURST SHA → update Active Branches factory-artifacts row after this commit is pushed (pending).
+**(3) SHA-patch follow-up:** COMPLETE — D-856-BURST `cce316f0` pushed 2026-07-18; Active Branches factory-artifacts row updated.
 
 ### §Standing Controls (ALL ACTIVE AND MANDATORY — carry-across-CLEAR)
 
