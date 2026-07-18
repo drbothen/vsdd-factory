@@ -154,7 +154,7 @@ dtu_services: []
 |--------------|-----|-------|
 | main | a04cb303 | rc.22 bot binary bundle commit 2026-07-03 (Release 28668124787 post-build; all 33 WASMs rebuilt, plugin.json → 1.0.0-rc.22); prior: e4285fe5 (PR #456 true-merge fix mapfile→while-read; rc.22 tag); prior: 2a4c949b (PR #455 true-merge first rc.22 release; tag later moved); prior: caf06c68 (rc.21) |
 | develop | 6db4c9fc | PR #670 S-19.07 squash-merge 2026-07-17T22:25:06Z; prior: 13ece92c (PR #659 S-19.09 squash-merge 2026-07-16); prior: 9787c056 (PR #657 S-19.06 squash-merge 2026-07-15) |
-| factory-artifacts | D-854-BURST `[PENDING-SHA-PATCH]` (pushed 2026-07-17) | D-854-BURST pushed 2026-07-17; prior: D-853-BURST `a20b198b` (pushed 2026-07-17) |
+| factory-artifacts | D-854-BURST `a2fd22bb` (pushed 2026-07-17) | D-854-BURST pushed 2026-07-17; prior: D-853-BURST `a20b198b` (pushed 2026-07-17) |
 | feature/S-19.06 | **DELETED** (was 7156a4c3) | Merged via PR #657 9787c056 2026-07-15T14:53:16Z (D-843); branch deleted at merge |
 | feature/S-19.05 | **DELETED** (was 28f28465) | Merged via PR #640 7b35c8e4 2026-07-14 (D-841); branch deleted at merge |
 | feature/S-19.04 | **DELETED** (was 82aeb073) | Merged via PR #639 d4a23a02 2026-07-14 (D-841); branch deleted at merge |
@@ -325,7 +325,7 @@ dtu_services: []
 - **Cascade:** `v1.0-brownfield-backfill`; 9 stories S-19.01..S-19.09 (55 pts); epic `E-19` COMPLETE (v1.31; complete; completion_date 2026-07-17).
 - **Wave-gate record:** cycles/v1.0-brownfield-backfill/e-19-wave-gate-w3-epic.md (D-853 basis; D-854 human disposition; GATE STATUS PASSED; Gate3 NOT-CLEAN 0B/1H/1M/3L; all findings disposed; W3G-001 residual risk ACCEPTED; Human Disposition section added D-854).
 - **Per-story PR status (E-19):** S-19.01 MERGED PR #613 8d1721f7 2026-07-13; S-19.02 MERGED PR #610 f5ea12e9 2026-07-13; S-19.03 MERGED PR #611 091ce499 2026-07-13; S-19.04 MERGED PR #639 d4a23a02 2026-07-14; S-19.05 MERGED PR #640 7b35c8e4 2026-07-14; S-19.06 MERGED PR #657 9787c056 2026-07-15; S-19.08 MERGED PR #646 1304d280 2026-07-14; S-19.09 MERGED PR #659 13ece92c 2026-07-16; **S-19.07 MERGED PR #670 6db4c9fc 2026-07-17T22:25:06Z** (squash-merge; 21 commits feature/S-19.07 → develop; GitHub branch auto-deleted). E-19 COMPLETE 9/9. merged_count 107.
-- **Repo state:** develop HEAD `6db4c9fc` (origin; S-19.07 squash-merge PR #670 2026-07-17); main HEAD `a04cb303`; factory-artifacts HEAD `[D-854-BURST SHA — see Active Branches after SHA-patch]` (pushed 2026-07-17; prior D-853-BURST `a20b198b`). v1.0.0-rc.22 FULLY SHIPPED. **E-10 CASCADE SEALED D-531 — do NOT resume. F5 PAUSED D-386 Option C — do NOT resume.**
+- **Repo state:** develop HEAD `6db4c9fc` (origin; S-19.07 squash-merge PR #670 2026-07-17); main HEAD `a04cb303`; factory-artifacts HEAD `a2fd22bb` (D-854-BURST; pushed 2026-07-17; prior D-853-BURST `a20b198b`). v1.0.0-rc.22 FULLY SHIPPED. **E-10 CASCADE SEALED D-531 — do NOT resume. F5 PAUSED D-386 Option C — do NOT resume.**
 - **POLICY 21:** no_new_shell_scripts ACTIVE (blocking; human-directed 2026-07-13). 5 S-19.01 files EXPLICITLY GRANDFATHERED D-846 (policies.yaml v1.4.8 `grandfather_clause`). Migration anchored E-20.
 
 ### §In-Flight at Wrap
