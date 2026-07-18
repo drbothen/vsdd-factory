@@ -1,1 +1,1 @@
-{"status":"pass","timestamp":"2026-07-17T20:32:38Z","command":"cargo test -p validate-state-structure --lib 2>&1 | tail -15"}
+{"status":"pass","timestamp":"2026-07-18T03:36:28Z","command":"cargo test -p validate-state-structure --lib 2>&1 | grep \"test result\""}

@@ -7008,3 +7008,57 @@ Both gates are mandatory standing Commit-E controls for any burst touching E-19 
 **Cites:** D-849 SESSION-WRAP-PAUSED (gap origin); D-840 SESSION-WRAP-PAUSED (correct pattern reference); D-850 PR-REVIEW-EVIDENCE-BURST (closure); `.factory/code-delivery/` artifact standard; [[L-BB-convergence-burst-flips-status-in-all-three-state-surfaces]].
 
 **Closes:** D-850 PR-REVIEW-EVIDENCE-BURST burst (2026-07-17). `[process-gap; code-delivery; pr-review; security-review; artifact-persistence; session-wrap; convergence-burst; S-19.07; D-850; codified]`
+
+---
+
+### L-BB-local-target-release-staleness-causes-gate1-false-failures [process-gap] [codified D-853]
+
+**Title:** Stale Local `target/release` Binaries Predating a Story Merge Cause Gate-1 validate-state-structure False Failures — Rebuild Before Running Wave Gate
+
+**Lesson:** When running Wave Gate 1 (test suite) on a develop branch that has had stories merged recently, the local `target/release` dispatcher binary must be rebuilt (or CI results must be used as the authoritative gate) before running `validate-state-structure`. A stale local binary predating S-19.07 triggered 2 validate-state-structure failures at the E-19 W3 gate. The failures looked like legitimate test failures but were environment artifacts. Gate 1 should cite CI green status as authoritative for newly merged PRs.
+
+**Root cause:** The local `target/release/factory-dispatcher` binary was built before PR #670 (S-19.07) merged. Post-merge, the binary was stale relative to the code changes. The `validate-state-structure` tests exercise code that was updated by S-19.07. The second failure was a STATE.md banner wc-l off-by-one (382 vs 383), which is a separate root cause (see L-BB-banner-wc-l-drift-escapes-without-validate-state-structure-in-precommit).
+
+**Prevention:** (1) Before running Gate 1 locally on a develop branch that received new merges, run `cargo build -p factory-dispatcher --release` to rebuild the local binary. (2) Use CI results as the authoritative Gate 1 pass/fail when available — CI builds fresh binaries every run. (3) In the wave-gate report, cite the CI run SHA and check count alongside the local re-run result. (4) Decompose local Gate 1 failures by root cause before reporting — distinguish "stale binary" from "real test failure."
+
+**Anchors:** E-19 W3 wave gate (D-853): Gate 1 first run failed 2 cargo test failures; decomposed to stale binary + banner wc-l; gate passed after rebuild + STATE.md fix. CI green at 6db4c9fc (PR #670) corroborates full test-suite pass.
+
+**Cites:** D-853 wave-gate W3G — Gate 1 PASS-AFTER-REMEDIATION; D-844 GATE1-HYGIENE-REMEDIATION (prior Gate 1 false-failure pattern — sprint-state ordering + banner wc-l); CI run 6db4c9fc; [[L-BB-banner-wc-l-drift-escapes-without-validate-state-structure-in-precommit]].
+
+**Closes:** D-853 E-19-W3-EPIC-WAVE-GATE-CLOSURE burst-2 (2026-07-17). `[process-gap; gate-1; stale-binary; target-release; validate-state-structure; wave-gate; rebuild; CI; D-853; codified]`
+
+---
+
+### L-BB-epic-closure-reports-must-be-committed-at-session-end [process-gap] [codified D-853]
+
+**Title:** Epic-Level Closure Reports (arch-post-epic, sw-post-epic) Must Be Committed to factory-artifacts in the Same Burst as the Epic Completion Event — Session Context Is Not Durable Storage
+
+**Lesson:** When the architect and story-writer produce epic-level post-epic closure reports (arch-post-epic, sw-post-epic), these must be written to `.factory/cycles/<cycle>/` and committed to factory-artifacts in the **same state-manager burst** as the epic-completion event (the burst that sets `E-19 COMPLETE 9/9`). Leaving these reports in conversation context means they are lost at session wrap, compaction, or clear — requiring a fresh re-run. This is the epic-level analogue of L-BB-per-story-pr-review-reports-must-persist-at-review-time (D-850), elevated to the epic scope.
+
+**Root cause:** E-19 arch-post-epic-report.md and sw-post-epic-report.md were authored in the session before D-851 but the D-851 burst (S-19.07-MERGED, E-19-COMPLETE) did not commit them to factory-artifacts. At D-849 SESSION-WRAP-PAUSED, neither report was swept (they were not yet factory-artifacts files). At D-851, the burst focused on the story merge status flip and did not include the reports. The reports existed only in conversation context, were lost, and had to be recommitted at D-853 from the session-start factory-artifacts tree (they were untracked ?? files).
+
+**Prevention:** (1) Epic-completion burst checklist MUST include: "verify `cycles/<cycle>/e-<id>-arch-post-epic-report.md` and `cycles/<cycle>/e-<id>-sw-post-epic-report.md` exist on disk and are staged before commit." (2) These reports should be produced and committed AT or BEFORE the final story merge burst, not after. (3) Session-wrap burst checklist must verify: for every epic at `COMPLETE` status, both post-epic reports are committed to factory-artifacts.
+
+**Anchors:** D-851 (E-19-COMPLETE burst, 2026-07-17): e-19-arch-post-epic-report.md and e-19-sw-post-epic-report.md NOT committed — lost as untracked `??` files. D-853 burst-2: reports present as `??` untracked in factory-artifacts working tree — committed here. [[L-BB-per-story-pr-review-reports-must-persist-at-review-time]] (D-850) — per-story analogue.
+
+**Cites:** D-851 SESSION-S1907-MERGED (gap origin); D-849 SESSION-WRAP (reports not swept); D-853 burst-2 (closure); e-19-arch-post-epic-report.md committed; e-19-sw-post-epic-report.md committed; [[L-BB-per-story-pr-review-reports-must-persist-at-review-time]].
+
+**Closes:** D-853 E-19-W3-EPIC-WAVE-GATE-CLOSURE burst-2 (2026-07-17). `[process-gap; epic-closure; arch-post-epic; sw-post-epic; artifact-persistence; session-wrap; epic-completion-burst; D-853; codified]`
+
+---
+
+### L-BB-banner-wc-l-drift-escapes-without-validate-state-structure-in-precommit [process-gap] [codified D-853]
+
+**Title:** STATE.md Banner wc-l Off-by-One Regressions Escape Undetected Unless validate-state-structure Is Included in the Pre-Commit Gate Set
+
+**Lesson:** The `validate-state-structure` cargo test suite checks the STATE.md SIZE BUDGET banner comment against the actual `wc -l` count. When a burst modifies STATE.md and the banner is not updated to the post-edit line count, the off-by-one persists silently until the next Gate 1 run. This is what happened at D-851: the SESSION-RESUME-CHECKPOINT was replaced (adding lines), but the banner was written as `382 lines` when the actual count was 383. The 2-failure Gate 1 at D-853 was the first time `validate-state-structure` ran after D-851. The root cause is that `validate-state-structure` was NOT in the D-851 pre-commit gate set.
+
+**Root cause:** D-851 burst summary does NOT list `cargo test -p validate-state-structure --lib` as a pre-commit gate run. Prior bursts (D-848, D-847, D-846) all explicitly ran validate-state-structure and showed PASS counts. D-851 omitted this gate — likely because the merge burst was treated as a "simple status flip" with no structural STATE.md changes. In reality, the Session Resume Checkpoint replacement added a line.
+
+**Prevention:** (1) `cargo test -p validate-state-structure --lib` MUST be included in the pre-commit gate set for EVERY burst that modifies STATE.md, without exception. "Simple" bursts that only add rows or change status fields still modify line count. (2) Banner wc-l must be computed AFTER all STATE.md edits in a burst are complete, using `wc -l .factory/STATE.md` with captured stdout, and the resulting count written to the SIZE BUDGET comment verbatim. (3) Defer the banner update to the last STATE.md edit in the burst so the count is final. (4) D-449(a) literal-shell requirement for validate-state-structure gate: result must appear in burst-log Dim-2 with actual test output.
+
+**Anchors:** D-851 burst (S-19.07-MERGED): STATE.md banner written as `382 lines` but actual count = 383; validate-state-structure not run pre-commit. D-853 wave-gate Gate 1: 2 cargo test failures traced to banner off-by-one + stale binary; fixed by banner update + binary rebuild. D-844 GATE1-HYGIENE-REMEDIATION: prior `~NNN→417→420` banner fix (same class of defect).
+
+**Cites:** D-851 burst (gap origin); D-853 Gate 1 first run (detection); D-844 GATE1-HYGIENE-REMEDIATION (prior occurrence); validate-state-structure test suite; D-449(a) literal-shell Dim-2 requirement; [[L-BB-local-target-release-staleness-causes-gate1-false-failures]].
+
+**Closes:** D-853 E-19-W3-EPIC-WAVE-GATE-CLOSURE burst-2 (2026-07-17). `[process-gap; banner-wc-l; validate-state-structure; pre-commit-gate; off-by-one; STATE.md; D-851; D-853; codified]`

@@ -1,7 +1,7 @@
 ---
 document_type: behavioral-contract
 level: L3
-version: "1.17"
+version: "1.18"
 status: active
 producer: product-owner
 timestamp: 2026-06-10T00:00:00Z
@@ -13,7 +13,7 @@ inputs:
   - .factory/specs/behavioral-contracts/ss-04/BC-4.11.001.md
   - .factory/specs/behavioral-contracts/BC-INDEX.md
   - plugins/vsdd-factory/hooks-registry.toml
-input-hash: "ddbfdc2"
+input-hash: "c3ce066"
 traces_to: .factory/specs/architecture/decisions/ADR-025-single-writer-factory-locklease-prevent-concurrent-session-races-on-factory-artifacts-orphan-branch.md
 origin: brownfield
 extracted_from: null
@@ -39,6 +39,7 @@ modified:
   - "2026-07-11 (v1.15)"
   - "2026-07-13 (v1.16)"
   - "2026-07-16 (v1.17)"
+  - "2026-07-17 (v1.18)"
 deprecated: null
 deprecated_by: null
 replacement: null
@@ -47,7 +48,7 @@ removed: null
 removal_reason: null
 bc_id: BC-4.13.001
 section: "4.13"
-last_amended: "(v1.17) — S-19.07 F-P1-001 BLOCKER (architect adjudication ADR-025 §Decision 15): Phase-B §Precondition 3 read_prefix bound corrected 8192→262144. The v1.6 derivation '8192-byte bound sufficient for any realistic frontmatter (<2 KB under compaction discipline)' is premise-false — ADR-026 §Decision 7 is a line-count discipline (≤200/≤500 lines), not a byte bound. Measured reality 2026-07-16: closing --- at byte 35,175 of 178,742-byte STATE.md; last_amended field alone 32,648 bytes; at max_bytes=8192 extract_frontmatter receives a prefix with no closing delimiter → full-input fallback → MalformedLockBlock → fail-open Continue → guard silently inert; factory_lock block ~27 KB beyond the 8192-byte window. Corrected bound = 262144 (STATE.md byte envelope: §Precondition 3 Phase-A + BC-5.40.001 §Precondition 6); structural guarantee: any on-envelope STATE.md has its closing --- and factory_lock block within the 262144-byte prefix. Root disease: inlined last_amended byte-bloat anchored to S-15.03 PRIORITY-A structured-changelog migration; ADR-026 line-discipline does not constrain bytes. [Prior: (v1.16) — S-19.04 W2 pending merge: Invariant 5 TOML snippet tool-pattern fields anchored — primary entry tool = Edit|Write|MultiEdit|Agent → ^(Edit|Write|MultiEdit|Agent)$; Bash arm entry tool = Bash → ^Bash$ (S-19.04 D-a table singleton convention). Precondition 2 natural-language tool pattern references updated to anchored forms. Precondition 1 parenthetical unchanged (already correct). Anchoring-only; behavioral content unchanged. [Prior: (v1.15) — S-19.02 pass-1 F-S1902-P1-001 (human-approved spec evolution): Invariant 9 amended to enumerate CRLF frontmatter delimiter forms (`\r\n---\r\n`, `\r\n---` EOF) alongside LF forms (`\n---\n`, `\n---` EOF); byte-exact-prefix contract specified for both forms; Verification note updated for CRLF delimiter_start_offset; EC-017 added (CRLF STATE.md scenario). [Prior: 2026-07-09 (v1.14) — F-P35-001: §Traceability ADR Reference row `§Decision 18` mis-anchor → `Deliverable D18` (ADR-025 has 15 Decisions; D18 is a Concrete Deliverables row); F-P35-002: §Description governance surface extended to Decisions 14/15 + D18; traceability/description-only. [Prior: 2026-07-09 (v1.13) — F-P34-001: §Traceability ADR Reference row volatile-pin ADR-025 v1.2 → stable §Decision 1/14/15/18 enumerated form; stale 'all 10 decisions' scope claim removed; traceability-only. [Prior: 2026-07-09 (v1.12) — E-19 pass-30 F-P30-003 (product-owner): §Traceability Architecture Module + §Architecture Anchors stale authorship artifacts retired — crate exists at HEAD (v1.9 SDK-grounding grep confirms). '(new crate; compiles to' → '(existing crate; compiles to'; 'new Rust crate (to be created); compiled to' → 'existing Rust crate (created at S-17.02); compiles to'. Spec behavioral content unchanged. BC-INDEX bump + story cite sweeps state-manager/story-writer same-burst. [Prior: 2026-07-09 (v1.11) — E-19 pass-29 F-P29-004 (product-owner): §VP Anchors TBD retired — VP-095 + VP-096 back-cited per VP-INDEX authoritative assignment (POLICY 9 reverse check); §Verification Properties VP rows added. BC-INDEX version bump is state-manager same burst; S-19.02/S-19.07 cite sweeps are story-writer same burst. [Prior: 2026-07-08 (v1.10) — E-19 pass-27 F-P27-003 adjudication (product-owner): Invariant 9 verification-note boundary clause unified to S-19.02 AC-005 byte-exact EXCLUSIVE form (bytes 0..delimiter_start_offset; O-P12-03 architect ruling upheld); F-P2-011 forbidden-parity clause preserved. [Prior: 2026-07-08 (v1.9) — E-19 pass-23 F-P23-002 fix burst (product-owner): Tense/status correction — three non-historical "W1 shipped"/"shipped)" sites corrected to spec-first/code-follows tense. Precondition 3 Phase-A label: "active; S-19.02/W1 shipped" → "active spec; implemented by S-19.02, W1 — pending merge". Traceability Stories row S-19.02: "W1 shipped" → "W1 implementation pending merge". Story Anchor S-19.02: "W1 shipped" → "W1 implementation pending merge". SDK grounding: grep STATE_MD_MAX_BYTES crates/hook-plugins/verify-factory-lock/src/lib.rs → pub const STATE_MD_MAX_BYTES: u32 = 65536 (live; S-19.02 not merged). Phase-B "S-19.06 merged to develop" clause unchanged (conditional future describing Phase-B activation gate — correct). Behavioral content (PCs, invariants, ECs, TVs, thresholds) UNCHANGED. Closes F-P23-002 (product-owner leg). BC-INDEX v3.78→v3.79 is state-manager same burst; S-19.02/S-19.07 story cite sweeps are story-writer same burst. [Prior: 2026-07-07 (v1.8) — E-19 pass-10 F-P10-001 adjudication (product-owner): Precondition 3 path_allow reconciliation — three-way contradiction resolved. Phase-A prose corrected: `.factory` → `.factory/STATE.md` in path_allow; Phase-B prose corrected: `path_allow = [\".factory\"]` → `path_allow = [\".factory/STATE.md\"]`. Invariant 5 TOML shape unchanged (already correct). Closes F-P10-001 (BC leg); live registry lines 1261/1284 are the witness. BC-INDEX v3.74→v3.75. [Prior: 2026-07-07 (v1.7) — E-19 pass-7 F-P7-006 adjudication (product-owner): Invariant 10 upper-boundary blind spot closed — soft-warn range made explicitly inclusive at cap: bytes_read ∈ (200000, 262144]. Condition restated as bytes_read > 200000 AND bytes_read ≤ cap_bytes (262144). Boundary table added: 200000 no-warn / 200001 warn / 262144 warn+readable / 262145 OUTPUT_TOO_LARGE. Closes F-P7-006 (BC leg). BC-INDEX v3.72→v3.73. [Prior: 2026-07-07 (v1.6) — E-19 pass-4 F-P4-001 fix burst (product-owner): Precondition 3 phased-clause amendment (architect Option B ruling; S-19.07 added to E-19; human approval 2026-07-07). Phase-A (active; S-19.02/W1 shipped): guard reads .factory/STATE.md via host::read_file with max_bytes=262144; [hooks.capabilities.read_file] with .factory in path_allow; compile-time STATE_MD_MAX_BYTES=262144; extract_frontmatter truncates at second --- delimiter (Invariant 9 unchanged). Phase-B (S-19.07; depends_on [S-19.02, S-19.06]; forward-scheduled migration): guard MUST migrate to host::read_prefix(path, max_bytes=8192); [hooks.capabilities.read_file] replaced with [hooks.capabilities.read_prefix] (same path_allow [.factory]); STATE_MD_MAX_BYTES constant and ALL TooLarge/OutputTooLarge handling removed (read_prefix guarantees NEVER OUTPUT_TOO_LARGE per BC-1.17.001); 8192 bound sufficient for any realistic frontmatter (<2KB under compaction discipline); extract_frontmatter retained unchanged; Phase-A unregressed until S-19.07 merges. Story Anchor: dual-story Phase-A S-19.02 / Phase-B S-19.07. Traceability Stories row: TBD → S-19.02 (Phase-A; W1 shipped) + S-19.07 (Phase-B; depends_on [S-19.02, S-19.06]; forward-scheduled). Closes F-P4-001 (BC leg); ADR-025 D18(e); human approval 2026-07-07. BC-INDEX v3.69→v3.70. [Prior: 2026-07-06 (v1.5) — E-19 pass-2 F-P2-001 + F-P2-003 + F-P2-011 fix burst (product-owner): (a) Precondition 1: MultiEdit enumerated in tool-pattern list (anchored form ^(Edit|Write|MultiEdit|Agent)$; ADR-025 2026-06-11 sibling-sweep mandate); Invariant 5 TOML tool field updated to Edit|Write|MultiEdit|Agent. (b) Precondition 3 rationale: stale ~90 KB / ~466 lines replaced with verified 193,220 bytes / 488 lines at 2026-07-06 review checkpoint; cap 262144 RETAINED (architect D-c: cap inflation without compaction discipline defers the crisis; compaction is the correct response); utilization ~74%, headroom ~35%. (c) Invariant 10 added: soft_warn_threshold = 200000 bytes; state_md_approaching_cap observability-only diagnostic event (bytes_read + cap_bytes fields); zero new registry entries. (d) Invariant 9 verification note (F-P2-011): byte-boundary correctness of frontmatter extraction; parity-with-full-file-parse FORBIDDEN. Closes F-P2-001 (BC leg), F-P2-003, F-P2-011. BC-INDEX v3.59→v3.60. [Prior: 2026-07-06 (v1.4) — E-19 pass-1 F-P1-004 fix burst (product-owner): Precondition 3 max_bytes raised 65536→262144 (256 KiB; rationale: STATE.md observed ~90 KB / ~466 lines; 500-line compaction hard cap implies worst-case ≤200 KiB; 256 KiB gives ≥28% headroom). Invariant 9 extended with frontmatter-only-parsing mandate: guard MUST abort after second ---\\n delimiter and MUST NOT parse file body. TD-031 in-scope fix: two volatile executor.rs line cites migrated to stable symbol anchors per TD-VSDD-091 (PC1 block path and Invariant 8 aggregation site). Closes F-P1-004. BC-INDEX v3.57→v3.58. [Prior: 2026-06-11 (v1.3) — POL-14 auto-promotion: lifecycle_status draft→active on PR #182 squash-merge df4f26b8 (S-17.02 MERGED 2026-06-11); BC-INDEX v2.69→v2.70; D-545. [Prior: 2026-06-11 (v1.2) — Boundary-semantics spec error (product-owner; S-17.02 testing finding; issue #170). EC-002 and PC2 prescribed `now > expires_at` as the expiry test, which is self-contradictory: `now == expires_at` would evaluate false under strict `>`, causing the guard to BLOCK at the exact-expiry instant — opposite of the stated EC-002 outcome (boundary → Continue). Corrected to `now >= expires_at` throughout (PC2 condition, EC-002 description, Invariant 3). PC1 blocking condition updated from `now ≤ expires_at` to `now < expires_at` for consistency (boundary is expired, not blocking). BC version v1.1→v1.2. [Prior: 2026-06-11 (v1.1) — Production-correctness spec gap (product-owner; S-17.02 implementation finding; issue #170). Inv 5 registry-shape UPDATED: both exec_subprocess capability blocks now REQUIRE `env_allow = [\"HOME\", \"GIT_CONFIG_GLOBAL\", \"XDG_CONFIG_HOME\"]` alongside `binary_allow = [\"git\"]`; without env_allow the dispatcher calls env_clear() → git config user.email returns empty → IdentityResolutionFailed → HookResult::Continue → lock silently inert. EC-016 added (env_allow omitted footgun). PC7 IdentityResolutionFailed extended to document env_allow dependency. BC version v1.0→v1.1. Prior: 2026-06-10 (v1.0) — Initial authoring (product-owner; brownfield-backfill issue #170; ADR-025 v1.2 D1/D2/D7/D9 deliverables). verify-factory-lock WASM guard behavioral contract. lifecycle_status: draft (POL-14 auto-promotion to active on implementing PR merge).]]]]]]]]]]]]]"
+last_amended: "(v1.18) — E-19 W3 wave-gate W3G-001 (HIGH) + W3G-002 (MEDIUM) closure (product-owner): Phase-B active (S-19.07 merged 2026-07-17, PR #670, 6db4c9fc). W3G-002 Phase-B active framing: Description/PC3/PC6/Invariant 5 TOML/Invariant 7/EC-007/Related BCs read_file→read_prefix; PC6 OutputTooLarge removed (BC-1.17.001 structural impossibility); Precondition 3 Phase-A retired, Phase-B active; Traceability + Story Anchor + ADR Reference updated + §Decision 20 added. W3G-001 Invariant 10 superseded-in-place → Phase-B envelope diagnostic (ADR-025 §Decision 20): APPROACHING_ENVELOPE_THRESHOLD=196608 (75% of 262144); state_md_approaching_prefix_envelope event (frontmatter_extent_bytes/prefix_cap_bytes/utilization_pct); FrontmatterExceedsEnvelope (bytes_returned==prefix_cap_bytes AND no ---→emit state_md_frontmatter_exceeds_envelope, fail-open Continue) vs MalformedLockBlock (bytes_returned<prefix_cap_bytes AND no ---; unchanged); implementation SPECIFIED anchored to E-20-ARCH-02 (pending registration); EC-018 (FrontmatterExceedsEnvelope) + EC-019 (approaching-envelope) added; VP-095 updated Phase-B active. [Prior: (v1.17) — S-19.07 F-P1-001 BLOCKER (architect adjudication ADR-025 §Decision 15): Phase-B §Precondition 3 read_prefix bound corrected 8192→262144. The v1.6 derivation '8192-byte bound sufficient for any realistic frontmatter (<2 KB under compaction discipline)' is premise-false — ADR-026 §Decision 7 is a line-count discipline (≤200/≤500 lines), not a byte bound. Measured reality 2026-07-16: closing --- at byte 35,175 of 178,742-byte STATE.md; last_amended field alone 32,648 bytes; at max_bytes=8192 extract_frontmatter receives a prefix with no closing delimiter → full-input fallback → MalformedLockBlock → fail-open Continue → guard silently inert; factory_lock block ~27 KB beyond the 8192-byte window. Corrected bound = 262144 (STATE.md byte envelope: §Precondition 3 Phase-A + BC-5.40.001 §Precondition 6); structural guarantee: any on-envelope STATE.md has its closing --- and factory_lock block within the 262144-byte prefix. Root disease: inlined last_amended byte-bloat anchored to S-15.03 PRIORITY-A structured-changelog migration; ADR-026 line-discipline does not constrain bytes. [Prior: (v1.16) — S-19.04 W2 pending merge: Invariant 5 TOML snippet tool-pattern fields anchored — primary entry tool = Edit|Write|MultiEdit|Agent → ^(Edit|Write|MultiEdit|Agent)$; Bash arm entry tool = Bash → ^Bash$ (S-19.04 D-a table singleton convention). Precondition 2 natural-language tool pattern references updated to anchored forms. Precondition 1 parenthetical unchanged (already correct). Anchoring-only; behavioral content unchanged. [Prior: (v1.15) — S-19.02 pass-1 F-S1902-P1-001 (human-approved spec evolution): Invariant 9 amended to enumerate CRLF frontmatter delimiter forms (`\r\n---\r\n`, `\r\n---` EOF) alongside LF forms (`\n---\n`, `\n---` EOF); byte-exact-prefix contract specified for both forms; Verification note updated for CRLF delimiter_start_offset; EC-017 added (CRLF STATE.md scenario). [Prior: 2026-07-09 (v1.14) — F-P35-001: §Traceability ADR Reference row `§Decision 18` mis-anchor → `Deliverable D18` (ADR-025 has 15 Decisions; D18 is a Concrete Deliverables row); F-P35-002: §Description governance surface extended to Decisions 14/15 + D18; traceability/description-only. [Prior: 2026-07-09 (v1.13) — F-P34-001: §Traceability ADR Reference row volatile-pin ADR-025 v1.2 → stable §Decision 1/14/15/18 enumerated form; stale 'all 10 decisions' scope claim removed; traceability-only. [Prior: 2026-07-09 (v1.12) — E-19 pass-30 F-P30-003 (product-owner): §Traceability Architecture Module + §Architecture Anchors stale authorship artifacts retired — crate exists at HEAD (v1.9 SDK-grounding grep confirms). '(new crate; compiles to' → '(existing crate; compiles to'; 'new Rust crate (to be created); compiled to' → 'existing Rust crate (created at S-17.02); compiles to'. Spec behavioral content unchanged. BC-INDEX bump + story cite sweeps state-manager/story-writer same-burst. [Prior: 2026-07-09 (v1.11) — E-19 pass-29 F-P29-004 (product-owner): §VP Anchors TBD retired — VP-095 + VP-096 back-cited per VP-INDEX authoritative assignment (POLICY 9 reverse check); §Verification Properties VP rows added. BC-INDEX version bump is state-manager same burst; S-19.02/S-19.07 cite sweeps are story-writer same burst. [Prior: 2026-07-08 (v1.10) — E-19 pass-27 F-P27-003 adjudication (product-owner): Invariant 9 verification-note boundary clause unified to S-19.02 AC-005 byte-exact EXCLUSIVE form (bytes 0..delimiter_start_offset; O-P12-03 architect ruling upheld); F-P2-011 forbidden-parity clause preserved. [Prior: 2026-07-08 (v1.9) — E-19 pass-23 F-P23-002 fix burst (product-owner): Tense/status correction — three non-historical "W1 shipped"/"shipped)" sites corrected to spec-first/code-follows tense. Precondition 3 Phase-A label: "active; S-19.02/W1 shipped" → "active spec; implemented by S-19.02, W1 — pending merge". Traceability Stories row S-19.02: "W1 shipped" → "W1 implementation pending merge". Story Anchor S-19.02: "W1 shipped" → "W1 implementation pending merge". SDK grounding: grep STATE_MD_MAX_BYTES crates/hook-plugins/verify-factory-lock/src/lib.rs → pub const STATE_MD_MAX_BYTES: u32 = 65536 (live; S-19.02 not merged). Phase-B "S-19.06 merged to develop" clause unchanged (conditional future describing Phase-B activation gate — correct). Behavioral content (PCs, invariants, ECs, TVs, thresholds) UNCHANGED. Closes F-P23-002 (product-owner leg). BC-INDEX v3.78→v3.79 is state-manager same burst; S-19.02/S-19.07 story cite sweeps are story-writer same burst. [Prior: 2026-07-07 (v1.8) — E-19 pass-10 F-P10-001 adjudication (product-owner): Precondition 3 path_allow reconciliation — three-way contradiction resolved. Phase-A prose corrected: `.factory` → `.factory/STATE.md` in path_allow; Phase-B prose corrected: `path_allow = [\".factory\"]` → `path_allow = [\".factory/STATE.md\"]`. Invariant 5 TOML shape unchanged (already correct). Closes F-P10-001 (BC leg); live registry lines 1261/1284 are the witness. BC-INDEX v3.74→v3.75. [Prior: 2026-07-07 (v1.7) — E-19 pass-7 F-P7-006 adjudication (product-owner): Invariant 10 upper-boundary blind spot closed — soft-warn range made explicitly inclusive at cap: bytes_read ∈ (200000, 262144]. Condition restated as bytes_read > 200000 AND bytes_read ≤ cap_bytes (262144). Boundary table added: 200000 no-warn / 200001 warn / 262144 warn+readable / 262145 OUTPUT_TOO_LARGE. Closes F-P7-006 (BC leg). BC-INDEX v3.72→v3.73. [Prior: 2026-07-07 (v1.6) — E-19 pass-4 F-P4-001 fix burst (product-owner): Precondition 3 phased-clause amendment (architect Option B ruling; S-19.07 added to E-19; human approval 2026-07-07). Phase-A (active; S-19.02/W1 shipped): guard reads .factory/STATE.md via host::read_file with max_bytes=262144; [hooks.capabilities.read_file] with .factory in path_allow; compile-time STATE_MD_MAX_BYTES=262144; extract_frontmatter truncates at second --- delimiter (Invariant 9 unchanged). Phase-B (S-19.07; depends_on [S-19.02, S-19.06]; forward-scheduled migration): guard MUST migrate to host::read_prefix(path, max_bytes=8192); [hooks.capabilities.read_file] replaced with [hooks.capabilities.read_prefix] (same path_allow [.factory]); STATE_MD_MAX_BYTES constant and ALL TooLarge/OutputTooLarge handling removed (read_prefix guarantees NEVER OUTPUT_TOO_LARGE per BC-1.17.001); 8192 bound sufficient for any realistic frontmatter (<2KB under compaction discipline); extract_frontmatter retained unchanged; Phase-A unregressed until S-19.07 merges. Story Anchor: dual-story Phase-A S-19.02 / Phase-B S-19.07. Traceability Stories row: TBD → S-19.02 (Phase-A; W1 shipped) + S-19.07 (Phase-B; depends_on [S-19.02, S-19.06]; forward-scheduled). Closes F-P4-001 (BC leg); ADR-025 D18(e); human approval 2026-07-07. BC-INDEX v3.69→v3.70. [Prior: 2026-07-06 (v1.5) — E-19 pass-2 F-P2-001 + F-P2-003 + F-P2-011 fix burst (product-owner): (a) Precondition 1: MultiEdit enumerated in tool-pattern list (anchored form ^(Edit|Write|MultiEdit|Agent)$; ADR-025 2026-06-11 sibling-sweep mandate); Invariant 5 TOML tool field updated to Edit|Write|MultiEdit|Agent. (b) Precondition 3 rationale: stale ~90 KB / ~466 lines replaced with verified 193,220 bytes / 488 lines at 2026-07-06 review checkpoint; cap 262144 RETAINED (architect D-c: cap inflation without compaction discipline defers the crisis; compaction is the correct response); utilization ~74%, headroom ~35%. (c) Invariant 10 added: soft_warn_threshold = 200000 bytes; state_md_approaching_cap observability-only diagnostic event (bytes_read + cap_bytes fields); zero new registry entries. (d) Invariant 9 verification note (F-P2-011): byte-boundary correctness of frontmatter extraction; parity-with-full-file-parse FORBIDDEN. Closes F-P2-001 (BC leg), F-P2-003, F-P2-011. BC-INDEX v3.59→v3.60. [Prior: 2026-07-06 (v1.4) — E-19 pass-1 F-P1-004 fix burst (product-owner): Precondition 3 max_bytes raised 65536→262144 (256 KiB; rationale: STATE.md observed ~90 KB / ~466 lines; 500-line compaction hard cap implies worst-case ≤200 KiB; 256 KiB gives ≥28% headroom). Invariant 9 extended with frontmatter-only-parsing mandate: guard MUST abort after second ---\\n delimiter and MUST NOT parse file body. TD-031 in-scope fix: two volatile executor.rs line cites migrated to stable symbol anchors per TD-VSDD-091 (PC1 block path and Invariant 8 aggregation site). Closes F-P1-004. BC-INDEX v3.57→v3.58. [Prior: 2026-06-11 (v1.3) — POL-14 auto-promotion: lifecycle_status draft→active on PR #182 squash-merge df4f26b8 (S-17.02 MERGED 2026-06-11); BC-INDEX v2.69→v2.70; D-545. [Prior: 2026-06-11 (v1.2) — Boundary-semantics spec error (product-owner; S-17.02 testing finding; issue #170). EC-002 and PC2 prescribed `now > expires_at` as the expiry test, which is self-contradictory: `now == expires_at` would evaluate false under strict `>`, causing the guard to BLOCK at the exact-expiry instant — opposite of the stated EC-002 outcome (boundary → Continue). Corrected to `now >= expires_at` throughout (PC2 condition, EC-002 description, Invariant 3). PC1 blocking condition updated from `now ≤ expires_at` to `now < expires_at` for consistency (boundary is expired, not blocking). BC version v1.1→v1.2. [Prior: 2026-06-11 (v1.1) — Production-correctness spec gap (product-owner; S-17.02 implementation finding; issue #170). Inv 5 registry-shape UPDATED: both exec_subprocess capability blocks now REQUIRE `env_allow = [\"HOME\", \"GIT_CONFIG_GLOBAL\", \"XDG_CONFIG_HOME\"]` alongside `binary_allow = [\"git\"]`; without env_allow the dispatcher calls env_clear() → git config user.email returns empty → IdentityResolutionFailed → HookResult::Continue → lock silently inert. EC-016 added (env_allow omitted footgun). PC7 IdentityResolutionFailed extended to document env_allow dependency. BC version v1.0→v1.1. Prior: 2026-06-10 (v1.0) — Initial authoring (product-owner; brownfield-backfill issue #170; ADR-025 v1.2 D1/D2/D7/D9 deliverables). verify-factory-lock WASM guard behavioral contract. lifecycle_status: draft (POL-14 auto-promotion to active on implementing PR merge).]]]]]]]]]]]]]"
 ---
 
 # BC-4.13.001: verify-factory-lock WASM PreToolUse guard MUST block mutating tools when a foreign unexpired factory_lock is held, MUST pass all read-only tools unconditionally, MUST fail-open on crash, MUST be registered async=false with both capability blocks enumerated, and MUST treat expired/absent/malformed locks as unlocked
@@ -57,14 +58,14 @@ last_amended: "(v1.17) — S-19.07 F-P1-001 BLOCKER (architect adjudication ADR-
 The `verify-factory-lock` native-WASM plugin enforces the cross-session single-writer invariant
 on the `factory-artifacts` orphan branch. It fires on every `PreToolUse` event for mutating tools
 (Edit, Write, MultiEdit, Agent dispatch, and Bash commands pushing to `factory-artifacts`). On each
-invocation, it reads the `factory_lock` block from `.factory/STATE.md` via `host::read_file`,
+invocation, it reads the `factory_lock` block from `.factory/STATE.md` via `host::read_prefix`,
 reads the current `git config user.email` via `host::exec_subprocess`, and compares the lock holder
 to the caller's identity plus the current time to the `expires_at` field. A foreign unexpired lock
 causes `block_intent = true` (exit code 2) with an actionable refusal message. Read-only tools,
 absent/expired/malformed locks, and self-held locks always pass. A crashed or timed-out guard
 never wedges the factory (`on_error = "continue"`).
 
-This BC covers ADR-025 Decisions 1, 2, 3, 4, 7, 9, 10, 14, and 15, and deliverables D1, D2, D9, and D18. It is the primary enforcement mechanism for CAP-031. The lock state
+This BC covers ADR-025 Decisions 1, 2, 3, 4, 7, 9, 10, 14, 15, and 20, and deliverables D1, D2, D9, and D18. It is the primary enforcement mechanism for CAP-031. The lock state
 schema (D3), the `/factory-lock` and `/factory-unlock` skills (D4/D5), and the `state-burst`
 push fix (D6) are specified in BC-5.40.001 and BC-6.23.001 respectively.
 
@@ -90,19 +91,18 @@ push fix (D6) are specified in BC-5.40.001 and BC-6.23.001 respectively.
 
 ### File read capability
 
-3. **Phase-A (active spec; implemented by S-19.02, W1 — pending merge):** The guard reads `.factory/STATE.md` via
+3. **Phase-A (retired; implemented by S-19.02, W1 — merged; superseded by Phase-B S-19.07, merged 2026-07-17):** The guard read `.factory/STATE.md` via
    `host::read_file` with `max_bytes = 262144` (256 KiB). The registry-level
-   `[hooks.capabilities.read_file]` MUST be present with `.factory/STATE.md` in `path_allow`.
-   The plugin-side compile-time cap is `STATE_MD_MAX_BYTES = 262144`;
-   `extract_frontmatter(bytes)` truncates at the second `---` delimiter before YAML parse
-   (Invariant 9 unchanged). Without this block, the dispatcher returns `CapabilityDenied`
-   and the plugin graceful-degrades to `Continue` — the lock never enforces (silent no-op;
+   `[hooks.capabilities.read_file]` was present with `.factory/STATE.md` in `path_allow`.
+   The plugin-side compile-time cap was `STATE_MD_MAX_BYTES = 262144`;
+   `extract_frontmatter(bytes)` truncated at the second `---` delimiter before YAML parse
+   (Invariant 9 unchanged). Without this block, the dispatcher returned `CapabilityDenied`
+   and the plugin graceful-degraded to `Continue` — the lock never enforced (silent no-op;
    see EC-007 capability-denied footgun and Invariant 6).
 
-   **Phase-B (S-19.07; depends_on [S-19.02, S-19.06]; forward-scheduled migration, not
-   in-place replacement):** Once `host::read_prefix` is available and independently proven
-   (ADR-025 Decision 15; S-19.06 merged to develop), the guard MUST migrate its read
-   primitive to `host::read_prefix(path, max_bytes=262144, timeout_ms=<plugin latency budget>)`.
+   **Phase-B (S-19.07; active; merged 2026-07-17, PR #670, 6db4c9fc):** With `host::read_prefix`
+   available and proven (ADR-025 §Decision 15; S-19.06 merged to develop), the guard reads
+   its STATE.md prefix via `host::read_prefix(path, max_bytes=262144, timeout_ms=<plugin latency budget>)`.
    The `[hooks.capabilities.read_file]` block is replaced with
    `[hooks.capabilities.read_prefix]` (same `path_allow = [".factory/STATE.md"]`). The
    `STATE_MD_MAX_BYTES` constant and ALL `TooLarge`/`OutputTooLarge` handling are removed
@@ -119,8 +119,7 @@ push fix (D6) are specified in BC-5.40.001 and BC-6.23.001 respectively.
    delimiter → full-input fallback → `MalformedLockBlock` → fail-open `Continue`). Root
    disease: inlined `last_amended` frontmatter byte-bloat is the root cause, anchored to
    S-15.03 PRIORITY-A structured-changelog migration; ADR-026 line-discipline does not
-   constrain bytes. `extract_frontmatter` is retained unchanged. Phase-A behavior is
-   correct and unregressed until S-19.07 merges.
+   constrain bytes. `extract_frontmatter` is retained unchanged.
 
 ### Subprocess capability
 
@@ -185,7 +184,7 @@ pass-through (it is the normal TTL expiry path, not an error condition).
 When `factory_lock.holder == current_git_email` (regardless of expiry), the guard MUST return
 `HookResult::Continue`. The developer who acquired the lock is never blocked by their own lock.
 This is the single-developer happy path and MUST add zero visible friction beyond the
-`host::read_file` + `host::exec_subprocess` latency (sub-5ms under normal conditions per
+`host::read_prefix` + `host::exec_subprocess` latency (sub-5ms under normal conditions per
 ADR-025 Decision 10 latency budget).
 
 ### PC4 — Absent, null, or malformed lock: Pass (fail-open)
@@ -209,11 +208,12 @@ always read `.factory/STATE.md` to inspect the lock state, regardless of who hol
 
 ### PC6 — STATE.md read failure: Pass (fail-open)
 
-When `host::read_file(".factory/STATE.md")` returns any `HostError` variant
-(`OutputTooLarge`, `Timeout`, `CapabilityDenied`, `InvalidArgument`, `Other(i32)`), the guard
-MUST return `HookResult::Continue` after emitting `host::log_warn` with the error variant name.
-A guard that cannot read STATE.md MUST NOT block — fail-open is correct for this efficiency-class
-lock (ADR-025 Decision 7, Kleppmann §8 distinction).
+When `host::read_prefix(".factory/STATE.md", STATE_MD_PREFIX_BYTES)` returns any `HostError`
+variant (`Timeout`, `CapabilityDenied`, `InvalidArgument`, `Other(i32)`) — `OutputTooLarge`
+is structurally impossible for `read_prefix` per BC-1.17.001 and is not a member of this
+variant set — the guard MUST return `HookResult::Continue` after emitting `host::log_warn`
+with the error variant name. A guard that cannot read STATE.md MUST NOT block — fail-open is
+correct for this efficiency-class lock (ADR-025 Decision 7, Kleppmann §8 distinction).
 
 **Error variant:** `StateReadError(HostError variant name)`
 
@@ -273,7 +273,7 @@ are surfaced as advisory `internal.dispatcher_error` events via SS-03.
    on_error = "continue"
    timeout_ms = 5000
 
-   [hooks.capabilities.read_file]
+   [hooks.capabilities.read_prefix]
    path_allow = [".factory/STATE.md"]
 
    [hooks.capabilities.exec_subprocess]
@@ -289,7 +289,7 @@ are surfaced as advisory `internal.dispatcher_error` events via SS-03.
    on_error = "continue"
    timeout_ms = 5000
 
-   [hooks.capabilities.read_file]
+   [hooks.capabilities.read_prefix]
    path_allow = [".factory/STATE.md"]
 
    [hooks.capabilities.exec_subprocess]
@@ -301,14 +301,14 @@ are surfaced as advisory `internal.dispatcher_error` events via SS-03.
    WASM plugin for Bash payloads, allowing non-push Bash to proceed without STATE.md reads).
 
 6. **Capability-denied graceful degrade is advisory, not a crash**: If either capability block
-   is omitted from the registry, `host::read_file` or `host::exec_subprocess` returns
+   is omitted from the registry, `host::read_prefix` or `host::exec_subprocess` returns
    `CapabilityDenied`. The plugin MUST catch this as a `HostError` variant and graceful-degrade
    to `Continue` (not panic). This degrade MUST emit `host::log_warn("capability_denied: ...")`.
    However, the guard is now silently inert — this is the footgun documented in ADR-025 D2.
    The bats integration test MUST cover this case (D9 §"capability-omitted registry entry
    graceful-degrades").
 
-7. **Latency budget**: The guard's hot path (one `read_file` call + one `exec_subprocess` call
+7. **Latency budget**: The guard's hot path (one `read_prefix` call + one `exec_subprocess` call
    + timestamp comparison) MUST complete within the ADR-020 Class A p95 budget of 1500ms.
    Under normal conditions (local filesystem, git installed), the budget is well within 100ms.
    The `timeout_ms = 5000` is a backstop for pathological conditions.
@@ -334,9 +334,9 @@ are surfaced as advisory `internal.dispatcher_error` events via SS-03.
    included in the output; see Verification note) — and MUST NOT attempt to parse the file
    body. The lock verdict is derived exclusively from the frontmatter region; no body content
    is read, parsed, or required. This property is preserved regardless of STATE.md body size:
-   `max_bytes = 262144` (Precondition 3) ensures the host read does not return
-   `OutputTooLarge` on valid STATE.md files, but the parser stops at the frontmatter boundary
-   (LF or CRLF form) and never processes the remaining bytes. On Windows-target git checkouts
+   `max_bytes = 262144` (Precondition 3) defines the prefix bound for `host::read_prefix`;
+   `OutputTooLarge` is structurally impossible (BC-1.17.001); the parser stops at the
+   frontmatter boundary (LF or CRLF form) and never processes the remaining bytes. On Windows-target git checkouts
    with `autocrlf` enabled, STATE.md may carry CRLF line endings throughout; the guard MUST
    recognize the CRLF delimiter form and extract frontmatter-only with byte-exact correctness
    for both forms (EC-017).
@@ -351,28 +351,51 @@ are surfaced as advisory `internal.dispatcher_error` events via SS-03.
    this byte-exact boundary for both LF and CRLF STATE.md inputs; parity-with-full-file-
    parse verification remains FORBIDDEN.
 
-10. **Soft warning threshold for STATE.md utilization**: `soft_warn_threshold = 200000` bytes.
-    When a hook that already reads STATE.md in full (i.e., calls `host::read_file` on
-    `.factory/STATE.md`) completes a successful read and observes
-    `bytes_read > soft_warn_threshold AND bytes_read ≤ cap_bytes (262144)`, it MUST emit a
-    diagnostic event of type `state_md_approaching_cap` carrying two fields:
-    `bytes_read: u64` (the observed byte count) and `cap_bytes: u64` (the current `max_bytes`
-    value, 262144). The soft-warn range is `bytes_read ∈ (200000, 262144]` — inclusive at the
-    cap boundary:
+10. **Phase-B envelope diagnostic: `state_md_approaching_prefix_envelope` and `FrontmatterExceedsEnvelope` (supersedes Phase-A `state_md_approaching_cap` mechanism)**: The Phase-A `state_md_approaching_cap` mechanism (v1.7: `bytes_read > 200000` while reading STATE.md via `host::read_file`) is retired with Phase-A. Phase-B uses `host::read_prefix`, which never returns `OUTPUT_TOO_LARGE` — it silently truncates at `max_bytes = 262144`. Two successor behaviors replace the retired mechanism (ADR-025 §Decision 20):
 
-    | `bytes_read` | Outcome |
-    |---|---|
-    | ≤ 200000 | No warn emitted; normal read |
-    | 200001 | `state_md_approaching_cap` emitted; read succeeds |
-    | 262144 | `state_md_approaching_cap` emitted AND read succeeds — this is the most alarming observable state (1 byte from failure); the warn MUST fire at this boundary |
-    | 262145 | `OutputTooLarge` returned by host; soft-warn path not reached |
+    **§20a — Approaching-envelope diagnostic:** After a successful `read_prefix` call AND
+    successful frontmatter extraction (closing `---` delimiter found within the returned
+    bytes), the guard MUST compute:
 
-    This event is observability-only — it NEVER triggers a block or alters the `Continue`/`Block`
-    verdict. It is implemented as an extension to hooks that already read STATE.md in full; zero
-    new registry entries are required. The `verify-factory-lock` guard, which reads STATE.md on
-    every mutating-tool PreToolUse invocation, MUST emit this event when
-    `bytes_read > soft_warn_threshold AND bytes_read ≤ cap_bytes`. The threshold is not a hard
-    cap; it is a leading indicator for compaction scheduling.
+    ```
+    frontmatter_extent = byte offset of the first byte of the closing --- delimiter sequence
+    ```
+
+    (`delimiter_start_offset` per Invariant 9 verification note — already available from
+    the `extract_frontmatter` return value.)
+
+    `APPROACHING_ENVELOPE_THRESHOLD = (STATE_MD_PREFIX_BYTES × 75) / 100 = 196608 bytes`
+    (75% of 262144; integer constant; production-consistent with Phase-A's 200000-byte
+    threshold at 76.3%).
+
+    When `frontmatter_extent > APPROACHING_ENVELOPE_THRESHOLD`, the guard MUST emit a
+    diagnostic event `state_md_approaching_prefix_envelope` with three fields:
+    - `frontmatter_extent_bytes: u64` — the `delimiter_start_offset` value
+    - `prefix_cap_bytes: u64` — `STATE_MD_PREFIX_BYTES` (262144)
+    - `utilization_pct: u32` — `((frontmatter_extent × 100) / prefix_cap_bytes) as u32`
+      (integer division; truncation acceptable for an observability metric)
+
+    This event is observability-only — it NEVER triggers a block, NEVER alters the
+    `Continue`/`Block` verdict, and requires ZERO new registry entries.
+
+    **§20b — Envelope-exceeded vs malformed hard distinction:** When `extract_frontmatter`
+    cannot find a closing `---` delimiter within the returned prefix bytes, the guard MUST
+    distinguish:
+
+    | Case | `bytes_returned` | Root cause | Action |
+    |------|-----------------|-----------|--------|
+    | `FrontmatterExceedsEnvelope` | == `prefix_cap_bytes` (262144) | File truncated at prefix; delimiter may exist beyond cap | Emit `state_md_frontmatter_exceeds_envelope { prefix_cap_bytes: u64 }`, return `HookResult::Continue` (fail-open) |
+    | `MalformedLockBlock` | < `prefix_cap_bytes` | Full file consumed; delimiter genuinely absent — structurally malformed STATE.md | Emit `log_warn MalformedLockBlock` (existing behavior; unchanged), return `HookResult::Continue` |
+
+    The `FrontmatterExceedsEnvelope` case MUST NOT emit `MalformedLockBlock` — the event
+    name MUST reflect the correct root cause to enable operator diagnosis. Distinguishing
+    predicate: `bytes_returned == prefix_cap_bytes` is exact and requires no additional
+    host call (`read_prefix` returns exactly `max_bytes` iff the original file is at least
+    `max_bytes` long; fewer bytes means the full file fit within the prefix — no truncation
+    occurred).
+
+    **Implementation status:** SPECIFIED; implementation anchored to E-20-ARCH-02
+    (pending registration).
 
 ## Edge Cases
 
@@ -384,7 +407,7 @@ are surfaced as advisory `internal.dispatcher_error` events via SS-03.
 | EC-004 | `factory_lock.holder` is set but `holder` field is empty string | `MalformedLockBlock` → `HookResult::Continue` (PC4; empty holder is malformed) |
 | EC-005 | `factory_lock.expires_at` is not a valid ISO-8601 datetime | `MalformedLockBlock` → `HookResult::Continue` (PC4; unparseable expiry = treat as absent) |
 | EC-006 | STATE.md is missing (file not found) | `HostError` → `StateReadError` → `HookResult::Continue` (PC6 fail-open) |
-| EC-007 | `[hooks.capabilities.read_file]` block omitted from registry | `host::read_file` returns `CapabilityDenied`; plugin graceful-degrades to `HookResult::Continue` with `log_warn`; lock NEVER enforces (silent no-op — the capability footgun) |
+| EC-007 | `[hooks.capabilities.read_prefix]` block omitted from registry | `host::read_prefix` returns `CapabilityDenied`; plugin graceful-degrades to `HookResult::Continue` with `log_warn`; lock NEVER enforces (silent no-op — the capability footgun) |
 | EC-008 | `[hooks.capabilities.exec_subprocess]` block omitted from registry | `host::exec_subprocess` returns `CapabilityDenied`; identity resolution fails; plugin graceful-degrades to `HookResult::Continue` with `log_warn`; lock NEVER enforces |
 | EC-009 | `git config user.email` returns empty output (git email not configured) | `IdentityResolutionFailed` → `HookResult::Continue` (PC7 fail-open; treat as unlocked) |
 | EC-010 | `async = true` in registry (misconfigured) | Plugin fires but `block_intent` is discarded by dispatcher (advisory-only per ADR-019); guard silently becomes no-op blocker — indistinguishable from a working guard until a concurrent-session incident |
@@ -395,6 +418,8 @@ are surfaced as advisory `internal.dispatcher_error` events via SS-03.
 | EC-015 | `host::exec_subprocess` times out (git subprocess stalls) | `HostError::Timeout` → `IdentityResolutionFailed` → `HookResult::Continue` (PC7 fail-open) |
 | EC-016 | `env_allow` absent (or omits `HOME`) from `[hooks.capabilities.exec_subprocess]` in registry — dispatcher calls `env_clear()` → `git config user.email` runs without `HOME` → empty output → `IdentityResolutionFailed` → `HookResult::Continue` → guard silently inert (lock never enforces). Same footgun class as EC-007/EC-008 (capability block omitted), but subtler: the capability block IS present, only the env pass-through is missing. | `IdentityResolutionFailed` → `HookResult::Continue` (PC7 fail-open; lock silently inert); bats integration test MUST cover this case (D9 §"env_allow-omitted registry entry silently fails identity resolution") |
 | EC-017 | STATE.md uses CRLF line endings throughout (Windows git `autocrlf` checkout); the closing frontmatter delimiter is `\r\n---\r\n` rather than `\n---\n` | `extract_frontmatter` recognizes the CRLF delimiter form; guard extracts frontmatter-only (`bytes 0..delimiter_start_offset` where `delimiter_start_offset` is the byte index of the `\r` beginning `\r\n---\r\n`); file body NOT parsed; lock verdict correct; byte-exact-prefix invariant holds for the CRLF form (Invariant 9). An LF-only scanner that fails to match `\r\n---\r\n` falls through to full-body parsing, violating the Invariant 9 frontmatter-only mandate — the CRLF-aware implementation is the required baseline. |
+| EC-018 | Phase-B `read_prefix` path: `bytes_returned == prefix_cap_bytes (262144)` AND no closing `---` found within prefix — frontmatter may have grown beyond the 262144-byte prefix envelope (`FrontmatterExceedsEnvelope`) | `FrontmatterExceedsEnvelope` → emit `state_md_frontmatter_exceeds_envelope { prefix_cap_bytes: u64 }` → `HookResult::Continue` (fail-open; same policy as `MalformedLockBlock`); MUST NOT emit `MalformedLockBlock` for this case — event name must reflect the correct root cause to enable operator diagnosis (ADR-025 §Decision 20.2; Invariant 10 §20b); see EC-013 for the malformed case (`bytes_returned < prefix_cap_bytes`) |
+| EC-019 | Phase-B `read_prefix` path: successful frontmatter extraction (closing `---` delimiter found) with `frontmatter_extent > 196608` bytes (75% of 262144; `APPROACHING_ENVELOPE_THRESHOLD`) | Emit `state_md_approaching_prefix_envelope { frontmatter_extent_bytes: u64, prefix_cap_bytes: u64, utilization_pct: u32 }` → lock verdict proceeds normally; observability-only, never blocks (ADR-025 §Decision 20.1; Invariant 10 §20a) |
 
 ## Canonical Test Vectors
 
@@ -409,7 +434,7 @@ These are the D9 bats integration test vectors (from ADR-025 §D9):
 | T-5 | `factory_lock.holder` = other developer; `expires_at` = now + 30min | `Read .factory/STATE.md` | Not triggered (Read not in scope); `HookResult::Continue` |
 | T-6 | `factory_lock.holder` = other developer; `expires_at` = now + 30min | `Bash git push origin factory-artifacts` | `HookResult::Block` (factory-artifacts push arm) |
 | T-7 | `factory_lock.holder` = other developer; `expires_at` = now + 30min | `Bash cat .factory/STATE.md` | `HookResult::Continue` (non-push Bash; internal regex no-match) |
-| T-8 | `[hooks.capabilities.read_file]` omitted in registry | Edit any file | `HookResult::Continue` (graceful-degrade; `log_warn` emitted; EC-007) |
+| T-8 | `[hooks.capabilities.read_prefix]` omitted in registry | Edit any file | `HookResult::Continue` (graceful-degrade; `log_warn` emitted; EC-007) |
 | T-9 | `factory_lock.expires_at` malformed (not ISO-8601) | Edit any file | `HookResult::Continue` (EC-005 malformed) |
 | T-10 | Acquire CAS rejection: two concurrent `/factory-lock` invocations see the same unlocked STATE.md | Second `/factory-lock` push returns non-fast-forward | Second acquire fails with `AcquireRaceRejected`; first succeeds (covered by BC-6.23.001 T-4) |
 
@@ -446,12 +471,14 @@ grep -n 'binary_allow.*git' plugins/vsdd-factory/hooks-registry.toml
 Expected: at least one hit from `capture-commit-activity` registry entry — confirms the
 `exec_subprocess binary_allow = ["git"]` pattern is already established in production.
 
-**Grep 5 — `validate-artifact-path` as PreToolUse `read_file` guard pattern (structural anchor):**
+**Grep 5 — `validate-artifact-path` as PreToolUse native-WASM guard pattern (structural anchor):**
 ```
 grep -n "validate-artifact-path" plugins/vsdd-factory/hooks-registry.toml
 ```
-Expected: at least one hit — confirms the existing PreToolUse native-WASM `read_file` guard
-pattern that `verify-factory-lock` follows (ADR-025 Rationale §Why native WASM).
+Expected: at least one hit — confirms the existing PreToolUse native-WASM guard pattern
+(ADR-025 Rationale §Why native WASM). Note: `validate-artifact-path` uses `host::read_file`;
+`verify-factory-lock` has migrated to `host::read_prefix` (Phase-B active; S-19.07 merged
+2026-07-17). Both share the same PreToolUse registration discipline.
 
 ## Verification Properties
 
@@ -462,10 +489,10 @@ pattern that `verify-factory-lock` follows (ADR-025 Rationale §Why native WASM)
 | (unit-test) | Self-held lock returns Continue unconditionally | Rust unit test: `holder == current_email`; assert Continue |
 | (unit-test) | Absent `factory_lock` block returns Continue | Rust unit test: STATE.md with no `factory_lock` key; assert Continue |
 | (unit-test) | Malformed `factory_lock` block returns Continue with log_warn | Rust unit test: invalid ISO-8601 `expires_at`; assert Continue + warn |
-| (unit-test) | `CapabilityDenied` on `read_file` graceful-degrades to Continue | Rust unit test: mock `host::read_file` returning `CapabilityDenied`; assert Continue |
+| (unit-test) | `CapabilityDenied` on `read_prefix` graceful-degrades to Continue | Rust unit test: mock `host::read_prefix` returning `CapabilityDenied`; assert Continue |
 | (unit-test) | `CapabilityDenied` on `exec_subprocess` graceful-degrades to Continue | Rust unit test: mock returning `CapabilityDenied`; assert Continue |
 | (bats) | Bats D9 test coverage per ADR-025 §D9 (9 scenarios) | See Canonical Test Vectors T-1..T-10 |
-| VP-095 | verify-factory-lock handles STATE.md files up to STATE_MD_MAX_BYTES=262144 bytes without output_too_large denial; ADR-025 Decision 14; BC-4.13.001 Precondition 3 | integration (S-19.02) |
+| VP-095 | verify-factory-lock reads `.factory/STATE.md` via `host::read_prefix(max_bytes=262144)`; `OutputTooLarge` is structurally impossible (BC-1.17.001 structural guarantee); frontmatter extracted within prefix; `state_md_approaching_prefix_envelope` emitted when `frontmatter_extent > 196608`; `FrontmatterExceedsEnvelope` distinguished from `MalformedLockBlock` when delimiter absent; ADR-025 §Decision 14, §Decision 20; Phase-B active (S-19.07 merged 2026-07-17) | integration (S-19.07) |
 | VP-096 | extract_frontmatter output byte-equals file prefix bytes 0..delimiter_start_offset (up to but excluding second ---\n delimiter line; opening ---\n included); deterministic for any input | proptest (S-19.02; harness crates/factory-lock-parse/tests/proptest_extract_frontmatter.rs) |
 
 ## Traceability
@@ -476,14 +503,14 @@ pattern that `verify-factory-lock` follows (ADR-025 Rationale §Why native WASM)
 | Capability Anchor Justification | CAP-031 ("Enforce single-writer cross-session exclusivity on factory-artifacts state") per capabilities.md §CAP-031 — this BC defines the `verify-factory-lock` WASM PreToolUse guard that IS the primary enforcement mechanism for CAP-031. The guard blocks mutating tools when a foreign unexpired lock is held, which is exactly the blocking behavior CAP-031 specifies. |
 | L2 Domain Invariants | none (cross-session operational invariant, not L2 domain spec) |
 | Architecture Module | `crates/hook-plugins/verify-factory-lock/` (existing crate; compiles to `hook-plugins/verify-factory-lock.wasm`); `crates/hook-sdk/src/lib.rs` (HOST_ABI_VERSION=1 anchor); `crates/factory-dispatcher/src/executor.rs` (plugin_requests_block block path; sync-group partition); `plugins/vsdd-factory/hooks-registry.toml` (registry entries D2) |
-| Stories | S-19.02 (Phase-A; `verify-factory-lock` guard implementation; W1 implementation pending merge); S-19.07 (Phase-B; `host::read_prefix` migration; forward-scheduled; depends_on [S-19.02, S-19.06]) |
-| ADR Reference | ADR-025 §Decision 1 (verify-factory-lock guard; primary); §Decision 14 (STATE_MD_MAX_BYTES=262144 + frontmatter-only parse; Precondition 3 / Invariant 9); §Decision 15 (host::read_prefix; Phase-B activation); and Deliverable D18 (host::read_prefix deliverables; Phase-B migration path); ADR-016 (artifact path guard pattern + `on_error = "continue"` precedent); ADR-019 (sync/async partition; `async = false` CI lint invariant); ADR-020 (Class A latency budget ≤1500ms p95) |
+| Stories | S-19.02 (Phase-A; `verify-factory-lock` guard implementation; W1 merged; Phase-A superseded by Phase-B); S-19.07 (Phase-B; `host::read_prefix` migration; merged 2026-07-17, PR #670, 6db4c9fc) |
+| ADR Reference | ADR-025 §Decision 1 (verify-factory-lock guard; primary); §Decision 14 (STATE_MD_MAX_BYTES=262144 + frontmatter-only parse; Precondition 3 / Invariant 9); §Decision 15 (host::read_prefix; Phase-B activation); §Decision 20 (Phase-B envelope diagnostic: `state_md_approaching_prefix_envelope` + `FrontmatterExceedsEnvelope` distinction; Invariant 10); and Deliverable D18 (host::read_prefix deliverables; Phase-B migration path); ADR-016 (artifact path guard pattern + `on_error = "continue"` precedent); ADR-019 (sync/async partition; `async = false` CI lint invariant); ADR-020 (Class A latency budget ≤1500ms p95) |
 
 ## Related BCs
 
 - BC-5.40.001 — depends on (defines the `factory_lock` STATE.md frontmatter schema that this guard reads; PC4 malformed-block behavior and TTL semantics)
 - BC-6.23.001 — composes with (defines the `/factory-lock` acquire and `/factory-unlock` release skills; the guard enforces what those skills set)
-- BC-4.11.001 — sibling (validate-artifact-path WASM guard; same PreToolUse pattern, same `on_error = "continue"` and `host::read_file` discipline)
+- BC-4.11.001 — sibling (validate-artifact-path WASM guard; same PreToolUse pattern, same `on_error = "continue"` and `host::read_prefix` discipline)
 
 ## Architecture Anchors
 
@@ -496,18 +523,19 @@ pattern that `verify-factory-lock` follows (ADR-025 Rationale §Why native WASM)
 ## Story Anchor
 
 Dual-story anchor: Phase-A — S-19.02 (`verify-factory-lock` guard implementation; W1
-implementation pending merge); Phase-B — S-19.07 (`host::read_prefix` migration;
-forward-scheduled; depends_on [S-19.02, S-19.06]).
+merged; Phase-A superseded by Phase-B); Phase-B — S-19.07 (`host::read_prefix` migration;
+merged 2026-07-17, PR #670, 6db4c9fc).
 
 ## VP Anchors
 
-- VP-095 — verify-factory-lock Reads STATE.md Without output_too_large Denial for Sizes up to 262144 Bytes (integration; S-19.02)
+- VP-095 — verify-factory-lock reads STATE.md via `host::read_prefix(max_bytes=262144)`; `OutputTooLarge` structurally impossible (BC-1.17.001); `state_md_approaching_prefix_envelope` and `FrontmatterExceedsEnvelope` diagnostics per ADR-025 §Decision 14, §Decision 20; Phase-B active (S-19.07 merged 2026-07-17) (integration; S-19.07)
 - VP-096 — extract_frontmatter Purity — Output Byte-Equals File Prefix Up To (Excluding) the Second --- Delimiter Line (bytes 0..delimiter_start_offset; opening ---\n included); Deterministic for Any Input (proptest; S-19.02; harness crates/factory-lock-parse/tests/proptest_extract_frontmatter.rs)
 
 ## Changelog
 
 | Version | Date | Description |
 |---------|------|-------------|
+| 1.18 | 2026-07-17 | E-19 W3 wave-gate W3G-001 (HIGH) + W3G-002 (MEDIUM) closure (product-owner): Phase-B active (S-19.07 merged 2026-07-17, PR #670, 6db4c9fc). (1) W3G-002 Phase-B active framing: Description `host::read_file` → `host::read_prefix`; Precondition 3 Phase-A label retired / Phase-B label active; PC3/PC6/Invariant 5 TOML/Invariant 7/EC-007/Related BCs `read_file` → `read_prefix`; PC6 `OutputTooLarge` removed from `HostError` variant list (`read_prefix` structural guarantee per BC-1.17.001); Precondition 3 Phase-A retired framing / Phase-B active framing; Traceability Stories + Story Anchor + ADR Reference updated; ADR Reference §Decision 20 added. (2) W3G-001 Invariant 10 superseded-in-place → Phase-B envelope diagnostic per ADR-025 §Decision 20: `APPROACHING_ENVELOPE_THRESHOLD = 196608` bytes (75% of 262144); `state_md_approaching_prefix_envelope` event (`frontmatter_extent_bytes`/`prefix_cap_bytes`/`utilization_pct`); `FrontmatterExceedsEnvelope` vs `MalformedLockBlock` hard-distinction (`bytes_returned == prefix_cap_bytes` predicate); implementation SPECIFIED, anchored to E-20-ARCH-02 (pending registration); EC-018 (`FrontmatterExceedsEnvelope`) + EC-019 (approaching-envelope) added append-only; VP-095 description updated Phase-B active. |
 | 1.17 | 2026-07-16 | S-19.07 F-P1-001 BLOCKER (architect adjudication ADR-025 §Decision 15): Phase-B §Precondition 3 `read_prefix` bound corrected 8192→262144. The v1.6 derivation "8192-byte bound sufficient for any realistic frontmatter (<2 KB under compaction discipline)" is premise-false: ADR-026 §Decision 7 is a line-count discipline (≤200/≤500 lines), not a byte bound. Measured reality 2026-07-16: closing `---` at byte 35,175 of 178,742-byte STATE.md; `last_amended` field alone 32,648 bytes; at max_bytes=8192 the guard is silently inert (prefix contains no closing delimiter → full-input fallback → `MalformedLockBlock` → fail-open `Continue`; `factory_lock` block ~27 KB beyond the 8192-byte window). Corrected bound = 262144 (STATE.md byte envelope: §Precondition 3 Phase-A + BC-5.40.001 §Precondition 6); structural guarantee: any on-envelope STATE.md has its closing `---` and `factory_lock` block within the 262144-byte prefix. Root disease: inlined `last_amended` frontmatter byte-bloat anchored to S-15.03 PRIORITY-A structured-changelog migration; ADR-026 line-discipline does not constrain bytes. Sibling 8192 sweep: all normative 8192 cites corrected; changelog v1.6 row is historical-by-construction. |
 | 1.16 | 2026-07-13 | S-19.04 adversary pass-1 F-1 (architect ruling 2026-07-13): Invariant 5 TOML snippet anchored — primary entry `tool = "Edit\|Write\|MultiEdit\|Agent"` → `tool = "^(Edit\|Write\|MultiEdit\|Agent)$"`; Bash arm entry `tool = "Bash"` → `tool = "^Bash$"` (S-19.04 D-a table singleton convention). Precondition 2 natural-language tool pattern references updated to anchored forms. Precondition 1 anchored-form parenthetical unchanged (already `^(Edit\|Write\|MultiEdit\|Agent)$`). Anchoring-only change; behavioral content (PCs, invariants, ECs, TVs, thresholds) unchanged. Implemented by S-19.04, W2 — pending merge. |
 | 1.15 | 2026-07-11 | S-19.02 pass-1 F-S1902-P1-001 (human-approved spec evolution): Invariant 9 amended to enumerate CRLF frontmatter delimiter forms (`\r\n---\r\n`, `\r\n---` EOF) alongside LF forms (`\n---\n`, `\n---` EOF); byte-exact-prefix contract specified for both forms; `delimiter_start_offset` definition extended to cover CRLF (byte index of the `\r` beginning `\r\n---\r\n`); Verification note updated. EC-017 added: CRLF STATE.md scenario (Windows git autocrlf checkout → closing delimiter `\r\n---\r\n`; guard extracts frontmatter-only; byte-exact-prefix invariant holds for CRLF form). |

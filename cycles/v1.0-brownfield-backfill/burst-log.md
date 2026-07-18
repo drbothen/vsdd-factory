@@ -20078,3 +20078,85 @@ Latest adversary files remain D-839 passes. No new adversary file for D-840. Fin
 - D-840 main burst: `fd54e70b`
 - D-839 SHA-patch: `e5f5df66` (parent-commit)
 - D-839 main burst: `2c6a815b`
+
+## D-853 — E19-W3-EPIC-WAVE-GATE-CLOSURE-BURST2 (2026-07-17)
+
+### Block 1 — Parent-commit
+
+Parent-commit: `94e91663` (D-852 burst; E19-W3-EPIC-WAVE-GATE-CLOSURE-BURST1).
+
+### Block 2 — Adversary verdict
+
+Wave-gate adversarial review (e-19-wave-gate-w3-epic.md): Gate 3 NOT-CLEAN 0B/1H/1M/3L — 5 findings W3G-001..W3G-005.
+
+- **W3G-001 HIGH CLOSED D-852:** 8 E-19 stories (S-19.01..S-19.06, S-19.08, S-19.09) retained `status: draft` in frontmatter despite being merged. 5-leg POLICY 14 parity not maintained at merge time. CLOSED D-852: all 8 stories updated (status draft→merged, version bumped, last_amended prepended, input-hash refreshed; BC-2.02.011 RETROACTIVE-POL-14 corrected).
+- **W3G-002 MEDIUM CLOSED D-853:** E-19 epic file `E-19-post-rc22-operator-hardening.md` status: draft / version: v1.30 despite STORY-INDEX reflecting COMPLETE 9/9 at D-851. CLOSED D-853: epic v1.30→v1.31 status draft→complete completion_date 2026-07-17.
+- **W3G-003 LOW CLOSED D-853:** merged_count (107) vs sprint-state predicate (113) gap of 6 undocumented; no canonical merged_count definition. CLOSED D-853: canonical definition + counting predicate added §Identifier Conventions.
+- **W3G-004 LOW ACCEPTED-WITH-RECORD:** VP-081..VP-093 missing DF-030 lifecycle template fields. Full migration requires dedicated future story. Governance ruling committed D-852.
+- **W3G-005 LOW ACCEPTED-WITH-RECORD:** arch-post-epic and sw-post-epic closure reports lost at session wrap D-849. Reports committed to factory-artifacts at D-853. Lesson codified.
+
+Gate 1 PASS-AFTER-REMEDIATION (stale local binary + banner wc-l off-by-one fixed). Gate 2 SKIP. Gate 4 PASS. Gate 5 SKIP. Gate 6 PASS. GATE STATUS: PASS-PENDING-HUMAN.
+
+### Block 3 — Files touched
+
+D-852 burst-1 (committed `94e91663`): `cycles/v1.0-brownfield-backfill/decision-log.md` (D-852 entry); `cycles/v1.0-brownfield-backfill/e-19-wave-gate-w3-consistency.md` (NEW); `cycles/v1.0-brownfield-backfill/vp-lifecycle-convention.md` (NEW); `specs/behavioral-contracts/BC-INDEX.md` v4.09 (S-19.01..09 story-status row updates); `specs/behavioral-contracts/ss-02/BC-2.02.011.md` (RETROACTIVE-POL-14 lifecycle fix); `specs/verification-properties/VP-INDEX.md`; stories S-19.01/02/03/04/05/06/08/09 frontmatter (status draft→merged, POL-14 parity); `stories/STORY-INDEX.md`.
+
+D-853 burst-2 (this commit): `specs/behavioral-contracts/BC-INDEX.md` (v4.09→v4.10 BC-4.13.001 row); `specs/behavioral-contracts/ss-04/BC-4.13.001.md` (v1.18); `specs/architecture/ARCH-INDEX.md` (v3.06 E-19 row); `specs/architecture/decisions/ADR-025-single-writer-factory-locklease-prevent-concurrent-session-races-on-factory-artifacts-orphan-branch.md` (v1.19); `specs/verification-properties/VP-101.md` (v1.4); `stories/S-19.07-verify-factory-lock-read-prefix-migration.md` (v1.28 merged); `stories/epics/E-19-post-rc22-operator-hardening.md` (v1.30→v1.31 complete); `STATE.md` (v5.99→v6.00); `cycles/v1.0-brownfield-backfill/e-19-wave-gate-w3-epic.md` (NEW); `cycles/v1.0-brownfield-backfill/e-19-arch-post-epic-report.md` (NEW); `cycles/v1.0-brownfield-backfill/e-19-sw-post-epic-report.md` (NEW); `cycles/v1.0-brownfield-backfill/decision-log.md` (D-853 appended); `cycles/v1.0-brownfield-backfill/lessons.md` (3 lessons appended); `cycles/v1.0-brownfield-backfill/burst-log.md` (this entry); auto-generated logs/regression-state/sidecar-learning.
+
+### Block 4 — Codifications
+
+- **D-853** in decision-log.md: E19-W3-EPIC-WAVE-GATE-CLOSURE-BURST2.
+- **L-BB-local-target-release-staleness-causes-gate1-false-failures** [process-gap] [codified D-853]: local target/release binary can predate latest merged develop tip; always rebuild before running gate-1 tests.
+- **L-BB-epic-closure-reports-must-be-committed-at-session-end** [process-gap] [codified D-853]: arch-post-epic and sw-post-epic reports must be committed to factory-artifacts in the same burst as the epic-completion event; never left only in conversation context at session wrap.
+- **L-BB-banner-wc-l-drift-escapes-without-validate-state-structure-in-precommit** [process-gap] [codified D-853]: STATE.md banner wc-l placeholder (~NNN) can survive unnoticed without running validate-state-structure as a pre-commit gate; codify wc-l update + cargo test as mandatory Commit E gates.
+
+### Block 5 — Dim-2 literal-shell gate attestation
+
+**POLICY 16 GLOBAL-MAX GATE (D-449(a) literal-shell):**
+```
+$ grep -n "^## D-" .factory/cycles/v1.0-brownfield-backfill/decision-log.md | tail -3
+10556:## D-851
+10568:## D-852
+10580:## D-853
+```
+→ ## D-852 confirmed max at burst-start → D-853 allocated. PASS.
+
+**4-INDEX LITERAL-SHELL GATE (D-449(a)):**
+```
+$ grep "^version:" .factory/specs/behavioral-contracts/BC-INDEX.md .factory/specs/verification-properties/VP-INDEX.md .factory/stories/STORY-INDEX.md .factory/specs/architecture/ARCH-INDEX.md
+.factory/specs/verification-properties/VP-INDEX.md:version: "2.72"
+.factory/specs/architecture/ARCH-INDEX.md:version: "3.06"
+.factory/specs/behavioral-contracts/BC-INDEX.md:version: "4.10"
+.factory/stories/STORY-INDEX.md:version: "4.219"
+```
+→ BC v4.10 / VP v2.72 / STORY v4.219 / ARCH v3.06. BC v4.09→v4.10 this burst; VP/STORY/ARCH UNCHANGED. PASS.
+
+**validate-state-structure cargo test (D-449(a)):**
+```
+$ cargo test -p validate-state-structure --lib 2>&1 | grep "test result"
+test result: ok. 65 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+```
+→ 65/65 PASS. Banner wc-l 395 assertion PASS.
+
+**W3G-003 findings count gate (D-449(a) / D-448(a) source-attestation):**
+```
+$ grep "^### W3G-" .factory/cycles/v1.0-brownfield-backfill/e-19-wave-gate-w3-epic.md | wc -l
+       5
+```
+→ 5 findings W3G-001..W3G-005 confirmed. Adversary verdict paragraph above faithfully describes gate-3 finding set. PASS.
+
+### Block 6 — Dim-5 attestation
+
+All 9 E-19 stories MERGED. No spec body content authored by state-manager. All spec changes (BC-4.13.001 v1.18, ADR-025 v1.19, VP-101 v1.4, S-19.07 v1.28) committed by appropriate specialists in D-852. State-manager role limited to: BC-INDEX row update, STATE.md advance, burst-log, decision-log codification, wave-gate record authorship, epic frontmatter advance (F-003). Production-grade default satisfied.
+
+### Block 7 — Dim-6 literal-shell finding count
+
+Wave-gate adversarial review: 0B/1H/1M/3L = 5 findings (W3G-001..W3G-005). 3 CLOSED in D-852+D-853. 2 accepted-with-record. Net unresolved: 0.
+
+### Block 8 — Closes + factory-artifacts commits
+
+**Closes:** W3G-001 (CLOSED D-852); W3G-002 (CLOSED D-853); W3G-003 (CLOSED D-853); W3G-004 (ACCEPTED-WITH-RECORD); W3G-005 (ACCEPTED-WITH-RECORD).
+
+**factory-artifacts commits:**
+- D-852 burst: `94e91663` (parent-commit)
+- D-853 burst: TBD (SHA-patch follow-up)
