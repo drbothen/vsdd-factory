@@ -20159,4 +20159,4 @@ Wave-gate adversarial review: 0B/1H/1M/3L = 5 findings (W3G-001..W3G-005). 3 CLO
 
 **factory-artifacts commits:**
 - D-852 burst: `94e91663` (parent-commit)
-- D-853 burst: TBD (SHA-patch follow-up)
+- D-853 burst: `a20b198b`
