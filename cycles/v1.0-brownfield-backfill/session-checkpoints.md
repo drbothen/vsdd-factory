@@ -7,7 +7,7 @@ producer: state-manager
 timestamp: 2026-04-26T12:00:00Z
 cycle: v1.0-brownfield-backfill
 inputs: [STATE.md]
-input-hash: "92de842"
+input-hash: "5f0ace7"
 traces_to: STATE.md
 ---
 
@@ -946,6 +946,17 @@ Summary of D-839 checkpoint (archived reference):
 - develop HEAD: `091ce499` (origin) / main HEAD: `a04cb303` / factory-artifacts HEAD: `e5f5df66` (D-839 SHA-patch) / merged_count 101
 - D-range: D-001..D-839 (see decision-log.md for full range)
 
+---
+
+## D-856 Checkpoint (archived 2026-07-18 by D-857 session wrap — SESSION-WRAP-PAUSED)
+
+**Superseded by D-857 SESSION-WRAP-PAUSED checkpoint (STATE.md §Session Resume Checkpoint).**
+
+Summary of D-856 checkpoint (archived reference):
+- D-856 (2026-07-18): RC23-SHIPPED release-record burst COMPLETE. v1.0.0-rc.23 SHIPPED 2026-07-18. First pipeline failed (run 29656342082 — 2 WASMs gitignored + T-012 cold-compile timeout). Recovery PR #689 --merge 0f8b2a89. Retag v1.0.0-rc.23 at 0f8b2a89. Second pipeline run 29660640970 all 10 PASS. Bot commit 80e5cd7b. POLICY 20 34/34 WASMs 0 missing 0 orphans. Marketplace claude-mp#18 MERGED 2026-07-18T22:48:17Z. RELEASE-GATE BLOCKER CLOSED. E-20 DEFERRED. operator-install-verification PENDING. STATE.md v6.02→v6.03.
+- 4-index at D-856: BC v4.10 / VP v2.72 / STORY v4.219 / ARCH v3.06. L2-INDEX v1.0.15. total_bcs 1,977.
+- develop HEAD: `584b0518` (origin; sync-develop merge 2026-07-18) / main HEAD: `80e5cd7b` (bot bundle 2026-07-18) / factory-artifacts HEAD: `cce316f0` (D-856-SHA-PATCH; pushed 2026-07-18) / merged_count 107
+- D-range: D-001..D-856 (see decision-log.md for full range)
 ---
 
 ## D-848 Checkpoint (archived 2026-07-16 by D-849 session wrap — SESSION-WRAP-PAUSED)
