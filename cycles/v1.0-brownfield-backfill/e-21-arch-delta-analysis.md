@@ -2,11 +2,12 @@
 document_type: architect-delta-analysis
 epic_id: "E-21"
 epic_working_title: "Factory State Data-Loss Hardening"
-version: "v1.2"
+version: "v1.3"
 status: draft
 producer: architect
 timestamp: 2026-07-19T00:00:00Z
 modified:
+  - "2026-07-19 (v1.3) — F-P2 adversary adjudications (architect): (1) Issue #342 Mechanism 2 host-set corrected to EMPTY: pr-manager (server-side gh pr merge; BC-5.43.001 PC3 exclusion), devops-engineer (rebase on story worktree; .factory/ not mounted), state-manager (git -C .factory only) all removed from named-host description; forward-looking zero-host mandate documented (F-P2-001; ADR-031 v1.2 §Decision 2). (2) Two volatile pr-manager.md:139 line-number pins converted to behavioral anchors: pr-manager.md Step 3 `gh pr create` invocation (F-P2-006; TD-VSDD-091). (3) BC/VP impact note updated to reflect zero-host mandate framing."
   - "2026-07-19 (v1.2) — F-P1 adversary adjudications (architect): (1) INV-E21-005 renamed from PR Trunk Ancestry to Post-Rebase Diff Integrity; INV-E21-006 = PR Trunk Ancestry appended (append-only; ADR-031 v1.1 §Decision 1); delta-analysis invariant catalog updated to match. (2) Issue #523 root-cause corrected: `git worktree remove --force` claim wrong; actual mechanism = `.factory/` is gitignored on product branch, so shadow content is gitignored (not untracked), plain `git worktree remove` passes clean-state check, underlying rm-rf silently destroys shadow content. (3) Issue #365 solution-shape host surface corrected: pr-manager.md step 8 = Execute merge (not rebase); correct host = devops-engineer.md §Inter-Wave Rebase (the only site with rebase+force-with-lease); step-f-pr-lifecycle.md has no rebase sub-step."
   - "2026-07-19 (v1.1) — stale crate name `validate-artifact-path` corrected to `validate-factory-path-staging` throughout (ADR-031 §Decision 3, commit 14a78515; original crate serves BC-4.11.001 S-13.01 and collides on registry filename + cargo output); #365 root-cause mechanism corrected (adjacent-edit cases conflict; silent drops require larger-hunk or moved-code diffs; `git range-diff` cited as canonical detector per BC-5.44.001); #358 gh-base-inference statement corrected (gh uses `gh-merge-base` git config or repo default branch, not tracking upstream, when `--base` is omitted)."
 cycle: v1.0-brownfield-backfill
@@ -66,15 +67,25 @@ Two layers:
    `.factory/` on a product branch (develop/main/feature/*). This is the structural
    fix: no dual-tracking → no clobber surface.
 
-2. **Safety net layer (intercept before harm):** Add a skill-doc step to the
-   orchestrator's product-branch merge protocol: before any `git merge` or
-   `git pull` on the product branch, run `git diff --name-only HEAD..<target>`
-   and assert the result contains no path matching `.factory/`. If it does, STOP
-   and require manual handling. This is implementable as a mandatory step in the
-   orchestrator agent prompt for merge operations (SS-05, skill-doc change).
+2. **Safety net layer (intercept before harm):** BC-5.43.001 mandates that any agent
+   or skill performing a local `git merge` or `git pull` on the main product checkout
+   (the checkout where `.factory/` is physically mounted as a nested worktree) must run
+   `git diff --name-only HEAD..<target>` before the operation and assert the result
+   contains no path matching `.factory/`. If it does, STOP and require manual handling.
+   **CURRENT HOST SET: EMPTY.** As of v1.3, no agent or skill in the codebase performs
+   a local `git merge` or `git pull` on the product checkout. pr-manager.md performs
+   only server-side `gh pr merge` (excluded by BC-5.43.001 PC3). devops-engineer.md
+   §Inter-Wave Rebase performs `git rebase origin/develop` on the story worktree
+   (`.worktrees/STORY-NNN/`), not the main checkout — `.factory/` is NOT mounted there.
+   state-manager operates only on `git -C .factory` (factory-artifacts branch). This is
+   a standing forward-looking protocol mandate for any future agent/skill that introduces
+   a local merge/pull on the product checkout.
+   [F-P2-001 adjudication: original "orchestrator agent prompt for merge operations"
+   host description corrected; see ADR-031 v1.2 §Decision 2 + §Rationale for full analysis.]
 
 POLICY 21 note: mechanism (1) introduces a new WASM crate (`validate-factory-path-staging`
-per ADR-031 §Decision 3); no new .sh file required. Mechanism (2) is a skill-doc change.
+per ADR-031 §Decision 3); no new .sh file required. Mechanism (2) is a skill-doc mandate
+(currently zero-host; see above).
 
 **BC/VP impact.**
 E-17 BCs (BC-4.13.001 factory-lock guard, BC-5.40.001 STATE.md lock schema,
@@ -82,8 +93,8 @@ BC-6.23.001 lock/unlock skill) address *concurrent-session* write races on
 `factory-artifacts`. They do not address product-branch merge clobbering of the
 nested worktree. **New BC required**: one BC in SS-04 covering the
 `validate-factory-path-staging` WASM plugin's PreToolUse behavior (blocking `git add`
-of `.factory/` paths on non-`factory-artifacts` branches), and one BC amendment
-to SS-05 (orchestrator merge-gate pre-check).
+of `.factory/` paths on non-`factory-artifacts` branches); BC-5.43.001 covering the
+Layer-2 pre-merge check as a standing zero-host mandate (SS-05).
 E-18 BCs address context-window durability, not git-level working-tree destruction.
 No reuse available for this issue.
 
@@ -174,7 +185,9 @@ candidate (no inter-E-21 dependencies).
 
 **Root-cause statement (mechanism).**
 `pr-manager` already emits `--base develop` in its `gh pr create` invocation
-(confirmed at `plugins/vsdd-factory/agents/pr-manager.md:139`). The explicit-base
+(confirmed at pr-manager.md Step 3 — the `gh pr create` Agent call includes `--base develop`).
+[F-P2-006: volatile line-number pin converted to behavioral anchor per TD-VSDD-091.]
+The explicit-base
 half of the fix is in place. The open gap is the absence of two post-action
 assertions:
 
@@ -530,7 +543,7 @@ in theme (shared-mutable-worktree lifecycle) but use different artifacts and BCs
 |-------|------------------|-----------|----------------|--------|
 | #342 product-branch clobber | CONFIRMED OPEN — factory-branch-guard covers Edit/Write, not Bash-tool git merge/checkout; no pre-merge intersection check exists | New BC in SS-04 (`validate-factory-path-staging` WASM per ADR-031 §D3, PreToolUse Bash gate) + SS-05 amendment (merge gate skill-doc) | S-21.01 Wave 1 | 11 |
 | #365 rebase silent drop | CONFIRMED OPEN — no post-rebase diff-integrity step exists in deliver-story or pr-manager; path referenced in issue ("orchestrator-rebase playbook") does not exist in codebase | New BC in SS-05 (post-rebase diff-integrity gate as required protocol step) | S-21.02 Wave 1 | 3 |
-| #358 PR base not locked | PARTIALLY FIXED (--base develop in place at pr-manager.md:139) / GAP CONFIRMED OPEN (post-create baseRefName assertion absent; post-merge --is-ancestor check absent) | BC amendment to SS-06 (BC-6.10.002 or new BC covering pr-manager 9-step postconditions PC-N and PC-N+1) | S-21.03 Wave 1 | 3 |
+| #358 PR base not locked | PARTIALLY FIXED (--base develop in place at pr-manager.md Step 3 `gh pr create` invocation) / GAP CONFIRMED OPEN (post-create baseRefName assertion absent; post-merge --is-ancestor check absent) | BC amendment to SS-06 (BC-6.10.002 or new BC covering pr-manager 9-step postconditions PC-N and PC-N+1) | S-21.03 Wave 1 | 3 |
 | #523 story-worktree teardown loss | CONFIRMED OPEN — shared-context write-path discipline names reads only; step-g-cleanup has no teardown preflight | New BC in SS-06 (story-worktree write-path discipline + teardown preflight as required postconditions) | S-21.04 Wave 2 | 5 |
 | #588 factory-side PR branch strand | CONFIRMED OPEN — pr-manager.md has no factory-side PR protocol section; step 9 has no restore-original-branch logic | BC-6.23.001 amendment or new BC-6.26.001 (pr-manager factory-side PR protocol with restore-original-branch, ff-only pull, chore-branch cleanup) | S-21.05 Wave 2 | 5 |
 

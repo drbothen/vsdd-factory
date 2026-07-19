@@ -2,7 +2,7 @@
 document_type: architecture-decision-record
 level: L3
 adr_id: ADR-031
-version: "1.1"
+version: "1.2"
 title: "ADR-031: E-21 factory state data-loss hardening — nested-worktree path exclusivity protection model"
 status: accepted
 date: 2026-07-19
@@ -26,8 +26,9 @@ subsystems_affected:
   - SS-04
   - SS-05
   - SS-06
-last_amended: "2026-07-19 (v1.1) — F-P1 adversary adjudications: (1) INV-E21-006 added (PR Trunk Ancestry; append-only to Decision 1; Decision 8 added for enforcement; CAP-038 allocated); (2) on_error corrected block→continue (fail-open; spec-wins per BC-4.16.001 PC3+Inv2; two-layer defense absorbs Layer 1 crash; blocking all Bash use disproportionate); (3) §Context issue #358 corrected (stale-annotation premise was wrong; real issue = PR base not locked to trunk; post-create baseRefName assertion + post-merge --is-ancestor check absent); (4) §Consequences: BC-6.10.002 CAP-038 assignment + F-P1-006 host-surface ruling (devops-engineer.md §Inter-Wave Rebase) added. [Prior: 2026-07-19 (v1.0) — Initial authorship (E-21 factory state data-loss hardening; issues #342, #365, #358, #523, #588; 5 invariants INV-E21-001..INV-E21-005; validate-factory-path-staging crate naming decision; POLICY 21 compliance; CAP-034..CAP-037 allocated).]"
+last_amended: "2026-07-19 (v1.2) — F-P2 adversary adjudications: (1) §Decision 2 Layer-2 host-set corrected to EMPTY: pr-manager (server-side gh pr merge, excluded by BC-5.43.001 PC3), devops-engineer (rebase on story worktree, .factory/ not mounted there), state-manager (git -C .factory only) all removed; forward-looking mandate documented; (2) §Decision 7 count fixed Four→Five (F-P2-002: CAP-038 count sweep missed at v1.1); (3) §Rationale: F-P2-001 zero-host analysis + F-P2-007 teardown dispatch-point ruling added. [Prior: 2026-07-19 (v1.1) — F-P1 adversary adjudications: on_error block→continue; INV-E21-006 added; §Context #358 corrected; CAP-038 allocated.]"
 modified:
+  - "2026-07-19 (v1.2)"
   - "2026-07-19 (v1.1)"
   - "2026-07-19 (v1.0)"
 ---
@@ -133,12 +134,24 @@ layers:
   a WASM crash is operationally disproportionate; the two-layer defense absorbs Layer 1 failures
   via Layer 2.
 
-- **Layer 2 — Safety-net layer (skill-doc enforcement):** BC-5.43.001 mandates that the
-  orchestrator, pr-manager, devops-engineer, and state-manager run
-  `git diff --name-only HEAD..<target-ref>` before any `git merge`, `git pull`, or `git checkout`
-  that advances HEAD on the product branch. If the result contains any path matching
-  `^\.factory/`, the operation MUST be halted with `FactoryPathDeletionInMergeDiff`. This layer
-  intercepts pre-existing dual-tracking that formed before the runtime guard was active.
+- **Layer 2 — Safety-net layer (skill-doc enforcement):** BC-5.43.001 mandates that any
+  agent or skill performing a local `git merge` or `git pull` on the main product checkout
+  (the checkout where `.factory/` is physically mounted as a nested worktree) MUST run
+  `git diff --name-only HEAD..<target-ref>` before the operation. If the result contains any
+  path matching `^\.factory/`, the operation MUST be halted with `FactoryPathDeletionInMergeDiff`.
+  This layer intercepts pre-existing dual-tracking that formed before the runtime guard was active.
+  **CURRENT HOST SET: EMPTY (as of v1.2).** No agent or skill in the codebase performs a local
+  `git merge` or `git pull` on the main product checkout. Specific exclusions: (a) `gh pr merge`
+  in pr-manager.md is a server-side non-working-tree operation explicitly excluded by
+  BC-5.43.001 PC3; (b) `git rebase origin/develop` in devops-engineer.md §Inter-Wave Rebase
+  operates on the story worktree (`.worktrees/STORY-NNN/`) where `.factory/` is NOT mounted as a
+  nested worktree; (c) state-manager uses only `git -C .factory` operations on the
+  `factory-artifacts` branch (not the product checkout). The guard is a standing forward-looking
+  protocol mandate: any future agent/skill that adds a local `git merge` or `git pull` on the
+  main product checkout MUST implement this pre-check.
+  [F-P2-001 adjudication: "orchestrator, pr-manager, devops-engineer, state-manager" named in
+  earlier draft removed; host set corrected to EMPTY with individual exclusion rationale; see
+  §Rationale for full analysis.]
 
 **Decision 3 — New WASM crate naming (MANDATORY — do not reuse `validate-artifact-path`).** The
 S-21.01 Bash-targeting guard MUST be implemented in a NEW crate:
@@ -202,8 +215,9 @@ satisfied). The gate runs between rebase completion and `git push --force-with-l
    If any such file cannot be confirmed, the gate halts with `UnverifiedNetNegativeDelta`;
    `git push --force-with-lease` is blocked.
 
-**Decision 7 — CAP allocation.** Four new capability entries registered in `capabilities.md`
+**Decision 7 — CAP allocation.** Five new capability entries registered in `capabilities.md`
 (v1.8 → v1.9) at the next available IDs after CAP-033:
+[F-P2-002 fix: count corrected from "Four" — CAP-038 was added at v1.1 but the aggregation cell was not swept; five is the correct total.]
 
 | CAP-ID | Description | Subsystems | BCs |
 |--------|-------------|------------|-----|
@@ -264,6 +278,36 @@ specified `on_error = block`; corrected at v1.1.
 deferrals" principle. Reusing `validate-artifact-path` would be the cheap path; creating a
 distinct crate with a semantically accurate name is the correct path and avoids the concrete
 failure modes enumerated in Decision 3.
+
+**Teardown preflight at dispatch-point vs. co-location (Decision 2, F-P2-007 adjudication):**
+The Layer-2 teardown preflight for INV-E21-004 (BC-6.26.001 / S-21.04) is hosted in
+`step-g-cleanup.md` (the dispatch-point skill-doc), NOT co-located in `devops-engineer.md
+§Worktree Cleanup`. Ruling: keep dispatch-point gating. Rationale: (1) `step-g-cleanup.md` is
+the factory-specific skill that owns the teardown protocol and is the correct host for
+factory-invariant assertions; (2) `devops-engineer.md` is a general-purpose agent whose
+§Worktree Cleanup section describes developer workflow mechanics — embedding `.factory/`
+inventory logic there couples it to factory-specific knowledge it should not own; (3) this is
+NOT symmetric with F-P1-006 (which moved the rebase gate INTO devops-engineer §Inter-Wave
+Rebase): the rebase gate guards a developer-workflow operation performed by devops-engineer
+itself (same agent, same context), while the teardown preflight is a CALLER-SIDE
+factory-invariant check that step-g-cleanup.md performs before dispatching devops-engineer —
+the caller-callee split is intentional.
+[Closes adversary F-P2-007.]
+
+**Layer-2 zero-host analysis (Decision 2, F-P2-001 adjudication):**
+The observation that Layer-2 currently has no host is architecturally correct, not a gap.
+The VSDD pipeline's merge model is server-side (via `gh pr merge`), and local `git merge`
+or `git pull` on the main product checkout is not part of any current delivery workflow.
+The two-layer defense for INV-E21-001 is therefore asymmetric by design: Layer 1 (runtime
+WASM guard) has active enforcement; Layer 2 (pre-merge skill-doc check) is a standing
+forward-looking mandate with zero current hosts. This is acceptable because: (a) the primary
+threat vector (git staging on non-factory-artifacts branches) is covered by Layer 1; (b) the
+secondary threat vector (pre-existing dual-tracking entering via a merge) requires a merge to
+exist — which no current workflow does on the product checkout; (c) the mandate is specified
+in BC-5.43.001 and must be applied if the workflow ever changes.
+[Closes F-P2-001; PO propagation: BC-5.43.001 must be updated to reflect zero-host status
+and forward-looking mandate framing; SW: S-21.01 must note that Layer-2 implementation =
+zero-host mandate, not pr-manager amendment.]
 
 ## Consequences
 
@@ -350,5 +394,6 @@ factory-side PR restore protocol).
 
 | Version | Date | Description |
 |---------|------|-------------|
+| 1.2 | 2026-07-19 | F-P2 adversary adjudications (architect). §Decision 2 Layer-2 host-set corrected to EMPTY: pr-manager, devops-engineer (story worktree, .factory/ not mounted), state-manager removed from named-host list; forward-looking mandate + individual exclusion rationale documented (F-P2-001). §Decision 7 count fixed Four→Five (F-P2-002: CAP-038 count not swept at v1.1). §Rationale: F-P2-001 zero-host analysis + F-P2-007 teardown dispatch-point ruling (keep dispatch-point gating; not symmetric with F-P1-006 co-location) added. ARCH-INDEX v3.07→v3.08 (F-P2-004 companion bump). |
 | 1.1 | 2026-07-19 | F-P1 adversary adjudications (architect). INV-E21-006 (PR Trunk Ancestry) appended to Decision 1 catalog; Decision 8 added (INV-E21-006 enforcement; BC-6.10.002 amendment; CAP-038 allocated). on_error corrected block→continue (fail-open; spec-wins; BC-4.16.001 PC3+Inv2 authoritative; two-layer defense absorbs Layer 1 crash; blocking all Bash disproportionate). §Context issue #358 corrected (stale-annotation premise wrong; real: PR base not locked, post-create baseRefName + post-merge --is-ancestor assertions absent). §Consequences: BC-6.10.002 CAP-038 ruling + F-P1-006 host-surface ruling (devops-engineer.md §Inter-Wave Rebase) added. |
 | 1.0 | 2026-07-19 | Initial authorship (architect; E-21 factory state data-loss hardening; issues #342, #365, #358, #523, #588). 6 invariants INV-E21-001..INV-E21-006 as corrected (INV-E21-005=Post-Rebase, INV-E21-006=PR Trunk Ancestry). 8 decisions. CAP-034..CAP-038 allocated. ARCH-INDEX v3.06→v3.07. capabilities.md v1.8→v1.9. |
