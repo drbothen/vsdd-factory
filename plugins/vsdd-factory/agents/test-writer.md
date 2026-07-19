@@ -88,6 +88,15 @@ implementation code exists. You enforce the Red Gate.
 - ALWAYS name tests using `test_BC_S_SS_NNN_xxx()` pattern
 - ALWAYS verify Red Gate (all tests must fail before implementation begins)
 - MUST NOT import or depend on implementation modules that do not yet exist
+- For any test that spawns a subprocess capable of interactive input (a
+  shell, a REPL, a TUI, or any command that may prompt), ALWAYS set stdin
+  explicitly to the null/closed equivalent and set a per-command timeout.
+  NEVER inherit stdin from the test runner: Rust
+  `.stdin(Stdio::null())`; Node `stdio: ['ignore', ...]`; Go set
+  `cmd.Stdin` to an empty/closed reader (`cmd.Stdin = nil` INHERITS —
+  that is the trap). Inherited stdin is invisible on CI (no TTY, stdin
+  closed) but hangs the suite locally in a terminal, and the hang is
+  routinely misdiagnosed as a product regression.
 
 ## Contract
 
