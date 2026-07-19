@@ -329,6 +329,16 @@ stories:
     status: draft
   - id: S-5.07
     status: draft
+  - id: S-21.01
+    status: draft
+  - id: S-21.02
+    status: draft
+  - id: S-21.03
+    status: draft
+  - id: S-21.04
+    status: draft
+  - id: S-21.05
+    status: draft
 
 # Current work frontier
 frontier: []  # S-9.00 merged 2026-05-04 (PR #91 at 5706f27); no ready stories remain
