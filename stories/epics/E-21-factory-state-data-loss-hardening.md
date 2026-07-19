@@ -1,7 +1,7 @@
 ---
 document_type: epic
 epic_id: "E-21"
-version: "v1.4"
+version: "v1.5"
 status: draft
 title: "Factory State Data-Loss Hardening — validate-factory-path-staging WASM guard, post-rebase diff-integrity gate, pr-manager trunk assertions, story-worktree write-path discipline, factory-side PR protocol"
 prd_capabilities: [CAP-034, CAP-035, CAP-036, CAP-037, CAP-038]
@@ -27,14 +27,15 @@ inputs:
   - .factory/stories/S-21.03-pr-manager-trunk-assertion.md
   - .factory/stories/S-21.04-story-worktree-write-path-discipline.md
   - .factory/stories/S-21.05-pr-manager-factory-side-pr-protocol.md
-input-hash: "d575ad6"
-last_amended: "2026-07-19 (v1.4) — adv pass-5 fix burst (F-P5-001): added missing v1.3 Changelog row to body ## Changelog table; frontmatter/body changelog parity restored (5 modified[] entries now matched by 5 Changelog table rows). [Prior: 2026-07-19 (v1.3) — adv pass-3 fix burst (F-P3-003): CAP-036 stale BC-6.26.001 v1.2 cite corrected to v1.3; TD-VSDD-060 full grep sweep confirms no other stale v1.2 cites of BC-5.44.001, BC-6.10.002, BC-6.26.001, or BC-5.43.001. [Prior: 2026-07-19 (v1.2) — adv pass-2 fix burst (F-P2-003): INV-E21-005 'post-rebase product branch' → 'post-rebase feature branch' (authoritative ADR-031 INV-E21-005 scope); BC-5.43.001 → v1.3; ADR-031 version cites → v1.3 (all occurrences); Description item 2 'product branch' + 'pr-manager post-rebase checkpoint' corrected to 'feature branch' + 'devops-engineer.md §Inter-Wave Rebase checkpoint'.]]"
+input-hash: "7947e5a"
+last_amended: "2026-07-19 (v1.5) — adv pass-7 fix burst (O-P7-a): EAC-006 added (factory-side PR 5-step restore per BC-6.27.001 v1.3 INV-E21-003; 1:1 story↔EAC symmetry restored); BC-6.27.001 v1.2→v1.3 in PRD Capabilities CAP-037 + BC Traceability table; POLICY 14 parity. [Prior: 2026-07-19 (v1.4) — adv pass-5 fix burst (F-P5-001): added missing v1.3 Changelog row to body ## Changelog table; frontmatter/body changelog parity restored (5 modified[] entries now matched by 5 Changelog table rows). [Prior: 2026-07-19 (v1.3) — adv pass-3 fix burst (F-P3-003): CAP-036 stale BC-6.26.001 v1.2 cite corrected to v1.3; TD-VSDD-060 full grep sweep confirms no other stale v1.2 cites of BC-5.44.001, BC-6.10.002, BC-6.26.001, or BC-5.43.001. [Prior: 2026-07-19 (v1.2) — adv pass-2 fix burst (F-P2-003): INV-E21-005 'post-rebase product branch' → 'post-rebase feature branch' (authoritative ADR-031 INV-E21-005 scope); BC-5.43.001 → v1.3; ADR-031 version cites → v1.3 (all occurrences); Description item 2 'product branch' + 'pr-manager post-rebase checkpoint' corrected to 'feature branch' + 'devops-engineer.md §Inter-Wave Rebase checkpoint'.]]]"
 modified:
   - "v1.0 2026-07-19: Initial authoring"
   - "v1.1 2026-07-19: adv pass-1 fix burst (F-P1-008/009/011/013)"
   - "v1.2 2026-07-19: adv pass-2 fix burst (F-P2-003) — INV-E21-005 feature branch fix; BC-5.43.001 → v1.3; ADR-031 cites → v1.3; Description item 2 corrected"
   - "v1.3 2026-07-19: adv pass-3 fix burst (F-P3-003) — CAP-036 BC-6.26.001 v1.2 → v1.3; TD-VSDD-060 full grep sweep confirmed clean"
   - "v1.4 2026-07-19: adv pass-5 fix burst (F-P5-001) — added missing v1.3 Changelog row; frontmatter/body changelog parity restored"
+  - "v1.5 2026-07-19: adv pass-7 fix burst (O-P7-a) — EAC-006 added (factory-side PR 5-step restore per BC-6.27.001 v1.3; 1:1 story↔EAC symmetry); BC-6.27.001 v1.2→v1.3 in PRD Capabilities + BC Traceability table"
 ---
 
 # Epic E-21: Factory State Data-Loss Hardening
@@ -137,7 +138,7 @@ E-21 introduces five new PRD capabilities, defined in ADR-031 §Decision 7 (CAP-
   `_shared-context.md` + `step-g-cleanup.md`).
 
 - **CAP-037 — Factory-side PR protocol** (5-step restore + dispatch-preamble assertion):
-  BC-6.27.001 v1.2. Implemented by S-21.05 (pr-manager.md skill-doc amendment).
+  BC-6.27.001 v1.3. Implemented by S-21.05 (pr-manager.md skill-doc amendment).
 
 - **CAP-038 — PR trunk ancestry integrity** (post-create `baseRefName` assertion + post-merge
   `--is-ancestor` check): BC-6.10.002 v1.3 (ADR-031 v1.3 §Decision 7 + §Decision 8).
@@ -152,6 +153,7 @@ E-21 introduces five new PRD capabilities, defined in ADR-031 §Decision 7 (CAP-
 | EAC-003 | devops-engineer.md §Inter-Wave Rebase post-rebase diff-integrity gate fires `UnverifiedNetNegativeDelta` when `git range-diff` detects a dropped commit | CI bats test: inject mock range-diff output with net-negative delta → halt with `UnverifiedNetNegativeDelta` | S-21.02 AC-003 test suite |
 | EAC-004 | pr-manager step 3 asserts `baseRefName` immediately after PR creation; step 9 asserts merged commit is ancestor of trunk | CI bats test: mock post-create PR with wrong baseRefName → `BaseRefNameMismatch` hard-fail; mock post-merge with non-ancestor → `MergeNotAncestorOfTrunk` P0 error | S-21.03 AC-001..AC-003 test suite |
 | EAC-005 | Story worktree teardown preflight detects stray `.factory/` file and halts before `git worktree remove` | CI bats test: create stray `.factory/test.md` in worktree; trigger teardown → halt with `PREFLIGHT BLOCKED` per BC-6.26.001 PC2b | S-21.04 AC-003 test suite |
+| EAC-006 | pr-manager factory-side PR 5-step restore protocol shipped per BC-6.27.001 v1.3 (INV-E21-003): after merging a factory-side PR, pr-manager executes the full 5-step restore sequence (checkout `factory-artifacts` → `pull --ff-only` → delete local chore branch → delete remote chore branch → assert final branch) and handles the `FinalBranchAssertionFailed` negative path (step-5 mock returning unexpected branch `chore/stale-branch`) | CI bats test: mock factory-side PR flow; assert 5-step restore fires in order (AC-002); mock step-5 `git -C .factory branch --show-current` returning `chore/stale-branch` → `FinalBranchAssertionFailed` halt (AC-008) | S-21.05 AC-001..AC-008 test suite |
 
 ## Stories
 
@@ -254,7 +256,7 @@ All BCs listed here are draft; they auto-promote to active per POL-14 when their
 | BC-5.44.001 | v1.3 | Post-rebase diff-integrity gate: `git range-diff` (primary) + `git diff --stat` (backup); halt on `UnverifiedNetNegativeDelta` | CAP-035 | S-21.02 (devops-engineer.md §Inter-Wave Rebase amendment; ADR-031 v1.3 §Consequences #5) |
 | BC-6.10.002 | v1.3 | deliver-story 9-step dispatch: PC2 post-create baseRefName assertion (`BaseRefNameMismatch` hard-fail) + PC3 post-merge ancestry check (`MergeNotAncestorOfTrunk` P0 error) | CAP-038 | S-21.03 (pr-manager.md amendment, steps 3 + 9) |
 | BC-6.26.001 | v1.3 | Story-worktree write-path discipline (canonical absolute path via `CANONICAL_FACTORY_ROOT`) + teardown preflight (`find <worktree>/.factory -type f` before `git worktree remove`) | CAP-036 | S-21.04 (skill-doc: `_shared-context.md` + `step-g-cleanup.md`) |
-| BC-6.27.001 | v1.2 | pr-manager factory-side PR protocol: 5-step restore sequence (checkout `factory-artifacts`, `pull --ff-only`, delete local/remote chore branch, final assertion) + dispatch-preamble branch assertion (PC2) | CAP-037 | S-21.05 (pr-manager.md amendment) |
+| BC-6.27.001 | v1.3 | pr-manager factory-side PR protocol: 5-step restore sequence (checkout `factory-artifacts`, `pull --ff-only`, delete local/remote chore branch, final assertion) + dispatch-preamble branch assertion (PC2) | CAP-037 | S-21.05 (pr-manager.md amendment) |
 
 **INV-E21-001..006 cross-cutting invariants** (ADR-031 v1.3 §Decision 1):
 
@@ -283,3 +285,4 @@ All BCs listed here are draft; they auto-promote to active per POL-14 when their
 | v1.2 | 2026-07-19 | story-writer | adv pass-2 fix burst (F-P2-003): INV-E21-005 "post-rebase product branch" → "post-rebase feature branch" (authoritative ADR-031 INV-E21-005 scope; BC-5.44.001 operates on feature branch where devops-engineer rebases + force-with-lease-pushes); BC-5.43.001 → v1.3 (BC Traceability + CAP-034 inline); ADR-031 v1.1 → v1.3 in all epic cites (Description item 2/3, Trigger, PRD Capabilities CAP-035/CAP-038, Out of Scope, INV catalog cross-ref); Description item 2 "pr-manager post-rebase checkpoint" → "devops-engineer.md §Inter-Wave Rebase checkpoint". |
 | v1.3 | 2026-07-19 | story-writer | adv pass-3 fix burst (F-P3-003): CAP-036 BC-6.26.001 v1.2→v1.3 (lone stale cite in PRD Capabilities); TD-VSDD-060 full grep sweep confirmed no other stale v1.2 cites of BC-5.44.001/BC-6.10.002/BC-6.26.001/BC-5.43.001. |
 | v1.4 | 2026-07-19 | story-writer | adv pass-5 fix burst (F-P5-001): added missing v1.3 Changelog row; frontmatter/body changelog parity restored (5 modified[] entries now matched by 5 Changelog table rows). |
+| v1.5 | 2026-07-19 | story-writer | adv pass-7 fix burst (O-P7-a): EAC-006 added (factory-side PR 5-step restore per BC-6.27.001 v1.3 INV-E21-003; 1:1 story↔EAC symmetry restored); BC-6.27.001 v1.2→v1.3 in PRD Capabilities CAP-037 + BC Traceability table. |
