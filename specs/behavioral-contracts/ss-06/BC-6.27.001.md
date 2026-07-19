@@ -1,7 +1,7 @@
 ---
 document_type: behavioral-contract
 level: L3
-version: "1.2"
+version: "1.3"
 status: draft
 producer: product-owner
 timestamp: 2026-07-19T00:00:00Z
@@ -22,6 +22,7 @@ introduced: v1.0-brownfield-backfill
 modified:
   - "2026-07-19 (v1.1) — CAP-037 backfill (product-owner; ARCH-INDEX v3.07): capability frontmatter TBD→CAP-037; §Traceability L2 Capability TBD→CAP-037; Capability Anchor Justification updated to cite CAP-037/ARCH-INDEX v3.07."
   - "2026-07-19 (v1.2) — Research validation precision amendments (product-owner; research validation 2026-07-19): PC1 Step 1 failure handling extended to include exit 128 'already used by worktree at ...' (another-worktree checkout conflict); PC1 Step 2/Step 3 ordering dependency documented (ff-only pull must precede -d; -d refuses unmerged branches — Step 2 failure correctly stops Step 3)."
+  - "2026-07-19 (v1.3) — adv pass-7 fix burst (F-P7-001) (product-owner): Canonical Test Vector T-7 added for FinalBranchAssertionFailed (PC1 Step 5 assertion failure path — steps 1–4 succeed but git -C .factory branch --show-current returns non-factory-artifacts value; previously uncovered)."
 deprecated: null
 deprecated_by: null
 replacement: null
@@ -30,7 +31,7 @@ removed: null
 removal_reason: null
 bc_id: BC-6.27.001
 section: "6.27"
-last_amended: "(v1.2) — Research validation precision amendments (product-owner; research validation 2026-07-19): PC1 Step 1 failure handling extended (exit 128 another-worktree conflict); Step 2/Step 3 ordering dependency documented. [Prior: (v1.1) — CAP-037 backfill. (v1.0) — Initial authoring; 5-step restore sequence + dispatch-preamble assertion. lifecycle_status: draft (POL-14).]"
+last_amended: "(v1.3) — adv pass-7 fix burst (F-P7-001): Canonical Test Vector T-7 added for FinalBranchAssertionFailed (step-5 assertion failure path). [Prior: (v1.2) — Research validation precision amendments: PC1 Step 1 extended (exit 128 conflict); Step 2/Step 3 ordering dependency documented. (v1.1) — CAP-037 backfill. (v1.0) — Initial authoring; 5-step restore sequence + dispatch-preamble assertion. lifecycle_status: draft (POL-14).]"
 ---
 
 # BC-6.27.001: pr-manager factory-side PR protocol MUST restore the `.factory/` worktree to `factory-artifacts`, pull `--ff-only`, and delete both the local and remote chore branch after merging any PR that modifies `factory-artifacts` directly, and MUST assert `factory-artifacts` is the current branch before any `.factory/` write
@@ -222,6 +223,7 @@ factory-side PR stranding but any mechanism that could leave the worktree on an 
 | T-4 | Dispatch preamble; worktree on `chore/vp-trueup-pr115` | Assert `git -C .factory branch --show-current` | `FactoryWorktreeOnWrongBranch` STOP; dispatch halted |
 | T-5 | Dispatch preamble check passes; agent commits on `factory-artifacts` | `git -C .factory commit ...` | Succeeds; branch remains `factory-artifacts` |
 | T-6 | Remote chore branch already deleted before step 4 | `git push origin --delete chore/name` | Step 4 exits non-zero; warning logged; continue (EC-005) |
+| T-7 | Steps 1–4 of restore sequence succeed; mock `git -C .factory branch --show-current` (step 5) returns `chore/stale-branch` (not `factory-artifacts`) | Restore sequence step 5 (final branch assertion) | `FinalBranchAssertionFailed`; pr-manager halts; escalates to orchestrator (EC-008) |
 
 ## Verification Properties
 
@@ -269,3 +271,4 @@ TBD — VP IDs to be assigned after VP authoring pass.
 | 1.0 | 2026-07-19 | Initial authoring (product-owner; E-21 factory-state data-loss hardening; issue #588; S-21.05). PC1: factory-side PR 5-step restore sequence (checkout factory-artifacts → pull --ff-only → delete local chore branch → delete remote chore branch → final branch assertion). PC2: dispatch-preamble branch assertion before any `.factory/` write (INV-E21-003). 3 error variants: `CheckoutRestoreFailed`, `FFOnlyPullFailed`, `FactoryWorktreeOnWrongBranch`, `FinalBranchAssertionFailed`. 9 edge cases EC-001..EC-009. 6 test vectors T-1..T-6. New BC (not BC-6.23.001 amendment): different behavioral surface from lock/unlock skills; rationale documented inline. lifecycle_status: draft (POL-14 auto-promotion on S-21.05 PR merge). |
 | 1.2 | 2026-07-19 | Research validation precision amendments (product-owner; research validation 2026-07-19). PC1 Step 1 failure handling extended: "branch already checked out in another worktree" (exit 128, "already used by worktree at ...") added as distinct failure mode alongside dirty-tree and lock contention. PC1 Step 3 ordering dependency documented: `git branch -d` refuses unmerged branches — Step 2 (ff-only pull) MUST precede Step 3; `-d` refusal on Step 2 skip is correct STOP behavior; `-D` force-delete forbidden without explicit user direction. |
 | 1.1 | 2026-07-19 | CAP-037 backfill (product-owner; ARCH-INDEX v3.07, ADR-031, commit 14a78515): capability frontmatter TBD→CAP-037; §Traceability L2 Capability TBD→CAP-037; Capability Anchor Justification updated to cite CAP-037/ARCH-INDEX v3.07. |
+| 1.3 | 2026-07-19 | adv pass-7 fix burst (F-P7-001) (product-owner). Canonical Test Vector T-7 added: step-5 `FinalBranchAssertionFailed` path (steps 1–4 succeed; mock `git -C .factory branch --show-current` returns `chore/stale-branch`; expected: `FinalBranchAssertionFailed` + halt + escalate to orchestrator). Previously uncovered path; three sibling variants (FFOnlyPullFailed via T-2, CheckoutRestoreFailed, FactoryWorktreeOnWrongBranch via T-4) had coverage. EC-008 and PC1 Step 5 prose confirmed consistent with T-7 (no changes required). |
