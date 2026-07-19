@@ -175,7 +175,7 @@ dtu_services: []
 |--------------|-----|-------|
 | main | 80e5cd7b | rc.23 bot binary bundle commit 2026-07-18 (run 29660640970; all 34 WASMs present; 5 platform binaries fresh; plugin.json → 1.0.0-rc.23); prior: 0f8b2a89 (PR #689 --merge fix/rc23-release-validate; 2 WASMs git add -f + bats pre-build); prior: 45050445 (PR #688 --merge release/v1.0.0-rc.23); prior: a04cb303 (rc.22 bot bundle) |
 | develop | 6444ac23 | fix(test-writer): correct Go nil Stdin guidance (#691; 2026-07-19); prior: eae8297b (#528 fix/demo-recorder 2026-07-19); prior: d3d5f232 (#532 fix/adversary 2026-07-19); prior: 584b0518 (sync main→develop after v1.0.0-rc.23 bundle 2026-07-18) |
-| factory-artifacts | D-861-BURST `TBD` (pushed TBD) | D-860-BURST `23905b66` (pushed 2026-07-19); prior: D-859-BURST `2e4b8f89` (pushed 2026-07-19); prior: D-858-BURST `f71129c8` (pushed 2026-07-19) |
+| factory-artifacts | D-861-BURST `9debd920` (pushed 2026-07-19) | D-860-BURST `23905b66` (pushed 2026-07-19); prior: D-859-BURST `2e4b8f89` (pushed 2026-07-19); prior: D-858-BURST `f71129c8` (pushed 2026-07-19) |
 | feature/S-19.06 | **DELETED** (was 7156a4c3) | Merged via PR #657 9787c056 2026-07-15T14:53:16Z (D-843); branch deleted at merge |
 | feature/S-19.05 | **DELETED** (was 28f28465) | Merged via PR #640 7b35c8e4 2026-07-14 (D-841); branch deleted at merge |
 | feature/S-19.04 | **DELETED** (was 82aeb073) | Merged via PR #639 d4a23a02 2026-07-14 (D-841); branch deleted at merge |
@@ -354,7 +354,7 @@ dtu_services: []
 - **Cascade:** `v1.0-brownfield-backfill`; 9 stories S-19.01..S-19.09 (55 pts); epic `E-19` COMPLETE (v1.31; complete; completion_date 2026-07-17).
 - **E-21 spec status:** converged 11-pass arc; passes P9/P10/P11 = 3-CLEAN streak; 29 findings closed (P1..P8); F-P2-001 EMPTY-host ruling RETRACTED (ADR-031 v1.3); 9-item accepted-with-record register (see e-21-spec-convergence.md). BCs: BC-4.16.001/BC-5.43.001/BC-5.44.001/BC-6.10.002(amended)/BC-6.26.001/BC-6.27.001 registered (BC-INDEX v4.11; total_bcs 1,982). Stories: S-21.01 (W1, P0, 5pts, CAP-034, issue #342); S-21.02 (W1, P1, 5pts, CAP-035, issue #365); S-21.03 (W1, P1, 5pts, CAP-038, issue #358); S-21.04 (W2, P1, 6pts, CAP-036, issue #523); S-21.05 (W2, P2, 6pts, CAP-037, issue #588).
 - **Wave-gate record:** cycles/v1.0-brownfield-backfill/e-19-wave-gate-w3-epic.md (D-853 basis; D-854 human disposition; GATE STATUS PASSED; all W3G findings disposed; W3G-001 residual risk ACCEPTED).
-- **Repo state:** develop HEAD `6444ac23` (local==origin; 2026-07-19 post-triage; UNCHANGED from D-858); main HEAD `80e5cd7b` (bot bundle 2026-07-18); factory-artifacts HEAD = D-861-BURST `TBD` (pushed TBD; SHA-patch pending). v1.0.0-rc.23 SHIPPED (tag at 0f8b2a89; bot commit 80e5cd7b on main). Local checkout on develop. No open feature branches.
+- **Repo state:** develop HEAD `6444ac23` (local==origin; 2026-07-19 post-triage; UNCHANGED from D-858); main HEAD `80e5cd7b` (bot bundle 2026-07-18); factory-artifacts HEAD = D-861-BURST `9debd920` (pushed 2026-07-19). v1.0.0-rc.23 SHIPPED (tag at 0f8b2a89; bot commit 80e5cd7b on main). Local checkout on develop. No open feature branches.
 - **POLICY 21:** no_new_shell_scripts ACTIVE (blocking; human-directed 2026-07-13). 5 S-19.01 files EXPLICITLY GRANDFATHERED D-846 (policies.yaml v1.4.8 `grandfather_clause`). Migration anchored E-20.
 
 ### §In-Flight at Wrap
@@ -430,4 +430,4 @@ arch-poste19 and sw-poste19 reports at D-853: cycles/v1.0-brownfield-backfill/e-
 
 4-index verification gate (literal-shell): `grep "^version:" .factory/specs/behavioral-contracts/BC-INDEX.md .factory/specs/verification-properties/VP-INDEX.md .factory/stories/STORY-INDEX.md .factory/specs/architecture/ARCH-INDEX.md` → BC-INDEX: "4.11" / VP-INDEX: "2.72" / STORY-INDEX: "4.227" / ARCH-INDEX: "3.11"
 
-Critical SHAs: develop `6444ac23` (origin; 2026-07-19 post-triage; UNCHANGED from D-858); main `80e5cd7b` (bot bundle 2026-07-18); factory-artifacts HEAD = D-861-BURST `TBD` (pushed TBD; SHA-patch pending). v1.0.0-rc.23 at `0f8b2a89` (tag); bot commit `80e5cd7b`. GitHub origin: `drbothen/vsdd-factory`. total_bcs 1,982. merged_count 107.
+Critical SHAs: develop `6444ac23` (origin; 2026-07-19 post-triage; UNCHANGED from D-858); main `80e5cd7b` (bot bundle 2026-07-18); factory-artifacts HEAD = D-861-BURST `9debd920` (pushed 2026-07-19). v1.0.0-rc.23 at `0f8b2a89` (tag); bot commit `80e5cd7b`. GitHub origin: `drbothen/vsdd-factory`. total_bcs 1,982. merged_count 107.
