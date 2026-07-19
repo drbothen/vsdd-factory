@@ -40,10 +40,14 @@ Set Framerate 30
 Set TypingSpeed 50ms
 
 # === Hidden Setup ===
-# Build the binary and navigate to the worktree.
+# Build the binary and navigate to the repo root.
 # Everything between Hide/Show is executed but NOT recorded.
+# Self-locate from wherever vhs is invoked: inside a story worktree this
+# resolves to the worktree root; after merge it resolves to the repo root.
+# NEVER hardcode an absolute path here — absolute paths break on repo
+# relocation and after the story worktree is cleaned up post-merge.
 Hide
-Type "cd {worktree_path}"
+Type "cd $(git rev-parse --show-toplevel)"
 Enter
 Wait+Line /\$/
 
