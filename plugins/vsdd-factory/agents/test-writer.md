@@ -91,13 +91,14 @@ implementation code exists. You enforce the Red Gate.
 - For any test that spawns a subprocess capable of interactive input (a
   shell, a REPL, a TUI, or any command that may prompt), ALWAYS set stdin
   explicitly to the null/closed equivalent and set a per-command timeout.
-  NEVER inherit stdin from the test runner: Rust
-  `.stdin(Stdio::null())`; Node `stdio: ['ignore', ...]`; Go leave
-  `cmd.Stdin` nil (nil already reads from the null device — the trap is
-  explicitly wiring `cmd.Stdin = os.Stdin`). Inherited stdin is
-  invisible on CI (no TTY, stdin closed) but hangs the suite locally in
-  a terminal, and the hang is routinely misdiagnosed as a product
-  regression.
+  NEVER leave the child's stdin interactive or unclosed: Rust
+  `.stdin(Stdio::null())` (spawn/status inherit stdin by default); Node
+  `stdio: ['ignore', ...]` (the default 'pipe' hangs a stdin-reading
+  child if the pipe is never written or closed); Go leave `cmd.Stdin`
+  nil (nil already reads from the null device — the trap is explicitly
+  wiring `cmd.Stdin = os.Stdin`). Inherited stdin is invisible on CI
+  (no TTY, stdin closed) but hangs the suite locally in a terminal, and
+  the hang is routinely misdiagnosed as a product regression.
 
 ## Contract
 
