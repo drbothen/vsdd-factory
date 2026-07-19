@@ -2,10 +2,12 @@
 document_type: architect-delta-analysis
 epic_id: "E-21"
 epic_working_title: "Factory State Data-Loss Hardening"
-version: "v1.0"
+version: "v1.1"
 status: draft
 producer: architect
 timestamp: 2026-07-19T00:00:00Z
+modified:
+  - "2026-07-19 (v1.1) — stale crate name `validate-artifact-path` corrected to `validate-factory-path-staging` throughout (ADR-031 §Decision 3, commit 14a78515; original crate serves BC-4.11.001 S-13.01 and collides on registry filename + cargo output); #365 root-cause mechanism corrected (adjacent-edit cases conflict; silent drops require larger-hunk or moved-code diffs; `git range-diff` cited as canonical detector per BC-5.44.001); #358 gh-base-inference statement corrected (gh uses `gh-merge-base` git config or repo default branch, not tracking upstream, when `--base` is omitted)."
 cycle: v1.0-brownfield-backfill
 issues: [342, 365, 358, 523, 588]
 feeds_to: [product-owner (BC authoring), story-writer (epic/story decomposition)]
@@ -54,11 +56,14 @@ calls. Status: **confirmed open, not fixed by any prior story**.
 **Solution shape.**
 Two layers:
 
-1. **Invariant layer (prevent dual-tracking):** Add an `validate-artifact-path`
-   WASM hook plugin (already listed as PLANNED in SS-04 `crates/hook-plugins/validate-artifact-path/`)
-   that fires PreToolUse on Bash and blocks any `git add` command that would stage
-   a path under `.factory/` on a product branch (develop/main/feature/*). This is
-   the structural fix: no dual-tracking → no clobber surface.
+1. **Invariant layer (prevent dual-tracking):** Add a new `validate-factory-path-staging`
+   WASM hook plugin (crate path `crates/hook-plugins/validate-factory-path-staging/`,
+   distinct name mandated by ADR-031 §Decision 3 to avoid registry-filename and
+   cargo-output collision with the existing `validate-artifact-path` crate that
+   serves BC-4.11.001 Edit/Write/MultiEdit path validation for S-13.01) that fires
+   PreToolUse on Bash and blocks any `git add` command that would stage a path under
+   `.factory/` on a product branch (develop/main/feature/*). This is the structural
+   fix: no dual-tracking → no clobber surface.
 
 2. **Safety net layer (intercept before harm):** Add a skill-doc step to the
    orchestrator's product-branch merge protocol: before any `git merge` or
@@ -67,15 +72,15 @@ Two layers:
    and require manual handling. This is implementable as a mandatory step in the
    orchestrator agent prompt for merge operations (SS-05, skill-doc change).
 
-POLICY 21 note: mechanism (1) uses the PLANNED WASM crate path; no new .sh file
-required. Mechanism (2) is a skill-doc change.
+POLICY 21 note: mechanism (1) introduces a new WASM crate (`validate-factory-path-staging`
+per ADR-031 §Decision 3); no new .sh file required. Mechanism (2) is a skill-doc change.
 
 **BC/VP impact.**
 E-17 BCs (BC-4.13.001 factory-lock guard, BC-5.40.001 STATE.md lock schema,
 BC-6.23.001 lock/unlock skill) address *concurrent-session* write races on
 `factory-artifacts`. They do not address product-branch merge clobbering of the
 nested worktree. **New BC required**: one BC in SS-04 covering the
-`validate-artifact-path` WASM plugin's PreToolUse behavior (blocking `git add`
+`validate-factory-path-staging` WASM plugin's PreToolUse behavior (blocking `git add`
 of `.factory/` paths on non-`factory-artifacts` branches), and one BC amendment
 to SS-05 (orchestrator merge-gate pre-check).
 E-18 BCs address context-window durability, not git-level working-tree destruction.
@@ -83,9 +88,9 @@ No reuse available for this issue.
 
 **Proposed story boundary.** One story: S-21.01 "factory artifact path guard — prevent
 dual-tracking and intercept product-branch merges that would clobber `.factory/`
-paths." The WASM guard crate (`validate-artifact-path`) is already stubbed in the
-plugin ecosystem plan; the skill-doc merge-gate step is lightweight. Combined scope
-is appropriate since both pieces share the same BC anchor and the same precondition
+paths." The `validate-factory-path-staging` WASM guard crate is a new crate (ADR-031
+§Decision 3); the skill-doc merge-gate step is lightweight. Combined scope is
+appropriate since both pieces share the same BC anchor and the same precondition
 (no path may be tracked on both a product branch and the `factory-artifacts` branch
 simultaneously).
 
@@ -97,14 +102,23 @@ Wave placement: depends on no prior E-21 story; Wave 1 candidate.
 ### Issue #365 — Rebase auto-merge silently drops production lines
 
 **Root-cause statement (mechanism).**
-Git's ORT 3-way merge algorithm resolves textual changes without semantic
-understanding. When Branch A adds a new line X between context lines C1 and C2,
-and Branch B independently modifies C1 or C2 in a non-conflicting region, ORT
-can award Branch B's version of the surrounding context without preserving X —
-producing no conflict markers while silently discarding X. This is not a git bug;
-it is expected 3-way merge behavior on adjacent-but-not-overlapping hunks. The
-factory's per-story delivery orchestration has no post-rebase verification step
-that checks for net-negative line counts in files touched by sibling merged stories.
+Git's unstructured line-based 3-way merge algorithm has no semantic understanding
+of code structure. Silent line drops — where production code added by a parent
+commit disappears after a successful `git rebase --continue` with no conflict
+markers — are an inherent hazard of 3-way merge, but they do not arise from simple
+adjacent-context edits: the case where Branch A inserts a new line between two
+context lines that Branch B independently modifies reliably surfaces a conflict,
+not a silent drop. Silent drops require conditions where the matching hunk context
+extends over a larger region or where code movement shifts the 3-way merge base
+window such that ORT concludes the added lines were already absent in the merge
+base — typically larger-hunk overlaps or moved-code scenarios in dense autoload
+files. The key operational fact is that `git rebase --continue` reports success
+while production lines from a parent commit are absent from the rebased tree. The
+canonical detector for this class of loss is `git range-diff` (which diffs the
+pre-rebase and post-rebase commit sequences and flags content present in the
+pre-rebase sequence that does not appear in the post-rebase sequence; being added to
+BC-5.44.001 as primary). The factory's per-story delivery orchestration has no
+post-rebase step that invokes `git range-diff` or an equivalent net-change check.
 
 **Current codebase verification.**
 `plugins/vsdd-factory/skills/deliver-story/steps/step-f-pr-lifecycle.md` delegates
@@ -120,19 +134,22 @@ gap is real: the expected process documentation does not exist at the path impli
 by the issue.
 
 **Solution shape.**
-Skill-doc step change (SS-05/SS-06): Add a "post-rebase diff sanity gate" sub-step
+Skill-doc step change (SS-05/SS-06): Add a "post-rebase integrity gate" sub-step
 to the pr-manager agent and/or orchestrator per-story-delivery playbook. After any
 `git rebase --continue` reports success on a feature branch that shares file paths
 with recently merged sibling stories, the responsible agent must:
 
-1. Run `git diff origin/develop --stat` on the rebased branch.
-2. For each file with a net-negative line count that was also modified by a
-   recently merged sibling story (detectable via `git log --oneline origin/develop`
-   + `git diff-tree`), assert the negative delta is intentional removal, not
-   silent drop. If any negative delta is unverified, STOP and require manual review.
+1. Run `git range-diff origin/develop ORIG_HEAD HEAD` (the canonical detector;
+   being codified in BC-5.44.001 as the primary post-rebase integrity tool). Flag
+   any commit in the old sequence whose diff hunks have no counterpart in the new
+   sequence — those hunks represent silently dropped content.
+2. As a secondary check, run `git diff origin/develop --stat` and for each file
+   with a net-negative line count that was also modified by a recently merged sibling
+   story, assert the negative delta is intentional removal. If any delta is
+   unverified, STOP and require manual review before force-push-with-lease.
 3. Only then force-push-with-lease.
 
-This is a skill-doc mandate (no new shell script needed); the check is expressed
+This is a skill-doc mandate (no new shell script needed); the gate is expressed
 as a required orchestrator action documented in the skill step.
 
 **BC/VP impact.**
@@ -159,8 +176,10 @@ assertions:
 
 1. **Post-create baseRefName assertion** — after `gh pr create`, read back the
    PR's `baseRefName` and assert it equals the configured trunk. This catches the
-   case where `gh` CLI infers a different base from the worktree's tracking branch
-   upstream, overriding the `--base` flag.
+   case where `--base` was accidentally omitted in a modified invocation path, or
+   where `gh` resolved the base from the `gh-merge-base` git config (the config
+   key `gh` consults before falling back to the repository's GitHub default branch)
+   rather than the intended delivery trunk.
 2. **Post-merge ancestry assertion** — after `gh pr merge`, run
    `git merge-base --is-ancestor <merge_sha> origin/<trunk>` and assert true. This
    catches the case where the PR merged into an off-trunk branch (orphan merge)
@@ -168,10 +187,13 @@ assertions:
    was skipped or passed erroneously).
 
 The concrete issue instance (ArcavenAE/akey PR #14) confirms the gap: `--base` was
-not explicitly supplied and the base was inferred from the tracking upstream.
+not explicitly supplied, and `gh pr create` resolved the base from the repository's
+GitHub default branch configuration (when `gh-merge-base` git config is absent, `gh`
+falls back to the GitHub repository default branch, which can diverge from the
+intended delivery trunk in multi-branch setups).
 The issue comment (`arcaven`, 2026-06-30) confirms that line 139's `--base develop`
-is the intended pattern; what is missing is the assertions (2) specifically the
-`--is-ancestor` check.
+is the intended pattern; what is missing is the post-create and post-merge
+assertions — specifically the `--is-ancestor` check, which is the load-bearing one.
 
 **Current codebase verification.**
 `pr-manager.md` step 3 shows the `gh pr create --base develop` invocation; it has
@@ -274,7 +296,7 @@ prevent; both close the same loss window) and share the same BC anchor.
 **Estimated points.** 5 (skill-doc extension with bats integration test verifying
 the preflight blocks a force-remove when stray `.factory/` content is present).
 Wave placement: Wave 2 (can be done in parallel with S-21.01/02/03 but benefits
-from S-21.01's validate-artifact-path WASM for defense-in-depth).
+from S-21.01's `validate-factory-path-staging` WASM for defense-in-depth).
 
 ---
 
@@ -410,8 +432,8 @@ as BCs in E-21 (rather than as ad-hoc skill-doc notes):
 
 **INV-E21-001 (Nested Worktree Path Exclusivity):** No product-branch git operation
 (checkout, merge, rebase, reset) may add or delete a path under the `.factory/`
-physical directory. Detectable via git pre-receive or pre-merge hook. Fix: validate-
-artifact-path WASM guard (Issue #342 mechanism).
+physical directory. Detectable via git pre-receive or pre-merge hook. Fix:
+`validate-factory-path-staging` WASM guard (ADR-031 §D3; Issue #342 mechanism).
 
 **INV-E21-002 (Factory Artifact Write Canonical-Path Discipline):** Any agent
 writing to a factory artifact (DELIVERY ledger, story-frontmatter, pr-review.md,
@@ -442,7 +464,7 @@ ancestor of trunk is a P0 data error. Fix: pr-manager post-merge ancestry assert
 | Issue | Story | Verification approach |
 |-------|-------|-----------------------|
 | #342 | S-21.01 | Bats: invoke `git add .factory/foo.md` on a non-factory-artifacts branch while the WASM guard is active; assert guard fires (exit code 2). Integration: run a product-branch merge that includes a `.factory/` delete in the diff; assert the skill-doc gate stops the merge before it runs. |
-| #365 | S-21.02 | Bats: simulate a `git rebase` that drops a line from a sibling branch's commit; assert the post-rebase diff gate detects the net-negative delta and surfaces a STOP signal. Proptest: fuzz the 3-way merge context-line adjacency scenario to confirm detection coverage. |
+| #365 | S-21.02 | Bats: simulate a `git rebase` scenario (larger-hunk or moved-code trigger) that drops a production line; assert the post-rebase `git range-diff` gate detects the dropped hunk and surfaces a STOP signal before force-push-with-lease. Secondary: assert the `git diff --stat` net-negative check also fires. |
 | #358 | S-21.03 | Bats fixtures (mirrors the pattern established for pr-manager in S-19.01): stub `gh pr view` to return a mismatched `baseRefName`; assert pr-manager fails at step 3. Stub `git merge-base` to return exit 1; assert pr-manager fails at step 9. Both assertions must fire before the story is marked delivered. |
 | #523 | S-21.04 | Bats: create a stray `.factory/` file inside a story-worktree fixture; invoke the teardown preflight step; assert it exits non-zero and reports the stray file path. Regression test: confirm `git worktree remove` is not invoked if the preflight exits non-zero. |
 | #588 | S-21.05 | Bats: mock a factory-side PR flow that ends without restoring the branch; assert the post-merge restore steps fire (`git checkout factory-artifacts`, `git pull --ff-only`, branch deletes). Bats: mock a state where `git branch --show-current` returns a chore branch at dispatch preamble; assert the preamble check STOPs before any write. |
@@ -474,9 +496,9 @@ tracking (the precondition that makes #342 dangerous); S-21.02 and S-21.03 are
 independent process gaps with no prerequisite. All three can ship in parallel.
 
 Wave 2 rationale: S-21.04 and S-21.05 address the worktree lifecycle surface. They
-benefit from S-21.01's WASM guard being active (defense-in-depth), but both are
-independently viable without it. They are adjacent in theme (shared-mutable-worktree
-lifecycle) but use different artifacts and BCs.
+benefit from S-21.01's `validate-factory-path-staging` WASM guard being active
+(defense-in-depth), but both are independently viable without it. They are adjacent
+in theme (shared-mutable-worktree lifecycle) but use different artifacts and BCs.
 
 ---
 
@@ -484,7 +506,7 @@ lifecycle) but use different artifacts and BCs.
 
 | Issue | Root-cause status | BC anchor | Story boundary | Points |
 |-------|------------------|-----------|----------------|--------|
-| #342 product-branch clobber | CONFIRMED OPEN — factory-branch-guard covers Edit/Write, not Bash-tool git merge/checkout; no pre-merge intersection check exists | New BC in SS-04 (validate-artifact-path WASM, PreToolUse Bash gate) + SS-05 amendment (merge gate skill-doc) | S-21.01 Wave 1 | 11 |
+| #342 product-branch clobber | CONFIRMED OPEN — factory-branch-guard covers Edit/Write, not Bash-tool git merge/checkout; no pre-merge intersection check exists | New BC in SS-04 (`validate-factory-path-staging` WASM per ADR-031 §D3, PreToolUse Bash gate) + SS-05 amendment (merge gate skill-doc) | S-21.01 Wave 1 | 11 |
 | #365 rebase silent drop | CONFIRMED OPEN — no post-rebase diff-integrity step exists in deliver-story or pr-manager; path referenced in issue ("orchestrator-rebase playbook") does not exist in codebase | New BC in SS-05 (post-rebase diff-integrity gate as required protocol step) | S-21.02 Wave 1 | 3 |
 | #358 PR base not locked | PARTIALLY FIXED (--base develop in place at pr-manager.md:139) / GAP CONFIRMED OPEN (post-create baseRefName assertion absent; post-merge --is-ancestor check absent) | BC amendment to SS-06 (BC-6.10.002 or new BC covering pr-manager 9-step postconditions PC-N and PC-N+1) | S-21.03 Wave 1 | 3 |
 | #523 story-worktree teardown loss | CONFIRMED OPEN — shared-context write-path discipline names reads only; step-g-cleanup has no teardown preflight | New BC in SS-06 (story-worktree write-path discipline + teardown preflight as required postconditions) | S-21.04 Wave 2 | 5 |
@@ -503,10 +525,12 @@ SCOPE for this document and must be authored by their respective owners:
 - 4-index version bumps (state-manager)
 
 POLICY 21 (no_new_shell_scripts, D-836) is a hard constraint on all E-21 stories.
-The validate-artifact-path WASM crate for S-21.01 is already PLANNED in the SS-04
-subsystem doc (`crates/hook-plugins/validate-artifact-path/`), making it
-policy-compliant. All other E-21 fix vectors are skill-doc amendments requiring
-no new runtime artifacts.
+S-21.01 introduces a new `validate-factory-path-staging` WASM crate
+(`crates/hook-plugins/validate-factory-path-staging/`) per ADR-031 §Decision 3,
+which mandates this distinct name to avoid registry-filename and cargo-output
+collision with the existing `validate-artifact-path` crate (BC-4.11.001, S-13.01).
+The new crate is POLICY 21-compliant (WASM plugin). All other E-21 fix vectors are
+skill-doc amendments requiring no new runtime artifacts.
 
 E-20 (factory-tools class migration for grandfathered .sh scripts) is the
 designated migration anchor for any future consolidation of `factory-branch-guard.sh`
