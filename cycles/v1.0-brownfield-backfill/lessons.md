@@ -7062,3 +7062,39 @@ Both gates are mandatory standing Commit-E controls for any burst touching E-19 
 **Cites:** D-851 burst (gap origin); D-853 Gate 1 first run (detection); D-844 GATE1-HYGIENE-REMEDIATION (prior occurrence); validate-state-structure test suite; D-449(a) literal-shell Dim-2 requirement; [[L-BB-local-target-release-staleness-causes-gate1-false-failures]].
 
 **Closes:** D-853 E-19-W3-EPIC-WAVE-GATE-CLOSURE burst-2 (2026-07-17). `[process-gap; banner-wc-l; validate-state-structure; pre-commit-gate; off-by-one; STATE.md; D-851; D-853; codified]`
+
+---
+
+### L-BB-agent-prompt-prose-defects-are-ci-invisible [process-gap] [codified D-858]
+
+**Title:** Agent Prompt Prose Defects (Factual Claims in Agent Guidance) Are CI-Invisible — Primary-Source Verification Required Before Merge
+
+**Lesson:** When a fix PR updates prose in an agent guidance file (e.g., language-specific behavioral hints in SKILL.md or agent prompts), the factual accuracy of those claims cannot be detected by CI. In the D-858 session, PR #531 (`fix/adversary: mandatory ground-truth verification for CRITICAL/HIGH findings`) contained a bullet claiming "cmd.Stdin = nil INHERITS parent stdin" for Go's os/exec package — a factually false statement. In reality, when `cmd.Stdin` is nil in Go's os/exec, the child process's stdin is connected to the null device (`/dev/null`), not to the parent's stdin. The real hazard is when code explicitly sets `cmd.Stdin = os.Stdin` (inheriting the parent stdin pipe, which can cause blocking if the parent doesn't write). This defect survived code review, CI (13/13 green), and human merge. It was caught only by orchestrator content review post-merge, requiring a separate fix PR (#691) with research-agent primary-source verification.
+
+**Root cause:** (1) The incorrect claim was plausible-sounding and concerned a nuanced language-specific runtime behavior. (2) Code reviewers focused on logic changes, not on verifying accuracy of prose assertions about language semantics. (3) CI only tests compilation, unit tests, and integration tests — none of which catch incorrect English assertions about runtime behavior in guidance prose.
+
+**Prevention:** (1) Any PR that introduces or modifies factual claims about language-specific behaviors (stdin/stdout semantics, null pointer behavior, error propagation, OS-level differences) MUST include primary-source citations (go.dev, Rust std docs, Node.js official docs) verifiable before merge. (2) Code reviewers should flag any prose assertion about runtime behavior that lacks a citation — especially cross-language behavioral comparisons. (3) Agent prompts containing cross-language behavioral guidance should be reviewed by a specialist (research-agent or language-aware reviewer). (4) For "what happens when X is nil/null/undefined/default" claims, the exact official documentation source must be cited inline.
+
+**Anchors:** PR #531 merged dc110e03 (gap origin): false Go nil-Stdin claim in adversary SKILL.md guidance. PR #691 (fix/test-writer-go-stdin-correction) merged → `6444ac23` (2026-07-19): implementer b1ff2457 + research-agent primary-source verification (go.dev confirmed nil → /dev/null; `os.Stdin` wiring is the real trap; Node.js 'pipe' default unclosed-pipe hazard). D-858 BACKLOG-TRIAGE-ARC-2026-07-19.
+
+**Cites:** PR #531 dc110e03 (gap origin); PR #691 6444ac23 (closure); go.dev/pkg/os/exec/#Cmd.Stdin (primary source: nil → OS null device); doc.rust-lang.org/std/process/struct.Stdio.html; nodejs.org/docs child_process default 'pipe'; [[L-BB-per-story-pr-review-reports-must-persist-at-review-time]].
+
+**Closes:** D-858 BACKLOG-TRIAGE-ARC-2026-07-19 burst (2026-07-19). `[process-gap; agent-prompt; prose-defects; ci-invisible; primary-source; factual-claims; go-semantics; D-858; codified]`
+
+---
+
+### L-BB-fork-pr-action-required-queue-needs-periodic-sweep [process-gap] [codified D-858]
+
+**Title:** Fork-PR CI Runs Park in action_required Queue Silently — Open Fork PRs Need a Periodic Maintainer-Approval Sweep
+
+**Lesson:** When a contributor submits a PR from an org-owned fork, GitHub requires a repository maintainer to explicitly approve CI runs for each new push to that PR. These approval requests land in the Actions tab "action_required" queue — not in the PR status indicators. In the D-858 session, CI runs for PRs #526..#532 had been parked in the action_required queue since 2026-07-06 — 13 days before they were noticed. During this period, those PRs appeared to have "no checks" (indistinguishable from PRs that have never triggered CI), making them invisible to routine triage. This blocked review and delivery of 7 fix PRs for nearly two weeks. Additionally, org-owned forks (unlike personal forks) do not honor the `maintainerCanModify` flag — so maintainer rebase-and-push to update a contributor's branch is impossible; the only working path is close/reopen to trigger fresh CI + approve the action_required runs.
+
+**Root cause:** (1) No process or notification setup to alert maintainers when fork PRs require CI approval. (2) Routine PR triage focused on "checks passing/failing" status indicators and did not check the Actions tab action_required queue. (3) The distinction between org-owned forks (maintainerCanModify not honored) and personal forks (may be honored) was undocumented in the project workflow.
+
+**Prevention:** (1) Add a periodic sweep (e.g., weekly during active backlog work) checking: `gh run list --status action_required`. (2) Document in project contribution guidelines that PRs from org-owned forks require maintainer CI approval, and contributors should ping if checks haven't started within 24 hours. (3) When triaging open PRs, explicitly check the Actions tab for action_required items alongside PR status — "no checks" may mean waiting for approval, not no CI config. (4) For vsdd-factory: check action_required queue as part of any PR triage session.
+
+**Anchors:** PRs #526..#532 from ArcavenAE/vsdd-factory (org-owned fork): CI action_required since 2026-07-06; discovered 2026-07-19 (13 days). All 8 PRs (#524..#532) merged to develop 2026-07-19 after maintainer approval of the 24 action_required workflow runs. D-858 BACKLOG-TRIAGE-ARC-2026-07-19.
+
+**Cites:** GitHub fork PR CI approval requirements; PRs #524-#532 from ArcavenAE/vsdd-factory; D-858; [[L-BB-agent-prompt-prose-defects-are-ci-invisible]].
+
+**Closes:** D-858 BACKLOG-TRIAGE-ARC-2026-07-19 burst (2026-07-19). `[process-gap; fork-pr; ci-approval; action-required; periodic-sweep; maintainer; github; org-fork; D-858; codified]`
