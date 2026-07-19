@@ -1,7 +1,7 @@
 ---
 document_type: behavioral-contract
 level: L3
-version: "1.2"
+version: "1.3"
 status: draft
 producer: product-owner
 timestamp: 2026-07-19T00:00:00Z
@@ -23,6 +23,7 @@ introduced: v1.0-brownfield-backfill
 modified:
   - "2026-07-19 (v1.1) — CAP-034 backfill (product-owner; ARCH-INDEX v3.07): capability frontmatter TBD→CAP-034; §Traceability L2 Capability TBD→CAP-034; Capability Anchor Justification updated to cite CAP-034/ARCH-INDEX v3.07."
   - "2026-07-19 (v1.2) — Research validation precision amendments (product-owner; research validation 2026-07-19): §Description expanded with loss-mode precision (silent delete only when on-disk content matches tracked blob; uncommitted divergence causes git abort — reframed as defense-in-depth for matching-content case); §Description + Invariant 5 added with pre-check semantics precision (HEAD..<target> = endpoint comparison, not merge preview; over-halts conservatively; git merge-tree cited as more precise alternative)."
+  - "2026-07-19 (v1.3) — adv pass-2 fix burst (F-P2-001) per ADR-031 v1.3 revised ruling (product-owner): §Description guarded-surface corrected from named-agent list to ad-hoc orchestrator/operator Bash on main checkout; server-side origination threat vector paragraph added; protocol exclusions (pr-manager, devops-engineer §Inter-Wave Rebase, state-manager) documented; enforcement host = orchestrator/per-story-delivery.md §Main-Checkout Sync Protocol; ADR-031 §Decision 2 cite added. §Architecture Anchors: deliver-story/pr-manager/factory-health replaced with orchestrator/per-story-delivery.md. §Traceability: Architecture Module + ADR Reference corrected. Scope note updated."
 deprecated: null
 deprecated_by: null
 replacement: null
@@ -31,7 +32,7 @@ removed: null
 removal_reason: null
 bc_id: BC-5.43.001
 section: "5.43"
-last_amended: "(v1.2) — Research validation precision amendments (product-owner; research validation 2026-07-19): §Description loss-mode precision + pre-check semantics note; Invariant 5 added. [Prior: (v1.1) — CAP-034 backfill. (v1.0) — Initial authoring; orchestrator merge safety gate; INV-E21-001 safety-net layer. lifecycle_status: draft (POL-14).]"
+last_amended: "(v1.3) — adv pass-2 fix burst (F-P2-001) per ADR-031 v1.3 revised ruling: guarded-surface corrected to ad-hoc orchestrator/operator Bash on main checkout; server-side origination vector documented; enforcement host = orchestrator/per-story-delivery.md §Main-Checkout Sync Protocol; ADR-031 §Decision 2 cite added. [Prior: (v1.2) — Research validation precision amendments: §Description loss-mode precision + pre-check semantics note; Invariant 5 added. (v1.1) — CAP-034 backfill. (v1.0) — Initial authoring; orchestrator merge safety gate; INV-E21-001 safety-net layer. lifecycle_status: draft (POL-14).]"
 ---
 
 # BC-5.43.001: orchestrator MUST run a `.factory/` path-intersection pre-check before executing any `git merge`, `git pull`, or `git checkout` on the product branch, and MUST STOP if the target tree diff contains a `.factory/` path deletion
@@ -42,10 +43,31 @@ This BC governs the **safety-net layer** for issue #342 (product-branch merge si
 `.factory/` file the nested worktree is serving). It is the companion to BC-4.16.001 (the invariant
 layer: `validate-factory-path-staging` WASM guard that prevents dual-tracking at `git add` time).
 
-Whenever the orchestrator or any specialist agent (devops-engineer, pr-manager, state-manager) is
-about to execute a `git merge`, `git pull`, or `git checkout` command that changes the HEAD of the
-product branch (develop/main/feature/release/maintenance), it MUST first run a path-intersection
-pre-check. The pre-check inspects the diff between the current HEAD and the target ref:
+**Guarded surface:** The live surface for this gate is ad-hoc orchestrator/operator Bash `git pull`
+and `git merge` on the **main product checkout** — the checkout where `.factory/` is physically
+mounted as a nested worktree. The orchestrator issues `git pull origin develop` for post-merge sync
+and resume operations as operational Bash; these commands are not documented in any single agent
+protocol file, which is why grep of agent docs finds nothing and why this surface was initially
+misclassified as EMPTY at ADR-031 v1.2. This is the precise clobber vector issue #342's field
+report describes (per ADR-031 §Decision 2).
+
+**Protocol exclusions** (not in scope for this gate): (a) `pr-manager.md` performs server-side
+`gh pr merge` — no local Bash command advances the product-branch HEAD, so it is excluded by PC3;
+(b) `devops-engineer.md §Inter-Wave Rebase` operates on the story worktree (`.worktrees/STORY-NNN/`)
+where `.factory/` is NOT physically mounted; (c) state-manager always scopes git operations to the
+factory-artifacts worktree via `git -C .factory` and never operates on the product-branch HEAD.
+
+**Enforcement:** The mandatory pre-check constraint is documented in
+`plugins/vsdd-factory/agents/orchestrator/per-story-delivery.md` §Main-Checkout Sync Protocol —
+the S-21.01 Layer-2 deliverable (ADR-031 §Decision 2). Layer-1 scope (the
+`validate-factory-path-staging` WASM guard in BC-4.16.001) stays narrow — `git add`/`git stage`
+only — and is not extended to cover `git pull`/`git merge`, preserving the two-layer separation.
+
+Whenever the orchestrator or operator issues a Bash command on the main product checkout that
+changes the HEAD of the product branch via `git merge`, `git pull`, `git pull --ff-only`,
+`git pull --rebase`, or `git checkout <target>` (where `<target>` results in a working-tree
+update on the product branch), it MUST first run a path-intersection pre-check. The pre-check
+inspects the diff between the current HEAD and the target ref:
 
 ```
 git diff --name-only HEAD..<target-ref>
@@ -65,6 +87,19 @@ changes to the following files would be overwritten by merge" — which is unple
 data is lost. This BC therefore provides defense-in-depth for the matching-content silent-delete
 case, which is the most dangerous scenario and the one that gives no user-visible signal.
 
+**Server-side origination threat vector:** BC-4.16.001's Layer-1 WASM guard intercepts Bash-tool
+`git add`/`git stage` calls. It does NOT intercept a contributor PR that adds `.factory/`-pathed
+files merged server-side via GitHub — no local Bash call fires, so the Layer-1 guard never
+triggers. The next `git pull origin develop` on the main checkout then delivers the tracked
+`.factory/` content into the mounted `.factory/` directory, and a subsequent product-branch merge
+or working-tree update silently deletes it. This server-side origination path is the **primary
+threat vector** this Layer-2 gate guards against: it intercepts pre-existing dual-tracking
+regardless of how that tracking formed — local staging (partially covered by BC-4.16.001) or
+server-side PR merge (not covered by BC-4.16.001). BC-4.16.001 Precondition 4 provides partial
+mitigation for CI/bare-clone pipelines but does not cover the server-side origination path on
+developer main checkouts. This is an acknowledged residual risk for Layer-1's coverage perimeter
+(see ADR-031 §Decision 2 §Rationale).
+
 **Rationale for new BC rather than SS-05 amendment:** No existing SS-05 BC governs the
 orchestrator's product-branch merge or checkout pre-check step. BC-5.41.001 governs wave-gate
 HANDOFF.md writing; BC-5.42.001 governs pr-manager READY-verdict enforcement; neither covers the
@@ -73,8 +108,9 @@ the production-grade choice — the correct way to specify a new mandatory proto
 the spec for it, not to shoehorn it into a BC with a different behavioral focus.
 
 **Scope note:** This BC covers skill-doc mandates (no new WASM plugin or shell script is required;
-POLICY 21 satisfied). The pre-check is expressed as a required orchestrator action documented in
-skill step instructions for all agents that perform product-branch merge/pull/checkout operations.
+POLICY 21 satisfied). The pre-check is expressed as a mandatory constraint in
+`plugins/vsdd-factory/agents/orchestrator/per-story-delivery.md` §Main-Checkout Sync Protocol —
+the S-21.01 Layer-2 deliverable (ADR-031 §Decision 2).
 
 ## Preconditions
 
@@ -203,10 +239,10 @@ product branch working tree.
 | L2 Capability | CAP-034 |
 | Capability Anchor Justification | CAP-034 registered in ARCH-INDEX v3.07 (ADR-031, commit 14a78515): "Nested Worktree Path Exclusivity — factory-artifacts paths may not be staged or merged on the product branch." BC-4.16.001 (invariant layer, `validate-factory-path-staging` WASM) and BC-5.43.001 (safety-net layer, orchestrator merge pre-check) together implement CAP-034 defense-in-depth. |
 | L2 Domain Invariants | none (operational infrastructure) |
-| Architecture Module | `plugins/vsdd-factory/skills/deliver-story/steps/` (skill-doc amendment by S-21.01); `plugins/vsdd-factory/agents/pr-manager.md` (amendment); orchestrator merge protocol templates |
+| Architecture Module | `plugins/vsdd-factory/agents/orchestrator/per-story-delivery.md` §Main-Checkout Sync Protocol (S-21.01 Layer-2 deliverable; ADR-031 §Decision 2) |
 | Stories | S-21.01 (E-21 Wave 1) |
 | Source Issues | #342 (product-branch merge silently rm's a `.factory/` file) |
-| ADR Reference | none |
+| ADR Reference | ADR-031 §Decision 2 (Two-layer defense for INV-E21-001; Layer-2 enforcement on ad-hoc Bash; server-side origination residual risk) |
 
 ## Related BCs
 
@@ -215,9 +251,7 @@ product branch working tree.
 
 ## Architecture Anchors
 
-- `plugins/vsdd-factory/skills/deliver-story/steps/` — skill-doc step files requiring the pre-check (to be amended by S-21.01)
-- `plugins/vsdd-factory/agents/pr-manager.md` — merge-step amendment required (to be amended by S-21.01)
-- `plugins/vsdd-factory/skills/factory-health/SKILL.md` — factory-health pre-merge check step addition (to be amended by S-21.01)
+- `plugins/vsdd-factory/agents/orchestrator/per-story-delivery.md` §Main-Checkout Sync Protocol — enforcement host; the S-21.01 Layer-2 deliverable adds a mandatory pre-check constraint for any `git pull`/`git merge` on the main checkout issued by the orchestrator (documented step or ad-hoc cleanup). Protocol exclusions: `pr-manager.md` (server-side `gh pr merge`, excluded by PC3), `devops-engineer.md §Inter-Wave Rebase` (story worktree — `.factory/` not mounted), state-manager (`git -C .factory` only).
 
 ## Story Anchor
 
@@ -231,6 +265,7 @@ TBD — VP IDs to be assigned after VP authoring pass.
 
 | Version | Date | Description |
 |---------|------|-------------|
-| 1.0 | 2026-07-19 | Initial authoring (product-owner; E-21 factory-state data-loss hardening; issue #342). Orchestrator product-branch merge safety gate: mandatory `git diff --name-only HEAD..<target>` pre-check (PC1 pass/PC2 halt); safety-net layer for INV-E21-001. 1 error variant: `FactoryPathDeletionInMergeDiff`. 7 edge cases EC-001..EC-007. 5 test vectors T-1..T-5. lifecycle_status: draft (POL-14 auto-promotion on S-21.01 PR merge). |
+| 1.3 | 2026-07-19 | adv pass-2 fix burst (F-P2-001) per ADR-031 v1.3 revised ruling (product-owner). §Description: guarded surface corrected from named-agent list (devops-engineer, pr-manager, state-manager) to ad-hoc orchestrator/operator Bash on main product checkout; protocol exclusions documented (pr-manager server-side `gh pr merge` excluded by PC3; devops-engineer §Inter-Wave Rebase on story worktree — `.factory/` not mounted; state-manager `git -C .factory` only); enforcement host = `orchestrator/per-story-delivery.md` §Main-Checkout Sync Protocol (S-21.01 Layer-2 deliverable per ADR-031 §Decision 2). Server-side origination threat vector paragraph added (contributor PR → server-side merge → `git pull` delivers tracked `.factory/` content; Layer-2 is primary guard). Scope note updated. §Architecture Anchors: deliver-story/pr-manager/factory-health anchors replaced with `orchestrator/per-story-delivery.md`. §Traceability: Architecture Module corrected; ADR Reference `none`→`ADR-031 §Decision 2`. |
 | 1.2 | 2026-07-19 | Research validation precision amendments (product-owner; research validation 2026-07-19). §Description: loss-mode precision added (silent delete only when on-disk content matches tracked blob; uncommitted divergence causes git abort — defense-in-depth for matching-content case explicitly stated). Invariant 5 added: pre-check semantics — `git diff --name-only HEAD..<target>` is endpoint comparison, not merge preview; conservatively over-halts (never misses); `git merge-tree` cited as precise alternative. |
 | 1.1 | 2026-07-19 | CAP-034 backfill (product-owner; ARCH-INDEX v3.07, ADR-031, commit 14a78515): capability frontmatter TBD→CAP-034; §Traceability L2 Capability TBD→CAP-034; Capability Anchor Justification updated to cite CAP-034/ARCH-INDEX v3.07; Description crate-name corrected (`validate-artifact-path`→`validate-factory-path-staging`, TD-VSDD-060 sibling-site sweep). |
+| 1.0 | 2026-07-19 | Initial authoring (product-owner; E-21 factory-state data-loss hardening; issue #342). Orchestrator product-branch merge safety gate: mandatory `git diff --name-only HEAD..<target>` pre-check (PC1 pass/PC2 halt); safety-net layer for INV-E21-001. 1 error variant: `FactoryPathDeletionInMergeDiff`. 7 edge cases EC-001..EC-007. 5 test vectors T-1..T-5. lifecycle_status: draft (POL-14 auto-promotion on S-21.01 PR merge). |
