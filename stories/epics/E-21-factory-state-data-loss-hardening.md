@@ -1,7 +1,7 @@
 ---
 document_type: epic
 epic_id: "E-21"
-version: "v1.2"
+version: "v1.3"
 status: draft
 title: "Factory State Data-Loss Hardening — validate-factory-path-staging WASM guard, post-rebase diff-integrity gate, pr-manager trunk assertions, story-worktree write-path discipline, factory-side PR protocol"
 prd_capabilities: [CAP-034, CAP-035, CAP-036, CAP-037, CAP-038]
@@ -27,12 +27,13 @@ inputs:
   - .factory/stories/S-21.03-pr-manager-trunk-assertion.md
   - .factory/stories/S-21.04-story-worktree-write-path-discipline.md
   - .factory/stories/S-21.05-pr-manager-factory-side-pr-protocol.md
-input-hash: "91867b7"
-last_amended: "2026-07-19 (v1.2) — adv pass-2 fix burst (F-P2-003): INV-E21-005 'post-rebase product branch' → 'post-rebase feature branch' (authoritative ADR-031 INV-E21-005 scope); BC-5.43.001 → v1.3; ADR-031 version cites → v1.3 (all occurrences); Description item 2 'product branch' + 'pr-manager post-rebase checkpoint' corrected to 'feature branch' + 'devops-engineer.md §Inter-Wave Rebase checkpoint'."
+input-hash: "8095e05"
+last_amended: "2026-07-19 (v1.3) — adv pass-3 fix burst (F-P3-003): CAP-036 stale BC-6.26.001 v1.2 cite corrected to v1.3; TD-VSDD-060 full grep sweep confirms no other stale v1.2 cites of BC-5.44.001, BC-6.10.002, BC-6.26.001, or BC-5.43.001. [Prior: 2026-07-19 (v1.2) — adv pass-2 fix burst (F-P2-003): INV-E21-005 'post-rebase product branch' → 'post-rebase feature branch' (authoritative ADR-031 INV-E21-005 scope); BC-5.43.001 → v1.3; ADR-031 version cites → v1.3 (all occurrences); Description item 2 'product branch' + 'pr-manager post-rebase checkpoint' corrected to 'feature branch' + 'devops-engineer.md §Inter-Wave Rebase checkpoint'.]"
 modified:
   - "v1.0 2026-07-19: Initial authoring"
   - "v1.1 2026-07-19: adv pass-1 fix burst (F-P1-008/009/011/013)"
   - "v1.2 2026-07-19: adv pass-2 fix burst (F-P2-003) — INV-E21-005 feature branch fix; BC-5.43.001 → v1.3; ADR-031 cites → v1.3; Description item 2 corrected"
+  - "v1.3 2026-07-19: adv pass-3 fix burst (F-P3-003) — CAP-036 BC-6.26.001 v1.2 → v1.3; TD-VSDD-060 full grep sweep confirmed clean"
 ---
 
 # Epic E-21: Factory State Data-Loss Hardening
@@ -131,7 +132,7 @@ E-21 introduces five new PRD capabilities, defined in ADR-031 §Decision 7 (CAP-
   --force-with-lease` sequence on a feature branch).
 
 - **CAP-036 — Story-worktree write-path discipline** (canonical-path mandate + teardown
-  preflight): BC-6.26.001 v1.2. Implemented by S-21.04 (skill-doc amendment to
+  preflight): BC-6.26.001 v1.3. Implemented by S-21.04 (skill-doc amendment to
   `_shared-context.md` + `step-g-cleanup.md`).
 
 - **CAP-037 — Factory-side PR protocol** (5-step restore + dispatch-preamble assertion):
