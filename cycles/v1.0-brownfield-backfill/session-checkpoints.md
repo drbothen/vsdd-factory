@@ -968,3 +968,15 @@ Summary of D-848 checkpoint (archived reference):
 - 4-index at D-849 wrap: BC v4.08 / VP v2.71 / STORY v4.217 / ARCH v3.05. L2-INDEX v1.0.15. total_bcs 1,977.
 - develop HEAD: `13ece92c` (origin) / main HEAD: `a04cb303` / factory-artifacts HEAD: `71523955` (S-19.07 LOCAL-ADV-P18-CONVERGED, 2026-07-16) / merged_count 106
 - D-range: D-001..D-849 (see decision-log.md for full range)
+
+---
+
+## D-860 Checkpoint (archived 2026-07-19 by D-861 session wrap — SESSION-WRAP-PAUSED)
+
+**Superseded by D-861 SESSION-WRAP-PAUSED checkpoint (STATE.md §Session Resume Checkpoint).**
+
+Summary of D-860 checkpoint (archived reference):
+- D-860 (2026-07-19): E21-REGISTRATION-AND-SPEC-CONVERGENCE-2026-07-19 governance burst COMPLETE. BC-INDEX v4.10→v4.11: 5 new BCs (BC-4.16.001 v1.2 SS-04/CAP-034/S-21.01/#342; BC-5.43.001 v1.3 SS-05/CAP-034/S-21.01/#342; BC-5.44.001 v1.3 SS-05/CAP-035/S-21.02/#365; BC-6.26.001 v1.3 SS-06/CAP-036/S-21.04/#523; BC-6.27.001 v1.3 SS-06/CAP-037/S-21.05/#588) + BC-6.10.002 updated (TBD→CAP-038/TBD→S-21.03/v1.3); total_bcs 1,977→1,982; SS-04 42→43. e-21-spec-convergence.md CREATED: 11-pass LOCAL adversarial convergence arc; P1 B2/H4/M4/L3 → P11 CLEAN B0/H0/M0/L2; 29 findings closed (P1..P8); F-P2-001 EMPTY-host ruling RETRACTED (ADR-031 v1.3 live-surface framing adopted); 3-CLEAN streak P9/P10/P11 per BC-5.39.001+D-761 strict; 9-item accepted-with-record register. D-860 CODIFIED in decision-log.md + 4 lessons [process-gap]. Sprint-state: 5 E-21 stories added draft (S-21.01..S-21.05; W1: S-21.01/02/03; W2: S-21.04/05; 27pts). STATE.md v6.06→v6.07. PIPELINE PAUSED — E-21 Phase-3 W1 dispatch AWAITING HUMAN APPROVAL (4 gate questions presented to human, not yet answered at wrap).
+- 4-index at D-860: BC v4.11 / VP v2.72 / STORY v4.227 / ARCH v3.11. L2-INDEX v1.0.15. total_bcs 1,982.
+- develop HEAD: `6444ac23` (origin; 2026-07-19 post-triage; local==origin) / main HEAD: `80e5cd7b` (bot bundle 2026-07-18) / factory-artifacts HEAD: `ec651e13` (D-860-SHA-PATCH; pushed 2026-07-19) / merged_count 107
+- D-range: D-001..D-860 (see decision-log.md for full range)
