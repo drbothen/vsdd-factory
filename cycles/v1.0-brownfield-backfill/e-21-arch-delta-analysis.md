@@ -2,12 +2,13 @@
 document_type: architect-delta-analysis
 epic_id: "E-21"
 epic_working_title: "Factory State Data-Loss Hardening"
-version: "v1.3"
+version: "v1.4"
 status: draft
 producer: architect
 timestamp: 2026-07-19T00:00:00Z
 modified:
-  - "2026-07-19 (v1.3) — F-P2 adversary adjudications (architect): (1) Issue #342 Mechanism 2 host-set corrected to EMPTY: pr-manager (server-side gh pr merge; BC-5.43.001 PC3 exclusion), devops-engineer (rebase on story worktree; .factory/ not mounted), state-manager (git -C .factory only) all removed from named-host description; forward-looking zero-host mandate documented (F-P2-001; ADR-031 v1.2 §Decision 2). (2) Two volatile pr-manager.md:139 line-number pins converted to behavioral anchors: pr-manager.md Step 3 `gh pr create` invocation (F-P2-006; TD-VSDD-091). (3) BC/VP impact note updated to reflect zero-host mandate framing."
+  - "2026-07-19 (v1.4) — F-P2-001 correction (orchestrator counter-evidence accepted): Issue #342 Mechanism 2 EMPTY host-set retracted; corrected to 'undocumented ad-hoc orchestrator/operator Bash on main checkout'; server-side origination vector documented (contributor PR → server-side merge → git pull delivers tracked .factory/ content; Layer-2 primary guard); enforcement site named (orchestrator/per-story-delivery.md main-checkout sync constraint = S-21.01 Layer-2 deliverable); Layer-1 scope confirmed narrow; BC/VP impact updated. (ADR-031 v1.3 §Decision 2 + §Rationale companion.)"
+  - "2026-07-19 (v1.3) — F-P2 adversary adjudications (architect): Issue #342 Mechanism 2 host-set corrected to EMPTY (retracted at v1.4); two volatile pr-manager.md:139 line-number pins converted to behavioral anchors (F-P2-006; TD-VSDD-091); BC/VP impact note updated."
   - "2026-07-19 (v1.2) — F-P1 adversary adjudications (architect): (1) INV-E21-005 renamed from PR Trunk Ancestry to Post-Rebase Diff Integrity; INV-E21-006 = PR Trunk Ancestry appended (append-only; ADR-031 v1.1 §Decision 1); delta-analysis invariant catalog updated to match. (2) Issue #523 root-cause corrected: `git worktree remove --force` claim wrong; actual mechanism = `.factory/` is gitignored on product branch, so shadow content is gitignored (not untracked), plain `git worktree remove` passes clean-state check, underlying rm-rf silently destroys shadow content. (3) Issue #365 solution-shape host surface corrected: pr-manager.md step 8 = Execute merge (not rebase); correct host = devops-engineer.md §Inter-Wave Rebase (the only site with rebase+force-with-lease); step-f-pr-lifecycle.md has no rebase sub-step."
   - "2026-07-19 (v1.1) — stale crate name `validate-artifact-path` corrected to `validate-factory-path-staging` throughout (ADR-031 §Decision 3, commit 14a78515; original crate serves BC-4.11.001 S-13.01 and collides on registry filename + cargo output); #365 root-cause mechanism corrected (adjacent-edit cases conflict; silent drops require larger-hunk or moved-code diffs; `git range-diff` cited as canonical detector per BC-5.44.001); #358 gh-base-inference statement corrected (gh uses `gh-merge-base` git config or repo default branch, not tracking upstream, when `--base` is omitted)."
 cycle: v1.0-brownfield-backfill
@@ -72,20 +73,25 @@ Two layers:
    (the checkout where `.factory/` is physically mounted as a nested worktree) must run
    `git diff --name-only HEAD..<target>` before the operation and assert the result
    contains no path matching `.factory/`. If it does, STOP and require manual handling.
-   **CURRENT HOST SET: EMPTY.** As of v1.3, no agent or skill in the codebase performs
-   a local `git merge` or `git pull` on the product checkout. pr-manager.md performs
-   only server-side `gh pr merge` (excluded by BC-5.43.001 PC3). devops-engineer.md
-   §Inter-Wave Rebase performs `git rebase origin/develop` on the story worktree
-   (`.worktrees/STORY-NNN/`), not the main checkout — `.factory/` is NOT mounted there.
-   state-manager operates only on `git -C .factory` (factory-artifacts branch). This is
-   a standing forward-looking protocol mandate for any future agent/skill that introduces
-   a local merge/pull on the product checkout.
-   [F-P2-001 adjudication: original "orchestrator agent prompt for merge operations"
-   host description corrected; see ADR-031 v1.2 §Decision 2 + §Rationale for full analysis.]
+   **CURRENT HOST: undocumented ad-hoc orchestrator/operator Bash.** The orchestrator
+   issues `git pull origin develop` on the main checkout for post-merge sync and resume
+   operations — these are operational, not documented in any single agent protocol file.
+   Additionally, a contributor PR adding `.factory/`-pathed files merged server-side via
+   GitHub bypasses Layer-1 entirely (no local `git add` fires); the next `git pull` on
+   the main checkout is the clobber delivery mechanism. Layer-2 is the primary guard for
+   this server-side origination vector. Documented-protocol exclusions still apply:
+   pr-manager.md uses server-side `gh pr merge` (BC-5.43.001 PC3); devops-engineer
+   §Inter-Wave Rebase operates on story worktree (`.factory/` not mounted); state-manager
+   uses `git -C .factory` only.
+   Enforcement site: add "main-checkout sync pre-check" constraint to
+   `orchestrator/per-story-delivery.md` — this is the S-21.01 Layer-2 deliverable.
+   Layer-1 scope must stay narrow (git add/stage only; not extended to pull/merge).
+   [F-P2-001 corrected at v1.3: EMPTY host-set retracted; see ADR-031 v1.3 §Decision 2
+   + §Rationale for server-side origination risk analysis.]
 
 POLICY 21 note: mechanism (1) introduces a new WASM crate (`validate-factory-path-staging`
 per ADR-031 §Decision 3); no new .sh file required. Mechanism (2) is a skill-doc mandate
-(currently zero-host; see above).
+(host: orchestrator/per-story-delivery.md main-checkout sync constraint).
 
 **BC/VP impact.**
 E-17 BCs (BC-4.13.001 factory-lock guard, BC-5.40.001 STATE.md lock schema,
@@ -94,7 +100,8 @@ BC-6.23.001 lock/unlock skill) address *concurrent-session* write races on
 nested worktree. **New BC required**: one BC in SS-04 covering the
 `validate-factory-path-staging` WASM plugin's PreToolUse behavior (blocking `git add`
 of `.factory/` paths on non-`factory-artifacts` branches); BC-5.43.001 covering the
-Layer-2 pre-merge check as a standing zero-host mandate (SS-05).
+Layer-2 pre-merge check with ad-hoc orchestrator Bash as the live surface and
+per-story-delivery.md as the enforcement host (SS-05).
 E-18 BCs address context-window durability, not git-level working-tree destruction.
 No reuse available for this issue.
 

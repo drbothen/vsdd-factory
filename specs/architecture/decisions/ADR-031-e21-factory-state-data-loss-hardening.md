@@ -2,7 +2,7 @@
 document_type: architecture-decision-record
 level: L3
 adr_id: ADR-031
-version: "1.2"
+version: "1.3"
 title: "ADR-031: E-21 factory state data-loss hardening — nested-worktree path exclusivity protection model"
 status: accepted
 date: 2026-07-19
@@ -26,8 +26,9 @@ subsystems_affected:
   - SS-04
   - SS-05
   - SS-06
-last_amended: "2026-07-19 (v1.2) — F-P2 adversary adjudications: (1) §Decision 2 Layer-2 host-set corrected to EMPTY: pr-manager (server-side gh pr merge, excluded by BC-5.43.001 PC3), devops-engineer (rebase on story worktree, .factory/ not mounted there), state-manager (git -C .factory only) all removed; forward-looking mandate documented; (2) §Decision 7 count fixed Four→Five (F-P2-002: CAP-038 count sweep missed at v1.1); (3) §Rationale: F-P2-001 zero-host analysis + F-P2-007 teardown dispatch-point ruling added. [Prior: 2026-07-19 (v1.1) — F-P1 adversary adjudications: on_error block→continue; INV-E21-006 added; §Context #358 corrected; CAP-038 allocated.]"
+last_amended: "2026-07-19 (v1.3) — F-P2-001 correction (orchestrator counter-evidence accepted): §Decision 2 Layer-2 'EMPTY host-set' retracted; corrected to undocumented ad-hoc orchestrator/operator Bash on main checkout; enforcement site named (per-story-delivery.md main-checkout sync protocol = S-21.01 Layer-2 deliverable); Layer-1 scope confirmed narrow (git add/stage only); server-side origination residual risk documented in §Rationale. [Prior: 2026-07-19 (v1.2) — F-P2 adversary adjudications: §Decision 2 Layer-2 EMPTY host-set (retracted at v1.3); §Decision 7 Four→Five; §Rationale F-P2-007 teardown dispatch-point ruling. Prior metadata continued: §Decision 2 Layer-2 host-set corrected to EMPTY: pr-manager (server-side gh pr merge, excluded by BC-5.43.001 PC3), devops-engineer (rebase on story worktree, .factory/ not mounted there), state-manager (git -C .factory only) all removed; forward-looking mandate documented; (2) §Decision 7 count fixed Four→Five (F-P2-002: CAP-038 count sweep missed at v1.1); (3) §Rationale: F-P2-001 zero-host analysis + F-P2-007 teardown dispatch-point ruling added. [Prior: 2026-07-19 (v1.1) — F-P1 adversary adjudications: on_error block→continue; INV-E21-006 added; §Context #358 corrected; CAP-038 allocated.]"
 modified:
+  - "2026-07-19 (v1.3)"
   - "2026-07-19 (v1.2)"
   - "2026-07-19 (v1.1)"
   - "2026-07-19 (v1.0)"
@@ -140,18 +141,24 @@ layers:
   `git diff --name-only HEAD..<target-ref>` before the operation. If the result contains any
   path matching `^\.factory/`, the operation MUST be halted with `FactoryPathDeletionInMergeDiff`.
   This layer intercepts pre-existing dual-tracking that formed before the runtime guard was active.
-  **CURRENT HOST SET: EMPTY (as of v1.2).** No agent or skill in the codebase performs a local
-  `git merge` or `git pull` on the main product checkout. Specific exclusions: (a) `gh pr merge`
-  in pr-manager.md is a server-side non-working-tree operation explicitly excluded by
-  BC-5.43.001 PC3; (b) `git rebase origin/develop` in devops-engineer.md §Inter-Wave Rebase
-  operates on the story worktree (`.worktrees/STORY-NNN/`) where `.factory/` is NOT mounted as a
-  nested worktree; (c) state-manager uses only `git -C .factory` operations on the
-  `factory-artifacts` branch (not the product checkout). The guard is a standing forward-looking
-  protocol mandate: any future agent/skill that adds a local `git merge` or `git pull` on the
-  main product checkout MUST implement this pre-check.
-  [F-P2-001 adjudication: "orchestrator, pr-manager, devops-engineer, state-manager" named in
-  earlier draft removed; host set corrected to EMPTY with individual exclusion rationale; see
-  §Rationale for full analysis.]
+  **CURRENT HOST: undocumented ad-hoc orchestrator/operator Bash on the main product checkout.**
+  The orchestrator and operators regularly issue `git pull origin develop`, `git checkout develop`,
+  and post-merge sync operations on the main checkout as operational Bash — not documented in any
+  single agent protocol file, which is why grep of agent docs finds nothing. This is the precise
+  clobber vector issue #342's field report describes.
+  Specific documented-protocol exclusions (still apply): (a) `gh pr merge` in pr-manager.md is
+  server-side, excluded by BC-5.43.001 PC3; (b) `git rebase origin/develop` in devops-engineer.md
+  §Inter-Wave Rebase operates on the story worktree where `.factory/` is NOT mounted; (c)
+  state-manager uses only `git -C .factory` on the factory-artifacts branch.
+  **Enforcement site:** Add an explicit "main-checkout sync protocol" constraint to
+  `orchestrator/per-story-delivery.md` — any `git pull`/`git merge` on the main checkout issued by
+  the orchestrator (documented step or ad-hoc cleanup) MUST be preceded by the Layer-2 pre-check.
+  This is the S-21.01 Layer-2 deliverable (skill-doc addition to per-story-delivery.md).
+  **Layer-1 scope stays narrow (git add/stage only):** Extending the WASM guard to intercept
+  `git pull`/`git merge` would blur the two-layer separation; Layer-2 is the correct defense for
+  the merge-delivery vector. SW must NOT expand S-21.01 Layer-1 scope to cover pull/merge.
+  [F-P2-001 corrected at v1.3: "EMPTY" retracted; corrected to undocumented ad-hoc surface;
+  enforcement site named; see §Rationale for server-side origination residual risk analysis.]
 
 **Decision 3 — New WASM crate naming (MANDATORY — do not reuse `validate-artifact-path`).** The
 S-21.01 Bash-targeting guard MUST be implemented in a NEW crate:
@@ -294,20 +301,38 @@ factory-invariant check that step-g-cleanup.md performs before dispatching devop
 the caller-callee split is intentional.
 [Closes adversary F-P2-007.]
 
-**Layer-2 zero-host analysis (Decision 2, F-P2-001 adjudication):**
-The observation that Layer-2 currently has no host is architecturally correct, not a gap.
-The VSDD pipeline's merge model is server-side (via `gh pr merge`), and local `git merge`
-or `git pull` on the main product checkout is not part of any current delivery workflow.
-The two-layer defense for INV-E21-001 is therefore asymmetric by design: Layer 1 (runtime
-WASM guard) has active enforcement; Layer 2 (pre-merge skill-doc check) is a standing
-forward-looking mandate with zero current hosts. This is acceptable because: (a) the primary
-threat vector (git staging on non-factory-artifacts branches) is covered by Layer 1; (b) the
-secondary threat vector (pre-existing dual-tracking entering via a merge) requires a merge to
-exist — which no current workflow does on the product checkout; (c) the mandate is specified
-in BC-5.43.001 and must be applied if the workflow ever changes.
-[Closes F-P2-001; PO propagation: BC-5.43.001 must be updated to reflect zero-host status
-and forward-looking mandate framing; SW: S-21.01 must note that Layer-2 implementation =
-zero-host mandate, not pr-manager amendment.]
+**Layer-2 live-surface analysis (Decision 2, F-P2-001 corrected at v1.3):**
+The v1.2 "EMPTY host-set" ruling was incorrect. It searched documented agent protocol files
+and found nothing — but the live surface is not protocol files; it is ad-hoc orchestrator/
+operator Bash on the main product checkout. The orchestrator regularly issues
+`git pull origin develop` for post-merge sync and resume operations. These are operational,
+not codified in a single agent doc. This was the exact gap issue #342's field report describes.
+
+**Server-side origination residual risk:** BC-4.16.001's Layer-1 WASM guard intercepts Bash-tool
+`git add`/`git stage` calls. It does NOT intercept a contributor PR adding `.factory/`-pathed
+files merged server-side via GitHub — no local Bash call fires, so the guard never triggers.
+The next local `git pull origin develop` on the main checkout then delivers the tracked
+`.factory/` content to the working tree. This is the primary threat vector Layer-2 guards
+against: it must intercept pre-existing dual-tracking regardless of how that tracking formed
+(local or server-side). BC-4.16.001 Precondition 4 (CI/bare-clone coverage) provides partial
+mitigation for CI pipelines but does not cover the server-side origination path. This is an
+acknowledged residual risk for Layer-1's coverage perimeter.
+
+**Layer-1 scope must stay narrow:** Extending the WASM guard to intercept `git pull`/`git merge`
+commands would blur the two-layer separation. Layer-1 prevents new dual-tracking at write-time
+(git add); Layer-2 intercepts pre-existing dual-tracking before merge delivery. These are
+independent and complementary. Merging them into Layer-1 makes the WASM guard responsible
+for runtime diff analysis before every pull/merge, which is operationally expensive and
+architecturally conflates the two defense layers. SW must NOT expand S-21.01 Layer-1 scope.
+
+**Enforcement site for Layer-2:** Add a mandatory protocol constraint to
+`orchestrator/per-story-delivery.md` under a "Main-Checkout Sync Protocol" heading: before
+any `git pull`/`git merge` on the main product checkout, the orchestrator MUST run the
+Layer-2 pre-check. This makes the requirement visible in the canonical orchestrator playbook.
+This is the S-21.01 Layer-2 deliverable alongside the WASM crate.
+[Closes F-P2-001 correction; PO: BC-5.43.001 framing should reflect ad-hoc Bash surface
+and server-side origination vector; SW: S-21.01 must include AC for adding the Layer-2
+pre-check constraint to per-story-delivery.md.]
 
 ## Consequences
 
@@ -394,6 +419,7 @@ factory-side PR restore protocol).
 
 | Version | Date | Description |
 |---------|------|-------------|
+| 1.3 | 2026-07-19 | F-P2-001 correction (orchestrator counter-evidence accepted). §Decision 2 Layer-2 "EMPTY host-set" retracted — corrected to "undocumented ad-hoc orchestrator/operator Bash on main checkout." Enforcement site named: per-story-delivery.md main-checkout sync protocol constraint = S-21.01 Layer-2 deliverable. Layer-1 scope confirmed narrow (git add/stage only; no extension to pull/merge). §Rationale: server-side origination residual risk documented (contributor PR server-side merge bypasses Layer-1; Layer-2 is primary guard for that vector). |
 | 1.2 | 2026-07-19 | F-P2 adversary adjudications (architect). §Decision 2 Layer-2 host-set corrected to EMPTY: pr-manager, devops-engineer (story worktree, .factory/ not mounted), state-manager removed from named-host list; forward-looking mandate + individual exclusion rationale documented (F-P2-001). §Decision 7 count fixed Four→Five (F-P2-002: CAP-038 count not swept at v1.1). §Rationale: F-P2-001 zero-host analysis + F-P2-007 teardown dispatch-point ruling (keep dispatch-point gating; not symmetric with F-P1-006 co-location) added. ARCH-INDEX v3.07→v3.08 (F-P2-004 companion bump). |
 | 1.1 | 2026-07-19 | F-P1 adversary adjudications (architect). INV-E21-006 (PR Trunk Ancestry) appended to Decision 1 catalog; Decision 8 added (INV-E21-006 enforcement; BC-6.10.002 amendment; CAP-038 allocated). on_error corrected block→continue (fail-open; spec-wins; BC-4.16.001 PC3+Inv2 authoritative; two-layer defense absorbs Layer 1 crash; blocking all Bash disproportionate). §Context issue #358 corrected (stale-annotation premise wrong; real: PR base not locked, post-create baseRefName + post-merge --is-ancestor assertions absent). §Consequences: BC-6.10.002 CAP-038 ruling + F-P1-006 host-surface ruling (devops-engineer.md §Inter-Wave Rebase) added. |
 | 1.0 | 2026-07-19 | Initial authorship (architect; E-21 factory state data-loss hardening; issues #342, #365, #358, #523, #588). 6 invariants INV-E21-001..INV-E21-006 as corrected (INV-E21-005=Post-Rebase, INV-E21-006=PR Trunk Ancestry). 8 decisions. CAP-034..CAP-038 allocated. ARCH-INDEX v3.06→v3.07. capabilities.md v1.8→v1.9. |
