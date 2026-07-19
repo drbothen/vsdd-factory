@@ -1,7 +1,7 @@
 ---
 document_type: behavioral-contract
 level: L3
-version: "1.1"
+version: "1.2"
 status: draft
 producer: product-owner
 timestamp: 2026-07-19T00:00:00Z
@@ -23,6 +23,7 @@ lifecycle_status: draft
 introduced: v1.0-brownfield-backfill
 modified:
   - "2026-07-19 (v1.1) — CAP-034 backfill + crate name correction (product-owner; ADR-031 §Decision 3): capability frontmatter TBD→CAP-034; all 10 occurrences of wrong crate name `validate-artifact-path` replaced with `validate-factory-path-staging` (TD-VSDD-060 sibling-site sweep: H1 title, §Description, Precondition 3, Invariants 2/4, SDK Grounding Evidence Grep 1/3, §Traceability Architecture Module, §Architecture Anchors ×2); ADR Reference row added; Capability Anchor Justification updated to cite CAP-034/ADR-031; BC-4.11.001 note added to §Related BCs."
+  - "2026-07-19 (v1.2) — Research validation precision amendments (product-owner; research validation 2026-07-19): SDK Grounding Evidence Grep 2 expected-output corrected (comment-line hit on line 15 is expected; conclusion derives from absence of intercept pattern, not zero hits); Precondition 4 added (environmental scope: guard's primary protective value is on unmounted checkouts; mounted-worktree silent-no-op behavior documented)."
 deprecated: null
 deprecated_by: null
 replacement: null
@@ -31,7 +32,7 @@ removed: null
 removal_reason: null
 bc_id: BC-4.16.001
 section: "4.16"
-last_amended: "(v1.1) — CAP-034 backfill + crate name correction (product-owner; ADR-031 §Decision 3): capability frontmatter TBD→CAP-034; all 10 occurrences of wrong crate name `validate-artifact-path` replaced with `validate-factory-path-staging`; ADR-031 §Decision 3 ADR Reference added; Capability Anchor Justification updated; §Related BCs BC-4.11.001 note added. TD-VSDD-060 sibling-site sweep complete. [Prior: (v1.0) — Initial authoring (product-owner; E-21 factory-state data-loss hardening; issue #342). validate-factory-path-staging WASM PreToolUse guard: blocks `git add` of `.factory/` paths on non-factory-artifacts branches; INV-E21-001 instantiation (invariant layer). lifecycle_status: draft (POL-14 auto-promotion on implementing PR merge).]"
+last_amended: "(v1.2) — Research validation precision amendments (product-owner; research validation 2026-07-19): SDK Grounding Evidence Grep 2 expected-output corrected; Precondition 4 environmental scope note added. [Prior: (v1.1) — CAP-034 backfill + crate name correction; TD-VSDD-060 sibling-site sweep. (v1.0) — Initial authoring; validate-factory-path-staging WASM guard; INV-E21-001 invariant layer. lifecycle_status: draft (POL-14).]"
 ---
 
 # BC-4.16.001: validate-factory-path-staging WASM PreToolUse guard MUST block any `git add` command that stages a path under `.factory/` on a product branch, and MUST pass all non-`.factory/` staging commands unconditionally
@@ -72,6 +73,15 @@ is a native WASM plugin, not a `.sh` file.
 3. The dispatcher has invoked the `validate-factory-path-staging` WASM plugin. The plugin is
    registered in `hooks-registry.toml` as a PreToolUse handler for `^Bash$` with
    `on_error = "continue"` (fail-open: a crashed or timed-out guard never blocks the session).
+
+4. **Environmental scope:** On checkouts where `.factory/` IS mounted as a live git worktree
+   (the standard developer machine layout), `git add .factory/<path>` (plain and `-f`) is typically
+   a silent no-op — git declines to stage paths that belong to another worktree. Dual-tracking can
+   therefore only ORIGINATE on checkouts where the `.factory/` worktree is NOT mounted: fresh CI
+   checkouts, bare or shallow clones, or commits made before the initial `git worktree add` call.
+   This plugin's primary protective value is on those unmounted checkout environments; it converts
+   a silent failure into an explicit, actionable block. On mounted checkouts it provides defense-in-depth
+   against edge cases (detached HEAD, partial teardown, misconfigured worktree).
 
 ## Postconditions
 
@@ -180,8 +190,12 @@ Expected: "PLANNED — not yet created" at authoring time; crate created by S-21
 ```
 grep -n "git add" plugins/vsdd-factory/hooks/factory-branch-guard.sh
 ```
-Expected: no hits — confirms the existing guard does not intercept `git add` on Bash tool calls,
-validating the gap this BC closes.
+Expected: one comment-line hit — line 15: `#   state-manager commits: Bash tool for git add/commit in .factory/`.
+This is a descriptive comment, not an interception pattern. The conclusion holds: factory-branch-guard.sh
+contains no `git add` interception logic. The gap this BC closes is confirmed by the absence of
+any blocking pattern (conditional branch, exit call, or intercept logic) keyed on a `git add` match
+— NOT by zero grep hits. The comment's presence confirms the author was aware of the `git add`
+surface; the absence of a guard pattern confirms it was left unguarded.
 
 **Grep 3 — hooks-registry.toml entry for validate-factory-path-staging:**
 ```
@@ -234,5 +248,6 @@ TBD — VP IDs to be assigned after VP authoring pass.
 
 | Version | Date | Description |
 |---------|------|-------------|
+| 1.2 | 2026-07-19 | Research validation precision amendments (product-owner; research validation 2026-07-19). SDK Grounding Evidence Grep 2 expected-output corrected: grep hits line 15 comment (not zero hits); conclusion reworded to derive from absence of intercept pattern, not zero hits. Precondition 4 added: environmental scope note (mounted-worktree silent-no-op behavior; guard primary protective value on unmounted checkouts — CI, clone, pre-mount commits). |
 | 1.1 | 2026-07-19 | CAP-034 backfill + crate name correction (product-owner; ADR-031 §Decision 3). All 10 occurrences of wrong crate name `validate-artifact-path` replaced with `validate-factory-path-staging` (TD-VSDD-060 sibling-site sweep: H1 title, §Description ×2, Precondition 3, Invariant 2/4 ×2, SDK Grounding Evidence Grep 1/3, §Traceability Architecture Module, §Architecture Anchors ×2). §Traceability ADR Reference row added. §Traceability Capability Anchor Justification updated to cite CAP-034 / ARCH-INDEX v3.07 / ADR-031 §Decision 3. §Related BCs: BC-4.11.001 note added clarifying `validate-artifact-path` crate ownership. |
 | 1.0 | 2026-07-19 | Initial authoring (product-owner; E-21 factory-state data-loss hardening; issue #342). validate-factory-path-staging WASM PreToolUse Bash guard — block `git add` of `.factory/` paths on product branches (PC1), pass all other commands (PC2/PC3/PC4). INV-E21-001 instantiation (invariant layer). 4 error variants: `FactoryPathOnProductBranch` (PC1), fail-open (Invariants 2/3). 10 edge cases EC-001..EC-010. 6 canonical test vectors T-1..T-6. lifecycle_status: draft (POL-14 auto-promotion on S-21.01 PR merge). |

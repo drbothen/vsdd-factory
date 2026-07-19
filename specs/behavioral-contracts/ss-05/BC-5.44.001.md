@@ -1,7 +1,7 @@
 ---
 document_type: behavioral-contract
 level: L3
-version: "1.1"
+version: "1.2"
 status: draft
 producer: product-owner
 timestamp: 2026-07-19T00:00:00Z
@@ -21,6 +21,7 @@ lifecycle_status: draft
 introduced: v1.0-brownfield-backfill
 modified:
   - "2026-07-19 (v1.1) — CAP-035 backfill (product-owner; ARCH-INDEX v3.07): capability frontmatter TBD→CAP-035; §Traceability L2 Capability TBD→CAP-035; Capability Anchor Justification updated to cite CAP-035/ARCH-INDEX v3.07."
+  - "2026-07-19 (v1.2) — Research validation precision amendments (product-owner; research validation 2026-07-19): §Description restructured — `git range-diff` promoted to PRIMARY detector (step 1a); --stat heuristic demoted to backup signal (step 1b); §Description Invariant 5 added with known limitation (heuristic misses drops when branch additions offset dropped lines; adjacent-edit cases empirically conflict rather than silently drop; real silent drops require larger/moved-code diffs)."
 deprecated: null
 deprecated_by: null
 replacement: null
@@ -29,7 +30,7 @@ removed: null
 removal_reason: null
 bc_id: BC-5.44.001
 section: "5.44"
-last_amended: "(v1.1) — CAP-035 backfill (product-owner; ARCH-INDEX v3.07): capability frontmatter TBD→CAP-035; §Traceability L2 Capability + Capability Anchor Justification updated. [Prior: (v1.0) — Initial authoring (product-owner; E-21 factory-state data-loss hardening; issue #365). Post-rebase diff-integrity gate; net-negative-delta detection before force-push. lifecycle_status: draft (POL-14 auto-promotion on implementing PR merge).]"
+last_amended: "(v1.2) — Research validation precision amendments (product-owner; research validation 2026-07-19): `git range-diff` promoted to primary detector; --stat heuristic documented as backup; known limitation and ease-of-trigger temper added. [Prior: (v1.1) — CAP-035 backfill. (v1.0) — Initial authoring; post-rebase diff-integrity gate; INV-E21-001. lifecycle_status: draft (POL-14).]"
 ---
 
 # BC-5.44.001: pr-manager and orchestrator MUST run a post-rebase diff-integrity gate after any `git rebase` on a feature branch, asserting that no file touched by a recently-merged sibling story shows an unverified net-negative line-count delta before force-push-with-lease
@@ -47,15 +48,35 @@ This BC governs the **post-rebase diff-integrity gate** required by issue #365. 
 shares modified files with recently-merged sibling stories on the target branch (`origin/develop`),
 the responsible agent (pr-manager or orchestrator) MUST:
 
-1. Run `git diff origin/develop --stat` on the rebased feature branch.
-2. For each file showing a net-negative line count in that diff, determine whether sibling-story
-   commits on `origin/develop` also modified that file (via `git log --oneline origin/develop` +
-   `git diff-tree --name-only`).
-3. For any file that is both (a) net-negative in the feature branch diff and (b) also modified by
-   a recently-merged sibling story, verify the delta is intentional (a deliberate removal, not a
-   silent drop). If any such file cannot be verified as intentional, STOP and require manual review.
-4. Only after all net-negative deltas are either verified as intentional OR confirmed unaffected
+1a. **Primary detector — `git range-diff` (canonical rebase integrity check):** Run
+    `git range-diff <pre-rebase-tip>...<post-rebase-tip>` to compare the replayed commits
+    before and after the rebase. `git range-diff` is the canonical tool for detecting whether
+    the rebase altered commit content during replay (dropped lines, changed context). Any commit
+    pair showing `modified` or `changed` status that touches a file also modified by a
+    recently-merged sibling story MUST be inspected before proceeding to force-push.
+
+1b. **Backup heuristic — `git diff origin/develop --stat`:** If `git range-diff` is unavailable
+    (git < 2.19) or yields inconclusive results, fall back to running `git diff origin/develop --stat`
+    on the rebased feature branch. For each file showing a net-negative line count in that diff,
+    determine whether sibling-story commits on `origin/develop` also modified that file (via
+    `git log --oneline origin/develop` + `git diff-tree --name-only`). **Known limitation:** this
+    heuristic misses drops when the feature branch's own additions in the same file offset the
+    dropped sibling-story lines (per-file net line count ≥ 0). Use `git range-diff` as the
+    primary detector to avoid this blind spot.
+
+2. For any file flagged by step 1a or 1b, verify the delta is intentional (a deliberate removal
+   present in the feature branch's own commit history, not a silent replay drop). If any such
+   file cannot be verified as intentional, STOP and require manual review.
+
+3. Only after all flagged deltas are either verified as intentional OR confirmed unaffected
    by sibling-story changes may the agent proceed to force-push-with-lease.
+
+**Ease-of-trigger temper:** The ORT 3-way merge silent-drop scenario requires the feature branch
+and the sibling story to have modified ADJACENT but non-overlapping regions of the same file, and
+for those regions to be large enough or moved enough to avoid raising a textual conflict. Simple
+adjacent line additions typically DO conflict (surface to the user). Real silent drops are genuine
+but empirically rare; they require larger diffs, moved code blocks, or refactored context. The gate
+is warranted as defense-in-depth, but implementers should not expect to trigger it on most rebases.
 
 No new shell script or WASM plugin is required (POLICY 21 satisfied). This is a skill-doc mandate
 expressed as a required orchestrator and pr-manager action.
@@ -205,4 +226,5 @@ TBD — VP IDs to be assigned after VP authoring pass.
 | Version | Date | Description |
 |---------|------|-------------|
 | 1.0 | 2026-07-19 | Initial authoring (product-owner; E-21 factory-state data-loss hardening; issue #365). Post-rebase diff-integrity gate: mandatory `git diff origin/develop --stat` + sibling-story overlap check + intentional-delta verification before `git push --force-with-lease` (PC1 pass / PC2 halt / PC3/PC4 trivial-pass). 1 error variant: `UnverifiedNetNegativeDelta`. 7 edge cases EC-001..EC-007. 4 test vectors T-1..T-4. lifecycle_status: draft (POL-14 auto-promotion on S-21.02 PR merge). |
+| 1.2 | 2026-07-19 | Research validation precision amendments (product-owner; research validation 2026-07-19). §Description protocol restructured: `git range-diff <pre>...<post>` promoted to PRIMARY detector (step 1a) — canonical rebase integrity check; `git diff --stat` heuristic demoted to backup signal (step 1b). Known limitation documented: heuristic misses drops when branch additions offset dropped lines (per-file net ≥ 0). Ease-of-trigger temper added: adjacent-edit cases empirically conflict (surface); real silent drops require larger/moved-code diffs — genuine but rare. |
 | 1.1 | 2026-07-19 | CAP-035 backfill (product-owner; ARCH-INDEX v3.07, ADR-031, commit 14a78515): capability frontmatter TBD→CAP-035; §Traceability L2 Capability TBD→CAP-035; Capability Anchor Justification updated to cite CAP-035/ARCH-INDEX v3.07. |

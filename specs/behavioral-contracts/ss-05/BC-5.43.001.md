@@ -1,7 +1,7 @@
 ---
 document_type: behavioral-contract
 level: L3
-version: "1.1"
+version: "1.2"
 status: draft
 producer: product-owner
 timestamp: 2026-07-19T00:00:00Z
@@ -22,6 +22,7 @@ lifecycle_status: draft
 introduced: v1.0-brownfield-backfill
 modified:
   - "2026-07-19 (v1.1) — CAP-034 backfill (product-owner; ARCH-INDEX v3.07): capability frontmatter TBD→CAP-034; §Traceability L2 Capability TBD→CAP-034; Capability Anchor Justification updated to cite CAP-034/ARCH-INDEX v3.07."
+  - "2026-07-19 (v1.2) — Research validation precision amendments (product-owner; research validation 2026-07-19): §Description expanded with loss-mode precision (silent delete only when on-disk content matches tracked blob; uncommitted divergence causes git abort — reframed as defense-in-depth for matching-content case); §Description + Invariant 5 added with pre-check semantics precision (HEAD..<target> = endpoint comparison, not merge preview; over-halts conservatively; git merge-tree cited as more precise alternative)."
 deprecated: null
 deprecated_by: null
 replacement: null
@@ -30,7 +31,7 @@ removed: null
 removal_reason: null
 bc_id: BC-5.43.001
 section: "5.43"
-last_amended: "(v1.1) — CAP-034 backfill (product-owner; ARCH-INDEX v3.07): capability frontmatter TBD→CAP-034; §Traceability L2 Capability + Capability Anchor Justification updated. [Prior: (v1.0) — Initial authoring (product-owner; E-21 factory-state data-loss hardening; issue #342). Orchestrator product-branch merge safety gate; INV-E21-001 safety-net layer. lifecycle_status: draft (POL-14 auto-promotion on implementing PR merge).]"
+last_amended: "(v1.2) — Research validation precision amendments (product-owner; research validation 2026-07-19): §Description loss-mode precision + pre-check semantics note; Invariant 5 added. [Prior: (v1.1) — CAP-034 backfill. (v1.0) — Initial authoring; orchestrator merge safety gate; INV-E21-001 safety-net layer. lifecycle_status: draft (POL-14).]"
 ---
 
 # BC-5.43.001: orchestrator MUST run a `.factory/` path-intersection pre-check before executing any `git merge`, `git pull`, or `git checkout` on the product branch, and MUST STOP if the target tree diff contains a `.factory/` path deletion
@@ -53,6 +54,16 @@ git diff --name-only HEAD..<target-ref>
 If the result contains any path matching `^\.factory/` (a `.factory/`-rooted path), the operation
 MUST be halted immediately with a visible error. Proceeding without resolution risks silently
 destroying content in the nested `.factory/` worktree.
+
+**Loss-mode precision:** The silent delete scenario occurs specifically when the on-disk content
+of the `.factory/` file on the product branch matches the blob that develop tracked (the common
+starting state of a dual-tracked file that was accidentally staged before BC-4.16.001 was active).
+In that case, git's working-tree update proceeds silently with no conflict marker, and the file is
+deleted from the `.factory/` physical tree without warning. If the file has uncommitted divergence
+(on-disk differs from the tracked blob), git instead ABORTs the merge with "error: Your local
+changes to the following files would be overwritten by merge" — which is unpleasant but safe; no
+data is lost. This BC therefore provides defense-in-depth for the matching-content silent-delete
+case, which is the most dangerous scenario and the one that gives no user-visible signal.
 
 **Rationale for new BC rather than SS-05 amendment:** No existing SS-05 BC governs the
 orchestrator's product-branch merge or checkout pre-check step. BC-5.41.001 governs wave-gate
@@ -144,6 +155,17 @@ product branch working tree.
    merge/pull/checkout. An unresolvable pre-check is not a blocking condition — it means the pre-check
    could not run, not that a hazard was detected.
 
+5. **Pre-check semantics — endpoint comparison, not merge preview:** `git diff --name-only HEAD..<target-ref>`
+   compares the two endpoint snapshots (equivalent to `git diff HEAD <target-ref>`); it is NOT a
+   merge preview (which would require `git merge-tree HEAD HEAD <target-ref>` or `git merge --no-commit --no-ff`).
+   This means the pre-check conservatively over-halts: a `.factory/` path that appears in the
+   endpoint diff but would NOT be written by the actual ORT merge algorithm (because it is identical
+   on both sides or already in the merge base) triggers a halt. This is the correct tradeoff — the
+   pre-check never misses a genuine hazard, but implementers should know it will occasionally produce
+   false-positive halts on paths that are actually safe to merge. If over-halting proves noisy in
+   practice, `git merge-tree HEAD HEAD <target-ref>` (git ≥ 2.38) is the more precise alternative
+   and can be substituted for the pre-check without changing the postcondition semantics.
+
 ## Edge Cases
 
 | ID | Description | Expected Behavior |
@@ -210,4 +232,5 @@ TBD — VP IDs to be assigned after VP authoring pass.
 | Version | Date | Description |
 |---------|------|-------------|
 | 1.0 | 2026-07-19 | Initial authoring (product-owner; E-21 factory-state data-loss hardening; issue #342). Orchestrator product-branch merge safety gate: mandatory `git diff --name-only HEAD..<target>` pre-check (PC1 pass/PC2 halt); safety-net layer for INV-E21-001. 1 error variant: `FactoryPathDeletionInMergeDiff`. 7 edge cases EC-001..EC-007. 5 test vectors T-1..T-5. lifecycle_status: draft (POL-14 auto-promotion on S-21.01 PR merge). |
+| 1.2 | 2026-07-19 | Research validation precision amendments (product-owner; research validation 2026-07-19). §Description: loss-mode precision added (silent delete only when on-disk content matches tracked blob; uncommitted divergence causes git abort — defense-in-depth for matching-content case explicitly stated). Invariant 5 added: pre-check semantics — `git diff --name-only HEAD..<target>` is endpoint comparison, not merge preview; conservatively over-halts (never misses); `git merge-tree` cited as precise alternative. |
 | 1.1 | 2026-07-19 | CAP-034 backfill (product-owner; ARCH-INDEX v3.07, ADR-031, commit 14a78515): capability frontmatter TBD→CAP-034; §Traceability L2 Capability TBD→CAP-034; Capability Anchor Justification updated to cite CAP-034/ARCH-INDEX v3.07; Description crate-name corrected (`validate-artifact-path`→`validate-factory-path-staging`, TD-VSDD-060 sibling-site sweep). |

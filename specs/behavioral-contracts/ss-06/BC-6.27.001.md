@@ -1,7 +1,7 @@
 ---
 document_type: behavioral-contract
 level: L3
-version: "1.1"
+version: "1.2"
 status: draft
 producer: product-owner
 timestamp: 2026-07-19T00:00:00Z
@@ -21,6 +21,7 @@ lifecycle_status: draft
 introduced: v1.0-brownfield-backfill
 modified:
   - "2026-07-19 (v1.1) — CAP-037 backfill (product-owner; ARCH-INDEX v3.07): capability frontmatter TBD→CAP-037; §Traceability L2 Capability TBD→CAP-037; Capability Anchor Justification updated to cite CAP-037/ARCH-INDEX v3.07."
+  - "2026-07-19 (v1.2) — Research validation precision amendments (product-owner; research validation 2026-07-19): PC1 Step 1 failure handling extended to include exit 128 'already used by worktree at ...' (another-worktree checkout conflict); PC1 Step 2/Step 3 ordering dependency documented (ff-only pull must precede -d; -d refuses unmerged branches — Step 2 failure correctly stops Step 3)."
 deprecated: null
 deprecated_by: null
 replacement: null
@@ -29,7 +30,7 @@ removed: null
 removal_reason: null
 bc_id: BC-6.27.001
 section: "6.27"
-last_amended: "(v1.1) — CAP-037 backfill (product-owner; ARCH-INDEX v3.07): capability frontmatter TBD→CAP-037; §Traceability L2 Capability + Capability Anchor Justification updated. [Prior: (v1.0) — Initial authoring (product-owner; E-21 factory-state data-loss hardening; issue #588). pr-manager factory-side PR protocol: 5-step restore sequence + dispatch-preamble branch assertion. New BC (not BC-6.23.001 amendment). lifecycle_status: draft (POL-14 auto-promotion on implementing PR merge).]"
+last_amended: "(v1.2) — Research validation precision amendments (product-owner; research validation 2026-07-19): PC1 Step 1 failure handling extended (exit 128 another-worktree conflict); Step 2/Step 3 ordering dependency documented. [Prior: (v1.1) — CAP-037 backfill. (v1.0) — Initial authoring; 5-step restore sequence + dispatch-preamble assertion. lifecycle_status: draft (POL-14).]"
 ---
 
 # BC-6.27.001: pr-manager factory-side PR protocol MUST restore the `.factory/` worktree to `factory-artifacts`, pull `--ff-only`, and delete both the local and remote chore branch after merging any PR that modifies `factory-artifacts` directly, and MUST assert `factory-artifacts` is the current branch before any `.factory/` write
@@ -93,8 +94,13 @@ sequence in order. The PR MUST NOT be declared "done" until all 5 steps succeed:
 ```
 git -C .factory checkout factory-artifacts
 ```
-The worktree MUST be on `factory-artifacts` after this step. If the checkout fails (dirty tree,
-locked by another process), pr-manager MUST report the failure and halt.
+The worktree MUST be on `factory-artifacts` after this step. If the checkout fails, pr-manager
+MUST report the failure and halt. Known failure modes include:
+- Dirty tree (uncommitted changes on the chore branch that would be overwritten)
+- Locked by another process (git.lock contention)
+- Branch already checked out in another worktree (exit 128: "fatal: 'factory-artifacts' is already
+  used by worktree at '...'") — this indicates a second worktree is mounted on `factory-artifacts`;
+  that worktree must be removed or switched away before this step can proceed
 
 **Step 2 — Fast-forward pull to true-up against the just-merged origin:**
 ```
@@ -110,6 +116,12 @@ is required before proceeding.
 git -C .factory branch -d chore/<name>
 ```
 If the local branch does not exist (already deleted), this step succeeds trivially (exit 0).
+**Ordering dependency:** Step 2 MUST complete successfully before Step 3 is attempted. `git branch -d`
+refuses to delete a branch whose commits are not reachable from `HEAD` (i.e., not yet merged into
+`factory-artifacts`). If Step 2 fails or is skipped, `factory-artifacts` has not yet been advanced
+to include the chore branch's commits, and `-d` will refuse ("error: The branch '...' is not fully
+merged"). This refusal is CORRECT behavior — it prevents accidental deletion of unmerged work —
+and pr-manager must not force this deletion with `-D` unless the user explicitly requests it.
 
 **Step 4 — Delete the remote chore branch:**
 ```
@@ -255,4 +267,5 @@ TBD — VP IDs to be assigned after VP authoring pass.
 | Version | Date | Description |
 |---------|------|-------------|
 | 1.0 | 2026-07-19 | Initial authoring (product-owner; E-21 factory-state data-loss hardening; issue #588; S-21.05). PC1: factory-side PR 5-step restore sequence (checkout factory-artifacts → pull --ff-only → delete local chore branch → delete remote chore branch → final branch assertion). PC2: dispatch-preamble branch assertion before any `.factory/` write (INV-E21-003). 3 error variants: `CheckoutRestoreFailed`, `FFOnlyPullFailed`, `FactoryWorktreeOnWrongBranch`, `FinalBranchAssertionFailed`. 9 edge cases EC-001..EC-009. 6 test vectors T-1..T-6. New BC (not BC-6.23.001 amendment): different behavioral surface from lock/unlock skills; rationale documented inline. lifecycle_status: draft (POL-14 auto-promotion on S-21.05 PR merge). |
+| 1.2 | 2026-07-19 | Research validation precision amendments (product-owner; research validation 2026-07-19). PC1 Step 1 failure handling extended: "branch already checked out in another worktree" (exit 128, "already used by worktree at ...") added as distinct failure mode alongside dirty-tree and lock contention. PC1 Step 3 ordering dependency documented: `git branch -d` refuses unmerged branches — Step 2 (ff-only pull) MUST precede Step 3; `-d` refusal on Step 2 skip is correct STOP behavior; `-D` force-delete forbidden without explicit user direction. |
 | 1.1 | 2026-07-19 | CAP-037 backfill (product-owner; ARCH-INDEX v3.07, ADR-031, commit 14a78515): capability frontmatter TBD→CAP-037; §Traceability L2 Capability TBD→CAP-037; Capability Anchor Justification updated to cite CAP-037/ARCH-INDEX v3.07. |

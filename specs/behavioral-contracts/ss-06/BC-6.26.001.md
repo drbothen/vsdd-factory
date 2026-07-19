@@ -1,7 +1,7 @@
 ---
 document_type: behavioral-contract
 level: L3
-version: "1.1"
+version: "1.2"
 status: draft
 producer: product-owner
 timestamp: 2026-07-19T00:00:00Z
@@ -21,6 +21,7 @@ lifecycle_status: draft
 introduced: v1.0-brownfield-backfill
 modified:
   - "2026-07-19 (v1.1) — CAP-036 backfill (product-owner; ARCH-INDEX v3.07): capability frontmatter TBD→CAP-036; §Traceability L2 Capability TBD→CAP-036; Capability Anchor Justification updated to cite CAP-036/ARCH-INDEX v3.07."
+  - "2026-07-19 (v1.2) — Research validation precision amendments (product-owner; research validation 2026-07-19): §Description preflight rationale clarified — explicit statement that the preflight compensates for `--force` usage stripping stock git's unclean-worktree protection; Invariant 5 added documenting the `--force` stripping mechanism."
 deprecated: null
 deprecated_by: null
 replacement: null
@@ -29,7 +30,7 @@ removed: null
 removal_reason: null
 bc_id: BC-6.26.001
 section: "6.26"
-last_amended: "(v1.1) — CAP-036 backfill (product-owner; ARCH-INDEX v3.07): capability frontmatter TBD→CAP-036; §Traceability L2 Capability + Capability Anchor Justification updated. [Prior: (v1.0) — Initial authoring (product-owner; E-21 factory-state data-loss hardening; issue #523). Story-worktree write-path discipline (INV-E21-002) + teardown preflight (INV-E21-004). lifecycle_status: draft (POL-14 auto-promotion on implementing PR merge).]"
+last_amended: "(v1.2) — Research validation precision amendments (product-owner; research validation 2026-07-19): §Description --force rationale clarified; Invariant 5 added. [Prior: (v1.1) — CAP-036 backfill. (v1.0) — Initial authoring; story-worktree write-path discipline (INV-E21-002) + teardown preflight (INV-E21-004). lifecycle_status: draft (POL-14).]"
 ---
 
 # BC-6.26.001: deliver-story step agents MUST write all `.factory/**` artifacts using absolute paths anchored to the canonical main-checkout `.factory/` mount, and step-G cleanup MUST run a worktree `.factory/` inventory preflight before `git worktree remove`
@@ -43,7 +44,16 @@ shadow tree — a copy populated at `git worktree add` time that is neither trac
 `factory-artifacts` nor ever updated. When step G runs `git worktree remove --force`, the shadow
 tree and all artifacts written to it are permanently destroyed with no warning.
 
-This BC governs two complementary protocol requirements that close the loss window:
+This BC governs two complementary protocol requirements that close the loss window.
+
+**Why `--force` requires a preflight:** Stock git already protects against inadvertent worktree removal
+— `git worktree remove` (without `--force`) refuses to remove a worktree that has uncommitted changes
+or untracked files ("fatal: 'worktrees/<name>' contains modified or untracked files, use --force to
+override"). The factory's deliver-story step G uses `--force` to handle legitimate cases (e.g., the
+worktree has build artifacts or other non-factory untracked files that can be discarded). This strips
+exactly the protection that would catch stray `.factory/` artifacts. The teardown preflight in this BC
+re-establishes that protection specifically for the `.factory/` subdirectory — the category where
+silent loss causes unrecoverable data loss.
 
 **Write-path discipline (INV-E21-002 instantiation):** Every agent operating within the
 deliver-story skill protocol that writes to a factory artifact MUST use an absolute path anchored
@@ -156,6 +166,14 @@ empty-`.factory/` assertion.
    ledgers (`*-DELIVERY.md`), story-frontmatter files, pr-review.md records, STATE.md updates,
    VP anchor files, and any other file under `.factory/**`. It is NOT limited to DELIVERY ledgers.
 
+5. **`--force` strips git's built-in unclean-worktree protection; this preflight restores it.**
+   Without `--force`, `git worktree remove` refuses to proceed if the target worktree has modified
+   or untracked files (git docs: "Only clean worktrees... can be removed without `--force`"). Step G
+   uses `--force` to bypass this refusal for non-factory untracked artifacts (build outputs, temp
+   files). This bypass also removes the protection for stray `.factory/` shadow files. This BC's
+   teardown preflight is the targeted replacement: it checks ONLY the `.factory/` subdirectory
+   (the high-stakes category) and re-establishes the block before `--force` bypasses git's own guard.
+
 ## Edge Cases
 
 | ID | Description | Expected Behavior |
@@ -222,4 +240,5 @@ TBD — VP IDs to be assigned after VP authoring pass.
 | Version | Date | Description |
 |---------|------|-------------|
 | 1.0 | 2026-07-19 | Initial authoring (product-owner; E-21 factory-state data-loss hardening; issue #523; S-21.04). PC1: write-path discipline — all `.factory/**` writes MUST use canonical absolute paths anchored to main-checkout root (INV-E21-002). PC2a/PC2b: teardown preflight — `find <worktree>/.factory -type f` before `git worktree remove`; non-empty result blocks teardown (INV-E21-004). 4 invariants. 7 edge cases EC-001..EC-007. 5 test vectors T-1..T-5. lifecycle_status: draft (POL-14 auto-promotion on S-21.04 PR merge). |
+| 1.2 | 2026-07-19 | Research validation precision amendments (product-owner; research validation 2026-07-19). §Description: preflight rationale clarified — teardown preflight compensates for `git worktree remove --force` stripping stock git's unclean-worktree protection (git docs: "Only clean worktrees can be removed without --force"). Invariant 5 added: `--force` stripping mechanism documented; preflight as targeted replacement for factory-artifact category only. |
 | 1.1 | 2026-07-19 | CAP-036 backfill (product-owner; ARCH-INDEX v3.07, ADR-031, commit 14a78515): capability frontmatter TBD→CAP-036; §Traceability L2 Capability TBD→CAP-036; Capability Anchor Justification updated to cite CAP-036/ARCH-INDEX v3.07. |
