@@ -1,7 +1,7 @@
 ---
 document_type: epic
 epic_id: "E-21"
-version: "v1.1"
+version: "v1.2"
 status: draft
 title: "Factory State Data-Loss Hardening — validate-factory-path-staging WASM guard, post-rebase diff-integrity gate, pr-manager trunk assertions, story-worktree write-path discipline, factory-side PR protocol"
 prd_capabilities: [CAP-034, CAP-035, CAP-036, CAP-037, CAP-038]
@@ -27,11 +27,12 @@ inputs:
   - .factory/stories/S-21.03-pr-manager-trunk-assertion.md
   - .factory/stories/S-21.04-story-worktree-write-path-discipline.md
   - .factory/stories/S-21.05-pr-manager-factory-side-pr-protocol.md
-input-hash: "6a11414"
-last_amended: "2026-07-19 (v1.1) — adv pass-1 fix burst (F-P1-008/009/011/013): EAC-005 StrayFactoryFilesDetected → 'PREFLIGHT BLOCKED' + AC trace → S-21.04 AC-003; BC statuses draft (POL-14); BC Traceability versions updated (BC-5.44.001/BC-6.10.002/BC-6.26.001 → v1.3); S-21.01 priority P1-CRITICAL → P0; INV-E21-001..006 catalog (INV-E21-006 added per ADR-031 v1.1); CAP-038 added; POLICY 21 fixture annotation; S-21.02 gate host corrected (EAC-003 + PRD Capabilities)."
+input-hash: "91867b7"
+last_amended: "2026-07-19 (v1.2) — adv pass-2 fix burst (F-P2-003): INV-E21-005 'post-rebase product branch' → 'post-rebase feature branch' (authoritative ADR-031 INV-E21-005 scope); BC-5.43.001 → v1.3; ADR-031 version cites → v1.3 (all occurrences); Description item 2 'product branch' + 'pr-manager post-rebase checkpoint' corrected to 'feature branch' + 'devops-engineer.md §Inter-Wave Rebase checkpoint'."
 modified:
   - "v1.0 2026-07-19: Initial authoring"
   - "v1.1 2026-07-19: adv pass-1 fix burst (F-P1-008/009/011/013)"
+  - "v1.2 2026-07-19: adv pass-2 fix burst (F-P2-003) — INV-E21-005 feature branch fix; BC-5.43.001 → v1.3; ADR-031 cites → v1.3; Description item 2 corrected"
 ---
 
 # Epic E-21: Factory State Data-Loss Hardening
@@ -49,16 +50,16 @@ issues span three distinct defect classes across subsystems SS-04, SS-05, and SS
    if the merge diff contains `.factory/` paths. Factory spec state survives only because
    humans catch it in PR review — a process gap, not a mechanical gate.
 
-2. **Rebase silent drop (S-21.02 — issue #365):** A `git rebase` on a product branch
+2. **Rebase silent drop (S-21.02 — issue #365):** A `git rebase` on a feature branch
    can silently drop factory artifact changes if rebase conflicts are auto-resolved.
    The `git range-diff` detector (primary) + `git diff --stat` backup (BC-5.44.001)
-   are not yet wired into pr-manager's post-rebase checkpoint.
+   are not yet wired into the devops-engineer.md §Inter-Wave Rebase checkpoint.
 
 3. **PR base not locked (S-21.03 — issue #358):** pr-manager creates PRs with
    `baseRefName` computed at creation time but never asserted immediately after create
    (step 3 PC2 check) or after merge (step 9 PC3 ancestry check). A race between PR
    creation and merge can land a feature branch onto the wrong base (BC-6.10.002 v1.3 +
-   CAP-038; ADR-031 v1.1 §Decision 8).
+   CAP-038; ADR-031 v1.3 §Decision 8).
 
 4. **Story-worktree teardown loss (S-21.04 — issue #523):** When a story worktree is
    removed via `git worktree remove --force`, any `.factory/` files written relative to
@@ -75,7 +76,7 @@ issues span three distinct defect classes across subsystems SS-04, SS-05, and SS
    assertion are absent (BC-6.27.001).
 
 All five issues are closed by new BCs (draft; auto-promote to active per POL-14 when story PRs merge) and their implementing stories.
-INV-E21-001..006 (cross-cutting invariants catalogued in ADR-031 v1.1 §Decision 1) govern
+INV-E21-001..006 (cross-cutting invariants catalogued in ADR-031 v1.3 §Decision 1) govern
 the full solution space.
 
 ## Trigger / Motivation
@@ -96,7 +97,7 @@ a mechanical gate to prevent factory artifact loss. ADR-031 formalises the invar
 catalog and the two-layer defense strategy.
 
 Human authorization for E-21 was granted with the delivery of `e-21-arch-delta-analysis.md`
-v1.1, ADR-031 v1.1, and all six BCs (BC-4.16.001/BC-5.43.001/BC-6.27.001 at v1.2;
+v1.1, ADR-031 v1.3, and all six BCs (BC-4.16.001/BC-5.43.001/BC-6.27.001 at v1.2;
 BC-5.44.001/BC-6.10.002/BC-6.26.001 at v1.3).
 
 ## Epic Placement Justification
@@ -115,19 +116,19 @@ authoring. E-21 does not require any E-19 work to be in-progress or gated.
 
 ## PRD Capabilities Covered
 
-E-21 introduces five new PRD capabilities, defined in ADR-031 §Decision 7 (CAP-034..037) and ADR-031 v1.1 §Decision 7 (CAP-038):
+E-21 introduces five new PRD capabilities, defined in ADR-031 §Decision 7 (CAP-034..037) and ADR-031 v1.3 §Decision 7 (CAP-038):
 
 - **CAP-034 — Nested-worktree path exclusivity** (`validate-factory-path-staging` WASM
-  PreToolUse guard + orchestrator merge pre-check): BC-4.16.001 v1.2 + BC-5.43.001 v1.2.
+  PreToolUse guard + orchestrator merge pre-check): BC-4.16.001 v1.2 + BC-5.43.001 v1.3.
   Implemented by S-21.01 (new WASM crate `crates/hook-plugins/validate-factory-path-staging/`
   per ADR-031 §Decision 3 — MUST NOT reuse `validate-artifact-path/`). POLICY 21
   enforced: no new `.sh` files.
 
 - **CAP-035 — Post-rebase diff-integrity gate** (`git range-diff` primary + `git diff
   --stat` backup): BC-5.44.001 v1.3. Implemented by S-21.02 (devops-engineer.md
-  §Inter-Wave Rebase skill-doc amendment; ADR-031 v1.1 §Consequences #5 confirms this
+  §Inter-Wave Rebase skill-doc amendment; ADR-031 v1.3 §Consequences #5 confirms this
   is the only codebase location with a `git rebase origin/develop` + `git push
-  --force-with-lease` sequence).
+  --force-with-lease` sequence on a feature branch).
 
 - **CAP-036 — Story-worktree write-path discipline** (canonical-path mandate + teardown
   preflight): BC-6.26.001 v1.2. Implemented by S-21.04 (skill-doc amendment to
@@ -137,7 +138,7 @@ E-21 introduces five new PRD capabilities, defined in ADR-031 §Decision 7 (CAP-
   BC-6.27.001 v1.2. Implemented by S-21.05 (pr-manager.md skill-doc amendment).
 
 - **CAP-038 — PR trunk ancestry integrity** (post-create `baseRefName` assertion + post-merge
-  `--is-ancestor` check): BC-6.10.002 v1.3 (ADR-031 v1.1 §Decision 7 + §Decision 8).
+  `--is-ancestor` check): BC-6.10.002 v1.3 (ADR-031 v1.3 §Decision 7 + §Decision 8).
   Implemented by S-21.03 (pr-manager.md skill-doc amendment, Step 3 PC2 + Step 9 PC3).
 
 ## Acceptance Criteria
@@ -238,7 +239,7 @@ confirmed.
 
 - **BC files, BC-INDEX, VP files, ARCH-INDEX, STATE.md:** E-21 stories (S-21.01..S-21.05)
   MUST NOT touch these artifacts. All upstream BCs are at their pre-implementation versions
-  (v1.2 or v1.3 per ADR-031 v1.1) and no spec amendments are required.
+  (v1.2 or v1.3 per ADR-031 v1.3) and no spec amendments are required.
 
 ## Behavioral Contract Traceability
 
@@ -247,13 +248,13 @@ All BCs listed here are draft; they auto-promote to active per POL-14 when their
 | BC ID | Version | Title (abbreviated) | Capability | Implementing Story |
 |-------|---------|---------------------|------------|-------------------|
 | BC-4.16.001 | v1.2 | `validate-factory-path-staging` WASM PreToolUse guard: block `git add .factory/` on non-`factory-artifacts` branches; pass all other operations | CAP-034 | S-21.01 (new WASM crate `validate-factory-path-staging/`; POLICY 21: no new .sh) |
-| BC-5.43.001 | v1.2 | Orchestrator merge pre-check: halt merge if diff contains `.factory/` paths (two-layer defense with BC-4.16.001) | CAP-034 | S-21.01 (orchestrator skill-doc amendment) |
-| BC-5.44.001 | v1.3 | Post-rebase diff-integrity gate: `git range-diff` (primary) + `git diff --stat` (backup); halt on `UnverifiedNetNegativeDelta` | CAP-035 | S-21.02 (devops-engineer.md §Inter-Wave Rebase amendment; ADR-031 v1.1 §Consequences #5) |
+| BC-5.43.001 | v1.3 | Orchestrator merge pre-check: halt merge if diff contains `.factory/` paths (two-layer defense with BC-4.16.001) | CAP-034 | S-21.01 (orchestrator/per-story-delivery.md §Main-Checkout Sync Protocol amendment; ADR-031 v1.3 §Decision 2) |
+| BC-5.44.001 | v1.3 | Post-rebase diff-integrity gate: `git range-diff` (primary) + `git diff --stat` (backup); halt on `UnverifiedNetNegativeDelta` | CAP-035 | S-21.02 (devops-engineer.md §Inter-Wave Rebase amendment; ADR-031 v1.3 §Consequences #5) |
 | BC-6.10.002 | v1.3 | deliver-story 9-step dispatch: PC2 post-create baseRefName assertion (`BaseRefNameMismatch` hard-fail) + PC3 post-merge ancestry check (`MergeNotAncestorOfTrunk` P0 error) | CAP-038 | S-21.03 (pr-manager.md amendment, steps 3 + 9) |
 | BC-6.26.001 | v1.3 | Story-worktree write-path discipline (canonical absolute path via `CANONICAL_FACTORY_ROOT`) + teardown preflight (`find <worktree>/.factory -type f` before `git worktree remove`) | CAP-036 | S-21.04 (skill-doc: `_shared-context.md` + `step-g-cleanup.md`) |
 | BC-6.27.001 | v1.2 | pr-manager factory-side PR protocol: 5-step restore sequence (checkout `factory-artifacts`, `pull --ff-only`, delete local/remote chore branch, final assertion) + dispatch-preamble branch assertion (PC2) | CAP-037 | S-21.05 (pr-manager.md amendment) |
 
-**INV-E21-001..006 cross-cutting invariants** (ADR-031 v1.1 §Decision 1):
+**INV-E21-001..006 cross-cutting invariants** (ADR-031 v1.3 §Decision 1):
 
 - **INV-E21-001** — Factory artifact isolation: `.factory/` mutations MUST NOT be
   staged on product branches under any orchestrator operation.
@@ -263,13 +264,13 @@ All BCs listed here are draft; they auto-promote to active per POL-14 when their
   be on branch `factory-artifacts` before and after any pr-manager dispatch.
 - **INV-E21-004** — Teardown completeness: a story worktree MUST have zero stray
   `.factory/` files before `git worktree remove`.
-- **INV-E21-005** — Post-rebase diff integrity: a post-rebase product branch MUST be
+- **INV-E21-005** — Post-rebase diff integrity: a post-rebase feature branch MUST be
   verifiably non-negative-delta relative to its pre-rebase HEAD for all files touched by
   recently-merged sibling stories (enforced by S-21.02 via BC-5.44.001).
 - **INV-E21-006** — PR trunk ancestry: every story PR MUST be verified as an ancestor of
   `origin/develop` immediately after merge; the PR's `baseRefName` MUST equal the
   configured trunk immediately after `gh pr create` (enforced by S-21.03 via BC-6.10.002;
-  ADR-031 v1.1 §Decision 8 + CAP-038).
+  ADR-031 v1.3 §Decision 8 + CAP-038).
 
 ## Changelog
 
@@ -277,3 +278,4 @@ All BCs listed here are draft; they auto-promote to active per POL-14 when their
 |---------|------|--------|---------|
 | v1.0 | 2026-07-19 | story-writer | Initial authoring. E-21 epic; 5 stories; 27 pts; 2 waves; 6 BCs; issues #342/#365/#358/#523/#588; INV-E21-001..005; CAP-034..037. |
 | v1.1 | 2026-07-19 | story-writer | adv pass-1 fix burst (F-P1-008/009/011/013): EAC-005 → "PREFLIGHT BLOCKED" (BC-6.26.001 PC2b) + AC trace → S-21.04 AC-003; BC statuses draft per POL-14; BC versions BC-5.44.001/BC-6.10.002/BC-6.26.001 → v1.3; S-21.01 priority P0; INV-E21-001..006 (INV-E21-006 + CAP-038 added per ADR-031 v1.1); S-21.02 gate host → devops-engineer.md §Inter-Wave Rebase; POLICY 21 fixture annotation. |
+| v1.2 | 2026-07-19 | story-writer | adv pass-2 fix burst (F-P2-003): INV-E21-005 "post-rebase product branch" → "post-rebase feature branch" (authoritative ADR-031 INV-E21-005 scope; BC-5.44.001 operates on feature branch where devops-engineer rebases + force-with-lease-pushes); BC-5.43.001 → v1.3 (BC Traceability + CAP-034 inline); ADR-031 v1.1 → v1.3 in all epic cites (Description item 2/3, Trigger, PRD Capabilities CAP-035/CAP-038, Out of Scope, INV catalog cross-ref); Description item 2 "pr-manager post-rebase checkpoint" → "devops-engineer.md §Inter-Wave Rebase checkpoint". |
