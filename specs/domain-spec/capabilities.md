@@ -2,7 +2,7 @@
 document_type: domain-spec-section
 level: L2
 section: capabilities
-version: "1.8"
+version: "1.9"
 status: accepted
 producer: business-analyst
 timestamp: 2026-04-25T00:00:00
@@ -216,10 +216,31 @@ Three mechanically-enforced guards close distinct unsafe-merge windows: (a) the 
 Subsystems: SS-05, SS-07. Outcome: the orchestrator cannot merge on a stale READY verdict; release PRs are mechanically guaranteed to use `--merge`; the RELEASING.md `--merge` requirement is enforced at the script layer rather than by convention.
 Source: D-749 (L-BB-merge-race-ready-report-stale-head) + D-750 (L-BB-release-pr-squash-merge-not-mechanically-enforced); BC-5.42.001; S-19.01. Justification: no existing capability covers merge-operation integrity at the pr-manager level; CAP-004 covers BC→test→demo traceability (distinct concern); append-only P1 addition at next free ID.
 
+**CAP-034 — Enforce factory artifact nested-worktree path exclusivity (E-21 INV-E21-001) — dual-layer defense: WASM Bash guard + skill-doc merge pre-check**
+Two complementary enforcement layers prevent `.factory/**` paths from appearing in product-branch diffs. Layer 1 (invariant): new `validate-factory-path-staging` WASM PreToolUse plugin fires on `^Bash$` and blocks `git add`/`git stage` of `.factory/` paths on product branches, preventing dual-tracking at staging time. Layer 2 (safety-net): skill-doc mandate requires orchestrator/pr-manager/state-manager to run `git diff --name-only HEAD..<target-ref>` before any product-branch merge/pull/checkout and halt with `FactoryPathDeletionInMergeDiff` if any `.factory/` path appears.
+Subsystems: SS-04, SS-05. Outcome: `.factory/**` paths cannot enter a product-branch diff via either the staging path or the merge path; pre-existing dual-tracking is intercepted before merge even if it preceded the runtime guard.
+Source: ADR-031 Decision 2+7; E-21 INV-E21-001; BC-4.16.001 (SS-04 Layer 1), BC-5.43.001 (SS-05 Layer 2); S-21.01. Justification: no existing capability covers nested-worktree path exclusivity at the staging or merge boundary; CAP-031 covers single-writer lock semantics (distinct concern); append-only P1 addition at next free ID.
+
+**CAP-035 — Post-rebase diff-integrity gate — detect and surface silent ORT production-code drops before force-push (E-21 INV-E21-005)**
+After any `git rebase`, `git rebase --continue`, or `git pull --rebase` on a feature branch, a mandatory diff-integrity gate runs before `git push --force-with-lease`. The gate runs `git diff origin/develop --stat`, identifies files with net-negative line counts that were also modified by recently-merged sibling stories on `origin/develop`, and requires per-file confirmation that each such delta is intentional before proceeding. Any unverified net-negative delta in a sibling-touched file halts the force-push with `UnverifiedNetNegativeDelta`. Closes the ORT 3-way merge silent-drop failure mode (issue #365) where a clean rebase can silently delete production lines when adjacent regions of the same file are modified by two branches.
+Subsystems: SS-05. Outcome: a silent ORT drop of production lines is detected before reaching origin/develop; the force-push is blocked until the delta is manually verified or the dropped lines are restored.
+Source: ADR-031 Decision 6+7; E-21 INV-E21-005; BC-5.44.001; S-21.02. Justification: no existing capability covers post-rebase diff-integrity assertion; CAP-033 covers READY-verdict SHA pinning and merge-strategy guard (distinct concern); append-only P1 addition at next free ID.
+
+**CAP-036 — Story-worktree factory artifact write-path discipline and teardown preflight (E-21 INV-E21-002 + INV-E21-004)**
+Two mandatory agent disciplines govern story-worktree interactions with the `.factory/` subtree. PC1 (write-path anchoring): all `.factory/**` writes must use canonical absolute paths anchored to `$(git -C .factory rev-parse --show-toplevel)`, never CWD-relative paths derived from the story-worktree root, which silently misdirects writes to the shadow `.factory/` directory present under every `git worktree add` path. PC2 (teardown preflight): before `git worktree remove <story-worktree>`, a `find <worktree-path>/.factory -type f 2>/dev/null` preflight must confirm the shadow `.factory/` directory contains no tracked files. Both enforced via skill-doc mandate (BC-6.26.001); no new WASM plugin required (POLICY 21 satisfied).
+Subsystems: SS-06. Outcome: story-worktree write operations cannot misdirect factory artifact mutations to shadow `.factory/` paths; worktree teardown cannot silently delete committed factory artifacts.
+Source: ADR-031 Decision 4+7; E-21 INV-E21-002+INV-E21-004; BC-6.26.001; S-21.04. Justification: no existing capability covers story-worktree write-path discipline or teardown preflight; append-only P1 addition at next free ID.
+
+**CAP-037 — Factory worktree branch integrity — dispatch-preamble assertion and factory-side PR restoration protocol (E-21 INV-E21-003)**
+Two mandatory protocol elements ensure the `.factory/` worktree is always on `factory-artifacts` before any write. Dispatch-preamble assertion: every state-manager dispatch must begin with `ASSERT: git -C .factory branch --show-current == "factory-artifacts"` before any `.factory/**` write. Factory-side PR restore sequence: after any `gh pr merge` that was submitted from a chore branch on `factory-artifacts`, the responsible agent must execute the 5-step restore sequence — (1) `git -C .factory checkout factory-artifacts`, (2) `git -C .factory pull --ff-only`, (3) delete local chore branch, (4) delete remote chore branch, (5) final branch assertion. Both enforced via skill-doc mandate (BC-6.27.001); no new WASM plugin required (POLICY 21 satisfied). Explicitly distinct from CAP-031 (cooperative lock/lease per ADR-025): CAP-031 prevents concurrent developer races; this capability prevents single-developer writes to the wrong branch after a factory-side PR merge.
+Subsystems: SS-06. Outcome: `.factory/**` writes cannot misdirect to an inactive chore branch; factory-side PR merges are always followed by a verified return to `factory-artifacts`.
+Source: ADR-031 Decision 5+7; E-21 INV-E21-003; BC-6.27.001; S-21.05. Justification: no existing capability covers the dispatch-preamble branch assertion or factory-side PR restore sequence; CAP-031 distinction noted; append-only P1 addition at next free ID.
+
 ## CHANGELOG
 
 | Version | Date | Change |
 |---------|------|--------|
+| v1.9 | 2026-07-19 | E-21 factory state data-loss hardening: authored CAP-034 (P1 — nested-worktree path exclusivity, two-layer defense; SS-04+SS-05; ADR-031; BC-4.16.001+BC-5.43.001; S-21.01), CAP-035 (P1 — post-rebase diff-integrity gate; SS-05; ADR-031; BC-5.44.001; S-21.02), CAP-036 (P1 — story-worktree write-path discipline+teardown preflight; SS-06; ADR-031; BC-6.26.001; S-21.04), CAP-037 (P1 — factory worktree branch integrity; SS-06; ADR-031; BC-6.27.001; S-21.05). CAP count advance 33→37. |
 | v1.8 | 2026-07-06 | F-P3-015/F-P3-016 capability-mapping: authored CAP-033 (P1 — pr-manager merge-operation integrity; READY-verdict SHA pinning + stale-verdict detection + release-branch merge-strategy guard; SS-05+SS-07; D-749+D-750; BC-5.42.001; S-19.01). CAP count advance 32→33. |
 | v1.7 | 2026-06-15 | F-P18-O1 cosmetic fix: CHANGELOG display rows reordered into monotonic descending order (newest-first) to prevent a scrambled sequence from masking future missing-row defects. No row content, version number, or date was altered. All versions v1.0–v1.6 confirmed present. |
 | v1.6 | 2026-06-14 | O-P8-001 cite-stability fix (F2 adversarial pass-8): CAP-032 body `Source:` line migrated from volatile-pin `ADR-026 v1.0 (issue #173); E-18.` to stable anchor form `ADR-026 (issue #173); E-18.` with informational non-load-bearing parenthetical per TD-VSDD-091 / POLICY 19 spirit. Changelog row v1.4 historical version mention preserved as authoring-time record (non-normative). |
