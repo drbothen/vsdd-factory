@@ -15,7 +15,7 @@ and `--force` break-glass release with mandatory `factory.lock.stolen` audit eve
 Run the unlock decision helper with the STATE.md path, current git email, and optional --force flag:
 
 ```bash
-plugins/vsdd-factory/bin/factory-unlock-decide.sh \
+${CLAUDE_PLUGIN_ROOT}/bin/factory-unlock-decide.sh \
   <STATE_MD_PATH> \
   "$(git config user.email)" \
   [--force]
@@ -49,11 +49,11 @@ state-manager which invokes `factory-lock-write.sh` + `factory-cas-push.sh` from
 On PROCEED_RELEASE, PROCEED_RELEASE_SELF_FORCE, or PROCEED_FORCE_STEAL, delegate to
 state-manager. State-manager runs:
 
-1. `plugins/vsdd-factory/bin/factory-lock-write.sh clear <STATE_MD_PATH>`
+1. `${CLAUDE_PLUGIN_ROOT}/bin/factory-lock-write.sh clear <STATE_MD_PATH>`
    Removes the `factory_lock` key ENTIRELY from STATE.md frontmatter.
    Key deletion, NOT null assignment (BC-5.40.001 PC2 / Invariant "not null").
 
-2. `plugins/vsdd-factory/bin/factory-cas-push.sh`
+2. `${CLAUDE_PLUGIN_ROOT}/bin/factory-cas-push.sh`
    CAS push to origin/factory-artifacts.
 
 On CAS push rejection: Error variant `UnlockCASRejected`; user retries.
@@ -64,7 +64,7 @@ The decision token from Step 1 determines which event to emit:
 
 **For PROCEED_RELEASE or PROCEED_RELEASE_SELF_FORCE:**
 ```bash
-plugins/vsdd-factory/bin/emit-event \
+${CLAUDE_PLUGIN_ROOT}/bin/emit-event \
   type=factory.lock.released \
   holder=<holder_from_decide_output> \
   locked_at=<locked_at_from_decide_output> \
@@ -73,7 +73,7 @@ plugins/vsdd-factory/bin/emit-event \
 
 **For PROCEED_FORCE_STEAL:**
 ```bash
-plugins/vsdd-factory/bin/emit-event \
+${CLAUDE_PLUGIN_ROOT}/bin/emit-event \
   type=factory.lock.stolen \
   stolen_by=<stolen_by_from_decide_output> \
   stolen_from=<stolen_from_from_decide_output> \

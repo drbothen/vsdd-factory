@@ -16,7 +16,7 @@ acquisition path (BC-6.23.001 Invariant 1 / ADR-025 Decision 6).
 Run the acquire precheck helper with the STATE.md path:
 
 ```bash
-plugins/vsdd-factory/bin/factory-lock-acquire-precheck.sh <STATE_MD_PATH>
+${CLAUDE_PLUGIN_ROOT}/bin/factory-lock-acquire-precheck.sh <STATE_MD_PATH>
 ```
 
 The helper performs (in order):
@@ -36,10 +36,10 @@ The helper performs (in order):
 
 On PROCEED_ACQUIRE, delegate to state-manager. State-manager runs:
 
-1. `plugins/vsdd-factory/bin/factory-lock-write.sh acquire <STATE_MD_PATH>`
+1. `${CLAUDE_PLUGIN_ROOT}/bin/factory-lock-write.sh acquire <STATE_MD_PATH>`
    Writes `factory_lock = { holder: <email>, locked_at: <now>, expires_at: <now+2700s> }`.
 
-2. `plugins/vsdd-factory/bin/factory-cas-push.sh`
+2. `${CLAUDE_PLUGIN_ROOT}/bin/factory-cas-push.sh`
    CAS push: `git fetch origin factory-artifacts` then
    `git push --force-with-lease=factory-artifacts:"${EXPECTED_SHA}" origin factory-artifacts`.
 
@@ -59,7 +59,7 @@ state-manager which invokes `factory-lock-write.sh` + `factory-cas-push.sh` from
 On successful CAS push, emit the acquisition event via the SS-03 event pipeline:
 
 ```bash
-plugins/vsdd-factory/bin/emit-event \
+${CLAUDE_PLUGIN_ROOT}/bin/emit-event \
   type=factory.lock.acquired \
   holder=<email> \
   locked_at=<locked_at_iso8601> \

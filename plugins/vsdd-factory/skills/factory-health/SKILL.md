@@ -98,7 +98,7 @@ test -f .factory/reference-manifest.yaml
 Invoke the shared three-state lock status helper:
 
 ```bash
-plugins/vsdd-factory/bin/factory-lock-status.sh .factory/STATE.md "$(git config user.email)"
+${CLAUDE_PLUGIN_ROOT}/bin/factory-lock-status.sh .factory/STATE.md "$(git config user.email)"
 ```
 
 Append the output line to the health report. The helper returns one of:
