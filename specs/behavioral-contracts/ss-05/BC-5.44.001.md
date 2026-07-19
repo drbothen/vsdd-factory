@@ -1,7 +1,7 @@
 ---
 document_type: behavioral-contract
 level: L3
-version: "1.2"
+version: "1.3"
 status: draft
 producer: product-owner
 timestamp: 2026-07-19T00:00:00Z
@@ -22,6 +22,7 @@ introduced: v1.0-brownfield-backfill
 modified:
   - "2026-07-19 (v1.1) — CAP-035 backfill (product-owner; ARCH-INDEX v3.07): capability frontmatter TBD→CAP-035; §Traceability L2 Capability TBD→CAP-035; Capability Anchor Justification updated to cite CAP-035/ARCH-INDEX v3.07."
   - "2026-07-19 (v1.2) — Research validation precision amendments (product-owner; research validation 2026-07-19): §Description restructured — `git range-diff` promoted to PRIMARY detector (step 1a); --stat heuristic demoted to backup signal (step 1b); §Description Invariant 5 added with known limitation (heuristic misses drops when branch additions offset dropped lines; adjacent-edit cases empirically conflict rather than silently drop; real silent drops require larger/moved-code diffs)."
+  - "2026-07-19 (v1.3) — adv pass-1 fix burst (F-P1-006) per ADR-031 v1.1 §Consequences #5 (product-owner): §Architecture Anchors pr-manager.md step 8 anchor removed (ground truth: Step 8 = Execute merge; no rebase/force-push in pr-manager.md); replaced with devops-engineer.md §Inter-Wave Rebase (the only codebase site with rebase+force-with-lease). §Traceability Architecture Module corrected to match. §Related BCs BC-5.42.001 description updated (gate host is devops-engineer, not same pr-manager protocol)."
 deprecated: null
 deprecated_by: null
 replacement: null
@@ -30,7 +31,7 @@ removed: null
 removal_reason: null
 bc_id: BC-5.44.001
 section: "5.44"
-last_amended: "(v1.2) — Research validation precision amendments (product-owner; research validation 2026-07-19): `git range-diff` promoted to primary detector; --stat heuristic documented as backup; known limitation and ease-of-trigger temper added. [Prior: (v1.1) — CAP-035 backfill. (v1.0) — Initial authoring; post-rebase diff-integrity gate; INV-E21-001. lifecycle_status: draft (POL-14).]"
+last_amended: "(v1.3) — adv pass-1 fix burst (F-P1-006) per ADR-031 v1.1 §Consequences #5 (product-owner): §Architecture Anchors corrected pr-manager step 8→devops-engineer.md §Inter-Wave Rebase; §Traceability Architecture Module corrected; §Related BCs BC-5.42.001 updated. [Prior: (v1.2) — research validation; range-diff primary detector; ease-of-trigger temper. (v1.1) — CAP-035 backfill. (v1.0) — Initial authoring.]"
 ---
 
 # BC-5.44.001: pr-manager and orchestrator MUST run a post-rebase diff-integrity gate after any `git rebase` on a feature branch, asserting that no file touched by a recently-merged sibling story shows an unverified net-negative line-count delta before force-push-with-lease
@@ -198,7 +199,7 @@ gate passes trivially with no action.
 | L2 Capability | CAP-035 |
 | Capability Anchor Justification | CAP-035 registered in ARCH-INDEX v3.07 (ADR-031, commit 14a78515): "Post-Rebase Diff-Integrity — mandatory diff-integrity gate between `git rebase` completion and `git push --force-with-lease` on feature branches." BC-5.44.001 is the sole implementing BC for CAP-035. |
 | L2 Domain Invariants | none (operational infrastructure) |
-| Architecture Module | `plugins/vsdd-factory/agents/pr-manager.md` (step 8 amendment; to be amended by S-21.02); orchestrator per-story delivery playbook (skill-doc change) |
+| Architecture Module | `plugins/vsdd-factory/agents/devops-engineer.md` §Inter-Wave Rebase (the only codebase site with `git rebase origin/develop` + `git push --force-with-lease`; to be amended by S-21.02 per ADR-031 §Consequences #5) |
 | Stories | S-21.02 (E-21 Wave 1) |
 | Source Issues | #365 (rebase auto-merge silently drops production lines) |
 | ADR Reference | none |
@@ -206,12 +207,11 @@ gate passes trivially with no action.
 ## Related BCs
 
 - BC-5.43.001 — sibling SS-05 gate for product-branch merge safety (different mechanism: this BC governs rebase-then-force-push; BC-5.43.001 governs merge/pull/checkout pre-check)
-- BC-5.42.001 — pr-manager READY-verdict enforcement; this BC adds a pre-force-push gate to the same pr-manager agent protocol
+- BC-5.42.001 — pr-manager READY-verdict enforcement; this gate (BC-5.44.001) lives in devops-engineer.md §Inter-Wave Rebase, NOT the pr-manager protocol; BC-5.42.001 governs the READY-verdict + merge-strategy enforcement in the separate pr-manager lifecycle
 
 ## Architecture Anchors
 
-- `plugins/vsdd-factory/agents/pr-manager.md` — step 8 ("push") to be amended: insert diff-integrity gate before `git push --force-with-lease`
-- orchestrator per-story delivery playbook (skill-doc) — rebase sub-step to be added with gate invocation
+- `plugins/vsdd-factory/agents/devops-engineer.md` §Inter-Wave Rebase — the only codebase site with a `git rebase origin/develop` + `git push --force-with-lease` sequence; the diff-integrity gate (step 1a `git range-diff` primary detector + step 1b `git diff --stat` backup) is to be inserted between rebase completion and `git push --force-with-lease` by S-21.02 (per ADR-031 v1.1 §Consequences #5). Note: `pr-manager.md` Step 8 = "Execute merge" — no rebase or force-push sub-step exists there; it is NOT a valid amendment target for this BC.
 
 ## Story Anchor
 
@@ -226,5 +226,6 @@ TBD — VP IDs to be assigned after VP authoring pass.
 | Version | Date | Description |
 |---------|------|-------------|
 | 1.0 | 2026-07-19 | Initial authoring (product-owner; E-21 factory-state data-loss hardening; issue #365). Post-rebase diff-integrity gate: mandatory `git diff origin/develop --stat` + sibling-story overlap check + intentional-delta verification before `git push --force-with-lease` (PC1 pass / PC2 halt / PC3/PC4 trivial-pass). 1 error variant: `UnverifiedNetNegativeDelta`. 7 edge cases EC-001..EC-007. 4 test vectors T-1..T-4. lifecycle_status: draft (POL-14 auto-promotion on S-21.02 PR merge). |
+| 1.3 | 2026-07-19 | adv pass-1 fix burst (F-P1-006) per ADR-031 v1.1 §Consequences #5 (product-owner). §Architecture Anchors: pr-manager.md step 8 anchor removed (Step 8 = Execute merge; no rebase/force-push in pr-manager.md); replaced with devops-engineer.md §Inter-Wave Rebase (only codebase site with rebase+force-with-lease). §Traceability Architecture Module corrected to match. §Related BCs BC-5.42.001 description updated: gate host = devops-engineer, not pr-manager protocol. |
 | 1.2 | 2026-07-19 | Research validation precision amendments (product-owner; research validation 2026-07-19). §Description protocol restructured: `git range-diff <pre>...<post>` promoted to PRIMARY detector (step 1a) — canonical rebase integrity check; `git diff --stat` heuristic demoted to backup signal (step 1b). Known limitation documented: heuristic misses drops when branch additions offset dropped lines (per-file net ≥ 0). Ease-of-trigger temper added: adjacent-edit cases empirically conflict (surface); real silent drops require larger/moved-code diffs — genuine but rare. |
 | 1.1 | 2026-07-19 | CAP-035 backfill (product-owner; ARCH-INDEX v3.07, ADR-031, commit 14a78515): capability frontmatter TBD→CAP-035; §Traceability L2 Capability TBD→CAP-035; Capability Anchor Justification updated to cite CAP-035/ARCH-INDEX v3.07. |

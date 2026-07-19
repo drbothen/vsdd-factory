@@ -1,7 +1,7 @@
 ---
 document_type: behavioral-contract
 level: L3
-version: "1.2"
+version: "1.3"
 status: draft
 producer: phase-1-4b-bc-extractor
 timestamp: 2026-04-25T00:00:00
@@ -15,18 +15,19 @@ traces_to: .factory/specs/architecture/ARCH-INDEX.md
 origin: brownfield
 extracted_from: ".factory/phase-0-ingestion/pass-3-deep-skills-batch-1.md#L1186"
 subsystem: SS-06
-capability: "TBD"
+capability: "CAP-038"
 lifecycle_status: active
 introduced: v1.0.0-beta.4
 modified:
-  - "2026-07-19 (v1.2) — E-21 factory-state data-loss hardening (product-owner; issue #358): PC2 + PC3 added — pr-manager step-7 trunk-assertion postconditions (INV-E21-005). PC2: post-create baseRefName assertion (`gh pr view --json baseRefName` must equal configured trunk; hard-fail on mismatch). PC3: post-merge --is-ancestor assertion (`git merge-base --is-ancestor <merge_sha> origin/<trunk>`; non-zero exit is P0 data error). Changelog section added. last_amended set."
+  - "2026-07-19 (v1.2) — E-21 factory-state data-loss hardening (product-owner; issue #358): PC2 + PC3 added — pr-manager step-7 trunk-assertion postconditions (INV-E21-006; at authoring time cited as INV-E21-005 before ADR-031 v1.1 renumber; corrected at v1.3). PC2: post-create baseRefName assertion. PC3: post-merge --is-ancestor assertion. Changelog section added."
+  - "2026-07-19 (v1.3) — adv pass-1 fix burst (F-P1-001/010) per ADR-031 v1.1 rulings (product-owner): (1) capability frontmatter TBD→CAP-038 (ADR-031 §Decision 7+8); (2) INV-E21-005→INV-E21-006 sweep (TD-VSDD-060 — PR Trunk Ancestry was renumbered append-only per ADR-031 v1.1 §Decision 1; INV-E21-005 reassigned to Post-Rebase Diff Integrity/BC-5.44.001); (3) §Traceability Architecture Module deliver-story/SKILL.md→pr-manager.md (SoT = §Architecture Anchors; F-P1-010); (4) ADR-031 §Decision 8 cite added to §Traceability; (5) L2 Capability TBD→CAP-038 + Capability Anchor Justification added."
 deprecated: null
 deprecated_by: null
 replacement: null
 retired: null
 removed: null
 removal_reason: null
-last_amended: "2026-07-19 (v1.2) — E-21 factory-state data-loss hardening (product-owner; issue #358): PC2 added (post-create baseRefName assertion) + PC3 added (post-merge --is-ancestor ancestry assertion); INV-E21-005 instantiation (PR Trunk Ancestry invariant). Changelog section added. [Prior: (v1.1) — brownfield extraction metadata correction; content as extracted from pass-3-deep-skills-batch-1.md#L1186.]"
+last_amended: "(v1.3) — adv pass-1 fix burst (F-P1-001/010) per ADR-031 v1.1 rulings (product-owner): CAP-038 backfill; INV-E21-005→INV-E21-006 sweep (PR Trunk Ancestry renumbered append-only per ADR-031 v1.1 §Decision 1; INV-E21-005 reassigned to Post-Rebase Diff Integrity); §Traceability Architecture Module corrected to pr-manager.md; ADR-031 §Decision 8 + Capability Anchor Justification added. [Prior: (v1.2) — E-21 hardening; PC2+PC3 added; INV-E21-006 (orig cited INV-E21-005). (v1.1) — brownfield metadata correction.]"
 ---
 
 # Behavioral Contract BC-6.10.002: deliver-story: 9-step dispatch sequence with exit conditions
@@ -72,7 +73,7 @@ explicit --base <trunk> flag.
 The PR MUST NOT be merged until this assertion passes. The story MUST NOT be marked delivered
 until the PR has been correctly targeted.
 
-**INV-E21-005 instantiation:** This postcondition enforces PR Trunk Ancestry at the post-create
+**INV-E21-006 instantiation:** This postcondition enforces PR Trunk Ancestry at the post-create
 checkpoint. It catches the case where `gh pr create` overrides `--base` via tracking-upstream
 inference, producing a PR that is silently targeted against a non-trunk branch.
 
@@ -103,7 +104,7 @@ land on trunk. Required recovery:
 
 The story MUST NOT be marked delivered until this assertion passes with exit code 0.
 
-**INV-E21-005 instantiation:** This postcondition is the **load-bearing check** for PR Trunk
+**INV-E21-006 instantiation:** This postcondition is the **load-bearing check** for PR Trunk
 Ancestry. It catches the orphan-merge scenario (issue #358 concrete instance) where the PR reports
 `state: MERGED` but the merge commit is not reachable from trunk.
 
@@ -153,9 +154,11 @@ Ancestry. It catches the orphan-merge scenario (issue #358 concrete instance) wh
 
 | Field | Value |
 |-------|-------|
-| L2 Capability | TBD |
+| L2 Capability | CAP-038 |
+| Capability Anchor Justification | CAP-038 registered in ARCH-INDEX v3.07 (ADR-031 §Decision 7+8, commit 14a78515): "PR trunk ancestry integrity — post-create baseRefName assertion + post-merge ancestry guard (INV-E21-006)." BC-6.10.002 is the sole implementing BC for CAP-038. ADR-031 §Decision 8 mandates amendment to the pr-manager 9-step lifecycle. |
 | L2 Domain Invariants | TBD |
-| Architecture Module | plugins/vsdd-factory/skills/deliver-story/SKILL.md |
+| Architecture Module | `plugins/vsdd-factory/agents/pr-manager.md` (steps 3 + 9 post-action assertions; to be amended by S-21.03 per ADR-031 §Decision 8) |
+| ADR Reference | ADR-031 §Decision 8 (INV-E21-006 enforcement; post-create baseRefName assertion + post-merge `git merge-base --is-ancestor` guard; CAP-038 allocated; pr-manager 9-step lifecycle amendment) |
 | Stories | TBD; S-21.03 (E-21 Wave 1 — pc2/pc3 postconditions) |
 | Source Issues | #358 (PR base not locked to trunk; orphan merge possible) |
 
@@ -226,6 +229,7 @@ TBD — assess once architecture mapping is complete.
 
 | Version | Date | Description |
 |---------|------|-------------|
-| 1.2 | 2026-07-19 | E-21 factory-state data-loss hardening (product-owner; issue #358; S-21.03). PC2 added: pr-manager step 7 MUST assert `gh pr view --json baseRefName` equals configured trunk post-create (`BaseRefNameMismatch` hard-fail on mismatch). PC3 added: pr-manager step 7 MUST assert `git merge-base --is-ancestor <merge_sha> origin/<trunk>` exits 0 post-merge (`MergeNotAncestorOfTrunk` P0 error on non-ancestor). INV-E21-005 (PR Trunk Ancestry) instantiation. Invariant 2 added (PC2+PC3 non-optional). EC-002..EC-006 added. 5 new test vector rows. Changelog section added. |
+| 1.3 | 2026-07-19 | adv pass-1 fix burst (F-P1-001/010) per ADR-031 v1.1 rulings (product-owner). capability TBD→CAP-038 (ADR-031 §Decision 7+8). INV-E21-005→INV-E21-006 sweep (TD-VSDD-060; PR Trunk Ancestry renumbered append-only per ADR-031 v1.1 §Decision 1; INV-E21-005 reassigned to Post-Rebase Diff Integrity/BC-5.44.001). §Traceability Architecture Module deliver-story/SKILL.md→pr-manager.md (SoT = §Architecture Anchors; F-P1-010). ADR Reference row added (ADR-031 §Decision 8). L2 Capability TBD→CAP-038; Capability Anchor Justification added. |
+| 1.2 | 2026-07-19 | E-21 factory-state data-loss hardening (product-owner; issue #358; S-21.03). PC2 added: pr-manager step 7 MUST assert `gh pr view --json baseRefName` equals configured trunk post-create (`BaseRefNameMismatch` hard-fail on mismatch). PC3 added: pr-manager step 7 MUST assert `git merge-base --is-ancestor <merge_sha> origin/<trunk>` exits 0 post-merge (`MergeNotAncestorOfTrunk` P0 error on non-ancestor). INV-E21-006 (PR Trunk Ancestry) instantiation [cited as INV-E21-005 at authoring time; corrected at v1.3]. Invariant 2 added (PC2+PC3 non-optional). EC-002..EC-006 added. 5 new test vector rows. Changelog section added. |
 | 1.1 | 2026-04-25 | Brownfield extraction metadata correction; content as extracted from pass-3-deep-skills-batch-1.md#L1186. |
 | 1.0 | 2026-04-25 | Initial brownfield extraction (phase-1-4b-bc-extractor; BC-AUDIT-313 → BC-6.10.002). |

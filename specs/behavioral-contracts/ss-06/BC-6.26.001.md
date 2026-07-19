@@ -1,7 +1,7 @@
 ---
 document_type: behavioral-contract
 level: L3
-version: "1.2"
+version: "1.3"
 status: draft
 producer: product-owner
 timestamp: 2026-07-19T00:00:00Z
@@ -21,7 +21,8 @@ lifecycle_status: draft
 introduced: v1.0-brownfield-backfill
 modified:
   - "2026-07-19 (v1.1) — CAP-036 backfill (product-owner; ARCH-INDEX v3.07): capability frontmatter TBD→CAP-036; §Traceability L2 Capability TBD→CAP-036; Capability Anchor Justification updated to cite CAP-036/ARCH-INDEX v3.07."
-  - "2026-07-19 (v1.2) — Research validation precision amendments (product-owner; research validation 2026-07-19): §Description preflight rationale clarified — explicit statement that the preflight compensates for `--force` usage stripping stock git's unclean-worktree protection; Invariant 5 added documenting the `--force` stripping mechanism."
+  - "2026-07-19 (v1.2) — Research validation precision amendments (product-owner; research validation 2026-07-19): §Description preflight rationale clarified — `--force` mechanism premise (later corrected at v1.3); Invariant 5 added."
+  - "2026-07-19 (v1.3) — adv pass-1 fix burst (F-P1-005) per ADR-031 v1.1 delta analysis v1.2 §Issue #523 (product-owner): §Description + Invariant 5 mechanism corrected — false --force premise removed; actual mechanism: .factory/ is gitignored on story branch → shadow content is gitignored (not untracked) → plain git worktree remove passes clean-state check (gitignored ≠ untracked for the check) → underlying rm-rf silently destroys shadow content; preflight is correct fix because find sees gitignored files that git's check ignores; --force secondary note retained as clearly-labeled secondary. PC2a corrected: git worktree remove --force→git worktree remove (plain command per step-g-cleanup.md)."
 deprecated: null
 deprecated_by: null
 replacement: null
@@ -30,7 +31,7 @@ removed: null
 removal_reason: null
 bc_id: BC-6.26.001
 section: "6.26"
-last_amended: "(v1.2) — Research validation precision amendments (product-owner; research validation 2026-07-19): §Description --force rationale clarified; Invariant 5 added. [Prior: (v1.1) — CAP-036 backfill. (v1.0) — Initial authoring; story-worktree write-path discipline (INV-E21-002) + teardown preflight (INV-E21-004). lifecycle_status: draft (POL-14).]"
+last_amended: "(v1.3) — adv pass-1 fix burst (F-P1-005) per ADR-031 v1.1 delta analysis v1.2 §Issue #523 (product-owner): §Description + Invariant 5 mechanism corrected — gitignored shadow content mechanism; --force false-premise removed; secondary note retained. PC2a corrected to plain git worktree remove. [Prior: (v1.2) — research validation; --force mechanism (incorrect; corrected here). (v1.1) — CAP-036 backfill. (v1.0) — Initial authoring.]"
 ---
 
 # BC-6.26.001: deliver-story step agents MUST write all `.factory/**` artifacts using absolute paths anchored to the canonical main-checkout `.factory/` mount, and step-G cleanup MUST run a worktree `.factory/` inventory preflight before `git worktree remove`
@@ -46,14 +47,25 @@ tree and all artifacts written to it are permanently destroyed with no warning.
 
 This BC governs two complementary protocol requirements that close the loss window.
 
-**Why `--force` requires a preflight:** Stock git already protects against inadvertent worktree removal
-— `git worktree remove` (without `--force`) refuses to remove a worktree that has uncommitted changes
-or untracked files ("fatal: 'worktrees/<name>' contains modified or untracked files, use --force to
-override"). The factory's deliver-story step G uses `--force` to handle legitimate cases (e.g., the
-worktree has build artifacts or other non-factory untracked files that can be discarded). This strips
-exactly the protection that would catch stray `.factory/` artifacts. The teardown preflight in this BC
-re-establishes that protection specifically for the `.factory/` subdirectory — the category where
-silent loss causes unrecoverable data loss.
+**Why the teardown preflight is load-bearing (the gitignored shadow mechanism):**
+Step G dispatches `devops-engineer` to run plain `git worktree remove` on the story worktree (no
+`--force` flag — the destructive-command-guard blocks `--force` outside `.worktrees/`). Stock git's
+clean-state check inside `git worktree remove` gates on *untracked* files, not *gitignored* files.
+Because `.factory/` is listed in `.gitignore` on the product branch, the shadow `.factory/` content
+inside the story worktree is **gitignored** rather than untracked. Gitignored files are excluded from
+git's untracked-file clean-state check, so the check passes silently as a false negative — even when
+the shadow tree contains stray factory artifacts. The underlying `rm -rf <worktree-path>` then
+silently destroys the gitignored shadow content with no warning.
+
+The teardown preflight (`find <worktree-path>/.factory -type f 2>/dev/null`) is the correct fix
+precisely because `find` reads the filesystem directly — it sees gitignored files that git's
+clean-state check ignores. The preflight is the only mechanism that catches this class of loss.
+
+**Secondary note (`--force` as an additional bypass):** If a future change introduced `--force` to
+the worktree remove command, that would additionally strip git's built-in unclean-worktree
+protection for any non-gitignored untracked files. The preflight would still catch `.factory/`
+shadow content in that scenario. The primary failure mode for the current codebase is the gitignored
+mechanism above.
 
 **Write-path discipline (INV-E21-002 instantiation):** Every agent operating within the
 deliver-story skill protocol that writes to a factory artifact MUST use an absolute path anchored
@@ -121,7 +133,8 @@ Step G MUST run `find <worktree-path>/.factory -type f 2>/dev/null` before any `
 command. Two cases:
 
 **PC2a — Empty result (normal case):** The `find` command returns no output. Step G proceeds with
-`git worktree remove --force` normally.
+plain `git worktree remove` normally (no `--force`; the destructive-command-guard blocks `--force`
+outside `.worktrees/` in the current codebase).
 
 **PC2b — Non-empty result (stray factory artifacts found):** The `find` command returns one or
 more file paths. Step G MUST NOT proceed with `git worktree remove`. It MUST:
@@ -166,13 +179,16 @@ empty-`.factory/` assertion.
    ledgers (`*-DELIVERY.md`), story-frontmatter files, pr-review.md records, STATE.md updates,
    VP anchor files, and any other file under `.factory/**`. It is NOT limited to DELIVERY ledgers.
 
-5. **`--force` strips git's built-in unclean-worktree protection; this preflight restores it.**
-   Without `--force`, `git worktree remove` refuses to proceed if the target worktree has modified
-   or untracked files (git docs: "Only clean worktrees... can be removed without `--force`"). Step G
-   uses `--force` to bypass this refusal for non-factory untracked artifacts (build outputs, temp
-   files). This bypass also removes the protection for stray `.factory/` shadow files. This BC's
-   teardown preflight is the targeted replacement: it checks ONLY the `.factory/` subdirectory
-   (the high-stakes category) and re-establishes the block before `--force` bypasses git's own guard.
+5. **The gitignored mechanism is the primary failure mode; `find` is the only gate that catches it.**
+   Git's `git worktree remove` clean-state check gates on untracked files only — gitignored files
+   are explicitly excluded. Because `.factory/` is gitignored on the product branch, the shadow
+   `.factory/` content inside the story worktree is gitignored, not untracked. The clean-state
+   check therefore passes silently (false negative) regardless of the shadow tree's contents, and
+   the underlying `rm -rf` destroys it without warning. The `find <worktree>/.factory -type f`
+   preflight is load-bearing because `find` reads the filesystem without gitignore filtering —
+   it is the only mechanism that surfaces this category of stray content before destruction.
+   No alternative git-level check (git status, git ls-files) would catch gitignored content in
+   this scenario.
 
 ## Edge Cases
 
@@ -240,5 +256,6 @@ TBD — VP IDs to be assigned after VP authoring pass.
 | Version | Date | Description |
 |---------|------|-------------|
 | 1.0 | 2026-07-19 | Initial authoring (product-owner; E-21 factory-state data-loss hardening; issue #523; S-21.04). PC1: write-path discipline — all `.factory/**` writes MUST use canonical absolute paths anchored to main-checkout root (INV-E21-002). PC2a/PC2b: teardown preflight — `find <worktree>/.factory -type f` before `git worktree remove`; non-empty result blocks teardown (INV-E21-004). 4 invariants. 7 edge cases EC-001..EC-007. 5 test vectors T-1..T-5. lifecycle_status: draft (POL-14 auto-promotion on S-21.04 PR merge). |
-| 1.2 | 2026-07-19 | Research validation precision amendments (product-owner; research validation 2026-07-19). §Description: preflight rationale clarified — teardown preflight compensates for `git worktree remove --force` stripping stock git's unclean-worktree protection (git docs: "Only clean worktrees can be removed without --force"). Invariant 5 added: `--force` stripping mechanism documented; preflight as targeted replacement for factory-artifact category only. |
+| 1.3 | 2026-07-19 | adv pass-1 fix burst (F-P1-005) per ADR-031 v1.1 delta analysis v1.2 §Issue #523 (product-owner). §Description "Why --force requires a preflight" paragraph replaced: false --force premise removed; corrected mechanism documented — .factory/ is gitignored on story branch, shadow content is gitignored (not untracked), plain `git worktree remove` passes clean-state check as false negative (gitignored ≠ untracked for the check), rm-rf silently destroys shadow content; `find` is correct fix because it sees gitignored files. --force secondary note retained (clearly labeled). Invariant 5 replaced: gitignored mechanism as primary; `find` is only gate that catches it. PC2a corrected: `git worktree remove --force` → plain `git worktree remove`. |
+| 1.2 | 2026-07-19 | Research validation precision amendments (product-owner; research validation 2026-07-19). §Description: preflight rationale added — --force mechanism (premise incorrect; corrected at v1.3). Invariant 5 added: --force stripping mechanism (corrected at v1.3 to gitignored mechanism). |
 | 1.1 | 2026-07-19 | CAP-036 backfill (product-owner; ARCH-INDEX v3.07, ADR-031, commit 14a78515): capability frontmatter TBD→CAP-036; §Traceability L2 Capability TBD→CAP-036; Capability Anchor Justification updated to cite CAP-036/ARCH-INDEX v3.07. |
