@@ -1,7 +1,7 @@
 ---
 document_type: behavioral-contract
 level: L3
-version: "1.0"
+version: "1.1"
 status: draft
 producer: product-owner
 timestamp: 2026-07-19T00:00:00Z
@@ -16,10 +16,11 @@ traces_to: .factory/specs/architecture/ARCH-INDEX.md
 origin: brownfield
 extracted_from: null
 subsystem: "SS-06"
-capability: "TBD — E-21 CAP pending ARCH-INDEX registration by architect"
+capability: "CAP-036"
 lifecycle_status: draft
 introduced: v1.0-brownfield-backfill
-modified: []
+modified:
+  - "2026-07-19 (v1.1) — CAP-036 backfill (product-owner; ARCH-INDEX v3.07): capability frontmatter TBD→CAP-036; §Traceability L2 Capability TBD→CAP-036; Capability Anchor Justification updated to cite CAP-036/ARCH-INDEX v3.07."
 deprecated: null
 deprecated_by: null
 replacement: null
@@ -28,7 +29,7 @@ removed: null
 removal_reason: null
 bc_id: BC-6.26.001
 section: "6.26"
-last_amended: "2026-07-19 (v1.0) — Initial authoring (product-owner; E-21 factory-state data-loss hardening; issue #523). Story-worktree factory artifact write-path discipline (INV-E21-002) + teardown preflight (INV-E21-004). lifecycle_status: draft (POL-14 auto-promotion on implementing PR merge)."
+last_amended: "(v1.1) — CAP-036 backfill (product-owner; ARCH-INDEX v3.07): capability frontmatter TBD→CAP-036; §Traceability L2 Capability + Capability Anchor Justification updated. [Prior: (v1.0) — Initial authoring (product-owner; E-21 factory-state data-loss hardening; issue #523). Story-worktree write-path discipline (INV-E21-002) + teardown preflight (INV-E21-004). lifecycle_status: draft (POL-14 auto-promotion on implementing PR merge).]"
 ---
 
 # BC-6.26.001: deliver-story step agents MUST write all `.factory/**` artifacts using absolute paths anchored to the canonical main-checkout `.factory/` mount, and step-G cleanup MUST run a worktree `.factory/` inventory preflight before `git worktree remove`
@@ -190,8 +191,8 @@ empty-`.factory/` assertion.
 
 | Field | Value |
 |-------|-------|
-| L2 Capability | TBD — E-21 CAP pending ARCH-INDEX registration |
-| Capability Anchor Justification | New capability for INV-E21-002 + INV-E21-004 (story-worktree write-path discipline and teardown preflight); no existing CAP covers factory-artifact write-path enforcement within story-worktree delivery context. |
+| L2 Capability | CAP-036 |
+| Capability Anchor Justification | CAP-036 registered in ARCH-INDEX v3.07 (ADR-031, commit 14a78515): "Story-Worktree Write-Path Discipline — factory artifact writes within story worktrees MUST target the canonical main-checkout `.factory/` mount via absolute paths; teardown preflight asserts shadow `.factory/` is empty before `git worktree remove`." BC-6.26.001 is the sole implementing BC for CAP-036 (INV-E21-002 + INV-E21-004). |
 | L2 Domain Invariants | none (operational infrastructure) |
 | Architecture Module | `plugins/vsdd-factory/skills/deliver-story/steps/_shared-context.md` (write-discipline clause extension); `plugins/vsdd-factory/skills/deliver-story/steps/step-g-cleanup.md` (preflight sub-step addition) |
 | Stories | S-21.04 (E-21 Wave 2) |
@@ -221,3 +222,4 @@ TBD — VP IDs to be assigned after VP authoring pass.
 | Version | Date | Description |
 |---------|------|-------------|
 | 1.0 | 2026-07-19 | Initial authoring (product-owner; E-21 factory-state data-loss hardening; issue #523; S-21.04). PC1: write-path discipline — all `.factory/**` writes MUST use canonical absolute paths anchored to main-checkout root (INV-E21-002). PC2a/PC2b: teardown preflight — `find <worktree>/.factory -type f` before `git worktree remove`; non-empty result blocks teardown (INV-E21-004). 4 invariants. 7 edge cases EC-001..EC-007. 5 test vectors T-1..T-5. lifecycle_status: draft (POL-14 auto-promotion on S-21.04 PR merge). |
+| 1.1 | 2026-07-19 | CAP-036 backfill (product-owner; ARCH-INDEX v3.07, ADR-031, commit 14a78515): capability frontmatter TBD→CAP-036; §Traceability L2 Capability TBD→CAP-036; Capability Anchor Justification updated to cite CAP-036/ARCH-INDEX v3.07. |

@@ -1,7 +1,7 @@
 ---
 document_type: behavioral-contract
 level: L3
-version: "1.0"
+version: "1.1"
 status: draft
 producer: product-owner
 timestamp: 2026-07-19T00:00:00Z
@@ -16,10 +16,11 @@ traces_to: .factory/specs/architecture/ARCH-INDEX.md
 origin: brownfield
 extracted_from: null
 subsystem: "SS-05"
-capability: "TBD — E-21 CAP pending ARCH-INDEX registration by architect"
+capability: "CAP-035"
 lifecycle_status: draft
 introduced: v1.0-brownfield-backfill
-modified: []
+modified:
+  - "2026-07-19 (v1.1) — CAP-035 backfill (product-owner; ARCH-INDEX v3.07): capability frontmatter TBD→CAP-035; §Traceability L2 Capability TBD→CAP-035; Capability Anchor Justification updated to cite CAP-035/ARCH-INDEX v3.07."
 deprecated: null
 deprecated_by: null
 replacement: null
@@ -28,7 +29,7 @@ removed: null
 removal_reason: null
 bc_id: BC-5.44.001
 section: "5.44"
-last_amended: "2026-07-19 (v1.0) — Initial authoring (product-owner; E-21 factory-state data-loss hardening; issue #365). Post-rebase diff-integrity gate: required orchestrator/pr-manager step after any git rebase on a feature branch touching sibling-story files; net-negative-delta detection before force-push. lifecycle_status: draft (POL-14 auto-promotion on implementing PR merge)."
+last_amended: "(v1.1) — CAP-035 backfill (product-owner; ARCH-INDEX v3.07): capability frontmatter TBD→CAP-035; §Traceability L2 Capability + Capability Anchor Justification updated. [Prior: (v1.0) — Initial authoring (product-owner; E-21 factory-state data-loss hardening; issue #365). Post-rebase diff-integrity gate; net-negative-delta detection before force-push. lifecycle_status: draft (POL-14 auto-promotion on implementing PR merge).]"
 ---
 
 # BC-5.44.001: pr-manager and orchestrator MUST run a post-rebase diff-integrity gate after any `git rebase` on a feature branch, asserting that no file touched by a recently-merged sibling story shows an unverified net-negative line-count delta before force-push-with-lease
@@ -173,8 +174,8 @@ gate passes trivially with no action.
 
 | Field | Value |
 |-------|-------|
-| L2 Capability | TBD — E-21 CAP pending ARCH-INDEX registration |
-| Capability Anchor Justification | New capability for post-rebase diff-integrity; no existing CAP covers rebase-integrity assertion. |
+| L2 Capability | CAP-035 |
+| Capability Anchor Justification | CAP-035 registered in ARCH-INDEX v3.07 (ADR-031, commit 14a78515): "Post-Rebase Diff-Integrity — mandatory diff-integrity gate between `git rebase` completion and `git push --force-with-lease` on feature branches." BC-5.44.001 is the sole implementing BC for CAP-035. |
 | L2 Domain Invariants | none (operational infrastructure) |
 | Architecture Module | `plugins/vsdd-factory/agents/pr-manager.md` (step 8 amendment; to be amended by S-21.02); orchestrator per-story delivery playbook (skill-doc change) |
 | Stories | S-21.02 (E-21 Wave 1) |
@@ -204,3 +205,4 @@ TBD — VP IDs to be assigned after VP authoring pass.
 | Version | Date | Description |
 |---------|------|-------------|
 | 1.0 | 2026-07-19 | Initial authoring (product-owner; E-21 factory-state data-loss hardening; issue #365). Post-rebase diff-integrity gate: mandatory `git diff origin/develop --stat` + sibling-story overlap check + intentional-delta verification before `git push --force-with-lease` (PC1 pass / PC2 halt / PC3/PC4 trivial-pass). 1 error variant: `UnverifiedNetNegativeDelta`. 7 edge cases EC-001..EC-007. 4 test vectors T-1..T-4. lifecycle_status: draft (POL-14 auto-promotion on S-21.02 PR merge). |
+| 1.1 | 2026-07-19 | CAP-035 backfill (product-owner; ARCH-INDEX v3.07, ADR-031, commit 14a78515): capability frontmatter TBD→CAP-035; §Traceability L2 Capability TBD→CAP-035; Capability Anchor Justification updated to cite CAP-035/ARCH-INDEX v3.07. |

@@ -1,7 +1,7 @@
 ---
 document_type: behavioral-contract
 level: L3
-version: "1.0"
+version: "1.1"
 status: draft
 producer: product-owner
 timestamp: 2026-07-19T00:00:00Z
@@ -16,10 +16,11 @@ traces_to: .factory/specs/architecture/ARCH-INDEX.md
 origin: brownfield
 extracted_from: null
 subsystem: "SS-06"
-capability: "TBD — E-21 CAP pending ARCH-INDEX registration by architect"
+capability: "CAP-037"
 lifecycle_status: draft
 introduced: v1.0-brownfield-backfill
-modified: []
+modified:
+  - "2026-07-19 (v1.1) — CAP-037 backfill (product-owner; ARCH-INDEX v3.07): capability frontmatter TBD→CAP-037; §Traceability L2 Capability TBD→CAP-037; Capability Anchor Justification updated to cite CAP-037/ARCH-INDEX v3.07."
 deprecated: null
 deprecated_by: null
 replacement: null
@@ -28,7 +29,7 @@ removed: null
 removal_reason: null
 bc_id: BC-6.27.001
 section: "6.27"
-last_amended: "2026-07-19 (v1.0) — Initial authoring (product-owner; E-21 factory-state data-loss hardening; issue #588). pr-manager factory-side PR protocol: restore-original-branch + ff-only pull + chore-branch cleanup postconditions; dispatch-preamble branch assertion. New BC rather than BC-6.23.001 amendment: BC-6.23.001 governs /factory-lock and /factory-unlock skill lock-lifecycle behaviors (ADR-025 D4/D5/D7/D8; CAP-031); the factory-side PR protocol is a pr-manager concern with a different behavioral surface and no coupling to the lock acquire/release mechanism. lifecycle_status: draft (POL-14 auto-promotion on implementing PR merge)."
+last_amended: "(v1.1) — CAP-037 backfill (product-owner; ARCH-INDEX v3.07): capability frontmatter TBD→CAP-037; §Traceability L2 Capability + Capability Anchor Justification updated. [Prior: (v1.0) — Initial authoring (product-owner; E-21 factory-state data-loss hardening; issue #588). pr-manager factory-side PR protocol: 5-step restore sequence + dispatch-preamble branch assertion. New BC (not BC-6.23.001 amendment). lifecycle_status: draft (POL-14 auto-promotion on implementing PR merge).]"
 ---
 
 # BC-6.27.001: pr-manager factory-side PR protocol MUST restore the `.factory/` worktree to `factory-artifacts`, pull `--ff-only`, and delete both the local and remote chore branch after merging any PR that modifies `factory-artifacts` directly, and MUST assert `factory-artifacts` is the current branch before any `.factory/` write
@@ -223,8 +224,8 @@ factory-side PR stranding but any mechanism that could leave the worktree on an 
 
 | Field | Value |
 |-------|-------|
-| L2 Capability | TBD — E-21 CAP pending ARCH-INDEX registration |
-| Capability Anchor Justification | New capability for INV-E21-003 (Factory Worktree Branch Invariant) enforcement in the pr-manager factory-side PR flow and the dispatch-preamble assertion pattern. Distinct from CAP-031 (BC-6.23.001 lock/unlock skill behaviors). |
+| L2 Capability | CAP-037 |
+| Capability Anchor Justification | CAP-037 registered in ARCH-INDEX v3.07 (ADR-031, commit 14a78515): "PR-Manager Factory-Side PR Protocol — post-merge restore sequence (checkout factory-artifacts → pull --ff-only → delete chore branches → assert branch) plus dispatch-preamble branch assertion before any `.factory/` write." BC-6.27.001 is the sole implementing BC for CAP-037 (INV-E21-003). Distinct from CAP-031 (BC-6.23.001 lock/unlock skill behaviors, ADR-025). |
 | L2 Domain Invariants | none (operational infrastructure) |
 | Architecture Module | `plugins/vsdd-factory/agents/pr-manager.md` (factory-side PR protocol section; to be added by S-21.05); dispatch-preamble templates for state-manager and pr-manager |
 | Stories | S-21.05 (E-21 Wave 2) |
@@ -254,3 +255,4 @@ TBD — VP IDs to be assigned after VP authoring pass.
 | Version | Date | Description |
 |---------|------|-------------|
 | 1.0 | 2026-07-19 | Initial authoring (product-owner; E-21 factory-state data-loss hardening; issue #588; S-21.05). PC1: factory-side PR 5-step restore sequence (checkout factory-artifacts → pull --ff-only → delete local chore branch → delete remote chore branch → final branch assertion). PC2: dispatch-preamble branch assertion before any `.factory/` write (INV-E21-003). 3 error variants: `CheckoutRestoreFailed`, `FFOnlyPullFailed`, `FactoryWorktreeOnWrongBranch`, `FinalBranchAssertionFailed`. 9 edge cases EC-001..EC-009. 6 test vectors T-1..T-6. New BC (not BC-6.23.001 amendment): different behavioral surface from lock/unlock skills; rationale documented inline. lifecycle_status: draft (POL-14 auto-promotion on S-21.05 PR merge). |
+| 1.1 | 2026-07-19 | CAP-037 backfill (product-owner; ARCH-INDEX v3.07, ADR-031, commit 14a78515): capability frontmatter TBD→CAP-037; §Traceability L2 Capability TBD→CAP-037; Capability Anchor Justification updated to cite CAP-037/ARCH-INDEX v3.07. |

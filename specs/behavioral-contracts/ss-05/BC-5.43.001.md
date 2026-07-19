@@ -1,7 +1,7 @@
 ---
 document_type: behavioral-contract
 level: L3
-version: "1.0"
+version: "1.1"
 status: draft
 producer: product-owner
 timestamp: 2026-07-19T00:00:00Z
@@ -17,10 +17,11 @@ traces_to: .factory/specs/architecture/ARCH-INDEX.md
 origin: brownfield
 extracted_from: null
 subsystem: "SS-05"
-capability: "TBD — E-21 CAP pending ARCH-INDEX registration by architect"
+capability: "CAP-034"
 lifecycle_status: draft
 introduced: v1.0-brownfield-backfill
-modified: []
+modified:
+  - "2026-07-19 (v1.1) — CAP-034 backfill (product-owner; ARCH-INDEX v3.07): capability frontmatter TBD→CAP-034; §Traceability L2 Capability TBD→CAP-034; Capability Anchor Justification updated to cite CAP-034/ARCH-INDEX v3.07."
 deprecated: null
 deprecated_by: null
 replacement: null
@@ -29,7 +30,7 @@ removed: null
 removal_reason: null
 bc_id: BC-5.43.001
 section: "5.43"
-last_amended: "2026-07-19 (v1.0) — Initial authoring (product-owner; E-21 factory-state data-loss hardening; issue #342). Orchestrator product-branch merge safety gate: mandatory .factory/ path-intersection pre-check before git merge/git pull/git checkout on the product branch; INV-E21-001 safety-net layer. New BC created in SS-05 rather than amending an existing BC because no existing SS-05 BC governs the orchestrator's product-branch merge pre-check step — this is a new mandatory protocol gate. lifecycle_status: draft (POL-14 auto-promotion on implementing PR merge)."
+last_amended: "(v1.1) — CAP-034 backfill (product-owner; ARCH-INDEX v3.07): capability frontmatter TBD→CAP-034; §Traceability L2 Capability + Capability Anchor Justification updated. [Prior: (v1.0) — Initial authoring (product-owner; E-21 factory-state data-loss hardening; issue #342). Orchestrator product-branch merge safety gate; INV-E21-001 safety-net layer. lifecycle_status: draft (POL-14 auto-promotion on implementing PR merge).]"
 ---
 
 # BC-5.43.001: orchestrator MUST run a `.factory/` path-intersection pre-check before executing any `git merge`, `git pull`, or `git checkout` on the product branch, and MUST STOP if the target tree diff contains a `.factory/` path deletion
@@ -38,7 +39,7 @@ last_amended: "2026-07-19 (v1.0) — Initial authoring (product-owner; E-21 fact
 
 This BC governs the **safety-net layer** for issue #342 (product-branch merge silently `rm`s a
 `.factory/` file the nested worktree is serving). It is the companion to BC-4.16.001 (the invariant
-layer: `validate-artifact-path` WASM guard that prevents dual-tracking at `git add` time).
+layer: `validate-factory-path-staging` WASM guard that prevents dual-tracking at `git add` time).
 
 Whenever the orchestrator or any specialist agent (devops-engineer, pr-manager, state-manager) is
 about to execute a `git merge`, `git pull`, or `git checkout` command that changes the HEAD of the
@@ -177,8 +178,8 @@ product branch working tree.
 
 | Field | Value |
 |-------|-------|
-| L2 Capability | TBD — E-21 CAP pending ARCH-INDEX registration |
-| Capability Anchor Justification | New capability for INV-E21-001 safety-net layer; complements BC-4.16.001 (invariant layer). Requires architect to register in ARCH-INDEX. |
+| L2 Capability | CAP-034 |
+| Capability Anchor Justification | CAP-034 registered in ARCH-INDEX v3.07 (ADR-031, commit 14a78515): "Nested Worktree Path Exclusivity — factory-artifacts paths may not be staged or merged on the product branch." BC-4.16.001 (invariant layer, `validate-factory-path-staging` WASM) and BC-5.43.001 (safety-net layer, orchestrator merge pre-check) together implement CAP-034 defense-in-depth. |
 | L2 Domain Invariants | none (operational infrastructure) |
 | Architecture Module | `plugins/vsdd-factory/skills/deliver-story/steps/` (skill-doc amendment by S-21.01); `plugins/vsdd-factory/agents/pr-manager.md` (amendment); orchestrator merge protocol templates |
 | Stories | S-21.01 (E-21 Wave 1) |
@@ -209,3 +210,4 @@ TBD — VP IDs to be assigned after VP authoring pass.
 | Version | Date | Description |
 |---------|------|-------------|
 | 1.0 | 2026-07-19 | Initial authoring (product-owner; E-21 factory-state data-loss hardening; issue #342). Orchestrator product-branch merge safety gate: mandatory `git diff --name-only HEAD..<target>` pre-check (PC1 pass/PC2 halt); safety-net layer for INV-E21-001. 1 error variant: `FactoryPathDeletionInMergeDiff`. 7 edge cases EC-001..EC-007. 5 test vectors T-1..T-5. lifecycle_status: draft (POL-14 auto-promotion on S-21.01 PR merge). |
+| 1.1 | 2026-07-19 | CAP-034 backfill (product-owner; ARCH-INDEX v3.07, ADR-031, commit 14a78515): capability frontmatter TBD→CAP-034; §Traceability L2 Capability TBD→CAP-034; Capability Anchor Justification updated to cite CAP-034/ARCH-INDEX v3.07; Description crate-name corrected (`validate-artifact-path`→`validate-factory-path-staging`, TD-VSDD-060 sibling-site sweep). |
