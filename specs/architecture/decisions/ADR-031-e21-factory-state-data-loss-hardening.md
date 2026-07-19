@@ -2,7 +2,7 @@
 document_type: architecture-decision-record
 level: L3
 adr_id: ADR-031
-version: "1.3"
+version: "1.4"
 title: "ADR-031: E-21 factory state data-loss hardening — nested-worktree path exclusivity protection model"
 status: accepted
 date: 2026-07-19
@@ -26,8 +26,9 @@ subsystems_affected:
   - SS-04
   - SS-05
   - SS-06
-last_amended: "2026-07-19 (v1.3) — F-P2-001 correction (orchestrator counter-evidence accepted): §Decision 2 Layer-2 'EMPTY host-set' retracted; corrected to undocumented ad-hoc orchestrator/operator Bash on main checkout; enforcement site named (per-story-delivery.md main-checkout sync protocol = S-21.01 Layer-2 deliverable); Layer-1 scope confirmed narrow (git add/stage only); server-side origination residual risk documented in §Rationale. [Prior: 2026-07-19 (v1.2) — F-P2 adversary adjudications: §Decision 2 Layer-2 EMPTY host-set (retracted at v1.3); §Decision 7 Four→Five; §Rationale F-P2-007 teardown dispatch-point ruling. Prior metadata continued: §Decision 2 Layer-2 host-set corrected to EMPTY: pr-manager (server-side gh pr merge, excluded by BC-5.43.001 PC3), devops-engineer (rebase on story worktree, .factory/ not mounted there), state-manager (git -C .factory only) all removed; forward-looking mandate documented; (2) §Decision 7 count fixed Four→Five (F-P2-002: CAP-038 count sweep missed at v1.1); (3) §Rationale: F-P2-001 zero-host analysis + F-P2-007 teardown dispatch-point ruling added. [Prior: 2026-07-19 (v1.1) — F-P1 adversary adjudications: on_error block→continue; INV-E21-006 added; §Context #358 corrected; CAP-038 allocated.]"
+last_amended: "2026-07-19 (v1.4) — pass-4 O-1 (architect): §Consequences duplicate '4.' numbering corrected; 4a/4b lettering used to preserve §Consequences #5 = post-rebase gate host (cited by BC-5.44.001 v1.3 and S-21.02 v1.1 as ADR-031 v1.1 §Consequences #5; renaming second '4.' to '5' would shift current #5 to #6, breaking those cites). ARCH-INDEX v3.10→v3.11. [Prior: 2026-07-19 (v1.3) — F-P2-001 correction (orchestrator counter-evidence accepted): §Decision 2 Layer-2 'EMPTY host-set' retracted; corrected to undocumented ad-hoc orchestrator/operator Bash on main checkout; enforcement site named (per-story-delivery.md main-checkout sync protocol = S-21.01 Layer-2 deliverable); Layer-1 scope confirmed narrow (git add/stage only); server-side origination residual risk documented in §Rationale. [Prior: 2026-07-19 (v1.2) — F-P2 adversary adjudications: §Decision 2 Layer-2 EMPTY host-set (retracted at v1.3); §Decision 7 Four→Five; §Rationale F-P2-007 teardown dispatch-point ruling. Prior metadata continued: §Decision 2 Layer-2 host-set corrected to EMPTY: pr-manager (server-side gh pr merge, excluded by BC-5.43.001 PC3), devops-engineer (rebase on story worktree, .factory/ not mounted there), state-manager (git -C .factory only) all removed; forward-looking mandate documented; (2) §Decision 7 count fixed Four→Five (F-P2-002: CAP-038 count sweep missed at v1.1); (3) §Rationale: F-P2-001 zero-host analysis + F-P2-007 teardown dispatch-point ruling added. [Prior: 2026-07-19 (v1.1) — F-P1 adversary adjudications: on_error block→continue; INV-E21-006 added; §Context #358 corrected; CAP-038 allocated.]]"
 modified:
+  - "2026-07-19 (v1.4)"
   - "2026-07-19 (v1.3)"
   - "2026-07-19 (v1.2)"
   - "2026-07-19 (v1.1)"
@@ -351,11 +352,11 @@ pre-check constraint to per-story-delivery.md.]
    BC-4.16.001 → `"CAP-034"`, BC-5.43.001 → `"CAP-034"`, BC-5.44.001 → `"CAP-035"`,
    BC-6.26.001 → `"CAP-036"`, BC-6.27.001 → `"CAP-037"`.
 
-4. **ARCH-INDEX correction:** SS-04 module listing stale `[PLANNED]` annotation on
+4a. **ARCH-INDEX correction:** SS-04 module listing stale `[PLANNED]` annotation on
    `validate-artifact-path/` corrected (crate exists since S-13.01); new entry
    `validate-factory-path-staging/` [PLANNED S-21.01] added. Incorporated in ARCH-INDEX v3.07.
 
-4. **BC-6.10.002 L2 Capability field (product-owner):** The existing BC-6.10.002 (orchestrator
+4b. **BC-6.10.002 L2 Capability field (product-owner):** The existing BC-6.10.002 (orchestrator
    9-step deliver-story sequence) must have its `capability:` frontmatter field set to `"CAP-038"`.
    The trunk-ancestry assertions added by S-21.03 (Decision 8 of this ADR) are the implementation
    of INV-E21-006 in the deliver-story protocol.
@@ -419,6 +420,7 @@ factory-side PR restore protocol).
 
 | Version | Date | Description |
 |---------|------|-------------|
+| 1.4 | 2026-07-19 | pass-4 O-1 (architect). §Consequences duplicate '4.' numbering corrected via 4a/4b lettering: first item 4 renamed 4a (ARCH-INDEX correction); second item 4 renamed 4b (BC-6.10.002 L2 Capability field). 4a/4b lettering chosen to preserve §Consequences #5 = post-rebase gate host (cited by BC-5.44.001 v1.3 + S-21.02 v1.1 as "ADR-031 v1.1 §Consequences #5"; monotonic renumber would shift #5→#6 breaking those cites). ARCH-INDEX v3.10→v3.11. |
 | 1.3 | 2026-07-19 | F-P2-001 correction (orchestrator counter-evidence accepted). §Decision 2 Layer-2 "EMPTY host-set" retracted — corrected to "undocumented ad-hoc orchestrator/operator Bash on main checkout." Enforcement site named: per-story-delivery.md main-checkout sync protocol constraint = S-21.01 Layer-2 deliverable. Layer-1 scope confirmed narrow (git add/stage only; no extension to pull/merge). §Rationale: server-side origination residual risk documented (contributor PR server-side merge bypasses Layer-1; Layer-2 is primary guard for that vector). |
 | 1.2 | 2026-07-19 | F-P2 adversary adjudications (architect). §Decision 2 Layer-2 host-set corrected to EMPTY: pr-manager, devops-engineer (story worktree, .factory/ not mounted), state-manager removed from named-host list; forward-looking mandate + individual exclusion rationale documented (F-P2-001). §Decision 7 count fixed Four→Five (F-P2-002: CAP-038 count not swept at v1.1). §Rationale: F-P2-001 zero-host analysis + F-P2-007 teardown dispatch-point ruling (keep dispatch-point gating; not symmetric with F-P1-006 co-location) added. ARCH-INDEX v3.07→v3.08 (F-P2-004 companion bump). |
 | 1.1 | 2026-07-19 | F-P1 adversary adjudications (architect). INV-E21-006 (PR Trunk Ancestry) appended to Decision 1 catalog; Decision 8 added (INV-E21-006 enforcement; BC-6.10.002 amendment; CAP-038 allocated). on_error corrected block→continue (fail-open; spec-wins; BC-4.16.001 PC3+Inv2 authoritative; two-layer defense absorbs Layer 1 crash; blocking all Bash disproportionate). §Context issue #358 corrected (stale-annotation premise wrong; real: PR base not locked, post-create baseRefName + post-merge --is-ancestor assertions absent). §Consequences: BC-6.10.002 CAP-038 ruling + F-P1-006 host-surface ruling (devops-engineer.md §Inter-Wave Rebase) added. |
