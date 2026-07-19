@@ -6,7 +6,7 @@ version: "1.9"
 status: accepted
 producer: business-analyst
 timestamp: 2026-04-25T00:00:00
-last_amended: 2026-07-06
+last_amended: 2026-07-19
 phase: 1.3
 inputs:
   - .factory/phase-0-ingestion/pass-2-domain-model.md
@@ -236,11 +236,32 @@ Two mandatory protocol elements ensure the `.factory/` worktree is always on `fa
 Subsystems: SS-06. Outcome: `.factory/**` writes cannot misdirect to an inactive chore branch; factory-side PR merges are always followed by a verified return to `factory-artifacts`.
 Source: ADR-031 Decision 5+7; E-21 INV-E21-003; BC-6.27.001; S-21.05. Justification: no existing capability covers the dispatch-preamble branch assertion or factory-side PR restore sequence; CAP-031 distinction noted; append-only P1 addition at next free ID.
 
+**CAP-038 — Factory PR trunk ancestry integrity — post-create baseRefName assertion and post-merge ancestry guard (E-21 INV-E21-006)**
+Two mandatory post-action assertions in the pr-manager 9-step lifecycle protect against
+trunk-ancestry drift. Post-create assertion (Step 3): immediately after `gh pr create`,
+the pr-manager agent MUST verify `gh pr view --json baseRefName --jq '.baseRefName'`
+equals the configured trunk branch (e.g., `develop`). If the assertion fails, the
+story is stopped before any review or merge proceeds. Post-merge ancestry guard
+(Step 9): immediately after `gh pr merge` resolves with `state=MERGED`, the agent MUST
+verify `git merge-base --is-ancestor <merge-commit-sha> origin/<trunk>` exits 0. If
+the assertion fails, a P0 data-error signal is raised and state-manager is alerted
+before the story delivery ledger is updated. Both assertions are skill-doc mandates on
+BC-6.10.002 (amendment); no new WASM plugin required (POLICY 21 satisfied). Explicitly
+distinct from CAP-033 (READY-verdict SHA pinning + stale-verdict detection +
+release-branch merge-strategy guard, which targets the merge-operation itself rather
+than post-create and post-merge integrity assertions).
+Subsystems: SS-05. Outcome: PRs with a mismatched base branch are detected before review
+proceeds; PRs whose merge commits do not land on trunk are detected before delivery is
+declared complete.
+Source: ADR-031 Decision 8; E-21 INV-E21-006; BC-6.10.002 (amendment); S-21.03.
+Justification: CAP-033 does not cover the baseRefName post-create check or the
+post-merge ancestry assertion; append-only P1 addition at next free ID.
+
 ## CHANGELOG
 
 | Version | Date | Change |
 |---------|------|--------|
-| v1.9 | 2026-07-19 | E-21 factory state data-loss hardening: authored CAP-034 (P1 — nested-worktree path exclusivity, two-layer defense; SS-04+SS-05; ADR-031; BC-4.16.001+BC-5.43.001; S-21.01), CAP-035 (P1 — post-rebase diff-integrity gate; SS-05; ADR-031; BC-5.44.001; S-21.02), CAP-036 (P1 — story-worktree write-path discipline+teardown preflight; SS-06; ADR-031; BC-6.26.001; S-21.04), CAP-037 (P1 — factory worktree branch integrity; SS-06; ADR-031; BC-6.27.001; S-21.05). CAP count advance 33→37. |
+| v1.9 | 2026-07-19 | E-21 factory state data-loss hardening: authored CAP-034 (P1 — nested-worktree path exclusivity, two-layer defense; SS-04+SS-05; ADR-031; BC-4.16.001+BC-5.43.001; S-21.01), CAP-035 (P1 — post-rebase diff-integrity gate; SS-05; ADR-031; BC-5.44.001; S-21.02), CAP-036 (P1 — story-worktree write-path discipline+teardown preflight; SS-06; ADR-031; BC-6.26.001; S-21.04), CAP-037 (P1 — factory worktree branch integrity; SS-06; ADR-031; BC-6.27.001; S-21.05), CAP-038 (P1 — factory PR trunk ancestry integrity, post-create baseRefName + post-merge ancestry guard; SS-05; ADR-031; BC-6.10.002 amendment; S-21.03) [added v1.9 via F-P1 adjudication]. CAP count advance 33→38. |
 | v1.8 | 2026-07-06 | F-P3-015/F-P3-016 capability-mapping: authored CAP-033 (P1 — pr-manager merge-operation integrity; READY-verdict SHA pinning + stale-verdict detection + release-branch merge-strategy guard; SS-05+SS-07; D-749+D-750; BC-5.42.001; S-19.01). CAP count advance 32→33. |
 | v1.7 | 2026-06-15 | F-P18-O1 cosmetic fix: CHANGELOG display rows reordered into monotonic descending order (newest-first) to prevent a scrambled sequence from masking future missing-row defects. No row content, version number, or date was altered. All versions v1.0–v1.6 confirmed present. |
 | v1.6 | 2026-06-14 | O-P8-001 cite-stability fix (F2 adversarial pass-8): CAP-032 body `Source:` line migrated from volatile-pin `ADR-026 v1.0 (issue #173); E-18.` to stable anchor form `ADR-026 (issue #173); E-18.` with informational non-load-bearing parenthetical per TD-VSDD-091 / POLICY 19 spirit. Changelog row v1.4 historical version mention preserved as authoring-time record (non-normative). |

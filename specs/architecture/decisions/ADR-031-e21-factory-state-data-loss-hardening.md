@@ -2,7 +2,7 @@
 document_type: architecture-decision-record
 level: L3
 adr_id: ADR-031
-version: "1.0"
+version: "1.1"
 title: "ADR-031: E-21 factory state data-loss hardening — nested-worktree path exclusivity protection model"
 status: accepted
 date: 2026-07-19
@@ -26,8 +26,9 @@ subsystems_affected:
   - SS-04
   - SS-05
   - SS-06
-last_amended: "2026-07-19 (v1.0) — Initial authorship (architect; E-21 factory state data-loss hardening; issues #342, #365, #358, #523, #588; 5 invariants INV-E21-001..INV-E21-005; two-layer defense for INV-E21-001; validate-factory-path-staging crate naming decision; POLICY 21 compliance; CAP-034..CAP-037 allocated)."
+last_amended: "2026-07-19 (v1.1) — F-P1 adversary adjudications: (1) INV-E21-006 added (PR Trunk Ancestry; append-only to Decision 1; Decision 8 added for enforcement; CAP-038 allocated); (2) on_error corrected block→continue (fail-open; spec-wins per BC-4.16.001 PC3+Inv2; two-layer defense absorbs Layer 1 crash; blocking all Bash use disproportionate); (3) §Context issue #358 corrected (stale-annotation premise was wrong; real issue = PR base not locked to trunk; post-create baseRefName assertion + post-merge --is-ancestor check absent); (4) §Consequences: BC-6.10.002 CAP-038 assignment + F-P1-006 host-surface ruling (devops-engineer.md §Inter-Wave Rebase) added. [Prior: 2026-07-19 (v1.0) — Initial authorship (E-21 factory state data-loss hardening; issues #342, #365, #358, #523, #588; 5 invariants INV-E21-001..INV-E21-005; validate-factory-path-staging crate naming decision; POLICY 21 compliance; CAP-034..CAP-037 allocated).]"
 modified:
+  - "2026-07-19 (v1.1)"
   - "2026-07-19 (v1.0)"
 ---
 
@@ -50,10 +51,20 @@ and Branch B modify adjacent (non-overlapping) regions of the same file. No conf
 appear; `git rebase --continue` reports success; the dropped lines are gone from the branch.
 No detection gate existed between rebase completion and `git push --force-with-lease`.
 
-**Issue #358 — Stale ARCH-INDEX `[PLANNED]` annotation on `validate-artifact-path/`.** The
-crate exists at `crates/hook-plugins/validate-artifact-path/` (serving BC-4.11.001, S-13.01
-Edit/Write/MultiEdit path-registry guard) but ARCH-INDEX SS-04 carried a stale `[PLANNED]`
-annotation. Corrected in ARCH-INDEX v3.07 (this version bump).
+**Issue #358 — PR base not locked to trunk; orphan merge possible (INV-E21-006).** The
+`pr-manager` agent explicitly passes `--base develop` in its `gh pr create` invocation
+(`plugins/vsdd-factory/agents/pr-manager.md` Step 3). However, two post-action assertions are
+absent: (a) no post-create step reads back the PR's `baseRefName` to confirm it matches the
+configured trunk (`develop`), and (b) no post-merge step runs `git merge-base --is-ancestor` to
+confirm the merge commit landed on trunk. Without (a), a modified invocation path that omits
+`--base` silently resolves the base from the `gh-merge-base` git config or the GitHub repository
+default branch — potentially an off-trunk base. Without (b), an orphan merge (PR merged into the
+wrong branch) is not detected until a human audits the commit graph. The concrete issue instance
+(`ArcavenAE/akey` PR #14, `arcaven` comment 2026-06-30) confirms the gap.
+
+Note: the stale ARCH-INDEX `[PLANNED]` annotation on `validate-artifact-path/` (a separate doc
+hygiene finding discovered during CAP analysis) was corrected independently in ARCH-INDEX v3.07
+and is not part of issue #358.
 
 **Issue #523 — Story-worktree shadow `.factory/` misdirects CWD-relative writes (INV-E21-002
 + INV-E21-004).** When a story worktree is created with `git worktree add`, git populates a
@@ -102,15 +113,25 @@ authoritative failure-mode registry for the E-21 compound:
   `git push --force-with-lease`. The gate detects unverified net-negative line-count deltas in
   files also modified by recently-merged sibling stories on `origin/develop`.
 
+- **INV-E21-006 (PR Trunk Ancestry):** Every story PR MUST be verified as an ancestor of
+  `origin/<trunk>` immediately after merge. Additionally, the PR's `baseRefName` MUST be
+  confirmed equal to the configured trunk immediately after `gh pr create`. A `state=MERGED`
+  PR whose merge commit is not an ancestor of `origin/<trunk>` is a P0 data error — the story
+  content did not land on the delivery integration branch. Covers issue #358.
+
 **Decision 2 — Two-layer defense for INV-E21-001.** Defense-in-depth with two independent
 layers:
 
 - **Layer 1 — Invariant layer (runtime enforcement):** New native WASM PreToolUse plugin
   `validate-factory-path-staging` (crate: `crates/hook-plugins/validate-factory-path-staging/`,
-  tool regex = `^Bash$`, priority = 140, tier = sync, on_error = block) fires before any Bash
+  tool regex = `^Bash$`, priority = 140, tier = sync, on_error = continue) fires before any Bash
   tool call. The plugin inspects the command for `git add`, `git stage`, or equivalent staging
   operations targeting `.factory/` paths on non-`factory-artifacts` branches and blocks them.
-  POLICY 21 compliance: native WASM, not a shell script.
+  POLICY 21 compliance: native WASM, not a shell script. `on_error = continue` (fail-open) is
+  the required setting — see Rationale for full adjudication (F-P1-002); summary: the spec wins
+  (BC-4.16.001 Precondition 3 + Invariant 2 mandate fail-open); blocking all Bash tool use on
+  a WASM crash is operationally disproportionate; the two-layer defense absorbs Layer 1 failures
+  via Layer 2.
 
 - **Layer 2 — Safety-net layer (skill-doc enforcement):** BC-5.43.001 mandates that the
   orchestrator, pr-manager, devops-engineer, and state-manager run
@@ -190,6 +211,28 @@ satisfied). The gate runs between rebase completion and `git push --force-with-l
 | CAP-035 | Post-rebase diff-integrity gate (INV-E21-005) | SS-05 | BC-5.44.001 |
 | CAP-036 | Story-worktree write-path discipline and teardown preflight (INV-E21-002 + INV-E21-004) | SS-06 | BC-6.26.001 |
 | CAP-037 | Factory worktree branch integrity — dispatch-preamble assertion + factory-side PR restore protocol (INV-E21-003) | SS-06 | BC-6.27.001 |
+| CAP-038 | PR trunk ancestry integrity — post-create baseRefName assertion + post-merge ancestry guard (INV-E21-006) | SS-05 | BC-6.10.002 (amendment) |
+
+**Decision 8 — INV-E21-006 enforcement (skill-doc amendment, SS-05).** PR trunk ancestry
+integrity is enforced via skill-doc amendment to BC-6.10.002 (the existing orchestrator
+deliver-story 9-step protocol BC). No new WASM plugin or shell script (POLICY 21 satisfied).
+Two required post-action assertions added to the pr-manager 9-step lifecycle:
+
+- **Post-create baseRefName assertion (Step 3 amendment):** After `gh pr create`, spawn
+  `github-ops` to run `gh pr view <num> --json baseRefName` and assert the returned value equals
+  the configured trunk (`develop` for greenfield/feature pipelines). Hard-fail the burst if
+  mismatched. This catches cases where `--base` was omitted in a modified invocation path, or
+  where `gh` resolved the base from the `gh-merge-base` git config rather than the intended trunk.
+
+- **Post-merge ancestry assertion (Step 9 amendment):** After `gh pr merge`, before marking the
+  story delivered, spawn `github-ops` to run
+  `git fetch origin <trunk> && git merge-base --is-ancestor <merge_sha> origin/<trunk>`. If
+  the exit code is non-zero (not an ancestor), raise immediately as a P0 data error.
+
+This invariant is distinct from CAP-033 (READY-verdict SHA pinning and release-branch
+merge-strategy guard per ADR-030), which addresses stale-verdict races and squash-merge
+prevention. INV-E21-006 addresses PR base targeting and post-merge ancestry confirmation — a
+different failure class. Capability: CAP-038. Story: S-21.03.
 
 ## Rationale
 
@@ -205,6 +248,18 @@ tool call content. Skill-doc mandates with accompanying BCs are the correct enfo
 for behavioral constraints of this class. POLICY 21 compliance is automatically satisfied: no
 new shell scripts.
 
+**`on_error = continue` for the Bash guard (Decision 2, F-P1-002 adjudication):** The spec wins
+(Standing Rule for VSDD): BC-4.16.001 Precondition 3 and Invariant 2 explicitly mandate
+`on_error = "continue"` with rationale: "a broken guard is disruptive but never wedges the
+session." Three additional factors confirm fail-open: (a) BC-4.16.001 Precondition 4 documents
+that on mounted worktrees `git add .factory/` is already a silent no-op (git itself refuses
+staging from a nested worktree path), so the guard's primary value is on unmounted checkouts (CI,
+bare clones); (b) the two-layer defense model means a Layer 1 crash is caught by Layer 2
+(BC-5.43.001 pre-merge intersection check), which is independent of the WASM; (c) a fail-closed
+`^Bash$` hook would block ALL Bash tool use on a WASM crash — an operational catastrophe
+disproportionate to the marginal risk on mounted developer sessions. ADR-031 v1.0 incorrectly
+specified `on_error = block`; corrected at v1.1.
+
 **Crate naming (Decision 3):** The naming decision is production-grade under the "no MVP
 deferrals" principle. Reusing `validate-artifact-path` would be the cheap path; creating a
 distinct crate with a semantically accurate name is the correct path and avoids the concrete
@@ -214,7 +269,7 @@ failure modes enumerated in Decision 3.
 
 1. **S-21.01 deliverable:** Must create `crates/hook-plugins/validate-factory-path-staging/`
    (new crate) and register `validate-factory-path-staging.wasm` in `hooks-registry.toml` with
-   `event = "PreToolUse"`, `tool = "^Bash$"`, `priority = 140`, `on_error = "block"`. MUST NOT
+   `event = "PreToolUse"`, `tool = "^Bash$"`, `priority = 140`, `on_error = "continue"`. MUST NOT
    modify the existing `validate-artifact-path` crate.
 
 2. **BC-4.16.001 amendment (product-owner):** The `capability:` frontmatter field must be
@@ -231,9 +286,22 @@ failure modes enumerated in Decision 3.
    `validate-artifact-path/` corrected (crate exists since S-13.01); new entry
    `validate-factory-path-staging/` [PLANNED S-21.01] added. Incorporated in ARCH-INDEX v3.07.
 
-5. **POLICY 21 attestation:** All four skill-doc BCs (BC-5.43.001, BC-5.44.001, BC-6.26.001,
+4. **BC-6.10.002 L2 Capability field (product-owner):** The existing BC-6.10.002 (orchestrator
+   9-step deliver-story sequence) must have its `capability:` frontmatter field set to `"CAP-038"`.
+   The trunk-ancestry assertions added by S-21.03 (Decision 8 of this ADR) are the implementation
+   of INV-E21-006 in the deliver-story protocol.
+
+5. **Post-rebase gate host surface (F-P1-006 ruling):** The diff-integrity gate for INV-E21-005
+   (BC-5.44.001) belongs in `plugins/vsdd-factory/agents/devops-engineer.md` §Inter-Wave Rebase
+   — between `git rebase origin/develop` and `git push --force-with-lease`. This is the only
+   location in the current codebase where a rebase + force-with-lease sequence exists.
+   `pr-manager.md` Step 8 = "Execute merge" (not a rebase step). The product-owner must amend
+   BC-5.44.001 §Architecture Anchors from "pr-manager.md step 8" to
+   "devops-engineer.md §Inter-Wave Rebase." Story-writer must update S-21.02 ACs accordingly.
+
+6. **POLICY 21 attestation:** All four skill-doc BCs (BC-5.43.001, BC-5.44.001, BC-6.26.001,
    BC-6.27.001) introduce no new shell scripts. BC-4.16.001 Layer 1 (the new WASM guard) uses
-   native WASM per ADR-014 standing mandate.
+   native WASM per ADR-014 standing mandate. BC-6.10.002 amendment is skill-doc only.
 
 ## Alternatives Considered
 
@@ -274,6 +342,7 @@ factory-side PR restore protocol).
 | CAP-035 | Post-rebase diff-integrity gate (BC-5.44.001) |
 | CAP-036 | Story-worktree write-path discipline and teardown preflight (BC-6.26.001) |
 | CAP-037 | Factory worktree branch integrity — dispatch-preamble assertion + factory-side PR restore (BC-6.27.001) |
+| CAP-038 | PR trunk ancestry integrity — post-create baseRefName assertion + post-merge ancestry guard (BC-6.10.002 amendment) |
 | E-21 | Epic anchor for this ADR |
 | ADR-031 | This record |
 
@@ -281,4 +350,5 @@ factory-side PR restore protocol).
 
 | Version | Date | Description |
 |---------|------|-------------|
-| 1.0 | 2026-07-19 | Initial authorship (architect; E-21 factory state data-loss hardening; issues #342, #365, #358, #523, #588). 5 invariants INV-E21-001..INV-E21-005 defined. 7 decisions: (1) invariant catalog, (2) two-layer INV-E21-001 defense, (3) validate-factory-path-staging crate naming, (4) INV-E21-002+004 skill-doc, (5) INV-E21-003 skill-doc, (6) INV-E21-005 skill-doc, (7) CAP-034..CAP-037 allocated. ARCH-INDEX v3.06→v3.07. capabilities.md v1.8→v1.9. |
+| 1.1 | 2026-07-19 | F-P1 adversary adjudications (architect). INV-E21-006 (PR Trunk Ancestry) appended to Decision 1 catalog; Decision 8 added (INV-E21-006 enforcement; BC-6.10.002 amendment; CAP-038 allocated). on_error corrected block→continue (fail-open; spec-wins; BC-4.16.001 PC3+Inv2 authoritative; two-layer defense absorbs Layer 1 crash; blocking all Bash disproportionate). §Context issue #358 corrected (stale-annotation premise wrong; real: PR base not locked, post-create baseRefName + post-merge --is-ancestor assertions absent). §Consequences: BC-6.10.002 CAP-038 ruling + F-P1-006 host-surface ruling (devops-engineer.md §Inter-Wave Rebase) added. |
+| 1.0 | 2026-07-19 | Initial authorship (architect; E-21 factory state data-loss hardening; issues #342, #365, #358, #523, #588). 6 invariants INV-E21-001..INV-E21-006 as corrected (INV-E21-005=Post-Rebase, INV-E21-006=PR Trunk Ancestry). 8 decisions. CAP-034..CAP-038 allocated. ARCH-INDEX v3.06→v3.07. capabilities.md v1.8→v1.9. |

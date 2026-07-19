@@ -2,11 +2,12 @@
 document_type: architect-delta-analysis
 epic_id: "E-21"
 epic_working_title: "Factory State Data-Loss Hardening"
-version: "v1.1"
+version: "v1.2"
 status: draft
 producer: architect
 timestamp: 2026-07-19T00:00:00Z
 modified:
+  - "2026-07-19 (v1.2) — F-P1 adversary adjudications (architect): (1) INV-E21-005 renamed from PR Trunk Ancestry to Post-Rebase Diff Integrity; INV-E21-006 = PR Trunk Ancestry appended (append-only; ADR-031 v1.1 §Decision 1); delta-analysis invariant catalog updated to match. (2) Issue #523 root-cause corrected: `git worktree remove --force` claim wrong; actual mechanism = `.factory/` is gitignored on product branch, so shadow content is gitignored (not untracked), plain `git worktree remove` passes clean-state check, underlying rm-rf silently destroys shadow content. (3) Issue #365 solution-shape host surface corrected: pr-manager.md step 8 = Execute merge (not rebase); correct host = devops-engineer.md §Inter-Wave Rebase (the only site with rebase+force-with-lease); step-f-pr-lifecycle.md has no rebase sub-step."
   - "2026-07-19 (v1.1) — stale crate name `validate-artifact-path` corrected to `validate-factory-path-staging` throughout (ADR-031 §Decision 3, commit 14a78515; original crate serves BC-4.11.001 S-13.01 and collides on registry filename + cargo output); #365 root-cause mechanism corrected (adjacent-edit cases conflict; silent drops require larger-hunk or moved-code diffs; `git range-diff` cited as canonical detector per BC-5.44.001); #358 gh-base-inference statement corrected (gh uses `gh-merge-base` git config or repo default branch, not tracking upstream, when `--base` is omitted)."
 cycle: v1.0-brownfield-backfill
 issues: [342, 365, 358, 523, 588]
@@ -128,16 +129,19 @@ lands. `plugins/vsdd-factory/agents/pr-manager.md` step 8 performs the merge but
 has no post-rebase sanity check. No WASM plugin intercepts rebase operations.
 Status: **confirmed open, process gap with no current mitigation**.
 
-The issue references an orchestrator-rebase dispatch ("orchestrator-rebase playbook"),
-which does not exist as a dedicated skill or step file in the current codebase. The
-gap is real: the expected process documentation does not exist at the path implied
-by the issue.
+The issue implies an "orchestrator-rebase playbook" that does not exist as a dedicated
+step file. The correct existing host is `plugins/vsdd-factory/agents/devops-engineer.md`
+§Inter-Wave Rebase (lines ~225-241), which already contains the
+`git rebase origin/develop` + `cargo test` + `git push --force-with-lease` sequence
+for feature branches. The pr-manager.md Step 8 is "Execute merge" — it does not contain
+a rebase sub-step and is therefore NOT the correct amendment target.
+[F-P1-006 adjudication: host surface corrected per ADR-031 §Consequences #5.]
 
 **Solution shape.**
-Skill-doc step change (SS-05/SS-06): Add a "post-rebase integrity gate" sub-step
-to the pr-manager agent and/or orchestrator per-story-delivery playbook. After any
-`git rebase --continue` reports success on a feature branch that shares file paths
-with recently merged sibling stories, the responsible agent must:
+Skill-doc step change (SS-05): Extend `devops-engineer.md §Inter-Wave Rebase` with a
+mandatory "post-rebase integrity gate" sub-step. After any `git rebase --continue`
+reports success on a feature branch that shares file paths with recently merged sibling
+stories, the responsible agent must:
 
 1. Run `git range-diff origin/develop ORIG_HEAD HEAD` (the canonical detector;
    being codified in BC-5.44.001 as the primary post-rebase integrity tool). Flag
@@ -242,9 +246,12 @@ Story agents operate with their CWD set to the story worktree
 CWD rather than the canonical repo root, it writes into the story worktree's stale
 `.factory/` snapshot (populated by `git worktree add` at worktree creation time and
 never updated). This shadow tree is not tracked on `factory-artifacts`, so factory
-tooling at the main checkout never sees the writes. When Step G runs
-`git worktree remove --force`, the shadow `.factory/` tree and all artifacts written
-to it are silently destroyed.
+tooling at the main checkout never sees the writes. Because `.factory/` is listed in
+`.gitignore` on the product branch, the shadow `.factory/` content is gitignored inside
+the story worktree — it does not appear as "untracked" in `git status`. When Step G runs
+plain `git worktree remove` (no `--force` flag), the clean-state check passes silently
+(gitignored files are excluded from the untracked-file check), and the underlying
+`rm -rf <worktree-path>` silently destroys the gitignored shadow content.
 
 The shared-context rule (`deliver-story/steps/_shared-context.md` §Spec-Path
 Discipline) mandates canonical absolute paths for spec/BC *reads* but does not
@@ -260,8 +267,10 @@ file in inverse direction, pr-reviewer pr-review.md in 2026-07-15 comment).
 the existing rule names `spec, BC, and ADR files` reads as the mandate scope;
 no explicit mention of DELIVERY ledger writes or story-frontmatter updates.
 `plugins/vsdd-factory/skills/deliver-story/steps/step-g-cleanup.md`: Sub-step G.1
-dispatches `devops-engineer` to `git worktree remove --force` with no `.factory/`
-inventory preflight. Status: **confirmed open — both gaps present in current code**.
+dispatches `devops-engineer` to `git worktree remove` (plain, no `--force` flag) with
+no `.factory/` inventory preflight. The clean-state check passes silently because
+gitignored `.factory/` shadow content is invisible to it. Status: **confirmed open —
+both gaps present in current code**.
 
 **Solution shape.**
 Two targeted changes (both skill-doc, no new shell scripts):
@@ -452,10 +461,23 @@ story worktree MUST be preceded by an inventory check confirming that no `.facto
 content exists inside the worktree. If content is found, relocate or hard-fail.
 Fix: step-g-cleanup skill-doc preflight (Issue #523 teardown mechanism).
 
-**INV-E21-005 (PR Trunk Ancestry):** Every story PR MUST be verified as an ancestor
-of `origin/<trunk>` immediately after merge. A `state=MERGED` PR that is not an
-ancestor of trunk is a P0 data error. Fix: pr-manager post-merge ancestry assertion
-(Issue #358 primary mechanism).
+**INV-E21-005 (Post-Rebase Diff Integrity):** After any `git rebase`,
+`git rebase --continue`, or `git pull --rebase` on a feature branch, a diff-integrity
+gate must run before `git push --force-with-lease`. The gate detects unverified
+net-negative line-count deltas in files also modified by recently-merged sibling stories
+on `origin/develop`, preventing silent ORT production-line drops. Fix:
+devops-engineer.md §Inter-Wave Rebase post-rebase integrity gate (Issue #365 primary
+mechanism; ADR-031 §D6). [Assigned ADR-031 v1.1 — number confirmed; CAP-035.]
+
+**INV-E21-006 (PR Trunk Ancestry):** Every story PR MUST be verified as an ancestor of
+`origin/<trunk>` immediately after merge. Additionally, the PR's `baseRefName` MUST be
+confirmed equal to the configured trunk immediately after `gh pr create`. A
+`state=MERGED` PR whose merge commit is not an ancestor of trunk is a P0 data error.
+Fix: pr-manager post-create baseRefName assertion + post-merge ancestry assertion
+(Issue #358 primary mechanism; ADR-031 §D8; CAP-038).
+[Renumbered from INV-E21-005 per ADR-031 v1.1 §Decision 1 to avoid double-definition with
+Post-Rebase Diff Integrity. BC-6.10.002 and S-21.03 referencing INV-E21-005 for PR Trunk
+Ancestry must be updated to INV-E21-006 by product-owner and story-writer respectively.]
 
 ---
 
