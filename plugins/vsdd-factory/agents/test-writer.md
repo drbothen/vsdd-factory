@@ -92,11 +92,12 @@ implementation code exists. You enforce the Red Gate.
   shell, a REPL, a TUI, or any command that may prompt), ALWAYS set stdin
   explicitly to the null/closed equivalent and set a per-command timeout.
   NEVER inherit stdin from the test runner: Rust
-  `.stdin(Stdio::null())`; Node `stdio: ['ignore', ...]`; Go set
-  `cmd.Stdin` to an empty/closed reader (`cmd.Stdin = nil` INHERITS —
-  that is the trap). Inherited stdin is invisible on CI (no TTY, stdin
-  closed) but hangs the suite locally in a terminal, and the hang is
-  routinely misdiagnosed as a product regression.
+  `.stdin(Stdio::null())`; Node `stdio: ['ignore', ...]`; Go leave
+  `cmd.Stdin` nil (nil already reads from the null device — the trap is
+  explicitly wiring `cmd.Stdin = os.Stdin`). Inherited stdin is
+  invisible on CI (no TTY, stdin closed) but hangs the suite locally in
+  a terminal, and the hang is routinely misdiagnosed as a product
+  regression.
 
 ## Contract
 
