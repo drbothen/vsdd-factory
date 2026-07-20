@@ -159,6 +159,36 @@ fn is_factory_name(s: &str) -> bool {
     s.eq_ignore_ascii_case(".factory")
 }
 
+/// Returns `true` when writing into `log_dir` cannot race the `.factory`
+/// worktree bootstrap (issue #206).
+///
+/// Every level C–G resolution is shaped `<root>/.factory/logs`. Creating that
+/// directory while `.factory` is absent — or while it exists only as a plain
+/// directory with no `.git` entry — plants exactly the plain `.factory/` that
+/// makes a later `git worktree add .factory factory-artifacts` mount NESTED at
+/// `.factory/.factory` (issues #203/#205). The dispatcher fires on every tool
+/// use, so its unconditional `mkdir -p` continuously recreated that state
+/// during `/factory-health` setup.
+///
+/// Ready iff the `.factory` parent exists AND carries a `.git` entry — a
+/// worktree mount has a `.git` *file*, a plain checkout a `.git` *dir*; both
+/// count. A `log_dir` whose parent is not named `.factory` (a `VSDD_LOG_DIR` /
+/// `FACTORY_ROOT` override pointing elsewhere) is always ready: the override
+/// path cannot collide with the mount. An override deliberately pointing at an
+/// unmounted `.factory/logs` is gated like the resolved shape — creating the
+/// plain dir would cause the same nested mount regardless of who asked.
+pub fn factory_mount_ready(log_dir: &Path) -> bool {
+    let Some(parent) = log_dir.parent() else {
+        return true;
+    };
+    if !is_dot_factory_basename(parent) {
+        return true;
+    }
+    // `.git` is a file for `git worktree add` mounts and a directory for a
+    // plain checkout; `exists()` accepts both.
+    parent.join(".git").exists()
+}
+
 /// Walk the parent chain from `start` upward. Returns the first ancestor
 /// whose basename is `.factory`, or `None` if the filesystem root is reached
 /// or a symlink loop is detected.
@@ -315,6 +345,67 @@ fn read_piped_stdout(child: &mut std::process::Child) -> Vec<u8> {
         let _ = stdout.read_to_end(&mut buf);
     }
     buf
+}
+
+#[cfg(test)]
+mod factory_mount_ready_tests {
+    use super::*;
+
+    /// Issue #206: `.factory` absent → NOT ready. The dispatcher must not
+    /// plant a plain `.factory/` ahead of the worktree mount.
+    #[test]
+    fn test_not_ready_when_factory_absent() {
+        let dir = tempfile::tempdir().unwrap();
+        let log_dir = dir.path().join(".factory").join("logs");
+        assert!(
+            !factory_mount_ready(&log_dir),
+            "must not be ready when .factory does not exist"
+        );
+    }
+
+    /// Issue #206/#203: `.factory` exists as a plain directory (the
+    /// onboard-before-health state) → NOT ready. Writing into it is the race.
+    #[test]
+    fn test_not_ready_for_plain_factory_dir() {
+        let dir = tempfile::tempdir().unwrap();
+        let factory = dir.path().join(".factory");
+        std::fs::create_dir_all(&factory).unwrap();
+        assert!(
+            !factory_mount_ready(&factory.join("logs")),
+            "plain .factory dir without .git is the bootstrap-conflict state"
+        );
+    }
+
+    /// `.factory` with a `.git` FILE — the `git worktree add` mount shape —
+    /// is ready.
+    #[test]
+    fn test_ready_for_worktree_mount_git_file() {
+        let dir = tempfile::tempdir().unwrap();
+        let factory = dir.path().join(".factory");
+        std::fs::create_dir_all(&factory).unwrap();
+        std::fs::write(factory.join(".git"), "gitdir: ../.git/worktrees/.factory\n").unwrap();
+        assert!(factory_mount_ready(&factory.join("logs")));
+    }
+
+    /// `.factory` with a `.git` DIRECTORY — a plain checkout of the artifact
+    /// branch (the CI mount shape) — is ready.
+    #[test]
+    fn test_ready_for_checkout_git_dir() {
+        let dir = tempfile::tempdir().unwrap();
+        let factory = dir.path().join(".factory");
+        std::fs::create_dir_all(factory.join(".git")).unwrap();
+        assert!(factory_mount_ready(&factory.join("logs")));
+    }
+
+    /// A log dir whose parent is not named `.factory` (VSDD_LOG_DIR /
+    /// FACTORY_ROOT override elsewhere) is always ready — it cannot collide
+    /// with the worktree mount.
+    #[test]
+    fn test_override_path_always_ready() {
+        let dir = tempfile::tempdir().unwrap();
+        let log_dir = dir.path().join("custom-diagnostics").join("logs");
+        assert!(factory_mount_ready(&log_dir));
+    }
 }
 
 #[cfg(test)]

@@ -242,15 +242,22 @@ pub struct InternalLog {
     /// Shared via `Arc` so every `clone()` of `InternalLog` participates in the
     /// same dedup window (one process invocation = one dispatcher session).
     seen_errors: std::sync::Arc<Mutex<HashSet<u64>>>,
+    /// One-shot flag so the mount-gate suppression (issue #206) warns exactly
+    /// once per dispatcher session instead of once per event. Shared across
+    /// clones like `seen_errors`.
+    gate_warned: std::sync::Arc<std::sync::atomic::AtomicBool>,
 }
 
 impl InternalLog {
     /// Build a writer rooted at `log_dir`. The directory is NOT created
-    /// eagerly; `write` will `mkdir -p` on first use.
+    /// eagerly; `write` will `mkdir -p` on first use — and only once the
+    /// `.factory` parent is a mounted worktree (see
+    /// [`crate::log_dir::factory_mount_ready`], issue #206).
     pub fn new(log_dir: PathBuf) -> Self {
         Self {
             log_dir,
             seen_errors: std::sync::Arc::new(Mutex::new(HashSet::new())),
+            gate_warned: std::sync::Arc::new(std::sync::atomic::AtomicBool::new(false)),
         }
     }
 
@@ -289,6 +296,28 @@ impl InternalLog {
                     // Poisoned mutex — write anyway to avoid silent loss.
                 }
             }
+        }
+
+        // Issue #206: never create `.factory/logs` ahead of the worktree
+        // mount. The dispatcher fires on every tool use, so an unconditional
+        // mkdir here continuously recreated a plain `.factory/` during
+        // `/factory-health` bootstrap, forcing the later `git worktree add`
+        // to nest at `.factory/.factory` (#203/#205). Suppression is a skip,
+        // not an error — events during the bootstrap window are still
+        // observable via `VSDD_SINK_FILE`.
+        if !crate::log_dir::factory_mount_ready(&self.log_dir) {
+            if !self
+                .gate_warned
+                .swap(true, std::sync::atomic::Ordering::Relaxed)
+            {
+                eprintln!(
+                    "factory-dispatcher: internal_log suppressed — parent of {} is not a \
+                     mounted .factory worktree yet (no .git entry); run /factory-health to \
+                     mount it, or set VSDD_LOG_DIR to log elsewhere",
+                    self.log_dir.display()
+                );
+            }
+            return Ok(());
         }
 
         fs::create_dir_all(&self.log_dir)?;
@@ -524,6 +553,62 @@ mod tests {
         assert!(expected.exists());
         let lines = read_lines(&expected);
         assert_eq!(lines.len(), 1);
+    }
+
+    /// Issue #206: when the log dir is `.factory/logs` and `.factory` does not
+    /// exist, `write` must NOT create it — a plain `.factory/` planted here
+    /// forces the later `git worktree add .factory` to mount nested.
+    #[test]
+    fn gate_skips_write_when_factory_absent() {
+        let dir = tempfile::tempdir().unwrap();
+        let factory = dir.path().join(".factory");
+        let log = InternalLog::new(factory.join("logs"));
+        let ts = Local.with_ymd_and_hms(2026, 1, 15, 9, 30, 0).unwrap();
+
+        log.write(&InternalEvent::with_ts(DISPATCHER_STARTED, ts));
+
+        assert!(
+            !factory.exists(),
+            ".factory must not be created by the internal log ahead of the mount"
+        );
+    }
+
+    /// Issue #206/#203: `.factory` existing as a PLAIN directory (the
+    /// onboard-before-health conflict state) must not gain a `logs/` child.
+    #[test]
+    fn gate_skips_write_into_plain_factory_dir() {
+        let dir = tempfile::tempdir().unwrap();
+        let factory = dir.path().join(".factory");
+        stdfs::create_dir_all(&factory).unwrap();
+        let log = InternalLog::new(factory.join("logs"));
+        let ts = Local.with_ymd_and_hms(2026, 1, 15, 9, 30, 0).unwrap();
+
+        log.write(&InternalEvent::with_ts(DISPATCHER_STARTED, ts));
+
+        assert!(
+            !factory.join("logs").exists(),
+            "plain .factory dir must not gain logs/ — that is the bootstrap race"
+        );
+    }
+
+    /// Issue #206 control: a mounted `.factory` (a `.git` FILE, the
+    /// `git worktree add` shape) writes exactly as before.
+    #[test]
+    fn gate_allows_write_into_mounted_factory() {
+        let dir = tempfile::tempdir().unwrap();
+        let factory = dir.path().join(".factory");
+        stdfs::create_dir_all(&factory).unwrap();
+        stdfs::write(factory.join(".git"), "gitdir: ../.git/worktrees/.factory\n").unwrap();
+        let log = InternalLog::new(factory.join("logs"));
+        let ts = Local.with_ymd_and_hms(2026, 1, 15, 9, 30, 0).unwrap();
+
+        log.write(&InternalEvent::with_ts(DISPATCHER_STARTED, ts));
+
+        let expected = factory
+            .join("logs")
+            .join(format!("{FILENAME_PREFIX}2026-01-15{FILENAME_SUFFIX}"));
+        assert!(expected.exists(), "mounted .factory must write normally");
+        assert_eq!(read_lines(&expected).len(), 1);
     }
 
     #[test]
