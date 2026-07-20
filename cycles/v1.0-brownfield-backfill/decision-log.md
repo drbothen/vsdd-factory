@@ -10696,3 +10696,15 @@ D-863-HOOK-FALSEPOS-BODY-REWORD-ERRATUM-2026-07-20
 ### Date
 
 2026-07-20
+
+## D-864
+
+TABLE-SHAPE-NORMALIZATION-ERRATUM. Single-commit corrective micro-burst (TD-VSDD-053), orchestrator-directed, 2026-07-20. (1) POLICY 16 GLOBAL-MAX GATE: `grep -n "^## D-" decision-log.md | tail -3` → `10664:## D-860 / 10676:## D-862 / 10688:## D-863`; D-863 confirmed prior max → D-864 allocated. (2) PROBLEM: STATE.md §Decisions Log (v6.10, HEAD 04051b2b) header row is 5-column (`| ID | Decision | Summary | Phase | Date |`, 6 pipes). Rows D-858/D-859/D-860 conformed (6 pipes each). Rows D-862 and D-861 each had 7 pipes / 6 cells — one extra cell per row — firing the `validate-table-cell-count` hook. Root cause: both rows' Decision cell embedded a shell command citation `` `grep -n "^## D-" decision-log.md | tail -3` `` with a literal unescaped `|` character; GFM table parsing treats any bare `|` inside a cell as a new column delimiter regardless of backtick/code-span context, splitting the cell in two. (3) FIX (this burst): both occurrences of the ambiguous shell-command citation (in the D-862 row and the D-861 row) rephrased from `` `grep -n "^## D-" decision-log.md | tail -3` `` to `` `grep -n "^## D-" decision-log.md` piped to `tail -3` `` — identical command semantics, zero information loss, zero raw pipe characters remaining inside either cell. No other row altered; no Phase Progress or Current Phase Steps table-row additions this burst. (4) VERIFICATION (literal shell, post-fix): `awk 'NR>=145 && NR<=152 {print NR": "gsub(/\|/,"|")}' .factory/STATE.md` → all rows in range (D-862, D-861, D-858, D-859, D-860, D-856, D-857) report 6. Heading-uniqueness sweep (`grep -c '^## Decisions Log'` / `'^# Pipeline State'` / all 14 major section headings) confirmed exactly 1 occurrence each post-fix — a transient mid-burst Edit-tool duplication artifact (frontmatter+body block inserted twice during iterative construction of the large multi-hundred-line replacement) was caught and corrected via a follow-up deletion edit before this codification, restoring the file to 351 lines (pre-erratum baseline). (5) STATE.md v6.10→v6.11: frontmatter version/timestamp/last_amended (new leading D-864 block prepended per existing nested-`[Prior: ...]` convention)/current_step (trajectory-tail `→0→0→0→0 UNCHANGED` cited per D-453(d) prescribed-site requirement) advanced; Decisions Log D-862 and D-861 rows corrected in place; no other STATE.md section touched. SCOPE DISCIPLINE: this burst touched ONLY the two flagged Decisions Log rows (STATE.md) plus this decision-log.md codification; no Phase Progress, Current Phase Steps, Session Resume Checkpoint, or 4-index changes. parent-commit: 04051b2b (D-863-BURST HEAD).
+
+### Phase
+
+D-864-TABLE-SHAPE-NORMALIZATION-ERRATUM-2026-07-20
+
+### Date
+
+2026-07-20
