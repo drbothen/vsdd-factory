@@ -133,6 +133,11 @@ artifacts:
     enforcement_level: block
 
   # ── Product Requirements / State ─────────────────────────────────────────
+  - artifact_type: product-brief
+    canonical_path_pattern: ".factory/specs/product-brief.md"
+    description: L1 product brief written by skills/create-brief — root of the traces_to chain
+    enforcement_level: block
+
   - artifact_type: prd
     canonical_path_pattern: ".factory/specs/prd.md"
     description: Product requirements document
