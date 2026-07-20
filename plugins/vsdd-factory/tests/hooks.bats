@@ -310,7 +310,7 @@ teardown() {
   [ "$status" -eq 0 ]
 }
 
-# ---------- validate-count-propagation ----------
+# ---------- validate-count-propagation (#690 id-drop + #567 historical exclusion) ----------
 #
 # The hook uses associative arrays (declare -A), which require bash 4+.
 # It runs via its #!/bin/bash shebang, so the interpreter that matters is
@@ -445,4 +445,55 @@ EOF
   run bash -c 'echo "{\"tool_input\":{\"file_path\":\".factory/specs/behavioral-contracts/BC-1.01.001.md\"}}" | "'"$HOOKS"'/validate-bc-title.sh" 2>&1'
   [ "$status" -eq 2 ]
   [[ "$output" == *"Wrong Title"* ]]
+}
+
+@test "validate-count-propagation: historical count in sibling is not drift (#567)" {
+  require_bash4_hook_interp
+  # Editing BC-INDEX (current total_bcs: 41). The only BC count in the STATE.md
+  # sibling is a frozen Phase Progress row, "PRD (38 BCs)". Pre-fix, the sibling's
+  # historical 38 was compared against the current 41 and fired drift; post-fix the
+  # historical section is skipped, the sibling has no current count, and absence is
+  # not drift.
+  printf '%s\n' '---' 'total_bcs: 41' '---' '# BC-INDEX' > .factory/BC-INDEX.md
+  printf '# STATE\n## Phase Progress\n| PRD | done | PRD (38 BCs) at phase-1 close |\n' > .factory/STATE.md
+  run bash -c 'echo "{\"tool_input\":{\"file_path\":\"'$WORK'/.factory/BC-INDEX.md\"}}" | "'"$HOOKS"'/validate-count-propagation.sh" 2>&1'
+  [ "$status" -eq 0 ]
+}
+
+@test "validate-count-propagation: historical count in source before current is not drift (#567)" {
+  require_bash4_hook_interp
+  # Editing STATE.md. Its frozen Phase Progress row ("PRD (38 BCs)") appears before
+  # the live Count Verification row ("41 BCs"). Pre-fix, first-match picked the
+  # historical 38 as the source count and fired drift against BC-INDEX's 41; post-fix
+  # the historical section is skipped and the live 41 is the source count — no drift.
+  printf '%s\n' '---' 'total_bcs: 41' '---' '# BC-INDEX' > .factory/BC-INDEX.md
+  printf '# STATE\n## Phase Progress\n| PRD | done | PRD (38 BCs) at phase-1 close |\n## Count Verification\nCurrent corpus: 41 BCs verified.\n' > .factory/STATE.md
+  run bash -c 'echo "{\"tool_input\":{\"file_path\":\"'$WORK'/.factory/STATE.md\"}}" | "'"$HOOKS"'/validate-count-propagation.sh" 2>&1'
+  [ "$status" -eq 0 ]
+}
+
+@test "validate-count-propagation: genuine current-count drift still blocks (#567)" {
+  require_bash4_hook_interp
+  # STATE's LIVE Count Verification section says 39 while BC-INDEX frontmatter says
+  # 41 — a real current-site disagreement that must still fire even though the same
+  # file carries a frozen Phase Progress row (38) that is correctly ignored.
+  printf '%s\n' '---' 'total_bcs: 41' '---' '# BC-INDEX' > .factory/BC-INDEX.md
+  printf '# STATE\n## Phase Progress\n| PRD | done | PRD (38 BCs) at phase-1 close |\n## Count Verification\nCurrent corpus: 39 BCs verified.\n' > .factory/STATE.md
+  run bash -c 'echo "{\"tool_input\":{\"file_path\":\"'$WORK'/.factory/STATE.md\"}}" | "'"$HOOKS"'/validate-count-propagation.sh" 2>&1'
+  [ "$status" -eq 2 ]
+  [[ "$output" == *"COUNT DRIFT DETECTED"* ]]
+  [[ "$output" == *"39 BCs"* ]]
+}
+
+@test "validate-count-propagation: source with only historical counts exits clean, no crash (#567)" {
+  require_bash4_hook_interp
+  # Editing STATE.md whose only count is a frozen changelog row, with no current
+  # count anywhere. After the historical section is skipped the source-count map is
+  # empty; that path must exit 0, not trip set -u on the empty associative array
+  # (the reason the ${arr[*]:-} guard replaces ${#arr[@]}). Sibling carries no count.
+  printf '%s\n' '---' 'document_type: index' '---' '# BC-INDEX' 'Prose only, no counts.' > .factory/BC-INDEX.md
+  printf '# STATE\n## Changelog\n| 1.0 | 2026-06-27 | Lists all 36 BCs |\n' > .factory/STATE.md
+  run bash -c 'echo "{\"tool_input\":{\"file_path\":\"'$WORK'/.factory/STATE.md\"}}" | "'"$HOOKS"'/validate-count-propagation.sh" 2>&1'
+  [ "$status" -eq 0 ]
+  [ -z "$output" ]
 }
