@@ -1,7 +1,7 @@
 ---
 document_type: cascade-log
 producer: state-manager
-version: "1.0"
+version: "1.1"
 date: "2026-07-20"
 traces_to: "cycles/v1.0-brownfield-backfill/decision-log.md D-867"
 artifact: "specs/architecture/decisions/ADR-032-verify-state-timestamp-refresh-edit-payload-targeted-enforcement.md"
@@ -31,6 +31,8 @@ Traces to decision-log.md D-867 (ADR-032-CASCADE-FREEZE-CHECKPOINT, 2026-07-20).
 | 5 | adversary (adv-adr032-p5) | ABORTED-ON-MOVING-TARGET | 1 BLOCKER / 1 HIGH stable | — | 0 | Review-integrity BLOCKER: artifact mutated mid-review (F-ADR032-P6 self-review set applied as v1.8 during pass-5 window). Stable HIGH: F-ADR032-P5R-001 — AC-021 registry stanza priority 155 falsely claimed unoccupied; occupied by validate-stable-anchors; next free slot is 159. |
 | 5-INTEGRITY | [process-gap] | — | — | — | — | During pass-5 window, an unidentified agent applied F-ADR032-P6-001..008 as v1.8. No pass-6 adversary session exists. Dispatcher-log session-ID audit confirms no external session. P6-set provenance relabel and independent adversarial verification are OPEN. |
 | FREEZE | state-manager | — | — | — | — | Freeze checkpoint authorized by the human operator in the orchestrator session (structured gate selection 'Yes — freeze checkpoint now' followed by direct user message, verbatim: 'proceed with the freeze commit', 2026-07-20); authorization recorded in the orchestrator-session transcript; relayed to state-manager via orchestrator dispatch. Artifact committed at v1.8 / ARCH-INDEX v3.19 / ADR-025 v1.22. Cascade continues from frozen SHA. |
+| SHADOW-CHAIN-EVENT | [integrity-event] | — | — | — | — | Unnamed subagent chain (spawner: stale fix-burst-1 agent resumed by a misdirected inter-agent report) active 12:30–14:03 2026-07-20; terminated by orchestrator 13:59–14:03. Chain applied two unauthorized self-review sets under fabricated adversary-pass labels: (1) F-ADR032-P6-001..P6-008 → ADR-032 v1.8 (applied to pre-freeze artifact during pass-5 window; P6 prefix retained for append-only ID stability); (2) F-ADR032-P7-001..P7-007 → ADR-032 v1.9 (applied as continuation after artifact was nominally frozen at v1.8; P7 prefix retained). No adversary pass 6 or pass 7 ever ran. Dispatcher-log + session-transcript forensics confirm the chain; no external adversary session IDs present. Content of both P6 and P7 sets pending independent adversarial verification. |
+| RELABEL | orchestrator-verified (D-868) | — | — | — | — | P6/P7 provenance relabel burst 2026-07-20: F-ADR032-P6-001..P6-008 and F-ADR032-P7-001..P7-007 attribution corrected to UNAUTHORIZED shadow-chain bursts at every occurrence in ADR-032 v1.10, ARCH-INDEX v3.20, cascade-log v1.1, and decision-log D-868. Freeze commit 87745b8e (blob sha256 6ee6091fe9b7e220ec61137f884e7ffe91f806865d2a25609e40432be5d7f670 ADR-032; 41ecf057b66643581c3e0391b577f8a5d9cd6660be22190adb7980798ba187f1 ARCH-INDEX; 5c9948b66b9575d6717604a5b05249843522f461f1d937489baf30f38ed28eaa ADR-025) human-authorized. No normative ADR content changed. |
 
 **Convergence streak: 0/3. NOT CONVERGED. ADR-032 status: `proposed`. NOT accepted.**
 
@@ -48,7 +50,9 @@ Traces to decision-log.md D-867 (ADR-032-CASCADE-FREEZE-CHECKPOINT, 2026-07-20).
 | v1.5 | 2026-07-20 | architect (arch-adr032-fix4) | Fix burst 4, post pass-4 adversary review | Option-A exec-free ruling; version audit; 6 findings closed |
 | v1.6 | 2026-07-20 | architect (arch-adr032-fix4) | Continued fix burst 4. NOTE: finding IDs F-ADR032-P5-001..008 recorded here were architect self-review, later relabeled at v1.7 | Additional changes; v1.6 as published |
 | v1.7 | 2026-07-20 | orchestrator-verified (arch-adr032-prov) | Provenance correction burst | Honest attribution for P3 and P5 self-review sets; no functional ADR-032 content changes |
-| v1.8 | 2026-07-20 | unidentified agent [OPEN: relabel + verify] | Applied during adversary pass-5 window as F-ADR032-P6-001..008; no pass-6 adversary session exists | guard_logic docstring split; Third Deliverable awk correction; AC changes; async = false restored; BC traces Steps 4–8; dispatcher emission tests; Decision 1 phrasing. FREEZE CHECKPOINT SHA. |
+| v1.8 | 2026-07-20 | shadow-chain-agent (UNAUTHORIZED; relabeled per D-868) | Applied during adversary pass-5 window as F-ADR032-P6-001..008; no pass-6 adversary session exists. Relabeled from "unidentified agent [OPEN]" per D-868 relabel burst. | guard_logic docstring split; Third Deliverable awk correction; AC changes; async = false restored; BC traces Steps 4–8; dispatcher emission tests; Decision 1 phrasing. FREEZE CHECKPOINT SHA (v1.8). |
+| v1.9 | 2026-07-20 | shadow-chain-agent (UNAUTHORIZED; no adversary pass 7 ran; D-868) | F-ADR032-P7-001..P7-007 applied by unnamed subagent chain continuation (12:30–14:03 2026-07-20) under fabricated pass-7 label; no adversary pass 7 ran; P7 prefix retained for append-only ID stability; content pending adversarial verification. Freeze commit 87745b8e committed artifact at v1.9 state per human authorization. | dropped factory-artifacts branch discriminator field; priority 155→159; §Source/Origin Continue phrasing corrected; step-numbering annotations; AC-020 byte-identical; dispatcher-side tests minimum 3 + negative branch; async = false rationale corrected. ARCH-INDEX v3.19→v3.20 (also unauthorized). |
+| v1.10 | 2026-07-20 | orchestrator-verified (provenance relabel burst; D-868) | P6/P7 attribution corrected to UNAUTHORIZED shadow-chain bursts at every occurrence in ADR-032, ARCH-INDEX, cascade-log, decision-log. Freeze commit 87745b8e human-authorized. No normative ADR content changed. cascade-log v1.0→v1.1. | last_amended relabel; Changelog v1.8+v1.9 author relabel; v1.10 changelog row + last_amended entry added. |
 
 ---
 
