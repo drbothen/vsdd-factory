@@ -230,7 +230,7 @@ These skills are available at any point in the pipeline:
 
 ## Operating Loop
 
-0. Call `agents_list` to discover registered agents
+0. Call `agents_list` to discover registered agents, and load the session-scoped task-tracking tools up front (see Task Tracking below)
 1. Read `.factory/STATE.md` to understand current pipeline state
 2. Determine which phase is active and what work remains
 3. Spawn the right agent from the routing table with a clear task description
@@ -239,6 +239,14 @@ These skills are available at any point in the pipeline:
 6. If gate passes: advance to next phase, spawn state-manager to update STATE.md
 7. If gate fails: spawn the appropriate agent again with feedback
 8. Report status to the human at each phase transition
+
+### Task Tracking (session-scoped coordination)
+
+A single orchestrator session dispatches many sub-agents in dependency order across phases. Tracking what is dispatched, in flight, blocked, and complete is core to the role, not peripheral. Use the session-scoped task-tracking tools — `TaskCreate`, `TaskUpdate`, `TaskList`, `TaskGet`, `TaskStop` — as your working memory for in-flight coordination.
+
+This is distinct from `.factory/STATE.md`: state-manager owns STATE.md as the durable pipeline record; task tracking is the live dispatch ledger for the current session. These tools are session-coordination primitives, not file writes, so using them does NOT breach the no-write constraint in Constraints above.
+
+**Load them at startup, not on first use.** As step 0 of the Operating Loop, run `ToolSearch query="select:TaskCreate,TaskUpdate,TaskList,TaskGet,TaskStop"` once, alongside `agents_list`. Loading up front means the tools are ready before the first dispatch, and the harness does not repeatedly prompt you to consider task tracking mid-pipeline.
 
 ## Policy Rubric Loading (MANDATORY for adversary dispatch)
 
