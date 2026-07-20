@@ -32,11 +32,40 @@ git worktree list | grep -F '.factory'
 ```
 
 - **If missing**: Mount it.
+
+  First guard against a pre-existing **plain** `.factory/` directory. If
+  `.factory` exists but is NOT a worktree (e.g. a bare `.factory/logs/` left by
+  running `/onboard-observability` before this check), `git worktree add`
+  mounts the worktree *nested* at `.factory/.factory` — a corrupt layout. Move
+  the plain directory aside first (mirrors `/factory-worktree-health`), mount,
+  then restore its contents:
   ```bash
+  if [ -e .factory ] && ! git -C .factory rev-parse --git-dir >/dev/null 2>&1; then
+    mv .factory .factory-backup-$(date +%s)   # plain dir, not a worktree
+  fi
   git worktree add .factory factory-artifacts
+  # If a backup was made, restore any contents (e.g. logs/) into the worktree:
+  #   cp -R .factory-backup-*/. .factory/ 2>/dev/null || true
+  #   rm -rf .factory-backup-*
   ```
 
-- **If mounted but pointing to wrong branch**: Remove and remount.
+  Then **assert the mount landed at the repo root**, not nested:
+  ```bash
+  [ "$(git -C .factory rev-parse --show-toplevel)" = "$(git rev-parse --show-toplevel)/.factory" ] \
+    || echo "ABORT: .factory did not mount at the repo root"
+  ```
+  If the assertion fails, the worktree is almost certainly **nested** at
+  `.factory/.factory` (git chose that path because `.factory` already existed as
+  a plain directory). Do NOT run `git worktree remove .factory --force` — that
+  removal targets the wrong path and cannot fix a nested mount. Instead remove
+  the *actual* nested worktree and re-run this check from the plain-dir guard:
+  ```bash
+  git worktree remove .factory/.factory --force
+  rm -rf .factory        # now a leftover plain dir; the guard above re-handles it
+  ```
+
+- **If mounted but pointing to wrong branch**: Remove and remount, then re-run
+  the same post-mount assertion above.
   ```bash
   git worktree remove .factory --force
   git worktree add .factory factory-artifacts
