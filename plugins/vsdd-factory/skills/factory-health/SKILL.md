@@ -36,9 +36,13 @@ git worktree list | grep -F '.factory'
   First guard against a pre-existing **plain** `.factory/` directory. If
   `.factory` exists but is NOT a worktree (e.g. a bare `.factory/logs/` left by
   running `/onboard-observability` before this check), `git worktree add`
-  mounts the worktree *nested* at `.factory/.factory` — a corrupt layout. Move
-  the plain directory aside first (mirrors `/factory-worktree-health`), mount,
-  then restore its contents:
+  fails on current git with `fatal: '.factory' already exists` when the
+  directory is non-empty (verified on git 2.50/2.55; an empty one mounts
+  cleanly). Nested mounts at `.factory/.factory` — a corrupt layout — have
+  also been observed from this state (#205): a nested path passed while
+  recovering from the already-exists error, or a process re-creating
+  `.factory` mid-setup, produces one. Move the plain directory aside first
+  (mirrors `/factory-worktree-health`), mount, then restore its contents:
   ```bash
   if [ -e .factory ] && ! git -C .factory rev-parse --git-dir >/dev/null 2>&1; then
     mv .factory .factory-backup-$(date +%s)   # plain dir, not a worktree
@@ -55,8 +59,9 @@ git worktree list | grep -F '.factory'
     || echo "ABORT: .factory did not mount at the repo root"
   ```
   If the assertion fails, the worktree is almost certainly **nested** at
-  `.factory/.factory` (git chose that path because `.factory` already existed as
-  a plain directory). Do NOT run `git worktree remove .factory --force` — that
+  `.factory/.factory` (a nested add path used while recovering from
+  `already exists`, or a racing process re-creating `.factory` mid-mount —
+  see #205). Do NOT run `git worktree remove .factory --force` — that
   removal targets the wrong path and cannot fix a nested mount. Instead remove
   the *actual* nested worktree and re-run this check from the plain-dir guard:
   ```bash

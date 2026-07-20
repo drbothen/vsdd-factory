@@ -3,9 +3,14 @@
 #
 # Issue #205: factory-health/SKILL.md step 2 runs a bare `git worktree add
 # .factory factory-artifacts` with NO post-mount assertion. If `.factory`
-# already exists as a plain directory (the #203 onboard-first case), git
-# mounts the worktree NESTED at `.factory/.factory`. Step 3's
-# `cd .factory && git branch --show-current` then reads the PARENT branch, and
+# already exists as a plain non-empty directory (the #203 onboard-first case),
+# that command fails on current git (`fatal: '.factory' already exists`;
+# verified 2.50/2.55 — an empty dir mounts cleanly). Nested mounts at
+# `.factory/.factory` have been observed from that state (#205) via nested
+# add paths used in recovery or a process re-creating `.factory` mid-mount;
+# the execution tests below FABRICATE that layout rather than reproduce it
+# from the bare command. Once nested, step 3's
+# `cd .factory && git branch --show-current` reads the PARENT branch, and
 # the documented recovery `git worktree remove .factory --force` does not fix
 # it because `.factory` is not the worktree — the worktree is `.factory/.factory`.
 #

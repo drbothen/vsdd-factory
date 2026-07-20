@@ -24,9 +24,10 @@ Before any other action, say verbatim:
 1. `.factory/` must be a **mounted factory-artifacts worktree at the repo root** —
    not merely a directory that happens to exist. This ordering matters: if you
    run this skill first, `factory-obs register` would create a plain
-   `.factory/logs/` directory, and a later `/factory-health` would then mount
-   the worktree *nested* at `.factory/.factory` (a corrupt layout). Assert the
-   mount before doing anything:
+   `.factory/logs/` directory, and a later `/factory-health` mount then fails
+   (`fatal: '.factory' already exists` on current git) — with nested
+   `.factory/.factory` mounts observed from botched recoveries of that state
+   (#205). Assert the mount before doing anything:
    ```bash
    [ "$(git -C .factory rev-parse --show-toplevel 2>/dev/null)" = "$(git rev-parse --show-toplevel)/.factory" ]
    ```
@@ -132,7 +133,7 @@ This skill **does not**:
 ## When to use
 
 Run this **after** `/factory-health` has mounted `.factory/` (see Prerequisites) —
-never before, or the mount lands nested.
+never before, or the leftover plain directory blocks the mount.
 
 - **Newly set-up project** whose `.factory/` worktree is already mounted and which you now want wired into observability.
 - **Existing project** you've been working in but haven't connected to your running stack yet (e.g., you set up the stack from a different project and want this one's events in the same Grafana).
