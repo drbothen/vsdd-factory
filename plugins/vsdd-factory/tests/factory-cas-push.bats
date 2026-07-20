@@ -575,3 +575,80 @@ STUB
   # --force-with-lease allow-path must come before the block for --force
   [ "$lease_line" -lt "$force_block_line" ]
 }
+
+# ---------------------------------------------------------------------------
+# cwd-independent .factory resolution (issue #631)
+#
+# The helper formerly ran a relative `git -C .factory`, which assumes the caller
+# stands in the repo root. When the caller's cwd IS the .factory worktree — the
+# state-manager's natural cwd — `.factory` resolved to `.factory/.factory` and
+# every git step died with "cannot change to '.factory'", misreported as a fetch
+# error. These tests use a REAL main-worktree + linked .factory worktree + bare
+# origin (no git stub) so the resolution logic is exercised end-to-end.
+#
+# Fixture layout (built by _setup_worktree_fixture):
+#   $WORK/origin.git          — bare remote
+#   $WORK/main                — main worktree (branch: develop)
+#   $WORK/main/.factory       — linked worktree (branch: factory-artifacts)
+#   $WORK/story-S1            — sibling story worktree (branch: story/S-1)
+# ---------------------------------------------------------------------------
+
+_setup_worktree_fixture() {
+  # GHA runners lack a global git identity; scope one to this process only.
+  export GIT_AUTHOR_NAME="cas-push-test"
+  export GIT_AUTHOR_EMAIL="cas-push@test.local"
+  export GIT_COMMITTER_NAME="cas-push-test"
+  export GIT_COMMITTER_EMAIL="cas-push@test.local"
+
+  ORIGIN="$WORK/origin.git"
+  MAIN="$WORK/main"
+  git init --bare -q "$ORIGIN"
+  git clone -q "$ORIGIN" "$MAIN" 2>/dev/null
+
+  git -C "$MAIN" commit --allow-empty -q -m init
+  # factory-artifacts branch with a STATE.md, pushed to origin
+  git -C "$MAIN" checkout -q -b factory-artifacts
+  echo "state: initial" > "$MAIN/STATE.md"
+  git -C "$MAIN" add STATE.md
+  git -C "$MAIN" commit -q -m "init factory-artifacts"
+  git -C "$MAIN" push -q origin factory-artifacts
+  # primary working branch + linked .factory worktree
+  git -C "$MAIN" checkout -q -b develop
+  git -C "$MAIN" worktree add -q .factory factory-artifacts
+}
+
+@test "cwd-resolution: invocation from repo root succeeds (#631)" {
+  _setup_worktree_fixture
+  run bash -c "cd '$MAIN' && bash '$HELPER'"
+  [ "$status" -eq 0 ]
+  [[ "$output" == *"state-burst CAS push succeeded"* ]]
+}
+
+@test "cwd-resolution: invocation from INSIDE .factory worktree succeeds (#631)" {
+  _setup_worktree_fixture
+  # This is the exact scenario that failed before the fix: cwd IS .factory,
+  # so the old relative `git -C .factory` looked for .factory/.factory.
+  run bash -c "cd '$MAIN/.factory' && bash '$HELPER'"
+  [ "$status" -eq 0 ]
+  [[ "$output" == *"state-burst CAS push succeeded"* ]]
+  # And it must NOT emit the old raw cd failure masquerading as a fetch error.
+  [[ "$output" != *"cannot change to '.factory'"* ]]
+}
+
+@test "cwd-resolution: invocation from a sibling story worktree succeeds (#631)" {
+  _setup_worktree_fixture
+  git -C "$MAIN" worktree add -q -b story/S-1 "$WORK/story-S1" develop
+  run bash -c "cd '$WORK/story-S1' && bash '$HELPER'"
+  [ "$status" -eq 0 ]
+  [[ "$output" == *"state-burst CAS push succeeded"* ]]
+}
+
+@test "cwd-resolution: invocation from an unrelated non-git dir fails clearly (#631)" {
+  UNREL="$WORK/unrelated"
+  mkdir -p "$UNREL"
+  run bash -c "cd '$UNREL' && bash '$HELPER'"
+  [ "$status" -ne 0 ]
+  # Actionable message, NOT the raw git cd error.
+  [[ "$output" == *"could not locate the .factory worktree"* ]]
+  [[ "$output" == *"Run from the repo root or the .factory worktree."* ]]
+}
