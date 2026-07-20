@@ -131,7 +131,7 @@
       "targets": [
         {
           "refId": "A",
-          "expr": "sum(count_over_time({service_name=\"claude-code\"} | json | attributes_event_name = \"tool_result\" [$__range]))"
+          "expr": "sum(count_over_time({service_name=\"claude-code\"} | event_name = \"tool_result\" [$__range]))"
         }
       ]
     },
@@ -169,7 +169,7 @@
       "targets": [
         {
           "refId": "A",
-          "expr": "count(count by (attributes_session_id) (count_over_time({service_name=\"claude-code\"} | json | attributes_session_id != \"\" [$__range])))"
+          "expr": "count(count by (session_id) (count_over_time({service_name=\"claude-code\"} | session_id != \"\" [$__range])))"
         }
       ]
     },
@@ -286,7 +286,7 @@
       "fieldConfig": {
         "defaults": {
           "color": { "mode": "palette-classic" },
-          "displayName": "${__field.labels.attributes_tool_name}"
+          "displayName": "${__field.labels.tool_name}"
         }
       },
       "options": {
@@ -301,8 +301,8 @@
       "targets": [
         {
           "refId": "A",
-          "expr": "topk(10, sum by (attributes_tool_name) (count_over_time({service_name=\"claude-code\"} | json | attributes_tool_name != \"\" [$__range])))",
-          "legendFormat": "{{attributes_tool_name}}"
+          "expr": "topk(10, sum by (tool_name) (count_over_time({service_name=\"claude-code\"} | tool_name != \"\" [$__range])))",
+          "legendFormat": "{{tool_name}}"
         }
       ]
     },
@@ -316,7 +316,7 @@
       "fieldConfig": {
         "defaults": {
           "color": { "mode": "palette-classic" },
-          "displayName": "${__field.labels.attributes_story_id}"
+          "displayName": "${__field.labels.story_id}"
         }
       },
       "options": {
@@ -331,8 +331,8 @@
       "targets": [
         {
           "refId": "A",
-          "expr": "topk(15, sum by (attributes_story_id) (count_over_time({service_name=\"vsdd-factory\",event_type=\"agent.start\"} | json | attributes_story_id != \"\" [$__range])))",
-          "legendFormat": "{{attributes_story_id}}"
+          "expr": "topk(15, sum by (story_id) (count_over_time({service_name=\"vsdd-factory\",event_type=\"agent.start\"} | story_id != \"\" [$__range])))",
+          "legendFormat": "{{story_id}}"
         }
       ]
     },

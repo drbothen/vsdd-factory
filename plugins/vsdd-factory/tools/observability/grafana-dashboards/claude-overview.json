@@ -61,7 +61,7 @@
       "id": 2,
       "title": "Unique sessions",
       "type": "stat",
-      "description": "Distinct Claude sessions. Derived from attributes.session.id parsed via | json (Loki flattens dotted keys with underscores -> attributes_session_id).",
+      "description": "Distinct Claude sessions. Derived from the session_id structured-metadata field on each Claude OTel log entry (filtered with the `| session_id != \"\"` metadata pipe, not `| json`).",
       "datasource": { "type": "loki", "uid": "loki" },
       "gridPos": { "h": 4, "w": 6, "x": 6, "y": 0 },
       "fieldConfig": {
@@ -91,7 +91,7 @@
       "targets": [
         {
           "refId": "A",
-          "expr": "count(count by (attributes_session_id) (count_over_time({service_name=\"claude-code\"} | json | attributes_session_id != \"\" [$__range])))"
+          "expr": "count(count by (session_id) (count_over_time({service_name=\"claude-code\"} | session_id != \"\" [$__range])))"
         }
       ]
     },
@@ -129,7 +129,7 @@
       "targets": [
         {
           "refId": "A",
-          "expr": "sum(count_over_time({service_name=\"claude-code\"} | json | attributes_event_name = \"tool_result\" [$__range]))"
+          "expr": "sum(count_over_time({service_name=\"claude-code\"} | event_name = \"tool_result\" [$__range]))"
         }
       ]
     },
@@ -167,7 +167,7 @@
       "targets": [
         {
           "refId": "A",
-          "expr": "sum(count_over_time({service_name=\"claude-code\"} | json | attributes_event_name = \"api_request\" [$__range]))"
+          "expr": "sum(count_over_time({service_name=\"claude-code\"} | event_name = \"api_request\" [$__range]))"
         }
       ]
     },
@@ -201,8 +201,8 @@
       "targets": [
         {
           "refId": "A",
-          "expr": "sum by (attributes_event_name) (count_over_time({service_name=\"claude-code\"} | json [$__interval]))",
-          "legendFormat": "{{attributes_event_name}}"
+          "expr": "sum by (event_name) (count_over_time({service_name=\"claude-code\"} [$__interval]))",
+          "legendFormat": "{{event_name}}"
         }
       ]
     },
@@ -230,8 +230,8 @@
       "targets": [
         {
           "refId": "A",
-          "expr": "topk(10, sum by (attributes_tool_name) (count_over_time({service_name=\"claude-code\"} | json | attributes_tool_name != \"\" [$__range])))",
-          "legendFormat": "{{attributes_tool_name}}"
+          "expr": "topk(10, sum by (tool_name) (count_over_time({service_name=\"claude-code\"} | tool_name != \"\" [$__range])))",
+          "legendFormat": "{{tool_name}}"
         }
       ]
     },

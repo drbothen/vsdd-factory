@@ -53,7 +53,7 @@
       "targets": [
         {
           "refId": "A",
-          "expr": "sum(count_over_time({service_name=\"vsdd-factory\",event_type=\"agent.start\"} | json | attributes_subagent = \"vsdd-factory:pr-manager\" [$__range]))"
+          "expr": "sum(count_over_time({service_name=\"vsdd-factory\",event_type=\"agent.start\"} | subagent = \"vsdd-factory:pr-manager\" [$__range]))"
         }
       ]
     },
@@ -212,7 +212,7 @@
       "targets": [
         {
           "refId": "A",
-          "expr": "sum(count_over_time({service_name=\"vsdd-factory\",hook=\"pr-manager-completion-guard\",event_type=\"hook.block\"} [$__range])) / sum(count_over_time({service_name=\"vsdd-factory\",event_type=\"agent.start\"} | json | attributes_subagent = \"vsdd-factory:pr-manager\" [$__range]))"
+          "expr": "sum(count_over_time({service_name=\"vsdd-factory\",hook=\"pr-manager-completion-guard\",event_type=\"hook.block\"} [$__range])) / sum(count_over_time({service_name=\"vsdd-factory\",event_type=\"agent.start\"} | subagent = \"vsdd-factory:pr-manager\" [$__range]))"
         }
       ]
     },
@@ -246,7 +246,7 @@
       "targets": [
         {
           "refId": "A",
-          "expr": "sum(count_over_time({service_name=\"vsdd-factory\",event_type=\"agent.start\"} | json | attributes_subagent = \"vsdd-factory:pr-manager\" [$__interval]))"
+          "expr": "sum(count_over_time({service_name=\"vsdd-factory\",event_type=\"agent.start\"} | subagent = \"vsdd-factory:pr-manager\" [$__interval]))"
         }
       ]
     },
@@ -260,7 +260,7 @@
       "fieldConfig": {
         "defaults": {
           "color": { "mode": "palette-classic" },
-          "displayName": "stopped at step ${__field.labels.attributes_last_step}"
+          "displayName": "stopped at step ${__field.labels.last_step}"
         }
       },
       "options": {
@@ -275,8 +275,8 @@
       "targets": [
         {
           "refId": "A",
-          "expr": "topk(10, sum by (attributes_last_step) (count_over_time({service_name=\"vsdd-factory\",hook=\"pr-manager-completion-guard\"} | json | attributes_last_step != \"\" [$__range])))",
-          "legendFormat": "step {{attributes_last_step}}"
+          "expr": "topk(10, sum by (last_step) (count_over_time({service_name=\"vsdd-factory\",hook=\"pr-manager-completion-guard\"} | last_step != \"\" [$__range])))",
+          "legendFormat": "step {{last_step}}"
         }
       ]
     },
@@ -332,7 +332,7 @@
       "targets": [
         {
           "refId": "A",
-          "expr": "sum(sum_over_time({service_name=\"vsdd-factory\",event_type=\"pr.merged\"} | json | unwrap attributes_open_to_merge_seconds [$__range])) / sum(count_over_time({service_name=\"vsdd-factory\",event_type=\"pr.merged\"} | json | attributes_open_to_merge_seconds != \"\" [$__range]))"
+          "expr": "sum(sum_over_time({service_name=\"vsdd-factory\",event_type=\"pr.merged\"} | unwrap open_to_merge_seconds [$__range])) / sum(count_over_time({service_name=\"vsdd-factory\",event_type=\"pr.merged\"} | open_to_merge_seconds != \"\" [$__range]))"
         }
       ]
     },
@@ -362,7 +362,7 @@
       "targets": [
         {
           "refId": "A",
-          "expr": "sum(count_over_time({service_name=\"vsdd-factory\",event_type=\"pr.merged\"} | json | attributes_open_to_merge_seconds != \"\" [$__range]))"
+          "expr": "sum(count_over_time({service_name=\"vsdd-factory\",event_type=\"pr.merged\"} | open_to_merge_seconds != \"\" [$__range]))"
         }
       ]
     }
