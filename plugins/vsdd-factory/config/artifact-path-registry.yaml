@@ -203,6 +203,11 @@ artifacts:
     description: Holdout evaluation document
     enforcement_level: block
 
+  - artifact_type: holdout-scenario-selection
+    canonical_path_pattern: ".factory/holdout-scenarios/scenario-selection.json"
+    description: Phase-4 scenario-rotation selection written by state-manager (selected holdout scenario IDs)
+    enforcement_level: block
+
   # ── Measurements ─────────────────────────────────────────────────────────
   - artifact_type: measurement
     canonical_path_pattern: ".factory/measurements/{filename}.md"
