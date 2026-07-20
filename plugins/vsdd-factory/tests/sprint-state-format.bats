@@ -149,6 +149,30 @@ teardown() {
 }
 
 # ---------------------------------------------------------------------------
+# Live-artifact CI guard (issue #724)
+#
+# The five live-production-file tests below were designed per the PORTABILITY
+# notes above to SKIP in CI and run locally — the original guard keyed on the
+# .factory/ mount being absent, which was true in CI when they were authored.
+# CI now mounts factory-artifacts, which re-enabled these tests in CI runs.
+# In a pull_request run, CI mounts the BASE repo's artifact branch — a PR can
+# never modify what these tests assert — so any base-side artifact drift fails
+# every unrelated PR with the failure attributed to the PR (issue #724 is the
+# concrete instance: a PC3 def-b ordering violation in sprint-state.yaml failed
+# ten unrelated PRs at once).
+#
+# This guard restores the documented local-only design explicitly: skip under
+# GitHub Actions, keep full enforcement in local runs (and in the factory's
+# own hooks). If push-run enforcement is wanted, narrow the condition to
+# [ "${GITHUB_EVENT_NAME:-}" = "pull_request" ].
+# ---------------------------------------------------------------------------
+_skip_live_artifact_in_ci() {
+  if [ -n "${GITHUB_ACTIONS:-}" ]; then
+    skip "live .factory artifact assertions are local-only by design (PORTABILITY notes; issue #724) — CI mounts the base repo's factory-artifacts, which a PR cannot modify"
+  fi
+}
+
+# ---------------------------------------------------------------------------
 # Helper: _count_stories_per_story_entries FILE
 # Count entries in the `stories:` YAML list that are per-story objects (have `id:`).
 # Returns 0 when the stories: key is a count-summary mapping (legacy format).
@@ -247,6 +271,7 @@ _leading_terminal_run() {
 # ---------------------------------------------------------------------------
 
 @test "test_sprint_state_stories_list_present" {
+  _skip_live_artifact_in_ci
   # Guard: skip when production file is absent (CI without factory-artifacts worktree)
   if [ ! -f "${_PRODUCTION_SPRINT_STATE}" ]; then
     skip ".factory/stories/sprint-state.yaml absent — factory-artifacts worktree not mounted (CI without .factory/ mount)"
@@ -939,6 +964,7 @@ EOF
 # ---------------------------------------------------------------------------
 
 @test "test_real_production_file_round_trip" {
+  _skip_live_artifact_in_ci
   # Guard: skip when production file is absent (CI without factory-artifacts worktree)
   if [ ! -f "${_PRODUCTION_SPRINT_STATE}" ]; then
     skip ".factory/stories/sprint-state.yaml absent — factory-artifacts worktree not mounted (CI); SKIP is expected in CI"
@@ -1290,6 +1316,7 @@ EOF
 # ---------------------------------------------------------------------------
 
 @test "test_real_production_file_completeness_and_status_fidelity" {
+  _skip_live_artifact_in_ci
   # Guard: skip when production files are absent (CI without factory-artifacts worktree)
   if [ ! -f "${_PRODUCTION_SPRINT_STATE}" ]; then
     skip ".factory/stories/sprint-state.yaml absent — factory-artifacts worktree not mounted (CI); SKIP is expected in CI"
@@ -1470,6 +1497,7 @@ EOF
 # ---------------------------------------------------------------------------
 
 @test "test_supersession_edge_tolerated_partition_placement" {
+  _skip_live_artifact_in_ci
   # Guard: skip when production file is absent (CI without factory-artifacts worktree)
   if [ ! -f "${_PRODUCTION_SPRINT_STATE}" ]; then
     skip ".factory/stories/sprint-state.yaml absent — factory-artifacts worktree not mounted (CI); SKIP is expected in CI"
@@ -1693,6 +1721,7 @@ EOF
 # ---------------------------------------------------------------------------
 
 @test "test_partitions_sorted_by_full_graph_depth_def_b" {
+  _skip_live_artifact_in_ci
   # Guard: skip when production files are absent (CI without factory-artifacts worktree)
   if [ ! -f "${_PRODUCTION_SPRINT_STATE}" ]; then
     skip ".factory/stories/sprint-state.yaml absent — factory-artifacts worktree not mounted (CI); SKIP is expected in CI"
