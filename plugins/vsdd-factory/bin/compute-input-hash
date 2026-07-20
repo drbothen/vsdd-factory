@@ -399,7 +399,17 @@ case "$MODE" in
     ;;
 
   --update)
-    # Read current input-hash value
+    # Determine whether an input-hash: field already exists in the frontmatter,
+    # and read its current value if so.  Presence and value are DISTINCT: an
+    # absent field and a placeholder field both yield an empty/placeholder
+    # value, but only a present field can be replaced by in-place substitution.
+    # Conflating them made --update silently no-op (report success, write
+    # nothing) when the field was absent (#623) — the sed s/^input-hash:.*/
+    # matched no line and produced no change.
+    FIELD_PRESENT=$(awk '
+      /^---$/{ fm++; if (fm>=2) exit; next }
+      fm==1 && /^input-hash:/ { print "yes"; exit }
+    ' "$FILE")
     CURRENT=$(awk '
       /^---$/{ fm++; next }
       fm==1 && /^input-hash:/ {
@@ -410,20 +420,44 @@ case "$MODE" in
       }
     ' "$FILE")
 
-    if [[ "$CURRENT" == "$HASH" ]]; then
+    if [[ -n "$FIELD_PRESENT" ]] && [[ "$CURRENT" == "$HASH" ]]; then
       echo "compute-input-hash: $FILE input-hash already current ($HASH)" >&2
       exit 0
     fi
 
-    # Update the frontmatter in place
-    if [[ -z "$CURRENT" ]] || [[ "$CURRENT" == "[md5]" ]] || [[ "$CURRENT" == "null" ]]; then
-      # Field exists with placeholder — replace
+    if [[ -n "$FIELD_PRESENT" ]]; then
+      # Field exists (placeholder or stale hash) — replace it in place.
       sed -i.bak "s/^input-hash:.*/input-hash: \"$HASH\"/" "$FILE"
+      rm -f "${FILE}.bak"
     else
-      # Field exists with old hash — replace
-      sed -i.bak "s/^input-hash:.*/input-hash: \"$HASH\"/" "$FILE"
+      # Field absent — insert it (find-or-create, per #623 suggested fix (a)).
+      # --update is only reachable after an inputs: field was parsed from the
+      # frontmatter, so a frontmatter block is guaranteed here; insert the new
+      # field just before the closing fence (the second '^---$' line).
+      awk -v hash="$HASH" '
+        /^---$/ { fm++; if (fm==2 && !inserted) { print "input-hash: \"" hash "\""; inserted=1 } }
+        { print }
+      ' "$FILE" > "${FILE}.tmp" && mv "${FILE}.tmp" "$FILE"
     fi
-    rm -f "${FILE}.bak"
+
+    # Verify the write actually landed before reporting success.  A bookkeeping
+    # tool must never report success on a no-op (#623): if the field is still
+    # absent or not equal to the computed hash (e.g. malformed frontmatter with
+    # no closing fence, so there was nowhere to insert), fail loudly instead of
+    # exiting 0.
+    WROTE=$(awk '
+      /^---$/{ fm++; next }
+      fm==1 && /^input-hash:/ {
+        sub(/^input-hash:[ \t]*/, "")
+        gsub(/["'"'"']/, "")
+        print
+        exit
+      }
+    ' "$FILE")
+    if [[ "$WROTE" != "$HASH" ]]; then
+      die "failed to write input-hash into $FILE (frontmatter may be malformed — no closing '---' fence to anchor the field)"
+    fi
+
     echo "$HASH"
     echo "compute-input-hash: updated $FILE input-hash → $HASH" >&2
     ;;

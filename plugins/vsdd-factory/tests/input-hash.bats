@@ -84,6 +84,70 @@ EOF
   [[ "${#stored}" -eq 7 ]]
 }
 
+@test "compute-input-hash: --update creates input-hash field when absent (#623)" {
+  # Regression for #623: --update silently no-oped (reported success, wrote
+  # nothing) when the frontmatter had NO input-hash field at all — the sed
+  # find-and-replace matched no line. It must now insert the field and exit 0
+  # with the field genuinely present.
+  cat > "$WORK/.factory/specs/prd.md" << 'EOF'
+---
+document_type: prd
+inputs: [product-brief.md]
+---
+# PRD body
+EOF
+  # Field genuinely absent to start with.
+  ! grep -q '^input-hash:' "$WORK/.factory/specs/prd.md"
+
+  run "$BIN" "$WORK/.factory/specs/prd.md" --update
+  [ "$status" -eq 0 ]
+  # stdout's first line is the emitted hash (run merges the stderr "updated"
+  # message into $output, so assert against ${lines[0]}).
+  [[ "${#lines[0]}" -eq 7 ]]
+
+  # Field must now exist with the computed hash — a single new line, frontmatter
+  # fence and body preserved.
+  stored=$(awk '/^input-hash:/ { sub(/.*: *"?/, ""); sub(/"?$/, ""); print; exit }' "$WORK/.factory/specs/prd.md")
+  [ "$stored" = "${lines[0]}" ]
+  [[ "${#stored}" -eq 7 ]]
+  [ "$(grep -c '^input-hash:' "$WORK/.factory/specs/prd.md")" -eq 1 ]
+  grep -q '^# PRD body' "$WORK/.factory/specs/prd.md"
+}
+
+@test "compute-input-hash: --update on field-absent file is idempotent on re-run (#623)" {
+  cat > "$WORK/.factory/specs/prd.md" << 'EOF'
+---
+document_type: prd
+inputs: [product-brief.md]
+---
+EOF
+  first=$("$BIN" "$WORK/.factory/specs/prd.md" --update)
+  stored1=$(awk '/^input-hash:/ { sub(/.*: *"?/, ""); sub(/"?$/, ""); print; exit }' "$WORK/.factory/specs/prd.md")
+
+  # Second run: field is now current, so nothing changes — value stays identical
+  # and no duplicate field is appended.
+  run "$BIN" "$WORK/.factory/specs/prd.md" --update
+  [ "$status" -eq 0 ]
+  stored2=$(awk '/^input-hash:/ { sub(/.*: *"?/, ""); sub(/"?$/, ""); print; exit }' "$WORK/.factory/specs/prd.md")
+
+  [ "$stored1" = "$first" ]
+  [ "$stored2" = "$first" ]
+  [ "$(grep -c '^input-hash:' "$WORK/.factory/specs/prd.md")" -eq 1 ]
+}
+
+@test "compute-input-hash: --update fails loudly on malformed frontmatter with no closing fence (#623)" {
+  # A bookkeeping tool must never report success on a no-op. If the frontmatter
+  # has an inputs: field but no closing '---' fence to anchor insertion, --update
+  # must exit nonzero rather than silently writing nothing.
+  printf -- '---\ninputs: [product-brief.md]\n# body with no closing fence\n' \
+    > "$WORK/.factory/specs/malformed.md"
+
+  run "$BIN" "$WORK/.factory/specs/malformed.md" --update
+  [ "$status" -ne 0 ]
+  [[ "$output" == *"failed to write input-hash"* ]]
+  ! grep -q '^input-hash:' "$WORK/.factory/specs/malformed.md"
+}
+
 @test "compute-input-hash: --check passes when hash matches" {
   cat > "$WORK/.factory/specs/prd.md" << 'EOF'
 ---
