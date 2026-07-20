@@ -330,11 +330,11 @@ stories:
   - id: S-5.07
     status: draft
   - id: S-21.01
-    status: draft
+    status: ready
   - id: S-21.02
-    status: draft
+    status: ready
   - id: S-21.03
-    status: draft
+    status: ready
   - id: S-21.04
     status: draft
   - id: S-21.05
