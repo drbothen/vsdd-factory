@@ -246,19 +246,36 @@ pub struct InternalLog {
     /// once per dispatcher session instead of once per event. Shared across
     /// clones like `seen_errors`.
     gate_warned: std::sync::Arc<std::sync::atomic::AtomicBool>,
+    /// Whether the #206 mount gate applies. `true` for resolved (level C–G)
+    /// log dirs; `false` when the operator explicitly chose the location via
+    /// `VSDD_LOG_DIR` / `FACTORY_ROOT` (level A/B) — an explicit override
+    /// must not itself be overridden, even when it points at a `.factory/logs`
+    /// path (the bats harness does exactly that with scratch fixtures).
+    mount_gated: bool,
 }
 
 impl InternalLog {
     /// Build a writer rooted at `log_dir`. The directory is NOT created
-    /// eagerly; `write` will `mkdir -p` on first use — and only once the
-    /// `.factory` parent is a mounted worktree (see
-    /// [`crate::log_dir::factory_mount_ready`], issue #206).
+    /// eagerly; `write` will `mkdir -p` on first use — and, by default, only
+    /// once the `.factory` parent is a mounted worktree (see
+    /// [`crate::log_dir::factory_mount_ready`], issue #206). Callers whose
+    /// `log_dir` came from an explicit operator override should disable the
+    /// gate via [`InternalLog::with_mount_gate`].
     pub fn new(log_dir: PathBuf) -> Self {
         Self {
             log_dir,
             seen_errors: std::sync::Arc::new(Mutex::new(HashSet::new())),
             gate_warned: std::sync::Arc::new(std::sync::atomic::AtomicBool::new(false)),
+            mount_gated: true,
         }
+    }
+
+    /// Set whether the #206 mount gate applies. Pass `false` when the log
+    /// dir came from an explicit `VSDD_LOG_DIR` / `FACTORY_ROOT` override.
+    #[must_use]
+    pub fn with_mount_gate(mut self, gated: bool) -> Self {
+        self.mount_gated = gated;
+        self
     }
 
     /// Best-effort append. Never panics, never propagates errors. On
@@ -301,11 +318,13 @@ impl InternalLog {
         // Issue #206: never create `.factory/logs` ahead of the worktree
         // mount. The dispatcher fires on every tool use, so an unconditional
         // mkdir here continuously recreated a plain `.factory/` during
-        // `/factory-health` bootstrap, forcing the later `git worktree add`
-        // to nest at `.factory/.factory` (#203/#205). Suppression is a skip,
-        // not an error — events during the bootstrap window are still
-        // observable via `VSDD_SINK_FILE`.
-        if !crate::log_dir::factory_mount_ready(&self.log_dir) {
+        // `/factory-health` bootstrap — blocking the later `git worktree add`
+        // (`fatal: '.factory' already exists`) and feeding the #203/#205
+        // bootstrap-failure cluster. Suppression is a skip, not an error —
+        // events during the bootstrap window are still observable via
+        // `VSDD_SINK_FILE`. Explicit VSDD_LOG_DIR / FACTORY_ROOT overrides
+        // are exempt (`mount_gated == false`): the operator chose the path.
+        if self.mount_gated && !crate::log_dir::factory_mount_ready(&self.log_dir) {
             if !self
                 .gate_warned
                 .swap(true, std::sync::atomic::Ordering::Relaxed)
@@ -588,6 +607,29 @@ mod tests {
         assert!(
             !factory.join("logs").exists(),
             "plain .factory dir must not gain logs/ — that is the bootstrap race"
+        );
+    }
+
+    /// Issue #206: an explicit override (`with_mount_gate(false)`, the
+    /// VSDD_LOG_DIR / FACTORY_ROOT path) writes even into a plain `.factory`
+    /// with no `.git` — the operator chose the location; the gate must not
+    /// override the override.
+    #[test]
+    fn gate_bypassed_for_explicit_override() {
+        let dir = tempfile::tempdir().unwrap();
+        let factory = dir.path().join(".factory");
+        stdfs::create_dir_all(&factory).unwrap();
+        let log = InternalLog::new(factory.join("logs")).with_mount_gate(false);
+        let ts = Local.with_ymd_and_hms(2026, 1, 15, 9, 30, 0).unwrap();
+
+        log.write(&InternalEvent::with_ts(DISPATCHER_STARTED, ts));
+
+        let expected = factory
+            .join("logs")
+            .join(format!("{FILENAME_PREFIX}2026-01-15{FILENAME_SUFFIX}"));
+        assert!(
+            expected.exists(),
+            "explicit override must write regardless of mount state"
         );
     }
 

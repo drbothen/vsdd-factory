@@ -174,9 +174,10 @@ fn is_factory_name(s: &str) -> bool {
 /// worktree mount has a `.git` *file*, a plain checkout a `.git` *dir*; both
 /// count. A `log_dir` whose parent is not named `.factory` (a `VSDD_LOG_DIR` /
 /// `FACTORY_ROOT` override pointing elsewhere) is always ready: the override
-/// path cannot collide with the mount. An override deliberately pointing at an
-/// unmounted `.factory/logs` is gated like the resolved shape — creating the
-/// plain dir would cause the same nested mount regardless of who asked.
+/// path cannot collide with the mount. This helper only classifies the path
+/// shape — explicit level A/B overrides are exempted wholesale by the caller
+/// (`InternalLog::with_mount_gate(false)`, wired in `main.rs`), so an operator
+/// pointing `VSDD_LOG_DIR` at a `.factory/logs` path is honored verbatim.
 pub fn factory_mount_ready(log_dir: &Path) -> bool {
     let Some(parent) = log_dir.parent() else {
         return true;
