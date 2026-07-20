@@ -66,17 +66,31 @@ if [[ ! -f "$BC_INDEX" ]]; then
   exit 0  # BC-INDEX doesn't exist yet
 fi
 
-# Extract the title for this BC from BC-INDEX
+# Extract the title for this BC from BC-INDEX.
 # Table format: | BC-S.SS.NNN | Title | ... |
+#
+# The BC id can legitimately appear in BC-INDEX more than once — e.g. in a
+# capability-satisfaction table (| BC | Satisfies | ... |) that precedes the
+# §2 navigation table. Matching the first occurrence anywhere grabbed the
+# satisfaction cell (e.g. "CAP-001") and reported it as the indexed title,
+# firing a false bc_h1_index_drift (#566). Scope the lookup to the table
+# whose header row carries a "Title" column; only that table's title cell is
+# authoritative. Fall back to the first occurrence when no Title-headed table
+# is present (headerless single-row indexes), preserving prior behavior.
 INDEX_TITLE=$(awk -F'|' -v bc="$BC_ID" '
+  function trim(s) { gsub(/^[ \t]+|[ \t]+$/, "", s); return s }
   {
-    gsub(/^[ \t]+|[ \t]+$/, "", $2)
-    if ($2 == bc) {
-      gsub(/^[ \t]+|[ \t]+$/, "", $3)
-      print $3
-      exit
+    # Non-table line ends any table scope.
+    if ($0 !~ /^[ \t]*\|/) { in_title_table = 0; next }
+    c2 = trim($2); c3 = trim($3)
+    # A header row with "Title" in the 2nd data column opens a scoped table.
+    if (tolower(c3) == "title") { in_title_table = 1; next }
+    if (c2 == bc) {
+      if (in_title_table && scoped == "") scoped = c3
+      if (fallback == "") fallback = c3
     }
   }
+  END { if (scoped != "") print scoped; else print fallback }
 ' "$BC_INDEX")
 
 if [[ -z "$INDEX_TITLE" ]]; then
