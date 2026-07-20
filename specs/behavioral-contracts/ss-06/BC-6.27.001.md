@@ -11,7 +11,7 @@ inputs:
   - .factory/cycles/v1.0-brownfield-backfill/e-21-arch-delta-analysis.md
   - plugins/vsdd-factory/agents/pr-manager.md
   - .factory/specs/behavioral-contracts/ss-06/BC-6.23.001.md
-input-hash: "TBD"
+input-hash: "0517cfd"
 traces_to: .factory/specs/architecture/ARCH-INDEX.md
 origin: brownfield
 extracted_from: null
