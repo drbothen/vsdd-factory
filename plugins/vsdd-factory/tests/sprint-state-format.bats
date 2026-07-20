@@ -161,14 +161,15 @@ teardown() {
 # concrete instance: a PC3 def-b ordering violation in sprint-state.yaml failed
 # ten unrelated PRs at once).
 #
-# This guard restores the documented local-only design explicitly: skip under
-# GitHub Actions, keep full enforcement in local runs (and in the factory's
-# own hooks). If push-run enforcement is wanted, narrow the condition to
-# [ "${GITHUB_EVENT_NAME:-}" = "pull_request" ].
+# This guard skips only pull_request runs, where the base-mount mismatch
+# applies. Push runs on develop keep these tests live as a canary: there CI
+# mounts the artifact state develop actually ships, so a real sprint-state
+# corruption still surfaces on the push run. Local runs and the factory's
+# own hooks keep full enforcement either way.
 # ---------------------------------------------------------------------------
 _skip_live_artifact_in_ci() {
-  if [ -n "${GITHUB_ACTIONS:-}" ]; then
-    skip "live .factory artifact assertions are local-only by design (PORTABILITY notes; issue #724) — CI mounts the base repo's factory-artifacts, which a PR cannot modify"
+  if [ "${GITHUB_EVENT_NAME:-}" = "pull_request" ]; then
+    skip "live .factory artifact assertions skip on pull_request runs (PORTABILITY notes; issue #724) — CI mounts the base repo's factory-artifacts, which a PR cannot modify; push runs keep this canary"
   fi
 }
 
