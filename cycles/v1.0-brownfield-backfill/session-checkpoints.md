@@ -7,7 +7,7 @@ producer: state-manager
 timestamp: 2026-04-26T12:00:00Z
 cycle: v1.0-brownfield-backfill
 inputs: [STATE.md]
-input-hash: "5f0ace7"
+input-hash: "1b54e52"
 traces_to: STATE.md
 ---
 
@@ -980,3 +980,65 @@ Summary of D-860 checkpoint (archived reference):
 - 4-index at D-860: BC v4.11 / VP v2.72 / STORY v4.227 / ARCH v3.11. L2-INDEX v1.0.15. total_bcs 1,982.
 - develop HEAD: `6444ac23` (origin; 2026-07-19 post-triage; local==origin) / main HEAD: `80e5cd7b` (bot bundle 2026-07-18) / factory-artifacts HEAD: `ec651e13` (D-860-SHA-PATCH; pushed 2026-07-19) / merged_count 107
 - D-range: D-001..D-860 (see decision-log.md for full range)
+
+---
+
+## D-866 Checkpoint (2026-07-20 session wrap — AUTHORITATIVE; STATE.md §Session Resume Checkpoint body NOT updated this burst — see §Deviation Note below)
+
+**This is the authoritative post-wrap resume record for the 2026-07-20 human `/wrap` directive.** Per an orchestrator-directed Strategy Constraint for this burst (STATE.md edit-mechanism defect, see item 4), STATE.md's own `## Session Resume Checkpoint` section body was intentionally left un-replaced (still shows the stale D-862-E21-PHASE-3-W1-DISPATCH-APPROVED content) to avoid a 4th corruption event. This file is the source of truth for resume; STATE.md frontmatter was updated only minimally (`pipeline: PAUSED`, `phase: D-866-SESSION-WRAP-PAUSED`, `timestamp:`, `version:`, `current_step:` pointer to this record). Read this section alone to resume — assumes ZERO prior context.
+
+### 1. Position
+
+E-21 Phase-3 W1, story **S-21.01-validate-factory-path-staging** is **IN-DISPATCH but NOT STARTED** — no worktree created, no stubs written, no failing tests written, no implementation code written. The per-story-delivery pipeline (test-writer → implementer → demo-recorder → pr-manager → devops-engineer) has NOT been invoked for S-21.01. develop HEAD `6444ac23` unchanged this session. factory-artifacts HEAD `490e283f` plus this D-866 wrap commit on top. main HEAD `80e5cd7b` unchanged. No open feature/story branches or worktrees exist for E-21. Open PRs: **#632** (draft, NEEDS-REWORK, E-20 roster item — E-20 itself remains DEFERRED) and **#192** (dependabot, deferred, carried from D-861).
+
+### 2. This session's completed work (chronological)
+
+- **D-862** — `060db731` — E21-PHASE-3-W1-DISPATCH-APPROVED: input-drift resolved across 12 files (12 → 0 DRIFT via `compute-input-hash --update`, cascade from BC input-hash recompute); stale W1 story-point transcription drift corrected 5/5/5/6/6 → 11/3/3/5/5 (W1 = 17pts, epic total 27pts unchanged); pipeline UNPAUSED from D-861.
+- **D-863** — `04051b2b` — HOOK-FALSEPOS-BODY-REWORD-ERRATUM: corrected a false claim in D-862's own `last_amended` narrative (claimed a hook-false-positive reword + drift-item row were done same-burst; verified neither had happened); performed the previously-claimed work: reworded the `APPROVED`+hyphen+year false-positive trigger string at both occurrences, added the `validate-dispatch-advance` false-positive class to §Drift Items/Tech Debt.
+- **D-864** — `00d49efc` — TABLE-SHAPE-NORMALIZATION-ERRATUM: fixed a Decisions Log table-cell-count defect (D-861/D-862 rows each had an unescaped literal `\|` inside a backtick-quoted shell-command citation, splitting GFM table cells 7-pipe/6-cell against the 6-pipe/5-column header); rephrased both citations to avoid the raw pipe; also caught and fixed a transient mid-burst Edit-tool duplication artifact restoring STATE.md to 351 lines.
+- **Dispatch-side advance** — `98ec8646` — E-21 Phase-3 W1 dispatch-side advance: S-21.01 formally DISPATCHED to the per-story-delivery pipeline in STATE.md `current_step:` (D-417(b) strict: only `phase:` + `current_step:` + mechanically-required `timestamp:` touched). **No actual delivery-pipeline agents were invoked as a follow-up before the human issued `/wrap`** — this is why position (§1) is IN-DISPATCH-NOT-STARTED rather than any TDD progress.
+- **D-865** — `490e283f` — E21-W1-STATUS-PROMOTION-DRAFT-TO-READY: tri-surface status flip S-21.01/S-21.02/S-21.03 `draft`→`ready` across story-file frontmatter + STORY-INDEX.md rows (STORY-INDEX v4.227→v4.228) + `sprint-state.yaml` (S-21.04/S-21.05 correctly left `draft`, W2 out of scope). Side-fix in-scope: S-21.03's §Previous Story Intelligence table row for S-21.01 was missing its 4th cell (`Gotchas Discovered`) — fixed per CLAUDE.md Canonical Principle Rule 4. decision-log.md carries the full D-865 record; **STATE.md's own Decisions Log row + version bump for D-865 were deliberately DEFERRED** (see item 5 below) — this is a real, acknowledged gap, not an oversight.
+
+### 3. Human gate decisions this session
+
+- E-21 Phase-3 W1 dispatch **APPROVED**, execution mode **SEQUENTIAL** (S-21.01 → S-21.02 → S-21.03).
+- E-20 remains **DEFERRED** (reconfirmed, no change from prior sessions).
+
+### 4. KNOWN DEFECT — carry forward as the TOP resume item — STATE.md edit-mechanism corruption risk (OPEN)
+
+**Verified root cause:** the `verify-state-timestamp-refresh` PreToolUse hook requires every Edit/Write to `.factory/STATE.md` to land with an advanced `timestamp:` (line 7). Because the harness's Edit tool needs a unique `old_string`, edits targeting content far from line 7 (e.g. the `## Session Resume Checkpoint` body around line 257–351, or the Decisions Log table further down) have needed large amounts of surrounding context to stay unique, producing ~150–350-line verbatim payloads. **MultiEdit is not available in this harness.**
+
+**Failure record:** this pattern has corrupted STATE.md in 3 of the last 4 remediation bursts prior to this session (1 truncation, 2 duplicate-block incidents), consuming an estimated **~2.8M tokens** in recovery.
+
+**Status:** the orchestrator surfaced 4 remediation options to the human earlier this session: (a) fix the hook first, (b) proceed with W1 delivery and work around it burst-by-burst, (c) fold a hook fix into E-21 as a new story, (d) investigate further before deciding. **The human answered `/wrap` instead of choosing one of these.** This decision is therefore **OPEN** and **MUST be re-put to the human on resume**, before any further `.factory/STATE.md`-touching burst is attempted (this D-866 wrap burst itself worked around the defect via the minimal-frontmatter-only Strategy Constraint described in §Deviation Note above — it did NOT resolve the defect).
+
+**Candidate fix direction (not yet ruled on):** relax the hook to accept a `timestamp:` that was advanced anywhere in the resulting file (not necessarily in the same Edit call), or to accept a sufficiently recent prior refresh within the same burst's commit. This needs an **architect ruling**, not a blind patch — flagged explicitly so nobody free-lances a fix without review.
+
+### 5. Deferred bookkeeping
+
+- The **D-865** STATE.md Decisions Log row + version bump were deliberately NOT applied at `490e283f` (deferred for the hook-corruption reason in item 4). decision-log.md holds the authoritative D-865 record.
+- This **D-866** wrap burst's own STATE.md Decisions Log row + Phase Progress row + full `## Session Resume Checkpoint` body replacement were ALSO deliberately NOT applied, for the same reason (see §Deviation Note above). STATE.md frontmatter only was touched (`pipeline:`, `phase:`, `timestamp:`, `version:`, `current_step:`, and a new leading `last_amended:` entry).
+- **Next STATE.md-touching burst should reconcile BOTH D-865 and D-866 into STATE.md's body** (Decisions Log rows, Phase Progress row, full Session Resume Checkpoint replacement) — **but only once the edit-mechanism defect in item 4 is resolved or the human has explicitly authorized proceeding despite it.** Do not attempt a large body reconstruction blind.
+
+### 6. Pending human decisions carried forward (from D-861, still open)
+
+- **#192** — dependabot PR, deferred.
+- **#632** — draft PR, NEEDS-REWORK, E-20 roster.
+- **E-20** — authorization still pending (currently DEFERRED).
+- **stash@{1}** / **stash@{2}** — do NOT drop without explicit authorization.
+- **`.lazyclaude`** — stale worktree `82163b7f` — authorization required before cleanup.
+- Dashboard attention lane — issues **#510** / **#410**.
+
+### 7. Resume command
+
+Run `/vsdd-factory:next-step`, then **re-put the OPEN hook-defect decision (§4) to the human BEFORE any further `.factory/STATE.md`-touching bursts or W1 delivery work.**
+
+### 8. Housekeeping
+
+- Untracked `plugins/vsdd-factory/tests/report.tap` in the main repo working tree — ignorable test artifact, not part of `.factory/`.
+- No `factory_lock` held at wrap time.
+- Telemetry logs (`logs/dispatcher-internal-*.jsonl`, `logs/events-*.jsonl`, `sidecar-learning.md`) auto-append in `.factory/logs/` and were swept into this D-866 wrap commit.
+
+- 4-index at D-866 wrap: BC v4.11 / VP v2.72 / STORY v4.227-cited-in-STATE.md (actual file v4.228 per D-865, reconciliation pending per item 5) / ARCH v3.11. total_bcs 1,982.
+- develop HEAD: `6444ac23` (origin, unchanged) / main HEAD: `80e5cd7b` (unchanged) / factory-artifacts HEAD: `490e283f` pre-wrap-commit (this D-866 commit lands on top) / merged_count 107
+- D-range: D-001..D-866 (D-865 full record + this D-866 entry; see decision-log.md for full range)
