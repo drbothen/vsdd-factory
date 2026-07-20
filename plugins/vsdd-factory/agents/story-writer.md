@@ -110,6 +110,9 @@ Each story includes:
 - **Token budget estimate** -- total context required for implementation (story spec +
   referenced code + test files + tool outputs). Stories exceeding 20-30% of the
   implementing agent's context window must be split further.
+- **CHANGELOG delivery task** -- every story's Tasks list must include a task to add a
+  CHANGELOG entry under [Unreleased] > Fixed/Changed/Added describing the shipped
+  behavior, before creating the PR, so the changelog row ships inside the story PR.
 
 ## Context-Engineering Sections (ALL MANDATORY)
 

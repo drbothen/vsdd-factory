@@ -153,3 +153,14 @@ _run_hook() {
   load "${BATS_TEST_DIRNAME}/helpers/registry.bash"
   registry_has_hook "validate-template-compliance" "PostToolUse"
 }
+
+# ---------- Story template: mandatory CHANGELOG delivery task (#580) ----------
+
+@test "story-template Tasks section includes a CHANGELOG delivery task" {
+  TEMPLATE="${CLAUDE_PLUGIN_ROOT}/templates/story-template.md"
+  [ -f "$TEMPLATE" ]
+  # The Tasks list must carry a row that tells the story author to deliver a
+  # CHANGELOG entry inside the story PR.
+  run grep -i 'CHANGELOG entry under \[Unreleased\]' "$TEMPLATE"
+  [ "$status" -eq 0 ]
+}
