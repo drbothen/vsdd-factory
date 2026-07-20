@@ -37,3 +37,4 @@
 {"type":"hook.block","hook":"validate-input-hash","reason":"input_hash_format","ts":"2026-07-20T17:17:33-0500","ts_epoch":1784585853,"schema_version":1}
 {"type":"hook.block","hook":"validate-input-hash","reason":"input_hash_format","ts":"2026-07-20T17:21:04-0500","ts_epoch":1784586064,"schema_version":1}
 {"type":"hook.block","hook":"validate-input-hash","reason":"input_hash_format","ts":"2026-07-20T17:22:05-0500","ts_epoch":1784586125,"schema_version":1}
+{"type":"hook.block","hook":"validate-input-hash","reason":"input_hash_drift","ts":"2026-07-20T17:41:04-0500","ts_epoch":1784587264,"schema_version":1}

@@ -10768,3 +10768,15 @@ D-869-ADR-032-STRICT-CONVERGENCE-AND-ACCEPTANCE-2026-07-20
 ### Date
 
 2026-07-20
+
+## D-870
+
+SESSION-WRAP-PAUSED. POLICY 16 GLOBAL-MAX GATE: `grep -n "^## D-" decision-log.md | tail -3` → `10736:## D-867 / 10748:## D-868 / 10760:## D-869`; D-869 confirmed prior max → D-870 allocated. Human /wrap directive 2026-07-20 post-D-869 ADR-032 acceptance. Pipeline PAUSED. Position: ADR-032 v1.13 ACCEPTED strict 3-CLEAN D-869 (passes 9/10/11 all CLEAN B0/H0/M0/L0 at frozen commit bc7f6d8b); implementation authorized via fix-pr-delivery (four deliverables per §Implementer Work Spec in ADR-032 v1.13: verify-state-timestamp-refresh guard rewrite + 11 tests; dispatcher git_context prereq ADR-032-AC021-prereq in invoke.rs; AC-021 exec-free WASM advisory at priority 159; factory-lock placement relocation in factory-lock-write.sh); no code/tests/stubs/worktrees exist yet. factory-artifacts HEAD 16cdd64f (S-7.06..S-7.11 draft stories as final commit this session). develop 6444ac23 UNCHANGED all session. main 80e5cd7b UNCHANGED. Resume pointer: session-checkpoints.md `## D-870 Checkpoint` is the authoritative zero-context resume source. STATE.md minimal-frontmatter-only deviation per D-866 precedent: only frontmatter head region (version/timestamp/phase/last_amended/phase-summary/current_step) touched; Session Resume Checkpoint body, Decisions Log table, and Phase Progress table NOT updated this burst — body reconciliation remains deferred until ADR-032 hook fix is live in operator cache OR human directs otherwise. rc.24 release decision deferred to post-merge. S-7.06..S-7.11 draft process-gap stories await human triage.
+
+### Phase
+
+D-870-SESSION-WRAP-PAUSED-2026-07-20
+
+### Date
+
+2026-07-20

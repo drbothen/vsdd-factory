@@ -7,7 +7,7 @@ producer: state-manager
 timestamp: 2026-04-26T12:00:00Z
 cycle: v1.0-brownfield-backfill
 inputs: [STATE.md]
-input-hash: "1b54e52"
+input-hash: "2ee9b29"
 traces_to: STATE.md
 ---
 
@@ -1042,3 +1042,84 @@ Run `/vsdd-factory:next-step`, then **re-put the OPEN hook-defect decision (§4)
 - 4-index at D-866 wrap: BC v4.11 / VP v2.72 / STORY v4.227-cited-in-STATE.md (actual file v4.228 per D-865, reconciliation pending per item 5) / ARCH v3.11. total_bcs 1,982.
 - develop HEAD: `6444ac23` (origin, unchanged) / main HEAD: `80e5cd7b` (unchanged) / factory-artifacts HEAD: `490e283f` pre-wrap-commit (this D-866 commit lands on top) / merged_count 107
 - D-range: D-001..D-866 (D-865 full record + this D-866 entry; see decision-log.md for full range)
+
+---
+
+## D-870 Checkpoint (2026-07-20 session wrap — AUTHORITATIVE)
+
+**This is the authoritative post-wrap resume record for the 2026-07-20 second human `/wrap` directive.** Per the D-866 precedent Strategy Constraint (STATE.md edit-mechanism defect — ADR-032 implementation authorized but NOT YET deployed to operator cache), STATE.md's `## Session Resume Checkpoint` section body was intentionally NOT updated this burst. STATE.md frontmatter was updated minimally only (`version:`, `timestamp:`, `phase:`, `last_amended:`, phase-summary, `current_step:`). Read this section alone to resume — assumes ZERO prior context.
+
+### 1. Position
+
+Pipeline **PAUSED** post-ADR-032-acceptance. This session resolved the D-866 STATE.md edit-mechanism defect at **spec level**: ADR-032 v1.13 ACCEPTED at strict 3-CLEAN D-869 (passes 9/10/11 all CLEAN B0/H0/M0/L0 against frozen commit bc7f6d8b). Implementation **AUTHORIZED but NOT STARTED** — four work items pending (see §4). No worktrees, stubs, tests, or code written for the implementation arc. develop HEAD `6444ac23` UNCHANGED all session. main HEAD `80e5cd7b` UNCHANGED. factory-artifacts advanced `490e283f` (D-866 wrap commit) → `16cdd64f` (this session's 6 commits; see §2). S-7.06..S-7.11 draft process-gap stories exist in factory-artifacts as of `16cdd64f` — awaiting human triage.
+
+### 2. Session record (chronological)
+
+factory-artifacts HEAD advanced from `490e283f` (D-866 wrap) to `16cdd64f` via 6 commits:
+
+| SHA | Content |
+|-----|---------|
+| `87745b8e` | Freeze ADR-032 cascade artifacts at v1.9 per human "Yes — freeze v1.9 as-is" |
+| `7f16b549` | D-868 relabel (shadow-chain integrity event codification) |
+| `dc95116f` | fix-burst-5 (ADR-032 cascade findings) |
+| `917a4ae6` | fix-burst-6 (ADR-032 cascade findings) |
+| `bc7f6d8b` | P8R cell fix (Pass 8 report correction; frozen commit for passes 9/10/11) |
+| `85086fad` | D-869 acceptance burst (ADR-032 v1.13 proposed→accepted; ARCH-INDEX v3.23→v3.24; cascade-log v1.1→v1.2) |
+| `16cdd64f` | S-7.06..S-7.11 draft process-gap stories (story-writer burst per human "Draft follow-up stories") |
+
+Cascade totals: 11 passes, 7 fix bursts, 41 findings closed. Integrity events: 2 fabricated-provenance events (fix bursts 3 and 4, codified D-867); 1 shadow-chain event (unnamed-subagent chain active 12:30–14:03, terminated, codified D-868). Countermeasures now standing: pass-report persistence (adr-032-cascade-log committed at receipt), orchestrator diff-audit + commit-per-burst discipline, pin-verified frozen-artifact review protocol.
+
+### 3. Human gate decisions this session (verbatim)
+
+- "Investigate further" + "Adversarial review, then commit" — hook-defect resolution mode selected
+- "proceed with the freeze commit"
+- "Yes — freeze v1.9 as-is"
+- "proceed" (cascade continuation after fix bursts)
+- "i want a strich convergence" [strict] — STRICT 3-CLEAN mode engaged, overriding prior asymptotic-acceptance selection
+- "Accept ADR-032" — ADR-032 v1.13 status proposed → accepted
+- "Implement via fix-pr-delivery" — implementation arc authorized
+- "Draft follow-up stories" — six process-gap stories to be drafted
+- "Wrap the session"
+
+### 4. ADR-032 implementation arc — carry forward as TOP resume item (AUTHORIZED, NOT STARTED)
+
+Spec: **ADR-032 v1.13 §Implementer Work Spec** (committed at `85086fad`). Four deliverables:
+
+1. **verify-state-timestamp-refresh guard rewrite + 11 tests** — rewrite guard logic to allow timestamp-advance at any Edit call within a burst (not per-call), with 11 tests covering the regression matrix.
+2. **dispatcher git_context prereq "ADR-032-AC021-prereq" in invoke.rs** — wire the git_context prerequisite so AC-021 can access git metadata without calling external git.
+3. **AC-021 exec-free WASM advisory at priority 159** — new WASM plugin emitting an advisory when a WASM hook attempts an exec syscall; priority 159 places it after the guard rewrite is live.
+4. **factory-lock placement relocation in factory-lock-write.sh** — move the factory-lock write to the correct position per ADR-032 §2.
+
+Dispatch route: `vsdd-factory:implementer` via `/vsdd-factory:fix-pr-delivery` skill. LOCAL strict 3-CLEAN cascade required before PR. PR targets `develop`. rc.24 release decision comes to human post-merge (hook fix reaches operator cache only via release).
+
+**No worktrees, stubs, failing tests, or implementation code exist yet.** Implementing agents must read ADR-032 from committed factory-artifacts state (HEAD `16cdd64f`).
+
+### 5. Deferred bookkeeping
+
+- **D-865/D-866 STATE.md-body reconciliation** — STILL DEFERRED. Execute after the ADR-032 hook fix is live in the operator cache (post rc.24 release), OR with the minimal-frontmatter workaround if human directs earlier. Scope: Decisions Log rows for D-865/D-866, Phase Progress table, full `## Session Resume Checkpoint` body replacement.
+- **D-867/D-868/D-869/D-870 STATE.md Decisions Log rows** — deferred as part of the same body reconciliation. Full records in decision-log.md.
+- **4-index STATE.md-body citations** — ARCH-INDEX still cited as v3.11 in STATE.md body (actual v3.24 per D-869); STORY-INDEX cited as v4.227 in STATE.md body (actual v4.229 per D-865/D-869). Reconciliation gated on body fix above.
+
+### 6. Pending items carried forward
+
+- **E-21 Phase-3 W1** — S-21.01 (`validate-factory-path-staging`) IN-DISPATCH-NOT-STARTED; resumes after or alongside ADR-032 implementation arc per human direction. Approved SEQUENTIAL: S-21.01 → S-21.02 → S-21.03.
+- **S-7.06..S-7.11** — draft process-gap stories in factory-artifacts `16cdd64f`; await human triage.
+- **PR #632** — draft, NEEDS-REWORK, E-20 roster item. E-20 remains DEFERRED.
+- **Dependabot #192** — deferred, unchanged from D-861.
+- **stash@{1}** / **stash@{2}** — do NOT drop without explicit human authorization.
+- **`.lazyclaude`** stale worktree `82163b7f` — authorization required before cleanup.
+- **Dashboard** issues **#510** / **#410** — unchanged.
+- **`plugins/vsdd-factory/tests/report.tap`** — untracked test artifact in main repo; ignorable.
+
+### 7. Resume command
+
+Run `/vsdd-factory:next-step`, then dispatch the ADR-032 implementation arc via `/vsdd-factory:fix-pr-delivery` (spec: ADR-032 v1.13 §Implementer Work Spec, all four deliverables). Implementing agents must read ADR-032 from committed factory-artifacts state (HEAD `16cdd64f`).
+
+### 8. Housekeeping
+
+- **4-index at D-870 wrap (literal shell verified):** BC v4.11 / VP v2.72 / STORY v4.229 / ARCH v3.24
+- **develop HEAD:** `6444ac23` (origin, unchanged all session)
+- **main HEAD:** `80e5cd7b` (unchanged all session)
+- **factory-artifacts HEAD:** `16cdd64f` (this session's final commit)
+- **D-range:** D-001..D-870 (see decision-log.md for full range)
+- **factory_lock:** NOT HELD
