@@ -240,6 +240,56 @@ EOF
   [[ "$output" == *"WARNING"* ]]
 }
 
+# ------------------------------------------------------------------------
+# Named story-ID extraction precedence (issue #658)
+#
+# S-<PREFIX>.<NAME> ids (e.g. S-BL.DISCOVERY-WIRE) must be recognized before
+# the pure-numeric S-N.NN form. Otherwise a numeric substring elsewhere in the
+# prompt — typically a merged dependency (S-7.02) — hijacks the match and the
+# hook blocks citing the wrong story's missing evidence.
+# ------------------------------------------------------------------------
+
+@test "pr-merge-prerequisites: resolves named story, not a numeric dependency in the prompt (issue #658)" {
+  # Named target story: fully evidenced.
+  mkdir -p "$WORK/.factory/code-delivery/S-BL.DISCOVERY-WIRE"
+  echo "# Description" > "$WORK/.factory/code-delivery/S-BL.DISCOVERY-WIRE/pr-description.md"
+  echo "# Review" > "$WORK/.factory/code-delivery/S-BL.DISCOVERY-WIRE/pr-review.md"
+  echo "# Security" > "$WORK/.factory/code-delivery/S-BL.DISCOVERY-WIRE/security-review.md"
+  # Merged dependency directory exists but carries no evidence — the old regex
+  # would resolve here and block.
+  mkdir -p "$WORK/.factory/code-delivery/S-7.02"
+  _run_pretool_agent "vsdd-factory:github-ops" \
+    "cd $WORK && gh pr merge 123 --squash for story S-BL.DISCOVERY-WIRE depends on S-7.02"
+  [ "$status" -eq 0 ]
+}
+
+@test "pr-merge-prerequisites: blocks citing the named story ID when its evidence is missing (issue #658)" {
+  mkdir -p "$WORK/.factory/code-delivery/S-BL.PE-RECEIVE-LOOP"
+  _run_pretool_agent "vsdd-factory:github-ops" \
+    "cd $WORK && gh pr merge 88 --squash for story S-BL.PE-RECEIVE-LOOP"
+  [ "$status" -eq 2 ]
+  [[ "$output" == *"S-BL.PE-RECEIVE-LOOP"* ]]
+}
+
+@test "pr-merge-prerequisites: STORY-NNN still takes precedence over any S-form in the prompt" {
+  echo "# Description" > "$WORK/.factory/code-delivery/STORY-001/pr-description.md"
+  echo "# Review" > "$WORK/.factory/code-delivery/STORY-001/pr-review.md"
+  echo "# Security" > "$WORK/.factory/code-delivery/STORY-001/security-review.md"
+  mkdir -p "$WORK/.factory/code-delivery/S-BL.OTHER"
+  _run_pretool_agent "vsdd-factory:github-ops" \
+    "cd $WORK && gh pr merge 42 --squash for STORY-001 referencing S-BL.OTHER"
+  [ "$status" -eq 0 ]
+}
+
+@test "pr-merge-prerequisites: pure-numeric S-N.NN still resolves when no named id present" {
+  mkdir -p "$WORK/.factory/code-delivery/S-7.02"
+  echo "# Description" > "$WORK/.factory/code-delivery/S-7.02/pr-description.md"
+  echo "# Review" > "$WORK/.factory/code-delivery/S-7.02/pr-review.md"
+  echo "# Security" > "$WORK/.factory/code-delivery/S-7.02/security-review.md"
+  _run_pretool_agent "vsdd-factory:github-ops" "cd $WORK && gh pr merge 7 --squash for S-7.02"
+  [ "$status" -eq 0 ]
+}
+
 # ========================================================================
 # pr-manager Step 8 remote-branch-deletion verification (issue #128)
 # ========================================================================
