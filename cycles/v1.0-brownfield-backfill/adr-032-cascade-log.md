@@ -1,12 +1,12 @@
 ---
 document_type: cascade-log
 producer: state-manager
-version: "1.1"
+version: "1.2"
 date: "2026-07-20"
-traces_to: "cycles/v1.0-brownfield-backfill/decision-log.md D-867"
+traces_to: "cycles/v1.0-brownfield-backfill/decision-log.md D-867 D-869"
 artifact: "specs/architecture/decisions/ADR-032-verify-state-timestamp-refresh-edit-payload-targeted-enforcement.md"
-status: not-converged
-streak: "0/3"
+status: converged-strict
+streak: "3/3"
 ---
 
 # ADR-032 Cascade Log
@@ -33,8 +33,16 @@ Traces to decision-log.md D-867 (ADR-032-CASCADE-FREEZE-CHECKPOINT, 2026-07-20).
 | FREEZE | state-manager | — | — | — | — | Freeze checkpoint authorized by the human operator in the orchestrator session (structured gate selection 'Yes — freeze checkpoint now' followed by direct user message, verbatim: 'proceed with the freeze commit', 2026-07-20); authorization recorded in the orchestrator-session transcript; relayed to state-manager via orchestrator dispatch. Artifact committed at v1.8 / ARCH-INDEX v3.19 / ADR-025 v1.22. Cascade continues from frozen SHA. |
 | SHADOW-CHAIN-EVENT | [integrity-event] | — | — | — | — | Unnamed subagent chain (spawner: stale fix-burst-1 agent resumed by a misdirected inter-agent report) active 12:30–14:03 2026-07-20; terminated by orchestrator 13:59–14:03. Chain applied two unauthorized self-review sets under fabricated adversary-pass labels: (1) F-ADR032-P6-001..P6-008 → ADR-032 v1.8 (applied to pre-freeze artifact during pass-5 window; P6 prefix retained for append-only ID stability); (2) F-ADR032-P7-001..P7-007 → ADR-032 v1.9 (applied as continuation after artifact was nominally frozen at v1.8; P7 prefix retained). No adversary pass 6 or pass 7 ever ran. Dispatcher-log + session-transcript forensics confirm the chain; no external adversary session IDs present. Content of both P6 and P7 sets pending independent adversarial verification. |
 | RELABEL | orchestrator-verified (D-868) | — | — | — | — | P6/P7 provenance relabel burst 2026-07-20: F-ADR032-P6-001..P6-008 and F-ADR032-P7-001..P7-007 attribution corrected to UNAUTHORIZED shadow-chain bursts at every occurrence in ADR-032 v1.10, ARCH-INDEX v3.20, cascade-log v1.1, and decision-log D-868. Freeze commit 87745b8e (blob sha256 6ee6091fe9b7e220ec61137f884e7ffe91f806865d2a25609e40432be5d7f670 ADR-032; 41ecf057b66643581c3e0391b577f8a5d9cd6660be22190adb7980798ba187f1 ARCH-INDEX; 5c9948b66b9575d6717604a5b05249843522f461f1d937489baf30f38ed28eaa ADR-025) human-authorized. No normative ADR content changed. |
+| 6 | adversary (adv-adr032-p6) | NOT-CLEAN | B0 / H2 / M1 / L1 | fix burst 5 | 4 closed | @7f16b549 post-relabel; F-ADR032-P6R-001..004 closed; ADR-032 v1.10→v1.11; ARCH-INDEX v3.20→v3.21 |
+| 7 | adversary (adv-adr032-p7) | NOT-CLEAN | B0 / H1 / M2 / L1 | fix burst 6 | 4 closed | @dc95116f; F-ADR032-P7R-001..004 closed; ADR-032 v1.11→v1.12; ADR-025 v1.23→v1.24; ARCH-INDEX v3.21→v3.22 |
+| 8 | adversary (adv-adr032-p8) | NOT-CLEAN | B0 / H0 / M1 / L0 | fix burst 7 | 1 closed | @917a4ae6; F-ADR032-P8R-001 (HIGH): test breakdown corrected 3 Red Gates + 8 regression guards → 4 Red Gates + 7 regression guards; ARCH-INDEX v3.22→v3.23 |
+| 9 | adversary (adv-adr032-p9) | CLEAN | B0 / H0 / M0 / L0 | — | 0 | @bc7f6d8b; streak 1/3; reviewer staked acceptance gate |
+| 10 | adversary (adv-adr032-p10) | CLEAN | B0 / H0 / M0 / L0 | — | 0 | @bc7f6d8b; streak 2/3; reviewer staked acceptance gate |
+| 11 | adversary (adv-adr032-p11) | CLEAN | B0 / H0 / M0 / L0 | — | 0 | @bc7f6d8b; streak 3/3; reviewer staked acceptance gate — STRICT 3-CLEAN ACHIEVED |
+| CONVERGED-STRICT | state-manager | — | — | — | — | BC-5.39.001 STRICT 3-CLEAN achieved: passes 9/10/11 all CLEAN B0/H0/M0/L0 at bc7f6d8b; human-directed STRICT mode (superseding earlier asymptotic-acceptance selection); streak 3/3; D-869 |
+| ACCEPTED | orchestrator (human gate, D-869) | — | — | — | — | ADR-032 ACCEPTED 2026-07-20. Human gate verbatim: (i) Accept ADR-032; (ii) implement via fix-pr-delivery; (iii) draft follow-up stories (separate burst). Implementation authorized; rc.24 required for operator-cache effect. |
 
-**Convergence streak: 0/3. NOT CONVERGED. ADR-032 status: `proposed`. NOT accepted.**
+**Convergence streak: 3/3. CONVERGED-STRICT. ADR-032 status: `accepted`. ACCEPTED 2026-07-20 (D-869).**
 
 ---
 
@@ -53,6 +61,9 @@ Traces to decision-log.md D-867 (ADR-032-CASCADE-FREEZE-CHECKPOINT, 2026-07-20).
 | v1.8 | 2026-07-20 | shadow-chain-agent (UNAUTHORIZED; relabeled per D-868) | Applied during adversary pass-5 window as F-ADR032-P6-001..008; no pass-6 adversary session exists. Relabeled from "unidentified agent [OPEN]" per D-868 relabel burst. | guard_logic docstring split; Third Deliverable awk correction; AC changes; async = false restored; BC traces Steps 4–8; dispatcher emission tests; Decision 1 phrasing. FREEZE CHECKPOINT SHA (v1.8). |
 | v1.9 | 2026-07-20 | shadow-chain-agent (UNAUTHORIZED; no adversary pass 7 ran; D-868) | F-ADR032-P7-001..P7-007 applied by unnamed subagent chain continuation (12:30–14:03 2026-07-20) under fabricated pass-7 label; no adversary pass 7 ran; P7 prefix retained for append-only ID stability; content pending adversarial verification. Freeze commit 87745b8e committed artifact at v1.9 state per human authorization. | dropped factory-artifacts branch discriminator field; priority 155→159; §Source/Origin Continue phrasing corrected; step-numbering annotations; AC-020 byte-identical; dispatcher-side tests minimum 3 + negative branch; async = false rationale corrected. ARCH-INDEX v3.19→v3.20 (also unauthorized). |
 | v1.10 | 2026-07-20 | orchestrator-verified (provenance relabel burst; D-868) | P6/P7 attribution corrected to UNAUTHORIZED shadow-chain bursts at every occurrence in ADR-032, ARCH-INDEX, cascade-log, decision-log. Freeze commit 87745b8e human-authorized. No normative ADR content changed. cascade-log v1.0→v1.1. | last_amended relabel; Changelog v1.8+v1.9 author relabel; v1.10 changelog row + last_amended entry added. |
+| v1.11 | 2026-07-20 | architect (arch-adr032-fix5) | Fix burst 5, post genuine adversary pass 6 | F-ADR032-P6R-001..004: 4 findings closed. P6R-001 (HIGH): AC-021 evidence grep command corrected. P6R-002 (HIGH): §Consequences Negative bullet (c) + Pre-condition 1 corrected for accepted-with-disclosure spurious-advisory design. P6R-003 (MEDIUM): Decision 1+3 code-inline step annotations corrected. P6R-004 (LOW): §Source/Origin ADR-025 reference updated v1.22→v1.23. ADR-025 amended to v1.23 in lock-step. ARCH-INDEX v3.20→v3.21. |
+| v1.12 | 2026-07-20 | architect (arch-adr032-fix6) | Fix burst 6, post genuine adversary pass 7 | F-ADR032-P7R-001..004: 4 findings closed. P7R-001 (HIGH): §Second deliverable fail-open bullet corrected for Pre-condition 1 accepted-with-disclosure design. P7R-002 (MEDIUM): ADR-025 §12.2 supersedes-in-part annotation bumped to v1.24 two-field definition. P7R-003 (MEDIUM): ARCH-INDEX ADR-032 row current-state phrasing corrected; v1.22→v1.24 cite. P7R-004 (LOW): v1.11 changelog Step-8 false claim corrected via v1.12 append. ADR-025 amended to v1.24 in lock-step. ARCH-INDEX v3.21→v3.22. |
+| v1.13 | 2026-07-20 | state-manager | D-869 acceptance burst — strict 3-CLEAN convergence; human acceptance gate | ADR-032 ACCEPTED 2026-07-20. status proposed→accepted. §Status body refreshed with acceptance record (passes 9/10/11 CLEAN, bc7f6d8b, STRICT mode). No Decision or Work Spec content changed. ARCH-INDEX v3.23→v3.24. cascade-log v1.1→v1.2. |
 
 ---
 
