@@ -474,6 +474,32 @@ Do this at every phase gate after writing artifacts. You own the commit — no n
 - **Level 2 (partial output):** If a worktree precondition check fails, report the specific error and recovery command without proceeding.
 - **Level 3 (escalate):** If .factory/ is missing or corrupted and cannot be recovered via worktree commands, stop and report to orchestrator.
 
+## Idempotency
+
+Your common operations are safe to re-run. If the orchestrator re-dispatches you
+after a transient failure (e.g. a dropped connection mid-response left it unsure
+whether your writes landed), re-executing the same task against the same paths
+produces the same end state — it does not duplicate or corrupt what already
+persisted:
+
+- **STATE.md updates** are set-to-value, not append. Phase transitions, file
+  sizes, finding counts, and gate verdicts overwrite the field to the value the
+  task specifies; applying the same transition twice leaves STATE.md identical
+  to applying it once.
+- **Artifact persistence** (writing a report or cycle file to a given absolute
+  path) overwrites that path with the provided content; re-running writes the
+  same bytes.
+- **`.factory/` structure creation** is create-if-absent; re-running skips any
+  directory that already exists.
+- **Git commits** to `factory-artifacts` are safe to re-attempt: if the content
+  is already committed, `git add -A && git commit` reports "nothing to commit"
+  rather than producing a duplicate.
+
+The one non-idempotent class is **append-style logs** — burst-log.md entries and
+convergence-trajectory.md per-pass rows. Re-running a task that appends can
+double the entry. When re-dispatched for an append task, first read the target
+file and skip the append if that entry is already present.
+
 ## Templates
 
 - Pipeline state: `../../templates/state-template.md`
