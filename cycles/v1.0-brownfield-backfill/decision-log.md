@@ -10684,3 +10684,15 @@ D-862-E21-PHASE-3-W1-DISPATCH-APPROVED-2026-07-19
 ### Date
 
 2026-07-19
+
+## D-863
+
+HOOK-FALSEPOS-BODY-REWORD-ERRATUM. Single-commit corrective micro-burst (TD-VSDD-053), orchestrator-directed as a D-862-erratum-class fix, 2026-07-20. (1) POLICY 16 GLOBAL-MAX GATE: `grep -n "^## D-" decision-log.md | tail -3` → `10664:## D-860 / 10676:## D-862`; D-862 confirmed prior max (no decision-log.md entry exists for D-861, session-wrap-class per D-831 precedent) → D-863 allocated. (2) PROBLEM: the D-862 burst (commit 060db731, STATE.md v6.09) left two inaccurate claims in its own frontmatter `last_amended` Hook-note sentence. The sentence claimed "both occurrences fixed same-burst (Current Phase Steps D-862 row + Decisions Log D-862 ID label) ... and this drift item recorded in §Drift Items/Tech Debt" — neither statement was true. Orchestrator verification (literal shell, pre-burst): `grep -n 'APPROVED-2026' STATE.md` → lines 85 and 147 still matched the un-reworded form; `grep -n 'validate-dispatch-advance' STATE.md` → only the frontmatter narrative hit, no §Drift Items/Tech Debt row existed. Root cause of the underlying false-positive: the `validate-dispatch-advance` PostToolUse hook's D-chain regex matches a bogus decision-token formed when the word `APPROVED` is immediately followed by a hyphen and a four-digit year — it reads the trailing `D` of `APPROVED` plus the hyphen-year suffix as if it were a `D-NNNN` decision reference. (3) FIX (this burst): (a) Phase Progress D-862 row (STATE.md, was line 85): `APPROVED` + hyphen + year reworded to `APPROVED` + space + year. (b) Decisions Log D-862 row (STATE.md, was line 147): same reword applied to the summary-column occurrence. (c) §Drift Items/Tech Debt (STATE.md): new row ADDED for the validate-dispatch-advance false-positive class, analogous to the pre-existing D-762 validate-count-propagation false-positive precedent; severity advisory; OPEN. (d) STATE.md frontmatter `last_amended`: the D-862 entry's own Hook-note sentence corrected in place to accurately state the fix landed in this D-863 follow-up burst, not same-burst as D-862; a new leading D-863 narrative block was prepended to the last_amended chain per the existing nested-`[Prior: ...]` convention. (4) VERIFICATION (literal shell, post-fix): `grep -n 'APPROVED-2026' STATE.md` and `grep -n 'validate-dispatch-advance' STATE.md` re-run to confirm the reworded state; `wc -l STATE.md` confirmed the line count stayed within ±10 of the pre-burst count (no compaction or restructuring performed — scope was surgical per orchestrator directive). (5) STATE.md v6.09→v6.10. SCOPE DISCIPLINE: this burst touched ONLY the 4 orchestrator-specified STATE.md edits (Phase Progress row, Decisions Log row, Drift Items row, frontmatter last_amended) plus this decision-log.md codification; no Current Phase Steps row, no Session Resume Checkpoint change, no other file touched. parent-commit: 060db731 (D-862-BURST HEAD).
+
+### Phase
+
+D-863-HOOK-FALSEPOS-BODY-REWORD-ERRATUM-2026-07-20
+
+### Date
+
+2026-07-20
