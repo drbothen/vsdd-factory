@@ -56,12 +56,19 @@ cd .factory && git branch --show-current
 test -f .factory/STATE.md
 ```
 
-- **If missing**: Create initial STATE.md.
+- **If missing**: Create initial STATE.md. Derive `product` from the
+  repository — use the repo directory name verbatim (do NOT strip any
+  `-blue`/`-green` or other suffix; the name on disk is the name):
+  ```bash
+  git rev-parse --show-toplevel | xargs basename
+  ```
+  If that name is ambiguous or clearly not the product (e.g. a generic
+  checkout dir), ask the human for the product name instead. Then write:
   ```yaml
   ---
   pipeline: INITIALIZED
   phase: pre-1
-  product: corverax
+  product: <repo name from git, or human-supplied>
   mode: greenfield
   timestamp: <current ISO8601>
   ---
