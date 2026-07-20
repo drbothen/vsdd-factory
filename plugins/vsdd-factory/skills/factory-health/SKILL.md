@@ -17,12 +17,14 @@ Validate that the `.factory/` worktree is properly mounted and healthy. Auto-rep
 git branch --list factory-artifacts
 ```
 
-- **If missing**: Create it.
+- **If missing**: Create it. Build the empty root commit with plumbing and
+  point the branch ref at it directly — this never moves `HEAD`, never touches
+  the working tree, and signs the commit (`-S`). No checkout dance, so there is
+  no failed-return case that could strand the session on `factory-artifacts`.
   ```bash
-  git checkout --orphan factory-artifacts
-  git rm -rf --cached . 2>/dev/null || true
-  git commit --allow-empty -m "chore: initialize factory-artifacts orphan branch"
-  git checkout -  # return to previous branch
+  git branch factory-artifacts \
+    "$(git commit-tree -S "$(git mktree </dev/null)" \
+       -m "chore: initialize factory-artifacts orphan branch")"
   ```
 
 ### 2. Worktree is mounted

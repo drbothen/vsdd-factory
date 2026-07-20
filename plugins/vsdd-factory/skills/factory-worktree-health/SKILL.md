@@ -81,13 +81,16 @@ git ls-remote --heads origin ${BRANCH_NAME}
 ```
 
 - **Branch exists:** Proceed to Step 2
-- **Branch does NOT exist:** Create it:
+- **Branch does NOT exist:** Create it. Build the empty root commit with
+  plumbing and point the branch ref at it directly, then push. `HEAD` never
+  moves and the working tree is never disturbed — so there is no `git checkout`
+  step whose failure could strand the session on `${BRANCH_NAME}` (nor any
+  hardcoded return target to guess wrong). The commit is signed (`-S`).
   ```bash
-  git checkout --orphan ${BRANCH_NAME}
-  git rm -rf .
-  git commit --allow-empty -m "chore: initialize ${BRANCH_NAME} branch"
+  git branch ${BRANCH_NAME} \
+    "$(git commit-tree -S "$(git mktree </dev/null)" \
+       -m "chore: initialize ${BRANCH_NAME} branch")"
   git push origin ${BRANCH_NAME}
-  git checkout develop
   ```
   Then proceed to Step 2.
 
