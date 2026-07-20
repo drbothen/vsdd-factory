@@ -495,10 +495,14 @@ persisted:
   is already committed, `git add -A && git commit` reports "nothing to commit"
   rather than producing a duplicate.
 
-The one non-idempotent class is **append-style logs** — burst-log.md entries and
-convergence-trajectory.md per-pass rows. Re-running a task that appends can
-double the entry. When re-dispatched for an append task, first read the target
-file and skip the append if that entry is already present.
+The one non-idempotent class is **append-style records** — burst-log.md
+entries, convergence-trajectory.md per-pass rows, and the STATE.md **Current
+Phase Steps** row that the Burst-complete protocol above appends on the same
+event that writes burst-log.md (the keep-last-5 window eventually evicts a
+duplicate, but a verbatim re-run doubles the row until it does). Re-running a
+task that appends can double the entry. When re-dispatched for an append task,
+first read the target file (or STATE.md section) and skip the append if that
+entry is already present.
 
 ## Templates
 
