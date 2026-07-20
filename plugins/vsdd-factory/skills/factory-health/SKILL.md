@@ -147,6 +147,29 @@ Also check for content that shouldn't be in STATE.md:
 
 If any issues found, report them and recommend `/vsdd-factory:compact-state`.
 
+### 10. Factory-artifact leak scan (#515 — content-based)
+
+Detect factory artifacts that leaked onto the product branch. The `.factory/`
+path-prefix leak check (#341) only sees artifacts under `.factory/`; a factory
+artifact committed to a product path (e.g. a root-level `red-gate-log-*.md`)
+is invisible to it. This scan keys on CONTENT — the frontmatter
+`document_type:` — instead of location.
+
+```bash
+${CLAUDE_PLUGIN_ROOT}/bin/factory-artifact-leak-scan.sh
+```
+
+The helper is advisory (it reports, never mutates). It reads the factory
+document_type set from `templates/` and flags any tracked file, outside
+`.factory/` and outside plugin machinery, whose `document_type` is a
+factory-produced type (excluding product deliverables like demo-evidence).
+
+- **Exit 0 / "Product tree is clean"**: no leaks.
+- **Exit 1 (table of leaks)**: relocate each to its canonical `.factory/` home
+  (see `config/artifact-path-registry.yaml`) via `/vsdd-factory:relocate-artifact`,
+  or, if a genuine product deliverable, add its `document_type` to the helper's
+  `PRODUCT_TRACKED_DOCTYPES` allowlist with justification.
+
 ## Output
 
 Report a summary:
