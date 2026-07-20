@@ -56,6 +56,63 @@ _logfile() {
   [ "$status" -eq 0 ]
 }
 
+# ---------- JSON-form footgun breadcrumb (#296) ----------
+# emit-event takes key=value pairs, not JSON. A JSON blob has no top-level `=`,
+# so every field is silently dropped. When the sole/leading token looks like a
+# JSON object or array, leave a breadcrumb IN THE EVENT (never stdout/stderr —
+# the silent/exit-0 contract is inviolable) so the drop is detectable.
+
+@test "emit-event: JSON-form arg still exits 0 (contract preserved)" {
+  run "$HELPER" '{"type":"hook.action","hook":"manual-test","action":"smoke"}'
+  [ "$status" -eq 0 ]
+}
+
+@test "emit-event: JSON-form arg produces no stdout/stderr" {
+  run "$HELPER" '{"type":"hook.action"}'
+  [ "$status" -eq 0 ]
+  [ -z "$output" ]
+}
+
+@test "emit-event: JSON-object arg leaves _emit_parse_warning breadcrumb" {
+  run "$HELPER" '{"type":"hook.action","hook":"manual-test","action":"smoke"}'
+  [ "$status" -eq 0 ]
+  local f
+  f=$(_logfile)
+  [ -n "$f" ]
+  [ "$(jq -r '._emit_parse_warning // "ABSENT"' < "$f")" != "ABSENT" ]
+  # The JSON payload's fields were still dropped (the breadcrumb documents that).
+  [ "$(jq -r '.hook // "ABSENT"' < "$f")" = "ABSENT" ]
+}
+
+@test "emit-event: JSON-array arg also leaves the breadcrumb" {
+  run "$HELPER" '["type","hook.action"]'
+  [ "$status" -eq 0 ]
+  local f
+  f=$(_logfile)
+  [ "$(jq -r '._emit_parse_warning // "ABSENT"' < "$f")" != "ABSENT" ]
+}
+
+@test "emit-event: normal key=value call has NO breadcrumb" {
+  run "$HELPER" type=hook.action hook=manual-test action=smoke
+  [ "$status" -eq 0 ]
+  local f
+  f=$(_logfile)
+  [ "$(jq -r '._emit_parse_warning // "ABSENT"' < "$f")" = "ABSENT" ]
+  # And the documented smoke-test fields DO survive.
+  [ "$(jq -r '.hook' < "$f")" = "manual-test" ]
+}
+
+@test "emit-event: plain non-JSON garbage arg does NOT trigger the breadcrumb" {
+  # Only JSON-looking tokens ({ or [ prefix) are flagged; ordinary no-= args
+  # remain silently tolerated (existing garbage-tolerance behavior).
+  run "$HELPER" xxx yyy type=test
+  [ "$status" -eq 0 ]
+  local f
+  f=$(_logfile)
+  [ "$(jq -r '._emit_parse_warning // "ABSENT"' < "$f")" = "ABSENT" ]
+  [ "$(jq -r '.type' < "$f")" = "test" ]
+}
+
 @test "emit-event: exits 0 with binary data in value" {
   run "$HELPER" type=test val=$'\x01\x02\x03'
   [ "$status" -eq 0 ]

@@ -86,9 +86,18 @@ fi
 jq_args=()
 filter='{}'
 idx=0
+saw_jsonish_arg=0
 for arg in "$@"; do
   case "$arg" in
     *=*) ;;
+    # Breadcrumb for the #296 footgun: an arg with no `=` is silently
+    # dropped (this is deliberate garbage-tolerance). But an arg that
+    # *looks like* a JSON object/array is almost certainly a caller who
+    # mistook this tool for a JSON sink — the entire payload vanishes with
+    # no signal. Flag it in the emitted event (never stdout/stderr — the
+    # exit-0/silent contract above is inviolable) so the next operator has
+    # a trail instead of a bare heartbeat line.
+    \{*|\[*) saw_jsonish_arg=1; continue ;;
     *) continue ;;   # skip args without =
   esac
   key="${arg%%=*}"
@@ -115,6 +124,15 @@ TS_EPOCH=$(date +%s 2>/dev/null) || exit 0
 
 jq_args+=(--arg _ts "$TS" --arg _ts_epoch "$TS_EPOCH")
 filter="${filter} | .ts = \$_ts | .ts_epoch = (\$_ts_epoch | tonumber) | .schema_version = 1"
+
+# --- Breadcrumb: caller passed a JSON-looking arg with no key=value pair ----
+# See the arg-parsing loop above. Records that the payload was dropped, so an
+# operator running the (historically JSON-form) smoke test isn't fooled by a
+# bare heartbeat line into thinking ingestion is healthy. Preserves the
+# exit-0/no-stderr contract — the signal rides in the event itself.
+if [ "$saw_jsonish_arg" -eq 1 ]; then
+  filter="${filter} | ._emit_parse_warning = \"arg dropped: expected key=value pairs, got a JSON-looking token (see emit-event usage)\""
+fi
 
 # --- Auto-inject session_id from env if caller didn't provide one ----------
 # Priority order: caller-provided key (already in filter) > VSDD_SESSION_ID
