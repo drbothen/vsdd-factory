@@ -96,9 +96,15 @@ _extract_counts() {
     # Drop identifier tokens (E-11, S-3, BC-2.1.001, TD-001, SS-01) before
     # count extraction: the digits inside an ID are not a quantity. Without
     # this, "5 E-11 stories" mis-parses "11 stories" as a phantom count and
-    # fires a false count-propagation drift (#690). Matches <letters>-<digits>
-    # with optional dotted segments so multi-part BC/VP ids are dropped whole.
-    line="${line//+([A-Za-z])-+([0-9])?(*(.+([0-9])))/}"
+    # fires a false count-propagation drift (#690). Matches <letters>-<digits-
+    # and-dots> so multi-part BC/VP ids are dropped whole. Deliberately flat:
+    # a nested extglob (`?(*(.+([0-9])))`) matches the same ID tokens but
+    # backtracks super-linearly on long dotted-id lines (33s on a 600-char
+    # line of BC-N.NN.NN tokens vs 0.5s flat), and this runs per line on
+    # repo-controlled content. The flat class additionally eats dots glued to
+    # an ID (e.g. a sentence period in "delivered E-11."), which is harmless
+    # here — a whitespace-separated count token can never contain them.
+    line="${line//+([A-Za-z])-+([0-9.])/}"
     # Pattern A: count before keyword
     if [[ "$line" =~ ([0-9][0-9,]+)[[:space:]]+(BCs|VPs|stories|capabilities|subsystems) ]]; then
       keyword="${BASH_REMATCH[2]}"

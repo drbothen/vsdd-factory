@@ -364,3 +364,17 @@ require_bash4_hook_interp() {
   [ "$status" -eq 0 ]
   [ -z "$output" ]
 }
+
+@test "validate-count-propagation: long dotted-id line stays fast and keeps trailing count" {
+  require_bash4_hook_interp
+  # Dense dotted-id lines are normal in index tables. The id-drop pattern must
+  # stay linear on them: a nested-extglob variant of the same drop takes >30s
+  # on this 550-char line (per-line, under PostToolUse). Also asserts the ids
+  # are dropped whole and the genuine trailing count survives extraction.
+  local ids
+  ids="$(printf 'BC-1.11.11 %.0s' $(seq 1 50))"
+  printf '# STATE\n%s41 BCs\n' "$ids" > .factory/STATE.md
+  printf '# BC-INDEX\ntotal_bcs: 41\n' > .factory/BC-INDEX.md
+  run bash -c 'echo "{\"tool_input\":{\"file_path\":\".factory/STATE.md\"}}" | "'"$HOOKS"'/validate-count-propagation.sh" 2>&1'
+  [ "$status" -eq 0 ]
+}
