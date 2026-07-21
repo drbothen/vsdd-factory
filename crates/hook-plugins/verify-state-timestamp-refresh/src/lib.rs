@@ -4575,6 +4575,100 @@ mod tests {
     }
 
     // -----------------------------------------------------------------------
+    // ac020_edit_timestamp_line_deletion_payload_neutral_continues — Finding 3 disclosure
+    //
+    // ADR-032 Decision 1 (AC-020) definition: payload-neutral = no new_string in the
+    // Edit/MultiEdit payload sets `timestamp:` or `factory_lock:` at column 0.
+    // The guard inspects only new_string — old_string is NOT consulted for the
+    // payload-neutral check.
+    //
+    // Implication: an Edit whose old_string = the `timestamp:` line and whose
+    // new_string is empty (i.e., deletes the field) is payload-neutral → Continue.
+    // The timestamp field would be removed from STATE.md without any block.
+    //
+    // Current (spec-accepted) behaviour documented here: Continue.
+    //
+    // Pending adjudication: security-reviewer must determine whether timestamp-field
+    // deletion should be an explicit Block condition (ADR-032 v1.14 amendment candidate).
+    // Until that adjudication, the production code does NOT block timestamp deletions,
+    // and these tests pin that disclosed behaviour so any future change is deliberate.
+    //
+    // Traces: ADR-032 Decision 1 / PR-742 Finding 3 / security-reviewer pending
+    // -----------------------------------------------------------------------
+    #[test]
+    fn ac020_edit_timestamp_line_deletion_payload_neutral_continues() {
+        let on_disk = state_md_no_lock(TS_OLD);
+        // The Edit removes the timestamp: line entirely:
+        //   old_string = the timestamp: line in STATE.md
+        //   new_string = "" (line deleted, not replaced)
+        // Guard scans new_string for timestamp: at col-0 → not found → payload-neutral.
+        let old_str = &format!("timestamp: \"{}\"", TS_OLD);
+        let new_str = "";
+
+        assert!(
+            on_disk.contains(old_str.as_str()),
+            "Test fixture must contain old_string: {old_str:?}"
+        );
+
+        let warn_log = Arc::new(Mutex::new(Vec::new()));
+        let callbacks = make_callbacks_with_disk(on_disk, warn_log.clone());
+        let payload = payload_edit(old_str, new_str);
+
+        let result = guard_logic(payload, callbacks);
+
+        assert_eq!(
+            result,
+            HookResult::Continue,
+            "ac020_edit_timestamp_line_deletion_payload_neutral_continues: \
+             Edit with old_string=timestamp: line, new_string=empty is payload-neutral \
+             under ADR-032 Decision 1 (AC-020) — new_string sets neither timestamp: \
+             nor factory_lock: at col-0 → guard returns Continue. \
+             PENDING: security-reviewer adjudication on whether deletion should Block \
+             (ADR-032 v1.14 amendment candidate). This test pins current behaviour."
+        );
+    }
+
+    // -----------------------------------------------------------------------
+    // ac020_multiedit_timestamp_line_deletion_payload_neutral_continues — Finding 3 (MultiEdit)
+    //
+    // Same semantics as the Edit variant above, but exercised via MultiEdit.
+    // A MultiEdit whose edits[] contain one edit — old_string = the timestamp:
+    // line, new_string = "" — is payload-neutral → Continue.
+    //
+    // The production check iterates edits[].new_string; if none sets timestamp: or
+    // factory_lock: at col-0, the whole MultiEdit is payload-neutral.
+    //
+    // Pending adjudication: same as Edit variant (ADR-032 v1.14 amendment candidate).
+    // -----------------------------------------------------------------------
+    #[test]
+    fn ac020_multiedit_timestamp_line_deletion_payload_neutral_continues() {
+        let on_disk = state_md_no_lock(TS_OLD);
+        let old_str = format!("timestamp: \"{}\"", TS_OLD);
+        let new_str = "";
+
+        assert!(
+            on_disk.contains(old_str.as_str()),
+            "Test fixture must contain old_string: {old_str:?}"
+        );
+
+        let warn_log = Arc::new(Mutex::new(Vec::new()));
+        let callbacks = make_callbacks_with_disk(on_disk, warn_log.clone());
+        let payload = payload_multiedit(vec![(&old_str, new_str)]);
+
+        let result = guard_logic(payload, callbacks);
+
+        assert_eq!(
+            result,
+            HookResult::Continue,
+            "ac020_multiedit_timestamp_line_deletion_payload_neutral_continues: \
+             MultiEdit with old_string=timestamp: line, new_string=empty is payload-neutral \
+             under ADR-032 Decision 1 (AC-020) — no new_string in edits[] sets timestamp: \
+             or factory_lock: at col-0 → Continue. \
+             PENDING: security-reviewer adjudication (ADR-032 v1.14 amendment candidate)."
+        );
+    }
+
+    // -----------------------------------------------------------------------
     // Red Gate 3 of 4: ac020_edit_body_lock_held_no_factory_lock_continues
     // Edit: lock held on-disk with stale expires_at; new_string is body text with
     // no factory_lock: line; on-disk timestamp is OLD.
