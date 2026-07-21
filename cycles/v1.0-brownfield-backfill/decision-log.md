@@ -10780,3 +10780,15 @@ D-870-SESSION-WRAP-PAUSED-2026-07-20
 ### Date
 
 2026-07-20
+
+## D-871
+
+PIPELINE-UNPAUSED-ADR-032-IMPL-ARC-DISPATCHED. POLICY 16 GLOBAL-MAX GATE: `grep -n "^## D-" decision-log.md | tail -3` → `10748:## D-868 / 10760:## D-869 / 10772:## D-870`; D-870 confirmed prior max → D-871 allocated. (1) PIPELINE UNPAUSED: human resume decision 2026-07-20 selected ADR-032 implementation arc per D-870 checkpoint §7; zero-context resume via session-checkpoints.md `## D-870 Checkpoint`. (2) DISPATCH: route vsdd-factory:implementer via fix-pr-delivery skill; four deliverables per ADR-032 v1.13 §Implementer Work Spec: (a) verify-state-timestamp-refresh guard rewrite + 11 tests; (b) dispatcher git_context prereq ADR-032-AC021-prereq in invoke.rs; (c) AC-021 exec-free WASM advisory at priority 159; (d) factory-lock placement relocation in factory-lock-write.sh. LOCAL strict 3-CLEAN cascade required before PR; PR targets develop. (3) ARTIFACT CONTEXT: implementing agents read ADR-032 from committed factory-artifacts (ADR accepted at 85086fad; stories at 16cdd64f); existing worktree .worktrees/adr-032-timestamp-hook (branch fix/adr-032-timestamp-hook-edit-enforcement at develop HEAD 6444ac23, clean, zero commits) is reusable scaffolding. (4) OPEN-PR OBSERVATION: 22 open fix/feat PRs #714–#740 dated 2026-07-20 observed at resume, not present in D-870 checkpoint (created after session wrap); human deferred their triage — not part of this arc. (5) INDEXES UNCHANGED: BC v4.11 / VP v2.72 / STORY v4.229 / ARCH v3.24. (6) STATE.md dispatch-side advance (D-417(b) strict): `phase:` + `current_step:` modified per protocol; `timestamp:` and `version:` also advanced to satisfy verify-state-timestamp-refresh hook (final 19:06:00Z); trajectory-tail →0→0→0→0 UNCHANGED added per D-433(e) validate-trajectory-tail-cell-completeness requirement; no body edits, no Session Resume Checkpoint update, no Decisions Log table row, no Phase Progress row. Body reconciliation remains deferred until ADR-032 hook fix is live in operator cache. parent-commit: f42ce194 (STATE.md Commit D of D-870 session-wrap burst).
+
+### Phase
+
+D-871-ADR-032-IMPL-ARC-DISPATCHED-2026-07-20
+
+### Date
+
+2026-07-20
