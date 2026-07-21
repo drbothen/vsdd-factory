@@ -1123,3 +1123,71 @@ Run `/vsdd-factory:next-step`, then dispatch the ADR-032 implementation arc via 
 - **factory-artifacts HEAD:** `16cdd64f` (this session's final commit)
 - **D-range:** D-001..D-870 (see decision-log.md for full range)
 - **factory_lock:** NOT HELD
+
+---
+
+## D-873 Checkpoint (2026-07-21 session wrap — AUTHORITATIVE)
+
+**This is the authoritative post-wrap resume record for the 2026-07-21 human `/wrap` directive.** Per the D-866/D-870 precedent Strategy Constraint (STATE.md edit-mechanism defect — ADR-032 hook fix merged to develop but NOT YET deployed to operator cache via rc.24), STATE.md's `## Session Resume Checkpoint` section body was intentionally NOT updated this burst. STATE.md frontmatter was updated minimally only (`version:`, `timestamp:`, `phase:`, `last_amended:`, `pipeline:`, phase-summary, `current_step:`). Read this section alone to resume — assumes ZERO prior context.
+
+### 1. Position
+
+Pipeline **PAUSED** post-D-872 (ADR-032 implementation arc COMPLETE). develop HEAD `26508e83` (PR #743 merge, 2026-07-21T20:29:31Z). main HEAD `80e5cd7b` UNCHANGED. factory-artifacts pre-wrap HEAD `46af331e` (this D-873 wrap commit lands on top). No story worktrees; no in-flight sub-agent work; no WIP commits needed. Main-repo working tree dirt: `.claude/scheduled_tasks.lock` modified (harness-managed, ignorable) + untracked `plugins/vsdd-factory/tests/report.tap` (test artifact, ignorable).
+
+### 2. Session record (chronological)
+
+Resumed from D-870 wrap checkpoint → D-871 arc dispatch (STATE.md dispatch-side advance, develop HEAD unchanged) → ADR-032 implementation arc:
+
+| SHA / Event | Content |
+|-------------|---------|
+| `364947e7` | Fix burst P1: L2 findings closed |
+| `dd2bbb29` | Fix burst P2a: M2 findings closed |
+| `fff113a3` | Fix burst P2b: L1 finding closed |
+| LOCAL cascade | P3/P4/P5 all CLEAN B0/H0/M0/L0 at `fff113a3`; 3-CLEAN streak achieved |
+| PR #725 `8f17eea1` | sprint-state pull_request CI guard (human-merged) — unblocked PRs #742 and #743 |
+| PR #742 `ae263781` | fix/adr-032-timestamp-hook-edit-enforcement (final SHA 692ba433; CI 14/14; human-merged 2026-07-21T19:52:25Z) |
+| PR #743 `26508e83` | fix/bats-worktree-state-md-guard (final SHA d5f42338; CI 14/14; human-merged 2026-07-21T20:29:31Z) |
+| `3781a0d8` | factory-artifacts: sprint-state S-7.06..S-7.11 canonical entries + Partition B ordering corrected |
+| `0e68758d` | factory-artifacts: ADR-032 v1.14 — timestamp-deletion sub-case explicit disclosure; ARCH-INDEX v3.24→v3.25 |
+| `46af331e` | factory-artifacts: D-872 closure — 5 lessons added; rc.24 decision pending |
+
+PR #742 review sequence: review pass-1 REQUEST_CHANGES (1 MAJOR refuted by ground truth + 2 MINOR + 1 NIT + 1 enforcement ADVISORY); security-review APPROVE (CWE-840/CWE-693 LOW severity); fix commits 0104a8d6 + e9eacde3 + 692ba433; review pass-2 APPROVE all findings resolved; CI 14/14 green. PR #743 review sequence: pass-1 APPROVE CLEAN; pass-2 APPROVE CLEAN. Operational events: GitHub macOS runner starvation (24 cancelled runs: 1 duplicate + 23 backlog; 23/23 re-triggered post-merge OK); pr-review GitHub posting deadlocked by self-authored PR classifier (verdicts persisted at `.factory/code-delivery/`). Worktrees removed clean; branches deleted.
+
+### 3. Human gate decisions this session
+
+- "Wrap the session" (post-D-872 ADR-032-IMPL-ARC-COMPLETE; no further gates answered this session before wrap)
+
+### 4. KNOWN DEFECT — STATE.md edit-mechanism deviation (OPEN, carried from D-866/D-870)
+
+**Status:** UNCHANGED from D-870 checkpoint §4. ADR-032 hook fix (verify-state-timestamp-refresh guard rewrite) is merged to develop (`26508e83`) but NOT yet in the operator-level plugin cache — that requires **rc.24 release** to propagate. The minimal-frontmatter Strategy Constraint therefore still applies to this wrap burst: Session Resume Checkpoint body, Decisions Log table, and Phase Progress table NOT updated.
+
+**D-865..D-873 STATE.md body reconciliation** remains deferred until rc.24 is released and the hook fix is live in the operator cache. After rc.24: run full STATE.md body reconciliation covering all deferred decisions + ARCH-INDEX v3.11→v3.25 + STORY-INDEX v4.227→v4.229 body cites.
+
+### 5. Pending human decisions (in priority order)
+
+1. **rc.24 RELEASE DECISION** — TOP ITEM. ADR-032 hook fix reaches operator cache only via release. Gate presented and unanswered at wrap. Also unlocks the deferred D-865..D-873 STATE.md body reconciliation.
+2. **Issue #724 closure** — orchestrator verdict RESOLVED-FULL (evidence: PR #725 8f17eea1 + factory-artifacts 3781a0d8); awaiting human "close 724".
+3. **E-21 Phase-3 W1 resume** — S-21.01 (`validate-factory-path-staging`) approved SEQUENTIAL (S-21.01→S-21.02→S-21.03), still not started; all 5 E-21 issues open.
+4. **S-7.06..S-7.11 draft process-gap stories triage** — registered in sprint-state at 3781a0d8; awaiting human triage direction.
+5. **Backlog PR triage** — approximately 20 open PRs; 23 CI runs re-triggered post-merge with results pending at wrap time.
+6. **ci.yml concurrency-groups fix PR** — process-gap lesson (L-BB-ci-concurrency-groups class); orchestrator task #11 PENDING.
+7. **PR #743 follow-up design question** — snapshot suite lacks the `pull_request` guard half; broader option: relocate live-artifact validation to a factory-artifacts-branch workflow (L-BB-live-artifact-test-policy-split class); human direction pending.
+8. **Gastown research follow-ups** — report delivered (recommendation: borrow patterns — Beads/Dolt work-item ledger, watchdog stall-detection, events.jsonl session recovery); human direction pending.
+
+### 6. Deferred bookkeeping
+
+- **D-865..D-873 STATE.md body reconciliation** — ALL deferred until rc.24 hook fix reaches operator cache. Scope: Decisions Log rows, Phase Progress table rows, full `## Session Resume Checkpoint` body replacement. 4-index body citations in STATE.md remain stale (ARCH-INDEX cited v3.11, actual v3.25; STORY-INDEX cited v4.227 in STATE.md body, actual v4.229).
+- **merged_count** — NOT incremented this arc (fix PRs); last recorded value carries forward unchanged.
+
+### 7. Resume command
+
+Run `/vsdd-factory:next-step` (reads STATE.md; TOP item = rc.24 release decision → then E-21 W1 resume).
+
+### 8. Housekeeping
+
+- **4-index at D-873 wrap (literal shell):** BC v4.11 / VP v2.72 / STORY v4.229 / ARCH v3.25
+- **develop HEAD:** `26508e83` (PR #743 merge, 2026-07-21T20:29:31Z)
+- **main HEAD:** `80e5cd7b` (unchanged)
+- **factory-artifacts HEAD:** `46af331e` pre-wrap-commit (this D-873 wrap commit lands on top)
+- **D-range:** D-001..D-873 (see decision-log.md for full range)
+- **factory_lock:** NOT HELD
