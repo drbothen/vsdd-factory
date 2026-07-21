@@ -1496,3 +1496,22 @@ patterns = [
   "./run-all.sh",
   "./run-bats.sh"
 ]
+
+# ---------- verify-state-timestamp-advisory (ADR-032 AC-021) ----------
+# PostToolUse advisory: emits ADVISORY AC-021 when a factory-artifacts commit
+# included STATE.md but did not advance the timestamp: frontmatter field.
+# advisory-only (on_error=continue; never blocks — PostToolUse cannot prevent commits).
+# Reads git_context from payload.extra (injected by dispatcher ADR-032-AC021-prereq).
+# No capabilities block: exec-free, no read_file, no exec_subprocess (BC-5.41.003 PC1).
+# Priority 159 = lowest free slot above 154 (validate-dispatch-advance).
+# (traces to ADR-032 AC-021 / BC-5.41.003 / BC-5.40.001 PC6)
+
+[[hooks]]
+name = "verify-state-timestamp-advisory"
+event = "PostToolUse"
+tool = "^Bash$"
+plugin = "hook-plugins/verify-state-timestamp-advisory.wasm"
+priority = 159
+timeout_ms = 5000
+async = false
+on_error = "continue"

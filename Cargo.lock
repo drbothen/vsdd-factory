@@ -940,6 +940,7 @@ version = "0.0.1"
 dependencies = [
  "anyhow",
  "chrono",
+ "factory-lock-parse",
  "filetime",
  "httpmock",
  "opentelemetry-proto",
@@ -3871,6 +3872,15 @@ version = "0.0.1"
 dependencies = [
  "chrono",
  "factory-lock-parse",
+ "serde_json",
+ "vsdd-hook-sdk",
+]
+
+[[package]]
+name = "verify-state-timestamp-advisory"
+version = "0.0.1"
+dependencies = [
+ "serde",
  "serde_json",
  "vsdd-hook-sdk",
 ]

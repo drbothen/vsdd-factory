@@ -18,7 +18,7 @@
 //!      Call `factory_lock_parse::extract_frontmatter` on raw bytes before UTF-8 conversion
 //!      (Invariant 7 frontmatter-only mandate; BC-5.40.001 v1.2).
 //!   3a. For Edit/MultiEdit: scan new_string value(s) for top-level `timestamp:` and
-//!       `factory_lock:` fields (ADR-032 Decision 1+3).
+//!      `factory_lock:` fields (ADR-032 Decision 1+3).
 //!       - If neither is set: return Continue (guard_ran payload-neutral). AC-020.
 //!       - If only factory_lock: is set: skip Steps 4–7; proceed to Step 8.
 //!       - If timestamp: is set (with or without factory_lock:): run full check (Steps 4–8).
@@ -926,9 +926,9 @@ where
                 .and_then(|v| v.as_str())
                 .unwrap_or("");
             let st = new_string_sets_field(ns, "timestamp");
-            let sfl = ns
-                .lines()
-                .any(|l| !l.starts_with(' ') && !l.starts_with('\t') && l.starts_with("factory_lock:"));
+            let sfl = ns.lines().any(|l| {
+                !l.starts_with(' ') && !l.starts_with('\t') && l.starts_with("factory_lock:")
+            });
             (st, sfl)
         }
         "MultiEdit" => {
@@ -1065,47 +1065,47 @@ where
     // Fail-open cases (no lock enforcement):
     //   - extract_lock_subfields returns None (malformed frontmatter / no factory_lock key)
     //   - holder absent or empty (lock not held in proposed)
-    if sets_factory_lock || sets_timestamp {
-        if let Some(proposed_subfields) = extract_lock_subfields(&proposed_content) {
-            let proposed_holder = proposed_subfields
-                .holder
+    if (sets_factory_lock || sets_timestamp)
+        && let Some(proposed_subfields) = extract_lock_subfields(&proposed_content)
+    {
+        let proposed_holder = proposed_subfields
+            .holder
+            .as_deref()
+            .unwrap_or("")
+            .to_string();
+        if !proposed_holder.is_empty() {
+            // Lock is held in proposed content — enforce expires_at freshness.
+            let proposed_expires = proposed_subfields
+                .expires_at
                 .as_deref()
                 .unwrap_or("")
                 .to_string();
-            if !proposed_holder.is_empty() {
-                // Lock is held in proposed content — enforce expires_at freshness.
-                let proposed_expires = proposed_subfields
-                    .expires_at
-                    .as_deref()
-                    .unwrap_or("")
-                    .to_string();
 
-                if proposed_expires.trim().is_empty() {
-                    // expires_at absent, empty string, or whitespace-only → Block: LockExpiryStale
-                    // (AC-016/AC-017). Whitespace-only is not a valid RFC-3339 timestamp and must
-                    // not slip through as a non-empty renewal (L4 fix / consistency with AC-019).
-                    return HookResult::Block {
-                        reason: canonical_lock_expiry_stale_message(),
-                    };
-                }
-
-                // expires_at present, non-whitespace — compare byte-for-byte with on-disk (AC-006).
-                let on_disk_subfields = extract_lock_subfields(&on_disk_field_content);
-                let on_disk_expires = on_disk_subfields
-                    .as_ref()
-                    .and_then(|sf| sf.expires_at.as_deref())
-                    .unwrap_or("")
-                    .to_string();
-
-                if !on_disk_expires.is_empty() && proposed_expires == on_disk_expires {
-                    // Byte-identical expires_at while lock is held → Block: LockExpiryStale (AC-006).
-                    return HookResult::Block {
-                        reason: canonical_lock_expiry_stale_message(),
-                    };
-                }
-                // expires_at present, non-empty, and different from on-disk → renewal happened.
-                // Fall through to Continue.
+            if proposed_expires.trim().is_empty() {
+                // expires_at absent, empty string, or whitespace-only → Block: LockExpiryStale
+                // (AC-016/AC-017). Whitespace-only is not a valid RFC-3339 timestamp and must
+                // not slip through as a non-empty renewal (L4 fix / consistency with AC-019).
+                return HookResult::Block {
+                    reason: canonical_lock_expiry_stale_message(),
+                };
             }
+
+            // expires_at present, non-whitespace — compare byte-for-byte with on-disk (AC-006).
+            let on_disk_subfields = extract_lock_subfields(&on_disk_field_content);
+            let on_disk_expires = on_disk_subfields
+                .as_ref()
+                .and_then(|sf| sf.expires_at.as_deref())
+                .unwrap_or("")
+                .to_string();
+
+            if !on_disk_expires.is_empty() && proposed_expires == on_disk_expires {
+                // Byte-identical expires_at while lock is held → Block: LockExpiryStale (AC-006).
+                return HookResult::Block {
+                    reason: canonical_lock_expiry_stale_message(),
+                };
+            }
+            // expires_at present, non-empty, and different from on-disk → renewal happened.
+            // Fall through to Continue.
         }
     }
 
@@ -4346,7 +4346,9 @@ mod tests {
         let expected_msg = canonical_timestamp_stale_message();
         assert_eq!(
             result,
-            HookResult::Block { reason: expected_msg.clone() },
+            HookResult::Block {
+                reason: expected_msg.clone()
+            },
             "ac020_edit_explicit_stale_timestamp_blocks: Edit where new_string explicitly sets \
              timestamp: OLD must Block(TimestampStale) both pre- and post-fix (regression guard). \
              Got: {result:?}"
@@ -4427,7 +4429,9 @@ mod tests {
         let expected_msg = canonical_timestamp_stale_message();
         assert_eq!(
             result,
-            HookResult::Block { reason: expected_msg },
+            HookResult::Block {
+                reason: expected_msg
+            },
             "ac020_multiedit_one_new_string_stale_blocks: MultiEdit where a new_string explicitly \
              sets timestamp: OLD must Block(TimestampStale) both pre- and post-fix (regression guard)."
         );
@@ -4452,7 +4456,9 @@ mod tests {
         let expected_msg = canonical_timestamp_stale_message();
         assert_eq!(
             result,
-            HookResult::Block { reason: expected_msg },
+            HookResult::Block {
+                reason: expected_msg
+            },
             "ac020_write_stale_timestamp_still_blocks: Write with stale timestamp must \
              Block(TimestampStale) — Write path is unconditionally enforced (ADR-032 Decision 2). \
              Regression guard."
@@ -4576,7 +4582,9 @@ mod tests {
         let expected_msg = canonical_lock_expiry_stale_message();
         assert_eq!(
             result,
-            HookResult::Block { reason: expected_msg },
+            HookResult::Block {
+                reason: expected_msg
+            },
             "ac020_edit_factory_lock_in_new_string_stale_expires_blocks: Edit advancing timestamp \
              but keeping stale expires_at must Block(LockExpiryStale) both pre- and post-fix \
              (regression guard, ADR-032 Decision 3 + F-ADR032-P2-004)."
@@ -4609,7 +4617,9 @@ mod tests {
         let expected_msg = canonical_lock_expiry_stale_message();
         assert_eq!(
             result,
-            HookResult::Block { reason: expected_msg },
+            HookResult::Block {
+                reason: expected_msg
+            },
             "ac020_edit_sets_timestamp_no_factory_lock_stale_expires_blocks: timestamp-advancing \
              Edit that does NOT renew factory_lock.expires_at must Block(LockExpiryStale) \
              both pre- and post-fix (ADR-032 Decision 3 option (a) regression guard)."
@@ -4645,7 +4655,9 @@ mod tests {
         let expected_msg = canonical_lock_expiry_stale_message();
         assert_eq!(
             result,
-            HookResult::Block { reason: expected_msg },
+            HookResult::Block {
+                reason: expected_msg
+            },
             "ac020_edit_factory_lock_only_stale_expires_blocks: factory_lock-only Edit with stale \
              expires_at must Block(LockExpiryStale) (ADR-032 Decision 3). \
              Pre-fix: Block(TimestampStale) — RED GATE. \

@@ -108,10 +108,7 @@ fn test_git_context_schema_four_fields_present() {
         "head_parent_state_timestamp",
         "state_md_in_commit",
     ] {
-        assert!(
-            obj.contains_key(*key),
-            "git_context must contain {key}"
-        );
+        assert!(obj.contains_key(*key), "git_context must contain {key}");
     }
 
     // All fields must be strings (not null, not absent).
