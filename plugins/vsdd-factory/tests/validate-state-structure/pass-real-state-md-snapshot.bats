@@ -35,6 +35,14 @@ setup() {
   WORK="$(mktemp -d)"
   mkdir -p "$WORK/hook-plugins"
   mkdir -p "$WORK/.factory/logs"
+  # Guard: skip the entire suite when the factory-artifacts worktree is not mounted.
+  # .factory/STATE.md lives on the factory-artifacts orphan branch, which must be
+  # checked out as a git worktree at REPO_ROOT/.factory. Without that mount the cp
+  # below would abort setup with an error instead of a clean skip. This is the same
+  # local-only design as PR #725 (sprint-state.yaml live-file guards).
+  if [ ! -f "$REPO_ROOT/.factory/STATE.md" ]; then
+    skip ".factory/STATE.md absent — factory-artifacts worktree not mounted; run: git worktree add .factory origin/factory-artifacts"
+  fi
   # F-P3-002: auto-copy LIVE STATE.md at run time — eliminates snapshot-vs-live drift class.
   # The test always exercises current .factory/STATE.md content rather than a frozen fixture.
   cp "$REPO_ROOT/.factory/STATE.md" "$WORK/.factory/STATE.md"
