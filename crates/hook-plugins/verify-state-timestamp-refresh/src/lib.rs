@@ -4522,6 +4522,59 @@ mod tests {
     }
 
     // -----------------------------------------------------------------------
+    // ac020_new_string_sets_field_unquoted_timestamp_detected — Finding 4 disclosure
+    //
+    // PR reviewer (pr-reviewer) flagged a potential parser-divergence risk:
+    // "The payload scan uses `factory_lock_parse::extract_yaml_string_value`,
+    // while on-disk/proposed extraction uses `extract_top_level_field` (Steps 4/5).
+    // Two different parsers decide 'is this the timestamp field.' If they disagree
+    // on unquoted `timestamp: 2026-…`, a stale timestamp could yield
+    // `sets_timestamp=false` → enforcement skipped → Continue instead of Block."
+    //
+    // Ground-truth: `extract_top_level_field` also delegates to
+    // `factory_lock_parse::extract_yaml_string_value` per-line (lib.rs line 464).
+    // Both helpers use the SAME underlying parser.  `extract_yaml_string_value`
+    // accepts bare (unquoted) values — it strips only SURROUNDING double-quotes
+    // when present, leaving bare values unchanged.
+    //
+    // Spec-mandated behaviour (documented here, NOT changed):
+    //   An unquoted `timestamp:` value in `new_string` IS detected as setting the
+    //   timestamp field (`sets_timestamp=true`).  Enforcement runs.
+    //   The parser divergence identified in Finding 4 does NOT exist in the current
+    //   implementation.  Both paths share the same `extract_yaml_string_value` logic.
+    //
+    // Traces: ADR-032 Decision 4 / PR-742 Finding 4 / PR reviewer disclosure
+    // -----------------------------------------------------------------------
+    #[test]
+    fn ac020_new_string_sets_field_unquoted_timestamp_detected() {
+        // Unquoted timestamp value: no surrounding double-quotes.
+        // extract_yaml_string_value strips only surrounding double-quotes; bare values
+        // are returned as-is.  new_string_sets_field therefore returns true here.
+        assert!(
+            new_string_sets_field("timestamp: 2026-06-11T10:00:00Z", "timestamp"),
+            "unquoted timestamp: value must be detected by new_string_sets_field \
+             (extract_yaml_string_value accepts bare values — no parser divergence; \
+             extract_top_level_field uses the same underlying function)"
+        );
+
+        // Multi-line: unquoted timestamp in a multi-line new_string fragment
+        // (e.g., an Edit that rewrites several frontmatter lines including timestamp:).
+        assert!(
+            new_string_sets_field(
+                "phase: complete\ntimestamp: 2026-06-11T10:00:00Z\ncurrent_step: \"done\"",
+                "timestamp"
+            ),
+            "unquoted timestamp: in multi-line new_string must be detected at col-0"
+        );
+
+        // Quoted timestamp for contrast — must also be detected (baseline).
+        assert!(
+            new_string_sets_field("timestamp: \"2026-06-11T10:00:00Z\"", "timestamp"),
+            "quoted timestamp: value must also be detected (baseline)"
+        );
+    }
+
+    // -----------------------------------------------------------------------
     // Red Gate 3 of 4: ac020_edit_body_lock_held_no_factory_lock_continues
     // Edit: lock held on-disk with stale expires_at; new_string is body text with
     // no factory_lock: line; on-disk timestamp is OLD.

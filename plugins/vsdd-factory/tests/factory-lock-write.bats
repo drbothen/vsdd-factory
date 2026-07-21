@@ -1409,3 +1409,62 @@ sys.stdout.buffer.write(content.encode('utf-8'))
     false
   fi
 }
+
+# ---------------------------------------------------------------------------
+# Acquire: STATE.md frontmatter missing timestamp: → loud failure (SchemaViolation)
+#
+# Context: _write_factory_lock_block inserts the factory_lock block immediately
+# after the `timestamp:` line (ADR-032 §Third Deliverable placement mandate).
+# If no `timestamp:` line exists in the frontmatter, the awk trigger
+# `front == 1 && /^timestamp:/ && !inserted` never fires, the block is not
+# written, and the post-write frontmatter assertion exits 1 with a
+# SchemaViolation message.
+#
+# This is a LOUD failure (non-zero exit + SchemaViolation in stderr), NOT silent.
+# The timestamp: field is a hard precondition for acquire as of ADR-032 D4.
+#
+# This test documents and gates that precondition: acquire on a frontmatter
+# lacking timestamp: must exit non-zero and emit SchemaViolation.
+#
+# Traces: ADR-032 §Third Deliverable / factory-lock-write.sh _write_factory_lock_block
+# ---------------------------------------------------------------------------
+
+@test "test_BC_5_40_001_acquire_timestamp_absent_fails_loud" {
+  local state_no_ts="$BATS_TEST_TMPDIR/no-timestamp.md"
+
+  # Fixture: valid frontmatter with TWO --- fences but NO timestamp: field.
+  # _validate_frontmatter passes (two fences present); the failure occurs only
+  # when _write_factory_lock_block finds no timestamp: line to insert after.
+  cat > "$state_no_ts" <<'STATE'
+---
+document_type: state
+version: "0.0.1-test"
+phase: test
+current_step: "test-step"
+---
+
+# STATE (fixture — no timestamp: field)
+STATE
+
+  # Precondition: confirm fixture truly lacks timestamp: in frontmatter.
+  ! grep -q '^timestamp:' "$state_no_ts"
+
+  run bash "$HELPER" acquire "$state_no_ts"
+
+  # Must exit non-zero — the post-write assertion detects factory_lock: not written.
+  [ "$status" -ne 0 ] || {
+    echo "FAIL: expected non-zero exit when timestamp: is absent from frontmatter."
+    echo "acquire should detect that factory_lock: was not inserted (post-write assertion)."
+    echo "Output: $output"
+    return 1
+  }
+
+  # Must include SchemaViolation in output — loud diagnostic, not silent.
+  [[ "$output" == *"SchemaViolation"* ]] || {
+    echo "FAIL: expected 'SchemaViolation' in output when timestamp: is absent."
+    echo "The post-write assertion in acquire emits: factory-lock-write: SchemaViolation —"
+    echo "factory_lock block was not written to frontmatter..."
+    echo "Actual output: $output"
+    return 1
+  }
+}

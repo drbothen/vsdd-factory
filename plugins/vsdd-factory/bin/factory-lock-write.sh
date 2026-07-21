@@ -187,6 +187,9 @@ _remove_factory_lock() {
 # Helper: write/replace the factory_lock block inside YAML frontmatter.
 # Strategy: strip any existing factory_lock block, then insert the new one
 # immediately after the timestamp: line in the frontmatter, above last_amended:.
+# Precondition: the frontmatter MUST contain a `timestamp:` line; if absent,
+# the awk insertion trigger never fires, the factory_lock block is not written,
+# and the acquire post-write assertion exits 1 with SchemaViolation (loud failure).
 # ---------------------------------------------------------------------------
 _write_factory_lock_block() {
   local file="$1"
