@@ -7098,3 +7098,101 @@ Both gates are mandatory standing Commit-E controls for any burst touching E-19 
 **Cites:** GitHub fork PR CI approval requirements; PRs #524-#532 from ArcavenAE/vsdd-factory; D-858; [[L-BB-agent-prompt-prose-defects-are-ci-invisible]].
 
 **Closes:** D-858 BACKLOG-TRIAGE-ARC-2026-07-19 burst (2026-07-19). `[process-gap; fork-pr; ci-approval; action-required; periodic-sweep; maintainer; github; org-fork; D-858; codified]`
+
+---
+
+### L-BB-out-of-diff-consumer-suites-escape-cascade-review [process-gap] [codified D-872]
+
+**Title:** Out-of-Diff Consumer Test Suites Escape Fresh-Context Cascade Review — Changed Plugin Names Must Drive a Consumer Grep Before Cascade
+
+**Lesson:** When a fix changes the name or behavior of a plugin (e.g., renaming a hook plugin or changing its trigger semantics), the LOCAL strict 3-CLEAN cascade must also scope to bats test suites that reference the old plugin name — even if those suites are not in the changed-file list. The ADR-032 5-pass cascade reviewed all diff-perimeter files through all passes. The bats suite `verify-state-timestamp-refresh.bats` (T-4) asserting the superseded unconditional-block behavior was outside the changed-file list and surfaced only at CI, requiring a fix commit after all 5 passes completed and after the PR was created. Countermeasure: when the cascade perimeter is set, also run `grep -r <plugin-name> plugins/vsdd-factory/tests/` to identify consumer bats files; include them in the cascade review scope.
+
+**Context:** ADR-032 fix (fix/adr-032-timestamp-hook-edit-enforcement). The verify-state-timestamp-refresh hook was rewritten from unconditional-block to payload-targeted check. T-4 in `verify-state-timestamp-refresh.bats` asserted the old unconditional behavior (`test.txt` should be blocked; now correctly NOT blocked by the new guard). All 5 local cascade passes reviewed the implementation diffs and tests written by the implementer — none included the bats e2e suite because it was not in the diff. CI run on the PR caught T-4 asserting superseded behavior; fix commit 0104a8d6 (T-4 inversion) was required post-cascade.
+
+**Root cause:** The cascade scoping rule in fix-pr-delivery is: "reviewer reads the changed files in the diff." The bats e2e suite `verify-state-timestamp-refresh.bats` was not changed by the implementer — it existed before the fix and asserted the pre-fix behavior. A changed plugin name or semantics makes pre-existing consumer tests implicitly stale, but nothing in the current cascade protocol signals this. The cascade scope is diff-derived, not consumer-derived.
+
+**Prevention:** (1) Before setting the LOCAL cascade perimeter for any fix that renames or changes the behavioral contract of a hook plugin, run: `grep -r "<plugin-name-or-related-keyword>" plugins/vsdd-factory/tests/`. (2) Any bats suite matching the grep is a cascade co-review file even if not in the diff. (3) Add this grep as a mandatory pre-cascade step in the fix-pr-delivery workflow dispatch instructions whenever the changed files include a hook plugin source.
+
+**Anchors:** fix/adr-032-timestamp-hook-edit-enforcement 5-pass LOCAL cascade (P1..P5); T-4 `verify-state-timestamp-refresh.bats` superseded-behavior assertion; CI failure on PR #742 (first run); fix commit 0104a8d6 (T-4 inversion post-cascade); D-872 (this arc-complete burst).
+
+**Cites:** D-872 (codified this burst); PR #742 (T-4 CI failure); fix-pr-delivery workflow (cascade scoping); [[L-BB-claim-class-corrections-gate-across-all-in-scope-artifacts]] (analogous cross-artifact sweep principle); deferral: post-rc.24 human triage — fix-pr-delivery workflow doc update anchored to first engine-discipline pass after rc.24.
+
+**Closes:** D-872 ADR-032-IMPL-ARC-COMPLETE burst (2026-07-21). `[process-gap; cascade-scope; consumer-suite; out-of-diff; bats-e2e; plugin-name; grep-consumers; verify-state-timestamp-refresh; T-4; fix-pr-delivery; D-872; codified]`
+
+---
+
+### L-BB-ci-concurrency-groups-prevent-superseded-run-starvation [process-gap] [codified D-872]
+
+**Title:** ci.yml Lacking Concurrency Groups Allows Superseded PR Runs to Starve Later Runs — Add concurrency: Groups to Cancel Stale Runs Automatically
+
+**Lesson:** When `ci.yml` has no `concurrency:` groups configured, every push to a PR branch launches a fresh workflow run without cancelling the prior run. On hosted macOS runners — which have a lower parallelism quota than linux runners — this causes queue starvation: superseded runs occupy runner slots, blocking newer runs from starting. In the ADR-032 arc, a duplicate PR #742 push plus 23 pre-existing backlog runs caused ~4 hours of macOS runner starvation. Adding `concurrency: { group: "ci-${{ github.head_ref }}", cancel-in-progress: true }` to `ci.yml` would auto-cancel the older run on each new push, eliminating the starvation scenario.
+
+**Context:** PR #742 had a duplicate push (one superseded run + the active run). The 23 backlog runs from the pre-merge queue occupied macOS slots. Combined queue depth caused the darwin-arm64 and darwin-x64 jobs to wait 4+ hours. The orchestrator observed the starvation and human authorized manual cancellation of 24 runs (1 superseded + 23 backlog) as a one-time remediation. The root fix — concurrency groups — was not applied in-arc.
+
+**Root cause:** ci.yml lacks `concurrency:` groups at the workflow level and at the job level. This is a common missing hardening on CI pipelines serving a high-velocity PR queue. GitHub's `cancel-in-progress: true` resolves this class of starvation transparently.
+
+**Prevention:** Add to ci.yml workflow-level stanza: `concurrency: { group: "ci-${{ github.workflow }}-${{ github.head_ref || github.run_id }}", cancel-in-progress: true }`. The `|| github.run_id` fallback preserves non-PR pushes (develop/main) from self-cancellation. Deferral: anchored to post-rc.24 human triage; no existing story fits; will be raised as a new fix PR in the next E-21 W1 session.
+
+**Anchors:** PR #742 macOS runner starvation (~4h queue blockage); human-authorized cancellation of 24 runs; #743 darwin-x64 unstick (cancel + rerun --failed); D-872 (this burst).
+
+**Cites:** D-872 (codified this burst); GitHub Actions concurrency docs (cancel-in-progress); [[L-BB-transient-ci-infra-failure-recovery-runbook]] (CI triage companion); deferral: post-rc.24 human triage.
+
+**Closes:** D-872 ADR-032-IMPL-ARC-COMPLETE burst (2026-07-21). `[process-gap; ci; concurrency-groups; cancel-in-progress; macos-runner; starvation; queue-backlog; ci.yml; D-872; codified]`
+
+---
+
+### L-BB-registry-entries-require-tracked-wasm-at-landing [process-gap] [codified D-872]
+
+**Title:** hooks-registry.toml Entries Must Have a Tracked .wasm Artifact on the Branch at Landing — Parity Gate Needed
+
+**Lesson:** When a hooks-registry.toml entry is added for a new hook plugin, the corresponding `.wasm` artifact must also be staged and tracked on the same branch at the same commit. In the ADR-032 fix arc, an advisory WASM entry was added to hooks-registry.toml (fix commit 692ba433) without the actual `.wasm` file being built and staged alongside it. This registry-artifact parity gap was caught by orchestrator manual inspection, not by any automated gate. The `.wasm` file was separately noted as staged (D-872 arc-complete), but the gap window — registry entry present, wasm absent — existed between commits. A lint gate checking that every registry entry's `wasm_path` resolves to a tracked file on the branch would catch this class of gap automatically.
+
+**Context:** AC-021 advisory WASM plugin added to hooks-registry.toml during the PR #742 fix cycle. The advisory entry was staged in commit 692ba433. The orchestrator noticed via manual parity check that the wasm entry had no corresponding tracked artifact. The check was manual — no hook or CI step enforced registry-wasm parity. Because it was advisory (on-error=advisory, tier=async), the gap was lower-stakes than for a sync blocking plugin, but the general pattern applies to all registry entries.
+
+**Root cause:** No automated gate in CI or the hook chain verifies that a hooks-registry.toml `wasm_path` value corresponds to a tracked file on the branch. The registry is config; the artifacts are binaries. They are committed independently and nothing enforces co-landing.
+
+**Prevention:** (1) Add a CI lint step: `for entry in $(toml-select hooks-registry.toml '*.wasm_path'); do [ -f "$entry" ] || echo "MISSING: $entry"; done`. (2) As a shorter-term gate: when adding a registry entry, stage the wasm artifact in the same commit. (3) Codify in the fix-pr-delivery dispatch instructions: "if hooks-registry.toml is modified, verify the wasm_path resolves to a tracked file before committing." Deferral: CI lint step anchored to post-rc.24 human triage.
+
+**Anchors:** PR #742 fix commit 692ba433 (advisory WASM entry staged without wasm artifact); orchestrator manual parity check; D-872 (this burst).
+
+**Cites:** D-872 (codified this burst); hooks-registry.toml (plugin registry); fix-pr-delivery workflow; deferral: post-rc.24 human triage.
+
+**Closes:** D-872 ADR-032-IMPL-ARC-COMPLETE burst (2026-07-21). `[process-gap; hooks-registry; wasm-artifact; parity-gate; registry-artifact-parity; ci-lint; advisory-plugin; D-872; codified]`
+
+---
+
+### L-BB-macos-runner-starvation-runbook [codified D-872]
+
+**Title:** macOS Runner Starvation Runbook — Enumerate All Queued Runs Account-Wide via API; Cancel Superseded Duplicates First
+
+**Lesson:** When macOS CI jobs are stalled waiting for runners, `gh run list` may under-report the queue depth (it paginates and defaults to recent runs only). The correct enumeration command is `gh run list --limit 100 --status queued --json databaseId,headBranch,status,name | jq '.'` across all workflows, combined with `gh api /repos/{owner}/{repo}/actions/runs?status=queued&per_page=100`. Cancel superseded duplicates (older runs for the same branch/PR) FIRST — they are lowest-risk since a newer run for the same intent is already queued. Backlog runs from unrelated PRs should be assessed for owner impact before cancellation; coordinate with human for authorization. After cancellation, re-trigger any backlog runs that were validly queued (they will have been cancelled only if they were explicitly cancelled, not because of runner availability).
+
+**Context:** ADR-032 arc. During PR #742 CI wait, orchestrator observed >4h macOS starvation. `gh run list` was used initially but under-reported queue depth. API enumeration revealed 24 cancelable runs (1 superseded + 23 backlog from the pre-merge queue). Human authorized bulk cancellation. Post-merge, all 23 backlog runs were re-triggered; 23/23 completed OK.
+
+**Prevention:** (1) When macOS jobs are stalled >30 min: enumerate account-wide queued runs via API (not just `gh run list`). (2) Identify and cancel superseded duplicates first. (3) Assess remaining backlog — coordinate with human for bulk cancel authorization. (4) After cancel+re-trigger, verify the backlog runs complete successfully before declaring the queue healthy.
+
+**Anchors:** PR #742 macOS starvation; human cancel authorization (24 runs); PR #743 darwin-x64 unstick (cancel + rerun --failed); 23 backlog re-triggers post-merge (23/23 ok); D-872.
+
+**Cites:** D-872 (codified this burst); GitHub Actions API (`/actions/runs?status=queued`); `gh run list --status queued`; [[L-BB-ci-concurrency-groups-prevent-superseded-run-starvation]] (root-fix companion).
+
+**Closes:** D-872 ADR-032-IMPL-ARC-COMPLETE burst (2026-07-21). `[ops; macos-runner; starvation; runbook; gh-run-list; api-enumeration; cancel-superseded; backlog; D-872; codified]`
+
+---
+
+### L-BB-live-artifact-test-policy-split-needs-consolidation [codified D-872]
+
+**Title:** Live-Artifact Test Guard Split Across Two Suites Creates an Open Design Question — Consolidate in a factory-artifacts-branch Workflow
+
+**Lesson:** The two-condition live-artifact guard (absent → skip; pull_request non-authoritative → skip) was split across two separate bats suites after the ADR-032 arc: PR #725 added the full two-condition guard to `pass-real-state-md-snapshot.bats`; PR #743 added the absence-only guard to `verify-state-timestamp-refresh.bats` to prevent worktree-path failures. This split works correctly but leaves an open design question: live-state validation tests (tests that read `.factory/STATE.md` as their source of truth) are inherently environment-sensitive and belong in a factory-artifacts-branch workflow rather than in the main CI bats suite. The bats suite runs in all CI contexts (PR, push, fork); a factory-artifacts-branch workflow could gate on `factory-artifacts` availability and skip cleanly in non-authoritative contexts without per-test guards.
+
+**Context:** The absence-only guard in `verify-state-timestamp-refresh.bats` (PR #743) was a targeted fix for the worktree environment where `.factory/STATE.md` is not available (the worktree has no `.factory/` mount). The full two-condition guard in `pass-real-state-md-snapshot.bats` (PR #725) also handles the `pull_request` non-authoritative case. Both guards are correct individually. The consolidation question is architectural: should live-state bats tests move to a factory-artifacts-branch workflow entirely?
+
+**Root cause:** No documented policy for where live-artifact tests should live. The bats suite grew organically; tests that reference live factory-artifacts state were added alongside pure unit-style bats tests without a classification gate. The split in PR #725 and PR #743 resolves the immediate failures but does not close the architectural question.
+
+**Prevention:** (1) Document a test classification policy: bats tests that read `.factory/STATE.md`, `.factory/sprint-state.yaml`, or any other factory-artifacts-branch file as test input are "live-artifact tests" and belong in a dedicated `factory-artifacts-branch-check.yml` workflow. (2) Pure bats tests (dispatcher behavior, hook logic, no live-state reads) remain in `ci.yml`. (3) Relocation deferred to post-rc.24 human triage as a separate fix PR; an existing story does not cover this. Open design question recorded here as a deferral.
+
+**Anchors:** PR #725 (8f17eea1) two-condition guard in `pass-real-state-md-snapshot.bats`; PR #743 (26508e83) absence-only guard in `verify-state-timestamp-refresh.bats`; D-872 (this burst).
+
+**Cites:** D-872 (codified this burst); PR #725; PR #743; deferral: post-rc.24 human triage — live-artifact test relocation anchored to next fix PR session.
+
+**Closes:** D-872 ADR-032-IMPL-ARC-COMPLETE burst (2026-07-21). `[design-question; live-artifact-tests; bats-suite; factory-artifacts-workflow; consolidation; split-guard; ci.yml; D-872; codified]`

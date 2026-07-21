@@ -1,1 +1,1 @@
-{"status":"pass","timestamp":"2026-07-18T23:46:05Z","command":"wc -l /Users/zious/Documents/GITHUB/vsdd-factory/.factory/STATE.md && cargo test -p validate-state-structure --lib 2>&1 | tail -5"}
+{"status":"pass","timestamp":"2026-07-21T14:20:05Z","command":"cargo test --workspace --all-targets 2>&1 | grep -E \"^test result|FAILED\" | head -30"}
