@@ -27,12 +27,15 @@ HELPER="$(cd "$(dirname "$BATS_TEST_FILENAME")/.." && pwd)/bin/factory-lock-writ
 # precondition checks using `grep factory_lock` correctly return non-zero.
 _fixture_no_lock() {
   local path="$1"
+  # timestamp: field is required — the updated _write_factory_lock_block inserts
+  # factory_lock: immediately after timestamp: (ADR-032 §Third Deliverable mandate).
   cat > "$path" <<'FIXTURE'
 ---
 document_type: state
 version: "0.0.1-test"
 phase: test
 current_step: "test-step"
+timestamp: "2026-01-01T00:00:00Z"
 ---
 
 # STATE (test fixture)
@@ -769,6 +772,8 @@ FIXTURE
   # Build a CRLF fixture using printf with octal escapes (portable across
   # bash versions that may not support printf '--' syntax)
   local crlf_state="$BATS_TEST_TMPDIR/crlf-state.md"
+  # timestamp: field is required — _write_factory_lock_block inserts factory_lock:
+  # immediately after timestamp: (ADR-032 §Third Deliverable mandate).
   python3 -c "
 import sys
 content = (
@@ -777,6 +782,7 @@ content = (
     'version: \"0.0.1-test\"\r\n'
     'phase: test\r\n'
     'current_step: \"test-step\"\r\n'
+    'timestamp: \"2026-01-01T00:00:00Z\"\r\n'
     '---\r\n'
     '\r\n'
     '# STATE (CRLF fixture)\r\n'
@@ -1176,4 +1182,289 @@ _file_mode() {
     printf 'FAIL clear: expected mode 644 but got %s\n' "$post_clear_mode" >&2
     false
   fi
+}
+
+# ---------------------------------------------------------------------------
+# ADR-032 §Third Deliverable post-condition tests (F-ADR032IMPL-P2-001)
+# ---------------------------------------------------------------------------
+# The three tests below implement the three placement post-conditions from
+# ADR-032 §Third Deliverable (spec lines 723-731). All three must hold after
+# acquire. A fourth test covers the CRLF-path variant of PC-1.
+#
+#   PC-1 ADJACENCY      — factory_lock: is on the line immediately after
+#                         timestamp:, above any subsequent frontmatter fields.
+#   PC-2 EXACTLY-ONE    — exactly one factory_lock: key exists in the file
+#                         after a remove-then-insert cycle (re-acquire).
+#   PC-3 FRONTMATTER    — factory_lock: key lies inside the YAML frontmatter
+#                         (between the opening and closing --- fences).
+#
+# PC-1 (ADJACENCY) and its CRLF-path sibling are Red Gates: reverting
+# _write_factory_lock_block's awk trigger to `front == 2` causes factory_lock:
+# to be inserted AFTER last_amended: (fl_line == ts_line + 2), which fails
+# the adjacent-line assertion.
+#
+# PC-2 (EXACTLY-ONE) and PC-3 (FRONTMATTER-REGION) are load-bearing
+# regression guards that catch double-insertion and body-region misplacement
+# bugs respectively; they are not Red Gates for the specific front==2 defect.
+#
+# Discriminating fixture (tests 1 and 4): includes last_amended: AFTER
+# timestamp: so that placement by the old awk (after last_amended:) is
+# distinguishable from correct placement (immediately after timestamp:).
+# The existing _fixture_no_lock has no field after timestamp:, so the old awk
+# would coincidentally produce the same output for that fixture — the
+# discriminating fixture is required here.
+# ---------------------------------------------------------------------------
+
+# ---------------------------------------------------------------------------
+# test_BC_5_40_001_placement_adjacent_to_timestamp
+# ADR-032 §Third Deliverable PC-1 — factory_lock: must appear on the line
+# immediately after timestamp:, above any subsequent frontmatter fields.
+#
+# RED GATE: reverted awk (front == 2) places factory_lock: after last_amended:,
+# so fl_line == ts_line + 2 — the `fl_line == ts_line + 1` assertion fails.
+# ---------------------------------------------------------------------------
+
+@test "test_BC_5_40_001_placement_adjacent_to_timestamp" {
+  # Discriminating fixture: last_amended: appears AFTER timestamp: so that
+  # old-awk (front==2) placement is distinguishable from correct placement.
+  # With front==2: factory_lock: lands after last_amended: (delta >= 2).
+  # With front==1 && /^timestamp:/: factory_lock: lands right after timestamp: (delta == 1).
+  cat > "$FIXTURE_STATE" <<'FIXTURE'
+---
+document_type: state
+version: "0.0.1-test"
+phase: test
+current_step: "test-step"
+timestamp: "2026-01-01T00:00:00Z"
+last_amended: "2026-01-01 — ADR-032 placement test"
+---
+
+# STATE (ADR-032 placement fixture)
+FIXTURE
+
+  run bash "$HELPER" acquire "$FIXTURE_STATE"
+  [ "$status" -eq 0 ]
+
+  # Post-condition 1: factory_lock: on the line immediately following timestamp:.
+  # Spec-prescribed discriminating command: grep -n "^timestamp:\|^factory_lock:".
+  local ts_line fl_line
+  ts_line="$(grep -n '^timestamp:' "$FIXTURE_STATE" | head -1 | cut -d: -f1)"
+  fl_line="$(grep -n '^factory_lock:' "$FIXTURE_STATE" | head -1 | cut -d: -f1)"
+
+  [ -n "$ts_line" ]
+  [ -n "$fl_line" ]
+
+  local expected=$(( ts_line + 1 ))
+  if [ "$fl_line" -ne "$expected" ]; then
+    printf 'FAIL placement_adjacent_to_timestamp: factory_lock: is on line %s; ' "$fl_line" >&2
+    printf 'expected line %s (immediately after timestamp: on line %s)\n' "$expected" "$ts_line" >&2
+    printf 'Relevant lines:\n' >&2
+    grep -n '^timestamp:\|^factory_lock:\|^last_amended:' "$FIXTURE_STATE" >&2
+    false
+  fi
+}
+
+# ---------------------------------------------------------------------------
+# test_BC_5_40_001_placement_exactly_one_factory_lock_key
+# ADR-032 §Third Deliverable PC-2 — exactly one factory_lock: key in the file
+# after a re-acquire (remove-then-insert cycle).
+#
+# Uses an inline fixture that has both timestamp: and an existing factory_lock:
+# block so that acquire exercises _remove_factory_lock + insert. Catches
+# double-insertion defects: grep -c "^factory_lock:" must equal 1.
+# ---------------------------------------------------------------------------
+
+@test "test_BC_5_40_001_placement_exactly_one_factory_lock_key" {
+  # Inline fixture: timestamp: is required by the new awk; an existing
+  # factory_lock: block exercises the remove-then-insert (re-acquire) path.
+  # _fixture_with_lock omits timestamp: so an inline fixture is used here.
+  cat > "$FIXTURE_STATE" <<'FIXTURE'
+---
+document_type: state
+version: "0.0.1-test"
+phase: test
+current_step: "test-step"
+timestamp: "2026-01-01T00:00:00Z"
+factory_lock:
+  holder: "prior-holder@example.com"
+  locked_at: "2026-01-01T00:00:00Z"
+  expires_at: "2026-01-01T00:45:00Z"
+---
+
+# STATE (re-acquire test fixture)
+FIXTURE
+
+  # Precondition: one factory_lock: key present before re-acquire
+  [ "$(grep -c '^factory_lock:' "$FIXTURE_STATE")" -eq 1 ]
+
+  run bash "$HELPER" acquire "$FIXTURE_STATE"
+  [ "$status" -eq 0 ]
+
+  # Post-condition 2: exactly one factory_lock: key after acquire (no double-insertion).
+  local actual
+  actual="$(grep -c '^factory_lock:' "$FIXTURE_STATE")"
+  if [ "$actual" -ne 1 ]; then
+    printf 'FAIL placement_exactly_one_factory_lock_key: expected 1 factory_lock: key; found %s\n' "$actual" >&2
+    false
+  fi
+}
+
+# ---------------------------------------------------------------------------
+# test_BC_5_40_001_placement_factory_lock_in_frontmatter_region
+# ADR-032 §Third Deliverable PC-3 — factory_lock: block lies within the YAML
+# frontmatter (between the opening and closing --- fences).
+#
+# Fixture body references "factory_lock:" in prose so that a file-global key
+# search does not trivially confirm frontmatter placement; the spec-prescribed
+# awk gate is the true discriminating assertion.
+# ---------------------------------------------------------------------------
+
+@test "test_BC_5_40_001_placement_factory_lock_in_frontmatter_region" {
+  # Frontmatter is unlocked; body mentions factory_lock: in prose to ensure the
+  # awk gate (frontmatter-only) is the decisive check, not a global grep.
+  cat > "$FIXTURE_STATE" <<'FIXTURE'
+---
+document_type: state
+version: "0.0.1-test"
+phase: test
+current_step: "test-step"
+timestamp: "2026-01-01T00:00:00Z"
+---
+
+# STATE (frontmatter region test)
+The factory_lock: block behaviour is governed by ADR-032.
+FIXTURE
+
+  run bash "$HELPER" acquire "$FIXTURE_STATE"
+  [ "$status" -eq 0 ]
+
+  # Post-condition 3: factory_lock: key inside the frontmatter region.
+  # Exact awk from ADR-032 §Third Deliverable post-condition mandate.
+  if ! awk '/^---$/{f++; next} f==1 && /^factory_lock:/{found=1} END{exit !found}' "$FIXTURE_STATE"; then
+    printf 'FAIL placement_factory_lock_in_frontmatter_region: ' >&2
+    printf 'factory_lock: key not found inside frontmatter (between --- fences)\n' >&2
+    printf 'Frontmatter contents:\n' >&2
+    awk '/^---$/{f++} f<=1{print} f==2{exit}' "$FIXTURE_STATE" >&2
+    false
+  fi
+}
+
+# ---------------------------------------------------------------------------
+# test_BC_5_40_001_placement_adjacent_to_timestamp_crlf_path
+# ADR-032 §Third Deliverable PC-1 on CRLF-normalized input — adjacency holds
+# after CRLF → LF normalization and acquire.
+#
+# Discriminating CRLF fixture: includes last_amended: after timestamp: so the
+# adjacency check is a genuine Red Gate (same logic as the LF path test).
+#
+# RED GATE: reverted awk (front == 2) places factory_lock: after last_amended:
+# even on the CRLF-normalized path — fl_line != ts_line + 1 assertion fails.
+# ---------------------------------------------------------------------------
+
+@test "test_BC_5_40_001_placement_adjacent_to_timestamp_crlf_path" {
+  local crlf_state="$BATS_TEST_TMPDIR/crlf-placement.md"
+
+  # CRLF fixture: last_amended: field after timestamp: (discriminating — same
+  # reason as the LF path test: distinguishes front==2 from front==1+/timestamp:/).
+  python3 -c "
+import sys
+content = (
+    '---\r\n'
+    'document_type: state\r\n'
+    'version: \"0.0.1-test\"\r\n'
+    'phase: test\r\n'
+    'current_step: \"test-step\"\r\n'
+    'timestamp: \"2026-01-01T00:00:00Z\"\r\n'
+    'last_amended: \"2026-01-01 — ADR-032 CRLF placement test\"\r\n'
+    '---\r\n'
+    '\r\n'
+    '# STATE (CRLF placement fixture)\r\n'
+)
+sys.stdout.buffer.write(content.encode('utf-8'))
+" > "$crlf_state"
+
+  # Precondition: CRLF line endings present before normalization
+  local cr_count
+  cr_count="$(tr -cd '\r' < "$crlf_state" | wc -c | tr -d ' ')"
+  [ "$cr_count" -gt 0 ]
+
+  run bash "$HELPER" acquire "$crlf_state"
+  [ "$status" -eq 0 ]
+
+  # ADJACENCY on CRLF path: after normalization + insert, factory_lock: must be
+  # on the line immediately after timestamp:. Same assertion as the LF path test.
+  local ts_line fl_line
+  ts_line="$(grep -n '^timestamp:' "$crlf_state" | head -1 | cut -d: -f1)"
+  fl_line="$(grep -n '^factory_lock:' "$crlf_state" | head -1 | cut -d: -f1)"
+
+  [ -n "$ts_line" ]
+  [ -n "$fl_line" ]
+
+  local expected=$(( ts_line + 1 ))
+  if [ "$fl_line" -ne "$expected" ]; then
+    printf 'FAIL placement_adjacent_to_timestamp_crlf_path: factory_lock: is on line %s; ' "$fl_line" >&2
+    printf 'expected line %s (immediately after timestamp: on line %s) [CRLF path]\n' "$expected" "$ts_line" >&2
+    printf 'Relevant lines:\n' >&2
+    grep -n '^timestamp:\|^factory_lock:\|^last_amended:' "$crlf_state" >&2
+    false
+  fi
+}
+
+# ---------------------------------------------------------------------------
+# Acquire: STATE.md frontmatter missing timestamp: → loud failure (SchemaViolation)
+#
+# Context: _write_factory_lock_block inserts the factory_lock block immediately
+# after the `timestamp:` line (ADR-032 §Third Deliverable placement mandate).
+# If no `timestamp:` line exists in the frontmatter, the awk trigger
+# `front == 1 && /^timestamp:/ && !inserted` never fires, the block is not
+# written, and the post-write frontmatter assertion exits 1 with a
+# SchemaViolation message.
+#
+# This is a LOUD failure (non-zero exit + SchemaViolation in stderr), NOT silent.
+# The timestamp: field is a hard precondition for acquire as of ADR-032 D4.
+#
+# This test documents and gates that precondition: acquire on a frontmatter
+# lacking timestamp: must exit non-zero and emit SchemaViolation.
+#
+# Traces: ADR-032 §Third Deliverable / factory-lock-write.sh _write_factory_lock_block
+# ---------------------------------------------------------------------------
+
+@test "test_BC_5_40_001_acquire_timestamp_absent_fails_loud" {
+  local state_no_ts="$BATS_TEST_TMPDIR/no-timestamp.md"
+
+  # Fixture: valid frontmatter with TWO --- fences but NO timestamp: field.
+  # _validate_frontmatter passes (two fences present); the failure occurs only
+  # when _write_factory_lock_block finds no timestamp: line to insert after.
+  cat > "$state_no_ts" <<'STATE'
+---
+document_type: state
+version: "0.0.1-test"
+phase: test
+current_step: "test-step"
+---
+
+# STATE (fixture — no timestamp: field)
+STATE
+
+  # Precondition: confirm fixture truly lacks timestamp: in frontmatter.
+  ! grep -q '^timestamp:' "$state_no_ts"
+
+  run bash "$HELPER" acquire "$state_no_ts"
+
+  # Must exit non-zero — the post-write assertion detects factory_lock: not written.
+  [ "$status" -ne 0 ] || {
+    echo "FAIL: expected non-zero exit when timestamp: is absent from frontmatter."
+    echo "acquire should detect that factory_lock: was not inserted (post-write assertion)."
+    echo "Output: $output"
+    return 1
+  }
+
+  # Must include SchemaViolation in output — loud diagnostic, not silent.
+  [[ "$output" == *"SchemaViolation"* ]] || {
+    echo "FAIL: expected 'SchemaViolation' in output when timestamp: is absent."
+    echo "The post-write assertion in acquire emits: factory-lock-write: SchemaViolation —"
+    echo "factory_lock block was not written to frontmatter..."
+    echo "Actual output: $output"
+    return 1
+  }
 }

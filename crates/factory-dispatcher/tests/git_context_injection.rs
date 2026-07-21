@@ -17,9 +17,10 @@
 //! - `test_host_abi_version_unchanged` (AC-005 / BC-1.16.001 PC5 / ADR-029 §Decision 4):
 //!   Verifies HOST_ABI_VERSION = 1 (green-by-design; compile-time constant).
 //!
-//! - `test_git_context_schema_four_fields_present` (AC-006 / BC-1.16.001 INV5):
-//!   Verifies `GitContext::to_json()` produces a JSON object with exactly four
-//!   string fields (head_subject, head_sha, head_parent_subject, head_parent_sha).
+//! - `test_git_context_schema_seven_fields_present` (AC-006 / BC-1.16.001 INV5 / ADR-032-AC021-prereq):
+//!   Verifies `GitContext::to_json()` produces a JSON object with exactly seven
+//!   string fields (the original four plus head_state_timestamp,
+//!   head_parent_state_timestamp, state_md_in_commit — ADR-032-AC021-prereq).
 //!   Also verifies null is never emitted — empty string is the sentinel.
 //!
 //! - `test_detect_git_commit_event_qualifying` (AC-001, AC-010):
@@ -67,26 +68,29 @@ fn test_host_abi_version_unchanged() {
 }
 
 // ---------------------------------------------------------------------------
-// AC-006 / BC-1.16.001 INV5 (four-field completeness)
+// AC-006 / BC-1.16.001 INV5 / ADR-032-AC021-prereq (seven-field completeness)
 // GitContext::to_json() schema contract (GREEN-BY-DESIGN — pure object
-// construction; all four string fields present and non-null).
+// construction; all seven string fields present and non-null).
 // ---------------------------------------------------------------------------
 
-/// Verify `GitContext::to_json()` produces an object with exactly four string
-/// fields matching the ADR-029 §Decision 2 schema.
+/// Verify `GitContext::to_json()` produces an object with exactly seven string
+/// fields matching the ADR-029 §Decision 2 + ADR-032-AC021-prereq schema.
 ///
-/// `GitContext::to_json()` is GREEN-BY-DESIGN (pure object construction, ≤8 lines).
-/// The schema-completeness assertion verifies all four fields are present as strings.
+/// `GitContext::to_json()` is GREEN-BY-DESIGN (pure object construction).
+/// The schema-completeness assertion verifies all seven fields are present as strings.
 ///
-/// The test for `GitContext::empty()` (which returns all `""`) verifies that the
-/// fail-open sentinel satisfies the four-field requirement (AC-006 / AC-011).
+/// ADR-032-AC021-prereq added three fields to `GitContext`:
+/// `head_state_timestamp`, `head_parent_state_timestamp`, and `state_md_in_commit`.
 #[test]
-fn test_git_context_schema_four_fields_present() {
+fn test_git_context_schema_seven_fields_present() {
     let ctx = GitContext {
         head_subject: "state: burst-02 Commit B".to_string(),
         head_sha: "a".repeat(40),
         head_parent_subject: "state: burst-01 Commit A".to_string(),
         head_parent_sha: "b".repeat(40),
+        head_state_timestamp: "2026-07-20T10:00:00Z".to_string(),
+        head_parent_state_timestamp: "2026-07-20T09:00:00Z".to_string(),
+        state_md_in_commit: "true".to_string(),
     };
 
     let json_val = ctx.to_json();
@@ -94,23 +98,18 @@ fn test_git_context_schema_four_fields_present() {
         .as_object()
         .expect("to_json() must return a JSON object");
 
-    // All four fields must be present.
-    assert!(
-        obj.contains_key("head_subject"),
-        "git_context must contain head_subject"
-    );
-    assert!(
-        obj.contains_key("head_sha"),
-        "git_context must contain head_sha"
-    );
-    assert!(
-        obj.contains_key("head_parent_subject"),
-        "git_context must contain head_parent_subject"
-    );
-    assert!(
-        obj.contains_key("head_parent_sha"),
-        "git_context must contain head_parent_sha"
-    );
+    // All seven fields must be present.
+    for key in &[
+        "head_subject",
+        "head_sha",
+        "head_parent_subject",
+        "head_parent_sha",
+        "head_state_timestamp",
+        "head_parent_state_timestamp",
+        "state_md_in_commit",
+    ] {
+        assert!(obj.contains_key(*key), "git_context must contain {key}");
+    }
 
     // All fields must be strings (not null, not absent).
     for key in &[
@@ -118,6 +117,9 @@ fn test_git_context_schema_four_fields_present() {
         "head_sha",
         "head_parent_subject",
         "head_parent_sha",
+        "head_state_timestamp",
+        "head_parent_state_timestamp",
+        "state_md_in_commit",
     ] {
         let val = obj.get(*key).expect("field must be present");
         assert!(
@@ -130,51 +132,61 @@ fn test_git_context_schema_four_fields_present() {
         );
     }
 
-    // Exact field count: exactly 4 fields (no extra, no missing).
+    // Exact field count: exactly 7 fields (ADR-032-AC021-prereq extended from 4 to 7).
     assert_eq!(
         obj.len(),
-        4,
-        "git_context must have exactly 4 fields; got {}: {:?}",
+        7,
+        "git_context must have exactly 7 fields; got {}: {:?}",
         obj.len(),
         obj.keys().collect::<Vec<_>>()
     );
 }
 
-/// Verify `GitContext::empty()` satisfies the four-field schema with all-empty strings
+/// Verify `GitContext::empty()` satisfies the seven-field schema with all-empty strings
 /// (fail-open sentinel; AC-006 / AC-011 — `""` not null).
+///
+/// ADR-032-AC021-prereq added `head_state_timestamp`, `head_parent_state_timestamp`,
+/// and `state_md_in_commit` — all three MUST also be `""` in the empty sentinel.
 ///
 /// # GREEN-BY-DESIGN
 ///
-/// `GitContext::empty()` is GREEN-BY-DESIGN (pure struct construction, ≤7 lines).
+/// `GitContext::empty()` is GREEN-BY-DESIGN (pure struct construction).
 /// `to_json()` is also GREEN-BY-DESIGN. Both functions are pure struct construction
 /// with no I/O. Self-check (BC-5.38.005 invariant 1): "Is the test for the fail-open
 /// sentinel path, which is correct-by-construction?" Yes — classified GREEN-BY-DESIGN.
 #[test]
-fn test_git_context_empty_satisfies_four_field_schema() {
+fn test_git_context_empty_satisfies_seven_field_schema() {
     let ctx = GitContext::empty();
 
     assert_eq!(ctx.head_subject, "");
     assert_eq!(ctx.head_sha, "");
     assert_eq!(ctx.head_parent_subject, "");
     assert_eq!(ctx.head_parent_sha, "");
+    assert_eq!(ctx.head_state_timestamp, "");
+    assert_eq!(ctx.head_parent_state_timestamp, "");
+    assert_eq!(ctx.state_md_in_commit, "");
 
     let json_val = ctx.to_json();
     let obj = json_val
         .as_object()
         .expect("to_json() must return a JSON object");
 
-    // All four fields present as empty string (not null).
+    // All seven fields present as empty string (not null).
     for key in &[
         "head_subject",
         "head_sha",
         "head_parent_subject",
         "head_parent_sha",
+        "head_state_timestamp",
+        "head_parent_state_timestamp",
+        "state_md_in_commit",
     ] {
         let val = obj.get(*key).expect("field must be present");
         assert_eq!(
             val.as_str(),
             Some(""),
-            "GitContext::empty() must produce empty-string fields in JSON (not null)"
+            "GitContext::empty() must produce empty-string fields in JSON (not null); \
+             field '{key}' was not empty"
         );
     }
 }
@@ -278,7 +290,7 @@ fn test_detect_git_commit_event_non_qualifying_edit_tool() {
 ///
 /// Uses a temporary directory that is NOT a git repo to simulate the error path.
 /// The implementation emits tracing::warn! on the git failure and returns
-/// GitContext::empty() (all four fields ""). Test verifies the fail-open path (T-2).
+/// GitContext::empty() (all seven fields ""). Test verifies the fail-open path (T-2).
 #[test]
 fn test_build_git_context_fail_open_on_bad_dir() {
     let tmp = tempfile::tempdir().unwrap();
@@ -336,7 +348,7 @@ fn test_inject_git_context_if_qualifying_non_qualifying_noop() {
 // ---------------------------------------------------------------------------
 // AC-001 / BC-1.16.001 PC1 (inject_git_context_if_qualifying positive path)
 // inject_git_context_if_qualifying: qualifying PostToolUse Bash event →
-// payload_value is mutated with "git_context" key (four-field JSON object).
+// payload_value is mutated with "git_context" key (seven-field JSON object).
 // Complements the no-op test above (which covers non-qualifying events).
 //
 // Uses a temporary non-git directory for factory_dir so build_git_context fails
@@ -389,13 +401,16 @@ fn test_BC_1_16_001_inject_qualifying_mutates_payload_value() {
         "git_context must be a JSON object; got: {git_ctx:?}"
     );
 
-    // All four fields must be present as strings (four-field completeness, AC-006 / INV5).
+    // All seven fields must be present as strings (seven-field completeness, AC-006 / INV5).
     let obj = git_ctx.as_object().expect("git_context is an object");
     for key in &[
         "head_subject",
         "head_sha",
         "head_parent_subject",
         "head_parent_sha",
+        "head_state_timestamp",
+        "head_parent_state_timestamp",
+        "state_md_in_commit",
     ] {
         let val = obj.get(*key).unwrap_or_else(|| {
             panic!(

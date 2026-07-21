@@ -42,6 +42,7 @@ wasmtime.workspace = true
 wasmtime-wasi.workspace = true
 tokio.workspace = true
 tracing.workspace = true
+factory-lock-parse = { path = "../factory-lock-parse", version = "0.0.1" }
 sink-core = { path = "../sink-core", version = "0.0.1" }
 sink-datadog = { path = "../sink-datadog", version = "0.0.1" }
 sink-file = { path = "../sink-file", version = "0.0.1" }
