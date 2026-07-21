@@ -17,7 +17,7 @@
 //! - `test_host_abi_version_unchanged` (AC-005 / BC-1.16.001 PC5 / ADR-029 §Decision 4):
 //!   Verifies HOST_ABI_VERSION = 1 (green-by-design; compile-time constant).
 //!
-//! - `test_git_context_schema_four_fields_present` (AC-006 / BC-1.16.001 INV5 / ADR-032-AC021-prereq):
+//! - `test_git_context_schema_seven_fields_present` (AC-006 / BC-1.16.001 INV5 / ADR-032-AC021-prereq):
 //!   Verifies `GitContext::to_json()` produces a JSON object with exactly seven
 //!   string fields (the original four plus head_state_timestamp,
 //!   head_parent_state_timestamp, state_md_in_commit — ADR-032-AC021-prereq).
@@ -82,7 +82,7 @@ fn test_host_abi_version_unchanged() {
 /// ADR-032-AC021-prereq added three fields to `GitContext`:
 /// `head_state_timestamp`, `head_parent_state_timestamp`, and `state_md_in_commit`.
 #[test]
-fn test_git_context_schema_four_fields_present() {
+fn test_git_context_schema_seven_fields_present() {
     let ctx = GitContext {
         head_subject: "state: burst-02 Commit B".to_string(),
         head_sha: "a".repeat(40),
@@ -155,7 +155,7 @@ fn test_git_context_schema_four_fields_present() {
 /// with no I/O. Self-check (BC-5.38.005 invariant 1): "Is the test for the fail-open
 /// sentinel path, which is correct-by-construction?" Yes — classified GREEN-BY-DESIGN.
 #[test]
-fn test_git_context_empty_satisfies_four_field_schema() {
+fn test_git_context_empty_satisfies_seven_field_schema() {
     let ctx = GitContext::empty();
 
     assert_eq!(ctx.head_subject, "");
@@ -290,7 +290,7 @@ fn test_detect_git_commit_event_non_qualifying_edit_tool() {
 ///
 /// Uses a temporary directory that is NOT a git repo to simulate the error path.
 /// The implementation emits tracing::warn! on the git failure and returns
-/// GitContext::empty() (all four fields ""). Test verifies the fail-open path (T-2).
+/// GitContext::empty() (all seven fields ""). Test verifies the fail-open path (T-2).
 #[test]
 fn test_build_git_context_fail_open_on_bad_dir() {
     let tmp = tempfile::tempdir().unwrap();
@@ -348,7 +348,7 @@ fn test_inject_git_context_if_qualifying_non_qualifying_noop() {
 // ---------------------------------------------------------------------------
 // AC-001 / BC-1.16.001 PC1 (inject_git_context_if_qualifying positive path)
 // inject_git_context_if_qualifying: qualifying PostToolUse Bash event →
-// payload_value is mutated with "git_context" key (four-field JSON object).
+// payload_value is mutated with "git_context" key (seven-field JSON object).
 // Complements the no-op test above (which covers non-qualifying events).
 //
 // Uses a temporary non-git directory for factory_dir so build_git_context fails
@@ -401,13 +401,16 @@ fn test_BC_1_16_001_inject_qualifying_mutates_payload_value() {
         "git_context must be a JSON object; got: {git_ctx:?}"
     );
 
-    // All four fields must be present as strings (four-field completeness, AC-006 / INV5).
+    // All seven fields must be present as strings (seven-field completeness, AC-006 / INV5).
     let obj = git_ctx.as_object().expect("git_context is an object");
     for key in &[
         "head_subject",
         "head_sha",
         "head_parent_subject",
         "head_parent_sha",
+        "head_state_timestamp",
+        "head_parent_state_timestamp",
+        "state_md_in_commit",
     ] {
         let val = obj.get(*key).unwrap_or_else(|| {
             panic!(

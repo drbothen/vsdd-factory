@@ -3880,7 +3880,6 @@ dependencies = [
 name = "verify-state-timestamp-advisory"
 version = "0.0.1"
 dependencies = [
- "serde",
  "serde_json",
  "vsdd-hook-sdk",
 ]

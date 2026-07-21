@@ -1796,8 +1796,8 @@ mod tests {
 
 // S-18.04b-prereq: git_context payload injection (ADR-029)
 
-/// The four-field git_context schema injected into `payload.extra` on qualifying
-/// PostToolUse Bash git-commit events (ADR-029 §Decision 2).
+/// The seven-field git_context schema injected into `payload.extra` on qualifying
+/// PostToolUse Bash git-commit events (ADR-029 §Decision 2 / ADR-032-AC021-prereq).
 ///
 /// All fields are `String`. Empty string means the field could not be populated
 /// (e.g. `head_parent_sha` when factory-artifacts has only one commit).
@@ -1934,8 +1934,8 @@ pub fn detect_git_commit_event(payload: &crate::payload::HookPayload) -> bool {
     command.contains("git") && command.contains(" commit") && command.contains(".factory")
 }
 
-/// Execute the four git commands against the factory-artifacts worktree at
-/// `factory_dir` and return a populated `GitContext` (ADR-029 §Decision 3).
+/// Execute the seven git commands/operations against the factory-artifacts worktree at
+/// `factory_dir` and return a populated `GitContext` (ADR-029 §Decision 3 / ADR-032-AC021-prereq).
 ///
 /// Commands executed (in order) via `Command::new("git").current_dir(factory_dir)`:
 /// 1. `git log --format=%s -1 HEAD` → `head_subject`
@@ -1944,13 +1944,19 @@ pub fn detect_git_commit_event(payload: &crate::payload::HookPayload) -> bool {
 ///    (empty string if HEAD^ does not exist — exit non-zero)
 /// 4. `git rev-parse HEAD^` → `head_parent_sha`
 ///    (empty string if HEAD^ does not exist — exit non-zero)
+/// 5. `git show HEAD:STATE.md` → `head_state_timestamp`
+///    (extract `timestamp:` field via `extract_yaml_string_value`; empty on error)
+/// 6. `git show HEAD^:STATE.md` → `head_parent_state_timestamp`
+///    (empty string if HEAD^ does not exist — exit non-zero)
+/// 7. `git diff --name-only HEAD^ HEAD` → `state_md_in_commit`
+///    (`"true"` if STATE.md is listed; `"false"` otherwise; empty string on error)
 ///
 /// # Fail-open contract (BC-1.16.001 PC2 / AC-002 / AC-009)
 ///
 /// On ANY git command failure (non-zero exit, git binary not found, I/O error,
 /// permission denied), the function MUST:
 /// 1. Emit `tracing::warn!` describing the failure.
-/// 2. Return `GitContext::empty()` (all four fields `""`).
+/// 2. Return `GitContext::empty()` (all seven fields `""`).
 ///
 /// The dispatcher MUST NOT block, abort, or fail-closed on a git error.
 ///
@@ -2075,10 +2081,10 @@ pub fn build_git_context(factory_dir: &std::path::Path) -> GitContext {
 ///    PostToolUse Bash event is a qualifying git-commit event.
 /// 2. If non-qualifying: return immediately without mutating `payload_value`
 ///    (AC-003, AC-004 — no injection on non-qualifying events).
-/// 3. If qualifying: call `build_git_context(factory_dir)` to obtain the four-field context,
+/// 3. If qualifying: call `build_git_context(factory_dir)` to obtain the seven-field context,
 ///    inject `git_context` as a `serde_json::Value::Object` into `payload_value` at key
 ///    `"git_context"` (rides in the `extra` flatten map — ADR-029 §Decision 2 / AC-005),
-///    with all four fields present as strings; null fields are forbidden (AC-006, AC-011).
+///    with all seven fields present as strings; null fields are forbidden (AC-006, AC-011).
 ///
 /// # Arguments
 ///

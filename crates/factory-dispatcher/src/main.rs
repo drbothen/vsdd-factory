@@ -361,8 +361,9 @@ async fn run(internal_log: Arc<InternalLog>) -> anyhow::Result<i32> {
     // The implementer wires `factory_dispatcher::invoke::inject_git_context_if_qualifying`
     // here, after `dispatcher_trace_id` is injected above and before `ExecutorInputs` is
     // built below. On qualifying PostToolUse Bash git-commit events targeting the
-    // factory-artifacts worktree, this call injects `git_context` (four string fields:
-    // head_subject, head_sha, head_parent_subject, head_parent_sha) into `payload_value`
+    // factory-artifacts worktree, this call injects `git_context` (seven string fields:
+    // head_subject, head_sha, head_parent_subject, head_parent_sha, head_state_timestamp,
+    // head_parent_state_timestamp, state_md_in_commit) into `payload_value`
     // so downstream plugins can read it from `payload.extra["git_context"]` without
     // calling exec_subprocess themselves (BC-1.16.001 INV1 exec-free WASM boundary).
     //
