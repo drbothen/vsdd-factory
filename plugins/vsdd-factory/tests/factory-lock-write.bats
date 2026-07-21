@@ -27,12 +27,15 @@ HELPER="$(cd "$(dirname "$BATS_TEST_FILENAME")/.." && pwd)/bin/factory-lock-writ
 # precondition checks using `grep factory_lock` correctly return non-zero.
 _fixture_no_lock() {
   local path="$1"
+  # timestamp: field is required — the updated _write_factory_lock_block inserts
+  # factory_lock: immediately after timestamp: (ADR-032 §Third Deliverable mandate).
   cat > "$path" <<'FIXTURE'
 ---
 document_type: state
 version: "0.0.1-test"
 phase: test
 current_step: "test-step"
+timestamp: "2026-01-01T00:00:00Z"
 ---
 
 # STATE (test fixture)
@@ -769,6 +772,8 @@ FIXTURE
   # Build a CRLF fixture using printf with octal escapes (portable across
   # bash versions that may not support printf '--' syntax)
   local crlf_state="$BATS_TEST_TMPDIR/crlf-state.md"
+  # timestamp: field is required — _write_factory_lock_block inserts factory_lock:
+  # immediately after timestamp: (ADR-032 §Third Deliverable mandate).
   python3 -c "
 import sys
 content = (
@@ -777,6 +782,7 @@ content = (
     'version: \"0.0.1-test\"\r\n'
     'phase: test\r\n'
     'current_step: \"test-step\"\r\n'
+    'timestamp: \"2026-01-01T00:00:00Z\"\r\n'
     '---\r\n'
     '\r\n'
     '# STATE (CRLF fixture)\r\n'
