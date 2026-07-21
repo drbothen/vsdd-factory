@@ -186,7 +186,7 @@ _remove_factory_lock() {
 # ---------------------------------------------------------------------------
 # Helper: write/replace the factory_lock block inside YAML frontmatter.
 # Strategy: strip any existing factory_lock block, then insert the new one
-# just before the closing --- of the frontmatter.
+# immediately after the timestamp: line in the frontmatter, above last_amended:.
 # ---------------------------------------------------------------------------
 _write_factory_lock_block() {
   local file="$1"

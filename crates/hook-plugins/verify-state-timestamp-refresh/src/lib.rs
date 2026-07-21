@@ -1797,7 +1797,7 @@ mod tests {
     // -----------------------------------------------------------------------
 
     #[test]
-    fn test_edit_payload_reconstruct_stale_timestamp_blocks() {
+    fn test_edit_payload_reconstruct_phase_change_payload_neutral_continues() {
         let on_disk = state_md_no_lock(TS_OLD);
 
         // The edit changes something else (the phase field), NOT the timestamp.
@@ -1824,7 +1824,7 @@ mod tests {
         assert_eq!(
             result,
             HookResult::Continue,
-            "test_edit_payload_reconstruct_stale_timestamp_blocks: Edit with new_string \
+            "test_edit_payload_reconstruct_phase_change_payload_neutral_continues: Edit with new_string \
              'phase: complete' (no timestamp: or factory_lock: at col 0) is payload-neutral \
              under ADR-032 Decision 1 (AC-020) → must return Continue. \
              Pre-ADR-032 Block(TimestampStale) behavior is superseded."
@@ -1887,7 +1887,7 @@ mod tests {
     // -----------------------------------------------------------------------
 
     #[test]
-    fn test_multiedit_payload_reconstruct_stale_timestamp_blocks() {
+    fn test_multiedit_payload_reconstruct_phase_change_payload_neutral_continues() {
         let on_disk = state_md_no_lock(TS_OLD);
 
         // Two edits that don't touch the timestamp line or factory_lock block.
@@ -1917,7 +1917,7 @@ mod tests {
         assert_eq!(
             result,
             HookResult::Continue,
-            "test_multiedit_payload_reconstruct_stale_timestamp_blocks: MultiEdit with no \
+            "test_multiedit_payload_reconstruct_phase_change_payload_neutral_continues: MultiEdit with no \
              new_string setting timestamp: or factory_lock: at col 0 is payload-neutral \
              under ADR-032 Decision 1 (AC-020) → must return Continue. \
              Pre-ADR-032 Block(TimestampStale) behavior is superseded."
@@ -3854,9 +3854,9 @@ mod tests {
     // DOES set timestamp:, routing through the full reconstruction path).
     //
     // GREEN tests (payload-neutral under ADR-032 → Continue):
-    //   test_edit_body_target_delimiter_present_stale_timestamp_blocks     (test 1)
-    //   test_multiedit_body_target_stale_timestamp_blocks                  (test 2)
-    //   test_edit_body_target_70kib_delimiter_present_stale_timestamp_blocks (large variant)
+    //   test_edit_body_target_delimiter_present_payload_neutral_continues     (test 1)
+    //   test_multiedit_body_target_payload_neutral_continues                  (test 2)
+    //   test_edit_body_target_70kib_delimiter_present_payload_neutral_continues (large variant)
     //
     // GREEN tests (timestamp-advancing → reconstruction path → Continue):
     //   test_edit_boundary_spanning_advanced_timestamp_continues           (test 3)
@@ -3886,7 +3886,7 @@ mod tests {
     // -----------------------------------------------------------------------
 
     #[test]
-    fn test_edit_body_target_delimiter_present_stale_timestamp_blocks() {
+    fn test_edit_body_target_delimiter_present_payload_neutral_continues() {
         let on_disk = state_md_no_lock(TS_OLD);
         let body_target = "# STATE";
 
@@ -3912,7 +3912,7 @@ mod tests {
         assert_eq!(
             result,
             HookResult::Continue,
-            "test_edit_body_target_delimiter_present_stale_timestamp_blocks: \
+            "test_edit_body_target_delimiter_present_payload_neutral_continues: \
              body-only Edit with new_string '# STATE\\n\\nBody text added by edit.' \
              (no timestamp: or factory_lock: at col 0) is payload-neutral under \
              ADR-032 Decision 1 (AC-020) → must return Continue."
@@ -3934,7 +3934,7 @@ mod tests {
     // -----------------------------------------------------------------------
 
     #[test]
-    fn test_multiedit_body_target_stale_timestamp_blocks() {
+    fn test_multiedit_body_target_payload_neutral_continues() {
         let on_disk = state_md_no_lock(TS_OLD);
         let body_target = "# STATE";
 
@@ -3959,7 +3959,7 @@ mod tests {
         assert_eq!(
             result,
             HookResult::Continue,
-            "test_multiedit_body_target_stale_timestamp_blocks: \
+            "test_multiedit_body_target_payload_neutral_continues: \
              body-only MultiEdit with new_string '# STATE\\n\\nBody text...' \
              (no timestamp: or factory_lock: at col 0) is payload-neutral under \
              ADR-032 Decision 1 (AC-020) → must return Continue."
@@ -4110,12 +4110,12 @@ mod tests {
     // -----------------------------------------------------------------------
 
     #[test]
-    fn test_edit_body_target_70kib_delimiter_present_stale_timestamp_blocks() {
+    fn test_edit_body_target_70kib_delimiter_present_payload_neutral_continues() {
         // Red Gate 1: cap constant must be >= 70000.
         // Fails until Task 9 raises STATE_MD_MAX_BYTES to 262144.
         assert!(
             STATE_MD_MAX_BYTES >= 70_000u32,
-            "test_edit_body_target_70kib_delimiter_present_stale_timestamp_blocks: \
+            "test_edit_body_target_70kib_delimiter_present_payload_neutral_continues: \
              STATE_MD_MAX_BYTES ({}) must be >= 70000. \
              Raise to 262144 per BC-5.40.001 v1.2 Precondition 6 (Task 9).",
             STATE_MD_MAX_BYTES
@@ -4154,7 +4154,7 @@ mod tests {
         assert_eq!(
             result,
             HookResult::Continue,
-            "test_edit_body_target_70kib_delimiter_present_stale_timestamp_blocks: \
+            "test_edit_body_target_70kib_delimiter_present_payload_neutral_continues: \
              body-only Edit with new_string '# STATE\\n\\nBody text added by edit.' \
              (no timestamp: or factory_lock: at col 0) is payload-neutral under \
              ADR-032 Decision 1 (AC-020) → must return Continue (large-fixture variant)."
@@ -4188,7 +4188,7 @@ mod tests {
     // -----------------------------------------------------------------------
 
     #[test]
-    fn test_edit_non_utf8_body_fallback_stale_timestamp_blocks() {
+    fn test_edit_non_utf8_body_fallback_payload_neutral_continues() {
         // Base fixture: valid UTF-8 frontmatter with TS_OLD, closing --- delimiter.
         // state_md_no_lock(TS_OLD) produces:
         //   "---\n...\ntimestamp: \"TS_OLD\"\nphase: test\n---\n\n# STATE\n"
@@ -4232,7 +4232,7 @@ mod tests {
         assert_eq!(
             result,
             HookResult::Continue,
-            "test_edit_non_utf8_body_fallback_stale_timestamp_blocks: \
+            "test_edit_non_utf8_body_fallback_payload_neutral_continues: \
              Edit with new_string 'phase: complete' (no timestamp: or factory_lock: at col 0) \
              is payload-neutral under ADR-032 Decision 1 (AC-020) → must return Continue. \
              Pre-ADR-032 Block(TimestampStale) behavior is superseded. \
