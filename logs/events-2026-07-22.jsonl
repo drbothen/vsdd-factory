@@ -1,0 +1,5 @@
+{"type":"hook.block","hook":"validate-changelog-monotonicity","reason":"changelog_frontmatter_mismatch","ts":"2026-07-22T08:16:56-0500","ts_epoch":1784726216,"schema_version":1}
+{"type":"hook.block","hook":"validate-input-hash","reason":"input_hash_drift","ts":"2026-07-22T08:16:57-0500","ts_epoch":1784726217,"schema_version":1}
+{"type":"hook.block","hook":"validate-changelog-monotonicity","reason":"changelog_frontmatter_mismatch","ts":"2026-07-22T08:17:38-0500","ts_epoch":1784726258,"schema_version":1}
+{"type":"hook.block","hook":"validate-input-hash","reason":"input_hash_drift","ts":"2026-07-22T08:17:39-0500","ts_epoch":1784726259,"schema_version":1}
+{"type":"hook.block","hook":"validate-input-hash","reason":"input_hash_drift","ts":"2026-07-22T08:18:22-0500","ts_epoch":1784726302,"schema_version":1}

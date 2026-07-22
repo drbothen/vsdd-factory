@@ -1,8 +1,8 @@
 ---
 document_type: behavioral-contract
 level: L3
-version: "1.2"
-last_amended: 2026-05-08
+version: "v1.3"
+last_amended: 2026-07-22
 status: draft
 producer: "phase-1-4b-bcs-agent-4"
 timestamp: 2026-04-25T00:00:00
@@ -11,7 +11,7 @@ inputs:
   - .factory/specs/behavioral-contracts/bc-id-mapping.md
   - .factory/phase-0-ingestion/pass-3-deep-workflows.md
   - .factory/specs/architecture/ARCH-INDEX.md
-input-hash: "5d2b1b3"
+input-hash: "15ea006"
 traces_to: .factory/specs/architecture/ARCH-INDEX.md#ss-05-pipeline-orchestration
 origin: brownfield
 extracted_from: "plugins/vsdd-factory/workflows/phases/phase-4-holdout-evaluation.lobster"
@@ -32,7 +32,7 @@ removal_reason: null
 
 ## Description
 
-Randomly selects 80% of holdout scenarios per pipeline run; writes selected IDs to `.factory/holdout-evaluation/scenario-selection.json`.
+Randomly selects 80% of holdout scenarios per pipeline run; writes selected IDs to `.factory/holdout-scenarios/scenario-selection.json`.
 
 ## Preconditions
 
@@ -40,7 +40,7 @@ Randomly selects 80% of holdout scenarios per pipeline run; writes selected IDs 
 
 ## Postconditions
 
-1. Randomly selects 80% of holdout scenarios per pipeline run; writes selected IDs to `.factory/holdout-evaluation/scenario-selection.json`.
+1. Randomly selects 80% of holdout scenarios per pipeline run; writes selected IDs to `.factory/holdout-scenarios/scenario-selection.json`.
 
 ## Invariants
 
@@ -122,7 +122,7 @@ TBD
 - **Agent:** orchestrator
 - **Depends on:** `[]`
 - **Source line(s) in workflow YAML:** 14-22
-- **Behavior:** Randomly selects 80% of holdout scenarios per pipeline run; writes selected IDs to `.factory/holdout-evaluation/scenario-selection.json`.
+- **Behavior:** Randomly selects 80% of holdout scenarios per pipeline run; writes selected IDs to `.factory/holdout-scenarios/scenario-selection.json`.
 
 #### Evidence Types Used
 
@@ -159,4 +159,5 @@ Workflow YAML is a declarative DAG; the orchestrator is the effectful shell. Pur
 
 | Version | Date | Author | Change |
 |---------|------|--------|--------|
+| v1.3 | 2026-07-22 | state-manager | Corrected scenario-selection output path `holdout-evaluation/` → `holdout-scenarios/` (brownfield extraction transcription error vs extraction source phase-4-holdout-evaluation.lobster; surfaced by PR #717 spec-conformance validation; human-authorized 2026-07-22). |
 | v1.2 | 2026-05-08 | state-manager | F-P23-001 corpus-wide sweep: lobster-line-cite annotated with carve-out. Stable anchor is step name `scenario-rotation`. |

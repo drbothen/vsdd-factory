@@ -7196,3 +7196,21 @@ Both gates are mandatory standing Commit-E controls for any burst touching E-19 
 **Cites:** D-872 (codified this burst); PR #725; PR #743; deferral: post-rc.24 human triage — live-artifact test relocation anchored to next fix PR session.
 
 **Closes:** D-872 ADR-032-IMPL-ARC-COMPLETE burst (2026-07-21). `[design-question; live-artifact-tests; bats-suite; factory-artifacts-workflow; consolidation; split-guard; ci.yml; D-872; codified]`
+
+---
+
+### L-BB-validate-pr-review-posted-false-positive-class [codified D-875]
+
+**Title:** validate-pr-review-posted SubagentStop Validator Only Recognizes github-ops-Dispatch Transcript Evidence — Direct-Bash Review Posting and Live PR State Are Invisible to It [process-gap]
+
+**Lesson:** The validate-pr-review-posted SubagentStop hook has a structural false-positive class: it only recognizes review-posting evidence that was dispatched through the github-ops agent, visible as a github-ops Agent dispatch in the session transcript. When reviews are posted via direct Bash tool calls (`gh pr review --approve`) or were posted by sub-agents in earlier session turns and are already live on GitHub, the hook still fires with a misreport that "gh pr comment" was used rather than a proper review dispatch, then triggers a blocking scan consuming approximately 5M fuel per event. The hook cannot distinguish between "review not posted" and "review posted through an evidence path it does not recognize." This is a false-positive by construction: the validator's evidence model is narrower than the actual set of legitimate review-posting execution paths.
+
+**Context:** 2026-07-22 review-and-merge arc (D-875). 6 APPROVE + 1 REQUEST_CHANGES reviews were posted to GitHub (PRs #716 #717 #726 #728 #730 #731 #738) and confirmed live before the SubagentStop. The validate-pr-review-posted hook still blocked with the misreport, consuming fuel in a blocking scan for each triggering. Follow-up story or deferral required before the S-7.02 checklist sub-cycle closes.
+
+**Prevention:** (1) Post reviews via a github-ops agent dispatch (not direct Bash gh CLI) so the hook's transcript evidence model is satisfied. (2) If direct-Bash posting was used, add a github-ops confirmation call post-hoc to produce the expected transcript evidence before SubagentStop. (3) Long-term fix: expand the hook's evidence model to also accept direct-Bash `gh pr review` execution AND live PR state verification (`gh pr view --json reviewDecision`) as valid evidence. This requires a new story or update to S-7.02; recorded here as an open process-gap requiring human triage before the sub-cycle closes. (4) Working pattern: github-ops agent dispatch is the guaranteed path to avoid false-positive blocking.
+
+**Anchors:** D-875 REVIEW-MERGE-ARC-2026-07-22; PRs #716 #717 #726 #728 #730 #731 #738; validate-pr-review-posted SubagentStop hook; S-7.02 checklist; ~5M fuel per blocking scan.
+
+**Cites:** D-875 (codified this burst); S-7.02 checklist; process-gap deferral — human triage required before sub-cycle closes.
+
+**Closes:** D-875 REVIEW-MERGE-ARC-2026-07-22 (2026-07-22). `[process-gap; validate-pr-review-posted; false-positive; github-ops; direct-bash; evidence-model; SubagentStop; fuel-burn; S-7.02; D-875; codified]`
