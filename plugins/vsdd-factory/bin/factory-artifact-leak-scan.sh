@@ -18,15 +18,18 @@
 #        `document_type` declared by some template in
 #        `${PLUGIN_ROOT}/templates/*.md`. This is the same enumeration
 #        validate-template-compliance.sh trusts to resolve a template.
-#     4. its `document_type` is NOT in PRODUCT_TRACKED_DOCTYPES — the small,
-#        data-derived set of factory doctypes the project intentionally ships
-#        on the product branch (demo evidence). See that constant below.
+#     4. its (document_type, path) pair is NOT in PRODUCT_TRACKED_HOMES — the
+#        small, data-derived set of factory doctypes the project intentionally
+#        ships on the product branch (demo evidence), each exempt ONLY under
+#        its canonical home directory. The same doctype anywhere else is a
+#        leak. See that constant below.
 #
 # The artifact-path-registry (config/artifact-path-registry.yaml, ADR-016) is
 # the single source of truth that EVERY registered artifact type is homed under
-# `.factory/`; the doctypes in PRODUCT_TRACKED_DOCTYPES are exactly the
+# `.factory/`; the doctypes in PRODUCT_TRACKED_HOMES are exactly the
 # template-backed types that appear NOWHERE in that registry, so they have no
-# `.factory/` home and legitimately live in the product tree.
+# `.factory/` home and legitimately live in the product tree — but only under
+# their canonical directory; the exemption is path-scoped, not global.
 #
 # Usage:
 #   factory-artifact-leak-scan.sh                 # table of leaks to stdout
@@ -71,9 +74,9 @@ esac
 # and small so the exclusion is auditable; extend only with the same evidence
 # (a template-backed doctype with no `.factory/` registry home that the project
 # ships in the product tree).
-PRODUCT_TRACKED_DOCTYPES=(
-  demo-evidence-report
-  demo-evidence-index
+declare -A PRODUCT_TRACKED_HOMES=(
+  [demo-evidence-report]="docs/demo-evidence/"
+  [demo-evidence-index]="docs/demo-evidence/"
 )
 
 # --- Read the frontmatter document_type of a file (first block only) ---
@@ -95,12 +98,7 @@ declare -A FACTORY_DOCTYPES
 while IFS= read -r t; do
   dt="$(_frontmatter_doctype "$t")"
   [[ -n "$dt" ]] && FACTORY_DOCTYPES["$dt"]=1
-done < <(find "$TEMPLATES" -maxdepth 1 -name '*.md' -type f)
-
-# Remove the product-tracked deliverable doctypes from the leak set.
-for dt in "${PRODUCT_TRACKED_DOCTYPES[@]}"; do
-  unset 'FACTORY_DOCTYPES[$dt]'
-done
+done < <(find "$TEMPLATES" -name '*.md' -type f)
 
 [[ -n "${FACTORY_DOCTYPES[*]:-}" ]] || _die "no factory document_types found in $TEMPLATES"
 
@@ -124,8 +122,15 @@ while IFS= read -r rel; do
   [[ -f "$abs" ]] || continue
   dt="$(_frontmatter_doctype "$abs")"
   [[ -n "$dt" ]] || continue
-  # (3)+(4) leaked iff doctype is a factory-produced, non-product-tracked type
+  # (3)+(4) leaked iff doctype is factory-produced AND the file is outside
+  # the doctype's canonical product home (exemption is path-scoped: a
+  # demo-evidence-report at repo root is a leak, under docs/demo-evidence/
+  # it is a shipped deliverable).
   if [[ -n "${FACTORY_DOCTYPES[$dt]:-}" ]]; then
+    home="${PRODUCT_TRACKED_HOMES[$dt]:-}"
+    if [[ -n "$home" && "$rel" == "$home"* ]]; then
+      continue
+    fi
     LEAKS+=("$dt|$rel")
   fi
 done < <(cd "$REPO_ROOT" && git ls-files '*.md')
@@ -157,6 +162,6 @@ done
 echo "" >&2
 echo "These carry factory-artifact frontmatter but live outside .factory/." >&2
 echo "Relocate to their canonical .factory/ home (see config/artifact-path-registry.yaml)" >&2
-echo "or, if a genuine product deliverable, add its document_type to" >&2
-echo "PRODUCT_TRACKED_DOCTYPES in this script with justification." >&2
+echo "or, if a genuine product deliverable, add its (document_type -> home" >&2
+echo "directory) pair to PRODUCT_TRACKED_HOMES in this script with justification." >&2
 exit 1

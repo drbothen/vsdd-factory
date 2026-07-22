@@ -112,3 +112,27 @@ _write_red_gate() {
   [ "$status" -eq 0 ]
   [[ "$output" == *"Product tree is clean"* ]]
 }
+
+@test "factory-artifact-leak-scan: subdirectory-template doctype is in the leak universe (M1)" {
+  # adversary-prompt-template is declared only by templates in a SUBDIRECTORY
+  # (templates/adversary-prompt-templates/*.md). A -maxdepth 1 doctype build
+  # missed it entirely, making this leak class invisible (review finding M1).
+  printf '%s\n' '---' 'document_type: adversary-prompt-template' '---' '# Leaked' \
+    > leaked-adversary-template.md
+  git add -A
+  run "$SCANNER" --count
+  [ "$status" -eq 1 ]
+  [ "$output" -eq 1 ]
+}
+
+@test "factory-artifact-leak-scan: product-deliverable doctype OUTSIDE its home is a leak (M2)" {
+  # The demo-evidence exemption is path-scoped to docs/demo-evidence/. The same
+  # doctype at the repo root is exactly the leak class the guard exists to
+  # catch (review finding M2) — a doctype-global allowlist silently exempted it.
+  printf '%s\n' '---' 'document_type: demo-evidence-report' '---' '# Stray' \
+    > stray-evidence-report.md
+  git add -A
+  run "$SCANNER" --count
+  [ "$status" -eq 1 ]
+  [ "$output" -eq 1 ]
+}
