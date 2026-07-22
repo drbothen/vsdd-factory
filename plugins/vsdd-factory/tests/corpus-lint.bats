@@ -201,6 +201,55 @@ EOF
   [[ "$output" == *"Frontmatter version"* ]]
 }
 
+@test "changelog-monotonicity: treats bare frontmatter and v-prefixed changelog row as equal (issue #660)" {
+  cat > "$WORK/.factory/specs/behavioral-contracts/BC-test.md" << 'EOF'
+---
+version: "1.5"
+---
+# BC Test
+## Changelog
+| Version | Burst | Date | Author | Change |
+|---------|-------|------|--------|--------|
+| v1.5 | pass-10 | 2026-04-20 | po | Latest |
+| v1.4 | pass-5 | 2026-04-19 | po | Prior |
+EOF
+  _run_hook validate-changelog-monotonicity.sh "$WORK/.factory/specs/behavioral-contracts/BC-test.md"
+  [ "$status" -eq 0 ]
+}
+
+@test "changelog-monotonicity: treats v-prefixed frontmatter and bare changelog row as equal (issue #660)" {
+  cat > "$WORK/.factory/specs/behavioral-contracts/BC-test.md" << 'EOF'
+---
+version: "v1.1"
+---
+# BC Test
+## Changelog
+| Version | Burst | Date | Author | Change |
+|---------|-------|------|--------|--------|
+| 1.1 | pass-3 | 2026-04-20 | po | Latest |
+| 1.0 | pass-1 | 2026-04-19 | po | Initial |
+EOF
+  _run_hook validate-changelog-monotonicity.sh "$WORK/.factory/specs/behavioral-contracts/BC-test.md"
+  [ "$status" -eq 0 ]
+}
+
+@test "changelog-monotonicity: still blocks a genuine version mismatch after v-normalization (issue #660)" {
+  cat > "$WORK/.factory/specs/behavioral-contracts/BC-test.md" << 'EOF'
+---
+version: "v1.1"
+---
+# BC Test
+## Changelog
+| Version | Burst | Date | Author | Change |
+|---------|-------|------|--------|--------|
+| v1.3 | pass-10 | 2026-04-20 | po | Latest |
+| v1.2 | pass-5 | 2026-04-19 | po | Previous |
+EOF
+  _run_hook validate-changelog-monotonicity.sh "$WORK/.factory/specs/behavioral-contracts/BC-test.md"
+  [ "$status" -eq 2 ]
+  [[ "$output" == *"Frontmatter version"* ]]
+}
+
 @test "changelog-monotonicity: ignores STATE.md" {
   cat > "$WORK/.factory/STATE.md" << 'EOF'
 ---

@@ -143,9 +143,17 @@ while IFS= read -r line; do
   fi
 done < "$FILE_PATH"
 
-# Cross-check frontmatter version vs top changelog row
+# Cross-check frontmatter version vs top changelog row.
+#
+# Normalize a single leading 'v'/'V' from both operands before comparing so a
+# bare frontmatter ("1.5") and a v-prefixed changelog row ("v1.5") are treated
+# as equal (issue #660). Without this, a bare-vs-prefixed pair false-positive
+# blocks on every bump, AND a v-prefixed tracked file cannot be normalized to
+# the bare convention (doing so trips this check) — freezing the drift in place.
 if [[ -n "$FM_VERSION" ]] && [[ -n "$FIRST_VERSION" ]]; then
-  if [[ "$FM_VERSION" != "$FIRST_VERSION" ]]; then
+  FM_VERSION_NORM="${FM_VERSION#[vV]}"
+  FIRST_VERSION_NORM="${FIRST_VERSION#[vV]}"
+  if [[ "$FM_VERSION_NORM" != "$FIRST_VERSION_NORM" ]]; then
     ERRORS="${ERRORS:+$ERRORS\n}Frontmatter version '$FM_VERSION' != top changelog version '$FIRST_VERSION'"
     [[ -z "$FIRST_CODE" ]] && FIRST_CODE="changelog_frontmatter_mismatch"
   fi
