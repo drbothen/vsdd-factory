@@ -215,7 +215,13 @@ case "$FILE" in
     ;;
 esac
 
-CONCAT=""
+# Accumulate raw input bytes into a temp file rather than a shell variable.
+# Command substitution ($(cat file)) strips all trailing newlines, so the hash
+# diverges from any raw-byte reader (md5sum <file, Python rb.read()) — see #637.
+# Appending with `cat file >> tmpfile` does not go through a subshell and
+# preserves every byte, including trailing newlines.
+HASH_INPUT=$(mktemp)
+trap 'rm -f "$HASH_INPUT"' EXIT
 MISSING=0
 MISSING_FILES=""
 
@@ -331,7 +337,7 @@ while IFS= read -r input_file; do
     fi
     while IFS= read -r expanded_file; do
       [[ -z "$expanded_file" ]] && continue
-      CONCAT="${CONCAT}$(cat "$expanded_file")"
+      cat "$expanded_file" >> "$HASH_INPUT"
     done <<< "$EXPANDED"
     continue
   fi
@@ -345,10 +351,10 @@ while IFS= read -r input_file; do
     continue
   fi
 
-  CONCAT="${CONCAT}$(cat "$RESOLVED")"
+  cat "$RESOLVED" >> "$HASH_INPUT"
 done <<< "$INPUTS"
 
-if [[ -z "$CONCAT" ]]; then
+if [[ ! -s "$HASH_INPUT" ]]; then
   if [[ "$MODE" == "--resolve" ]]; then
     echo "compute-input-hash: $(basename "$FILE"): $MISSING MISSING — $MISSING_FILES" >&2
     exit 1
@@ -383,11 +389,13 @@ if [[ "$MISSING" -gt 0 ]]; then
 fi
 
 # --- Compute short MD5 hash (7 chars) ---
+# Hash the accumulated bytes directly from the temp file so trailing newlines
+# are preserved and the digest matches any raw-byte reader (md5sum <file) — #637.
 if command -v md5sum &>/dev/null; then
-  HASH=$(echo -n "$CONCAT" | md5sum | cut -c1-7)
+  HASH=$(md5sum < "$HASH_INPUT" | cut -c1-7)
 elif command -v md5 &>/dev/null; then
   # macOS
-  HASH=$(echo -n "$CONCAT" | md5 | cut -c1-7)
+  HASH=$(md5 < "$HASH_INPUT" | cut -c1-7)
 else
   die "neither md5sum nor md5 available"
 fi

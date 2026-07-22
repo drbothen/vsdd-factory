@@ -295,6 +295,61 @@ EOF
   [[ "$output" == *"nonexistent.md"* ]]
 }
 
+# ===== regression: trailing-newline byte fidelity (#637) =====
+
+@test "compute-input-hash: hash matches byte-accurate reference for input with trailing newlines (#637)" {
+  # Regression for the $(cat file) command-substitution bug: bash strips ALL
+  # trailing newlines from command-substitution output, so the computed hash
+  # diverged from any raw-byte reader (md5sum <file, Python rb.read()). Files
+  # ending in one or more newlines (the normal case for text) MUST hash to the
+  # same digest the byte-accurate reference produces.
+  printf '# Product Brief\nLine two\n\n\n' > "$WORK/.factory/specs/product-brief.md"
+  cat > "$WORK/.factory/specs/prd.md" << 'EOF'
+---
+inputs: [product-brief.md]
+input-hash: "[md5]"
+---
+EOF
+
+  tool_hash=$("$BIN" "$WORK/.factory/specs/prd.md")
+
+  # Byte-accurate reference: the same short MD5 the tool computes, but taken
+  # over the raw file bytes (no command substitution in the pipeline).
+  if command -v md5sum &>/dev/null; then
+    ref_hash=$(md5sum < "$WORK/.factory/specs/product-brief.md" | cut -c1-7)
+  else
+    ref_hash=$(md5 < "$WORK/.factory/specs/product-brief.md" | cut -c1-7)
+  fi
+
+  [ "$tool_hash" = "$ref_hash" ]
+}
+
+@test "compute-input-hash: multi-input hash matches byte-accurate concatenation reference (#637)" {
+  # Trailing newlines between concatenated inputs must survive too — proves the
+  # fix accumulates raw bytes in order, not newline-stripped substitution output.
+  printf '# First\ntrailing\n\n' > "$WORK/.factory/specs/first.md"
+  printf '# Second\nmore\n\n\n' > "$WORK/.factory/specs/second.md"
+  cat > "$WORK/.factory/specs/multi.md" << 'EOF'
+---
+inputs:
+  - first.md
+  - second.md
+input-hash: "[md5]"
+---
+EOF
+
+  tool_hash=$("$BIN" "$WORK/.factory/specs/multi.md")
+
+  cat "$WORK/.factory/specs/first.md" "$WORK/.factory/specs/second.md" > "$WORK/concat-ref"
+  if command -v md5sum &>/dev/null; then
+    ref_hash=$(md5sum < "$WORK/concat-ref" | cut -c1-7)
+  else
+    ref_hash=$(md5 < "$WORK/concat-ref" | cut -c1-7)
+  fi
+
+  [ "$tool_hash" = "$ref_hash" ]
+}
+
 # ===== hooks/validate-input-hash.sh =====
 
 @test "input-hash hook: blocks when hash is placeholder" {
