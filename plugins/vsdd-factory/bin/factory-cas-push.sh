@@ -70,7 +70,12 @@ set -euo pipefail
 if [ -d ".factory" ]; then
   FACTORY_DIR=".factory"
 else
-  MAIN_WT="$(git worktree list --porcelain 2>/dev/null | awk '/^worktree /{print $2; exit}')" || MAIN_WT=""
+  # First `worktree` line is the main worktree (guaranteed git property).
+  # `--porcelain` emits the path RAW after "worktree " — never field-split it
+  # ($2 truncates paths containing spaces); strip the prefix instead. No awk
+  # `exit` on match: consuming the whole (small) stream avoids the
+  # pipefail/SIGPIPE edge of closing the pipe early.
+  MAIN_WT="$(git worktree list --porcelain 2>/dev/null | awk '/^worktree / && !found { sub(/^worktree /, ""); print; found=1 }')" || MAIN_WT=""
   if [ -n "$MAIN_WT" ] && [ -d "$MAIN_WT/.factory" ]; then
     FACTORY_DIR="$MAIN_WT/.factory"
   else

@@ -643,6 +643,19 @@ _setup_worktree_fixture() {
   [[ "$output" == *"state-burst CAS push succeeded"* ]]
 }
 
+@test "cwd-resolution: main worktree path containing a SPACE resolves correctly (#631 review)" {
+  # git worktree list --porcelain emits the path raw; field-splitting it
+  # ($2) truncated "…/App Dir/main" to "…/App" and the fallback died with
+  # the could-not-locate error. Space-path fixture pins the prefix-strip fix.
+  WORK="$WORK/space dir"
+  mkdir -p "$WORK"
+  _setup_worktree_fixture
+  git -C "$MAIN" worktree add -q -b story/S-2 "$WORK/story-S2" develop
+  run bash -c "cd '$WORK/story-S2' && bash '$HELPER'"
+  [ "$status" -eq 0 ]
+  [[ "$output" == *"state-burst CAS push succeeded"* ]]
+}
+
 @test "cwd-resolution: invocation from an unrelated non-git dir fails clearly (#631)" {
   UNREL="$WORK/unrelated"
   mkdir -p "$UNREL"
