@@ -26,7 +26,7 @@ inputs:
   - .factory/specs/architecture/SS-07-hook-bash.md
   - .factory/specs/prd.md
   - .factory/stories/STORY-INDEX.md
-input-hash: "3513683"
+input-hash: "612fbd9"
 modified:
   - "v1.1 2026-05-06: story IDs renumbered S-11.00..S-11.07 → S-11.01..S-11.08"
 ---

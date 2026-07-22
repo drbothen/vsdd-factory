@@ -22,7 +22,7 @@ inputs:
   - .factory/specs/architecture/ARCH-INDEX.md
   - .factory/specs/behavioral-contracts/BC-INDEX.md
   - .factory/stories/epics/E-7-process-codification.md
-input-hash: "ff3bbc2"
+input-hash: "5c2b00d"
 modified:
   - "v1.3 2026-05-08: F-P22-003/004/005 subsystem swap fixed, frontmatter synced"
 ---

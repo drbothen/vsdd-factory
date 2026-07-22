@@ -11,7 +11,7 @@ inputs:
   - .factory/cycles/v1.0-brownfield-backfill/adv-s8.03-p2.md
   - crates/hook-sdk/src/host.rs
   - Cargo.toml
-input-hash: "91c3204"
+input-hash: "c0fc082"
 traces_to: prd.md
 pass: p3
 previous_review: adv-s8.03-p2.md

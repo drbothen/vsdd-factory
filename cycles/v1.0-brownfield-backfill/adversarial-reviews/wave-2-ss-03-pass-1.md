@@ -19,7 +19,7 @@ inputs:
   - .factory/specs/prd.md
   - .factory/specs/domain-spec/capabilities.md
   - .factory/specs/behavioral-contracts/ss-03/
-input-hash: "eb95e0e"
+input-hash: "25a849c"
 traces_to: ""
 cycle: v1.0-brownfield-backfill
 sub_cycle: wave-2-ss-03-re-anchor

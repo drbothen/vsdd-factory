@@ -7,7 +7,7 @@ producer: state-manager
 timestamp: 2026-05-20T00:00:00Z
 cycle: v1.0-brownfield-backfill
 inputs: [STATE.md]
-input-hash: "095e905"
+input-hash: "c4a5ae3"
 traces_to: STATE.md
 ---
 
@@ -1550,7 +1550,7 @@ producer: state-manager
 timestamp: 2026-05-06T19:00:00Z
 cycle: "v1.0-brownfield-backfill"
 inputs: [STATE.md]
-input-hash: "095e905"
+input-hash: "c4a5ae3"
 traces_to: STATE.md
 ---
 
@@ -3146,9 +3146,9 @@ PASS
 **Input hashes valid (non-pending):**
 ```
 $ grep "^input-hash:" .factory/specs/behavioral-contracts/ss-05/BC-5.39.007.md
-input-hash: "095e905"
+input-hash: "c4a5ae3"
 $ grep "^input-hash:" .factory/specs/behavioral-contracts/ss-05/BC-5.39.008.md
-input-hash: "095e905"
+input-hash: "c4a5ae3"
 ```
 PASS — both are lowercase hex (7 chars); no "pending" placeholder
 
@@ -12101,7 +12101,7 @@ grep "^version:\|^input-hash:" .factory/stories/S-19.06-read-prefix-bounded-part
 stdout:
 ```
 version: "1.13"
-input-hash: "095e905"
+input-hash: "c4a5ae3"
 ```
 
 **Gate F — E-19 epic frontmatter version + input-hash:**
@@ -12111,7 +12111,7 @@ grep "^version:\|^input-hash:" .factory/stories/epics/E-19-post-rc22-operator-ha
 stdout:
 ```
 version: "v1.14"
-input-hash: "095e905"
+input-hash: "c4a5ae3"
 ```
 
 ### Block 6 — Dim-5 (8-block presence self-verification)
@@ -12224,7 +12224,7 @@ grep "^version:\|^input-hash:" .factory/stories/S-19.07-verify-factory-lock-read
 stdout:
 ```
 version: "1.7"
-input-hash: "095e905"
+input-hash: "c4a5ae3"
 ```
 S-19.07 at v1.7 — F-P17-001 + F-P17-002 fix burst complete.
 
@@ -14363,7 +14363,7 @@ $ plugins/vsdd-factory/bin/compute-input-hash \
     .factory/stories/S-19.07-verify-factory-lock-read-prefix-migration.md
 83e8cc4
 $ grep "input-hash" .factory/specs/behavioral-contracts/ss-04/BC-4.13.001.md
-input-hash: "86fab85"
+input-hash: "c4a5ae3"
 ```
 
 PASS: S-19.02=d208e66 / S-19.07=83e8cc4 — match SW-leg confirmed hashes. BC-4.13.001 declared input-hash 86fab85 non-placeholder. POLICY 18 satisfied; no placeholders.

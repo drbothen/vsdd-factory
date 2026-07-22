@@ -7,7 +7,7 @@ producer: codebase-analyzer
 timestamp: 2026-04-25T00:00:00
 phase: 1.4b
 inputs: [bc-id-mapping.md, pass-3-deep-rust-tests.md]
-input-hash: "26ba90e"
+input-hash: "0f4f6a3"
 traces_to: bc-id-mapping.md
 origin: brownfield
 extracted_from: ".factory/phase-0-ingestion/pass-3-deep-rust-tests.md:354"

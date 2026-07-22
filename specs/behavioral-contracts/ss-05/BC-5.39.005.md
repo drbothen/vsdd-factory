@@ -12,7 +12,7 @@ inputs:
   - .factory/cycles/v1.0-brownfield-backfill/architect-m2-2026-05-16.md
   - .factory/cycles/v1.0-feature-engine-discipline-pass-1/decision-log.md
   - .factory/stories/S-15.09-validate-state-structure-phase-1.md
-input-hash: "5af355e"
+input-hash: "8dca10c"
 traces_to: .factory/cycles/v1.0-brownfield-backfill/s-15.03-wave-m2-dispatch.md
 extracted_from: .factory/stories/S-15.09-validate-state-structure-phase-1.md
 origin: brownfield

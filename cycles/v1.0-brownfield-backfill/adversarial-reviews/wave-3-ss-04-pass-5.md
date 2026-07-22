@@ -20,7 +20,7 @@ inputs:
   - .factory/specs/architecture/ARCH-INDEX.md
   - .factory/specs/behavioral-contracts/BC-INDEX.md
   - .factory/specs/verification-properties/VP-INDEX.md
-input-hash: "aaf12fc"
+input-hash: "aa6a4c1"
 traces_to: ".factory/specs/prd.md"
 cycle: v1.0-brownfield-backfill
 sub_cycle: wave-3-ss-04-re-anchor

@@ -10,7 +10,7 @@ inputs:
   - .factory/stories/S-8.02-native-port-pr-manager-completion-guard.md
   - .factory/stories/epics/E-8-native-wasm-migration.md
   - .factory/stories/STORY-INDEX.md
-input-hash: "c16be74"
+input-hash: "3ebdb9e"
 traces_to: prd.md
 pass: 2
 previous_review: adv-s8.02-p1.md

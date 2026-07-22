@@ -10,7 +10,7 @@ phase: 1.3
 inputs:
   - .factory/phase-0-ingestion/pass-2-domain-model.md
   - .factory/phase-0-ingestion/pass-8-final-synthesis.md
-input-hash: "a6c6f62"
+input-hash: "08db1f1"
 traces_to: L2-INDEX.md
 ---
 

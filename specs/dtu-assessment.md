@@ -12,7 +12,7 @@ inputs:
   - .factory/specs/architecture/ARCH-INDEX.md
 traces_to: architecture/ARCH-INDEX.md
 DTU_REQUIRED: false
-input-hash: "690c0fc"
+input-hash: "5f4ddb9"
 ---
 
 # DTU Assessment: vsdd-factory

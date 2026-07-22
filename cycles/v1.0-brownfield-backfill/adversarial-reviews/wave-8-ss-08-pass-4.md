@@ -24,7 +24,7 @@ inputs:
   - .factory/cycles/v1.0-brownfield-backfill/adversarial-reviews/wave-8-ss-08-pass-1.md
   - .factory/cycles/v1.0-brownfield-backfill/adversarial-reviews/wave-8-ss-08-pass-2.md
   - .factory/cycles/v1.0-brownfield-backfill/adversarial-reviews/wave-8-ss-08-pass-3.md
-input-hash: "4650dd5"
+input-hash: "db43ff9"
 traces_to: ".factory/specs/prd.md"
 cycle: v1.0-brownfield-backfill
 sub_cycle: wave-8-ss-08-re-anchor

@@ -13,7 +13,7 @@ inputs:
   - .factory/specs/behavioral-contracts/ss-05/BC-5.39.005.md
   - .factory/specs/behavioral-contracts/ss-05/BC-5.39.004.md
   - .factory/specs/behavioral-contracts/ss-05/BC-5.39.003.md
-input-hash: "5af355e"
+input-hash: "96a8b90"
 traces_to: .factory/cycles/v1.0-brownfield-backfill/s-15.03-wave-m2-dispatch.md
 extracted_from: .factory/cycles/v1.0-brownfield-backfill/s-15.03-wave-m2-dispatch.md
 origin: brownfield

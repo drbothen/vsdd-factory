@@ -15,7 +15,7 @@ inputs:
   - crates/hook-sdk/src/host.rs
   - plugins/vsdd-factory/hooks-registry.toml
   - Cargo.toml
-input-hash: "fa0b60c"
+input-hash: "1238f3e"
 traces_to: prd.md
 pass: p3
 previous_review: adv-s8.06-p2.md

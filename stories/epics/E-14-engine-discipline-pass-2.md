@@ -22,7 +22,7 @@ inputs:
   - .factory/cycles/v1.0-feature-engine-discipline-pass-1/F5-pass-1-fix-plan.md
   - .factory/stories/epics/E-12-engine-governance.md
   - .factory/stories/epics/E-13-artifact-integrity.md
-input-hash: "863576e"
+input-hash: "4405e27"
 modified:
   - "v1.2 2026-05-11: F-P8-002 fix burst — forward-ref note corrected"
 ---

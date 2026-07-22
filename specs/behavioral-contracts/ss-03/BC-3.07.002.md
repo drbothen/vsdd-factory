@@ -10,7 +10,7 @@ phase: "1.8"
 inputs:
   - .factory/stories/S-4.01-sink-http-driver.md
   - .factory/specs/behavioral-contracts/ss-03/BC-3.01.008.md
-input-hash: "10cc2e6"
+input-hash: "4371f02"
 traces_to: .factory/specs/prd.md#FR-045
 subsystem: "SS-03"
 capability: "CAP-003"

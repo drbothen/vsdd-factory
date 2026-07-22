@@ -11,7 +11,7 @@ inputs:
   - .factory/stories/S-19.01-pr-manager-hardening.md
   - plugins/vsdd-factory/agents/pr-manager.md
   - .github/workflows/release.yml
-input-hash: "8d50681"
+input-hash: "2f7c0b6"
 traces_to: .factory/specs/prd.md
 origin: greenfield
 extracted_from: null

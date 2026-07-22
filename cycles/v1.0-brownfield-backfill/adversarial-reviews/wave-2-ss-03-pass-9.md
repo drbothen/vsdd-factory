@@ -16,7 +16,7 @@ inputs:
   - .factory/stories/S-4.05-dead-letter-queue.md
   - .factory/stories/S-4.06-routing-tag-enrichment.md
   - .factory/stories/S-4.07-observability-integration-tests.md
-input-hash: "6b6b9cd"
+input-hash: "6bbe6d9"
 traces_to: ".factory/specs/prd.md"
 cycle: v1.0-brownfield-backfill
 sub_cycle: wave-2-ss-03-re-anchor

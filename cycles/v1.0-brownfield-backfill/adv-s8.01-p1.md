@@ -10,7 +10,7 @@ inputs:
   - .factory/stories/S-8.01-native-port-handoff-validator.md
   - .factory/stories/epics/E-8-native-wasm-migration.md
   - .factory/stories/STORY-INDEX.md
-input-hash: "bacffbb"
+input-hash: "bc16716"
 traces_to: prd.md
 pass: 1
 previous_review: null

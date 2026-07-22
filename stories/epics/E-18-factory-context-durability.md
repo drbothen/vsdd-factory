@@ -26,7 +26,7 @@ inputs:
   - .factory/specs/behavioral-contracts/ss-07/BC-7.07.001.md
   - .factory/specs/behavioral-contracts/ss-07/BC-7.07.002.md
   - .factory/specs/behavioral-contracts/ss-01/BC-1.15.001.md
-input-hash: "ccf6b90"
+input-hash: "fdddce7"
 last_amended: "2026-06-17 (v1.3 — BC-5.41.001/002 summaries corrected)"
 modified:
   - "v1.3 2026-06-17: BC-5.41.001/002 summaries corrected"

@@ -11,7 +11,7 @@ inputs:
   - crates/factory-dispatcher/src/host/read_file.rs
   - crates/hook-sdk/src/host.rs
   - .factory/specs/behavioral-contracts/ss-02/BC-2.07.001.md
-input-hash: "e6afd11"
+input-hash: "491235b"
 traces_to: .factory/specs/prd.md
 origin: greenfield
 extracted_from: null

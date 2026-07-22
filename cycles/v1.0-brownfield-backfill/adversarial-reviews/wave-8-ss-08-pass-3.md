@@ -19,7 +19,7 @@ inputs:
   - .factory/policies.yaml
   - .factory/cycles/v1.0-brownfield-backfill/adversarial-reviews/wave-8-ss-08-pass-1.md
   - .factory/cycles/v1.0-brownfield-backfill/adversarial-reviews/wave-8-ss-08-pass-2.md
-input-hash: "e6acd95"
+input-hash: "0090e85"
 traces_to: ".factory/specs/prd.md"
 cycle: v1.0-brownfield-backfill
 sub_cycle: wave-8-ss-08-re-anchor

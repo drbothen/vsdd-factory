@@ -9,7 +9,7 @@ phase: 1c
 inputs:
   - .factory/specs/architecture/decisions/ADR-015-single-stream-otel-schema.md
   - .factory/stories/S-10.05-adr015-wave2-plugin-schema-migration.md
-input-hash: "6da47b9"
+input-hash: "018c0c9"
 traces_to: ADR-015-single-stream-otel-schema.md
 origin: spec-revision
 subsystem: "SS-02"

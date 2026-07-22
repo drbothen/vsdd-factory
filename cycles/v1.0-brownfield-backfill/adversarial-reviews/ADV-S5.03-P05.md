@@ -15,7 +15,7 @@ inputs:
   - .factory/specs/behavioral-contracts/BC-INDEX.md
   - .factory/specs/architecture/ARCH-INDEX.md
   - .factory/stories/S-5.02-session-end-hook.md
-input-hash: "c10c3a0"
+input-hash: "88efbd8"
 traces_to: ".factory/specs/prd.md"
 pass: 5
 previous_review: ADV-S5.03-P04.md

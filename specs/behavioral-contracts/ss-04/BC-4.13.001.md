@@ -13,7 +13,7 @@ inputs:
   - .factory/specs/behavioral-contracts/ss-04/BC-4.11.001.md
   - .factory/specs/behavioral-contracts/BC-INDEX.md
   - plugins/vsdd-factory/hooks-registry.toml
-input-hash: "c3ce066"
+input-hash: "c46d08c"
 traces_to: .factory/specs/architecture/decisions/ADR-025-single-writer-factory-locklease-prevent-concurrent-session-races-on-factory-artifacts-orphan-branch.md
 origin: brownfield
 extracted_from: null

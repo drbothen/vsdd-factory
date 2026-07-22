@@ -9,7 +9,7 @@ phase: 1.4b
 inputs:
   - .factory/phase-0-ingestion/pass-3-behavioral-contracts.md
   - .factory/specs/behavioral-contracts/bc-id-mapping.md
-input-hash: "1e73fa7"
+input-hash: "c24db8b"
 traces_to: .factory/specs/architecture/ARCH-INDEX.md
 origin: brownfield
 extracted_from: ".factory/phase-0-ingestion/pass-3-behavioral-contracts.md#L496"

@@ -11,7 +11,7 @@ inputs:
   - .factory/cycles/v1.0-brownfield-backfill/e-21-arch-delta-analysis.md
   - plugins/vsdd-factory/skills/deliver-story/steps/_shared-context.md
   - plugins/vsdd-factory/skills/deliver-story/steps/step-g-cleanup.md
-input-hash: "b32306f"
+input-hash: "3d1654b"
 traces_to: .factory/specs/architecture/ARCH-INDEX.md
 origin: brownfield
 extracted_from: null

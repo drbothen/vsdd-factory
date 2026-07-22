@@ -11,7 +11,7 @@ inputs:
   - .factory/stories/S-8.10-sdk-extension-write-file.md
   - crates/hook-sdk/src/host.rs
   - crates/factory-dispatcher/src/host/read_file.rs
-input-hash: "a7ae268"
+input-hash: "a2eb900"
 traces_to: .factory/specs/domain-spec/capabilities.md
 origin: brownfield
 extracted_from: ".factory/stories/S-8.10-sdk-extension-write-file.md"

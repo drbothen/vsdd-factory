@@ -18,7 +18,7 @@ inputs:
   - .factory/specs/behavioral-contracts/BC-INDEX.md
   - .factory/specs/verification-properties/VP-INDEX.md
   - .factory/specs/verification-properties/VP-040.md
-input-hash: "4a8820d"
+input-hash: "8c1a6c7"
 traces_to: ".factory/specs/prd.md#FR-009"
 cycle: v1.0-brownfield-backfill
 sub_cycle: wave-4-ss-02-re-anchor

@@ -11,7 +11,7 @@ inputs:
   - .factory/stories/S-19.03-warn-pending-wave-gate-file-not-found.md
   - crates/factory-dispatcher/src/host/read_file.rs
   - crates/hook-sdk/src/host.rs
-input-hash: "c9f4101"
+input-hash: "ffbe27c"
 traces_to: .factory/specs/prd.md
 origin: greenfield
 extracted_from: null

@@ -11,7 +11,7 @@ inputs:
   - .factory/feature-delta/issue-173/F1-delta-analysis.md
   - .factory/specs/architecture/decisions/ADR-026-wave-boundary-checkpoint-reset-and-lossless-intra-wave-compaction.md
   - crates/factory-dispatcher/src/invoke.rs
-input-hash: "c2426d5"
+input-hash: "43514d7"
 traces_to: .factory/specs/prd.md
 origin: greenfield
 extracted_from: null

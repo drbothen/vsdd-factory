@@ -14,7 +14,7 @@ inputs:
   - .factory/specs/behavioral-contracts/ss-05/BC-5.39.005.md
   - .factory/specs/behavioral-contracts/ss-05/BC-5.39.004.md
   - .factory/specs/architecture/decisions/ADR-022-hook-current-pass-context-discovery.md
-input-hash: "ad1c745"
+input-hash: "bfc53e9"
 traces_to: .factory/cycles/v1.0-brownfield-backfill/s-15.03-wave-plan-2026-05-15.md
 extracted_from: .factory/cycles/v1.0-brownfield-backfill/s-15.03-wave-plan-2026-05-15.md
 origin: brownfield

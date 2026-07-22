@@ -13,7 +13,7 @@ inputs:
   - .factory/specs/behavioral-contracts/ss-04/BC-4.13.001.md
   - .factory/specs/behavioral-contracts/BC-INDEX.md
   - plugins/vsdd-factory/skills/factory-health/SKILL.md
-input-hash: "387e9cd"
+input-hash: "3968046"
 traces_to: .factory/specs/architecture/decisions/ADR-025-single-writer-factory-locklease-prevent-concurrent-session-races-on-factory-artifacts-orphan-branch.md
 origin: brownfield
 subsystem: "SS-06"

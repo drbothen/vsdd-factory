@@ -7,7 +7,7 @@ producer: codebase-analyzer
 timestamp: 2026-04-25T00:00:00
 phase: 1.4b
 inputs: [.factory/phase-0-ingestion/pass-3-deep-agents.md]
-input-hash: "595f07d"
+input-hash: "b5028a1"
 traces_to: .factory/specs/architecture/ARCH-INDEX.md
 origin: brownfield
 extracted_from: .factory/phase-0-ingestion/pass-3-deep-agents.md:829

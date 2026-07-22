@@ -13,7 +13,7 @@ inputs:
   - crates/hook-sdk/src/host.rs
   - Cargo.toml
   - crates/hook-plugins/capture-commit-activity/Cargo.toml
-input-hash: "b56914f"
+input-hash: "4d627e9"
 traces_to: prd.md
 pass: p3
 previous_review: adv-s8.01-p2.md

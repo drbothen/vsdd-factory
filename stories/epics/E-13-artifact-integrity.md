@@ -21,7 +21,7 @@ inputs:
   - .factory/specs/architecture/decisions/ADR-016-artifact-path-registry-sot.md
   - .factory/specs/architecture/ARCH-INDEX.md
   - .factory/specs/behavioral-contracts/BC-INDEX.md
-input-hash: "87d2ae0"
+input-hash: "a6b52ac"
 modified:
   - "v1.0 2026-05-06: initial authoring for cycle v1.0-feature-engine-discipline-pass-1"
 ---

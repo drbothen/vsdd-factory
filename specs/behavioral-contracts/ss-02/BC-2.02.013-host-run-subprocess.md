@@ -9,7 +9,7 @@ phase: 1
 inputs:
   - .factory/specs/architecture/decisions/ADR-014-tier-2-native-wasm-migration.md
   - .factory/specs/architecture/SS-02-hook-sdk.md
-input-hash: "6e9a16e"
+input-hash: "a6a9b2c"
 traces_to: .factory/specs/domain-spec/capabilities.md
 origin: greenfield
 subsystem: "SS-02"

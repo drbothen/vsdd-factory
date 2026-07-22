@@ -11,7 +11,7 @@ inputs:
   - .factory/specs/architecture/ARCH-INDEX.md
   - .factory/phase-0-ingestion/pass-1-architecture.md
   - .factory/phase-0-ingestion/pass-8-final-synthesis.md
-input-hash: "1dbf694"
+input-hash: "08badc0"
 traces_to: ARCH-INDEX.md
 ---
 

@@ -9,7 +9,7 @@ phase: "1.4b"
 inputs:
   - .factory/specs/behavioral-contracts/bc-id-mapping.md
   - .factory/phase-0-ingestion/pass-3-deep-rust-tests.md
-input-hash: "5d2b1b3"
+input-hash: "0f4f6a3"
 traces_to: .factory/specs/behavioral-contracts/bc-id-mapping.md
 origin: brownfield
 extracted_from: "pass-3-deep-rust-tests.md:1035"

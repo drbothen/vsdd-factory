@@ -11,7 +11,7 @@ inputs:
   - .factory/specs/architecture/ARCH-INDEX.md
   - crates/hook-sdk/src/host.rs
   - Cargo.toml
-input-hash: "5c56bd9"
+input-hash: "4fb14d7"
 traces_to: prd.md
 pass: p4
 previous_review: adv-s8.01-p3.md

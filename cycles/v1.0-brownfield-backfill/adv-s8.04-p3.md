@@ -16,7 +16,7 @@ inputs:
   - Cargo.toml
   - plugins/vsdd-factory/hooks-registry.toml
   - .factory/specs/architecture/ARCH-INDEX.md
-input-hash: "b0d4897"
+input-hash: "92ef81e"
 traces_to: prd.md
 pass: p3
 previous_review: adv-s8.04-p2.md

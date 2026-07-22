@@ -13,7 +13,7 @@ inputs:
   - Cargo.toml
   - crates/hook-plugins/capture-commit-activity/src/main.rs
   - .factory/specs/architecture/ARCH-INDEX.md
-input-hash: "7e25e61"
+input-hash: "cd89247"
 traces_to: prd.md
 pass: p4
 previous_review: adv-s8.07-p3.md

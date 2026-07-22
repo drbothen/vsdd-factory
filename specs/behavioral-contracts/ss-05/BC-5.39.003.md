@@ -11,7 +11,7 @@ inputs:
   - .factory/cycles/v1.0-brownfield-backfill/s-15.03-wave-plan-2026-05-15.md
   - .factory/cycles/v1.0-brownfield-backfill/architect-m2-2026-05-16.md
   - .factory/cycles/v1.0-feature-engine-discipline-pass-1/decision-log.md
-input-hash: "ad1c745"
+input-hash: "54d460b"
 traces_to: .factory/cycles/v1.0-brownfield-backfill/s-15.03-wave-plan-2026-05-15.md
 extracted_from: .factory/stories/S-15.07-validate-index-cite-refresh.md
 origin: brownfield
