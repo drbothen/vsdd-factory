@@ -959,4 +959,38 @@ Net: **5 CONFIRMED-VIOLATED** (0 CONFIRMED-SATISFIED in prediction outcomes; the
 
 **Closes:** ADV-EDP1-P75-CRIT-001 (ACCEPTED-AT-FLOOR) + ADV-EDP1-P75-HIGH-001 (CLOSED) + ADV-EDP1-P75-HIGH-002 (ACCEPTED-AT-FLOOR anchored S-15.17) + ADV-EDP1-P75-HIGH-003 (CLOSED) + ADV-EDP1-P75-HIGH-004 (CLOSED) + ADV-EDP1-P75-HIGH-005 (CLOSED) + ADV-EDP1-P75-MED-001 (CLOSED) + ADV-EDP1-P75-MED-002 (CLOSED) + ADV-EDP1-P75-MED-003 (CLOSED) + ADV-EDP1-P75-LOW-001 (ACCEPTED-AT-FLOOR) + ADV-EDP1-P75-LOW-002 (CLOSED) (D-510; 11 findings)
 
+## L-EDP1-068: [process-gap] Single-Pass Sibling-Sweep Under-Counting for Registry-Class Changes (2026-07-22; D-877 batch-F/merge arc)
+
+**Trigger:** PR #754 (planning-registry) review arc. Initial reviewer (TD-VSDD-060 closure audit) found 6 paths missed in the implementer's original sibling sweep. The implementer's own second exhaustive re-sweep found 8 more paths (16 total vs 8 in original sweep). Two independent reviewers, two independent re-sweeps, both finding under-counts — this is not a one-off.
+
+**Pattern:** Single-pass sibling sweeps under-count when the scope is a registry-class change (new lookup key, new canonical identifier, new path constant) that is consumed by a distributed set of callers across the codebase. A single grep invocation scoped to one subdirectory or one crate misses callers in adjacent crates and in test fixtures. The under-count is invisible to the implementer during the initial sweep because the full scope of callers is not known without a whole-tree grep.
+
+**Codification (TD-VSDD-060 extension for registry-class changes):** When the change is registry-class — adding or renaming a canonical key, path constant, or identifier consumed by callers spread across the tree — the sibling sweep MUST:
+1. `grep -rn <identifier> .` from the workspace root (not a subdirectory).
+2. Verify each hit location against the expected list.
+3. Repeat the grep with variant spellings and path-fragment forms (e.g., both the Rust identifier name and its string-literal form for a path constant).
+4. Treat the sweep as incomplete until zero new hits appear on a second pass.
+
+**Forward discipline:** Any adversary or reviewer auditing TD-VSDD-060 closure on a registry-class change MUST verify the sweep was conducted from the workspace root, not a crate subdirectory. A grep scoped to a single crate is ADVISORY evidence, not CLOSURE evidence, for registry-class changes.
+
+**Closes:** D-877 (lesson captured this burst)
+
+## L-EDP1-069: [process-gap] Recurrent CI Flake Pattern — Stabilization-Story Candidate (2026-07-22; D-877 batch-F/merge arc)
+
+**Trigger:** 4th CI flake instance observed in the 2026-07-22 session: #737 bats-full-suite (linux), #714/#718 darwin artifact-upload builds, #754 precompact-routing TC-AC004 (plugin-execution timing shape — failed once on the first run, green on re-run, diff-disjoint from the code change). All 4 instances: single-run failure, green on immediate re-run, no code defect found.
+
+**Pattern:** The flake cluster is not random — three distinct failure classes observed:
+1. **Darwin runner starvation / artifact-upload timeouts** (#714/#718 class): macOS GitHub-hosted runners under high concurrency produce intermittent artifact-upload failures unrelated to code.
+2. **Bats full-suite timing sensitivity** (#737 class): the bats test suite has timing-sensitive assertions that fail under elevated CI load.
+3. **WASM plugin-execution timing shape** (#754 precompact-routing class): hook plugin startup latency under concurrent test load produces TC-AC004 timing-shape mismatches.
+
+**Risk:** Recurrent flakes erode reviewer confidence in CI as a merge gate. When a reviewer sees a red build and re-runs it to green, they are making an un-auditable judgment call that this is a flake — which can mask real regressions. Per S-7.02 checklist, this pattern requires a dedicated stabilization story before the sub-cycle closes.
+
+**Forward discipline:**
+1. A dedicated flaky-CI stabilization story MUST be created and triaged against the open story backlog (S-7.06..S-7.11 triage arc); carry as pending human triage.
+2. Until stabilized: any green-on-re-run CI result MUST be recorded in the burst-log with a note that a flake was observed — not silently accepted as a clean pass.
+3. Root-cause investigation per flake class: (a) darwin runner starvation → investigate ci.yml concurrency settings; (b) bats timing → add `--timing` flag and isolate slow assertions; (c) WASM timing shape → add fuel/startup warm-up or increase TC-AC004 timing tolerance.
+
+**Closes:** D-877 (lesson captured this burst; flaky-CI story anchor carried as pending human triage)
+
 ---
