@@ -27,13 +27,14 @@ Before any other action, say verbatim:
    `.factory/logs/` directory, and a later `/factory-health` mount then fails
    (`fatal: '.factory' already exists` on current git) — with nested
    `.factory/.factory` mounts observed from botched recoveries of that state
-   (#205). Assert the mount before doing anything:
+   (#205). Assert the mount before doing anything — the snippet halts, it does
+   not merely warn (paths canonicalized so symlinked checkouts don't false-fail):
    ```bash
-   [ "$(git -C .factory rev-parse --show-toplevel 2>/dev/null)" = "$(git rev-parse --show-toplevel)/.factory" ]
+   canon() { (cd "$1" 2>/dev/null && pwd -P); }
+   [ "$(canon "$(git -C .factory rev-parse --show-toplevel 2>/dev/null || echo /nonexistent)")" = "$(canon "$(git rev-parse --show-toplevel)")/.factory" ] \
+     || { echo ".factory/ is not a mounted worktree — run /factory-health first to set it up, then re-run this skill." >&2; exit 1; }
    ```
-   If this fails, abort with: **"`.factory/` is not a mounted worktree — run
-   `/factory-health` first to set it up, then re-run this skill."** Do not create
-   `.factory/` here.
+   Do not create `.factory/` here.
 2. The `factory-obs` binary must be present at `${CLAUDE_PLUGIN_ROOT}/bin/factory-obs`. If not, abort with "vsdd-factory plugin not found — is it installed in this Claude Code environment?".
 
 Don't fail silently — always print what's missing so the user can fix it.

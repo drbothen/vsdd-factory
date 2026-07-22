@@ -22,13 +22,17 @@
 # exactly the plain-dir that makes the bare mount fail (`already exists`) —
 # the state from which #205's nested layout was observed.
 #
-# TWO KINDS OF TEST HERE:
+# THREE KINDS OF TEST HERE:
 #   1. Content-contract (grep) tests — RED before the skill edits, GREEN after.
 #      They assert the skills carry the required assertion / guard / prereq text.
-#   2. Execution tests — fabricate real git layouts and prove the mount
-#      assertion the skill now prescribes actually distinguishes healthy from
-#      nested / plain-dir / absent. These validate git LOGIC (independent of the
-#      prose), so they pass on any git; the RED/GREEN gate is the grep tests.
+#   2. Assertion-logic tests — fabricate real git layouts and prove the mount
+#      assertion the skill prescribes actually distinguishes healthy from
+#      nested / plain-dir / absent. These validate git LOGIC (independent of
+#      the prose), so they pass on any git.
+#   3. Shipped-block execution tests — EXTRACT the fenced bash blocks from the
+#      SKILL.md files and execute that exact text against fabricated layouts.
+#      A typo or an inert guard in the shipped snippet fails these, not just
+#      the greps (load-bearing closure per TD-VSDD-059).
 #
 # Traces to: issues #205, #203 (root-cause dispatcher race is #206, separate PR).
 
@@ -67,6 +71,31 @@ _mount_ok() {
   local top
   top="$(git -C "$1/.factory" rev-parse --show-toplevel 2>/dev/null)" || return 1
   [ "$top" = "$1/.factory" ]
+}
+
+# Extract a fenced ```bash block from a SKILL.md: the first block whose body
+# matches the given ERE, with the bullet's 2-space indent stripped. Running
+# the extracted text binds these tests to the exact snippet the plugin ships.
+_extract_block() {
+  local file="$1" pat="$2"
+  awk -v pat="$pat" '
+    /^[[:space:]]*```/ {
+      if (inblock) {
+        if (buf ~ pat) { printf "%s", buf; exit }
+        inblock = 0; buf = ""
+      } else {
+        inblock = 1
+      }
+      next
+    }
+    inblock { line = $0; sub(/^  /, "", line); buf = buf line "\n" }
+  ' "$file"
+}
+
+# Run an extracted block with cwd set to the repo (subshell contains `exit 1`).
+_run_block() {
+  local repo="$1" block="$2"
+  ( cd "$repo" && eval "$block" )
 }
 
 # ============================================================
@@ -150,4 +179,112 @@ _mount_ok() {
   cd "$REPO"
   run _mount_ok "$REPO"
   [ "$status" -ne 0 ]
+}
+
+# ============================================================
+# Shipped-block execution tests — the EXACT SKILL.md snippets
+# ============================================================
+
+@test "shipped mount block: mounts .factory at repo root from a clean state" {
+  local block
+  block="$(_extract_block "$HEALTH" 'worktree add \.factory factory-artifacts')"
+  [ -n "$block" ]
+  run _run_block "$REPO" "$block"
+  [ "$status" -eq 0 ]
+  run _mount_ok "$REPO"
+  [ "$status" -eq 0 ]
+}
+
+@test "shipped mount block: plain .factory/logs dir is guarded, mounted over, contents restored (#203)" {
+  mkdir -p "$REPO/.factory/logs"
+  echo evt > "$REPO/.factory/logs/events-1.jsonl"
+
+  local block
+  block="$(_extract_block "$HEALTH" 'worktree add \.factory factory-artifacts')"
+  run _run_block "$REPO" "$block"
+  [ "$status" -eq 0 ]
+
+  # Mounted at root — the F1 failure mode was `fatal: '.factory' already
+  # exists` because the rev-parse --git-dir guard never fired on a plain dir.
+  run _mount_ok "$REPO"
+  [ "$status" -eq 0 ]
+  # Backed-up contents restored into the fresh worktree, backup removed.
+  [ -f "$REPO/.factory/logs/events-1.jsonl" ]
+  run bash -c "ls -d '$REPO'/.factory-backup-* 2>/dev/null"
+  [ "$status" -ne 0 ]
+}
+
+@test "shipped mount block: nested .factory/.factory is refused, recovery block heals it, re-run mounts (#205)" {
+  # Fabricate the nested corrupt layout with wrapper contents worth preserving.
+  mkdir -p "$REPO/.factory/logs"
+  echo evt > "$REPO/.factory/logs/events-1.jsonl"
+  git -C "$REPO" worktree add -q .factory/.factory factory-artifacts >/dev/null
+
+  local mount_block recovery_block
+  mount_block="$(_extract_block "$HEALTH" 'worktree add \.factory factory-artifacts')"
+  recovery_block="$(_extract_block "$HEALTH" 'worktree remove \.factory/\.factory')"
+  [ -n "$recovery_block" ]
+
+  # Mount block must HALT (not mount over, not mv-aside a live nested worktree).
+  run _run_block "$REPO" "$mount_block"
+  [ "$status" -ne 0 ]
+  [[ "$output" == *"nested"* ]]
+
+  # Recovery: positively confirmed shape → remove nested worktree, set wrapper
+  # aside, prune the dangling registration.
+  run _run_block "$REPO" "$recovery_block"
+  [ "$status" -eq 0 ]
+  [ ! -e "$REPO/.factory" ]
+
+  # Re-run of the mount block completes the heal and restores wrapper contents.
+  run _run_block "$REPO" "$mount_block"
+  [ "$status" -eq 0 ]
+  run _mount_ok "$REPO"
+  [ "$status" -eq 0 ]
+  [ -f "$REPO/.factory/logs/events-1.jsonl" ]
+}
+
+@test "shipped recovery block: refuses to touch a layout that is not the confirmed nested shape" {
+  # A healthy repo-root mount must survive an accidental recovery invocation.
+  git -C "$REPO" worktree add -q .factory factory-artifacts >/dev/null
+  local recovery_block
+  recovery_block="$(_extract_block "$HEALTH" 'worktree remove \.factory/\.factory')"
+  run _run_block "$REPO" "$recovery_block"
+  [ "$status" -ne 0 ]
+  [[ "$output" == *"not the known nested shape"* ]]
+  # Nothing was deleted or moved.
+  run _mount_ok "$REPO"
+  [ "$status" -eq 0 ]
+}
+
+@test "shipped mount block: prunes a stale registration before re-adding (bad prior recovery)" {
+  # Simulate the historical bad recovery: worktree mounted, then rm -rf'd
+  # without `git worktree remove`, leaving a dangling .git/worktrees entry.
+  git -C "$REPO" worktree add -q .factory factory-artifacts >/dev/null
+  rm -rf "$REPO/.factory"
+
+  local block
+  block="$(_extract_block "$HEALTH" 'worktree add \.factory factory-artifacts')"
+  run _run_block "$REPO" "$block"
+  [ "$status" -eq 0 ]
+  run _mount_ok "$REPO"
+  [ "$status" -eq 0 ]
+}
+
+@test "shipped onboard-observability prerequisite: halts on plain dir, passes on healthy mount (#203)" {
+  local prereq
+  prereq="$(_extract_block "$ONBOARD" 'factory-health first')"
+  [ -n "$prereq" ]
+
+  # Plain dir (onboard-first shape): the prerequisite must hard-stop.
+  mkdir -p "$REPO/.factory/logs"
+  run _run_block "$REPO" "$prereq"
+  [ "$status" -ne 0 ]
+  [[ "$output" == *"factory-health"* ]]
+
+  # Healthy mount: the prerequisite passes.
+  rm -rf "$REPO/.factory"
+  git -C "$REPO" worktree add -q .factory factory-artifacts >/dev/null
+  run _run_block "$REPO" "$prereq"
+  [ "$status" -eq 0 ]
 }

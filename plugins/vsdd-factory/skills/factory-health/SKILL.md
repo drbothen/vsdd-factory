@@ -41,32 +41,65 @@ git worktree list | grep -F '.factory'
   cleanly). A nested mount at `.factory/.factory` — a corrupt layout — has
   also been observed once from this state (#205; mechanism unconfirmed —
   candidates are a nested add path during error recovery or a process
-  re-creating `.factory` mid-setup). Move the plain directory aside first
-  (mirrors `/factory-worktree-health`), mount, then restore its contents:
+  re-creating `.factory` mid-setup).
+
+  Note `rev-parse --git-dir` CANNOT detect the plain-dir case — for an
+  in-repo plain directory it walks up, finds the parent repo's `.git`, and
+  exits 0, exactly as it does for a real worktree. The guard therefore
+  compares canonicalized (`pwd -P`, symlink-safe) worktree toplevels: a
+  healthy mount's toplevel resolves to `<repo-root>/.factory`, a plain dir's
+  resolves to the parent repo root. Run as one block — guard, prune stale
+  registrations, mount, restore, assert:
   ```bash
-  if [ -e .factory ] && ! git -C .factory rev-parse --git-dir >/dev/null 2>&1; then
-    mv .factory .factory-backup-$(date +%s)   # plain dir, not a worktree
+  canon() { (cd "$1" 2>/dev/null && pwd -P); }    # symlink-safe path compare
+  repo_root="$(canon "$(git rev-parse --show-toplevel)")"
+
+  # Nested corrupt layout (#205)? Positively confirmed only — route to the
+  # recovery block below rather than mounting over it.
+  if [ -e .factory/.factory/.git ]; then
+    echo "ABORT: nested .factory/.factory mount detected — run the #205 recovery block" >&2
+    exit 1
   fi
+
+  # Plain-dir guard: move aside anything that is not a repo-root worktree.
+  if [ -e .factory ] && \
+     [ "$(canon "$(git -C .factory rev-parse --show-toplevel 2>/dev/null || echo /nonexistent)")" != "$repo_root/.factory" ]; then
+    mv .factory ".factory-backup-$(date +%s)"   # plain dir, not a root worktree
+  fi
+
+  git worktree prune   # drop stale registrations left by earlier bad recoveries
   git worktree add .factory factory-artifacts
-  # If a backup was made, restore any contents (e.g. logs/) into the worktree:
-  #   cp -R .factory-backup-*/. .factory/ 2>/dev/null || true
-  #   rm -rf .factory-backup-*
+
+  # Restore any backed-up contents (e.g. logs/) into the fresh worktree.
+  for b in .factory-backup-*; do
+    [ -e "$b" ] || continue
+    cp -R "$b/." .factory/
+    rm -rf "$b"
+  done
+
+  # Post-mount assertion — hard stop; later checks must not run on a bad mount.
+  [ "$(canon "$(git -C .factory rev-parse --show-toplevel 2>/dev/null || echo /nonexistent)")" = "$repo_root/.factory" ] \
+    || { echo "ABORT: .factory did not mount at the repo root" >&2; exit 1; }
   ```
 
-  Then **assert the mount landed at the repo root**, not nested:
+  **#205 recovery block** — only for a positively confirmed nested mount
+  (`.factory/.factory/.git` exists). Do NOT run
+  `git worktree remove .factory --force` — that removal targets the wrong
+  path and cannot fix a nested mount. And do not delete anything on a mere
+  assertion failure: if the layout is not the known nested shape, inspect
+  `git worktree list` manually instead. The wrapper directory is moved
+  aside, not deleted, so its contents (e.g. logs/) are restored by the
+  mount block's backup-restore step on re-run:
   ```bash
-  [ "$(git -C .factory rev-parse --show-toplevel)" = "$(git rev-parse --show-toplevel)/.factory" ] \
-    || echo "ABORT: .factory did not mount at the repo root"
-  ```
-  If the assertion fails, the worktree is almost certainly **nested** at
-  `.factory/.factory` (#205 — observed once, mechanism unconfirmed;
-  candidates include a nested add during error recovery or a racing
-  re-create mid-mount). Do NOT run `git worktree remove .factory --force` — that
-  removal targets the wrong path and cannot fix a nested mount. Instead remove
-  the *actual* nested worktree and re-run this check from the plain-dir guard:
-  ```bash
-  git worktree remove .factory/.factory --force
-  rm -rf .factory        # now a leftover plain dir; the guard above re-handles it
+  if [ -e .factory/.factory/.git ]; then
+    git worktree remove .factory/.factory --force
+    mv .factory ".factory-backup-$(date +%s)"   # preserve wrapper contents
+    git worktree prune                          # drop the dangling registration
+    # Now re-run the mount block above; it mounts clean and restores the backup.
+  else
+    echo "ABORT: not the known nested shape — inspect 'git worktree list' manually" >&2
+    exit 1
+  fi
   ```
 
 - **If mounted but pointing to wrong branch**: Remove and remount, then re-run
