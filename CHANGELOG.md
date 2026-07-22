@@ -1,5 +1,11 @@
 # Changelog
 
+## [Unreleased]
+
+<!-- Story PRs add their changelog rows here under ### Added / ### Changed /
+     ### Fixed. Drained into the next `## <version>` section at release time
+     (RELEASING.md Step 2). Keep this heading in place and empty after a drain. -->
+
 ## 1.0.0-rc.23 — E-19 operator hardening — host ABI fixes + read_prefix FFI (2026-07-18)
 
 Ships the complete E-19 post-rc.22 operator-hardening epic (9 stories, 55 story points, 3 waves): pr-manager stale-verdict pinning and merge-strategy enforcement, `verify-factory-lock` and `verify-state-timestamp-refresh` 256 KiB cap raise, `read_file NOT_FOUND(-5)` host ABI constant and `file_not_found` telemetry, registry and bundle hygiene, async plugin completion telemetry with `VSDD_SINK_FILE` release-mode opt-in, the new `host::read_prefix` bounded partial-read FFI entry point, Phase-B migration of `verify-factory-lock` to `read_prefix`, and four CRITICAL host ABI production-path gap fixes (D19–D22). All 5 platform dispatcher binaries (darwin-arm64, darwin-x86_64, linux-x86_64, linux-musl, windows-x86_64) are rebuilt from source this release, closing the rc.22-era stale-binary gap where linux/windows binaries pre-dated the S-19.06 hook-sdk changes.
@@ -652,8 +658,6 @@ declaration; existing plugins continue to work without modification.
 - Additional resolver implementations beyond `WaveContextResolver`
   (cycle, sprint, project context) remain on the S-12.x backlog and
   will ship in subsequent rcs as they pass per-story delivery.
-
-## Unreleased
 
 ## 1.0.0-rc.16 — RELEASING.md procedural infrastructure + TD #69 guardrail (2026-05-10)
 

@@ -1,9 +1,13 @@
 #!/bin/bash
 # bump-version.sh — prepare release narrative for the next version.
 #
-# Prepends a CHANGELOG.md section heading with today's date so the
-# release notes have a starting point. Does NOT commit or tag — that's
-# intentional; the caller reviews the diff and stages the changes.
+# Inserts a CHANGELOG.md section heading with today's date so the
+# release notes have a starting point. The stub lands directly above
+# the previous release's heading — i.e., below the top-of-file
+# `## [Unreleased]` accumulation section, so entries story PRs parked
+# there sit adjacent to the new stub for the operator to drain into it
+# (RELEASING.md Step 2). Does NOT commit or tag — that's intentional;
+# the caller reviews the diff and stages the changes.
 #
 # v1.0.0-beta.4 cache-staleness fix: this script no longer touches
 # plugins/vsdd-factory/.claude-plugin/plugin.json. That field is now
@@ -109,12 +113,24 @@ if grep -qE "^## $NEW_VERSION([[:space:]]|$)" "$CHANGELOG"; then
 else
   STUB=$(printf '%s\n\nTODO: describe the release.\n\n### Fixed\n\n- \n\n### Added\n\n- \n\n### Migration\n\nNo breaking changes.\n\n' "$HEADING_LINE")
   CHANGELOG_TMP="${CHANGELOG}.tmp.$$"
-  {
-    head -n 1 "$CHANGELOG"
-    echo
-    printf '%s' "$STUB"
-    tail -n +3 "$CHANGELOG"
-  } > "$CHANGELOG_TMP"
+  # Insert the stub directly above the first version heading (## N.N.N...)
+  # rather than at the top of the file, so the `## [Unreleased]`
+  # accumulation section keeps its canonical top-of-file position and any
+  # entries parked under it end up adjacent to the stub for draining.
+  # (head/tail split, not awk -v: BSD awk rejects newlines in -v strings.)
+  FIRST_VERSION_LINE=$(grep -nE -m1 '^## [0-9]' "$CHANGELOG" | cut -d: -f1) || FIRST_VERSION_LINE=""
+  if [ -n "$FIRST_VERSION_LINE" ]; then
+    {
+      head -n "$((FIRST_VERSION_LINE - 1))" "$CHANGELOG"
+      printf '%s\n\n' "$STUB"
+      tail -n "+${FIRST_VERSION_LINE}" "$CHANGELOG"
+    } > "$CHANGELOG_TMP"
+  else
+    {
+      cat "$CHANGELOG"
+      printf '\n%s\n' "$STUB"
+    } > "$CHANGELOG_TMP"
+  fi
   mv "$CHANGELOG_TMP" "$CHANGELOG"
   CHANGELOG_UPDATED="prepended \"$HEADING_LINE\""
 fi
@@ -126,7 +142,9 @@ echo "  CHANGELOG.md     $CHANGELOG_UPDATED"
 echo "  plugin.json      unchanged (stays at $OLD_PLUGIN; bot writes from tag)"
 echo
 echo "Next steps:"
-echo "  1. Edit CHANGELOG.md to fill in the TODOs (if a stub was prepended)."
+echo "  1. Edit CHANGELOG.md to fill in the TODOs (if a stub was inserted),"
+echo "     draining any entries under ## [Unreleased] into the new section"
+echo "     (leave the [Unreleased] heading in place, empty)."
 echo "  2. git add CHANGELOG.md"
 echo "  3. git commit -m \"chore: release v$NEW_VERSION — ${TITLE:-<title>}\""
 echo "  4. git tag -a v$NEW_VERSION -m \"v$NEW_VERSION — ${TITLE:-<title>}\""

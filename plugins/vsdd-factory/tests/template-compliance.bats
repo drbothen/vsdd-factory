@@ -154,13 +154,33 @@ _run_hook() {
   registry_has_hook "validate-template-compliance" "PostToolUse"
 }
 
-# ---------- Story template: mandatory CHANGELOG delivery task (#580) ----------
+# ---------- Story pipeline: mandatory CHANGELOG delivery task (#580) ----------
 
-@test "story-template Tasks section includes a CHANGELOG delivery task" {
-  TEMPLATE="${CLAUDE_PLUGIN_ROOT}/templates/story-template.md"
-  [ -f "$TEMPLATE" ]
-  # The Tasks list must carry a row that tells the story author to deliver a
-  # CHANGELOG entry inside the story PR.
-  run grep -i 'CHANGELOG entry under \[Unreleased\]' "$TEMPLATE"
+@test "all three story-pipeline artifacts carry the CHANGELOG delivery task" {
+  # The template task row, the create-story skill example, and the
+  # story-writer agent prompt must all tell the author to ship a CHANGELOG
+  # entry under [Unreleased] inside the story PR. Anchor on the stable
+  # token pair (CHANGELOG + [Unreleased]) rather than exact phrasing, so a
+  # harmless rephrase doesn't flip the test but a dropped or divergent
+  # anchor in any of the three files does.
+  for artifact in \
+      "${CLAUDE_PLUGIN_ROOT}/templates/story-template.md" \
+      "${CLAUDE_PLUGIN_ROOT}/skills/create-story/SKILL.md" \
+      "${CLAUDE_PLUGIN_ROOT}/agents/story-writer.md"; do
+    [ -f "$artifact" ]
+    run grep -Ei 'CHANGELOG.+\[Unreleased\]' "$artifact"
+    [ "$status" -eq 0 ]
+  done
+}
+
+@test "CHANGELOG.md carries the top-of-file [Unreleased] section the task points at" {
+  # The delivery task instructs authors to file entries under [Unreleased].
+  # Guard that the anchor actually exists as the FIRST H2 in CHANGELOG.md —
+  # a missing or mid-file section would fragment the changelog (agents
+  # following the task literally would mint a second divergent heading).
+  REPO_CHANGELOG="${CLAUDE_PLUGIN_ROOT}/../../CHANGELOG.md"
+  [ -f "$REPO_CHANGELOG" ]
+  run bash -c "grep -m1 -E '^## ' '$REPO_CHANGELOG'"
   [ "$status" -eq 0 ]
+  [ "$output" = "## [Unreleased]" ]
 }
