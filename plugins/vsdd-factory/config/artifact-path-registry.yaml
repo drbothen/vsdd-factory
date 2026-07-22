@@ -283,6 +283,142 @@ artifacts:
     description: Dim-2 mechanical gate bash template scripts and registry README (D-453(e))
     enforcement_level: block
 
+  # ── Planning ─────────────────────────────────────────────────────────────
+  - artifact_type: planning-product-brief
+    canonical_path_pattern: ".factory/planning/product-brief.md"
+    description: >
+      Product brief written by guided-brief-creation (step-06-finalize) —
+      the human-facing L1 brief before spec crystallization.
+      BC-6.07.038 postcondition; distinct from .factory/specs/product-brief.md.
+    enforcement_level: block
+
+  - artifact_type: planning-elicitation-notes
+    canonical_path_pattern: ".factory/planning/elicitation-notes.md"
+    description: >
+      Overflow context captured during guided-brief-creation elicitation
+      (steps 2 + 6). Written when non-trivial details exceed the brief's scope.
+      Phase 1 reads this for PRD / architecture / NFR hints (BC-6.07.038).
+    enforcement_level: block
+
+  - artifact_type: planning-market-intel
+    canonical_path_pattern: ".factory/planning/market-intel.md"
+    description: >
+      Market intelligence report written by guided-brief-creation step-02
+      when web research is triggered (domain unfamiliar / competitive landscape
+      unknown). Referenced by step-03 elicitation and step-06 finalize.
+    enforcement_level: block
+
+  - artifact_type: planning-adversarial-review-brief
+    canonical_path_pattern: ".factory/planning/adversarial-review-brief.md"
+    description: >
+      Adversarial review record written by guided-brief-creation step-05
+      (optional). Documents findings, triage, and APPROVED/RETURNED outcome
+      for the product brief. Left in place by step-06 as audit trail.
+    enforcement_level: block
+
+  - artifact_type: planning-brainstorming-report
+    canonical_path_pattern: ".factory/planning/brainstorming-report.md"
+    description: >
+      Brainstorming session report written by the brainstorming skill
+      (step-06-write-report). Contains all ideas, themes, selected direction,
+      and open questions. Input to guided-brief-creation step-02 discovery.
+    enforcement_level: block
+
+  - artifact_type: planning-artifact-inventory
+    canonical_path_pattern: ".factory/planning/artifact-inventory.md"
+    description: >
+      Artifact inventory written by artifact-detection step-01. Records what
+      planning artifacts were found in the project before readiness
+      classification.
+    enforcement_level: block
+
+  - artifact_type: planning-gap-analysis
+    canonical_path_pattern: ".factory/planning/gap-analysis.md"
+    description: >
+      Gap analysis written by artifact-detection step-04. Records validation
+      results and specific gaps for each artifact level (brief, PRD,
+      architecture, stories).
+    enforcement_level: block
+
+  - artifact_type: planning-routing-decision
+    canonical_path_pattern: ".factory/planning/routing-decision.md"
+    description: >
+      Routing decision written by artifact-detection step-05. Records which
+      pipeline entry point was selected based on the readiness level and
+      gap analysis.
+    enforcement_level: block
+
+  - artifact_type: planning-brief-validation
+    canonical_path_pattern: ".factory/planning/brief-validation.md"
+    description: >
+      Validation report written by the validate-brief skill. Checks the
+      product brief for required sections, specificity, and measurable
+      success criteria against the brief-validation-template. Referenced
+      in the planning.lobster brief-approval gate.
+    enforcement_level: block
+
+  - artifact_type: planning-readiness-report
+    canonical_path_pattern: ".factory/planning/readiness-report.md"
+    description: >
+      Implementation readiness report written by the implementation-readiness
+      skill. Assesses all spec dimensions (BCs, VPs, stories, architecture,
+      DTU coverage) for L4 routing and records an overall READY/NOT READY
+      verdict. Referenced in the planning.lobster intake-approval gate.
+    enforcement_level: block
+
+  - artifact_type: planning-research-report
+    canonical_path_pattern: ".factory/planning/research-report.md"
+    description: >
+      Domain research report written by the planning-research skill. Contains
+      sourced findings on the problem space, technology landscape, and
+      audience pains. Input to guided-brief-creation elicitation (step-02).
+    enforcement_level: block
+
+  - artifact_type: planning-research-sources
+    canonical_path_pattern: ".factory/planning/research-sources.md"
+    description: >
+      Citations and source links companion document written by the
+      planning-research skill alongside research-report.md. Provides
+      full bibliographic records for all claims in the research report.
+    enforcement_level: block
+
+  - artifact_type: planning-domain-research
+    canonical_path_pattern: ".factory/planning/domain-research.md"
+    description: >
+      Domain research artifact written by research-agent when dispatched
+      by the orchestrator for planning-phase domain research
+      (research-agent write scope: .factory/planning/; canonical path per
+      orchestrator.md absolute-path convention).
+    enforcement_level: block
+
+  - artifact_type: planning-prd-validation
+    canonical_path_pattern: ".factory/planning/prd-validation.md"
+    description: >
+      PRD validation report written by the consistency-validator agent in
+      the planning.lobster validate-existing-prd step (L2/L3/L4 intake
+      track). Checks BC-S.SS.NNN ID format, measurable ACs, and edge case
+      catalog. Referenced in the intake-approval gate.
+    enforcement_level: block
+
+  - artifact_type: planning-architecture-validation
+    canonical_path_pattern: ".factory/planning/architecture-validation.md"
+    description: >
+      Architecture validation report written by the architect agent in the
+      planning.lobster validate-existing-architecture step (L3/L4 intake
+      track). Checks ARCH-INDEX.md structure, section completeness, purity
+      boundary map, and PRD consistency. Referenced in the intake-approval
+      gate.
+    enforcement_level: block
+
+  - artifact_type: planning-market-context
+    canonical_path_pattern: ".factory/planning/market-context.md"
+    description: >
+      Market context analysis written by the business-analyst agent when
+      dispatched by the orchestrator for competitive and audience analysis
+      during planning (docs/FACTORY.md dispatch example). Distinct from
+      market-intel.md (written by guided-brief-creation step-02).
+    enforcement_level: block
+
   # ── Proposals ────────────────────────────────────────────────────────────
   - artifact_type: proposal
     canonical_path_pattern: ".factory/proposals/{filename}.md"

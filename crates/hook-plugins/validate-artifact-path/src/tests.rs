@@ -1747,3 +1747,569 @@ fn test_issue_473_scenario_selection_hook_allows_write() {
         hook_result
     );
 }
+
+// -----------------------------------------------------------------------
+// BC-6.07.038 / PR #723 spec-conformance: .factory/planning/ subtree paths
+//
+// BC-6.07.038 requires guided-brief-creation to write:
+//   .factory/planning/product-brief.md
+//   .factory/planning/elicitation-notes.md
+//
+// The brainstorming skill writes:
+//   .factory/planning/brainstorming-report.md
+//
+// guided-brief-creation steps also conditionally write:
+//   .factory/planning/market-intel.md          (step-02, optional)
+//   .factory/planning/adversarial-review-brief.md (step-05, optional)
+//
+// The artifact-detection skill writes:
+//   .factory/planning/artifact-inventory.md    (step-01)
+//   .factory/planning/gap-analysis.md          (step-04)
+//   .factory/planning/routing-decision.md      (step-05)
+//
+// None of these had registry entries before this PR, causing every
+// guided-brief-creation / brainstorming / artifact-detection invocation
+// to hit ARTIFACT_PATH_UNREGISTERED blocks.
+//
+// These tests load the ACTUAL production registry (same walk-up harness
+// as the #473 tests) and assert all eight canonical planning paths now
+// match with block enforcement, and that hook_logic allows the writes
+// end-to-end.
+//
+// Refs: BC-6.07.038, skills/guided-brief-creation/SKILL.md (Output Artifacts),
+//       skills/guided-brief-creation/steps/step-02-contextual-discovery.md,
+//       skills/guided-brief-creation/steps/step-05-adversarial-review.md,
+//       skills/guided-brief-creation/steps/step-06-finalize.md,
+//       skills/brainstorming/SKILL.md (Output Artifacts),
+//       skills/artifact-detection/SKILL.md (Output Artifacts).
+// -----------------------------------------------------------------------
+
+/// Locate the shipped production registry by walking up from
+/// CARGO_MANIFEST_DIR until `plugins/vsdd-factory/config/artifact-path-registry.yaml`
+/// is found. Layout-independent so it can never silently fall back to a
+/// fixture and pass vacuously.
+fn production_registry_path_bc607038() -> std::path::PathBuf {
+    let manifest_dir =
+        std::env::var("CARGO_MANIFEST_DIR").expect("CARGO_MANIFEST_DIR must be set during test");
+    let mut dir = std::path::PathBuf::from(&manifest_dir);
+    loop {
+        let candidate = dir.join("plugins/vsdd-factory/config/artifact-path-registry.yaml");
+        if candidate.exists() {
+            return candidate;
+        }
+        if !dir.pop() {
+            panic!(
+                "could not locate plugins/vsdd-factory/config/artifact-path-registry.yaml \
+                 walking up from CARGO_MANIFEST_DIR ({manifest_dir})"
+            );
+        }
+    }
+}
+
+/// Read the shipped production registry as YAML text.
+fn production_registry_yaml_bc607038() -> String {
+    let path = production_registry_path_bc607038();
+    std::fs::read_to_string(&path)
+        .unwrap_or_else(|e| panic!("failed to read registry at {}: {}", path.display(), e))
+}
+
+#[test]
+fn test_bc607038_planning_product_brief_matches_production_registry() {
+    // BC-6.07.038 postcondition: .factory/planning/product-brief.md is the
+    // canonical write target of guided-brief-creation step-06-finalize.
+    // It MUST match a block entry so the write is not blocked.
+    let registry =
+        load_registry(&production_registry_yaml_bc607038()).expect("production registry must load");
+    let path = ".factory/planning/product-brief.md";
+    let result = matches_canonical(path, &registry);
+    assert_eq!(
+        result,
+        MatchResult::Block,
+        "BC-6.07.038: canonical guided-brief-creation output '{}' must match a block entry \
+         in the production registry (currently {:?}). Without the entry, \
+         validate-artifact-path blocks the write with ARTIFACT_PATH_UNREGISTERED.",
+        path,
+        result
+    );
+}
+
+#[test]
+fn test_bc607038_planning_product_brief_hook_allows_write() {
+    let payload = make_payload("Write", Some(".factory/planning/product-brief.md"));
+    let (hook_result, _log, _events) = run_logic(payload, Ok(production_registry_yaml_bc607038()));
+    assert!(
+        matches!(hook_result, HookResult::Continue),
+        "BC-6.07.038: hook_logic must Continue (allow) the write to \
+         .factory/planning/product-brief.md; got {:?}",
+        hook_result
+    );
+}
+
+#[test]
+fn test_bc607038_planning_elicitation_notes_matches_production_registry() {
+    // BC-6.07.038 postcondition (conditional): .factory/planning/elicitation-notes.md
+    // is written by guided-brief-creation steps 2 and 6.
+    let registry =
+        load_registry(&production_registry_yaml_bc607038()).expect("production registry must load");
+    let path = ".factory/planning/elicitation-notes.md";
+    let result = matches_canonical(path, &registry);
+    assert_eq!(
+        result,
+        MatchResult::Block,
+        "BC-6.07.038: elicitation-notes path '{}' must match a block entry \
+         in the production registry (currently {:?}).",
+        path,
+        result
+    );
+}
+
+#[test]
+fn test_bc607038_planning_elicitation_notes_hook_allows_write() {
+    let payload = make_payload("Write", Some(".factory/planning/elicitation-notes.md"));
+    let (hook_result, _log, _events) = run_logic(payload, Ok(production_registry_yaml_bc607038()));
+    assert!(
+        matches!(hook_result, HookResult::Continue),
+        "BC-6.07.038: hook_logic must Continue for .factory/planning/elicitation-notes.md; \
+         got {:?}",
+        hook_result
+    );
+}
+
+#[test]
+fn test_bc607038_planning_market_intel_matches_production_registry() {
+    // guided-brief-creation step-02-contextual-discovery writes
+    // .factory/planning/market-intel.md when web research is triggered.
+    let registry =
+        load_registry(&production_registry_yaml_bc607038()).expect("production registry must load");
+    let path = ".factory/planning/market-intel.md";
+    let result = matches_canonical(path, &registry);
+    assert_eq!(
+        result,
+        MatchResult::Block,
+        "guided-brief-creation step-02: market-intel path '{}' must match a block entry \
+         in the production registry (currently {:?}).",
+        path,
+        result
+    );
+}
+
+#[test]
+fn test_bc607038_planning_market_intel_hook_allows_write() {
+    let payload = make_payload("Write", Some(".factory/planning/market-intel.md"));
+    let (hook_result, _log, _events) = run_logic(payload, Ok(production_registry_yaml_bc607038()));
+    assert!(
+        matches!(hook_result, HookResult::Continue),
+        "guided-brief-creation step-02: hook_logic must Continue for \
+         .factory/planning/market-intel.md; got {:?}",
+        hook_result
+    );
+}
+
+#[test]
+fn test_bc607038_planning_adversarial_review_brief_matches_production_registry() {
+    // guided-brief-creation step-05-adversarial-review writes
+    // .factory/planning/adversarial-review-brief.md when the optional
+    // adversarial review runs.
+    let registry =
+        load_registry(&production_registry_yaml_bc607038()).expect("production registry must load");
+    let path = ".factory/planning/adversarial-review-brief.md";
+    let result = matches_canonical(path, &registry);
+    assert_eq!(
+        result,
+        MatchResult::Block,
+        "guided-brief-creation step-05: adversarial-review-brief path '{}' must match \
+         a block entry in the production registry (currently {:?}).",
+        path,
+        result
+    );
+}
+
+#[test]
+fn test_bc607038_planning_adversarial_review_brief_hook_allows_write() {
+    let payload = make_payload(
+        "Write",
+        Some(".factory/planning/adversarial-review-brief.md"),
+    );
+    let (hook_result, _log, _events) = run_logic(payload, Ok(production_registry_yaml_bc607038()));
+    assert!(
+        matches!(hook_result, HookResult::Continue),
+        "guided-brief-creation step-05: hook_logic must Continue for \
+         .factory/planning/adversarial-review-brief.md; got {:?}",
+        hook_result
+    );
+}
+
+#[test]
+fn test_bc607038_planning_brainstorming_report_matches_production_registry() {
+    // The brainstorming skill step-06-write-report writes
+    // .factory/planning/brainstorming-report.md.
+    let registry =
+        load_registry(&production_registry_yaml_bc607038()).expect("production registry must load");
+    let path = ".factory/planning/brainstorming-report.md";
+    let result = matches_canonical(path, &registry);
+    assert_eq!(
+        result,
+        MatchResult::Block,
+        "brainstorming step-06: brainstorming-report path '{}' must match a block entry \
+         in the production registry (currently {:?}).",
+        path,
+        result
+    );
+}
+
+#[test]
+fn test_bc607038_planning_brainstorming_report_hook_allows_write() {
+    let payload = make_payload("Write", Some(".factory/planning/brainstorming-report.md"));
+    let (hook_result, _log, _events) = run_logic(payload, Ok(production_registry_yaml_bc607038()));
+    assert!(
+        matches!(hook_result, HookResult::Continue),
+        "brainstorming step-06: hook_logic must Continue for \
+         .factory/planning/brainstorming-report.md; got {:?}",
+        hook_result
+    );
+}
+
+#[test]
+fn test_bc607038_planning_artifact_inventory_matches_production_registry() {
+    // artifact-detection step-01 writes .factory/planning/artifact-inventory.md.
+    let registry =
+        load_registry(&production_registry_yaml_bc607038()).expect("production registry must load");
+    let path = ".factory/planning/artifact-inventory.md";
+    let result = matches_canonical(path, &registry);
+    assert_eq!(
+        result,
+        MatchResult::Block,
+        "artifact-detection step-01: artifact-inventory path '{}' must match a block entry \
+         in the production registry (currently {:?}).",
+        path,
+        result
+    );
+}
+
+#[test]
+fn test_bc607038_planning_artifact_inventory_hook_allows_write() {
+    let payload = make_payload("Write", Some(".factory/planning/artifact-inventory.md"));
+    let (hook_result, _log, _events) = run_logic(payload, Ok(production_registry_yaml_bc607038()));
+    assert!(
+        matches!(hook_result, HookResult::Continue),
+        "artifact-detection step-01: hook_logic must Continue for \
+         .factory/planning/artifact-inventory.md; got {:?}",
+        hook_result
+    );
+}
+
+#[test]
+fn test_bc607038_planning_gap_analysis_matches_production_registry() {
+    // artifact-detection step-04 writes .factory/planning/gap-analysis.md.
+    let registry =
+        load_registry(&production_registry_yaml_bc607038()).expect("production registry must load");
+    let path = ".factory/planning/gap-analysis.md";
+    let result = matches_canonical(path, &registry);
+    assert_eq!(
+        result,
+        MatchResult::Block,
+        "artifact-detection step-04: gap-analysis path '{}' must match a block entry \
+         in the production registry (currently {:?}).",
+        path,
+        result
+    );
+}
+
+#[test]
+fn test_bc607038_planning_gap_analysis_hook_allows_write() {
+    let payload = make_payload("Write", Some(".factory/planning/gap-analysis.md"));
+    let (hook_result, _log, _events) = run_logic(payload, Ok(production_registry_yaml_bc607038()));
+    assert!(
+        matches!(hook_result, HookResult::Continue),
+        "artifact-detection step-04: hook_logic must Continue for \
+         .factory/planning/gap-analysis.md; got {:?}",
+        hook_result
+    );
+}
+
+#[test]
+fn test_bc607038_planning_routing_decision_matches_production_registry() {
+    // artifact-detection step-05 writes .factory/planning/routing-decision.md.
+    let registry =
+        load_registry(&production_registry_yaml_bc607038()).expect("production registry must load");
+    let path = ".factory/planning/routing-decision.md";
+    let result = matches_canonical(path, &registry);
+    assert_eq!(
+        result,
+        MatchResult::Block,
+        "artifact-detection step-05: routing-decision path '{}' must match a block entry \
+         in the production registry (currently {:?}).",
+        path,
+        result
+    );
+}
+
+#[test]
+fn test_bc607038_planning_routing_decision_hook_allows_write() {
+    let payload = make_payload("Write", Some(".factory/planning/routing-decision.md"));
+    let (hook_result, _log, _events) = run_logic(payload, Ok(production_registry_yaml_bc607038()));
+    assert!(
+        matches!(hook_result, HookResult::Continue),
+        "artifact-detection step-05: hook_logic must Continue for \
+         .factory/planning/routing-decision.md; got {:?}",
+        hook_result
+    );
+}
+
+// -----------------------------------------------------------------------
+// Sibling-sweep: additional .factory/planning/ write targets found by
+// exhaustive grep after PR #754 initial review.
+//
+// Sources verified per TD-VSDD-060:
+//   brief-validation.md     — validate-brief SKILL.md §Output (line 129)
+//   readiness-report.md     — implementation-readiness SKILL.md §Output (line 125)
+//   research-report.md      — planning-research SKILL.md §Output Artifacts (line 66)
+//   research-sources.md     — planning-research SKILL.md §Output Artifacts (line 67)
+//   domain-research.md      — research-agent.md write scope (.factory/planning/);
+//                             orchestrator.md absolute-path example (line 151)
+//   prd-validation.md       — planning.lobster step validate-existing-prd (line 200)
+//   architecture-validation.md — planning.lobster step validate-existing-architecture (line 212)
+//   market-context.md       — docs/FACTORY.md business-analyst dispatch example (line 171)
+// -----------------------------------------------------------------------
+
+#[test]
+fn test_bc607038_planning_brief_validation_matches_production_registry() {
+    // validate-brief skill writes .factory/planning/brief-validation.md.
+    let registry =
+        load_registry(&production_registry_yaml_bc607038()).expect("production registry must load");
+    let path = ".factory/planning/brief-validation.md";
+    let result = matches_canonical(path, &registry);
+    assert_eq!(
+        result,
+        MatchResult::Block,
+        "validate-brief skill: brief-validation path '{}' must match a block entry \
+         in the production registry (currently {:?}).",
+        path,
+        result
+    );
+}
+
+#[test]
+fn test_bc607038_planning_brief_validation_hook_allows_write() {
+    let payload = make_payload("Write", Some(".factory/planning/brief-validation.md"));
+    let (hook_result, _log, _events) = run_logic(payload, Ok(production_registry_yaml_bc607038()));
+    assert!(
+        matches!(hook_result, HookResult::Continue),
+        "validate-brief skill: hook_logic must Continue for \
+         .factory/planning/brief-validation.md; got {:?}",
+        hook_result
+    );
+}
+
+#[test]
+fn test_bc607038_planning_readiness_report_matches_production_registry() {
+    // implementation-readiness skill writes .factory/planning/readiness-report.md.
+    let registry =
+        load_registry(&production_registry_yaml_bc607038()).expect("production registry must load");
+    let path = ".factory/planning/readiness-report.md";
+    let result = matches_canonical(path, &registry);
+    assert_eq!(
+        result,
+        MatchResult::Block,
+        "implementation-readiness skill: readiness-report path '{}' must match a block \
+         entry in the production registry (currently {:?}).",
+        path,
+        result
+    );
+}
+
+#[test]
+fn test_bc607038_planning_readiness_report_hook_allows_write() {
+    let payload = make_payload("Write", Some(".factory/planning/readiness-report.md"));
+    let (hook_result, _log, _events) = run_logic(payload, Ok(production_registry_yaml_bc607038()));
+    assert!(
+        matches!(hook_result, HookResult::Continue),
+        "implementation-readiness skill: hook_logic must Continue for \
+         .factory/planning/readiness-report.md; got {:?}",
+        hook_result
+    );
+}
+
+#[test]
+fn test_bc607038_planning_research_report_matches_production_registry() {
+    // planning-research skill writes .factory/planning/research-report.md.
+    let registry =
+        load_registry(&production_registry_yaml_bc607038()).expect("production registry must load");
+    let path = ".factory/planning/research-report.md";
+    let result = matches_canonical(path, &registry);
+    assert_eq!(
+        result,
+        MatchResult::Block,
+        "planning-research skill: research-report path '{}' must match a block entry \
+         in the production registry (currently {:?}).",
+        path,
+        result
+    );
+}
+
+#[test]
+fn test_bc607038_planning_research_report_hook_allows_write() {
+    let payload = make_payload("Write", Some(".factory/planning/research-report.md"));
+    let (hook_result, _log, _events) = run_logic(payload, Ok(production_registry_yaml_bc607038()));
+    assert!(
+        matches!(hook_result, HookResult::Continue),
+        "planning-research skill: hook_logic must Continue for \
+         .factory/planning/research-report.md; got {:?}",
+        hook_result
+    );
+}
+
+#[test]
+fn test_bc607038_planning_research_sources_matches_production_registry() {
+    // planning-research skill writes .factory/planning/research-sources.md
+    // as the citations companion to research-report.md.
+    let registry =
+        load_registry(&production_registry_yaml_bc607038()).expect("production registry must load");
+    let path = ".factory/planning/research-sources.md";
+    let result = matches_canonical(path, &registry);
+    assert_eq!(
+        result,
+        MatchResult::Block,
+        "planning-research skill: research-sources path '{}' must match a block entry \
+         in the production registry (currently {:?}).",
+        path,
+        result
+    );
+}
+
+#[test]
+fn test_bc607038_planning_research_sources_hook_allows_write() {
+    let payload = make_payload("Write", Some(".factory/planning/research-sources.md"));
+    let (hook_result, _log, _events) = run_logic(payload, Ok(production_registry_yaml_bc607038()));
+    assert!(
+        matches!(hook_result, HookResult::Continue),
+        "planning-research skill: hook_logic must Continue for \
+         .factory/planning/research-sources.md; got {:?}",
+        hook_result
+    );
+}
+
+#[test]
+fn test_bc607038_planning_domain_research_matches_production_registry() {
+    // research-agent writes to .factory/planning/ (write scope in research-agent.md).
+    // orchestrator.md uses .factory/planning/domain-research.md as the canonical
+    // path for domain research dispatches during planning.
+    let registry =
+        load_registry(&production_registry_yaml_bc607038()).expect("production registry must load");
+    let path = ".factory/planning/domain-research.md";
+    let result = matches_canonical(path, &registry);
+    assert_eq!(
+        result,
+        MatchResult::Block,
+        "research-agent (planning dispatch): domain-research path '{}' must match a block \
+         entry in the production registry (currently {:?}).",
+        path,
+        result
+    );
+}
+
+#[test]
+fn test_bc607038_planning_domain_research_hook_allows_write() {
+    let payload = make_payload("Write", Some(".factory/planning/domain-research.md"));
+    let (hook_result, _log, _events) = run_logic(payload, Ok(production_registry_yaml_bc607038()));
+    assert!(
+        matches!(hook_result, HookResult::Continue),
+        "research-agent (planning dispatch): hook_logic must Continue for \
+         .factory/planning/domain-research.md; got {:?}",
+        hook_result
+    );
+}
+
+#[test]
+fn test_bc607038_planning_prd_validation_matches_production_registry() {
+    // planning.lobster step validate-existing-prd (consistency-validator agent)
+    // writes .factory/planning/prd-validation.md.
+    let registry =
+        load_registry(&production_registry_yaml_bc607038()).expect("production registry must load");
+    let path = ".factory/planning/prd-validation.md";
+    let result = matches_canonical(path, &registry);
+    assert_eq!(
+        result,
+        MatchResult::Block,
+        "planning.lobster validate-existing-prd: prd-validation path '{}' must match \
+         a block entry in the production registry (currently {:?}).",
+        path,
+        result
+    );
+}
+
+#[test]
+fn test_bc607038_planning_prd_validation_hook_allows_write() {
+    let payload = make_payload("Write", Some(".factory/planning/prd-validation.md"));
+    let (hook_result, _log, _events) = run_logic(payload, Ok(production_registry_yaml_bc607038()));
+    assert!(
+        matches!(hook_result, HookResult::Continue),
+        "planning.lobster validate-existing-prd: hook_logic must Continue for \
+         .factory/planning/prd-validation.md; got {:?}",
+        hook_result
+    );
+}
+
+#[test]
+fn test_bc607038_planning_architecture_validation_matches_production_registry() {
+    // planning.lobster step validate-existing-architecture (architect agent)
+    // writes .factory/planning/architecture-validation.md.
+    let registry =
+        load_registry(&production_registry_yaml_bc607038()).expect("production registry must load");
+    let path = ".factory/planning/architecture-validation.md";
+    let result = matches_canonical(path, &registry);
+    assert_eq!(
+        result,
+        MatchResult::Block,
+        "planning.lobster validate-existing-architecture: architecture-validation path '{}' \
+         must match a block entry in the production registry (currently {:?}).",
+        path,
+        result
+    );
+}
+
+#[test]
+fn test_bc607038_planning_architecture_validation_hook_allows_write() {
+    let payload = make_payload(
+        "Write",
+        Some(".factory/planning/architecture-validation.md"),
+    );
+    let (hook_result, _log, _events) = run_logic(payload, Ok(production_registry_yaml_bc607038()));
+    assert!(
+        matches!(hook_result, HookResult::Continue),
+        "planning.lobster validate-existing-architecture: hook_logic must Continue for \
+         .factory/planning/architecture-validation.md; got {:?}",
+        hook_result
+    );
+}
+
+#[test]
+fn test_bc607038_planning_market_context_matches_production_registry() {
+    // business-analyst agent writes .factory/planning/market-context.md when
+    // dispatched by the orchestrator for market/competitive analysis
+    // (docs/FACTORY.md dispatch example).
+    let registry =
+        load_registry(&production_registry_yaml_bc607038()).expect("production registry must load");
+    let path = ".factory/planning/market-context.md";
+    let result = matches_canonical(path, &registry);
+    assert_eq!(
+        result,
+        MatchResult::Block,
+        "business-analyst agent (planning dispatch): market-context path '{}' must match \
+         a block entry in the production registry (currently {:?}).",
+        path,
+        result
+    );
+}
+
+#[test]
+fn test_bc607038_planning_market_context_hook_allows_write() {
+    let payload = make_payload("Write", Some(".factory/planning/market-context.md"));
+    let (hook_result, _log, _events) = run_logic(payload, Ok(production_registry_yaml_bc607038()));
+    assert!(
+        matches!(hook_result, HookResult::Continue),
+        "business-analyst agent (planning dispatch): hook_logic must Continue for \
+         .factory/planning/market-context.md; got {:?}",
+        hook_result
+    );
+}
