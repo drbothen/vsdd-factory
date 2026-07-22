@@ -378,3 +378,71 @@ require_bash4_hook_interp() {
   run bash -c 'echo "{\"tool_input\":{\"file_path\":\".factory/STATE.md\"}}" | "'"$HOOKS"'/validate-count-propagation.sh" 2>&1'
   [ "$status" -eq 0 ]
 }
+
+# ---------- validate-bc-title ----------
+
+@test "validate-bc-title: title lookup scopes to the Title-header table (#566)" {
+  # The BC id appears first in a capability-satisfaction table (adjacent cell
+  # "CAP-001") before the §2 navigation table. The nav table title agrees with
+  # the H1, so this edit must pass — the matcher must not grab the CAP-001 cell.
+  local bc_dir=".factory/specs/behavioral-contracts"
+  cat > "$bc_dir/BC-2.01.001.md" <<'EOF'
+# BC-2.01.001: Drop-In SSH_AUTH_SOCK Replacement
+EOF
+  cat > "$bc_dir/BC-INDEX.md" <<'EOF'
+# BC-INDEX
+
+## 1. Capability Satisfaction
+
+| BC | Satisfies | Notes |
+|----|-----------|-------|
+| BC-2.01.001 | CAP-001 | primary |
+
+## 2. Navigation
+
+| BC | Title | Subsystem | Priority |
+|----|-------|-----------|----------|
+| BC-2.01.001 | Drop-In SSH_AUTH_SOCK Replacement | SS-02 | P0 |
+EOF
+  run bash -c 'echo "{\"tool_input\":{\"file_path\":\".factory/specs/behavioral-contracts/BC-2.01.001.md\"}}" | "'"$HOOKS"'/validate-bc-title.sh" 2>&1'
+  [ "$status" -eq 0 ]
+}
+
+@test "validate-bc-title: genuine H1/index drift in the nav table still blocks" {
+  local bc_dir=".factory/specs/behavioral-contracts"
+  cat > "$bc_dir/BC-2.01.001.md" <<'EOF'
+# BC-2.01.001: Drop-In SSH_AUTH_SOCK Replacement
+EOF
+  cat > "$bc_dir/BC-INDEX.md" <<'EOF'
+# BC-INDEX
+
+## 1. Capability Satisfaction
+
+| BC | Satisfies | Notes |
+|----|-----------|-------|
+| BC-2.01.001 | CAP-001 | primary |
+
+## 2. Navigation
+
+| BC | Title | Subsystem | Priority |
+|----|-------|-----------|----------|
+| BC-2.01.001 | Stale Divergent Title | SS-02 | P0 |
+EOF
+  run bash -c 'echo "{\"tool_input\":{\"file_path\":\".factory/specs/behavioral-contracts/BC-2.01.001.md\"}}" | "'"$HOOKS"'/validate-bc-title.sh" 2>&1'
+  [ "$status" -eq 2 ]
+  [[ "$output" == *"bc_h1_index_drift"* ]]
+  [[ "$output" == *"Stale Divergent Title"* ]]
+}
+
+@test "validate-bc-title: headerless single-row index falls back and still blocks" {
+  # No Title-header table present — preserve prior behavior (first-occurrence
+  # fallback) so a genuine drift in a minimal index is still caught.
+  local bc_dir=".factory/specs/behavioral-contracts"
+  cat > "$bc_dir/BC-1.01.001.md" <<'EOF'
+# BC-1.01.001: Correct Title
+EOF
+  printf '| BC-1.01.001 | Wrong Title | SS-01 |\n' > "$bc_dir/BC-INDEX.md"
+  run bash -c 'echo "{\"tool_input\":{\"file_path\":\".factory/specs/behavioral-contracts/BC-1.01.001.md\"}}" | "'"$HOOKS"'/validate-bc-title.sh" 2>&1'
+  [ "$status" -eq 2 ]
+  [[ "$output" == *"Wrong Title"* ]]
+}
