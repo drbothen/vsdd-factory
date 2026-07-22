@@ -182,7 +182,7 @@
     {
       "id": 5,
       "title": "Cache hit ratio",
-      "description": "cacheRead / (input + cacheRead). High is good — cache reads are much cheaper than fresh input. Low numbers suggest prompt caching isn't benefiting your workflow much (often fixable by restructuring prompts or system instructions).",
+      "description": "Share of input-side tokens served from cache: cacheRead / (input + cacheRead + cacheCreation). High is good — cache reads are much cheaper than fresh input. cacheCreation (cache-write) tokens are included in the denominator because they are billed at a premium and are not cache hits; omitting them inflates the ratio toward a false 100%. Low numbers suggest prompt caching isn't benefiting your workflow much (often fixable by restructuring prompts or system instructions).",
       "type": "gauge",
       "datasource": { "type": "prometheus", "uid": "prometheus" },
       "gridPos": { "h": 4, "w": 4, "x": 20, "y": 0 },
@@ -217,7 +217,7 @@
         {
           "refId": "A",
           "datasource": { "type": "prometheus", "uid": "prometheus" },
-          "expr": "sum(increase(claude_code_token_usage_tokens_total{type=\"cacheRead\"}[$__range])) / (sum(increase(claude_code_token_usage_tokens_total{type=\"input\"}[$__range])) + sum(increase(claude_code_token_usage_tokens_total{type=\"cacheRead\"}[$__range])))"
+          "expr": "sum(increase(claude_code_token_usage_tokens_total{type=\"cacheRead\"}[$__range])) / (sum(increase(claude_code_token_usage_tokens_total{type=\"input\"}[$__range])) + sum(increase(claude_code_token_usage_tokens_total{type=\"cacheRead\"}[$__range])) + sum(increase(claude_code_token_usage_tokens_total{type=\"cacheCreation\"}[$__range])))"
         }
       ]
     },
