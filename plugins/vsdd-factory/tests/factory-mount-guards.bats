@@ -5,11 +5,12 @@
 # .factory factory-artifacts` with NO post-mount assertion. If `.factory`
 # already exists as a plain non-empty directory (the #203 onboard-first case),
 # that command fails on current git (`fatal: '.factory' already exists`;
-# verified 2.50/2.55 — an empty dir mounts cleanly). Nested mounts at
-# `.factory/.factory` have been observed from that state (#205) via nested
-# add paths used in recovery or a process re-creating `.factory` mid-mount;
-# the execution tests below FABRICATE that layout rather than reproduce it
-# from the bare command. Once nested, step 3's
+# verified 2.50/2.55 — an empty dir mounts cleanly). A nested mount at
+# `.factory/.factory` was observed once from that state (#205); the mechanism
+# is unconfirmed — the reporter could not reproduce it in isolation, and the
+# candidates are a nested add path during error recovery or a process
+# re-creating `.factory` mid-mount. The execution tests below FABRICATE that
+# layout rather than reproduce it from the bare command. Once nested, step 3's
 # `cd .factory && git branch --show-current` reads the PARENT branch, and
 # the documented recovery `git worktree remove .factory --force` does not fix
 # it because `.factory` is not the worktree — the worktree is `.factory/.factory`.
@@ -18,7 +19,8 @@
 # "When to use: brand new project that just had the plugin installed" while its
 # Prerequisites require a `.factory/` ancestor — a contradiction. Running it
 # before factory-health creates a plain `.factory/logs/` directory, which is
-# exactly the plain-dir that makes the #205 nested mount happen.
+# exactly the plain-dir that makes the bare mount fail (`already exists`) —
+# the state from which #205's nested layout was observed.
 #
 # TWO KINDS OF TEST HERE:
 #   1. Content-contract (grep) tests — RED before the skill edits, GREEN after.
