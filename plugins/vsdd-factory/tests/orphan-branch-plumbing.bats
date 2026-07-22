@@ -10,30 +10,38 @@
 # resolve the previous ref, or the working-tree files that became untracked
 # under the orphan would be overwritten — HEAD is silently STRANDED on
 # factory-artifacts and subsequent pipeline work commits to the wrong branch.
-# The commits were also unsigned.
 #
 # THE FIX (issue's Option B, plumbing-only):
-#   git branch <name> "$(git commit-tree -S "$(git mktree </dev/null)" -m "...")"
-# HEAD never moves, the working tree is never touched, the commit is signed.
+#   commit=$(git commit-tree "$(git mktree </dev/null)" -m "...") || { ...; exit 1; }
+#   git branch <name> "$commit"
+# HEAD never moves and the working tree is never touched. The init marker
+# commit is deliberately UNSIGNED: `git commit-tree` does not honor
+# `commit.gpgsign`, so a hard -S would turn the auto-repair path into a hard
+# failure on any host without a signing key (fresh CI runner, agent container,
+# downstream plugin consumer). Content commits are signed later by
+# state-manager under the repo's normal commit config.
 #
 # TEST STRATEGY
-#   - Behavioral (GREEN): run the new recipe in a scratch repo with tracked +
-#     untracked files and assert the invariants: current branch unchanged,
-#     factory-artifacts resolves, it is a parentless (orphan) empty-tree commit,
-#     and `git status --porcelain` is byte-identical before and after.
+#   - The behavioral tests EXTRACT the fenced ```bash recipe from the shipped
+#     SKILL.md files and execute that exact text — a typo introduced into
+#     either SKILL.md fails the behavioral tests, not just a substring check.
+#   - Behavioral (GREEN): run the extracted recipe in a scratch repo with
+#     tracked + untracked files and assert the invariants: current branch
+#     unchanged, factory-artifacts resolves, it is a parentless (orphan)
+#     empty-tree commit, and `git status --porcelain` is byte-identical
+#     before and after.
 #   - Behavioral (RED): run each OLD recipe in the same scratch fixture and
 #     assert it CAN strand HEAD on factory-artifacts — this is the defect the
 #     fix removes. These tests PASS by demonstrating the old behavior is broken.
-#   - Signing: run the recipe verbatim WITH -S under an ephemeral SSH signing
-#     key and assert the commit verifies. Skipped if SSH commit signing is
-#     unavailable in the environment (ssh-keygen missing or git too old).
-#   - Contract: the shipped SKILL.md files contain the plumbing recipe and no
-#     longer contain the fragile checkout-dance in the branch-creation block.
-#
-#   The behavioral tests strip -S from the recipe so they run on any host with
-#   no signing key configured (as CI runs). The -S delta is covered separately
-#   by the gated signing test and by the contract test that asserts -S is
-#   present in the shipped recipe text.
+#   - Keyless environment: run the extracted recipe with global/system git
+#     config masked (no signing key reachable) and assert the branch is still
+#     created, unsigned — the repair path must not require a key.
+#   - Error path: run the extracted recipe in a repo where commit-tree cannot
+#     succeed (no committer identity) and assert it fails cleanly with the
+#     recipe's own message and creates NO branch (no `git branch <name> ""`).
+#   - Contract: the shipped SKILL.md files contain the plumbing recipe (no -S),
+#     the worktree variant carries the local-existence guard and quoted
+#     ${BRANCH_NAME}, and neither file retains the fragile checkout dance.
 #
 # Run:
 #   bats plugins/vsdd-factory/tests/orphan-branch-plumbing.bats
@@ -50,6 +58,40 @@ setup() {
 
 teardown() {
   rm -rf "$WORK"
+}
+
+# ---------------------------------------------------------------------------
+# Extract the branch-creation recipe from a SKILL.md: the first fenced ```bash
+# block that contains `commit-tree`, with the bullet's 2-space indent stripped.
+# Binding the behavioral tests to this extracted text means the tests exercise
+# the exact recipe the plugin ships.
+# ---------------------------------------------------------------------------
+_extract_recipe() {
+  local file="$1"
+  awk '
+    /^[[:space:]]*```/ {
+      if (inblock) {
+        if (buf ~ /commit-tree/) { printf "%s", buf; exit }
+        inblock = 0; buf = ""
+      } else {
+        inblock = 1
+      }
+      next
+    }
+    inblock { line = $0; sub(/^  /, "", line); buf = buf line "\n" }
+  ' "$file"
+}
+
+# Run an extracted recipe inside a repo (subshell; recipe `exit 1` is contained).
+_run_recipe() {
+  local repo="$1" recipe="$2"
+  ( cd "$repo" && eval "$recipe" )
+}
+
+# Same, with BRANCH_NAME bound (factory-worktree-health parameterizes on it).
+_run_recipe_named() {
+  local repo="$1" recipe="$2" name="$3"
+  ( cd "$repo" && BRANCH_NAME="$name" && eval "$recipe" )
 }
 
 # ---------------------------------------------------------------------------
@@ -77,45 +119,67 @@ _setup_repo() {
   STARTING_BRANCH="$(git -C "$REPO" branch --show-current)"
 }
 
+# Bare origin for the factory-worktree-health recipe's push step.
+_setup_remote() {
+  ORIGIN="$WORK/origin.git"
+  git init -q --bare "$ORIGIN"
+  git -C "$REPO" remote add origin "$ORIGIN"
+}
+
 # The empty tree object hash is a git constant.
 EMPTY_TREE="4b825dc642cb6eb9a060e54bf8d69288fbee4904"
 
 # ===========================================================================
-# BEHAVIORAL — GREEN: the plumbing recipe holds every invariant
+# EXTRACTION SANITY — the recipes are actually present to extract
 # ===========================================================================
 
-@test "new recipe: HEAD/current branch unchanged after creation" {
+@test "factory-health SKILL.md yields an extractable branch-creation recipe" {
+  recipe="$(_extract_recipe "$FACTORY_HEALTH")"
+  [ -n "$recipe" ]
+  [[ "$recipe" == *"commit-tree"* ]]
+  [[ "$recipe" == *"git branch factory-artifacts"* ]]
+}
+
+@test "factory-worktree-health SKILL.md yields an extractable branch-creation recipe" {
+  recipe="$(_extract_recipe "$WORKTREE_HEALTH")"
+  [ -n "$recipe" ]
+  [[ "$recipe" == *"commit-tree"* ]]
+  [[ "$recipe" == *'git push origin "${BRANCH_NAME}"'* ]]
+}
+
+# ===========================================================================
+# BEHAVIORAL — GREEN: the SHIPPED recipe holds every invariant
+# ===========================================================================
+
+@test "shipped recipe: HEAD/current branch unchanged after creation" {
   _setup_repo
-  local before_head before_branch
+  local before_head before_branch recipe
   before_head="$(git -C "$REPO" rev-parse HEAD)"
   before_branch="$(git -C "$REPO" branch --show-current)"
+  recipe="$(_extract_recipe "$FACTORY_HEALTH")"
 
-  # New recipe (issue #204 Option B), -S stripped for CI portability.
-  git -C "$REPO" branch factory-artifacts \
-    "$(git -C "$REPO" commit-tree "$(git -C "$REPO" mktree </dev/null)" \
-       -m "chore: initialize factory-artifacts orphan branch")"
+  run _run_recipe "$REPO" "$recipe"
+  [ "$status" -eq 0 ]
 
   [ "$(git -C "$REPO" rev-parse HEAD)" = "$before_head" ]
   [ "$(git -C "$REPO" branch --show-current)" = "$before_branch" ]
   [ "$(git -C "$REPO" branch --show-current)" = "develop" ]
 }
 
-@test "new recipe: factory-artifacts ref resolves to a commit" {
+@test "shipped recipe: factory-artifacts ref resolves to a commit" {
   _setup_repo
-  git -C "$REPO" branch factory-artifacts \
-    "$(git -C "$REPO" commit-tree "$(git -C "$REPO" mktree </dev/null)" \
-       -m "chore: initialize factory-artifacts orphan branch")"
+  run _run_recipe "$REPO" "$(_extract_recipe "$FACTORY_HEALTH")"
+  [ "$status" -eq 0 ]
 
   run git -C "$REPO" rev-parse --verify --quiet factory-artifacts
   [ "$status" -eq 0 ]
   [ -n "$output" ]
 }
 
-@test "new recipe: factory-artifacts is a parentless (orphan) empty-tree commit" {
+@test "shipped recipe: factory-artifacts is a parentless (orphan) empty-tree commit" {
   _setup_repo
-  git -C "$REPO" branch factory-artifacts \
-    "$(git -C "$REPO" commit-tree "$(git -C "$REPO" mktree </dev/null)" \
-       -m "chore: initialize factory-artifacts orphan branch")"
+  run _run_recipe "$REPO" "$(_extract_recipe "$FACTORY_HEALTH")"
+  [ "$status" -eq 0 ]
 
   # Orphan: `git rev-list --parents -n1` prints only the commit SHA (1 token)
   # when there are no parents; a parent would add a second token.
@@ -127,7 +191,7 @@ EMPTY_TREE="4b825dc642cb6eb9a060e54bf8d69288fbee4904"
   [ "$(git -C "$REPO" rev-parse 'factory-artifacts^{tree}')" = "$EMPTY_TREE" ]
 }
 
-@test "new recipe: working tree is byte-for-byte untouched" {
+@test "shipped recipe: working tree is byte-for-byte untouched" {
   _setup_repo
   local before after
   before="$(git -C "$REPO" status --porcelain)"
@@ -136,9 +200,8 @@ EMPTY_TREE="4b825dc642cb6eb9a060e54bf8d69288fbee4904"
   before_readme="$(cat "$REPO/README.md")"
   before_untracked="$(cat "$REPO/untracked.txt")"
 
-  git -C "$REPO" branch factory-artifacts \
-    "$(git -C "$REPO" commit-tree "$(git -C "$REPO" mktree </dev/null)" \
-       -m "chore: initialize factory-artifacts orphan branch")"
+  run _run_recipe "$REPO" "$(_extract_recipe "$FACTORY_HEALTH")"
+  [ "$status" -eq 0 ]
 
   after="$(git -C "$REPO" status --porcelain)"
   # Same working-tree/index state as before (the one untracked file, nothing else).
@@ -148,6 +211,50 @@ EMPTY_TREE="4b825dc642cb6eb9a060e54bf8d69288fbee4904"
   [ "$(cat "$REPO/README.md")" = "$before_readme" ]
   # Untracked file intact (the old `git rm -rf .` variant would have deleted it).
   [ "$(cat "$REPO/untracked.txt")" = "$before_untracked" ]
+}
+
+@test "shipped worktree-health recipe: creates the branch locally and pushes it" {
+  _setup_repo
+  _setup_remote
+  local before_branch recipe
+  before_branch="$(git -C "$REPO" branch --show-current)"
+  recipe="$(_extract_recipe "$WORKTREE_HEALTH")"
+
+  run _run_recipe_named "$REPO" "$recipe" "factory-artifacts"
+  [ "$status" -eq 0 ]
+
+  # Local branch created; HEAD untouched.
+  run git -C "$REPO" rev-parse --verify --quiet factory-artifacts
+  [ "$status" -eq 0 ]
+  [ "$(git -C "$REPO" branch --show-current)" = "$before_branch" ]
+  # Pushed: the bare origin now has the ref.
+  run git -C "$ORIGIN" show-ref --verify --quiet refs/heads/factory-artifacts
+  [ "$status" -eq 0 ]
+}
+
+@test "shipped worktree-health recipe: re-run with existing local branch succeeds (local-existence guard)" {
+  _setup_repo
+  _setup_remote
+  local recipe
+  recipe="$(_extract_recipe "$WORKTREE_HEALTH")"
+
+  # First run creates local + remote. Simulate the review's re-run case by
+  # deleting only the REMOTE ref (Step 1's ls-remote check is remote-only,
+  # so the skill re-enters this recipe while the local branch still exists).
+  run _run_recipe_named "$REPO" "$recipe" "factory-artifacts"
+  [ "$status" -eq 0 ]
+  git -C "$ORIGIN" update-ref -d refs/heads/factory-artifacts
+  local existing
+  existing="$(git -C "$REPO" rev-parse factory-artifacts)"
+
+  # Re-run: without the guard this died with "branch already exists".
+  run _run_recipe_named "$REPO" "$recipe" "factory-artifacts"
+  [ "$status" -eq 0 ]
+  # The existing local branch was reused, not recreated...
+  [ "$(git -C "$REPO" rev-parse factory-artifacts)" = "$existing" ]
+  # ...and the push restored the remote ref.
+  run git -C "$ORIGIN" show-ref --verify --quiet refs/heads/factory-artifacts
+  [ "$status" -eq 0 ]
 }
 
 # ===========================================================================
@@ -207,62 +314,73 @@ EMPTY_TREE="4b825dc642cb6eb9a060e54bf8d69288fbee4904"
   [ "$(git -C "$REPO" branch --show-current)" != "$start" ]
 }
 
-@test "new recipe does NOT strand: same fixture, HEAD stays put" {
+@test "shipped recipe does NOT strand: same fixture, HEAD stays put" {
   _setup_repo
-  # Contrast to the RED cases above: identical starting fixture, new recipe,
-  # HEAD is exactly where it started.
+  # Contrast to the RED cases above: identical starting fixture, shipped
+  # recipe, HEAD is exactly where it started.
   local before_branch
   before_branch="$(git -C "$REPO" branch --show-current)"
-  git -C "$REPO" branch factory-artifacts \
-    "$(git -C "$REPO" commit-tree "$(git -C "$REPO" mktree </dev/null)" \
-       -m "chore: initialize factory-artifacts orphan branch")"
+  run _run_recipe "$REPO" "$(_extract_recipe "$FACTORY_HEALTH")"
+  [ "$status" -eq 0 ]
   [ "$(git -C "$REPO" branch --show-current)" = "$before_branch" ]
 }
 
 # ===========================================================================
-# SIGNING — verbatim recipe with -S, gated on SSH-signing availability
+# ENVIRONMENT NEUTRALITY — the repair path must not require a signing key
 # ===========================================================================
 
-@test "new recipe with -S produces a verifiable signature" {
-  command -v ssh-keygen >/dev/null 2>&1 || skip "ssh-keygen not available"
-
+@test "shipped recipe succeeds in a keyless environment (no signing config reachable)" {
   _setup_repo
-  local key="$WORK/sign_key"
-  # Generate an ephemeral SSH key for signing (no passphrase).
-  ssh-keygen -q -t ed25519 -f "$key" -N "" -C "orphan-plumbing-test" \
-    </dev/null >/dev/null 2>&1 || skip "ssh-keygen failed"
+  local recipe
+  recipe="$(_extract_recipe "$FACTORY_HEALTH")"
 
-  git -C "$REPO" config gpg.format ssh
-  git -C "$REPO" config user.signingkey "$key.pub"
-
-  # Run the recipe VERBATIM, including -S, as shipped in SKILL.md.
-  run git -C "$REPO" branch factory-artifacts \
-    "$(git -C "$REPO" commit-tree -S "$(git -C "$REPO" mktree </dev/null)" \
-       -m "chore: initialize factory-artifacts orphan branch")"
-  # If this git build lacks SSH signing support, skip rather than fail.
-  if [ "$status" -ne 0 ]; then
-    skip "SSH commit signing unavailable in this git build"
-  fi
-
-  # An allowed-signers file lets verify-commit confirm the signature.
-  local signers="$WORK/allowed_signers"
-  echo "orphan-plumbing-test $(cat "$key.pub")" > "$signers"
-  git -C "$REPO" config gpg.ssh.allowedSignersFile "$signers"
-
-  run git -C "$REPO" verify-commit factory-artifacts
+  # Mask global + system git config so no user.signingkey / commit.gpgsign /
+  # gpg.format can leak in from the host — the fresh-CI-runner shape.
+  run bash -c "cd '$REPO' && GIT_CONFIG_GLOBAL=/dev/null GIT_CONFIG_SYSTEM=/dev/null bash -c '$(printf '%s' "$recipe" | sed "s/'/'\\\\''/g")'"
   [ "$status" -eq 0 ]
-  # HEAD still didn't move even with signing on.
-  [ "$(git -C "$REPO" branch --show-current)" = "develop" ]
+
+  # Branch created; commit is unsigned (%G? prints N for no signature).
+  run git -C "$REPO" rev-parse --verify --quiet factory-artifacts
+  [ "$status" -eq 0 ]
+  [ "$(git -C "$REPO" log -1 --format=%G? factory-artifacts)" = "N" ]
+}
+
+@test "shipped recipe fails cleanly when commit-tree cannot succeed — no half-made branch" {
+  # A repo where commit-tree CANNOT succeed: user.useConfigOnly forbids the
+  # username@hostname ident auto-detection and no user.email is configured.
+  # The recipe's guard must surface its own message and NOT run
+  # `git branch factory-artifacts ""` (which would emit a misleading
+  # "not a valid object name" error).
+  REPO="$WORK/noident"
+  git init -q -b develop "$REPO"
+  git -C "$REPO" -c user.email=seed@x -c user.name=seed commit -q --allow-empty -m seed
+  git -C "$REPO" config user.useConfigOnly true
+
+  local recipe
+  recipe="$(_extract_recipe "$FACTORY_HEALTH")"
+  run bash -c "cd '$REPO' && GIT_CONFIG_GLOBAL=/dev/null GIT_CONFIG_SYSTEM=/dev/null bash -c '$(printf '%s' "$recipe" | sed "s/'/'\\\\''/g")'"
+  [ "$status" -ne 0 ]
+  # The failure is attributed by the recipe's own message...
+  [[ "$output" == *"failed to create factory-artifacts init commit"* ]]
+  # ...not by a misleading empty-object branch error, and no branch exists.
+  [[ "$output" != *"not a valid object name"* ]]
+  run git -C "$REPO" show-ref --verify --quiet refs/heads/factory-artifacts
+  [ "$status" -ne 0 ]
 }
 
 # ===========================================================================
 # CONTRACT — the shipped SKILL.md files carry the fix, not the fragile recipe
 # ===========================================================================
 
-@test "factory-health SKILL.md uses the plumbing recipe" {
-  grep -qF "git commit-tree -S" "$FACTORY_HEALTH"
+@test "factory-health SKILL.md uses the plumbing recipe without mandatory -S" {
+  grep -qF "git commit-tree" "$FACTORY_HEALTH"
   grep -qF "git mktree </dev/null" "$FACTORY_HEALTH"
   grep -qF "git branch factory-artifacts" "$FACTORY_HEALTH"
+  # -S would make the auto-repair path fail on keyless hosts; it must be gone.
+  run grep -F "commit-tree -S" "$FACTORY_HEALTH"
+  [ "$status" -ne 0 ]
+  # The commit-tree failure guard is present (no `git branch <name> ""`).
+  grep -qF "failed to create factory-artifacts init commit" "$FACTORY_HEALTH"
 }
 
 @test "factory-health SKILL.md no longer contains the checkout dance in branch creation" {
@@ -273,12 +391,17 @@ EMPTY_TREE="4b825dc642cb6eb9a060e54bf8d69288fbee4904"
   [ "$status" -ne 0 ]
 }
 
-@test "factory-worktree-health SKILL.md uses the plumbing recipe" {
-  grep -qF 'git commit-tree -S' "$WORKTREE_HEALTH"
+@test "factory-worktree-health SKILL.md uses the guarded plumbing recipe" {
+  grep -qF 'git commit-tree' "$WORKTREE_HEALTH"
   grep -qF 'git mktree </dev/null' "$WORKTREE_HEALTH"
-  grep -qF 'git branch ${BRANCH_NAME}' "$WORKTREE_HEALTH"
-  # The remote branch still gets pushed.
-  grep -qF 'git push origin ${BRANCH_NAME}' "$WORKTREE_HEALTH"
+  run grep -F "commit-tree -S" "$WORKTREE_HEALTH"
+  [ "$status" -ne 0 ]
+  # Local-existence guard (Step 1's ls-remote check is remote-only).
+  grep -qF 'git show-ref --verify --quiet "refs/heads/${BRANCH_NAME}"' "$WORKTREE_HEALTH"
+  # Quoted expansions and the failure guard.
+  grep -qF 'git branch "${BRANCH_NAME}" "$commit"' "$WORKTREE_HEALTH"
+  grep -qF 'git push origin "${BRANCH_NAME}"' "$WORKTREE_HEALTH"
+  grep -qF 'failed to create ${BRANCH_NAME} init commit' "$WORKTREE_HEALTH"
 }
 
 @test "factory-worktree-health SKILL.md no longer contains the checkout dance in branch creation" {

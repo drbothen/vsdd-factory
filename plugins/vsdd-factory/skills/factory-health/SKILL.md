@@ -18,13 +18,19 @@ git branch --list factory-artifacts
 ```
 
 - **If missing**: Create it. Build the empty root commit with plumbing and
-  point the branch ref at it directly — this never moves `HEAD`, never touches
-  the working tree, and signs the commit (`-S`). No checkout dance, so there is
-  no failed-return case that could strand the session on `factory-artifacts`.
+  point the branch ref at it directly — this never moves `HEAD` and never
+  touches the working tree. No checkout dance, so there is no failed-return
+  case that could strand the session on `factory-artifacts`. The init marker
+  commit is deliberately unsigned: `git commit-tree` does not honor
+  `commit.gpgsign`, and a hard `-S` would fail outright in environments with
+  no signing key configured (fresh CI runners, agent containers, plugin
+  consumers). Real content commits on the branch are signed later by
+  state-manager under the repo's normal commit config.
   ```bash
-  git branch factory-artifacts \
-    "$(git commit-tree -S "$(git mktree </dev/null)" \
-       -m "chore: initialize factory-artifacts orphan branch")"
+  commit=$(git commit-tree "$(git mktree </dev/null)" \
+    -m "chore: initialize factory-artifacts orphan branch") \
+    || { echo "failed to create factory-artifacts init commit" >&2; exit 1; }
+  git branch factory-artifacts "$commit"
   ```
 
 ### 2. Worktree is mounted
