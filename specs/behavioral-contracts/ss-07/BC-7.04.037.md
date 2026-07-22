@@ -1,7 +1,7 @@
 ---
 document_type: behavioral-contract
 level: L3
-version: "1.1"
+version: "1.2"
 status: draft
 producer: "PHASE_1_4_B_BCS_AGENT_9"
 timestamp: 2026-04-25T00:00:00
@@ -15,7 +15,9 @@ subsystem: "SS-07"
 capability: "TBD"
 lifecycle_status: active
 introduced: v1.0.0-beta.4
-modified: []
+last_amended: "2026-07-22"
+modified:
+  - "2026-07-22 (v1.2) — spec-catches-up amendment (PR #719, human-authorized 2026-07-22): §Preconditions amended to document story-ID extraction precedence order: STORY-NNN > S-<ALPHA-PREFIX>.<NAME> > S-N.NN numeric; alphabetic-prefix requirement prevents numeric forms matching the named branch."
 deprecated: null
 deprecated_by: null
 replacement: null
@@ -37,6 +39,7 @@ validate-pr-merge-prerequisites: scopes to github-ops merge dispatches. Other di
 ## Preconditions
 
 1. Trigger: Tool == Agent AND subagent_type matches `*github-ops*` AND prompt matches `gh pr merge|pr merge|merge.*PR` (case-insensitive).
+2. Story ID extraction (applicable once the hook is scoped in): extraction uses a precedence order — `STORY-NNN` (e.g. `STORY-042`) is tried first; if absent, `S-<ALPHA-PREFIX>.<NAME>` (e.g. `S-BL.DISCOVERY-WIRE`, where the prefix is one or more uppercase letters) is tried second; if absent, `S-N.NN` numeric form (e.g. `S-12.08`) is tried last. The alphabetic-prefix pattern is required so that named branch forms are not matched by the numeric `S-N.NN` regex.
 
 ## Postconditions
 
@@ -128,3 +131,9 @@ TBD — story will be assigned during story-writer phase.
 
 Bash hook scripts are inherently effectful (stdin/stderr, optional event emit, optional state-file reads). Native (Rust) replacement would extract pure parse/decision logic from the I/O shell, exposing a `fn(payload) -> HookResult` contract per BC-7.02.009. Until that port lands, the contract is preserved by the script body verbatim and the registry binding tuple.
 
+## Changelog
+
+| Version | Date | Author | Change |
+|---------|------|--------|--------|
+| 1.2 | 2026-07-22 | product-owner | Spec-catches-up amendment (PR #719, human-authorized 2026-07-22): §Preconditions amended to add story-ID extraction precedence order (Precondition 2): STORY-NNN > S-<ALPHA-PREFIX>.<NAME> (e.g. S-BL.DISCOVERY-WIRE) > S-N.NN numeric; alphabetic-prefix requirement prevents numeric forms matching the named branch. |
+| 1.1 | 2026-04-25 | PHASE_1_4_B_BCS_AGENT_9 | Initial authoring. |

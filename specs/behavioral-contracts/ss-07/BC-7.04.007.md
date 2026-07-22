@@ -1,7 +1,7 @@
 ---
 document_type: behavioral-contract
 level: L3
-version: "1.1"
+version: "1.2"
 status: draft
 producer: "PHASE_1_4_B_BCS_AGENT_9"
 timestamp: 2026-04-25T00:00:00
@@ -15,7 +15,9 @@ subsystem: "SS-07"
 capability: "TBD"
 lifecycle_status: active
 introduced: v1.0.0-beta.4
-modified: []
+last_amended: "2026-07-22"
+modified:
+  - "2026-07-22 (v1.2) — spec-catches-up amendment (PR #721, human-authorized 2026-07-22): §Preconditions trigger clause amended to document BC-INDEX table-scoping — row parsed from navigation table whose header contains 'Title' in column 3; headerless single-table indexes fall back to first occurrence. Implementation-divergence note added for emitted event code."
 deprecated: null
 deprecated_by: null
 replacement: null
@@ -36,7 +38,9 @@ validate-bc-title: blocks when BC H1 != BC-INDEX row title. If H1 title != BC-IN
 
 ## Preconditions
 
-1. Trigger: BC ID extracted from filename via `BC-[0-9]+\.[0-9]+\.[0-9]+`; H1 line `# <BC-ID>: <title>` extracted; BC-INDEX.md row for that ID parsed via awk on `|`-delimited table column 3.
+1. Trigger: BC ID extracted from filename via `BC-[0-9]+\.[0-9]+\.[0-9]+`; H1 line `# <BC-ID>: <title>` extracted; BC-INDEX.md row for that ID parsed from the **navigation table** — the table whose header row contains "Title" in column 3 (canonical per POLICY 7), via awk on `|`-delimited table column 3. When BC-INDEX.md contains a single table with no discernible header (headerless single-table index), the hook falls back to first-occurrence matching of any row where column 2 equals the BC ID.
+
+   > **Implementation note (event code divergence):** The hook currently emits event code `bc_h1_index_drift` rather than the specified `policy7_bc_title_mismatch`. This divergence is tracked separately for a future code-side fix; `policy7_bc_title_mismatch` is the target event name and the authoritative spec value.
 
 ## Postconditions
 
@@ -129,3 +133,9 @@ TBD — story will be assigned during story-writer phase.
 
 Bash hook scripts are inherently effectful (stdin/stderr, optional event emit, optional state-file reads). Native (Rust) replacement would extract pure parse/decision logic from the I/O shell, exposing a `fn(payload) -> HookResult` contract per BC-7.02.009. Until that port lands, the contract is preserved by the script body verbatim and the registry binding tuple.
 
+## Changelog
+
+| Version | Date | Author | Change |
+|---------|------|--------|--------|
+| 1.2 | 2026-07-22 | product-owner | Spec-catches-up amendment (PR #721, human-authorized 2026-07-22): §Preconditions trigger clause amended to document BC-INDEX table-scoping — row parsed from navigation table whose header row contains "Title" in column 3; headerless single-table indexes fall back to first-occurrence matching. Implementation-divergence note added for emitted event code (`bc_h1_index_drift` vs target `policy7_bc_title_mismatch`). |
+| 1.1 | 2026-04-25 | PHASE_1_4_B_BCS_AGENT_9 | Initial authoring. |

@@ -1,7 +1,7 @@
 ---
 document_type: behavioral-contract
 level: L3
-version: "1.1"
+version: "1.2"
 status: draft
 producer: "PHASE_1_4_B_BCS_AGENT_9"
 timestamp: 2026-04-25T00:00:00
@@ -15,7 +15,9 @@ subsystem: "SS-07"
 capability: "TBD"
 lifecycle_status: active
 introduced: v1.0.0-beta.4
-modified: []
+last_amended: "2026-07-22"
+modified:
+  - "2026-07-22 (v1.2) — spec-catches-up amendment (PR #722, human-authorized 2026-07-22): §Description and §Postconditions amended to document that frontmatter version and top changelog row version are normalized (leading v/V stripped from both operands) before comparison; a genuine numeric mismatch still errors."
 deprecated: null
 deprecated_by: null
 replacement: null
@@ -28,7 +30,7 @@ removal_reason: null
 
 ## Description
 
-validate-changelog-monotonicity: cross-checks frontmatter version against top changelog row. If they differ, error "Frontmatter version 'X' != top changelog version 'Y'".
+validate-changelog-monotonicity: cross-checks frontmatter version against top changelog row. Before comparing, both the frontmatter `version:` value and the top changelog row version are normalized by stripping any leading `v` or `V` prefix. If the normalized values differ, error "Frontmatter version 'X' != top changelog version 'Y'" (where X and Y are the raw, pre-normalization values). A genuine numeric mismatch — where the version numbers differ after normalization — still errors.
 
 **Source category:** Validator hook scripts (validate-* and verify-*).
 **Audit ID:** `BC-AUDIT-1103` (extracted from `pass-3-deep-hooks.md` line 1152).
@@ -40,7 +42,7 @@ validate-changelog-monotonicity: cross-checks frontmatter version against top ch
 
 ## Postconditions
 
-1. Behavior: If they differ, error "Frontmatter version 'X' != top changelog version 'Y'".
+1. Behavior: Both the frontmatter `version:` value and the top changelog row version are normalized by stripping any leading `v` or `V` prefix before comparison. If the normalized values differ (i.e., the numeric parts do not match), error "Frontmatter version 'X' != top changelog version 'Y'". This normalization allows `version: "1.2"` in frontmatter to be consistent with either `1.2` or `v1.2` in the changelog row, provided the numeric part is the same.
 2. Exit codes: 2.
 
 ## Invariants
@@ -128,3 +130,9 @@ TBD — story will be assigned during story-writer phase.
 
 Bash hook scripts are inherently effectful (stdin/stderr, optional event emit, optional state-file reads). Native (Rust) replacement would extract pure parse/decision logic from the I/O shell, exposing a `fn(payload) -> HookResult` contract per BC-7.02.009. Until that port lands, the contract is preserved by the script body verbatim and the registry binding tuple.
 
+## Changelog
+
+| Version | Date | Author | Change |
+|---------|------|--------|--------|
+| 1.2 | 2026-07-22 | product-owner | Spec-catches-up amendment (PR #722, human-authorized 2026-07-22): §Description and §Postconditions amended to document version normalization — leading v/V stripped from both frontmatter version and top changelog row version before comparison; a genuine numeric mismatch still errors. |
+| 1.1 | 2026-04-25 | PHASE_1_4_B_BCS_AGENT_9 | Initial authoring. |
