@@ -309,3 +309,72 @@ teardown() {
   run bash -c 'echo "{\"tool_input\":{}}" | "'"$HOOKS"'/factory-branch-guard.sh"'
   [ "$status" -eq 0 ]
 }
+
+# ---------- validate-count-propagation ----------
+#
+# The hook uses associative arrays (declare -A), which require bash 4+.
+# It runs via its #!/bin/bash shebang, so the interpreter that matters is
+# /bin/bash — bash 5.x on the ubuntu `validate` CI job, but 3.2 on macOS
+# where these cases skip (the hook's own pre-existing requirement, not a
+# limitation of the fix).
+require_bash4_hook_interp() {
+  local maj
+  maj=$(/bin/bash -c 'echo ${BASH_VERSINFO[0]}')
+  [[ "$maj" -ge 4 ]] || skip "hook requires bash 4+ (declare -A); /bin/bash is ${maj}.x"
+}
+
+@test "validate-count-propagation: epic-id token is not parsed as a count (#690)" {
+  require_bash4_hook_interp
+  # STATE.md references an epic by id next to a countable noun ("5 E-11 stories").
+  # The "11" belongs to the E-11 identifier, not a claimed count of 11 stories.
+  # STORY-INDEX carries the genuine, mutually-consistent story count.
+  printf '# STATE\nPhase 3 complete -> 5 E-11 stories delivered.\n' > .factory/STATE.md
+  printf '# STORY-INDEX\nThis corpus has 42 stories total.\n' > .factory/STORY-INDEX.md
+  run bash -c 'echo "{\"tool_input\":{\"file_path\":\".factory/STATE.md\"}}" | "'"$HOOKS"'/validate-count-propagation.sh" 2>&1'
+  [ "$status" -eq 0 ]
+}
+
+@test "validate-count-propagation: genuine count drift still blocks" {
+  require_bash4_hook_interp
+  printf '# STATE\nDelivered 13 stories this phase.\n' > .factory/STATE.md
+  printf '# STORY-INDEX\nThis corpus has 42 stories total.\n' > .factory/STORY-INDEX.md
+  run bash -c 'echo "{\"tool_input\":{\"file_path\":\".factory/STATE.md\"}}" | "'"$HOOKS"'/validate-count-propagation.sh" 2>&1'
+  [ "$status" -eq 2 ]
+  [[ "$output" == *"COUNT DRIFT DETECTED"* ]]
+}
+
+@test "validate-count-propagation: mixed line keeps genuine count after dropping id" {
+  require_bash4_hook_interp
+  # A genuine count (13) shares a line with an epic id (E-11); dropping the id
+  # must not swallow the real quantity, so drift against the index still fires.
+  printf '# STATE\nPhase 3: E-11 delivered 13 stories.\n' > .factory/STATE.md
+  printf '# STORY-INDEX\nThis corpus has 42 stories total.\n' > .factory/STORY-INDEX.md
+  run bash -c 'echo "{\"tool_input\":{\"file_path\":\".factory/STATE.md\"}}" | "'"$HOOKS"'/validate-count-propagation.sh" 2>&1'
+  [ "$status" -eq 2 ]
+  [[ "$output" == *"13 stories"* ]]
+}
+
+@test "validate-count-propagation: file with no genuine counts exits clean" {
+  require_bash4_hook_interp
+  # After identifier tokens are dropped, an all-phantom line leaves no counts.
+  # This path must exit 0, not trip set -u on the empty associative array.
+  printf '# STATE\nPhase 3 complete -> 5 E-11 stories delivered.\n' > .factory/STATE.md
+  printf '# STORY-INDEX\nNo countable nouns here.\n' > .factory/STORY-INDEX.md
+  run bash -c 'echo "{\"tool_input\":{\"file_path\":\".factory/STATE.md\"}}" | "'"$HOOKS"'/validate-count-propagation.sh" 2>&1'
+  [ "$status" -eq 0 ]
+  [ -z "$output" ]
+}
+
+@test "validate-count-propagation: long dotted-id line stays fast and keeps trailing count" {
+  require_bash4_hook_interp
+  # Dense dotted-id lines are normal in index tables. The id-drop pattern must
+  # stay linear on them: a nested-extglob variant of the same drop takes >30s
+  # on this 550-char line (per-line, under PostToolUse). Also asserts the ids
+  # are dropped whole and the genuine trailing count survives extraction.
+  local ids
+  ids="$(printf 'BC-1.11.11 %.0s' $(seq 1 50))"
+  printf '# STATE\n%s41 BCs\n' "$ids" > .factory/STATE.md
+  printf '# BC-INDEX\ntotal_bcs: 41\n' > .factory/BC-INDEX.md
+  run bash -c 'echo "{\"tool_input\":{\"file_path\":\".factory/STATE.md\"}}" | "'"$HOOKS"'/validate-count-propagation.sh" 2>&1'
+  [ "$status" -eq 0 ]
+}

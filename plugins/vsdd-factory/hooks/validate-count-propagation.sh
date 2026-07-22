@@ -17,6 +17,7 @@
 # S-7.02 / BC-7.05.001, BC-7.05.002
 
 set -euo pipefail
+shopt -s extglob
 
 # Source canonical block-message helper if available (provides block_pre).
 _SELF_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -92,6 +93,18 @@ _extract_counts() {
   local path="$1"
   while IFS= read -r line; do
     local count keyword
+    # Drop identifier tokens (E-11, S-3, BC-2.1.001, TD-001, SS-01) before
+    # count extraction: the digits inside an ID are not a quantity. Without
+    # this, "5 E-11 stories" mis-parses "11 stories" as a phantom count and
+    # fires a false count-propagation drift (#690). Matches <letters>-<digits-
+    # and-dots> so multi-part BC/VP ids are dropped whole. Deliberately flat:
+    # a nested extglob (`?(*(.+([0-9])))`) matches the same ID tokens but
+    # backtracks super-linearly on long dotted-id lines (33s on a 600-char
+    # line of BC-N.NN.NN tokens vs 0.5s flat), and this runs per line on
+    # repo-controlled content. The flat class additionally eats dots glued to
+    # an ID (e.g. a sentence period in "delivered E-11."), which is harmless
+    # here — a whitespace-separated count token can never contain them.
+    line="${line//+([A-Za-z])-+([0-9.])/}"
     # Pattern A: count before keyword
     if [[ "$line" =~ ([0-9][0-9,]+)[[:space:]]+(BCs|VPs|stories|capabilities|subsystems) ]]; then
       keyword="${BASH_REMATCH[2]}"
@@ -126,8 +139,13 @@ while IFS=: read -r kw cnt; do
   fi
 done < <(_extract_counts "$FILE_PATH")
 
-# Nothing to compare if no count patterns found
-if [[ ${#SOURCE_COUNTS[@]} -eq 0 ]]; then
+# Nothing to compare if no count patterns found.
+# Guard via ${arr[*]:-} rather than ${#arr[@]}: under `set -u`, expanding the
+# element count of an *empty associative array* is itself an unbound-variable
+# error in bash 4+. Dropping identifier tokens above makes an all-phantom line
+# (e.g. "5 E-11 stories" with no genuine count) leave this array empty, so this
+# no-count path is now reachable and must exit 0 cleanly, not crash.
+if [[ -z "${SOURCE_COUNTS[*]:-}" ]]; then
   exit 0
 fi
 
