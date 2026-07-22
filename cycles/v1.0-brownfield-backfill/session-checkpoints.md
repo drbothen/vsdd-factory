@@ -7,7 +7,7 @@ producer: state-manager
 timestamp: 2026-04-26T12:00:00Z
 cycle: v1.0-brownfield-backfill
 inputs: [STATE.md]
-input-hash: "c4a5ae3"
+input-hash: "9aead82"
 traces_to: STATE.md
 ---
 
@@ -1190,4 +1190,100 @@ Run `/vsdd-factory:next-step` (reads STATE.md; TOP item = rc.24 release decision
 - **main HEAD:** `80e5cd7b` (unchanged)
 - **factory-artifacts HEAD:** `46af331e` pre-wrap-commit (this D-873 wrap commit lands on top)
 - **D-range:** D-001..D-873 (see decision-log.md for full range)
+- **factory_lock:** NOT HELD
+
+---
+
+## D-878 Checkpoint (2026-07-22 session wrap — AUTHORITATIVE)
+
+**This is the authoritative post-wrap resume record for the 2026-07-22 human `/wrap` directive.** Per the D-866/D-870/D-873/D-874/D-875/D-876/D-877 precedent Strategy Constraint (STATE.md edit-mechanism defect — ADR-032 hook fix merged to develop but NOT YET deployed to operator cache via rc.24), STATE.md's `## Session Resume Checkpoint` section body was intentionally NOT updated this burst. STATE.md frontmatter was updated minimally only (`version:`, `timestamp:`, `phase:`, `last_amended:`, `pipeline:`, phase-summary, `current_step:`). Read this section alone to resume — assumes ZERO prior context.
+
+### 1. Position
+
+Pipeline **PAUSED** post-D-877 (BATCH-F-REVIEW-MERGE-CLOSE). develop HEAD `850f3d94` (PR #754 merge 2026-07-22). main HEAD `80e5cd7b` UNCHANGED (7 dependabot vulns flagged, 2 HIGH — resolved on develop, main lags until release). factory-artifacts pre-wrap HEAD `d7e51a6b` (this D-878 wrap commit lands on top). No story worktrees. No in-flight sub-agent work. Main-repo working tree dirt: `.claude/scheduled_tasks.lock` modified (harness-managed, ignorable) + untracked `plugins/vsdd-factory/tests/report.tap` (test artifact, ignorable). Local develop synced to `850f3d94`.
+
+### 2. Session record (2026-07-21 resume → 2026-07-22 wrap)
+
+Resumed from D-873 wrap checkpoint. 17 PRs MERGED all session, all validated (CI green + spec-conformance + review):
+
+| PR | Description | Burst |
+|----|-------------|-------|
+| #744 | dompurify 3.4.12 (CVE-2026-49978 medium XSS + 5 GHSAs; soak PASS 10 days) | D-874 |
+| #745 | immutable 4.3.9 (CVE-2026-59879+CVE-2026-59880 HIGH DoS; soak PASS 26 days) | D-874 |
+| #716 | hook fix (CONFORMS BC-7.05.001 EC-004 + BC-7.05.002 + VP-062) | D-875 |
+| #717 | hook fix | D-875 |
+| #726 | fix | D-875 |
+| #730 | fix | D-875 |
+| #731 | fix | D-875 |
+| #736 | fix | D-875 |
+| #739 | fix | D-875 |
+| #715 | fix (post-merge: 2,359-file input-hash re-sync 7ee7e6d6) | D-876 |
+| #718 | fix | D-876 |
+| #719 | fix (BC-7.04.037/038 spec-catches-up v1.2) | D-876 |
+| #721 | fix (BC-7.04.007 spec-catches-up v1.2) | D-876 |
+| #722 | fix (BC-7.04.012 spec-catches-up v1.2) | D-876 |
+| #723 | fix | D-876 |
+| #728 | fix (post-rebase; prior approval stood) | D-877 |
+| #754 | fix/planning-registry-entries (self-authored; 16 exhaustive paths; 84 tests; self-authorship explicitly surfaced at merge gate) | D-877 |
+
+Additional: BC-5.24.006 extraction error fixed v1.2→v1.3 (holdout-scenarios/ path corrected, D-875). BC-INDEX v4.11→v4.12 (D-875) →v4.13 (D-876). 21+ GitHub review verdicts posted (approvals + REQUEST_CHANGES). Bursts D-874/D-875/D-876/D-877 committed and pushed. Issue #724 CLOSED (evidence posted D-874).
+
+### 3. Human gate decisions this session
+
+- PR-backlog review-first strategy (prior to merging any PR, review must be posted and approved)
+- Dependabot 7-day-soak policy: soak measured from **dependency publish date**, not PR age
+- 17 merge authorizations via structured gates (individual human confirmation per PR)
+- 21+ review-posting authorizations (each review-post requires human authorization)
+- 5 BC spec amendments authorized: BC-5.24.006 (brownfield extraction error fix), BC-7.04.007/012/037/038 (spec-catches-up, v1.1→v1.2)
+- PR #754 self-authorship explicitly surfaced at merge gate; human re-confirmed merge-only authorization (no self-approval review posted — permission classifier correctly flagged un-surfaced self-approval during initial attempt)
+- D-874/D-875/D-876/D-877 push authorizations
+- Final `/wrap` directive 2026-07-22
+
+### 4. Known defect (carried from D-866..D-877, OPEN)
+
+**STATE.md edit-mechanism defect — UNCHANGED from D-873 §4.** ADR-032 hook fix (verify-state-timestamp-refresh guard rewrite) is merged to develop (`26508e83`, PR #742) but NOT yet in the operator-level plugin cache — requires **rc.24 release** to propagate. The minimal-frontmatter Strategy Constraint therefore still applies to this wrap burst.
+
+**rc.24 is now TRIPLY load-bearing:**
+1. STATE.md edit-hook fix (verify-state-timestamp-refresh guard rewrite — merged #742)
+2. post-#715 compute-input-hash binary divergence — cached rc.23 tool computes old-algorithm hashes (118ab49-class) vs source post-#715 tool (c09076f-class); systemic resolution requires rc.24 shipping new binary
+3. main branch vulnerability lag — 7 dependabot vulns on main (2 HIGH: CVE-2026-59879+CVE-2026-59880), resolved on develop; main stays lagged until release
+
+**D-865..D-878 STATE.md body reconciliation** remains deferred until rc.24 is released and hook fix is live in operator cache. After rc.24: run full STATE.md body reconciliation covering all deferred decisions + ARCH-INDEX v3.11→v3.25 + STORY-INDEX v4.227→v4.229 body cites.
+
+### 5. Pending human decisions (priority order)
+
+1. **rc.24 RELEASE DECISION** — TOP ITEM. TRIPLY load-bearing (see §4). Gate presented and unanswered at wrap.
+2. **8 PRs in author fix-iteration** — all have posted REQUEST_CHANGES reviews; awaiting author response:
+   - **#714** — CHANGELOG dual-Unreleased sections MAJOR + no companion BC MEDIUM + RELEASING.md Step 2 gap ADVISORY; companion BC + RELEASING.md canonicalization decision pending author
+   - **#720** — bats tests insufficient
+   - **#727** — space-in-path MAJOR blocker (awk)
+   - **#729** — POLICY 21 Rust-port mandate (new .sh hook must port per ADR-032)
+   - **#735** — signing-key HIGH findings ×2
+   - **#737** — guard no-op HIGH + rm-rf data-loss HIGH (F1/F2/F3/F5 UNADDRESSED; only F4 fixed at bf0f13e7); 2 new LOWs detected
+   - **#738** — FACTORY_ROOT bypass HIGH UNADDRESSED; docs-only iteration rejected
+   - **#740** — lessons.md idempotency HIGH
+3. **task-#3 follow-up story** — validate-pr-review-posted guard root cause pinned: `crates/hook-plugins/validate-pr-review-posted/src/lib.rs` Check 2 performs prose substring-match on assistant narrative; no tool-call inspection; real `gh`-posted reviews not credited; empty `block_reason` on block; ~5M fuel per scan. Fix spec: route to implementer + test-writer. Per S-7.02 checklist: follow-up story or recorded deferral REQUIRED before sub-cycle closes.
+4. **flaky-CI stabilization story** — L-EDP1-069 codified; 4 flake instances this session (#737 bats, #714/#718 darwin builds, #754 precompact-routing TC-AC004); pattern candidate for dedicated story.
+5. **E-21 Phase-3 W1 resume** — S-21.01 (`validate-factory-path-staging`) approved SEQUENTIAL (S-21.01→S-21.02→S-21.03) at D-862; still not started; all 5 E-21 issues open.
+6. **S-7.06..S-7.11 triage** — draft process-gap stories registered in sprint-state at `3781a0d8`; awaiting human triage direction.
+7. **PR #632** — draft, NEEDS-REWORK, E-20 roster item. E-20 remains DEFERRED.
+8. **#714 companion BC + RELEASING.md Step 2 update** — blocked on author's canonicalization decision re: dual-Unreleased CHANGELOG sections.
+
+### 6. Deferred bookkeeping
+
+- **D-865..D-878 STATE.md body reconciliation** — ALL deferred until rc.24 hook fix reaches operator cache. Scope: Decisions Log rows D-865..D-878, Phase Progress table rows, full `## Session Resume Checkpoint` body replacement. 4-index body citations in STATE.md remain stale (ARCH-INDEX cited v3.11, actual v3.25; STORY-INDEX cited v4.227 in STATE.md body, actual v4.229).
+- **BC-7.04.007 event-name divergence** — `bc_h1_index_drift` vs `policy7_bc_title_mismatch`; left visible in v1.2 amendment note for future code-side fix (not a BC content error).
+- **merged_count** — UNCHANGED all session (all 17 PRs are fix PRs, not story delivery PRs); last recorded value carries forward.
+
+### 7. Resume command
+
+Run `/vsdd-factory:next-step` (TOP item = rc.24 release decision → then remaining fix-iteration PRs → E-21 W1 S-21.01 resume).
+
+### 8. Housekeeping
+
+- **4-index at D-878 wrap (literal shell verify):** BC v4.13 / VP v2.72 / STORY v4.229 / ARCH v3.25 — ALL UNCHANGED this session's wrap burst
+- **develop HEAD:** `850f3d94` (PR #754 merge 2026-07-22)
+- **main HEAD:** `80e5cd7b` (unchanged all session)
+- **factory-artifacts HEAD:** `d7e51a6b` pre-wrap-commit (this D-878 wrap commit lands on top)
+- **D-range:** D-001..D-878 (see decision-log.md for full range)
 - **factory_lock:** NOT HELD
