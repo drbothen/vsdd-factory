@@ -1583,3 +1583,87 @@ fn test_F_P18_001_partial_match_rejected_leading_slash_discipline() {
         partial_match
     );
 }
+
+// -----------------------------------------------------------------------
+// Issue #473: scenario-rotation writes .factory/holdout-scenarios/
+// scenario-selection.json, but that path had no registry entry — so
+// validate-artifact-path blocked the state-manager's canonical write with
+// ARTIFACT_PATH_UNREGISTERED.
+//
+// PR #527 corrected the workflow (agent: state-manager, canonical
+// holdout-scenarios/ directory) but the registry still lacked the matching
+// pattern. These tests load the ACTUAL production registry (same harness as
+// EC-007) and assert the canonical selection path now matches with block
+// enforcement, and that the hook allows the write end-to-end.
+//
+// Refs: #473, PR #527.
+// -----------------------------------------------------------------------
+
+/// Locate the shipped production registry by walking up from
+/// CARGO_MANIFEST_DIR until `plugins/vsdd-factory/config/artifact-path-registry.yaml`
+/// is found. Layout-independent (unlike a hard-coded `../` count) so it can
+/// never silently fall back to a fixture and pass vacuously.
+fn production_registry_path_i473() -> std::path::PathBuf {
+    let manifest_dir =
+        std::env::var("CARGO_MANIFEST_DIR").expect("CARGO_MANIFEST_DIR must be set during test");
+    let mut dir = std::path::PathBuf::from(&manifest_dir);
+    loop {
+        let candidate = dir.join("plugins/vsdd-factory/config/artifact-path-registry.yaml");
+        if candidate.exists() {
+            return candidate;
+        }
+        if !dir.pop() {
+            panic!(
+                "could not locate plugins/vsdd-factory/config/artifact-path-registry.yaml \
+                 walking up from CARGO_MANIFEST_DIR ({manifest_dir})"
+            );
+        }
+    }
+}
+
+/// Read the shipped production registry as YAML text.
+fn production_registry_yaml_i473() -> String {
+    let path = production_registry_path_i473();
+    std::fs::read_to_string(&path)
+        .unwrap_or_else(|e| panic!("failed to read registry at {}: {}", path.display(), e))
+}
+
+#[test]
+fn test_issue_473_scenario_selection_matches_production_registry() {
+    // #473: .factory/holdout-scenarios/scenario-selection.json is the canonical
+    // write target for the phase-4 scenario-rotation step (both the phase file
+    // and the inlined greenfield copy). It MUST match a block entry in the
+    // shipped registry, otherwise state-manager's write is blocked with
+    // ARTIFACT_PATH_UNREGISTERED.
+    let registry =
+        load_registry(&production_registry_yaml_i473()).expect("production registry must load");
+    let path = ".factory/holdout-scenarios/scenario-selection.json";
+    let result = matches_canonical(path, &registry);
+    assert_eq!(
+        result,
+        MatchResult::Block,
+        "#473: canonical scenario-rotation output '{}' must match a block entry in the \
+         production registry (currently {:?}). Without the entry, validate-artifact-path \
+         blocks the state-manager write with ARTIFACT_PATH_UNREGISTERED.",
+        path,
+        result
+    );
+}
+
+#[test]
+fn test_issue_473_scenario_selection_hook_allows_write() {
+    // End-to-end: a Write to the canonical selection path must NOT be blocked.
+    // run_logic serves the real registry YAML via the read_file callback, so
+    // this exercises the full hook path against the shipped registry.
+    let payload = make_payload(
+        "Write",
+        Some(".factory/holdout-scenarios/scenario-selection.json"),
+    );
+    let (hook_result, _log, _events) = run_logic(payload, Ok(production_registry_yaml_i473()));
+    assert!(
+        matches!(hook_result, HookResult::Continue),
+        "#473: hook_logic must Continue (allow) the write to the canonical \
+         scenario-selection path; got {:?}",
+        hook_result
+    );
+}
