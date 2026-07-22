@@ -148,12 +148,12 @@ fi
 
 if [ "$CITED_DEV_STATE" != "NOT_FOUND" ] \
     && [ "${ACTUAL_DEV_FULL:0:${#CITED_DEV_STATE}}" != "$CITED_DEV_STATE" ]; then
-  echo "FAIL: develop SHA in STATE.md is stale (cited=$CITED_DEV_STATE actual=$ACTUAL_DEV)"
+  echo "FAIL: develop SHA in STATE.md is stale (cited=$CITED_DEV_STATE actual=${ACTUAL_DEV_FULL:0:${#CITED_DEV_STATE}} full=$ACTUAL_DEV_FULL)"
   FAIL=1
 fi
 if [ "$CITED_DEV_HANDOFF" != "NOT_FOUND" ] && [ "$CITED_DEV_HANDOFF" != "NO_HANDOFF" ] \
     && [ "${ACTUAL_DEV_FULL:0:${#CITED_DEV_HANDOFF}}" != "$CITED_DEV_HANDOFF" ]; then
-  echo "FAIL: develop SHA in SESSION-HANDOFF.md is stale (cited=$CITED_DEV_HANDOFF actual=$ACTUAL_DEV)"
+  echo "FAIL: develop SHA in SESSION-HANDOFF.md is stale (cited=$CITED_DEV_HANDOFF actual=${ACTUAL_DEV_FULL:0:${#CITED_DEV_HANDOFF}} full=$ACTUAL_DEV_FULL)"
   FAIL=1
 fi
 
