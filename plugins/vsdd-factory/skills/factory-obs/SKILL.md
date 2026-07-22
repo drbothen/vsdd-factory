@@ -97,7 +97,7 @@ After `up`, it's helpful to remind the user that events only appear once a
 factory hook fires. A quick smoke test:
 
 ```bash
-"${CLAUDE_PLUGIN_ROOT}/bin/emit-event" '{"type":"hook.action","hook":"manual-test","action":"smoke"}'
+"${CLAUDE_PLUGIN_ROOT}/bin/emit-event" type=hook.action hook=manual-test action=smoke
 ```
 
 Events should be visible in Grafana within ~10 seconds.
