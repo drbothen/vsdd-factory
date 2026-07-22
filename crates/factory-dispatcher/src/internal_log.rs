@@ -246,11 +246,13 @@ pub struct InternalLog {
     /// once per dispatcher session instead of once per event. Shared across
     /// clones like `seen_errors`.
     gate_warned: std::sync::Arc<std::sync::atomic::AtomicBool>,
-    /// Whether the #206 mount gate applies. `true` for resolved (level C–G)
-    /// log dirs; `false` when the operator explicitly chose the location via
-    /// `VSDD_LOG_DIR` / `FACTORY_ROOT` (level A/B) — an explicit override
-    /// must not itself be overridden, even when it points at a `.factory/logs`
-    /// path (the bats harness does exactly that with scratch fixtures).
+    /// Whether the #206 mount gate applies. `true` for resolved (level B–G)
+    /// log dirs; `false` only when the operator explicitly chose the location
+    /// via `VSDD_LOG_DIR` (level A) — an explicit override must not itself be
+    /// overridden, even when it points at a `.factory/logs` path (the bats
+    /// harness does exactly that with scratch fixtures). `FACTORY_ROOT`
+    /// (level B) is deliberately NOT exempt: it resolves to
+    /// `$FACTORY_ROOT/logs`, the racing shape the gate holds back.
     mount_gated: bool,
 }
 
@@ -270,8 +272,9 @@ impl InternalLog {
         }
     }
 
-    /// Set whether the #206 mount gate applies. Pass `false` when the log
-    /// dir came from an explicit `VSDD_LOG_DIR` / `FACTORY_ROOT` override.
+    /// Set whether the #206 mount gate applies. Pass `false` only when the
+    /// log dir came from an explicit `VSDD_LOG_DIR` (level A) override — see
+    /// `crate::log_dir::mount_gate_exempt`.
     #[must_use]
     pub fn with_mount_gate(mut self, gated: bool) -> Self {
         self.mount_gated = gated;
@@ -322,8 +325,8 @@ impl InternalLog {
         // (`fatal: '.factory' already exists`) and feeding the #203/#205
         // bootstrap-failure cluster. Suppression is a skip, not an error —
         // events during the bootstrap window are still observable via
-        // `VSDD_SINK_FILE`. Explicit VSDD_LOG_DIR / FACTORY_ROOT overrides
-        // are exempt (`mount_gated == false`): the operator chose the path.
+        // `VSDD_SINK_FILE`. Only an explicit VSDD_LOG_DIR override is exempt
+        // (`mount_gated == false`): the operator chose that exact path.
         if self.mount_gated && !crate::log_dir::factory_mount_ready(&self.log_dir) {
             if !self
                 .gate_warned
@@ -610,10 +613,10 @@ mod tests {
         );
     }
 
-    /// Issue #206: an explicit override (`with_mount_gate(false)`, the
-    /// VSDD_LOG_DIR / FACTORY_ROOT path) writes even into a plain `.factory`
+    /// Issue #206: an explicit override (`with_mount_gate(false)`, reached
+    /// only via VSDD_LOG_DIR — level A) writes even into a plain `.factory`
     /// with no `.git` — the operator chose the location; the gate must not
-    /// override the override.
+    /// override the override. FACTORY_ROOT does NOT reach this path (#738).
     #[test]
     fn gate_bypassed_for_explicit_override() {
         let dir = tempfile::tempdir().unwrap();

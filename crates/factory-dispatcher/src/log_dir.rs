@@ -170,14 +170,19 @@ fn is_factory_name(s: &str) -> bool {
 /// use, so its unconditional `mkdir -p` continuously recreated that state
 /// during `/factory-health` setup.
 ///
-/// Ready iff the `.factory` parent exists AND carries a `.git` entry — a
-/// worktree mount has a `.git` *file*, a plain checkout a `.git` *dir*; both
-/// count. A `log_dir` whose parent is not named `.factory` (a `VSDD_LOG_DIR` /
-/// `FACTORY_ROOT` override pointing elsewhere) is always ready: the override
-/// path cannot collide with the mount. This helper only classifies the path
-/// shape — explicit level A/B overrides are exempted wholesale by the caller
-/// (`InternalLog::with_mount_gate(false)`, wired in `main.rs`), so an operator
+/// Ready iff the `.factory` parent exists AND carries a `.git` entry that is
+/// a plausible git marker — a worktree mount has a `.git` *file* whose
+/// content is a `gitdir:` pointer, a plain checkout a `.git` *directory*;
+/// both count, but a dangling/garbage `.git` file does not. A `log_dir`
+/// whose parent is not named `.factory` (an override pointing elsewhere) is
+/// always ready: that path cannot collide with the mount. This helper only
+/// classifies the path shape — the explicit level A override (`VSDD_LOG_DIR`)
+/// is exempted wholesale by the caller ([`mount_gate_exempt`] →
+/// `InternalLog::with_mount_gate(false)`, wired in `main.rs`), so an operator
 /// pointing `VSDD_LOG_DIR` at a `.factory/logs` path is honored verbatim.
+/// Level B (`FACTORY_ROOT`) is NOT exempted: it resolves to
+/// `$FACTORY_ROOT/logs`, and the conventional `FACTORY_ROOT=<repo>/.factory`
+/// is exactly the racing shape this gate holds back.
 pub fn factory_mount_ready(log_dir: &Path) -> bool {
     let Some(parent) = log_dir.parent() else {
         return true;
@@ -185,9 +190,26 @@ pub fn factory_mount_ready(log_dir: &Path) -> bool {
     if !is_dot_factory_basename(parent) {
         return true;
     }
-    // `.git` is a file for `git worktree add` mounts and a directory for a
-    // plain checkout; `exists()` accepts both.
-    parent.join(".git").exists()
+    let git_entry = parent.join(".git");
+    // A `.git` DIRECTORY is a plain checkout of the artifact branch.
+    if git_entry.is_dir() {
+        return true;
+    }
+    // `git worktree add` mounts carry a `.git` FILE whose content is a
+    // `gitdir:` pointer. Any other content (or an unreadable/absent entry)
+    // is not a mount — the gate stays closed rather than trusting an
+    // arbitrary entry that happens to be named `.git`.
+    std::fs::read_to_string(&git_entry).is_ok_and(|s| s.trim_start().starts_with("gitdir:"))
+}
+
+/// Level-A override detection for the #206 mount-gate exemption: ONLY
+/// `VSDD_LOG_DIR` — the per-invocation diagnostic override, whose value is
+/// used verbatim — bypasses the gate. `FACTORY_ROOT` (level B) deliberately
+/// does not qualify; see [`factory_mount_ready`]. Parameterized on the env
+/// value so the exemption rule is unit-testable without process-global env
+/// mutation.
+pub fn mount_gate_exempt(vsdd_log_dir: Option<&str>) -> bool {
+    vsdd_log_dir.is_some_and(|v| !v.is_empty())
 }
 
 /// Walk the parent chain from `start` upward. Returns the first ancestor
@@ -398,14 +420,88 @@ mod factory_mount_ready_tests {
         assert!(factory_mount_ready(&factory.join("logs")));
     }
 
-    /// A log dir whose parent is not named `.factory` (VSDD_LOG_DIR /
-    /// FACTORY_ROOT override elsewhere) is always ready — it cannot collide
-    /// with the worktree mount.
+    /// A log dir whose parent is not named `.factory` (an override pointing
+    /// elsewhere) is always ready — it cannot collide with the worktree mount.
     #[test]
     fn test_override_path_always_ready() {
         let dir = tempfile::tempdir().unwrap();
         let log_dir = dir.path().join("custom-diagnostics").join("logs");
         assert!(factory_mount_ready(&log_dir));
+    }
+
+    /// A garbage `.git` FILE with no `gitdir:` pointer is not a mount — the
+    /// gate must not trust an arbitrary entry that is merely named `.git`.
+    #[test]
+    fn test_not_ready_for_garbage_git_file() {
+        let dir = tempfile::tempdir().unwrap();
+        let factory = dir.path().join(".factory");
+        std::fs::create_dir_all(&factory).unwrap();
+        std::fs::write(factory.join(".git"), "not a git pointer\n").unwrap();
+        assert!(
+            !factory_mount_ready(&factory.join("logs")),
+            "a .git file without a gitdir: pointer is not a worktree mount"
+        );
+    }
+
+    /// An empty `.git` FILE (e.g. truncated by a crashed process) is not a
+    /// mount either.
+    #[test]
+    fn test_not_ready_for_empty_git_file() {
+        let dir = tempfile::tempdir().unwrap();
+        let factory = dir.path().join(".factory");
+        std::fs::create_dir_all(&factory).unwrap();
+        std::fs::write(factory.join(".git"), "").unwrap();
+        assert!(!factory_mount_ready(&factory.join("logs")));
+    }
+}
+
+#[cfg(test)]
+mod mount_gate_exempt_tests {
+    use super::*;
+
+    /// Level A (VSDD_LOG_DIR) is the one and only gate exemption.
+    #[test]
+    fn test_vsdd_log_dir_is_exempt() {
+        assert!(mount_gate_exempt(Some("/tmp/scratch/.factory/logs")));
+    }
+
+    /// Absent or empty VSDD_LOG_DIR is not an override.
+    #[test]
+    fn test_absent_or_empty_vsdd_log_dir_not_exempt() {
+        assert!(!mount_gate_exempt(None));
+        assert!(!mount_gate_exempt(Some("")));
+    }
+
+    /// Level B (FACTORY_ROOT) stays gated end-to-end: with no VSDD_LOG_DIR
+    /// the exemption is off regardless of FACTORY_ROOT, the resolver maps
+    /// `FACTORY_ROOT=<x>/.factory` to `<x>/.factory/logs`, and
+    /// `factory_mount_ready` holds that path back until the worktree is
+    /// mounted — then admits it. (The #738 re-review HIGH scenario.)
+    #[test]
+    fn test_factory_root_derived_path_stays_gated_until_mounted() {
+        let dir = tempfile::tempdir().unwrap();
+        let factory_root = dir.path().join(".factory");
+        std::fs::create_dir_all(&factory_root).unwrap();
+        let factory_str = factory_root.to_str().unwrap();
+
+        // main.rs computes the exemption from VSDD_LOG_DIR alone — a set
+        // FACTORY_ROOT contributes nothing to it:
+        assert!(!mount_gate_exempt(None));
+
+        // The level-B resolution lands inside `.factory`...
+        let resolved = resolve_log_dir_from_params(None, Some(factory_str), None, dir.path());
+        assert_eq!(resolved, factory_root.join("logs"));
+
+        // ...which the gate refuses while `.factory` is a plain dir...
+        assert!(!factory_mount_ready(&resolved));
+
+        // ...and admits once the worktree mount shape exists.
+        std::fs::write(
+            factory_root.join(".git"),
+            "gitdir: ../.git/worktrees/.factory\n",
+        )
+        .unwrap();
+        assert!(factory_mount_ready(&resolved));
     }
 }
 

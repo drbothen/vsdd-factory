@@ -79,14 +79,19 @@ const ENV_ASYNC_DRAIN_WINDOW_MS: &str = "VSDD_ASYNC_DRAIN_WINDOW_MS";
 
 #[tokio::main(flavor = "current_thread")]
 async fn main() {
-    // Explicit VSDD_LOG_DIR / FACTORY_ROOT overrides (resolution level A/B)
-    // bypass the #206 mount gate: the operator said exactly where to log, and
-    // suppressing that would override the override (the bats harness points
-    // VSDD_LOG_DIR at scratch `.factory/logs` fixtures, for example). Only
-    // resolved level C–G locations are gated on the worktree mount.
-    let explicit_override = ["VSDD_LOG_DIR", "FACTORY_ROOT"]
-        .iter()
-        .any(|k| std::env::var(k).is_ok_and(|v| !v.is_empty()));
+    // ONLY an explicit VSDD_LOG_DIR (resolution level A) bypasses the #206
+    // mount gate: the operator said exactly where to log, and suppressing
+    // that would override the override (the bats harness points VSDD_LOG_DIR
+    // at scratch `.factory/logs` fixtures, for example). FACTORY_ROOT
+    // (level B) stays GATED: it resolves to `$FACTORY_ROOT/logs`, and by the
+    // resolution contract FACTORY_ROOT names the `.factory` directory itself
+    // — the conventional `FACTORY_ROOT=<repo>/.factory` therefore yields
+    // exactly the racing shape the gate exists to hold back, on the
+    // mid-setup population most likely to hit it. When FACTORY_ROOT points
+    // anywhere not named `.factory`, the gate never fires anyway.
+    let explicit_override = factory_dispatcher::log_dir::mount_gate_exempt(
+        std::env::var("VSDD_LOG_DIR").ok().as_deref(),
+    );
     let internal_log =
         Arc::new(InternalLog::new(resolve_log_dir()).with_mount_gate(!explicit_override));
     internal_log.prune_old(DEFAULT_RETENTION_DAYS);
