@@ -10816,3 +10816,15 @@ D-873-SESSION-WRAP-PAUSED-2026-07-21
 ### Date
 
 2026-07-21
+
+## D-874
+
+RESUME-2026-07-21-BACKLOG-DEPENDABOT-ARC. POLICY 16 GLOBAL-MAX GATE: `grep -n "^## D-" decision-log.md | tail -3` → `10796:## D-872 / 10808:## D-873`; D-873 confirmed prior max → D-874 allocated. Session resumed 2026-07-21 post-D-873 session-wrap. Pipeline PAUSED (rc.24 decision PENDING human — top item unchanged). (1) SESSION RESUME CONTEXT: worktree health PASS; pipeline remains in resume-triage; D-873 Checkpoint is authoritative zero-context resume record. (2) ISSUE #724 CLOSED: human-authorized 2026-07-21; evidence comment https://github.com/drbothen/vsdd-factory/issues/724#issuecomment-5039605826; verdict RESOLVED-FULL per D-873 checkpoint §5 item 2 — that pending item CLEARED this burst. (3) OPEN-PR SURVEY: 25 open at session start; 22-PR arcavenai fix backlog (#714–#740) blocked on macOS runner starvation; only genuine CI failure = #737 bats-full-suite (linux) — investigation NOT yet dispatched; #632 draft NEEDS-REWORK (E-20 roster) UNCHANGED. (4) DEPENDABOT SOAK-TIME POLICY APPLIED: soak-time = ≥7 days since dependency PUBLISH (not PR age). immutable 4.3.9 published 2026-06-25 (26 days PASS); dompurify 3.4.12 published 2026-07-11 (10 days PASS). (5) PRE-MERGE VALIDATION: code-reviewer diff review BOTH CLEAN (lockfile-only; integrity verified; zero direct usage of either package — consumed inside excalidraw bundle; one ADVISORY on #745 npm hoisting, no impact on correctness); research-agent advisory research BOTH SAFE and security-motivated — immutable 4.3.8 carried CVE-2026-59879 + CVE-2026-59880 (HIGH DoS, fixed 4.3.9); dompurify 3.4.6 carried CVE-2026-49978 (medium XSS bypass) + 5 further GHSAs fixed across 3.4.7..3.4.12; publisher continuity confirmed both packages. (6) MERGES: PR #745 (immutable 4.3.9) MERGED (squash) → develop 88054fe7; PR #744 (dompurify 3.4.12) MERGED (squash) → develop HEAD now e9f56d73. Both human-authorized via in-session structured gates 2026-07-21. Evidence comments posted on both PRs. merged_count UNCHANGED (dependency PRs, not story delivery PRs). (7) BRANCH STATUS: main 80e5cd7b UNCHANGED. (8) PENDING HUMAN DECISIONS CARRIED FORWARD FROM D-873: rc.24 release (TOP); E-21 W1 resume (S-21.01); S-7.06..S-7.11 triage; remaining PR backlog (#714–#740 + #737 failure investigation); ci.yml concurrency fix; PR #743 follow-up; Gastown follow-ups. Item 2 (#724 closure) CLEARED this burst. (9) STATE.md minimal-frontmatter-only deviation per D-866/D-870/D-873 precedent: only frontmatter head region (version/timestamp/phase/last_amended/pipeline/phase-summary/current_step) touched; Session Resume Checkpoint body, Decisions Log table, and Phase Progress table NOT updated this burst — body reconciliation deferred until rc.24 releases ADR-032 hook fix to operator-level plugin cache. (10) 4-INDEX UNCHANGED (literal shell): BC v4.11 / VP v2.72 / STORY v4.229 / ARCH v3.25.
+
+### Phase
+
+D-874-RESUME-BACKLOG-DEPENDABOT-ARC-2026-07-21
+
+### Date
+
+2026-07-21
