@@ -384,6 +384,86 @@ fn test_BC_4_11_001_ac002_matches_canonical_prd_path_returns_match() {
     }
 }
 
+// -----------------------------------------------------------------------
+// Issue #300: skills/create-brief writes the canonical L1 product brief to
+// .factory/specs/product-brief.md, but the registry had no matching entry —
+// so the brief (root of the traces_to chain) fell outside path governance
+// and its own canonical write would be blocked by validate-artifact-path
+// with ARTIFACT_PATH_UNREGISTERED.
+//
+// These tests load the ACTUAL production registry (walking up from
+// CARGO_MANIFEST_DIR) and assert the product-brief path now matches with
+// block enforcement, and that the hook allows the write end-to-end.
+//
+// Refs: #300.
+// -----------------------------------------------------------------------
+
+/// Locate the shipped production registry by walking up from
+/// CARGO_MANIFEST_DIR until `plugins/vsdd-factory/config/artifact-path-registry.yaml`
+/// is found. Layout-independent (unlike a hard-coded `../` count) so it can
+/// never silently fall back to a fixture and pass vacuously.
+fn production_registry_path_i300() -> std::path::PathBuf {
+    let manifest_dir =
+        std::env::var("CARGO_MANIFEST_DIR").expect("CARGO_MANIFEST_DIR must be set during test");
+    let mut dir = std::path::PathBuf::from(&manifest_dir);
+    loop {
+        let candidate = dir.join("plugins/vsdd-factory/config/artifact-path-registry.yaml");
+        if candidate.exists() {
+            return candidate;
+        }
+        if !dir.pop() {
+            panic!(
+                "could not locate plugins/vsdd-factory/config/artifact-path-registry.yaml \
+                 walking up from CARGO_MANIFEST_DIR ({manifest_dir})"
+            );
+        }
+    }
+}
+
+/// Read the shipped production registry as YAML text.
+fn production_registry_yaml_i300() -> String {
+    let path = production_registry_path_i300();
+    std::fs::read_to_string(&path)
+        .unwrap_or_else(|e| panic!("failed to read registry at {}: {}", path.display(), e))
+}
+
+#[test]
+fn test_issue_300_product_brief_matches_production_registry() {
+    // #300: .factory/specs/product-brief.md is the canonical write target for
+    // skills/create-brief (SKILL.md § Output). It MUST match a block entry in
+    // the shipped registry, otherwise the brief's own write is blocked with
+    // ARTIFACT_PATH_UNREGISTERED and the L1 root of the traceability chain
+    // falls outside template/drift/register governance.
+    let registry =
+        load_registry(&production_registry_yaml_i300()).expect("production registry must load");
+    let path = ".factory/specs/product-brief.md";
+    let result = matches_canonical(path, &registry);
+    assert_eq!(
+        result,
+        MatchResult::Block,
+        "#300: canonical product-brief output '{}' must match a block entry in the \
+         production registry (currently {:?}). Without the entry, validate-artifact-path \
+         blocks the create-brief write with ARTIFACT_PATH_UNREGISTERED.",
+        path,
+        result
+    );
+}
+
+#[test]
+fn test_issue_300_product_brief_hook_allows_write() {
+    // End-to-end: a Write to the canonical product-brief path must NOT be blocked.
+    // run_logic serves the real registry YAML via the read_file callback, so
+    // this exercises the full hook path against the shipped registry.
+    let payload = make_payload("Write", Some(".factory/specs/product-brief.md"));
+    let (hook_result, _log, _events) = run_logic(payload, Ok(production_registry_yaml_i300()));
+    assert!(
+        matches!(hook_result, HookResult::Continue),
+        "#300: hook_logic must Continue (allow) the write to the canonical \
+         product-brief path; got {:?}",
+        hook_result
+    );
+}
+
 #[test]
 fn test_BC_4_11_001_ac002_matches_canonical_cycle_doc_path_returns_match() {
     let yaml = multi_entry_registry_yaml();
