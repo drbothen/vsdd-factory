@@ -482,27 +482,38 @@ whether your writes landed), re-executing the same task against the same paths
 produces the same end state — it does not duplicate or corrupt what already
 persisted:
 
-- **STATE.md updates** are set-to-value, not append. Phase transitions, file
-  sizes, finding counts, and gate verdicts overwrite the field to the value the
-  task specifies; applying the same transition twice leaves STATE.md identical
-  to applying it once.
+- **Most STATE.md fields** are set-to-value, not append. Phase transitions,
+  file sizes, finding counts, and gate verdicts overwrite the field to the
+  value the task specifies; applying the same transition twice leaves those
+  fields identical to applying it once. (The Current Phase Steps row is the
+  documented exception — see the append-style class below.)
 - **Artifact persistence** (writing a report or cycle file to a given absolute
   path) overwrites that path with the provided content; re-running writes the
   same bytes.
 - **`.factory/` structure creation** is create-if-absent; re-running skips any
   directory that already exists.
-- **Git commits** to `factory-artifacts` are safe to re-attempt: if the content
-  is already committed, `git add -A && git commit` reports "nothing to commit"
-  rather than producing a duplicate.
+- **Git commits** to `factory-artifacts` are safe to re-attempt *when the
+  worktree contains only this task's changes*: if the content is already
+  committed, `git add -A && git commit` reports "nothing to commit" rather
+  than producing a duplicate. Note the boundary: `git add -A` stages **every**
+  pending change in the worktree, not just this task's files — after a dropped
+  connection where a dead agent may have written partial or unrelated files, a
+  verbatim re-run can sweep those into the commit. Before re-attempting,
+  verify the tree contains only the expected changes (`git -C .factory status
+  --porcelain`); escalate if it doesn't.
 
-The one non-idempotent class is **append-style records** — burst-log.md
-entries, convergence-trajectory.md per-pass rows, and the STATE.md **Current
-Phase Steps** row that the Burst-complete protocol above appends on the same
-event that writes burst-log.md (the keep-last-5 window eventually evicts a
-duplicate, but a verbatim re-run doubles the row until it does). Re-running a
-task that appends can double the entry. When re-dispatched for an append task,
-first read the target file (or STATE.md section) and skip the append if that
-entry is already present.
+The non-idempotent class is **append-style records** — including but not
+limited to: burst-log.md entries, convergence-trajectory.md per-pass rows,
+`cycles/<cycle>/lessons.md` L-entries, added rows in the 4 INDEX files and
+decision-log.md, and the STATE.md **Current Phase Steps** row that the
+Burst-complete protocol above appends on the same event that writes
+burst-log.md (the keep-last-5 window eventually evicts a duplicate, but a
+verbatim re-run doubles the row until it does). The authoritative enumeration
+is this agent's own update-event list (the "when X happens → append Y"
+triggers above) — treat every append trigger there as non-idempotent.
+Re-running a task that appends can double the entry. When re-dispatched for an
+append task, first read the target file (or STATE.md section) and skip the
+append if that entry is already present.
 
 ## Templates
 

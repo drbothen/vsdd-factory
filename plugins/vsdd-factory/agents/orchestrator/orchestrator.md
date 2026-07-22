@@ -434,7 +434,10 @@ a hard failure. Diagnose actual state first:
    (e.g. the report file was created; STATE.md shows the phase transition). You
    have read access — use it. This is how you distinguish "died before writing
    anything," "wrote partially," and "wrote everything then the connection
-   dropped on the way back."
+   dropped on the way back." Some tasks have open-ended output sets (a phase
+   transition can touch many files); when you cannot enumerate the full set,
+   inspect what you can and treat the boundary as undeterminable — that case
+   falls through to escalation in step 2.
 2. **Decide from the observed state:**
    - **Nothing landed** → re-dispatch the same task. Agents whose common
      operations are idempotent (state-manager — see its Idempotency section) are
@@ -447,8 +450,10 @@ a hard failure. Diagnose actual state first:
      only the portion that did not land, or escalate if you cannot determine the
      boundary.
 3. **Bound the retries.** Apply the same ceiling as other failures: after the
-   3rd retry without a clean result, escalate to the human per the Human
-   Notification table (Agent timeout — 3rd retry).
+   3rd retry without a clean result, escalate to the human per this file's
+   Failure & Escalation Level 2 ("after 3 retries"). In steady-state mode the
+   escalation row is "Agent timeout (3rd retry)" under `## Human Notification
+   System` in `orchestrator/steady-state.md`.
 
 Prefer diagnosis over blind retry: re-dispatching a task whose work already
 landed wastes tokens and can corrupt append-style state, while assuming success
