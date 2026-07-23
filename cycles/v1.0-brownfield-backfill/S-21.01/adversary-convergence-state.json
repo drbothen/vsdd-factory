@@ -9,10 +9,12 @@
   "tests_proptest_green": 5,
   "clippy_clean": true,
   "fmt_clean": true,
-  "passes_clean": 0,
+  "passes_clean": 3,
   "streak_target": 3,
-  "streak_at_close": 0,
-  "streak_note": "p7 CLEAN; post-p7 documentary v1.7 amendment (accepted residuals) → streak restart; p8 NOT-CLEAN (F-P8-001 input-hash parity + uncommitted-tree process blocker; code hunt CLEAN); p9 NOT-CLEAN (F-P9-001/F-P9-002/F-P9-003 documentary LOW; fixed same-burst D-882); streak restarts at pass 10",
+  "streak_at_close": "3/3",
+  "converged": true,
+  "convergence_certified": "2026-07-23 — passes 10+11+12 CLEAN per BC-5.39.001; human confirmed pass reports 2026-07-23 (session gate)",
+  "streak_note": "p7 CLEAN; post-p7 documentary v1.7 amendment (accepted residuals) → streak restart; p8 NOT-CLEAN (F-P8-001 input-hash parity + uncommitted-tree process blocker; code hunt CLEAN); p9 NOT-CLEAN (F-P9-001/F-P9-002/F-P9-003 documentary LOW; fixed same-burst D-882); p10 CLEAN (1/3), p11 CLEAN (2/3), p12 CLEAN (3/3) — CONVERGED",
   "passes": [
     {
       "pass": 1,
@@ -110,6 +112,31 @@
       },
       "finding_ids": ["F-P9-001", "F-P9-002", "F-P9-003"],
       "notes": "3 documentary LOW findings: F-P9-001 story Invariants 1–5→1–6 cite sweep (Architecture Mapping, Task 10, File Structure), F-P9-002 commit-count off-by-one (23→24), F-P9-003 Token Budget ADR-031 version (v1.3→v1.5); all fixed same-burst D-882"
+    },
+    {
+      "pass": 10,
+      "verdict": "CLEAN",
+      "findings": {},
+      "finding_ids": [],
+      "streak": "1/3",
+      "notes": "Part A: F-P9-001/002/003 verified RESOLVED (rev-list --count = 24 mechanical; story v1.8 scope statements read Invariants 1–6; Token Budget cites ADR-031 v1.5; five-leg parity + STORY-INDEX v4.235). Part B fresh hunt CLEAN; adversary independently re-ran cargo test (133 unit + 5 proptest green). Sub-NITPICK disclosed, held below threshold: lib.rs header stamps BC-4.16.001 v1.6 while BC is v1.7 (documentary-only bump)"
+    },
+    {
+      "pass": 11,
+      "verdict": "CLEAN",
+      "findings": {},
+      "finding_ids": [],
+      "streak": "2/3",
+      "notes": "Fresh full review: walkers hand-traced on chained forms; every enumerated form covered (bare .factory, ./, :/, globs, short flags, quotes, glued punctuation, chained separators, all value-consuming globals, case-folded, -C/-c core.worktree target-aware); registry, Layer-2 doc, cross-surface parity verified; sub-NITPICK held below threshold again"
+    },
+    {
+      "pass": 12,
+      "verdict": "CLEAN",
+      "findings": {},
+      "finding_ids": [],
+      "streak": "3/3",
+      "convergence_certifying": true,
+      "notes": "Convergence-certifying pass: dangerous-direction (under-block) trace found no miss within issue #342 threat model; hook_logic ordering verified (PC4 → Invariant-6 target scan → branch detection → PC3 → PC1 → PC2); FnOnce exec_subprocess called exactly once; registry matches AC-001 exactly; Layer-2 satisfies AC-007/008/009; POLICY 21 satisfied; accepted residuals reproduce exactly as BC v1.7 documents them"
     }
   ],
   "accepted_with_record_summary": [
@@ -129,5 +156,5 @@
       "resolution": "adversary-classified NITPICK; not a behavioral defect; accepted residual per Invariant 6"
     }
   ],
-  "next_action": "pass 10 streak re-run after D-882 documentary fix burst (2026-07-23); target passes_clean=3/3"
+  "next_action": "CONVERGED — demo evidence recorded (17b86e05 on feature branch, docs/demo-evidence/S-21.01/, 9/9 ACs real-dispatcher captures); branch pushed to origin (25 commits, head 17b86e05); pr-manager PR creation in progress; merge held for human gate"
 }
