@@ -35,17 +35,35 @@ pub const HOST_ABI_VERSION: u32 = 1;
 // Branch and command classification (pure functions — injectable-testable)
 // ---------------------------------------------------------------------------
 
-/// Returns true if the Bash payload string contains a `git add` command.
+/// Returns true if the Bash payload string contains a `git add` or `git stage` command.
 ///
-/// Matches the literal substring `git add` (case-insensitive per BC-4.16.001
-/// Precondition 2). All other commands — `git commit`, `git push`, etc. — are
-/// not in scope and this function returns false for them.
+/// Matches `git\s+(add|stage)` (case-insensitive, any whitespace between tokens) per
+/// BC-4.16.001 Precondition 2 v1.3. `git stage` is a true git synonym for `git add`
+/// (verified: `git help stage` confirms it is an alias). Whitespace-tolerant: handles
+/// double-space and tab-separated forms (e.g., `git  add`, `git\tadd`).
+///
+/// Implementation: tokenizes by whitespace and checks whether the first `git` token
+/// is followed immediately by `add` or `stage`. No regex dependency — hand-rolled
+/// tokenization consistent with sibling validator crates which avoid the regex crate
+/// due to WASM fuel budget constraints.
+///
+/// All other commands — `git commit`, `git push`, etc. — are not in scope and this
+/// function returns false for them.
 ///
 /// # BC trace
-/// BC-4.16.001 Precondition 2: detect `git add` by substring match.
-/// BC-4.16.001 PC4: non-`git add` commands pass unconditionally.
+/// BC-4.16.001 Precondition 2 v1.3: detect `git\s+(add|stage)` by whitespace tokenization.
+/// BC-4.16.001 PC4: non-`git add`/`git stage` commands pass unconditionally.
 pub fn is_git_add_command(payload: &str) -> bool {
-    payload.to_lowercase().contains("git add")
+    let mut tokens = payload.split_whitespace();
+    while let Some(token) = tokens.next() {
+        if token.eq_ignore_ascii_case("git") {
+            return tokens
+                .next()
+                .map(|t| t.eq_ignore_ascii_case("add") || t.eq_ignore_ascii_case("stage"))
+                .unwrap_or(false);
+        }
+    }
+    false
 }
 
 /// Returns true if the `git add` argument text contains or implies a
