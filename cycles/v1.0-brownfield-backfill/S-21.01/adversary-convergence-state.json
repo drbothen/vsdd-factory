@@ -4,7 +4,7 @@
   "bc_version_at_close": "1.7",
   "code_head": "1ee37749",
   "code_base": "b6231a88",
-  "code_commits_from_base": 23,
+  "code_commits_from_base": 24,
   "tests_green": 133,
   "tests_proptest_green": 5,
   "clippy_clean": true,
@@ -12,7 +12,7 @@
   "passes_clean": 0,
   "streak_target": 3,
   "streak_at_close": 0,
-  "streak_note": "p7 CLEAN; post-p7 documentary v1.7 amendment (accepted residuals) → streak restart; p8 NOT-CLEAN (F-P8-001 input-hash parity + uncommitted-tree process blocker; code hunt CLEAN); stability commit queued for streak re-run",
+  "streak_note": "p7 CLEAN; post-p7 documentary v1.7 amendment (accepted residuals) → streak restart; p8 NOT-CLEAN (F-P8-001 input-hash parity + uncommitted-tree process blocker; code hunt CLEAN); p9 NOT-CLEAN (F-P9-001/F-P9-002/F-P9-003 documentary LOW; fixed same-burst D-882); streak restarts at pass 10",
   "passes": [
     {
       "pass": 1,
@@ -101,6 +101,15 @@
       "notes": "F-P8-001: input-hash parity (story shows fde01eb transient, settled is 32aaccc) + uncommitted-tree process blocker (2143 uncommitted files present in .factory at review time); code hunt verified CLEAN (no code defects found); process blocker reconciled in D-880/D-881 stability burst",
       "accepted_with_record": true,
       "acceptance_note": "payload-wide conservative over-match noted as NITPICK by adversary — not a behavioral defect; accepted residual per Invariant 6"
+    },
+    {
+      "pass": 9,
+      "verdict": "NOT-CLEAN",
+      "findings": {
+        "LOW": 3
+      },
+      "finding_ids": ["F-P9-001", "F-P9-002", "F-P9-003"],
+      "notes": "3 documentary LOW findings: F-P9-001 story Invariants 1–5→1–6 cite sweep (Architecture Mapping, Task 10, File Structure), F-P9-002 commit-count off-by-one (23→24), F-P9-003 Token Budget ADR-031 version (v1.3→v1.5); all fixed same-burst D-882"
     }
   ],
   "accepted_with_record_summary": [
@@ -120,5 +129,5 @@
       "resolution": "adversary-classified NITPICK; not a behavioral defect; accepted residual per Invariant 6"
     }
   ],
-  "next_action": "stability commit 2026-07-23 for streak re-run (D-881); target passes_clean=3/3"
+  "next_action": "pass 10 streak re-run after D-882 documentary fix burst (2026-07-23); target passes_clean=3/3"
 }

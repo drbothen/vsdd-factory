@@ -10901,4 +10901,16 @@ D-881-S-21-01-LOCAL-CASCADE-PASSES-1-8-2026-07-23
 
 2026-07-23
 
+## D-882
+
+S-21-01-PASS-9-DOCUMENTARY-FIX-BURST-2026-07-23. POLICY 16 GLOBAL-MAX GATE: `grep -n "^## D-" decision-log.md | tail -3` → `10868:## D-878 / 10880:## D-880 / 10892:## D-881`; D-881 confirmed prior max → D-882 allocated. S-21.01 adv pass-9 fix burst: 3 documentary LOW findings (F-P9-001 story Invariants 1–5→1–6 cite sweep; F-P9-002 commit-count off-by-one 23→24 in adversary-convergence-state.json + red-gate-log.md; F-P9-003 Token Budget ADR-031 version v1.3→v1.5). All fixed same-burst. Story v1.7→v1.8 (sw-2101-fix9); STORY-INDEX v4.234→v4.235 (sw-2101-fix9); adversary-convergence-state.json pass-9 NOT-CLEAN record appended + code_commits_from_base 23→24; red-gate-log.md Final State commit-count 23→24. passes_clean=0/3; streak restarts at pass 10. rev-list stdout: `git -C .worktrees/S-21.01 rev-list --count b6231a88..HEAD` → 24. 4-INDEX: BC-INDEX v4.19 / VP-INDEX v2.72 / STORY-INDEX v4.235 / ARCH-INDEX v3.26. Code worktree HEAD `1ee37749`; develop HEAD `b6231a88`; main `80e5cd7b` UNCHANGED.
+
+### Phase
+
+D-882-S-21-01-PASS-9-DOCUMENTARY-FIX-BURST-2026-07-23
+
+### Date
+
+2026-07-23
+
 2026-07-22
