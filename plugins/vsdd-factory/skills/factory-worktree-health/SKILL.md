@@ -81,13 +81,25 @@ git ls-remote --heads origin ${BRANCH_NAME}
 ```
 
 - **Branch exists:** Proceed to Step 2
-- **Branch does NOT exist:** Create it:
+- **Branch does NOT exist:** Create it. Build the empty root commit with
+  plumbing and point the branch ref at it directly, then push. `HEAD` never
+  moves and the working tree is never disturbed — so there is no `git checkout`
+  step whose failure could strand the session on `${BRANCH_NAME}` (nor any
+  hardcoded return target to guess wrong). The local-existence guard covers
+  the re-run case where the branch already exists locally but was never
+  pushed — the Step 1 check above is remote-only. The init marker commit is
+  deliberately unsigned: `git commit-tree` does not honor `commit.gpgsign`,
+  and a hard `-S` would fail outright in environments with no signing key
+  configured; content commits are signed later by state-manager under the
+  repo's normal commit config.
   ```bash
-  git checkout --orphan ${BRANCH_NAME}
-  git rm -rf .
-  git commit --allow-empty -m "chore: initialize ${BRANCH_NAME} branch"
-  git push origin ${BRANCH_NAME}
-  git checkout develop
+  if ! git show-ref --verify --quiet "refs/heads/${BRANCH_NAME}"; then
+    commit=$(git commit-tree "$(git mktree </dev/null)" \
+      -m "chore: initialize ${BRANCH_NAME} branch") \
+      || { echo "failed to create ${BRANCH_NAME} init commit" >&2; exit 1; }
+    git branch "${BRANCH_NAME}" "$commit"
+  fi
+  git push origin "${BRANCH_NAME}"
   ```
   Then proceed to Step 2.
 
