@@ -86,6 +86,11 @@ proptest! {
     /// AC-006 / BC-4.16.001 PC1:
     /// Absolute-path form of .factory/ paths also blocks on develop.
     /// Covers the `/.factory/` path-component variant (BC-4.16.001 Precondition 2).
+    ///
+    /// F-P1-006 fix: assert the result IS Block (exit 2), not merely is_ok() (no panic).
+    /// The prior `is_ok()`-only assertion was a tautology — it only checked the guard
+    /// didn't panic, not that it actually blocked. All generated paths contain `.factory/`
+    /// as a substring, so the current impl blocks them; this assertion makes that explicit.
     #[test]
     fn prop_BC_4_16_001_ac006_absolute_factory_path_blocks_on_develop(
         prefix in "[a-z/]{1,20}",
@@ -95,9 +100,21 @@ proptest! {
         let result = run_hook_with_branch(&command, "develop");
         prop_assert!(
             result.is_ok(),
-            "AC-006: hook_logic panicked for absolute path command '{}'. Production unimplemented.",
+            "AC-006: hook_logic panicked for absolute path command '{}'. \
+             Must return HookResult, never panic.",
             command
         );
+        if let Ok(hook_result) = result {
+            prop_assert_ne!(
+                hook_result,
+                HookResult::Continue,
+                "F-P1-006 / AC-006 / BC-4.16.001 PC1: absolute .factory/ path '{}' on \
+                 develop MUST be BLOCKED (block_intent=true, exit 2). Got Continue. \
+                 The path contains '/.factory/' as a path component — conservative block \
+                 required per BC-4.16.001 Invariant 4.",
+                command
+            );
+        }
     }
 
     /// AC-006 / BC-4.16.001 PC2:

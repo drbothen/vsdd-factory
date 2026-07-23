@@ -801,59 +801,557 @@ fn test_ac007_bc5_43_001_per_story_delivery_md_covers_git_pull_or_merge() {
 }
 
 // ---------------------------------------------------------------------------
+// Section-extraction helpers (F-P1-005: scope assertions to section body)
+// ---------------------------------------------------------------------------
+
+/// Extract the §Main-Checkout Sync Protocol section body from per-story-delivery.md.
+/// Returns the text from "## Main-Checkout Sync Protocol" up to (but not including)
+/// the next "## " top-level heading. Returns an empty string if the section is absent.
+fn extract_main_checkout_sync_protocol_section(content: &str) -> String {
+    let section_marker = "## Main-Checkout Sync Protocol";
+    let start = match content.find(section_marker) {
+        Some(i) => i,
+        None => return String::new(),
+    };
+    let rest = &content[start..];
+    // Find the next top-level section heading (## followed by space, not a subsection ###)
+    // The section_marker itself starts with ##, so skip past it before searching.
+    let after_heading = section_marker.len();
+    let end = rest[after_heading..]
+        .find("\n## ")
+        .map(|i| after_heading + i)
+        .unwrap_or(rest.len());
+    rest[..end].to_string()
+}
+
+/// Extract the "### Fail-Open When git diff Fails" subsection body from
+/// the §Main-Checkout Sync Protocol section. Returns empty string if absent.
+fn extract_fail_open_subsection(section: &str) -> String {
+    let subsection_marker = "### Fail-Open When git diff Fails";
+    let start = match section.find(subsection_marker) {
+        Some(i) => i,
+        None => return String::new(),
+    };
+    let rest = &section[start..];
+    let after_heading = subsection_marker.len();
+    // Find the next subsection heading (### ) or end of section
+    let end = rest[after_heading..]
+        .find("\n### ")
+        .map(|i| after_heading + i)
+        .unwrap_or(rest.len());
+    rest[..end].to_string()
+}
+
+// ---------------------------------------------------------------------------
 // AC-008 (BC-5.43.001 PC1):
 // Merge proceeds when git diff --name-only returns no .factory/ paths
+// (F-P1-005: scoped to §Main-Checkout Sync Protocol section body)
 // ---------------------------------------------------------------------------
 
 #[test]
 fn test_ac008_bc5_43_001_per_story_delivery_md_documents_pass_on_clean_diff() {
-    // AC-008: section must document that merge proceeds when diff is clean
+    // F-P1-005 repair: scope assertion to §Main-Checkout Sync Protocol section body only.
+    // Whole-file word greps are tautological — "proceed" appears in unrelated sections.
     let path = per_story_delivery_md_path();
     let content = std::fs::read_to_string(&path)
         .unwrap_or_else(|e| panic!("failed to read {}: {}", path.display(), e));
+    let section = extract_main_checkout_sync_protocol_section(&content);
     assert!(
-        content.contains("Main-Checkout Sync Protocol"),
+        !section.is_empty(),
         "AC-008 prerequisite / BC-5.43.001: §Main-Checkout Sync Protocol section must exist \
          before AC-008 can pass. Fix AC-007 tests first."
     );
-    let documents_pass_case = content.contains("proceed")
-        || content.contains("passes")
-        || content.contains("safe to")
-        || content.contains("no .factory");
+    // AC-008 behavioral gate: within the section, the pass-through case must use the canonical
+    // phrase "MUST proceed normally" (BC-5.43.001 PC1) — not generic prose that coincidentally
+    // contains "proceed" elsewhere in the file.
     assert!(
-        documents_pass_case,
-        "AC-008 / BC-5.43.001 PC1: §Main-Checkout Sync Protocol must document that the \
-         operation PROCEEDS (passes transparently) when git diff --name-only returns no \
-         .factory/ paths. The pass-through condition is absent from per-story-delivery.md."
+        section.contains("MUST proceed normally"),
+        "AC-008 / BC-5.43.001 PC1 (F-P1-005 section-scoped): §Main-Checkout Sync Protocol \
+         must contain 'MUST proceed normally' WITHIN the section body to document that the \
+         merge/pull proceeds when git diff --name-only returns no .factory/ paths. \
+         The canonical phrase is absent from the section body (present in different section \
+         would not satisfy this gate — whole-file grep is tautological per F-P1-005)."
     );
 }
 
 // ---------------------------------------------------------------------------
 // AC-009 (BC-5.43.001 Invariant 4):
 // Fail-open (proceed with warning) when git diff --name-only itself fails
+// (F-P1-005: scoped to §Fail-Open subsection; checks for non-zero exit documentation)
 // ---------------------------------------------------------------------------
 
 #[test]
 fn test_ac009_bc5_43_001_per_story_delivery_md_documents_fail_open_on_diff_failure() {
-    // AC-009: section must document fail-open when git diff fails
+    // F-P1-005 repair: scope assertion to §Main-Checkout Sync Protocol section body and
+    // specifically the §Fail-Open When git diff Fails subsection. Whole-file word greps
+    // (e.g., "proceed" on line 62) are tautological — they pass even with wrong section content.
+    //
+    // AC-009 behavioral gate: the fail-open subsection MUST document:
+    //   1. The non-zero exit / failure scenario (checked via "non-zero" keyword)
+    //   2. That a warning is logged
+    //   3. That the merge/pull proceeds (fail-open)
+    // This test is RED until the §Fail-Open subsection explicitly cites "non-zero" as the
+    // failure trigger (BC-5.43.001 Invariant 4 — mock git diff returning non-zero exit).
     let path = per_story_delivery_md_path();
     let content = std::fs::read_to_string(&path)
         .unwrap_or_else(|e| panic!("failed to read {}: {}", path.display(), e));
+    let section = extract_main_checkout_sync_protocol_section(&content);
     assert!(
-        content.contains("Main-Checkout Sync Protocol"),
+        !section.is_empty(),
         "AC-009 prerequisite / BC-5.43.001: §Main-Checkout Sync Protocol section must exist \
-         before AC-009 can pass. Fix AC-007 tests first."
+         before AC-009 can pass."
     );
-    // BC-5.43.001 Invariant 4: log warning AND proceed when git diff fails
-    let documents_fail_open = content.contains("warning")
-        || content.contains("fail-open")
-        || content.contains("log")
-        || content.contains("proceed");
+    let fail_open = extract_fail_open_subsection(&section);
     assert!(
-        documents_fail_open,
-        "AC-009 / BC-5.43.001 Invariant 4: §Main-Checkout Sync Protocol must document \
-         fail-open behavior: log a warning AND proceed when git diff --name-only fails \
-         (network error, unresolvable ref). The fail-open clause is absent from \
-         per-story-delivery.md."
+        !fail_open.is_empty(),
+        "AC-009 / BC-5.43.001 Invariant 4: §Fail-Open When git diff Fails subsection must \
+         exist within §Main-Checkout Sync Protocol. The subsection heading is absent."
     );
+    // Gate (a): the subsection must explicitly call out the non-zero exit trigger.
+    // AC-009 scenario: mock git diff returning non-zero exit → fail-open behavior.
+    // The section currently says "fails (network error, unresolvable ref)" but must also
+    // explicitly document the non-zero exit code trigger per AC-009 Test Plan T-009.
+    assert!(
+        fail_open.contains("non-zero"),
+        "AC-009 / BC-5.43.001 Invariant 4 (F-P1-005 RED gate): §Fail-Open When git diff Fails \
+         subsection must explicitly document the 'non-zero' exit trigger — the AC-009 \
+         test scenario is 'mock git diff returning non-zero exit'. The phrase 'non-zero' is \
+         absent from the subsection. Implementer must add explicit non-zero exit language to \
+         the §Fail-Open subsection per AC-009 Test Plan T-009."
+    );
+    // Gate (b): warning must be logged
+    assert!(
+        fail_open.contains("warning"),
+        "AC-009 / BC-5.43.001 Invariant 4: §Fail-Open subsection must document that a \
+         warning is logged when git diff fails."
+    );
+    // Gate (c): merge must still proceed (fail-open)
+    assert!(
+        fail_open.contains("Proceed") || fail_open.contains("proceed"),
+        "AC-009 / BC-5.43.001 Invariant 4: §Fail-Open subsection must document that the \
+         merge/pull proceeds (fail-open) when git diff fails."
+    );
+}
+
+// ---------------------------------------------------------------------------
+// F-P1-001: BC-4.16.001 Invariant 4 v1.3 — new conservative forms:
+// bare .factory (no slash), ./ (CWD-relative), :/ (pathspec-magic), ':/.factory'
+// All MUST be RED against current implementation (misses these v1.3 additions).
+// ---------------------------------------------------------------------------
+
+#[test]
+fn test_contains_factory_path_arg_detects_bare_factory_no_slash() {
+    // BC-4.16.001 Invariant 4 v1.3: bare `.factory` without trailing slash must block.
+    // git treats `.factory` as `.factory/**` for staging — identical scope to `.factory/`.
+    assert!(
+        contains_factory_path_arg("git add .factory"),
+        "F-P1-001 / BC-4.16.001 Invariant 4 v1.3: bare '.factory' (no trailing slash) MUST \
+         be conservatively blocked. git expands '.factory' to '.factory/**' for staging \
+         purposes — identical dual-tracking vector as '.factory/'."
+    );
+}
+
+#[test]
+fn test_contains_factory_path_arg_detects_dot_slash() {
+    // BC-4.16.001 Invariant 4 v1.3: './' is CWD-relative with explicit slash — semantically
+    // identical to '.' for staging. Must be conservatively blocked.
+    assert!(
+        contains_factory_path_arg("git add ./"),
+        "F-P1-001 / BC-4.16.001 Invariant 4 v1.3: './' MUST be conservatively blocked — \
+         CWD-relative with explicit slash; semantically identical to '.' for staging; \
+         may stage .factory/** when CWD is the project root or .factory/."
+    );
+}
+
+#[test]
+fn test_contains_factory_path_arg_detects_pathspec_magic_root() {
+    // BC-4.16.001 Invariant 4 v1.3: ':/' pathspec-magic anchors from repo root —
+    // can include .factory/ paths regardless of CWD. Conservatively blocked.
+    assert!(
+        contains_factory_path_arg("git add :/"),
+        "F-P1-001 / BC-4.16.001 Invariant 4 v1.3: ':/' pathspec-magic MUST be conservatively \
+         blocked — anchors from repository root; can include .factory/ paths regardless of CWD."
+    );
+}
+
+#[test]
+fn test_contains_factory_path_arg_detects_pathspec_magic_factory_path() {
+    // BC-4.16.001 Invariant 4 v1.3: ':/.factory'-family forms (quoted and unquoted).
+    assert!(
+        contains_factory_path_arg("git add ':/.factory'"),
+        "F-P1-001 / BC-4.16.001 Invariant 4 v1.3: quoted ':/.factory' MUST be blocked."
+    );
+    assert!(
+        contains_factory_path_arg("git add :/.factory"),
+        "F-P1-001 / BC-4.16.001 Invariant 4 v1.3: unquoted ':/.factory' MUST be blocked."
+    );
+    assert!(
+        contains_factory_path_arg("git add :/path"),
+        "F-P1-001 / BC-4.16.001 Invariant 4 v1.3: ':/path' pathspec-magic anchors from \
+         repo root — conservatively blocked (may reach .factory/ paths)."
+    );
+}
+
+// hook_logic integration tests: bare .factory on each product branch class
+
+#[test]
+fn test_fp1_001_bc4_16_001_blocks_bare_factory_on_develop() {
+    let result = run_hook_with_branch("git add .factory", "develop");
+    assert!(
+        result.is_ok(),
+        "F-P1-001 / BC-4.16.001 Invariant 4 v1.3: hook_logic panicked for \
+         'git add .factory' on develop. Must return HookResult::Block, not panic."
+    );
+    if let Ok(hook_result) = result {
+        assert_eq!(
+            hook_result.exit_code(),
+            2,
+            "F-P1-001 / BC-4.16.001 Invariant 4 v1.3: 'git add .factory' (bare, no slash) \
+             on develop MUST exit 2 (block_intent=true). Current impl only checks '.factory/' \
+             with trailing slash — misses the bare form added in v1.3."
+        );
+        match &hook_result {
+            HookResult::Block { reason } => {
+                assert!(
+                    reason.contains("FactoryPathOnProductBranch"),
+                    "F-P1-001 / BC-4.16.001 PC1: block reason must contain \
+                     'FactoryPathOnProductBranch'. Got: '{}'",
+                    reason
+                );
+            }
+            other => panic!(
+                "F-P1-001: expected HookResult::Block for 'git add .factory' on develop, \
+                 got {:?}",
+                other
+            ),
+        }
+    }
+}
+
+#[test]
+fn test_fp1_001_bc4_16_001_blocks_bare_factory_on_main() {
+    let result = run_hook_with_branch("git add .factory", "main");
+    assert!(
+        result.is_ok(),
+        "F-P1-001: hook_logic panicked for 'git add .factory' on main."
+    );
+    if let Ok(hook_result) = result {
+        assert_eq!(
+            hook_result.exit_code(),
+            2,
+            "F-P1-001 / BC-4.16.001 Invariant 4 v1.3: 'git add .factory' on main MUST \
+             exit 2 (main is a product branch)."
+        );
+    }
+}
+
+#[test]
+fn test_fp1_001_bc4_16_001_blocks_bare_factory_on_feature_branch() {
+    let result = run_hook_with_branch("git add .factory", "feature/S-21.01");
+    assert!(
+        result.is_ok(),
+        "F-P1-001: hook_logic panicked for 'git add .factory' on feature/S-21.01."
+    );
+    if let Ok(hook_result) = result {
+        assert_eq!(
+            hook_result.exit_code(),
+            2,
+            "F-P1-001 / BC-4.16.001 Invariant 4 v1.3: 'git add .factory' on feature/* MUST \
+             exit 2 (feature/* is a product branch)."
+        );
+    }
+}
+
+#[test]
+fn test_fp1_001_bc4_16_001_blocks_bare_factory_on_release_branch() {
+    let result = run_hook_with_branch("git add .factory", "release/v1.0.0-rc.24");
+    assert!(
+        result.is_ok(),
+        "F-P1-001: hook_logic panicked for 'git add .factory' on release/v1.0.0-rc.24."
+    );
+    if let Ok(hook_result) = result {
+        assert_eq!(
+            hook_result.exit_code(),
+            2,
+            "F-P1-001 / BC-4.16.001 Invariant 4 v1.3: 'git add .factory' on release/* MUST \
+             exit 2 (release/* is a product branch)."
+        );
+    }
+}
+
+#[test]
+fn test_fp1_001_bc4_16_001_blocks_bare_factory_on_maintenance_branch() {
+    let result = run_hook_with_branch("git add .factory", "maintenance/hotfix-001");
+    assert!(
+        result.is_ok(),
+        "F-P1-001: hook_logic panicked for 'git add .factory' on maintenance/hotfix-001."
+    );
+    if let Ok(hook_result) = result {
+        assert_eq!(
+            hook_result.exit_code(),
+            2,
+            "F-P1-001 / BC-4.16.001 Invariant 4 v1.3: 'git add .factory' on maintenance/* \
+             MUST exit 2 (maintenance/* is a product branch)."
+        );
+    }
+}
+
+#[test]
+fn test_fp1_001_bc4_16_001_passes_bare_factory_on_factory_artifacts() {
+    // factory-artifacts is NOT a product branch — all staging is legitimate (PC3).
+    // This complementary test verifies the guard does not over-block.
+    let result = run_hook_with_branch("git add .factory", "factory-artifacts");
+    assert!(
+        result.is_ok(),
+        "F-P1-001: hook_logic panicked for 'git add .factory' on factory-artifacts."
+    );
+    if let Ok(hook_result) = result {
+        assert_eq!(
+            hook_result,
+            HookResult::Continue,
+            "F-P1-001 / BC-4.16.001 PC3: 'git add .factory' on factory-artifacts MUST return \
+             Continue (PC3 unconditional pass — factory artifact commits require staging here). \
+             Got: {:?}",
+            hook_result
+        );
+    }
+}
+
+#[test]
+fn test_fp1_001_bc4_16_001_blocks_dot_slash_on_develop() {
+    let result = run_hook_with_branch("git add ./", "develop");
+    assert!(
+        result.is_ok(),
+        "F-P1-001: hook_logic panicked for 'git add ./' on develop."
+    );
+    if let Ok(hook_result) = result {
+        assert_eq!(
+            hook_result.exit_code(),
+            2,
+            "F-P1-001 / BC-4.16.001 Invariant 4 v1.3: 'git add ./' on develop MUST exit 2. \
+             './' is CWD-relative with explicit slash; semantically identical to '.' for \
+             staging. Current impl matches '.' exactly but not './'."
+        );
+    }
+}
+
+#[test]
+fn test_fp1_001_bc4_16_001_blocks_pathspec_root_on_develop() {
+    let result = run_hook_with_branch("git add :/", "develop");
+    assert!(
+        result.is_ok(),
+        "F-P1-001: hook_logic panicked for 'git add :/' on develop."
+    );
+    if let Ok(hook_result) = result {
+        assert_eq!(
+            hook_result.exit_code(),
+            2,
+            "F-P1-001 / BC-4.16.001 Invariant 4 v1.3: 'git add :/' on develop MUST exit 2. \
+             ':/' pathspec-magic anchors from repo root — can include .factory/ paths."
+        );
+    }
+}
+
+#[test]
+fn test_fp1_001_bc4_16_001_blocks_pathspec_factory_quoted_on_develop() {
+    // ':/.factory' — pathspec-magic with explicit .factory path
+    let result = run_hook_with_branch("git add ':/.factory'", "develop");
+    assert!(
+        result.is_ok(),
+        "F-P1-001: hook_logic panicked for \"git add ':/.factory'\" on develop."
+    );
+    if let Ok(hook_result) = result {
+        assert_eq!(
+            hook_result.exit_code(),
+            2,
+            "F-P1-001 / BC-4.16.001 Invariant 4 v1.3: \"git add ':/.factory'\" on develop \
+             MUST exit 2. ':/.factory' pathspec-magic names a .factory path directly."
+        );
+    }
+}
+
+// ---------------------------------------------------------------------------
+// F-P1-002: BC-4.16.001 Precondition 2 v1.3 — git stage synonym + whitespace variants.
+// All MUST be RED against current implementation.
+// ---------------------------------------------------------------------------
+
+#[test]
+fn test_is_git_add_command_detects_git_stage() {
+    // BC-4.16.001 Precondition 2 v1.3: `git stage` is a true git synonym for `git add`.
+    // Pattern changed from `git\s+add` to `git\s+(add|stage)`. Current impl uses
+    // `contains("git add")` which misses `git stage`.
+    assert!(
+        is_git_add_command("git stage .factory/STATE.md"),
+        "F-P1-002 / BC-4.16.001 Precondition 2 v1.3: 'git stage' is a true git synonym \
+         for 'git add' (ADR-031 §Decision 2 Layer-1). is_git_add_command MUST return true \
+         for 'git stage' payloads. Current impl only checks for 'git add' literal substring."
+    );
+}
+
+#[test]
+fn test_is_git_add_command_detects_double_space() {
+    // BC-4.16.001 Precondition 2: `git\s+(add|stage)` regex allows any whitespace.
+    // Double space `git  add` should match. Current impl uses `contains("git add")` with
+    // single space — fails to match double-space form.
+    assert!(
+        is_git_add_command("git  add .factory/STATE.md"),
+        "F-P1-002 / BC-4.16.001 Precondition 2 v1.3: 'git  add' (double space) MUST be \
+         detected as a git add command. Pattern is `git\\s+(add|stage)` (regex whitespace), \
+         not literal 'git add' (single space)."
+    );
+}
+
+#[test]
+fn test_is_git_add_command_detects_tab_separated() {
+    // BC-4.16.001 Precondition 2: tab-separated `git\tadd` must match `git\s+(add|stage)`.
+    assert!(
+        is_git_add_command("git\tadd .factory/STATE.md"),
+        "F-P1-002 / BC-4.16.001 Precondition 2 v1.3: tab-separated 'git\\tadd' MUST be \
+         detected as a git add command. Pattern is `git\\s+(add|stage)` (any whitespace)."
+    );
+}
+
+#[test]
+fn test_fp1_002_bc4_16_001_blocks_git_stage_factory_path_on_develop() {
+    // BC-4.16.001 Precondition 2 v1.3: git stage .factory/ path on product branch → Block.
+    let result = run_hook_with_branch("git stage .factory/STATE.md", "develop");
+    assert!(
+        result.is_ok(),
+        "F-P1-002: hook_logic panicked for 'git stage .factory/STATE.md' on develop."
+    );
+    if let Ok(hook_result) = result {
+        assert_eq!(
+            hook_result.exit_code(),
+            2,
+            "F-P1-002 / BC-4.16.001 PC1 + Precondition 2 v1.3: 'git stage .factory/STATE.md' \
+             on develop MUST exit 2. 'git stage' is a true git synonym — same dual-tracking \
+             vector as 'git add'. Current impl passes 'git stage' via PC4 (non-git-add branch)."
+        );
+        match &hook_result {
+            HookResult::Block { reason } => {
+                assert!(
+                    reason.contains("FactoryPathOnProductBranch"),
+                    "F-P1-002: block reason must contain 'FactoryPathOnProductBranch'. \
+                     Got: '{}'",
+                    reason
+                );
+            }
+            other => panic!(
+                "F-P1-002: expected HookResult::Block for 'git stage .factory/STATE.md' \
+                 on develop, got {:?}",
+                other
+            ),
+        }
+    }
+}
+
+#[test]
+fn test_fp1_002_bc4_16_001_blocks_git_stage_factory_path_on_main() {
+    let result = run_hook_with_branch("git stage .factory/STATE.md", "main");
+    assert!(result.is_ok(), "F-P1-002: hook_logic panicked on main.");
+    if let Ok(hook_result) = result {
+        assert_eq!(
+            hook_result.exit_code(),
+            2,
+            "F-P1-002 / BC-4.16.001 Precondition 2 v1.3: 'git stage' on main MUST exit 2."
+        );
+    }
+}
+
+#[test]
+fn test_fp1_002_bc4_16_001_blocks_git_stage_factory_path_on_feature() {
+    let result = run_hook_with_branch("git stage .factory/STATE.md", "feature/S-21.01");
+    assert!(result.is_ok(), "F-P1-002: hook_logic panicked on feature/.");
+    if let Ok(hook_result) = result {
+        assert_eq!(
+            hook_result.exit_code(),
+            2,
+            "F-P1-002 / BC-4.16.001 Precondition 2 v1.3: 'git stage' on feature/* MUST exit 2."
+        );
+    }
+}
+
+#[test]
+fn test_fp1_002_bc4_16_001_blocks_git_stage_factory_path_on_release() {
+    let result = run_hook_with_branch("git stage .factory/STATE.md", "release/v1.0.0-rc.24");
+    assert!(result.is_ok(), "F-P1-002: hook_logic panicked on release/.");
+    if let Ok(hook_result) = result {
+        assert_eq!(
+            hook_result.exit_code(),
+            2,
+            "F-P1-002 / BC-4.16.001 Precondition 2 v1.3: 'git stage' on release/* MUST exit 2."
+        );
+    }
+}
+
+#[test]
+fn test_fp1_002_bc4_16_001_blocks_git_stage_factory_path_on_maintenance() {
+    let result = run_hook_with_branch("git stage .factory/STATE.md", "maintenance/hotfix-001");
+    assert!(
+        result.is_ok(),
+        "F-P1-002: hook_logic panicked on maintenance/."
+    );
+    if let Ok(hook_result) = result {
+        assert_eq!(
+            hook_result.exit_code(),
+            2,
+            "F-P1-002 / BC-4.16.001 Precondition 2 v1.3: 'git stage' on maintenance/* MUST \
+             exit 2."
+        );
+    }
+}
+
+#[test]
+fn test_fp1_002_bc4_16_001_blocks_double_space_git_add_factory_on_develop() {
+    // BC-4.16.001 Precondition 2 v1.3: `git  add` (double space) must be detected.
+    let result = run_hook_with_branch("git  add .factory/STATE.md", "develop");
+    assert!(
+        result.is_ok(),
+        "F-P1-002: hook_logic panicked for 'git  add' (double space)."
+    );
+    if let Ok(hook_result) = result {
+        assert_eq!(
+            hook_result.exit_code(),
+            2,
+            "F-P1-002 / BC-4.16.001 Precondition 2 v1.3: 'git  add .factory/STATE.md' \
+             (double space) on develop MUST exit 2. Pattern is `git\\s+(add|stage)` — \
+             any whitespace between git and add."
+        );
+    }
+}
+
+#[test]
+fn test_fp1_002_bc4_16_001_blocks_tab_git_add_factory_on_develop() {
+    // BC-4.16.001 Precondition 2 v1.3: `git\tadd` (tab-separated) must be detected.
+    let result = run_hook_with_branch("git\tadd .factory/STATE.md", "develop");
+    assert!(
+        result.is_ok(),
+        "F-P1-002: hook_logic panicked for 'git\\tadd' (tab)."
+    );
+    if let Ok(hook_result) = result {
+        assert_eq!(
+            hook_result.exit_code(),
+            2,
+            "F-P1-002 / BC-4.16.001 Precondition 2 v1.3: 'git\\tadd .factory/STATE.md' \
+             (tab separator) on develop MUST exit 2."
+        );
+    }
+}
+
+#[test]
+fn test_fp1_002_bc4_16_001_blocks_double_space_git_stage_factory_on_develop() {
+    // BC-4.16.001 Precondition 2 v1.3: `git  stage` (double space + git stage synonym).
+    let result = run_hook_with_branch("git  stage .factory/STATE.md", "develop");
+    assert!(
+        result.is_ok(),
+        "F-P1-002: hook_logic panicked for 'git  stage' (double space)."
+    );
+    if let Ok(hook_result) = result {
+        assert_eq!(
+            hook_result.exit_code(),
+            2,
+            "F-P1-002 / BC-4.16.001 Precondition 2 v1.3: 'git  stage .factory/STATE.md' \
+             (double space + git stage) on develop MUST exit 2."
+        );
+    }
 }

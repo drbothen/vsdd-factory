@@ -449,17 +449,37 @@ _run_dispatcher() {
 # ---------------------------------------------------------------------------
 # T-011 / AC-008: section documents pass-through on clean diff (PC1)
 # BC-5.43.001 PC1: merge proceeds when no .factory/ paths in diff
+# F-P1-005: scoped to §Main-Checkout Sync Protocol section body (not whole-file grep).
 # ---------------------------------------------------------------------------
 
-@test "T-011 S-21.01 AC-008: per-story-delivery.md documents pass on clean diff" {
-  # The section must document that the operation PROCEEDS when diff is clean.
-  local has_pass_case
-  has_pass_case="$(grep -c "proceed\|passes\|safe to\|no .factory\|Proceed\|transparently" "$PER_STORY_DELIVERY_MD" || true)"
+# Extract the §Main-Checkout Sync Protocol section body from per-story-delivery.md.
+# Outputs the section from "## Main-Checkout Sync Protocol" up to the next "## " heading.
+_extract_main_checkout_sync_protocol_section() {
+  awk '
+    /^## Main-Checkout Sync Protocol/ { found=1 }
+    found && /^## / && !/^## Main-Checkout Sync Protocol/ { exit }
+    found { print }
+  ' "$PER_STORY_DELIVERY_MD"
+}
 
-  [ "$has_pass_case" -gt 0 ] || {
-    echo "FAIL: AC-008 / BC-5.43.001 PC1: §Main-Checkout Sync Protocol must document"
-    echo "  that the operation PROCEEDS (passes transparently) when git diff --name-only"
-    echo "  returns no .factory/ paths. The pass-through condition is absent."
+@test "T-011 S-21.01 AC-008: per-story-delivery.md documents pass on clean diff (section-scoped)" {
+  # F-P1-005 repair: scope to §Main-Checkout Sync Protocol section body only.
+  # Whole-file greps for "proceed" are tautological — the word appears in unrelated sections.
+  # This test checks within the section for the canonical AC-008 phrase "MUST proceed normally".
+  local section
+  section="$(_extract_main_checkout_sync_protocol_section)"
+
+  [ -n "$section" ] || {
+    echo "FAIL: AC-008 prerequisite / BC-5.43.001: §Main-Checkout Sync Protocol section"
+    echo "  not found in per-story-delivery.md. Fix AC-007 first."
+    false
+  }
+
+  echo "$section" | grep -q "MUST proceed normally" || {
+    echo "FAIL: AC-008 / BC-5.43.001 PC1 (F-P1-005 section-scoped): §Main-Checkout Sync"
+    echo "  Protocol section body must contain 'MUST proceed normally' (canonical BC-5.43.001"
+    echo "  PC1 pass-through phrase). A whole-file grep for 'proceed' is tautological since"
+    echo "  'proceed' appears in unrelated sections of per-story-delivery.md."
     false
   }
 }
@@ -467,17 +487,339 @@ _run_dispatcher() {
 # ---------------------------------------------------------------------------
 # T-012 / AC-009: section documents fail-open on git diff failure (Invariant 4)
 # BC-5.43.001 Invariant 4: log warning AND proceed when git diff fails
+# F-P1-005: scoped to §Main-Checkout Sync Protocol section body; checks for
+# explicit "non-zero" exit documentation (RED gate until section is amended).
 # ---------------------------------------------------------------------------
 
-@test "T-012 S-21.01 AC-009: per-story-delivery.md documents fail-open on diff failure" {
-  # The section must document fail-open: log warning + proceed when git diff fails.
-  local has_fail_open
-  has_fail_open="$(grep -c "warning\|fail-open\|log\|proceed\|Warning\|Fail-open" "$PER_STORY_DELIVERY_MD" || true)"
+@test "T-012 S-21.01 AC-009: per-story-delivery.md documents fail-open with non-zero exit (section-scoped)" {
+  # F-P1-005 repair: scope to §Main-Checkout Sync Protocol section body AND assert that
+  # the §Fail-Open When git diff Fails subsection explicitly documents "non-zero" exit.
+  # AC-009 test scenario: mock git diff returning non-zero exit → warning + proceed.
+  # The section says "fails (network error, ...)" but must also cite "non-zero" explicitly.
+  local section
+  section="$(_extract_main_checkout_sync_protocol_section)"
 
-  [ "$has_fail_open" -gt 0 ] || {
-    echo "FAIL: AC-009 / BC-5.43.001 Invariant 4: §Main-Checkout Sync Protocol must"
-    echo "  document fail-open behavior: log a warning AND proceed when git diff fails."
-    echo "  The fail-open clause is absent from per-story-delivery.md."
+  [ -n "$section" ] || {
+    echo "FAIL: AC-009 prerequisite: §Main-Checkout Sync Protocol section missing. Fix AC-007."
+    false
+  }
+
+  echo "$section" | grep -q "Fail-Open When git diff Fails" || {
+    echo "FAIL: AC-009 / BC-5.43.001 Invariant 4: §Fail-Open When git diff Fails subsection"
+    echo "  heading is absent from §Main-Checkout Sync Protocol section body."
+    false
+  }
+
+  # Gate: the fail-open subsection must explicitly document "non-zero" exit as the trigger.
+  # The AC-009 Test Plan scenario is "mock git diff returning non-zero exit"; the section must
+  # describe this scenario precisely. Currently says "fails (network error, ...)" without
+  # "non-zero" — this gate is RED until the subsection adds explicit non-zero exit language.
+  echo "$section" | grep -q "non-zero" || {
+    echo "FAIL: AC-009 / BC-5.43.001 Invariant 4 (F-P1-005 RED gate): §Main-Checkout Sync"
+    echo "  Protocol section body must explicitly document 'non-zero' exit as the trigger"
+    echo "  for the fail-open behavior. AC-009 scenario: 'mock git diff returning non-zero"
+    echo "  exit; assert warning logged AND merge command IS invoked'. The phrase 'non-zero'"
+    echo "  is absent from the section. Implementer must add explicit non-zero exit language"
+    echo "  to the §Fail-Open When git diff Fails subsection."
+    false
+  }
+}
+
+# ---------------------------------------------------------------------------
+# T-013 / AC-009 behavioral: §Fail-Open subsection covers warning + proceed
+# BC-5.43.001 Invariant 4 behavioral documentation check
+# F-P1-005: NEW behavioral test — checks section documents warning AND proceed.
+# RED gate: also requires "non-zero" which is not yet in the subsection.
+# ---------------------------------------------------------------------------
+
+@test "T-013 S-21.01 AC-009 behavioral: fail-open subsection documents warning AND proceed on non-zero exit" {
+  # AC-009 behavioral gate: verify the §Fail-Open When git diff Fails subsection contains
+  # all three behavioral elements: (1) warning, (2) proceed, (3) non-zero exit trigger.
+  # These fixed gates FAIL if the section were reverted to generic prose.
+  local section
+  section="$(_extract_main_checkout_sync_protocol_section)"
+
+  [ -n "$section" ] || {
+    echo "FAIL: T-013 prerequisite: §Main-Checkout Sync Protocol section missing."
+    false
+  }
+
+  # Extract the Fail-Open subsection (from "### Fail-Open..." to next "### ")
+  local fail_open_sub
+  fail_open_sub="$(echo "$section" | awk '
+    /^### Fail-Open When git diff Fails/ { found=1 }
+    found && /^### / && !/^### Fail-Open When git diff Fails/ { exit }
+    found { print }
+  ')"
+
+  [ -n "$fail_open_sub" ] || {
+    echo "FAIL: T-013 / BC-5.43.001 Invariant 4: '### Fail-Open When git diff Fails'"
+    echo "  subsection is absent from §Main-Checkout Sync Protocol."
+    false
+  }
+
+  # (1) warning must be documented
+  echo "$fail_open_sub" | grep -qi "warning" || {
+    echo "FAIL: T-013 / BC-5.43.001 Invariant 4: §Fail-Open subsection must document"
+    echo "  that a warning is logged. 'warning' not found in subsection body."
+    false
+  }
+
+  # (2) proceed / merge must be documented
+  echo "$fail_open_sub" | grep -qi "proceed" || {
+    echo "FAIL: T-013 / BC-5.43.001 Invariant 4: §Fail-Open subsection must document"
+    echo "  that the merge/pull proceeds (fail-open). 'proceed' not found in subsection."
+    false
+  }
+
+  # (3) non-zero exit must be explicitly documented (RED gate — not yet in subsection)
+  echo "$fail_open_sub" | grep -q "non-zero" || {
+    echo "FAIL: T-013 / AC-009 behavioral (F-P1-005 RED gate): §Fail-Open When git diff"
+    echo "  Fails subsection must explicitly document 'non-zero' exit as the trigger."
+    echo "  Test scenario: mock git diff returning non-zero exit → assert warning logged"
+    echo "  AND merge command IS invoked. The 'non-zero' phrase is absent from the"
+    echo "  subsection — add it to close this gate."
+    false
+  }
+}
+
+# ---------------------------------------------------------------------------
+# F-P1-001: BC-4.16.001 Invariant 4 v1.3 — bare .factory, ./, :/, ':/.factory'
+# WASM tests: skip if artifacts not built (same pattern as T-001..T-005).
+# RED gate: current WASM implementation misses these v1.3 forms.
+# ---------------------------------------------------------------------------
+
+@test "T-014 S-21.01 F-P1-001 AC-001: guard blocks git add .factory (bare, no slash) on develop" {
+  _require_artifacts
+  _write_guard_registry
+  _init_git_repo_on_branch "develop"
+
+  local envelope
+  envelope="$(_bash_event 'git add .factory')"
+  _run_dispatcher "$envelope"
+
+  [ "$status" -eq 2 ] || {
+    echo "FAIL: F-P1-001 / BC-4.16.001 Invariant 4 v1.3: 'git add .factory' (bare, no slash)"
+    echo "  on develop must exit 2. git expands '.factory' to '.factory/**' for staging —"
+    echo "  identical dual-tracking vector. Got $status."
+    echo "  Stderr: $(cat "$STDERR_FILE" 2>/dev/null)"
+    false
+  }
+}
+
+@test "T-015 S-21.01 F-P1-001 AC-001: guard blocks git add .factory on main branch" {
+  _require_artifacts
+  _write_guard_registry
+  _init_git_repo_on_branch "main"
+
+  local envelope
+  envelope="$(_bash_event 'git add .factory')"
+  _run_dispatcher "$envelope"
+
+  [ "$status" -eq 2 ] || {
+    echo "FAIL: F-P1-001 / BC-4.16.001 Invariant 4 v1.3: 'git add .factory' on main"
+    echo "  must exit 2 (main is a product branch). Got $status."
+    false
+  }
+}
+
+@test "T-016 S-21.01 F-P1-001 AC-001: guard blocks git add .factory on feature/* branch" {
+  _require_artifacts
+  _write_guard_registry
+  _init_git_repo_on_branch "feature/S-21.01"
+
+  local envelope
+  envelope="$(_bash_event 'git add .factory')"
+  _run_dispatcher "$envelope"
+
+  [ "$status" -eq 2 ] || {
+    echo "FAIL: F-P1-001 / BC-4.16.001 Invariant 4 v1.3: 'git add .factory' on feature/*"
+    echo "  must exit 2. Got $status."
+    false
+  }
+}
+
+@test "T-017 S-21.01 F-P1-001 AC-001: guard blocks git add .factory on release/* branch" {
+  _require_artifacts
+  _write_guard_registry
+  _init_git_repo_on_branch "release/v1.0.0-rc.24"
+
+  local envelope
+  envelope="$(_bash_event 'git add .factory')"
+  _run_dispatcher "$envelope"
+
+  [ "$status" -eq 2 ] || {
+    echo "FAIL: F-P1-001 / BC-4.16.001 Invariant 4 v1.3: 'git add .factory' on release/*"
+    echo "  must exit 2. Got $status."
+    false
+  }
+}
+
+@test "T-018 S-21.01 F-P1-001 AC-001: guard blocks git add .factory on maintenance/* branch" {
+  _require_artifacts
+  _write_guard_registry
+  _init_git_repo_on_branch "maintenance/hotfix-001"
+
+  local envelope
+  envelope="$(_bash_event 'git add .factory')"
+  _run_dispatcher "$envelope"
+
+  [ "$status" -eq 2 ] || {
+    echo "FAIL: F-P1-001 / BC-4.16.001 Invariant 4 v1.3: 'git add .factory' on maintenance/*"
+    echo "  must exit 2. Got $status."
+    false
+  }
+}
+
+@test "T-019 S-21.01 F-P1-001 AC-002: guard passes git add .factory on factory-artifacts (PC3)" {
+  _require_artifacts
+  _write_guard_registry
+  _init_git_repo_on_branch "factory-artifacts"
+
+  local envelope
+  envelope="$(_bash_event 'git add .factory')"
+  _run_dispatcher "$envelope"
+
+  [ "$status" -eq 0 ] || {
+    echo "FAIL: F-P1-001 / BC-4.16.001 PC3: 'git add .factory' on factory-artifacts must"
+    echo "  return exit 0 (Continue). factory-artifacts staging is legitimate. Got $status."
+    false
+  }
+}
+
+@test "T-020 S-21.01 F-P1-001 AC-001: guard blocks git add ./ (CWD-relative explicit slash) on develop" {
+  _require_artifacts
+  _write_guard_registry
+  _init_git_repo_on_branch "develop"
+
+  local envelope
+  envelope="$(_bash_event 'git add ./')"
+  _run_dispatcher "$envelope"
+
+  [ "$status" -eq 2 ] || {
+    echo "FAIL: F-P1-001 / BC-4.16.001 Invariant 4 v1.3: 'git add ./' on develop must exit 2."
+    echo "  './' is CWD-relative with explicit slash — semantically identical to '.' for staging."
+    echo "  Current impl matches '.' exactly but not './'. Got $status."
+    false
+  }
+}
+
+@test "T-021 S-21.01 F-P1-001 AC-001: guard blocks git add :/ (pathspec-magic root) on develop" {
+  _require_artifacts
+  _write_guard_registry
+  _init_git_repo_on_branch "develop"
+
+  local envelope
+  envelope="$(_bash_event 'git add :/')"
+  _run_dispatcher "$envelope"
+
+  [ "$status" -eq 2 ] || {
+    echo "FAIL: F-P1-001 / BC-4.16.001 Invariant 4 v1.3: 'git add :/' on develop must exit 2."
+    echo "  ':/' pathspec-magic anchors from repo root; can include .factory/ paths. Got $status."
+    false
+  }
+}
+
+@test "T-022 S-21.01 F-P1-001 AC-001: guard blocks git add ':/.factory' (pathspec-magic .factory) on develop" {
+  _require_artifacts
+  _write_guard_registry
+  _init_git_repo_on_branch "develop"
+
+  local envelope
+  envelope="$(_bash_event "git add ':/.factory'")"
+  _run_dispatcher "$envelope"
+
+  [ "$status" -eq 2 ] || {
+    echo "FAIL: F-P1-001 / BC-4.16.001 Invariant 4 v1.3: \"git add ':/.factory'\" on develop"
+    echo "  must exit 2. ':/.factory' pathspec-magic names .factory path directly. Got $status."
+    false
+  }
+}
+
+# ---------------------------------------------------------------------------
+# F-P1-002: BC-4.16.001 Precondition 2 v1.3 — git stage + whitespace variants
+# WASM tests: skip if artifacts not built.
+# RED gate: current implementation misses git stage and whitespace variants.
+# ---------------------------------------------------------------------------
+
+@test "T-023 S-21.01 F-P1-002 AC-001: guard blocks git stage .factory/STATE.md on develop" {
+  _require_artifacts
+  _write_guard_registry
+  _init_git_repo_on_branch "develop"
+
+  local envelope
+  envelope="$(_bash_event 'git stage .factory/STATE.md')"
+  _run_dispatcher "$envelope"
+
+  [ "$status" -eq 2 ] || {
+    echo "FAIL: F-P1-002 / BC-4.16.001 Precondition 2 v1.3: 'git stage .factory/STATE.md'"
+    echo "  on develop must exit 2. 'git stage' is a true git synonym for 'git add'"
+    echo "  (ADR-031 §Decision 2 Layer-1) — same dual-tracking vector. Got $status."
+    echo "  Stderr: $(cat "$STDERR_FILE" 2>/dev/null)"
+    false
+  }
+}
+
+@test "T-024 S-21.01 F-P1-002 AC-001: guard blocks git stage .factory/STATE.md on main" {
+  _require_artifacts
+  _write_guard_registry
+  _init_git_repo_on_branch "main"
+
+  local envelope
+  envelope="$(_bash_event 'git stage .factory/STATE.md')"
+  _run_dispatcher "$envelope"
+
+  [ "$status" -eq 2 ] || {
+    echo "FAIL: F-P1-002 / BC-4.16.001 Precondition 2 v1.3: 'git stage' on main must exit 2."
+    echo "  Got $status."
+    false
+  }
+}
+
+@test "T-025 S-21.01 F-P1-002 AC-001: guard blocks git stage on feature/* branch" {
+  _require_artifacts
+  _write_guard_registry
+  _init_git_repo_on_branch "feature/S-21.01"
+
+  local envelope
+  envelope="$(_bash_event 'git stage .factory/STATE.md')"
+  _run_dispatcher "$envelope"
+
+  [ "$status" -eq 2 ] || {
+    echo "FAIL: F-P1-002 / BC-4.16.001 Precondition 2 v1.3: 'git stage' on feature/* must"
+    echo "  exit 2. Got $status."
+    false
+  }
+}
+
+@test "T-026 S-21.01 F-P1-002 AC-001: guard blocks git stage on release/* branch" {
+  _require_artifacts
+  _write_guard_registry
+  _init_git_repo_on_branch "release/v1.0.0-rc.24"
+
+  local envelope
+  envelope="$(_bash_event 'git stage .factory/STATE.md')"
+  _run_dispatcher "$envelope"
+
+  [ "$status" -eq 2 ] || {
+    echo "FAIL: F-P1-002 / BC-4.16.001 Precondition 2 v1.3: 'git stage' on release/* must"
+    echo "  exit 2. Got $status."
+    false
+  }
+}
+
+@test "T-027 S-21.01 F-P1-002 AC-001: guard blocks git stage on maintenance/* branch" {
+  _require_artifacts
+  _write_guard_registry
+  _init_git_repo_on_branch "maintenance/hotfix-001"
+
+  local envelope
+  envelope="$(_bash_event 'git stage .factory/STATE.md')"
+  _run_dispatcher "$envelope"
+
+  [ "$status" -eq 2 ] || {
+    echo "FAIL: F-P1-002 / BC-4.16.001 Precondition 2 v1.3: 'git stage' on maintenance/*"
+    echo "  must exit 2. Got $status."
     false
   }
 }
