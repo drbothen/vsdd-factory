@@ -1812,3 +1812,217 @@ fn test_fp2_003_bc4_16_001_negative_capitalized_factory_passes_on_factory_artifa
         );
     }
 }
+
+// ---------------------------------------------------------------------------
+// F-P3-001 [LOW]: BC-4.16.001 v1.4 Precondition 2 + Invariant 4 —
+// quoted-subcommand bypass.
+//
+// `is_git_add_command` strips trailing `;`, `&`, `|` metacharacters from the
+// subcommand token via `trim_end_matches([';', '&', '|'])` but does NOT strip
+// surrounding single or double quotes. This is inconsistent with
+// `is_factory_arg_token`, which calls
+// `token.trim_matches(|c| c == '\'' || c == '"')` on path-arg tokens before
+// any comparison.
+//
+// Affected bypass forms:
+//   git "add" .factory/STATE.md  — `"add"` fails eq_ignore_ascii_case("add")
+//   git 'stage' .factory/y       — `'stage'` fails eq_ignore_ascii_case("stage")
+//   git status && git "add" .factory/f — chained + quoted: both conditions apply
+//
+// BC traces:
+//   BC-4.16.001 v1.4 Precondition 2: detect `git (add|stage)` in any textual
+//     form appearing anywhere in the payload, including quoted subcommands.
+//   BC-4.16.001 Invariant 4: conservative-on-ambiguity — any form that plausibly
+//     stages .factory/ content must be blocked.
+// ---------------------------------------------------------------------------
+
+// -- is_git_add_command unit tests for quoted-subcommand forms (RED) --
+
+#[test]
+fn test_fp3_001_is_git_add_command_detects_double_quoted_add() {
+    // BC-4.16.001 v1.4 Precondition 2: `git "add" x` MUST be detected as a git add command.
+    // Failure mode: `is_git_add_command` strips trailing `;`,`&`,`|` from the subcommand token
+    // but NOT surrounding quotes. The token `"add"` (5 chars, with literal double-quote
+    // characters) fails the eq_ignore_ascii_case("add") comparison — returns false (BYPASS).
+    // Fix: strip surrounding single/double quotes from the subcommand token before comparison,
+    // consistent with is_factory_arg_token which calls trim_matches(|c| c == '\'' || c == '"').
+    assert!(
+        is_git_add_command("git \"add\" x"),
+        "F-P3-001 / BC-4.16.001 v1.4 Precondition 2: 'git \"add\" x' MUST be detected as \
+         a git add command. is_git_add_command strips trailing ';','&','|' metacharacters \
+         from the subcommand token but NOT surrounding quotes — '\"add\"' (5-char token \
+         with literal double-quote characters) fails eq_ignore_ascii_case(\"add\"). \
+         Fix: add trim_matches quote-stripping to the subcommand token, consistent with \
+         is_factory_arg_token."
+    );
+}
+
+#[test]
+fn test_fp3_001_is_git_add_command_detects_single_quoted_stage() {
+    // BC-4.16.001 v1.4 Precondition 2: `git 'stage' y` MUST be detected as a git stage command.
+    // The single-quoted token `'stage'` (7 chars, with literal single-quote characters)
+    // fails eq_ignore_ascii_case("stage") — is_git_add_command returns false (BYPASS).
+    assert!(
+        is_git_add_command("git 'stage' y"),
+        "F-P3-001 / BC-4.16.001 v1.4 Precondition 2: \"git 'stage' y\" MUST be detected as \
+         a git stage command. The single-quoted subcommand token \"'stage'\" (7-char token \
+         with literal single-quote characters) fails eq_ignore_ascii_case(\"stage\") because \
+         surrounding quotes are not stripped before comparison. Currently returns false \
+         (BYPASS). Fix: strip surrounding quotes from the subcommand token."
+    );
+}
+
+#[test]
+fn test_fp3_001_is_git_add_command_detects_chained_and_double_quoted_add() {
+    // BC-4.16.001 v1.4 Precondition 2: chained form with quoted subcommand MUST be detected.
+    // The outer loop (F-P2-001 fix, already present) correctly advances past `git status` and
+    // finds the second `git`. The inner loop then hits `"add"` (double-quoted), which fails
+    // eq_ignore_ascii_case("add") because surrounding quotes are not stripped — returns false.
+    // This test requires both the F-P2-001 outer-loop fix (already present in this worktree)
+    // AND the F-P3-001 quote-strip fix to pass.
+    assert!(
+        is_git_add_command("git status && git \"add\" .factory/f"),
+        "F-P3-001 / BC-4.16.001 v1.4 Precondition 2: \
+         'git status && git \"add\" .factory/f' MUST be detected as containing a git add \
+         command. The outer loop advances past 'git status' (F-P2-001 fix); the inner loop \
+         then encounters '\"add\"' (double-quoted subcommand token) which fails \
+         eq_ignore_ascii_case(\"add\") because surrounding quotes are not stripped. \
+         Currently returns false (BYPASS). Fix: strip surrounding quotes from the \
+         subcommand token before comparison."
+    );
+}
+
+// -- Integration RED tests via hook_logic --
+
+#[test]
+fn test_fp3_001_bc4_16_001_blocks_double_quoted_add_factory_on_develop() {
+    // F-P3-001 [LOW]: `git "add" .factory/STATE.md` on develop MUST block.
+    // Current path: is_git_add_command returns false (quoted subcommand) → PC4 → Continue
+    // (BYPASS). After fix: is_git_add_command returns true; contains_factory_path_arg fast-path
+    // finds ".factory/" → true → PC1 → Block.
+    let result = run_hook_with_branch("git \"add\" .factory/STATE.md", "develop");
+    assert!(
+        result.is_ok(),
+        "F-P3-001: hook_logic panicked for 'git \"add\" .factory/STATE.md' on develop. \
+         Must return HookResult, not panic."
+    );
+    if let Ok(hook_result) = result {
+        assert_eq!(
+            hook_result.exit_code(),
+            2,
+            "F-P3-001 [LOW] / BC-4.16.001 v1.4 Precondition 2 + Invariant 4: \
+             'git \"add\" .factory/STATE.md' on develop MUST exit 2 (block_intent=true). \
+             The double-quoted subcommand '\"add\"' bypasses is_git_add_command — the token \
+             '\"add\"' fails eq_ignore_ascii_case(\"add\") because surrounding quotes are \
+             not stripped before comparison. Currently BYPASSES via PC4 (Continue instead \
+             of Block)."
+        );
+        match &hook_result {
+            HookResult::Block { reason } => {
+                assert!(
+                    reason.contains("FactoryPathOnProductBranch"),
+                    "F-P3-001: block reason must contain 'FactoryPathOnProductBranch'. \
+                     Got: '{}'",
+                    reason
+                );
+            }
+            other => panic!(
+                "F-P3-001: expected HookResult::Block for 'git \"add\" .factory/STATE.md' \
+                 on develop, got {:?}",
+                other
+            ),
+        }
+    }
+}
+
+#[test]
+fn test_fp3_001_bc4_16_001_blocks_single_quoted_stage_factory_on_main() {
+    // F-P3-001 [LOW]: `git 'stage' .factory/x` on main MUST block.
+    // is_git_add_command returns false for "'stage'" subcommand → PC4 → Continue (BYPASS).
+    // After fix: is_git_add_command returns true; contains_factory_path_arg finds ".factory/"
+    // → true → PC1 → Block.
+    let result = run_hook_with_branch("git 'stage' .factory/x", "main");
+    assert!(
+        result.is_ok(),
+        "F-P3-001: hook_logic panicked for \"git 'stage' .factory/x\" on main. \
+         Must return HookResult, not panic."
+    );
+    if let Ok(hook_result) = result {
+        assert_eq!(
+            hook_result.exit_code(),
+            2,
+            "F-P3-001 [LOW] / BC-4.16.001 v1.4 Precondition 2 + Invariant 4: \
+             \"git 'stage' .factory/x\" on main MUST exit 2 (block_intent=true). \
+             The single-quoted subcommand \"'stage'\" bypasses is_git_add_command because \
+             surrounding quotes are not stripped before eq_ignore_ascii_case comparison. \
+             Currently BYPASSES via PC4 (Continue instead of Block)."
+        );
+        match &hook_result {
+            HookResult::Block { reason } => {
+                assert!(
+                    reason.contains("FactoryPathOnProductBranch"),
+                    "F-P3-001: block reason must contain 'FactoryPathOnProductBranch'. \
+                     Got: '{}'",
+                    reason
+                );
+            }
+            other => panic!(
+                "F-P3-001: expected HookResult::Block for \"git 'stage' .factory/x\" \
+                 on main, got {:?}",
+                other
+            ),
+        }
+    }
+}
+
+// -- Negative GREEN pins --
+
+#[test]
+fn test_fp3_001_bc4_16_001_negative_double_quoted_add_non_factory_continues() {
+    // BC-4.16.001 PC2: `git "add" src/lib.rs` on develop MUST return Continue.
+    // Before fix: is_git_add_command false (quoted subcommand) → PC4 → Continue.
+    // After fix: is_git_add_command true; contains_factory_path_arg false (src/lib.rs is not
+    //   a .factory/ path) → PC2 → Continue.
+    // Either way the result is Continue — regression guard against over-blocking.
+    let result = run_hook_with_branch("git \"add\" src/lib.rs", "develop");
+    assert!(
+        result.is_ok(),
+        "F-P3-001 negative: hook_logic panicked for 'git \"add\" src/lib.rs' on develop."
+    );
+    if let Ok(hook_result) = result {
+        assert_eq!(
+            hook_result,
+            HookResult::Continue,
+            "F-P3-001 negative / BC-4.16.001 PC2: 'git \"add\" src/lib.rs' on develop MUST \
+             return Continue. A double-quoted subcommand with a non-.factory/ path argument \
+             has no dual-tracking risk and MUST NOT be blocked. Got: {:?}.",
+            hook_result
+        );
+    }
+}
+
+#[test]
+fn test_fp3_001_bc4_16_001_negative_double_quoted_add_factory_on_factory_artifacts_continues() {
+    // BC-4.16.001 PC3: `git "add" .factory/STATE.md` on factory-artifacts MUST return Continue.
+    // Before fix: is_git_add_command false → PC4 → Continue.
+    // After fix: is_git_add_command true; branch=factory-artifacts → is_product_branch false
+    //   → PC3 → Continue.
+    // Either way the result is Continue — pin against over-blocking the factory-artifacts branch.
+    let result = run_hook_with_branch("git \"add\" .factory/STATE.md", "factory-artifacts");
+    assert!(
+        result.is_ok(),
+        "F-P3-001 negative: hook_logic panicked for 'git \"add\" .factory/STATE.md' on \
+         factory-artifacts."
+    );
+    if let Ok(hook_result) = result {
+        assert_eq!(
+            hook_result,
+            HookResult::Continue,
+            "F-P3-001 negative / BC-4.16.001 PC3: 'git \"add\" .factory/STATE.md' on \
+             factory-artifacts MUST return Continue. PC3 is unconditional — factory artifact \
+             commits legitimately stage .factory/ paths on the factory-artifacts branch. \
+             Got: {:?}.",
+            hook_result
+        );
+    }
+}
