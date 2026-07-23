@@ -933,7 +933,8 @@ env_allow = ["PATH", "HOME", "TMPDIR", "CLAUDE_PROJECT_DIR", "CLAUDE_PLUGIN_ROOT
 # Fail-open (on_error=continue): a crashed guard never wedges the session; Layer-2
 # (per-story-delivery.md §Main-Checkout Sync Protocol) provides defense-in-depth.
 # ADR-031 §Decision 2+3; BC-4.16.001; POLICY 21 compliance: native WASM, no .sh file.
-# Priority 140 — fires after verify-factory-lock (142) and before validate-artifact-path (150).
+# Priority 140 — fires BEFORE verify-factory-lock (142) and before validate-artifact-path (150).
+# Dispatcher sorts ascending: lower priority number fires first (140 < 142 < 150).
 
 [[hooks]]
 name = "validate-factory-path-staging"
