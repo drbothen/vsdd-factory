@@ -417,10 +417,15 @@ fn extract_core_worktree_value(kv: &str) -> Option<&str> {
     }
 }
 
-/// Returns the factory-class target path (unquoted) if the first `git add`/
-/// `git stage` command in `payload` contains a `-C <target>` option where
-/// `<target>` names a `.factory`-class directory, OR a
+/// Returns the factory-class target path (unquoted) from the first `git add`/
+/// `git stage` segment in `payload` that contains a `-C <target>` option
+/// where `<target>` names a `.factory`-class directory, OR a
 /// `-c core.worktree=<target>` option where `<target>` is factory-class.
+///
+/// Scans ALL chained segments (`&&`, `;`, `|`) mirroring the sibling
+/// `is_git_add_command` / `contains_factory_path_arg` walkers: when a
+/// `git add`/`git stage` segment has no factory-class target the scan
+/// continues to the next segment rather than returning `None` immediately.
 ///
 /// Uses the same tokenization rules as `is_git_add_command` (F-P4-001 /
 /// F-P4-002): leading shell punctuation stripped from `git` candidates;
@@ -429,8 +434,8 @@ fn extract_core_worktree_value(kv: &str) -> Option<&str> {
 /// Returns `None` when:
 /// - No `git add`/`git stage` command is found (should not happen since
 ///   `is_git_add_command` is checked first).
-/// - The command contains no `-C` or `-c core.worktree=` targeting a
-///   `.factory`-class path.
+/// - No `git add`/`git stage` segment across ALL chained commands contains
+///   a `-C` or `-c core.worktree=` targeting a `.factory`-class path.
 ///
 /// # BC trace
 /// BC-4.16.001 v1.6 Invariant 6: target-aware branch detection (F-P5-001).
@@ -500,11 +505,16 @@ fn find_factory_class_target(payload: &str) -> Option<String> {
                 // First non-option, non-consumed token is the subcommand.
                 let core = t.trim_end_matches([';', '&', '|']);
                 let core = core.trim_matches(|c: char| c == '\'' || c == '"');
-                if core.eq_ignore_ascii_case("add") || core.eq_ignore_ascii_case("stage") {
-                    // Found the git add/stage subcommand — return any factory target accumulated.
+                // When add/stage is found AND this segment has a factory-class target,
+                // return it. Otherwise (not add/stage, or add/stage with no factory-class
+                // target) advance and scan subsequent chained segments — mirrors the
+                // sibling continue-'outer pattern in is_git_add_command /
+                // contains_factory_path_arg (F-P6-001 fix).
+                if (core.eq_ignore_ascii_case("add") || core.eq_ignore_ascii_case("stage"))
+                    && factory_target.is_some()
+                {
                     return factory_target;
                 }
-                // Not add/stage: different git subcommand; resume outer scan from here.
                 i = j + 1;
                 continue 'outer;
             }

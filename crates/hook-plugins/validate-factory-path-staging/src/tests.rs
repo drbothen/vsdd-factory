@@ -3202,10 +3202,7 @@ fn test_fp6_001_bc4_16_001_semicolon_chained_add_then_dash_c_dot_slash_factory_s
     // After fix: scans all segments; second 'git' at i=3 has '-C ./.factory'
     // (./.factory IS .factory-class per is_factory_class_target) → target branch
     // "develop" (product) → BLOCK.
-    let result = run_hook_with_branch(
-        "git add a.txt; git -C ./.factory stage b",
-        "develop",
-    );
+    let result = run_hook_with_branch("git add a.txt; git -C ./.factory stage b", "develop");
     assert!(
         result.is_ok(),
         "F-P6-001 RED-3 / BC-4.16.001 Invariant 6: hook_logic panicked for \
@@ -3294,10 +3291,7 @@ fn test_fp6_001_bc4_16_001_chained_non_factory_c_target_continues_on_develop() {
     // → is_factory_class_target("src") = false → factory_target stays None → returns None
     // → CWD-based detection → "develop" → product branch
     // → contains_factory_path_arg: "a.txt", "b.txt" not factory paths → PC2 → Continue.
-    let result = run_hook_with_branch(
-        "git add a.txt && git -C src add b.txt",
-        "develop",
-    );
+    let result = run_hook_with_branch("git add a.txt && git -C src add b.txt", "develop");
     assert!(
         result.is_ok(),
         "F-P6-001 GREEN-5 / BC-4.16.001 Invariant 6: hook_logic panicked for \
