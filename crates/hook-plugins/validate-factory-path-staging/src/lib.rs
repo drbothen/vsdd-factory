@@ -48,8 +48,10 @@ pub const HOST_ABI_VERSION: u32 = 1;
 ///   `git -c key=val add`, etc.
 /// - `-C` and `-c` consume one following value token; all other `-*` flags do not.
 /// - Subcommand tokens may have trailing shell metacharacters glued to them (e.g.
-///   `"diff;"` in `git diff; git add`); the core word is extracted by stripping
-///   trailing `;`, `&`, `|` before the case-insensitive comparison.
+///   `"diff;"` in `git diff; git add`) or surrounding single/double quotes (e.g.
+///   `"add"` or `'stage'`); the core word is extracted by stripping trailing
+///   `;`, `&`, `|` then surrounding `'`/`"` before the case-insensitive comparison.
+///   Consistent with `is_factory_arg_token`'s `trim_matches(|c| c == '\'' || c == '"')`.
 /// - No regex dependency — hand-rolled tokenizer consistent with sibling validator crates
 ///   (WASM fuel budget constraint).
 ///
@@ -75,8 +77,11 @@ pub fn is_git_add_command(payload: &str) -> bool {
                     }
                 } else {
                     // First non-option token is the subcommand. Strip trailing shell
-                    // metacharacters that may be glued to the subcommand word (e.g. "diff;").
+                    // metacharacters that may be glued to the subcommand word (e.g. "diff;"),
+                    // then strip surrounding single/double quotes (e.g. `"add"`, `'stage'`).
+                    // Quote-strip mirrors is_factory_arg_token for internal consistency.
                     let core = t.trim_end_matches([';', '&', '|']);
+                    let core = core.trim_matches(|c| c == '\'' || c == '"');
                     if core.eq_ignore_ascii_case("add") || core.eq_ignore_ascii_case("stage") {
                         return true;
                     }
@@ -147,8 +152,10 @@ pub fn contains_factory_path_arg(payload: &str) -> bool {
                         j += 1;
                     }
                 } else {
-                    // First non-option token is the subcommand.
+                    // First non-option token is the subcommand. Strip trailing metacharacters
+                    // then surrounding quotes — consistent with is_git_add_command.
                     let subcore = t.trim_end_matches([';', '&', '|']);
+                    let subcore = subcore.trim_matches(|c| c == '\'' || c == '"');
                     if !subcore.eq_ignore_ascii_case("add")
                         && !subcore.eq_ignore_ascii_case("stage")
                     {
