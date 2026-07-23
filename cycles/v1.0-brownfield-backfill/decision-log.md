@@ -10925,4 +10925,16 @@ D-883-S-21-01-CASCADE-CONVERGED-3-CLEAN-2026-07-23
 
 2026-07-23
 
+## D-884
+
+S-21-01-DELIVERED-2026-07-23. POLICY 16 GLOBAL-MAX GATE: `grep -n "^## D-" decision-log.md | tail -3` → `10892:## D-881 / 10904:## D-882 / 10916:## D-883`; D-883 confirmed prior max → D-884 allocated. S-21.01 STORY-CLOSE BURST — PR #759 squash-merged to develop `7bb0e797` (human-authorized merge gate 2026-07-23; CI 12/12 green; pr-reviewer 2-round convergence CLEAN at 99533daf; security review APPROVE-WITH-RECOMMENDATIONS, SEC-003/004 fixed in scope). (1) DELIVERY RECORD: PR #759 (26 commits, head 99533daf), merge SHA 7bb0e797, CI 12/12 green, review convergence 2-round CLEAN, security APPROVE (SEC-001 MEDIUM accepted residual: attacker-controlled Invariant-6 path bypass yields only harmless self-staging, threat-model preserved; SEC-003/004 fixed in scope), demo evidence 9/9 ACs real-dispatcher captures (17b86e05 feature branch), cascade CONVERGED 3-CLEAN (D-883). (2) POL-14 AUTO-PROMOTION AT MERGE: BC-4.16.001 v1.7→v1.8 (lifecycle_status draft→active; S-21.01 PR #759 merge 7bb0e797 2026-07-23); BC-5.43.001 v1.3→v1.4 (lifecycle_status draft→active; input-hash 9d171fe→3327994 per BC-4.16.001 input change; rc.24 dual-binary divergence advisory: cached rc.23 hook computes ac5cf72 vs dev-binary 3327994 — known open issue). BC-INDEX v4.19→v4.20. (3) STORY-INDEX v4.235→v4.236: S-21.01 row status ready→completed; PR #759/7bb0e797/2026-07-23; merged_count 107→108. (4) sprint-state.yaml: S-21.01 status ready→completed; story_updates entry added. (5) adversary-convergence-state.json: next_action updated to DELIVERED. (6) FOLLOW-UP REQUIRED (S-7.02): cargo-audit found 4 pre-existing workspace vulns (wasmtime-wasi 44.0.1: RUSTSEC-2026-0149 HIGH + RUSTSEC-2026-0188 MED + RUSTSEC-2026-0182 LOW; crossbeam-epoch RUSTSEC-2026-0204) predating branch fork — OPEN drift item "wasmtime upgrade story required, pending human triage" (no human deferral direction yet; not added to tech-debt-register per Canonical Principle Rule 3). (7) PROCESS-GAP LESSON: subagent final-report loss pattern (4 agents this session went idle without delivering reports; recovered via explicit re-request) — codified in lessons.md L-BB-subagent-final-report-loss. (8) STATE.md frontmatter-minimal advance per D-417(b) + rc.24 Strategy Constraint: phase + current_step only. 4-INDEX: BC-INDEX v4.20 / VP-INDEX v2.72 / STORY-INDEX v4.236 / ARCH-INDEX v3.26. develop HEAD `7bb0e797`; main `80e5cd7b` UNCHANGED; factory-artifacts parent-commit `105591c2`.
+
+### Phase
+
+D-884-S-21-01-DELIVERED-2026-07-23
+
+### Date
+
+2026-07-23
+
 2026-07-22

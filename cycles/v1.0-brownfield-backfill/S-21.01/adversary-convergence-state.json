@@ -156,5 +156,5 @@
       "resolution": "adversary-classified NITPICK; not a behavioral defect; accepted residual per Invariant 6"
     }
   ],
-  "next_action": "CONVERGED — demo evidence recorded (17b86e05 on feature branch, docs/demo-evidence/S-21.01/, 9/9 ACs real-dispatcher captures); branch pushed to origin (25 commits, head 17b86e05); pr-manager PR creation in progress; merge held for human gate"
+  "next_action": "DELIVERED — PR #759 squash-merged 7bb0e797 2026-07-23; POL-14 promotion complete (BC-4.16.001 v1.8 active, BC-5.43.001 v1.4 active); D-884 story-close burst committed; W1 next = S-21.02 dispatch"
 }

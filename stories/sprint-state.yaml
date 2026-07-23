@@ -260,7 +260,7 @@ stories:
   - id: S-15.03
     status: draft
   - id: S-21.01
-    status: ready
+    status: completed
   - id: S-21.02
     status: ready
   - id: S-21.03
@@ -560,6 +560,13 @@ story_updates:
     pr: 91
     merge_sha: 5706f27
     note: "8 adversarial passes (5 fix bursts + 3 consecutive clean); PR #91 squash-merged at 5706f27"
+
+  S-21.01:
+    status: completed
+    pr: 759
+    merge_sha: 7bb0e797
+    merged_at: 2026-07-23
+    note: "validate-factory-path-staging WASM guard + orchestrator merge pre-check (E-21 W1). 133+5 tests green, clippy/fmt clean. 12-pass cascade CONVERGED 3-CLEAN (D-883). security APPROVE (SEC-003/004 fixed in scope; SEC-001 MEDIUM accepted residual). 9/9 ACs demo evidence. PR #759 squash-merged 7bb0e797 2026-07-23. merged_count 107→108. BC-4.16.001 v1.8 + BC-5.43.001 v1.4 POL-14 active. D-884."
 
   S-13.01:
     status: completed

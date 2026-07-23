@@ -7252,3 +7252,21 @@ Both gates are mandatory standing Commit-E controls for any burst touching E-19 
 **Cites:** D-880 (codified this burst); L-EDP1-069 `cycles/v1.0-feature-engine-discipline-pass-1/lessons.md` (parent entry); D-877 (prior 4 instances); stabilization-story deferral — human triage required.
 
 **Closes:** D-880 PR-REREVIEV-ARC-CLOSE-2026-07-23 (2026-07-23). `[process-gap; ci-flake; bats; git-exit-128; read-race; mktemp-collision; concurrency; L-EDP1-069; D-880; codified]`
+
+---
+
+### L-BB-subagent-final-report-loss [process-gap] [codified D-884]
+
+**Title:** Subagent Final-Report Loss Pattern — 4 Agents Went Idle Without Delivering Reports; Recovered Via Explicit Re-Request
+
+**Lesson:** During the S-21.01 delivery session, 4 specialist subagents (adversary passes, demo-recorder, pr-reviewer, security-reviewer) completed their work but went idle without delivering their final reports to the orchestrator. In each case the orchestrator had to explicitly re-request the report before the agent delivered it. The pattern: the agent finishes its internal work (runs tests, writes files, produces findings) and then either awaits a prompt or silently terminates without sending the result back through the expected channel. This caused repeated orchestrator pauses and increased session token burn. Recovery via explicit re-request worked in all 4 cases but required the orchestrator to detect the silence and intervene.
+
+**Root cause:** Agent prompts do not currently mandate an explicit "deliver your findings as your final message" step at the end of the agent's workflow. Agents that write their output to files may consider the task done without realizing the orchestrator needs a text-channel summary. The orchestrator's own dispatch prompts also do not include a "if the agent does not respond within N minutes, re-request its report" protocol.
+
+**Prevention:** (1) All specialist agent prompts should include an explicit final step: "After completing your work, send your summary/findings as a final text message to the orchestrator." (2) Orchestrator dispatch prompts should include a re-request protocol: "If the subagent does not deliver a report within its expected window, explicitly ask for the report." (3) For agents that write to files as their primary output (demo-recorder, security-reviewer), the dispatch should also name the expected file path so the orchestrator can verify delivery independently.
+
+**Anchors:** S-21.01 session (2026-07-23); 4 idle-agent instances: adv pass reviewer, demo-recorder, pr-reviewer, security-reviewer; orchestrator re-request pattern; D-884 (this burst).
+
+**Cites:** D-884 (codified this burst); S-21.01 session 2026-07-23; orchestrator/per-story-delivery.md (enforcement host for agent dispatch protocols).
+
+**Closes:** D-884 S-21-01-DELIVERED-2026-07-23 (2026-07-23). `[process-gap; subagent; final-report; idle-agent; orchestrator; re-request; agent-prompt; D-884; codified]`

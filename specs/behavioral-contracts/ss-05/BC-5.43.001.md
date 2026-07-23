@@ -1,7 +1,7 @@
 ---
 document_type: behavioral-contract
 level: L3
-version: "1.3"
+version: "1.4"
 status: draft
 producer: product-owner
 timestamp: 2026-07-19T00:00:00Z
@@ -12,15 +12,16 @@ inputs:
   - plugins/vsdd-factory/skills/factory-health/SKILL.md
   - plugins/vsdd-factory/skills/deliver-story/steps/step-f-pr-lifecycle.md
   - .factory/specs/behavioral-contracts/ss-04/BC-4.16.001.md
-input-hash: "9d171fe"
+input-hash: "3327994"
 traces_to: .factory/specs/architecture/ARCH-INDEX.md
 origin: brownfield
 extracted_from: null
 subsystem: "SS-05"
 capability: "CAP-034"
-lifecycle_status: draft
+lifecycle_status: active
 introduced: v1.0-brownfield-backfill
 modified:
+  - "2026-07-23 (v1.4) — POL-14 auto-promotion at merge (state-manager; S-21.01 PR #759 squash-merged 7bb0e797 2026-07-23): lifecycle_status draft→active. input-hash 9d171fe→3327994 (BC-4.16.001.md input changed). BC-INDEX v4.19→v4.20."
   - "2026-07-19 (v1.1) — CAP-034 backfill (product-owner; ARCH-INDEX v3.07): capability frontmatter TBD→CAP-034; §Traceability L2 Capability TBD→CAP-034; Capability Anchor Justification updated to cite CAP-034/ARCH-INDEX v3.07."
   - "2026-07-19 (v1.2) — Research validation precision amendments (product-owner; research validation 2026-07-19): §Description expanded with loss-mode precision (silent delete only when on-disk content matches tracked blob; uncommitted divergence causes git abort — reframed as defense-in-depth for matching-content case); §Description + Invariant 5 added with pre-check semantics precision (HEAD..<target> = endpoint comparison, not merge preview; over-halts conservatively; git merge-tree cited as more precise alternative)."
   - "2026-07-19 (v1.3) — adv pass-2 fix burst (F-P2-001) per ADR-031 v1.3 revised ruling (product-owner): §Description guarded-surface corrected from named-agent list to ad-hoc orchestrator/operator Bash on main checkout; server-side origination threat vector paragraph added; protocol exclusions (pr-manager, devops-engineer §Inter-Wave Rebase, state-manager) documented; enforcement host = orchestrator/per-story-delivery.md §Main-Checkout Sync Protocol; ADR-031 §Decision 2 cite added. §Architecture Anchors: deliver-story/pr-manager/factory-health replaced with orchestrator/per-story-delivery.md. §Traceability: Architecture Module + ADR Reference corrected. Scope note updated."
@@ -32,7 +33,7 @@ removed: null
 removal_reason: null
 bc_id: BC-5.43.001
 section: "5.43"
-last_amended: "(v1.3) — adv pass-2 fix burst (F-P2-001) per ADR-031 v1.3 revised ruling: guarded-surface corrected to ad-hoc orchestrator/operator Bash on main checkout; server-side origination vector documented; enforcement host = orchestrator/per-story-delivery.md §Main-Checkout Sync Protocol; ADR-031 §Decision 2 cite added. [Prior: (v1.2) — Research validation precision amendments: §Description loss-mode precision + pre-check semantics note; Invariant 5 added. (v1.1) — CAP-034 backfill. (v1.0) — Initial authoring; orchestrator merge safety gate; INV-E21-001 safety-net layer. lifecycle_status: draft (POL-14).]"
+last_amended: "(v1.4) — POL-14 auto-promotion at merge (state-manager; S-21.01 PR #759 squash-merged 7bb0e797 2026-07-23): lifecycle_status draft→active. input-hash 9d171fe→3327994 (BC-4.16.001.md input changed). BC-INDEX v4.19→v4.20. [Prior: (v1.3) — adv pass-2 fix burst (F-P2-001) per ADR-031 v1.3 revised ruling: guarded-surface corrected to ad-hoc orchestrator/operator Bash on main checkout; server-side origination vector documented; enforcement host = orchestrator/per-story-delivery.md §Main-Checkout Sync Protocol; ADR-031 §Decision 2 cite added. [Prior: (v1.2) — Research validation precision amendments: §Description loss-mode precision + pre-check semantics note; Invariant 5 added. (v1.1) — CAP-034 backfill. (v1.0) — Initial authoring; orchestrator merge safety gate; INV-E21-001 safety-net layer. lifecycle_status: draft (POL-14).]]"
 ---
 
 # BC-5.43.001: orchestrator MUST run a `.factory/` path-intersection pre-check before executing any `git merge`, `git pull`, or `git checkout` on the product branch, and MUST STOP if the target tree diff contains a `.factory/` path deletion
@@ -265,6 +266,7 @@ TBD — VP IDs to be assigned after VP authoring pass.
 
 | Version | Date | Description |
 |---------|------|-------------|
+| 1.4 | 2026-07-23 | POL-14 auto-promotion at merge (state-manager; S-21.01 PR #759 squash-merged 7bb0e797 2026-07-23). lifecycle_status draft→active. BC-INDEX v4.19→v4.20. |
 | 1.3 | 2026-07-19 | adv pass-2 fix burst (F-P2-001) per ADR-031 v1.3 revised ruling (product-owner). §Description: guarded surface corrected from named-agent list (devops-engineer, pr-manager, state-manager) to ad-hoc orchestrator/operator Bash on main product checkout; protocol exclusions documented (pr-manager server-side `gh pr merge` excluded by PC3; devops-engineer §Inter-Wave Rebase on story worktree — `.factory/` not mounted; state-manager `git -C .factory` only); enforcement host = `orchestrator/per-story-delivery.md` §Main-Checkout Sync Protocol (S-21.01 Layer-2 deliverable per ADR-031 §Decision 2). Server-side origination threat vector paragraph added (contributor PR → server-side merge → `git pull` delivers tracked `.factory/` content; Layer-2 is primary guard). Scope note updated. §Architecture Anchors: deliver-story/pr-manager/factory-health anchors replaced with `orchestrator/per-story-delivery.md`. §Traceability: Architecture Module corrected; ADR Reference `none`→`ADR-031 §Decision 2`. |
 | 1.2 | 2026-07-19 | Research validation precision amendments (product-owner; research validation 2026-07-19). §Description: loss-mode precision added (silent delete only when on-disk content matches tracked blob; uncommitted divergence causes git abort — defense-in-depth for matching-content case explicitly stated). Invariant 5 added: pre-check semantics — `git diff --name-only HEAD..<target>` is endpoint comparison, not merge preview; conservatively over-halts (never misses); `git merge-tree` cited as precise alternative. |
 | 1.1 | 2026-07-19 | CAP-034 backfill (product-owner; ARCH-INDEX v3.07, ADR-031, commit 14a78515): capability frontmatter TBD→CAP-034; §Traceability L2 Capability TBD→CAP-034; Capability Anchor Justification updated to cite CAP-034/ARCH-INDEX v3.07; Description crate-name corrected (`validate-artifact-path`→`validate-factory-path-staging`, TD-VSDD-060 sibling-site sweep). |

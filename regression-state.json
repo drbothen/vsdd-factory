@@ -1,1 +1,1 @@
-{"status":"pass","timestamp":"2026-07-23T18:57:35Z","command":"cd /Users/zious/Documents/GITHUB/vsdd-factory/.worktrees/S-21.01 && cargo test -p validate-factory-path-staging 2>&1 | tee /tmp/s2101-cargo-tests.txt; echo \"EXIT: $?\""}
+{"status":"pass","timestamp":"2026-07-23T19:50:33Z","command":"cd /Users/zious/Documents/GITHUB/vsdd-factory/.worktrees/S-21.01 && cargo test -p validate-factory-path-staging --lib 2>&1 | grep -E \"test result|running [0-9]+ test\" | head"}
