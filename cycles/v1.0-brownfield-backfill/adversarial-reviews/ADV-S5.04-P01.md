@@ -13,7 +13,7 @@ inputs:
   - .factory/specs/behavioral-contracts/ss-04/BC-4.08.003.md
   - .factory/specs/verification-properties/VP-068.md
   - .factory/specs/verification-properties/VP-INDEX.md
-input-hash: "7cf482f"
+input-hash: "1756d1e"
 traces_to: ".factory/specs/prd.md"
 pass: 1
 previous_review: null

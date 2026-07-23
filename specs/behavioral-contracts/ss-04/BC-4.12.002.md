@@ -9,7 +9,7 @@ phase: 1a
 inputs:
   - .factory/cycles/v1.0-feature-engine-discipline-pass-1/F1-platform-amendment-delta-analysis.md
   - .factory/cycles/v1.0-feature-engine-discipline-pass-1/decision-log.md
-input-hash: "c710cf1"
+input-hash: "8c2bc22"
 traces_to: .factory/cycles/v1.0-feature-engine-discipline-pass-1/F1-platform-amendment-delta-analysis.md
 origin: greenfield
 extracted_from: null

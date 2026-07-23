@@ -11,7 +11,7 @@ inputs:
   - .factory/cycles/v1.0-brownfield-backfill/e-21-arch-delta-analysis.md
   - plugins/vsdd-factory/agents/pr-manager.md
   - plugins/vsdd-factory/skills/deliver-story/steps/step-f-pr-lifecycle.md
-input-hash: "6154794"
+input-hash: "62553fb"
 traces_to: .factory/specs/architecture/ARCH-INDEX.md
 origin: brownfield
 extracted_from: null

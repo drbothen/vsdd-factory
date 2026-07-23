@@ -7,7 +7,7 @@ cycle: brownfield-backfill
 pass: 2
 producer: adversary
 timestamp: 2026-05-28
-input-hash: "63fb686"
+input-hash: "aa5aa71"
 inputs:
   - .factory/specs/behavioral-contracts/ss-05/BC-5.39.009.md
   - .factory/stories/S-15.17-validate-trajectory-tail-cell-completeness.md

@@ -10,7 +10,7 @@ phase: F2
 inputs:
   - .factory/specs/architecture/decisions/ADR-029-dispatcher-git-context-payload-injection.md
   - .factory/feature-delta/issue-173/F1-delta-analysis.md
-input-hash: "b3c4f74"
+input-hash: "6ee7cb2"
 traces_to: .factory/specs/prd.md
 origin: greenfield
 extracted_from: null

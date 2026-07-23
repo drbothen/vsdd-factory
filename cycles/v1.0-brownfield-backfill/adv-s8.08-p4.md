@@ -13,7 +13,7 @@ inputs:
   - .factory/specs/behavioral-contracts/ss-07/BC-7.03.079.md
   - .factory/stories/S-8.03-native-port-track-agent-stop.md
   - crates/hook-sdk/src/result.rs
-input-hash: "ebce41a"
+input-hash: "4069b98"
 traces_to: prd.md
 pass: p4
 previous_review: adv-s8.08-p3.md

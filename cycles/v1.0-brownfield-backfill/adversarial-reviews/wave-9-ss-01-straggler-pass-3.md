@@ -25,7 +25,7 @@ inputs:
   - .factory/policies.yaml
   - .factory/cycles/v1.0-brownfield-backfill/adversarial-reviews/wave-9-ss-01-straggler-pass-1.md
   - .factory/cycles/v1.0-brownfield-backfill/adversarial-reviews/wave-9-ss-01-straggler-pass-2.md
-input-hash: "684294a"
+input-hash: "1e38399"
 traces_to: ".factory/specs/prd.md"
 cycle: v1.0-brownfield-backfill
 sub_cycle: wave-9-ss-01-straggler-re-anchor

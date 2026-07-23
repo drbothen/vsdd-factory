@@ -11,7 +11,7 @@ inputs:
   - .factory/cycles/v1.0-feature-plugin-async-semantics-pass-1/F1-delta-analysis.md
   - plugins/vsdd-factory/hooks-registry.toml
   - crates/factory-dispatcher/src/registry.rs
-input-hash: "5316859"
+input-hash: "d3df870"
 traces_to: .factory/specs/prd.md
 origin: greenfield
 extracted_from: null

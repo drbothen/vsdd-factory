@@ -10,7 +10,7 @@ inputs:
   - .factory/stories/S-8.09-native-port-regression-gate-adapter-retirement.md
   - .factory/stories/epics/E-8-native-wasm-migration.md
   - .factory/stories/STORY-INDEX.md
-input-hash: "3de97ea"
+input-hash: "559d179"
 traces_to: prd.md
 pass: 2
 previous_review: adv-s8.09-p1.md

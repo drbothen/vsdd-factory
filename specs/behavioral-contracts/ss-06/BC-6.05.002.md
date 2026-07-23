@@ -9,7 +9,7 @@ phase: 1.4b
 inputs:
   - .factory/phase-0-ingestion/pass-3-deep-skills-batch-1.md
   - .factory/specs/behavioral-contracts/bc-id-mapping.md
-input-hash: "9ec221c"
+input-hash: "52951ec"
 traces_to: .factory/specs/architecture/ARCH-INDEX.md
 origin: brownfield
 extracted_from: ".factory/phase-0-ingestion/pass-3-deep-skills-batch-1.md#L377"

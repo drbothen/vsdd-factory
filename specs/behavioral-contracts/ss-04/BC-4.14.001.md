@@ -10,7 +10,7 @@ phase: F2
 inputs:
   - .factory/feature-delta/issue-173/F1-delta-analysis.md
   - .factory/specs/architecture/decisions/ADR-026-wave-boundary-checkpoint-reset-and-lossless-intra-wave-compaction.md
-input-hash: "da1cc46"
+input-hash: "75dd681"
 traces_to: .factory/specs/prd.md
 origin: greenfield
 extracted_from: null

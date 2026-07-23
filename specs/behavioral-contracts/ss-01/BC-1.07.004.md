@@ -7,7 +7,7 @@ producer: product-owner
 timestamp: 2026-04-26T00:00:00Z
 phase: 1.4b
 inputs: [bc-id-mapping.md, pass-3-behavioral-contracts.md]
-input-hash: "127adec"
+input-hash: "607aaf3"
 traces_to: bc-id-mapping.md
 origin: brownfield
 extracted_from: ".factory/phase-0-ingestion/pass-3-behavioral-contracts.md:412"

@@ -24,7 +24,7 @@ inputs:
   - .factory/policies.yaml
   - .factory/cycles/v1.0-brownfield-backfill/adversarial-reviews/wave-7-ss-10-pass-5.md
   - .factory/cycles/v1.0-brownfield-backfill/adversarial-reviews/wave-7-ss-10-pass-4.md
-input-hash: "6c8e9ba"
+input-hash: "e9fb320"
 traces_to: ".factory/specs/prd.md"
 cycle: v1.0-brownfield-backfill
 sub_cycle: wave-7-ss-10-re-anchor

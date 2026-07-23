@@ -11,7 +11,7 @@ inputs:
   - .factory/cycles/v1.0-feature-plugin-async-semantics-pass-1/adversary-pass-1.md
   - plugins/vsdd-factory/hooks/hooks.json.template
   - .factory/specs/architecture/decisions/ADR-019-plugin-async-semantics-at-registry-layer.md
-input-hash: "ff87598"
+input-hash: "f71fb3a"
 traces_to: .factory/specs/prd.md
 origin: greenfield
 extracted_from: null

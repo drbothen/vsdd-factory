@@ -15,7 +15,7 @@ inputs:
   - .factory/cycles/v1.0-feature-engine-discipline-pass-1/decision-log.md
   - .github/workflows/ci.yml
   - plugins/vsdd-factory/tests/resolver-integration.bats
-input-hash: "1f567b9"
+input-hash: "48c8fc7"
 traces_to: prd.md
 project: vsdd-factory
 mode: feature

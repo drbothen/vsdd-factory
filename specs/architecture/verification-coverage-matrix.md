@@ -19,7 +19,7 @@ modified:
   - "2026-06-16 (v1.0 initial creation)"
 phase: 1b
 inputs: [verification-properties/VP-INDEX.md]
-input-hash: "87aae12"
+input-hash: "015260d"
 traces_to: VP-INDEX.md
 subsystems_affected:
   - SS-01

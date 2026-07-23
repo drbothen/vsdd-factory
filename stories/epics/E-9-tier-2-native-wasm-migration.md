@@ -25,7 +25,7 @@ inputs:
   - .factory/specs/architecture/SS-02-hook-sdk.md
   - .factory/stories/epics/E-8-native-wasm-migration.md
   - .factory/architecture/gap-analysis-w16-subprocess.md
-input-hash: "6088a87"
+input-hash: "c07c4c2"
 modified:
   - "v1.53 2026-05-06: D-305 pass-60 SUBSTANTIVE seal-and-fix"
 ---

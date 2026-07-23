@@ -9,7 +9,7 @@ phase: 1a
 inputs:
   - .factory/stories/S-5.04-post-tool-use-failure.md
   - .factory/specs/domain-spec/capabilities.md
-input-hash: "ab047e7"
+input-hash: "51e737f"
 traces_to: .factory/specs/prd.md#FR-046
 origin: greenfield
 extracted_from: null

@@ -18,7 +18,7 @@ inputs:
   - .factory/specs/behavioral-contracts/ss-04/BC-4.13.001.md
   - .factory/specs/behavioral-contracts/ss-05/BC-5.40.001.md
   - .factory/specs/behavioral-contracts/ss-06/BC-6.23.001.md
-input-hash: "49dfd86"
+input-hash: "2de5aec"
 last_amended: "2026-06-11 (v1.1 — S-17.04 added)"
 modified:
   - "v1.1 2026-06-11: S-17.04 added (ADR-025 v1.4 Decision 11)"

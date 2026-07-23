@@ -12,7 +12,7 @@ inputs:
   - plugins/vsdd-factory/hooks-registry.toml
   - crates/factory-dispatcher/src/registry.rs
   - crates/factory-dispatcher/src/partition.rs
-input-hash: "4a4c52f"
+input-hash: "ad10660"
 traces_to: .factory/specs/prd.md
 origin: greenfield
 extracted_from: null

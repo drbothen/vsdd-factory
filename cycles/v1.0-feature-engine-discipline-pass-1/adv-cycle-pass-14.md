@@ -15,7 +15,7 @@ inputs:
   - .factory/specs/behavioral-contracts/BC-INDEX.md
   - .factory/specs/verification-properties/VP-INDEX.md
   - .factory/stories/STORY-INDEX.md
-input-hash: "4f326dd"
+input-hash: "eea1695"
 traces_to: prd.md
 project: vsdd-factory
 mode: feature

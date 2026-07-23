@@ -12,7 +12,7 @@ inputs:
   - .factory/specs/architecture/ARCH-INDEX.md
   - .factory/specs/behavioral-contracts/BC-INDEX.md
   - .factory/stories/S-8.01-native-port-handoff-validator.md
-input-hash: "fe91868"
+input-hash: "8a20705"
 traces_to: prd.md
 pass: p4
 previous_review: adv-s8.02-p3.md

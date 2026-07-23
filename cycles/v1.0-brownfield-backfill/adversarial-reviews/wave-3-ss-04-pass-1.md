@@ -17,7 +17,7 @@ inputs:
   - .factory/stories/S-5.04-post-tool-use-failure.md
   - .factory/specs/prd.md
   - .factory/specs/domain-spec/capabilities.md
-input-hash: "8f23eac"
+input-hash: "b0ca5ee"
 traces_to: ".factory/specs/prd.md"
 cycle: v1.0-brownfield-backfill
 sub_cycle: wave-3-ss-04-re-anchor

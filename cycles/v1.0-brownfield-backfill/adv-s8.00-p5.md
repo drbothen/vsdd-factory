@@ -7,7 +7,7 @@ producer: adversary
 timestamp: 2026-04-30T00:00:00Z
 phase: 1d
 inputs: [.factory/stories/S-8.00-perf-baseline-bc-anchor-verification.md]
-input-hash: "54535d4"
+input-hash: "1d37e16"
 traces_to: .factory/stories/S-8.00-perf-baseline-bc-anchor-verification.md
 pass: 5
 previous_review: adv-s8.00-p4.md

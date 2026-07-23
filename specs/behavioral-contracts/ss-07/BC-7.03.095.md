@@ -11,7 +11,7 @@ inputs:
   - .factory/feature-delta/F-block-ai-attribution-message-file-arm/F1-delta-analysis.md
   - .factory/specs/domain-spec/capabilities.md
   - .factory/specs/domain-spec/invariants.md
-input-hash: "0670860"
+input-hash: "020ad9a"
 traces_to: domain-spec/L2-INDEX.md
 origin: greenfield
 extracted_from: null

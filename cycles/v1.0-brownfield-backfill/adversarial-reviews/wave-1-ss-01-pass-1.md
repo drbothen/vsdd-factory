@@ -15,7 +15,7 @@ inputs:
   - .factory/stories/S-1.07-dispatcher-internal-log.md
   - .factory/stories/S-3.04-emit-event-host-function.md
   - .factory/specs/behavioral-contracts/BC-INDEX.md
-input-hash: "384c6b8"
+input-hash: "bf090c8"
 traces_to: ""
 cycle: v1.0-brownfield-backfill
 sub_cycle: wave-1-ss-01-re-anchor

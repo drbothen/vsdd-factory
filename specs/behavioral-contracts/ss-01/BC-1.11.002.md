@@ -9,7 +9,7 @@ phase: 1.2-rev
 inputs:
   - .factory/specs/architecture/decisions/ADR-015-single-stream-otel-schema.md
   - .factory/specs/architecture/SS-03-event-emission.md
-input-hash: "1c4a788"
+input-hash: "2acc846"
 traces_to: ADR-015-single-stream-otel-schema.md
 origin: spec-revision
 subsystem: "SS-01"

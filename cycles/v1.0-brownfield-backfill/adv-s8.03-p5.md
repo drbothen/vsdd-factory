@@ -13,7 +13,7 @@ inputs:
   - .factory/specs/behavioral-contracts/ss-07/BC-7.03.081.md
   - .factory/specs/behavioral-contracts/ss-07/BC-7.03.082.md
   - crates/hook-sdk/src/payload.rs
-input-hash: "bfb0c47"
+input-hash: "32e51cd"
 traces_to: prd.md
 story_id: "S-8.03"
 pass_number: 5

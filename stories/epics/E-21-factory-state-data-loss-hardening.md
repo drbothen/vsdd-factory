@@ -27,7 +27,7 @@ inputs:
   - .factory/stories/S-21.03-pr-manager-trunk-assertion.md
   - .factory/stories/S-21.04-story-worktree-write-path-discipline.md
   - .factory/stories/S-21.05-pr-manager-factory-side-pr-protocol.md
-input-hash: "a396a77"
+input-hash: "4e6cb72"
 last_amended: "2026-07-19 (v1.5) — adv pass-7 fix burst (O-P7-a): EAC-006 added (factory-side PR 5-step restore per BC-6.27.001 v1.3 INV-E21-003; 1:1 story↔EAC symmetry restored); BC-6.27.001 v1.2→v1.3 in PRD Capabilities CAP-037 + BC Traceability table; POLICY 14 parity. [Prior: 2026-07-19 (v1.4) — adv pass-5 fix burst (F-P5-001): added missing v1.3 Changelog row to body ## Changelog table; frontmatter/body changelog parity restored (5 modified[] entries now matched by 5 Changelog table rows). [Prior: 2026-07-19 (v1.3) — adv pass-3 fix burst (F-P3-003): CAP-036 stale BC-6.26.001 v1.2 cite corrected to v1.3; TD-VSDD-060 full grep sweep confirms no other stale v1.2 cites of BC-5.44.001, BC-6.10.002, BC-6.26.001, or BC-5.43.001. [Prior: 2026-07-19 (v1.2) — adv pass-2 fix burst (F-P2-003): INV-E21-005 'post-rebase product branch' → 'post-rebase feature branch' (authoritative ADR-031 INV-E21-005 scope); BC-5.43.001 → v1.3; ADR-031 version cites → v1.3 (all occurrences); Description item 2 'product branch' + 'pr-manager post-rebase checkpoint' corrected to 'feature branch' + 'devops-engineer.md §Inter-Wave Rebase checkpoint'.]]]"
 modified:
   - "v1.0 2026-07-19: Initial authoring"

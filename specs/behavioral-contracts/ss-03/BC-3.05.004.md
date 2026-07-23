@@ -10,7 +10,7 @@ inputs:
   - .factory/specs/architecture/decisions/ADR-015-single-stream-otel-schema.md
   - .factory/stories/epics/E-10-single-stream-otel-event-emission.md
   - .factory/specs/architecture/SS-03-event-emission.md
-input-hash: "2108a17"
+input-hash: "7faeebd"
 traces_to: ADR-015-single-stream-otel-schema.md
 origin: greenfield
 subsystem: "SS-03"

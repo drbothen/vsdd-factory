@@ -8,7 +8,7 @@ timestamp: 2026-04-25T00:00:00
 last_amended: 2026-05-08
 phase: 1.4b
 inputs: [.factory/phase-0-ingestion/pass-3-behavioral-contracts-deep-r1.md]
-input-hash: "cf0f4d7"
+input-hash: "a022087"
 traces_to: .factory/specs/architecture/ARCH-INDEX.md
 origin: brownfield
 extracted_from: .factory/phase-0-ingestion/pass-3-behavioral-contracts-deep-r1.md § "BC-AUDIT-117"

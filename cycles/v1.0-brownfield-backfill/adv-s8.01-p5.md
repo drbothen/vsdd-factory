@@ -19,7 +19,7 @@ inputs:
   - crates/hook-plugins/capture-commit-activity/src/main.rs
   - plugins/vsdd-factory/hooks-registry.toml
   - Cargo.toml
-input-hash: "3341a38"
+input-hash: "3f70585"
 story_id: "S-8.01"
 story_version: "1.3"
 story_input_hash: "7b31f6f"

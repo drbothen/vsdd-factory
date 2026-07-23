@@ -10,7 +10,7 @@ inputs:
   - .factory/phase-0-ingestion/pass-3-deep-skills-batch-1.md
   - .factory/specs/behavioral-contracts/bc-id-mapping.md
   - .factory/cycles/v1.0-brownfield-backfill/e-21-arch-delta-analysis.md
-input-hash: "13f0e7d"
+input-hash: "e350ae2"
 traces_to: .factory/specs/architecture/ARCH-INDEX.md
 origin: brownfield
 extracted_from: ".factory/phase-0-ingestion/pass-3-deep-skills-batch-1.md#L1186"

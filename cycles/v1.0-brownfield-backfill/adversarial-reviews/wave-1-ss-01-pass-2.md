@@ -15,7 +15,7 @@ inputs:
   - .factory/stories/S-1.07-dispatcher-internal-log.md
   - .factory/stories/S-3.04-emit-event-host-function.md
   - .factory/specs/domain-spec/capabilities.md
-input-hash: "b319271"
+input-hash: "4a42af7"
 traces_to: ""
 cycle: v1.0-brownfield-backfill
 sub_cycle: wave-1-ss-01-re-anchor

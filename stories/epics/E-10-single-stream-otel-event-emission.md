@@ -20,7 +20,7 @@ depends_on: []
 last_amended: 2026-05-06
 inputs:
   - .factory/specs/architecture/decisions/ADR-015-single-stream-otel-schema.md
-input-hash: "49982f5"
+input-hash: "6da47b9"
 modified:
   - "v1.6 2026-05-06: D-323 subsystems_affected expanded to [SS-01, SS-02, SS-03, SS-04]; subsystem anchors corrected"
 ---
