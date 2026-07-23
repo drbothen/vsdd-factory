@@ -69,36 +69,66 @@ pub fn is_git_add_command(payload: &str) -> bool {
 /// Returns true if the `git add` argument text contains or implies a
 /// `.factory/`-rooted path that should be blocked on a product branch.
 ///
-/// Conservative matching per BC-4.16.001 Invariant 4:
+/// Conservative matching per BC-4.16.001 Invariant 4 v1.3:
 /// - Literal `.factory/` prefix match (captures both relative and absolute
 ///   path forms where `.factory/` appears as a component).
-/// - `-A`, `--all`, `-u`, `--update`, `.` flags: treated conservatively as
-///   potentially staging `.factory/` content (CWD payload alone cannot prove
-///   they are safe — BC-4.16.001 Invariant 4 conservative-block mandate).
+/// - Bare `.factory` token (no trailing slash): git treats `.factory` as
+///   `.factory/**` for staging — identical dual-tracking scope to `.factory/`
+///   (v1.3 addition).
+/// - `-A`, `--all`, `-u`, `--update`, `.`, `./` flags: treated conservatively
+///   as potentially staging `.factory/` content. `./` is CWD-relative with
+///   explicit slash, semantically identical to `.` for staging (v1.3 addition).
+/// - `:/`-family pathspec magic: `:/` anchors from repo root and can include
+///   `.factory/` paths regardless of CWD. Quoted forms (e.g., `':/.factory'`)
+///   are detected after stripping surrounding `'` or `"` characters (v1.3
+///   addition).
 /// - Glob wildcards (`*`, `?`, `[`): conservatively blocked because the guard
 ///   inspects only literal argument text; git has not yet expanded the glob
 ///   and may produce `.factory/**` matches (EC-008).
 /// - Combined short flags containing `A` or `u` (e.g., `-Au`).
 ///
 /// # BC trace
-/// BC-4.16.001 Invariant 4: path matching is conservative.
+/// BC-4.16.001 Invariant 4 v1.3: path matching is conservative.
 /// BC-4.16.001 EC-004: `git add -A` from CWD under `.factory/` is blocked.
 /// BC-4.16.001 EC-008: `git add *.md` glob from project root is blocked.
 /// BC-4.16.001 EC-010: `git add -u` is blocked (tracks all modifications).
 pub fn contains_factory_path_arg(git_add_args: &str) -> bool {
-    // Explicit .factory/ path prefix or component anywhere in payload
+    // Explicit .factory/ path prefix or component anywhere in payload.
     if git_add_args.contains(".factory/") {
         return true;
     }
 
-    // Scan tokens for conservative wildcards and flags.
-    // Skip the "git" and "add" command words; inspect only argument tokens.
+    // Scan tokens for conservative path forms, wildcards, and flags.
+    // Skip the "git", "add", and "stage" command words; inspect only argument tokens.
     for token in git_add_args.split_whitespace() {
+        if matches!(token, "git" | "add" | "stage") {
+            continue;
+        }
+
+        // Strip surrounding single or double quotes for pathspec-magic analysis.
+        // Handles `':/.factory'` and `":/..."` quoted forms.
+        let unquoted = token.trim_matches(|c| c == '\'' || c == '"');
+
+        // Bare .factory token without trailing slash (BC-4.16.001 Invariant 4 v1.3):
+        // git expands `.factory` to `.factory/**` for staging — same dual-tracking
+        // scope as `.factory/`.
+        if unquoted == ".factory" {
+            return true;
+        }
+
+        // :/-family pathspec magic (BC-4.16.001 Invariant 4 v1.3): anchors from
+        // repo root; can reach .factory/ paths regardless of CWD.
+        if unquoted.starts_with(":/") {
+            return true;
+        }
+
         match token {
-            // Skip the command words themselves
-            "git" | "add" => continue,
             // Conservative bulk-stage flags: may include .factory/ content
             "-A" | "--all" | "-u" | "--update" | "." => return true,
+            // "./" is CWD-relative with explicit slash — semantically identical to
+            // "." for staging; may stage .factory/** when CWD is the project root
+            // (BC-4.16.001 Invariant 4 v1.3)
+            "./" => return true,
             // Glob wildcards: guard cannot evaluate expansions at PreToolUse time
             t if t.contains('*') || t.contains('?') || t.starts_with('[') => return true,
             // Combined short flags (e.g. "-Au", "-uA"): A=all, u=update
