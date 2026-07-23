@@ -3056,3 +3056,291 @@ fn test_fp5_001_sub_nitpick_super_prefix_blocks_factory_path_on_develop() {
         }
     }
 }
+
+// ---------------------------------------------------------------------------
+// F-P6-001 [LOW][sibling-site-gap]:
+// find_factory_class_target multi-segment scan — RED tests + GREEN pins
+//
+// Defect: find_factory_class_target returns at the FIRST add/stage segment
+// (via `return factory_target` when any add/stage subcommand is found) instead
+// of scanning ALL chained segments like its siblings is_git_add_command and
+// contains_factory_path_arg.
+//
+// Spec authority: BC-4.16.001 v1.6 Invariant 6 + Precondition 2 chained clause.
+// Adversary finding: F-P6-001 — proved live that chained form escapes the guard.
+//
+// Tests 1-3: RED (currently Continue → should Block on develop).
+// Test 4: GREEN pin (factory-artifacts target → Continue; currently passes for
+//   WRONG reason via PC2; after fix passes for RIGHT reason via PC3).
+// Test 5: GREEN pin (no factory -C target anywhere → Continue; unaffected by fix).
+// Test 6: Unit-level RED on find_factory_class_target directly (accessible via
+//   super:: — private fn visible to child module tests.rs per Rust privacy rules).
+// ---------------------------------------------------------------------------
+
+// RED-1: first segment is plain git add; second segment has -C .factory target.
+#[test]
+fn test_fp6_001_bc4_16_001_chained_add_then_dash_c_factory_add_blocks_on_develop() {
+    // BC-4.16.001 v1.6 Invariant 6 + Precondition 2 chained clause [RED]:
+    // `git add README.md && git -C .factory add somefile` on develop MUST block.
+    //
+    // Defect (sibling-site-gap):
+    //   find_factory_class_target exits after finding 'add' at the first segment
+    //   (returns None without ever seeing '-C .factory' in the second segment).
+    //   Siblings is_git_add_command and contains_factory_path_arg both use
+    //   `i = j + 1; continue 'outer` to advance past non-matching segments;
+    //   find_factory_class_target must do the same when factory_target is None.
+    //
+    // Current behavior (BYPASS):
+    //   find_factory_class_target → None (exits after first 'git add')
+    //   exec_subprocess → "develop" → product branch (CWD-based detection)
+    //   contains_factory_path_arg("somefile") → false → PC2 → Continue
+    //
+    // After fix:
+    //   find_factory_class_target scans both segments → finds '-C .factory' in
+    //   second segment → returns Some(".factory") → exec_subprocess target-aware
+    //   → "develop" → product → BLOCK (FactoryPathOnProductBranch)
+    let result = run_hook_with_branch(
+        "git add README.md && git -C .factory add somefile",
+        "develop",
+    );
+    assert!(
+        result.is_ok(),
+        "F-P6-001 RED-1 / BC-4.16.001 Invariant 6: hook_logic panicked for \
+         'git add README.md && git -C .factory add somefile' on develop."
+    );
+    if let Ok(hook_result) = result {
+        assert_eq!(
+            hook_result.exit_code(),
+            2,
+            "F-P6-001 [RED] / BC-4.16.001 Invariant 6: \
+             'git add README.md && git -C .factory add somefile' on develop MUST exit 2. \
+             Defect: find_factory_class_target returns after first 'git add' segment — \
+             never scans '-C .factory' in the second segment. Current impl: Continue (BYPASS).",
+        );
+        match &hook_result {
+            HookResult::Block { reason } => {
+                assert!(
+                    reason.contains("FactoryPathOnProductBranch"),
+                    "F-P6-001 / BC-4.16.001 Invariant 6: block reason must contain \
+                     'FactoryPathOnProductBranch'. Got: '{}'",
+                    reason
+                );
+            }
+            other => panic!(
+                "F-P6-001 RED-1: expected HookResult::Block for \
+                 'git add README.md && git -C .factory add somefile' on develop, got {:?}",
+                other
+            ),
+        }
+    }
+}
+
+// RED-2: first segment is git stage; second segment has -c core.worktree=.factory.
+#[test]
+fn test_fp6_001_bc4_16_001_chained_stage_then_core_worktree_factory_add_blocks_on_develop() {
+    // BC-4.16.001 v1.6 Invariant 6 + Precondition 2 chained clause [RED]:
+    // `git stage src/x && git -c core.worktree=.factory add y` on develop MUST block.
+    //
+    // find_factory_class_target finds 'stage' at j=1 of the first segment and
+    // returns None immediately, never reaching '-c core.worktree=.factory' in
+    // the second segment. After fix: scans both segments; second segment extracts
+    // core.worktree=.factory value → Some(".factory") → target branch "develop"
+    // → product → BLOCK.
+    //
+    // NOTE: contains_factory_path_arg also misses this: 'core.worktree=.factory'
+    // is consumed as a -c value (not inspected for .factory-class); 'y' is not a
+    // .factory/-prefixed arg → PC2 → Continue (the bypass confirmed by adversary).
+    let result = run_hook_with_branch(
+        "git stage src/x && git -c core.worktree=.factory add y",
+        "develop",
+    );
+    assert!(
+        result.is_ok(),
+        "F-P6-001 RED-2 / BC-4.16.001 Invariant 6: hook_logic panicked for \
+         'git stage src/x && git -c core.worktree=.factory add y' on develop."
+    );
+    if let Ok(hook_result) = result {
+        assert_eq!(
+            hook_result.exit_code(),
+            2,
+            "F-P6-001 [RED] / BC-4.16.001 Invariant 6: \
+             'git stage src/x && git -c core.worktree=.factory add y' on develop MUST exit 2. \
+             Defect: find_factory_class_target returns after first 'git stage' segment — \
+             never scans '-c core.worktree=.factory' in the second segment. \
+             Current impl: Continue (BYPASS).",
+        );
+        match &hook_result {
+            HookResult::Block { reason } => {
+                assert!(
+                    reason.contains("FactoryPathOnProductBranch"),
+                    "F-P6-001 / BC-4.16.001 Invariant 6: block reason must contain \
+                     'FactoryPathOnProductBranch'. Got: '{}'",
+                    reason
+                );
+            }
+            other => panic!(
+                "F-P6-001 RED-2: expected HookResult::Block for \
+                 'git stage src/x && git -c core.worktree=.factory add y' on develop, \
+                 got {:?}",
+                other
+            ),
+        }
+    }
+}
+
+// RED-3: semicolon-separated chain; first segment is git add, second is
+// git -C ./.factory stage.
+#[test]
+fn test_fp6_001_bc4_16_001_semicolon_chained_add_then_dash_c_dot_slash_factory_stage_blocks() {
+    // BC-4.16.001 v1.6 Invariant 6 + Precondition 2 chained clause [RED]:
+    // `git add a.txt; git -C ./.factory stage b` on develop MUST block.
+    //
+    // Tokenized: ["git", "add", "a.txt;", "git", "-C", "./.factory", "stage", "b"]
+    // find_factory_class_target: i=0 → 'git'; j=1 → 'add' (subcommand, no '-')
+    //   → returns None immediately. Never scans '-C ./.factory stage' segment.
+    //
+    // After fix: scans all segments; second 'git' at i=3 has '-C ./.factory'
+    // (./.factory IS .factory-class per is_factory_class_target) → target branch
+    // "develop" (product) → BLOCK.
+    let result = run_hook_with_branch(
+        "git add a.txt; git -C ./.factory stage b",
+        "develop",
+    );
+    assert!(
+        result.is_ok(),
+        "F-P6-001 RED-3 / BC-4.16.001 Invariant 6: hook_logic panicked for \
+         'git add a.txt; git -C ./.factory stage b' on develop."
+    );
+    if let Ok(hook_result) = result {
+        assert_eq!(
+            hook_result.exit_code(),
+            2,
+            "F-P6-001 [RED] / BC-4.16.001 Invariant 6: \
+             'git add a.txt; git -C ./.factory stage b' on develop MUST exit 2. \
+             Defect: find_factory_class_target returns after first 'git add' segment — \
+             never reaches '-C ./.factory' in the semicolon-chained second segment. \
+             Current impl: Continue (BYPASS).",
+        );
+        match &hook_result {
+            HookResult::Block { reason } => {
+                assert!(
+                    reason.contains("FactoryPathOnProductBranch"),
+                    "F-P6-001 / BC-4.16.001 Invariant 6: block reason must contain \
+                     'FactoryPathOnProductBranch'. Got: '{}'",
+                    reason
+                );
+            }
+            other => panic!(
+                "F-P6-001 RED-3: expected HookResult::Block for \
+                 'git add a.txt; git -C ./.factory stage b' on develop, got {:?}",
+                other
+            ),
+        }
+    }
+}
+
+// GREEN pin 4: chained form with factory-artifacts target → Continue (PC3).
+// Uses args-aware mock (run_hook_with_cwd_and_target_branch) to distinguish CWD
+// from target-directory branch detection, validating the Invariant 6 PC3 path.
+#[test]
+fn test_fp6_001_bc4_16_001_chained_dash_c_factory_add_target_factory_artifacts_continues() {
+    // BC-4.16.001 v1.6 Invariant 6 GREEN pin:
+    // `git add README.md && git -C .factory add somefile` with cwd=develop and
+    // target branch=factory-artifacts MUST return Continue.
+    //
+    // This is the mounted state-manager worktree form — chained staging where the
+    // second segment targets the factory-artifacts worktree. MUST NOT be blocked.
+    //
+    // Current behavior (Continue for WRONG reason via PC2):
+    //   find_factory_class_target → None (exits after first segment)
+    //   exec_subprocess called WITHOUT -C (no target detected) → returns cwd "develop"
+    //   → product branch → contains_factory_path_arg("somefile") = false → PC2 → Continue
+    //
+    // After fix (Continue for RIGHT reason via PC3):
+    //   find_factory_class_target scans both segments → Some(".factory")
+    //   exec_subprocess called WITH -C (args-aware mock) → returns "factory-artifacts"
+    //   → is_product_branch("factory-artifacts") = false → PC3 → Continue
+    let result = run_hook_with_cwd_and_target_branch(
+        "git add README.md && git -C .factory add somefile",
+        "develop",
+        "factory-artifacts",
+    );
+    assert!(
+        result.is_ok(),
+        "F-P6-001 GREEN-4 / BC-4.16.001 Invariant 6: hook_logic panicked for \
+         'git add README.md && git -C .factory add somefile' with target=factory-artifacts."
+    );
+    if let Ok(hook_result) = result {
+        assert_eq!(
+            hook_result,
+            HookResult::Continue,
+            "F-P6-001 / BC-4.16.001 Invariant 6 GREEN pin: \
+             'git add README.md && git -C .factory add somefile' with target branch \
+             factory-artifacts MUST return Continue (state-manager mounted worktree form \
+             MUST NOT be blocked). Got: {:?}.",
+            hook_result
+        );
+    }
+}
+
+// GREEN pin 5: chained command where the -C target is NOT .factory-class → Continue.
+#[test]
+fn test_fp6_001_bc4_16_001_chained_non_factory_c_target_continues_on_develop() {
+    // BC-4.16.001 v1.6 Invariant 6 GREEN pin:
+    // `git add a.txt && git -C src add b.txt` on develop MUST return Continue.
+    //
+    // 'src' is NOT a .factory-class path; Invariant 6 does NOT apply.
+    // After fix: find_factory_class_target scans both segments; second segment '-C src'
+    // → is_factory_class_target("src") = false → factory_target stays None → returns None
+    // → CWD-based detection → "develop" → product branch
+    // → contains_factory_path_arg: "a.txt", "b.txt" not factory paths → PC2 → Continue.
+    let result = run_hook_with_branch(
+        "git add a.txt && git -C src add b.txt",
+        "develop",
+    );
+    assert!(
+        result.is_ok(),
+        "F-P6-001 GREEN-5 / BC-4.16.001 Invariant 6: hook_logic panicked for \
+         'git add a.txt && git -C src add b.txt' on develop."
+    );
+    if let Ok(hook_result) = result {
+        assert_eq!(
+            hook_result,
+            HookResult::Continue,
+            "F-P6-001 / BC-4.16.001 Invariant 6 GREEN pin: \
+             'git add a.txt && git -C src add b.txt' on develop MUST return Continue. \
+             'src' is not a .factory-class path; no factory target in either segment. \
+             PC2: both staged args are non-.factory/ paths. Got: {:?}.",
+            hook_result
+        );
+    }
+}
+
+// Unit-level RED: direct assertion on find_factory_class_target.
+// find_factory_class_target is a private `fn` in lib.rs; as a child module,
+// tests.rs can access it via `super::`. No pub(crate) promotion needed.
+#[test]
+fn test_fp6_001_find_factory_class_target_scans_all_chained_segments() {
+    // F-P6-001 unit-level [RED]:
+    // find_factory_class_target("git add README.md && git -C .factory add somefile")
+    // MUST return Some(".factory").
+    //
+    // Current behavior: returns None after encountering the first 'add' subcommand
+    // at j=1 (segment 1). Never reaches '-C .factory' in segment 2.
+    //
+    // After fix: when factory_target is None at an add/stage subcommand, advance
+    // (i = j + 1; continue 'outer) mirroring the sibling functions, then continue
+    // scanning. Segment 2 processes '-C .factory' → Some(".factory") → 'add'
+    // subcommand → returns Some(".factory").
+    assert_eq!(
+        super::find_factory_class_target("git add README.md && git -C .factory add somefile"),
+        Some(".factory".to_string()),
+        "F-P6-001 [RED] / BC-4.16.001 Invariant 6: \
+         find_factory_class_target('git add README.md && git -C .factory add somefile') \
+         MUST return Some(\".factory\"). Defect: function returns None after first 'add' \
+         subcommand without scanning the '-C .factory add' segment that follows. \
+         Sibling functions is_git_add_command and contains_factory_path_arg both continue \
+         scanning past the first segment via 'i = j + 1; continue outer' — \
+         find_factory_class_target must do the same when factory_target is None."
+    );
+}
