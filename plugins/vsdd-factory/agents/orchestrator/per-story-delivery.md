@@ -150,6 +150,103 @@ When spawning the adversary for Pass 2+:
 
 State-manager runs LAST in every dispatch burst. Never dispatch state-manager concurrently with story-writer or product-owner — version-race pattern causes the same regression repeatedly. Wait for all artifact-producing agents to complete, then dispatch state-manager to update indexes and STATE.md.
 
+## Main-Checkout Sync Protocol
+
+**BC-5.43.001 v1.3 — ADR-031 v1.3 §Decision 2 — S-21.01 Layer-2 deliverable**
+
+This protocol is the **safety-net layer** for INV-E21-001 (Nested Worktree Path Exclusivity).
+It guards against the server-side origination threat vector: a contributor PR merged via
+`gh pr merge` may carry `.factory/`-pathed files that then arrive on the main product
+checkout via a subsequent `git pull origin develop`, where `.factory/` is physically mounted
+as a nested worktree. Without this gate, the subsequent merge or working-tree update would
+silently destroy factory artifact content.
+
+### Mandatory Pre-Check: Before Any git pull / git merge on the Main Checkout
+
+Before executing **any** `git pull`, `git merge`, or `git checkout <target>` command that
+advances the HEAD of the product branch on the **main product checkout** (the checkout where
+`.factory/` is physically mounted as a nested worktree), the orchestrator MUST run the
+following path-intersection pre-check:
+
+```
+git diff --name-only HEAD..<target-ref>
+```
+
+Where `<target-ref>` is the ref being merged, pulled, or checked out (e.g.,
+`origin/develop`, `feature/S-21.01`, a specific SHA).
+
+**This requirement covers:**
+- Documented orchestrator dispatch steps (e.g., post-merge sync via `git pull origin develop`)
+- Ad-hoc operator Bash issued on the main checkout
+- Any `git pull --ff-only`, `git pull --rebase`, or `git checkout <target>`
+  that results in a working-tree update on the product branch
+
+### If .factory/ Paths Appear in the Diff: HALT with FactoryPathDeletionInMergeDiff
+
+If the output of `git diff --name-only HEAD..<target-ref>` contains any line matching
+`^\.factory/`, the operation MUST be **halted before the merge/pull/checkout command
+is executed**. Emit the following actionable error:
+
+```
+HALTED: FactoryPathDeletionInMergeDiff
+
+Product-branch merge/checkout would modify .factory/ path(s) owned by the
+factory-artifacts worktree.
+
+Paths at risk:
+  <path1>
+  <path2>
+  ...
+
+This indicates a dual-tracking condition (issue #342 class): these paths are tracked
+on both the product branch and the factory-artifacts worktree. Proceeding would
+silently destroy factory artifact content.
+
+Required actions before proceeding:
+  1. On the source branch: ensure these paths are NOT tracked on the product branch
+     (git rm --cached <path> per companion issue #341).
+  2. Verify the factory-artifacts worktree is not serving uncommitted edits to these paths.
+  3. Once the dual-tracking is resolved, the merge/checkout is safe to retry.
+```
+
+The merge, pull, or checkout command MUST NOT be executed after this error. Escalate to
+the orchestrator for human review.
+
+**Any `.factory/` path in the product-branch diff is anomalous** — halt even for additions,
+not just deletions (BC-5.43.001 Invariant 2).
+
+### If No .factory/ Paths: Proceed Transparently
+
+When `git diff --name-only HEAD..<target-ref>` returns no line matching `^\.factory/`,
+the merge, pull, or checkout operation MUST proceed normally. No additional gate fires.
+The pre-check is transparent and safe to proceed on clean diffs.
+
+### Fail-Open When git diff Fails
+
+If the `git diff --name-only HEAD..<target-ref>` command itself fails (network error,
+unresolvable ref, git unavailable), the agent MUST:
+1. Log a warning describing the failure
+2. Proceed with the merge/pull/checkout (fail-open)
+
+An unresolvable pre-check is NOT a blocking condition — it means the pre-check could not
+run, not that a hazard was detected. This ensures no session is wedged by a transient
+git error (BC-5.43.001 Invariant 4).
+
+### Protocol Exclusions (Not In Scope for This Gate)
+
+The following surfaces are explicitly excluded and do NOT require the pre-check:
+
+- **`pr-manager.md` `gh pr merge`:** Server-side merge — no local Bash command advances
+  the product-branch HEAD; excluded by BC-5.43.001 PC3.
+- **`devops-engineer.md §Inter-Wave Rebase`:** Operates on the story worktree
+  (`.worktrees/STORY-NNN/`) where `.factory/` is NOT physically mounted.
+- **State-manager `git -C .factory` operations:** Always scoped to the factory-artifacts
+  worktree; never touches the product-branch HEAD.
+- **`git fetch` and other non-working-tree operations:** Do not modify the working tree;
+  pre-check is not required (BC-5.43.001 PC3).
+
+---
+
 ## Context Discipline for Sub-Agent Spawning (DF-021)
 
 When spawning sub-agents, pass only the specific detail files relevant to
