@@ -2547,3 +2547,512 @@ fn test_fp4_002_bc4_16_001_green_pin_spaced_paren_git_add_factory_blocks_on_deve
         );
     }
 }
+
+// ---------------------------------------------------------------------------
+// F-P5-001 [LOW]: BC-4.16.001 v1.6 Invariant 6 — target-aware branch
+// detection for -C and -c core.worktree= forms.
+// (S-21.01 LOCAL cascade pass 5; human gate decision 2026-07-23)
+//
+// When a git add/stage command contains a -C <target> or
+// -c core.worktree=<target> option where <target> names a .factory-class
+// path (bare .factory, ./.factory, absolute or relative ending in /.factory,
+// matched case-insensitively), branch detection MUST run against the TARGET
+// directory by executing git -C <target> branch --show-current via
+// exec_subprocess — NOT CWD-based detection.
+//
+// Product branch  → BLOCK with FactoryPathOnProductBranch (PC1)
+// factory-artifacts branch → PASS unconditionally (PC3; state-manager
+//   canonical mounted-worktree workflow MUST NOT be blocked)
+// Detection failure (exec_subprocess Err or non-zero exit) → fail-open
+//   Continue per Invariant 3
+//
+// Current behavior (no Invariant 6):
+//   For `git -C .factory add STATE.md`: -C .factory is consumed as a global
+//   option value by the v1.5 tokenizer; STATE.md is then the staged path.
+//   contains_factory_path_arg returns false (STATE.md is not a .factory/-
+//   prefixed path) → PC2 → Continue (BYPASS).
+//   Same for -c core.worktree=.factory: the value is consumed; the staged
+//   path STATE.md is not .factory/-prefixed → PC2 → Continue (BYPASS).
+//
+// Test classification:
+//   RED (currently Continue/BYPASS; MUST Block after fix):
+//     T-7/EC-012: -C .factory, target branch = develop
+//     T-9/EC-014: -c core.worktree=.factory, target branch = develop
+//     Variants: ./.factory, /abs/.factory, .Factory (case) → BLOCK
+//     Chained form: git status && git -C .factory add f → BLOCK
+//   GREEN pins (currently Continue; remain Continue after fix):
+//     T-8/EC-013: -C .factory, target branch = factory-artifacts → Continue
+//       (currently Continue for WRONG reason: PC2 path-inspection; after fix
+//       passes for RIGHT reason: PC3 target-branch = factory-artifacts)
+//     Fail-open: exec_subprocess Err for target detection → Continue
+//       (currently Continue for WRONG reason: PC2; after fix: Invariant 3)
+//     Non-.factory -C target: -C src → Continue via PC2 (no target detection)
+//   GREEN pin (BLOCK):
+//     Sub-NITPICK --super-prefix: git --super-prefix p add .factory/x → BLOCK
+//       (already in canonical set from F-P4-001; dedicated pin per BC-4.16.001
+//       Precondition 2 note (F-P5-001))
+//
+// BC traces:
+//   BC-4.16.001 v1.6 Invariant 6: target-aware branch detection contract
+//   BC-4.16.001 EC-012/EC-013/EC-014: canonical edge cases
+//   BC-4.16.001 T-7/T-8/T-9: canonical test vectors
+// ---------------------------------------------------------------------------
+
+// ---------------------------------------------------------------------------
+// F-P5-001 test helpers
+// ---------------------------------------------------------------------------
+
+/// Run hook_logic with an args-aware subprocess mock that distinguishes between
+/// CWD-based and target-based branch detection calls.
+///
+/// When exec_subprocess is called with args containing "-C" (i.e., the
+/// Invariant-6 target-aware call `git -C <target> branch --show-current`),
+/// returns `target_branch`. Otherwise returns `cwd_branch`.
+///
+/// Used for T-8/EC-013 where CWD branch (develop) and target branch
+/// (factory-artifacts) differ, and the test must verify the guard routes
+/// through the correct PC (PC3 via target detection, not PC2 via path
+/// inspection).
+///
+/// The closure captures `cwd_branch` and `target_branch` by value and
+/// borrows them only (format! takes a shared ref), so it implements `Fn`
+/// which satisfies the `FnOnce` type bound on `HookCallbacks.exec_subprocess`.
+fn run_hook_with_cwd_and_target_branch(
+    command: &str,
+    cwd_branch: &str,
+    target_branch: &str,
+) -> std::thread::Result<HookResult> {
+    let payload = make_bash_payload(command);
+    let cwd = cwd_branch.to_string();
+    let target = target_branch.to_string();
+    panic::catch_unwind(move || {
+        hook_logic(
+            payload,
+            HookCallbacks {
+                exec_subprocess: move |_bin, args| {
+                    // Invariant 6 target-aware call includes "-C"; CWD call does not.
+                    if args.contains(&"-C") {
+                        Ok((0, format!("{target}\n"), String::new()))
+                    } else {
+                        Ok((0, format!("{cwd}\n"), String::new()))
+                    }
+                },
+                emit_event: |_, _| {},
+                log: |_, _| {},
+            },
+        )
+    })
+}
+
+// ---------------------------------------------------------------------------
+// F-P5-001 RED tests: T-7 / EC-012
+// git -C .factory add STATE.md, target branch = product branch → BLOCK
+// ---------------------------------------------------------------------------
+
+#[test]
+fn test_fp5_001_bc4_16_001_t7_ec012_blocks_dash_c_factory_target_on_develop() {
+    // BC-4.16.001 T-7 (EC-012) / Invariant 6 [RED]:
+    // `git -C .factory add STATE.md` on develop MUST block.
+    //
+    // Invariant 6 contract: -C .factory names a .factory-class target; guard
+    // MUST execute `git -C .factory branch --show-current` → "develop" → product
+    // branch → BLOCK with FactoryPathOnProductBranch.
+    //
+    // Current behavior (BYPASS):
+    //   is_git_add_command: consumes -C .factory as global option → "add" is
+    //   subcommand → true.
+    //   exec_subprocess → "develop" → product.
+    //   contains_factory_path_arg: staged arg is "STATE.md" — not a .factory/-
+    //   prefixed path → false → PC2 → Continue (BYPASS).
+    //
+    // After Invariant 6 fix:
+    //   Guard detects -C .factory as .factory-class target → runs target branch
+    //   detection → "develop" → product branch → BLOCK.
+    let result = run_hook_with_branch("git -C .factory add STATE.md", "develop");
+    assert!(
+        result.is_ok(),
+        "F-P5-001 / BC-4.16.001 T-7 (EC-012): hook_logic panicked for \
+         'git -C .factory add STATE.md' on develop."
+    );
+    if let Ok(hook_result) = result {
+        assert_eq!(
+            hook_result.exit_code(),
+            2,
+            "F-P5-001 [RED] / BC-4.16.001 T-7 (EC-012) Invariant 6: \
+             'git -C .factory add STATE.md' on develop MUST exit 2 (block_intent=true). \
+             Invariant 6: -C .factory is a .factory-class target; guard MUST run \
+             'git -C .factory branch --show-current' → 'develop' → product branch → BLOCK. \
+             Current impl does not inspect the -C target for branch detection: staged arg \
+             'STATE.md' is not a .factory/-prefixed path → contains_factory_path_arg false \
+             → PC2 → Continue (BYPASS)."
+        );
+        match &hook_result {
+            HookResult::Block { reason } => {
+                assert!(
+                    reason.contains("FactoryPathOnProductBranch"),
+                    "F-P5-001 / BC-4.16.001 T-7 (EC-012): block reason must contain \
+                     'FactoryPathOnProductBranch'. Got: '{}'",
+                    reason
+                );
+            }
+            other => panic!(
+                "F-P5-001: expected HookResult::Block for \
+                 'git -C .factory add STATE.md' on develop, got {:?}",
+                other
+            ),
+        }
+    }
+}
+
+// ---------------------------------------------------------------------------
+// F-P5-001 RED tests: T-9 / EC-014
+// git -c core.worktree=.factory add STATE.md, target branch = product → BLOCK
+// ---------------------------------------------------------------------------
+
+#[test]
+fn test_fp5_001_bc4_16_001_t9_ec014_blocks_dash_c_core_worktree_factory_on_develop() {
+    // BC-4.16.001 T-9 (EC-014) / Invariant 6 [RED]:
+    // `git -c core.worktree=.factory add STATE.md` on develop MUST block.
+    //
+    // Invariant 6 contract: -c core.worktree=.factory value names a .factory-class
+    // path; guard MUST run `git -C .factory branch --show-current` → "develop"
+    // → product branch → BLOCK.
+    //
+    // Current behavior (BYPASS):
+    //   is_git_add_command: consumes -c core.worktree=.factory as global option
+    //   value → "add" subcommand → true.
+    //   exec_subprocess → "develop" → product.
+    //   contains_factory_path_arg: "STATE.md" not .factory/-prefixed → false
+    //   → PC2 → Continue (BYPASS). core.worktree=.factory in the -c value does NOT
+    //   contain ".factory/" (no trailing slash), so the fast-path also misses it.
+    //
+    // After Invariant 6 fix:
+    //   Guard parses -c value "core.worktree=.factory" → extracts ".factory" →
+    //   .factory-class path → target branch detection → "develop" → BLOCK.
+    let result = run_hook_with_branch("git -c core.worktree=.factory add STATE.md", "develop");
+    assert!(
+        result.is_ok(),
+        "F-P5-001 / BC-4.16.001 T-9 (EC-014): hook_logic panicked for \
+         'git -c core.worktree=.factory add STATE.md' on develop."
+    );
+    if let Ok(hook_result) = result {
+        assert_eq!(
+            hook_result.exit_code(),
+            2,
+            "F-P5-001 [RED] / BC-4.16.001 T-9 (EC-014) Invariant 6: \
+             'git -c core.worktree=.factory add STATE.md' on develop MUST exit 2. \
+             '-c core.worktree=.factory' names a .factory-class path via the core.worktree \
+             git config key; Invariant 6 MUST fire: target branch detection → 'develop' \
+             → product → BLOCK. Current impl does not inspect core.worktree value for \
+             .factory-class detection → PC2 → Continue (BYPASS)."
+        );
+        match &hook_result {
+            HookResult::Block { reason } => {
+                assert!(
+                    reason.contains("FactoryPathOnProductBranch"),
+                    "F-P5-001 / BC-4.16.001 T-9 (EC-014): block reason must contain \
+                     'FactoryPathOnProductBranch'. Got: '{}'",
+                    reason
+                );
+            }
+            other => panic!(
+                "F-P5-001: expected HookResult::Block for \
+                 'git -c core.worktree=.factory add STATE.md' on develop, got {:?}",
+                other
+            ),
+        }
+    }
+}
+
+// ---------------------------------------------------------------------------
+// F-P5-001 RED tests: .factory-class target variants
+// ---------------------------------------------------------------------------
+
+#[test]
+fn test_fp5_001_bc4_16_001_blocks_dot_slash_factory_target_on_develop() {
+    // BC-4.16.001 Invariant 6 [RED]: ./.factory is a .factory-class target.
+    // "bare .factory, ./.factory, absolute or relative ending in /.factory"
+    // — all matched case-insensitively.
+    let result = run_hook_with_branch("git -C ./.factory add f", "develop");
+    assert!(
+        result.is_ok(),
+        "F-P5-001: hook_logic panicked for 'git -C ./.factory add f' on develop."
+    );
+    if let Ok(hook_result) = result {
+        assert_eq!(
+            hook_result.exit_code(),
+            2,
+            "F-P5-001 [RED] / BC-4.16.001 Invariant 6: 'git -C ./.factory add f' on \
+             develop MUST exit 2. './.factory' is a .factory-class path (CWD-relative \
+             with explicit slash per Invariant 6). Guard MUST run \
+             'git -C ./.factory branch --show-current' → 'develop' → product → BLOCK. \
+             Current impl: 'f' is not a .factory/-prefixed path → PC2 → Continue (BYPASS)."
+        );
+    }
+}
+
+#[test]
+fn test_fp5_001_bc4_16_001_blocks_absolute_factory_target_on_develop() {
+    // BC-4.16.001 Invariant 6 [RED]: absolute path ending in /.factory is .factory-class.
+    let result = run_hook_with_branch("git -C /abs/path/.factory stage f", "develop");
+    assert!(
+        result.is_ok(),
+        "F-P5-001: hook_logic panicked for 'git -C /abs/path/.factory stage f' on develop."
+    );
+    if let Ok(hook_result) = result {
+        assert_eq!(
+            hook_result.exit_code(),
+            2,
+            "F-P5-001 [RED] / BC-4.16.001 Invariant 6: \
+             'git -C /abs/path/.factory stage f' on develop MUST exit 2. \
+             '/abs/path/.factory' ends in '/.factory' — .factory-class per Invariant 6. \
+             Guard MUST run target branch detection → 'develop' → product → BLOCK. \
+             Current impl: 'f' not .factory/-prefixed → PC2 → Continue (BYPASS)."
+        );
+    }
+}
+
+#[test]
+fn test_fp5_001_bc4_16_001_blocks_case_variant_factory_target_on_develop() {
+    // BC-4.16.001 Invariant 6 [RED]: case-insensitive match — .Factory is .factory-class.
+    // macOS HFS+ and Windows NTFS are case-folding; .Factory names the same directory.
+    let result = run_hook_with_branch("git -C .Factory add f", "develop");
+    assert!(
+        result.is_ok(),
+        "F-P5-001: hook_logic panicked for 'git -C .Factory add f' on develop."
+    );
+    if let Ok(hook_result) = result {
+        assert_eq!(
+            hook_result.exit_code(),
+            2,
+            "F-P5-001 [RED] / BC-4.16.001 Invariant 6: 'git -C .Factory add f' on \
+             develop MUST exit 2. '.Factory' is a .factory-class path (case-insensitive \
+             match per Invariant 6; macOS HFS+ / Windows NTFS are case-folding). Guard \
+             MUST run 'git -C .Factory branch --show-current' → 'develop' → product \
+             → BLOCK. Current impl: 'f' not .factory/-prefixed → PC2 → Continue (BYPASS)."
+        );
+    }
+}
+
+// ---------------------------------------------------------------------------
+// F-P5-001 RED tests: chained form with -C .factory target
+// ---------------------------------------------------------------------------
+
+#[test]
+fn test_fp5_001_bc4_16_001_blocks_chained_dash_c_factory_on_develop() {
+    // BC-4.16.001 Invariant 6 [RED]: chained form — git -C .factory add after &&.
+    //
+    // The outer-loop scan (F-P2-001 fix) advances past 'git status'; the second
+    // 'git' has '-C .factory' target. Invariant 6 fires: target branch = "develop"
+    // → product → BLOCK. Both F-P2-001 (chained detection) and Invariant 6
+    // (target-aware detection) are required for this test to pass.
+    //
+    // Current behavior (BYPASS):
+    //   Outer loop finds second 'git'; consumes -C .factory; detects 'add'; is_git_add_command=true.
+    //   exec_subprocess → "develop" → product.
+    //   contains_factory_path_arg: staged arg 'f' is not .factory/-prefixed → PC2 → Continue.
+    let result = run_hook_with_branch("git status && git -C .factory add f", "develop");
+    assert!(
+        result.is_ok(),
+        "F-P5-001: hook_logic panicked for 'git status && git -C .factory add f'."
+    );
+    if let Ok(hook_result) = result {
+        assert_eq!(
+            hook_result.exit_code(),
+            2,
+            "F-P5-001 [RED] / BC-4.16.001 Invariant 6: \
+             'git status && git -C .factory add f' on develop MUST exit 2. \
+             Outer loop advances past 'git status' (F-P2-001); second 'git -C .factory add' \
+             is detected; Invariant 6: target .factory branch = 'develop' (product) → BLOCK. \
+             Current impl: 'f' not .factory/-prefixed → PC2 → Continue (BYPASS)."
+        );
+    }
+}
+
+// ---------------------------------------------------------------------------
+// F-P5-001 GREEN pin: T-8 / EC-013
+// git -C .factory add STATE.md, target branch = factory-artifacts → Continue (PC3)
+// NOTE: currently passes for WRONG reason (PC2); after fix passes for RIGHT reason (PC3)
+// ---------------------------------------------------------------------------
+
+#[test]
+fn test_fp5_001_bc4_16_001_t8_ec013_passes_dash_c_factory_target_on_factory_artifacts() {
+    // BC-4.16.001 T-8 (EC-013) / Invariant 6 GREEN pin:
+    // `git -C .factory add STATE.md` with target branch factory-artifacts MUST Continue.
+    //
+    // This is the state-manager's canonical mounted-worktree workflow.
+    // git -C .factory add ... on the factory-artifacts worktree MUST NEVER be blocked.
+    //
+    // This test uses an args-aware mock that distinguishes CWD (develop) from target
+    // (factory-artifacts) branch detection calls:
+    //   - exec_subprocess called WITHOUT -C args (CWD detection): returns "develop"
+    //   - exec_subprocess called WITH -C args (target detection): returns "factory-artifacts"
+    //
+    // Current behavior (GREEN for WRONG reason):
+    //   exec_subprocess called with ["branch", "--show-current"] (no -C) → cwd_branch
+    //   = "develop" → is_product_branch("develop") = true → product branch → path
+    //   inspection: "STATE.md" not .factory/-prefixed → false → PC2 → Continue.
+    //   (The result is Continue because path inspection fails, NOT because the guard
+    //   correctly identified factory-artifacts as the target branch.)
+    //
+    // After Invariant 6 fix (GREEN for RIGHT reason):
+    //   exec_subprocess called with ["-C", ".factory", "branch", "--show-current"] →
+    //   target_branch = "factory-artifacts" → is_product_branch("factory-artifacts")
+    //   = false → PC3 → Continue. (Correct path through the guard.)
+    let result = run_hook_with_cwd_and_target_branch(
+        "git -C .factory add STATE.md",
+        "develop",
+        "factory-artifacts",
+    );
+    assert!(
+        result.is_ok(),
+        "F-P5-001 / BC-4.16.001 T-8 (EC-013): hook_logic panicked for \
+         'git -C .factory add STATE.md' with target branch = factory-artifacts."
+    );
+    if let Ok(hook_result) = result {
+        assert_eq!(
+            hook_result,
+            HookResult::Continue,
+            "F-P5-001 / BC-4.16.001 T-8 (EC-013) Invariant 6 GREEN pin: \
+             'git -C .factory add STATE.md' with target branch factory-artifacts MUST \
+             return Continue. This is the state-manager canonical mounted-worktree workflow \
+             — git -C .factory add on the factory-artifacts worktree MUST NOT be blocked. \
+             NOTE: currently Continue for WRONG reason (PC2 — path inspection fails for \
+             'STATE.md'); after Invariant 6 fix: Continue for RIGHT reason (PC3 — target \
+             branch = factory-artifacts). Got: {:?}.",
+            hook_result
+        );
+    }
+}
+
+// ---------------------------------------------------------------------------
+// F-P5-001 GREEN pin: fail-open when target branch detection fails
+// Currently GREEN for WRONG reason (PC2); after fix GREEN via Invariant 3
+// ---------------------------------------------------------------------------
+
+#[test]
+fn test_fp5_001_bc4_16_001_fail_open_on_target_detection_error() {
+    // BC-4.16.001 Invariant 3 + Invariant 6 GREEN pin:
+    // exec_subprocess Err during target branch detection MUST fail-open (Continue).
+    //
+    // NOTE: Currently GREEN for WRONG reason:
+    //   Current impl: exec_subprocess returns Err (before any target detection)
+    //   → Invariant 3 fires on CWD branch detection → fail-open Continue.
+    //   (The BYPASS is not reached here because Invariant 3 fires first.)
+    //
+    //   Wait — actually the current impl calls exec_subprocess for CWD detection.
+    //   If exec_subprocess returns Err, Invariant 3 fires → Continue.
+    //   After Invariant 6 fix: exec_subprocess is called for TARGET detection
+    //   (git -C .factory branch --show-current) → Err → fail-open Invariant 3 → Continue.
+    //   Outcome identical: Continue in both cases.
+    //
+    // The behavioral contract (fail-open on any exec_subprocess failure) is the same
+    // before and after the fix. This pin ensures Invariant 3 is preserved for the
+    // target-aware path.
+    let result = run_hook_branch_detection_err("git -C .factory add STATE.md");
+    assert!(
+        result.is_ok(),
+        "F-P5-001 / BC-4.16.001 Invariant 3 + 6: hook_logic panicked when \
+         exec_subprocess returns Err for 'git -C .factory add STATE.md'. \
+         Fail-open: uncertain branch state is NOT a blocking condition."
+    );
+    if let Ok(hook_result) = result {
+        assert_eq!(
+            hook_result,
+            HookResult::Continue,
+            "F-P5-001 / BC-4.16.001 Invariant 3 + 6 GREEN pin: exec_subprocess Err for \
+             'git -C .factory add STATE.md' MUST return Continue (fail-open per Invariant 3). \
+             Target branch detection failure MUST NOT block the session. Got: {:?}.",
+            hook_result
+        );
+    }
+}
+
+// ---------------------------------------------------------------------------
+// F-P5-001 GREEN pin: non-.factory -C target does NOT trigger Invariant 6
+// ---------------------------------------------------------------------------
+
+#[test]
+fn test_fp5_001_bc4_16_001_non_factory_target_continues_pc2() {
+    // BC-4.16.001 Invariant 6 GREEN pin:
+    // `git -C src add lib.rs` on develop MUST return Continue via PC2.
+    //
+    // 'src' is NOT a .factory-class path; Invariant 6 does NOT apply.
+    // Normal CWD-based branch detection + path inspection applies:
+    //   exec_subprocess → "develop" → product branch
+    //   contains_factory_path_arg: "lib.rs" is not a .factory/-prefixed path → false
+    //   → PC2 → Continue.
+    //
+    // NOTE: FnOnce mock call-count cannot be verified from tests; the behavioral
+    // outcome (Continue via PC2) is the sufficient assertion. The implementation
+    // MUST NOT call exec_subprocess with -C src args for branch detection.
+    let result = run_hook_with_branch("git -C src add lib.rs", "develop");
+    assert!(
+        result.is_ok(),
+        "F-P5-001: hook_logic panicked for 'git -C src add lib.rs' on develop."
+    );
+    if let Ok(hook_result) = result {
+        assert_eq!(
+            hook_result,
+            HookResult::Continue,
+            "F-P5-001 / BC-4.16.001 Invariant 6 GREEN pin: 'git -C src add lib.rs' on \
+             develop MUST return Continue. 'src' is NOT a .factory-class path; Invariant 6 \
+             does NOT trigger; normal path inspection ('lib.rs' is not a .factory/ path) \
+             → PC2 → Continue. Got: {:?}.",
+            hook_result
+        );
+    }
+}
+
+// ---------------------------------------------------------------------------
+// F-P5-001 sub-NITPICK GREEN pin: --super-prefix dedicated test vector
+// BC-4.16.001 Precondition 2 note (F-P5-001 deferral anchor)
+// ---------------------------------------------------------------------------
+
+#[test]
+fn test_fp5_001_sub_nitpick_super_prefix_blocks_factory_path_on_develop() {
+    // BC-4.16.001 Precondition 2 sub-NITPICK (F-P5-001 deferred test):
+    // `git --super-prefix p add .factory/x` on develop MUST block.
+    //
+    // '--super-prefix' is in the canonical value-consuming option set
+    // (is_canonical_long_value_consuming) per F-P4-001. 'p' is consumed as its
+    // value; 'add' is correctly identified as the subcommand; '.factory/x' is
+    // a .factory/-prefixed path → contains_factory_path_arg fast-path returns
+    // true → PC1 → BLOCK.
+    //
+    // Expected: GREEN (already in canonical set from F-P4-001).
+    // This is a dedicated pin per the sub-NITPICK deferral in BC-4.16.001 v1.6
+    // Precondition 2 note (F-P5-001 sub-NITPICK — test deferred to test-writer).
+    let result = run_hook_with_branch("git --super-prefix p add .factory/x", "develop");
+    assert!(
+        result.is_ok(),
+        "F-P5-001 sub-NITPICK / BC-4.16.001 Precondition 2: hook_logic panicked for \
+         'git --super-prefix p add .factory/x' on develop."
+    );
+    if let Ok(hook_result) = result {
+        assert_eq!(
+            hook_result.exit_code(),
+            2,
+            "F-P5-001 sub-NITPICK / BC-4.16.001 Precondition 2 (F-P4-001 canonical set): \
+             'git --super-prefix p add .factory/x' on develop MUST exit 2. '--super-prefix' \
+             is in the canonical value-consuming option set (is_canonical_long_value_consuming); \
+             'p' is consumed as its value; 'add' is the subcommand; '.factory/x' is a \
+             .factory/-prefixed path → fast-path match → PC1 → BLOCK. Expected GREEN (pin)."
+        );
+        match &hook_result {
+            HookResult::Block { reason } => {
+                assert!(
+                    reason.contains("FactoryPathOnProductBranch"),
+                    "F-P5-001 sub-NITPICK: block reason must contain \
+                     'FactoryPathOnProductBranch'. Got: '{}'",
+                    reason
+                );
+            }
+            other => panic!(
+                "F-P5-001 sub-NITPICK: expected HookResult::Block for \
+                 'git --super-prefix p add .factory/x' on develop, got {:?}",
+                other
+            ),
+        }
+    }
+}
