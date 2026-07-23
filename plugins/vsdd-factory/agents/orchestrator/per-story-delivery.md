@@ -223,9 +223,10 @@ The pre-check is transparent and safe to proceed on clean diffs.
 
 ### Fail-Open When git diff Fails
 
-If the `git diff --name-only HEAD..<target-ref>` command itself fails (network error,
-unresolvable ref, git unavailable), the agent MUST:
-1. Log a warning describing the failure
+If the `git diff --name-only HEAD..<target-ref>` command itself fails — including a
+non-zero exit code (e.g., network error, unresolvable ref) or git unavailable — the
+agent MUST:
+1. Log a warning describing the failure and the non-zero exit code or error
 2. Proceed with the merge/pull/checkout (fail-open)
 
 An unresolvable pre-check is NOT a blocking condition — it means the pre-check could not
