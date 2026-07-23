@@ -99,28 +99,33 @@ pub fn is_git_add_command(payload: &str) -> bool {
 /// on a product branch.
 ///
 /// Conservative matching per BC-4.16.001 Invariant 4 v1.4:
-/// - Literal `.factory/` prefix match anywhere in the payload (fast path).
+/// - Case-insensitive `.factory/` prefix match anywhere in the payload (fast
+///   path; covers `.Factory/`, `.FACTORY/` etc. for macOS HFS+ / Windows NTFS
+///   which are case-folding filesystems).
 /// - Parses each `git add`/`git stage` invocation in the payload (including
 ///   chained forms). Global option values (e.g. the directory argument to
 ///   `-C <path>`) are skipped and NOT treated as staging targets — only tokens
 ///   that are actual arguments to the `add`/`stage` subcommand are checked.
 /// - In the argument region of each `add`/`stage` invocation, the following
 ///   patterns trigger a conservative block:
-///   - Bare `.factory` token (no trailing slash): git expands to `.factory/**`.
+///   - Bare `.factory` token (case-insensitive, no trailing slash): git expands
+///     to `.factory/**` for staging — same dual-tracking scope.
 ///   - `:/`-family pathspec magic: anchors from repo root, can reach `.factory/`.
 ///   - `-A`, `--all`, `-u`, `--update`, `.`, `./`: bulk-stage flags / CWD forms.
 ///   - Glob wildcards (`*`, `?`, `[`): guard cannot evaluate expansions pre-run.
 ///   - Combined short flags containing `A` or `u` (e.g. `-Au`).
 ///
 /// # BC trace
-/// BC-4.16.001 Invariant 4 v1.4: path matching is conservative.
+/// BC-4.16.001 Invariant 4 v1.4: path matching is conservative and case-insensitive.
 /// BC-4.16.001 EC-004: `git add -A` from CWD under `.factory/` is blocked.
 /// BC-4.16.001 EC-008: `git add *.md` glob from project root is blocked.
 /// BC-4.16.001 EC-010: `git add -u` is blocked (tracks all modifications).
 pub fn contains_factory_path_arg(payload: &str) -> bool {
-    // Fast path: `.factory/` literal prefix or component anywhere in payload.
-    // Case-insensitive upgrade handled separately (F-P2-003).
-    if payload.contains(".factory/") {
+    // Fast path: case-insensitive `.factory/` literal anywhere in payload.
+    // Handles `.factory/`, `.Factory/`, `.FACTORY/` etc. per BC-4.16.001 Invariant 4 v1.4
+    // (macOS HFS+ and Windows NTFS are case-folding; `.Factory/` names the same dir).
+    let lower = payload.to_ascii_lowercase();
+    if lower.contains(".factory/") {
         return true;
     }
 
@@ -201,10 +206,12 @@ fn is_factory_arg_token(token: &str) -> bool {
     // Strip surrounding single or double quotes for pathspec-magic analysis.
     // Handles `':/.factory'` and `":/..."` quoted forms.
     let unquoted = token.trim_matches(|c| c == '\'' || c == '"');
+    let unquoted_lower = unquoted.to_ascii_lowercase();
 
-    // Bare .factory token without trailing slash: git expands `.factory` to
-    // `.factory/**` for staging — same dual-tracking scope as `.factory/`.
-    if unquoted == ".factory" {
+    // Bare .factory token (case-insensitive): no trailing slash but git expands
+    // `.factory` to `.factory/**` for staging — same dual-tracking scope.
+    // Case-insensitive per BC-4.16.001 Invariant 4 v1.4.
+    if unquoted_lower == ".factory" {
         return true;
     }
 
