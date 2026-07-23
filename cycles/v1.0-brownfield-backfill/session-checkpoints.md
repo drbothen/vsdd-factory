@@ -7,7 +7,7 @@ producer: state-manager
 timestamp: 2026-04-26T12:00:00Z
 cycle: v1.0-brownfield-backfill
 inputs: [STATE.md]
-input-hash: "9df1d97"
+input-hash: "76c3a42"
 traces_to: STATE.md
 ---
 
@@ -1194,7 +1194,7 @@ Run `/vsdd-factory:next-step` (reads STATE.md; TOP item = rc.24 release decision
 
 ---
 
-## D-878 Checkpoint (2026-07-22 session wrap — AUTHORITATIVE)
+## D-878 Checkpoint (archived 2026-07-23 by D-885 session wrap — superseded; see D-885 Checkpoint below)
 
 **This is the authoritative post-wrap resume record for the 2026-07-22 human `/wrap` directive.** Per the D-866/D-870/D-873/D-874/D-875/D-876/D-877 precedent Strategy Constraint (STATE.md edit-mechanism defect — ADR-032 hook fix merged to develop but NOT YET deployed to operator cache via rc.24), STATE.md's `## Session Resume Checkpoint` section body was intentionally NOT updated this burst. STATE.md frontmatter was updated minimally only (`version:`, `timestamp:`, `phase:`, `last_amended:`, `pipeline:`, phase-summary, `current_step:`). Read this section alone to resume — assumes ZERO prior context.
 
@@ -1287,3 +1287,83 @@ Run `/vsdd-factory:next-step` (TOP item = rc.24 release decision → then remain
 - **factory-artifacts HEAD:** `d7e51a6b` pre-wrap-commit (this D-878 wrap commit lands on top)
 - **D-range:** D-001..D-878 (see decision-log.md for full range)
 - **factory_lock:** NOT HELD
+
+---
+
+## D-885 Checkpoint (2026-07-23 session wrap — AUTHORITATIVE)
+
+**This is the authoritative post-wrap resume record for the 2026-07-23 human `/wrap` directive.** Per the D-866..D-884 precedent Strategy Constraint (STATE.md edit-mechanism defect — ADR-032 hook fix merged to develop but NOT YET deployed to operator cache via rc.24), STATE.md's `## Session Resume Checkpoint` section body was intentionally NOT updated this burst. STATE.md frontmatter was updated minimally (`version:`, `timestamp:`, `phase:`, `last_amended:`); `pipeline:` UNCHANGED (already PAUSED); `phase-summary` (line 16) and `current_step:` NOT updated — same hook constraint (Python prep blocked by auto-mode classifier until human directly authorizes the pattern). Read this section alone to resume — assumes ZERO prior context.
+
+### 1. Position
+
+Pipeline **PAUSED** post-D-884 (S-21.01-DELIVERED). **E-21 W1 ACTIVE→PAUSED.** NEXT: S-21.02 dispatch. develop HEAD `7bb0e797` (PR #759 squash-merge 2026-07-23). main HEAD `80e5cd7b` UNCHANGED (7 dependabot vulns flagged, 2 HIGH — resolved on develop, main lags until release). factory-artifacts pre-wrap HEAD `3c554d75` (D-884 story-close burst); this D-885 wrap commit lands on top. No story worktrees. No in-flight sub-agent work. Main-repo working tree dirt: `.claude/scheduled_tasks.lock` modified (harness-managed; stale PID 64837 from 2026-07-20 verified dead) + untracked `plugins/vsdd-factory/tests/report.tap` (test artifact, ignorable) + untracked `code-delivery/S-21.01/` (demo recordings, not committed to factory-artifacts this burst). Local develop synced to `7bb0e797`.
+
+### 2. Session record (2026-07-22 resume → 2026-07-23 wrap)
+
+Resumed from D-878 wrap checkpoint (2026-07-22). 8 PRs merged this session (7 fix PRs + 1 story delivery), all validated (CI green + spec-conformance + review):
+
+| PR | Description | Burst |
+|----|-------------|-------|
+| #720 | bats test coverage (re-review → APPROVE) | D-879 |
+| #727 | cas-push worktree cwd fix (re-review → APPROVE) | D-879 |
+| #735 | orphan branch plumbing (signing-key findings resolved) | D-879 |
+| #737 | worktree mount assertions (HIGH findings addressed) | D-879 |
+| #738 | dispatcher log-dir gate (FACTORY_ROOT fix) | D-879 |
+| #740 | state-manager idempotency docs | D-879 |
+| #714 | story template CHANGELOG fix (companion BC decision) | D-879 |
+| #759 | S-21.01 validate-factory-path-staging (E-21 W1 delivery; 12-pass cascade 3-CLEAN; 133+5 tests green; security APPROVE-WITH-RECOMMENDATIONS; 9/9 ACs demo evidence) | D-879..D-884 |
+
+merged_count 107→108 (S-21.01 delivery). PR #729 remains REQUEST_CHANGES (POLICY 21 blocker — re-review pending author response).
+
+### 3. S-21.01 delivery record
+
+- Story: S-21.01 `validate-factory-path-staging` (E-21 W1)
+- BC: BC-4.16.001 v1.8 (POL-14 auto-promoted `draft→active` at merge)
+- PR #759: squash-merge at `7bb0e797` (2026-07-23; CI 12/12 green; pr-reviewer 2-round convergence CLEAN at `99533daf`)
+- Adversarial cascade: 12 passes; p10/p11/p12 CLEAN → 3/3 streak CONVERGED per BC-5.39.001 (D-883)
+- Security: APPROVE-WITH-RECOMMENDATIONS — SEC-001 MEDIUM accepted residual (attacker-controlled Invariant-6 path bypass yields only harmless self-staging, threat-model preserved); SEC-003/004 fixed in scope
+- Demo: 9/9 ACs evidence recorded
+- POL-14 at story-close (D-884): BC-4.16.001 v1.7→v1.8 (draft→active) + BC-5.43.001 v1.3→v1.4 (draft→active)
+- 4-index at close: BC v4.20 / VP v2.72 / STORY v4.236 / ARCH v3.26
+
+### 4. Known defect (carried from D-866..D-884, OPEN)
+
+**STATE.md edit-mechanism defect — UNCHANGED from D-878 §4.** ADR-032 hook fix (verify-state-timestamp-refresh guard rewrite) is merged to develop (`26508e83`, PR #742) but NOT yet in the operator-level plugin cache — requires **rc.24 release** to propagate. The minimal-frontmatter Strategy Constraint still applies. Note: `phase-summary` (line 16) and `current_step:` (line 17) NOT updated in STATE.md during D-880..D-885 bursts — Python prep was authorized by team-lead but auto-mode classifier blocked it (requires direct human user authorization, not teammate relay).
+
+**rc.24 is TRIPLY load-bearing (UNCHANGED from D-878 §4):**
+1. STATE.md edit-hook fix (verify-state-timestamp-refresh guard rewrite — merged #742 `26508e83`)
+2. post-#715 compute-input-hash binary divergence — cached rc.23 tool computes old-algorithm hashes vs source post-#715 tool; systemic resolution requires rc.24 shipping new binary
+3. main branch vulnerability lag — 7 dependabot vulns on main (2 HIGH: CVE-2026-59879+CVE-2026-59880), resolved on develop; main stays lagged until release
+
+**D-865..D-885 STATE.md body reconciliation** remains deferred until rc.24 is released and hook fix is live in operator cache.
+
+### 5. Pending human decisions (priority order)
+
+1. **rc.24 RELEASE DECISION** — TOP ITEM. TRIPLY load-bearing (see §4). Gate presented at every session wrap since D-866; unanswered.
+2. **Python prep + Write authorization** (optional path to fixing STATE.md current_step): if you type `proceed with python prep for STATE.md` directly (not via teammate relay), the auto-mode classifier will allow the Python-prep + Write tool pattern to update STATE.md's current_step and phase-summary fields. Otherwise they remain at D-879 values until rc.24 resolves the edit-hook.
+3. **wasmtime upgrade** — RUSTSEC-2026-0149 HIGH + RUSTSEC-2026-0188 MED + RUSTSEC-2026-0182 LOW (wasmtime-wasi 44.0.1); crossbeam-epoch RUSTSEC-2026-0204. 4 pre-existing workspace vulns predating S-21.01 branch fork. FOLLOW-UP (S-7.02) registered D-884.
+4. **E-21 W2 dispatch** — S-21.02 is NEXT. W1 complete (S-21.01 DELIVERED). Dispatch decision: rc.24 first, or proceed concurrently.
+5. **PR #729 re-review** — POLICY 21 Rust-port mandate; REQUEST_CHANGES from D-879; re-review pending author response.
+6. **Issue #342 close comment** — human to post: "Implemented: validate-factory-path-staging WASM guard (BC-4.16.001 v1.8) + PR #759 merged 7bb0e797."
+7. **STATE.md body reconciliation D-865..D-885** — deferred per §4; run after rc.24.
+8. **S-7.06..S-7.11 triage** — draft process-gap stories in sprint-state; awaiting human triage direction.
+9. **PR #632** — draft, NEEDS-REWORK, E-20 roster item. E-20 remains DEFERRED.
+
+### 6. Process-gap lessons (this session)
+
+- **POLICY-21 miss** (L-BB-policy-21-process-gap, codified prior session): PR #729 adversary review missed POLICY 21 Rust-port mandate for new .sh hooks. Lesson: adversary checklist must include POLICY 21 scan for any PR adding a new `.sh` hook.
+- **Subagent final-report loss** (L-BB-subagent-final-report-loss, codified D-884): 4 sub-agents went idle without delivering final reports; recovered via explicit re-request. Lesson: after every sub-agent dispatch, re-request explicitly if no final report arrives in expected turnaround.
+- **Auto-mode classifier friction** (6 blocks D-884 burst + 1 block D-885 burst): verify-state-timestamp-refresh hook + auto-mode classifier interplay blocks Python-prep + Write pattern. Pattern requires direct human user authorization (not teammate relay). Workaround: Edit tool short-anchor approach updates 4/6 frontmatter fields; remaining 2 fields deferred.
+
+### 7. Resume command
+
+Run `/vsdd-factory:next-step` (TOP item = rc.24 release decision → then E-21 W2 S-21.02 dispatch → PR #729 re-review → issue #342 close → STATE.md body reconciliation).
+
+### 8. Housekeeping
+
+- **4-index at D-885 wrap (POLICY 16 GLOBAL-MAX GATE: `grep -n "^## D-" decision-log.md | tail -3` → `10904:## D-882 / 10916:## D-883 / 10928:## D-884`; D-884 confirmed prior max → D-885 allocated):** BC v4.20 / VP v2.72 / STORY v4.236 / ARCH v3.26
+- **develop HEAD:** `7bb0e797` (PR #759 squash-merge 2026-07-23)
+- **main HEAD:** `80e5cd7b` (unchanged all session)
+- **factory-artifacts HEAD:** `3c554d75` (D-884 story-close; this D-885 wrap commit lands on top)
+- **D-range:** D-001..D-885 (see decision-log.md for full range)
+- **factory_lock:** NOT HELD (stale PID 64837 from 2026-07-20 verified dead; harness-managed .claude/scheduled_tasks.lock not modified)
