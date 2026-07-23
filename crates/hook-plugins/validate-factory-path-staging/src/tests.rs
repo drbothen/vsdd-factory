@@ -1355,3 +1355,460 @@ fn test_fp1_002_bc4_16_001_blocks_double_space_git_stage_factory_on_develop() {
         );
     }
 }
+
+// ---------------------------------------------------------------------------
+// F-P2-001 [BLOCKER]: BC-4.16.001 v1.4 — chained/sequential command forms.
+//
+// BC-4.16.001 v1.4 Precondition 2 explicitly requires the git add/stage
+// matcher to scan anywhere in the payload, including &&, ; and | chained
+// forms. The current is_git_add_command implementation exits early at the
+// first "git" token and therefore misses git add commands that appear after
+// a different git command (e.g. `git status && git add`).
+//
+// Unit tests on is_git_add_command: assert true for chained forms (RED).
+// Integration tests via hook_logic: assert Block on product branches (RED).
+// Regression-pin tests: assert already-correct forms remain correct (GREEN).
+// ---------------------------------------------------------------------------
+
+// -- is_git_add_command unit tests for chained forms (RED) --
+
+#[test]
+fn test_fp2_001_is_git_add_command_detects_chained_and_git_add_after_status() {
+    // BC-4.16.001 v1.4 Precondition 2: git add appearing after && must be detected.
+    // Current impl: "git" → next "status" → returns false immediately (early exit).
+    assert!(
+        is_git_add_command("git status && git add .factory/STATE.md"),
+        "F-P2-001 / BC-4.16.001 v1.4 Precondition 2: \
+         'git status && git add .factory/STATE.md' MUST be detected as containing a git \
+         add command. The '&&' chained form places git add after a different git command — \
+         current impl exits early at the first 'git' token (matched to 'status')."
+    );
+}
+
+#[test]
+fn test_fp2_001_is_git_add_command_detects_chained_and_git_stage_after_pull() {
+    // BC-4.16.001 v1.4 Precondition 2: git stage appearing after && must be detected.
+    assert!(
+        is_git_add_command("git pull && git stage .factory/x"),
+        "F-P2-001 / BC-4.16.001 v1.4 Precondition 2: \
+         'git pull && git stage .factory/x' MUST detect git stage in the chained form. \
+         Current impl exits early at the first 'git' token (matched to 'pull')."
+    );
+}
+
+#[test]
+fn test_fp2_001_is_git_add_command_detects_semicolon_chained_git_add() {
+    // BC-4.16.001 v1.4 Precondition 2: ';' sequential form must be detected.
+    // 'diff;' is a single token (no space before ';') — current impl sees 'diff;'
+    // as the subcommand token, which is neither 'add' nor 'stage', and returns false.
+    assert!(
+        is_git_add_command("git diff; git add .factory/STATE.md"),
+        "F-P2-001 / BC-4.16.001 v1.4 Precondition 2: \
+         'git diff; git add .factory/STATE.md' MUST detect git add after the ';' separator. \
+         'diff;' is a single whitespace-separated token — current impl treats it as the \
+         subcommand and exits before scanning the second 'git add'."
+    );
+}
+
+// -- F-P2-001 integration tests via hook_logic (RED) --
+
+#[test]
+fn test_fp2_001_bc4_16_001_blocks_chained_and_git_add_factory_on_develop() {
+    // F-P2-001 [BLOCKER] / BC-4.16.001 v1.4 Precondition 2:
+    // Chained form `git status && git add .factory/STATE.md` on develop MUST block.
+    // Currently BYPASSES: is_git_add_command returns false (first 'git' → 'status').
+    let result = run_hook_with_branch("git status && git add .factory/STATE.md", "develop");
+    assert!(
+        result.is_ok(),
+        "F-P2-001: hook_logic panicked for \
+         'git status && git add .factory/STATE.md' on develop."
+    );
+    if let Ok(hook_result) = result {
+        assert_eq!(
+            hook_result.exit_code(),
+            2,
+            "F-P2-001 [BLOCKER] / BC-4.16.001 v1.4 Precondition 2: \
+             'git status && git add .factory/STATE.md' on develop MUST exit 2. The guard \
+             must scan all tokens in the payload for git add/stage, not stop at the first \
+             git command. Currently BYPASSES (first 'git status' fools the scanner)."
+        );
+        match &hook_result {
+            HookResult::Block { reason } => {
+                assert!(
+                    reason.contains("FactoryPathOnProductBranch"),
+                    "F-P2-001: block reason must contain 'FactoryPathOnProductBranch'. \
+                     Got: '{}'",
+                    reason
+                );
+            }
+            other => panic!(
+                "F-P2-001: expected HookResult::Block for chained && form on develop, \
+                 got {:?}",
+                other
+            ),
+        }
+    }
+}
+
+#[test]
+fn test_fp2_001_bc4_16_001_blocks_chained_and_git_stage_factory_after_pull() {
+    // F-P2-001 [BLOCKER]: `git pull && git stage .factory/x` on develop MUST block.
+    let result = run_hook_with_branch("git pull && git stage .factory/x", "develop");
+    assert!(
+        result.is_ok(),
+        "F-P2-001: hook_logic panicked for 'git pull && git stage .factory/x'."
+    );
+    if let Ok(hook_result) = result {
+        assert_eq!(
+            hook_result.exit_code(),
+            2,
+            "F-P2-001 [BLOCKER] / BC-4.16.001 v1.4 Precondition 2: \
+             'git pull && git stage .factory/x' on develop MUST exit 2. \
+             'git stage' after '&&' must be detected (same dual-tracking vector). \
+             Currently BYPASSES (first 'git pull' fools the scanner)."
+        );
+    }
+}
+
+#[test]
+fn test_fp2_001_bc4_16_001_blocks_semicolon_chained_git_add_factory_on_develop() {
+    // F-P2-001 [BLOCKER]: `git diff; git add .factory/STATE.md` on develop MUST block.
+    let result = run_hook_with_branch("git diff; git add .factory/STATE.md", "develop");
+    assert!(
+        result.is_ok(),
+        "F-P2-001: hook_logic panicked for 'git diff; git add .factory/STATE.md'."
+    );
+    if let Ok(hook_result) = result {
+        assert_eq!(
+            hook_result.exit_code(),
+            2,
+            "F-P2-001 [BLOCKER] / BC-4.16.001 v1.4 Precondition 2: \
+             'git diff; git add .factory/STATE.md' on develop MUST exit 2. \
+             The ';' sequential form with the 'diff;' token (no space before ';') \
+             must not prevent detection of the subsequent 'git add'. \
+             Currently BYPASSES ('diff;' token treated as non-matching subcommand)."
+        );
+    }
+}
+
+// -- F-P2-001 regression-pin tests (GREEN — already correct) --
+
+#[test]
+fn test_fp2_001_regression_pipe_git_add_factory_already_blocks_on_develop() {
+    // Regression-pin / BC-4.16.001 v1.4 Precondition 2: pipe form `echo hi | git add`.
+    // is_git_add_command iterates past 'echo', 'hi', '|' (not 'git') until it finds
+    // 'git' followed by 'add' — the while loop does not exit early here because 'echo'
+    // is not 'git'. This form already blocks correctly; pin ensures it stays that way.
+    let result = run_hook_with_branch("echo hi | git add .factory/f", "develop");
+    assert!(
+        result.is_ok(),
+        "F-P2-001 regression-pin: hook_logic panicked for pipe form \
+         'echo hi | git add .factory/f'."
+    );
+    if let Ok(hook_result) = result {
+        assert_eq!(
+            hook_result.exit_code(),
+            2,
+            "F-P2-001 regression-pin / BC-4.16.001 v1.4 Precondition 2: \
+             'echo hi | git add .factory/f' on develop MUST exit 2. \
+             The while loop finds 'git add' past the pipe separator — already correct."
+        );
+    }
+}
+
+#[test]
+fn test_fp2_001_bc4_16_001_negative_chained_non_factory_add_continues() {
+    // BC-4.16.001 PC2: chained form with non-.factory/ path MUST pass.
+    // Before fix: is_git_add_command false (PC4) → Continue.
+    // After fix: is_git_add_command true, contains_factory_path_arg false (PC2) → Continue.
+    // Either way Continue — regression guard against over-blocking.
+    let result = run_hook_with_branch("git status && git add src/main.rs", "develop");
+    assert!(
+        result.is_ok(),
+        "F-P2-001 negative: hook_logic panicked for \
+         'git status && git add src/main.rs' on develop."
+    );
+    if let Ok(hook_result) = result {
+        assert_eq!(
+            hook_result,
+            HookResult::Continue,
+            "F-P2-001 negative / BC-4.16.001 PC2: \
+             'git status && git add src/main.rs' on develop MUST return Continue \
+             (no .factory/ path in the git add argument)."
+        );
+    }
+}
+
+#[test]
+fn test_fp2_001_regression_first_cmd_git_add_factory_already_blocks() {
+    // Regression-pin: first command in chain is git add — already detected correctly.
+    // 'git add .factory/x && git status': first 'git' → 'add' → true; .factory/ found.
+    let result = run_hook_with_branch("git add .factory/x && git status", "develop");
+    assert!(
+        result.is_ok(),
+        "F-P2-001 regression-pin: hook_logic panicked for \
+         'git add .factory/x && git status'."
+    );
+    if let Ok(hook_result) = result {
+        assert_eq!(
+            hook_result.exit_code(),
+            2,
+            "F-P2-001 regression-pin / BC-4.16.001 PC1: \
+             'git add .factory/x && git status' on develop MUST exit 2. \
+             First command is 'git add' — already detected by current impl."
+        );
+    }
+}
+
+// ---------------------------------------------------------------------------
+// F-P2-002 [MEDIUM]: BC-4.16.001 v1.4 — global-option forms.
+//
+// BC-4.16.001 v1.4 Precondition 2 detection contract: "any token sequence
+// beginning git whose first non-option subcommand token is add or stage,
+// tolerating any number of intervening global options or flags". Forms like
+// `git -C <path> add`, `git --no-pager add`, `git -c key=val add` are all
+// in scope. Current is_git_add_command checks only the token immediately
+// after 'git', so global options cause it to return false (BYPASS).
+// ---------------------------------------------------------------------------
+
+// -- is_git_add_command unit tests for global-option forms (RED) --
+
+#[test]
+fn test_fp2_002_is_git_add_command_detects_global_option_dash_c_path() {
+    // BC-4.16.001 v1.4 Precondition 2: 'git -C <path> add' must be detected.
+    // Current impl: "git" → next "-C" → neither "add" nor "stage" → returns false.
+    assert!(
+        is_git_add_command("git -C . add .factory/STATE.md"),
+        "F-P2-002 / BC-4.16.001 v1.4 Precondition 2: \
+         'git -C . add' MUST be detected as a git add command. The '-C <path>' global \
+         option precedes the 'add' subcommand — current impl checks the token immediately \
+         after 'git' ('-C'), not the first non-option subcommand token ('add')."
+    );
+}
+
+#[test]
+fn test_fp2_002_is_git_add_command_detects_global_option_no_pager() {
+    // BC-4.16.001 v1.4 Precondition 2: 'git --no-pager add' must be detected.
+    assert!(
+        is_git_add_command("git --no-pager add .factory/x"),
+        "F-P2-002 / BC-4.16.001 v1.4 Precondition 2: \
+         'git --no-pager add' MUST be detected as a git add command. '--no-pager' is a \
+         global option before the subcommand — current impl treats it as the subcommand."
+    );
+}
+
+#[test]
+fn test_fp2_002_is_git_add_command_detects_global_option_dash_c_kv_stage() {
+    // BC-4.16.001 v1.4 Precondition 2: 'git -c key=val stage' must be detected.
+    assert!(
+        is_git_add_command("git -c user.name=x stage .factory/y"),
+        "F-P2-002 / BC-4.16.001 v1.4 Precondition 2: \
+         'git -c user.name=x stage' MUST be detected as a git stage command. \
+         '-c key=val' is a global config option before the subcommand."
+    );
+}
+
+// -- F-P2-002 integration tests via hook_logic (RED) --
+
+#[test]
+fn test_fp2_002_bc4_16_001_blocks_global_dash_c_add_factory_on_develop() {
+    // F-P2-002 [MEDIUM]: `git -C . add .factory/STATE.md` on develop MUST block.
+    let result = run_hook_with_branch("git -C . add .factory/STATE.md", "develop");
+    assert!(
+        result.is_ok(),
+        "F-P2-002: hook_logic panicked for 'git -C . add .factory/STATE.md'."
+    );
+    if let Ok(hook_result) = result {
+        assert_eq!(
+            hook_result.exit_code(),
+            2,
+            "F-P2-002 [MEDIUM] / BC-4.16.001 v1.4 Precondition 2: \
+             'git -C . add .factory/STATE.md' on develop MUST exit 2. '-C <path>' is a \
+             global option before the 'add' subcommand — current impl checks the token \
+             immediately after 'git' ('-C'), bypassing the guard."
+        );
+    }
+}
+
+#[test]
+fn test_fp2_002_bc4_16_001_blocks_global_no_pager_add_factory_on_develop() {
+    // F-P2-002 [MEDIUM]: `git --no-pager add .factory/x` on develop MUST block.
+    let result = run_hook_with_branch("git --no-pager add .factory/x", "develop");
+    assert!(
+        result.is_ok(),
+        "F-P2-002: hook_logic panicked for 'git --no-pager add .factory/x'."
+    );
+    if let Ok(hook_result) = result {
+        assert_eq!(
+            hook_result.exit_code(),
+            2,
+            "F-P2-002 [MEDIUM] / BC-4.16.001 v1.4 Precondition 2: \
+             'git --no-pager add .factory/x' on develop MUST exit 2. \
+             '--no-pager' is a global option — current impl bypasses guard."
+        );
+    }
+}
+
+#[test]
+fn test_fp2_002_bc4_16_001_blocks_global_dash_c_kv_stage_factory_on_develop() {
+    // F-P2-002 [MEDIUM]: `git -c user.name=x stage .factory/y` on develop MUST block.
+    let result = run_hook_with_branch("git -c user.name=x stage .factory/y", "develop");
+    assert!(
+        result.is_ok(),
+        "F-P2-002: hook_logic panicked for 'git -c user.name=x stage .factory/y'."
+    );
+    if let Ok(hook_result) = result {
+        assert_eq!(
+            hook_result.exit_code(),
+            2,
+            "F-P2-002 [MEDIUM] / BC-4.16.001 v1.4 Precondition 2: \
+             'git -c user.name=x stage .factory/y' on develop MUST exit 2. \
+             '-c key=val' is a global config option — current impl bypasses guard."
+        );
+    }
+}
+
+// -- F-P2-002 negative regression-pin (GREEN) --
+
+#[test]
+fn test_fp2_002_bc4_16_001_negative_global_dash_c_add_non_factory_continues() {
+    // BC-4.16.001 PC2: global-option form with non-.factory/ path MUST pass.
+    // Before fix: is_git_add_command false (PC4 bypass) → Continue.
+    // After fix: is_git_add_command true, contains_factory_path_arg false (PC2) → Continue.
+    // Either way Continue — regression guard against over-blocking global-option forms.
+    let result = run_hook_with_branch("git -C . add src/lib.rs", "develop");
+    assert!(
+        result.is_ok(),
+        "F-P2-002 negative: hook_logic panicked for 'git -C . add src/lib.rs'."
+    );
+    if let Ok(hook_result) = result {
+        assert_eq!(
+            hook_result,
+            HookResult::Continue,
+            "F-P2-002 negative / BC-4.16.001 PC2: \
+             'git -C . add src/lib.rs' on develop MUST return Continue \
+             (non-.factory/ path; global-option form must not over-block)."
+        );
+    }
+}
+
+// ---------------------------------------------------------------------------
+// F-P2-003 [LOW]: BC-4.16.001 v1.4 Invariant 4 — case-insensitive .factory/ matching.
+//
+// macOS HFS+ and Windows NTFS are case-folding filesystems where
+// `git add .Factory/STATE.md` targets the same file as
+// `git add .factory/STATE.md`. BC-4.16.001 v1.4 Invariant 4 requires
+// conservative case-insensitive blocking. Current contains_factory_path_arg
+// uses a case-sensitive `.contains(".factory/")` check — BYPASS on variants.
+// ---------------------------------------------------------------------------
+
+// -- contains_factory_path_arg unit tests for case variants (RED) --
+
+#[test]
+fn test_fp2_003_contains_factory_path_arg_detects_capitalized_factory_dir() {
+    // BC-4.16.001 v1.4 Invariant 4: '.Factory/' must match (case-insensitive).
+    // Current impl: `.contains(".factory/")` is case-sensitive → '.Factory/' not found.
+    assert!(
+        contains_factory_path_arg("git add .Factory/STATE.md"),
+        "F-P2-003 / BC-4.16.001 v1.4 Invariant 4: '.Factory/STATE.md' MUST be detected \
+         as a .factory/ path (case-insensitive). macOS HFS+ and Windows NTFS treat \
+         '.Factory/' as the same directory as '.factory/'. Current impl uses a \
+         case-sensitive '.contains(\".factory/\")' check — '.Factory/' is not found."
+    );
+}
+
+#[test]
+fn test_fp2_003_contains_factory_path_arg_detects_allcaps_factory_dir() {
+    // BC-4.16.001 v1.4 Invariant 4: '.FACTORY/' must match (case-insensitive).
+    assert!(
+        contains_factory_path_arg("git add .FACTORY/x"),
+        "F-P2-003 / BC-4.16.001 v1.4 Invariant 4: '.FACTORY/x' MUST be detected as a \
+         .factory/ path match. All-caps variant targets same directory on case-folding \
+         filesystems. Conservative blocking required."
+    );
+}
+
+// -- F-P2-003 integration tests via hook_logic (RED) --
+
+#[test]
+fn test_fp2_003_bc4_16_001_blocks_capitalized_factory_path_on_develop() {
+    // F-P2-003 [LOW]: `git add .Factory/STATE.md` on develop MUST block.
+    // is_git_add_command detects 'git add' (plain form) → true.
+    // contains_factory_path_arg: '.factory/' case-sensitive check misses '.Factory/' → false.
+    // Result: Continue (BYPASS). After fix: case-insensitive check → true → Block.
+    let result = run_hook_with_branch("git add .Factory/STATE.md", "develop");
+    assert!(
+        result.is_ok(),
+        "F-P2-003: hook_logic panicked for 'git add .Factory/STATE.md' on develop."
+    );
+    if let Ok(hook_result) = result {
+        assert_eq!(
+            hook_result.exit_code(),
+            2,
+            "F-P2-003 [LOW] / BC-4.16.001 v1.4 Invariant 4: \
+             'git add .Factory/STATE.md' on develop MUST exit 2. '.Factory/' targets \
+             the same directory as '.factory/' on macOS HFS+ and Windows NTFS \
+             (case-folding filesystems). Case-insensitive blocking required. \
+             Currently BYPASSES (case-sensitive '.factory/' check misses '.Factory/')."
+        );
+        match &hook_result {
+            HookResult::Block { reason } => {
+                assert!(
+                    reason.contains("FactoryPathOnProductBranch"),
+                    "F-P2-003: block reason must contain 'FactoryPathOnProductBranch'. \
+                     Got: '{}'",
+                    reason
+                );
+            }
+            other => panic!(
+                "F-P2-003: expected HookResult::Block for '.Factory/' on develop, \
+                 got {:?}",
+                other
+            ),
+        }
+    }
+}
+
+#[test]
+fn test_fp2_003_bc4_16_001_blocks_allcaps_factory_path_on_develop() {
+    // F-P2-003 [LOW]: `git add .FACTORY/x` on develop MUST block.
+    let result = run_hook_with_branch("git add .FACTORY/x", "develop");
+    assert!(
+        result.is_ok(),
+        "F-P2-003: hook_logic panicked for 'git add .FACTORY/x' on develop."
+    );
+    if let Ok(hook_result) = result {
+        assert_eq!(
+            hook_result.exit_code(),
+            2,
+            "F-P2-003 [LOW] / BC-4.16.001 v1.4 Invariant 4: \
+             'git add .FACTORY/x' on develop MUST exit 2. All-caps '.FACTORY/' variant \
+             must be conservatively blocked on case-folding filesystems. \
+             Currently BYPASSES (case-sensitive check)."
+        );
+    }
+}
+
+// -- F-P2-003 negative regression-pin (GREEN) --
+
+#[test]
+fn test_fp2_003_bc4_16_001_negative_capitalized_factory_passes_on_factory_artifacts() {
+    // BC-4.16.001 PC3: factory-artifacts branch passes unconditionally regardless of case.
+    // Branch detection → 'factory-artifacts' → not product branch → Continue (PC3).
+    // Before fix and after fix: same Continue result. Pin against over-blocking.
+    let result = run_hook_with_branch("git add .Factory/STATE.md", "factory-artifacts");
+    assert!(
+        result.is_ok(),
+        "F-P2-003 negative: hook_logic panicked for 'git add .Factory/STATE.md' \
+         on factory-artifacts."
+    );
+    if let Ok(hook_result) = result {
+        assert_eq!(
+            hook_result,
+            HookResult::Continue,
+            "F-P2-003 negative / BC-4.16.001 PC3: 'git add .Factory/STATE.md' on \
+             factory-artifacts MUST return Continue (PC3 unconditional pass — \
+             factory-artifacts branch staging is always legitimate)."
+        );
+    }
+}

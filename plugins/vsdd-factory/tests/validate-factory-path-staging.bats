@@ -823,3 +823,85 @@ _extract_main_checkout_sync_protocol_section() {
     false
   }
 }
+
+# ---------------------------------------------------------------------------
+# F-P2-001 / F-P2-002 / F-P2-003: BC-4.16.001 v1.4 — pass-2 findings.
+# WASM tests: skip if artifacts not built (same pattern as T-001..T-027).
+# RED gate: current WASM implementation misses these v1.4 forms.
+# ---------------------------------------------------------------------------
+
+@test "T-028 S-21.01 F-P2-001 AC-001: guard blocks chained '&&' git add .factory on develop" {
+  # F-P2-001 [BLOCKER] / BC-4.16.001 v1.4 Precondition 2:
+  # 'git status && git add .factory/STATE.md' must be detected and blocked.
+  # RED gate: current impl exits is_git_add_command at first 'git status', missing
+  # the second 'git add .factory/STATE.md'. Must exit 2 after fix.
+  _require_artifacts
+  _write_guard_registry
+  _init_git_repo_on_branch "develop"
+
+  local envelope
+  envelope="$(_bash_event 'git status && git add .factory/STATE.md')"
+  _run_dispatcher "$envelope"
+
+  [ "$status" -eq 2 ] || {
+    echo "FAIL: F-P2-001 [BLOCKER] / BC-4.16.001 v1.4 Precondition 2:"
+    echo "  'git status && git add .factory/STATE.md' on develop must exit 2."
+    echo "  The guard must scan all tokens in the payload for git add/stage, not stop"
+    echo "  at the first git command. Currently BYPASSES (first 'git status' fools scanner)."
+    echo "  Got $status. Stderr: $(cat "$STDERR_FILE" 2>/dev/null)"
+    false
+  }
+
+  grep -q "FactoryPathOnProductBranch" "$STDERR_FILE" 2>/dev/null || \
+  echo "$output" | grep -q "FactoryPathOnProductBranch" || {
+    echo "FAIL: F-P2-001 / BC-4.16.001 v1.4: 'FactoryPathOnProductBranch' not found in output."
+    echo "  Stderr: $(cat "$STDERR_FILE" 2>/dev/null)"
+    echo "  Stdout: $output"
+    false
+  }
+}
+
+@test "T-029 S-21.01 F-P2-002 AC-001: guard blocks git -C . add .factory on develop" {
+  # F-P2-002 [MEDIUM] / BC-4.16.001 v1.4 Precondition 2:
+  # 'git -C . add .factory/STATE.md' must be detected and blocked.
+  # RED gate: current impl checks token immediately after 'git' ('-C' not 'add') → BYPASS.
+  _require_artifacts
+  _write_guard_registry
+  _init_git_repo_on_branch "develop"
+
+  local envelope
+  envelope="$(_bash_event 'git -C . add .factory/STATE.md')"
+  _run_dispatcher "$envelope"
+
+  [ "$status" -eq 2 ] || {
+    echo "FAIL: F-P2-002 [MEDIUM] / BC-4.16.001 v1.4 Precondition 2:"
+    echo "  'git -C . add .factory/STATE.md' on develop must exit 2."
+    echo "  '-C <path>' is a global option before 'add' subcommand — guard must tolerate"
+    echo "  intervening global options. Currently BYPASSES ('-C' treated as subcommand)."
+    echo "  Got $status. Stderr: $(cat "$STDERR_FILE" 2>/dev/null)"
+    false
+  }
+}
+
+@test "T-030 S-21.01 F-P2-003 AC-001: guard blocks git add .Factory (capitalized) on develop" {
+  # F-P2-003 [LOW] / BC-4.16.001 v1.4 Invariant 4: case-insensitive .factory/ matching.
+  # 'git add .Factory/STATE.md' — '.Factory/' targets same dir as '.factory/' on HFS+/NTFS.
+  # RED gate: current impl uses case-sensitive '.contains(".factory/")' check → BYPASS.
+  _require_artifacts
+  _write_guard_registry
+  _init_git_repo_on_branch "develop"
+
+  local envelope
+  envelope="$(_bash_event 'git add .Factory/STATE.md')"
+  _run_dispatcher "$envelope"
+
+  [ "$status" -eq 2 ] || {
+    echo "FAIL: F-P2-003 [LOW] / BC-4.16.001 v1.4 Invariant 4:"
+    echo "  'git add .Factory/STATE.md' on develop must exit 2."
+    echo "  '.Factory/' targets the same directory as '.factory/' on macOS HFS+ and"
+    echo "  Windows NTFS (case-folding filesystems). Case-insensitive blocking required."
+    echo "  Currently BYPASSES (case-sensitive '.factory/' check misses '.Factory/')."
+    echo "  Got $status. Stderr: $(cat "$STDERR_FILE" 2>/dev/null)"
+    false
+  }
+}
