@@ -7214,3 +7214,41 @@ Both gates are mandatory standing Commit-E controls for any burst touching E-19 
 **Cites:** D-875 (codified this burst); S-7.02 checklist; process-gap deferral — human triage required before sub-cycle closes.
 
 **Closes:** D-875 REVIEW-MERGE-ARC-2026-07-22 (2026-07-22). `[process-gap; validate-pr-review-posted; false-positive; github-ops; direct-bash; evidence-model; SubagentStop; fuel-burn; S-7.02; D-875; codified]`
+
+---
+
+### L-BB-policy21-review-miss-requires-fresh-context-recheck [process-gap] [codified D-880]
+
+**Title:** POLICY 21 Compliance Check Must Be a First-Pass Gate for All PRs Introducing New Files — Original #729 Review Missed the Violation; Fresh-Context Re-Review Caught It
+
+**Lesson:** The original review of PR #729 (factory-artifact-leak-guard) did not flag that `factory-artifact-leak-guard.sh` is a NEW `.sh` file introduced by the PR and therefore subject to POLICY 21's mandate that new hook logic must be implemented as a native WASM plugin (not a new `.sh` script), with exemption ONLY for pre-existing `.sh` files grandfathered at rc.23 inventory. A fresh-context re-review (2026-07-23, human-authorized) caught the POLICY 21 violation and posted REQUEST_CHANGES. The original reviewer's miss means the PR would have merged with a POLICY 21 violation if only one review pass had occurred. The failure mode: the reviewer focused on the hook's runtime logic correctness and did not run a first-pass checklist for new-file policy compliance. POLICY 21 compliance check — "does this PR introduce any new `.sh` file?" — must be the first gate in every review, not an afterthought after verifying logic.
+
+**Context:** PR #729 introduces `plugins/vsdd-factory/hooks/factory-artifact-leak-guard.sh`. POLICY 21 (enacted at rc.23 to prevent new `.sh` hook accumulation) mandates that new hook behavior ship as a native WASM crate in `crates/hook-plugins/`. The `.sh` extension is the detection trigger: any new `.sh` file in `plugins/vsdd-factory/hooks/` that is NOT in the rc.23 grandfathered inventory is a POLICY 21 violation. In addition, M3 (a milestone dependency referenced in the PR) and a stale variable in SKILL.md were also open findings. The fresh-context re-review caught all three; the original review caught none.
+
+**Root cause:** Review checklist does not enumerate POLICY 21 as a first-pass item. Reviewers naturally focus on behavioral correctness before policy compliance, which inverts the priority order for policy-gated changes. POLICY 21 violations are not caught by CI because the policy is a architectural governance rule, not a lint gate.
+
+**Prevention:** (1) Add POLICY 21 to the reviewer's opening checklist as the first structural gate: "Does this PR add any new `.sh` file in `plugins/vsdd-factory/hooks/`? If yes, verify it is in the rc.23 grandfathered inventory — if not, REQUEST_CHANGES immediately." (2) Consider adding a CI lint check: fail if a PR adds a new `.sh` file in `plugins/vsdd-factory/hooks/` that does not match the rc.23 grandfathered list. (3) The re-review protocol (fresh-context, different reviewer) is the correct recovery mechanism and caught the violation; this lesson codifies the pre-check discipline to prevent the miss in the first place.
+
+**Anchors:** PR #729 original review (miss); PR #729 re-review 2026-07-23 (REQUEST_CHANGES posted, POLICY 21 blocker); POLICY 21 rc.23 mandate; D-880 (this burst).
+
+**Cites:** D-880 (codified this burst); PR #729 re-review; POLICY 21 (rc.23 new-.sh-prohibition mandate); TD-VSDD-059 closure-audit protocol (re-review requirement).
+
+**Closes:** D-880 PR-REREVIEV-ARC-CLOSE-2026-07-23 (2026-07-23). `[process-gap; policy21; new-sh-file; review-miss; fresh-context-recheck; wasm-port; first-pass-gate; D-880; codified]`
+
+---
+
+### L-BB-ci-flake-additional-instances [process-gap] [codified D-880]
+
+**Title:** CI Flake Tally — Three Additional L-EDP1-069 Instances (bats-full-suite git exit-128; Read-Race During Concurrent Commit Window; Resolver-Integration mktemp Collision)
+
+**Lesson:** Three new CI flake instances were observed during the 2026-07-23 S-21.01 re-review arc and local cascade, adding to the L-EDP1-069 flake pattern tally (4 prior instances from D-877 session). Instance 1: bats-full-suite for PR #714 produced `git exit-128` (fatal git error — remote HEAD fetch failed during concurrent agent commit operations in the same worktree window). Instance 2: bats read-race during a concurrent agent commit window — a bats test that reads a shared fixture file collided with an in-progress git commit from a parallel agent; the test observed a partially-written file state and failed. Instance 3: resolver-integration test `mktemp` collision — two parallel resolver-integration tests created temp files with identical names via `mktemp` in the same `/tmp/` prefix space, producing a false-unique-path assumption failure. All three failed-once-green-on-rerun; all are diff-disjoint from the code change under test. Combined with the 4 prior instances (D-877), this brings the confirmed L-EDP1-069 tally to 7 instances across two sessions, strengthening the case for a dedicated stabilization story. Cross-reference: L-EDP1-069 in `cycles/v1.0-feature-engine-discipline-pass-1/lessons.md` (parent entry; D-877 codification).
+
+**Root cause:** Three distinct concurrency patterns: (1) concurrent git operations in a worktree window (bats + agent commit); (2) shared fixture file read-write race; (3) mktemp namespace collision under parallel test execution. All are environment-timing dependent, not logic errors in the code under test.
+
+**Prevention:** (1) Stabilization story: enforce exclusive worktree access during bats test runs (no concurrent git commits); (2) bats test isolation: each test that reads a shared fixture must copy it to a test-local temp file before reading; (3) mktemp: use `mktemp -t test-NNN-XXXXXX` with a unique prefix per test to avoid collisions. All three patterns are fixable with targeted stabilization work. Tally: 7 confirmed instances now — above the "3 instance threshold" for a dedicated story per L-EDP1-069 recommendation. Human triage required.
+
+**Anchors:** PR #714 bats-full-suite git exit-128; S-21.01 bats read-race; resolver-integration mktemp collision; L-EDP1-069 (parent entry, D-877); D-880 (this burst).
+
+**Cites:** D-880 (codified this burst); L-EDP1-069 `cycles/v1.0-feature-engine-discipline-pass-1/lessons.md` (parent entry); D-877 (prior 4 instances); stabilization-story deferral — human triage required.
+
+**Closes:** D-880 PR-REREVIEV-ARC-CLOSE-2026-07-23 (2026-07-23). `[process-gap; ci-flake; bats; git-exit-128; read-race; mktemp-collision; concurrency; L-EDP1-069; D-880; codified]`

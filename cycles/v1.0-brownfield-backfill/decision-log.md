@@ -10876,3 +10876,29 @@ D-878-SESSION-WRAP-PAUSED-2026-07-22
 ### Date
 
 2026-07-22
+
+## D-880
+
+PR-REREVIEV-ARC-CLOSE-2026-07-23. POLICY 16 GLOBAL-MAX GATE: `grep -n "^## D-" decision-log.md | tail -3` → `10844:## D-876 / 10856:## D-877 / 10868:## D-878`; D-878 confirmed prior max; D-879 allocated by dispatch-advance d6b2e3e0 (E-21-W1-DISPATCHED-2026-07-23, STATE.md only); D-880 allocated. (1) SESSION RESUME 2026-07-23 from D-878/D-879 checkpoint (develop HEAD `850f3d94`, factory-artifacts HEAD `d6b2e3e0`). (2) 8 PR RE-REVIEWS (fresh-context per TD-VSDD-059 closure-audit protocol, human-authorized posting): PR #714 APPROVE — CHANGELOG delivery discipline structurally correct (BC-8.31.001 companion BC now registered; RELEASING.md Step 2 updated; CHANGELOG dual-section resolved in PR #714 itself); PR #720 APPROVE — verify-sha-currency 7-char SHA format correct; PR #727 APPROVE — cas-push worktree cwd handling correct; PR #729 REQUEST_CHANGES — POLICY 21 BLOCKER: factory-artifact-leak-guard.sh is a NEW `.sh` file, not grandfathered under POLICY 21 old-inventory exemption; Rust/WASM port required per POLICY 21 mandate; M3 milestone + SKILL.md stale-var also open; PR #735 APPROVE — orphan branch plumbing correct; PR #737 APPROVE — worktree mount assertions correct; PR #738 APPROVE — dispatcher log-dir gate correct; PR #740 APPROVE — state-manager idempotency docs correct. (3) VERDICTS POSTED: 7 APPROVE (#714/#720/#727/#735/#737/#738/#740) + 1 REQUEST_CHANGES (#729 POLICY 21 blocker); all posted live (human-authorized). (4) #720 MERGED by human (develop HEAD `b6231a88`). (5) 6 merges + factory push PENDING human authorization (#714/#727/#735/#737/#738/#740). (6) BC-8.31.001 REGISTERED (NEW draft v1.0; SS-08; CAP-001; retroactive traceability for PR #714 CHANGELOG delivery discipline). S-7.12 REGISTERED (retroactive traceability story; E-7; P2; half-day; BC-8.31.001). BC-INDEX v4.13→v4.19; STORY-INDEX v4.229→v4.234. (7) S-21.01 cascade: BC-4.16.001 v1.2→v1.7 arc (5 amendments incl. human-gated Invariant 6 target-aware detection 2026-07-23); ADR-031 v1.5 TARGET-AWARE note; 8 adversary passes; F-P8-001 input-hash parity + uncommitted-tree process blocker reconciled (settled hash 32aaccc; fde01eb mid-scan transient corrected). Code worktree HEAD `1ee37749` (23 commits from base `b6231a88`), 133+5 tests green, clippy/fmt clean. (8) LESSONS CODIFIED this burst: L-BB-policy21-review-miss-requires-fresh-context-recheck [process-gap] — original #729 reviewer missed POLICY 21 violation (new .sh file); fresh-context re-review caught it; POLICY 21 compliance check must be a first-pass gate for all PRs introducing new files. L-BB-ci-flake-additional-instances [process-gap] — 3 new L-EDP1-069 flake instances tallied: bats-full-suite #714 git exit-128 (concurrent-commit-window race), bats read-race during concurrent agent commit window, resolver-integration mktemp collision; stabilization story remains open. (9) STATE.md body NOT touched (frontmatter-minimal Strategy Constraint, rc.24 pending). (10) 4-INDEX post-burst: BC-INDEX v4.19 / VP-INDEX v2.72 / STORY-INDEX v4.234 / ARCH-INDEX v3.26. develop HEAD `b6231a88` (#720 merged); main `80e5cd7b` UNCHANGED.
+
+### Phase
+
+D-880-PR-REREVIEV-ARC-CLOSE-2026-07-23
+
+### Date
+
+2026-07-23
+
+## D-881
+
+S-21-01-LOCAL-CASCADE-PASSES-1-8-2026-07-23. POLICY 16 GLOBAL-MAX GATE: `grep -n "^## D-" decision-log.md | tail -3` → `10856:## D-877 / 10868:## D-878 / D-880 (this session)`; D-880 confirmed prior max → D-881 allocated. (1) S-21.01 LOCAL cascade record: BC-4.16.001 v1.2→v1.7 arc (5 amendments: v1.3 global-option forms+chained+case-insensitive; v1.4 class-complete Precondition 2 value-consuming global option enumeration+conservative unknown-dash+shell-punctuation strip+EC-011; v1.5 target-aware detection: Invariant 6 added, Precondition 2 note, §Description, EC-012/013/014, T-7/T-8/T-9; v1.6 human-gated Invariant 6 target-aware semantics 2026-07-23; v1.7 accepted residuals: trailing-slash -C .factory/ not classified factory-class + single-detection-first-target chained-payload under-match). ADR-031 v1.5 TARGET-AWARE note added per BC-4.16.001 v1.6 amendment. ARCH-INDEX v3.26. (2) 8 adversary passes: p1 NOT-CLEAN 1B/2H/3M/2L (F-P1-001..007); p2 NOT-CLEAN 1B/1M/1L (F-P2-001..003, chained-cmd regression); p3 NOT-CLEAN 1M/2L (F-P3-001..003); p4 NOT-CLEAN 1M/1L (F-P4-001..002); p5 NOT-CLEAN 1L (F-P5-001, human-approved target-aware fix); p6 NOT-CLEAN 1L (F-P6-001 trailing-slash, accepted-with-record); p7 CLEAN (post-p7 documentary v1.7 amendment → streak restart); p8 NOT-CLEAN 1M (F-P8-001 input-hash parity + uncommitted-tree process blocker — reconciled in this burst); passes_clean=0/3. 3-CLEAN streak re-run required. (3) RED GATE LOG: initial commit f33ef09a 49 tests (44 lib + 5 proptest) ALL RED; fix passes: 5ece776a 24R, 7b72a8b2 16R, 0ce78de5 5R, 85dc1ab2 17R, f9c9e75a 6R, 576341af 4R; final HEAD 1ee37749 0R (133+5 passing). (4) ACCEPTED-WITH-RECORD residuals: trailing-slash -C .factory/ over-block (p6, product-owner human gate); single-detection-first-target semantics chained-payload under-match (p7); payload-wide conservative over-match nitpick (p8). (5) F-P8-001 RECONCILIATION: S-21.01 input-hash settled at 32aaccc; mid-scan transient fde01eb corrected in story last_amended, modified[], and STORY-INDEX v4.234 preamble (no version bumps — cite-accuracy fix to same-day entries). (6) 4-INDEX: BC-INDEX v4.19 / VP-INDEX v2.72 / STORY-INDEX v4.234 / ARCH-INDEX v3.26 — UNCHANGED from D-880. Code worktree HEAD `1ee37749`; develop HEAD `b6231a88`; main `80e5cd7b` UNCHANGED.
+
+### Phase
+
+D-881-S-21-01-LOCAL-CASCADE-PASSES-1-8-2026-07-23
+
+### Date
+
+2026-07-23
+
+2026-07-22
