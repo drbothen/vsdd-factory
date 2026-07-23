@@ -49,6 +49,7 @@ members = [
     "crates/factory-lock",
     "crates/hook-plugins/precompact-flush",
     "crates/hook-plugins/read-prefix-fixture",
+    "crates/factory-artifact-leak-scan",
 ]
 
 [workspace.package]

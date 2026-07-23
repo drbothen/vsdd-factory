@@ -1,16 +1,22 @@
 #!/usr/bin/env bats
 # factory-artifact-leak-scan.bats — TAP tests for the content-based factory-artifact
-# leak detector (bin/factory-artifact-leak-scan.sh), the systemic guard for #515.
+# leak detector (crates/factory-artifact-leak-scan, Rust binary per POLICY 21),
+# the systemic guard for #515.
 #
 # The scanner reads its factory-doctype set from the real plugin templates/ dir
 # (CLAUDE_PLUGIN_ROOT) and scans tracked files under a fixture git repo
 # (VSDD_REPO_ROOT). Each test builds a throwaway repo, mirroring bin.bats /
-# relocate-artifact.bats conventions.
+# relocate-artifact.bats conventions. Detection-logic unit tests live in the
+# crate (`cargo test -p factory-artifact-leak-scan`); this suite covers the
+# CLI contract end-to-end.
 
 setup() {
   PLUGIN_ROOT="$(cd "$BATS_TEST_DIRNAME/.." && pwd)"
-  BIN="$PLUGIN_ROOT/bin"
-  SCANNER="$BIN/factory-artifact-leak-scan.sh"
+  REPO_ROOT_SRC="$(cd "$BATS_TEST_DIRNAME/../../.." && pwd)"
+  SCANNER="$REPO_ROOT_SRC/target/release/factory-artifact-leak-scan"
+  if [ ! -x "$SCANNER" ]; then
+    skip "factory-artifact-leak-scan binary not built — run: cargo build --release -p factory-artifact-leak-scan"
+  fi
   WORK="$(mktemp -d)"
   cd "$WORK"
   git init --quiet
@@ -135,4 +141,18 @@ _write_red_gate() {
   run "$SCANNER" --count
   [ "$status" -eq 1 ]
   [ "$output" -eq 1 ]
+}
+
+@test "factory-artifact-leak-scan: mid-document thematic break is not frontmatter (M3)" {
+  # A '---' thematic break past line 1 must not open a phantom frontmatter
+  # block: a doc that MENTIONS a factory doctype after a horizontal rule is
+  # prose, not a leaked artifact (review finding M3 — the opening fence is
+  # anchored to line 1).
+  mkdir -p docs
+  printf '%s\n' '# Factory Notes' '' '---' 'document_type: red-gate-log' '---' \
+    'Discussion of the red-gate-log doctype.' > docs/factory-notes.md
+  git add -A
+  run "$SCANNER" --count
+  [ "$status" -eq 0 ]
+  [ "$output" -eq 0 ]
 }
