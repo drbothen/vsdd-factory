@@ -35,113 +35,199 @@ pub const HOST_ABI_VERSION: u32 = 1;
 // Branch and command classification (pure functions — injectable-testable)
 // ---------------------------------------------------------------------------
 
-/// Returns true if the Bash payload string contains a `git add` or `git stage` command.
+/// Returns true if the Bash payload string contains a `git add` or `git stage` command
+/// in any form, including chained and global-option forms.
 ///
-/// Matches `git\s+(add|stage)` (case-insensitive, any whitespace between tokens) per
-/// BC-4.16.001 Precondition 2 v1.3. `git stage` is a true git synonym for `git add`
-/// (verified: `git help stage` confirms it is an alias). Whitespace-tolerant: handles
-/// double-space and tab-separated forms (e.g., `git  add`, `git\tadd`).
-///
-/// Implementation: tokenizes by whitespace and checks whether the first `git` token
-/// is followed immediately by `add` or `stage`. No regex dependency — hand-rolled
-/// tokenization consistent with sibling validator crates which avoid the regex crate
-/// due to WASM fuel budget constraints.
-///
-/// All other commands — `git commit`, `git push`, etc. — are not in scope and this
-/// function returns false for them.
+/// Detection contract per BC-4.16.001 Precondition 2 v1.4:
+/// - Scans ALL tokens in the payload (not just the first `git` occurrence) so that
+///   chained forms (`&&`, `;`, `|`) are fully covered — a `git add` or `git stage`
+///   appearing after a different git command (e.g. `git status && git add`) is detected.
+/// - For each `git` token found, skips any number of intervening global options or flags
+///   before checking whether the first non-option subcommand token is `add` or `stage`
+///   (case-insensitive). Handles `git -C <path> add`, `git --no-pager add`,
+///   `git -c key=val add`, etc.
+/// - `-C` and `-c` consume one following value token; all other `-*` flags do not.
+/// - Subcommand tokens may have trailing shell metacharacters glued to them (e.g.
+///   `"diff;"` in `git diff; git add`); the core word is extracted by stripping
+///   trailing `;`, `&`, `|` before the case-insensitive comparison.
+/// - No regex dependency — hand-rolled tokenizer consistent with sibling validator crates
+///   (WASM fuel budget constraint).
 ///
 /// # BC trace
-/// BC-4.16.001 Precondition 2 v1.3: detect `git\s+(add|stage)` by whitespace tokenization.
+/// BC-4.16.001 Precondition 2 v1.4: detect `git\s+(add|stage)` including global-option
+///   forms and chained-command forms anywhere in the payload.
 /// BC-4.16.001 PC4: non-`git add`/`git stage` commands pass unconditionally.
 pub fn is_git_add_command(payload: &str) -> bool {
-    let mut tokens = payload.split_whitespace();
-    while let Some(token) = tokens.next() {
-        if token.eq_ignore_ascii_case("git") {
-            return tokens
-                .next()
-                .map(|t| t.eq_ignore_ascii_case("add") || t.eq_ignore_ascii_case("stage"))
-                .unwrap_or(false);
+    let tokens: Vec<&str> = payload.split_whitespace().collect();
+    let mut i = 0;
+    'outer: while i < tokens.len() {
+        if tokens[i].eq_ignore_ascii_case("git") {
+            let mut j = i + 1;
+            // Skip global options. -C and -c each consume one following value token;
+            // all other -* flags are self-contained.
+            while j < tokens.len() {
+                let t = tokens[j];
+                if t.starts_with('-') {
+                    j += 1;
+                    // -C <path> and -c <key=val> consume the next token as their value.
+                    if (t == "-C" || t == "-c") && j < tokens.len() {
+                        j += 1;
+                    }
+                } else {
+                    // First non-option token is the subcommand. Strip trailing shell
+                    // metacharacters that may be glued to the subcommand word (e.g. "diff;").
+                    let core = t.trim_end_matches([';', '&', '|']);
+                    if core.eq_ignore_ascii_case("add") || core.eq_ignore_ascii_case("stage") {
+                        return true;
+                    }
+                    // Subcommand is not add/stage; resume outer scan past this token.
+                    i = j + 1;
+                    continue 'outer;
+                }
+            }
+            // Inner loop exhausted without finding a subcommand for this git token.
+            break 'outer;
+        } else {
+            i += 1;
         }
     }
     false
 }
 
-/// Returns true if the `git add` argument text contains or implies a
-/// `.factory/`-rooted path that should be blocked on a product branch.
+/// Returns true if the payload contains a `git add`/`git stage` command whose
+/// arguments include or imply a `.factory/`-rooted path that should be blocked
+/// on a product branch.
 ///
-/// Conservative matching per BC-4.16.001 Invariant 4 v1.3:
-/// - Literal `.factory/` prefix match (captures both relative and absolute
-///   path forms where `.factory/` appears as a component).
-/// - Bare `.factory` token (no trailing slash): git treats `.factory` as
-///   `.factory/**` for staging — identical dual-tracking scope to `.factory/`
-///   (v1.3 addition).
-/// - `-A`, `--all`, `-u`, `--update`, `.`, `./` flags: treated conservatively
-///   as potentially staging `.factory/` content. `./` is CWD-relative with
-///   explicit slash, semantically identical to `.` for staging (v1.3 addition).
-/// - `:/`-family pathspec magic: `:/` anchors from repo root and can include
-///   `.factory/` paths regardless of CWD. Quoted forms (e.g., `':/.factory'`)
-///   are detected after stripping surrounding `'` or `"` characters (v1.3
-///   addition).
-/// - Glob wildcards (`*`, `?`, `[`): conservatively blocked because the guard
-///   inspects only literal argument text; git has not yet expanded the glob
-///   and may produce `.factory/**` matches (EC-008).
-/// - Combined short flags containing `A` or `u` (e.g., `-Au`).
+/// Conservative matching per BC-4.16.001 Invariant 4 v1.4:
+/// - Literal `.factory/` prefix match anywhere in the payload (fast path).
+/// - Parses each `git add`/`git stage` invocation in the payload (including
+///   chained forms). Global option values (e.g. the directory argument to
+///   `-C <path>`) are skipped and NOT treated as staging targets — only tokens
+///   that are actual arguments to the `add`/`stage` subcommand are checked.
+/// - In the argument region of each `add`/`stage` invocation, the following
+///   patterns trigger a conservative block:
+///   - Bare `.factory` token (no trailing slash): git expands to `.factory/**`.
+///   - `:/`-family pathspec magic: anchors from repo root, can reach `.factory/`.
+///   - `-A`, `--all`, `-u`, `--update`, `.`, `./`: bulk-stage flags / CWD forms.
+///   - Glob wildcards (`*`, `?`, `[`): guard cannot evaluate expansions pre-run.
+///   - Combined short flags containing `A` or `u` (e.g. `-Au`).
 ///
 /// # BC trace
-/// BC-4.16.001 Invariant 4 v1.3: path matching is conservative.
+/// BC-4.16.001 Invariant 4 v1.4: path matching is conservative.
 /// BC-4.16.001 EC-004: `git add -A` from CWD under `.factory/` is blocked.
 /// BC-4.16.001 EC-008: `git add *.md` glob from project root is blocked.
 /// BC-4.16.001 EC-010: `git add -u` is blocked (tracks all modifications).
-pub fn contains_factory_path_arg(git_add_args: &str) -> bool {
-    // Explicit .factory/ path prefix or component anywhere in payload.
-    if git_add_args.contains(".factory/") {
+pub fn contains_factory_path_arg(payload: &str) -> bool {
+    // Fast path: `.factory/` literal prefix or component anywhere in payload.
+    // Case-insensitive upgrade handled separately (F-P2-003).
+    if payload.contains(".factory/") {
         return true;
     }
 
-    // Scan tokens for conservative path forms, wildcards, and flags.
-    // Skip the "git", "add", and "stage" command words; inspect only argument tokens.
-    for token in git_add_args.split_whitespace() {
-        if matches!(token, "git" | "add" | "stage") {
-            continue;
-        }
-
-        // Strip surrounding single or double quotes for pathspec-magic analysis.
-        // Handles `':/.factory'` and `":/..."` quoted forms.
-        let unquoted = token.trim_matches(|c| c == '\'' || c == '"');
-
-        // Bare .factory token without trailing slash (BC-4.16.001 Invariant 4 v1.3):
-        // git expands `.factory` to `.factory/**` for staging — same dual-tracking
-        // scope as `.factory/`.
-        if unquoted == ".factory" {
-            return true;
-        }
-
-        // :/-family pathspec magic (BC-4.16.001 Invariant 4 v1.3): anchors from
-        // repo root; can reach .factory/ paths regardless of CWD.
-        if unquoted.starts_with(":/") {
-            return true;
-        }
-
-        match token {
-            // Conservative bulk-stage flags: may include .factory/ content
-            "-A" | "--all" | "-u" | "--update" | "." => return true,
-            // "./" is CWD-relative with explicit slash — semantically identical to
-            // "." for staging; may stage .factory/** when CWD is the project root
-            // (BC-4.16.001 Invariant 4 v1.3)
-            "./" => return true,
-            // Glob wildcards: guard cannot evaluate expansions at PreToolUse time
-            t if t.contains('*') || t.contains('?') || t.starts_with('[') => return true,
-            // Combined short flags (e.g. "-Au", "-uA"): A=all, u=update
-            t if t.starts_with('-') && !t.starts_with("--") && t.len() > 2 => {
-                let flags = &t[1..];
-                if flags.contains('A') || flags.contains('u') {
-                    return true;
+    // Parse git add/stage invocations in the payload and inspect their argument regions.
+    // Global option values (e.g. the path argument to `-C <path>`) are skipped so that
+    // e.g. `git -C . add src/lib.rs` correctly returns false (`.` is a -C value, not an
+    // add argument).
+    let tokens: Vec<&str> = payload.split_whitespace().collect();
+    let mut i = 0;
+    'outer: while i < tokens.len() {
+        if tokens[i].eq_ignore_ascii_case("git") {
+            let mut j = i + 1;
+            // Skip global options (-C and -c consume one following value token).
+            while j < tokens.len() {
+                let t = tokens[j];
+                if t.starts_with('-') {
+                    j += 1;
+                    if (t == "-C" || t == "-c") && j < tokens.len() {
+                        j += 1;
+                    }
+                } else {
+                    // First non-option token is the subcommand.
+                    let subcore = t.trim_end_matches([';', '&', '|']);
+                    if !subcore.eq_ignore_ascii_case("add")
+                        && !subcore.eq_ignore_ascii_case("stage")
+                    {
+                        // Not a git add/stage; resume outer scan past this subcommand.
+                        i = j + 1;
+                        continue 'outer;
+                    }
+                    // Found git add/stage. Check argument tokens (after the subcommand).
+                    j += 1;
+                    while j < tokens.len() {
+                        let arg = tokens[j];
+                        // Shell chain terminators end this command's argument list.
+                        if arg == "&&" || arg == "||" || arg == ";" {
+                            i = j + 1;
+                            continue 'outer;
+                        }
+                        // Token with trailing chain operator: content before it is an arg.
+                        let arg_core = arg.trim_end_matches([';', '&', '|']);
+                        if arg_core.len() < arg.len() {
+                            if is_factory_arg_token(arg_core) {
+                                return true;
+                            }
+                            i = j + 1;
+                            continue 'outer;
+                        }
+                        if is_factory_arg_token(arg) {
+                            return true;
+                        }
+                        j += 1;
+                    }
+                    // Exhausted tokens while scanning add arguments.
+                    break 'outer;
                 }
             }
-            _ => {}
+            // Inner loop exhausted without finding a subcommand.
+            break 'outer;
+        } else {
+            i += 1;
         }
     }
     false
+}
+
+/// Returns true if `token` is a single git add/stage argument that conservatively
+/// implies or targets a `.factory/`-rooted path. Called only on tokens confirmed to
+/// be in the argument region of a `git add`/`git stage` invocation (not global option
+/// values).
+///
+/// Does NOT handle the `.factory/` literal prefix — that is caught by the fast path
+/// in `contains_factory_path_arg`.
+///
+/// # BC trace
+/// BC-4.16.001 Invariant 4 v1.4: conservative argument-level blocking forms.
+fn is_factory_arg_token(token: &str) -> bool {
+    // Strip surrounding single or double quotes for pathspec-magic analysis.
+    // Handles `':/.factory'` and `":/..."` quoted forms.
+    let unquoted = token.trim_matches(|c| c == '\'' || c == '"');
+
+    // Bare .factory token without trailing slash: git expands `.factory` to
+    // `.factory/**` for staging — same dual-tracking scope as `.factory/`.
+    if unquoted == ".factory" {
+        return true;
+    }
+
+    // :/-family pathspec magic: anchors from repo root; can include .factory/.
+    if unquoted.starts_with(":/") {
+        return true;
+    }
+
+    match token {
+        // Conservative bulk-stage flags: may include .factory/ content.
+        "-A" | "--all" | "-u" | "--update" | "." => true,
+        // "./" is CWD-relative with explicit slash — semantically identical to "."
+        // for staging; may stage .factory/** when CWD is the project root.
+        "./" => true,
+        // Glob wildcards: guard cannot evaluate expansions at PreToolUse time.
+        t if t.contains('*') || t.contains('?') || t.starts_with('[') => true,
+        // Combined short flags (e.g. "-Au", "-uA"): A=all, u=update.
+        t if t.starts_with('-') && !t.starts_with("--") && t.len() > 2 => {
+            let flags = &t[1..];
+            flags.contains('A') || flags.contains('u')
+        }
+        _ => false,
+    }
 }
 
 /// Returns true if `branch` is a product branch (not `factory-artifacts`).
