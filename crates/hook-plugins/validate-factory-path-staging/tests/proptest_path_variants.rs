@@ -138,7 +138,8 @@ proptest! {
 
 /// Canonical test vectors that mirror BC-4.16.001 T-1..T-6.
 /// These ensure the 20+ diverse input requirement is met even if proptest
-/// shrinks. All are RED at stub time.
+/// shrinks. All are RED at stub time — panic from todo!() causes is_ok() to
+/// fail, which is the correct failing behaviour.
 #[test]
 fn test_ac006_canonical_factory_path_vectors_block_on_develop() {
     let factory_paths = vec![
@@ -161,32 +162,60 @@ fn test_ac006_canonical_factory_path_vectors_block_on_develop() {
         "git add .",
         // Mixed: any .factory/ match blocks the whole command
         "git add src/main.rs .factory/STATE.md",
-        // Release and feature branches (product branches per PC1)
+        // Additional diverse variants to meet 20+ minimum per AC-006
+        "git add .factory/specs/domain-spec/entities.md",
+        "git add .factory/specs/prd.md",
+        "git add .factory/stories/epics/E-21-factory-state-data-loss-hardening.md",
+        "git add .factory/tech-debt-register.md .factory/STATE.md",
     ];
 
     for command in &factory_paths {
         let result = run_hook_with_branch(command, "develop");
-        // At stub time, todo!() panics — catch_unwind catches it.
-        // This assert documents the RED gate: if the stub panics, result is Err.
-        // When implemented, result must be Ok(non-Continue) for all factory paths.
+        // RED GATE: at stub time todo!() panics, so result.is_ok() FAILS.
+        // After implementation, result must be Ok(Block) — never Ok(Continue).
         assert!(
-            result.is_err() || result.as_ref().map(|r| *r != HookResult::Continue).unwrap_or(true),
-            "AC-006 canonical: '{}' on develop must block. Got Continue (stub not yet implemented).",
+            result.is_ok(),
+            "AC-006 canonical: hook_logic panicked (todo!()) for command '{}'. \
+             Must return HookResult::Block, not panic. Production unimplemented.",
             command
         );
+        if let Ok(hook_result) = result {
+            assert_ne!(
+                hook_result,
+                HookResult::Continue,
+                "AC-006 / BC-4.16.001 PC1: '{}' on develop must be BLOCKED (exit 2). \
+                 Got Continue. Production unimplemented.",
+                command
+            );
+        }
     }
 }
 
 #[test]
 fn test_ac006_factory_artifacts_branch_passes_factory_paths() {
+    // BC-4.16.001 PC3: factory-artifacts branch must pass unconditionally.
+    // RED GATE: at stub time todo!() panics, so result.is_ok() FAILS.
     let commands = vec![
         "git add .factory/STATE.md",
         "git add .factory/stories/S-21.01.md",
     ];
     for command in &commands {
         let result = run_hook_with_branch(command, "factory-artifacts");
-        // At stub time, todo!() panics — result is Err from catch_unwind.
-        // When implemented, must be Ok(Continue) for factory-artifacts branch.
-        let _ = result; // RED gate: just ensure it doesn't explode the test suite
+        assert!(
+            result.is_ok(),
+            "AC-006 / BC-4.16.001 PC3: hook_logic panicked (todo!()) for '{}' on \
+             factory-artifacts. Must return Continue, not panic. Production unimplemented.",
+            command
+        );
+        if let Ok(hook_result) = result {
+            assert_eq!(
+                hook_result,
+                HookResult::Continue,
+                "AC-006 / BC-4.16.001 PC3: '{}' on factory-artifacts must return Continue. \
+                 Got: {:?}. Production unimplemented.",
+                command,
+                hook_result
+            );
+        }
     }
 }
