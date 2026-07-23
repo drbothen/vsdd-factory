@@ -2,15 +2,19 @@
 //!
 //! Implements the invariant layer (Layer-1) for INV-E21-001 (Nested Worktree
 //! Path Exclusivity). Fires on every `PreToolUse` event where the Bash tool
-//! payload contains a `git add` command. Blocks staging of `.factory/`-rooted
-//! paths on product branches; passes all other commands unconditionally.
+//! payload contains a `git add` or `git stage` command. Blocks staging of
+//! `.factory/`-rooted paths on product branches; passes all other commands
+//! unconditionally.
 //!
 //! # Behavioral Contracts
 //!
-//! - BC-4.16.001: blocks `git add` of `.factory/` paths on product branches
-//!   (PC1); passes non-`.factory/` staging (PC2); passes on `factory-artifacts`
-//!   branch (PC3); passes non-`git add` commands (PC4); fail-open on crash/
-//!   branch-detection failure (Invariants 2/3).
+//! - BC-4.16.001 v1.5: blocks `git add`/`git stage` of `.factory/` paths on
+//!   product branches (PC1); passes non-`.factory/` staging (PC2); passes on
+//!   `factory-artifacts` branch (PC3); passes non-`git add`/`git stage`
+//!   commands (PC4); fail-open on crash/branch-detection failure (Invariants
+//!   2/3). Detection contract is class-complete per v1.5:
+//!   - Canonical value-consuming global options enumerated (F-P4-001).
+//!   - Leading shell punctuation stripped from `git` candidate tokens (F-P4-002).
 //!
 //! # Architecture compliance
 //!
@@ -35,53 +39,139 @@ pub const HOST_ABI_VERSION: u32 = 1;
 // Branch and command classification (pure functions — injectable-testable)
 // ---------------------------------------------------------------------------
 
-/// Returns true if the Bash payload string contains a `git add` or `git stage` command
-/// in any form, including chained and global-option forms.
+/// Strip leading shell punctuation from a token candidate before comparing to "git".
 ///
-/// Detection contract per BC-4.16.001 Precondition 2 v1.4:
+/// Handles the three forms documented in BC-4.16.001 v1.5 Precondition 2 (F-P4-002):
+///   `$(git …` → strip `$(`  → `git`
+///   `(git …`  → strip `(`   → `git`
+///   `` `git … `` → strip `` ` `` → `git`
+///
+/// Strips at most one prefix in priority order (`$(` > `(` > `` ` ``). Minimal and
+/// conservative: only the three shell-substitution/subshell forms that glue punctuation
+/// directly to `git` without whitespace.
+///
+/// # BC trace
+/// BC-4.16.001 Precondition 2 v1.5 (F-P4-002): glued shell punctuation strip.
+fn strip_shell_prefix(token: &str) -> &str {
+    if let Some(rest) = token.strip_prefix("$(") {
+        return rest;
+    }
+    if let Some(rest) = token.strip_prefix('(') {
+        return rest;
+    }
+    if let Some(rest) = token.strip_prefix('`') {
+        return rest;
+    }
+    token
+}
+
+/// Returns true if `opt` is a canonical git global option that consumes a
+/// SPACE-SEPARATED subsequent token as its value.
+///
+/// Called only for tokens starting with `--` that do NOT contain `=`. The `=`-joined
+/// form (e.g., `--git-dir=/foo`) is self-contained (a single token) and does NOT
+/// consume the next token; this function is never called for those forms.
+///
+/// Canonical set per BC-4.16.001 v1.5 Precondition 2 (F-P4-001):
+///   `--git-dir`, `--work-tree`, `--namespace`, `--super-prefix`, `--exec-path`
+///
+/// Short value-consuming options (`-C`, `-c`) are handled inline — this function
+/// covers only the long form.
+///
+/// # BC trace
+/// BC-4.16.001 Precondition 2 v1.5 (F-P4-001): canonical value-consuming global options.
+fn is_canonical_long_value_consuming(opt: &str) -> bool {
+    matches!(
+        opt,
+        "--git-dir" | "--work-tree" | "--namespace" | "--super-prefix" | "--exec-path"
+    )
+}
+
+/// Returns true if the Bash payload string contains a `git add` or `git stage` command
+/// in any form, including chained, global-option, and glued-shell-punctuation forms.
+///
+/// Detection contract per BC-4.16.001 Precondition 2 v1.5:
 /// - Scans ALL tokens in the payload (not just the first `git` occurrence) so that
 ///   chained forms (`&&`, `;`, `|`) are fully covered — a `git add` or `git stage`
 ///   appearing after a different git command (e.g. `git status && git add`) is detected.
+/// - Candidate `git` tokens are recognized after stripping leading shell punctuation
+///   (`$(`, `(`, `` ` ``) per F-P4-002: `$(git add …`, `(git add …`, `` `git add … ``
+///   are all in scope.
 /// - For each `git` token found, skips any number of intervening global options or flags
 ///   before checking whether the first non-option subcommand token is `add` or `stage`
-///   (case-insensitive). Handles `git -C <path> add`, `git --no-pager add`,
-///   `git -c key=val add`, etc.
-/// - `-C` and `-c` consume one following value token; all other `-*` flags do not.
+///   (case-insensitive).
+/// - Known value-consuming options per F-P4-001 (space form; `=`-joined are self-contained):
+///   `-C <path>`, `-c <name=value>`, `--git-dir <path>`, `--work-tree <path>`,
+///   `--namespace <path>`, `--super-prefix <path>`, `--exec-path <path>`.
+/// - Unknown long options (start with `--`, no `=`): conservative lookahead (F-P4-001):
+///   if the next token is `add`/`stage`, detect immediately; if next token is a non-dash
+///   non-add/stage value, consume it; if next token starts with `-`, treat as boolean.
+///   Under-match is forbidden; conservative over-match is acceptable.
 /// - Subcommand tokens may have trailing shell metacharacters glued to them (e.g.
 ///   `"diff;"` in `git diff; git add`) or surrounding single/double quotes (e.g.
 ///   `"add"` or `'stage'`); the core word is extracted by stripping trailing
 ///   `;`, `&`, `|` then surrounding `'`/`"` before the case-insensitive comparison.
-///   Consistent with `is_factory_arg_token`'s `trim_matches(|c| c == '\'' || c == '"')`.
-/// - No regex dependency — hand-rolled tokenizer consistent with sibling validator crates
-///   (WASM fuel budget constraint).
+/// - No regex dependency — hand-rolled tokenizer (WASM fuel budget constraint).
 ///
 /// # BC trace
-/// BC-4.16.001 Precondition 2 v1.4: detect `git\s+(add|stage)` including global-option
-///   forms and chained-command forms anywhere in the payload.
+/// BC-4.16.001 Precondition 2 v1.5 (F-P4-001 + F-P4-002): class-complete detection.
 /// BC-4.16.001 PC4: non-`git add`/`git stage` commands pass unconditionally.
 pub fn is_git_add_command(payload: &str) -> bool {
     let tokens: Vec<&str> = payload.split_whitespace().collect();
     let mut i = 0;
     'outer: while i < tokens.len() {
-        if tokens[i].eq_ignore_ascii_case("git") {
+        // F-P4-002: strip leading shell punctuation before comparing to "git".
+        // Handles $(git, (git, `git forms glued without whitespace.
+        let candidate = strip_shell_prefix(tokens[i]);
+        if candidate.eq_ignore_ascii_case("git") {
             let mut j = i + 1;
-            // Skip global options. -C and -c each consume one following value token;
-            // all other -* flags are self-contained.
+            // Skip global options, consuming value tokens for known/unknown long options.
             while j < tokens.len() {
                 let t = tokens[j];
                 if t.starts_with('-') {
                     j += 1;
-                    // -C <path> and -c <key=val> consume the next token as their value.
                     if (t == "-C" || t == "-c") && j < tokens.len() {
+                        // -C <path> and -c <key=val>: consume next token as value.
                         j += 1;
+                    } else if t.starts_with("--") && !t.contains('=') {
+                        // Long option without `=` (not self-contained):
+                        // either a canonical value-consuming option or an unknown long option.
+                        // F-P4-001: canonical options consume the next token unconditionally;
+                        // unknown options use conservative lookahead.
+                        if is_canonical_long_value_consuming(t) {
+                            // Canonical value-consuming option: skip the value token.
+                            if j < tokens.len() {
+                                j += 1;
+                            }
+                        } else {
+                            // Unknown long option — conservative lookahead (F-P4-001).
+                            // If the next token is add/stage: it is the subcommand; detect now.
+                            // If the next token is non-dash and not add/stage: consume as value.
+                            // If the next token starts with `-`: option is boolean, no consume.
+                            if j < tokens.len() {
+                                let peek = tokens[j];
+                                let peek_core = peek.trim_end_matches([';', '&', '|']);
+                                let peek_core =
+                                    peek_core.trim_matches(|c: char| c == '\'' || c == '"');
+                                if peek_core.eq_ignore_ascii_case("add")
+                                    || peek_core.eq_ignore_ascii_case("stage")
+                                {
+                                    return true;
+                                } else if !peek.starts_with('-') {
+                                    j += 1; // consume as value token
+                                }
+                                // peek starts with '-': option is boolean, no value consumed
+                            }
+                        }
                     }
+                    // Short options other than -C/-c and long options with `=` are
+                    // self-contained; j was already incremented above.
                 } else {
-                    // First non-option token is the subcommand. Strip trailing shell
-                    // metacharacters that may be glued to the subcommand word (e.g. "diff;"),
-                    // then strip surrounding single/double quotes (e.g. `"add"`, `'stage'`).
-                    // Quote-strip mirrors is_factory_arg_token for internal consistency.
+                    // First non-option, non-consumed token is the subcommand. Strip trailing
+                    // shell metacharacters then surrounding single/double quotes before
+                    // comparison. Quote-strip mirrors is_factory_arg_token for consistency.
                     let core = t.trim_end_matches([';', '&', '|']);
-                    let core = core.trim_matches(|c| c == '\'' || c == '"');
+                    let core = core.trim_matches(|c: char| c == '\'' || c == '"');
                     if core.eq_ignore_ascii_case("add") || core.eq_ignore_ascii_case("stage") {
                         return true;
                     }
@@ -103,31 +193,33 @@ pub fn is_git_add_command(payload: &str) -> bool {
 /// arguments include or imply a `.factory/`-rooted path that should be blocked
 /// on a product branch.
 ///
-/// Conservative matching per BC-4.16.001 Invariant 4 v1.4:
+/// Conservative matching per BC-4.16.001 Invariant 4 v1.5:
 /// - Case-insensitive `.factory/` prefix match anywhere in the payload (fast
 ///   path; covers `.Factory/`, `.FACTORY/` etc. for macOS HFS+ / Windows NTFS
 ///   which are case-folding filesystems).
 /// - Parses each `git add`/`git stage` invocation in the payload (including
-///   chained forms). Global option values (e.g. the directory argument to
-///   `-C <path>`) are skipped and NOT treated as staging targets — only tokens
-///   that are actual arguments to the `add`/`stage` subcommand are checked.
-/// - In the argument region of each `add`/`stage` invocation, the following
-///   patterns trigger a conservative block:
+///   chained forms). Candidate `git` tokens are recognized after stripping
+///   leading shell punctuation (`$(`, `(`, `` ` ``) per F-P4-002.
+/// - Global option values are skipped and NOT treated as staging targets —
+///   only tokens in the actual argument region of `add`/`stage` are checked.
+///   The same value-consuming rules as `is_git_add_command` apply (F-P4-001):
+///   canonical long options and unknown long option lookahead.
+/// - In the argument region, the following patterns trigger a conservative block:
 ///   - Bare `.factory` token (case-insensitive, no trailing slash): git expands
-///     to `.factory/**` for staging — same dual-tracking scope.
+///     to `.factory/**` — same dual-tracking scope.
 ///   - `:/`-family pathspec magic: anchors from repo root, can reach `.factory/`.
 ///   - `-A`, `--all`, `-u`, `--update`, `.`, `./`: bulk-stage flags / CWD forms.
 ///   - Glob wildcards (`*`, `?`, `[`): guard cannot evaluate expansions pre-run.
 ///   - Combined short flags containing `A` or `u` (e.g. `-Au`).
 ///
 /// # BC trace
-/// BC-4.16.001 Invariant 4 v1.4: path matching is conservative and case-insensitive.
+/// BC-4.16.001 Invariant 4 v1.5: path matching is conservative and case-insensitive.
 /// BC-4.16.001 EC-004: `git add -A` from CWD under `.factory/` is blocked.
 /// BC-4.16.001 EC-008: `git add *.md` glob from project root is blocked.
 /// BC-4.16.001 EC-010: `git add -u` is blocked (tracks all modifications).
 pub fn contains_factory_path_arg(payload: &str) -> bool {
     // Fast path: case-insensitive `.factory/` literal anywhere in payload.
-    // Handles `.factory/`, `.Factory/`, `.FACTORY/` etc. per BC-4.16.001 Invariant 4 v1.4
+    // Handles `.factory/`, `.Factory/`, `.FACTORY/` etc. per BC-4.16.001 Invariant 4 v1.5
     // (macOS HFS+ and Windows NTFS are case-folding; `.Factory/` names the same dir).
     let lower = payload.to_ascii_lowercase();
     if lower.contains(".factory/") {
@@ -135,27 +227,52 @@ pub fn contains_factory_path_arg(payload: &str) -> bool {
     }
 
     // Parse git add/stage invocations in the payload and inspect their argument regions.
-    // Global option values (e.g. the path argument to `-C <path>`) are skipped so that
-    // e.g. `git -C . add src/lib.rs` correctly returns false (`.` is a -C value, not an
-    // add argument).
+    // Global option values are skipped (F-P4-001): canonical value-consuming options and
+    // conservative lookahead for unknown long options — same rules as is_git_add_command.
     let tokens: Vec<&str> = payload.split_whitespace().collect();
     let mut i = 0;
     'outer: while i < tokens.len() {
-        if tokens[i].eq_ignore_ascii_case("git") {
+        // F-P4-002: strip leading shell punctuation before comparing to "git".
+        let candidate = strip_shell_prefix(tokens[i]);
+        if candidate.eq_ignore_ascii_case("git") {
             let mut j = i + 1;
-            // Skip global options (-C and -c consume one following value token).
+            // Skip global options using the same value-consuming rules as is_git_add_command.
             while j < tokens.len() {
                 let t = tokens[j];
                 if t.starts_with('-') {
                     j += 1;
                     if (t == "-C" || t == "-c") && j < tokens.len() {
                         j += 1;
+                    } else if t.starts_with("--") && !t.contains('=') {
+                        // Long option without `=`: canonical or unknown lookahead (F-P4-001).
+                        if is_canonical_long_value_consuming(t) {
+                            if j < tokens.len() {
+                                j += 1;
+                            }
+                        } else {
+                            // Unknown long option: conservative lookahead.
+                            // If next token is non-dash and not add/stage: consume as value.
+                            // (If it IS add/stage, leave j pointing at it for subcommand
+                            // detection in the non-`-` branch below.)
+                            if j < tokens.len() {
+                                let peek = tokens[j];
+                                let peek_core = peek.trim_end_matches([';', '&', '|']);
+                                let peek_core =
+                                    peek_core.trim_matches(|c: char| c == '\'' || c == '"');
+                                if !peek_core.eq_ignore_ascii_case("add")
+                                    && !peek_core.eq_ignore_ascii_case("stage")
+                                    && !peek.starts_with('-')
+                                {
+                                    j += 1; // consume as value token
+                                }
+                                // peek is add/stage or starts with `-`: no consume
+                            }
+                        }
                     }
                 } else {
-                    // First non-option token is the subcommand. Strip trailing metacharacters
-                    // then surrounding quotes — consistent with is_git_add_command.
+                    // First non-option, non-consumed token is the subcommand.
                     let subcore = t.trim_end_matches([';', '&', '|']);
-                    let subcore = subcore.trim_matches(|c| c == '\'' || c == '"');
+                    let subcore = subcore.trim_matches(|c: char| c == '\'' || c == '"');
                     if !subcore.eq_ignore_ascii_case("add")
                         && !subcore.eq_ignore_ascii_case("stage")
                     {

@@ -2237,10 +2237,7 @@ fn test_fp4_001_bc4_16_001_blocks_chained_and_space_form_git_dir_factory_on_deve
     // The outer-loop scan (F-P2-001 fix) correctly advances past the first 'git status';
     // then the space-form bypass causes the second 'git --git-dir /foo add' to miss 'add'.
     // Both the outer-loop fix AND the space-form fix are required.
-    let result = run_hook_with_branch(
-        "git status && git --git-dir /foo add .factory/f",
-        "develop",
-    );
+    let result = run_hook_with_branch("git status && git --git-dir /foo add .factory/f", "develop");
     assert!(
         result.is_ok(),
         "F-P4-001: hook_logic panicked for \
