@@ -106,8 +106,14 @@ if [ ! -f "$STATE_MD" ]; then
   exit 1
 fi
 
-CITED_DEV_STATE=$(grep -oE 'develop_head: "?[0-9a-f]{8,40}' "$STATE_MD" 2>/dev/null \
-  | head -1 | grep -oE '[0-9a-f]{8,40}' | cut -c1-8 || echo "NOT_FOUND")
+# A develop_head cite may be a 7-char short SHA (git's common default) up to a
+# full 40-char SHA. Accept the whole 7..40 range and keep the cited value intact
+# — do NOT truncate. The comparison below is a prefix match against the actual
+# full develop SHA, which is correct for any short-SHA length (issue #629). The
+# prior {8,40} + `cut -c1-8` form reported NOT_FOUND for 7-char cites and then
+# silently PASSed, defeating the check on exactly the field it exists to verify.
+CITED_DEV_STATE=$(grep -oE 'develop_head: "?[0-9a-f]{7,40}' "$STATE_MD" 2>/dev/null \
+  | head -1 | grep -oE '[0-9a-f]{7,40}' | head -1 || echo "NOT_FOUND")
 
 if [ -f "$HANDOFF_MD" ]; then
   CITED_DEV_HANDOFF=$(grep -oE 'develop HEAD[^|`]*`?[0-9a-f]{8}' "$HANDOFF_MD" 2>/dev/null \
@@ -120,15 +126,34 @@ echo "STATE.md    develop cited      : $CITED_DEV_STATE"
 echo "HANDOFF.md  develop cited      : $CITED_DEV_HANDOFF"
 echo ""
 
-# ---------- develop SHA must match exactly (cross-branch cite, no loop) ----------
+# ---------- WARN: develop_head present but unextractable ----------
+#
+# If STATE.md declares a develop_head field but no hex SHA could be pulled from
+# it, that is a diagnostic-integrity failure: the currency comparison would be
+# silently skipped (the exact silent-skip-PASS class this hook exists to catch,
+# issue #629). Surface it as a WARN so the drift can't normalize again.
+if [ "$CITED_DEV_STATE" = "NOT_FOUND" ] \
+    && grep -qE '^\s*develop_head:' "$STATE_MD" 2>/dev/null; then
+  echo "WARN: STATE.md declares develop_head but no 7-40 char hex SHA could be extracted —"
+  echo "      develop-currency comparison skipped. Cite a valid short or full SHA."
+  WARN=1
+fi
 
-if [ "$CITED_DEV_STATE" != "NOT_FOUND" ] && [ "$ACTUAL_DEV" != "$CITED_DEV_STATE" ]; then
-  echo "FAIL: develop SHA in STATE.md is stale (cited=$CITED_DEV_STATE actual=$ACTUAL_DEV)"
+# ---------- develop SHA must match (cross-branch cite, no loop) ----------
+#
+# Prefix comparison against the FULL actual SHA so a short cite of any length
+# (7..40 chars) compares correctly. Truncating the actual to the cited length
+# is the git-canonical way to compare a short SHA — string-equality against a
+# fixed 8-char actual would false-positive on a legitimate 7-char cite.
+
+if [ "$CITED_DEV_STATE" != "NOT_FOUND" ] \
+    && [ "${ACTUAL_DEV_FULL:0:${#CITED_DEV_STATE}}" != "$CITED_DEV_STATE" ]; then
+  echo "FAIL: develop SHA in STATE.md is stale (cited=$CITED_DEV_STATE actual=${ACTUAL_DEV_FULL:0:${#CITED_DEV_STATE}} full=$ACTUAL_DEV_FULL)"
   FAIL=1
 fi
 if [ "$CITED_DEV_HANDOFF" != "NOT_FOUND" ] && [ "$CITED_DEV_HANDOFF" != "NO_HANDOFF" ] \
-    && [ "$ACTUAL_DEV" != "$CITED_DEV_HANDOFF" ]; then
-  echo "FAIL: develop SHA in SESSION-HANDOFF.md is stale (cited=$CITED_DEV_HANDOFF actual=$ACTUAL_DEV)"
+    && [ "${ACTUAL_DEV_FULL:0:${#CITED_DEV_HANDOFF}}" != "$CITED_DEV_HANDOFF" ]; then
+  echo "FAIL: develop SHA in SESSION-HANDOFF.md is stale (cited=$CITED_DEV_HANDOFF actual=${ACTUAL_DEV_FULL:0:${#CITED_DEV_HANDOFF}} full=$ACTUAL_DEV_FULL)"
   FAIL=1
 fi
 
