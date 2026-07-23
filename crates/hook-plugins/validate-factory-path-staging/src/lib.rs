@@ -8,13 +8,18 @@
 //!
 //! # Behavioral Contracts
 //!
-//! - BC-4.16.001 v1.5: blocks `git add`/`git stage` of `.factory/` paths on
+//! - BC-4.16.001 v1.6: blocks `git add`/`git stage` of `.factory/` paths on
 //!   product branches (PC1); passes non-`.factory/` staging (PC2); passes on
 //!   `factory-artifacts` branch (PC3); passes non-`git add`/`git stage`
 //!   commands (PC4); fail-open on crash/branch-detection failure (Invariants
 //!   2/3). Detection contract is class-complete per v1.5:
 //!   - Canonical value-consuming global options enumerated (F-P4-001).
 //!   - Leading shell punctuation stripped from `git` candidate tokens (F-P4-002).
+//!   - Invariant 6 (F-P5-001): when `-C <target>` or `-c core.worktree=<target>`
+//!     names a `.factory`-class path, branch detection runs against the TARGET
+//!     directory (`git -C <target> branch --show-current`) rather than the CWD.
+//!     product branch → BLOCK; `factory-artifacts` → PASS (PC3); detection
+//!     failure → fail-open per Invariant 3.
 //!
 //! # Architecture compliance
 //!
@@ -377,6 +382,139 @@ pub fn is_product_branch(branch: &str) -> bool {
     branch != "factory-artifacts"
 }
 
+/// Returns true if `target` is a `.factory`-class directory path.
+///
+/// A `.factory`-class path (matched case-insensitively) is:
+///   - bare `.factory` (no trailing slash)
+///   - `./.factory`
+///   - any path ending in `/.factory` (absolute or relative)
+///
+/// Called only on already-unquoted token values.
+///
+/// # BC trace
+/// BC-4.16.001 v1.6 Invariant 6: factory-class target detection (F-P5-001).
+fn is_factory_class_target(target: &str) -> bool {
+    let lower = target.to_ascii_lowercase();
+    lower == ".factory" || lower == "./.factory" || lower.ends_with("/.factory")
+}
+
+/// Extracts the value component from a `-c key=val` git global option token
+/// when the key is `core.worktree` (case-insensitive).
+///
+/// Returns `Some(&val)` if the token is `core.worktree=<val>`, `None` otherwise.
+/// The returned slice is the raw value from after the first `=`; the caller is
+/// responsible for further quote-stripping if needed.
+///
+/// # BC trace
+/// BC-4.16.001 v1.6 Invariant 6: `-c core.worktree=<target>` factory-class detection (F-P5-001).
+fn extract_core_worktree_value(kv: &str) -> Option<&str> {
+    let eq = kv.find('=')?;
+    let key = &kv[..eq];
+    if key.eq_ignore_ascii_case("core.worktree") {
+        Some(&kv[eq + 1..])
+    } else {
+        None
+    }
+}
+
+/// Returns the factory-class target path (unquoted) if the first `git add`/
+/// `git stage` command in `payload` contains a `-C <target>` option where
+/// `<target>` names a `.factory`-class directory, OR a
+/// `-c core.worktree=<target>` option where `<target>` is factory-class.
+///
+/// Uses the same tokenization rules as `is_git_add_command` (F-P4-001 /
+/// F-P4-002): leading shell punctuation stripped from `git` candidates;
+/// canonical and unknown long value-consuming options handled consistently.
+///
+/// Returns `None` when:
+/// - No `git add`/`git stage` command is found (should not happen since
+///   `is_git_add_command` is checked first).
+/// - The command contains no `-C` or `-c core.worktree=` targeting a
+///   `.factory`-class path.
+///
+/// # BC trace
+/// BC-4.16.001 v1.6 Invariant 6: target-aware branch detection (F-P5-001).
+fn find_factory_class_target(payload: &str) -> Option<String> {
+    let tokens: Vec<&str> = payload.split_whitespace().collect();
+    let mut i = 0;
+    'outer: while i < tokens.len() {
+        let candidate = strip_shell_prefix(tokens[i]);
+        if !candidate.eq_ignore_ascii_case("git") {
+            i += 1;
+            continue;
+        }
+        let mut j = i + 1;
+        let mut factory_target: Option<String> = None;
+        while j < tokens.len() {
+            let t = tokens[j];
+            if t.starts_with('-') {
+                j += 1; // advance past the option token itself
+                if t == "-C" && j < tokens.len() {
+                    // -C <target>: check if factory-class (quote-strip the value token).
+                    let raw = tokens[j];
+                    let unquoted = raw.trim_matches(|c: char| c == '\'' || c == '"');
+                    if is_factory_class_target(unquoted) {
+                        factory_target = Some(unquoted.to_string());
+                    }
+                    j += 1; // consume the value token
+                } else if t == "-c" && j < tokens.len() {
+                    // -c <key=val>: check for core.worktree=<factory-class-val>.
+                    let raw = tokens[j];
+                    let unquoted = raw.trim_matches(|c: char| c == '\'' || c == '"');
+                    if let Some(val) = extract_core_worktree_value(unquoted) {
+                        // val is extracted from after '='; strip any surrounding quotes.
+                        let val_unquoted = val.trim_matches(|c: char| c == '\'' || c == '"');
+                        if is_factory_class_target(val_unquoted) {
+                            factory_target = Some(val_unquoted.to_string());
+                        }
+                    }
+                    j += 1; // consume the value token
+                } else if t.starts_with("--") && !t.contains('=') {
+                    if is_canonical_long_value_consuming(t) {
+                        // Canonical value-consuming option: skip its value token.
+                        if j < tokens.len() {
+                            j += 1;
+                        }
+                    } else {
+                        // Unknown long option: conservative lookahead (F-P4-001).
+                        // If peek is add/stage, leave j pointing at the subcommand
+                        // so the non-'-' branch below detects it. Otherwise consume
+                        // as value if it isn't another option.
+                        if j < tokens.len() {
+                            let peek = tokens[j];
+                            let peek_core = peek.trim_end_matches([';', '&', '|']);
+                            let peek_core = peek_core.trim_matches(|c: char| c == '\'' || c == '"');
+                            if !peek_core.eq_ignore_ascii_case("add")
+                                && !peek_core.eq_ignore_ascii_case("stage")
+                                && !peek.starts_with('-')
+                            {
+                                j += 1; // consume as value
+                            }
+                            // If peek is add/stage or starts with '-': no consume;
+                            // inner loop continues and will handle in the next pass.
+                        }
+                    }
+                }
+                // Short options other than -C/-c: no value token consumed.
+            } else {
+                // First non-option, non-consumed token is the subcommand.
+                let core = t.trim_end_matches([';', '&', '|']);
+                let core = core.trim_matches(|c: char| c == '\'' || c == '"');
+                if core.eq_ignore_ascii_case("add") || core.eq_ignore_ascii_case("stage") {
+                    // Found the git add/stage subcommand — return any factory target accumulated.
+                    return factory_target;
+                }
+                // Not add/stage: different git subcommand; resume outer scan from here.
+                i = j + 1;
+                continue 'outer;
+            }
+        }
+        // Inner while loop exhausted without finding add/stage subcommand.
+        break 'outer;
+    }
+    None
+}
+
 // ---------------------------------------------------------------------------
 // Injectable callback surface (testable without WASM runtime)
 // ---------------------------------------------------------------------------
@@ -409,14 +547,22 @@ where
 ///
 /// Algorithm:
 /// 1. Extract the Bash command string from `payload.tool_input["command"]`.
-/// 2. If the command is NOT a `git add` command, return `Continue` (PC4).
-/// 3. Detect the current branch via `exec_subprocess("git", ["branch", "--show-current"])`.
-///    If branch detection fails, return `Continue` (fail-open, Invariant 3).
-/// 4. If branch == `factory-artifacts`, return `Continue` (PC3).
-/// 5. If the command arguments contain a `.factory/`-rooted path (or conservative
-///    wildcards), return `block_intent = true` (exit 2) with `FactoryPathOnProductBranch`
-///    error (PC1).
-/// 6. Otherwise return `Continue` (PC2).
+/// 2. If the command is NOT a `git add`/`git stage` command, return `Continue` (PC4).
+/// 2b. (Invariant 6) Inspect the command for a `-C <target>` or
+///    `-c core.worktree=<target>` option whose value names a `.factory`-class
+///    path. If found, `factory_class_target = Some(target)`.
+/// 3. Branch detection via `exec_subprocess`:
+///    - Invariant 6 path (factory_class_target is Some): call
+///      `git -C <target> branch --show-current` — detects the TARGET branch.
+///    - Normal path (factory_class_target is None): call
+///      `git branch --show-current` — detects the CWD branch.
+///    Fail-open on any failure per BC-4.16.001 Invariant 3.
+/// 4. If detected branch == `factory-artifacts`, return `Continue` (PC3).
+/// 5. We are on a product branch. Decide the block source:
+///    - Invariant 6 path: the `-C`/`-c core.worktree=` target is `.factory`-class
+///      and we reached a product branch → BLOCK (PC1) with target-aware message.
+///    - Normal path: inspect command arguments for `.factory/`-rooted paths /
+///      conservative wildcards → BLOCK (PC1) if found, else `Continue` (PC2).
 ///
 /// # BC traces
 /// - BC-4.16.001 PC1: block .factory/ staging on product branches
@@ -424,6 +570,8 @@ where
 /// - BC-4.16.001 PC3: pass all commands on factory-artifacts branch
 /// - BC-4.16.001 PC4: pass non-git-add commands immediately
 /// - BC-4.16.001 Invariants 2/3: fail-open on crash or branch detection failure
+/// - BC-4.16.001 v1.6 Invariant 6: target-aware detection for -C/.factory and
+///   -c core.worktree=.factory forms (F-P5-001)
 pub fn hook_logic<B, E, L>(
     payload: HookPayload,
     mut callbacks: HookCallbacks<B, E, L>,
@@ -445,14 +593,31 @@ where
         }
     };
 
-    // Step 2: PC4 — non-git-add commands pass unconditionally (no path inspection).
+    // Step 2: PC4 — non-git-add/stage commands pass unconditionally (no path inspection).
     if !is_git_add_command(&command) {
         return HookResult::Continue;
     }
 
-    // Step 3: Branch detection via exec_subprocess.
+    // Step 2b: Invariant 6 — inspect command for a -C <target> or
+    // -c core.worktree=<target> option naming a .factory-class path.
+    // Result drives whether exec_subprocess is called with -C args (target-aware)
+    // or without (CWD-based). exec_subprocess is FnOnce — called exactly once below.
+    let factory_class_target: Option<String> = find_factory_class_target(&command);
+
+    // Step 3: Branch detection — target-aware (Invariant 6) or CWD-based.
     // Fail-open on any failure per BC-4.16.001 Invariant 3.
-    let branch = match (callbacks.exec_subprocess)("git", &["branch", "--show-current"]) {
+    let branch_result = if let Some(ref target) = factory_class_target {
+        // Invariant 6: run branch detection against the TARGET directory so that
+        // `git -C .factory add ...` on the mounted factory-artifacts worktree is
+        // correctly identified as factory-artifacts (PC3 → Continue), while the
+        // same command on an unmounted checkout returns the product branch (PC1 → BLOCK).
+        (callbacks.exec_subprocess)("git", &["-C", target, "branch", "--show-current"])
+    } else {
+        // Normal CWD-based detection.
+        (callbacks.exec_subprocess)("git", &["branch", "--show-current"])
+    };
+
+    let branch = match branch_result {
         Ok((exit_code, stdout, stderr)) => {
             if exit_code != 0 {
                 (callbacks.log)(
@@ -491,12 +656,39 @@ where
 
     // Step 4: PC3 — factory-artifacts branch passes unconditionally.
     // Factory artifact commits require staging .factory/ paths on this branch.
+    // Invariant 6: when factory_class_target is Some, this check fires on the
+    // TARGET branch (e.g., the mounted factory-artifacts worktree) — preserving
+    // the state-manager's canonical `git -C .factory add ...` workflow.
     if !is_product_branch(&branch) {
         return HookResult::Continue;
     }
 
-    // Step 5: PC1 — block if payload contains a .factory/-rooted path or
-    // conservative wildcard/flag (per BC-4.16.001 Invariant 4).
+    // Step 5: Product branch — determine block source.
+    if let Some(ref target) = factory_class_target {
+        // Invariant 6: the -C/<target> or -c core.worktree=<target> option names a
+        // .factory-class directory and the detected TARGET branch is a product branch
+        // → BLOCK (PC1).
+        // This closes the bypass where `git -C .factory add <non-factory-file>` escapes
+        // contains_factory_path_arg because the staged arg is not .factory/-prefixed.
+        // Invariant 6 uses the TARGET directory path, not the staged file argument.
+        return HookResult::block_with_fix(
+            "validate-factory-path-staging",
+            format!(
+                "FactoryPathOnProductBranch — git add/stage with .factory/ target \
+                 directory ('{target}') on product branch '{branch}'. .factory/ paths \
+                 are exclusively owned by the factory-artifacts worktree. Staging \
+                 .factory/ content on a product branch creates the dual-tracking \
+                 condition that allows product-branch merges to silently delete \
+                 factory artifact files"
+            ),
+            "Switch to the .factory/ worktree and commit from there on the \
+             factory-artifacts branch",
+            "FactoryPathOnProductBranch",
+        );
+    }
+
+    // Step 5 (normal path): PC1 — block if payload contains a .factory/-rooted path
+    // or conservative wildcard/flag (per BC-4.16.001 Invariant 4).
     if contains_factory_path_arg(&command) {
         return HookResult::block_with_fix(
             "validate-factory-path-staging",
