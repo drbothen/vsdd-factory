@@ -45,24 +45,55 @@ pub const HOST_ABI_VERSION: u32 = 1;
 /// BC-4.16.001 Precondition 2: detect `git add` by substring match.
 /// BC-4.16.001 PC4: non-`git add` commands pass unconditionally.
 pub fn is_git_add_command(payload: &str) -> bool {
-    todo!()
+    payload.to_lowercase().contains("git add")
 }
 
 /// Returns true if the `git add` argument text contains or implies a
 /// `.factory/`-rooted path that should be blocked on a product branch.
 ///
 /// Conservative matching per BC-4.16.001 Invariant 4:
-/// - Literal `.factory/` prefix match.
-/// - `/.factory/` as a path component (absolute paths).
-/// - `-A`, `-u`, and `.` flags from a `.factory/`-adjacent CWD are treated
-///   as potentially staging `.factory/` content and blocked conservatively.
+/// - Literal `.factory/` prefix match (captures both relative and absolute
+///   path forms where `.factory/` appears as a component).
+/// - `-A`, `--all`, `-u`, `--update`, `.` flags: treated conservatively as
+///   potentially staging `.factory/` content (CWD payload alone cannot prove
+///   they are safe — BC-4.16.001 Invariant 4 conservative-block mandate).
+/// - Glob wildcards (`*`, `?`, `[`): conservatively blocked because the guard
+///   inspects only literal argument text; git has not yet expanded the glob
+///   and may produce `.factory/**` matches (EC-008).
+/// - Combined short flags containing `A` or `u` (e.g., `-Au`).
 ///
 /// # BC trace
 /// BC-4.16.001 Invariant 4: path matching is conservative.
 /// BC-4.16.001 EC-004: `git add -A` from CWD under `.factory/` is blocked.
 /// BC-4.16.001 EC-008: `git add *.md` glob from project root is blocked.
+/// BC-4.16.001 EC-010: `git add -u` is blocked (tracks all modifications).
 pub fn contains_factory_path_arg(git_add_args: &str) -> bool {
-    todo!()
+    // Explicit .factory/ path prefix or component anywhere in payload
+    if git_add_args.contains(".factory/") {
+        return true;
+    }
+
+    // Scan tokens for conservative wildcards and flags.
+    // Skip the "git" and "add" command words; inspect only argument tokens.
+    for token in git_add_args.split_whitespace() {
+        match token {
+            // Skip the command words themselves
+            "git" | "add" => continue,
+            // Conservative bulk-stage flags: may include .factory/ content
+            "-A" | "--all" | "-u" | "--update" | "." => return true,
+            // Glob wildcards: guard cannot evaluate expansions at PreToolUse time
+            t if t.contains('*') || t.contains('?') || t.starts_with('[') => return true,
+            // Combined short flags (e.g. "-Au", "-uA"): A=all, u=update
+            t if t.starts_with('-') && !t.starts_with("--") && t.len() > 2 => {
+                let flags = &t[1..];
+                if flags.contains('A') || flags.contains('u') {
+                    return true;
+                }
+            }
+            _ => {}
+        }
+    }
+    false
 }
 
 /// Returns true if `branch` is a product branch (not `factory-artifacts`).
@@ -71,11 +102,14 @@ pub fn contains_factory_path_arg(git_add_args: &str) -> bool {
 /// `maintenance/*`, and any unrecognized branch name (conservative default).
 /// The only non-blocking branch is `factory-artifacts`.
 ///
+/// Unrecognized branch names are treated as product branches — the conservative
+/// default prevents a mistakenly named branch from silently bypassing the guard.
+///
 /// # BC trace
 /// BC-4.16.001 PC3: `factory-artifacts` branch passes unconditionally.
 /// BC-4.16.001 PC1: all other branches are product branches.
 pub fn is_product_branch(branch: &str) -> bool {
-    todo!()
+    branch != "factory-artifacts"
 }
 
 // ---------------------------------------------------------------------------
@@ -127,14 +161,92 @@ where
 /// - BC-4.16.001 Invariants 2/3: fail-open on crash or branch detection failure
 pub fn hook_logic<B, E, L>(
     payload: HookPayload,
-    callbacks: HookCallbacks<B, E, L>,
+    mut callbacks: HookCallbacks<B, E, L>,
 ) -> HookResult
 where
     B: FnOnce(&str, &[&str]) -> Result<(i32, String, String), String>,
     E: FnMut(&str, &[(&str, &str)]),
     L: FnMut(u8, &str),
 {
-    todo!()
+    // Step 1: Extract the Bash command string from tool_input["command"].
+    let command = match payload.tool_input.get("command").and_then(|v| v.as_str()) {
+        Some(cmd) => cmd.to_string(),
+        None => {
+            (callbacks.log)(2, "validate-factory-path-staging: no 'command' field in tool_input");
+            return HookResult::Continue;
+        }
+    };
+
+    // Step 2: PC4 — non-git-add commands pass unconditionally (no path inspection).
+    if !is_git_add_command(&command) {
+        return HookResult::Continue;
+    }
+
+    // Step 3: Branch detection via exec_subprocess.
+    // Fail-open on any failure per BC-4.16.001 Invariant 3.
+    let branch = match (callbacks.exec_subprocess)("git", &["branch", "--show-current"]) {
+        Ok((exit_code, stdout, stderr)) => {
+            if exit_code != 0 {
+                (callbacks.log)(
+                    3,
+                    &format!(
+                        "validate-factory-path-staging: branch detection returned exit \
+                         {exit_code} (stderr: {stderr}), failing open per Invariant 3"
+                    ),
+                );
+                return HookResult::Continue;
+            }
+            let b = stdout.trim().to_string();
+            if b.is_empty() {
+                // Empty stdout = detached HEAD state — fail-open per Invariant 3.
+                (callbacks.log)(
+                    3,
+                    "validate-factory-path-staging: empty branch output (detached HEAD?), \
+                     failing open per Invariant 3",
+                );
+                return HookResult::Continue;
+            }
+            b
+        }
+        Err(e) => {
+            // git unavailable or exec failure — fail-open per Invariant 3.
+            (callbacks.log)(
+                3,
+                &format!(
+                    "validate-factory-path-staging: branch detection failed ({e}), \
+                     failing open per Invariant 3"
+                ),
+            );
+            return HookResult::Continue;
+        }
+    };
+
+    // Step 4: PC3 — factory-artifacts branch passes unconditionally.
+    // Factory artifact commits require staging .factory/ paths on this branch.
+    if !is_product_branch(&branch) {
+        return HookResult::Continue;
+    }
+
+    // Step 5: PC1 — block if payload contains a .factory/-rooted path or
+    // conservative wildcard/flag (per BC-4.16.001 Invariant 4).
+    if contains_factory_path_arg(&command) {
+        return HookResult::Block {
+            reason: format!(
+                "FactoryPathOnProductBranch\n\
+                \n\
+                BLOCKED: git add of .factory/ path on product branch '{branch}'.\n\
+                .factory/ paths are exclusively owned by the factory-artifacts worktree.\n\
+                Staging .factory/ content on a product branch creates the dual-tracking\n\
+                condition that allows product-branch merges to silently delete factory\n\
+                artifact files.\n\
+                If you intended to commit factory artifacts: switch to the .factory/\n\
+                worktree and commit from there on the factory-artifacts branch."
+            ),
+        };
+    }
+
+    // Step 6: PC2 — non-.factory/ git add commands pass.
+    HookResult::Continue
 }
 
 // ---------------------------------------------------------------------------
@@ -146,7 +258,29 @@ where
 /// Wires the real vsdd_hook_sdk host functions to the injectable-callback
 /// surface of `hook_logic`.
 pub fn on_pre_tool_use(payload: HookPayload) -> HookResult {
-    todo!()
+    hook_logic(
+        payload,
+        HookCallbacks {
+            exec_subprocess: |cmd, args| {
+                match vsdd_hook_sdk::host::exec_subprocess(cmd, args, &[], 5000, 512) {
+                    Ok(result) => {
+                        let stdout = String::from_utf8_lossy(&result.stdout).into_owned();
+                        let stderr = String::from_utf8_lossy(&result.stderr).into_owned();
+                        Ok((result.exit_code, stdout, stderr))
+                    }
+                    Err(e) => Err(format!("{e:?}")),
+                }
+            },
+            emit_event: |event_type, fields| {
+                vsdd_hook_sdk::host::emit_event(event_type, fields);
+            },
+            log: |level, msg| match level {
+                0..=2 => vsdd_hook_sdk::host::log_info(msg),
+                3 => vsdd_hook_sdk::host::log_warn(msg),
+                _ => vsdd_hook_sdk::host::log_error(msg),
+            },
+        },
+    )
 }
 
 // ---------------------------------------------------------------------------
