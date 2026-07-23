@@ -2,7 +2,7 @@
 document_type: architecture-decision-record
 level: L3
 adr_id: ADR-031
-version: "1.4"
+version: "1.5"
 title: "ADR-031: E-21 factory state data-loss hardening — nested-worktree path exclusivity protection model"
 status: accepted
 date: 2026-07-19
@@ -26,8 +26,9 @@ subsystems_affected:
   - SS-04
   - SS-05
   - SS-06
-last_amended: "2026-07-19 (v1.4) — pass-4 O-1 (architect): §Consequences duplicate '4.' numbering corrected; 4a/4b lettering used to preserve §Consequences #5 = post-rebase gate host (cited by BC-5.44.001 v1.3 and S-21.02 v1.1 as ADR-031 v1.1 §Consequences #5; renaming second '4.' to '5' would shift current #5 to #6, breaking those cites). ARCH-INDEX v3.10→v3.11. [Prior: 2026-07-19 (v1.3) — F-P2-001 correction (orchestrator counter-evidence accepted): §Decision 2 Layer-2 'EMPTY host-set' retracted; corrected to undocumented ad-hoc orchestrator/operator Bash on main checkout; enforcement site named (per-story-delivery.md main-checkout sync protocol = S-21.01 Layer-2 deliverable); Layer-1 scope confirmed narrow (git add/stage only); server-side origination residual risk documented in §Rationale. [Prior: 2026-07-19 (v1.2) — F-P2 adversary adjudications: §Decision 2 Layer-2 EMPTY host-set (retracted at v1.3); §Decision 7 Four→Five; §Rationale F-P2-007 teardown dispatch-point ruling. Prior metadata continued: §Decision 2 Layer-2 host-set corrected to EMPTY: pr-manager (server-side gh pr merge, excluded by BC-5.43.001 PC3), devops-engineer (rebase on story worktree, .factory/ not mounted there), state-manager (git -C .factory only) all removed; forward-looking mandate documented; (2) §Decision 7 count fixed Four→Five (F-P2-002: CAP-038 count sweep missed at v1.1); (3) §Rationale: F-P2-001 zero-host analysis + F-P2-007 teardown dispatch-point ruling added. [Prior: 2026-07-19 (v1.1) — F-P1 adversary adjudications: on_error block→continue; INV-E21-006 added; §Context #358 corrected; CAP-038 allocated.]]"
+last_amended: "2026-07-23 (v1.5) — S-21.01 pass-5 gate (human-approved): §Decision 2 Layer-1 TARGET-AWARE branch detection for CWD-redirection vector (git -C / git -c core.worktree= naming a .factory-class path branch-detects in target dir; block product branch / pass factory-artifacts / fail-open on error). §Rationale: CWD-redirection boundary note added (state-manager canonical git -C .factory workflow preserved; residual server-side origination vector unchanged). ARCH-INDEX v3.25→v3.26. [Prior: 2026-07-19 (v1.4) — pass-4 O-1 (architect): §Consequences duplicate '4.' numbering corrected; 4a/4b lettering used to preserve §Consequences #5 = post-rebase gate host (cited by BC-5.44.001 v1.3 and S-21.02 v1.1 as ADR-031 v1.1 §Consequences #5; renaming second '4.' to '5' would shift current #5 to #6, breaking those cites). ARCH-INDEX v3.10→v3.11. [Prior: 2026-07-19 (v1.3) — F-P2-001 correction (orchestrator counter-evidence accepted): §Decision 2 Layer-2 'EMPTY host-set' retracted; corrected to undocumented ad-hoc orchestrator/operator Bash on main checkout; enforcement site named (per-story-delivery.md main-checkout sync protocol = S-21.01 Layer-2 deliverable); Layer-1 scope confirmed narrow (git add/stage only); server-side origination residual risk documented in §Rationale. [Prior: 2026-07-19 (v1.2) — F-P2 adversary adjudications: §Decision 2 Layer-2 EMPTY host-set (retracted at v1.3); §Decision 7 Four→Five; §Rationale F-P2-007 teardown dispatch-point ruling. Prior metadata continued: §Decision 2 Layer-2 host-set corrected to EMPTY: pr-manager (server-side gh pr merge, excluded by BC-5.43.001 PC3), devops-engineer (rebase on story worktree, .factory/ not mounted there), state-manager (git -C .factory only) all removed; forward-looking mandate documented; (2) §Decision 7 count fixed Four→Five (F-P2-002: CAP-038 count sweep missed at v1.1); (3) §Rationale: F-P2-001 zero-host analysis + F-P2-007 teardown dispatch-point ruling added. [Prior: 2026-07-19 (v1.1) — F-P1 adversary adjudications: on_error block→continue; INV-E21-006 added; §Context #358 corrected; CAP-038 allocated.]]]"
 modified:
+  - "2026-07-23 (v1.5)"
   - "2026-07-19 (v1.4)"
   - "2026-07-19 (v1.3)"
   - "2026-07-19 (v1.2)"
@@ -135,6 +136,18 @@ layers:
   (BC-4.16.001 Precondition 3 + Invariant 2 mandate fail-open); blocking all Bash tool use on
   a WASM crash is operationally disproportionate; the two-layer defense absorbs Layer 1 failures
   via Layer 2.
+  **CWD-redirection vector (TARGET-AWARE extension; S-21.01 pass-5, human-approved 2026-07-23):**
+  Commands of the form `git -C <path> add …` and `git -c core.worktree=<path> add …` bypass the
+  plugin's literal-argument path matching when `<path>` names a `.factory`-class directory: the
+  staging target differs from the shell CWD, so a purely argument-literal match misses the scope.
+  Layer-1 is therefore extended with target-aware branch detection: when the plugin detects a
+  `-C` or `-c core.worktree=` value that names a `.factory`-class directory, it branch-detects
+  in that target directory (via its existing `exec_subprocess` git allowance) and applies the
+  same rule — block on a product branch, pass on `factory-artifacts`, fail-open on subprocess
+  error. **Boundary:** state-manager's canonical `git -C .factory add …` workflow on mounted
+  checkouts continues to pass unmodified — that workflow operates on the `factory-artifacts`
+  branch by invariant (INV-E21-003), so the target-aware check resolves to "pass" without any
+  change to state-manager behavior.
 
 - **Layer 2 — Safety-net layer (skill-doc enforcement):** BC-5.43.001 mandates that any
   agent or skill performing a local `git merge` or `git pull` on the main product checkout
@@ -335,6 +348,15 @@ This is the S-21.01 Layer-2 deliverable alongside the WASM crate.
 and server-side origination vector; SW: S-21.01 must include AC for adding the Layer-2
 pre-check constraint to per-story-delivery.md.]
 
+**CWD-redirection vector boundary (Decision 2 TARGET-AWARE extension, v1.5):**
+The target-aware branch detection in Layer-1 preserves state-manager's canonical
+`git -C .factory` workflow on mounted checkouts without modification: since that workflow
+invariably operates on the `factory-artifacts` branch (INV-E21-003; enforced by BC-6.27.001),
+the target-aware check resolves to a pass for every state-manager staging call. The Layer-1
+extension does not alter Layer-2's coverage: the residual server-side origination vector
+(contributor PRs merging `.factory/`-pathed files server-side, bypassing Layer-1 entirely)
+remains the primary Layer-2 threat vector and is unchanged by this extension.
+
 ## Consequences
 
 1. **S-21.01 deliverable:** Must create `crates/hook-plugins/validate-factory-path-staging/`
@@ -420,6 +442,7 @@ factory-side PR restore protocol).
 
 | Version | Date | Description |
 |---------|------|-------------|
+| 1.5 | 2026-07-23 | S-21.01 pass-5 gate (human-approved). §Decision 2 Layer-1 extended with TARGET-AWARE branch detection for CWD-redirection vector: `git -C <path>` and `git -c core.worktree=<path>` forms now branch-detect in the target dir when `<path>` names a `.factory`-class directory (block product branch / pass factory-artifacts / fail-open on error). §Rationale: boundary note added — state-manager canonical `git -C .factory` workflow preserved; residual server-side origination vector unchanged. ARCH-INDEX v3.25→v3.26. |
 | 1.4 | 2026-07-19 | pass-4 O-1 (architect). §Consequences duplicate '4.' numbering corrected via 4a/4b lettering: first item 4 renamed 4a (ARCH-INDEX correction); second item 4 renamed 4b (BC-6.10.002 L2 Capability field). 4a/4b lettering chosen to preserve §Consequences #5 = post-rebase gate host (cited by BC-5.44.001 v1.3 + S-21.02 v1.1 as "ADR-031 v1.1 §Consequences #5"; monotonic renumber would shift #5→#6 breaking those cites). ARCH-INDEX v3.10→v3.11. |
 | 1.3 | 2026-07-19 | F-P2-001 correction (orchestrator counter-evidence accepted). §Decision 2 Layer-2 "EMPTY host-set" retracted — corrected to "undocumented ad-hoc orchestrator/operator Bash on main checkout." Enforcement site named: per-story-delivery.md main-checkout sync protocol constraint = S-21.01 Layer-2 deliverable. Layer-1 scope confirmed narrow (git add/stage only; no extension to pull/merge). §Rationale: server-side origination residual risk documented (contributor PR server-side merge bypasses Layer-1; Layer-2 is primary guard for that vector). |
 | 1.2 | 2026-07-19 | F-P2 adversary adjudications (architect). §Decision 2 Layer-2 host-set corrected to EMPTY: pr-manager, devops-engineer (story worktree, .factory/ not mounted), state-manager removed from named-host list; forward-looking mandate + individual exclusion rationale documented (F-P2-001). §Decision 7 count fixed Four→Five (F-P2-002: CAP-038 count not swept at v1.1). §Rationale: F-P2-001 zero-host analysis + F-P2-007 teardown dispatch-point ruling (keep dispatch-point gating; not symmetric with F-P1-006 co-location) added. ARCH-INDEX v3.07→v3.08 (F-P2-004 companion bump). |

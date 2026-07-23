@@ -1,7 +1,7 @@
 ---
 document_type: behavioral-contract
 level: L3
-version: "1.2"
+version: "1.7"
 status: draft
 producer: product-owner
 timestamp: 2026-07-19T00:00:00Z
@@ -13,7 +13,7 @@ inputs:
   - plugins/vsdd-factory/hooks-registry.toml
   - .factory/specs/behavioral-contracts/ss-04/BC-4.13.001.md
   - .factory/specs/architecture/ARCH-INDEX.md
-input-hash: "c89b848"
+input-hash: "854c652"
 traces_to: .factory/specs/architecture/ARCH-INDEX.md
 origin: brownfield
 extracted_from: null
@@ -22,8 +22,13 @@ capability: "CAP-034"
 lifecycle_status: draft
 introduced: v1.0-brownfield-backfill
 modified:
+  - "2026-07-23 (v1.7) — Accepted Residuals record (product-owner; S-21.01 pass-6/7 adversarial cascade; documentary-only — no behavioral requirement changes): two accepted residuals added inside Invariant 6: (1) trailing-slash -C .factory/ target form not classified factory-class — rare OVER-block via CWD fallback; conservative direction, accepted (S-21.01 pass-6 sub-NITPICK); (2) single-detection-first-target semantics — chained payload with benign-first + dangerous-second factory-class target under-matched; accepted: faithful to Invariant 6 singular-target contract, near-zero realism, outside issue #342 threat model, Precondition 4 neutralizes single-mount variants (S-21.01 pass-7 NITPICK). BC-INDEX v4.18→v4.19."
+  - "2026-07-23 (v1.6) — F-P5-001 spec-tightening amendment (product-owner; S-21.01 LOCAL cascade pass 5; human gate decision 2026-07-23): Invariant 6 added (target-aware branch detection for -C and -c core.worktree= forms: when consumed value names a .factory-class path, branch detection runs against target directory via git -C <target> branch --show-current; product branch → BLOCK; factory-artifacts → PASS; failure → fail-open per Invariant 3); Precondition 2 note added (target INSPECTION of already-consumed values, not re-classification as arguments); §Description extended; EC-012/EC-013/EC-014 added; T-7/T-8/T-9 added; sub-NITPICK --super-prefix dedicated test deferred to test-writer. BC-INDEX v4.17→v4.18."
+  - "2026-07-22 (v1.5) — F-P4-001 + F-P4-002 spec-tightening amendments (product-owner; S-21.01 LOCAL cascade pass 4): Precondition 2 detection contract made class-complete (value-consuming git global option set enumerated: -C, -c, --git-dir, --work-tree, --namespace, --super-prefix, --exec-path; conservative rule for unknown dash-prefix tokens; F-P4-002: leading shell-punctuation stripping on git candidate tokens). §Description + PC4 sibling-site sweep (TD-VSDD-060). BC-INDEX v4.16→v4.17."
   - "2026-07-19 (v1.1) — CAP-034 backfill + crate name correction (product-owner; ADR-031 §Decision 3): capability frontmatter TBD→CAP-034; all 10 occurrences of wrong crate name `validate-artifact-path` replaced with `validate-factory-path-staging` (TD-VSDD-060 sibling-site sweep: H1 title, §Description, Precondition 3, Invariants 2/4, SDK Grounding Evidence Grep 1/3, §Traceability Architecture Module, §Architecture Anchors ×2); ADR Reference row added; Capability Anchor Justification updated to cite CAP-034/ADR-031; BC-4.11.001 note added to §Related BCs."
   - "2026-07-19 (v1.2) — Research validation precision amendments (product-owner; research validation 2026-07-19): SDK Grounding Evidence Grep 2 expected-output corrected (comment-line hit on line 15 is expected; conclusion derives from absence of intercept pattern, not zero hits); Precondition 4 added (environmental scope: guard's primary protective value is on unmounted checkouts; mounted-worktree silent-no-op behavior documented)."
+  - "2026-07-22 (v1.4) — F-P2-002 + F-P2-003 spec-tightening amendments (product-owner; S-21.01 LOCAL cascade pass 2): Precondition 2 detection contract expanded to cover global-option forms (git -C <path> add, git --no-pager add, git -c key=val add); behavioral description 'any token sequence beginning git whose first non-option subcommand token is add or stage, tolerating any number of intervening global options or flags'; minimum form git\\s+(add|stage) retained; chained-form applicability explicit (&&, ;, |). Invariant 4: .factory path detection case-insensitive (conservative blocking on macOS HFS+/Windows NTFS). §Description + PC4 sibling-site sweep (TD-VSDD-060). BC-INDEX v4.15→v4.16."
+  - "2026-07-22 (v1.3) — F-P1-003 + F-P1-001 spec-tightening amendments (product-owner; S-21.01 LOCAL cascade pass 1): Precondition 2 matcher git\\s+add extended to git\\s+(add|stage) per ADR-031 §Decision 2 Layer-1 (git stage is a true git synonym; bypassing creates identical INV-E21-001 dual-tracking condition); Invariant 4 conservative-blocking enumeration extended with bare .factory (no trailing slash), ./ (CWD-relative with explicit slash), and :/‑family pathspec-magic arguments. H1 title + §Description + PC4 + EC-009 sibling-site sweep (TD-VSDD-060). BC-INDEX v4.14→v4.15."
 deprecated: null
 deprecated_by: null
 replacement: null
@@ -32,21 +37,35 @@ removed: null
 removal_reason: null
 bc_id: BC-4.16.001
 section: "4.16"
-last_amended: "(v1.2) — Research validation precision amendments (product-owner; research validation 2026-07-19): SDK Grounding Evidence Grep 2 expected-output corrected; Precondition 4 environmental scope note added. [Prior: (v1.1) — CAP-034 backfill + crate name correction; TD-VSDD-060 sibling-site sweep. (v1.0) — Initial authoring; validate-factory-path-staging WASM guard; INV-E21-001 invariant layer. lifecycle_status: draft (POL-14).]"
+last_amended: "(v1.7) — Accepted Residuals record (product-owner; S-21.01 pass-6/7 adversarial cascade; documentary-only — no behavioral requirement changes): two accepted residuals added inside Invariant 6: (1) trailing-slash -C .factory/ target form not classified factory-class — rare OVER-block via CWD fallback; conservative direction, accepted (S-21.01 pass-6 sub-NITPICK); (2) single-detection-first-target semantics — chained payload with benign-first + dangerous-second factory-class target under-matched; accepted: faithful to Invariant 6 singular-target contract, near-zero realism, outside issue #342 threat model, Precondition 4 neutralizes single-mount variants (S-21.01 pass-7 NITPICK). BC-INDEX v4.18→v4.19. [Prior: (v1.6) — F-P5-001 spec-tightening amendment (product-owner; S-21.01 LOCAL cascade pass 5; human gate decision 2026-07-23): Invariant 6 added (target-aware branch detection for -C and -c core.worktree= forms); Precondition 2 note added (target INSPECTION of already-consumed values, not re-classification); §Description extended; EC-012/EC-013/EC-014 added; T-7/T-8/T-9 added; sub-NITPICK --super-prefix dedicated test deferred to test-writer. BC-INDEX v4.17→v4.18. [Prior: (v1.5) — F-P4-001 + F-P4-002 spec-tightening amendments (product-owner; S-21.01 LOCAL cascade pass 4): Precondition 2 detection contract made class-complete (value-consuming git global option enumeration: -C, -c, --git-dir, --work-tree, --namespace, --super-prefix, --exec-path; conservative rule for unknown dash-prefix tokens; F-P4-002: leading shell-punctuation stripping on git candidate tokens). §Description + PC4 sibling-site sweep (TD-VSDD-060). BC-INDEX v4.16→v4.17. [Prior: (v1.4) — F-P2-002 + F-P2-003 spec-tightening amendments (product-owner; S-21.01 LOCAL cascade pass 2): Precondition 2 detection contract expanded to cover global-option forms; behavioral description 'any token sequence beginning git whose first non-option subcommand token is add or stage, tolerating intervening global options'; minimum form git\\s+(add|stage) retained; chained-form applicability explicit. Invariant 4: .factory path detection case-insensitive (conservative blocking). §Description + PC4 sibling-site sweep (TD-VSDD-060); BC-INDEX v4.15→v4.16. (v1.3) — F-P1-003 + F-P1-001 spec-tightening amendments; Precondition 2 matcher git\\s+(add|stage); Invariant 4 enumeration extended with bare .factory, ./, :/‑family; H1 + §Description + PC4 + EC-009 sibling-site sweep (TD-VSDD-060); BC-INDEX v4.14→v4.15. (v1.2) — Research validation precision amendments; Precondition 4 environmental scope note added. (v1.1) — CAP-034 backfill + crate name correction; TD-VSDD-060 sibling-site sweep. (v1.0) — Initial authoring; validate-factory-path-staging WASM guard; INV-E21-001 invariant layer. lifecycle_status: draft (POL-14).]"
 ---
 
-# BC-4.16.001: validate-factory-path-staging WASM PreToolUse guard MUST block any `git add` command that stages a path under `.factory/` on a product branch, and MUST pass all non-`.factory/` staging commands unconditionally
+# BC-4.16.001: validate-factory-path-staging WASM PreToolUse guard MUST block any `git add` or `git stage` command that stages a path under `.factory/` on a product branch, and MUST pass all non-`.factory/` staging commands unconditionally
 
 ## Description
 
 The `validate-factory-path-staging` native-WASM plugin enforces the nested-worktree path-exclusivity
 invariant (INV-E21-001): no path under the `.factory/` physical directory may be tracked on a
 product branch (`develop`, `main`, `feature/*`, `release/*`, `maintenance/*`). It fires on every
-`PreToolUse` event where the Bash tool payload contains a `git add` command. On invocation, the
-plugin inspects the staged paths in the command: if any path matches `.factory/**` (or `\.factory/`
-as a component) AND the current working branch is a product branch (not `factory-artifacts`), the
-plugin emits `block_intent = true` (exit code 2) with an actionable error. All other `git add`
-commands and all non-`git add` Bash commands pass unconditionally.
+`PreToolUse` event where the Bash tool payload contains a `git add` or `git stage` command in
+any form — bare (`git add`, `git stage`), with global options before the subcommand (e.g.,
+`git -C <path> add`, `git --no-pager add`, `git -c key=val add`), or where `git` is glued to
+leading shell punctuation (`$(git add ...`, `(git add ...`, or backtick-git forms — the
+detector strips leading `$(`, `(`, or a leading backtick from candidate tokens before matching)
+— anywhere in the payload including chained forms (`&&`, `;`, `|`). (`git stage` is a true git synonym for `git add` and
+creates the identical dual-tracking condition.) On invocation, the plugin inspects the staged
+paths in the command: if any path matches `.factory/**` (or `\.factory/` as a component, matched
+case-insensitively to cover case-folding filesystems such as macOS HFS+ and Windows NTFS —
+e.g., `.Factory/STATE.md` matches) AND the current working branch is a product branch (not
+`factory-artifacts`), the plugin emits `block_intent = true` (exit code 2) with an actionable
+error. When the command uses a `-C <target>` or `-c core.worktree=<target>` option where
+`<target>` is a `.factory`-class path (bare `.factory`, `./.factory`, or any absolute/relative
+form ending in `/.factory`, matched case-insensitively), branch detection is performed against
+the target directory rather than the CWD (Invariant 6); this preserves the state-manager's
+canonical `git -C .factory add ...` workflow on the mounted `factory-artifacts` worktree (target
+branch = `factory-artifacts` → PASS) while blocking the same command on an unmounted checkout
+(target branch = product branch → BLOCK). All other `git add`/`git stage` commands (in any form)
+and all non-`git add`/`git stage` Bash commands pass unconditionally.
 
 This is the **invariant layer** for issue #342. It prevents the dual-tracking condition that makes
 product-branch merges dangerous: if no `.factory/` path is ever staged on a product branch, the
@@ -65,10 +84,38 @@ is a native WASM plugin, not a `.sh` file.
 
 1. A `PreToolUse` event has fired for the `Bash` tool.
 
-2. The Bash tool payload contains a `git add` command (detected by matching the payload against
-   `git\s+add` as a substring, case-insensitive). All other Bash payloads — including `git commit`,
-   `git push`, `git checkout`, `git merge`, and all non-git commands — are NOT in scope for this
-   plugin and pass unconditionally.
+2. The Bash tool payload contains a `git add` or `git stage` command. Detection contract: any
+   token sequence in the payload beginning with a `git` candidate token — where a candidate
+   token is any token that equals `git` after stripping leading shell punctuation (`$(`, `(`,
+   or a leading backtick; F-P4-002 — conservative strip) — whose first non-option subcommand
+   token is `add` or `stage`. To determine the subcommand token, the detector MUST consume the
+   value token of every value-consuming git global option; the canonical value-consuming options
+   whose value is a SPACE-SEPARATED subsequent token are: `-C <path>`, `-c <name=value>`,
+   `--git-dir <path>`, `--work-tree <path>`, `--namespace <path>`, `--super-prefix <path>`,
+   and `--exec-path <path>` (when space-separated; `=`-joined forms such as
+   `--git-dir=/foo` are self-contained and do NOT consume the next token as their value). For
+   any UNKNOWN dash-prefixed token (a token beginning with `-` that is not in the canonical
+   set above and not a known non-value-consuming flag), the detector MUST apply the conservative
+   rule: treat it as non-value-consuming and let any subsequent standalone `add` or `stage` token
+   in the same command segment trigger detection. Under-match is forbidden; conservative
+   over-match is acceptable. The minimum form `git\s+(add|stage)` (substring match,
+   case-insensitive) covers the common bare invocation and MUST be retained as a fast path.
+   This matcher applies anywhere in the payload, including in chained and sequential command
+   forms (`&&`, `;`, `|`) — a `git add` or `git stage` appearing after a semicolon,
+   ampersand-pair, or pipe is in scope. `git stage` is a true git synonym for `git add` and
+   presents the identical INV-E21-001 dual-tracking vector per ADR-031 §Decision 2 Layer-1. All
+   other Bash payloads — including `git commit`, `git push`, `git checkout`, `git merge`, and
+   all non-git commands — are NOT in scope for this plugin and pass unconditionally.
+
+   **Precondition 2 note — target-aware inspection (Invariant 6):** The value-consuming detection
+   above (v1.5: consuming the token after `-C`, `-c`, `--work-tree`, etc.) continues to apply for
+   subcommand determination. When the consumed value for `-C` or the value component of a
+   `-c core.worktree=<path>` option names a `.factory`-class path, the guard additionally
+   INSPECTS that target directory to determine its branch (Invariant 6). This is target INSPECTION
+   of already-consumed values — not a re-classification of those values as staging-path arguments.
+
+   **Sub-NITPICK (F-P5-001):** A dedicated test vector for the `--super-prefix` value-consuming
+   option is deferred to test-writer (AC-006 proptest expansion scope).
 
 3. The dispatcher has invoked the `validate-factory-path-staging` WASM plugin. The plugin is
    registered in `hooks-registry.toml` as a PreToolUse handler for `^Bash$` with
@@ -85,50 +132,54 @@ is a native WASM plugin, not a `.sh` file.
 
 ## Postconditions
 
-### PC1 — Blocked: `git add` of `.factory/` path on a product branch
+### PC1 — Blocked: `git add`/`git stage` of `.factory/` path on a product branch
 
-When the Bash payload contains `git add` AND at least one argument (expanded path or glob) resolves
-to a path matching `^\.factory/` (or containing `/.factory/` as a path component, capturing the
-unnested form), AND the guard's branch detection reports a product branch (any branch other than
-`factory-artifacts`):
+When the Bash payload contains `git add` or `git stage` AND at least one argument (expanded path
+or glob) resolves to a path matching `^\.factory/` (or containing `/.factory/` as a path
+component, capturing the unnested form), AND the guard's branch detection reports a product branch
+(any branch other than `factory-artifacts`):
 
 1. The plugin returns `block_intent = true` (exit code 2).
 2. The plugin emits a blocking error message:
    ```
-   BLOCKED: git add of .factory/ path on product branch '<branch>'.
+   BLOCKED: git add/stage of .factory/ path on product branch '<branch>'.
    .factory/ paths are exclusively owned by the factory-artifacts worktree.
    Staging .factory/ content on a product branch creates the dual-tracking condition
    that allows product-branch merges to silently delete factory artifact files.
    If you intended to commit factory artifacts: switch to the .factory/ worktree and
    commit from there on the factory-artifacts branch.
    ```
-3. The `git add` command is NOT executed.
+3. The `git add`/`git stage` command is NOT executed.
 
 **Error variant:** `FactoryPathOnProductBranch`
 
-### PC2 — Passed: `git add` of non-`.factory/` paths
+### PC2 — Passed: `git add`/`git stage` of non-`.factory/` paths
 
-When the Bash payload contains `git add` AND no argument resolves to a `.factory/`-rooted path,
-the plugin returns `block_intent = false` (exit code 0). The `git add` proceeds normally.
+When the Bash payload contains `git add` or `git stage` AND no argument resolves to a
+`.factory/`-rooted path, the plugin returns `block_intent = false` (exit code 0). The command
+proceeds normally.
 
-### PC3 — Passed: `git add` on `factory-artifacts` branch
+### PC3 — Passed: `git add`/`git stage` on `factory-artifacts` branch
 
-When the Bash payload contains `git add` AND the current branch is `factory-artifacts`, the plugin
+When the Bash payload contains `git add` or `git stage` AND the current branch is `factory-artifacts`, the plugin
 MUST pass unconditionally regardless of the paths being staged. Factory artifact commits require
 staging `.factory/` paths on the `factory-artifacts` branch — that is correct behavior. The plugin
 MUST NOT block legitimate factory-artifacts branch staging.
 
-### PC4 — Passed: non-`git add` Bash command
+### PC4 — Passed: non-`git add`/`git stage` Bash command
 
-When the Bash payload does NOT contain a `git add` command (regardless of paths), the plugin returns
-`block_intent = false` (exit code 0) immediately without path inspection.
+When the Bash payload does NOT contain a `git add` or `git stage` command in any form — bare,
+with global options (e.g., `git -C <path> add`, `git --no-pager add`), or with leading shell
+punctuation stripped (`$(git add ...`, `(git add ...`, backtick-git forms) — anywhere in the
+payload including chained forms — (regardless of paths), the plugin returns `block_intent =
+false` (exit code 0) immediately without path inspection.
 
 ## Invariants
 
-1. **INV-E21-001 (Nested Worktree Path Exclusivity) — instantiation:** No `git add` command
-   executed via the Bash tool on a product branch may stage a path under `.factory/`. This invariant
-   prevents the dual-tracking condition: `.factory/` paths tracked on a product branch are a P0
-   data-loss landmine (issue #342 root cause).
+1. **INV-E21-001 (Nested Worktree Path Exclusivity) — instantiation:** No `git add` or `git stage`
+   command executed via the Bash tool on a product branch may stage a path under `.factory/`. This
+   invariant prevents the dual-tracking condition: `.factory/` paths tracked on a product branch
+   are a P0 data-loss landmine (issue #342 root cause).
 
 2. **Fail-open on crash:** A crashed or timed-out `validate-factory-path-staging` plugin MUST
    return `block_intent = false` (pass-through). The guard MUST be registered with
@@ -139,18 +190,67 @@ When the Bash payload does NOT contain a `git add` command (regardless of paths)
    HEAD, non-zero exit), the plugin MUST fail-open (pass-through). Uncertain branch state is NOT
    a blocking condition.
 
-4. **Path matching is conservative:** The path pattern `.factory/` is matched as a literal path
-   prefix or path component. Glob expansions in the `git add` argument are NOT evaluated by the
-   `validate-factory-path-staging` plugin at PreToolUse time (git has not yet run); the plugin
-   inspects only the literal argument text. A `git add .` or `git add -A` command from a working
-   directory whose CWD is under `.factory/` IS caught by this guard (the `.` or `-A` is treated as
-   a potential `.factory/`-rooted staging if the detected branch is a product branch — the guard
-   blocks with a conservative message).
+4. **Path matching is conservative and case-insensitive:** The path pattern `.factory/` is
+   matched as a literal path prefix or path component, **case-insensitively** (e.g.,
+   `.Factory/STATE.md` and `.FACTORY/STATE.md` are treated as matching `.factory/`; macOS HFS+
+   and Windows NTFS are case-folding filesystems where `git add .Factory/STATE.md` targets the
+   same file as `git add .factory/STATE.md` and MUST be blocked conservatively). Glob expansions
+   in the `git add`/`git stage` argument are NOT
+   evaluated by the `validate-factory-path-staging` plugin at PreToolUse time (git has not yet
+   run); the plugin inspects only the literal argument text. The following argument forms are
+   treated as conservatively blocking when the detected branch is a product branch:
+   - `-A` / `--all` / `-u` / `--update` flags (may stage tracked `.factory/` paths)
+   - `.` (CWD-relative; may expand to `.factory/**` when CWD is the project root or `.factory/`)
+   - `./` (CWD-relative with explicit slash; semantically identical to `.` for staging purposes)
+   - bare `.factory` without trailing slash (git expands this to `.factory/**`, identical staging scope)
+   - glob patterns (e.g., `*.md`) that may expand to include `.factory/**` paths
+   - `:/`-family pathspec-magic arguments (e.g., `:/`, `:/path`) which anchor from the repository
+     root and can include `.factory/` paths regardless of CWD
+   Any of the above forms blocks with a conservative `FactoryPathOnProductBranch` message. (Per
+   ADR-031 §Decision 2 Layer-1: scope is narrow — `git add`/`git stage` only; `git pull`/`git
+   merge` interception is Layer-2's responsibility and MUST NOT be added to this guard.)
 
 5. **No overlap with BC-4.13.001:** `verify-factory-lock` (BC-4.13.001) guards against concurrent
    write races on Edit/Write/MultiEdit/Agent tool calls using the lock mechanism. This plugin
-   guards against a different surface (Bash-tool `git add` of `.factory/` paths on product branches).
-   Both plugins may fire on the same dispatch; they are additive guards, not substitutes.
+   guards against a different surface (Bash-tool `git add`/`git stage` of `.factory/` paths on
+   product branches). Both plugins may fire on the same dispatch; they are additive guards, not
+   substitutes.
+
+6. **Target-aware branch detection for `-C` and `-c core.worktree=` forms:** When Precondition 2
+   identifies a `git add`/`git stage` command that contains a `-C <target>` option or a
+   `-c core.worktree=<target>` option (via the `-c name=value` global option form) where `<target>`
+   names a `.factory`-class path (bare `.factory`, `./.factory`, absolute or relative forms ending
+   in `/.factory`, matched case-insensitively), the plugin MUST perform branch detection against
+   the TARGET directory by executing `git -C <target> branch --show-current` (via
+   `host::exec_subprocess`), rather than relying solely on CWD-based detection:
+   - Target branch is a product branch → **BLOCK** with `FactoryPathOnProductBranch` (PC1).
+   - Target branch is `factory-artifacts` → **PASS** unconditionally (PC3). This is the
+     state-manager's canonical mounted-worktree workflow: `git -C .factory add ...` on the
+     `factory-artifacts` worktree MUST NOT be blocked.
+   - Target branch detection fails (non-zero exit, empty output, or git unavailable) →
+     **fail-open** with advisory warning, per Invariant 3 semantics.
+
+   **Human authorization:** human gate decision 2026-07-23 (S-21.01 pass-5 F-P5-001
+   "Fix: target-aware detection").
+
+   **Accepted Residuals (S-21.01 pass-6/7; documentary-only; no behavioral requirement
+   changes):**
+   1. **Trailing-slash `-C .factory/` target form not classified factory-class.** Invariant 6's
+      enumeration of `.factory`-class paths (bare `.factory`, `./.factory`, absolute/relative
+      forms ending in `/.factory`) deliberately omits the trailing-slash variant
+      (e.g., `-C .factory/`). Consequence: a command using the trailing-slash form falls through
+      to CWD-based detection rather than target-aware detection, producing a rare OVER-block
+      (conservative direction) on a mounted `factory-artifacts` worktree when the operator uses
+      a non-canonical trailing-slash path. Conservative direction — accepted. (S-21.01 pass-6
+      sub-NITPICK.)
+   2. **Single-detection-first-target semantics (chained payload under-match).** The guard
+      performs at most ONE `host::exec_subprocess` invocation for target branch detection per
+      payload (single-invocation constraint). A chained payload with a benign-first and a
+      dangerous-second factory-class target — e.g.,
+      `git -C .factory add x && git -C /other/.factory add y` — is under-matched on the second
+      target. Accepted: faithful to Invariant 6's singular-target contract; near-zero realism
+      (requires two distinct `.factory` mounts in the same payload); outside issue #342's threat
+      model; Precondition 4 neutralizes single-mount variants. (S-21.01 pass-7 NITPICK.)
 
 ## Edge Cases
 
@@ -161,11 +261,15 @@ When the Bash payload does NOT contain a `git add` command (regardless of paths)
 | EC-003 | `git add src/main.rs` on `develop` branch | PASSED: PC2 fires; no `.factory/` path |
 | EC-004 | `git add -A` run from inside `.factory/` directory (CWD = `.factory/`) | BLOCKED: plugin detects `-A` or `.` as potentially staging CWD-relative paths under `.factory/`; conservative block with PC1 error |
 | EC-005 | `git add src/main.rs .factory/STATE.md` (mixed) on `develop` | BLOCKED: ANY `.factory/` match is sufficient to block the whole command |
-| EC-006 | Branch detection fails (detached HEAD) | PASSED: fail-open per Invariant 3; git add proceeds |
+| EC-006 | Branch detection fails (detached HEAD) | PASSED: fail-open per Invariant 3; staging command proceeds |
 | EC-007 | Plugin crashes or times out | PASSED: fail-open per `on_error = "continue"` (Invariant 2) |
 | EC-008 | `git add` with glob `*.md` from project root on `develop` | BLOCKED: conservative — glob may expand to `.factory/**/*.md`; plugin blocks; user must re-run with explicit non-`.factory/` paths |
-| EC-009 | `git commit --amend` (no `git add`) | PASSED: PC4 fires; non-`git add` command |
+| EC-009 | `git commit --amend` (no `git add`/`git stage`) | PASSED: PC4 fires; non-`git add`/`git stage` command |
 | EC-010 | `git add -u` on `feature/S-21.01` branch | BLOCKED: `-u` stages all tracked modifications; conservative block since CWD or tracked files may include `.factory/` paths |
+| EC-011 | `$(git add .factory/STATE.md)` on `develop` branch (shell-subst with `git` glued to `$(`) | BLOCKED: detection strips leading `$(` from candidate token; `git` token recognized; PC1 fires (F-P4-002 conservative strip) |
+| EC-012 | `git -C .factory add STATE.md` on `develop` where `.factory/` is NOT mounted as a worktree (unmounted checkout — CI, fresh clone) | BLOCKED: Invariant 6 fires — `-C .factory` targets a `.factory`-class path; guard runs `git -C .factory branch --show-current` → `develop` (product branch); PC1 fires; `FactoryPathOnProductBranch` error |
+| EC-013 | `git -C .factory add STATE.md` where `.factory/` IS mounted as the `factory-artifacts` worktree | PASSED: Invariant 6 fires — guard runs `git -C .factory branch --show-current` → `factory-artifacts`; PC3 passes unconditionally |
+| EC-014 | `git -c core.worktree=.factory add STATE.md` on `develop` | BLOCKED: Invariant 6 fires — `core.worktree=.factory` value names a `.factory`-class path; target branch detection → product branch; PC1 fires |
 
 ## Canonical Test Vectors
 
@@ -177,6 +281,9 @@ When the Bash payload does NOT contain a `git add` command (regardless of paths)
 | T-4 | Branch = `develop`; payload = `git add -A` | `git add -A` | BLOCKED: conservative PC1 |
 | T-5 | Branch = `release/v1.0.0-rc.24`; path = `.factory/stories/S-21.01.md` | `git add .factory/stories/S-21.01.md` | BLOCKED: PC1 (release branch is a product branch) |
 | T-6 | Plugin crashes mid-invocation | `git add src/main.rs` | PASSED: fail-open |
+| T-7 | Branch = `develop`; `.factory/` unmounted; `-C` targeting `.factory/` | `git -C .factory add STATE.md` | BLOCKED: Invariant 6; target branch = `develop`; `FactoryPathOnProductBranch` |
+| T-8 | `.factory/` mounted as `factory-artifacts`; `-C` targeting `.factory/` | `git -C .factory add STATE.md` | PASSED: Invariant 6; target branch = `factory-artifacts`; PC3 |
+| T-9 | Branch = `develop`; `-c core.worktree=.factory` targeting `.factory/` | `git -c core.worktree=.factory add STATE.md` | BLOCKED: Invariant 6; target branch = `develop`; `FactoryPathOnProductBranch` |
 
 ## SDK Grounding Evidence
 
@@ -186,16 +293,17 @@ ls crates/hook-plugins/validate-factory-path-staging/ 2>/dev/null || echo "PLANN
 ```
 Expected: "PLANNED — not yet created" at authoring time; crate created by S-21.01 implementation.
 
-**Grep 2 — factory-branch-guard.sh scope (does NOT guard Bash git add):**
+**Grep 2 — factory-branch-guard.sh scope (does NOT guard Bash `git add` or `git stage`):**
 ```
 grep -n "git add" plugins/vsdd-factory/hooks/factory-branch-guard.sh
 ```
 Expected: one comment-line hit — line 15: `#   state-manager commits: Bash tool for git add/commit in .factory/`.
 This is a descriptive comment, not an interception pattern. The conclusion holds: factory-branch-guard.sh
-contains no `git add` interception logic. The gap this BC closes is confirmed by the absence of
-any blocking pattern (conditional branch, exit call, or intercept logic) keyed on a `git add` match
-— NOT by zero grep hits. The comment's presence confirms the author was aware of the `git add`
-surface; the absence of a guard pattern confirms it was left unguarded.
+contains no `git add` or `git stage` interception logic. The gap this BC closes is confirmed by the
+absence of any blocking pattern (conditional branch, exit call, or intercept logic) keyed on a
+`git add` or `git stage` match — NOT by zero grep hits. The comment's presence confirms the author
+was aware of the `git add` surface; the absence of a guard pattern confirms it was left unguarded.
+(`git stage` is an alias pointing to the same git plumbing — the same analysis applies.)
 
 **Grep 3 — hooks-registry.toml entry for validate-factory-path-staging:**
 ```
@@ -207,7 +315,7 @@ Expected: entry present (added by S-21.01) or absent before implementation.
 
 | VP-NNN | Property | Proof Method |
 |--------|----------|-------------|
-| (TBD — to be assigned by state-manager after VP authoring pass) | Block fires on `git add .factory/X` when branch != `factory-artifacts` | bats: invoke guard with mocked branch=develop; payload=`git add .factory/STATE.md`; assert exit 2 + `FactoryPathOnProductBranch` |
+| (TBD — to be assigned by state-manager after VP authoring pass) | Block fires on `git add`/`git stage` of `.factory/X` when branch != `factory-artifacts` | bats: invoke guard with mocked branch=develop; payload=`git add .factory/STATE.md`; assert exit 2 + `FactoryPathOnProductBranch` |
 | (TBD) | Pass unconditionally when branch == `factory-artifacts` | bats: invoke guard with branch=factory-artifacts; payload=`git add .factory/STATE.md`; assert exit 0 |
 | (TBD) | Fail-open on crash | unit: force panic in guard body; assert dispatcher continues with `block_intent=false` |
 | (TBD) | Path-pattern coverage: proptest | proptest: fuzz .factory/ path variants (with components, root-relative, abs path); assert block fires on all |
@@ -217,7 +325,7 @@ Expected: entry present (added by S-21.01) or absent before implementation.
 | Field | Value |
 |-------|-------|
 | L2 Capability | CAP-034 |
-| Capability Anchor Justification | CAP-034 (Nested Worktree Path Exclusivity) per ARCH-INDEX v3.07 / ADR-031 §Decision 3. This BC is the primary enforcement mechanism for CAP-034's invariant layer: the `validate-factory-path-staging` WASM guard blocks the `git add` surface that creates the dual-tracking condition. BC-5.43.001 is the safety-net layer of the same CAP-034 capability. |
+| Capability Anchor Justification | CAP-034 (Nested Worktree Path Exclusivity) per ARCH-INDEX v3.07 / ADR-031 §Decision 3. This BC is the primary enforcement mechanism for CAP-034's invariant layer: the `validate-factory-path-staging` WASM guard blocks the `git add`/`git stage` surface that creates the dual-tracking condition. BC-5.43.001 is the safety-net layer of the same CAP-034 capability. |
 | L2 Domain Invariants | none (operational infrastructure) |
 | Architecture Module | `crates/hook-plugins/validate-factory-path-staging/` (new crate; to be created by S-21.01; ADR-031 §Decision 3 naming authority) |
 | Stories | S-21.01 (E-21 Wave 1) |
@@ -234,7 +342,7 @@ Expected: entry present (added by S-21.01) or absent before implementation.
 
 - `crates/hook-plugins/validate-factory-path-staging/` — WASM plugin source (new crate; to be created by S-21.01; ADR-031 §Decision 3 naming authority)
 - `plugins/vsdd-factory/hooks-registry.toml` — registry entry for `validate-factory-path-staging` (to be added by S-21.01)
-- `plugins/vsdd-factory/hooks/factory-branch-guard.sh` — existing guard that covers Edit/Write surface but NOT Bash `git add`; grandfathered per E-20 scope; this BC closes the `git add` gap without touching that script
+- `plugins/vsdd-factory/hooks/factory-branch-guard.sh` — existing guard that covers Edit/Write surface but NOT Bash `git add`/`git stage`; grandfathered per E-20 scope; this BC closes the `git add`/`git stage` gap without touching that script
 
 ## Story Anchor
 
@@ -248,6 +356,11 @@ TBD — VP IDs to be assigned after VP authoring pass.
 
 | Version | Date | Description |
 |---------|------|-------------|
+| 1.7 | 2026-07-23 | Accepted Residuals record (product-owner; S-21.01 pass-6/7 adversarial cascade; documentary-only — no behavioral requirement changes). Two accepted residuals recorded in Invariant 6: (1) trailing-slash `-C .factory/` target forms not classified factory-class (Invariant 6 enumeration omits trailing-slash variant) — consequence is rare OVER-block via CWD fallback on mounted worktrees with non-canonical trailing-slash form; conservative direction, accepted (S-21.01 pass-6 sub-NITPICK); (2) single-detection-first-target semantics: guard performs at most ONE target branch detection per payload (`exec_subprocess` single-invocation constraint); chained payload with benign-first + dangerous-second factory-class target (`git -C .factory add x && git -C /other/.factory add y`) under-matched on second target; accepted: faithful to Invariant 6 singular-target contract, near-zero realism (requires two distinct `.factory` mounts), outside issue #342 threat model, Precondition 4 neutralizes single-mount variants (S-21.01 pass-7 NITPICK). BC-INDEX v4.18→v4.19. |
+| 1.6 | 2026-07-23 | F-P5-001 spec-tightening amendment (product-owner; S-21.01 LOCAL cascade pass 5; human gate decision 2026-07-23). F-P5-001 [LOW][spec-gap]: Target-aware branch detection for `-C` and `-c core.worktree=` forms — when a consumed `-C <target>` or `-c core.worktree=<target>` value names a `.factory`-class path, branch detection MUST run against the target directory (`git -C <target> branch --show-current`); product branch → BLOCK; `factory-artifacts` → PASS (state-manager mounted-worktree canonical); detection failure → fail-open per Invariant 3. Invariant 6 added. Precondition 2 note added (target INSPECTION of already-consumed values, not re-classification as arguments). §Description extended with target-aware detection behavior. EC-012 (`git -C .factory add` on unmounted develop → BLOCKED), EC-013 (mounted factory-artifacts → PASSED), EC-014 (`-c core.worktree=.factory` on develop → BLOCKED) added. T-7/T-8/T-9 added. Sub-NITPICK: dedicated test for `--super-prefix` value-consuming option deferred to test-writer. BC-INDEX v4.17→v4.18. |
+| 1.5 | 2026-07-22 | F-P4-001 + F-P4-002 spec-tightening amendments (product-owner; S-21.01 LOCAL cascade pass 4). F-P4-001 [MEDIUM]: Precondition 2 detection contract made class-complete — detector MUST consume the value token of every value-consuming git global option before selecting the subcommand token; canonical value-consuming set enumerated (`-C`, `-c`, `--git-dir`, `--work-tree`, `--namespace`, `--super-prefix`, `--exec-path` when space-separated; `=`-joined forms self-contained); conservative rule for UNKNOWN dash-prefix tokens: treat as non-value-consuming, any subsequent standalone `add`/`stage` in same command segment triggers detection (under-match forbidden; conservative over-match acceptable). F-P4-002 [LOW]: candidate `git` tokens glued to leading shell punctuation (`$(git`, `(git`, backtick-git) — detection strips leading shell punctuation from candidate tokens (conservative). §Description + PC4 sibling-site sweep (TD-VSDD-060). BC-INDEX v4.16→v4.17. |
+| 1.4 | 2026-07-22 | F-P2-002 + F-P2-003 spec-tightening amendments (product-owner; S-21.01 LOCAL cascade pass 2). Precondition 2 detection contract expanded: behavioral contract stated as "any token sequence beginning `git` whose first non-option subcommand token is `add` or `stage`, tolerating any number of intervening global options or flags"; covers `git -C <path> add`, `git --no-pager add`, `git -c key=val add` (Layer-1 bypasses via common invocations); minimum form `git\s+(add\|stage)` retained; chained-command-form applicability made explicit (`&&`, `;`, pipe). Invariant 4: `.factory` path detection is case-insensitive (conservative blocking on case-folding filesystems: macOS HFS+, Windows NTFS — e.g., `.Factory/STATE.md` matches). §Description + PC4 sibling-site sweep (TD-VSDD-060). BC-INDEX v4.15→v4.16. |
+| 1.3 | 2026-07-22 | F-P1-003 + F-P1-001 spec-tightening amendments (product-owner; S-21.01 LOCAL cascade pass 1). Precondition 2 matcher extended `git\s+add` to `git\s+(add\|stage)` to cover `git stage` (true git synonym; same dual-tracking vector) per ADR-031 §Decision 2 Layer-1. Invariant 4 conservative-blocking enumeration extended with bare `.factory` (no trailing slash), `./` (CWD-relative with explicit slash), and `:/`-family pathspec-magic arguments alongside existing `-A`/`--all`/`-u`/`--update`/`.`/glob forms. H1 title + §Description + PC4 + EC-009 sibling-site sweep (TD-VSDD-060). BC-INDEX v4.14→v4.15. |
 | 1.2 | 2026-07-19 | Research validation precision amendments (product-owner; research validation 2026-07-19). SDK Grounding Evidence Grep 2 expected-output corrected: grep hits line 15 comment (not zero hits); conclusion reworded to derive from absence of intercept pattern, not zero hits. Precondition 4 added: environmental scope note (mounted-worktree silent-no-op behavior; guard primary protective value on unmounted checkouts — CI, clone, pre-mount commits). |
 | 1.1 | 2026-07-19 | CAP-034 backfill + crate name correction (product-owner; ADR-031 §Decision 3). All 10 occurrences of wrong crate name `validate-artifact-path` replaced with `validate-factory-path-staging` (TD-VSDD-060 sibling-site sweep: H1 title, §Description ×2, Precondition 3, Invariant 2/4 ×2, SDK Grounding Evidence Grep 1/3, §Traceability Architecture Module, §Architecture Anchors ×2). §Traceability ADR Reference row added. §Traceability Capability Anchor Justification updated to cite CAP-034 / ARCH-INDEX v3.07 / ADR-031 §Decision 3. §Related BCs: BC-4.11.001 note added clarifying `validate-artifact-path` crate ownership. |
 | 1.0 | 2026-07-19 | Initial authoring (product-owner; E-21 factory-state data-loss hardening; issue #342). validate-factory-path-staging WASM PreToolUse Bash guard — block `git add` of `.factory/` paths on product branches (PC1), pass all other commands (PC2/PC3/PC4). INV-E21-001 instantiation (invariant layer). 4 error variants: `FactoryPathOnProductBranch` (PC1), fail-open (Invariants 2/3). 10 edge cases EC-001..EC-010. 6 canonical test vectors T-1..T-6. lifecycle_status: draft (POL-14 auto-promotion on S-21.01 PR merge). |

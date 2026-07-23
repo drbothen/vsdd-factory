@@ -1,0 +1,124 @@
+{
+  "story": "S-21.01",
+  "bc": "BC-4.16.001",
+  "bc_version_at_close": "1.7",
+  "code_head": "1ee37749",
+  "code_base": "b6231a88",
+  "code_commits_from_base": 23,
+  "tests_green": 133,
+  "tests_proptest_green": 5,
+  "clippy_clean": true,
+  "fmt_clean": true,
+  "passes_clean": 0,
+  "streak_target": 3,
+  "streak_at_close": 0,
+  "streak_note": "p7 CLEAN; post-p7 documentary v1.7 amendment (accepted residuals) → streak restart; p8 NOT-CLEAN (F-P8-001 input-hash parity + uncommitted-tree process blocker; code hunt CLEAN); stability commit queued for streak re-run",
+  "passes": [
+    {
+      "pass": 1,
+      "verdict": "NOT-CLEAN",
+      "findings": {
+        "BLOCKER": 1,
+        "HIGH": 2,
+        "MEDIUM": 3,
+        "LOW": 2
+      },
+      "finding_ids": ["F-P1-001", "F-P1-002", "F-P1-003", "F-P1-004", "F-P1-005", "F-P1-006", "F-P1-007"],
+      "notes": "Initial pass; full BC scope review"
+    },
+    {
+      "pass": 2,
+      "verdict": "NOT-CLEAN",
+      "findings": {
+        "BLOCKER": 1,
+        "MEDIUM": 1,
+        "LOW": 1
+      },
+      "finding_ids": ["F-P2-001", "F-P2-002", "F-P2-003"],
+      "notes": "chained-cmd regression introduced by pass-1 fix"
+    },
+    {
+      "pass": 3,
+      "verdict": "NOT-CLEAN",
+      "findings": {
+        "MEDIUM": 1,
+        "LOW": 2
+      },
+      "finding_ids": ["F-P3-001", "F-P3-002", "F-P3-003"],
+      "notes": "pass-2 fix introduced partial regression on edge cases"
+    },
+    {
+      "pass": 4,
+      "verdict": "NOT-CLEAN",
+      "findings": {
+        "MEDIUM": 1,
+        "LOW": 1
+      },
+      "finding_ids": ["F-P4-001", "F-P4-002"],
+      "notes": "class-complete Precondition 2 value-consuming global option enumeration"
+    },
+    {
+      "pass": 5,
+      "verdict": "NOT-CLEAN",
+      "findings": {
+        "LOW": 1
+      },
+      "finding_ids": ["F-P5-001"],
+      "notes": "target-aware detection — human-approved fix (Invariant 6 addition, BC-4.16.001 v1.5→v1.6)"
+    },
+    {
+      "pass": 6,
+      "verdict": "NOT-CLEAN",
+      "findings": {
+        "LOW": 1
+      },
+      "finding_ids": ["F-P6-001"],
+      "accepted_with_record": true,
+      "acceptance_note": "trailing-slash -C .factory/ over-block: product-owner human gate authorized accepted residual; trailing-slash form not classified as factory-class path; BC-4.16.001 v1.7 Invariant 6 documents the accepted residual boundary",
+      "notes": "trailing-slash path form edge case"
+    },
+    {
+      "pass": 7,
+      "verdict": "CLEAN",
+      "findings": {},
+      "finding_ids": [],
+      "post_pass_amendment": {
+        "reason": "documentary v1.7 amendment — BC-4.16.001 v1.6→v1.7 accepted residuals record (product-owner; no behavioral requirement changes): Invariant 6 accepted residuals added (trailing-slash -C .factory/ not classified + single-detection-first-target chained-payload under-match)",
+        "streak_reset": true,
+        "streak_reset_reason": "spec amendment after CLEAN pass requires streak restart per BC-5.39.001 3-CLEAN protocol"
+      },
+      "accepted_with_record": true,
+      "acceptance_note": "single-detection-first-target semantics: first-target-of-chained-payload detection is the correct and intended behavior; under-match is an accepted residual per Invariant 6 boundary"
+    },
+    {
+      "pass": 8,
+      "verdict": "NOT-CLEAN",
+      "findings": {
+        "MEDIUM": 1
+      },
+      "finding_ids": ["F-P8-001"],
+      "code_hunt_verdict": "CLEAN",
+      "notes": "F-P8-001: input-hash parity (story shows fde01eb transient, settled is 32aaccc) + uncommitted-tree process blocker (2143 uncommitted files present in .factory at review time); code hunt verified CLEAN (no code defects found); process blocker reconciled in D-880/D-881 stability burst",
+      "accepted_with_record": true,
+      "acceptance_note": "payload-wide conservative over-match noted as NITPICK by adversary — not a behavioral defect; accepted residual per Invariant 6"
+    }
+  ],
+  "accepted_with_record_summary": [
+    {
+      "pass": 6,
+      "issue": "trailing-slash over-block",
+      "resolution": "BC-4.16.001 v1.7 Invariant 6 documents boundary; human gate authorized"
+    },
+    {
+      "pass": 7,
+      "issue": "single-detection-first-target semantics (chained-payload under-match)",
+      "resolution": "BC-4.16.001 v1.7 Invariant 6 documents boundary; human gate authorized"
+    },
+    {
+      "pass": 8,
+      "issue": "payload-wide conservative over-match (NITPICK)",
+      "resolution": "adversary-classified NITPICK; not a behavioral defect; accepted residual per Invariant 6"
+    }
+  ],
+  "next_action": "stability commit 2026-07-23 for streak re-run (D-881); target passes_clean=3/3"
+}
