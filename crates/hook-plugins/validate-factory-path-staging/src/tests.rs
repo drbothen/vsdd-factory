@@ -17,7 +17,7 @@
 //! - BC-5.43.001 Invariant 4: fail-open when git diff fails
 
 use crate::{
-    contains_factory_path_arg, hook_logic, is_git_add_command, is_product_branch, HookCallbacks,
+    HookCallbacks, contains_factory_path_arg, hook_logic, is_git_add_command, is_product_branch,
 };
 use serde_json::json;
 use std::panic;
@@ -48,9 +48,7 @@ fn run_hook_with_branch(command: &str, branch: &str) -> std::thread::Result<Hook
         hook_logic(
             payload,
             HookCallbacks {
-                exec_subprocess: move |_bin, _args| {
-                    Ok((0, branch_output.clone(), String::new()))
-                },
+                exec_subprocess: move |_bin, _args| Ok((0, branch_output.clone(), String::new())),
                 emit_event: |_, _| {},
                 log: |_, _| {},
             },
@@ -81,7 +79,11 @@ fn run_hook_branch_detection_nonzero(command: &str) -> std::thread::Result<HookR
             payload,
             HookCallbacks {
                 exec_subprocess: |_bin, _args| {
-                    Ok((128, String::new(), "fatal: not a git repository".to_string()))
+                    Ok((
+                        128,
+                        String::new(),
+                        "fatal: not a git repository".to_string(),
+                    ))
                 },
                 emit_event: |_, _| {},
                 log: |_, _| {},
@@ -96,8 +98,7 @@ fn per_story_delivery_md_path() -> std::path::PathBuf {
         .expect("CARGO_MANIFEST_DIR must be set during cargo test");
     let mut dir = std::path::PathBuf::from(&manifest_dir);
     loop {
-        let candidate =
-            dir.join("plugins/vsdd-factory/agents/orchestrator/per-story-delivery.md");
+        let candidate = dir.join("plugins/vsdd-factory/agents/orchestrator/per-story-delivery.md");
         if candidate.exists() {
             return candidate;
         }
@@ -175,7 +176,9 @@ fn test_is_product_branch_factory_artifacts_is_not_product() {
 #[test]
 fn test_contains_factory_path_arg_detects_factory_path() {
     assert!(contains_factory_path_arg("git add .factory/STATE.md"));
-    assert!(contains_factory_path_arg("git add .factory/stories/S-21.01.md"));
+    assert!(contains_factory_path_arg(
+        "git add .factory/stories/S-21.01.md"
+    ));
 }
 
 #[test]
@@ -188,7 +191,9 @@ fn test_contains_factory_path_arg_detects_conservative_flags() {
 #[test]
 fn test_contains_factory_path_arg_passes_non_factory_path() {
     assert!(!contains_factory_path_arg("git add src/main.rs"));
-    assert!(!contains_factory_path_arg("git add crates/hook-sdk/src/lib.rs"));
+    assert!(!contains_factory_path_arg(
+        "git add crates/hook-sdk/src/lib.rs"
+    ));
 }
 
 // ---------------------------------------------------------------------------
@@ -249,10 +254,7 @@ fn test_ac001_bc4_16_001_pc1_blocks_factory_path_on_main() {
 
 #[test]
 fn test_ac001_bc4_16_001_pc1_blocks_factory_path_on_feature_branch() {
-    let result = run_hook_with_branch(
-        "git add .factory/stories/S-21.01.md",
-        "feature/S-21.01",
-    );
+    let result = run_hook_with_branch("git add .factory/stories/S-21.01.md", "feature/S-21.01");
     assert!(
         result.is_ok(),
         "AC-001: hook_logic panicked for feature branch. BC-4.16.001 PC1: \
@@ -493,10 +495,7 @@ fn test_ac004_bc4_16_001_t3_passes_src_lib_rs_on_feature_branch() {
 
 #[test]
 fn test_ac004_bc4_16_001_pc2_passes_plugins_path_on_main() {
-    let result = run_hook_with_branch(
-        "git add plugins/vsdd-factory/hooks-registry.toml",
-        "main",
-    );
+    let result = run_hook_with_branch("git add plugins/vsdd-factory/hooks-registry.toml", "main");
     assert!(
         result.is_ok(),
         "AC-004: hook_logic panicked for plugins path on main. \

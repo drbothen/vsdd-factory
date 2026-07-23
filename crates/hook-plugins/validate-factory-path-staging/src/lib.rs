@@ -172,7 +172,10 @@ where
     let command = match payload.tool_input.get("command").and_then(|v| v.as_str()) {
         Some(cmd) => cmd.to_string(),
         None => {
-            (callbacks.log)(2, "validate-factory-path-staging: no 'command' field in tool_input");
+            (callbacks.log)(
+                2,
+                "validate-factory-path-staging: no 'command' field in tool_input",
+            );
             return HookResult::Continue;
         }
     };
@@ -261,15 +264,19 @@ pub fn on_pre_tool_use(payload: HookPayload) -> HookResult {
     hook_logic(
         payload,
         HookCallbacks {
-            exec_subprocess: |cmd, args| {
-                match vsdd_hook_sdk::host::exec_subprocess(cmd, args, &[], 5000, 512) {
-                    Ok(result) => {
-                        let stdout = String::from_utf8_lossy(&result.stdout).into_owned();
-                        let stderr = String::from_utf8_lossy(&result.stderr).into_owned();
-                        Ok((result.exit_code, stdout, stderr))
-                    }
-                    Err(e) => Err(format!("{e:?}")),
+            exec_subprocess: |cmd, args| match vsdd_hook_sdk::host::exec_subprocess(
+                cmd,
+                args,
+                &[],
+                5000,
+                512,
+            ) {
+                Ok(result) => {
+                    let stdout = String::from_utf8_lossy(&result.stdout).into_owned();
+                    let stderr = String::from_utf8_lossy(&result.stderr).into_owned();
+                    Ok((result.exit_code, stdout, stderr))
                 }
+                Err(e) => Err(format!("{e:?}")),
             },
             emit_event: |event_type, fields| {
                 vsdd_hook_sdk::host::emit_event(event_type, fields);

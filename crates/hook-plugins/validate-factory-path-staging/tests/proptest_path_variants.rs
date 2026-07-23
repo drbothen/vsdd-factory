@@ -42,9 +42,7 @@ fn run_hook_with_branch(command: &str, branch: &str) -> std::thread::Result<Hook
         hook_logic(
             payload,
             HookCallbacks {
-                exec_subprocess: move |_bin, _args| {
-                    Ok((0, branch_output.clone(), String::new()))
-                },
+                exec_subprocess: move |_bin, _args| Ok((0, branch_output.clone(), String::new())),
                 emit_event: |_, _| {},
                 log: |_, _| {},
             },
