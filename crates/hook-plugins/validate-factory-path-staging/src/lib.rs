@@ -281,19 +281,19 @@ where
     // Step 5: PC1 — block if payload contains a .factory/-rooted path or
     // conservative wildcard/flag (per BC-4.16.001 Invariant 4).
     if contains_factory_path_arg(&command) {
-        return HookResult::Block {
-            reason: format!(
-                "FactoryPathOnProductBranch\n\
-                \n\
-                BLOCKED: git add of .factory/ path on product branch '{branch}'.\n\
-                .factory/ paths are exclusively owned by the factory-artifacts worktree.\n\
-                Staging .factory/ content on a product branch creates the dual-tracking\n\
-                condition that allows product-branch merges to silently delete factory\n\
-                artifact files.\n\
-                If you intended to commit factory artifacts: switch to the .factory/\n\
-                worktree and commit from there on the factory-artifacts branch."
+        return HookResult::block_with_fix(
+            "validate-factory-path-staging",
+            format!(
+                "FactoryPathOnProductBranch — git add of .factory/ path on product \
+                 branch '{branch}'. .factory/ paths are exclusively owned by the \
+                 factory-artifacts worktree. Staging .factory/ content on a product \
+                 branch creates the dual-tracking condition that allows product-branch \
+                 merges to silently delete factory artifact files"
             ),
-        };
+            "Switch to the .factory/ worktree and commit from there on the \
+             factory-artifacts branch",
+            "FactoryPathOnProductBranch",
+        );
     }
 
     // Step 6: PC2 — non-.factory/ git add commands pass.
