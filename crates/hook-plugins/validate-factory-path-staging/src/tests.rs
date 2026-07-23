@@ -2026,3 +2026,527 @@ fn test_fp3_001_bc4_16_001_negative_double_quoted_add_factory_on_factory_artifac
         );
     }
 }
+
+// ---------------------------------------------------------------------------
+// F-P4-001 [MEDIUM]: BC-4.16.001 v1.4 Precondition 2 — space-form
+// value-consuming global option bypass.
+//
+// The current is_git_add_command implementation treats -C and -c as
+// value-consuming (consuming the next token as their value). All other long
+// options beginning with '--' are treated as self-contained: after advancing j
+// by 1 for the option token, the NEXT token is immediately interpreted as the
+// subcommand — even when it is the space-separated value for that option.
+//
+// Bypass trace for `git --git-dir /foo add .factory/STATE.md`:
+//   tokens: ["git", "--git-dir", "/foo", "add", ".factory/STATE.md"]
+//   j=1: "--git-dir" starts_with('-') → j=2; NOT "-C"/"-c" → no extra j++
+//   j=2: "/foo" NOT starts_with('-') → treated as subcommand
+//   core("/foo") != "add"/"stage" → i=3, continue 'outer
+//   i=3: "add" is not "git" → i=4
+//   Returns false → hook_logic PC4 → Continue (BYPASS)
+//
+// Same pattern applies for --work-tree, --namespace, --exec-path, and any
+// unknown future global option that takes a space-separated value.
+//
+// Conservative class rule (UNKNOWN dash-token): any long option in space form
+// that has not been enumerated as self-contained MUST be assumed to consume one
+// following value token, so that unknown future git global options cannot defeat
+// the guard.
+//
+// The = form (`--git-dir=/foo`) already works correctly: option and value are
+// one token, so the next token is correctly seen as the subcommand. GREEN pins
+// confirm this remains true after the fix.
+//
+// BC traces:
+//   BC-4.16.001 v1.4 Precondition 2: detect git (add|stage) in all textual forms.
+//   BC-4.16.001 Invariant 4: conservative-on-ambiguity.
+// ---------------------------------------------------------------------------
+
+// -- F-P4-001 unit tests on is_git_add_command (RED) --
+
+#[test]
+fn test_fp4_001_is_git_add_command_detects_space_form_git_dir() {
+    // BC-4.16.001 v1.4 Precondition 2: `git --git-dir /foo add ...` must be detected.
+    // Current: "--git-dir" advances j by 1; "/foo" is then treated as the subcommand
+    // (not "add"), causing the function to return false (BYPASS).
+    // Fix: long options in space form must consume one following value token before
+    // the subcommand is inspected.
+    assert!(
+        is_git_add_command("git --git-dir /foo add .factory/STATE.md"),
+        "F-P4-001 / BC-4.16.001 v1.4 Precondition 2: \
+         'git --git-dir /foo add .factory/STATE.md' MUST be detected as a git add command. \
+         '--git-dir /foo' is a global option in space form whose value '/foo' must be consumed \
+         before the subcommand 'add' is inspected. Current impl treats '/foo' as the subcommand \
+         and returns false (BYPASS via PC4)."
+    );
+}
+
+#[test]
+fn test_fp4_001_is_git_add_command_detects_space_form_work_tree() {
+    // BC-4.16.001 v1.4 Precondition 2: `git --work-tree /tmp/x add ...` must be detected.
+    assert!(
+        is_git_add_command("git --work-tree /tmp/x add .factory/y"),
+        "F-P4-001 / BC-4.16.001 v1.4 Precondition 2: \
+         'git --work-tree /tmp/x add .factory/y' MUST be detected as a git add command. \
+         '--work-tree /tmp/x' space-form: '/tmp/x' is treated as the subcommand by current \
+         impl → returns false (BYPASS via PC4)."
+    );
+}
+
+#[test]
+fn test_fp4_001_is_git_add_command_detects_space_form_namespace() {
+    // BC-4.16.001 v1.4 Precondition 2: `git --namespace ns stage ...` must be detected.
+    assert!(
+        is_git_add_command("git --namespace ns stage .factory/z"),
+        "F-P4-001 / BC-4.16.001 v1.4 Precondition 2: \
+         'git --namespace ns stage .factory/z' MUST be detected as a git stage command. \
+         '--namespace ns' space-form: 'ns' is treated as the subcommand by current impl \
+         → returns false (BYPASS via PC4)."
+    );
+}
+
+#[test]
+fn test_fp4_001_is_git_add_command_detects_space_form_exec_path() {
+    // BC-4.16.001 v1.4 Precondition 2: `git --exec-path /p add ...` must be detected.
+    assert!(
+        is_git_add_command("git --exec-path /p add .factory/w"),
+        "F-P4-001 / BC-4.16.001 v1.4 Precondition 2: \
+         'git --exec-path /p add .factory/w' MUST be detected as a git add command. \
+         '--exec-path /p' space-form: '/p' is treated as the subcommand by current impl \
+         → returns false (BYPASS via PC4)."
+    );
+}
+
+#[test]
+fn test_fp4_001_is_git_add_command_detects_unknown_future_flag_conservative() {
+    // BC-4.16.001 v1.4 Precondition 2 + Invariant 4 (conservative class rule):
+    // Any unknown long option in space form MUST conservatively consume one value token.
+    // The guard cannot allow detection to be defeated by novel git global options.
+    assert!(
+        is_git_add_command("git --future-flag value add .factory/x"),
+        "F-P4-001 / BC-4.16.001 v1.4 Precondition 2 + Invariant 4 (class rule): \
+         'git --future-flag value add .factory/x' MUST be detected as a git add command. \
+         Conservative class rule: an unknown long option '--future-flag' in space form must \
+         consume 'value' as its value token before inspecting 'add' as the subcommand. \
+         Current impl treats 'value' as the subcommand → returns false (BYPASS via PC4). \
+         The guard cannot be defeated by novel or unknown git global options."
+    );
+}
+
+// -- F-P4-001 integration tests via hook_logic (RED) --
+
+#[test]
+fn test_fp4_001_bc4_16_001_blocks_space_form_git_dir_factory_on_develop() {
+    // F-P4-001 [MEDIUM]: `git --git-dir /foo add .factory/STATE.md` on develop MUST block.
+    // Current bypass: is_git_add_command returns false → PC4 → Continue (not Block).
+    let result = run_hook_with_branch("git --git-dir /foo add .factory/STATE.md", "develop");
+    assert!(
+        result.is_ok(),
+        "F-P4-001: hook_logic panicked for \
+         'git --git-dir /foo add .factory/STATE.md' on develop."
+    );
+    if let Ok(hook_result) = result {
+        assert_eq!(
+            hook_result.exit_code(),
+            2,
+            "F-P4-001 [MEDIUM] / BC-4.16.001 v1.4 Precondition 2: \
+             'git --git-dir /foo add .factory/STATE.md' on develop MUST exit 2. \
+             '--git-dir /foo' space-form causes is_git_add_command to treat '/foo' as the \
+             subcommand → returns false → PC4 → Continue (BYPASS). \
+             Fix: long options must consume their space-separated value token."
+        );
+        match &hook_result {
+            HookResult::Block { reason } => {
+                assert!(
+                    reason.contains("FactoryPathOnProductBranch"),
+                    "F-P4-001: block reason must contain 'FactoryPathOnProductBranch'. \
+                     Got: '{}'",
+                    reason
+                );
+            }
+            other => panic!(
+                "F-P4-001: expected HookResult::Block for \
+                 'git --git-dir /foo add .factory/STATE.md' on develop, got {:?}",
+                other
+            ),
+        }
+    }
+}
+
+#[test]
+fn test_fp4_001_bc4_16_001_blocks_space_form_work_tree_factory_on_develop() {
+    // F-P4-001 [MEDIUM]: `git --work-tree /tmp/x add .factory/y` on develop MUST block.
+    let result = run_hook_with_branch("git --work-tree /tmp/x add .factory/y", "develop");
+    assert!(
+        result.is_ok(),
+        "F-P4-001: hook_logic panicked for 'git --work-tree /tmp/x add .factory/y'."
+    );
+    if let Ok(hook_result) = result {
+        assert_eq!(
+            hook_result.exit_code(),
+            2,
+            "F-P4-001 [MEDIUM] / BC-4.16.001 v1.4 Precondition 2: \
+             'git --work-tree /tmp/x add .factory/y' on develop MUST exit 2. \
+             '--work-tree /tmp/x' space-form: '/tmp/x' treated as subcommand \
+             by current impl → BYPASS via PC4."
+        );
+    }
+}
+
+#[test]
+fn test_fp4_001_bc4_16_001_blocks_space_form_namespace_stage_factory_on_develop() {
+    // F-P4-001 [MEDIUM]: `git --namespace ns stage .factory/z` on develop MUST block.
+    let result = run_hook_with_branch("git --namespace ns stage .factory/z", "develop");
+    assert!(
+        result.is_ok(),
+        "F-P4-001: hook_logic panicked for 'git --namespace ns stage .factory/z'."
+    );
+    if let Ok(hook_result) = result {
+        assert_eq!(
+            hook_result.exit_code(),
+            2,
+            "F-P4-001 [MEDIUM] / BC-4.16.001 v1.4 Precondition 2: \
+             'git --namespace ns stage .factory/z' on develop MUST exit 2. \
+             '--namespace ns' space-form: 'ns' treated as subcommand → BYPASS via PC4."
+        );
+    }
+}
+
+#[test]
+fn test_fp4_001_bc4_16_001_blocks_space_form_exec_path_factory_on_develop() {
+    // F-P4-001 [MEDIUM]: `git --exec-path /p add .factory/w` on develop MUST block.
+    let result = run_hook_with_branch("git --exec-path /p add .factory/w", "develop");
+    assert!(
+        result.is_ok(),
+        "F-P4-001: hook_logic panicked for 'git --exec-path /p add .factory/w'."
+    );
+    if let Ok(hook_result) = result {
+        assert_eq!(
+            hook_result.exit_code(),
+            2,
+            "F-P4-001 [MEDIUM] / BC-4.16.001 v1.4 Precondition 2: \
+             'git --exec-path /p add .factory/w' on develop MUST exit 2. \
+             '--exec-path /p' space-form: '/p' treated as subcommand → BYPASS via PC4."
+        );
+    }
+}
+
+#[test]
+fn test_fp4_001_bc4_16_001_blocks_chained_and_space_form_git_dir_factory_on_develop() {
+    // F-P4-001 [MEDIUM]: `git status && git --git-dir /foo add .factory/f` MUST block.
+    // The outer-loop scan (F-P2-001 fix) correctly advances past the first 'git status';
+    // then the space-form bypass causes the second 'git --git-dir /foo add' to miss 'add'.
+    // Both the outer-loop fix AND the space-form fix are required.
+    let result = run_hook_with_branch(
+        "git status && git --git-dir /foo add .factory/f",
+        "develop",
+    );
+    assert!(
+        result.is_ok(),
+        "F-P4-001: hook_logic panicked for \
+         'git status && git --git-dir /foo add .factory/f'."
+    );
+    if let Ok(hook_result) = result {
+        assert_eq!(
+            hook_result.exit_code(),
+            2,
+            "F-P4-001 [MEDIUM] / BC-4.16.001 v1.4 Precondition 2: \
+             'git status && git --git-dir /foo add .factory/f' on develop MUST exit 2. \
+             Outer loop advances past 'git status' (F-P2-001); second 'git' then hits \
+             '--git-dir /foo' — space-form bypass causes '/foo' to be treated as the \
+             subcommand, so 'add .factory/f' is never seen. BYPASS via PC4."
+        );
+    }
+}
+
+#[test]
+fn test_fp4_001_bc4_16_001_blocks_unknown_future_flag_conservative_factory_on_develop() {
+    // F-P4-001 [MEDIUM] — class rule: any unknown long option's value must not defeat detection.
+    let result = run_hook_with_branch("git --future-flag value add .factory/x", "develop");
+    assert!(
+        result.is_ok(),
+        "F-P4-001: hook_logic panicked for 'git --future-flag value add .factory/x'."
+    );
+    if let Ok(hook_result) = result {
+        assert_eq!(
+            hook_result.exit_code(),
+            2,
+            "F-P4-001 [MEDIUM] / BC-4.16.001 v1.4 Precondition 2 + Invariant 4 (class rule): \
+             'git --future-flag value add .factory/x' on develop MUST exit 2. \
+             Unknown long option: 'value' treated as subcommand by current impl → \
+             BYPASS via PC4. Class rule: unknown long options in space form MUST \
+             conservatively consume their value token so detection cannot be defeated by \
+             novel git global options."
+        );
+        match &hook_result {
+            HookResult::Block { reason } => {
+                assert!(
+                    reason.contains("FactoryPathOnProductBranch"),
+                    "F-P4-001: block reason must contain 'FactoryPathOnProductBranch'. \
+                     Got: '{}'",
+                    reason
+                );
+            }
+            other => panic!(
+                "F-P4-001: expected HookResult::Block for \
+                 'git --future-flag value add .factory/x' on develop, got {:?}",
+                other
+            ),
+        }
+    }
+}
+
+// -- F-P4-001 GREEN pins (already correct; fix must not break these) --
+
+#[test]
+fn test_fp4_001_bc4_16_001_green_pin_equals_form_git_dir_blocks_on_develop() {
+    // GREEN PIN: `git --git-dir=/foo add .factory/x` (= form) already blocks correctly.
+    // '--git-dir=/foo' is one token → next token 'add' is correctly seen as the subcommand.
+    // The = form was always handled correctly; pin confirms the space-form fix preserves it.
+    let result = run_hook_with_branch("git --git-dir=/foo add .factory/x", "develop");
+    assert!(
+        result.is_ok(),
+        "F-P4-001 GREEN pin: hook_logic panicked for \
+         'git --git-dir=/foo add .factory/x' on develop."
+    );
+    if let Ok(hook_result) = result {
+        assert_eq!(
+            hook_result.exit_code(),
+            2,
+            "F-P4-001 GREEN pin / BC-4.16.001 PC1: 'git --git-dir=/foo add .factory/x' on \
+             develop MUST exit 2. The = form '--git-dir=/foo' is a single token — 'add' is \
+             correctly identified as the subcommand. This form already blocks; the \
+             space-form fix must preserve this behavior."
+        );
+    }
+}
+
+#[test]
+fn test_fp4_001_bc4_16_001_green_pin_space_form_git_dir_non_factory_continues() {
+    // GREEN PIN: `git --git-dir /foo add src/lib.rs` on develop MUST return Continue.
+    // Before fix: is_git_add_command false → PC4 → Continue.
+    // After fix: is_git_add_command true; contains_factory_path_arg false (src/lib.rs is
+    //   not a .factory/ path) → PC2 → Continue.
+    // Either way Continue — guard against over-blocking non-.factory/ paths with space-form.
+    let result = run_hook_with_branch("git --git-dir /foo add src/lib.rs", "develop");
+    assert!(
+        result.is_ok(),
+        "F-P4-001 GREEN pin: hook_logic panicked for \
+         'git --git-dir /foo add src/lib.rs' on develop."
+    );
+    if let Ok(hook_result) = result {
+        assert_eq!(
+            hook_result,
+            HookResult::Continue,
+            "F-P4-001 GREEN pin / BC-4.16.001 PC2: 'git --git-dir /foo add src/lib.rs' on \
+             develop MUST return Continue. Non-.factory/ path has no dual-tracking risk. \
+             Before and after the space-form fix the result must be Continue."
+        );
+    }
+}
+
+#[test]
+fn test_fp4_001_bc4_16_001_green_pin_space_form_git_dir_status_continues() {
+    // GREEN PIN: `git --git-dir /foo status` on develop MUST return Continue.
+    // Before fix: is_git_add_command false → PC4 → Continue (wrong path, correct outcome).
+    // After fix: is_git_add_command false (subcommand is 'status', not 'add'/'stage')
+    //   → PC4 → Continue (correct path and outcome).
+    let result = run_hook_with_branch("git --git-dir /foo status", "develop");
+    assert!(
+        result.is_ok(),
+        "F-P4-001 GREEN pin: hook_logic panicked for 'git --git-dir /foo status' on develop."
+    );
+    if let Ok(hook_result) = result {
+        assert_eq!(
+            hook_result,
+            HookResult::Continue,
+            "F-P4-001 GREEN pin / BC-4.16.001 PC4: 'git --git-dir /foo status' on develop \
+             MUST return Continue. 'status' is not a git add/stage subcommand — PC4 applies. \
+             The space-form fix must correctly identify 'status' (not '/foo') as the \
+             subcommand and pass via PC4."
+        );
+    }
+}
+
+// ---------------------------------------------------------------------------
+// F-P4-002 [LOW]: BC-4.16.001 v1.4 Precondition 2 — glued shell punctuation bypass.
+//
+// The current is_git_add_command implementation scans whitespace-delimited tokens
+// looking for one that matches "git" (case-insensitive). When the 'git' keyword is
+// glued directly to a leading shell punctuation character with no space between them,
+// the resulting token is not recognized as "git" — the comparison fails and the entire
+// payload is treated as a non-git-add command (PC4 → Continue).
+//
+// Affected forms and their bypass tokens:
+//   $(git add .factory/x)  — command substitution: first token is "$(git"
+//   (git add .factory/y)   — subshell (no space):   first token is "(git"
+//   `git add .factory/z`   — backtick substitution:  first token is "`git"
+//
+// Note: contains_factory_path_arg's fast-path already correctly detects ".factory/"
+// in all three payloads. The bypass is entirely in is_git_add_command returning false
+// (causing PC4 → Continue) before contains_factory_path_arg is ever called.
+//
+// GREEN pin (spaced form): `( git add .factory/z )` already blocks correctly because
+// '(' and 'git' are separate whitespace-delimited tokens — 'git' is found normally.
+//
+// BC traces:
+//   BC-4.16.001 v1.4 Precondition 2: detect git (add|stage) in any textual form.
+//   BC-4.16.001 Invariant 4: conservative-on-ambiguity.
+// ---------------------------------------------------------------------------
+
+// -- F-P4-002 unit tests on is_git_add_command (RED) --
+
+#[test]
+fn test_fp4_002_is_git_add_command_detects_dollar_paren_glued_git() {
+    // BC-4.16.001 v1.4 Precondition 2: `$(git add .factory/x)` MUST be detected.
+    // First token is "$(git" — NOT "git" → is_git_add_command returns false (BYPASS via PC4).
+    // Fix: strip leading command-substitution prefix '$(' from token before 'git' comparison.
+    assert!(
+        is_git_add_command("$(git add .factory/x)"),
+        "F-P4-002 / BC-4.16.001 v1.4 Precondition 2: \
+         '$(git add .factory/x)' MUST be detected as containing a git add command. \
+         The '$(' prefix is glued to 'git' with no space — token '$(git' fails \
+         eq_ignore_ascii_case(\"git\"). Current impl returns false (BYPASS via PC4). \
+         Fix: strip leading shell-substitution prefix from token candidates before \
+         the 'git' comparison."
+    );
+}
+
+#[test]
+fn test_fp4_002_is_git_add_command_detects_paren_glued_git() {
+    // BC-4.16.001 v1.4 Precondition 2: `(git add .factory/y)` MUST be detected.
+    // First token is "(git" — NOT "git" → returns false (BYPASS via PC4).
+    // Fix: strip leading '(' from token before 'git' comparison.
+    assert!(
+        is_git_add_command("(git add .factory/y)"),
+        "F-P4-002 / BC-4.16.001 v1.4 Precondition 2: \
+         '(git add .factory/y)' MUST be detected as containing a git add command. \
+         The opening '(' is glued to 'git' with no space — token '(git' fails \
+         eq_ignore_ascii_case(\"git\"). Bash subshell form. Current impl returns false \
+         (BYPASS via PC4). Fix: strip leading '(' from token candidates before comparison."
+    );
+}
+
+#[test]
+fn test_fp4_002_is_git_add_command_detects_backtick_glued_git() {
+    // BC-4.16.001 v1.4 Precondition 2: `` `git add .factory/z` `` MUST be detected.
+    // First token is "`git" — NOT "git" → returns false (BYPASS via PC4).
+    // Fix: strip leading '`' from token before 'git' comparison.
+    assert!(
+        is_git_add_command("`git add .factory/z`"),
+        "F-P4-002 / BC-4.16.001 v1.4 Precondition 2: \
+         '`git add .factory/z`' MUST be detected as containing a git add command. \
+         The opening backtick is glued to 'git' with no space — token '`git' fails \
+         eq_ignore_ascii_case(\"git\"). Bash backtick command substitution form. \
+         Current impl returns false (BYPASS via PC4). Fix: strip leading '`' from \
+         token candidates before the 'git' comparison."
+    );
+}
+
+// -- F-P4-002 integration tests via hook_logic (RED) --
+
+#[test]
+fn test_fp4_002_bc4_16_001_blocks_dollar_paren_git_add_factory_on_develop() {
+    // F-P4-002 [LOW]: `$(git add .factory/x)` on develop MUST block.
+    // Current bypass: is_git_add_command returns false ("$(git" not "git") → PC4 → Continue.
+    // Note: contains_factory_path_arg fast-path returns true for this payload, but it is
+    // never reached because is_git_add_command short-circuits to PC4 first.
+    let result = run_hook_with_branch("$(git add .factory/x)", "develop");
+    assert!(
+        result.is_ok(),
+        "F-P4-002: hook_logic panicked for '$(git add .factory/x)' on develop."
+    );
+    if let Ok(hook_result) = result {
+        assert_eq!(
+            hook_result.exit_code(),
+            2,
+            "F-P4-002 [LOW] / BC-4.16.001 v1.4 Precondition 2 + Invariant 4: \
+             '$(git add .factory/x)' on develop MUST exit 2. Command-substitution prefix \
+             '$(' glued to 'git' → token '$(git' not recognized → is_git_add_command false \
+             → PC4 → Continue (BYPASS). Fix: recognize glued-punctuation forms of 'git'."
+        );
+        match &hook_result {
+            HookResult::Block { reason } => {
+                assert!(
+                    reason.contains("FactoryPathOnProductBranch"),
+                    "F-P4-002: block reason must contain 'FactoryPathOnProductBranch'. \
+                     Got: '{}'",
+                    reason
+                );
+            }
+            other => panic!(
+                "F-P4-002: expected HookResult::Block for '$(git add .factory/x)' \
+                 on develop, got {:?}",
+                other
+            ),
+        }
+    }
+}
+
+#[test]
+fn test_fp4_002_bc4_16_001_blocks_paren_glued_git_add_factory_on_develop() {
+    // F-P4-002 [LOW]: `(git add .factory/y)` on develop MUST block.
+    // Current: is_git_add_command returns false ("(git" not "git") → PC4 → Continue (BYPASS).
+    let result = run_hook_with_branch("(git add .factory/y)", "develop");
+    assert!(
+        result.is_ok(),
+        "F-P4-002: hook_logic panicked for '(git add .factory/y)' on develop."
+    );
+    if let Ok(hook_result) = result {
+        assert_eq!(
+            hook_result.exit_code(),
+            2,
+            "F-P4-002 [LOW] / BC-4.16.001 v1.4 Precondition 2 + Invariant 4: \
+             '(git add .factory/y)' on develop MUST exit 2. Subshell form — '(' glued \
+             to 'git' (no space). Token '(git' fails eq_ignore_ascii_case(\"git\") \
+             → is_git_add_command returns false → PC4 → Continue (BYPASS)."
+        );
+    }
+}
+
+#[test]
+fn test_fp4_002_bc4_16_001_blocks_backtick_git_add_factory_on_develop() {
+    // F-P4-002 [LOW]: `` `git add .factory/z` `` on develop MUST block.
+    // Current: is_git_add_command returns false ("`git" not "git") → PC4 → Continue (BYPASS).
+    let result = run_hook_with_branch("`git add .factory/z`", "develop");
+    assert!(
+        result.is_ok(),
+        "F-P4-002: hook_logic panicked for '`git add .factory/z`' on develop."
+    );
+    if let Ok(hook_result) = result {
+        assert_eq!(
+            hook_result.exit_code(),
+            2,
+            "F-P4-002 [LOW] / BC-4.16.001 v1.4 Precondition 2 + Invariant 4: \
+             '`git add .factory/z`' on develop MUST exit 2. Backtick command-substitution \
+             form — backtick glued to 'git' (no space). Token '`git' fails \
+             eq_ignore_ascii_case(\"git\") → is_git_add_command returns false → \
+             PC4 → Continue (BYPASS)."
+        );
+    }
+}
+
+// -- F-P4-002 GREEN pin --
+
+#[test]
+fn test_fp4_002_bc4_16_001_green_pin_spaced_paren_git_add_factory_blocks_on_develop() {
+    // GREEN PIN: `( git add .factory/z )` spaced form already blocks correctly.
+    // '(' and 'git' are separate whitespace-delimited tokens — 'git' is found by the
+    // outer loop, 'add' is correctly identified as the subcommand, and
+    // contains_factory_path_arg detects '.factory/'. This form already blocks; the
+    // glued-punctuation fix must not disturb this behavior.
+    let result = run_hook_with_branch("( git add .factory/z )", "develop");
+    assert!(
+        result.is_ok(),
+        "F-P4-002 GREEN pin: hook_logic panicked for '( git add .factory/z )' on develop."
+    );
+    if let Ok(hook_result) = result {
+        assert_eq!(
+            hook_result.exit_code(),
+            2,
+            "F-P4-002 GREEN pin / BC-4.16.001 PC1: '( git add .factory/z )' on develop \
+             MUST exit 2. Spaced form: '(' is a separate token, 'git' is found normally, \
+             'add' is the subcommand. This form already blocks; the fix must preserve it."
+        );
+    }
+}
