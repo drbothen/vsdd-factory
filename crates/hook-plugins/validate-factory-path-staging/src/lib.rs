@@ -8,11 +8,11 @@
 //!
 //! # Behavioral Contracts
 //!
-//! - BC-4.16.001 v1.6: blocks `git add`/`git stage` of `.factory/` paths on
+//! - BC-4.16.001 v1.7: blocks `git add`/`git stage` of `.factory/` paths on
 //!   product branches (PC1); passes non-`.factory/` staging (PC2); passes on
 //!   `factory-artifacts` branch (PC3); passes non-`git add`/`git stage`
 //!   commands (PC4); fail-open on crash/branch-detection failure (Invariants
-//!   2/3). Detection contract is class-complete per v1.5:
+//!   2/3). Detection contract is class-complete per v1.7:
 //!   - Canonical value-consuming global options enumerated (F-P4-001).
 //!   - Leading shell punctuation stripped from `git` candidate tokens (F-P4-002).
 //!   - Invariant 6 (F-P5-001): when `-C <target>` or `-c core.worktree=<target>`
@@ -46,7 +46,7 @@ pub const HOST_ABI_VERSION: u32 = 1;
 
 /// Strip leading shell punctuation from a token candidate before comparing to "git".
 ///
-/// Handles the three forms documented in BC-4.16.001 v1.5 Precondition 2 (F-P4-002):
+/// Handles the three forms documented in BC-4.16.001 v1.7 Precondition 2 (F-P4-002):
 ///   `$(git …` → strip `$(`  → `git`
 ///   `(git …`  → strip `(`   → `git`
 ///   `` `git … `` → strip `` ` `` → `git`
@@ -56,7 +56,7 @@ pub const HOST_ABI_VERSION: u32 = 1;
 /// directly to `git` without whitespace.
 ///
 /// # BC trace
-/// BC-4.16.001 Precondition 2 v1.5 (F-P4-002): glued shell punctuation strip.
+/// BC-4.16.001 Precondition 2 v1.7 (F-P4-002): glued shell punctuation strip.
 fn strip_shell_prefix(token: &str) -> &str {
     if let Some(rest) = token.strip_prefix("$(") {
         return rest;
@@ -77,14 +77,14 @@ fn strip_shell_prefix(token: &str) -> &str {
 /// form (e.g., `--git-dir=/foo`) is self-contained (a single token) and does NOT
 /// consume the next token; this function is never called for those forms.
 ///
-/// Canonical set per BC-4.16.001 v1.5 Precondition 2 (F-P4-001):
+/// Canonical set per BC-4.16.001 v1.7 Precondition 2 (F-P4-001):
 ///   `--git-dir`, `--work-tree`, `--namespace`, `--super-prefix`, `--exec-path`
 ///
 /// Short value-consuming options (`-C`, `-c`) are handled inline — this function
 /// covers only the long form.
 ///
 /// # BC trace
-/// BC-4.16.001 Precondition 2 v1.5 (F-P4-001): canonical value-consuming global options.
+/// BC-4.16.001 Precondition 2 v1.7 (F-P4-001): canonical value-consuming global options.
 fn is_canonical_long_value_consuming(opt: &str) -> bool {
     matches!(
         opt,
@@ -95,7 +95,7 @@ fn is_canonical_long_value_consuming(opt: &str) -> bool {
 /// Returns true if the Bash payload string contains a `git add` or `git stage` command
 /// in any form, including chained, global-option, and glued-shell-punctuation forms.
 ///
-/// Detection contract per BC-4.16.001 Precondition 2 v1.5:
+/// Detection contract per BC-4.16.001 Precondition 2 v1.7:
 /// - Scans ALL tokens in the payload (not just the first `git` occurrence) so that
 ///   chained forms (`&&`, `;`, `|`) are fully covered — a `git add` or `git stage`
 ///   appearing after a different git command (e.g. `git status && git add`) is detected.
@@ -119,7 +119,7 @@ fn is_canonical_long_value_consuming(opt: &str) -> bool {
 /// - No regex dependency — hand-rolled tokenizer (WASM fuel budget constraint).
 ///
 /// # BC trace
-/// BC-4.16.001 Precondition 2 v1.5 (F-P4-001 + F-P4-002): class-complete detection.
+/// BC-4.16.001 Precondition 2 v1.7 (F-P4-001 + F-P4-002): class-complete detection.
 /// BC-4.16.001 PC4: non-`git add`/`git stage` commands pass unconditionally.
 pub fn is_git_add_command(payload: &str) -> bool {
     let tokens: Vec<&str> = payload.split_whitespace().collect();
@@ -198,7 +198,7 @@ pub fn is_git_add_command(payload: &str) -> bool {
 /// arguments include or imply a `.factory/`-rooted path that should be blocked
 /// on a product branch.
 ///
-/// Conservative matching per BC-4.16.001 Invariant 4 v1.5:
+/// Conservative matching per BC-4.16.001 Invariant 4 v1.7:
 /// - Case-insensitive `.factory/` prefix match anywhere in the payload (fast
 ///   path; covers `.Factory/`, `.FACTORY/` etc. for macOS HFS+ / Windows NTFS
 ///   which are case-folding filesystems).
@@ -218,7 +218,7 @@ pub fn is_git_add_command(payload: &str) -> bool {
 ///   - Combined short flags containing `A` or `u` (e.g. `-Au`).
 ///
 /// # BC trace
-/// BC-4.16.001 Invariant 4 v1.5: path matching is conservative and case-insensitive.
+/// BC-4.16.001 Invariant 4 v1.7: path matching is conservative and case-insensitive.
 /// BC-4.16.001 EC-004: `git add -A` from CWD under `.factory/` is blocked.
 /// BC-4.16.001 EC-008: `git add *.md` glob from project root is blocked.
 /// BC-4.16.001 EC-010: `git add -u` is blocked (tracks all modifications).
@@ -392,7 +392,7 @@ pub fn is_product_branch(branch: &str) -> bool {
 /// Called only on already-unquoted token values.
 ///
 /// # BC trace
-/// BC-4.16.001 v1.6 Invariant 6: factory-class target detection (F-P5-001).
+/// BC-4.16.001 v1.7 Invariant 6: factory-class target detection (F-P5-001).
 fn is_factory_class_target(target: &str) -> bool {
     let lower = target.to_ascii_lowercase();
     lower == ".factory" || lower == "./.factory" || lower.ends_with("/.factory")
@@ -406,7 +406,7 @@ fn is_factory_class_target(target: &str) -> bool {
 /// responsible for further quote-stripping if needed.
 ///
 /// # BC trace
-/// BC-4.16.001 v1.6 Invariant 6: `-c core.worktree=<target>` factory-class detection (F-P5-001).
+/// BC-4.16.001 v1.7 Invariant 6: `-c core.worktree=<target>` factory-class detection (F-P5-001).
 fn extract_core_worktree_value(kv: &str) -> Option<&str> {
     let eq = kv.find('=')?;
     let key = &kv[..eq];
@@ -438,7 +438,7 @@ fn extract_core_worktree_value(kv: &str) -> Option<&str> {
 ///   a `-C` or `-c core.worktree=` targeting a `.factory`-class path.
 ///
 /// # BC trace
-/// BC-4.16.001 v1.6 Invariant 6: target-aware branch detection (F-P5-001).
+/// BC-4.16.001 v1.7 Invariant 6: target-aware branch detection (F-P5-001).
 fn find_factory_class_target(payload: &str) -> Option<String> {
     let tokens: Vec<&str> = payload.split_whitespace().collect();
     let mut i = 0;
@@ -580,7 +580,7 @@ where
 /// - BC-4.16.001 PC3: pass all commands on factory-artifacts branch
 /// - BC-4.16.001 PC4: pass non-git-add commands immediately
 /// - BC-4.16.001 Invariants 2/3: fail-open on crash or branch detection failure
-/// - BC-4.16.001 v1.6 Invariant 6: target-aware detection for -C/.factory and
+/// - BC-4.16.001 v1.7 Invariant 6: target-aware detection for -C/.factory and
 ///   -c core.worktree=.factory forms (F-P5-001)
 pub fn hook_logic<B, E, L>(
     payload: HookPayload,
@@ -602,6 +602,16 @@ where
             return HookResult::Continue;
         }
     };
+
+    // SEC-003 / WASM fuel bound: reject oversized payloads before any parsing.
+    const MAX_COMMAND_LEN: usize = 65_536; // 64 KiB — WASM fuel and memory bound
+    if command.len() > MAX_COMMAND_LEN {
+        (callbacks.log)(
+            3,
+            "[validate-factory-path-staging] WARN: oversized command payload — failing open",
+        );
+        return HookResult::Continue;
+    }
 
     // Step 2: PC4 — non-git-add/stage commands pass unconditionally (no path inspection).
     if !is_git_add_command(&command) {
@@ -681,11 +691,28 @@ where
         // This closes the bypass where `git -C .factory add <non-factory-file>` escapes
         // contains_factory_path_arg because the staged arg is not .factory/-prefixed.
         // Invariant 6 uses the TARGET directory path, not the staged file argument.
+        let safe_branch: String = branch
+            .chars()
+            .filter(|c| c.is_ascii_graphic() || *c == ' ')
+            .collect();
+        let safe_target: String = target
+            .chars()
+            .filter(|c| c.is_ascii_graphic() || *c == ' ')
+            .collect();
+        (callbacks.emit_event)(
+            "hook.block",
+            &[
+                ("hook", "validate-factory-path-staging"),
+                ("code", "FactoryPathOnProductBranch"),
+                ("trigger", "invariant6_target_aware"),
+                ("branch", &branch),
+            ],
+        );
         return HookResult::block_with_fix(
             "validate-factory-path-staging",
             format!(
                 "FactoryPathOnProductBranch — git add/stage with .factory/ target \
-                 directory ('{target}') on product branch '{branch}'. .factory/ paths \
+                 directory ('{safe_target}') on product branch '{safe_branch}'. .factory/ paths \
                  are exclusively owned by the factory-artifacts worktree. Staging \
                  .factory/ content on a product branch creates the dual-tracking \
                  condition that allows product-branch merges to silently delete \
@@ -700,11 +727,24 @@ where
     // Step 5 (normal path): PC1 — block if payload contains a .factory/-rooted path
     // or conservative wildcard/flag (per BC-4.16.001 Invariant 4).
     if contains_factory_path_arg(&command) {
+        let safe_branch: String = branch
+            .chars()
+            .filter(|c| c.is_ascii_graphic() || *c == ' ')
+            .collect();
+        (callbacks.emit_event)(
+            "hook.block",
+            &[
+                ("hook", "validate-factory-path-staging"),
+                ("code", "FactoryPathOnProductBranch"),
+                ("trigger", "factory_path_arg"),
+                ("branch", &branch),
+            ],
+        );
         return HookResult::block_with_fix(
             "validate-factory-path-staging",
             format!(
                 "FactoryPathOnProductBranch — git add of .factory/ path on product \
-                 branch '{branch}'. .factory/ paths are exclusively owned by the \
+                 branch '{safe_branch}'. .factory/ paths are exclusively owned by the \
                  factory-artifacts worktree. Staging .factory/ content on a product \
                  branch creates the dual-tracking condition that allows product-branch \
                  merges to silently delete factory artifact files"
