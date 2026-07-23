@@ -3775,6 +3775,16 @@ dependencies = [
 ]
 
 [[package]]
+name = "validate-factory-path-staging"
+version = "0.0.1"
+dependencies = [
+ "proptest",
+ "serde",
+ "serde_json",
+ "vsdd-hook-sdk",
+]
+
+[[package]]
 name = "validate-heavy-op-delegation"
 version = "0.0.1"
 dependencies = [

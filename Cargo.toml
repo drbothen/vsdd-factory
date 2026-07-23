@@ -23,6 +23,7 @@ members = [
     "crates/hook-plugins/warn-pending-wave-gate",
     "crates/hook-plugins/validate-pr-review-posted",
     "crates/hook-plugins/validate-artifact-path",
+    "crates/hook-plugins/validate-factory-path-staging",
     "crates/hook-plugins/verify-factory-lock",
     "crates/factory-lock-parse",
     "crates/hook-plugins/verify-state-timestamp-refresh",
