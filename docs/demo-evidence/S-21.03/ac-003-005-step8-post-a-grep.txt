@@ -1,0 +1,70 @@
+# S-21.03 AC-003 / AC-004 / AC-005 — Step 8-post-A mandate + ordering evidence
+# Captured: 2026-07-24
+# Worktree HEAD: 194e98fe
+# Target file: plugins/vsdd-factory/agents/pr-manager.md
+
+## Command 1: Step 8-post-A mandate tokens + ordering anchors
+$ grep -n '^\*\*Step 8-post-A\|^\*\*Step 8b\|Step 8-post-A\|merge-base --is-ancestor\|MergeNotAncestorOfTrunk\|non-zero exit\|P0 DATA ERROR\|MUST NOT be marked delivered\|TrunkFetchFailed\|Retry once\|UNANSWERED\|orphan-merge recovery\|mergeCommit\.oid' plugins/vsdd-factory/agents/pr-manager.md
+
+164:The PR MUST NOT be merged and the story MUST NOT be marked delivered until this assertion passes
+289:reference (deletion-agnostic). The Step 8-post-A ancestry assertion MUST complete before any
+292:deletion mechanism and is gated on the Step 8-post-A assertion passing.
+304:(`delete_branch_on_merge=true` for this repo). After the Step 8-post-A ancestry assertion passes,
+316:- If `state == MERGED` — proceed to Step 8-post-A.
+327:**Step 8-post-A — Post-merge ancestry assertion (BC-6.10.002 PC3, ADR-031 §Decision 8).**
+330:github-ops to retrieve the merge SHA from `mergeCommit.oid`:
+336:If `mergeCommit.oid` is null or absent, raise immediately as `MergeNotAncestorOfTrunk`
+340:P0 DATA ERROR: MergeNotAncestorOfTrunk — PR #<pr_number> mergeCommit.oid is null.
+345:The story MUST NOT be marked delivered until the merge SHA can be confirmed on trunk.
+358:- This is **NOT** a `MergeNotAncestorOfTrunk` finding. The ancestry question is **UNANSWERED**.
+359:- Retry once.
+360:- If the retry also fails, HALT immediately with `TrunkFetchFailed`:
+363:TRANSIENT ESCALATION [TrunkFetchFailed]: git fetch origin <trunk> failed after 1 retry.
+366:orphan-merge recovery. Escalate to human for resolution.
+369:**Do NOT proceed to Step B or Step 8b/8c/8d/Step 9 on TrunkFetchFailed.**
+374:Agent(subagent_type="vsdd-factory:github-ops", prompt="cd <project-path> && git merge-base --is-ancestor <merge_sha> origin/<trunk>")
+379:If `git merge-base --is-ancestor` returns a non-zero exit code after a successful Step A fetch,
+383:P0 DATA ERROR: MergeNotAncestorOfTrunk — PR #<pr_number> merge commit <merge_sha> is NOT an
+397:**On `MergeNotAncestorOfTrunk` (null SHA or non-zero exit from Step B): HALT immediately — do NOT
+401:The story MUST NOT be marked delivered until this assertion passes with exit code 0
+404:**Step 8b — Fork / cross-repo guard.**
+437:- **Any other non-zero exit code (e.g. exit 128 — network failure, auth error, or
+439:  up to 2 times with a brief wait between attempts; if the unexpected non-zero exit
+465:- **Persistent unexpected non-zero exit** (not covered above) — surface a clear failure
+499:**Step 9 — ancestry assertion verified at Step 8-post-A.**
+500:Reaching Step 9 means the `git merge-base --is-ancestor <merge_sha> origin/<trunk>` assertion
+501:(BC-6.10.002 PC3) executed at Step 8-post-A passed with exit code 0: `mergeCommit.oid` was
+502:non-null and the merge commit is confirmed on trunk. Had `mergeCommit.oid` been null or
+503:`merge-base --is-ancestor` returned a non-zero exit code, `MergeNotAncestorOfTrunk` P0 DATA ERROR
+504:would have been raised and execution halted before this step — the story MUST NOT be marked delivered
+514:`STEP_COMPLETE: step=9 name=post-merge status=ok note=cleanup complete; ancestry assertion passed at Step 8-post-A`
+
+## Command 2: ordering anchor — confirm "Step 8-post-A" bold heading precedes "Step 8b" bold heading
+$ grep -n '^\*\*Step 8-post-A\|^\*\*Step 8b' plugins/vsdd-factory/agents/pr-manager.md
+
+327:**Step 8-post-A — Post-merge ancestry assertion (BC-6.10.002 PC3, ADR-031 §Decision 8).**
+404:**Step 8b — Fork / cross-repo guard.**
+
+## Evidence summary (AC-003 / AC-004 / AC-005 mandate tokens confirmed present in §Step 8-post-A):
+#   Line 327  — "**Step 8-post-A" bold heading (BC-6.10.002 PC3) — ordering anchor
+#   Line 330  — "mergeCommit.oid" extraction from gh pr view --json mergeCommit
+#   Line 336  — "mergeCommit.oid is null" → MergeNotAncestorOfTrunk (AC-005 / EC-006)
+#   Line 340  — "P0 DATA ERROR: MergeNotAncestorOfTrunk" null-SHA path
+#   Line 345  — "MUST NOT be marked delivered" consequence for null SHA
+#   Line 358  — "UNANSWERED" semantics for TrunkFetchFailed (EC-007 / T-006)
+#   Line 359  — "Retry once" mandate (EC-007 / T-006)
+#   Line 360  — "TrunkFetchFailed" error variant after retry exhausted
+#   Line 363  — TRANSIENT ESCALATION [TrunkFetchFailed] error body
+#   Line 366  — "orphan-merge recovery" — do NOT enter recovery on TrunkFetchFailed
+#   Line 369  — "Do NOT proceed to Step B or Step 8b/8c/8d/Step 9 on TrunkFetchFailed"
+#   Line 374  — git merge-base --is-ancestor command (Step B ancestry check)
+#   Line 379  — "non-zero exit code" → MergeNotAncestorOfTrunk P0 (AC-003)
+#   Line 383  — "P0 DATA ERROR: MergeNotAncestorOfTrunk" non-zero exit path
+#   Line 401  — "MUST NOT be marked delivered" hard-fail consequence (BC-6.10.002 PC3 Invariant 2)
+#   Line 404  — "**Step 8b" bold heading (line 404 > line 327: Step 8-post-A precedes deletion steps)
+#
+# ORDERING CONFIRMED: Step 8-post-A bold heading (line 327) precedes Step 8b bold heading (line 404).
+# Ancestry assertion mandate precedes branch deletion sub-steps per BC-6.10.002 PC3 ordering invariant.
+#
+# EC-007 additive coverage note: T-006/T-007 (TrunkFetchFailed Step A/B split) test the
+# TrunkFetchFailed path documented at lines 358-369. Labeled additive EC-007 coverage per v1.8 Test Plan.
