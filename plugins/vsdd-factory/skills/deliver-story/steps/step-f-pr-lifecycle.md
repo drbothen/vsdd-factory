@@ -33,7 +33,9 @@ Any file showing an unverified net-negative delta in a file also modified by a
 recently-merged sibling story halts the push with `UnverifiedNetNegativeDelta`.
 
 See `plugins/vsdd-factory/agents/devops-engineer.md §Inter-Wave Rebase` for the full gate
-procedure (PC1/PC2/PC3/PC4 postconditions).
+procedure (PC1/PC2/PC3/PC4 postconditions); see Step 1b in that section for the full
+`git diff origin/develop --stat` fallback procedure when `git range-diff` is unavailable
+(git < 2.19).
 
 ## Sub-step F.2: PR Lifecycle
 
