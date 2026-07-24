@@ -25,9 +25,10 @@
     {
       "id": "OBS-P5-1",
       "category": "architectural",
-      "disposition": "routed-in-cycle",
+      "disposition": "CLOSED",
       "route": "architect",
-      "target": "ADR-031 §Decision 6 range-diff-primary propagation"
+      "target": "ADR-031 §Decision 6 range-diff-primary propagation",
+      "closure_commits": ["0597f55a", "ARCH-INDEX-v3.27-OBS-P5-1-closure"]
     }
   ],
   "accepted_with_record": [
