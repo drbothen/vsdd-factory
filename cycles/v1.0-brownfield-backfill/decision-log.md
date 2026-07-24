@@ -10950,3 +10950,15 @@ D-885-SESSION-WRAP-PAUSED-2026-07-23
 ### Date
 
 2026-07-23
+
+## D-886
+
+E-21-W1-S-21.02-DISPATCHED-2026-07-23. POLICY 16 GLOBAL-MAX GATE: `grep -n "^## D-" decision-log.md | tail -3` → `10916:## D-883 / 10928:## D-884 / 10942:## D-885`; D-885 confirmed prior max → D-886 allocated. DISPATCH-SIDE ADVANCE (D-417(b) strict class): human resumed session 2026-07-23 and directed 'Dispatch S-21.02 first'; rc.24 release DEFERRED AGAIN by explicit human decision (remains TOP pending item). S-21.01 DELIVERED (D-884; PR #759 squash-merge 7bb0e797; merged_count 108). S-21.02 (post-rebase-diff-integrity-gate, P1, 3pts, CAP-035, issue #365, BC-5.44.001 v1.3, ADR-031, target: devops-engineer.md §Inter-Wave Rebase + step-f-pr-lifecycle.md + new bats suite; skill-doc only, POLICY 21 satisfied) DISPATCHED for per-story delivery per D-862 SEQUENTIAL approval (S-21.01→S-21.02→S-21.03). develop HEAD `7bb0e797`; main `80e5cd7b` UNCHANGED; factory-artifacts pre-dispatch HEAD `9452d51f` (D-885 wrap erratum commit). 4-INDEX UNCHANGED: BC v4.20 / VP v2.72 / STORY v4.236 / ARCH v3.26. STATE.md v6.22→v6.23. STATE.md frontmatter-minimal advance per D-417(b) + rc.24 Strategy Constraint: version/timestamp/phase/last_amended updated; pipeline (line 15) and current_step (line 17) NOT updated — hook-blocked (verify-state-timestamp-refresh blocks per-field Edit without co-located timestamp advance; spanning 14K last_amended for combined Edit impractical; D-880..D-885 pattern; deferred to next STATE.md-touching burst or rc.24 release). Decisions Log table row NOT added to STATE.md body — body-section constraint active (rc.24 PENDING; D-866..D-885 precedent). Dirty files included in burst commit per TD-VSDD-053 single-commit-per-burst: `logs/dispatcher-internal-2026-07-23.jsonl` + `sidecar-learning.md`.
+
+### Phase
+
+D-886-E21-W1-S-21.02-DISPATCHED-2026-07-23
+
+### Date
+
+2026-07-23
