@@ -11,13 +11,13 @@ Read all existing story specs and build the current dependency graph.
 1. Read all existing story specs from `.factory/stories/`
 2. Build the current dependency graph (story IDs and their depends_on links)
 3. Identify the highest existing story ID (to continue the sequence)
-4. Note which stories are merged vs in-progress
+4. Note each story's current status per the canonical 8-value enum
 
 ## Outputs
 
 - Story dependency graph (adjacency list)
 - Highest story ID (sequence anchor)
-- Story status map (merged / in-progress / planned)
+- Story status map (draft | ready | in-progress | partial | blocked | merged | withdrawn | cancelled)
 
 ## Completion Criteria
 
