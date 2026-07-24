@@ -17,6 +17,10 @@ description: Dispatch implementer to push the feature branch, then dispatch pr-m
 
 ### Rebase Before Push: Post-Rebase Diff-Integrity Gate Required
 
+**Role ownership:** The implementer (Sub-step F.1 agent) executing the rebase-then-force-push
+MUST follow `plugins/vsdd-factory/agents/devops-engineer.md §Inter-Wave Rebase` post-rebase
+diff-integrity gate before any `git push --force-with-lease`.
+
 If the feature branch must be rebased onto `origin/develop` before pushing (e.g., after
 sibling stories merged), the **post-rebase diff-integrity gate** (BC-5.44.001, ADR-031
 §Decision 6) is a **REQUIRED** step between `git rebase origin/develop` and
