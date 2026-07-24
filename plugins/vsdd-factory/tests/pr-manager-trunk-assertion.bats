@@ -485,8 +485,8 @@ _run_null_mergecommit_assertion() {
 }
 
 # ===========================================================================
-# T-006 / EC-007: git fetch fails after retry → TrunkFetchFailed; HALT; NOT delivered
-# BC-6.10.002 PC3 v1.4, EC-007
+# T-006 / EC-007 (story) / BC-6.10.002 EC-007
+# git fetch fails after retry → TrunkFetchFailed; HALT; NOT delivered
 # RG-004: TrunkFetchFailed path must be documented in Step 8-post-A (fetch is NOT orphan-merge)
 # ===========================================================================
 
