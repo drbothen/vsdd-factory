@@ -268,11 +268,32 @@ git diff origin/develop --stat
 ```
 
 For each file showing a net-negative line count, check whether any recently-merged sibling
-story commit on `origin/develop` also modified that file (via `git log --oneline origin/develop`
-\+ `git diff-tree --name-only`).
+story commit on `origin/develop` also modified that file. Compute the sibling commit set:
 
-**EC-005:** If `git diff origin/develop --stat` fails (e.g., network error), log a warning
-and escalate — never proceed blind without the gate result.
+**Computing the sibling commit set (BC-5.44.001 Invariant 3):** A commit on `origin/develop`
+is a recently-merged sibling story commit if (a) it post-dates the branch point (merge-base
+of `PRE_REBASE_TIP` and `origin/develop`) AND (b) it modifies at least one file also in the
+feature branch diff. Derive the set:
+
+```bash
+# 1. Find the branch point (merge-base)
+MERGE_BASE=$(git merge-base ${PRE_REBASE_TIP} origin/develop)
+
+# 2. Enumerate all sibling commits since the merge-base
+git log --oneline ${MERGE_BASE}..origin/develop
+
+# 3. For each sibling <sha>, list the files it touched
+git diff-tree --no-commit-id --name-only -r <sha>
+```
+
+Intersect the per-commit file lists (step 3, across all siblings) with the files flagged by
+`git diff origin/develop --stat`. Any file present in both sets is a sibling-touched file
+subject to the gate check. An agent dispatched without the BC loaded can derive the full
+sibling set from this procedure alone.
+
+**EC-005:** If `git range-diff` (step 1a) itself fails (non-zero exit or error), fall back to
+step 1b (`git diff origin/develop --stat`). If step 1b also fails (non-zero exit, e.g.,
+network error), log a warning and escalate — never proceed blind without the gate result.
 
 **Step 2 — Evaluate flagged files**
 
