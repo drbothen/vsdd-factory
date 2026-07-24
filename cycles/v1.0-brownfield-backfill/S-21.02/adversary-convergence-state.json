@@ -1,0 +1,38 @@
+{
+  "story": "S-21.02",
+  "protocol": "BC-5.39.001",
+  "streak_target": 3,
+  "passes_total": 1,
+  "passes_clean": 0,
+  "streak": "0/3",
+  "converged": false,
+  "streak_note": "p1 NOT-CLEAN B0/H1/M3/L2/OBS2 — fix burst dispatched: implementer (F-002/F-003/F-006doc/O-1/O-2) then test-writer (F-001/F-004/F-005/F-006tests)",
+  "passes": [
+    {
+      "pass": 1,
+      "verdict": "NOT-CLEAN",
+      "findings": {
+        "BLOCKER": 0,
+        "HIGH": 1,
+        "MEDIUM": 3,
+        "LOW": 2,
+        "NITPICK": 0,
+        "OBS": 2
+      },
+      "finding_ids": [
+        "F-S2102-P1-001",
+        "F-S2102-P1-002",
+        "F-S2102-P1-003",
+        "F-S2102-P1-004",
+        "F-S2102-P1-005",
+        "F-S2102-P1-006",
+        "O-1",
+        "O-2"
+      ],
+      "reviewed_head": "631edb28",
+      "base_commit": "7bb0e797",
+      "notes": "Initial pass; full story AC scope review. F-001 routed test-writer (not PO) — AC gate column specifies executable harness pattern. Fix burst: implementer then test-writer."
+    }
+  ],
+  "next_action": "fix-burst — implementer (F-S2102-P1-002/003/006doc/O-1/O-2) then test-writer (F-S2102-P1-001/004/005/006tests); pass-2 adversary cascade to follow"
+}
