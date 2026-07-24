@@ -13,16 +13,17 @@
 # Story: S-21.02
 #
 # Test plan:
-#   T-001  AC-003 / PC2: net-neg + sibling overlap, unverified → HALT; push NOT invoked; UnverifiedNetNegativeDelta
-#   T-002  AC-004 / PC3: no sibling overlap → gate passes; push invoked
-#   T-003  AC-005 / PC1: intentional removal in feature history → gate passes; push invoked
-#   T-004  BC-5.44.001 PC4 / EC-006: no sibling commits since creation → trivial pass; push invoked
-#   T-005  EC-004-class / EC-005: detector failure → escalate; push NOT invoked
+#   T-001  AC-003 / PC2: real-rebase fixture; range-diff primary detects !-commit; HALT; UnverifiedNetNegativeDelta
+#   T-002  AC-004 / PC3: real-rebase, no sibling overlap; gate passes; push invoked
+#   T-003  AC-005 / PC1: real-rebase, intentional commit message; gate passes; push invoked
+#   T-004  BC-5.44.001 PC4 / EC-006: no sibling commits; trivial pass; push invoked
+#   T-005  EC-004-class / EC-005: detector failure / merge-base failure → escalate; push NOT invoked
 
 setup() {
   REPO_ROOT="$(cd "${BATS_TEST_DIRNAME}/../../.." && pwd)"
   PLUGIN_ROOT="$REPO_ROOT/plugins/vsdd-factory"
   DEVOPS_ENGINEER_MD="$PLUGIN_ROOT/agents/devops-engineer.md"
+  STEP_F_MD="$PLUGIN_ROOT/skills/deliver-story/steps/step-f-pr-lifecycle.md"
   WORK="$(mktemp -d)"
   PUSH_LOG="$WORK/push.log"
   touch "$PUSH_LOG"
@@ -52,21 +53,34 @@ _assert_doc_marker() {
   }
 }
 
+_assert_step_f_marker() {
+  # $1=regex, $2=label
+  grep -qE "$1" "$STEP_F_MD" || {
+    echo "DOC-PARITY FAIL [step-f-pr-lifecycle.md must contain: $2]"
+    false
+  }
+}
+
 # ===========================================================================
 # EXECUTABLE-HARNESS — git fixture setup
 # ===========================================================================
 
-# Build a git fixture for the given scenario. Sets FIXTURE_REPO.
+# Build a git fixture for the given scenario. Sets FIXTURE_REPO and FIXTURE_PRE_REBASE_TIP.
+# FIXTURE_PRE_REBASE_TIP is captured immediately before `git rebase` (matching the doc's
+# `PRE_REBASE_TIP=$(git rev-parse HEAD)` capture point) so range-diff exercises a real
+# pre→post SHA transition.
+#
 # Scenarios:
-#   net-negative-sibling  — feature branches before sibling S-20.01, sibling then merges
-#                           to develop adding lines; feature has net-negative delta on
-#                           autoload.gd vs origin/develop; no intentionality signal → PC2
-#   no-sibling-overlap    — feature changes only feature_only.rs; sibling only autoload.gd
-#                           → PC3
-#   intentional-removal   — same diff profile as net-negative-sibling but commit message
-#                           explicitly documents intentional removal → PC1
-#   no-sibling-commits    — feature branches from develop; no new commits to develop
-#                           → PC4
+#   net-negative-sibling  — feature removes line2+line3; sibling modifies line3 to
+#                           LINE3_MODIFIED; conflict auto-resolved with -X ours; after
+#                           rebase range-diff shows ! (modified commit); net-negative
+#                           vs origin/develop; no intentionality signal → PC2
+#   no-sibling-overlap    — feature changes only feature_only.rs; sibling only autoload.gd;
+#                           clean rebase (no conflict); range-diff shows = → PC3
+#   intentional-removal   — same rebase topology as net-negative-sibling; range-diff shows !;
+#                           commit message documents intentional removal → PC1
+#   no-sibling-commits    — feature branches from develop; no new commits to develop;
+#                           FIXTURE_PRE_REBASE_TIP = HEAD; no rebase needed → PC4
 _setup_git_fixture() {
   local scenario="$1"
   local origin_dir="$WORK/origin-${scenario}.git"
@@ -79,27 +93,39 @@ _setup_git_fixture() {
 
   case "$scenario" in
     net-negative-sibling)
-      # 1. develop: init commit with autoload.gd (4 lines)
+      # Base: 12-line autoload.gd (gives enough context for range-diff to match commits).
+      # Feature: delete line06 (net -1; no intentionality signal).
+      # Sibling: rename line06 → SIBLING06 (same line → conflict with feature's deletion).
+      # Rebase -X theirs: feature's deletion wins; post-rebase tree lacks line06/SIBLING06.
+      # range-diff: old commit deleted "line06", new commit deleted "SIBLING06" → diffs
+      #   differ with high similarity → ! (modified) ✓
+      # git diff --numstat origin/develop: 0/1 → net-negative ✓
       git -C "$repo_dir" checkout -q -b develop 2>/dev/null || true
-      printf 'line1\nline2\nline3\nline4\n' > "$repo_dir/autoload.gd"
+      printf 'line01\nline02\nline03\nline04\nline05\nline06\nline07\nline08\nline09\nline10\nline11\nline12\n' \
+        > "$repo_dir/autoload.gd"
       git -C "$repo_dir" add autoload.gd
-      git -C "$repo_dir" commit -q -m "init: autoload.gd 4 lines"
+      git -C "$repo_dir" commit -q -m "init: autoload.gd 12 lines"
       git -C "$repo_dir" push -q origin develop
 
-      # 2. Feature branches BEFORE sibling — removes lines 2,3 (no intentionality signal)
       git -C "$repo_dir" checkout -q -b feature/S-21.02
-      printf 'line1\nline4\n' > "$repo_dir/autoload.gd"
+      printf 'line01\nline02\nline03\nline04\nline05\nline07\nline08\nline09\nline10\nline11\nline12\n' \
+        > "$repo_dir/autoload.gd"
       git -C "$repo_dir" add autoload.gd
-      git -C "$repo_dir" commit -q -m "feat(S-21.02): trim autoload.gd (removed lines 2 and 3)"
+      git -C "$repo_dir" commit -q -m "feat(S-21.02): remove line06 from autoload.gd"
 
-      # 3. Sibling S-20.01 lands on develop AFTER branch point
+      # Sibling renames line06 → SIBLING06 — conflicts with feature's deletion of line06
       git -C "$repo_dir" checkout -q develop
-      printf 'line1\nline2\nline3\nline4\nline5\nline6\nline7\nline8\n' > "$repo_dir/autoload.gd"
+      printf 'line01\nline02\nline03\nline04\nline05\nSIBLING06\nline07\nline08\nline09\nline10\nline11\nline12\n' \
+        > "$repo_dir/autoload.gd"
       git -C "$repo_dir" add autoload.gd
-      git -C "$repo_dir" commit -q -m "feat(S-20.01): autoload.gd +4 sibling lines"
+      git -C "$repo_dir" commit -q -m "feat(S-20.01): rename line06 to SIBLING06 (sibling story)"
       git -C "$repo_dir" push -q origin develop
 
       git -C "$repo_dir" checkout -q feature/S-21.02
+
+      # -X theirs: feature's deletion wins the conflict (SIBLING06 is deleted).
+      FIXTURE_PRE_REBASE_TIP="$(git -C "$repo_dir" rev-parse HEAD)"
+      git -C "$repo_dir" rebase -X theirs -q origin/develop 2>/dev/null
       ;;
 
     no-sibling-overlap)
@@ -111,13 +137,13 @@ _setup_git_fixture() {
       git -C "$repo_dir" commit -q -m "init: initial commit"
       git -C "$repo_dir" push -q origin develop
 
-      # 2. Feature branches — changes only feature_only.rs
+      # 2. Feature branches — changes only feature_only.rs (no overlap with sibling)
       git -C "$repo_dir" checkout -q -b feature/S-21.02
       printf 'fn feature_fn() {}\nfn new_feature() {}\n' > "$repo_dir/feature_only.rs"
       git -C "$repo_dir" add feature_only.rs
       git -C "$repo_dir" commit -q -m "feat(S-21.02): add new_feature to feature_only.rs"
 
-      # 3. Sibling touches only autoload.gd — no overlap with feature
+      # 3. Sibling touches only autoload.gd — disjoint file set; clean rebase
       git -C "$repo_dir" checkout -q develop
       printf 'fn original() {}\nfn sibling_fn() {}\n' > "$repo_dir/autoload.gd"
       git -C "$repo_dir" add autoload.gd
@@ -125,28 +151,40 @@ _setup_git_fixture() {
       git -C "$repo_dir" push -q origin develop
 
       git -C "$repo_dir" checkout -q feature/S-21.02
+
+      # 4. Capture PRE_REBASE_TIP then clean rebase (no conflict).
+      #    After rebase the feature tree includes sibling's autoload.gd changes;
+      #    git diff --numstat origin/develop shows 0/0 on autoload.gd → no phantom delta.
+      FIXTURE_PRE_REBASE_TIP="$(git -C "$repo_dir" rev-parse HEAD)"
+      git -C "$repo_dir" rebase -q origin/develop 2>/dev/null
       ;;
 
     intentional-removal)
-      # Same topology as net-negative-sibling but commit message documents intentional removal
+      # Same 12-line topology as net-negative-sibling; commit message documents intent → PC1
       git -C "$repo_dir" checkout -q -b develop 2>/dev/null || true
-      printf 'line1\nline2\nline3\nline4\n' > "$repo_dir/autoload.gd"
+      printf 'line01\nline02\nline03\nline04\nline05\nline06\nline07\nline08\nline09\nline10\nline11\nline12\n' \
+        > "$repo_dir/autoload.gd"
       git -C "$repo_dir" add autoload.gd
-      git -C "$repo_dir" commit -q -m "init: autoload.gd 4 lines"
+      git -C "$repo_dir" commit -q -m "init: autoload.gd 12 lines"
       git -C "$repo_dir" push -q origin develop
 
       git -C "$repo_dir" checkout -q -b feature/S-21.02
-      printf 'line1\nline4\n' > "$repo_dir/autoload.gd"
+      printf 'line01\nline02\nline03\nline04\nline05\nline07\nline08\nline09\nline10\nline11\nline12\n' \
+        > "$repo_dir/autoload.gd"
       git -C "$repo_dir" add autoload.gd
-      git -C "$repo_dir" commit -q -m "feat(S-21.02): intentionally remove lines 2-3 from autoload.gd (confirmed dead code per S-21.02 scope)"
+      git -C "$repo_dir" commit -q -m "feat(S-21.02): intentionally remove line06 from autoload.gd (confirmed dead code per S-21.02 scope)"
 
       git -C "$repo_dir" checkout -q develop
-      printf 'line1\nline2\nline3\nline4\nline5\nline6\nline7\nline8\n' > "$repo_dir/autoload.gd"
+      printf 'line01\nline02\nline03\nline04\nline05\nSIBLING06\nline07\nline08\nline09\nline10\nline11\nline12\n' \
+        > "$repo_dir/autoload.gd"
       git -C "$repo_dir" add autoload.gd
-      git -C "$repo_dir" commit -q -m "feat(S-20.01): autoload.gd +4 sibling lines"
+      git -C "$repo_dir" commit -q -m "feat(S-20.01): rename line06 to SIBLING06 (sibling story)"
       git -C "$repo_dir" push -q origin develop
 
       git -C "$repo_dir" checkout -q feature/S-21.02
+
+      FIXTURE_PRE_REBASE_TIP="$(git -C "$repo_dir" rev-parse HEAD)"
+      git -C "$repo_dir" rebase -X theirs -q origin/develop 2>/dev/null
       ;;
 
     no-sibling-commits)
@@ -161,7 +199,9 @@ _setup_git_fixture() {
       printf 'fn main() { println!("hello"); }\n' > "$repo_dir/main.rs"
       git -C "$repo_dir" add main.rs
       git -C "$repo_dir" commit -q -m "feat(S-21.02): update main.rs"
-      # No new commits on develop → merge-base == origin/develop HEAD → PC4
+      # No new commits on develop → merge-base == origin/develop HEAD → PC4.
+      # No rebase needed; FIXTURE_PRE_REBASE_TIP = current HEAD.
+      FIXTURE_PRE_REBASE_TIP="$(git -C "$repo_dir" rev-parse HEAD)"
       ;;
   esac
 
@@ -177,7 +217,7 @@ _setup_git_fixture() {
 #
 # Args:
 #   $1  repo_dir         — path to the git fixture repo
-#   $2  pre_rebase_tip   — SHA captured before the rebase (or HEAD for test fixtures)
+#   $2  pre_rebase_tip   — SHA captured before the rebase (FIXTURE_PRE_REBASE_TIP)
 #   $3  push_log         — path to push-log file; "push-invoked\n" written on success
 #   $4  force_rd_fail    — 1 to simulate range-diff failure, 0 (default) to run normally
 #   $5  force_stat_fail  — 1 to simulate --stat failure, 0 (default) to run normally
@@ -189,18 +229,72 @@ _run_gate() {
   local push_log="$3"
   local force_rd_fail="${4:-0}"
   local force_stat_fail="${5:-0}"
-  local sibling_files
+  local sibling_files rd_flagged_files
 
   sibling_files="$(mktemp)"
+  rd_flagged_files="$(mktemp)"
 
-  # Step 1a — Primary detector: git range-diff (git >= 2.19)
+  # Compute merge-base FIRST: needed for both range-diff ranges and sibling enumeration.
+  # Failure or empty output → escalate: cannot determine sibling commit set.
+  # Mirrors devops-engineer.md §Inter-Wave Rebase exit 1 escalation branch (commit
+  # 6eb4b6a2): `if [ $? -ne 0 ] || [ -z "${MERGE_BASE}" ]; then exit 1`.
+  local mb_result mb_exit merge_base develop_tip
+  mb_result="$(git -C "$repo" merge-base "$pre_rebase_tip" origin/develop 2>/dev/null)"
+  mb_exit=$?
+  merge_base="$mb_result"
+
+  if [ "$mb_exit" -ne 0 ] || [ -z "$merge_base" ]; then
+    echo "ESCALATE: git merge-base failed or returned empty — escalating to manual review."
+    rm -f "$sibling_files" "$rd_flagged_files"
+    return 0
+  fi
+
+  develop_tip="$(git -C "$repo" rev-parse origin/develop 2>/dev/null || echo "")"
+
+  # PC4: no sibling commits since branch creation (merge-base == develop tip)
+  if [ "$merge_base" = "$develop_tip" ]; then
+    echo "GATE-PASS: PC4 — no sibling commits since branch creation."
+    echo "push-invoked" >> "$push_log"
+    rm -f "$sibling_files" "$rd_flagged_files"
+    return 0
+  fi
+
+  # Step 1a — Primary detector: git range-diff (git >= 2.19).
+  # Uses two-range form:  merge_base..pre_tip  vs  develop_tip..post_tip
+  # Left = old feature commits; Right = post-rebase feature commits.
+  # Parses for ! (modified) commits: diff content changed during rebase replay (e.g.,
+  # context lines changed by sibling). For each such commit collects touched files —
+  # candidates for ORT silent-drop (adjacent non-overlapping region merged differently).
   local post_rebase_tip rd_out rd_ok
   post_rebase_tip="$(git -C "$repo" rev-parse HEAD 2>/dev/null || echo "INVALID")"
   rd_ok=0
   rd_out=""
   if [ "$force_rd_fail" -eq 0 ]; then
-    rd_out="$(git -C "$repo" range-diff "${pre_rebase_tip}...${post_rebase_tip}" 2>&1)" \
+    rd_out="$(git -C "$repo" range-diff \
+        "${merge_base}..${pre_rebase_tip}" \
+        "${develop_tip}..${post_rebase_tip}" 2>&1)" \
       && rd_ok=1 || rd_ok=0
+    if [ "$rd_ok" -eq 1 ] && [ -n "$rd_out" ]; then
+      while IFS= read -r rdline; do
+        # Modified commits show: " N:  <sha> ! N:  <sha> <subject>"
+        if echo "$rdline" | grep -qE '^[[:space:]]*[0-9]+:[[:space:]]+[0-9a-f]+ !'; then
+          local post_sha
+          post_sha="$(echo "$rdline" | awk '{
+            for(i=1;i<=NF;i++) {
+              if ($i == "!") {
+                sha = $(i+2)
+                gsub(/[^0-9a-f]/, "", sha)
+                if (length(sha) >= 7) { print sha; exit }
+              }
+            }
+          }')"
+          if [ -n "$post_sha" ]; then
+            git -C "$repo" diff-tree --no-commit-id --name-only -r "$post_sha" 2>/dev/null \
+              >> "$rd_flagged_files" || true
+          fi
+        fi
+      done <<< "$rd_out"
+    fi
   fi
 
   # Step 1b — Backup heuristic: git diff origin/develop --stat
@@ -215,20 +309,7 @@ _run_gate() {
   # EC-005: both detectors failed → escalate, never push blind
   if [ "$rd_ok" -eq 0 ] && [ "$stat_ok" -eq 0 ]; then
     echo "ESCALATE: Post-rebase diff-integrity gate: both detectors failed. Not proceeding to push."
-    rm -f "$sibling_files"
-    return 0
-  fi
-
-  # Compute merge-base and sibling commit set (BC-5.44.001 Invariant 3)
-  local merge_base develop_tip
-  merge_base="$(git -C "$repo" merge-base "$pre_rebase_tip" origin/develop 2>/dev/null || echo "")"
-  develop_tip="$(git -C "$repo" rev-parse origin/develop 2>/dev/null || echo "")"
-
-  # PC4: no sibling commits since branch creation
-  if [ -z "$merge_base" ] || [ "$merge_base" = "$develop_tip" ]; then
-    echo "GATE-PASS: PC4 — no sibling commits since branch creation."
-    echo "push-invoked" >> "$push_log"
-    rm -f "$sibling_files"
+    rm -f "$sibling_files" "$rd_flagged_files"
     return 0
   fi
 
@@ -241,29 +322,38 @@ _run_gate() {
       >> "$sibling_files" || true
   done < <(git -C "$repo" log --oneline "${merge_base}..origin/develop" 2>/dev/null)
 
-  # Parse numstat: insertions<TAB>deletions<TAB>filename
-  # Only flag a file if: (a) net-negative, (b) sibling touched it, AND
-  # (c) the feature branch's own commits also touched it — distinguishes
-  # "feature deleted lines" from "sibling added lines feature doesn't have yet".
+  # Step 1b analysis: collect stat-flagged files (net-negative + sibling-touched).
+  # Condition (c) feature-history filter removed (F-P2-002): after a real rebase the
+  # feature tree already contains sibling additions, so phantom reverse-deltas no longer
+  # appear on files the feature branch never actually modified.
   local flagged=()
   while IFS=$'\t' read -r ins del fname; do
     [ -z "$fname" ] && continue
-    # Net-negative: more deletions than insertions
     if [ "${del:-0}" -gt "${ins:-0}" ] 2>/dev/null; then
       if grep -qxF "$fname" "$sibling_files" 2>/dev/null; then
-        # Verify the feature branch's own history touches this file
-        local feat_log
-        feat_log="$(git -C "$repo" log --oneline "origin/develop..HEAD" -- "$fname" 2>/dev/null || true)"
-        if [ -n "$feat_log" ]; then
-          flagged+=("$fname")
-        fi
+        flagged+=("$fname")
       fi
     fi
   done < <(git -C "$repo" diff --numstat origin/develop 2>/dev/null)
 
-  rm -f "$sibling_files"
+  # Merge range-diff primary flagged files: add sibling-touched files from ! commits not
+  # already captured by stat (covers ORT silent-drop where numstat shows 0 net delta but
+  # range-diff shows the commit was modified during rebase replay).
+  while IFS= read -r rd_fname; do
+    [ -z "$rd_fname" ] && continue
+    if grep -qxF "$rd_fname" "$sibling_files" 2>/dev/null; then
+      local already=0
+      local ef
+      for ef in "${flagged[@]+"${flagged[@]}"}"; do
+        [ "$ef" = "$rd_fname" ] && already=1 && break
+      done
+      [ "$already" -eq 0 ] && flagged+=("$rd_fname")
+    fi
+  done < "$rd_flagged_files"
 
-  # PC3: no sibling-touched file has net-negative delta
+  rm -f "$sibling_files" "$rd_flagged_files"
+
+  # PC3: no sibling-touched file flagged
   if [ "${#flagged[@]}" -eq 0 ]; then
     echo "GATE-PASS: PC3 — no sibling-touched file has net-negative delta."
     echo "push-invoked" >> "$push_log"
@@ -275,6 +365,9 @@ _run_gate() {
   for f in "${flagged[@]}"; do
     local log_out
     log_out="$(git -C "$repo" log --oneline "origin/develop..HEAD" -- "$f" 2>/dev/null || true)"
+    # TEST SIMULATION proxy for BC-5.44.001 Invariant 4 agent diff-hunk inspection:
+    # in production, "intentional" is established by the implementer explicitly reviewing
+    # each diff hunk; here keyword presence in the commit message stands in for that step.
     if echo "$log_out" | grep -qiE "intentional|deliberate|confirmed.*(dead|remov)|dead code"; then
       : # this file is PC1
     else
@@ -315,15 +408,19 @@ _run_gate() {
 # ===========================================================================
 
 @test "T-001 S-21.02 AC-003: gate halts on unverified net-negative delta in sibling-touched file" {
-  # Fixture: feature branches before S-20.01, removes lines from autoload.gd (no
-  # intentionality signal). S-20.01 then merges to develop, also touching autoload.gd.
-  # Gate must: (a) detect delta; (b) NOT invoke push; (c) emit UnverifiedNetNegativeDelta.
+  # Fixture: feature removes lines 2-3 from autoload.gd; sibling S-20.01 modifies line3
+  # to LINE3_MODIFIED. Real rebase (-X ours) creates conflict → post-rebase commit has
+  # different diff → range-diff shows ! (modified). Gate must:
+  #   (a) detect delta via range-diff primary + stat backup;
+  #   (b) NOT invoke push;
+  #   (c) emit UnverifiedNetNegativeDelta.
   # Anti-tautology: doc-parity assertions fail if §Inter-Wave Rebase section is deleted.
+  # F-P2-004: step-f parity fails if AC-002 deliverable removes gate reference.
 
   local section
   section="$(_extract_inter_wave_rebase_section)"
 
-  # DOC-PARITY: gate procedure markers must be present
+  # DOC-PARITY: §Inter-Wave Rebase gate procedure markers
   _assert_doc_marker "range-diff" "range-diff (primary detector, step 1a)" "$section"
   _assert_doc_marker "\-\-stat" "--stat (backup heuristic, step 1b)" "$section"
   _assert_doc_marker "File\(s\) at risk" "PC2 STOP block: 'File(s) at risk:'" "$section"
@@ -331,9 +428,6 @@ _run_gate() {
   _assert_doc_marker "PRE_REBASE_TIP" "PRE_REBASE_TIP capture before rebase" "$section"
 
   # DOC-PARITY: gate is positioned between rebase and push (Invariant 1 ordering).
-  # Use "Post-Rebase Diff-Integrity" heading as the gate marker — it unambiguously
-  # appears in the subsection that follows the `git rebase origin/develop` command,
-  # not in the pre-rebase capture comment that also mentions range-diff.
   local rebase_line gate_line push_line
   rebase_line="$(echo "$section" | grep -n "git rebase origin/develop" | head -1 | cut -d: -f1)"
   gate_line="$(echo "$section" | grep -n "Post-Rebase Diff-Integrity" | head -1 | cut -d: -f1)"
@@ -347,13 +441,32 @@ _run_gate() {
     false
   }
 
-  # HARNESS: run gate against fixture; assert PC2 behavior
+  # DOC-PARITY F-P2-004: step-f-pr-lifecycle.md (AC-002 deliverable) must reference gate
+  _assert_step_f_marker "Role ownership" "role-ownership block present (AC-002)"
+  _assert_step_f_marker "diff.integrity gate|post-rebase diff-integrity" "gate reference in step-f"
+  _assert_step_f_marker "range-diff" "range-diff mentioned in step-f gate reference"
+
+  # HARNESS: set up real-rebase fixture; FIXTURE_PRE_REBASE_TIP set inside _setup_git_fixture
   _setup_git_fixture "net-negative-sibling"
-  local pre_tip
-  pre_tip="$(git -C "$FIXTURE_REPO" rev-parse HEAD)"
+
+  # HARNESS PRE-CHECK: verify the real rebase produced a range-diff ! commit (primary
+  # detector is functionally exercised — pre_tip != post_tip and commit content changed).
+  # Uses the same two-range form as _run_gate: merge_base..pre_tip vs develop_tip..post_tip.
+  local rd_mb rd_dev rd_post rd_check
+  rd_mb="$(git -C "$FIXTURE_REPO" merge-base "$FIXTURE_PRE_REBASE_TIP" origin/develop 2>/dev/null || echo "")"
+  rd_dev="$(git -C "$FIXTURE_REPO" rev-parse origin/develop 2>/dev/null || echo "")"
+  rd_post="$(git -C "$FIXTURE_REPO" rev-parse HEAD 2>/dev/null || echo "")"
+  rd_check="$(git -C "$FIXTURE_REPO" range-diff \
+      "${rd_mb}..${FIXTURE_PRE_REBASE_TIP}" \
+      "${rd_dev}..${rd_post}" 2>/dev/null || true)"
+  echo "$rd_check" | grep -qE '[0-9a-f]+ !' || {
+    echo "HARNESS PRE-CHECK FAIL: range-diff shows no modified (!) commit — primary detector not exercised"
+    echo "range-diff output: $rd_check"
+    false
+  }
 
   local gate_out
-  gate_out="$(_run_gate "$FIXTURE_REPO" "$pre_tip" "$PUSH_LOG")"
+  gate_out="$(_run_gate "$FIXTURE_REPO" "$FIXTURE_PRE_REBASE_TIP" "$PUSH_LOG")"
 
   # AC-003(a): gate detects the delta
   echo "$gate_out" | grep -q "STOP" || {
@@ -391,12 +504,12 @@ _run_gate() {
   _assert_doc_marker "[Nn]o.*(sibling|overlap)|trivially" "PC3 no-overlap pass language" "$section"
 
   # HARNESS: run gate; assert PC3 pass + push invoked
+  # Real rebase (clean, no conflict) — after rebase feature tree includes sibling's
+  # autoload.gd additions; git diff --numstat shows 0/0 on autoload.gd → no phantom delta.
   _setup_git_fixture "no-sibling-overlap"
-  local pre_tip
-  pre_tip="$(git -C "$FIXTURE_REPO" rev-parse HEAD)"
 
   local gate_out
-  gate_out="$(_run_gate "$FIXTURE_REPO" "$pre_tip" "$PUSH_LOG")"
+  gate_out="$(_run_gate "$FIXTURE_REPO" "$FIXTURE_PRE_REBASE_TIP" "$PUSH_LOG")"
 
   echo "$gate_out" | grep -q "GATE-PASS" || {
     echo "HARNESS FAIL: gate did not pass — expected GATE-PASS, got: $gate_out"
@@ -427,12 +540,12 @@ _run_gate() {
   _assert_doc_marker "STOP" "PC2 STOP signal (both paths must be documented)" "$section"
 
   # HARNESS: run gate; assert PC1 pass + push invoked
+  # Real rebase (same conflict topology as T-001) — range-diff shows ! but commit message
+  # contains "intentionally" → PC1 (intentional removal confirmed).
   _setup_git_fixture "intentional-removal"
-  local pre_tip
-  pre_tip="$(git -C "$FIXTURE_REPO" rev-parse HEAD)"
 
   local gate_out
-  gate_out="$(_run_gate "$FIXTURE_REPO" "$pre_tip" "$PUSH_LOG")"
+  gate_out="$(_run_gate "$FIXTURE_REPO" "$FIXTURE_PRE_REBASE_TIP" "$PUSH_LOG")"
 
   echo "$gate_out" | grep -q "GATE-PASS" || {
     echo "HARNESS FAIL: gate did not pass — expected GATE-PASS (PC1), got: $gate_out"
@@ -463,11 +576,9 @@ _run_gate() {
 
   # HARNESS: run gate; assert PC4 trivial pass + push invoked
   _setup_git_fixture "no-sibling-commits"
-  local pre_tip
-  pre_tip="$(git -C "$FIXTURE_REPO" rev-parse HEAD)"
 
   local gate_out
-  gate_out="$(_run_gate "$FIXTURE_REPO" "$pre_tip" "$PUSH_LOG")"
+  gate_out="$(_run_gate "$FIXTURE_REPO" "$FIXTURE_PRE_REBASE_TIP" "$PUSH_LOG")"
 
   echo "$gate_out" | grep -q "PC4" || {
     echo "HARNESS FAIL: expected PC4 trivial pass, got: $gate_out"
@@ -483,26 +594,29 @@ _run_gate() {
 # T-005 / EC-004-class / EC-005: detector failure → escalate; push NOT invoked
 # ===========================================================================
 
-@test "T-005 S-21.02 EC-005: detector failure escalates — push never invoked blind" {
-  # Sub-case A: range-diff fails; --stat succeeds; gate still detects PC2 (fallback path).
-  # Sub-case B: both detectors fail; gate escalates; push never invoked.
+@test "T-005 S-21.02 EC-005: detector failure and merge-base failure escalate — push never invoked blind" {
+  # Sub-case A: range-diff fails; --stat succeeds; gate still detects PC2 (stat fallback).
+  # Sub-case B: both detectors fail → ESCALATE; push NOT invoked.
+  # Sub-case C: merge-base fails (invalid SHA) → ESCALATE; push NOT invoked. (OBS-1)
   # Anti-tautology: doc-parity fails if escalation language removed from §Inter-Wave Rebase.
 
   local section
   section="$(_extract_inter_wave_rebase_section)"
 
-  # DOC-PARITY: EC-005 escalation language must be present in the gate section
+  # DOC-PARITY: EC-005 escalation language for both detector failure and merge-base failure
   _assert_doc_marker "[Ee]scalate" "EC-005 escalate-on-failure language" "$section"
   _assert_doc_marker "range-diff" "range-diff command (step 1a)" "$section"
   _assert_doc_marker "\-\-stat" "--stat fallback (step 1b)" "$section"
+  # OBS-1 doc-parity: §Inter-Wave Rebase must document merge-base failure escalation
+  # (added at commit 6eb4b6a2: `if [ $? -ne 0 ] || [ -z "${MERGE_BASE}" ]; then exit 1`)
+  _assert_doc_marker "merge-base.*fail|MERGE_BASE.*empty|empty.*MERGE_BASE" \
+    "merge-base failure escalation branch (OBS-1)" "$section"
 
-  # Sub-case A: force range-diff to fail; --stat still runs; PC2 still detected
+  # Sub-case A: force range-diff to fail; --stat still runs; PC2 still detected via stat
   _setup_git_fixture "net-negative-sibling"
-  local pre_tip
-  pre_tip="$(git -C "$FIXTURE_REPO" rev-parse HEAD)"
 
   local gate_out_a
-  gate_out_a="$(_run_gate "$FIXTURE_REPO" "$pre_tip" "$PUSH_LOG" 1 0)"
+  gate_out_a="$(_run_gate "$FIXTURE_REPO" "$FIXTURE_PRE_REBASE_TIP" "$PUSH_LOG" 1 0)"
 
   echo "$gate_out_a" | grep -q "STOP" || {
     echo "HARNESS FAIL (sub-case A): range-diff-fail fallback — expected STOP via --stat, got: $gate_out_a"
@@ -515,7 +629,7 @@ _run_gate() {
 
   # Sub-case B: both detectors fail → ESCALATE; push NOT invoked
   local gate_out_b
-  gate_out_b="$(_run_gate "$FIXTURE_REPO" "$pre_tip" "$PUSH_LOG" 1 1)"
+  gate_out_b="$(_run_gate "$FIXTURE_REPO" "$FIXTURE_PRE_REBASE_TIP" "$PUSH_LOG" 1 1)"
 
   echo "$gate_out_b" | grep -q "ESCALATE" || {
     echo "HARNESS FAIL (sub-case B): both-fail — expected ESCALATE, got: $gate_out_b"
@@ -523,6 +637,23 @@ _run_gate() {
   }
   [ ! -s "$PUSH_LOG" ] || {
     echo "HARNESS FAIL (sub-case B): push invoked despite ESCALATE — push log: $(cat "$PUSH_LOG")"
+    false
+  }
+
+  # Sub-case C: merge-base failure (invalid pre_rebase_tip SHA) → ESCALATE; push NOT invoked.
+  # Exercises the devops-engineer.md exit 1 escalation branch (OBS-1):
+  # `git merge-base INVALID_SHA origin/develop` exits non-zero → empty output → ESCALATE.
+  _setup_git_fixture "no-sibling-commits"
+
+  local gate_out_c
+  gate_out_c="$(_run_gate "$FIXTURE_REPO" "INVALID_SHA_DEADBEEF000000000000" "$PUSH_LOG" 0 0)"
+
+  echo "$gate_out_c" | grep -q "ESCALATE" || {
+    echo "HARNESS FAIL (sub-case C): merge-base-fail — expected ESCALATE, got: $gate_out_c"
+    false
+  }
+  [ ! -s "$PUSH_LOG" ] || {
+    echo "HARNESS FAIL (sub-case C): push invoked after merge-base failure — push log: $(cat "$PUSH_LOG")"
     false
   }
 }
