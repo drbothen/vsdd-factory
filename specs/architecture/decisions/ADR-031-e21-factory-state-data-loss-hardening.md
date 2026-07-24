@@ -2,7 +2,7 @@
 document_type: architecture-decision-record
 level: L3
 adr_id: ADR-031
-version: "1.6"
+version: "1.7"
 title: "ADR-031: E-21 factory state data-loss hardening — nested-worktree path exclusivity protection model"
 status: accepted
 date: 2026-07-19
@@ -26,8 +26,9 @@ subsystems_affected:
   - SS-04
   - SS-05
   - SS-06
-last_amended: "(v1.6) — OBS-P5-1 closure: §Decision 6 gate procedure updated — range-diff PRIMARY detector (step 1a) + git diff --stat BACKUP heuristic (step 1b), consistent with BC-5.44.001 v1.2+ refinement; stale --stat-primary 3-step procedure replaced. [Prior: 2026-07-23 (v1.5) — S-21.01 pass-5 gate (human-approved): §Decision 2 Layer-1 TARGET-AWARE branch detection for CWD-redirection vector (git -C / git -c core.worktree= naming a .factory-class path branch-detects in target dir; block product branch / pass factory-artifacts / fail-open on error). §Rationale: CWD-redirection boundary note added (state-manager canonical git -C .factory workflow preserved; residual server-side origination vector unchanged). ARCH-INDEX v3.25→v3.26. [Prior: 2026-07-19 (v1.4) — pass-4 O-1 (architect): §Consequences duplicate '4.' numbering corrected; 4a/4b lettering used to preserve §Consequences #5 = post-rebase gate host (cited by BC-5.44.001 v1.3 and S-21.02 v1.1 as ADR-031 v1.1 §Consequences #5; renaming second '4.' to '5' would shift current #5 to #6, breaking those cites). ARCH-INDEX v3.10→v3.11. [Prior: 2026-07-19 (v1.3) — F-P2-001 correction (orchestrator counter-evidence accepted): §Decision 2 Layer-2 'EMPTY host-set' retracted; corrected to undocumented ad-hoc orchestrator/operator Bash on main checkout; enforcement site named (per-story-delivery.md main-checkout sync protocol = S-21.01 Layer-2 deliverable); Layer-1 scope confirmed narrow (git add/stage only); server-side origination residual risk documented in §Rationale. [Prior: 2026-07-19 (v1.2) — F-P2 adversary adjudications: §Decision 2 Layer-2 EMPTY host-set (retracted at v1.3); §Decision 7 Four→Five; §Rationale F-P2-007 teardown dispatch-point ruling. Prior metadata continued: §Decision 2 Layer-2 host-set corrected to EMPTY: pr-manager (server-side gh pr merge, excluded by BC-5.43.001 PC3), devops-engineer (rebase on story worktree, .factory/ not mounted there), state-manager (git -C .factory only) all removed; forward-looking mandate documented; (2) §Decision 7 count fixed Four→Five (F-P2-002: CAP-038 count sweep missed at v1.1); (3) §Rationale: F-P2-001 zero-host analysis + F-P2-007 teardown dispatch-point ruling added. [Prior: 2026-07-19 (v1.1) — F-P1 adversary adjudications: on_error block→continue; INV-E21-006 added; §Context #358 corrected; CAP-038 allocated.]]]]"
+last_amended: "(v1.7) — F-S2103-P2-003 ADR leg: §Decision 8 post-merge ancestry assertion placement corrected Step 9→Step 8-post-A (immediately after merge-state confirmation 8a, before branch deletion 8b/8c/8d; BC-6.10.002 PC3 'immediately after state: MERGED'; F-S2103-P2-001 --delete-branch removal preserves orphan-merge recovery affordance). [Prior: (v1.6) — OBS-P5-1 closure: §Decision 6 gate procedure updated — range-diff PRIMARY detector (step 1a) + git diff --stat BACKUP heuristic (step 1b), consistent with BC-5.44.001 v1.2+ refinement; stale --stat-primary 3-step procedure replaced. [Prior: 2026-07-23 (v1.5) — S-21.01 pass-5 gate (human-approved): §Decision 2 Layer-1 TARGET-AWARE branch detection for CWD-redirection vector (git -C / git -c core.worktree= naming a .factory-class path branch-detects in target dir; block product branch / pass factory-artifacts / fail-open on error). §Rationale: CWD-redirection boundary note added (state-manager canonical git -C .factory workflow preserved; residual server-side origination vector unchanged). ARCH-INDEX v3.25→v3.26. [Prior: 2026-07-19 (v1.4) — pass-4 O-1 (architect): §Consequences duplicate '4.' numbering corrected; 4a/4b lettering used to preserve §Consequences #5 = post-rebase gate host (cited by BC-5.44.001 v1.3 and S-21.02 v1.1 as ADR-031 v1.1 §Consequences #5; renaming second '4.' to '5' would shift current #5 to #6, breaking those cites). ARCH-INDEX v3.10→v3.11. [Prior: 2026-07-19 (v1.3) — F-P2-001 correction (orchestrator counter-evidence accepted): §Decision 2 Layer-2 'EMPTY host-set' retracted; corrected to undocumented ad-hoc orchestrator/operator Bash on main checkout; enforcement site named (per-story-delivery.md main-checkout sync protocol = S-21.01 Layer-2 deliverable); Layer-1 scope confirmed narrow (git add/stage only); server-side origination residual risk documented in §Rationale. [Prior: 2026-07-19 (v1.2) — F-P2 adversary adjudications: §Decision 2 Layer-2 EMPTY host-set (retracted at v1.3); §Decision 7 Four→Five; §Rationale F-P2-007 teardown dispatch-point ruling. Prior metadata continued: §Decision 2 Layer-2 host-set corrected to EMPTY: pr-manager (server-side gh pr merge, excluded by BC-5.43.001 PC3), devops-engineer (rebase on story worktree, .factory/ not mounted there), state-manager (git -C .factory only) all removed; forward-looking mandate documented; (2) §Decision 7 count fixed Four→Five (F-P2-002: CAP-038 count sweep missed at v1.1); (3) §Rationale: F-P2-001 zero-host analysis + F-P2-007 teardown dispatch-point ruling added. [Prior: 2026-07-19 (v1.1) — F-P1 adversary adjudications: on_error block→continue; INV-E21-006 added; §Context #358 corrected; CAP-038 allocated.]]]]"
 modified:
+  - "2026-07-24 (v1.7)"
   - "2026-07-24 (v1.6)"
   - "2026-07-23 (v1.5)"
   - "2026-07-19 (v1.4)"
@@ -266,10 +267,14 @@ Two required post-action assertions added to the pr-manager 9-step lifecycle:
   mismatched. This catches cases where `--base` was omitted in a modified invocation path, or
   where `gh` resolved the base from the `gh-merge-base` git config rather than the intended trunk.
 
-- **Post-merge ancestry assertion (Step 9 amendment):** After `gh pr merge`, before marking the
-  story delivered, spawn `github-ops` to run
-  `git fetch origin <trunk> && git merge-base --is-ancestor <merge_sha> origin/<trunk>`. If
-  the exit code is non-zero (not an ancestor), raise immediately as a P0 data error.
+- **Post-merge ancestry assertion (Step 8-post-A):** Immediately after `gh pr merge` confirms
+  `state: MERGED` (Step 8a), spawn `github-ops` to assert: (i) `mergeCommit.oid` is non-null,
+  and (ii) `git fetch origin <trunk> && git merge-base --is-ancestor <mergeCommit.oid> origin/<trunk>`
+  exits 0. If either check fails, raise immediately as a P0 data error and HALT — branch
+  deletion steps (8b/8c/8d) MUST NOT proceed until this assertion passes. Placement per
+  BC-6.10.002 PC3: "immediately after state: MERGED" mandates Step 8-post-A, not Step 9.
+  Per F-S2103-P2-001, `--delete-branch` is no longer passed at merge invocation, making
+  the pre-deletion orphan-merge recovery affordance real.
 
 This invariant is distinct from CAP-033 (READY-verdict SHA pinning and release-branch
 merge-strategy guard per ADR-030), which addresses stale-verdict races and squash-merge
@@ -449,6 +454,7 @@ factory-side PR restore protocol).
 
 | Version | Date | Description |
 |---------|------|-------------|
+| 1.7 | 2026-07-24 | F-S2103-P2-003 ADR leg (architect): §Decision 8 post-merge ancestry assertion placement corrected — Step 9 → Step 8-post-A (immediately after merge-state confirmation 8a, before branch deletion 8b/8c/8d). BC-6.10.002 PC3 mandate ("immediately after state: MERGED") is SoT; "Step 9" was stale placement. Null-mergeCommit.oid guard and HALT-before-deletion made explicit. F-S2103-P2-001: `--delete-branch` removed from merge invocation; orphan-merge recovery affordance preserved. |
 | 1.6 | 2026-07-24 | OBS-P5-1 closure (architect): §Decision 6 gate procedure updated — `git range-diff <pre-rebase-tip>...<post-rebase-tip>` promoted to PRIMARY detector (step 1a); `git diff origin/develop --stat` demoted to BACKUP heuristic (step 1b, git < 2.19 or range-diff inconclusive); consistent with BC-5.44.001 v1.2+ refinement. Stale 3-step `--stat`-primary procedure replaced with 2-step 1a/1b structure. Skill-doc-mandate framing preserved. |
 | 1.5 | 2026-07-23 | S-21.01 pass-5 gate (human-approved). §Decision 2 Layer-1 extended with TARGET-AWARE branch detection for CWD-redirection vector: `git -C <path>` and `git -c core.worktree=<path>` forms now branch-detect in the target dir when `<path>` names a `.factory`-class directory (block product branch / pass factory-artifacts / fail-open on error). §Rationale: boundary note added — state-manager canonical `git -C .factory` workflow preserved; residual server-side origination vector unchanged. ARCH-INDEX v3.25→v3.26. |
 | 1.4 | 2026-07-19 | pass-4 O-1 (architect). §Consequences duplicate '4.' numbering corrected via 4a/4b lettering: first item 4 renamed 4a (ARCH-INDEX correction); second item 4 renamed 4b (BC-6.10.002 L2 Capability field). 4a/4b lettering chosen to preserve §Consequences #5 = post-rebase gate host (cited by BC-5.44.001 v1.3 + S-21.02 v1.1 as "ADR-031 v1.1 §Consequences #5"; monotonic renumber would shift #5→#6 breaking those cites). ARCH-INDEX v3.10→v3.11. |
