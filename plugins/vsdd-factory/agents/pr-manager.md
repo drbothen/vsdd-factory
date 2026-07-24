@@ -411,12 +411,51 @@ MUST HALT — do NOT proceed to Step 9.
 
 ### Step 9: Post-merge
 
+**Step 9-pre-A — Post-merge ancestry assertion (BC-6.10.002 PC3, ADR-031 §Decision 8).**
+BEFORE triggering worktree cleanup, assert the merge commit landed on trunk. Spawn github-ops
+to retrieve the merge SHA from `mergeCommit.oid`:
+
+```
+Agent(subagent_type="vsdd-factory:github-ops", prompt="cd <project-path> && gh pr view <pr_number> --json mergeCommit")
+```
+
+If `mergeCommit.oid` is null or absent, raise immediately as `MergeNotAncestorOfTrunk`
+(BC-6.10.002 EC-006 — unknown merge SHA cannot be verified):
+
+```
+P0 DATA ERROR: MergeNotAncestorOfTrunk — PR #<pr_number> mergeCommit.oid is null.
+Unknown merge SHA cannot be verified as an ancestor of origin/develop.
+Do NOT mark this story as delivered.
+```
+
+If the merge SHA is present, spawn github-ops to run the ancestry check:
+
+```
+Agent(subagent_type="vsdd-factory:github-ops", prompt="cd <project-path> && git fetch origin develop && git merge-base --is-ancestor <merge_sha> origin/develop")
+```
+
+If `git merge-base --is-ancestor` returns a non-zero exit code, raise immediately as P0:
+
+```
+P0 DATA ERROR: MergeNotAncestorOfTrunk — PR #<pr_number> merge commit <merge_sha> is NOT an
+ancestor of origin/develop. The PR merged into a non-trunk branch (orphan merge — issue #358
+class). Story content did NOT land on trunk. Do NOT mark this story as delivered until the
+merge commit is confirmed on origin/develop.
+Required recovery:
+  1. git branch -r --contains <merge_sha> — identify where the merge landed.
+  2. Open a new PR from the correct HEAD targeting develop and merge it.
+  3. Do NOT mark this story delivered until the merge commit is on trunk.
+```
+
+The story MUST NOT be marked delivered until this ancestry assertion passes with exit code 0
+(BC-6.10.002 PC3, Invariant 2).
+
 Trigger worktree cleanup and state updates. The remote feature branch has been
 verified deleted (confirmed by ls-remote returning empty in step 8). Compile
 the final deliverables report.
 
 After completing this step, emit:
-`STEP_COMPLETE: step=9 name=post-merge status=ok note=cleanup complete`
+`STEP_COMPLETE: step=9 name=post-merge status=ok note=cleanup complete; ancestry assertion passed`
 
 **NOW you may exit with your final deliverables report.**
 
