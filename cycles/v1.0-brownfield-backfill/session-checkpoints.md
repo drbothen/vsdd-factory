@@ -1367,3 +1367,99 @@ Run `/vsdd-factory:next-step` (TOP item = rc.24 release decision → then E-21 W
 - **factory-artifacts HEAD:** `3c554d75` (D-884 story-close; this D-885 wrap commit lands on top)
 - **D-range:** D-001..D-885 (see decision-log.md for full range)
 - **factory_lock:** NOT HELD (stale PID 64837 from 2026-07-20 verified dead; harness-managed .claude/scheduled_tasks.lock not modified)
+
+## D-892 Checkpoint (2026-07-24 session wrap — AUTHORITATIVE)
+
+**This is the authoritative post-wrap resume record for the 2026-07-24 human `/wrap` directive (ruling: 'wrap after gate close' post-D-891).** Per the D-866..D-891 precedent Strategy Constraint (STATE.md edit-mechanism defect — ADR-032 hook fix merged to develop but NOT YET deployed to operator cache via rc.24), STATE.md's `## Session Resume Checkpoint` section body was intentionally NOT updated this burst. STATE.md frontmatter was updated minimally (`version:`, `timestamp:`, `phase:`, `last_amended:`); `pipeline:` UNCHANGED (already PAUSED — the field has been PAUSED since D-866 and was never flipped during this session; frontmatter-minimal precedent confirmed semantically correct at D-892 wrap per human ruling); `phase-summary` (line 16) and `current_step:` NOT updated — same hook constraint. Read this section alone to resume — assumes ZERO prior context.
+
+### 1. Position
+
+Pipeline **PAUSED** post-D-891 (E-21-W1-WAVE-GATE-PASSED). **E-21 W1 COMPLETE.** NEXT: E-21 W2 dispatch (S-21.04 → S-21.05, D-862 SEQUENTIAL) — W2 is DISPATCHABLE. develop HEAD `948f0fb1` (fix PR #763 squash-merged 2026-07-24). main HEAD `80e5cd7b` UNCHANGED (vuln lag: 7 dependabot vulns, 2 HIGH CVE-2026-59879+CVE-2026-59880 — resolved on develop, main lags until release). factory-artifacts pre-wrap HEAD `96d6e646` (D-891 E-21-W1-WAVE-GATE-PASSED burst); this D-892 wrap commit lands on top. No story worktrees. No in-flight sub-agent work. Main-repo working tree dirt: `.claude/scheduled_tasks.lock` (harness-managed; ignorable) + untracked `plugins/vsdd-factory/tests/report.tap` (test artifact; ignorable) — same as session start.
+
+### 2. Session record (2026-07-24 resume → wrap)
+
+Resumed from D-885 Checkpoint (2026-07-23 session wrap). D-886..D-892 = 7 decisions this session.
+
+| D# | Event | Key outcome |
+|----|-------|-------------|
+| D-886 | S-21.02 DISPATCHED | Pipeline unpaused; human directive 2026-07-23 'Dispatch S-21.02 first'; rc.24 deferred |
+| D-887 | S-21.02 DELIVERED | PR #760 a4a79f09 merged; BC-5.44.001 v1.5 active (POL-14); 6-pass 3-CLEAN; ADR-031 v1.6 + v1.8 across two amendments; merged_count 108→109 |
+| D-888 | S-21.03 DISPATCHED | Per D-862 SEQUENTIAL; S-21.02 confirmed delivered |
+| D-889 | S-21.03 DELIVERED + E-21 W1 COMPLETE | PR #761 ebf9fb6d merged; 9-pass 3-CLEAN; BC-6.10.002 PASS-ALREADY-ACTIVE; merged_count 109→110; POLICY 21 v1.4.9 + POLICY 15 v1.4.10 governance rulings; S-7.14 registered |
+| D-890 | W1 wave-gate bookkeeping fixes | sprint-state enum completed→merged (BC-5.41.004 INV-1); S-7.12 added Partition B; banner wc-l 433→351; S-7.14 pipe-escape fix; STORY-INDEX v4.245→v4.246 |
+| D-891 | E-21 W1 WAVE-GATE PASSED | Fix PR #763 squash-merged 948f0fb1 (human; 12 commits; CI 13/13; 2-round review); S-21.06 registered (faece5a8); BC-INDEX v4.24→v4.25 (F-WG21-001 consistency fix); STORY-INDEX v4.246→v4.247; 6 gate legs all PASSED |
+| D-892 | SESSION WRAP | This checkpoint |
+
+merged_count at wrap: 110 (story merges only; fix PR #763 does not increment per project convention). PR #729 remains REQUEST_CHANGES (open since D-879).
+
+### 3. W1 delivery record
+
+**E-21 W1 stories (all merged):**
+
+| Story | PR | SHA | Cascade | Key BCs |
+|-------|-----|-----|---------|---------|
+| S-21.01 validate-factory-path-staging | #759 | 7bb0e797 | 12-pass 3-CLEAN (D-884; prior session) | BC-4.16.001 v1.8 active (POL-14) + BC-5.43.001 v1.4 active |
+| S-21.02 post-rebase-diff-integrity-gate | #760 | a4a79f09 | 6-pass 3-CLEAN (D-887; this session) | BC-5.44.001 v1.5 active (POL-14); ADR-031 v1.8 amended |
+| S-21.03 pr-manager-trunk-assertion | #761 | ebf9fb6d | 9-pass 3-CLEAN (D-889; this session) | BC-6.10.002 PASS-ALREADY-ACTIVE |
+
+**W1 wave-gate (D-891) legs:**
+- **(a) FULL SUITE** — PASS-AFTER-REMEDIATION: D-890 bookkeeping fix required first; sprint-state-format 14/14; validate-state-structure 65/65; W1 suites 36/36+6/6+7/7; fmt/clippy clean; CI 13/13 at 948f0fb1.
+- **(b) WAVE ADVERSARY** — CLEAN (N2/OBS2): F-WG1-001/002 fixed in #763; defense-chain composition verified (validate-factory-path-staging → post-rebase-diff-integrity-gate → pr-manager trunk assertion — no inter-gate gaps).
+- **(c) CODE REVIEW** — 2-round APPROVE: MINOR-1..4 + NITPICK-1/4/7/8 + T-005b POLICY-15 isolation test, all fixed in #763; round-1 REQUEST_CHANGES → round-2 APPROVE.
+- **(d) SECURITY** — PASS: W-SEC-001 MEDIUM CWE-693 → S-21.06 registered (Layer-2 WASM guard; human ruling: accepted trade-off, hardening deferred to S-21.06); W-SEC-003 LOW CWE-116 fixed in #763; W-SEC-002/004 accepted-with-record.
+- **(e) CONSISTENCY** — FULL PASS: F-WG21-001 BC-INDEX BC-6.10.002 lifecycle cell fixed (87ff340f; BC-INDEX v4.24→v4.25); re-run post-fix clean.
+- **(f) HOLDOUT** — N/A with justification: self-referential engine project; consistent project-wide precedent; wave-adversary (leg b) is the adversarial coverage substitute.
+
+**Consolidated fix PR #763:** human-directed consolidation; squash-merged 948f0fb1 2026-07-24 (human-executed two-party gate); 12 commits including BC-5.41.004 wording sweep across 6 instructional files (deliver-story/wave-gate/SKILL.md/phase-f3/step-01 + related).
+
+### 4. Known defects (carried)
+
+**STATE.md edit-mechanism constraint — UNCHANGED from D-866..D-891.** `phase-summary` (line 16) and `current_step:` (line 17) stale at D-879 values. ADR-032 hook fix (verify-state-timestamp-refresh guard rewrite) merged to develop (`26508e83`, PR #742, 2026-07-21) but NOT yet in operator-level plugin cache — requires **rc.24 release** to propagate. Body reconciliation deferred to post-rc.24. Python-prep pattern requires direct human authorization (auto-mode classifier blocks relay-based authorization).
+
+**rc.24 is QUADRUPLY load-bearing:**
+1. STATE.md edit-hook fix (verify-state-timestamp-refresh guard rewrite — merged #742 `26508e83`)
+2. post-#715 compute-input-hash binary divergence (cached rc.23 tool computes old-algorithm hashes; systemic resolution requires rc.24 shipping new binary)
+3. main branch vulnerability lag (7 dependabot vulns: 2 HIGH CVE-2026-59879+CVE-2026-59880; resolved on develop; main stays lagged until release)
+4. All of E-21 W1 inert at operator level until released (S-21.01 `validate-factory-path-staging` WASM guard exists in operator cache only after rc.24 ships)
+
+**D-865..D-892 STATE.md body reconciliation** remains deferred until rc.24 is released and hook fix is live in operator cache.
+
+**GitHub self-review restriction on agent-authored PRs** (L-BB-github-self-review-restriction-on-agent-authored-prs, codified D-891): review gate = satisfied-by-file-record (`.factory/code-delivery/<id>/pr-review*.md`) + human merge. S-7.13 protocol now embedded in pr-manager dispatches.
+
+**Dual-binary compute-input-hash divergence** (rc.24 item 2; cache-authoritative values in use; systemic divergence with source post-#715 tool).
+
+### 5. Pending human decisions (priority order)
+
+1. **rc.24 RELEASE DECISION — TOP ITEM. QUADRUPLY load-bearing** (see §4). Presented every session wrap since D-866.
+2. **E-21 W2 dispatch** (S-21.04 → S-21.05 per D-862 SEQUENTIAL; W2 is DISPATCHABLE now that W1 GATE PASSED at D-891).
+3. **PR #729 re-review** (REQUEST_CHANGES since D-879; POLICY 21 Rust-port mandate blocker; awaiting author response).
+4. **Issue close comments** — human to post: #342 ("S-21.01 validate-factory-path-staging merged PR #759 7bb0e797"); #365 ("S-21.02 post-rebase-diff-integrity-gate merged PR #760 a4a79f09"); #358 ("S-21.03 pr-manager-trunk-assertion merged PR #761 ebf9fb6d") — all now implemented+merged.
+5. **S-7.06..S-7.14 process-gap story triage** — 9 draft process-gap stories in sprint-state; S-7.13 (P1; human-merge-gate protocol) + S-7.14 (P1; inert-guard lint CI detection) highest priority.
+6. **wasmtime upgrade** — RUSTSEC-2026-0149 HIGH + RUSTSEC-2026-0188 MED + RUSTSEC-2026-0182 LOW (wasmtime-wasi 44.0.1); crossbeam-epoch RUSTSEC-2026-0204.
+7. **STATE.md body reconciliation** — deferred per §4; run after rc.24.
+8. **PR #632 draft / E-20 roster** — NEEDS-REWORK; E-20 remains DEFERRED.
+
+### 6. Process-gap lessons (this session)
+
+- **L-BB-github-publish-actions-require-direct-human-authorization** [codified D-887; S-7.13 registered]: auto-mode classifier hard-blocks `gh review-approve`/`gh pr merge` for AI agents; AUTHORIZE_MERGE=yes relay convention insufficient; informed consent requires human to name the two-party AI-authored+AI-reviewed concern; pr-manager must surface-and-hold. S-7.13 protocol now standard in pr-manager dispatches — worked cleanly for #761/#763.
+- **L-BB-deliver-story-step9-status-wording-conflicts-with-BC-5.41.004** [codified D-890; fixed in #763 wording sweep 6 files]: deliver-story Step 9 said "story status → completed"; BC-5.41.004 INV-1 canonical 8-value enum has no `completed` value (correct: `merged`). Fix applied across 6 instructional files in #763.
+- **L-BB-test-double-shim-exemption** [codified D-889; POLICY 21 v1.4.9]: test-double shims in `plugins/vsdd-factory/tests/fixtures/` exempt from no_new_shell_scripts prohibition; test harness stubs do not ship in release bundles.
+- **L-BB-bats-inert-guard-mutant-proving** [codified D-889; POLICY 15 v1.4.10 + S-7.14]: `&&{false;}||true` class bats guards must include at least one mutant-proving test vector demonstrating the guard actually fires; absence = POLICY 15 HIGH finding; S-7.14 registered for automated CI detection.
+- **L-BB-github-self-review-restriction-on-agent-authored-prs** [codified D-891; process-gap]: GitHub prevents authors from approving their own PRs; agent-authored PRs cannot be self-reviewed; review gate = satisfied-by-file-record + human merge.
+
+### 7. Resume command
+
+`/vsdd-factory:next-step` (TOP item = rc.24 release decision → E-21 W2 dispatch S-21.04 → issue close comments #342/#365/#358 → PR #729 re-review → S-7.13/S-7.14 triage → STATE.md body reconciliation post-rc.24).
+
+### 8. Housekeeping
+
+- **POLICY 16 GLOBAL-MAX GATE (literal shell stdout):** `grep -n "^## D-" .factory/cycles/v1.0-brownfield-backfill/decision-log.md | tail -3` → `10990:## D-889 / 11002:## D-890 / 11030:## D-891`; D-891 confirmed prior max → D-892 allocated.
+- **POLICY 14 4-index gate (literal shell stdout):** `grep -m1 "^version:" .factory/specs/behavioral-contracts/BC-INDEX.md .factory/specs/verification-properties/VP-INDEX.md .factory/stories/STORY-INDEX.md .factory/specs/architecture/ARCH-INDEX.md` → BC-INDEX: "4.25" / VP-INDEX: "2.72" / STORY-INDEX: "4.247" / ARCH-INDEX: "3.29" — ALL UNCHANGED this burst.
+- **develop HEAD:** `948f0fb1` (fix PR #763 squash-merged 2026-07-24; CI 13/13)
+- **main HEAD:** `80e5cd7b` (rc.23 bot bundle; unchanged all session)
+- **factory-artifacts HEAD:** `96d6e646` (D-891 E-21-W1-WAVE-GATE-PASSED burst); this D-892 wrap commit lands on top
+- **D-range:** D-001..D-892 (see decision-log.md for full range)
+- **factory_lock:** NOT HELD
+- **E-21 W2 stories (DISPATCHABLE):** S-21.04 (P1; 5pts; CAP-036; issue #523; BC-6.26.001 v1.3; draft; SEQUENTIAL after W1 gate per D-862) → S-21.05 (P1; 5pts; CAP-037; issue #588; BC-6.27.001 v1.3; draft)
+- **S-21.06 registered:** Layer-2 WASM guard; W-SEC-001; P1; 8pts; depends_on [S-21.01]; wave 3; E-21; authored faece5a8; target `crates/hook-plugins/validate-main-checkout-sync/`
+- **main-repo dirt (ignorable):** `.claude/scheduled_tasks.lock` (harness-managed; unchanged since session start) + `plugins/vsdd-factory/tests/report.tap` (untracked test artifact; ignorable)

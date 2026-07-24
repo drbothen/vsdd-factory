@@ -11074,3 +11074,41 @@ D-891-E21-W1-WAVE-GATE-PASSED-2026-07-24
 ### Date
 
 2026-07-24
+
+## D-892
+
+SESSION-WRAP-PAUSED-2026-07-24. POLICY 16 GLOBAL-MAX GATE: `grep -n "^## D-" decision-log.md | tail -3` → `10990:## D-889 / 11002:## D-890 / 11030:## D-891`; D-891 confirmed prior max → D-892 allocated. SESSION-WRAP BURST (state-manager; TD-VSDD-053 single-commit; human /wrap directive 2026-07-24 post-D-891 — ruling: 'wrap after gate close').
+
+PIPELINE STATUS: `pipeline: PAUSED` (field unchanged since D-866..D-891; frontmatter-minimal precedent; semantically correct at D-892 wrap — the field has been PAUSED since D-866 and this is a pause-confirming session wrap; no state transition required or performed).
+
+POSITION AT WRAP: E-21 W1 COMPLETE. Pipeline PAUSED at E-21-W1-GATE-PASSED. W2 DISPATCHABLE (S-21.04→S-21.05 per D-862 SEQUENTIAL). develop HEAD `948f0fb1` (fix PR #763 squash-merged 2026-07-24). main `80e5cd7b` UNCHANGED (vuln lag). factory-artifacts HEAD `96d6e646` (D-891); this D-892 wrap commit lands on top. No story worktrees. No in-flight agents. Main-repo dirt: `.claude/scheduled_tasks.lock` (harness) + `tests/report.tap` (untracked artifact) — same as session start, ignorable.
+
+BURST DELIVERABLES:
+1. This D-892 decision-log.md block (POLICY 16 gate evidence + SESSION-WRAP record).
+2. D-892 Checkpoint appended to `cycles/v1.0-brownfield-backfill/session-checkpoints.md` (authoritative zero-context resume record — 8-section structure per D-885 precedent).
+3. STATE.md frontmatter-minimal advance: version v6.28→v6.29; timestamp advanced; phase → D-892-SESSION-WRAP-PAUSED-2026-07-24; last_amended prepended. Pipeline (line 15) and current_step (line 17) NOT updated — hook constraint (D-866..D-891 precedent). Session Resume Checkpoint body NOT updated — authoritative resume: session-checkpoints.md ## D-892 Checkpoint.
+4. Dispatcher log dirt staged (logs/dispatcher-internal-2026-07-24.jsonl) in same single commit per TD-VSDD-053.
+
+SESSION RECORD (2026-07-24 resume → wrap):
+- Resumed from D-885 checkpoint (2026-07-23 session wrap; D-886..D-892 = 7 decisions this session).
+- S-21.02 DELIVERED (D-887; PR #760 a4a79f09 2026-07-24; 6-pass LOCAL cascade CONVERGED 3-CLEAN; BC-5.44.001 v1.5 active; ADR-031 two amendments during cascade v1.5→v1.6→v1.7 + v1.7→v1.8 across two amendment bursts).
+- S-21.03 DELIVERED (D-889; PR #761 ebf9fb6d 2026-07-24; 9-pass LOCAL cascade CONVERGED 3-CLEAN; BC-6.10.002 PASS-ALREADY-ACTIVE; S-7.14 registered).
+- E-21 W1 COMPLETE: S-21.01+S-21.02+S-21.03 all merged (merged_count 107→108→109→110).
+- W1 wave-gate (D-891) 6 legs PASSED. D-890 bookkeeping fixes: sprint-state enum completed→merged (BC-5.41.004 INV-1) + S-7.12 added to sprint-state.yaml Partition B + banner wc-l 433→351 + S-7.14 title pipe-escape fix. F-WG21-001 BC-INDEX lifecycle cell fixed (87ff340f; BC-INDEX v4.24→v4.25).
+- Consolidated fix PR #763 squash-merged 948f0fb1 (human-executed; 12 commits: MINOR-1..4+W-SEC-003+BC-5.41.004-wording-sweep-6-files+NITPICK-1/4/7/8+F-WG1-001/002+T-005b; CI 13/13; 2-round review REQUEST_CHANGES→APPROVE).
+- ALL THREE STORY MERGES HUMAN-EXECUTED (two-party gate per S-7.13 surface-and-hold protocol — no wedging).
+- Stories registered this session: S-7.13 (human-merge-gate; P1; 3pts; process-gap; D-887), S-7.14 (bats-inert-guard-lint; P1; 3pts; process-gap; D-889), S-21.06 (Layer-2 WASM guard; W-SEC-001; P1; 8pts; D-891; authored faece5a8).
+- Governance codified: POLICY 21 v1.4.9 (test-double-shim exemption; D-889) + POLICY 15 v1.4.10 (per-guard mutant verification; D-889).
+- 4-index at wrap: BC v4.25 / VP v2.72 / STORY v4.247 / ARCH v3.29.
+
+POLICY 14 4-INDEX GATE (literal shell): `grep -m1 "^version:" .factory/specs/behavioral-contracts/BC-INDEX.md .factory/specs/verification-properties/VP-INDEX.md .factory/stories/STORY-INDEX.md .factory/specs/architecture/ARCH-INDEX.md` → BC-INDEX: "4.25" / VP-INDEX: "2.72" / STORY-INDEX: "4.247" / ARCH-INDEX: "3.29". ALL UNCHANGED this burst.
+
+STATE.md v6.28→v6.29. develop HEAD `948f0fb1`; main `80e5cd7b` UNCHANGED.
+
+### Phase
+
+D-892-SESSION-WRAP-PAUSED-2026-07-24
+
+### Date
+
+2026-07-24
