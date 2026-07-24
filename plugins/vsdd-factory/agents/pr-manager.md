@@ -282,11 +282,14 @@ Agent(subagent_type="vsdd-factory:github-ops", prompt="cd <project-path> && plug
 ```
 
 The wrapper enforces release-branch strategy (`^release/v` → `--merge`). Branch deletion is
-intentionally omitted here — `--delete-branch` is NOT forwarded to `gh pr merge`. Deletion is
-deferred until the Step 8-post-A ancestry assertion passes; this preserves the orphan-merge recovery
-affordance (BC-6.10.002 PC3): if the merge does not land on trunk, the remote feature branch remains
-intact for recovery. The explicit deletion sequence (Steps 8b/8c/8d) is the SOLE deletion mechanism
-and is gated on the Step 8-post-A assertion passing.
+intentionally omitted here — `--delete-branch` is NOT forwarded to `gh pr merge`. GitHub-side
+auto-delete-on-merge may occur regardless (this repo: `delete_branch_on_merge=true`; grounded
+fact: `gh api repos/drbothen/vsdd-factory --jq .delete_branch_on_merge` → true); this is outside
+pr-manager's control, which is why PC3 recovery guidance anchors on the PR-retained `headRefOid`
+reference (deletion-agnostic). The Step 8-post-A ancestry assertion MUST complete before any
+pr-manager-initiated deletion action. Step 8c's bounded-retry absorbs GitHub-side async deletion
+that may have already occurred. The explicit deletion sequence (Steps 8b/8c/8d) is the VERIFIED
+deletion mechanism and is gated on the Step 8-post-A assertion passing.
 
 Read `.factory/merge-config.yaml` for autonomy level:
 - **Level 3:** Add `needs-review` label, wait for human
@@ -296,9 +299,11 @@ Read `.factory/merge-config.yaml` for autonomy level:
 After github-ops returns, YOU must verify the merge succeeded.
 Do NOT treat the sub-agent's response as terminal.
 
-**Verify remote branch deletion** — branch deletion is explicit-only (not requested at merge
-time). After the Step 8-post-A ancestry assertion passes, the deletion sequence (Steps 8b/8c/8d)
-is the SOLE mechanism. You MUST verify the branch is actually gone before emitting
+**Verify remote branch deletion** — `--delete-branch` is not forwarded at merge time; however,
+GitHub-side auto-delete-on-merge may already have removed the branch
+(`delete_branch_on_merge=true` for this repo). After the Step 8-post-A ancestry assertion passes,
+the deletion sequence (Steps 8b/8c/8d) is the VERIFIED deletion mechanism. Step 8c's bounded-retry
+absorbs GitHub-side async deletion. You MUST verify the branch is actually gone before emitting
 STEP_COMPLETE for step 8. Follow this sequence:
 
 **Step 8a — Confirm PR is MERGED (not just queued).**
@@ -334,37 +339,67 @@ If `mergeCommit.oid` is null or absent, raise immediately as `MergeNotAncestorOf
 ```
 P0 DATA ERROR: MergeNotAncestorOfTrunk — PR #<pr_number> mergeCommit.oid is null.
 Unknown merge SHA cannot be verified as an ancestor of origin/<trunk>.
-The remote feature branch has NOT yet been deleted — recovery from the intact remote
-head is possible. Do NOT mark this story as delivered.
+NOTE: This deployment has delete_branch_on_merge=true (grounded fact); the head branch
+may be auto-deleted. Recover via PR-retained reference (survives branch auto-deletion):
+`gh pr view <pr_number> --json headRefOid`.
+The story MUST NOT be marked delivered until the merge SHA can be confirmed on trunk.
 ```
 
-If the merge SHA is present, spawn github-ops to run the ancestry check:
+If the merge SHA is present, execute the following **two distinct sequential steps** with
+separate failure semantics (BC-6.10.002 PC3 v1.4):
+
+**Step A — Fetch trunk.** Spawn github-ops to fetch the trunk ref:
 
 ```
-Agent(subagent_type="vsdd-factory:github-ops", prompt="cd <project-path> && git fetch origin <trunk> && git merge-base --is-ancestor <merge_sha> origin/<trunk>")
+Agent(subagent_type="vsdd-factory:github-ops", prompt="cd <project-path> && git fetch origin <trunk>")
+```
+
+If `git fetch origin <trunk>` fails for any reason (network, auth, or transient error):
+- This is **NOT** a `MergeNotAncestorOfTrunk` finding. The ancestry question is **UNANSWERED**.
+- Retry once.
+- If the retry also fails, HALT immediately with `TrunkFetchFailed`:
+
+```
+TRANSIENT ESCALATION [TrunkFetchFailed]: git fetch origin <trunk> failed after 1 retry.
+Cannot determine ancestry of merge commit <merge_sha>. This is a network/auth/transient
+failure — NOT an orphan-merge condition. Do NOT proceed to delivery. Do NOT enter
+orphan-merge recovery. Escalate to human for resolution.
+```
+
+**Do NOT proceed to Step B or Step 8b/8c/8d/Step 9 on TrunkFetchFailed.**
+
+**Step B — Assert ancestry (executes only after Step A succeeds).** Spawn github-ops:
+
+```
+Agent(subagent_type="vsdd-factory:github-ops", prompt="cd <project-path> && git merge-base --is-ancestor <merge_sha> origin/<trunk>")
 ```
 
 (For feature pipelines, `<trunk>` is `develop`.)
 
-If `git merge-base --is-ancestor` returns a non-zero exit code, raise immediately as P0:
+If `git merge-base --is-ancestor` returns a non-zero exit code after a successful Step A fetch,
+raise immediately as P0:
 
 ```
 P0 DATA ERROR: MergeNotAncestorOfTrunk — PR #<pr_number> merge commit <merge_sha> is NOT an
 ancestor of origin/<trunk>. The PR merged into a non-trunk branch (orphan merge — issue #358
-class). Story content did NOT land on trunk. The remote feature branch has NOT yet been deleted
-— recovery from the intact remote head is possible.
+class). Story content did NOT land on trunk.
 Required recovery:
-  1. git branch -r --contains <merge_sha> — identify where the merge landed.
-  2. Open a new PR from the correct HEAD targeting <trunk> and merge it.
-  3. Do NOT mark this story delivered until the merge commit is on trunk.
+  1. Identify where the merge commit landed: `git branch -r --contains <merge_sha>`.
+  2. Retrieve the story's head commit SHA via PR-retained reference (survives branch auto-deletion):
+     `gh pr view <pr_number> --json headRefOid`
+     NOTE: This deployment has delete_branch_on_merge=true (grounded fact). The head branch
+     may be auto-deleted at merge time. The mandated recovery path anchors on the PR-retained
+     headRefOid reference.
+  3. Open a new PR from that commit SHA targeting <trunk> and merge it.
+  4. Do NOT mark this story as delivered until the merge commit is confirmed on trunk.
 ```
 
-**On `MergeNotAncestorOfTrunk` (null SHA or non-ancestor exit): HALT immediately — do NOT
-proceed to Step 8b, 8c, 8d, or Step 9.** The remote feature branch has NOT yet been deleted,
-preserving the ability to recover from the intact remote head.
+**On `MergeNotAncestorOfTrunk` (null SHA or non-zero exit from Step B): HALT immediately — do NOT
+proceed to Step 8b, 8c, 8d, or Step 9.** Recover via PR-retained reference (survives branch
+auto-deletion): `gh pr view <pr_number> --json headRefOid`.
 
 The story MUST NOT be marked delivered until this assertion passes with exit code 0
-(BC-6.10.002 PC3, Invariant 2). On assertion pass: proceed to Step 8b.
+(BC-6.10.002 PC3, Invariant 2). On Step B assertion pass: proceed to Step 8b.
 
 **Step 8b — Fork / cross-repo guard.**
 Dispatch github-ops to determine whether the PR head branch is on a fork:
