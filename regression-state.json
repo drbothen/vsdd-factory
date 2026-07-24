@@ -1,1 +1,1 @@
-{"status":"pass","timestamp":"2026-07-24T02:56:01Z","command":"cd /Users/zious/Documents/GITHUB/vsdd-factory/.worktrees/S-21.02 && cargo test --workspace --all-targets 2>&1 | grep -E \"passed|failed\" | grep \"test result\" | grep -v \"^test result::\" | sed 's/.*\\. \\([0-9]*\\) passed; \\([0-9]*\\) failed.*/\\1 \\2/' | awk '{pass+=$1; fail+=$2} END {print \"Total passed=\" pass \" failed=\" fail}'"}
+{"status":"pass","timestamp":"2026-07-24T14:30:47Z","command":"cd /Users/zious/Documents/GITHUB/vsdd-factory/.worktrees/S-21.03 && cargo test --workspace --all-targets 2>&1"}

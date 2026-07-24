@@ -10974,3 +10974,15 @@ D-887-S-21-02-DELIVERED-2026-07-24
 ### Date
 
 2026-07-24
+
+## D-888
+
+E-21-W1-S-21.03-DISPATCHED-2026-07-24. POLICY 16 GLOBAL-MAX GATE: `grep -n "^## D-" decision-log.md | tail -3` → `10942:## D-885 / 10954:## D-886 / 10966:## D-887`; D-887 confirmed prior max → D-888 allocated. DISPATCH-SIDE ADVANCE (D-417(b) strict class): human directive 2026-07-24 'Dispatch S-21.03' — final W1 story per D-862 SEQUENTIAL W1 approval. S-21.02 DELIVERED (D-887; PR #760 squash-merge a4a79f09 2026-07-24; merged_count 109). S-21.03 (pr-manager-trunk-assertion, P1, 3pts, CAP-038, issue #358, BC-6.10.002 v1.3, ADR-031 §Decision 8, target: pr-manager.md; skill-doc + bats, POLICY 21 satisfied) DISPATCHED for per-story delivery per D-862 SEQUENTIAL approval (S-21.01→S-21.02→S-21.03). develop HEAD `a4a79f09`; main `80e5cd7b` UNCHANGED; factory-artifacts pre-dispatch HEAD `5e3bceeb` (D-887). 4-INDEX UNCHANGED: BC v4.22 / VP v2.72 / STORY v4.239 / ARCH v3.27. STATE.md v6.24→v6.25. STATE.md frontmatter-minimal advance per D-417(b) + rc.24 Strategy Constraint: version/timestamp/phase/last_amended updated; pipeline (line 15) and current_step (line 17) NOT updated — hook-blocked (verify-state-timestamp-refresh blocks per-field Edit without co-located timestamp advance; spanning 14K last_amended impractical; D-880..D-887 precedent; deferred to next STATE.md-touching burst or rc.24 release). Decisions Log table row NOT added to STATE.md body — body-section constraint active (rc.24 PENDING; D-866..D-887 precedent). sprint-state.yaml NOT updated this burst — dispatch precedent (D-879/D-886) keeps `ready` status unchanged at dispatch-side advance; S-21.03 `ready` status carries forward to delivery burst. Dirty files included in burst commit per TD-VSDD-053 single-commit-per-burst: `logs/dispatcher-internal-2026-07-24.jsonl` + `sidecar-learning.md`.
+
+### Phase
+
+D-888-E21-W1-S-21.03-DISPATCHED-2026-07-24
+
+### Date
+
+2026-07-24
