@@ -58,12 +58,16 @@ _extract_step9_section() {
 }
 
 # Extracts the Step 8-post-A mandate block (ancestry assertion + error bodies + consequence).
-# Bounded by "Step 8-post-A" heading → the **Step 8b bold section heading (column-1 anchor).
-# Using /^\*\*Step 8b/ avoids early exit on prose references like "proceed to Step 8b, 8c, 8d".
+# Start anchor: /^\*\*Step 8-post-A/ — bold heading only; ignores prose references like
+#   "gated on the Step 8-post-A assertion passing" earlier in Step 8-pre-B.
+# Exit anchor: /^\*\*Step 8[^-]/ — next bold Step-8 sub-heading (8b/8c/8d); immune to:
+#   - prose references "Step 8-post-A" before the heading (not bold+column-1)
+#   - sub-step headings **Step A / **Step B inside the block (no digit '8' before letter)
+#   - accidental rename of **Step 8b to another 8x variant
 _extract_step8_post_a_section() {
   awk '
-    /Step 8-post-A/ { found=1; next }
-    found && /^\*\*Step 8b/ { exit }
+    /^\*\*Step 8-post-A/ { found=1; next }
+    found && /^\*\*Step 8[^-]/ { exit }
     found { print }
   ' "$PR_MANAGER_MD"
 }
@@ -71,16 +75,19 @@ _extract_step8_post_a_section() {
 # Asserts the Step 8-post-A ancestry mandate appears before the branch-deletion sub-steps (8b/8c/8d).
 # This is the story's core ordering invariant (F-S2103-P2-001): deletion is gated on the assertion.
 _assert_post_a_precedes_deletion_steps() {
+  # Anchored on bold headings (^\*\*Step) so prose references do not satisfy the check.
+  # Without this anchoring, earlier prose like "gated on the Step 8-post-A assertion" (line 289)
+  # would give a lower line number than "Step 8b" prose (line 369), causing trivial pass.
   local post_a_line step8b_line
-  post_a_line="$(grep -n "Step 8-post-A" "$PR_MANAGER_MD" | head -1 | cut -d: -f1)"
-  step8b_line="$(grep -n "Step 8b" "$PR_MANAGER_MD" | head -1 | cut -d: -f1)"
+  post_a_line="$(grep -n "^\*\*Step 8-post-A" "$PR_MANAGER_MD" | head -1 | cut -d: -f1)"
+  step8b_line="$(grep -n "^\*\*Step 8b" "$PR_MANAGER_MD" | head -1 | cut -d: -f1)"
   [ -n "$post_a_line" ] && [ -n "$step8b_line" ] || {
-    echo "ORDERING FAIL: Step 8-post-A or Step 8b heading not found in pr-manager.md"
+    echo "ORDERING FAIL: Step 8-post-A or Step 8b bold heading not found in pr-manager.md"
     false
     return
   }
   [ "$post_a_line" -lt "$step8b_line" ] || {
-    echo "ORDERING FAIL: ancestry assertion (line $post_a_line) does not precede deletion steps (line $step8b_line) — BC-6.10.002 PC3 ordering violated"
+    echo "ORDERING FAIL: ancestry assertion heading (line $post_a_line) does not precede deletion steps heading (line $step8b_line) — BC-6.10.002 PC3 ordering violated"
     false
   }
 }
@@ -144,6 +151,54 @@ _run_ancestry_assertion() {
   local is_ancestor_exit=0
 
   "$fixture_dir/git" fetch origin "$trunk" 2>/dev/null
+  "$fixture_dir/git" merge-base --is-ancestor "$merge_sha" "origin/$trunk" 2>/dev/null \
+    && is_ancestor_exit=0 || is_ancestor_exit=$?
+
+  if [ "$is_ancestor_exit" -eq 0 ]; then
+    printf 'ASSERTION-PASS: merge commit %s is ancestor of origin/%s\n' "$merge_sha" "$trunk"
+    touch "$delivered_marker"
+  else
+    printf 'P0 DATA ERROR: PR merge commit %s is NOT an ancestor of origin/%s.\n' "$merge_sha" "$trunk"
+    echo "MergeNotAncestorOfTrunk"
+  fi
+  return 0
+}
+
+# Run the BC-6.10.002 PC3 v1.4 two-step fetch+ancestry procedure (EC-007 fetch-failure path).
+# Args:
+#   $1  fixture_dir       — path to directory containing the git stub
+#   $2  trunk             — target trunk branch (e.g. "develop")
+#   $3  merge_sha         — merge commit SHA to verify
+#   $4  delivered_marker  — path to marker file; touched on assertion pass
+#   $5  fetch_attempt_log — path to log; one "fetch-attempt" line appended per attempt
+#
+# Step A: git fetch origin <trunk>. On failure: retry once. If retry also fails, emit
+#   TrunkFetchFailed (UNANSWERED — NOT an orphan-merge condition; do NOT enter recovery).
+# Step B (only on Step A success): git merge-base --is-ancestor.
+#   Non-zero exit → MergeNotAncestorOfTrunk P0.
+_run_fetch_then_ancestry_assertion() {
+  local fixture_dir="$1" trunk="$2" merge_sha="$3" delivered_marker="$4" fetch_attempt_log="$5"
+  local fetch_exit=0
+
+  # Step A — attempt 1
+  printf 'fetch-attempt\n' >> "$fetch_attempt_log"
+  "$fixture_dir/git" fetch origin "$trunk" 2>/dev/null; fetch_exit=$?
+
+  if [ "$fetch_exit" -ne 0 ]; then
+    # Step A — retry once
+    printf 'fetch-attempt\n' >> "$fetch_attempt_log"
+    "$fixture_dir/git" fetch origin "$trunk" 2>/dev/null; fetch_exit=$?
+    if [ "$fetch_exit" -ne 0 ]; then
+      printf 'TRANSIENT ESCALATION [TrunkFetchFailed]: git fetch origin %s failed after 1 retry.\n' "$trunk"
+      printf 'Cannot determine ancestry of merge commit %s. This is NOT an orphan-merge condition.\n' "$merge_sha"
+      printf 'Do NOT enter orphan-merge recovery. Escalate to human.\n'
+      echo "TrunkFetchFailed"
+      return 0
+    fi
+  fi
+
+  # Step B — ancestry check (only after successful fetch)
+  local is_ancestor_exit=0
   "$fixture_dir/git" merge-base --is-ancestor "$merge_sha" "origin/$trunk" 2>/dev/null \
     && is_ancestor_exit=0 || is_ancestor_exit=$?
 
@@ -283,6 +338,10 @@ _run_null_mergecommit_assertion() {
   step8pa="$(_extract_step8_post_a_section)"
   step9="$(_extract_step9_section)"
 
+  # Belt-and-braces extractor guards: non-empty and no Step 9 overrun.
+  [ -n "$step8pa" ] || { echo "DOC-PARITY FAIL: Step 8-post-A mandate block not found (extractor returned empty)"; false; }
+  printf '%s\n' "$step8pa" | grep -q "### Step 9:" && { echo "DOC-PARITY FAIL: extractor overran into Step 9 section"; false; } || true
+
   # DOC-PARITY MANDATE (Step 8-post-A): load-bearing assertions target the mandate block.
   # Removing the entire Step 8-post-A block must fail these tests —
   # the Step 9 back-reference alone cannot satisfy them.
@@ -334,6 +393,10 @@ _run_null_mergecommit_assertion() {
   step8pa="$(_extract_step8_post_a_section)"
   step9="$(_extract_step9_section)"
 
+  # Belt-and-braces extractor guards: non-empty and no Step 9 overrun.
+  [ -n "$step8pa" ] || { echo "DOC-PARITY FAIL: Step 8-post-A mandate block not found (extractor returned empty)"; false; }
+  printf '%s\n' "$step8pa" | grep -q "### Step 9:" && { echo "DOC-PARITY FAIL: extractor overran into Step 9 section"; false; } || true
+
   # DOC-PARITY MANDATE (Step 8-post-A): same load-bearing assertions as T-003.
   # Happy-path test also needs the mandate block present — both paths are defined there.
   _assert_doc_marker "merge-base --is-ancestor" \
@@ -384,6 +447,10 @@ _run_null_mergecommit_assertion() {
   step8pa="$(_extract_step8_post_a_section)"
   step9="$(_extract_step9_section)"
 
+  # Belt-and-braces extractor guards: non-empty and no Step 9 overrun.
+  [ -n "$step8pa" ] || { echo "DOC-PARITY FAIL: Step 8-post-A mandate block not found (extractor returned empty)"; false; }
+  printf '%s\n' "$step8pa" | grep -q "### Step 9:" && { echo "DOC-PARITY FAIL: extractor overran into Step 9 section"; false; } || true
+
   # DOC-PARITY MANDATE (Step 8-post-A): null mergeCommit.oid guard must live in the mandate block.
   # Removing Step 8-post-A entirely must fail these — the Step 9 back-reference alone cannot satisfy them.
   _assert_doc_marker "mergeCommit\.oid|mergeCommit|merge.*null" \
@@ -413,6 +480,71 @@ _run_null_mergecommit_assertion() {
   }
   [ ! -f "$DELIVERED_MARKER" ] || {
     echo "HARNESS FAIL: delivered marker was created but must NOT be when mergeCommit.oid is null"
+    false
+  }
+}
+
+# ===========================================================================
+# T-006 / AC-006 / EC-007: git fetch fails after retry → TrunkFetchFailed; HALT; NOT delivered
+# BC-6.10.002 PC3 v1.4, EC-007
+# RG-004: TrunkFetchFailed path must be documented in Step 8-post-A (fetch is NOT orphan-merge)
+# ===========================================================================
+
+@test "T-006 S-21.03 AC-006: TrunkFetchFailed on fetch failure — MergeNotAncestorOfTrunk NOT raised; HALT; NOT delivered" {
+  # Fixture: git stub exits GIT_FETCH_EXIT (=1) on every fetch call.
+  # Pre-implementation: doc-parity fails (Step 8-post-A has no TrunkFetchFailed mandate).
+  # Post-implementation: TrunkFetchFailed emitted after 2 attempts (retry-once); ancestry
+  #   is UNANSWERED (not an orphan-merge condition); delivered marker NOT created (RG-004).
+
+  local step8pa step9
+  step8pa="$(_extract_step8_post_a_section)"
+  step9="$(_extract_step9_section)"
+
+  # Belt-and-braces extractor guards: non-empty and no Step 9 overrun.
+  [ -n "$step8pa" ] || { echo "DOC-PARITY FAIL: Step 8-post-A mandate block not found (extractor returned empty)"; false; }
+  printf '%s\n' "$step8pa" | grep -q "### Step 9:" && { echo "DOC-PARITY FAIL: extractor overran into Step 9 section"; false; } || true
+
+  # DOC-PARITY MANDATE (Step 8-post-A): TrunkFetchFailed path must be in the mandate block.
+  _assert_doc_marker "TrunkFetchFailed" \
+    "TrunkFetchFailed error variant in Step 8-post-A mandate (BC-6.10.002 v1.4 EC-007)" "$step8pa"
+  _assert_doc_marker "Retry once" \
+    "retry-once mandate in Step 8-post-A (single retry before HALT)" "$step8pa"
+  _assert_doc_marker "UNANSWERED" \
+    "ancestry UNANSWERED semantics — fetch failure is not an orphan-merge condition" "$step8pa"
+  _assert_doc_marker "orphan-merge recovery" \
+    "do-NOT-enter-recovery mandate for TrunkFetchFailed path in Step 8-post-A" "$step8pa"
+
+  # DOC-PARITY BACK-REFERENCE (Step 9): minimal check — Step 9 must point to Step 8-post-A.
+  _assert_doc_marker "Step 8-post-A" \
+    "Step 9 must reference Step 8-post-A as the ancestry assertion site" "$step9"
+
+  # ORDERING INVARIANT: Step 8-post-A precedes branch-deletion sub-steps (8b/8c/8d).
+  _assert_post_a_precedes_deletion_steps
+
+  # HARNESS: stub git fetch failing (GIT_FETCH_EXIT=1); assert TrunkFetchFailed emitted,
+  # exactly 2 fetch attempts (retry-once), MergeNotAncestorOfTrunk NOT emitted, NOT delivered.
+  export GIT_FETCH_EXIT=1
+  local fetch_attempt_log="$WORK/fetch-attempts.log"
+  touch "$fetch_attempt_log"
+  local assert_out
+  assert_out="$(_run_fetch_then_ancestry_assertion "$FIXTURE_DIR" "develop" "deadbeef9999" "$DELIVERED_MARKER" "$fetch_attempt_log")"
+
+  echo "$assert_out" | grep -q "TrunkFetchFailed" || {
+    echo "HARNESS FAIL: TrunkFetchFailed not in output — got: $assert_out"
+    false
+  }
+  local attempt_count
+  attempt_count="$(grep -c 'fetch-attempt' "$fetch_attempt_log")"
+  [ "$attempt_count" -eq 2 ] || {
+    echo "HARNESS FAIL: expected exactly 2 fetch attempts (retry-once); got $attempt_count — log: $(cat "$fetch_attempt_log")"
+    false
+  }
+  echo "$assert_out" | grep -q "MergeNotAncestorOfTrunk" && {
+    echo "HARNESS FAIL: MergeNotAncestorOfTrunk must NOT be emitted on TrunkFetchFailed — got: $assert_out"
+    false
+  } || true
+  [ ! -f "$DELIVERED_MARKER" ] || {
+    echo "HARNESS FAIL: delivered marker created but must NOT be on TrunkFetchFailed HALT"
     false
   }
 }
