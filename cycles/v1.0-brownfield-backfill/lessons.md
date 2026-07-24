@@ -7270,3 +7270,23 @@ Both gates are mandatory standing Commit-E controls for any burst touching E-19 
 **Cites:** D-884 (codified this burst); S-21.01 session 2026-07-23; orchestrator/per-story-delivery.md (enforcement host for agent dispatch protocols).
 
 **Closes:** D-884 S-21-01-DELIVERED-2026-07-23 (2026-07-23). `[process-gap; subagent; final-report; idle-agent; orchestrator; re-request; agent-prompt; D-884; codified]`
+
+---
+
+### L-BB-github-publish-actions-require-direct-human-authorization [process-gap] [codified D-887]
+
+**Title:** GitHub Publish Actions (gh review-approve, gh pr merge) Require Direct Human Authorization — AUTHORIZE_MERGE=yes Relay Convention Is Insufficient
+
+**Lesson:** During S-21.02 delivery, the pr-manager agent was unable to execute `gh pr review --approve` or `gh pr merge` despite receiving an AUTHORIZE_MERGE=yes signal from the orchestrator. The auto-mode classifier hard-blocks GitHub publish actions (review posting, merge execution) for AI agents regardless of the relay signal. The pr-manager idled for approximately 7 hours waiting for a pathway that did not exist. Resolution required the human to execute the merge directly after an informed-consent gate that explicitly named the AI-authored+AI-reviewed two-party-review concern (the human cannot rely on a generic AskUserQuestion answer — they must confirm understanding of the asymmetry). The AUTHORIZE_MERGE=yes dispatch convention was designed for the permission-system layer, but the auto-mode classifier operates at a different layer that teammate relay cannot override.
+
+**Secondary note (same burst):** The pr-manager self-fixed a demo-evidence MINOR finding (b0635a6b) rather than routing to demo-recorder. This is a routing deviation. However, the fix was correct and the risk was low (documentary only). Accepted post-hoc. Reinforcement: specialist routing (demo-recorder owns demo evidence) should be the default even for small fixes. No separate story required — reinforcement codified here.
+
+**Root cause:** (1) Auto-mode classifier operates at the harness level, below the permission-relay convention. AUTHORIZE_MERGE=yes is a factory-protocol signal that the permission system can honor but the auto-mode classifier cannot be overridden by. (2) pr-manager's surface-and-hold protocol was not clearly defined for publish blocks — the agent idled rather than immediately surfacing the block to the orchestrator. (3) Generic AskUserQuestion answers ("yes proceed") are insufficient for two-party-review gates — the human must name the specific concern (AI-authored + AI-reviewed content without independent human review) before the gate is satisfied.
+
+**Prevention:** (1) pr-manager MUST surface-and-hold immediately on any auto-mode classifier block for publish actions — do NOT idle. Emit a BLOCKED_PUBLISH signal to the orchestrator within one response. (2) The informed-consent gate question for two-party merges must name the concern explicitly: "This PR was authored by AI agents and reviewed by AI agents. You are the independent human reviewer. Do you accept this?" Generic "proceed?" questions are insufficient. (3) AUTHORIZE_MERGE=yes relay from orchestrator to pr-manager is valid for the permission layer but does NOT clear the auto-mode classifier — clarify this boundary in pr-manager.md. (4) Follow-up story S-7.13 (registered 688a6da2) codifies this as a spec change to pr-manager + orchestrator/per-story-delivery.md.
+
+**Anchors:** S-21.02 delivery session (2026-07-24); pr-manager #1 idle ~7h; merge SHA a4a79f09; informed-consent gate 2026-07-24T14:00:27Z; S-7.13 (688a6da2); D-887 (this burst).
+
+**Cites:** D-887 (codified this burst); S-21.02 delivery 2026-07-24; pr-manager.md (enforcement host for surface-and-hold obligation); orchestrator/per-story-delivery.md (enforcement host for informed-consent gate wording); S-7.13 (follow-up story for spec amendment).
+
+**Closes:** D-887 S-21-02-DELIVERED-2026-07-24 (2026-07-24). `[process-gap; github-publish; auto-mode-classifier; two-party-gate; informed-consent; pr-manager; surface-and-hold; AUTHORIZE_MERGE; S-7.13; D-887; codified]`

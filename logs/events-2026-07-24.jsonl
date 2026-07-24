@@ -1,0 +1,8 @@
+{"type":"hook.block","hook":"validate-changelog-monotonicity","reason":"changelog_frontmatter_mismatch","ts":"2026-07-24T01:01:39-0500","ts_epoch":1784872899,"schema_version":1}
+{"type":"hook.block","hook":"validate-input-hash","reason":"input_hash_drift","ts":"2026-07-24T01:20:57-0500","ts_epoch":1784874057,"schema_version":1}
+{"type":"hook.block","hook":"destructive-command-guard","reason":"protected_path_delete","ts":"2026-07-24T01:41:50-0500","ts_epoch":1784875310,"schema_version":1}
+{"type":"hook.block","hook":"destructive-command-guard","reason":"git_worktree_force","ts":"2026-07-24T01:45:16-0500","ts_epoch":1784875516,"schema_version":1}
+{"type":"hook.block","hook":"validate-input-hash","reason":"input_hash_format","ts":"2026-07-24T09:06:14-0500","ts_epoch":1784901974,"schema_version":1}
+{"type":"hook.block","hook":"validate-changelog-monotonicity","reason":"changelog_frontmatter_mismatch","ts":"2026-07-24T09:15:35-0500","ts_epoch":1784902535,"schema_version":1}
+{"type":"hook.block","hook":"validate-input-hash","reason":"input_hash_drift","ts":"2026-07-24T09:15:35-0500","ts_epoch":1784902535,"schema_version":1}
+{"type":"hook.block","hook":"validate-input-hash","reason":"input_hash_drift","ts":"2026-07-24T09:16:14-0500","ts_epoch":1784902574,"schema_version":1}

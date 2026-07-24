@@ -262,7 +262,7 @@ stories:
   - id: S-21.01
     status: completed
   - id: S-21.02
-    status: ready
+    status: completed
   - id: S-21.03
     status: ready
   - id: S-21.04
@@ -282,6 +282,8 @@ stories:
   - id: S-7.10
     status: draft
   - id: S-7.11
+    status: draft
+  - id: S-7.13
     status: draft
   - id: S-10.02
     status: draft
@@ -567,6 +569,17 @@ story_updates:
     merge_sha: 7bb0e797
     merged_at: 2026-07-23
     note: "validate-factory-path-staging WASM guard + orchestrator merge pre-check (E-21 W1). 133+5 tests green, clippy/fmt clean. 12-pass cascade CONVERGED 3-CLEAN (D-883). security APPROVE (SEC-003/004 fixed in scope; SEC-001 MEDIUM accepted residual). 9/9 ACs demo evidence. PR #759 squash-merged 7bb0e797 2026-07-23. merged_count 107→108. BC-4.16.001 v1.8 + BC-5.43.001 v1.4 POL-14 active. D-884."
+
+  S-21.02:
+    status: completed
+    pr: 760
+    merge_sha: a4a79f09
+    merged_at: 2026-07-24
+    note: "post-rebase diff-integrity gate (range-diff primary) (E-21 W1). 6-pass LOCAL cascade CONVERGED 3-CLEAN (P4/P5/P6 CLEAN on 8abf24e2). Skill-doc only (POLICY 21 satisfied). PR #760 squash-merged a4a79f09 2026-07-24 (human-executed two-party gate; agents hard-blocked by auto-mode classifier). merged_count 108→109. BC-5.44.001 v1.5 POL-14 active. S-7.13 process-gap follow-up registered. D-887."
+
+  S-7.13:
+    status: draft
+    note: "Human merge gate for GitHub publish actions — replace AUTHORIZE_MERGE=yes protocol. process-gap class. P1; 3pts. input-hash 89a43c7. Filed D-887 (S-21.02 delivery process-gap: auto-mode classifier blocks gh review-approve/merge; teammate-relayed authorization insufficient). Story authored 688a6da2."
 
   S-13.01:
     status: completed
