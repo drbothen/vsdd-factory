@@ -2,23 +2,23 @@
   "story": "S-21.03",
   "protocol": "BC-5.39.001",
   "streak_target": 3,
-  "passes_total": 4,
+  "passes_total": 5,
   "passes_clean": 0,
   "streak": "0/3",
   "converged": false,
   "last_classification": "NOT_CLEAN",
   "last_pass": {
-    "n": 4,
+    "n": 5,
     "verdict": "NOT-CLEAN",
     "counts": {
       "B": 0,
-      "H": 2,
-      "M": 2,
-      "L": 1,
+      "H": 0,
+      "M": 3,
+      "L": 0,
       "NITPICK": 0,
-      "OBS": 2
+      "OBS": 0
     },
-    "reviewed_head": "2a6fa036"
+    "reviewed_head": "fc08a70a"
   },
   "passes": [
     {
@@ -111,7 +111,27 @@
       "reviewed_head": "2a6fa036",
       "base_commit": "a4a79f09",
       "notes": "BC §Architecture Anchors intra-document contradiction + 5 inert bats guards (TD-VSDD-059 paper-fix) + ADR sibling lag + bats header staleness + story Token Budget version drift. F-P4-001 HIGH: BC §Architecture Anchors 'step 9' residual contradicting §Traceability; FIXED d7b7f1c2 (BC v1.5 full-document classified sweep). F-P4-002 HIGH: 5 inert &&{false;}||true guards; FIXED fc08a70a (per-guard mutation verification: overrun/misclassification/mandate-deletion mutants). F-P4-003 MEDIUM: ADR-031 stale --delete-branch rationale; FIXED 8f4d725c (ADR v1.8 deletion-agnostic re-grounding + OBS-P4-2 adjudication). F-P4-004 MEDIUM: bats header stale Step 9 + missing EC-007/T-006; FIXED fc08a70a. F-P4-005 LOW: story Token Budget ADR-031 v1.3 cite drift; FIXED fd861d94 (story v1.6). OBS-P4-1 FIXED fc08a70a (T-007 retry-succeed + GIT_FETCH_FAIL_ONCE stub). OBS-P4-2 ADJUDICATED 8f4d725c (SS-05/SS-06 split correct; no re-anchoring). [process-gap] queued: inert-guard lint + per-guard multi-class mutation discipline. All findings FIXED in-burst; pass-5 dispatched at HEAD fc08a70a."
+    },
+    {
+      "pass": 5,
+      "verdict": "NOT-CLEAN",
+      "findings": {
+        "BLOCKER": 0,
+        "HIGH": 0,
+        "MEDIUM": 3,
+        "LOW": 0,
+        "NITPICK": 0,
+        "OBS": 0
+      },
+      "finding_ids": [
+        "F-S2103-P5-001",
+        "F-S2103-P5-002",
+        "F-S2103-P5-003"
+      ],
+      "reviewed_head": "fc08a70a",
+      "base_commit": "a4a79f09",
+      "notes": "Citation/traceability hygiene class: bats comment sibling sweep gap + dangling RG-004 ID + cross-story §Decision 6 mis-citation. F-S2103-P5-001 MEDIUM: stale 'Step 9' in bats RG-002/RG-003 comment lines (missed sibling of P4-004 header-only sweep); FIXED 194e98fe (4 comment lines incl. 2 proactively-swept siblings; 28-hit classified grep zero residue). F-S2103-P5-002 MEDIUM: dangling RG-004 ID cited in bats but undefined in story Red Gate Test Plan; FIXED 3bf8463d (RG-004 row registered; traces EC-007/T-006/T-007). F-S2103-P5-003 MEDIUM: §Decision 6 mis-citation in §Architecture Mapping + Token Budget (governs S-21.02 INV-E21-005, not S-21.03); FIXED 3bf8463d (§Decision 8 + §Consequences #6 with anchor justification). All P4 fixes + OBS-P4-1 CONFIRMED-FIXED under independent re-derivation (inert-idiom audit zero residue; 3 mutation kill classes re-derived; BC sweep verified; ADR §Consequences #5 frozen). Substantive surfaces CONVERGED; approaching convergence. All findings FIXED in-burst; pass-6 dispatched at HEAD 194e98fe."
     }
   ],
-  "next_action": "pass-5: adversary review at HEAD fc08a70a"
+  "next_action": "pass-6: adversary review at HEAD 194e98fe"
 }
