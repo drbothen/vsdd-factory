@@ -159,12 +159,13 @@ _bash_event() {
 # Sets $status and $output (combined) per bats conventions.
 _run_dispatcher() {
   local envelope="$1"
+  local env_file="$WORK/envelope-$$.json"
   STDERR_FILE="$WORK/dispatcher-stderr-$$.txt"
-  run bash -c "printf '%s' '$(printf '%s' "$envelope" | sed "s/'/'\\\\''/g")' | \
-    VSDD_LOG_DIR='$WORK/.factory/logs' \
+  printf '%s' "$envelope" > "$env_file"
+  run bash -c "VSDD_LOG_DIR='$WORK/.factory/logs' \
     CLAUDE_PLUGIN_ROOT='$WORK' \
     CLAUDE_PROJECT_DIR='$WORK' \
-    '$DISPATCHER' 2>'$STDERR_FILE'"
+    '$DISPATCHER' < '$env_file' 2>'$STDERR_FILE'"
 }
 
 # ---------------------------------------------------------------------------
