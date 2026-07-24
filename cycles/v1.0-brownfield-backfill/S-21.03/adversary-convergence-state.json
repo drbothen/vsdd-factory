@@ -2,13 +2,13 @@
   "story": "S-21.03",
   "protocol": "BC-5.39.001",
   "streak_target": 3,
-  "passes_total": 7,
-  "passes_clean": 1,
-  "streak": "1/3",
+  "passes_total": 8,
+  "passes_clean": 2,
+  "streak": "2/3",
   "converged": false,
   "last_classification": "CLEAN",
   "last_pass": {
-    "n": 7,
+    "n": 8,
     "verdict": "CLEAN",
     "counts": {
       "B": 0,
@@ -169,12 +169,31 @@
       "reviewed_head": "194e98fe",
       "base_commit": "a4a79f09",
       "notes": "CLEAN — streak 1/3. F-S2103-P6-001 CONFIRMED-FIXED: §File Structure Requirements Notes cell updated to T-001..T-007 (story v1.8); §Test Plan + bats cross-check corroborate; zero residual range sweep clean; not a paper-fix. Full independent re-derivation of all four substantive surfaces: doc-parity grep targets CONVERGED; ordering invariant on bold headings CONVERGED; Step A/B retry-once harness fidelity incl. GIT_FETCH_FAIL_ONCE priority + hermeticity CONVERGED; deletion-agnostic recovery CONVERGED. Semantic-anchoring audit clean (SS-06/CAP-038/§Decision 8/BC H1). OBS-P7-1: trunk-parameterization asymmetry — Step 3 error body hardcodes 'develop' vs BC PC2 <trunk> placeholder; adjudicated defensible-by-design — Step 3 is feature-PR create flow, pre-existing hardcode outside story diff; assertion instruction correctly says configured trunk; ACCEPTED informational; noted for wave-gate. Novelty LOW. No fix dispatched; pass-8 to review at HEAD 194e98fe (unchanged)."
+    },
+    {
+      "pass": 8,
+      "verdict": "CLEAN",
+      "findings": {
+        "BLOCKER": 0,
+        "HIGH": 0,
+        "MEDIUM": 0,
+        "LOW": 0,
+        "NITPICK": 0,
+        "OBS": 1
+      },
+      "finding_ids": [
+        "OBS-P8-1"
+      ],
+      "reviewed_head": "194e98fe",
+      "base_commit": "a4a79f09",
+      "notes": "CLEAN — streak 2/3. Independent fresh-context confirmation of pass-7. New angles: doc-parity grep fidelity exhaustively verified (every _assert_doc_marker regex resolved to real text in its extracted section, with line evidence); extractor exit-anchor correctness (Step A/B sub-heads don't truncate; terminates at Step 8b); harness/fixture logic verified (env isolation per-test, null-before-fetch ordering fidelity); semantic anchoring audit (§Decision 8, §Consequences #6, CAP-038, BC H1, target_module) all resolve; version cross-checks match (ADR-031 v1.8, BC-6.10.002, story v1.8 consistent); S-7.01 partial-fix regression axis: all prior fixes confirmed propagated, no orphaned old-value references. OBS-P8-1: git stub line-23 exec /usr/bin/git fallback — inert in current suite, never reached; latent portability seam for future tests on non-/usr/bin/git hosts; ACCEPTED-WITH-RECORD; noted for wave-gate. Novelty LOW. No fix dispatched; pass-9 to review at HEAD 194e98fe (unchanged — streak 2/3)."
     }
   ],
   "accepted_with_record": [
     "story-vs-bc-ec-numbering-offset",
     "t003-t004-single-shot-helper",
-    "trunk-parameterization-step3-hardcode"
+    "trunk-parameterization-step3-hardcode",
+    "git-stub-usrbin-fallback-portability-seam"
   ],
-  "next_action": "pass-8: adversary review at HEAD 194e98fe (unchanged — streak 1/3)"
+  "next_action": "pass-9: adversary review at HEAD 194e98fe (unchanged — streak 2/3)"
 }
