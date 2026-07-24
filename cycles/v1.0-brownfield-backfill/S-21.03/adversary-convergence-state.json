@@ -2,23 +2,23 @@
   "story": "S-21.03",
   "protocol": "BC-5.39.001",
   "streak_target": 3,
-  "passes_total": 3,
+  "passes_total": 4,
   "passes_clean": 0,
   "streak": "0/3",
   "converged": false,
   "last_classification": "NOT_CLEAN",
   "last_pass": {
-    "n": 3,
+    "n": 4,
     "verdict": "NOT-CLEAN",
     "counts": {
       "B": 0,
-      "H": 0,
-      "M": 3,
-      "L": 0,
+      "H": 2,
+      "M": 2,
+      "L": 1,
       "NITPICK": 0,
-      "OBS": 4
+      "OBS": 2
     },
-    "reviewed_head": "9bd75ab3"
+    "reviewed_head": "2a6fa036"
   },
   "passes": [
     {
@@ -87,7 +87,31 @@
       "reviewed_head": "9bd75ab3",
       "base_commit": "a4a79f09",
       "notes": "Deletion-agnostic recovery gap + fetch/ancestry conflation + missed story cite. F-S2103-P3-001 MEDIUM: §Previous Story Intelligence stale step 9 cite; FIXED at 9b020a98 (story v1.5). F-S2103-P3-002 MEDIUM: recovery affordance contingent on delete_branch_on_merge setting; FIXED at 36d69804 (BC v1.4 headRefOid deletion-agnostic recovery) + 96627798 (pr-manager mirror). F-S2103-P3-003 MEDIUM: git fetch && merge-base conflation → false orphan-merge P0; FIXED at 36d69804 (BC v1.4 Step A/B split + EC-007) + 96627798 (pr-manager mirror) + 12282097 (T-006; title corrected 2a6fa036). OBS-P3-1/2 FIXED 12282097; OBS-P3-3 noted-accepted; OBS-P3-4 FIXED 96627798. All findings fixed prior to persist; pass-4 dispatched at HEAD 2a6fa036."
+    },
+    {
+      "pass": 4,
+      "verdict": "NOT-CLEAN",
+      "findings": {
+        "BLOCKER": 0,
+        "HIGH": 2,
+        "MEDIUM": 2,
+        "LOW": 1,
+        "NITPICK": 0,
+        "OBS": 2
+      },
+      "finding_ids": [
+        "F-S2103-P4-001",
+        "F-S2103-P4-002",
+        "F-S2103-P4-003",
+        "F-S2103-P4-004",
+        "F-S2103-P4-005",
+        "OBS-P4-1",
+        "OBS-P4-2"
+      ],
+      "reviewed_head": "2a6fa036",
+      "base_commit": "a4a79f09",
+      "notes": "BC §Architecture Anchors intra-document contradiction + 5 inert bats guards (TD-VSDD-059 paper-fix) + ADR sibling lag + bats header staleness + story Token Budget version drift. F-P4-001 HIGH: BC §Architecture Anchors 'step 9' residual contradicting §Traceability; FIXED d7b7f1c2 (BC v1.5 full-document classified sweep). F-P4-002 HIGH: 5 inert &&{false;}||true guards; FIXED fc08a70a (per-guard mutation verification: overrun/misclassification/mandate-deletion mutants). F-P4-003 MEDIUM: ADR-031 stale --delete-branch rationale; FIXED 8f4d725c (ADR v1.8 deletion-agnostic re-grounding + OBS-P4-2 adjudication). F-P4-004 MEDIUM: bats header stale Step 9 + missing EC-007/T-006; FIXED fc08a70a. F-P4-005 LOW: story Token Budget ADR-031 v1.3 cite drift; FIXED fd861d94 (story v1.6). OBS-P4-1 FIXED fc08a70a (T-007 retry-succeed + GIT_FETCH_FAIL_ONCE stub). OBS-P4-2 ADJUDICATED 8f4d725c (SS-05/SS-06 split correct; no re-anchoring). [process-gap] queued: inert-guard lint + per-guard multi-class mutation discipline. All findings FIXED in-burst; pass-5 dispatched at HEAD fc08a70a."
     }
   ],
-  "next_action": "pass-4: adversary review at HEAD 2a6fa036"
+  "next_action": "pass-5: adversary review at HEAD fc08a70a"
 }
