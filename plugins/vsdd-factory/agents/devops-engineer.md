@@ -227,6 +227,7 @@ When Wave N stories merge to develop, Wave N+1 stories must rebase:
 ```bash
 cd .worktrees/STORY-NNN/
 git fetch origin develop
+PRE_REBASE_TIP=$(git rev-parse HEAD)  # capture before rebase for range-diff
 git rebase origin/develop
 cargo test    # verify still passes
 ```
@@ -243,10 +244,15 @@ After `git rebase origin/develop` exits 0, run the diff-integrity gate:
 
 **Step 1a — Primary detector: `git range-diff` (git ≥ 2.19)**
 
-Record the pre-rebase tip before rebasing, then compare commit sequences:
+`PRE_REBASE_TIP` is set before the rebase (see code block above). If the variable was not
+captured beforehand, `ORIG_HEAD` is the fallback — git sets `ORIG_HEAD` automatically to
+the pre-rebase tip after a successful rebase. Capture the post-rebase tip and compare:
 
 ```bash
-git range-diff <pre-rebase-tip>...<post-rebase-tip>
+POST_REBASE_TIP=$(git rev-parse HEAD)
+git range-diff ${PRE_REBASE_TIP}...${POST_REBASE_TIP}
+# fallback when PRE_REBASE_TIP was not pre-captured:
+# git range-diff $(git rev-parse ORIG_HEAD)...HEAD
 ```
 
 Any commit pair showing `modified` or `changed` status that touches a file also modified
