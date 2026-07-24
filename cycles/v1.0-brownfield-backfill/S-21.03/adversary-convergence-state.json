@@ -2,23 +2,23 @@
   "story": "S-21.03",
   "protocol": "BC-5.39.001",
   "streak_target": 3,
-  "passes_total": 1,
+  "passes_total": 2,
   "passes_clean": 0,
   "streak": "0/3",
   "converged": false,
   "last_classification": "NOT_CLEAN",
   "last_pass": {
-    "n": 1,
+    "n": 2,
     "verdict": "NOT-CLEAN",
     "counts": {
       "B": 0,
-      "H": 0,
+      "H": 1,
       "M": 2,
-      "L": 1,
+      "L": 0,
       "NITPICK": 0,
-      "OBS": 3
+      "OBS": 0
     },
-    "reviewed_head": "3e2c88d7"
+    "reviewed_head": "5569a7ee"
   },
   "passes": [
     {
@@ -43,7 +43,27 @@
       "reviewed_head": "3e2c88d7",
       "base_commit": "a4a79f09",
       "notes": "Initial pass; full story AC scope review. F-001 routed implementer (not PO) — BC-6.10.002 PC3 unambiguous, mechanical relocation fix. Fix burst dispatched: implementer (F-001/OBS-1/OBS-3) + test-writer (F-002/F-003) concurrent."
+    },
+    {
+      "pass": 2,
+      "verdict": "NOT-CLEAN",
+      "findings": {
+        "BLOCKER": 0,
+        "HIGH": 1,
+        "MEDIUM": 2,
+        "LOW": 0,
+        "NITPICK": 0,
+        "OBS": 0
+      },
+      "finding_ids": [
+        "F-S2103-P2-001",
+        "F-S2103-P2-002",
+        "F-S2103-P2-003"
+      ],
+      "reviewed_head": "5569a7ee",
+      "base_commit": "a4a79f09",
+      "notes": "Second-order consequences of pass-1 F-001 relocation. F-P2-002 HIGH: doc-parity greps salt Step 9 back-reference, false-green on P0 guard (TD-VSDD-059 class); FIXED at 9bd75ab3. F-P2-001 MEDIUM: --delete-branch at Step 8-pre-B defeats recovery affordance; FIXED at ad4e2bc0. F-P2-003 MEDIUM: story + ADR-031 §Decision 8 said Step 9 vs correct Step 8-post-A; FIXED at cdc60e8c (story v1.4) + c97faaae (ADR-031 v1.7). All findings fixed prior to persist; pass-3 dispatched at HEAD 9bd75ab3."
     }
   ],
-  "next_action": "fix-burst: implementer (F-S2103-P1-001/OBS-1/OBS-3) + test-writer (F-S2103-P1-002/F-S2103-P1-003) concurrent; then pass-2 cascade"
+  "next_action": "pass-3: adversary review at HEAD 9bd75ab3"
 }
