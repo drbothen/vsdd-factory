@@ -2,21 +2,21 @@
   "story": "S-21.03",
   "protocol": "BC-5.39.001",
   "streak_target": 3,
-  "passes_total": 6,
-  "passes_clean": 0,
-  "streak": "0/3",
+  "passes_total": 7,
+  "passes_clean": 1,
+  "streak": "1/3",
   "converged": false,
-  "last_classification": "NOT_CLEAN",
+  "last_classification": "CLEAN",
   "last_pass": {
-    "n": 6,
-    "verdict": "NOT-CLEAN",
+    "n": 7,
+    "verdict": "CLEAN",
     "counts": {
       "B": 0,
       "H": 0,
-      "M": 1,
+      "M": 0,
       "L": 0,
       "NITPICK": 0,
-      "OBS": 2
+      "OBS": 1
     },
     "reviewed_head": "194e98fe"
   },
@@ -151,11 +151,30 @@
       "reviewed_head": "194e98fe",
       "base_commit": "a4a79f09",
       "notes": "Deliverable-manifest descriptor drift: §File Structure Requirements Notes cell 'T-001..T-005' understated 7-test suite. F-S2103-P6-001 MEDIUM: Notes cell stale range descriptor; FIXED ae1ad428 (story v1.8; Notes cell updated T-001..T-007; range/count sweep clean; fixtures row accurate). OBS-P6-1: story-local vs BC EC numbering offset-by-one readability trap; all BC-Trace cites explicitly qualified and resolve correctly; NOT a mis-anchor; ACCEPTED-WITH-RECORD. OBS-P6-2: T-003/T-004 single-shot ancestry helper vs two-step Step-A/B helper in T-006/T-007; outcomes correct; two-step path covered by T-006/T-007; ACCEPTED-WITH-RECORD under standing harness-re-implementation item. All P5 findings CONFIRMED-FIXED under independent verification (22-hit Step-9 grep all-legitimate; RG-004 row load-bearing-backed; §Decision 8 + §Consequences #6 re-anchor semantically verified against ADR). Novelty MEDIUM; single low-blast-radius spec-hygiene finding; strongly converging. Fix dispatched; pass-7 to review at HEAD 194e98fe (unchanged — ae1ad428 is story-spec-only)."
+    },
+    {
+      "pass": 7,
+      "verdict": "CLEAN",
+      "findings": {
+        "BLOCKER": 0,
+        "HIGH": 0,
+        "MEDIUM": 0,
+        "LOW": 0,
+        "NITPICK": 0,
+        "OBS": 1
+      },
+      "finding_ids": [
+        "OBS-P7-1"
+      ],
+      "reviewed_head": "194e98fe",
+      "base_commit": "a4a79f09",
+      "notes": "CLEAN — streak 1/3. F-S2103-P6-001 CONFIRMED-FIXED: §File Structure Requirements Notes cell updated to T-001..T-007 (story v1.8); §Test Plan + bats cross-check corroborate; zero residual range sweep clean; not a paper-fix. Full independent re-derivation of all four substantive surfaces: doc-parity grep targets CONVERGED; ordering invariant on bold headings CONVERGED; Step A/B retry-once harness fidelity incl. GIT_FETCH_FAIL_ONCE priority + hermeticity CONVERGED; deletion-agnostic recovery CONVERGED. Semantic-anchoring audit clean (SS-06/CAP-038/§Decision 8/BC H1). OBS-P7-1: trunk-parameterization asymmetry — Step 3 error body hardcodes 'develop' vs BC PC2 <trunk> placeholder; adjudicated defensible-by-design — Step 3 is feature-PR create flow, pre-existing hardcode outside story diff; assertion instruction correctly says configured trunk; ACCEPTED informational; noted for wave-gate. Novelty LOW. No fix dispatched; pass-8 to review at HEAD 194e98fe (unchanged)."
     }
   ],
   "accepted_with_record": [
     "story-vs-bc-ec-numbering-offset",
-    "t003-t004-single-shot-helper"
+    "t003-t004-single-shot-helper",
+    "trunk-parameterization-step3-hardcode"
   ],
-  "next_action": "pass-7: adversary review at HEAD 194e98fe (unchanged)"
+  "next_action": "pass-8: adversary review at HEAD 194e98fe (unchanged — streak 1/3)"
 }
