@@ -1,7 +1,7 @@
 ---
 story: S-21.02
 title: "post-rebase diff-integrity gate: detect and surface silent production-code drops before force-push-with-lease"
-version: "1.5"
+version: "1.6"
 bc_version: "BC-5.44.001 v1.4"
 evidence_produced: "2026-07-24"
 produced_by: demo-recorder
@@ -13,7 +13,7 @@ worktree_head: "8abf24e29d290060c4e8546c35708dfafc198977"
 
 **Story:** S-21.02 — post-rebase diff-integrity gate: detect and surface silent production-code drops before force-push-with-lease
 **Epic:** E-21 — Factory State Data-Loss Hardening
-**Story version:** v1.5 (5 ACs)
+**Story version:** v1.6 (5 ACs)
 **BC:** BC-5.44.001 v1.4
 **ACs covered:** AC-001 through AC-005 (all 5)
 **Method note:** This is a CLI/skill-doc artifact. VHS is not installed; evidence uses scripted
@@ -60,8 +60,8 @@ EXIT: 0
 ```
 
 T-001..T-003 cover AC-003/AC-004/AC-005 respectively.
-T-004 and T-005 are additive edge coverage (PC4/EC-006 and EC-005); they are present and
-labeled as such per the demo-recorder task instruction.
+T-004 (PC4/EC-006) and T-005 (EC-005) are additive edge rows, now enumerated in the v1.6
+Test Plan table; labeled as additive edge coverage throughout this report.
 
 ### Grep captures (AC-001)
 
