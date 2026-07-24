@@ -235,6 +235,67 @@ If conflict during rebase:
 - Attempt automatic resolution (git rerere handles previously-seen conflicts)
 - If auto-resolve fails: escalate to human
 
+#### Post-Rebase Diff-Integrity Gate (BC-5.44.001, ADR-031 §Decision 6)
+
+**MANDATORY — gate runs between rebase completion and push; no exceptions (BC-5.44.001 Invariant 1).**
+
+After `git rebase origin/develop` exits 0, run the diff-integrity gate:
+
+**Step 1a — Primary detector: `git range-diff` (git ≥ 2.19)**
+
+Record the pre-rebase tip before rebasing, then compare commit sequences:
+
+```bash
+git range-diff <pre-rebase-tip>...<post-rebase-tip>
+```
+
+Any commit pair showing `modified` or `changed` status that touches a file also modified
+by a recently-merged sibling story on `origin/develop` MUST be inspected before proceeding
+to push.
+
+**Step 1b — Backup heuristic: `git diff origin/develop --stat` (git < 2.19)**
+
+If `git range-diff` is unavailable (git < 2.19), fall back to:
+
+```bash
+git diff origin/develop --stat
+```
+
+For each file showing a net-negative line count, check whether any recently-merged sibling
+story commit on `origin/develop` also modified that file (via `git log --oneline origin/develop`
+\+ `git diff-tree --name-only`).
+
+**EC-005:** If `git diff origin/develop --stat` fails (e.g., network error), log a warning
+and escalate — never proceed blind without the gate result.
+
+**Step 2 — Evaluate flagged files**
+
+For each file flagged by step 1a or 1b, apply one of these postconditions:
+
+- **PC1 — Confirmed intentional removal (gate passes):** The agent explicitly inspects the
+  diff hunk and confirms the removal is a deliberate change present in the feature branch's
+  own commit history. Proceed to push.
+
+- **PC2 — Unverified net-negative delta (STOP):** A file shows a net-negative delta AND it
+  was also modified by a recently-merged sibling story AND the delta cannot be confirmed as
+  intentional. Emit STOP and halt:
+
+  ```
+  STOP: Post-rebase diff-integrity gate detected an unverified net-negative line-count
+  delta in a file also modified by a recently-merged sibling story.
+  Error: UnverifiedNetNegativeDelta
+  ```
+
+  Do not proceed to push until the gate passes cleanly.
+
+- **PC3 — No sibling file overlap (gate passes trivially):** No file in `git diff
+  origin/develop --stat` is also in the recently-merged sibling story commit set.
+  Gate passes; proceed to push.
+
+- **PC4 — No sibling commits since branch creation (gate passes trivially):** No sibling
+  story commits have landed on `origin/develop` since the feature branch was created.
+  Gate passes trivially; proceed to push.
+
 Use `--force-with-lease` for all worktree pushes to prevent race conditions:
 ```bash
 git push --force-with-lease origin feature/STORY-NNN
