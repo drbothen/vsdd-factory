@@ -2,24 +2,24 @@
   "story": "S-21.02",
   "protocol": "BC-5.39.001",
   "streak_target": 3,
-  "passes_total": 3,
-  "passes_clean": 0,
-  "streak": "0/3",
+  "passes_total": 4,
+  "passes_clean": 1,
+  "streak": "1/3",
   "converged": false,
-  "streak_note": "p1 NOT-CLEAN B0/H1/M3/L2/OBS2 — fix burst dispatched: implementer (F-002/F-003/F-006doc/O-1/O-2) then test-writer (F-001/F-004/F-005/F-006tests). p2 NOT-CLEAN B0/H1/M2/L1/OBS2 — all 4 findings FIXED in-burst (7a6111f1 PO, c73152fb SW, 6eb4b6a2 impl, f5ea156a test-writer); pass-3 cascade required. p3 NOT-CLEAN B0/H1/M1/L1/OBS2 — all 3 findings FIXED in-burst (cae0e7ee implementer gate-host doc, 8abf24e2 test-writer parity+three-dot+force_stat_fail+stale-comment); pass-4 cascade required",
-  "last_classification": "NOT_CLEAN",
+  "streak_note": "p1 NOT-CLEAN B0/H1/M3/L2/OBS2 — fix burst dispatched: implementer (F-002/F-003/F-006doc/O-1/O-2) then test-writer (F-001/F-004/F-005/F-006tests). p2 NOT-CLEAN B0/H1/M2/L1/OBS2 — all 4 findings FIXED in-burst (7a6111f1 PO, c73152fb SW, 6eb4b6a2 impl, f5ea156a test-writer); pass-3 cascade required. p3 NOT-CLEAN B0/H1/M1/L1/OBS2 — all 3 findings FIXED in-burst (cae0e7ee implementer gate-host doc, 8abf24e2 test-writer parity+three-dot+force_stat_fail+stale-comment); pass-4 cascade required. p4 CLEAN B0/H0/M0/L0/NITPICK0/OBS2 — all pass-3 findings CONFIRMED-FIXED load-bearing; paper-fix scan clean (5 tests bidirectionally constraining); two non-blocking observations recorded (OBS-P4-1 organizational nuance, OBS-P4-2 pre-existing BC-internal terminological tension noted for BC owner); streak 1/3",
+  "last_classification": "CLEAN",
   "last_pass": {
-    "n": 3,
-    "verdict": "NOT-CLEAN",
+    "n": 4,
+    "verdict": "CLEAN",
     "counts": {
       "B": 0,
-      "H": 1,
-      "M": 1,
-      "L": 1,
+      "H": 0,
+      "M": 0,
+      "L": 0,
       "NITPICK": 0,
       "OBS": 2
     },
-    "reviewed_head": "f5ea156a"
+    "reviewed_head": "8abf24e2"
   },
   "accepted_with_record": [
     {
@@ -38,6 +38,12 @@
       "id": "ort-silent-drop-fixture-limitation",
       "description": "No classical ORT adjacent-hunk silent-drop fixture exists. BC-5.44.001 itself notes empirical rarity of this class. The !-grep proxy is deterministic and correct for the documented threat class. force_stat_fail fidelity fixed at 8abf24e2 (flag now disables full stat path; T-005 sub-case D covers STOP via range-diff primary alone). Fixture comments document the ORT limitation.",
       "first_noted_pass": 3,
+      "disposition": "ACCEPTED-WITH-RECORD"
+    },
+    {
+      "id": "bc-pc2-net-negative-terminological-tension",
+      "description": "BC-5.44.001 PC2 headline uses 'net-negative delta' but Step 1a !-grep detection catches any commit whose diff appearance changes, including lateral rewrites that are not strictly net-negative regressions. Harness is faithful to Step 1a intent. Pre-existing BC-internal tension; out of S-21.02 story-diff scope. Noted for BC owner as candidate for future product-owner BC clarification aligning PC2 headline wording with !-detection semantics.",
+      "first_noted_pass": 4,
       "disposition": "ACCEPTED-WITH-RECORD"
     }
   ],
@@ -111,7 +117,26 @@
       "reviewed_head": "f5ea156a",
       "base_commit": "7bb0e797",
       "notes": "All 4 pass-2 findings CONFIRMED-FIXED (load-bearing; no paper-fixes). POLICY 14/17 5-leg parity on F-P2-003: BC v1.4/story v1.5/BC-INDEX v4.21/STORY-INDEX v4.237 consistent. -X theirs caveat ACCEPTED-WITH-RECORD. 3 new findings all FIXED in-burst: F-P3-001 HIGH UnverifiedNetNegativeDelta doc-parity (cae0e7ee+8abf24e2); F-P3-002 MEDIUM range-diff two-range vs three-dot form (8abf24e2); F-P3-003 LOW stale fixture comments (8abf24e2). adr-031-provenance-cites and ort-silent-drop-fixture-limitation ACCEPTED-WITH-RECORD. Pass-4 required."
+    },
+    {
+      "pass": 4,
+      "verdict": "CLEAN",
+      "findings": {
+        "BLOCKER": 0,
+        "HIGH": 0,
+        "MEDIUM": 0,
+        "LOW": 0,
+        "NITPICK": 0,
+        "OBS": 2
+      },
+      "finding_ids": [
+        "OBS-P4-1",
+        "OBS-P4-2"
+      ],
+      "reviewed_head": "8abf24e2",
+      "base_commit": "7bb0e797",
+      "notes": "All 3 pass-3 findings CONFIRMED-FIXED (load-bearing; no paper-fixes). OBS-2 force_stat_fail fidelity leg CONFIRMED-FIXED. Paper-fix scan: 5 tests bidirectionally constraining. OBS-P4-1 (sibling-set derivation nesting) ACCEPTED-WITH-RECORD organizational nuance. OBS-P4-2 (BC-PC2 net-negative terminological tension) ACCEPTED-WITH-RECORD noted for BC owner. Streak 1/3. Pass-5 cascade required."
     }
   ],
-  "next_action": "pass-4 adversary cascade — reviewed HEAD will be 8abf24e2"
+  "next_action": "pass-5 adversary cascade — reviewed HEAD will be 8abf24e2 (no new fix burst; streak continuation from clean pass-4)"
 }
