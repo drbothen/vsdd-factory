@@ -517,6 +517,10 @@ _run_gate() {
     echo "HARNESS FAIL: gate did not pass — expected GATE-PASS, got: $gate_out"
     false
   }
+  echo "$gate_out" | grep -q "PC3" || {
+    echo "HARNESS FAIL: gate passed but not via PC3 branch — got: $gate_out"
+    false
+  }
   grep -q "push-invoked" "$PUSH_LOG" || {
     echo "HARNESS FAIL: push was not invoked on PC3 pass — gate output: $gate_out"
     false
@@ -551,6 +555,10 @@ _run_gate() {
 
   echo "$gate_out" | grep -q "GATE-PASS" || {
     echo "HARNESS FAIL: gate did not pass — expected GATE-PASS (PC1), got: $gate_out"
+    false
+  }
+  echo "$gate_out" | grep -q "PC1" || {
+    echo "HARNESS FAIL: gate passed but not via PC1 branch — got: $gate_out"
     false
   }
   grep -q "push-invoked" "$PUSH_LOG" || {
