@@ -278,6 +278,10 @@ feature branch diff. Derive the set:
 ```bash
 # 1. Find the branch point (merge-base)
 MERGE_BASE=$(git merge-base ${PRE_REBASE_TIP} origin/develop)
+if [ $? -ne 0 ] || [ -z "${MERGE_BASE}" ]; then
+  echo "WARNING: git merge-base failed or returned empty — escalating to manual review" >&2
+  exit 1  # gate failure; escalate — do not proceed to any pass decision or force-push
+fi
 
 # 2. Enumerate all sibling commits since the merge-base
 git log --oneline ${MERGE_BASE}..origin/develop
@@ -285,6 +289,9 @@ git log --oneline ${MERGE_BASE}..origin/develop
 # 3. For each sibling <sha>, list the files it touched
 git diff-tree --no-commit-id --name-only -r <sha>
 ```
+
+If `git merge-base` exits non-zero or yields empty output, log a warning and escalate —
+never proceed to a pass decision or force-push.
 
 Intersect the per-commit file lists (step 3, across all siblings) with the files flagged by
 `git diff origin/develop --stat`. Any file present in both sets is a sibling-touched file
