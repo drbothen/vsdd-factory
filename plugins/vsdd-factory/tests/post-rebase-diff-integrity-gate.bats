@@ -17,7 +17,7 @@
 #   T-002  AC-004 / PC3: real-rebase, no sibling overlap; gate passes; push invoked
 #   T-003  AC-005 / PC1: real-rebase, intentional commit message; gate passes; push invoked
 #   T-004  BC-5.44.001 PC4 / EC-006: no sibling commits; trivial pass; push invoked
-#   T-005  EC-004-class / EC-005: detector failure / merge-base failure → escalate; push NOT invoked
+#   T-005  EC-004-class / EC-005: detector failure / merge-base failure → escalate; rd-only → PC2; push NOT invoked
 
 setup() {
   REPO_ROOT="$(cd "${BATS_TEST_DIRNAME}/../../.." && pwd)"
@@ -71,9 +71,10 @@ _assert_step_f_marker() {
 # pre→post SHA transition.
 #
 # Scenarios:
-#   net-negative-sibling  — feature removes line2+line3; sibling modifies line3 to
-#                           LINE3_MODIFIED; conflict auto-resolved with -X ours; after
-#                           rebase range-diff shows ! (modified commit); net-negative
+#   net-negative-sibling  — 12-line file; feature deletes line06; sibling renames line06
+#                           to SIBLING06; conflict auto-resolved with -X theirs (feature's
+#                           deletion wins); range-diff shows ! (modified commit; old diff
+#                           deleted "line06", new diff deletes "SIBLING06"); net-negative
 #                           vs origin/develop; no intentionality signal → PC2
 #   no-sibling-overlap    — feature changes only feature_only.rs; sibling only autoload.gd;
 #                           clean rebase (no conflict); range-diff shows = → PC3
@@ -260,19 +261,17 @@ _run_gate() {
   fi
 
   # Step 1a — Primary detector: git range-diff (git >= 2.19).
-  # Uses two-range form:  merge_base..pre_tip  vs  develop_tip..post_tip
-  # Left = old feature commits; Right = post-rebase feature commits.
-  # Parses for ! (modified) commits: diff content changed during rebase replay (e.g.,
-  # context lines changed by sibling). For each such commit collects touched files —
-  # candidates for ORT silent-drop (adjacent non-overlapping region merged differently).
+  # Three-dot form per spec: PRE_REBASE_TIP...POST_REBASE_TIP (symmetric difference).
+  # Left = old feature commits; Right = sibling commits + rebased feature commits.
+  # Parses for ! (modified) commits: old feature matched against sibling (both touch same
+  # file) → ! signals the file as an ORT silent-drop candidate.
   local post_rebase_tip rd_out rd_ok
   post_rebase_tip="$(git -C "$repo" rev-parse HEAD 2>/dev/null || echo "INVALID")"
   rd_ok=0
   rd_out=""
   if [ "$force_rd_fail" -eq 0 ]; then
     rd_out="$(git -C "$repo" range-diff \
-        "${merge_base}..${pre_rebase_tip}" \
-        "${develop_tip}..${post_rebase_tip}" 2>&1)" \
+        "${pre_rebase_tip}...${post_rebase_tip}" 2>&1)" \
       && rd_ok=1 || rd_ok=0
     if [ "$rd_ok" -eq 1 ] && [ -n "$rd_out" ]; then
       while IFS= read -r rdline; do
@@ -326,15 +325,19 @@ _run_gate() {
   # Condition (c) feature-history filter removed (F-P2-002): after a real rebase the
   # feature tree already contains sibling additions, so phantom reverse-deltas no longer
   # appear on files the feature branch never actually modified.
+  # Guarded by force_stat_fail: if stat detector is disabled, numstat analysis is also
+  # skipped so the flag faithfully simulates total stat-detector failure (OBS-2).
   local flagged=()
-  while IFS=$'\t' read -r ins del fname; do
-    [ -z "$fname" ] && continue
-    if [ "${del:-0}" -gt "${ins:-0}" ] 2>/dev/null; then
-      if grep -qxF "$fname" "$sibling_files" 2>/dev/null; then
-        flagged+=("$fname")
+  if [ "$force_stat_fail" -eq 0 ]; then
+    while IFS=$'\t' read -r ins del fname; do
+      [ -z "$fname" ] && continue
+      if [ "${del:-0}" -gt "${ins:-0}" ] 2>/dev/null; then
+        if grep -qxF "$fname" "$sibling_files" 2>/dev/null; then
+          flagged+=("$fname")
+        fi
       fi
-    fi
-  done < <(git -C "$repo" diff --numstat origin/develop 2>/dev/null)
+    done < <(git -C "$repo" diff --numstat origin/develop 2>/dev/null)
+  fi
 
   # Merge range-diff primary flagged files: add sibling-touched files from ! commits not
   # already captured by stat (covers ORT silent-drop where numstat shows 0 net delta but
@@ -408,9 +411,9 @@ _run_gate() {
 # ===========================================================================
 
 @test "T-001 S-21.02 AC-003: gate halts on unverified net-negative delta in sibling-touched file" {
-  # Fixture: feature removes lines 2-3 from autoload.gd; sibling S-20.01 modifies line3
-  # to LINE3_MODIFIED. Real rebase (-X ours) creates conflict → post-rebase commit has
-  # different diff → range-diff shows ! (modified). Gate must:
+  # Fixture: 12-line file; feature deletes line06; sibling S-20.01 renames line06 →
+  # SIBLING06. Real rebase (-X theirs) resolves conflict in feature's favour; post-rebase
+  # commit deletes "SIBLING06" instead of "line06" → range-diff shows !. Gate must:
   #   (a) detect delta via range-diff primary + stat backup;
   #   (b) NOT invoke push;
   #   (c) emit UnverifiedNetNegativeDelta.
@@ -426,6 +429,8 @@ _run_gate() {
   _assert_doc_marker "File\(s\) at risk" "PC2 STOP block: 'File(s) at risk:'" "$section"
   _assert_doc_marker "restore the dropped lines" "PC2 action 3: restore the dropped lines" "$section"
   _assert_doc_marker "PRE_REBASE_TIP" "PRE_REBASE_TIP capture before rebase" "$section"
+  _assert_doc_marker "UnverifiedNetNegativeDelta" "Error variant: UnverifiedNetNegativeDelta (PC2 exit token)" "$section"
+  _assert_doc_marker "range-diff.*\.\.\." "range-diff invocation with three-dot form (...)" "$section"
 
   # DOC-PARITY: gate is positioned between rebase and push (Invariant 1 ordering).
   local rebase_line gate_line push_line
@@ -451,14 +456,11 @@ _run_gate() {
 
   # HARNESS PRE-CHECK: verify the real rebase produced a range-diff ! commit (primary
   # detector is functionally exercised — pre_tip != post_tip and commit content changed).
-  # Uses the same two-range form as _run_gate: merge_base..pre_tip vs develop_tip..post_tip.
-  local rd_mb rd_dev rd_post rd_check
-  rd_mb="$(git -C "$FIXTURE_REPO" merge-base "$FIXTURE_PRE_REBASE_TIP" origin/develop 2>/dev/null || echo "")"
-  rd_dev="$(git -C "$FIXTURE_REPO" rev-parse origin/develop 2>/dev/null || echo "")"
+  # Three-dot form per spec: PRE_REBASE_TIP...POST_REBASE_TIP (symmetric difference).
+  local rd_post rd_check
   rd_post="$(git -C "$FIXTURE_REPO" rev-parse HEAD 2>/dev/null || echo "")"
   rd_check="$(git -C "$FIXTURE_REPO" range-diff \
-      "${rd_mb}..${FIXTURE_PRE_REBASE_TIP}" \
-      "${rd_dev}..${rd_post}" 2>/dev/null || true)"
+      "${FIXTURE_PRE_REBASE_TIP}...${rd_post}" 2>/dev/null || true)"
   echo "$rd_check" | grep -qE '[0-9a-f]+ !' || {
     echo "HARNESS PRE-CHECK FAIL: range-diff shows no modified (!) commit — primary detector not exercised"
     echo "range-diff output: $rd_check"
@@ -598,6 +600,7 @@ _run_gate() {
   # Sub-case A: range-diff fails; --stat succeeds; gate still detects PC2 (stat fallback).
   # Sub-case B: both detectors fail → ESCALATE; push NOT invoked.
   # Sub-case C: merge-base fails (invalid SHA) → ESCALATE; push NOT invoked. (OBS-1)
+  # Sub-case D: rd_ok=1, stat_fail=1 → range-diff primary detects PC2; push NOT invoked. (OBS-2)
   # Anti-tautology: doc-parity fails if escalation language removed from §Inter-Wave Rebase.
 
   local section
@@ -614,6 +617,10 @@ _run_gate() {
 
   # Sub-case A: force range-diff to fail; --stat still runs; PC2 still detected via stat
   _setup_git_fixture "net-negative-sibling"
+  # Save repo/tip for sub-case D (same fixture; avoid double-init of identical dirs)
+  local nn_repo nn_tip
+  nn_repo="$FIXTURE_REPO"
+  nn_tip="$FIXTURE_PRE_REBASE_TIP"
 
   local gate_out_a
   gate_out_a="$(_run_gate "$FIXTURE_REPO" "$FIXTURE_PRE_REBASE_TIP" "$PUSH_LOG" 1 0)"
@@ -654,6 +661,23 @@ _run_gate() {
   }
   [ ! -s "$PUSH_LOG" ] || {
     echo "HARNESS FAIL (sub-case C): push invoked after merge-base failure — push log: $(cat "$PUSH_LOG")"
+    false
+  }
+
+  # Sub-case D: rd_ok=1, force_stat_fail=1 → range-diff primary alone detects PC2 (STOP).
+  # Verifies that force_stat_fail truly disables numstat and the rd primary path can halt
+  # independently. Reuses the net-negative-sibling repo from sub-case A to avoid
+  # double-initialising the same fixture dirs within one bats test.
+  # Expected: STOP with UnverifiedNetNegativeDelta; push NOT invoked.
+  local gate_out_d
+  gate_out_d="$(_run_gate "$nn_repo" "$nn_tip" "$PUSH_LOG" 0 1)"
+
+  echo "$gate_out_d" | grep -q "STOP" || {
+    echo "HARNESS FAIL (sub-case D): rd_ok=1+stat_fail — expected STOP via range-diff primary, got: $gate_out_d"
+    false
+  }
+  [ ! -s "$PUSH_LOG" ] || {
+    echo "HARNESS FAIL (sub-case D): push invoked despite PC2 halt — push log: $(cat "$PUSH_LOG")"
     false
   }
 }
