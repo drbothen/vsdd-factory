@@ -140,10 +140,33 @@ Agent(subagent_type="vsdd-factory:github-ops", prompt="cd <project-path> && gh p
 ```
 
 After github-ops returns, YOU must extract the PR number from its response.
-Do NOT treat the sub-agent's response as terminal. Continue immediately to step 4.
+Do NOT treat the sub-agent's response as terminal.
+
+**Step 3-post-A — Post-create baseRefName assertion (BC-6.10.002 PC2, ADR-031 §Decision 8).**
+IMMEDIATELY after `gh pr create` succeeds, spawn github-ops to assert the PR's `baseRefName`
+equals the configured trunk:
+
+```
+Agent(subagent_type="vsdd-factory:github-ops", prompt="cd <project-path> && gh pr view <pr_number> --json baseRefName")
+```
+
+Assert the returned `baseRefName` value equals `develop`. If the returned value does not equal
+`develop`, hard-fail the burst with `BaseRefNameMismatch`:
+
+```
+HARD FAIL: BaseRefNameMismatch — PR #<pr_number> baseRefName '<actual>' does not match
+configured trunk 'develop'. The PR was NOT created against the correct target branch
+(likely gh CLI base-inference from gh-merge-base config — issue #358 class).
+Do NOT proceed to merge. Close and recreate with explicit --base develop.
+```
+
+The PR MUST NOT be merged and the story MUST NOT be marked delivered until this assertion passes
+(BC-6.10.002 PC2, Invariant 2).
+
+Continue immediately to step 4.
 
 After completing this step, emit:
-`STEP_COMPLETE: step=3 name=create-pr status=ok note=PR #<N> created`
+`STEP_COMPLETE: step=3 name=create-pr status=ok note=PR #<N> created; baseRefName assertion passed`
 **Proceed immediately to step 4.**
 
 ### Step 4: Security review
