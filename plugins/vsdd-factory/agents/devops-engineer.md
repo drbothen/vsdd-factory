@@ -330,6 +330,8 @@ For each file flagged by step 1a or 1b, apply one of these postconditions:
     4. Re-run the post-rebase diff-integrity gate after any corrections.
   ```
 
+  **Error variant:** `UnverifiedNetNegativeDelta`
+
   Do not proceed to push until the gate passes cleanly.
 
 - **PC3 — No sibling file overlap (gate passes trivially):** No file in `git diff
