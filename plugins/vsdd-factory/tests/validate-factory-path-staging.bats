@@ -157,15 +157,16 @@ _bash_event() {
 
 # Invoke the factory-dispatcher with a PreToolUse Bash envelope.
 # Sets $status and $output (combined) per bats conventions.
+# _RUN_DISPATCHER_STDERR is intentionally global: callers read it after this function returns.
 _run_dispatcher() {
   local envelope="$1"
   local env_file="$WORK/envelope-$$.json"
-  STDERR_FILE="$WORK/dispatcher-stderr-$$.txt"
+  _RUN_DISPATCHER_STDERR="$WORK/dispatcher-stderr-$$.txt"
   printf '%s' "$envelope" > "$env_file"
   run bash -c "VSDD_LOG_DIR='$WORK/.factory/logs' \
     CLAUDE_PLUGIN_ROOT='$WORK' \
     CLAUDE_PROJECT_DIR='$WORK' \
-    '$DISPATCHER' < '$env_file' 2>'$STDERR_FILE'"
+    '$DISPATCHER' < '$env_file' 2>'$_RUN_DISPATCHER_STDERR'"
 }
 
 # ---------------------------------------------------------------------------
@@ -184,15 +185,15 @@ _run_dispatcher() {
 
   [ "$status" -eq 2 ] || {
     echo "FAIL: AC-001 / BC-4.16.001 PC1: expected exit 2 (block), got $status"
-    echo "  Dispatcher stderr: $(cat "$STDERR_FILE" 2>/dev/null)"
+    echo "  Dispatcher stderr: $(cat "$_RUN_DISPATCHER_STDERR" 2>/dev/null)"
     false
   }
 
-  grep -q "FactoryPathOnProductBranch" "$STDERR_FILE" 2>/dev/null || \
+  grep -q "FactoryPathOnProductBranch" "$_RUN_DISPATCHER_STDERR" 2>/dev/null || \
   echo "$output" | grep -q "FactoryPathOnProductBranch" || {
     echo "FAIL: AC-001 / BC-4.16.001 PC1: 'FactoryPathOnProductBranch' not found in output."
     echo "  Expected: block reason must contain the error variant."
-    echo "  Stderr: $(cat "$STDERR_FILE" 2>/dev/null)"
+    echo "  Stderr: $(cat "$_RUN_DISPATCHER_STDERR" 2>/dev/null)"
     echo "  Stdout: $output"
     false
   }
@@ -244,7 +245,7 @@ _run_dispatcher() {
 
   [ "$status" -eq 0 ] || {
     echo "FAIL: AC-002 / BC-4.16.001 PC3: factory-artifacts branch must return exit 0 (Continue). Got $status."
-    echo "  Stderr: $(cat "$STDERR_FILE" 2>/dev/null)"
+    echo "  Stderr: $(cat "$_RUN_DISPATCHER_STDERR" 2>/dev/null)"
     false
   }
 }
@@ -603,7 +604,7 @@ _extract_main_checkout_sync_protocol_section() {
     echo "FAIL: F-P1-001 / BC-4.16.001 Invariant 4 v1.3: 'git add .factory' (bare, no slash)"
     echo "  on develop must exit 2. git expands '.factory' to '.factory/**' for staging —"
     echo "  identical dual-tracking vector. Got $status."
-    echo "  Stderr: $(cat "$STDERR_FILE" 2>/dev/null)"
+    echo "  Stderr: $(cat "$_RUN_DISPATCHER_STDERR" 2>/dev/null)"
     false
   }
 }
@@ -756,7 +757,7 @@ _extract_main_checkout_sync_protocol_section() {
     echo "FAIL: F-P1-002 / BC-4.16.001 Precondition 2 v1.3: 'git stage .factory/STATE.md'"
     echo "  on develop must exit 2. 'git stage' is a true git synonym for 'git add'"
     echo "  (ADR-031 §Decision 2 Layer-1) — same dual-tracking vector. Got $status."
-    echo "  Stderr: $(cat "$STDERR_FILE" 2>/dev/null)"
+    echo "  Stderr: $(cat "$_RUN_DISPATCHER_STDERR" 2>/dev/null)"
     false
   }
 }
@@ -849,14 +850,14 @@ _extract_main_checkout_sync_protocol_section() {
     echo "  'git status && git add .factory/STATE.md' on develop must exit 2."
     echo "  The guard must scan all tokens in the payload for git add/stage, not stop"
     echo "  at the first git command. Currently BYPASSES (first 'git status' fools scanner)."
-    echo "  Got $status. Stderr: $(cat "$STDERR_FILE" 2>/dev/null)"
+    echo "  Got $status. Stderr: $(cat "$_RUN_DISPATCHER_STDERR" 2>/dev/null)"
     false
   }
 
-  grep -q "FactoryPathOnProductBranch" "$STDERR_FILE" 2>/dev/null || \
+  grep -q "FactoryPathOnProductBranch" "$_RUN_DISPATCHER_STDERR" 2>/dev/null || \
   echo "$output" | grep -q "FactoryPathOnProductBranch" || {
     echo "FAIL: F-P2-001 / BC-4.16.001 v1.4: 'FactoryPathOnProductBranch' not found in output."
-    echo "  Stderr: $(cat "$STDERR_FILE" 2>/dev/null)"
+    echo "  Stderr: $(cat "$_RUN_DISPATCHER_STDERR" 2>/dev/null)"
     echo "  Stdout: $output"
     false
   }
@@ -879,7 +880,7 @@ _extract_main_checkout_sync_protocol_section() {
     echo "  'git -C . add .factory/STATE.md' on develop must exit 2."
     echo "  '-C <path>' is a global option before 'add' subcommand — guard must tolerate"
     echo "  intervening global options. Currently BYPASSES ('-C' treated as subcommand)."
-    echo "  Got $status. Stderr: $(cat "$STDERR_FILE" 2>/dev/null)"
+    echo "  Got $status. Stderr: $(cat "$_RUN_DISPATCHER_STDERR" 2>/dev/null)"
     false
   }
 }
@@ -902,7 +903,7 @@ _extract_main_checkout_sync_protocol_section() {
     echo "  '.Factory/' targets the same directory as '.factory/' on macOS HFS+ and"
     echo "  Windows NTFS (case-folding filesystems). Case-insensitive blocking required."
     echo "  Currently BYPASSES (case-sensitive '.factory/' check misses '.Factory/')."
-    echo "  Got $status. Stderr: $(cat "$STDERR_FILE" 2>/dev/null)"
+    echo "  Got $status. Stderr: $(cat "$_RUN_DISPATCHER_STDERR" 2>/dev/null)"
     false
   }
 }
