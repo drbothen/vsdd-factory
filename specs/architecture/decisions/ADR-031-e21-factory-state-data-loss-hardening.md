@@ -2,7 +2,7 @@
 document_type: architecture-decision-record
 level: L3
 adr_id: ADR-031
-version: "1.5"
+version: "1.6"
 title: "ADR-031: E-21 factory state data-loss hardening — nested-worktree path exclusivity protection model"
 status: accepted
 date: 2026-07-19
@@ -26,8 +26,9 @@ subsystems_affected:
   - SS-04
   - SS-05
   - SS-06
-last_amended: "2026-07-23 (v1.5) — S-21.01 pass-5 gate (human-approved): §Decision 2 Layer-1 TARGET-AWARE branch detection for CWD-redirection vector (git -C / git -c core.worktree= naming a .factory-class path branch-detects in target dir; block product branch / pass factory-artifacts / fail-open on error). §Rationale: CWD-redirection boundary note added (state-manager canonical git -C .factory workflow preserved; residual server-side origination vector unchanged). ARCH-INDEX v3.25→v3.26. [Prior: 2026-07-19 (v1.4) — pass-4 O-1 (architect): §Consequences duplicate '4.' numbering corrected; 4a/4b lettering used to preserve §Consequences #5 = post-rebase gate host (cited by BC-5.44.001 v1.3 and S-21.02 v1.1 as ADR-031 v1.1 §Consequences #5; renaming second '4.' to '5' would shift current #5 to #6, breaking those cites). ARCH-INDEX v3.10→v3.11. [Prior: 2026-07-19 (v1.3) — F-P2-001 correction (orchestrator counter-evidence accepted): §Decision 2 Layer-2 'EMPTY host-set' retracted; corrected to undocumented ad-hoc orchestrator/operator Bash on main checkout; enforcement site named (per-story-delivery.md main-checkout sync protocol = S-21.01 Layer-2 deliverable); Layer-1 scope confirmed narrow (git add/stage only); server-side origination residual risk documented in §Rationale. [Prior: 2026-07-19 (v1.2) — F-P2 adversary adjudications: §Decision 2 Layer-2 EMPTY host-set (retracted at v1.3); §Decision 7 Four→Five; §Rationale F-P2-007 teardown dispatch-point ruling. Prior metadata continued: §Decision 2 Layer-2 host-set corrected to EMPTY: pr-manager (server-side gh pr merge, excluded by BC-5.43.001 PC3), devops-engineer (rebase on story worktree, .factory/ not mounted there), state-manager (git -C .factory only) all removed; forward-looking mandate documented; (2) §Decision 7 count fixed Four→Five (F-P2-002: CAP-038 count sweep missed at v1.1); (3) §Rationale: F-P2-001 zero-host analysis + F-P2-007 teardown dispatch-point ruling added. [Prior: 2026-07-19 (v1.1) — F-P1 adversary adjudications: on_error block→continue; INV-E21-006 added; §Context #358 corrected; CAP-038 allocated.]]]"
+last_amended: "(v1.6) — OBS-P5-1 closure: §Decision 6 gate procedure updated — range-diff PRIMARY detector (step 1a) + git diff --stat BACKUP heuristic (step 1b), consistent with BC-5.44.001 v1.2+ refinement; stale --stat-primary 3-step procedure replaced. [Prior: 2026-07-23 (v1.5) — S-21.01 pass-5 gate (human-approved): §Decision 2 Layer-1 TARGET-AWARE branch detection for CWD-redirection vector (git -C / git -c core.worktree= naming a .factory-class path branch-detects in target dir; block product branch / pass factory-artifacts / fail-open on error). §Rationale: CWD-redirection boundary note added (state-manager canonical git -C .factory workflow preserved; residual server-side origination vector unchanged). ARCH-INDEX v3.25→v3.26. [Prior: 2026-07-19 (v1.4) — pass-4 O-1 (architect): §Consequences duplicate '4.' numbering corrected; 4a/4b lettering used to preserve §Consequences #5 = post-rebase gate host (cited by BC-5.44.001 v1.3 and S-21.02 v1.1 as ADR-031 v1.1 §Consequences #5; renaming second '4.' to '5' would shift current #5 to #6, breaking those cites). ARCH-INDEX v3.10→v3.11. [Prior: 2026-07-19 (v1.3) — F-P2-001 correction (orchestrator counter-evidence accepted): §Decision 2 Layer-2 'EMPTY host-set' retracted; corrected to undocumented ad-hoc orchestrator/operator Bash on main checkout; enforcement site named (per-story-delivery.md main-checkout sync protocol = S-21.01 Layer-2 deliverable); Layer-1 scope confirmed narrow (git add/stage only); server-side origination residual risk documented in §Rationale. [Prior: 2026-07-19 (v1.2) — F-P2 adversary adjudications: §Decision 2 Layer-2 EMPTY host-set (retracted at v1.3); §Decision 7 Four→Five; §Rationale F-P2-007 teardown dispatch-point ruling. Prior metadata continued: §Decision 2 Layer-2 host-set corrected to EMPTY: pr-manager (server-side gh pr merge, excluded by BC-5.43.001 PC3), devops-engineer (rebase on story worktree, .factory/ not mounted there), state-manager (git -C .factory only) all removed; forward-looking mandate documented; (2) §Decision 7 count fixed Four→Five (F-P2-002: CAP-038 count sweep missed at v1.1); (3) §Rationale: F-P2-001 zero-host analysis + F-P2-007 teardown dispatch-point ruling added. [Prior: 2026-07-19 (v1.1) — F-P1 adversary adjudications: on_error block→continue; INV-E21-006 added; §Context #358 corrected; CAP-038 allocated.]]]]"
 modified:
+  - "2026-07-24 (v1.6)"
   - "2026-07-23 (v1.5)"
   - "2026-07-19 (v1.4)"
   - "2026-07-19 (v1.3)"
@@ -229,12 +230,18 @@ writes to the wrong branch after a factory-side PR restore.
 **Decision 6 — INV-E21-005 enforcement (skill-doc, SS-05).** Post-rebase diff-integrity is
 enforced via skill-doc mandate in BC-5.44.001. No new WASM plugin or shell script (POLICY 21
 satisfied). The gate runs between rebase completion and `git push --force-with-lease`:
-1. `git diff origin/develop --stat` on the rebased feature branch.
-2. For each file with a net-negative line count: check whether any recently-merged sibling story
-   commit on `origin/develop` also modified that file.
-3. For any file matching both criteria: the agent must explicitly verify the delta is intentional.
-   If any such file cannot be confirmed, the gate halts with `UnverifiedNetNegativeDelta`;
-   `git push --force-with-lease` is blocked.
+1a. **Primary detector — `git range-diff` (canonical rebase integrity check):** Run
+    `git range-diff <pre-rebase-tip>...<post-rebase-tip>` to compare replayed commits
+    before and after the rebase. Any commit pair showing `modified` or `changed` status
+    that touches a file also modified by a recently-merged sibling story MUST be inspected
+    before proceeding to force-push.
+1b. **Backup heuristic — `git diff origin/develop --stat`:** If `git range-diff` is
+    unavailable (git < 2.19) or yields inconclusive results, run
+    `git diff origin/develop --stat` on the rebased feature branch and check for
+    net-negative line-count deltas in files also modified by a recently-merged sibling story.
+2. For any file flagged by step 1a or 1b: the agent must explicitly verify the delta is
+   intentional. If any such file cannot be confirmed, the gate halts with
+   `UnverifiedNetNegativeDelta`; `git push --force-with-lease` is blocked.
 
 **Decision 7 — CAP allocation.** Five new capability entries registered in `capabilities.md`
 (v1.8 → v1.9) at the next available IDs after CAP-033:
@@ -442,6 +449,7 @@ factory-side PR restore protocol).
 
 | Version | Date | Description |
 |---------|------|-------------|
+| 1.6 | 2026-07-24 | OBS-P5-1 closure (architect): §Decision 6 gate procedure updated — `git range-diff <pre-rebase-tip>...<post-rebase-tip>` promoted to PRIMARY detector (step 1a); `git diff origin/develop --stat` demoted to BACKUP heuristic (step 1b, git < 2.19 or range-diff inconclusive); consistent with BC-5.44.001 v1.2+ refinement. Stale 3-step `--stat`-primary procedure replaced with 2-step 1a/1b structure. Skill-doc-mandate framing preserved. |
 | 1.5 | 2026-07-23 | S-21.01 pass-5 gate (human-approved). §Decision 2 Layer-1 extended with TARGET-AWARE branch detection for CWD-redirection vector: `git -C <path>` and `git -c core.worktree=<path>` forms now branch-detect in the target dir when `<path>` names a `.factory`-class directory (block product branch / pass factory-artifacts / fail-open on error). §Rationale: boundary note added — state-manager canonical `git -C .factory` workflow preserved; residual server-side origination vector unchanged. ARCH-INDEX v3.25→v3.26. |
 | 1.4 | 2026-07-19 | pass-4 O-1 (architect). §Consequences duplicate '4.' numbering corrected via 4a/4b lettering: first item 4 renamed 4a (ARCH-INDEX correction); second item 4 renamed 4b (BC-6.10.002 L2 Capability field). 4a/4b lettering chosen to preserve §Consequences #5 = post-rebase gate host (cited by BC-5.44.001 v1.3 + S-21.02 v1.1 as "ADR-031 v1.1 §Consequences #5"; monotonic renumber would shift #5→#6 breaking those cites). ARCH-INDEX v3.10→v3.11. |
 | 1.3 | 2026-07-19 | F-P2-001 correction (orchestrator counter-evidence accepted). §Decision 2 Layer-2 "EMPTY host-set" retracted — corrected to "undocumented ad-hoc orchestrator/operator Bash on main checkout." Enforcement site named: per-story-delivery.md main-checkout sync protocol constraint = S-21.01 Layer-2 deliverable. Layer-1 scope confirmed narrow (git add/stage only; no extension to pull/merge). §Rationale: server-side origination residual risk documented (contributor PR server-side merge bypasses Layer-1; Layer-2 is primary guard for that vector). |
