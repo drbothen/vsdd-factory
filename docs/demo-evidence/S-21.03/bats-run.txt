@@ -1,0 +1,26 @@
+# S-21.03 — bats suite execution evidence
+# Captured: 2026-07-24
+# Worktree HEAD: 194e98fe
+# Working directory: /Users/zious/Documents/GITHUB/vsdd-factory/.worktrees/S-21.03
+
+$ bats plugins/vsdd-factory/tests/pr-manager-trunk-assertion.bats
+
+1..7
+ok 1 T-001 S-21.03 AC-001: BaseRefNameMismatch on wrong baseRefName — merge NOT invoked
+ok 2 T-002 S-21.03 AC-002: baseRefName assertion passes on correct trunk — proceeds to merge
+ok 3 T-003 S-21.03 AC-003: MergeNotAncestorOfTrunk when merge-base exits 1 — story NOT delivered
+ok 4 T-004 S-21.03 AC-004: ancestry assertion passes on merge-base exit 0 — story delivered
+ok 5 T-005 S-21.03 AC-005: null mergeCommit.oid treated as MergeNotAncestorOfTrunk
+ok 6 T-006 S-21.03 EC-007: TrunkFetchFailed on fetch failure — MergeNotAncestorOfTrunk NOT raised; HALT; NOT delivered
+ok 7 T-007 S-21.03 EC-007: TrunkFetchFailed retry-succeed — Step B reached; no HALT; story delivered
+
+EXIT: 0
+
+# Test-to-AC mapping:
+#   T-001 — AC-001 (PC2 error: BaseRefNameMismatch on wrong baseRefName)
+#   T-002 — AC-002 (PC2 happy-path: baseRefName equals trunk → merge invoked)
+#   T-003 — AC-003 (PC3 error: MergeNotAncestorOfTrunk on merge-base exit 1)
+#   T-004 — AC-004 (PC3 happy-path: merge-base exit 0 → story delivered)
+#   T-005 — AC-005 (PC3 null mergeCommit.oid → MergeNotAncestorOfTrunk)
+#   T-006 — EC-007 additive coverage (all fetches fail → TrunkFetchFailed HALT, NOT delivered)
+#   T-007 — EC-007 additive coverage (retry-succeed: Step B reached, story delivered)
