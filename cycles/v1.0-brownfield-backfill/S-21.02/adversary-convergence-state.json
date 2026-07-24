@@ -2,14 +2,14 @@
   "story": "S-21.02",
   "protocol": "BC-5.39.001",
   "streak_target": 3,
-  "passes_total": 4,
-  "passes_clean": 1,
-  "streak": "1/3",
+  "passes_total": 5,
+  "passes_clean": 2,
+  "streak": "2/3",
   "converged": false,
-  "streak_note": "p1 NOT-CLEAN B0/H1/M3/L2/OBS2 — fix burst dispatched: implementer (F-002/F-003/F-006doc/O-1/O-2) then test-writer (F-001/F-004/F-005/F-006tests). p2 NOT-CLEAN B0/H1/M2/L1/OBS2 — all 4 findings FIXED in-burst (7a6111f1 PO, c73152fb SW, 6eb4b6a2 impl, f5ea156a test-writer); pass-3 cascade required. p3 NOT-CLEAN B0/H1/M1/L1/OBS2 — all 3 findings FIXED in-burst (cae0e7ee implementer gate-host doc, 8abf24e2 test-writer parity+three-dot+force_stat_fail+stale-comment); pass-4 cascade required. p4 CLEAN B0/H0/M0/L0/NITPICK0/OBS2 — all pass-3 findings CONFIRMED-FIXED load-bearing; paper-fix scan clean (5 tests bidirectionally constraining); two non-blocking observations recorded (OBS-P4-1 organizational nuance, OBS-P4-2 pre-existing BC-internal terminological tension noted for BC owner); streak 1/3",
+  "streak_note": "p1 NOT-CLEAN B0/H1/M3/L2/OBS2 — fix burst dispatched: implementer (F-002/F-003/F-006doc/O-1/O-2) then test-writer (F-001/F-004/F-005/F-006tests). p2 NOT-CLEAN B0/H1/M2/L1/OBS2 — all 4 findings FIXED in-burst (7a6111f1 PO, c73152fb SW, 6eb4b6a2 impl, f5ea156a test-writer); pass-3 cascade required. p3 NOT-CLEAN B0/H1/M1/L1/OBS2 — all 3 findings FIXED in-burst (cae0e7ee implementer gate-host doc, 8abf24e2 test-writer parity+three-dot+force_stat_fail+stale-comment); pass-4 cascade required. p4 CLEAN B0/H0/M0/L0/NITPICK0/OBS2 — all pass-3 findings CONFIRMED-FIXED load-bearing; paper-fix scan clean (5 tests bidirectionally constraining); two non-blocking observations recorded (OBS-P4-1 organizational nuance, OBS-P4-2 pre-existing BC-internal terminological tension noted for BC owner); streak 1/3. p5 CLEAN B0/H0/M0/L0/NITPICK0/OBS2 — independent fresh-context confirmation of pass-4 CLEAN; four new review axes derived from scratch (step-f end-to-end flow, PC1 confirmation semantics, zero-BC-context doc usability, section-extraction robustness) — all pass; Invariant-1 ordering enforced by load-bearing parity assertion confirmed; _extract_inter_wave_rebase_section h3/h4 robustness verified; T-001 pre-check proves range-diff ! genuinely produced; PC1 regex does not false-trigger on bare remove; sub-case D proves primary-alone halt; actor-model coherence BC v1.4 / step-f role-ownership / single-source gate procedure confirmed; POLICY 4/8/19/21 + TD-VSDD-091 sweeps clean; OBS-P5-1 ADR-031 §Decision 6 stale (missing range-diff-primary refinement) routed to architect in-cycle; OBS-P5-2 re-confirmation of pass-4 accepted items; streak 2/3",
   "last_classification": "CLEAN",
   "last_pass": {
-    "n": 4,
+    "n": 5,
     "verdict": "CLEAN",
     "counts": {
       "B": 0,
@@ -21,6 +21,15 @@
     },
     "reviewed_head": "8abf24e2"
   },
+  "routed_findings": [
+    {
+      "id": "OBS-P5-1",
+      "category": "architectural",
+      "disposition": "routed-in-cycle",
+      "route": "architect",
+      "target": "ADR-031 §Decision 6 range-diff-primary propagation"
+    }
+  ],
   "accepted_with_record": [
     {
       "id": "x-theirs-fixture-caveat",
@@ -136,7 +145,26 @@
       "reviewed_head": "8abf24e2",
       "base_commit": "7bb0e797",
       "notes": "All 3 pass-3 findings CONFIRMED-FIXED (load-bearing; no paper-fixes). OBS-2 force_stat_fail fidelity leg CONFIRMED-FIXED. Paper-fix scan: 5 tests bidirectionally constraining. OBS-P4-1 (sibling-set derivation nesting) ACCEPTED-WITH-RECORD organizational nuance. OBS-P4-2 (BC-PC2 net-negative terminological tension) ACCEPTED-WITH-RECORD noted for BC owner. Streak 1/3. Pass-5 cascade required."
+    },
+    {
+      "pass": 5,
+      "verdict": "CLEAN",
+      "findings": {
+        "BLOCKER": 0,
+        "HIGH": 0,
+        "MEDIUM": 0,
+        "LOW": 0,
+        "NITPICK": 0,
+        "OBS": 2
+      },
+      "finding_ids": [
+        "OBS-P5-1",
+        "OBS-P5-2"
+      ],
+      "reviewed_head": "8abf24e2",
+      "base_commit": "7bb0e797",
+      "notes": "Independent fresh-context confirmation of pass-4 CLEAN; same HEAD (no fix burst between). Four new review axes derived from scratch: (1) step-f end-to-end flow — Invariant-1 ordering enforced by load-bearing parity assertion; (2) PC1 confirmation semantics — PC1 regex does not false-trigger on bare 'remove' in YAML frontmatter; section-scoped extraction correct; (3) zero-BC-context doc usability — gate-host doc self-contained and usable without BC reference; AC-001 parity assertion ensures sync; (4) _extract_inter_wave_rebase_section h3/h4 robustness — h3/h4 correctly included; absence is fail-safe. T-001 pre-check proves range-diff ! genuinely produced; sub-case D proves primary-alone halt. POLICY 4/8/19/21 + TD-VSDD-091 sweeps clean. OBS-P5-1 (ADR-031 §Decision 6 stale — missing range-diff-primary refinement; out-of-story-perimeter ADR-BC drift) routed to architect in-cycle per CLAUDE.md Canonical Principle; no streak reset per BC-5.39.002. OBS-P5-2 (re-confirmation of pass-4 accepted items) ACCEPTED-WITH-RECORD. Streak 2/3. Pass-6 cascade required."
     }
   ],
-  "next_action": "pass-5 adversary cascade — reviewed HEAD will be 8abf24e2 (no new fix burst; streak continuation from clean pass-4)"
+  "next_action": "pass-6 adversary cascade — reviewed HEAD will be 8abf24e2 (no new fix burst; streak continuation from clean pass-5); ADR-031 §Decision 6 amendment dispatched to architect as parallel in-cycle action"
 }
