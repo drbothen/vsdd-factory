@@ -68,6 +68,12 @@ stories:
     status: merged
   - id: S-19.08
     status: merged
+  - id: S-21.01
+    status: merged
+  - id: S-21.02
+    status: merged
+  - id: S-21.03
+    status: merged
   - id: S-5.05
     status: merged
   - id: S-6.01
@@ -259,12 +265,6 @@ stories:
     status: draft
   - id: S-15.03
     status: draft
-  - id: S-21.01
-    status: completed
-  - id: S-21.02
-    status: completed
-  - id: S-21.03
-    status: completed
   - id: S-21.04
     status: draft
   - id: S-21.05
@@ -282,6 +282,8 @@ stories:
   - id: S-7.10
     status: draft
   - id: S-7.11
+    status: draft
+  - id: S-7.12
     status: draft
   - id: S-7.13
     status: draft

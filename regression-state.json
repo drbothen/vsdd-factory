@@ -1,1 +1,1 @@
-{"status":"pass","timestamp":"2026-07-24T14:54:08Z","command":"cargo test --workspace --all-targets 2>&1 | grep \"FAILED\" | head -5; echo \"exit: $?\""}
+{"status":"pass","timestamp":"2026-07-24T21:27:59Z","command":"cargo test -p validate-state-structure 2>&1"}

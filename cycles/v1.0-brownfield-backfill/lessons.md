@@ -7326,3 +7326,19 @@ Both gates are mandatory standing Commit-E controls for any burst touching E-19 
 **Cites:** D-889 (codified this burst); POLICY 15 v1.4.10 (per-guard-mutant-verification mandate); S-21.03 (triggered finding); S-7.14 (CI automation follow-up).
 
 **Closes:** D-889 E-21-W1-COMPLETE-2026-07-24 (2026-07-24). `[process-gap; bats; inert-guard; mutant-verification; &&{false;}||true; POLICY 15; per-guard-mandate; S-7.14; D-889; codified]`
+
+---
+
+## L-BB-deliver-story-step9-status-wording-conflicts-with-BC-5.41.004 [process-gap] [codified D-890]
+
+**Summary:** The deliver-story skill Step 9 instructs "story status → completed" but BC-5.41.004 INV-1's canonical 8-value enum (`draft`, `ready`, `in-progress`, `partial`, `blocked`, `merged`, `withdrawn`, `cancelled`) contains no `completed` value. Three W1 close bursts (D-884, D-887, D-889) propagated `status: completed` into both sprint-state.yaml `stories:` list AND STORY-INDEX.md catalog rows, causing T-1/T-7/T-12 bats failures in the E-21 W1 wave-gate full-suite leg.
+
+**Root cause:** The deliver-story skill Step 9 wording ("story status → completed") does not match BC-5.41.004's canonical terminal value for a delivered story (`merged`). Agents following the skill faithfully produced non-conformant values. EC-007 test vector (`completed-is-unknown-hard-abort`) explicitly rejects `completed`.
+
+**Corrective action:** S-21.01/S-21.02/S-21.03 status corrected `completed`→`merged` in sprint-state.yaml `stories:` list (Partition B removal + Partition A insertion at depth-1 lex slot after S-19.08) AND in STORY-INDEX.md catalog rows (D-890, this burst). Skill-doc fix (deliver-story Step 9 wording `completed`→`merged`) is product-branch work queued for the consolidated wave fix PR.
+
+**Anchors:** E-21 W1 wave-gate full-suite leg (bats T-1/T-7/T-12); sprint-state-format.bats; D-884/D-887/D-889 close bursts; D-890 bookkeeping fix.
+
+**Cites:** D-890 (codified this burst); BC-5.41.004 INV-1 (canonical 8-value enum); BC-5.41.004 EC-007 (`completed-is-unknown-hard-abort`); BC-5.41.004 PC3 (Partition A terminal ordering); BC-5.41.004 PC4 (completeness); deliver-story skill Step 9 (wording gap — skill-doc fix pending).
+
+**Closes:** D-890 W1-WAVE-GATE-BOOKKEEPING-FIX-2026-07-24 (2026-07-24). `[process-gap; deliver-story; sprint-state; BC-5.41.004; completed-not-in-enum; step-9-wording; skill-doc-fix-pending; D-890; codified]`

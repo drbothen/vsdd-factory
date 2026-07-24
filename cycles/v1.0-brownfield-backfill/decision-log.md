@@ -10998,3 +10998,31 @@ D-889-E21-W1-COMPLETE-2026-07-24
 ### Date
 
 2026-07-24
+
+## D-890
+
+E21-W1-GATE-BOOKKEEPING-FIX-2026-07-24. POLICY 16 GLOBAL-MAX GATE: `grep -n "^## D-" decision-log.md | tail -3` → `10978:## D-888 / 10990:## D-889`; D-889 confirmed prior max → D-890 allocated. W1 wave-gate corrective burst (state-manager; TD-VSDD-053 single-commit) closing E-21 W1 wave-gate full-suite leg failures (bats sprint-state-format.bats T-1/T-7/T-12 FAIL + cargo validate-state-structure ×2 FAIL).
+
+FIX 1 — SPRINT-STATE.YAML ENUM VIOLATIONS (T-1/T-7): S-21.01/S-21.02/S-21.03 had `status: completed` in sprint-state.yaml `stories:` list. BC-5.41.004 INV-1 canonical 8-value enum (`draft`, `ready`, `in-progress`, `partial`, `blocked`, `merged`, `withdrawn`, `cancelled`) contains no `completed` value — EC-007 test vector `completed-is-unknown-hard-abort` explicitly rejects it. Root cause: deliver-story skill Step 9 wording says "story status → completed"; three W1 close bursts (D-884, D-887, D-889) followed this wording faithfully. CORRECTION: (a) Removed S-21.01/S-21.02/S-21.03 from Partition B (non-terminal) of sprint-state.yaml `stories:` list. (b) Inserted S-21.01/S-21.02/S-21.03 with `status: merged` into Partition A (terminal prefix) at depth-1 lex position: after `id: S-19.08` / before `id: S-5.05` (S-21.xx > S-19.xx > ... in lex order; depth 1 = no dependencies per `depends_on: []`; BC-5.41.004 PC3 two-partition def-b).
+
+FIX 2 — S-7.12 MISSING FROM SPRINT-STATE.YAML (T-12, BC-5.41.004 PC4): S-7.12 (CHANGELOG delivery discipline; registered in STORY-INDEX at D-879; `status: draft`) was never added to sprint-state.yaml `stories:` list by the deliver-story skill. T-12 completeness check (`test_real_production_file_completeness_and_status_fidelity`) caught the gap. CORRECTION: Added `- id: S-7.12 / status: draft` to Partition B between `id: S-7.11` and `id: S-7.13` (lex order, depth 1).
+
+FIX 3 — STATE.MD BANNER WC-L STALE (cargo validate-state-structure ×2): Banner block claimed 433 lines; actual `wc -l` = 351 (un-swept since D-862 compaction 2026-07-20). CORRECTION: Banner updated to 351 lines with D-421(c)-class reconcile note. STATE.md written atomically (Write tool) to satisfy `verify-state-timestamp-refresh` PreToolUse hook constraint (co-located timestamp advance required). STATE.md v6.26→v6.27; soft-target margin 415-351=+64 UNDER-SOFT-TARGET.
+
+FIX 4 — STORY-INDEX.MD STATUS SWEEP (T-12 status-fidelity): STORY-INDEX.md rows for S-21.01/S-21.02/S-21.03 also showed `completed` (propagated from deliver-story skill same as sprint-state). CORRECTION: Status cells changed to `merged` in all three rows. STORY-INDEX v4.245→v4.246.
+
+FIX 5 — PROCESS-GAP LESSON: Appended `L-BB-deliver-story-step9-status-wording-conflicts-with-BC-5.41.004 [process-gap]` to `cycles/v1.0-brownfield-backfill/lessons.md`. Skill-doc fix (deliver-story Step 9 wording `completed`→`merged`) queued for consolidated wave fix PR.
+
+POLICY 14 4-INDEX GATE (literal shell — see verification section): BC v4.24 / VP v2.72 / STORY v4.245→v4.246 / ARCH v3.29. STORY-INDEX bumped (3 status-cell changes + S-7.12 sprint-state completeness); BC/VP/ARCH unchanged this burst.
+
+VERIFICATION (literal shell, stdout captured): (a) `bats plugins/vsdd-factory/tests/sprint-state-format.bats` — T-1/T-7/T-12 PASS (was FAIL); all 14 tests PASS. (b) `cargo test -p validate-state-structure` — 0 failures (was 2). (c) POLICY 16 GLOBAL-MAX GATE confirmed above. (d) DEFENSIVE SWEEP: grep for old "completed" status in sprint-state.yaml `stories:` section — 0 hits (legacy `story_updates:` section untouched per BC-5.41.004 PC5).
+
+develop HEAD 6444ac23 UNCHANGED (no code changes this burst). factory-artifacts: this commit.
+
+### Phase
+
+D-890-E21-W1-GATE-BOOKKEEPING-FIX-2026-07-24
+
+### Date
+
+2026-07-24
