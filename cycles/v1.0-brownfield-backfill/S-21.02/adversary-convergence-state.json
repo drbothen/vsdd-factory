@@ -2,25 +2,45 @@
   "story": "S-21.02",
   "protocol": "BC-5.39.001",
   "streak_target": 3,
-  "passes_total": 2,
+  "passes_total": 3,
   "passes_clean": 0,
   "streak": "0/3",
   "converged": false,
-  "streak_note": "p1 NOT-CLEAN B0/H1/M3/L2/OBS2 — fix burst dispatched: implementer (F-002/F-003/F-006doc/O-1/O-2) then test-writer (F-001/F-004/F-005/F-006tests). p2 NOT-CLEAN B0/H1/M2/L1/OBS2 — all 4 findings FIXED in-burst (7a6111f1 PO, c73152fb SW, 6eb4b6a2 impl, f5ea156a test-writer); pass-3 cascade required",
+  "streak_note": "p1 NOT-CLEAN B0/H1/M3/L2/OBS2 — fix burst dispatched: implementer (F-002/F-003/F-006doc/O-1/O-2) then test-writer (F-001/F-004/F-005/F-006tests). p2 NOT-CLEAN B0/H1/M2/L1/OBS2 — all 4 findings FIXED in-burst (7a6111f1 PO, c73152fb SW, 6eb4b6a2 impl, f5ea156a test-writer); pass-3 cascade required. p3 NOT-CLEAN B0/H1/M1/L1/OBS2 — all 3 findings FIXED in-burst (cae0e7ee implementer gate-host doc, 8abf24e2 test-writer parity+three-dot+force_stat_fail+stale-comment); pass-4 cascade required",
   "last_classification": "NOT_CLEAN",
   "last_pass": {
-    "n": 2,
+    "n": 3,
     "verdict": "NOT-CLEAN",
     "counts": {
       "B": 0,
       "H": 1,
-      "M": 2,
+      "M": 1,
       "L": 1,
       "NITPICK": 0,
       "OBS": 2
     },
-    "reviewed_head": "715a2f17"
+    "reviewed_head": "f5ea156a"
   },
+  "accepted_with_record": [
+    {
+      "id": "x-theirs-fixture-caveat",
+      "description": "T-001 range-diff fixture resolves conflict via -X theirs (feature-deletion wins over sibling rename). This exercises the full detection pipeline but is not a classical adjacent-hunk ORT silent-drop. Empirical rarity noted in BC; caveat documented in fixture comments.",
+      "first_noted_pass": 2,
+      "disposition": "ACCEPTED-WITH-RECORD"
+    },
+    {
+      "id": "adr-031-provenance-cites",
+      "description": "Story S-21.02 §References cites ADR-031 v1.3 (authoritative at story-authorship time) while BC-5.44.001 cites v1.4. Deliberate O-4 consistent-form from E-21 spec convergence; anchors stable across v1.3→v1.4; ADR-031 v1.4 changelog documents §Consequences numbering freeze to preserve provenance cites.",
+      "first_noted_pass": 3,
+      "disposition": "ACCEPTED-WITH-RECORD"
+    },
+    {
+      "id": "ort-silent-drop-fixture-limitation",
+      "description": "No classical ORT adjacent-hunk silent-drop fixture exists. BC-5.44.001 itself notes empirical rarity of this class. The !-grep proxy is deterministic and correct for the documented threat class. force_stat_fail fidelity fixed at 8abf24e2 (flag now disables full stat path; T-005 sub-case D covers STOP via range-diff primary alone). Fixture comments document the ORT limitation.",
+      "first_noted_pass": 3,
+      "disposition": "ACCEPTED-WITH-RECORD"
+    }
+  ],
   "passes": [
     {
       "pass": 1,
@@ -69,7 +89,29 @@
       "reviewed_head": "715a2f17",
       "base_commit": "7bb0e797",
       "notes": "All 8 pass-1 findings CONFIRMED-FIXED (load-bearing; no paper-fixes). 4 new findings all FIXED in-burst: F-P2-003 HIGH BC-5.44.001 actor (7a6111f1+c73152fb); F-P2-001 MEDIUM range-diff untested (f5ea156a); F-P2-002 MEDIUM undoc condition-c (f5ea156a); F-P2-004 LOW AC-002 coverage (f5ea156a). Pass-3 required."
+    },
+    {
+      "pass": 3,
+      "verdict": "NOT-CLEAN",
+      "findings": {
+        "BLOCKER": 0,
+        "HIGH": 1,
+        "MEDIUM": 1,
+        "LOW": 1,
+        "NITPICK": 0,
+        "OBS": 2
+      },
+      "finding_ids": [
+        "F-S2102-P3-001",
+        "F-S2102-P3-002",
+        "F-S2102-P3-003",
+        "OBS-1",
+        "OBS-2"
+      ],
+      "reviewed_head": "f5ea156a",
+      "base_commit": "7bb0e797",
+      "notes": "All 4 pass-2 findings CONFIRMED-FIXED (load-bearing; no paper-fixes). POLICY 14/17 5-leg parity on F-P2-003: BC v1.4/story v1.5/BC-INDEX v4.21/STORY-INDEX v4.237 consistent. -X theirs caveat ACCEPTED-WITH-RECORD. 3 new findings all FIXED in-burst: F-P3-001 HIGH UnverifiedNetNegativeDelta doc-parity (cae0e7ee+8abf24e2); F-P3-002 MEDIUM range-diff two-range vs three-dot form (8abf24e2); F-P3-003 LOW stale fixture comments (8abf24e2). adr-031-provenance-cites and ort-silent-drop-fixture-limitation ACCEPTED-WITH-RECORD. Pass-4 required."
     }
   ],
-  "next_action": "pass-3 adversary cascade — reviewed HEAD will be f5ea156a"
+  "next_action": "pass-4 adversary cascade — reviewed HEAD will be 8abf24e2"
 }
