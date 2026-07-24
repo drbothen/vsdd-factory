@@ -467,9 +467,11 @@ non-null and the merge commit is confirmed on trunk. Had `mergeCommit.oid` been 
 would have been raised and execution halted before this step — the story MUST NOT be marked delivered
 until the ancestry assertion passes (BC-6.10.002 PC3, Invariant 2).
 
-Trigger worktree cleanup and state updates. The remote feature branch has been
-verified deleted (confirmed by ls-remote returning empty in step 8). Compile
-the final deliverables report.
+Trigger worktree cleanup and state updates. Branch deletion state at this point reflects
+the Step 8 outcome: deleted (ls-remote exit code 2 confirmed ref absent), protection-rejected
+(branch may still exist on remote — surfaced in the Step 8 STEP_COMPLETE warning note), or
+not-applicable (cross-repository fork PR — origin verification was skipped per Step 8b).
+Compile the final deliverables report.
 
 After completing this step, emit:
 `STEP_COMPLETE: step=9 name=post-merge status=ok note=cleanup complete; ancestry assertion passed at Step 8-post-A`
