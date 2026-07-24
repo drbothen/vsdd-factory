@@ -7342,3 +7342,21 @@ Both gates are mandatory standing Commit-E controls for any burst touching E-19 
 **Cites:** D-890 (codified this burst); BC-5.41.004 INV-1 (canonical 8-value enum); BC-5.41.004 EC-007 (`completed-is-unknown-hard-abort`); BC-5.41.004 PC3 (Partition A terminal ordering); BC-5.41.004 PC4 (completeness); deliver-story skill Step 9 (wording gap — skill-doc fix pending).
 
 **Closes:** D-890 W1-WAVE-GATE-BOOKKEEPING-FIX-2026-07-24 (2026-07-24). `[process-gap; deliver-story; sprint-state; BC-5.41.004; completed-not-in-enum; step-9-wording; skill-doc-fix-pending; D-890; codified]`
+
+---
+
+## L-BB-github-self-review-restriction-on-agent-authored-prs [process-gap] [codified D-891]
+
+**Summary:** GitHub hard-blocks PR authors from approving their own pull requests. When agents push code under the human's GitHub account (the factory's current operating model), every agent-authored PR is technically a "self-review" from GitHub's perspective. As a result, `gh pr review --approve` on any agent-authored PR is always GitHub-rejected regardless of how the review was conducted. The auto-mode classifier also (correctly) rejects orchestrator-relayed authorization for approval verdict-posting workarounds, meaning the review gate cannot be satisfied via `gh` CLI at all in the current setup.
+
+**Root cause:** Agents share the human's GitHub identity because the factory operates against the human's authenticated `gh` session. GitHub's self-review prevention rule applies to the authenticated user, not to the conceptual author. No per-agent GitHub identity separation exists in the current model. The auto-mode classifier adds a second independent block: it refuses to relay human approval for security-sensitive GitHub publish actions.
+
+**Corrective action adopted (D-891):** Review gate = satisfied-by-file-record: formal review verdicts are captured in `.factory/code-delivery/<id>/pr-review*.md` files, and the constraint is disclosed at the human merge gate. The human merges with full awareness of the two-party-review limitation. S-7.13 scope note: fold this constraint disclosure into S-7.13's human-merge-gate protocol scope (the surface-and-hold protocol already surfaces this gap at merge time).
+
+**Prevention:** (1) Always capture review evidence in `.factory/code-delivery/<id>/pr-review*.md` before presenting to the human merge gate. (2) Do NOT attempt `gh pr review --approve` on agent-authored PRs — it will always fail. (3) Disclose the self-review limitation explicitly in the human merge gate surface (per S-7.13 surface-and-hold). (4) Candidate long-term fix: establish a separate reviewer identity for agent-authored PRs (bot account, separate token) — out of scope for current cycle; E-20 roster candidate.
+
+**Anchors:** E-21 W1 wave-gate code-review gate (Gate 4); fix PR #763 (agent-authored; human-merged 948f0fb1 2026-07-24); D-891 wave-gate close.
+
+**Cites:** D-891 (codified this burst); S-7.13 (human-merge-gate protocol; scope note target); auto-mode classifier (independently rejects orchestrator-relayed approval relay); GitHub self-review prevention (platform constraint).
+
+**Closes:** D-891 E-21-W1-WAVE-GATE-PASSED-2026-07-24 (2026-07-24). `[process-gap; github; self-review; agent-authored-pr; review-gate; satisfied-by-file-record; S-7.13; D-891; codified]`

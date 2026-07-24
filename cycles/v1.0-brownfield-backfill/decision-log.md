@@ -11026,3 +11026,51 @@ D-890-E21-W1-GATE-BOOKKEEPING-FIX-2026-07-24
 ### Date
 
 2026-07-24
+
+## D-891
+
+E-21-W1-WAVE-GATE-PASSED-2026-07-24. POLICY 16 GLOBAL-MAX GATE: `grep -n "^## D-" decision-log.md | tail -3` → `10978:## D-888 / 10990:## D-889 / 11002:## D-890`; D-890 confirmed prior max → D-891 allocated. E-21 W1 WAVE-GATE CLOSE burst (TD-VSDD-053 single-commit; state-manager).
+
+GATE VERDICT: PASSED — W2 (S-21.04, S-21.05) DISPATCHABLE per D-862 SEQUENTIAL.
+
+Gate ran 2026-07-24 against develop HEAD `948f0fb1` (fix PR #763 squash-merged by human). Gate record: `cycles/v1.0-brownfield-backfill/e-21-w1-wave-gate.md`.
+
+**Gate legs:**
+
+**(a) FULL SUITE — PASS-AFTER-REMEDIATION:** Initial run RED (sprint-state-format.bats T-1/T-7/T-12 FAIL; cargo validate-state-structure ×2 FAIL) — story status `completed` propagated from deliver-story skill Step 9 wording gap (D-890 L-BB-deliver-story-step9-status-wording-conflicts-with-BC-5.41.004). Fixed at D-890 (factory-artifacts `3fa124a9`). Post-fix verification: sprint-state-format.bats 14/14 PASS; cargo validate-state-structure 65/65 PASS. W1 story-specific suites: S-21.01 36/36 PASS; S-21.02 6/6 PASS (range-diff + bats); S-21.03 7/7 PASS. fmt/clippy clean on develop `948f0fb1`. Residual mktemp failures = pre-existing local env issue (not a gate blocker; CI green corroborates full pass; CI 13/13 at `948f0fb1`).
+
+**(b) WAVE ADVERSARY — CLEAN (N2/OBS2):** 0 BLOCKER / 0 HIGH / 0 MEDIUM / 0 LOW new findings. 2 observations: (1) registry comment precision — hooks-registry.toml env_allow comment improvement; (2) env_allow rationale cross-reference to ADR. Both observations fixed in PR #763 (F-WG1-001/002). Defense-chain composition verified: validate-factory-path-staging → post-rebase-diff-integrity-gate → pr-manager trunk assertion — no inter-gate gaps found. Adversary: `wg-adversary`.
+
+**(c) CODE REVIEW — APPROVE-WITH-NOTES (4 MINORs + 8 nitpicks):** Reviewer: `wg-codereview`. All findings: MINOR-1 (skip_global_options dedup refactor, behavior-identical), MINOR-2 (_run_dispatcher temp-file envelope), MINOR-3 (T-005b EC-005 stat-only fallback isolation test per POLICY 15 v1.4.10), MINOR-4 (git-checkout pre-check remote-ref guidance), NITPICK-1 (log-level consts), NITPICK-4 (_RUN_DISPATCHER_STDERR rename), NITPICK-7 (doc rationale), NITPICK-8 (cross-ref). All fixed in PR #763. 2-round pr-reviewer convergence: round-1 REQUEST_CHANGES → round-2 APPROVE. Evidence: `.factory/code-delivery/fix-e21-w1-gate/pr-review.md` + `pr-review-round-2.md` + `pr-review-round-2-final.md`.
+
+**(d) SECURITY — PASS (1 MEDIUM / 3 LOW):** Reviewer: `wg-security`. W-SEC-001 MEDIUM (CWE-693 Layer-2 main-checkout sync-protocol: orchestrator/per-story-delivery.md §Main-Checkout Sync Protocol enforced via prose-only skill doc; no PreToolUse technical gate). **HUMAN RULING (AskUserQuestion 2026-07-24):** W-SEC-001 is an ADR-031 §Decision 2 accepted-trade-off (prose-only Layer-2 is the current explicit ADR position; PreToolUse WASM guard is a planned hardening step not required for W1 delivery). Disposition: S-21.06 registered (Layer-2 sync-protocol WASM guard; W-SEC-001; authored `faece5a8` per story-writer dispatch; draft; P1; 8pts; depends_on [S-21.01]; wave 3; target module `crates/hook-plugins/validate-main-checkout-sync/`). W-SEC-002 LOW (accepted-with-record; story-worktree path-traversal defense — defense-in-depth observation; does not block delivery). W-SEC-003 LOW (CWE-116 pr-manager.md Step 5c `--body '...'` → `--body-file "$TMPFILE"` (mktemp); fixed in PR #763). W-SEC-004 LOW (accepted-with-record; timing observation in staging check; pre-existing local-env TOCTOU class; not a gate blocker per security reviewer classification).
+
+**(e) CONSISTENCY — CONDITIONAL PASS → FULL PASS:** Reviewer: `wg-consistency`. Initial finding F-WG21-001: BC-INDEX.md BC-6.10.002 lifecycle cell showed stale value. Fixed at `87ff340f` (BC-INDEX v4.24→v4.25; BC-6.10.002 lifecycle cell `draft`→`active`; PR #763 pre-merge). Consistency gate re-run post-fix: FULL PASS. All cross-document ID references, anchor counts, version cites verified consistent on develop `948f0fb1`.
+
+**(f) HOLDOUT — N/A WITH JUSTIFICATION:** No E-21 holdout scenarios authored. `.factory/holdout-evaluations/` empty. Justification: self-referential engine project (vsdd-factory IS the product being onboarded); holdout scenarios not authored for any wave of E-21; precedented across all E-18/E-19/E-21 waves; wave-gate-adversary adversarially reviewed the implementation directly (leg b above). `wg-adversary` confirmed gate-b is the adversarial coverage substitute.
+
+**CONSOLIDATED FIX PR #763:** Human-directed consolidation (AskUserQuestion ruling 2026-07-24 "fix them all in one PR"). Squash-merged by human 2026-07-24 at develop `948f0fb1`. 12 commits: MINOR-1/2/3/4, W-SEC-003 CWE-116, BC-5.41.004 `completed`→`merged` wording sweep 6 instructional files (deliver-story/wave-gate/SKILL.md/phase-f3/step-01-load-story-graph.md + related), NITPICK-1/4/7/8, F-WG1-001/002, T-005b with POLICY 15 v1.4.10 per-mutant evidence. CI 13/13 green at `948f0fb1`.
+
+**HUMAN RULINGS (AskUserQuestion 2026-07-24):** (1) Consolidate all fix-PR findings into one PR → done (PR #763). (2) Register Layer-2 hook story → S-21.06 registered at `faece5a8`. (3) Wrap after gate close → D-892 session-wrap next action.
+
+**S-21.06 REGISTRATION:** S-21.06 authored at factory-artifacts `faece5a8` (2026-07-24; story-writer dispatch). Title: "validate-main-checkout-sync WASM guard: PreToolUse technical enforcement of Layer-2 main-checkout sync-protocol (W-SEC-001)". Epic E-21; wave 3; P1; 8pts; depends_on [S-21.01]; status: draft; target module: `crates/hook-plugins/validate-main-checkout-sync/`; behavioral_contracts: [] (BC TBD — product-owner authoring required before dispatch). Closes W-SEC-001.
+
+**LESSON CODIFIED:** L-BB-github-self-review-restriction-on-agent-authored-prs [process-gap] appended to `cycles/v1.0-brownfield-backfill/lessons.md` this burst. Adoption: review gate = satisfied-by-file-record (`.factory/code-delivery/<id>/pr-review*.md`) + constraint disclosed at human merge gate; S-7.13 scope note.
+
+**STORY-INDEX v4.246→v4.247:** S-21.06 row added to E-21 section (wave 3; draft; 8pts; depends_on [S-21.01]; input-hash b807086; Refs: W-SEC-001); E-21 delivery note updated W2→W3; total stories 5→6 (27pts→35pts). STORY-INDEX parity applied.
+
+**SPRINT-STATE.YAML:** S-21.06 draft entry added to Partition B after S-21.05.
+
+**CODE-DELIVERY RECORDS:** `.factory/code-delivery/fix-e21-w1-gate/` (pr-description.md, pr-review.md, pr-review-round-2.md, pr-review-round-2-final.md) committed this burst per TD-VSDD-053 single-commit.
+
+**POLICY 14 4-INDEX GATE (literal shell):** `grep -m1 "^version:" .factory/specs/behavioral-contracts/BC-INDEX.md .factory/specs/verification-properties/VP-INDEX.md .factory/stories/STORY-INDEX.md .factory/specs/architecture/ARCH-INDEX.md` → BC-INDEX: "4.25" / VP-INDEX: "2.72" / STORY-INDEX: "4.247" / ARCH-INDEX: "3.29". BC/VP/ARCH UNCHANGED; STORY-INDEX bumped v4.246→v4.247 (S-21.06 added).
+
+STATE.md v6.27→v6.28. develop HEAD `948f0fb1`; main `80e5cd7b` UNCHANGED. NEXT: D-892 session-wrap (human /wrap directive); then next session: E-21 W2 dispatch (S-21.04→S-21.05 per D-862 SEQUENTIAL) + rc.24 decision.
+
+### Phase
+
+D-891-E21-W1-WAVE-GATE-PASSED-2026-07-24
+
+### Date
+
+2026-07-24
