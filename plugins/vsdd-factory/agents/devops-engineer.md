@@ -227,6 +227,7 @@ When Wave N stories merge to develop, Wave N+1 stories must rebase:
 ```bash
 cd .worktrees/STORY-NNN/
 git fetch origin develop
+PRE_REBASE_TIP=$(git rev-parse HEAD)  # capture before rebase for range-diff
 git rebase origin/develop
 cargo test    # verify still passes
 ```
@@ -234,6 +235,112 @@ cargo test    # verify still passes
 If conflict during rebase:
 - Attempt automatic resolution (git rerere handles previously-seen conflicts)
 - If auto-resolve fails: escalate to human
+
+#### Post-Rebase Diff-Integrity Gate (BC-5.44.001, ADR-031 §Decision 6)
+
+**MANDATORY — gate runs between rebase completion and push; no exceptions (BC-5.44.001 Invariant 1).**
+
+After `git rebase origin/develop` exits 0, run the diff-integrity gate:
+
+**Step 1a — Primary detector: `git range-diff` (git ≥ 2.19)**
+
+`PRE_REBASE_TIP` is set before the rebase (see code block above). If the variable was not
+captured beforehand, `ORIG_HEAD` is the fallback — git sets `ORIG_HEAD` automatically to
+the pre-rebase tip after a successful rebase. Capture the post-rebase tip and compare:
+
+```bash
+POST_REBASE_TIP=$(git rev-parse HEAD)
+git range-diff ${PRE_REBASE_TIP}...${POST_REBASE_TIP}
+# fallback when PRE_REBASE_TIP was not pre-captured:
+# git range-diff $(git rev-parse ORIG_HEAD)...HEAD
+```
+
+Any commit pair showing `modified` or `changed` status that touches a file also modified
+by a recently-merged sibling story on `origin/develop` MUST be inspected before proceeding
+to push.
+
+**Step 1b — Backup heuristic: `git diff origin/develop --stat` (git < 2.19)**
+
+If `git range-diff` is unavailable (git < 2.19), fall back to:
+
+```bash
+git diff origin/develop --stat
+```
+
+For each file showing a net-negative line count, check whether any recently-merged sibling
+story commit on `origin/develop` also modified that file. Compute the sibling commit set:
+
+**Computing the sibling commit set (BC-5.44.001 Invariant 3):** A commit on `origin/develop`
+is a recently-merged sibling story commit if (a) it post-dates the branch point (merge-base
+of `PRE_REBASE_TIP` and `origin/develop`) AND (b) it modifies at least one file also in the
+feature branch diff. Derive the set:
+
+```bash
+# 1. Find the branch point (merge-base)
+MERGE_BASE=$(git merge-base ${PRE_REBASE_TIP} origin/develop)
+if [ $? -ne 0 ] || [ -z "${MERGE_BASE}" ]; then
+  echo "WARNING: git merge-base failed or returned empty — escalating to manual review" >&2
+  exit 1  # gate failure; escalate — do not proceed to any pass decision or force-push
+fi
+
+# 2. Enumerate all sibling commits since the merge-base
+git log --oneline ${MERGE_BASE}..origin/develop
+
+# 3. For each sibling <sha>, list the files it touched
+git diff-tree --no-commit-id --name-only -r <sha>
+```
+
+If `git merge-base` exits non-zero or yields empty output, log a warning and escalate —
+never proceed to a pass decision or force-push.
+
+Intersect the per-commit file lists (step 3, across all siblings) with the files flagged by
+`git diff origin/develop --stat`. Any file present in both sets is a sibling-touched file
+subject to the gate check. An agent dispatched without the BC loaded can derive the full
+sibling set from this procedure alone.
+
+**EC-005:** If `git range-diff` (step 1a) itself fails (non-zero exit or error), fall back to
+step 1b (`git diff origin/develop --stat`). If step 1b also fails (non-zero exit, e.g.,
+network error), log a warning and escalate — never proceed blind without the gate result.
+
+**Step 2 — Evaluate flagged files**
+
+For each file flagged by step 1a or 1b, apply one of these postconditions:
+
+- **PC1 — Confirmed intentional removal (gate passes):** The agent explicitly inspects the
+  diff hunk and confirms the removal is a deliberate change present in the feature branch's
+  own commit history. Proceed to push.
+
+- **PC2 — Unverified net-negative delta (STOP):** A file shows a net-negative delta AND it
+  was also modified by a recently-merged sibling story AND the delta cannot be confirmed as
+  intentional. Emit STOP and halt:
+
+  ```
+  STOP: Post-rebase diff-integrity gate detected an unverified net-negative line-count
+  delta in a file also modified by a recently-merged sibling story.
+
+  File(s) at risk:
+    <filename>: <+added/-removed> lines (net: <N> lines)
+    Modified by sibling story: <commit SHA> — <commit message>
+
+  This may indicate a silent drop from ORT 3-way merge (issue #365 class).
+  Required actions before force-push:
+    1. Run `git diff origin/develop -- <filename>` and inspect the delta manually.
+    2. Confirm each net-negative change is an intentional deletion, not a silent drop.
+    3. If silent drops are found, restore the dropped lines and re-commit.
+    4. Re-run the post-rebase diff-integrity gate after any corrections.
+  ```
+
+  **Error variant:** `UnverifiedNetNegativeDelta`
+
+  Do not proceed to push until the gate passes cleanly.
+
+- **PC3 — No sibling file overlap (gate passes trivially):** No file in `git diff
+  origin/develop --stat` is also in the recently-merged sibling story commit set.
+  Gate passes; proceed to push.
+
+- **PC4 — No sibling commits since branch creation (gate passes trivially):** No sibling
+  story commits have landed on `origin/develop` since the feature branch was created.
+  Gate passes trivially; proceed to push.
 
 Use `--force-with-lease` for all worktree pushes to prevent race conditions:
 ```bash

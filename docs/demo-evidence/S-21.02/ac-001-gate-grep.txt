@@ -1,0 +1,60 @@
+AC-001 Gate Evidence: devops-engineer.md §Inter-Wave Rebase
+Story: S-21.02 v1.6
+BC: BC-5.44.001 v1.4
+Captured: 2026-07-24
+Worktree HEAD: 8abf24e29d290060c4e8546c35708dfafc198977
+
+==========================================================================
+PART A — Token presence: range-diff + UnverifiedNetNegativeDelta
+==========================================================================
+
+COMMAND:
+  grep -n 'range-diff\|UnverifiedNetNegativeDelta' plugins/vsdd-factory/agents/devops-engineer.md
+
+STDOUT:
+230:PRE_REBASE_TIP=$(git rev-parse HEAD)  # capture before rebase for range-diff
+245:**Step 1a — Primary detector: `git range-diff` (git ≥ 2.19)**
+253:git range-diff ${PRE_REBASE_TIP}...${POST_REBASE_TIP}
+255:# git range-diff $(git rev-parse ORIG_HEAD)...HEAD
+264:If `git range-diff` is unavailable (git < 2.19), fall back to:
+301:**EC-005:** If `git range-diff` (step 1a) itself fails (non-zero exit or error), fall back to
+333:  **Error variant:** `UnverifiedNetNegativeDelta`
+
+EXIT: 0
+
+==========================================================================
+PART B — Section ordering: git rebase origin/develop → gate → force-with-lease
+==========================================================================
+
+COMMAND:
+  grep -n 'rebase origin/develop\|force-with-lease\|range-diff\|UnverifiedNetNegativeDelta\|Inter-Wave Rebase' plugins/vsdd-factory/agents/devops-engineer.md
+
+STDOUT:
+223:### Inter-Wave Rebase
+230:PRE_REBASE_TIP=$(git rev-parse HEAD)  # capture before rebase for range-diff
+231:git rebase origin/develop
+243:After `git rebase origin/develop` exits 0, run the diff-integrity gate:
+245:**Step 1a — Primary detector: `git range-diff` (git ≥ 2.19)**
+253:git range-diff ${PRE_REBASE_TIP}...${POST_REBASE_TIP}
+255:# git range-diff $(git rev-parse ORIG_HEAD)...HEAD
+264:If `git range-diff` is unavailable (git < 2.19), fall back to:
+301:**EC-005:** If `git range-diff` (step 1a) itself fails (non-zero exit or error), fall back to
+333:  **Error variant:** `UnverifiedNetNegativeDelta`
+345:Use `--force-with-lease` for all worktree pushes to prevent race conditions:
+347:git push --force-with-lease origin feature/STORY-NNN
+
+EXIT: 0
+
+==========================================================================
+ORDERING VERIFICATION
+==========================================================================
+
+Ordering is confirmed by line numbers:
+  - §Inter-Wave Rebase section header:   line 223
+  - git rebase origin/develop:           line 231
+  - Gate invocation (range-diff step):   lines 243-264
+  - UnverifiedNetNegativeDelta STOP:     line 333
+  - git push --force-with-lease:         line 347
+
+Gate (lines 243-333) is between git rebase origin/develop (line 231) and
+git push --force-with-lease (line 347). AC-001 PASS.

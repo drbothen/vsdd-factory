@@ -15,6 +15,26 @@ description: Dispatch implementer to push the feature branch, then dispatch pr-m
 
 **Exit condition:** `git ls-remote origin feature/STORY-NNN-<desc>` returns the expected SHA.
 
+### Rebase Before Push: Post-Rebase Diff-Integrity Gate Required
+
+**Role ownership:** The implementer (Sub-step F.1 agent) executing the rebase-then-force-push
+MUST follow `plugins/vsdd-factory/agents/devops-engineer.md §Inter-Wave Rebase` post-rebase
+diff-integrity gate before any `git push --force-with-lease`.
+
+If the feature branch must be rebased onto `origin/develop` before pushing (e.g., after
+sibling stories merged), the **post-rebase diff-integrity gate** (BC-5.44.001, ADR-031
+§Decision 6) is a **REQUIRED** step between `git rebase origin/develop` and
+`git push --force-with-lease`. The gate MUST run before force-push; it cannot run after
+(BC-5.44.001 Invariant 1).
+
+The gate uses `git range-diff <pre-rebase-tip>...<post-rebase-tip>` as the primary
+detector (git ≥ 2.19) and falls back to `git diff origin/develop --stat` on older git.
+Any file showing an unverified net-negative delta in a file also modified by a
+recently-merged sibling story halts the push with `UnverifiedNetNegativeDelta`.
+
+See `plugins/vsdd-factory/agents/devops-engineer.md §Inter-Wave Rebase` for the full gate
+procedure (PC1/PC2/PC3/PC4 postconditions).
+
 ## Sub-step F.2: PR Lifecycle
 
 **Agent:** `pr-manager` (model tier: Standard)
