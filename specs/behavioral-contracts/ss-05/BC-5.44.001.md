@@ -1,7 +1,7 @@
 ---
 document_type: behavioral-contract
 level: L3
-version: "1.3"
+version: "1.4"
 status: draft
 producer: product-owner
 timestamp: 2026-07-19T00:00:00Z
@@ -23,6 +23,7 @@ modified:
   - "2026-07-19 (v1.1) — CAP-035 backfill (product-owner; ARCH-INDEX v3.07): capability frontmatter TBD→CAP-035; §Traceability L2 Capability TBD→CAP-035; Capability Anchor Justification updated to cite CAP-035/ARCH-INDEX v3.07."
   - "2026-07-19 (v1.2) — Research validation precision amendments (product-owner; research validation 2026-07-19): §Description restructured — `git range-diff` promoted to PRIMARY detector (step 1a); --stat heuristic demoted to backup signal (step 1b); §Description Invariant 5 added with known limitation (heuristic misses drops when branch additions offset dropped lines; adjacent-edit cases empirically conflict rather than silently drop; real silent drops require larger/moved-code diffs)."
   - "2026-07-19 (v1.3) — adv pass-1 fix burst (F-P1-006) per ADR-031 v1.1 §Consequences #5 (product-owner): §Architecture Anchors pr-manager.md step 8 anchor removed (ground truth: Step 8 = Execute merge; no rebase/force-push in pr-manager.md); replaced with devops-engineer.md §Inter-Wave Rebase (the only codebase site with rebase+force-with-lease). §Traceability Architecture Module corrected to match. §Related BCs BC-5.42.001 description updated (gate host is devops-engineer, not same pr-manager protocol)."
+  - "2026-07-23 (v1.4) — adv pass-2 fix burst (F-S2102-P2-003) per local cascade pass 2 adversary finding (product-owner): H1 title actor \"pr-manager and orchestrator\" corrected to \"devops-engineer (inter-wave rebases); implementer (per-story delivery rebases)\"; §Description stale actor references \"pr-manager or orchestrator\" (line ~50) and \"orchestrator and pr-manager\" (line ~83) corrected to executing-agent model; §Verification Properties VP row stale actor \"pr-manager agent protocol\" corrected; partial-sweep residue from v1.3 F-P1-006."
 deprecated: null
 deprecated_by: null
 replacement: null
@@ -31,10 +32,10 @@ removed: null
 removal_reason: null
 bc_id: BC-5.44.001
 section: "5.44"
-last_amended: "(v1.3) — adv pass-1 fix burst (F-P1-006) per ADR-031 v1.1 §Consequences #5 (product-owner): §Architecture Anchors corrected pr-manager step 8→devops-engineer.md §Inter-Wave Rebase; §Traceability Architecture Module corrected; §Related BCs BC-5.42.001 updated. [Prior: (v1.2) — research validation; range-diff primary detector; ease-of-trigger temper. (v1.1) — CAP-035 backfill. (v1.0) — Initial authoring.]"
+last_amended: "(v1.4) — adv pass-2 fix burst (F-S2102-P2-003): H1/§Description actor corrected to devops-engineer+implementer; §VP row stale actor corrected. [Prior: (v1.3) — §Architecture Anchors corrected pr-manager step 8→devops-engineer.md §Inter-Wave Rebase; §Traceability+§Related BCs updated. (v1.2) — research validation; range-diff primary. (v1.1) — CAP-035 backfill. (v1.0) — Initial authoring.]"
 ---
 
-# BC-5.44.001: pr-manager and orchestrator MUST run a post-rebase diff-integrity gate after any `git rebase` on a feature branch, asserting that no file touched by a recently-merged sibling story shows an unverified net-negative line-count delta before force-push-with-lease
+# BC-5.44.001: The executing agent (devops-engineer for inter-wave rebases; implementer for per-story delivery rebases) MUST run a post-rebase diff-integrity gate after any `git rebase` on a feature branch, asserting that no file touched by a recently-merged sibling story shows an unverified net-negative line-count delta before force-push-with-lease
 
 ## Description
 
@@ -47,7 +48,7 @@ delivery protocol has no detection gate for it.
 This BC governs the **post-rebase diff-integrity gate** required by issue #365. After any
 `git rebase`, `git rebase --continue`, or `git pull --rebase` completes on a feature branch that
 shares modified files with recently-merged sibling stories on the target branch (`origin/develop`),
-the responsible agent (pr-manager or orchestrator) MUST:
+the responsible agent (devops-engineer for inter-wave rebases; implementer for per-story delivery rebases) MUST:
 
 1a. **Primary detector — `git range-diff` (canonical rebase integrity check):** Run
     `git range-diff <pre-rebase-tip>...<post-rebase-tip>` to compare the replayed commits
@@ -80,7 +81,7 @@ but empirically rare; they require larger diffs, moved code blocks, or refactore
 is warranted as defense-in-depth, but implementers should not expect to trigger it on most rebases.
 
 No new shell script or WASM plugin is required (POLICY 21 satisfied). This is a skill-doc mandate
-expressed as a required orchestrator and pr-manager action.
+expressed as a required executing-agent action (devops-engineer §Inter-Wave Rebase; implementer §step-f-pr-lifecycle Sub-step F.1).
 
 ## Preconditions
 
@@ -188,7 +189,7 @@ gate passes trivially with no action.
 
 | VP-NNN | Property | Proof Method |
 |--------|----------|-------------|
-| (TBD) | Gate step present in pr-manager agent protocol between rebase and force-push | manual: confirm gate step in S-21.02 skill-doc deliverable |
+| (TBD) | Gate step present in devops-engineer §Inter-Wave Rebase and implementer §step-f-pr-lifecycle Sub-step F.1 between rebase and force-push | manual: confirm gate step in S-21.02 skill-doc deliverable |
 | (TBD) | Gate detects net-negative delta in sibling-touched file | bats: simulate rebase scenario with mocked `git diff --stat` returning `-N` on sibling file; assert force-push blocked |
 | (TBD) | Gate passes cleanly when no sibling file overlap | bats: mock no-overlap diff; assert force-push proceeds |
 
@@ -225,6 +226,7 @@ TBD — VP IDs to be assigned after VP authoring pass.
 
 | Version | Date | Description |
 |---------|------|-------------|
+| 1.4 | 2026-07-23 | adv pass-2 fix burst (F-S2102-P2-003) per local cascade pass 2 adversary finding (product-owner): H1 title actor "pr-manager and orchestrator" corrected to "devops-engineer (inter-wave rebases); implementer (per-story delivery rebases)"; §Description lines actor references "pr-manager or orchestrator"/"orchestrator and pr-manager" corrected; §Verification Properties VP row stale actor "pr-manager agent protocol" corrected to devops-engineer §Inter-Wave Rebase + implementer §step-f-pr-lifecycle Sub-step F.1; partial-sweep residue from v1.3 F-P1-006. |
 | 1.0 | 2026-07-19 | Initial authoring (product-owner; E-21 factory-state data-loss hardening; issue #365). Post-rebase diff-integrity gate: mandatory `git diff origin/develop --stat` + sibling-story overlap check + intentional-delta verification before `git push --force-with-lease` (PC1 pass / PC2 halt / PC3/PC4 trivial-pass). 1 error variant: `UnverifiedNetNegativeDelta`. 7 edge cases EC-001..EC-007. 4 test vectors T-1..T-4. lifecycle_status: draft (POL-14 auto-promotion on S-21.02 PR merge). |
 | 1.3 | 2026-07-19 | adv pass-1 fix burst (F-P1-006) per ADR-031 v1.1 §Consequences #5 (product-owner). §Architecture Anchors: pr-manager.md step 8 anchor removed (Step 8 = Execute merge; no rebase/force-push in pr-manager.md); replaced with devops-engineer.md §Inter-Wave Rebase (only codebase site with rebase+force-with-lease). §Traceability Architecture Module corrected to match. §Related BCs BC-5.42.001 description updated: gate host = devops-engineer, not pr-manager protocol. |
 | 1.2 | 2026-07-19 | Research validation precision amendments (product-owner; research validation 2026-07-19). §Description protocol restructured: `git range-diff <pre>...<post>` promoted to PRIMARY detector (step 1a) — canonical rebase integrity check; `git diff --stat` heuristic demoted to backup signal (step 1b). Known limitation documented: heuristic misses drops when branch additions offset dropped lines (per-file net ≥ 0). Ease-of-trigger temper added: adjacent-edit cases empirically conflict (surface); real silent drops require larger/moved-code diffs — genuine but rare. |
