@@ -1,7 +1,7 @@
 ---
 document_type: behavioral-contract
 level: L3
-version: "1.4"
+version: "1.5"
 status: draft
 producer: phase-1-4b-bc-extractor
 timestamp: 2026-04-25T00:00:00
@@ -21,6 +21,7 @@ introduced: v1.0.0-beta.4
 modified:
   - "2026-07-19 (v1.2) — E-21 factory-state data-loss hardening (product-owner; issue #358): PC2 + PC3 added — pr-manager step-7 trunk-assertion postconditions (INV-E21-006; at authoring time cited as INV-E21-005 before ADR-031 v1.1 renumber; corrected at v1.3). PC2: post-create baseRefName assertion. PC3: post-merge --is-ancestor assertion. Changelog section added."
   - "2026-07-19 (v1.3) — adv pass-1 fix burst (F-P1-001/010) per ADR-031 v1.1 rulings (product-owner): (1) capability frontmatter TBD→CAP-038 (ADR-031 §Decision 7+8); (2) INV-E21-005→INV-E21-006 sweep (TD-VSDD-060 — PR Trunk Ancestry was renumbered append-only per ADR-031 v1.1 §Decision 1; INV-E21-005 reassigned to Post-Rebase Diff Integrity/BC-5.44.001); (3) §Traceability Architecture Module deliver-story/SKILL.md→pr-manager.md (SoT = §Architecture Anchors; F-P1-010); (4) ADR-031 §Decision 8 cite added to §Traceability; (5) L2 Capability TBD→CAP-038 + Capability Anchor Justification added."
+  - "2026-07-24 (v1.5) — F-S2103-P4-001 residual-sibling closure (product-owner; S-21.03 LOCAL cascade pass 4): §Architecture Anchors line 209: step 9 (post-merge assertion) corrected to Step 8-post-A (post-merge ancestry assertion, before branch deletion); tense updated to 'amended by S-21.03'. POLICY 5 v1.3.4 full-document sweep: 1 class-(c) hit fixed; 0 class-(a) hits; 0 class-(b) hits."
   - "2026-07-24 (v1.4) — F-S2103-P3-002/003 fix burst (product-owner; S-21.03 LOCAL cascade pass 3): (1) PC3 recovery block made deletion-agnostic — delete_branch_on_merge=true grounded fact; recovery anchors on PR-retained headRefOid reference surviving branch auto-deletion; removed implicit intact-head-branch assumption; (2) PC3 &&-joined fetch+ancestry command split into two distinct steps with separate failure semantics — Step A git fetch failure → TrunkFetchFailed (transient-escalate; ancestry UNANSWERED; no orphan-merge recovery); Step B merge-base non-zero after successful fetch → MergeNotAncestorOfTrunk P0 as before; (3) EC-007 added (fetch failure); (4) TrunkFetchFailed test vector added; (5) Traceability Architecture Module step placement updated to Step 8-post-A per story v1.4 + ADR-031 v1.7."
 deprecated: null
 deprecated_by: null
@@ -28,7 +29,7 @@ replacement: null
 retired: null
 removed: null
 removal_reason: null
-last_amended: "(v1.4) — F-S2103-P3-002/003: PC3 deletion-agnostic recovery (delete_branch_on_merge=true grounded; PR-retained headRefOid anchor); fetch+ancestry split into Step A TrunkFetchFailed transient vs Step B MergeNotAncestorOfTrunk P0; EC-007 added; test vector added; Traceability step placement → Step 8-post-A. [Prior: (v1.3) — CAP-038; INV-E21-006 sweep; Architecture Module → pr-manager.md. (v1.2) — PC2+PC3 added. (v1.1) — metadata correction.]"
+last_amended: "(v1.5) — F-S2103-P4-001 residual-sibling: §Architecture Anchors step 9 corrected to Step 8-post-A (post-merge ancestry assertion, before branch deletion); tense updated (to be amended → amended by S-21.03). [Prior: (v1.4) — PC3 deletion-agnostic recovery; fetch+ancestry split Step A/B; EC-007; Traceability step placement → Step 8-post-A. (v1.3) — CAP-038; INV-E21-006 sweep; Architecture Module → pr-manager.md. (v1.2) — PC2+PC3 added.]"
 ---
 
 # Behavioral Contract BC-6.10.002: deliver-story: 9-step dispatch sequence with exit conditions
@@ -206,7 +207,7 @@ Ancestry. It catches the orphan-merge scenario (issue #358 concrete instance) wh
 ## Architecture Anchors (Recommended)
 
 - `architecture/ss-06-skill-catalog.md#deliver-story-9-step-dispatch-sequence-with-exit-conditions` — TBD anchor
-- `plugins/vsdd-factory/agents/pr-manager.md` — step 3 (post-create assertion) and step 9 (post-merge assertion) to be amended by S-21.03
+- `plugins/vsdd-factory/agents/pr-manager.md` — step 3 (post-create assertion) and Step 8-post-A (post-merge ancestry assertion, before branch deletion); amended by S-21.03
 
 ## Story Anchor (Recommended)
 
@@ -265,6 +266,7 @@ TBD — assess once architecture mapping is complete.
 
 | Version | Date | Description |
 |---------|------|-------------|
+| 1.5 | 2026-07-24 | F-S2103-P4-001 residual-sibling closure (S-21.03 LOCAL cascade pass 4). §Architecture Anchors line 209: "step 9 (post-merge assertion) to be amended by S-21.03" corrected to "Step 8-post-A (post-merge ancestry assertion, before branch deletion); amended by S-21.03". POLICY 5 v1.3.4 full-document sweep: 1 hit (line 209), classified (c) stale assertion-placement cite → fixed; 0 class (a) hits (no pr-manager Step 9 checklist cites in document); 0 class (b) hits (no historical/changelog "step 9" entries). |
 | 1.4 | 2026-07-24 | F-S2103-P3-002/003 fix burst (S-21.03 LOCAL cascade pass 3). (1) PC3 recovery block made deletion-agnostic: delete_branch_on_merge=true grounded fact cited (gh api repos/drbothen/vsdd-factory --jq .delete_branch_on_merge → true); recovery anchors on PR-retained `gh pr view --json headRefOid` which survives branch auto-deletion; removed implicit intact-head-branch assumption (F-S2103-P3-002). (2) PC3 `&&`-joined command split into two distinct sequential steps with separate failure semantics: Step A `git fetch origin <trunk>` failure → `TrunkFetchFailed` transient-escalate (retry once, then halt+escalate; ancestry UNANSWERED; do not enter orphan-merge recovery); Step B `git merge-base --is-ancestor` non-zero after successful fetch → `MergeNotAncestorOfTrunk` P0 as before (F-S2103-P3-003). (3) EC-007 added (fetch failure → TrunkFetchFailed). (4) TrunkFetchFailed test vector added. (5) Traceability Architecture Module step placement updated to Step 8-post-A per story v1.4 + ADR-031 v1.7 (closes deferred BC-leg of F-S2103-P2-003). |
 | 1.3 | 2026-07-19 | adv pass-1 fix burst (F-P1-001/010) per ADR-031 v1.1 rulings (product-owner). capability TBD→CAP-038 (ADR-031 §Decision 7+8). INV-E21-005→INV-E21-006 sweep (TD-VSDD-060; PR Trunk Ancestry renumbered append-only per ADR-031 v1.1 §Decision 1; INV-E21-005 reassigned to Post-Rebase Diff Integrity/BC-5.44.001). §Traceability Architecture Module deliver-story/SKILL.md→pr-manager.md (SoT = §Architecture Anchors; F-P1-010). ADR Reference row added (ADR-031 §Decision 8). L2 Capability TBD→CAP-038; Capability Anchor Justification added. |
 | 1.2 | 2026-07-19 | E-21 factory-state data-loss hardening (product-owner; issue #358; S-21.03). PC2 added: pr-manager step 7 MUST assert `gh pr view --json baseRefName` equals configured trunk post-create (`BaseRefNameMismatch` hard-fail on mismatch). PC3 added: pr-manager step 7 MUST assert `git merge-base --is-ancestor <merge_sha> origin/<trunk>` exits 0 post-merge (`MergeNotAncestorOfTrunk` P0 error on non-ancestor). INV-E21-006 (PR Trunk Ancestry) instantiation [cited as INV-E21-005 at authoring time; corrected at v1.3]. Invariant 2 added (PC2+PC3 non-optional). EC-002..EC-006 added. 5 new test vector rows. Changelog section added. |
