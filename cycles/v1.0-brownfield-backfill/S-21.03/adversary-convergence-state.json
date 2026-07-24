@@ -1,0 +1,49 @@
+{
+  "story": "S-21.03",
+  "protocol": "BC-5.39.001",
+  "streak_target": 3,
+  "passes_total": 1,
+  "passes_clean": 0,
+  "streak": "0/3",
+  "converged": false,
+  "last_classification": "NOT_CLEAN",
+  "last_pass": {
+    "n": 1,
+    "verdict": "NOT-CLEAN",
+    "counts": {
+      "B": 0,
+      "H": 0,
+      "M": 2,
+      "L": 1,
+      "NITPICK": 0,
+      "OBS": 3
+    },
+    "reviewed_head": "3e2c88d7"
+  },
+  "passes": [
+    {
+      "pass": 1,
+      "verdict": "NOT-CLEAN",
+      "findings": {
+        "BLOCKER": 0,
+        "HIGH": 0,
+        "MEDIUM": 2,
+        "LOW": 1,
+        "NITPICK": 0,
+        "OBS": 3
+      },
+      "finding_ids": [
+        "F-S2103-P1-001",
+        "F-S2103-P1-002",
+        "F-S2103-P1-003",
+        "OBS-1",
+        "OBS-2",
+        "OBS-3"
+      ],
+      "reviewed_head": "3e2c88d7",
+      "base_commit": "a4a79f09",
+      "notes": "Initial pass; full story AC scope review. F-001 routed implementer (not PO) — BC-6.10.002 PC3 unambiguous, mechanical relocation fix. Fix burst dispatched: implementer (F-001/OBS-1/OBS-3) + test-writer (F-002/F-003) concurrent."
+    }
+  ],
+  "next_action": "fix-burst: implementer (F-S2103-P1-001/OBS-1/OBS-3) + test-writer (F-S2103-P1-002/F-S2103-P1-003) concurrent; then pass-2 cascade"
+}
