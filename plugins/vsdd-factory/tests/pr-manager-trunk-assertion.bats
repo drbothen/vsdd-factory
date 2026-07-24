@@ -57,6 +57,34 @@ _extract_step9_section() {
   ' "$PR_MANAGER_MD"
 }
 
+# Extracts the Step 8-post-A mandate block (ancestry assertion + error bodies + consequence).
+# Bounded by "Step 8-post-A" heading → the **Step 8b bold section heading (column-1 anchor).
+# Using /^\*\*Step 8b/ avoids early exit on prose references like "proceed to Step 8b, 8c, 8d".
+_extract_step8_post_a_section() {
+  awk '
+    /Step 8-post-A/ { found=1; next }
+    found && /^\*\*Step 8b/ { exit }
+    found { print }
+  ' "$PR_MANAGER_MD"
+}
+
+# Asserts the Step 8-post-A ancestry mandate appears before the branch-deletion sub-steps (8b/8c/8d).
+# This is the story's core ordering invariant (F-S2103-P2-001): deletion is gated on the assertion.
+_assert_post_a_precedes_deletion_steps() {
+  local post_a_line step8b_line
+  post_a_line="$(grep -n "Step 8-post-A" "$PR_MANAGER_MD" | head -1 | cut -d: -f1)"
+  step8b_line="$(grep -n "Step 8b" "$PR_MANAGER_MD" | head -1 | cut -d: -f1)"
+  [ -n "$post_a_line" ] && [ -n "$step8b_line" ] || {
+    echo "ORDERING FAIL: Step 8-post-A or Step 8b heading not found in pr-manager.md"
+    false
+    return
+  }
+  [ "$post_a_line" -lt "$step8b_line" ] || {
+    echo "ORDERING FAIL: ancestry assertion (line $post_a_line) does not precede deletion steps (line $step8b_line) — BC-6.10.002 PC3 ordering violated"
+    false
+  }
+}
+
 _assert_doc_marker() {
   # $1=regex  $2=label  $3=section_text
   echo "$3" | grep -qE "$1" || {
@@ -251,20 +279,30 @@ _run_null_mergecommit_assertion() {
   # Pre-implementation: doc-parity fails (Step 9 has no --is-ancestor mandate).
   # Post-implementation: MergeNotAncestorOfTrunk emitted; delivered marker NOT created (RG-002).
 
-  local step9
+  local step8pa step9
+  step8pa="$(_extract_step8_post_a_section)"
   step9="$(_extract_step9_section)"
 
-  # DOC-PARITY: Step 9 must mandate the post-merge ancestry assertion
+  # DOC-PARITY MANDATE (Step 8-post-A): load-bearing assertions target the mandate block.
+  # Removing the entire Step 8-post-A block must fail these tests —
+  # the Step 9 back-reference alone cannot satisfy them.
   _assert_doc_marker "merge-base --is-ancestor" \
-    "post-merge git merge-base --is-ancestor assertion command in Step 9" "$step9"
+    "post-merge git merge-base --is-ancestor assertion command in Step 8-post-A mandate" "$step8pa"
   _assert_doc_marker "MergeNotAncestorOfTrunk" \
-    "MergeNotAncestorOfTrunk P0 error variant named in Step 9 mandate" "$step9"
+    "MergeNotAncestorOfTrunk P0 error variant in Step 8-post-A mandate" "$step8pa"
   _assert_doc_marker "non-zero exit" \
-    "comparison direction phrase — non-zero exit code raises MergeNotAncestorOfTrunk (BC-6.10.002 PC3)" "$step9"
+    "comparison direction phrase in Step 8-post-A mandate (BC-6.10.002 PC3)" "$step8pa"
   _assert_doc_marker "P0 DATA ERROR" \
-    "P0 designation present in MergeNotAncestorOfTrunk error body (BC-6.10.002 PC3)" "$step9"
+    "P0 designation in Step 8-post-A error body (BC-6.10.002 PC3)" "$step8pa"
   _assert_doc_marker "MUST NOT be marked delivered" \
-    "hard-fail consequence — story MUST NOT be marked delivered on MergeNotAncestorOfTrunk" "$step9"
+    "hard-fail consequence in Step 8-post-A mandate (BC-6.10.002 PC3 Invariant 2)" "$step8pa"
+
+  # DOC-PARITY BACK-REFERENCE (Step 9): minimal check — Step 9 must point to Step 8-post-A.
+  _assert_doc_marker "Step 8-post-A" \
+    "Step 9 must reference Step 8-post-A as the ancestry assertion site" "$step9"
+
+  # ORDERING INVARIANT: Step 8-post-A precedes branch-deletion sub-steps (8b/8c/8d).
+  _assert_post_a_precedes_deletion_steps
 
   # HARNESS: stub git merge-base --is-ancestor exiting 1; assert P0 error + NOT delivered
   export GIT_IS_ANCESTOR_EXIT=1
@@ -292,20 +330,29 @@ _run_null_mergecommit_assertion() {
   # Pre-implementation: doc-parity fails (same RG-002 gate as T-003).
   # Post-implementation: ASSERTION-PASS emitted; delivered marker touched.
 
-  local step9
+  local step8pa step9
+  step8pa="$(_extract_step8_post_a_section)"
   step9="$(_extract_step9_section)"
 
-  # DOC-PARITY: same Step 9 mandate as T-003 (happy-path needs the assertion present too)
+  # DOC-PARITY MANDATE (Step 8-post-A): same load-bearing assertions as T-003.
+  # Happy-path test also needs the mandate block present — both paths are defined there.
   _assert_doc_marker "merge-base --is-ancestor" \
-    "post-merge ancestry assertion command must be present for happy-path to execute" "$step9"
+    "ancestry assertion command must be in Step 8-post-A mandate for happy-path to execute" "$step8pa"
   _assert_doc_marker "MergeNotAncestorOfTrunk" \
-    "MergeNotAncestorOfTrunk — both paths defined in same Step 9 block" "$step9"
+    "MergeNotAncestorOfTrunk — both paths defined in Step 8-post-A mandate block" "$step8pa"
   _assert_doc_marker "non-zero exit" \
-    "comparison direction phrase — non-zero exit must be documented for truncation to fail this test" "$step9"
+    "comparison direction phrase must be in Step 8-post-A mandate — truncation fails this test" "$step8pa"
   _assert_doc_marker "P0 DATA ERROR" \
-    "P0 designation — error body must retain P0 designation per BC-6.10.002 PC3" "$step9"
+    "P0 designation must remain in Step 8-post-A error body (BC-6.10.002 PC3)" "$step8pa"
   _assert_doc_marker "MUST NOT be marked delivered" \
-    "hard-fail consequence — MUST NOT be marked delivered must be present in Step 9 block" "$step9"
+    "hard-fail consequence must be in Step 8-post-A mandate block" "$step8pa"
+
+  # DOC-PARITY BACK-REFERENCE (Step 9): minimal check — Step 9 must point to Step 8-post-A.
+  _assert_doc_marker "Step 8-post-A" \
+    "Step 9 must reference Step 8-post-A as the ancestry assertion site" "$step9"
+
+  # ORDERING INVARIANT: Step 8-post-A precedes branch-deletion sub-steps (8b/8c/8d).
+  _assert_post_a_precedes_deletion_steps
 
   # HARNESS: stub git merge-base --is-ancestor exiting 0; assert ASSERTION-PASS + delivered
   export GIT_IS_ANCESTOR_EXIT=0
@@ -333,18 +380,27 @@ _run_null_mergecommit_assertion() {
   # Pre-implementation: doc-parity fails (Step 9 has no null-mergeCommit handling mandate).
   # Post-implementation: MergeNotAncestorOfTrunk emitted; delivered marker NOT created (RG-003).
 
-  local step9
+  local step8pa step9
+  step8pa="$(_extract_step8_post_a_section)"
   step9="$(_extract_step9_section)"
 
-  # DOC-PARITY: Step 9 must document the null mergeCommit.oid guard (EC-006)
-  _assert_doc_marker "mergeCommit|mergeCommit\.oid|merge.*null" \
-    "null mergeCommit.oid guard (EC-006) documented in Step 9 mandate" "$step9"
+  # DOC-PARITY MANDATE (Step 8-post-A): null mergeCommit.oid guard must live in the mandate block.
+  # Removing Step 8-post-A entirely must fail these — the Step 9 back-reference alone cannot satisfy them.
+  _assert_doc_marker "mergeCommit\.oid|mergeCommit|merge.*null" \
+    "null mergeCommit.oid guard (EC-006) in Step 8-post-A mandate" "$step8pa"
   _assert_doc_marker "MergeNotAncestorOfTrunk" \
-    "MergeNotAncestorOfTrunk variant used for null-SHA path in Step 9" "$step9"
+    "MergeNotAncestorOfTrunk variant for null-SHA path in Step 8-post-A mandate" "$step8pa"
   _assert_doc_marker "P0 DATA ERROR" \
-    "P0 designation present in null-mergeCommit error body (BC-6.10.002 EC-006)" "$step9"
+    "P0 designation in null-mergeCommit error body in Step 8-post-A (BC-6.10.002 EC-006)" "$step8pa"
   _assert_doc_marker "MUST NOT be marked delivered" \
-    "hard-fail consequence — story MUST NOT be marked delivered on null mergeCommit.oid" "$step9"
+    "hard-fail consequence for null mergeCommit.oid in Step 8-post-A mandate" "$step8pa"
+
+  # DOC-PARITY BACK-REFERENCE (Step 9): minimal check — Step 9 must point to Step 8-post-A.
+  _assert_doc_marker "Step 8-post-A" \
+    "Step 9 must reference Step 8-post-A as the ancestry assertion site" "$step9"
+
+  # ORDERING INVARIANT: Step 8-post-A precedes branch-deletion sub-steps (8b/8c/8d).
+  _assert_post_a_precedes_deletion_steps
 
   # HARNESS: stub gh returning null mergeCommit (realistic pretty-printed JSON); assert MergeNotAncestorOfTrunk + NOT delivered
   export GH_STUB_RESPONSE='{ "mergeCommit": null }'
