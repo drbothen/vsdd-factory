@@ -2,13 +2,15 @@
   "story": "S-21.03",
   "protocol": "BC-5.39.001",
   "streak_target": 3,
-  "passes_total": 8,
-  "passes_clean": 2,
-  "streak": "2/3",
-  "converged": false,
+  "passes_total": 9,
+  "passes_clean": 3,
+  "streak": "3/3",
+  "converged": true,
+  "converged_at": "2026-07-24",
+  "convergence_basis": "BC-5.39.001 3 consecutive CLEAN (P7/P8/P9) on HEAD 194e98fe",
   "last_classification": "CLEAN",
   "last_pass": {
-    "n": 8,
+    "n": 9,
     "verdict": "CLEAN",
     "counts": {
       "B": 0,
@@ -16,7 +18,7 @@
       "M": 0,
       "L": 0,
       "NITPICK": 0,
-      "OBS": 1
+      "OBS": 0
     },
     "reviewed_head": "194e98fe"
   },
@@ -187,6 +189,22 @@
       "reviewed_head": "194e98fe",
       "base_commit": "a4a79f09",
       "notes": "CLEAN — streak 2/3. Independent fresh-context confirmation of pass-7. New angles: doc-parity grep fidelity exhaustively verified (every _assert_doc_marker regex resolved to real text in its extracted section, with line evidence); extractor exit-anchor correctness (Step A/B sub-heads don't truncate; terminates at Step 8b); harness/fixture logic verified (env isolation per-test, null-before-fetch ordering fidelity); semantic anchoring audit (§Decision 8, §Consequences #6, CAP-038, BC H1, target_module) all resolve; version cross-checks match (ADR-031 v1.8, BC-6.10.002, story v1.8 consistent); S-7.01 partial-fix regression axis: all prior fixes confirmed propagated, no orphaned old-value references. OBS-P8-1: git stub line-23 exec /usr/bin/git fallback — inert in current suite, never reached; latent portability seam for future tests on non-/usr/bin/git hosts; ACCEPTED-WITH-RECORD; noted for wave-gate. Novelty LOW. No fix dispatched; pass-9 to review at HEAD 194e98fe (unchanged — streak 2/3)."
+    },
+    {
+      "pass": 9,
+      "verdict": "CLEAN",
+      "findings": {
+        "BLOCKER": 0,
+        "HIGH": 0,
+        "MEDIUM": 0,
+        "LOW": 0,
+        "NITPICK": 0,
+        "OBS": 0
+      },
+      "finding_ids": [],
+      "reviewed_head": "194e98fe",
+      "base_commit": "a4a79f09",
+      "notes": "CLEAN — streak 3/3 — CONVERGED. Fresh re-derivation across ~28 angles; adversary explicitly declined to manufacture under convergence pressure. New angles: extractor anchor resolution with line evidence (all 6 boundaries correct); JSON-extraction fidelity (headRefOid/state/mergedAt/baseRefName all extracted and consumed at correct downstream steps); fetch-retry determinism (unconditional, exactly-once bounded, TrunkFetchFailed on second failure); flow ordering 8-pre-A→8-pre-B→8a→8-post-A→8b/8c/8d vs BC PC3 immediately-mandate (SATISFIED — no step intervenes between 8a and 8-post-A); semantic anchoring completeness (full 9-anchor audit: §Decision 8, §Consequences #6, CAP-038, BC H1, target_module, EC-007, RG-004, ADR-031 v1.8 cite, BC v1.5 cite — all PRESENT); frontmatter-body bidirectional completeness (no orphan cites or body entries); prior-fix propagation all 16 findings (zero regressions, zero paper-fixes surviving); BC PC3 guard path exclusivity (no false-positive/negative); AC completeness vs BC EC exhaustiveness (every clause covered); accepted-with-record observation stability (all 4 active observations non-blocking). BC-5.39.001 SATISFIED — 3 consecutive CLEAN (P7/P8/P9) on HEAD 194e98fe."
     }
   ],
   "accepted_with_record": [
@@ -195,5 +213,5 @@
     "trunk-parameterization-step3-hardcode",
     "git-stub-usrbin-fallback-portability-seam"
   ],
-  "next_action": "pass-9: adversary review at HEAD 194e98fe (unchanged — streak 2/3)"
+  "next_action": "converged — PR-level cascade; no further LOCAL passes required"
 }
