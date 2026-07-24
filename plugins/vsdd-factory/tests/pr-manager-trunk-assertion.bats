@@ -485,12 +485,12 @@ _run_null_mergecommit_assertion() {
 }
 
 # ===========================================================================
-# T-006 / AC-006 / EC-007: git fetch fails after retry → TrunkFetchFailed; HALT; NOT delivered
+# T-006 / EC-007: git fetch fails after retry → TrunkFetchFailed; HALT; NOT delivered
 # BC-6.10.002 PC3 v1.4, EC-007
 # RG-004: TrunkFetchFailed path must be documented in Step 8-post-A (fetch is NOT orphan-merge)
 # ===========================================================================
 
-@test "T-006 S-21.03 AC-006: TrunkFetchFailed on fetch failure — MergeNotAncestorOfTrunk NOT raised; HALT; NOT delivered" {
+@test "T-006 S-21.03 EC-007: TrunkFetchFailed on fetch failure — MergeNotAncestorOfTrunk NOT raised; HALT; NOT delivered" {
   # Fixture: git stub exits GIT_FETCH_EXIT (=1) on every fetch call.
   # Pre-implementation: doc-parity fails (Step 8-post-A has no TrunkFetchFailed mandate).
   # Post-implementation: TrunkFetchFailed emitted after 2 attempts (retry-once); ancestry
