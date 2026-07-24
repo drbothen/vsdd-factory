@@ -196,7 +196,7 @@ Dispatch `devops-engineer` with task: "Remove worktree `.worktrees/S-N.MM/` and 
 
 ## Step 9 — State update
 
-Update `.factory/stories/sprint-state.yaml`: story status → `completed`.
+Update `.factory/stories/sprint-state.yaml`: story status → `merged`.
 Update `.factory/stories/STORY-INDEX.md`: status column for this story.
 
 ---

@@ -41,6 +41,21 @@ use vsdd_hook_sdk::{HookPayload, HookResult};
 pub const HOST_ABI_VERSION: u32 = 1;
 
 // ---------------------------------------------------------------------------
+// Log level constants (injectable `log` callback level parameter)
+// ---------------------------------------------------------------------------
+
+/// Named constants for the `level: u8` parameter of the injectable `log`
+/// callback in `HookCallbacks`. Matches the semantic mapping documented on
+/// the `log` field: 0=trace, 1=debug, 2=info, 3=warn, 4=error.
+pub mod log_level {
+    pub const TRACE: u8 = 0;
+    pub const DEBUG: u8 = 1;
+    pub const INFO: u8 = 2;
+    pub const WARN: u8 = 3;
+    pub const ERROR: u8 = 4;
+}
+
+// ---------------------------------------------------------------------------
 // Branch and command classification (pure functions — injectable-testable)
 // ---------------------------------------------------------------------------
 
@@ -92,6 +107,97 @@ fn is_canonical_long_value_consuming(opt: &str) -> bool {
     )
 }
 
+/// Advances past git global options in `tokens` starting at index `start`.
+///
+/// Returns `(subcommand_index, factory_class_target)`:
+/// - `subcommand_index`: index of the first non-option, non-consumed token (the
+///   subcommand). Equal to `tokens.len()` when the inner loop exhausts tokens
+///   without reaching a non-option position.
+/// - `factory_class_target`: `Some(target)` if a `-C <target>` or
+///   `-c core.worktree=<target>` option naming a `.factory`-class path was
+///   encountered while skipping options; `None` otherwise.
+///
+/// Value-consuming rules (F-P4-001 / F-P4-002):
+/// - `-C <path>` and `-c <key=val>`: consume one value token.
+/// - Canonical long options (`--git-dir`, `--work-tree`, etc.): consume one
+///   value token unconditionally.
+/// - Unknown long options (no `=`): conservative lookahead — if the next
+///   token is `add`/`stage`, leave `j` pointing at it (it IS the subcommand);
+///   if the next token is non-dash and not a subcommand, consume it as a value;
+///   if the next token starts with `-`, treat the option as boolean (no consume).
+/// - All other short options and `=`-form long options are self-contained (no
+///   value consumed).
+///
+/// # BC trace
+/// BC-4.16.001 Precondition 2 v1.7 (F-P4-001 + F-P4-002): canonical option skip.
+/// BC-4.16.001 v1.7 Invariant 6: `-C`/`-c core.worktree=` factory-class capture
+/// (F-P5-001).
+fn skip_global_options(tokens: &[&str], start: usize) -> (usize, Option<String>) {
+    let mut j = start;
+    let mut factory_target: Option<String> = None;
+    while j < tokens.len() {
+        let t = tokens[j];
+        if t.starts_with('-') {
+            j += 1; // advance past the option token itself
+            if (t == "-C" || t == "-c") && j < tokens.len() {
+                // -C <path> and -c <key=val>: value-consuming.
+                if t == "-C" {
+                    let raw = tokens[j];
+                    let unquoted = raw.trim_matches(|c: char| c == '\'' || c == '"');
+                    if is_factory_class_target(unquoted) {
+                        factory_target = Some(unquoted.to_string());
+                    }
+                } else {
+                    // -c <key=val>: check for core.worktree=<factory-class-val>.
+                    let raw = tokens[j];
+                    let unquoted = raw.trim_matches(|c: char| c == '\'' || c == '"');
+                    if let Some(val) = extract_core_worktree_value(unquoted) {
+                        let val_unquoted = val.trim_matches(|c: char| c == '\'' || c == '"');
+                        if is_factory_class_target(val_unquoted) {
+                            factory_target = Some(val_unquoted.to_string());
+                        }
+                    }
+                }
+                j += 1; // consume the value token
+            } else if t.starts_with("--") && !t.contains('=') {
+                // Long option without `=` (not self-contained).
+                if is_canonical_long_value_consuming(t) {
+                    // Canonical value-consuming option: skip the value token.
+                    if j < tokens.len() {
+                        j += 1;
+                    }
+                } else {
+                    // Unknown long option — conservative lookahead (F-P4-001).
+                    // If the next token is add/stage: leave j pointing at it (subcommand).
+                    // If the next token is non-dash and not add/stage: consume as value.
+                    // If the next token starts with `-`: boolean option, no consume.
+                    if j < tokens.len() {
+                        let peek = tokens[j];
+                        let peek_core = peek.trim_end_matches([';', '&', '|']);
+                        let peek_core = peek_core.trim_matches(|c: char| c == '\'' || c == '"');
+                        if !peek_core.eq_ignore_ascii_case("add")
+                            && !peek_core.eq_ignore_ascii_case("stage")
+                            && !peek.starts_with('-')
+                        {
+                            j += 1; // consume as value token
+                        }
+                        // peek is add/stage → leave j pointing at it (falls through to
+                        // the non-`-` branch on the next loop iteration).
+                        // peek starts with `-` → boolean option, no value consumed.
+                    }
+                }
+            }
+            // Short options other than -C/-c, and long options with `=`, are
+            // self-contained; j was already incremented at the top of this block.
+        } else {
+            // First non-option, non-consumed token is the subcommand.
+            return (j, factory_target);
+        }
+    }
+    // Inner loop exhausted without finding a non-option (subcommand) position.
+    (tokens.len(), factory_target)
+}
+
 /// Returns true if the Bash payload string contains a `git add` or `git stage` command
 /// in any form, including chained, global-option, and glued-shell-punctuation forms.
 ///
@@ -102,16 +208,9 @@ fn is_canonical_long_value_consuming(opt: &str) -> bool {
 /// - Candidate `git` tokens are recognized after stripping leading shell punctuation
 ///   (`$(`, `(`, `` ` ``) per F-P4-002: `$(git add …`, `(git add …`, `` `git add … ``
 ///   are all in scope.
-/// - For each `git` token found, skips any number of intervening global options or flags
-///   before checking whether the first non-option subcommand token is `add` or `stage`
-///   (case-insensitive).
-/// - Known value-consuming options per F-P4-001 (space form; `=`-joined are self-contained):
-///   `-C <path>`, `-c <name=value>`, `--git-dir <path>`, `--work-tree <path>`,
-///   `--namespace <path>`, `--super-prefix <path>`, `--exec-path <path>`.
-/// - Unknown long options (start with `--`, no `=`): conservative lookahead (F-P4-001):
-///   if the next token is `add`/`stage`, detect immediately; if next token is a non-dash
-///   non-add/stage value, consume it; if next token starts with `-`, treat as boolean.
-///   Under-match is forbidden; conservative over-match is acceptable.
+/// - For each `git` token found, uses `skip_global_options` to advance past intervening
+///   global options before checking whether the first non-option subcommand token is
+///   `add` or `stage` (case-insensitive).
 /// - Subcommand tokens may have trailing shell metacharacters glued to them (e.g.
 ///   `"diff;"` in `git diff; git add`) or surrounding single/double quotes (e.g.
 ///   `"add"` or `'stage'`); the core word is extracted by stripping trailing
@@ -129,64 +228,23 @@ pub fn is_git_add_command(payload: &str) -> bool {
         // Handles $(git, (git, `git forms glued without whitespace.
         let candidate = strip_shell_prefix(tokens[i]);
         if candidate.eq_ignore_ascii_case("git") {
-            let mut j = i + 1;
-            // Skip global options, consuming value tokens for known/unknown long options.
-            while j < tokens.len() {
-                let t = tokens[j];
-                if t.starts_with('-') {
-                    j += 1;
-                    if (t == "-C" || t == "-c") && j < tokens.len() {
-                        // -C <path> and -c <key=val>: consume next token as value.
-                        j += 1;
-                    } else if t.starts_with("--") && !t.contains('=') {
-                        // Long option without `=` (not self-contained):
-                        // either a canonical value-consuming option or an unknown long option.
-                        // F-P4-001: canonical options consume the next token unconditionally;
-                        // unknown options use conservative lookahead.
-                        if is_canonical_long_value_consuming(t) {
-                            // Canonical value-consuming option: skip the value token.
-                            if j < tokens.len() {
-                                j += 1;
-                            }
-                        } else {
-                            // Unknown long option — conservative lookahead (F-P4-001).
-                            // If the next token is add/stage: it is the subcommand; detect now.
-                            // If the next token is non-dash and not add/stage: consume as value.
-                            // If the next token starts with `-`: option is boolean, no consume.
-                            if j < tokens.len() {
-                                let peek = tokens[j];
-                                let peek_core = peek.trim_end_matches([';', '&', '|']);
-                                let peek_core =
-                                    peek_core.trim_matches(|c: char| c == '\'' || c == '"');
-                                if peek_core.eq_ignore_ascii_case("add")
-                                    || peek_core.eq_ignore_ascii_case("stage")
-                                {
-                                    return true;
-                                } else if !peek.starts_with('-') {
-                                    j += 1; // consume as value token
-                                }
-                                // peek starts with '-': option is boolean, no value consumed
-                            }
-                        }
-                    }
-                    // Short options other than -C/-c and long options with `=` are
-                    // self-contained; j was already incremented above.
-                } else {
-                    // First non-option, non-consumed token is the subcommand. Strip trailing
-                    // shell metacharacters then surrounding single/double quotes before
-                    // comparison. Quote-strip mirrors is_factory_arg_token for consistency.
-                    let core = t.trim_end_matches([';', '&', '|']);
-                    let core = core.trim_matches(|c: char| c == '\'' || c == '"');
-                    if core.eq_ignore_ascii_case("add") || core.eq_ignore_ascii_case("stage") {
-                        return true;
-                    }
-                    // Subcommand is not add/stage; resume outer scan past this token.
-                    i = j + 1;
-                    continue 'outer;
-                }
+            let (sub_idx, _) = skip_global_options(&tokens, i + 1);
+            if sub_idx >= tokens.len() {
+                // Inner loop exhausted without finding a subcommand for this git token.
+                break 'outer;
             }
-            // Inner loop exhausted without finding a subcommand for this git token.
-            break 'outer;
+            // First non-option, non-consumed token is the subcommand. Strip trailing
+            // shell metacharacters then surrounding single/double quotes before
+            // comparison. Quote-strip mirrors is_factory_arg_token for consistency.
+            let t = tokens[sub_idx];
+            let core = t.trim_end_matches([';', '&', '|']);
+            let core = core.trim_matches(|c: char| c == '\'' || c == '"');
+            if core.eq_ignore_ascii_case("add") || core.eq_ignore_ascii_case("stage") {
+                return true;
+            }
+            // Subcommand is not add/stage; resume outer scan past this token.
+            i = sub_idx + 1;
+            continue 'outer;
         } else {
             i += 1;
         }
@@ -232,87 +290,51 @@ pub fn contains_factory_path_arg(payload: &str) -> bool {
     }
 
     // Parse git add/stage invocations in the payload and inspect their argument regions.
-    // Global option values are skipped (F-P4-001): canonical value-consuming options and
-    // conservative lookahead for unknown long options — same rules as is_git_add_command.
+    // skip_global_options handles F-P4-001/F-P4-002 option skipping consistently.
     let tokens: Vec<&str> = payload.split_whitespace().collect();
     let mut i = 0;
     'outer: while i < tokens.len() {
         // F-P4-002: strip leading shell punctuation before comparing to "git".
         let candidate = strip_shell_prefix(tokens[i]);
         if candidate.eq_ignore_ascii_case("git") {
-            let mut j = i + 1;
-            // Skip global options using the same value-consuming rules as is_git_add_command.
-            while j < tokens.len() {
-                let t = tokens[j];
-                if t.starts_with('-') {
-                    j += 1;
-                    if (t == "-C" || t == "-c") && j < tokens.len() {
-                        j += 1;
-                    } else if t.starts_with("--") && !t.contains('=') {
-                        // Long option without `=`: canonical or unknown lookahead (F-P4-001).
-                        if is_canonical_long_value_consuming(t) {
-                            if j < tokens.len() {
-                                j += 1;
-                            }
-                        } else {
-                            // Unknown long option: conservative lookahead.
-                            // If next token is non-dash and not add/stage: consume as value.
-                            // (If it IS add/stage, leave j pointing at it for subcommand
-                            // detection in the non-`-` branch below.)
-                            if j < tokens.len() {
-                                let peek = tokens[j];
-                                let peek_core = peek.trim_end_matches([';', '&', '|']);
-                                let peek_core =
-                                    peek_core.trim_matches(|c: char| c == '\'' || c == '"');
-                                if !peek_core.eq_ignore_ascii_case("add")
-                                    && !peek_core.eq_ignore_ascii_case("stage")
-                                    && !peek.starts_with('-')
-                                {
-                                    j += 1; // consume as value token
-                                }
-                                // peek is add/stage or starts with `-`: no consume
-                            }
-                        }
-                    }
-                } else {
-                    // First non-option, non-consumed token is the subcommand.
-                    let subcore = t.trim_end_matches([';', '&', '|']);
-                    let subcore = subcore.trim_matches(|c: char| c == '\'' || c == '"');
-                    if !subcore.eq_ignore_ascii_case("add")
-                        && !subcore.eq_ignore_ascii_case("stage")
-                    {
-                        // Not a git add/stage; resume outer scan past this subcommand.
-                        i = j + 1;
-                        continue 'outer;
-                    }
-                    // Found git add/stage. Check argument tokens (after the subcommand).
-                    j += 1;
-                    while j < tokens.len() {
-                        let arg = tokens[j];
-                        // Shell chain terminators end this command's argument list.
-                        if arg == "&&" || arg == "||" || arg == ";" {
-                            i = j + 1;
-                            continue 'outer;
-                        }
-                        // Token with trailing chain operator: content before it is an arg.
-                        let arg_core = arg.trim_end_matches([';', '&', '|']);
-                        if arg_core.len() < arg.len() {
-                            if is_factory_arg_token(arg_core) {
-                                return true;
-                            }
-                            i = j + 1;
-                            continue 'outer;
-                        }
-                        if is_factory_arg_token(arg) {
-                            return true;
-                        }
-                        j += 1;
-                    }
-                    // Exhausted tokens while scanning add arguments.
-                    break 'outer;
-                }
+            let (sub_idx, _) = skip_global_options(&tokens, i + 1);
+            if sub_idx >= tokens.len() {
+                // Inner loop exhausted without finding a subcommand.
+                break 'outer;
             }
-            // Inner loop exhausted without finding a subcommand.
+            // First non-option, non-consumed token is the subcommand.
+            let t = tokens[sub_idx];
+            let subcore = t.trim_end_matches([';', '&', '|']);
+            let subcore = subcore.trim_matches(|c: char| c == '\'' || c == '"');
+            if !subcore.eq_ignore_ascii_case("add") && !subcore.eq_ignore_ascii_case("stage") {
+                // Not a git add/stage; resume outer scan past this subcommand.
+                i = sub_idx + 1;
+                continue 'outer;
+            }
+            // Found git add/stage. Check argument tokens (after the subcommand).
+            let mut j = sub_idx + 1;
+            while j < tokens.len() {
+                let arg = tokens[j];
+                // Shell chain terminators end this command's argument list.
+                if arg == "&&" || arg == "||" || arg == ";" {
+                    i = j + 1;
+                    continue 'outer;
+                }
+                // Token with trailing chain operator: content before it is an arg.
+                let arg_core = arg.trim_end_matches([';', '&', '|']);
+                if arg_core.len() < arg.len() {
+                    if is_factory_arg_token(arg_core) {
+                        return true;
+                    }
+                    i = j + 1;
+                    continue 'outer;
+                }
+                if is_factory_arg_token(arg) {
+                    return true;
+                }
+                j += 1;
+            }
+            // Exhausted tokens while scanning add arguments.
             break 'outer;
         } else {
             i += 1;
@@ -448,79 +470,27 @@ fn find_factory_class_target(payload: &str) -> Option<String> {
             i += 1;
             continue;
         }
-        let mut j = i + 1;
-        let mut factory_target: Option<String> = None;
-        while j < tokens.len() {
-            let t = tokens[j];
-            if t.starts_with('-') {
-                j += 1; // advance past the option token itself
-                if t == "-C" && j < tokens.len() {
-                    // -C <target>: check if factory-class (quote-strip the value token).
-                    let raw = tokens[j];
-                    let unquoted = raw.trim_matches(|c: char| c == '\'' || c == '"');
-                    if is_factory_class_target(unquoted) {
-                        factory_target = Some(unquoted.to_string());
-                    }
-                    j += 1; // consume the value token
-                } else if t == "-c" && j < tokens.len() {
-                    // -c <key=val>: check for core.worktree=<factory-class-val>.
-                    let raw = tokens[j];
-                    let unquoted = raw.trim_matches(|c: char| c == '\'' || c == '"');
-                    if let Some(val) = extract_core_worktree_value(unquoted) {
-                        // val is extracted from after '='; strip any surrounding quotes.
-                        let val_unquoted = val.trim_matches(|c: char| c == '\'' || c == '"');
-                        if is_factory_class_target(val_unquoted) {
-                            factory_target = Some(val_unquoted.to_string());
-                        }
-                    }
-                    j += 1; // consume the value token
-                } else if t.starts_with("--") && !t.contains('=') {
-                    if is_canonical_long_value_consuming(t) {
-                        // Canonical value-consuming option: skip its value token.
-                        if j < tokens.len() {
-                            j += 1;
-                        }
-                    } else {
-                        // Unknown long option: conservative lookahead (F-P4-001).
-                        // If peek is add/stage, leave j pointing at the subcommand
-                        // so the non-'-' branch below detects it. Otherwise consume
-                        // as value if it isn't another option.
-                        if j < tokens.len() {
-                            let peek = tokens[j];
-                            let peek_core = peek.trim_end_matches([';', '&', '|']);
-                            let peek_core = peek_core.trim_matches(|c: char| c == '\'' || c == '"');
-                            if !peek_core.eq_ignore_ascii_case("add")
-                                && !peek_core.eq_ignore_ascii_case("stage")
-                                && !peek.starts_with('-')
-                            {
-                                j += 1; // consume as value
-                            }
-                            // If peek is add/stage or starts with '-': no consume;
-                            // inner loop continues and will handle in the next pass.
-                        }
-                    }
-                }
-                // Short options other than -C/-c: no value token consumed.
-            } else {
-                // First non-option, non-consumed token is the subcommand.
-                let core = t.trim_end_matches([';', '&', '|']);
-                let core = core.trim_matches(|c: char| c == '\'' || c == '"');
-                // When add/stage is found AND this segment has a factory-class target,
-                // return it. Otherwise (not add/stage, or add/stage with no factory-class
-                // target) advance and scan subsequent chained segments — mirrors the
-                // sibling continue-'outer pattern in is_git_add_command /
-                // contains_factory_path_arg (F-P6-001 fix).
-                if (core.eq_ignore_ascii_case("add") || core.eq_ignore_ascii_case("stage"))
-                    && factory_target.is_some()
-                {
-                    return factory_target;
-                }
-                i = j + 1;
-                continue 'outer;
-            }
+        let (sub_idx, factory_target) = skip_global_options(&tokens, i + 1);
+        if sub_idx >= tokens.len() {
+            // Inner loop exhausted without finding add/stage subcommand.
+            break 'outer;
         }
-        // Inner while loop exhausted without finding add/stage subcommand.
-        break 'outer;
+        // First non-option, non-consumed token is the subcommand.
+        let t = tokens[sub_idx];
+        let core = t.trim_end_matches([';', '&', '|']);
+        let core = core.trim_matches(|c: char| c == '\'' || c == '"');
+        // When add/stage is found AND this segment has a factory-class target,
+        // return it. Otherwise (not add/stage, or add/stage with no factory-class
+        // target) advance and scan subsequent chained segments — mirrors the
+        // sibling continue-'outer pattern in is_git_add_command /
+        // contains_factory_path_arg (F-P6-001 fix).
+        if (core.eq_ignore_ascii_case("add") || core.eq_ignore_ascii_case("stage"))
+            && factory_target.is_some()
+        {
+            return factory_target;
+        }
+        i = sub_idx + 1;
+        continue 'outer;
     }
     None
 }
@@ -542,7 +512,9 @@ where
     pub exec_subprocess: B,
     /// Emit a structured event (type, fields).
     pub emit_event: E,
-    /// Log a message at the given level (0=trace, 1=debug, 2=info, 3=warn, 4=error).
+    /// Log a message at the given level. Use the `log_level` module constants
+    /// (`log_level::TRACE`=0, `log_level::DEBUG`=1, `log_level::INFO`=2,
+    /// `log_level::WARN`=3, `log_level::ERROR`=4).
     pub log: L,
 }
 
@@ -596,7 +568,7 @@ where
         Some(cmd) => cmd.to_string(),
         None => {
             (callbacks.log)(
-                2,
+                log_level::INFO,
                 "validate-factory-path-staging: no 'command' field in tool_input",
             );
             return HookResult::Continue;
@@ -607,7 +579,7 @@ where
     const MAX_COMMAND_LEN: usize = 65_536; // 64 KiB — WASM fuel and memory bound
     if command.len() > MAX_COMMAND_LEN {
         (callbacks.log)(
-            3,
+            log_level::WARN,
             "[validate-factory-path-staging] WARN: oversized command payload — failing open",
         );
         return HookResult::Continue;
@@ -641,7 +613,7 @@ where
         Ok((exit_code, stdout, stderr)) => {
             if exit_code != 0 {
                 (callbacks.log)(
-                    3,
+                    log_level::WARN,
                     &format!(
                         "validate-factory-path-staging: branch detection returned exit \
                          {exit_code} (stderr: {stderr}), failing open per Invariant 3"
@@ -653,7 +625,7 @@ where
             if b.is_empty() {
                 // Empty stdout = detached HEAD state — fail-open per Invariant 3.
                 (callbacks.log)(
-                    3,
+                    log_level::WARN,
                     "validate-factory-path-staging: empty branch output (detached HEAD?), \
                      failing open per Invariant 3",
                 );
@@ -664,7 +636,7 @@ where
         Err(e) => {
             // git unavailable or exec failure — fail-open per Invariant 3.
             (callbacks.log)(
-                3,
+                log_level::WARN,
                 &format!(
                     "validate-factory-path-staging: branch detection failed ({e}), \
                      failing open per Invariant 3"
@@ -789,8 +761,8 @@ pub fn on_pre_tool_use(payload: HookPayload) -> HookResult {
                 vsdd_hook_sdk::host::emit_event(event_type, fields);
             },
             log: |level, msg| match level {
-                0..=2 => vsdd_hook_sdk::host::log_info(msg),
-                3 => vsdd_hook_sdk::host::log_warn(msg),
+                0..=log_level::INFO => vsdd_hook_sdk::host::log_info(msg),
+                log_level::WARN => vsdd_hook_sdk::host::log_warn(msg),
                 _ => vsdd_hook_sdk::host::log_error(msg),
             },
         },

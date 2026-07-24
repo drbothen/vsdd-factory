@@ -255,6 +255,12 @@ git range-diff ${PRE_REBASE_TIP}...${POST_REBASE_TIP}
 # git range-diff $(git rev-parse ORIG_HEAD)...HEAD
 ```
 
+The three-dot form (`A...B`) is required here: it computes the symmetric difference
+from the merge-base of the two tips, so `git range-diff` sees both the pre-rebase
+commits and the post-rebase commits and can pair them for comparison. Two-dot (`A..B`)
+would enumerate only the commits reachable from `B` but not `A`, omitting the
+pre-rebase commits — making modified-commit detection impossible.
+
 Any commit pair showing `modified` or `changed` status that touches a file also modified
 by a recently-merged sibling story on `origin/develop` MUST be inspected before proceeding
 to push.

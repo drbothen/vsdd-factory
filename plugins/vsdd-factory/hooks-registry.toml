@@ -933,7 +933,10 @@ env_allow = ["PATH", "HOME", "TMPDIR", "CLAUDE_PROJECT_DIR", "CLAUDE_PLUGIN_ROOT
 # Fail-open (on_error=continue): a crashed guard never wedges the session; Layer-2
 # (per-story-delivery.md §Main-Checkout Sync Protocol) provides defense-in-depth.
 # ADR-031 §Decision 2+3; BC-4.16.001; POLICY 21 compliance: native WASM, no .sh file.
-# Priority 140 — same tier as verify-git-push (140, ^Bash$); ties resolved by registry order.
+# Priority 140 — same tier as verify-git-push (140, ^Bash$); same-priority plugins execute
+# in parallel (registry.rs ~L217, S-1.6), not sequentially by registry order. Parallel
+# execution is safe: validate-factory-path-staging and verify-git-push have disjoint
+# check surfaces (staging-path guard vs push-destination guard) with no shared state.
 # Next Bash-matcher sibling: verify-factory-lock-bash (142, ^Bash$).
 # Dispatcher sorts ascending: lower priority number fires first (140 < 142).
 
@@ -949,6 +952,9 @@ async = false
 
 [hooks.capabilities.exec_subprocess]
 binary_allow = ["git"]
+# PATH omitted: the dispatcher process inherits PATH from its parent Claude session;
+# the child git subprocess resolves the binary via that inherited PATH without needing
+# PATH re-injected into the plugin sandbox. Proven by AC-001 dispatcher-level block tests.
 env_allow = ["HOME", "GIT_CONFIG_GLOBAL", "XDG_CONFIG_HOME"]
 
 # ---------- validate-artifact-path (PreToolUse, Write|Edit) ----------

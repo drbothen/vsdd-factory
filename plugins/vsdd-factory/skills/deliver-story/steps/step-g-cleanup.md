@@ -17,7 +17,7 @@ description: Dispatch devops-engineer to remove the worktree and local branch, t
 
 ## Sub-step G.2: State Update
 
-Update `.factory/stories/sprint-state.yaml`: story status → `completed`.
+Update `.factory/stories/sprint-state.yaml`: story status → `merged`.
 Update `.factory/stories/STORY-INDEX.md`: status column for this story.
 Commit to `factory-artifacts` branch: `factory(phase-3): STORY-NNN delivered`.
 
