@@ -310,7 +310,17 @@ For each file flagged by step 1a or 1b, apply one of these postconditions:
   ```
   STOP: Post-rebase diff-integrity gate detected an unverified net-negative line-count
   delta in a file also modified by a recently-merged sibling story.
-  Error: UnverifiedNetNegativeDelta
+
+  File(s) at risk:
+    <filename>: <+added/-removed> lines (net: <N> lines)
+    Modified by sibling story: <commit SHA> — <commit message>
+
+  This may indicate a silent drop from ORT 3-way merge (issue #365 class).
+  Required actions before force-push:
+    1. Run `git diff origin/develop -- <filename>` and inspect the delta manually.
+    2. Confirm each net-negative change is an intentional deletion, not a silent drop.
+    3. If silent drops are found, restore the dropped lines and re-commit.
+    4. Re-run the post-rebase diff-integrity gate after any corrections.
   ```
 
   Do not proceed to push until the gate passes cleanly.
