@@ -328,12 +328,12 @@ _run_null_mergecommit_assertion() {
 # ===========================================================================
 # T-003 / AC-003 / PC3 error: merge-base exits 1 → MergeNotAncestorOfTrunk; NOT delivered
 # BC-6.10.002 PC3, Invariant 2
-# RG-002: no merge-base --is-ancestor assertion in pr-manager.md §Step 9 → doc-parity fails
+# RG-002: no merge-base --is-ancestor assertion in pr-manager.md §Step 8-post-A → doc-parity fails
 # ===========================================================================
 
 @test "T-003 S-21.03 AC-003: MergeNotAncestorOfTrunk when merge-base exits 1 — story NOT delivered" {
   # Fixture: git stub exits 1 for merge-base --is-ancestor.
-  # Pre-implementation: doc-parity fails (Step 9 has no --is-ancestor mandate).
+  # Pre-implementation: doc-parity fails (Step 8-post-A has no --is-ancestor mandate).
   # Post-implementation: MergeNotAncestorOfTrunk emitted; delivered marker NOT created (RG-002).
 
   local step8pa step9
@@ -437,12 +437,12 @@ _run_null_mergecommit_assertion() {
 # ===========================================================================
 # T-005 / AC-005 / EC-006: null mergeCommit.oid → MergeNotAncestorOfTrunk
 # BC-6.10.002 PC3, EC-006
-# RG-003: no null-mergeCommit handling in pr-manager.md §Step 9 → doc-parity fails
+# RG-003: no null-mergeCommit handling in pr-manager.md §Step 8-post-A → doc-parity fails
 # ===========================================================================
 
 @test "T-005 S-21.03 AC-005: null mergeCommit.oid treated as MergeNotAncestorOfTrunk" {
   # Fixture: gh stub returns {"mergeCommit":null} — merge SHA unavailable.
-  # Pre-implementation: doc-parity fails (Step 9 has no null-mergeCommit handling mandate).
+  # Pre-implementation: doc-parity fails (Step 8-post-A has no null-mergeCommit handling mandate).
   # Post-implementation: MergeNotAncestorOfTrunk emitted; delivered marker NOT created (RG-003).
 
   local step8pa step9
