@@ -85,7 +85,7 @@ _run_base_ref_assertion() {
   local json_out actual_base
 
   json_out="$("$fixture_dir/gh" pr view 123 --json baseRefName 2>/dev/null)"
-  actual_base="$(printf '%s' "$json_out" | grep -oE '"baseRefName":"[^"]*"' | cut -d'"' -f4)"
+  actual_base="$(printf '%s' "$json_out" | grep -oE '"baseRefName"[[:space:]]*:[[:space:]]*"[^"]*"' | cut -d'"' -f4)"
 
   if [ "$actual_base" = "$trunk" ]; then
     printf 'ASSERTION-PASS: baseRefName '"'"'%s'"'"' equals configured trunk '"'"'%s'"'"'\n' \
@@ -146,7 +146,7 @@ _run_null_mergecommit_assertion() {
   local mc_json merge_sha
 
   mc_json="$("$fixture_dir/gh" pr view "$pr_num" --json mergeCommit 2>/dev/null)"
-  merge_sha="$(printf '%s' "$mc_json" | grep -oE '"oid":"[^"]*"' | cut -d'"' -f4)"
+  merge_sha="$(printf '%s' "$mc_json" | grep -oE '"oid"[[:space:]]*:[[:space:]]*"[^"]*"' | cut -d'"' -f4)"
 
   if [ -z "$merge_sha" ]; then
     echo "MergeNotAncestorOfTrunk"
@@ -177,9 +177,15 @@ _run_null_mergecommit_assertion() {
     "post-create baseRefName assertion command (gh pr view --json baseRefName)" "$step3"
   _assert_doc_marker "BaseRefNameMismatch" \
     "BaseRefNameMismatch error variant named in Step 3 mandate" "$step3"
+  _assert_doc_marker "does not equal" \
+    "comparison direction phrase — baseRefName does not equal trunk triggers hard-fail" "$step3"
+  _assert_doc_marker "configured trunk" \
+    "expected-value anchor — configured trunk present in BaseRefNameMismatch error body (BC-6.10.002 PC2)" "$step3"
+  _assert_doc_marker "MUST NOT be merged" \
+    "hard-fail consequence — PR MUST NOT be merged on BaseRefNameMismatch (BC-6.10.002 PC2 Invariant 2)" "$step3"
 
-  # HARNESS: stub gh returning wrong branch; assert hard-fail + merge NOT invoked
-  export GH_STUB_RESPONSE='{"baseRefName":"feature/S-007-impl"}'
+  # HARNESS: stub gh returning wrong branch (realistic pretty-printed JSON); assert hard-fail + merge NOT invoked
+  export GH_STUB_RESPONSE='{ "baseRefName": "feature/S-007-impl" }'
   local assert_out
   assert_out="$(_run_base_ref_assertion "$FIXTURE_DIR" "develop" "$MERGE_LOG")"
 
@@ -212,9 +218,15 @@ _run_null_mergecommit_assertion() {
     "post-create baseRefName assertion command must be present for happy-path to execute" "$step3"
   _assert_doc_marker "BaseRefNameMismatch" \
     "BaseRefNameMismatch error variant — both paths defined in same Step 3 block" "$step3"
+  _assert_doc_marker "does not equal" \
+    "comparison direction phrase — does not equal present so inverting logic would remove it" "$step3"
+  _assert_doc_marker "configured trunk" \
+    "expected-value anchor — configured trunk present in error body (actual+expected both documented)" "$step3"
+  _assert_doc_marker "MUST NOT be merged" \
+    "hard-fail consequence — MUST NOT be merged present in same Step 3 block" "$step3"
 
-  # HARNESS: stub gh returning correct trunk; assert ASSERTION-PASS + merge invoked
-  export GH_STUB_RESPONSE='{"baseRefName":"develop"}'
+  # HARNESS: stub gh returning correct trunk (realistic pretty-printed JSON); assert ASSERTION-PASS + merge invoked
+  export GH_STUB_RESPONSE='{ "baseRefName": "develop" }'
   local assert_out
   assert_out="$(_run_base_ref_assertion "$FIXTURE_DIR" "develop" "$MERGE_LOG")"
 
@@ -247,6 +259,12 @@ _run_null_mergecommit_assertion() {
     "post-merge git merge-base --is-ancestor assertion command in Step 9" "$step9"
   _assert_doc_marker "MergeNotAncestorOfTrunk" \
     "MergeNotAncestorOfTrunk P0 error variant named in Step 9 mandate" "$step9"
+  _assert_doc_marker "non-zero exit" \
+    "comparison direction phrase — non-zero exit code raises MergeNotAncestorOfTrunk (BC-6.10.002 PC3)" "$step9"
+  _assert_doc_marker "P0 DATA ERROR" \
+    "P0 designation present in MergeNotAncestorOfTrunk error body (BC-6.10.002 PC3)" "$step9"
+  _assert_doc_marker "MUST NOT be marked delivered" \
+    "hard-fail consequence — story MUST NOT be marked delivered on MergeNotAncestorOfTrunk" "$step9"
 
   # HARNESS: stub git merge-base --is-ancestor exiting 1; assert P0 error + NOT delivered
   export GIT_IS_ANCESTOR_EXIT=1
@@ -282,6 +300,12 @@ _run_null_mergecommit_assertion() {
     "post-merge ancestry assertion command must be present for happy-path to execute" "$step9"
   _assert_doc_marker "MergeNotAncestorOfTrunk" \
     "MergeNotAncestorOfTrunk — both paths defined in same Step 9 block" "$step9"
+  _assert_doc_marker "non-zero exit" \
+    "comparison direction phrase — non-zero exit must be documented for truncation to fail this test" "$step9"
+  _assert_doc_marker "P0 DATA ERROR" \
+    "P0 designation — error body must retain P0 designation per BC-6.10.002 PC3" "$step9"
+  _assert_doc_marker "MUST NOT be marked delivered" \
+    "hard-fail consequence — MUST NOT be marked delivered must be present in Step 9 block" "$step9"
 
   # HARNESS: stub git merge-base --is-ancestor exiting 0; assert ASSERTION-PASS + delivered
   export GIT_IS_ANCESTOR_EXIT=0
@@ -317,9 +341,13 @@ _run_null_mergecommit_assertion() {
     "null mergeCommit.oid guard (EC-006) documented in Step 9 mandate" "$step9"
   _assert_doc_marker "MergeNotAncestorOfTrunk" \
     "MergeNotAncestorOfTrunk variant used for null-SHA path in Step 9" "$step9"
+  _assert_doc_marker "P0 DATA ERROR" \
+    "P0 designation present in null-mergeCommit error body (BC-6.10.002 EC-006)" "$step9"
+  _assert_doc_marker "MUST NOT be marked delivered" \
+    "hard-fail consequence — story MUST NOT be marked delivered on null mergeCommit.oid" "$step9"
 
-  # HARNESS: stub gh returning {"mergeCommit":null}; assert MergeNotAncestorOfTrunk + NOT delivered
-  export GH_STUB_RESPONSE='{"mergeCommit":null}'
+  # HARNESS: stub gh returning null mergeCommit (realistic pretty-printed JSON); assert MergeNotAncestorOfTrunk + NOT delivered
+  export GH_STUB_RESPONSE='{ "mergeCommit": null }'
   local assert_out
   assert_out="$(_run_null_mergecommit_assertion "$FIXTURE_DIR" "develop" "456" "$DELIVERED_MARKER")"
 
