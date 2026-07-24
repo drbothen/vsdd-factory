@@ -2,11 +2,25 @@
   "story": "S-21.02",
   "protocol": "BC-5.39.001",
   "streak_target": 3,
-  "passes_total": 1,
+  "passes_total": 2,
   "passes_clean": 0,
   "streak": "0/3",
   "converged": false,
-  "streak_note": "p1 NOT-CLEAN B0/H1/M3/L2/OBS2 — fix burst dispatched: implementer (F-002/F-003/F-006doc/O-1/O-2) then test-writer (F-001/F-004/F-005/F-006tests)",
+  "streak_note": "p1 NOT-CLEAN B0/H1/M3/L2/OBS2 — fix burst dispatched: implementer (F-002/F-003/F-006doc/O-1/O-2) then test-writer (F-001/F-004/F-005/F-006tests). p2 NOT-CLEAN B0/H1/M2/L1/OBS2 — all 4 findings FIXED in-burst (7a6111f1 PO, c73152fb SW, 6eb4b6a2 impl, f5ea156a test-writer); pass-3 cascade required",
+  "last_classification": "NOT_CLEAN",
+  "last_pass": {
+    "n": 2,
+    "verdict": "NOT-CLEAN",
+    "counts": {
+      "B": 0,
+      "H": 1,
+      "M": 2,
+      "L": 1,
+      "NITPICK": 0,
+      "OBS": 2
+    },
+    "reviewed_head": "715a2f17"
+  },
   "passes": [
     {
       "pass": 1,
@@ -32,7 +46,30 @@
       "reviewed_head": "631edb28",
       "base_commit": "7bb0e797",
       "notes": "Initial pass; full story AC scope review. F-001 routed test-writer (not PO) — AC gate column specifies executable harness pattern. Fix burst: implementer then test-writer."
+    },
+    {
+      "pass": 2,
+      "verdict": "NOT-CLEAN",
+      "findings": {
+        "BLOCKER": 0,
+        "HIGH": 1,
+        "MEDIUM": 2,
+        "LOW": 1,
+        "NITPICK": 0,
+        "OBS": 2
+      },
+      "finding_ids": [
+        "F-S2102-P2-001",
+        "F-S2102-P2-002",
+        "F-S2102-P2-003",
+        "F-S2102-P2-004",
+        "OBS-1",
+        "OBS-2"
+      ],
+      "reviewed_head": "715a2f17",
+      "base_commit": "7bb0e797",
+      "notes": "All 8 pass-1 findings CONFIRMED-FIXED (load-bearing; no paper-fixes). 4 new findings all FIXED in-burst: F-P2-003 HIGH BC-5.44.001 actor (7a6111f1+c73152fb); F-P2-001 MEDIUM range-diff untested (f5ea156a); F-P2-002 MEDIUM undoc condition-c (f5ea156a); F-P2-004 LOW AC-002 coverage (f5ea156a). Pass-3 required."
     }
   ],
-  "next_action": "fix-burst — implementer (F-S2102-P1-002/003/006doc/O-1/O-2) then test-writer (F-S2102-P1-001/004/005/006tests); pass-2 adversary cascade to follow"
+  "next_action": "pass-3 adversary cascade — reviewed HEAD will be f5ea156a"
 }
