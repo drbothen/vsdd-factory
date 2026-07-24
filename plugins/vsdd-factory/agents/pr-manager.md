@@ -150,8 +150,9 @@ equals the configured trunk:
 Agent(subagent_type="vsdd-factory:github-ops", prompt="cd <project-path> && gh pr view <pr_number> --json baseRefName")
 ```
 
-Assert the returned `baseRefName` value equals `develop`. If the returned value does not equal
-`develop`, hard-fail the burst with `BaseRefNameMismatch`:
+Assert the returned `baseRefName` value equals the configured trunk (`develop` for feature
+pipelines). If the returned value does not equal the configured trunk, hard-fail the burst
+with `BaseRefNameMismatch`:
 
 ```
 HARD FAIL: BaseRefNameMismatch — PR #<pr_number> baseRefName '<actual>' does not match
