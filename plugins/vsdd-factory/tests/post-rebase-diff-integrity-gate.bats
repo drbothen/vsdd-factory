@@ -18,6 +18,7 @@
 #   T-003  AC-005 / PC1: real-rebase, intentional commit message; gate passes; push invoked
 #   T-004  BC-5.44.001 PC4 / EC-006: no sibling commits; trivial pass; push invoked
 #   T-005  EC-004-class / EC-005: detector failure / merge-base failure → escalate; rd-only → PC2; push NOT invoked
+#   T-005b EC-005-partial: stat-only fallback (rd unavailable) detects PC2 STOP; push NOT invoked (git<2.19 isolation)
 
 setup() {
   REPO_ROOT="$(cd "${BATS_TEST_DIRNAME}/../../.." && pwd)"
@@ -686,6 +687,54 @@ _run_gate() {
   }
   [ ! -s "$PUSH_LOG" ] || {
     echo "HARNESS FAIL (sub-case D): push invoked despite PC2 halt — push log: $(cat "$PUSH_LOG")"
+    false
+  }
+}
+
+# ===========================================================================
+# T-005b / EC-005 partial fallback: stat-only path detects PC2 — push NOT invoked
+# git<2.19 range-diff unavailability isolation
+# ===========================================================================
+
+@test "T-005b S-21.02 EC-005-partial: stat-only fallback detects net-negative delta (PC2) — push NOT invoked" {
+  # Isolates the EC-005 partial-fallback path: range-diff is unavailable (simulated via
+  # force_rd_fail=1, matching git<2.19 or command-not-found scenarios); --stat detector
+  # runs alone and independently detects the net-negative sibling-touched delta → PC2 STOP.
+  # Distinct from T-005 sub-case A: this test is self-contained with its own DOC-PARITY
+  # assertion and adds the UnverifiedNetNegativeDelta token check absent from sub-case A.
+  # Anti-tautology: doc-parity assertion fails independently if --stat fallback is removed.
+  #
+  # Mutant evidence (POLICY 15 v1.4.10):
+  #   M1 — change _run_gate PC2 "STOP:" to "HALT:" → assertion (a) fails.
+  #   M2 — write "push-invoked" to push_log before PC2 return → assertion (b) fails.
+  #   M3 — change "UnverifiedNetNegativeDelta" token to another string → assertion (c) fails.
+  # All three assertions are independently load-bearing.
+
+  local section
+  section="$(_extract_inter_wave_rebase_section)"
+
+  # DOC-PARITY: --stat fallback (step 1b) must remain in §Inter-Wave Rebase
+  _assert_doc_marker "\-\-stat" "--stat fallback (step 1b) present in §Inter-Wave Rebase" "$section"
+
+  # HARNESS: net-negative-sibling fixture; rd_fail=1 (range-diff simulated unavailable)
+  _setup_git_fixture "net-negative-sibling"
+
+  local gate_out
+  gate_out="$(_run_gate "$FIXTURE_REPO" "$FIXTURE_PRE_REBASE_TIP" "$PUSH_LOG" 1 0)"
+
+  # (a) stat alone detects the delta → PC2 STOP (M1)
+  echo "$gate_out" | grep -q "STOP" || {
+    echo "HARNESS FAIL (T-005b): stat-only fallback — expected STOP (PC2), got: $gate_out"
+    false
+  }
+  # (b) push NOT invoked (M2)
+  [ ! -s "$PUSH_LOG" ] || {
+    echo "HARNESS FAIL (T-005b): push invoked despite PC2 halt — push log: $(cat "$PUSH_LOG")"
+    false
+  }
+  # (c) UnverifiedNetNegativeDelta error token present (M3)
+  echo "$gate_out" | grep -q "UnverifiedNetNegativeDelta" || {
+    echo "HARNESS FAIL (T-005b): UnverifiedNetNegativeDelta not in gate output — got: $gate_out"
     false
   }
 }
