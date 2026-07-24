@@ -1,5 +1,5 @@
 AC-003/AC-004/AC-005 Bats Evidence: post-rebase-diff-integrity-gate.bats
-Story: S-21.02 v1.5
+Story: S-21.02 v1.6
 BC: BC-5.44.001 v1.4
 Captured: 2026-07-24
 Worktree HEAD: 8abf24e29d290060c4e8546c35708dfafc198977
