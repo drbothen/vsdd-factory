@@ -1,0 +1,10 @@
+#!/bin/sh
+# Stub git — S-21.03 test fixtures.
+# fetch: exits 0 (simulate successful origin/<trunk> fetch).
+# merge-base --is-ancestor: exits GIT_IS_ANCESTOR_EXIT (default 0).
+# All other subcommands: delegated to real /usr/bin/git.
+if [ "$1" = "fetch" ]; then exit 0; fi
+if [ "$1" = "merge-base" ] && [ "$2" = "--is-ancestor" ]; then
+  exit "${GIT_IS_ANCESTOR_EXIT:-0}"
+fi
+exec /usr/bin/git "$@"

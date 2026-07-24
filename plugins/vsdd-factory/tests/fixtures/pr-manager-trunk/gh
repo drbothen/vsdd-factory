@@ -1,0 +1,4 @@
+#!/bin/sh
+# Stub gh CLI — S-21.03 test fixtures.
+# Returns GH_STUB_RESPONSE env var on stdout (defaults to empty JSON object).
+printf '%s\n' "${GH_STUB_RESPONSE:-{}}"
