@@ -213,5 +213,31 @@
     "trunk-parameterization-step3-hardcode",
     "git-stub-usrbin-fallback-portability-seam"
   ],
-  "next_action": "converged — PR-level cascade; no further LOCAL passes required"
+  "next_action": "DELIVERED",
+  "delivered": true,
+  "merged_pr": 761,
+  "merge_commit": "ebf9fb6d",
+  "merged_at": "2026-07-24",
+  "merged_by": "human (two-party gate; pr-manager executed steps 1-7 per S-7.13 surface-and-hold protocol — no wedging)",
+  "pol14_result": "PASS-ALREADY-ACTIVE",
+  "pol14_bc": "BC-6.10.002",
+  "pol14_evidence": "lifecycle_status: active (confirmed pre-burst grep)",
+  "governance_rulings": [
+    {
+      "ruling": 1,
+      "policy": "POLICY 21",
+      "amendment": "v1.4.8→v1.4.9",
+      "description": "test-double-shim exemption for plugins/vsdd-factory/tests/fixtures/",
+      "codified_at": "D-889"
+    },
+    {
+      "ruling": 2,
+      "policy": "POLICY 15",
+      "amendment": "v1.4.9→v1.4.10",
+      "description": "per-guard mutant-verification mandate for &&{false;}||true inert-guard class",
+      "codified_at": "D-889"
+    }
+  ],
+  "follow_up_story": "S-7.14",
+  "decision": "D-889"
 }

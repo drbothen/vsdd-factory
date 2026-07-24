@@ -264,7 +264,7 @@ stories:
   - id: S-21.02
     status: completed
   - id: S-21.03
-    status: ready
+    status: completed
   - id: S-21.04
     status: draft
   - id: S-21.05
@@ -284,6 +284,8 @@ stories:
   - id: S-7.11
     status: draft
   - id: S-7.13
+    status: draft
+  - id: S-7.14
     status: draft
   - id: S-10.02
     status: draft
@@ -580,6 +582,17 @@ story_updates:
   S-7.13:
     status: draft
     note: "Human merge gate for GitHub publish actions — replace AUTHORIZE_MERGE=yes protocol. process-gap class. P1; 3pts. input-hash 89a43c7. Filed D-887 (S-21.02 delivery process-gap: auto-mode classifier blocks gh review-approve/merge; teammate-relayed authorization insufficient). Story authored 688a6da2."
+
+  S-21.03:
+    status: completed
+    pr: 761
+    merge_sha: ebf9fb6d
+    merged_at: 2026-07-24
+    note: "pr-manager base assertion + post-merge ancestry check (E-21 W1). 9-pass LOCAL cascade CONVERGED 3-CLEAN (da905e1c; 16 findings fixed, zero surviving paper-fixes). Skill-doc + bats (POLICY 21 test-double-shim exemption D-889). PR #761 squash-merged ebf9fb6d 2026-07-24 (human-executed two-party gate; pr-manager executed steps 1-7 per S-7.13 surface-and-hold protocol — no wedging). merged_count 109→110. BC-6.10.002 POL-14 PASS-ALREADY-ACTIVE. S-7.14 bats-inert-guard-lint process-gap follow-up registered. GOVERNANCE RULING 1: POLICY 21 v1.4.9 test-double-shim exemption. GOVERNANCE RULING 2: POLICY 15 v1.4.10 per-guard-mutant mandate. E-21 W1 COMPLETE. D-889."
+
+  S-7.14:
+    status: draft
+    note: "Bats inert-guard lint — CI detection for &&{false;}||true pattern (process-gap, S-21.03 F-P4-002). process-gap class. P1; 3pts. input-hash 162c219. Filed D-889 (S-21.03 delivery process-gap: &&{false;}||true inert-guard pattern in stub-gh.sh-not-found guards produces false-passing tests; POLICY 15 v1.4.10 per-guard-mutant mandate codified). Story authored c4612cc4."
 
   S-13.01:
     status: completed

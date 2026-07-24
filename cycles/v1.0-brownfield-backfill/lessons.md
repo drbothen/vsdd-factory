@@ -7290,3 +7290,39 @@ Both gates are mandatory standing Commit-E controls for any burst touching E-19 
 **Cites:** D-887 (codified this burst); S-21.02 delivery 2026-07-24; pr-manager.md (enforcement host for surface-and-hold obligation); orchestrator/per-story-delivery.md (enforcement host for informed-consent gate wording); S-7.13 (follow-up story for spec amendment).
 
 **Closes:** D-887 S-21-02-DELIVERED-2026-07-24 (2026-07-24). `[process-gap; github-publish; auto-mode-classifier; two-party-gate; informed-consent; pr-manager; surface-and-hold; AUTHORIZE_MERGE; S-7.13; D-887; codified]`
+
+---
+
+## L-BB-test-double-shim-exemption-from-no-new-shell-scripts [process-gap] [codified D-889]
+
+**Summary:** POLICY 21 (no_new_shell_scripts) should have included a test-double-shim exemption class from its initial codification. Test-double shims (stub-bash-version.sh, stub-gh.sh, etc.) in `plugins/vsdd-factory/tests/fixtures/` are testing infrastructure that exercise bash-version-branching logic in bats tests — they do not ship in release bundles and POLICY 21's platform-agnostic motivation applies to operational tooling, not test harness stubs. The absence of this exemption caused S-21.03's new fixture stubs to be flagged as POLICY 21 violations at LOCAL pass-4, requiring a human governance ruling to resolve.
+
+**Root cause:** POLICY 21 was authored with the operational-tooling class in mind (bin/, hooks/, CI). The test-fixture class was not explicitly considered even though stub-bash-version.sh and stub-gh.sh were already grandfathered at D-846 — that grandfathering was positioned as a timing-collision exception rather than a principled class distinction.
+
+**Corrective action:** POLICY 21 amended v1.4.8→v1.4.9 at D-889 (human-directed 2026-07-24). `plugins/vsdd-factory/tests/fixtures/` test-double shims are now exempt by category, not by individual file enumeration. Future test-double shims in that path do not require new grandfather entries.
+
+**Prevention:** When authoring a new POLICY that prohibits a file type, explicitly enumerate the exemption classes (operational vs test-infrastructure vs generated) before adoption. Per the production-grade default, "good enough for now" class definition incurs governance overhead at every subsequent story that touches the edge case.
+
+**Anchors:** S-21.03 delivery (2026-07-24); LOCAL pass-4 F-P4-002 POLICY 21 finding; D-889 GOVERNANCE RULING 1; POLICY 21 v1.4.9.
+
+**Cites:** D-889 (codified this burst); POLICY 21 v1.4.9 (test-double-shim exemption); S-21.03 (triggered finding); S-7.14 (bats inert-guard lint follow-up registered same burst).
+
+**Closes:** D-889 E-21-W1-COMPLETE-2026-07-24 (2026-07-24). `[process-gap; POLICY 21; test-double-shim; fixture; exemption-class; no-new-shell-scripts; governance; D-889; codified]`
+
+---
+
+## L-BB-bats-inert-guard-pattern-requires-mutant-proving-test [process-gap] [codified D-889]
+
+**Summary:** Bats test guards using the `&&{false;}||true` pattern (belt-and-braces structure) are inert by construction: the `|| true` suffix ensures the expression always exits 0 regardless of whether the `&&{false;}` branch fires. At S-21.03 LOCAL pass-4, adversary confirmed F-P4-002: `stub-gh.sh` not found guards used this pattern, meaning the guard never actually caused a test failure — the "guard" was cosmetic. Without a mutant-proving test vector, inert guards are invisible to the test suite and provide false confidence.
+
+**Root cause:** The `&&{false;}||true` form is a common idiom in bash defensive programming (it suppresses "unofficial strict mode" -e failures from intentional non-zero exits). In bats test helpers, this form was used without recognizing that `|| true` makes the entire expression unconditionally succeed — defeating the purpose of the guard entirely.
+
+**Corrective action:** (1) POLICY 15 amended v1.4.9→v1.4.10 at D-889 (human-directed 2026-07-24): per-guard mutant-verification mandate added — every bats guard of the form `<command> && { <failure-action>; } || true` MUST include at least one test vector asserting the failure path fires when the trigger condition is true. (2) S-7.14 registered (bats inert-guard lint, P1, 3pts, input-hash 162c219, D-889) for automated CI detection via static analysis of bats guard expressions.
+
+**Prevention:** When writing any guard expression that contains `|| true`, verify whether the intent is (a) suppress-error (benign, no test needed) or (b) assert-failure (inert, needs mutant-proving test). If (b), remove the `|| true` suffix or replace with a proper assertion. Static analysis (S-7.14) will catch future regressions at CI time.
+
+**Anchors:** S-21.03 delivery (2026-07-24); LOCAL pass-4 F-P4-002 inert-guard finding; D-889 GOVERNANCE RULING 2; POLICY 15 v1.4.10; S-7.14.
+
+**Cites:** D-889 (codified this burst); POLICY 15 v1.4.10 (per-guard-mutant-verification mandate); S-21.03 (triggered finding); S-7.14 (CI automation follow-up).
+
+**Closes:** D-889 E-21-W1-COMPLETE-2026-07-24 (2026-07-24). `[process-gap; bats; inert-guard; mutant-verification; &&{false;}||true; POLICY 15; per-guard-mandate; S-7.14; D-889; codified]`

@@ -10986,3 +10986,15 @@ D-888-E21-W1-S-21.03-DISPATCHED-2026-07-24
 ### Date
 
 2026-07-24
+
+## D-889
+
+E-21-W1-COMPLETE-2026-07-24. POLICY 16 GLOBAL-MAX GATE: `grep -n "^## D-" decision-log.md | tail -3` → `10954:## D-886 / 10966:## D-887 / 10978:## D-888`; D-888 confirmed prior max → D-889 allocated. S-21.03 DELIVERED: pr-manager base assertion + post-merge ancestry check (P1, 3pts, CAP-038, issue #358, BC-6.10.002 v1.5, ADR-031 §Decision 8, step-numbering disambiguation added). LOCAL cascade CONVERGED 3/3 at da905e1c (9 passes, 16 findings fixed, zero surviving paper-fixes). PR #761 squash-merged ebf9fb6d 2026-07-24 (human-executed two-party gate; pr-manager executed steps 1-7 per S-7.13 surface-and-hold protocol — no wedging). merged_count 109→110. POL-14 BC-6.10.002: PASS-ALREADY-ACTIVE (`lifecycle_status: active` confirmed; no BC-INDEX bump). E-21 W1 COMPLETE: S-21.01 (PR #759 7bb0e797 2026-07-23) + S-21.02 (PR #760 a4a79f09 2026-07-24) + S-21.03 (PR #761 ebf9fb6d 2026-07-24) all merged; 3/3 W1 stories delivered; W2 stories (S-21.04, S-21.05) remain draft. GOVERNANCE RULING 1 — POLICY 21 TEST-DOUBLE-SHIM EXEMPTION (human-directed 2026-07-24): POLICY 21 amended v1.4.8→v1.4.9; test-double shims in `plugins/vsdd-factory/tests/fixtures/` are exempt from the no_new_shell_scripts prohibition. Rationale: test-double shims (e.g., stub-bash-version.sh, stub-gh.sh) are testing infrastructure, not operational tooling; they do not ship in release bundles; they are cross-platform only in the sense that bats tests run them in CI; POLICY 21's platform-agnostic motivation applies to production/operational tooling, not to test harness stubs that exercise bash-version branching logic. GOVERNANCE RULING 2 — POLICY 15 PER-GUARD-MUTANT-VERIFICATION MANDATE (human-directed 2026-07-24; inert-guard class → follow-up story AND policy extension): POLICY 15 amended v1.4.9→v1.4.10; per-guard mutant-verification mandate added: bats test guards that assert failure (e.g., `&&{false;}||true` class) MUST include at least one mutant-proving test vector demonstrating the guard actually fires when triggered. A guard not backed by a mutant-proving test vector constitutes a POLICY 15 HIGH finding. Detection: for each bats guard expression of the form `<command> && { <failure-action>; } || true`, verify at least one test in the same test file asserts the failure path is reached when the trigger condition is true. S-7.14 (bats inert-guard lint; CI detection for &&{false;}||true pattern; process-gap class; P1; 3pts; input-hash 162c219; authored c4612cc4; D-889) registered as follow-up for automated CI detection. S-7.14 registered in STORY-INDEX v4.244→v4.245 (E-7 process-gap; `-- | draft | 1.0`). 4-INDEX FINAL: BC v4.24 / VP v2.72 / STORY v4.245 / ARCH v3.29 (BC: POL-14 PASS-ALREADY-ACTIVE; VP: unchanged; ARCH: unchanged). STATE.md v6.25→v6.26. Dirty files staged per TD-VSDD-053: logs/dispatcher-internal-2026-07-24.jsonl + logs/events-2026-07-24.jsonl + regression-state.json + sidecar-learning.md + code-delivery/S-21.03/pr-review.md.
+
+### Phase
+
+D-889-E21-W1-COMPLETE-2026-07-24
+
+### Date
+
+2026-07-24
