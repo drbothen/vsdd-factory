@@ -1,9 +1,22 @@
 #!/bin/sh
 # Stub git — S-21.03 test fixtures.
-# fetch: exits 0 (simulate successful origin/<trunk> fetch).
+# fetch:
+#   GIT_FETCH_FAIL_ONCE (path): fail first call (touch marker), succeed on retry — simulates
+#                               transient failure / single-retry-succeeds scenario (EC-007).
+#   GIT_FETCH_EXIT (integer):  constant exit code for all fetch calls (default 0).
+#   GIT_FETCH_FAIL_ONCE takes priority over GIT_FETCH_EXIT.
 # merge-base --is-ancestor: exits GIT_IS_ANCESTOR_EXIT (default 0).
 # All other subcommands: delegated to real /usr/bin/git.
-if [ "$1" = "fetch" ]; then exit "${GIT_FETCH_EXIT:-0}"; fi
+if [ "$1" = "fetch" ]; then
+  if [ -n "${GIT_FETCH_FAIL_ONCE:-}" ]; then
+    if [ ! -f "${GIT_FETCH_FAIL_ONCE}" ]; then
+      touch "${GIT_FETCH_FAIL_ONCE}"
+      exit 1
+    fi
+    exit 0
+  fi
+  exit "${GIT_FETCH_EXIT:-0}"
+fi
 if [ "$1" = "merge-base" ] && [ "$2" = "--is-ancestor" ]; then
   exit "${GIT_IS_ANCESTOR_EXIT:-0}"
 fi
