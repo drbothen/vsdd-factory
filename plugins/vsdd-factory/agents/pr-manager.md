@@ -278,13 +278,15 @@ go through `enforce-merge-strategy.sh`; direct `gh pr merge` calls bypassing thi
 protocol violation (ADR-030 §Decision 3):
 
 ```
-Agent(subagent_type="vsdd-factory:github-ops", prompt="cd <project-path> && plugins/vsdd-factory/bin/enforce-merge-strategy.sh <PR_NUMBER> <strategy_flag> --delete-branch")
+Agent(subagent_type="vsdd-factory:github-ops", prompt="cd <project-path> && plugins/vsdd-factory/bin/enforce-merge-strategy.sh <PR_NUMBER> <strategy_flag>")
 ```
 
-The wrapper enforces release-branch strategy (`^release/v` → `--merge`) and forwards
-`--delete-branch` as a residual arg. Do NOT trust the "Deleted remote branch" stdout line from
-`gh pr merge --delete-branch` as confirmation of deletion (cli/cli #12980 false-success regression;
-EC-009). Verify deletion separately via the sequence below.
+The wrapper enforces release-branch strategy (`^release/v` → `--merge`). Branch deletion is
+intentionally omitted here — `--delete-branch` is NOT forwarded to `gh pr merge`. Deletion is
+deferred until the Step 8-post-A ancestry assertion passes; this preserves the orphan-merge recovery
+affordance (BC-6.10.002 PC3): if the merge does not land on trunk, the remote feature branch remains
+intact for recovery. The explicit deletion sequence (Steps 8b/8c/8d) is the SOLE deletion mechanism
+and is gated on the Step 8-post-A assertion passing.
 
 Read `.factory/merge-config.yaml` for autonomy level:
 - **Level 3:** Add `needs-review` label, wait for human
@@ -294,9 +296,9 @@ Read `.factory/merge-config.yaml` for autonomy level:
 After github-ops returns, YOU must verify the merge succeeded.
 Do NOT treat the sub-agent's response as terminal.
 
-**Verify remote branch deletion** — `enforce-merge-strategy.sh --delete-branch` only *requests*
-deletion; it is asynchronous and not guaranteed (especially under merge queues,
-see cli/cli#9073). You MUST verify the branch is actually gone before emitting
+**Verify remote branch deletion** — branch deletion is explicit-only (not requested at merge
+time). After the Step 8-post-A ancestry assertion passes, the deletion sequence (Steps 8b/8c/8d)
+is the SOLE mechanism. You MUST verify the branch is actually gone before emitting
 STEP_COMPLETE for step 8. Follow this sequence:
 
 **Step 8a — Confirm PR is MERGED (not just queued).**
