@@ -173,7 +173,11 @@ git diff --name-only HEAD..<target-ref>
 ```
 
 Where `<target-ref>` is the ref being merged, pulled, or checked out (e.g.,
-`origin/develop`, `feature/S-21.01`, a specific SHA).
+`origin/develop`, `feature/S-21.01`, a specific SHA). For `git checkout <branch>`
+where `<branch>` is a local branch name, use `HEAD..origin/<branch>` (the remote
+tracking ref) as `<target-ref>` — this is the conservative form that reflects the
+server-side state rather than a possibly-stale local ref that may not include all
+merged commits.
 
 **This requirement covers:**
 - Documented orchestrator dispatch steps (e.g., post-merge sync via `git pull origin develop`)
