@@ -23,13 +23,16 @@
   path → PC2b BLOCKED without running `find`; `find "<path>/.factory/" -type f` trailing-slash exits 0 empty →
   PC2a proceed; PC2b (`find` returns paths, or symlink/non-directory inode → PREFLIGHT BLOCKED + Option A/B
   remediation menu + retry mandate); PC2c (`find` exits non-zero (any non-zero exit) → HALT, surface exit code +
-  stderr). Tests T-005 (regular-file-at-path), T-006 (symlink-at-path-to-dir), and T-007 (executor-side §G.1
-  doc-parity) exercise the §G.1 discrimination chain (BC-6.26.001 PC2).
+  stderr). Tests T-005 (regular-file-at-path) and T-006 (symlink-at-path-to-dir) exercise the §G.1
+  discrimination chain (BC-6.26.001 PC2); T-007/T-008/T-009 are doc-parity propagation gates (T-007
+  executor mandate, T-008 six-surface §G.1 mandate, T-009 awareness clauses).
   The preflight mandate propagated to the enumerated dispatch surfaces: `deliver-story` SKILL.md Step 8;
   both per-story-delivery.md playbooks (agents/orchestrator and workflows/phases — the latter being the
-  precedence-winning reference); worktree-protocol.md Cleanup Rules; step-d5-adversary-convergence.md;
-  and 5 sibling teardown sites (worktree-manage, code-delivery, fix-pr-delivery, code-delivery.lobster,
-  greenfield.lobster).
+  precedence-winning reference); worktree-protocol.md Cleanup Rules; and 5 sibling teardown sites
+  (worktree-manage, code-delivery, fix-pr-delivery, code-delivery.lobster, greenfield.lobster).
+  The corrected shadow-write model (no .factory/ content exists at worktree-add; worktree .factory/
+  content is live shadow-write evidence) also propagated to step-d5-adversary-convergence.md and the
+  adversary/adversarial-review awareness surfaces (AC-009).
   Executor-side defense-in-depth (AC-008, BC-6.26.001 Precondition 3): `agents/devops-engineer.md` §Worktree
   Cleanup now verifies a PASS §G.1 preflight result before executing any story-worktree removal, running the
   §G.1 procedure by reference when not evident from the dispatch — caller-side gating remains primary per
