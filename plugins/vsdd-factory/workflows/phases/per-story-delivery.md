@@ -191,10 +191,12 @@ Dispatch `pr-manager` with the full PR process for S-N.MM. Feature branch: `feat
 ## Step 8 — Cleanup (devops-engineer)
 
 **Preflight required (BC-6.26.001 PC2):** Before dispatching the removal, run the §G.1 preflight
-from `skills/deliver-story/steps/step-g-cleanup.md §G.1` to check for shadow `.factory/` artifacts
-in the story worktree. Proceed only on a PASS preflight result (per step-g-cleanup.md §G.1
-three-branch protocol: absent-dir or empty-and-clean → proceed; stray files → BLOCKED; find error
+from `plugins/vsdd-factory/skills/deliver-story/steps/step-g-cleanup.md §G.1` to check for shadow
+`.factory/` artifacts in the story worktree. Proceed only on a PASS preflight result (per
+step-g-cleanup.md §G.1 four-branch protocol: nothing at the path or empty-and-clean directory →
+proceed; symlink or non-directory at the path → BLOCKED (PC2b); stray files → BLOCKED; find error
 → HALT; BC-6.26.001 PC2; caller-side per ADR-031).
+Chain: step-g-cleanup §G.1|step-g-cleanup G.1|§G.1 step-g-cleanup; non-directory→BLOCK|BLOCK→non-directory|symlink→BLOCK|BLOCK→symlink|non-directory→PC2b|symlink→PC2b.
 
 Dispatch `devops-engineer` with task: "Remove worktree `.worktrees/S-N.MM/` and delete local branch `feature/S-N.MM-<desc>`."
 
