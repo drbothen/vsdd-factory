@@ -47,7 +47,7 @@
 #   T-003  AC-005  relocate-retry-proceeds: stray file relocated → retry teardown proceeds
 #   T-004  AC-006  pc2c-halt:               find error (non-path-absent) → HALT non-zero, exit code+stderr surfaced, worktree-remove NOT called
 #   T-005  AC-002  file-at-path:            regular file at .factory → PC2b BLOCKED non-dir case; find NOT invoked; worktree-remove NOT called (BC-6.26.001 EC-008/T-6; F-S2104-P4-007)
-#   T-006  AC-002  symlink-at-path:         symlink at .factory → PC2b BLOCKED regardless of target type; find NOT invoked; worktree-remove NOT called (BC-6.26.001 PC2b symlink; T-006; F-S2104-P5-007)
+#   T-006  AC-002  symlink-at-path:         symlink at .factory → PC2b BLOCKED regardless of target type; find NOT invoked; worktree-remove NOT called (BC-6.26.001 PC2b symlink; T-006; F-S2104-P5-011)
 
 setup() {
   REPO_ROOT="$(cd "${BATS_TEST_DIRNAME}/../../.." && pwd)"
@@ -376,7 +376,7 @@ _run_teardown_preflight() {
     "step-g-cleanup.md §G.1: find .factory -type f command present (BC-6.26.001 PC2)" \
     "$g1_section"
   _assert_no_doc_marker 'find.*\.factory.*-type[[:space:]]+f.*2>/dev/null' \
-    "step-g-cleanup.md §G.1: blanket 2>/dev/null suppression FORBIDDEN on preflight find command (BC-6.26.001 v1.5 PC2; removed to enable PC2c fail-closed detection)" \
+    "step-g-cleanup.md §G.1: blanket 2>/dev/null suppression FORBIDDEN on preflight find command (BC-6.26.001 PC2; suppression removed to enable PC2c fail-closed detection)" \
     "$g1_section"
 
   # --- DOC-PARITY §G.1: preflight-before-dispatch ordering (F-S2104-P1-002b) ---
@@ -404,9 +404,9 @@ _run_teardown_preflight() {
     "$g1_section"
 
   # --- DOC-PARITY §G.1: PC2b retry-mandate line (F-S2104-P1-002d) ---
-  # "Story cleanup MUST NOT complete until a retry preflight returns an empty result."
+  # "Story cleanup MUST NOT complete until a retry preflight returns a PASS result."
   _assert_doc_marker 'MUST NOT complete until.*retry|cleanup MUST NOT complete until.*empty|retry preflight returns an empty' \
-    "step-g-cleanup.md §G.1: PC2b retry mandate — story cleanup MUST NOT complete until retry preflight returns empty result (BC-6.26.001 PC2b §3)" \
+    "step-g-cleanup.md §G.1: PC2b retry mandate — story cleanup MUST NOT complete until retry preflight returns a PASS result (BC-6.26.001 PC2b §3)" \
     "$g1_section"
 
   # --- DOC-PARITY §G.1: PC2b Option A/Option B remediation menu (F-S2104-P1-011) ---
@@ -607,7 +607,7 @@ _run_teardown_preflight() {
     "step-g-cleanup.md §G.1: find .factory -type f preflight command (BC-6.26.001 PC2)" \
     "$g1_section"
   _assert_no_doc_marker 'find.*\.factory.*-type[[:space:]]+f.*2>/dev/null' \
-    "step-g-cleanup.md §G.1: blanket 2>/dev/null FORBIDDEN on preflight command (BC-6.26.001 v1.5)" \
+    "step-g-cleanup.md §G.1: blanket 2>/dev/null FORBIDDEN on preflight command (BC-6.26.001 PC2)" \
     "$g1_section"
   _assert_doc_marker 'PREFLIGHT BLOCKED' \
     "step-g-cleanup.md §G.1: PREFLIGHT BLOCKED mandate present (PC2a and PC2b in same §G.1 block — BC-6.26.001 PC2)" \
@@ -634,21 +634,21 @@ _run_teardown_preflight() {
   # Harness hardcodes [ ! -e ] pre-test; this DOC-PARITY gate independently verifies §G.1 matches.
   # RED NOW: step-g-cleanup.md §G.1 has [ ! -d ] (v1.5 form); gate tightened to ONLY accept [ ! -e ]
   # — no longer accepts [ ! -d ] (F-S2104-P4-007a strengthened from F-S2104-P3-001).
-  # GREEN post-implementation: §G.1 updated to [ ! -e ] form (BC-6.26.001 v1.6 EC-008).
+  # GREEN post-implementation: §G.1 updated to [ ! -e ] form (BC-6.26.001 EC-008).
   _assert_doc_marker '\[ ! -e|test[[:space:]].*!.*-e.*\.factory|if.*\[.*!.*-e.*\.factory' \
-    "step-g-cleanup.md §G.1: normative discrimination predicate MUST be [ ! -e ] (existence) not [ ! -d ] (directory) — BC-6.26.001 v1.6 EC-008: [ ! -d ] authorizes teardown when a regular file exists at .factory (wrong); [ ! -e ] correctly identifies any occupied path; RED until implementer flips to [ ! -e ] (F-S2104-P3-001 strengthened by F-S2104-P4-007a)" \
+    "step-g-cleanup.md §G.1: normative discrimination predicate MUST be [ ! -e ] (existence) not [ ! -d ] (directory) — BC-6.26.001 EC-008: [ ! -d ] authorizes teardown when a regular file exists at .factory (wrong); [ ! -e ] correctly identifies any occupied path; RED until implementer flips to [ ! -e ] (F-S2104-P3-001 strengthened by F-S2104-P4-007a)" \
     "$g1_section"
 
   # Negative: [ ! -d ] MUST NOT appear as the normative path-absence predicate in §G.1.
   # Allow -d in explanatory context only (e.g., "The -d test alone MUST NOT be used",
-  # BC-6.26.001 v1.6 EC-008 non-directory paragraph).
+  # BC-6.26.001 EC-008 non-directory paragraph).
   # Forbid normative forms: lines with `[ ! -d` that are NOT in explanation/WARNING context.
   local forbidden_d_normative
   forbidden_d_normative="$(printf '%s\n' "$g1_section" | \
     grep -E '\[ ! -d' | \
     grep -Ev 'MUST NOT|wrong|alone|WARNING|incorrect|would.*true|would.*author|test alone|must not' || true)"
   if [ -n "$forbidden_d_normative" ]; then
-    echo "DOC-PARITY FAIL [must NOT contain: [ ! -d ] as normative path-absence predicate — BC-6.26.001 v1.6 EC-008 forbids -d-only check; regular file at .factory satisfies [ ! -d ] → wrong teardown authorization; use [ ! -e ] instead (F-S2104-P4-007a)]"
+    echo "DOC-PARITY FAIL [must NOT contain: [ ! -d ] as normative path-absence predicate — BC-6.26.001 EC-008 forbids -d-only check; regular file at .factory satisfies [ ! -d ] → wrong teardown authorization; use [ ! -e ] instead (F-S2104-P4-007a)]"
     printf '%s\n' "$forbidden_d_normative"
     false
   fi
@@ -659,7 +659,7 @@ _run_teardown_preflight() {
   # §G.1 must document this case (RED until implementer adds non-directory-path paragraph).
   # GREEN post-implementation: §G.1 has non-directory case routing to PC2b without find.
   _assert_doc_marker 'non-directory|NOT a directory|not a directory' \
-    "step-g-cleanup.md §G.1: non-directory inode at .factory path must be documented (BC-6.26.001 v1.6 EC-008; regular file at .factory → PC2b BLOCKED without find; RED until implementer adds clause; F-S2104-P4-007a)" \
+    "step-g-cleanup.md §G.1: non-directory inode at .factory path must be documented (BC-6.26.001 EC-008; regular file at .factory → PC2b BLOCKED without find; RED until implementer adds clause; F-S2104-P4-007a)" \
     "$g1_section"
 
   # --- HARNESS EC-005: no .factory/ dir → PC2a sub-case (a), teardown proceeds ---
@@ -717,7 +717,7 @@ _run_teardown_preflight() {
     "step-g-cleanup.md §G.1: find .factory -type f preflight command (BC-6.26.001 PC2b → PC2a retry path)" \
     "$g1_section"
   _assert_no_doc_marker 'find.*\.factory.*-type[[:space:]]+f.*2>/dev/null' \
-    "step-g-cleanup.md §G.1: blanket 2>/dev/null FORBIDDEN (BC-6.26.001 v1.5)" \
+    "step-g-cleanup.md §G.1: blanket 2>/dev/null FORBIDDEN (BC-6.26.001 PC2)" \
     "$g1_section"
   _assert_doc_marker 'PREFLIGHT BLOCKED' \
     "step-g-cleanup.md §G.1: PREFLIGHT BLOCKED mandate (first pass blocks; retry gated by same mandate — BC-6.26.001 PC2b)" \
@@ -861,7 +861,7 @@ _run_teardown_preflight() {
 
 @test "T-005 S-21.04 AC-002 EC-007: file-at-path — regular file at .factory → PC2b BLOCKED; find NOT invoked; worktree-remove NOT called" {
   # Fixture: .factory is a REGULAR FILE (not a directory) at MOCK_WORKTREE root.
-  # BC-6.26.001 v1.6 EC-008 / T-6: a regular file at <worktree-path>/.factory is stray shadow
+  # BC-6.26.001 EC-008 / T-6: a regular file at <worktree-path>/.factory is stray shadow
   # content subject to rm-rf destruction — it must route to PC2b BLOCKED without running find.
   #
   # Discrimination predicate semantics:
@@ -882,20 +882,20 @@ _run_teardown_preflight() {
   g1_section="$(_extract_g1_section)"
 
   # --- DOC-PARITY §G.1: discrimination predicate must be [ ! -e ] (F-S2104-P4-007a) ---
-  # RED: §G.1 has [ ! -d ] (v1.5); only [ ! -e ] accepted now (BC-6.26.001 v1.6 EC-008).
+  # [ ! -d ] (the v1.5 form) was superseded; only [ ! -e ] accepted now (BC-6.26.001 EC-008).
   _assert_doc_marker '\[ ! -e|test[[:space:]].*!.*-e.*\.factory' \
-    "step-g-cleanup.md §G.1: [ ! -e ] existence predicate required (not [ ! -d ] alone) — regular file satisfies [ ! -d ] → wrong teardown authorization; [ ! -e ] correctly identifies path-occupancy (BC-6.26.001 v1.6 EC-008; F-S2104-P4-007a)" \
+    "step-g-cleanup.md §G.1: [ ! -e ] existence predicate required (not [ ! -d ] alone) — regular file satisfies [ ! -d ] → wrong teardown authorization; [ ! -e ] correctly identifies path-occupancy (BC-6.26.001 EC-008; F-S2104-P4-007a)" \
     "$g1_section"
 
   # --- DOC-PARITY §G.1: non-directory→PC2b BLOCKED clause presence (F-S2104-P4-007a second gate) ---
   # RED: §G.1 does not yet document the non-directory case.
   _assert_doc_marker 'non-directory|NOT a directory|not a directory' \
-    "step-g-cleanup.md §G.1: non-directory inode at .factory must be documented as PC2b BLOCKED (BC-6.26.001 v1.6 EC-008/T-6; RED until implementer adds non-directory-path paragraph; F-S2104-P4-007a)" \
+    "step-g-cleanup.md §G.1: non-directory inode at .factory must be documented as PC2b BLOCKED (BC-6.26.001 EC-008/T-6; RED until implementer adds non-directory-path paragraph; F-S2104-P4-007a)" \
     "$g1_section"
 
   # Non-directory case must route to PC2b BLOCKED (not PC2a or PC2c)
   _assert_doc_marker 'non-directory.*PC2b|non-directory.*BLOCK|NOT.*directory.*BLOCK|non-directory.*stray|regular.*file.*stray|regular.*file.*PC2b' \
-    "step-g-cleanup.md §G.1: non-directory inode routes to PC2b BLOCKED (stray shadow content; BC-6.26.001 v1.6 non-directory-path paragraph; RED until implemented)" \
+    "step-g-cleanup.md §G.1: non-directory inode routes to PC2b BLOCKED (stray shadow content; BC-6.26.001 non-directory-path paragraph; RED until implemented)" \
     "$g1_section"
 
   # --- HARNESS: regular file at .factory → PC2b BLOCKED; non-zero exit; find NOT invoked ---
@@ -932,7 +932,7 @@ _run_teardown_preflight() {
 # T-006 / AC-002 / BC-6.26.001 PC2b symlink vector: symlink at .factory pointing at real dir
 # → PC2b BLOCKED; find NOT invoked; worktree-remove NOT called
 # BC-6.26.001 PC2b (symlink case)
-# F-S2104-P5-007
+# F-S2104-P5-011
 # ===========================================================================
 
 @test "T-006 S-21.04 AC-002: symlink-at-path — symlink at .factory pointing at real dir → PC2b BLOCKED; find NOT invoked; worktree-remove NOT called" {
@@ -959,12 +959,35 @@ _run_teardown_preflight() {
   local g1_section
   g1_section="$(_extract_g1_section)"
 
-  # --- DOC-PARITY §G.1: symlink→PC2b clause ([ -L ] or equivalent) — RED until implementer lands it ---
-  # §G.1 must document that a symlink at .factory routes to PC2b BLOCKED without invoking find.
-  # The [ -L ] check (or equivalent) must appear in §G.1 BEFORE the find invocation.
-  _assert_doc_marker '\[ -L \]|\[ -L\]|-L[[:space:]].*\.factory|symlink.*PC2b|symlink.*BLOCK' \
-    "step-g-cleanup.md §G.1: symlink→PC2b clause must be present ([ -L ] or equivalent) — RED until implementer adds symlink case (BC-6.26.001 PC2b; T-006; F-S2104-P5-007)" \
+  # --- DOC-PARITY §G.1: [ -L ] shell expression (indented) — load-bearing gate (F-S2104-P6-003a) ---
+  # §G.1 must carry the literal [ -L ] shell test expression as an indented command, not just
+  # symlink-prose. The prior alternation (symlink.*PC2b|symlink.*BLOCK) was satisfied by the PC2b
+  # header line alone — deleting the [ -L ] clause left all 9 tests GREEN (paper-gate).
+  # This gate requires ^[[:space:]]+\[ -L  matching the shell-expression form; prose backtick
+  # references like `[ -L ]` do NOT satisfy it (those survive clause deletion — F-S2104-P6-003a).
+  _assert_doc_marker '^[[:space:]]+\[ -L ' \
+    "step-g-cleanup.md §G.1: literal [ -L ] shell expression required as indented command — prose-only mention does not prove the test is present; bracket-L form ^<spaces>[ -L must appear (BC-6.26.001 PC2b symlink; T-006; F-S2104-P5-011)" \
     "$g1_section"
+
+  # --- DOC-PARITY §G.1: ORDERING — [ -L ] must precede first find invocation (F-S2104-P6-003b) ---
+  # The [ -L ] check must appear BEFORE the find command within §G.1; an ordering inversion would
+  # allow find to be called on a symlink-to-dir (which satisfies [ -d ] by dereferencing). Uses
+  # the same awk line-number comparison pattern as the pass-2 preflight-before-dispatch gate.
+  local bracket_l_lineno find_lineno
+  bracket_l_lineno="$(printf '%s\n' "$g1_section" | awk '/^[[:space:]]+\[ -L / { print NR; exit }')"
+  find_lineno="$(printf '%s\n' "$g1_section" | awk '/^[[:space:]]*find[[:space:]]/ { print NR; exit }')"
+  [ -n "$bracket_l_lineno" ] || {
+    echo "DOC-PARITY FAIL: [ -L ] shell expression not found in §G.1 section — bracket-L must be present as an indented command (BC-6.26.001 PC2b symlink; F-S2104-P6-003b)"
+    false
+  }
+  [ -n "$find_lineno" ] || {
+    echo "DOC-PARITY FAIL: find invocation not found in §G.1 section — cannot verify [ -L ] ordering (BC-6.26.001 PC2b; F-S2104-P6-003b)"
+    false
+  }
+  [ "$bracket_l_lineno" -lt "$find_lineno" ] || {
+    echo "DOC-PARITY FAIL: [ -L ] line ($bracket_l_lineno) must precede first find line ($find_lineno) in §G.1 — ordering inversion allows find to be called on symlink-to-dir (BC-6.26.001 PC2b symlink; F-S2104-P6-003b)"
+    false
+  }
 
   # --- HARNESS: symlink at .factory → PC2b BLOCKED; non-zero exit ---
   # The v1.7 harness [ -L ] check (step 2, HARDCODED) fires before any find invocation (step 4).
@@ -1024,8 +1047,11 @@ _run_teardown_preflight() {
   # After fix: surface says "run §G.1 preflight" or "proceed on PASS" without inlining find.
   _assert_no_inline_find_antipattern() {
     local file="$1" label="$2"
-    if grep -qE 'find[[:space:]][^ ]*\.factory[[:space:]].*-type[[:space:]]+f' "$file"; then
-      echo "DOC-PARITY FAIL [anti-pattern present in $label]: surface presents inline bare 'find ... .factory ... -type f' as the first action — MUST NOT inline find command; delegate to §G.1 preflight instead (BC-6.26.001 PC2 + AC-007(d); absent-dir check is first, not an unordered sibling; F-S2104-P4-009)"
+    # Regex catches both canonical forms: '.factory -type f' and '.factory/ -type f'.
+    # The prior pattern '.factory[[:space:]]' missed the trailing-slash form used in step-g-cleanup.md
+    # (find "<worktree-path>/.factory/" -type f); '\.factory/?' makes the slash optional (F-S2104-P6-007).
+    if grep -qE 'find[[:space:]][^ ]*\.factory/?[[:space:]].*-type[[:space:]]+f' "$file"; then
+      echo "DOC-PARITY FAIL [anti-pattern present in $label]: surface presents inline bare 'find ... .factory[/] ... -type f' as the first action — MUST NOT inline find command; delegate to §G.1 preflight instead (BC-6.26.001 PC2 + AC-007(d); absent-dir check is first, not an unordered sibling; F-S2104-P4-009)"
       false
     fi
   }

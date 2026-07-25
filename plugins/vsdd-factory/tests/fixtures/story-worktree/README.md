@@ -17,7 +17,7 @@ fully cleaned up by `teardown()` via `chmod -R 755 + rm -rf "$WORK"` (the chmod 
 T-004's chmod 000 subdirectory).
 
 A "story-worktree fixture" simulates the state of `.worktrees/<STORY-ID>/` just before
-step G teardown. Five fixture configurations are used by the five tests:
+step G teardown. Six fixture configurations are used by the six tests (T-001..T-006):
 
 ```
 T-001 (stray file present — PC2b):
@@ -126,8 +126,8 @@ fixtures (S-21.04) because the preflight mechanism is `find` (filesystem-direct)
 | EC-003 | `find` returns empty (dir exists, no files) | T-002 part 2 (explicit EC-003 variant) |
 | EC-005 | Story worktree has no `.factory/` directory at all | T-002 part 1 |
 | EC-004 | `find` returns stray file (shadow .factory/ has content) | T-001, T-003 (first pass) |
-| EC-007/EC-008 | Regular file (not directory) at `.factory/` path → PC2b BLOCKED without find | T-005 (BC-6.26.001 EC-008/T-6) |
-| PC2b-symlink | Symlink at `.factory/` path → PC2b BLOCKED without find (regardless of target type) | T-006 (BC-6.26.001 PC2b symlink) |
+| EC-007 | Regular file (not directory) at `.factory/` path → PC2b BLOCKED without find | T-005 (story EC-007; BC-6.26.001 PC2b non-directory clause) |
+| EC-008 | Symlink at `.factory/` path → PC2b BLOCKED without find (regardless of target type) | T-006 (story EC-008; BC-6.26.001 PC2b symlink clause) |
 | PC2c   | `find` exits non-zero for non-path-absent reason | T-004 (chmod 000 subdir) |
 
 ## POLICY 21 note
