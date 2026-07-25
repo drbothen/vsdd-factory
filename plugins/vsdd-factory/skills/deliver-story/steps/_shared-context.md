@@ -57,7 +57,7 @@ Pass only the specific files each specialist needs. Never pass the whole story f
 
 **All spec, BC, and ADR files passed to specialists MUST be canonical repo-root absolute paths** — paths rooted at the main checkout where the `factory-artifacts` branch is mounted at `.factory/`. For example: `/path/to/repo/.factory/specs/behavioral-contracts/BC-5.39.001.md`.
 
-**The entire worktree `.factory/` tree is stale and off-limits for spec ground-truth.** When a story worktree is created (e.g., `.worktrees/S-12.08/`), git populates the worktree with a snapshot of the entire `.factory/` tree as it existed at worktree-creation time. That snapshot is NOT updated when specs, stories, ADRs, or BCs evolve on `factory-artifacts`. This includes `.factory/specs/`, `.factory/stories/`, all ADR and BC files — the entire `<worktree>/.factory/` subtree. Passing any worktree-local `.factory/` path to the adversary or any spec-reading specialist causes them to review against stale content and produce phantom "absent BC", "missing story spec", or "outdated spec" findings that have already been resolved on `factory-artifacts`. The spec ground-truth — including STORY specs in `.factory/stories/` — comes ONLY from `<canonical-repo-root>/.factory/`.
+**The entire worktree `.factory/` tree is stale and off-limits for spec ground-truth.** When a story worktree is created (e.g., `.worktrees/S-12.08/`), `git worktree add` checks out **nothing** under `.factory/` — `.factory/` is gitignored on the product branch, so no shadow directory is created at checkout time. A shadow `.factory/` only appears if an agent writes to a CWD-relative `.factory/` path while operating from inside the story worktree (the issue #523 failure class). Any such shadow content is neither tracked on `factory-artifacts` nor ever updated. Passing any worktree-local `.factory/` path to the adversary or any spec-reading specialist causes them to review against stale or shadow content and produce phantom "absent BC", "missing story spec", or "outdated spec" findings. The spec ground-truth — including STORY specs in `.factory/stories/` — comes ONLY from `<canonical-repo-root>/.factory/`.
 
 **Enforcement:** Before building the context package for any specialist dispatch involving spec files, the orchestrator MUST resolve the canonical repo-root path for each spec file and pass that path — not `<worktree>/.factory/<anything>`. If the canonical path cannot be resolved (e.g., factory-artifacts worktree is not mounted), STOP and report to the human before dispatching.
 
@@ -76,8 +76,15 @@ to any `.factory/**` path are covered by this rule — not only DELIVERY ledgers
 **Canonical root determination (BC-6.26.001 Invariant 3):** The canonical `.factory/` root MUST
 be determined via one of two methods:
 
-- `CANONICAL_FACTORY_ROOT` — orchestrator-provided variable containing the absolute path to the
-  main-checkout root. Use this when the orchestrator supplies it in the dispatch preamble.
+- `CANONICAL_FACTORY_ROOT` — orchestrator-provided variable. **This variable holds the absolute
+  path to the MAIN-checkout repository root** (e.g., `/abs/path/to/repo`) — NOT the `.factory/`
+  mount directory itself. The canonical artifact path is `$CANONICAL_FACTORY_ROOT/.factory/<artifact>`;
+  if the mount path were passed instead, you would get `$CANONICAL_FACTORY_ROOT/.factory/.factory/<artifact>` nesting.
+  Orchestrator dispatch preambles SHOULD provide this variable. When absent, agents MUST resolve it
+  via the git method below.
+  **Assert non-empty before expanding:** never expand `$CANONICAL_FACTORY_ROOT` without first
+  verifying it is set and non-empty — an unset expansion yields `/.factory/...`, outside the repo.
+
 - `git -C <main-worktree-path> rev-parse --show-toplevel` — where `<main-worktree-path>` is the
   path of the MAIN checkout, NOT the story worktree path.
 
