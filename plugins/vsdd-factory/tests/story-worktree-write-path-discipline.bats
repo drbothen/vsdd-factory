@@ -500,7 +500,7 @@ _run_teardown_preflight() {
     "$skill_step8_section"
   # Enumeration-correctness gate (F-S2104-P5-007): must reflect v1.7 existence semantics —
   # non-directory or symlink → BLOCKED (PC2b). RED until implementer rewrites enumeration.
-  _assert_doc_marker 'non-directory.*BLOCK\|BLOCK.*non-directory\|symlink.*BLOCK\|BLOCK.*symlink\|non-directory.*PC2b\|symlink.*PC2b' \
+  _assert_doc_marker 'non-directory.*BLOCK|BLOCK.*non-directory|symlink.*BLOCK|BLOCK.*symlink|non-directory.*PC2b|symlink.*PC2b' \
     "SKILL.md Step 8 enumeration: must reflect existence semantics — non-directory or symlink → BLOCKED (BC-6.26.001 PC2b; RED until implementer rewrites; F-S2104-P5-007)" \
     "$skill_step8_section"
 
@@ -534,7 +534,7 @@ _run_teardown_preflight() {
   # Fully-qualified-path gate (F-P5-006 leg): §G.1 ref must include step-g-cleanup.md qualification.
   # A bare '§G.1' or 'G.1' without the filename is insufficient for cross-document traceability.
   # RED until implementer qualifies the winning-playbook Step 8 §G.1 reference.
-  _assert_doc_marker 'step-g-cleanup.*§G\.1\|step-g-cleanup.*G\.1\|§G\.1.*step-g-cleanup' \
+  _assert_doc_marker 'step-g-cleanup.*§G\.1|step-g-cleanup.*G\.1|§G\.1.*step-g-cleanup' \
     "WINNING playbook Step 8: §G.1 ref must be fully qualified (step-g-cleanup.md §G.1 form) — bare §G.1 insufficient; RED until implementer qualifies (F-P5-006 / F-S2104-P5-007)" \
     "$winning_step8_section"
   # Enumeration-correctness gate (F-S2104-P5-007): retired 'absent-dir' token must NOT appear.
@@ -542,7 +542,7 @@ _run_teardown_preflight() {
     "WINNING playbook Step 8 enumeration: must NOT contain 'absent-dir' token — retired; existence semantics [ ! -e ] supersedes it (BC-6.26.001 EC-008; RED until implementer rewrites; F-S2104-P5-007)" \
     "$winning_step8_section"
   # Enumeration-correctness gate (F-S2104-P5-007): must reflect v1.7 existence semantics.
-  _assert_doc_marker 'non-directory.*BLOCK\|BLOCK.*non-directory\|symlink.*BLOCK\|BLOCK.*symlink\|non-directory.*PC2b\|symlink.*PC2b' \
+  _assert_doc_marker 'non-directory.*BLOCK|BLOCK.*non-directory|symlink.*BLOCK|BLOCK.*symlink|non-directory.*PC2b|symlink.*PC2b' \
     "WINNING playbook Step 8 enumeration: must reflect existence semantics — non-directory or symlink → BLOCKED (BC-6.26.001 PC2b; RED until implementer rewrites; F-S2104-P5-007)" \
     "$winning_step8_section"
 
