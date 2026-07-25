@@ -11686,3 +11686,60 @@ D-902-S2104-ADV-PASS-6-CLOSED
 ### Date
 
 2026-07-25
+
+---
+
+## D-903
+
+### Title
+
+S-21.04-ADV-PASS-7-CLOSED — NOT-CLEAN B0/H4/M3/L2; 9 findings fixed; attestation corrections verbatim-authored by orchestrator; streak 0/3; NEXT pass-8
+
+### Context
+
+S-21.04 LOCAL adversarial cascade pass-7. Verdict: NOT-CLEAN — B0/H4/M3/L2 (9 findings F-S2104-P7-001..009). Novelty 0.68. Trajectory 14→18→17→12→11→11→9. Streak 0/3.
+
+Per-pass-6 verification: 5 CONFIRMED-CLOSED (F-P6-001/003/008/010/011), 6 PARTIAL (F-P6-002→P7-006; F-P6-004→P7-001/005; F-P6-005→P7-007/008; F-P6-006→P7-009; F-P6-007→P7-002; F-P6-009→P7-001/003; F-P6-D01→P7-004). Zero false closures. Meta-note: "attestation-vs-artifact divergence in closure records is itself becoming the recurring signal."
+
+F-S2104-P7-001 and F-S2104-P7-005 are attestation-correction findings (red-gate-log.md §T-005/T-006 addenda: misattributed ACs, fabricated RG-004a at 4 sites, inverted trailing-slash mechanism). Per L-BB-attestation-zero-degrees-of-freedom (codified this burst), these corrections were verbatim-authored by the orchestrator — state-manager transcribed with zero degrees of freedom.
+
+POLICY 16 gate (literal shell): `grep -n "^## D-" decision-log.md | tail -3` → `11547:## D-900 / 11592:## D-901 / 11640:## D-902`. D-902 confirmed prior max → D-903 allocated.
+
+### Decision
+
+D-903 burst scope executed:
+
+1. **POLICY 16 gate (literal stdout)**: `grep -n "^## D-" decision-log.md | tail -3` → `11547:## D-900 / 11592:## D-901 / 11640:## D-902`. D-902 confirmed prior max → D-903 allocated.
+
+2. **adversary-pass-07.md created** at `cycles/v1.0-brownfield-backfill/S-21.04/adversary-pass-07.md`: verbatim Part A finding table (9 findings B0/H4/M3/L2), observations (verbatim), per-pass-6 verification (verbatim), fix mapping (9 FIXED). Reviewed head: 3c3788d7. Novelty 0.68.
+
+3. **F-S2104-P7-001 + F-S2104-P7-005 FIX — red-gate-log.md v1.4→v1.5**: verbatim-authored corrections (orchestrator zero-degrees-of-freedom):
+   - (a) §T-005 addendum heading corrected: `### T-005 — Regular File at .factory Path (AC-002 EC-007 / RG-006)`. Test paragraph rewritten to describe regular-file-at-path fixture asserting PC2b BLOCKED.
+   - (b) §T-006 addendum heading corrected: `### T-006 — Symlink at .factory Path (AC-002 EC-008 / RG-005)`. Trailing-slash mechanism sentence corrected (escape via POSIX `[ -L ]` guard; find's default non-descent of symlink argument; trailing-slash as defense-in-depth forcing traversal entry).
+   - (c) ALL four "RG-004a" occurrences removed: replaced with "RG-006".
+   - (d) §Traces T-005/T-006 lines replaced with versionless AC-002 traces (RG-006 and RG-005 respectively).
+   - (e) NEW §T-007 addendum added: doc-parity gate, authored pass-4 F-S2104-P4-003, retro-registered T-007↔AC-008 at story v1.9 and RG-007 at story v1.11, strengthened to obligation-asserting form at 052620dc with mutant-proof.
+   - (f) Summary line updated: "9 bats tests: T-001..T-006 (behavioral vectors) + 3 propagation-gate tests, of which the devops-engineer gate is registered as T-007 (AC-008). All GREEN at worktree HEAD 3c3788d7."
+   - Frontmatter: version 1.4→1.5, input-hash 4b75dba→7abb656 (hook-computed), traces_to BC-6.26.001 v1.8→v1.9, last_amended prepended.
+
+4. **4-INDEX updates**:
+   - BC-INDEX: BC-6.26.001 v1.8→v1.9 (product-owner commit 7ecbd039; count-free PC2 lead-in); BC-INDEX v4.30→v4.31.
+   - STORY-INDEX: S-21.04 row story v1.9→v1.11 + input-hash d1043d3→58da074 + BC cite v1.8→v1.9 + RG-005/006/007 registration notes + pass-7 refs appended; STORY-INDEX v4.254→v4.255.
+   - ARCH-INDEX: v3.33 VERIFIED UNCHANGED.
+   - VP-INDEX: v2.72 VERIFIED UNCHANGED.
+
+5. **LESSONS [process-gap]**:
+   - `L-BB-attestation-zero-degrees-of-freedom`: closure-record attestation text MUST be authored verbatim by orchestrator from verified evidence; record-writers transcribe only; zero-degrees-of-freedom protocol mandated for all future attestation entries.
+   - `L-BB-rg-vacuum`: every T-vector must have an RG row registered in the §Red Gates section at authoring time in the same diff/commit; unmapped vectors create an RG vacuum that invites fabricated IDs.
+
+6. **STATE.md frontmatter-minimal**: v6.40→v6.41; phase D-903-S2104-ADV-PASS-7-CLOSED.
+
+POLICY 14 gate (literal shell — post-edit): `grep -m1 "^version:" BC-INDEX.md VP-INDEX.md STORY-INDEX.md ARCH-INDEX.md` → BC v4.31 / VP v2.72 / STORY v4.255 / ARCH v3.33.
+
+### Phase
+
+D-903-S2104-ADV-PASS-7-CLOSED
+
+### Date
+
+2026-07-25

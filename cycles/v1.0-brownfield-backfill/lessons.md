@@ -7708,3 +7708,51 @@ The mutant self-check is evidence, not just process. The test-writer report MUST
 **Cites:** D-902 (codified this burst); F-S2104-P6-003 (trigger — paper-gate [ -L ]); F-S2104-P6-007 (trigger — paper-gate trailing-slash); POLICY 13 (grep mode/pattern correctness); POLICY 15 (per-guard mutant verification); TD-VSDD-059 (paper-fix / paper-gate detection); test-writer 772096f4 (mutant self-check evidence).
 
 **Closes:** D-902 S-21.04-ADV-PASS-6-CLOSED (2026-07-25). `[process-gap; mutant-self-check; doc-parity-gate; paper-gate; load-bearing-assertion; bats-gate; policy-13; policy-15; td-vsdd-059; test-writer; D-902; codified]`
+
+---
+
+## L-BB-attestation-zero-degrees-of-freedom [process-gap] [codified D-903]
+
+**Summary:** Closure-record attestation text — in particular, any addendum or fix-mapping entry in a test register, red-gate-log, or burst-log — MUST be authored verbatim by the orchestrator from verified artifact evidence. The record-writer (state-manager or whoever persists the closure document) has zero degrees of freedom: transcribe, do not rephrase, do not elaborate, do not infer. This is the only structural defense against the recurring pattern where a record-writer's paraphrase introduces misattributed AC labels, fabricated RG IDs, or inverted behavioral descriptions.
+
+**Discovered:** 2026-07-25 (S-21.04 LOCAL cascade pass-7; F-S2104-P7-001 HIGH — pass-6 attestation addenda mis-attributed ACs (T-005/T-006 → "AC-007"; story says AC-002), fabricated non-existent RG ID "RG-004a" at 4 sites, misdescribed T-005's behavior; third fabrication incident in this file across D-895, D-897, D-902).
+
+**Root cause:** The record-writer role is routinely asked to "write up" a finding-closure in its own words from a brief description. This introduces a paraphrase layer where: (a) AC labels can be misremembered or confused; (b) RG IDs can be guessed or fabricated when not present in the author's immediate context; (c) behavioral descriptions can be inverted when the author does not re-read the source artifact. None of these errors is visible to the record-writer at write time — the fabrication is undetectable without a fresh-context read of the referenced source.
+
+**Corrective action — zero-degrees-of-freedom protocol:** For any attestation entry covering a finding fix, an addendum, or a Red Gate test description:
+1. The orchestrator (or delegating agent) authors the EXACT attestation text from direct artifact inspection.
+2. The authored text is transmitted as verbatim-copy instruction: "transcribe, do not rephrase."
+3. The record-writer confirms receipt of the verbatim text before writing.
+4. The orchestrator diff-verifies the persisted record against the authored text before accepting the burst.
+
+**Prevention:** Orchestrator task messages for closure bursts MUST include the phrase "verbatim-authored by orchestrator with zero degrees of freedom — transcribe, do not rephrase, do not elaborate" adjacent to every attestation text block. The absence of this phrase in a task message is a signal that the orchestrator has delegated authorship to the record-writer — which is a process violation.
+
+**Anchors:** S-21.04 LOCAL cascade pass-7 (2026-07-25); F-S2104-P7-001 HIGH (attestation fabrication — third incident); D-895 (first incident); D-897 (second incident); D-902 (third incident, trigger for this lesson codification); red-gate-log.md v1.4→v1.5 corrections (verbatim-authored by orchestrator, transcribed by state-manager D-903 burst).
+
+**Cites:** D-903 (codified this burst); F-S2104-P7-001 (trigger — fabricated RG-004a + AC misattribution + behavior inversion); POLICY 1 (accuracy obligation); POLICY 17 (attestation integrity); TD-VSDD-059 (paper-fix / attestation accuracy detection); D-895 D-897 D-902 (prior incidents in the same file).
+
+**Closes:** D-903 S-21.04-ADV-PASS-7-CLOSED (2026-07-25). `[process-gap; attestation; zero-degrees-of-freedom; verbatim-authored; fabrication-prevention; closure-record; rg-id; ac-label; orchestrator-protocol; D-903; codified]`
+
+---
+
+## L-BB-rg-vacuum [process-gap] [codified D-903]
+
+**Summary:** Every T-vector (behavioral test vector in a red-gate-log) MUST have a corresponding RG row registered in the red-gate-log's §Red Gates register at authoring time. Unmapped test vectors create an "RG vacuum" — a structural gap where a record-writer has no existing RG ID to cite and is forced to either invent one ("RG-004a") or leave the trace blank. Both outcomes are defects. The RG register is not a retroactive catalog; it is a simultaneous requirement: T-vector authored → RG row authored in the same commit.
+
+**Discovered:** 2026-07-25 (S-21.04 LOCAL cascade pass-7; F-S2104-P7-001 HIGH — T-005 and T-006 both mapped to fabricated "RG-004a" at 4 sites; the root cause was that T-005 and T-006 were authored as test vectors without simultaneously registering RG-006 and RG-005 in the §Red Gates section; when the closure-record writer needed RG IDs to fill the addendum's `→ RG-NNN` trace slots, no valid IDs existed, so the writer fabricated one).
+
+**Root cause:** The red-gate-log authoring workflow does not enforce RG-row registration as a gate on T-vector authoring. Test vectors are authored in §Test Vectors, and RG rows are authored in a separate §Red Gates section. When the two sections are not updated atomically in the same diff, the RG vacuum is created. The vacuum is invisible to the T-vector author and only becomes visible to a record-writer who tries to trace a T-vector to an RG ID — at which point fabrication pressure is highest.
+
+**Corrective action — simultaneous RG registration mandate:** When authoring a new T-vector in a red-gate-log:
+1. Author the T-vector entry (§Test Vectors or addendum).
+2. In the same diff/commit, register the corresponding RG row in §Red Gates with the correct ID (next sequential from existing max).
+3. Fill the `→ RG-NNN` slot in the T-vector's trace immediately.
+4. Never leave a T-vector's RG trace as TBD, blank, or carrying a placeholder ID.
+
+**Prevention:** Red-gate-log authoring checklists MUST include: "For each new T-vector, verify its RG row is registered in §Red Gates in this same diff. If not, add it now. Do not leave T-vectors with unregistered or fabricated RG IDs."
+
+**Anchors:** S-21.04 LOCAL cascade pass-7 (2026-07-25); F-S2104-P7-001 HIGH (trigger — RG-004a fabricated at 4 sites for T-005/T-006); red-gate-log.md v1.5 (RG-005 and RG-006 belatedly registered for T-006 and T-005); RG-007 (T-007 doc-parity gate registered at story v1.11 / D-903 burst per the T-007 addendum).
+
+**Cites:** D-903 (codified this burst); F-S2104-P7-001 (trigger — RG vacuum enabling fabrication); POLICY 1 (accuracy obligation); POLICY 17 (attestation integrity); POLICY 4 (spec/implementation parity); red-gate-log.md (structural pattern that enables RG vacuum when §Test Vectors and §Red Gates are not updated atomically).
+
+**Closes:** D-903 S-21.04-ADV-PASS-7-CLOSED (2026-07-25). `[process-gap; rg-vacuum; rg-register; t-vector; red-gate-log; simultaneous-registration; fabrication-prevention; traceability; D-903; codified]`

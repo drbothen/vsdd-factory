@@ -1,7 +1,7 @@
 ---
 document_type: red-gate-log
 level: ops
-version: "1.4"
+version: "1.5"
 status: verified
 producer: test-writer
 timestamp: 2026-07-25T03:15:00Z
@@ -9,15 +9,16 @@ phase: 3
 inputs:
   - .factory/stories/S-21.04-story-worktree-write-path-discipline.md
   - .factory/specs/behavioral-contracts/ss-06/BC-6.26.001.md
-input-hash: "4b75dba"
-traces_to: "BC-6.26.001 v1.8"
-last_amended: "2026-07-25 D-902 state-manager — T-005/T-006/RG-005 attestation addenda appended; Summary 9-test suite; Traces quintuple parity v1.5→v1.8; T-004 addendum BC cite v1.5→v1.8; RG-reconciliation note appended to D-895 erratum; input-hash 8cdfb33→a4b9ea5 (story v1.9 + BC v1.8 drift); traces_to v1.6→v1.8; version 1.3→1.4 (F-S2104-P6-004); prior: 2026-07-25 D-899 state-manager — T-004 test description corrected to verbatim §G.1 PC2c semantics (HALT + surface exit code/stderr; no PREFLIGHT BLOCKED message); input-hash 2b051ec→8cdfb33 (story v1.7 drift); traces_to v1.5→v1.6; version 1.2→1.3 (F-S2104-P4-006); prior: 2026-07-25 D-897 state-manager — fabricated PC2c implementation quote corrected to verbatim §G.1 text; Invariant TBD placeholder removed; input-hash 55904fb→2b051ec (story v1.6 drift); version 1.1→1.2 (F-S2104-P3-009, F-S2104-P3-010); prior: 2026-07-25 D-896 state-manager — T-004/RG-004 attestation addendum (F-S2104-P2-013) + quintuple parity v1.5 (F-S2104-P2-017); prior: 2026-07-25 D-895 state-manager — erratum F-S2104-P1-009 (RG-ID mapping + AC-002 attribution)"
+input-hash: "7abb656"
+traces_to: "BC-6.26.001 v1.9"
+last_amended: "2026-07-25 D-903 state-manager — F-S2104-P7-001/P7-005 attestation corrections verbatim-authored by orchestrator: §T-005 addendum heading/Test rewritten (regular-file-at-path → PC2b BLOCKED; RG-006; AC-002/EC-007); §T-006 addendum heading/trailing-slash mechanism corrected (POSIX find WITHOUT -H/-L empty-return → false PC2a; [ -L ] guard routes to PC2b; trailing-slash defense-in-depth); all 4 RG-004a occurrences replaced with RG-006; §Traces T-005/T-006 quintuple parity updated; NEW §T-007 addendum (AC-008/RG-007 devops-engineer executor-side preflight mandate; obligation-asserting at 052620dc); Summary line: 9 bats tests T-001..T-006 + 3 propagation-gate tests; BC-6.26.001 v1.8→v1.9 cites updated throughout; input-hash 4b75dba→7abb656 (story v1.11 + BC v1.9 drift); traces_to v1.8→v1.9; version 1.4→1.5 (F-S2104-P7-001, F-S2104-P7-005); prior: 2026-07-25 D-902 state-manager — T-005/T-006/RG-005 attestation addenda appended; Summary 9-test suite; Traces quintuple parity v1.5→v1.8; T-004 addendum BC cite v1.5→v1.8; RG-reconciliation note appended to D-895 erratum; input-hash 8cdfb33→a4b9ea5 (story v1.9 + BC v1.8 drift); traces_to v1.6→v1.8; version 1.3→1.4 (F-S2104-P6-004); prior: 2026-07-25 D-899 state-manager — T-004 test description corrected to verbatim §G.1 PC2c semantics (HALT + surface exit code/stderr; no PREFLIGHT BLOCKED message); input-hash 2b051ec→8cdfb33 (story v1.7 drift); traces_to v1.5→v1.6; version 1.2→1.3 (F-S2104-P4-006); prior: 2026-07-25 D-897 state-manager — fabricated PC2c implementation quote corrected to verbatim §G.1 text; Invariant TBD placeholder removed; input-hash 55904fb→2b051ec (story v1.6 drift); version 1.1→1.2 (F-S2104-P3-009, F-S2104-P3-010); prior: 2026-07-25 D-896 state-manager — T-004/RG-004 attestation addendum (F-S2104-P2-013) + quintuple parity v1.5 (F-S2104-P2-017); prior: 2026-07-25 D-895 state-manager — erratum F-S2104-P1-009 (RG-ID mapping + AC-002 attribution)"
 modified:
   - "2026-07-25 D-895: Erratum appended — RG-ID mapping corrected (RG-001/002/003), fabricated RG-004/005 documented, AC-002 attribution corrected (F-S2104-P1-009)"
   - "2026-07-25 D-896: T-004/RG-004 attestation addendum appended; frontmatter version 1.0→1.1, traces_to updated to v1.5, §Traces BC cites updated to v1.5 (F-S2104-P2-013, F-S2104-P2-017)"
   - "2026-07-25 D-897: Fabricated PC2c implementation quote corrected to verbatim §G.1 text; Invariant TBD placeholder removed; input-hash 55904fb→2b051ec (story v1.6 drift correction); version 1.1→1.2 (F-S2104-P3-009, F-S2104-P3-010)"
   - "2026-07-25 D-899: T-004 test description corrected to verbatim §G.1 PC2c semantics; input-hash 2b051ec→8cdfb33 (story v1.7 drift); traces_to v1.5→v1.6; version 1.2→1.3 (F-S2104-P4-006)"
   - "2026-07-25 D-902: T-005/T-006/RG-005 attestation addenda appended; Summary updated to 9-test suite; Traces quintuple parity v1.5→v1.8; T-004 addendum BC cite updated to v1.8; RG-reconciliation note appended to D-895 erratum; input-hash 8cdfb33→4b75dba (story v1.9 + BC v1.8 drift); traces_to v1.6→v1.8; version 1.3→1.4 (F-S2104-P6-004)"
+  - "2026-07-25 D-903: F-S2104-P7-001/P7-005 attestation corrections verbatim-authored by orchestrator; §T-005 rewritten (regular-file-at-path → PC2b BLOCKED; RG-006; AC-002/EC-007); §T-006 trailing-slash mechanism corrected; all 4 RG-004a→RG-006; §Traces quintuple parity updated; NEW §T-007 addendum (AC-008/RG-007); Summary line updated; BC v1.8→v1.9 cites; input-hash 4b75dba→7abb656 (story v1.11 + BC v1.9 drift); traces_to v1.8→v1.9; version 1.4→1.5 (F-S2104-P7-001, F-S2104-P7-005)"
 stub_architect_agent: "N/A — no code stubs (skill-doc + bats story; ADR-031 §Decision 4 class; POLICY 21 satisfied)"
 stub_compile_verified: true
 test_writer_agent: vsdd-factory:test-writer
@@ -35,7 +36,7 @@ red_gate_verified: true
 
 | Story | New Tests Written | All New Tests Fail (Red)? | Pre-existing Tests | Gate |
 |-------|------------------|--------------------------|-------------------|------|
-| S-21.04 | 9 bats (T-001..T-007 + 2 gates; original 3 bats at Red Gate; suite grown via addenda) | YES — all original 3 FAIL at Red Gate | 2265 (cargo baseline) | PASSED |
+| S-21.04 | 9 bats tests: T-001..T-006 (behavioral vectors) + 3 propagation-gate tests, of which the devops-engineer gate is registered as T-007 (AC-008). All GREEN at worktree HEAD 3c3788d7. | YES — all original 3 FAIL at Red Gate | 2265 (cargo baseline) | PASSED |
 
 Orchestrator-verified 2026-07-24: all 3 bats tests `not ok` (ASSERTION failures via `_assert_doc_marker`; DOC-PARITY: `find.*\.factory` preflight mandate absent from step-g-cleanup.md §G.1). Pre-implementation cargo-test baseline: 2265 pass, 0 fail, clean build.
 
@@ -87,12 +88,12 @@ No `#[should_panic]` masking. No vacuously-passing new tests. Failure mechanism 
 
 ## Traces
 
-- T-001 (AC-003 / RG-001†) → BC-6.26.001 v1.8 PC2b (Invariant 2): stray `.factory/` file triggers PREFLIGHT BLOCKED; `git worktree remove` NOT called
-- T-002 (AC-004 / RG-002†) → BC-6.26.001 v1.8 PC2a: empty shadow tree → teardown proceeds; `git worktree remove` IS called
-- T-003 (AC-005 / RG-003†) → BC-6.26.001 v1.8 PC2b→PC2a retry path: stray file relocated → preflight re-runs clean → teardown proceeds
-- T-004 (AC-006 / RG-004) → BC-6.26.001 v1.8 PC2c: non-path-absent find error → fail-closed HALT; `git worktree remove` NOT called (addendum D-896)
-- T-005 (AC-007 / RG-004a) → BC-6.26.001 v1.8 PC2a(a) existence-predicate: `[ ! -e ]` pre-test before find; directory-absent path → proceed without find (addendum D-902)
-- T-006 (AC-007 / RG-005) → BC-6.26.001 v1.8 PC2b symlink-at-path: `[ -L ]` guard after existence-pre-test; symlink at path → PREFLIGHT BLOCKED; `git worktree remove` NOT called (addendum D-902)
+- T-001 (AC-003 / RG-001†) → BC-6.26.001 v1.9 PC2b (Invariant 2): stray `.factory/` file triggers PREFLIGHT BLOCKED; `git worktree remove` NOT called
+- T-002 (AC-004 / RG-002†) → BC-6.26.001 v1.9 PC2a: empty shadow tree → teardown proceeds; `git worktree remove` IS called
+- T-003 (AC-005 / RG-003†) → BC-6.26.001 v1.9 PC2b→PC2a retry path: stray file relocated → preflight re-runs clean → teardown proceeds
+- T-004 (AC-006 / RG-004) → BC-6.26.001 v1.9 PC2c: non-path-absent find error → fail-closed HALT; `git worktree remove` NOT called (addendum D-896)
+- T-005 → AC-002 (EC-007) / RG-006 / BC-6.26.001 PC2b (non-directory inode)
+- T-006 → AC-002 (EC-008) / RG-005 / BC-6.26.001 PC2b (symlink at path)
 
 † RG-ID corrections per D-895 Erratum §Defect 2 (original log had fabricated RG-003/RG-004/RG-005; corrected to RG-001/RG-002/RG-003).
 
@@ -169,13 +170,13 @@ Suite run: `bats plugins/vsdd-factory/tests/story-worktree-write-path-discipline
 
 **RG-004 source of truth:** story v1.5 §Red Gate Test Plan (6149e893). Story v1.4 covered RG-001..RG-003 only; RG-004 (PC2c) was added by story-writer at commit 6149e893 as part of F-S2104-P2-007 five-table propagation fix.
 
-**BC trace:** T-004 (AC-006 / RG-004) → BC-6.26.001 v1.8 PC2c: non-path-absent find error → fail-closed HALT; `git worktree remove` NOT called.
+**BC trace:** T-004 (AC-006 / RG-004) → BC-6.26.001 v1.9 PC2c: non-path-absent find error → fail-closed HALT; `git worktree remove` NOT called.
 
 **Summary row for completeness:**
 
 | Test | AC / RG ID | BC Trace | Failure Reason at Red Gate | Green Commit |
 |------|-----------|----------|---------------------------|--------------|
-| T-004 | AC-006 / RG-004 | BC-6.26.001 v1.8 PC2c | DOC-PARITY: PC2c fail-closed HALT clause absent from §G.1 at `7d38b9e6` | `19271a65` |
+| T-004 | AC-006 / RG-004 | BC-6.26.001 v1.9 PC2c | DOC-PARITY: PC2c fail-closed HALT clause absent from §G.1 at `7d38b9e6` | `19271a65` |
 
 ---
 
@@ -183,25 +184,25 @@ Suite run: `bats plugins/vsdd-factory/tests/story-worktree-write-path-discipline
 
 **Appended:** 2026-07-25 (D-902 S-21.04 pass-6 closure; state-manager)
 
-T-005 (AC-007 caller-side propagation / RG-004a existence-predicate pre-test) was added by the test-writer as part of the pass-4 fix burst. The original red-gate-log did not include T-005's Red Gate attestation.
+T-005 (AC-002 regular-file-at-path / RG-006 non-directory-inode) was added by the test-writer as part of the pass-4 fix burst. The original red-gate-log did not include T-005's Red Gate attestation.
 
-### T-005 — PC2a(a) Existence-Predicate Pre-Test (AC-007 / RG-004a)
+### T-005 — Regular File at .factory Path (AC-002 EC-007 / RG-006)
 
-**Test:** T-005 asserts that when the worktree's `.factory/` path is absent entirely (directory does not exist), the preflight protocol applies an existence check (`[ ! -e ]`) before invoking `find`, short-circuiting to the PC2a clean-proceed branch without running `find` on a non-existent path. This is the existence-predicate step introduced in BC-6.26.001 v1.6 as the first step of the 4-step chain.
+**Test:** T-005 creates a REGULAR FILE at <worktree>/.factory (fixture: touch $MOCK_WORKTREE/.factory) and asserts the preflight routes to PC2b BLOCKED with the path reported, find NOT invoked, non-zero exit, and git worktree remove NOT called. Under the pre-fix §G.1 (predicate [ ! -d ], no non-directory branch) a regular file at the path would satisfy 'not a directory' and authorize teardown — destroying the file. Observed RED at worktree commit 60f0d2d6 (DOC-PARITY: '[ ! -e ] predicate and non-directory→PC2b clause absent from step-g-cleanup.md §G.1'); GREEN at 73c2bade. Registered as RG-006 in story §Red Gate Test Plan (v1.11).
 
 **Red Gate state — worktree commit `60f0d2d6` (pass-4 baseline):**
 
-Suite run: `bats plugins/vsdd-factory/tests/story-worktree-write-path-discipline.bats` → `1..8`; 5 of 8 `not ok` (orchestrator independently ran the suite). T-005 failed at `_assert_doc_marker` (DOC-PARITY): "step-g-cleanup.md missing `[ ! -e ]` predicate and non-directory→PC2b clause" — the existence pre-test and non-directory branch were not yet present in §G.1. Pre-implementation, the awk extraction gate confirms absence of the v1.6 4-step chain.
+Suite run: `bats plugins/vsdd-factory/tests/story-worktree-write-path-discipline.bats` → `1..8`; 5 of 8 `not ok` (orchestrator independently ran the suite). T-005 failed at `_assert_doc_marker` (DOC-PARITY): "step-g-cleanup.md missing `[ ! -e ]` predicate and non-directory→PC2b clause" — the non-directory→PC2b branch was not yet present in §G.1. Pre-implementation, the awk extraction gate confirms absence of the non-directory clause.
 
-**Implementation commit that turned T-005 green:** `73c2bade` — added `[ ! -e ]` existence pre-test as step 1 of the §G.1 4-step chain.
+**Implementation commit that turned T-005 green:** `73c2bade` — added `[ ! -e ]` existence pre-test and non-directory→PC2b branch to §G.1.
 
-**BC trace:** T-005 (AC-007 / RG-004a) → BC-6.26.001 v1.8 PC2a(a): path-absent short-circuit; `[ ! -e ]` step 1 of the 4-step chain; `find` NOT invoked; proceed to PC2a clean teardown.
+**BC trace:** T-005 (AC-002 / RG-006) → BC-6.26.001 v1.9 PC2b (non-directory inode): non-directory inode at .factory path → PREFLIGHT BLOCKED; `git worktree remove` NOT called.
 
 **Summary row:**
 
 | Test | AC / RG ID | BC Trace | Failure Reason at Red Gate | Green Commit |
 |------|-----------|----------|---------------------------|--------------|
-| T-005 | AC-007 / RG-004a | BC-6.26.001 v1.8 PC2a(a) existence-predicate | DOC-PARITY: `[ ! -e ]` pre-test + non-directory→PC2b clause absent from §G.1 at `60f0d2d6` | `73c2bade` |
+| T-005 | AC-002 / RG-006 | BC-6.26.001 v1.9 PC2b (non-directory inode) | DOC-PARITY: non-directory→PC2b clause absent from §G.1 at `60f0d2d6` | `73c2bade` |
 
 ---
 
@@ -209,11 +210,11 @@ Suite run: `bats plugins/vsdd-factory/tests/story-worktree-write-path-discipline
 
 **Appended:** 2026-07-25 (D-902 S-21.04 pass-6 closure; state-manager)
 
-T-006 (AC-007 symlink-at-path vector / RG-005) was added by the test-writer as part of the pass-5 fix burst (F-S2104-P5-011 symlink-to-DIRECTORY data-loss vector; test-writer commit `93ec340a`). The original red-gate-log did not include T-006's Red Gate attestation.
+T-006 (AC-002 EC-008 / RG-005 symlink-at-path) was added by the test-writer as part of the pass-5 fix burst (F-S2104-P5-011 symlink-to-DIRECTORY data-loss vector; test-writer commit `93ec340a`). The original red-gate-log did not include T-006's Red Gate attestation.
 
-### T-006 — PC2b Symlink-at-Path Guard (AC-007 / RG-005)
+### T-006 — Symlink at .factory Path (AC-002 EC-008 / RG-005)
 
-**Test:** T-006 asserts that when the worktree's `.factory/` path exists as a symlink (symlink-to-directory), the preflight protocol detects the symlink via `[ -L ]` (step 2 of the 4-step chain) BEFORE invoking `find`, and classifies the symlink-at-path case as PC2b PREFLIGHT BLOCKED. The `find` command, if invoked on a symlink-to-directory with the trailing-slash form, would follow the link and report empty — silently authorizing teardown when it should be blocked. The `[ -L ]` guard closes this gap.
+**Test:** T-006 asserts that when the worktree's `.factory/` path exists as a symlink (symlink-to-directory), the preflight protocol detects the symlink via `[ -L ]` (step 2 of the 4-step chain) BEFORE invoking `find`, and classifies the symlink-at-path case as PC2b PREFLIGHT BLOCKED. The escape mechanism: POSIX test -d follows symlinks (a symlink-to-directory satisfies [ -d ]), while POSIX find WITHOUT -H/-L does not descend a symlink argument and returns empty output — a false PC2a. The [ -L ] guard (before any [ -d ] test) routes any symlink to PC2b without invoking find; the mandated trailing-slash find form is defense-in-depth that forces traversal entry if a symlink were ever to reach the find branch.
 
 **Red Gate state — worktree commit `93ec340a` (pass-5 baseline, test-writer's own commit adding T-006):**
 
@@ -223,7 +224,7 @@ At commit `93ec340a` (the failing-tests commit for T-006), the §G.1 `[ -L ]` sy
 
 **Mutant self-check (pass-6 hardening, commit `772096f4`):** Test-writer performed scratch deletion of §G.1 L31-40 (the `[ -L ]` guard block) at commit `772096f4` as a mutant self-check — T-006 turned RED on the mutated §G.1, proving the load-bearing `[ -L ]` gate is not satisfied by the PC2b header line alone. Deletion confirmed as FAIL, restoring §G.1 confirmed GREEN. This closes the pass-6 F-S2104-P6-003 gate-weakening finding.
 
-**BC trace:** T-006 (AC-007 / RG-005) → BC-6.26.001 v1.8 PC2b symlink-at-path: `[ -L ]` step 2 of the 4-step chain; symlink-at-path → PREFLIGHT BLOCKED; `git worktree remove` NOT called.
+**BC trace:** T-006 (AC-002 / RG-005) → BC-6.26.001 v1.9 PC2b symlink-at-path: `[ -L ]` step 2 of the 4-step chain; symlink-at-path → PREFLIGHT BLOCKED; `git worktree remove` NOT called.
 
 **RG-005 source of truth:** story v1.8 §Red Gate Test Plan (commit `04aa9ff3`). Story v1.7 covered RG-001..RG-004; RG-005 (symlink-at-path/PC2b) was added by the story-writer at commit `04aa9ff3` as part of F-S2104-P5-011 five-table propagation.
 
@@ -231,4 +232,22 @@ At commit `93ec340a` (the failing-tests commit for T-006), the §G.1 `[ -L ]` sy
 
 | Test | AC / RG ID | BC Trace | Failure Reason at Red Gate | Green Commit |
 |------|-----------|----------|---------------------------|--------------|
-| T-006 | AC-007 / RG-005 | BC-6.26.001 v1.8 PC2b symlink-at-path | DOC-PARITY: §G.1 `[ -L ]` symlink→PC2b clause absent at `93ec340a` | `4833a642` |
+| T-006 | AC-002 / RG-005 | BC-6.26.001 v1.9 PC2b symlink-at-path | DOC-PARITY: §G.1 `[ -L ]` symlink→PC2b clause absent at `93ec340a` | `4833a642` |
+
+---
+
+## T-007 — devops-engineer Executor-Side Preflight Mandate (AC-008 / RG-007)
+
+**Appended:** 2026-07-25 (D-903 S-21.04 pass-7 closure; state-manager)
+
+### T-007 — devops-engineer Executor-Side Preflight Mandate (AC-008 / RG-007)
+
+T-007 is the doc-parity gate authored at pass-4 as F-S2104-P4-003 (bats gate asserting agents/devops-engineer.md §Worktree Cleanup carries the §G.1 preflight-verification mandate). Observed RED at 60f0d2d6 (pass-4 baseline: '§Worktree Cleanup section has no §G.1/step-g-cleanup/BC-6.26.001 mandate'); GREEN at 0c0922e1. Retro-registered as T-007↔AC-008 at story v1.9 and RG-007 at story v1.11; its red-gate history predates AC-008's authoring — recorded as-is. Strengthened to obligation-asserting form (verify-PASS + not-evident-run-yourself) at 052620dc with mutant-proof.
+
+**BC trace:** T-007 → AC-008 / RG-007 / BC-6.26.001 v1.9 Precondition 3: devops-engineer.md §Worktree Cleanup MUST carry the §G.1 preflight-verification mandate unconditionally; obligation-asserting gate confirms PASS result + not-evident-run-yourself attestation.
+
+**Summary row:**
+
+| Test | AC / RG ID | BC Trace | Failure Reason at Red Gate | Green Commit |
+|------|-----------|----------|---------------------------|--------------|
+| T-007 | AC-008 / RG-007 | BC-6.26.001 v1.9 Precondition 3 | DOC-PARITY: §Worktree Cleanup had no §G.1/step-g-cleanup/BC-6.26.001 mandate at `60f0d2d6` | `0c0922e1` |
