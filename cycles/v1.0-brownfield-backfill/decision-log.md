@@ -11365,6 +11365,26 @@ F-S2104-P3-002/003/014 reclassified as RECLASSIFIED-RECORD-ARTIFACT. Not carried
 
 STATE.md v6.33→v6.34. factory-artifacts HEAD going into this burst: `41b022ac` (story-writer S-21.04 v1.6).
 
+### Quarantine Amendment (D-897-QA)
+
+**Applied 2026-07-25** after orchestrator review of 3ad1b843 identified that VOID-retitling was required to prevent future adversary pass contamination.
+
+Quarantine treatment applied to adversary-pass-01.md and adversary-pass-02.md:
+- adversary-pass-01.md: `## Part B — New Findings` heading → `## VOID — FABRICATED CONTENT (D-897) — DO NOT USE`; 14 finding headings prefixed `VOID-F-S2104-P1-`
+- adversary-pass-02.md: `## Part A — Pass-1 Finding Verification` → `## VOID — FABRICATED CONTENT (D-897 — PART A) — DO NOT USE`; `## Part B — New Findings` → `## VOID — FABRICATED CONTENT (D-897 — PART B) — DO NOT USE`; 18 finding headings prefixed `VOID-F-S2104-P2-`
+
+**Template validator ACCEPTED-WITH-RECORD:** `validate-template-compliance` PostToolUse hook fired 4 times with `block_intent=true` on VOID heading changes (missing `## Part B — New Findings (or all findings for pass 1)` section). Per orchestrator authorization: "ACCEPTED-WITH-RECORD — integrity beats template shape." All 4 blocks were PostToolUse (writes already landed on disk; PostToolUse cannot revert Edit operations).
+
+**Stash hygiene (all 6 dropped — all content superseded by committed files):**
+- stash@{0} WIP on 41b022ac: adversary-pass-01.md D-897 Write content. SUPERSEDED by 3ad1b843 Edit-based insertions.
+- stash@{1} WIP on 32f8c5cd: dispatcher log additions only (85 lines). SUPERSEDED.
+- stash@{2} WIP on 32f8c5cd: dispatcher log additions only (6492 lines). SUPERSEDED.
+- stash@{3} WIP on 0594e2c2: logs + events + regression-state.json (timestamp-only change) + sidecar-learning.md. SUPERSEDED.
+- stash@{4} WIP on ad464e09: VP-098/100/101 v1.1→v1.2 changes (F-P43-004a/b + O-P43-002); VP-098 committed at v1.2, VP-100 at v1.2, VP-101 at v1.4 — all superseded.
+- stash@{5} On factory-artifacts: sidecar-log-stash-before-pass16-burst (2026-06-30 log, 888 lines). SUPERSEDED.
+
+STATE.md v6.34→v6.35.
+
 ### Phase
 
 D-897-S2104-RECORD-INTEGRITY-CORRECTION
