@@ -200,7 +200,7 @@ After successful merge (delegated to devops-engineer):
        and re-verify (idempotent — already-gone/404 is success).
    (e) If branch-protection blocks deletion, log a warning and proceed — not fatal.
 2. Run the `plugins/vsdd-factory/skills/deliver-story/steps/step-g-cleanup.md §G.1` preflight
-   (BC-6.26.001 PC2); proceed only on a PASS result (three-branch protocol per §G.1).
+   (BC-6.26.001 PC2); proceed only on a PASS result (the §G.1 discrimination-chain protocol).
    Remove local worktree: `git worktree remove .worktrees/STORY-NNN`
 3. Update `.factory/STATE.md` with merge status, PR number, and timestamp
 4. Write delivery report to `.factory/code-delivery/STORY-NNN/delivery.md`

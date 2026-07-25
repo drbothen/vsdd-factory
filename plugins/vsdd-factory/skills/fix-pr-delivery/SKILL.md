@@ -144,7 +144,7 @@ github-ops: "cd <project-path> && gh pr merge --squash --delete-branch"
 #    (idempotent — already-gone/404 is success).
 # 5. If branch-protection blocks deletion: log warning and proceed (not fatal).
 # Run plugins/vsdd-factory/skills/deliver-story/steps/step-g-cleanup.md §G.1 preflight
-# (BC-6.26.001 PC2); proceed only on a PASS result (three-branch protocol per §G.1).
+# (BC-6.26.001 PC2); proceed only on a PASS result (the §G.1 discrimination-chain protocol).
 devops-engineer: "cd <project-path> && git worktree remove .worktrees/FIX-P[phase]-NNN"
 state-manager: "Update STATE.md with FIX-P[phase]-NNN completion — merge status, PR number, timestamp"
 ```

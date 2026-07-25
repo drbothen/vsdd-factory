@@ -93,8 +93,8 @@ gitignored content in this scenario.
 
 **Task:** "Remove worktree `.worktrees/STORY-NNN/` and delete local branch `feature/STORY-NNN-<desc>`."
 
-Dispatch this task ONLY after the preflight above returns a PASS result (PC2a per the three-branch
-protocol above). The devops-engineer must run plain `git worktree remove <worktree-path>`.
+Dispatch this task ONLY after the preflight above returns a PASS result (PC2a per the §G.1
+discrimination-chain protocol above). The devops-engineer must run plain `git worktree remove <worktree-path>`.
 
 The `--force` flag is prohibited by BC-6.26.001 PC2a — it strips git's built-in unclean-worktree
 protection for non-gitignored untracked files; this prohibition is a BC mandate, not a

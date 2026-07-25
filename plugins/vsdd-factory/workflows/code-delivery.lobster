@@ -442,6 +442,6 @@ workflow:
       depends_on: [merge-pr, delivery-human-approval]
       task: >
         Run plugins/vsdd-factory/skills/deliver-story/steps/step-g-cleanup.md §G.1 preflight
-        (BC-6.26.001 PC2); proceed only on a PASS result (three-branch protocol per §G.1).
+        (BC-6.26.001 PC2); proceed only on a PASS result (the §G.1 discrimination-chain protocol).
         Remove worktree: git worktree remove [worktree_path].
         Update .factory/STATE.md with merge status, PR number, timestamp.

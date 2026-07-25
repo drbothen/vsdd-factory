@@ -81,7 +81,7 @@ Parse `$ARGUMENTS` to determine the action:
 
 3. **Preflight required (BC-6.26.001 PC2, INV-E21-004):** Run the
    `plugins/vsdd-factory/skills/deliver-story/steps/step-g-cleanup.md §G.1` preflight; proceed only on
-   a PASS result (three-branch protocol per §G.1). Note: the `git status --porcelain` check above is
+   a PASS result (the §G.1 discrimination-chain protocol). Note: the `git status --porcelain` check above is
    BLIND to gitignored shadow `.factory/` content — the §G.1 preflight is the only gate that catches it
    (BC-6.26.001 Invariant 5).
 
