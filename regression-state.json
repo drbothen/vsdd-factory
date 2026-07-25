@@ -1,1 +1,1 @@
-{"status":"pass","timestamp":"2026-07-24T21:47:13Z","command":"cd /Users/zious/Documents/GITHUB/vsdd-factory/.worktrees/fix-e21-w1-gate && cargo test -p validate-factory-path-staging 2>&1 | grep \"test result\""}
+{"status":"pass","timestamp":"2026-07-25T00:59:38Z","command":"cargo test --workspace --all-targets 2>&1 | grep -E \"^test result\" | awk -F'[. ;]+' '{sum += $4} END {print \"pre-implementation cargo-test baseline:\", sum, \"pass\"}'"}
