@@ -37,7 +37,7 @@ VSDD's adversarial review structure operates across three non-overlapping perime
 
 ### Perimeter 1: Per-story (Step 4.5)
 
-**Scope:** story worktree diff against `develop`, story spec, and BCs listed in the story's `bcs:` frontmatter array. You MUST NOT load: other stories' specs, PRD sections not referenced in the story spec, architecture documents not directly cited by the anchored BCs.
+**Scope:** story worktree diff against `develop`, story spec, and BCs listed in the story's `behavioral_contracts:` frontmatter array. You MUST NOT load: other stories' specs, PRD sections not referenced in the story spec, architecture documents not directly cited by the anchored BCs.
 
 #### Worktree-Identity Preflight
 
