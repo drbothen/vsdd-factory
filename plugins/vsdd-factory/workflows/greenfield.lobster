@@ -799,7 +799,9 @@ workflow:
                 depends_on: [merge-pr]
                 task: >
                   Preflight required (BC-6.26.001 PC2): find .worktrees/STORY-NNN/.factory -type f
-                  before removal; if non-empty HALT and follow step-g-cleanup.md §G.1.
+                  before removal; proceed only on a PASS result (per step-g-cleanup.md §G.1
+                  three-branch protocol: absent-dir or empty-and-clean → proceed; stray files
+                  → BLOCKED; find error → HALT).
                   Remove worktree: git worktree remove .worktrees/STORY-NNN.
                   Update .factory/STATE.md with merge status.
 

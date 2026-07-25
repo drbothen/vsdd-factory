@@ -192,8 +192,9 @@ Dispatch `pr-manager` with the full PR process for S-N.MM. Feature branch: `feat
 
 **Preflight required (BC-6.26.001 PC2):** Before dispatching the removal, run the §G.1 preflight
 from `skills/deliver-story/steps/step-g-cleanup.md §G.1` to check for shadow `.factory/` artifacts
-in the story worktree. The devops-engineer dispatch MUST NOT proceed until the preflight returns an
-empty result (BC-6.26.001 PC2; caller-side per ADR-031).
+in the story worktree. Proceed only on a PASS preflight result (per step-g-cleanup.md §G.1
+three-branch protocol: absent-dir or empty-and-clean → proceed; stray files → BLOCKED; find error
+→ HALT; BC-6.26.001 PC2; caller-side per ADR-031).
 
 Dispatch `devops-engineer` with task: "Remove worktree `.worktrees/S-N.MM/` and delete local branch `feature/S-N.MM-<desc>`."
 

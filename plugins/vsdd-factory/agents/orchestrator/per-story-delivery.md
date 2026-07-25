@@ -44,7 +44,8 @@ Reference file for the orchestrator. Load during Phase 3 implementation.
       NOTE: Do NOT compose the PR body or gh commands in this task —
       pr-manager owns the full PR lifecycle and uses its own templates.
    g. Run §G.1 preflight (step-g-cleanup.md §G.1, BC-6.26.001 PC2): find .worktrees/STORY-NNN/.factory -type f.
-      If non-empty → PREFLIGHT BLOCKED; do NOT remove until resolved.
+      Proceed only on a PASS result (three-branch protocol: absent-dir or empty-and-clean → proceed;
+      stray files → PREFLIGHT BLOCKED; find error → HALT). Do NOT remove until resolved.
       Spawn devops-engineer: "Remove worktree .worktrees/STORY-NNN"
 3. After all stories in wave merged: run wave integration gate
 4. Wave gate passes -> start next wave

@@ -442,6 +442,7 @@ workflow:
       depends_on: [merge-pr, delivery-human-approval]
       task: >
         Preflight required (BC-6.26.001 PC2): find [worktree_path]/.factory -type f before removal;
-        if non-empty HALT and follow step-g-cleanup.md §G.1.
+        proceed only on a PASS result (per step-g-cleanup.md §G.1 three-branch protocol:
+        absent-dir or empty-and-clean → proceed; stray files → BLOCKED; find error → HALT).
         Remove worktree: git worktree remove [worktree_path].
         Update .factory/STATE.md with merge status, PR number, timestamp.

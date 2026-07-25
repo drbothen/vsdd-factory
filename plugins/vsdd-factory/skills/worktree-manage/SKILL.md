@@ -80,11 +80,12 @@ Parse `$ARGUMENTS` to determine the action:
    - If not merged: **warn** but allow cleanup if user confirms.
 
 3. **Preflight required (BC-6.26.001 PC2, INV-E21-004):** Run `find .worktrees/STORY-NNN/.factory -type f`
-   before removal. If non-empty, HALT and follow `steps/step-g-cleanup.md §G.1` remediation.
+   before removal. Proceed only on a PASS preflight result (per `steps/step-g-cleanup.md §G.1`
+   three-branch protocol: absent-dir or empty-and-clean → proceed; stray files → BLOCKED; find error → HALT).
    Note: the `git status --porcelain` check above is BLIND to gitignored shadow `.factory/` content —
    the `find` preflight is the only gate that catches it (BC-6.26.001 Invariant 5).
 
-   **Remove** worktree (only after empty preflight result):
+   **Remove** worktree (only after PASS preflight result):
    ```bash
    git worktree remove .worktrees/STORY-NNN
    ```
