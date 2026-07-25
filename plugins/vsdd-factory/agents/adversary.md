@@ -273,10 +273,10 @@ This axis catches the specific class of drift where domain-level business rules 
 
 Every adversarial pass must sample at least 5 stories and verify bidirectional BC completeness:
 
-1. **Frontmatter → Body BC table:** For each BC in `bcs:` frontmatter, confirm it appears as a row in the story body's Behavioral Contracts table with the correct title per BC-INDEX.
-2. **Frontmatter → AC traces:** For each BC in `bcs:` frontmatter, confirm at least one AC references it via `(traces to BC-S.SS.NNN ...)`.
-3. **AC traces → Frontmatter:** For each BC referenced in an AC trace, confirm it appears in the `bcs:` frontmatter array.
-4. **Body BC table → Frontmatter:** For each BC listed in the body's Behavioral Contracts table, confirm it appears in `bcs:` frontmatter.
+1. **Frontmatter → Body BC table:** For each BC in `behavioral_contracts:` frontmatter, confirm it appears as a row in the story body's Behavioral Contracts table with the correct title per BC-INDEX.
+2. **Frontmatter → AC traces:** For each BC in `behavioral_contracts:` frontmatter, confirm at least one AC references it via `(traces to BC-S.SS.NNN ...)`.
+3. **AC traces → Frontmatter:** For each BC referenced in an AC trace, confirm it appears in the `behavioral_contracts:` frontmatter array.
+4. **Body BC table → Frontmatter:** For each BC listed in the body's Behavioral Contracts table, confirm it appears in `behavioral_contracts:` frontmatter.
 
 **Severity classification:**
 - Single BC drift in a single story: **MEDIUM**
