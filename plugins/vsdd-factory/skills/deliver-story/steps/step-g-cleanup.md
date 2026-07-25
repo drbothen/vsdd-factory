@@ -37,7 +37,7 @@ Four cases:
   satisfies `[ -d ]` by dereferencing — but `find` does NOT descend symlinks, so a symlink-to-dir
   at the path would produce empty find output and falsely authorize teardown. Go directly to
   PC2b BLOCKED; list the path; do NOT invoke `find` on a symlink inode
-  (symlink → PC2b BLOCKED, BC-6.26.001 v1.7 EC-009).
+  (symlink → PC2b BLOCKED, BC-6.26.001 EC-008).
 
   **Non-directory at `.factory/` path → PC2b BLOCKED (without running `find`):** If `[ -L ]` is
   FALSE and the inode at `<worktree-path>/.factory` is NOT a directory — note: `[ ! -d ]` alone
