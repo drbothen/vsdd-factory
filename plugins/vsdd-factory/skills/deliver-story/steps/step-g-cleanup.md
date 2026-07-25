@@ -19,9 +19,14 @@ Three cases:
 
 **PC2a — No stray files (teardown authorized):**
 
-- *Sub-case (a) — `.factory/` absent:* If the story worktree has no `.factory/` directory, no stray
-  factory artifacts can exist. This is the expected clean state (BC-6.26.001 EC-005; path-absent is
-  NOT a PC2c error). Proceed to the Dispatch section below.
+- *Sub-case (a) — `.factory/` absent:* FIRST, test whether the `.factory/` directory exists in the
+  story worktree using the normative discrimination predicate:
+
+      [ ! -d "<worktree-path>/.factory" ]
+
+  If this test passes (`.factory/` is absent), no stray factory artifacts can exist. This is the
+  expected clean state (BC-6.26.001 EC-005; path-absent is NOT a PC2c error — a missing directory
+  is distinct from a `find` traversal error). Proceed to the Dispatch section below.
 
 - *Sub-case (b) — `find` exits 0, empty output:* Run the preflight command:
 
