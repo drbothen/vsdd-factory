@@ -2,7 +2,7 @@
 document_type: architecture-decision-record
 level: L3
 adr_id: ADR-031
-version: "1.9"
+version: "1.10"
 title: "ADR-031: E-21 factory state data-loss hardening — nested-worktree path exclusivity protection model"
 status: accepted
 date: 2026-07-19
@@ -26,8 +26,9 @@ subsystems_affected:
   - SS-04
   - SS-05
   - SS-06
-last_amended: "(v1.9) — F-S2104-P1-007 closure (architect): §Context Issue #523 provenance corrected — `git worktree add` does NOT populate a shadow `.factory/` directory because `.factory/` is gitignored on the product branch; no shadow directory exists after worktree creation. The shadow directory is created by the errant CWD-relative Write itself. Gitignored-shadow false-negative in `git worktree remove` clean-state check preserved as the correct silent-destruction mechanism. [Prior: (v1.8) — F-S2103-P4-003 closure (architect): §Decision 8 recovery-affordance rationale re-grounded — --delete-branch omission does NOT guarantee intact head branch (GitHub delete_branch_on_merge=true auto-deletes at merge regardless of flags; BC-6.10.002 v1.4+ grounds this fact); recovery affordance preserved by (a) Step 8-post-A ordering guarantee (assertion runs before pr-manager deletion sequence 8b/8c/8d) + (b) deletion-agnostic headRefOid anchor (PR-retained field, survives auto-delete). OBS-P4-2 adjudication note added to §Decision 8 (SS-05/SS-06 split correct; no re-anchoring needed). [Prior: (v1.7) — F-S2103-P2-003 ADR leg: §Decision 8 post-merge ancestry assertion placement corrected Step 9→Step 8-post-A (immediately after merge-state confirmation 8a, before branch deletion 8b/8c/8d; BC-6.10.002 PC3 'immediately after state: MERGED'; F-S2103-P2-001 --delete-branch removal preserves orphan-merge recovery affordance). [Prior: (v1.6) — OBS-P5-1 closure: §Decision 6 gate procedure updated — range-diff PRIMARY detector (step 1a) + git diff --stat BACKUP heuristic (step 1b), consistent with BC-5.44.001 v1.2+ refinement; stale --stat-primary 3-step procedure replaced. [Prior: 2026-07-23 (v1.5) — S-21.01 pass-5 gate (human-approved): §Decision 2 Layer-1 TARGET-AWARE branch detection for CWD-redirection vector (git -C / git -c core.worktree= naming a .factory-class path branch-detects in target dir; block product branch / pass factory-artifacts / fail-open on error). §Rationale: CWD-redirection boundary note added (state-manager canonical git -C .factory workflow preserved; residual server-side origination vector unchanged). ARCH-INDEX v3.25→v3.26. [Prior: 2026-07-19 (v1.4) — pass-4 O-1 (architect): §Consequences duplicate '4.' numbering corrected; 4a/4b lettering used to preserve §Consequences #5 = post-rebase gate host (cited by BC-5.44.001 v1.3 and S-21.02 v1.1 as ADR-031 v1.1 §Consequences #5; renaming second '4.' to '5' would shift current #5 to #6, breaking those cites). ARCH-INDEX v3.10→v3.11. [Prior: 2026-07-19 (v1.3) — F-P2-001 correction (orchestrator counter-evidence accepted): §Decision 2 Layer-2 'EMPTY host-set' retracted; corrected to undocumented ad-hoc orchestrator/operator Bash on main checkout; enforcement site named (per-story-delivery.md main-checkout sync protocol = S-21.01 Layer-2 deliverable); Layer-1 scope confirmed narrow (git add/stage only); server-side origination residual risk documented in §Rationale. [Prior: 2026-07-19 (v1.2) — F-P2 adversary adjudications: §Decision 2 Layer-2 EMPTY host-set (retracted at v1.3); §Decision 7 Four→Five; §Rationale F-P2-007 teardown dispatch-point ruling. Prior metadata continued: §Decision 2 Layer-2 host-set corrected to EMPTY: pr-manager (server-side gh pr merge, excluded by BC-5.43.001 PC3), devops-engineer (rebase on story worktree, .factory/ not mounted there), state-manager (git -C .factory only) all removed; forward-looking mandate documented; (2) §Decision 7 count fixed Four→Five (F-P2-002: CAP-038 count sweep missed at v1.1); (3) §Rationale: F-P2-001 zero-host analysis + F-P2-007 teardown dispatch-point ruling added. [Prior: 2026-07-19 (v1.1) — F-P1 adversary adjudications: on_error block→continue; INV-E21-006 added; §Context #358 corrected; CAP-038 allocated.]]]]"
+last_amended: "(v1.10) — F-S2104-P2-002/003/004 closure (architect): INV-E21-004 and §Decision 4 PC2 `2>/dev/null` residue removed — unsuppressed find form with three-branch PC2a/PC2b/PC2c fail-closed handling mandated; bats harness machine-rejects suppressed form. INV-E21-002 and §Decision 4 PC1 wrong-root derivation corrected — `$(git -C .factory rev-parse --show-toplevel)` returns `<repo>/.factory` not `<repo>`; corrected to orchestrator-provided CANONICAL_FACTORY_ROOT or `git -C <main-worktree-path> rev-parse --show-toplevel`. INV-E21-002 false-premise corrected — 'Story worktrees contain a shadow .factory/ subdirectory' replaced with true mechanism (no shadow at worktree-add time; CWD-relative Write CREATES it). TD-VSDD-060 sweep: all four occurrence sites corrected. [Prior: (v1.9) — F-S2104-P1-007 closure (architect): §Context Issue #523 provenance corrected — `git worktree add` does NOT populate a shadow `.factory/` directory because `.factory/` is gitignored on the product branch; no shadow directory exists after worktree creation. The shadow directory is created by the errant CWD-relative Write itself. Gitignored-shadow false-negative in `git worktree remove` clean-state check preserved as the correct silent-destruction mechanism. [Prior: (v1.8) — F-S2103-P4-003 closure (architect): §Decision 8 recovery-affordance rationale re-grounded — --delete-branch omission does NOT guarantee intact head branch (GitHub delete_branch_on_merge=true auto-deletes at merge regardless of flags; BC-6.10.002 v1.4+ grounds this fact); recovery affordance preserved by (a) Step 8-post-A ordering guarantee (assertion runs before pr-manager deletion sequence 8b/8c/8d) + (b) deletion-agnostic headRefOid anchor (PR-retained field, survives auto-delete). OBS-P4-2 adjudication note added to §Decision 8 (SS-05/SS-06 split correct; no re-anchoring needed). [Prior: (v1.7) — F-S2103-P2-003 ADR leg: §Decision 8 post-merge ancestry assertion placement corrected Step 9→Step 8-post-A (immediately after merge-state confirmation 8a, before branch deletion 8b/8c/8d; BC-6.10.002 PC3 'immediately after state: MERGED'; F-S2103-P2-001 --delete-branch removal preserves orphan-merge recovery affordance). [Prior: (v1.6) — OBS-P5-1 closure: §Decision 6 gate procedure updated — range-diff PRIMARY detector (step 1a) + git diff --stat BACKUP heuristic (step 1b), consistent with BC-5.44.001 v1.2+ refinement; stale --stat-primary 3-step procedure replaced. [Prior: 2026-07-23 (v1.5) — S-21.01 pass-5 gate (human-approved): §Decision 2 Layer-1 TARGET-AWARE branch detection for CWD-redirection vector (git -C / git -c core.worktree= naming a .factory-class path branch-detects in target dir; block product branch / pass factory-artifacts / fail-open on error). §Rationale: CWD-redirection boundary note added (state-manager canonical git -C .factory workflow preserved; residual server-side origination vector unchanged). ARCH-INDEX v3.25→v3.26. [Prior: 2026-07-19 (v1.4) — pass-4 O-1 (architect): §Consequences duplicate '4.' numbering corrected; 4a/4b lettering used to preserve §Consequences #5 = post-rebase gate host (cited by BC-5.44.001 v1.3 and S-21.02 v1.1 as ADR-031 v1.1 §Consequences #5; renaming second '4.' to '5' would shift current #5 to #6, breaking those cites). ARCH-INDEX v3.10→v3.11. [Prior: 2026-07-19 (v1.3) — F-P2-001 correction (orchestrator counter-evidence accepted): §Decision 2 Layer-2 'EMPTY host-set' retracted; corrected to undocumented ad-hoc orchestrator/operator Bash on main checkout; enforcement site named (per-story-delivery.md main-checkout sync protocol = S-21.01 Layer-2 deliverable); Layer-1 scope confirmed narrow (git add/stage only); server-side origination residual risk documented in §Rationale. [Prior: 2026-07-19 (v1.2) — F-P2 adversary adjudications: §Decision 2 Layer-2 EMPTY host-set (retracted at v1.3); §Decision 7 Four→Five; §Rationale F-P2-007 teardown dispatch-point ruling. Prior metadata continued: §Decision 2 Layer-2 host-set corrected to EMPTY: pr-manager (server-side gh pr merge, excluded by BC-5.43.001 PC3), devops-engineer (rebase on story worktree, .factory/ not mounted there), state-manager (git -C .factory only) all removed; forward-looking mandate documented; (2) §Decision 7 count fixed Four→Five (F-P2-002: CAP-038 count sweep missed at v1.1); (3) §Rationale: F-P2-001 zero-host analysis + F-P2-007 teardown dispatch-point ruling added. [Prior: 2026-07-19 (v1.1) — F-P1 adversary adjudications: on_error block→continue; INV-E21-006 added; §Context #358 corrected; CAP-038 allocated.]]]]"
 modified:
+  - "2026-07-24 (v1.10)"
   - "2026-07-24 (v1.9)"
   - "2026-07-24 (v1.8)"
   - "2026-07-24 (v1.7)"
@@ -106,9 +107,15 @@ authoritative failure-mode registry for the E-21 compound:
   indicates dual-tracking and risks content destruction on merge.
 
 - **INV-E21-002 (Write-Path Anchoring):** All `.factory/**` writes must use canonical absolute
-  paths anchored to `$(git -C .factory rev-parse --show-toplevel)`, never CWD-relative paths
-  derived from a story-worktree root. Story worktrees contain a shadow `.factory/` subdirectory
-  that silently captures CWD-relative writes.
+  paths anchored to the main-checkout repo root — resolved via orchestrator-provided
+  `CANONICAL_FACTORY_ROOT` or `git -C <main-worktree-path> rev-parse --show-toplevel` (NOT
+  `git -C .factory rev-parse --show-toplevel`, which returns `<repo>/.factory`, the linked
+  worktree's top level, and yields `.factory/.factory/` nesting on construction) — never
+  CWD-relative paths derived from a story-worktree root. No shadow `.factory/` subdirectory
+  exists at story-worktree creation time: `git worktree add` checks out nothing at
+  `<worktree-path>/.factory/` because `.factory/` is gitignored on the product branch; a
+  CWD-relative Write targeting `.factory/**` silently CREATES the shadow subdirectory rather
+  than writing to the main-checkout `.factory/` worktree.
 
 - **INV-E21-003 (Factory Worktree Branch Integrity):** At the time of any `.factory/**` write
   or state-manager dispatch, `git -C .factory branch --show-current` MUST equal
@@ -116,8 +123,12 @@ authoritative failure-mode registry for the E-21 compound:
   writes to an inactive branch.
 
 - **INV-E21-004 (Worktree Teardown Preflight):** Before `git worktree remove <story-worktree>`,
-  `find <worktree-path>/.factory -type f 2>/dev/null` must confirm the shadow `.factory/`
-  directory is empty or absent. The git worktree command silently deletes the shadow subtree.
+  run `find <worktree-path>/.factory -type f` (unsuppressed — `2>/dev/null` FORBIDDEN; the bats
+  harness machine-rejects the suppressed form) and apply three-branch handling: (PC2a) output
+  empty → shadow directory absent or empty, proceed; (PC2b) output non-empty → shadow content
+  exists, HALT and surface before teardown; (PC2c) `find` exits non-zero for a reason other than
+  path absent → HALT, fail-closed (unknown state). The git worktree command silently deletes the
+  shadow subtree. Normative source: BC-6.26.001 PC2.
 
 - **INV-E21-005 (Post-Rebase Diff Integrity):** After any `git rebase`, `git rebase --continue`,
   or `git pull --rebase` on a feature branch, a diff-integrity gate must run before
@@ -205,13 +216,18 @@ field to `CAP-034`.
 enforced via skill-doc mandate in BC-6.26.001. No new WASM plugin or shell script (POLICY 21
 satisfied). Two required agent actions:
 
-- **PC1 — Write-path anchoring:** All `.factory/**` writes use canonical absolute paths derived
-  from `$(git -C .factory rev-parse --show-toplevel)` (or the equivalent pre-computed absolute
-  root), never paths relative to `$(pwd)` when the CWD is a story-worktree root.
+- **PC1 — Write-path anchoring:** All `.factory/**` writes use canonical absolute paths anchored
+  to the main-checkout repo root — resolved via orchestrator-provided `CANONICAL_FACTORY_ROOT`
+  or `git -C <main-worktree-path> rev-parse --show-toplevel` (NOT `git -C .factory rev-parse
+  --show-toplevel`, which returns `<repo>/.factory` — the linked worktree's top level — and
+  yields `.factory/.factory/` nesting on construction) — never paths relative to `$(pwd)` when
+  the CWD is a story-worktree root.
 
 - **PC2 — Teardown preflight:** Before `git worktree remove <story-worktree>`, run
-  `find <worktree-path>/.factory -type f 2>/dev/null` and confirm the output is empty before
-  proceeding.
+  `find <worktree-path>/.factory -type f` (unsuppressed — `2>/dev/null` FORBIDDEN; the bats
+  harness machine-rejects the suppressed form) and apply three-branch handling per BC-6.26.001
+  PC2: (PC2a) output empty → proceed; (PC2b) output non-empty → HALT; (PC2c) `find` exits
+  non-zero for non-path-absent reason → HALT (fail-closed).
 
 **Decision 5 — INV-E21-003 enforcement (skill-doc, SS-06).** Factory worktree branch integrity
 is enforced via skill-doc mandate in BC-6.27.001. No new WASM plugin or shell script (POLICY 21
@@ -478,6 +494,7 @@ factory-side PR restore protocol).
 
 | Version | Date | Description |
 |---------|------|-------------|
+| 1.10 | 2026-07-24 | F-S2104-P2-002/003/004 closure (architect): INV-E21-004 and §Decision 4 PC2 `2>/dev/null` residue removed — unsuppressed `find` form mandated with three-branch PC2a/PC2b/PC2c fail-closed handling (bats harness machine-rejects suppressed form; BC-6.26.001 PC2 normative). INV-E21-002 and §Decision 4 PC1 wrong-root derivation corrected — `$(git -C .factory rev-parse --show-toplevel)` returns `<repo>/.factory` (linked-worktree top), not the repo root; yields `.factory/.factory/` nesting pathology on construction; corrected to orchestrator-provided `CANONICAL_FACTORY_ROOT` or `git -C <main-worktree-path> rev-parse --show-toplevel`. INV-E21-002 false-premise corrected — "Story worktrees contain a shadow `.factory/` subdirectory" removed; true mechanism: no shadow exists at worktree-add time; a CWD-relative Write CREATES it (consistent with §Context v1.9 correction). TD-VSDD-060 sweep: all four occurrence sites corrected (INV-E21-002, INV-E21-004, PC1, PC2). |
 | 1.9 | 2026-07-24 | F-S2104-P1-007 closure (architect): §Context Issue #523 provenance corrected — `git worktree add` does NOT populate a shadow `.factory/` directory because `.factory/` is gitignored on the product branch; no shadow directory exists after worktree creation. The shadow directory is created by the errant CWD-relative Write itself. Gitignored-shadow false-negative in `git worktree remove` clean-state check preserved as the correct silent-destruction mechanism. Empirically verified: `.gitignore` line 6 names `.factory/`; `.worktrees/S-21.04/` worktree contains no `.factory/` directory. |
 | 1.8 | 2026-07-24 | F-S2103-P4-003 closure (architect): §Decision 8 recovery-affordance rationale re-grounded — `--delete-branch` omission does not guarantee intact head branch (GitHub `delete_branch_on_merge=true` auto-deletes regardless of flags; BC-6.10.002 v1.4+ grounds this); recovery affordance preserved by (a) Step 8-post-A ordering guarantee (assertion before pr-manager deletion sequence 8b/8c/8d) and (b) deletion-agnostic `headRefOid` anchor (PR-retained field, survives auto-delete). OBS-P4-2 subsystem adjudication note added to §Decision 8 (SS-05/SS-06 split correct; no re-anchoring needed). ARCH-INDEX bump → state-manager follow-up. |
 | 1.7 | 2026-07-24 | F-S2103-P2-003 ADR leg (architect): §Decision 8 post-merge ancestry assertion placement corrected — Step 9 → Step 8-post-A (immediately after merge-state confirmation 8a, before branch deletion 8b/8c/8d). BC-6.10.002 PC3 mandate ("immediately after state: MERGED") is SoT; "Step 9" was stale placement. Null-mergeCommit.oid guard and HALT-before-deletion made explicit. F-S2103-P2-001: `--delete-branch` removed from merge invocation; orphan-merge recovery affordance preserved. |
