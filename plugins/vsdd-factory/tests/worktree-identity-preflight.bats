@@ -97,12 +97,19 @@ setup() {
 # (e) AC-005: adversary.md must state that spec/ADR/BC ground-truth MUST be
 #     read from the CANONICAL repo-root .factory/ (factory-artifacts), NOT the
 #     stale worktree .factory/specs snapshot.
-#     Anchor: "factory-artifacts" paired with prohibition on worktree snapshot.
+#     Re-anchored (F-S2104-P3-007): the prior stale-snapshot prohibition assertion locked in
+#     a retracted premise and would block the implementer's residue sweep at lines 44/59.
+#     The corrected model's positive assertions — already present at adversary.md rule 4 — are:
+#       "canonical-repo-root" (authoritative path anchor for all spec reads), AND
+#       "checks out NOTHING under" (explains why no shadow .factory/ is created at worktree-add).
+#     Both pass NOW and keep passing after implementer sweeps stale residue at lines 44/59.
 @test "test_BC_adversary_spec_ground_truth_from_canonical_factory_artifacts" {
   run grep -i "factory-artifacts" "$ADVERSARY_AGENT"
   [ "$status" -eq 0 ]
-  # Verify the stale-snapshot prohibition language is present
-  run grep -iE "stale.*worktree|worktree.*stale|stale.*snapshot|snapshot.*stale" "$ADVERSARY_AGENT"
+  # Positive assertions of the corrected model (ground-truth-from-canonical phrasing, rule 4):
+  run grep -i "canonical-repo-root" "$ADVERSARY_AGENT"
+  [ "$status" -eq 0 ]
+  run grep -i "checks out NOTHING under" "$ADVERSARY_AGENT"
   [ "$status" -eq 0 ]
 }
 

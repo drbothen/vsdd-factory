@@ -4,7 +4,7 @@
 
 Fixture scaffolding for `story-worktree-write-path-discipline.bats` (S-21.04 gate harness).
 
-Tests exercise BC-6.26.001 v1.4 PC2a (sub-cases a and b) / PC2b / PC2c: the `find`-based
+Tests exercise BC-6.26.001 v1.5 PC2a (sub-cases a and b) / PC2b / PC2c: the `find`-based
 teardown preflight that must run before every `git worktree remove` on a story worktree.
 
 ## Fixture shape

@@ -33,7 +33,7 @@
 #   plugins/vsdd-factory/skills/deliver-story/SKILL.md (Step 8)
 #   plugins/vsdd-factory/agents/orchestrator/per-story-delivery.md (step g + Story Split Recovery)
 #   plugins/vsdd-factory/workflows/phases/per-story-delivery.md (Step 8 — WINNING playbook; F-S2104-P2-001)
-# BC: BC-6.26.001 v1.4 (PC1, PC2a sub-cases a/b, PC2b, PC2c, Invariants 1–5)
+# BC: BC-6.26.001 v1.5 (PC1, PC2a sub-cases a/b, PC2b, PC2c, Invariants 1–5)
 # Story: S-21.04
 #
 # Test plan:
@@ -87,10 +87,16 @@ _extract_g1_section() {
 }
 
 # Extracts the Spec-Path Discipline section from _shared-context.md.
-# Start: /^### Spec-Path Discipline/ — exits on next /^## / heading.
+# Start: /^### Spec-Path Discipline/ — exits on the next /^### / sibling heading
+# (e.g. ### Story-Size Gate) OR any /^## / heading.
+# The #### Write Discipline child is inside this section and is correctly captured
+# because #### (4 #) does not match ^### (3 # + space). Previously only ^## was
+# checked, causing §Story-Size Gate (which is ### level) to be over-captured into
+# the extraction (F-S2104-P3-015 fix).
 _extract_spec_path_discipline_section() {
   awk '
     /^### Spec-Path Discipline/ { found=1; next }
+    found && /^### / { exit }
     found && /^## / { exit }
     found { print }
   ' "$SHARED_CONTEXT_MD"
@@ -156,6 +162,19 @@ _extract_g1_pc2c_block() {
   ' "$STEP_G_CLEANUP"
 }
 
+# Extracts the PC2b paragraph from step-g-cleanup.md §G.1.
+# Start: line matching '\*\*PC2b'; exits on '\*\*PC2c', '\*\*Why this', or '^### '.
+# Used by F-S2104-P3-011 HALT-direction assertions (symmetric to PC2c gate in T-004).
+_extract_g1_pc2b_block() {
+  awk '
+    /\*\*PC2b/ { found=1 }
+    found && /\*\*PC2c/ { exit }
+    found && /\*\*Why this/ { exit }
+    found && /^### / { exit }
+    found { print }
+  ' "$STEP_G_CLEANUP"
+}
+
 _assert_doc_marker() {
   # $1=regex  $2=label  $3=section_text
   printf '%s\n' "$3" | grep -qE "$1" || {
@@ -201,7 +220,7 @@ _run_teardown_preflight() {
 
   # Anti-tautology gate: extract the specific find command line from §G.1.
   # The line must contain 'find', '.factory', and '-type f'.
-  # It must NOT contain '2>/dev/null' (BC v1.4 removed blanket suppression for PC2c).
+  # It must NOT contain '2>/dev/null' (BC v1.5 removed blanket suppression for PC2c).
   # Pre-implementation (doc has 2>/dev/null or wrong -type): gate fires.
   # Post-implementation (conformant find ... -type f): gate passes, extracted command is eval'd.
   local find_cmd_line
@@ -270,7 +289,7 @@ _run_teardown_preflight() {
 
 # ===========================================================================
 # T-001 / AC-003 / PC2b: stray .factory/ file → PREFLIGHT BLOCKED (non-zero); worktree-remove NOT called
-# BC-6.26.001 v1.4 PC2b, Invariants 2, 5
+# BC-6.26.001 v1.5 PC2b, Invariants 2, 5
 # RG-001 closure
 # ===========================================================================
 
@@ -303,13 +322,13 @@ _run_teardown_preflight() {
   g1_section="$(_extract_g1_section)"
 
   # --- DOC-PARITY §G.1: exact preflight command form — find + -type f, NO blanket 2>/dev/null (F-S2104-P1-002a) ---
-  # BC-6.26.001 v1.4 removed blanket 2>/dev/null; PC2c requires visible find exit codes.
+  # BC-6.26.001 v1.5 removed blanket 2>/dev/null; PC2c requires visible find exit codes.
   # RED pre-implementation (doc has 2>/dev/null); GREEN post-implementation.
   _assert_doc_marker 'find.*\.factory.*-type[[:space:]]+f' \
     "step-g-cleanup.md §G.1: find .factory -type f command present (BC-6.26.001 PC2)" \
     "$g1_section"
   _assert_no_doc_marker 'find.*\.factory.*-type[[:space:]]+f.*2>/dev/null' \
-    "step-g-cleanup.md §G.1: blanket 2>/dev/null suppression FORBIDDEN on preflight find command (BC-6.26.001 v1.4 PC2; removed to enable PC2c fail-closed detection)" \
+    "step-g-cleanup.md §G.1: blanket 2>/dev/null suppression FORBIDDEN on preflight find command (BC-6.26.001 v1.5 PC2; removed to enable PC2c fail-closed detection)" \
     "$g1_section"
 
   # --- DOC-PARITY §G.1: preflight-before-dispatch ordering (F-S2104-P1-002b) ---
@@ -366,6 +385,21 @@ _run_teardown_preflight() {
     false
   fi
 
+  # --- DOC-PARITY §G.1: PC2b HALT-direction gate symmetric to PC2c gate in T-004 (F-S2104-P3-011) ---
+  # Extract the PC2b block and assert:
+  #   (1) HALT / do-NOT-proceed direction is present
+  #   (2) No unconditional proceed-forward semantics (e.g., "Proceed to the Dispatch section below")
+  # Both should PASS now: §G.1 PC2b says "HALT teardown. Do NOT proceed to git worktree remove."
+  local pc2b_block
+  pc2b_block="$(_extract_g1_pc2b_block)"
+  _assert_doc_marker 'HALT|NOT.*[Pp]roceed|MUST NOT.*complete|BLOCKED' \
+    "step-g-cleanup.md §G.1 PC2b block: HALT/do-NOT-proceed direction mandatory — must not silently authorize teardown when stray files found (F-S2104-P3-011)" \
+    "$pc2b_block"
+  # Negative: catch a mutant that changes PC2b to authorize teardown via "Proceed to the Dispatch"
+  _assert_no_doc_marker '[Pp]roceed[[:space:]]+to[[:space:]]+the[[:space:]]+[Dd]ispatch' \
+    "step-g-cleanup.md §G.1 PC2b block: must NOT contain 'Proceed to the Dispatch' — a PC2b→authorize mutant keeping the label while adding proceed semantics is caught here (F-S2104-P3-011)" \
+    "$pc2b_block"
+
   # --- DOC-PARITY _shared-context.md §Spec-Path Discipline Write Discipline clause (AC-001) ---
   local spec_path_section
   spec_path_section="$(_extract_spec_path_discipline_section)"
@@ -378,6 +412,30 @@ _run_teardown_preflight() {
   _assert_doc_marker 'DELIVERY' \
     "_shared-context.md §Spec-Path Discipline: DELIVERY ledger named as load-bearing case (BC-6.26.001 Invariant 4)" \
     "$spec_path_section"
+
+  # --- DOC-PARITY §Spec-Path Discipline: EC-006 WARNING + no prescriptive story-worktree rev-parse (F-S2104-P3-012) ---
+  # AC-001(b) strengthened: the Write Discipline clause must carry the EC-006 WARNING explaining
+  # that using the story-worktree-path as the -C argument to rev-parse --show-toplevel returns the
+  # wrong root. Additionally, any line in the Write Discipline block containing the story-worktree
+  # form of this command must have the WARNING marker on the same line — prescriptive use outside
+  # a WARNING context is forbidden (it would instruct agents to use the wrong derivation).
+  # Both gates PASS now: EC-006 WARNING is present; the story-worktree form appears only inside
+  # the WARNING paragraph. Should stay GREEN after implementer changes.
+  _assert_doc_marker 'WARNING.*EC-006|EC-006.*WARNING' \
+    "_shared-context.md §Spec-Path Discipline Write Discipline: EC-006 WARNING must be present — omitting removes protection against story-worktree-path misuse in rev-parse --show-toplevel (F-S2104-P3-012)" \
+    "$spec_path_section"
+  # Negative gate: no line in the Write Discipline block may contain the story-worktree-path
+  # form of rev-parse --show-toplevel unless that same line carries the WARNING marker.
+  # grep -v 'WARNING' filters out the permitted WARNING-context line; remaining matches are forbidden.
+  local forbidden_revparse_lines
+  forbidden_revparse_lines="$(printf '%s\n' "$spec_path_section" | \
+    grep -E 'story-worktree.*rev-parse.*show-toplevel|rev-parse.*show-toplevel.*story-worktree' | \
+    grep -v 'WARNING' || true)"
+  if [ -n "$forbidden_revparse_lines" ]; then
+    echo "DOC-PARITY FAIL [must NOT contain: story-worktree-path rev-parse --show-toplevel outside WARNING context (F-S2104-P3-012)]"
+    printf '%s\n' "$forbidden_revparse_lines"
+    false
+  fi
 
   # --- DOC-PARITY primary paths: SKILL.md Step 8 (F-S2104-P1-001a) ---
   # RED until implementer adds preflight reference to SKILL.md Step 8 dispatch.
@@ -449,7 +507,7 @@ _run_teardown_preflight() {
 # ===========================================================================
 # T-002 / AC-004 / PC2a: empty shadow .factory/ → teardown proceeds; git worktree remove IS called
 # Covers: EC-005 (no .factory/ dir — PC2a sub-case a) + EC-003 (empty .factory/ dir — PC2a sub-case b)
-# BC-6.26.001 v1.4 PC2a
+# BC-6.26.001 v1.5 PC2a
 # RG-002 closure
 # F-S2104-P1-013: EC labels corrected; both EC-005 and EC-003 exercised explicitly.
 # ===========================================================================
@@ -475,7 +533,7 @@ _run_teardown_preflight() {
     "step-g-cleanup.md §G.1: find .factory -type f preflight command (BC-6.26.001 PC2)" \
     "$g1_section"
   _assert_no_doc_marker 'find.*\.factory.*-type[[:space:]]+f.*2>/dev/null' \
-    "step-g-cleanup.md §G.1: blanket 2>/dev/null FORBIDDEN on preflight command (BC-6.26.001 v1.4)" \
+    "step-g-cleanup.md §G.1: blanket 2>/dev/null FORBIDDEN on preflight command (BC-6.26.001 v1.5)" \
     "$g1_section"
   _assert_doc_marker 'PREFLIGHT BLOCKED' \
     "step-g-cleanup.md §G.1: PREFLIGHT BLOCKED mandate present (PC2a and PC2b in same §G.1 block — BC-6.26.001 PC2)" \
@@ -490,6 +548,20 @@ _run_teardown_preflight() {
   # the DOC gate here verifies the spec documents the same behavior.
   _assert_doc_marker '\.factory.*absent|absent.*\.factory|no.*\.factory.*directory|path-absent.*NOT.*PC2c|EC-005' \
     "step-g-cleanup.md §G.1: PC2a sub-case (a) — .factory/ absent path must be documented (BC-6.26.001 EC-005; deleting this clause silently breaks the absent-dir contract — F-S2104-P2-009)" \
+    "$g1_section"
+
+  # --- DOC-PARITY §G.1: PC2a sub-case (a) discrimination predicate (F-S2104-P3-001) ---
+  # §G.1 must supply a normative discrimination predicate — a literal shell conditional
+  # (e.g. `[ ! -d "<worktree-path>/.factory" ]`) distinguishing PC2a(a) (absent dir → proceed)
+  # from PC2c (find exits non-zero → HALT). Without this predicate the doc gap is compensated
+  # by the hardcoded `[ ! -e "${worktree_path}/.factory" ]` pre-test in _run_teardown_preflight,
+  # but the DOC-PARITY gate carries the semantic load and must be RED until the implementer adds
+  # the explicit conditional to §G.1. Hardcoded harness pre-test continues to carry the runtime
+  # load; honest comment per F-S2104-P3-001 constraint.
+  # RED pre-implementation: §G.1 describes absent-dir in prose only; no shell conditional present.
+  # GREEN post-implementation: §G.1 contains [ ! -d or equivalent shell test.
+  _assert_doc_marker '\[ ! -d|\[ ! -e|test[[:space:]].*!.*-d.*\.factory|if.*\[.*!.*-d.*\.factory' \
+    "step-g-cleanup.md §G.1: normative discrimination predicate required — explicit shell conditional (e.g. [ ! -d \"<worktree-path>/.factory\" ]) MUST appear in §G.1 to distinguish PC2a(a) absent-dir from PC2c find-error; harness hardcodes pre-test to compensate but DOC-PARITY gate must be RED until implementer adds the conditional (F-S2104-P3-001)" \
     "$g1_section"
 
   # --- HARNESS EC-005: no .factory/ dir → PC2a sub-case (a), teardown proceeds ---
@@ -522,7 +594,7 @@ _run_teardown_preflight() {
 
 # ===========================================================================
 # T-003 / AC-005 / PC2b → PC2a retry: stray file relocated → retry teardown proceeds
-# BC-6.26.001 v1.4 PC2b → PC2a retry path (Option A relocation)
+# BC-6.26.001 v1.5 PC2b → PC2a retry path (Option A relocation)
 # RG-003 closure
 # ===========================================================================
 
@@ -547,7 +619,7 @@ _run_teardown_preflight() {
     "step-g-cleanup.md §G.1: find .factory -type f preflight command (BC-6.26.001 PC2b → PC2a retry path)" \
     "$g1_section"
   _assert_no_doc_marker 'find.*\.factory.*-type[[:space:]]+f.*2>/dev/null' \
-    "step-g-cleanup.md §G.1: blanket 2>/dev/null FORBIDDEN (BC-6.26.001 v1.4)" \
+    "step-g-cleanup.md §G.1: blanket 2>/dev/null FORBIDDEN (BC-6.26.001 v1.5)" \
     "$g1_section"
   _assert_doc_marker 'PREFLIGHT BLOCKED' \
     "step-g-cleanup.md §G.1: PREFLIGHT BLOCKED mandate (first pass blocks; retry gated by same mandate — BC-6.26.001 PC2b)" \
@@ -602,7 +674,7 @@ _run_teardown_preflight() {
 
 # ===========================================================================
 # T-004 / AC-006 / PC2c: find exits non-zero (non-path-absent) → HALT; exit code+stderr surfaced; worktree-remove NOT called
-# BC-6.26.001 v1.4 PC2c (fail-closed)
+# BC-6.26.001 v1.5 PC2c (fail-closed)
 # macOS/Linux portability: find returns exit code 1 on permission-denied subdirectory traversal.
 # ===========================================================================
 
