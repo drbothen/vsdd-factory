@@ -4,8 +4,9 @@
 
 Fixture scaffolding for `story-worktree-write-path-discipline.bats` (S-21.04 gate harness).
 
-Tests exercise BC-6.26.001 v1.5 PC2a (sub-cases a and b) / PC2b / PC2c: the `find`-based
-teardown preflight that must run before every `git worktree remove` on a story worktree.
+Tests exercise BC-6.26.001 v1.6 PC2a (sub-cases a and b) / PC2b (stray files + non-directory
+inode) / PC2c: the `find`-based teardown preflight that must run before every `git worktree
+remove` on a story worktree, including the v1.6 non-directory path (EC-008/T-6).
 
 ## Fixture shape
 
@@ -15,7 +16,7 @@ fully cleaned up by `teardown()` via `chmod -R 755 + rm -rf "$WORK"` (the chmod 
 T-004's chmod 000 subdirectory).
 
 A "story-worktree fixture" simulates the state of `.worktrees/<STORY-ID>/` just before
-step G teardown. Four fixture configurations are used by the four tests:
+step G teardown. Five fixture configurations are used by the five tests:
 
 ```
 T-001 (stray file present — PC2b):
@@ -43,6 +44,15 @@ T-004 (find error — PC2c HALT):
       .factory/
         locked-subdir/    ← chmod 000: find encounters permission denied, exits 1
     worktree-remove.log   ← sentinel (must remain empty on PC2c HALT)
+
+T-005 (regular file at .factory — PC2b non-directory, EC-008/T-6):
+  $WORK/
+    story-worktree/
+      .factory             ← REGULAR FILE (not a directory) at worktree root
+    worktree-remove.log    ← sentinel (must remain empty on PC2b BLOCKED)
+  [ ! -d .factory ] would be TRUE (wrong: authorizes teardown)
+  [ ! -e .factory ] is FALSE (correct: path is occupied by non-directory inode)
+  find NOT invoked; PREFLIGHT BLOCKED (non-directory case); exit non-zero.
 ```
 
 ## Stray file anatomy
@@ -103,6 +113,7 @@ fixtures (S-21.04) because the preflight mechanism is `find` (filesystem-direct)
 | EC-003 | `find` returns empty (dir exists, no files) | T-002 part 2 (explicit EC-003 variant) |
 | EC-005 | Story worktree has no `.factory/` directory at all | T-002 part 1 |
 | EC-004 | `find` returns stray file (shadow .factory/ has content) | T-001, T-003 (first pass) |
+| EC-007/EC-008 | Regular file (not directory) at `.factory/` path → PC2b BLOCKED without find | T-005 (BC-6.26.001 v1.6 T-6) |
 | PC2c   | `find` exits non-zero for non-path-absent reason | T-004 (chmod 000 subdir) |
 
 ## POLICY 21 note

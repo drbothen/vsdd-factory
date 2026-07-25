@@ -33,7 +33,12 @@
 #   plugins/vsdd-factory/skills/deliver-story/SKILL.md (Step 8)
 #   plugins/vsdd-factory/agents/orchestrator/per-story-delivery.md (step g + Story Split Recovery)
 #   plugins/vsdd-factory/workflows/phases/per-story-delivery.md (Step 8 — WINNING playbook; F-S2104-P2-001)
-# BC: BC-6.26.001 v1.5 (PC1, PC2a sub-cases a/b, PC2b, PC2c, Invariants 1–5)
+#   6 ungated mandate surfaces (F-S2104-P4-009): skills/worktree-manage/SKILL.md,
+#     skills/code-delivery/SKILL.md, skills/fix-pr-delivery/SKILL.md,
+#     workflows/code-delivery.lobster, workflows/greenfield.lobster, rules/worktree-protocol.md
+#   agents/adversary.md + skills/adversarial-review/SKILL.md (§G.1/BC-6.26.001 awareness; F-S2104-P4-002)
+#   agents/devops-engineer.md §Worktree Cleanup (preflight-verification mandate; F-S2104-P4-003)
+# BC: BC-6.26.001 v1.6 (PC1, PC2a sub-cases a/b, PC2b non-directory case, PC2c, Invariants 1–5)
 # Story: S-21.04
 #
 # Test plan:
@@ -41,6 +46,7 @@
 #   T-002  AC-004  empty-tree-proceeds:     EC-005 (no .factory/) + EC-003 (empty .factory/ dir) → teardown proceeds in both cases
 #   T-003  AC-005  relocate-retry-proceeds: stray file relocated → retry teardown proceeds
 #   T-004  AC-006  pc2c-halt:               find error (non-path-absent) → HALT non-zero, exit code+stderr surfaced, worktree-remove NOT called
+#   T-005  AC-002  file-at-path:            regular file at .factory → PC2b BLOCKED non-dir case; find NOT invoked; worktree-remove NOT called (BC-6.26.001 v1.6 EC-008/T-6; F-S2104-P4-007)
 
 setup() {
   REPO_ROOT="$(cd "${BATS_TEST_DIRNAME}/../../.." && pwd)"
@@ -51,6 +57,17 @@ setup() {
   PER_STORY_DELIVERY_MD="$PLUGIN_ROOT/agents/orchestrator/per-story-delivery.md"
   WINNING_PLAYBOOK_MD="$PLUGIN_ROOT/workflows/phases/per-story-delivery.md"
   FIXTURE_DIR="$PLUGIN_ROOT/tests/fixtures/story-worktree"
+  # 6 ungated mandate surfaces (F-S2104-P4-009)
+  WORKTREE_MANAGE_SKILL_MD="$PLUGIN_ROOT/skills/worktree-manage/SKILL.md"
+  CODE_DELIVERY_SKILL_MD="$PLUGIN_ROOT/skills/code-delivery/SKILL.md"
+  FIX_PR_DELIVERY_SKILL_MD="$PLUGIN_ROOT/skills/fix-pr-delivery/SKILL.md"
+  CODE_DELIVERY_WORKFLOW="$PLUGIN_ROOT/workflows/code-delivery.lobster"
+  GREENFIELD_WORKFLOW="$PLUGIN_ROOT/workflows/greenfield.lobster"
+  WORKTREE_PROTOCOL_MD="$PLUGIN_ROOT/rules/worktree-protocol.md"
+  # F-S2104-P4-002 + F-S2104-P4-003 agent/specialist files
+  ADVERSARY_MD="$PLUGIN_ROOT/agents/adversary.md"
+  ADV_REVIEW_SKILL_MD="$PLUGIN_ROOT/skills/adversarial-review/SKILL.md"
+  DEVOPS_ENGINEER_MD="$PLUGIN_ROOT/agents/devops-engineer.md"
 
   # Fixture worktree lifecycle: fresh tmpfs workspace per test run.
   # MOCK_WORKTREE    — simulates .worktrees/S-021/ (story worktree path).
@@ -238,11 +255,29 @@ _run_teardown_preflight() {
     return 1
   fi
 
-  # PC2a sub-case (a): .factory/ directory absent in story worktree — no stray files.
-  # Path-absent is NOT a PC2c error; it is the expected clean state (BC-6.26.001 EC-005).
+  # PC2a sub-case (a): path ABSENT — no stray files (return 0).
+  # BC-6.26.001 v1.6: path-absence check uses [ ! -e ] (existence), not [ ! -d ] (directory-ness).
+  # [ ! -d ] is TRUE for a regular file — wrong: it would authorize teardown on stray content.
+  # [ ! -e ] is FALSE for any occupied path (file, dir, symlink) — correctly gates on true absence.
+  # This check is HARDCODED (not doc-derived); DOC-PARITY gate in T-002/T-005 independently
+  # verifies §G.1 uses the correct [ ! -e ] form (F-S2104-P3-001 + F-S2104-P4-007a).
   if [ ! -e "${worktree_path}/.factory" ]; then
     printf 'worktree-remove-invoked\n' >> "$remove_log"
     return 0
+  fi
+
+  # Non-directory at .factory path → PC2b BLOCKED (without running find).
+  # BC-6.26.001 v1.6 EC-008/T-6: a regular file, symlink-to-file, or other non-directory inode
+  # at <worktree-path>/.factory is stray shadow content subject to the same rm-rf destruction
+  # risk as files inside a shadow .factory/ directory tree. This path goes directly to PC2b —
+  # find MUST NOT be invoked on a non-directory path.
+  # This check is HARDCODED; DOC-PARITY gate in T-005 independently verifies §G.1 documents
+  # this case with the correct non-directory→PC2b clause (F-S2104-P4-007a).
+  if [ ! -d "${worktree_path}/.factory" ]; then
+    printf 'PREFLIGHT BLOCKED: Non-directory inode at %s — stray shadow content subject to rm-rf destruction; find NOT invoked; teardown HALTED (BC-6.26.001 v1.6 PC2b non-directory case).\n' "${worktree_path}/.factory"
+    printf '  The -d test alone MUST NOT be used as the path-absence discriminator (BC-6.26.001 v1.6 EC-008).\n'
+    printf 'git worktree remove NOT executed.\n'
+    return 1
   fi
 
   # Substitute <worktree-path> template variable with the actual fixture path, strip leading whitespace.
@@ -550,18 +585,42 @@ _run_teardown_preflight() {
     "step-g-cleanup.md §G.1: PC2a sub-case (a) — .factory/ absent path must be documented (BC-6.26.001 EC-005; deleting this clause silently breaks the absent-dir contract — F-S2104-P2-009)" \
     "$g1_section"
 
-  # --- DOC-PARITY §G.1: PC2a sub-case (a) discrimination predicate (F-S2104-P3-001) ---
-  # §G.1 must supply a normative discrimination predicate — a literal shell conditional
-  # (e.g. `[ ! -d "<worktree-path>/.factory" ]`) distinguishing PC2a(a) (absent dir → proceed)
-  # from PC2c (find exits non-zero → HALT). Without this predicate the doc gap is compensated
-  # by the hardcoded `[ ! -e "${worktree_path}/.factory" ]` pre-test in _run_teardown_preflight,
-  # but the DOC-PARITY gate carries the semantic load and must be RED until the implementer adds
-  # the explicit conditional to §G.1. Hardcoded harness pre-test continues to carry the runtime
-  # load; honest comment per F-S2104-P3-001 constraint.
-  # RED pre-implementation: §G.1 describes absent-dir in prose only; no shell conditional present.
-  # GREEN post-implementation: §G.1 contains [ ! -d or equivalent shell test.
-  _assert_doc_marker '\[ ! -d|\[ ! -e|test[[:space:]].*!.*-d.*\.factory|if.*\[.*!.*-d.*\.factory' \
-    "step-g-cleanup.md §G.1: normative discrimination predicate required — explicit shell conditional (e.g. [ ! -d \"<worktree-path>/.factory\" ]) MUST appear in §G.1 to distinguish PC2a(a) absent-dir from PC2c find-error; harness hardcodes pre-test to compensate but DOC-PARITY gate must be RED until implementer adds the conditional (F-S2104-P3-001)" \
+  # --- DOC-PARITY §G.1: PC2a sub-case (a) discrimination predicate (F-S2104-P3-001 strengthened F-S2104-P4-007a) ---
+  # §G.1 must supply a normative discrimination predicate using [ ! -e ] (existence check) to
+  # distinguish PC2a(a) (path absent → proceed) from the non-directory case (PC2b BLOCKED without
+  # find) and from PC2c (find exits non-zero → HALT).
+  # BC-6.26.001 v1.6 corrected predicate from [ ! -d ] to [ ! -e ]:
+  #   [ ! -d ] is TRUE when .factory is a regular file — wrong, authorizes teardown on stray content.
+  #   [ ! -e ] is FALSE for any occupied path (file, dir, symlink), correctly gates on true absence.
+  # Harness hardcodes [ ! -e ] pre-test; this DOC-PARITY gate independently verifies §G.1 matches.
+  # RED NOW: step-g-cleanup.md §G.1 has [ ! -d ] (v1.5 form); gate tightened to ONLY accept [ ! -e ]
+  # — no longer accepts [ ! -d ] (F-S2104-P4-007a strengthened from F-S2104-P3-001).
+  # GREEN post-implementation: §G.1 updated to [ ! -e ] form (BC-6.26.001 v1.6 EC-008).
+  _assert_doc_marker '\[ ! -e|test[[:space:]].*!.*-e.*\.factory|if.*\[.*!.*-e.*\.factory' \
+    "step-g-cleanup.md §G.1: normative discrimination predicate MUST be [ ! -e ] (existence) not [ ! -d ] (directory) — BC-6.26.001 v1.6 EC-008: [ ! -d ] authorizes teardown when a regular file exists at .factory (wrong); [ ! -e ] correctly identifies any occupied path; RED until implementer flips to [ ! -e ] (F-S2104-P3-001 strengthened by F-S2104-P4-007a)" \
+    "$g1_section"
+
+  # Negative: [ ! -d ] MUST NOT appear as the normative path-absence predicate in §G.1.
+  # Allow -d in explanatory context only (e.g., "The -d test alone MUST NOT be used",
+  # BC-6.26.001 v1.6 EC-008 non-directory paragraph).
+  # Forbid normative forms: lines with `[ ! -d` that are NOT in explanation/WARNING context.
+  local forbidden_d_normative
+  forbidden_d_normative="$(printf '%s\n' "$g1_section" | \
+    grep -E '\[ ! -d' | \
+    grep -Ev 'MUST NOT|wrong|alone|WARNING|incorrect|would.*true|would.*author|test alone|must not' || true)"
+  if [ -n "$forbidden_d_normative" ]; then
+    echo "DOC-PARITY FAIL [must NOT contain: [ ! -d ] as normative path-absence predicate — BC-6.26.001 v1.6 EC-008 forbids -d-only check; regular file at .factory satisfies [ ! -d ] → wrong teardown authorization; use [ ! -e ] instead (F-S2104-P4-007a)]"
+    printf '%s\n' "$forbidden_d_normative"
+    false
+  fi
+
+  # --- DOC-PARITY §G.1: non-directory→PC2b clause (F-S2104-P4-007a, second gate) ---
+  # BC-6.26.001 v1.6 adds: if something exists at .factory but is NOT a directory (regular file,
+  # symlink-to-file), it is stray shadow content → PC2b BLOCKED directly, without running find.
+  # §G.1 must document this case (RED until implementer adds non-directory-path paragraph).
+  # GREEN post-implementation: §G.1 has non-directory case routing to PC2b without find.
+  _assert_doc_marker 'non-directory|NOT a directory|not a directory' \
+    "step-g-cleanup.md §G.1: non-directory inode at .factory path must be documented (BC-6.26.001 v1.6 EC-008; regular file at .factory → PC2b BLOCKED without find; RED until implementer adds clause; F-S2104-P4-007a)" \
     "$g1_section"
 
   # --- HARNESS EC-005: no .factory/ dir → PC2a sub-case (a), teardown proceeds ---
@@ -753,4 +812,210 @@ _run_teardown_preflight() {
     echo "HARNESS FAIL: REMOVE_LOG non-empty on PC2c — git worktree remove must NOT be invoked on find-error path — log: $(cat "$REMOVE_LOG")"
     false
   }
+}
+
+# ===========================================================================
+# T-005 / AC-002 / EC-007/EC-008 / T-6: regular file at .factory → PC2b BLOCKED; find NOT invoked; worktree-remove NOT called
+# BC-6.26.001 v1.6 EC-008 / T-6 / non-directory path
+# F-S2104-P4-007 (test leg b)
+# ===========================================================================
+
+@test "T-005 S-21.04 AC-002 EC-007: file-at-path — regular file at .factory → PC2b BLOCKED; find NOT invoked; worktree-remove NOT called" {
+  # Fixture: .factory is a REGULAR FILE (not a directory) at MOCK_WORKTREE root.
+  # BC-6.26.001 v1.6 EC-008 / T-6: a regular file at <worktree-path>/.factory is stray shadow
+  # content subject to rm-rf destruction — it must route to PC2b BLOCKED without running find.
+  #
+  # Discrimination predicate semantics:
+  #   [ ! -d "$MOCK_WORKTREE/.factory" ] → TRUE for a regular file (wrong: "is not a directory" → authorize teardown)
+  #   [ ! -e "$MOCK_WORKTREE/.factory" ] → FALSE for a regular file (correct: "path occupied → non-directory branch")
+  #
+  # find NOT invoked: absence of PREFLIGHT HALT (PC2c) in output confirms find was not called.
+  # REMOVE_LOG empty: git worktree remove MUST NOT execute on PC2b non-directory path.
+  #
+  # Pre-implementation RED gates:
+  #   DOC-PARITY ([ ! -e ] predicate): §G.1 has [ ! -d ] → RED.
+  #   DOC-PARITY (non-directory clause): no non-directory case in §G.1 → RED.
+  # Post-implementation GREEN: §G.1 updated to [ ! -e ] + non-directory-path paragraph added.
+
+  touch "$MOCK_WORKTREE/.factory"
+
+  local g1_section
+  g1_section="$(_extract_g1_section)"
+
+  # --- DOC-PARITY §G.1: discrimination predicate must be [ ! -e ] (F-S2104-P4-007a) ---
+  # RED: §G.1 has [ ! -d ] (v1.5); only [ ! -e ] accepted now (BC-6.26.001 v1.6 EC-008).
+  _assert_doc_marker '\[ ! -e|test[[:space:]].*!.*-e.*\.factory' \
+    "step-g-cleanup.md §G.1: [ ! -e ] existence predicate required (not [ ! -d ] alone) — regular file satisfies [ ! -d ] → wrong teardown authorization; [ ! -e ] correctly identifies path-occupancy (BC-6.26.001 v1.6 EC-008; F-S2104-P4-007a)" \
+    "$g1_section"
+
+  # --- DOC-PARITY §G.1: non-directory→PC2b BLOCKED clause presence (F-S2104-P4-007a second gate) ---
+  # RED: §G.1 does not yet document the non-directory case.
+  _assert_doc_marker 'non-directory|NOT a directory|not a directory' \
+    "step-g-cleanup.md §G.1: non-directory inode at .factory must be documented as PC2b BLOCKED (BC-6.26.001 v1.6 EC-008/T-6; RED until implementer adds non-directory-path paragraph; F-S2104-P4-007a)" \
+    "$g1_section"
+
+  # Non-directory case must route to PC2b BLOCKED (not PC2a or PC2c)
+  _assert_doc_marker 'non-directory.*PC2b|non-directory.*BLOCK|NOT.*directory.*BLOCK|non-directory.*stray|regular.*file.*stray|regular.*file.*PC2b' \
+    "step-g-cleanup.md §G.1: non-directory inode routes to PC2b BLOCKED (stray shadow content; BC-6.26.001 v1.6 non-directory-path paragraph; RED until implemented)" \
+    "$g1_section"
+
+  # --- HARNESS: regular file at .factory → PC2b BLOCKED; non-zero exit; find NOT invoked ---
+  # _run_teardown_preflight updated for v1.6 three-way logic:
+  #   [ ! -e ] absent → PC2a(a); [ ! -d ] non-directory → PC2b BLOCKED; directory → run extracted find.
+  run _run_teardown_preflight "$MOCK_WORKTREE" "$REMOVE_LOG"
+  [ "$status" -ne 0 ] || {
+    echo "HARNESS FAIL: non-directory .factory must return non-zero (PC2b BLOCKED) — got status 0 (harness three-way logic: non-directory must not fall through to find branch)"
+    false
+  }
+  printf '%s\n' "$output" | grep -q 'PREFLIGHT BLOCKED' || {
+    echo "HARNESS FAIL: 'PREFLIGHT BLOCKED' not in output for regular-file .factory — got: $output"
+    false
+  }
+  # Non-directory path must be listed in output (BC-6.26.001 T-6: "list the path")
+  printf '%s\n' "$output" | grep -q "${MOCK_WORKTREE}/.factory" || {
+    echo "HARNESS FAIL: .factory path '${MOCK_WORKTREE}/.factory' must appear in PREFLIGHT BLOCKED output (BC-6.26.001 T-6) — got: $output"
+    false
+  }
+  # find NOT invoked: no PREFLIGHT HALT/PC2c in output (PC2c is only emitted when find is called
+  # and exits non-zero; its absence proves the non-directory path was taken, not the find path).
+  if printf '%s\n' "$output" | grep -qE 'PREFLIGHT HALT|PC2c'; then
+    echo "HARNESS FAIL: PREFLIGHT HALT/PC2c found in output — find was invoked on the non-directory path; MUST NOT be invoked (BC-6.26.001 EC-008: do NOT run find on non-directory inode; T-6)"
+    false
+  fi
+  # Mutant-proving sentinel: git worktree remove MUST NOT be invoked on PC2b non-directory path
+  [ ! -s "$REMOVE_LOG" ] || {
+    echo "HARNESS FAIL: REMOVE_LOG non-empty on PC2b non-directory path — git worktree remove MUST NOT be invoked (BC-6.26.001 PC2b; T-6) — log: $(cat "$REMOVE_LOG")"
+    false
+  }
+}
+
+# ===========================================================================
+# F-S2104-P4-009: DOC-PARITY regression gates for 6 ungated mandate surfaces
+# BC-6.26.001 PC2 + AC-007(d)
+# Target surfaces: worktree-manage/SKILL.md, code-delivery/SKILL.md, fix-pr-delivery/SKILL.md,
+#   workflows/code-delivery.lobster, workflows/greenfield.lobster, rules/worktree-protocol.md
+# RED on surfaces that present `find` as first action with absent-dir/find-error as unordered
+#   siblings (anti-pattern per AC-007(d)); GREEN on surfaces that delegate cleanly to §G.1.
+# ===========================================================================
+
+@test "F-S2104-P4-009: 6-surface §G.1 mandate regression gates — anti-pattern absent; delegation conformant" {
+  # Each of the 6 surfaces must:
+  #   (i) reference step-g-cleanup.md §G.1 (or unambiguous equivalent)
+  #   (ii) NOT present `find` as the first action with absent-dir/find-error as unordered siblings
+  #        (anti-pattern: inline bare find-first command without explicit absent-dir-first ordering)
+  #
+  # RED pre-implementation (5/6): worktree-manage, code-delivery, fix-pr-delivery SKILL.mds +
+  #   code-delivery.lobster + greenfield.lobster all have inline `find .factory -type f` as the
+  #   primary stated action → anti-pattern → RED until implementer replaces with §G.1 delegation.
+  # GREEN pre-implementation (1/6): worktree-protocol.md delegates to §G.1 without inline find.
+
+  # Helper: assert anti-pattern absent in a file (inline bare find command).
+  # Anti-pattern: `find <path>/.factory -type f` as an inline command the agent is instructed to run.
+  # After fix: surface says "run §G.1 preflight" or "proceed on PASS" without inlining find.
+  _assert_no_inline_find_antipattern() {
+    local file="$1" label="$2"
+    if grep -qE 'find[[:space:]][^ ]*\.factory[[:space:]].*-type[[:space:]]+f' "$file"; then
+      echo "DOC-PARITY FAIL [anti-pattern present in $label]: surface presents inline bare 'find ... .factory ... -type f' as the first action — MUST NOT inline find command; delegate to §G.1 preflight instead (BC-6.26.001 PC2 + AC-007(d); absent-dir check is first, not an unordered sibling; F-S2104-P4-009)"
+      false
+    fi
+  }
+
+  # Helper: assert §G.1/step-g-cleanup reference present.
+  _assert_g1_ref() {
+    local file="$1" label="$2"
+    grep -qE 'step-g-cleanup|§G\.1|G\.1' "$file" || {
+      echo "DOC-PARITY FAIL [§G.1 reference missing from $label]: surface must reference step-g-cleanup.md §G.1 (BC-6.26.001 PC2 + AC-007(d); F-S2104-P4-009)"
+      false
+    }
+  }
+
+  # --- 1. skills/worktree-manage/SKILL.md ---
+  # RED: has inline `find .worktrees/STORY-NNN/.factory -type f` as primary instruction.
+  _assert_g1_ref "$WORKTREE_MANAGE_SKILL_MD" "skills/worktree-manage/SKILL.md"
+  _assert_no_inline_find_antipattern "$WORKTREE_MANAGE_SKILL_MD" "skills/worktree-manage/SKILL.md"
+
+  # --- 2. skills/code-delivery/SKILL.md ---
+  # RED: has inline `find .worktrees/STORY-NNN/.factory -type f` as primary instruction.
+  _assert_g1_ref "$CODE_DELIVERY_SKILL_MD" "skills/code-delivery/SKILL.md"
+  _assert_no_inline_find_antipattern "$CODE_DELIVERY_SKILL_MD" "skills/code-delivery/SKILL.md"
+
+  # --- 3. skills/fix-pr-delivery/SKILL.md ---
+  # RED: has inline `find .worktrees/FIX-P[phase]-NNN/.factory -type f` as primary instruction.
+  _assert_g1_ref "$FIX_PR_DELIVERY_SKILL_MD" "skills/fix-pr-delivery/SKILL.md"
+  _assert_no_inline_find_antipattern "$FIX_PR_DELIVERY_SKILL_MD" "skills/fix-pr-delivery/SKILL.md"
+
+  # --- 4. workflows/code-delivery.lobster ---
+  # RED: has inline `find [worktree_path]/.factory -type f` as primary instruction.
+  _assert_g1_ref "$CODE_DELIVERY_WORKFLOW" "workflows/code-delivery.lobster"
+  _assert_no_inline_find_antipattern "$CODE_DELIVERY_WORKFLOW" "workflows/code-delivery.lobster"
+
+  # --- 5. workflows/greenfield.lobster ---
+  # RED: has inline `find .worktrees/STORY-NNN/.factory -type f` as primary instruction.
+  _assert_g1_ref "$GREENFIELD_WORKFLOW" "workflows/greenfield.lobster"
+  _assert_no_inline_find_antipattern "$GREENFIELD_WORKFLOW" "workflows/greenfield.lobster"
+
+  # --- 6. rules/worktree-protocol.md ---
+  # GREEN: delegates to §G.1 without inlining a bare find command (conformant pre-implementation).
+  _assert_g1_ref "$WORKTREE_PROTOCOL_MD" "rules/worktree-protocol.md"
+  _assert_no_inline_find_antipattern "$WORKTREE_PROTOCOL_MD" "rules/worktree-protocol.md"
+}
+
+# ===========================================================================
+# F-S2104-P4-002: DOC-PARITY gates — adversary.md + adversarial-review/SKILL.md §G.1/BC-6.26.001 preflight-awareness
+# AC-007(d) specialist agent awareness
+# RED until implementer delivers the declared §G.1/BC-6.26.001 awareness clause in each file.
+# ===========================================================================
+
+@test "F-S2104-P4-002: adversary.md + adversarial-review/SKILL.md — §G.1/BC-6.26.001 teardown-preflight awareness clause" {
+  # agents/adversary.md: must contain a reference to BC-6.26.001 and/or §G.1 teardown preflight
+  # awareness — stating the adversary should recognize and report shadow .factory/ content as a
+  # defect signal (live evidence, not stale snapshot) and that step-G teardown requires preflight.
+  # RED: adversary.md currently has NO BC-6.26.001 or §G.1 reference.
+  grep -qE 'BC-6\.26\.001|§G\.1|step-g-cleanup|teardown.*preflight.*BC|preflight.*§G\.1' "$ADVERSARY_MD" || {
+    echo "DOC-PARITY FAIL: agents/adversary.md does not contain §G.1/BC-6.26.001 teardown-preflight awareness reference — implementer must add clause stating adversary recognizes shadow .factory/ as live evidence + step-G §G.1 preflight obligation (BC-6.26.001 Invariant 5 + AC-007(d); F-S2104-P4-002)"
+    false
+  }
+
+  # skills/adversarial-review/SKILL.md: must contain a reference to BC-6.26.001 and/or §G.1
+  # teardown preflight awareness. The adversarial-review skill coordinates adversary dispatch;
+  # it must surface the §G.1 preflight obligation to the adversary context.
+  # RED: adversarial-review/SKILL.md currently has NO BC-6.26.001 or §G.1 reference.
+  grep -qE 'BC-6\.26\.001|§G\.1|step-g-cleanup|teardown.*preflight.*BC|preflight.*§G\.1' "$ADV_REVIEW_SKILL_MD" || {
+    echo "DOC-PARITY FAIL: skills/adversarial-review/SKILL.md does not contain §G.1/BC-6.26.001 teardown-preflight awareness reference — implementer must add clause (BC-6.26.001 Invariant 5 + AC-007(d); F-S2104-P4-002)"
+    false
+  }
+}
+
+# ===========================================================================
+# F-S2104-P4-003: DOC-PARITY gate — agents/devops-engineer.md §Worktree Cleanup preflight-verification mandate
+# AC-007(d) executor-side defensive preflight
+# RED until implementer adds §G.1/BC-6.26.001 preflight mandate to §Worktree Cleanup section.
+# ===========================================================================
+
+_extract_devops_worktree_cleanup_section() {
+  awk '
+    /^### Worktree Cleanup/ { found=1; next }
+    found && /^### / { exit }
+    found && /^## / { exit }
+    found { print }
+  ' "$DEVOPS_ENGINEER_MD"
+}
+
+@test "F-S2104-P4-003: agents/devops-engineer.md §Worktree Cleanup — preflight-verification mandate" {
+  # agents/devops-engineer.md §Worktree Cleanup currently says only:
+  #   git worktree remove .worktrees/STORY-NNN
+  # with no §G.1 preflight reference at all.
+  #
+  # The executor-side (devops-engineer) must carry a defensive preflight mandate: verify caller
+  # ran §G.1 preflight per BC-6.26.001 PC2 before executing git worktree remove.
+  # ADR-031 caller-side ruling: the primary gate is caller-side (orchestrator/skill); the
+  # executor-side adds defense-in-depth consistent with that ruling.
+  # RED: no §G.1/BC-6.26.001 reference currently in §Worktree Cleanup section.
+
+  local devops_cleanup_section
+  devops_cleanup_section="$(_extract_devops_worktree_cleanup_section)"
+
+  _assert_doc_marker '§G\.1|step-g-cleanup|BC-6\.26\.001|preflight.*worktree remove|worktree remove.*preflight' \
+    "agents/devops-engineer.md §Worktree Cleanup: must carry §G.1/BC-6.26.001 preflight-verification mandate — executor-side defense-in-depth consistent with ADR-031 caller-side primary; RED until implementer adds preflight mandate to §Worktree Cleanup section (F-S2104-P4-003)" \
+    "$devops_cleanup_section"
 }

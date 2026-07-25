@@ -3,9 +3,13 @@
 # GitHub issues #169 + #176: worktree-identity engine fix.
 #
 # ROOT CAUSE: per-story sub-agents (esp. the adversary) read the WRONG git tree
-# in a multi-worktree project — either a stale .factory/specs worktree snapshot
-# (#169) or the wrong feature checkout (#176) — producing phantom "absent file /
-# missing deliverable" findings and the dangerous false-GREEN inverse.
+# in a multi-worktree project — either the wrong feature checkout (#176), or
+# they treat worktree `.factory/` content as spec ground-truth when it is NOT
+# (#169). The corrected model: `.factory/` is gitignored on the product branch,
+# so `git worktree add` checks out NOTHING there. Any `.factory/` content in the
+# worktree is live shadow-write evidence (issue #523 class), not a stale snapshot.
+# Reading it as spec ground-truth produces phantom "absent file / missing
+# deliverable" findings; the dangerous false-GREEN inverse applies equally.
 #
 # These tests assert that the four target prompt/skill files contain mandatory
 # discipline clauses. Every test MUST FAIL on develop@89fbe2d6 (pre-fix).
@@ -188,10 +192,16 @@ setup() {
   [ "$status" -eq 0 ]
 }
 
-# (l) AC-012: _shared-context.md must explicitly state that the worktree
-#     .factory/specs snapshot is stale and off-limits for spec ground-truth.
-#     Anchor: "off-limits" in the worktree-snapshot prohibition.
-@test "test_BC_shared_context_worktree_factory_specs_snapshot_is_off_limits" {
+# (l) AC-012: _shared-context.md must explicitly state that worktree `.factory/`
+#     content is off-limits for spec ground-truth. Corrected model (issue #523 +
+#     BC-6.26.001 Invariant 5): `.factory/` is gitignored on the product branch,
+#     so `git worktree add` checks out NOTHING there. Any `.factory/` content in
+#     the worktree is live shadow-write evidence, not a stale snapshot. Using it
+#     as spec ground-truth produces hallucinated "absent file" findings for specs
+#     that exist only on factory-artifacts (#169). The "off-limits" mandate is
+#     still correct — the reason is live-shadow evidence rather than staleness.
+#     Anchor: "off-limits" in the worktree .factory/ prohibition clause.
+@test "test_BC_shared_context_worktree_factory_live_shadow_content_off_limits" {
   run grep -i "off-limits" "$SHARED_CTX"
   [ "$status" -eq 0 ]
 }
