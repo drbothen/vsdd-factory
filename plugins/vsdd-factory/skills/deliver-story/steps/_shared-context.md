@@ -86,7 +86,14 @@ be determined via one of two methods:
   verifying it is set and non-empty — an unset expansion yields `/.factory/...`, outside the repo.
 
 - `git -C <main-worktree-path> rev-parse --show-toplevel` — where `<main-worktree-path>` is the
-  path of the MAIN checkout, NOT the story worktree path.
+  path of the MAIN checkout, NOT the story worktree path. To obtain `<main-worktree-path>` from
+  inside a story worktree, run `git worktree list --porcelain` from ANY worktree — the FIRST
+  `worktree` entry in the output is always the main checkout. Extract its path and use that as
+  `<main-worktree-path>`:
+  ```bash
+  main_worktree_path="$(git worktree list --porcelain | awk '/^worktree /{path=$2} NR==1{print path; exit}')"
+  CANONICAL_FACTORY_ROOT="$(git -C "$main_worktree_path" rev-parse --show-toplevel)"
+  ```
 
 **WARNING (EC-006):** Running `git -C <story-worktree-path> rev-parse --show-toplevel` — i.e.,
 using the story worktree path instead of the main worktree path — returns the story worktree root,
