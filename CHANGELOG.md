@@ -19,9 +19,10 @@
   (2) **Teardown preflight** (`step-g-cleanup.md §G.1`): before every `git worktree remove` on a story worktree,
   a fail-closed three-branch protocol runs — PC2a (`.factory/` absent or `find` exits 0 empty → proceed), PC2b (`find`
   returns stray files → PREFLIGHT BLOCKED + Option A/B remediation menu + retry mandate), PC2c (`find` exits non-zero
-  for non-path-absent reason → HALT, surface exit code + stderr). The preflight mandate propagated to all primary
-  dispatch paths (SKILL.md Step 8, per-story-delivery.md step (g) and Story Split Recovery) and 5 sibling teardown
-  sites (worktree-manage, code-delivery, fix-pr-delivery, code-delivery.lobster, greenfield.lobster).
+  for non-path-absent reason → HALT, surface exit code + stderr). The preflight mandate propagated to the enumerated
+  dispatch surfaces: `deliver-story` SKILL.md Step 8; both per-story-delivery.md playbooks (agents/orchestrator
+  and workflows/phases — the latter being the precedence-winning reference); worktree-protocol.md Cleanup Rules; and
+  5 sibling teardown sites (worktree-manage, code-delivery, fix-pr-delivery, code-delivery.lobster, greenfield.lobster).
   Closes issue #523.
 
 ## 1.0.0-rc.23 — E-19 operator hardening — host ABI fixes + read_prefix FFI (2026-07-18)
