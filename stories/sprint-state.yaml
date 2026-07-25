@@ -266,9 +266,9 @@ stories:
   - id: S-15.03
     status: draft
   - id: S-21.04
-    status: draft
+    status: ready
   - id: S-21.05
-    status: draft
+    status: ready
   - id: S-21.06
     status: draft
   - id: S-4.11
