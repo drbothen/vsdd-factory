@@ -798,6 +798,8 @@ workflow:
                 agent: devops-engineer
                 depends_on: [merge-pr]
                 task: >
+                  Preflight required (BC-6.26.001 PC2): find .worktrees/STORY-NNN/.factory -type f
+                  before removal; if non-empty HALT and follow step-g-cleanup.md §G.1.
                   Remove worktree: git worktree remove .worktrees/STORY-NNN.
                   Update .factory/STATE.md with merge status.
 
