@@ -91,7 +91,15 @@ be determined via one of two methods:
   `worktree` entry in the output is always the main checkout. Extract its path and use that as
   `<main-worktree-path>`:
   ```bash
-  main_worktree_path="$(git worktree list --porcelain | awk '/^worktree /{path=$2} NR==1{print path; exit}')"
+  main_worktree_path="$(git worktree list --porcelain | while IFS= read -r line; do
+    case "$line" in
+      "worktree "*) printf '%s\n' "${line#worktree }"; break ;;
+    esac
+  done)"
+  [ -n "$main_worktree_path" ] || {
+    echo "HALT: canonical factory root could not be resolved — git worktree list returned no main worktree path; cannot proceed"
+    exit 1
+  }
   CANONICAL_FACTORY_ROOT="$(git -C "$main_worktree_path" rev-parse --show-toplevel)"
   ```
 
