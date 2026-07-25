@@ -1,10 +1,10 @@
 ---
 document_type: behavioral-contract
 level: L3
-version: "1.5"
+version: "1.6"
 status: draft
 producer: product-owner
-timestamp: 2026-07-24T00:00:00Z
+timestamp: 2026-07-25T00:00:00Z
 phase: brownfield-backfill
 cycle: v1.0-brownfield-backfill
 inputs:
@@ -25,6 +25,7 @@ modified:
   - "2026-07-19 (v1.3) — adv pass-1 fix burst (F-P1-005) per ADR-031 v1.1 delta analysis v1.2 §Issue #523 (product-owner): §Description + Invariant 5 mechanism corrected — false --force premise removed; actual mechanism: .factory/ is gitignored on story branch → shadow content is gitignored (not untracked) → plain git worktree remove passes clean-state check (gitignored ≠ untracked for the check) → underlying rm-rf silently destroys shadow content; preflight is correct fix because find sees gitignored files that git's check ignores; --force secondary note retained as clearly-labeled secondary. PC2a corrected: git worktree remove --force→git worktree remove (plain command per step-g-cleanup.md)."
   - "2026-07-24 (v1.4) — S-21.04 adv pass-1 fix burst F-004/006/007/010 (product-owner): F-007: §Description provenance corrected — shadow .factory/ created by errant write (not at git worktree add time; .factory/ is gitignored on product branch so checkout is empty). F-010: --force rationale corrected in §Description ¶2 and PC2a — BC mandate (strips git built-in protection for non-gitignored untracked files), not guard-enforced constraint. F-006: PC2a/EC-005 amended fail-closed — absent .factory/→PC2a sub-case (a); find error (non-path-absent)→PC2c HALT; blanket 2>/dev/null suppression removed; PC2c block added. F-004: PC1 git command fixed — <story-worktree-path>→<main-worktree-path> with clarification that story-worktree rev-parse returns story-worktree root. CANONICAL_FACTORY_ROOT defined: repo-root of main checkout (not .factory/ mount)."
   - "2026-07-24 (v1.5) — S-21.04 adv pass-2 fix burst F-002/O-005 (product-owner): F-002: §Description ~line 64 corrected — suppressed preflight command `find <worktree-path>/.factory -type f 2>/dev/null` corrected to unsuppressed form `find <worktree-path>/.factory -type f`; consistent with PC2a/PC2b/PC2c and v1.4 changelog claim \"blanket 2>/dev/null suppression removed.\" TD-VSDD-060 sweep: grep -n \"2>/dev/null\" BC-6.26.001.md — zero occurrences on live preflight command (lines 26/35/280 are historical changelog text only). O-005: §Preconditions ¶2 caller-side aligned — callee-side phrasing corrected to caller-side per ADR-031 §Rationale and step-g-cleanup.md §G.1."
+  - "2026-07-25 (v1.6) — S-21.04 adv pass-4 fix burst F-S2104-P4-007 (product-owner): PC2a sub-case (a) discrimination predicate corrected from directory-ness (`[ ! -d ]`) to existence (`[ ! -e ]`); non-directory inode at path (regular file, symlink-to-file) treated as stray shadow content → PC2b BLOCKED. TD-VSDD-060 within-file sweep complete: §Description steps 1/2/3 updated (existence-predicate + non-directory→PC2b path); non-directory-path paragraph added between PC2a and PC2b; PC2b header updated; PC2c parenthetical updated (path-nonexistence unreachable after pre-verification); EC-005 updated; EC-008 added; T-6 added."
 deprecated: null
 deprecated_by: null
 replacement: null
@@ -33,7 +34,7 @@ removed: null
 removal_reason: null
 bc_id: BC-6.26.001
 section: "6.26"
-last_amended: "(v1.5) — S-21.04 adv pass-2 fix burst F-002/O-005 (product-owner): F-002 §Description 2>/dev/null residue corrected (unsuppressed preflight command; consistent with PC2a/PC2b/PC2c). TD-VSDD-060 sweep: zero other occurrences on live preflight command. O-005 §Preconditions ¶2 caller-side aligned (orchestrator dispatch vs devops-engineer execution). [Prior: (v1.4) — pass-1 F-004/006/007/010. (v1.3) — F-P1-005 gitignored mechanism. (v1.2) — research validation. (v1.1) — CAP-036 backfill. (v1.0) — Initial.]"
+last_amended: "(v1.6) — S-21.04 adv pass-4 fix burst F-S2104-P4-007 (product-owner): PC2a(a) existence-predicate precision — `[ ! -d ]` → `[ ! -e ]`; non-directory at path = stray content → PC2b BLOCKED; TD-VSDD-060 within-file sweep complete. [Prior: (v1.5) — F-002/O-005. (v1.4) — F-004/006/007/010. (v1.3) — F-P1-005 gitignored. (v1.2) — research. (v1.1) — CAP-036. (v1.0) — Initial.]"
 ---
 
 # BC-6.26.001: deliver-story step agents MUST write all `.factory/**` artifacts using absolute paths anchored to the canonical main-checkout `.factory/` mount, and step-G cleanup MUST run a worktree `.factory/` inventory preflight before `git worktree remove`
@@ -88,13 +89,17 @@ the mount as the root would produce `$CANONICAL_FACTORY_ROOT/.factory/.factory/<
 **Teardown preflight (INV-E21-004 instantiation):** Before any `git worktree remove` command on
 a story worktree, step G MUST apply a fail-closed `.factory/` inventory protocol:
 
-1. If the story worktree has no `.factory/` directory, treat as no-stray-files (PC2a sub-case a).
-2. If `.factory/` is present, run `find <worktree-path>/.factory -type f` (without blanket error
-   suppression). A `find` exit error for any reason other than path absence (e.g., permission
-   denial, path error) MUST HALT teardown — this is a fail-closed error (PC2c); do not proceed
-   with `git worktree remove`.
-3. Empty `find` output → no stray files (PC2a-pass). Non-empty output → stray artifacts found
-   (PC2b-blocked).
+1. If nothing exists at `<worktree-path>/.factory` (`[ ! -e "<worktree-path>/.factory" ]`), treat
+   as no-stray-files (PC2a sub-case a) — teardown authorized immediately. If something exists at
+   that path but is NOT a directory (regular file, symlink-to-file, or other non-directory inode),
+   treat as stray shadow content — proceed directly to PC2b BLOCKED (list the path; do NOT run
+   `find`; do NOT proceed with `git worktree remove`).
+2. If `.factory/` exists and IS a directory, run `find <worktree-path>/.factory -type f` (without
+   blanket error suppression). A `find` exit error for any reason other than path absence (e.g.,
+   permission denial, path error) MUST HALT teardown — this is a fail-closed error (PC2c); do not
+   proceed with `git worktree remove`.
+3. Empty `find` output → no stray files (PC2a sub-case b — directory exists, no files). Non-empty
+   output → stray artifacts found (PC2b-blocked).
 
 If the result is non-empty (any files found), step G MUST NOT proceed with `git worktree remove`.
 Instead it MUST either: (a) relocate each found file to the canonical `.factory/` mount (if valid
@@ -146,15 +151,25 @@ permanent data loss at teardown.
 Step G MUST apply the fail-closed inventory protocol before any `git worktree remove` command.
 Three cases:
 
-**PC2a — No stray files (teardown authorized):** Either (a) the `.factory/` directory is absent
-in the story worktree, or (b) `find <worktree-path>/.factory -type f` succeeds with empty output.
-No stray factory artifacts exist; teardown is authorized. Step G proceeds with plain `git worktree
-remove` (no `--force` — `--force` is prohibited by this BC because it strips git's built-in
-unclean-worktree protection for non-gitignored untracked files; this prohibition is a BC mandate,
-not a guard-enforced constraint).
+**PC2a — No stray files (teardown authorized):** Either (a) nothing exists at path
+`<worktree-path>/.factory` (`[ ! -e "<worktree-path>/.factory" ]` is true — nothing to inspect or
+destroy), or (b) `.factory/` exists as a directory AND `find <worktree-path>/.factory -type f`
+succeeds with empty output. In both sub-cases no stray factory artifacts exist; teardown is
+authorized. Step G proceeds with plain `git worktree remove` (no `--force` — `--force` is
+prohibited by this BC because it strips git's built-in unclean-worktree protection for
+non-gitignored untracked files; this prohibition is a BC mandate, not a guard-enforced constraint).
 
-**PC2b — Non-empty result (stray factory artifacts found):** The `find` command returns one or
-more file paths. Step G MUST NOT proceed with `git worktree remove`. It MUST:
+**Non-directory path (stray shadow content — routed to PC2b):** If something exists at
+`<worktree-path>/.factory` but is NOT a directory (regular file, symlink-to-file, or other
+non-directory inode), it constitutes stray shadow content — a file written at that path is subject
+to exactly the same `rm -rf` destruction risk as files inside a shadow `.factory/` directory tree.
+Step G MUST proceed to PC2b BLOCKED, listing the non-directory path. The `-d` test alone MUST NOT
+be used as the path-absence discriminator.
+
+**PC2b — Stray factory artifacts found (teardown blocked):** Either (a) the `find` command
+returns one or more file paths, or (b) something exists at `<worktree-path>/.factory` but is not a
+directory (non-directory inode = stray shadow content at the path itself — see non-directory-path
+paragraph above). Step G MUST NOT proceed with `git worktree remove`. It MUST:
 
 1. Log each stray file path with the message:
    ```
@@ -171,10 +186,12 @@ more file paths. Step G MUST NOT proceed with `git worktree remove`. It MUST:
 3. The story cleanup MUST NOT complete until the preflight returns an empty result.
 
 **PC2c — Preflight error (fail-closed):** `find <worktree-path>/.factory -type f` exits non-zero
-for a reason other than the `.factory/` directory being absent (e.g., permission denial, path
-traversal error). Step G MUST HALT. The exact `find` exit code and stderr output MUST be surfaced
-to the operator. `git worktree remove` is NOT executed. The preflight is a destructive-operation
-gate; `find` errors must not silently authorize `rm -rf`.
+for any reason (note: path nonexistence is unreachable here — step 1 has already confirmed that
+`.factory/` exists and is a directory before `find` is invoked; any non-zero exit therefore
+signals a genuine error such as permission denial or path traversal error). Step G MUST HALT. The
+exact `find` exit code and stderr output MUST be surfaced to the operator. `git worktree remove`
+is NOT executed. The preflight is a destructive-operation gate; `find` errors must not silently
+authorize `rm -rf`.
 
 **INV-E21-004 instantiation:** `git worktree remove` on a story worktree MUST be preceded by an
 empty-`.factory/` assertion.
@@ -221,9 +238,10 @@ empty-`.factory/` assertion.
 | EC-002 | Agent writes `Write("/abs/repo/.factory/stories/S-021-DELIVERY.md")` | CORRECT: absolute path anchored to canonical root; PC1 compliant |
 | EC-003 | `find .worktrees/S-021/.factory -type f` returns empty | Teardown proceeds (PC2a) |
 | EC-004 | `find .worktrees/S-021/.factory -type f` returns `.worktrees/S-021/.factory/stories/S-021-DELIVERY.md` | BLOCKED: PC2b; relocate or discard then retry |
-| EC-005 | Story worktree has no `.factory/` directory at all (clean worktree) | `.factory/` absent → PC2a sub-case (a): no stray files, teardown authorized. Path-absent is not a PC2c error; it is the expected clean state. Distinguished from PC2c (non-path-absent `find` failures). |
+| EC-005 | Story worktree has nothing at the `.factory/` path (`[ ! -e ]` is true; clean worktree) | Path nonexistent → PC2a sub-case (a): no stray files, teardown authorized. Path-nonexistent is not a PC2c error; it is the expected clean state. Distinguished from PC2c (non-path-absent `find` failures). Note: use `[ ! -e ]` not `[ ! -d ]` — a regular file at that path would incorrectly satisfy `[ ! -d ]` but IS stray shadow content (EC-008). |
 | EC-006 | Agent correctly writes DELIVERY ledger to canonical path, but a prior agent also wrote to the shadow tree | Preflight catches the stray copy; step G blocked until resolved |
 | EC-007 | pr-reviewer writes `pr-review.md` using a relative path from its CWD (story worktree) | FORBIDDEN: violates PC1; shadow-tree write; would be lost at teardown |
+| EC-008 | Story worktree has `.factory` as a regular file (not a directory) at the worktree root | Non-directory inode at path → PC2b BLOCKED: file is stray shadow content subject to `rm -rf` destruction; list the path; do NOT run `find`; do NOT proceed with `git worktree remove`. `[ ! -d ".factory" ]` would be true (wrong, authorizes teardown); `[ ! -e ".factory" ]` correctly identifies the path as occupied. |
 
 ## Canonical Test Vectors
 
@@ -234,6 +252,7 @@ empty-`.factory/` assertion.
 | T-3 | Shadow tree empty | Step G: `find .worktrees/S-021/.factory -type f` | Returns empty; teardown proceeds |
 | T-4 | Shadow tree has `S-021-DELIVERY.md` | Step G: `find .worktrees/S-021/.factory -type f` | Non-empty: teardown BLOCKED; PC2b error message |
 | T-5 | Shadow tree has stray file; file relocated to canonical mount; re-run find | Step G retry: find returns empty | Teardown proceeds after relocation |
+| T-6 | `.factory` exists as a regular file (not a directory) in story worktree | Step G: `[ ! -e .worktrees/S-021/.factory ]` is false; `[ ! -d .worktrees/S-021/.factory ]` would be true (wrong) | PC2b BLOCKED: non-directory inode at `.factory/` path listed as stray shadow content; `find` NOT invoked; teardown halted |
 
 ## Verification Properties
 
@@ -278,6 +297,7 @@ TBD — VP IDs to be assigned after VP authoring pass.
 
 | Version | Date | Description |
 |---------|------|-------------|
+| 1.6 | 2026-07-25 | S-21.04 adv pass-4 fix burst F-S2104-P4-007 (product-owner). PC2a sub-case (a) discrimination predicate corrected from directory-ness (`[ ! -d ]`) to existence (`[ ! -e ]`): nothing-at-path → PC2a(a) proceed; non-directory inode (regular file, symlink-to-file) exists at path → PC2b BLOCKED (stray shadow content; same `rm -rf` destruction risk as files inside a shadow directory tree); existing directory → run `find` per PC2a(b)/PC2b/PC2c. TD-VSDD-060 within-file sweep: §Description numbered list steps 1/2/3 updated; non-directory-path paragraph added between PC2a and PC2b; PC2b header updated to cover non-directory case; PC2c parenthetical updated (path-nonexistence unreachable after pre-verification); EC-005 updated (path-nonexistent vs path-occupied distinction); EC-008 added (non-directory at path → PC2b BLOCKED); T-6 added (regular-file at `.factory/` path → PC2b BLOCKED). |
 | 1.5 | 2026-07-24 | S-21.04 adv pass-2 fix burst F-002/O-005 (product-owner). F-002: §Description ~line 64 corrected — suppressed preflight command form `find <worktree-path>/.factory -type f 2>/dev/null` corrected to unsuppressed `find <worktree-path>/.factory -type f`; consistent with PC2a/PC2b/PC2c and v1.4 changelog claim "blanket `2>/dev/null` suppression removed." TD-VSDD-060 file-scope sweep: `grep -n "2>/dev/null" BC-6.26.001.md` — zero results on live preflight command (lines 26/35/280 are historical changelog text only). O-005: §Preconditions ¶2 caller-side alignment — callee-side phrasing ("Step G (devops-engineer cleanup step) is about to execute") corrected to caller-side ("The orchestrator is about to dispatch step G (devops-engineer cleanup)") per ADR-031 §Rationale (caller-side gating) and step-g-cleanup.md §G.1 (orchestrator-assigned gate). |
 | 1.4 | 2026-07-24 | S-21.04 adv pass-1 fix burst F-004/006/007/010 (product-owner). F-007: §Description provenance corrected — `.factory/` directory absent at `git worktree add` time (gitignored on product branch); shadow created by errant write, not by checkout. F-010: `--force` prohibition rationale corrected in §Description ¶2 and PC2a — prohibition is a BC mandate (strips git's built-in protection for non-gitignored untracked files), not a guard-enforced constraint (guard permits `--force` for `.worktrees/`-containing commands). F-006: PC2a amended fail-closed — absent `.factory/` → PC2a sub-case (a); `find` error for non-path-absent reason → PC2c HALT; blanket `2>/dev/null` suppression removed; EC-005 updated. F-004: PC1 git command corrected — `<story-worktree-path>` → `<main-worktree-path>` (story-worktree `rev-parse --show-toplevel` returns story-worktree root, not canonical root; consistent with Invariant 3 + §Description). `CANONICAL_FACTORY_ROOT` defined: repo-root of main checkout (not `.factory/` mount). |
 | 1.0 | 2026-07-19 | Initial authoring (product-owner; E-21 factory-state data-loss hardening; issue #523; S-21.04). PC1: write-path discipline — all `.factory/**` writes MUST use canonical absolute paths anchored to main-checkout root (INV-E21-002). PC2a/PC2b: teardown preflight — `find <worktree>/.factory -type f` before `git worktree remove`; non-empty result blocks teardown (INV-E21-004). 4 invariants. 7 edge cases EC-001..EC-007. 5 test vectors T-1..T-5. lifecycle_status: draft (POL-14 auto-promotion on S-21.04 PR merge). |
