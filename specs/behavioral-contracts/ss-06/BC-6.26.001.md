@@ -1,7 +1,7 @@
 ---
 document_type: behavioral-contract
 level: L3
-version: "1.7"
+version: "1.8"
 status: draft
 producer: product-owner
 timestamp: 2026-07-25T00:00:00Z
@@ -11,7 +11,7 @@ inputs:
   - .factory/cycles/v1.0-brownfield-backfill/e-21-arch-delta-analysis.md
   - plugins/vsdd-factory/skills/deliver-story/steps/_shared-context.md
   - plugins/vsdd-factory/skills/deliver-story/steps/step-g-cleanup.md
-input-hash: "a0d9a12"
+input-hash: "aff43f3"
 traces_to: .factory/specs/architecture/ARCH-INDEX.md
 origin: brownfield
 extracted_from: null
@@ -27,6 +27,7 @@ modified:
   - "2026-07-24 (v1.5) — S-21.04 adv pass-2 fix burst F-002/O-005 (product-owner): F-002: §Description ~line 64 corrected — suppressed preflight command `find <worktree-path>/.factory -type f 2>/dev/null` corrected to unsuppressed form `find <worktree-path>/.factory -type f`; consistent with PC2a/PC2b/PC2c and v1.4 changelog claim \"blanket 2>/dev/null suppression removed.\" TD-VSDD-060 sweep: grep -n \"2>/dev/null\" BC-6.26.001.md — zero occurrences on live preflight command (lines 26/35/280 are historical changelog text only). O-005: §Preconditions ¶2 caller-side aligned — callee-side phrasing corrected to caller-side per ADR-031 §Rationale and step-g-cleanup.md §G.1."
   - "2026-07-25 (v1.6) — S-21.04 adv pass-4 fix burst F-S2104-P4-007 (product-owner): PC2a sub-case (a) discrimination predicate corrected from directory-ness (`[ ! -d ]`) to existence (`[ ! -e ]`); non-directory inode at path (regular file, symlink-to-file) treated as stray shadow content → PC2b BLOCKED. TD-VSDD-060 within-file sweep complete: §Description steps 1/2/3 updated (existence-predicate + non-directory→PC2b path); non-directory-path paragraph added between PC2a and PC2b; PC2b header updated; PC2c parenthetical updated (path-nonexistence unreachable after pre-verification); EC-005 updated; EC-008 added; T-6 added."
   - "2026-07-25 (v1.7) — S-21.04 pass-5 F-S2104-P5-011/F-P5-009/F-P5-010 spec side (product-owner): F-011: discrimination chain amended — step 2 added as explicit `[ -L ]` symlink guard before any `[ -d ]` test; symlink-to-directory at path → PC2b BLOCKED (find NOT invoked); POSIX test -d follows symlinks; POSIX find without -H/-L does not descend symlinks → empty output → false PC2a escape documented and closed. F-009/F-010: PC2b condition tightened to 'find returns paths OR symlink/non-directory inode occupies the path'; PC2c unreachability note extended (symlink-at-path ruled out by step 2). Trailing-slash find form mandated throughout as defense-in-depth. Non-directory paragraph renamed and expanded to cover symlinks. EC-008 expanded to cover symlink-to-directory. T-7 added (symlink-to-dir → PC2b, find NOT invoked, remove NOT called). Invariant 2 and 5 updated."
+  - "2026-07-25 (v1.8) — S-21.04 pass-6 F-S2104-P6-005(b) executor-side verification precondition (product-owner; ADR-031 §Rationale adjudication): §Preconditions gains Precondition 3 — executor-side trigger for devops-engineer before executing git worktree remove; Invariant 2 extended with executor-side clause covering both obligation surfaces (Preconditions 2+3 parity). Caller-side gating PRIMARY per ADR-031 §Rationale. AC-008."
 deprecated: null
 deprecated_by: null
 replacement: null
@@ -35,7 +36,7 @@ removed: null
 removal_reason: null
 bc_id: BC-6.26.001
 section: "6.26"
-last_amended: "(v1.7) — S-21.04 pass-5 F-S2104-P5-011/F-P5-009/F-P5-010 spec side (product-owner): `[ -L ]` symlink guard added as step 2; symlink-to-directory → PC2b BLOCKED (find NOT invoked); PC2b/PC2c clause precision; trailing-slash find mandated; EC-008 expanded; T-7 added. [Prior: (v1.6) — F-S2104-P4-007. (v1.5) — F-002/O-005. (v1.4) — F-004/006/007/010. (v1.3) — F-P1-005. (v1.2) — research. (v1.1) — CAP-036. (v1.0) — Initial.]"
+last_amended: "(v1.8) — S-21.04 pass-6 F-S2104-P6-005(b) executor-side verification precondition (product-owner; ADR-031 §Rationale): Precondition 3 added; Invariant 2 extended with executor-side clause. [Prior: (v1.7) — F-S2104-P5-011/F-P5-009/F-P5-010. (v1.6) — F-S2104-P4-007. (v1.5) — F-002/O-005. (v1.4) — F-004/006/007/010. (v1.3) — F-P1-005. (v1.2) — research. (v1.1) — CAP-036. (v1.0) — Initial.]"
 ---
 
 # BC-6.26.001: deliver-story step agents MUST write all `.factory/**` artifacts using absolute paths anchored to the canonical main-checkout `.factory/` mount, and step-G cleanup MUST run a worktree `.factory/` inventory preflight before `git worktree remove`
@@ -130,6 +131,17 @@ mandates.
 2. The orchestrator is about to dispatch step G (devops-engineer cleanup) to execute
    `git worktree remove` on a story worktree path (`.worktrees/<STORY-ID>/`).
 
+### Executor-side verification precondition
+
+3. The devops-engineer agent is about to execute `git worktree remove` on a story worktree path
+   (`.worktrees/<STORY-ID>/`). Before issuing the command, the agent MUST have obtained a PASS
+   result from the §G.1 preflight procedure defined in step-g-cleanup.md §G.1. If a PASS result
+   is not evident from the dispatch context, the agent MUST execute the §G.1 procedure by
+   reference — the discrimination-chain logic (existence check → symlink guard → `find` inventory)
+   is defined solely in step-g-cleanup.md §G.1; this precondition references that procedure by
+   name only and does not reproduce it. Stable anchors: ADR-031 §Rationale
+   (verification-and-delegation; caller-side gating PRIMARY), AC-008, Invariant 2.
+
 ## Postconditions
 
 ### PC1 — Write-path discipline: all `.factory/**` writes use canonical absolute paths
@@ -222,6 +234,12 @@ empty-`.factory/` assertion.
    guard (`[ -L ]` before any `[ -d ]` test) → `find "<worktree>/.factory/" -type f` inventory
    check (for real directories only). No exceptions — not even when the agent is confident no
    `.factory/` writes occurred (the preflight is the mechanical gate, not agent confidence).
+   This invariant covers both obligation surfaces: the caller-side dispatch gate (Precondition 2 —
+   the orchestrator MUST gate step G dispatch on a PASS preflight result) and the executor-side
+   execution gate (Precondition 3 — devops-engineer MUST verify or execute the §G.1 procedure
+   before issuing `git worktree remove` when the PASS result is not evident from the dispatch
+   context). The discrimination-chain logic is defined solely in step-g-cleanup.md §G.1.
+   Verification-and-delegation per ADR-031 §Rationale; caller-side gating remains PRIMARY.
 
 3. **Canonical root determination is orchestrator-provided or git-derived, never CWD-assumed.**
    The canonical `.factory/` root MUST be determined via `git -C <worktree-path> rev-parse --show-toplevel`
@@ -314,6 +332,7 @@ TBD — VP IDs to be assigned after VP authoring pass.
 
 | Version | Date | Description |
 |---------|------|-------------|
+| 1.8 | 2026-07-25 | S-21.04 pass-6 F-S2104-P6-005(b) executor-side verification precondition (product-owner; ADR-031 §Rationale adjudication — verification-and-delegation; AC-008). §Preconditions: Precondition 3 added — executor-side trigger for devops-engineer before executing `git worktree remove` on a story worktree; obligation: verify PASS §G.1 preflight result was obtained; when not evident from dispatch context, execute §G.1 by reference to step-g-cleanup.md §G.1 (discrimination-chain logic defined solely there; this precondition references it by name only). Invariant 2 extended — INV-E21-004 now covers both obligation surfaces: caller-side dispatch gate (Precondition 2) and executor-side execution gate (Precondition 3). No new PC or EC required: PC2 ("Step G MUST apply the fail-closed inventory protocol before any `git worktree remove` command") already mandates the executor-side behavior; Invariant 2 extension provides explicit parity naming. Caller-side gating PRIMARY per ADR-031 §Rationale. |
 | 1.7 | 2026-07-25 | S-21.04 pass-5 F-S2104-P5-011/F-P5-009/F-P5-010 spec side (product-owner). F-011 (symlink-to-directory escape): discrimination chain amended — step 2 added as explicit `[ -L ]` symlink guard before any `[ -d ]` test; any symlink at `<worktree-path>/.factory` (regardless of target type) → PC2b BLOCKED; `find` NOT invoked; rationale documented: POSIX `test -d` follows symlinks (symlink-to-directory satisfies `[ -d ]`); POSIX `find` without `-H`/`-L` does not descend symlinks (returns empty → false PC2a(b) → `rm -rf` destroys symlink target). F-009/F-010 spec precision: PC2b condition = "find returns paths OR symlink/non-directory inode occupies the path"; PC2c unreachability note extended (symlink-at-path ruled out by step 2 before `find` is invoked). Trailing-slash find form `find "<path>/.factory/" -type f` mandated throughout (defense-in-depth; forces traversal entry). EC-008 expanded to cover symlink-to-directory explicitly (both regular-file and symlink cases; contrast text shows why `[ ! -d ]` alone fails for symlink-to-dir). T-7 added: symlink-to-dir → PC2b, find NOT invoked, remove NOT called. Invariant 2 updated to describe full discrimination chain. Invariant 5 title updated (discrimination chain, not just find). |
 | 1.6 | 2026-07-25 | S-21.04 adv pass-4 fix burst F-S2104-P4-007 (product-owner). PC2a sub-case (a) discrimination predicate corrected from directory-ness (`[ ! -d ]`) to existence (`[ ! -e ]`): nothing-at-path → PC2a(a) proceed; non-directory inode (regular file, symlink-to-file) exists at path → PC2b BLOCKED (stray shadow content; same `rm -rf` destruction risk as files inside a shadow directory tree); existing directory → run `find` per PC2a(b)/PC2b/PC2c. TD-VSDD-060 within-file sweep: §Description numbered list steps 1/2/3 updated; non-directory-path paragraph added between PC2a and PC2b; PC2b header updated to cover non-directory case; PC2c parenthetical updated (path-nonexistence unreachable after pre-verification); EC-005 updated (path-nonexistent vs path-occupied distinction); EC-008 added (non-directory at path → PC2b BLOCKED); T-6 added (regular-file at `.factory/` path → PC2b BLOCKED). |
 | 1.5 | 2026-07-24 | S-21.04 adv pass-2 fix burst F-002/O-005 (product-owner). F-002: §Description ~line 64 corrected — suppressed preflight command form `find <worktree-path>/.factory -type f 2>/dev/null` corrected to unsuppressed `find <worktree-path>/.factory -type f`; consistent with PC2a/PC2b/PC2c and v1.4 changelog claim "blanket `2>/dev/null` suppression removed." TD-VSDD-060 file-scope sweep: `grep -n "2>/dev/null" BC-6.26.001.md` — zero results on live preflight command (lines 26/35/280 are historical changelog text only). O-005: §Preconditions ¶2 caller-side alignment — callee-side phrasing ("Step G (devops-engineer cleanup step) is about to execute") corrected to caller-side ("The orchestrator is about to dispatch step G (devops-engineer cleanup)") per ADR-031 §Rationale (caller-side gating) and step-g-cleanup.md §G.1 (orchestrator-assigned gate). |
