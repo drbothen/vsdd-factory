@@ -7618,3 +7618,45 @@ The lesson `L-BB-closure-records-must-reproduce-evidence-command-with-captured-s
 **Cites:** D-900 (codified this burst); D-897 (first occurrence; L-BB-verbatim-record-persistence-rule); S-21.04 (triggered context); context-blending fabrication class.
 
 **Closes:** D-900 S-21.04-PASS-04-RECORD-CORRECTION (2026-07-25). `[process-gap; record-persistence; context-blending; fabrication; multi-pass-transcript; fresh-session; mechanical-diff-gate; orchestrator-dispatch; state-manager; D-897; D-900; codified]`
+
+---
+
+## L-BB-ere-literal-pipe-gate-defect-class [process-gap] [codified D-901]
+
+**Summary:** Pass-5 test-writer gates at bats 503/537/545 used ERE `\|` (literal backslash-pipe — a Basic Regular Expression alternation construct that is a no-op or error under ERE mode). The gates were intended to match one of two phrases but silently matched neither. The implementer, unable to satisfy the gates with natural text, introduced "Chain lines" containing a literal pipe character in the production doc — a TD-VSDD-059 teaching-to-a-buggy-test class defect (contorting production text to satisfy a broken gate). The orchestrator caught the bug from the implementer's own disclosure note, routed gate repair (test-writer 94a627ee: `\|` → `|` ERE alternation) then doc un-contortion (implementer b9c6c784: removal of the contortion). The POLICY 13 ERE literal-pipe defect class is now closed. All pass-5 gates pass on natural, uncontorted text.
+
+**Discovered:** 2026-07-25 (S-21.04 LOCAL cascade pass-5; caught pre-adversary via implementer workaround-note disclosure; orchestrator review of implementer's own note identified the bug).
+
+**Root cause:** POLICY 13 requires that test gates use grep correctly (mode-appropriate patterns). A `\|` inside an ERE (`grep -E`) pattern is a literal backslash followed by a pipe — not alternation. BRE uses `\|` for alternation; ERE uses `|` for alternation. The gate author used BRE alternation syntax in an ERE context, producing a pattern that never matched on natural text. The implementer then contorted the production doc to include a literal pipe so the gate would fire — correct behavior for "test passes" but incorrect for "production doc is natural."
+
+**Corrective action:** Gate repair first (test-writer repairs the grep MODE issue: `\|` → `|` in ERE patterns); then doc un-contortion (implementer removes the contorted pipe-bearing lines introduced to satisfy the buggy gate). Both must happen in-session before push — leaving a buggy gate in the test suite is a POLICY 13 violation that would mislead all future implementers. **Prevention gate for gate authors:** before finalizing any bats gate that uses `grep -E`, confirm alternation syntax uses `|` not `\|`. Before finalizing any bats gate that uses `grep -P` or `grep -G`, confirm the mode-appropriate syntax.
+
+**Disclosure-review works:** The implementer's disclosure note ("I used a workaround because the gate required pipe characters in the doc") was the trigger for orchestrator review. This is a positive signal: implementer disclosure of workarounds enables orchestrator catch of buggy gates before adversarial review. Implementer workaround notes SHOULD be written explicitly when natural text cannot satisfy a gate — the workaround note IS the bug report.
+
+**Prevention:** During any test-writer gate authoring pass: "What grep mode am I using? Is my alternation syntax correct for that mode? If ERE (`grep -E`), use `|`. If BRE (`grep -G` or bare `grep`), use `\|`." During any implementer fix: "Did I have to contort the production text to satisfy a gate? If yes, file a workaround note — the gate is likely wrong."
+
+**Anchors:** S-21.04 LOCAL cascade pass-5 (2026-07-25); bats 503/537/545 ERE `\|` defect; test-writer 93ec340a (gate authoring) → 94a627ee (gate repair); implementer b9c6c784 (doc un-contortion); POLICY 13 (grep mode correctness); TD-VSDD-059 (teaching-to-a-buggy-test class); orchestrator disclosure-review catch.
+
+**Cites:** D-901 (codified this burst); POLICY 13 (grep correctness mandate); TD-VSDD-059 (paper-fix / teaching-to-a-buggy-test detection); S-21.04 pass-5 incident (trigger); disclosure-review catch mechanism.
+
+**Closes:** D-901 S-21.04-ADV-PASS-5-CLOSED (2026-07-25). `[process-gap; ere-literal-pipe; grep-mode; bats-gate; alternation-syntax; td-vsdd-059; teaching-to-buggy-test; disclosure-review; policy-13; D-901; codified]`
+
+---
+
+## L-BB-versionless-pin-class-death [process-gap] [codified D-901]
+
+**Summary:** Pass-5 F-003 revealed a 4th recurrence of the BC-version-pin propagation gap: bats gates and CHANGELOG used v1.5 pins when v1.6 had already been delivered. The fix (implementer 2b95b246 + test-writer 93ec340a) adopted a versionless-pin class-death strategy for non-load-bearing BC cites: any cite of BC-6.26.001 in a non-normative position (bats gate matching a BC name, CHANGELOG prose mention) MUST NOT pin a version number. Only normative specification cites (story AC/EC/RG tables, BC-INDEX row, ADR cross-references governing the BC) retain version pins. Non-normative cites become versionless (e.g., `BC-6.26.001` without `v1.X`). This eliminates the entire class of "version-pin propagation missed" findings for non-load-bearing cites.
+
+**Discovered:** 2026-07-25 (S-21.04 LOCAL cascade pass-5; F-S2104-P5-003 fourth recurrence; fix adopted versionless-pin strategy for non-load-bearing cites; TD-VSDD-091 extension).
+
+**Root cause:** BC-version-pin propagation gaps occur because non-normative cites (in bats gates, CHANGELOG prose, loose cross-references) are not tracked in the structured propagation sweep that covers normative spec tables. Every time a BC version bumps, the normative surfaces are swept (BC-INDEX row, story AC/EC tables, ADR rows), but bats gate strings and CHANGELOG prose are not in the structured sweep. The result is stale version pins in non-normative positions that produce a finding every pass.
+
+**Corrective action — versionless-pin class-death:** For non-load-bearing BC cites (bats gate patterns matching a BC name, CHANGELOG prose mentions, INFO-level cross-reference comments), remove the version suffix entirely. `BC-6.26.001 v1.5` → `BC-6.26.001`. The BC identifier is the stable anchor; the version is only meaningful in normative spec tables where the specific version governs behavior. Removing version pins from non-normative cites eliminates the propagation gap class entirely for those sites. Normative pins (story AC tables, BC-INDEX row, ADR cross-references) retain version pins because the specific version matters for governance. This is an extension of TD-VSDD-091 (anti-volatile-pin rule): volatile version pins in non-normative positions are a decay smell.
+
+**Prevention:** During any bats gate authoring that matches a BC name: "Am I embedding a version number in this match string? If so, is this a normative AC/EC gate (version matters) or an informational gate (version doesn't matter)? For informational gates, drop the version suffix." During any CHANGELOG entry: "Am I pinning a BC version in prose? Unless the prose is a normative spec table, drop the version suffix."
+
+**Anchors:** S-21.04 LOCAL cascade pass-5 (2026-07-25); F-S2104-P5-003 (4th recurrence of BC-version-pin propagation gap); implementer 2b95b246 + test-writer 93ec340a (versionless-pin adoption); TD-VSDD-091 extension (non-load-bearing cite versionless-pin mandate).
+
+**Cites:** D-901 (codified this burst); TD-VSDD-091 (anti-volatile-pin; extended by this lesson); F-S2104-P5-003 (trigger — 4th recurrence); versionless-pin class-death strategy.
+
+**Closes:** D-901 S-21.04-ADV-PASS-5-CLOSED (2026-07-25). `[process-gap; versionless-pin; bc-version-propagation; class-death; non-normative-cite; td-vsdd-091; changelog; bats-gate; D-901; codified]`

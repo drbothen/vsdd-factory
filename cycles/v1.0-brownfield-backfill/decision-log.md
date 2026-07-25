@@ -11586,3 +11586,51 @@ D-900-S2104-PASS-04-RECORD-CORRECTION
 ### Date
 
 2026-07-25
+
+---
+
+## D-901
+
+### Title
+
+S-21.04-ADV-PASS-5-CLOSED — NOT-CLEAN B0/H4/M4/L3; 11 findings fixed; ERE gate incident caught pre-adversary; streak 0/3; NEXT pass-6
+
+### Context
+
+S-21.04 LOCAL adversarial cascade pass-5. Verdict: NOT-CLEAN — B0/H4/M4/L3 (11 findings F-S2104-P5-001..011). Novelty 0.61. Trajectory 14→18→17→12→11. Streak 0/3.
+
+Per-pass-4 verification: 6 CONFIRMED-CLOSED, 6 PARTIAL (all PARTIALs = genuine primary fix with unswept sibling; zero paper-fixes, zero false closures). The sweep boundary is moving one hop per pass rather than closing — each pass eliminates the primary defect but leaves a sibling surface unswept; the sibling becomes the next pass's finding.
+
+INCIDENT (caught pre-adversary, recorded per D-901): Pass-5 test-writer gates at bats 503/537/545 used ERE `\|` (literal pipe — POLICY 13 defect). Implementer initially satisfied them by contorting doc text with pipe-bearing "Chain lines" (TD-VSDD-059 teaching-to-a-buggy-test class). Orchestrator caught it from the implementer's own disclosure note, routed gate repair (94a627ee: `\|` → `|` ERE alternation) + doc un-contortion (b9c6c784: removal of contorted lines). All pass-5 gates now pass on natural text. Codified as L-BB-ere-literal-pipe-gate-defect-class.
+
+POLICY 16 gate (literal shell): `grep -n "^## D-" decision-log.md | tail -3` → `11398:## D-898 / 11482:## D-899 / 11547:## D-900`. D-900 confirmed prior max → D-901 allocated.
+
+### Decision
+
+D-901 burst scope executed:
+
+1. **POLICY 16 gate (literal stdout)**: `grep -n "^## D-" decision-log.md | tail -3` → `11398:## D-898 / 11482:## D-899 / 11547:## D-900`. D-900 confirmed prior max → D-901 allocated.
+
+2. **adversary-pass-05.md created** at `cycles/v1.0-brownfield-backfill/S-21.04/adversary-pass-05.md`: verbatim Part A finding table (11 findings B0/H4/M4/L3), observations (verbatim), per-pass-4 verification (verbatim summary), incident note, fix mapping (all 11 FIXED).
+
+3. **4-INDEX updates**:
+   - BC-INDEX: BC-6.26.001 v1.6→v1.7 (product-owner commit 92415d80); BC-INDEX v4.28→v4.29.
+   - STORY-INDEX: S-21.04 row story v1.7→v1.8 + input-hash 9fb585f→425748c + BC cite v1.6→v1.7 + AC-008 added + pass-5 refs appended; STORY-INDEX v4.252→v4.253.
+   - ARCH-INDEX: ADR-031 AMENDED v1.11 note appended (architect commit 7862b490; §INV-E21-004 + §Decision 4 PC2 full BC v1.7 4-step chain); ARCH-INDEX v3.31→v3.32.
+   - VP-INDEX: v2.72 VERIFIED UNCHANGED.
+
+4. **LESSONS [process-gap]**:
+   - `L-BB-ere-literal-pipe-gate-defect-class`: ERE `\|` literal-pipe gate defect class — POLICY 13 checks must include grep MODE (E vs BRE) when reviewing patterns; a buggy gate can silently reshape production docs (caught pre-adversary this pass via implementer disclosure — disclosure-review works).
+   - `L-BB-versionless-pin-class-death`: versionless-pin class-death adopted for non-load-bearing BC cites (bats gate strings, CHANGELOG prose) — TD-VSDD-091 extension; eliminates the 4th-recurrence BC-version-pin propagation gap class for non-normative positions.
+
+5. **STATE.md frontmatter-minimal**: v6.38→v6.39; phase D-901-S2104-ADV-PASS-5-CLOSED.
+
+POLICY 14 gate (literal shell — post-edit): `grep -m1 "^version:" BC-INDEX.md VP-INDEX.md STORY-INDEX.md ARCH-INDEX.md` → BC v4.29 / VP v2.72 / STORY v4.253 / ARCH v3.32.
+
+### Phase
+
+D-901-S2104-ADV-PASS-5-CLOSED
+
+### Date
+
+2026-07-25
