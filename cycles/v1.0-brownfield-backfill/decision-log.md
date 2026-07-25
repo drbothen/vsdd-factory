@@ -11392,3 +11392,87 @@ D-897-S2104-RECORD-INTEGRITY-CORRECTION
 ### Date
 
 2026-07-25
+
+---
+
+## D-898
+
+### Title
+
+S-21.04 LOCAL adversarial cascade PASS-3 CLOSED — NOT-CLEAN B1/H7/M7/L2 (17 findings, 14 genuine + 3 RECLASSIFIED-RECORD-ARTIFACT); streak 0/3
+
+### Context
+
+S-21.04 LOCAL adversarial cascade pass-3 (BC-5.39.001 3-CLEAN protocol). Pass-3 adversary reviewed the worktree state at HEAD `2f84f56d` (after all pass-2 fix legs; before pass-3 fix legs). The adversary returned NOT-CLEAN with B1/H7/M7/L2 + 5 observations (17 total findings). Three findings reclassified per D-897: F-S2104-P3-002/003/014 are RECLASSIFIED-RECORD-ARTIFACT — derived from the fabricated pass-2 record content, not real implementation or spec defects. Genuine finding count: 14. Novelty 0.76 HIGH. Trajectory: 14→18→17.
+
+POLICY 16 GLOBAL-MAX GATE (literal shell): `grep -n "^## D-" decision-log.md | tail -3` → `11171:## D-895 / 11237:## D-896 / 11314:## D-897`; D-897 confirmed prior max → D-898 allocated.
+
+A D-897/D-897-QA interleaving occurred during pass-3 fix dispatch: commit `d975dc84` (factory-artifacts quarantine amendment — VOID-retitling adversary-pass-01/02 fabricated content) landed on the factory-artifacts branch as part of the D-897-QA record-integrity work. The 6 stash drops from D-897-QA are pending human terminal execution (destructive-command-guard; not executed by state-manager).
+
+### Decision
+
+Accept pass-3 verdict NOT-CLEAN. Close D-898 S-21.04-ADV-PASS-3-CLOSED. Streak remains 0/3. Dispatch pass-4.
+
+**Pass-3 finding summary:** B1/H7/M7/L2 — 17 total (14 genuine + 3 RECLASSIFIED-RECORD-ARTIFACT) + 5 observations.
+
+**Severity breakdown (genuine findings only):**
+- BLOCKER (1): F-S2104-P3-001 — §G.1 discrimination predicate gap (implementer be9343d0 + test-writer 62ce8938)
+- HIGH (5 genuine): F-S2104-P3-004..008 — canonical-root space-safety, PC2c empty-result authorization, stale-snapshot residue, premise-lock in test gate, v1.4 cite propagation in bats/README/CHANGELOG
+- MEDIUM (4 genuine): F-S2104-P3-009..013 (excluding reclassified F-014) — red-gate-log fabricated quote, placeholder, PC2b direction gate, PC1 negative gate, File Structure omission
+- LOW (2): F-S2104-P3-015..016 — extractor over-capture, AC-007(d) category gap
+- MEDIUM (1): F-S2104-P3-017 — ADR-031 stale version cite
+
+**Reclassified (RECLASSIFIED-RECORD-ARTIFACT, not genuine defects, excluded from streak):**
+- F-S2104-P3-002: BC-6.26.001 "no Invariant 6" — derived from fabricated pass-2 record (D-897)
+- F-S2104-P3-003: ADR-031 "no write-path-vs-stage-path layer distinction" — derived from fabricated pass-2 record (D-897)
+- F-S2104-P3-014: pass-2 routing table label swaps — artifacts of the fabricated routing table (D-897)
+
+**Fix-leg routing (all landed before this burst):**
+| Finding(s) | Agent | Commit SHA | Work |
+|------------|-------|-----------|------|
+| F-001 BLOCKER (§G.1 normative predicate) | implementer (worktree) | be9343d0 | Normative discrimination predicate added to §G.1 |
+| F-001 (DOC-PARITY bats gate) | test-writer (worktree) | 62ce8938 | DOC-PARITY gate + F-007/008/011/012/015 fixes |
+| F-004 (space-unsafe awk $2) | implementer (worktree) | b5677b4a | ${line#worktree } + non-empty assertion |
+| F-005 (three-branch protocol) | implementer (worktree) | 681f6d91 | Three-branch protocol at 8 caller surfaces |
+| F-006 (stale-snapshot residue) | implementer (worktree) | d7dc5028 | Residue swept from adversary.md + SKILL.md |
+| F-008 (CHANGELOG cite) | implementer (worktree) | b44442b2 | CHANGELOG:11 v1.4→v1.5 |
+| F-009/010 (red-gate-log) | state-manager | d975dc84 (D-897/D-897-QA) | PC2c quote corrected; "Invariant TBD" removed |
+| F-013/016/017 (story spec) | story-writer | 41b022ac | File Structure rows + AC-007(d) category + ADR stable cite |
+
+**Worktree HEAD after all genuine fix legs:** `b44442b2` (27 commits over base `948f0fb1`)
+
+**Suite results (orchestrator-verified):** 4/4 + 14/14 + 2/2 green.
+
+**Observations routed to lessons:**
+- O-P3-002 [process-gap] adversary-side literal-evidence rule → L-BB-adversary-side-literal-evidence-rule
+- O-P3-003 [process-gap] REJECTED-WITH-RATIONALE closure state → L-BB-rejected-with-rationale-closure-state-needed
+- O-P3-001/004/005 INFO — no lesson required
+
+### Rationale
+
+All 14 genuine findings fully addressed by 4 agents before this closure burst. Three reclassified findings (F-002/003/014) excluded from streak per D-897 RECLASSIFIED-RECORD-ARTIFACT ruling. Streak remains 0/3 per BC-5.39.001 (any finding resets streak). Pass-4 required.
+
+### BURST DELIVERABLES
+
+1. `cycles/v1.0-brownfield-backfill/S-21.04/adversary-pass-03.md` — pass-3 review record created (B1/H7/M7/L2, 17 findings + 5 obs, verbatim Part A table, fix-mapping table, reclassification section, D-897 interleaving narrative, Novelty Assessment).
+2. `stories/STORY-INDEX.md` — S-21.04 row story v1.5→v1.6, Refs extended with F-S2104-P3-001..017; STORY-INDEX v4.250→v4.251; last_amended prepended.
+3. `specs/behavioral-contracts/BC-INDEX.md` — UNCHANGED (v4.27; no BC changes this burst).
+4. `specs/verification-properties/VP-INDEX.md` — UNCHANGED (v2.72; no VP changes this burst).
+5. `specs/architecture/ARCH-INDEX.md` — UNCHANGED (v3.31; no ADR changes this burst).
+6. `cycles/v1.0-brownfield-backfill/lessons.md` — three lessons appended: L-BB-concurrent-factory-writers-require-orchestrator-serialization [scheduling-gap] + L-BB-adversary-side-literal-evidence-rule [process-gap] + L-BB-rejected-with-rationale-closure-state-needed [process-gap].
+7. This D-898 decision-log.md block.
+8. `STATE.md` frontmatter-minimal advance: version v6.35→v6.36; timestamp advanced; phase → D-898-S2104-ADV-PASS-3-CLOSED; last_amended prepended.
+
+POLICY 14 4-INDEX GATE (literal shell — run before commit): expect BC v4.27 / VP v2.72 / STORY v4.251 / ARCH v3.31.
+
+NEXT: S-21.04 LOCAL adversarial cascade pass-4 dispatch. Streak 0/3.
+
+STATE.md v6.35→v6.36. develop HEAD `948f0fb1`; main `80e5cd7b` UNCHANGED.
+
+### Phase
+
+D-898-S2104-ADV-PASS-3-CLOSED
+
+### Date
+
+2026-07-25

@@ -7472,3 +7472,65 @@ The lesson `L-BB-closure-records-must-reproduce-evidence-command-with-captured-s
 **Cites:** D-897 (codified this burst); D-449(a) (literal-shell execution discipline — same non-fabrication principle); adversary-pass-01.md/02.md (corrected records); S-21.04 (triggered context).
 
 **Closes:** D-897 S-21.04-RECORD-INTEGRITY-CORRECTION (2026-07-25). `[process-gap; verbatim-record-persistence; fabrication; reconstruction; orchestrator-dispatch; state-manager; adversary-pass; surface-and-hold; concurrent-writers; single-writer-discipline; D-897; codified]`
+
+---
+
+## L-BB-concurrent-factory-writers-require-orchestrator-serialization [scheduling-gap] [codified D-898]
+
+**Summary:** During the D-897 record-integrity correction burst, the story-writer agent executed an S-21.04 v1.6 commit (`41b022ac`) to the factory-artifacts branch while the state-manager's D-897 work was in progress. This caused a stash collision: the state-manager's uncommitted in-progress writes were stashed by the incoming story-writer commit, requiring manual recovery and stash inspection. The core issue is that two agents held concurrent write-locks on the factory-artifacts worktree without explicit orchestrator serialization.
+
+**Discovered:** 2026-07-25 (D-897 concurrent-burst collision; story-writer `41b022ac` landed during state-manager D-897 burst).
+
+**Root cause:** The orchestrator dispatched the story-writer (pass-3 spec-side fix legs) and state-manager (D-897 record correction) in near-simultaneous fashion without enforcing a strict happens-before ordering on factory-artifacts writes. The factory-artifacts worktree is a single-writer resource — concurrent writes produce stash collisions and require manual recovery.
+
+**Corrective action:** The orchestrator MUST serialize all agents that write to factory-artifacts. Single-writer discipline applies to the factory-artifacts worktree at all times. The ordering rule: before dispatching any agent that will commit to factory-artifacts, confirm via `git -C .factory status --porcelain` that the worktree is clean (no pending writes from any prior agent in flight). If the worktree is dirty, the prior agent's burst must complete and commit before the next is dispatched.
+
+**Prevention:** Orchestrator dispatch checklist (before any factory-artifacts write dispatch): "Is any other agent currently holding an in-progress factory-artifacts write? If YES: wait for that agent's commit to land before dispatching this one." This is a structural pre-condition, not a judgment call.
+
+**Note:** The concurrent-writers concept was included as a sub-paragraph in `L-BB-verbatim-record-persistence-rule` (D-897). This entry formalizes it as a standalone lesson with its own heading and concrete recovery protocol, as originally planned in D-897 BURST DELIVERABLES.
+
+**Anchors:** S-21.04 D-897 burst collision (2026-07-25); story-writer `41b022ac` vs state-manager D-897 in-progress; factory-artifacts single-writer discipline; orchestrator serialization.
+
+**Cites:** D-897 (triggered context; concurrent-burst collision codified); D-898 (formalized as standalone lesson this burst); `L-BB-verbatim-record-persistence-rule` (cross-reference; scheduling sub-paragraph).
+
+**Closes:** D-898 S-21.04-ADV-PASS-3-CLOSED (2026-07-25). `[scheduling-gap; concurrent-writers; factory-artifacts; single-writer; orchestrator-serialization; stash-collision; D-897; D-898; codified]`
+
+---
+
+## L-BB-adversary-side-literal-evidence-rule [process-gap] [codified D-898]
+
+**Summary:** Pass-3 observation O-P3-002 (HIGH) identified that the adversary review itself had no rule requiring literal-shell evidence for grep or content claims. An adversary finding that cites "grep finds X" or "file contains Y" without actually having executed the grep is indistinguishable from a fabrication. The D-449(a) literal-shell execution discipline was codified for state-manager fix burst closure records; O-P3-002 extends this discipline to the adversary review side — no finding may cite a grep or content claim that was not actually executed by the adversary during the review session.
+
+**Discovered:** 2026-07-25 (S-21.04 LOCAL cascade pass-3 adversarial review; O-P3-002 HIGH observation).
+
+**Root cause:** D-449(a) was scoped to fix-burst closure attestation by state-manager. The adversary review protocol had no analogous rule. An adversary writing a finding can assert "file X contains Y at line N" without running `grep -n Y X` — and that assertion may be wrong. Without a literal-shell gate on the adversary side, findings can be based on misremembered or hallucinated file content, producing false-positive findings that waste fix-burst capacity.
+
+**Corrective action:** The adversary review protocol MUST require literal-shell evidence for any finding that cites a specific file location, line number, or content claim. Before writing a finding, the adversary MUST run the grep or read the relevant file section and include the captured output as evidence. Findings that cite content without evidence are inadmissible.
+
+**Prevention:** Adversary review checklist: "For each finding citing a specific location or content claim, have I run the literal command and captured the output? If NO: run it now and include the stdout in the finding evidence. A finding with no literal-shell evidence for its content claim is a process violation."
+
+**Anchors:** S-21.04 LOCAL cascade pass-3 (2026-07-25); O-P3-002 HIGH; D-449(a) (literal-shell execution discipline — adversary-side extension); adversary review protocol.
+
+**Cites:** D-898 (codified this burst); D-449(a) (source discipline, extended to adversary side); O-P3-002 (triggered observation); adversary review protocol (enforcement host).
+
+**Closes:** D-898 S-21.04-ADV-PASS-3-CLOSED (2026-07-25). `[process-gap; adversary-side; literal-evidence; grep-claims; content-claims; D-449a; O-P3-002; adversary-review-protocol; D-898; codified]`
+
+---
+
+## L-BB-rejected-with-rationale-closure-state-needed [process-gap] [codified D-898]
+
+**Summary:** Pass-3 observation O-P3-003 (MEDIUM) identified that the routing table for finding closures lacks a REJECTED-WITH-RATIONALE state. When an agent correctly declines to implement a proposed fix (e.g., a finding that was reclassified as a record artifact, or a finding where the proposed fix would introduce a regression), the routing table currently has no state to record this — so correct rejections masquerade as closures against a different finding or as undocumented non-action. This makes the audit trail misleading and was a contributing factor in the systematic closure-label swaps that produced the fabricated pass-2 record (F-S2104-P3-014 class).
+
+**Discovered:** 2026-07-25 (S-21.04 LOCAL cascade pass-3 adversarial review; O-P3-003 MEDIUM observation).
+
+**Root cause:** The finding-closure state vocabulary covers: CONFIRMED-CLOSED, PARTIAL, PAPER-FIX, NOT-CLOSED, RECLASSIFIED-RECORD-ARTIFACT. It does not cover the case where an agent reviewed a finding, decided not to implement the proposed fix, and has a documented rationale for that decision. Without a REJECTED-WITH-RATIONALE state, agents either leave the finding open (ambiguous) or close it against a different finding (misleading audit trail).
+
+**Corrective action:** Add REJECTED-WITH-RATIONALE as a valid closure state in the finding-routing vocabulary. Usage: when an agent determines a finding does not require a code/spec change (e.g., the finding is based on a false premise, the proposed fix would cause a regression, or the finding is out of scope for this burst), the finding is marked REJECTED-WITH-RATIONALE with an explicit rationale sentence. The rationale MUST: (1) state the specific reason for rejection; (2) cite any supporting evidence (e.g., a command output, a BC reference, a prior decision); (3) be confirmed by the next-pass adversary as either CONCUR or OVERRULED.
+
+**Prevention:** Finding-closure protocol extension: "Can this finding be closed as REJECTED-WITH-RATIONALE? If the agent declined to fix and has a documented rationale, use this state rather than leaving the finding open or closing it against an adjacent finding." This prevents the systematic label-swap pattern identified in F-S2104-P3-014.
+
+**Anchors:** S-21.04 LOCAL cascade pass-3 (2026-07-25); O-P3-003 MEDIUM; F-S2104-P3-014 RECLASSIFIED-RECORD-ARTIFACT (label-swap pattern); finding-routing vocabulary.
+
+**Cites:** D-898 (codified this burst); O-P3-003 (triggered observation); F-S2104-P3-014 (label-swap pattern that motivated this lesson); finding-closure protocol (enforcement host).
+
+**Closes:** D-898 S-21.04-ADV-PASS-3-CLOSED (2026-07-25). `[process-gap; closure-state; rejected-with-rationale; routing-vocabulary; label-swap; audit-trail; O-P3-003; F-S2104-P3-014; D-898; codified]`
