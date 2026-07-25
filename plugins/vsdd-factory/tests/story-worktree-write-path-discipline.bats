@@ -899,11 +899,11 @@ _run_teardown_preflight() {
     "$g1_section"
 
   # --- HARNESS: regular file at .factory → PC2b BLOCKED; non-zero exit; find NOT invoked ---
-  # _run_teardown_preflight four-step chain (per BC-6.26.001): [ ! -e ] → PC2a(a); [ -L ] → PC2b symlink;
+  # _run_teardown_preflight discrimination chain (per BC-6.26.001): [ ! -e ] → PC2a(a); [ -L ] → PC2b symlink;
   # [ ! -d ] → PC2b non-directory; directory (no symlink) → run extracted find.
   run _run_teardown_preflight "$MOCK_WORKTREE" "$REMOVE_LOG"
   [ "$status" -ne 0 ] || {
-    echo "HARNESS FAIL: non-directory .factory must return non-zero (PC2b BLOCKED) — got status 0 (harness three-way logic: non-directory must not fall through to find branch)"
+    echo "HARNESS FAIL: non-directory .factory must return non-zero (PC2b BLOCKED) — got status 0 (harness discrimination-chain logic: non-directory must not fall through to the find branch)"
     false
   }
   printf '%s\n' "$output" | grep -q 'PREFLIGHT BLOCKED' || {
@@ -944,7 +944,7 @@ _run_teardown_preflight() {
   # v1.7 adds [ -L ] BEFORE [ ! -d ] to catch symlinks of all target types (including dir symlinks).
   #
   # DOC-PARITY gate: §G.1 must carry the [ -L ] clause — RED until implementer lands it.
-  # HARNESS: tests the four-step chain hardcoded in _run_teardown_preflight (per BC-6.26.001).
+  # HARNESS: tests the discrimination chain hardcoded in _run_teardown_preflight (per BC-6.26.001).
 
   # Create a real directory for the symlink to point at (inside $WORK so it's accessible).
   # The directory contains a file — confirming find would find content if invoked (it must NOT be).
