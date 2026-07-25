@@ -19,14 +19,23 @@ Three cases:
 
 **PC2a — No stray files (teardown authorized):**
 
-- *Sub-case (a) — `.factory/` absent:* FIRST, test whether the `.factory/` directory exists in the
-  story worktree using the normative discrimination predicate:
+- *Sub-case (a) — `.factory/` path absent:* FIRST, test whether anything exists at the `.factory/`
+  path in the story worktree using the normative existence predicate:
 
-      [ ! -d "<worktree-path>/.factory" ]
+      [ ! -e "<worktree-path>/.factory" ]
 
-  If this test passes (`.factory/` is absent), no stray factory artifacts can exist. This is the
-  expected clean state (BC-6.26.001 EC-005; path-absent is NOT a PC2c error — a missing directory
-  is distinct from a `find` traversal error). Proceed to the Dispatch section below.
+  If this test passes (path absent), no stray factory artifacts can exist. This is the expected
+  clean state (BC-6.26.001 EC-005; path-absent is NOT a PC2c error — a missing path is distinct
+  from a `find` traversal error). Proceed to the Dispatch section below.
+
+  **Non-directory at `.factory/` path → PC2b BLOCKED (without running `find`):** If `[ ! -e ]` is
+  FALSE (something occupies the path) but the inode at `<worktree-path>/.factory` is NOT a
+  directory — a regular file, symlink-to-file, or other non-directory inode at that path is stray
+  shadow content subject to the same rm-rf destruction risk as files inside a shadow `.factory/`
+  directory tree. Go directly to PC2b BLOCKED; list the path; do NOT invoke `find` on a
+  non-directory inode. The `-d` test alone MUST NOT be used — `[ ! -d ]` is TRUE for a regular
+  file at `.factory/`, wrongly authorizing teardown on stray shadow content (BC-6.26.001 v1.6
+  EC-008).
 
 - *Sub-case (b) — `find` exits 0, empty output:* Run the preflight command:
 
@@ -48,7 +57,7 @@ to `git worktree remove`. Log each stray path using the following template:
       Option A: Relocate to canonical .factory/ mount, verify content, then retry teardown.
       Option B: Discard (only if files are confirmed redundant copies already committed on factory-artifacts).
 
-Story cleanup MUST NOT complete until a retry preflight returns an empty result.
+Story cleanup MUST NOT complete until a retry preflight returns a PASS result.
 
 **PC2c — Preflight error (fail-closed):** If `find` exits non-zero for a non-path-absent reason
 (e.g., permission denial, traversal error), teardown MUST HALT. Surface the exact find exit code
@@ -66,14 +75,14 @@ filesystem without gitignore filtering — it is the only mechanism that surface
 stray content before destruction. No git-level check (`git status`, `git ls-files`) would catch
 gitignored content in this scenario.
 
-### Dispatch (PC2a only — after empty preflight result)
+### Dispatch (PC2a only — after a PASS preflight result)
 
 **Agent:** `devops-engineer` (model tier: Fast)
 
 **Task:** "Remove worktree `.worktrees/STORY-NNN/` and delete local branch `feature/STORY-NNN-<desc>`."
 
-Dispatch this task ONLY after the preflight above confirms an empty result. The devops-engineer
-must run plain `git worktree remove <worktree-path>`.
+Dispatch this task ONLY after the preflight above returns a PASS result (PC2a per the three-branch
+protocol above). The devops-engineer must run plain `git worktree remove <worktree-path>`.
 
 The `--force` flag is prohibited by BC-6.26.001 PC2a — it strips git's built-in unclean-worktree
 protection for non-gitignored untracked files; this prohibition is a BC mandate, not a
