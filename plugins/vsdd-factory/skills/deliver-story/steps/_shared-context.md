@@ -104,6 +104,8 @@ pre-provided `CANONICAL_FACTORY_ROOT`.
 - **Correct:** `Write(file_path="$CANONICAL_FACTORY_ROOT/.factory/stories/S-NNN-DELIVERY.md", ...)`
 - **Forbidden:** `Write(file_path=".factory/stories/S-NNN-DELIVERY.md", ...)` (relative path — silently writes to shadow tree)
 
+### Story-Size Gate
+
 If a story is too large to fit any specialist's budget (≥60% of target model's context window), STOP and dispatch story-writer to split it before proceeding.
 
 ## Verification Discipline
