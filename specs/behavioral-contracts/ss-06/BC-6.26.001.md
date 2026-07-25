@@ -1,7 +1,7 @@
 ---
 document_type: behavioral-contract
 level: L3
-version: "1.9"
+version: "1.10"
 status: draft
 producer: product-owner
 timestamp: 2026-07-25T00:00:00Z
@@ -11,7 +11,7 @@ inputs:
   - .factory/cycles/v1.0-brownfield-backfill/e-21-arch-delta-analysis.md
   - plugins/vsdd-factory/skills/deliver-story/steps/_shared-context.md
   - plugins/vsdd-factory/skills/deliver-story/steps/step-g-cleanup.md
-input-hash: "a0d9a12"
+input-hash: "aff43f3"
 traces_to: .factory/specs/architecture/ARCH-INDEX.md
 origin: brownfield
 extracted_from: null
@@ -29,6 +29,7 @@ modified:
   - "2026-07-25 (v1.7) — S-21.04 pass-5 F-S2104-P5-011/F-P5-009/F-P5-010 spec side (product-owner): F-011: discrimination chain amended — step 2 added as explicit `[ -L ]` symlink guard before any `[ -d ]` test; symlink-to-directory at path → PC2b BLOCKED (find NOT invoked); POSIX test -d follows symlinks; POSIX find without -H/-L does not descend symlinks → empty output → false PC2a escape documented and closed. F-009/F-010: PC2b condition tightened to 'find returns paths OR symlink/non-directory inode occupies the path'; PC2c unreachability note extended (symlink-at-path ruled out by step 2). Trailing-slash find form mandated throughout as defense-in-depth. Non-directory paragraph renamed and expanded to cover symlinks. EC-008 expanded to cover symlink-to-directory. T-7 added (symlink-to-dir → PC2b, find NOT invoked, remove NOT called). Invariant 2 and 5 updated."
   - "2026-07-25 (v1.8) — S-21.04 pass-6 F-S2104-P6-005(b) executor-side verification precondition (product-owner; ADR-031 §Rationale adjudication): §Preconditions gains Precondition 3 — executor-side trigger for devops-engineer before executing git worktree remove; Invariant 2 extended with executor-side clause covering both obligation surfaces (Preconditions 2+3 parity). Caller-side gating PRIMARY per ADR-031 §Rationale. AC-008."
   - "2026-07-25 (v1.9) — S-21.04 pass-7 F-S2104-P7-006 count-free case labels (product-owner; D-902 L-BB-count-bearing-crossref-residue-class): PC2 lead-in 'Three cases:' replaced with count-free form (class-death at the definition site). §Description numbered steps 1–4 retain their inline count (adjacent-to-enumeration acceptable per class-death convention). No other count-bearing case/branch/step labels found in sweep."
+  - "2026-07-25 (v1.10) — S-21.04 pass-8 F-S2104-P8-003 ADR Reference traceability row (product-owner): §Traceability ADR Reference corrected from 'none' to ADR-031 §Decision 4 + §Rationale; document carries two live ADR-031 §Rationale anchors (Precondition 3, Invariant 2) and CAJ row also cites ADR-031. Class-bounded sweep: no other traceability/metadata row contradicts body anchors. Sibling BC-6.27.001 amended v1.3→v1.4 for same defect class in same burst."
 deprecated: null
 deprecated_by: null
 replacement: null
@@ -37,7 +38,7 @@ removed: null
 removal_reason: null
 bc_id: BC-6.26.001
 section: "6.26"
-last_amended: "(v1.9) — S-21.04 pass-7 F-S2104-P7-006 count-free case labels (product-owner; D-902): PC2 lead-in 'Three cases:' → count-free; sweep complete. [Prior: (v1.8) — F-S2104-P6-005(b). (v1.7) — F-S2104-P5-011/F-P5-009/F-P5-010. (v1.6) — F-S2104-P4-007. (v1.5) — F-002/O-005. (v1.4) — F-004/006/007/010. (v1.3) — F-P1-005. (v1.2) — research. (v1.1) — CAP-036. (v1.0) — Initial.]"
+last_amended: "(v1.10) — S-21.04 pass-8 F-S2104-P8-003 ADR Reference traceability row (product-owner): §Traceability ADR Reference corrected to ADR-031 §Decision 4 + §Rationale; sweep clean. [Prior: (v1.9) — F-S2104-P7-006. (v1.8) — F-S2104-P6-005(b). (v1.7) — F-S2104-P5-011/F-P5-009/F-P5-010. (v1.6) — F-S2104-P4-007. (v1.5) — F-002/O-005. (v1.4) — F-004/006/007/010. (v1.3) — F-P1-005. (v1.2) — research. (v1.1) — CAP-036. (v1.0) — Initial.]"
 ---
 
 # BC-6.26.001: deliver-story step agents MUST write all `.factory/**` artifacts using absolute paths anchored to the canonical main-checkout `.factory/` mount, and step-G cleanup MUST run a worktree `.factory/` inventory preflight before `git worktree remove`
@@ -309,7 +310,7 @@ empty-`.factory/` assertion.
 | Architecture Module | `plugins/vsdd-factory/skills/deliver-story/steps/_shared-context.md` (write-discipline clause extension); `plugins/vsdd-factory/skills/deliver-story/steps/step-g-cleanup.md` (preflight sub-step addition) |
 | Stories | S-21.04 (E-21 Wave 2) |
 | Source Issues | #523 (story-worktree `.factory` artifacts silently lost at teardown) |
-| ADR Reference | none |
+| ADR Reference | ADR-031 §Decision 4 (INV-E21-002 + INV-E21-004 skill-doc enforcement); ADR-031 §Rationale (caller-side gating PRIMARY; executor-side verification-and-delegation layer — Precondition 3, Invariant 2) |
 
 ## Related BCs
 
@@ -333,6 +334,7 @@ TBD — VP IDs to be assigned after VP authoring pass.
 
 | Version | Date | Description |
 |---------|------|-------------|
+| 1.10 | 2026-07-25 | S-21.04 pass-8 F-S2104-P8-003 ADR Reference traceability row (product-owner): §Traceability ADR Reference corrected from 'none' to ADR-031 §Decision 4 + §Rationale — document carries two live ADR-031 §Rationale anchors (Precondition 3 "Stable anchors: ADR-031 §Rationale"; Invariant 2 "Verification-and-delegation per ADR-031 §Rationale") and Capability Anchor Justification row also cites ADR-031. Class-bounded sweep: no other traceability/metadata row contradicts body anchors. Sibling BC-6.27.001 confirmed same defect class (CAJ cites ADR-031; ADR Reference: none); fixed in same burst (v1.3→v1.4). |
 | 1.9 | 2026-07-25 | S-21.04 pass-7 F-S2104-P7-006 count-free case labels (product-owner; D-902 L-BB-count-bearing-crossref-residue-class): PC2 lead-in "Three cases:" replaced with count-free form "The discrimination chain routes to exactly one of the following outcomes:" (class-death at the definition site). §Description numbered steps 1–4 retain their inline count — the STEP count is the enumeration itself (steps numbered 1–4 inline; adjacent-to-enumeration is acceptable per class-death convention). No other count-bearing case/branch/step labels found in sweep. |
 | 1.8 | 2026-07-25 | S-21.04 pass-6 F-S2104-P6-005(b) executor-side verification precondition (product-owner; ADR-031 §Rationale adjudication — verification-and-delegation; AC-008). §Preconditions: Precondition 3 added — executor-side trigger for devops-engineer before executing `git worktree remove` on a story worktree; obligation: verify PASS §G.1 preflight result was obtained; when not evident from dispatch context, execute §G.1 by reference to step-g-cleanup.md §G.1 (discrimination-chain logic defined solely there; this precondition references it by name only). Invariant 2 extended — INV-E21-004 now covers both obligation surfaces: caller-side dispatch gate (Precondition 2) and executor-side execution gate (Precondition 3). No new PC or EC required: PC2 ("Step G MUST apply the fail-closed inventory protocol before any `git worktree remove` command") already mandates the executor-side behavior; Invariant 2 extension provides explicit parity naming. Caller-side gating PRIMARY per ADR-031 §Rationale. |
 | 1.7 | 2026-07-25 | S-21.04 pass-5 F-S2104-P5-011/F-P5-009/F-P5-010 spec side (product-owner). F-011 (symlink-to-directory escape): discrimination chain amended — step 2 added as explicit `[ -L ]` symlink guard before any `[ -d ]` test; any symlink at `<worktree-path>/.factory` (regardless of target type) → PC2b BLOCKED; `find` NOT invoked; rationale documented: POSIX `test -d` follows symlinks (symlink-to-directory satisfies `[ -d ]`); POSIX `find` without `-H`/`-L` does not descend symlinks (returns empty → false PC2a(b) → `rm -rf` destroys symlink target). F-009/F-010 spec precision: PC2b condition = "find returns paths OR symlink/non-directory inode occupies the path"; PC2c unreachability note extended (symlink-at-path ruled out by step 2 before `find` is invoked). Trailing-slash find form `find "<path>/.factory/" -type f` mandated throughout (defense-in-depth; forces traversal entry). EC-008 expanded to cover symlink-to-directory explicitly (both regular-file and symlink cases; contrast text shows why `[ ! -d ]` alone fails for symlink-to-dir). T-7 added: symlink-to-dir → PC2b, find NOT invoked, remove NOT called. Invariant 2 updated to describe full discrimination chain. Invariant 5 title updated (discrimination chain, not just find). |
