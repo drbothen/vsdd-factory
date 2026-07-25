@@ -15,7 +15,7 @@ Before dispatching `devops-engineer` to remove the story worktree, the orchestra
 `.factory/` inventory preflight on the worktree path. This step is mandatory with no exceptions —
 not even when the agent is confident no shadow writes occurred (BC-6.26.001 Invariant 2).
 
-Three cases:
+Four cases:
 
 **PC2a — No stray files (teardown authorized):**
 
@@ -28,24 +28,36 @@ Three cases:
   clean state (BC-6.26.001 EC-005; path-absent is NOT a PC2c error — a missing path is distinct
   from a `find` traversal error). Proceed to the Dispatch section below.
 
-  **Non-directory at `.factory/` path → PC2b BLOCKED (without running `find`):** If `[ ! -e ]` is
-  FALSE (something occupies the path) but the inode at `<worktree-path>/.factory` is NOT a
-  directory — a regular file, symlink-to-file, or other non-directory inode at that path is stray
-  shadow content subject to the same rm-rf destruction risk as files inside a shadow `.factory/`
-  directory tree. Go directly to PC2b BLOCKED; list the path; do NOT invoke `find` on a
-  non-directory inode. The `-d` test alone MUST NOT be used — `[ ! -d ]` is TRUE for a regular
-  file at `.factory/`, wrongly authorizing teardown on stray shadow content (BC-6.26.001 v1.6
-  EC-008).
+  **Symlink at `.factory/` path → PC2b BLOCKED (without running `find`):** If `[ ! -e ]` is FALSE
+  (something occupies the path), test whether the inode is a symbolic link:
+
+      [ -L "<worktree-path>/.factory" ]
+
+  If this test passes, a symlink occupies the path. `test -d` follows symlinks — a symlink-to-dir
+  satisfies `[ -d ]` by dereferencing — but `find` does NOT descend symlinks, so a symlink-to-dir
+  at the path would produce empty find output and falsely authorize teardown. Go directly to
+  PC2b BLOCKED; list the path; do NOT invoke `find` on a symlink inode
+  (symlink → PC2b BLOCKED, BC-6.26.001 v1.7 EC-009).
+
+  **Non-directory at `.factory/` path → PC2b BLOCKED (without running `find`):** If `[ -L ]` is
+  FALSE and the inode at `<worktree-path>/.factory` is NOT a directory — note: `[ ! -d ]` alone
+  MUST NOT be the sole check (it is wrong as the only predicate: it passes for regular files and
+  for symlink-to-dirs by dereferencing); it is valid here only after `[ ! -e ]` and `[ -L ]`
+  have confirmed occupancy and non-symlink above — this is stray shadow content subject to the
+  same rm-rf destruction risk as files inside a shadow `.factory/` directory tree. Go directly to
+  PC2b BLOCKED; list the path; do NOT invoke `find` on a non-directory inode
+  (non-directory → PC2b BLOCKED, BC-6.26.001 EC-008).
 
 - *Sub-case (b) — `find` exits 0, empty output:* Run the preflight command:
 
-      find "<worktree-path>/.factory" -type f
+      find "<worktree-path>/.factory/" -type f
 
   If `find` exits 0 with empty output, no stray factory artifacts exist. Proceed to the Dispatch
   section below.
 
-**PC2b — Non-empty result (stray factory artifacts found):** If `find` returns one or more file
-paths, emit a `PREFLIGHT BLOCKED` message for each stray path and HALT teardown. Do NOT proceed
+**PC2b — `find` returns paths, or a symlink or non-directory inode occupies the path (teardown BLOCKED):** If `find` returns one or more file
+paths, or if the path-existence checks above yielded a symlink or non-directory inode, emit a
+`PREFLIGHT BLOCKED` message for each stray path and HALT teardown. Do NOT proceed
 to `git worktree remove`. Log each stray path using the following template:
 
     PREFLIGHT BLOCKED: Found factory artifact(s) in story worktree shadow .factory/:
@@ -59,8 +71,8 @@ to `git worktree remove`. Log each stray path using the following template:
 
 Story cleanup MUST NOT complete until a retry preflight returns a PASS result.
 
-**PC2c — Preflight error (fail-closed):** If `find` exits non-zero for a non-path-absent reason
-(e.g., permission denial, traversal error), teardown MUST HALT. Surface the exact find exit code
+**PC2c — Preflight error (fail-closed):** If `find` exits non-zero (any non-zero exit;
+e.g., permission denial, traversal error), teardown MUST HALT. Surface the exact find exit code
 and stderr to the operator. `git worktree remove` is NOT executed — find errors must not silently
 authorize removal of unverified worktree content (BC-6.26.001 PC2c).
 
