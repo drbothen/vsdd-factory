@@ -15,9 +15,20 @@ Before dispatching `devops-engineer` to remove the story worktree, the orchestra
 `.factory/` inventory preflight on the worktree path. This step is mandatory with no exceptions —
 not even when the agent is confident no shadow writes occurred (BC-6.26.001 Invariant 2).
 
-**Preflight command:**
+Three cases:
 
-    find <worktree-path>/.factory -type f 2>/dev/null
+**PC2a — No stray files (teardown authorized):**
+
+- *Sub-case (a) — `.factory/` absent:* If the story worktree has no `.factory/` directory, no stray
+  factory artifacts can exist. This is the expected clean state (BC-6.26.001 EC-005; path-absent is
+  NOT a PC2c error). Proceed to the Dispatch section below.
+
+- *Sub-case (b) — `find` exits 0, empty output:* Run the preflight command:
+
+      find "<worktree-path>/.factory" -type f
+
+  If `find` exits 0 with empty output, no stray factory artifacts exist. Proceed to the Dispatch
+  section below.
 
 **PC2b — Non-empty result (stray factory artifacts found):** If `find` returns one or more file
 paths, emit a `PREFLIGHT BLOCKED` message for each stray path and HALT teardown. Do NOT proceed
@@ -34,8 +45,10 @@ to `git worktree remove`. Log each stray path using the following template:
 
 Story cleanup MUST NOT complete until a retry preflight returns an empty result.
 
-**PC2a — Empty result (normal case):** If `find` returns no output (or the `.factory/` directory
-is absent from the worktree), the preflight passes. Continue to the dispatch below.
+**PC2c — Preflight error (fail-closed):** If `find` exits non-zero for a non-path-absent reason
+(e.g., permission denial, traversal error), teardown MUST HALT. Surface the exact find exit code
+and stderr to the operator. `git worktree remove` is NOT executed — find errors must not silently
+authorize removal of unverified worktree content (BC-6.26.001 PC2c).
 
 **Why this preflight is load-bearing — gitignored-shadow false-negative (BC-6.26.001 Invariant 5):**
 `.factory/` is listed in `.gitignore` on the product branch, so the shadow `.factory/` content
@@ -55,8 +68,11 @@ gitignored content in this scenario.
 **Task:** "Remove worktree `.worktrees/STORY-NNN/` and delete local branch `feature/STORY-NNN-<desc>`."
 
 Dispatch this task ONLY after the preflight above confirms an empty result. The devops-engineer
-must run plain `git worktree remove <worktree-path>` — the destructive-command-guard prohibits
-the `--force` flag outside `.worktrees/` in the current codebase.
+must run plain `git worktree remove <worktree-path>`.
+
+The `--force` flag is prohibited by BC-6.26.001 PC2a — it strips git's built-in unclean-worktree
+protection for non-gitignored untracked files; this prohibition is a BC mandate, not a
+guard-enforced constraint.
 
 **Exit condition:** `git worktree list` no longer shows the worktree; `git branch --list 'feature/STORY-NNN-*'` returns empty for this story.
 
