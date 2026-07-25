@@ -1,40 +1,50 @@
 #!/usr/bin/env bats
-# story-worktree-write-path-discipline.bats — S-21.04 gate harness suite.
+# story-worktree-write-path-discipline.bats — S-21.04 gate harness suite (adv pass-1 strengthened).
 #
-# Two load-bearing layers:
-#   DOC-PARITY:         grep/awk assertions against step-g-cleanup.md §G.1 and
-#                       _shared-context.md §Spec-Path Discipline to verify the
-#                       teardown preflight mandate and write-discipline clause are
-#                       present. Pre-implementation: mandate text absent → fail.
-#   EXECUTABLE-HARNESS: _run_teardown_preflight() implements BC-6.26.001 PC2
-#                       preflight logic, GATED on extracting the 'find .factory'
-#                       pattern from step-g-cleanup.md §G.1 (anti-tautology per
-#                       TD-VSDD-059). Pre-implementation: gate fires → harness output
-#                       lacks 'PREFLIGHT BLOCKED' / 'worktree-remove-invoked' →
-#                       assertion-level failures. REMOVE_LOG sentinel makes the
-#                       mutant-proving vector load-bearing (POLICY 15 v1.4.10).
+# Five load-bearing layers:
+#   DOC-PARITY (step-g-cleanup.md §G.1):
+#     Semantic assertions — exact find command form (no blanket 2>/dev/null; F-S2104-P1-002a),
+#     preflight-before-dispatch ordering via awk line-number comparison (F-S2104-P1-002b),
+#     Invariant-2 no-exceptions clause (F-S2104-P1-002c), PC2b retry-mandate (F-S2104-P1-002d),
+#     PC2b Option A/B message body (F-S2104-P1-011), PC2c HALT branch (AC-006),
+#     no-force negative in all positions (F-S2104-P1-010).
+#   DOC-PARITY (primary paths — F-S2104-P1-001):
+#     SKILL.md Step 8 and per-story-delivery.md step (g) + Story Split Recovery section
+#     must each reference the §G.1 preflight. RED until implementer propagates.
+#   DOC-PARITY (_shared-context.md §Spec-Path Discipline):
+#     Write Discipline clause, CANONICAL_FACTORY_ROOT, DELIVERY ledger (AC-001).
+#   EXECUTABLE-HARNESS (anti-tautology — F-S2104-P1-002e, TD-VSDD-059):
+#     _run_teardown_preflight() extracts the find command verbatim from §G.1, substitutes
+#     <worktree-path>, and evaluates that command — a -type d or -name '*.tmp' doc-mutant
+#     changes harness behavior and fails T-001/T-002. A harness hardcoding its own find
+#     would pass T-002 tautologically; this gate prevents that. Returns non-zero on PC2b
+#     and PC2c (F-S2104-P1-003).
+#   POLICY 15 v1.4.10 (mutant-proving):
+#     REMOVE_LOG sentinel is load-bearing — never written on PREFLIGHT BLOCKED / PC2c paths.
 #
 # Mechanism: filesystem-fixture harness (S-21.04 variant of S-21.03 two-layer pattern).
-#   Unlike S-21.03 (CLI stubs for gh/git), S-21.04 uses a tmpfs fixture because
-#   the preflight is find-based (filesystem-direct, no CLI tool to stub).
-#   Fixture shape documented in tests/fixtures/story-worktree/README.md.
 #
 # Gate targets:
 #   plugins/vsdd-factory/skills/deliver-story/steps/step-g-cleanup.md §G.1
 #   plugins/vsdd-factory/skills/deliver-story/steps/_shared-context.md §Spec-Path Discipline
-# BC: BC-6.26.001 (PC1, PC2a, PC2b, Invariants 1-5)
+#   plugins/vsdd-factory/skills/deliver-story/SKILL.md (Step 8)
+#   plugins/vsdd-factory/agents/orchestrator/per-story-delivery.md (step g + Story Split Recovery)
+# BC: BC-6.26.001 v1.4 (PC1, PC2a sub-cases a/b, PC2b, PC2c, Invariants 1–5)
 # Story: S-21.04
 #
 # Test plan:
-#   T-001  AC-003  stray-file-blocks:       stray .factory/ file → PREFLIGHT BLOCKED + git worktree remove NOT called
-#   T-002  AC-004  empty-tree-proceeds:     no .factory/ content → teardown proceeds + git worktree remove IS called
-#   T-003  AC-005  relocate-retry-proceeds: stray file relocated to canonical mount → retry teardown proceeds
+#   T-001  AC-003  stray-file-blocks:       stray .factory/ file → PREFLIGHT BLOCKED (non-zero) + git worktree remove NOT called
+#   T-002  AC-004  empty-tree-proceeds:     EC-005 (no .factory/) + EC-003 (empty .factory/ dir) → teardown proceeds in both cases
+#   T-003  AC-005  relocate-retry-proceeds: stray file relocated → retry teardown proceeds
+#   T-004  AC-006  pc2c-halt:               find error (non-path-absent) → HALT non-zero, exit code+stderr surfaced, worktree-remove NOT called
 
 setup() {
   REPO_ROOT="$(cd "${BATS_TEST_DIRNAME}/../../.." && pwd)"
   PLUGIN_ROOT="$REPO_ROOT/plugins/vsdd-factory"
   STEP_G_CLEANUP="$PLUGIN_ROOT/skills/deliver-story/steps/step-g-cleanup.md"
   SHARED_CONTEXT_MD="$PLUGIN_ROOT/skills/deliver-story/steps/_shared-context.md"
+  SKILL_MD="$PLUGIN_ROOT/skills/deliver-story/SKILL.md"
+  PER_STORY_DELIVERY_MD="$PLUGIN_ROOT/agents/orchestrator/per-story-delivery.md"
   FIXTURE_DIR="$PLUGIN_ROOT/tests/fixtures/story-worktree"
 
   # Fixture worktree lifecycle: fresh tmpfs workspace per test run.
@@ -50,7 +60,11 @@ setup() {
 }
 
 teardown() {
-  [ -n "${WORK:-}" ] && rm -rf "$WORK"
+  # Restore permissions before rm to handle T-004's chmod 000 fixture (F-S2104-P1-014).
+  if [ -n "${WORK:-}" ]; then
+    chmod -R 755 "$WORK" 2>/dev/null || true
+    rm -rf "$WORK"
+  fi
 }
 
 # ===========================================================================
@@ -58,7 +72,7 @@ teardown() {
 # ===========================================================================
 
 # Extracts the Sub-step G.1 block from step-g-cleanup.md.
-# Start anchor: /^## Sub-step G\.1/ — exits on next /^## / heading.
+# Start: /^## Sub-step G\.1/ — exits on next /^## / heading.
 _extract_g1_section() {
   awk '
     /^## Sub-step G\.1/ { found=1; next }
@@ -68,7 +82,7 @@ _extract_g1_section() {
 }
 
 # Extracts the Spec-Path Discipline section from _shared-context.md.
-# Start anchor: /^### Spec-Path Discipline/ — exits on next /^## / heading.
+# Start: /^### Spec-Path Discipline/ — exits on next /^## / heading.
 _extract_spec_path_discipline_section() {
   awk '
     /^### Spec-Path Discipline/ { found=1; next }
@@ -77,12 +91,53 @@ _extract_spec_path_discipline_section() {
   ' "$SHARED_CONTEXT_MD"
 }
 
+# Extracts the Step 8 block from SKILL.md (deliver-story).
+# Start: /^### Step 8/ — exits on next /^### / heading.
+_extract_skill_step8_section() {
+  awk '
+    /^### Step 8/ { found=1; next }
+    found && /^### / { exit }
+    found { print }
+  ' "$SKILL_MD"
+}
+
+# Extracts an 8-line window around the devops-engineer "Remove worktree" step (g) dispatch
+# from per-story-delivery.md, plus 5 lines of context before it.
+_extract_per_story_delivery_step_g_window() {
+  local lineno
+  lineno="$(grep -n 'devops-engineer.*[Rr]emove worktree\|[Rr]emove worktree.*STORY-NNN' \
+    "$PER_STORY_DELIVERY_MD" | head -1 | cut -d: -f1)"
+  if [ -n "$lineno" ]; then
+    local start end
+    start=$(( lineno > 5 ? lineno - 5 : 1 ))
+    end=$(( lineno + 8 ))
+    awk "NR>=$start && NR<=$end" "$PER_STORY_DELIVERY_MD"
+  fi
+}
+
+# Extracts the Story Split Recovery section from per-story-delivery.md.
+_extract_per_story_delivery_split_recovery_section() {
+  awk '
+    /^## Story Split Recovery/ { found=1; next }
+    found && /^## / { exit }
+    found { print }
+  ' "$PER_STORY_DELIVERY_MD"
+}
+
 _assert_doc_marker() {
   # $1=regex  $2=label  $3=section_text
   printf '%s\n' "$3" | grep -qE "$1" || {
     echo "DOC-PARITY FAIL [must contain: $2]"
     false
   }
+}
+
+_assert_no_doc_marker() {
+  # $1=regex  $2=label  $3=section_text
+  if printf '%s\n' "$3" | grep -qE "$1"; then
+    echo "DOC-PARITY FAIL [must NOT contain: $2]"
+    false
+  fi
 }
 
 # ===========================================================================
@@ -94,115 +149,238 @@ _assert_doc_marker() {
 #   $1  worktree_path  — simulated story-worktree path (tmpfs fixture)
 #   $2  remove_log     — sentinel file; 'worktree-remove-invoked' appended on PC2a proceed
 #
-# Anti-tautology gate (TD-VSDD-059): first extracts the 'find .factory' pattern
-# from step-g-cleanup.md §G.1. Pre-implementation: nothing to extract → gate fires
-# and outputs "preflight mandate absent" message. Since that message does not contain
-# 'PREFLIGHT BLOCKED' (T-001, T-003) and does not write to REMOVE_LOG (T-002, T-003),
-# all three test assertions fail. A harness that implemented the preflight directly
-# without this gate would pass T-002 tautologically — violating the Red Gate.
+# Anti-tautology gate (TD-VSDD-059, F-S2104-P1-002e): extracts the find command verbatim
+# from step-g-cleanup.md §G.1 (line matching 'find ... .factory ... -type f' without
+# 2>/dev/null), substitutes <worktree-path> with the fixture path, and evaluates that
+# extracted command. A -type d or -name '*.tmp' doc-mutant changes which files find returns,
+# failing T-001 (stray file not found) or T-002 (directory found instead of nothing).
+# A harness hardcoding 'find ... -type f 2>/dev/null || true' would pass T-002 tautologically
+# regardless of doc content; this gate closes that tautology.
 #
-# Always returns 0; test assertions check output content and REMOVE_LOG state.
+# PC2a sub-case (a): .factory/ absent → no stray files, proceed (return 0)
+# PC2a sub-case (b): find exits 0, empty output → no stray files, proceed (return 0)
+# PC2b: find exits 0, non-empty output → PREFLIGHT BLOCKED with stray paths + Option A/B + retry mandate (return 1)
+# PC2c: find exits non-zero (non-path-absent) → PREFLIGHT HALT, surface exit code + stderr (return 1)
+# Gate failure: find command not extractable from §G.1 in conformant form → HARNESS FAIL (return 1)
 _run_teardown_preflight() {
   local worktree_path="$1" remove_log="$2"
   local g1_section
   g1_section="$(_extract_g1_section)"
 
-  # Anti-tautology gate: the preflight mandate must be extractable from §G.1.
-  # Pre-implementation: G.1 has no 'find .factory' command → gate fires.
-  # Post-implementation: 'find .factory' present in G.1 → gate passes → proceed.
-  if ! printf '%s\n' "$g1_section" | grep -qE 'find.*\.factory'; then
-    printf 'HARNESS FAIL: preflight mandate absent from step-g-cleanup.md §G.1 — '\''find .factory'\'' pattern not extractable from G.1 block (BC-6.26.001 PC2 not yet implemented)\n'
+  # Anti-tautology gate: extract the specific find command line from §G.1.
+  # The line must contain 'find', '.factory', and '-type f'.
+  # It must NOT contain '2>/dev/null' (BC v1.4 removed blanket suppression for PC2c).
+  # Pre-implementation (doc has 2>/dev/null or wrong -type): gate fires.
+  # Post-implementation (conformant find ... -type f): gate passes, extracted command is eval'd.
+  local find_cmd_line
+  find_cmd_line="$(printf '%s\n' "$g1_section" | \
+    grep -E '^[[:space:]]*find[[:space:]]' | \
+    grep '\.factory' | \
+    grep -- '-type f' | \
+    grep -v '2>/dev/null' | \
+    head -1)"
+
+  if [ -z "$find_cmd_line" ]; then
+    printf 'HARNESS FAIL: could not extract conformant find command from step-g-cleanup.md §G.1\n'
+    printf '  Required: line matching find ... .factory ... -type f (without 2>/dev/null)\n'
+    printf '  BC-6.26.001 PC2 preflight not yet in conformant form (blanket 2>/dev/null must be removed)\n'
+    return 1
+  fi
+
+  # PC2a sub-case (a): .factory/ directory absent in story worktree — no stray files.
+  # Path-absent is NOT a PC2c error; it is the expected clean state (BC-6.26.001 EC-005).
+  if [ ! -e "${worktree_path}/.factory" ]; then
+    printf 'worktree-remove-invoked\n' >> "$remove_log"
     return 0
   fi
 
-  # Execute the find preflight against the fixture worktree path.
-  # '|| true' ensures non-zero find exit (absent .factory/) does not abort the harness.
-  local stray_files
-  stray_files="$(find "${worktree_path}/.factory" -type f 2>/dev/null)" || true
+  # Substitute <worktree-path> template variable with the actual fixture path, strip leading whitespace.
+  local concrete_cmd
+  concrete_cmd="$(printf '%s\n' "$find_cmd_line" | \
+    sed "s|<worktree-path>|${worktree_path}|g" | \
+    sed 's/^[[:space:]]*//')"
 
-  if [ -n "$stray_files" ]; then
-    # PC2b: stray files found — PREFLIGHT BLOCKED; git worktree remove NOT called.
-    # REMOVE_LOG intentionally NOT written to (mutant-proving sentinel for T-001).
-    printf 'PREFLIGHT BLOCKED: Found factory artifact(s) in story worktree shadow .factory/:\n'
-    printf '%s\n' "$stray_files"
-    printf 'These files were written to the wrong worktree (issue #523 class) and would be\n'
-    printf 'permanently destroyed by git worktree remove. Manual intervention required.\n'
-  else
-    # PC2a: shadow tree empty — proceed with teardown; record invocation in sentinel.
-    printf 'worktree-remove-invoked\n' >> "$remove_log"
+  # Execute the extracted find command. Capture stdout, stderr, and exit code separately.
+  local find_stdout find_stderr_file find_exit find_stderr
+  find_stderr_file="$(mktemp)"
+  find_stdout="$(eval "$concrete_cmd" 2>"$find_stderr_file")"
+  find_exit=$?
+  find_stderr="$(cat "$find_stderr_file")"
+  rm -f "$find_stderr_file"
+
+  if [ "$find_exit" -ne 0 ]; then
+    # PC2c: find exited non-zero for a non-path-absent reason — fail-closed HALT.
+    # Surface exact exit code and stderr to operator (BC-6.26.001 PC2c).
+    # git worktree remove must NOT be executed; find errors must not silently authorize rm -rf.
+    printf 'PREFLIGHT HALT (PC2c): find exited with code %d — non-path-absent error; teardown HALTED (fail-closed gate, BC-6.26.001 PC2c).\n' "$find_exit"
+    printf 'find stderr: %s\n' "$find_stderr"
+    printf 'git worktree remove NOT executed.\n'
+    return 1
   fi
+
+  if [ -n "$find_stdout" ]; then
+    # PC2b: stray factory artifacts found — PREFLIGHT BLOCKED.
+    # git worktree remove must NOT be executed; REMOVE_LOG intentionally NOT written.
+    printf 'PREFLIGHT BLOCKED: Found factory artifact(s) in story worktree shadow .factory/:\n'
+    printf '%s\n' "$find_stdout"
+    printf 'These files were written to the wrong worktree (issue #523 class) and would be\n'
+    printf 'permanently destroyed by git worktree remove. Manual intervention required:\n'
+    printf '  Option A: Relocate to canonical .factory/ mount, verify content, then retry teardown.\n'
+    printf '  Option B: Discard (only if files are confirmed redundant copies already committed on factory-artifacts).\n'
+    printf 'Story cleanup MUST NOT complete until a retry preflight returns an empty result.\n'
+    return 1
+  fi
+
+  # PC2a sub-case (b): find exits 0, empty output — no stray files, proceed with teardown.
+  printf 'worktree-remove-invoked\n' >> "$remove_log"
   return 0
 }
 
 # ===========================================================================
-# T-001 / AC-003 / PC2b error: stray .factory/ file → PREFLIGHT BLOCKED; git worktree remove NOT called
-# BC-6.26.001 PC2b, Invariant 2, Invariant 5
-# RG-001: no preflight in step-g-cleanup.md → doc-parity fails pre-implementation
+# T-001 / AC-003 / PC2b: stray .factory/ file → PREFLIGHT BLOCKED (non-zero); worktree-remove NOT called
+# BC-6.26.001 v1.4 PC2b, Invariants 2, 5
+# RG-001 closure
 # ===========================================================================
 
-@test "T-001 S-21.04 AC-003: stray-file-blocks — PREFLIGHT BLOCKED; git worktree remove NOT called" {
+@test "T-001 S-21.04 AC-003: stray-file-blocks — PREFLIGHT BLOCKED non-zero; git worktree remove NOT called" {
   # Fixture: stray .factory/stories/S-021-DELIVERY.md inside mock worktree.
-  # Represents a DELIVERY ledger written via CWD-relative path from story worktree —
-  # primary issue #523 failure mode (gitignored-shadow mechanism: BC-6.26.001 Invariant 5).
+  # Primary issue #523 failure mode: DELIVERY ledger written via CWD-relative path from story
+  # worktree CWD. Shadow .factory/ is gitignored → git worktree remove clean-state check
+  # passes silently (false negative); rm -rf destroys shadow content (BC-6.26.001 Invariant 5).
   #
   # Pre-implementation red gate:
-  #   DOC-PARITY (§G.1): 'find .factory' absent from G.1 → first assertion fails with
-  #     "DOC-PARITY FAIL [must contain: step-g-cleanup.md §G.1: find .factory teardown ...]"
-  #   DOC-PARITY (§Spec-Path Discipline): 'Write Discipline', 'CANONICAL_FACTORY_ROOT',
-  #     'DELIVERY' absent → assertions fail (AC-001 coverage; BC-6.26.001 PC1, Invariants 1, 4).
-  #   HARNESS: extraction gate fires → 'PREFLIGHT BLOCKED' absent from output → assertion fails.
-  #   SENTINEL: REMOVE_LOG empty → [ ! -s REMOVE_LOG ] trivially passes (no removal invoked).
-  # Post-implementation: DOC-PARITY passes; PREFLIGHT BLOCKED emitted; REMOVE_LOG empty (RG-001 closed).
+  #   DOC-PARITY (no 2>/dev/null): doc has blanket 2>/dev/null → assertion fails (RED).
+  #   DOC-PARITY (primary paths): SKILL.md Step 8 + per-story-delivery.md step (g) lack
+  #     preflight references → assertions fail (RED).
+  #   HARNESS: extraction gate fires (2>/dev/null present) → 'PREFLIGHT BLOCKED' absent → RED.
+  # Post-implementation: all DOC-PARITY GREEN; harness emits PREFLIGHT BLOCKED with stray path;
+  #   non-zero status; REMOVE_LOG empty (RG-001 closed).
 
   # --- Fixture setup: stray factory artifact in shadow .factory/ ---
   mkdir -p "$MOCK_WORKTREE/.factory/stories"
   printf 'stray DELIVERY ledger — written via CWD-relative path from story worktree CWD\n' \
     > "$MOCK_WORKTREE/.factory/stories/S-021-DELIVERY.md"
 
-  # --- DOC-PARITY: step-g-cleanup.md §G.1 teardown preflight mandate ---
-  # (BC-6.26.001 PC2, Invariant 2, Invariant 5)
   local g1_section
   g1_section="$(_extract_g1_section)"
 
-  _assert_doc_marker 'find.*\.factory' \
-    "step-g-cleanup.md §G.1: find .factory teardown preflight command (BC-6.26.001 PC2, Invariant 5)" \
+  # --- DOC-PARITY §G.1: exact preflight command form — find + -type f, NO blanket 2>/dev/null (F-S2104-P1-002a) ---
+  # BC-6.26.001 v1.4 removed blanket 2>/dev/null; PC2c requires visible find exit codes.
+  # RED pre-implementation (doc has 2>/dev/null); GREEN post-implementation.
+  _assert_doc_marker 'find.*\.factory.*-type[[:space:]]+f' \
+    "step-g-cleanup.md §G.1: find .factory -type f command present (BC-6.26.001 PC2)" \
     "$g1_section"
+  _assert_no_doc_marker 'find.*\.factory.*-type[[:space:]]+f.*2>/dev/null' \
+    "step-g-cleanup.md §G.1: blanket 2>/dev/null suppression FORBIDDEN on preflight find command (BC-6.26.001 v1.4 PC2; removed to enable PC2c fail-closed detection)" \
+    "$g1_section"
+
+  # --- DOC-PARITY §G.1: preflight-before-dispatch ordering (F-S2104-P1-002b) ---
+  # Assert the '### Mandatory Teardown Preflight' heading precedes the '### Dispatch' heading.
+  local preflight_line dispatch_line
+  preflight_line="$(awk '/Mandatory Teardown Preflight/{ print NR; exit }' "$STEP_G_CLEANUP")"
+  dispatch_line="$(awk '/^### Dispatch.*PC2a only/{ print NR; exit }' "$STEP_G_CLEANUP")"
+  [ -n "$preflight_line" ] || {
+    echo "DOC-PARITY FAIL: 'Mandatory Teardown Preflight' heading not found in step-g-cleanup.md (BC-6.26.001 PC2, Invariant 2)"
+    false
+  }
+  [ -n "$dispatch_line" ] || {
+    echo "DOC-PARITY FAIL: '### Dispatch (PC2a only' heading not found in step-g-cleanup.md (BC-6.26.001 PC2a)"
+    false
+  }
+  [ "$preflight_line" -lt "$dispatch_line" ] || {
+    echo "DOC-PARITY FAIL: preflight heading (line $preflight_line) must precede dispatch heading (line $dispatch_line) in §G.1 ordering invariant"
+    false
+  }
+
+  # --- DOC-PARITY §G.1: Invariant-2 no-exceptions clause (F-S2104-P1-002c) ---
+  # "This step is mandatory with no exceptions — not even when the agent is confident..."
+  _assert_doc_marker 'no exceptions|not even when.*confident' \
+    "step-g-cleanup.md §G.1: Invariant-2 no-exceptions clause — mandatory even when agent is confident no shadow writes occurred (BC-6.26.001 Invariant 2)" \
+    "$g1_section"
+
+  # --- DOC-PARITY §G.1: PC2b retry-mandate line (F-S2104-P1-002d) ---
+  # "Story cleanup MUST NOT complete until a retry preflight returns an empty result."
+  _assert_doc_marker 'MUST NOT complete until.*retry|cleanup MUST NOT complete until.*empty|retry preflight returns an empty' \
+    "step-g-cleanup.md §G.1: PC2b retry mandate — story cleanup MUST NOT complete until retry preflight returns empty result (BC-6.26.001 PC2b §3)" \
+    "$g1_section"
+
+  # --- DOC-PARITY §G.1: PC2b Option A/Option B remediation menu (F-S2104-P1-011) ---
+  _assert_doc_marker 'Option A' \
+    "step-g-cleanup.md §G.1: Option A remediation path in PC2b message body (BC-6.26.001 PC2b)" \
+    "$g1_section"
+  _assert_doc_marker 'Option B' \
+    "step-g-cleanup.md §G.1: Option B remediation path in PC2b message body (BC-6.26.001 PC2b)" \
+    "$g1_section"
+
+  # --- DOC-PARITY §G.1: PREFLIGHT BLOCKED message and git worktree remove ---
   _assert_doc_marker 'PREFLIGHT BLOCKED' \
     "step-g-cleanup.md §G.1: PREFLIGHT BLOCKED halt message on stray files (BC-6.26.001 PC2b, Invariant 2)" \
     "$g1_section"
   _assert_doc_marker 'git worktree remove' \
-    "step-g-cleanup.md §G.1: git worktree remove command present for PC2a proceed path (BC-6.26.001 PC2a)" \
+    "step-g-cleanup.md §G.1: git worktree remove command for PC2a proceed path (BC-6.26.001 PC2a)" \
     "$g1_section"
-  # Negative assertion: plain 'git worktree remove' only — no --force flag (BC-6.26.001 PC2a)
-  if printf '%s\n' "$g1_section" | grep -qE 'git worktree remove[[:space:]]+--force'; then
-    echo "DOC-PARITY FAIL: step-g-cleanup.md §G.1 uses 'git worktree remove --force' — must be plain 'git worktree remove' without --force (BC-6.26.001 PC2a)"
+
+  # --- DOC-PARITY §G.1: no --force flag in any position (F-S2104-P1-010 strengthened) ---
+  # Catches: 'git worktree remove --force <path>', 'git worktree remove <path> --force',
+  # and shorthand '-f'. BC-6.26.001 PC2a prohibits --force as a BC mandate.
+  if printf '%s\n' "$g1_section" | grep -qE 'git worktree remove[[:space:]].*(--force|-f[^a-zA-Z])|(--force|-f[^a-zA-Z]).*git worktree remove'; then
+    echo "DOC-PARITY FAIL: step-g-cleanup.md §G.1 uses git worktree remove with --force or -f flag in any argument position — prohibited by BC-6.26.001 PC2a (BC mandate: strips git built-in protection for non-gitignored untracked files)"
     false
   fi
 
-  # --- DOC-PARITY: _shared-context.md §Spec-Path Discipline Write Discipline clause (AC-001 coverage) ---
-  # (BC-6.26.001 PC1, Invariant 1, Invariant 4)
+  # --- DOC-PARITY _shared-context.md §Spec-Path Discipline Write Discipline clause (AC-001) ---
   local spec_path_section
   spec_path_section="$(_extract_spec_path_discipline_section)"
-
   _assert_doc_marker 'Write Discipline' \
-    "_shared-context.md §Spec-Path Discipline: explicit Write Discipline clause required (BC-6.26.001 PC1, Invariant 1)" \
+    "_shared-context.md §Spec-Path Discipline: Write Discipline clause (BC-6.26.001 PC1, Invariant 1)" \
     "$spec_path_section"
   _assert_doc_marker 'CANONICAL_FACTORY_ROOT' \
-    "_shared-context.md §Spec-Path Discipline: CANONICAL_FACTORY_ROOT variable mandate in Write Discipline clause (BC-6.26.001 PC1)" \
+    "_shared-context.md §Spec-Path Discipline: CANONICAL_FACTORY_ROOT mandate (BC-6.26.001 PC1, Invariant 3)" \
     "$spec_path_section"
   _assert_doc_marker 'DELIVERY' \
     "_shared-context.md §Spec-Path Discipline: DELIVERY ledger named as load-bearing case (BC-6.26.001 Invariant 4)" \
     "$spec_path_section"
 
-  # --- HARNESS: stray file → PREFLIGHT BLOCKED; REMOVE_LOG must remain empty ---
-  # Mutant-proving vector (POLICY 15 v1.4.10): REMOVE_LOG sentinel is load-bearing.
-  # If the preflight guard is absent or bypassed, the harness writes to REMOVE_LOG →
-  # [ ! -s REMOVE_LOG ] fails, proving the guard is actually enforced.
-  local preflight_out
-  preflight_out="$(_run_teardown_preflight "$MOCK_WORKTREE" "$REMOVE_LOG")"
+  # --- DOC-PARITY primary paths: SKILL.md Step 8 (F-S2104-P1-001a) ---
+  # RED until implementer adds preflight reference to SKILL.md Step 8 dispatch.
+  local skill_step8_section
+  skill_step8_section="$(_extract_skill_step8_section)"
+  _assert_doc_marker 'preflight|step-g-cleanup|§G\.1|G\.1' \
+    "SKILL.md Step 8: must reference §G.1 preflight before cleanup dispatch — RED until implementer propagates (BC-6.26.001 PC2; F-S2104-P1-001a)" \
+    "$skill_step8_section"
 
-  printf '%s\n' "$preflight_out" | grep -q 'PREFLIGHT BLOCKED' || {
-    echo "HARNESS FAIL: PREFLIGHT BLOCKED not in preflight output — got: $preflight_out"
+  # --- DOC-PARITY primary paths: per-story-delivery.md step (g) (F-S2104-P1-001b) ---
+  # RED until implementer adds preflight reference adjacent to step (g) dispatch.
+  local step_g_window
+  step_g_window="$(_extract_per_story_delivery_step_g_window)"
+  _assert_doc_marker 'preflight|step-g-cleanup|§G\.1|G\.1' \
+    "per-story-delivery.md step (g): must reference §G.1 preflight before Remove worktree dispatch — RED until implementer propagates (BC-6.26.001 PC2; F-S2104-P1-001b)" \
+    "$step_g_window"
+
+  # --- DOC-PARITY primary paths: per-story-delivery.md Story Split Recovery (F-S2104-P1-001b) ---
+  # RED until implementer adds preflight reference to story-split cleanup step.
+  local split_recovery_section
+  split_recovery_section="$(_extract_per_story_delivery_split_recovery_section)"
+  _assert_doc_marker 'preflight|step-g-cleanup|§G\.1|G\.1' \
+    "per-story-delivery.md Story Split Recovery: must reference §G.1 preflight before worktree removal — RED until implementer propagates (BC-6.26.001 PC2; F-S2104-P1-001b)" \
+    "$split_recovery_section"
+
+  # --- HARNESS: stray file → PREFLIGHT BLOCKED; non-zero exit (F-S2104-P1-003) ---
+  # Anti-tautology: extracted find command from §G.1 is evaluated against fixture.
+  # A -type d mutant would not find the file (directories only) → output empty → PC2a proceed →
+  # REMOVE_LOG written → [ ! -s REMOVE_LOG ] fails → test RED (mutant caught).
+  run _run_teardown_preflight "$MOCK_WORKTREE" "$REMOVE_LOG"
+  [ "$status" -ne 0 ] || {
+    echo "HARNESS FAIL: _run_teardown_preflight must exit non-zero on PC2b (stray files found) — got status 0"
+    false
+  }
+  printf '%s\n' "$output" | grep -q 'PREFLIGHT BLOCKED' || {
+    echo "HARNESS FAIL: 'PREFLIGHT BLOCKED' not in preflight output — got: $output"
+    false
+  }
+  # Stray file path must appear verbatim in output (F-S2104-P1-003)
+  printf '%s\n' "$output" | grep -q 'S-021-DELIVERY.md' || {
+    echo "HARNESS FAIL: stray file path 'S-021-DELIVERY.md' must appear verbatim in PREFLIGHT BLOCKED output — got: $output"
     false
   }
   # Mutant-proving sentinel: git worktree remove must NOT be invoked on PREFLIGHT BLOCKED path
@@ -213,66 +391,86 @@ _run_teardown_preflight() {
 }
 
 # ===========================================================================
-# T-002 / AC-004 / PC2a happy-path: empty shadow .factory/ → teardown proceeds; git worktree remove IS called
-# BC-6.26.001 PC2a
-# RG-002: preflight not present — test verifies preflight IS invoked (not just that fixture trivially passes)
+# T-002 / AC-004 / PC2a: empty shadow .factory/ → teardown proceeds; git worktree remove IS called
+# Covers: EC-005 (no .factory/ dir — PC2a sub-case a) + EC-003 (empty .factory/ dir — PC2a sub-case b)
+# BC-6.26.001 v1.4 PC2a
+# RG-002 closure
+# F-S2104-P1-013: EC labels corrected; both EC-005 and EC-003 exercised explicitly.
 # ===========================================================================
 
-@test "T-002 S-21.04 AC-004: empty-tree-proceeds — teardown proceeds; git worktree remove IS called" {
-  # Fixture: no .factory/ directory in mock worktree (EC-003 / EC-005 scenario).
+@test "T-002 S-21.04 AC-004: empty-tree-proceeds — EC-005 + EC-003 both authorized; git worktree remove IS called" {
+  # Fixture part 1 (EC-005): MOCK_WORKTREE exists but has NO .factory/ directory.
+  # Represents clean story worktree — no shadow .factory/ created (expected clean state).
+  # PC2a sub-case (a): .factory/ absent → no stray files, teardown authorized.
+  #
+  # Fixture part 2 (EC-003): empty .factory/ dir present (no files).
+  # PC2a sub-case (b): find exits 0 with empty output → no stray files, teardown authorized.
   #
   # Pre-implementation red gate:
-  #   DOC-PARITY (§G.1): 'find .factory' absent → first assertion fails with
-  #     "DOC-PARITY FAIL [must contain: step-g-cleanup.md §G.1: find .factory preflight command ...]"
-  #   HARNESS: extraction gate fires → 'worktree-remove-invoked' never written to REMOVE_LOG →
-  #     grep on REMOVE_LOG fails with "HARNESS FAIL: worktree-remove-invoked not in REMOVE_LOG ..."
-  # Post-implementation: DOC-PARITY passes; harness writes 'worktree-remove-invoked' to REMOVE_LOG.
-
-  # No fixture setup: MOCK_WORKTREE exists but has no .factory/ directory (clean worktree state).
+  #   DOC-PARITY (no 2>/dev/null): doc has blanket 2>/dev/null → assertion fails (RED).
+  #   HARNESS: extraction gate fires → 'worktree-remove-invoked' never written → RED.
+  # Post-implementation: DOC-PARITY GREEN; harness writes sentinel for both EC-005 and EC-003.
 
   # --- DOC-PARITY: step-g-cleanup.md §G.1 preflight mandate ---
-  # Both PC2a and PC2b logic live in the same G.1 mandate block.
   local g1_section
   g1_section="$(_extract_g1_section)"
 
-  _assert_doc_marker 'find.*\.factory' \
-    "step-g-cleanup.md §G.1: find .factory preflight command (PC2a happy-path requires mandate present — BC-6.26.001 PC2a)" \
+  _assert_doc_marker 'find.*\.factory.*-type[[:space:]]+f' \
+    "step-g-cleanup.md §G.1: find .factory -type f preflight command (BC-6.26.001 PC2)" \
+    "$g1_section"
+  _assert_no_doc_marker 'find.*\.factory.*-type[[:space:]]+f.*2>/dev/null' \
+    "step-g-cleanup.md §G.1: blanket 2>/dev/null FORBIDDEN on preflight command (BC-6.26.001 v1.4)" \
     "$g1_section"
   _assert_doc_marker 'PREFLIGHT BLOCKED' \
-    "step-g-cleanup.md §G.1: PREFLIGHT BLOCKED mandate present (PC2a and PC2b defined in same G.1 block — BC-6.26.001 PC2)" \
+    "step-g-cleanup.md §G.1: PREFLIGHT BLOCKED mandate present (PC2a and PC2b in same §G.1 block — BC-6.26.001 PC2)" \
     "$g1_section"
   _assert_doc_marker 'git worktree remove' \
     "step-g-cleanup.md §G.1: git worktree remove command for PC2a proceed path (BC-6.26.001 PC2a)" \
     "$g1_section"
 
-  # --- HARNESS: empty shadow tree → proceed; REMOVE_LOG written ---
-  local preflight_out
-  preflight_out="$(_run_teardown_preflight "$MOCK_WORKTREE" "$REMOVE_LOG")"
-
+  # --- HARNESS EC-005: no .factory/ dir → PC2a sub-case (a), teardown proceeds ---
+  # No fixture setup needed: MOCK_WORKTREE exists but has no .factory/ directory.
+  run _run_teardown_preflight "$MOCK_WORKTREE" "$REMOVE_LOG"
+  [ "$status" -eq 0 ] || {
+    echo "HARNESS FAIL: EC-005 (absent .factory/) must return 0 — got status $status; output: $output"
+    false
+  }
   grep -q 'worktree-remove-invoked' "$REMOVE_LOG" || {
-    echo "HARNESS FAIL: worktree-remove-invoked not in REMOVE_LOG — teardown did not proceed — log: $(cat "$REMOVE_LOG"), preflight output: $preflight_out"
+    echo "HARNESS FAIL: EC-005 teardown did not proceed — worktree-remove-invoked not in REMOVE_LOG; output: $output"
+    false
+  }
+
+  # --- HARNESS EC-003: empty .factory/ dir present → PC2a sub-case (b), teardown proceeds ---
+  # Explicitly covers EC-003 (empty dir scenario distinct from EC-005 absent-dir scenario).
+  mkdir -p "$MOCK_WORKTREE/.factory"
+  run _run_teardown_preflight "$MOCK_WORKTREE" "$REMOVE_LOG"
+  [ "$status" -eq 0 ] || {
+    echo "HARNESS FAIL: EC-003 (empty .factory/ dir) must return 0 — got status $status; output: $output"
+    false
+  }
+  local count
+  count="$(grep -c 'worktree-remove-invoked' "$REMOVE_LOG")"
+  [ "$count" -ge 2 ] || {
+    echo "HARNESS FAIL: EC-003 teardown did not write second sentinel entry — expected ≥2 entries, got $count"
     false
   }
 }
 
 # ===========================================================================
-# T-003 / AC-005 / PC2b → PC2a retry: stray file relocated to canonical mount → retry teardown proceeds
-# BC-6.26.001 PC2b → PC2a retry path
-# RG-003: preflight not present
+# T-003 / AC-005 / PC2b → PC2a retry: stray file relocated → retry teardown proceeds
+# BC-6.26.001 v1.4 PC2b → PC2a retry path (Option A relocation)
+# RG-003 closure
 # ===========================================================================
 
 @test "T-003 S-21.04 AC-005: relocate-retry-proceeds — stray file relocated; retry teardown proceeds" {
   # Fixture: stray .factory/ file; relocate to canonical mount; retry teardown.
-  # Exercises BC-6.26.001 PC2b → PC2a retry path (Option A relocation per BC PC2b §3).
+  # Exercises BC-6.26.001 PC2b → PC2a retry path (Option A: Relocate then retry).
   #
   # Pre-implementation red gate:
-  #   DOC-PARITY (§G.1): 'find .factory' absent → first assertion fails with
-  #     "DOC-PARITY FAIL [must contain: step-g-cleanup.md §G.1: find .factory preflight command ...]"
-  #   HARNESS: extraction gate fires on both first-pass and retry → 'worktree-remove-invoked'
-  #     never written → grep on REMOVE_LOG fails with "HARNESS FAIL: retry teardown did not proceed ..."
-  # Post-implementation: first pass BLOCKED (stray file present); after relocation, retry proceeds.
+  #   DOC-PARITY (no 2>/dev/null): doc has blanket 2>/dev/null → assertion fails (RED).
+  #   HARNESS: extraction gate fires on both passes → sentinel never written → RED.
+  # Post-implementation: first pass BLOCKED; relocation empties shadow tree; retry proceeds.
 
-  # --- Fixture setup: stray factory artifact ---
   mkdir -p "$MOCK_WORKTREE/.factory/stories"
   printf 'stray DELIVERY ledger — to be relocated via Option A retry path\n' \
     > "$MOCK_WORKTREE/.factory/stories/S-021-DELIVERY.md"
@@ -281,21 +479,30 @@ _run_teardown_preflight() {
   local g1_section
   g1_section="$(_extract_g1_section)"
 
-  _assert_doc_marker 'find.*\.factory' \
-    "step-g-cleanup.md §G.1: find .factory preflight command (PC2b→PC2a retry path requires mandate — BC-6.26.001 PC2b)" \
+  _assert_doc_marker 'find.*\.factory.*-type[[:space:]]+f' \
+    "step-g-cleanup.md §G.1: find .factory -type f preflight command (BC-6.26.001 PC2b → PC2a retry path)" \
+    "$g1_section"
+  _assert_no_doc_marker 'find.*\.factory.*-type[[:space:]]+f.*2>/dev/null' \
+    "step-g-cleanup.md §G.1: blanket 2>/dev/null FORBIDDEN (BC-6.26.001 v1.4)" \
     "$g1_section"
   _assert_doc_marker 'PREFLIGHT BLOCKED' \
-    "step-g-cleanup.md §G.1: PREFLIGHT BLOCKED mandate (first pass blocks; retry path gated by same mandate — BC-6.26.001 PC2b, Invariant 2)" \
+    "step-g-cleanup.md §G.1: PREFLIGHT BLOCKED mandate (first pass blocks; retry gated by same mandate — BC-6.26.001 PC2b)" \
     "$g1_section"
   _assert_doc_marker 'git worktree remove' \
     "step-g-cleanup.md §G.1: git worktree remove for PC2a retry proceed path (BC-6.26.001 PC2a)" \
     "$g1_section"
 
-  # --- HARNESS: first pass (stray file present) ---
-  # Post-implementation this emits PREFLIGHT BLOCKED. Not asserted here; Red Gate
-  # proves correctness by REMOVE_LOG staying empty until after relocation.
-  local first_out
-  first_out="$(_run_teardown_preflight "$MOCK_WORKTREE" "$REMOVE_LOG")"
+  # --- HARNESS: first pass (stray file present) → PREFLIGHT BLOCKED ---
+  run _run_teardown_preflight "$MOCK_WORKTREE" "$REMOVE_LOG"
+  [ "$status" -ne 0 ] || {
+    echo "HARNESS FAIL: first pass must return non-zero (stray file present) — got status 0; output: $output"
+    false
+  }
+  # REMOVE_LOG must remain empty until stray file is relocated
+  [ ! -s "$REMOVE_LOG" ] || {
+    echo "HARNESS FAIL: REMOVE_LOG non-empty after first pass — worktree-remove must NOT be invoked while stray file present"
+    false
+  }
 
   # --- Relocation: move stray file to canonical mount (Option A per BC-6.26.001 PC2b §3) ---
   mkdir -p "$CANONICAL_FACTORY/stories"
@@ -303,11 +510,77 @@ _run_teardown_preflight() {
      "$CANONICAL_FACTORY/stories/S-021-DELIVERY.md"
 
   # --- HARNESS: retry pass after relocation (shadow tree now empty → PC2a proceed) ---
-  local retry_out
-  retry_out="$(_run_teardown_preflight "$MOCK_WORKTREE" "$REMOVE_LOG")"
-
+  run _run_teardown_preflight "$MOCK_WORKTREE" "$REMOVE_LOG"
+  [ "$status" -eq 0 ] || {
+    echo "HARNESS FAIL: retry must return 0 after stray file relocated — got status $status; output: $output"
+    false
+  }
   grep -q 'worktree-remove-invoked' "$REMOVE_LOG" || {
-    echo "HARNESS FAIL: retry teardown did not proceed after stray file relocated — REMOVE_LOG: $(cat "$REMOVE_LOG"), first-pass output: $first_out, retry output: $retry_out"
+    echo "HARNESS FAIL: retry teardown did not proceed after stray file relocated — REMOVE_LOG: $(cat "$REMOVE_LOG"); first-pass output: previously captured; retry output: $output"
+    false
+  }
+}
+
+# ===========================================================================
+# T-004 / AC-006 / PC2c: find exits non-zero (non-path-absent) → HALT; exit code+stderr surfaced; worktree-remove NOT called
+# BC-6.26.001 v1.4 PC2c (fail-closed)
+# macOS/Linux portability: find returns exit code 1 on permission-denied subdirectory traversal.
+# ===========================================================================
+
+@test "T-004 S-21.04 AC-006: pc2c-halt — find error (non-path-absent) HALTS teardown; exit code+stderr surfaced; worktree-remove NOT called" {
+  # Fixture: .factory/ exists with a chmod 000 subdirectory.
+  # find traverses .factory/, encounters locked-subdir, emits "Permission denied" to stderr,
+  # and exits 1. This is the PC2c scenario: find error for a non-path-absent reason.
+  #
+  # Why this matters: without PC2c, a permission error on .factory/ content produces empty find
+  # stdout (no accessible files returned), which a naive implementation would treat as PC2a
+  # (no stray files → proceed). That would authorize rm -rf on a .factory/ whose contents
+  # could not be verified — data loss risk. PC2c fail-closed prevents this.
+  #
+  # Portability: on macOS and Linux, find exits 1 when it encounters permission-denied
+  # subdirectory traversal (POSIX-required behavior).
+  #
+  # Pre-implementation red gate:
+  #   DOC-PARITY (PC2c): step-g-cleanup.md §G.1 has no PC2c block → assertion fails (RED).
+  #   HARNESS: extraction gate fires (doc still has 2>/dev/null) → HARNESS FAIL returned →
+  #     [ "$status" -ne 0 ] passes but PREFLIGHT HALT absent from output → RED.
+  # Post-implementation: PC2c block in §G.1 → DOC-PARITY GREEN; harness emits PREFLIGHT HALT
+  #   with exit code; REMOVE_LOG empty.
+
+  # Skip if running as root: chmod 000 is ineffective for root (find succeeds regardless).
+  if [ "$(id -u)" -eq 0 ]; then
+    skip "T-004 requires non-root user (chmod 000 is ineffective as root; find would succeed)"
+  fi
+
+  # --- Fixture: .factory/ with a permission-locked subdirectory ---
+  mkdir -p "$MOCK_WORKTREE/.factory/locked-subdir"
+  chmod 000 "$MOCK_WORKTREE/.factory/locked-subdir"
+
+  # --- DOC-PARITY §G.1: PC2c HALT branch documented (RED until implementer adds PC2c block) ---
+  local g1_section
+  g1_section="$(_extract_g1_section)"
+  _assert_doc_marker 'PC2c|find.*exits.*non-zero|fail-closed.*find|find.*error.*HALT|non-path-absent' \
+    "step-g-cleanup.md §G.1: PC2c fail-closed HALT branch must be documented — non-path-absent find error → HALT, surface exit code + stderr (BC-6.26.001 PC2c; AC-006) — RED until implementer adds PC2c section" \
+    "$g1_section"
+
+  # --- HARNESS: find error → HALT (non-zero); PC2c message; exit code surfaced; REMOVE_LOG empty ---
+  run _run_teardown_preflight "$MOCK_WORKTREE" "$REMOVE_LOG"
+  [ "$status" -ne 0 ] || {
+    echo "HARNESS FAIL: PC2c must return non-zero — got status 0 (find error must HALT teardown, not silently authorize rm -rf)"
+    false
+  }
+  printf '%s\n' "$output" | grep -qE 'PREFLIGHT HALT|PC2c' || {
+    echo "HARNESS FAIL: PC2c HALT message not in output — got: $output"
+    false
+  }
+  # Exit code must be surfaced in output (BC-6.26.001 PC2c: "exact find exit code ... MUST be surfaced")
+  printf '%s\n' "$output" | grep -qE 'exit.*[0-9]|exited.*[0-9]|code [0-9]' || {
+    echo "HARNESS FAIL: find exit code must be surfaced in PC2c output — got: $output"
+    false
+  }
+  # Mutant-proving sentinel: git worktree remove must NOT be invoked on PC2c path
+  [ ! -s "$REMOVE_LOG" ] || {
+    echo "HARNESS FAIL: REMOVE_LOG non-empty on PC2c — git worktree remove must NOT be invoked on find-error path — log: $(cat "$REMOVE_LOG")"
     false
   }
 }
