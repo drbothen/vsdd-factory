@@ -28,27 +28,28 @@ Four cases:
   clean state (BC-6.26.001 EC-005; path-absent is NOT a PC2c error — a missing path is distinct
   from a `find` traversal error). Proceed to the Dispatch section below.
 
-  **Symlink at `.factory/` path → PC2b BLOCKED (without running `find`):** If `[ ! -e ]` is FALSE
-  (something occupies the path), test whether the inode is a symbolic link:
+**Symlink at `.factory/` path → PC2b BLOCKED (without running `find`):** If `[ ! -e ]` is FALSE
+(something occupies the path), test whether the inode is a symbolic link:
 
-      [ -L "<worktree-path>/.factory" ]
+    [ -L "<worktree-path>/.factory" ]
 
-  If this test passes, a symlink occupies the path. `test -d` follows symlinks — a symlink-to-dir
-  satisfies `[ -d ]` by dereferencing — but `find` does NOT descend symlinks, so a symlink-to-dir
-  at the path would produce empty find output and falsely authorize teardown. Go directly to
-  PC2b BLOCKED; list the path; do NOT invoke `find` on a symlink inode
-  (symlink → PC2b BLOCKED, BC-6.26.001 EC-008).
+If this test passes, a symlink occupies the path. `test -d` follows symlinks — a symlink-to-dir
+satisfies `[ -d ]` by dereferencing — but `find` does NOT descend symlinks, so a symlink-to-dir
+at the path would produce empty find output and falsely authorize teardown. Go directly to
+PC2b BLOCKED; list the path; do NOT invoke `find` on a symlink inode
+(symlink → PC2b BLOCKED, BC-6.26.001 EC-008).
 
-  **Non-directory at `.factory/` path → PC2b BLOCKED (without running `find`):** If `[ -L ]` is
-  FALSE and the inode at `<worktree-path>/.factory` is NOT a directory — note: `[ ! -d ]` alone
-  MUST NOT be the sole check (it is wrong as the only predicate: it passes for regular files and
-  for symlink-to-dirs by dereferencing); it is valid here only after `[ ! -e ]` and `[ -L ]`
-  have confirmed occupancy and non-symlink above — this is stray shadow content subject to the
-  same rm-rf destruction risk as files inside a shadow `.factory/` directory tree. Go directly to
-  PC2b BLOCKED; list the path; do NOT invoke `find` on a non-directory inode
-  (non-directory → PC2b BLOCKED, BC-6.26.001 EC-008).
+**Non-directory at `.factory/` path → PC2b BLOCKED (without running `find`):** If `[ -L ]` is
+FALSE and the inode at `<worktree-path>/.factory` is NOT a directory — note: `[ ! -d ]` alone
+MUST NOT be the sole check (it is wrong as the only predicate: it passes for regular files and
+for symlink-to-dirs by dereferencing); it is valid here only after `[ ! -e ]` and `[ -L ]`
+have confirmed occupancy and non-symlink above — this is stray shadow content subject to the
+same rm-rf destruction risk as files inside a shadow `.factory/` directory tree. Go directly to
+PC2b BLOCKED; list the path; do NOT invoke `find` on a non-directory inode
+(non-directory → PC2b BLOCKED, BC-6.26.001 EC-008).
 
-- *Sub-case (b) — `find` exits 0, empty output:* Run the preflight command:
+- *Sub-case (b) — `find` exits 0, empty output:* If `.factory/` exists AND is a real directory —
+  not a symlink — run the preflight command:
 
       find "<worktree-path>/.factory/" -type f
 
