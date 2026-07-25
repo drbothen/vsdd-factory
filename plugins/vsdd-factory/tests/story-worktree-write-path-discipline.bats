@@ -1048,7 +1048,7 @@ _run_teardown_preflight() {
   _assert_no_inline_find_antipattern() {
     local file="$1" label="$2"
     # Regex catches unquoted ('.factory -type f', '.factory/ -type f') AND the quoted canonical
-    # form ('find "<worktree-path>/.factory/" -type f') from step-g-cleanup.md:54.
+    # form ('find "<worktree-path>/.factory/" -type f') from the canonical find command in step-g-cleanup.md §G.1.
     # The prior pattern '.factory/?[[:space:]]' failed on the quoted form: after '\.factory/',
     # the closing '"' precedes the space, so '[[:space:]]' could not match (F-S2104-P7-002).
     # Fix: '[^[:space:]]*' after '\.factory/?' consumes any trailing non-space chars (e.g., '"')
@@ -1100,27 +1100,82 @@ _run_teardown_preflight() {
 }
 
 # ===========================================================================
-# F-S2104-P4-002: DOC-PARITY gates — adversary.md + adversarial-review/SKILL.md §G.1/BC-6.26.001 preflight-awareness
-# AC-007(d) specialist agent awareness
-# RED until implementer delivers the declared §G.1/BC-6.26.001 awareness clause in each file.
+# F-S2104-P4-002 / T-009: DOC-PARITY gates — adversary.md + adversarial-review/SKILL.md §G.1/BC-6.26.001 preflight-awareness
+# AC-007(d)/AC-009 specialist agent awareness — obligation-asserting (pass-9 strengthened; F-S2104-P9-001)
+# Three gates per file: corrected-model + report-as-defect-signal + §G.1 enforcement-chain reference.
+# Prior bare alternation (byte-identical to retired pass-7 T-007 pattern) satisfied by incidental
+# BC-6.26.001 mention without the corrected shadow-write model or defect-signal obligation present.
 # ===========================================================================
 
 @test "F-S2104-P4-002: adversary.md + adversarial-review/SKILL.md — §G.1/BC-6.26.001 teardown-preflight awareness clause" {
-  # agents/adversary.md: must contain a reference to BC-6.26.001 and/or §G.1 teardown preflight
-  # awareness — stating the adversary should recognize and report shadow .factory/ content as a
-  # defect signal (live evidence, not stale snapshot) and that step-G teardown requires preflight.
-  # RED: adversary.md currently has NO BC-6.26.001 or §G.1 reference.
-  grep -qE 'BC-6\.26\.001|§G\.1|step-g-cleanup|teardown.*preflight.*BC|preflight.*§G\.1' "$ADVERSARY_MD" || {
-    echo "DOC-PARITY FAIL: agents/adversary.md does not contain §G.1/BC-6.26.001 teardown-preflight awareness reference — implementer must add clause stating adversary recognizes shadow .factory/ as live evidence + step-G §G.1 preflight obligation (BC-6.26.001 Invariant 5 + AC-007(d); F-S2104-P4-002)"
+  # T-009 (ordinal-free reference: F-S2104-P4-002) — obligation-asserting gates (F-S2104-P9-001)
+  #
+  # AC-009 (story v1.12): both awareness files must carry the corrected shadow-write model:
+  #   git worktree add checks out NOTHING under .factory/ (gitignored on the product branch);
+  #   any .factory/ content found in a worktree is LIVE SHADOW-WRITE EVIDENCE that MUST be
+  #   REPORTED as a defect signal (BC-6.26.001 Invariant 5); step-g-cleanup.md §G.1 is the
+  #   enforcement chain (teardown preflight catches this class before git worktree remove).
+  #
+  # Three obligation-asserting gates per file (replaces byte-identical bare alternation
+  # retired at pass-7 for T-007; satisfiable by any incidental BC-6.26.001 token):
+  #   (i)  corrected-model: worktree-add creates no .factory/ content (no shadow write at checkout)
+  #   (ii) report-as-defect-signal: shadow .factory/ content must be reported as defect signal
+  #   (iii) §G.1 enforcement-chain: step-g-cleanup.md §G.1 cited as the teardown-preflight chain
+  #
+  # MUTANT PROOF: reducing adversary.md §G.4 to "…resolve the tuple (see BC-6.26.001)." passes
+  # the retired bare alternation (BC-6.26.001 is present) but fails all three new gates —
+  # corrected-model sentence, defect-signal token, and §G.1 enforcement-chain are all absent.
+
+  # --- agents/adversary.md ---
+  # adversary.md §G.4 delivers:
+  #   (i)  "git worktree add checks out NOTHING under .factory/ — .factory/ is gitignored on the
+  #         product branch, so no shadow directory is created at worktree-creation time."
+  #   (ii) "MUST be reported as a defect signal, not dismissed as a pathing artifact."
+  #   (iii) "step-g-cleanup.md §G.1 teardown preflight exists to catch this class."
+
+  # (i) corrected-model: checks out NOTHING / no shadow directory is created
+  grep -qE 'checks out NOTHING|no shadow directory.*created' "$ADVERSARY_MD" || {
+    echo "DOC-PARITY FAIL [adversary.md (i) corrected-model absent]: must state git worktree add checks out NOTHING under .factory/ — no shadow directory is created at worktree-creation time (AC-009; BC-6.26.001 Invariant 5; F-S2104-P9-001)"
     false
   }
 
-  # skills/adversarial-review/SKILL.md: must contain a reference to BC-6.26.001 and/or §G.1
-  # teardown preflight awareness. The adversarial-review skill coordinates adversary dispatch;
-  # it must surface the §G.1 preflight obligation to the adversary context.
-  # RED: adversarial-review/SKILL.md currently has NO BC-6.26.001 or §G.1 reference.
-  grep -qE 'BC-6\.26\.001|§G\.1|step-g-cleanup|teardown.*preflight.*BC|preflight.*§G\.1' "$ADV_REVIEW_SKILL_MD" || {
-    echo "DOC-PARITY FAIL: skills/adversarial-review/SKILL.md does not contain §G.1/BC-6.26.001 teardown-preflight awareness reference — implementer must add clause (BC-6.26.001 Invariant 5 + AC-007(d); F-S2104-P4-002)"
+  # (ii) report-as-defect-signal: shadow .factory/ content reported as defect signal, NOT to be dismissed
+  # adversary.md §G.4 delivers "MUST be reported as a defect signal, not dismissed as a pathing artifact"
+  # — "not dismissed as a pathing artifact" is unique to the §G.4 corrected-model sentence; absent on
+  # other lines that also have "defect signal" in different qualifier contexts (bare 'defect signal' would
+  # satisfy on mutant since other lines carry it).
+  grep -qE 'defect signal.*not dismissed|not dismissed.*pathing artifact' "$ADVERSARY_MD" || {
+    echo "DOC-PARITY FAIL [adversary.md (ii) defect-signal obligation absent]: must state shadow .factory/ content is reported as a defect signal, not dismissed as a pathing artifact (AC-009; BC-6.26.001 Invariant 5; F-S2104-P9-001)"
+    false
+  }
+
+  # (iii) §G.1 enforcement-chain: step-g-cleanup.md §G.1 cited as the teardown-preflight mechanism
+  grep -qE 'step-g-cleanup.*§G\.1|§G\.1.*preflight|§G\.1.*teardown' "$ADVERSARY_MD" || {
+    echo "DOC-PARITY FAIL [adversary.md (iii) §G.1 enforcement-chain absent]: must reference step-g-cleanup.md §G.1 as the enforcement chain for the teardown preflight obligation (AC-009; BC-6.26.001 Invariant 5; F-S2104-P9-001)"
+    false
+  }
+
+  # --- skills/adversarial-review/SKILL.md ---
+  # adversarial-review SKILL.md §Worktree-Identity Preflight delivers:
+  #   (i)  "no .factory/ directory is created at worktree-checkout time"
+  #   (ii) "MUST be reported as a defect signal, not used as spec ground-truth"
+  #   (iii) "step-g-cleanup.md §G.1 teardown preflight exists to catch this class"
+
+  # (i) corrected-model: no .factory/ directory is created at worktree-checkout time
+  grep -qE 'no.*\.factory.*directory.*created|no.*\.factory.*created.*worktree' "$ADV_REVIEW_SKILL_MD" || {
+    echo "DOC-PARITY FAIL [adversarial-review/SKILL.md (i) corrected-model absent]: must state no .factory/ directory is created at worktree-checkout time (AC-009; BC-6.26.001 Invariant 5; F-S2104-P9-001)"
+    false
+  }
+
+  # (ii) report-as-defect-signal: worktree .factory/ content must be reported as a defect signal
+  grep -qE 'defect signal' "$ADV_REVIEW_SKILL_MD" || {
+    echo "DOC-PARITY FAIL [adversarial-review/SKILL.md (ii) defect-signal obligation absent]: must instruct adversary to report shadow .factory/ content as a defect signal — 'defect signal' token absent (AC-009; BC-6.26.001 Invariant 5; F-S2104-P9-001)"
+    false
+  }
+
+  # (iii) §G.1 enforcement-chain: step-g-cleanup.md §G.1 cited as the teardown-preflight mechanism
+  grep -qE 'step-g-cleanup.*§G\.1|§G\.1.*preflight|§G\.1.*teardown' "$ADV_REVIEW_SKILL_MD" || {
+    echo "DOC-PARITY FAIL [adversarial-review/SKILL.md (iii) §G.1 enforcement-chain absent]: must reference step-g-cleanup.md §G.1 as the enforcement chain for the teardown preflight obligation (AC-009; BC-6.26.001 Invariant 5; F-S2104-P9-001)"
     false
   }
 }

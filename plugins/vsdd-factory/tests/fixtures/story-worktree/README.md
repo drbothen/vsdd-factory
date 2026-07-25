@@ -17,7 +17,7 @@ fully cleaned up by `teardown()` via `chmod -R 755 + rm -rf "$WORK"` (the chmod 
 T-004's chmod 000 subdirectory).
 
 A "story-worktree fixture" simulates the state of `.worktrees/<STORY-ID>/` just before
-step G teardown. Six fixture configurations are used by the six fixture-bearing tests (T-001..T-006); T-007 and the two remaining propagation gates are doc-parity-only and consume no fixture:
+step G teardown. Six fixture configurations are used by the six fixture-bearing tests (T-001..T-006); T-007, T-008, and T-009 are doc-parity-only and consume no fixture:
 
 ```
 T-001 (stray file present — PC2b):
