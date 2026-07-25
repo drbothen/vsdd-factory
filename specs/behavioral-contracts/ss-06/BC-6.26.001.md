@@ -1,7 +1,7 @@
 ---
 document_type: behavioral-contract
 level: L3
-version: "1.4"
+version: "1.5"
 status: draft
 producer: product-owner
 timestamp: 2026-07-24T00:00:00Z
@@ -11,7 +11,7 @@ inputs:
   - .factory/cycles/v1.0-brownfield-backfill/e-21-arch-delta-analysis.md
   - plugins/vsdd-factory/skills/deliver-story/steps/_shared-context.md
   - plugins/vsdd-factory/skills/deliver-story/steps/step-g-cleanup.md
-input-hash: "b32306f"
+input-hash: "aff43f3"
 traces_to: .factory/specs/architecture/ARCH-INDEX.md
 origin: brownfield
 extracted_from: null
@@ -24,6 +24,7 @@ modified:
   - "2026-07-19 (v1.2) — Research validation precision amendments (product-owner; research validation 2026-07-19): §Description preflight rationale clarified — `--force` mechanism premise (later corrected at v1.3); Invariant 5 added."
   - "2026-07-19 (v1.3) — adv pass-1 fix burst (F-P1-005) per ADR-031 v1.1 delta analysis v1.2 §Issue #523 (product-owner): §Description + Invariant 5 mechanism corrected — false --force premise removed; actual mechanism: .factory/ is gitignored on story branch → shadow content is gitignored (not untracked) → plain git worktree remove passes clean-state check (gitignored ≠ untracked for the check) → underlying rm-rf silently destroys shadow content; preflight is correct fix because find sees gitignored files that git's check ignores; --force secondary note retained as clearly-labeled secondary. PC2a corrected: git worktree remove --force→git worktree remove (plain command per step-g-cleanup.md)."
   - "2026-07-24 (v1.4) — S-21.04 adv pass-1 fix burst F-004/006/007/010 (product-owner): F-007: §Description provenance corrected — shadow .factory/ created by errant write (not at git worktree add time; .factory/ is gitignored on product branch so checkout is empty). F-010: --force rationale corrected in §Description ¶2 and PC2a — BC mandate (strips git built-in protection for non-gitignored untracked files), not guard-enforced constraint. F-006: PC2a/EC-005 amended fail-closed — absent .factory/→PC2a sub-case (a); find error (non-path-absent)→PC2c HALT; blanket 2>/dev/null suppression removed; PC2c block added. F-004: PC1 git command fixed — <story-worktree-path>→<main-worktree-path> with clarification that story-worktree rev-parse returns story-worktree root. CANONICAL_FACTORY_ROOT defined: repo-root of main checkout (not .factory/ mount)."
+  - "2026-07-24 (v1.5) — S-21.04 adv pass-2 fix burst F-002/O-005 (product-owner): F-002: §Description ~line 64 corrected — suppressed preflight command `find <worktree-path>/.factory -type f 2>/dev/null` corrected to unsuppressed form `find <worktree-path>/.factory -type f`; consistent with PC2a/PC2b/PC2c and v1.4 changelog claim \"blanket 2>/dev/null suppression removed.\" TD-VSDD-060 sweep: grep -n \"2>/dev/null\" BC-6.26.001.md — zero occurrences on live preflight command (lines 26/35/280 are historical changelog text only). O-005: §Preconditions ¶2 caller-side aligned — callee-side phrasing corrected to caller-side per ADR-031 §Rationale and step-g-cleanup.md §G.1."
 deprecated: null
 deprecated_by: null
 replacement: null
@@ -32,7 +33,7 @@ removed: null
 removal_reason: null
 bc_id: BC-6.26.001
 section: "6.26"
-last_amended: "(v1.4) — S-21.04 adv pass-1 fix burst F-004/006/007/010 (product-owner): F-007 §Description provenance corrected (git worktree add checks out nothing for gitignored .factory/; shadow created by errant write). F-010 --force rationale corrected (BC mandate not guard). F-006 PC2a fail-closed (absent→PC2a-a; find-error→PC2c HALT; blanket 2>/dev/null removed). F-004 PC1 git command fixed (<story-worktree-path>→<main-worktree-path>). CANONICAL_FACTORY_ROOT defined. [Prior: (v1.3) — F-P1-005 fix; gitignored mechanism. (v1.2) — research validation. (v1.1) — CAP-036 backfill. (v1.0) — Initial.]"
+last_amended: "(v1.5) — S-21.04 adv pass-2 fix burst F-002/O-005 (product-owner): F-002 §Description 2>/dev/null residue corrected (unsuppressed preflight command; consistent with PC2a/PC2b/PC2c). TD-VSDD-060 sweep: zero other occurrences on live preflight command. O-005 §Preconditions ¶2 caller-side aligned (orchestrator dispatch vs devops-engineer execution). [Prior: (v1.4) — pass-1 F-004/006/007/010. (v1.3) — F-P1-005 gitignored mechanism. (v1.2) — research validation. (v1.1) — CAP-036 backfill. (v1.0) — Initial.]"
 ---
 
 # BC-6.26.001: deliver-story step agents MUST write all `.factory/**` artifacts using absolute paths anchored to the canonical main-checkout `.factory/` mount, and step-G cleanup MUST run a worktree `.factory/` inventory preflight before `git worktree remove`
@@ -61,7 +62,7 @@ git's untracked-file clean-state check, so the check passes silently as a false 
 the shadow tree contains stray factory artifacts. The underlying `rm -rf <worktree-path>` then
 silently destroys the gitignored shadow content with no warning.
 
-The teardown preflight (`find <worktree-path>/.factory -type f 2>/dev/null`) is the correct fix
+The teardown preflight (`find <worktree-path>/.factory -type f`) is the correct fix
 precisely because `find` reads the filesystem directly — it sees gitignored files that git's
 clean-state check ignores. The preflight is the only mechanism that catches this class of loss.
 
@@ -114,8 +115,8 @@ mandates.
 
 ### Teardown preflight precondition
 
-2. Step G (devops-engineer cleanup step) is about to execute `git worktree remove` on a story
-   worktree path (`.worktrees/<STORY-ID>/`).
+2. The orchestrator is about to dispatch step G (devops-engineer cleanup) to execute
+   `git worktree remove` on a story worktree path (`.worktrees/<STORY-ID>/`).
 
 ## Postconditions
 
@@ -277,6 +278,7 @@ TBD — VP IDs to be assigned after VP authoring pass.
 
 | Version | Date | Description |
 |---------|------|-------------|
+| 1.5 | 2026-07-24 | S-21.04 adv pass-2 fix burst F-002/O-005 (product-owner). F-002: §Description ~line 64 corrected — suppressed preflight command form `find <worktree-path>/.factory -type f 2>/dev/null` corrected to unsuppressed `find <worktree-path>/.factory -type f`; consistent with PC2a/PC2b/PC2c and v1.4 changelog claim "blanket `2>/dev/null` suppression removed." TD-VSDD-060 file-scope sweep: `grep -n "2>/dev/null" BC-6.26.001.md` — zero results on live preflight command (lines 26/35/280 are historical changelog text only). O-005: §Preconditions ¶2 caller-side alignment — callee-side phrasing ("Step G (devops-engineer cleanup step) is about to execute") corrected to caller-side ("The orchestrator is about to dispatch step G (devops-engineer cleanup)") per ADR-031 §Rationale (caller-side gating) and step-g-cleanup.md §G.1 (orchestrator-assigned gate). |
 | 1.4 | 2026-07-24 | S-21.04 adv pass-1 fix burst F-004/006/007/010 (product-owner). F-007: §Description provenance corrected — `.factory/` directory absent at `git worktree add` time (gitignored on product branch); shadow created by errant write, not by checkout. F-010: `--force` prohibition rationale corrected in §Description ¶2 and PC2a — prohibition is a BC mandate (strips git's built-in protection for non-gitignored untracked files), not a guard-enforced constraint (guard permits `--force` for `.worktrees/`-containing commands). F-006: PC2a amended fail-closed — absent `.factory/` → PC2a sub-case (a); `find` error for non-path-absent reason → PC2c HALT; blanket `2>/dev/null` suppression removed; EC-005 updated. F-004: PC1 git command corrected — `<story-worktree-path>` → `<main-worktree-path>` (story-worktree `rev-parse --show-toplevel` returns story-worktree root, not canonical root; consistent with Invariant 3 + §Description). `CANONICAL_FACTORY_ROOT` defined: repo-root of main checkout (not `.factory/` mount). |
 | 1.0 | 2026-07-19 | Initial authoring (product-owner; E-21 factory-state data-loss hardening; issue #523; S-21.04). PC1: write-path discipline — all `.factory/**` writes MUST use canonical absolute paths anchored to main-checkout root (INV-E21-002). PC2a/PC2b: teardown preflight — `find <worktree>/.factory -type f` before `git worktree remove`; non-empty result blocks teardown (INV-E21-004). 4 invariants. 7 edge cases EC-001..EC-007. 5 test vectors T-1..T-5. lifecycle_status: draft (POL-14 auto-promotion on S-21.04 PR merge). |
 | 1.3 | 2026-07-19 | adv pass-1 fix burst (F-P1-005) per ADR-031 v1.1 delta analysis v1.2 §Issue #523 (product-owner). §Description "Why --force requires a preflight" paragraph replaced: false --force premise removed; corrected mechanism documented — .factory/ is gitignored on story branch, shadow content is gitignored (not untracked), plain `git worktree remove` passes clean-state check as false negative (gitignored ≠ untracked for the check), rm-rf silently destroys shadow content; `find` is correct fix because it sees gitignored files. --force secondary note retained (clearly labeled). Invariant 5 replaced: gitignored mechanism as primary; `find` is only gate that catches it. PC2a corrected: `git worktree remove --force` → plain `git worktree remove`. |
