@@ -15,7 +15,7 @@ Before dispatching `devops-engineer` to remove the story worktree, the orchestra
 `.factory/` inventory preflight on the worktree path. This step is mandatory with no exceptions —
 not even when the agent is confident no shadow writes occurred (BC-6.26.001 Invariant 2).
 
-Four cases:
+Outcomes:
 
 **PC2a — No stray files (teardown authorized):**
 
