@@ -256,7 +256,7 @@ _run_teardown_preflight() {
     return 1
   fi
 
-  # v1.7 four-step chain (steps 1–3 are HARDCODED; step 4 is doc-derived via extraction):
+  # The BC discrimination chain (steps 1–3 are HARDCODED; step 4 is doc-derived via extraction):
   #   Step 1: [ ! -e ] → PC2a(a): path absent → proceed
   #   Step 2: [ -L ]  → PC2b: symlink at path → BLOCKED regardless of target type
   #   Step 3: [ ! -d ] → PC2b: non-directory non-symlink → BLOCKED
@@ -498,7 +498,7 @@ _run_teardown_preflight() {
   _assert_no_doc_marker 'absent-dir' \
     "SKILL.md Step 8 enumeration: must NOT contain 'absent-dir' token — retired with [ ! -d ] semantics; existence check [ ! -e ] supersedes it (BC-6.26.001 EC-008; RED until implementer rewrites; F-S2104-P5-007)" \
     "$skill_step8_section"
-  # Enumeration-correctness gate (F-S2104-P5-007): must reflect v1.7 existence semantics —
+  # Enumeration-correctness gate (F-S2104-P5-007): must reflect existence semantics per BC-6.26.001 —
   # non-directory or symlink → BLOCKED (PC2b). RED until implementer rewrites enumeration.
   _assert_doc_marker 'non-directory.*BLOCK|BLOCK.*non-directory|symlink.*BLOCK|BLOCK.*symlink|non-directory.*PC2b|symlink.*PC2b' \
     "SKILL.md Step 8 enumeration: must reflect existence semantics — non-directory or symlink → BLOCKED (BC-6.26.001 PC2b; RED until implementer rewrites; F-S2104-P5-007)" \
@@ -541,7 +541,7 @@ _run_teardown_preflight() {
   _assert_no_doc_marker 'absent-dir' \
     "WINNING playbook Step 8 enumeration: must NOT contain 'absent-dir' token — retired; existence semantics [ ! -e ] supersedes it (BC-6.26.001 EC-008; RED until implementer rewrites; F-S2104-P5-007)" \
     "$winning_step8_section"
-  # Enumeration-correctness gate (F-S2104-P5-007): must reflect v1.7 existence semantics.
+  # Enumeration-correctness gate (F-S2104-P5-007): must reflect existence semantics per BC-6.26.001.
   _assert_doc_marker 'non-directory.*BLOCK|BLOCK.*non-directory|symlink.*BLOCK|BLOCK.*symlink|non-directory.*PC2b|symlink.*PC2b' \
     "WINNING playbook Step 8 enumeration: must reflect existence semantics — non-directory or symlink → BLOCKED (BC-6.26.001 PC2b; RED until implementer rewrites; F-S2104-P5-007)" \
     "$winning_step8_section"
@@ -899,7 +899,7 @@ _run_teardown_preflight() {
     "$g1_section"
 
   # --- HARNESS: regular file at .factory → PC2b BLOCKED; non-zero exit; find NOT invoked ---
-  # _run_teardown_preflight v1.7 four-step chain: [ ! -e ] → PC2a(a); [ -L ] → PC2b symlink;
+  # _run_teardown_preflight four-step chain (per BC-6.26.001): [ ! -e ] → PC2a(a); [ -L ] → PC2b symlink;
   # [ ! -d ] → PC2b non-directory; directory (no symlink) → run extracted find.
   run _run_teardown_preflight "$MOCK_WORKTREE" "$REMOVE_LOG"
   [ "$status" -ne 0 ] || {
@@ -944,7 +944,7 @@ _run_teardown_preflight() {
   # v1.7 adds [ -L ] BEFORE [ ! -d ] to catch symlinks of all target types (including dir symlinks).
   #
   # DOC-PARITY gate: §G.1 must carry the [ -L ] clause — RED until implementer lands it.
-  # HARNESS: tests the v1.7 four-step chain hardcoded in _run_teardown_preflight.
+  # HARNESS: tests the four-step chain hardcoded in _run_teardown_preflight (per BC-6.26.001).
 
   # Create a real directory for the symlink to point at (inside $WORK so it's accessible).
   # The directory contains a file — confirming find would find content if invoked (it must NOT be).
@@ -990,10 +990,10 @@ _run_teardown_preflight() {
   }
 
   # --- HARNESS: symlink at .factory → PC2b BLOCKED; non-zero exit ---
-  # The v1.7 harness [ -L ] check (step 2, HARDCODED) fires before any find invocation (step 4).
+  # The harness [ -L ] check (step 2, HARDCODED) fires before any find invocation (step 4).
   run _run_teardown_preflight "$MOCK_WORKTREE" "$REMOVE_LOG"
   [ "$status" -ne 0 ] || {
-    echo "HARNESS FAIL: symlink at .factory must return non-zero (PC2b BLOCKED) — got status 0 (v1.7 harness [ -L ] check at step 2 must fire before find at step 4)"
+    echo "HARNESS FAIL: symlink at .factory must return non-zero (PC2b BLOCKED) — got status 0 (harness [ -L ] check at step 2 must fire before find at step 4; per BC-6.26.001)"
     false
   }
   printf '%s\n' "$output" | grep -q 'PREFLIGHT BLOCKED' || {
@@ -1047,10 +1047,13 @@ _run_teardown_preflight() {
   # After fix: surface says "run §G.1 preflight" or "proceed on PASS" without inlining find.
   _assert_no_inline_find_antipattern() {
     local file="$1" label="$2"
-    # Regex catches both canonical forms: '.factory -type f' and '.factory/ -type f'.
-    # The prior pattern '.factory[[:space:]]' missed the trailing-slash form used in step-g-cleanup.md
-    # (find "<worktree-path>/.factory/" -type f); '\.factory/?' makes the slash optional (F-S2104-P6-007).
-    if grep -qE 'find[[:space:]][^ ]*\.factory/?[[:space:]].*-type[[:space:]]+f' "$file"; then
+    # Regex catches unquoted ('.factory -type f', '.factory/ -type f') AND the quoted canonical
+    # form ('find "<worktree-path>/.factory/" -type f') from step-g-cleanup.md:54.
+    # The prior pattern '.factory/?[[:space:]]' failed on the quoted form: after '\.factory/',
+    # the closing '"' precedes the space, so '[[:space:]]' could not match (F-S2104-P7-002).
+    # Fix: '[^[:space:]]*' after '\.factory/?' consumes any trailing non-space chars (e.g., '"')
+    # before '[[:space:]]' matches the argument separator (F-S2104-P6-007 + F-S2104-P7-002).
+    if grep -qE 'find[[:space:]]+[^[:space:]]*\.factory/?[^[:space:]]*[[:space:]].*-type[[:space:]]+f' "$file"; then
       echo "DOC-PARITY FAIL [anti-pattern present in $label]: surface presents inline bare 'find ... .factory[/] ... -type f' as the first action — MUST NOT inline find command; delegate to §G.1 preflight instead (BC-6.26.001 PC2 + AC-007(d); absent-dir check is first, not an unordered sibling; F-S2104-P4-009)"
       false
     fi
@@ -1124,8 +1127,9 @@ _run_teardown_preflight() {
 
 # ===========================================================================
 # F-S2104-P4-003: DOC-PARITY gate — agents/devops-engineer.md §Worktree Cleanup preflight-verification mandate
-# AC-007(d) executor-side defensive preflight
-# RED until implementer adds §G.1/BC-6.26.001 preflight mandate to §Worktree Cleanup section.
+# AC-007(d) / AC-008: executor-side defensive preflight — verify-PASS + run-it-yourself obligations
+# Strengthened (F-S2104-P7-003): prior broad alternation was satisfiable by any bare §G.1/BC-6.26.001
+# mention (paper-gate). Replaced with obligation-asserting gates for both AC-008 obligations.
 # ===========================================================================
 
 _extract_devops_worktree_cleanup_section() {
@@ -1138,20 +1142,40 @@ _extract_devops_worktree_cleanup_section() {
 }
 
 @test "F-S2104-P4-003: agents/devops-engineer.md §Worktree Cleanup — preflight-verification mandate" {
-  # agents/devops-engineer.md §Worktree Cleanup currently says only:
-  #   git worktree remove .worktrees/STORY-NNN
-  # with no §G.1 preflight reference at all.
+  # T-007 / AC-008 — named for ordinal-free reference (F-S2104-P4-003 devops-engineer gate)
   #
-  # The executor-side (devops-engineer) must carry a defensive preflight mandate: verify caller
-  # ran §G.1 preflight per BC-6.26.001 PC2 before executing git worktree remove.
+  # agents/devops-engineer.md §Worktree Cleanup must carry BOTH AC-008 obligations:
+  #   (i)  verify-PASS clause: verify caller ran §G.1 preflight and got a PASS result.
+  #   (ii) run-it-yourself fallback: if not evident from the dispatch, run §G.1 yourself first.
+  #
+  # Prior gate '§G\.1|step-g-cleanup|BC-6\.26\.001|preflight.*worktree remove|...' was satisfiable
+  # by any bare §G.1 or BC-6.26.001 mention — a mutant that adds only a reference token without
+  # the verify/PASS/fallback semantics would pass (F-S2104-P7-003 paper-gate finding).
   # ADR-031 caller-side ruling: the primary gate is caller-side (orchestrator/skill); the
   # executor-side adds defense-in-depth consistent with that ruling.
-  # RED: no §G.1/BC-6.26.001 reference currently in §Worktree Cleanup section.
 
   local devops_cleanup_section
   devops_cleanup_section="$(_extract_devops_worktree_cleanup_section)"
 
-  _assert_doc_marker '§G\.1|step-g-cleanup|BC-6\.26\.001|preflight.*worktree remove|worktree remove.*preflight' \
-    "agents/devops-engineer.md §Worktree Cleanup: must carry §G.1/BC-6.26.001 preflight-verification mandate — executor-side defense-in-depth consistent with ADR-031 caller-side primary; RED until implementer adds preflight mandate to §Worktree Cleanup section (F-S2104-P4-003)" \
+  # Qualified-path assertion: §G.1 reference must be fully qualified with the plugins/ path
+  # (bare '§G.1' alone is insufficient for cross-document traceability; F-S2104-P7-003)
+  _assert_doc_marker 'plugins/vsdd-factory/skills/deliver-story/steps/step-g-cleanup\.md' \
+    "agents/devops-engineer.md §Worktree Cleanup: qualified path 'plugins/vsdd-factory/skills/deliver-story/steps/step-g-cleanup.md' required — bare §G.1 alone is insufficient (F-S2104-P7-003)" \
+    "$devops_cleanup_section"
+
+  # (i) verify-PASS obligation: both tokens required in the section.
+  # 'verify' and 'PASS result|preflight result' appear on different lines; checked separately
+  # for clear failure messages when either is absent.
+  _assert_doc_marker 'verify' \
+    "agents/devops-engineer.md §Worktree Cleanup: (i) verify clause required — AC-008: must instruct executor to verify that caller ran §G.1 preflight (F-S2104-P7-003)" \
+    "$devops_cleanup_section"
+  _assert_doc_marker 'PASS result|preflight result' \
+    "agents/devops-engineer.md §Worktree Cleanup: (i) PASS-result clause required — AC-008: must name the expected PASS outcome explicitly, not just 'check' or 'confirm' (F-S2104-P7-003)" \
+    "$devops_cleanup_section"
+
+  # (ii) run-it-yourself fallback: 'not evident' trigger + explicit run/execute §G.1 instruction.
+  # These tokens co-occur on the same line: "If not evident from the dispatch, run the §G.1 preflight yourself first"
+  _assert_doc_marker 'not evident.*(run|execute).*(§G\.1|step-g-cleanup)' \
+    "agents/devops-engineer.md §Worktree Cleanup: (ii) run-it-yourself fallback required — AC-008: must instruct executor to run §G.1 preflight themselves when PASS result is not evident from the dispatch (F-S2104-P7-003)" \
     "$devops_cleanup_section"
 }

@@ -7,7 +7,7 @@ Fixture scaffolding for `story-worktree-write-path-discipline.bats` (S-21.04 gat
 Tests exercise BC-6.26.001 PC2a (sub-cases a and b) / PC2b (stray files, non-directory inode,
 and symlink) / PC2c: the `find`-based teardown preflight that must run before every
 `git worktree remove` on a story worktree, including the non-directory path (EC-008/T-6)
-and the v1.7 symlink vector (T-006).
+and the symlink vector per BC-6.26.001 PC2b (T-006).
 
 ## Fixture shape
 
@@ -55,7 +55,7 @@ T-005 (regular file at .factory — PC2b non-directory, EC-008/T-6):
   [ ! -e .factory ] is FALSE (correct: path is occupied by non-directory inode)
   find NOT invoked; PREFLIGHT BLOCKED (non-directory case); exit non-zero.
 
-T-006 (symlink at .factory pointing at real dir — PC2b symlink; BC-6.26.001 PC2b v1.7):
+T-006 (symlink at .factory pointing at real dir — PC2b symlink per BC-6.26.001 PC2b):
   $WORK/
     symlink-target-dir/
       target-file.txt      ← real file inside target dir (confirm find would reach it if invoked)
@@ -87,7 +87,7 @@ This story requires no external CLI stubs (unlike S-21.03's `gh`/`git` stubs). T
 `_run_teardown_preflight()` (defined inline in the .bats file) implements the
 BC-6.26.001 PC2a/PC2b/PC2c logic using an anti-tautology extraction gate:
 
-v1.7 four-step chain (steps 1–3 HARDCODED; step 4 doc-derived via extraction):
+The BC discrimination chain (steps 1–3 HARDCODED; step 4 doc-derived via extraction):
 
 1. `[ ! -e ]` → PC2a(a): path absent → proceed (REMOVE_LOG written, return 0).
 2. `[ -L ]`   → PC2b: symlink at path → BLOCKED regardless of target type (return 1).
