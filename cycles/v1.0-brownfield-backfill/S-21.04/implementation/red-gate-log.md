@@ -1,16 +1,20 @@
 ---
 document_type: red-gate-log
 level: ops
-version: "1.0"
+version: "1.1"
 status: verified
 producer: test-writer
-timestamp: 2026-07-25T00:00:00Z
+timestamp: 2026-07-25T02:30:00Z
 phase: 3
 inputs:
   - .factory/stories/S-21.04-story-worktree-write-path-discipline.md
   - .factory/specs/behavioral-contracts/ss-06/BC-6.26.001.md
 input-hash: "55904fb"
-traces_to: "BC-6.26.001 v1.3"
+traces_to: "BC-6.26.001 v1.5"
+last_amended: "2026-07-25 D-896 state-manager — T-004/RG-004 attestation addendum (F-S2104-P2-013) + quintuple parity v1.5 (F-S2104-P2-017); prior: 2026-07-25 D-895 state-manager — erratum F-S2104-P1-009 (RG-ID mapping + AC-002 attribution)"
+modified:
+  - "2026-07-25 D-895: Erratum appended — RG-ID mapping corrected (RG-001/002/003), fabricated RG-004/005 documented, AC-002 attribution corrected (F-S2104-P1-009)"
+  - "2026-07-25 D-896: T-004/RG-004 attestation addendum appended; frontmatter version 1.0→1.1, traces_to updated to v1.5, §Traces BC cites updated to v1.5 (F-S2104-P2-013, F-S2104-P2-017)"
 stub_architect_agent: "N/A — no code stubs (skill-doc + bats story; ADR-031 §Decision 4 class; POLICY 21 satisfied)"
 stub_compile_verified: true
 test_writer_agent: vsdd-factory:test-writer
@@ -80,9 +84,12 @@ No `#[should_panic]` masking. No vacuously-passing new tests. Failure mechanism 
 
 ## Traces
 
-- T-001 (AC-003 / RG-003) → BC-6.26.001 v1.3 PC2b (Invariant 2): stray `.factory/` file triggers PREFLIGHT BLOCKED; `git worktree remove` NOT called
-- T-002 (AC-004 / RG-004) → BC-6.26.001 v1.3 PC2a: empty shadow tree → teardown proceeds; `git worktree remove` IS called
-- T-003 (AC-005 / RG-005) → BC-6.26.001 v1.3 PC2b→PC2a retry path: stray file relocated → preflight re-runs clean → teardown proceeds
+- T-001 (AC-003 / RG-001†) → BC-6.26.001 v1.5 PC2b (Invariant 2): stray `.factory/` file triggers PREFLIGHT BLOCKED; `git worktree remove` NOT called
+- T-002 (AC-004 / RG-002†) → BC-6.26.001 v1.5 PC2a: empty shadow tree → teardown proceeds; `git worktree remove` IS called
+- T-003 (AC-005 / RG-003†) → BC-6.26.001 v1.5 PC2b→PC2a retry path: stray file relocated → preflight re-runs clean → teardown proceeds
+- T-004 (AC-006 / RG-004) → BC-6.26.001 v1.5 PC2c: non-path-absent find error → fail-closed HALT; `git worktree remove` NOT called (addendum D-896)
+
+† RG-ID corrections per D-895 Erratum §Defect 2 (original log had fabricated RG-003/RG-004/RG-005; corrected to RG-001/RG-002/RG-003).
 
 ## Commits
 
@@ -127,3 +134,31 @@ The Bats Tests table showed `T-001 | AC-003 / RG-003` and Traces showed `T-001 (
 Hand-Off task 1 originally read: "Unblocks AC-001/AC-002." AC-002 (teardown preflight sub-step in step-g-cleanup.md) is **not** unblocked by `_shared-context.md` amendments. AC-002 is defined against `step-g-cleanup.md §G.1` (Hand-Off task 2). Corrected to "Unblocks AC-001." in the Hand-Off section above.
 
 **Authority:** story v1.4 §Red Gate Test Plan (RG-001..RG-003); BC-6.26.001 v1.4 AC-002 definition. Fix committed D-895 burst, state-manager.
+
+---
+
+## T-004 / RG-004 Attestation Addendum (F-S2104-P2-013)
+
+**Appended:** 2026-07-25 (D-896 S-21.04 pass-2 closure; state-manager)
+
+The original red-gate-log covered T-001/T-002/T-003 only. T-004 (PC2c fail-closed HALT) was added by the test-writer as a pass-1 fix leg (F-S2104-P1-003) at commit `7d38b9e6`. The original attestation record did not include T-004's Red Gate status. This addendum corrects that omission.
+
+### T-004 — PC2c Fail-Closed HALT (AC-006 / RG-004)
+
+**Test:** T-004 asserts that when `find <worktree>/.factory -type f` exits non-zero for a reason other than path-absence (PC2c condition), teardown MUST halt with `PREFLIGHT BLOCKED` rather than proceeding.
+
+**Red Gate state at test-writer commit `7d38b9e6`:**
+
+Suite run: `bats plugins/vsdd-factory/tests/story-worktree-write-path-discipline.bats` → `1..4`; all 4 `not ok`. T-004 fails at `_assert_doc_marker` (DOC-PARITY): "PC2c fail-closed HALT branch must be documented in §G.1" — the PC2c HALT clause was not yet present in `step-g-cleanup.md §G.1`. Pre-implementation, the awk extraction gate confirms absence; T-004 cannot pass until the PC2c branch is explicitly documented.
+
+**Implementation commit that turned T-004 green:** `19271a65` — added PC2c HALT clause to `step-g-cleanup.md §G.1` ("if `find` exits non-zero for a non-path-absent reason, emit `PREFLIGHT BLOCKED (PC2c)` and halt; `git worktree remove` NOT called"). Post-implementation suite: `1..4`; all 4 `ok`.
+
+**RG-004 source of truth:** story v1.5 §Red Gate Test Plan (6149e893). Story v1.4 covered RG-001..RG-003 only; RG-004 (PC2c) was added by story-writer at commit 6149e893 as part of F-S2104-P2-007 five-table propagation fix.
+
+**BC trace:** T-004 (AC-006 / RG-004) → BC-6.26.001 v1.5 PC2c (Invariant TBD): non-path-absent find error → fail-closed HALT; `git worktree remove` NOT called.
+
+**Summary row for completeness:**
+
+| Test | AC / RG ID | BC Trace | Failure Reason at Red Gate | Green Commit |
+|------|-----------|----------|---------------------------|--------------|
+| T-004 | AC-006 / RG-004 | BC-6.26.001 v1.5 PC2c | DOC-PARITY: PC2c fail-closed HALT clause absent from §G.1 at `7d38b9e6` | `19271a65` |

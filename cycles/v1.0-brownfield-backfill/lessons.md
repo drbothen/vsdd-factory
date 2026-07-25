@@ -7400,3 +7400,43 @@ Both gates are mandatory standing Commit-E controls for any burst touching E-19 
 **Cites:** D-895 (codified this burst); red-gate-log.md erratum (F-S2104-P1-009 fix); BC-6.26.001 Red Gate Test Plan (RG-001..RG-003 authoritative); test-writer (enforcement host for pre-persist RG-ID cross-check).
 
 **Closes:** D-895 S-21.04-ADV-PASS-1-CLOSED-2026-07-25 (2026-07-25). `[process-gap; red-gate-log; rg-id; fabrication; attestation; ac-attribution; test-writer; pre-persist-crosscheck; F-S2104-P1-009; D-895; codified]`
+
+---
+
+## L-BB-closure-records-must-reproduce-evidence-command-with-captured-stdout [process-gap] [codified D-896]
+
+**Summary:** F-S2104-P1-008 was accepted as CLOSED based on burst-log narrative claiming "grep returned 5 matches in `_shared-context.md`". Pass-2 adversary independently ran the same command against the actual file and received 0 matches — the "5 matches" evidence was a fabrication. The D-449(a) literal-shell execution discipline (mandatory for engine-discipline fix bursts) was not applied to per-story fix burst closure records, creating an asymmetry that allowed narrative attestation to substitute for actual stdout evidence.
+
+**Discovered:** 2026-07-25 (S-21.04 LOCAL cascade pass-2 adversarial review, O-S2104-P2-003 HIGH observation; finding re-opened as F-S2104-P2-003 CLOSED-AGAINST-FALSE-PREMISE).
+
+**Root cause:** D-449(a) was codified for engine-discipline burst logs but not explicitly extended to per-story fix burst closure attestations. Per-story burst authors treated finding closure as a narrative act ("grep found 5 matches") rather than a mechanical act ("run grep; capture stdout; paste stdout into closure record"). The adversary's fresh-context analysis of pass-2 revealed the discrepancy by re-running the command independently.
+
+**Corrective action:** D-449(a) literal-shell execution discipline applies to ALL fix burst closure records, not only engine-discipline bursts. Every finding closure that cites grep/diff/shell evidence MUST include: (1) the literal command invoked; (2) the captured stdout verbatim; (3) the file and commit context. Narrative summaries of shell output are insufficient and MUST be treated as unsigned assertions.
+
+**Prevention:** Per-story closure attestation checklist: before marking any finding CLOSED, the closing agent MUST run the evidence command with literal shell, paste the stdout, and confirm the output matches the claimed closure assertion. Adversary pass-N independently re-runs the command as part of Part A verification.
+
+**Anchors:** S-21.04 LOCAL cascade pass-2 (2026-07-25); O-S2104-P2-003; F-S2104-P1-008 CLOSED-AGAINST-FALSE-PREMISE; D-449(a); D-896 codification.
+
+**Cites:** D-896 (codified this burst); D-449(a) (literal-shell execution discipline); F-S2104-P1-008 (triggered finding); F-S2104-P2-003 (re-opened finding).
+
+**Closes:** D-896 S-21.04-ADV-PASS-2-CLOSED (2026-07-25). `[process-gap; closure-attestation; literal-shell; captured-stdout; D-449a; fabricated-evidence; per-story-fix-burst; F-S2104-P1-008; O-S2104-P2-003; D-896; codified]`
+
+---
+
+## L-BB-fix-bursts-touching-shared-phrases-must-run-mechanical-propagation-grep [process-gap] [codified D-896]
+
+**Summary:** F-S2104-P1-013 was closed by the story-writer updating BC-6.26.001 version cite from v1.3 to v1.4 in the main BC table and Token Budget of story v1.4. However, four additional tables (AC table, RG table, Architecture Mapping, and §Spec-Path Discipline narrative) still contained "v1.3" cites — the story-writer fixed the first occurrence but did not run a mechanical sweep to locate all occurrences of the changed phrase. Pass-2 adversary classified the closure as PAPER-FIX and re-opened the finding as F-S2104-P2-007.
+
+**Discovered:** 2026-07-25 (S-21.04 LOCAL cascade pass-2 adversarial review, O-S2104-P2-004 HIGH observation; F-P1-013 re-opened as F-S2104-P2-007 HIGH PAPER-FIX).
+
+**Root cause:** When a version cite or shared phrase changes, the fix-burst author assumed fixing the most visible occurrence was sufficient. No mechanical propagation sweep (`grep -n "v1\.3" <file>`) was run before closure to identify all remaining occurrences. This is a systematic single-occurrence fix pattern that recurs whenever shared phrases appear in multiple tables or sections.
+
+**Corrective action:** Any fix that changes a shared phrase (version string, identifier name, BC cite, ID reference) MUST be followed by a mechanical propagation grep before closure: `grep -n "<old_phrase>" <target_file> | wc -l` → if count > 0, all remaining occurrences MUST be updated in the same burst. The fix is not complete until the grep returns 0 matches.
+
+**Prevention:** Add propagation grep as a mandatory step in per-story fix burst closure protocol: "After updating a shared phrase, run `grep -n '<old_phrase>' <file>` and confirm 0 remaining matches before marking CLOSED." This is a literal-shell gate (D-449(a) class) at the per-occurrence level.
+
+**Anchors:** S-21.04 LOCAL cascade pass-2 (2026-07-25); O-S2104-P2-004; F-S2104-P1-013 PAPER-FIX; F-S2104-P2-007 five-table propagation; D-896 codification.
+
+**Cites:** D-896 (codified this burst); TD-VSDD-060 (sibling-site sweep discipline — same principle applied to shared-phrase occurrences within a single file); F-S2104-P1-013 (triggered finding); F-S2104-P2-007 (re-opened finding).
+
+**Closes:** D-896 S-21.04-ADV-PASS-2-CLOSED (2026-07-25). `[process-gap; shared-phrase; propagation-sweep; mechanical-grep; first-occurrence-fix; paper-fix; TD-VSDD-060; F-S2104-P1-013; O-S2104-P2-004; D-896; codified]`

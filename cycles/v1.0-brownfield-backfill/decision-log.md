@@ -11231,3 +11231,80 @@ D-895-S2104-ADV-PASS-1-CLOSED-2026-07-25
 ### Date
 
 2026-07-25
+
+---
+
+## D-896
+
+### Title
+
+S-21.04 LOCAL adversarial cascade PASS-2 CLOSED — NOT-CLEAN B1/H6/M6/L4/N1 (18 findings); streak 0/3
+
+### Context
+
+S-21.04 LOCAL adversarial cascade pass-2 (BC-5.39.001 3-CLEAN protocol). Pass-2 adversary reviewed the worktree state at HEAD `2d6297da` (after all pass-1 fix legs; before pass-2 fix legs). The adversary returned NOT-CLEAN with B1/H6/M6/L4/N1 + 5 observations. Three pass-1 closures were reclassified: F-P1-001 REGRESSED-INCOMPLETE (preflight bypass flag), F-P1-008 CLOSED-AGAINST-FALSE-PREMISE (fabricated "5 matches" grep evidence; actual 0), F-P1-013 PAPER-FIX (five-table propagation incomplete). Novelty 0.56 HIGH. All 18 findings routed to 7 specialists; all fix legs landed before this closure burst.
+
+### Decision
+
+Accept pass-2 verdict NOT-CLEAN. Close D-896 S-21.04-ADV-PASS-2-CLOSED. Streak remains 0/3. Dispatch pass-3.
+
+**Pass-2 finding summary:** B1/H6/M6/L4/N1 — 18 findings + 5 observations.
+
+**Severity breakdown:**
+- BLOCKER (1): F-S2104-P2-001 — preflight mandate non-mandatory via FACTORY_FAST_TEARDOWN flag (implementer a4d4ffab)
+- HIGH (6): F-S2104-P2-002..007 — BC fail-closed language + ADR-031 scope boundary + false-premise sibling sweep + five-table propagation (product-owner 32f8c5cd; architect 9dfb6121; story-writer 6149e893)
+- MEDIUM (6): F-S2104-P2-008..013 — test assertion hardening + fallback non-determinism + red-gate-log attestation (test-writer 0852a49d; implementer 847f6021+39b2d15c; state-manager this burst)
+- LOW (4): F-S2104-P2-014/015/017/018 — env var naming drift + T-004 fixture + red-gate-log parity + §G.1 placeholder (implementer 1955ab88+2f84f56d; test-writer 0852a49d; state-manager this burst)
+- NITPICK (1): F-S2104-P2-016 — T-004 header comment (test-writer 0852a49d)
+
+**Fix-leg routing (all landed before this burst):**
+| Agent | Commit | Findings |
+|-------|--------|---------|
+| implementer | a4d4ffab | F-001 BLOCKER winning playbook |
+| product-owner | 32f8c5cd | F-002 BC leg + O-005 caller-side alignment |
+| architect | 9dfb6121 | F-002 ADR legs + F-003 + F-004 four-site sweep |
+| implementer | 1a75c0ae | F-005 |
+| implementer | e6ad68c1 | F-006 |
+| story-writer | 6149e893 | F-007 five-table propagation + AC-007 + RG-004 + T-004 |
+| test-writer | 0852a49d | F-008 + F-009 + F-010 + F-015 + F-016 |
+| implementer | 847f6021 | F-011 |
+| implementer | 39b2d15c | F-012 |
+| state-manager | D-896 this burst | F-013 (red-gate-log T-004 attestation) + F-017 (quintuple parity) |
+| implementer | 1955ab88 | F-014 |
+| implementer | 2f84f56d | F-018 |
+
+**Worktree HEAD after all fix legs:** `2f84f56d`
+
+**Observations (O-003/004 → lessons):**
+- O-S2104-P2-003 [process-gap]: literal-shell closure attestation → L-BB-closure-records-must-reproduce-evidence-command-with-captured-stdout
+- O-S2104-P2-004 [process-gap]: propagation sweep → L-BB-fix-bursts-touching-shared-phrases-must-run-mechanical-propagation-grep
+
+### Rationale
+
+All 18 findings fully addressed by 7 specialists before this closure burst. Two state-manager findings (F-013/F-017) closed in this burst. Streak remains 0/3 per BC-5.39.001 (any finding resets streak). Pass-3 required.
+
+### BURST DELIVERABLES
+
+1. `cycles/v1.0-brownfield-backfill/S-21.04/adversary-pass-02.md` — pass-2 review record created (B1/H6/M6/L4/N1, 18 findings + 5 observations, Part A pass-1 verification table, Novelty Assessment).
+2. `cycles/v1.0-brownfield-backfill/S-21.04/implementation/red-gate-log.md` — T-004/RG-004 attestation addendum appended (F-S2104-P2-013); frontmatter version 1.0→1.1, traces_to v1.3→v1.5, modified[]/last_amended added, §Traces BC cites updated to v1.5 (F-S2104-P2-017).
+3. `specs/behavioral-contracts/BC-INDEX.md` — BC-6.26.001 row v1.4→v1.5; BC-INDEX v4.26→v4.27; last_amended prepended.
+4. `stories/STORY-INDEX.md` — S-21.04 row story v1.4→v1.5, input-hash 510a89a→be1fd41, AC-007 note added, Refs updated; STORY-INDEX v4.249→v4.250; last_amended prepended.
+5. `specs/architecture/ARCH-INDEX.md` — ADR-031 row v1.10 amendment note appended; ARCH-INDEX v3.30→v3.31; last_amended prepended.
+6. `specs/verification-properties/VP-INDEX.md` — UNCHANGED (v2.72; no VP changes this burst).
+7. `cycles/v1.0-brownfield-backfill/lessons.md` — two [process-gap] lessons appended: L-BB-closure-records-must-reproduce-evidence-command-with-captured-stdout + L-BB-fix-bursts-touching-shared-phrases-must-run-mechanical-propagation-grep.
+8. This D-896 decision-log.md block.
+9. `STATE.md` frontmatter-minimal advance: version v6.32→v6.33; timestamp advanced; phase → D-896-S2104-ADV-PASS-2-CLOSED; last_amended prepended.
+
+POLICY 14 4-INDEX GATE (literal shell — run before commit): expect BC v4.27 / VP v2.72 / STORY v4.250 / ARCH v3.31.
+
+NEXT: S-21.04 LOCAL adversarial cascade pass-3 dispatch. Streak 0/3.
+
+STATE.md v6.32→v6.33. develop HEAD `948f0fb1`; main `80e5cd7b` UNCHANGED.
+
+### Phase
+
+D-896-S2104-ADV-PASS-2-CLOSED
+
+### Date
+
+2026-07-25
