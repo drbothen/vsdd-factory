@@ -61,6 +61,35 @@ Pass only the specific files each specialist needs. Never pass the whole story f
 
 **Enforcement:** Before building the context package for any specialist dispatch involving spec files, the orchestrator MUST resolve the canonical repo-root path for each spec file and pass that path — not `<worktree>/.factory/<anything>`. If the canonical path cannot be resolved (e.g., factory-artifacts worktree is not mounted), STOP and report to the human before dispatching.
 
+#### Write Discipline — `.factory/**` artifact writes from story worktrees (BC-6.26.001 PC1, Invariants 1, 3, 4)
+
+All `.factory/**` artifact writes performed during story delivery MUST use canonical absolute paths
+anchored to the main-checkout root. CWD-relative paths (e.g., `.factory/stories/S-NNN-DELIVERY.md`
+resolved from the story worktree CWD) are FORBIDDEN — such writes land silently in the story
+worktree's shadow `.factory/` subtree and are permanently destroyed at teardown (issue #523
+gitignored-shadow mechanism; BC-6.26.001 Invariant 5).
+
+**Load-bearing cases (BC-6.26.001 Invariant 4):** The DELIVERY ledger (`*-DELIVERY.md`),
+story-frontmatter files, and `pr-review.md` records are the primary artifacts at risk. All writes
+to any `.factory/**` path are covered by this rule — not only DELIVERY ledgers.
+
+**Canonical root determination (BC-6.26.001 Invariant 3):** The canonical `.factory/` root MUST
+be determined via one of two methods:
+
+- `CANONICAL_FACTORY_ROOT` — orchestrator-provided variable containing the absolute path to the
+  main-checkout root. Use this when the orchestrator supplies it in the dispatch preamble.
+- `git -C <main-worktree-path> rev-parse --show-toplevel` — where `<main-worktree-path>` is the
+  path of the MAIN checkout, NOT the story worktree path.
+
+**WARNING (EC-006):** Running `git -C <story-worktree-path> rev-parse --show-toplevel` — i.e.,
+using the story worktree path instead of the main worktree path — returns the story worktree root,
+NOT the main checkout root. The two roots differ, and using the story worktree root defeats the
+purpose of canonical path resolution. Always resolve from the MAIN worktree path or use the
+pre-provided `CANONICAL_FACTORY_ROOT`.
+
+- **Correct:** `Write(file_path="$CANONICAL_FACTORY_ROOT/.factory/stories/S-NNN-DELIVERY.md", ...)`
+- **Forbidden:** `Write(file_path=".factory/stories/S-NNN-DELIVERY.md", ...)` (relative path — silently writes to shadow tree)
+
 If a story is too large to fit any specialist's budget (≥60% of target model's context window), STOP and dispatch story-writer to split it before proceeding.
 
 ## Verification Discipline
