@@ -74,7 +74,7 @@ When `--scope` is not `full`, note the scope limitation in the review output hea
 
 ## Worktree-Identity Preflight (MANDATORY)
 
-Before dispatching the adversary for a Perimeter-1 per-story review, the orchestrator MUST resolve and embed the worktree-identity tuple. Skipping this step causes the adversary to read the wrong git tree — either `.factory/` content from a live shadow write (no `.factory/` directory is created at worktree-checkout time; any worktree `.factory/` content is issue #523 shadow-write evidence that MUST be reported as a defect signal, not used as spec ground-truth; #169) or the wrong feature checkout (#176) — producing phantom "absent file" findings or a dangerous false-GREEN review.
+Before dispatching the adversary for a Perimeter-1 per-story review, the orchestrator MUST resolve and embed the worktree-identity tuple. Skipping this step causes the adversary to read the wrong git tree — either `.factory/` content from a live shadow write (no `.factory/` directory is created at worktree-checkout time; any worktree `.factory/` content is issue #523 shadow-write evidence subject to BC-6.26.001 Invariant 5 that MUST be reported as a defect signal, not used as spec ground-truth; the `step-g-cleanup.md §G.1` teardown preflight exists to catch this class before `git worktree remove` destroys it; #169) or the wrong feature checkout (#176) — producing phantom "absent file" findings or a dangerous false-GREEN review.
 
 **Orchestrator steps (pre-dispatch):**
 
