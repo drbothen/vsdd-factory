@@ -7756,3 +7756,27 @@ The mutant self-check is evidence, not just process. The test-writer report MUST
 **Cites:** D-903 (codified this burst); F-S2104-P7-001 (trigger — RG vacuum enabling fabrication); POLICY 1 (accuracy obligation); POLICY 17 (attestation integrity); POLICY 4 (spec/implementation parity); red-gate-log.md (structural pattern that enables RG vacuum when §Test Vectors and §Red Gates are not updated atomically).
 
 **Closes:** D-903 S-21.04-ADV-PASS-7-CLOSED (2026-07-25). `[process-gap; rg-vacuum; rg-register; t-vector; red-gate-log; simultaneous-registration; fabrication-prevention; traceability; D-903; codified]`
+
+---
+
+## L-BB-class-bounded-record-sweep [process-gap] [codified D-904]
+
+**Summary:** When fixing a defect in a record artifact (red-gate-log, burst-log, addendum section), the fix MUST sweep the entire file for every occurrence of the defect CLASS, not merely the cited line. Line-scoped fixes leave sibling instances of the same defect intact and create a class of findings that survive indefinitely — each pass corrects one cited line while leaving the uncited sibling unchanged.
+
+**Discovered:** 2026-07-25 (S-21.04 LOCAL cascade pass-8; F-S2104-P8-001 HIGH — §Bats Tests table T-001/T-002/T-003 carried the F-P1-009 fabricated RG-IDs (RG-003/004/005) for six full passes after D-895 corrected §Traces for the same defect; the D-895 fix was scoped to §Traces only, leaving the §Bats Tests table — which exhibited the same defect class — uncorrected).
+
+**Root cause:** The record-fixer role is given a finding that cites a specific line (e.g., "§Traces L94-95"). The fix is applied to exactly that line. The same defect may exist elsewhere in the same file (e.g., §Bats Tests table L61-63 carries identical fabricated IDs). Without an explicit class-sweep step, the uncited sibling survives every subsequent pass — even passes that amend the same file — because each new finding only cites the line it observed, and fixing that line does not surface the sibling.
+
+**Corrective action — class-bounded sweep mandate:** For every finding that identifies a defect in a record artifact:
+1. Identify the defect CLASS (e.g., "fabricated RG-ID assigned to T-NNN", "BC version cite at wrong version", "count label citing wrong number").
+2. Before closing the finding, grep the entire file for ALL occurrences of that defect class.
+3. Fix every occurrence found, not just the cited line.
+4. Document the sweep result: "class sweep: N occurrences fixed / M additional sibling instances corrected beyond cited line."
+
+**Prevention:** Finding closure notes for record-artifact fixes MUST include a class-sweep confirmation: "Swept file for [defect class]: [N occurrences fixed]. Additional siblings: [list or 'none']." The absence of this confirmation in a closure note is a signal that only the cited line was fixed.
+
+**Anchors:** S-21.04 LOCAL cascade pass-8 (2026-07-25); F-S2104-P8-001 HIGH (trigger — §Bats Tests table fabricated RG-IDs surviving 6 passes after §Traces corrected at D-895); D-895 (first correction — §Traces only; §Bats Tests table not swept); D-896..D-903 (six passes each amending red-gate-log.md without sweeping the §Bats Tests table for the RG-ID defect class); red-gate-log.md v1.6 (D-904 whole-file RG reconciliation corrects the table at last).
+
+**Cites:** D-904 (codified this burst); F-S2104-P8-001 (trigger — 6-pass survival of cited-line-only fix); POLICY 1 (accuracy obligation); POLICY 4 (spec/implementation parity); TD-VSDD-059 (paper-fix detection — line-scoped fix without class sweep is a paper-fix pattern); TD-VSDD-060 (sibling-site sweep mandate — this lesson is the record-artifact instantiation of that general rule).
+
+**Closes:** D-904 S-21.04-ADV-PASS-8-CLOSED (2026-07-25). `[process-gap; class-bounded-sweep; record-artifact; sibling-instance; red-gate-log; rg-id; fabrication; td-vsdd-060; paper-fix; D-904; codified]`

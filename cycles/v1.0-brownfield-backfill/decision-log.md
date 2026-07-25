@@ -11743,3 +11743,55 @@ D-903-S2104-ADV-PASS-7-CLOSED
 ### Date
 
 2026-07-25
+
+## D-904
+
+### Title
+
+S2104-ADV-PASS-8-CLOSED — NOT-CLEAN B0/H3/M4/L2; 9 findings fixed; behavioral-axis-converged note; streak 0/3; NEXT pass-9 (first genuine CLEAN candidate)
+
+### Context
+
+S-21.04 LOCAL adversarial cascade pass-8. Verdict: NOT-CLEAN — B0/H3/M4/L2 (9 findings F-S2104-P8-001..009). Novelty 0.58. Trajectory 14→18→17→12→11→11→9→9. Streak 0/3.
+
+Per-pass-7 verification: 6 CONFIRMED-CLOSED (F-P7-002/003/004/005/007/008), 3 PARTIAL (F-P7-001→P8-001/002/007; F-P7-006→P8-008; F-P7-009 CHANGELOG survivor raised fresh as P8-006). Zero paper-fixes; zero false closures. Adversary meta: behavioral axis CONVERGED (all surfaces mutually congruent; every gate mechanically load-bearing); 7 of 9 findings in attestation/record artifacts; prescription = record-axis sweeps bounded by defect class, not cited line.
+
+POLICY 16 GLOBAL-MAX GATE (literal shell): `grep -n "^## D-" decision-log.md | tail -3` → `11592:## D-901 / 11640:## D-902 / 11692:## D-903`. D-903 confirmed prior max → D-904 allocated.
+
+### Decision
+
+D-904 burst scope executed:
+
+1. **POLICY 16 gate (literal stdout)**: `grep -n "^## D-" decision-log.md | tail -3` → `11592:## D-901 / 11640:## D-902 / 11692:## D-903`. D-903 confirmed prior max → D-904 allocated.
+
+2. **adversary-pass-08.md created** at `cycles/v1.0-brownfield-backfill/S-21.04/adversary-pass-08.md`: verbatim Part A finding table (9 findings B0/H3/M4/L2), observations (verbatim), per-pass-7 verification (verbatim), fix mapping (9 FIXED). Reviewed head: 9d896bf5. Novelty 0.58.
+
+3. **F-S2104-P8-001 FIX — red-gate-log.md v1.5→v1.6 whole-file RG reconciliation**:
+   - (a) §Bats Tests table T-001→RG-001†, T-002→RG-002†, T-003→RG-003† (table correction omitted at D-895, surviving six passes; see F-S2104-P8-001).
+   - (b) † footnote extended: "† applies to this table and §Traces: original log fabricated RG-003/004/005 for T-001..003; corrected to RG-001/002/003 (D-895 §Traces; D-904 this table — the table correction was omitted at D-895, surviving six passes; see F-S2104-P8-001)."
+   - (c) NEW §T-008 addendum: AC-007/RG-008; six-surface §G.1 mandate regression gate; observed RED at 60f0d2d6; GREEN at a317fd77; quote-tolerant mutant-proof at 052620dc (OLD regex NO MATCH, NEW MATCH); registered T-008/RG-008 at story v1.12.
+   - (d) NEW §T-009 addendum: AC-009/RG-009; awareness-clause doc-parity; observed RED at 60f0d2d6; GREEN at 4265c96c; registered T-009/RG-009 anchored to NEW AC-009 (BC-6.26.001 Invariant 5) at story v1.12.
+   - (e) §T-007 mutant-proof expanded verbatim: "Mutant evidence (recorded): scratch reduction of devops-engineer.md §Worktree Cleanup to 'Run git worktree remove (see BC-6.26.001).' → all four obligation gates NO MATCH (RED): qualified-path, verify, PASS-result, not-evident-run-yourself; restoring the section → GREEN. Performed by test-writer at 052620dc."
+   - (f) Summary line: "9 bats tests: T-001..T-006 (behavioral vectors) + T-007/T-008/T-009 (doc-parity propagation gates). All GREEN at worktree HEAD 9d896bf5. All nine tests carry T-IDs, RG rows (RG-001..RG-009), and attestation sections in this log."
+   - (g) Whole-file RG reconciliation against story v1.12 map (RG-001→T-001, RG-002→T-002, RG-003→T-003, RG-004→T-004, RG-005→T-006, RG-006→T-005, RG-007→T-007, RG-008→T-008, RG-009→T-009): residual mismatches found-and-fixed = §Bats Tests table T-001/T-002/T-003 (corrected in (a)). No further body mismatches.
+   - Frontmatter: version 1.5→1.6; traces_to BC-6.26.001 v1.9→v1.10; input-hash 7abb656→43e6df2 (hook-computed by operator-level binary; story v1.12 + BC v1.10 drift); BC-6.26.001 v1.9→v1.10 cite quintuple parity throughout body.
+
+4. **4-INDEX updates**:
+   - BC-INDEX: BC-6.26.001 v1.9→v1.10 (product-owner commit 116df361; F-003 ADR Reference traceability row); BC-6.27.001 v1.3→v1.4 (product-owner commit 116df361; sibling class sweep); BC-INDEX v4.31→v4.32.
+   - STORY-INDEX: S-21.04 row story v1.11→v1.12 + input-hash 58da074→58d94b8 + BC cite v1.9→v1.10 + T-008/T-009/AC-009 registration notes + pass-8 refs appended; STORY-INDEX v4.255→v4.256.
+   - ARCH-INDEX: v3.33 VERIFIED UNCHANGED.
+   - VP-INDEX: v2.72 VERIFIED UNCHANGED.
+
+5. **LESSON [process-gap]**: `L-BB-class-bounded-record-sweep` — record-artifact fixes MUST sweep the whole file for the defect CLASS, not just the cited line. P8-001's six-pass survival inside a file amended by six bursts is the type specimen. TD-VSDD-060 instantiation for record artifacts.
+
+6. **STATE.md frontmatter-minimal**: v6.41→v6.42; phase D-904-S2104-ADV-PASS-8-CLOSED.
+
+POLICY 14 gate (literal shell — post-edit): `grep -m1 "^version:" BC-INDEX.md VP-INDEX.md STORY-INDEX.md ARCH-INDEX.md` → BC v4.32 / VP v2.72 / STORY v4.256 / ARCH v3.33.
+
+### Phase
+
+D-904-S2104-ADV-PASS-8-CLOSED
+
+### Date
+
+2026-07-25
