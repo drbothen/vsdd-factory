@@ -11112,3 +11112,46 @@ D-892-SESSION-WRAP-PAUSED-2026-07-24
 ### Date
 
 2026-07-24
+
+2026-07-25
+
+## D-893
+
+E21-W2-S-21.04-DISPATCHED-2026-07-24. POLICY 16 GLOBAL-MAX GATE: `grep -n "^## D-" decision-log.md | tail -3` → `11002:## D-890 / 11030:## D-891 / 11078:## D-892`; D-892 confirmed prior max → D-893 allocated. DISPATCH-SIDE ADVANCE BURST (state-manager; TD-VSDD-053 single-commit; human resume directive 2026-07-24 — structured resume gate: "Dispatch E-21 W2 (S-21.04)").
+
+PIPELINE STATUS: `pipeline: PAUSED → ACTIVE` (E-21 Phase-3 W2 per D-862 SEQUENTIAL approval). rc.24 DEFERRED AGAIN by explicit human decision (re-surface at next wrap per orchestrator context). W2 dispatch sequence per D-862 SEQUENTIAL: S-21.04 → S-21.05.
+
+STORY DISPATCHED: S-21.04 — story-worktree factory artifact write-path discipline and teardown preflight.
+- Status: draft (unchanged at dispatch-side advance per D-879/D-886/D-888 precedent)
+- Priority: P1; Points: 5pts; Wave: 2
+- Capability: CAP-036
+- Issue: #523
+- BC: BC-6.26.001 v1.3
+- Architecture: ADR-031 anchored; SS-06
+- Story file: `.factory/stories/S-21.04-story-worktree-write-path-discipline.md` (v1.2; input-hash 709f937)
+- Target module: `plugins/vsdd-factory/skills/deliver-story/steps/_shared-context.md` + `step-g-cleanup.md`
+- Input-drift: resolved at D-862 (12-file re-sync, 0 DRIFT); compute-input-hash cache-authoritative values in use per D-892 §4 — NOT re-run this burst (dual-binary divergence; rc.24 item 2)
+
+SPRINT-STATE.YAML: NOT updated — dispatch-side advance precedent D-879/D-886/D-888 keeps S-21.04 status at `draft` unchanged (delivery burst will advance to in-progress/completed).
+
+SHA POSITIONS:
+- develop HEAD: `948f0fb1` (fix PR #763 squash-merged 2026-07-24; UNCHANGED from D-892)
+- main HEAD: `80e5cd7b` UNCHANGED
+- factory-artifacts pre-dispatch HEAD: `238be822` (D-892 session-wrap)
+
+POLICY 14 4-INDEX GATE (literal shell): `grep -m1 "^version:" BC-INDEX.md VP-INDEX.md STORY-INDEX.md ARCH-INDEX.md` → BC-INDEX: "4.25" / VP-INDEX: "2.72" / STORY-INDEX: "4.247" / ARCH-INDEX: "3.29". ALL UNCHANGED this burst.
+
+BURST DELIVERABLES:
+1. This D-893 decision-log.md block.
+2. STATE.md frontmatter-minimal advance: version v6.29→v6.30; timestamp advanced; phase → D-893-E21-W2-S-21.04-DISPATCHED-2026-07-24; last_amended prepended. pipeline (line 15), phase-summary (line 16), and current_step (line 17) NOT updated — hook constraint (D-866..D-892 precedent; verify-state-timestamp-refresh; ADR-032 fix not yet in operator cache). Session Resume Checkpoint body NOT updated — authoritative resume: session-checkpoints.md latest checkpoint.
+3. Dispatcher log dirt (logs/dispatcher-internal-2026-07-24.jsonl) + sidecar-learning.md staged in same single commit per TD-VSDD-053 housekeeping.
+
+STATE.md v6.29→v6.30. develop HEAD `948f0fb1`; main `80e5cd7b` UNCHANGED.
+
+### Phase
+
+D-893-E21-W2-S-21.04-DISPATCHED-2026-07-24
+
+### Date
+
+2026-07-25
