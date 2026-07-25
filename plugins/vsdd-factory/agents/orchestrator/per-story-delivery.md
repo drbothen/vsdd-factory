@@ -43,10 +43,9 @@ Reference file for the orchestrator. Load during Phase 3 implementation.
       Read ../../templates/pr-description-template.md for the PR body format."
       NOTE: Do NOT compose the PR body or gh commands in this task —
       pr-manager owns the full PR lifecycle and uses its own templates.
-   g. Run §G.1 preflight (step-g-cleanup.md §G.1, BC-6.26.001 PC2): find .worktrees/STORY-NNN/.factory -type f.
-      Proceed only on a PASS result (three-branch protocol: absent-dir or empty-and-clean → proceed;
-      stray files → PREFLIGHT BLOCKED; find error → HALT). Do NOT remove until resolved.
-      Spawn devops-engineer: "Remove worktree .worktrees/STORY-NNN"
+   g. Run the `plugins/vsdd-factory/skills/deliver-story/steps/step-g-cleanup.md §G.1` preflight
+      (BC-6.26.001 PC2); proceed only on a PASS result (three-branch protocol per §G.1). Do NOT
+      remove until resolved. Spawn devops-engineer: "Remove worktree .worktrees/STORY-NNN"
 3. After all stories in wave merged: run wave integration gate
 4. Wave gate passes -> start next wave
 
@@ -105,7 +104,7 @@ When pr-manager returns with "diff too large, recommend split":
 7. **Resume per-story delivery** — Each split story goes through the normal cycle
    (tests → implementation → demo → PR → review → merge)
 8. **Clean up original** — After all split stories merge, run the §G.1 preflight
-   (step-g-cleanup.md §G.1, BC-6.26.001 PC2) before removing the original worktree
+   (plugins/vsdd-factory/skills/deliver-story/steps/step-g-cleanup.md §G.1, BC-6.26.001 PC2) before removing the original worktree
 
 If human rejects the split, the orchestrator can override the size finding
 (add a note to review-findings.md) and tell pr-manager to continue the review loop.

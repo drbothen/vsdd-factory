@@ -143,9 +143,8 @@ github-ops: "cd <project-path> && gh pr merge --squash --delete-branch"
 #    then force-delete: git push origin --delete <branch> and re-verify
 #    (idempotent — already-gone/404 is success).
 # 5. If branch-protection blocks deletion: log warning and proceed (not fatal).
-# Preflight required (BC-6.26.001 PC2): find .worktrees/FIX-P[phase]-NNN/.factory -type f
-# Proceed only on a PASS result (per step-g-cleanup.md §G.1 three-branch protocol:
-# absent-dir or empty-and-clean → proceed; stray files → BLOCKED; find error → HALT).
+# Run plugins/vsdd-factory/skills/deliver-story/steps/step-g-cleanup.md §G.1 preflight
+# (BC-6.26.001 PC2); proceed only on a PASS result (three-branch protocol per §G.1).
 devops-engineer: "cd <project-path> && git worktree remove .worktrees/FIX-P[phase]-NNN"
 state-manager: "Update STATE.md with FIX-P[phase]-NNN completion — merge status, PR number, timestamp"
 ```

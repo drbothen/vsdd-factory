@@ -49,7 +49,7 @@ git worktree add .worktrees/S-N.MM -b feature/S-N.MM-<desc> develop
 2. PR created targeting `develop`.
 3. PR reviewed (adversarial + code review).
 4. Squash merge to `develop`.
-5. Run §G.1 preflight before removal (step-g-cleanup.md §G.1 — BC-6.26.001 PC2; caller-side per ADR-031).
+5. Run §G.1 preflight before removal (plugins/vsdd-factory/skills/deliver-story/steps/step-g-cleanup.md §G.1 — BC-6.26.001 PC2; caller-side per ADR-031).
    Worktree removed: `git worktree remove .worktrees/S-N.MM`.
 6. Branch cleaned up: `git branch -d feature/S-N.MM-<desc>`.
 
@@ -73,7 +73,7 @@ The `.factory/` worktree is **permanent** — never remove it.
 ## Cleanup Rules
 
 - Remove worktrees promptly after merge — stale worktrees waste disk and cause confusion.
-- Always run the §G.1 preflight (step-g-cleanup.md §G.1, BC-6.26.001 PC2) before every
+- Always run the §G.1 preflight (plugins/vsdd-factory/skills/deliver-story/steps/step-g-cleanup.md §G.1, BC-6.26.001 PC2) before every
   `git worktree remove`. Git's own clean-state check is blind to gitignored shadow `.factory/`
   content (BC-6.26.001 Invariant 5) — stray factory artifacts in the worktree's shadow `.factory/`
   subtree pass git's check silently and are permanently destroyed at teardown. The §G.1 preflight

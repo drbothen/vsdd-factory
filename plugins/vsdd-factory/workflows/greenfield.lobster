@@ -798,10 +798,9 @@ workflow:
                 agent: devops-engineer
                 depends_on: [merge-pr]
                 task: >
-                  Preflight required (BC-6.26.001 PC2): find .worktrees/STORY-NNN/.factory -type f
-                  before removal; proceed only on a PASS result (per step-g-cleanup.md §G.1
-                  three-branch protocol: absent-dir or empty-and-clean → proceed; stray files
-                  → BLOCKED; find error → HALT).
+                  Run plugins/vsdd-factory/skills/deliver-story/steps/step-g-cleanup.md §G.1
+                  preflight (BC-6.26.001 PC2); proceed only on a PASS result (three-branch
+                  protocol per §G.1).
                   Remove worktree: git worktree remove .worktrees/STORY-NNN.
                   Update .factory/STATE.md with merge status.
 

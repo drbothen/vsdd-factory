@@ -199,9 +199,9 @@ After successful merge (delegated to devops-engineer):
        to 3 re-checks), then force-delete: `git push origin --delete <branch>`
        and re-verify (idempotent — already-gone/404 is success).
    (e) If branch-protection blocks deletion, log a warning and proceed — not fatal.
-2. Run §G.1 preflight (BC-6.26.001 PC2): `find .worktrees/STORY-NNN/.factory -type f`; proceed only on a PASS
-   result (per `steps/step-g-cleanup.md §G.1` three-branch protocol: absent-dir or empty-and-clean → proceed;
-   stray files → BLOCKED; find error → HALT). Remove local worktree: `git worktree remove .worktrees/STORY-NNN`
+2. Run the `plugins/vsdd-factory/skills/deliver-story/steps/step-g-cleanup.md §G.1` preflight
+   (BC-6.26.001 PC2); proceed only on a PASS result (three-branch protocol per §G.1).
+   Remove local worktree: `git worktree remove .worktrees/STORY-NNN`
 3. Update `.factory/STATE.md` with merge status, PR number, and timestamp
 4. Write delivery report to `.factory/code-delivery/STORY-NNN/delivery.md`
 
