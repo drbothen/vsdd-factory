@@ -11634,3 +11634,55 @@ D-901-S2104-ADV-PASS-5-CLOSED
 ### Date
 
 2026-07-25
+
+---
+
+## D-902
+
+### Title
+
+S-21.04-ADV-PASS-6-CLOSED — NOT-CLEAN B0/H6/M4/L1; 12 findings fixed incl. D01 in-scope + class-death + mutant-proven gates; streak 0/3; NEXT pass-7
+
+### Context
+
+S-21.04 LOCAL adversarial cascade pass-6. Verdict: NOT-CLEAN — B0/H6/M4/L1 (11 findings F-S2104-P6-001..011 + 1 deferred-but-fixed-in-scope F-S2104-P6-D01). Novelty 0.72. Trajectory 14→18→17→12→11→11. Streak 0/3.
+
+Per-pass-5 verification: 6 CONFIRMED-CLOSED, 5 PARTIAL (→P6 findings), ERE incident CONFIRMED-CLOSED. Zero false closures; two paper-fix patterns identified (P6-003 gate, P6-005 gate) — both caught and fixed this pass. Meta-note: "the newly-surfaced defect classes are now caused by the v1.7 amendment rather than left over from v1.5 — evidence the spec side has converged and the propagation/gating side has not."
+
+F-S2104-P6-D01 (adversary.md bcs:→behavioral_contracts:) was listed as deferred but fixed in-scope as a 1-word mechanical correction in a declared deliverable file (e6e6b26e), consistent with Canonical Principle Rule 4.
+
+F-S2104-P6-005 ADJUDICATION: ADR-031 v1.12 Option A — AC-008 executor-side verification upheld; F-P2-007 qualified (verification-and-delegation is NOT co-location; caller-side PRIMARY assignment preserved in ADR §Rationale; executor verify-before-execute obligation is an orthogonal delegation layer). Both ADR and BC updated to reflect the reconciled model.
+
+POLICY 16 gate (literal shell): `grep -n "^## D-" decision-log.md | tail -3` → `11482:## D-899 / 11547:## D-900 / 11592:## D-901`. D-901 confirmed prior max → D-902 allocated.
+
+### Decision
+
+D-902 burst scope executed:
+
+1. **POLICY 16 gate (literal stdout)**: `grep -n "^## D-" decision-log.md | tail -3` → `11482:## D-899 / 11547:## D-900 / 11592:## D-901`. D-901 confirmed prior max → D-902 allocated.
+
+2. **adversary-pass-06.md created** at `cycles/v1.0-brownfield-backfill/S-21.04/adversary-pass-06.md`: verbatim Part A finding table (11 findings B0/H6/M4/L1 + D01 deferred→fixed-in-scope), observations (verbatim), per-pass-5 verification (verbatim summary), fix mapping (12 FIXED incl. D01 in-scope).
+
+3. **F-S2104-P6-004 FIX — red-gate-log.md v1.3→v1.4**: T-005 attestation addendum (RED at 60f0d2d6 → GREEN at 73c2bade; PC2a(a) existence-predicate); T-006/RG-005 attestation addendum (RED at 93ec340a → GREEN at 4833a642; PC2b symlink-at-path; mutant self-check: scratch deletion §G.1 L31-40 → T-006 RED proven at 772096f4); Summary updated to 9-test suite; Traces quintuple parity v1.5→v1.8; T-004 addendum BC cite v1.5→v1.8; RG-reconciliation note appended to D-895 erratum (RG-004 legitimate since story v1.5; RG-005 legitimate since story v1.8; erratum was correct AT ITS TIME).
+
+4. **4-INDEX updates**:
+   - BC-INDEX: BC-6.26.001 v1.7→v1.8 (product-owner commit 6bf3185c; executor-side verification Precondition 3 + Invariant 2 extension); BC-INDEX v4.29→v4.30.
+   - STORY-INDEX: S-21.04 row story v1.8→v1.9 + input-hash 425748c→d1043d3 + BC cite v1.7→v1.8 + T-007 AC-008 gate note + pass-6 refs appended; STORY-INDEX v4.253→v4.254.
+   - ARCH-INDEX: ADR-031 AMENDED v1.12 note appended (architect commit 24c25b9c; F-005 adjudication Option A; executor verification layer reconciled with caller-side-primary ruling); ARCH-INDEX v3.32→v3.33.
+   - VP-INDEX: v2.72 VERIFIED UNCHANGED.
+
+5. **LESSONS [process-gap]**:
+   - `L-BB-count-bearing-crossref-residue-class`: count-bearing cross-references are a residue-generator class — cite definitions count-free ("per §G.1 discrimination-chain protocol"); counts live only at the definition site; class-death applied at 9 surfaces (F-S2104-P6-002; whole-repo sweep stdout empty outside §G.1).
+   - `L-BB-mutant-self-check-required-for-doc-parity-gates`: mutant self-check now REQUIRED for every new/changed doc-parity gate — scratch-mutate the target content, confirm gate fires RED; the adversary found the paper-gate pattern twice this pass (F-003 [ -L ] gate + F-007 trailing-slash regex); both fixed at 772096f4 with mutant-proven evidence captured in the test-writer report.
+
+6. **STATE.md frontmatter-minimal**: v6.39→v6.40; phase D-902-S2104-ADV-PASS-6-CLOSED.
+
+POLICY 14 gate (literal shell — post-edit): `grep -m1 "^version:" BC-INDEX.md VP-INDEX.md STORY-INDEX.md ARCH-INDEX.md` → BC v4.30 / VP v2.72 / STORY v4.254 / ARCH v3.33.
+
+### Phase
+
+D-902-S2104-ADV-PASS-6-CLOSED
+
+### Date
+
+2026-07-25

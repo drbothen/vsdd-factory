@@ -7660,3 +7660,51 @@ The lesson `L-BB-closure-records-must-reproduce-evidence-command-with-captured-s
 **Cites:** D-901 (codified this burst); TD-VSDD-091 (anti-volatile-pin; extended by this lesson); F-S2104-P5-003 (trigger — 4th recurrence); versionless-pin class-death strategy.
 
 **Closes:** D-901 S-21.04-ADV-PASS-5-CLOSED (2026-07-25). `[process-gap; versionless-pin; bc-version-propagation; class-death; non-normative-cite; td-vsdd-091; changelog; bats-gate; D-901; codified]`
+
+---
+
+## L-BB-count-bearing-crossref-residue-class [process-gap] [codified D-902]
+
+**Summary:** Pass-6 F-S2104-P6-002 found "three-branch protocol" enumeration surviving at 7 surfaces including §G.1 itself (self-contradiction: "Four cases:" at L18 vs "three branches" at L96). Count-bearing cross-references are a residue-generator class — any cross-reference that names a specific count ("three branches", "four cases", "five surfaces") will produce a finding the moment that count changes, even if the definition site is updated correctly. The fix applied class-death: all 9 surfaces replaced "three-branch protocol" with the count-free phrase "§G.1 discrimination-chain protocol." Counts now live only at the definition site (§G.1 header); all cross-references cite the protocol by name, not by count.
+
+**Discovered:** 2026-07-25 (S-21.04 LOCAL cascade pass-6; F-S2104-P6-002 HIGH — 7 surfaces with "three-branch" enumeration; implementer class-death at 0614aadb with whole-repo sweep stdout empty outside §G.1).
+
+**Root cause:** When BC v1.7 extended the preflight protocol from 3 branches to 4 (adding the symlink-at-path [ -L ] guard as a new PC2b case), cross-references naming "three branches" became stale. The definition site (§G.1 header) was updated, but 7 cross-reference sites retained the old count. This is the general residue-generator pattern: count-bearing cites must be swept to every callsite whenever the count changes at the definition. The class-death remedy (count-free cite) eliminates the sweep obligation entirely by removing the volatile count from non-normative positions.
+
+**Corrective action — class-death on count-bearing cross-references:** Replace any cross-reference that specifies a count ("N-branch", "N-case", "N-step") with a count-free name anchor ("per §G.1 discrimination-chain protocol", "per §G.1 4-step chain"). The count belongs only at the definition site — it is the single source of truth. Non-normative cross-references must cite the definition by name, not by count. This is a specific instance of the TD-VSDD-091 anti-volatile-pin principle applied to count-bearing prose (not just version pins).
+
+**Prevention:** During any authoring pass that introduces a count in a cross-reference: "Is this count at the definition site or a cross-reference site? If cross-reference, use the count-free name anchor instead." During any adversarial review: "Are there cross-references that enumerate a count that could change? If so, flag as potential residue-generator — class-death is the fix."
+
+**Anchors:** S-21.04 LOCAL cascade pass-6 (2026-07-25); F-S2104-P6-002 HIGH (7-surface three-branch residue); implementer 0614aadb (class-death + sweep); whole-repo class-sweep stdout empty; TD-VSDD-091 extension (count-bearing cross-references).
+
+**Cites:** D-902 (codified this burst); F-S2104-P6-002 (trigger — class-death applied); TD-VSDD-091 (anti-volatile-pin principle; extended to count-bearing cites); implementer 0614aadb (class-death commit).
+
+**Closes:** D-902 S-21.04-ADV-PASS-6-CLOSED (2026-07-25). `[process-gap; count-bearing-crossref; residue-generator; class-death; count-free-cite; td-vsdd-091; enumeration; branch-count; D-902; codified]`
+
+---
+
+## L-BB-mutant-self-check-required-for-doc-parity-gates [process-gap] [codified D-902]
+
+**Summary:** Pass-6 F-S2104-P6-003 found that the T-006 [ -L ] gate had no load-bearing assertion — T-006's alternation was satisfied by the PC2b header line alone, and deleting §G.1 L31-40 (the actual [ -L ] guard block) was undetectable by the gate. The fix (test-writer 772096f4) adopted a mutant self-check: the test-writer performed a scratch deletion of §G.1 L31-40 and confirmed T-006 turned RED. This is now REQUIRED for every new or changed doc-parity gate — the test-writer must demonstrate that the gate is NOT satisfied by a plausible mutation of the guarded content. The pass-6 adversary found the same paper-gate pattern twice (F-003 and F-007), confirming this is a systematic gate-authoring gap.
+
+**Discovered:** 2026-07-25 (S-21.04 LOCAL cascade pass-6; F-S2104-P6-003 HIGH — T-006 [ -L ] gate paper-gate; F-S2104-P6-007 MEDIUM — trailing-slash regex inert; test-writer 772096f4 applied mutant self-check for both, with scratch-mutation RED evidence captured in the test-writer report).
+
+**Root cause:** Doc-parity gates (gates that check for the presence of a textual clause in a doc) can be vacuously satisfied by broader patterns — the gate author checks that the pattern matches the target clause, but does not verify that the pattern is SPECIFIC ENOUGH to detect deletion of the target clause. A gate that matches a section header will not detect deletion of the clause body. The mutant self-check is the mechanical proof that the gate is load-bearing: scratch-delete the target content, run the suite, confirm RED.
+
+**Corrective action — mutant self-check mandate:** Every new or modified doc-parity gate MUST include a mutant self-check:
+1. Identify the minimal content unit the gate is meant to protect (e.g., §G.1 L31-40 for the [ -L ] block).
+2. In a scratch edit (do not commit), delete or mutate that content unit.
+3. Run the bats suite.
+4. Confirm the gate fires RED on the mutation.
+5. Restore the content (or discard the scratch change) and confirm GREEN.
+6. Record the mutant self-check result in the test-writer report (commit message or adjacent notes).
+
+The mutant self-check is evidence, not just process. The test-writer report MUST state: "Mutant self-check: [describe mutation] → [suite result: RED/GREEN]." This evidence is what the adversary can independently verify.
+
+**Prevention:** During any bats gate authoring that adds or modifies a doc-parity assertion: "Have I performed the mutant self-check for this gate? If not, do so before marking the gate complete. Record the evidence in the test-writer report."
+
+**Anchors:** S-21.04 LOCAL cascade pass-6 (2026-07-25); F-S2104-P6-003 HIGH ([ -L ] gate paper-gate; T-006 alternation satisfied by header line alone); F-S2104-P6-007 MEDIUM (trailing-slash regex inert against mandated form); test-writer 772096f4 (mutant self-check: scratch deletion of §G.1 L31-40 → T-006 RED, proven; trailing-slash regex mutant-checked); POLICY 13/15 (grep correctness + anti-tautology mandate).
+
+**Cites:** D-902 (codified this burst); F-S2104-P6-003 (trigger — paper-gate [ -L ]); F-S2104-P6-007 (trigger — paper-gate trailing-slash); POLICY 13 (grep mode/pattern correctness); POLICY 15 (per-guard mutant verification); TD-VSDD-059 (paper-fix / paper-gate detection); test-writer 772096f4 (mutant self-check evidence).
+
+**Closes:** D-902 S-21.04-ADV-PASS-6-CLOSED (2026-07-25). `[process-gap; mutant-self-check; doc-parity-gate; paper-gate; load-bearing-assertion; bats-gate; policy-13; policy-15; td-vsdd-059; test-writer; D-902; codified]`
