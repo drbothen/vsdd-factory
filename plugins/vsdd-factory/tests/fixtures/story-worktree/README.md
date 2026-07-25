@@ -4,9 +4,10 @@
 
 Fixture scaffolding for `story-worktree-write-path-discipline.bats` (S-21.04 gate harness).
 
-Tests exercise BC-6.26.001 v1.6 PC2a (sub-cases a and b) / PC2b (stray files + non-directory
-inode) / PC2c: the `find`-based teardown preflight that must run before every `git worktree
-remove` on a story worktree, including the v1.6 non-directory path (EC-008/T-6).
+Tests exercise BC-6.26.001 PC2a (sub-cases a and b) / PC2b (stray files, non-directory inode,
+and symlink) / PC2c: the `find`-based teardown preflight that must run before every
+`git worktree remove` on a story worktree, including the non-directory path (EC-008/T-6)
+and the v1.7 symlink vector (T-006).
 
 ## Fixture shape
 
@@ -53,6 +54,17 @@ T-005 (regular file at .factory — PC2b non-directory, EC-008/T-6):
   [ ! -d .factory ] would be TRUE (wrong: authorizes teardown)
   [ ! -e .factory ] is FALSE (correct: path is occupied by non-directory inode)
   find NOT invoked; PREFLIGHT BLOCKED (non-directory case); exit non-zero.
+
+T-006 (symlink at .factory pointing at real dir — PC2b symlink; BC-6.26.001 PC2b v1.7):
+  $WORK/
+    symlink-target-dir/
+      target-file.txt      ← real file inside target dir (confirm find would reach it if invoked)
+    story-worktree/
+      .factory             ← SYMLINK pointing at $WORK/symlink-target-dir/
+    worktree-remove.log    ← sentinel (must remain empty on PC2b BLOCKED)
+  [ -L .factory ] is TRUE  (symlink detected at step 2; PC2b fires without invoking find)
+  [ -d .factory ] is TRUE  (symlink-to-dir satisfies -d, so v1.6 check alone would miss it)
+  find NOT invoked; PREFLIGHT BLOCKED (symlink case); exit non-zero.
 ```
 
 ## Stray file anatomy
@@ -75,14 +87,15 @@ This story requires no external CLI stubs (unlike S-21.03's `gh`/`git` stubs). T
 `_run_teardown_preflight()` (defined inline in the .bats file) implements the
 BC-6.26.001 PC2a/PC2b/PC2c logic using an anti-tautology extraction gate:
 
-1. Extract the find command verbatim from step-g-cleanup.md §G.1 (the line matching
-   `find ... .factory ... -type f` without `2>/dev/null`).
-2. Substitute `<worktree-path>` with the fixture path and `eval` the extracted command.
-3. If `.factory/` is absent → PC2a sub-case (a): proceed (REMOVE_LOG written, return 0).
-4. If `find` exits non-zero → PC2c HALT: surface exit code + stderr, return 1.
-5. If `find` output is non-empty → PC2b BLOCKED: emit PREFLIGHT BLOCKED message + stray
-   paths + Option A/Option B + retry mandate, return 1.
-6. If `find` exits 0, empty output → PC2a sub-case (b): proceed (REMOVE_LOG written, return 0).
+v1.7 four-step chain (steps 1–3 HARDCODED; step 4 doc-derived via extraction):
+
+1. `[ ! -e ]` → PC2a(a): path absent → proceed (REMOVE_LOG written, return 0).
+2. `[ -L ]`   → PC2b: symlink at path → BLOCKED regardless of target type (return 1).
+3. `[ ! -d ]` → PC2b: non-directory non-symlink → BLOCKED (return 1).
+4. directory (no symlink) → extract find command from §G.1, evaluate, and:
+   - find exits non-zero → PC2c HALT: surface exit code + stderr, return 1.
+   - find output non-empty → PC2b BLOCKED: emit message + stray paths + Option A/B, return 1.
+   - find exits 0, empty output → PC2a sub-case (b): proceed (REMOVE_LOG written, return 0).
 
 The anti-tautology gate catches two classes of doc-mutant through different mechanisms:
 
@@ -113,7 +126,8 @@ fixtures (S-21.04) because the preflight mechanism is `find` (filesystem-direct)
 | EC-003 | `find` returns empty (dir exists, no files) | T-002 part 2 (explicit EC-003 variant) |
 | EC-005 | Story worktree has no `.factory/` directory at all | T-002 part 1 |
 | EC-004 | `find` returns stray file (shadow .factory/ has content) | T-001, T-003 (first pass) |
-| EC-007/EC-008 | Regular file (not directory) at `.factory/` path → PC2b BLOCKED without find | T-005 (BC-6.26.001 v1.6 T-6) |
+| EC-007/EC-008 | Regular file (not directory) at `.factory/` path → PC2b BLOCKED without find | T-005 (BC-6.26.001 EC-008/T-6) |
+| PC2b-symlink | Symlink at `.factory/` path → PC2b BLOCKED without find (regardless of target type) | T-006 (BC-6.26.001 PC2b symlink) |
 | PC2c   | `find` exits non-zero for non-path-absent reason | T-004 (chmod 000 subdir) |
 
 ## POLICY 21 note

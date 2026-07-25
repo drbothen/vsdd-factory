@@ -98,9 +98,9 @@ setup() {
   [ "$status" -eq 0 ]
 }
 
-# (e) AC-005: adversary.md must state that spec/ADR/BC ground-truth MUST be
-#     read from the CANONICAL repo-root .factory/ (factory-artifacts), NOT the
-#     stale worktree .factory/specs snapshot.
+# (e) AC-005: adversary.md must assert that spec/ADR/BC ground-truth is ALWAYS read from the
+#     CANONICAL repo-root .factory/ (factory-artifacts). git worktree add checks out NOTHING
+#     under .factory/ (gitignored); any worktree .factory/ content is live shadow-write evidence.
 #     Re-anchored (F-S2104-P3-007): the prior stale-snapshot prohibition assertion locked in
 #     a retracted premise and would block the implementer's residue sweep at lines 44/59.
 #     The corrected model's positive assertions — already present at adversary.md rule 4 — are:
@@ -180,7 +180,8 @@ setup() {
 # ============================================================
 # File (C): plugins/vsdd-factory/skills/deliver-story/steps/_shared-context.md
 # Required: a note mandating canonical repo-root absolute paths for specs;
-# the worktree .factory/specs snapshot is stale and off-limits.
+# git worktree add checks out NOTHING under .factory/ (gitignored); any worktree
+# .factory/ content is live shadow-write evidence and off-limits for spec reads.
 # ============================================================
 
 # (k) AC-011: _shared-context.md must contain the dispatch-context discipline

@@ -38,7 +38,7 @@
 #     workflows/code-delivery.lobster, workflows/greenfield.lobster, rules/worktree-protocol.md
 #   agents/adversary.md + skills/adversarial-review/SKILL.md (§G.1/BC-6.26.001 awareness; F-S2104-P4-002)
 #   agents/devops-engineer.md §Worktree Cleanup (preflight-verification mandate; F-S2104-P4-003)
-# BC: BC-6.26.001 v1.6 (PC1, PC2a sub-cases a/b, PC2b non-directory case, PC2c, Invariants 1–5)
+# BC: BC-6.26.001 (PC1, PC2a sub-cases a/b, PC2b non-directory + symlink cases, PC2c, Invariants 1–5)
 # Story: S-21.04
 #
 # Test plan:
@@ -46,7 +46,8 @@
 #   T-002  AC-004  empty-tree-proceeds:     EC-005 (no .factory/) + EC-003 (empty .factory/ dir) → teardown proceeds in both cases
 #   T-003  AC-005  relocate-retry-proceeds: stray file relocated → retry teardown proceeds
 #   T-004  AC-006  pc2c-halt:               find error (non-path-absent) → HALT non-zero, exit code+stderr surfaced, worktree-remove NOT called
-#   T-005  AC-002  file-at-path:            regular file at .factory → PC2b BLOCKED non-dir case; find NOT invoked; worktree-remove NOT called (BC-6.26.001 v1.6 EC-008/T-6; F-S2104-P4-007)
+#   T-005  AC-002  file-at-path:            regular file at .factory → PC2b BLOCKED non-dir case; find NOT invoked; worktree-remove NOT called (BC-6.26.001 EC-008/T-6; F-S2104-P4-007)
+#   T-006  AC-002  symlink-at-path:         symlink at .factory → PC2b BLOCKED regardless of target type; find NOT invoked; worktree-remove NOT called (BC-6.26.001 PC2b symlink; T-006; F-S2104-P5-007)
 
 setup() {
   REPO_ROOT="$(cd "${BATS_TEST_DIRNAME}/../../.." && pwd)"
@@ -255,27 +256,39 @@ _run_teardown_preflight() {
     return 1
   fi
 
-  # PC2a sub-case (a): path ABSENT — no stray files (return 0).
-  # BC-6.26.001 v1.6: path-absence check uses [ ! -e ] (existence), not [ ! -d ] (directory-ness).
-  # [ ! -d ] is TRUE for a regular file — wrong: it would authorize teardown on stray content.
+  # v1.7 four-step chain (steps 1–3 are HARDCODED; step 4 is doc-derived via extraction):
+  #   Step 1: [ ! -e ] → PC2a(a): path absent → proceed
+  #   Step 2: [ -L ]  → PC2b: symlink at path → BLOCKED regardless of target type
+  #   Step 3: [ ! -d ] → PC2b: non-directory non-symlink → BLOCKED
+  #   Step 4: directory (no symlink) → run doc-extracted find
+
+  # Step 1 (HARDCODED): path ABSENT — no stray files → proceed (return 0).
   # [ ! -e ] is FALSE for any occupied path (file, dir, symlink) — correctly gates on true absence.
-  # This check is HARDCODED (not doc-derived); DOC-PARITY gate in T-002/T-005 independently
-  # verifies §G.1 uses the correct [ ! -e ] form (F-S2104-P3-001 + F-S2104-P4-007a).
+  # [ ! -d ] would be TRUE for a regular file — wrong: authorizes teardown on stray content.
+  # DOC-PARITY gate in T-002/T-005 independently verifies §G.1 uses the correct [ ! -e ] form
+  # (F-S2104-P3-001 + F-S2104-P4-007a).
   if [ ! -e "${worktree_path}/.factory" ]; then
     printf 'worktree-remove-invoked\n' >> "$remove_log"
     return 0
   fi
 
-  # Non-directory at .factory path → PC2b BLOCKED (without running find).
-  # BC-6.26.001 v1.6 EC-008/T-6: a regular file, symlink-to-file, or other non-directory inode
-  # at <worktree-path>/.factory is stray shadow content subject to the same rm-rf destruction
-  # risk as files inside a shadow .factory/ directory tree. This path goes directly to PC2b —
+  # Step 2 (HARDCODED): symlink at .factory path → PC2b BLOCKED (regardless of target type).
+  # BC-6.26.001 PC2b: a symlink-to-dir satisfies [ -d ] (by dereferencing) but is still stray
+  # shadow content — find MUST NOT be invoked. [ -L ] check precedes [ ! -d ] to catch it.
+  # DOC-PARITY gate in T-006 independently verifies §G.1 carries the [ -L ] clause.
+  if [ -L "${worktree_path}/.factory" ]; then
+    printf 'PREFLIGHT BLOCKED: Symlink at %s — stray shadow content subject to rm-rf destruction; find NOT invoked; teardown HALTED (BC-6.26.001 PC2b symlink case).\n' "${worktree_path}/.factory"
+    printf 'git worktree remove NOT executed.\n'
+    return 1
+  fi
+
+  # Step 3 (HARDCODED): non-directory (non-symlink) inode at .factory path → PC2b BLOCKED.
+  # BC-6.26.001 PC2b: a regular file at <worktree-path>/.factory is stray shadow content —
   # find MUST NOT be invoked on a non-directory path.
-  # This check is HARDCODED; DOC-PARITY gate in T-005 independently verifies §G.1 documents
-  # this case with the correct non-directory→PC2b clause (F-S2104-P4-007a).
+  # DOC-PARITY gate in T-005 independently verifies §G.1 documents non-directory→PC2b.
   if [ ! -d "${worktree_path}/.factory" ]; then
-    printf 'PREFLIGHT BLOCKED: Non-directory inode at %s — stray shadow content subject to rm-rf destruction; find NOT invoked; teardown HALTED (BC-6.26.001 v1.6 PC2b non-directory case).\n' "${worktree_path}/.factory"
-    printf '  The -d test alone MUST NOT be used as the path-absence discriminator (BC-6.26.001 v1.6 EC-008).\n'
+    printf 'PREFLIGHT BLOCKED: Non-directory inode at %s — stray shadow content subject to rm-rf destruction; find NOT invoked; teardown HALTED (BC-6.26.001 PC2b non-directory case).\n' "${worktree_path}/.factory"
+    printf '  The -d test alone MUST NOT be used as the path-absence discriminator (BC-6.26.001 EC-008).\n'
     printf 'git worktree remove NOT executed.\n'
     return 1
   fi
@@ -313,7 +326,7 @@ _run_teardown_preflight() {
     printf 'permanently destroyed by git worktree remove. Manual intervention required:\n'
     printf '  Option A: Relocate to canonical .factory/ mount, verify content, then retry teardown.\n'
     printf '  Option B: Discard (only if files are confirmed redundant copies already committed on factory-artifacts).\n'
-    printf 'Story cleanup MUST NOT complete until a retry preflight returns an empty result.\n'
+    printf 'Story cleanup MUST NOT complete until a retry preflight returns a PASS result.\n'
     return 1
   fi
 
@@ -324,7 +337,7 @@ _run_teardown_preflight() {
 
 # ===========================================================================
 # T-001 / AC-003 / PC2b: stray .factory/ file → PREFLIGHT BLOCKED (non-zero); worktree-remove NOT called
-# BC-6.26.001 v1.5 PC2b, Invariants 2, 5
+# BC-6.26.001 PC2b, Invariants 2, 5
 # RG-001 closure
 # ===========================================================================
 
@@ -472,39 +485,65 @@ _run_teardown_preflight() {
     false
   fi
 
-  # --- DOC-PARITY primary paths: SKILL.md Step 8 (F-S2104-P1-001a) ---
-  # RED until implementer adds preflight reference to SKILL.md Step 8 dispatch.
+  # --- DOC-PARITY primary paths: SKILL.md Step 8 (F-S2104-P1-001a, F-S2104-P5-007) ---
+  # RED until implementer adds §G.1/step-g-cleanup reference to SKILL.md Step 8 dispatch.
+  # Strengthened (F-S2104-P5-007): bare 'preflight' token removed — requires actual §G.1/step-g-cleanup ref.
   local skill_step8_section
   skill_step8_section="$(_extract_skill_step8_section)"
-  _assert_doc_marker 'preflight|step-g-cleanup|§G\.1|G\.1' \
-    "SKILL.md Step 8: must reference §G.1 preflight before cleanup dispatch — RED until implementer propagates (BC-6.26.001 PC2; F-S2104-P1-001a)" \
+  _assert_doc_marker 'step-g-cleanup|§G\.1|G\.1' \
+    "SKILL.md Step 8: must reference step-g-cleanup.md §G.1 (not just 'preflight') — RED until implementer propagates (BC-6.26.001 PC2; F-S2104-P1-001a / F-S2104-P5-007)" \
+    "$skill_step8_section"
+  # Enumeration-correctness gate (F-S2104-P5-007): retired 'absent-dir' token must NOT appear.
+  # 'absent-dir' implies [ ! -d ] absence check (v1.5 form) — superseded by [ ! -e ] existence check.
+  _assert_no_doc_marker 'absent-dir' \
+    "SKILL.md Step 8 enumeration: must NOT contain 'absent-dir' token — retired with [ ! -d ] semantics; existence check [ ! -e ] supersedes it (BC-6.26.001 EC-008; RED until implementer rewrites; F-S2104-P5-007)" \
+    "$skill_step8_section"
+  # Enumeration-correctness gate (F-S2104-P5-007): must reflect v1.7 existence semantics —
+  # non-directory or symlink → BLOCKED (PC2b). RED until implementer rewrites enumeration.
+  _assert_doc_marker 'non-directory.*BLOCK\|BLOCK.*non-directory\|symlink.*BLOCK\|BLOCK.*symlink\|non-directory.*PC2b\|symlink.*PC2b' \
+    "SKILL.md Step 8 enumeration: must reflect existence semantics — non-directory or symlink → BLOCKED (BC-6.26.001 PC2b; RED until implementer rewrites; F-S2104-P5-007)" \
     "$skill_step8_section"
 
-  # --- DOC-PARITY primary paths: per-story-delivery.md step (g) (F-S2104-P1-001b) ---
-  # RED until implementer adds preflight reference adjacent to step (g) dispatch.
+  # --- DOC-PARITY primary paths: per-story-delivery.md step (g) (F-S2104-P1-001b, F-S2104-P5-007) ---
+  # RED until implementer adds §G.1/step-g-cleanup reference adjacent to step (g) dispatch.
+  # Strengthened (F-S2104-P5-007): bare 'preflight' token removed.
   local step_g_window
   step_g_window="$(_extract_per_story_delivery_step_g_window)"
-  _assert_doc_marker 'preflight|step-g-cleanup|§G\.1|G\.1' \
-    "per-story-delivery.md step (g): must reference §G.1 preflight before Remove worktree dispatch — RED until implementer propagates (BC-6.26.001 PC2; F-S2104-P1-001b)" \
+  _assert_doc_marker 'step-g-cleanup|§G\.1|G\.1' \
+    "per-story-delivery.md step (g): must reference step-g-cleanup.md §G.1 before Remove worktree dispatch — RED until implementer propagates (BC-6.26.001 PC2; F-S2104-P1-001b / F-S2104-P5-007)" \
     "$step_g_window"
 
-  # --- DOC-PARITY primary paths: per-story-delivery.md Story Split Recovery (F-S2104-P1-001b) ---
-  # RED until implementer adds preflight reference to story-split cleanup step.
+  # --- DOC-PARITY primary paths: per-story-delivery.md Story Split Recovery (F-S2104-P1-001b, F-S2104-P5-007) ---
+  # RED until implementer adds §G.1/step-g-cleanup reference to story-split cleanup step.
+  # Strengthened (F-S2104-P5-007): bare 'preflight' token removed.
   local split_recovery_section
   split_recovery_section="$(_extract_per_story_delivery_split_recovery_section)"
-  _assert_doc_marker 'preflight|step-g-cleanup|§G\.1|G\.1' \
-    "per-story-delivery.md Story Split Recovery: must reference §G.1 preflight before worktree removal — RED until implementer propagates (BC-6.26.001 PC2; F-S2104-P1-001b)" \
+  _assert_doc_marker 'step-g-cleanup|§G\.1|G\.1' \
+    "per-story-delivery.md Story Split Recovery: must reference step-g-cleanup.md §G.1 before worktree removal — RED until implementer propagates (BC-6.26.001 PC2; F-S2104-P1-001b / F-S2104-P5-007)" \
     "$split_recovery_section"
 
-  # --- DOC-PARITY WINNING playbook: workflows/phases/per-story-delivery.md Step 8 (F-S2104-P2-001) ---
+  # --- DOC-PARITY WINNING playbook: workflows/phases/per-story-delivery.md Step 8 (F-S2104-P2-001, F-S2104-P5-007) ---
   # The winning playbook's own L8 declares: "If the two disagree, this file wins."
-  # Its Step 8 must carry the §G.1 preflight mandate; the orchestrator copy carrying it is
-  # insufficient — the winning playbook is the authoritative reference under disagreement.
-  # RED until implementer propagates §G.1 mandate to Step 8 of the winning playbook.
+  # Its Step 8 must carry the §G.1 mandate; orchestrator copy alone is insufficient.
+  # Strengthened (F-S2104-P5-007): bare 'preflight' removed; enumeration + fully-qualified-path gates added.
   local winning_step8_section
   winning_step8_section="$(_extract_winning_playbook_step8_section)"
-  _assert_doc_marker 'preflight|step-g-cleanup|§G\.1|G\.1' \
-    "WINNING playbook (workflows/phases/per-story-delivery.md) Step 8: must reference §G.1 preflight before cleanup dispatch — orchestrator copy alone is insufficient (winning playbook wins on disagreement per its L8); RED until implementer propagates (BC-6.26.001 PC2; F-S2104-P2-001)" \
+  _assert_doc_marker 'step-g-cleanup|§G\.1|G\.1' \
+    "WINNING playbook Step 8: must reference step-g-cleanup.md §G.1 — orchestrator copy alone is insufficient (winning playbook wins on disagreement per its L8); RED until implementer propagates (BC-6.26.001 PC2; F-S2104-P2-001 / F-S2104-P5-007)" \
+    "$winning_step8_section"
+  # Fully-qualified-path gate (F-P5-006 leg): §G.1 ref must include step-g-cleanup.md qualification.
+  # A bare '§G.1' or 'G.1' without the filename is insufficient for cross-document traceability.
+  # RED until implementer qualifies the winning-playbook Step 8 §G.1 reference.
+  _assert_doc_marker 'step-g-cleanup.*§G\.1\|step-g-cleanup.*G\.1\|§G\.1.*step-g-cleanup' \
+    "WINNING playbook Step 8: §G.1 ref must be fully qualified (step-g-cleanup.md §G.1 form) — bare §G.1 insufficient; RED until implementer qualifies (F-P5-006 / F-S2104-P5-007)" \
+    "$winning_step8_section"
+  # Enumeration-correctness gate (F-S2104-P5-007): retired 'absent-dir' token must NOT appear.
+  _assert_no_doc_marker 'absent-dir' \
+    "WINNING playbook Step 8 enumeration: must NOT contain 'absent-dir' token — retired; existence semantics [ ! -e ] supersedes it (BC-6.26.001 EC-008; RED until implementer rewrites; F-S2104-P5-007)" \
+    "$winning_step8_section"
+  # Enumeration-correctness gate (F-S2104-P5-007): must reflect v1.7 existence semantics.
+  _assert_doc_marker 'non-directory.*BLOCK\|BLOCK.*non-directory\|symlink.*BLOCK\|BLOCK.*symlink\|non-directory.*PC2b\|symlink.*PC2b' \
+    "WINNING playbook Step 8 enumeration: must reflect existence semantics — non-directory or symlink → BLOCKED (BC-6.26.001 PC2b; RED until implementer rewrites; F-S2104-P5-007)" \
     "$winning_step8_section"
 
   # --- HARNESS: stray file → PREFLIGHT BLOCKED; non-zero exit (F-S2104-P1-003) ---
@@ -542,7 +581,7 @@ _run_teardown_preflight() {
 # ===========================================================================
 # T-002 / AC-004 / PC2a: empty shadow .factory/ → teardown proceeds; git worktree remove IS called
 # Covers: EC-005 (no .factory/ dir — PC2a sub-case a) + EC-003 (empty .factory/ dir — PC2a sub-case b)
-# BC-6.26.001 v1.5 PC2a
+# BC-6.26.001 PC2a
 # RG-002 closure
 # F-S2104-P1-013: EC labels corrected; both EC-005 and EC-003 exercised explicitly.
 # ===========================================================================
@@ -653,7 +692,7 @@ _run_teardown_preflight() {
 
 # ===========================================================================
 # T-003 / AC-005 / PC2b → PC2a retry: stray file relocated → retry teardown proceeds
-# BC-6.26.001 v1.5 PC2b → PC2a retry path (Option A relocation)
+# BC-6.26.001 PC2b → PC2a retry path (Option A relocation)
 # RG-003 closure
 # ===========================================================================
 
@@ -733,7 +772,7 @@ _run_teardown_preflight() {
 
 # ===========================================================================
 # T-004 / AC-006 / PC2c: find exits non-zero (non-path-absent) → HALT; exit code+stderr surfaced; worktree-remove NOT called
-# BC-6.26.001 v1.5 PC2c (fail-closed)
+# BC-6.26.001 PC2c (fail-closed)
 # macOS/Linux portability: find returns exit code 1 on permission-denied subdirectory traversal.
 # ===========================================================================
 
@@ -816,7 +855,7 @@ _run_teardown_preflight() {
 
 # ===========================================================================
 # T-005 / AC-002 / EC-007/EC-008 / T-6: regular file at .factory → PC2b BLOCKED; find NOT invoked; worktree-remove NOT called
-# BC-6.26.001 v1.6 EC-008 / T-6 / non-directory path
+# BC-6.26.001 EC-008 / T-6 / non-directory path
 # F-S2104-P4-007 (test leg b)
 # ===========================================================================
 
@@ -860,8 +899,8 @@ _run_teardown_preflight() {
     "$g1_section"
 
   # --- HARNESS: regular file at .factory → PC2b BLOCKED; non-zero exit; find NOT invoked ---
-  # _run_teardown_preflight updated for v1.6 three-way logic:
-  #   [ ! -e ] absent → PC2a(a); [ ! -d ] non-directory → PC2b BLOCKED; directory → run extracted find.
+  # _run_teardown_preflight v1.7 four-step chain: [ ! -e ] → PC2a(a); [ -L ] → PC2b symlink;
+  # [ ! -d ] → PC2b non-directory; directory (no symlink) → run extracted find.
   run _run_teardown_preflight "$MOCK_WORKTREE" "$REMOVE_LOG"
   [ "$status" -ne 0 ] || {
     echo "HARNESS FAIL: non-directory .factory must return non-zero (PC2b BLOCKED) — got status 0 (harness three-way logic: non-directory must not fall through to find branch)"
@@ -885,6 +924,77 @@ _run_teardown_preflight() {
   # Mutant-proving sentinel: git worktree remove MUST NOT be invoked on PC2b non-directory path
   [ ! -s "$REMOVE_LOG" ] || {
     echo "HARNESS FAIL: REMOVE_LOG non-empty on PC2b non-directory path — git worktree remove MUST NOT be invoked (BC-6.26.001 PC2b; T-6) — log: $(cat "$REMOVE_LOG")"
+    false
+  }
+}
+
+# ===========================================================================
+# T-006 / AC-002 / BC-6.26.001 PC2b symlink vector: symlink at .factory pointing at real dir
+# → PC2b BLOCKED; find NOT invoked; worktree-remove NOT called
+# BC-6.26.001 PC2b (symlink case)
+# F-S2104-P5-007
+# ===========================================================================
+
+@test "T-006 S-21.04 AC-002: symlink-at-path — symlink at .factory pointing at real dir → PC2b BLOCKED; find NOT invoked; worktree-remove NOT called" {
+  # Fixture: $MOCK_WORKTREE/.factory is a SYMLINK pointing at a real directory inside $WORK
+  # that contains a file. BC-6.26.001 PC2b: symlink-at-path → BLOCKED regardless of target type.
+  #
+  # Key distinction from T-005 (regular file): a symlink-to-dir satisfies [ -d ] by dereferencing,
+  # so the v1.6 [ ! -d ] check alone would NOT catch it — the symlink would fall through to find.
+  # v1.7 adds [ -L ] BEFORE [ ! -d ] to catch symlinks of all target types (including dir symlinks).
+  #
+  # DOC-PARITY gate: §G.1 must carry the [ -L ] clause — RED until implementer lands it.
+  # HARNESS: tests the v1.7 four-step chain hardcoded in _run_teardown_preflight.
+
+  # Create a real directory for the symlink to point at (inside $WORK so it's accessible).
+  # The directory contains a file — confirming find would find content if invoked (it must NOT be).
+  local symlink_target
+  symlink_target="$WORK/symlink-target-dir"
+  mkdir -p "$symlink_target"
+  printf 'target file content — find must NOT reach this\n' > "$symlink_target/target-file.txt"
+
+  # Create the symlink at .factory pointing at the real directory.
+  ln -s "$symlink_target" "$MOCK_WORKTREE/.factory"
+
+  local g1_section
+  g1_section="$(_extract_g1_section)"
+
+  # --- DOC-PARITY §G.1: symlink→PC2b clause ([ -L ] or equivalent) — RED until implementer lands it ---
+  # §G.1 must document that a symlink at .factory routes to PC2b BLOCKED without invoking find.
+  # The [ -L ] check (or equivalent) must appear in §G.1 BEFORE the find invocation.
+  _assert_doc_marker '\[ -L \]|\[ -L\]|-L[[:space:]].*\.factory|symlink.*PC2b|symlink.*BLOCK' \
+    "step-g-cleanup.md §G.1: symlink→PC2b clause must be present ([ -L ] or equivalent) — RED until implementer adds symlink case (BC-6.26.001 PC2b; T-006; F-S2104-P5-007)" \
+    "$g1_section"
+
+  # --- HARNESS: symlink at .factory → PC2b BLOCKED; non-zero exit ---
+  # The v1.7 harness [ -L ] check (step 2, HARDCODED) fires before any find invocation (step 4).
+  run _run_teardown_preflight "$MOCK_WORKTREE" "$REMOVE_LOG"
+  [ "$status" -ne 0 ] || {
+    echo "HARNESS FAIL: symlink at .factory must return non-zero (PC2b BLOCKED) — got status 0 (v1.7 harness [ -L ] check at step 2 must fire before find at step 4)"
+    false
+  }
+  printf '%s\n' "$output" | grep -q 'PREFLIGHT BLOCKED' || {
+    echo "HARNESS FAIL: 'PREFLIGHT BLOCKED' not in output for symlink .factory — got: $output"
+    false
+  }
+
+  # Path must be listed in output (BC-6.26.001 T-6 pattern: list the path).
+  printf '%s\n' "$output" | grep -q "${MOCK_WORKTREE}/.factory" || {
+    echo "HARNESS FAIL: .factory path '${MOCK_WORKTREE}/.factory' must appear in PREFLIGHT BLOCKED output — got: $output"
+    false
+  }
+
+  # find NOT invoked: no PREFLIGHT HALT/PC2c in output.
+  # PC2c is emitted only when find is called and exits non-zero; its absence proves
+  # the [ -L ] branch was taken (step 2), not the find branch (step 4).
+  if printf '%s\n' "$output" | grep -qE 'PREFLIGHT HALT|PC2c'; then
+    echo "HARNESS FAIL: PREFLIGHT HALT/PC2c found in output — find was invoked on symlink path; MUST NOT be invoked (BC-6.26.001 PC2b symlink; [ -L ] check must fire first at step 2)"
+    false
+  fi
+
+  # REMOVE_LOG must be empty: git worktree remove MUST NOT execute on PC2b symlink path.
+  [ ! -s "$REMOVE_LOG" ] || {
+    echo "HARNESS FAIL: REMOVE_LOG non-empty on PC2b symlink path — git worktree remove MUST NOT be invoked (BC-6.26.001 PC2b) — log: $(cat "$REMOVE_LOG")"
     false
   }
 }
