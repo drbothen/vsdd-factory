@@ -7534,3 +7534,63 @@ The lesson `L-BB-closure-records-must-reproduce-evidence-command-with-captured-s
 **Cites:** D-898 (codified this burst); O-P3-003 (triggered observation); F-S2104-P3-014 (label-swap pattern that motivated this lesson); finding-closure protocol (enforcement host).
 
 **Closes:** D-898 S-21.04-ADV-PASS-3-CLOSED (2026-07-25). `[process-gap; closure-state; rejected-with-rationale; routing-vocabulary; label-swap; audit-trail; O-P3-003; F-S2104-P3-014; D-898; codified]`
+
+---
+
+## L-BB-whole-repo-sibling-sweep-mandatory-per-finding [process-gap] [codified D-899]
+
+**Summary:** Pass-4 review of S-21.04 fix legs revealed that when a finding is closed by retiring a phrase or value from a specific file, the fix must include a whole-repo grep for every location where that phrase or value appears — not just the file cited in the finding. F-S2104-P4-005 (red-gate-log fabricated "PREFLIGHT BLOCKED" message) was fixed in red-gate-log.md, but a whole-repo grep would have immediately surfaced whether the phrase appeared in any other file (test fixtures, templates, other log files). Without the sweep, a "fixed" finding can persist as a live defect in sibling files, defeating the purpose of the closure.
+
+**Discovered:** 2026-07-25 (S-21.04 LOCAL cascade pass-4 adversarial review; F-S2104-P4-005 HIGH; mechanical sibling-sweep gap identified during fix-mapping review).
+
+**Root cause:** The per-finding fix protocol specifies "fix the cited location." It does not mandate a whole-repo grep for the retired phrase/value as a gate before marking the finding CONFIRMED-CLOSED. Implementers naturally fix the cited file, declare closure, and do not search for propagated surfaces. The adversary catches the missed surfaces in the next pass — but only if the adversary knows to search for them. This is a protocol gap, not an adversary failure.
+
+**Corrective action:** Extend the finding-closure protocol: for every finding closed by retiring a phrase, identifier, or value, the closing agent MUST: (1) run `grep -rn "<retired-phrase>" .` from repo root (or the relevant subtree); (2) include the grep output (or "no results" confirmation) in the fix-burst attestation; (3) fix every occurrence found, or explicitly record each as OPEN with rationale. This gate is mandatory — not advisory — for HIGH and MEDIUM findings. The burst-log Dim-2 attestation MUST include the grep command and captured stdout per D-449(a) (literal shell, not pseudocode narrative).
+
+**Prevention:** Before closing any finding that retires a phrase or value: "Did I grep the whole repo for this phrase? Did I capture the output?" If no, run the grep before declaring closure. The Dim-2 attestation block must show the literal shell command and its stdout.
+
+**Anchors:** S-21.04 LOCAL cascade pass-4 (2026-07-25); F-S2104-P4-005 HIGH (fabricated PREFLIGHT BLOCKED message); sibling-sweep; finding-closure protocol; D-449(a) literal-shell gate; TD-VSDD-060 sibling-site sweep.
+
+**Cites:** D-899 (codified this burst); F-S2104-P4-005 (trigger finding); D-449(a) (literal-shell attestation gate); TD-VSDD-060 (sibling-site sweep mandate); finding-closure protocol (enforcement host).
+
+**Closes:** D-899 S-21.04-ADV-PASS-4-CLOSED (2026-07-25). `[process-gap; sibling-sweep; finding-closure; whole-repo-grep; retired-phrase; attestation; TD-VSDD-060; D-449; F-S2104-P4-005; D-899; codified]`
+
+---
+
+## L-BB-dual-precedence-claim-conflict-is-open-drift [process-gap] [codified D-899]
+
+**Summary:** F-S2104-P4-006 (HIGH) identified that two authoritative documents — step-g-cleanup.md §G.1 and BC-6.26.001 PC2c — both assert normative ownership over the Step 8 teardown gate behavior, and their claims are mutually exclusive in one edge case (the boundary condition between PC2b and PC2c). This is a dual-precedence-claim conflict: two sources asserting "I am the canonical definition of X" where X is the same behavior. The lesson: dual-precedence-claim conflicts MUST be recorded as OPEN drift items immediately on discovery. They MUST NOT be silently resolved by the discovering agent — resolution requires human adjudication to prevent one source being silently subordinated to the other.
+
+**Discovered:** 2026-07-25 (S-21.04 LOCAL cascade pass-4 adversarial review; F-S2104-P4-006 HIGH; cross-reading step-g-cleanup.md §G.1 against BC-6.26.001 PC2c).
+
+**Root cause:** The specification authoring process does not have a cross-reference gate that detects when two documents both declare normative ownership of the same behavioral clause. step-g-cleanup.md was authored as an implementation step that naturally carries normative language; BC-6.26.001 was authored as the canonical behavioral contract. Neither document's authoring agent checked for conflicting normative claims in the other document. The conflict remained latent until pass-4 cross-reading surfaced it.
+
+**Corrective action:** Dual-precedence-claim conflicts are a first-class finding category. When one is discovered: (1) record it as OPEN with finding severity = the higher of the two conflicting severities; (2) do NOT resolve by treating one source as subordinate — that is a silent subordination and constitutes a paper-fix under TD-VSDD-059; (3) escalate to human via the orchestrator for explicit adjudication; (4) the adjudication decision MUST be recorded as a D-NNN decision block before the finding can be marked CONFIRMED-CLOSED. This conflict (F-S2104-P4-006) is recorded OPEN pending human adjudication.
+
+**Prevention:** During spec authoring, before finalizing any normative clause: "Does any other document already declare normative ownership of this behavior? If so, surface the conflict explicitly — do NOT assume precedence." During adversarial review: include a cross-read pass specifically looking for dual-precedence-claim conflicts between the story's implementation doc and its BC.
+
+**Anchors:** S-21.04 LOCAL cascade pass-4 (2026-07-25); F-S2104-P4-006 HIGH (dual-precedence conflict step-g-cleanup.md §G.1 vs BC-6.26.001 PC2c); OPEN drift item; human adjudication required; TD-VSDD-059 paper-fix detection.
+
+**Cites:** D-899 (codified this burst); F-S2104-P4-006 (trigger finding); TD-VSDD-059 (paper-fix detection — silent subordination is a paper-fix); finding-closure protocol (enforcement host).
+
+**Closes:** D-899 S-21.04-ADV-PASS-4-CLOSED (2026-07-25). `[process-gap; dual-precedence-claim; open-drift; normative-conflict; human-adjudication; silent-subordination; TD-VSDD-059; F-S2104-P4-006; D-899; codified]`
+
+---
+
+## L-BB-bin-space-unsafe-awk-deferred-pending-story-anchor [process-gap] [codified D-899]
+
+**Summary:** F-S2104-P4-003 (HIGH) identified that `awk '{print $2}'` field splitting in bin/ scripts is unsafe for worktree paths containing spaces. `git worktree list` output uses a fixed-column format where the path is the first token on each line; splitting by whitespace breaks for any path with embedded spaces. This is a correctness defect: a worktree at `/Users/foo/my projects/repo` would be split incorrectly, producing a truncated path. The fix requires switching to a format-safe parser (e.g., `git worktree list --porcelain` + line-by-line `worktree` prefix extraction). This fix is deferred pending human story-anchor decision because it requires a bin/ scope sweep that touches scripts outside S-21.04's direct scope.
+
+**Discovered:** 2026-07-25 (S-21.04 LOCAL cascade pass-4 adversarial review; F-S2104-P4-003 HIGH; bin/ path-handling review during AC-006/AC-007 fix mapping).
+
+**Root cause:** The bin/ scripts predate the space-unsafe worktree path detection. The `awk '{print $2}'` pattern was authored following a common but incorrect assumption that worktree paths are always space-free. The correct approach is `git worktree list --porcelain` which emits each attribute on its own line with a typed prefix (`worktree <path>`, `HEAD <sha>`, `branch <ref>`) — path parsing then becomes a prefix-strip operation, space-safe by design.
+
+**Corrective action (deferred):** Replace all `awk '{print $2}'` (or `{print $NF}`) worktree-path extractions in bin/ with `--porcelain` + `sed -n 's/^worktree //p'` (or equivalent). Scope: grep `bin/` for `git worktree list` usages + `awk` field-split patterns. Deferred to a story-anchor because: (a) the fix requires touching bin/ scripts outside S-21.04's committed story scope; (b) a partial fix (only S-21.04-touched scripts) creates false confidence while leaving other bin/ scripts vulnerable. A complete sweep is required. **PENDING HUMAN story-anchor decision before this lesson transitions from DEFERRED to ACTIONABLE.**
+
+**Prevention:** Authoring gate for any bin/ script that calls `git worktree list`: "Am I parsing the output with `awk $NF` or `awk $2`? If so, switch to `--porcelain` mode and prefix-strip. Space-unsafe field splitting is forbidden for paths." Add this check to the bin/ script authoring template.
+
+**Anchors:** S-21.04 LOCAL cascade pass-4 (2026-07-25); F-S2104-P4-003 HIGH (space-unsafe awk); bin/ scripts; `git worktree list --porcelain`; DEFERRED PENDING HUMAN story-anchor decision.
+
+**Cites:** D-899 (codified this burst); F-S2104-P4-003 (trigger finding); bin/ script authoring template (enforcement host, future); PENDING human story-anchor decision.
+
+**Closes:** D-899 S-21.04-ADV-PASS-4-CLOSED (2026-07-25). `[process-gap; space-unsafe-awk; worktree-path; bin-scripts; git-worktree-porcelain; deferred-pending-story-anchor; F-S2104-P4-003; D-899; codified]`

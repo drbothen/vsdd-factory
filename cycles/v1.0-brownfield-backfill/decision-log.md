@@ -11476,3 +11476,64 @@ D-898-S2104-ADV-PASS-3-CLOSED
 ### Date
 
 2026-07-25
+
+---
+
+## D-899
+
+### Title
+
+S-21.04 LOCAL adversarial cascade pass-4 CLOSED — 12 findings (B0/H6/M5/L1); 3 fixed in-burst, 9 OPEN deferred or pending adjudication; streak 0/3
+
+### Context
+
+LOCAL adversarial cascade for S-21.04 (deliver-story step-g cleanup gate). Pass-4 adversary reviewed at HEAD `b44442b2` (post pass-3 fix burst) and produced 12 findings: B0 / H6 / M5 / L1 (novelty 0.71).
+
+POLICY 16 gate: prior max D-NNN = D-898 (confirmed by `grep -n "^## D-" decision-log.md | tail -3`). D-899 allocated.
+
+Pass-4 finding set summary:
+- F-S2104-P4-001 HIGH: No test for non-path-absent find exit (PC2c path untested)
+- F-S2104-P4-002 HIGH: BC Invariant 6 missing caller-side propagation — gap vs AC-007
+- F-S2104-P4-003 HIGH: `awk '{print $2}'` space-unsafe in bin/ scripts for worktree paths
+- F-S2104-P4-004 HIGH: No test for AC-007 caller-side propagation
+- F-S2104-P4-005 HIGH: red-gate-log line 149 cited fabricated "PREFLIGHT BLOCKED" (PC2b) for PC2c — §G.1 PC2c does not use that phrase
+- F-S2104-P4-006 HIGH: Dual-precedence conflict — step-g-cleanup.md §G.1 and BC-6.26.001 PC2c both assert normative ownership of Step 8 teardown gate; mutually exclusive in one edge case
+- F-S2104-P4-007 MEDIUM: BC-INDEX.md S-21.04 row cited BC-6.26.001 v1.5 before pass-4 BC version advance
+- F-S2104-P4-008 MEDIUM: git worktree list --porcelain parsing not tested for spaces-in-path
+- F-S2104-P4-009 MEDIUM: AC-006 test lacks baseline positive case
+- F-S2104-P4-010 MEDIUM: red-gate-log frontmatter traces_to cited v1.5 (stale, should be v1.6)
+- F-S2104-P4-011 MEDIUM: §H.1 operator surface clause uses "SHOULD" rather than "MUST"
+- F-S2104-P4-012 LOW: STORY-INDEX S-21.04 row "AC-007 fail-closed" label ambiguous vs "AC-007 caller-side propagation"
+
+### Decision
+
+Fix-burst D-899 scope:
+
+1. **F-S2104-P4-005 FIXED**: red-gate-log.md line 149 updated from fabricated "PREFLIGHT BLOCKED" (PC2b) to verbatim §G.1 PC2c semantics per step-g-cleanup.md. Commit: product-owner commit `fcfce450`. Version 1.2→1.3; input-hash 2b051ec→8cdfb33; traces_to v1.5→v1.6 (closes F-S2104-P4-010 as a side-effect). Last_amended prepended.
+
+2. **F-S2104-P4-012 FIXED**: STORY-INDEX.md S-21.04 row "AC-007 fail-closed" → "AC-007 caller-side propagation". Version 4.251→4.252. Input-hash updated to 9fb585f. BC cite v1.5→v1.6. P4 finding refs appended (F-S2104-P4-001..012). Story v1.6→v1.7.
+
+3. **F-S2104-P4-007 FIXED**: BC-INDEX.md BC-6.26.001 row updated v1.5→v1.6. Version 4.27→4.28. Last_amended prepended.
+
+4. **F-S2104-P4-006 OPEN**: Dual-precedence conflict between step-g-cleanup.md §G.1 and BC-6.26.001 PC2c recorded as OPEN drift item. Resolution requires human adjudication. This decision (D-899) records the OPEN state; a follow-up D-NNN will record the adjudication outcome. DO NOT fix by silent subordination.
+
+5. **F-S2104-P4-001, F-S2104-P4-002, F-S2104-P4-003, F-S2104-P4-004, F-S2104-P4-008, F-S2104-P4-009, F-S2104-P4-011 DEFERRED**: Test gaps (F-001, F-004, F-008, F-009), BC Invariant 6 gap (F-002, requires product-owner amendment), space-unsafe awk bin/ sweep (F-003, requires story-anchor), §H.1 SHOULD/MUST (F-011) — all deferred pending pass-5 adversarial review or explicit human story-anchor assignment.
+
+3 lessons codified (brownfield lessons.md):
+- L-BB-whole-repo-sibling-sweep-mandatory-per-finding [process-gap]
+- L-BB-dual-precedence-claim-conflict-is-open-drift [process-gap]
+- L-BB-bin-space-unsafe-awk-deferred-pending-story-anchor [process-gap]
+
+POLICY 14 gate: BC-INDEX v4.28 / VP-INDEX v2.72 / STORY-INDEX v4.252 / ARCH-INDEX v3.31.
+
+adversary-pass-04.md created (verbatim pass-4 record; 12 findings; fix-mapping table).
+
+STATE.md v6.36→v6.37. develop HEAD `948f0fb1`; main `80e5cd7b` UNCHANGED.
+
+### Phase
+
+D-899-S2104-ADV-PASS-4-CLOSED
+
+### Date
+
+2026-07-25
