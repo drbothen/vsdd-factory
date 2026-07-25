@@ -7360,3 +7360,43 @@ Both gates are mandatory standing Commit-E controls for any burst touching E-19 
 **Cites:** D-891 (codified this burst); S-7.13 (human-merge-gate protocol; scope note target); auto-mode classifier (independently rejects orchestrator-relayed approval relay); GitHub self-review prevention (platform constraint).
 
 **Closes:** D-891 E-21-W1-WAVE-GATE-PASSED-2026-07-24 (2026-07-24). `[process-gap; github; self-review; agent-authored-pr; review-gate; satisfied-by-file-record; S-7.13; D-891; codified]`
+
+---
+
+## L-BB-deliver-story-step-D5-must-embed-feature-head-sha [process-gap] [codified D-895]
+
+**Summary:** The deliver-story skill Step D5 dispatch template does not embed the current feature-branch HEAD SHA in the dispatch payload. As a result, the adversary review record (`adversary-pass-01.md`) could not cite the exact `reviewed_head` SHA without the adversary explicitly recording it during review. When the context was later compacted, the feature-branch HEAD at adversary-dispatch time was unavailable for accurate audit-trail reconstruction, requiring reconstruction from commit-log evidence.
+
+**Discovered:** 2026-07-25 (S-21.04 LOCAL cascade pass-1 closure; O-S2104-P1-002 observation during adversary-pass-01.md reconstruction).
+
+**Root cause:** Step D5 in the deliver-story skill orchestrates the adversary dispatch with story context but does not capture the live `git rev-parse HEAD` of the feature branch at dispatch time. The `reviewed_head` field in the adversary review template relies on the adversary agent recording it, which works well when the review and persist happen in the same session context but fails across context compaction boundaries.
+
+**Corrective action:** The deliver-story skill Step D5 dispatch preamble MUST include the literal-shell output of `git rev-parse HEAD` (feature-branch HEAD at adversary-dispatch time) and embed it in the adversary review frontmatter `reviewed_head:` field before dispatching the adversary agent. This ensures the SHA is recorded in the artifact immediately rather than relying on adversary memory.
+
+**Prevention:** Any skill step that dispatches a fresh-context agent for a review MUST capture live state (branch HEAD, timestamp, base commit) into the review artifact frontmatter in the dispatch preamble — before the agent runs. Adversary agents cannot reliably report their own dispatch-time state if context compaction occurs between dispatch and persist.
+
+**Anchors:** S-21.04 LOCAL cascade pass-1 (2026-07-25); adversary-pass-01.md reconstruction; deliver-story Step D5 dispatch; D-895 codification.
+
+**Cites:** D-895 (codified this burst); deliver-story Step D5 (enforcement host); S-21.04 adversary-pass-01.md (triggered finding).
+
+**Closes:** D-895 S-21.04-ADV-PASS-1-CLOSED-2026-07-25 (2026-07-25). `[process-gap; deliver-story; step-D5; adversary-dispatch; feature-head-sha; reviewed-head; context-compaction; D-895; codified]`
+
+---
+
+## L-BB-red-gate-log-attestation-must-be-validated-against-story-rg-ids [process-gap] [codified D-895]
+
+**Summary:** The red-gate-log.md attestation record for S-21.04 contained fabricated RG-004/RG-005 IDs and a mis-mapped T-001→RG-003 association. The root cause is that the test-writer that authored the red-gate-log did not validate the RG-ID assignments against the story's §Red Gate Test Plan before persisting. The story defines RG-001..RG-003; the red-gate-log used RG-003..RG-005 (offset by 2), creating a false audit trail that attributed tests to non-existent requirements. AC-002 was also incorrectly attributed to `_shared-context.md` rather than `step-g-cleanup.md §G.1`.
+
+**Discovered:** 2026-07-25 (S-21.04 LOCAL cascade pass-1 adversarial review, F-S2104-P1-009 HIGH).
+
+**Root cause:** The red-gate-log template instructs the test-writer to populate RG-IDs from the story's Red Gate Test Plan, but no mechanical verification step exists to confirm the IDs match. The test-writer authored the log using sequential IDs starting from RG-003 (likely copying from an earlier story's log without resetting the sequence), and the fabrication was not caught before persist because no pre-persist cross-check was performed.
+
+**Corrective action:** (1) Red-gate-log RG-ID mapping MUST be validated against the story's §Red Gate Test Plan before the log is committed — a literal-shell `grep "^| RG-" <story-file>` to extract defined RG-IDs, then confirm each RG-ID in the red-gate-log Traces section appears in that extracted set. (2) AC attribution in the Hand-Off section must be validated against the BC definition table in the story. These are mechanical checks that the test-writer (or a pre-commit hook) can perform.
+
+**Prevention:** Add a mandatory pre-commit attestation step to the red-gate-log workflow: "Run `grep '^| RG-' <story-file>` and confirm all RG-IDs in red-gate-log.md Traces section appear in the output." This is a literal-shell gate (D-449(a) class) that catches RG-ID drift at persist time rather than at adversary review time.
+
+**Anchors:** S-21.04 red-gate-log.md (fabricated RG-004/005; mis-mapped RG-003; AC-002 attribution error); adversary pass-1 F-S2104-P1-009 HIGH; erratum appended D-895; D-895 codification.
+
+**Cites:** D-895 (codified this burst); red-gate-log.md erratum (F-S2104-P1-009 fix); BC-6.26.001 Red Gate Test Plan (RG-001..RG-003 authoritative); test-writer (enforcement host for pre-persist RG-ID cross-check).
+
+**Closes:** D-895 S-21.04-ADV-PASS-1-CLOSED-2026-07-25 (2026-07-25). `[process-gap; red-gate-log; rg-id; fabrication; attestation; ac-attribution; test-writer; pre-persist-crosscheck; F-S2104-P1-009; D-895; codified]`

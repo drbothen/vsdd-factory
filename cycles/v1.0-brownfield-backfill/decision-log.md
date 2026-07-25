@@ -11167,3 +11167,67 @@ D-894-E21-W2-STATUS-PROMOTION-2026-07-24
 ### Date
 
 2026-07-25
+
+## D-895
+
+S-21.04-ADV-PASS-1-CLOSED-2026-07-25. Single-commit pass-1 closure burst (TD-VSDD-053), state-manager, 2026-07-25. POLICY 16 GLOBAL-MAX GATE: `grep -n "^## D-" decision-log.md | tail -3` → `11078:## D-892 / 11118:## D-893 / 11159:## D-894`; D-894 confirmed prior max → D-895 allocated.
+
+PASS-1 VERDICT: NOT-CLEAN — B1 / H8 / M3 / L2 (14 findings total). Finding IDs: F-S2104-P1-001..014. Streak: 0/3 (BC-5.39.001 3-CLEAN protocol). Reviewed HEAD: `1849d6b3` on feature/S-21.04-story-worktree-write-path-discipline vs base `948f0fb1`.
+
+FINDING SUMMARY:
+- F-S2104-P1-001 BLOCKER: Primary dispatch path in `_shared-context.md` does not propagate §G.1 preflight mandate → implementer
+- F-S2104-P1-002 HIGH: Bats test assertions are document-token grep, not semantic execution parity → test-writer
+- F-S2104-P1-003 HIGH: AC-006 (PC2c fail-closed) has no test vector → test-writer
+- F-S2104-P1-004 HIGH: No exit-status assertions in bats suite → test-writer
+- F-S2104-P1-005 HIGH: Primary-path parity gap — `_shared-context.md §Write Discipline` has no behavioral test → test-writer
+- F-S2104-P1-006 HIGH: `2>/dev/null` on `find` makes PC2c structurally unreachable; PC2c HALT clause absent → implementer
+- F-S2104-P1-007 HIGH: `_shared-context.md §Context` false claim that `git worktree add` creates shadow `.factory/` directory → story-writer + architect (ADR-031 v1.8→v1.9)
+- F-S2104-P1-008 HIGH: 5 sibling teardown sites invoke `git worktree remove` without §G.1 preflight → implementer
+- F-S2104-P1-009 HIGH: `red-gate-log.md` fabricated RG-004/RG-005; T-001 mis-mapped to RG-003; AC-002 attributed to `_shared-context.md` → state-manager
+- F-S2104-P1-010 MEDIUM: Clean-path sub-clause uses `git worktree remove --force` (BC mandate violation) → implementer
+- F-S2104-P1-011 MEDIUM: PC2a sub-cases (a) and (b) not distinguished; absent `.factory/` treated same as PC2c error → implementer
+- F-S2104-P1-012 LOW: CHANGELOG `[Unreleased]` entry missing → implementer
+- F-S2104-P1-013 MEDIUM: `CANONICAL_FACTORY_ROOT` fallback resolution chain undefined for story-worktree context → story-writer
+- F-S2104-P1-014 LOW: Story v1.3 internal BC cites lag BC-6.26.001 v1.4 → story-writer
+
+FIX-LEGS ROUTING TABLE (all legs verified landed; worktree HEAD after all fix legs: `2d6297da`):
+
+| Finding(s) | Agent | Commit SHA | Work |
+|------------|-------|-----------|------|
+| F-001 | implementer | a65df476 | Propagate §G.1 preflight mandate to primary dispatch paths |
+| F-002, F-003, F-004, F-005 | test-writer | 7d38b9e6 | Strengthen suite: semantic doc extraction, PC2c/AC-006, exit-status, primary-path parity |
+| F-006, F-010, F-011 | implementer | 19271a65 | Remove 2>/dev/null; add PC2a sub-cases; add PC2c HALT; correct --force rationale |
+| F-007, F-013 | story-writer | 0a82dbb2 | Correct shadow-directory provenance + CANONICAL_FACTORY_ROOT clarifications |
+| F-007 (ADR side) | architect | (ADR-031 v1.8→v1.9; within 0a82dbb2 or companion commit) | §Context false-premise corrected in ADR-031 |
+| F-008 | implementer | d3546a77 | Sibling sweep: add §G.1 preflight to 5 unguarded teardown sites |
+| F-009 | state-manager | D-895 this burst | red-gate-log.md erratum append (RG-001..003 corrected; AC-002 attribution fixed) |
+| F-012 | implementer | 2d6297da | CHANGELOG [Unreleased] entry added |
+| F-014 | story-writer | 0594e2c2 | Story BC cite propagation v1.3→v1.4; BC-6.26.001 v1.3→v1.4 |
+
+BC-6.26.001 amended v1.3→v1.4 (story-writer commit 0594e2c2; PC2c fail-closed clause + AC-006 added).
+ADR-031 amended v1.8→v1.9 (architect; §Context shadow-directory provenance corrected).
+
+BURST DELIVERABLES:
+1. `cycles/v1.0-brownfield-backfill/S-21.04/implementation/red-gate-log.md` — F-S2104-P1-009 erratum section appended.
+2. `cycles/v1.0-brownfield-backfill/S-21.04/adversary-pass-01.md` — pass-1 review record created (B1/H8/M3/L2, 14 findings, fix-mapping table with commit SHAs).
+3. `specs/behavioral-contracts/BC-INDEX.md` — BC-6.26.001 row v1.3→v1.4; BC-INDEX v4.25→v4.26; last_amended prepended.
+4. `stories/STORY-INDEX.md` — S-21.04 row story v1.3→v1.4, input-hash 709f937→510a89a, BC cite v1.3→v1.4; STORY-INDEX v4.248→v4.249; last_amended prepended.
+5. `specs/architecture/ARCH-INDEX.md` — ADR-031 row Description amended v1.9 note added; ARCH-INDEX v3.29→v3.30; last_amended prepended.
+6. `specs/verification-properties/VP-INDEX.md` — UNCHANGED (v2.72; no VP changes this burst).
+7. `cycles/v1.0-brownfield-backfill/lessons.md` — two [process-gap] lessons appended: L-BB-deliver-story-step-D5-must-embed-feature-head-sha + L-BB-red-gate-log-attestation-must-be-validated-against-story-rg-ids.
+8. This D-895 decision-log.md block.
+9. `STATE.md` frontmatter-minimal advance: version v6.31→v6.32; timestamp advanced; phase → D-895-S2104-ADV-PASS-1-CLOSED-2026-07-25; last_amended prepended.
+
+POLICY 14 4-INDEX GATE (literal shell): `grep -m1 "^version:" .factory/specs/behavioral-contracts/BC-INDEX.md .factory/specs/verification-properties/VP-INDEX.md .factory/stories/STORY-INDEX.md .factory/specs/architecture/ARCH-INDEX.md` → BC-INDEX v4.26 / VP-INDEX v2.72 / STORY-INDEX v4.249 / ARCH-INDEX v3.30.
+
+NEXT: S-21.04 LOCAL adversarial cascade pass-2 dispatch.
+
+STATE.md v6.31→v6.32. develop HEAD `948f0fb1`; main `80e5cd7b` UNCHANGED.
+
+### Phase
+
+D-895-S2104-ADV-PASS-1-CLOSED-2026-07-25
+
+### Date
+
+2026-07-25
