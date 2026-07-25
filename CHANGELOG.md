@@ -23,12 +23,17 @@
   path → PC2b BLOCKED without running `find`; `find "<path>/.factory/" -type f` trailing-slash exits 0 empty →
   PC2a proceed; PC2b (`find` returns paths, or symlink/non-directory inode → PREFLIGHT BLOCKED + Option A/B
   remediation menu + retry mandate); PC2c (`find` exits non-zero (any non-zero exit) → HALT, surface exit code +
-  stderr). Tests T-005 (regular-file-at-path) and T-006 (symlink-at-path-to-dir) exercise the v1.7 discrimination
-  chain. The preflight mandate propagated to the enumerated dispatch surfaces: `deliver-story` SKILL.md Step 8;
+  stderr). Tests T-005 (regular-file-at-path), T-006 (symlink-at-path-to-dir), and T-007 (executor-side §G.1
+  doc-parity) exercise the §G.1 discrimination chain (BC-6.26.001 PC2).
+  The preflight mandate propagated to the enumerated dispatch surfaces: `deliver-story` SKILL.md Step 8;
   both per-story-delivery.md playbooks (agents/orchestrator and workflows/phases — the latter being the
-  precedence-winning reference); `agents/devops-engineer.md` §Worktree Cleanup; worktree-protocol.md Cleanup Rules;
+  precedence-winning reference); worktree-protocol.md Cleanup Rules; step-d5-adversary-convergence.md;
   and 5 sibling teardown sites (worktree-manage, code-delivery, fix-pr-delivery, code-delivery.lobster,
   greenfield.lobster).
+  Executor-side defense-in-depth (AC-008, BC-6.26.001 Precondition 3): `agents/devops-engineer.md` §Worktree
+  Cleanup now verifies a PASS §G.1 preflight result before executing any story-worktree removal, running the
+  §G.1 procedure by reference when not evident from the dispatch — caller-side gating remains primary per
+  ADR-031 §Rationale.
   (3) **Adversary reporting-semantics** (`adversary.md` point 4, `adversarial-review/SKILL.md` Worktree-Identity
   Preflight): worktree `.factory/` content encountered during adversarial review is now documented as live shadow-write
   evidence (BC-6.26.001 Invariant 5) — report it as a defect signal tied to the `step-g-cleanup.md §G.1` teardown
