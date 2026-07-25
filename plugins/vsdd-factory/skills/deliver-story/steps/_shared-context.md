@@ -155,6 +155,13 @@ If pr-manager returns "diff too large, recommend split":
 4. If approved: dispatch `story-writer` to split, then resume per-story delivery on each split story
 5. If rejected: the human can override — add a note to `review-findings.md` and tell pr-manager to continue the review loop
 
+For the full post-approval procedure — including split execution, sub-worktree creation, and
+original worktree cleanup — follow `agents/orchestrator/per-story-delivery.md §Story Split
+Recovery` (the canonical 8-step version). In particular, step 8 of that version requires running
+the §G.1 preflight (step-g-cleanup.md §G.1, BC-6.26.001 PC2) before removing the original
+worktree. Cross-referencing rather than duplicating prevents drift when the canonical procedure
+evolves.
+
 ## Lessons Learned
 
 ### Verification After Every Fix
