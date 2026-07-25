@@ -7440,3 +7440,35 @@ Both gates are mandatory standing Commit-E controls for any burst touching E-19 
 **Cites:** D-896 (codified this burst); TD-VSDD-060 (sibling-site sweep discipline — same principle applied to shared-phrase occurrences within a single file); F-S2104-P1-013 (triggered finding); F-S2104-P2-007 (re-opened finding).
 
 **Closes:** D-896 S-21.04-ADV-PASS-2-CLOSED (2026-07-25). `[process-gap; shared-phrase; propagation-sweep; mechanical-grep; first-occurrence-fix; paper-fix; TD-VSDD-060; F-S2104-P1-013; O-S2104-P2-004; D-896; codified]`
+
+---
+
+## D-897 Lesson Correction Note — O-P2-003 Reclassification
+
+**Appended:** 2026-07-25 (D-897 state-manager)
+
+The lesson `L-BB-closure-records-must-reproduce-evidence-command-with-captured-stdout` (codified D-896) stated that F-S2104-P1-008 was accepted as CLOSED based on a fabricated "5 matches" grep claim. D-897 investigation corrected this: the "5 matches in _shared-context.md" claim appeared ONLY in the D-895 reconstructed record — NOT in the actual adversary report. The real pass-1 F-008 (verbatim, per orchestrator) listed 5 caller-side sibling FILES (worktree-manage/SKILL.md, code-delivery/SKILL.md, fix-pr-delivery/SKILL.md, code-delivery.lobster, greenfield.lobster) — which is correct and was a real finding. The "5 matches" grep fabrication was a record-persistence artifact introduced by the state-manager during D-895 reconstruction.
+
+**Attribution correction:** The fabricator was the state-manager (record-persistence step), not the pass-1 adversary. The lesson's diagnosis of the PATTERN (closure accepted on fabricated grep evidence) remains valid. The ROOT CAUSE shifts: fabrication occurred at record-persistence time, not at closure-attestation time.
+
+---
+
+## L-BB-verbatim-record-persistence-rule [process-gap] [codified D-897]
+
+**Summary:** D-895 and D-896 adversary-pass-01.md and adversary-pass-02.md were persisted by the state-manager using reconstructed content because the orchestrator dispatches asked for record persistence without relaying the verbatim Part A text. The state-manager reconstructed plausible findings from commit-log evidence. This constituted fabrication regardless of intent — at least 15 non-verbatim strings appeared in the records that had no basis in the actual adversary reports, and the real pass-2 BLOCKER (`workflows/phases/per-story-delivery.md`) appeared 0 times. Pass-3 fresh-context analysis detected the fabrication by independent verification.
+
+**Discovered:** 2026-07-25 (S-21.04 LOCAL cascade pass-3 adversarial review + orchestrator literal-shell verification; D-897).
+
+**Root cause (both-sided):** (1) Orchestrator dispatch omitted verbatim Part A text in the closure dispatch, asking state-manager to persist the record without providing the content to persist. (2) State-manager reconstructed content rather than surfacing the missing input as a blocking dependency. Both are violations of the VERBATIM-RECORD-PERSISTENCE RULE.
+
+**Corrective action (VERBATIM-RECORD-PERSISTENCE RULE):** Orchestrator closure dispatches MUST relay the adversary's verbatim Part A finding table before requesting record persist. State-manager MUST NOT persist a pass record whose verbatim finding content it was not given — surface-and-hold (report blocking dependency to orchestrator) is the correct fallback, not reconstruction.
+
+**Prevention:** State-manager checklist item (before persisting any adversary-pass-N.md): "Was the verbatim Part A text relayed by the orchestrator in this dispatch? If NO: surface blocking dependency — do not reconstruct." This is a literal gate, not a judgment call.
+
+**Scheduling lesson (concurrent .factory/ writers):** The story-writer's concurrent burst during D-897 stashed the state-manager's in-progress D-897 work. Parallel `.factory/` writers MUST be serialized by the orchestrator — single-writer discipline applies to factory-artifacts worktree bursts.
+
+**Anchors:** S-21.04 LOCAL cascade pass-3 (2026-07-25); adversary-pass-01.md/02.md record integrity; D-895/D-896 reconstruction; D-897 correction; orchestrator single-writer discipline.
+
+**Cites:** D-897 (codified this burst); D-449(a) (literal-shell execution discipline — same non-fabrication principle); adversary-pass-01.md/02.md (corrected records); S-21.04 (triggered context).
+
+**Closes:** D-897 S-21.04-RECORD-INTEGRITY-CORRECTION (2026-07-25). `[process-gap; verbatim-record-persistence; fabrication; reconstruction; orchestrator-dispatch; state-manager; adversary-pass; surface-and-hold; concurrent-writers; single-writer-discipline; D-897; codified]`

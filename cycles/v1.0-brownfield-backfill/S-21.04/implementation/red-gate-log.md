@@ -1,20 +1,21 @@
 ---
 document_type: red-gate-log
 level: ops
-version: "1.1"
+version: "1.2"
 status: verified
 producer: test-writer
-timestamp: 2026-07-25T02:30:00Z
+timestamp: 2026-07-25T03:15:00Z
 phase: 3
 inputs:
   - .factory/stories/S-21.04-story-worktree-write-path-discipline.md
   - .factory/specs/behavioral-contracts/ss-06/BC-6.26.001.md
-input-hash: "55904fb"
+input-hash: "2b051ec"
 traces_to: "BC-6.26.001 v1.5"
-last_amended: "2026-07-25 D-896 state-manager — T-004/RG-004 attestation addendum (F-S2104-P2-013) + quintuple parity v1.5 (F-S2104-P2-017); prior: 2026-07-25 D-895 state-manager — erratum F-S2104-P1-009 (RG-ID mapping + AC-002 attribution)"
+last_amended: "2026-07-25 D-897 state-manager — fabricated PC2c implementation quote corrected to verbatim §G.1 text; Invariant TBD placeholder removed; input-hash 55904fb→2b051ec (story v1.6 drift); version 1.1→1.2 (F-S2104-P3-009, F-S2104-P3-010); prior: 2026-07-25 D-896 state-manager — T-004/RG-004 attestation addendum (F-S2104-P2-013) + quintuple parity v1.5 (F-S2104-P2-017); prior: 2026-07-25 D-895 state-manager — erratum F-S2104-P1-009 (RG-ID mapping + AC-002 attribution)"
 modified:
   - "2026-07-25 D-895: Erratum appended — RG-ID mapping corrected (RG-001/002/003), fabricated RG-004/005 documented, AC-002 attribution corrected (F-S2104-P1-009)"
   - "2026-07-25 D-896: T-004/RG-004 attestation addendum appended; frontmatter version 1.0→1.1, traces_to updated to v1.5, §Traces BC cites updated to v1.5 (F-S2104-P2-013, F-S2104-P2-017)"
+  - "2026-07-25 D-897: Fabricated PC2c implementation quote corrected to verbatim §G.1 text; Invariant TBD placeholder removed; input-hash 55904fb→2b051ec (story v1.6 drift correction); version 1.1→1.2 (F-S2104-P3-009, F-S2104-P3-010)"
 stub_architect_agent: "N/A — no code stubs (skill-doc + bats story; ADR-031 §Decision 4 class; POLICY 21 satisfied)"
 stub_compile_verified: true
 test_writer_agent: vsdd-factory:test-writer
@@ -151,11 +152,11 @@ The original red-gate-log covered T-001/T-002/T-003 only. T-004 (PC2c fail-close
 
 Suite run: `bats plugins/vsdd-factory/tests/story-worktree-write-path-discipline.bats` → `1..4`; all 4 `not ok`. T-004 fails at `_assert_doc_marker` (DOC-PARITY): "PC2c fail-closed HALT branch must be documented in §G.1" — the PC2c HALT clause was not yet present in `step-g-cleanup.md §G.1`. Pre-implementation, the awk extraction gate confirms absence; T-004 cannot pass until the PC2c branch is explicitly documented.
 
-**Implementation commit that turned T-004 green:** `19271a65` — added PC2c HALT clause to `step-g-cleanup.md §G.1` ("if `find` exits non-zero for a non-path-absent reason, emit `PREFLIGHT BLOCKED (PC2c)` and halt; `git worktree remove` NOT called"). Post-implementation suite: `1..4`; all 4 `ok`.
+**Implementation commit that turned T-004 green:** `19271a65` — added PC2c HALT clause to `step-g-cleanup.md §G.1`. Verbatim from the actual §G.1 text (read from commit `19271a65` worktree): "teardown MUST HALT. Surface the exact find exit code and stderr to the operator. `git worktree remove` is NOT executed — find errors must not silently authorize removal of unverified worktree content (BC-6.26.001 PC2c)." Post-implementation suite: `1..4`; all 4 `ok`.
 
 **RG-004 source of truth:** story v1.5 §Red Gate Test Plan (6149e893). Story v1.4 covered RG-001..RG-003 only; RG-004 (PC2c) was added by story-writer at commit 6149e893 as part of F-S2104-P2-007 five-table propagation fix.
 
-**BC trace:** T-004 (AC-006 / RG-004) → BC-6.26.001 v1.5 PC2c (Invariant TBD): non-path-absent find error → fail-closed HALT; `git worktree remove` NOT called.
+**BC trace:** T-004 (AC-006 / RG-004) → BC-6.26.001 v1.5 PC2c: non-path-absent find error → fail-closed HALT; `git worktree remove` NOT called.
 
 **Summary row for completeness:**
 

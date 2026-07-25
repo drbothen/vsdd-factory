@@ -45,6 +45,49 @@ Examples: `F-S2104-P1-001` (BLOCKER finding, pass 1, first finding), `F-S2104-P1
 
 ---
 
+## Record Integrity Notice (D-897)
+
+> **REWRITTEN 2026-07-25 (D-897):** The original D-895 persist of this file contained
+> reconstructed, non-verbatim finding content. The D-895 dispatch asked the state-manager to
+> persist a pass-1 review record without relaying the verbatim Part A text; the state-manager
+> reconstructed content from commit-log evidence. This constituted fabrication regardless of
+> intent.
+>
+> The **Verbatim Finding Record** section below contains the orchestrator-relayed finding rows
+> (certified faithful to the actual adversary report). The Part B finding descriptions that
+> follow are the pre-D-897 reconstructed content — retained for structural compliance — but
+> should be treated as **non-authoritative** where they conflict with the verbatim table.
+>
+> Root cause codified at D-897. VERBATIM-RECORD-PERSISTENCE RULE: orchestrator MUST relay
+> verbatim Part A before requesting record persist; state-manager MUST NOT reconstruct.
+
+## Verbatim Finding Record (D-897)
+
+**Verdict:** NOT-CLEAN | **Count:** B1/H8/M3/L2 (14 total) | **Reviewed HEAD:** `1849d6b3`
+
+Verbatim finding rows as relayed by the orchestrator (certified faithful to actual report):
+
+| ID | Sev | Location | Description | BC/Policy |
+|----|-----|----------|-------------|-----------|
+| F-S2104-P1-001 | BLOCKER | deliver-story/SKILL.md:112-116 + agents/orchestrator/per-story-delivery.md:46,104 | New preflight placed in a step file that neither the skill front-door nor the declared-authoritative playbook references; both instruct bare worktree removal; guard bypassable on primary path | BC-6.26.001 PC2/Inv2; ADR-031 §Decision 1 INV-E21-004 |
+| F-S2104-P1-002 | HIGH | story bats:105-135,167-180 | Anti-tautology gate presence-only; harness re-implements preflight instead of executing doc command; enumerated doc-mutants (-type d, -name '*.tmp', block relocation, Invariant-2 softening, retry-line deletion, pure-prose) survive all 3 tests | AC-002(a); TD-VSDD-059; POLICY 11/15 |
+| F-S2104-P1-003 | HIGH | story bats:104,134,204-207 | AC-003(a) "exits non-zero" and "reports stray path" both unasserted; harness documented "Always returns 0" | AC-003(a); BC PC2b §1 |
+| F-S2104-P1-004 | HIGH | BC-6.26.001.md:122 | BC PC1 mandates git -C <story-worktree-path> rev-parse --show-toplevel — the exact anti-pattern its own Invariant 3 and §Description forbid; implementation correct, BC self-contradictory | BC PC1 vs Inv3; EC-006 |
+| F-S2104-P1-005 | HIGH | _shared-context.md:79-90 | CANONICAL_FACTORY_ROOT has no producer anywhere in repo; unset expansion yields /.factory/...; no assert-non-empty; referent diverges from ADR-031's git -C .factory form (nesting pathology) | AC-001(b); BC PC1/Inv3 |
+| F-S2104-P1-006 | HIGH | step-g-cleanup.md:20,37-38; bats:121 | Fail-open guard: 2>/dev/null + "no output ⇒ pass" conflates find-errored with no-strays; unquoted path; errors silently authorize rm -rf; no error-path test | BC PC2a; EC-005; silent-failure |
+| F-S2104-P1-007 | HIGH | _shared-context.md:60 vs step-g-cleanup.md:37-49 | Mutually exclusive premises: "git populates worktree with snapshot of entire .factory/ tree" cannot coexist with find-must-be-empty gate; empirically shadow tree does NOT exist (.factory/ gitignored → checkout empty; errant Write CREATES it) | BC §Description/Inv5; Narrative:62; ADR §Context:76-81 |
+| F-S2104-P1-008 | HIGH | worktree-manage/SKILL.md:70-85; code-delivery/SKILL.md:202; fix-pr-delivery/SKILL.md:146; code-delivery.lobster:444; greenfield.lobster:801 | 5 caller-side story-worktree teardown sites unguarded; worktree-manage gates on git status --porcelain — precisely the check Inv5 declares insufficient; blast radius 5 | INV-E21-004 universal; TD-VSDD-060 |
+| F-S2104-P1-009 | HIGH | red-gate-log.md:53-55,77,98 | Cites non-existent RG-004/RG-005, mis-maps RG-003 to T-001, attributes AC-002 to _shared-context.md | POLICY 1/4; story §Red Gate Test Plan |
+| F-S2104-P1-010 | MEDIUM | step-g-cleanup.md:57-59; bats:177 | no---force rationale non-sequitur: destructive-command-guard PERMITS --force for .worktrees/-containing commands; wording inherited from BC PC2a + AC-002(c); bats negative regex misses flag-after-path | BC PC2a; AC-002(c) |
+| F-S2104-P1-011 | MEDIUM | bats:170-172,241-243,287-289 | PC2b mandated message body (Option A/B, retry mandate) unasserted; harness message diverges from mandated template | BC PC2b §1/§3; AC-005; POLICY 15 |
+| F-S2104-P1-012 | MEDIUM | story §Tasks vs story-template.md:143 | Template-mandatory CHANGELOG task missing; no CHANGELOG entry in diff | story-template (aa594c9a) |
+| F-S2104-P1-013 | LOW | fixtures README:70-74; bats:222 | Vacuous POLICY 21 shim-exemption paragraph (no shims exist); T-002 comment claims EC-003 but realizes EC-005 only | POLICY 21; EC-003/005 |
+| F-S2104-P1-014 | LOW | bats:52-54 | teardown() returns non-zero when WORK unset, masking setup failures | — |
+
+**Observations (verbatim):** O-P1-001 run-all.sh auto-discovers suite; O-P1-002 [process-gap] dispatch omitted feature-HEAD-SHA tuple element; O-P1-003 demo evidence correctly absent pre-3-CLEAN; O-P1-004 POLICY 19/TD-VSDD-091/21 satisfied; O-P1-005 awk extractors correctly bounded; O-P1-006 AC-001(a)/(c), AC-002(b)/(c), Inv 1/2/4/5, EC-006 genuinely satisfied.
+
+---
+
 ## Part B — New Findings (or all findings for pass 1)
 
 ### BLOCKER

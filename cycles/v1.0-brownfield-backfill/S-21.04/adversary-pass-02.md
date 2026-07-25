@@ -36,6 +36,62 @@ Examples: `F-S2104-P2-001` (pass-2 finding 1), `F-S2104-P2-017` (pass-2 finding 
 
 Re-opened findings from prior passes retain their original ID in the verification table (Part A) and are assigned a new sequential ID in the current pass's finding list (Part B).
 
+## Record Integrity Notice (D-897)
+
+> **REWRITTEN 2026-07-25 (D-897):** The original D-896 persist of this file contained
+> reconstructed, non-verbatim finding content. At least 15 fabricated strings appeared
+> (e.g., "FACTORY_FAST_TEARDOWN", "STORY_WORKTREE_PATH", "wrapper PATH") that never appeared
+> in the actual adversary report. The real pass-2 BLOCKER —
+> `workflows/phases/per-story-delivery.md §Step 8 L191-195` — appeared 0 times in the
+> fabricated record.
+>
+> The **Verbatim Finding Record** section below contains orchestrator-relayed finding rows
+> (certified faithful to the actual adversary report). The Part B finding descriptions that
+> follow are the pre-D-897 reconstructed content — retained for structural compliance — but
+> should be treated as **non-authoritative** where they conflict with the verbatim table.
+>
+> O-P2-003 note: the "5 matches in _shared-context.md" claim was a D-895 record-reconstruction
+> fabrication — the real pass-1 F-008 listed 5 sibling FILES (correct).
+>
+> Root cause codified at D-897. VERBATIM-RECORD-PERSISTENCE RULE: orchestrator MUST relay
+> verbatim Part A before requesting record persist; state-manager MUST NOT reconstruct.
+
+## Verbatim Finding Record (D-897)
+
+**Verdict:** NOT-CLEAN | **Count:** B1/H6/M6/L4/N1 (18 total) + 5 obs | **Reviewed HEAD:** `2d6297da`
+
+Verbatim finding rows as relayed by the orchestrator (certified faithful to actual report):
+
+**Pass-1 verification (verbatim):**
+F-P1-001 REGRESSED-INCOMPLETE (winning playbook); F-P1-002 CONFIRMED-CLOSED; F-P1-003 PARTIAL; F-P1-004 CONFIRMED-CLOSED; F-P1-005 PARTIAL; F-P1-006 PARTIAL/propagation gap; F-P1-007 PARTIAL; F-P1-008 sweep real but two sites remain (NOTE D-897: real P1 F-008 listed 5 sibling FILES — correct; "5 matches in _shared-context.md" was D-895 reconstruction fabrication); F-P1-009 CONFIRMED-CLOSED with new gaps; F-P1-010 CONFIRMED-CLOSED; F-P1-011 PARTIAL; F-P1-012 CONFIRMED-CLOSED; F-P1-013 PAPER-FIX; F-P1-014 CONFIRMED-CLOSED.
+
+**Pass-2 findings (verbatim):**
+
+| ID | Sev | Location | Description | BC/Policy |
+|----|-----|----------|-------------|-----------|
+| F-S2104-P2-001 | BLOCKER | workflows/phases/per-story-delivery.md §Step 8 L191-195 | The PRECEDENCE-WINNING playbook ("If the two disagree, this file wins", its L8) still dispatches removal with no §G.1 preflight; fix wave updated skills/deliver-story/SKILL.md + agents/orchestrator copy only; bats gate points at the losing document | BC PC2/Inv2; AC-002; pass-1 F-001 class |
+| F-S2104-P2-002 | HIGH | BC-6.26.001.md:64 + ADR-031:119,213 | 2>/dev/null survives in three spec locations after v1.4/v1.9 claimed removal; harness machine-rejects the form ADR §Decision 4 mandates | BC PC2c; pass-1 F-006 propagation gap |
+| F-S2104-P2-003 | HIGH | ADR-031:108-111,208-210 | INV-E21-002 + §Decision 4 PC1 prescribe git -C .factory rev-parse --show-toplevel → returns <repo>/.factory not <repo>; nesting pathology BC v1.4 warns against; ADR not swept | BC PC1+Inv3; TD-VSDD-060 |
+| F-S2104-P2-004 | HIGH | ADR-031:110-111 | INV-E21-002 catalog entry still asserts "Story worktrees contain a shadow .factory/ subdirectory" — retracted premise corrected in §Context only | ADR §Context v1.9; pass-1 F-007 |
+| F-S2104-P2-005 | HIGH | agents/adversary.md:54 + adversarial-review/SKILL.md:93 | Both still assert "stale snapshot of factory-artifacts at worktree-creation time"; instructs reviewers to dismiss live #523 shadow-write evidence as pathing artifact; blast radius 2 | BC Inv5; TD-VSDD-060 |
+| F-S2104-P2-006 | HIGH | _shared-context.md:79-89 | PAPER-FIX of pass-1 F-013 circularity: "resolve via git -C <main-worktree-path>" gives no way to OBTAIN <main-worktree-path>; git worktree list --porcelain resolution absent | BC PC1+Inv3; TD-VSDD-059 |
+| F-S2104-P2-007 | HIGH | story v1.4 five MANDATORY tables | AC-006 propagated to NONE of Test Plan/Red Gate Plan/Architecture Mapping/File Structure/Tasks; File Structure omits 6 of 10 delivered files; primary-path bats gates have no AC anchor; AC-006 Gate says "manual:" though T-004 automated | POLICY 8; BC PC2c |
+| F-S2104-P2-008 | MEDIUM | bats:562-564 | AC-006's only doc gate alternation includes bare label PC2c; direction-inversion mutant passes; PC2c HALT decision hardcoded in harness | POLICY 13; TD-VSDD-059 |
+| F-S2104-P2-009 | MEDIUM | bats T-002 L414-429 | PC2a sub-case (a) has no doc-parity guard; deleting it fails nothing; absent-dir branch hardcoded at bats L192 | BC PC2a(a); EC-005 |
+| F-S2104-P2-010 | MEDIUM | bats fixtures + README:76-78 | All stray fixtures .md; find -name '*.md' mutant passes everything; README misattributes -type d mutant detection | POLICY 15 v1.4.10; BC Inv4 |
+| F-S2104-P2-011 | MEDIUM | rules/worktree-protocol.md:52,74-77 | Only file devops-engineer receives carries unguarded teardown + false assurance ("Never force-remove with uncommitted changes — commit or stash first") blind to gitignored shadow content | BC Inv5; caller-side ruling |
+| F-S2104-P2-012 | MEDIUM | _shared-context.md:100 | Story-sizing STOP directive orphaned inside new #### Write Discipline subsection by pass-1 insertion | semantic anchoring |
+| F-S2104-P2-013 | MEDIUM | red-gate-log.md | No Red Gate attestation for T-004/AC-006 under tdd_mode: strict; §Summary still "3 bats" | Iron Law; TD-VSDD-059 |
+| F-S2104-P2-014 | MEDIUM | CHANGELOG.md:22-24 | "propagated to all primary dispatch paths" false while winning playbook + worktree-protocol unguarded | F-P2-001/011 |
+| F-S2104-P2-015 | LOW | bats:52-59,508-510 | CANONICAL_FACTORY fixture never asserts the .factory/.factory nesting pathology BC v1.4 documents | BC PC1; POLICY 11 |
+| F-S2104-P2-016 | LOW | bats:106-116 | _extract_per_story_delivery_step_g_window: BRE \| alternation non-portable + hard lineno-5/+8 offset window fragile | TD-VSDD-091; POLICY 15 |
+| F-S2104-P2-017 | LOW | red-gate-log.md:4,12,13 | Erratum modified doc without version bump/modified[]/last_amended; traces_to stale v1.3 | POLICY 14/17 |
+| F-S2104-P2-018 | LOW | _shared-context.md:139-148 vs orchestrator copy | Story Split Recovery copies diverged further (5-step vs 8-step with preflight) | TD-VSDD-060 |
+
+**Observations (verbatim):** O-P2-001 README misattributes -type d detection to find semantics; O-P2-002 factory-worktree-health + devops-engineer.md teardown sites correctly out of scope; O-P2-003 [process-gap] pass-1 F-008 record shipped "5 matches" fabrication — D-897 correction: fabrication was in D-895 reconstruction, real F-008 listed 5 sibling FILES (correct); O-P2-004 [process-gap] four spec-side closures landed single-document; O-P2-005 BC precondition wording callee-side vs caller-side ruling.
+
+---
+
 **Date:** 2026-07-25
 **Story:** S-21.04 — story-worktree factory artifact write-path discipline and teardown preflight
 **Pass:** 2 of BC-5.39.001 cascade

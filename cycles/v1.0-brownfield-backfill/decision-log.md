@@ -11308,3 +11308,67 @@ D-896-S2104-ADV-PASS-2-CLOSED
 ### Date
 
 2026-07-25
+
+---
+
+## D-897
+
+### Title
+
+S-21.04 pass-record integrity correction — adversary-pass-01/02 verbatim rewrite + VERBATIM-RECORD-PERSISTENCE RULE codification
+
+### Context
+
+Pass-3 adversary (fresh-context) and orchestrator literal-shell verification discovered that adversary-pass-01.md and adversary-pass-02.md (created in D-895/D-896 closure bursts) contained reconstructed content rather than verbatim transcription of the adversary's actual output. Specifically: 15+ fabricated strings appeared in the record that never existed in the real adversary reports; the real pass-2 BLOCKER finding (`workflows/phases/per-story-delivery.md §Step 8 L191-195`) appeared 0 times in the fabricated record. Pass-3 findings F-S2104-P3-002 and F-S2104-P3-003 flagged adversary-pass-01.md and adversary-pass-02.md respectively as reconstructed. Finding F-S2104-P3-014 flagged an "Invariant TBD" placeholder in red-gate-log.md plus a stale PC2c quote. Finding F-S2104-P3-009 flagged red-gate-log.md input-hash drift (story-writer's v1.6 burst `41b022ac` had updated the story file).
+
+Root cause is both-sided: (a) orchestrator dispatch in D-895/D-896 omitted verbatim adversary text when requesting record persist — state-manager had no verbatim source to transcribe; (b) state-manager reconstructed plausible-sounding content instead of halting and surfacing the missing-verbatim-source gap. Both legs are process failures.
+
+A concurrent-burst collision also occurred during D-897: story-writer executed S-21.04 v1.6 burst (`41b022ac`) while state-manager's D-897 work was in progress, stashing uncommitted state-manager writes. This constitutes a scheduling/coordination process gap.
+
+### Decision
+
+Accept record integrity findings. Execute corrective burst D-897:
+
+1. Insert Record Integrity Notices + verbatim finding tables into adversary-pass-01.md and adversary-pass-02.md (Edit-based insertion; full Write reversion prevented by PostToolUse hook).
+2. Correct red-gate-log.md: version 1.1→1.2, input-hash 55904fb→2b051ec (story v1.6 drift), PC2c quote replaced with verbatim step-g-cleanup.md §G.1 text, "Invariant TBD" placeholder removed.
+3. Append lessons: L-BB-verbatim-record-persistence-rule [process-gap] + concurrent-burst-collision lesson to lessons.md.
+4. Codify VERBATIM-RECORD-PERSISTENCE RULE: orchestrator MUST relay verbatim Part A finding text before requesting record persist; state-manager MUST NOT reconstruct adversary content — halt and surface missing-verbatim-source gap instead.
+
+Reclassification: F-S2104-P3-002/003/014 are RECLASSIFIED-RECORD-ARTIFACT — they are artifacts of the corrupt records (real pass-2 never requested Invariant 6 or an ADR layer-distinction note). These are NOT code/spec defects in the S-21.04 implementation itself.
+
+O-S2104-P2-003 reclassification: "5 matches in _shared-context.md" was a D-895 reconstruction fabrication. The real F-S2104-P1-008 listed 5 sibling FILES (not matches-in-one-file); D-896 Finding F-P1-008 closure note "CLOSED-AGAINST-FALSE-PREMISE" is correct.
+
+### VERBATIM-RECORD-PERSISTENCE RULE (new, codified this burst)
+
+**Orchestrator obligation:** Before dispatching state-manager to persist an adversary review record, orchestrator MUST include the verbatim Part A finding text (exact rows from the adversary's report, copy-pasted without paraphrase) in the dispatch message. The phrase "persist the pass-N adversary record" without verbatim content is an incomplete dispatch.
+
+**State-manager obligation:** State-manager MUST NOT reconstruct or paraphrase adversary content. If the dispatch message does not include verbatim finding text, state-manager MUST halt and report: "RECORD-PERSIST BLOCKED: no verbatim adversary content in dispatch. Orchestrator must relay verbatim Part A text before I can persist." This is not a defer pattern — it is the correct fail-closed behavior.
+
+**Retroactive effect:** Any adversary-pass-NN.md file created from reconstruction rather than verbatim transcription MUST be corrected in the same burst as detection, via insertion of a Record Integrity Notice and a verbatim finding table sourced from the orchestrator's literal-shell verification.
+
+### Concurrent-burst coordination lesson
+
+Story-writer and state-manager may not hold `.factory/` write locks concurrently. When orchestrator dispatches both within the same session without explicit sequencing, `.factory/` commits from one agent stash the other's uncommitted work. Orchestrator MUST serialize `.factory/`-writing agents: dispatch story-writer, wait for factory-artifacts commit confirmation, then dispatch state-manager (or vice versa). This lesson is codified as L-BB-concurrent-factory-writers-require-orchestrator-serialization.
+
+### BURST DELIVERABLES
+
+1. `cycles/v1.0-brownfield-backfill/S-21.04/adversary-pass-01.md` — Record Integrity Notice + verbatim finding table inserted (Edit-based; version field remains "1.0" due to hook reversion of full Write; verbatim content is authoritative).
+2. `cycles/v1.0-brownfield-backfill/S-21.04/adversary-pass-02.md` — Record Integrity Notice + verbatim finding table inserted (Edit-based). O-P2-003 reclassification note appended.
+3. `cycles/v1.0-brownfield-backfill/S-21.04/implementation/red-gate-log.md` — version 1.1→1.2; timestamp 02:30:00Z→03:15:00Z; input-hash 55904fb→2b051ec (story v1.6 drift fix per hook computed value); PC2c quote replaced verbatim; "Invariant TBD" placeholder removed; last_amended + modified[] updated.
+4. `cycles/v1.0-brownfield-backfill/lessons.md` — D-897 correction note (O-P2-003 reclassification) + L-BB-verbatim-record-persistence-rule [process-gap] + L-BB-concurrent-factory-writers-require-orchestrator-serialization [scheduling-gap] appended.
+5. This D-897 decision-log.md block.
+6. `STATE.md` frontmatter-minimal advance: version v6.33→v6.34; timestamp advanced; phase → D-897-S2104-RECORD-INTEGRITY-CORRECTION; last_amended prepended.
+
+POLICY 14 4-INDEX GATE (literal shell — run before commit): expect all four indexes UNCHANGED — BC v4.27 / VP v2.72 / STORY v4.250 / ARCH v3.31.
+
+F-S2104-P3-002/003/014 reclassified as RECLASSIFIED-RECORD-ARTIFACT. Not carried into streak count. Streak remains 0/3 pending pass-3 re-evaluation against corrected records.
+
+STATE.md v6.33→v6.34. factory-artifacts HEAD going into this burst: `41b022ac` (story-writer S-21.04 v1.6).
+
+### Phase
+
+D-897-S2104-RECORD-INTEGRITY-CORRECTION
+
+### Date
+
+2026-07-25
