@@ -8,7 +8,7 @@
 
 ### Added
 
-- **S-21.04 — story-worktree write-path discipline + teardown preflight** (BC-6.26.001 v1.5, issue #523): Closes the
+- **S-21.04 — story-worktree write-path discipline + teardown preflight** (BC-6.26.001, issue #523): Closes the
   silent data-loss window where factory artifacts written to a story worktree's shadow `.factory/` tree were permanently
   destroyed by `git worktree remove` without warning. Two complementary protocol requirements delivered as skill-doc
   mandates (no new WASM or shell script, per POLICY 21):
@@ -17,12 +17,18 @@
   (the repo root, not the `.factory/` mount) or `git rev-parse --show-toplevel` on the main worktree; CWD-relative
   paths are forbidden.
   (2) **Teardown preflight** (`step-g-cleanup.md §G.1`): before every `git worktree remove` on a story worktree,
-  a fail-closed three-branch protocol runs — PC2a (`.factory/` absent or `find` exits 0 empty → proceed), PC2b (`find`
-  returns stray files → PREFLIGHT BLOCKED + Option A/B remediation menu + retry mandate), PC2c (`find` exits non-zero
-  for non-path-absent reason → HALT, surface exit code + stderr). The preflight mandate propagated to the enumerated
-  dispatch surfaces: `deliver-story` SKILL.md Step 8; both per-story-delivery.md playbooks (agents/orchestrator
-  and workflows/phases — the latter being the precedence-winning reference); worktree-protocol.md Cleanup Rules; and
-  5 sibling teardown sites (worktree-manage, code-delivery, fix-pr-delivery, code-delivery.lobster, greenfield.lobster).
+  a fail-closed four-branch protocol runs (BC-6.26.001 v1.7) — PC2a sub-case(a) (`.factory/` absent → proceed);
+  symlink at path → PC2b BLOCKED without running `find` (BC-6.26.001 v1.7 EC-009: `test -d` follows symlinks so
+  symlink-to-dir would fall through to `find` and produce empty output without this guard); non-directory inode at
+  path → PC2b BLOCKED without running `find`; `find "<path>/.factory/" -type f` trailing-slash exits 0 empty →
+  PC2a proceed; PC2b (`find` returns paths, or symlink/non-directory inode → PREFLIGHT BLOCKED + Option A/B
+  remediation menu + retry mandate); PC2c (`find` exits non-zero (any non-zero exit) → HALT, surface exit code +
+  stderr). Tests T-005 (regular-file-at-path) and T-006 (symlink-at-path-to-dir) exercise the v1.7 discrimination
+  chain. The preflight mandate propagated to the enumerated dispatch surfaces: `deliver-story` SKILL.md Step 8;
+  both per-story-delivery.md playbooks (agents/orchestrator and workflows/phases — the latter being the
+  precedence-winning reference); `agents/devops-engineer.md` §Worktree Cleanup; worktree-protocol.md Cleanup Rules;
+  and 5 sibling teardown sites (worktree-manage, code-delivery, fix-pr-delivery, code-delivery.lobster,
+  greenfield.lobster).
   (3) **Adversary reporting-semantics** (`adversary.md` point 4, `adversarial-review/SKILL.md` Worktree-Identity
   Preflight): worktree `.factory/` content encountered during adversarial review is now documented as live shadow-write
   evidence (BC-6.26.001 Invariant 5) — report it as a defect signal tied to the `step-g-cleanup.md §G.1` teardown
