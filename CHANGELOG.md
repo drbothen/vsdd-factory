@@ -6,6 +6,24 @@
      ### Fixed. Drained into the next `## <version>` section at release time
      (RELEASING.md Step 2). Keep this heading in place and empty after a drain. -->
 
+### Added
+
+- **S-21.04 — story-worktree write-path discipline + teardown preflight** (BC-6.26.001 v1.4, issue #523): Closes the
+  silent data-loss window where factory artifacts written to a story worktree's shadow `.factory/` tree were permanently
+  destroyed by `git worktree remove` without warning. Two complementary protocol requirements delivered as skill-doc
+  mandates (no new WASM or shell script, per POLICY 21):
+  (1) **Write-path discipline** (`_shared-context.md §Spec-Path Discipline`): all `.factory/**` writes performed during
+  story delivery MUST use canonical absolute paths anchored to the main-checkout root via `$CANONICAL_FACTORY_ROOT`
+  (the repo root, not the `.factory/` mount) or `git rev-parse --show-toplevel` on the main worktree; CWD-relative
+  paths are forbidden.
+  (2) **Teardown preflight** (`step-g-cleanup.md §G.1`): before every `git worktree remove` on a story worktree,
+  a fail-closed three-branch protocol runs — PC2a (`.factory/` absent or `find` exits 0 empty → proceed), PC2b (`find`
+  returns stray files → PREFLIGHT BLOCKED + Option A/B remediation menu + retry mandate), PC2c (`find` exits non-zero
+  for non-path-absent reason → HALT, surface exit code + stderr). The preflight mandate propagated to all primary
+  dispatch paths (SKILL.md Step 8, per-story-delivery.md step (g) and Story Split Recovery) and 5 sibling teardown
+  sites (worktree-manage, code-delivery, fix-pr-delivery, code-delivery.lobster, greenfield.lobster).
+  Closes issue #523.
+
 ## 1.0.0-rc.23 — E-19 operator hardening — host ABI fixes + read_prefix FFI (2026-07-18)
 
 Ships the complete E-19 post-rc.22 operator-hardening epic (9 stories, 55 story points, 3 waves): pr-manager stale-verdict pinning and merge-strategy enforcement, `verify-factory-lock` and `verify-state-timestamp-refresh` 256 KiB cap raise, `read_file NOT_FOUND(-5)` host ABI constant and `file_not_found` telemetry, registry and bundle hygiene, async plugin completion telemetry with `VSDD_SINK_FILE` release-mode opt-in, the new `host::read_prefix` bounded partial-read FFI entry point, Phase-B migration of `verify-factory-lock` to `read_prefix`, and four CRITICAL host ABI production-path gap fixes (D19–D22). All 5 platform dispatcher binaries (darwin-arm64, darwin-x86_64, linux-x86_64, linux-musl, windows-x86_64) are rebuilt from source this release, closing the rc.22-era stale-binary gap where linux/windows binaries pre-dated the S-19.06 hook-sdk changes.
