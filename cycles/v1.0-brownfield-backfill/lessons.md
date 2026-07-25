@@ -7539,9 +7539,9 @@ The lesson `L-BB-closure-records-must-reproduce-evidence-command-with-captured-s
 
 ## L-BB-whole-repo-sibling-sweep-mandatory-per-finding [process-gap] [codified D-899]
 
-**Summary:** Pass-4 review of S-21.04 fix legs revealed that when a finding is closed by retiring a phrase or value from a specific file, the fix must include a whole-repo grep for every location where that phrase or value appears — not just the file cited in the finding. F-S2104-P4-005 (red-gate-log fabricated "PREFLIGHT BLOCKED" message) was fixed in red-gate-log.md, but a whole-repo grep would have immediately surfaced whether the phrase appeared in any other file (test fixtures, templates, other log files). Without the sweep, a "fixed" finding can persist as a live defect in sibling files, defeating the purpose of the closure.
+**Summary:** Pass-4 review of S-21.04 fix legs revealed that when a finding is closed by retiring a phrase or value from a specific file, the fix must include a whole-repo grep for every location where that phrase or value appears — not just the file cited in the finding. F-S2104-P4-006 (red-gate-log.md:149 retained the fabricated PREFLIGHT BLOCKED attribution for PC2c even after the phrase was retired at line 155) was fixed at ba9ccad4 (D-899), but a whole-repo grep would have immediately surfaced whether the phrase appeared in any other file (test fixtures, templates, other log files). Without the sweep, a "fixed" finding can persist as a live defect in sibling files, defeating the purpose of the closure.
 
-**Discovered:** 2026-07-25 (S-21.04 LOCAL cascade pass-4 adversarial review; F-S2104-P4-005 HIGH; mechanical sibling-sweep gap identified during fix-mapping review).
+**Discovered:** 2026-07-25 (S-21.04 LOCAL cascade pass-4 adversarial review; F-S2104-P4-006 HIGH; mechanical sibling-sweep gap identified during fix-mapping review). [Note: this lesson's trigger finding was corrected from F-S2104-P4-005 to F-S2104-P4-006 at D-900 — the D-899 persist had fabricated finding descriptions and mis-attributed the PREFLIGHT BLOCKED issue to the wrong finding ID.]
 
 **Root cause:** The per-finding fix protocol specifies "fix the cited location." It does not mandate a whole-repo grep for the retired phrase/value as a gate before marking the finding CONFIRMED-CLOSED. Implementers naturally fix the cited file, declare closure, and do not search for propagated surfaces. The adversary catches the missed surfaces in the next pass — but only if the adversary knows to search for them. This is a protocol gap, not an adversary failure.
 
@@ -7549,39 +7549,39 @@ The lesson `L-BB-closure-records-must-reproduce-evidence-command-with-captured-s
 
 **Prevention:** Before closing any finding that retires a phrase or value: "Did I grep the whole repo for this phrase? Did I capture the output?" If no, run the grep before declaring closure. The Dim-2 attestation block must show the literal shell command and its stdout.
 
-**Anchors:** S-21.04 LOCAL cascade pass-4 (2026-07-25); F-S2104-P4-005 HIGH (fabricated PREFLIGHT BLOCKED message); sibling-sweep; finding-closure protocol; D-449(a) literal-shell gate; TD-VSDD-060 sibling-site sweep.
+**Anchors:** S-21.04 LOCAL cascade pass-4 (2026-07-25); F-S2104-P4-006 HIGH (red-gate-log.md:149 fabricated PREFLIGHT BLOCKED attribution retained); sibling-sweep; finding-closure protocol; D-449(a) literal-shell gate; TD-VSDD-060 sibling-site sweep.
 
-**Cites:** D-899 (codified this burst); F-S2104-P4-005 (trigger finding); D-449(a) (literal-shell attestation gate); TD-VSDD-060 (sibling-site sweep mandate); finding-closure protocol (enforcement host).
+**Cites:** D-899 (codified this burst); F-S2104-P4-006 (trigger finding); D-449(a) (literal-shell attestation gate); TD-VSDD-060 (sibling-site sweep mandate); finding-closure protocol (enforcement host).
 
-**Closes:** D-899 S-21.04-ADV-PASS-4-CLOSED (2026-07-25). `[process-gap; sibling-sweep; finding-closure; whole-repo-grep; retired-phrase; attestation; TD-VSDD-060; D-449; F-S2104-P4-005; D-899; codified]`
+**Closes:** D-899 S-21.04-ADV-PASS-4-CLOSED (2026-07-25). `[process-gap; sibling-sweep; finding-closure; whole-repo-grep; retired-phrase; attestation; TD-VSDD-060; D-449; F-S2104-P4-006; D-899; codified]`
 
 ---
 
 ## L-BB-dual-precedence-claim-conflict-is-open-drift [process-gap] [codified D-899]
 
-**Summary:** F-S2104-P4-006 (HIGH) identified that two authoritative documents — step-g-cleanup.md §G.1 and BC-6.26.001 PC2c — both assert normative ownership over the Step 8 teardown gate behavior, and their claims are mutually exclusive in one edge case (the boundary condition between PC2b and PC2c). This is a dual-precedence-claim conflict: two sources asserting "I am the canonical definition of X" where X is the same behavior. The lesson: dual-precedence-claim conflicts MUST be recorded as OPEN drift items immediately on discovery. They MUST NOT be silently resolved by the discovering agent — resolution requires human adjudication to prevent one source being silently subordinated to the other.
+**Summary:** Pass-4 adversarial review of S-21.04 surfaced — as a process-gap observation, not a numbered finding — that two authoritative documents both assert normative ownership over the Step 8 teardown gate: `_shared-context.md:196` names `agents/orchestrator/per-story-delivery.md` as authoritative, while `workflows/phases/per-story-delivery.md` self-declares as the winner. These are two separate per-story-delivery.md playbooks with conflicting precedence claims over the same behavioral gate — a dual-precedence-claim conflict. The lesson: such conflicts MUST be recorded as OPEN drift items immediately on discovery and escalated for human/architect adjudication. They MUST NOT be silently resolved by the discovering agent — resolution requires explicit adjudication to prevent one source being silently subordinated to the other. [Note: this lesson was corrected at D-900 — the D-899 persist fabricated the conflict description as "step-g-cleanup.md §G.1 vs BC-6.26.001 PC2c", which was not the observation reported by the pass-4 adversary.]
 
-**Discovered:** 2026-07-25 (S-21.04 LOCAL cascade pass-4 adversarial review; F-S2104-P4-006 HIGH; cross-reading step-g-cleanup.md §G.1 against BC-6.26.001 PC2c).
+**Discovered:** 2026-07-25 (S-21.04 LOCAL cascade pass-4 adversarial review; process-gap observation; cross-reading _shared-context.md:196 against the two per-story-delivery.md playbooks).
 
-**Root cause:** The specification authoring process does not have a cross-reference gate that detects when two documents both declare normative ownership of the same behavioral clause. step-g-cleanup.md was authored as an implementation step that naturally carries normative language; BC-6.26.001 was authored as the canonical behavioral contract. Neither document's authoring agent checked for conflicting normative claims in the other document. The conflict remained latent until pass-4 cross-reading surfaced it.
+**Root cause:** The pipeline maintains two per-story-delivery.md workflow documents at different paths (`agents/orchestrator/per-story-delivery.md` and `workflows/phases/per-story-delivery.md`). Each document was authored by a different agent without a cross-reference gate that detects when two documents both declare normative ownership of the same gate. The precedence conflict remained latent until pass-4 cross-reading surfaced it at `_shared-context.md:196` where the citation explicitly names one as authoritative, while the other self-declares the same role.
 
-**Corrective action:** Dual-precedence-claim conflicts are a first-class finding category. When one is discovered: (1) record it as OPEN with finding severity = the higher of the two conflicting severities; (2) do NOT resolve by treating one source as subordinate — that is a silent subordination and constitutes a paper-fix under TD-VSDD-059; (3) escalate to human via the orchestrator for explicit adjudication; (4) the adjudication decision MUST be recorded as a D-NNN decision block before the finding can be marked CONFIRMED-CLOSED. This conflict (F-S2104-P4-006) is recorded OPEN pending human adjudication.
+**Corrective action:** Dual-precedence-claim conflicts are a first-class finding category (or high-priority process-gap observation). When one is discovered: (1) record it as OPEN with severity = the higher of the two conflicting contexts; (2) do NOT resolve by treating one source as subordinate — that is a silent subordination and constitutes a paper-fix under TD-VSDD-059; (3) escalate to human and architect via the orchestrator for explicit adjudication; (4) the adjudication decision MUST be recorded as a D-NNN decision block before the conflict can be marked CONFIRMED-CLOSED. This conflict is recorded OPEN pending human/architect adjudication.
 
-**Prevention:** During spec authoring, before finalizing any normative clause: "Does any other document already declare normative ownership of this behavior? If so, surface the conflict explicitly — do NOT assume precedence." During adversarial review: include a cross-read pass specifically looking for dual-precedence-claim conflicts between the story's implementation doc and its BC.
+**Prevention:** During workflow document authoring, before finalizing any normative precedence claim: "Does any other document already declare normative ownership of this behavioral gate? If so, surface the conflict explicitly — do NOT assume precedence." During adversarial review: include a cross-read pass specifically looking for dual-precedence-claim conflicts between paired workflow docs (agents/ vs workflows/phases/).
 
-**Anchors:** S-21.04 LOCAL cascade pass-4 (2026-07-25); F-S2104-P4-006 HIGH (dual-precedence conflict step-g-cleanup.md §G.1 vs BC-6.26.001 PC2c); OPEN drift item; human adjudication required; TD-VSDD-059 paper-fix detection.
+**Anchors:** S-21.04 LOCAL cascade pass-4 (2026-07-25); process-gap observation (dual-precedence conflict — _shared-context.md:196 names agents/orchestrator/per-story-delivery.md authoritative vs workflows/phases/per-story-delivery.md self-declaring winner); OPEN drift item for human/architect adjudication; TD-VSDD-059 paper-fix detection.
 
-**Cites:** D-899 (codified this burst); F-S2104-P4-006 (trigger finding); TD-VSDD-059 (paper-fix detection — silent subordination is a paper-fix); finding-closure protocol (enforcement host).
+**Cites:** D-899 (codified this burst); pass-4 observation (trigger); TD-VSDD-059 (paper-fix detection — silent subordination is a paper-fix); D-900 (wording correction).
 
-**Closes:** D-899 S-21.04-ADV-PASS-4-CLOSED (2026-07-25). `[process-gap; dual-precedence-claim; open-drift; normative-conflict; human-adjudication; silent-subordination; TD-VSDD-059; F-S2104-P4-006; D-899; codified]`
+**Closes:** D-899 S-21.04-ADV-PASS-4-CLOSED (2026-07-25). `[process-gap; dual-precedence-claim; open-drift; normative-conflict; per-story-delivery-playbooks; human-adjudication; architect-adjudication; silent-subordination; TD-VSDD-059; D-899; D-900; codified]`
 
 ---
 
 ## L-BB-bin-space-unsafe-awk-deferred-pending-story-anchor [process-gap] [codified D-899]
 
-**Summary:** F-S2104-P4-003 (HIGH) identified that `awk '{print $2}'` field splitting in bin/ scripts is unsafe for worktree paths containing spaces. `git worktree list` output uses a fixed-column format where the path is the first token on each line; splitting by whitespace breaks for any path with embedded spaces. This is a correctness defect: a worktree at `/Users/foo/my projects/repo` would be split incorrectly, producing a truncated path. The fix requires switching to a format-safe parser (e.g., `git worktree list --porcelain` + line-by-line `worktree` prefix extraction). This fix is deferred pending human story-anchor decision because it requires a bin/ scope sweep that touches scripts outside S-21.04's direct scope.
+**Summary:** Pass-4 adversarial review surfaced — as a system-level observation deferred to phase-5, not a numbered finding — 6 space-unsafe `awk '{print $2}'` porcelain-parse sites in bin/: factory-query:73, emit-event:70, factory-sla:53, factory-report:53, factory-dashboard:73, factory-replay:43 (safe pattern at factory-cas-push.sh:78). `git worktree list` output uses a fixed-column format where the path is the first token on each line; splitting by whitespace breaks for any path with embedded spaces. This is a correctness defect: a worktree at `/Users/foo/my projects/repo` would be split incorrectly, producing a truncated path. The fix requires switching to a format-safe parser (e.g., `git worktree list --porcelain` + line-by-line `worktree` prefix extraction). This fix is deferred pending human story-anchor decision because it requires a bin/ scope sweep that touches scripts outside S-21.04's direct scope. [Note: this lesson was corrected at D-900 — the D-899 persist fabricated the trigger as "F-S2104-P4-003 HIGH", which was not the actual finding; the space-unsafe awk pattern appeared in the pass-4 observations as a system-level deferred item, not as a numbered finding.]
 
-**Discovered:** 2026-07-25 (S-21.04 LOCAL cascade pass-4 adversarial review; F-S2104-P4-003 HIGH; bin/ path-handling review during AC-006/AC-007 fix mapping).
+**Discovered:** 2026-07-25 (S-21.04 LOCAL cascade pass-4 adversarial review; observation [deferred: system-level → phase-5]; bin/ path-handling review during AC-006/AC-007 fix mapping).
 
 **Root cause:** The bin/ scripts predate the space-unsafe worktree path detection. The `awk '{print $2}'` pattern was authored following a common but incorrect assumption that worktree paths are always space-free. The correct approach is `git worktree list --porcelain` which emits each attribute on its own line with a typed prefix (`worktree <path>`, `HEAD <sha>`, `branch <ref>`) — path parsing then becomes a prefix-strip operation, space-safe by design.
 
@@ -7589,8 +7589,32 @@ The lesson `L-BB-closure-records-must-reproduce-evidence-command-with-captured-s
 
 **Prevention:** Authoring gate for any bin/ script that calls `git worktree list`: "Am I parsing the output with `awk $NF` or `awk $2`? If so, switch to `--porcelain` mode and prefix-strip. Space-unsafe field splitting is forbidden for paths." Add this check to the bin/ script authoring template.
 
-**Anchors:** S-21.04 LOCAL cascade pass-4 (2026-07-25); F-S2104-P4-003 HIGH (space-unsafe awk); bin/ scripts; `git worktree list --porcelain`; DEFERRED PENDING HUMAN story-anchor decision.
+**Anchors:** S-21.04 LOCAL cascade pass-4 (2026-07-25); observation [deferred: system-level → phase-5] (6 space-unsafe awk-$2 porcelain-parse sites in bin/: factory-query:73, emit-event:70, factory-sla:53, factory-report:53, factory-dashboard:73, factory-replay:43); `git worktree list --porcelain`; DEFERRED PENDING HUMAN story-anchor decision.
 
-**Cites:** D-899 (codified this burst); F-S2104-P4-003 (trigger finding); bin/ script authoring template (enforcement host, future); PENDING human story-anchor decision.
+**Cites:** D-899 (codified this burst); pass-4 observation (trigger); bin/ script authoring template (enforcement host, future); PENDING human story-anchor decision; D-900 (attribution correction).
 
-**Closes:** D-899 S-21.04-ADV-PASS-4-CLOSED (2026-07-25). `[process-gap; space-unsafe-awk; worktree-path; bin-scripts; git-worktree-porcelain; deferred-pending-story-anchor; F-S2104-P4-003; D-899; codified]`
+**Closes:** D-899 S-21.04-ADV-PASS-4-CLOSED (2026-07-25). `[process-gap; space-unsafe-awk; worktree-path; bin-scripts; git-worktree-porcelain; deferred-pending-story-anchor; observation-not-finding; D-899; D-900; codified]`
+
+---
+
+## L-BB-record-persistence-context-blending-hardening [process-gap] [codified D-900]
+
+**Summary:** D-899 and D-897 are both record-persistence fabrication events. D-897 occurred because the orchestrator dispatched record persistence without relaying verbatim Part A text, so the state-manager reconstructed. D-900 is a second distinct sub-class: the D-899 state-manager session transcript already contained finding content from S-21.04 passes 1, 2, and 3 before the pass-4 verbatim text was relayed — context-blending caused the state-manager to generate plausible-but-wrong descriptions even though verbatim text WAS relayed in the same message. The two hardening rules (one per occurrence) together close both sub-classes of the record-persistence fabrication family.
+
+**Discovered:** 2026-07-25 (D-900 record-correction burst; orchestrator identified the transcript state of the D-899 session as the root cause; second occurrence after D-897).
+
+**Root cause:** Context-blending in a multi-pass transcript. When a state-manager session has already processed adversary finding content from passes 1/2/3 before receiving the pass-4 verbatim relay in the same session, the LLM context biases toward the prior finding patterns. Plausible-but-wrong descriptions blend the new relay with the prior-pass content. This is structurally different from the D-897 sub-class (no verbatim relay at all) — the D-899 sub-class had a verbatim relay but still fabricated because the relay arrived into a contaminated context.
+
+**Corrective action — two hardening rules:**
+
+**(i) Mechanical diff gate:** After every record-persistence burst, the orchestrator MUST diff the persisted Part A finding table against the relayed verbatim text before accepting the burst as closed. A non-empty diff is a fabrication indicator — the burst MUST be rejected and re-dispatched to a fresh session. The diff is a literal shell command with captured stdout: `diff <(verbatim-table) <(persisted-table)`. An empty diff result is required for acceptance.
+
+**(ii) Fresh-session isolation:** Record-persistence bursts MUST run in a fresh state-manager session whenever the current orchestrator session's transcript already contains finding content from other passes of the same story. The orchestrator MUST select a fresh-context state-manager for all record-persistence dispatches where context-blending risk is present. This is an extension of the D-897 VERBATIM-RECORD-PERSISTENCE RULE: the original rule required verbatim relay; this extension requires session isolation when multi-pass context is present.
+
+**Prevention:** Before any record-persistence dispatch: "Does this session's transcript contain finding content from other passes of this story? If yes, dispatch to a fresh state-manager session." After any record-persistence burst: "Does the persisted Part A diff cleanly against the relayed verbatim? If not, reject and re-dispatch."
+
+**Anchors:** D-900 (this burst; second occurrence; root cause context-blending); D-897 (first occurrence; root cause no-verbatim-relay); S-21.04 adversary-pass-04.md (corrected record); L-BB-verbatim-record-persistence-rule (D-897; first codification; extended by this lesson).
+
+**Cites:** D-900 (codified this burst); D-897 (first occurrence; L-BB-verbatim-record-persistence-rule); S-21.04 (triggered context); context-blending fabrication class.
+
+**Closes:** D-900 S-21.04-PASS-04-RECORD-CORRECTION (2026-07-25). `[process-gap; record-persistence; context-blending; fabrication; multi-pass-transcript; fresh-session; mechanical-diff-gate; orchestrator-dispatch; state-manager; D-897; D-900; codified]`

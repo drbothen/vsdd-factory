@@ -11537,3 +11537,52 @@ D-899-S2104-ADV-PASS-4-CLOSED
 ### Date
 
 2026-07-25
+
+### D-900 Correction Note
+
+**Appended at D-900 (2026-07-25):** The adversary-pass-04.md persisted at this burst contained fabricated finding content — a second occurrence of the D-897 record-persistence fabrication class. The D-899 state-manager session transcript already contained finding content from passes 1, 2, and 3 before the pass-4 record was relayed; context-blending caused the state-manager to reconstruct plausible-but-wrong finding descriptions rather than preserving the verbatim relay. Specific fabrications: F-002 was described as "BC Invariant 6 missing caller-side propagation" (actual: declared-but-undelivered awareness clause in adversary.md/SKILL.md); F-006 was described as "dual-precedence conflict step-g-cleanup.md §G.1 vs BC-6.26.001 PC2c" (actual: red-gate-log.md:149 retained fabricated PREFLIGHT BLOCKED attribution); F-011 was described as "§H.1 SHOULD vs MUST" (actual: CHANGELOG.md:11-26 omitted adversary reporting-semantics change). Fix-mapping was wrong: the D-899 record showed only 3 FIXED and 9 OPEN; the correct disposition is all 12 FIXED (see corrected adversary-pass-04.md at D-900). The three D-899 lessons were also contaminated — L-BB-whole-repo-sibling-sweep anchored to F-005 instead of F-006; L-BB-dual-precedence described the wrong conflict; L-BB-bin-space-unsafe attributed the awk issue to F-003 instead of the observation. All corrected at D-900. History preserved here per VSDD records discipline; corrected record is adversary-pass-04.md (D-900 rewrite).
+
+---
+
+## D-900
+
+### Title
+
+S-21.04 PASS-04-RECORD-CORRECTION — second fabrication occurrence (context-blending class); verbatim rewrite; collateral verified; persistence hardening codified
+
+### Context
+
+Second occurrence of the D-897 record-persistence fabrication class (first: D-897; second: this D-900). Root cause: the D-899 state-manager session transcript already contained finding content from S-21.04 adversarial passes 1, 2, and 3 before the pass-4 verbatim record was relayed for persistence. Context-blending caused the state-manager to generate plausible-but-wrong finding descriptions, wrong dispositions, and a fabricated fix-mapping with 9 OPEN rows, despite receiving a verbatim relay in the same dispatch. The D-897 VERBATIM-RECORD-PERSISTENCE RULE was already codified (state-manager MUST NOT reconstruct adversary content it was not given) — this occurrence reveals a previously uncodified sub-class: even when verbatim text IS relayed, a multi-pass transcript containing prior passes' finding content introduces context-blending fabrication risk. The orchestrator selected a fresh state-manager session (this agent) to perform the record correction precisely to avoid this risk.
+
+POLICY 16 gate (literal shell): `grep -n "^## D-" decision-log.md | tail -3` → `11314:## D-897 / 11398:## D-898 / 11482:## D-899`. D-899 confirmed prior max → D-900 allocated.
+
+### Decision
+
+Corrective scope (D-900 burst):
+
+1. **adversary-pass-04.md REWRITTEN**: Complete verbatim rewrite. Header added: "Rewritten at D-900 — D-899 persist contained non-verbatim reconstructed content (second occurrence of the D-897 class); orchestrator-certified verbatim below." Part A finding table (12 verbatim findings; B0/H6/M5/L1) replaces fabricated rows. Fix-mapping (all 12 FIXED with correct commit SHAs) replaces fabricated 9-OPEN table. Observations section added verbatim.
+
+2. **lessons.md D-899 collateral verified and corrected**: Three D-899 lessons contained drifted wording from the fabricated pass-4 record:
+   - `L-BB-whole-repo-sibling-sweep-mandatory-per-finding`: finding reference corrected F-S2104-P4-005 → F-S2104-P4-006 (the PREFLIGHT BLOCKED issue is F-006 in the verbatim, not F-005).
+   - `L-BB-dual-precedence-claim-conflict-is-open-drift`: rewritten to describe the correct conflict — two per-story-delivery.md playbooks (agents/orchestrator/per-story-delivery.md vs workflows/phases/per-story-delivery.md) per _shared-context.md:196 observation — not the fabricated "step-g-cleanup.md §G.1 vs BC-6.26.001 PC2c" description.
+   - `L-BB-bin-space-unsafe-awk-deferred-pending-story-anchor`: attribution corrected from "F-S2104-P4-003 HIGH finding" to "pass-4 observation [deferred: system-level → phase-5]" (the awk issue was in the observations, not a numbered finding; F-003 is actually about devops-engineer.md unqualified git worktree remove).
+
+3. **decision-log.md D-899 block**: D-900 correction note appended (history not rewritten; correction note records specific fabrications and correct dispositions).
+
+4. **STORY-INDEX.md S-21.04 row P4 refs VERIFIED CLEAN**: Row cites `F-S2104-P4-001..012` range — all real finding IDs per verbatim table. No correction required.
+
+5. **New lesson codified**: `L-BB-record-persistence-context-blending-hardening` [process-gap] — record-persistence bursts MUST run in a fresh session once a transcript already contains other passes' finding content; orchestrator MUST mechanically diff persisted Part A against relayed verbatim text before accepting a closure burst.
+
+Hardened rule (VERBATIM-RECORD-PERSISTENCE RULE extension per D-897): **(ii) Record-persistence bursts MUST run in a fresh state-manager session once the current transcript already contains finding content from other passes of the same story (context-blending fabrication class).** The orchestrator MUST select a fresh-context state-manager session for all record-persistence dispatches when the relay session has already processed other-pass adversary content. The orchestrator MUST mechanically diff the persisted Part A finding table against the relayed verbatim text before accepting the burst as closed (diff must produce empty output; any non-empty diff is a fabrication indicator).
+
+POLICY 14 gate (literal shell — 4-index UNCHANGED this burst): BC v4.28 / VP v2.72 / STORY v4.252 / ARCH v3.31. All unchanged.
+
+STATE.md v6.37→v6.38.
+
+### Phase
+
+D-900-S2104-PASS-04-RECORD-CORRECTION
+
+### Date
+
+2026-07-25

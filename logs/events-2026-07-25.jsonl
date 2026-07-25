@@ -1,3 +1,6 @@
 {"type":"hook.block","hook":"destructive-command-guard","reason":"git_stash_discard","ts":"2026-07-25T10:38:44-0500","ts_epoch":1784993924,"schema_version":1}
 {"type":"hook.block","hook":"validate-template-compliance","reason":"template_drift","ts":"2026-07-25T10:46:29-0500","ts_epoch":1784994389,"schema_version":1}
 {"type":"hook.block","hook":"validate-template-compliance","reason":"template_drift","ts":"2026-07-25T10:47:12-0500","ts_epoch":1784994432,"schema_version":1}
+{"type":"hook.block","hook":"validate-changelog-monotonicity","reason":"changelog_frontmatter_mismatch","ts":"2026-07-25T11:12:32-0500","ts_epoch":1784995952,"schema_version":1}
+{"type":"hook.block","hook":"validate-input-hash","reason":"input_hash_drift","ts":"2026-07-25T11:22:31-0500","ts_epoch":1784996551,"schema_version":1}
+{"type":"hook.block","hook":"validate-input-hash","reason":"input_hash_drift","ts":"2026-07-25T12:16:11-0500","ts_epoch":1784999771,"schema_version":1}
