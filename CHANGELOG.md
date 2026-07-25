@@ -8,7 +8,7 @@
 
 ### Added
 
-- **S-21.04 — story-worktree write-path discipline + teardown preflight** (BC-6.26.001 v1.4, issue #523): Closes the
+- **S-21.04 — story-worktree write-path discipline + teardown preflight** (BC-6.26.001 v1.5, issue #523): Closes the
   silent data-loss window where factory artifacts written to a story worktree's shadow `.factory/` tree were permanently
   destroyed by `git worktree remove` without warning. Two complementary protocol requirements delivered as skill-doc
   mandates (no new WASM or shell script, per POLICY 21):
