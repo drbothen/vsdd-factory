@@ -23,6 +23,14 @@
   dispatch surfaces: `deliver-story` SKILL.md Step 8; both per-story-delivery.md playbooks (agents/orchestrator
   and workflows/phases — the latter being the precedence-winning reference); worktree-protocol.md Cleanup Rules; and
   5 sibling teardown sites (worktree-manage, code-delivery, fix-pr-delivery, code-delivery.lobster, greenfield.lobster).
+  (3) **Adversary reporting-semantics** (`adversary.md` point 4, `adversarial-review/SKILL.md` Worktree-Identity
+  Preflight): worktree `.factory/` content encountered during adversarial review is now documented as live shadow-write
+  evidence (BC-6.26.001 Invariant 5) — report it as a defect signal tied to the `step-g-cleanup.md §G.1` teardown
+  preflight obligation; the prior framing dismissed it as a pathing artifact (F-S2104-P4-002).
+  (4) **Test-(e) re-anchor** (`worktree-identity-preflight.bats` test `test_BC_adversary_spec_ground_truth_from_canonical_factory_artifacts`):
+  re-anchored from stale-snapshot-prohibition negative assertion to corrected-model positive assertions
+  ("canonical-repo-root" + "checks out NOTHING under"); the old anchor locked in a retracted premise
+  and would have blocked the stale-residue sweep (F-S2104-P3-007).
   Closes issue #523.
 
 ## 1.0.0-rc.23 — E-19 operator hardening — host ABI fixes + read_prefix FFI (2026-07-18)
