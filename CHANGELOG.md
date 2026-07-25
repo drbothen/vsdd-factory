@@ -17,7 +17,7 @@
   (the repo root, not the `.factory/` mount) or `git rev-parse --show-toplevel` on the main worktree; CWD-relative
   paths are forbidden.
   (2) **Teardown preflight** (`step-g-cleanup.md §G.1`): before every `git worktree remove` on a story worktree,
-  a fail-closed four-branch protocol runs (BC-6.26.001 v1.7) — PC2a sub-case(a) (`.factory/` absent → proceed);
+  a fail-closed four-branch protocol runs (BC-6.26.001) — PC2a sub-case(a) (`.factory/` absent → proceed);
   symlink at path → PC2b BLOCKED without running `find` (BC-6.26.001 EC-008: `test -d` follows symlinks so
   symlink-to-dir would fall through to `find` and produce empty output without this guard); non-directory inode at
   path → PC2b BLOCKED without running `find`; `find "<path>/.factory/" -type f` trailing-slash exits 0 empty →
