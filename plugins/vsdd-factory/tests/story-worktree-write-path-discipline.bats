@@ -6,11 +6,14 @@
 #     Semantic assertions — exact find command form (no blanket 2>/dev/null; F-S2104-P1-002a),
 #     preflight-before-dispatch ordering via awk line-number comparison (F-S2104-P1-002b),
 #     Invariant-2 no-exceptions clause (F-S2104-P1-002c), PC2b retry-mandate (F-S2104-P1-002d),
-#     PC2b Option A/B message body (F-S2104-P1-011), PC2c HALT branch (AC-006),
-#     no-force negative in all positions (F-S2104-P1-010).
-#   DOC-PARITY (primary paths — F-S2104-P1-001):
-#     SKILL.md Step 8 and per-story-delivery.md step (g) + Story Split Recovery section
-#     must each reference the §G.1 preflight. RED until implementer propagates.
+#     PC2b Option A/B message body (F-S2104-P1-011), PC2c semantic direction gate (AC-006;
+#     F-S2104-P2-008 strengthened: error condition + HALT direction + no proceed-semantics),
+#     PC2a sub-case (a) absent-dir guard (F-S2104-P2-009), no-force negative (F-S2104-P1-010).
+#   DOC-PARITY (primary paths — F-S2104-P1-001 / F-S2104-P2-001):
+#     SKILL.md Step 8, agents/orchestrator/per-story-delivery.md step (g) + Story Split
+#     Recovery section, AND WINNING playbook (workflows/phases/per-story-delivery.md) Step 8
+#     must each reference the §G.1 preflight. WINNING playbook is authoritative per its own L8
+#     ("If the two disagree, this file wins"). RED for winning playbook until implementer propagates.
 #   DOC-PARITY (_shared-context.md §Spec-Path Discipline):
 #     Write Discipline clause, CANONICAL_FACTORY_ROOT, DELIVERY ledger (AC-001).
 #   EXECUTABLE-HARNESS (anti-tautology — F-S2104-P1-002e, TD-VSDD-059):
@@ -29,6 +32,7 @@
 #   plugins/vsdd-factory/skills/deliver-story/steps/_shared-context.md §Spec-Path Discipline
 #   plugins/vsdd-factory/skills/deliver-story/SKILL.md (Step 8)
 #   plugins/vsdd-factory/agents/orchestrator/per-story-delivery.md (step g + Story Split Recovery)
+#   plugins/vsdd-factory/workflows/phases/per-story-delivery.md (Step 8 — WINNING playbook; F-S2104-P2-001)
 # BC: BC-6.26.001 v1.4 (PC1, PC2a sub-cases a/b, PC2b, PC2c, Invariants 1–5)
 # Story: S-21.04
 #
@@ -45,6 +49,7 @@ setup() {
   SHARED_CONTEXT_MD="$PLUGIN_ROOT/skills/deliver-story/steps/_shared-context.md"
   SKILL_MD="$PLUGIN_ROOT/skills/deliver-story/SKILL.md"
   PER_STORY_DELIVERY_MD="$PLUGIN_ROOT/agents/orchestrator/per-story-delivery.md"
+  WINNING_PLAYBOOK_MD="$PLUGIN_ROOT/workflows/phases/per-story-delivery.md"
   FIXTURE_DIR="$PLUGIN_ROOT/tests/fixtures/story-worktree"
 
   # Fixture worktree lifecycle: fresh tmpfs workspace per test run.
@@ -101,18 +106,21 @@ _extract_skill_step8_section() {
   ' "$SKILL_MD"
 }
 
-# Extracts an 8-line window around the devops-engineer "Remove worktree" step (g) dispatch
-# from per-story-delivery.md, plus 5 lines of context before it.
+# Extracts the step (g) block from agents/orchestrator/per-story-delivery.md.
+# Structural section-bounded extraction (F-S2104-P2-016b): anchors on the '   g.' list item
+# label; exits on the next top-level numbered item ('^[0-9]+\.') or '^## ' section heading.
+# A fragile line-offset window (lineno-5 … lineno+8) was removed — inserted prose between the
+# preflight mention and the Remove worktree dispatch could silently push the preflight reference
+# out of a fixed window.
+# Portable: awk-only, no grep BRE '\|' alternation (F-S2104-P2-016a).
+# Hardcoded: item-label anchor ('   g.'); doc-derived: the preflight content within that item.
 _extract_per_story_delivery_step_g_window() {
-  local lineno
-  lineno="$(grep -n 'devops-engineer.*[Rr]emove worktree\|[Rr]emove worktree.*STORY-NNN' \
-    "$PER_STORY_DELIVERY_MD" | head -1 | cut -d: -f1)"
-  if [ -n "$lineno" ]; then
-    local start end
-    start=$(( lineno > 5 ? lineno - 5 : 1 ))
-    end=$(( lineno + 8 ))
-    awk "NR>=$start && NR<=$end" "$PER_STORY_DELIVERY_MD"
-  fi
+  awk '
+    /^   g\./ { found=1 }
+    found && /^[0-9]+\./ { exit }
+    found && /^## / { exit }
+    found { print }
+  ' "$PER_STORY_DELIVERY_MD"
 }
 
 # Extracts the Story Split Recovery section from per-story-delivery.md.
@@ -122,6 +130,30 @@ _extract_per_story_delivery_split_recovery_section() {
     found && /^## / { exit }
     found { print }
   ' "$PER_STORY_DELIVERY_MD"
+}
+
+# Extracts the Step 8 block from the WINNING playbook (workflows/phases/per-story-delivery.md).
+# The winning playbook declares on L8: "If the two disagree, this file wins."
+# Both this file and agents/orchestrator/per-story-delivery.md must carry the §G.1 mandate.
+# Structural extraction: anchors on '^## Step 8'; exits on next '^## ' heading.
+_extract_winning_playbook_step8_section() {
+  awk '
+    /^## Step 8/ { found=1; next }
+    found && /^## / { exit }
+    found { print }
+  ' "$WINNING_PLAYBOOK_MD"
+}
+
+# Extracts the PC2c paragraph from step-g-cleanup.md §G.1.
+# Start: line matching '\*\*PC2c'; exits on '\*\*Why this' or '^### ' heading.
+# Used by F-S2104-P2-008 semantic direction assertions (error condition + HALT + no-proceed).
+_extract_g1_pc2c_block() {
+  awk '
+    /\*\*PC2c/ { found=1 }
+    found && /\*\*Why this/ { exit }
+    found && /^### / { exit }
+    found { print }
+  ' "$STEP_G_CLEANUP"
 }
 
 _assert_doc_marker() {
@@ -256,10 +288,16 @@ _run_teardown_preflight() {
   # Post-implementation: all DOC-PARITY GREEN; harness emits PREFLIGHT BLOCKED with stray path;
   #   non-zero status; REMOVE_LOG empty (RG-001 closed).
 
-  # --- Fixture setup: stray factory artifact in shadow .factory/ ---
+  # --- Fixture setup: stray factory artifacts in shadow .factory/ ---
   mkdir -p "$MOCK_WORKTREE/.factory/stories"
   printf 'stray DELIVERY ledger — written via CWD-relative path from story worktree CWD\n' \
     > "$MOCK_WORKTREE/.factory/stories/S-021-DELIVERY.md"
+  # Non-.md stray artifact: makes the 'any file type' property of -type f load-bearing
+  # (F-S2104-P2-010). A '-name *.md' doc-mutant would skip this file — the assertion below
+  # on 'engine-config.yaml' catches the mutant. Issue #523 confirmed-loss set includes
+  # non-.md engine-config artifacts.
+  printf 'engine-config artifact — non-.md stray vector (issue #523 confirmed-loss set)\n' \
+    > "$MOCK_WORKTREE/.factory/engine-config.yaml"
 
   local g1_section
   g1_section="$(_extract_g1_section)"
@@ -365,6 +403,17 @@ _run_teardown_preflight() {
     "per-story-delivery.md Story Split Recovery: must reference §G.1 preflight before worktree removal — RED until implementer propagates (BC-6.26.001 PC2; F-S2104-P1-001b)" \
     "$split_recovery_section"
 
+  # --- DOC-PARITY WINNING playbook: workflows/phases/per-story-delivery.md Step 8 (F-S2104-P2-001) ---
+  # The winning playbook's own L8 declares: "If the two disagree, this file wins."
+  # Its Step 8 must carry the §G.1 preflight mandate; the orchestrator copy carrying it is
+  # insufficient — the winning playbook is the authoritative reference under disagreement.
+  # RED until implementer propagates §G.1 mandate to Step 8 of the winning playbook.
+  local winning_step8_section
+  winning_step8_section="$(_extract_winning_playbook_step8_section)"
+  _assert_doc_marker 'preflight|step-g-cleanup|§G\.1|G\.1' \
+    "WINNING playbook (workflows/phases/per-story-delivery.md) Step 8: must reference §G.1 preflight before cleanup dispatch — orchestrator copy alone is insufficient (winning playbook wins on disagreement per its L8); RED until implementer propagates (BC-6.26.001 PC2; F-S2104-P2-001)" \
+    "$winning_step8_section"
+
   # --- HARNESS: stray file → PREFLIGHT BLOCKED; non-zero exit (F-S2104-P1-003) ---
   # Anti-tautology: extracted find command from §G.1 is evaluated against fixture.
   # A -type d mutant would not find the file (directories only) → output empty → PC2a proceed →
@@ -381,6 +430,13 @@ _run_teardown_preflight() {
   # Stray file path must appear verbatim in output (F-S2104-P1-003)
   printf '%s\n' "$output" | grep -q 'S-021-DELIVERY.md' || {
     echo "HARNESS FAIL: stray file path 'S-021-DELIVERY.md' must appear verbatim in PREFLIGHT BLOCKED output — got: $output"
+    false
+  }
+  # Non-.md stray file must also appear in output (F-S2104-P2-010: 'any file type' property
+  # of -type f is load-bearing; a '-name *.md' doc-mutant would miss engine-config.yaml,
+  # causing this assertion to fail — the mutant is caught here, not by changed find semantics)
+  printf '%s\n' "$output" | grep -q 'engine-config.yaml' || {
+    echo "HARNESS FAIL: non-.md stray file 'engine-config.yaml' must appear in PREFLIGHT BLOCKED output — a '-name *.md' doc-mutant would skip non-.md files; got: $output"
     false
   }
   # Mutant-proving sentinel: git worktree remove must NOT be invoked on PREFLIGHT BLOCKED path
@@ -426,6 +482,14 @@ _run_teardown_preflight() {
     "$g1_section"
   _assert_doc_marker 'git worktree remove' \
     "step-g-cleanup.md §G.1: git worktree remove command for PC2a proceed path (BC-6.26.001 PC2a)" \
+    "$g1_section"
+
+  # --- DOC-PARITY §G.1: PC2a sub-case (a) — .factory/ absent → proceed (F-S2104-P2-009) ---
+  # Deleting the absent-dir clause from §G.1 must fail this assertion.
+  # The harness implements this sub-case at _run_teardown_preflight line 1 (hardcoded);
+  # the DOC gate here verifies the spec documents the same behavior.
+  _assert_doc_marker '\.factory.*absent|absent.*\.factory|no.*\.factory.*directory|path-absent.*NOT.*PC2c|EC-005' \
+    "step-g-cleanup.md §G.1: PC2a sub-case (a) — .factory/ absent path must be documented (BC-6.26.001 EC-005; deleting this clause silently breaks the absent-dir contract — F-S2104-P2-009)" \
     "$g1_section"
 
   # --- HARNESS EC-005: no .factory/ dir → PC2a sub-case (a), teardown proceeds ---
@@ -519,6 +583,21 @@ _run_teardown_preflight() {
     echo "HARNESS FAIL: retry teardown did not proceed after stray file relocated — REMOVE_LOG: $(cat "$REMOVE_LOG"); first-pass output: previously captured; retry output: $output"
     false
   }
+
+  # --- Nesting pathology guard (F-S2104-P2-015) ---
+  # BC-6.26.001 §Description double-nesting warning: the Option A relocation target is
+  # $CANONICAL_FACTORY/<relative-path>, where $CANONICAL_FACTORY IS the .factory/ dir.
+  # A naive agent might relocate to $CANONICAL_FACTORY/.factory/<artifact> — creating a
+  # .factory/.factory/ nesting. Assert the file landed at the correct (non-nested) path
+  # and that $CANONICAL_FACTORY/.factory/ does NOT exist after relocation.
+  [ -f "$CANONICAL_FACTORY/stories/S-021-DELIVERY.md" ] || {
+    echo "HARNESS FAIL: relocated file not found at canonical destination $CANONICAL_FACTORY/stories/S-021-DELIVERY.md (BC-6.26.001 Option A relocation; F-S2104-P2-015)"
+    false
+  }
+  [ ! -d "$CANONICAL_FACTORY/.factory" ] || {
+    echo "HARNESS FAIL: double-nesting detected — $CANONICAL_FACTORY/.factory/ must NOT exist after relocation (BC-6.26.001 §Description nesting warning: canonical factory IS .factory/; re-nesting creates .factory/.factory/ — F-S2104-P2-015)"
+    false
+  }
 }
 
 # ===========================================================================
@@ -556,12 +635,31 @@ _run_teardown_preflight() {
   mkdir -p "$MOCK_WORKTREE/.factory/locked-subdir"
   chmod 000 "$MOCK_WORKTREE/.factory/locked-subdir"
 
-  # --- DOC-PARITY §G.1: PC2c HALT branch documented (RED until implementer adds PC2c block) ---
-  local g1_section
+  # --- DOC-PARITY §G.1: PC2c semantic direction gates (F-S2104-P2-008) ---
+  # The old broad alternation 'PC2c|...' allowed a mutant that rewrites the PC2c branch to
+  # 'proceed' while keeping the label to pass (bare label match). Replaced with co-occurrence
+  # gates on the extracted PC2c block: error condition + HALT direction + no proceed-forward
+  # semantics. Mirrors the quality of T-001's PC2b gates (no exceptions / retry / Option A/B).
+  local g1_section pc2c_block
   g1_section="$(_extract_g1_section)"
-  _assert_doc_marker 'PC2c|find.*exits.*non-zero|fail-closed.*find|find.*error.*HALT|non-path-absent' \
-    "step-g-cleanup.md §G.1: PC2c fail-closed HALT branch must be documented — non-path-absent find error → HALT, surface exit code + stderr (BC-6.26.001 PC2c; AC-006) — RED until implementer adds PC2c section" \
-    "$g1_section"
+  pc2c_block="$(_extract_g1_pc2c_block)"
+
+  # PC2c block must document the error condition (non-zero exit / non-path-absent reason)
+  _assert_doc_marker 'exits.*non-zero|non-zero.*exit|non-path-absent|permission.*deni|traversal.*error' \
+    "step-g-cleanup.md §G.1 PC2c block: error condition (non-zero exit / non-path-absent) must be documented (BC-6.26.001 PC2c; F-S2104-P2-008)" \
+    "$pc2c_block"
+
+  # PC2c block must direct HALT / NOT executed (fail-closed); bare label without direction is insufficient
+  _assert_doc_marker 'HALT|NOT executed|MUST NOT.*remov|must NOT.*remov|NOT.*execut' \
+    "step-g-cleanup.md §G.1 PC2c block: HALT direction mandatory — 'HALT' or 'NOT executed' must appear in the PC2c block (BC-6.26.001 PC2c fail-closed; F-S2104-P2-008)" \
+    "$pc2c_block"
+
+  # PC2c block must NOT contain unconditional proceed-forward semantics
+  # 'Proceed to' / 'Proceed with' would authorize teardown — a mutant keeping 'PC2c' label
+  # while adding proceed semantics is caught here but passes the old bare-label assertion
+  _assert_no_doc_marker '[Pp]roceed[[:space:]]+(to|with)[[:space:]]' \
+    "step-g-cleanup.md §G.1 PC2c block: must NOT contain proceed-forward semantics — a PC2c→proceed mutant keeping the label passes the old assertion but fails this gate (F-S2104-P2-008)" \
+    "$pc2c_block"
 
   # --- HARNESS: find error → HALT (non-zero); PC2c message; exit code surfaced; REMOVE_LOG empty ---
   run _run_teardown_preflight "$MOCK_WORKTREE" "$REMOVE_LOG"

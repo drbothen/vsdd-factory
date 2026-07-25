@@ -23,7 +23,8 @@ T-001 (stray file present — PC2b):
     story-worktree/               ← simulated .worktrees/S-021/
       .factory/
         stories/
-          S-021-DELIVERY.md       ← stray file: written to shadow tree via CWD-relative path
+          S-021-DELIVERY.md       ← stray .md file: written via CWD-relative path
+        engine-config.yaml        ← stray non-.md file: makes -type f any-file-type load-bearing
     canonical-factory/            ← simulated canonical .factory/ mount
     worktree-remove.log           ← sentinel (must remain empty on PREFLIGHT BLOCKED)
 
@@ -73,9 +74,23 @@ BC-6.26.001 PC2a/PC2b/PC2c logic using an anti-tautology extraction gate:
    paths + Option A/Option B + retry mandate, return 1.
 6. If `find` exits 0, empty output → PC2a sub-case (b): proceed (REMOVE_LOG written, return 0).
 
-The anti-tautology gate means a `-type d` or `-name '*.tmp'` doc-mutant in §G.1 changes
-which files the extracted command returns, causing T-001/T-002 to fail. A harness hardcoding
-its own `find ... -type f 2>/dev/null || true` would not catch this class of doc-mutant.
+The anti-tautology gate catches two classes of doc-mutant through different mechanisms:
+
+- A `-type d` mutant (replacing `-type f` with `-type d`) is caught by the **extraction
+  grep**, not by changed find semantics. The filter `grep -- '-type f'` inside
+  `_run_teardown_preflight` does not match a `-type d` line, leaving `find_cmd_line` empty.
+  The function returns 1 with `HARNESS FAIL: could not extract conformant find command...`.
+  T-001 fails because `PREFLIGHT BLOCKED` is absent from output; T-002 fails because
+  `worktree-remove-invoked` is absent. The load-bearing gate is the extraction grep.
+
+- A `-name '*.md'` mutant (restricting find to `.md` files only) is caught by the **non-.md
+  output assertion** in T-001. `engine-config.yaml` (a `.yaml` stray file in the T-001
+  fixture) would not be returned by a `-name '*.md'`-restricted find command, so
+  `grep -q 'engine-config.yaml'` fails. The load-bearing gate is the non-.md artifact
+  assertion, not changed find semantics.
+
+A harness hardcoding its own `find ... -type f 2>/dev/null || true` would not catch either
+class of doc-mutant.
 
 This approach follows the W1 S-21.03 precedent of inline bash harness helpers operating
 against a minimal fixture setup, adapted from CLI-stub fixtures (S-21.03) to filesystem
