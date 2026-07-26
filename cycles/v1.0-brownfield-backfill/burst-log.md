@@ -20160,3 +20160,111 @@ Wave-gate adversarial review: 0B/1H/1M/3L = 5 findings (W3G-001..W3G-005). 3 CLO
 **factory-artifacts commits:**
 - D-852 burst: `94e91663` (parent-commit)
 - D-853 burst: `a20b198b`
+
+---
+
+## D-907 — S-21.04 pass-11 closure burst (2026-07-25)
+
+### Block 1 — Parent-commit
+
+Parent-commit: `139c9313` (factory(story): S-21.04 v1.15 — pass-11 BC v1.11 pin sync, AC-001 Gate automation, count-free Architecture Mapping (F-P11-001/002/004)).
+
+### Block 2 — Adversary verdict
+
+S-21.04 LOCAL adversarial cascade pass-11 (adversary-pass-11.md): NOT-CLEAN — B0/H3/M3/L1 (7 findings F-S2104-P11-001..007). Novelty 0.56. Trajectory 14→18→17→12→11→11→9→9→10→11→7 (plateau broken downward). Streak 0/3. Per-pass-10 verification: 8 CONFIRMED-CLOSED / 3 PARTIAL / 0 REOPENED + 2 falsified sweep attestations. Reviewed HEAD: 2c8eff8b (pre-fix-wave). Fixes-landed HEAD: 92f986ab (post-pass-10-fix-wave). Process-gap observation: reviewed_head convention recurrence (pass-08/pass-10); dual-field convention codified D-907. Adversary diagnosis: "Convergence is not reachable while sweep scope is declared in prose rather than derived from the class predicate."
+
+- **F-S2104-P11-001 HIGH CLOSED 139c9313:** Story BC table + Token Budget still v1.10 while BC bumped to v1.11 same burst (quintuple-parity break). FIXED story-writer 139c9313: BC table + Token Budget → v1.11.
+- **F-S2104-P11-002 HIGH CLOSED 139c9313:** AC-001 gate-column class incomplete; Architecture Mapping range excludes AC-001. FIXED story-writer 139c9313: AC-001 Gate automation in column; range AC-001..AC-006; whole-column manual survivors justified.
+- **F-S2104-P11-003 HIGH CLOSED 92f986ab:** P10-003 strengthening applied to one of four structurally identical primary gates; three siblings bare; mutant-proven gap. FIXED test-writer 92f986ab: three sibling primary-path gates strengthened to .md-qualified form; 3 mutants RED/restore GREEN; implication check no death.
+- **F-S2104-P11-004 MEDIUM CLOSED 139c9313:** Architecture Mapping still "amends two skill-doc files" against 13 modify rows and five-surface classification. FIXED story-writer 139c9313: count-free five-group Architecture Mapping.
+- **F-S2104-P11-005 MEDIUM CLOSED this burst (D-907):** red-gate-log :286 count clause 5/9/8 unreconcilable. FIXED state-manager: 5 gate GROUPS / 9 assertion sites / 8 mutants fully named and reconciled.
+- **F-S2104-P11-006 MEDIUM CLOSED 92f986ab:** bats :16 header still present-tense "RED for winning playbook until implementer propagates". FIXED test-writer 92f986ab: historical form; predicate zero survivors.
+- **F-S2104-P11-007 LOW CLOSED this burst (D-907):** Two live ADR-031 v1.3 catalog-row pins in lines ~725/726 of file whose line-732 was declared class-death. FIXED state-manager: versionless; scope sentence added.
+
+### Block 3 — Files touched
+
+This commit (D-907 burst, state-manager):
+- `cycles/v1.0-brownfield-backfill/S-21.04/adversary-pass-11.md` (NEW — verbatim pass-11 finding table + observations + per-pass-10 verification + fix mapping; reviewed_head 2c8eff8b; fixes_landed_head 92f986ab)
+- `cycles/v1.0-brownfield-backfill/S-21.04/implementation/red-gate-log.md` (v1.8→v1.9; F-P11-005 §T-009 mutant evidence :286 count clause replaced; input-hash 455740d→d1c79e9)
+- `stories/STORY-INDEX.md` (v4.258→v4.259; F-P11-007 S-21.02/S-21.03 catalog-row pins versionless; scope sentence line-732 region; S-21.04 row v1.15 + P11 refs)
+- `cycles/v1.0-brownfield-backfill/decision-log.md` (D-907 entry appended at line 11941)
+- `cycles/v1.0-feature-engine-discipline-pass-1/lessons.md` (L-EDP1-074 + L-EDP1-075 appended at lines 1060/1084)
+- `STATE.md` (v6.44→v6.45; phase D-907-S2104-ADV-PASS-11-CLOSED; timestamp 2026-07-25T12:00:00Z)
+- `cycles/v1.0-brownfield-backfill/burst-log.md` (this entry)
+
+Pre-burst other-agent commits (not in this commit):
+- story-writer 139c9313: S-21.04 v1.14→v1.15 (F-P11-001/002/004)
+- test-writer 92f986ab: bats sibling gates + header label (F-P11-003/006)
+
+### Block 4 — Codifications
+
+- **D-907** in decision-log.md: S2104-ADV-PASS-11-CLOSED — 7 findings fixed; orchestrator-authored class predicates adopted; streak 0/3.
+- **L-EDP1-074** [process-gap] [codified D-907]: ORCHESTRATOR-AUTHORED CLASS PREDICATES — sweep scope must be derived from the class predicate, authored by the dispatcher, run whole-artifact with post-state stdout.
+- **L-EDP1-075** [convention] [codified D-907]: REVIEWED_HEAD / FIXES_LANDED_HEAD DUAL-FIELD CONVENTION — adversary pass frontmatter MUST record both the pre-fix-wave HEAD and the post-fix-wave HEAD.
+
+### Block 5 — Dim-2 literal-shell gate attestation
+
+**POLICY 16 GLOBAL-MAX GATE (D-449(a) literal-shell):**
+```
+$ grep -n "^## D-" .factory/cycles/v1.0-brownfield-backfill/decision-log.md | tail -3
+11799:## D-905
+11872:## D-906
+11941:## D-907
+```
+→ ## D-906 confirmed prior max at burst-start → D-907 allocated. PASS.
+
+**POLICY 14 4-INDEX LITERAL-SHELL GATE (D-449(a)):**
+```
+$ grep -m1 "^version:" .factory/specs/behavioral-contracts/BC-INDEX.md .factory/specs/verification-properties/VP-INDEX.md .factory/stories/STORY-INDEX.md .factory/specs/architecture/ARCH-INDEX.md
+.factory/specs/verification-properties/VP-INDEX.md:version: "2.72"
+.factory/specs/architecture/ARCH-INDEX.md:version: "3.34"
+.factory/stories/STORY-INDEX.md:version: "4.259"
+.factory/specs/behavioral-contracts/BC-INDEX.md:version: "4.33"
+```
+→ BC v4.33 / VP v2.72 / STORY v4.259 / ARCH v3.34. STORY v4.258→v4.259 this burst; BC/VP/ARCH UNCHANGED. PASS.
+
+**F-P11-005 POST-STATE SENTENCE (D-449(a) literal-shell re-run):**
+```
+$ grep -n "gate GROUPS" .factory/cycles/v1.0-brownfield-backfill/S-21.04/implementation/red-gate-log.md
+287:**Mutant evidence (recorded):** ... gates class-completed at 3326e4dd (5 gate GROUPS strengthened at 3326e4dd spanning 9 assertion sites (named): the 6-surface _assert_g1_ref helper (1 site, fully-qualified path form); the four section-bounded primary-path gates (4 sites — SKILL.md Step 8, orchestrator step (g), Story Split Recovery, winning-playbook Step 8 — co-occurrence form); the two §G.1 non-directory gates (2 sites, routing co-occurrence, one shared mutant); the adversarial-review defect-signal gate (1 site, spec-ground-truth co-occurrence); the devops-engineer verify gate (1 site, 'dispatching caller' token). 8 scratch mutants RED / 8 restores GREEN (the two non-directory sites shared one mutant) recorded by test-writer).
+```
+→ Sentence contains reconciled 5 groups / 9 sites / 8 mutants. PASS.
+
+**F-P11-007 POST-STATE BLAST-RADIUS (D-449(a) literal-shell re-run):**
+```
+$ grep -n 'ADR-031 v1\.[0-9]' .factory/stories/STORY-INDEX.md
+8:last_amended: "2026-07-25 (v4.259) — D-907 ... ADR-031 v1.3 §Consequences #5 → ADR-031 §Consequences #5 ... ADR-031 v1.3 §Decision 8 → ADR-031 §Decision 8 ..."
+719:> **E-21 authored 2026-07-19 (story-writer dispatch; brownfield-backfill; ADR-031 v1.3; ...)
+761:> \*\*\*\*\*\*\*\*\*\*\*\*\*E-21 authored 2026-07-19 (brownfield-backfill; story-writer dispatch; ADR-031 v1.1); ...
+```
+→ 3 hits: line 8 (last_amended provenance — frozen-historical), line 719 (E-21 epic authorship blockquote — frozen-historical), line 761 (total-points footnote — frozen-historical). Zero live catalog-row or coverage-blockquote survivors. PASS.
+
+**D-446(a) OWN-BURST-LOG 8-BLOCK GATE:**
+```
+$ grep -c "^### Block" .factory/cycles/v1.0-brownfield-backfill/burst-log.md
+```
+→ This entry contains all 8 blocks: Block 1 (Parent-commit) ✓; Block 2 (Adversary verdict) ✓; Block 3 (Files touched) ✓; Block 4 (Codifications) ✓; Block 5 (Dim-2 literal-shell gate attestation) ✓; Block 6 (Dim-5 attestation) ✓; Block 7 (Dim-6 literal-shell finding count) ✓; Block 8 (Closes + factory-artifacts commits) ✓. PASS.
+
+**D-448(a) SOURCE-ATTESTATION GATE (adversary verdict paragraph faithfully describes adv-cycle-pass-11.md Part A):**
+```
+$ grep -oE "F-S2104-P11-[0-9]+" .factory/cycles/v1.0-brownfield-backfill/S-21.04/adversary-pass-11.md | sort -u | wc -l
+       7
+```
+→ 7 unique finding IDs F-S2104-P11-001..007 (grep returns 14 lines total: 7 in Finding Table + 7 in Fix Mapping; unique-ID count is 7). Block 2 above lists all 7 with matching IDs and severity classifications. Adversary verdict paragraph faithfully describes adv-cycle-pass-11.md Part A finding set. PASS.
+
+### Block 6 — Dim-5 attestation
+
+Fix legs F-P11-001/002/004 authored by story-writer (139c9313). Fix legs F-P11-003/006 authored by test-writer (92f986ab). Fix legs F-P11-005/007 and all factory-artifact mutations (adversary-pass-11.md, red-gate-log.md, STORY-INDEX.md, decision-log.md, lessons.md, STATE.md, this burst-log entry) authored by state-manager. No spec body content authored by state-manager (BC content, ADR content, or story acceptance criteria are unchanged). State-manager role limited to: adversary record persist, red-gate-log.md count-clause fix, STORY-INDEX.md catalog-row class-death, decision-log codification, lessons codification, STATE.md advance, burst-log entry. Production-grade default satisfied.
+
+### Block 7 — Dim-6 literal-shell finding count
+
+S-21.04 LOCAL adversarial cascade pass-11: B0/H3/M3/L1 = 7 findings (F-S2104-P11-001..007). All 7 CLOSED this fix wave: F-P11-001/002/004 CLOSED 139c9313 (story-writer); F-P11-003/006 CLOSED 92f986ab (test-writer); F-P11-005/007 CLOSED this burst (D-907, state-manager). Net unresolved: 0. Streak: 0/3.
+
+### Block 8 — Closes + factory-artifacts commits
+
+**Closes:** F-S2104-P11-001 (CLOSED 139c9313); F-S2104-P11-002 (CLOSED 139c9313); F-S2104-P11-003 (CLOSED 92f986ab); F-S2104-P11-004 (CLOSED 139c9313); F-S2104-P11-005 (CLOSED D-907 this burst); F-S2104-P11-006 (CLOSED 92f986ab); F-S2104-P11-007 (CLOSED D-907 this burst).
+
+**factory-artifacts commits:**
+- Pre-burst story-writer commit: `139c9313` (parent-commit)
+- Pre-burst test-writer commit (worktree): `92f986ab`
+- This burst: TBD (SHA assigned after commit)

@@ -1054,3 +1054,51 @@ Net: **5 CONFIRMED-VIOLATED** (0 CONFIRMED-SATISFIED in prediction outcomes; the
 **Why this prevents recurrence:** The inversion was caught by the validate-input-hash hook before the adversary pass. Codifying both the two-namespace distinction and the operator-cache authority convention prevents future conflation of the two hash spaces and prevents dev-CLI drift from silently corrupting STORY-INDEX hash citations.
 
 **Closes:** D-906 (lesson captured this burst)
+
+---
+
+## L-EDP1-074: [process-gap] ORCHESTRATOR-AUTHORED CLASS PREDICATES — Sweep Scope Must Be Derived From the Class Predicate (2026-07-25; D-907)
+
+**Trigger:** F-S2104-P11-002 (HIGH), F-S2104-P11-003 (HIGH), F-S2104-P11-004 (MEDIUM): multiple passes in the S-21.04 adversarial cascade found that sweep completeness attestations over-stated their blast radius. The root cause: the sweep scope was declared in prose ("swept the file for X") rather than derived from a concrete class predicate (a grep pattern or formal definition of the defect class). Prose-declared sweep scope cannot be independently verified, cannot detect its own incompleteness, and cannot be re-executed to confirm coverage — identical to the META-LEVEL-24 failure mode for pseudocode gate attestation.
+
+**Adversary diagnosis (pass-11):** "Convergence is not reachable while sweep scope is declared in prose rather than derived from the class predicate."
+
+**ORCHESTRATOR-AUTHORED CLASS PREDICATES (codified D-907, adopted pass-11):** When a sweep is required to close a finding class:
+1. The orchestrator (dispatcher) MUST author the exact grep predicate that defines the class — not the implementer, not the record-writer. The orchestrator's job is to derive the predicate from the defect description, not to accept a prose attestation from the fix agent.
+2. The predicate MUST be run whole-artifact (not scoped to cited lines) with literal shell invocation and captured stdout.
+3. The captured stdout MUST be included in the burst-log Dim-2 attestation (post-state stdout, per D-449(a)).
+4. Survivors found by the predicate MUST be classified before the finding is declared closed: each hit is either fixed-in-burst or justified-frozen-historical with reasoning.
+
+**Why this prevents recurrence:** Prose sweep attestations ("swept the file; no survivors") are unfalsifiable — any error in the sweep scope is invisible to subsequent passes until a finding is filed. Orchestrator-authored predicates with whole-artifact execution produce a reproducible, diff-able, independently verifiable closure record. The adversary can re-execute the same predicate against the saved artifact and confirm zero live survivors.
+
+**Extends:** [[L-EDP1-071]] (POST-STATE RE-EXECUTION RULE — the predicate must be run post-save); [[L-EDP1-070]] (BLAST-RADIUS RULE — the predicate itself defines the blast radius).
+
+**Anchors:** S-21.04 LOCAL cascade pass-11 (2026-07-25); F-S2104-P11-002/003/004 (trigger — prose sweep scope enabling false-GREEN closure); D-907 (adopted this burst); F-P11-007 POST-STATE example (grep -n 'ADR-031 v1\.[0-9]' STORY-INDEX.md → 3 hits, all classified frozen-historical; zero live survivors).
+
+**Cites:** D-907 (codified this burst); F-S2104-P11-002/003/004 (triggers); POLICY 1 (accuracy obligation); POLICY 15 (attestation integrity); TD-VSDD-059/060 (paper-fix + sibling-sweep mandate — this lesson is the predicate-authorship instantiation); META-LEVEL-24 (pseudocode-narrative-without-literal-shell — prose sweep scope is the sweep-scope variant of the same failure mode).
+
+**Closes:** D-907 S-21.04-ADV-PASS-11-CLOSED (2026-07-25). `[process-gap; class-predicate; sweep-scope; orchestrator-authored; whole-artifact; post-state; blast-radius; D-907; codified]`
+
+---
+
+## L-EDP1-075: [convention] REVIEWED_HEAD / FIXES_LANDED_HEAD DUAL-FIELD CONVENTION — Adversary Pass Frontmatter Must Record Both Pre-Fix and Post-Fix HEADs (2026-07-25; D-907)
+
+**Trigger:** Adversary pass-11 observation (process-gap): pass-08 and pass-10 adversary pass frontmatter both cited the FIX commit as `reviewed_head`. The pass-10 adversary reviewed HEAD 2c8eff8b — but 2c8eff8b IS the test-writer's pass-10 fix commit. The tree at that SHA contains F-P10 comments and test changes that could not have existed in the tree the adversary reviewed before fixes landed. This means the `reviewed_head` field documented what the FIXER did, not what the ADVERSARY saw.
+
+**Pattern:** The adversary pass record conflates two distinct facts: (1) the HEAD the adversary saw during review (pre-fix), and (2) the HEAD at which fixes landed (post-fix). These are different SHAs when the adversary's output is received and a fix wave runs before the pass is persisted. Recording only the post-fix HEAD makes the pass record unverifiable: a reader cannot reconstruct what tree the adversary reviewed, and future passes cannot confirm that the adversary's observations match the reviewed artifact.
+
+**REVIEWED_HEAD / FIXES_LANDED_HEAD DUAL-FIELD CONVENTION (codified D-907):** Every adversary pass record MUST include BOTH fields:
+- `reviewed_head`: the exact HEAD SHA the adversary examined during review (pre-fix-wave). This is the SHA of the tree containing the defects the adversary found.
+- `fixes_landed_head`: the HEAD SHA of the worktree (or factory-artifacts) after the fix wave for that pass completed. This is the SHA the next adversary dispatches against.
+
+These MUST be distinct when fixes were applied after review. They are the same only when no fix burst ran (rare: would mean the pass found zero findings).
+
+**Retro-note (do not rewrite):** Pass-08 and pass-10 frontmatter conflated these fields. Those files are frozen-historical; the convention is applied going forward from pass-11. adversary-pass-11.md models the correct form with both fields.
+
+**Why this prevents recurrence:** The dual-field convention makes the adversary record self-verifying: a reader can check out `reviewed_head` and confirm the adversary's observations match the tree, then check `fixes_landed_head` to confirm which fixes closed which findings. Without the distinction, the record is ambiguous and per-pass verification (the "per-pass-N verification" section) cannot be independently audited.
+
+**Anchors:** S-21.04 LOCAL cascade pass-11 (2026-07-25); F-S2104-P11 observation (process-gap — reviewed_head convention); adversary-pass-11.md (model for correct dual-field form: reviewed_head 2c8eff8b; fixes_landed_head 92f986ab); pass-08/pass-10 (prior conflation incidents — frozen-historical, not rewritten).
+
+**Cites:** D-907 (codified this burst); POLICY 1 (accuracy obligation); POLICY 17 (attestation integrity); POLICY 15 (record completeness).
+
+**Closes:** D-907 S-21.04-ADV-PASS-11-CLOSED (2026-07-25). `[convention; reviewed_head; fixes_landed_head; dual-field; adversary-pass; frontmatter; provenance; D-907; codified]`

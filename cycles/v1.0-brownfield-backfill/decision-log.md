@@ -11935,3 +11935,69 @@ D-906-S2104-ADV-PASS-10-CLOSED
 ### Date
 
 2026-07-25
+
+---
+
+## D-907
+
+### Title
+
+S2104-ADV-PASS-11-CLOSED — NOT-CLEAN B0/H3/M3/L1; 7 findings fixed; orchestrator-authored class predicates adopted; streak 0/3
+
+### Context
+
+S-21.04 LOCAL adversarial cascade pass-11. Reviewed HEAD: 2c8eff8b (pre-fix-wave; adversary reviewed this HEAD). Fixes-landed HEAD: 92f986ab (worktree HEAD after pass-10 fix wave; story-writer commit 139c9313 is factory-artifacts HEAD 139c9313). Verdict: NOT-CLEAN — B0/H3/M3/L1 (7 findings F-S2104-P11-001..007). Novelty 0.56. Trajectory 14→18→17→12→11→11→9→9→10→11→7 (plateau broken downward). Streak: 0/3. Per-pass-10 verification: 8 CONFIRMED-CLOSED / 3 PARTIAL / 0 REOPENED + 2 falsified sweep attestations.
+
+### Decision
+
+Close pass-11 with single-commit fix burst (TD-VSDD-053). Adopt orchestrator-authored class predicates: sweep scope must be derived from the class predicate, authored by the dispatcher, run whole-artifact with post-state stdout — closes the prose-scope failure mode that generated F-P11-002/003/004. Codify reviewed_head/fixes_landed_head dual-field convention for adversary pass frontmatter. Advance 4-INDEX: STORY v4.258→v4.259 / BC v4.33 UNCHANGED / ARCH v3.34 UNCHANGED / VP v2.72 UNCHANGED.
+
+### Detail
+
+Fix legs by other-agent pre-burst commits (orchestrator-verified):
+- story-writer 139c9313: S-21.04 v1.14→v1.15 (BC table + Token Budget → v1.11; AC-001 Gate automation in gate column; Architecture Mapping range AC-001..AC-006; count-free five-group Architecture Mapping). Closes F-S2104-P11-001/F-S2104-P11-002/F-S2104-P11-004.
+- test-writer 92f986ab: bats three sibling primary-path gates strengthened to .md-qualified form; 3 mutants RED/restore GREEN; implication check no death; header label corrected to historical "Was RED at 93ec340a until … a4d4ffab/43ea70ba". Closes F-S2104-P11-003/F-S2104-P11-006.
+
+Fix legs this burst (state-manager D-907):
+
+1. **F-P11-005 FIX — red-gate-log.md v1.8→v1.9**:
+   - §T-009 mutant evidence line :286 count clause replaced — "5 additional bare survivors strengthened at 3326e4dd (named)" → "5 gate GROUPS strengthened at 3326e4dd spanning 9 assertion sites (named)": each group now carries explicit site counts (1/4/2/1/1) reconciling 5 groups × named sites = 9 assertion sites with 8 scratch mutants (two non-directory sites shared one mutant).
+   - input-hash 455740d→d1c79e9 (story v1.15 drift from 139c9313 pre-burst commit).
+   - POST-STATE (literal shell — re-run against saved file): `grep -n "gate GROUPS" red-gate-log.md` → line 287: `gates class-completed at 3326e4dd (5 gate GROUPS strengthened at 3326e4dd spanning 9 assertion sites (named): the 6-surface _assert_g1_ref helper (1 site, fully-qualified path form); the four section-bounded primary-path gates (4 sites — SKILL.md Step 8, orchestrator step (g), Story Split Recovery, winning-playbook Step 8 — co-occurrence form); the two §G.1 non-directory gates (2 sites, routing co-occurrence, one shared mutant); the adversarial-review defect-signal gate (1 site, spec-ground-truth co-occurrence); the devops-engineer verify gate (1 site, 'dispatching caller' token). 8 scratch mutants RED / 8 restores GREEN (the two non-directory sites shared one mutant) recorded by test-writer).` PASS.
+
+2. **F-P11-007 FIX — STORY-INDEX.md v4.258→v4.259 catalog-row class-death**:
+   - S-21.02 catalog row (line 725): `ADR-031 v1.3 §Consequences #5` → `ADR-031 §Consequences #5`.
+   - S-21.03 catalog row (line 726): `ADR-031 v1.3 §Decision 8` → `ADR-031 §Decision 8`.
+   - Scope sentence added at line-732 region (new `>` note line): "Catalog-row and coverage-blockquote ADR/BC cites are live traceability surfaces and stay versionless (class-death D-906/D-907); versioned mentions inside last_amended/changelog provenance chains are frozen-historical."
+   - S-21.04 row (line 727): story v1.14→v1.15; F-S2104-P11-001..007 refs appended.
+   - POST-STATE blast-radius (literal shell — re-run against saved file): `grep -n 'ADR-031 v1\.[0-9]' STORY-INDEX.md` → 3 hits: line 8 (last_amended provenance — frozen-historical), line 719 (E-21 epic authorship blockquote — frozen-historical), line 761 (total-points footnote — frozen-historical). Zero live catalog-row or coverage-blockquote survivors. PASS.
+
+3. **adversary-pass-11.md created** at `cycles/v1.0-brownfield-backfill/S-21.04/adversary-pass-11.md`: verbatim Part A finding table (7 findings B0/H3/M3/L1), observations (verbatim), per-pass-10 verification (8/3/0 + 2 falsified sweep attestations), fix mapping (7 FIXED). Frontmatter: reviewed_head 2c8eff8b; fixes_landed_head 92f986ab. Process-gap note on reviewed_head/fixes_landed_head dual-field convention.
+
+4. **[process-gap] reviewed_head/fixes_landed_head dual-field convention codified**:
+   - Adversary pass records MUST carry: `reviewed_head` = the HEAD the adversary actually reviewed (pre-fix-wave), AND `fixes_landed_head` = the worktree HEAD after that pass's fix wave.
+   - Pass-08 and pass-10 frontmatter conflated the two (each cited the FIX commit as reviewed_head). Retro-note in adversary-pass-11.md; prior files are not rewritten (frozen-historical).
+
+5. **4-INDEX updates**:
+   - STORY-INDEX: v4.258→v4.259 (S-21.04 row v1.15 + P11 refs; S-21.02/S-21.03 catalog-row class-death; scope sentence; last_amended prepended D-907).
+   - BC-INDEX: v4.33 VERIFIED UNCHANGED.
+   - VP-INDEX: v2.72 VERIFIED UNCHANGED.
+   - ARCH-INDEX: v3.34 VERIFIED UNCHANGED.
+
+6. **LESSONS [process-gap/convention]**:
+   - L-EDP1-074: ORCHESTRATOR-AUTHORED CLASS PREDICATES — sweep scope must be derived from a class predicate authored by the dispatcher, run whole-artifact with post-state stdout; prose-declared sweep scope is unverifiable (adopted pass-11; closes prose-scope failure mode).
+   - L-EDP1-075: REVIEWED_HEAD / FIXES_LANDED_HEAD DUAL-FIELD CONVENTION — adversary pass frontmatter MUST record both the reviewed HEAD (pre-fix-wave) and the fixes-landed HEAD (post-fix-wave).
+
+7. **STATE.md frontmatter-minimal**: v6.44→v6.45; phase D-907-S2104-ADV-PASS-11-CLOSED.
+
+POLICY 16 GLOBAL-MAX GATE (literal shell): `grep -n "^## D-" decision-log.md | tail -3` → 11747:## D-904 / 11799:## D-905 / 11872:## D-906; D-906 confirmed prior max → D-907 allocated. PASS.
+
+POLICY 14 gate (literal shell — post-edit): `grep -m1 "^version:" specs/behavioral-contracts/BC-INDEX.md specs/verification-properties/VP-INDEX.md stories/STORY-INDEX.md specs/architecture/ARCH-INDEX.md` → BC v4.33 / VP v2.72 / STORY v4.259 / ARCH v3.34. PASS.
+
+### Phase
+
+D-907-S2104-ADV-PASS-11-CLOSED
+
+### Date
+
+2026-07-25
