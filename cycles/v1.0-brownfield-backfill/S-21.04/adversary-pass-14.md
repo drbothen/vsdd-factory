@@ -2,6 +2,7 @@
 pass: 14
 verdict: NOT-CLEAN
 reviewed_head: 6f928350
+fixes_landed_head: 26b85d8c
 novelty: 0.62
 previous_review: "cycles/v1.0-brownfield-backfill/S-21.04/adversary-pass-13.md"
 rerun: true
@@ -281,3 +282,23 @@ In `step-g-cleanup.md` §G.1 the bolded `**PC2a — No stray files (teardown aut
 | F-P13-D1 | CONFIRMED-CLOSED | Epic v1.7: `:48` `E-21 collects six hardening stories`; `:154` `EAC-001 \| All six stories S-21.01..S-21.06`; `modified[]` records the S-21.06 registration at v1.6 |
 
 Tally: 7 CONFIRMED-CLOSED / 4 PARTIAL / 0 REGRESSED. Every PARTIAL is a one-hop re-seeding of the class the pass-13 wave was closing — the diagnosis recorded in pass-13's Observations is confirmed for a fourth consecutive pass, and F-S2104-P14R-001 shows the pattern now extends to the story's primary BC postcondition with a falsified completeness attestation attached.
+
+---
+
+## Fix Mapping
+
+| Finding | Status | Fix Agent / Commit |
+|---------|--------|-------------------|
+| F-S2104-P14R-001 | FIXED 26b85d8c | test-writer — Gate 1 affirmative two-part + Gate 5 POLICY-13 alternation; M-P14R-A + M-P14-A + worktree-relative synonym vector all RED, exact text recorded |
+| F-S2104-P14R-002 | FIXED this burst | state-manager D-912 — Pass-14R attestation section + Summary HEAD advance |
+| F-S2104-P14R-003 | FIXED f75c8624+26b85d8c+09347619 | implementer (traversal bullet _shared-context.md) + test-writer (Gate 6 deletion-mutant) + story-writer (AC-001(a) both forms) |
+| F-S2104-P14R-004 | FIXED 26b85d8c | test-writer — attestation block removed from shipped file; SoT transcription this burst |
+| F-S2104-P14R-005 | FIXED 26b85d8c | test-writer — (~:113) → stable anchor; zero bare pins verified |
+| F-S2104-P14R-006 | FIXED 09347619 | story-writer — AC-001 Gate cell enumerates current Gates 1-6 + extractor; no completeness claim |
+| F-S2104-P14R-007 | FIXED this burst | state-manager D-912 — STORY-INDEX epic v1.7 + story v1.19 + P14R refs |
+| F-S2104-P14R-008 | FIXED f75c8624+26b85d8c+09347619 | implementer (CHANGELOG clause) + test-writer (T-009 gates) + story-writer (AC-010 + File-Structure row) — orchestrator adjudication: govern in-scope |
+| F-S2104-P14R-009 | FIXED 09347619+this burst | story-writer (story rows) + state-manager (log Fixture column) |
+| F-S2104-P14R-010 | FIXED this burst | state-manager D-912 — exact-text or historical-elided annotation per recoverability |
+| F-S2104-P14R-011 | FIXED 26b85d8c | test-writer — dead FIXTURE_DIR removed |
+| F-S2104-P14R-012 | FIXED f75c8624 | implementer — trigger sentence restored, obligation tokens intact |
+| F-S2104-P14R-013 | FIXED f75c8624 | implementer — §G.1 PC2 prose structure aligned; find code relocated to Preflight-command section; T-006 GREEN |

@@ -12214,3 +12214,60 @@ D-911-S2104-PASS-14-RERUN-PERSISTED
 ### Date
 
 2026-07-26
+
+## D-912
+
+### Title
+
+S-21.04 pass-14R fix wave closed — all 13 findings fixed; story v1.19/AC-010; STORY-INDEX v4.262; red-gate-log v1.12; POLICY 13/15 extensions; 2 process-gap lessons; fixes_landed_head 26b85d8c; streak 0/3
+
+### Context
+
+Pass-14R fix wave fully landed: implementer f75c8624 (traversal bullet _shared-context.md; CHANGELOG clause; trigger sentence devops-engineer; §G.1 PC2 alignment), test-writer 26b85d8c (Gate 1 affirmative two-part + Gate 5 POLICY-13 alternation; Gate 6 traversal deletion-mutant; attestation block removed from bats; zero bare line pins; T-009 bcs: field gate; dead FIXTURE_DIR removed; suites 9/9 + 14/14), story-writer 09347619 (story v1.19; AC-001(a) both forbidden forms; AC-010 allocated; File-Structure row; story rows fixture column). State-manager closure burst: Leg A (red-gate-log v1.12: Pass-14R attestation section + Summary HEAD advance + Fixture column + pass-13 exact mutant text), Leg B (STORY-INDEX v4.262: epic v1.7 + story v1.19 + P14R refs), Leg C (adversary-pass-14.md: fixes_landed_head + Fix Mapping), Leg D (decision-log D-912 + lessons + policies v1.4.11 + STATE.md v6.49). Orchestrator adjudication on P14R-008: govern in-scope (implementer CHANGELOG + test-writer T-009 gate + story-writer AC-010 + File-Structure row all fixed in wave). Streak 0/3 — next: adversary pass-15.
+
+### Decision
+
+Close the pass-14R fix wave. Codify two [process-gap] observations from pass-14 Observations as lessons L-BB-mutant-token-generality and L-BB-red-gate-attestation-location-gate. Extend POLICY 13 verification_steps with the mutant-derived-gate alternation mandate (D-497 parsimony). Extend POLICY 15 verification_steps with the attestation-location gate (red-gate-log SoT-presence-at-HEAD check). Advance STORY-INDEX v4.261→v4.262. Advance red-gate-log v1.11→v1.12 with Pass-14R attestation + input-hash refresh 89efd7e→c74e0f8 (story v1.19 drift). Add fixes_landed_head 26b85d8c to adversary-pass-14.md. Advance STATE.md v6.48→v6.49. Streak remains 0/3.
+
+### Detail
+
+1. **POLICY 16 GLOBAL-MAX GATE (literal shell stdout)**:
+   - `grep -n "^## D-" cycles/v1.0-brownfield-backfill/decision-log.md | tail -5` → `11941:## D-907 / 12005:## D-908 / 12072:## D-909 / 12149:## D-910 / 12183:## D-911`
+   - `grep -n "^## D-" cycles/v1.0-feature-engine-discipline-pass-1/decision-log.md | tail -3` → (no output — zero D-NNN entries in engine-discipline cycle)
+   - D-911 confirmed global max → D-912 allocated. PASS.
+
+2. **Leg A — red-gate-log.md v1.11→v1.12** (closes F-S2104-P14R-002, -009, -010):
+   - A1: `### Pass-14R assertion-site attestation (26b85d8c)` appended with verbatim test-writer attestation (Gate 1/Gate 5/Gate 6 mutant evidence: M-P14R-A, M-P14-A, worktree-relative synonym, traversal deletion).
+   - A2: Summary row HEAD cite `09cfce81` → `26b85d8c` (test-writer-executed: 9/9 + 14/14, 2026-07-26).
+   - A3: Fixture column T-001/T-002/T-003 corrected: `fixtures/story-worktree/ (...)` → `dynamic $(mktemp -d) fixture per bats setup() (fixtures/story-worktree/ holds README documentation only) (...)`.
+   - A4: Pass-13 mutant record: elided paraphrase replaced with M-P14-A exact text (recovered from bats 6f928350 lines 1377-1380; identical to pass-13 CWD-relative polarity inversion vector per F-S2104-P14R-010 recoverability gate).
+   - A5: version 1.11→1.12; last_amended D-912 prepended; modified[] D-912 entry added; input-hash 89efd7e→c74e0f8 (story v1.19 drift; POLICY 18: `compute-input-hash red-gate-log.md` → `c74e0f8`); traces_to adds story v1.19.
+
+3. **Leg B — STORY-INDEX v4.261→v4.262** (closes F-S2104-P14R-007):
+   - `:717` epic heading pin `v1.5` → `v1.7`.
+   - `:727` S-21.04 catalog row: `story v1.17` → `story v1.19`; Refs extended with `F-S2104-P14R-001..013 (pass-14 RE-RUN; original pass-14 record lost at D-910 wrap, re-run per human ruling D-911)`.
+   - Sibling-sweep (literal shell): `grep -n "v1\.5" STORY-INDEX.md | grep -i "E-21"` → line 87 (E-10 epic v1.5→v1.6 historical-by-construction in [Prior:] chain; NOT E-21). `grep -n "story v1\.17" STORY-INDEX.md` → only in last_amended: historical chain. Zero stale live pins. PASS.
+   - 5-leg parity: version 4.261→4.262; last_amended (v4.261)→(v4.262) D-912 prepended.
+
+4. **Leg C — adversary-pass-14.md** (D-907 dual-field convention):
+   - `fixes_landed_head: 26b85d8c` added to frontmatter (D-907 dual-field: reviewed_head = entry-point HEAD; fixes_landed_head = post-fix-wave HEAD).
+   - `## Fix Mapping` section appended matching pass-13 format — 13 findings F-S2104-P14R-001..013 all FIXED.
+
+5. **Leg D2 — lessons.md**: Two [process-gap] codifications appended:
+   - L-BB-mutant-token-generality: mutant-derived gate predicates MUST be POLICY-13 alternations over the syntactic-form class of the mutated token, with at least one synonym-substituted mutant.
+   - L-BB-red-gate-attestation-location-gate: fix wave adding/strengthening a bats assertion site MUST NOT be pushed until matching red-gate-log.md section exists at that commit (literal shell: `grep -c "assertion-site attestation (<HEAD>)"` → 1).
+
+6. **Leg D3 — policies.yaml v1.4.10→v1.4.11**:
+   - POLICY 13: verification_steps extended with mutant-derived-gate alternation mandate (D-497 parsimony; D-912 + F-S2104-P14R-001 third-generation class).
+   - POLICY 15: verification_steps extended with attestation-location gate (red-gate-log SoT-presence-at-HEAD check; D-912 + F-S2104-P14R-002/004 fourth-generation class).
+   - last_amended updated to 2026-07-26 (v1.4.11).
+
+7. **POLICY 14 4-INDEX GATE (literal shell stdout)**: `grep -m1 "^version:" specs/behavioral-contracts/BC-INDEX.md specs/verification-properties/VP-INDEX.md stories/STORY-INDEX.md specs/architecture/ARCH-INDEX.md` → BC v4.33 / VP v2.72 / STORY v4.262 / ARCH v3.34. STORY bumped this burst; BC/VP/ARCH UNCHANGED. PASS.
+
+### Phase
+
+D-912-S2104-PASS-14R-CLOSED
+
+### Date
+
+2026-07-26

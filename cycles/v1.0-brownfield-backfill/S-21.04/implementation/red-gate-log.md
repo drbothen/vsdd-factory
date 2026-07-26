@@ -1,7 +1,7 @@
 ---
 document_type: red-gate-log
 level: ops
-version: "1.11"
+version: "1.12"
 status: verified
 producer: test-writer
 timestamp: 2026-07-25T03:15:00Z
@@ -9,9 +9,9 @@ phase: 3
 inputs:
   - .factory/stories/S-21.04-story-worktree-write-path-discipline.md
   - .factory/specs/behavioral-contracts/ss-06/BC-6.26.001.md
-input-hash: "89efd7e"
-traces_to: "BC-6.26.001 v1.11"
-last_amended: "2026-07-26 D-909: F-S2104-P13-002 — Summary HEAD cite 264f53b6→09cfce81 + attestation condensed (orchestrator-executed: 9/9 + 14/14, 2026-07-26); :288 count phrase replaced with COUNT-FREE pointer to per-pass attestation sections; ### Pass-13 assertion-site attestation (09cfce81) section appended (verbatim test-writer: polarity-aware prohibition gates, 3 mutants incl. inversion vector, gate groups count-free). F-S2104-P13-004 — §Bats Tests T-001 AC-003→AC-003; AC-001; AC-002; AC-007 (a)-(c); §Bats Tests T-002 AC-004→AC-004; AC-002; §Traces T-001 and T-002 multi-AC sync from story v1.17. input-hash 53500af→89efd7e (story v1.17 drift); version 1.10→1.11; prior: 2026-07-26 D-908: F-S2104-P12-002(a) §T-009 :287 group description corrected (four primary-path gates .md-qualified form + P11-003 attestation); F-S2104-P12-002(b) P11-003 mutant record appended to T-009 section; F-S2104-P12-002(c) Summary HEAD 2c8eff8b→264f53b6 + suite-level verification updated; F-S2104-P12-010 D-907 modified[] date 2026-07-25→2026-07-26 (monotonic correction, non-monotonic per D-906 dated 2026-07-26); input-hash d1c79e9→53500af (story v1.16 drift); version 1.9→1.10; prior: 2026-07-26 D-907 (date-corrected D-908): F-S2104-P11-005 §T-009 mutant evidence line :286 count clause replaced — 5 gate GROUPS / 9 assertion sites reconciled with 8 mutants; input-hash 455740d→d1c79e9 (story v1.15 drift); version 1.8→1.9; prior: 2026-07-26 D-906: F-S2104-P10-007 Summary line HEAD cite 9d896bf5→2c8eff8b + suite-level verification (orchestrator ran bats → 9/9 ok + 14/14 ok at 2c8eff8b, 2026-07-26); F-S2104-P10-008 §T-009 mutant evidence line :285 named list (5 named gates + 8 scratch mutants); F-S2104-P10-009 traces_to v1.10→v1.11 + BC-6.26.001 cite v1.10→v1.11 throughout + T-008/T-009 version pin parity restored; input-hash 389274b→455740d (story v1.14 + BC v1.11 drift); version 1.7→1.8; prior: 2026-07-25 D-905: F-S2104-P9-004 §T-008 BC trace corrected (PC2 + Invariant 2 caller-side dispatch gate, per story AC-007; replaces erroneous Invariant 5 caller-side propagation anchor introduced in D-904 fix wave); F-S2104-P9-007 §T-009 mutant evidence recorded (obligation-asserting gates mutant-proven at 2992b53d; class-completed at 3326e4dd; bare-alternation paper-gate confirmed); input-hash 43e6df2→389274b (story v1.13 drift); version 1.6→1.7 (F-S2104-P9-004, F-S2104-P9-007); prior: 2026-07-25 D-904: F-S2104-P8-001 §Bats Tests table T-001→RG-001†, T-002→RG-002†, T-003→RG-003† (table correction omitted at D-895, surviving 6 passes); † footnote updated to cite D-904; F-S2104-P8-007 T-007 mutant-proof recorded verbatim (qualified-path/verify/PASS-result/not-evident-run-yourself all NO MATCH on scratch reduction at 052620dc); F-S2104-P8-002 NEW T-008 addendum (AC-007/RG-008; six-surface §G.1 mandate; quote-tolerant mutant-proof 052620dc) + NEW T-009 addendum (AC-009/RG-009; awareness-clause; GREEN 4265c96c); Summary line updated (T-007/T-008/T-009 propagation gates; HEAD 9d896bf5; all T-IDs/RG rows confirmed); BC-6.26.001 cite v1.9→v1.10 (quintuple parity); input-hash 7abb656→43e6df2 (story v1.12 + BC v1.10 drift); traces_to v1.9→v1.10; version 1.5→1.6 (F-S2104-P8-001, F-S2104-P8-002, F-S2104-P8-007); prior: 2026-07-25 D-903 state-manager — F-S2104-P7-001/P7-005 attestation corrections verbatim-authored by orchestrator: §T-005 addendum heading/Test rewritten (regular-file-at-path → PC2b BLOCKED; RG-006; AC-002/EC-007); §T-006 addendum heading/trailing-slash mechanism corrected (POSIX find WITHOUT -H/-L empty-return → false PC2a; [ -L ] guard routes to PC2b; trailing-slash defense-in-depth); all 4 RG-004a occurrences replaced with RG-006; §Traces T-005/T-006 quintuple parity updated; NEW §T-007 addendum (AC-008/RG-007 devops-engineer executor-side preflight mandate; obligation-asserting at 052620dc); Summary line: 9 bats tests T-001..T-006 + 3 propagation-gate tests; BC-6.26.001 v1.8→v1.9 cites updated throughout; input-hash 4b75dba→7abb656 (story v1.11 + BC v1.9 drift); traces_to v1.8→v1.9; version 1.4→1.5 (F-S2104-P7-001, F-S2104-P7-005); prior: 2026-07-25 D-902 state-manager — T-005/T-006/RG-005 attestation addenda appended; Summary 9-test suite; Traces quintuple parity v1.5→v1.8; T-004 addendum BC cite v1.5→v1.8; RG-reconciliation note appended to D-895 erratum; input-hash 8cdfb33→a4b9ea5 (story v1.9 + BC v1.8 drift); traces_to v1.6→v1.8; version 1.3→1.4 (F-S2104-P6-004); prior: 2026-07-25 D-899 state-manager — T-004 test description corrected to verbatim §G.1 PC2c semantics (HALT + surface exit code/stderr; no PREFLIGHT BLOCKED message); input-hash 2b051ec→8cdfb33 (story v1.7 drift); traces_to v1.5→v1.6; version 1.2→1.3 (F-S2104-P4-006); prior: 2026-07-25 D-897 state-manager — fabricated PC2c implementation quote corrected to verbatim §G.1 text; Invariant TBD placeholder removed; input-hash 55904fb→2b051ec (story v1.6 drift); version 1.1→1.2 (F-S2104-P3-009, F-S2104-P3-010); prior: 2026-07-25 D-896 state-manager — T-004/RG-004 attestation addendum (F-S2104-P2-013) + quintuple parity v1.5 (F-S2104-P2-017); prior: 2026-07-25 D-895 state-manager — erratum F-S2104-P1-009 (RG-ID mapping + AC-002 attribution)"
+input-hash: "c74e0f8"
+traces_to: "BC-6.26.001 v1.11; story v1.19"
+last_amended: "2026-07-26 D-912: F-S2104-P14R-002 — Summary HEAD cite 09cfce81→26b85d8c (test-writer-executed: 9/9 + 14/14); ### Pass-14R assertion-site attestation (26b85d8c) section appended (verbatim test-writer: Gate 1 affirmative two-part + Gate 5 POLICY-13 alternation; M-P14R-A + M-P14-A + worktree-relative synonym vector all RED). F-S2104-P14R-009 — Fixture column T-001/T-002/T-003 corrected to dynamic $(mktemp -d) per bats setup(). F-S2104-P14R-010 — pass-13 mutant record exact text substituted verbatim (M-P14-A; recovered from bats 6f928350:1377-1380). input-hash 89efd7e→c74e0f8 (story v1.19 drift); traces_to adds story v1.19; version 1.11→1.12; prior: 2026-07-26 D-909: F-S2104-P13-002 — Summary HEAD cite 264f53b6→09cfce81 + attestation condensed (orchestrator-executed: 9/9 + 14/14, 2026-07-26); :288 count phrase replaced with COUNT-FREE pointer to per-pass attestation sections; ### Pass-13 assertion-site attestation (09cfce81) section appended (verbatim test-writer: polarity-aware prohibition gates, 3 mutants incl. inversion vector, gate groups count-free). F-S2104-P13-004 — §Bats Tests T-001 AC-003→AC-003; AC-001; AC-002; AC-007 (a)-(c); §Bats Tests T-002 AC-004→AC-004; AC-002; §Traces T-001 and T-002 multi-AC sync from story v1.17. input-hash 53500af→89efd7e (story v1.17 drift); version 1.10→1.11; prior: 2026-07-26 D-908: F-S2104-P12-002(a) §T-009 :287 group description corrected (four primary-path gates .md-qualified form + P11-003 attestation); F-S2104-P12-002(b) P11-003 mutant record appended to T-009 section; F-S2104-P12-002(c) Summary HEAD 2c8eff8b→264f53b6 + suite-level verification updated; F-S2104-P12-010 D-907 modified[] date 2026-07-25→2026-07-26 (monotonic correction, non-monotonic per D-906 dated 2026-07-26); input-hash d1c79e9→53500af (story v1.16 drift); version 1.9→1.10; prior: 2026-07-26 D-907 (date-corrected D-908): F-S2104-P11-005 §T-009 mutant evidence line :286 count clause replaced — 5 gate GROUPS / 9 assertion sites reconciled with 8 mutants; input-hash 455740d→d1c79e9 (story v1.15 drift); version 1.8→1.9; prior: 2026-07-26 D-906: F-S2104-P10-007 Summary line HEAD cite 9d896bf5→2c8eff8b + suite-level verification (orchestrator ran bats → 9/9 ok + 14/14 ok at 2c8eff8b, 2026-07-26); F-S2104-P10-008 §T-009 mutant evidence line :285 named list (5 named gates + 8 scratch mutants); F-S2104-P10-009 traces_to v1.10→v1.11 + BC-6.26.001 cite v1.10→v1.11 throughout + T-008/T-009 version pin parity restored; input-hash 389274b→455740d (story v1.14 + BC v1.11 drift); version 1.7→1.8; prior: 2026-07-25 D-905: F-S2104-P9-004 §T-008 BC trace corrected (PC2 + Invariant 2 caller-side dispatch gate, per story AC-007; replaces erroneous Invariant 5 caller-side propagation anchor introduced in D-904 fix wave); F-S2104-P9-007 §T-009 mutant evidence recorded (obligation-asserting gates mutant-proven at 2992b53d; class-completed at 3326e4dd; bare-alternation paper-gate confirmed); input-hash 43e6df2→389274b (story v1.13 drift); version 1.6→1.7 (F-S2104-P9-004, F-S2104-P9-007); prior: 2026-07-25 D-904: F-S2104-P8-001 §Bats Tests table T-001→RG-001†, T-002→RG-002†, T-003→RG-003† (table correction omitted at D-895, surviving 6 passes); † footnote updated to cite D-904; F-S2104-P8-007 T-007 mutant-proof recorded verbatim (qualified-path/verify/PASS-result/not-evident-run-yourself all NO MATCH on scratch reduction at 052620dc); F-S2104-P8-002 NEW T-008 addendum (AC-007/RG-008; six-surface §G.1 mandate; quote-tolerant mutant-proof 052620dc) + NEW T-009 addendum (AC-009/RG-009; awareness-clause; GREEN 4265c96c); Summary line updated (T-007/T-008/T-009 propagation gates; HEAD 9d896bf5; all T-IDs/RG rows confirmed); BC-6.26.001 cite v1.9→v1.10 (quintuple parity); input-hash 7abb656→43e6df2 (story v1.12 + BC v1.10 drift); traces_to v1.9→v1.10; version 1.5→1.6 (F-S2104-P8-001, F-S2104-P8-002, F-S2104-P8-007); prior: 2026-07-25 D-903 state-manager — F-S2104-P7-001/P7-005 attestation corrections verbatim-authored by orchestrator: §T-005 addendum heading/Test rewritten (regular-file-at-path → PC2b BLOCKED; RG-006; AC-002/EC-007); §T-006 addendum heading/trailing-slash mechanism corrected (POSIX find WITHOUT -H/-L empty-return → false PC2a; [ -L ] guard routes to PC2b; trailing-slash defense-in-depth); all 4 RG-004a occurrences replaced with RG-006; §Traces T-005/T-006 quintuple parity updated; NEW §T-007 addendum (AC-008/RG-007 devops-engineer executor-side preflight mandate; obligation-asserting at 052620dc); Summary line: 9 bats tests T-001..T-006 + 3 propagation-gate tests; BC-6.26.001 v1.8→v1.9 cites updated throughout; input-hash 4b75dba→7abb656 (story v1.11 + BC v1.9 drift); traces_to v1.8→v1.9; version 1.4→1.5 (F-S2104-P7-001, F-S2104-P7-005); prior: 2026-07-25 D-902 state-manager — T-005/T-006/RG-005 attestation addenda appended; Summary 9-test suite; Traces quintuple parity v1.5→v1.8; T-004 addendum BC cite v1.5→v1.8; RG-reconciliation note appended to D-895 erratum; input-hash 8cdfb33→a4b9ea5 (story v1.9 + BC v1.8 drift); traces_to v1.6→v1.8; version 1.3→1.4 (F-S2104-P6-004); prior: 2026-07-25 D-899 state-manager — T-004 test description corrected to verbatim §G.1 PC2c semantics (HALT + surface exit code/stderr; no PREFLIGHT BLOCKED message); input-hash 2b051ec→8cdfb33 (story v1.7 drift); traces_to v1.5→v1.6; version 1.2→1.3 (F-S2104-P4-006); prior: 2026-07-25 D-897 state-manager — fabricated PC2c implementation quote corrected to verbatim §G.1 text; Invariant TBD placeholder removed; input-hash 55904fb→2b051ec (story v1.6 drift); version 1.1→1.2 (F-S2104-P3-009, F-S2104-P3-010); prior: 2026-07-25 D-896 state-manager — T-004/RG-004 attestation addendum (F-S2104-P2-013) + quintuple parity v1.5 (F-S2104-P2-017); prior: 2026-07-25 D-895 state-manager — erratum F-S2104-P1-009 (RG-ID mapping + AC-002 attribution)"
 modified:
   - "2026-07-25 D-895: Erratum appended — RG-ID mapping corrected (RG-001/002/003), fabricated RG-004/005 documented, AC-002 attribution corrected (F-S2104-P1-009)"
   - "2026-07-25 D-896: T-004/RG-004 attestation addendum appended; frontmatter version 1.0→1.1, traces_to updated to v1.5, §Traces BC cites updated to v1.5 (F-S2104-P2-013, F-S2104-P2-017)"
@@ -25,6 +25,7 @@ modified:
   - "2026-07-26 D-907 (date-corrected D-908; prior D-906 dated 2026-07-26, D-907 originally dated 2026-07-25 was non-monotonic — F-S2104-P12-010): F-S2104-P11-005 §T-009 mutant evidence :286 count clause replaced — 5 gate GROUPS spanning 9 assertion sites reconciled with 8 mutants; input-hash 455740d→d1c79e9 (story v1.15 drift); version 1.8→1.9"
   - "2026-07-26 D-908: F-S2104-P12-002(a) §T-009 :287 primary-path gate group description corrected to .md-qualified form with P11-003 attestation; F-S2104-P12-002(b) P11-003 mutant record appended; F-S2104-P12-002(c) Summary HEAD cite 2c8eff8b→264f53b6; F-S2104-P12-010 D-907 modified[] date 2026-07-25→2026-07-26 (monotonic correction); input-hash d1c79e9→53500af (story v1.16 drift); version 1.9→1.10"
   - "2026-07-26 D-909: F-S2104-P13-002 Summary HEAD 264f53b6→09cfce81 + COUNT-FREE pointer + Pass-13 attestation appended; F-S2104-P13-004 §Bats Tests T-001/T-002 multi-AC sync + §Traces T-001/T-002 multi-AC sync from story v1.17; input-hash 53500af→89efd7e (story v1.17 drift); version 1.10→1.11"
+  - "2026-07-26 D-912: F-S2104-P14R-002 Summary HEAD 09cfce81→26b85d8c + Pass-14R attestation appended; F-S2104-P14R-009 Fixture column T-001/T-002/T-003 dynamic $(mktemp -d) corrected; F-S2104-P14R-010 pass-13 mutant exact text recovered + substituted; input-hash 89efd7e→c74e0f8 (story v1.19 drift); version 1.11→1.12"
 stub_architect_agent: "N/A — no code stubs (skill-doc + bats story; ADR-031 §Decision 4 class; POLICY 21 satisfied)"
 stub_compile_verified: true
 test_writer_agent: vsdd-factory:test-writer
@@ -42,7 +43,7 @@ red_gate_verified: true
 
 | Story | New Tests Written | All New Tests Fail (Red)? | Pre-existing Tests | Gate |
 |-------|------------------|--------------------------|-------------------|------|
-| S-21.04 | 9 bats tests: T-001..T-006 (behavioral vectors) + T-007/T-008/T-009 (doc-parity propagation gates). All GREEN at worktree HEAD 09cfce81 (orchestrator-executed: 9/9 + 14/14, 2026-07-26). All nine tests carry T-IDs, RG rows (RG-001..RG-009), and attestation sections in this log. | YES — all original 3 FAIL at Red Gate | 2265 (cargo baseline) | PASSED |
+| S-21.04 | 9 bats tests: T-001..T-006 (behavioral vectors) + T-007/T-008/T-009 (doc-parity propagation gates). All GREEN at worktree HEAD 26b85d8c (test-writer-executed: 9/9 + 14/14, 2026-07-26). All nine tests carry T-IDs, RG rows (RG-001..RG-009), and attestation sections in this log. | YES — all original 3 FAIL at Red Gate | 2265 (cargo baseline) | PASSED |
 
 Orchestrator-verified 2026-07-24: all 3 bats tests `not ok` (ASSERTION failures via `_assert_doc_marker`; DOC-PARITY: `find.*\.factory` preflight mandate absent from step-g-cleanup.md §G.1). Pre-implementation cargo-test baseline: 2265 pass, 0 fail, clean build.
 
@@ -64,9 +65,9 @@ Failing-tests commit: `8e3c432e` — replaced the 3 `skip` placeholders with ass
 
 | Test | AC / RG ID | BC Trace | Fixture | Failure Reason | Status |
 |------|-----------|----------|---------|----------------|--------|
-| T-001 | AC-003; AC-001 (Write Discipline clause-content gates); AC-002 (§G.1 doc-parity + harness, with T-002); AC-007 (a)-(c) primary-surface gates / RG-001† | BC-6.26.001 PC2b, Invariant 2 | fixtures/story-worktree/ (stray `.factory/stories/S-021-DELIVERY.md`) | `_assert_doc_marker` gate fires — `find.*\.factory` preflight mandate absent from step-g-cleanup.md §G.1; `PREFLIGHT BLOCKED` clause not present | FAIL (expected) |
-| T-002 | AC-004; AC-002 (§G.1 doc-parity, with T-001) / RG-002† | BC-6.26.001 PC2a | fixtures/story-worktree/ (empty shadow `.factory/`) | `_assert_doc_marker` gate fires — §G.1 clean-path assertion absent from step-g-cleanup.md | FAIL (expected) |
-| T-003 | AC-005 / RG-003† | BC-6.26.001 PC2b→PC2a retry path | fixtures/story-worktree/ (stray file then relocated) | `_assert_doc_marker` gate fires — §G.1 retry-path mandate absent from step-g-cleanup.md | FAIL (expected) |
+| T-001 | AC-003; AC-001 (Write Discipline clause-content gates); AC-002 (§G.1 doc-parity + harness, with T-002); AC-007 (a)-(c) primary-surface gates / RG-001† | BC-6.26.001 PC2b, Invariant 2 | dynamic $(mktemp -d) fixture per bats setup() (fixtures/story-worktree/ holds README documentation only) (stray `.factory/stories/S-021-DELIVERY.md`) | `_assert_doc_marker` gate fires — `find.*\.factory` preflight mandate absent from step-g-cleanup.md §G.1; `PREFLIGHT BLOCKED` clause not present | FAIL (expected) |
+| T-002 | AC-004; AC-002 (§G.1 doc-parity, with T-001) / RG-002† | BC-6.26.001 PC2a | dynamic $(mktemp -d) fixture per bats setup() (fixtures/story-worktree/ holds README documentation only) (empty shadow `.factory/`) | `_assert_doc_marker` gate fires — §G.1 clean-path assertion absent from step-g-cleanup.md | FAIL (expected) |
+| T-003 | AC-005 / RG-003† | BC-6.26.001 PC2b→PC2a retry path | dynamic $(mktemp -d) fixture per bats setup() (fixtures/story-worktree/ holds README documentation only) (stray file then relocated) | `_assert_doc_marker` gate fires — §G.1 retry-path mandate absent from step-g-cleanup.md | FAIL (expected) |
 
 ## Anti-Tautology Mechanism (TD-VSDD-059)
 
@@ -304,4 +305,136 @@ T-009 is the doc-parity gate authored at pass-4 as F-S2104-P4-002 (agents/advers
 
 **Appended:** 2026-07-26 (D-909 S-21.04 pass-13 closure; state-manager)
 
-New/changed assertion sites: (1) `_extract_write_discipline_prohibition_block()` helper — extracts the normative prohibition paragraph from `_shared-context.md` (anchored to 'All .factory/** artifact writes', terminated at first blank line). (2) T-001 prohibition gate block — the 'are FORBIDDEN' call replaced by: empty-block guard, Gate 1 (mandate-polarity line-level grep 'MUST.*absolute|absolute.*MUST'), Gate 2 (CWD-relative FORBIDDEN joined-text co-occurrence), Gate 3 (kept **Forbidden:** example marker). (3-8) comment/message anchor + SHA completions in T-002/T-005/T-009 per F-P13-006/007/009. Mutant vectors (captured): (a) prohibition block deleted → T-001 RED 'DOC-PARITY FAIL [write-discipline prohibition block absent]' exit 1; (b) POLARITY INVERSION ('MUST use CWD-relative … absolute paths FORBIDDEN') → T-001 RED 'DOC-PARITY FAIL [write-discipline prohibition block mandate-polarity]' exit 1; (c) restore → T-001 ok exit 0. Gate groups and sites (count-free): P13-001 prohibition extractor: 1 helper + 3 assertion sites in T-001; P13-006: 1 header line; P13-007: 4 sites; P13-009: 2 sites.
+New/changed assertion sites: (1) `_extract_write_discipline_prohibition_block()` helper — extracts the normative prohibition paragraph from `_shared-context.md` (anchored to 'All .factory/** artifact writes', terminated at first blank line). (2) T-001 prohibition gate block — the 'are FORBIDDEN' call replaced by: empty-block guard, Gate 1 (mandate-polarity line-level grep 'MUST.*absolute|absolute.*MUST'), Gate 2 (CWD-relative FORBIDDEN joined-text co-occurrence), Gate 3 (kept **Forbidden:** example marker). (3-8) comment/message anchor + SHA completions in T-002/T-005/T-009 per F-P13-006/007/009. Mutant vectors (captured): (a) prohibition block deleted → T-001 RED 'DOC-PARITY FAIL [write-discipline prohibition block absent]' exit 1; (b) POLARITY INVERSION — exact substituted text (replace `_shared-context.md:66-70` with): `All `.factory/**` artifact writes performed during story delivery MUST use CWD-relative paths, not canonical absolute paths anchored to the main-checkout root. Canonical absolute paths (e.g., `$CANONICAL_FACTORY_ROOT/.factory/stories/S-NNN-DELIVERY.md`) are FORBIDDEN — CWD-relative writes land in the story worktree's shadow `.factory/` subtree and are preserved at teardown.` → T-001 RED 'DOC-PARITY FAIL [write-discipline prohibition block mandate-polarity]' exit 1; (c) restore → T-001 ok exit 0. Gate groups and sites (count-free): P13-001 prohibition extractor: 1 helper + 3 assertion sites in T-001; P13-006: 1 header line; P13-007: 4 sites; P13-009: 2 sites. (Note: M-P14-A text identical to (b) above — both are the CWD-relative polarity inversion; recovered verbatim from bats file at 6f928350 lines 1377-1380 per F-S2104-P14R-010 recoverability gate.)
+
+---
+
+### Pass-14R assertion-site attestation (26b85d8c)
+
+**Appended:** 2026-07-26 (D-912 S-21.04 pass-14R closure; state-manager)
+
+### F-S2104-P14R-001 — Gate 1 (affirmative mandate) and Gate 5 (POLICY-13 alternation)
+
+**Gate 1 assertion site:** T-001 (`printf '%s\n' "$prohibition_block" | grep -qE 'MUST[^.]*use[^.]*canonical[[:space:]]+absolute'` + negative inversion guard)
+
+**M-P14R-A — synonym-substituted inversion (Gate 1 negative fires)**
+
+Exact substituted text replacing _shared-context.md prohibition block (formerly lines 66-70):
+```
+All `.factory/**` artifact writes performed during story delivery MUST use relative paths, not canonical absolute paths
+anchored to the main-checkout root. Canonical absolute paths (e.g., `$CANONICAL_FACTORY_ROOT/.factory/stories/S-NNN-DELIVERY.md`)
+are FORBIDDEN — relative writes land in the story worktree's shadow `.factory/` subtree and are preserved at teardown.
+```
+
+RED stdout (bats -f "T-001"):
+```
+1..1
+not ok 1 T-001 S-21.04 AC-003: stray-file-blocks — PREFLIGHT BLOCKED non-zero; git worktree remove NOT called
+# (in test file plugins/vsdd-factory/tests/story-worktree-write-path-discipline.bats, line 548)
+#   `false' failed
+# DOC-PARITY FAIL [write-discipline prohibition block polarity-inversion]: a line matching MUST...use...canonical absolute ALSO contains 'not canonical absolute' — indicates the canonical absolute form is mentioned only as the negated alternative, not as the mandate subject; M-P14R-A ('MUST use relative paths, not canonical absolute paths') and M-P14-A ('MUST use CWD-relative paths, not canonical absolute paths') both trigger this gate (BC-6.26.001 PC1; AC-001(a); F-S2104-P14R-001)
+```
+
+GREEN stdout (restored original):
+```
+1..1
+ok 1 T-001 S-21.04 AC-003: stray-file-blocks — PREFLIGHT BLOCKED non-zero; git worktree remove NOT called
+```
+
+**M-P14-A — original inversion vector re-proven (Gate 1 negative fires)**
+
+Exact substituted text:
+```
+All `.factory/**` artifact writes performed during story delivery MUST use CWD-relative paths, not canonical absolute paths
+anchored to the main-checkout root. Canonical absolute paths (e.g., `$CANONICAL_FACTORY_ROOT/.factory/stories/S-NNN-DELIVERY.md`)
+are FORBIDDEN — CWD-relative writes land in the story worktree's shadow `.factory/` subtree and are preserved at teardown.
+```
+
+RED stdout:
+```
+1..1
+not ok 1 T-001 S-21.04 AC-003: stray-file-blocks — PREFLIGHT BLOCKED non-zero; git worktree remove NOT called
+# (in test file plugins/vsdd-factory/tests/story-worktree-write-path-discipline.bats, line 548)
+#   `false' failed
+# DOC-PARITY FAIL [write-discipline prohibition block polarity-inversion]: a line matching MUST...use...canonical absolute ALSO contains 'not canonical absolute' — indicates the canonical absolute form is mentioned only as the negated alternative, not as the mandate subject; M-P14R-A ('MUST use relative paths, not canonical absolute paths') and M-P14-A ('MUST use CWD-relative paths, not canonical absolute paths') both trigger this gate (BC-6.26.001 PC1; AC-001(a); F-S2104-P14R-001)
+```
+
+**Gate 5 assertion site:** T-001 (POLICY-13 alternation `CWD-relative|worktree-relative|relative[[:space:]]+path`)
+
+**Gate 5 independent proof — worktree-relative synonym, pure form (passes Gate 1, Gate 5 fires)**
+
+Substituted text:
+```
+All `.factory/**` artifact writes performed during story delivery MUST use canonical absolute paths
+or alternatively MUST use worktree-relative paths when the canonical root is not available.
+CWD-relative paths are FORBIDDEN.
+```
+(Gate 1 positive: line 1 matches MUST...canonical absolute. Gate 1 negative: does NOT fire, "not canonical absolute" absent. Gate 5: line 2 has MUST...worktree-relative → fires.)
+
+RED stdout:
+```
+1..1
+not ok 1 T-001 S-21.04 AC-003: stray-file-blocks — PREFLIGHT BLOCKED non-zero; git worktree remove NOT called
+# (in test file plugins/vsdd-factory/tests/story-worktree-write-path-discipline.bats, line 582)
+#   `false' failed
+# DOC-PARITY FAIL [write-discipline prohibition block MUST-relative-polarity]: a line in the Write Discipline prohibition paragraph contains both 'MUST' and a prohibited-subject form (CWD-relative, worktree-relative, or relative path) — in the correct text MUST mandates canonical absolute paths, not any relative form; this POLICY-13 alternation over the syntactic-form class catches M-P14-A (CWD-relative), M-P14R-A (relative path), and worktree-relative synonym variants (BC-6.26.001 PC1; AC-001(a); F-S2104-P14R-001)
+```
+
+GREEN stdout (restore):
+```
+1..1
+ok 1 T-001 S-21.04 AC-003: stray-file-blocks — PREFLIGHT BLOCKED non-zero; git worktree remove NOT called
+```
+
+### F-S2104-P14R-003 — Traversal-form gate (Gate 6)
+
+**Gate 6 assertion site:** T-001 (`_assert_doc_marker '\.\./|relative[[:space:]]+traversal'`)
+
+**Deletion mutant — exact deleted text:**
+```
+- **Forbidden:** `Write(file_path="../../.factory/stories/S-NNN-DELIVERY.md", ...)` (relative traversal — brittle and error-prone)
+```
+(single line deleted from _shared-context.md §Spec-Path Discipline)
+
+RED stdout:
+```
+1..1
+not ok 1 T-001 S-21.04 AC-003: stray-file-blocks — PREFLIGHT BLOCKED non-zero; git worktree remove NOT called
+# (from function `_assert_doc_marker' in file plugins/vsdd-factory/tests/story-worktree-write-path-discipline.bats, line 221,
+#  in test file plugins/vsdd-factory/tests/story-worktree-write-path-discipline.bats, line 596)
+#   `_assert_doc_marker '\.\./|relative[[:space:]]+traversal' \' failed
+# DOC-PARITY FAIL [must contain: _shared-context.md §Spec-Path Discipline: relative traversal (../) Forbidden example must be present — the third Forbidden bullet (§Spec-Path Discipline **Forbidden:** example lines) documents path-traversal writes; POLICY-13 alternation covers \.\./  path form and relative-traversal label; deleting the bullet fails this gate (BC-6.26.001 PC1; AC-001(a); F-S2104-P14R-003)]
+```
+
+GREEN stdout (restore):
+```
+1..1
+ok 1 T-001 S-21.04 AC-003: stray-file-blocks — PREFLIGHT BLOCKED non-zero; git worktree remove NOT called
+```
+
+### F-S2104-P14R-008 — behavioral_contracts / bcs: gate
+
+**Gate assertion site:** T-009 (F-S2104-P4-002)
+
+**Mutant — exact substituted text in adversary.md:**
+Changed `the story's \`behavioral_contracts:\` frontmatter array` → `the story's \`bcs:\` frontmatter array` (perimeter scope sentence, adversary.md Perimeter 1 scope line)
+
+RED stdout:
+```
+1..1
+not ok 1 F-S2104-P4-002: adversary.md + adversarial-review/SKILL.md — §G.1/BC-6.26.001 teardown-preflight awareness clause
+# (in test file plugins/vsdd-factory/tests/story-worktree-write-path-discipline.bats, line 1349)
+#   `false' failed
+# DOC-PARITY FAIL [adversary.md stale bcs: field present]: adversary.md must NOT reference stale bcs: frontmatter field as a standalone token — use behavioral_contracts: instead (F-S2104-P14R-008)
+```
+
+GREEN stdout (restore):
+```
+1..1
+ok 1 F-S2104-P4-002: adversary.md + adversarial-review/SKILL.md — §G.1/BC-6.26.001 teardown-preflight awareness clause
+```
+
+Negative-gate pattern note: `(^|[^a-zA-Z0-9_])bcs:` used (not `(^|[[:space:]])bcs:`) because `bcs:` appears inside backtick code spans; the broader character-class exclusion catches the backtick-preceded form while avoiding false hits on compound identifiers.
+
+### Suite-level verification at 26b85d8c
+story-worktree-write-path-discipline.bats: 1..9, 9/9 ok. worktree-identity-preflight.bats: 1..14, 14/14 ok.

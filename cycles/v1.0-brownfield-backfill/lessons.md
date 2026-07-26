@@ -7780,3 +7780,51 @@ The mutant self-check is evidence, not just process. The test-writer report MUST
 **Cites:** D-904 (codified this burst); F-S2104-P8-001 (trigger — 6-pass survival of cited-line-only fix); POLICY 1 (accuracy obligation); POLICY 4 (spec/implementation parity); TD-VSDD-059 (paper-fix detection — line-scoped fix without class sweep is a paper-fix pattern); TD-VSDD-060 (sibling-site sweep mandate — this lesson is the record-artifact instantiation of that general rule).
 
 **Closes:** D-904 S-21.04-ADV-PASS-8-CLOSED (2026-07-25). `[process-gap; class-bounded-sweep; record-artifact; sibling-instance; red-gate-log; rg-id; fabrication; td-vsdd-060; paper-fix; D-904; codified]`
+
+---
+
+## L-BB-mutant-token-generality [process-gap] [codified D-912]
+
+**Summary:** Mutant-derived gate predicates MUST be POLICY-13 alternations over the syntactic-form class of the mutated token, attested with at least one synonym-substituted mutant beyond the originating vector.
+
+**Discovered:** 2026-07-26 (S-21.04 LOCAL cascade pass-14R RE-RUN; F-S2104-P14R-001 BLOCKER — third-generation recurrence of the PC1 polarity gate class: F-P12-003 → F-P13-001 → F-P14R-001. Each pass added a gate keyed on the exact literal token in the *previously surviving* mutant. Pass-14 added Gate 5 keyed on `CWD-relative` (the token in M-P14-A). The synonym substitution `relative` (M-P14R-A) survived all five gates because Gate 5 used a single literal token rather than an alternation over the syntactic-form class of "prohibited path-form subjects").
+
+**Root cause:** When a gate is added in response to a specific mutant (e.g., `MUST.*CWD-relative`), the gate authors key the predicate on the exact token from that mutant rather than generalizing to the syntactic-form class. The class of "CWD-relative paths" includes `CWD-relative`, `worktree-relative`, `relative path`, `relative paths`, and any other synonym the doc writer might use. A predicate covering only the originating token is a single-point-of-failure gate that fails the moment a synonym is substituted — which is exactly what F-S2104-P14R-001 demonstrated with M-P14R-A.
+
+**Corrective action — POLICY-13 alternation mandate for mutant-derived gates:**
+1. When adding a gate in response to a specific mutant vector (token T in the mutated text), identify the *syntactic-form class* of T — all tokens a doc writer might use to express the same concept.
+2. The gate predicate MUST be a POLICY-13 alternation (regex `-E` with `|` alternation) covering all members of that class, not just T.
+3. The attestation MUST record at least one synonym-substituted mutant (a vector that substitutes a class-member synonym for T) proving the alternation fires RED on the synonym and GREEN on the original text.
+4. A gate whose attestation records only the originating vector (T) and no synonym-substituted vector is structurally incomplete; it proves the gate covers T but not the class.
+
+**Prevention:** Gate-authoring checklists MUST include: "For each mutant-derived gate predicate, list the syntactic-form class of the keyed token and verify the alternation covers all members. Record at least one synonym-substituted mutant proving the alternation. Do not claim 'polarity-COMPLETE' or 'class-complete' until a synonym-substituted mutant is proven RED."
+
+**Anchors:** S-21.04 LOCAL cascade pass-14R RE-RUN (2026-07-26); F-S2104-P14R-001 BLOCKER (trigger — Gate 5 single-literal `CWD-relative` token; M-P14R-A synonym `relative` survives all 5 gates; falsified "polarity-COMPLETE" claim at bats:497-522); M-P14R-A (synonym-substituted mutant added at 26b85d8c proving Gate 5 alternation over `CWD-relative|worktree-relative|relative[[:space:]]+path`); passes 12/13/14R (three-generation recurrence of the single-literal-token gate class).
+
+**Cites:** D-912 (codified this burst); F-S2104-P14R-001 (trigger — third-generation recurrence); POLICY 13 (hh_n_regex_alternation_predicates — this lesson is the mutant-derived-gate instantiation; extended at D-912); TD-VSDD-059 (paper-fix detection — single-literal gate without synonym coverage is a paper-fix pattern against the class); BC-6.26.001 PC1 (target contract ungated against synonym forms for four consecutive passes).
+
+**Closes:** D-912 S-21.04-ADV-PASS-14R-CLOSED (2026-07-26). `[process-gap; mutant-token-generality; policy-13; alternation; synonym-substitution; gate-completeness; paper-gate; polarity-class; D-912; codified]`
+
+---
+
+## L-BB-red-gate-attestation-location-gate [process-gap] [codified D-912]
+
+**Summary:** A fix wave adding or strengthening a bats assertion site MUST NOT be pushed until the matching red-gate-log.md section exists at that commit, verified by literal shell: `grep -c "assertion-site attestation (<HEAD>)"` → 1.
+
+**Discovered:** 2026-07-26 (S-21.04 LOCAL cascade pass-14R RE-RUN; F-S2104-P14R-002 HIGH [4th generation] + F-S2104-P14R-004 MEDIUM — the pass-14 fix wave pushed bats gates at `6f928350` without a corresponding red-gate-log.md attestation section; the test-writer wrote the attestation directly into the shipped bats file as a 112-line comment block labelled "D-910 verbatim transcription" — a provenance label that was itself unsupported since D-910 recorded the transcription as NOT STARTED. Two SoT artifacts were created (bats + red-gate-log) diverging immediately; the red-gate-log remained at version 1.11 citing HEAD `09cfce81` while the actual HEAD was `6f928350`).
+
+**Root cause:** No gate enforces that the red-gate-log SoT is updated atomically with the bats file. The authoring workflow allows a test-writer to push bats assertion changes without verifying that a red-gate-log attestation section for the new HEAD exists. The pressure to push the fix (especially in a session-wrap context) overrode the SoT discipline. Because the location check is not literal-shell-enforced at push time, the violation is only discovered by the next adversary pass — which is exactly the fourth-generation recurrence pattern observed here.
+
+**Corrective action — attestation-location gate mandate:**
+1. When a fix wave adds or strengthens any bats assertion site, the test-writer MUST verify BEFORE pushing: `grep -c "assertion-site attestation ($(git rev-parse HEAD))" red-gate-log.md` → `1` (the attestation section for the current HEAD exists in the log).
+2. If the count is 0, the push is BLOCKED until the state-manager appends the attestation section to red-gate-log.md in the SAME commit as the bats changes (or in a co-bundled single commit per TD-VSDD-053).
+3. The attestation section heading MUST be `### <Pass-N> assertion-site attestation (<HEAD-SHA>)` so the grep is HEAD-SHA-bound and cannot be satisfied by a prior pass's section.
+4. This gate is not a new concept — it is the D-449(a) literal-shell execution evidence requirement applied to the red-gate-log SoT discipline. The gap is that it was not being enforced at the test-writer push boundary.
+
+**Prevention:** Test-writer push checklist MUST include: "For each bats assertion site added or strengthened, verify: `grep -c 'assertion-site attestation ($(git rev-parse HEAD))' red-gate-log.md` → 1. If not 1, do not push — coordinate with state-manager to bundle the attestation section in the same commit."
+
+**Anchors:** S-21.04 LOCAL cascade pass-14R RE-RUN (2026-07-26); F-S2104-P14R-002 HIGH fourth generation (trigger — red-gate-log at version 1.11 still citing HEAD 09cfce81 while actual HEAD was 6f928350; 4th consecutive generation of F-P10-007 → F-P12-002 → F-P13-002 → F-P14R-002); F-S2104-P14R-004 MEDIUM (attestation written into shipped bats file as "D-910 verbatim transcription" — D-910 itself records the transcription as NOT STARTED; wrong SoT, wrong owner); D-910 (session wrap where the closure burst was NOT STARTED, creating the SoT gap).
+
+**Cites:** D-912 (codified this burst); F-S2104-P14R-002 + F-S2104-P14R-004 (triggers — fourth-generation recurrence + wrong-owner SoT writing); POLICY 15 (ll_n_verbatim_stdout_discipline — this lesson adds the attestation-location gate as a verification step; extended at D-912); D-449(a) (literal-shell-execution-evidence principle — this is its application to the test-writer push gate); TD-VSDD-053 (single-commit-per-burst — attestation section and bats changes MUST co-bundle); red-gate-log.md (SoT owner for attestation content; state-manager owns it; test-writer MUST NOT write to it directly).
+
+**Closes:** D-912 S-21.04-ADV-PASS-14R-CLOSED (2026-07-26). `[process-gap; attestation-location; red-gate-log; sot-owner; push-gate; literal-shell; test-writer-boundary; policy-15; d-449a; D-912; codified]`
