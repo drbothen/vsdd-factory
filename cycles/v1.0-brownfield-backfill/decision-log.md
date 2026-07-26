@@ -12271,3 +12271,38 @@ D-912-S2104-PASS-14R-CLOSED
 ### Date
 
 2026-07-26
+
+---
+
+## D-913
+
+### Summary
+
+S-21.04 LOCAL adversarial pass-15 record persisted verbatim. Verdict NOT-CLEAN B1/H2/M2/L2 (7 findings F-S2104-P15-001..007; novelty 0.57; trajectory 13→7 downward; reviewed_head 26b85d8c). Streak 0/3 (BC-5.39.001 reset). Per-pass-14R verification: 9 CONFIRMED-CLOSED / 4 PARTIAL / 0 REGRESSED. Fix-wave routing: implementer e7ac3aef (P15-006 + fence observation) → story-writer 6fccdcc3 (P15-003 epic v1.8, P15-005 story v1.20 option-a) → test-writer in flight (P15-001 BLOCKER reflowed-domain gates, P15-002 Gate-6 two-part polarity, P15-004 bare pins) → state-manager closure to follow (P15-007 blockquote hash refresh + codifications).
+
+### Detail
+
+1. **POLICY 16 GLOBAL-MAX GATE (literal shell stdout)**:
+   - `grep -rh '^## D-' cycles/v1.0-brownfield-backfill/decision-log.md cycles/v1.0-feature-engine-discipline-pass-1/decision-log.md | sed 's/^## D-//' | sort -n | tail -5` → `908 / 909 / 910 / 911 / 912`
+   - D-912 confirmed global max → D-913 allocated. PASS.
+
+2. **adversary-pass-15.md written verbatim** per D-897 VERBATIM-RECORD-PERSISTENCE rule. Mandatory markdown escape applied: `'\.\./|relative…'` → `'\.\./\|relative…'` in Finding Table row F-S2104-P15-002 (unescaped `|` in table cell caused hook block `validate-table-cell-count`; semantic content identical).
+
+3. **Post-write diff-verify (literal shell stdout)**:
+   - `wc -l adversary-pass-15.md` → `321`
+   - `grep -c "F-S2104-P15-" adversary-pass-15.md` → `23`
+
+4. **POLICY 14 4-INDEX GATE (literal shell stdout)**:
+   - `grep -m1 "^version:" specs/behavioral-contracts/BC-INDEX.md specs/verification-properties/VP-INDEX.md stories/STORY-INDEX.md specs/architecture/ARCH-INDEX.md` → BC v4.33 / VP v2.72 / STORY v4.262 / ARCH v3.34. ALL UNCHANGED this burst. PASS.
+
+5. **Telemetry bundled**: `logs/dispatcher-internal-2026-07-26.jsonl`, `logs/events-2026-07-26.jsonl`, `sidecar-learning.md` staged in same commit per TD-VSDD-053.
+
+6. **`fixes_landed_head` intentionally ABSENT**: closure burst adds it per D-907 dual-field convention (fix wave in flight at time of record persist).
+
+### Phase
+
+D-913-S2104-PASS-15-PERSISTED
+
+### Date
+
+2026-07-26
