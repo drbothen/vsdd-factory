@@ -20357,4 +20357,4 @@ S-21.04 LOCAL adversarial cascade pass-17: B2/H2/M3 = 7 findings (F-S2104-P17-00
 
 **factory-artifacts commits:**
 - Pre-burst parent-commit (factory-artifacts): `256f2b01`
-- This burst: `[SHA pending — to be recorded post-commit]` (D-918 pass-17 closure burst)
+- This burst: `d27535d2` (D-918 pass-17 closure burst)
