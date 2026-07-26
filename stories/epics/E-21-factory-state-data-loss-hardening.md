@@ -1,13 +1,13 @@
 ---
 document_type: epic
 epic_id: "E-21"
-version: "v1.5"
+version: "v1.6"
 status: draft
-title: "Factory State Data-Loss Hardening — validate-factory-path-staging WASM guard, post-rebase diff-integrity gate, pr-manager trunk assertions, story-worktree write-path discipline, factory-side PR protocol"
+title: "Factory State Data-Loss Hardening — validate-factory-path-staging WASM guard, post-rebase diff-integrity gate, pr-manager trunk assertions, story-worktree write-path discipline, factory-side PR protocol, validate-main-checkout-sync WASM guard (W-SEC-001)"
 prd_capabilities: [CAP-034, CAP-035, CAP-036, CAP-037, CAP-038]
 subsystems_affected: [SS-04, SS-05, SS-06]
 target_release: "v1.0.0-rc.25"
-story_count: 5
+story_count: 6
 producer: story-writer
 timestamp: "2026-07-19T00:00:00Z"
 phase: brownfield-backfill
@@ -27,8 +27,9 @@ inputs:
   - .factory/stories/S-21.03-pr-manager-trunk-assertion.md
   - .factory/stories/S-21.04-story-worktree-write-path-discipline.md
   - .factory/stories/S-21.05-pr-manager-factory-side-pr-protocol.md
-input-hash: "4e6cb72"
-last_amended: "2026-07-19 (v1.5) — adv pass-7 fix burst (O-P7-a): EAC-006 added (factory-side PR 5-step restore per BC-6.27.001 v1.3 INV-E21-003; 1:1 story↔EAC symmetry restored); BC-6.27.001 v1.2→v1.3 in PRD Capabilities CAP-037 + BC Traceability table; POLICY 14 parity. [Prior: 2026-07-19 (v1.4) — adv pass-5 fix burst (F-P5-001): added missing v1.3 Changelog row to body ## Changelog table; frontmatter/body changelog parity restored (5 modified[] entries now matched by 5 Changelog table rows). [Prior: 2026-07-19 (v1.3) — adv pass-3 fix burst (F-P3-003): CAP-036 stale BC-6.26.001 v1.2 cite corrected to v1.3; TD-VSDD-060 full grep sweep confirms no other stale v1.2 cites of BC-5.44.001, BC-6.10.002, BC-6.26.001, or BC-5.43.001. [Prior: 2026-07-19 (v1.2) — adv pass-2 fix burst (F-P2-003): INV-E21-005 'post-rebase product branch' → 'post-rebase feature branch' (authoritative ADR-031 INV-E21-005 scope); BC-5.43.001 → v1.3; ADR-031 version cites → v1.3 (all occurrences); Description item 2 'product branch' + 'pr-manager post-rebase checkpoint' corrected to 'feature branch' + 'devops-engineer.md §Inter-Wave Rebase checkpoint'.]]]"
+  - .factory/stories/S-21.06-layer-2-sync-protocol-wasm-guard.md
+input-hash: "3ae5a1f"
+last_amended: "2026-07-25 (v1.6) — pass-13 F-S2104-P13-D1 (orchestrator-adjudicated fix-in-scope): S-21.06 registered — title extended, inputs list extended, Stories table (W3 / 8 pts / TBD BCs), EAC-001 extended to S-21.06, Sequencing W3 note, Wave model note updated to W3, Dependency Graph S-21.01→S-21.06 hard edge, description text de-counted, total 6 stories / 35 pts / 3 waves, Maintenance tally 5/27→6/35, story_count 5→6. [Prior: 2026-07-19 (v1.5) — adv pass-7 fix burst (O-P7-a): EAC-006 added (factory-side PR 5-step restore per BC-6.27.001 v1.3 INV-E21-003; 1:1 story↔EAC symmetry restored); BC-6.27.001 v1.2→v1.3 in PRD Capabilities CAP-037 + BC Traceability table; POLICY 14 parity. [Prior: 2026-07-19 (v1.4) — adv pass-5 fix burst (F-P5-001): added missing v1.3 Changelog row to body ## Changelog table; frontmatter/body changelog parity restored (5 modified[] entries now matched by 5 Changelog table rows). [Prior: 2026-07-19 (v1.3) — adv pass-3 fix burst (F-P3-003): CAP-036 stale BC-6.26.001 v1.2 cite corrected to v1.3; TD-VSDD-060 full grep sweep confirms no other stale v1.2 cites of BC-5.44.001, BC-6.10.002, BC-6.26.001, or BC-5.43.001. [Prior: 2026-07-19 (v1.2) — adv pass-2 fix burst (F-P2-003): INV-E21-005 'post-rebase product branch' → 'post-rebase feature branch' (authoritative ADR-031 INV-E21-005 scope); BC-5.43.001 → v1.3; ADR-031 version cites → v1.3 (all occurrences); Description item 2 'product branch' + 'pr-manager post-rebase checkpoint' corrected to 'feature branch' + 'devops-engineer.md §Inter-Wave Rebase checkpoint'.]]]]"
 modified:
   - "v1.0 2026-07-19: Initial authoring"
   - "v1.1 2026-07-19: adv pass-1 fix burst (F-P1-008/009/011/013)"
@@ -36,14 +37,15 @@ modified:
   - "v1.3 2026-07-19: adv pass-3 fix burst (F-P3-003) — CAP-036 BC-6.26.001 v1.2 → v1.3; TD-VSDD-060 full grep sweep confirmed clean"
   - "v1.4 2026-07-19: adv pass-5 fix burst (F-P5-001) — added missing v1.3 Changelog row; frontmatter/body changelog parity restored"
   - "v1.5 2026-07-19: adv pass-7 fix burst (O-P7-a) — EAC-006 added (factory-side PR 5-step restore per BC-6.27.001 v1.3; 1:1 story↔EAC symmetry); BC-6.27.001 v1.2→v1.3 in PRD Capabilities + BC Traceability table"
+  - "v1.6 2026-07-25: pass-13 F-S2104-P13-D1 — S-21.06 registered (W3 / 8 pts / TBD BCs); title, inputs, last_amended, EAC-001, Stories table, Sequencing W3, Wave model note, Dependency Graph S-21.01→S-21.06, description de-counted, Maintenance tally 5/27→6/35, story_count 5→6"
 ---
 
 # Epic E-21: Factory State Data-Loss Hardening
 
 ## Description
 
-E-21 collects the five hardening stories that close a compound of confirmed-live factory
-artifact data-loss issues discovered during the v1.0-brownfield-backfill cycle. The five
+E-21 collects six hardening stories that close a compound of confirmed-live factory
+artifact data-loss issues discovered during the v1.0-brownfield-backfill cycle. These
 issues span three distinct defect classes across subsystems SS-04, SS-05, and SS-06:
 
 1. **Product-branch merge clobber (S-21.01 — issue #342):** When an orchestrator merge
@@ -78,13 +80,13 @@ issues span three distinct defect classes across subsystems SS-04, SS-05, and SS
    --ff-only`, delete local + remote chore branch, assert) and dispatch-preamble branch
    assertion are absent (BC-6.27.001).
 
-All five issues are closed by new BCs (draft; auto-promote to active per POL-14 when story PRs merge) and their implementing stories.
+All original issues are closed by new BCs (draft; auto-promote to active per POL-14 when story PRs merge) and their implementing stories.
 INV-E21-001..006 (cross-cutting invariants catalogued in ADR-031 v1.3 §Decision 1) govern
 the full solution space.
 
 ## Trigger / Motivation
 
-The trigger is the confirmed-live five-issue compound discovered during the
+The trigger is the confirmed-live issue compound discovered during the
 v1.0-brownfield-backfill cycle (2026-07-13..2026-07-18) and formally catalogued in
 `e-21-arch-delta-analysis.md` (v1.1, commit ca79c886). Each issue has a confirmed
 failure scenario with evidence of silent data loss or silent stranding:
@@ -95,7 +97,7 @@ failure scenario with evidence of silent data loss or silent stranding:
 - Issue #523: story-worktree teardown with stray `.factory/` file confirmed deletable
 - Issue #588: factory-side PR restore absent; pr-manager.md has no factory-side PR flow section
 
-The five issues share a root-cause taxonomy: every one relies on human review rather than
+These issues share a root-cause taxonomy: every one relies on human review rather than
 a mechanical gate to prevent factory artifact loss. ADR-031 formalises the invariant
 catalog and the two-layer defense strategy.
 
@@ -107,7 +109,7 @@ BC-5.44.001/BC-6.10.002/BC-6.26.001 at v1.3).
 
 E-20 is the immediately preceding reserved epic in the index. E-21 is the next free ID
 under POLICY 1 (append-only numbering; STORY-INDEX confirmed no E-21 row at time of
-creation 2026-07-19). The five data-loss issues are logically cohesive — they all
+creation 2026-07-19). These data-loss issues are logically cohesive — they all
 concern factory artifact integrity in the `.factory/` worktree — and warrant a new epic
 because they span three subsystems (SS-04, SS-05, SS-06) and introduce one new WASM crate
 (ADR-031 §Decision 3) alongside four skill-doc amendments. Grouping them under E-19
@@ -119,7 +121,7 @@ authoring. E-21 does not require any E-19 work to be in-progress or gated.
 
 ## PRD Capabilities Covered
 
-E-21 introduces five new PRD capabilities, defined in ADR-031 §Decision 7 (CAP-034..037) and ADR-031 v1.3 §Decision 7 (CAP-038):
+E-21 introduces the following PRD capabilities, defined in ADR-031 §Decision 7 (CAP-034..037) and ADR-031 v1.3 §Decision 7 (CAP-038):
 
 - **CAP-034 — Nested-worktree path exclusivity** (`validate-factory-path-staging` WASM
   PreToolUse guard + orchestrator merge pre-check): BC-4.16.001 v1.2 + BC-5.43.001 v1.3.
@@ -148,7 +150,7 @@ E-21 introduces five new PRD capabilities, defined in ADR-031 §Decision 7 (CAP-
 
 | ID | Criterion | Validation Method | Test Scenarios |
 |----|-----------|-------------------|----------------|
-| EAC-001 | All five stories S-21.01..S-21.05 shipped and merged to `develop` within this epic's cycle | All story PRs CI-green and merged | S-21.01..S-21.05 PR merge confirmations |
+| EAC-001 | All six stories S-21.01..S-21.06 shipped and merged to `develop` within this epic's cycle | All story PRs CI-green and merged | S-21.01..S-21.06 PR merge confirmations |
 | EAC-002 | `validate-factory-path-staging` WASM PreToolUse guard blocks `git add .factory/` on any non-`factory-artifacts` branch | CI bats integration test: mock `git add .factory/STATE.md` on `develop` → `block_intent=true`; mock on `factory-artifacts` → pass; mock non-.factory/ arg → pass | S-21.01 AC-001..AC-004 test suite |
 | EAC-003 | devops-engineer.md §Inter-Wave Rebase post-rebase diff-integrity gate fires `UnverifiedNetNegativeDelta` when `git range-diff` detects a dropped commit | CI bats test: inject mock range-diff output with net-negative delta → halt with `UnverifiedNetNegativeDelta` | S-21.02 AC-003 test suite |
 | EAC-004 | pr-manager step 3 asserts `baseRefName` immediately after PR creation; step 9 asserts merged commit is ancestor of trunk | CI bats test: mock post-create PR with wrong baseRefName → `BaseRefNameMismatch` hard-fail; mock post-merge with non-ancestor → `MergeNotAncestorOfTrunk` P0 error | S-21.03 AC-001..AC-003 test suite |
@@ -164,10 +166,11 @@ E-21 introduces five new PRD capabilities, defined in ADR-031 §Decision 7 (CAP-
 | S-21.03 | pr-manager base assertion + post-merge ancestry check | W1 | 3 | BC-6.10.002 |
 | S-21.04 | story-worktree write-path discipline + teardown preflight | W2 | 5 | BC-6.26.001 |
 | S-21.05 | pr-manager factory-side PR protocol: restore-original-branch, ff-only sync, chore-branch cleanup | W2 | 5 | BC-6.27.001 |
+| S-21.06 | validate-main-checkout-sync WASM guard (W-SEC-001 Layer-2 sync-protocol enforcement) | W3 | 8 | TBD (product-owner authoring required) |
 
-**Total:** 5 stories, 27 story points.
+**Total:** 6 stories, 35 story points.
 
-> **Maintenance tally drift-check:** Compute story count + points from the 5 linked story frontmatters and assert equals the Stories-table totals (5 / 27); run at every epic amendment.
+> **Maintenance tally drift-check:** Compute story count + points from the 6 linked story frontmatters and assert equals the Stories-table totals (6 / 35); run at every epic amendment.
 
 **Sequencing rationale:**
 
@@ -187,9 +190,15 @@ E-21 introduces five new PRD capabilities, defined in ADR-031 §Decision 7 (CAP-
   adjacency with S-21.04 (both address shared-mutable-worktree branch integrity). Both
   W2 stories can run in parallel.
 
-**Wave model note:** W1 and W2 group by risk tier; intra-wave sequencing is expressed
-solely via `depends_on` (empty for all E-21 stories). The scheduler honors `depends_on`,
-not wave co-membership. W2 may begin as soon as any W1 story merges if resource allows.
+- Wave 3 (S-21.06 — 8 pts): The main-checkout sync WASM guard (W-SEC-001). S-21.06
+  `depends_on: [S-21.01]` — it builds on the `validate-factory-path-staging` crate
+  pattern established by S-21.01 and enforces the Layer-2 main-checkout sync protocol
+  (W-SEC-001). Sequential after W1; runs after S-21.01 merges.
+
+**Wave model note:** W1, W2, and W3 group by risk tier and dependency; intra-wave sequencing is expressed
+solely via `depends_on`. The scheduler honors `depends_on`,
+not wave co-membership. W2 may begin as soon as any W1 story merges if resource allows;
+W3 requires S-21.01 to merge first.
 
 **POLICY 21 compliance note (F-P1-013):** S-21.03 (`plugins/vsdd-factory/tests/fixtures/pr-manager-trunk/`)
 and S-21.05 prescribe bats test fixture scripts that stub `gh`/`git` commands. Per POLICY 21
@@ -205,11 +214,13 @@ graph LR
   S-21.03
   S-21.04
   S-21.05
+  S-21.01 --> S-21.06
 ```
 
-All five nodes are isolated. No story in E-21 formally blocks another. W1 runs in parallel;
-W2 runs in parallel after W1 starts (priority sequencing only — no hard edge). Acyclic
-confirmed.
+S-21.01..S-21.05 are isolated with no formal blocking edges between them. W1 runs in parallel;
+W2 runs in parallel after W1 starts (priority sequencing only — no hard edge). S-21.06 has a
+hard dependency on S-21.01 (`depends_on: [S-21.01]`); W3 is sequential after S-21.01 merges.
+Acyclic confirmed.
 
 > **Note on soft coupling:** S-21.04 and S-21.05 each contain a narrative note that they
 > benefit from S-21.01's WASM guard (INV-E21-001 Layer 1) as defense-in-depth. This is
@@ -241,7 +252,7 @@ confirmed.
   issue on large lessons.md files. This is NOT part of E-21; it is tracked under S-15.03
   PRIORITY-A and is a separate concern.
 
-- **BC files, BC-INDEX, VP files, ARCH-INDEX, STATE.md:** E-21 stories (S-21.01..S-21.05)
+- **BC files, BC-INDEX, VP files, ARCH-INDEX, STATE.md:** E-21 stories (S-21.01..S-21.06)
   MUST NOT touch these artifacts. All upstream BCs are at their pre-implementation versions
   (v1.2 or v1.3 per ADR-031 v1.3) and no spec amendments are required.
 
@@ -280,6 +291,7 @@ All BCs listed here are draft; they auto-promote to active per POL-14 when their
 
 | Version | Date | Author | Summary |
 |---------|------|--------|---------|
+| v1.6 | 2026-07-25 | story-writer | pass-13 F-S2104-P13-D1 (orchestrator-adjudicated fix-in-scope): S-21.06 registered — Stories table (W3 / 8 pts), EAC-001 extended to S-21.06, Sequencing W3 note, Dependency Graph S-21.01→S-21.06 hard edge, total 6 stories / 35 pts / 3 waves, Maintenance tally 5/27→6/35, story_count 5→6, version v1.5→v1.6. |
 | v1.0 | 2026-07-19 | story-writer | Initial authoring. E-21 epic; 5 stories; 27 pts; 2 waves; 6 BCs; issues #342/#365/#358/#523/#588; INV-E21-001..005; CAP-034..037. |
 | v1.1 | 2026-07-19 | story-writer | adv pass-1 fix burst (F-P1-008/009/011/013): EAC-005 → "PREFLIGHT BLOCKED" (BC-6.26.001 PC2b) + AC trace → S-21.04 AC-003; BC statuses draft per POL-14; BC versions BC-5.44.001/BC-6.10.002/BC-6.26.001 → v1.3; S-21.01 priority P0; INV-E21-001..006 (INV-E21-006 + CAP-038 added per ADR-031 v1.1); S-21.02 gate host → devops-engineer.md §Inter-Wave Rebase; POLICY 21 fixture annotation. |
 | v1.2 | 2026-07-19 | story-writer | adv pass-2 fix burst (F-P2-003): INV-E21-005 "post-rebase product branch" → "post-rebase feature branch" (authoritative ADR-031 INV-E21-005 scope; BC-5.44.001 operates on feature branch where devops-engineer rebases + force-with-lease-pushes); BC-5.43.001 → v1.3 (BC Traceability + CAP-034 inline); ADR-031 v1.1 → v1.3 in all epic cites (Description item 2/3, Trigger, PRD Capabilities CAP-035/CAP-038, Out of Scope, INV catalog cross-ref); Description item 2 "pr-manager post-rebase checkpoint" → "devops-engineer.md §Inter-Wave Rebase checkpoint". |
