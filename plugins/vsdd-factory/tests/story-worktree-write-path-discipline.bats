@@ -13,7 +13,7 @@
 #     SKILL.md Step 8, agents/orchestrator/per-story-delivery.md step (g) + Story Split
 #     Recovery section, AND WINNING playbook (workflows/phases/per-story-delivery.md) Step 8
 #     must each reference the §G.1 preflight. WINNING playbook is authoritative per its own L8
-#     ("If the two disagree, this file wins"). RED for winning playbook until implementer propagates.
+#     ("If the two disagree, this file wins"). Was RED at 93ec340a until the implementer qualified the winning-playbook reference at a4d4ffab/43ea70ba.
 #   DOC-PARITY (_shared-context.md §Spec-Path Discipline):
 #     Write Discipline clause, CANONICAL_FACTORY_ROOT, DELIVERY ledger (AC-001).
 #   EXECUTABLE-HARNESS (anti-tautology — F-S2104-P1-002e, TD-VSDD-059):
@@ -497,10 +497,11 @@ _run_teardown_preflight() {
   # --- DOC-PARITY primary paths: SKILL.md Step 8 (F-S2104-P1-001a, F-S2104-P5-007) ---
   # was RED at 60f0d2d6 until implementer adds §G.1/step-g-cleanup reference to SKILL.md Step 8 dispatch.
   # Strengthened (F-S2104-P5-007): bare 'preflight' token removed — requires actual §G.1/step-g-cleanup ref.
+  # Strengthened (F-S2104-P11-003): requires .md-qualified form (step-g-cleanup.md §G.1); bare step-g-cleanup §G.1 without .md insufficient.
   local skill_step8_section
   skill_step8_section="$(_extract_skill_step8_section)"
-  _assert_doc_marker 'step-g-cleanup.*§G\.1|§G\.1.*step-g-cleanup' \
-    "SKILL.md Step 8: §G.1 ref must co-occur with step-g-cleanup — bare §G.1 or G.1 alone insufficient (BC-6.26.001 PC2; F-S2104-P1-001a / F-S2104-P5-007 / F-S2104-P9-class)" \
+  _assert_doc_marker 'step-g-cleanup\.md.*§G\.1|§G\.1.*step-g-cleanup\.md' \
+    "SKILL.md Step 8: §G.1 ref must use filename-qualified form (step-g-cleanup.md §G.1) — bare 'step-g-cleanup §G.1' without .md fails this gate (BC-6.26.001 PC2; F-S2104-P1-001a / F-S2104-P5-007 / F-S2104-P9-class / F-S2104-P11-003)" \
     "$skill_step8_section"
   # Enumeration-correctness gate (F-S2104-P5-007): retired 'absent-dir' token must NOT appear.
   # 'absent-dir' implies [ ! -d ] absence check (v1.5 form) — superseded by [ ! -e ] existence check.
@@ -516,19 +517,21 @@ _run_teardown_preflight() {
   # --- DOC-PARITY primary paths: per-story-delivery.md step (g) (F-S2104-P1-001b, F-S2104-P5-007) ---
   # was RED at 60f0d2d6 until implementer adds §G.1/step-g-cleanup reference adjacent to step (g) dispatch.
   # Strengthened (F-S2104-P5-007): bare 'preflight' token removed.
+  # Strengthened (F-S2104-P11-003): requires .md-qualified form (step-g-cleanup.md §G.1).
   local step_g_window
   step_g_window="$(_extract_per_story_delivery_step_g_window)"
-  _assert_doc_marker 'step-g-cleanup.*§G\.1|§G\.1.*step-g-cleanup' \
-    "per-story-delivery.md step (g): §G.1 ref must co-occur with step-g-cleanup — bare §G.1 alone insufficient (BC-6.26.001 PC2; F-S2104-P1-001b / F-S2104-P5-007 / F-S2104-P9-class)" \
+  _assert_doc_marker 'step-g-cleanup\.md.*§G\.1|§G\.1.*step-g-cleanup\.md' \
+    "per-story-delivery.md step (g): §G.1 ref must use filename-qualified form (step-g-cleanup.md §G.1) — bare 'step-g-cleanup §G.1' without .md fails this gate (BC-6.26.001 PC2; F-S2104-P1-001b / F-S2104-P5-007 / F-S2104-P9-class / F-S2104-P11-003)" \
     "$step_g_window"
 
   # --- DOC-PARITY primary paths: per-story-delivery.md Story Split Recovery (F-S2104-P1-001b, F-S2104-P5-007) ---
   # was RED at 60f0d2d6 until implementer adds §G.1/step-g-cleanup reference to story-split cleanup step.
   # Strengthened (F-S2104-P5-007): bare 'preflight' token removed.
+  # Strengthened (F-S2104-P11-003): requires .md-qualified form (step-g-cleanup.md §G.1).
   local split_recovery_section
   split_recovery_section="$(_extract_per_story_delivery_split_recovery_section)"
-  _assert_doc_marker 'step-g-cleanup.*§G\.1|§G\.1.*step-g-cleanup' \
-    "per-story-delivery.md Story Split Recovery: §G.1 ref must co-occur with step-g-cleanup — bare §G.1 alone insufficient (BC-6.26.001 PC2; F-S2104-P1-001b / F-S2104-P5-007 / F-S2104-P9-class)" \
+  _assert_doc_marker 'step-g-cleanup\.md.*§G\.1|§G\.1.*step-g-cleanup\.md' \
+    "per-story-delivery.md Story Split Recovery: §G.1 ref must use filename-qualified form (step-g-cleanup.md §G.1) — bare 'step-g-cleanup §G.1' without .md fails this gate (BC-6.26.001 PC2; F-S2104-P1-001b / F-S2104-P5-007 / F-S2104-P9-class / F-S2104-P11-003)" \
     "$split_recovery_section"
 
   # --- DOC-PARITY WINNING playbook: workflows/phases/per-story-delivery.md Step 8 (F-S2104-P2-001, F-S2104-P5-007) ---
