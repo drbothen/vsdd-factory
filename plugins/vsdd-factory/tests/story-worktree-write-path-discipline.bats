@@ -16,6 +16,11 @@
 #     ("If the two disagree, this file wins"). Was RED at 93ec340a until the implementer qualified the winning-playbook reference at a4d4ffab/43ea70ba.
 #   DOC-PARITY (_shared-context.md §Spec-Path Discipline):
 #     Write Discipline clause, CANONICAL_FACTORY_ROOT, DELIVERY ledger (AC-001).
+#     pass-16 adds: NEGATION-TRANSPARENCY (Gate 1(a) zero-DoF + Gate 1(b) negation-gate;
+#     F-S2104-P16-001(a)), BLOCK-WIDE SENTENCE POLARITY (Gate PW-B; F-S2104-P16-001(b)),
+#     SENTENCE-SCOPED Gate 2 + RETIREMENT-LANGUAGE guard (F-S2104-P16-001(c)), Gate 3
+#     TIGHTENED + Gate 7 CWD-RELATIVE BULLET POLARITY (F-S2104-P16-002), and ANCHOR-UNIQUENESS
+#     bounded to #### Write Discipline (F-S2104-P16-003).
 #   EXECUTABLE-HARNESS (anti-tautology — F-S2104-P1-002e, TD-VSDD-059):
 #     _run_teardown_preflight() extracts the find command verbatim from §G.1, substitutes
 #     <worktree-path>, and evaluates that command — a -type d or -name '*.tmp' doc-mutant
@@ -122,24 +127,59 @@ _extract_spec_path_discipline_section() {
   ' "$SHARED_CONTEXT_MD"
 }
 
+# Extracts the Write Discipline child section from _shared-context.md.
+# Bounded to the #### Write Discipline heading (child of ### Spec-Path Discipline);
+# exits on the next #### sibling or ### parent or ## heading.
+# F-S2104-P16-003(b): read-discipline content above #### Write Discipline (lines under
+# ### Spec-Path Discipline but before #### Write Discipline) is outside this bounding section
+# by construction — M-P16-B decoy inserted in that region is excluded automatically.
+_extract_write_discipline_section() {
+  awk '
+    /^#### Write Discipline/ { found=1; next }
+    found && /^#### / { exit }
+    found && /^### / { exit }
+    found && /^## / { exit }
+    found { print }
+  ' "$SHARED_CONTEXT_MD"
+}
+
 # Extracts the Write Discipline prohibition paragraph from _shared-context.md,
-# section-bounded to §Spec-Path Discipline (F-S2104-P14-005 fix).
-# Start: line matching 'All.*\.factory.*artifact writes' (first line of the Write Discipline body —
-#   _shared-context.md §Spec-Path Discipline → §Write Discipline normative prohibition paragraph).
-#   End: first blank line (paragraph boundary before **Load-bearing
-#   cases). Covers the normative prohibition block:
-#   "All `.factory/**` artifact writes...MUST use canonical absolute paths...
-#    CWD-relative paths...are FORBIDDEN..."
-# Section-bounded: reads only from within §Spec-Path Discipline (not the whole file).
-# MUTANT: relocate prohibition paragraph outside §Spec-Path Discipline → extractor finds nothing
-#   → prohibition_block empty → absent-block gate fires → RED (F-S2104-P14-005).
-# Used by F-S2104-P13-001 / F-S2104-P14-001 polarity-complete prohibition gate.
+# bounded to the #### Write Discipline child heading (F-S2104-P16-003(b) fix).
+# Start: line matching 'All.*\.factory.*artifact writes' (first line of Write Discipline body).
+#   End: first blank line (paragraph boundary before **Load-bearing cases).
+# Section-bounded: reads ONLY from within #### Write Discipline (not the whole §Spec-Path
+# Discipline section — read-discipline content above #### Write Discipline is excluded).
+# MUTANT: relocate prohibition paragraph outside #### Write Discipline → extractor finds nothing
+#   → prohibition_block empty → absent-block gate fires → RED.
+# ANCHOR UNIQUENESS: caller MUST first invoke _assert_write_discipline_anchor_unique to detect
+#   decoy-insertion ambiguity (F-S2104-P16-003(a)) before relying on the extracted block.
+# Used by F-S2104-P13-001 / F-S2104-P14-001 / F-S2104-P15-001 / F-S2104-P16-001 polarity gates.
 _extract_write_discipline_prohibition_block() {
-  _extract_spec_path_discipline_section | awk '
+  _extract_write_discipline_section | awk '
     /All.*\.factory.*artifact writes/ { found=1 }
     found && /^$/ { exit }
     found { print }
   '
+}
+
+# Asserts the prohibition anchor matches exactly once within the #### Write Discipline section.
+# F-S2104-P16-003(a): count must be exactly 1 — 0 or ≥2 matches → FAIL with explicit message.
+# MUTANT (M-P16-B decoy OUTSIDE Write Discipline): insert decoy in read-discipline paragraphs
+#   (under ### Spec-Path Discipline, above #### Write Discipline) — the extractor is bounded to
+#   #### Write Discipline so the decoy is outside the domain; count = 1 → PASSES. This mutant
+#   proves #### bounding neutralizes read-discipline decoys. A decoy INSIDE #### Write Discipline
+#   is the test case below.
+# MUTANT (in-section decoy): insert second paragraph starting 'All.*\.factory.*artifact writes'
+#   inside #### Write Discipline before the normative paragraph → count = 2 → RED.
+_assert_write_discipline_anchor_unique() {
+  local write_discipline_section
+  write_discipline_section="$(_extract_write_discipline_section)"
+  local anchor_count
+  anchor_count="$(printf '%s\n' "$write_discipline_section" | awk '/All.*\.factory.*artifact writes/ {count++} END {print count+0}')"
+  if [ "$anchor_count" -ne 1 ]; then
+    echo "DOC-PARITY FAIL [ambiguous anchor in #### Write Discipline (F-S2104-P16-003(a))]: found ${anchor_count} match(es) of anchor 'All.*\\.factory.*artifact writes' in the #### Write Discipline section (expected exactly 1); a decoy paragraph inserted before the normative paragraph creates a second anchor match detected here; a decoy outside #### Write Discipline (in read-discipline paragraphs under ### Spec-Path Discipline) is neutralized by the #### bounding constraint (BC-6.26.001 PC1; AC-001(a))"
+    false
+  fi
 }
 
 # Extracts the Step 8 block from SKILL.md (deliver-story).
@@ -492,39 +532,61 @@ _run_teardown_preflight() {
     "_shared-context.md §Spec-Path Discipline: story-frontmatter files named as load-bearing case (BC-6.26.001 Invariant 4; AC-001(c))" \
     "$spec_path_section"
 
-  # --- DOC-PARITY §Spec-Path Discipline: AC-001(a) CWD-relative-path PROHIBITION (F-S2104-P12-003, F-S2104-P13-001, F-S2104-P14-001, F-S2104-P15-001) ---
+  # --- DOC-PARITY §Spec-Path Discipline: AC-001(a) CWD-relative-path PROHIBITION (F-S2104-P12-003, F-S2104-P13-001, F-S2104-P14-001, F-S2104-P15-001, F-S2104-P16-001/002/003) ---
   # BC-6.26.001 PC1 core: the Write Discipline section must state that CWD-relative paths are
-  # FORBIDDEN and that canonical absolute paths are MANDATED. Five independently mutant-proven
-  # gates (pass-15 refactors Gates 1/4/5 to sentence-scoped evaluation per F-S2104-P15-001 —
-  # per-physical-line predicates over soft-wrapped paragraphs are inadmissible):
+  # FORBIDDEN and that canonical absolute paths are MANDATED. Eight independently mutant-proven
+  # gates (pass-16 adds negation-transparency, block-wide polarity, sentence-scoped Gate 2 +
+  # retirement-language guard, Gate 3 tightened + Gate 7 CWD-relative bullet polarity, and
+  # anchor-uniqueness bounded to #### Write Discipline):
   #   (1) Paragraph-level extractor (_extract_write_discipline_prohibition_block;
-  #       _shared-context.md §Spec-Path Discipline → §Write Discipline normative prohibition
-  #       paragraph, first line: 'All `.factory/**` artifact writes…') + MANDATE POLARITY
-  #       (SENTENCE-SCOPED, F-S2104-P15-001): extract the sentence containing 'artifact writes'
-  #       from the reflowed block; that sentence MUST contain MUST...use...canonical absolute
-  #       AND must NOT contain prohibited-subject forms (CWD-relative|worktree-relative|relative paths?).
-  #       MUTANT (a): delete prohibition block → extracted block empty → gate RED.
-  #       MUTANT (b): M-P15-A mandate sentence says "MUST use CWD-relative paths" →
-  #         Gate 1 positive fails (no canonical absolute in mandate sentence) → RED.
-  #         Gate 1 negative also fires (CWD-relative in mandate sentence) → RED.
-  #       Restore (c): mandate sentence "MUST use canonical absolute paths" → (a) GREEN, (b) GREEN.
-  #   (2) Paragraph-level extractor + CWD-relative FORBIDDEN co-occurrence (safe-joined form):
-  #       Joined prohibition block must contain (CWD-relative|relative path) AND FORBIDDEN.
-  #       Per-line form was not used: the prohibition paragraph's second sentence ('CWD-relative
-  #       paths…are FORBIDDEN') spans multiple physical lines — CWD-relative appears in the
-  #       first physical line of that sentence and FORBIDDEN appears in the next — per-line
-  #       check fails on the correct text. The joined form captures the cross-line co-occurrence.
-  #       MUTANT (a): block empty → gate RED. Restore (c): "CWD-relative...are FORBIDDEN" → GREEN.
-  #   (3) '\*\*Forbidden:\*\*' co-occurring with 'relative path' — catches the **Forbidden:**
-  #       example line (§Spec-Path Discipline **Forbidden:** example line). MUTANT: delete example line → gate RED; restore → GREEN.
-  #   (4) NEGATIVE (SENTENCE-SCOPED, F-S2104-P15-001): NO sentence in prohibition block where
-  #       'absolute' co-occurs with 'FORBIDDEN'. Correct text: S1 has 'absolute' (no FORBIDDEN);
-  #       S2 has 'FORBIDDEN' (no 'absolute') → PASSES. M-P15-A S3 "Canonical absolute...FORBIDDEN" → RED.
-  #   (5) NEGATIVE (SENTENCE-SCOPED, F-S2104-P15-001): NO sentence in prohibition block where
-  #       'MUST' co-occurs with a prohibited-subject form. Correct text: S1 "MUST use canonical
-  #       absolute" (no CWD-relative); S2 "CWD-relative...FORBIDDEN" (no MUST) → PASSES.
-  #       M-P15-A S1 "MUST use CWD-relative paths" → RED. PRIMARY M-P14-A/M-P14R-A gate.
-  # All five gates survive independently.
+  #       #### Write Discipline → normative prohibition paragraph, anchor: 'All `.factory/**`
+  #       artifact writes…') + MANDATE POLARITY (SENTENCE-SCOPED + NEGATION-TRANSPARENT,
+  #       F-S2104-P15-001 / F-S2104-P16-001(a)):
+  #       - ANCHOR UNIQUENESS (F-S2104-P16-003(a)): _assert_write_discipline_anchor_unique
+  #         counts matches within #### Write Discipline; decoy-insertion → count=2 → RED.
+  #       - MANDATE SENTENCE: extract sentence containing 'artifact writes' from joined block
+  #         (abbreviation-protected splitter for cf./i.e./e.g. — F-S2104-P16-001 M-P16-C2
+  #         hardening: cf. in M-P16-C2 false-splits mandate sentence, masking CWD-relative).
+  #       - Gate 1(a): MUST[[:space:]]+use[[:space:]]+canonical absolute (zero-DoF — 'MUST NOT
+  #         use' cannot satisfy; prior MUST[^.]*use[^.]*canonical passed M-P16-A).
+  #       - Gate 1(b) negation-transparent (F-S2104-P16-001(a)): mandate sentence must NOT
+  #         match MUST.*(NOT|not|never).*canonical absolute — M-P16-A "MUST NOT use canonical
+  #         absolute" → RED.
+  #       - Gate 1(c) negative: mandate sentence must NOT contain prohibited-subject forms
+  #         (CWD-relative|worktree-relative|relative paths?).
+  #       MUTANT (a): delete prohibition block → empty → RED.
+  #       MUTANT (b): M-P15-A/M-P16-A "MUST NOT use canonical..." → Gate 1(a)+(b) fail → RED.
+  #       Restore (c): mandate sentence "MUST use canonical absolute paths" → GREEN.
+  #   (PW-B) BLOCK-WIDE SENTENCE POLARITY (F-S2104-P16-001(b)): no sentence in the block may
+  #       co-occur a prohibited-target form (CWD-relative|worktree-relative|relative paths?|
+  #       story-worktree CWD|worktree's shadow) with a directive token (MUST|SHOULD|anchor|use|
+  #       write) unless that sentence also carries a prohibition token (FORBIDDEN|MUST NOT|prohibited).
+  #       M-P16-A S2 "Writers anchor every .factory/** write to the story-worktree CWD" — has
+  #       anchor + write (directive) + story-worktree CWD (prohibited-target), no prohibition → RED.
+  #   (2a) Gate 2 SENTENCE-SCOPED (F-S2104-P16-001(c)): at least one sentence where a
+  #       prohibited-subject form (CWD-relative|worktree-relative|relative path) co-occurs with
+  #       FORBIDDEN. Correct text S2: "CWD-relative paths...are FORBIDDEN" → PASSES.
+  #       M-P16-C2: "Duplicating...is FORBIDDEN" without prohibited-subject → sentence-scoped Gate 2
+  #       FAILS → RED. (M-P16-C2 caught here regardless of abbreviation-protected splitter.)
+  #   (2b) RETIREMENT LANGUAGE (F-S2104-P16-001(c)): block must NOT contain
+  #       formerly|retired|no longer|waived|exempt. M-P16-A "formerly FORBIDDEN...retired" → RED.
+  #   (3) Gate 3 TIGHTENED (F-S2104-P16-002): **Forbidden:** + file_path="\.factory/ + relative
+  #       path on same line. M-P16-D swaps labels — CWD-relative bullet → **Correct:** fails
+  #       Gate 3 and Gate 7(b). Traversal bullet with file_path="../../.factory/" does not match
+  #       file_path="\.factory/" → tightened Gate 3 fails → RED.
+  #   (4) NEGATIVE (SENTENCE-SCOPED, F-S2104-P15-001): NO sentence where 'absolute' co-occurs
+  #       with 'FORBIDDEN'.
+  #   (5) NEGATIVE (SENTENCE-SCOPED, F-S2104-P15-001): NO sentence where 'MUST' co-occurs with
+  #       a prohibited-subject form. Catches M-P14-A/M-P14R-A/M-P15-A/M-P16-A.
+  #   (6) Gate 6 (two-part polarity for ../ traversal form — F-S2104-P14R-003/F-S2104-P15-002).
+  #   (7) Gate 7 CWD-RELATIVE BULLET POLARITY (F-S2104-P16-002): (a) some line must match
+  #       **Forbidden:** AND contain file_path="\.factory/; (b) no line containing
+  #       file_path="\.factory/ may match **Correct:**.
+  # All eight gates survive independently.
+
+  # Anchor uniqueness gate: #### Write Discipline must have exactly one prohibition anchor.
+  _assert_write_discipline_anchor_unique
+
   local prohibition_block
   prohibition_block="$(_extract_write_discipline_prohibition_block)"
 
@@ -534,63 +596,116 @@ _run_teardown_preflight() {
   fi
 
   # Reflow the prohibition block to a single joined line for sentence-scoped evaluation.
-  # Gates 1, 4, and 5 all use joined_block to enforce normalized-domain evaluation
+  # Gates 1, 2, 4, 5, and PW-B all use joined_block to enforce normalized-domain evaluation
   # (F-S2104-P15-001: per-physical-line predicates over soft-wrapped paragraphs are inadmissible).
   local joined_block
   joined_block="$(printf '%s\n' "$prohibition_block" | tr '\n' ' ')"
 
-  # Gate 1: affirmative mandate polarity — sentence-scoped (F-S2104-P15-001 / F-S2104-P14R-001(a))
-  # Reflow paragraph, sentence-split on '. ' boundaries, extract the normative mandate sentence
-  # (the sentence containing 'artifact writes'). That sentence MUST:
-  #   (a) match MUST...use...canonical absolute — affirmative mandate present
-  #   (b) NOT match CWD-relative|worktree-relative|relative paths? — prohibited subjects absent
-  # This two-part sentence-scoped check closes M-P15-A bypass:
-  #   M-P15-A S1: "...MUST use CWD-relative paths anchored to the story-worktree CWD." —
-  #     (a) fails (no canonical absolute in mandate sentence) → RED.
-  #     (b) fires (CWD-relative IS in mandate sentence) → RED.
-  #   Correct S1: "...MUST use canonical absolute paths anchored to the main-checkout root." —
-  #     (a) matches; (b) does not fire → GREEN.
-  # Rewrap mutant: same paragraph rewrapped at different word boundaries — after joining and
-  #   sentence-splitting the sentences are identical; wrap-position is not load-bearing → GREEN.
+  # Abbreviation-protected joined block for sentence-splitting (F-S2104-P16-001 M-P16-C2 hardening).
+  # 'cf. ', 'i.e. ', 'e.g. ' contain dots that create false sentence boundaries when split on '. '.
+  # M-P16-C2 uses 'cf. CWD-relative paths' — without protection, cf. splits the mandate sentence
+  # before the CWD-relative token, masking the bypass from Gates 1(c) and 5.
+  # With protection: mandate sentence retains 'cf_ABBREV_ CWD-relative paths' → Gate 1(c) fires.
+  local joined_block_nosplit
+  joined_block_nosplit="$(printf '%s\n' "$joined_block" | \
+    sed 's/cf\. /cf_ABBREV_ /g; s/i\.e\. /ie_ABBREV_ /g; s/e\.g\. /eg_ABBREV_ /g')"
+
+  # Gate 1: affirmative mandate polarity — sentence-scoped, negation-transparent
+  # (F-S2104-P15-001 / F-S2104-P14R-001(a) / F-S2104-P16-001(a))
+  # Reflow paragraph, sentence-split on '. ' boundaries (abbreviation-protected), extract the
+  # normative mandate sentence (the sentence containing 'artifact writes'). That sentence MUST:
+  #   (a) match MUST[[:space:]]+use[[:space:]]+canonical absolute (zero-DoF: 'MUST NOT use' fails)
+  #   (b) NOT match MUST.*(NOT|not|never).*canonical absolute (negation-transparent paired gate)
+  #   (c) NOT match CWD-relative|worktree-relative|relative paths? (prohibited subjects absent)
+  # Rewrap mutant: same paragraph rewrapped at different word boundaries → sentences identical
+  #   after joining and splitting; wrap-position is not load-bearing → GREEN.
   local mandate_sentence
-  mandate_sentence="$(printf '%s\n' "$joined_block" | \
+  mandate_sentence="$(printf '%s\n' "$joined_block_nosplit" | \
     sed 's/\. /\n/g' | grep 'artifact writes' | head -1)"
   if [ -z "$mandate_sentence" ]; then
     echo "DOC-PARITY FAIL [write-discipline prohibition block mandate-sentence absent]: the normative mandate sentence containing 'artifact writes' was not found after sentence-splitting the joined prohibition block (split on '. '); block may be missing or the sentence structure changed (BC-6.26.001 PC1; AC-001(a); F-S2104-P15-001)"
     false
   fi
-  printf '%s\n' "$mandate_sentence" | grep -qE 'MUST[^.]*use[^.]*canonical[[:space:]]+absolute' || {
-    echo "DOC-PARITY FAIL [write-discipline prohibition block affirmative-mandate (sentence-scoped)]: the mandate sentence (containing 'artifact writes') must contain MUST...use...canonical absolute — the mandate must be affirmative; absent or wrong mandate fails this gate (BC-6.26.001 PC1; AC-001(a); F-S2104-P15-001 / F-S2104-P14R-001)"
+  # Gate 1(a): zero-DoF MUST use canonical absolute — 'MUST NOT use canonical' cannot satisfy
+  # (F-S2104-P16-001(a): prior MUST[^.]*use[^.]*canonical passed M-P16-A because [^.]* spans NOT)
+  printf '%s\n' "$mandate_sentence" | grep -qE 'MUST[[:space:]]+use[[:space:]]+canonical[[:space:]]+absolute' || {
+    echo "DOC-PARITY FAIL [write-discipline prohibition block affirmative-mandate (sentence-scoped, zero-DoF, F-S2104-P16-001(a))]: the mandate sentence (containing 'artifact writes') must contain 'MUST use canonical absolute' (zero-DoF: no tokens between MUST and use) — the prior MUST[^.]*use[^.]*canonical pattern passed M-P16-A 'MUST NOT use canonical absolute' because [^.]* spans the negation token; this tightening closes that bypass (BC-6.26.001 PC1; AC-001(a); F-S2104-P15-001 / F-S2104-P14R-001)"
     false
   }
-  # Gate 1 negative: the mandate sentence must NOT contain any prohibited-subject form
-  # (catches M-P15-A: mandate sentence says "MUST use CWD-relative paths"; also catches
-  # M-P14-A/M-P14R-A when the prohibited form appears in the mandate sentence).
+  # Gate 1(b): negation-transparency paired gate — mandate sentence must NOT contain MUST + NOT/not/never + canonical absolute
+  # M-P16-A: "MUST NOT use canonical absolute paths" → MUST[^.]*(NOT|not|never)[^.]*canonical → RED.
+  if printf '%s\n' "$mandate_sentence" | grep -qE 'MUST[^.]*(NOT|not|never)[^.]*canonical[[:space:]]+absolute'; then
+    echo "DOC-PARITY FAIL [write-discipline prohibition block negation-transparency (Gate 1(b), F-S2104-P16-001(a))]: the mandate sentence contains a negated mandate ('MUST NOT/not/never...canonical absolute') — M-P16-A rewrites the mandate as 'MUST NOT use canonical absolute paths'; a polarity predicate using [^.]* between MUST and use spans the negation token and passes M-P16-A; this paired negative gate closes that bypass (BC-6.26.001 PC1; AC-001(a))"
+    false
+  fi
+  # Gate 1(c): mandate sentence must NOT contain any prohibited-subject form
+  # (catches M-P15-A: "MUST use CWD-relative paths"; catches M-P14-A/M-P14R-A;
+  # with abbreviation-protected splitter, M-P16-C2 'cf_ABBREV_ CWD-relative paths' in the
+  # mandate sentence also triggers this gate).
   if printf '%s\n' "$mandate_sentence" | grep -qE 'CWD-relative|worktree-relative|relative[[:space:]]+paths?'; then
-    echo "DOC-PARITY FAIL [write-discipline prohibition block MUST-relative-polarity (mandate sentence)]: the mandate sentence contains a prohibited-subject form (CWD-relative, worktree-relative, or relative paths) — in the correct text the mandate sentence states MUST use canonical absolute paths; M-P15-A ('MUST use CWD-relative paths' in mandate sentence) triggers this gate; POLICY-13 syntactic-form class alternation (BC-6.26.001 PC1; AC-001(a); F-S2104-P15-001 / F-S2104-P14R-001)"
+    echo "DOC-PARITY FAIL [write-discipline prohibition block MUST-relative-polarity (mandate sentence, Gate 1(c))]: the mandate sentence contains a prohibited-subject form (CWD-relative, worktree-relative, or relative paths) — in the correct text the mandate sentence states MUST use canonical absolute paths; M-P15-A ('MUST use CWD-relative paths') triggers this gate; with abbreviation-protected splitter, M-P16-C2 'cf. CWD-relative paths' in the mandate sentence also triggers it; POLICY-13 syntactic-form class alternation (BC-6.26.001 PC1; AC-001(a); F-S2104-P15-001 / F-S2104-P14R-001)"
     false
   fi
 
-  # Gate 2: CWD-relative FORBIDDEN co-occurrence (safe-joined form; F-S2104-P14-001 + F-S2104-P14-007)
-  # Safe-joined replaces unquoted 'printf %s ' $prohibition_block (pathname-expansion risk with
-  # the .factory/** glob token) with 'printf %s\n "$prohibition_block" | tr \n " "'.
-  # Per-line form was not used: the prohibition paragraph's second sentence ('CWD-relative
-  # paths…are FORBIDDEN') spans multiple physical lines — CWD-relative appears in the first
-  # physical line of that sentence and FORBIDDEN appears in the next — per-line check fails
-  # on the correct text. The joined form captures the cross-line co-occurrence correctly.
-  printf '%s\n' "$prohibition_block" | tr '\n' ' ' | grep -qE '(CWD-relative|relative path).*FORBIDDEN|FORBIDDEN.*(CWD-relative|relative path)' || {
-    echo "DOC-PARITY FAIL [write-discipline prohibition block CWD-relative-FORBIDDEN co-occurrence]: Write Discipline prohibition paragraph (joined) must contain (CWD-relative or relative path) co-occurring with FORBIDDEN — prohibition clause deleted or rewritten to omit key tokens (BC-6.26.001 PC1; AC-001(a); F-S2104-P13-001 / F-S2104-P14-001)"
+  # Gate PW-B (BLOCK-WIDE SENTENCE POLARITY, F-S2104-P16-001(b)):
+  # No sentence in the prohibition block may co-occur a prohibited-target form with a directive
+  # token unless that sentence also carries a prohibition token.
+  # prohibited-target: CWD-relative|worktree-relative|relative[[:space:]]+paths?|
+  #                    story-worktree[[:space:]]+CWD|worktree's[[:space:]]+shadow
+  # directive: MUST|SHOULD|anchor|use|write
+  # prohibition: FORBIDDEN|forbidden|MUST NOT|prohibited
+  # M-P16-A S2: "Writers anchor every `.factory/**` write to the story-worktree CWD so the
+  # worktree's shadow `.factory/` subtree receives the artifact." — directive tokens 'anchor'
+  # and 'write' co-occur with prohibited-target 'story-worktree CWD'; no prohibition token → RED.
+  # Correct text S2: "CWD-relative paths...are FORBIDDEN" — prohibited-target + FORBIDDEN → PASSES.
+  local polarity_violations
+  polarity_violations="$(printf '%s\n' "$joined_block_nosplit" | sed 's/\. /\n/g' | \
+    grep -E 'CWD-relative|worktree-relative|relative[[:space:]]+paths?|story-worktree[[:space:]]+CWD|worktree'\''s[[:space:]]+shadow' | \
+    grep -E 'MUST|SHOULD|anchor|use|write' | \
+    grep -Ev 'FORBIDDEN|forbidden|MUST NOT|prohibited' || true)"
+  if [ -n "$polarity_violations" ]; then
+    echo "DOC-PARITY FAIL [write-discipline prohibition block block-wide sentence polarity (Gate PW-B, F-S2104-P16-001(b))]: a sentence in the Write Discipline prohibition block co-occurs a prohibited-target form (CWD-relative|worktree-relative|relative paths?|story-worktree CWD|worktree's shadow) with a directive token (MUST|SHOULD|anchor|use|write) but no prohibition token (FORBIDDEN|MUST NOT|prohibited) — M-P16-A S2 'Writers anchor every .factory/** write to the story-worktree CWD' triggers this gate (BC-6.26.001 PC1; AC-001(a))"
+    printf '%s\n' "$polarity_violations"
     false
-  }
+  fi
+
+  # Gate 2a (SENTENCE-SCOPED POSITIVE, F-S2104-P16-001(c)):
+  # At least one sentence must contain a prohibited-subject form AND FORBIDDEN on the same sentence.
+  # Correct text S2: "CWD-relative paths...are FORBIDDEN" → CWD-relative + FORBIDDEN → PASSES.
+  # M-P16-C2: "Duplicating a ledger onto the main checkout is FORBIDDEN" (no prohibited-subject
+  # in the FORBIDDEN sentence); CWD-relative is in a different sentence → Gate 2a FAILS → RED.
+  # This catches M-P16-C2 regardless of the abbreviation-protected splitter (because the
+  # prohibited-subject form is absent from the FORBIDDEN sentence in M-P16-C2).
+  local forbidden_prohibited_sentences
+  forbidden_prohibited_sentences="$(printf '%s\n' "$joined_block_nosplit" | sed 's/\. /\n/g' | \
+    grep -E 'CWD-relative|worktree-relative|relative[[:space:]]+path' | \
+    grep -E 'FORBIDDEN|forbidden' || true)"
+  if [ -z "$forbidden_prohibited_sentences" ]; then
+    echo "DOC-PARITY FAIL [write-discipline prohibition block sentence-scoped FORBIDDEN co-occurrence (Gate 2a, F-S2104-P16-001(c))]: no sentence in the Write Discipline prohibition paragraph contains both a prohibited-subject form (CWD-relative, worktree-relative, relative path) and FORBIDDEN — the correct text has S2 'CWD-relative paths...are FORBIDDEN'; M-P16-C2 places FORBIDDEN in a separate sentence from CWD-relative, triggering this gate (BC-6.26.001 PC1; AC-001(a))"
+    false
+  fi
+
+  # Gate 2b (RETIREMENT LANGUAGE NEGATIVE, F-S2104-P16-001(c)):
+  # The prohibition block must NOT contain retirement/waiver language that nullifies the constraint
+  # while preserving FORBIDDEN for Gate 2a.
+  # M-P16-A: "CWD-relative paths were formerly FORBIDDEN under the issue #523 reading; that
+  # prohibition is retired" → 'formerly' and 'retired' trigger this gate → RED.
+  local retirement_language
+  retirement_language="$(printf '%s\n' "$prohibition_block" | grep -E 'formerly|retired|no longer|waived|exempt' || true)"
+  if [ -n "$retirement_language" ]; then
+    echo "DOC-PARITY FAIL [write-discipline prohibition block retirement/waiver language (Gate 2b, F-S2104-P16-001(c))]: the Write Discipline prohibition paragraph contains retirement or waiver language (formerly/retired/no longer/waived/exempt) — M-P16-A uses 'formerly FORBIDDEN...that prohibition is retired' to nullify the constraint while preserving the FORBIDDEN token for Gate 2a; this gate catches the retirement-language nullification (BC-6.26.001 PC1; AC-001(a))"
+    printf '%s\n' "$retirement_language"
+    false
+  fi
 
   # Gate 4 (NEGATIVE, sentence-scoped; F-S2104-P14-001 / F-S2104-P15-001): no sentence in the
   # prohibition block may contain both 'absolute' and 'FORBIDDEN'. In the correct text:
   #   S1 "...MUST use canonical absolute paths..." — 'absolute' present, 'FORBIDDEN' absent → PASSES.
   #   S2 "CWD-relative paths...are FORBIDDEN..." — 'FORBIDDEN' present, 'absolute' absent → PASSES.
   # M-P15-A S3: "Canonical absolute artifact-write paths...are FORBIDDEN" — has both → RED.
-  # Per-sentence evaluation (not per-line) per F-S2104-P15-001; joined_block set before Gate 1.
+  # Per-sentence evaluation (not per-line) per F-S2104-P15-001; joined_block_nosplit for splits.
   local forbidden_absolute_sentences
-  forbidden_absolute_sentences="$(printf '%s\n' "$joined_block" | \
+  forbidden_absolute_sentences="$(printf '%s\n' "$joined_block_nosplit" | \
     sed 's/\. /\n/g' | grep -E 'absolute' | grep -E '(FORBIDDEN|forbidden)' || true)"
   if [ -n "$forbidden_absolute_sentences" ]; then
     echo "DOC-PARITY FAIL [write-discipline prohibition block FORBIDDEN-polarity (sentence-scoped)]: a sentence in the Write Discipline prohibition paragraph contains both 'absolute' and 'FORBIDDEN' — in the correct text absolute paths are MANDATED (MUST), not the FORBIDDEN subject; M-P15-A S3 'Canonical absolute artifact-write paths...are FORBIDDEN' triggers this gate (BC-6.26.001 PC1; AC-001(a); F-S2104-P14-001 / F-S2104-P15-001)"
@@ -605,20 +720,33 @@ _run_teardown_preflight() {
   # M-P14-A: "MUST use CWD-relative paths" in the mandate sentence → sentence-split catches it → RED.
   # M-P14R-A: "MUST use relative paths" → relative path form in same sentence → RED.
   # Synonym vector (worktree-relative): "MUST use worktree-relative paths" → RED.
-  # POLICY-13 syntactic-form class alternation; joined_block set before Gate 1.
+  # M-P16-C2 + abbreviation-protected splitter: mandate sentence retains 'cf_ABBREV_ CWD-relative
+  #   paths' → MUST + relative path in mandate sentence → Gate 5 fires → RED (defense-in-depth).
+  # POLICY-13 syntactic-form class alternation; joined_block_nosplit for splits.
   local must_relative_sentences
-  must_relative_sentences="$(printf '%s\n' "$joined_block" | \
+  must_relative_sentences="$(printf '%s\n' "$joined_block_nosplit" | \
     sed 's/\. /\n/g' | grep -E 'MUST' | \
     grep -E 'CWD-relative|worktree-relative|relative[[:space:]]+path' || true)"
   if [ -n "$must_relative_sentences" ]; then
-    echo "DOC-PARITY FAIL [write-discipline prohibition block MUST-relative-polarity (sentence-scoped)]: a sentence in the Write Discipline prohibition paragraph contains both 'MUST' and a prohibited-subject form (CWD-relative, worktree-relative, or relative path) — in the correct text MUST mandates canonical absolute paths; this POLICY-13 alternation catches M-P15-A (CWD-relative in mandate sentence), M-P14-A (CWD-relative), M-P14R-A (relative path), and worktree-relative synonym variants (BC-6.26.001 PC1; AC-001(a); F-S2104-P14R-001 / F-S2104-P15-001)"
+    echo "DOC-PARITY FAIL [write-discipline prohibition block MUST-relative-polarity (sentence-scoped)]: a sentence in the Write Discipline prohibition paragraph contains both 'MUST' and a prohibited-subject form (CWD-relative, worktree-relative, or relative path) — in the correct text MUST mandates canonical absolute paths; this POLICY-13 alternation catches M-P15-A (CWD-relative in mandate sentence), M-P14-A (CWD-relative), M-P14R-A (relative path), worktree-relative synonym variants, and M-P16-C2 (with abbreviation-protected splitter: mandate sentence retains cf_ABBREV_ CWD-relative) (BC-6.26.001 PC1; AC-001(a); F-S2104-P14R-001 / F-S2104-P15-001)"
     false
   fi
 
-  # Gate 3 (kept from pass-12): **Forbidden:** example marker must co-occur with 'relative path'
-  _assert_doc_marker '\*\*Forbidden:\*\*.*relative path|relative path.*\*\*Forbidden:\*\*' \
-    "_shared-context.md §Spec-Path Discipline: **Forbidden:** example marker must co-occur with 'relative path' on the same line (§Spec-Path Discipline **Forbidden:** example line) — deleting the **Forbidden:** example line fails this gate (BC-6.26.001 PC1; AC-001(a); F-S2104-P12-003)" \
-    "$spec_path_section"
+  # Gate 3 (TIGHTENED, F-S2104-P16-002): **Forbidden:** + file_path="\.factory/ + relative path
+  # on same line. Scopes the relative-path conjunction to lines referencing the CWD-relative form.
+  # A **Forbidden:** bullet with file_path="../../.factory/" and 'relative path traversal' satisfies
+  # the old Gate 3 (**Forbidden:** + relative path) but NOT the tightened form: the pattern
+  # file_path="\.factory/ requires the dot-factory slash to follow the opening quote directly,
+  # without ../../. M-P16-D swaps the CWD-relative bullet label to **Correct:** — the only
+  # remaining **Forbidden:** bullet has file_path="../../.factory/" → tightened Gate 3 fails → RED.
+  # DELETION MUTANT: delete the **Forbidden:** CWD-relative bullet → no line satisfies all three → RED.
+  local forbidden_cwd_relative_bullet
+  forbidden_cwd_relative_bullet="$(printf '%s\n' "$spec_path_section" | \
+    grep -E '\*\*Forbidden:\*\*' | grep -E 'file_path="\.factory/' | grep -E 'relative path' || true)"
+  if [ -z "$forbidden_cwd_relative_bullet" ]; then
+    echo "DOC-PARITY FAIL [write-discipline Gate 3 tightened: **Forbidden:** + file_path=\".factory/\" + relative path on same line (F-S2104-P16-002)]: §Spec-Path Discipline must have a **Forbidden:** bullet where file_path starts with \".factory/\" and the label 'relative path' is present on the same line — the CWD-relative bullet documents the write-path anti-pattern; M-P16-D swaps the labels making it **Correct:** → RED; traversal bullet with file_path=\"../../.factory/\" does not satisfy file_path=\".factory/\" (BC-6.26.001 PC1; AC-001(a); F-S2104-P12-003 / F-S2104-P16-002)"
+    false
+  fi
 
   # Gate 6 (two-part polarity; F-S2104-P14R-003 / F-S2104-P15-002): traversal-form **Forbidden:**
   # bullet — §Spec-Path Discipline must have a **Forbidden:** bullet with ../ on the same line,
@@ -637,6 +765,26 @@ _run_teardown_preflight() {
   }
   if printf '%s\n' "$spec_path_section" | grep -E '\.\.\/' | grep -qE '\*\*Correct:\*\*'; then
     echo "DOC-PARITY FAIL [write-discipline §Spec-Path Discipline traversal-Correct polarity]: a line containing ../ matches **Correct:** — the traversal form must appear only in a **Forbidden:** bullet, not a **Correct:** bullet; M-P15-B replaces the Forbidden bullet with a Correct: form, which triggers this gate (BC-6.26.001 PC1; AC-001(a); F-S2104-P15-002)"
+    false
+  fi
+
+  # Gate 7 (CWD-RELATIVE BULLET POLARITY, two-part; F-S2104-P16-002):
+  # (a) POSITIVE: some line in §Spec-Path Discipline must match **Forbidden:** AND contain
+  #     file_path="\.factory/" (the CWD-relative pattern — no leading ../../ or variable).
+  #     DELETION MUTANT: delete the CWD-relative **Forbidden:** bullet → no such line → RED.
+  # (b) NEGATIVE: NO line containing file_path="\.factory/" may match **Correct:** — the
+  #     CWD-relative write pattern must appear ONLY in a **Forbidden:** bullet, never **Correct:**.
+  #     M-P16-D: swaps the CWD-relative bullet label to **Correct:** → Gate 7(b) fires → RED.
+  #     (Gate 7(a) also fails for M-P16-D: the only **Forbidden:** bullet after swap has
+  #     file_path="../../.factory/" which does not match file_path="\.factory/".)
+  # Unmodified text: (a) PASSES (line has **Forbidden:** + file_path=".factory/"),
+  #   (b) PASSES (no **Correct:** line has file_path=".factory/").
+  printf '%s\n' "$spec_path_section" | grep -qE '\*\*Forbidden:\*\*.*file_path="\.factory/|file_path="\.factory/.*\*\*Forbidden:\*\*' || {
+    echo "DOC-PARITY FAIL [write-discipline Gate 7(a) CWD-relative Forbidden bullet absent (F-S2104-P16-002)]: §Spec-Path Discipline must have a **Forbidden:** bullet where file_path starts with \".factory/\" (the CWD-relative write pattern) — deleting this bullet or swapping its label to **Correct:** (M-P16-D) fails this gate; deletion mutant: remove the CWD-relative **Forbidden:** bullet → RED (BC-6.26.001 PC1; AC-001(a))"
+    false
+  }
+  if printf '%s\n' "$spec_path_section" | grep -E 'file_path="\.factory/' | grep -qE '\*\*Correct:\*\*'; then
+    echo "DOC-PARITY FAIL [write-discipline Gate 7(b) CWD-relative polarity (F-S2104-P16-002)]: a line containing file_path=\".factory/\" matches **Correct:** — the CWD-relative write pattern must appear ONLY in a **Forbidden:** bullet, never in a **Correct:** bullet; M-P16-D swaps the Correct:/Forbidden: labels on the last two bullets, making the CWD-relative bullet **Correct:** and triggering this gate (BC-6.26.001 PC1; AC-001(a))"
     false
   fi
 
