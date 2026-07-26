@@ -12378,3 +12378,34 @@ D-915-S2104-PASS-16-PERSISTED
 ### Date
 
 2026-07-26
+
+## D-916
+
+### Summary
+
+S-21.04 LOCAL adversarial pass-16 closure (state-manager D-916). Verdict NOT-CLEAN B1/H3/M1/L1 (6 findings F-S2104-P16-001..006; novelty 0.42; trajectory 7→6; reviewed_head 8b39277b; fixes_landed_head 9ab1aa32). All 6 findings FIXED: F-S2104-P16-001/002/003 by test-writer 9ab1aa32 (negation-transparency gates + sentence-complete polarity + abbreviation-protected splitter + Gate 7(a)/(b) CWD-relative bullet polarity + Gate 3 tightened + anchor-uniqueness gate + `#### Write Discipline` bounding; M-P16-A + M-P16-C2 + M-P16-D + deletion mutant + M-P16-B out-of-section + in-section variant all RED); F-S2104-P16-004 by story-writer c9def56d (story v1.21; AC-001 Gate cell rewritten to 15-gate set + same-burst coupling note); F-S2104-P16-005/006 by state-manager this burst (red-gate-log v1.13→v1.14; adversary-pass-15.md Fix Mapping correction). Streak 0/3 (BC-5.39.001 reset); NEXT: adversary pass-17.
+
+### Detail
+
+1. **POLICY 16 GLOBAL-MAX GATE (literal shell stdout)**:
+   - `grep -rh '^## D-' cycles/v1.0-brownfield-backfill/decision-log.md cycles/v1.0-feature-engine-discipline-pass-1/decision-log.md | sed 's/^## D-//' | sort -n | tail -5` → `911 / 912 / 913 / 914 / 915`
+   - D-915 confirmed global max → D-916 allocated. PASS.
+
+2. **POLICY 14 4-INDEX GATE (literal shell stdout)**:
+   - `grep -m1 "^version:" specs/behavioral-contracts/BC-INDEX.md specs/verification-properties/VP-INDEX.md stories/STORY-INDEX.md specs/architecture/ARCH-INDEX.md` → BC v4.33 / VP v2.72 / STORY v4.263 / ARCH v3.34. STORY bumped v4.263→v4.264. PASS.
+
+3. **POLICY 18 INPUT-HASH GATE (literal shell stdout)**:
+   - `compute-input-hash --scan cycles/v1.0-brownfield-backfill/S-21.04/implementation/ --update` → `TOTAL=1 MATCH=0 STALE=1 UNCOMPUTED=0 NOINPUT=0 UPDATED=1 UPDATE_FAILED=0`
+   - Hash updated 3d12427→1baca60 (story v1.21 drift). PASS.
+
+4. **Legs executed**: A (red-gate-log v1.13→v1.14: Pass-16 TWO-TIER attestation + A3 Pass-15 corrections + input-hash + version bump) / B (adversary-pass-15.md Fix Mapping F-S2104-P15-005 corrected) / C (STORY-INDEX.md v4.263→v4.264: story v1.20→v1.21 + P16 refs) / D (adversary-pass-16.md: fixes_landed_head 9ab1aa32 + Fix Mapping 6-row) / E1 (this entry) / E2 (lessons.md: 4 process-gap + 1 process-observation) / E3 (policies.yaml v1.4.12→v1.4.13: POLICY 13 NEGATION-TRANSPARENCY + ANCHOR-UNIQUENESS MANDATEs; POLICY 14 same-burst predicate-gate coupling step; POLICY 15 SAME-AC GATE AUDIT obligation-indexed) / E4 (STATE.md v6.50→v6.51).
+
+5. **WASM validator timeouts** (known L-BB-wasm-fuel-validator-coverage-gap): validate-factory-path-root / validate-input-hash / validate-template-compliance timed out on STORY-INDEX.md (large-file consistent pattern since D-914; PostToolUse fires after write; writes succeeded; fail-closed advisory only).
+
+### Phase
+
+D-916-S2104-PASS-16-CLOSED
+
+### Date
+
+2026-07-26

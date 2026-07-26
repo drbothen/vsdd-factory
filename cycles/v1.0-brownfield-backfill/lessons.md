@@ -7899,3 +7899,93 @@ The mutant self-check is evidence, not just process. The test-writer report MUST
 **Cites:** D-914 (codified this burst); D-442(e) (lessons.md size budget — analogous constraint; STORY-INDEX.md and decision-log.md need equivalent budgets or validator fuel increases); CLAUDE.md §WASM plugin fuel budgets (authoritative statement of the constraint); S-15.03 PRIORITY-A (deferred root-fix scope — fuel-budget increase or size-aware validator).
 
 **Closes:** D-914 S-21.04-ADV-PASS-15-CLOSED (2026-07-26). `[orchestrator-observed; wasm-fuel; validator-coverage-gap; large-artifact; fail-closed; story-index; decision-log; input-hash; template-compliance; D-914; codified]`
+
+---
+
+## L-BB-negation-transparent-predicates [process-gap] [codified D-916]
+
+**Summary:** A polarity predicate over prose that uses a permissive wildcard (e.g., `[^.]*`) between a modal token and its mandated subject can match the negated form of the same mandate — `MUST[^.]*use[^.]*canonical[[:space:]]+absolute` matches `MUST NOT use canonical absolute` because `[^.]*` excludes only period characters and crosses ` NOT ` freely. The gate's stated job is "the mandate must be affirmative" and it cannot detect a negated mandate. This is the seventh-generation recurrence of the S-21.04 polarity-gate class (F-P12-003 → F-P13-001 → F-P14-001 → F-S2104-P14R-001 → F-S2104-P15-001 → F-S2104-P16-001), now resolved at the logical-form axis rather than the domain-shape axis.
+
+**Discovered:** 2026-07-26 (S-21.04 LOCAL adversarial cascade pass-16; F-S2104-P16-001 BLOCKER — adversary proved `MUST NOT use canonical absolute` passes Gate 1(a); the wildcard between MUST and `use` crosses the negation token; end-to-end PC1 inversion at 9/9 with worked examples inverted alongside prose).
+
+**Root cause:** Gate 1(a) used `MUST[^.]*use[^.]*canonical[[:space:]]+absolute` — a pattern that asserting presence of the affirmative sequence but using a glob that spans negation. The correct form requires the modal and verb to be adjacent or separated only by whitespace: `MUST[[:space:]]+use[[:space:]]+canonical[[:space:]]+absolute`. An additional explicit negative gate (`MUST[^.]*(NOT|not|never)[^.]*canonical[[:space:]]+absolute`) must FIRE RED on the negated form.
+
+**Prevention:** Every affirmative-mandate gate MUST use a positionally-tight pattern (`MUST[[:space:]]+use`) with no permissive wildcard between modal and verb. A paired negative gate asserting `MUST[^.]*(NOT|not|never)` fires RED MUST be attested alongside the affirmative gate. The negation-insertion mutant (replace `MUST use` with `MUST NOT use`) is now a MANDATORY attestation element for all new affirmative-mandate gates, parallel to the deletion-mutant proof requirement already in POLICY 13 MUTANT-DERIVED-GATE ALTERNATION MANDATE. Codified as POLICY 13 NEGATION-TRANSPARENCY MANDATE at D-916.
+
+**Anchors:** S-21.04 LOCAL cascade pass-16 (2026-07-26); F-S2104-P16-001 BLOCKER (trigger — `MUST[^.]*use` crossed negation token; seventh-generation polarity recurrence); red-gate-log v1.14 Pass-16 TIER 1 M-P16-A (adversary-verbatim vector re-proven RED at 9ab1aa32; Gate 1(a) fires on `MUST NOT use canonical absolute`).
+
+**Cites:** D-916 (codified this burst); F-S2104-P16-001 (trigger); POLICY 13 NEGATION-TRANSPARENCY MANDATE (extended at D-916); BC-6.26.001 PC1 (target contract); TD-VSDD-059 (paper-fix detection — a wildcard-bearing affirmative gate is a structural paper-fix against negated mandates).
+
+**Closes:** D-916 S-21.04-ADV-PASS-16-CLOSED (2026-07-26). `[process-gap; negation-transparency; polarity-gate; affirmative-mandate; wildcard; MUST-NOT; bats; red-gate-log; policy-13; D-916; codified]`
+
+---
+
+## L-BB-anchor-uniqueness-for-extractors [process-gap] [codified D-916]
+
+**Summary:** An awk extractor that latches on the first match of a pattern and stops at the first blank line does not guarantee it is reading the normative paragraph — a compliant decoy paragraph inserted earlier in the same section captures the extractor, after which every downstream semantic gate evaluates attacker-chosen text and the normative paragraph is never read. This makes every prior polarity hardening void: the hardened predicates run against the decoy, not the mandate.
+
+**Discovered:** 2026-07-26 (S-21.04 LOCAL adversarial cascade pass-16; F-S2104-P16-003 HIGH — adversary inserted a two-line compliant decoy paragraph before the normative paragraph in §Spec-Path Discipline; every prohibition-block gate evaluated the decoy at 9/9; no-decoy control with the same inversion confirmed RED — the decoy is the load-bearing element).
+
+**Root cause:** `_extract_write_discipline_prohibition_block` used `awk '/All.*\.factory.*artifact writes/ { found=1 }' ` without asserting the anchor occurs exactly once. The function's own MUTANT note only contemplated relocation out-of-section; a decoy inside-section was unconsidered. The extractor was also section-bounded to `### Spec-Path Discipline` rather than the `#### Write Discipline` child heading, so decoys placed in the read-discipline prose were inside the extraction domain.
+
+**Prevention:** Every extractor whose output feeds semantic gates MUST (i) assert the anchor pattern occurs exactly once within its bounding section — count the matches before latching, and `exit 1` with an explicit "ambiguous anchor" message if count ≠ 1; (ii) bound to the narrowest child heading that exclusively contains the normative content. A decoy-insertion mutant (a compliant paragraph inserted before the normative paragraph) MUST be attested RED in the attestation as a mandatory element. Codified as POLICY 13 ANCHOR-UNIQUENESS MANDATE at D-916.
+
+**Anchors:** S-21.04 LOCAL cascade pass-16 (2026-07-26); F-S2104-P16-003 HIGH (trigger — decoy paragraph captures extractor at 9/9; novel axis, no prior pass addressed anchor uniqueness); red-gate-log v1.14 Pass-16 TIER 1 M-P16-B + in-section variant (adversary-verbatim + test-writer instantiation both RED at 9ab1aa32).
+
+**Cites:** D-916 (codified this burst); F-S2104-P16-003 (trigger); POLICY 13 ANCHOR-UNIQUENESS MANDATE (extended at D-916); BC-6.26.001 PC1 (target contract); TD-VSDD-059 (paper-fix detection — an extractor without anchor-uniqueness assurance makes all downstream gates paper-fixes against decoy attacks).
+
+**Closes:** D-916 S-21.04-ADV-PASS-16-CLOSED (2026-07-26). `[process-gap; anchor-uniqueness; extractor; decoy-paragraph; awk; bounding-section; bats; red-gate-log; policy-13; D-916; codified]`
+
+---
+
+## L-BB-obligation-indexed-audit [process-gap] [codified D-916]
+
+**Summary:** A gate-indexed audit table (one row per gate: domain shape, polarity assertion, mutant coverage) is honest inventory of what each gate does, but it cannot detect AC coverage gaps. It proves each gate fires on its named mutant; it does not prove every AC obligation is independently gated. A blanket "all gates: independent, polarity-complete, zero degrees of freedom" claim appended to such a table converts an inventory into a completeness attestation the inventory does not support — and is falsified by any surviving vector that targets an ungated obligation.
+
+**Discovered:** 2026-07-26 (S-21.04 LOCAL adversarial cascade pass-16; F-S2104-P16-005 MEDIUM — the pass-15 gate-indexed audit table closed with "All gates: independent, polarity-complete, zero degrees of freedom" while four mutants surviving at the attested HEAD (M-P16-A, M-P16-C2, M-P16-D, M-P16-B) each falsified a different predicate in that sentence. The table's G2 row correctly described G2 as deletion-proven only; the closing sentence contradicted that honest disclosure).
+
+**Root cause:** The POLICY 15 SAME-AC GATE AUDIT requirement was introduced gate-indexed (per POLICY 15 as of v1.4.12: "per-gate audit table with columns: Gate, Domain shape, Polarity-asserting, Mutant coverage"). A gate-indexed table proves predicate correctness per gate but leaves obligation coverage implicit. The closing completeness claim was added without a separate obligation-indexed check showing every AC clause is independently gated.
+
+**Prevention:** SAME-AC GATE AUDIT MUST use an obligation-indexed format as its primary coverage proof: one row per AC clause, listing the gate(s) asserting that clause and the mutant proving each. A gate-indexed gate-by-gate table may supplement but MUST NOT close with a blanket completeness claim unless an obligation-indexed table immediately precedes it. The closing claim MUST be per-obligation ("AC-001(a)(i) — Gate 7(a)/(b): M-P16-D RED") not a gate-set summary. Codified as POLICY 15 SAME-AC GATE AUDIT amendment at D-916.
+
+**Anchors:** S-21.04 LOCAL cascade pass-16 (2026-07-26); F-S2104-P16-005 MEDIUM (trigger — gate-indexed table with blanket completeness claim falsified by four surviving vectors); red-gate-log v1.14 §Pass-16 attestation (obligation-indexed 5-row coverage table appended per D-916 fix).
+
+**Cites:** D-916 (codified this burst); F-S2104-P16-005 (trigger); POLICY 15 SAME-AC GATE AUDIT (amended to obligation-indexed form at D-916); D-914 (prior SAME-AC GATE AUDIT codification — gate-indexed form only, gap exposed here).
+
+**Closes:** D-916 S-21.04-ADV-PASS-16-CLOSED (2026-07-26). `[process-gap; obligation-indexed; gate-audit; completeness-claim; AC-coverage; per-obligation; policy-15; D-916; codified]`
+
+---
+
+## L-BB-same-burst-predicate-gate-cell-coupling [process-gap] [codified D-916]
+
+**Summary:** When a test-writer changes bats gate predicates for a given AC (new regex, domain shape, polarity extension), the story file's AC Gate cell — the traceability anchor a reviewer consults to learn what AC-NNN is actually gated by — MUST be updated in the same burst. A story-writer leg that updates a different AC in the same burst (e.g., AC-010 for F-S2104-P15-005) without sweeping the Gate cell for the hardened AC (AC-001) produces a regression: the Gate cell describes predicates that no longer exist and mandates the superseded domain shape. Any subsequent burst changing gates again sees the same stale cell, and the regression compounds.
+
+**Discovered:** 2026-07-26 (S-21.04 LOCAL adversarial cascade pass-16; F-S2104-P16-004 HIGH regression — the AC-001 Gate cell was last updated at the pass-14R story leg (story v1.19); the pass-15 test-writer wave changed Gates 1/4/5 and added Gate 6 two-part polarity without a story leg for AC-001; pass-15 verified this as CONFIRMED-CLOSED in the Per-Pass-15 Verification table; pass-16 found the regression because the test-writer commit SHA is verifiable and the cell still showed the pass-14R predicate forms).
+
+**Root cause:** POLICY 14 (KK-N) quintuple parity requires upstream-index body-table cells to be updated same-burst when a version is bumped. But T-N class predicate changes (gate rewrites) do not necessarily bump the story version — the test-writer's bats changes are not in the story file. The policy did not explicitly designate AC Gate cells as a parity site for predicate changes, so the story-writer leg that DID touch the story (for AC-010) was not triggered to also update AC-001's Gate cell.
+
+**Prevention:** POLICY 14 same-burst coupling MUST explicitly include: when ANY test-writer burst changes a predicate in a T-N class bats test for story S-NNN, the corresponding story S-NNN AC Gate cell for that T-N test MUST be updated in the same burst or in a story-writer leg gated on the test-writer commit. The coupling obligation is the test-writer's responsibility to flag (via SendMessage to orchestrator naming the affected AC Gate cells) and the story-writer's responsibility to execute. Codified as POLICY 14 SAME-BURST PREDICATE-GATE CELL COUPLING step at D-916.
+
+**Anchors:** S-21.04 LOCAL cascade pass-16 (2026-07-26); F-S2104-P16-004 HIGH regression (trigger — AC-001 Gate cell at v1.19 state despite four gates changed at pass-15; pass-15 missed; regression found at pass-16); story v1.20→v1.21 (story-writer c9def56d fixes the cell; same-burst coupling note added to cell per D-916 fix predicate).
+
+**Cites:** D-916 (codified this burst); F-S2104-P16-004 (trigger); POLICY 14 (KK-N) (extended with same-burst predicate-gate coupling step at D-916); F-S2104-P14R-006 (prior closure of this cell — passes 15 confirmed CLOSED but pass-16 found regression); TD-VSDD-060 (sibling-site sweep — AC Gate cell is a sibling site of the bats predicate it describes; sweep is mandatory on predicate change).
+
+**Closes:** D-916 S-21.04-ADV-PASS-16-CLOSED (2026-07-26). `[process-gap; same-burst-coupling; predicate-gate; AC-gate-cell; story-version; policy-14; sibling-sweep; TD-VSDD-060; D-916; codified]`
+
+---
+
+## L-BB-silent-idle-subagent-recurrence [process-observation] [D-916]
+
+**Summary:** Silent idle — a dispatched subagent producing no output and delivering no SendMessage report to the orchestrator — recurred 3× in the S-21.04 pass-16 fix wave: adversary (×2, pass-16 dispatch and a prior silent dispatch) and test-writer (×1). The pattern is structural: dispatch templates do not mandate a `SendMessage(to:"main")` as the final obligatory action; without the mandate, context switches or internal errors cause the agent to go quiet with no indication that work failed or succeeded.
+
+**Discovered:** 2026-07-26 (S-21.04 LOCAL adversarial cascade pass-16 fix wave — orchestrator noted recurrence of silent-idle across three separate agent dispatches; none produced terminal SendMessage reports until re-dispatch).
+
+**Root cause:** Dispatch templates for S-21.04 LOCAL cascade agents (adversary, test-writer, story-writer) do not explicitly state "Your final action MUST be `SendMessage(to:\"main\")`" as a mandatory closing step. Agents may complete their work internally without delivering a report, or may silently error and produce no output. The orchestrator has no way to distinguish silent success from silent failure.
+
+**Corrective action:** S-21.04 LOCAL cascade dispatch templates for all specialist agents MUST end with an explicit delivery mandate: "Your final action MUST be `SendMessage(to:\"main\")` with your complete work report including (for test-writer) commit SHA + bats stdout evidence, (for adversary) CLEAN/NOT-CLEAN verdict + finding set, (for story-writer) commit SHA + version bump confirmation." Anchor systemic dispatch-template hardening to S-15.03 PRIORITY-A.
+
+**Anchors:** S-21.04 LOCAL cascade pass-16 fix wave (2026-07-26); adversary (×2), test-writer (×1) silent-idle recurrences; S-15.03 PRIORITY-A (anchor for systemic template hardening).
+
+**Cites:** D-916 (this burst); S-15.03 PRIORITY-A (deferred systemic fix); BC-5.39.001 3-CLEAN convergence protocol (silent-idle recurrences inflate actual pass count by consuming dispatch budget without advancing the cascade).
+
+**Closes:** D-916 S-21.04-ADV-PASS-16-CLOSED (2026-07-26). `[process-observation; silent-idle; dispatch-template; SendMessage; subagent; adversary; test-writer; orchestrator; S-15.03; D-916]`
