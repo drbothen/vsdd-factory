@@ -153,3 +153,5 @@
 {"type":"hook.block","hook":"validate-input-hash","reason":"input_hash_drift","ts":"2026-07-25T19:31:05-0500","ts_epoch":1785025865,"schema_version":1}
 {"type":"hook.block","hook":"validate-input-hash","reason":"input_hash_drift","ts":"2026-07-25T19:31:52-0500","ts_epoch":1785025912,"schema_version":1}
 {"type":"hook.block","hook":"validate-table-cell-count","reason":"table_cell_count","ts":"2026-07-25T19:40:50-0500","ts_epoch":1785026450,"schema_version":1}
+{"type":"hook.block","hook":"validate-input-hash","reason":"input_hash_drift","ts":"2026-07-25T20:48:24-0500","ts_epoch":1785030504,"schema_version":1}
+{"type":"hook.block","hook":"validate-table-cell-count","reason":"table_cell_count","ts":"2026-07-25T20:57:42-0500","ts_epoch":1785031062,"schema_version":1}

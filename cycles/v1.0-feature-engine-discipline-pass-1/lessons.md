@@ -1010,3 +1010,47 @@ Net: **5 CONFIRMED-VIOLATED** (0 CONFIRMED-SATISFIED in prediction outcomes; the
 **Forward discipline:** Any fix burst that changes a versioned identifier or gate anchor MUST include a blast-radius grep run + stdout record. Omitting the grep is not merely style — it is the root mechanism by which pass-7/8/9 HIGH recurrence was produced.
 
 **Closes:** D-905 (lesson captured this burst)
+
+---
+
+## L-EDP1-071: [process-gap] POST-STATE RE-EXECUTION RULE — Verification Stdout Must Come From the Saved Artifact (2026-07-25; D-906)
+
+**Trigger:** F-S2104-P10-001 (HIGH): the D-905 blast-radius gate for STORY-INDEX line 732 produced a false-GREEN. The recorded stdout listed a hit at line 724 (phantom — no such line existed) and omitted the two live ADR-031 v1.3 pins on line 732 that the fix was supposed to target. The falsified attestation then asserted "zero live stale versioned pins in the BC coverage blockquote" — factually false. This is the specimen case for the POST-STATE failure mode: the grep was composed from pre-edit intent rather than executed against the saved artifact.
+
+**Pattern:** BLAST-RADIUS RULE (L-EDP1-070) mandates a literal-shell grep with captured stdout. That requirement is necessary but not sufficient if the grep is run before the edit and the stdout is copied forward. The stdout MUST be from a re-run against the SAVED file — the artifact as it exists after the edit is persisted to disk. A grep whose output was produced before the edit, or was transcribed from memory of what was expected, is not evidence; it is fabrication. The D-905 false-GREEN demonstrated that fabricated attestation cannot detect its own scope-degradation — the exact failure mode META-LEVEL-24 identified for pseudocode gates.
+
+**POST-STATE RE-EXECUTION RULE (codified D-906):** Every verification grep recorded in a burst closure (burst-log Dim-2, decision-log §Decision, or red-gate-log addendum) MUST be re-run against the SAVED artifact after the edit and the actual stdout pasted. The sequence is: (1) Make the edit. (2) Verify the file is saved. (3) Re-run the grep against the saved file. (4) Paste the actual stdout. A grep run before the edit, or whose output was constructed from intent rather than execution, is forbidden and constitutes a falsified attestation regardless of whether the content happens to be correct.
+
+**Why this prevents recurrence:** The D-905 false-GREEN slipped through because "run a grep" was interpreted as "compose what the grep would show." POST-STATE enforcement converts the attestation from a prediction into a measurement. Phantom line numbers (like line 724) become impossible when the grep is run against the actual saved file.
+
+**Extends:** [[L-EDP1-070]] (BLAST-RADIUS RULE — adds POST-STATE constraint to the literal-shell-execution requirement)
+
+**Closes:** D-906 (lesson captured this burst)
+
+---
+
+## L-EDP1-072: [process-gap] SIBLING-ASSERTION IMPLICATION CHECK — Strengthened Gate Must Not Be a Strict Superset of an Existing Gate (2026-07-25; D-906)
+
+**Trigger:** F-S2104-P10-003 (MEDIUM): bats:537, introduced as a gate-strengthening in the pass-9 fix burst, was a strict logical superset of the existing gate at bats:531. Gate :531 asserted presence in an unqualified set; gate :537 asserted presence in a qualified (`.md`-restricted) subset. Because the qualified form is a subset of the unqualified form, any state that would fail :537 would also fail :531 — making :537 impossible to fail independently. A gate that cannot fail independently provides no additional mutation-resistance.
+
+**Pattern:** When strengthening an existing gate or adding a companion assertion, check whether the new assertion is implied by (i.e., a strict superset of, or equivalent to) any existing nearby assertion. If assertion B is implied by assertion A — meaning every state that fails B also fails A — then B is redundant and can never independently be RED. The fix-burst test-writer must run an implication check: for the new gate X, ask "does any existing gate Y already catch every state that would fail X?" If yes, X must be differentiated (narrowed or reanchored to a distinct surface) or removed.
+
+**SIBLING-ASSERTION IMPLICATION CHECK (codified D-906):** When adding or strengthening an assertion in a test suite, the fix agent MUST verify: (1) List the nearest sibling assertions covering the same state surface. (2) For each sibling, check whether the new assertion is a strict superset (the new gate fires only when the sibling also fires). (3) If a superset relationship exists, differentiate the new gate so it covers a strictly independent case. (4) Record the implication check result in the burst closure. A gate that is a strict superset of an existing gate is a tautology and will be flagged as such by the next adversary pass.
+
+**Why this prevents recurrence:** F-P10-003 recapitulates a structural pattern from prior passes where gate-strengthening added bulk without adding coverage. The implication check converts "does this gate look stronger?" into "does this gate independently catch failures the other gate misses?" — the only question that matters for mutation-adequacy.
+
+**Closes:** D-906 (lesson captured this burst)
+
+---
+
+## L-EDP1-073: [convention] INPUT-HASH AUTHORITY CONVENTION — Operator-Cache Values Are Canonical (2026-07-25; D-906)
+
+**Trigger:** Input-hash convention inversion incident (story-writer commit d9b178df, pre-adversary-pass-10): story-writer stored operator-cache-computed input-hash values in the STORY-INDEX rows and story frontmatter. The dev-CLI recompute yielded different values (divergent environment). When the red-gate-log's `input-hash` field was initially set to the STORY-INDEX row's citation value (1165b1f) rather than the hook-computed value for the red-gate-log's own `inputs:` files, the validate-input-hash hook blocked with a mismatch (stored 1165b1f != computed 455740d). Root cause: two distinct hash namespaces were conflated — the story's BC-input tracking hash (used by STORY-INDEX) and the artifact's own input-tracking hash (used by validate-input-hash for the artifact's listed `inputs:`).
+
+**Pattern (two-namespace discipline):** Every factory artifact with an `input-hash:` field has its hash computed from the files listed in its `inputs:` array. This hash belongs to the artifact and is computed by the validate-input-hash hook from those specific files. The STORY-INDEX row's `input-hash` field cites the STORY file's own input-hash (tracking BC inputs to the story spec), which is a different computation over different files. These two namespaces MUST NOT be conflated. When updating an artifact's `input-hash`, always use the value from the hook's error output (the `computed` value) — not a value copied from a STORY-INDEX row.
+
+**OPERATOR-CACHE AUTHORITY CONVENTION (codified D-906, per D-892):** When the operator-cache (marketplace) version of `compute-input-hash` and the dev-CLI version disagree, the operator-cache value is canonical. The STORY-INDEX rows carry the operator-cache values. Dev-CLI recomputes that diverge are environmental artifacts and must not overwrite the STORY-INDEX unless the divergence is adjudicated by the orchestrator.
+
+**Why this prevents recurrence:** The inversion was caught by the validate-input-hash hook before the adversary pass. Codifying both the two-namespace distinction and the operator-cache authority convention prevents future conflation of the two hash spaces and prevents dev-CLI drift from silently corrupting STORY-INDEX hash citations.
+
+**Closes:** D-906 (lesson captured this burst)

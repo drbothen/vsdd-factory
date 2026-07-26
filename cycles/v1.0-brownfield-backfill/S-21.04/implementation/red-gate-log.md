@@ -1,7 +1,7 @@
 ---
 document_type: red-gate-log
 level: ops
-version: "1.7"
+version: "1.8"
 status: verified
 producer: test-writer
 timestamp: 2026-07-25T03:15:00Z
@@ -9,9 +9,9 @@ phase: 3
 inputs:
   - .factory/stories/S-21.04-story-worktree-write-path-discipline.md
   - .factory/specs/behavioral-contracts/ss-06/BC-6.26.001.md
-input-hash: "389274b"
-traces_to: "BC-6.26.001 v1.10"
-last_amended: "2026-07-25 D-905: F-S2104-P9-004 §T-008 BC trace corrected (PC2 + Invariant 2 caller-side dispatch gate, per story AC-007; replaces erroneous Invariant 5 caller-side propagation anchor introduced in D-904 fix wave); F-S2104-P9-007 §T-009 mutant evidence recorded (obligation-asserting gates mutant-proven at 2992b53d; class-completed at 3326e4dd; bare-alternation paper-gate confirmed); input-hash 43e6df2→389274b (story v1.13 drift); version 1.6→1.7 (F-S2104-P9-004, F-S2104-P9-007); prior: 2026-07-25 D-904: F-S2104-P8-001 §Bats Tests table T-001→RG-001†, T-002→RG-002†, T-003→RG-003† (table correction omitted at D-895, surviving 6 passes); † footnote updated to cite D-904; F-S2104-P8-007 T-007 mutant-proof recorded verbatim (qualified-path/verify/PASS-result/not-evident-run-yourself all NO MATCH on scratch reduction at 052620dc); F-S2104-P8-002 NEW T-008 addendum (AC-007/RG-008; six-surface §G.1 mandate; quote-tolerant mutant-proof 052620dc) + NEW T-009 addendum (AC-009/RG-009; awareness-clause; GREEN 4265c96c); Summary line updated (T-007/T-008/T-009 propagation gates; HEAD 9d896bf5; all T-IDs/RG rows confirmed); BC-6.26.001 cite v1.9→v1.10 (quintuple parity); input-hash 7abb656→43e6df2 (story v1.12 + BC v1.10 drift); traces_to v1.9→v1.10; version 1.5→1.6 (F-S2104-P8-001, F-S2104-P8-002, F-S2104-P8-007); prior: 2026-07-25 D-903 state-manager — F-S2104-P7-001/P7-005 attestation corrections verbatim-authored by orchestrator: §T-005 addendum heading/Test rewritten (regular-file-at-path → PC2b BLOCKED; RG-006; AC-002/EC-007); §T-006 addendum heading/trailing-slash mechanism corrected (POSIX find WITHOUT -H/-L empty-return → false PC2a; [ -L ] guard routes to PC2b; trailing-slash defense-in-depth); all 4 RG-004a occurrences replaced with RG-006; §Traces T-005/T-006 quintuple parity updated; NEW §T-007 addendum (AC-008/RG-007 devops-engineer executor-side preflight mandate; obligation-asserting at 052620dc); Summary line: 9 bats tests T-001..T-006 + 3 propagation-gate tests; BC-6.26.001 v1.8→v1.9 cites updated throughout; input-hash 4b75dba→7abb656 (story v1.11 + BC v1.9 drift); traces_to v1.8→v1.9; version 1.4→1.5 (F-S2104-P7-001, F-S2104-P7-005); prior: 2026-07-25 D-902 state-manager — T-005/T-006/RG-005 attestation addenda appended; Summary 9-test suite; Traces quintuple parity v1.5→v1.8; T-004 addendum BC cite v1.5→v1.8; RG-reconciliation note appended to D-895 erratum; input-hash 8cdfb33→a4b9ea5 (story v1.9 + BC v1.8 drift); traces_to v1.6→v1.8; version 1.3→1.4 (F-S2104-P6-004); prior: 2026-07-25 D-899 state-manager — T-004 test description corrected to verbatim §G.1 PC2c semantics (HALT + surface exit code/stderr; no PREFLIGHT BLOCKED message); input-hash 2b051ec→8cdfb33 (story v1.7 drift); traces_to v1.5→v1.6; version 1.2→1.3 (F-S2104-P4-006); prior: 2026-07-25 D-897 state-manager — fabricated PC2c implementation quote corrected to verbatim §G.1 text; Invariant TBD placeholder removed; input-hash 55904fb→2b051ec (story v1.6 drift); version 1.1→1.2 (F-S2104-P3-009, F-S2104-P3-010); prior: 2026-07-25 D-896 state-manager — T-004/RG-004 attestation addendum (F-S2104-P2-013) + quintuple parity v1.5 (F-S2104-P2-017); prior: 2026-07-25 D-895 state-manager — erratum F-S2104-P1-009 (RG-ID mapping + AC-002 attribution)"
+input-hash: "455740d"
+traces_to: "BC-6.26.001 v1.11"
+last_amended: "2026-07-26 D-906: F-S2104-P10-007 Summary line HEAD cite 9d896bf5→2c8eff8b + suite-level verification (orchestrator ran bats → 9/9 ok + 14/14 ok at 2c8eff8b, 2026-07-26); F-S2104-P10-008 §T-009 mutant evidence line :285 named list (5 named gates + 8 scratch mutants); F-S2104-P10-009 traces_to v1.10→v1.11 + BC-6.26.001 cite v1.10→v1.11 throughout + T-008/T-009 version pin parity restored; input-hash 389274b→455740d (story v1.14 + BC v1.11 drift); version 1.7→1.8; prior: 2026-07-25 D-905: F-S2104-P9-004 §T-008 BC trace corrected (PC2 + Invariant 2 caller-side dispatch gate, per story AC-007; replaces erroneous Invariant 5 caller-side propagation anchor introduced in D-904 fix wave); F-S2104-P9-007 §T-009 mutant evidence recorded (obligation-asserting gates mutant-proven at 2992b53d; class-completed at 3326e4dd; bare-alternation paper-gate confirmed); input-hash 43e6df2→389274b (story v1.13 drift); version 1.6→1.7 (F-S2104-P9-004, F-S2104-P9-007); prior: 2026-07-25 D-904: F-S2104-P8-001 §Bats Tests table T-001→RG-001†, T-002→RG-002†, T-003→RG-003† (table correction omitted at D-895, surviving 6 passes); † footnote updated to cite D-904; F-S2104-P8-007 T-007 mutant-proof recorded verbatim (qualified-path/verify/PASS-result/not-evident-run-yourself all NO MATCH on scratch reduction at 052620dc); F-S2104-P8-002 NEW T-008 addendum (AC-007/RG-008; six-surface §G.1 mandate; quote-tolerant mutant-proof 052620dc) + NEW T-009 addendum (AC-009/RG-009; awareness-clause; GREEN 4265c96c); Summary line updated (T-007/T-008/T-009 propagation gates; HEAD 9d896bf5; all T-IDs/RG rows confirmed); BC-6.26.001 cite v1.9→v1.10 (quintuple parity); input-hash 7abb656→43e6df2 (story v1.12 + BC v1.10 drift); traces_to v1.9→v1.10; version 1.5→1.6 (F-S2104-P8-001, F-S2104-P8-002, F-S2104-P8-007); prior: 2026-07-25 D-903 state-manager — F-S2104-P7-001/P7-005 attestation corrections verbatim-authored by orchestrator: §T-005 addendum heading/Test rewritten (regular-file-at-path → PC2b BLOCKED; RG-006; AC-002/EC-007); §T-006 addendum heading/trailing-slash mechanism corrected (POSIX find WITHOUT -H/-L empty-return → false PC2a; [ -L ] guard routes to PC2b; trailing-slash defense-in-depth); all 4 RG-004a occurrences replaced with RG-006; §Traces T-005/T-006 quintuple parity updated; NEW §T-007 addendum (AC-008/RG-007 devops-engineer executor-side preflight mandate; obligation-asserting at 052620dc); Summary line: 9 bats tests T-001..T-006 + 3 propagation-gate tests; BC-6.26.001 v1.8→v1.9 cites updated throughout; input-hash 4b75dba→7abb656 (story v1.11 + BC v1.9 drift); traces_to v1.8→v1.9; version 1.4→1.5 (F-S2104-P7-001, F-S2104-P7-005); prior: 2026-07-25 D-902 state-manager — T-005/T-006/RG-005 attestation addenda appended; Summary 9-test suite; Traces quintuple parity v1.5→v1.8; T-004 addendum BC cite v1.5→v1.8; RG-reconciliation note appended to D-895 erratum; input-hash 8cdfb33→a4b9ea5 (story v1.9 + BC v1.8 drift); traces_to v1.6→v1.8; version 1.3→1.4 (F-S2104-P6-004); prior: 2026-07-25 D-899 state-manager — T-004 test description corrected to verbatim §G.1 PC2c semantics (HALT + surface exit code/stderr; no PREFLIGHT BLOCKED message); input-hash 2b051ec→8cdfb33 (story v1.7 drift); traces_to v1.5→v1.6; version 1.2→1.3 (F-S2104-P4-006); prior: 2026-07-25 D-897 state-manager — fabricated PC2c implementation quote corrected to verbatim §G.1 text; Invariant TBD placeholder removed; input-hash 55904fb→2b051ec (story v1.6 drift); version 1.1→1.2 (F-S2104-P3-009, F-S2104-P3-010); prior: 2026-07-25 D-896 state-manager — T-004/RG-004 attestation addendum (F-S2104-P2-013) + quintuple parity v1.5 (F-S2104-P2-017); prior: 2026-07-25 D-895 state-manager — erratum F-S2104-P1-009 (RG-ID mapping + AC-002 attribution)"
 modified:
   - "2026-07-25 D-895: Erratum appended — RG-ID mapping corrected (RG-001/002/003), fabricated RG-004/005 documented, AC-002 attribution corrected (F-S2104-P1-009)"
   - "2026-07-25 D-896: T-004/RG-004 attestation addendum appended; frontmatter version 1.0→1.1, traces_to updated to v1.5, §Traces BC cites updated to v1.5 (F-S2104-P2-013, F-S2104-P2-017)"
@@ -21,6 +21,7 @@ modified:
   - "2026-07-25 D-903: F-S2104-P7-001/P7-005 attestation corrections verbatim-authored by orchestrator; §T-005 rewritten (regular-file-at-path → PC2b BLOCKED; RG-006; AC-002/EC-007); §T-006 trailing-slash mechanism corrected; all 4 RG-004a→RG-006; §Traces quintuple parity updated; NEW §T-007 addendum (AC-008/RG-007); Summary line updated; BC v1.8→v1.9 cites; input-hash 4b75dba→7abb656 (story v1.11 + BC v1.9 drift); traces_to v1.8→v1.9; version 1.4→1.5 (F-S2104-P7-001, F-S2104-P7-005)"
   - "2026-07-25 D-904: F-S2104-P8-001 §Bats Tests table RG corrected (T-001→RG-001†, T-002→RG-002†, T-003→RG-003†); † footnote updated to cite D-904; F-S2104-P8-007 T-007 mutant-proof recorded verbatim; NEW T-008 + T-009 addenda (F-S2104-P8-002); Summary HEAD 3c3788d7→9d896bf5; BC-6.26.001 cite v1.9→v1.10 (quintuple parity); input-hash 7abb656→43e6df2 (story v1.12 + BC v1.10 drift); traces_to v1.9→v1.10; version 1.5→1.6 (F-S2104-P8-001, F-S2104-P8-002, F-S2104-P8-007)"
   - "2026-07-25 D-905: F-S2104-P9-004 §T-008 BC trace corrected (PC2 + Invariant 2 caller-side dispatch gate, per story AC-007); F-S2104-P9-007 §T-009 mutant evidence recorded verbatim; input-hash 43e6df2→389274b (story v1.13 drift); version 1.6→1.7"
+  - "2026-07-26 D-906: F-S2104-P10-007 Summary HEAD 9d896bf5→2c8eff8b + suite-level verification (bats 9/9+14/14 at 2c8eff8b 2026-07-26); F-S2104-P10-008 §T-009 mutant line :285 unnamed→named; F-S2104-P10-009 BC-6.26.001 cite v1.10→v1.11 throughout; T-008/T-009 version-pin parity restored; traces_to v1.10→v1.11; input-hash 389274b→455740d; version 1.7→1.8"
 stub_architect_agent: "N/A — no code stubs (skill-doc + bats story; ADR-031 §Decision 4 class; POLICY 21 satisfied)"
 stub_compile_verified: true
 test_writer_agent: vsdd-factory:test-writer
@@ -38,7 +39,7 @@ red_gate_verified: true
 
 | Story | New Tests Written | All New Tests Fail (Red)? | Pre-existing Tests | Gate |
 |-------|------------------|--------------------------|-------------------|------|
-| S-21.04 | 9 bats tests: T-001..T-006 (behavioral vectors) + T-007/T-008/T-009 (doc-parity propagation gates). All GREEN at worktree HEAD 9d896bf5. All nine tests carry T-IDs, RG rows (RG-001..RG-009), and attestation sections in this log. | YES — all original 3 FAIL at Red Gate | 2265 (cargo baseline) | PASSED |
+| S-21.04 | 9 bats tests: T-001..T-006 (behavioral vectors) + T-007/T-008/T-009 (doc-parity propagation gates). All GREEN at worktree HEAD 2c8eff8b (suite-level verification: orchestrator ran bats story-worktree-write-path-discipline.bats → 9/9 ok and worktree-identity-preflight.bats → 14/14 ok at 2c8eff8b, 2026-07-26). All nine tests carry T-IDs, RG rows (RG-001..RG-009), and attestation sections in this log. | YES — all original 3 FAIL at Red Gate | 2265 (cargo baseline) | PASSED |
 
 Orchestrator-verified 2026-07-24: all 3 bats tests `not ok` (ASSERTION failures via `_assert_doc_marker`; DOC-PARITY: `find.*\.factory` preflight mandate absent from step-g-cleanup.md §G.1). Pre-implementation cargo-test baseline: 2265 pass, 0 fail, clean build.
 
@@ -90,10 +91,10 @@ No `#[should_panic]` masking. No vacuously-passing new tests. Failure mechanism 
 
 ## Traces
 
-- T-001 (AC-003 / RG-001†) → BC-6.26.001 v1.10 PC2b (Invariant 2): stray `.factory/` file triggers PREFLIGHT BLOCKED; `git worktree remove` NOT called
-- T-002 (AC-004 / RG-002†) → BC-6.26.001 v1.10 PC2a: empty shadow tree → teardown proceeds; `git worktree remove` IS called
-- T-003 (AC-005 / RG-003†) → BC-6.26.001 v1.10 PC2b→PC2a retry path: stray file relocated → preflight re-runs clean → teardown proceeds
-- T-004 (AC-006 / RG-004) → BC-6.26.001 v1.10 PC2c: non-path-absent find error → fail-closed HALT; `git worktree remove` NOT called (addendum D-896)
+- T-001 (AC-003 / RG-001†) → BC-6.26.001 v1.11 PC2b (Invariant 2): stray `.factory/` file triggers PREFLIGHT BLOCKED; `git worktree remove` NOT called
+- T-002 (AC-004 / RG-002†) → BC-6.26.001 v1.11 PC2a: empty shadow tree → teardown proceeds; `git worktree remove` IS called
+- T-003 (AC-005 / RG-003†) → BC-6.26.001 v1.11 PC2b→PC2a retry path: stray file relocated → preflight re-runs clean → teardown proceeds
+- T-004 (AC-006 / RG-004) → BC-6.26.001 v1.11 PC2c: non-path-absent find error → fail-closed HALT; `git worktree remove` NOT called (addendum D-896)
 - T-005 → AC-002 (EC-007) / RG-006 / BC-6.26.001 PC2b (non-directory inode)
 - T-006 → AC-002 (EC-008) / RG-005 / BC-6.26.001 PC2b (symlink at path)
 
@@ -172,13 +173,13 @@ Suite run: `bats plugins/vsdd-factory/tests/story-worktree-write-path-discipline
 
 **RG-004 source of truth:** story v1.5 §Red Gate Test Plan (6149e893). Story v1.4 covered RG-001..RG-003 only; RG-004 (PC2c) was added by story-writer at commit 6149e893 as part of F-S2104-P2-007 five-table propagation fix.
 
-**BC trace:** T-004 (AC-006 / RG-004) → BC-6.26.001 v1.10 PC2c: non-path-absent find error → fail-closed HALT; `git worktree remove` NOT called.
+**BC trace:** T-004 (AC-006 / RG-004) → BC-6.26.001 v1.11 PC2c: non-path-absent find error → fail-closed HALT; `git worktree remove` NOT called.
 
 **Summary row for completeness:**
 
 | Test | AC / RG ID | BC Trace | Failure Reason at Red Gate | Green Commit |
 |------|-----------|----------|---------------------------|--------------|
-| T-004 | AC-006 / RG-004 | BC-6.26.001 v1.10 PC2c | DOC-PARITY: PC2c fail-closed HALT clause absent from §G.1 at `7d38b9e6` | `19271a65` |
+| T-004 | AC-006 / RG-004 | BC-6.26.001 v1.11 PC2c | DOC-PARITY: PC2c fail-closed HALT clause absent from §G.1 at `7d38b9e6` | `19271a65` |
 
 ---
 
@@ -198,13 +199,13 @@ Suite run: `bats plugins/vsdd-factory/tests/story-worktree-write-path-discipline
 
 **Implementation commit that turned T-005 green:** `73c2bade` — added `[ ! -e ]` existence pre-test and non-directory→PC2b branch to §G.1.
 
-**BC trace:** T-005 (AC-002 / RG-006) → BC-6.26.001 v1.10 PC2b (non-directory inode): non-directory inode at .factory path → PREFLIGHT BLOCKED; `git worktree remove` NOT called.
+**BC trace:** T-005 (AC-002 / RG-006) → BC-6.26.001 v1.11 PC2b (non-directory inode): non-directory inode at .factory path → PREFLIGHT BLOCKED; `git worktree remove` NOT called.
 
 **Summary row:**
 
 | Test | AC / RG ID | BC Trace | Failure Reason at Red Gate | Green Commit |
 |------|-----------|----------|---------------------------|--------------|
-| T-005 | AC-002 / RG-006 | BC-6.26.001 v1.10 PC2b (non-directory inode) | DOC-PARITY: non-directory→PC2b clause absent from §G.1 at `60f0d2d6` | `73c2bade` |
+| T-005 | AC-002 / RG-006 | BC-6.26.001 v1.11 PC2b (non-directory inode) | DOC-PARITY: non-directory→PC2b clause absent from §G.1 at `60f0d2d6` | `73c2bade` |
 
 ---
 
@@ -226,7 +227,7 @@ At commit `93ec340a` (the failing-tests commit for T-006), the §G.1 `[ -L ]` sy
 
 **Mutant self-check (pass-6 hardening, commit `772096f4`):** Test-writer performed scratch deletion of §G.1 L31-40 (the `[ -L ]` guard block) at commit `772096f4` as a mutant self-check — T-006 turned RED on the mutated §G.1, proving the load-bearing `[ -L ]` gate is not satisfied by the PC2b header line alone. Deletion confirmed as FAIL, restoring §G.1 confirmed GREEN. This closes the pass-6 F-S2104-P6-003 gate-weakening finding.
 
-**BC trace:** T-006 (AC-002 / RG-005) → BC-6.26.001 v1.10 PC2b symlink-at-path: `[ -L ]` step 2 of the 4-step chain; symlink-at-path → PREFLIGHT BLOCKED; `git worktree remove` NOT called.
+**BC trace:** T-006 (AC-002 / RG-005) → BC-6.26.001 v1.11 PC2b symlink-at-path: `[ -L ]` step 2 of the 4-step chain; symlink-at-path → PREFLIGHT BLOCKED; `git worktree remove` NOT called.
 
 **RG-005 source of truth:** story v1.8 §Red Gate Test Plan (commit `04aa9ff3`). Story v1.7 covered RG-001..RG-004; RG-005 (symlink-at-path/PC2b) was added by the story-writer at commit `04aa9ff3` as part of F-S2104-P5-011 five-table propagation.
 
@@ -234,7 +235,7 @@ At commit `93ec340a` (the failing-tests commit for T-006), the §G.1 `[ -L ]` sy
 
 | Test | AC / RG ID | BC Trace | Failure Reason at Red Gate | Green Commit |
 |------|-----------|----------|---------------------------|--------------|
-| T-006 | AC-002 / RG-005 | BC-6.26.001 v1.10 PC2b symlink-at-path | DOC-PARITY: §G.1 `[ -L ]` symlink→PC2b clause absent at `93ec340a` | `4833a642` |
+| T-006 | AC-002 / RG-005 | BC-6.26.001 v1.11 PC2b symlink-at-path | DOC-PARITY: §G.1 `[ -L ]` symlink→PC2b clause absent at `93ec340a` | `4833a642` |
 
 ---
 
@@ -246,13 +247,13 @@ At commit `93ec340a` (the failing-tests commit for T-006), the §G.1 `[ -L ]` sy
 
 T-007 is the doc-parity gate authored at pass-4 as F-S2104-P4-003 (bats gate asserting agents/devops-engineer.md §Worktree Cleanup carries the §G.1 preflight-verification mandate). Observed RED at 60f0d2d6 (pass-4 baseline: '§Worktree Cleanup section has no §G.1/step-g-cleanup/BC-6.26.001 mandate'); GREEN at 0c0922e1. Retro-registered as T-007↔AC-008 at story v1.9 and RG-007 at story v1.11; its red-gate history predates AC-008's authoring — recorded as-is. Strengthened to obligation-asserting form (verify-PASS + not-evident-run-yourself) at 052620dc. Mutant evidence (recorded): scratch reduction of devops-engineer.md §Worktree Cleanup to 'Run git worktree remove (see BC-6.26.001).' → all four obligation gates NO MATCH (RED): qualified-path, verify, PASS-result, not-evident-run-yourself; restoring the section → GREEN. Performed by test-writer at 052620dc.
 
-**BC trace:** T-007 → AC-008 / RG-007 / BC-6.26.001 v1.10 Precondition 3: devops-engineer.md §Worktree Cleanup MUST carry the §G.1 preflight-verification mandate unconditionally; obligation-asserting gate confirms PASS result + not-evident-run-yourself attestation.
+**BC trace:** T-007 → AC-008 / RG-007 / BC-6.26.001 v1.11 Precondition 3: devops-engineer.md §Worktree Cleanup MUST carry the §G.1 preflight-verification mandate unconditionally; obligation-asserting gate confirms PASS result + not-evident-run-yourself attestation.
 
 **Summary row:**
 
 | Test | AC / RG ID | BC Trace | Failure Reason at Red Gate | Green Commit |
 |------|-----------|----------|---------------------------|--------------|
-| T-007 | AC-008 / RG-007 | BC-6.26.001 v1.10 Precondition 3 | DOC-PARITY: §Worktree Cleanup had no §G.1/step-g-cleanup/BC-6.26.001 mandate at `60f0d2d6` | `0c0922e1` |
+| T-007 | AC-008 / RG-007 | BC-6.26.001 v1.11 Precondition 3 | DOC-PARITY: §Worktree Cleanup had no §G.1/step-g-cleanup/BC-6.26.001 mandate at `60f0d2d6` | `0c0922e1` |
 
 ---
 
@@ -264,13 +265,13 @@ T-007 is the doc-parity gate authored at pass-4 as F-S2104-P4-003 (bats gate ass
 
 T-008 is the doc-parity gate authored at pass-4 as F-S2104-P4-009 (anti-inline-find + qualified §G.1 references across worktree-manage/SKILL.md, code-delivery/SKILL.md, fix-pr-delivery/SKILL.md, code-delivery.lobster, greenfield.lobster, rules/worktree-protocol.md). Observed RED at 60f0d2d6 (pass-4 baseline: 5 of 6 surfaces carried the inline-find anti-pattern or lacked qualified refs); GREEN at a317fd77. Strengthened quote-tolerant at 052620dc — recorded mutant evidence: pasting the canonical quoted line (find "<worktree-path>/.factory/" -type f) into a scratch copy of a delegating surface → OLD regex NO MATCH (false-green confirmed), NEW regex MATCH (gate fires RED); unquoted no-slash and unquoted with-slash forms MATCH under both. Registered T-008/RG-008 at story v1.12.
 
-**BC trace:** T-008 (AC-007 / RG-008) → BC-6.26.001 PC2 + Invariant 2 (caller-side dispatch gate), per story AC-007.
+**BC trace:** T-008 (AC-007 / RG-008) → BC-6.26.001 v1.11 PC2 + Invariant 2 (caller-side dispatch gate), per story AC-007.
 
 **Summary row:**
 
 | Test | AC / RG ID | BC Trace | Failure Reason at Red Gate | Green Commit |
 |------|-----------|----------|---------------------------|--------------|
-| T-008 | AC-007 / RG-008 | BC-6.26.001 PC2 + Invariant 2 (caller-side dispatch gate), per story AC-007 | DOC-PARITY: 5 of 6 surfaces carried inline-find anti-pattern or lacked qualified refs at `60f0d2d6` | `a317fd77` |
+| T-008 | AC-007 / RG-008 | BC-6.26.001 v1.11 PC2 + Invariant 2 (caller-side dispatch gate), per story AC-007 | DOC-PARITY: 5 of 6 surfaces carried inline-find anti-pattern or lacked qualified refs at `60f0d2d6` | `a317fd77` |
 
 ---
 
@@ -282,12 +283,12 @@ T-008 is the doc-parity gate authored at pass-4 as F-S2104-P4-009 (anti-inline-f
 
 T-009 is the doc-parity gate authored at pass-4 as F-S2104-P4-002 (agents/adversary.md + skills/adversarial-review/SKILL.md must state the corrected shadow-write model and reference the §G.1 preflight as the enforcement chain). Observed RED at 60f0d2d6 (pass-4 baseline: neither file contained §G.1/BC-6.26.001); GREEN at 4265c96c. Registered T-009/RG-009 and anchored to NEW AC-009 (BC-6.26.001 Invariant 5) at story v1.12.
 
-**Mutant evidence (recorded):** scratch reduction of the adversary.md corrected-model clause to '…resolve the tuple (see BC-6.26.001).' → all three obligation gates NO MATCH (RED): corrected-model, report-as-defect-signal, §G.1 enforcement-chain; the RETIRED bare alternation MATCHED the same mutant (paper-gate confirmed); restore → GREEN. Performed by test-writer at 2992b53d; gates class-completed at 3326e4dd (5 additional bare survivors strengthened, 8 mutants RED/restore GREEN).
+**Mutant evidence (recorded):** scratch reduction of the adversary.md corrected-model clause to '…resolve the tuple (see BC-6.26.001).' → all three obligation gates NO MATCH (RED): corrected-model, report-as-defect-signal, §G.1 enforcement-chain; the RETIRED bare alternation MATCHED the same mutant (paper-gate confirmed); restore → GREEN. Performed by test-writer at 2992b53d; gates class-completed at 3326e4dd (5 additional bare survivors strengthened at 3326e4dd (named): the 6-surface _assert_g1_ref helper (fully-qualified path form); the four section-bounded primary-path gates (SKILL.md Step 8, orchestrator step (g), Story Split Recovery, winning-playbook Step 8 — co-occurrence form); the two §G.1 non-directory gates (routing co-occurrence form); the adversarial-review defect-signal gate (spec-ground-truth co-occurrence); the devops-engineer verify gate ('dispatching caller' token). 8 scratch mutants RED / 8 restores GREEN recorded by test-writer).
 
-**BC trace:** T-009 (AC-009 / RG-009) → BC-6.26.001 v1.10 Invariant 5 (awareness-surface anchor): adversary.md + adversarial-review/SKILL.md MUST state the corrected shadow-write model and reference §G.1 preflight as the enforcement chain.
+**BC trace:** T-009 (AC-009 / RG-009) → BC-6.26.001 v1.11 Invariant 5 (awareness-surface anchor): adversary.md + adversarial-review/SKILL.md MUST state the corrected shadow-write model and reference §G.1 preflight as the enforcement chain.
 
 **Summary row:**
 
 | Test | AC / RG ID | BC Trace | Failure Reason at Red Gate | Green Commit |
 |------|-----------|----------|---------------------------|--------------|
-| T-009 | AC-009 / RG-009 | BC-6.26.001 v1.10 Invariant 5 | DOC-PARITY: neither adversary.md nor adversarial-review/SKILL.md contained §G.1/BC-6.26.001 at `60f0d2d6` | `4265c96c` |
+| T-009 | AC-009 / RG-009 | BC-6.26.001 v1.11 Invariant 5 | DOC-PARITY: neither adversary.md nor adversarial-review/SKILL.md contained §G.1/BC-6.26.001 at `60f0d2d6` | `4265c96c` |

@@ -11857,3 +11857,81 @@ D-905-S2104-ADV-PASS-9-CLOSED
 ### Date
 
 2026-07-25
+
+### Erratum (recorded D-906)
+
+**F-S2104-P10-001 (HIGH) — BLAST-RADIUS gate false-GREEN in item 5 above.** Item 5 recorded `grep -n 'ADR-031 v1\.[0-9]' stories/STORY-INDEX.md | grep -v "^8:"` with stdout claiming "line 724" as a hit and asserting "zero live stale versioned pins in the BC coverage blockquote." Both claims are false:
+
+- Line 724 does not exist in STORY-INDEX.md at the cited pass-9 HEAD (9d896bf5). The hit was phantom — stdout was transcribed from pre-edit intent rather than executed against the saved artifact (POST-STATE violation).
+- Line 732 (E-21 BC coverage blockquote) contained four additional stale versioned BC pins (`BC-4.16.001 v1.2`, `BC-5.43.001 v1.3`, `BC-5.44.001 v1.3`, `BC-6.10.002 v1.3`) plus the two ADR-031 v1.3 pins that were the intended fix target. All six were correctly identified in pass-10 (F-S2104-P10-001) and remediated in burst D-906 (class-death: all versioned pins made versionless).
+
+Root cause: POST-STATE re-execution not performed — grep was composed from pre-edit intent rather than run against the saved artifact. Codified as L-EDP1-071 (POST-STATE RE-EXECUTION RULE, D-906). The false-GREEN did not corrupt any production artifact; it produced one HIGH finding in pass-10 that was closed in burst D-906.
+
+---
+
+## D-906
+
+### Title
+
+S2104-ADV-PASS-10-CLOSED — NOT-CLEAN B0/H3/M6/L2; 11 findings fixed; post-state re-execution + implication-check rules adopted; streak 0/3
+
+### Context
+
+S-21.04 LOCAL adversarial cascade pass-10. Reviewed HEAD: 2c8eff8b (test-writer worktree commit). Verdict: NOT-CLEAN — B0/H3/M6/L2 (11 findings F-S2104-P10-001..011). Novelty 0.62. Trajectory 14→18→17→12→11→11→9→9→10→11. Streak: 0/3.
+
+### Decision
+
+Close pass-10 with single-commit fix burst (TD-VSDD-053). Adopt POST-STATE re-execution rule (L-EDP1-071) and sibling-assertion implication check (L-EDP1-072). Adopt operator-cache input-hash authority convention (L-EDP1-073). Advance 4-INDEX: BC v4.32→v4.33 / STORY v4.257→v4.258 / ARCH v3.33→v3.34 / VP v2.72 UNCHANGED.
+
+### Detail
+
+Fix legs by other-agent pre-burst commits (orchestrator-verified, worktree HEAD 2c8eff8b):
+- product-owner 8b6f9880: BC-6.26.001 v1.10→v1.11 (§Traceability Architecture five-surface enumeration: devops-engineer + adversary + adversarial-review added per Precondition 3 + Invariant 5/AC-009). Closes F-S2104-P10-005.
+- architect 3192a208: ADR-031 v1.12→v1.13 (§Decision 4 five-surface enumeration mirroring BC v1.11). Closes F-S2104-P10-005 (architecture leg).
+- story-writer f5b11d43: S-21.04 v1.13→v1.14 (Gate column AC-003/004/005 T-cites added; AC-002 "manual:" scope corrected; §Tasks 12-14 for T-005/T-006/T-007-009 added). S-21.05 v1.5→v1.6 (ADR-031 v1.3 Token Budget pin made versionless). Closes F-S2104-P10-004/F-S2104-P10-011/F-S2104-P10-002.
+- story-writer d9b178df: input-hash reconciliation (operator-cache authoritative per D-892 convention). Closes input-hash inversion incident (L-EDP1-073 type specimen).
+- test-writer 2c8eff8b: bats :537 dead assertion differentiated (.md-qualified subset of :531 — no longer superset); pr-review.md + story-frontmatter gates added to AC-001(c); 22 stale present-tense labels corrected to historical form. Closes F-S2104-P10-003/F-S2104-P10-006/F-S2104-P10-010.
+
+Fix legs this burst (state-manager D-906):
+
+1. **F-P10-001 FIX — STORY-INDEX.md v4.257→v4.258 line-732 class-death**:
+   - E-21 BC coverage blockquote (line 732): 6 versioned pins made versionless — `BC-4.16.001 v1.2→BC-4.16.001`; `BC-5.43.001 v1.3→BC-5.43.001`; `ADR-031 v1.3 §Decision 2→ADR-031 §Decision 2`; `BC-5.44.001 v1.3→BC-5.44.001`; `BC-6.10.002 v1.3→BC-6.10.002`; `ADR-031 v1.3 §Decision 8→ADR-031 §Decision 8`.
+   - POST-STATE blast-radius verification (literal shell — re-run against saved file): `grep -n 'ADR-031 v1\.[0-9]\|BC-[0-9.]\+ v1\.[0-9]' stories/STORY-INDEX.md | grep "^73[0-9]:"` → (empty — zero hits on lines 730-739).
+   - D-905 erratum appended (§Erratum block above) documenting phantom line-724 hit and missed line-732 pins.
+
+2. **adversary-pass-10.md created** at `cycles/v1.0-brownfield-backfill/S-21.04/adversary-pass-10.md`: verbatim Part A finding table (11 findings B0/H3/M6/L2), observations (verbatim), per-pass-9 verification (7/3/0 + 1 falsified attestation), fix mapping (11 FIXED), incident note. Reviewed head: 2c8eff8b. Novelty 0.62.
+
+3. **F-P10-007 FIX — red-gate-log.md v1.7→v1.8**:
+   - Summary HEAD cite updated: "All GREEN at worktree HEAD 9d896bf5." → "All GREEN at worktree HEAD 2c8eff8b (suite-level verification: orchestrator ran bats story-worktree-write-path-discipline.bats → 9/9 ok and worktree-identity-preflight.bats → 14/14 ok at 2c8eff8b, 2026-07-26). All nine tests..."
+   - `traces_to`: BC-6.26.001 v1.10→v1.11; all live `BC-6.26.001 v1.10` sibling cites (PC2, Precondition, Invariant forms) updated to v1.11. POST-STATE blast-radius verification: `grep -n "BC-6\.26\.001 v1\.10" red-gate-log.md` → (empty).
+
+4. **F-P10-008 FIX — red-gate-log.md :285 named list**:
+   - "5 additional bare survivors strengthened, 8 mutants RED/restore GREEN" replaced with named list: the 6-surface `_assert_g1_ref` helper (fully-qualified path form); the four section-bounded primary-path gates (SKILL.md Step 8, orchestrator step (g), Story Split Recovery, winning-playbook Step 8 — co-occurrence form); the two §G.1 non-directory gates (routing co-occurrence form); the adversarial-review defect-signal gate (spec-ground-truth co-occurrence); the devops-engineer verify gate ('dispatching caller' token). 8 scratch mutants RED / 8 restores GREEN recorded by test-writer.
+
+5. **F-P10-009 FIX — red-gate-log.md :267/:273 version pin restored**:
+   - Narrative line 267: `BC-6.26.001 PC2 + Invariant 2 (caller-side dispatch gate)` → `BC-6.26.001 v1.11 PC2 + Invariant 2 (caller-side dispatch gate)`.
+   - T-008 table cell (line 273): `BC-6.26.001 PC2 Invariant 2` → `BC-6.26.001 v1.11 PC2 Invariant 2`.
+   - Version pin parity verified: all sibling trace rows now carry v1.11; `traces_to: "BC-6.26.001 v1.11"` confirmed in frontmatter.
+
+6. **4-INDEX updates**:
+   - BC-INDEX: v4.32→v4.33 (BC-6.26.001 row v1.10→v1.11; last_amended prepended D-906).
+   - STORY-INDEX: v4.257→v4.258 (S-21.04 row: story v1.13→v1.14 + input-hash a4b9391→1165b1f + BC cite v1.10→v1.11 + P10 refs; S-21.05 row: story v1.5→v1.6 + input-hash 4bd6796→c9265f0; line-732 class-death; last_amended prepended D-906).
+   - ARCH-INDEX: v3.33→v3.34 (ADR-031 row v1.13 amendment appended; last_amended prepended D-906).
+   - VP-INDEX: v2.72 VERIFIED UNCHANGED.
+
+7. **LESSONS [process-gap/convention]**:
+   - L-EDP1-071: POST-STATE RE-EXECUTION RULE — verification stdout must come from re-run against saved artifact (D-905 false-GREEN type specimen).
+   - L-EDP1-072: SIBLING-ASSERTION IMPLICATION CHECK — strengthened gate must not be strict superset of existing gate (F-P10-003 type specimen).
+   - L-EDP1-073: INPUT-HASH AUTHORITY CONVENTION — operator-cache values canonical; two-namespace discipline (story BC-input hash vs. artifact inputs: hash).
+
+8. **STATE.md frontmatter-minimal**: v6.43→v6.44; phase D-906-S2104-ADV-PASS-10-CLOSED.
+
+POLICY 14 gate (literal shell — post-edit): `grep -m1 "^version:" specs/behavioral-contracts/BC-INDEX.md specs/verification-properties/VP-INDEX.md stories/STORY-INDEX.md specs/architecture/ARCH-INDEX.md` → BC v4.33 / VP v2.72 / STORY v4.258 / ARCH v3.34.
+
+### Phase
+
+D-906-S2104-ADV-PASS-10-CLOSED
+
+### Date
+
+2026-07-25
