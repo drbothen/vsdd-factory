@@ -460,6 +460,15 @@ _run_teardown_preflight() {
   _assert_doc_marker 'DELIVERY' \
     "_shared-context.md §Spec-Path Discipline: DELIVERY ledger named as load-bearing case (BC-6.26.001 Invariant 4)" \
     "$spec_path_section"
+  # AC-001(c) second artifact: pr-review.md — must be named as a load-bearing case alongside DELIVERY.
+  # Deleting 'pr-review.md' from Invariant 4 clause → this gate RED; restore → GREEN (mutant-proven).
+  _assert_doc_marker 'pr-review\.md' \
+    "_shared-context.md §Spec-Path Discipline: pr-review.md named as load-bearing case (BC-6.26.001 Invariant 4; AC-001(c))" \
+    "$spec_path_section"
+  # AC-001(c) third artifact: story-frontmatter files — must be named alongside DELIVERY and pr-review.md.
+  _assert_doc_marker 'story-frontmatter' \
+    "_shared-context.md §Spec-Path Discipline: story-frontmatter files named as load-bearing case (BC-6.26.001 Invariant 4; AC-001(c))" \
+    "$spec_path_section"
 
   # --- DOC-PARITY §Spec-Path Discipline: EC-006 WARNING + no prescriptive story-worktree rev-parse (F-S2104-P3-012) ---
   # AC-001(b) strengthened: the Write Discipline clause must carry the EC-006 WARNING explaining
@@ -486,7 +495,7 @@ _run_teardown_preflight() {
   fi
 
   # --- DOC-PARITY primary paths: SKILL.md Step 8 (F-S2104-P1-001a, F-S2104-P5-007) ---
-  # RED until implementer adds §G.1/step-g-cleanup reference to SKILL.md Step 8 dispatch.
+  # was RED at 60f0d2d6 until implementer adds §G.1/step-g-cleanup reference to SKILL.md Step 8 dispatch.
   # Strengthened (F-S2104-P5-007): bare 'preflight' token removed — requires actual §G.1/step-g-cleanup ref.
   local skill_step8_section
   skill_step8_section="$(_extract_skill_step8_section)"
@@ -496,16 +505,16 @@ _run_teardown_preflight() {
   # Enumeration-correctness gate (F-S2104-P5-007): retired 'absent-dir' token must NOT appear.
   # 'absent-dir' implies [ ! -d ] absence check (v1.5 form) — superseded by [ ! -e ] existence check.
   _assert_no_doc_marker 'absent-dir' \
-    "SKILL.md Step 8 enumeration: must NOT contain 'absent-dir' token — retired with [ ! -d ] semantics; existence check [ ! -e ] supersedes it (BC-6.26.001 EC-008; RED until implementer rewrites; F-S2104-P5-007)" \
+    "SKILL.md Step 8 enumeration: must NOT contain 'absent-dir' token — retired with [ ! -d ] semantics; existence check [ ! -e ] supersedes it (BC-6.26.001 EC-008; was RED at 60f0d2d6 until implementer rewrites; F-S2104-P5-007)" \
     "$skill_step8_section"
   # Enumeration-correctness gate (F-S2104-P5-007): must reflect existence semantics per BC-6.26.001 —
-  # non-directory or symlink → BLOCKED (PC2b). RED until implementer rewrites enumeration.
+  # non-directory or symlink → BLOCKED (PC2b). was RED at 60f0d2d6 until implementer rewrites enumeration.
   _assert_doc_marker 'non-directory.*BLOCK|BLOCK.*non-directory|symlink.*BLOCK|BLOCK.*symlink|non-directory.*PC2b|symlink.*PC2b' \
-    "SKILL.md Step 8 enumeration: must reflect existence semantics — non-directory or symlink → BLOCKED (BC-6.26.001 PC2b; RED until implementer rewrites; F-S2104-P5-007)" \
+    "SKILL.md Step 8 enumeration: must reflect existence semantics — non-directory or symlink → BLOCKED (BC-6.26.001 PC2b; was RED at 60f0d2d6 until implementer rewrites; F-S2104-P5-007)" \
     "$skill_step8_section"
 
   # --- DOC-PARITY primary paths: per-story-delivery.md step (g) (F-S2104-P1-001b, F-S2104-P5-007) ---
-  # RED until implementer adds §G.1/step-g-cleanup reference adjacent to step (g) dispatch.
+  # was RED at 60f0d2d6 until implementer adds §G.1/step-g-cleanup reference adjacent to step (g) dispatch.
   # Strengthened (F-S2104-P5-007): bare 'preflight' token removed.
   local step_g_window
   step_g_window="$(_extract_per_story_delivery_step_g_window)"
@@ -514,7 +523,7 @@ _run_teardown_preflight() {
     "$step_g_window"
 
   # --- DOC-PARITY primary paths: per-story-delivery.md Story Split Recovery (F-S2104-P1-001b, F-S2104-P5-007) ---
-  # RED until implementer adds §G.1/step-g-cleanup reference to story-split cleanup step.
+  # was RED at 60f0d2d6 until implementer adds §G.1/step-g-cleanup reference to story-split cleanup step.
   # Strengthened (F-S2104-P5-007): bare 'preflight' token removed.
   local split_recovery_section
   split_recovery_section="$(_extract_per_story_delivery_split_recovery_section)"
@@ -531,19 +540,21 @@ _run_teardown_preflight() {
   _assert_doc_marker 'step-g-cleanup.*§G\.1|§G\.1.*step-g-cleanup' \
     "WINNING playbook Step 8: §G.1 ref must co-occur with step-g-cleanup — bare §G.1 alone insufficient (BC-6.26.001 PC2; F-S2104-P2-001 / F-S2104-P5-007 / F-S2104-P9-class)" \
     "$winning_step8_section"
-  # Fully-qualified-path gate (F-P5-006 leg): §G.1 ref must include step-g-cleanup.md qualification.
-  # A bare '§G.1' or 'G.1' without the filename is insufficient for cross-document traceability.
-  # RED until implementer qualifies the winning-playbook Step 8 §G.1 reference.
-  _assert_doc_marker 'step-g-cleanup.*§G\.1|step-g-cleanup.*G\.1|§G\.1.*step-g-cleanup' \
-    "WINNING playbook Step 8: §G.1 ref must be fully qualified (step-g-cleanup.md §G.1 form) — bare §G.1 insufficient; RED until implementer qualifies (F-P5-006 / F-S2104-P5-007)" \
+  # Filename-qualified gate (F-P5-006 leg / F-P10-003): §G.1 ref must include the .md extension in
+  # the filename qualifier. A bare 'step-g-cleanup §G.1' (without .md) satisfies the co-occurrence
+  # gate at :531 but fails this gate — the .md extension is required for unambiguous cross-document
+  # traceability. Differentiated from :531: :531 accepts step-g-cleanup without .md; this gate does
+  # not. was RED at 60f0d2d6 until implementer qualified the winning-playbook Step 8 §G.1 reference.
+  _assert_doc_marker 'step-g-cleanup\.md.*§G\.1|§G\.1.*step-g-cleanup\.md' \
+    "WINNING playbook Step 8: §G.1 ref must use filename-qualified form (step-g-cleanup.md §G.1) — bare 'step-g-cleanup §G.1' without .md extension fails this gate; differentiated from co-occurrence gate :531 (F-P5-006 / F-P10-003)" \
     "$winning_step8_section"
   # Enumeration-correctness gate (F-S2104-P5-007): retired 'absent-dir' token must NOT appear.
   _assert_no_doc_marker 'absent-dir' \
-    "WINNING playbook Step 8 enumeration: must NOT contain 'absent-dir' token — retired; existence semantics [ ! -e ] supersedes it (BC-6.26.001 EC-008; RED until implementer rewrites; F-S2104-P5-007)" \
+    "WINNING playbook Step 8 enumeration: must NOT contain 'absent-dir' token — retired; existence semantics [ ! -e ] supersedes it (BC-6.26.001 EC-008; was RED at 60f0d2d6 until implementer rewrites; F-S2104-P5-007)" \
     "$winning_step8_section"
   # Enumeration-correctness gate (F-S2104-P5-007): must reflect existence semantics per BC-6.26.001.
   _assert_doc_marker 'non-directory.*BLOCK|BLOCK.*non-directory|symlink.*BLOCK|BLOCK.*symlink|non-directory.*PC2b|symlink.*PC2b' \
-    "WINNING playbook Step 8 enumeration: must reflect existence semantics — non-directory or symlink → BLOCKED (BC-6.26.001 PC2b; RED until implementer rewrites; F-S2104-P5-007)" \
+    "WINNING playbook Step 8 enumeration: must reflect existence semantics — non-directory or symlink → BLOCKED (BC-6.26.001 PC2b; was RED at 60f0d2d6 until implementer rewrites; F-S2104-P5-007)" \
     "$winning_step8_section"
 
   # --- HARNESS: stray file → PREFLIGHT BLOCKED; non-zero exit (F-S2104-P1-003) ---
@@ -632,11 +643,11 @@ _run_teardown_preflight() {
   #   [ ! -d ] is TRUE when .factory is a regular file — wrong, authorizes teardown on stray content.
   #   [ ! -e ] is FALSE for any occupied path (file, dir, symlink), correctly gates on true absence.
   # Harness hardcodes [ ! -e ] pre-test; this DOC-PARITY gate independently verifies §G.1 matches.
-  # RED NOW: step-g-cleanup.md §G.1 has [ ! -d ] (v1.5 form); gate tightened to ONLY accept [ ! -e ]
+  # was RED at 60f0d2d6: step-g-cleanup.md §G.1 has [ ! -d ] (v1.5 form); gate tightened to ONLY accept [ ! -e ]
   # — no longer accepts [ ! -d ] (F-S2104-P4-007a strengthened from F-S2104-P3-001).
   # GREEN post-implementation: §G.1 updated to [ ! -e ] form (BC-6.26.001 EC-008).
   _assert_doc_marker '\[ ! -e|test[[:space:]].*!.*-e.*\.factory|if.*\[.*!.*-e.*\.factory' \
-    "step-g-cleanup.md §G.1: normative discrimination predicate MUST be [ ! -e ] (existence) not [ ! -d ] (directory) — BC-6.26.001 EC-008: [ ! -d ] authorizes teardown when a regular file exists at .factory (wrong); [ ! -e ] correctly identifies any occupied path; RED until implementer flips to [ ! -e ] (F-S2104-P3-001 strengthened by F-S2104-P4-007a)" \
+    "step-g-cleanup.md §G.1: normative discrimination predicate MUST be [ ! -e ] (existence) not [ ! -d ] (directory) — BC-6.26.001 EC-008: [ ! -d ] authorizes teardown when a regular file exists at .factory (wrong); [ ! -e ] correctly identifies any occupied path; was RED at 60f0d2d6 until implementer flips to [ ! -e ] (F-S2104-P3-001 strengthened by F-S2104-P4-007a)" \
     "$g1_section"
 
   # Negative: [ ! -d ] MUST NOT appear as the normative path-absence predicate in §G.1.
@@ -656,7 +667,7 @@ _run_teardown_preflight() {
   # --- DOC-PARITY §G.1: non-directory→PC2b clause (F-S2104-P4-007a, second gate) ---
   # BC-6.26.001 v1.6 adds: if something exists at .factory but is NOT a directory (regular file,
   # symlink-to-file), it is stray shadow content → PC2b BLOCKED directly, without running find.
-  # §G.1 must document this case (RED until implementer adds non-directory-path paragraph).
+  # §G.1 must document this case (was RED at 60f0d2d6 until implementer adds non-directory-path paragraph).
   # GREEN post-implementation: §G.1 has non-directory case routing to PC2b without find.
   _assert_doc_marker '[Nn]on-directory.*(PC2b|BLOCK)' \
     "step-g-cleanup.md §G.1: non-directory inode must be documented with routing consequence (PC2b BLOCKED) — bare non-directory token without routing is insufficient (BC-6.26.001 EC-008; F-S2104-P4-007a / F-S2104-P9-class)" \
@@ -888,14 +899,14 @@ _run_teardown_preflight() {
     "$g1_section"
 
   # --- DOC-PARITY §G.1: non-directory→PC2b BLOCKED clause presence (F-S2104-P4-007a second gate) ---
-  # RED: §G.1 does not yet document the non-directory case.
+  # was RED at 60f0d2d6: §G.1 lacked the non-directory-case paragraph (added by S-21.04 implementation).
   _assert_doc_marker '[Nn]on-directory.*(PC2b|BLOCK)' \
     "step-g-cleanup.md §G.1: non-directory inode must be documented with routing consequence (PC2b BLOCKED) — bare non-directory token without routing is insufficient (BC-6.26.001 EC-008/T-6; F-S2104-P4-007a / F-S2104-P9-class)" \
     "$g1_section"
 
   # Non-directory case must route to PC2b BLOCKED (not PC2a or PC2c)
   _assert_doc_marker 'non-directory.*PC2b|non-directory.*BLOCK|NOT.*directory.*BLOCK|non-directory.*stray|regular.*file.*stray|regular.*file.*PC2b' \
-    "step-g-cleanup.md §G.1: non-directory inode routes to PC2b BLOCKED (stray shadow content; BC-6.26.001 non-directory-path paragraph; RED until implemented)" \
+    "step-g-cleanup.md §G.1: non-directory inode routes to PC2b BLOCKED (stray shadow content; BC-6.26.001 non-directory-path paragraph; was RED at 60f0d2d6 until implemented)" \
     "$g1_section"
 
   # --- HARNESS: regular file at .factory → PC2b BLOCKED; non-zero exit; find NOT invoked ---
@@ -943,7 +954,7 @@ _run_teardown_preflight() {
   # so the v1.6 [ ! -d ] check alone would NOT catch it — the symlink would fall through to find.
   # v1.7 adds [ -L ] BEFORE [ ! -d ] to catch symlinks of all target types (including dir symlinks).
   #
-  # DOC-PARITY gate: §G.1 must carry the [ -L ] clause — RED until implementer lands it.
+  # DOC-PARITY gate: §G.1 must carry the [ -L ] clause — was RED at 60f0d2d6 until implementer lands it.
   # HARNESS: tests the discrimination chain hardcoded in _run_teardown_preflight (per BC-6.26.001).
 
   # Create a real directory for the symlink to point at (inside $WORK so it's accessible).
@@ -1039,7 +1050,7 @@ _run_teardown_preflight() {
   #
   # RED pre-implementation (5/6): worktree-manage, code-delivery, fix-pr-delivery SKILL.mds +
   #   code-delivery.lobster + greenfield.lobster all have inline `find .factory -type f` as the
-  #   primary stated action → anti-pattern → RED until implementer replaces with §G.1 delegation.
+  #   primary stated action → anti-pattern → was RED at 60f0d2d6 until implementer replaces with §G.1 delegation.
   # GREEN pre-implementation (1/6): worktree-protocol.md delegates to §G.1 without inline find.
 
   # Helper: assert anti-pattern absent in a file (inline bare find command).
@@ -1072,27 +1083,27 @@ _run_teardown_preflight() {
   }
 
   # --- 1. skills/worktree-manage/SKILL.md ---
-  # RED: has inline `find .worktrees/STORY-NNN/.factory -type f` as primary instruction.
+  # was RED at 60f0d2d6: has inline `find .worktrees/STORY-NNN/.factory -type f` as primary instruction.
   _assert_g1_ref "$WORKTREE_MANAGE_SKILL_MD" "skills/worktree-manage/SKILL.md"
   _assert_no_inline_find_antipattern "$WORKTREE_MANAGE_SKILL_MD" "skills/worktree-manage/SKILL.md"
 
   # --- 2. skills/code-delivery/SKILL.md ---
-  # RED: has inline `find .worktrees/STORY-NNN/.factory -type f` as primary instruction.
+  # was RED at 60f0d2d6: has inline `find .worktrees/STORY-NNN/.factory -type f` as primary instruction.
   _assert_g1_ref "$CODE_DELIVERY_SKILL_MD" "skills/code-delivery/SKILL.md"
   _assert_no_inline_find_antipattern "$CODE_DELIVERY_SKILL_MD" "skills/code-delivery/SKILL.md"
 
   # --- 3. skills/fix-pr-delivery/SKILL.md ---
-  # RED: has inline `find .worktrees/FIX-P[phase]-NNN/.factory -type f` as primary instruction.
+  # was RED at 60f0d2d6: has inline `find .worktrees/FIX-P[phase]-NNN/.factory -type f` as primary instruction.
   _assert_g1_ref "$FIX_PR_DELIVERY_SKILL_MD" "skills/fix-pr-delivery/SKILL.md"
   _assert_no_inline_find_antipattern "$FIX_PR_DELIVERY_SKILL_MD" "skills/fix-pr-delivery/SKILL.md"
 
   # --- 4. workflows/code-delivery.lobster ---
-  # RED: has inline `find [worktree_path]/.factory -type f` as primary instruction.
+  # was RED at 60f0d2d6: has inline `find [worktree_path]/.factory -type f` as primary instruction.
   _assert_g1_ref "$CODE_DELIVERY_WORKFLOW" "workflows/code-delivery.lobster"
   _assert_no_inline_find_antipattern "$CODE_DELIVERY_WORKFLOW" "workflows/code-delivery.lobster"
 
   # --- 5. workflows/greenfield.lobster ---
-  # RED: has inline `find .worktrees/STORY-NNN/.factory -type f` as primary instruction.
+  # was RED at 60f0d2d6: has inline `find .worktrees/STORY-NNN/.factory -type f` as primary instruction.
   _assert_g1_ref "$GREENFIELD_WORKFLOW" "workflows/greenfield.lobster"
   _assert_no_inline_find_antipattern "$GREENFIELD_WORKFLOW" "workflows/greenfield.lobster"
 
