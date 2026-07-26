@@ -490,8 +490,8 @@ _run_teardown_preflight() {
   # Strengthened (F-S2104-P5-007): bare 'preflight' token removed — requires actual §G.1/step-g-cleanup ref.
   local skill_step8_section
   skill_step8_section="$(_extract_skill_step8_section)"
-  _assert_doc_marker 'step-g-cleanup|§G\.1|G\.1' \
-    "SKILL.md Step 8: must reference step-g-cleanup.md §G.1 (not just 'preflight') — RED until implementer propagates (BC-6.26.001 PC2; F-S2104-P1-001a / F-S2104-P5-007)" \
+  _assert_doc_marker 'step-g-cleanup.*§G\.1|§G\.1.*step-g-cleanup' \
+    "SKILL.md Step 8: §G.1 ref must co-occur with step-g-cleanup — bare §G.1 or G.1 alone insufficient (BC-6.26.001 PC2; F-S2104-P1-001a / F-S2104-P5-007 / F-S2104-P9-class)" \
     "$skill_step8_section"
   # Enumeration-correctness gate (F-S2104-P5-007): retired 'absent-dir' token must NOT appear.
   # 'absent-dir' implies [ ! -d ] absence check (v1.5 form) — superseded by [ ! -e ] existence check.
@@ -509,8 +509,8 @@ _run_teardown_preflight() {
   # Strengthened (F-S2104-P5-007): bare 'preflight' token removed.
   local step_g_window
   step_g_window="$(_extract_per_story_delivery_step_g_window)"
-  _assert_doc_marker 'step-g-cleanup|§G\.1|G\.1' \
-    "per-story-delivery.md step (g): must reference step-g-cleanup.md §G.1 before Remove worktree dispatch — RED until implementer propagates (BC-6.26.001 PC2; F-S2104-P1-001b / F-S2104-P5-007)" \
+  _assert_doc_marker 'step-g-cleanup.*§G\.1|§G\.1.*step-g-cleanup' \
+    "per-story-delivery.md step (g): §G.1 ref must co-occur with step-g-cleanup — bare §G.1 alone insufficient (BC-6.26.001 PC2; F-S2104-P1-001b / F-S2104-P5-007 / F-S2104-P9-class)" \
     "$step_g_window"
 
   # --- DOC-PARITY primary paths: per-story-delivery.md Story Split Recovery (F-S2104-P1-001b, F-S2104-P5-007) ---
@@ -518,8 +518,8 @@ _run_teardown_preflight() {
   # Strengthened (F-S2104-P5-007): bare 'preflight' token removed.
   local split_recovery_section
   split_recovery_section="$(_extract_per_story_delivery_split_recovery_section)"
-  _assert_doc_marker 'step-g-cleanup|§G\.1|G\.1' \
-    "per-story-delivery.md Story Split Recovery: must reference step-g-cleanup.md §G.1 before worktree removal — RED until implementer propagates (BC-6.26.001 PC2; F-S2104-P1-001b / F-S2104-P5-007)" \
+  _assert_doc_marker 'step-g-cleanup.*§G\.1|§G\.1.*step-g-cleanup' \
+    "per-story-delivery.md Story Split Recovery: §G.1 ref must co-occur with step-g-cleanup — bare §G.1 alone insufficient (BC-6.26.001 PC2; F-S2104-P1-001b / F-S2104-P5-007 / F-S2104-P9-class)" \
     "$split_recovery_section"
 
   # --- DOC-PARITY WINNING playbook: workflows/phases/per-story-delivery.md Step 8 (F-S2104-P2-001, F-S2104-P5-007) ---
@@ -528,8 +528,8 @@ _run_teardown_preflight() {
   # Strengthened (F-S2104-P5-007): bare 'preflight' removed; enumeration + fully-qualified-path gates added.
   local winning_step8_section
   winning_step8_section="$(_extract_winning_playbook_step8_section)"
-  _assert_doc_marker 'step-g-cleanup|§G\.1|G\.1' \
-    "WINNING playbook Step 8: must reference step-g-cleanup.md §G.1 — orchestrator copy alone is insufficient (winning playbook wins on disagreement per its L8); RED until implementer propagates (BC-6.26.001 PC2; F-S2104-P2-001 / F-S2104-P5-007)" \
+  _assert_doc_marker 'step-g-cleanup.*§G\.1|§G\.1.*step-g-cleanup' \
+    "WINNING playbook Step 8: §G.1 ref must co-occur with step-g-cleanup — bare §G.1 alone insufficient (BC-6.26.001 PC2; F-S2104-P2-001 / F-S2104-P5-007 / F-S2104-P9-class)" \
     "$winning_step8_section"
   # Fully-qualified-path gate (F-P5-006 leg): §G.1 ref must include step-g-cleanup.md qualification.
   # A bare '§G.1' or 'G.1' without the filename is insufficient for cross-document traceability.
@@ -658,8 +658,8 @@ _run_teardown_preflight() {
   # symlink-to-file), it is stray shadow content → PC2b BLOCKED directly, without running find.
   # §G.1 must document this case (RED until implementer adds non-directory-path paragraph).
   # GREEN post-implementation: §G.1 has non-directory case routing to PC2b without find.
-  _assert_doc_marker 'non-directory|NOT a directory|not a directory' \
-    "step-g-cleanup.md §G.1: non-directory inode at .factory path must be documented (BC-6.26.001 EC-008; regular file at .factory → PC2b BLOCKED without find; RED until implementer adds clause; F-S2104-P4-007a)" \
+  _assert_doc_marker '[Nn]on-directory.*(PC2b|BLOCK)' \
+    "step-g-cleanup.md §G.1: non-directory inode must be documented with routing consequence (PC2b BLOCKED) — bare non-directory token without routing is insufficient (BC-6.26.001 EC-008; F-S2104-P4-007a / F-S2104-P9-class)" \
     "$g1_section"
 
   # --- HARNESS EC-005: no .factory/ dir → PC2a sub-case (a), teardown proceeds ---
@@ -889,8 +889,8 @@ _run_teardown_preflight() {
 
   # --- DOC-PARITY §G.1: non-directory→PC2b BLOCKED clause presence (F-S2104-P4-007a second gate) ---
   # RED: §G.1 does not yet document the non-directory case.
-  _assert_doc_marker 'non-directory|NOT a directory|not a directory' \
-    "step-g-cleanup.md §G.1: non-directory inode at .factory must be documented as PC2b BLOCKED (BC-6.26.001 EC-008/T-6; RED until implementer adds non-directory-path paragraph; F-S2104-P4-007a)" \
+  _assert_doc_marker '[Nn]on-directory.*(PC2b|BLOCK)' \
+    "step-g-cleanup.md §G.1: non-directory inode must be documented with routing consequence (PC2b BLOCKED) — bare non-directory token without routing is insufficient (BC-6.26.001 EC-008/T-6; F-S2104-P4-007a / F-S2104-P9-class)" \
     "$g1_section"
 
   # Non-directory case must route to PC2b BLOCKED (not PC2a or PC2c)
@@ -1059,11 +1059,14 @@ _run_teardown_preflight() {
     fi
   }
 
-  # Helper: assert §G.1/step-g-cleanup reference present.
+  # Helper: assert fully-qualified step-g-cleanup.md path present (F-S2104-P9-class strengthened).
+  # Prior bare alternation 'step-g-cleanup|§G\.1|G\.1' satisfiable by any incidental §G.1 mention
+  # without the qualified path form. All 6 surfaces carry the fully-qualified
+  # 'plugins/vsdd-factory/skills/deliver-story/steps/step-g-cleanup.md' path — require it.
   _assert_g1_ref() {
     local file="$1" label="$2"
-    grep -qE 'step-g-cleanup|§G\.1|G\.1' "$file" || {
-      echo "DOC-PARITY FAIL [§G.1 reference missing from $label]: surface must reference step-g-cleanup.md §G.1 (BC-6.26.001 PC2 + AC-007(d); F-S2104-P4-009)"
+    grep -qE 'plugins/vsdd-factory/skills/deliver-story/steps/step-g-cleanup\.md' "$file" || {
+      echo "DOC-PARITY FAIL [fully-qualified §G.1 path missing from $label]: surface must carry fully-qualified path 'plugins/vsdd-factory/skills/deliver-story/steps/step-g-cleanup.md' — bare §G.1 or step-g-cleanup alone is insufficient for cross-document traceability (BC-6.26.001 PC2 + AC-007(d); F-S2104-P4-009 / F-S2104-P9-class)"
       false
     }
   }
@@ -1167,9 +1170,13 @@ _run_teardown_preflight() {
     false
   }
 
-  # (ii) report-as-defect-signal: worktree .factory/ content must be reported as a defect signal
-  grep -qE 'defect signal' "$ADV_REVIEW_SKILL_MD" || {
-    echo "DOC-PARITY FAIL [adversarial-review/SKILL.md (ii) defect-signal obligation absent]: must instruct adversary to report shadow .factory/ content as a defect signal — 'defect signal' token absent (AC-009; BC-6.26.001 Invariant 5; F-S2104-P9-001)"
+  # (ii) report-as-defect-signal with anti-spec-ground-truth qualifier.
+  # Line 77 delivers: "MUST be reported as a defect signal, not used as spec ground-truth".
+  # Bare 'defect signal' also satisfies on line 93 ("a defect signal the adversary should report,
+  # not dismiss") — which survives even if line 77's corrected-model clause is stripped.
+  # Co-occurrence with 'spec ground-truth' is unique to the corrected-model obligation on line 77.
+  grep -qE 'defect signal.*spec ground-truth|not used as spec ground-truth' "$ADV_REVIEW_SKILL_MD" || {
+    echo "DOC-PARITY FAIL [adversarial-review/SKILL.md (ii) defect-signal co-occurrence absent]: must state shadow .factory/ content is a defect signal 'not used as spec ground-truth' — bare 'defect signal' alone is satisfiable by incidental line 93 mention without the corrected-model obligation (AC-009; BC-6.26.001 Invariant 5; F-S2104-P9-001 / F-S2104-P9-class)"
     false
   }
 
@@ -1218,11 +1225,16 @@ _extract_devops_worktree_cleanup_section() {
     "agents/devops-engineer.md §Worktree Cleanup: qualified path 'plugins/vsdd-factory/skills/deliver-story/steps/step-g-cleanup.md' required — bare §G.1 alone is insufficient (F-S2104-P7-003)" \
     "$devops_cleanup_section"
 
-  # (i) verify-PASS obligation: both tokens required in the section.
-  # 'verify' and 'PASS result|preflight result' appear on different lines; checked separately
-  # for clear failure messages when either is absent.
-  _assert_doc_marker 'verify' \
-    "agents/devops-engineer.md §Worktree Cleanup: (i) verify clause required — AC-008: must instruct executor to verify that caller ran §G.1 preflight (F-S2104-P7-003)" \
+  # (i) dispatching-caller + PASS-result obligation: both tokens required in the section.
+  # 'verify' and 'dispatching caller' span lines (grep -qE is single-line); co-occurrence not
+  # possible within one assertion. 'dispatching caller' is on its own line and is a stronger
+  # obligation token: it tests that the executor-side mandate names the CALLER as the party
+  # responsible for running §G.1, not just that §G.1 was "verified" generically.
+  # A mutant "the caller ran §G.1" (dropping 'dispatching') → 'dispatching caller' RED.
+  # 'PASS result|preflight result' and 'dispatching caller' appear on different lines; checked
+  # separately for clear failure messages when either is absent. (F-S2104-P9-class strengthened.)
+  _assert_doc_marker 'dispatching caller' \
+    "agents/devops-engineer.md §Worktree Cleanup: (i) dispatching-caller clause required — AC-008: executor must verify THE DISPATCHING CALLER ran §G.1 preflight, not just that §G.1 was run generically (F-S2104-P7-003 / F-S2104-P9-class)" \
     "$devops_cleanup_section"
   _assert_doc_marker 'PASS result|preflight result' \
     "agents/devops-engineer.md §Worktree Cleanup: (i) PASS-result clause required — AC-008: must name the expected PASS outcome explicitly, not just 'check' or 'confirm' (F-S2104-P7-003)" \
