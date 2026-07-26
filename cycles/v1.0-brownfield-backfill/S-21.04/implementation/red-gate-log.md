@@ -653,6 +653,7 @@ test-writer c89bef22 changes (3-commit wave):
 | CONTROL | Unmodified `_shared-context.md` | None | GREEN |
 | M-P17-A | `**Story-worktree exception (BC-6.26.001 Invariant 5):** Writers MUST anchor every artifact write to the story worktree CWD` inserted as second paragraph inside `#### Write Discipline`, after the prohibition paragraph's blank line | Gate PW-B: "story worktree CWD" without prohibition token in second paragraph (now in `write_discipline_prose_nosplit` domain); Gate 5: "MUST anchor...story worktree CWD" | RED |
 | in-worktree residual | `Writers MUST anchor every .factory/** artifact write to the story worktree CWD` inserted into the `**Load-bearing cases**` paragraph; proves section-wide domain reaches every paragraph | Gate PW-B: "story worktree CWD" without prohibition token in load-bearing-cases paragraph | RED |
+| Worktree-local capital-W residual | `Worktree-local paths are acceptable for lightweight writes.` appended after prohibition paragraph; sentence-initial capital-W form; found by test-writer self-audit at c89bef22 — lowercase-only `worktree-local` pattern missed the capitalized form after `. ` splitter; fix = `[Ww]orktree-local` bracket-class (grep pattern + comments + error message, 5 sites). Lowercase variant `worktree-local paths are acceptable` also tested → RED. Unmodified → GREEN | Gate PW-B: `Worktree-local` matches `[Ww]orktree-local` member in prohibited-target class | RED |
 | M-P17-H | Normative prohibition paragraph replaced with `<!-- All .factory/** ... MUST use canonical absolute paths ... CWD-relative ... FORBIDDEN. -->` comment + visible harmful sentence directing writes to worktree CWD | HTML-comment absence gate: `<!--` in `#### Write Discipline` section | RED |
 | M-P17-C | Normative paragraph inverted: `MUST use canonical absolute paths when the target lies outside the story worktree. For in-worktree ledgers, CWD-relative paths are the required form...` | Gate 1(d): mandate sentence contains `when the target` (conditional scoping) | RED |
 | M-P17-C-control | M-P17-C with `are the required form` → `are used` | Gate 1(d): conditional scoping `when the target` still present in mandate sentence (proves Gate 1(d) fires at 9/9-GREEN context before Gate PW-B; at 9ab1aa32 this control would have fired Gate PW-B per adversary capture; at c89bef22 Gate 1(d) fires first) | RED |
@@ -662,6 +663,12 @@ test-writer c89bef22 changes (3-commit wave):
 | M-P16-A (backward-compat) | `MUST NOT use canonical absolute paths ... formerly REQUIRED ... now FORBIDDEN` | Gate 1(a): mandate sentence does NOT match `MUST[[:space:]]+use[[:space:]]+canonical[[:space:]]+absolute` | RED |
 | Nine prior vectors (pass-16 battery) | M-P16-A, M-P16-B out-of-section, M-P16-B in-section, M-P16-C2, M-P16-D, M-P15-A, M-P15-B, M-P14-A, M-P14R-A / worktree-relative — see Pass-16 TIER 1 table | Gates 1(a)/(b)/(c), anchor-uniqueness (count=2), Gate 3 tightened, Gate 5, Gate 6(a) — same as pass-16 attestation | All RED (backward-compatible; pass-17 changes do not affect Gates 1(a)/(b)/(c), anchor-uniqueness, Gate 3, Gate 6(a)) |
 | Restore | Original `_shared-context.md` restored from backup after each mutant | None | GREEN |
+
+---
+
+#### Tier-2 caveat — test-writer DoD report (supplementary; non-verbatim variants recorded as instantiations only)
+
+The test-writer's full DoD report (delivered post-hoc) supplements the orchestrator battery. Two of its rows are NON-VERBATIM variants and are recorded as instantiations only: (a) its 'M-P16-B out-of-section → GREEN by design' row inserted only an inverted paragraph outside the section while leaving the real normative paragraph INTACT — that is not the adversary's M-P16-B (decoy + in-place inversion of the real paragraph), whose verbatim form is RED via Gate 1(a) per the orchestrator battery; the GREEN row must NOT be read as the adversary vector's result. (b) Several of its M-P17 mutant texts are paraphrased instantiations; the orchestrator battery rows are the authoritative adversary-verbatim proofs.
 
 ---
 
@@ -794,6 +801,8 @@ not ok 1 T-001 S-21.04 AC-003: stray-file-blocks — PREFLIGHT BLOCKED non-zero;
 ---
 
 ### NAME-SET EQUALITY gate-label parity check at c89bef22
+
+**Partition definition:** The check compares the 17 NUMBERED Write-Discipline gates in the story v1.22 Gate cell against the same partition in the audit table: anchor-uniqueness, empty-block guard, HTML-comment absence, Gate 1(a), Gate 1(b), Gate 1(c), Gate 1(d), Gate 2a, Gate 2b(a), Gate 2b(c), Gate PW-B, Gate 4, Gate 5, Gate 3 tightened, Gate 6(a), Gate 7(a), canonical-target. THREE additional T-001 assertions exist OUTSIDE that partition and are recorded in the gate-indexed table with `partition: clause-content/structural` markers: EC-006-presence (AC-001(b)), no-revparse-outside-WARNING (AC-001(b)), mandate-sentence-present (structural guard). The story cell covers these via its `clause-content gates + §G.1 mandate gates also in T-001` clause. The obligation-indexed AC-001(b) row therefore cites EC-006-presence + no-revparse-outside-WARNING (presence-only → OPEN GAP marker); AC-001(c) row cites the §G.1-mandate gates (presence-only → OPEN GAP marker). Count-only comparison is FORBIDDEN per POLICY 15 NAME-SET-EQUALITY MANDATE (D-918).
 
 ```
 $ grep -oP '(?<=\()[0-9]+\) [A-Za-z][A-Za-z0-9(). -]+(?= (?:POSITIVE|NEGATIVE|anchor|empty|HTML|Gate|canonical))' .factory/stories/S-21.04-story-worktree-write-path-discipline.md | sed 's/^[0-9]*) //' | sort > /tmp/story_gates.txt
