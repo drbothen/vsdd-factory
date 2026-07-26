@@ -8,7 +8,7 @@
 #     Invariant-2 no-exceptions clause (F-S2104-P1-002c), PC2b retry-mandate (F-S2104-P1-002d),
 #     PC2b Option A/B message body (F-S2104-P1-011), PC2c semantic direction gate (AC-006;
 #     F-S2104-P2-008 strengthened: error condition + HALT direction + no proceed-semantics),
-#     PC2a sub-case (a) absent-dir guard (F-S2104-P2-009), no-force negative (F-S2104-P1-010).
+#     PC2a sub-case (a) absent-path guard (F-S2104-P2-009), no-force negative (F-S2104-P1-010).
 #   DOC-PARITY (primary paths — F-S2104-P1-001 / F-S2104-P2-001):
 #     SKILL.md Step 8, agents/orchestrator/per-story-delivery.md step (g) + Story Split
 #     Recovery section, AND WINNING playbook (workflows/phases/per-story-delivery.md) Step 8
@@ -123,19 +123,23 @@ _extract_spec_path_discipline_section() {
   ' "$SHARED_CONTEXT_MD"
 }
 
-# Extracts the Write Discipline prohibition paragraph from _shared-context.md.
+# Extracts the Write Discipline prohibition paragraph from _shared-context.md,
+# section-bounded to §Spec-Path Discipline (F-S2104-P14-005 fix).
 # Start: line matching 'All.*\.factory.*artifact writes' (first line of the Write Discipline body,
 #   ~:66 of _shared-context.md). End: first blank line (paragraph boundary before **Load-bearing
 #   cases). Covers the normative prohibition block:
 #   "All `.factory/**` artifact writes...MUST use canonical absolute paths...
 #    CWD-relative paths...are FORBIDDEN..."
-# Used by F-S2104-P13-001 polarity-aware prohibition gate.
+# Section-bounded: reads only from within §Spec-Path Discipline (not the whole file).
+# MUTANT: relocate prohibition paragraph outside §Spec-Path Discipline → extractor finds nothing
+#   → prohibition_block empty → absent-block gate fires → RED (F-S2104-P14-005).
+# Used by F-S2104-P13-001 / F-S2104-P14-001 polarity-complete prohibition gate.
 _extract_write_discipline_prohibition_block() {
-  awk '
+  _extract_spec_path_discipline_section | awk '
     /All.*\.factory.*artifact writes/ { found=1 }
     found && /^$/ { exit }
     found { print }
-  ' "$SHARED_CONTEXT_MD"
+  '
 }
 
 # Extracts the Step 8 block from SKILL.md (deliver-story).
@@ -488,10 +492,10 @@ _run_teardown_preflight() {
     "_shared-context.md §Spec-Path Discipline: story-frontmatter files named as load-bearing case (BC-6.26.001 Invariant 4; AC-001(c))" \
     "$spec_path_section"
 
-  # --- DOC-PARITY §Spec-Path Discipline: AC-001(a) CWD-relative-path PROHIBITION (F-S2104-P12-003, F-S2104-P13-001) ---
+  # --- DOC-PARITY §Spec-Path Discipline: AC-001(a) CWD-relative-path PROHIBITION (F-S2104-P12-003, F-S2104-P13-001, F-S2104-P14-001) ---
   # BC-6.26.001 PC1 core: the Write Discipline section must state that CWD-relative paths are
-  # FORBIDDEN and that canonical absolute paths are MANDATED. Three independently mutant-proven
-  # gates (pass-13 remedy for polarity-blind 'are FORBIDDEN' gate per F-S2104-P13-001):
+  # FORBIDDEN and that canonical absolute paths are MANDATED. Five independently mutant-proven
+  # gates (pass-14 adds Gates 4+5 for polarity-COMPLETE per M-P14-A surviving mutant; F-S2104-P14-001):
   #   (1) Paragraph-level extractor (_extract_write_discipline_prohibition_block, ~:66-70) +
   #       MANDATE POLARITY (line-level): a line in the prohibition paragraph must contain both
   #       MUST and 'absolute' — verifies absolute paths are the mandate subject, not the forbidden
@@ -499,13 +503,24 @@ _run_teardown_preflight() {
   #       MUTANT (b): POLARITY INVERSION ("MUST use CWD-relative … absolute paths FORBIDDEN") →
   #         MUST-mandate line no longer co-occurs with 'absolute' → gate RED.
   #       Restore (c): line ~:66 "MUST use canonical absolute paths" → gate GREEN.
-  #   (2) Paragraph-level extractor + CWD-relative FORBIDDEN co-occurrence (joined text):
+  #   (2) Paragraph-level extractor + CWD-relative FORBIDDEN co-occurrence (safe-joined form):
   #       Joined prohibition block must contain (CWD-relative|relative path) AND FORBIDDEN.
+  #       NOTE: per-line form was considered (F-S2104-P14-001 adversary remedy) but the current
+  #       spec text has CWD-relative on line 67 and FORBIDDEN on line 68 (adjacent lines, not same
+  #       line) — per-line check would fail on the correct text. Safe-joined form preserves existing
+  #       semantics while removing the unquoted $prohibition_block expansion (F-S2104-P14-007 fix).
   #       MUTANT (a): block empty → gate RED. Restore (c): "CWD-relative...are FORBIDDEN" → GREEN.
   #   (3) '\*\*Forbidden:\*\*' co-occurring with 'relative path' — catches the **Forbidden:**
   #       example line (~:113). MUTANT: delete example line → gate RED; restore → GREEN.
-  # All three gates must survive independently.
-  local prohibition_block prohibition_joined
+  #   (4) NEGATIVE: NO line in prohibition block where 'absolute' co-occurs with 'FORBIDDEN'
+  #       (catches polarity variants where absolute paths become the FORBIDDEN subject).
+  #       M-P14-A does not trigger Gate 4 (absolute and FORBIDDEN on different lines in mutant);
+  #       Gate 4 hardens against other inversion forms where they co-occur on a single line.
+  #   (5) NEGATIVE: NO line in prohibition block where 'MUST' co-occurs with 'CWD-relative'
+  #       (catches M-P14-A polarity inversion: "MUST use CWD-relative paths" on line 1 of mutant).
+  #       This is the PRIMARY polarity gate for M-P14-A: Gate 5 fires → RED.
+  # All five gates must survive independently.
+  local prohibition_block
   prohibition_block="$(_extract_write_discipline_prohibition_block)"
 
   if [ -z "$prohibition_block" ]; then
@@ -520,12 +535,37 @@ _run_teardown_preflight() {
     false
   }
 
-  # Gate 2: CWD-relative FORBIDDEN co-occurrence (joined text spans multi-line paragraph)
-  prohibition_joined="$(printf '%s ' $prohibition_block)"
-  printf '%s\n' "$prohibition_joined" | grep -qE '(CWD-relative|relative path).*FORBIDDEN|FORBIDDEN.*(CWD-relative|relative path)' || {
-    echo "DOC-PARITY FAIL [write-discipline prohibition block CWD-relative-FORBIDDEN co-occurrence]: Write Discipline prohibition paragraph (joined) must contain (CWD-relative or relative path) co-occurring with FORBIDDEN — prohibition clause deleted or rewritten to omit key tokens (BC-6.26.001 PC1; AC-001(a); F-S2104-P13-001)"
+  # Gate 2: CWD-relative FORBIDDEN co-occurrence (safe-joined form; F-S2104-P14-001 + F-S2104-P14-007)
+  # Safe-joined replaces unquoted 'printf %s ' $prohibition_block (pathname-expansion risk with
+  # the .factory/** glob token) with 'printf %s\n "$prohibition_block" | tr \n " "'.
+  # Per-line form was not used: spec text :66-70 has CWD-relative on line 67 and FORBIDDEN on line 68
+  # (adjacent lines, not same line) — per-line check fails on correct text (see comment block above).
+  printf '%s\n' "$prohibition_block" | tr '\n' ' ' | grep -qE '(CWD-relative|relative path).*FORBIDDEN|FORBIDDEN.*(CWD-relative|relative path)' || {
+    echo "DOC-PARITY FAIL [write-discipline prohibition block CWD-relative-FORBIDDEN co-occurrence]: Write Discipline prohibition paragraph (joined) must contain (CWD-relative or relative path) co-occurring with FORBIDDEN — prohibition clause deleted or rewritten to omit key tokens (BC-6.26.001 PC1; AC-001(a); F-S2104-P13-001 / F-S2104-P14-001)"
     false
   }
+
+  # Gate 4 (NEGATIVE, F-S2104-P14-001): NO line in the prohibition block where 'absolute' co-occurs
+  # with 'FORBIDDEN'. In the correct text, absolute paths are MANDATED (MUST), not FORBIDDEN;
+  # if a mutant makes absolute paths the FORBIDDEN subject on a single line, this gate fires.
+  # Per-line check (not joined): correct text has 'absolute' on line 66 and 'FORBIDDEN' on line 68
+  # (different lines) — Gate 4 PASSES on correct text. M-P14-A also has them on different lines
+  # (absolute on line 2, FORBIDDEN on line 3) — Gate 4 does not fire for M-P14-A specifically;
+  # Gate 5 is the primary M-P14-A catching gate.
+  if printf '%s\n' "$prohibition_block" | grep -qE 'absolute.*(FORBIDDEN|forbidden)|FORBIDDEN.*absolute|forbidden.*absolute'; then
+    echo "DOC-PARITY FAIL [write-discipline prohibition block FORBIDDEN-polarity]: a line in the Write Discipline prohibition paragraph contains both 'absolute' and 'FORBIDDEN' — in the correct text absolute paths are MANDATED (MUST), not the FORBIDDEN subject; this gate catches polarity variants where 'canonical absolute paths are FORBIDDEN' appears on a single line (BC-6.26.001 PC1; AC-001(a); F-S2104-P14-001)"
+    false
+  fi
+
+  # Gate 5 (NEGATIVE, F-S2104-P14-001): NO line in the prohibition block where 'MUST' co-occurs
+  # with 'CWD-relative'. In the correct text, MUST mandates canonical absolute paths, not
+  # CWD-relative paths. M-P14-A mutant line 1: "MUST use CWD-relative paths, not canonical
+  # absolute paths" — MUST and CWD-relative appear on the same line → Gate 5 fires → RED.
+  # This is the PRIMARY polarity-catching gate for M-P14-A.
+  if printf '%s\n' "$prohibition_block" | grep -qE 'MUST.*(CWD-relative)|(CWD-relative).*MUST'; then
+    echo "DOC-PARITY FAIL [write-discipline prohibition block MUST-polarity]: a line in the Write Discipline prohibition paragraph contains both 'MUST' and 'CWD-relative' — in the correct text MUST mandates canonical absolute paths, not CWD-relative paths; this is the PRIMARY gate catching the M-P14-A polarity-inversion mutant ('MUST use CWD-relative paths, not canonical absolute paths') (BC-6.26.001 PC1; AC-001(a); F-S2104-P14-001)"
+    false
+  fi
 
   # Gate 3 (kept from pass-12): **Forbidden:** example marker must co-occur with 'relative path'
   _assert_doc_marker '\*\*Forbidden:\*\*.*relative path|relative path.*\*\*Forbidden:\*\*' \
@@ -693,11 +733,11 @@ _run_teardown_preflight() {
     "$g1_section"
 
   # --- DOC-PARITY §G.1: PC2a sub-case (a) — .factory/ absent → proceed (F-S2104-P2-009) ---
-  # Deleting the absent-dir clause from §G.1 must fail this assertion.
+  # Deleting the absent-path clause from §G.1 must fail this assertion.
   # The harness implements this sub-case at _run_teardown_preflight step 1 (hardcoded);
   # the DOC gate here verifies the spec documents the same behavior.
   _assert_doc_marker '\.factory.*absent|absent.*\.factory|no.*\.factory.*directory|path-absent.*NOT.*PC2c|EC-005' \
-    "step-g-cleanup.md §G.1: PC2a sub-case (a) — .factory/ absent path must be documented (BC-6.26.001 EC-005; deleting this clause silently breaks the absent-dir contract — F-S2104-P2-009)" \
+    "step-g-cleanup.md §G.1: PC2a sub-case (a) — .factory/ absent path must be documented (BC-6.26.001 EC-005; deleting this clause silently breaks the absent-path contract — F-S2104-P2-009)" \
     "$g1_section"
 
   # --- DOC-PARITY §G.1: PC2a sub-case (a) discrimination predicate (F-S2104-P3-001 strengthened F-S2104-P4-007a) ---
@@ -751,7 +791,7 @@ _run_teardown_preflight() {
   }
 
   # --- HARNESS EC-003: empty .factory/ dir present → PC2a sub-case (b), teardown proceeds ---
-  # Explicitly covers EC-003 (empty dir scenario distinct from EC-005 absent-dir scenario).
+  # Explicitly covers EC-003 (empty dir scenario distinct from EC-005 absent-path scenario).
   mkdir -p "$MOCK_WORKTREE/.factory"
   run _run_teardown_preflight "$MOCK_WORKTREE" "$REMOVE_LOG"
   [ "$status" -eq 0 ] || {
@@ -1103,7 +1143,7 @@ _run_teardown_preflight() {
 # BC-6.26.001 PC2 + AC-007(d)
 # Target surfaces: worktree-manage/SKILL.md, code-delivery/SKILL.md, fix-pr-delivery/SKILL.md,
 #   workflows/code-delivery.lobster, workflows/greenfield.lobster, rules/worktree-protocol.md
-# RED on surfaces that present `find` as first action with absent-dir/find-error as unordered
+# RED on surfaces that present `find` as first action with absent-path/find-error as unordered
 #   siblings (anti-pattern per AC-007(d)); GREEN on surfaces that delegate cleanly to §G.1.
 # ===========================================================================
 
@@ -1111,8 +1151,8 @@ _run_teardown_preflight() {
   # T-008 / AC-007(d) — named for ordinal-free reference (F-S2104-P4-009 6-surface mandate gate)
   # Each of the 6 surfaces must:
   #   (i) reference step-g-cleanup.md §G.1 (or unambiguous equivalent)
-  #   (ii) NOT present `find` as the first action with absent-dir/find-error as unordered siblings
-  #        (anti-pattern: inline bare find-first command without explicit absent-dir-first ordering)
+  #   (ii) NOT present `find` as the first action with absent-path/find-error as unordered siblings
+  #        (anti-pattern: inline bare find-first command without explicit absent-path-first ordering)
   #
   # RED pre-implementation (5/6): worktree-manage, code-delivery, fix-pr-delivery SKILL.mds +
   #   code-delivery.lobster + greenfield.lobster all have inline `find .factory -type f` as the
@@ -1131,7 +1171,7 @@ _run_teardown_preflight() {
     # Fix: '[^[:space:]]*' after '\.factory/?' consumes any trailing non-space chars (e.g., '"')
     # before '[[:space:]]' matches the argument separator (F-S2104-P6-007 + F-S2104-P7-002).
     if grep -qE 'find[[:space:]]+[^[:space:]]*\.factory/?[^[:space:]]*[[:space:]].*-type[[:space:]]+f' "$file"; then
-      echo "DOC-PARITY FAIL [anti-pattern present in $label]: surface presents inline bare 'find ... .factory[/] ... -type f' as the first action — MUST NOT inline find command; delegate to §G.1 preflight instead (BC-6.26.001 PC2 + AC-007(d); absent-dir check is first, not an unordered sibling; F-S2104-P4-009)"
+      echo "DOC-PARITY FAIL [anti-pattern present in $label]: surface presents inline bare 'find ... .factory[/] ... -type f' as the first action — MUST NOT inline find command; delegate to §G.1 preflight instead (BC-6.26.001 PC2 + AC-007(d); absent-path check is first, not an unordered sibling; F-S2104-P4-009)"
       false
     fi
   }
@@ -1181,7 +1221,7 @@ _run_teardown_preflight() {
 
 # ===========================================================================
 # F-S2104-P4-002 / T-009: DOC-PARITY gates — adversary.md + adversarial-review/SKILL.md §G.1/BC-6.26.001 preflight-awareness
-# AC-007(d)/AC-009 specialist agent awareness — obligation-asserting (pass-9 strengthened; F-S2104-P9-001)
+# AC-009 specialist agent awareness — obligation-asserting (pass-9 strengthened; F-S2104-P9-001)
 # Three gates per file: corrected-model + report-as-defect-signal + §G.1 enforcement-chain reference.
 # Prior bare alternation (byte-identical to retired pass-7 T-007 pattern) satisfied by incidental
 # BC-6.26.001 mention without the corrected shadow-write model or defect-signal obligation present.
@@ -1269,7 +1309,7 @@ _run_teardown_preflight() {
 
 # ===========================================================================
 # F-S2104-P4-003: DOC-PARITY gate — agents/devops-engineer.md §Worktree Cleanup preflight-verification mandate
-# AC-007(d) / AC-008: executor-side defensive preflight — verify-PASS + run-it-yourself obligations
+# AC-008: executor-side defensive preflight — verify-PASS + run-it-yourself obligations
 # Strengthened (F-S2104-P7-003): prior broad alternation was satisfiable by any bare §G.1/BC-6.26.001
 # mention (paper-gate). Replaced with obligation-asserting gates for both AC-008 obligations.
 # ===========================================================================
@@ -1326,3 +1366,112 @@ _extract_devops_worktree_cleanup_section() {
     "agents/devops-engineer.md §Worktree Cleanup: (ii) run-it-yourself fallback required — AC-008: must instruct executor to run §G.1 preflight themselves when PASS result is not evident from the dispatch (F-S2104-P7-003)" \
     "$devops_cleanup_section"
 }
+
+# ===========================================================================
+# RED-GATE-LOG ATTESTATION — D-910 verbatim transcription (pass-14 legs)
+# F-S2104-P14-001 / F-S2104-P14-002 / F-S2104-P14-005 / F-S2104-P14-007 / F-S2104-P14-008
+# ===========================================================================
+#
+# LEG 1 (F-S2104-P14-001): polarity-COMPLETE prohibition predicate — Gates 4 + 5 added
+#
+#   M-P14-A EXACT SUBSTITUTED TEXT (replace _shared-context.md:66-70 with):
+#     All `.factory/**` artifact writes performed during story delivery MUST use CWD-relative paths, not canonical absolute paths
+#     anchored to the main-checkout root. Canonical absolute paths (e.g., `$CANONICAL_FACTORY_ROOT/.factory/stories/S-NNN-DELIVERY.md`)
+#     are FORBIDDEN — CWD-relative writes land in the story worktree's shadow `.factory/` subtree and are preserved at teardown.
+#
+#   (a) M-P14-A → RED: Gate 5 fires (MUST+CWD-relative co-occur on line 1 of mutant block).
+#       Stdout evidence (literal shell):
+#         $ printf '%s\n' "$MUTANT_BLOCK" | grep -nE 'MUST.*(CWD-relative)|(CWD-relative).*MUST'
+#         1:All `.factory/**` artifact writes performed during story delivery MUST use CWD-relative paths, not canonical absolute paths
+#       Gate 5 message: "DOC-PARITY FAIL [write-discipline prohibition block MUST-polarity]: a line in the
+#         Write Discipline prohibition paragraph contains both 'MUST' and 'CWD-relative' — in the correct
+#         text MUST mandates canonical absolute paths, not CWD-relative paths; this is the PRIMARY gate
+#         catching the M-P14-A polarity-inversion mutant..."
+#       Note: Gate 1 (MUST+absolute) also passes for M-P14-A — mutant line 1 contains both "MUST" and
+#         "not canonical absolute paths", so Gate 1 alone cannot distinguish polarity. Gate 5 is required.
+#       Note: Gate 4 (negative absolute+FORBIDDEN) does NOT fire for M-P14-A — mutant has "absolute" on
+#         line 2 and "FORBIDDEN" on line 3 (different lines). Gate 5 is the PRIMARY catching gate.
+#
+#   (b) block deleted → RED: if [ -z "$prohibition_block" ] fires (absent-block check precedes Gates 1-5).
+#       Stdout: "DOC-PARITY FAIL [write-discipline prohibition block absent]: _shared-context.md Write
+#         Discipline prohibition paragraph...not found — block deleted or heading changed"
+#
+#   (c) restore → GREEN:
+#       Current spec text :66-70 output (literal shell):
+#         $ awk '/All.*\.factory.*artifact writes/{found=1} found && /^$/{exit} found{print}' _shared-context.md
+#         All `.factory/**` artifact writes performed during story delivery MUST use canonical absolute paths
+#         anchored to the main-checkout root. CWD-relative paths (e.g., `.factory/stories/S-NNN-DELIVERY.md`
+#         resolved from the story worktree CWD) are FORBIDDEN — such writes land silently in the story
+#         worktree's shadow `.factory/` subtree and are permanently destroyed at teardown (issue #523
+#         gitignored-shadow mechanism; BC-6.26.001 Invariant 5).
+#       Gate 1 PASSES: line 1 has MUST+absolute.
+#       Gate 2 PASSES: joined text has CWD-relative before FORBIDDEN.
+#       Gate 4 PASSES: no line has absolute+FORBIDDEN together (absolute on line 1, FORBIDDEN on line 3).
+#       Gate 5 PASSES: no line has MUST+CWD-relative together (MUST on line 1, CWD-relative on line 2).
+#
+#   Per-line Gate 2 NOT used: spec text :66-70 has CWD-relative on line 2 and FORBIDDEN on line 3
+#   (adjacent lines, not same line). Per-line check fails on correct text. Safe-joined form preserves
+#   semantics while eliminating unquoted $prohibition_block expansion (F-S2104-P14-007 moot by Leg 1).
+#
+# LEG 2 (F-S2104-P14-005): section-bounded prohibition extractor
+#
+#   _extract_write_discipline_prohibition_block now pipes through _extract_spec_path_discipline_section.
+#   Mutant (relocate prohibition paragraph outside §Spec-Path Discipline) → RED:
+#     Section extractor returns empty for that paragraph → prohibition_block="" → absent-block check fires.
+#     Stdout: "DOC-PARITY FAIL [write-discipline prohibition block absent]..."
+#   Literal shell verification:
+#     $ _extract_spec_path_discipline | awk '/All.*\.factory.*artifact writes/{found=1} found && /^$/{exit} found{print}'
+#     [outputs lines 66-70 — block found in section, GREEN]
+#     $ printf '' | awk '/All.*\.factory.*artifact writes/{found=1} found && /^$/{exit} found{print}'
+#     [empty output — block not in section, absent-block gate fires, RED]
+#
+# LEG 3 (F-S2104-P14-002): banner anchor corrections
+#
+#   Before: line ~1184 "# AC-007(d)/AC-009 specialist agent awareness"
+#   After:  line ~1184 "# AC-009 specialist agent awareness"
+#   Before: line ~1272 "# AC-007(d) / AC-008: executor-side defensive preflight"
+#   After:  line ~1272 "# AC-008: executor-side defensive preflight"
+#   Executable predicate (literal shell):
+#     $ grep -n 'AC-007(d)' story-worktree-write-path-discipline.bats
+#     52:#   T-008  AC-007(d)  6-surface-mandate:    6 ungated mandate surfaces — §G.1 delegation; anti-pattern absent
+#     1143:# BC-6.26.001 PC2 + AC-007(d)
+#     1147:#   siblings (anti-pattern per AC-007(d)); GREEN on surfaces that delegate cleanly to §G.1.
+#     1151:  # T-008 / AC-007(d) — named for ordinal-free reference (F-S2104-P4-009 6-surface mandate gate)
+#     1174:      echo "DOC-PARITY FAIL [anti-pattern present in $label]: ...BC-6.26.001 PC2 + AC-007(d);..."
+#     1186:      echo "DOC-PARITY FAIL [fully-qualified §G.1 path missing from $label]: ...AC-007(d); F-S2104-P4-009..."
+#   Classification: ALL hits are in T-008/six-surface contexts (lines 52, 1143, 1147, 1151, 1174, 1186).
+#   T-009 banner (formerly line 1184) and T-007 banner (formerly line 1272) no longer contain AC-007(d). ✓
+#
+# LEG 4 (F-S2104-P14-007): moot by Leg 1 implementation
+#
+#   The unquoted $prohibition_block expansion in "prohibition_joined=$(printf '%s ' $prohibition_block)"
+#   was the risk vector (pathname expansion with .factory/** glob token).
+#   Leg 1 replaced the entire Gate 2 implementation with:
+#     printf '%s\n' "$prohibition_block" | tr '\n' ' ' | grep -qE ...
+#   The prohibition_joined variable is removed entirely. No unquoted expansion remains.
+#   Leg 4 is moot: the vulnerability no longer exists after Leg 1's safe-joined Gate 2.
+#
+# LEG 5 (F-S2104-P14-008): absent-path rename
+#
+#   Renamed 'absent-dir' → 'absent-path' at:
+#     line ~11:   header comment "PC2a sub-case (a) absent-path guard"
+#     line ~696:  comment "Deleting the absent-path clause from §G.1"
+#     line ~700:  assertion label "breaks the absent-path contract — F-S2104-P2-009"
+#     line ~754:  comment "distinct from EC-005 absent-path scenario"
+#     line ~1106: banner "absent-path/find-error as unordered siblings"
+#     line ~1114: inner comment "absent-path/find-error as unordered siblings"
+#     line ~1115: inner comment "absent-path-first ordering"
+#     line ~1134: echo string "absent-path check is first, not an unordered sibling"
+#   Retained 'absent-dir' (negative-gate patterns that forbid the token in gated docs):
+#     lines ~608-611: _assert_no_doc_marker 'absent-dir' for SKILL.md Step 8
+#     lines ~656-658: _assert_no_doc_marker 'absent-dir' for WINNING playbook Step 8
+#   Executable predicate (literal shell):
+#     $ grep -in 'absent-dir' story-worktree-write-path-discipline.bats
+#     608:  # Enumeration-correctness gate (F-S2104-P5-007): retired 'absent-dir' token must NOT appear.
+#     609:  # 'absent-dir' implies [ ! -d ] absence check (v1.5 form) — superseded by [ ! -e ] existence check.
+#     610:  _assert_no_doc_marker 'absent-dir' \
+#     611:    "SKILL.md Step 8 enumeration: must NOT contain 'absent-dir' token..."
+#     656:  # Enumeration-correctness gate (F-S2104-P5-007): retired 'absent-dir' token must NOT appear.
+#     657:  _assert_no_doc_marker 'absent-dir' \
+#     658:    "WINNING playbook Step 8 enumeration: must NOT contain 'absent-dir' token..."
+#   Classification: ALL hits are inside the negative-gate patterns/labels that forbid the token. ✓
