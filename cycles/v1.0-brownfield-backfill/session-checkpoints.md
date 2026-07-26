@@ -7,7 +7,7 @@ producer: state-manager
 timestamp: 2026-04-26T12:00:00Z
 cycle: v1.0-brownfield-backfill
 inputs: [STATE.md]
-input-hash: "76c3a42"
+input-hash: "b159059"
 traces_to: STATE.md
 ---
 
@@ -1463,3 +1463,20 @@ merged_count at wrap: 110 (story merges only; fix PR #763 does not increment per
 - **E-21 W2 stories (DISPATCHABLE):** S-21.04 (P1; 5pts; CAP-036; issue #523; BC-6.26.001 v1.3; draft; SEQUENTIAL after W1 gate per D-862) → S-21.05 (P1; 5pts; CAP-037; issue #588; BC-6.27.001 v1.3; draft)
 - **S-21.06 registered:** Layer-2 WASM guard; W-SEC-001; P1; 8pts; depends_on [S-21.01]; wave 3; E-21; authored faece5a8; target `crates/hook-plugins/validate-main-checkout-sync/`
 - **main-repo dirt (ignorable):** `.claude/scheduled_tasks.lock` (harness-managed; unchanged since session start) + `plugins/vsdd-factory/tests/report.tap` (untracked test artifact; ignorable)
+
+## D-910 Checkpoint (2026-07-26 session wrap — AUTHORITATIVE)
+
+### 1. Position
+Pipeline PAUSED mid-S-21.04 LOCAL adversarial cascade (BC-5.39.001; E-21 W2; deliver-story Step 4.5). Pass 14 adversary REVIEWED (NOT-CLEAN B0/H2/M4/L2, 8 findings F-S2104-P14-001..008, novelty 0.50, reviewed_head 09cfce81); pass-14 FIX WAVE PARTIALLY LANDED: story-writer leg DONE (S-21.04 v1.18, 77aa0d55, F-P14-004 class-death SoT pointer); test-writer leg DONE (6f928350: polarity-complete predicate — safe-joined Gate 2 + negative Gates 4/5, M-P14-A caught by Gate 5 with recorded stdout; section-bounded extractor; banner anchors; absent-path rename; Leg-4 quoting moot by Gate-2 rewrite; suites 9/9 + 14/14). Pass-14 fix wave FULLY LANDED except the state-manager closure legs. D-910 closure burst (P14-003 STORY-INDEX epic pin v1.5→v1.7; P14-006 mutant-record precision; codifications; verbatim pass-14 record) NOT STARTED. Streak 0/3. Trajectory: 14→18→17→12→11→11→9→9→10→11→7→10→10→8.
+### 2. Worktree/branches
+feature/S-21.04-story-worktree-write-path-discipline @ 6f928350 (79 commits over develop base 948f0fb1) — PUSHED to origin at wrap (orchestrator pushed 09cfce81 then 6f928350). Worktree .worktrees/S-21.04 clean. develop 948f0fb1; main 80e5cd7b (rc.24 STILL PENDING, quadruply load-bearing per D-892 + now QUINTUPLY: all S-21.04 protections inert at operator level until released). factory-artifacts HEAD at this wrap commit.
+### 3. Spec chain (current)
+S-21.04 v1.18 (input-hash 1165b1f); S-21.05 v1.6; E-21 epic v1.7 (input-hash 580b545; S-21.06 fully registered); BC-6.26.001 v1.11; BC-6.27.001 v1.4; ADR-031 v1.13; red-gate-log v1.11; STORY-INDEX v4.261; BC-INDEX v4.33; VP-INDEX v2.72; ARCH-INDEX v3.34. adversary-pass-01..13.md persisted (verbatim-authoritative; pass-01/02 fabricated bodies VOID-quarantined per D-897). Pass-14 record NOT yet persisted — full verbatim Part A lives in the orchestrator transcript; on resume the orchestrator must relay it into the D-910-class closure burst (or re-run pass 14 if fidelity is in doubt).
+### 4. Human rulings on record
+(a) Pass-9 + pass-12 AskUserQuestion: LOOP TO 3-CLEAN; asymptotic acceptance and perimeter-freeze both DECLINED. (b) ~11 telemetry-only stashes sit on the .factory worktree; the destructive-command-guard reserves stash drops for a human terminal by design: cd .factory && git stash list, then drop as desired.
+### 5. Discipline stack (all active; codified L-EDP1-070..078 + D-897..D-909)
+Verbatim records + orchestrator diff-verify; fresh-session record persisters; zero-degrees-of-freedom attestations; mutant-proven gates (exact substituted text recorded); class-bounded sweeps; blast-radius post-state re-execution; sibling-assertion implication check; orchestrator-authored class predicates; attestation-per-assertion-site; count-free crossrefs; versionless-pin class-death (ADR cites + non-load-bearing BC cites; catalog-row BC pins STAY VERSIONED); input-hash operator-cache-authoritative (L-EPD1-073 — state IN EVERY dispatch; inverted twice); reviewed_head/fixes_landed_head dual fields.
+### 6. Known open items (not blocking, tracked)
+6 bin/ space-unsafe awk sites (pending human story anchor); dual playbook-precedence conflict (open drift item); operator-cache inertness until rc.24; PR #729 REQUEST_CHANGES; issue close comments #342/#365/#358 pending human; S-7.06..S-7.14 triage; wasmtime RUSTSEC upgrades; STATE.md body reconciliation post-rc.24.
+### 7. Resume command
+/vsdd-factory:next-step → (1) D-910-class pass-14 closure burst (P14-003 STORY-INDEX epic pin v1.5→v1.7; P14-006 mutant-record precision; transcribe the 6f928350 attestation block + verbatim pass-14 Part A from the orchestrator relay; fixes_landed_head 6f928350), (2) adversary pass 15, continuing the human-ruled loop to 3-CLEAN. Remaining delivery steps after convergence: demos → push (done early at wrap) → pr-manager 9-step (S-7.13 surface-and-hold; HUMAN merges) → cleanup → post-merge state burst.
