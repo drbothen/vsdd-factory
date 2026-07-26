@@ -649,7 +649,7 @@ _run_teardown_preflight() {
   # Fenced code blocks are denoted by ``` fences; excluded to avoid false-positive gate fires on
   # code examples that legitimately mention relative paths in a Forbidden example context.
   # Match indented fences too (/^[[:space:]]*```/): _shared-context.md uses 2-space-indented
-  # fences for the Canonical root determination bash block (lines 93/104); bare /^```/ would
+  # fences for the Canonical root determination bash block (the §Canonical root determination bash block); bare /^```/ would
   # miss them and include the bash code block in the prose domain.
   local write_discipline_prose
   write_discipline_prose="$(printf '%s\n' "$write_discipline_section" | \
@@ -731,11 +731,11 @@ _run_teardown_preflight() {
   # prohibited-target: CWD-relative|worktree-relative|relative[[:space:]]+paths?|
   #                    story-worktree[[:space:]]+CWD|story[[:space:]]+worktree[[:space:]]+CWD|
   #                    worktree's[[:space:]]+shadow|worktree[[:space:]]+CWD|shadow[[:space:]]+subtree|
-  #                    worktree-local
-  # NOTE: 'in-worktree' excluded from prohibited-target — 'in-worktree' is a substring of
-  #   '<main-worktree-path>' (template placeholder in Canonical root determination section), causing
-  #   false-positive matches on that section's prose. M-P17-C is caught by 'CWD-relative' and
-  #   'worktree's shadow'; 'in-worktree' is redundant for all recorded mutants.
+  #                    worktree-local|(^|[^[:alnum:]])[Ii]n-worktree
+  # NOTE: 'in-worktree' added with word-boundary-safe predicate (^|[^[:alnum:]])[Ii]n-worktree —
+  #   bare 'in-worktree' was excluded because '<main-worktree-path>' has 'n' (alphanumeric) before
+  #   'in-worktree'; the word-boundary form fails on that template placeholder while catching
+  #   standalone [Ii]n-worktree at sentence start or after space (F-S2104-P17-002(b) completion).
   # prohibition: FORBIDDEN|Forbidden|forbidden|MUST NOT|prohibited|never|forbid
   # NOTE: 'Forbidden' (capital-F) added to handle **Forbidden:** bullet labels in the section.
   # M-P17-A S1: "Writers MUST anchor every .factory/** artifact write to the story worktree CWD"
@@ -748,10 +748,10 @@ _run_teardown_preflight() {
   #   label present → sentence excluded from violations by grep -Ev → PASSES.
   local polarity_violations
   polarity_violations="$(printf '%s\n' "$write_discipline_prose_nosplit" | sed 's/\. /\n/g' | \
-    grep -E 'CWD-relative|worktree-relative|relative[[:space:]]+paths?|story-worktree[[:space:]]+CWD|story[[:space:]]+worktree[[:space:]]+CWD|worktree'\''s[[:space:]]+shadow|worktree[[:space:]]+CWD|shadow[[:space:]]+subtree|worktree-local' | \
+    grep -E 'CWD-relative|worktree-relative|relative[[:space:]]+paths?|story-worktree[[:space:]]+CWD|story[[:space:]]+worktree[[:space:]]+CWD|worktree'\''s[[:space:]]+shadow|worktree[[:space:]]+CWD|shadow[[:space:]]+subtree|worktree-local|(^|[^[:alnum:]])[Ii]n-worktree' | \
     grep -Ev 'FORBIDDEN|Forbidden|forbidden|MUST NOT|prohibited|never|forbid' || true)"
   if [ -n "$polarity_violations" ]; then
-    echo "DOC-PARITY FAIL [write-discipline section-wide sentence polarity (Gate PW-B, F-S2104-P16-001(b)/F-S2104-P17-002)]: a sentence in the Write Discipline section contains a prohibited-target form (CWD-relative|worktree-relative|relative paths?|story-worktree CWD|story worktree CWD|worktree's shadow|worktree CWD|shadow subtree|worktree-local) without a prohibition token (FORBIDDEN|Forbidden|forbidden|MUST NOT|prohibited|never|forbid) — M-P17-A S1 'Writers MUST anchor every write to the story worktree CWD' carries no prohibition token; M-P17-C S2 'CWD-relative paths are the required form, and they land in the story worktree's shadow subtree' carries no prohibition token (BC-6.26.001 PC1; AC-001(a))"
+    echo "DOC-PARITY FAIL [write-discipline section-wide sentence polarity (Gate PW-B, F-S2104-P16-001(b)/F-S2104-P17-002)]: a sentence in the Write Discipline section contains a prohibited-target form (CWD-relative|worktree-relative|relative paths?|story-worktree CWD|story worktree CWD|worktree's shadow|worktree CWD|shadow subtree|worktree-local|in-worktree) without a prohibition token (FORBIDDEN|Forbidden|forbidden|MUST NOT|prohibited|never|forbid) — M-P17-A S1 'Writers MUST anchor every write to the story worktree CWD' carries no prohibition token; M-P17-C S2 'CWD-relative paths are the required form, and they land in the story worktree's shadow subtree' carries no prohibition token (BC-6.26.001 PC1; AC-001(a))"
     printf '%s\n' "$polarity_violations"
     false
   fi
