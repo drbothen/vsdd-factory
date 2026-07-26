@@ -12409,3 +12409,38 @@ D-916-S2104-PASS-16-CLOSED
 ### Date
 
 2026-07-26
+
+## D-917
+
+### Summary
+
+S-21.04 LOCAL adversarial pass-17 record persisted verbatim at commit 564e02cb. Verdict NOT-CLEAN B2/H2/M3 (7 findings F-S2104-P17-001..007; novelty 0.55; trajectory 6→7; reviewed_head 9ab1aa32). Streak 0/3 (BC-5.39.001 reset). Per-pass-16 verification: 3 CONFIRMED-CLOSED / 3 PARTIAL / 0 REGRESSED. Seventh-generation BLOCKER class on BC-6.26.001 PC1 (F-P12-003 → F-P13-001 → F-P14-001 → F-S2104-P14R-001 → F-S2104-P15-001 → F-S2104-P16-001 → F-S2104-P17-002). Human ruling 2026-07-26: CONTINUE TACTICAL HARDENING per zero-DoF predicates — structural exact-match-snapshot escalation DECLINED. Fix-wave routing: test-writer (P17-001/002/003/004 + docblock correction) → story-writer (P17-007 + Gate-cell resync to final gate set) → state-manager closure D-918 (P17-005/006 + codifications). fixes_landed_head PENDING (fix wave not yet executed).
+
+**ERRATUM:** D-917 codification was omitted from the record-persist commit 564e02cb despite being cited in that commit message — a POLICY 16 citation-at-authoring-time violation. This follow-up commit rectifies the omission per D-916-addendum precedent and error-acknowledgment discipline.
+
+### Detail
+
+1. **POLICY 16 GLOBAL-MAX GATE (literal shell stdout)**:
+   - `grep -rh '^## D-' cycles/v1.0-brownfield-backfill/decision-log.md cycles/v1.0-feature-engine-discipline-pass-1/decision-log.md | sed 's/^## D-//' | sort -n | tail -5` → `912 / 913 / 914 / 915 / 916`
+   - D-916 confirmed global max → D-917 allocated. PASS.
+
+2. **adversary-pass-17.md written verbatim** per D-897 VERBATIM-RECORD-PERSISTENCE rule at commit 564e02cb. No pipe-escape applied (no pipe characters inside backtick code spans in table cells).
+
+3. **Post-write diff-verify (literal shell stdout)**:
+   - `wc -l adversary-pass-17.md` → `384`
+   - `grep -c "F-S2104-P17-" adversary-pass-17.md` → `32`
+
+4. **POLICY 14 4-INDEX GATE (literal shell stdout)**:
+   - `grep -m1 "^version:" specs/behavioral-contracts/BC-INDEX.md specs/verification-properties/VP-INDEX.md stories/STORY-INDEX.md specs/architecture/ARCH-INDEX.md` → BC v4.33 / VP v2.72 / STORY v4.264 / ARCH v3.34. ALL UNCHANGED this burst. PASS.
+
+5. **Telemetry bundled in record-persist commit**: `logs/dispatcher-internal-2026-07-26.jsonl`, `logs/events-2026-07-26.jsonl`, `sidecar-learning.md` staged in same commit as adversary-pass-17.md per TD-VSDD-053.
+
+6. **`fixes_landed_head` intentionally ABSENT**: closure burst D-918 adds it per D-907 dual-field convention (fix wave not yet executed).
+
+### Phase
+
+D-917-S2104-PASS-17-PERSISTED
+
+### Date
+
+2026-07-26
