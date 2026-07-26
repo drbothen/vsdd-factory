@@ -1,7 +1,7 @@
 ---
 document_type: epic
 epic_id: "E-21"
-version: "v1.7"
+version: "v1.8"
 status: draft
 title: "Factory State Data-Loss Hardening — validate-factory-path-staging WASM guard, post-rebase diff-integrity gate, pr-manager trunk assertions, story-worktree write-path discipline, factory-side PR protocol, validate-main-checkout-sync WASM guard (W-SEC-001)"
 prd_capabilities: [CAP-034, CAP-035, CAP-036, CAP-037, CAP-038]
@@ -28,8 +28,8 @@ inputs:
   - .factory/stories/S-21.04-story-worktree-write-path-discipline.md
   - .factory/stories/S-21.05-pr-manager-factory-side-pr-protocol.md
   - .factory/stories/S-21.06-layer-2-sync-protocol-wasm-guard.md
-input-hash: "580b545"
-last_amended: "2026-07-26 (v1.7) — D-909 input-hash correction 3ae5a1f→580b545 (INCIDENT: v1.6 S-21.06 input registration did not recompute hash; 580b545 is operator-cache canonical value per L-EDP1-073). [Prior: 2026-07-25 (v1.6) — pass-13 F-S2104-P13-D1 (orchestrator-adjudicated fix-in-scope): S-21.06 registered — title extended, inputs list extended, Stories table (W3 / 8 pts / TBD BCs), EAC-001 extended to S-21.06, Sequencing W3 note, Wave model note updated to W3, Dependency Graph S-21.01→S-21.06 hard edge, description text de-counted, total 6 stories / 35 pts / 3 waves, Maintenance tally 5/27→6/35, story_count 5→6. [Prior: 2026-07-19 (v1.5) — adv pass-7 fix burst (O-P7-a): EAC-006 added (factory-side PR 5-step restore per BC-6.27.001 v1.3 INV-E21-003; 1:1 story↔EAC symmetry restored); BC-6.27.001 v1.2→v1.3 in PRD Capabilities CAP-037 + BC Traceability table; POLICY 14 parity. [Prior: 2026-07-19 (v1.4) — adv pass-5 fix burst (F-P5-001): added missing v1.3 Changelog row to body ## Changelog table; frontmatter/body changelog parity restored (5 modified[] entries now matched by 5 Changelog table rows). [Prior: 2026-07-19 (v1.3) — adv pass-3 fix burst (F-P3-003): CAP-036 stale BC-6.26.001 v1.2 cite corrected to v1.3; TD-VSDD-060 full grep sweep confirms no other stale v1.2 cites of BC-5.44.001, BC-6.10.002, BC-6.26.001, or BC-5.43.001. [Prior: 2026-07-19 (v1.2) — adv pass-2 fix burst (F-P2-003): INV-E21-005 'post-rebase product branch' → 'post-rebase feature branch' (authoritative ADR-031 INV-E21-005 scope); BC-5.43.001 → v1.3; ADR-031 version cites → v1.3 (all occurrences); Description item 2 'product branch' + 'pr-manager post-rebase checkpoint' corrected to 'feature branch' + 'devops-engineer.md §Inter-Wave Rebase checkpoint'.]]]]]"
+input-hash: "06f117d"
+last_amended: "2026-07-26 (v1.8) — pass-15 F-S2104-P15-003 — six BC Traceability pins current (BC-4.16.001 v1.2→v1.8, BC-5.43.001 v1.3→v1.4, BC-5.44.001 v1.3→v1.5, BC-6.10.002 v1.3→v1.5, BC-6.26.001 v1.3→v1.11 + trailing-slash find form, BC-6.27.001 v1.3→v1.4); eleven live-body ADR-031 v1.N tokens stripped to stable anchor form (POLICY 19); stale body BC version cites updated (POLICY 5 TD-VSDD-060 sweep); input-hash recomputed 580b545→06f117d (BC inputs amended). [Prior: 2026-07-26 (v1.7) — D-909 input-hash correction 3ae5a1f→580b545 (INCIDENT: v1.6 S-21.06 input registration did not recompute hash; 580b545 is operator-cache canonical value per L-EDP1-073). [Prior: 2026-07-25 (v1.6) — pass-13 F-S2104-P13-D1 (orchestrator-adjudicated fix-in-scope): S-21.06 registered — title extended, inputs list extended, Stories table (W3 / 8 pts / TBD BCs), EAC-001 extended to S-21.06, Sequencing W3 note, Wave model note updated to W3, Dependency Graph S-21.01→S-21.06 hard edge, description text de-counted, total 6 stories / 35 pts / 3 waves, Maintenance tally 5/27→6/35, story_count 5→6. [Prior: 2026-07-19 (v1.5) — adv pass-7 fix burst (O-P7-a): EAC-006 added (factory-side PR 5-step restore per BC-6.27.001 v1.3 INV-E21-003; 1:1 story↔EAC symmetry restored); BC-6.27.001 v1.2→v1.3 in PRD Capabilities CAP-037 + BC Traceability table; POLICY 14 parity. [Prior: 2026-07-19 (v1.4) — adv pass-5 fix burst (F-P5-001): added missing v1.3 Changelog row to body ## Changelog table; frontmatter/body changelog parity restored (5 modified[] entries now matched by 5 Changelog table rows). [Prior: 2026-07-19 (v1.3) — adv pass-3 fix burst (F-P3-003): CAP-036 stale BC-6.26.001 v1.2 cite corrected to v1.3; TD-VSDD-060 full grep sweep confirms no other stale v1.2 cites of BC-5.44.001, BC-6.10.002, BC-6.26.001, or BC-5.43.001. [Prior: 2026-07-19 (v1.2) — adv pass-2 fix burst (F-P2-003): INV-E21-005 'post-rebase product branch' → 'post-rebase feature branch' (authoritative ADR-031 INV-E21-005 scope); BC-5.43.001 → v1.3; ADR-031 version cites → v1.3 (all occurrences); Description item 2 'product branch' + 'pr-manager post-rebase checkpoint' corrected to 'feature branch' + 'devops-engineer.md §Inter-Wave Rebase checkpoint'.]]]]]]]"
 modified:
   - "v1.0 2026-07-19: Initial authoring"
   - "v1.1 2026-07-19: adv pass-1 fix burst (F-P1-008/009/011/013)"
@@ -39,6 +39,7 @@ modified:
   - "v1.5 2026-07-19: adv pass-7 fix burst (O-P7-a) — EAC-006 added (factory-side PR 5-step restore per BC-6.27.001 v1.3; 1:1 story↔EAC symmetry); BC-6.27.001 v1.2→v1.3 in PRD Capabilities + BC Traceability table"
   - "v1.6 2026-07-25: pass-13 F-S2104-P13-D1 — S-21.06 registered (W3 / 8 pts / TBD BCs); title, inputs, last_amended, EAC-001, Stories table, Sequencing W3, Wave model note, Dependency Graph S-21.01→S-21.06, description de-counted, Maintenance tally 5/27→6/35, story_count 5→6"
   - "v1.7 2026-07-26: D-909 input-hash correction 3ae5a1f→580b545 (INCIDENT: v1.6 S-21.06 input registration did not recompute hash; operator-cache canonical per L-EDP1-073)"
+  - "v1.8 2026-07-26: pass-15 F-S2104-P15-003 — six BC Traceability pins current (BC-4.16.001 v1.2→v1.8, BC-5.43.001 v1.3→v1.4, BC-5.44.001 v1.3→v1.5, BC-6.10.002 v1.3→v1.5, BC-6.26.001 v1.3→v1.11 + trailing-slash find form, BC-6.27.001 v1.3→v1.4); eleven ADR-031 v1.N tokens stripped to stable form (POLICY 19); stale body BC cites updated (POLICY 5 TD-VSDD-060 sweep); input-hash recomputed 580b545→06f117d"
 ---
 
 # Epic E-21: Factory State Data-Loss Hardening
@@ -64,8 +65,8 @@ issues span three distinct defect classes across subsystems SS-04, SS-05, and SS
 3. **PR base not locked (S-21.03 — issue #358):** pr-manager creates PRs with
    `baseRefName` computed at creation time but never asserted immediately after create
    (step 3 PC2 check) or after merge (step 9 PC3 ancestry check). A race between PR
-   creation and merge can land a feature branch onto the wrong base (BC-6.10.002 v1.3 +
-   CAP-038; ADR-031 v1.3 §Decision 8).
+   creation and merge can land a feature branch onto the wrong base (BC-6.10.002 v1.5 +
+   CAP-038; ADR-031 §Decision 8).
 
 4. **Story-worktree teardown loss (S-21.04 — issue #523):** When a story worktree is
    removed via `git worktree remove --force`, any `.factory/` files written relative to
@@ -82,7 +83,7 @@ issues span three distinct defect classes across subsystems SS-04, SS-05, and SS
    assertion are absent (BC-6.27.001).
 
 All original issues are closed by new BCs (draft; auto-promote to active per POL-14 when story PRs merge) and their implementing stories.
-INV-E21-001..006 (cross-cutting invariants catalogued in ADR-031 v1.3 §Decision 1) govern
+INV-E21-001..006 (cross-cutting invariants catalogued in ADR-031 §Decision 1) govern
 the full solution space.
 
 ## Trigger / Motivation
@@ -103,7 +104,7 @@ a mechanical gate to prevent factory artifact loss. ADR-031 formalises the invar
 catalog and the two-layer defense strategy.
 
 Human authorization for E-21 was granted with the delivery of `e-21-arch-delta-analysis.md`
-v1.1, ADR-031 v1.3, and all six BCs (BC-4.16.001/BC-5.43.001/BC-6.27.001 at v1.2;
+v1.1, ADR-031, and all six BCs (BC-4.16.001/BC-5.43.001/BC-6.27.001 at v1.2;
 BC-5.44.001/BC-6.10.002/BC-6.26.001 at v1.3).
 
 ## Epic Placement Justification
@@ -122,29 +123,29 @@ authoring. E-21 does not require any E-19 work to be in-progress or gated.
 
 ## PRD Capabilities Covered
 
-E-21 introduces the following PRD capabilities, defined in ADR-031 §Decision 7 (CAP-034..037) and ADR-031 v1.3 §Decision 7 (CAP-038):
+E-21 introduces the following PRD capabilities, defined in ADR-031 §Decision 7 (CAP-034..037) and ADR-031 §Decision 7 (CAP-038):
 
 - **CAP-034 — Nested-worktree path exclusivity** (`validate-factory-path-staging` WASM
-  PreToolUse guard + orchestrator merge pre-check): BC-4.16.001 v1.2 + BC-5.43.001 v1.3.
+  PreToolUse guard + orchestrator merge pre-check): BC-4.16.001 v1.8 + BC-5.43.001 v1.4.
   Implemented by S-21.01 (new WASM crate `crates/hook-plugins/validate-factory-path-staging/`
   per ADR-031 §Decision 3 — MUST NOT reuse `validate-artifact-path/`). POLICY 21
   enforced: no new `.sh` files.
 
 - **CAP-035 — Post-rebase diff-integrity gate** (`git range-diff` primary + `git diff
-  --stat` backup): BC-5.44.001 v1.3. Implemented by S-21.02 (devops-engineer.md
-  §Inter-Wave Rebase skill-doc amendment; ADR-031 v1.3 §Consequences #5 confirms this
+  --stat` backup): BC-5.44.001 v1.5. Implemented by S-21.02 (devops-engineer.md
+  §Inter-Wave Rebase skill-doc amendment; ADR-031 §Consequences #5 confirms this
   is the only codebase location with a `git rebase origin/develop` + `git push
   --force-with-lease` sequence on a feature branch).
 
 - **CAP-036 — Story-worktree write-path discipline** (canonical-path mandate + teardown
-  preflight): BC-6.26.001 v1.3. Implemented by S-21.04 (skill-doc amendment to
+  preflight): BC-6.26.001 v1.11. Implemented by S-21.04 (skill-doc amendment to
   `_shared-context.md` + `step-g-cleanup.md`).
 
 - **CAP-037 — Factory-side PR protocol** (5-step restore + dispatch-preamble assertion):
-  BC-6.27.001 v1.3. Implemented by S-21.05 (pr-manager.md skill-doc amendment).
+  BC-6.27.001 v1.4. Implemented by S-21.05 (pr-manager.md skill-doc amendment).
 
 - **CAP-038 — PR trunk ancestry integrity** (post-create `baseRefName` assertion + post-merge
-  `--is-ancestor` check): BC-6.10.002 v1.3 (ADR-031 v1.3 §Decision 7 + §Decision 8).
+  `--is-ancestor` check): BC-6.10.002 v1.5 (ADR-031 §Decision 7 + §Decision 8).
   Implemented by S-21.03 (pr-manager.md skill-doc amendment, Step 3 PC2 + Step 9 PC3).
 
 ## Acceptance Criteria
@@ -156,7 +157,7 @@ E-21 introduces the following PRD capabilities, defined in ADR-031 §Decision 7 
 | EAC-003 | devops-engineer.md §Inter-Wave Rebase post-rebase diff-integrity gate fires `UnverifiedNetNegativeDelta` when `git range-diff` detects a dropped commit | CI bats test: inject mock range-diff output with net-negative delta → halt with `UnverifiedNetNegativeDelta` | S-21.02 AC-003 test suite |
 | EAC-004 | pr-manager step 3 asserts `baseRefName` immediately after PR creation; step 9 asserts merged commit is ancestor of trunk | CI bats test: mock post-create PR with wrong baseRefName → `BaseRefNameMismatch` hard-fail; mock post-merge with non-ancestor → `MergeNotAncestorOfTrunk` P0 error | S-21.03 AC-001..AC-003 test suite |
 | EAC-005 | Story worktree teardown preflight detects stray `.factory/` file and halts before `git worktree remove` | CI bats test: create stray `.factory/test.md` in worktree; trigger teardown → halt with `PREFLIGHT BLOCKED` per BC-6.26.001 PC2b | S-21.04 AC-003 test suite |
-| EAC-006 | pr-manager factory-side PR 5-step restore protocol shipped per BC-6.27.001 v1.3 (INV-E21-003): after merging a factory-side PR, pr-manager executes the full 5-step restore sequence (checkout `factory-artifacts` → `pull --ff-only` → delete local chore branch → delete remote chore branch → assert final branch) and handles the `FinalBranchAssertionFailed` negative path (step-5 mock returning unexpected branch `chore/stale-branch`) | CI bats test: mock factory-side PR flow; assert 5-step restore fires in order (AC-002); mock step-5 `git -C .factory branch --show-current` returning `chore/stale-branch` → `FinalBranchAssertionFailed` halt (AC-008) | S-21.05 AC-001..AC-008 test suite |
+| EAC-006 | pr-manager factory-side PR 5-step restore protocol shipped per BC-6.27.001 v1.4 (INV-E21-003): after merging a factory-side PR, pr-manager executes the full 5-step restore sequence (checkout `factory-artifacts` → `pull --ff-only` → delete local chore branch → delete remote chore branch → assert final branch) and handles the `FinalBranchAssertionFailed` negative path (step-5 mock returning unexpected branch `chore/stale-branch`) | CI bats test: mock factory-side PR flow; assert 5-step restore fires in order (AC-002); mock step-5 `git -C .factory branch --show-current` returning `chore/stale-branch` → `FinalBranchAssertionFailed` halt (AC-008) | S-21.05 AC-001..AC-008 test suite |
 
 ## Stories
 
@@ -255,7 +256,7 @@ Acyclic confirmed.
 
 - **BC files, BC-INDEX, VP files, ARCH-INDEX, STATE.md:** E-21 stories (S-21.01..S-21.06)
   MUST NOT touch these artifacts. All upstream BCs are at their pre-implementation versions
-  (v1.2 or v1.3 per ADR-031 v1.3) and no spec amendments are required.
+  (v1.2 or v1.3 per ADR-031) and no spec amendments are required.
 
 ## Behavioral Contract Traceability
 
@@ -263,14 +264,14 @@ All BCs listed here are draft; they auto-promote to active per POL-14 when their
 
 | BC ID | Version | Title (abbreviated) | Capability | Implementing Story |
 |-------|---------|---------------------|------------|-------------------|
-| BC-4.16.001 | v1.2 | `validate-factory-path-staging` WASM PreToolUse guard: block `git add .factory/` on non-`factory-artifacts` branches; pass all other operations | CAP-034 | S-21.01 (new WASM crate `validate-factory-path-staging/`; POLICY 21: no new .sh) |
-| BC-5.43.001 | v1.3 | Orchestrator merge pre-check: halt merge if diff contains `.factory/` paths (two-layer defense with BC-4.16.001) | CAP-034 | S-21.01 (orchestrator/per-story-delivery.md §Main-Checkout Sync Protocol amendment; ADR-031 v1.3 §Decision 2) |
-| BC-5.44.001 | v1.3 | Post-rebase diff-integrity gate: `git range-diff` (primary) + `git diff --stat` (backup); halt on `UnverifiedNetNegativeDelta` | CAP-035 | S-21.02 (devops-engineer.md §Inter-Wave Rebase amendment; ADR-031 v1.3 §Consequences #5) |
-| BC-6.10.002 | v1.3 | deliver-story 9-step dispatch: PC2 post-create baseRefName assertion (`BaseRefNameMismatch` hard-fail) + PC3 post-merge ancestry check (`MergeNotAncestorOfTrunk` P0 error) | CAP-038 | S-21.03 (pr-manager.md amendment, steps 3 + 9) |
-| BC-6.26.001 | v1.3 | Story-worktree write-path discipline (canonical absolute path via `CANONICAL_FACTORY_ROOT`) + teardown preflight (`find <worktree>/.factory -type f` before `git worktree remove`) | CAP-036 | S-21.04 (skill-doc: `_shared-context.md` + `step-g-cleanup.md`) |
-| BC-6.27.001 | v1.3 | pr-manager factory-side PR protocol: 5-step restore sequence (checkout `factory-artifacts`, `pull --ff-only`, delete local/remote chore branch, final assertion) + dispatch-preamble branch assertion (PC2) | CAP-037 | S-21.05 (pr-manager.md amendment) |
+| BC-4.16.001 | v1.8 | `validate-factory-path-staging` WASM PreToolUse guard: block `git add .factory/` on non-`factory-artifacts` branches; pass all other operations | CAP-034 | S-21.01 (new WASM crate `validate-factory-path-staging/`; POLICY 21: no new .sh) |
+| BC-5.43.001 | v1.4 | Orchestrator merge pre-check: halt merge if diff contains `.factory/` paths (two-layer defense with BC-4.16.001) | CAP-034 | S-21.01 (orchestrator/per-story-delivery.md §Main-Checkout Sync Protocol amendment; ADR-031 §Decision 2) |
+| BC-5.44.001 | v1.5 | Post-rebase diff-integrity gate: `git range-diff` (primary) + `git diff --stat` (backup); halt on `UnverifiedNetNegativeDelta` | CAP-035 | S-21.02 (devops-engineer.md §Inter-Wave Rebase amendment; ADR-031 §Consequences #5) |
+| BC-6.10.002 | v1.5 | deliver-story 9-step dispatch: PC2 post-create baseRefName assertion (`BaseRefNameMismatch` hard-fail) + PC3 post-merge ancestry check (`MergeNotAncestorOfTrunk` P0 error) | CAP-038 | S-21.03 (pr-manager.md amendment, steps 3 + 9) |
+| BC-6.26.001 | v1.11 | Story-worktree write-path discipline (canonical absolute path via `CANONICAL_FACTORY_ROOT`) + teardown preflight (`find "<worktree-path>/.factory/" -type f` before `git worktree remove`) | CAP-036 | S-21.04 (skill-doc: `_shared-context.md` + `step-g-cleanup.md`) |
+| BC-6.27.001 | v1.4 | pr-manager factory-side PR protocol: 5-step restore sequence (checkout `factory-artifacts`, `pull --ff-only`, delete local/remote chore branch, final assertion) + dispatch-preamble branch assertion (PC2) | CAP-037 | S-21.05 (pr-manager.md amendment) |
 
-**INV-E21-001..006 cross-cutting invariants** (ADR-031 v1.3 §Decision 1):
+**INV-E21-001..006 cross-cutting invariants** (ADR-031 §Decision 1):
 
 - **INV-E21-001** — Factory artifact isolation: `.factory/` mutations MUST NOT be
   staged on product branches under any orchestrator operation.
@@ -286,12 +287,13 @@ All BCs listed here are draft; they auto-promote to active per POL-14 when their
 - **INV-E21-006** — PR trunk ancestry: every story PR MUST be verified as an ancestor of
   `origin/develop` immediately after merge; the PR's `baseRefName` MUST equal the
   configured trunk immediately after `gh pr create` (enforced by S-21.03 via BC-6.10.002;
-  ADR-031 v1.3 §Decision 8 + CAP-038).
+  ADR-031 §Decision 8 + CAP-038).
 
 ## Changelog
 
 | Version | Date | Author | Summary |
 |---------|------|--------|---------|
+| v1.8 | 2026-07-26 | story-writer | pass-15 F-S2104-P15-003 — six BC Traceability pins current (BC-4.16.001 v1.2→v1.8, BC-5.43.001 v1.3→v1.4, BC-5.44.001 v1.3→v1.5, BC-6.10.002 v1.3→v1.5, BC-6.26.001 v1.3→v1.11 + trailing-slash find form, BC-6.27.001 v1.3→v1.4); eleven live-body ADR-031 v1.N tokens stripped to stable anchor form (POLICY 19); stale body BC version cites updated (POLICY 5 TD-VSDD-060 sweep); input-hash recomputed 580b545→06f117d (BC inputs amended). |
 | v1.7 | 2026-07-26 | state-manager | D-909 input-hash correction 3ae5a1f→580b545 (INCIDENT: v1.6 S-21.06 input registration did not recompute hash; operator-cache canonical per L-EDP1-073). |
 | v1.6 | 2026-07-25 | story-writer | pass-13 F-S2104-P13-D1 (orchestrator-adjudicated fix-in-scope): S-21.06 registered — Stories table (W3 / 8 pts), EAC-001 extended to S-21.06, Sequencing W3 note, Dependency Graph S-21.01→S-21.06 hard edge, total 6 stories / 35 pts / 3 waves, Maintenance tally 5/27→6/35, story_count 5→6, version v1.5→v1.6. |
 | v1.0 | 2026-07-19 | story-writer | Initial authoring. E-21 epic; 5 stories; 27 pts; 2 waves; 6 BCs; issues #342/#365/#358/#523/#588; INV-E21-001..005; CAP-034..037. |
