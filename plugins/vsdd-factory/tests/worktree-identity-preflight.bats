@@ -102,11 +102,13 @@ setup() {
 #     CANONICAL repo-root .factory/ (factory-artifacts). git worktree add checks out NOTHING
 #     under .factory/ (gitignored); any worktree .factory/ content is live shadow-write evidence.
 #     Re-anchored (F-S2104-P3-007): the prior stale-snapshot prohibition assertion locked in
-#     a retracted premise and would block the implementer's residue sweep at lines 44/59.
+#     a retracted premise and would have blocked the implementer's residue sweep in the
+#     adversary.md §Worktree-Identity Preflight opening paragraph and rule 6 SPEC/ADR/BC/VP bullet.
 #     The corrected model's positive assertions — already present at adversary.md rule 4 — are:
 #       "canonical-repo-root" (authoritative path anchor for all spec reads), AND
 #       "checks out NOTHING under" (explains why no shadow .factory/ is created at worktree-add).
-#     Both pass NOW and keep passing after implementer sweeps stale residue at lines 44/59.
+#     Both assertions hold at HEAD — the implementer swept stale residue from the
+#     adversary.md §Worktree-Identity Preflight opening paragraph and rule 6 SPEC/ADR/BC/VP bullet.
 @test "test_BC_adversary_spec_ground_truth_from_canonical_factory_artifacts" {
   run grep -i "factory-artifacts" "$ADVERSARY_AGENT"
   [ "$status" -eq 0 ]
