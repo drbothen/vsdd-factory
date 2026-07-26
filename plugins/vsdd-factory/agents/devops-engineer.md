@@ -360,6 +360,8 @@ the dispatching caller ran the `plugins/vsdd-factory/skills/deliver-story/steps/
 preflight (PASS result). If not evident from the dispatch, run the §G.1 preflight yourself first
 (BC-6.26.001 Invariant 2, PC2, Precondition 3; executor-side defense-in-depth consistent with ADR-031's caller-side
 primary ruling).
+
+Cleanup command:
 ```bash
 git worktree remove .worktrees/STORY-NNN
 ```

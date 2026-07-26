@@ -10,8 +10,7 @@
 
 - **S-21.04 — story-worktree write-path discipline + teardown preflight** (BC-6.26.001, issue #523): Closes the
   silent data-loss window where factory artifacts written to a story worktree's shadow `.factory/` tree were permanently
-  destroyed by `git worktree remove` without warning. Two complementary protocol requirements delivered as skill-doc
-  mandates (no new WASM or shell script, per POLICY 21):
+  destroyed by `git worktree remove` without warning. Delivered as skill-doc mandates (no new WASM or shell script, per POLICY 21) — the two BC-6.26.001 protocol requirements plus the propagation and awareness legs:
   (1) **Write-path discipline** (`_shared-context.md §Spec-Path Discipline`): all `.factory/**` writes performed during
   story delivery MUST use canonical absolute paths anchored to the main-checkout root via `$CANONICAL_FACTORY_ROOT`
   (the repo root, not the `.factory/` mount) or `git rev-parse --show-toplevel` on the main worktree; CWD-relative
