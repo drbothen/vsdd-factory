@@ -561,7 +561,7 @@ test-writer 9ab1aa32 changes: Gate 1(a) negation-explicit (positive `MUST[[:spac
 
 #### TIER 1 — Adversary-verbatim vectors (re-proven RED at 9ab1aa32)
 
-**Preamble:** TIER 1 records each adversary-assigned ID at its exact verbatim substituted text from adversary-pass-16.md (or the governing adversary pass for prior-pass vectors). All 9 vectors attested RED at 9ab1aa32.
+**Preamble:** TIER 1 records each adversary-assigned ID at its exact verbatim substituted text from adversary-pass-16.md (or the governing adversary pass for prior-pass vectors). All 9 vectors attested RED at 9ab1aa32. Dual independent execution: orchestrator and test-writer each ran the four pass-16 verbatim vectors from the persisted adversary-pass-16.md Part A text at 9ab1aa32 with identical firing gates and stdout (M-P16-A → Gate 1(a) line 633; M-P16-C2 → Gate 1(c) line 647; M-P16-D → Gate 3 tightened line 748; M-P16-B → Gate 1(a) line 633 decoy excluded by `#### Write Discipline` bounding, anchor-uniqueness count=1).
 
 | Vector ID | Finding | Substitution description | Gate(s) triggered | Status at 9ab1aa32 |
 |-----------|---------|--------------------------|-------------------|--------------------|
