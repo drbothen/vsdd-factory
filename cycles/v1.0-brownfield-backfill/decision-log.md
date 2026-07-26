@@ -12001,3 +12001,70 @@ D-907-S2104-ADV-PASS-11-CLOSED
 ### Date
 
 2026-07-25
+
+## D-908
+
+### Title
+
+S2104-ADV-PASS-12-CLOSED — NOT-CLEAN B0/H3/M6/L1; 10+D1 findings fixed; executable-predicate records mandatory; streak 0/3
+
+### Context
+
+S-21.04 LOCAL adversarial cascade pass-12. Reviewed HEAD: 92f986ab (pre-fix-wave; adversary reviewed this HEAD). Fixes-landed HEAD: 264f53b6 (worktree HEAD after pass-12 fix wave; story-writer commit 7d4650fb and test-writer commit 264f53b6 are the pre-burst other-agent legs). Verdict: NOT-CLEAN — B0/H3/M6/L1 (10 findings F-S2104-P12-001..010 + 1 deferred cross-story F-S2104-P12-D1). Novelty 0.51. Trajectory 14→18→17→12→11→11→9→9→10→11→7→10 (plateau broken upward from pass-11 trough). Streak: 0/3. Human ruling (AskUserQuestion, orchestrator session, 2026-07-26): "Keep looping unchanged" — full-perimeter loop continues; perimeter-freeze and asymptotic-acceptance both declined; adversary's executable-predicate prescription ADOPTED as mandatory for all fix-wave records. Per-pass-11 verification: 5 CONFIRMED-CLOSED / 2 PARTIAL / 0 REGRESSED + 1 falsified sweep attestation.
+
+### Decision
+
+Close pass-12 with single-commit fix burst (TD-VSDD-053). Adopt executable-predicate mandate: every fix-wave closure claim carries the literal predicate command + captured post-state stdout; prose-declared sweep scope forbidden (D-449(a) extended to per-story fix waves per human ruling). F-S2104-P12-D1 fixed in-scope (orchestrator adjudication: STORY-INDEX E-21 header rows are state-manager domain; fix now rather than defer to wave-gate). Advance 4-INDEX: STORY v4.259→v4.260 / BC v4.33 UNCHANGED / ARCH v3.34 UNCHANGED / VP v2.72 UNCHANGED.
+
+### Detail
+
+Fix legs by other-agent pre-burst commits (orchestrator-verified at 264f53b6, 2026-07-26; suites 9/9 + 14/14):
+- test-writer 264f53b6: F-003 (two independently mutant-proven AC-001(a) prohibition gates: 'are FORBIDDEN' + '**Forbidden:**.*relative path' co-occurrence; both mutants RED/restore GREEN with stdout). F-007 (13 sites completed to closing-SHA historical form; predicate stdout every hit carries " at <8-hex>"). F-008 (3 stale :531 pins → stable anchors incl. the emitted failure message; predicate classified survivors are cross-file ~:NNN convention only). F-009 (header T-inventory extended to 9; T-008 anchor added; predicate all 9 T-IDs anchored). Closes F-S2104-P12-003/007/008/009.
+- story-writer 7d4650fb: S-21.04 v1.15→v1.16. F-004 (range parity both rows AC-001..AC-006; predicate identical). F-005 (T-001 multi-AC trace + IN-SCOPE DISCOVERY: T-002 lacked AC-002, fixed; bidirectional predicate 13/13 PASS). F-006 (attribution fix: BC anchors primary/executor/awareness, AC-007 for caller-side, Tests group; identity-bats moved to Tests; predicates zero live 'five-surface' + placement PASS). Closes F-S2104-P12-004/005/006.
+
+Fix legs this burst (state-manager D-908):
+
+1. **F-P12-001 FIX — STORY-INDEX.md scope note at line-733 (v4.259→v4.260)**:
+   - Corrected: "ADR/BC cites stay versionless" → "ADR cites stay versionless; catalog-row BC pins are the fifth leg of POLICY 14/17 quintuple parity and stay VERSIONED, synced to the BC frontmatter version."
+   - Note header updated from (D-906/D-907) to (D-906/D-907/D-908).
+   - POST-STATE (literal shell): `grep -n 'versionless' stories/STORY-INDEX.md` → line 733 note only; all E-21 catalog-row BC pins remain versioned. PASS.
+
+2. **F-P12-002 FIX — red-gate-log.md v1.9→v1.10**:
+   - (a) :287 group description: "the four section-bounded primary-path gates (4 sites — SKILL.md Step 8, orchestrator step (g), Story Split Recovery — all strengthened to .md-qualified form at 92f986ab with 3 extensionless-degradation mutants RED/restore GREEN — and winning-playbook Step 8, .md-qualified since 2c8eff8b)"
+   - (b) P11-003 mutant record appended after T-009 Summary row: "P11-003 mutant evidence (recorded): three extensionless degradations (steps/step-g-cleanup §G.1 form) applied per-gate in scratch copies → each strengthened gate exit 1 (RED); originals restored → exit 0 (GREEN). Performed by test-writer at 92f986ab."
+   - (c) Summary suite attestation updated: HEAD cite 2c8eff8b→264f53b6; suite-level verification updated to 264f53b6, 2026-07-26.
+   - input-hash d1c79e9→53500af (story v1.16 drift; compute-input-hash --update executed).
+
+3. **F-P12-010 FIX — red-gate-log.md modified[] D-907 date**:
+   - modified[] entry: "2026-07-25 D-907" → "2026-07-26 D-907 (date-corrected D-908; prior D-906 dated 2026-07-26, D-907 dated 2026-07-25 was non-monotonic — F-S2104-P12-010)"
+   - Monotonicity restored: D-906 2026-07-26 → D-907 2026-07-26 → D-908 2026-07-26.
+
+4. **F-P12-D1 FIX — STORY-INDEX.md E-21 header rows**:
+   - :719 "5 stories; 27 pts; 2 waves" → "6 stories; 35 pts; 3 waves"
+   - :720 "(2 waves)" → "(3 waves; W3 sequential: S-21.06)"
+   - POST-STATE (literal shell): `grep -n '5 stories\|27 pts\|2 waves' stories/STORY-INDEX.md` → zero live hits (provenance chains in last_amended frozen-historical). PASS.
+
+5. **adversary-pass-12.md created** at `cycles/v1.0-brownfield-backfill/S-21.04/adversary-pass-12.md`: verbatim Part A finding table (10 findings + D1 B0/H3/M6/L1), observations (verbatim), per-pass-11 verification (5/2/0 + 1 falsified sweep attestation), fix mapping (10+D1 FIXED). Frontmatter: reviewed_head 92f986ab; fixes_landed_head 264f53b6; novelty 0.51; human ruling note.
+
+6. **[process-gap] executable-predicate records codified**:
+   - L-EDP1-076: EXECUTABLE-PREDICATE RECORDS — every fix-wave closure claim carries the literal predicate command + captured post-state stdout; prose-declared sweep scope forbidden (D-449(a) extended to per-story fix waves; adopted at pass-12 per human ruling).
+
+7. **4-INDEX updates**:
+   - STORY-INDEX: v4.259→v4.260 (S-21.04 story v1.15→v1.16 catalog-row cite + P12 refs; scope note D-908 clarification; E-21 header rows 5→6 stories/27→35 pts/2→3 waves; DAG (2 waves)→(3 waves; W3 sequential: S-21.06); last_amended prepended D-908).
+   - BC-INDEX: v4.33 VERIFIED UNCHANGED.
+   - VP-INDEX: v2.72 VERIFIED UNCHANGED.
+   - ARCH-INDEX: v3.34 VERIFIED UNCHANGED.
+
+8. **STATE.md frontmatter-minimal**: v6.45→v6.46; phase D-908-S2104-ADV-PASS-12-CLOSED.
+
+POLICY 16 GLOBAL-MAX GATE (literal shell): `grep -n "^## D-" cycles/v1.0-brownfield-backfill/decision-log.md | tail -3` → 11799:## D-905 / 11872:## D-906 / 11941:## D-907; D-907 confirmed prior max → D-908 allocated. PASS.
+
+POLICY 14 gate (literal shell — post-edit): `grep -m1 "^version:" specs/behavioral-contracts/BC-INDEX.md specs/verification-properties/VP-INDEX.md stories/STORY-INDEX.md specs/architecture/ARCH-INDEX.md` → BC v4.33 / VP v2.72 / STORY v4.260 / ARCH v3.34. PASS.
+
+### Phase
+
+D-908-S2104-ADV-PASS-12-CLOSED
+
+### Date
+
+2026-07-26

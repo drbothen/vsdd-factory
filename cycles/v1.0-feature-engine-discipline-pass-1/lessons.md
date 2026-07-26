@@ -1102,3 +1102,25 @@ These MUST be distinct when fixes were applied after review. They are the same o
 **Cites:** D-907 (codified this burst); POLICY 1 (accuracy obligation); POLICY 17 (attestation integrity); POLICY 15 (record completeness).
 
 **Closes:** D-907 S-21.04-ADV-PASS-11-CLOSED (2026-07-25). `[convention; reviewed_head; fixes_landed_head; dual-field; adversary-pass; frontmatter; provenance; D-907; codified]`
+
+## L-EDP1-076: [process-gap] EXECUTABLE-PREDICATE RECORDS — Per-Story Fix-Wave Closure Claims Must Carry Literal Command + Captured Stdout (2026-07-26; D-908)
+
+**Trigger:** Adversary pass-12 observation (process-gap): three consecutive S-21.04 fix waves shipped "zero present-tense survivors" claims that were falsified by the next pass (P10-010 → P11-006 → P12-007). The root cause in each case was that the sweep predicate was declared in prose ("I grepped for X and found zero survivors") rather than recorded as a literal shell command with captured stdout. Prose-declared predicates cannot be independently verified and do not constrain the next adversary to checking the same set of sites.
+
+**Pattern:** A fix-wave record that says "predicate: zero present-tense survivors" without a literal command is unfalsifiable at write time and falsifiable at read time. The next adversary dispatched with fresh context runs a fresh grep and finds the survivors the prose claim missed. This generates a new finding in every subsequent pass — the finding is never truly closed, it merely re-emerges with a new ID.
+
+**EXECUTABLE-PREDICATE RECORDS rule (codified D-908; human ruling 2026-07-26 "keep looping unchanged; executable predicates mandatory"):** Every fix-wave closure claim in a per-story burst record MUST carry:
+1. The LITERAL shell command used to verify the claim (e.g., `grep -n 'present-tense pattern' bats-file.bats`)
+2. The CAPTURED stdout from that command at the time of closure (full output, not a summary)
+
+Prose-declared sweep scope is FORBIDDEN for closure claims. "Zero survivors" without a literal command + stdout is NOT a valid closure attestation.
+
+This is D-449(a) applied to per-story fix waves (D-449(a) previously applied only to F5 cycle-level burst-log Dim-2 gates; this lesson extends the mandate to per-story adversarial fix-wave records and adversarial-review SKILL post-fix attestation requirements).
+
+**Why this prevents recurrence:** A literal command + captured stdout is reproducible. The next adversary can re-run the same command against the current HEAD and compare outputs directly. Prose-declared scope cannot be re-run and therefore cannot be verified. Three consecutive waves demonstrated that prose scope fails to constrain the next reviewer.
+
+**Anchors:** S-21.04 LOCAL cascade pass-12 (2026-07-26); F-S2104-P12-007 (third generation of same pattern: P10-010→P11-006→P12-007); pass-12 adversary diagnosis: "Until fix-wave predicates are recorded as executable text with captured output, each pass will keep converting one closed finding into one new one"; human ruling 2026-07-26 (AskUserQuestion, orchestrator session): executable predicates ADOPTED as mandatory.
+
+**Cites:** D-908 (codified this burst); D-449(a) (literal-shell mandate for F5 burst-log Dim-2 — now extended to per-story fix waves); POLICY 15 (record completeness); POLICY 4 (spec/record accuracy); TD-VSDD-059 (paper-fix detection); TD-VSDD-060 (sibling-site sweep).
+
+**Closes:** D-908 S-21.04-ADV-PASS-12-CLOSED (2026-07-26). `[process-gap; executable-predicate; fix-wave; closure-attestation; literal-shell; captured-stdout; per-story; D-449a-extension; D-908; codified]`
