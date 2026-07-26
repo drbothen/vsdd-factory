@@ -20267,4 +20267,4 @@ S-21.04 LOCAL adversarial cascade pass-11: B0/H3/M3/L1 = 7 findings (F-S2104-P11
 **factory-artifacts commits:**
 - Pre-burst story-writer commit: `139c9313` (parent-commit)
 - Pre-burst test-writer commit (worktree): `92f986ab`
-- This burst: TBD (SHA assigned after commit)
+- This burst: `716a45c7` (D-907 pass-11 closure burst)
