@@ -11795,3 +11795,65 @@ D-904-S2104-ADV-PASS-8-CLOSED
 ### Date
 
 2026-07-25
+
+## D-905
+
+### Title
+
+S2104-ADV-PASS-9-CLOSED — NOT-CLEAN B0/H3/M4/L3; 10 findings fixed; BLAST-RADIUS RULE adopted per human ruling; streak 0/3
+
+### Context
+
+S-21.04 LOCAL adversarial cascade pass-9. Verdict: NOT-CLEAN — B0/H3/M4/L3 (10 findings F-S2104-P9-001..010). Novelty 0.60. Trajectory 14→18→17→12→11→11→9→9→10. Streak: 0/3.
+
+Per-pass-8 verification: 4 CONFIRMED-CLOSED (F-P8-001/006/007/008), 5 PARTIAL (F-P8-002→P9-004/007; F-P8-003→P9-002; F-P8-004→P9-003/006; F-P8-005→P9-005; F-P8-009→P9-008). Zero paper-fixes; zero false closures.
+
+Adversary META-CLASS: "a fix's own blast radius is not treated as part of the fix." Recommended intervention: literal-shell dependents grep per changed identifier, recorded in closure. Human ruling (AskUserQuestion 2026-07-25): "Keep looping to 3-CLEAN" — asymptotic acceptance REJECTED; BLAST-RADIUS RULE ADOPTED.
+
+POLICY 16 GLOBAL-MAX GATE (literal shell): `grep -n "^## D-" decision-log.md | tail -3` → `11640:## D-902 / 11692:## D-903 / 11747:## D-904`. D-904 confirmed prior max → D-905 allocated.
+
+### Decision
+
+D-905 burst scope executed:
+
+1. **POLICY 16 gate (literal stdout)**: `grep -n "^## D-" decision-log.md | tail -3` → `11640:## D-902 / 11692:## D-903 / 11747:## D-904`. D-904 confirmed prior max → D-905 allocated.
+
+2. **adversary-pass-09.md created** at `cycles/v1.0-brownfield-backfill/S-21.04/adversary-pass-09.md`: verbatim Part A finding table (10 findings B0/H3/M4/L3), observations (verbatim META-CLASS + BLAST-RADIUS RULE), per-pass-8 verification (verbatim 4 CONFIRMED-CLOSED / 5 PARTIAL), fix mapping (10 FIXED), human ruling section. Reviewed head: 9d896bf5. Novelty 0.60.
+
+3. **Fix legs — other-agent commits (pre-burst)**:
+   - story-writer 92e87330: S-21.04 v1.12→v1.13 (Token Budget row v1.9→v1.10; AC-007 Gate cell T-008 cite added; error-acknowledgment in v1.13 changelog; blast-radius: 4 dependents verified). S-21.05 v1.4→v1.5 (BC table corrected v1.3→v1.4; Token Budget v1.3→v1.4). Closes F-P9-003/F-P9-006/F-P9-002(partial).
+   - test-writer 2992b53d: T-009 obligation-asserting gates mutant-proven; named T-008/T-009 in README; §G.1 stable anchor replaces volatile file:line pin. Closes F-P9-001/F-P9-008/F-P9-010.
+   - test-writer 3326e4dd: 5 additional bare-alternation survivors strengthened; 8 mutants RED/restore GREEN. Closes F-P9-001 class completion.
+   - implementer 32cacbd6: CHANGELOG step-d5 taxonomy corrected + 16 blast-radius verifications recorded. Closes F-P9-005.
+
+4. **F-S2104-P9-004 FIX — red-gate-log.md v1.6→v1.7**:
+   - §T-008 addendum BC trace corrected: "BC-6.26.001 v1.10 Invariant 5 (caller-side propagation): six delegating surfaces..." → "BC-6.26.001 PC2 + Invariant 2 (caller-side dispatch gate), per story AC-007." (narrative line + summary table cell).
+   - §T-009 addendum mutant evidence paragraph inserted (verbatim): "Mutant evidence (recorded): scratch reduction of the adversary.md corrected-model clause to '…resolve the tuple (see BC-6.26.001).' → all three obligation gates NO MATCH (RED): corrected-model, report-as-defect-signal, §G.1 enforcement-chain; the RETIRED bare alternation MATCHED the same mutant (paper-gate confirmed); restore → GREEN. Performed by test-writer at 2992b53d; gates class-completed at 3326e4dd (5 additional bare survivors strengthened, 8 mutants RED/restore GREEN)."
+   - Frontmatter: version 1.6→1.7; input-hash 43e6df2→389274b (operator-level hook-computed; story v1.13 + BC v1.10 drift); traces_to stays BC-6.26.001 v1.10; last_amended prepended D-905; modified[] appended D-905.
+
+5. **F-S2104-P9-009 + F-S2104-P9-002 index leg — STORY-INDEX.md v4.256→v4.257**:
+   - S-21.04 row: story v1.12→v1.13; input-hash 58d94b8→a4b9391; pass-9 refs F-S2104-P9-001..010 appended.
+   - S-21.05 row: BC cite [BC-6.27.001 v1.3]→[BC-6.27.001 v1.4]; story v1.4→v1.5; input-hash 8e09398→4bd6796.
+   - E-21 BC coverage blockquote: three versioned pins made versionless — `BC-6.26.001 v1.3→BC-6.26.001`; `BC-6.27.001 v1.3→BC-6.27.001`; `ADR-031 v1.3 governs→ADR-031 governs`.
+   - BLAST-RADIUS verification (literal shell): `grep -n 'BC-6\.27\.001 v1\.[0-9]' stories/STORY-INDEX.md | grep -v "^8:"` → line 728 `[BC-6.27.001 v1.4]` (S-21.05 row — correct current version, not stale); line 719/760 historical authorship notes (intentionally pinned, static record). `grep -n 'ADR-031 v1\.[0-9]' stories/STORY-INDEX.md | grep -v "^8:"` → lines 719/724/725/726/760 historical authorship notes only; line 732 BC coverage blockquote now versionless. Zero live stale versioned pins in the BC coverage blockquote.
+   - version 4.256→4.257; last_amended prepended D-905.
+
+6. **4-INDEX updates**:
+   - STORY-INDEX: v4.256→v4.257 (items above).
+   - BC-INDEX: v4.32 VERIFIED UNCHANGED (no BC version changes this burst).
+   - VP-INDEX: v2.72 VERIFIED UNCHANGED.
+   - ARCH-INDEX: v3.33 VERIFIED UNCHANGED.
+
+7. **LESSON [process-gap] L-EDP1-070**: BLAST-RADIUS RULE codified — fix's own blast radius is part of the fix; literal-shell dependents grep with captured stdout required per changed identifier; adopted per human ruling 2026-07-25.
+
+8. **STATE.md frontmatter-minimal**: v6.42→v6.43; phase D-905-S2104-ADV-PASS-9-CLOSED.
+
+POLICY 14 gate (literal shell — post-edit): `grep -m1 "^version:" BC-INDEX.md VP-INDEX.md STORY-INDEX.md ARCH-INDEX.md` → BC v4.32 / VP v2.72 / STORY v4.257 / ARCH v3.33.
+
+### Phase
+
+D-905-S2104-ADV-PASS-9-CLOSED
+
+### Date
+
+2026-07-25

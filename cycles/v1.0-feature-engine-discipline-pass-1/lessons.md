@@ -994,3 +994,19 @@ Net: **5 CONFIRMED-VIOLATED** (0 CONFIRMED-SATISFIED in prediction outcomes; the
 **Closes:** D-877 (lesson captured this burst; flaky-CI story anchor carried as pending human triage)
 
 ---
+
+## L-EDP1-070: [process-gap] BLAST-RADIUS RULE — Fix's Own Blast Radius Is Part of the Fix (2026-07-25; D-905)
+
+**Trigger:** S-21.04 pass-9 adversarial review found 3 HIGH findings (F-P9-001/002/009) that were each the blast-radius of a prior fix rather than new defects. F-P9-002: pass-8 BC-6.27.001 v1.3→v1.4 bump swept BC-INDEX only; STORY-INDEX S-21.05 row + E-21 blockquote pins were left stale. F-P9-009: E-21 BC coverage blockquote pins stale by 7/1/9 versions; authorial intent unadjudicated. META-CLASS named by adversary: "a fix's own blast radius is not treated as part of the fix."
+
+**Pattern:** When a fix changes an identifier (BC version, story version, pin), the adversary can trivially find the dependents in the next pass. A fix that does not include its own dependents-sweep is a partial fix by definition. Every changed identifier/version/gate must have a literal-shell dependents grep with captured stdout as part of the fix, recorded in the closure.
+
+**Human ruling (2026-07-25):** Asymptotic acceptance REJECTED; "keep looping to 3-CLEAN" — BLAST-RADIUS RULE adopted for all fix legs going forward.
+
+**BLAST-RADIUS RULE (codified D-905):** For every changed identifier, version string, or gate anchor in a fix burst: (1) Run `grep -rn '<identifier>' <scope>` from the appropriate root as a literal shell command. (2) Capture stdout verbatim. (3) For each hit adjudicate — live parity pin (fix required) vs. historical authorship note (intentionally pinned, no fix required). (4) Record stdout + adjudication in the burst closure (burst-log Dim-2 or decision-log §Decision). The adversary's next pass independently runs the same grep; if the fix burst's recorded stdout matches what the adversary finds, the finding closes. A fix without the grep is incomplete by definition and will NOT be credited as CONFIRMED-CLOSED by the next adversary pass.
+
+**Why this prevents recurrence:** By baking the adversary's expected grep into the fix's own evidence, the fix is only CONFIRMED-CLOSED when its own blast-radius is zero. The adversary's fresh-context sweep and the fix burst's recorded sweep are now congruent.
+
+**Forward discipline:** Any fix burst that changes a versioned identifier or gate anchor MUST include a blast-radius grep run + stdout record. Omitting the grep is not merely style — it is the root mechanism by which pass-7/8/9 HIGH recurrence was produced.
+
+**Closes:** D-905 (lesson captured this burst)
