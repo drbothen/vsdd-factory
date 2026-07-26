@@ -2,6 +2,7 @@
 pass: 17
 verdict: NOT-CLEAN
 reviewed_head: 9ab1aa32
+fixes_landed_head: c89bef22
 novelty: 0.55
 previous_review: "cycles/v1.0-brownfield-backfill/S-21.04/adversary-pass-16.md"
 ---
@@ -382,3 +383,17 @@ The rest of the cell is accurate and materially improved: the anchor-uniqueness 
 | F-S2104-P16-006 | CONFIRMED-CLOSED | `adversary-pass-15.md` §Fix Mapping row F-S2104-P15-005 now reads `story-writer 6fccdcc3 — story v1.20 option-a: AC-010 carve-out dropped; code-span prohibition rationale stated inline; gate unchanged (already matches the widened criterion). [Corrected at D-916 per F-S2104-P16-006: an earlier clause attesting a T-009 bats-comment update was erroneous — no pass-15 commit touched the bcs: gate or its comment.]` — the unlanded clause is dropped and the error is acknowledged in place, exactly as the fix predicate specified |
 
 Tally: **3 CONFIRMED-CLOSED / 3 PARTIAL / 0 REGRESSED** against the pass-16 finding set. No regression this pass — notably, the F-S2104-P16-004 story Gate-cell leg that pass-16 found regressed is now closed *and* carries the same-burst coupling note that prevents its recurrence, and the two record-correction findings closed cleanly with error acknowledgments. The three PARTIALs are one-hop re-seedings, but the mechanism has again changed character: passes 12–16 each found the predicate defeated at a finer *granularity* of the same text, whereas this pass found that the text handed to the predicates is neither the whole section (M-P17-A), necessarily visible (M-P17-H), nor described by a closed vocabulary (M-P17-C, M-P17-D, M-P17-F, M-P17-G). Every fix predicate above is mechanically checkable and none requires a new spec decision.
+
+---
+
+## Fix Mapping (fixes_landed_head: c89bef22)
+
+| Finding | Severity | Role | Commit | What landed |
+|---------|----------|------|--------|-------------|
+| F-S2104-P17-001 | BLOCKER | test-writer | 2e70faa8 | `write_discipline_prose_nosplit` built from whole `#### Write Discipline` section (fenced code excluded); HTML-comment absence gate added; Gate 1(d) conditional-scoping predicate added to mandate sentence; all existing gates extended to section-wide domain; 9/9 + 14/14 GREEN at c89bef22 |
+| F-S2104-P17-002 | BLOCKER | test-writer | 2e70faa8 + 1859ef70 + c89bef22 | Gate PW-B rewritten: directive-token whitelist replaced by prohibition-token requirement (`FORBIDDEN\|Forbidden\|forbidden\|MUST NOT\|prohibited\|never\|forbid`); prohibited-target class extended to syntactic-form class (`story-worktree CWD`, `shadow subtree`, `worktree-local`, `in-worktree`, `story worktree CWD`, `worktree CWD`); word-boundary `(^\|[^[:alnum:]])[Ii]n-worktree` added at 1859ef70; `[Ww]orktree-local` bracket-class added at c89bef22; Gate 1(d) closes conditional-scoping axis |
+| F-S2104-P17-003 | HIGH | test-writer | 2e70faa8 | Gate 2b(a) domain changed from per-physical-line `$prohibition_block` to `write_discipline_prose_nosplit` sentence-split (rewrap-invariant); nullification class widened (`rescinded`, `superseded`, `no longer`, `obsolete`, `deprecated`, plus 10 synonyms); Gate 2b(c) adversative-connective gate added (catches `but[[:space:]]\|however\|except[[:space:]]+that\|though[[:space:]]` within FORBIDDEN sentences) |
+| F-S2104-P17-004 | HIGH | test-writer | 2e70faa8 | `canonical-target` gate added: every `**Correct:**` bullet with `file_path=` must satisfy `file_path=["']?($CANONICAL_FACTORY_ROOT\|/)` — catches `./.factory/`, `../../.factory/`, bare `.factory/`; Gates 6(b)/7(b) RETIRED (blind to `./.factory/` form) |
+| F-S2104-P17-005 | MEDIUM | state-manager | this burst (D-918) | red-gate-log.md v1.14→v1.15: (a) abbreviation splitter corrected to 3 forms (`cf.`, `i.e.`, `e.g.`), §[0-9]+. claim retracted; (b) anchor-uniqueness domain corrected to `#### Write Discipline` section at both attestation sites; (c) M-P16-B TIER 1 Gate cell corrected (Gate 1(a) affirmative fires on inverted paragraph; decoy excluded by bounding, count=1, not anchor-uniqueness count=2); (d) absent-block guard domain corrected to `$prohibition_block`; (e) Gate 5 row corrected (actual alternation `CWD-relative\|worktree-relative\|relative[[:space:]]+path`, no prohibition-token clause) |
+| F-S2104-P17-006 | MEDIUM | state-manager | this burst (D-918) | red-gate-log.md v1.15: gate-indexed audit table rebuilt to 17 gates — Gate PW-B and Gate 2b(a)/(c) rows added; bounding + abbreviation splitter moved to separate `Extraction and normalization mechanisms` table; `G1(b)` renamed to `G1(c)`; Gates 6(b)/7(b) RETIRED rows added; obligation-indexed table rebuilt with AC-001(b) (CANONICAL_FACTORY_ROOT + EC-006 WARNING gates) and AC-001(c) (DELIVERY + pr-review.md + story-frontmatter gates) rows; NAME-SET EQUALITY literal-shell diff recorded |
+| F-S2104-P17-007 | MEDIUM | story-writer | c89bef22 | story v1.21→v1.22: Gate cell item (8) Gate 2b moved out of joined-domain group into own clause naming `write_discipline_prose_nosplit` domain (section-wide sentence-split); item (10) alternation corrected to `relative[[:space:]]+path`; 17-gate count updated; POLICY 14/17 parity legs applied |

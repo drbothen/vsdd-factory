@@ -20268,3 +20268,93 @@ S-21.04 LOCAL adversarial cascade pass-11: B0/H3/M3/L1 = 7 findings (F-S2104-P11
 - Pre-burst story-writer commit: `139c9313` (parent-commit)
 - Pre-burst test-writer commit (worktree): `92f986ab`
 - This burst: `716a45c7` (D-907 pass-11 closure burst)
+
+---
+
+## D-918 — S-21.04 pass-17 closure burst (2026-07-26)
+
+### Block 1 — Parent-commit
+
+`256f2b01` — story-writer commit: S-21.04 v1.22 pass-17 leg AC-001 Gate cell resynced to whole-section fail-closed gate set (F-S2104-P17-007 + coupling mandate). Factory-artifacts worktree HEAD at burst-start. Test-writer 3-commit wave (2e70faa8/1859ef70/c89bef22) pre-exists in the story worktree `.worktrees/S-21.04` (not factory-artifacts); story-writer c89bef22 is the last of those commits.
+
+### Block 2 — Adversary verdict
+
+adversary-pass-17.md (`reviewed_head: 9ab1aa32`, `fixes_landed_head: c89bef22`): **NOT-CLEAN — B2/H2/M3 — 7 findings (F-S2104-P17-001..007).** Novelty 0.55 vs pass-16 Part A. Per-pass-16 verification: 3 CONFIRMED-CLOSED / 3 PARTIAL / 0 REGRESSED. Trajectory 14→18→17→12→11→11→9→9→10→11→7→10→10→13→7→6→7. Streak: 0/3 (BC-5.39.001 reset). Findings: F-S2104-P17-001 (BLOCKER — `_extract_write_discipline_prohibition_block` terminates at first blank line; sibling-paragraph and HTML-comment visibility not covered); F-S2104-P17-002 (BLOCKER — Gate PW-B closed directive-token and prohibited-target lists; M-P17-C inverts paragraph end-to-end at 9/9; conditional-scoping not gated); F-S2104-P17-003 (HIGH — Gate 2b per-physical-line domain + closed synonym list; M-P17-D/M-P17-F both survive via paraphrase and line-wrap); F-S2104-P17-004 (HIGH — `./`-prefixed Correct bullet unconstrained by Gates 6(b)/7(b)); F-S2104-P17-005 (MEDIUM — 5 Pass-16 gate descriptions wrong in red-gate-log v1.14); F-S2104-P17-006 (MEDIUM — audit tables omit Gate PW-B and Gate 2b; obligation-indexed table missing AC-001(b)/(c) rows); F-S2104-P17-007 (MEDIUM — story Gate cell attests normalized domain for Gate 2b which lacks it; item (10) alternation verbatim error). All 7 FIXED at c89bef22 + this burst.
+
+### Block 3 — Files touched
+
+State-manager this burst (factory-artifacts):
+- `cycles/v1.0-brownfield-backfill/S-21.04/implementation/red-gate-log.md` (v1.14→v1.15; Pass-16 corrections (a)-(e) + Pass-17 attestation A2/A3 appended; input-hash e6c640a→4b26b3b)
+- `stories/STORY-INDEX.md` (v4.264→v4.265; S-21.04 row story v1.21→v1.22 + P17 refs F-S2104-P17-001..007 appended)
+- `cycles/v1.0-brownfield-backfill/S-21.04/adversary-pass-17.md` (fixes_landed_head c89bef22 + Fix Mapping 7 rows appended)
+- `cycles/v1.0-brownfield-backfill/decision-log.md` (D-918 block appended)
+- `cycles/v1.0-brownfield-backfill/lessons.md` (4 lessons appended: L-BB-domain-completeness-render-fidelity, L-BB-fail-closed-implication-direction, L-BB-name-set-inventory-parity, L-BB-orchestrator-serialize-presumed-dead-writers)
+- `policies.yaml` (v1.4.13→v1.4.14; POLICY 13 DOMAIN-COMPLETENESS + FAIL-CLOSED-IMPLICATION-DIRECTION added; POLICY 15 NAME-SET-EQUALITY added; POLICY 16 RECORD-PERSIST-BURSTS-INCLUDE-SAME-COMMIT-CODIFICATION added)
+- `STATE.md` (v6.51→v6.52; phase D-918-S2104-PASS-17-CLOSED; timestamp 2026-07-26T10:30:00Z)
+- `cycles/v1.0-brownfield-backfill/burst-log.md` (this entry)
+
+Pre-burst other-agent commits (story worktree, not factory-artifacts):
+- test-writer 2e70faa8: whole-section domain + HTML-comment absence gate + Gate 1(d) + PW-B rewrite + Gate 2b(a)/(c) + canonical-target (F-S2104-P17-001/002/003/004)
+- test-writer 1859ef70: word-boundary `(^\|[^[:alnum:]])[Ii]n-worktree` in PW-B (F-S2104-P17-002 completion)
+- story-writer/test-writer c89bef22: `[Ww]orktree-local` bracket-class in PW-B + story v1.21→v1.22 Gate cell (F-S2104-P17-002 + F-S2104-P17-007)
+
+### Block 4 — Codifications
+
+- **D-918** in decision-log.md: S2104-PASS-17-CLOSED — all 7 F-S2104-P17-001..007 fixed; POLICY 13/15/16 extensions; STORY-INDEX v4.265; policies v1.4.14; 4 lessons; streak 0/3.
+- **L-BB-domain-completeness-render-fidelity** [process-gap] [D-918]: negative gates MUST evaluate entire bounded section; blank-line-terminated extraction FORBIDDEN for negative gates; HTML-comment spans excluded; sibling-paragraph mutant required.
+- **L-BB-fail-closed-implication-direction** [process-gap] [D-918]: open-class trigger + closed requirement preferred; co-occurrence of two closed lists fails on paraphrase; implication direction must be open→closed.
+- **L-BB-name-set-inventory-parity** [process-gap] [D-918]: cross-document gate-inventory parity MUST be asserted by name-set equality via literal-shell diff; count-only comparison is INSUFFICIENT.
+- **L-BB-orchestrator-serialize-presumed-dead-writers** [process-observation] [D-918]: orchestrator must treat dispatched agents as presumed-dead writers after session-context boundary; verify worktree state before re-dispatch.
+
+### Block 5 — Dim-2 literal-shell gate attestation
+
+**POLICY 16 GLOBAL-MAX GATE (D-449(a) literal-shell):**
+```
+$ grep -rh "^## D-" cycles/v1.0-brownfield-backfill/decision-log.md cycles/v1.0-feature-engine-discipline-pass-1/decision-log.md | sed 's/^## D-//' | sort -n | tail -5
+914
+915
+916
+917
+918
+```
+→ D-917 confirmed prior max at burst-start → D-918 allocated. PASS.
+
+**POLICY 14 4-INDEX LITERAL-SHELL GATE (D-449(a)):**
+```
+$ grep -m1 "^version:" specs/behavioral-contracts/BC-INDEX.md specs/verification-properties/VP-INDEX.md stories/STORY-INDEX.md specs/architecture/ARCH-INDEX.md
+stories/STORY-INDEX.md:version: "4.265"
+specs/architecture/ARCH-INDEX.md:version: "3.34"
+specs/verification-properties/VP-INDEX.md:version: "2.72"
+specs/behavioral-contracts/BC-INDEX.md:version: "4.33"
+```
+→ BC v4.33 / VP v2.72 / STORY v4.264→v4.265 this burst / ARCH v3.34. PASS.
+
+**D-448(a) SOURCE-ATTESTATION GATE (D-449(a) literal-shell):**
+```
+$ grep -oE "F-S2104-P17-[0-9]+" cycles/v1.0-brownfield-backfill/S-21.04/adversary-pass-17.md | sort -u | wc -l
+       7
+```
+→ 7 unique finding IDs F-S2104-P17-001..007. Block 2 above lists all 7 with matching IDs and severity classifications. Adversary verdict paragraph faithfully describes adversary-pass-17.md Part A finding set. PASS.
+
+**POLICY 18 INPUT-HASH GATE:**
+```
+$ bin/compute-input-hash --scan .factory/cycles/v1.0-brownfield-backfill/S-21.04/implementation/ --update
+TOTAL=1 MATCH=0 STALE=1 UNCOMPUTED=0 NOINPUT=0 UPDATED=1 UPDATE_FAILED=0
+```
+→ red-gate-log.md input-hash e6c640a→4b26b3b. PASS.
+
+### Block 6 — Dim-5 attestation
+
+Fix legs F-S2104-P17-001/002/003/004 authored by test-writer (2e70faa8/1859ef70/c89bef22). Fix leg F-S2104-P17-007 authored by story-writer (c89bef22). Fix legs F-S2104-P17-005/006 and all factory-artifact mutations (red-gate-log.md Pass-16 corrections + Pass-17 attestation, STORY-INDEX.md, adversary-pass-17.md, decision-log.md, lessons.md, policies.yaml, STATE.md, this burst-log entry) authored by state-manager. No spec body content authored by state-manager (BC content, ADR content, or story acceptance criteria unchanged). State-manager role limited to: red-gate-log corrections/attestation, STORY-INDEX catalog-row advance, adversary Fix Mapping, decision-log codification, lessons codification, policy extensions, STATE.md advance, burst-log entry. Production-grade default satisfied.
+
+### Block 7 — Dim-6 literal-shell finding count
+
+S-21.04 LOCAL adversarial cascade pass-17: B2/H2/M3 = 7 findings (F-S2104-P17-001..007). All 7 CLOSED this fix wave: F-P17-001/002/003/004 CLOSED 2e70faa8/1859ef70/c89bef22 (test-writer); F-P17-007 CLOSED c89bef22 (story-writer); F-P17-005/006 CLOSED this burst (D-918, state-manager). Net unresolved: 0. Streak: 0/3 (BC-5.39.001; pass-17 NOT-CLEAN resets counter).
+
+### Block 8 — Closes + factory-artifacts commits
+
+**Closes:** F-S2104-P17-001 (CLOSED 2e70faa8); F-S2104-P17-002 (CLOSED c89bef22); F-S2104-P17-003 (CLOSED 2e70faa8); F-S2104-P17-004 (CLOSED 2e70faa8); F-S2104-P17-005 (CLOSED D-918 this burst); F-S2104-P17-006 (CLOSED D-918 this burst); F-S2104-P17-007 (CLOSED c89bef22).
+
+**factory-artifacts commits:**
+- Pre-burst parent-commit (factory-artifacts): `256f2b01`
+- This burst: `[SHA pending — to be recorded post-commit]` (D-918 pass-17 closure burst)

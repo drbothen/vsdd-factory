@@ -7989,3 +7989,75 @@ The mutant self-check is evidence, not just process. The test-writer report MUST
 **Cites:** D-916 (this burst); S-15.03 PRIORITY-A (deferred systemic fix); BC-5.39.001 3-CLEAN convergence protocol (silent-idle recurrences inflate actual pass count by consuming dispatch budget without advancing the cascade).
 
 **Closes:** D-916 S-21.04-ADV-PASS-16-CLOSED (2026-07-26). `[process-observation; silent-idle; dispatch-template; SendMessage; subagent; adversary; test-writer; orchestrator; S-15.03; D-916]`
+
+---
+
+## L-BB-domain-completeness-render-fidelity [process-gap] [D-918]
+
+**Summary:** Four consecutive passes of gate hardening each constrained what the predicate says, never what text it is handed. Every fix was correct for the vector in front of it and every one left the domain boundary at "the first paragraph after the anchor, terminated by the first blank line" and the visibility of that text unconstrained. Two separate principles were missing: (i) **domain-completeness** — a negative gate MUST evaluate the entire bounded section, not one paragraph within it; paragraph-scoping is admissible only for positive existence assertions; (ii) **render-fidelity** — text satisfying a positive gate MUST be rendered text; any gate domain MUST exclude HTML-comment spans or assert their absence. Either principle alone would have caught pass-17.
+
+**Discovered:** 2026-07-26 (S-21.04 LOCAL adversarial cascade pass-17 — F-S2104-P17-001: M-P17-A placed harmful text in a sibling paragraph of the `#### Write Discipline` section, outside the first-blank-line-terminated `prohibition_block`; M-P17-H hid the compliant mandate inside `<!-- -->` so only the CWD-relative-write instruction was visible).
+
+**Root cause:** The gate-hardening discipline accumulated predicates over a fixed extraction domain (one paragraph from anchor to first blank line) without ever questioning whether that domain was co-extensive with the bounded section it was meant to govern. The render-fidelity gap was the same structural omission in the visibility dimension: no gate asked whether the text satisfying it was the text a reader would actually see.
+
+**Corrective action:** POLICY 13 DOMAIN-COMPLETENESS MANDATE codified at D-918: negative gates MUST use section-wide extraction (awk over entire child heading, fenced-code excluded); blank-line-terminated extraction FORBIDDEN for negative gates; mandatory sibling-paragraph mutant required. RENDER-FIDELITY: gate domains MUST either exclude HTML-comment spans before evaluation OR assert `<!--` absence with a comment-hidden-mandate mutant.
+
+**Anchors:** S-21.04 LOCAL cascade pass-17 (2026-07-26); `write_discipline_prose_nosplit` section-wide domain; HTML-comment absence gate; F-S2104-P17-001 (eighth-generation BLOCKER class on BC-6.26.001 PC1).
+
+**Cites:** D-918 (this burst); POLICY 13 DOMAIN-COMPLETENESS + RENDER-FIDELITY; F-S2104-P17-001; BC-6.26.001 PC1.
+
+**Closes:** D-918 S-21.04-ADV-PASS-17-CLOSED (2026-07-26). `[process-gap; domain-completeness; render-fidelity; section-wide-domain; html-comment; paragraph-scoping; negative-gate; POLICY-13; D-918]`
+
+---
+
+## L-BB-fail-closed-implication-direction [process-gap] [D-918]
+
+**Summary:** Closed token alternations are the recurring shape of gate defeats: a negative gate whose trigger alternation is a closed surface list fails open on every unlisted synonym, because an alternation that must match to fire (a negative gate's trigger) fails open on paraphrase whereas an alternation that must match to pass fails closed. POLICY 13's mutant-derived requirement enforces synonym coverage of the trigger, but does not force the correct implication direction. The structural fix is: for negative gates, put the OPEN class in the trigger position and the CLOSED set in the requirement position — "every sentence containing X (open class) must contain a prohibition token from P (closed set)" — so the gate fails closed on any paraphrase of X.
+
+**Discovered:** 2026-07-26 (S-21.04 LOCAL adversarial cascade pass-17 — F-S2104-P17-002: M-P17-C inverted the normative paragraph end-to-end using phrasing not in PW-B's closed directive-token list; M-P17-D/M-P17-F used nullification synonyms not in Gate 2b's closed synonym list; both evaded by paraphrasing the closed alternation).
+
+**Root cause:** PW-B was designed as "no sentence may contain prohibited-target-form without directive-token" — two closed lists. The correct design is "every sentence containing prohibited-target-form (open class: any sentence in the section) must contain a prohibition token" — one open trigger, one closed requirement. The implication direction determines fail-closed/fail-open behavior on paraphrase.
+
+**Corrective action:** POLICY 13 FAIL-CLOSED-IMPLICATION-DIRECTION MANDATE codified at D-918. Mandatory review question for any new negative gate: "if the doc author paraphrases the prohibited-target form, does the gate fire or fall silent?" Any gate that falls silent on paraphrase is a paper-gate under TD-VSDD-059 regardless of mutant count. Gate PW-B rewritten with prohibition-token requirement (open trigger, closed requirement) at c89bef22.
+
+**Anchors:** S-21.04 LOCAL cascade pass-17 (2026-07-26); Gate PW-B rewrite; Gate 2b(c) adversative-connective gate; F-S2104-P17-002/003 (eighth-generation class).
+
+**Cites:** D-918 (this burst); POLICY 13 FAIL-CLOSED-IMPLICATION-DIRECTION; TD-VSDD-059; F-S2104-P17-002; F-S2104-P17-003.
+
+**Closes:** D-918 S-21.04-ADV-PASS-17-CLOSED (2026-07-26). `[process-gap; fail-closed; implication-direction; negative-gate; closed-alternation; paraphrase; PW-B; POLICY-13; D-918]`
+
+---
+
+## L-BB-name-set-inventory-parity [process-gap] [D-918]
+
+**Summary:** Cross-document gate-inventory parity cannot be verified by cardinality alone. Story v1.21 and red-gate-log v1.14 both said "15 gates" while enumerating different sets — two real assertions were dropped and two non-assertions added, a compensating error that count-based checking is structurally blind to. The correct invariant is name-set equality: a literal-shell diff of sorted gate labels from both documents, with the diff stdout captured as evidence. Non-empty diff stdout is the failure condition; count agreement with non-empty diff is a higher-severity finding than count disagreement.
+
+**Discovered:** 2026-07-26 (S-21.04 LOCAL adversarial cascade pass-17 — F-S2104-P17-006(a): 15-gate table omitted Gate PW-B and Gate 2b while counting bounding + abbreviation-protected splitter as gates; story v1.21 and red-gate-log v1.14 both said 15; the compensating error prevented detection).
+
+**Root cause:** The audit discipline specified gate-indexed and obligation-indexed tables but not a cross-document name equality check. Count-match was treated as sufficient parity evidence. The D-449(a) literal-shell principle applies to inventory verification exactly as it applies to field presence: narrative count-agreement is pseudocode; the real gate is a diff.
+
+**Corrective action:** POLICY 15 NAME-SET-EQUALITY MANDATE codified at D-918: cross-document gate-inventory parity MUST be asserted by literal-shell diff of sorted gate label sets; count-only comparison is FORBIDDEN; diff stdout (expected empty) MUST be captured as evidence. Applied at c89bef22: diff of 17-gate red-gate-log labels vs story Gate-cell labels → empty output (PASS).
+
+**Anchors:** S-21.04 LOCAL cascade pass-17 (2026-07-26); 17-gate NAME-SET EQUALITY at c89bef22; F-S2104-P17-006(a).
+
+**Cites:** D-918 (this burst); POLICY 15 NAME-SET-EQUALITY; D-449(a) literal-shell principle; F-S2104-P17-006.
+
+**Closes:** D-918 S-21.04-ADV-PASS-17-CLOSED (2026-07-26). `[process-gap; name-set-equality; inventory-parity; gate-audit; cardinality; literal-shell; diff; POLICY-15; D-918]`
+
+---
+
+## L-BB-orchestrator-serialize-presumed-dead-writers [process-observation] [D-918]
+
+**Summary:** The orchestrator must treat a dispatched agent as a presumed-dead writer (one that has committed output without sending a report) rather than a presumed-live writer (one that will eventually send a result) once a session context boundary has been crossed. When a prior-session agent wrote files but the session context was lost before the SendMessage report arrived, re-dispatching the agent produces a duplicate-work collision unless the orchestrator first verifies what was actually written. The correct protocol is: (1) inspect the worktree/factory-artifacts for prior-agent writes before dispatch; (2) if prior writes exist and are correct, skip re-dispatch and resume from that state; (3) if prior writes exist and are wrong, correct in place.
+
+**Discovered:** 2026-07-26 (S-21.04 pass-17 closure burst — test-writer completed 3 commits (2e70faa8/1859ef70/c89bef22) and story-writer completed c89bef22 in a prior session; the orchestrator in the new session initially assumed no work had landed because no SendMessage report was in context; reading the worktree state revealed the work was complete).
+
+**Root cause:** Orchestrator dispatch logic assumes no prior agent work exists at session start. With long-running LOCAL cascade fix waves, agents may complete work across session boundaries. The "no prior work" assumption is false whenever a session context reset occurs mid-wave.
+
+**Corrective action:** Anchor systemic dispatch-preamble hardening to S-15.03 PRIORITY-A. In the interim: at the start of any fix-wave dispatch, read the relevant file's HEAD SHA and last_amended before dispatching; skip dispatch if the work is already there.
+
+**Anchors:** S-21.04 LOCAL cascade pass-17 fix wave (2026-07-26); 3-commit test-writer wave at c89bef22 pre-existing at session start; D-918 closure burst.
+
+**Cites:** D-918 (this burst); S-15.03 PRIORITY-A (systemic dispatch-template hardening anchor); L-BB-silent-idle-subagent-recurrence (prior related lesson on silent-idle).
+
+**Closes:** D-918 S-21.04-ADV-PASS-17-CLOSED (2026-07-26). `[process-observation; orchestrator; session-boundary; presumed-dead-writer; dispatch-preamble; prior-work-check; S-15.03; D-918]`

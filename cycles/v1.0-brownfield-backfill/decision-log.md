@@ -12444,3 +12444,37 @@ D-917-S2104-PASS-17-PERSISTED
 ### Date
 
 2026-07-26
+
+---
+
+## D-918
+
+### Summary
+
+S-21.04 pass-17 closure burst. Test-writer 3-commit wave (2e70faa8/1859ef70/c89bef22) landed all 4 gate findings: F-S2104-P17-001 (domain-completeness — `write_discipline_prose_nosplit` section-wide domain + HTML-comment absence gate), F-S2104-P17-002 (fail-closed implication direction — PW-B prohibition-token requirement + Gate 1(d) conditional-scoping), F-S2104-P17-003 (Gate 2b section-wide domain + nullification class + adversative-connective Gate 2b(c)), F-S2104-P17-004 (canonical-target gate replacing Gates 6(b)/7(b)). Story-writer c89bef22 closed F-S2104-P17-007 (Gate cell item (8) domain correction + item (10) alternation). State-manager this burst closed F-S2104-P17-005 (5 red-gate-log Pass-16 attestation corrections) and F-S2104-P17-006 (17-gate audit table + obligation-indexed table AC-001(b)/(c) + NAME-SET EQUALITY). STORY-INDEX v4.264→v4.265 (S-21.04 story v1.21→v1.22 + P17 refs). POLICY 13 DOMAIN-COMPLETENESS + FAIL-CLOSED-IMPLICATION-DIRECTION extensions. POLICY 15 NAME-SET-EQUALITY step. POLICY 16 RECORD-PERSIST-BURSTS-INCLUDE-SAME-COMMIT-CODIFICATION step. policies v1.4.13→v1.4.14. red-gate-log v1.14→v1.15 (input-hash e6c640a→4b26b3b). adversary-pass-17.md: fixes_landed_head c89bef22 + Fix Mapping 7 rows. 4 lessons (L-BB-domain-completeness-render-fidelity, L-BB-fail-closed-implication-direction, L-BB-name-set-inventory-parity, L-BB-orchestrator-serialize-presumed-dead-writers). Streak 0/3 (BC-5.39.001; NOT-CLEAN pass-17 7 findings all FIXED). NEXT: adversary pass-18.
+
+### Detail
+
+1. **POLICY 16 GLOBAL-MAX GATE (literal shell stdout)**:
+   - `grep -rh '^## D-' cycles/v1.0-brownfield-backfill/decision-log.md cycles/v1.0-feature-engine-discipline-pass-1/decision-log.md | sed 's/^## D-//' | sort -n | tail -5` → `913 / 914 / 915 / 916 / 917`
+   - D-917 confirmed global max → D-918 allocated. PASS.
+
+2. **All 7 findings F-S2104-P17-001..007 FIXED** at fixes_landed_head c89bef22: 9/9 + 14/14 GREEN; gate-indexed 17-row + obligation-indexed AC-001(a)/(b)/(c) complete; NAME-SET EQUALITY PASS (diff empty).
+
+3. **POLICY 14 4-INDEX GATE (literal shell stdout)**:
+   - BC-INDEX v4.33 / VP-INDEX v2.72 / STORY-INDEX v4.264→v4.265 (this burst) / ARCH-INDEX v3.34. STORY bumped; others unchanged. PASS.
+
+4. **POLICY 18 input-hash gate (literal shell stdout)**:
+   - `bin/compute-input-hash --scan .factory/cycles/v1.0-brownfield-backfill/S-21.04/implementation/ --update` → `TOTAL=1 MATCH=0 STALE=1 UNCOMPUTED=0 NOINPUT=0 UPDATED=1 UPDATE_FAILED=0`; new hash: `4b26b3b`. PASS.
+
+5. **red-gate-log.md v1.14→v1.15**: 5 Pass-16 attestation corrections (a)-(e) per F-S2104-P17-005; Pass-17 attestation appended (3-commit wave; battery table 9 new + 9 prior vectors; 17-gate-indexed table; obligation-indexed 4-row table; NAME-SET EQUALITY literal-shell diff captured); input-hash e6c640a→4b26b3b.
+
+6. **POLICY 13/15/16 extended**: DOMAIN-COMPLETENESS + FAIL-CLOSED-IMPLICATION-DIRECTION mandates added to POLICY 13 verification_steps; NAME-SET-EQUALITY step added to POLICY 15 verification_steps; RECORD-PERSIST-BURSTS-INCLUDE-SAME-COMMIT-CODIFICATION step added to POLICY 16 verification_steps; policies.yaml v1.4.13→v1.4.14.
+
+### Phase
+
+D-918-S2104-PASS-17-CLOSED
+
+### Date
+
+2026-07-26
