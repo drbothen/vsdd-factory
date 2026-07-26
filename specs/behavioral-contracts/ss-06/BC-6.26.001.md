@@ -1,7 +1,7 @@
 ---
 document_type: behavioral-contract
 level: L3
-version: "1.10"
+version: "1.11"
 status: draft
 producer: product-owner
 timestamp: 2026-07-25T00:00:00Z
@@ -30,6 +30,7 @@ modified:
   - "2026-07-25 (v1.8) — S-21.04 pass-6 F-S2104-P6-005(b) executor-side verification precondition (product-owner; ADR-031 §Rationale adjudication): §Preconditions gains Precondition 3 — executor-side trigger for devops-engineer before executing git worktree remove; Invariant 2 extended with executor-side clause covering both obligation surfaces (Preconditions 2+3 parity). Caller-side gating PRIMARY per ADR-031 §Rationale. AC-008."
   - "2026-07-25 (v1.9) — S-21.04 pass-7 F-S2104-P7-006 count-free case labels (product-owner; D-902 L-BB-count-bearing-crossref-residue-class): PC2 lead-in 'Three cases:' replaced with count-free form (class-death at the definition site). §Description numbered steps 1–4 retain their inline count (adjacent-to-enumeration acceptable per class-death convention). No other count-bearing case/branch/step labels found in sweep."
   - "2026-07-25 (v1.10) — S-21.04 pass-8 F-S2104-P8-003 ADR Reference traceability row (product-owner): §Traceability ADR Reference corrected from 'none' to ADR-031 §Decision 4 + §Rationale; document carries two live ADR-031 §Rationale anchors (Precondition 3, Invariant 2) and CAJ row also cites ADR-031. Class-bounded sweep: no other traceability/metadata row contradicts body anchors. Sibling BC-6.27.001 amended v1.3→v1.4 for same defect class in same burst."
+  - "2026-07-25 (v1.11) — S-21.04 pass-10 F-S2104-P10-005 architecture-surface traceability completion (product-owner): §Traceability Architecture Module row and §Architecture Anchors extended to name all five obligation surfaces with obligation classes. v1.10 attestation gap acknowledged in changelog (error-acknowledgment discipline; v1.10 entry not rewritten)."
 deprecated: null
 deprecated_by: null
 replacement: null
@@ -38,7 +39,7 @@ removed: null
 removal_reason: null
 bc_id: BC-6.26.001
 section: "6.26"
-last_amended: "(v1.10) — S-21.04 pass-8 F-S2104-P8-003 ADR Reference traceability row (product-owner): §Traceability ADR Reference corrected to ADR-031 §Decision 4 + §Rationale; sweep clean. [Prior: (v1.9) — F-S2104-P7-006. (v1.8) — F-S2104-P6-005(b). (v1.7) — F-S2104-P5-011/F-P5-009/F-P5-010. (v1.6) — F-S2104-P4-007. (v1.5) — F-002/O-005. (v1.4) — F-004/006/007/010. (v1.3) — F-P1-005. (v1.2) — research. (v1.1) — CAP-036. (v1.0) — Initial.]"
+last_amended: "(v1.11) — S-21.04 pass-10 F-S2104-P10-005 architecture-surface traceability completion (product-owner): §Traceability Architecture Module row and §Architecture Anchors extended to five obligation surfaces; v1.10 attestation gap acknowledged. [Prior: (v1.10) — F-S2104-P8-003. (v1.9) — F-S2104-P7-006. (v1.8) — F-S2104-P6-005(b). (v1.7) — F-S2104-P5-011/F-P5-009/F-P5-010. (v1.6) — F-S2104-P4-007. (v1.5) — F-002/O-005. (v1.4) — F-004/006/007/010. (v1.3) — F-P1-005. (v1.2) — research. (v1.1) — CAP-036. (v1.0) — Initial.]"
 ---
 
 # BC-6.26.001: deliver-story step agents MUST write all `.factory/**` artifacts using absolute paths anchored to the canonical main-checkout `.factory/` mount, and step-G cleanup MUST run a worktree `.factory/` inventory preflight before `git worktree remove`
@@ -307,7 +308,7 @@ empty-`.factory/` assertion.
 | L2 Capability | CAP-036 |
 | Capability Anchor Justification | CAP-036 registered in ARCH-INDEX v3.07 (ADR-031, commit 14a78515): "Story-Worktree Write-Path Discipline — factory artifact writes within story worktrees MUST target the canonical main-checkout `.factory/` mount via absolute paths; teardown preflight asserts shadow `.factory/` is empty before `git worktree remove`." BC-6.26.001 is the sole implementing BC for CAP-036 (INV-E21-002 + INV-E21-004). |
 | L2 Domain Invariants | none (operational infrastructure) |
-| Architecture Module | `plugins/vsdd-factory/skills/deliver-story/steps/_shared-context.md` (write-discipline clause extension); `plugins/vsdd-factory/skills/deliver-story/steps/step-g-cleanup.md` (preflight sub-step addition) |
+| Architecture Module | `plugins/vsdd-factory/skills/deliver-story/steps/_shared-context.md` (primary protocol — write-discipline clause extension); `plugins/vsdd-factory/skills/deliver-story/steps/step-g-cleanup.md` (primary protocol — preflight sub-step addition); `plugins/vsdd-factory/agents/devops-engineer.md` (executor-side verification — Precondition 3); `plugins/vsdd-factory/agents/adversary.md` (awareness surface — Invariant 5 / story AC-009); `plugins/vsdd-factory/skills/adversarial-review/SKILL.md` (awareness surface — Invariant 5 / story AC-009) |
 | Stories | S-21.04 (E-21 Wave 2) |
 | Source Issues | #523 (story-worktree `.factory` artifacts silently lost at teardown) |
 | ADR Reference | ADR-031 §Decision 4 (INV-E21-002 + INV-E21-004 skill-doc enforcement); ADR-031 §Rationale (caller-side gating PRIMARY; executor-side verification-and-delegation layer — Precondition 3, Invariant 2) |
@@ -319,8 +320,11 @@ empty-`.factory/` assertion.
 
 ## Architecture Anchors
 
-- `plugins/vsdd-factory/skills/deliver-story/steps/_shared-context.md` — §Spec-Path Discipline to be extended with write-discipline clause (to be amended by S-21.04)
-- `plugins/vsdd-factory/skills/deliver-story/steps/step-g-cleanup.md` — teardown preflight sub-step to be added before `git worktree remove` dispatch (to be amended by S-21.04)
+- `plugins/vsdd-factory/skills/deliver-story/steps/_shared-context.md` — primary protocol: §Spec-Path Discipline to be extended with write-discipline clause (to be amended by S-21.04)
+- `plugins/vsdd-factory/skills/deliver-story/steps/step-g-cleanup.md` — primary protocol: teardown preflight sub-step to be added before `git worktree remove` dispatch (to be amended by S-21.04)
+- `plugins/vsdd-factory/agents/devops-engineer.md` — executor-side verification (Precondition 3): devops-engineer MUST have obtained a PASS result from the §G.1 preflight procedure before issuing `git worktree remove` on a story worktree
+- `plugins/vsdd-factory/agents/adversary.md` — awareness surface (Invariant 5 / story AC-009): adversary agent must recognize the gitignored-shadow mechanism and discrimination-chain protocol when reviewing story-worktree lifecycle operations
+- `plugins/vsdd-factory/skills/adversarial-review/SKILL.md` — awareness surface (Invariant 5 / story AC-009): adversarial-review skill must incorporate the shadow-factory discrimination-chain as a known failure class when reviewing deliver-story step execution
 
 ## Story Anchor
 
@@ -334,6 +338,7 @@ TBD — VP IDs to be assigned after VP authoring pass.
 
 | Version | Date | Description |
 |---------|------|-------------|
+| 1.11 | 2026-07-25 | S-21.04 pass-10 F-S2104-P10-005 architecture-surface traceability completion (product-owner): §Traceability Architecture Module row and §Architecture Anchors extended to name all five obligation surfaces with their obligation class — `_shared-context.md` (primary protocol — write-discipline clause extension); `step-g-cleanup.md` (primary protocol — preflight sub-step addition); `agents/devops-engineer.md` (executor-side verification — Precondition 3); `agents/adversary.md` (awareness surface — Invariant 5 / story AC-009); `skills/adversarial-review/SKILL.md` (awareness surface — Invariant 5 / story AC-009). Architecture-impact sweeps over devops-engineer.md, adversary.md, and adversarial-review/SKILL.md were previously unreachable from this BC. v1.10 attestation gap acknowledged: the v1.10 "no other traceability/metadata row contradicts body anchors" sweep claim is falsified by this finding — Architecture Module row and §Architecture Anchors listed only two of the five obligation surfaces that Precondition 3 (v1.8) and Invariant 5 + story AC-009 made normative; those omissions constituted metadata-body contradictions that the v1.10 sweep failed to catch (error-acknowledgment discipline; v1.10 entry is not rewritten). |
 | 1.10 | 2026-07-25 | S-21.04 pass-8 F-S2104-P8-003 ADR Reference traceability row (product-owner): §Traceability ADR Reference corrected from 'none' to ADR-031 §Decision 4 + §Rationale — document carries two live ADR-031 §Rationale anchors (Precondition 3 "Stable anchors: ADR-031 §Rationale"; Invariant 2 "Verification-and-delegation per ADR-031 §Rationale") and Capability Anchor Justification row also cites ADR-031. Class-bounded sweep: no other traceability/metadata row contradicts body anchors. Sibling BC-6.27.001 confirmed same defect class (CAJ cites ADR-031; ADR Reference: none); fixed in same burst (v1.3→v1.4). |
 | 1.9 | 2026-07-25 | S-21.04 pass-7 F-S2104-P7-006 count-free case labels (product-owner; D-902 L-BB-count-bearing-crossref-residue-class): PC2 lead-in "Three cases:" replaced with count-free form "The discrimination chain routes to exactly one of the following outcomes:" (class-death at the definition site). §Description numbered steps 1–4 retain their inline count — the STEP count is the enumeration itself (steps numbered 1–4 inline; adjacent-to-enumeration is acceptable per class-death convention). No other count-bearing case/branch/step labels found in sweep. |
 | 1.8 | 2026-07-25 | S-21.04 pass-6 F-S2104-P6-005(b) executor-side verification precondition (product-owner; ADR-031 §Rationale adjudication — verification-and-delegation; AC-008). §Preconditions: Precondition 3 added — executor-side trigger for devops-engineer before executing `git worktree remove` on a story worktree; obligation: verify PASS §G.1 preflight result was obtained; when not evident from dispatch context, execute §G.1 by reference to step-g-cleanup.md §G.1 (discrimination-chain logic defined solely there; this precondition references it by name only). Invariant 2 extended — INV-E21-004 now covers both obligation surfaces: caller-side dispatch gate (Precondition 2) and executor-side execution gate (Precondition 3). No new PC or EC required: PC2 ("Step G MUST apply the fail-closed inventory protocol before any `git worktree remove` command") already mandates the executor-side behavior; Invariant 2 extension provides explicit parity naming. Caller-side gating PRIMARY per ADR-031 §Rationale. |
