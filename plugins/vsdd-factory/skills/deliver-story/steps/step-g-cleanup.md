@@ -28,6 +28,11 @@ Outcomes:
   clean state (BC-6.26.001 EC-005; path-absent is NOT a PC2c error — a missing path is distinct
   from a `find` traversal error). Proceed to the Dispatch section below.
 
+- *Sub-case (b) — `find` exits 0, empty output:* If `.factory/` exists AND is a real directory —
+  not a symlink (confirmed by the guards below) — run `find "<worktree-path>/.factory/" -type f`
+  (see the Preflight command section below). If `find` exits 0 with empty output, no stray factory
+  artifacts exist. Proceed to the Dispatch section below.
+
 **Symlink at `.factory/` path → PC2b BLOCKED (without running `find`):** If `[ ! -e ]` is FALSE
 (something occupies the path), test whether the inode is a symbolic link:
 
@@ -47,14 +52,6 @@ have confirmed occupancy and non-symlink above — this is stray shadow content 
 same rm-rf destruction risk as files inside a shadow `.factory/` directory tree. Go directly to
 PC2b BLOCKED; list the path; do NOT invoke `find` on a non-directory inode
 (non-directory → PC2b BLOCKED, BC-6.26.001 EC-008).
-
-- *Sub-case (b) — `find` exits 0, empty output:* If `.factory/` exists AND is a real directory —
-  not a symlink — run the preflight command:
-
-      find "<worktree-path>/.factory/" -type f
-
-  If `find` exits 0 with empty output, no stray factory artifacts exist. Proceed to the Dispatch
-  section below.
 
 **PC2b — `find` returns paths, or a symlink or non-directory inode occupies the path (teardown BLOCKED):** If `find` returns one or more file
 paths, or if the path-existence checks above yielded a symlink or non-directory inode, emit a
@@ -87,6 +84,16 @@ content with no warning. The `find`-based preflight is load-bearing because `fin
 filesystem without gitignore filtering — it is the only mechanism that surfaces this class of
 stray content before destruction. No git-level check (`git status`, `git ls-files`) would catch
 gitignored content in this scenario.
+
+**Preflight command (PC2a sub-case (b) — `.factory/` exists as real directory):** After the
+discrimination chain above confirms `.factory/` is present and is a real directory (not a symlink,
+not a non-directory inode), run:
+
+    find "<worktree-path>/.factory/" -type f
+
+If `find` exits 0 with empty output → PC2a sub-case (b): no stray factory artifacts; proceed to
+the Dispatch below. If `find` exits 0 with non-empty output → PC2b BLOCKED. If `find` exits
+non-zero → PC2c HALT.
 
 ### Dispatch (PC2a only — after a PASS preflight result)
 

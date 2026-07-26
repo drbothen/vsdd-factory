@@ -45,6 +45,9 @@
   re-anchored from stale-snapshot-prohibition negative assertion to corrected-model positive assertions
   ("canonical-repo-root" + "checks out NOTHING under"); the old anchor locked in a retracted premise
   and would have blocked the stale-residue sweep (F-S2104-P3-007).
+  (5) **Adversary agent** (`agents/adversary.md`): `bcs:` frontmatter-field references corrected to
+  canonical `behavioral_contracts:` (5 sites — perimeter scope sentence + bidirectional-BC-completeness
+  items 1-4).
   Closes issue #523.
 
 ## 1.0.0-rc.23 — E-19 operator hardening — host ABI fixes + read_prefix FFI (2026-07-18)
