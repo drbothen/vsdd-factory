@@ -580,7 +580,7 @@ _run_teardown_preflight() {
   #       excluded). For every sentence containing a prohibited-target form, that sentence MUST
   #       carry a prohibition token — directive-token whitelist dropped (F-S2104-P17-002(a)).
   #       prohibited-target: CWD-relative|worktree-relative|relative paths?|story-worktree CWD|
-  #         worktree's shadow|worktree CWD|shadow subtree|worktree-local|in-worktree
+  #         worktree's shadow|worktree CWD|shadow subtree|[Ww]orktree-local|in-worktree
   #       prohibition: FORBIDDEN|forbidden|MUST NOT|prohibited|never|forbid
   #       M-P17-A S1: "Writers MUST anchor every write to the story worktree CWD" — no prohibition
   #         token → RED. M-P17-C S2: "CWD-relative paths are the required form" → RED.
@@ -731,7 +731,9 @@ _run_teardown_preflight() {
   # prohibited-target: CWD-relative|worktree-relative|relative[[:space:]]+paths?|
   #                    story-worktree[[:space:]]+CWD|story[[:space:]]+worktree[[:space:]]+CWD|
   #                    worktree's[[:space:]]+shadow|worktree[[:space:]]+CWD|shadow[[:space:]]+subtree|
-  #                    worktree-local|(^|[^[:alnum:]])[Ii]n-worktree
+  #                    [Ww]orktree-local|(^|[^[:alnum:]])[Ii]n-worktree
+  # NOTE: '[Ww]orktree-local' uses bracket-class for sentence-initial capital W — 'Worktree-local'
+  #   at the start of a sentence (after '. ' splitter) is not caught by lowercase-only 'worktree-local'.
   # NOTE: 'in-worktree' added with word-boundary-safe predicate (^|[^[:alnum:]])[Ii]n-worktree —
   #   bare 'in-worktree' was excluded because '<main-worktree-path>' has 'n' (alphanumeric) before
   #   'in-worktree'; the word-boundary form fails on that template placeholder while catching
@@ -748,10 +750,10 @@ _run_teardown_preflight() {
   #   label present → sentence excluded from violations by grep -Ev → PASSES.
   local polarity_violations
   polarity_violations="$(printf '%s\n' "$write_discipline_prose_nosplit" | sed 's/\. /\n/g' | \
-    grep -E 'CWD-relative|worktree-relative|relative[[:space:]]+paths?|story-worktree[[:space:]]+CWD|story[[:space:]]+worktree[[:space:]]+CWD|worktree'\''s[[:space:]]+shadow|worktree[[:space:]]+CWD|shadow[[:space:]]+subtree|worktree-local|(^|[^[:alnum:]])[Ii]n-worktree' | \
+    grep -E 'CWD-relative|worktree-relative|relative[[:space:]]+paths?|story-worktree[[:space:]]+CWD|story[[:space:]]+worktree[[:space:]]+CWD|worktree'\''s[[:space:]]+shadow|worktree[[:space:]]+CWD|shadow[[:space:]]+subtree|[Ww]orktree-local|(^|[^[:alnum:]])[Ii]n-worktree' | \
     grep -Ev 'FORBIDDEN|Forbidden|forbidden|MUST NOT|prohibited|never|forbid' || true)"
   if [ -n "$polarity_violations" ]; then
-    echo "DOC-PARITY FAIL [write-discipline section-wide sentence polarity (Gate PW-B, F-S2104-P16-001(b)/F-S2104-P17-002)]: a sentence in the Write Discipline section contains a prohibited-target form (CWD-relative|worktree-relative|relative paths?|story-worktree CWD|story worktree CWD|worktree's shadow|worktree CWD|shadow subtree|worktree-local|in-worktree) without a prohibition token (FORBIDDEN|Forbidden|forbidden|MUST NOT|prohibited|never|forbid) — M-P17-A S1 'Writers MUST anchor every write to the story worktree CWD' carries no prohibition token; M-P17-C S2 'CWD-relative paths are the required form, and they land in the story worktree's shadow subtree' carries no prohibition token (BC-6.26.001 PC1; AC-001(a))"
+    echo "DOC-PARITY FAIL [write-discipline section-wide sentence polarity (Gate PW-B, F-S2104-P16-001(b)/F-S2104-P17-002)]: a sentence in the Write Discipline section contains a prohibited-target form (CWD-relative|worktree-relative|relative paths?|story-worktree CWD|story worktree CWD|worktree's shadow|worktree CWD|shadow subtree|[Ww]orktree-local|in-worktree) without a prohibition token (FORBIDDEN|Forbidden|forbidden|MUST NOT|prohibited|never|forbid) — M-P17-A S1 'Writers MUST anchor every write to the story worktree CWD' carries no prohibition token; M-P17-C S2 'CWD-relative paths are the required form, and they land in the story worktree's shadow subtree' carries no prohibition token (BC-6.26.001 PC1; AC-001(a))"
     printf '%s\n' "$polarity_violations"
     false
   fi
