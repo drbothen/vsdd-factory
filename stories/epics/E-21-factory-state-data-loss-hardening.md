@@ -1,7 +1,7 @@
 ---
 document_type: epic
 epic_id: "E-21"
-version: "v1.6"
+version: "v1.7"
 status: draft
 title: "Factory State Data-Loss Hardening — validate-factory-path-staging WASM guard, post-rebase diff-integrity gate, pr-manager trunk assertions, story-worktree write-path discipline, factory-side PR protocol, validate-main-checkout-sync WASM guard (W-SEC-001)"
 prd_capabilities: [CAP-034, CAP-035, CAP-036, CAP-037, CAP-038]
@@ -28,8 +28,8 @@ inputs:
   - .factory/stories/S-21.04-story-worktree-write-path-discipline.md
   - .factory/stories/S-21.05-pr-manager-factory-side-pr-protocol.md
   - .factory/stories/S-21.06-layer-2-sync-protocol-wasm-guard.md
-input-hash: "3ae5a1f"
-last_amended: "2026-07-25 (v1.6) — pass-13 F-S2104-P13-D1 (orchestrator-adjudicated fix-in-scope): S-21.06 registered — title extended, inputs list extended, Stories table (W3 / 8 pts / TBD BCs), EAC-001 extended to S-21.06, Sequencing W3 note, Wave model note updated to W3, Dependency Graph S-21.01→S-21.06 hard edge, description text de-counted, total 6 stories / 35 pts / 3 waves, Maintenance tally 5/27→6/35, story_count 5→6. [Prior: 2026-07-19 (v1.5) — adv pass-7 fix burst (O-P7-a): EAC-006 added (factory-side PR 5-step restore per BC-6.27.001 v1.3 INV-E21-003; 1:1 story↔EAC symmetry restored); BC-6.27.001 v1.2→v1.3 in PRD Capabilities CAP-037 + BC Traceability table; POLICY 14 parity. [Prior: 2026-07-19 (v1.4) — adv pass-5 fix burst (F-P5-001): added missing v1.3 Changelog row to body ## Changelog table; frontmatter/body changelog parity restored (5 modified[] entries now matched by 5 Changelog table rows). [Prior: 2026-07-19 (v1.3) — adv pass-3 fix burst (F-P3-003): CAP-036 stale BC-6.26.001 v1.2 cite corrected to v1.3; TD-VSDD-060 full grep sweep confirms no other stale v1.2 cites of BC-5.44.001, BC-6.10.002, BC-6.26.001, or BC-5.43.001. [Prior: 2026-07-19 (v1.2) — adv pass-2 fix burst (F-P2-003): INV-E21-005 'post-rebase product branch' → 'post-rebase feature branch' (authoritative ADR-031 INV-E21-005 scope); BC-5.43.001 → v1.3; ADR-031 version cites → v1.3 (all occurrences); Description item 2 'product branch' + 'pr-manager post-rebase checkpoint' corrected to 'feature branch' + 'devops-engineer.md §Inter-Wave Rebase checkpoint'.]]]]"
+input-hash: "580b545"
+last_amended: "2026-07-26 (v1.7) — D-909 input-hash correction 3ae5a1f→580b545 (INCIDENT: v1.6 S-21.06 input registration did not recompute hash; 580b545 is operator-cache canonical value per L-EDP1-073). [Prior: 2026-07-25 (v1.6) — pass-13 F-S2104-P13-D1 (orchestrator-adjudicated fix-in-scope): S-21.06 registered — title extended, inputs list extended, Stories table (W3 / 8 pts / TBD BCs), EAC-001 extended to S-21.06, Sequencing W3 note, Wave model note updated to W3, Dependency Graph S-21.01→S-21.06 hard edge, description text de-counted, total 6 stories / 35 pts / 3 waves, Maintenance tally 5/27→6/35, story_count 5→6. [Prior: 2026-07-19 (v1.5) — adv pass-7 fix burst (O-P7-a): EAC-006 added (factory-side PR 5-step restore per BC-6.27.001 v1.3 INV-E21-003; 1:1 story↔EAC symmetry restored); BC-6.27.001 v1.2→v1.3 in PRD Capabilities CAP-037 + BC Traceability table; POLICY 14 parity. [Prior: 2026-07-19 (v1.4) — adv pass-5 fix burst (F-P5-001): added missing v1.3 Changelog row to body ## Changelog table; frontmatter/body changelog parity restored (5 modified[] entries now matched by 5 Changelog table rows). [Prior: 2026-07-19 (v1.3) — adv pass-3 fix burst (F-P3-003): CAP-036 stale BC-6.26.001 v1.2 cite corrected to v1.3; TD-VSDD-060 full grep sweep confirms no other stale v1.2 cites of BC-5.44.001, BC-6.10.002, BC-6.26.001, or BC-5.43.001. [Prior: 2026-07-19 (v1.2) — adv pass-2 fix burst (F-P2-003): INV-E21-005 'post-rebase product branch' → 'post-rebase feature branch' (authoritative ADR-031 INV-E21-005 scope); BC-5.43.001 → v1.3; ADR-031 version cites → v1.3 (all occurrences); Description item 2 'product branch' + 'pr-manager post-rebase checkpoint' corrected to 'feature branch' + 'devops-engineer.md §Inter-Wave Rebase checkpoint'.]]]]]"
 modified:
   - "v1.0 2026-07-19: Initial authoring"
   - "v1.1 2026-07-19: adv pass-1 fix burst (F-P1-008/009/011/013)"
@@ -38,6 +38,7 @@ modified:
   - "v1.4 2026-07-19: adv pass-5 fix burst (F-P5-001) — added missing v1.3 Changelog row; frontmatter/body changelog parity restored"
   - "v1.5 2026-07-19: adv pass-7 fix burst (O-P7-a) — EAC-006 added (factory-side PR 5-step restore per BC-6.27.001 v1.3; 1:1 story↔EAC symmetry); BC-6.27.001 v1.2→v1.3 in PRD Capabilities + BC Traceability table"
   - "v1.6 2026-07-25: pass-13 F-S2104-P13-D1 — S-21.06 registered (W3 / 8 pts / TBD BCs); title, inputs, last_amended, EAC-001, Stories table, Sequencing W3, Wave model note, Dependency Graph S-21.01→S-21.06, description de-counted, Maintenance tally 5/27→6/35, story_count 5→6"
+  - "v1.7 2026-07-26: D-909 input-hash correction 3ae5a1f→580b545 (INCIDENT: v1.6 S-21.06 input registration did not recompute hash; operator-cache canonical per L-EDP1-073)"
 ---
 
 # Epic E-21: Factory State Data-Loss Hardening
@@ -291,6 +292,7 @@ All BCs listed here are draft; they auto-promote to active per POL-14 when their
 
 | Version | Date | Author | Summary |
 |---------|------|--------|---------|
+| v1.7 | 2026-07-26 | state-manager | D-909 input-hash correction 3ae5a1f→580b545 (INCIDENT: v1.6 S-21.06 input registration did not recompute hash; operator-cache canonical per L-EDP1-073). |
 | v1.6 | 2026-07-25 | story-writer | pass-13 F-S2104-P13-D1 (orchestrator-adjudicated fix-in-scope): S-21.06 registered — Stories table (W3 / 8 pts), EAC-001 extended to S-21.06, Sequencing W3 note, Dependency Graph S-21.01→S-21.06 hard edge, total 6 stories / 35 pts / 3 waves, Maintenance tally 5/27→6/35, story_count 5→6, version v1.5→v1.6. |
 | v1.0 | 2026-07-19 | story-writer | Initial authoring. E-21 epic; 5 stories; 27 pts; 2 waves; 6 BCs; issues #342/#365/#358/#523/#588; INV-E21-001..005; CAP-034..037. |
 | v1.1 | 2026-07-19 | story-writer | adv pass-1 fix burst (F-P1-008/009/011/013): EAC-005 → "PREFLIGHT BLOCKED" (BC-6.26.001 PC2b) + AC trace → S-21.04 AC-003; BC statuses draft per POL-14; BC versions BC-5.44.001/BC-6.10.002/BC-6.26.001 → v1.3; S-21.01 priority P0; INV-E21-001..006 (INV-E21-006 + CAP-038 added per ADR-031 v1.1); S-21.02 gate host → devops-engineer.md §Inter-Wave Rebase; POLICY 21 fixture annotation. |

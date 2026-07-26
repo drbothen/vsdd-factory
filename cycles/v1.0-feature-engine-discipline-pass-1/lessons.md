@@ -1124,3 +1124,39 @@ This is D-449(a) applied to per-story fix waves (D-449(a) previously applied onl
 **Cites:** D-908 (codified this burst); D-449(a) (literal-shell mandate for F5 burst-log Dim-2 — now extended to per-story fix waves); POLICY 15 (record completeness); POLICY 4 (spec/record accuracy); TD-VSDD-059 (paper-fix detection); TD-VSDD-060 (sibling-site sweep).
 
 **Closes:** D-908 S-21.04-ADV-PASS-12-CLOSED (2026-07-26). `[process-gap; executable-predicate; fix-wave; closure-attestation; literal-shell; captured-stdout; per-story; D-449a-extension; D-908; codified]`
+
+## L-EDP1-077: [process-gap] ATTESTATION-PER-ASSERTION-SITE — Running Prose Counts in Gate Logs Must Be Replaced by Per-Pass Attestation Sections (2026-07-26; D-909)
+
+**Trigger:** Adversary pass-13 finding F-S2104-P13-002: the red-gate-log carried a prose running count ("5 gate GROUPS strengthened at 3326e4dd spanning 9 assertion sites") that was stale at pass-13 (true count: 6 groups / 11 sites after the P12-003 fix added two new assertion sites). The running count was updated in some passes but not others, producing a second-generation recurrence of the F-P10-007/F-P12-002 class. Two new assertion sites landed at 264f53b6 with zero red-gate-log attestation and no mutant record — the prose count was simply wrong.
+
+**Pattern:** A running prose count in a gate log ("N groups strengthened spanning M assertion sites") decays every time a fix wave adds or strengthens an assertion site without updating the count. Prose counts require disciplined sibling-sweep on every fix wave — a discipline that has failed three consecutive times (P10-007, P12-002, P13-002). The root cause is structural: prose counts conflate the enumeration of sites (which is stable and historical) with the running total (which changes on every fix wave). They cannot both be correct after a wave that touches new sites.
+
+**ATTESTATION-PER-ASSERTION-SITE rule (codified D-909):** Running prose counts for gate groups and assertion sites are FORBIDDEN in gate logs. Replace with:
+1. A COUNT-FREE pointer in the body: "gate groups and assertion sites are enumerated per-pass in the attestation sections below; running totals are not maintained as prose counts"
+2. Per-pass attestation sections at the end of the log that enumerate every group and site introduced or strengthened in that pass, with the literal shell predicate and captured stdout confirming each site (per L-EDP1-076)
+
+Per-pass attestation sections are append-only. Historical sections are never rewritten. The current count is always derivable by summing the sections — never by trusting a prose sentence.
+
+**Why this prevents recurrence:** A prose count that is correct at time-of-write decays silently on the next fix wave. A per-pass attestation section that is wrong-at-write is immediately visible because the section references the specific assertion sites and the predicate confirms them. Enumeration-per-pass cannot drift in the way a running total drifts.
+
+**Anchors:** S-21.04 LOCAL cascade pass-13 (2026-07-26); F-S2104-P13-002 (third generation: F-P10-007→F-P12-002→F-P13-002); red-gate-log v1.11 §T-009 COUNT-FREE pointer (fix); per-pass attestation section appended at commit 09cfce81 + D-909 burst.
+
+**Cites:** D-909 (codified this burst); L-EDP1-076 (executable-predicate mandate — per-pass sections must carry literal command + captured stdout); POLICY 15 (record completeness); TD-VSDD-059 (paper-fix detection); TD-VSDD-060 (sibling-site sweep on every fix wave).
+
+**Closes:** D-909 S-21.04-ADV-PASS-13-CLOSED (2026-07-26). `[process-gap; attestation-per-assertion-site; count-free; running-count; gate-log; per-pass-attestation; fix-wave; red-gate-log; D-909; codified]`
+
+## L-EDP1-078: [process-gap] INPUT-REGISTRATION-WITHOUT-HASH-RECOMPUTE — Adding an Input File to inputs: Must Trigger Immediate Hash Recompute (2026-07-26; D-909)
+
+**Trigger:** Adversary pass-13 F-S2104-P13-D1 INCIDENT: when story-writer registered S-21.06 in the E-21 epic (v1.6, commit 106bb5f5) by appending `.factory/stories/S-21.06-layer-2-sync-protocol-wasm-guard.md` to the `inputs:` frontmatter array, the `input-hash:` field was not recomputed. It remained at `3ae5a1f` (the hash of the 13-file inputs list) instead of being updated to `580b545` (the correct hash of the 14-file list). This is the second inversion of the pattern codified in L-EDP1-073.
+
+**Pattern (second inversion of L-EDP1-073):** L-EDP1-073 established that operator-cache hash values are canonical over dev-binary values when the two diverge. This lesson establishes the precondition: the hash in `input-hash:` must be recomputed on EVERY change to `inputs:` — additions, removals, and reorderings alike. An `input-hash:` that is stale-but-present is more dangerous than an absent one: it passes a casual inspection ("there is a hash") while encoding incorrect provenance ("the hash covers a different input set").
+
+**INPUT-REGISTRATION-WITHOUT-HASH-RECOMPUTE rule (codified D-909):** Whenever an agent modifies the `inputs:` array of any factory artifact (epic, story, spec), the `input-hash:` field MUST be recomputed in the SAME edit. The recompute is not a follow-up task — it is a precondition for the version bump. An agent that adds an input and does not recompute the hash has produced an invalid artifact version, regardless of whether a hook catches it.
+
+**Practical gate:** After any `inputs:` modification, run `bin/compute-input-hash --scan <artifact-path>` and confirm the printed hash matches `input-hash:` before committing. Absence of a hook-block is NOT sufficient — the validate-input-hash hook may not fire on every edit path (e.g., when the hook is in PostToolUse advisory mode or WASM fuel is exhausted).
+
+**Anchors:** E-21 epic v1.6→v1.7 hash correction (3ae5a1f→580b545); story-writer commit 106bb5f5 (INCIDENT origin); D-909 burst (INCIDENT correction); L-EDP1-073 (operator-cache authority — first inversion); validate-input-hash hook (enforcement layer, but not infallible per CLAUDE.md WASM fuel budget note).
+
+**Cites:** D-909 (codified this burst); L-EDP1-073 (operator-cache canonical authority — same class, different trigger); POLICY 14 (version-bump completeness); POLICY 17 (attestation integrity); `bin/compute-input-hash` (recompute tool).
+
+**Closes:** D-909 S-21.04-ADV-PASS-13-CLOSED (2026-07-26). `[process-gap; input-hash; inputs-array; registration; recompute; epic; frontmatter; L-EDP1-073-second-inversion; D-909; codified]`

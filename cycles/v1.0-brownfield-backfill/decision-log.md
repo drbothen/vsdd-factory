@@ -12068,3 +12068,80 @@ D-908-S2104-ADV-PASS-12-CLOSED
 ### Date
 
 2026-07-26
+
+## D-909
+
+### Title
+
+S2104-ADV-PASS-13-CLOSED — NOT-CLEAN B0/H3/M5/L2; 10+D1 findings fixed; attestation-per-assertion-site rule adopted; streak 0/3
+
+### Context
+
+S-21.04 LOCAL adversarial cascade pass-13. Reviewed HEAD: 264f53b6 (pre-fix-wave; adversary reviewed this HEAD). Fixes-landed HEAD: 09cfce81 (worktree HEAD after pass-13 fix wave; test-writer commit 09cfce81 and story-writer commit 106bb5f5 are the pre-burst other-agent legs). Verdict: NOT-CLEAN — B0/H3/M5/L2 (10 findings F-S2104-P13-001..010 + 1 deferred cross-story fixed in-scope F-S2104-P13-D1). Novelty 0.55. Trajectory 14→18→17→12→11→11→9→9→10→11→7→10→10 (plateau at 10; streak broken). Streak: 0/3. Per-pass-12 verification: 5 CONFIRMED-CLOSED / 6 PARTIAL / 0 REGRESSED + 1 regressed-in-kind (F-P12-003→P13-001/002/008).
+
+### Decision
+
+Close pass-13 with single-commit fix burst (TD-VSDD-053). Adopt attestation-per-assertion-site rule: running prose counts for gate groups and assertion sites are FORBIDDEN in gate logs; replace with COUNT-FREE pointer + per-pass attestation sections (append-only; each section enumerates groups/sites introduced or strengthened that pass, with literal predicate + captured stdout per L-EDP1-076). F-S2104-P13-D1 fixed in-scope (orchestrator adjudication: E-21 epic input-hash INCIDENT — hash not recomputed when S-21.06 registered at v1.6; corrected 3ae5a1f→580b545 per L-EDP1-073 operator-cache canonical authority). Advance 4-INDEX: STORY v4.260→v4.261 / BC v4.33 UNCHANGED / ARCH v3.34 UNCHANGED / VP v2.72 UNCHANGED.
+
+### Detail
+
+Fix legs by other-agent pre-burst commits (orchestrator-verified at 09cfce81, 2026-07-26; suites 9/9 + 14/14):
+- test-writer 09cfce81: F-001 (3 mutants: two `are FORBIDDEN` polarity-blind probes + inversion-vector probe; all RED/restore GREEN with stdout). F-006 (T-009 header → AC-009 only; T-008 header retains AC-007). F-007 (zero bare line pins; all emitted-message anchors use stable tokens; predicate `grep -n 'line [0-9]'` → zero survivors). F-009 (2 T-005 historical-opening sites completed to closing-SHA form; predicate every hit " at <8-hex>"). Closes F-S2104-P13-001/006/007/009.
+- story-writer 106bb5f5: S-21.04 v1.16→v1.17. F-005 (step-d5 annotated story-scoped with note "step-d5 maps to S-21.04 story scope; BC-6.26.001 anchor coverage confirmed"). F-008 (AC-001 Gate column extended: AC-001(a) prohibition gates named + predicate). F-010 (Tasks 1-11 [x] with per-task closing SHAs). F-D1 (epic E-21 v1.5→v1.6: S-21.06 registration, Mermaid node, EAC-001 extended, predicate one exempt provenance hit). Closes F-S2104-P13-005/008/010/D1.
+
+Fix legs this burst (state-manager D-909):
+
+1. **F-P13-002 FIX — red-gate-log.md v1.10→v1.11 (COUNT-FREE pointer + attestation section)**:
+   - version: "1.10"→"1.11"; input-hash: "53500af"→"89efd7e" (story v1.17 drift — hook-computed value per L-EDP1-073).
+   - last_amended[]: D-909 entry prepended; modified[]: D-909 entry appended.
+   - §T-009 count phrase replaced: "5 gate GROUPS strengthened at 3326e4dd spanning 9 assertion sites (named): the 6-surface _assert_g1_ref helper (1 site, fully-qualified path form); the four section-bounded primary-path gates (4 sites — ..." → "gate groups and assertion sites are enumerated per-pass in the attestation sections below; running totals are not maintained as prose counts: the 6-surface _assert_g1_ref helper (fully-qualified path form); the section-bounded primary-path gates (..."
+   - Summary HEAD cite: 264f53b6→09cfce81; text condensed to "orchestrator-executed: 9/9 + 14/14, 2026-07-26".
+   - Pass-13 attestation section appended (verbatim from dispatch appendix): groups enumerated with literal predicate + captured stdout per L-EDP1-076.
+   - POST-STATE (literal shell): `grep -n 'running totals are not maintained' cycles/v1.0-brownfield-backfill/S-21.04/implementation/red-gate-log.md` → line 289: COUNT-FREE pointer present. PASS.
+
+2. **F-P13-003 FIX — STORY-INDEX.md v4.260→v4.261 (three narrative sites)**:
+   - (a) :719 prose: "E-21 delivers five data-loss hardening stories" → "six data-loss hardening stories"; "(5) pr-manager factory-side PR protocol…closes issue #588)" → appended "; (6) validate-main-checkout-sync Layer-2 WASM guard (W-SEC-001) (S-21.06)".
+   - (b) :748 aggregate: "+ 27 E-21" → "+ 35 E-21".
+   - (c) :761 footnote: appended "[Historical v1.0 tally; current: 6 stories/35 pts/3 waves — see row summary]".
+   - S-21.04 catalog row: story v1.16→v1.17; F-S2104-P13-001..010 + F-S2104-P13-D1 refs appended.
+   - POST-STATE (literal shell): `grep -n '5 stories\|27 pts\|2 waves\|five data-loss\|five hardening' stories/STORY-INDEX.md` → survivors: line 80 (E-14 historical; provenance-exempt), line 90 (E-10 historical; provenance-exempt), line 190 (E-14 historical; provenance-exempt), line 760 ("15 stories" E-18 historical; provenance-exempt), line 761 ("27 pts" inside [Historical v1.0 tally] marker; provenance-exempt), line 762 (E-19 historical; provenance-exempt). Zero live E-21 stale assertions. PASS.
+
+3. **F-P13-004 FIX — red-gate-log.md §Traces/§Bats multi-AC notation sync (13 pairs)**:
+   - §Bats Tests T-001: "AC-003 / RG-001†" → "AC-003; AC-001 (Write Discipline clause-content gates); AC-002 (§G.1 doc-parity + harness, with T-002); AC-007 (a)-(c) primary-surface gates / RG-001†".
+   - §Bats Tests T-002: "AC-004 / RG-002†" → "AC-004; AC-002 (§G.1 doc-parity, with T-001) / RG-002†".
+   - §Traces T-001: "(AC-003 / RG-001†)" → "(AC-003; AC-001; AC-002; AC-007 (a)-(c) / RG-001†)".
+   - §Traces T-002: "(AC-004 / RG-002†)" → "(AC-004; AC-002 / RG-002†)".
+   - T-003..T-009 addenda sections: multi-AC notation applied per story v1.17 (13 pairs total synced).
+   - POST-STATE (literal shell): `grep -c "AC-003; AC-001" cycles/v1.0-brownfield-backfill/S-21.04/implementation/red-gate-log.md` → 2 (§Bats Tests T-001 + §Traces T-001). PASS.
+
+4. **E-21 epic input-hash INCIDENT correction**:
+   - epics/E-21-factory-state-data-loss-hardening.md v1.6→v1.7.
+   - input-hash: "3ae5a1f"→"580b545" (INCIDENT: v1.6 S-21.06 input registration did not recompute hash; 580b545 is operator-cache canonical value per L-EDP1-073).
+   - last_amended, modified[], body Changelog row v1.7 added.
+   - POST-STATE (literal shell): `grep -m1 "^input-hash:" stories/epics/E-21-factory-state-data-loss-hardening.md` → `input-hash: "580b545"`. PASS.
+
+5. **adversary-pass-13.md created** at `cycles/v1.0-brownfield-backfill/S-21.04/adversary-pass-13.md`: verbatim Part A finding table (10 findings + D1 B0/H3/M5/L2), observations (verbatim), per-pass-12 verification (5/6/0 + 1 regressed-in-kind), fix mapping (10+D1 FIXED). Frontmatter: pass 13; reviewed_head 264f53b6; fixes_landed_head 09cfce81; novelty 0.55.
+
+6. **[process-gap] attestation-per-assertion-site rule + input-registration-without-hash-recompute codified**:
+   - L-EDP1-077: ATTESTATION-PER-ASSERTION-SITE — running prose counts for gate groups/assertion sites FORBIDDEN; replace with COUNT-FREE pointer + per-pass attestation sections (append-only, literal predicate + captured stdout per L-EDP1-076).
+   - L-EDP1-078: INPUT-REGISTRATION-WITHOUT-HASH-RECOMPUTE — adding an input file to inputs: MUST trigger immediate hash recompute in the SAME edit; second inversion of L-EDP1-073 operator-cache authority pattern.
+
+7. **4-INDEX updates**:
+   - STORY-INDEX: v4.260→v4.261 (S-21.04 story v1.16→v1.17 catalog-row cite + P13 refs; :719 prose six + (6) item; :748 27→35 E-21; :761 historical-tally marker; last_amended prepended D-909).
+   - BC-INDEX: v4.33 VERIFIED UNCHANGED.
+   - VP-INDEX: v2.72 VERIFIED UNCHANGED.
+   - ARCH-INDEX: v3.34 VERIFIED UNCHANGED.
+
+8. **STATE.md frontmatter-minimal**: v6.46→v6.47; phase D-909-S2104-ADV-PASS-13-CLOSED.
+
+POLICY 16 GLOBAL-MAX GATE (literal shell): `grep -n "^## D-" cycles/v1.0-brownfield-backfill/decision-log.md | tail -3` → 11872:## D-906 / 11941:## D-907 / 12005:## D-908; D-908 confirmed prior max → D-909 allocated. PASS.
+
+POLICY 14 gate (literal shell — post-edit): `grep -m1 "^version:" specs/behavioral-contracts/BC-INDEX.md specs/verification-properties/VP-INDEX.md stories/STORY-INDEX.md specs/architecture/ARCH-INDEX.md` → BC v4.33 / VP v2.72 / STORY v4.261 / ARCH v3.34. PASS.
+
+### Phase
+
+D-909-S2104-ADV-PASS-13-CLOSED
+
+### Date
+
+2026-07-26
