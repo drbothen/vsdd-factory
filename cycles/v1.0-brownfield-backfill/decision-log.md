@@ -12179,3 +12179,38 @@ D-910-SESSION-WRAP-PAUSED-2026-07-26
 ### Date
 
 2026-07-26
+
+## D-911
+
+### Title
+
+S-21.04 pass-14 RE-RUN record persisted — original lost at D-910 wrap; human re-run ruling 2026-07-26; verdict NOT-CLEAN B1/H2/M7/L3 (13 findings F-S2104-P14R-001..013); novelty 0.62; reviewed_head 6f928350; streak 0/3
+
+### Context
+
+The original pass-14 adversarial review (B0/H2/M4/L2, 8 findings F-S2104-P14-001..008, novelty 0.50, reviewed_head 09cfce81) was reviewed in-session on 2026-07-26 but its verbatim Part A was lost at the D-910 session wrap before persistence (transcript-only; never relayed to a persist burst). The D-910 closure burst (P14-003 STORY-INDEX epic pin v1.5→v1.7; P14-006 mutant-record precision; verbatim pass-14 record persist) was recorded as NOT STARTED. On resume 2026-07-26, the human was presented with two options via AskUserQuestion: reconstruct from session transcript vs re-run the adversary at the current HEAD (6f928350, post-fix-wave state). Human ruling: RE-RUN pass 14. The re-run was executed at 6f928350 and produced 13 findings (B1/H2/M7/L3), novelty 0.62. Finding IDs use the F-S2104-P14R-* namespace to avoid collision with the lost review's F-S2104-P14-001..008 citations in commits 6f928350/77aa0d55 and story v1.18.
+
+### Decision
+
+Persist the verbatim RE-RUN pass-14 report at `cycles/v1.0-brownfield-backfill/S-21.04/adversary-pass-14.md` with a state-manager-authored provenance section per D-897 VERBATIM-RECORD-PERSISTENCE rule. The re-run's finding count (13) supersedes the lost pass's count (8) as the authoritative pass-14 trajectory value. Streak reset to 0/3. Fix-wave routing: implementer (P14R-003 skill-doc traversal form, P14R-012, P14R-013, P14R-008 CHANGELOG clause) → test-writer (P14R-001 BLOCKER zero-DoF gate rewrite + M-P14R-A mutant, P14R-003 T-001 traversal assertion, P14R-004 attestation-block removal from bats, P14R-005 emitted-pin fix, P14R-008 T-009 field assertion, P14R-011) → story-writer (P14R-006, P14R-003 AC-001(a) extension, P14R-008 AC + File-Structure row, P14R-009 story rows) → state-manager closure (P14R-002, P14R-007, P14R-009 log column, P14R-010, fixes_landed_head, codifications incl. 2 [process-gap] observations: mutant-token-generality POLICY 13 extension candidate + attestation-location gate).
+
+### Detail
+
+1. **POLICY 16 GLOBAL-MAX GATE (literal shell stdout)**:
+   - `grep -n "^## D-" cycles/v1.0-feature-engine-discipline-pass-1/decision-log.md | tail -3` → (no output — zero D-NNN entries in engine-discipline cycle)
+   - `grep -n "^## D-" cycles/v1.0-brownfield-backfill/decision-log.md | tail -3` → `12005:## D-908 / 12072:## D-909 / 12149:## D-910`
+   - D-910 confirmed global max → D-911 allocated. PASS.
+
+2. **adversary-pass-14.md created** at `cycles/v1.0-brownfield-backfill/S-21.04/adversary-pass-14.md`: verbatim RE-RUN report (13 findings B1/H2/M7/L3, novelty 0.62, reviewed_head 6f928350, rerun: true) + state-manager provenance section (D-911). Post-write diff-verify: `wc -l` → 283 lines; `grep -c "F-S2104-P14R-"` → 38 occurrences. `fixes_landed_head` intentionally absent per D-907 dual-field convention; will be added at closure burst.
+
+3. **Dirty telemetry bundled**: `logs/dispatcher-internal-2026-07-26.jsonl` (modified), `sidecar-learning.md` (modified) — both pre-existing dirty files included in same commit per TD-VSDD-053 precedent.
+
+4. **POLICY 14 4-INDEX GATE (literal shell stdout)**: all 4 indexes UNCHANGED this burst — BC-INDEX v4.33 / VP-INDEX v2.72 / STORY-INDEX v4.261 / ARCH-INDEX v3.34. PASS.
+
+### Phase
+
+D-911-S2104-PASS-14-RERUN-PERSISTED
+
+### Date
+
+2026-07-26
