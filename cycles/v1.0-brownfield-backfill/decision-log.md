@@ -12306,3 +12306,40 @@ D-913-S2104-PASS-15-PERSISTED
 ### Date
 
 2026-07-26
+
+---
+
+## D-914
+
+### Summary
+
+S-21.04 pass-15 CLOSURE burst. All 7 findings closed across 4 fix-wave agents: implementer e7ac3aef (F-S2104-P15-006 count-bearing lead-in removal + fence observation); story-writer 6fccdcc3 (F-S2104-P15-003 epic v1.8 + BC-6.26.001 v1.3→v1.11 + ADR-031 v1.3→v1.13 cite sweeps; F-S2104-P15-005 AC-010 carve-out alignment, story v1.20 option-a); test-writer 8b39277b (F-S2104-P15-001 BLOCKER sentence-scoped Gates 1/4/5 via joined_block+sed sentence-split; F-S2104-P15-002 Gate 6 two-part polarity; F-S2104-P15-004 bare-pin elimination in both bats files); state-manager D-914 this burst (F-S2104-P15-007 STORY-INDEX blockquote hash refresh — 5 stale values updated, all 6 distinct).
+
+Codifications this burst: POLICY 13 NORMALIZED-DOMAIN MANDATE extension (D-497 parsimony; F-S2104-P15-001); POLICY 15 SAME-AC GATE AUDIT extension (F-S2104-P15-002); POLICY 5 HARNESS-EMITTED LINE-NUMBER CARVE-OUT extension (F-S2104-P15-004). Three process-gap lessons: L-BB-normalized-domain-for-prose-gates, L-BB-same-AC-gate-audit-on-hardening, L-BB-wasm-fuel-validator-coverage-gap. Artifacts: red-gate-log.md v1.12→v1.13 (input-hash c74e0f8→3d12427; traces_to adds story v1.20; Pass-15 attestation appended); STORY-INDEX v4.262→v4.263 (epic E-21 v1.7→v1.8; S-21.04 catalog row story v1.19→v1.20 + F-S2104-P15-001..007 refs; blockquote refresh); adversary-pass-15.md fixes_landed_head: 8b39277b + Fix Mapping; STATE.md v6.49→v6.50; policies.yaml v1.4.11→v1.4.12. Streak: 0/3 (pass-15 NOT-CLEAN B1/H2/M2/L2 — BC-5.39.001 reset).
+
+### Detail
+
+1. **POLICY 16 GLOBAL-MAX GATE (literal shell stdout)**:
+   - `grep -rh '^## D-' cycles/v1.0-brownfield-backfill/decision-log.md cycles/v1.0-feature-engine-discipline-pass-1/decision-log.md | sed 's/^## D-//' | sort -n | tail -5` → `909 / 910 / 911 / 912 / 913`
+   - D-913 confirmed global max → D-914 allocated. PASS.
+
+2. **POLICY 14 4-INDEX GATE (literal shell stdout)**:
+   - `grep -m1 "^version:" specs/behavioral-contracts/BC-INDEX.md specs/verification-properties/VP-INDEX.md stories/STORY-INDEX.md specs/architecture/ARCH-INDEX.md` → `specs/verification-properties/VP-INDEX.md:version: "2.72"` / `specs/architecture/ARCH-INDEX.md:version: "3.34"` / `stories/STORY-INDEX.md:version: "4.263"` / `specs/behavioral-contracts/BC-INDEX.md:version: "4.33"`
+   - STORY bumped v4.262→v4.263 this burst. BC v4.33 / VP v2.72 / ARCH v3.34 UNCHANGED. PASS.
+
+3. **Sibling-sweep (literal shell stdout)**:
+   - `grep -n "draft, v1\.7" stories/STORY-INDEX.md | grep -v "last_amended\|Prior:"` → 0 lines. Zero stale v1.7 epic pins. PASS.
+   - `grep -n "story v1\.19" stories/STORY-INDEX.md | grep -v "last_amended\|Prior:\|→v1\.19\|→v1\.20\|v1\.19 drift\|v1\.19→"` → hits on lines 705/706/709 (S-19.03/S-19.04/S-19.06 historical [prior...] records only). Zero stale S-21.04 live `story v1.19` pins. PASS.
+
+4. **adversary-pass-15.md Fix Mapping and fixes_landed_head**: 7-row Fix Mapping table added; `fixes_landed_head: 8b39277b` added to frontmatter per D-907 dual-field convention.
+
+5. **blockquote distinctness (literal shell stdout)**:
+   - `echo "S-21.01=32aaccc S-21.02=8bd32e5 S-21.03=59e687e S-21.04=1165b1f S-21.05=c9265f0 S-21.06=b807086" | tr ' ' '\n' | awk -F'=' '{print $2}' | sort | uniq -d` → (no output). DISTINCT-PASS: no duplicates. PASS.
+
+### Phase
+
+D-914-S2104-PASS-15-CLOSED
+
+### Date
+
+2026-07-26

@@ -29,3 +29,5 @@
 {"type":"hook.block","hook":"validate-changelog-monotonicity","reason":"changelog_frontmatter_mismatch","ts":"2026-07-26T12:31:20-0500","ts_epoch":1785087080,"schema_version":1}
 {"type":"hook.block","hook":"validate-table-cell-count","reason":"table_cell_count","ts":"2026-07-26T12:32:45-0500","ts_epoch":1785087165,"schema_version":1}
 {"type":"hook.block","hook":"validate-table-cell-count","reason":"table_cell_count","ts":"2026-07-26T12:47:06-0500","ts_epoch":1785088026,"schema_version":1}
+{"type":"hook.block","hook":"validate-table-cell-count","reason":"table_cell_count","ts":"2026-07-26T13:23:15-0500","ts_epoch":1785090195,"schema_version":1}
+{"type":"hook.block","hook":"validate-input-hash","reason":"input_hash_drift","ts":"2026-07-26T13:24:50-0500","ts_epoch":1785090290,"schema_version":1}

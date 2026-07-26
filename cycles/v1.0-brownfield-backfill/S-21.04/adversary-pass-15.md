@@ -2,6 +2,7 @@
 pass: 15
 verdict: NOT-CLEAN
 reviewed_head: 26b85d8c
+fixes_landed_head: 8b39277b
 novelty: 0.57
 previous_review: "cycles/v1.0-brownfield-backfill/S-21.04/adversary-pass-14.md"
 ---
@@ -319,3 +320,15 @@ Five of six are stale; only S-21.06 matches. The S-21.04 catalog row in the same
 | F-S2104-P14R-013 | CONFIRMED-CLOSED | §G.1 now runs PC2a with sub-cases (a) and (b) contiguous → symlink→PC2b → non-directory→PC2b → PC2b → PC2c, matching BC-6.26.001 §PC2's sequence. T-006's `[ -L ]`-precedes-`find` ordering gate is GREEN at HEAD |
 
 Tally: **9 CONFIRMED-CLOSED / 4 PARTIAL / 0 REGRESSED.** Both PARTIALs on the polarity axis (P14R-001, P14R-003) are one-hop re-seedings — the class was closed against every recorded vector and re-opened by a vector at the next level of granularity, which is now the fifth consecutive pass exhibiting that pattern. P14R-005 is a scope-incompleteness re-seed with a falsified closure attestation. The remaining nine closures are substantive and independently verified; the pass-14R wave's own attestations contain no fabrication, which is a genuine improvement over the pass-14 baseline.
+
+## Fix Mapping
+
+| Finding | Severity | Fix Agent / Commit |
+|---------|----------|--------------------|
+| F-S2104-P15-001 | BLOCKER | test-writer 8b39277b — Gates 1/4/5 sentence-scoped via joined_block (tr '\n' ' ') + sed sentence-split; Gate 1(a) extracts mandate sentence + asserts MUST...use...canonical absolute; Gate 1(b) asserts mandate sentence NOT CWD-relative\|worktree-relative\|relative paths?; Gates 4/5 operate sentence-by-sentence; M-P15-A + M-P14-A + M-P14R-A + worktree-relative synonym all RED; LINE-REWRAP GREEN |
+| F-S2104-P15-002 | HIGH | test-writer 8b39277b — Gate 6 two-part polarity: Gate 6(a) grep -qE '\*\*Forbidden:\*\*.*\.\./\|\.\./.*\*\*Forbidden:\*\*' (Forbidden+../ same line required); Gate 6(b) grep -E '\.\./' \| grep -qE '\*\*Correct:\*\*' fires negative on any Correct+../ line; deletion mutant RED + M-P15-B RED + M-P15-B keep+add variant RED; unmodified GREEN |
+| F-S2104-P15-003 | HIGH | story-writer 6fccdcc3 — epic E-21 v1.7→v1.8; BC-6.26.001 v1.3→v1.11 cite sweep throughout epic; ADR-031 v1.3→v1.13 cite sweep (11 live-body sites) |
+| F-S2104-P15-004 | MEDIUM | test-writer 8b39277b — bare-pin elimination in both bats files: story-worktree-write-path-discipline.bats extractor docblock + big comment block + Gates 4+5 comments all ~:NNN → stable semantic anchors; worktree-identity-preflight.bats AC-005 docblock lines 44/59 → stable anchors + future-tense comment rewritten to past; zero bare pins verified |
+| F-S2104-P15-005 | MEDIUM | story-writer 6fccdcc3 — story v1.20 option-a: AC-010 carve-out aligned; T-009 gate comment updated to acknowledge that the broader character class was chosen specifically to catch bcs: inside backtick code spans; AC-010 text clarified |
+| F-S2104-P15-006 | LOW | implementer e7ac3aef — CHANGELOG.md §Unreleased S-21.04 entry: count-bearing lead-in "Two complementary protocol requirements delivered as skill-doc mandates … :" removed; list items stand without the counting preamble |
+| F-S2104-P15-007 | LOW | state-manager D-914 (this burst) — STORY-INDEX.md §E-21 delivery blockquote: five stale input-hash values replaced with live values from story frontmatter (S-21.01=32aaccc; S-21.02=8bd32e5; S-21.03=59e687e; S-21.04=1165b1f; S-21.05=c9265f0; S-21.06=b807086); annotation "[Refreshed D-914; values live in story frontmatter]" added; distinctness verified |

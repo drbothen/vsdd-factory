@@ -7828,3 +7828,74 @@ The mutant self-check is evidence, not just process. The test-writer report MUST
 **Cites:** D-912 (codified this burst); F-S2104-P14R-002 + F-S2104-P14R-004 (triggers — fourth-generation recurrence + wrong-owner SoT writing); POLICY 15 (ll_n_verbatim_stdout_discipline — this lesson adds the attestation-location gate as a verification step; extended at D-912); D-449(a) (literal-shell-execution-evidence principle — this is its application to the test-writer push gate); TD-VSDD-053 (single-commit-per-burst — attestation section and bats changes MUST co-bundle); red-gate-log.md (SoT owner for attestation content; state-manager owns it; test-writer MUST NOT write to it directly).
 
 **Closes:** D-912 S-21.04-ADV-PASS-14R-CLOSED (2026-07-26). `[process-gap; attestation-location; red-gate-log; sot-owner; push-gate; literal-shell; test-writer-boundary; policy-15; d-449a; D-912; codified]`
+
+---
+
+## L-BB-normalized-domain-for-prose-gates [process-gap] [codified D-914]
+
+**Summary:** Semantic gates over prose MUST be evaluated on a normalized domain (reflow all lines into one joined block, then sentence-split) — evaluating predicates per-physical-line over a soft-wrapped markdown paragraph is forbidden because line-wrap position is not semantic content.
+
+**Discovered:** 2026-07-26 (S-21.04 LOCAL cascade pass-15; F-S2104-P15-001 BLOCKER — fifth-generation recurrence of the PC1 polarity gate class. Gates 1, 4, and 5 in `story-worktree-write-path-discipline.bats` were per-physical-line greps over a multi-line markdown paragraph. M-P15-A placed MUST on line 1, CWD-relative on line 2, and a decoy "MUST use canonical absolute paths" on line 3 — the per-line Gate 5 missed MUST+CWD-relative because they were on different physical lines, and the per-line Gate 1(a) was satisfied by the decoy sentence on line 3. The full suite reported 9/9 GREEN on a paragraph mandating CWD-relative writes).
+
+**Root cause:** Predicate authors model the target text as a set of physical lines rather than a set of semantic sentences. Physical lines are a function of the text-editor's word-wrap; they carry zero semantic weight in a markdown paragraph. A grep applied to a physical line can be bypassed by any reformulation that moves the key tokens onto different physical lines — which is always possible in a soft-wrapped paragraph. The five prior generations each tightened the predicate against the specific mutant that surfaced it, but none changed the evaluation domain from physical-line to semantic-sentence; each new generation found a different line-wrap position that broke the predicate.
+
+**Corrective action — POLICY-13 NORMALIZED-DOMAIN MANDATE (D-914):**
+1. When authoring a gate over a prose paragraph (markdown, YAML prose value, or comment block), the gate MUST first normalize the paragraph: `joined_block=$(echo "$section" | tr '\n' ' ')`, then optionally sentence-split: `sentences=$(echo "$joined_block" | sed 's/\. /\n/g')`.
+2. All predicates are then applied to sentences from the normalized domain, not raw physical lines.
+3. A LINE-REWRAP mutant (same semantic content, different word-wrap boundaries) MUST be attested GREEN to confirm the gate is wrap-invariant before it is shipped.
+4. A gate whose attestation includes only the originating-mutant proof (no LINE-REWRAP proof) is structurally incomplete; it proves the predicate is correct but not that it is wrap-invariant.
+
+**Prevention:** Gate authoring for prose targets MUST include: (a) normalization step in the bats implementation; (b) LINE-REWRAP mutant proof (GREEN) in the attestation; (c) label in the attestation explicitly confirming "wrap-invariant: confirmed". A gate over a soft-wrapped paragraph that lacks a LINE-REWRAP proof is a paper-gate against the physical-line bypass class.
+
+**Anchors:** S-21.04 LOCAL cascade pass-15 (2026-07-26); F-S2104-P15-001 BLOCKER (trigger — fifth-generation recurrence; M-P15-A line-rewrapped inversion + one decoy affirmative sentence inverts PC1 mandate end-to-end with suite at 9/9); M-P15-A (originating mutant); LINE-REWRAP proof GREEN (wrap-invariant confirmed at 8b39277b); passes 10/11/12/13/14R (five prior generations of the per-physical-line gate class, each closed against the specific vector, each re-opened by a line-wrap variant).
+
+**Cites:** D-914 (codified this burst); F-S2104-P15-001 (trigger — fifth-generation recurrence of BC-6.26.001 PC1 polarity gate class); POLICY 13 (hh_n_regex_alternation_predicates — NORMALIZED-DOMAIN MANDATE extension codified at D-914); POLICY 15 (ll_n_verbatim_stdout_discipline — LINE-REWRAP proof is a verbatim-stdout attestation requirement); BC-6.26.001 PC1 (target contract ungated against line-wrap bypass for five consecutive passes).
+
+**Closes:** D-914 S-21.04-ADV-PASS-15-CLOSED (2026-07-26). `[process-gap; normalized-domain; sentence-scoped; physical-line; line-rewrap; prose-gate; policy-13; wrap-invariant; fifth-generation; D-914; codified]`
+
+---
+
+## L-BB-same-AC-gate-audit-on-hardening [process-gap] [codified D-914]
+
+**Summary:** A gate-hardening wave that adds or strengthens a gate for a given AC MUST audit all existing same-AC sibling gates to the same hardening standard, with the audit table recorded in the red-gate-log attestation section.
+
+**Discovered:** 2026-07-26 (S-21.04 LOCAL cascade pass-15; F-S2104-P15-002 HIGH — the pass-14R fix wave added Gate 6 to close F-S2104-P14R-003 (traversal-form gate for AC-001(a)(ii)). The new Gate 6 asserted only that `../` exists in §Spec-Path Discipline — it was presence-only, polarity-blind. Relabelling the traversal bullet `**Forbidden:**` → `**Correct:**` left T-001 GREEN, directly re-seeding the F-S2104-P14R-001 polarity-blind defect class into a gate added one pass later to close a sibling clause of the same AC. The pass-14R fix wave hardened Gate 1 (AC-001(a)(i)) against polarity inversion but did not audit Gate 6 (AC-001(a)(ii)) to the same standard).
+
+**Root cause:** Gate-hardening waves focus on the specific gate(s) cited in the finding that triggered the wave. When a new gate is added in the same wave for a sibling AC clause, it is designed against the triggering finding only and not audited for the defect classes the wave was already closing. This creates a systematic audit gap: the wave closes the named finding, adds a new gate, but leaves the new gate vulnerable to the exact class of defect the wave was fixing in the named finding.
+
+**Corrective action — SAME-AC GATE AUDIT mandate (D-914):**
+1. When a gate-hardening wave modifies or adds any gate under AC-NNN, the wave MUST enumerate ALL existing gates for AC-NNN.
+2. For each gate, verify it is polarity-complete (has both affirmative and negative legs) and operates on a normalized domain.
+3. The audit result MUST be recorded in the red-gate-log attestation section as a per-gate same-AC audit table with columns: Gate, Domain shape, Polarity-asserting, Mutant coverage.
+4. A gate-hardening wave whose attestation does not include this table for the hardened AC is incomplete; the next adversary pass is entitled to reject the closure.
+
+**Prevention:** Test-writer gate-hardening checklist MUST include after hardening any gate under AC-NNN: "Enumerate all AC-NNN gates. For each: (a) confirm polarity-complete; (b) confirm domain-normalized; (c) confirm at least one deletion mutant RED. Record audit table in red-gate-log attestation."
+
+**Anchors:** S-21.04 LOCAL cascade pass-15 (2026-07-26); F-S2104-P15-002 HIGH (trigger — Gate 6 added at pass-14R for AC-001(a)(ii) is presence-only; Forbidden→Correct relabel leaves T-001 GREEN; direct re-seed of the pass-14R-001 polarity-blind class); per-gate same-AC audit table in Pass-15 attestation at 8b39277b (8 gates for AC-001/T-001, all polarity-complete + mutant-proven).
+
+**Cites:** D-914 (codified this burst); F-S2104-P15-002 (trigger — same-AC sibling gate added without audit); POLICY 15 (ll_n_verbatim_stdout_discipline — SAME-AC GATE AUDIT extension codified at D-914 requiring audit table in attestation); BC-6.26.001 PC1 + AC-001(a) (target contract; same-AC audit applies to both PC1 mandate forms); TD-VSDD-059 (paper-fix detection — a gate added without same-AC sibling audit is a paper-fix against the class).
+
+**Closes:** D-914 S-21.04-ADV-PASS-15-CLOSED (2026-07-26). `[process-gap; same-AC-audit; gate-hardening; polarity-complete; sibling-gate; audit-table; red-gate-log; attestation; policy-15; D-914; codified]`
+
+---
+
+## L-BB-wasm-fuel-validator-coverage-gap [orchestrator-observed] [codified D-914]
+
+**Summary:** Validator hook plugins (validate-factory-path-root, validate-input-hash, validate-template-compliance) exhaust WASM fuel on large factory artifacts (STORY-INDEX.md ≥748 lines, decision-log.md ≥1500 lines), producing PostToolUse fail-closed blocks that are non-destructive to writes but represent a gap in live validation coverage for those artifacts.
+
+**Discovered:** 2026-07-26 (S-21.04 pass-15 closure burst D-914 — every Edit to STORY-INDEX.md and decision-log.md produced `fail-closed: plugin timed out` blocking_plugins=validate-factory-path-root,validate-input-hash,validate-template-compliance. The writes succeeded (PostToolUse fires after the write; the artifacts are correctly updated), but the validator plugins were unable to validate the content. This means input-hash drift, template compliance, and factory-path-root violations in these large artifacts go undetected by the live hook chain until either the artifact is compacted or the fuel budget is increased).
+
+**Root cause:** The WASM sandbox's finite fuel budget (documented in CLAUDE.md as ≤3500 soft / ≤4000 hard for lessons.md) is insufficient for the current sizes of STORY-INDEX.md (~750 lines of very dense single-line table rows) and decision-log.md (~1500+ lines). The plugins attempt to parse the entire file to validate specific fields; on large files they exhaust fuel before completing. The fail-closed behavior (block_intent=true on timeout) is correct safety behavior, but it creates a false impression that validation is running when in fact the validators are consistently timing out on these files.
+
+**Corrective action:**
+1. For STORY-INDEX.md and decision-log.md: manually verify input-hash drift (using compute-input-hash) and template compliance after every Edit burst, since the live hook chain cannot.
+2. Track as a known gap: the validate-input-hash, validate-factory-path-root, and validate-template-compliance validators do not provide live coverage for STORY-INDEX.md or decision-log.md at their current sizes.
+3. Long-term fix (outside this burst scope): either increase the WASM fuel budget for these validators, or implement a size-aware early-exit that skips fuel-intensive parsing for known-large artifacts and flags them for batch validation instead.
+
+**Prevention:** State-manager closure bursts on large artifacts MUST include a manual input-hash verification step (compute-input-hash invocation) independent of the hook chain. The hook-chain timeout on large files is a known false-negative; do not interpret absence of a block as validation passing.
+
+**Anchors:** S-21.04 pass-15 closure burst D-914 (2026-07-26); STORY-INDEX.md v4.263 + decision-log.md (trigger artifacts — consistent fail-closed timeouts on every Edit); validate-factory-path-root/validate-input-hash/validate-template-compliance (timing-out plugins); CLAUDE.md §WASM plugin fuel budgets (documents the fuel-budget constraint; currently only lessons.md size budget is codified at ≤3500 soft / ≤4000 hard per D-442(e); STORY-INDEX.md and decision-log.md are unbudgeted).
+
+**Cites:** D-914 (codified this burst); D-442(e) (lessons.md size budget — analogous constraint; STORY-INDEX.md and decision-log.md need equivalent budgets or validator fuel increases); CLAUDE.md §WASM plugin fuel budgets (authoritative statement of the constraint); S-15.03 PRIORITY-A (deferred root-fix scope — fuel-budget increase or size-aware validator).
+
+**Closes:** D-914 S-21.04-ADV-PASS-15-CLOSED (2026-07-26). `[orchestrator-observed; wasm-fuel; validator-coverage-gap; large-artifact; fail-closed; story-index; decision-log; input-hash; template-compliance; D-914; codified]`
