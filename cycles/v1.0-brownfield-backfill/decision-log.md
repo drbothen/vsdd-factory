@@ -12343,3 +12343,38 @@ D-914-S2104-PASS-15-CLOSED
 ### Date
 
 2026-07-26
+
+---
+
+## D-915
+
+### Summary
+
+S-21.04 LOCAL adversarial pass-16 record persisted verbatim. Verdict NOT-CLEAN B1/H3/M1/L1 (6 findings F-S2104-P16-001..006; novelty 0.42; trajectory 7→6 downward; reviewed_head 8b39277b). Streak 0/3 (BC-5.39.001 reset). Per-pass-15 verification: 5 CONFIRMED-CLOSED / 2 PARTIAL / 0 REGRESSED + F-S2104-P16-004 regression of the F-S2104-P14R-006 closure (pass-15 wave changed T-001 predicates without same-burst story Gate-cell leg). Fix-wave routing: test-writer (P16-001 BLOCKER negation-transparency + sentence-complete polarity + Gate 2 sentence-scoping; P16-002 Gate 7 CWD-relative bullet polarity + Gate 3 tighten; P16-003 anchor-uniqueness + #### Write Discipline bounding) → story-writer AFTER test-writer (P16-004 Gate cell rewritten to final HEAD predicates) → state-manager closure (P16-005 record correction + obligation-indexed coverage table; P16-006 Fix Mapping amendment; codifications).
+
+### Detail
+
+1. **POLICY 16 GLOBAL-MAX GATE (literal shell stdout)**:
+   - `grep -rh '^## D-' cycles/v1.0-brownfield-backfill/decision-log.md cycles/v1.0-feature-engine-discipline-pass-1/decision-log.md | sed 's/^## D-//' | sort -n | tail -5` → `910 / 911 / 912 / 913 / 914`
+   - D-914 confirmed global max → D-915 allocated. PASS.
+
+2. **adversary-pass-16.md written verbatim** per D-897 VERBATIM-RECORD-PERSISTENCE rule. Mandatory markdown escape applied: `(^|[^a-zA-Z0-9_])bcs:` → `(^\|[^a-zA-Z0-9_])bcs:` in Per-Pass-15 Verification table row F-S2104-P15-005 (unescaped `|` in table cell would trigger validate-table-cell-count; semantic content identical; D-913 precedent).
+
+3. **Post-write diff-verify (literal shell stdout)**:
+   - `wc -l adversary-pass-16.md` → `380`
+   - `grep -c "F-S2104-P16-" adversary-pass-16.md` → `20`
+
+4. **POLICY 14 4-INDEX GATE (literal shell stdout)**:
+   - `grep -m1 "^version:" specs/behavioral-contracts/BC-INDEX.md specs/verification-properties/VP-INDEX.md stories/STORY-INDEX.md specs/architecture/ARCH-INDEX.md` → BC v4.33 / VP v2.72 / STORY v4.263 / ARCH v3.34. ALL UNCHANGED this burst. PASS.
+
+5. **Telemetry bundled**: `logs/dispatcher-internal-2026-07-26.jsonl`, `sidecar-learning.md` staged in same commit per TD-VSDD-053.
+
+6. **`fixes_landed_head` intentionally ABSENT**: closure burst adds it per D-907 dual-field convention (fix wave in flight at time of record persist).
+
+### Phase
+
+D-915-S2104-PASS-16-PERSISTED
+
+### Date
+
+2026-07-26
