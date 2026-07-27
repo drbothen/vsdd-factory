@@ -954,55 +954,73 @@ _run_teardown_preflight() {
   #   could escape the prohibited-target filter without it. Checked canonical forms in BC-6.26.001,
   #   _shared-context.md, and step-g-cleanup.md: shadow subtree COVERED, worktree's shadow COVERED,
   #   gitignored-shadow NOT covered (now added), shadow .factory/ covered by write-directive referent.
-  # prohibition (SEMANTIC, F-S2104-P21-002): negated-prohibition phrases are neutralized first:
-  #   "not (yet|previously|longer)? <token>", "no longer (being)? <token>", "never previously <token>"
-  #   → replaced with NEGATED_PROHIBIT before effective-prohibition check. Closes the confirmed
-  #   escape at 17921772: "not yet forbidden" in a clause with 'may' + 'story worktree CWD' evaded
-  #   the old lexical exclusion. Structural fix, not vocabulary expansion (TD-VSDD-059).
-  # NOTE: 'Forbidden' (capital-F) retained for **Forbidden:** bullet labels in the section.
+  # prohibition (FAIL-CLOSED WHITELIST, F-S2104-P21-002 structural fix): a clause carrying
+  #   BOTH a prohibited-target form AND a directive token is a VIOLATION BY DEFAULT — exempted
+  #   ONLY if it matches the whitelist of known-correct prohibition constructions derived
+  #   empirically from the pristine _shared-context.md #### Write Discipline section.
+  #   Whitelist: grep -vE '\*\*Forbidden:\*\*'
+  #     — covers **Forbidden:** Write(...) bullet labels. Verified: these are the ONLY pristine
+  #     constructions in the section that carry both a prohibited-target ('relative path') and a
+  #     directive-class token. In practice, the **Forbidden:** Write(...) bullets do NOT pass the
+  #     directive filter (the backtick-quoted 'Write' and the leading '- ' break the line-anchor
+  #     match), so the whitelist is a forward-safety measure — no currently-pristine clause
+  #     requires it. All other constructions fire by default.
+  #   Whitelist derivation (with file/line citations):
+  #     - _shared-context.md L112: '- **Forbidden:** `Write(file_path=".factory/...")` (relative path...)'
+  #       has prohibited-target 'relative path' + directive 'Write' (via bare-imperative class).
+  #       The backtick and leading '- ' break the line-anchor; directive filter excludes it.
+  #     - _shared-context.md L113: '- **Forbidden:** `Write(file_path="../../.factory/...")` (relative traversal...)'
+  #       same analysis — directive filter excludes.
+  #     - No other pristine clauses pass both prohibited-target + directive filters (verified by
+  #       literal shell: printf '%s\n' "$write_discipline_prose_nosplit" | ... | grep prohibited |
+  #       grep directive — returns empty on pristine doc).
+  #   Why fail-closed is structurally different from vocabulary enumeration (TD-VSDD-059):
+  #     Under the OLD approach the exclusion step enumerated specific negator prefixes
+  #     ('not yet', 'no longer', 'never previously') — attacker evades with any unenumerated
+  #     form ('not explicitly', 'isn't', 'hardly', 'far from', etc.). Under fail-closed the
+  #     whitelist enumerates the small, closed set of LEGITIMATE constructions — attacker's novel
+  #     form does NOT match the whitelist and therefore FIRES. The unbounded space works against
+  #     the attacker, not for them (POLICY 13 FAIL-CLOSED-IMPLICATION-DIRECTION).
   # M-P17-A S1: "Writers MUST anchor every .factory/** artifact write to the story worktree CWD"
-  #   — 'story worktree CWD' (prohibited-target) + 'MUST' (directive), no prohibition → RED ✓.
+  #   — 'story worktree CWD' (prohibited-target) + 'MUST' (directive), no **Forbidden:** → RED ✓.
   # M-P17-C S2: "For in-worktree ledgers, CWD-relative paths are the required form, and they
   #   land in the story worktree's shadow .factory/ subtree" — after ', and ' clause split:
-  #   Clause 1: 'CWD-relative' (prohibited-target) + 'required' (directive), no prohibition → RED ✓.
+  #   Clause 1: 'CWD-relative' (prohibited-target) + 'required' (directive), no **Forbidden:** → RED ✓.
   #   Clause 2: 'worktree's shadow' (prohibited-target) + NO directive → excluded by directive
   #     requirement → not a violation (directive-requirement is load-bearing here).
   #   Overall: RED ✓ (clause 1 fires).
   # Correct text (doc restoration, F-S2104-P20-003): "CWD-relative paths...are FORBIDDEN — such
   #   writes land silently in the story worktree's shadow .factory/ subtree and are permanently
-  #   destroyed at teardown." — After '—' clause split: clause 1 has FORBIDDEN (prohibition
-  #   filter excludes) → GREEN; clause 2 has 'worktree's shadow' but NO directive → excluded by
-  #   directive-requirement → GREEN ✓. This proves the doc restoration is structurally safe.
-  # Correct bullet "**Forbidden:** ... (relative path ...) — em-dash continuation" — clause 1
-  #   has 'relative path' + 'Forbidden' label (prohibition filter excludes) → PASSES. Clause 2
-  #   has no prohibited-target.
-  #   (escape-load-bearing: removing the 'Forbidden:' label from clause 1 → no prohibition in
-  #   clause 1, but also no directive in clause 1 → excluded by directive-requirement → GREEN.
-  #   NOTE: this shows **Forbidden:** bullets with no directive in clause 1 pass PW-B; they are
-  #   caught by Gate 3 / Gate 7 / canonical-target gate instead.)
+  #   destroyed at teardown." — After '—' clause split: clause 1 ('CWD-relative paths...are
+  #   FORBIDDEN') has no directive token → excluded by directive-requirement → GREEN; clause 2
+  #   has 'worktree's shadow' but NO directive → excluded → GREEN ✓.
+  # Correct bullet "**Forbidden:** `Write(file_path=".factory/...")`..." — clause 1 (after '—'
+  #   split) has 'relative path' but directive filter fails (backtick + leading '- ' break
+  #   line-anchor) → excluded by directive-requirement → GREEN. Whitelist (**Forbidden:**) is
+  #   forward-safety for any future unquoted Write form.
+  #   (escape-load-bearing: no directive in clause 1 → excluded by directive-requirement → GREEN.
+  #   NOTE: **Forbidden:** bullets with no directive pass PW-B; caught by Gate 3/7/canonical-target.)
   # M-P20-A (F-S2104-P20-001 closure): "Writers MUST anchor every artifact write to the story
   #   worktree CWD; duplicating the ledger onto the main checkout is forbidden."
-  #   Clause 1 (before ;): 'story worktree CWD' + 'MUST' (directive), no prohibition → RED ✓.
-  #   Clause 2: 'forbidden' present, no prohibited-target → excluded → not a violation.
+  #   Clause 1 (before ;): 'story worktree CWD' + 'MUST' (directive), no **Forbidden:** → RED ✓.
+  #   Clause 2: no prohibited-target → not evaluated → not a violation.
   # CONTROL-1 (F-S2104-P20-001 target-matching): M-P20-A with 'forbidden'→'discouraged'.
-  #   Clause 1: 'story worktree CWD' + 'MUST' (directive), no prohibition → RED ✓.
+  #   Clause 1: 'story worktree CWD' + 'MUST' (directive), no **Forbidden:** → RED ✓.
   # M-P20-B (F-S2104-P20-003 directive-requirement, GREEN control): "Such writes land silently
   #   in the story worktree's shadow .factory/ subtree and are permanently destroyed at teardown."
   #   — prohibited-target 'worktree's shadow' present, NO directive token → excluded by
-  #   directive-requirement → GREEN ✓. This proves the directive filter is load-bearing: removing
-  #   the directive-requirement step causes this clause to fire (current-gate behavior = RED).
+  #   directive-requirement → GREEN ✓. This proves the directive filter is load-bearing.
   # M-P20-C (F-S2104-P20-003 directive-requirement, RED paired mutant): "Such writes MUST land
   #   in the story worktree's shadow .factory/ subtree and are permanently destroyed at teardown."
-  #   — prohibited-target 'worktree's shadow' + 'MUST' (directive), no prohibition → RED ✓.
-  #   (proves the escape in M-P20-B is the absent directive, not the absent prohibition).
+  #   — prohibited-target 'worktree's shadow' + 'MUST' (directive), no **Forbidden:** → RED ✓.
   local polarity_violations
   polarity_violations="$(printf '%s\n' "$write_discipline_prose_nosplit" | perl -pe 's/\.[[:space:]]+(?=[A-Z*`\[])/.\n/g' | \
     perl -pe 's/[;—]\s*/\n/g; s/,\s+(?:and|or|but)\s+/\n/g' | \
     grep -E 'CWD-relative|worktree-relative|relative[[:space:]]+paths?|story-worktree[[:space:]]+CWD|story[[:space:]]+worktree[[:space:]]+CWD|worktree'\''s[[:space:]]+shadow|worktree[[:space:]]+CWD|shadow[[:space:]]+subtree|[Ww]orktree-local|(^|[^[:alnum:]])[Ii]n-worktree|gitignored-shadow' | \
     grep -E "$PWBD_DIRECTIVE_CLASS" | \
-    perl -ne 's/\b(?:not\s+(?:yet\s+|previously\s+|longer\s+)?|no\s+longer\s+(?:being\s+)?|never\s+(?:previously\s+)?)(FORBIDDEN|Forbidden|forbidden|MUST\s+NOT|prohibited|forbid)/NEGATED_PROHIBIT/gi; print if !/\b(?:FORBIDDEN|Forbidden|forbidden|MUST\s+NOT|prohibited|never\b|forbid\b)/' || true)"
+    grep -vE '\*\*Forbidden:\*\*' || true)"
   if [ -n "$polarity_violations" ]; then
-    echo "DOC-PARITY FAIL [write-discipline section-wide clause polarity (Gate PW-B, F-S2104-P16-001(b)/F-S2104-P17-002/F-S2104-P20-001/F-S2104-P20-003/F-S2104-P21-001/F-S2104-P21-002)]: a DIRECTIVE clause in the Write Discipline section contains a prohibited-target form (CWD-relative|worktree-relative|relative paths?|story-worktree CWD|story worktree CWD|worktree's shadow|worktree CWD|shadow subtree|[Ww]orktree-local|in-worktree|gitignored-shadow) without an effective prohibition token — clause-scoped per F-S2104-P20-001; directive-requirement per F-S2104-P20-003 (explanatory prose without a directive token is excluded); unified directive class per F-S2104-P21-001 (bare-imperative alternation Anchor|Write|Save|Store|Place|Record|Emit|Persist|Resolve|Use added); semantic exclusion per F-S2104-P21-002: negated-prohibition phrases ('not (yet)? forbidden', 'no longer forbidden', 'never previously prohibited') neutralized before effective-prohibition check — closes negated-prohibition escape confirmed at 17921772; gitignored-shadow added to prohibited-target (BC-6.26.001 Invariant 5 canonical term); M-P17-A S1 'Writers MUST anchor every write to the story worktree CWD' carries MUST + no prohibition; M-P17-C S2 clause 1 'CWD-relative paths are the required form' carries required + no prohibition; M-P20-A clause 1 'Writers MUST anchor every artifact write to the story worktree CWD' carries MUST + no prohibition; M-P21-A 'Anchor every write to the story worktree CWD' carries Anchor (bare-imperative) + no prohibition; M-P21-D 'not yet forbidden...may target the story worktree CWD' carries negated-prohibition now neutralized + no remaining effective prohibition (BC-6.26.001 PC1; AC-001(a))"
+    echo "DOC-PARITY FAIL [write-discipline section-wide clause polarity (Gate PW-B, F-S2104-P16-001(b)/F-S2104-P17-002/F-S2104-P20-001/F-S2104-P20-003/F-S2104-P21-001/F-S2104-P21-002)]: a DIRECTIVE clause in the Write Discipline section contains a prohibited-target form (CWD-relative|worktree-relative|relative paths?|story-worktree CWD|story worktree CWD|worktree's shadow|worktree CWD|shadow subtree|[Ww]orktree-local|in-worktree|gitignored-shadow) without an effective prohibition token — clause-scoped per F-S2104-P20-001; directive-requirement per F-S2104-P20-003; unified directive class per F-S2104-P21-001 (bare-imperative Anchor|Write|...); FAIL-CLOSED WHITELIST per F-S2104-P21-002: violation by default unless clause matches **Forbidden:** bullet label — all negated-prohibition forms fire because they do not match the whitelist (not explicitly/strictly/currently/entirely forbidden, isn't forbidden, hardly forbidden, not at present, far from forbidden, contraction haven't been prohibited, FORBIDDEN-on-different-subject, interposed parenthetical, double negative, and any form not listed here) (BC-6.26.001 PC1; AC-001(a))"
     printf '%s\n' "$polarity_violations"
     false
   fi
@@ -1029,7 +1047,7 @@ _run_teardown_preflight() {
     perl -pe 's/[;—]\s*/\n/g; s/,\s+(?:and|or|but)\s+/\n/g' | \
     grep -E 'CWD-relative|worktree-relative|relative[[:space:]]+paths?|story-worktree[[:space:]]+CWD|story[[:space:]]+worktree[[:space:]]+CWD|worktree'\''s[[:space:]]+shadow|worktree[[:space:]]+CWD|shadow[[:space:]]+subtree|[Ww]orktree-local|(^|[^[:alnum:]])[Ii]n-worktree|gitignored-shadow' | \
     grep -E "$PWBD_DIRECTIVE_CLASS" | \
-    perl -ne 's/\b(?:not\s+(?:yet\s+|previously\s+|longer\s+)?|no\s+longer\s+(?:being\s+)?|never\s+(?:previously\s+)?)(FORBIDDEN|Forbidden|forbidden|MUST\s+NOT|prohibited|forbid)/NEGATED_PROHIBIT/gi; print if !/\b(?:FORBIDDEN|Forbidden|forbidden|MUST\s+NOT|prohibited|never\b|forbid\b)/' || true)"
+    grep -vE '\*\*Forbidden:\*\*' || true)"
   if [ -z "$mp21a_violations" ]; then
     echo "MUTANT FAIL [M-P21-A (F-S2104-P21-001)]: probe P2 'Anchor every write to the story worktree CWD.' must fire Gate PW-B — unified directive class must match bare-imperative 'Anchor' when clause also contains prohibited-target 'story worktree CWD'; got empty (gate SILENT — imperative class not applied correctly)"
     false
@@ -1039,7 +1057,7 @@ _run_teardown_preflight() {
     perl -pe 's/[;—]\s*/\n/g; s/,\s+(?:and|or|but)\s+/\n/g' | \
     grep -E 'CWD-relative|worktree-relative|relative[[:space:]]+paths?|story-worktree[[:space:]]+CWD|story[[:space:]]+worktree[[:space:]]+CWD|worktree'\''s[[:space:]]+shadow|worktree[[:space:]]+CWD|shadow[[:space:]]+subtree|[Ww]orktree-local|(^|[^[:alnum:]])[Ii]n-worktree|gitignored-shadow' | \
     grep -E "$PWBD_DIRECTIVE_CLASS" | \
-    perl -ne 's/\b(?:not\s+(?:yet\s+|previously\s+|longer\s+)?|no\s+longer\s+(?:being\s+)?|never\s+(?:previously\s+)?)(FORBIDDEN|Forbidden|forbidden|MUST\s+NOT|prohibited|forbid)/NEGATED_PROHIBIT/gi; print if !/\b(?:FORBIDDEN|Forbidden|forbidden|MUST\s+NOT|prohibited|never\b|forbid\b)/' || true)"
+    grep -vE '\*\*Forbidden:\*\*' || true)"
   if [ -z "$mp21b_violations" ]; then
     echo "MUTANT FAIL [M-P21-B (F-S2104-P21-001)]: probe P3 'Resolve all delivery paths from the story worktree CWD.' must fire Gate PW-B — 'Resolve' is a bare-imperative in the unified class; 'story worktree CWD' is a prohibited-target; no prohibition token → gate must fire RED"
     false
@@ -1049,7 +1067,7 @@ _run_teardown_preflight() {
     perl -pe 's/[;—]\s*/\n/g; s/,\s+(?:and|or|but)\s+/\n/g' | \
     grep -E 'CWD-relative|worktree-relative|relative[[:space:]]+paths?|story-worktree[[:space:]]+CWD|story[[:space:]]+worktree[[:space:]]+CWD|worktree'\''s[[:space:]]+shadow|worktree[[:space:]]+CWD|shadow[[:space:]]+subtree|[Ww]orktree-local|(^|[^[:alnum:]])[Ii]n-worktree|gitignored-shadow' | \
     grep -E "$PWBD_DIRECTIVE_CLASS" | \
-    perl -ne 's/\b(?:not\s+(?:yet\s+|previously\s+|longer\s+)?|no\s+longer\s+(?:being\s+)?|never\s+(?:previously\s+)?)(FORBIDDEN|Forbidden|forbidden|MUST\s+NOT|prohibited|forbid)/NEGATED_PROHIBIT/gi; print if !/\b(?:FORBIDDEN|Forbidden|forbidden|MUST\s+NOT|prohibited|never\b|forbid\b)/' || true)"
+    grep -vE '\*\*Forbidden:\*\*' || true)"
   if [ -z "$mp21c_violations" ]; then
     echo "MUTANT FAIL [M-P21-C (F-S2104-P21-001)]: probe P4 'Place each report in the worktree's shadow subtree.' must fire Gate PW-B — 'Place' is a bare-imperative in the unified class; 'worktree's shadow' is a prohibited-target; no prohibition token → gate must fire RED"
     false
@@ -1063,47 +1081,56 @@ _run_teardown_preflight() {
     perl -pe 's/[;—]\s*/\n/g; s/,\s+(?:and|or|but)\s+/\n/g' | \
     grep -E 'CWD-relative|worktree-relative|relative[[:space:]]+paths?|story-worktree[[:space:]]+CWD|story[[:space:]]+worktree[[:space:]]+CWD|worktree'\''s[[:space:]]+shadow|worktree[[:space:]]+CWD|shadow[[:space:]]+subtree|[Ww]orktree-local|(^|[^[:alnum:]])[Ii]n-worktree|gitignored-shadow' | \
     grep -E 'MUST|SHOULD|required|is[[:space:]]+the[[:space:]]+required|is[[:space:]]+preferred|is[[:space:]]+acceptable|permits' | \
-    perl -ne 's/\b(?:not\s+(?:yet\s+|previously\s+|longer\s+)?|no\s+longer\s+(?:being\s+)?|never\s+(?:previously\s+)?)(FORBIDDEN|Forbidden|forbidden|MUST\s+NOT|prohibited|forbid)/NEGATED_PROHIBIT/gi; print if !/\b(?:FORBIDDEN|Forbidden|forbidden|MUST\s+NOT|prohibited|never\b|forbid\b)/' || true)"
+    grep -vE '\*\*Forbidden:\*\*' || true)"
   if [ -n "$control5_result" ]; then
     echo "CONTROL FAIL [CONTROL-5 (F-S2104-P21-001)]: P2 probe 'Anchor every write to the story worktree CWD.' fired the OLD directive class (MUST|SHOULD|required|...|permits, WITHOUT bare-imperative alternation) — expected GREEN (empty) to prove the bare-imperative class is the load-bearing addition; if the old class already caught P2, the finding premise is wrong; got: $control5_result"
     false
   fi
 
-  # M-P21-D (F-S2104-P21-002 closure — negated-prohibition escape confirmed by orchestrator at
-  #   17921772): the specific evasion: "not yet forbidden" embeds a negated prohibition token in a
-  #   clause that also has directive 'may' and prohibited-target 'story worktree CWD'. Under the
-  #   OLD lexical exclusion, 'forbidden' anywhere causes exclusion (SILENT/GREEN). Under the
-  #   semantic fix, 'not yet forbidden' is neutralized → no remaining effective prohibition →
-  #   gate FIRES (RED). CONTROL-D proves the evasion is solely via the negated-prohibition token.
-  #   Per L-BB-regression-against-incomplete-mutant-corpus (D-928): re-running the existing corpus
-  #   is insufficient when a fix changes scope; new negation-form probes M-P21-E through M-P21-H
-  #   cover the newly-affected region.
-  # M-P21-E (F-S2104-P21-003 — 'may' regression guard, SECONDARY 1): 'may' was added to
-  #   PWBD_DIRECTIVE_CLASS by the F-S2104-P21-001 unification. Silently deleting it from line 815
-  #   would not be caught by M-P21-A/B/C (all fire via bare-imperative, not 'may'). This probe
-  #   forces a RED on 'may' alone, making the deletion visible. Orchestrator-executed at 17921772:
-  #   PW-B=FIRES(RED) — confirmed.
-  # M-P21-F/G/H (new negation forms beyond the supplied set — D-928 completeness):
-  #   F: "never previously prohibited" form (never+previously prefix, different word than "forbidden")
-  #   G: "no longer forbidden" form (no-longer prefix)
-  #   H: bare "not forbidden" form (no "yet" qualifier)
+  # M-P21-D (F-S2104-P21-002 closure — confirmed evasion vector at 17921772):
+  #   "not yet forbidden" embeds a negated prohibition token with directive 'may' and
+  #   prohibited-target 'story worktree CWD'. Under the OLD vocabulary exclusion, 'forbidden'
+  #   caused SILENT/GREEN. Under fail-closed whitelist, no **Forbidden:** match → FIRES (RED).
+  #   CONTROL-D is the base probe without any negation — also FIRES (no **Forbidden:**).
+  # M-P21-E (F-S2104-P21-003 — 'may' regression guard, SECONDARY 1): proves 'may' is load-bearing
+  #   in PWBD_DIRECTIVE_CLASS; M-P21-A/B/C fire via bare-imperative so deleting 'may' would not
+  #   be caught. Fires via fail-closed: no **Forbidden:** match.
+  # M-P21-F/G/H: negation forms from the original enumerated set — now fire via fail-closed
+  #   (no **Forbidden:** match) rather than via explicit neutralization.
   # M-P21-GS (gitignored-shadow, SECONDARY 2): BC-6.26.001 Invariant 5 canonical phrasing.
+  # M-P21-I through M-P21-P (FAIL-CLOSED COVERAGE — 8 orchestrator-supplied evading forms that
+  #   escaped vocabulary enumeration at b7d3ca58):
+  #   I: "not explicitly forbidden" — 'explicitly' between 'not' and 'forbidden' evaded enumeration
+  #   J: "not strictly forbidden" — 'strictly' between
+  #   K: "not currently forbidden" — 'currently' between
+  #   L: "not entirely forbidden" — 'entirely' between
+  #   M: "isn't forbidden" / "aren't forbidden" — contraction, 'n't' not matched by \bnot\b
+  #   N: "hardly forbidden" — different negation idiom, no 'not' word
+  #   O: "not, at present, forbidden" — interposed comma phrase
+  #   P: "far from forbidden" — idiomatic, no 'not' word
+  #   All fire via fail-closed (no **Forbidden:** match) regardless of negation vocabulary.
+  # M-P21-Q through M-P21-T (FAIL-CLOSED COVERAGE — 4 NEW adversarial forms authored here,
+  #   beyond the orchestrator's 8-form set, each targeting a different syntactic attack surface):
+  #   Q: double negative — prohibition token present but semantically negated by idiom
+  #   R: prohibition on different subject — FORBIDDEN applies to something else in the clause
+  #   S: interposed parenthetical — phrase inserted between 'not' and prohibition token
+  #   T: contraction verb — "haven't been prohibited" uses contraction form the old code missed
   local mp21d_violations mp21d_control mp21e_violations
   local mp21f_violations mp21g_violations mp21h_violations mp21_gitignored_violations
   mp21d_violations="$(printf '%s\n' 'Writes that are not yet forbidden under prior policy may target the story worktree CWD.' | \
     perl -pe 's/[;—]\s*/\n/g; s/,\s+(?:and|or|but)\s+/\n/g' | \
     grep -E 'CWD-relative|worktree-relative|relative[[:space:]]+paths?|story-worktree[[:space:]]+CWD|story[[:space:]]+worktree[[:space:]]+CWD|worktree'\''s[[:space:]]+shadow|worktree[[:space:]]+CWD|shadow[[:space:]]+subtree|[Ww]orktree-local|(^|[^[:alnum:]])[Ii]n-worktree|gitignored-shadow' | \
     grep -E "$PWBD_DIRECTIVE_CLASS" | \
-    perl -ne 's/\b(?:not\s+(?:yet\s+|previously\s+|longer\s+)?|no\s+longer\s+(?:being\s+)?|never\s+(?:previously\s+)?)(FORBIDDEN|Forbidden|forbidden|MUST\s+NOT|prohibited|forbid)/NEGATED_PROHIBIT/gi; print if !/\b(?:FORBIDDEN|Forbidden|forbidden|MUST\s+NOT|prohibited|never\b|forbid\b)/' || true)"
+    grep -vE '\*\*Forbidden:\*\*' || true)"
   if [ -z "$mp21d_violations" ]; then
-    echo "MUTANT FAIL [M-P21-D (F-S2104-P21-002)]: probe 'Writes that are not yet forbidden under prior policy may target the story worktree CWD.' must fire Gate PW-B after semantic fix — 'not yet forbidden' must be neutralized; 'may' (directive) + 'story worktree CWD' (prohibited-target) + no remaining effective prohibition → RED; got empty (semantic exclusion not applied or negation-detection broken)"
+    echo "MUTANT FAIL [M-P21-D (F-S2104-P21-002)]: probe 'Writes that are not yet forbidden under prior policy may target the story worktree CWD.' must fire Gate PW-B — fail-closed whitelist: 'may' (directive) + 'story worktree CWD' (prohibited-target) + no **Forbidden:** match → VIOLATION BY DEFAULT; got empty (whitelist wrongly matched or gate broken)"
     false
   fi
   mp21d_control="$(printf '%s\n' 'Writes may target the story worktree CWD.' | \
     perl -pe 's/[;—]\s*/\n/g; s/,\s+(?:and|or|but)\s+/\n/g' | \
     grep -E 'CWD-relative|worktree-relative|relative[[:space:]]+paths?|story-worktree[[:space:]]+CWD|story[[:space:]]+worktree[[:space:]]+CWD|worktree'\''s[[:space:]]+shadow|worktree[[:space:]]+CWD|shadow[[:space:]]+subtree|[Ww]orktree-local|(^|[^[:alnum:]])[Ii]n-worktree|gitignored-shadow' | \
     grep -E "$PWBD_DIRECTIVE_CLASS" | \
-    perl -ne 's/\b(?:not\s+(?:yet\s+|previously\s+|longer\s+)?|no\s+longer\s+(?:being\s+)?|never\s+(?:previously\s+)?)(FORBIDDEN|Forbidden|forbidden|MUST\s+NOT|prohibited|forbid)/NEGATED_PROHIBIT/gi; print if !/\b(?:FORBIDDEN|Forbidden|forbidden|MUST\s+NOT|prohibited|never\b|forbid\b)/' || true)"
+    grep -vE '\*\*Forbidden:\*\*' || true)"
   if [ -z "$mp21d_control" ]; then
     echo "CONTROL FAIL [CONTROL-D (F-S2104-P21-002)]: control 'Writes may target the story worktree CWD.' must still fire Gate PW-B after semantic fix — no prohibition token at all, negated or otherwise; got empty (regression: control should always be RED)"
     false
@@ -1113,7 +1140,7 @@ _run_teardown_preflight() {
     perl -pe 's/[;—]\s*/\n/g; s/,\s+(?:and|or|but)\s+/\n/g' | \
     grep -E 'CWD-relative|worktree-relative|relative[[:space:]]+paths?|story-worktree[[:space:]]+CWD|story[[:space:]]+worktree[[:space:]]+CWD|worktree'\''s[[:space:]]+shadow|worktree[[:space:]]+CWD|shadow[[:space:]]+subtree|[Ww]orktree-local|(^|[^[:alnum:]])[Ii]n-worktree|gitignored-shadow' | \
     grep -E "$PWBD_DIRECTIVE_CLASS" | \
-    perl -ne 's/\b(?:not\s+(?:yet\s+|previously\s+|longer\s+)?|no\s+longer\s+(?:being\s+)?|never\s+(?:previously\s+)?)(FORBIDDEN|Forbidden|forbidden|MUST\s+NOT|prohibited|forbid)/NEGATED_PROHIBIT/gi; print if !/\b(?:FORBIDDEN|Forbidden|forbidden|MUST\s+NOT|prohibited|never\b|forbid\b)/' || true)"
+    grep -vE '\*\*Forbidden:\*\*' || true)"
   if [ -z "$mp21e_violations" ]; then
     echo "MUTANT FAIL [M-P21-E (F-S2104-P21-003 'may' regression guard)]: probe 'Agents may deliver factory artifacts to the story worktree CWD.' must fire Gate PW-B — 'may' is in PWBD_DIRECTIVE_CLASS; 'story worktree CWD' is prohibited-target; no prohibition token → RED; deleting 'may' from PWBD_DIRECTIVE_CLASS at line 815 would not be caught by M-P21-A/B/C (all fire via bare-imperative); got empty (gate SILENT)"
     false
@@ -1123,9 +1150,9 @@ _run_teardown_preflight() {
     perl -pe 's/[;—]\s*/\n/g; s/,\s+(?:and|or|but)\s+/\n/g' | \
     grep -E 'CWD-relative|worktree-relative|relative[[:space:]]+paths?|story-worktree[[:space:]]+CWD|story[[:space:]]+worktree[[:space:]]+CWD|worktree'\''s[[:space:]]+shadow|worktree[[:space:]]+CWD|shadow[[:space:]]+subtree|[Ww]orktree-local|(^|[^[:alnum:]])[Ii]n-worktree|gitignored-shadow' | \
     grep -E "$PWBD_DIRECTIVE_CLASS" | \
-    perl -ne 's/\b(?:not\s+(?:yet\s+|previously\s+|longer\s+)?|no\s+longer\s+(?:being\s+)?|never\s+(?:previously\s+)?)(FORBIDDEN|Forbidden|forbidden|MUST\s+NOT|prohibited|forbid)/NEGATED_PROHIBIT/gi; print if !/\b(?:FORBIDDEN|Forbidden|forbidden|MUST\s+NOT|prohibited|never\b|forbid\b)/' || true)"
+    grep -vE '\*\*Forbidden:\*\*' || true)"
   if [ -z "$mp21f_violations" ]; then
-    echo "MUTANT FAIL [M-P21-F (negation form: 'never previously prohibited')]: probe 'Writes that are never previously prohibited under old policy may target the story worktree CWD.' must fire Gate PW-B — 'never previously prohibited' must be neutralized; got empty"
+    echo "MUTANT FAIL [M-P21-F (negation form: 'never previously prohibited')]: probe 'Writes that are never previously prohibited under old policy may target the story worktree CWD.' must fire Gate PW-B — fail-closed: prohibited-target + directive, no **Forbidden:** match → VIOLATION BY DEFAULT; got empty"
     false
   fi
 
@@ -1133,9 +1160,9 @@ _run_teardown_preflight() {
     perl -pe 's/[;—]\s*/\n/g; s/,\s+(?:and|or|but)\s+/\n/g' | \
     grep -E 'CWD-relative|worktree-relative|relative[[:space:]]+paths?|story-worktree[[:space:]]+CWD|story[[:space:]]+worktree[[:space:]]+CWD|worktree'\''s[[:space:]]+shadow|worktree[[:space:]]+CWD|shadow[[:space:]]+subtree|[Ww]orktree-local|(^|[^[:alnum:]])[Ii]n-worktree|gitignored-shadow' | \
     grep -E "$PWBD_DIRECTIVE_CLASS" | \
-    perl -ne 's/\b(?:not\s+(?:yet\s+|previously\s+|longer\s+)?|no\s+longer\s+(?:being\s+)?|never\s+(?:previously\s+)?)(FORBIDDEN|Forbidden|forbidden|MUST\s+NOT|prohibited|forbid)/NEGATED_PROHIBIT/gi; print if !/\b(?:FORBIDDEN|Forbidden|forbidden|MUST\s+NOT|prohibited|never\b|forbid\b)/' || true)"
+    grep -vE '\*\*Forbidden:\*\*' || true)"
   if [ -z "$mp21g_violations" ]; then
-    echo "MUTANT FAIL [M-P21-G (negation form: 'no longer forbidden')]: probe 'Writes that are no longer forbidden may target the story worktree CWD.' must fire Gate PW-B — 'no longer forbidden' must be neutralized; got empty"
+    echo "MUTANT FAIL [M-P21-G (negation form: 'no longer forbidden')]: probe 'Writes that are no longer forbidden may target the story worktree CWD.' must fire Gate PW-B — fail-closed: prohibited-target + directive, no **Forbidden:** match → VIOLATION BY DEFAULT; got empty"
     false
   fi
 
@@ -1143,9 +1170,9 @@ _run_teardown_preflight() {
     perl -pe 's/[;—]\s*/\n/g; s/,\s+(?:and|or|but)\s+/\n/g' | \
     grep -E 'CWD-relative|worktree-relative|relative[[:space:]]+paths?|story-worktree[[:space:]]+CWD|story[[:space:]]+worktree[[:space:]]+CWD|worktree'\''s[[:space:]]+shadow|worktree[[:space:]]+CWD|shadow[[:space:]]+subtree|[Ww]orktree-local|(^|[^[:alnum:]])[Ii]n-worktree|gitignored-shadow' | \
     grep -E "$PWBD_DIRECTIVE_CLASS" | \
-    perl -ne 's/\b(?:not\s+(?:yet\s+|previously\s+|longer\s+)?|no\s+longer\s+(?:being\s+)?|never\s+(?:previously\s+)?)(FORBIDDEN|Forbidden|forbidden|MUST\s+NOT|prohibited|forbid)/NEGATED_PROHIBIT/gi; print if !/\b(?:FORBIDDEN|Forbidden|forbidden|MUST\s+NOT|prohibited|never\b|forbid\b)/' || true)"
+    grep -vE '\*\*Forbidden:\*\*' || true)"
   if [ -z "$mp21h_violations" ]; then
-    echo "MUTANT FAIL [M-P21-H (negation form: bare 'not forbidden')]: probe 'Writes that are not forbidden under the current policy may target the story worktree CWD.' must fire Gate PW-B — bare 'not forbidden' (without 'yet') must be neutralized; got empty"
+    echo "MUTANT FAIL [M-P21-H (negation form: bare 'not forbidden')]: probe 'Writes that are not forbidden under the current policy may target the story worktree CWD.' must fire Gate PW-B — fail-closed: prohibited-target + directive, no **Forbidden:** match → VIOLATION BY DEFAULT; got empty"
     false
   fi
 
@@ -1153,9 +1180,156 @@ _run_teardown_preflight() {
     perl -pe 's/[;—]\s*/\n/g; s/,\s+(?:and|or|but)\s+/\n/g' | \
     grep -E 'CWD-relative|worktree-relative|relative[[:space:]]+paths?|story-worktree[[:space:]]+CWD|story[[:space:]]+worktree[[:space:]]+CWD|worktree'\''s[[:space:]]+shadow|worktree[[:space:]]+CWD|shadow[[:space:]]+subtree|[Ww]orktree-local|(^|[^[:alnum:]])[Ii]n-worktree|gitignored-shadow' | \
     grep -E "$PWBD_DIRECTIVE_CLASS" | \
-    perl -ne 's/\b(?:not\s+(?:yet\s+|previously\s+|longer\s+)?|no\s+longer\s+(?:being\s+)?|never\s+(?:previously\s+)?)(FORBIDDEN|Forbidden|forbidden|MUST\s+NOT|prohibited|forbid)/NEGATED_PROHIBIT/gi; print if !/\b(?:FORBIDDEN|Forbidden|forbidden|MUST\s+NOT|prohibited|never\b|forbid\b)/' || true)"
+    grep -vE '\*\*Forbidden:\*\*' || true)"
   if [ -z "$mp21_gitignored_violations" ]; then
-    echo "MUTANT FAIL [M-P21-GS (gitignored-shadow, SECONDARY 2 — F-S2104-P21-002)]: probe 'Agents may write artifacts to the gitignored-shadow path in the worktree.' must fire Gate PW-B — 'gitignored-shadow' added to prohibited-target alternation (BC-6.26.001 Invariant 5 canonical term); 'may' is directive, no prohibition → RED; got empty (gitignored-shadow not in prohibited-target or gate SILENT)"
+    echo "MUTANT FAIL [M-P21-GS (gitignored-shadow, SECONDARY 2 — F-S2104-P21-002)]: probe 'Agents may write artifacts to the gitignored-shadow path in the worktree.' must fire Gate PW-B — fail-closed: 'gitignored-shadow' (prohibited-target) + 'may' (directive), no **Forbidden:** match → VIOLATION BY DEFAULT; got empty"
+    false
+  fi
+
+  # M-P21-I through M-P21-P (F-S2104-P21-002 fail-closed coverage — 8 orchestrator-supplied
+  #   evading forms that were SILENT/GREEN under the old vocabulary-enumeration approach at
+  #   b7d3ca58). All fire under fail-closed because none contain **Forbidden:**.
+  local mp21i_violations mp21j_violations mp21k_violations mp21l_violations
+  local mp21m_violations mp21n_violations mp21o_violations mp21p_violations
+
+  mp21i_violations="$(printf '%s\n' 'Writes that are not explicitly forbidden under prior policy may target the story worktree CWD.' | \
+    perl -pe 's/[;—]\s*/\n/g; s/,\s+(?:and|or|but)\s+/\n/g' | \
+    grep -E 'CWD-relative|worktree-relative|relative[[:space:]]+paths?|story-worktree[[:space:]]+CWD|story[[:space:]]+worktree[[:space:]]+CWD|worktree'\''s[[:space:]]+shadow|worktree[[:space:]]+CWD|shadow[[:space:]]+subtree|[Ww]orktree-local|(^|[^[:alnum:]])[Ii]n-worktree|gitignored-shadow' | \
+    grep -E "$PWBD_DIRECTIVE_CLASS" | \
+    grep -vE '\*\*Forbidden:\*\*' || true)"
+  if [ -z "$mp21i_violations" ]; then
+    echo "MUTANT FAIL [M-P21-I (fail-closed: 'not explicitly forbidden')]: probe must fire — 'not explicitly forbidden' has 'explicitly' between 'not' and 'forbidden', evading the old per-word neutralizer; fail-closed fires because no **Forbidden:** match; 'may' + 'story worktree CWD'; got empty"
+    false
+  fi
+
+  mp21j_violations="$(printf '%s\n' 'Writes that are not strictly forbidden under prior policy may target the story worktree CWD.' | \
+    perl -pe 's/[;—]\s*/\n/g; s/,\s+(?:and|or|but)\s+/\n/g' | \
+    grep -E 'CWD-relative|worktree-relative|relative[[:space:]]+paths?|story-worktree[[:space:]]+CWD|story[[:space:]]+worktree[[:space:]]+CWD|worktree'\''s[[:space:]]+shadow|worktree[[:space:]]+CWD|shadow[[:space:]]+subtree|[Ww]orktree-local|(^|[^[:alnum:]])[Ii]n-worktree|gitignored-shadow' | \
+    grep -E "$PWBD_DIRECTIVE_CLASS" | \
+    grep -vE '\*\*Forbidden:\*\*' || true)"
+  if [ -z "$mp21j_violations" ]; then
+    echo "MUTANT FAIL [M-P21-J (fail-closed: 'not strictly forbidden')]: probe must fire — 'not strictly forbidden' evaded old enumeration; fail-closed fires because no **Forbidden:** match; got empty"
+    false
+  fi
+
+  mp21k_violations="$(printf '%s\n' 'Writes that are not currently forbidden under prior policy may target the story worktree CWD.' | \
+    perl -pe 's/[;—]\s*/\n/g; s/,\s+(?:and|or|but)\s+/\n/g' | \
+    grep -E 'CWD-relative|worktree-relative|relative[[:space:]]+paths?|story-worktree[[:space:]]+CWD|story[[:space:]]+worktree[[:space:]]+CWD|worktree'\''s[[:space:]]+shadow|worktree[[:space:]]+CWD|shadow[[:space:]]+subtree|[Ww]orktree-local|(^|[^[:alnum:]])[Ii]n-worktree|gitignored-shadow' | \
+    grep -E "$PWBD_DIRECTIVE_CLASS" | \
+    grep -vE '\*\*Forbidden:\*\*' || true)"
+  if [ -z "$mp21k_violations" ]; then
+    echo "MUTANT FAIL [M-P21-K (fail-closed: 'not currently forbidden')]: probe must fire — 'not currently forbidden' evaded old enumeration; fail-closed fires because no **Forbidden:** match; got empty"
+    false
+  fi
+
+  mp21l_violations="$(printf '%s\n' 'Writes that are not entirely forbidden under prior policy may target the story worktree CWD.' | \
+    perl -pe 's/[;—]\s*/\n/g; s/,\s+(?:and|or|but)\s+/\n/g' | \
+    grep -E 'CWD-relative|worktree-relative|relative[[:space:]]+paths?|story-worktree[[:space:]]+CWD|story[[:space:]]+worktree[[:space:]]+CWD|worktree'\''s[[:space:]]+shadow|worktree[[:space:]]+CWD|shadow[[:space:]]+subtree|[Ww]orktree-local|(^|[^[:alnum:]])[Ii]n-worktree|gitignored-shadow' | \
+    grep -E "$PWBD_DIRECTIVE_CLASS" | \
+    grep -vE '\*\*Forbidden:\*\*' || true)"
+  if [ -z "$mp21l_violations" ]; then
+    echo "MUTANT FAIL [M-P21-L (fail-closed: 'not entirely forbidden')]: probe must fire — 'not entirely forbidden' evaded old enumeration; fail-closed fires because no **Forbidden:** match; got empty"
+    false
+  fi
+
+  mp21m_violations="$(printf '%s\n' "Writes that aren't forbidden under prior policy may target the story worktree CWD." | \
+    perl -pe 's/[;—]\s*/\n/g; s/,\s+(?:and|or|but)\s+/\n/g' | \
+    grep -E 'CWD-relative|worktree-relative|relative[[:space:]]+paths?|story-worktree[[:space:]]+CWD|story[[:space:]]+worktree[[:space:]]+CWD|worktree'\''s[[:space:]]+shadow|worktree[[:space:]]+CWD|shadow[[:space:]]+subtree|[Ww]orktree-local|(^|[^[:alnum:]])[Ii]n-worktree|gitignored-shadow' | \
+    grep -E "$PWBD_DIRECTIVE_CLASS" | \
+    grep -vE '\*\*Forbidden:\*\*' || true)"
+  if [ -z "$mp21m_violations" ]; then
+    echo "MUTANT FAIL [M-P21-M (fail-closed: \"isn't/aren't forbidden\")]: probe must fire — contraction 'aren't' breaks \\bnot\\b word-boundary match; old enumeration SILENT; fail-closed fires because no **Forbidden:** match; 'may' + 'story worktree CWD'; got empty"
+    false
+  fi
+
+  mp21n_violations="$(printf '%s\n' 'Writes that are hardly forbidden under prior policy may target the story worktree CWD.' | \
+    perl -pe 's/[;—]\s*/\n/g; s/,\s+(?:and|or|but)\s+/\n/g' | \
+    grep -E 'CWD-relative|worktree-relative|relative[[:space:]]+paths?|story-worktree[[:space:]]+CWD|story[[:space:]]+worktree[[:space:]]+CWD|worktree'\''s[[:space:]]+shadow|worktree[[:space:]]+CWD|shadow[[:space:]]+subtree|[Ww]orktree-local|(^|[^[:alnum:]])[Ii]n-worktree|gitignored-shadow' | \
+    grep -E "$PWBD_DIRECTIVE_CLASS" | \
+    grep -vE '\*\*Forbidden:\*\*' || true)"
+  if [ -z "$mp21n_violations" ]; then
+    echo "MUTANT FAIL [M-P21-N (fail-closed: 'hardly forbidden')]: probe must fire — 'hardly' is not a negation prefix in old enumeration; 'forbidden' caused SILENT; fail-closed fires because no **Forbidden:** match; got empty"
+    false
+  fi
+
+  mp21o_violations="$(printf '%s\n' 'Writes that are not, at present, forbidden may target the story worktree CWD.' | \
+    perl -pe 's/[;—]\s*/\n/g; s/,\s+(?:and|or|but)\s+/\n/g' | \
+    grep -E 'CWD-relative|worktree-relative|relative[[:space:]]+paths?|story-worktree[[:space:]]+CWD|story[[:space:]]+worktree[[:space:]]+CWD|worktree'\''s[[:space:]]+shadow|worktree[[:space:]]+CWD|shadow[[:space:]]+subtree|[Ww]orktree-local|(^|[^[:alnum:]])[Ii]n-worktree|gitignored-shadow' | \
+    grep -E "$PWBD_DIRECTIVE_CLASS" | \
+    grep -vE '\*\*Forbidden:\*\*' || true)"
+  if [ -z "$mp21o_violations" ]; then
+    echo "MUTANT FAIL [M-P21-O (fail-closed: 'not, at present, forbidden')]: probe must fire — interposed comma phrase ', at present,' breaks \\bnot\\s+forbidden\\b adjacency; 'forbidden' caused SILENT; fail-closed fires because no **Forbidden:** match; got empty"
+    false
+  fi
+
+  mp21p_violations="$(printf '%s\n' 'Writes that are far from forbidden under prior policy may target the story worktree CWD.' | \
+    perl -pe 's/[;—]\s*/\n/g; s/,\s+(?:and|or|but)\s+/\n/g' | \
+    grep -E 'CWD-relative|worktree-relative|relative[[:space:]]+paths?|story-worktree[[:space:]]+CWD|story[[:space:]]+worktree[[:space:]]+CWD|worktree'\''s[[:space:]]+shadow|worktree[[:space:]]+CWD|shadow[[:space:]]+subtree|[Ww]orktree-local|(^|[^[:alnum:]])[Ii]n-worktree|gitignored-shadow' | \
+    grep -E "$PWBD_DIRECTIVE_CLASS" | \
+    grep -vE '\*\*Forbidden:\*\*' || true)"
+  if [ -z "$mp21p_violations" ]; then
+    echo "MUTANT FAIL [M-P21-P (fail-closed: 'far from forbidden')]: probe must fire — 'far from forbidden' is idiomatic negation with no 'not' word; 'forbidden' caused SILENT in old code; fail-closed fires because no **Forbidden:** match; got empty"
+    false
+  fi
+
+  # M-P21-Q through M-P21-T: 4 NEW adversarial forms authored here, attacking different
+  #   syntactic surfaces. All evaded old vocabulary-enumeration; all fire under fail-closed.
+  local mp21q_violations mp21r_violations mp21s_violations mp21t_violations
+
+  # M-P21-Q: DOUBLE NEGATIVE — prohibition token present but semantically negated by idiom.
+  #   "By no means FORBIDDEN" = "definitely not forbidden" (idiomatic double-negative with
+  #   uppercase FORBIDDEN). Old code: FORBIDDEN present → EXCLUDED (SILENT/GREEN). Fail-closed:
+  #   no **Forbidden:** → FIRES. Proves the token-presence check is not sufficient — FORBIDDEN
+  #   can appear in a clause while the semantic content is authorization, not prohibition.
+  mp21q_violations="$(printf '%s\n' 'By no means FORBIDDEN, story worktree CWD writes may proceed directly.' | \
+    perl -pe 's/[;—]\s*/\n/g; s/,\s+(?:and|or|but)\s+/\n/g' | \
+    grep -E 'CWD-relative|worktree-relative|relative[[:space:]]+paths?|story-worktree[[:space:]]+CWD|story[[:space:]]+worktree[[:space:]]+CWD|worktree'\''s[[:space:]]+shadow|worktree[[:space:]]+CWD|shadow[[:space:]]+subtree|[Ww]orktree-local|(^|[^[:alnum:]])[Ii]n-worktree|gitignored-shadow' | \
+    grep -E "$PWBD_DIRECTIVE_CLASS" | \
+    grep -vE '\*\*Forbidden:\*\*' || true)"
+  if [ -z "$mp21q_violations" ]; then
+    echo "MUTANT FAIL [M-P21-Q (NEW adversarial: double negative — 'By no means FORBIDDEN')]: probe 'By no means FORBIDDEN, story worktree CWD writes may proceed directly.' must fire — 'By no means FORBIDDEN' has FORBIDDEN uppercase but is semantically authorization; old code excluded because FORBIDDEN present; fail-closed fires because no **Forbidden:** match; 'may' + 'story worktree CWD'; got empty"
+    false
+  fi
+
+  # M-P21-R: PROHIBITION TOKEN ON DIFFERENT SUBJECT — FORBIDDEN applies to something else in
+  #   the clause. "The FORBIDDEN canonical path being unavailable" — FORBIDDEN describes the
+  #   canonical path, not the worktree writes. Old code: FORBIDDEN present → EXCLUDED (SILENT).
+  #   Fail-closed: no **Forbidden:** → FIRES.
+  mp21r_violations="$(printf '%s\n' 'The FORBIDDEN canonical path being unavailable, agents may target the story worktree CWD.' | \
+    perl -pe 's/[;—]\s*/\n/g; s/,\s+(?:and|or|but)\s+/\n/g' | \
+    grep -E 'CWD-relative|worktree-relative|relative[[:space:]]+paths?|story-worktree[[:space:]]+CWD|story[[:space:]]+worktree[[:space:]]+CWD|worktree'\''s[[:space:]]+shadow|worktree[[:space:]]+CWD|shadow[[:space:]]+subtree|[Ww]orktree-local|(^|[^[:alnum:]])[Ii]n-worktree|gitignored-shadow' | \
+    grep -E "$PWBD_DIRECTIVE_CLASS" | \
+    grep -vE '\*\*Forbidden:\*\*' || true)"
+  if [ -z "$mp21r_violations" ]; then
+    echo "MUTANT FAIL [M-P21-R (NEW adversarial: prohibition on different subject)]: probe 'The FORBIDDEN canonical path being unavailable, agents may target the story worktree CWD.' must fire — FORBIDDEN describes the canonical path (not worktree writes), but old token-check excluded the clause; fail-closed fires because no **Forbidden:** match; 'may' + 'story worktree CWD'; got empty"
+    false
+  fi
+
+  # M-P21-S: INTERPOSED PARENTHETICAL — phrase inserted between 'not' and prohibition token.
+  #   "not (given the current sprint policy) specifically forbidden" — old code's \\bnot\\s+...
+  #   pattern requires whitespace-only after 'not' before the optional modifier. The parenthetical
+  #   '(given ...)' breaks the adjacency. Old code: 'forbidden' in clause → EXCLUDED (SILENT).
+  #   Fail-closed: no **Forbidden:** → FIRES.
+  mp21s_violations="$(printf '%s\n' 'Writes that are (given the current sprint policy) not specifically forbidden may target the story worktree CWD.' | \
+    perl -pe 's/[;—]\s*/\n/g; s/,\s+(?:and|or|but)\s+/\n/g' | \
+    grep -E 'CWD-relative|worktree-relative|relative[[:space:]]+paths?|story-worktree[[:space:]]+CWD|story[[:space:]]+worktree[[:space:]]+CWD|worktree'\''s[[:space:]]+shadow|worktree[[:space:]]+CWD|shadow[[:space:]]+subtree|[Ww]orktree-local|(^|[^[:alnum:]])[Ii]n-worktree|gitignored-shadow' | \
+    grep -E "$PWBD_DIRECTIVE_CLASS" | \
+    grep -vE '\*\*Forbidden:\*\*' || true)"
+  if [ -z "$mp21s_violations" ]; then
+    echo "MUTANT FAIL [M-P21-S (NEW adversarial: interposed parenthetical)]: probe 'Writes that are (given the current sprint policy) not specifically forbidden may target the story worktree CWD.' must fire — interposed '(given...)' and 'specifically' break old neutralizer adjacency; 'forbidden' caused SILENT; fail-closed fires because no **Forbidden:** match; 'may' + 'story worktree CWD'; got empty"
+    false
+  fi
+
+  # M-P21-T: CONTRACTION VERB — "haven't been prohibited" uses a contraction whose \\bnot\\b
+  #   word-boundary does not match the 'n't' suffix. Old code: 'prohibited' present → EXCLUDED
+  #   (SILENT). Fail-closed: no **Forbidden:** → FIRES.
+  mp21t_violations="$(printf '%s\n' "Since these writes haven't been prohibited, agents may target the story worktree CWD." | \
+    perl -pe 's/[;—]\s*/\n/g; s/,\s+(?:and|or|but)\s+/\n/g' | \
+    grep -E 'CWD-relative|worktree-relative|relative[[:space:]]+paths?|story-worktree[[:space:]]+CWD|story[[:space:]]+worktree[[:space:]]+CWD|worktree'\''s[[:space:]]+shadow|worktree[[:space:]]+CWD|shadow[[:space:]]+subtree|[Ww]orktree-local|(^|[^[:alnum:]])[Ii]n-worktree|gitignored-shadow' | \
+    grep -E "$PWBD_DIRECTIVE_CLASS" | \
+    grep -vE '\*\*Forbidden:\*\*' || true)"
+  if [ -z "$mp21t_violations" ]; then
+    echo "MUTANT FAIL [M-P21-T (NEW adversarial: contraction verb)]: probe 'Since these writes haven\\'t been prohibited, agents may target the story worktree CWD.' must fire — 'haven\\'t' contraction breaks \\bnot\\b; 'prohibited' standalone caused old code to EXCLUDE (SILENT); fail-closed fires because no **Forbidden:** match; 'may' + 'story worktree CWD'; got empty"
     false
   fi
 
