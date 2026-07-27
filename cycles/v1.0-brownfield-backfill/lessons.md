@@ -8197,3 +8197,29 @@ A subagent's narrative summary of shell output is NOT authoritative for gate dec
 **Cites:** D-923 (this burst); F-S2104-P19-008 (MEDIUM — Class A); adversary-pass-19.md F-S2104-P19-009/010 (Class B instance 1); D-449(a) literal-shell-execution-evidence mandate; META-LEVEL-24 (narrative-attested gate self-degradation blindness, here extended to agent-to-agent channel); POLICY 5 SIBLING-SWEEP category (i); POLICY 14 SAME-BURST PREDICATE-GATE CELL COUPLING (D-916).
 
 **Closes:** D-923 S-21.04-PASS-19-CLOSED (2026-07-27). `[process-gap; report-noise; report-fidelity; bats-lead-in; count-word; sibling-sweep; aggregation-cell; subagent-narrative-fidelity; D-449a-extension; META-LEVEL-24-agent-channel; POLICY-5; POLICY-14; D-923]`
+
+---
+
+## L-BB-subagent-report-fidelity-literal-shell [process-gap] [D-924]
+
+**Summary:** Subagent narrative summaries of shell output are NOT authoritative for gate decisions. When a summary is load-bearing for a gate decision (is-clean check, count-match, path-list completeness, severity classification, SHA-to-version attribution), the orchestrator/consumer MUST re-run the predicate via literal shell with captured stdout rather than accepting the narrative. This is the D-449(a) literal-shell-execution-evidence principle extended to the agent-to-agent reporting channel — the same META-LEVEL-24 insight (narrative-attested gates cannot detect their own scope-degradation) applied to subagent reports, not just burst-log Dim-2 attestations.
+
+**Discovered:** 2026-07-27 (three same-session instances across three distinct agent roles during S-21.04 pass-19 + D-923 closure + D-924 correction burst).
+
+**Three concrete same-session instances:**
+
+**(i) pass-19 adversary report — severity mislabels + hallucinated content:** The adversary's pass-19 report included mislabeled severity labels and content descriptions for F-S2104-P19-009 and F-S2104-P19-010 not anchored in the actual code or spec state at `reviewed_head a4ec37d3`. The orchestrator's literal-shell verification before persisting the findings detected the divergence. The orchestrator's battery code-verification confirmed the implementation was good; the noise was in the report, not the code.
+
+**(ii) devops-engineer factory-worktree-health gate (D-923 closure burst):** The devops-engineer summarized `git -C .factory status --porcelain` and reported only the two ` M` dirty paths (`logs/dispatcher-internal-2026-07-26.jsonl` and `sidecar-learning.md`), silently dropping the ` D logs/dispatcher-internal-2026-06-26.jsonl` deletion line. The orchestrator re-ran the literal shell and confirmed the deletion was present. The deletion was staged and committed only after the orchestrator's independent re-run — had the orchestrator trusted the summary, the deletion would have been left unstaged and would have tripped the next burst's clean-tree precondition.
+
+**(iii) D-923 completion report — SHA-to-version mis-attribution (D-419-class provenance):** The D-923 completion report cited "story v1.25 `a14c9f72`" as the story-writer leg. The actual commit `a14c9f72` carries subject line "story(S-21.04): v1.24 pass-19 leg" — it is the v1.24 commit. The v1.24→v1.25 bump was state-manager closure leg B in `578aa7fb`. The mis-attribution propagated into the D-923 decision-log Summary and STATE.md v6.55 `last_amended` chain, requiring a D-924 record-correction burst to apply a TD-VSDD-060 sibling sweep across 2 sites.
+
+**Root cause:** Subagent narrative summaries are synthesized during generation and can truncate, misclassify, omit lines, or mis-associate metadata silently. The synthesizing agent has no feedback signal that its summary was incomplete or incorrect — structurally identical to a burst-log pseudocode gate that cannot detect it missed its own scope (META-LEVEL-24). The consumer that accepts the narrative without re-running the predicate inherits the blind spot.
+
+**Generalized rule:** Subagent narrative summaries require literal-shell re-verification by the consumer when load-bearing for gate decisions. This applies specifically to: (a) `git status --porcelain` output summaries (path-list completeness — ` D` deletion lines are silently droppable in narrative and have downstream clean-tree consequences); (b) finding severity/content summaries from adversary reports (adversary cannot review its own report for accuracy); (c) SHA-to-version attribution claims in completion reports (commit subjects are ground truth; synthesis can flip v1.24 ↔ v1.25). Re-run form: the predicate that generated the summary, via literal shell with captured stdout.
+
+**Anchors:** S-21.04 LOCAL cascade pass-19 (2026-07-27); adversary-pass-19.md reviewed_head `a4ec37d3`; devops-engineer factory-worktree-health gate D-923 burst; D-924 record-correction burst; `git log --oneline a14c9f72 -1` → `a14c9f72 story(S-21.04): v1.24 pass-19 leg`.
+
+**Cites:** D-924 (this correction burst); D-449(a) literal-shell-execution-evidence mandate; META-LEVEL-24 (narrative-attested gates cannot detect their own scope-degradation, extended to agent-to-agent reporting channel); POLICY 22 `subagent_report_fidelity_literal_shell` (D-924 new mandate); L-BB-p19-report-noise-process-gap (adjacent lesson covering bats-sweep-gap Class A + Class B instances (i)+(ii) in its D-923-addendum form; this lesson codifies the generalised principle with all 3 instances and the formal D-449(a) extension framing); L-BB-subagent-final-report-loss (adjacent lesson on agents going silent; this lesson covers a distinct failure class — reports delivered but content-incorrect, not missing).
+
+**Closes:** D-924-RECORD-CORRECTION (2026-07-27). `[process-gap; subagent-report-fidelity; literal-shell; narrative-attestation; agent-to-agent; META-LEVEL-24; D-449a-extension; POLICY-22; git-status-porcelain; severity-mislabel; sha-version-provenance; D-924]`

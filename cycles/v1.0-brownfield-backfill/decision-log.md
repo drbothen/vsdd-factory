@@ -12635,7 +12635,7 @@ Post-wrap fact: story-writer commit a14c9f72 (story v1.24, 21-gate Gate cell) wa
 
 ### Summary
 
-S-21.04 LOCAL adversarial cascade pass-19 closure burst (BC-5.39.001, E-21 W2, deliver-story Step 4.5). Adversary review pass-19: NOT-CLEAN B2/H3/M7, 12 findings F-S2104-P19-001..012, novelty 0.58, reviewed_head `a4ec37d3`. Fix wave legs: (a) test-writer `657fce61` — Gates 2b domain, clause-splitter extension, boundary-completeness assertion, link-ref-def strip fix, canonical-target domain, scope-restriction Gate; (b) bats count-word commit `a2112e8d` — "Nineteen"→"Twenty-one" at 2 sites; (c) story-writer `a14c9f72` — story v1.25, 21-gate Gate cell. State-manager closure: (A) bats count-word `a2112e8d` (F-S2104-P19-008); (B) story v1.24→v1.25 (version/last_amended/modified/AC-001 coupling note, input-hash 1165b1f unchanged); (C) STORY-INDEX v4.266→v4.267 (S-21.04 catalog+blockquote 1165b1f, S-21.01 catalog 32aaccc, three-way equality PASS); (D) red-gate-log v1.16→v1.17 (TWO→THREE; balanced-fence rationale corrected 3 sites; escape-discrimination controls transcribed; Pass-19 attestation 24/24; NAME-SET EQUALITY PASS 21 gates; ESCAPE-SCOPE-PARITY proof; ALTERNATION-DIRECTION statements); (E) adversary-pass-19.md `fixes_landed_head 657fce61` + Fix Mapping 12 rows (all CLOSED); (F) policies.yaml v1.4.15→v1.4.16 (POLICY 13 ESCAPE-SCOPE-PARITY + BOUNDARY-POLARITY + NORMALIZATION-ADVERSARIALITY tokenizer-direction extension; POLICY 18 THREE-WAY-INPUT-HASH-EQUALITY); (G) decision-log D-923 (this entry); (H) lessons.md 4 new entries (L-BB-escape-scope-parity, L-BB-boundary-polarity, L-BB-missed-boundary-tokenizer-direction, L-BB-p19-report-noise-process-gap); (I) STATE.md v6.54→v6.55; phase D-923-class closure. Streak 0/3 — NOT-CLEAN; next: adversary pass-20.
+S-21.04 LOCAL adversarial cascade pass-19 closure burst (BC-5.39.001, E-21 W2, deliver-story Step 4.5). Adversary review pass-19: NOT-CLEAN B2/H3/M7, 12 findings F-S2104-P19-001..012, novelty 0.58, reviewed_head `a4ec37d3`. Fix wave legs: (a) test-writer `657fce61` — Gates 2b domain, clause-splitter extension, boundary-completeness assertion, link-ref-def strip fix, canonical-target domain, scope-restriction Gate; (b) bats count-word commit `a2112e8d` — "Nineteen"→"Twenty-one" at 2 sites; (c) story-writer `a14c9f72` — story v1.24, 21-gate Gate cell [D-924 provenance correction: v1.24→v1.25 carried by state-manager closure leg B in `578aa7fb`]. State-manager closure: (A) bats count-word `a2112e8d` (F-S2104-P19-008); (B) story v1.24→v1.25 (version/last_amended/modified/AC-001 coupling note, input-hash 1165b1f unchanged); (C) STORY-INDEX v4.266→v4.267 (S-21.04 catalog+blockquote 1165b1f, S-21.01 catalog 32aaccc, three-way equality PASS); (D) red-gate-log v1.16→v1.17 (TWO→THREE; balanced-fence rationale corrected 3 sites; escape-discrimination controls transcribed; Pass-19 attestation 24/24; NAME-SET EQUALITY PASS 21 gates; ESCAPE-SCOPE-PARITY proof; ALTERNATION-DIRECTION statements); (E) adversary-pass-19.md `fixes_landed_head 657fce61` + Fix Mapping 12 rows (all CLOSED); (F) policies.yaml v1.4.15→v1.4.16 (POLICY 13 ESCAPE-SCOPE-PARITY + BOUNDARY-POLARITY + NORMALIZATION-ADVERSARIALITY tokenizer-direction extension; POLICY 18 THREE-WAY-INPUT-HASH-EQUALITY); (G) decision-log D-923 (this entry); (H) lessons.md 4 new entries (L-BB-escape-scope-parity, L-BB-boundary-polarity, L-BB-missed-boundary-tokenizer-direction, L-BB-p19-report-noise-process-gap); (I) STATE.md v6.54→v6.55; phase D-923-class closure. Streak 0/3 — NOT-CLEAN; next: adversary pass-20.
 
 ### Detail
 
@@ -12676,6 +12676,86 @@ S-21.04 LOCAL adversarial cascade pass-19 closure burst (BC-5.39.001, E-21 W2, d
 ### Phase
 
 D-923-S2104-PASS-19-CLOSED
+
+### Date
+
+2026-07-27
+
+### ADDENDUM (D-924 record-correction — 2026-07-27)
+
+Four post-burst record-integrity defects corrected in D-924. The substantive fixes (story v1.25 in `578aa7fb`, STORY-INDEX v4.267, policies v1.4.16, 4 lessons) are CONFIRMED GOOD and untouched.
+
+**Defect 1 — D-449(a) gate invoked (executed by D-924; not D-923):** D-923 item 3 asserted input-hash values as "hook-authoritative (marketplace hook binary canonical per L-EDP1-073)" without executing the predicate. Canonical binary: `~/.claude/plugins/cache/claude-mp/vsdd-factory/1.0.0-rc.23/bin/compute-input-hash` (rc.23 = operator-install-verified per D-858). D-924 executed post-hoc; values CONFIRMED by orchestrator-supplied stdout:
+```
+$ compute-input-hash .factory/stories/S-21.04-story-worktree-write-path-discipline.md
+1165b1f
+$ compute-input-hash .factory/cycles/v1.0-brownfield-backfill/S-21.04/implementation/red-gate-log.md
+a03188b
+```
+Both confirm D-923's recorded values. D-923 ASSERTED; D-924 EXECUTED. Operative caveat for future bursts: `--scan .factory` exceeds 2-minute timeout; per-file invocation is the practical form.
+
+**Defect 2 — POLICY 15 attestation-location gate verdict for `657fce61` (recorded by D-924):** D-922 disclosed that `657fce61` was pushed before its red-gate-log attestation was transcribed, deferring the POLICY 15 gate to D-923. D-923 did not record an explicit gate verdict. D-924 records it now. Literal-shell evidence (executed in D-924 burst):
+```
+$ grep -c '657fce61' cycles/v1.0-brownfield-backfill/S-21.04/implementation/red-gate-log.md
+8
+```
+Red-gate-log `### Pass-19 assertion-site attestation (657fce61)` section exists in `578aa7fb`, citing `657fce61` at 8 locations. POLICY 15 attestation-location gate for `657fce61` — PASS. D-922 deferred deviation CLOSED.
+
+**Defect 3 — New distinct lesson (L-BB-subagent-report-fidelity-literal-shell):** D-923 addendum widened `L-BB-p19-report-noise-process-gap` to Class A+B but did not add the requested NEW DISTINCT lesson covering the broader principle (subagent narrative summaries not a substitute for literal-shell stdout when load-bearing for gate decisions) with all three same-session instances including instance (iii): D-923 completion report cited "story v1.25 `a14c9f72`" when `a14c9f72` = v1.24. New lesson `L-BB-subagent-report-fidelity-literal-shell` added to lessons.md this burst. POLICY 22 `subagent_report_fidelity_literal_shell` added to policies.yaml (v1.4.16→v1.4.17).
+
+**Defect 4 — D-923 provenance corrected (applied inline above):** D-923 Summary "(c) story-writer `a14c9f72` — story v1.25" corrected inline to "story v1.24" (`git log --oneline a14c9f72 -1` → `a14c9f72 story(S-21.04): v1.24 pass-19 leg`; commit subject is ground truth). The v1.24→v1.25 bump was state-manager closure leg B in `578aa7fb`. TD-VSDD-060 sibling sweep: 2 sites corrected — (a) this decision-log D-923 Summary (corrected above); (b) STATE.md v6.55 `last_amended` chain (corrected in STATE.md v6.56 this burst). Post-correction verification: `grep -n "v1\.25.*a14c9f72\|a14c9f72.*v1\.25" cycles/ stories/ specs/` → no residual mis-citations.
+
+---
+
+## D-924
+
+### Summary
+
+D-924 RECORD-CORRECTION burst (D-900-class precedent). Four record-integrity defects in D-923 corrected in a single commit. Defect 1: D-449(a) compute-input-hash gate asserted by D-923 narrative ("hook-authoritative"), not executed; D-924 executes per-file (canonical rc.23 binary) and CONFIRMS both values (story `1165b1f`; red-gate-log `a03188b`). Defect 2: POLICY 15 attestation-location gate verdict for `657fce61` never recorded by D-923; D-924 records it with literal-shell evidence (`grep -c '657fce61' red-gate-log.md` → `8`; D-922 deviation CLOSED). Defect 3: D-923 addendum dropped the requested new distinct lesson and reported done; D-924 adds `L-BB-subagent-report-fidelity-literal-shell` (3 concrete same-session instances; framing: subagent narrative summaries not a substitute for literal-shell stdout when load-bearing; D-449(a)+META-LEVEL-24 extended to agent-to-agent channel); policies v1.4.16→v1.4.17 (POLICY 22). Defect 4: D-923 Summary "(c) story-writer `a14c9f72` — story v1.25" contradicts leg (B) "story v1.24→v1.25"; ground truth `a14c9f72` = v1.24 (commit subject: "story(S-21.04): v1.24 pass-19 leg"); v1.24→v1.25 in state-manager `578aa7fb` leg B; corrected inline + TD-VSDD-060 sibling sweep 2 sites (decision-log D-923 + STATE.md v6.55 chain). STATE.md v6.55→v6.56. 4-index UNCHANGED. Streak 0/3; adversary pass-20 NEXT.
+
+### Detail
+
+1. **POLICY 16 GLOBAL-MAX GATE (literal shell stdout)**:
+   - `grep -rh '^## D-' cycles/v1.0-brownfield-backfill/decision-log.md cycles/v1.0-feature-engine-discipline-pass-1/decision-log.md | sed 's/^## D-//' | sort -n | tail -5` → `919 / 920 / 921 / 922 / 923`
+   - D-923 confirmed global max → D-924 allocated. PASS.
+
+2. **Defect 1 — D-449(a) executed predicate (compute-input-hash per-file, rc.23 binary)**:
+   - D-923 item 3 asserted input-hash values as "hook-authoritative (marketplace hook binary canonical per L-EDP1-073)" without executing the predicate. Values turned out correct, but the gate was never invoked — a D-449(a) literal-shell-execution-evidence violation.
+   - Canonical binary: `~/.claude/plugins/cache/claude-mp/vsdd-factory/1.0.0-rc.23/bin/compute-input-hash` (rc.23 = operator-install-verified per D-858).
+   - Executed stdout (orchestrator-supplied post-burst, confirmed by D-924):
+   ```
+   $ compute-input-hash .factory/stories/S-21.04-story-worktree-write-path-discipline.md
+   1165b1f
+   $ compute-input-hash .factory/cycles/v1.0-brownfield-backfill/S-21.04/implementation/red-gate-log.md
+   a03188b
+   ```
+   - Both CONFIRM D-923's recorded values. D-923 ASSERTED; D-924 EXECUTED AND CONFIRMED. Operative caveat: `--scan .factory` exceeds 2-minute timeout; per-file invocation is the practical form for future bursts.
+
+3. **Defect 2 — POLICY 15 attestation-location gate for `657fce61` (literal shell stdout)**:
+   - D-922 deferred deviation: `657fce61` pushed before red-gate-log attestation transcription — POLICY 15 gate deferred to D-923 closure burst.
+   - D-923 did not record an explicit gate verdict. D-924 records it now.
+   - Gate (executed this burst): `grep -c '657fce61' cycles/v1.0-brownfield-backfill/S-21.04/implementation/red-gate-log.md` → `8`
+   - Red-gate-log `### Pass-19 assertion-site attestation (657fce61)` section exists in `578aa7fb`, citing `657fce61` at 8 locations. POLICY 15 attestation-location gate for `657fce61` — PASS. D-922 deferred deviation CLOSED.
+
+4. **Defect 3 — L-BB-subagent-report-fidelity-literal-shell (new distinct lesson)**:
+   - Lesson added to lessons.md (distinct from `L-BB-p19-report-noise-process-gap`, which covers the bats-sweep-gap Class A + two Class B instances in its extended form; the new lesson codifies the generalised principle with all 3 instances including instance (iii) — the D-923 completion report mis-attribution).
+   - Framing: subagent narrative summaries are NOT a substitute for captured literal-shell stdout; when a summary is load-bearing for a gate decision, the consumer MUST re-run the predicate. This extends D-449(a) / META-LEVEL-24 from burst-log attestations to the agent-to-agent reporting channel.
+   - Three concrete same-session instances: (i) pass-19 adversary report mislabeled severities + hallucinated P19-009/010 content; (ii) devops-engineer dropped ` D` deletion from `git status --porcelain` summary (D-923 burst); (iii) D-923 completion report cited "story v1.25 `a14c9f72`" when `a14c9f72` = v1.24 (D-419-class provenance error).
+   - POLICY 22 `subagent_report_fidelity_literal_shell` added to policies.yaml (v1.4.16→v1.4.17). Rationale: three concrete same-session instances across three distinct agent roles confirm a structural systematic gap requiring a mandatory policy-level gate; D-449(a) + META-LEVEL-24 extended to agent-to-agent channel.
+
+5. **Defect 4 — D-923 provenance correction + TD-VSDD-060 sibling sweep**:
+   - D-923 Summary "(c) story-writer `a14c9f72` — story v1.25, 21-gate Gate cell" corrected inline (same file, same burst) to "story v1.24, 21-gate Gate cell [D-924 provenance correction: v1.24→v1.25 carried by state-manager closure leg B in `578aa7fb`]".
+   - Ground truth: `git log --oneline a14c9f72 -1` → `a14c9f72 story(S-21.04): v1.24 pass-19 leg` (commit subject is authoritative per D-419 class).
+   - TD-VSDD-060 sibling sweep executed: `grep -rn "v1\.25.*a14c9f72\|a14c9f72.*v1\.25" cycles/ stories/ specs/` → 1 site in decision-log D-923 Summary (corrected above). STATE.md v6.55 `last_amended` field also carried the mis-citation ("story v1.25 (a14c9f72)"); corrected in STATE.md v6.56 this burst (site 2 of 2). No residual mis-citations remain.
+
+6. **POLICY 14 4-INDEX GATE (literal shell stdout)**:
+   - `grep -m1 "^version:" specs/behavioral-contracts/BC-INDEX.md specs/verification-properties/VP-INDEX.md stories/STORY-INDEX.md specs/architecture/ARCH-INDEX.md` → BC v4.33 / VP v2.72 / STORY v4.267 / ARCH v3.34. ALL UNCHANGED this burst. PASS.
+
+7. **STATE.md v6.55→v6.56**: frontmatter-minimal (version + phase + last_amended). Lines 15-17 UNTOUCHED per hook constraint (precedent D-866..D-924).
+
+### Phase
+
+D-924-RECORD-CORRECTION
 
 ### Date
 
