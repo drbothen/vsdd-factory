@@ -20539,3 +20539,109 @@ No new adversary findings this burst (D-900-class record-correction). Corrected 
 **factory-artifacts commits:**
 - Pre-burst parent-commit (factory-artifacts): `069dcef9` (D-925 closure burst)
 - This burst: `0b4b6203` (D-926 pass-20 record-correction burst)
+
+---
+
+## D-931 — D-927 Falsification Record Burst (2026-07-27)
+
+**Burst type:** Single-commit correction burst (TD-VSDD-053). Records falsification of D-927 root cause; corrects adversary-pass-21.md provenance disclosure; extends lessons.md; adds drift item; advances STATE.md.
+
+### Block 1 — Parent-commit
+
+Pre-burst factory-artifacts HEAD: `f98455c5` — `factory(pause): session wrap — S-21.04 pass-21 CLOSED (D-929); streak 0/3; engine P0 D-927 open` (D-930 session-wrap; STATE.md v6.62).
+
+### Block 2 — Adversary verdict
+
+No new adversary pass dispatched this burst. This is a D-900-class record-correction burst analogous to D-926/D-928/D-930. The subject of this burst is the FALSIFICATION of a prior adversary finding's root cause attribution (D-927), not a new adversary review of the implementation.
+
+**Falsification evidence (D-931 context, NOT a new adversary pass):** Three live control dispatches 2026-07-27 with NO model override — each resolved to `claude-opus-5` and executed substantively:
+
+| Agent | Dispatch | Resolved model | Evidence |
+|-------|----------|----------------|---------|
+| `adversary` | no model override | `claude-opus-5` | Read `.factory/policies.yaml`; reported v1.4.17 + POLICY 22 `subagent_report_fidelity_literal_shell` correctly |
+| `spec-reviewer` | no model override | `claude-opus-5` | Reported `version: "1.4.17"` |
+| `pr-reviewer` | no model override | `claude-opus-5` | Read `CLAUDE.md`; reported 466 lines |
+
+D-927 root cause FALSIFIED. Mitigation RETRACTED. Blast-radius partial retraction (3/7 verified, 4/7 inferred). adv-p20/p20b/p20c cause remains UNKNOWN.
+
+### Block 3 — Files touched
+
+1. `.factory/cycles/v1.0-brownfield-backfill/S-21.04/adversary-pass-21.md` — MANDATORY PROVENANCE DISCLOSURE lines 12+14 corrected: removed "pin fails to resolve (root cause D-927)"; added "CORRECTION D-931 (2026-07-27)" annotation; corrected deviation cause to "SELF-INFLICTED by explicit model: sonnet override"; preserved cross-family diversity disclosure (now attributed to ADR-033). Findings/verdict/severities/trajectory: UNCHANGED.
+2. `.factory/cycles/v1.0-brownfield-backfill/lessons.md` — `L-BB-adversary-agent-delivery-silent` extended: added "FALSIFICATION (D-931)" section + updated Cites + updated Closes. New lesson `L-BB-correlation-not-causation-diagnostic-failure` added [process-gap].
+3. `.factory/cycles/v1.0-brownfield-backfill/decision-log.md` — D-931 codification block appended.
+4. `.factory/cycles/v1.0-brownfield-backfill/burst-log.md` — this entry.
+5. `.factory/STATE.md` — **frontmatter advance only**: version v6.62→v6.63; phase D-930-SESSION-WRAP-PAUSED→D-931-D927-FALSIFICATION-RECORD; timestamp 2026-07-27T23:59:01Z→2026-07-28T00:31:00Z; last_amended D-931 entry prepended. `current_step` (line 17) UNTOUCHED per lines-15-17 constraint. Body sections DEFERRED: Decisions Log D-931 row, Drift Items wave-state.yaml row, and SRC item 3 rewrite all BLOCKED by rc.23 hook T-4/AC-012 reconstruction semantics — body edits to STATE.md cannot advance frontmatter `timestamp:` without AC-020 (added post-rc.23 at commit ae263781). All substantive D-931 content captured in files 1–4 above. SHA-patch follow-up will complete body sections once AC-020-capable hook is available.
+
+### Block 4 — Codifications
+
+- **D-931**: Falsification of D-927 root cause; adversary-pass-21.md provenance corrected; L-BB-adversary-agent-delivery-silent extended; L-BB-correlation-not-causation-diagnostic-failure NEW; wave-state.yaml drift item registered.
+- **L-BB-adversary-agent-delivery-silent** [extended]: FALSIFICATION (D-931) section — 3-agent control result; mitigation retracted; blast-radius partial retraction; adv-p20/p20b/p20c unknown cause preserved; genuine SubagentStop silent-failure class confirmed.
+- **L-BB-correlation-not-causation-diagnostic-failure** [NEW; process-gap]: D-927 varied model + dispatch shape simultaneously; never isolated the model variable; correlation taken as causation. Rule: the decisive control for a configuration hypothesis tests the hypothesized-broken configuration directly.
+- **Drift item**: wave-state.yaml stale (`wave: W1 (E-19)`; E-19 closed D-851); 3 wave boundaries uncrossed.
+
+### Block 5 — Dim-2 literal-shell gate attestation
+
+**POLICY 16 GLOBAL-MAX GATE:**
+```
+$ cd .factory && grep "^## D-" cycles/v1.0-brownfield-backfill/decision-log.md | \
+  sed 's/^## D-//' | sort -n | tail -5
+926
+927
+927
+928
+929
+```
+D-929 confirmed global max (numeric sort; D-926/D-927 each appear twice due to recorded gate evidence — known self-contamination hazard). D-930 was state-step only (no decision-log.md entry). D-931 allocated. PASS.
+
+**POLICY 14 4-INDEX GATE:**
+```
+$ cd .factory && grep -m1 "^version:" specs/behavioral-contracts/BC-INDEX.md \
+  specs/verification-properties/VP-INDEX.md stories/STORY-INDEX.md \
+  specs/architecture/ARCH-INDEX.md
+specs/verification-properties/VP-INDEX.md:version: "2.72"
+specs/architecture/ARCH-INDEX.md:version: "3.35"
+specs/behavioral-contracts/BC-INDEX.md:version: "4.33"
+stories/STORY-INDEX.md:version: "4.267"
+```
+BC v4.33 / VP v2.72 / STORY v4.267 / ARCH v3.35. ARCH advanced by architect (ADR-033 + S-22.01/S-22.02/S-22.03 stubs). BC/VP/STORY UNCHANGED this burst. PASS.
+
+**PROVENANCE CORRECTION GATE:**
+```
+$ grep -n "CORRECTION D-931\|SELF-INFLICTED" \
+  cycles/v1.0-brownfield-backfill/S-21.04/adversary-pass-21.md | head -5
+12:...CORRECTION D-931 (2026-07-27)...FALSIFIED...SELF-INFLICTED...
+```
+Correction present on line 12. Old claim "pin fails to resolve (root cause D-927)" removed. PASS.
+
+**WAVE-STATE STALE-MANIFEST GATE:**
+```
+$ git show factory-artifacts:wave-state.yaml | head -1
+wave: W1 (E-19)
+```
+E-19 closed D-851. Drift confirmed. Registered in decision-log.md D-931 + this burst-log Block 4. STATE.md Drift Items table row DEFERRED — body edit BLOCKED by rc.23 hook T-4/AC-012. PASS (drift confirmed and codified).
+
+**D-448(a) SOURCE-ATTESTATION GATE**: No new adversary pass this burst. PASS (vacuously).
+
+**D-446(a) OWN-BURST-LOG 8-BLOCK GATE**: This entry contains all 8 blocks: Block 1 (Parent-commit) ✓; Block 2 (Adversary verdict / falsification evidence) ✓; Block 3 (Files touched) ✓; Block 4 (Codifications) ✓; Block 5 (Dim-2 literal-shell gate attestation) ✓; Block 6 (Dim-5 attestation) ✓; Block 7 (Dim-6 literal-shell finding count) ✓; Block 8 (Closes + factory-artifacts commits) ✓. PASS.
+
+### Block 6 — Dim-5 attestation
+
+All factory-artifact mutations authored by state-manager. No spec body content authored by state-manager (no BC bodies, ADR rationale, or story acceptance criteria changed). State-manager role limited to: adversary-pass-21.md provenance narrative correction; lessons.md extension (existing lesson extension + new process-gap lesson); decision-log.md codification (D-931); STATE.md advance; burst-log entry. The D-927 falsification evidence (three live control dispatches) was obtained by the orchestrator session prior to this burst; state-manager is recording the finding, not authoring it. Production-grade default satisfied. No tech-debt-register entries added (no human-directed deferrals; issue is being fixed in-scope). ADR-033 content NOT authored by state-manager (architect owns that; this entry only references it).
+
+### Block 7 — Dim-6 literal-shell finding count
+
+No new adversary findings this burst (D-900-class record-correction). Open findings unchanged from D-930 baseline: F-S2104-P21-004 MEDIUM OPEN (undocumented authoring convention; routed story-writer/technical-writer; pass-22 anchor). Streak: 0/3 (BC-5.39.001; no adversary pass this burst; unchanged from D-929/D-930).
+
+```
+$ printf '%s\n' F-S2104-P21-004 | wc -l
+       1
+```
+1 open finding (MEDIUM). No new findings added or closed this burst.
+
+### Block 8 — Closes + factory-artifacts commits
+
+**Closes:** D-927 root cause (FALSIFIED — mitigation retracted; blast-radius partial retraction; unknown actual cause recorded); adversary-pass-21.md provenance narrative corrected (CORRECTION D-931 annotation); L-BB-adversary-agent-delivery-silent FALSIFICATION (D-931) section added; L-BB-correlation-not-causation-diagnostic-failure NEW; wave-state.yaml stale-manifest drift item registered (decision-log + burst-log; STATE.md Drift Items table row deferred — rc.23 hook body-edit block, see Block 3 item 5). NOTE: STATE.md body changes (Decisions Log D-931 row, Drift Items table row, SRC item 3 rewrite) are open gaps — SRC still shows stale D-927 ENGINE P0 wording; correct per D-931 falsification once AC-020-capable hook available.
+
+**factory-artifacts commits:**
+- Pre-burst parent-commit (factory-artifacts): `f98455c5` (D-930 session-wrap burst)
+- This burst: TBD — see `git -C .factory log -1 --format='%h %s'` after push

@@ -8270,9 +8270,47 @@ Validated fix: dispatch the adversary agent with an explicit `model: sonnet` ove
 
 **Anchors:** S-21.04 pass-20 adversary dispatch (2026-07-27); adversary-pass-20.md provenance = orchestrator-authored; D-925 closure burst; `[[L-EDP1-074]]` orchestrator-authored class predicates; D-926 root-cause-confirmed: `plugins/vsdd-factory/agents/adversary.md` frontmatter `model: opus` line 5; `model: sonnet` override validated fix; blast-radius 7 agents.
 
-**Cites:** D-925 (initial lesson); D-926 (root cause confirmed + blast-radius + model-diversity-deviation + convergence-trajectory-caveat + architecture-decision-required); D-927 (formal decision-log codification of root cause + literal-shell blast-radius evidence + discovery-attribution + trajectory-caveat); BC-5.39.001 3-CLEAN protocol (streak 0/3); `[[L-EDP1-074]]` (orchestrator-authored class); `[[L-BB-subagent-report-fidelity-literal-shell]]` (D-924; distinct failure class — report delivered but content-incorrect); `[[L-BB-mid-burst-addenda-unreliable]]` (D-926; adjacent process-gap — mid-burst SendMessage addenda unreliable); `[[L-BB-large-dispatch-item-loss]]` (D-927; adjacent process-gap — large initial dispatch drops items); adversary-pass-20.md MANDATORY PROVENANCE DISCLOSURE (updated D-926/D-927 to cite root cause).
+**FALSIFICATION (D-931) — Root cause retracted 2026-07-27.** Three live control dispatches with NO model override — `adversary`, `spec-reviewer`, `pr-reviewer` — each resolved to `claude-opus-5` and executed substantively (adversary read `.factory/policies.yaml`, reported v1.4.17 + POLICY 22 correctly; spec-reviewer reported `version: "1.4.17"`; pr-reviewer read `CLAUDE.md`, reported 466 lines). The `model: opus` pin resolves normally. **The root cause claimed at D-926/D-927 is FALSE.**
 
-**Closes:** D-925 S-21.04-PASS-20-CLOSED (2026-07-27); D-926 (root-cause-confirmed + blast-radius + architecture-decision-required registered); D-927 ROOT-CAUSE-RECORD (2026-07-27). `[process-gap; adversary-delivery; agent-idle; non-delivery; orchestrator-authored; BC-5.39.001; streak-0/3; OPEN-BLOCKER; model-opus-pin; blast-radius-7-agents; model-diversity-deviation; convergence-trajectory-caveat; architecture-decision-required; D-925; D-926; D-927]`
+**Revised understanding (D-931):**
+
+1. **adv-p20/p20b/p20c failure cause: UNKNOWN.** The three silent failures remain unexplained. No dispatcher-log traces exist for those dispatches. Do NOT substitute a new unverified root cause. Candidate hypotheses (hypotheses only): transient API/capacity failure; output-size or context limits on large review dispatches (cf. `[[L-BB-large-dispatch-item-loss]]`); SubagentStop gate block (handoff-validator or validate-pr-review-posted).
+
+2. **Mitigation retracted.** "Dispatch opus-pinned agents with explicit `model: sonnet` override" is WITHDRAWN. It was forcing the adversary OFF `claude-opus-5` — reducing model diversity, not preserving it. The remedy was worse than the imagined disease.
+
+3. **Blast-radius partially retracted.** The claim that 7 agents are "presumed non-functional" and "Phases 4 and 6 have NO working gate agent" is PARTIALLY RETRACTED. Three agents verified resolving: `adversary`, `spec-reviewer`, `pr-reviewer`. Four remaining (`codebase-analyzer`, `holdout-evaluator`, `formal-verifier`, `research-agent`) are inferred resolving by shared mechanism (same model-pin resolution path), NOT empirically verified. Record as inference, not fact.
+
+4. **Genuine silent-failure class confirmed (distinct from model pin).** SubagentStop gates DO block legitimate dispatches: `handoff-validator` classifies short results as `subagent_truncated_result` (reproduced live 2026-07-27, `result_len: 11`, `severity: warn`, `plugin_version 0.0.1`); `validate-pr-review-posted` blocks any dispatch with no PR in payload. These are real gate-induced silent failures — distinct from the falsified model-pin hypothesis. ADR-033 decision 4(d) records this finding.
+
+5. **Diagnostic failure lesson.** The original D-926/D-927 analysis correlated model-pin with failure but never ran the decisive control — dispatching `model: opus` with NO override. See `[[L-BB-correlation-not-causation-diagnostic-failure]]` (D-931; new lesson) for the generalized rule.
+
+**Cites:** D-925 (initial lesson); D-926 (root cause confirmed — NOW RETRACTED D-931); D-927 (formal decision-log codification of root cause — NOW RETRACTED D-931); D-931 (falsification — control experiment + mitigation retracted + blast-radius partial retraction + actual silent-failure class); BC-5.39.001 3-CLEAN protocol (streak 0/3); `[[L-EDP1-074]]` (orchestrator-authored class); `[[L-BB-subagent-report-fidelity-literal-shell]]` (D-924; distinct failure class — report delivered but content-incorrect); `[[L-BB-mid-burst-addenda-unreliable]]` (D-926; adjacent process-gap — mid-burst SendMessage addenda unreliable); `[[L-BB-large-dispatch-item-loss]]` (D-927; adjacent process-gap — large initial dispatch drops items); `[[L-BB-correlation-not-causation-diagnostic-failure]]` (D-931; diagnostic failure — correlation-not-causation); adversary-pass-20.md MANDATORY PROVENANCE DISCLOSURE (updated D-926/D-927 to cite root cause; corrected D-931 to record falsification); adversary-pass-21.md MANDATORY PROVENANCE DISCLOSURE corrected D-931 (removed false pin-failure justification; added SELF-INFLICTED deviation explanation).
+
+**Closes:** D-925 S-21.04-PASS-20-CLOSED (2026-07-27); D-926 (root-cause-confirmed — retracted D-931); D-927 ROOT-CAUSE-RECORD (retracted D-931); D-931 FALSIFICATION-RECORD (2026-07-27). `[process-gap; adversary-delivery; agent-idle; non-delivery; orchestrator-authored; BC-5.39.001; streak-0/3; OPEN-BLOCKER; model-opus-pin-FALSIFIED; blast-radius-partial-retraction; model-diversity-deviation; convergence-trajectory-caveat; architecture-decision-required-ADR-033; D-925; D-926; D-927; D-931]`
+
+---
+
+## L-BB-correlation-not-causation-diagnostic-failure [process-gap] [D-931]
+
+**Summary:** D-927 diagnosed the root cause of three silent adversary dispatch failures (adv-p20/p20b/p20c) as `model: opus` frontmatter pin failure — reasoning from CORRELATION (opus-pinned agent failed ×3; sonnet-pinned agents delivered) without running the decisive control test (dispatching `model: opus` with NO override). This was falsified 2026-07-27 when three live controls with the native `model: opus` pin each resolved to `claude-opus-5` and executed substantively. The diagnostic failure was caused by varying TWO variables simultaneously — model AND dispatch shape — and never isolating the model variable alone.
+
+**Discovered:** 2026-07-27. Human operator challenge ("this seems like we are trying to engineer around a problem rather than investigate why opus is failing") prompted the decisive control that falsified D-927.
+
+**Mechanism:** The "controlled test" in D-927 varied model (`opus` vs `sonnet`) AND dispatch shape (override present vs absent) simultaneously. Because no dispatch was run with `model: opus` and NO override, the correlation between opus-pinned agents and failure could not be attributed to the model pin specifically. The documented-failure-shape match ("returns null if the subagent dies on a terminal API error after retries") provided false confirmation.
+
+**Generalized rule:** When a configuration cause is hypothesized for a failure, the decisive control is to test the HYPOTHESIZED-BROKEN configuration directly — with NO OTHER VARIABLES changed. A "mitigation" that prevents the failure by changing a different variable than the hypothesized cause cannot confirm the root cause; it only confirms that changing that variable prevents the symptom (which may mean the variable is causally irrelevant). In this case:
+- Symptom: silent adversary dispatch failure
+- Hypothesized cause: `model: opus` pin does not resolve
+- Decisive control: dispatch with `model: opus` and NO override → resolves to `claude-opus-5`, executes → HYPOTHESIS FALSIFIED
+- What was done instead: dispatch with `model: sonnet` override → succeeds, taken as evidence of model-pin failure → INCORRECT inference
+
+**Attribution note:** The diagnostic failure and mitigation were AI-authored (D-926/D-927). The correction was triggered by the human operator's challenge, which prompted the correct control. Neither D-926 nor D-927 constitutes misconduct — the inference was reasonable given the correlation. The lesson is about methodology, not intent.
+
+**Anchors:** D-927 (original false diagnosis); D-931 (falsification control experiment + correction record); `[[L-BB-adversary-agent-delivery-silent]]` (extended lesson); adversary-pass-21.md provenance corrected.
+
+**Cites:** D-931 (this correction burst); D-927 (original false diagnosis); D-926 (correlation-based root cause confirmation — retracted); `[[L-BB-adversary-agent-delivery-silent]]` (adjacent lesson — non-delivery failure class, now corrected). ADR-033 (governing record for cross-family diversity finding, which remains open).
+
+**Closes:** D-931 FALSIFICATION-RECORD (2026-07-27). `[process-gap; diagnostic-failure; correlation-not-causation; single-variable-control; hypothesis-falsified; model-pin; D-927; D-931]`
 
 ---
 

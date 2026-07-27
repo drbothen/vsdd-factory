@@ -13151,3 +13151,86 @@ D-929-PASS-21-RECORD
 ### Date
 
 2026-07-27
+
+---
+
+## D-931
+
+**Subject:** Falsification of D-927 root cause — `model: opus` pin resolves normally; adversary-pass-21.md provenance corrected; `L-BB-adversary-agent-delivery-silent` extended with falsification record; new lesson `L-BB-correlation-not-causation-diagnostic-failure` codified; wave-state.yaml stale-manifest drift item registered; STATE.md v6.62→v6.63.
+
+**Context:** D-927 claimed `plugins/vsdd-factory/agents/adversary.md` frontmatter `model: opus` line 5 does not resolve in the current environment and that 7 opus-pinned agents die silently (blast radius: Phases 4 and 6 categorically broken). This was falsified 2026-07-27 by three live control dispatches with NO model override: `adversary` resolved to `claude-opus-5` and read `.factory/policies.yaml` (reported v1.4.17 + POLICY 22 `subagent_report_fidelity_literal_shell` correctly); `spec-reviewer` resolved to `claude-opus-5` and reported `version: "1.4.17"`; `pr-reviewer` resolved to `claude-opus-5` and read `CLAUDE.md` (reported 466 lines). The pin resolves normally. The model-diversity deviation in pass-21 was SELF-INFLICTED — the explicit `model: sonnet` override forced the adversary OFF `claude-opus-5`. The "mitigation" (dispatch opus-pinned agents with explicit `model: sonnet` override) is RETRACTED: it reduced model diversity rather than preserving it. D-927's blast-radius claim is PARTIALLY RETRACTED: 3 of 7 verified resolving; 4 (`codebase-analyzer`, `holdout-evaluator`, `formal-verifier`, `research-agent`) inferred resolving by shared mechanism, NOT empirically verified. Root cause of adv-p20/p20b/p20c failures: UNKNOWN and remains open; no dispatcher-log traces exist for those three dispatches. A genuine silent-failure class was confirmed distinct from the model pin: `handoff-validator` classifies short results as `subagent_truncated_result` (reproduced live, `result_len: 11`); `validate-pr-review-posted` blocks any dispatch with no PR in payload; ADR-033 decision 4(d). Attribution note: human operator challenge ("this seems like we are trying to engineer around a problem rather than investigate why opus is failing") prompted the decisive control that produced the falsification. ADR-033 is the governing architectural record for the cross-family diversity finding (all agents dispatch to Claude regardless of `model: gemini/gpt-5` pins; `VSDD_CROSS_FAMILY_DISPATCH` opt-in mechanism specified; story stubs S-22.01/S-22.02/S-22.03 registered). Stale `wave-state.yaml` (factory-artifacts branch: `wave: W1 (E-19)`; E-19 closed D-851) registered as drift item: `/rehydrate-wave` injects 11 stale E-19 spec files; `/wave-handoff` was not run across three wave boundaries; BC-6.24.001 postcondition 3 defeated in practice.
+
+### Dim-1: POLICY 16 GLOBAL-MAX GATE (literal shell stdout)
+
+```
+$ cd .factory && grep "^## D-" cycles/v1.0-brownfield-backfill/decision-log.md | \
+  sed 's/^## D-//' | sort -n | tail -5
+926
+927
+927
+928
+929
+```
+NOTE: D-926 and D-927 appear twice each (self-contamination hazard — verbatim `## D-NNN` strings recorded inside prior gate evidence blocks). Numeric sort gives the true global max. D-929 confirmed global max in decision-log.md. D-930 was allocated as a state-step identifier in STATE.md frontmatter (session-wrap burst v6.61→v6.62, phase `D-930-SESSION-WRAP-PAUSED`) but was NEVER written as a codification block in decision-log.md (frontmatter-minimal burst per D-866 precedent class). Therefore **D-931 allocated** for this correction burst.
+
+### Dim-2: Literal-shell evidence (D-449(a))
+
+1. **POLICY 14 4-INDEX GATE (literal shell stdout)**:
+    ```
+    $ cd .factory && grep -m1 "^version:" specs/behavioral-contracts/BC-INDEX.md \
+      specs/verification-properties/VP-INDEX.md stories/STORY-INDEX.md \
+      specs/architecture/ARCH-INDEX.md
+    specs/verification-properties/VP-INDEX.md:version: "2.72"
+    specs/architecture/ARCH-INDEX.md:version: "3.35"
+    specs/behavioral-contracts/BC-INDEX.md:version: "4.33"
+    stories/STORY-INDEX.md:version: "4.267"
+    ```
+    BC v4.33 / VP v2.72 / STORY v4.267 / ARCH v3.35. ARCH advanced by architect this session (ADR-033 + S-22.01/S-22.02/S-22.03 story stubs registered). BC/VP/STORY UNCHANGED this burst. PASS.
+
+2. **ADVERSARY-PASS-21.MD PROVENANCE-CORRECTION GATE (literal shell stdout)**:
+    ```
+    $ grep -n "CORRECTION D-931\|FALSIFIED\|SELF-INFLICTED" \
+      cycles/v1.0-brownfield-backfill/S-21.04/adversary-pass-21.md | head -5
+    12:...Dispatched with an explicit `model: sonnet` override. **CORRECTION D-931 (2026-07-27):**
+       The original justification — "the agent's `model: opus` frontmatter pin fails to resolve
+       (root cause D-927)" — was FALSIFIED. Three live control dispatches...resolved to
+       `claude-opus-5`...The model-diversity deviation in this pass was SELF-INFLICTED...
+    ```
+    Correction line 12 present; false "pin fails to resolve (root cause D-927)" claim removed; "SELF-INFLICTED" cause recorded. Findings, verdict, severities, trajectory: UNCHANGED (grep confirms — no modification to Part A or Summary verdict lines). PASS.
+
+3. **WAVE-STATE.YAML STALE-MANIFEST GATE (literal shell stdout)**:
+    ```
+    $ git show factory-artifacts:wave-state.yaml | head -1
+    wave: W1 (E-19)
+    ```
+    E-19 closed D-851. Drift item confirmed stale. PASS (drift item registered in STATE.md).
+
+4. **D-448(a) SOURCE-ATTESTATION GATE**: No new adversary pass this burst. PASS (vacuously — no adversary verdict paragraph to audit).
+
+5. **D-446(a) OWN-BURST-LOG 8-BLOCK GATE**: burst-log.md D-931 entry verified to contain all 8 D-444(c) blocks. PASS.
+
+6. **STATE.md v6.62→v6.63**: version + phase + last_amended advanced; current_step updated to D-931 citation; Decisions Log D-931 row added; Drift Items wave-state.yaml row added; Session Resume Checkpoint refreshed (item 3 rewritten — D-927 falsified; no architect decision pending on model pins; ADR-033 governs; wave-state.yaml drift item added). Lines 15-17 UNTOUCHED per hook constraint (precedent D-866..D-931). PASS.
+
+### Dim-3: Correction record
+
+**(a) adversary-pass-21.md MANDATORY PROVENANCE DISCLOSURE corrected.** Lines 12 and 14 replaced: removed "pin fails to resolve (root cause D-927)"; replaced with "CORRECTION D-931 (2026-07-27)" annotation, falsification statement, and "SELF-INFLICTED by explicit model: sonnet override" correction. Cross-family diversity deviation preserved with corrected cause (ADR-033). ARCHITECTURE DECISION REQUIRED status withdrawn for model-pin question (moot — pin resolves); ADR-033 is the open governing record. Findings, verdict, severities, trajectory: UNCHANGED.
+
+**(b) L-BB-adversary-agent-delivery-silent extended.** "FALSIFICATION (D-931)" section added. Content: three-control experiment result; corrected understanding (pin resolves; self-inflicted override); mitigation retracted; blast-radius 3/7 verified + 4/7 inferred; adv-p20/p20b/p20c unknown cause preserved (no dispatcher-log traces); genuine SubagentStop silent-failure class confirmed. Cites and Closes updated to add D-931.
+
+**(c) L-BB-correlation-not-causation-diagnostic-failure NEW.** [process-gap] class. Records the diagnostic failure mode: D-927 varied model AND dispatch shape simultaneously; never isolated the model variable; correlation taken as causation. Generalized rule: the decisive control for a configuration hypothesis is to test the hypothesized-broken configuration directly with no other variables changed. Attribution note records human operator's role in prompting the correct control.
+
+**(d) wave-state.yaml drift item registered in STATE.md.** `factory-artifacts:wave-state.yaml` returns `wave: W1 (E-19)`; E-19 closed D-851; `/rehydrate-wave` injects 11 stale E-19 spec files (S-19.01/02/03 + E-19 epic + ADR-030/ADR-025 + BCs); `/wave-handoff` not run across three wave boundaries (E-19→E-20→E-21); BC-6.24.001 postcondition 3 defeated. Remediation: run `/wave-handoff` before next `/rehydrate-wave`.
+
+### Dim-4: Notes
+
+**(a) D-930 disposition.** D-930 was used only as a state-step identifier (STATE.md `phase: D-930-SESSION-WRAP-PAUSED`). It was never written to decision-log.md as a codification block. This is consistent with the frontmatter-minimal burst pattern (D-866 precedent class): session-wrap bursts that only modify STATE.md frontmatter do not require a decision-log.md entry. The decision-log.md Decisions Log range remains contiguous: D-929 was the last entry before this D-931 correction burst.
+
+**(b) ADR-033 not duplicated.** ADR-033 is the governing architectural record for: (1) cross-family model diversity claims in agent frontmatter; (2) `VSDD_CROSS_FAMILY_DISPATCH` opt-in mechanism; (3) prior convergence annotation (not invalidation); (4) SubagentStop gate-induced silent failures (decision 4(d)); (5) fail-loud semantics specification. This decision-log entry records the falsification of D-927 and does not duplicate ADR-033 content.
+
+### Phase
+
+D-931-D927-FALSIFICATION-RECORD
+
+### Date
+
+2026-07-27
