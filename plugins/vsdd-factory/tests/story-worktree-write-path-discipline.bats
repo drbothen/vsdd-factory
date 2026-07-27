@@ -29,6 +29,15 @@
 #     to write_discipline_prose + NULLIFICATION-CLASS widened + ADVERSATIVE-CONNECTIVE gate
 #     (F-S2104-P17-003), Gates 4/5 domain extended to write_discipline_prose (F-S2104-P17-001(a)),
 #     and CANONICAL-TARGET gate replacing Gate 6(b)/7(b) (F-S2104-P17-004).
+#     pass-18 adds: BALANCED-FENCE well-formedness (F-S2104-P18-002(a)), fence-exclusion removed
+#     (F-S2104-P18-002(b)), BOUNDARY-RULE sentence-splitter for Gates 4/5/PW-B (F-S2104-P18-003),
+#     rendered domain stripping (F-S2104-P18-004), 2b domain parity + widened classes
+#     (F-S2104-P18-005(a)/(b)), and open-trigger write-directive gate (F-S2104-P18-001).
+#     pass-19 adds: CLAUSE-SCOPED write-directive gate + escape-scope controls (F-S2104-P19-001/012),
+#     domain extended to ### Spec-Path Discipline (F-S2104-P19-002), referent predicate action
+#     class (F-S2104-P19-003), boundary-completeness assertion (F-S2104-P19-004), CommonMark-correct
+#     link-ref-def strip (F-S2104-P19-005), canonical-target domain widened to \.factory/
+#     (F-S2104-P19-006), and scope-restriction gate (F-S2104-P19-007).
 #   EXECUTABLE-HARNESS (anti-tautology — F-S2104-P1-002e, TD-VSDD-059):
 #     _run_teardown_preflight() extracts the find command verbatim from §G.1, substitutes
 #     <worktree-path>, and evaluates that command — a -type d or -name '*.tmp' doc-mutant
@@ -143,7 +152,11 @@ _extract_spec_path_discipline_section() {
 # anchor-uniqueness gate (_assert_write_discipline_anchor_unique) catches that case (count=2 → RED).
 # F-S2104-P16-003(b): read-discipline content above #### Write Discipline (lines under
 # ### Spec-Path Discipline but before #### Write Discipline) is outside this bounding section
-# by construction — M-P16-B decoy inserted in that region is excluded automatically.
+# by construction — M-P16-B decoy inserted in that region is excluded automatically. NOTE:
+# this exclusion holds for decoys (compliant anchor paragraphs) only. Harmful write-directives
+# in the same above-heading region are covered by the write-directive gate, whose domain is
+# extended to the whole ### Spec-Path Discipline section per F-S2104-P19-002; M-P19-H proved
+# that verbatim M-P17-A placed above this heading passes 9/9 without P19-002.
 _extract_write_discipline_section() {
   awk '
     /^#### Write Discipline/ { found=1; next }
@@ -545,14 +558,17 @@ _run_teardown_preflight() {
 
   # --- DOC-PARITY §Spec-Path Discipline: AC-001(a) CWD-relative-path PROHIBITION (F-S2104-P12-003 .. F-S2104-P18-001/002/003/004/005) ---
   # BC-6.26.001 PC1 core: the Write Discipline section must state that CWD-relative paths are
-  # FORBIDDEN and that canonical absolute paths are MANDATED. Seventeen independently mutant-proven
+  # FORBIDDEN and that canonical absolute paths are MANDATED. Nineteen independently mutant-proven
   # gates (pass-16 adds negation-transparency, block-wide polarity, sentence-scoped Gate 2 +
   # retirement-language guard, Gate 3 tightened + Gate 7 CWD-relative bullet polarity, and
   # anchor-uniqueness bounded to #### Write Discipline; pass-17 adds whole-section domain,
   # HTML-comment absence, conditional-scoping gate, prohibition-token PW-B, tightened Gate 2a,
   # widened Gate 2b + adversative-connective gate, and canonical-target gate; pass-18 adds
-  # balanced-fence + in-fence gating, boundary-rule splitter, rendered-domain stripping for
-  # positive gates, 2b domain parity + widened classes, and open-trigger write-directive gate):
+  # balanced-fence well-formedness, fence-exclusion removal, boundary-rule splitter, rendered-domain
+  # stripping, 2b domain parity + widened classes, and open-trigger write-directive gate; pass-19
+  # adds clause-scoped write-directive domain, referent action class, boundary-completeness
+  # assertion, CommonMark-correct link-ref-def strip, canonical-target domain widening, and
+  # scope-restriction gate):
   #   (1) Paragraph-level extractor from rendered_write_discipline domain (F-S2104-P18-004(b)):
   #       #### Write Discipline → strip HTML comments + link-reference-definitions → normative
   #       prohibition paragraph, anchor: 'All `.factory/**` artifact writes…'
@@ -639,7 +655,7 @@ _run_teardown_preflight() {
   #       (b) → canonical-target gate.
   #   (canonical-target) NEGATIVE (F-S2104-P17-004): no **Correct:** bullet with non-canonical
   #       file_path=. M-P17-G, M-P15-B, M-P16-D all → RED.
-  # All seventeen gates survive independently.
+  # All nineteen gates survive independently.
 
   # Whole-section domain extraction (needed before rendered domain and prose domain).
   local write_discipline_section
@@ -653,14 +669,16 @@ _run_teardown_preflight() {
     false
   fi
 
-  # F-S2104-P18-002(a): balanced-fence assertion — an unbalanced opening fence flips the awk
-  # in_fence state and keeps it flipped forever, silently dropping every remaining line of the
-  # section from the prose domain. Three characters can erase PW-B, Gate 2b(a), Gate 4 and
-  # Gate 5 across the whole section (M-P18-C(b) at 9/9). The fence count in the #### Write
-  # Discipline section must be even (matched open + close pairs).
-  # Tilde (~~~) fences are NOT matched by the ``` regex, so ~~~ fenced content is included
-  # in the prose domain and remains gated; future fence-handler changes cannot silently
-  # invert this property — a ~~~ control is documented here for auditability.
+  # F-S2104-P18-002(a): balanced-fence WELL-FORMEDNESS assertion — the #### Write Discipline
+  # section must contain paired fence delimiters (even backtick-fence count). An unpaired fence
+  # is a Markdown structural defect; this assertion prevents a malformed section from being
+  # authored silently. **No gate domain is fence-aware at HEAD** (the fence-stripping awk was
+  # removed at commit c89bef22 per F-S2104-P18-002(b)); this is a well-formedness invariant,
+  # NOT a truncation guard. Historical note (F-S2104-P19-011 correction): before c89bef22 the
+  # fence-stripping awk used an in_fence state variable; an unbalanced opening fence left it
+  # stuck at in_fence=1, silently dropping the section remainder from write_discipline_prose and
+  # making PW-B/2b(a)/4/5 blind; M-P18-C(b) proved that attack at 9/9. That mechanism no
+  # longer exists; the assertion remains because odd fence count is still a real defect.
   local fence_count
   fence_count="$(printf '%s\n' "$write_discipline_section" | grep -cE '^[[:space:]]*```' || true)"
   if [ $(( fence_count % 2 )) -ne 0 ]; then
@@ -672,17 +690,28 @@ _run_teardown_preflight() {
   # any positive gate evaluates. Two classes of non-rendered content:
   #   (1) HTML comment spans <!-- … -->: stripped via sed (single-line form; multi-line not
   #       expected; the <!-- absence gate fires first and prevents them from reaching here).
-  #   (2) Link-reference definitions (^[[:space:]]{0,3}\[[^]]*\]:[[:space:]]): dropped via grep;
-  #       CommonMark parses these as definitions and emits nothing in rendered output.
+  #   (2) Link-reference definitions: dropped via grep. CommonMark makes whitespace after the
+  #       colon OPTIONAL — both `[//]: # (…)` and `[//]:# (…)` are valid definitions rendered
+  #       as nothing. Drop predicate: `^[[:space:]]{0,3}\[[^]]*\]:` (colon-terminated, no
+  #       whitespace requirement). F-S2104-P19-005 correction: the pass-18 predicate required
+  #       `[[:space:]]` after the colon, so `[//]:# (…)` survived stripping and M-P19-F hid
+  #       the whole mandate in it at 9/9; CONTROL-F (one space added) was RED, differing by
+  #       one byte. Verified by literal shell: `marked` and `pandoc -f commonmark` both emit
+  #       nothing for `[//]:# (…)`. Verified: pristine Write Discipline is byte-identical after
+  #       the corrected strip (no line in the section matches the label form, so rendered domain
+  #       equals raw section modulo comment sed).
   # M-P18-D substitutes the prohibition paragraph with [//]: # (…) — Gates 1(a) and 2a find
   # the compliant mandate inside the definition and pass; the rendered section's only visible
   # instruction directs writes to the delivery sandbox root at 9/9.
-  # GREEN control (per F-S2104-P18-004(d)): unmodified section survives stripping unchanged —
-  # mandate sentence still found after stripping; Gate 1(a) still passes.
+  # M-P19-F: [//]:# (…) no-space form hides the whole mandate — corrected predicate drops it.
+  # MUTANT M-P19-F: [//]:# (HIDDEN MANDATE TEXT) — mandate stripped → anchor count 0 → RED ✓.
+  # CONTROL-F: identical but with space after colon ([//]: # form) → RED via anchor count 0 ✓
+  #   (CONTROL-F is the pass-18 M-P18-D form; both forms are now stripped).
+  # GREEN control: pristine section byte-identical after stripping → Gate 1(a) still passes ✓.
   local rendered_write_discipline
   rendered_write_discipline="$(printf '%s\n' "$write_discipline_section" | \
     sed 's/<!--[^>]*-->//g' | \
-    grep -Ev '^[[:space:]]{0,3}\[[^]]*\]:[[:space:]]')"
+    grep -Ev '^[[:space:]]{0,3}\[[^]]*\]:')"
 
   # Anchor uniqueness gate: #### Write Discipline must have exactly one prohibition anchor in
   # the rendered domain (F-S2104-P16-003(a) re-scoped to rendered domain per F-S2104-P18-004(b)).
@@ -720,6 +749,36 @@ _run_teardown_preflight() {
   local write_discipline_prose_nosplit
   write_discipline_prose_nosplit="$(printf '%s\n' "$write_discipline_prose" | \
     sed 's/cf\. /cf_ABBREV_ /g; s/i\.e\. /ie_ABBREV_ /g; s/e\.g\. /eg_ABBREV_ /g')"
+
+  # Domain for write-directive gate (F-S2104-P19-002): whole ### Spec-Path Discipline section.
+  # The write-directive gate reads this domain; PW-B/2b/4/5 remain bounded to write_discipline_prose_nosplit.
+  # Naive widening of PW-B/2b/4/5 false-positives on two read-discipline sentences above the
+  # #### Write Discipline heading (adversary verified pristine-empty for write-directive gate only).
+  local spec_path_prose
+  spec_path_prose="$(printf '%s\n' "$spec_path_section" | tr '\n' ' ')"
+  local spec_path_prose_nosplit
+  spec_path_prose_nosplit="$(printf '%s\n' "$spec_path_prose" | \
+    sed 's/cf\. /cf_ABBREV_ /g; s/i\.e\. /ie_ABBREV_ /g; s/e\.g\. /eg_ABBREV_ /g')"
+
+  # Boundary-completeness assertion (F-S2104-P19-004(b)): verifies the sentence splitter fires
+  # on every '. [A-Z*`\[]' boundary it should split. The primary fix for the missed-boundary
+  # direction (M-P19-D: lowercase-initial merged sentence) is the clause-scoping of the
+  # write-directive gate per F-S2104-P19-001(a): once exclusions are clause-scoped, a merged
+  # clause no longer inherits its neighbour's prohibition token. This assertion is a regression
+  # guard for the false-boundary direction: if the splitter regex breaks and fails to split a
+  # '. [A-Z*`\[]' occurrence, splits_made < expected_splits → fires.
+  # M-P19-D (CONTROL-D): capital-G variant ("Git-resolved...") is split by the splitter (splits
+  #   before 'G') → PW-B sees the sentence independently → RED ✓.
+  # Verified empty-on-pristine: expected_splits=13 equals actual_splits=13 for #### Write Discipline.
+  local bc_expected_splits bc_actual_splits
+  bc_expected_splits="$(printf '%s\n' "$write_discipline_prose_nosplit" | \
+    grep -oE '\.[[:space:]]+[A-Z*`\[]' | wc -l | tr -d ' ')"
+  bc_actual_splits="$(printf '%s\n' "$write_discipline_prose_nosplit" | \
+    perl -pe 's/\.[[:space:]]+(?=[A-Z*`\[])/.\n/g' | wc -l | tr -d ' ')"
+  if [ "$((bc_actual_splits - 1))" -lt "$bc_expected_splits" ]; then
+    echo "DOC-PARITY FAIL [boundary-completeness: sentence splitter missed a '. [A-Z*\`\[] boundary (F-S2104-P19-004(b))]: the boundary-rule sentence splitter ('perl -pe s/\\.[[:space:]]+(?=[A-Z*\`\\[])') produced fewer splits ($((bc_actual_splits - 1))) than the count of '. [A-Z*\`\[] boundary patterns ($bc_expected_splits) in write_discipline_prose_nosplit — the splitter regex may be broken or a boundary was silently skipped; CONTROL-D (capital G) fires Gate PW-B independently and serves as the missed-boundary mutant (BC-6.26.001 PC1; AC-001(a); F-S2104-P19-004)"
+    false
+  fi
 
   # Reflow the prohibition block to a single joined line for sentence-scoped evaluation.
   # Gates 1(a/b/c/d) and 2a use joined_block_nosplit scoped to the rendered prohibition paragraph.
@@ -897,6 +956,39 @@ _run_teardown_preflight() {
     false
   fi
 
+  # Gate scope-restriction (NEGATIVE, section-scoped; F-S2104-P19-007):
+  # A sentence referencing the prohibition (trigger: FORBIDDEN|forbidden|prohibition|prohibited|
+  # the rule|this rule|the constraint|above) MUST NOT also match a scope-restriction class.
+  # The 25-member nullification class and 9-member adversative class still defend their axes;
+  # this gate adds a structural gate that catches predicate-form nullifications not expressible
+  # as synonyms or adversatives — e.g., 'is not applicable', 'does not cover'. Gate 2b(a)'s
+  # direction statement claimed the write-directive gate backstops this axis; M-P19-G refuted
+  # that claim ('is not applicable' has no directive token and no adversative connective,
+  # escaping both 2b(a) and 2b(c), and 'ledger writes' was not yet a referent trigger).
+  # scope-restriction class: not applicable|does not|is not|except|outside|limited to|
+  #   only (covers|applies)|other than|save for|apart from|excluding
+  # NOTE: pristine sentence "All writes to any .factory/** path are covered by this rule —
+  #   not only DELIVERY ledgers." has 'this rule' AND 'not only'; after em-dash clause split
+  #   the trigger ('this rule') and the scope-phrase ('not only') are in separate clauses and
+  #   the restriction class requires 'not applicable|does not|is not|...' — 'not only' does NOT
+  #   match any member → no false positive. Verified by literal shell on pristine section.
+  # Alternation-direction (F-S2104-P19-007(a)): this gate makes Gate 2b(a)'s list non-load-bearing
+  #   as a primary defense; the list remains for defense-in-depth with new members:
+  #   not applicable|inapplicable|does not cover|does not extend|out of scope (per P19-007(c)).
+  # M-P19-G fires on this gate (prohibition + scope-restriction without adversative).
+  # MUTANT M-P19-G: "The prohibition stated above is not applicable to ledger writes made from
+  #   the delivery sandbox." → 'above' (trigger) + 'not applicable' (class) → RED ✓.
+  local scope_restriction_violations
+  scope_restriction_violations="$(printf '%s\n' "$write_discipline_prose_nosplit" | \
+    perl -pe 's/\.[[:space:]]+(?=[A-Z*`\[])/.\n/g' | \
+    grep -E 'FORBIDDEN|forbidden|prohibition|prohibited|the[[:space:]]+rule|this[[:space:]]+rule|the[[:space:]]+constraint|above' | \
+    grep -E 'not[[:space:]]+applicable|inapplicable|does[[:space:]]+not|is[[:space:]]+not|except[[:space:]]|outside[[:space:]]|limited[[:space:]]+to|only[[:space:]]+(covers|applies)|other[[:space:]]+than|save[[:space:]]+for|apart[[:space:]]+from|excluding|does[[:space:]]+not[[:space:]]+cover|does[[:space:]]+not[[:space:]]+extend|out[[:space:]]+of[[:space:]]+scope' || true)"
+  if [ -n "$scope_restriction_violations" ]; then
+    echo "DOC-PARITY FAIL [write-discipline scope-restriction gate: prohibition-reference sentence with scope-restriction class (F-S2104-P19-007)]: a sentence referencing the prohibition (FORBIDDEN|forbidden|prohibition|prohibited|the rule|this rule|the constraint|above) contains a scope-restriction phrase (not applicable|inapplicable|does not|is not|except|outside|limited to|only (covers|applies)|other than|save for|apart from|excluding|does not cover|does not extend|out of scope) — M-P19-G 'The prohibition stated above is not applicable to ledger writes made from the delivery sandbox' triggers this gate; scope-restriction phrases nullify the prohibition for a sub-case without any adversative connective or listed nullification synonym, bypassing Gates 2b(a) and 2b(c) (BC-6.26.001 PC1; AC-001(a); F-S2104-P19-007)"
+    printf '%s\n' "$scope_restriction_violations"
+    false
+  fi
+
   # Gate 4 (NEGATIVE, section-scoped; F-S2104-P14-001 / F-S2104-P15-001 / F-S2104-P17-001(a) /
   # F-S2104-P18-003): Extended to whole #### Write Discipline section (write_discipline_prose_nosplit,
   # fence content now included). No sentence may contain both 'absolute' and 'FORBIDDEN'. In the
@@ -940,37 +1032,76 @@ _run_teardown_preflight() {
     false
   fi
 
-  # Gate write-directive (POSITIVE, open-trigger; F-S2104-P18-001 / F-S2104-P18-005(d)):
-  # Every sentence in write_discipline_prose_nosplit containing a write-directive token
-  # (MUST|SHOULD|permits|is acceptable|is the required form|is preferred|may) AND an action
-  # word (anchor|write|writes) MUST either carry a prohibition token OR match the affirmative
-  # canonical mandate 'MUST use canonical absolute'. Any other write-directive + action sentence
-  # is a competing mandate, whatever destination it names.
-  # Open-trigger design (POLICY 13 FAIL-CLOSED-IMPLICATION-DIRECTION): the trigger covers any
-  # write-directive + action combination; the requirement is the escape clause. This closes the
-  # PW-B open-list problem — PW-B catches named prohibited destinations, this gate catches any
-  # mandate whose destination is unnamed or paraphrased.
-  # Trigger class widened (F-S2104-P18-005(d)): adds permits|is acceptable|is the required form|
-  # is preferred|may — M-P18-G "however current practice permits ledger writes" → 'permits' +
-  # 'writes' without prohibition token → this gate fires in addition to 2b(c).
-  # Alternation-direction: (b) open — any write-directive+action sentence is in scope; the two
-  # escape clauses (prohibition token, canonical-absolute match) are the load-bearing constants.
-  # This is backed by itself (positive open-trigger): a new adversative paraphrase path that
-  # circumvents 2b(c) will still arrive here if it contains a write-directive + action word.
-  # Adversary verified empty-on-pristine (literal shell in pass-18 report Part A).
-  # M-P18-A: "Writers MUST anchor every .factory/** artifact write to the worktree's .factory/
-  #   subtree; the canonical-absolute form applies to spec reads from the main checkout."
-  #   → MUST + anchor + write, no prohibition token, no canonical-absolute → RED.
-  # Control: replace "MUST anchor ... subtree" with "MUST use canonical absolute paths"
-  #   → escape clause hit → GREEN (proves escape is not vacuous).
+  # Gate write-directive (POSITIVE, open-trigger; F-S2104-P18-001 / F-S2104-P19-001 / F-S2104-P19-002 / F-S2104-P19-003):
+  # Domain: spec_path_prose_nosplit (whole ### Spec-Path Discipline; F-S2104-P19-002). PW-B,
+  # Gate 2b, Gate 4, Gate 5 remain bounded to write_discipline_prose_nosplit — extending those
+  # gates naively false-positives on two read-discipline sentences above #### Write Discipline
+  # (adversary verified). The write-directive gate is extended because M-P19-H placed verbatim
+  # M-P17-A + M-P17-C S2 text above the #### Write Discipline heading at 9/9 (no gate saw it).
+  #
+  # Clause-scoped (F-S2104-P19-001(a)): after sentence splitting, split further on [;—] and
+  # on ,\s+(and|or|but)\s+. Each clause evaluated independently. Sentence-scoped escape (pass-18)
+  # allowed M-P19-A (verbatim M-P17-A + trailing '; forbidden.' clause) and M-P19-B (canonical-
+  # absolute escape phrase in same sentence as harmful MUST anchor clause) at 9/9. CONTROL-A
+  # (forbidden→discouraged) is RED via PW-B; CONTROL-B (MUST anchor→MUST use canonical absolute)
+  # is GREEN — proving the escape fires on the clause boundary, not the sentence.
+  # Do NOT clause-scope Gate PW-B: evaluated per clause it fires on the pristine em-dash
+  # continuation of S2 (adversary verified F-S2104-P19-001(b)).
+  #
+  # Referent predicate (F-S2104-P19-003(a)): action conjunct replaced from closed verb list
+  # (anchor|write|writes) to domain-object referent (\.factory/|ledger). The old list was evaded
+  # by M-P19-C ('saved'). Referent cannot be paraphrased away without ceasing to discuss the
+  # subject. Additional escape: MUST be determined via — handles the "canonical .factory/ root
+  # MUST be determined via one of two methods" clause in ### Spec-Path Discipline, which is a
+  # read/resolution operation, not a write directive; verified empty-on-pristine with this escape.
+  #
+  # Bare-imperative addition (F-S2104-P19-003(b)): trigger additionally on any clause whose
+  # first token after optional **bold:** label is a bare verb from class
+  # (Anchor|Write|Save|Store|Place|Record|Emit|Persist|Resolve|Use). Verified empty-on-pristine.
+  #
+  # Alternation-direction (corrected from pass-18, F-S2104-P19-001(d)): both trigger conjuncts
+  # (directive/bare-imperative class and referent class) are open-class. The escape clauses
+  # (prohibition token, canonical-absolute match) are the load-bearing constants per
+  # ESCAPE-SCOPE-PARITY: the escape unit must match the trigger unit (clause, not sentence).
+  # Pass-18 "No new member can be added to evade this gate" claim is REFUTED by M-P19-A (no new
+  # member needed — one semicolon and a prohibition word in a separate clause suffice).
+  #
+  # Adversary verified empty-on-pristine (### Spec-Path Discipline, clause-scoped, referent predicate,
+  # with MUST be determined via escape; literal shell F-S2104-P19-002(a) + P19-003(c)).
+  #
+  # MUTANT M-P19-A: verbatim M-P17-A + '; duplicating the ledger onto the main checkout is forbidden.'
+  #   Clause split separates the MUST anchor clause from the forbidden clause → MUST anchor + .factory/
+  #   in first clause, no prohibition or canonical-absolute → RED ✓.
+  # MUTANT M-P19-B (canonical-absolute co-clause escape): "Writers MUST use canonical absolute paths
+  #   when reading specs, and MUST anchor every .factory/** artifact write to the worktree's .factory/ subtree."
+  #   After ', and ' split: "MUST anchor ... subtree" has .factory/ + MUST, no escape → RED ✓.
+  # MUTANT M-P19-C (action-word evasion closed): "Ledger artifacts SHOULD be saved to the story
+  #   worktree's own .factory/ subtree" → SHOULD + ledger, no prohibition → RED ✓.
+  #   (Old predicate 'anchor|write|writes' missed 'saved'; referent predicate catches it via 'ledger').
+  # MUTANT M-P19-D (missed-boundary — primary fix via clause-scoping): "git-resolved ledger paths
+  #   SHOULD be anchored to the story worktree CWD." placed after prohibition block without capital.
+  #   After clause-scoping: the merged clause 'SHOULD ... ledger' has no prohibition → RED ✓.
+  #   CONTROL-D (capital G): split creates separate clause → PW-B sees it → RED ✓ (both paths RED).
+  # MUTANT M-P19-H (above-heading mandate, closed by domain extension): verbatim M-P17-A text
+  #   placed above #### Write Discipline heading → caught by spec_path_prose_nosplit domain → RED ✓.
+  # CONTROL-A: M-P19-A with 'forbidden'→'discouraged' → first clause: MUST anchor + .factory/,
+  #   no escape → RED ✓ (primary RED through this gate, not just PW-B).
+  # CONTROL-B (escape load-bearing GREEN): M-P18-A with 'MUST anchor' → 'MUST use canonical absolute'
+  #   → escape fires → GREEN ✓ (proves canonical-absolute escape is not vacuous; closes F-S2104-P19-012).
+  # CONTROL-C (escape clause-scope): M-P18-A text + '; writers MUST use canonical absolute paths for
+  #   spec reads.' → after semicolon split: first clause has .factory/ + MUST + no escape → RED ✓
+  #   (proves escape is clause-scoped, not sentence-scoped; closes F-S2104-P19-012(b)).
   local write_directive_violations
-  write_directive_violations="$(printf '%s\n' "$write_discipline_prose_nosplit" | perl -pe 's/\.[[:space:]]+(?=[A-Z*`\[])/.\n/g' | \
-    grep -E 'MUST|SHOULD|permits|is acceptable|is the required form|is preferred|may' | \
-    grep -E 'anchor|write|writes' | \
+  write_directive_violations="$(printf '%s\n' "$spec_path_prose_nosplit" | \
+    perl -pe 's/\.[[:space:]]+(?=[A-Z*`\[])/.\n/g' | \
+    perl -pe 's/[;—]\s*/\n/g; s/,\s+(?:and|or|but)\s+/\n/g' | \
+    grep -E 'MUST|SHOULD|permits|is acceptable|is the required form|is preferred|may|^(\*\*[^:*]+:\*\*[[:space:]]+)?(Anchor|Write|Save|Store|Place|Record|Emit|Persist|Resolve|Use)[[:space:]]' | \
+    grep -E '\.factory/|ledger' | \
     grep -Ev 'FORBIDDEN|Forbidden|forbidden|MUST NOT|prohibited|never|forbid' | \
-    grep -Ev 'MUST[[:space:]]+use[[:space:]]+canonical[[:space:]]+absolute' || true)"
+    grep -Ev 'MUST[[:space:]]+use[[:space:]]+canonical[[:space:]]+absolute' | \
+    grep -Ev 'MUST[[:space:]]+be[[:space:]]+determined[[:space:]]+via' || true)"
   if [ -n "$write_directive_violations" ]; then
-    echo "DOC-PARITY FAIL [write-directive gate: write-directive sentence without prohibition or canonical-absolute escape (F-S2104-P18-001/F-S2104-P18-005(d))]: a sentence in the Write Discipline section contains a write-directive (MUST|SHOULD|permits|is acceptable|is the required form|is preferred|may) and an action word (anchor|write|writes) without either a prohibition token or 'MUST use canonical absolute' — any such sentence is a competing mandate regardless of the destination named; M-P18-A 'Writers MUST anchor every .factory/** artifact write to the worktree's .factory/ subtree' has no prohibition token and no canonical-absolute escape (BC-6.26.001 PC1; AC-001(a); F-S2104-P18-001)"
+    echo "DOC-PARITY FAIL [write-directive gate: write-directive clause without prohibition or canonical-absolute escape (F-S2104-P18-001/F-S2104-P19-001/P19-002/P19-003)]: a clause in ### Spec-Path Discipline contains a write-directive or bare-imperative referencing .factory/ or ledger artifacts without either a prohibition token or 'MUST use canonical absolute' — clause-scoped (F-S2104-P19-001); domain extended to ### Spec-Path Discipline (F-S2104-P19-002); referent predicate replaces closed action-word list (F-S2104-P19-003); M-P19-A ('; forbidden.' escape), M-P19-B (canonical-absolute co-clause), M-P19-C ('saved' verb), M-P19-D (merged lowercase), M-P19-H (above-heading mandate) all RED (BC-6.26.001 PC1; AC-001(a); F-S2104-P18-001)"
     printf '%s\n' "$write_directive_violations"
     false
   fi
@@ -1017,23 +1148,29 @@ _run_teardown_preflight() {
     false
   }
 
-  # Gate canonical-target (NEGATIVE, F-S2104-P17-004(b)):
-  # No **Correct:** bullet in §Spec-Path Discipline may contain a non-canonical file_path target.
-  # Canonical-target predicate: file_path= followed by optional " or ' then ($CANONICAL_FACTORY_ROOT|/)
-  # (variable-rooted or absolute-path-rooted). Replaces surface-form-specific Gates 6(b) and 7(b);
-  # generalises to any relative rendering regardless of quoting style.
-  # M-P17-G: '**Correct:** Write(file_path="./.factory/…")' — "./" fails predicate → RED.
-  # Single-quoted mutant: '**Correct:** Write(file_path='"'"'.factory/…'"'"')' — ".factory/" fails → RED.
-  # Bare-unquoted mutant: '**Correct:** Write(file_path=.factory/…)' — ".factory/" fails → RED.
-  # M-P15-B (traversal Correct:): file_path="../../.factory/…" fails predicate → RED.
-  # M-P16-D (CWD-relative Correct:): file_path=".factory/…" fails predicate → RED.
-  # Control (GREEN): file_path="$CANONICAL_FACTORY_ROOT/.factory/…" → predicate satisfied → PASSES.
+  # Gate canonical-target (NEGATIVE, F-S2104-P17-004(b) widened F-S2104-P19-006):
+  # No **Correct:** bullet in §Spec-Path Discipline may name a non-canonical .factory/ path.
+  # Domain widened (F-S2104-P19-006): from 'file_path=' to any **Correct:** bullet containing
+  # '\.factory/' regardless of the keyword used. M-P19-E ('**Correct:** `Write` the DELIVERY
+  # ledger to `.factory/stories/S-NNN-DELIVERY.md` resolved from the worktree root') had no
+  # 'file_path=' token and escaped the old gate at 9/9.
+  # Canonical predicate widened: every .factory/ occurrence on a **Correct:** bullet MUST be
+  # immediately preceded by $CANONICAL_FACTORY_ROOT/ or by / (path-start quote + canonical root
+  # or absolute path). Predicate: ["'`]($CANONICAL_FACTORY_ROOT/|/[^"'`]*)\.factory/
+  # M-P17-G: file_path="./.factory/…" — after `"` the path starts with './' not '$' or '/'
+  #   → predicate does not match → fires → RED ✓.
+  # M-P15-B (traversal): file_path="../../.factory/…" — starts with '..' → fires → RED ✓.
+  # M-P16-D (CWD-relative): file_path=".factory/…" — starts with '.' → fires → RED ✓.
+  # M-P19-E (backtick-quoted, no keyword): `.factory/…` — after backtick starts with '.' → RED ✓.
+  # path= variant: path=".factory/…" — after '"' starts with '.' → RED ✓.
+  # Control (GREEN): file_path="$CANONICAL_FACTORY_ROOT/.factory/…" → after '"' starts with '$' →
+  #   pattern matches $CANONICAL_FACTORY_ROOT/.factory/ → escaped by grep -Ev → PASSES ✓.
   local noncanonical_correct_bullets
   noncanonical_correct_bullets="$(printf '%s\n' "$spec_path_section" | \
-    grep -E '\*\*Correct:\*\*' | grep -E 'file_path=' | \
-    grep -Ev 'file_path=["'"'"']?(\$CANONICAL_FACTORY_ROOT|/)' || true)"
+    grep -E '\*\*Correct:\*\*' | grep -E '\.factory/' | \
+    grep -Ev '["'"'"'`](\$CANONICAL_FACTORY_ROOT/|/[^"'"'"'`]*)\.factory/' || true)"
   if [ -n "$noncanonical_correct_bullets" ]; then
-    echo "DOC-PARITY FAIL [write-discipline Gate canonical-target: **Correct:** bullet with non-canonical file_path target (F-S2104-P17-004)]: a **Correct:** bullet in §Spec-Path Discipline contains a file_path= target that fails the canonical-target predicate (file_path=[\"']?(\$CANONICAL_FACTORY_ROOT|/)) — every **Correct:** example must show a variable-rooted (\$CANONICAL_FACTORY_ROOT) or absolute-path-rooted target; M-P17-G adds file_path=\"./.factory/…\" (relative with ./), M-P15-B has file_path=\"../../.factory/…\" (traversal), M-P16-D has file_path=\".factory/…\" (bare CWD-relative), all caught here (BC-6.26.001 PC1; AC-001(a))"
+    echo "DOC-PARITY FAIL [write-discipline Gate canonical-target: **Correct:** bullet with non-canonical .factory/ path (F-S2104-P17-004/F-S2104-P19-006)]: a **Correct:** bullet in §Spec-Path Discipline names a .factory/ path that fails the canonical-target predicate ([\"'\`](\$CANONICAL_FACTORY_ROOT/|/[^\"'\`]*)\.factory/) — every **Correct:** example must show a .factory/ path immediately preceded by \$CANONICAL_FACTORY_ROOT/ or an absolute-path root; M-P17-G (./.factory/ relative), M-P15-B (../../.factory/ traversal), M-P16-D (.factory/ bare), M-P19-E (backtick-quoted, no file_path= keyword) all RED (BC-6.26.001 PC1; AC-001(a))"
     printf '%s\n' "$noncanonical_correct_bullets"
     false
   fi
