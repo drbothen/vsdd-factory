@@ -289,6 +289,14 @@ Per human direction 2026-05-14, the E-10 sub-cycle adopts asymptotic-acceptance 
 
 **Convergence Status (S-19.04 LOCAL cascade): BC-5.39.001 3-CLEAN CONVERGED 2026-07-13 D-839** — passes 14+15+16 all CLEAN (0 findings each). S-19.04 v1.21 PRODUCTION-GRADE READY. Cascade trajectory: pass-1 HIGH-security(8) → pass-2 NOT-CLEAN(2M) → pass-3 NOT-CLEAN(2H+2M+2L) → pass-4 NOT-CLEAN(1M+1L) → pass-5 CLEAN → pass-6 NOT-CLEAN(3M+1L) → pass-7 NOT-CLEAN(4M) → pass-8 NOT-CLEAN(1M) → pass-9 CLEAN → pass-10 CLEAN → pass-11 NOT-CLEAN(1B) → pass-12 CLEAN → pass-13 NOT-CLEAN(1M) → pass-14 CLEAN → pass-15 CLEAN → pass-16 CLEAN (CONVERGED). Source HEAD: 0a7af81d. Final story version: v1.21. BC-4.13.001 v1.16 wired. **S-19.04 PR READY — pr-manager 9-step lifecycle dispatch pending.**
 
+## S-21.04 LOCAL Adversary Reviews (BC-5.39.001 cascade)
+
+| Pass | Date | File | Severity | Findings | Streak | Reviewed HEAD | Fixes HEAD | Status |
+|------|------|------|----------|----------|--------|---------------|------------|--------|
+| 21 | 2026-07-27 | `cycles/v1.0-brownfield-backfill/S-21.04/adversary-pass-21.md` | NOT-CLEAN | 3 (B1/H0/M2) — F-S2104-P21-002 BLOCKER CLOSED; F-S2104-P21-003 MEDIUM CLOSED; F-S2104-P21-004 MEDIUM OPEN (secondary); model-diversity deviation disclosed (session model; D-927 mitigation) | 0/3 | `17921772` | `7d195cfa` | D-929 record burst (SM) — STREAK 0/3; pass-22 NEXT (sweep scope: T-002..T-009 + §G.1 + POLICY-15 attestation gate + worktree-identity-preflight.bats) |
+
+**Convergence Status (S-21.04 LOCAL cascade): NOT-CONVERGED** — pass-21 NOT-CLEAN (B1/H0/M2; 3 findings: F-S2104-P21-002 BLOCKER CLOSED / F-S2104-P21-003 MEDIUM CLOSED / F-S2104-P21-004 MEDIUM OPEN); streak 0/3; first genuinely independent adversary pass (D-927 model-pin fix enabled); pass-22 NEXT. COMPLETENESS: PARTIAL — T-002..T-009, step-g-cleanup.md §G.1, POLICY-15 attestation gate, worktree-identity-preflight.bats not yet reviewed; pass-22 sweep scope. Passes 1–20 tracked via adversary-pass-NN.md files in `cycles/v1.0-brownfield-backfill/S-21.04/`; cascade trajectory (finding counts): 14→18→17→12→11→11→9→9→10→11→7→10→10→13→7→6→7→7→12→3→3. D-range D-895..D-929 (see decision-log.md for full range). **NEXT: pass-22 adversary dispatch (sweep PARTIAL surfaces + F-S2104-P21-004 documentation convention routing).**
+
 ## Artifact Size Budgets (IP-003 / D-835)
 
 | Artifact | Soft Cap | Hard Cap | Current Lines | Compaction Destination | Codified |

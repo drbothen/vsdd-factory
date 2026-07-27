@@ -13073,3 +13073,81 @@ D-928-P21-001-FINDING-AND-FIX
 ### Date
 
 2026-07-27
+
+---
+
+## D-929
+
+**Subject:** Record pass-21 adversary review — `adversary-pass-21.md` (first genuinely independent pass; model-diversity deviation disclosed); F-S2104-P21-002 BLOCKER CLOSED at `7d195cfa` (fail-closed whitelist; first attempt `b7d3ca58` REJECTED paper fix TD-VSDD-059); F-S2104-P21-003 MEDIUM CLOSED; Part B observation (gitignored-shadow) CLOSED; F-S2104-P21-004 MEDIUM OPEN (secondary; fail-closed whitelist imposes undocumented authoring convention; routed story-writer/technical-writer; pass-22 anchor); L-BB-regression-against-incomplete-mutant-corpus SECONDARY 2 extension; INDEX.md S-21.04 section; red-gate-log Pass-21 attestation; STATE.md v6.60→v6.61.
+
+**Context:** Pass-21 is the S-21.04 cascade's FIRST genuinely independent adversary pass. Adversary dispatched with `model: sonnet` override (D-927 mitigated delivery failure; model-diversity deviation: cognitive-diversity guarantee absent for this pass, disclosed). Two adversary findings (B1/H0/M1): F-S2104-P21-002 BLOCKER (negated-prohibition escapes both Gate PW-B and write-directive gate via lexical `grep -Ev` exclusion; POLICY 13 FAIL-CLOSED-IMPLICATION-DIRECTION violation; 20 prior passes did not surface it — D-927 degradation evidence; fail-closed whitelist inversion at `7d195cfa`) + F-S2104-P21-003 MEDIUM (`may` in PWBD_DIRECTIVE_CLASS no PW-B-context probe; M-P21-E added at `b7d3ca58`). Part B observation (BC-6.26.001 Invariant 5 `gitignored-shadow` not in prohibited-target alternation) CLOSED at `b7d3ca58`. First fix attempt `b7d3ca58` REJECTED TD-VSDD-059 (moved enumeration from prohibition vocabulary to negator vocabulary; self-certified as structural but was vocabulary). F-S2104-P21-004 MEDIUM discovered as secondary (fail-closed whitelist's `**Forbidden:**`-only exemption makes RFC-2119 `MUST NOT` prose a false positive; latent; accepted price of non-negatable whitelist; documentation gap only). Total pass-21 findings: 3 (B1/H0/M2). Sweep: PARTIAL — T-002..T-009, step-g-cleanup.md §G.1, POLICY-15 attestation gate, worktree-identity-preflight.bats NOT reached; pass-22 scope. Streak 0/3.
+
+### Dim-1: POLICY 16 GLOBAL-MAX GATE (literal shell stdout)
+
+```
+$ grep "^## D-" cycles/v1.0-brownfield-backfill/decision-log.md | grep -oE 'D-[0-9]+' | sort -t- -k2 -n | tail -3
+D-927
+D-927
+D-928
+```
+NOTE: `tail -3` on the raw `^## D-` output would show code-block verbatim captures `## D-925/926/927` from inside D-928's Dim-1 section — numeric sort by D-NNN value gives the correct max. D-928 confirmed global max (line 12970) → D-929 allocated.
+
+### Dim-2: Literal-shell evidence (D-449(a))
+
+1. **FINDING-COUNT GATE**:
+    ```
+    $ printf '%s\n' F-S2104-P21-002 F-S2104-P21-003 F-S2104-P21-004 | wc -l
+    3
+    ```
+    Convention: all `F-S2104-P21-NNN` finding IDs allocated in this pass record. Count = 3 (B1/H0/M2). Adversary verdict B1/H0/M1 (002+003); F-S2104-P21-004 secondary (post-fix analysis). PASS.
+
+2. **ADVERSARY-PASS-21 FILE CREATED**:
+    ```
+    $ ls cycles/v1.0-brownfield-backfill/S-21.04/adversary-pass-21.md
+    cycles/v1.0-brownfield-backfill/S-21.04/adversary-pass-21.md
+    ```
+    PASS.
+
+3. **FIX COMMIT VERIFICATION**:
+    ```
+    $ git log --oneline --all | grep -E '^7d195cfa|^b7d3ca58'
+    7d195cfa fix(tests): Gate PW-B fail-closed structural fix — F-S2104-P21-002
+    b7d3ca58 test(S-21.04): F-S2104-P21-002 semantic negated-prohibition fix + P21-003 may-probe + gitignored-shadow
+    ```
+    Both commits exist on `feature/S-21.04-story-worktree-write-path-discipline`. PASS.
+
+4. **POLICY 14 4-INDEX GATE (literal shell stdout)**:
+    ```
+    $ grep -m1 "^version:" specs/behavioral-contracts/BC-INDEX.md specs/verification-properties/VP-INDEX.md stories/STORY-INDEX.md specs/architecture/ARCH-INDEX.md
+    specs/verification-properties/VP-INDEX.md:version: "2.72"
+    stories/STORY-INDEX.md:version: "4.267"
+    specs/architecture/ARCH-INDEX.md:version: "3.34"
+    specs/behavioral-contracts/BC-INDEX.md:version: "4.33"
+    ```
+    BC v4.33 / VP v2.72 / STORY v4.267 / ARCH v3.34. ALL UNCHANGED this burst. PASS.
+
+5. **STATE.md v6.60→v6.61**: frontmatter-minimal (version + phase + last_amended). Lines 15-17 UNTOUCHED per hook constraint (precedent D-866..D-929). NOTE: STATE.md Decisions Log table preamble range not updated (frontmatter-minimal burst; D-863..D-929 range update deferred per D-866..D-928 class precedent).
+
+### Dim-3: Finding and fix record
+
+**F-S2104-P21-002** — BLOCKER — negated-prohibition escapes both gates (CLOSED at `7d195cfa`). Lexical `grep -Ev` exclusion in Gate PW-B and write-directive gate drops clauses containing prohibition tokens, including negated forms. Fix: fail-closed whitelist inversion — `**Forbidden:**` structural marker as sole whitelist token. Attempt 1 `b7d3ca58` REJECTED TD-VSDD-059 (negator vocabulary enumeration, not structural). Attempt 2 `7d195cfa` ACCEPTED. 23-vector proof. Full record in `adversary-pass-21.md`.
+
+**F-S2104-P21-003** — MEDIUM — `may` no PW-B-context probe (CLOSED at `b7d3ca58`, preserved `7d195cfa`). M-P21-E probe ("Agents may deliver factory artifacts to the story worktree CWD.") added and verified FIRES(RED).
+
+**Part B observation** — `gitignored-shadow` not in prohibited-target alternation (CLOSED at `b7d3ca58`, preserved `7d195cfa`). Added to alternation; M-P21-GS probe FIRES(RED).
+
+**F-S2104-P21-004** — MEDIUM — fail-closed whitelist imposes undocumented `**Forbidden:**`-bullet convention (OPEN). Latent: suites green; no pristine clause affected. Routed story-writer/technical-writer. Pass-22 anchor.
+
+### Dim-4: SECONDARY items
+
+**(a) SECONDARY 2 — L-BB-regression-against-incomplete-mutant-corpus extended.** Three consecutive fix reports in this cascade supplied incomplete regression tables, each time omitting the region that carried the risk: (i) `tw-p20-003` — complete for tested mutants but no probe covered the newly-excluded region, hiding P21-001; (ii) `tw-p21-002` (`b7d3ca58`) — omitted required full table AND authored probes covering only the three forms it fixed (self-confirming), hiding 8 surviving negators; (iii) `tw-p21-002b` (`7d195cfa`) — supplied 23 rows but only `M-P21-*` plus 3 controls; `M-P16-*`..`M-P20-*` absent. Orchestrator ran the omitted region independently (no regression found). Rule codified: the orchestrator MUST independently execute the omitted region rather than accept a table's scope as its completeness. See `L-BB-regression-against-incomplete-mutant-corpus` §SECONDARY 2 extension.
+
+**(b) Sweep completeness: PARTIAL** — T-002..T-009, `step-g-cleanup.md` §G.1, red-gate-log POLICY-15 attestation gate, `worktree-identity-preflight.bats` NOT reached. Pass-22 sweep scope. Pass-22 adversary MUST explicitly attest coverage of all four surfaces.
+
+### Phase
+
+D-929-PASS-21-RECORD
+
+### Date
+
+2026-07-27

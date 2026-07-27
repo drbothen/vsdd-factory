@@ -1144,3 +1144,41 @@ Direction: clause-scoped prohibition-token escape (same unit as write-directive 
 Direction: `\.factory/|ledger|artifact[[:space:]]+writes?` — open class for prohibited-target referent forms (backed by PW-B for non-directive forms). The `artifact[[:space:]]+writes?` class was removed in pass-19 to silence a false positive at `_shared-context.md` S2 prose. The S2 prose has been reworded (doc prerequisite), making it safe to restore the class. Direction: backstop for M-P20-class mandate verbs (`MUST anchor ... artifact write`); no alternation enumeration of verb forms.
 
 **NAME-SET EQUALITY:** Updated check in preceding section — PASS (21 gates, diff empty; story v1.25 Gate cell vs. log gate list; boundary-completeness assertion + Gate scope-restriction added).
+
+---
+
+### Pass-21 assertion-site attestation (7d195cfa)
+
+**Appended:** 2026-07-27 (D-929 S-21.04 pass-21 record; state-manager)
+
+**Reviewed HEAD:** `17921772` (post-D-928 PWBD_DIRECTIVE_CLASS unification). **Fixes HEAD:** `7d195cfa` (fail-closed whitelist structural fix).
+
+#### F-S2104-P21-002 — fail-closed whitelist structural fix
+
+**Gate change:** PW-B and write-directive gate inverted from `grep -Ev 'FORBIDDEN|...|never|forbid'` (lexical exclusion, fail-open) to fail-closed whitelist: a clause with both a prohibited-target and a directive is a violation BY DEFAULT, exempted only when the clause matches `\*\*Forbidden:\*\*` (structural bullet label marker).
+
+**Design invariant (structural-marker whitelist):** `**Forbidden:**` is a bullet label, not a prose lexeme. A label cannot be negated, so novel negation phrasings fail to match the whitelist and FIRES. This is the key property that closes the unbounded-negation attack class.
+
+**Orchestrator-executed verification at `7d195cfa` (verbatim):**
+```
+MUTANTS FIRE:   M-P17-A / M-P17-C-S2 / M-P20-A / M-P21-D / M-P21-I      all FIRES(RED)
+STAY GREEN:     M-P20-B (explanatory) / pristine **Forbidden:** bullet /
+                pristine S2 FORBIDDEN sentence                          all SILENT(GREEN)
+```
+Test-writer proved 23 vectors RED including 11 negator forms and 4 novel adversarial forms. Suites at `7d195cfa`: 9/9 and 14/14.
+
+**POLICY-15 attestation gate (D-929):** Clause-level negated-prohibition evasion (F-S2104-P21-002 class) — the fail-closed whitelist is the per-gate mutant verification. All prior M-P16-*/M-P17-*/M-P18-*/M-P19-*/M-P20-* mutants verified RED at `7d195cfa` (23-vector proof by test-writer; no regression found per orchestrator independent run).
+
+#### F-S2104-P21-003 — may-class PW-B probe
+
+M-P21-E probe: "Agents may deliver factory artifacts to the story worktree CWD." → FIRES(RED) at `b7d3ca58`, preserved through `7d195cfa`.
+
+#### Part B — gitignored-shadow alternation coverage
+
+`gitignored-shadow` added to prohibited-target alternation; M-P21-GS probe → FIRES(RED) at `b7d3ca58`, preserved through `7d195cfa`.
+
+#### Summary row
+
+| Pass | HEAD | Gate change | Suites | Status |
+|------|------|-------------|--------|--------|
+| Pass-21 | `7d195cfa` | Fail-closed whitelist (`**Forbidden:**` structural marker); attempt 1 `b7d3ca58` REJECTED TD-VSDD-059 | 9/9 + 14/14 | F-S2104-P21-002 CLOSED / F-S2104-P21-003 CLOSED / Part B CLOSED / F-S2104-P21-004 OPEN (secondary) |

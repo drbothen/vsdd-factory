@@ -8415,6 +8415,22 @@ Mid-burst: 0/4. Idle: 2/2.
 
 **Closes:** D-928 REGRESSION-METHODOLOGY-LESSON (2026-07-27). `[methodology; regression; mutant-corpus; incomplete-coverage; scope-change; narrowing; widening; adversary; D-928]`
 
+### SECONDARY 2 extension [D-929] — incomplete regression tables across consecutive fix reports
+
+**Discovered:** 2026-07-27 (D-929 pass-21 record; orchestrator analysis).
+
+Three consecutive fix reports in the S-21.04 cascade supplied incomplete regression tables, each time omitting the region that carried the risk:
+
+1. **`tw-p20-003` (pass-20 fix, commit `a5068252`):** Complete for the mutants tested — every prior mutant genuinely stayed RED. But no probe covered the region newly opened by the fix (the PW-B directive-class exclusion). The corpus was accurate against its own scope; the scope omitted the attack surface.
+
+2. **`tw-p21-002` (`b7d3ca58`, REJECTED paper fix):** Omitted the required full regression table entirely. Authored probes covering only the three negator forms it directly neutralized (`not yet|no longer|never previously`) — self-confirming. The 8 surviving negator forms were invisible to the table. Orchestrator proved them evading independently.
+
+3. **`tw-p21-002b` (`7d195cfa`, accepted fix):** Supplied a 23-row table, but only `M-P21-*` plus 3 controls. `M-P16-*`..`M-P20-*` absent. Orchestrator ran that cross-pass regression independently (no regression found). Table scope accepted as complete by default — a false completeness claim that the orchestrator closed by independent execution.
+
+**Rule (extended):** A regression table's scope is NOT its completeness. The orchestrator MUST independently execute the omitted cross-pass region (`M-P16-*`..`M-PNN-*`) rather than accept the table's scope as a proxy for coverage. Implementer/test-writer self-disclosure of regression scope is NOT authoritative (per TD-VSDD-059 analogy: implementer self-disclosure of risk severity is not authoritative). Independent orchestrator execution is the gate.
+
+**Anchors:** `tw-p20-003` (pass-20 fix, `a5068252`); `tw-p21-002` (`b7d3ca58`, REJECTED); `tw-p21-002b` (`7d195cfa`, accepted, no cross-pass regression); D-929.
+
 ---
 
 ## L-BB-fix-seeds-next-defect [pattern] [D-928]
