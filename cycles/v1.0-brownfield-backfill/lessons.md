@@ -8223,7 +8223,7 @@ F-S2104-P19-008 (MEDIUM): the bats file declared `Nineteen independently mutant-
 
 ---
 
-## L-BB-adversary-agent-delivery-silent [process-gap] [D-925]
+## L-BB-adversary-agent-delivery-silent [process-gap] [D-925][D-927]
 
 **Summary:** Three consecutive adversary dispatches for S-21.04 pass-20 (adv-p20, adv-p20b, adv-p20c) went idle and produced zero output. This is a distinct failure class from subagent report under-reporting (`[[L-BB-subagent-report-fidelity-literal-shell]]`): the agent received the dispatch, entered execution, and never delivered any output — not a content-incorrect report, but a non-delivery. The orchestrator's recovery path was to author the adversary review directly (orchestrator-authored class per `[[L-EDP1-074]]`), clearly marking the provenance deviation in the persisted record and leaving the BC-5.39.001 streak at 0/3 (adversary-agent delivery is an OPEN BLOCKER for streak progression).
 
@@ -8270,9 +8270,9 @@ Validated fix: dispatch the adversary agent with an explicit `model: sonnet` ove
 
 **Anchors:** S-21.04 pass-20 adversary dispatch (2026-07-27); adversary-pass-20.md provenance = orchestrator-authored; D-925 closure burst; `[[L-EDP1-074]]` orchestrator-authored class predicates; D-926 root-cause-confirmed: `plugins/vsdd-factory/agents/adversary.md` frontmatter `model: opus` line 5; `model: sonnet` override validated fix; blast-radius 7 agents.
 
-**Cites:** D-925 (this burst — initial lesson); D-926 (root cause confirmed + blast-radius + model-diversity-deviation + convergence-trajectory-caveat + architecture-decision-required); BC-5.39.001 3-CLEAN protocol (streak 0/3); `[[L-EDP1-074]]` (orchestrator-authored class); `[[L-BB-subagent-report-fidelity-literal-shell]]` (D-924; distinct failure class — report delivered but content-incorrect); `[[L-BB-mid-burst-addenda-unreliable]]` (D-926; adjacent process-gap — mid-burst SendMessage addenda unreliable); adversary-pass-20.md MANDATORY PROVENANCE DISCLOSURE (updated D-926 to cite root cause).
+**Cites:** D-925 (initial lesson); D-926 (root cause confirmed + blast-radius + model-diversity-deviation + convergence-trajectory-caveat + architecture-decision-required); D-927 (formal decision-log codification of root cause + literal-shell blast-radius evidence + discovery-attribution + trajectory-caveat); BC-5.39.001 3-CLEAN protocol (streak 0/3); `[[L-EDP1-074]]` (orchestrator-authored class); `[[L-BB-subagent-report-fidelity-literal-shell]]` (D-924; distinct failure class — report delivered but content-incorrect); `[[L-BB-mid-burst-addenda-unreliable]]` (D-926; adjacent process-gap — mid-burst SendMessage addenda unreliable); `[[L-BB-large-dispatch-item-loss]]` (D-927; adjacent process-gap — large initial dispatch drops items); adversary-pass-20.md MANDATORY PROVENANCE DISCLOSURE (updated D-926/D-927 to cite root cause).
 
-**Closes:** D-925 S-21.04-PASS-20-CLOSED (2026-07-27); D-926 (root-cause-confirmed + blast-radius + architecture-decision-required registered). `[process-gap; adversary-delivery; agent-idle; non-delivery; orchestrator-authored; BC-5.39.001; streak-0/3; OPEN-BLOCKER; model-opus-pin; blast-radius-7-agents; model-diversity-deviation; convergence-trajectory-caveat; architecture-decision-required; D-925; D-926]`
+**Closes:** D-925 S-21.04-PASS-20-CLOSED (2026-07-27); D-926 (root-cause-confirmed + blast-radius + architecture-decision-required registered); D-927 ROOT-CAUSE-RECORD (2026-07-27). `[process-gap; adversary-delivery; agent-idle; non-delivery; orchestrator-authored; BC-5.39.001; streak-0/3; OPEN-BLOCKER; model-opus-pin; blast-radius-7-agents; model-diversity-deviation; convergence-trajectory-caveat; architecture-decision-required; D-925; D-926; D-927]`
 
 ---
 
@@ -8341,3 +8341,36 @@ Validated fix: dispatch the adversary agent with an explicit `model: sonnet` ove
 **Cites:** D-926 (this correction burst); `[[L-BB-commit-without-push]]` (adjacent lesson — push confirmation; dispatch-template gap class); `[[L-BB-count-after-enumeration]]` (adjacent lesson — count derived from addendum drop); `[[L-BB-adversary-agent-delivery-silent]]` (adjacent lesson — different agent-communication failure class).
 
 **Closes:** D-926 S-21.04-PASS-20-CORRECTION (2026-07-27). `[process-gap; mid-burst-addenda; SendMessage; unreliable; collision; silent-drop; initial-dispatch; orchestrator-process-gap; D-926]`
+
+---
+
+## L-BB-large-dispatch-item-loss [process-gap] [D-927]
+
+**Summary:** A large initial dispatch with multiple correctness-bearing items silently dropped its most complex item. The D-926 dispatch to state-manager specified five items; four landed (items 2/3/4/5) and Item 1 (the adversary root-cause finding — the longest and most complex) was silently dropped, absent even from the commit subject line. A deliberately small single-purpose dispatch (the adversary model smoke test) delivered perfectly. This is a distinct failure class from `[[L-BB-mid-burst-addenda-unreliable]]` (mid-burst SendMessage addenda): this applies to large INITIAL dispatches, not corrections sent mid-execution.
+
+**Discovered:** 2026-07-27 (team-lead post-D-926 review; Item 1 — adversary root-cause — absent from commit).
+
+**Empirical evidence:**
+- **D-926 dispatch (5 items):** Items 2/3/4/5 landed; Item 1 (adversary root-cause, longest/most complex item) silently dropped — absent from commit subject and content.
+- **Adversary smoke-test dispatch (1 item):** Delivered perfectly.
+- Pattern: complexity + length of item predicts drop risk. The item that dropped was both the first in the list and the most complex (required correlation analysis, controlled test citations, blast-radius grep).
+
+**Mechanism hypothesis:** Large dispatch prompts exceed the agent's effective attention window for the initial items, OR the agent prioritizes shorter/simpler items. Items early in a long list that require the most work to execute are the highest-drop-risk items.
+
+**Compounding with L-BB-mid-burst-addenda-unreliable:** Neither large initial dispatches nor mid-burst SendMessage corrections are reliable delivery channels. This means the only reliable unit of dispatch is a **small, complete, self-contained dispatch** — one item per dispatch, each with an explicit completion gate.
+
+**Generalized rule:** Correctness-bearing items MUST be dispatched in small focused units. Specifically:
+1. Each dispatch should contain ONE correctness-bearing item (or at most a small tightly-coupled cluster that cannot be split).
+2. A multi-item dispatch MUST explicitly state in its instructions: "If you cannot complete all items, you MUST disclose which items were not done before reporting completion. Partial completion without explicit disclosure is a failure mode."
+3. The orchestrator MUST verify completion of each item after the dispatch returns — not by trusting the agent's self-report, but by independently checking the expected artifacts exist.
+4. The longest, most complex item in any dispatch is the highest-drop-risk item. If batching is unavoidable, put the most complex item LAST (not first) so earlier simpler items do not consume all execution budget before the hard item is reached.
+
+**Attribution:** Orchestrator process gap. The D-926 dispatch was orchestrator-authored with 5 items; the silently dropped item is the highest-value finding of the session. Item loss without disclosure is a dispatch template defect.
+
+**Contrast with D-927 dispatch (this lesson):** The D-927 dispatch was deliberately tiny — single subject, explicitly constrained. Delivered completely. This validates the small-focused-dispatch rule.
+
+**Anchors:** D-926 dispatch (5 items; Item 1 dropped); D-927 dispatch (1 item; delivered); team-lead post-D-926 review (2026-07-27); `[[L-BB-mid-burst-addenda-unreliable]]` (adjacent lesson — mid-burst correction channel also unreliable).
+
+**Cites:** D-927 (this burst — formal codification); D-926 (originating session — Item 1 dropped); `[[L-BB-mid-burst-addenda-unreliable]]` (D-926; adjacent process-gap — correction channel unreliable; this lesson covers initial dispatch size); `[[L-BB-adversary-agent-delivery-silent]]` (D-925/D-927; adjacent lesson — the dropped item IS the adversary root cause).
+
+**Closes:** D-927 ROOT-CAUSE-RECORD (2026-07-27). `[process-gap; large-dispatch; item-loss; silent-drop; initial-dispatch; orchestrator-process-gap; small-focused-dispatch; D-927]`
