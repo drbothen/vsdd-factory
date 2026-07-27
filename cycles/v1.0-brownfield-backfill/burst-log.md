@@ -20535,4 +20535,4 @@ No new adversary findings this burst (D-900-class record-correction). Corrected 
 
 **factory-artifacts commits:**
 - Pre-burst parent-commit (factory-artifacts): `069dcef9` (D-925 closure burst)
-- This burst: TBD (SHA recorded in SHA-patch follow-up)
+- This burst: `7b1acbbf` (D-926 pass-20 record-correction burst)
