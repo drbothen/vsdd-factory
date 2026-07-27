@@ -12592,3 +12592,36 @@ D-921-S2104-PASS-19-PERSISTED
 ### Date
 
 2026-07-26
+
+---
+
+## D-922
+
+### Summary
+
+SESSION-WRAP-PAUSED. Single-commit session-wrap burst (TD-VSDD-053), human `/wrap` directive, 2026-07-27. S-21.04 pass-19 fix wave mid-flight: test-writer leg DONE at 657fce61; story-writer leg (v1.24 Gate-cell resync) ABANDONED-MID-LEG at wrap (stood down; NOT committed; fully re-derivable from adversary-pass-19.md); state-manager closure NOT STARTED. D-922 Checkpoint written to session-checkpoints.md (sections 1-7 per D-910 format). Dirty files committed same burst: logs/dispatcher-internal-2026-07-26.jsonl, logs/events-2026-07-26.jsonl, sidecar-learning.md. STATE.md v6.53→v6.54; pipeline PAUSED (already PAUSED — semantically confirmed). Lines 15-17 UNTOUCHED per hook constraint (precedent D-866..D-922). factory-artifacts pushed.
+
+### Detail
+
+1. **POLICY 16 GLOBAL-MAX GATE (literal shell stdout)**:
+   - `grep -oE '^## D-[0-9]+' cycles/v1.0-brownfield-backfill/decision-log.md | tail -5` → `## D-917 / ## D-918 / ## D-919 / ## D-920 / ## D-921`
+   - D-921 confirmed global max → D-922 allocated. PASS.
+
+2. **HEAD-MOVED CHECK**: factory-artifacts HEAD at wrap = 38115951 (D-921 pass-19 record persist commit). Story-writer commit "story(S-21.04): v1.24 pass-19 leg" did NOT land — confirmed by `git -C .factory log --oneline -2` showing `38115951 state(S-21.04): D-921 pass-19 record persisted` as HEAD. No story-writer commit present after D-921. Story-writer leg is fully re-derivable from adversary-pass-19.md.
+
+3. **POLICY 14 4-INDEX GATE (literal shell stdout)**:
+   - `grep -m1 "^version:" specs/behavioral-contracts/BC-INDEX.md specs/verification-properties/VP-INDEX.md stories/STORY-INDEX.md specs/architecture/ARCH-INDEX.md` → `specs/verification-properties/VP-INDEX.md:version: "2.72"` / `specs/behavioral-contracts/BC-INDEX.md:version: "4.33"` / `specs/architecture/ARCH-INDEX.md:version: "3.34"` / `stories/STORY-INDEX.md:version: "4.266"`. BC v4.33 / VP v2.72 / STORY v4.266 / ARCH v3.34 ALL UNCHANGED this burst. PASS.
+
+4. **D-922 Checkpoint written** to `cycles/v1.0-brownfield-backfill/session-checkpoints.md` as `## D-922 Checkpoint (2026-07-27 session wrap — AUTHORITATIVE)`. Sections 1-7 per D-910 format. Pass-19 fix-wave attestation (24/24 checks, 9/9+14/14) preserved in section 5 for the D-923-class closure burst's red-gate-log transcription.
+
+5. **Dirty files bundled**: `logs/dispatcher-internal-2026-07-26.jsonl`, `logs/events-2026-07-26.jsonl`, `sidecar-learning.md` staged in same commit per TD-VSDD-053.
+
+6. **Deviation disclosed**: 657fce61 pushed BEFORE its red-gate-log attestation transcription — POLICY 15 attestation-location gate deferred to the D-923-class closure burst per human-directed wrap.
+
+### Phase
+
+D-922-SESSION-WRAP-PAUSED
+
+### Date
+
+2026-07-27
