@@ -20452,4 +20452,4 @@ S-21.04 LOCAL adversarial cascade pass-20 (orchestrator-authored, provenance-dev
 
 **factory-artifacts commits:**
 - Pre-burst parent-commit (factory-artifacts): `ea8e24eb`
-- This burst: TBD (D-925 pass-20 closure burst — SHA to be recorded post-commit)
+- This burst: `069dcef9` (D-925 pass-20 closure burst)
