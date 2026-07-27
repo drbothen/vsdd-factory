@@ -558,7 +558,7 @@ _run_teardown_preflight() {
 
   # --- DOC-PARITY §Spec-Path Discipline: AC-001(a) CWD-relative-path PROHIBITION (F-S2104-P12-003 .. F-S2104-P18-001/002/003/004/005) ---
   # BC-6.26.001 PC1 core: the Write Discipline section must state that CWD-relative paths are
-  # FORBIDDEN and that canonical absolute paths are MANDATED. Nineteen independently mutant-proven
+  # FORBIDDEN and that canonical absolute paths are MANDATED. Twenty-one independently mutant-proven
   # gates (pass-16 adds negation-transparency, block-wide polarity, sentence-scoped Gate 2 +
   # retirement-language guard, Gate 3 tightened + Gate 7 CWD-relative bullet polarity, and
   # anchor-uniqueness bounded to #### Write Discipline; pass-17 adds whole-section domain,
@@ -655,7 +655,7 @@ _run_teardown_preflight() {
   #       (b) → canonical-target gate.
   #   (canonical-target) NEGATIVE (F-S2104-P17-004): no **Correct:** bullet with non-canonical
   #       file_path=. M-P17-G, M-P15-B, M-P16-D all → RED.
-  # All nineteen gates survive independently.
+  # All twenty-one gates survive independently.
 
   # Whole-section domain extraction (needed before rendered domain and prose domain).
   local write_discipline_section
