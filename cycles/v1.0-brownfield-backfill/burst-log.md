@@ -20538,4 +20538,4 @@ No new adversary findings this burst (D-900-class record-correction). Corrected 
 
 **factory-artifacts commits:**
 - Pre-burst parent-commit (factory-artifacts): `069dcef9` (D-925 closure burst)
-- This burst: `7b1acbbf` (D-926 pass-20 record-correction burst)
+- This burst: `0b4b6203` (D-926 pass-20 record-correction burst)
