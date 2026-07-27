@@ -65,8 +65,8 @@ Pass only the specific files each specialist needs. Never pass the whole story f
 
 All `.factory/**` artifact writes performed during story delivery MUST use canonical absolute paths
 anchored to the main-checkout root. CWD-relative paths (e.g., `.factory/stories/S-NNN-DELIVERY.md`
-resolved from the story worktree CWD) are FORBIDDEN. Such writes land silently in the shadow
-`.factory/` subtree of the story worktree and are permanently destroyed at teardown (issue #523
+resolved from the story worktree CWD) are FORBIDDEN — such writes land silently in the story
+worktree's shadow `.factory/` subtree and are permanently destroyed at teardown (issue #523
 gitignored-shadow mechanism; BC-6.26.001 Invariant 5).
 
 **Load-bearing cases (BC-6.26.001 Invariant 4):** The DELIVERY ledger (`*-DELIVERY.md`),

@@ -556,7 +556,7 @@ _run_teardown_preflight() {
     "_shared-context.md §Spec-Path Discipline: story-frontmatter files named as load-bearing case (BC-6.26.001 Invariant 4; AC-001(c))" \
     "$spec_path_section"
 
-  # --- DOC-PARITY §Spec-Path Discipline: AC-001(a) CWD-relative-path PROHIBITION (F-S2104-P12-003 .. F-S2104-P20-002) ---
+  # --- DOC-PARITY §Spec-Path Discipline: AC-001(a) CWD-relative-path PROHIBITION (F-S2104-P12-003 .. F-S2104-P20-003) ---
   # BC-6.26.001 PC1 core: the Write Discipline section must state that CWD-relative paths are
   # FORBIDDEN and that canonical absolute paths are MANDATED. Twenty-one independently mutant-proven
   # gates (pass-16 adds negation-transparency, block-wide polarity, sentence-scoped Gate 2 +
@@ -568,8 +568,9 @@ _run_teardown_preflight() {
   # stripping, 2b domain parity + widened classes, and open-trigger write-directive gate; pass-19
   # adds clause-scoped write-directive domain, referent action class, boundary-completeness
   # assertion, CommonMark-correct link-ref-def strip, canonical-target domain widening, and
-  # scope-restriction gate; pass-20 adds clause-scoped PW-B (F-S2104-P20-001) and extended
-  # write-directive referent covering artifact writes (F-S2104-P20-002)):
+  # scope-restriction gate; pass-20 adds clause-scoped PW-B (F-S2104-P20-001), extended
+  # write-directive referent covering artifact writes (F-S2104-P20-002), and PW-B
+  # directive-requirement narrowing to exclude explanatory prose (F-S2104-P20-003)):
   #   (1) Paragraph-level extractor from rendered_write_discipline domain (F-S2104-P18-004(b)):
   #       #### Write Discipline → strip HTML comments + link-reference-definitions → normative
   #       prohibition paragraph, anchor: 'All `.factory/**` artifact writes…'
@@ -601,16 +602,31 @@ _run_teardown_preflight() {
   #       MUTANT (a): delete prohibition block → empty → RED.
   #       MUTANT (b): M-P15-A/M-P16-A "MUST NOT use canonical..." → Gates 1(a)+(b) fail → RED.
   #       Restore (c): mandate sentence "MUST use canonical absolute paths" → GREEN.
-  #   (PW-B) SECTION-WIDE SENTENCE POLARITY (F-S2104-P16-001(b)/F-S2104-P17-002/
-  #       F-S2104-P18-002(b)): over write_discipline_prose_nosplit (whole #### Write Discipline
-  #       section, fenced code NOW INCLUDED — fence exclusion removed per F-S2104-P18-002(b);
-  #       adversary verified all four section gates empty over unexcluded pristine section).
-  #       For every sentence containing a prohibited-target form, that sentence MUST carry a
-  #       prohibition token — directive-token whitelist dropped (F-S2104-P17-002(a)).
+  #   (PW-B) SECTION-WIDE CLAUSE POLARITY (F-S2104-P16-001(b)/F-S2104-P17-002/
+  #       F-S2104-P18-002(b)/F-S2104-P20-003): over write_discipline_prose_nosplit (whole ####
+  #       Write Discipline section, fenced code NOW INCLUDED — fence exclusion removed per
+  #       F-S2104-P18-002(b); adversary verified all four section gates empty over unexcluded
+  #       pristine section).
+  #       Directive-requirement (F-S2104-P20-003): gate fires ONLY on clauses that ALSO carry a
+  #       directive token — explanatory prose mentioning prohibited targets (e.g., "such writes
+  #       land silently in the story worktree's shadow .factory/ subtree") is out of scope. A
+  #       clause missing a directive cannot mandate the use of a prohibited write path.
+  #       For every DIRECTIVE clause containing a prohibited-target form, that clause MUST carry
+  #       a prohibition token. Directive-token whitelist dropped (F-S2104-P17-002(a)); replaced
+  #       by directive-requirement in F-S2104-P20-003 (narrowing, not widening).
+  #       directive: MUST|SHOULD|required|is the required form|is preferred|is acceptable|permits
   #       prohibited-target: CWD-relative|worktree-relative|relative paths?|story-worktree CWD|
   #         worktree's shadow|worktree CWD|shadow subtree|[Ww]orktree-local|in-worktree
   #       prohibition: FORBIDDEN|Forbidden|forbidden|MUST NOT|prohibited|never|forbid
-  #       M-P17-A S1 → RED; M-P17-C S2 → RED; M-P18-C (in-fence harmful content) → RED.
+  #       M-P17-A S1 → RED (MUST + story worktree CWD); M-P17-C S2 → RED (clause 1: required +
+  #         CWD-relative; clause 2: worktree's shadow excluded — no directive → GREEN);
+  #       M-P18-C (in-fence harmful content with directive) → RED.
+  #       M-P20-B (NEW): explanatory prose "Such writes land silently in the story worktree's
+  #         shadow .factory/ subtree..." — prohibited-target + NO directive → GREEN (F-S2104-P20-003
+  #         load-bearing proof: directive filter excludes it).
+  #       M-P20-C (NEW): same prose + "MUST" → "Such writes MUST land in the story worktree's
+  #         shadow .factory/ subtree..." — prohibited-target + MUST (directive), no prohibition
+  #         → RED (proves directive requirement is load-bearing; removing MUST would restore GREEN).
   #   (F-P18-001) WRITE-DIRECTIVE GATE (POSITIVE, open-trigger; F-S2104-P18-001/F-S2104-P18-005(d)):
   #       Every sentence containing a write-directive (MUST|SHOULD|permits|is acceptable|is the
   #       required form|is preferred|may) AND an action word (anchor|write|writes) MUST either
@@ -845,18 +861,28 @@ _run_teardown_preflight() {
   fi
 
   # Gate PW-B (SECTION-WIDE CLAUSE POLARITY, F-S2104-P16-001(b) strengthened F-S2104-P17-002/
-  #     F-S2104-P20-001): clause-scoped per F-S2104-P20-001. Evaluates the whole #### Write
-  #     Discipline section (write_discipline_prose_nosplit, fenced code excluded —
-  #     F-S2104-P17-001(a)) rather than only the prohibition paragraph.
+  #     F-S2104-P20-001/F-S2104-P20-003): clause-scoped per F-S2104-P20-001. Evaluates the whole
+  #     #### Write Discipline section (write_discipline_prose_nosplit, fenced code included —
+  #     F-S2104-P18-002(b)) rather than only the prohibition paragraph.
   # Clause-scoped (F-S2104-P20-001): after sentence splitting, split further on [;—] and on
   #   ,\s+(and|or|but)\s+. Each clause evaluated independently. Sentence-scoped escape (pass-17
   #   through pass-19) allowed M-P20-A (semicolon-separated prohibition clause escaping prohibited-
-  #   target clause) to evade PW-B at 9/9. The em-dash in S2 was changed to a period in the doc
-  #   (F-S2104-P20-001(b)) to remove the 'worktree's shadow' false-positive on the continuation
-  #   clause that previously blocked clause-scoping.
-  # For every clause containing a prohibited-target form, that clause MUST carry a prohibition
-  # token. Directive-token whitelist dropped (F-S2104-P17-002(a)): any clause mentioning a
-  # prohibited target in prose that is not marking it prohibited is itself the defect.
+  #   target clause) to evade PW-B at 9/9.
+  # Directive-requirement (F-S2104-P20-003): gate fires ONLY on clauses that also carry a
+  #   directive token (MUST|SHOULD|required|is the required form|is preferred|is acceptable|
+  #   permits). Explanatory prose that mentions prohibited targets without commanding their use
+  #   (e.g., "such writes land silently in the story worktree's shadow .factory/ subtree and are
+  #   permanently destroyed at teardown") is correctly excluded — it describes consequences, not
+  #   mandates. Contrast: the write-directive gate handles this correctly via its own directive
+  #   trigger; PW-B now applies the same principle. The em-dash in the prohibition sentence was
+  #   changed to a period by F-S2104-P20-001(b) to suppress the 'worktree's shadow' false-positive
+  #   on the continuation clause; with F-S2104-P20-003 that workaround is no longer needed, and
+  #   the natural em-dash form is restored to _shared-context.md (doc change in this commit).
+  # For every DIRECTIVE clause containing a prohibited-target form, that clause MUST carry a
+  # prohibition token. Directive-token whitelist dropped (F-S2104-P17-002(a)): explanatory prose
+  # is now excluded structurally via directive-requirement, not by listing permitted tokens.
+  # directive: MUST|SHOULD|required|is[[:space:]]+the[[:space:]]+required|is[[:space:]]+preferred|
+  #            is[[:space:]]+acceptable|permits
   # prohibited-target: CWD-relative|worktree-relative|relative[[:space:]]+paths?|
   #                    story-worktree[[:space:]]+CWD|story[[:space:]]+worktree[[:space:]]+CWD|
   #                    worktree's[[:space:]]+shadow|worktree[[:space:]]+CWD|shadow[[:space:]]+subtree|
@@ -870,29 +896,48 @@ _run_teardown_preflight() {
   # prohibition: FORBIDDEN|Forbidden|forbidden|MUST NOT|prohibited|never|forbid
   # NOTE: 'Forbidden' (capital-F) added to handle **Forbidden:** bullet labels in the section.
   # M-P17-A S1: "Writers MUST anchor every .factory/** artifact write to the story worktree CWD"
-  #   — 'story worktree CWD' matches story[[:space:]]+worktree[[:space:]]+CWD, no prohibition → RED.
+  #   — 'story worktree CWD' (prohibited-target) + 'MUST' (directive), no prohibition → RED ✓.
   # M-P17-C S2: "For in-worktree ledgers, CWD-relative paths are the required form, and they
-  #   land in the story worktree's shadow .factory/ subtree" — 'CWD-relative' and 'worktree's
-  #   shadow' present, no prohibition token → RED.
-  # Correct text S2 (after F-S2104-P20-001(b) doc fix): "CWD-relative paths...are FORBIDDEN."
-  #   — prohibited-target + FORBIDDEN, now a standalone sentence (em-dash→period) → PASSES.
+  #   land in the story worktree's shadow .factory/ subtree" — after ', and ' clause split:
+  #   Clause 1: 'CWD-relative' (prohibited-target) + 'required' (directive), no prohibition → RED ✓.
+  #   Clause 2: 'worktree's shadow' (prohibited-target) + NO directive → excluded by directive
+  #     requirement → not a violation (directive-requirement is load-bearing here).
+  #   Overall: RED ✓ (clause 1 fires).
+  # Correct text (doc restoration, F-S2104-P20-003): "CWD-relative paths...are FORBIDDEN — such
+  #   writes land silently in the story worktree's shadow .factory/ subtree and are permanently
+  #   destroyed at teardown." — After '—' clause split: clause 1 has FORBIDDEN (prohibition
+  #   filter excludes) → GREEN; clause 2 has 'worktree's shadow' but NO directive → excluded by
+  #   directive-requirement → GREEN ✓. This proves the doc restoration is structurally safe.
   # Correct bullet "**Forbidden:** ... (relative path ...) — em-dash continuation" — clause 1
-  #   has 'relative path' + 'Forbidden' label → clause excluded from violations → PASSES.
+  #   has 'relative path' + 'Forbidden' label (prohibition filter excludes) → PASSES. Clause 2
+  #   has no prohibited-target.
   #   (escape-load-bearing: removing the 'Forbidden:' label from clause 1 → no prohibition in
-  #   clause 1 → RED; proves the escape is clause-evaluated, not vacuous.)
+  #   clause 1, but also no directive in clause 1 → excluded by directive-requirement → GREEN.
+  #   NOTE: this shows **Forbidden:** bullets with no directive in clause 1 pass PW-B; they are
+  #   caught by Gate 3 / Gate 7 / canonical-target gate instead.)
   # M-P20-A (F-S2104-P20-001 closure): "Writers MUST anchor every artifact write to the story
   #   worktree CWD; duplicating the ledger onto the main checkout is forbidden."
-  #   Clause 1 (before ;): 'story worktree CWD', no prohibition → PW-B violation → RED ✓.
+  #   Clause 1 (before ;): 'story worktree CWD' + 'MUST' (directive), no prohibition → RED ✓.
   #   Clause 2: 'forbidden' present, no prohibited-target → excluded → not a violation.
   # CONTROL-1 (F-S2104-P20-001 target-matching): M-P20-A with 'forbidden'→'discouraged'.
-  #   Clause 1: 'story worktree CWD', no prohibition → PW-B violation → RED ✓.
+  #   Clause 1: 'story worktree CWD' + 'MUST' (directive), no prohibition → RED ✓.
+  # M-P20-B (F-S2104-P20-003 directive-requirement, GREEN control): "Such writes land silently
+  #   in the story worktree's shadow .factory/ subtree and are permanently destroyed at teardown."
+  #   — prohibited-target 'worktree's shadow' present, NO directive token → excluded by
+  #   directive-requirement → GREEN ✓. This proves the directive filter is load-bearing: removing
+  #   the directive-requirement step causes this clause to fire (current-gate behavior = RED).
+  # M-P20-C (F-S2104-P20-003 directive-requirement, RED paired mutant): "Such writes MUST land
+  #   in the story worktree's shadow .factory/ subtree and are permanently destroyed at teardown."
+  #   — prohibited-target 'worktree's shadow' + 'MUST' (directive), no prohibition → RED ✓.
+  #   (proves the escape in M-P20-B is the absent directive, not the absent prohibition).
   local polarity_violations
   polarity_violations="$(printf '%s\n' "$write_discipline_prose_nosplit" | perl -pe 's/\.[[:space:]]+(?=[A-Z*`\[])/.\n/g' | \
     perl -pe 's/[;—]\s*/\n/g; s/,\s+(?:and|or|but)\s+/\n/g' | \
     grep -E 'CWD-relative|worktree-relative|relative[[:space:]]+paths?|story-worktree[[:space:]]+CWD|story[[:space:]]+worktree[[:space:]]+CWD|worktree'\''s[[:space:]]+shadow|worktree[[:space:]]+CWD|shadow[[:space:]]+subtree|[Ww]orktree-local|(^|[^[:alnum:]])[Ii]n-worktree' | \
+    grep -E 'MUST|SHOULD|required|is[[:space:]]+the[[:space:]]+required|is[[:space:]]+preferred|is[[:space:]]+acceptable|permits' | \
     grep -Ev 'FORBIDDEN|Forbidden|forbidden|MUST NOT|prohibited|never|forbid' || true)"
   if [ -n "$polarity_violations" ]; then
-    echo "DOC-PARITY FAIL [write-discipline section-wide clause polarity (Gate PW-B, F-S2104-P16-001(b)/F-S2104-P17-002/F-S2104-P20-001)]: a clause in the Write Discipline section contains a prohibited-target form (CWD-relative|worktree-relative|relative paths?|story-worktree CWD|story worktree CWD|worktree's shadow|worktree CWD|shadow subtree|[Ww]orktree-local|in-worktree) without a prohibition token (FORBIDDEN|Forbidden|forbidden|MUST NOT|prohibited|never|forbid) — clause-scoped per F-S2104-P20-001 (sentence-scoped version allowed M-P20-A semicolon-separated evasion); M-P17-A S1 'Writers MUST anchor every write to the story worktree CWD' carries no prohibition token; M-P17-C S2 'CWD-relative paths are the required form, and they land in the story worktree's shadow subtree' carries no prohibition token; M-P20-A clause 1 'Writers MUST anchor every artifact write to the story worktree CWD' carries no prohibition token (BC-6.26.001 PC1; AC-001(a))"
+    echo "DOC-PARITY FAIL [write-discipline section-wide clause polarity (Gate PW-B, F-S2104-P16-001(b)/F-S2104-P17-002/F-S2104-P20-001/F-S2104-P20-003)]: a DIRECTIVE clause in the Write Discipline section contains a prohibited-target form (CWD-relative|worktree-relative|relative paths?|story-worktree CWD|story worktree CWD|worktree's shadow|worktree CWD|shadow subtree|[Ww]orktree-local|in-worktree) without a prohibition token (FORBIDDEN|Forbidden|forbidden|MUST NOT|prohibited|never|forbid) — clause-scoped per F-S2104-P20-001; directive-requirement per F-S2104-P20-003 (explanatory prose without a directive token is excluded); M-P17-A S1 'Writers MUST anchor every write to the story worktree CWD' carries MUST + no prohibition; M-P17-C S2 clause 1 'CWD-relative paths are the required form' carries required + no prohibition; M-P20-A clause 1 'Writers MUST anchor every artifact write to the story worktree CWD' carries MUST + no prohibition (BC-6.26.001 PC1; AC-001(a))"
     printf '%s\n' "$polarity_violations"
     false
   fi
