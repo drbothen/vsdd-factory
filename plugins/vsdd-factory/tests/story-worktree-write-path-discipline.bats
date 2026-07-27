@@ -543,125 +543,187 @@ _run_teardown_preflight() {
     "_shared-context.md §Spec-Path Discipline: story-frontmatter files named as load-bearing case (BC-6.26.001 Invariant 4; AC-001(c))" \
     "$spec_path_section"
 
-  # --- DOC-PARITY §Spec-Path Discipline: AC-001(a) CWD-relative-path PROHIBITION (F-S2104-P12-003, F-S2104-P13-001, F-S2104-P14-001, F-S2104-P15-001, F-S2104-P16-001/002/003) ---
+  # --- DOC-PARITY §Spec-Path Discipline: AC-001(a) CWD-relative-path PROHIBITION (F-S2104-P12-003 .. F-S2104-P18-001/002/003/004/005) ---
   # BC-6.26.001 PC1 core: the Write Discipline section must state that CWD-relative paths are
-  # FORBIDDEN and that canonical absolute paths are MANDATED. Twelve independently mutant-proven
+  # FORBIDDEN and that canonical absolute paths are MANDATED. Seventeen independently mutant-proven
   # gates (pass-16 adds negation-transparency, block-wide polarity, sentence-scoped Gate 2 +
   # retirement-language guard, Gate 3 tightened + Gate 7 CWD-relative bullet polarity, and
   # anchor-uniqueness bounded to #### Write Discipline; pass-17 adds whole-section domain,
   # HTML-comment absence, conditional-scoping gate, prohibition-token PW-B, tightened Gate 2a,
-  # widened Gate 2b + adversative-connective gate, and canonical-target gate):
-  #   (1) Paragraph-level extractor (_extract_write_discipline_prohibition_block;
-  #       #### Write Discipline → normative prohibition paragraph, anchor: 'All `.factory/**`
-  #       artifact writes…') + MANDATE POLARITY (SENTENCE-SCOPED + NEGATION-TRANSPARENT,
+  # widened Gate 2b + adversative-connective gate, and canonical-target gate; pass-18 adds
+  # balanced-fence + in-fence gating, boundary-rule splitter, rendered-domain stripping for
+  # positive gates, 2b domain parity + widened classes, and open-trigger write-directive gate):
+  #   (1) Paragraph-level extractor from rendered_write_discipline domain (F-S2104-P18-004(b)):
+  #       #### Write Discipline → strip HTML comments + link-reference-definitions → normative
+  #       prohibition paragraph, anchor: 'All `.factory/**` artifact writes…'
+  #       + MANDATE POLARITY (SENTENCE-SCOPED + NEGATION-TRANSPARENT,
   #       F-S2104-P15-001 / F-S2104-P16-001(a)):
-  #       - ANCHOR UNIQUENESS (F-S2104-P16-003(a)): _assert_write_discipline_anchor_unique
-  #         counts matches within #### Write Discipline; decoy-insertion → count=2 → RED.
-  #       - HTML-COMMENT ABSENCE (F-S2104-P17-001(b)): no <!-- in #### Write Discipline;
-  #         M-P17-H moves normative mandate inside <!-- --> → gate fires → RED.
-  #       - MANDATE SENTENCE: extract sentence containing 'artifact writes' from joined block
-  #         (abbreviation-protected splitter for cf./i.e./e.g. — F-S2104-P16-001 M-P16-C2
-  #         hardening: cf. in M-P16-C2 false-splits mandate sentence, masking CWD-relative).
-  #       - Gate 1(a): MUST[[:space:]]+use[[:space:]]+canonical absolute (zero-DoF — 'MUST NOT
-  #         use' cannot satisfy; prior MUST[^.]*use[^.]*canonical passed M-P16-A).
-  #       - Gate 1(b) negation-transparent (F-S2104-P16-001(a)): mandate sentence must NOT
-  #         match MUST.*(NOT|not|never).*canonical absolute — M-P16-A "MUST NOT use canonical
-  #         absolute" → RED.
-  #       - Gate 1(c) negative: mandate sentence must NOT contain prohibited-subject forms
-  #         (CWD-relative|worktree-relative|relative paths?).
-  #       - Gate 1(d) conditional-scoping (F-S2104-P17-002(c)): mandate sentence must NOT
-  #         contain 'only when/where/if', 'when the target', or 'unless' — BC-6.26.001
-  #         Invariant 1 is categorical; M-P17-C scopes to 'when target outside worktree' → RED.
+  #       - ANCHOR UNIQUENESS (F-S2104-P16-003(a), re-scoped to rendered domain per
+  #         F-S2104-P18-004(b)): counts matches in rendered_write_discipline; decoy → count=2
+  #         → RED; link-ref-def-hidden anchor → count=0 → RED.
+  #       - BALANCED-FENCE ASSERTION (F-S2104-P18-002(a)): fence marker count in #### Write
+  #         Discipline must be even; M-P18-C(b) unbalanced fence → gate fires → RED.
+  #         Tilde (~~~) fences fail safe — not matched by ``` regex, included in prose domain.
+  #       - HTML-COMMENT ABSENCE (F-S2104-P17-001(b), defense-in-depth per F-S2104-P18-004(c)):
+  #         no <!-- in #### Write Discipline; M-P17-H moves mandate inside <!-- --> → RED.
+  #       - MANDATE SENTENCE: extract sentence containing 'artifact writes' from rendered joined
+  #         block; boundary-rule splitter (F-S2104-P18-003): split on \. followed by [A-Z*`\[]
+  #         only — prevents 'No. ' false boundary that silenced Gates 4/5 (M-P18-B).
+  #       - Gate 1(a): MUST[[:space:]]+use[[:space:]]+canonical absolute (zero-DoF).
+  #       - Gate 1(b): mandate sentence must NOT contain MUST+NOT/never+canonical absolute.
+  #       - Gate 1(c): mandate sentence must NOT contain prohibited-subject forms.
+  #       - Gate 1(d): mandate sentence must NOT contain conditional scoping.
+  #       MUTANT M-P18-D: [//]: # link-ref-def hides mandate → rendered domain strips it →
+  #         prohibition_block absent → RED. Bare [label]: # form also → RED.
+  #       MUTANT M-P18-B: 'No. 523' false boundary → old splitter: Gate 4 blind; new
+  #         boundary-rule splitter ('5' is digit, no split) → Gate 4 fires → RED.
+  #       CONTROL-B: same sentence without 'No. ' → Gate 4 fires (isolating mutant for Gate 4).
+  #       MUTANT M-P18-C: harmful comment inside ``` fence → now in prose domain (fence not
+  #         excluded per F-S2104-P18-002(b)) → PW-B fires → RED.
+  #       MUTANT M-P18-C(b): unbalanced opening fence → balanced-fence assertion → RED.
   #       MUTANT (a): delete prohibition block → empty → RED.
-  #       MUTANT (b): M-P15-A/M-P16-A "MUST NOT use canonical..." → Gate 1(a)+(b) fail → RED.
+  #       MUTANT (b): M-P15-A/M-P16-A "MUST NOT use canonical..." → Gates 1(a)+(b) fail → RED.
   #       Restore (c): mandate sentence "MUST use canonical absolute paths" → GREEN.
-  #   (PW-B) SECTION-WIDE SENTENCE POLARITY (F-S2104-P16-001(b)/F-S2104-P17-002): over
-  #       write_discipline_prose_nosplit (whole #### Write Discipline section, fenced code
-  #       excluded). For every sentence containing a prohibited-target form, that sentence MUST
-  #       carry a prohibition token — directive-token whitelist dropped (F-S2104-P17-002(a)).
+  #   (PW-B) SECTION-WIDE SENTENCE POLARITY (F-S2104-P16-001(b)/F-S2104-P17-002/
+  #       F-S2104-P18-002(b)): over write_discipline_prose_nosplit (whole #### Write Discipline
+  #       section, fenced code NOW INCLUDED — fence exclusion removed per F-S2104-P18-002(b);
+  #       adversary verified all four section gates empty over unexcluded pristine section).
+  #       For every sentence containing a prohibited-target form, that sentence MUST carry a
+  #       prohibition token — directive-token whitelist dropped (F-S2104-P17-002(a)).
   #       prohibited-target: CWD-relative|worktree-relative|relative paths?|story-worktree CWD|
   #         worktree's shadow|worktree CWD|shadow subtree|[Ww]orktree-local|in-worktree
-  #       prohibition: FORBIDDEN|forbidden|MUST NOT|prohibited|never|forbid
-  #       M-P17-A S1: "Writers MUST anchor every write to the story worktree CWD" — no prohibition
-  #         token → RED. M-P17-C S2: "CWD-relative paths are the required form" → RED.
+  #       prohibition: FORBIDDEN|Forbidden|forbidden|MUST NOT|prohibited|never|forbid
+  #       M-P17-A S1 → RED; M-P17-C S2 → RED; M-P18-C (in-fence harmful content) → RED.
+  #   (F-P18-001) WRITE-DIRECTIVE GATE (POSITIVE, open-trigger; F-S2104-P18-001/F-S2104-P18-005(d)):
+  #       Every sentence containing a write-directive (MUST|SHOULD|permits|is acceptable|is the
+  #       required form|is preferred|may) AND an action word (anchor|write|writes) MUST either
+  #       carry a prohibition token OR match 'MUST use canonical absolute'. Open-trigger design:
+  #       the trigger covers any write-directive + action combination, requirement is the escape
+  #       clause — closes PW-B's named-destination limitation with a form-based gate.
+  #       Alternation-direction for trigger class: (b) open — any write-directive+action sentence
+  #       is in scope; escape clause is the load-bearing constant.
+  #       Adversary verified empty-on-pristine and firing-on-M-P18-A by literal shell.
+  #       M-P18-A: "Writers MUST anchor ... to the worktree's .factory/ subtree" → RED.
+  #       Control: replace with "MUST use canonical absolute" → GREEN (escape is load-bearing).
   #   (2a) Gate 2 SENTENCE-SCOPED TIGHTENED (F-S2104-P16-001(c)/F-S2104-P17-002(d)): at least
-  #       one sentence must match (CWD-relative|worktree-relative)[^.]*FORBIDDEN — requires
-  #       the prohibited-subject form AND FORBIDDEN co-occur within the sentence boundary
-  #       defined by the sentence-splitting regex. M-P17-C: FORBIDDEN is in a traversal sentence,
-  #       not the CWD-relative sentence → Gate 2a fires → RED.
-  #   (2b) NULLIFICATION CLASS + ADVERSATIVE CONNECTIVE (F-S2104-P16-001(c)/F-S2104-P17-003):
-  #       over write_discipline_prose_nosplit. (b) block must NOT contain nullification language
-  #       (formerly|retired|rescinded|superseded|relaxed|lifted|withdrawn|rescind|no longer|
-  #       not longer|waived|exempt|obsolete|deprecated|does not apply|overridden|historical only);
-  #       M-P17-D 'rescinded and superseded' → RED; M-P17-F 'no longer' across line break → RED.
-  #       (c) FORBIDDEN sentence must NOT contain adversative connective (but/however/except that/
-  #       though); M-P17-F "FORBIDDEN under the initial reading, but that is no longer" → RED.
+  #       one sentence must match (CWD-relative|worktree-relative)[^.]*FORBIDDEN — the
+  #       prohibited-subject form AND FORBIDDEN co-occur within the sentence boundary.
+  #       CONTROL-B is also Gate 4's isolating mutant (absolute+FORBIDDEN without Gate 1(a)).
+  #   (2b) NULLIFICATION CLASS + ADVERSATIVE CONNECTIVE (F-S2104-P16-001(c)/F-S2104-P17-003/
+  #       F-S2104-P18-005): over write_discipline_prose_nosplit. (a) must NOT contain
+  #       nullification language — widened (F-S2104-P18-005(c)) to include: supplanted|
+  #       supersede|does not bind|does not govern|no longer binds|descriptive only|advisory
+  #       only|pre-#NNN. Alternation-direction: (b) backed by open-trigger write-directive gate
+  #       (F-S2104-P18-001). M-P18-E 'does not bind' → (a) fires → RED; M-P18-F 'supplanted'
+  #       → (a) fires → RED. (c) Section-wide (domain re-scoped from joined_block_nosplit per
+  #       F-S2104-P18-005(a)): any sentence matching the prohibition-reference trigger
+  #       (FORBIDDEN|forbidden|prohibition|prohibited|the rule|this rule|the constraint|above)
+  #       must NOT contain an adversative connective — widened (F-S2104-P18-005(b)) to include:
+  #       whereas|nevertheless|that said|in practice|notwithstanding. Alternation-direction:
+  #       (b) backed by write-directive gate. M-P18-G 'however ... permits' → (c) fires → RED.
   #   (3) Gate 3 TIGHTENED (F-S2104-P16-002): **Forbidden:** + file_path="\.factory/ + relative
-  #       path on same line. M-P16-D swaps labels — traversal bullet w/ file_path="../../.factory/"
-  #       does not match file_path="\.factory/" → tightened Gate 3 fails → RED.
-  #   (4) NEGATIVE (WHOLE-SECTION, F-S2104-P15-001/F-S2104-P17-001): over write_discipline_prose.
-  #       NO sentence where 'absolute' co-occurs with 'FORBIDDEN'.
-  #   (5) NEGATIVE (WHOLE-SECTION, F-S2104-P15-001/F-S2104-P17-001): over write_discipline_prose.
-  #       NO sentence where 'MUST' co-occurs with a prohibited-subject form. Catches
-  #       M-P14-A/M-P14R-A/M-P15-A/M-P16-A and M-P17-A.
-  #   (6) Gate 6 (two-part polarity for ../ traversal form — F-S2104-P14R-003/F-S2104-P15-002):
-  #       (a) POSITIVE: **Forbidden:** + ../ must exist; (b) — replaced by canonical-target gate.
-  #   (7) Gate 7 CWD-RELATIVE BULLET POLARITY (F-S2104-P16-002):
-  #       (a) POSITIVE: **Forbidden:** + file_path="\.factory/ must exist;
-  #       (b) — replaced by canonical-target gate.
-  #   (canonical-target) NEGATIVE (F-S2104-P17-004): no **Correct:** bullet with file_path= may
-  #       fail the canonical predicate (file_path=["']?($CANONICAL_FACTORY_ROOT|/)). Replaces
-  #       surface-form-specific Gates 6(b) and 7(b). M-P17-G "./.factory/..." → RED;
-  #       M-P15-B traversal "../../.factory/" → RED; M-P16-D CWD-relative ".factory/" → RED.
-  # All twelve gates survive independently.
+  #       path on same line. M-P16-D swaps labels → RED.
+  #   (4) NEGATIVE (WHOLE-SECTION, F-S2104-P15-001/F-S2104-P17-001/F-S2104-P18-003): over
+  #       write_discipline_prose_nosplit (boundary-rule splitter, fence content included).
+  #       NO sentence where 'absolute' co-occurs with 'FORBIDDEN'. CONTROL-B is the isolating
+  #       mutant for Gate 4. M-P18-B (old splitter: blind; new boundary-rule: fires) → RED.
+  #   (5) NEGATIVE (WHOLE-SECTION, F-S2104-P15-001/F-S2104-P17-001): over
+  #       write_discipline_prose_nosplit. NO sentence where 'MUST' co-occurs with prohibited-
+  #       subject form. Isolating mutant: "Writers MUST use relative paths for ledger writes."
+  #       (sibling para, mandate intact) → Gate 5 fires alone → RED. NOTE: M-P17-A fires Gate
+  #       PW-B (story worktree CWD without prohibition token) but does NOT fire Gate 5
+  #       independently — 'story worktree CWD' is not in Gate-5's alternation (CWD-relative|
+  #       worktree-relative|relative path); F-S2104-P18-006 correction.
+  #   (6) Gate 6: (a) POSITIVE: **Forbidden:** + ../ must exist; (b) → canonical-target gate.
+  #   (7) Gate 7: (a) POSITIVE: **Forbidden:** + file_path="\.factory/ must exist;
+  #       (b) → canonical-target gate.
+  #   (canonical-target) NEGATIVE (F-S2104-P17-004): no **Correct:** bullet with non-canonical
+  #       file_path=. M-P17-G, M-P15-B, M-P16-D all → RED.
+  # All seventeen gates survive independently.
 
-  # Anchor uniqueness gate: #### Write Discipline must have exactly one prohibition anchor.
-  _assert_write_discipline_anchor_unique
-
-  local prohibition_block
-  prohibition_block="$(_extract_write_discipline_prohibition_block)"
-
-  if [ -z "$prohibition_block" ]; then
-    echo "DOC-PARITY FAIL [write-discipline prohibition block absent]: _shared-context.md Write Discipline prohibition paragraph ('All .factory/** artifact writes...MUST use...absolute paths...CWD-relative...FORBIDDEN') not found — block deleted or heading changed (BC-6.26.001 PC1; AC-001(a); F-S2104-P13-001)"
-    false
-  fi
-
-  # Whole-section domain for section-wide negative gates (F-S2104-P17-001(a)).
-  # Extends domain beyond the first paragraph: Gates PW-B, 2b, 4, 5 now evaluate every sentence
-  # of the whole #### Write Discipline section, not only the normative prohibition paragraph.
-  # M-P17-A inserts a 'Story-worktree exception' paragraph AFTER the prohibition paragraph —
-  # the prohibition paragraph itself is unchanged, so paragraph-scoped gates pass while the
-  # section-wide PW-B catches the harmful second paragraph.
+  # Whole-section domain extraction (needed before rendered domain and prose domain).
   local write_discipline_section
   write_discipline_section="$(_extract_write_discipline_section)"
 
-  # Gate: no HTML comment spans in #### Write Discipline (F-S2104-P17-001(b)).
-  # M-P17-H replaces the normative prohibition paragraph with an HTML comment containing the
-  # compliant text, then adds a visible sentence directing writes to the worktree CWD — Gates
-  # 1(a) and 2a match the comment text, the rendered instruction is the issue #523 write.
-  # All normative text in #### Write Discipline must be rendered (not comment-hidden).
+  # Gate: no HTML comment spans in #### Write Discipline (F-S2104-P17-001(b), defense-in-depth
+  # retained per F-S2104-P18-004(c) — complements rendered_write_discipline; fires first on
+  # M-P17-H before the rendered-domain extraction can be evaluated).
   if printf '%s\n' "$write_discipline_section" | grep -qE '<!--'; then
     echo "DOC-PARITY FAIL [write-discipline comment-hidden normative text (F-S2104-P17-001(b))]: the #### Write Discipline section contains an HTML comment span (<!--) — normative mandate or prohibition text hidden inside <!-- --> is not rendered by Markdown renderers, yet positive gates (1(a), 2a) can match it; M-P17-H moves the compliant mandate inside <!-- --> and makes the only visible instruction a CWD-relative write; all normative text must be visible (BC-6.26.001 PC1; AC-001(a))"
     false
   fi
 
-  # Build section-wide prose domain: strip fenced code blocks, reflow, abbreviation-protect.
-  # Fenced code blocks are denoted by ``` fences; excluded to avoid false-positive gate fires on
-  # code examples that legitimately mention relative paths in a Forbidden example context.
-  # Match indented fences too (/^[[:space:]]*```/): _shared-context.md uses 2-space-indented
-  # fences for the Canonical root determination bash block (the §Canonical root determination bash block); bare /^```/ would
-  # miss them and include the bash code block in the prose domain.
+  # F-S2104-P18-002(a): balanced-fence assertion — an unbalanced opening fence flips the awk
+  # in_fence state and keeps it flipped forever, silently dropping every remaining line of the
+  # section from the prose domain. Three characters can erase PW-B, Gate 2b(a), Gate 4 and
+  # Gate 5 across the whole section (M-P18-C(b) at 9/9). The fence count in the #### Write
+  # Discipline section must be even (matched open + close pairs).
+  # Tilde (~~~) fences are NOT matched by the ``` regex, so ~~~ fenced content is included
+  # in the prose domain and remains gated; future fence-handler changes cannot silently
+  # invert this property — a ~~~ control is documented here for auditability.
+  local fence_count
+  fence_count="$(printf '%s\n' "$write_discipline_section" | grep -cE '^[[:space:]]*```' || true)"
+  if [ $(( fence_count % 2 )) -ne 0 ]; then
+    echo "DOC-PARITY FAIL [unbalanced code fence in gated section (F-S2104-P18-002(a))]: the #### Write Discipline section has an odd fence-marker count (${fence_count}) — an unbalanced opening fence drops the entire remainder of the section from any fence-aware domain; M-P18-C(b) inserts one opening fence after the prohibition paragraph (3 total) and silences all four section-wide negative gates at 9/9; removing that fence restores balance (BC-6.26.001 PC1; AC-001(a); F-S2104-P18-002(a))"
+    false
+  fi
+
+  # F-S2104-P18-004(a): rendered_write_discipline domain — strip non-rendered Markdown before
+  # any positive gate evaluates. Two classes of non-rendered content:
+  #   (1) HTML comment spans <!-- … -->: stripped via sed (single-line form; multi-line not
+  #       expected; the <!-- absence gate fires first and prevents them from reaching here).
+  #   (2) Link-reference definitions (^[[:space:]]{0,3}\[[^]]*\]:[[:space:]]): dropped via grep;
+  #       CommonMark parses these as definitions and emits nothing in rendered output.
+  # M-P18-D substitutes the prohibition paragraph with [//]: # (…) — Gates 1(a) and 2a find
+  # the compliant mandate inside the definition and pass; the rendered section's only visible
+  # instruction directs writes to the delivery sandbox root at 9/9.
+  # GREEN control (per F-S2104-P18-004(d)): unmodified section survives stripping unchanged —
+  # mandate sentence still found after stripping; Gate 1(a) still passes.
+  local rendered_write_discipline
+  rendered_write_discipline="$(printf '%s\n' "$write_discipline_section" | \
+    sed 's/<!--[^>]*-->//g' | \
+    grep -Ev '^[[:space:]]{0,3}\[[^]]*\]:[[:space:]]')"
+
+  # Anchor uniqueness gate: #### Write Discipline must have exactly one prohibition anchor in
+  # the rendered domain (F-S2104-P16-003(a) re-scoped to rendered domain per F-S2104-P18-004(b)).
+  # Re-scoping ensures a link-ref-def-hidden anchor cannot satisfy the positive assertion while
+  # the visible text carries a competing mandate.
+  local rendered_anchor_count
+  rendered_anchor_count="$(printf '%s\n' "$rendered_write_discipline" | awk '/All.*\.factory.*artifact writes/ {count++} END {print count+0}')"
+  if [ "$rendered_anchor_count" -ne 1 ]; then
+    echo "DOC-PARITY FAIL [ambiguous anchor in #### Write Discipline rendered domain (F-S2104-P16-003(a)/F-S2104-P18-004(b))]: found ${rendered_anchor_count} match(es) of anchor 'All.*\\.factory.*artifact writes' in the rendered #### Write Discipline domain (expected exactly 1); decoy paragraph → count=2 → RED; link-ref-def-hidden anchor → count=0 → RED (BC-6.26.001 PC1; AC-001(a))"
+    false
+  fi
+
+  # Extract prohibition block from rendered domain (F-S2104-P18-004(b) re-scope).
+  local prohibition_block
+  prohibition_block="$(printf '%s\n' "$rendered_write_discipline" | awk '
+    /All.*\.factory.*artifact writes/ { found=1 }
+    found && /^$/ { exit }
+    found { print }
+  ')"
+
+  if [ -z "$prohibition_block" ]; then
+    echo "DOC-PARITY FAIL [write-discipline prohibition block absent]: _shared-context.md Write Discipline prohibition paragraph ('All .factory/** artifact writes...MUST use...absolute paths...CWD-relative...FORBIDDEN') not found in rendered domain — block deleted, heading changed, or entire paragraph hidden in link-ref-def / HTML comment (BC-6.26.001 PC1; AC-001(a); F-S2104-P13-001/F-S2104-P18-004)"
+    false
+  fi
+
+  # Build section-wide prose domain: ALL section content included (F-S2104-P18-002(b)).
+  # Fenced code exclusion removed — the removal is motivated above at the balanced-fence
+  # assertion comment: the exclusion's original justification no longer holds at HEAD, and the
+  # exclusion is an unconditional fail-open that M-P18-C exploits. All negative gates verified
+  # empty over the unexcluded pristine section by adversary literal shell.
+  # Abbreviation-protect cf./i.e./e.g. before sentence-splitting (F-S2104-P16-001 M-P16-C2
+  # hardening: cf. dot creates a false boundary that masks CWD-relative from Gate 1(c)/Gate 5).
   local write_discipline_prose
-  write_discipline_prose="$(printf '%s\n' "$write_discipline_section" | \
-    awk '/^[[:space:]]*```/{in_fence=!in_fence; next} !in_fence{print}' | tr '\n' ' ')"
+  write_discipline_prose="$(printf '%s\n' "$write_discipline_section" | tr '\n' ' ')"
   local write_discipline_prose_nosplit
   write_discipline_prose_nosplit="$(printf '%s\n' "$write_discipline_prose" | \
     sed 's/cf\. /cf_ABBREV_ /g; s/i\.e\. /ie_ABBREV_ /g; s/e\.g\. /eg_ABBREV_ /g')"
 
   # Reflow the prohibition block to a single joined line for sentence-scoped evaluation.
-  # Gates 1(a/b/c/d) and 2a use joined_block_nosplit scoped to the prohibition paragraph only,
-  # since they are positive existence assertions on the mandate/prohibition sentence.
-  # Gates PW-B, 2b, 4, 5 use write_discipline_prose_nosplit (whole section, fenced code excluded).
+  # Gates 1(a/b/c/d) and 2a use joined_block_nosplit scoped to the rendered prohibition paragraph.
+  # Gates PW-B, 2b, 4, 5 use write_discipline_prose_nosplit (whole section, fence included).
   # (F-S2104-P15-001: per-physical-line predicates over soft-wrapped paragraphs are inadmissible).
   local joined_block
   joined_block="$(printf '%s\n' "$prohibition_block" | tr '\n' ' ')"
@@ -686,9 +748,9 @@ _run_teardown_preflight() {
   #   after joining and splitting; wrap-position is not load-bearing → GREEN.
   local mandate_sentence
   mandate_sentence="$(printf '%s\n' "$joined_block_nosplit" | \
-    sed 's/\. /\n/g' | grep 'artifact writes' | head -1)"
+    perl -pe 's/\.[[:space:]]+(?=[A-Z*`\[])/.\n/g' | grep 'artifact writes' | head -1)"
   if [ -z "$mandate_sentence" ]; then
-    echo "DOC-PARITY FAIL [write-discipline prohibition block mandate-sentence absent]: the normative mandate sentence containing 'artifact writes' was not found after sentence-splitting the joined prohibition block (split on '. '); block may be missing or the sentence structure changed (BC-6.26.001 PC1; AC-001(a); F-S2104-P15-001)"
+    echo "DOC-PARITY FAIL [write-discipline prohibition block mandate-sentence absent]: the normative mandate sentence containing 'artifact writes' was not found after sentence-splitting the joined prohibition block (boundary-rule splitter: split on '. ' only before [A-Z*\`\[]; prevents false boundary on 'No. NNN'); block may be missing or sentence structure changed (BC-6.26.001 PC1; AC-001(a); F-S2104-P15-001/F-S2104-P18-003)"
     false
   fi
   # Gate 1(a): zero-DoF MUST use canonical absolute — 'MUST NOT use canonical' cannot satisfy
@@ -749,7 +811,7 @@ _run_teardown_preflight() {
   # Correct bullet "**Forbidden:** ... (relative path ...)" — 'relative path' present, 'Forbidden'
   #   label present → sentence excluded from violations by grep -Ev → PASSES.
   local polarity_violations
-  polarity_violations="$(printf '%s\n' "$write_discipline_prose_nosplit" | sed 's/\. /\n/g' | \
+  polarity_violations="$(printf '%s\n' "$write_discipline_prose_nosplit" | perl -pe 's/\.[[:space:]]+(?=[A-Z*`\[])/.\n/g' | \
     grep -E 'CWD-relative|worktree-relative|relative[[:space:]]+paths?|story-worktree[[:space:]]+CWD|story[[:space:]]+worktree[[:space:]]+CWD|worktree'\''s[[:space:]]+shadow|worktree[[:space:]]+CWD|shadow[[:space:]]+subtree|[Ww]orktree-local|(^|[^[:alnum:]])[Ii]n-worktree' | \
     grep -Ev 'FORBIDDEN|Forbidden|forbidden|MUST NOT|prohibited|never|forbid' || true)"
   if [ -n "$polarity_violations" ]; then
@@ -780,7 +842,7 @@ _run_teardown_preflight() {
   # M-P17-C: FORBIDDEN is in the traversal sentence, CWD-relative is in a different sentence → RED.
   # M-P16-C2: "Duplicating...is FORBIDDEN" without CWD-relative in the same sentence → RED.
   local forbidden_prohibited_sentences
-  forbidden_prohibited_sentences="$(printf '%s\n' "$joined_block_nosplit" | sed 's/\. /\n/g' | \
+  forbidden_prohibited_sentences="$(printf '%s\n' "$joined_block_nosplit" | perl -pe 's/\.[[:space:]]+(?=[A-Z*`\[])/.\n/g' | \
     grep -E 'CWD-relative|worktree-relative' | \
     grep -E 'FORBIDDEN|forbidden' || true)"
   if [ -z "$forbidden_prohibited_sentences" ]; then
@@ -799,63 +861,117 @@ _run_teardown_preflight() {
   #     M-P17-F "FORBIDDEN under the initial reading, but that is no longer" → (b) fires → RED.
   # M-P16-A: 'formerly' and 'retired' → (a) fires → RED (backward-compat).
   local retirement_language
-  retirement_language="$(printf '%s\n' "$write_discipline_prose_nosplit" | sed 's/\. /\n/g' | \
-    grep -E 'formerly|retired|rescinded|superseded|relaxed|lifted|withdrawn|rescind|no[[:space:]]+longer|not[[:space:]]+longer|waived|exempt|obsolete|deprecated|does[[:space:]]+not[[:space:]]+apply|overridden|historical[[:space:]]+only' || true)"
+  retirement_language="$(printf '%s\n' "$write_discipline_prose_nosplit" | perl -pe 's/\.[[:space:]]+(?=[A-Z*`\[])/.\n/g' | \
+    grep -E 'formerly|retired|rescinded|superseded|relaxed|lifted|withdrawn|rescind|no[[:space:]]+longer|not[[:space:]]+longer|waived|exempt|obsolete|deprecated|does[[:space:]]+not[[:space:]]+apply|overridden|historical[[:space:]]+only|supplanted|supersede|does[[:space:]]+not[[:space:]]+bind|does[[:space:]]+not[[:space:]]+govern|no[[:space:]]+longer[[:space:]]+binds|descriptive[[:space:]]+only|advisory[[:space:]]+only|pre-#?[0-9]+' || true)"
   if [ -n "$retirement_language" ]; then
-    echo "DOC-PARITY FAIL [write-discipline section-wide nullification language (Gate 2b(a), F-S2104-P16-001(c)/F-S2104-P17-003)]: the Write Discipline section contains constraint-nullification language — M-P17-D 'rescinded and superseded', M-P17-F 'no longer' (split across line break), M-P16-A 'formerly...retired'; any nullification synonym nullifies the prohibition while preserving the FORBIDDEN token for Gate 2a (BC-6.26.001 PC1; AC-001(a))"
+    echo "DOC-PARITY FAIL [write-discipline section-wide nullification language (Gate 2b(a), F-S2104-P16-001(c)/F-S2104-P17-003/F-S2104-P18-005(c))]: the Write Discipline section contains constraint-nullification language — M-P17-D 'rescinded and superseded', M-P17-F 'no longer' (split across line break), M-P16-A 'formerly...retired'; widened (F-S2104-P18-005(c)) to also catch: supplanted, supersede, does not bind, does not govern, no longer binds, descriptive only, advisory only, pre-#NNN (BC-6.26.001 PC1; AC-001(a))"
     printf '%s\n' "$retirement_language"
     false
   fi
   # Gate 2b(c): FORBIDDEN sentence must NOT contain an adversative connective (F-S2104-P17-003(c)).
-  # An adversative connective attaching to the FORBIDDEN sentence expresses nullification regardless
-  # of which nullification verb is used, closing the synonym-list bypass.
-  # M-P17-F: "...are FORBIDDEN under the initial reading, but that is no longer the operative rule"
-  # — 'but ' triggers this gate → RED. Correct text uses em-dash (—), not adversative → GREEN.
+  # An adversative connective attaching to any prohibition-reference sentence expresses
+  # nullification regardless of which nullification verb is used, closing the synonym-list bypass.
+  # Domain re-scoped from joined_block_nosplit → write_discipline_prose_nosplit (section-wide)
+  # per F-S2104-P18-005(a): Gate 2b(c) was paragraph-scoped while (a) is section-wide, so
+  # nullification via adversative in a sibling paragraph escaped (c) entirely. M-P18-G uses
+  # 'however' in a sibling paragraph whose sentence matches the widened trigger ('permits') —
+  # domain parity with (a) is required for structural coverage.
+  # Trigger widened (F-S2104-P18-005(b)): FORBIDDEN-sentences-only → any sentence referencing
+  # the prohibition (FORBIDDEN|forbidden|prohibition|prohibited|the rule|this rule|the
+  # constraint|above); M-P18-E contains 'prohibition' but no FORBIDDEN, old trigger missed it.
+  # Adversative class widened (F-S2104-P18-005(b)): adds whereas|nevertheless|that said|
+  # in practice|notwithstanding.
+  # Alternation-direction: members (b) open class — backed by the open-trigger write-directive
+  # gate (F-S2104-P18-001/F-S2104-P18-005(d)) which covers the directives axis; together they
+  # form a non-defeatable closed pair.
+  # M-P17-F: "...are FORBIDDEN under the initial reading, but that is no longer" → RED.
+  # M-P18-G: "however current practice permits ledger writes" in sibling para → RED.
+  # Correct text uses em-dash (—) not adversative → GREEN.
   local forbidden_sentences_with_adversative
-  forbidden_sentences_with_adversative="$(printf '%s\n' "$joined_block_nosplit" | sed 's/\. /\n/g' | \
-    grep -E 'FORBIDDEN|forbidden' | \
-    grep -E 'but[[:space:]]|however|except[[:space:]]+that|though[[:space:]]' || true)"
+  forbidden_sentences_with_adversative="$(printf '%s\n' "$write_discipline_prose_nosplit" | perl -pe 's/\.[[:space:]]+(?=[A-Z*`\[])/.\n/g' | \
+    grep -E 'FORBIDDEN|forbidden|prohibition|prohibited|the[[:space:]]+rule|this[[:space:]]+rule|the[[:space:]]+constraint|above' | \
+    grep -E 'but[[:space:]]|however|except[[:space:]]+that|though[[:space:]]|whereas|nevertheless|that[[:space:]]+said|in[[:space:]]+practice|notwithstanding' || true)"
   if [ -n "$forbidden_sentences_with_adversative" ]; then
-    echo "DOC-PARITY FAIL [write-discipline prohibition block adversative-connective on FORBIDDEN sentence (Gate 2b(c), F-S2104-P17-003(c))]: a sentence containing FORBIDDEN is qualified by an adversative connective (but/however/except that/though) — M-P17-F 'are FORBIDDEN under the initial reading, but that is no longer the operative rule' exploits 'but ' to nullify the constraint while preserving the FORBIDDEN token; the correct text's FORBIDDEN sentence uses em-dash (—) not adversative and passes this gate (BC-6.26.001 PC1; AC-001(a))"
+    echo "DOC-PARITY FAIL [write-discipline section-wide adversative-connective on prohibition-reference sentence (Gate 2b(c), F-S2104-P17-003(c)/F-S2104-P18-005(a)/(b))]: a sentence referencing the prohibition (FORBIDDEN|forbidden|prohibition|prohibited|the rule|this rule|the constraint|above) is qualified by an adversative connective (but/however/except that/though/whereas/nevertheless/that said/in practice/notwithstanding) — domain re-scoped section-wide so sibling-paragraph adversatives are caught; trigger widened so 'prohibition' and 'the rule' sentences also captured; M-P17-F exploits 'but ', M-P18-G exploits 'however...permits'; correct text uses em-dash (—) not adversative (BC-6.26.001 PC1; AC-001(a))"
     printf '%s\n' "$forbidden_sentences_with_adversative"
     false
   fi
 
-  # Gate 4 (NEGATIVE, section-scoped; F-S2104-P14-001 / F-S2104-P15-001 / F-S2104-P17-001(a)):
-  # Extended to whole #### Write Discipline section (write_discipline_prose_nosplit). No sentence
-  # in the section may contain both 'absolute' and 'FORBIDDEN'. In the correct text:
-  #   S1 "...MUST use canonical absolute paths..." — 'absolute' present, 'FORBIDDEN' absent → PASSES.
-  #   S2 "CWD-relative paths...are FORBIDDEN..." — 'FORBIDDEN' present, 'absolute' absent → PASSES.
-  # M-P15-A S3: "Canonical absolute artifact-write paths...are FORBIDDEN" — has both → RED.
-  # Per-sentence evaluation (not per-line) per F-S2104-P15-001; write_discipline_prose_nosplit for splits.
+  # Gate 4 (NEGATIVE, section-scoped; F-S2104-P14-001 / F-S2104-P15-001 / F-S2104-P17-001(a) /
+  # F-S2104-P18-003): Extended to whole #### Write Discipline section (write_discipline_prose_nosplit,
+  # fence content now included). No sentence may contain both 'absolute' and 'FORBIDDEN'. In the
+  # correct text: S1 "...MUST use canonical absolute paths..." — 'absolute' present, 'FORBIDDEN'
+  # absent → PASSES. S2 "CWD-relative paths...are FORBIDDEN..." — 'FORBIDDEN' present, 'absolute'
+  # absent → PASSES. M-P15-A S3: "Canonical absolute artifact-write paths...are FORBIDDEN" → RED.
+  # Per-sentence evaluation using boundary-rule splitter (F-S2104-P18-003): splits on \. followed
+  # by [A-Z*`\[] only — prevents 'No. 523' false boundary from M-P18-B that separated 'absolute'
+  # and 'FORBIDDEN' onto different sentences, silencing Gate 4 at 9/9 with the old splitter.
+  # CONTROL-B (same sentence without 'No. ') is the isolating mutant for Gate 4.
   local forbidden_absolute_sentences
   forbidden_absolute_sentences="$(printf '%s\n' "$write_discipline_prose_nosplit" | \
-    sed 's/\. /\n/g' | grep -E 'absolute' | grep -E '(FORBIDDEN|forbidden)' || true)"
+    perl -pe 's/\.[[:space:]]+(?=[A-Z*`\[])/.\n/g' | grep -E 'absolute' | grep -E '(FORBIDDEN|forbidden)' || true)"
   if [ -n "$forbidden_absolute_sentences" ]; then
     echo "DOC-PARITY FAIL [write-discipline section-wide FORBIDDEN-polarity (sentence-scoped; F-S2104-P17-001(a))]: a sentence in the Write Discipline section contains both 'absolute' and 'FORBIDDEN' — in the correct text absolute paths are MANDATED (MUST), not the FORBIDDEN subject; M-P15-A S3 'Canonical absolute artifact-write paths...are FORBIDDEN' triggers this gate (BC-6.26.001 PC1; AC-001(a); F-S2104-P14-001 / F-S2104-P15-001)"
     false
   fi
 
   # Gate 5 (NEGATIVE, section-scoped; F-S2104-P14R-001(b) / F-S2104-P15-001 / F-S2104-P17-001(a)):
-  # Extended to whole #### Write Discipline section (write_discipline_prose_nosplit). No sentence
-  # in the section may contain both 'MUST' and a prohibited-subject form.
+  # Extended to whole #### Write Discipline section (write_discipline_prose_nosplit, fence content
+  # now included). No sentence may contain both 'MUST' and a prohibited-subject form.
   # Correct text: S1 "...MUST use canonical absolute paths..." — MUST present, no prohibited form;
   #   S2 "CWD-relative paths...are FORBIDDEN..." — prohibited form present, no MUST → PASSES.
-  # M-P17-A S1: "Writers MUST anchor every .factory/** artifact write to the story worktree CWD"
-  #   — second paragraph in the section; MUST + story worktree CWD → Gate 5 fires → RED.
   # M-P15-A S1: "...MUST use CWD-relative paths..." — MUST+CWD-relative → RED.
-  # M-P14-A: "MUST use CWD-relative paths" → RED.
-  # M-P14R-A: "MUST use relative paths" → relative path form → RED.
-  # Synonym vector (worktree-relative): "MUST use worktree-relative paths" → RED.
-  # M-P16-C2 + abbreviation-protected splitter → mandate sentence retains cf_ABBREV_ CWD-relative
-  #   → MUST + relative path in mandate sentence → Gate 5 fires → RED (defense-in-depth).
+  # M-P14-A: "MUST use CWD-relative paths" → RED. M-P14R-A: "MUST use relative paths" → RED.
+  # M-P16-C2 + abbreviation-protected splitter → cf_ABBREV_ CWD-relative → Gate 5 fires → RED.
   # POLICY-13 syntactic-form class alternation; write_discipline_prose_nosplit for splits.
+  # NOTE (F-S2104-P18-006 correction): M-P17-A fires Gate PW-B (no prohibition token on 'story
+  # worktree CWD') but does NOT fire Gate 5 independently — M-P17-A's sentence contains 'MUST'
+  # and 'story worktree CWD', but 'story worktree CWD' is NOT in Gate 5's alternation class
+  # (CWD-relative|worktree-relative|relative path). Isolating mutant for Gate 5: "Writers MUST
+  # use relative paths for ledger writes." in a sibling paragraph (mandate unchanged) → Gate 5
+  # fires alone → RED. This is independent of Gate PW-B (which requires a prohibited-target form
+  # per its own class) and of Gate 1(a/b/c/d) (which use joined_block_nosplit, not section-wide).
   local must_relative_sentences
   must_relative_sentences="$(printf '%s\n' "$write_discipline_prose_nosplit" | \
-    sed 's/\. /\n/g' | grep -E 'MUST' | \
+    perl -pe 's/\.[[:space:]]+(?=[A-Z*`\[])/.\n/g' | grep -E 'MUST' | \
     grep -E 'CWD-relative|worktree-relative|relative[[:space:]]+path' || true)"
   if [ -n "$must_relative_sentences" ]; then
-    echo "DOC-PARITY FAIL [write-discipline section-wide MUST-relative-polarity (sentence-scoped; F-S2104-P17-001(a))]: a sentence in the Write Discipline section contains both 'MUST' and a prohibited-subject form (CWD-relative, worktree-relative, or relative path) — in the correct text MUST mandates canonical absolute paths; M-P17-A S1 'MUST anchor...to the story worktree CWD' triggers this gate on the second paragraph; M-P15-A/M-P14-A/M-P14R-A/M-P16-C2 trigger it on the prohibition paragraph; POLICY-13 alternation (BC-6.26.001 PC1; AC-001(a); F-S2104-P14R-001 / F-S2104-P15-001)"
+    echo "DOC-PARITY FAIL [write-discipline section-wide MUST-relative-polarity (sentence-scoped; F-S2104-P17-001(a))]: a sentence in the Write Discipline section contains both 'MUST' and a prohibited-subject form (CWD-relative, worktree-relative, or relative path) — in the correct text MUST mandates canonical absolute paths; M-P15-A/M-P14-A/M-P14R-A/M-P16-C2 trigger it on the prohibition paragraph; isolating mutant 'Writers MUST use relative paths for ledger writes.' in sibling paragraph → Gate 5 alone fires; POLICY-13 alternation (BC-6.26.001 PC1; AC-001(a); F-S2104-P14R-001 / F-S2104-P15-001)"
+    false
+  fi
+
+  # Gate write-directive (POSITIVE, open-trigger; F-S2104-P18-001 / F-S2104-P18-005(d)):
+  # Every sentence in write_discipline_prose_nosplit containing a write-directive token
+  # (MUST|SHOULD|permits|is acceptable|is the required form|is preferred|may) AND an action
+  # word (anchor|write|writes) MUST either carry a prohibition token OR match the affirmative
+  # canonical mandate 'MUST use canonical absolute'. Any other write-directive + action sentence
+  # is a competing mandate, whatever destination it names.
+  # Open-trigger design (POLICY 13 FAIL-CLOSED-IMPLICATION-DIRECTION): the trigger covers any
+  # write-directive + action combination; the requirement is the escape clause. This closes the
+  # PW-B open-list problem — PW-B catches named prohibited destinations, this gate catches any
+  # mandate whose destination is unnamed or paraphrased.
+  # Trigger class widened (F-S2104-P18-005(d)): adds permits|is acceptable|is the required form|
+  # is preferred|may — M-P18-G "however current practice permits ledger writes" → 'permits' +
+  # 'writes' without prohibition token → this gate fires in addition to 2b(c).
+  # Alternation-direction: (b) open — any write-directive+action sentence is in scope; the two
+  # escape clauses (prohibition token, canonical-absolute match) are the load-bearing constants.
+  # This is backed by itself (positive open-trigger): a new adversative paraphrase path that
+  # circumvents 2b(c) will still arrive here if it contains a write-directive + action word.
+  # Adversary verified empty-on-pristine (literal shell in pass-18 report Part A).
+  # M-P18-A: "Writers MUST anchor every .factory/** artifact write to the worktree's .factory/
+  #   subtree; the canonical-absolute form applies to spec reads from the main checkout."
+  #   → MUST + anchor + write, no prohibition token, no canonical-absolute → RED.
+  # Control: replace "MUST anchor ... subtree" with "MUST use canonical absolute paths"
+  #   → escape clause hit → GREEN (proves escape is not vacuous).
+  local write_directive_violations
+  write_directive_violations="$(printf '%s\n' "$write_discipline_prose_nosplit" | perl -pe 's/\.[[:space:]]+(?=[A-Z*`\[])/.\n/g' | \
+    grep -E 'MUST|SHOULD|permits|is acceptable|is the required form|is preferred|may' | \
+    grep -E 'anchor|write|writes' | \
+    grep -Ev 'FORBIDDEN|Forbidden|forbidden|MUST NOT|prohibited|never|forbid' | \
+    grep -Ev 'MUST[[:space:]]+use[[:space:]]+canonical[[:space:]]+absolute' || true)"
+  if [ -n "$write_directive_violations" ]; then
+    echo "DOC-PARITY FAIL [write-directive gate: write-directive sentence without prohibition or canonical-absolute escape (F-S2104-P18-001/F-S2104-P18-005(d))]: a sentence in the Write Discipline section contains a write-directive (MUST|SHOULD|permits|is acceptable|is the required form|is preferred|may) and an action word (anchor|write|writes) without either a prohibition token or 'MUST use canonical absolute' — any such sentence is a competing mandate regardless of the destination named; M-P18-A 'Writers MUST anchor every .factory/** artifact write to the worktree's .factory/ subtree' has no prohibition token and no canonical-absolute escape (BC-6.26.001 PC1; AC-001(a); F-S2104-P18-001)"
+    printf '%s\n' "$write_directive_violations"
     false
   fi
 
