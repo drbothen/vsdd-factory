@@ -21,7 +21,7 @@ This review was therefore **orchestrator-authored**. Per L-EDP1-074 (orchestrato
 
 ## Summary
 
-Pass-20 orchestrator-authored review of S-21.04 at `reviewed_head a2112e8d` (pre-fix, post-pass-19 bats count-word fix). **2 findings: B2 / H0 / M0.** Plus 1 MEDIUM open follow-on F-S2104-P20-003. Trajectory 14→18→17→12→11→11→9→9→10→11→7→10→10→13→7→6→7→7→12→2. Streak: **0/3** (NOT-CLEAN resets per BC-5.39.001; provenance deviation noted above).
+Pass-20 orchestrator-authored review of S-21.04 at `reviewed_head a2112e8d` (pre-fix, post-pass-19 bats count-word fix). **3 findings: B2 / H0 / M1.** Trajectory 14→18→17→12→11→11→9→9→10→11→7→10→10→13→7→6→7→7→12→3. Streak: **0/3** (NOT-CLEAN resets per BC-5.39.001; provenance deviation noted above).
 
 Baseline by literal execution at HEAD: `bats story-worktree-write-path-discipline.bats` → `1..9`, 9/9 ok; `bats worktree-identity-preflight.bats` → `1..14`, 14/14 ok. (Both suites confirmed passing at `a2112e8d`.)
 

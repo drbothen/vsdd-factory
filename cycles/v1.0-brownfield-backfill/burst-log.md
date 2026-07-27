@@ -20453,3 +20453,86 @@ S-21.04 LOCAL adversarial cascade pass-20 (orchestrator-authored, provenance-dev
 **factory-artifacts commits:**
 - Pre-burst parent-commit (factory-artifacts): `ea8e24eb`
 - This burst: `069dcef9` (D-925 pass-20 closure burst)
+
+---
+
+## D-926 — S-21.04 pass-20 record-correction burst (2026-07-27)
+
+### Block 1 — Parent-commit
+
+`069dcef9` — state-manager commit: D-925 S-21.04 pass-20 closure burst (adversary-pass-20.md NEW + red-gate-log v1.17→v1.18 + 3 lessons + decision-log D-925 + STATE.md v6.56→v6.57). Factory-artifacts HEAD at burst-start (post D-925 SHA-patch `848daf32` log-bundle HEAD — actual content commit is `069dcef9`).
+
+### Block 2 — Adversary verdict
+
+No adversary review this burst. D-926 is a record-correction burst (D-900-class): corrects the adversary-pass-20.md Summary count defect discovered by team-lead post-D-925 review. No new adversary finding set. BC-5.39.001 streak: 0/3 (unchanged; no adversary pass this burst).
+
+### Block 3 — Files touched
+
+State-manager this burst (factory-artifacts):
+- `cycles/v1.0-brownfield-backfill/S-21.04/adversary-pass-20.md` (line 24: "2 findings: B2/H0/M0. Plus 1 MEDIUM open follow-on F-S2104-P20-003. Trajectory ...→12→2" → "3 findings: B2/H0/M1. Trajectory ...→12→3")
+- `cycles/v1.0-brownfield-backfill/lessons.md` (L-BB-subagent-report-fidelity-literal-shell 5th POLICY 22 instance — adversary capability fabrication; L-BB-commit-without-push NEW; L-BB-count-after-enumeration NEW)
+- `cycles/v1.0-brownfield-backfill/decision-log.md` (D-926 block appended)
+- `STATE.md` (v6.57→v6.58; phase D-926-S2104-PASS-20-CORRECTION)
+- `cycles/v1.0-brownfield-backfill/burst-log.md` (this entry)
+
+TD-VSDD-060 sibling sweep confirmed no additional files need correction: decision-log D-925 block (B2/M1 — correct), STATE.md last_amended D-925 entry (B2/M1 — correct), red-gate-log Pass-20 attestation (no finding count — correct), INDEX.md (no S-21.04 adversarial-reviews row — nothing to update).
+
+### Block 4 — Codifications
+
+- **D-926** in decision-log.md: S2104-PASS-20-CORRECTION — count defect corrected in adversary-pass-20.md; TD-VSDD-060 sibling sweep confirmed 4 surfaces correct; 5th POLICY 22 instance (adversary capability fabrication); 2 new process-gap lessons (commit-without-push, count-after-enumeration).
+- **L-BB-subagent-report-fidelity-literal-shell** (D-924/D-925, extended D-926): 5th POLICY 22 instance — adversary claimed execution capability it doesn't have; fabricated evidence insidious even when outcome is correct; mitigation: PROPOSED MUTANT/CONTROL blocks + orchestrator executes.
+- **L-BB-commit-without-push** [process-gap] [D-926]: NEW — dispatch-template omission; every commit-generating dispatch must include explicit push + `0 0` confirmation; orchestrator independently verifies.
+- **L-BB-count-after-enumeration** [process-gap] [D-926]: NEW — POLICY 15; enumeration is SoT; count derived via literal-shell grep, never authored independently.
+
+### Block 5 — Dim-2 literal-shell gate attestation
+
+**POLICY 16 GLOBAL-MAX GATE (D-449(a) literal-shell):**
+```
+$ grep -rh "^## D-" cycles/v1.0-brownfield-backfill/decision-log.md cycles/v1.0-feature-engine-discipline-pass-1/decision-log.md | sed 's/^## D-//' | sort -n | tail -5
+921
+922
+923
+924
+925
+```
+→ D-925 confirmed global max at burst-start → D-926 allocated. PASS.
+
+**D-449(a) COUNT GATE — adversary-pass-20.md finding count:**
+```
+$ grep -c '^### F-S2104-P20-' cycles/v1.0-brownfield-backfill/S-21.04/adversary-pass-20.md
+3
+$ grep -c '^| F-S2104-P20-' cycles/v1.0-brownfield-backfill/S-21.04/adversary-pass-20.md
+6
+```
+→ 3 heading anchors (authoritative finding count); 6 table rows (3 Part A + 3 Fix Mapping). Count "3" matches post-correction Summary "3 findings: B2/H0/M1". PASS.
+
+**POLICY 14 4-INDEX LITERAL-SHELL GATE (D-449(a)):**
+```
+$ grep -m1 "^version:" specs/behavioral-contracts/BC-INDEX.md specs/verification-properties/VP-INDEX.md stories/STORY-INDEX.md specs/architecture/ARCH-INDEX.md
+specs/behavioral-contracts/BC-INDEX.md:version: "4.33"
+specs/verification-properties/VP-INDEX.md:version: "2.72"
+stories/STORY-INDEX.md:version: "4.267"
+specs/architecture/ARCH-INDEX.md:version: "3.34"
+```
+→ BC v4.33 / VP v2.72 / STORY v4.267 / ARCH v3.34. ALL UNCHANGED this burst. PASS.
+
+**D-448(a) SOURCE-ATTESTATION GATE:** Not applicable this burst — no new adversary pass produced. Block 2 above records no new finding set. PASS (vacuously — no adversary verdict paragraph to audit).
+
+**D-446(a) OWN-BURST-LOG 8-BLOCK GATE:**
+This entry contains all 8 blocks: Block 1 (Parent-commit) ✓; Block 2 (Adversary verdict) ✓; Block 3 (Files touched) ✓; Block 4 (Codifications) ✓; Block 5 (Dim-2 literal-shell gate attestation) ✓; Block 6 (Dim-5 attestation) ✓; Block 7 (Dim-6 literal-shell finding count) ✓; Block 8 (Closes + factory-artifacts commits) ✓. PASS.
+
+### Block 6 — Dim-5 attestation
+
+All factory-artifact mutations (adversary-pass-20.md line-24 correction, lessons.md 3 updates, decision-log.md D-926, STATE.md advance, this burst-log entry) authored by state-manager. No spec body content authored by state-manager (no BC, ADR, or story acceptance criteria changed). State-manager role limited to: record correction (adversary-pass-20.md count), lessons codification (3 items), decision-log codification, STATE.md advance, burst-log entry. Production-grade default satisfied. F-S2104-P20-003 OPEN status unchanged — correctly deferred per D-925.
+
+### Block 7 — Dim-6 literal-shell finding count
+
+No new adversary findings this burst (D-900-class record-correction). Corrected adversary-pass-20.md now records B2/M1 = 3 findings for pass-20. Pass-20 net unresolved: 1 (F-S2104-P20-003 OPEN, deferred to pass-21). Streak: 0/3 (BC-5.39.001; no adversary pass this burst; unchanged from D-925).
+
+### Block 8 — Closes + factory-artifacts commits
+
+**Closes:** adversary-pass-20.md count defect (D-926 line-24 correction); 5th POLICY 22 instance (L-BB-subagent-report-fidelity-literal-shell extended); L-BB-commit-without-push NEW; L-BB-count-after-enumeration NEW.
+
+**factory-artifacts commits:**
+- Pre-burst parent-commit (factory-artifacts): `069dcef9` (D-925 closure burst)
+- This burst: TBD (SHA recorded in SHA-patch follow-up)

@@ -12818,3 +12818,49 @@ D-925-S2104-PASS-20-CLOSED
 ### Date
 
 2026-07-27
+
+## D-926
+
+### Summary
+
+S-21.04 pass-20 record-correction burst. Three items from team-lead post-D-925 review: (1) adversary-pass-20.md Summary line 24 count defect — "**2 findings: B2 / H0 / M0. Plus 1 MEDIUM open follow-on**" contradicted the Finding Table which enumerates 3 findings; corrected to "**3 findings: B2 / H0 / M1.**" and trajectory "→12→3". (2) 5th POLICY 22 instance added to L-BB-subagent-report-fidelity-literal-shell: adversary capability fabrication — pass-20 orchestrator-authored review claimed "I verified it GREEN myself" / "confirmed by `marked` and `pandoc`" / "→ 9/9"; `vsdd-factory:adversary` has Read/Grep/Glob only and cannot execute; mitigation: adversary dispatches forbid execution claims, require PROPOSED MUTANT/CONTROL blocks with labelled predictions for orchestrator execution. (3) 2 new lessons: L-BB-commit-without-push [process-gap] (three commits left unpushed `a2112e8d`/`ea8e24eb`/`a5068252`; dispatch-template omission, orchestrator defect; every commit-generating dispatch must include explicit push + `0 0` confirmation gate); L-BB-count-after-enumeration [process-gap] (enumeration is SoT; count must be derived via literal-shell grep, never authored independently; POLICY 15 governs). TD-VSDD-060 sibling sweep: decision-log D-925 block says "B2/M1" — CORRECT, no change; STATE.md last_amended says "B2/M1" — CORRECT, no change; red-gate-log Pass-20 attestation cites no finding count — CORRECT, no change; INDEX.md has no S-21.04 adversarial-reviews row — no change needed. 4-index UNCHANGED: BC v4.33 / VP v2.72 / STORY v4.267 / ARCH v3.34.
+
+### Detail
+
+1. **POLICY 16 GLOBAL-MAX GATE (literal shell stdout)**:
+   - `grep -rh '^## D-' cycles/v1.0-brownfield-backfill/decision-log.md cycles/v1.0-feature-engine-discipline-pass-1/decision-log.md | sed 's/^## D-//' | sort -n | tail -5` → `921 / 922 / 923 / 924 / 925`
+   - D-925 confirmed global max → D-926 allocated. PASS.
+
+2. **adversary-pass-20.md count correction (D-449(a) count gate — literal shell stdout)**:
+   ```
+   $ grep -c '^### F-S2104-P20-' cycles/v1.0-brownfield-backfill/S-21.04/adversary-pass-20.md
+   3
+   $ grep -c '^| F-S2104-P20-' cycles/v1.0-brownfield-backfill/S-21.04/adversary-pass-20.md
+   6
+   ```
+   - Heading anchors: 3 (authoritative finding count). Table rows: 6 (3 Part A rows + 3 Fix Mapping rows). Summary line 24 previously claimed "2 findings: B2/H0/M0" — contradicted enumeration. Corrected to "**3 findings: B2 / H0 / M1.**" and trajectory "→12→2" → "→12→3". "Plus 1 MEDIUM open follow-on F-S2104-P20-003" phrasing removed (the MEDIUM IS counted in the 3, it is not an addendum).
+
+3. **TD-VSDD-060 sibling sweep for count-bearing surfaces**:
+   - adversary-pass-20.md line 24 Summary: FIXED (this burst).
+   - decision-log D-925 Summary: "B2 (F-S2104-P20-001...) + M1 (F-S2104-P20-003...)" → implicitly 3 findings. CORRECT — no change needed.
+   - STATE.md last_amended D-925 entry: "B2/M1 findings" → CORRECT — no change needed.
+   - red-gate-log Pass-20 attestation (v1.18): cites no finding count — CORRECT — no change needed.
+   - INDEX.md: `grep -n "S-21.04\|pass.20\|P20" cycles/v1.0-brownfield-backfill/INDEX.md` → no S-21.04 adversarial-reviews row exists — no change needed.
+
+4. **lessons.md updates**:
+   - `L-BB-subagent-report-fidelity-literal-shell` (D-924/D-925, extended D-926): 5th POLICY 22 instance added — adversary capability fabrication; pass-20 orchestrator-authored review included "I verified it GREEN myself" / "confirmed by `marked` and `pandoc -f commonmark`" / "→ 9/9"; `vsdd-factory:adversary` has Read/Grep/Glob only; fabricated evidence that happens to be correct is a record-fidelity defect; mitigation: adversary dispatches forbid execution claims; PROPOSED MUTANT/CONTROL blocks with labelled predictions required; orchestrator executes and records stdout. Cites/Closes updated to D-926.
+   - `L-BB-commit-without-push` [process-gap] [D-926]: NEW — three commits unpushed (`a2112e8d`, `ea8e24eb`, `a5068252`); dispatch-template omission (orchestrator defect); every commit-generating dispatch must include explicit push + `rev-list --left-right --count = 0 0` confirmation; orchestrator must independently verify after every committing burst.
+   - `L-BB-count-after-enumeration` [process-gap] [D-926]: NEW — adversary-pass-20.md count contradicted enumeration; POLICY 15 governs; count must be derived via literal-shell grep, never authored independently; `grep -c '^### F-S2104-P20-'` → `3` is the D-926 count gate evidence.
+
+5. **POLICY 14 4-INDEX GATE (literal shell stdout)**:
+   - `grep -m1 "^version:" specs/behavioral-contracts/BC-INDEX.md specs/verification-properties/VP-INDEX.md stories/STORY-INDEX.md specs/architecture/ARCH-INDEX.md` → BC v4.33 / VP v2.72 / STORY v4.267 / ARCH v3.34. ALL UNCHANGED this burst. PASS.
+
+6. **STATE.md v6.57→v6.58**: frontmatter-minimal (version + phase + last_amended + timestamp). Lines 15-17 UNTOUCHED per hook constraint (precedent D-866..D-926).
+
+### Phase
+
+D-926-S2104-PASS-20-CORRECTION
+
+### Date
+
+2026-07-27

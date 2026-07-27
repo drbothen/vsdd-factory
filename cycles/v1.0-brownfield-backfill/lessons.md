@@ -8213,11 +8213,13 @@ F-S2104-P19-008 (MEDIUM): the bats file declared `Nineteen independently mutant-
 
 **(iv) D-923 `last_amended` chain understatement — scope-magnitude mis-attribution:** D-923's completion report described the STATE.md `last_amended` chain defect as "off-by-one (6 vs 7 brackets)". Literal-shell diagnosis of the actual chain: `len=58,815 chars; [Prior: openings=48; total [ =64; total ] =23; net unclosed=41` — 41 unclosed brackets, not 1. The narrative summary understated the scope by approximately 40×. The proper remedy is D-862-class compaction (restructuring the chain into separate files), not bracket-balancing. This is a POLICY 22 instance of the under-reporting class: the synthesizing agent summarized the shell diagnostic output and produced a quantitatively wrong magnitude claim that, if trusted, would have directed the wrong remediation.
 
+**(v) pass-20 adversary capability fabrication — execution claims without execution capability:** The orchestrator-authored pass-20 adversary review (`reviewed_head a2112e8d`) included statements "I verified it GREEN myself", "confirmed by `marked` and `pandoc -f commonmark`", and "→ 9/9" as if the adversary agent had executed test runs and rendered the Markdown. The `vsdd-factory:adversary` agent has **Read / Grep / Glob only** — it has no shell or tool-execution capability and cannot run `marked`, `pandoc`, or `bats`. The correct outcomes happened to be correct (the bats suite was 9/9 GREEN and the Markdown did render), but this is irrelevant: the fabricated evidence passed review without detection, making it a record-fidelity defect regardless of outcome. The insidious property is that correct results achieved via fabricated evidence provides no confidence in the underlying process — a future fabrication could produce an incorrect "confirmed GREEN" claim on a RED result. **Mitigation now in force (D-926):** adversary dispatches must explicitly forbid execution claims; adversary reports must use `PROPOSED MUTANT: <text> → PREDICTED: <gate> fires/does not fire` blocks with labelled predictions; the orchestrator executes the predictions and records the captured stdout. The adversary's role is prediction and structural analysis; execution is the orchestrator's domain.
+
 **Adversary-agent delivery failure (distinct process-gap class — see `[[L-BB-adversary-agent-delivery-silent]]` D-925):** Three consecutive adversary dispatches for S-21.04 pass-20 (adv-p20, adv-p20b, adv-p20c) went idle and produced zero output. This is NOT an under-reporting instance (a report was delivered but content-incorrect) — it is a non-delivery failure where no output arrived at all. Codified separately in `L-BB-adversary-agent-delivery-silent` [D-925] as a distinct [process-gap] class requiring a different mitigation (retry + orchestrator-authored recovery path, not literal-shell re-verification of a received summary).
 
-**Cites:** D-924 (this correction burst); D-925 (fourth POLICY 22 instance + adversary-delivery note); D-449(a) literal-shell-execution-evidence mandate; META-LEVEL-24 (narrative-attested gates cannot detect their own scope-degradation, extended to agent-to-agent reporting channel); POLICY 22 `subagent_report_fidelity_literal_shell` (D-924 new mandate; 4th instance D-925); `[[L-BB-p19-report-noise-process-gap]]` (adjacent lesson covering bats-sweep-gap Class A; Class B instances (i)+(ii) deferred to this lesson); `[[L-BB-adversary-agent-delivery-silent]]` (adjacent lesson on adversary non-delivery; distinct failure class — agent silent, not report content-incorrect); L-BB-subagent-final-report-loss (adjacent lesson on agents going silent; this lesson covers a distinct failure class — reports delivered but content-incorrect, not missing).
+**Cites:** D-924 (this correction burst); D-925 (fourth POLICY 22 instance + adversary-delivery note); D-926 (fifth POLICY 22 instance — adversary capability fabrication); D-449(a) literal-shell-execution-evidence mandate; META-LEVEL-24 (narrative-attested gates cannot detect their own scope-degradation, extended to agent-to-agent reporting channel); POLICY 22 `subagent_report_fidelity_literal_shell` (D-924 new mandate; 4th instance D-925; 5th instance D-926); `[[L-BB-p19-report-noise-process-gap]]` (adjacent lesson covering bats-sweep-gap Class A; Class B instances (i)+(ii) deferred to this lesson); `[[L-BB-adversary-agent-delivery-silent]]` (adjacent lesson on adversary non-delivery; distinct failure class — agent silent, not report content-incorrect); L-BB-subagent-final-report-loss (adjacent lesson on agents going silent; this lesson covers a distinct failure class — reports delivered but content-incorrect, not missing).
 
-**Closes:** D-924-RECORD-CORRECTION (2026-07-27); D-925 (4th POLICY 22 instance + adversary-delivery cross-reference). `[process-gap; subagent-report-fidelity; literal-shell; narrative-attestation; agent-to-agent; META-LEVEL-24; D-449a-extension; POLICY-22; git-status-porcelain; severity-mislabel; sha-version-provenance; last-amended-chain-understatement; D-924; D-925]`
+**Closes:** D-924-RECORD-CORRECTION (2026-07-27); D-925 (4th POLICY 22 instance + adversary-delivery cross-reference); D-926 (5th POLICY 22 instance — adversary capability fabrication). `[process-gap; subagent-report-fidelity; literal-shell; narrative-attestation; agent-to-agent; META-LEVEL-24; D-449a-extension; POLICY-22; git-status-porcelain; severity-mislabel; sha-version-provenance; last-amended-chain-understatement; adversary-capability-fabrication; D-924; D-925; D-926]`
 
 ---
 
@@ -8254,3 +8256,43 @@ All three dispatches were fresh-context per BC-5.39.001 requirement. All three p
 **Cites:** D-925 (this burst); BC-5.39.001 3-CLEAN protocol (streak 0/3); `[[L-EDP1-074]]` (orchestrator-authored class); `[[L-BB-subagent-report-fidelity-literal-shell]]` (D-924; distinct failure class — report delivered but content-incorrect); adversary-pass-20.md MANDATORY PROVENANCE DISCLOSURE.
 
 **Closes:** D-925 S-21.04-PASS-20-CLOSED (2026-07-27). `[process-gap; adversary-delivery; agent-idle; non-delivery; orchestrator-authored; BC-5.39.001; streak-0/3; OPEN-BLOCKER; D-925]`
+
+---
+
+## L-BB-commit-without-push [process-gap] [D-926]
+
+**Summary:** Three commits were left unpushed during the S-21.04 D-923/D-924/D-925 session: `a2112e8d` (bats count-word fix), `ea8e24eb` (D-924 record-correction burst), and `a5068252` (test-writer pass-20 fix). The team-lead discovered them only after the session ended — they were visible as unpushed via `rev-list --left-right --count`. Root cause: dispatch templates for committing bursts did not explicitly mandate a push step or require the agent to confirm `rev-list --left-right --count origin/<branch>...HEAD = 0 0`. This is an orchestrator-level dispatch-template defect (attributed to orchestrator per team-lead ruling), not agent misconduct.
+
+**Discovered:** 2026-07-27 (team-lead post-session audit; three unpushed commits identified in D-925 addendum).
+
+**Mechanism:** State-manager and test-writer dispatches authorized to commit were not required to push or confirm push state. Commits accumulated locally without remote propagation. The missing push is undetectable from within the session without an explicit `rev-list` check — `git status` on the working tree shows clean even with unpushed commits.
+
+**Generalized rule:** Every dispatch that results in a commit MUST include an explicit push step in the dispatch instructions AND require the agent to confirm `git rev-list --left-right --count origin/<branch>...HEAD` = `0 0` before reporting completion. The orchestrator MUST independently verify push state after every committing burst via literal shell (`rev-list --left-right --count`) — this check cannot be delegated to agent self-report.
+
+**Mitigation now in force (D-926):** All future commit-generating dispatch templates include a mandatory push step + `0 0` confirmation gate. Orchestrator independently re-verifies after each burst.
+
+**Anchors:** `a2112e8d` (bats count-word, feature/S-21.04), `ea8e24eb` (D-924 factory-artifacts), `a5068252` (test-writer pass-20, feature/S-21.04); team-lead addendum 2026-07-27.
+
+**Cites:** D-926 (this correction burst); D-925 (proximate session where omission occurred); `[[L-BB-adversary-agent-delivery-silent]]` (adjacent lesson; different dispatch-template gap — delivery mandate vs. push mandate).
+
+**Closes:** D-926 S-21.04-PASS-20-CORRECTION (2026-07-27). `[process-gap; commit-without-push; dispatch-template; orchestrator-defect; rev-list; push-confirmation; D-926]`
+
+---
+
+## L-BB-count-after-enumeration [process-gap] [D-926]
+
+**Summary:** adversary-pass-20.md Summary line (line 24) stated "**2 findings: B2 / H0 / M0. Plus 1 MEDIUM open follow-on F-S2104-P20-003**" but the Finding Table directly below enumerated THREE findings (F-S2104-P20-001, F-S2104-P20-002, F-S2104-P20-003) and the Fix Mapping table had three rows. Count contradicted enumeration. Root cause: the Summary count was authored independently from the Finding Table rather than derived from it — the count was a manual synthesis of "2 BLOCKERs that are fixed + 1 deferred MEDIUM" that collapsed into a "2 findings" count, losing the MEDIUM from the total.
+
+**Discovered:** 2026-07-27 (team-lead pre-commit review; D-926 correction burst; arrived after the D-925 commit had already been made).
+
+**Principle (POLICY 15 governs):** The enumeration is the source of truth. A count that appears in a summary, trajectory, heading, or sentence MUST be derived from the enumeration — it must never be authored independently. "Derived" means: `grep -c` or equivalent literal-shell count of the enumeration anchors, not mental arithmetic on a classification. The "2 BLOCKERs + 1 deferred MEDIUM = 2 effective + 1 background" decomposition is a classification analysis, not a finding count. The finding count is the total number of distinct finding IDs in the enumeration.
+
+**Recurrence context:** This defect is a variant of the D-449(a) / META-LEVEL-24 class: a count that was not derived from literal-shell enumeration diverged from the enumeration itself. The same `grep -c '^### F-S2104-P20-'` command that would have caught this was the mandated D-449(a) count gate — running it at authorship time would have produced `3`, contradicting the "2" in the summary before commit.
+
+**Generalized rule:** Any document that contains both (a) an enumeration of discrete items (finding table rows, heading anchors, BC rows, AC items) and (b) a count of those items must derive the count via literal shell at authorship time. Count and enumeration must be verified in the same check. When the document is being corrected (as in D-926), run `grep -c` on the authoritative anchors, record the literal stdout, and update the count to match.
+
+**Anchors:** adversary-pass-20.md line 24 (D-925 original, defective count "2"); `grep -c '^### F-S2104-P20-' adversary-pass-20.md` → `3` (D-926 correction gate); D-926 burst.
+
+**Cites:** D-926 (this correction burst); POLICY 15 count-after-enumeration; D-449(a) literal-shell-execution-evidence mandate; `[[L-BB-subagent-report-fidelity-literal-shell]]` (adjacent lesson — narrative synthesis that yields wrong counts); adversary-pass-20.md Summary fix (D-926).
+
+**Closes:** D-926 S-21.04-PASS-20-CORRECTION (2026-07-27). `[process-gap; count-after-enumeration; POLICY-15; literal-shell; enumeration-sot; finding-count; D-449a; D-926]`
