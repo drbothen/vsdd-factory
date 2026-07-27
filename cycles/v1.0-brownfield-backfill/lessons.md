@@ -8496,3 +8496,28 @@ Three consecutive fix reports in the S-21.04 cascade supplied incomplete regress
 **Cites:** D-928 (this burst — fourth occurrence and structural-fix codification); `[[L-BB-regression-against-incomplete-mutant-corpus]]` (adjacent lesson — why each instance was missed); F-S2104-P20-002, F-S2104-P20-003, F-S2104-P21-001 (the sequence); `[[L-EDP1-074]]` (orchestrator-authored class context).
 
 **Closes:** D-928 FIX-SEEDS-NEXT-DEFECT-PATTERN (2026-07-27). `[pattern; fix-seeds-defect; structural-fix; shared-definition; independently-maintained; instance-vs-class; fourth-occurrence; D-928]`
+
+---
+
+## [[L-BB-per-call-guard-body-edit-blocked]]
+
+**Category:** [process-gap]
+**Date:** 2026-07-28
+
+**Summary:** The `verify-state-timestamp-refresh` WASM guard (rc.23 AC-012 full-reconstruction semantics) fires per-Edit-tool-call on `.factory/STATE.md`. Body-only Edits are blocked even after a successful frontmatter-advance Edit already landed in the same session. MultiEdit (one payload containing a timestamp-advance sub-edit alongside body-change sub-edits) bypasses this by evaluating the net pre→post timestamp change across the whole payload. Without MultiEdit, the only alternatives are: (i) spanning Edit — `old_string` must span from `timestamp:` (line 7) continuously through the 65,447-char `last_amended:` line 9 to the target body section, requiring 75,000+ chars in a single payload; (ii) Write-tool full-file-rewrite of the 164KB STATE.md.
+
+**Why the spanning Edit is impractical:** STATE.md line 9 (`last_amended:`) is 65,447 chars. Any Edit whose `old_string` spans from `timestamp:` (line 7) to a body section (line 143 minimum) requires holding 75,000+ contiguous chars to construct the payload. Combined with the Read tool's 83,011-token limit on STATE.md and context-window budget, reading and assembling the full line 9 exhausts session capacity before the body change can be executed.
+
+**Why the Write-tool approach is also impractical:** STATE.md is 164,671 bytes (280 lines). The Write tool requires the full file content as a single parameter. Assembling 164KB — including the 65K `last_amended:` chain — in context is prohibitively expensive per session.
+
+**Pattern rule:** When STATE.md body edits are needed alongside a frontmatter `timestamp:` advance, MultiEdit (one payload) is the canonical tool. If MultiEdit is unavailable, document the block in the D-NNN decision record with the exact body-section content intended, and defer to the rc.24 AC-020 resolution path. Do NOT attempt spanning Edits with 65K+ `old_string`s — the context cost exceeds the editorial value and the probability of assembly error is high.
+
+**Recurrence pattern:** D-931 was the first occurrence (2026-07-27); D-932 is the second occurrence (2026-07-28) of the same blocking class in the same session arc. Both sessions had the same three STATE.md body sections deferred. The correct permanent fix is rc.24 AC-020, not session-level workarounds.
+
+**Environment dependency:** This blocking is rc.23-specific. AC-020 (PR #742, commit `ae263781`) resolves it in rc.24 by returning `Continue` for payload-neutral STATE.md body edits. The fix is on `origin/develop` ~42 commits ahead of rc.23. Merging rc.24 resolves this class globally.
+
+**Anchors:** D-931 (first STATE.md body-edit block; same mechanism); D-932 (second occurrence); `verify-state-timestamp-refresh` WASM guard; AC-012 (rc.23 blocking semantics); AC-020 (rc.24 resolution); STATE.md line 9 (65,447-char `last_amended:` spanning constraint).
+
+**Cites:** D-931 (first documentation); D-932 (this burst — second documentation); rc.24 AC-020 (resolution path); `[[L-BB-correlation-not-causation-diagnostic-failure]]` (same session — D-927 falsification).
+
+**Closes:** D-932 process-gap acknowledgment. `[process-gap; wasm-guard; per-call; body-edit-blocked; timestamp-advance; multiEdit-unavailable; spanning-edit-impractical; rc.23; ac-020; rc.24]`

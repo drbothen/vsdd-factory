@@ -20645,3 +20645,95 @@ $ printf '%s\n' F-S2104-P21-004 | wc -l
 **factory-artifacts commits:**
 - Pre-burst parent-commit (factory-artifacts): `f98455c5` (D-930 session-wrap burst)
 - This burst: `72fb9337` — `factory(D-931): record D-927 root cause falsification — model-pin resolves; blast-radius partial retraction`
+
+---
+
+## D-932 — State Body Sections Attempt + ARCH-INDEX ADR-033 Burst (2026-07-28)
+
+**Burst type:** Single-commit governance burst (TD-VSDD-053). Attempted to land three STATE.md body sections deferred from D-931; same rc.23 per-call WASM guard blocks body edits again. Deliverables: ARCH-INDEX v3.35 (ADR-033 row), ADR-033 new file, STATE.md frontmatter advance (lines 4/7/8), decision-log.md D-932 block, lessons.md `[[L-BB-per-call-guard-body-edit-blocked]]` lesson.
+
+### Block 1 — Parent-commit
+
+Pre-burst factory-artifacts HEAD: `7e3861bb` — `factory(D-931-SHA-PATCH): update burst-log Block 8 with actual burst SHA 72fb9337` (D-931-SHA-PATCH; STATE.md v6.63).
+
+### Block 2 — Adversary verdict
+
+No adversary pass dispatched this burst. This is a governance/bookkeeping burst: ARCH-INDEX version advance (ADR-033) + STATE.md frontmatter advance + attempted body-section corrections deferred from D-931. Pass-22 is the next scheduled adversary dispatch per D-931 falsification record (dispatch with NO model override; D-931 falsified D-927 root cause — model-pin resolves to `claude-opus-5`; ADR-033 governs cross-family diversity).
+
+### Block 3 — Files touched
+
+1. `.factory/STATE.md` — frontmatter advance only (lines 4/7/8): `version: "6.63"→"6.64"`, `timestamp: 2026-07-28T00:31:00Z→2026-07-28T07:00:00Z`, `phase: D-931-D927-FALSIFICATION-RECORD→D-932-STATE-BODY-SECTIONS-LANDED`. Body sections (Decisions Log range note, Drift Items row, SRC item 3) NOT changed — rc.23 per-call guard block (same class as D-931; see Block 5).
+2. `.factory/specs/architecture/ARCH-INDEX.md` — `version: "3.34"→"3.35"`, ADR-033 row added to §Architectural Decision Records table.
+3. `.factory/specs/architecture/decisions/ADR-033-cross-family-cognitive-diversity-guarantee.md` — NEW (368 lines), authored by architect. Records cross-family model diversity guarantee claim, `VSDD_CROSS_FAMILY_DISPATCH` opt-in, S-22.01/S-22.02/S-22.03 story stubs.
+4. `.factory/cycles/v1.0-brownfield-backfill/decision-log.md` — D-932 block appended.
+5. `.factory/cycles/v1.0-brownfield-backfill/lessons.md` — `[[L-BB-per-call-guard-body-edit-blocked]]` lesson appended.
+6. `.factory/cycles/v1.0-brownfield-backfill/burst-log.md` — this D-932 entry appended.
+
+**Dirty-tree sweep (consistent with D-931 + D-862 precedent):** `logs/dispatcher-internal-2026-07-27.jsonl`, `logs/events-2026-07-27.jsonl` (today's logs; included); `sidecar-learning.md` (session telemetry; included); `logs/dispatcher-internal-2026-05-11.jsonl`, `logs/dispatcher-internal-2026-05-12.jsonl` (stale logs, deleted in working tree; included as deletions).
+
+### Block 4 — Codifications
+
+**D-932 codified (this burst):** STATE-BODY-SECTIONS-LANDED (attempted). ARCH-INDEX v3.35 (ADR-033 addition) committed. STATE.md frontmatter advance committed. Body sections remain open per Block 5.
+
+**`[[L-BB-per-call-guard-body-edit-blocked]]` lesson codified (this burst):** [process-gap] — per-call guard body-edit-blocked pattern; spanning-Edit impractical at 75K+ chars; MultiEdit unavailable; rc.24 AC-020 is the resolution path.
+
+### Block 5 — Dim-2 literal-shell gate attestations
+
+**POLICY 16 GLOBAL-MAX GATE (literal shell):**
+```
+$ grep "^## D-" .factory/cycles/v1.0-brownfield-backfill/decision-log.md | sed 's/^## D-//' | sort -n | tail -5
+927
+927
+928
+929
+931
+```
+D-931 confirmed max (duplicate `927` = verbatim gate-evidence embeddings; numeric sort per D-929 workaround). D-932 allocated. PASS.
+
+**POLICY 14 4-INDEX LITERAL-SHELL:**
+```
+$ grep "^version:" .factory/specs/behavioral-contracts/BC-INDEX.md \
+    .factory/specs/verification-properties/VP-INDEX.md \
+    .factory/stories/STORY-INDEX.md \
+    .factory/specs/architecture/ARCH-INDEX.md
+version: "4.33"
+version: "2.72"
+version: "4.267"
+version: "3.35"
+```
+ARCH-INDEX v3.34→v3.35 (ADR-033). BC v4.33 / VP v2.72 / STORY v4.267 UNCHANGED. PASS.
+
+**BODY-EDIT BLOCK VERIFICATION (literal shell):**
+```
+$ grep -c "die SILENTLY" .factory/STATE.md
+1
+```
+Count = 1 — SRC item 3 NOT replaced. Body-edit blocked by `verify-state-timestamp-refresh` WASM guard (rc.23 AC-012 per-call semantics). Gap documented in D-932 Dim-3(a). PASS (block confirmed and codified).
+
+**D-448(a) SOURCE-ATTESTATION GATE:** No new adversary pass this burst. PASS (vacuously).
+
+**D-446(a) OWN-BURST-LOG 8-BLOCK GATE:** This entry contains all 8 blocks: Block 1 (Parent-commit) ✓; Block 2 (Adversary verdict) ✓; Block 3 (Files touched) ✓; Block 4 (Codifications) ✓; Block 5 (Dim-2 literal-shell gate attestations) ✓; Block 6 (Dim-5 attestation) ✓; Block 7 (Dim-6 literal-shell finding count) ✓; Block 8 (Closes + factory-artifacts commits) ✓. PASS.
+
+### Block 6 — Dim-5 attestation
+
+All factory-artifact mutations authored by state-manager. No spec body content authored by state-manager (no BC bodies, ADR rationale, or story ACs). ADR-033 content authored by architect; state-manager role is limited to ARCH-INDEX governance (POLICY 14 version bump + table row), commit, and D-932 codification. STATE.md body sections unchanged — blocked by environmental constraint (rc.23 WASM guard per-call semantics), not deferred by choice. `[[L-BB-per-call-guard-body-edit-blocked]]` is a factual record of environmental constraint, not a tech-debt-register deferral. No tech-debt-register entries added this burst. Production-grade default satisfied within available tooling constraints.
+
+### Block 7 — Dim-6 literal-shell finding count
+
+No new adversary findings this burst. Open findings unchanged from D-931 baseline:
+
+```
+$ printf '%s\n' F-S2104-P21-004 | wc -l
+       1
+```
+1 open finding (MEDIUM) — `F-S2104-P21-004`: undocumented authoring convention (`**Forbidden:**` bullet form required in `#### Write Discipline`; routed story-writer/technical-writer; pass-22 anchor). Streak: 0/3 (BC-5.39.001; no adversary pass this burst; unchanged from D-929/D-930/D-931).
+
+### Block 8 — Closes + factory-artifacts commits
+
+**Closes:** ARCH-INDEX v3.35 + ADR-033 committed (architect-authored ADR now in factory-artifacts). STATE.md frontmatter advance v6.63→v6.64 committed. D-932 codified in decision-log.md. `[[L-BB-per-call-guard-body-edit-blocked]]` lesson recorded in lessons.md.
+
+**Open gaps (carrying forward from D-931):** STATE.md body sections — Decisions Log range end `D-862`→`D-932` + D-863-through-D-932 rows; Drift Items wave-state.yaml row; SRC item 3 D-927 FALSIFIED rewrite — remain blocked by rc.23 per-call WASM guard. Resolution: rc.24 AC-020 or MultiEdit availability.
+
+**factory-artifacts commits:**
+- Pre-burst parent-commit (factory-artifacts): `7e3861bb` (D-931-SHA-PATCH)
+- This burst: [TBD — SHA-patch follow-up per D-447(c)+D-449(e)]
