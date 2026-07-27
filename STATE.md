@@ -255,97 +255,26 @@ dtu_services: []
 - `cycles/v1.0-feature-plugin-async-semantics-pass-1/burst-log.md` | `session-checkpoints.md` | `lessons.md`
 - `cycles/v1.0-feature-engine-discipline-pass-1/burst-log.md` (adversary reviews at `S-12.03/`, `S-12.04/`, `S-12.05/` subdirs)
 
-## Session Resume Checkpoint (2026-07-20 — D-862-E21-PHASE-3-W1-DISPATCH-APPROVED; PIPELINE ACTIVE; E-21 Phase-3 W1 dispatch APPROVED SEQUENTIAL; BC-INDEX v4.11; develop 6444ac23; merged_count 107; 4-index BC v4.11/VP v2.72/STORY v4.227/ARCH v3.11; origin=drbothen/vsdd-factory)
+## Session Resume Checkpoint (2026-07-27 — D-930-SESSION-WRAP-PAUSED; PIPELINE PAUSED)
 
-> **SELF-SUFFICIENT RESUME CONTEXT FOR ZERO-CONTEXT NEW SESSION OR NEW MACHINE**
-> Read this section alone to resume. Assumes ZERO prior context. D-862-E21-PHASE-3-W1-DISPATCH-APPROVED (SM governance/dispatch burst; 2026-07-20, resumed from D-861-SESSION-WRAP-PAUSED); BC-INDEX v4.11 / VP-INDEX v2.72 / STORY-INDEX v4.227 / ARCH-INDEX v3.11; **streak 3/3 CONVERGED** (E-19; E-21 spec 3-CLEAN P9/P10/P11); trajectory-tail →0→0→0→0; PIPELINE ACTIVE 2026-07-20.
+> **SELF-SUFFICIENT RESUME CONTEXT — ASSUMES ZERO PRIOR CONTEXT.**
 
-### §Position
+**Position.** S-21.04 LOCAL adversarial cascade (BC-5.39.001), E-21 Wave 2, deliver-story Step 4.5. Pass-21 REVIEWED, findings CLOSED, recorded at D-929 (`1b597f16`). Feature branch `feature/S-21.04-story-worktree-write-path-discipline` @ `7d195cfa` — clean, pushed, NO PR open (correct: mid-cascade). develop `948f0fb1`. Suites at `7d195cfa`: story-worktree-write-path-discipline 9/9; worktree-identity-preflight 14/14.
 
-**PIPELINE ACTIVE 2026-07-20 (D-862; human gate decision resumed from D-861-SESSION-WRAP-PAUSED). v1.0.0-rc.23 SHIPPED 2026-07-18 D-856. OPERATOR-INSTALL VERIFIED D-858. E-19 WAVE-GATE PASSED (D-854 2026-07-17). E-19 CONVERGED 3/3. E-19 COMPLETE 9/9 ALL MERGED. E-21 SPEC CONVERGED (11-pass 3-CLEAN P9/P10/P11; BC-5.39.001+D-761 strict; 5 stories S-21.01..S-21.05; 27pts; W1=17pts/W2=10pts). E-21 PHASE-3 W1 DISPATCH APPROVED — SEQUENTIAL (S-21.01 → S-21.02 → S-21.03); E-20 remains DEFERRED. NEXT ACTION: dispatch S-21.01 per-story delivery (test-writer → implementer → demo-recorder → pr-manager → devops-engineer).**
+**Convergence.** Streak **0/3**. Twenty-one passes, **ZERO CLEAN verdicts**. Trajectory tail →7→7→12→3.
 
-- **Cascade:** `v1.0-brownfield-backfill`; 9 stories S-19.01..S-19.09 (55 pts); epic `E-19` COMPLETE (v1.31; complete; completion_date 2026-07-17).
-- **E-21 spec status:** converged 11-pass arc; passes P9/P10/P11 = 3-CLEAN streak; 29 findings closed (P1..P8); F-P2-001 EMPTY-host ruling RETRACTED (ADR-031 v1.3); 9-item accepted-with-record register (see e-21-spec-convergence.md). BCs: BC-4.16.001/BC-5.43.001/BC-5.44.001/BC-6.10.002(amended)/BC-6.26.001/BC-6.27.001 registered (BC-INDEX v4.11; total_bcs 1,982). Stories (canonical points, corrected D-862): S-21.01 (W1, P0, 11pts, CAP-034, issue #342); S-21.02 (W1, P1, 3pts, CAP-035, issue #365); S-21.03 (W1, P1, 3pts, CAP-038, issue #358); S-21.04 (W2, P1, 5pts, CAP-036, issue #523); S-21.05 (W2, P1, 5pts, CAP-037, issue #588). W1 = S-21.01+S-21.02+S-21.03 = 17pts. W2 = S-21.04+S-21.05 = 10pts.
-- **W1 dispatch mode:** SEQUENTIAL per D-862 human directive — S-21.01 first, then S-21.02, then S-21.03 (NOT parallel).
-- **Input-hash state (D-862):** all 12 E-21 spec/story/epic files reconciled to a stable fixed point (0 DRIFT). Final values: S-21.01=1fb8246; S-21.02=7768f31; S-21.03=1a639a0; S-21.04=df0d623; S-21.05=17729a2; E-21 epic=0f68349; BC-6.10.002=e350ae2; BC-4.16.001=14fa1d6; BC-5.43.001=1b98f7f; BC-5.44.001=62553fb; BC-6.26.001=b32306f; BC-6.27.001=0517cfd.
-- **Wave-gate record:** cycles/v1.0-brownfield-backfill/e-19-wave-gate-w3-epic.md (D-853 basis; D-854 human disposition; GATE STATUS PASSED; all W3G findings disposed; W3G-001 residual risk ACCEPTED).
-- **Repo state:** develop HEAD `6444ac23` (local==origin; 2026-07-19 post-triage; UNCHANGED from D-858); main HEAD `80e5cd7b` (bot bundle 2026-07-18). factory-artifacts HEAD = D-862-BURST commit (SHA per `git -C .factory log -1`; not self-cited in this document per TD-VSDD-053 single-commit-burst convention — prior known SHA was D-861-BURST `9debd920`, pushed 2026-07-19). v1.0.0-rc.23 SHIPPED (tag at 0f8b2a89; bot commit 80e5cd7b on main). Local checkout on develop. No open feature branches.
-- **POLICY 21:** no_new_shell_scripts ACTIVE (blocking; human-directed 2026-07-13). 5 S-19.01 files EXPLICITLY GRANDFATHERED D-846 (policies.yaml v1.4.8 `grandfather_clause`). Migration anchored E-20.
+**In-flight.** NONE. No story mid-TDD, no abandoned sub-agent steps, all commits pushed.
 
-### §In-Flight at Wrap
+**Pass-21 significance.** First genuinely INDEPENDENT pass of this cascade (real adversary agent, intact information asymmetry). It found `F-S2104-P21-002` BLOCKER — a lexical fail-open exclusion that PREDATES the pass-20/21 work and that twenty prior passes MISSED. Evidence that those passes were degraded by the D-927 engine defect, not that the gate design was near-complete. Fixed at `7d195cfa` by inverting to FAIL-CLOSED with a NON-NEGATABLE structural whitelist (`**Forbidden:**` bullet label — a bullet label cannot be negated, which is why whitelisting a prose lexeme like `MUST NOT` would reopen the attack).
 
-**E-19 COMPLETE. E-21 SPEC CONVERGED, Phase-3 W1 DISPATCH APPROVED (SEQUENTIAL). No implementation stories in flight yet — S-21.01 is the next dispatch action. Wave-gate D-854 PASSED. v1.0.0-rc.23 SHIPPED D-856. Operator-install VERIFIED D-858. Issue sweep D-859 complete. E-21 registration D-860 complete. Session wrap D-861. W1 dispatch approval D-862. Pipeline ACTIVE, about to begin S-21.01 per-story delivery.**
+**Resume items.**
+1. `F-S2104-P21-004` **OPEN** (MEDIUM) — the fail-closed whitelist imposes an UNDOCUMENTED authoring convention: prohibitions in `#### Write Discipline` must be `**Forbidden:**` bullets, never prose. Verified: `"CWD-relative paths MUST NOT be used."` → FIRES (false positive on correct prose). Latent; no pristine clause affected. This is the accepted price of non-negatability, **NOT a defect in the fix**. Remedy = document the convention. Route **story-writer / technical-writer**.
+2. **Pass-22 scope** — pass-21 was `COMPLETENESS: PARTIAL`. Genuinely UNREVIEWED: T-002..T-009, `step-g-cleanup.md` §G.1, red-gate-log POLICY-15 attestation-location gate, `worktree-identity-preflight.bats`. Do NOT treat as cleared.
+3. **ENGINE P0 (D-927)** — seven agents pin `model: opus` and die SILENTLY (no error surfaces): `adversary`, `codebase-analyzer`, `holdout-evaluator`, `formal-verifier`, `pr-reviewer`, `research-agent`, `spec-reviewer`. **Phases 4 and 6 have NO working gate agent**; recent runs through them passed vacuously. **MITIGATION IN FORCE:** dispatch with an explicit `model` override (validated), disclosing the model-diversity deviation each time. **ARCHITECT DECISION REQUIRED:** which model these 7 should pin; whether an unresolvable pin should fail LOUDLY rather than idle silently.
+4. **POLICY 16 gate self-contamination** (noted D-929) — `grep '^## D-' decision-log.md | tail -N` now matches verbatim `## D-NNN` lines inside recorded gate evidence. Numeric sort is the current workaround. Will misallocate a D-number eventually; fix the gate predicate.
+5. **E-21 W2 wave-gate blockers** — 4 pre-existing full-suite failures (`resolver-integration` mktemp ×3, VP-076-D).
+6. **Standing backlog** — rc.24 release pending (load-bearing); 7 dependabot vulns on develop (2 high); PR #729 REQUEST_CHANGES; issue-close comments #342/#365/#358 pending human.
 
-arch-poste19 and sw-poste19 reports at D-853: cycles/v1.0-brownfield-backfill/e-19-arch-post-epic-report.md + e-19-sw-post-epic-report.md. Release record at D-856: second pipeline run 29660640970 all 10 PASS; marketplace claude-mp#18 MERGED 2026-07-18T22:48:17Z. Backlog triage at D-858: 8 fix PRs merged; develop 584b0518→6444ac23. E-21 registration at D-860: BC-INDEX v4.11 (1,982 BCs); e-21-spec-convergence.md CREATED. W1 dispatch approval at D-862: input-drift resolved (metadata-only); stale-points corrected.
+**Pending human decisions.** The D-927 architect decision (item 3). Standing ruling reaffirmed this session: **"grind to 3 clean"** — asymptotic acceptance declined twice; snapshot-gate escalation declined at pass-17.
 
-### §IMMEDIATE POST-SESSION OPERATOR ACTION
-
-**No immediate operator action required.** Operator-install confirmed (D-858 2026-07-19). Next session (or continuation of this session) proceeds directly to S-21.01 per-story delivery dispatch (test-writer → implementer → demo-recorder → pr-manager → devops-engineer), per the D-862 human-approved SEQUENTIAL W1 dispatch order.
-
-### §Pending Human Decisions
-
-**(1) OPERATOR-INSTALL VERIFICATION — CLEARED (D-858 2026-07-19).** Confirmed: cache at `~/.claude/plugins/cache/claude-mp/vsdd-factory/1.0.0-rc.23/` exists and dispatcher binary is executable; `/vsdd-factory:activate` re-run on darwin-arm64; settings.local.json updated to rc.23 (2026-07-18).
-
-**(2) E-20 AUTHORIZATION — DEFERRED (human directive 2026-07-17 D-854; reconfirmed 2026-07-20 D-862).** Human deferred E-20 epic/story authoring. E-20 roster: E-20-ARCH-02 (W3G-001 envelope-overflow implementation fix + memory.grow-failure branch test); DF-030 migration for VP-081..VP-093; POLICY 21 shell_script migration; issue #632 NEEDS-REWORK candidate. No action until human authorizes.
-
-**(3) #192 dependabot PR — OPEN (deferred by human; still open post-D-859 sweep).** Triaged STILL-RELEVANT. Awaiting human action.
-
-**(4) #632 draft PR — NEEDS-REWORK (D-858 2026-07-19).** Missing step-d6-story-holdout.md; 2 stale bats tests; drifted base. E-20 roster candidate. No action until E-20 authorized.
-
-**(5) Stash@{1}/stash@{2} hygiene** — retain for human review; do NOT drop without explicit authorization.
-
-**(6) .lazyclaude stale worktree (82163b7f)** — confirm safe to remove; human authorization required before cleanup.
-
-**(7) Dashboard priorities (D-859 2026-07-19):** attn lane #510 (external-contributor governance ruling, reply-needed 7+ days) and #410 (platform-envelope fork) need direct human reading; P0a data-loss family #342/#365/#358/#523/#588 flagged drifting (E-21 now addresses this family via Phase-3 W1); keystone pair #576+#513 (mechanical verdict derivation) present in backlog; issue #488 stale-ping pattern noted.
-
-**(8) E-21 PHASE-3 W1 DISPATCH APPROVAL — RESOLVED-APPROVED (D-862 2026-07-19/20).** Human answered the structured gate question directly to the orchestrator: (a) Approve W1 dispatch — YES; (b) Parallel or sequential — SEQUENTIAL (S-21.01 → S-21.02 → S-21.03); (c) Confirm E-20 remains deferred — YES, reconfirmed; (d) Alternate directive — none. Canonical W1 story points (corrected D-862): S-21.01=11pts, S-21.02=3pts, S-21.03=3pts (W1=17pts total). W2 (not yet gated): S-21.04=5pts, S-21.05=5pts (W2=10pts total).
-
-### §Resume Actions (EXACT ORDER — start here on session resume)
-
-**(1) Dispatch S-21.01 per-story delivery** (test-writer → implementer → demo-recorder → pr-manager → devops-engineer), per the D-862 SEQUENTIAL W1 dispatch order. Use the standard per-story-delivery orchestrator workflow.
-
-**(2) On S-21.01 completion (merged), dispatch S-21.02**, then on S-21.02 completion, dispatch S-21.03 — maintaining strict sequential (not parallel) order per the human directive.
-
-**(3) After W1 (S-21.01+S-21.02+S-21.03) completes, present the W2 gate question to the human** (S-21.04+S-21.05; E-20 still deferred pending separate human authorization).
-
-### §Standing Controls (ALL ACTIVE AND MANDATORY — carry-across-CLEAR)
-
-- **D-665 STOP-BEFORE-PR-MERGE:** pr-manager will NOT merge without direct human action.
-- **TD-VSDD-097-EXT:** `current_step:` MUST satisfy ALL 5 BC-5.39.006 v1.7 PCs simultaneously.
-- **POLICY 14 5-leg quintuple parity MANDATORY:** (1) version: frontmatter (2) body Changelog (3) modified[] (4) last_amended: (5) upstream-index — on ALL BC/VP/story/epic bumps. NOT APPLIED to input-hash-only metadata sync (D-824 precedent, reaffirmed D-862).
-- **POLICY 21 no_new_shell_scripts:** No new .sh files in repo. Blocking. 5 S-19.01 files grandfathered D-846 (policies.yaml v1.4.8 `grandfather_clause`). Migration anchored E-20.
-- **D-761 HUMAN DIRECTIVE strict-3-CLEAN no-cap:** BC-5.39.001, THREE consecutive CLEAN passes. Applies to LOCAL per-story cascades — will govern S-21.01/S-21.02/S-21.03 LOCAL adversary cascades during W1 delivery.
-- **D-803 epic-heading-parity gate (mandatory Commit-E standing gate).**
-- **D-808 BC Traceability row description parity gate (mandatory Commit-E standing gate).**
-- **D-809 VP path-anchor description-bearing prose parity (POLICY 4 v1.4.4; mandatory).**
-- **D-812 VP postcondition sentinel-string and exit-code value parity (mandatory; 10th standing gate).**
-- **D-815 VP invocation-signature-form parity (mandatory; 11th standing gate).**
-- **D-817 VP ADR-anchor-field parity (mandatory; 12th standing gate).**
-- **D-539 multi-family adversary obligation** + **D-537 spec-drift routing** + **POLICY 8 v1.3** + **POLICY 5 v1.3.7** + **D-449(a) literal-shell Dim-2** — all active.
-- **L-BB-merge-requires-direct-human-action [process-gap]:** pr-manager will NOT accept orchestrator-relayed merge approval.
-- **D-723 carry-across-CLEAR:** revisit (a) ADR-015/Router-multi-sink/WASM/OTel AND (b) S-3.04 status.
-- All D-759/D-760/D-762/D-766/D-768/D-769/D-777/D-779/D-790/D-794/D-795/D-797/D-798/D-802/D-805/D-806 gates active per prior checkpoints.
-
-### §Housekeeping Notes
-
-- **STATE.md size:** frontmatter `last_amended` nested-quote chain COMPACTED this burst (D-430(a)-class; was flagged OVER-SOFT-TARGET at D-861 with -18 margin). Current Phase Steps + Decisions Log ALSO compacted to last-5 policy same burst — collectively resolves the size-budget overage.
-- **develop HEAD:** `6444ac23` (unchanged from D-858; local==origin).
-- **factory-artifacts dirty-tree (D-862):** `logs/dispatcher-internal-2026-06-18.jsonl` deleted (stale); `logs/dispatcher-internal-2026-07-19.jsonl` + `logs/events-2026-07-19.jsonl` added (today's logs); `sidecar-learning.md` modification included — all swept into the D-862 burst commit per prior-burst precedent (D-841, D-857).
-- **Stash hygiene:** stash@{1} and stash@{2} on develop — retain for human review; do NOT drop without authorization.
-- **.lazyclaude worktree (82163b7f):** stale worktree present; confirm safe to remove — human authorization required.
-- **plugins/vsdd-factory/tests/report.tap:** untracked test artifact; ignorable.
-- **FYI drift item:** docs/CONVERGENCE.md:353 references `.factory/holdout-evaluation/summary.md` (stale dir name); distinct from #473 scope; noted for awareness.
-
-### §4-Index at D-862-E21-PHASE-3-W1-DISPATCH-APPROVED Closure
-
-| Index | Version | Last Change |
-|-------|---------|-------------|
-| BC-INDEX | v4.11 | D-860: 5 new BCs added (BC-4.16.001/BC-5.43.001/BC-5.44.001/BC-6.26.001/BC-6.27.001) + BC-6.10.002 updated; total_bcs 1,977→1,982 (UNCHANGED D-861, D-862 — input-hash sync is metadata-only) |
-| VP-INDEX | v2.72 | D-852: VP-101 v1.3→v1.4 Full Index + Story Anchors (UNCHANGED D-853..D-862 (see decision-log.md for full range)) |
-| STORY-INDEX | v4.227 | D-860: at v4.227 (E-21 spec authoring arc pre-D-860 registration; UNCHANGED D-861, D-862 — row-level input-hash cites synced but frontmatter version not bumped, D-824 precedent) |
-| ARCH-INDEX | v3.11 | D-860: at v3.11 (E-21 spec authoring arc pre-D-860 registration; UNCHANGED D-861, D-862) |
-| L2-INDEX | v1.0.15 | UNCHANGED (last change: D-838 invariants.md v1.30) |
-
-4-index verification gate (literal-shell): `grep "^version:" .factory/specs/behavioral-contracts/BC-INDEX.md .factory/specs/verification-properties/VP-INDEX.md .factory/stories/STORY-INDEX.md .factory/specs/architecture/ARCH-INDEX.md` → BC-INDEX: "4.11" / VP-INDEX: "2.72" / STORY-INDEX: "4.227" / ARCH-INDEX: "3.11"
-
-Critical SHAs: develop `6444ac23` (origin; 2026-07-19 post-triage; UNCHANGED from D-858); main `80e5cd7b` (bot bundle 2026-07-18); factory-artifacts HEAD = D-862-BURST (see `git -C .factory log -1`; prior known SHA D-861-BURST `9debd920`, pushed 2026-07-19). v1.0.0-rc.23 at `0f8b2a89` (tag); bot commit `80e5cd7b`. GitHub origin: `drbothen/vsdd-factory`. total_bcs 1,982. merged_count 107.
+**Resume command.** Run `/rehydrate-wave` FIRST (per CLAUDE.md, after any clear), then `/vsdd-factory:next-step`.
