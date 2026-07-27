@@ -7,7 +7,7 @@ producer: state-manager
 timestamp: 2026-04-26T12:00:00Z
 cycle: v1.0-brownfield-backfill
 inputs: [STATE.md]
-input-hash: "fd8f90f"
+input-hash: "e32ec2a"
 traces_to: STATE.md
 ---
 
@@ -1502,3 +1502,57 @@ rc.24 release (load-bearing, many-times over); 7 dependabot vulns on develop (2 
 
 ### ADDENDUM (post-wrap, same session)
 Story-writer leg NOT abandoned — commit a14c9f72 (story v1.24, 21-gate Gate cell) was pushed before the stand-down arrived and landed immediately after the wrap commit (benign race, no stand-down violation; factory-artifacts HEAD sequence: d77b8ed7 (D-922 wrap) → a14c9f72 (story v1.24)). Sections 1 and 3 of this checkpoint are superseded on this point: story is v1.24 not v1.23 at the point of actual pause; spec chain updated accordingly (story v1.24, input-hash 1165b1f preserved — f86871a NOT propagated per P19-009). Resume plan step (1) is SATISFIED — skip the story-leg re-dispatch; the closure burst additionally syncs STORY-INDEX to story v1.24 and updates the bats lead-in count-word Nineteen→(current count) per P19-008. sw-p19's report facts preserved for the closure burst: sorted 21-gate name list (anchor-uniqueness, balanced-fence, boundary-completeness, canonical-target, empty-block-guard, Gate-1a/1b/1c/1d, Gate-2a, Gate-2b-a, Gate-2b-c, Gate-3, Gate-4, Gate-5, Gate-6a, Gate-7a, Gate-PW-B, HTML-comment-absence, scope-restriction, write-directive); pristine gate verifications (1)(2)(3)(4)(5)(13)(17)(21) all PASS; quintuple parity legs 1-4 confirmed at v1.24.
+
+---
+
+## D-862 Session Checkpoint (2026-07-20 — ARCHIVED PREDECESSOR; stale at D-930 wrap; checkpoint lived through D-863..D-929 without STATE.md refresh; superseded by D-930 checkpoint below)
+
+> **Verbatim archive of STATE.md Session Resume Checkpoint section as it existed at the D-930 wrap commit (2026-07-27). This checkpoint was set at D-862-E21-PHASE-3-W1-DISPATCH-APPROVED on 2026-07-20 and never replaced through 21 adversary passes (D-863..D-929). Per session-wrap protocol, archived here before STATE.md Session Resume Checkpoint replacement.**
+
+### §Position (D-862 era — STALE as of D-930)
+
+**PIPELINE ACTIVE 2026-07-20 (D-862; human gate decision resumed from D-861-SESSION-WRAP-PAUSED). v1.0.0-rc.23 SHIPPED 2026-07-18 D-856. OPERATOR-INSTALL VERIFIED D-858. E-19 WAVE-GATE PASSED (D-854 2026-07-17). E-19 CONVERGED 3/3. E-19 COMPLETE 9/9 ALL MERGED. E-21 SPEC CONVERGED (11-pass 3-CLEAN P9/P10/P11; BC-5.39.001+D-761 strict; 5 stories S-21.01..S-21.05; 27pts; W1=17pts/W2=10pts). E-21 PHASE-3 W1 DISPATCH APPROVED — SEQUENTIAL (S-21.01 → S-21.02 → S-21.03); E-20 remains DEFERRED. NEXT ACTION: dispatch S-21.01 per-story delivery (test-writer → implementer → demo-recorder → pr-manager → devops-engineer).**
+
+- **Cascade:** `v1.0-brownfield-backfill`; 9 stories S-19.01..S-19.09 (55 pts); epic `E-19` COMPLETE (v1.31; complete; completion_date 2026-07-17).
+- **E-21 spec status:** converged 11-pass arc; passes P9/P10/P11 = 3-CLEAN streak; 29 findings closed (P1..P8); F-P2-001 EMPTY-host ruling RETRACTED (ADR-031 v1.3); 9-item accepted-with-record register (see e-21-spec-convergence.md). BCs: BC-4.16.001/BC-5.43.001/BC-5.44.001/BC-6.10.002(amended)/BC-6.26.001/BC-6.27.001 registered (BC-INDEX v4.11; total_bcs 1,982). Stories (canonical points, corrected D-862): S-21.01 (W1, P0, 11pts, CAP-034, issue #342); S-21.02 (W1, P1, 3pts, CAP-035, issue #365); S-21.03 (W1, P1, 3pts, CAP-038, issue #358); S-21.04 (W2, P1, 5pts, CAP-036, issue #523); S-21.05 (W2, P1, 5pts, CAP-037, issue #588). W1 = S-21.01+S-21.02+S-21.03 = 17pts. W2 = S-21.04+S-21.05 = 10pts.
+- **W1 dispatch mode:** SEQUENTIAL per D-862 human directive — S-21.01 first, then S-21.02, then S-21.03 (NOT parallel).
+- **Input-hash state (D-862):** all 12 E-21 spec/story/epic files reconciled to a stable fixed point (0 DRIFT). Final values: S-21.01=1fb8246; S-21.02=7768f31; S-21.03=1a639a0; S-21.04=df0d623; S-21.05=17729a2; E-21 epic=0f68349; BC-6.10.002=e350ae2; BC-4.16.001=14fa1d6; BC-5.43.001=1b98f7f; BC-5.44.001=62553fb; BC-6.26.001=b32306f; BC-6.27.001=0517cfd.
+- **Wave-gate record:** cycles/v1.0-brownfield-backfill/e-19-wave-gate-w3-epic.md (D-853 basis; D-854 human disposition; GATE STATUS PASSED; all W3G findings disposed; W3G-001 residual risk ACCEPTED).
+- **Repo state:** develop HEAD `6444ac23` (local==origin; 2026-07-19 post-triage; UNCHANGED from D-858); main HEAD `80e5cd7b` (bot bundle 2026-07-18). factory-artifacts HEAD = D-862-BURST commit (SHA per `git -C .factory log -1`; not self-cited in this document per TD-VSDD-053 single-commit-burst convention — prior known SHA was D-861-BURST `9debd920`, pushed 2026-07-19). v1.0.0-rc.23 SHIPPED (tag at 0f8b2a89; bot commit 80e5cd7b on main). Local checkout on develop. No open feature branches.
+- **POLICY 21:** no_new_shell_scripts ACTIVE (blocking; human-directed 2026-07-13). 5 S-19.01 files EXPLICITLY GRANDFATHERED D-846 (policies.yaml v1.4.8 `grandfather_clause`). Migration anchored E-20.
+
+### §In-Flight at Wrap (D-862 era — STALE)
+
+**E-19 COMPLETE. E-21 SPEC CONVERGED, Phase-3 W1 DISPATCH APPROVED (SEQUENTIAL). No implementation stories in flight yet — S-21.01 is the next dispatch action. Wave-gate D-854 PASSED. v1.0.0-rc.23 SHIPPED D-856. Operator-install VERIFIED D-858. Issue sweep D-859 complete. E-21 registration D-860 complete. Session wrap D-861. W1 dispatch approval D-862. Pipeline ACTIVE, about to begin S-21.01 per-story delivery.**
+
+arch-poste19 and sw-poste19 reports at D-853: cycles/v1.0-brownfield-backfill/e-19-arch-post-epic-report.md + e-19-sw-post-epic-report.md. Release record at D-856: second pipeline run 29660640970 all 10 PASS; marketplace claude-mp#18 MERGED 2026-07-18T22:48:17Z. Backlog triage at D-858: 8 fix PRs merged; develop 584b0518→6444ac23. E-21 registration at D-860: BC-INDEX v4.11 (1,982 BCs); e-21-spec-convergence.md CREATED. W1 dispatch approval at D-862: input-drift resolved (metadata-only); stale-points corrected.
+
+### §4-Index at D-862 Closure (STALE)
+
+| Index | Version |
+|-------|---------|
+| BC-INDEX | v4.11 |
+| VP-INDEX | v2.72 |
+| STORY-INDEX | v4.227 |
+| ARCH-INDEX | v3.11 |
+
+Critical SHAs (D-862 era — STALE): develop `6444ac23`; main `80e5cd7b`; factory-artifacts HEAD = D-862-BURST; v1.0.0-rc.23 at `0f8b2a89` (tag); bot commit `80e5cd7b`. GitHub origin: `drbothen/vsdd-factory`. total_bcs 1,982. merged_count 107.
+
+---
+
+## D-930 Checkpoint (2026-07-27 session wrap — AUTHORITATIVE)
+
+### 1. Position
+S-21.04 LOCAL adversary cascade; pass-21 just CLOSED (D-929 at `1b597f16`); feature/S-21.04 @ `7d195cfa`, pushed, clean; develop @ `948f0fb1`; factory-artifacts HEAD = D-929-BURST `1b597f16`.
+
+### 2. Status
+NOT-CONVERGED; streak 0/3; 21 passes; zero CLEAN verdicts; engine P0 D-927 open (7 opus-pinned agents die silently; mitigation: explicit `model` override at dispatch; ARCHITECT DECISION REQUIRED).
+
+### 3. Next action
+Resume pass-22 by dispatching `vsdd-factory:adversary` with fresh context; reads ONLY prior-pass Part A (`adv-cycle-pass-21.md`); once pass-22 ready → fix-burst Commits A..E → SHA-patch; iterate until streak 3/3.
+
+### 4. Open items
+F-S2104-P21-004 MEDIUM (undocumented authoring convention; route story-writer / technical-writer); rc.24 PENDING; 7 dependabot vulns; PR #729 REQUEST_CHANGES; issue-close comments #342/#365/#358 pending human.
+
+### 5. Critical SHAs
+develop `948f0fb1`; main `80e5cd7b`; factory-artifacts HEAD = D-929-BURST `1b597f16`; feature/S-21.04 @ `7d195cfa`; v1.0.0-rc.23 @ `0f8b2a89` (tag); bot commit `80e5cd7b`. origin=drbothen/vsdd-factory. 4-index: BC v4.33/VP v2.72/STORY v4.267/ARCH v3.34.
