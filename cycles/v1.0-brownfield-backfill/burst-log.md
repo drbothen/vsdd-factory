@@ -20644,4 +20644,4 @@ $ printf '%s\n' F-S2104-P21-004 | wc -l
 
 **factory-artifacts commits:**
 - Pre-burst parent-commit (factory-artifacts): `f98455c5` (D-930 session-wrap burst)
-- This burst: TBD — see `git -C .factory log -1 --format='%h %s'` after push
+- This burst: `72fb9337` — `factory(D-931): record D-927 root cause falsification — model-pin resolves; blast-radius partial retraction`
