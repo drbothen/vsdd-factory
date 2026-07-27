@@ -12628,3 +12628,55 @@ D-922-SESSION-WRAP-PAUSED
 
 ### ADDENDUM (post-wrap, same session)
 Post-wrap fact: story-writer commit a14c9f72 (story v1.24, 21-gate Gate cell) was already committed and pushed before the stand-down arrived — benign race, no violation. It landed on factory-artifacts immediately after the wrap commit d77b8ed7 (HEAD sequence: d77b8ed7→a14c9f72). Checkpoint sections 1+3 superseded on that point (story v1.24 is current at pause; resume step (1) SATISFIED — skip story-leg re-dispatch).
+
+---
+
+## D-923
+
+### Summary
+
+S-21.04 LOCAL adversarial cascade pass-19 closure burst (BC-5.39.001, E-21 W2, deliver-story Step 4.5). Adversary review pass-19: NOT-CLEAN B2/H3/M7, 12 findings F-S2104-P19-001..012, novelty 0.58, reviewed_head `a4ec37d3`. Fix wave legs: (a) test-writer `657fce61` — Gates 2b domain, clause-splitter extension, boundary-completeness assertion, link-ref-def strip fix, canonical-target domain, scope-restriction Gate; (b) bats count-word commit `a2112e8d` — "Nineteen"→"Twenty-one" at 2 sites; (c) story-writer `a14c9f72` — story v1.25, 21-gate Gate cell. State-manager closure: (A) bats count-word `a2112e8d` (F-S2104-P19-008); (B) story v1.24→v1.25 (version/last_amended/modified/AC-001 coupling note, input-hash 1165b1f unchanged); (C) STORY-INDEX v4.266→v4.267 (S-21.04 catalog+blockquote 1165b1f, S-21.01 catalog 32aaccc, three-way equality PASS); (D) red-gate-log v1.16→v1.17 (TWO→THREE; balanced-fence rationale corrected 3 sites; escape-discrimination controls transcribed; Pass-19 attestation 24/24; NAME-SET EQUALITY PASS 21 gates; ESCAPE-SCOPE-PARITY proof; ALTERNATION-DIRECTION statements); (E) adversary-pass-19.md `fixes_landed_head 657fce61` + Fix Mapping 12 rows (all CLOSED); (F) policies.yaml v1.4.15→v1.4.16 (POLICY 13 ESCAPE-SCOPE-PARITY + BOUNDARY-POLARITY + NORMALIZATION-ADVERSARIALITY tokenizer-direction extension; POLICY 18 THREE-WAY-INPUT-HASH-EQUALITY); (G) decision-log D-923 (this entry); (H) lessons.md 4 new entries (L-BB-escape-scope-parity, L-BB-boundary-polarity, L-BB-missed-boundary-tokenizer-direction, L-BB-p19-report-noise-process-gap); (I) STATE.md v6.54→v6.55; phase D-923-class closure. Streak 0/3 — NOT-CLEAN; next: adversary pass-20.
+
+### Detail
+
+1. **POLICY 16 GLOBAL-MAX GATE (literal shell stdout)**:
+   - `grep -rh '^## D-' cycles/v1.0-brownfield-backfill/decision-log.md cycles/v1.0-feature-engine-discipline-pass-1/decision-log.md | sed 's/^## D-//' | sort -n | tail -5` → `918 / 919 / 920 / 921 / 922`
+   - D-922 confirmed global max → D-923 allocated. PASS.
+
+2. **bats count-word fix (F-S2104-P19-008, commit `a2112e8d`)**: Two sites corrected in `plugins/vsdd-factory/tests/story-worktree-write-path-discipline.bats`: (a) `Nineteen independently mutant-proven` → `Twenty-one independently mutant-proven`; (b) `All nineteen gates survive independently` → `All twenty-one gates survive independently`. Count now matches the 21-gate set, story v1.25 Gate cell, and red-gate-log audit table.
+
+3. **Story v1.25 (F-S2104-P19-008 coupling + F-S2104-P19-009 three-way sync)**: version 1.24→1.25; AC-001 Gate cell coupling note `Nineteen`→`Twenty-one`; `last_amended:` prepended D-923 entry; `modified:` prepended D-923 entry. Input-hash 1165b1f unchanged — hook-authoritative (marketplace hook binary canonical per L-EDP1-073); three-way equality fix is in STORY-INDEX catalog+blockquote synchronizing TO 1165b1f, not changing the story frontmatter.
+
+4. **STORY-INDEX v4.266→v4.267 (F-S2104-P19-009 three-way equality, literal shell stdout)**:
+   - S-21.04 catalog row: story v1.23→v1.25; input-hash `f86871a`→`1165b1f`; `F-S2104-P19-001..012 (pass-19)` refs appended.
+   - S-21.04 blockquote: `S-21.04=f86871a`→`S-21.04=1165b1f`.
+   - S-21.01 catalog row: input-hash `fde01eb`→`32aaccc` (hook-authoritative; prior value was stale after pass-18 fix wave changed S-21.01 bats).
+   - Three-way equality gate (POLICY 18 new mandate, D-923): `grep 'input-hash:.*1165b1f' stories/S-21.04-story-worktree-write-path-discipline.md` → `input-hash: "1165b1f"` (frontmatter); `grep 'input-hash 1165b1f' stories/STORY-INDEX.md` → catalog row match; `grep 'S-21.04=1165b1f' stories/STORY-INDEX.md` → blockquote match. Frontmatter=1165b1f = Catalog=1165b1f = Blockquote=1165b1f — PASS.
+
+5. **red-gate-log v1.16→v1.17 (F-S2104-P19-010/011/012 + Pass-19 attestation)**:
+   - TWO→THREE (F-S2104-P19-010): NAME-SET EQUALITY partition paragraph corrected — `TWO additional T-001 assertions exist OUTSIDE that partition` → `THREE additional T-001 assertions exist OUTSIDE that partition`.
+   - balanced-fence rationale corrected at 3 sites (F-S2104-P19-011): bats comment, story AC-001 Gate cell, red-gate-log audit row — all updated to state this is a Markdown well-formedness invariant, NOT a domain-truncation guard (no fence-aware domain exists at HEAD per c89bef22; fence-stripping awk removed per F-S2104-P18-002(b)).
+   - Escape-discrimination controls transcribed (F-S2104-P19-012): CONTROL write-directive escape GREEN (clause-scoped escape passes; `MUST use canonical absolute` in trigger clause → 0 violations) + CONTROL negative-twin RED (escape phrase in sibling clause, harmful clause remains → fires via PW-B or write-directive gate) appended to battery table with verbatim stdout.
+   - Pass-19 attestation section (24/24): full 24-row battery table; ESCAPE-SCOPE-PARITY proof statement; ALTERNATION-DIRECTION statements for `boundary-completeness assertion` (closed enumeration, no backstop needed — assertion count, not list) and `Gate scope-restriction` (open trigger — any sentence matching prohibition-reference triggers); POLICY 15 NAME-SET EQUALITY PASS (21 gates, diff empty).
+   - input-hash v1.16 `f86871a`→v1.17 `a03188b` (hook-authoritative); version 1.16→1.17; traces_to appended story v1.25.
+
+6. **adversary-pass-19.md (F-S2104-P19-012 supplement)**: `fixes_landed_head: 657fce61` appended to frontmatter; `## Fix Mapping — Pass-19 (F-S2104-P19-001..012)` table appended with 12 rows (F-S2104-P19-001..012, all CLOSED — mapped to bats `a2112e8d` / bats `657fce61` / story `a14c9f72` / factory-artifacts burst per finding axis).
+
+7. **policies.yaml v1.4.15→v1.4.16 (4 codifications)**:
+   - POLICY 13 ESCAPE-SCOPE-PARITY MANDATE (D-923 per F-S2104-P19-001 [process-gap] tenth-generation class): for every `grep -Ev`-pattern gate, trigger unit and escape unit MUST match; where they differ the gate MUST carry a POSITIVE control (escape non-vacuous) and a NEGATIVE-TWIN control (escape in sibling clause fires RED).
+   - POLICY 13 BOUNDARY-POLARITY MANDATE (D-923 per F-S2104-P19-002 [process-gap] tenth-generation class): whenever a gate's domain is narrowed (heading bound, line filter, token filter, exclusion), the burst MUST record the false-positive class, whether harmful content of opposite polarity can occupy the excluded region, and a mutant proving the answer.
+   - POLICY 13 NORMALIZATION-ADVERSARIALITY tokenizer-direction extension (D-923 per F-S2104-P19-004 [process-gap] tenth-generation class): TOKENIZATION steps MUST carry BOTH false-boundary AND missed-boundary mutants; absence of either is POLICY 13 HIGH (tokenizer-direction gap).
+   - POLICY 18 THREE-WAY-INPUT-HASH-EQUALITY GATE (D-923 per F-S2104-P19-009 [process-gap] tenth-generation class): closure bursts MUST assert three-way equality (story frontmatter input-hash = STORY-INDEX catalog row = STORY-INDEX blockquote S-NNN=); distinctness is NOT a substitute.
+
+8. **4 lessons appended** to lessons.md: L-BB-escape-scope-parity (F-S2104-P19-001 process-gap; ESCAPE-SCOPE-PARITY), L-BB-boundary-polarity (F-S2104-P19-002 process-gap; BOUNDARY-POLARITY), L-BB-missed-boundary-tokenizer-direction (F-S2104-P19-004 process-gap; both tokenizer directions mandatory), L-BB-p19-report-noise-process-gap (F-S2104-P19-008 process-gap; fix-wave completeness review protocol).
+
+9. **POLICY 14 4-INDEX GATE (literal shell stdout)**:
+   - `grep -m1 "^version:" specs/behavioral-contracts/BC-INDEX.md specs/verification-properties/VP-INDEX.md stories/STORY-INDEX.md specs/architecture/ARCH-INDEX.md` → `BC-INDEX.md: "4.33"` / `VP-INDEX.md: "2.72"` / `STORY-INDEX.md: "4.267"` / `ARCH-INDEX.md: "3.34"`. STORY-INDEX advanced this burst; BC/VP/ARCH unchanged. PASS.
+
+### Phase
+
+D-923-S2104-PASS-19-CLOSED
+
+### Date
+
+2026-07-27

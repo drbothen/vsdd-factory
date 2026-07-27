@@ -625,3 +625,24 @@ The omission is not bookkeeping. The escape clause is precisely the mechanism F-
 Tally: **1 CONFIRMED-CLOSED-with-residue / 3 CONFIRMED-CLOSED / 4 PARTIAL / 0 REGRESSED** against the pass-18 finding set — precisely, F-S2104-P18-002/006/007 CONFIRMED-CLOSED (P18-002 with a stale-rationale residue raised separately) and F-S2104-P18-001/003/004/005 PARTIAL. No regression: every pass-18 leg that landed is load-bearing, all twelve recorded vectors I re-ran are RED, and the two record findings closed with proper error acknowledgment.
 
 The four PARTIALs share one shape, and it is a different shape from pass-18's. Pass-18's PARTIALs were "the fix closed the vector and the axis, but not the class, because the class boundary was a list." Pass-19's are "the fix closed the class on the side it examined, and the mechanism it built to do so is unexamined on its other side" — the escape rather than the trigger, the missed boundary rather than the false one, the strip predicate's own regex rather than the construct it strips, the excluded region rather than the included one. Every fix predicate above is mechanically checkable; four of them (F-S2104-P19-001(a), F-S2104-P19-002(a) and its PW-B counter-verification, F-S2104-P19-004(a)) are already verified empty-on-pristine and firing-on-mutant by literal shell in this report; and none requires a new spec decision. Two require a paired doc change in `_shared-context.md` and I have flagged exactly which sentences and why.
+
+---
+
+fixes_landed_head: 657fce61
+
+## Fix Mapping — Pass-19 (F-S2104-P19-001..012)
+
+| Finding | Fix | Primary artifacts | Status |
+|---------|-----|-------------------|--------|
+| F-S2104-P19-001 | write-directive gate clause-scoped split (ESCAPE-SCOPE-PARITY): after boundary-rule sentence split, further split on `[;—]` and `,\s+(and\|or\|but)\s+`; escape unit must match trigger unit (clause, not sentence) | bats T-001 (a2112e8d), story v1.25 AC-001 Gate cell | CLOSED |
+| F-S2104-P19-002 | write-directive gate domain widened from `write_discipline_prose_nosplit` to `spec_path_prose_nosplit` (whole `### Spec-Path Discipline` section) | bats T-001 (657fce61), story v1.25 AC-001 Gate cell | CLOSED |
+| F-S2104-P19-003 | referent predicate `\.factory/\|ledger` replaces closed action-word list (`anchor\|write\|writes`) | bats T-001 (657fce61), story v1.25 AC-001 Gate cell | CLOSED |
+| F-S2104-P19-004 | boundary-completeness assertion added: `bc_expected_splits` (`grep -oE '\.[[:space:]]+[A-Z*\`\[' write_discipline_prose_nosplit \| wc -l`) must equal `bc_actual_splits - 1`; pristine verified bc_expected_splits=13 = bc_actual_splits-1=13 | bats T-001 (657fce61), story v1.25 AC-001 Gate cell | CLOSED |
+| F-S2104-P19-005 | link-ref-def strip predicate: whitespace-after-colon requirement removed — CommonMark `[label]:` form without trailing space is now correctly stripped | bats T-001 (657fce61), story v1.25 AC-001 Gate cell | CLOSED |
+| F-S2104-P19-006 | canonical-target gate domain widened from `file_path=` keyword to any `**Correct:**` bullet containing `\.factory/` | bats T-001 (657fce61), story v1.25 AC-001 Gate cell | CLOSED |
+| F-S2104-P19-007 | Gate scope-restriction NEGATIVE added; Gate 2b(a) widened +5 members (`not applicable\|inapplicable\|does not cover\|does not extend\|out of scope`); scope-restriction made primary defense, Gate 2b(a) defense-in-depth | bats T-001 (657fce61), story v1.25 AC-001 Gate cell | CLOSED |
+| F-S2104-P19-008 | bats lead-in count-word Nineteen→Twenty-one (2 sites); story AC-001 Gate cell coupling note updated; STORY-INDEX catalog row story v1.23→v1.25 | bats (a2112e8d), story v1.25, STORY-INDEX v4.267 | CLOSED |
+| F-S2104-P19-009 | STORY-INDEX S-21.04 catalog row input-hash f86871a→1165b1f; S-21.01 catalog row input-hash fde01eb→32aaccc; blockquote S-21.04=f86871a→1165b1f; three-way equality gate (frontmatter=catalog=blockquote) literal-shell verified PASS | STORY-INDEX v4.267 (factory-artifacts burst) | CLOSED |
+| F-S2104-P19-010 | red-gate-log NAME-SET EQUALITY partition paragraph: TWO→THREE (count was wrong vs. listed 3 items) | red-gate-log v1.17 (factory-artifacts burst) | CLOSED |
+| F-S2104-P19-011 | balanced-fence gate rationale corrected at all 3 sites: NOT a truncation guard; well-formedness invariant (no fence-aware domain at HEAD per c89bef22); original truncation mechanism described historically | bats T-001 comment (657fce61), story v1.25 AC-001 Gate cell, red-gate-log v1.17 audit row | CLOSED |
+| F-S2104-P19-012 | escape-discrimination controls transcribed to red-gate-log: CONTROL write-directive escape (GREEN; clause-scoped escape in trigger clause) + CONTROL negative-twin (RED; escape in sibling clause only) with verbatim stdout | red-gate-log v1.17 Pass-19 attestation (factory-artifacts burst) | CLOSED |

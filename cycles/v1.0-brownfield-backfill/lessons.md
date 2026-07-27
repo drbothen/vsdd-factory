@@ -8115,3 +8115,75 @@ The mutant self-check is evidence, not just process. The test-writer report MUST
 **Cites:** D-920 (this burst); F-S2104-P18-005 (HIGH finding); POLICY 15 BACKSTOP-DOMAIN-PARITY-MANDATE (D-920 extension); L-BB-alternation-widening-direction-statement (paired lesson on direction-statement requirement).
 
 **Closes:** D-920 S-21.04-PASS-18-CLOSED (2026-07-27). `[process-gap; backstop-domain-parity; paired-gates; domain-gap; section-wide; adjacent-audit-rows; POLICY-15; D-920]`
+
+---
+
+## L-BB-escape-scope-parity [process-gap] [D-923]
+
+**Summary:** When a gate uses `<trigger> AND NOT <escape>`, the escape must match the trigger's syntactic unit. A sentence-scoped escape from a clause-scoped trigger launders every other clause in the sentence: one appended prohibition word in the same sentence restores the mandate in the exempt clause while the harmful clause proceeds.
+
+**Discovered:** 2026-07-27 (S-21.04 pass-19 adversarial review — F-S2104-P19-001 BLOCKER. The write-directive gate and PW-B gate both split the domain by clause but their `grep -Ev` escape matched per-sentence. M-P19-A = verbatim M-P17-A + `; duplicating the ledger onto the main checkout is forbidden.` — the appended `forbidden` clause in the same sentence matched the escape predicate `grep -Ev 'FORBIDDEN|forbidden|prohibition|prohibited'`, exempting the harmful preceding clause at 9/9. CONTROL-A replacing `forbidden` with `discouraged` was RED via PW-B, confirming the gate discriminates — but the escape was over the wrong unit.)
+
+**Root cause:** FAIL-CLOSED-IMPLICATION-DIRECTION mandated that the trigger side must be an open class but said nothing about the escape clause. The escape can widen to cover more than the trigger's syntactic unit, silently laundering harmful clauses that share a sentence with a compliant or escape-carrying one. These are two independent axes: open trigger (FAIL-CLOSED-IMPLICATION-DIRECTION) AND matched-unit escape (ESCAPE-SCOPE-PARITY). Both must be satisfied.
+
+**Corrective action (codified as POLICY 13 ESCAPE-SCOPE-PARITY-MANDATE at D-923):** For every `<trigger> AND NOT <escape>` gate, the audit row MUST state trigger unit and escape unit. Rule: escape scope ≤ trigger scope. Where they differ, the gate MUST carry two mandatory controls: (i) POSITIVE control — escape phrase in the same trigger clause passes GREEN (non-vacuous); (ii) NEGATIVE-TWIN control — escape phrase in a sibling clause while the harmful clause is present fires RED (not over-broad). Fix: clause-splitter extended in the pass-19 wave to also split on `[;—]` and `, (and|or|but) `, making escape and trigger operate on the same clause unit.
+
+**Anchors:** S-21.04 LOCAL cascade pass-19 fix wave (2026-07-27); test-writer `657fce61` (clause-splitter extended for `write_directive_violations` and PW-B so escape unit matches trigger unit); red-gate-log v1.17 Pass-19 attestation: CONTROL write-directive escape GREEN + CONTROL negative-twin RED (verbatim stdout captured).
+
+**Cites:** D-923 (this burst); F-S2104-P19-001 (BLOCKER finding); POLICY 13 ESCAPE-SCOPE-PARITY-MANDATE (D-923 extension); L-BB-fail-closed-implication-direction (prior related lesson on trigger architecture — ESCAPE-SCOPE-PARITY is its escape-side companion).
+
+**Closes:** D-923 S-21.04-PASS-19-CLOSED (2026-07-27). `[process-gap; escape-scope-parity; clause-scoped; sentence-scoped; trigger-unit; escape-unit; negative-twin-control; POLICY-13; D-923]`
+
+---
+
+## L-BB-boundary-polarity [process-gap] [D-923]
+
+**Summary:** Domain narrowings have two faces: the face suppressing false positives (the stated motivation) and the face admitting harmful mandates that occupy the excluded region while remaining rendered to the reader. Recording only the first face leaves the second unexamined, and the unexamined face is exactly where the attack lives.
+
+**Discovered:** 2026-07-27 (S-21.04 pass-19 adversarial review — F-S2104-P19-002 BLOCKER. Bounding to `#### Write Discipline` was introduced in F-S2104-P16-003(b) to neutralize the M-P16-B decoy-insertion mutant — correct rationale, documented in the code. But the bounding also excluded rendered prose above that heading inside `### Spec-Path Discipline`. M-P19-H placed verbatim M-P17-A + M-P17-C text three lines above the heading — all six section-wide gates were empty on M-P19-H at 9/9. The false-positive motivation was recorded; the opposite-polarity exposure was not.)
+
+**Root cause:** Every domain narrowing is motivated by a false-positive suppression. No review step asks whether harmful content of the opposite polarity (prohibited-mandate class) can occupy the excluded region. The NORMALIZATION-ADVERSARIALITY mandate governs bypass proofs for EXCLUSION steps (harmful content placed inside the excluded region proving it cannot bypass the gate). BOUNDARY-POLARITY is the complementary requirement for NARROWING boundaries: harmful content placed outside the narrowed domain but still rendered to the reader. Both questions are independent and both must be answered.
+
+**Corrective action (codified as POLICY 13 BOUNDARY-POLARITY-MANDATE at D-923):** For each domain narrowing, the burst MUST record: (i) the false-positive class the narrowing suppresses; (ii) whether harmful content of opposite polarity can occupy the excluded region while remaining rendered to the reader; (iii) a mutant proving the answer. An UNSAFE boundary (harmful content CAN occupy excluded region) requires gate extension in the same burst. Fix: domain widened from `#### Write Discipline` to full `### Spec-Path Discipline` section — M-P19-H now RED.
+
+**Anchors:** S-21.04 LOCAL cascade pass-19 fix wave (2026-07-27); test-writer `657fce61` (`_extract_write_discipline_section` domain widened to `### Spec-Path Discipline`; M-P19-H RED confirmed); F-S2104-P19-005 and F-S2104-P19-006 are additional instances of the same pattern (link-ref-def strip whitespace requirement excluded a conformant comment form; `file_path=` filter excluded non-`file_path=` correct bullets).
+
+**Cites:** D-923 (this burst); F-S2104-P19-002 (BLOCKER finding); F-S2104-P19-005 (HIGH — link-ref-def strip regex narrowing); F-S2104-P19-006 (MEDIUM — `file_path=` narrowing); POLICY 13 BOUNDARY-POLARITY-MANDATE (D-923 extension); L-BB-normalization-adversariality (complementary lesson — NORMALIZATION-ADVERSARIALITY covers bypass via the excluded interior; BOUNDARY-POLARITY covers exposure via the excluded exterior).
+
+**Closes:** D-923 S-21.04-PASS-19-CLOSED (2026-07-27). `[process-gap; boundary-polarity; domain-narrowing; heading-bound; false-positive-class; opposite-polarity; excluded-region; POLICY-13; D-923]`
+
+---
+
+## L-BB-missed-boundary-tokenizer-direction [process-gap] [D-923]
+
+**Summary:** Tokenizer mutant requirements were codified for only one direction (false-boundary: abbreviation creates a spurious sentence split), leaving the opposite direction (missed-boundary: lowercase-initial sentence start merges with its predecessor) uncodified and unattested. These two failure modes target different gate classes: false-boundary affects fail-CLOSED positive gates; missed-boundary affects fail-OPEN exclusion-based gates (`grep -Ev`). Requiring only the first misses the second.
+
+**Discovered:** 2026-07-27 (S-21.04 pass-19 adversarial review — F-S2104-P19-004 HIGH. Pass-18 closed the false-boundary direction with seven abbreviation mutants RED. The boundary-rule splitter splits before `[A-Z*\`\[]`, so a lowercase-initial sentence is merged into its predecessor. M-P19-D placed `git-resolved ledger paths SHOULD be anchored to the story worktree CWD.` — lowercase `g` start, merged with the immediately preceding MUST sentence. The merged block inherited that sentence's prohibition token, causing the `grep -Ev` escape to pass the merged harmful clause at 9/9. CONTROL-D with capital `G` was RED via PW-B, confirming a single character difference decides pass or fail.)
+
+**Root cause:** POLICY 13 NORMALIZATION-ADVERSARIALITY named only the false-boundary mutant class because that was the failure that created the mandate (F-S2104-P18-003: `sed 's/\. /\n/g'` split on every `. ` including abbreviation midpoints). Naming one direction in the mandate left the other uncodified. Review passes faithfully delivered the one named direction and did not ask about the other. The asymmetric codification was itself a single-direction error of exactly the type the mandate was meant to prevent.
+
+**Corrective action (codified as POLICY 13 NORMALIZATION-ADVERSARIALITY tokenizer-direction extension at D-923):** Both false-boundary AND missed-boundary mutants are MANDATORY attestation elements for any TOKENIZATION step. The fail-open consequence differs: false-boundary causes fail-CLOSED (positive existence) gates to miss a legitimate match; missed-boundary causes fail-OPEN (exclusion-based `grep -Ev`) gates to pass a harmful clause merged under cover of a legitimate preceding clause. Both must be independently attested RED. Fix: boundary-completeness assertion added (`bc_expected_splits` count gate) — asserts the splitter produces at least as many clauses as there are `. ` occurrences in the domain; M-P19-D + CONTROL-D + digit-initial + quote-initial symmetric variants all attested.
+
+**Anchors:** S-21.04 LOCAL cascade pass-19 fix wave (2026-07-27); test-writer `657fce61` (boundary-completeness assertion added; missed-boundary mutant set added to battery); red-gate-log v1.17 extraction-mechanisms table: Boundary-rule sentence-splitter row now records both false-boundary direction AND missed-boundary direction with fail-open consequence stated explicitly.
+
+**Cites:** D-923 (this burst); F-S2104-P19-004 (HIGH finding); POLICY 13 NORMALIZATION-ADVERSARIALITY-MANDATE (D-920) extended at D-923; L-BB-normalization-adversariality (prior lesson codifying the false-boundary direction — this lesson extends it to both directions).
+
+**Closes:** D-923 S-21.04-PASS-19-CLOSED (2026-07-27). `[process-gap; missed-boundary; tokenizer-direction; false-boundary; exclusion-gate; fail-open; boundary-completeness-assertion; NORMALIZATION-ADVERSARIALITY; POLICY-13; D-923]`
+
+---
+
+## L-BB-p19-report-noise-process-gap [process-gap] [D-923]
+
+**Summary:** The adversary pass-19 report included a MEDIUM finding (F-S2104-P19-008) for a stale bats lead-in count-word that the fix wave itself introduced — the fix wave updated the gate count in the story AC Gate cell and the audit table but did not sweep the bats file's own self-descriptive count-bearing text. Findings of this class (stale metadata the fix wave could have caught) consume adversary review bandwidth on non-gate-design issues.
+
+**Discovered:** 2026-07-27 (S-21.04 pass-19 adversarial review — F-S2104-P19-008 MEDIUM. The bats file declared `Nineteen independently mutant-proven gates` and `All nineteen gates survive independently` while the gate set, the story v1.23 cell, the audit table, and the NAME-SET EQUALITY check were all 19 at review time. POLICY 14 SAME-BURST PREDICATE-GATE CELL COUPLING correctly required the story AC Gate cell to be updated when the test-writer changes predicates. No equivalent mandate required the bats file's own lead-in count-bearing text to be swept at the same time — it was left at the prior count from pass-17 through pass-18.)
+
+**Root cause:** POLICY 5 SIBLING-SWEEP category (i) covers aggregation cells in index files that duplicate per-row values. The bats file's lead-in count-bearing prose (`@N independently mutant-proven gates`, `All N gates survive independently`) is a same-file self-description of gate count — an aggregation cell by another name. It is not enumerated in any sibling-sweep category, and POLICY 14's SAME-BURST PREDICATE-GATE CELL COUPLING covers the story cell but not the bats file's own header text. The gap is small (two substitutions) but it produces a MEDIUM adversary finding that is procedurally noise.
+
+**Corrective action:** Test-writer agents that change the gate count (add or remove a bats `@test` block tagged as a gate) MUST sweep the bats file's own lead-in count-bearing text in the same commit before pushing. The check is mechanical: `grep -c '@test.*[Gg]ate' <bats-file>` gives the current gate count; the lead-in text MUST match. This is a POLICY 5 category (i) extension to same-file count aggregation text in bats test files.
+
+**Anchors:** S-21.04 LOCAL cascade pass-19 closure burst (2026-07-27); bats commit `a2112e8d` (two-site count-word sweep: `Nineteen`→`Twenty-one`); story v1.25 AC-001 Gate coupling note updated.
+
+**Cites:** D-923 (this burst); F-S2104-P19-008 (MEDIUM finding); POLICY 5 SIBLING-SWEEP category (i) (aggregation cells — this lesson proposes same-file bats lead-in text as an additional site in the same category); POLICY 14 SAME-BURST PREDICATE-GATE CELL COUPLING (D-916) — adjacent mandate that covers the story cell but not the bats file's own count text.
+
+**Closes:** D-923 S-21.04-PASS-19-CLOSED (2026-07-27). `[process-gap; report-noise; bats-lead-in; count-word; sibling-sweep; aggregation-cell; POLICY-5; POLICY-14; D-923]`
