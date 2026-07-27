@@ -12513,3 +12513,47 @@ D-919-S2104-PASS-18-PERSISTED
 ### Date
 
 2026-07-26
+
+---
+
+## D-920
+
+### Summary
+
+S-21.04 LOCAL pass-18 closure burst. Fix wave landed at test-writer `a4ec37d3` (9/9 + 14/14 GREEN; balanced-fence assertion, fence exclusion removed, rendered_write_discipline domain, boundary-rule splitter, Gate 2b(c) section-wide re-scope, Gate 2b(a) 25-member nullification, write-directive gate) and story-writer `5a2da843` (story v1.23, 19-gate cell, bidirectional 19/19). State-manager closure: (A) red-gate-log v1.15→v1.16 — Gate-5 attribution corrected (M-P17-A fires Gate PW-B primary + write-directive secondary; Gate 5 false claim dropped at 2 sites; SEQUENCE-SHADOWED DEFENSE-IN-DEPTH documented), D-918 input-hash placeholders corrected to literal `4b26b3b`, Pass-18 assertion-site attestation (a4ec37d3) appended (35/35 battery, 20-gate indexed audit, 15-obligation coverage, ALTERNATION-DIRECTION STATEMENTS, NAME-SET EQUALITY PASS 19 gates), input-hash 4b26b3b→f86871a (story v1.23 drift); (B) STORY-INDEX v4.265→v4.266 (story v1.22→v1.23, input-hash 1165b1f→f86871a, P18 refs appended, blockquote S-21.04=f86871a); (C) adversary-pass-18.md: fixes_landed_head a4ec37d3 + Fix Mapping table (7/7 FIXED); (D) policies.yaml v1.4.14→v1.4.15: POLICY 13 + NORMALIZATION-ADVERSARIALITY-MANDATE + ALTERNATION-WIDENING-DIRECTION-STATEMENT-MANDATE; POLICY 15 + BACKSTOP-DOMAIN-PARITY-MANDATE; 3 lessons (L-BB-normalization-adversariality, L-BB-alternation-widening-direction-statement, L-BB-backstop-domain-parity). Streak: 0/3 (NOT-CLEAN; pass-18 fix wave complete; dispatch pass-19 adversary).
+
+### Detail
+
+1. **POLICY 16 GLOBAL-MAX GATE (literal shell stdout)**:
+   - `grep -rh '^## D-' cycles/v1.0-brownfield-backfill/decision-log.md cycles/v1.0-feature-engine-discipline-pass-1/decision-log.md | sed 's/^## D-//' | sort -n | tail -5` → `915 / 916 / 917 / 918 / 919`
+   - D-919 confirmed global max → D-920 allocated. PASS.
+
+2. **Pass-18 battery attestation (35/35)**: all 35 vectors executed against `a4ec37d3` with literal bats stdout captured in red-gate-log v1.16 §Pass-18 assertion-site attestation. New P18 vectors (16): M-P18-C(b)→balanced-fence (line 668); M-P18-D→anchor-uniqueness rendered-domain count=0 (line 695); M-P18-B + CONTROL-B + 6 abbreviation mutants→Gate 4 (line 915) with boundary-rule splitter proof; Gate-5 isolating sibling-para→Gate PW-B primary (SEQUENCE-SHADOWED, line 820); M-P18-A→write-directive gate (line 975); M-P18-C→Gate PW-B fence-included (line 820); M-P18-E/F→Gate 2b(a) widened (line 869); M-P18-G→Gate 2b(c) section-wide (line 897); Restore→GREEN.
+
+3. **Gate-5 attribution correction (F-S2104-P18-006)**: Battery table M-P17-A row corrected — Gate PW-B is primary (second paragraph `story worktree CWD` without prohibition token at bats line 820); write-directive gate is secondary (MUST anchor + action, no prohibition or canonical-absolute escape at bats line 975; fires if PW-B domain silenced — SEQUENCE-SHADOWED DEFENSE-IN-DEPTH). Gate 5 false claim dropped at battery table row AND gate-indexed audit table Gate 5 row (2 sites). Red-gate-log v1.16 records both corrections with explicit attribution error acknowledgment.
+
+4. **D-918 input-hash placeholder correction (F-S2104-P18-007)**: `last_amended` + `modified[D-918]` both corrected from bracketed placeholder to literal `4b26b3b`. All 9 sibling rows record literal old→new values — no bracketed form remains.
+
+5. **STORY-INDEX v4.265→v4.266 (literal shell stdout)**:
+   - `grep -m1 "^version:" stories/STORY-INDEX.md` → `version: "4.266"`
+   - S-21.04 catalog row: story v1.22→v1.23; input-hash 1165b1f→f86871a; P18 refs appended; blockquote S-21.04=1165b1f→f86871a.
+
+6. **adversary-pass-18.md updates**: `fixes_landed_head: a4ec37d3` added to frontmatter; `## Fix Mapping` table appended (7 rows, all FIXED — F-S2104-P18-001..007 mapped to test-writer `a4ec37d3` / story-writer `5a2da843` / state-manager closure burst per finding axis).
+
+7. **POLICY 13/15 extensions (policies.yaml v1.4.14→v1.4.15)**:
+   - POLICY 13: NORMALIZATION-ADVERSARIALITY-MANDATE (D-920 per F-S2104-P18-002 BLOCKER-class) — exclusion steps MUST carry structural well-formedness assertion + bypass mutant; tokenization steps MUST carry false-boundary manufacturing mutant.
+   - POLICY 13: ALTERNATION-WIDENING-DIRECTION-STATEMENT-MANDATE (D-920 per F-S2104-P18-001/005) — every alternation widening MUST declare direction (open trigger or closed enumeration + complementary open-trigger gate if closed).
+   - POLICY 15: BACKSTOP-DOMAIN-PARITY-MANDATE (D-920 per F-S2104-P18-005) — backstop gate and primary gate MUST share domain; divergence MUST be documented in bats code, story Gate cell, and audit table in same burst.
+
+8. **3 lessons appended** to lessons.md: L-BB-normalization-adversariality, L-BB-alternation-widening-direction-statement, L-BB-backstop-domain-parity (per D-920 [process-gap] codifications from adversary-pass-18.md Part B).
+
+9. **POLICY 14 4-INDEX GATE (literal shell stdout)**:
+   - BC v4.33 / VP v2.72 / STORY v4.266 / ARCH v3.34. STORY-INDEX advanced this burst; BC/VP/ARCH unchanged. PASS.
+
+### Phase
+
+D-920-S2104-PASS-18-CLOSED
+
+### Date
+
+2026-07-27

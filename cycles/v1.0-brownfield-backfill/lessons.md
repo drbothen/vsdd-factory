@@ -8061,3 +8061,57 @@ The mutant self-check is evidence, not just process. The test-writer report MUST
 **Cites:** D-918 (this burst); S-15.03 PRIORITY-A (systemic dispatch-template hardening anchor); L-BB-silent-idle-subagent-recurrence (prior related lesson on silent-idle).
 
 **Closes:** D-918 S-21.04-ADV-PASS-17-CLOSED (2026-07-26). `[process-observation; orchestrator; session-boundary; presumed-dead-writer; dispatch-preamble; prior-work-check; S-15.03; D-918]`
+
+---
+
+## L-BB-normalization-adversariality [process-gap] [D-920]
+
+**Summary:** Every extraction, exclusion, or normalization mechanism in a gate's data path must itself carry mutants, because a mechanism that can silently shrink a gate's domain is indistinguishable in effect from deleting the gate. Recording such mechanisms in a table labeled "not assertion gates" — with no mutant coverage — is the exact inversion of this rule: it creates a paper-exemption that eliminates adversarial probing precisely where a hole exists.
+
+**Discovered:** 2026-07-27 (S-21.04 pass-18 adversarial review at c89bef22 — F-S2104-P18-002: the whole-section prose domain was constructed by subtracting fenced code blocks, but the subtraction had no structural well-formedness assertion and no bypass mutant. M-P18-C placed a listed prohibited-target inside the existing bash fence at 9/9. M-P18-C(b) inserted one unbalanced opening fence, collapsing the entire section-wide domain to empty at 9/9. Both vectors were blind spots specifically because the fence-stripping mechanism was in the "Extraction and normalization mechanisms (not assertion gates)" table rather than in the battery).
+
+**Root cause:** The red-gate-log's "Extraction and normalization mechanisms" framing was intended to separate mechanism documentation from gate attestation. The framing was correct for documentation purposes but incorrect as an exemption from mutant coverage: every mechanism that can silently change domain extent IS an assertion gate in the adversarial sense, because the adversary exploits the mechanism, not the gate predicate.
+
+**Corrective action (codified as POLICY 13 NORMALIZATION-ADVERSARIALITY-MANDATE at D-920):** (i) any exclusion step MUST have a structural well-formedness assertion (e.g., balanced-fence POSITIVE assertion for code-fence exclusion) AND a bypass mutant placing harmful text in the excluded region; (ii) any tokenization step MUST have a false-boundary manufacturing mutant using an unlisted abbreviation (M-P18-B is the canonical form for the perl boundary-rule splitter).
+
+**Anchors:** S-21.04 LOCAL cascade pass-18 fix wave (2026-07-27); test-writer a4ec37d3 (balanced-fence assertion + fence exclusion removed + rendered_write_discipline domain); red-gate-log v1.16 §Extraction and normalization mechanisms table updated.
+
+**Cites:** D-920 (this burst); F-S2104-P18-002 (BLOCKER finding); POLICY 13 NORMALIZATION-ADVERSARIALITY-MANDATE (D-920 extension); L-BB-domain-completeness-render-fidelity (prior related lesson on section-wide domain).
+
+**Closes:** D-920 S-21.04-PASS-18-CLOSED (2026-07-27). `[process-gap; normalization-adversariality; exclusion-mechanism; fence-stripping; bypass-mutant; structural-assertion; tokenization; false-boundary; POLICY-13; D-920]`
+
+---
+
+## L-BB-alternation-widening-direction-statement [process-gap] [D-920]
+
+**Summary:** "Widen the alternation" is a confirmed non-fix, three passes running. F-S2104-P16-001 widened PW-B's target list; F-S2104-P17-002(b) widened it again; F-S2104-P17-003(b) widened Gate 2b's nullification list. Each widening was mutant-proven and each fell to the first unlisted paraphrase in the next pass. The issue is not the width of the alternation — it is that the alternation sits on the CLOSED (trigger) side of the implication without a corresponding open-trigger complement. Any burst that widens an enumeration without stating its direction and adding the required open-trigger backstop is a paper-fix by construction, regardless of mutant count.
+
+**Discovered:** 2026-07-27 (S-21.04 pass-18 adversarial review — F-S2104-P18-001: M-P18-A placed `the worktree's .factory/ subtree` as the write destination. PW-B's ten-item surface list had no match because neither `worktree's shadow` nor `shadow subtree` nor any listed form matched. Gate PW-B fell silent. The write-directive gate (open-trigger) was added in the same pass-18 fix wave as the backstop that makes PW-B's closed list non-load-bearing on the write-directive axis).
+
+**Root cause:** POLICY 13's FAIL-CLOSED-IMPLICATION-DIRECTION mandate specified the correct architecture (trigger must be open class) but no enforcement gate asked whether a specific alternation was on the open or closed side. Reviewers and burst authors could add members to a closed-trigger alternation without violating any stated mandate, because the direction was implicit. The direction statement requirement makes the closed-trigger case explicit and forces the paired open-trigger gate into scope.
+
+**Corrective action (codified as POLICY 13 ALTERNATION-WIDENING-DIRECTION-STATEMENT-MANDATE at D-920):** Every burst that adds a member to an existing alternation MUST state in the audit row: (a) if trigger (open side) — state "direction: open trigger"; (b) if enumeration (closed side) — state "direction: closed enumeration; backstopped by `<gate-name>` (open trigger)" and add the open-trigger gate in the same burst. A widening without a direction statement is a paper-fix under TD-VSDD-059 by construction.
+
+**Anchors:** S-21.04 LOCAL cascade pass-18 fix wave (2026-07-27); test-writer a4ec37d3 (write-directive gate added as open-trigger backstop for PW-B + Gate 2b(a)/(c)); red-gate-log v1.16 ALTERNATION-DIRECTION STATEMENTS block appended with direction statements for all three gates.
+
+**Cites:** D-920 (this burst); F-S2104-P18-001 (BLOCKER finding); F-S2104-P18-005 (HIGH finding); POLICY 13 ALTERNATION-WIDENING-DIRECTION-STATEMENT-MANDATE (D-920 extension); L-BB-fail-closed-implication-direction (prior related lesson).
+
+**Closes:** D-920 S-21.04-PASS-18-CLOSED (2026-07-27). `[process-gap; alternation-widening; direction-statement; open-trigger; closed-enumeration; backstop; paper-fix; POLICY-13; D-920]`
+
+---
+
+## L-BB-backstop-domain-parity [process-gap] [D-920]
+
+**Summary:** When a fix predicate specifies gate B as the backstop that makes gate A's enumeration non-load-bearing, the two gates must share a domain. A backstop gate that silently operates on a narrower domain than the gate it backstops provides no actual backstop — the attacker exploits the domain gap. The F-S2104-P18-005 finding is the canonical example: Gate 2b(c) (adversative-connective backstop) was implemented on `joined_block_nosplit` (prohibition paragraph) while Gate 2b(a) (nullification enumeration) was section-wide — a domain gap of exactly one scope level that admitted three surviving vectors in sibling paragraphs.
+
+**Discovered:** 2026-07-27 (S-21.04 pass-18 adversarial review — F-S2104-P17-003 was designed as a pair: (a) section-wide nullification enumeration, (c) adversative-connective backstop. They were implemented on different domain variables. M-P18-E/F placed "does not bind" / "supplanted" in sibling paragraphs — Gate 2b(a) section-wide would fire, but Gate 2b(c) paragraph-scoped did not. M-P18-G placed "however" in a sibling paragraph referencing the prohibition — Gate 2b(c) paragraph-scoped did not reach it. All three survived at 9/9).
+
+**Root cause:** Paired gate legs that are specified together may be implemented without verifying domain parity. The audit table's gate-indexed rows existed but did not place the two gates in adjacent rows; the domain mismatch was therefore not visible on inspection. POLICY 15 BACKSTOP-DOMAIN-PARITY now requires adjacent audit rows and explicit divergence annotation when domains legitimately differ.
+
+**Corrective action (codified as POLICY 15 BACKSTOP-DOMAIN-PARITY-MANDATE at D-920):** When gate B backstops gate A, both MUST share a domain. The audit table MUST show their rows adjacent. Where domains legitimately differ, the divergence MUST be stated in bats code, story Gate cell, and audit row in the same burst. The fix in the pass-18 wave: Gate 2b(c) re-scoped to `write_discipline_prose_nosplit` (section-wide), matching Gate 2b(a). M-P18-E/F/G all now RED.
+
+**Anchors:** S-21.04 LOCAL cascade pass-18 fix wave (2026-07-27); test-writer a4ec37d3 (Gate 2b(c) re-scoped section-wide); red-gate-log v1.16 gate-indexed audit table shows Gate 2b(a) and Gate 2b(c) in adjacent rows with matching domain descriptions.
+
+**Cites:** D-920 (this burst); F-S2104-P18-005 (HIGH finding); POLICY 15 BACKSTOP-DOMAIN-PARITY-MANDATE (D-920 extension); L-BB-alternation-widening-direction-statement (paired lesson on direction-statement requirement).
+
+**Closes:** D-920 S-21.04-PASS-18-CLOSED (2026-07-27). `[process-gap; backstop-domain-parity; paired-gates; domain-gap; section-wide; adjacent-audit-rows; POLICY-15; D-920]`
