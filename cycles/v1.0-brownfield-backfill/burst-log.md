@@ -20736,4 +20736,4 @@ $ printf '%s\n' F-S2104-P21-004 | wc -l
 
 **factory-artifacts commits:**
 - Pre-burst parent-commit (factory-artifacts): `7e3861bb` (D-931-SHA-PATCH)
-- This burst: [TBD — SHA-patch follow-up per D-447(c)+D-449(e)]
+- This burst: `125c17e6` — `factory(D-932): STATE body-section attempt + ARCH-INDEX v3.35 + ADR-033`
