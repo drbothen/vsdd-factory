@@ -20469,9 +20469,9 @@ No adversary review this burst. D-926 is a record-correction burst (D-900-class)
 ### Block 3 — Files touched
 
 State-manager this burst (factory-artifacts):
-- `cycles/v1.0-brownfield-backfill/S-21.04/adversary-pass-20.md` (line 24: "2 findings: B2/H0/M0. Plus 1 MEDIUM open follow-on F-S2104-P20-003. Trajectory ...→12→2" → "3 findings: B2/H0/M1. Trajectory ...→12→3")
-- `cycles/v1.0-brownfield-backfill/lessons.md` (L-BB-subagent-report-fidelity-literal-shell 5th POLICY 22 instance — adversary capability fabrication; L-BB-commit-without-push NEW; L-BB-count-after-enumeration NEW)
-- `cycles/v1.0-brownfield-backfill/decision-log.md` (D-926 block appended)
+- `cycles/v1.0-brownfield-backfill/S-21.04/adversary-pass-20.md` (line 24: "2 findings: B2/H0/M0. Plus 1 MEDIUM open follow-on F-S2104-P20-003. Trajectory ...→12→2" → "3 findings: B2/H0/M1. Trajectory ...→12→3"; MANDATORY PROVENANCE DISCLOSURE extended: ROOT CAUSE CONFIRMED section — model: opus pin, blast-radius 7 agents, model-diversity deviation, ARCHITECTURE DECISION REQUIRED for architect)
+- `cycles/v1.0-brownfield-backfill/lessons.md` (L-BB-adversary-agent-delivery-silent root-cause updated D-926: "unknown" → model:opus pin + correlation table + blast-radius + convergence-trajectory caveat + architecture-decision-required; L-BB-subagent-report-fidelity-literal-shell 5th POLICY 22 instance — adversary capability fabrication; L-BB-commit-without-push NEW; L-BB-count-after-enumeration NEW; L-BB-mid-burst-addenda-unreliable NEW)
+- `cycles/v1.0-brownfield-backfill/decision-log.md` (D-926 block appended, extended to cover 5 items)
 - `STATE.md` (v6.57→v6.58; phase D-926-S2104-PASS-20-CORRECTION)
 - `cycles/v1.0-brownfield-backfill/burst-log.md` (this entry)
 
@@ -20479,10 +20479,13 @@ TD-VSDD-060 sibling sweep confirmed no additional files need correction: decisio
 
 ### Block 4 — Codifications
 
-- **D-926** in decision-log.md: S2104-PASS-20-CORRECTION — count defect corrected in adversary-pass-20.md; TD-VSDD-060 sibling sweep confirmed 4 surfaces correct; 5th POLICY 22 instance (adversary capability fabrication); 2 new process-gap lessons (commit-without-push, count-after-enumeration).
+- **D-926** in decision-log.md: S2104-PASS-20-CORRECTION — count defect corrected in adversary-pass-20.md; TD-VSDD-060 sibling sweep confirmed 4 surfaces correct; adversary-delivery root cause confirmed (model:opus pin + blast-radius 7 agents); 5th POLICY 22 instance (adversary capability fabrication); 4 new/extended process-gap lessons; mid-burst addenda unreliable; architecture-decision-required for architect.
+- **adversary-pass-20.md MANDATORY PROVENANCE DISCLOSURE** extended: ROOT CAUSE CONFIRMED (model:opus pin → terminal API error → silent death); blast-radius 7 agents; model-diversity deviation; ARCHITECTURE DECISION REQUIRED (route to architect; register as story).
+- **L-BB-adversary-agent-delivery-silent** (D-925, extended D-926): root cause confirmed (model:opus pin); correlation table; blast-radius; model-diversity deviation; convergence-trajectory caveat (3 distinct adversary failure modes across cascade; "19 passes" overstates genuine independent review); ARCHITECTURE DECISION REQUIRED for architect.
 - **L-BB-subagent-report-fidelity-literal-shell** (D-924/D-925, extended D-926): 5th POLICY 22 instance — adversary claimed execution capability it doesn't have; fabricated evidence insidious even when outcome is correct; mitigation: PROPOSED MUTANT/CONTROL blocks + orchestrator executes.
 - **L-BB-commit-without-push** [process-gap] [D-926]: NEW — dispatch-template omission; every commit-generating dispatch must include explicit push + `0 0` confirmation; orchestrator independently verifies.
 - **L-BB-count-after-enumeration** [process-gap] [D-926]: NEW — POLICY 15; enumeration is SoT; count derived via literal-shell grep, never authored independently.
+- **L-BB-mid-burst-addenda-unreliable** [process-gap] [D-926]: NEW — mid-burst SendMessage addenda 3-for-3 dropped/collided this session; corrections MUST go in initial dispatch or next dispatch; this lesson is its own evidence.
 
 ### Block 5 — Dim-2 literal-shell gate attestation
 
@@ -20523,7 +20526,7 @@ This entry contains all 8 blocks: Block 1 (Parent-commit) ✓; Block 2 (Adversar
 
 ### Block 6 — Dim-5 attestation
 
-All factory-artifact mutations (adversary-pass-20.md line-24 correction, lessons.md 3 updates, decision-log.md D-926, STATE.md advance, this burst-log entry) authored by state-manager. No spec body content authored by state-manager (no BC, ADR, or story acceptance criteria changed). State-manager role limited to: record correction (adversary-pass-20.md count), lessons codification (3 items), decision-log codification, STATE.md advance, burst-log entry. Production-grade default satisfied. F-S2104-P20-003 OPEN status unchanged — correctly deferred per D-925.
+All factory-artifact mutations (adversary-pass-20.md count + provenance update, lessons.md 6 updates, decision-log.md D-926, STATE.md advance, this burst-log entry) authored by state-manager. No spec body content authored by state-manager (no BC, ADR, or story acceptance criteria changed). State-manager role limited to: record correction (adversary-pass-20.md count + provenance disclosure root cause), lessons codification (5 items: root cause update + 5th POLICY 22 instance + 3 new lessons), decision-log codification, STATE.md advance, burst-log entry. Production-grade default satisfied. F-S2104-P20-003 OPEN status unchanged — correctly deferred per D-925. Architecture decision (model-pin policy for 7 agents) surfaced for human/architect; NOT decided by state-manager; NOT filed as TD.
 
 ### Block 7 — Dim-6 literal-shell finding count
 
@@ -20531,7 +20534,7 @@ No new adversary findings this burst (D-900-class record-correction). Corrected 
 
 ### Block 8 — Closes + factory-artifacts commits
 
-**Closes:** adversary-pass-20.md count defect (D-926 line-24 correction); 5th POLICY 22 instance (L-BB-subagent-report-fidelity-literal-shell extended); L-BB-commit-without-push NEW; L-BB-count-after-enumeration NEW.
+**Closes:** adversary-pass-20.md count defect (D-926 line-24 correction) + provenance disclosure extended (root cause + blast-radius + architecture-decision-required); L-BB-adversary-agent-delivery-silent root-cause update (D-926 extension); 5th POLICY 22 instance (L-BB-subagent-report-fidelity-literal-shell extended); L-BB-commit-without-push NEW; L-BB-count-after-enumeration NEW; L-BB-mid-burst-addenda-unreliable NEW; ARCHITECTURE DECISION REQUIRED registered for architect (model-pin policy for 7 opus-pinned agents).
 
 **factory-artifacts commits:**
 - Pre-burst parent-commit (factory-artifacts): `069dcef9` (D-925 closure burst)

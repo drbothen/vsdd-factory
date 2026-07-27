@@ -8240,7 +8240,24 @@ All three dispatches were fresh-context per BC-5.39.001 requirement. All three p
 
 **Streak consequence:** S-21.04 pass-20 streak remains 0/3. Adversary-agent delivery is an OPEN BLOCKER for streak progression to 3-CLEAN. The next dispatch (pass-21) MUST be produced by the adversary agent — orchestrator-authored reviews cannot accumulate toward the streak.
 
-**Root cause (unknown):** The failure mode (three consecutive agent timeouts/idle states) does not yet have a confirmed root cause. Possible factors: context size at dispatch time; adversary agent model load; harness scheduling. No diagnostic was surfaced by the dispatcher log.
+**Root cause confirmed (D-926):** `plugins/vsdd-factory/agents/adversary.md` frontmatter line 5 pins `model: opus`. In this environment the pin does not resolve — the subagent terminates on a terminal API error after retries and returns nothing. Correlation evidence (literal observation, this session):
+
+| agent | model pin | outcome |
+|-------|-----------|---------|
+| state-manager | sonnet | delivered (D-923, D-924, D-925) |
+| test-writer | sonnet | delivered (a5068252) |
+| devops-engineer | sonnet | delivered (2 pushes) |
+| adversary | opus | FAILED ×3, silent (adv-p20, adv-p20b, adv-p20c) |
+
+Validated fix: dispatch the adversary agent with an explicit `model: sonnet` override (Agent-tool `model` param takes precedence over frontmatter). Controlled test delivered correctly; smoke-test stdout: `DELIVERY: OK / POLICY COUNT: 22 / POLICY 22 NAME: subagent_report_fidelity_literal_shell` — agent read real files (policy count 22 and POLICY 22 name are both independently correct, confirming substantive execution).
+
+**Blast radius (engine-level P0):** Seven agents in `plugins/vsdd-factory/agents/` pin `model: opus` in their frontmatter: `adversary`, `codebase-analyzer`, `holdout-evaluator`, `formal-verifier`, `pr-reviewer`, `research-agent`, `spec-reviewer`. All are presumed non-functional in environments where `model: opus` does not resolve. This silently disables adversarial review, holdout evaluation, formal verification, PR review, and external research — most of the factory quality-gate layer. Since vsdd-factory IS the product, this is an engine-level P0.
+
+**Model-diversity deviation:** The adversary agent's stated purpose includes "uses different model for genuine perspective diversity." Running it on the session model via the `model: sonnet` override satisfies delivery but forfeits the intended model-diversity property. This is the only available mitigation until the agent frontmatter is corrected.
+
+**Convergence trajectory caveat:** The adversary exhibited THREE distinct failure modes across this story's cascade: (1) fabricated content in passes 01/02 — voided at D-897/D-900; (2) claimed-but-impossible execution in pass-19 — "I verified it GREEN myself" / "confirmed by `marked` and `pandoc`" / "→ 9/9" (adversary has Read/Grep/Glob only); (3) silent death in passes 20 a/b/c — model: opus pin. The statement "19 passes of independent adversarial review" overstates how much genuine independent review occurred. Some of the finding trajectory reflects reviewer noise (fabricated finding classes, orchestrator-authored reviews) rather than signal from a truly fresh-context adversary. This does not invalidate actual findings (which were verified against real artifacts by the orchestrator) but cautions against treating the trajectory as a clean independent-review count.
+
+**ARCHITECTURE DECISION REQUIRED — surface to human/architect (do not resolve in this lesson):** Which model the 7 affected agents should pin in their frontmatter, and whether agents should fail loudly (surface an error) rather than silently on unresolvable model pins, is a genuine cross-component + cost decision. A new story must be registered to address this. Recommended routing: architect for the model-pin policy decision. This is not a tech-debt register entry — it requires a spec-driven story with acceptance criteria.
 
 **Generalized rule:** When an adversary agent dispatch goes idle (zero output), the orchestrator MUST:
 1. Retry at least once (different dispatch invocation) before concluding delivery failure.
@@ -8251,11 +8268,11 @@ All three dispatches were fresh-context per BC-5.39.001 requirement. All three p
 
 **Distinction from subagent report under-reporting:** `[[L-BB-subagent-report-fidelity-literal-shell]]` covers the case where a report was delivered but content was incorrect (truncated, mislabeled, or mis-attributed). This lesson covers non-delivery — no report arrived. The mitigation differs: under-reporting → literal-shell re-verification by the consumer; non-delivery → retry + orchestrator-authored recovery path.
 
-**Anchors:** S-21.04 pass-20 adversary dispatch (2026-07-27); adversary-pass-20.md provenance = orchestrator-authored; D-925 closure burst; `[[L-EDP1-074]]` orchestrator-authored class predicates.
+**Anchors:** S-21.04 pass-20 adversary dispatch (2026-07-27); adversary-pass-20.md provenance = orchestrator-authored; D-925 closure burst; `[[L-EDP1-074]]` orchestrator-authored class predicates; D-926 root-cause-confirmed: `plugins/vsdd-factory/agents/adversary.md` frontmatter `model: opus` line 5; `model: sonnet` override validated fix; blast-radius 7 agents.
 
-**Cites:** D-925 (this burst); BC-5.39.001 3-CLEAN protocol (streak 0/3); `[[L-EDP1-074]]` (orchestrator-authored class); `[[L-BB-subagent-report-fidelity-literal-shell]]` (D-924; distinct failure class — report delivered but content-incorrect); adversary-pass-20.md MANDATORY PROVENANCE DISCLOSURE.
+**Cites:** D-925 (this burst — initial lesson); D-926 (root cause confirmed + blast-radius + model-diversity-deviation + convergence-trajectory-caveat + architecture-decision-required); BC-5.39.001 3-CLEAN protocol (streak 0/3); `[[L-EDP1-074]]` (orchestrator-authored class); `[[L-BB-subagent-report-fidelity-literal-shell]]` (D-924; distinct failure class — report delivered but content-incorrect); `[[L-BB-mid-burst-addenda-unreliable]]` (D-926; adjacent process-gap — mid-burst SendMessage addenda unreliable); adversary-pass-20.md MANDATORY PROVENANCE DISCLOSURE (updated D-926 to cite root cause).
 
-**Closes:** D-925 S-21.04-PASS-20-CLOSED (2026-07-27). `[process-gap; adversary-delivery; agent-idle; non-delivery; orchestrator-authored; BC-5.39.001; streak-0/3; OPEN-BLOCKER; D-925]`
+**Closes:** D-925 S-21.04-PASS-20-CLOSED (2026-07-27); D-926 (root-cause-confirmed + blast-radius + architecture-decision-required registered). `[process-gap; adversary-delivery; agent-idle; non-delivery; orchestrator-authored; BC-5.39.001; streak-0/3; OPEN-BLOCKER; model-opus-pin; blast-radius-7-agents; model-diversity-deviation; convergence-trajectory-caveat; architecture-decision-required; D-925; D-926]`
 
 ---
 
@@ -8296,3 +8313,31 @@ All three dispatches were fresh-context per BC-5.39.001 requirement. All three p
 **Cites:** D-926 (this correction burst); POLICY 15 count-after-enumeration; D-449(a) literal-shell-execution-evidence mandate; `[[L-BB-subagent-report-fidelity-literal-shell]]` (adjacent lesson — narrative synthesis that yields wrong counts); adversary-pass-20.md Summary fix (D-926).
 
 **Closes:** D-926 S-21.04-PASS-20-CORRECTION (2026-07-27). `[process-gap; count-after-enumeration; POLICY-15; literal-shell; enumeration-sot; finding-count; D-449a; D-926]`
+
+---
+
+## L-BB-mid-burst-addenda-unreliable [process-gap] [D-926]
+
+**Summary:** Mid-burst `SendMessage` addenda — corrections or additional instructions sent to an agent after its initial dispatch message — are empirically unreliable: three for three in the D-923/D-924/D-925 session, they either collided with in-flight commits or were silently dropped. This process gap means that correctness-bearing information sent as a mid-burst addendum may not reach the agent, and the orchestrator has no signal that it was lost.
+
+**Discovered:** 2026-07-27 (team-lead post-session analysis; D-926 dispatch).
+
+**Three empirical failures (this session):**
+
+**(a) D-923 addendum — collision:** An addendum was sent to the state-manager agent while it was still executing. The agent had already committed and was completing when the addendum arrived. The addendum crossed the commit boundary: the agent woke, re-committed on the same defect independently, producing an extra commit + re-scope at a point where the work was already done. Net cost: one extra commit, one re-scope, scope-management overhead.
+
+**(b) D-925 addendum (Items 3+4) — silent drop:** The D-925 addendum containing Items 3 (fifth POLICY 22 instance — pass-19 adversary execution claims) and 4 (commit-without-push dispatch-template gap) was sent as a mid-burst `SendMessage` and dropped entirely. The agent committed without those items. They were not included in D-925. Items 3 and 4 appear in THIS D-926 dispatch only because the addenda were dropped.
+
+**(c) D-925 count-correction message — silent drop:** A message correcting the pass-20 finding count (Item 2 in this D-926 dispatch) was sent as a mid-burst addendum and dropped. The count defect persisted until the team-lead's next full dispatch.
+
+**Root cause attribution:** The failure mode is inherent to the mid-burst messaging channel — the agent may already be in a commit-and-report phase when the addendum arrives, or the message may be lost to concurrency. This is NOT attributed to agent misconduct; it is an architectural property of the dispatch-and-message model. Attribution: orchestrator process-gap (relying on an unreliable channel for correctness-bearing corrections).
+
+**Generalized rule:** Corrections and additional scope items MUST go into the initial dispatch or be queued as a standalone subsequent dispatch (new burst). Mid-burst `SendMessage` addenda MUST NOT carry correctness-bearing instructions — they are unreliable and have no delivery confirmation. The orchestrator MUST treat any pending correction as a new dispatch item for the NEXT burst, not as a same-burst addendum.
+
+**Mitigation now in force (D-926):** All D-926 items originated from the initial dispatch (no mid-burst addenda for this burst). This lesson is itself evidence: Items 3, 4, and 5 in the D-926 dispatch exist only because mid-burst addenda were dropped in D-925.
+
+**Anchors:** D-923 addendum collision; D-925 addenda (a) Items 3+4 silent drop, (b) count-correction silent drop; team-lead analysis 2026-07-27; D-926 dispatch (initial dispatch includes all 5 items).
+
+**Cites:** D-926 (this correction burst); `[[L-BB-commit-without-push]]` (adjacent lesson — push confirmation; dispatch-template gap class); `[[L-BB-count-after-enumeration]]` (adjacent lesson — count derived from addendum drop); `[[L-BB-adversary-agent-delivery-silent]]` (adjacent lesson — different agent-communication failure class).
+
+**Closes:** D-926 S-21.04-PASS-20-CORRECTION (2026-07-27). `[process-gap; mid-burst-addenda; SendMessage; unreliable; collision; silent-drop; initial-dispatch; orchestrator-process-gap; D-926]`

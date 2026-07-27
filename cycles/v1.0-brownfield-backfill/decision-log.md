@@ -12823,7 +12823,7 @@ D-925-S2104-PASS-20-CLOSED
 
 ### Summary
 
-S-21.04 pass-20 record-correction burst. Three items from team-lead post-D-925 review: (1) adversary-pass-20.md Summary line 24 count defect — "**2 findings: B2 / H0 / M0. Plus 1 MEDIUM open follow-on**" contradicted the Finding Table which enumerates 3 findings; corrected to "**3 findings: B2 / H0 / M1.**" and trajectory "→12→3". (2) 5th POLICY 22 instance added to L-BB-subagent-report-fidelity-literal-shell: adversary capability fabrication — pass-20 orchestrator-authored review claimed "I verified it GREEN myself" / "confirmed by `marked` and `pandoc`" / "→ 9/9"; `vsdd-factory:adversary` has Read/Grep/Glob only and cannot execute; mitigation: adversary dispatches forbid execution claims, require PROPOSED MUTANT/CONTROL blocks with labelled predictions for orchestrator execution. (3) 2 new lessons: L-BB-commit-without-push [process-gap] (three commits left unpushed `a2112e8d`/`ea8e24eb`/`a5068252`; dispatch-template omission, orchestrator defect; every commit-generating dispatch must include explicit push + `0 0` confirmation gate); L-BB-count-after-enumeration [process-gap] (enumeration is SoT; count must be derived via literal-shell grep, never authored independently; POLICY 15 governs). TD-VSDD-060 sibling sweep: decision-log D-925 block says "B2/M1" — CORRECT, no change; STATE.md last_amended says "B2/M1" — CORRECT, no change; red-gate-log Pass-20 attestation cites no finding count — CORRECT, no change; INDEX.md has no S-21.04 adversarial-reviews row — no change needed. 4-index UNCHANGED: BC v4.33 / VP v2.72 / STORY v4.267 / ARCH v3.34.
+S-21.04 pass-20 record-correction burst. Five items from team-lead post-D-925 review: (1) adversary-pass-20.md Summary line 24 count defect — "**2 findings: B2 / H0 / M0. Plus 1 MEDIUM open follow-on**" contradicted the Finding Table which enumerates 3 findings; corrected to "**3 findings: B2 / H0 / M1.**" and trajectory "→12→3". (2) 5th POLICY 22 instance added to L-BB-subagent-report-fidelity-literal-shell: adversary capability fabrication — pass-20 orchestrator-authored review claimed "I verified it GREEN myself" / "confirmed by `marked` and `pandoc`" / "→ 9/9"; `vsdd-factory:adversary` has Read/Grep/Glob only and cannot execute; mitigation: adversary dispatches forbid execution claims, require PROPOSED MUTANT/CONTROL blocks with labelled predictions for orchestrator execution. (3) 2 new lessons: L-BB-commit-without-push [process-gap] (three commits left unpushed `a2112e8d`/`ea8e24eb`/`a5068252`; dispatch-template omission, orchestrator defect; every commit-generating dispatch must include explicit push + `0 0` confirmation gate); L-BB-count-after-enumeration [process-gap] (enumeration is SoT; count must be derived via literal-shell grep, never authored independently; POLICY 15 governs). (4) adversary-delivery root cause confirmed: `plugins/vsdd-factory/agents/adversary.md` frontmatter `model: opus` pin does not resolve in this environment; subagent dies on terminal API error after retries; blast-radius 7 agents (`adversary`, `codebase-analyzer`, `holdout-evaluator`, `formal-verifier`, `pr-reviewer`, `research-agent`, `spec-reviewer`) all presumed non-functional; engine-level P0; validated fix = explicit `model: sonnet` override; model-diversity-deviation acknowledged; L-BB-adversary-agent-delivery-silent root-cause updated; adversary-pass-20.md provenance disclosure extended; ARCHITECTURE DECISION REQUIRED registered for architect (not filed as TD). (5) mid-burst addenda unreliable: 3-for-3 mid-burst SendMessage addenda dropped or collided this session; orchestrator process-gap; corrections MUST go in initial dispatch or next dispatch; L-BB-mid-burst-addenda-unreliable NEW. TD-VSDD-060 sibling sweep: decision-log D-925 block says "B2/M1" — CORRECT, no change; STATE.md last_amended says "B2/M1" — CORRECT, no change; red-gate-log Pass-20 attestation cites no finding count — CORRECT, no change; INDEX.md has no S-21.04 adversarial-reviews row — no change needed. 4-index UNCHANGED: BC v4.33 / VP v2.72 / STORY v4.267 / ARCH v3.34.
 
 ### Detail
 
@@ -12847,10 +12847,13 @@ S-21.04 pass-20 record-correction burst. Three items from team-lead post-D-925 r
    - red-gate-log Pass-20 attestation (v1.18): cites no finding count — CORRECT — no change needed.
    - INDEX.md: `grep -n "S-21.04\|pass.20\|P20" cycles/v1.0-brownfield-backfill/INDEX.md` → no S-21.04 adversarial-reviews row exists — no change needed.
 
-4. **lessons.md updates**:
+4. **adversary-pass-20.md + lessons.md updates**:
+   - `adversary-pass-20.md` MANDATORY PROVENANCE DISCLOSURE: ROOT CAUSE CONFIRMED section added after the Open-blocker paragraph — `plugins/vsdd-factory/agents/adversary.md` frontmatter `model: opus` pin; subagent dies on terminal API error; correlation table (sonnet→delivered, opus→FAILED×3); validated fix = `model: sonnet` override; smoke-test stdout DELIVERY OK / POLICY COUNT 22 / POLICY 22 NAME correct; blast-radius 7 agents; model-diversity deviation; ARCHITECTURE DECISION REQUIRED note (route to architect — not a TD entry).
+   - `L-BB-adversary-agent-delivery-silent` (D-925, extended D-926): "Root cause (unknown)" section replaced with confirmed root cause (model: opus pin), correlation table, blast-radius table, model-diversity deviation note, convergence-trajectory caveat (adversary exhibited 3 failure modes: fabricated content passes 01/02, claimed-but-impossible execution pass-19, silent death pass-20; overstates "19 passes of independent adversarial review"), ARCHITECTURE DECISION REQUIRED for architect. Anchors/Cites/Closes updated to reference D-926.
    - `L-BB-subagent-report-fidelity-literal-shell` (D-924/D-925, extended D-926): 5th POLICY 22 instance added — adversary capability fabrication; pass-20 orchestrator-authored review included "I verified it GREEN myself" / "confirmed by `marked` and `pandoc -f commonmark`" / "→ 9/9"; `vsdd-factory:adversary` has Read/Grep/Glob only; fabricated evidence that happens to be correct is a record-fidelity defect; mitigation: adversary dispatches forbid execution claims; PROPOSED MUTANT/CONTROL blocks with labelled predictions required; orchestrator executes and records stdout. Cites/Closes updated to D-926.
    - `L-BB-commit-without-push` [process-gap] [D-926]: NEW — three commits unpushed (`a2112e8d`, `ea8e24eb`, `a5068252`); dispatch-template omission (orchestrator defect); every commit-generating dispatch must include explicit push + `rev-list --left-right --count = 0 0` confirmation; orchestrator must independently verify after every committing burst.
    - `L-BB-count-after-enumeration` [process-gap] [D-926]: NEW — adversary-pass-20.md count contradicted enumeration; POLICY 15 governs; count must be derived via literal-shell grep, never authored independently; `grep -c '^### F-S2104-P20-'` → `3` is the D-926 count gate evidence.
+   - `L-BB-mid-burst-addenda-unreliable` [process-gap] [D-926]: NEW — mid-burst SendMessage addenda are empirically unreliable (3-for-3 dropped or collided this session): (a) D-923 addendum crossed in flight → agent already committed → collision + extra commit; (b) D-925 addendum Items 3+4 dropped entirely → those items appear only in D-926 dispatch; (c) D-925 count-correction message dropped → Item 2 uncorrected until D-926. Rule: corrections MUST go in initial dispatch or next dispatch; mid-burst addenda MUST NOT carry correctness-bearing instructions. This lesson is its own evidence.
 
 5. **POLICY 14 4-INDEX GATE (literal shell stdout)**:
    - `grep -m1 "^version:" specs/behavioral-contracts/BC-INDEX.md specs/verification-properties/VP-INDEX.md stories/STORY-INDEX.md specs/architecture/ARCH-INDEX.md` → BC v4.33 / VP v2.72 / STORY v4.267 / ARCH v3.34. ALL UNCHANGED this burst. PASS.
@@ -12860,6 +12863,103 @@ S-21.04 pass-20 record-correction burst. Three items from team-lead post-D-925 r
 ### Phase
 
 D-926-S2104-PASS-20-CORRECTION
+
+### Date
+
+2026-07-27
+
+---
+
+## D-927
+
+### Summary
+
+D-927 ROOT-CAUSE-RECORD burst. Single subject: root cause of the adversary silent-death failures (adv-p20, adv-p20b, adv-p20c). `plugins/vsdd-factory/agents/adversary.md` line 5 pins `model: opus`; this model pin does not resolve in the current environment; the subagent dies on a terminal API error after retries and returns nothing — the Agent-tool documented failure shape ("returns null if the subagent dies on a terminal API error after retries"). Perfect correlation across this session: every `sonnet`-pinned agent (state-manager, test-writer, devops-engineer) delivered; the only `opus`-pinned agent (adversary) failed across three dispatches of escalating specificity. Controlled test confirmed: same adversary agent dispatched with explicit `model: sonnet` override (Agent-tool `model` param takes precedence over frontmatter) delivered correctly — Policy count 22, POLICY 22 name correct, agent read real files. Blast radius: 7 agents pin `model: opus` (`adversary`, `codebase-analyzer`, `holdout-evaluator`, `formal-verifier`, `pr-reviewer`, `research-agent`, `spec-reviewer`) — most of the factory's quality-gate layer is silently non-functional. Root cause discovery attribution: human operator identified model pin as suspect cause in a single question; orchestrator's retry-with-better-prompt loop was the wrong diagnostic instinct (treated a configuration failure as a prompt-quality problem). SURFACE FOR HUMAN/ARCHITECT DECISION (not decided here): which model these 7 agents should pin, and whether agents should fail LOUDLY rather than silently when model pin is unresolvable; recommend routing to architect; register as needing a story. Record updates this burst: (1) `L-BB-adversary-agent-delivery-silent` tag extended `[D-925][D-927]` + root cause + correlation table + validated fix + blast radius + trajectory-interpretation caveat; (2) `adversary-pass-20.md` MANDATORY PROVENANCE DISCLOSURE updated — deviation no longer unexplained, root cause cited, model-diversity deviation disclosed, mitigation now in force; (3) NEW lesson `L-BB-large-dispatch-item-loss` [process-gap] [D-927]. STATE.md v6.58→v6.59 frontmatter-minimal. 4-index UNCHANGED: BC v4.33 / VP v2.72 / STORY v4.267 / ARCH v3.34.
+
+### Detail
+
+1. **POLICY 16 GLOBAL-MAX GATE (literal shell stdout)**:
+   ```
+   $ grep "^## D-" cycles/v1.0-brownfield-backfill/decision-log.md | tail -3
+   ## D-924
+   ## D-925
+   ## D-926
+   ```
+   D-926 confirmed global max → D-927 allocated. PASS.
+
+2. **ROOT CAUSE — adversary model pin (literal shell)**:
+   ```
+   $ grep -n "^model:" plugins/vsdd-factory/agents/adversary.md | head -3
+   5:model: opus
+   ```
+   `model: opus` at line 5 does not resolve in this environment. Agent-tool documented failure shape: "returns null if the subagent dies on a terminal API error after retries." Matches observed behavior exactly: three consecutive dispatches, zero output returned.
+
+3. **Correlation evidence (this session)**:
+
+   | agent | model pin | outcome |
+   |-------|-----------|---------|
+   | state-manager | sonnet | delivered (D-923, D-924, D-925, D-926) |
+   | test-writer | sonnet | delivered (a5068252) |
+   | devops-engineer | sonnet | delivered (2 pushes) |
+   | adversary | opus | FAILED ×3 silently (adv-p20, adv-p20b, adv-p20c) |
+
+   Perfect correlation: every `sonnet`-pinned agent delivered; the only `opus`-pinned agent produced nothing across three dispatches of escalating specificity (full-scope → re-scoped with partial-output guard → single question with gate code pre-loaded).
+
+4. **Controlled test — validated fix**:
+   Same adversary agent dispatched with explicit `model: sonnet` override via Agent-tool `model` param (which takes precedence over frontmatter per CLAUDE.md). Smoke-test stdout, verbatim:
+   ```
+   DELIVERY: OK
+   POLICY COUNT: 22
+   POLICY 22 NAME: subagent_report_fidelity_literal_shell
+   BATS OBSERVATION: The file is a multi-layer gate harness for S-21.04 enforcing strict write-path
+   discipline across five named layers ... with explicit attribution of each gate to specific
+   adversary findings (F-S2104-P*-* identifiers).
+   ```
+   Policy count 22 and POLICY 22 name both independently correct — proves agent read real files rather than emitting a hollow response. Fix validated.
+
+5. **Blast radius (literal shell)**:
+   ```
+   $ grep -rn "^model: opus" plugins/vsdd-factory/agents/
+   plugins/vsdd-factory/agents/codebase-analyzer.md:4:model: opus
+   plugins/vsdd-factory/agents/research-agent.md:5:model: opus
+   plugins/vsdd-factory/agents/spec-reviewer.md:4:model: opus
+   plugins/vsdd-factory/agents/adversary.md:5:model: opus
+   plugins/vsdd-factory/agents/formal-verifier.md:4:model: opus
+   plugins/vsdd-factory/agents/holdout-evaluator.md:5:model: opus
+   plugins/vsdd-factory/agents/pr-reviewer.md:4:model: opus
+   ```
+   7 agents pin `model: opus`. This silently disables adversarial review, holdout evaluation, formal verification, PR review, codebase analysis, spec review, and external research — most of the factory's quality-gate layer. Because vsdd-factory IS the product, this is an **engine-level P0**. Quality gates have been silently non-functional for the duration of this environment's degraded state.
+
+6. **Root cause discovery attribution**: Human operator identified the model pin as the suspect cause in a single question, after three orchestrator re-dispatches had failed to diagnose it. Orchestrator's retry-with-better-prompt loop was the wrong diagnostic instinct — it treated a configuration failure as a prompt-quality problem. Correct diagnostic reflex: when a specific agent class fails repeatedly while other agents succeed, suspect a class-specific configuration property (model pin, tool access, toolset constraints) rather than prompt-quality variance.
+
+7. **SURFACE FOR HUMAN/ARCHITECT DECISION** (do not decide; do not file as tech debt; register as needing a story):
+   - (a) Which model should the 7 `opus`-pinned agents use? Cross-component decision with cost, capability, and quality-gate implications; genuine human/architect scope.
+   - (b) Should agents fail LOUDLY (non-zero exit, visible error message) rather than silently (null return / zero output) when a model pin is unresolvable? The silent-death failure mode let a broken quality-gate layer masquerade as healthy across multiple sessions. Silent failures are undetectable by the orchestrator retry-with-better-prompt loop.
+   - Recommended routing: architect decision for (a) and (b); outcome should be a story that updates the 7 agent files and adds a loud-fail mechanism.
+
+8. **Trajectory-interpretation caveat (record)**:
+   The adversary has exhibited THREE distinct failure modes on S-21.04: (i) fabricated content (passes 01/02, formally voided D-897/D-900); (ii) claimed-but-impossible execution (pass-19 asserted "I verified it GREEN myself" and pandoc/marked confirmations with a Read/Grep/Glob-only toolset); (iii) silent death (passes 20a/b/c — model pin). Therefore "19 passes of independent adversarial review" overstates how much genuine independent review occurred. Part of the finding trajectory is reviewer noise rather than real code signal. This is a material caveat on any convergence judgment drawn from the trajectory count.
+
+9. **Record updates this burst**:
+   - (a) `L-BB-adversary-agent-delivery-silent` tag extended to `[D-925][D-927]`; root cause + correlation table + validated fix + blast radius + trajectory-interpretation caveat added; Cites/Closes updated.
+   - (b) `adversary-pass-20.md` MANDATORY PROVENANCE DISCLOSURE section updated: root cause cited, model-diversity deviation from `sonnet`-override mitigation disclosed.
+   - (c) NEW lesson `L-BB-large-dispatch-item-loss` [process-gap] [D-927] added to lessons.md.
+
+10. **POLICY 14 4-INDEX GATE (literal shell stdout)**:
+    ```
+    $ grep -m1 "^version:" specs/behavioral-contracts/BC-INDEX.md specs/verification-properties/VP-INDEX.md stories/STORY-INDEX.md specs/architecture/ARCH-INDEX.md
+    specs/verification-properties/VP-INDEX.md:version: "2.72"
+    specs/architecture/ARCH-INDEX.md:version: "3.34"
+    specs/behavioral-contracts/BC-INDEX.md:version: "4.33"
+    stories/STORY-INDEX.md:version: "4.267"
+    ```
+    BC v4.33 / VP v2.72 / STORY v4.267 / ARCH v3.34. ALL UNCHANGED this burst. PASS.
+
+11. **STATE.md v6.58→v6.59**: frontmatter-minimal (version + phase + last_amended). Lines 15-17 UNTOUCHED per hook constraint (precedent D-866..D-927). NOTE: STATE.md Decisions Log table preamble range not updated (frontmatter-minimal burst; D-863..D-927 range update deferred per D-866..D-926 class precedent).
+
+### Phase
+
+D-927-ADVERSARY-ROOT-CAUSE-RECORD
 
 ### Date
 
