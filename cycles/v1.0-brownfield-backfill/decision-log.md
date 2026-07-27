@@ -12478,3 +12478,38 @@ D-918-S2104-PASS-17-CLOSED
 ### Date
 
 2026-07-26
+
+---
+
+## D-919
+
+### Summary
+
+S-21.04 LOCAL adversarial pass-18 record persisted verbatim. Verdict NOT-CLEAN B2/H3/M2 (7 findings F-S2104-P18-001..007; novelty 0.62; trajectory 7→7; reviewed_head c89bef22). Streak 0/3 (BC-5.39.001 reset). Per-pass-17 verification: 3 CONFIRMED-CLOSED / 4 PARTIAL / 0 REGRESSED. Eighth-generation BLOCKER class on BC-6.26.001 PC1 (F-P12-003 → F-P13-001 → F-P14-001 → F-S2104-P14R-001 → F-S2104-P15-001 → F-S2104-P16-001 → F-S2104-P17-002 → F-S2104-P18-001). Fifteen prior vectors independently re-proven RED at HEAD. Two findings inside the pass-17 fix machinery: F-S2104-P18-002 (fence-exclusion fail-open) and F-S2104-P18-003 (splitter abbreviation whitelist). Three [process-gap] candidates: normalization-adversariality, alternation-widening-direction-statement, backstop-domain-parity. Human ruling (2026-07-26, verbatim): "grind to 3 clean" — tactical loop continues. Fix-wave routing: test-writer (P18-001..005) → story-writer (Gate cell resync) → state-manager closure D-920 (P18-006/007 + codifications). fixes_landed_head PENDING (fix wave not yet executed).
+
+### Detail
+
+1. **POLICY 16 GLOBAL-MAX GATE (literal shell stdout)**:
+   - `grep -rh '^## D-' cycles/v1.0-brownfield-backfill/decision-log.md cycles/v1.0-feature-engine-discipline-pass-1/decision-log.md | sed 's/^## D-//' | sort -n | tail -5` → `914 / 915 / 916 / 917 / 918`
+   - D-918 confirmed global max → D-919 allocated. PASS.
+
+2. **adversary-pass-18.md written verbatim** per D-897 VERBATIM-RECORD-PERSISTENCE rule. No pipe-escape applied (no pipe characters inside backtick code spans in table cells).
+
+3. **Post-write diff-verify (literal shell stdout)**:
+   - `wc -l adversary-pass-18.md` → `418`
+   - `grep -c "F-S2104-P18-" adversary-pass-18.md` → `22`
+
+4. **POLICY 14 4-INDEX GATE (literal shell stdout)**:
+   - `grep -m1 "^version:" specs/behavioral-contracts/BC-INDEX.md specs/verification-properties/VP-INDEX.md stories/STORY-INDEX.md specs/architecture/ARCH-INDEX.md` → BC v4.33 / VP v2.72 / STORY v4.265 / ARCH v3.34. ALL UNCHANGED this burst. PASS.
+
+5. **Telemetry bundled**: `logs/dispatcher-internal-2026-07-26.jsonl`, `logs/events-2026-07-26.jsonl`, `sidecar-learning.md` staged in same commit per TD-VSDD-053.
+
+6. **`fixes_landed_head` intentionally ABSENT**: closure burst D-920 adds it per D-907 dual-field convention (fix wave not yet executed).
+
+### Phase
+
+D-919-S2104-PASS-18-PERSISTED
+
+### Date
+
+2026-07-26
