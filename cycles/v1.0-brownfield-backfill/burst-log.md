@@ -20358,3 +20358,98 @@ S-21.04 LOCAL adversarial cascade pass-17: B2/H2/M3 = 7 findings (F-S2104-P17-00
 **factory-artifacts commits:**
 - Pre-burst parent-commit (factory-artifacts): `256f2b01`
 - This burst: `d27535d2` (D-918 pass-17 closure burst)
+
+---
+
+## D-925 — S-21.04 pass-20 closure burst (2026-07-27)
+
+### Block 1 — Parent-commit
+
+`ea8e24eb` — state-manager commit: D-924 record correction — D-449(a) executed evidence + POLICY 15 657fce61 verdict + L-BB-subagent-report-fidelity-literal-shell + D-923 provenance fix. Factory-artifacts HEAD at burst-start. Test-writer pre-burst commit `a5068252` (feature/S-21.04-story-worktree-write-path-discipline worktree, not factory-artifacts): Gate PW-B clause-scoped (Leg A) + referent predicate extended (Leg B) + `_shared-context.md` S2 prose reworded (doc prerequisite).
+
+### Block 2 — Adversary verdict
+
+**MANDATORY PROVENANCE DEVIATION:** adversary-pass-20.md was NOT produced by the adversary agent. Three consecutive dispatches (adv-p20, adv-p20b, adv-p20c) went idle producing zero output. Review is orchestrator-authored per L-EDP1-074. BC-5.39.001 fresh-context requirement NOT satisfied. **Streak: 0/3. Adversary-agent delivery is an OPEN BLOCKER for pass-21.**
+
+adversary-pass-20.md (`reviewed_head: a2112e8d`, `fixes_landed_head: a5068252`): **NOT-CLEAN — B2/M1 — 3 findings (F-S2104-P20-001..003).** Provenance: orchestrator-authored (streak-ineligible). Findings: F-S2104-P20-001 (BLOCKER — Gate PW-B clause-scoping gap: pass-19 fix applied clause-scoping only to the write-directive gate; PW-B retained sentence-scoped prohibition-token exclusion; M-P20-A clause 1 is a verbatim BC-6.26.001 PC1 inversion; tenth-generation recurrence); F-S2104-P20-002 (BLOCKER — write-directive referent narrowed in pass-19 removing `artifact writes?` backstop; the two regressions composed — M-P20-A evades both gates simultaneously at `a2112e8d`); F-S2104-P20-003 (MEDIUM OPEN — PW-B has no directive requirement; clause-scoped PW-B fires on explanatory prose mentioning prohibited-target forms; structural fix requires full regression battery; deliberately deferred as pass-21 lead item). F-S2104-P20-001/002 CLOSED a5068252. F-S2104-P20-003 OPEN.
+
+### Block 3 — Files touched
+
+State-manager this burst (factory-artifacts):
+- `cycles/v1.0-brownfield-backfill/S-21.04/adversary-pass-20.md` (NEW — orchestrator-authored pass-20 finding table + MANDATORY PROVENANCE DISCLOSURE + Fix Mapping 3 rows; reviewed_head a2112e8d; fixes_landed_head a5068252)
+- `cycles/v1.0-brownfield-backfill/S-21.04/implementation/red-gate-log.md` (v1.17→v1.18; Pass-20 assertion-site attestation (a5068252) appended; input-hash a03188b UNCHANGED)
+- `cycles/v1.0-brownfield-backfill/lessons.md` (L-BB-p19-report-noise-process-gap Class A only + cross-reference; L-BB-subagent-report-fidelity-literal-shell 4th POLICY 22 instance + adversary-delivery note; L-BB-adversary-agent-delivery-silent NEW)
+- `cycles/v1.0-brownfield-backfill/decision-log.md` (D-925 block appended)
+- `STATE.md` (v6.56→v6.57; phase D-925-S2104-PASS-20-CLOSED)
+- `cycles/v1.0-brownfield-backfill/burst-log.md` (this entry)
+
+Pre-burst other-agent commits (story worktree, not factory-artifacts):
+- test-writer a5068252: Gate PW-B clause-scoped (Leg A) + referent predicate `\.factory/|ledger|artifact[[:space:]]+writes?` (Leg B) + `_shared-context.md` S2 prose reworded (doc prerequisite)
+
+### Block 4 — Codifications
+
+- **D-925** in decision-log.md: S2104-PASS-20-CLOSED — orchestrator-authored B2/M1 finding set; both BLOCKERs CLOSED a5068252; F-S2104-P20-003 OPEN pass-21 lead; streak 0/3.
+- **L-BB-p19-report-noise-process-gap** (D-923, amended D-925): reduced to Class A only — Class B body removed; cross-reference to L-BB-subagent-report-fidelity-literal-shell added.
+- **L-BB-subagent-report-fidelity-literal-shell** (D-924, extended D-925): 4th POLICY 22 instance added (D-923 last_amended chain ~40× understatement; proper remedy D-862-class compaction); adversary-delivery failure cross-reference note.
+- **L-BB-adversary-agent-delivery-silent** [process-gap] [D-925]: NEW — three consecutive silent adversary dispatches for pass-20; orchestrator-authored recovery; streak consequence; generalized rule (retry N≥3 → orchestrator-authored class + MANDATORY PROVENANCE DISCLOSURE + streak stays 0/3).
+
+### Block 5 — Dim-2 literal-shell gate attestation
+
+**POLICY 16 GLOBAL-MAX GATE (D-449(a) literal-shell):**
+```
+$ grep -rh "^## D-" cycles/v1.0-brownfield-backfill/decision-log.md cycles/v1.0-feature-engine-discipline-pass-1/decision-log.md | sed 's/^## D-//' | sort -n | tail -5
+920
+921
+922
+923
+924
+```
+→ D-924 confirmed global max at burst-start → D-925 allocated. PASS.
+
+**POLICY 14 4-INDEX LITERAL-SHELL GATE (D-449(a)):**
+```
+$ grep -m1 "^version:" specs/behavioral-contracts/BC-INDEX.md specs/verification-properties/VP-INDEX.md stories/STORY-INDEX.md specs/architecture/ARCH-INDEX.md
+specs/behavioral-contracts/BC-INDEX.md:version: "4.33"
+specs/verification-properties/VP-INDEX.md:version: "2.72"
+stories/STORY-INDEX.md:version: "4.267"
+specs/architecture/ARCH-INDEX.md:version: "3.34"
+```
+→ BC v4.33 / VP v2.72 / STORY v4.267 / ARCH v3.34. ALL UNCHANGED this burst. PASS.
+
+**D-448(a) SOURCE-ATTESTATION GATE (D-449(a) literal-shell):**
+```
+$ grep -oE "F-S2104-P20-[0-9]+" cycles/v1.0-brownfield-backfill/S-21.04/adversary-pass-20.md | sort -u | wc -l
+       3
+```
+→ 3 unique finding IDs F-S2104-P20-001..003. Block 2 above lists all 3 with matching IDs and severity classifications. Adversary verdict paragraph faithfully describes adversary-pass-20.md Part A finding set. PASS.
+
+**Compute-input-hash (D-449(a) literal-shell):**
+```
+$ compute-input-hash .factory/stories/S-21.04-story-worktree-write-path-discipline.md
+1165b1f
+$ compute-input-hash .factory/cycles/v1.0-brownfield-backfill/S-21.04/implementation/red-gate-log.md
+a03188b
+```
+→ story=1165b1f CONFIRMED UNCHANGED (no story drift this pass). red-gate-log input-hash a03188b confirmed (pre-modification; no story drift → hash unchanged after attestation section append). PASS.
+
+**D-446(a) OWN-BURST-LOG 8-BLOCK GATE:**
+```
+$ grep -c "^### Block" cycles/v1.0-brownfield-backfill/burst-log.md
+```
+→ This entry contains all 8 blocks: Block 1 (Parent-commit) ✓; Block 2 (Adversary verdict) ✓; Block 3 (Files touched) ✓; Block 4 (Codifications) ✓; Block 5 (Dim-2 literal-shell gate attestation) ✓; Block 6 (Dim-5 attestation) ✓; Block 7 (Dim-6 literal-shell finding count) ✓; Block 8 (Closes + factory-artifacts commits) ✓. PASS.
+
+### Block 6 — Dim-5 attestation
+
+Fix legs F-S2104-P20-001 (Leg A + doc prerequisite) and F-S2104-P20-002 (Leg B) authored by test-writer (a5068252). All factory-artifact mutations (adversary-pass-20.md, red-gate-log.md, lessons.md, decision-log.md, STATE.md, this burst-log entry) authored by state-manager. No spec body content authored by state-manager (BC content, ADR content, or story acceptance criteria unchanged). State-manager role limited to: adversary record persist (orchestrator-authored pass), red-gate-log attestation section + frontmatter advance, lessons codification (3 items), decision-log codification, STATE.md advance, burst-log entry. Production-grade default satisfied. F-S2104-P20-003 OPEN: deliberately deferred as pass-21 lead item per structural risk documented in adversary-pass-20.md — this is a human-directed scope deferral with explicit future-story anchor (pass-21).
+
+### Block 7 — Dim-6 literal-shell finding count
+
+S-21.04 LOCAL adversarial cascade pass-20 (orchestrator-authored, provenance-deviated): B2/M1 = 3 findings (F-S2104-P20-001..003). F-S2104-P20-001 CLOSED a5068252 (test-writer Leg A); F-S2104-P20-002 CLOSED a5068252 (test-writer Leg B); F-S2104-P20-003 OPEN (deferred — pass-21 lead item). Net unresolved: 1 (F-S2104-P20-003 OPEN, deferred). Streak: 0/3 (BC-5.39.001; orchestrator-authored pass is NOT-CLEAN-ineligible; adversary-agent delivery is OPEN BLOCKER).
+
+### Block 8 — Closes + factory-artifacts commits
+
+**Closes:** F-S2104-P20-001 (CLOSED a5068252 test-writer Leg A); F-S2104-P20-002 (CLOSED a5068252 test-writer Leg B); F-S2104-P20-003 (OPEN — pass-21 lead item).
+
+**factory-artifacts commits:**
+- Pre-burst parent-commit (factory-artifacts): `ea8e24eb`
+- This burst: TBD (D-925 pass-20 closure burst — SHA to be recorded post-commit)

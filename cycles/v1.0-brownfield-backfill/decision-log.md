@@ -12760,3 +12760,61 @@ D-924-RECORD-CORRECTION
 ### Date
 
 2026-07-27
+
+---
+
+## D-925
+
+### Summary
+
+S-21.04 pass-20 closure burst. MANDATORY DISCLOSED DEVIATION: pass-20 was NOT produced by the adversary agent — three consecutive dispatches (adv-p20, adv-p20b, adv-p20c) went idle producing zero output. The pass-20 finding was orchestrator-authored per L-EDP1-074 orchestrator-authored class. This does NOT satisfy BC-5.39.001 fresh-context requirement. **Streak remains 0/3. Adversary-agent delivery is an OPEN BLOCKER for pass-21.** With that deviation disclosed: pass-20 review identified B2 (F-S2104-P20-001 Gate PW-B sentence-scoped after pass-19 clause-scoping fix; F-S2104-P20-002 write-directive referent narrowed removing backstop coverage) + M1 (F-S2104-P20-003 PW-B lacks directive requirement — OPEN deferred as pass-21 lead item). Both BLOCKERs FIXED by test-writer at a5068252: Leg A clause-scoped PW-B (same perl splitter as write-directive gate); Leg B referent predicate extended to `\.factory/|ledger|artifact[[:space:]]+writes?`; doc prerequisite `_shared-context.md` S2 prose reworded. Suites 9/9+14/14 at a5068252. red-gate-log v1.17→v1.18 (Pass-20 attestation). 3 lessons: L-BB-p19-report-noise-process-gap reduced to Class A (Class B moved to L-BB-subagent-report-fidelity-literal-shell); L-BB-subagent-report-fidelity-literal-shell 4th POLICY 22 instance + adversary-delivery cross-reference; L-BB-adversary-agent-delivery-silent [process-gap] NEW. STATE.md v6.56→v6.57. 4-index UNCHANGED: BC v4.33 / VP v2.72 / STORY v4.267 / ARCH v3.34.
+
+### Detail
+
+1. **POLICY 16 GLOBAL-MAX GATE (literal shell stdout)**:
+   - `grep -rh '^## D-' cycles/v1.0-brownfield-backfill/decision-log.md cycles/v1.0-feature-engine-discipline-pass-1/decision-log.md | sed 's/^## D-//' | sort -n | tail -5` → `920 / 921 / 922 / 923 / 924`
+   - D-924 confirmed global max → D-925 allocated. PASS.
+
+2. **Pass-20 adversary review — MANDATORY PROVENANCE DEVIATION**:
+   - Three consecutive adversary dispatches (adv-p20, adv-p20b, adv-p20c) produced zero output. Orchestrator-authored the pass-20 review per L-EDP1-074 orchestrator-authored class.
+   - `reviewed_head: a2112e8d` (bats commit: PW-B sentence-scoped, write-directive referent narrowed).
+   - `fixes_landed_head: a5068252` (test-writer: PW-B clause-scoped + referent extended + doc prerequisite).
+   - F-S2104-P20-001 BLOCKER CLOSED a5068252: Gate PW-B clause-scoped — same `perl -pe 's/[;—]\s*/\n/g; s/,\s+(?:and|or|but)\s+/\n/g'` splitter applied to PW-B Leg A + `_shared-context.md` S2 prose reworded Leg A(b).
+   - F-S2104-P20-002 BLOCKER CLOSED a5068252: Referent predicate extended to `\.factory/|ledger|artifact[[:space:]]+writes?` Leg B.
+   - F-S2104-P20-003 MEDIUM OPEN: PW-B lacks directive requirement — clause-scoped PW-B fires on explanatory prose mentioning prohibited-target forms. Deliberately deferred as pass-21 lead item (structural fix requires full regression battery for mutant classes M-P16-* through M-P19-*).
+   - BC-5.39.001 streak: 0/3 (orchestrator-authored review does NOT count toward 3-CLEAN).
+
+3. **D-448(a) SOURCE-ATTESTATION GATE (literal shell stdout)**:
+   - `grep -oE "F-S2104-P20-[0-9]+" cycles/v1.0-brownfield-backfill/S-21.04/adversary-pass-20.md | sort -u | wc -l` → `3`
+   - 3 unique finding IDs F-S2104-P20-001..003. Summary above lists all 3 with matching IDs and severity classifications. PASS.
+
+4. **red-gate-log v1.17→v1.18 + Pass-20 attestation**:
+   - `### Pass-20 assertion-site attestation (a5068252)` appended: orchestrator-executed battery (M-P20-A + CONTROL-1 + CONTROL-2 all RED post-fix); suites 9/9+14/14; ESCAPE-SCOPE-PARITY and ALTERNATION-DIRECTION statements for PW-B clause-scope and referent-extension directions.
+   - input-hash: `a03188b` UNCHANGED (no story drift this pass — test-writer fix touched only `_shared-context.md` and the bats file, NOT the story file).
+
+5. **Compute-input-hash (literal shell stdout)**:
+   ```
+   $ compute-input-hash .factory/stories/S-21.04-story-worktree-write-path-discipline.md
+   1165b1f
+   $ compute-input-hash .factory/cycles/v1.0-brownfield-backfill/S-21.04/implementation/red-gate-log.md
+   a03188b
+   ```
+   - story=1165b1f CONFIRMED UNCHANGED. red-gate-log input-hash a03188b confirmed pre-modification (will recompute post-modification; no input drift since story unchanged).
+
+6. **3 lessons updates**:
+   - `L-BB-p19-report-noise-process-gap` (D-923): reduced to Class A only; Class B body removed; cross-reference to `L-BB-subagent-report-fidelity-literal-shell` added; Cites/Closes updated to remove Class B tags.
+   - `L-BB-subagent-report-fidelity-literal-shell` (D-924): 4th POLICY 22 instance added — D-923 `last_amended` chain understatement (~40× magnitude error: "off-by-one (6 vs 7 brackets)" vs actual `net unclosed=41`; proper remedy D-862-class compaction not bracket-balancing); adversary-delivery failure cross-reference note added (distinct [process-gap] class → L-BB-adversary-agent-delivery-silent).
+   - `L-BB-adversary-agent-delivery-silent` [process-gap] [D-925]: NEW — three consecutive silent adversary dispatches; orchestrator-authored recovery path; streak consequence 0/3; distinction from under-reporting class; generalized rule (retry N≥3 → orchestrator-authored + MANDATORY PROVENANCE DISCLOSURE + streak stays 0/3 + OPEN BLOCKER at next pass).
+
+7. **POLICY 14 4-INDEX GATE (literal shell stdout)**:
+   - `grep -m1 "^version:" specs/behavioral-contracts/BC-INDEX.md specs/verification-properties/VP-INDEX.md stories/STORY-INDEX.md specs/architecture/ARCH-INDEX.md` → BC v4.33 / VP v2.72 / STORY v4.267 / ARCH v3.34. ALL UNCHANGED this burst. PASS.
+
+8. **STATE.md v6.56→v6.57**: frontmatter-minimal (version + phase + last_amended). Lines 15-17 UNTOUCHED per hook constraint (precedent D-866..D-925).
+
+### Phase
+
+D-925-S2104-PASS-20-CLOSED
+
+### Date
+
+2026-07-27

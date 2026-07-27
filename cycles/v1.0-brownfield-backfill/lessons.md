@@ -8174,29 +8174,20 @@ The mutant self-check is evidence, not just process. The test-writer report MUST
 
 ## L-BB-p19-report-noise-process-gap [process-gap] [D-923]
 
-**Summary:** Two classes of subagent report-fidelity failure compounded S-21.04 pass-19 and its D-923 closure burst. **Class A — fix-wave sweep gap:** the test-writer's fix wave updated the story AC Gate cell and audit table but did not sweep the bats file's own lead-in count-bearing text, producing a MEDIUM adversary finding (F-S2104-P19-008) for stale metadata the fix wave itself introduced. **Class B — subagent narrative under-reporting:** two independent agents produced narrative summaries that silently omitted content present in the literal-shell stdout they summarized: (i) the pass-19 adversary report included mislabeled severity labels and hallucinated P19-009/010 content not anchored in the actual code state at `reviewed_head a4ec37d3`; (ii) a devops-engineer running the factory-worktree-health gate in the D-923 closure burst reported only the two `M` dirty paths and silently dropped the `D` deletion line from its `git status --porcelain` output. In both Class B occurrences, the orchestrator re-ran the predicate via literal shell and detected the discrepancy before any gate decision was finalized.
+**Summary:** **Class A — fix-wave sweep gap:** the test-writer's fix wave updated the story AC Gate cell and audit table but did not sweep the bats file's own lead-in count-bearing text, producing a MEDIUM adversary finding (F-S2104-P19-008) for stale metadata the fix wave itself introduced. **Class B — subagent narrative under-reporting (two D-923 instances):** codified in `[[L-BB-subagent-report-fidelity-literal-shell]]` (D-924; see that lesson for the generalized rule and all 3 concrete same-session instances including the D-923 completion-report mis-attribution).
 
-**Discovered:** 2026-07-27 (S-21.04 pass-19 adversarial review — F-S2104-P19-008 MEDIUM; D-923 closure burst — devops-engineer factory-worktree-health gate divergence; orchestrator literal-shell re-verification in both cases)
+**Discovered:** 2026-07-27 (S-21.04 pass-19 adversarial review — F-S2104-P19-008 MEDIUM; D-923 closure burst — orchestrator literal-shell re-verification)
 
 **Class A — Fix-wave sweep gap (bats lead-in count text):**
 F-S2104-P19-008 (MEDIUM): the bats file declared `Nineteen independently mutant-proven gates` and `All nineteen gates survive independently` while the gate set, the story v1.23 Gate cell, audit table, and NAME-SET EQUALITY check were all 19 at review time. POLICY 14 SAME-BURST PREDICATE-GATE CELL COUPLING required the story AC Gate cell to be updated when the test-writer changes predicates, but there was no equivalent mandate for the bats file's own lead-in count prose. The bats file's count-bearing text is a same-file aggregation cell by another name — a POLICY 5 SIBLING-SWEEP category (i) gap. **Corrective obligation:** test-writer agents that change the gate count MUST sweep the bats file's own lead-in count-bearing text in the same commit. Mechanical check: `grep -c '@test.*[Gg]ate' <bats-file>` gives the current count; lead-in text MUST match. This is a POLICY 5 category (i) extension to same-file count aggregation text in bats test files.
 
-**Class B — Subagent narrative under-reporting (two instances, same session):**
-A subagent's narrative summary of shell output is NOT authoritative for gate decisions. Two independent instances confirmed this pattern in the same burst:
+**Class B — See `L-BB-subagent-report-fidelity-literal-shell` [D-924]:** The two Class B instances from this D-923 session (pass-19 adversary report hallucinated content; devops-engineer ` D`-line omission) plus a third D-923-completion-report instance are codified in the companion lesson with the generalized rule.
 
-1. **pass-19 adversary report:** The adversary's pass-19 report included mislabeled severity labels and hallucinated finding content in F-S2104-P19-009 and F-S2104-P19-010 — descriptions not anchored in the actual code or spec state at `reviewed_head a4ec37d3`. The orchestrator's literal-shell verification before persisting findings detected the divergence.
+**Anchors:** S-21.04 LOCAL cascade pass-19 closure burst (2026-07-27); bats commit `a2112e8d` (two-site count-word sweep: `Nineteen`→`Twenty-one`); story v1.25 AC-001 Gate coupling note.
 
-2. **devops-engineer factory-worktree-health gate (D-923):** The devops-engineer summarized `git -C .factory status --porcelain` output and reported only the two `M` dirty paths (`logs/dispatcher-internal-2026-07-26.jsonl` and `sidecar-learning.md`), silently dropping the `D logs/dispatcher-internal-2026-06-26.jsonl` deletion line. The orchestrator re-ran the literal shell and confirmed the deletion was present. The gap was staged and committed only after the orchestrator's independent re-run.
+**Cites:** D-923 (this burst); F-S2104-P19-008 (MEDIUM — Class A); POLICY 5 SIBLING-SWEEP category (i); POLICY 14 SAME-BURST PREDICATE-GATE CELL COUPLING (D-916); `[[L-BB-subagent-report-fidelity-literal-shell]]` (Class B generalized rule + all 3 instances).
 
-**Generalized rule:** When a subagent's narrative summary is load-bearing for a gate decision (is-clean check, count-match, path-list completeness, severity classification), the orchestrator/consumer MUST re-run the predicate via literal shell with captured stdout rather than accepting the narrative. This is the D-449(a) literal-shell-execution-evidence principle extended to the agent-to-agent reporting channel — the same META-LEVEL-24 insight (narrative-attested gates cannot detect their own scope-degradation) applied to subagent reports, not just burst-log Dim-2 attestations.
-
-**Root cause (Class B):** Subagent narrative summaries are synthesized from shell output during generation but can truncate, misclassify, or omit lines silently. The synthesizing agent has no feedback signal that its summary was incomplete — structurally identical to a burst-log pseudocode gate that cannot detect it missed its own scope.
-
-**Anchors:** S-21.04 LOCAL cascade pass-19 closure burst (2026-07-27); bats commit `a2112e8d` (two-site count-word sweep: `Nineteen`→`Twenty-one`); story v1.25 AC-001 Gate coupling note; D-923 closure burst devops-engineer factory-worktree-health gate divergence + orchestrator re-verification.
-
-**Cites:** D-923 (this burst); F-S2104-P19-008 (MEDIUM — Class A); adversary-pass-19.md F-S2104-P19-009/010 (Class B instance 1); D-449(a) literal-shell-execution-evidence mandate; META-LEVEL-24 (narrative-attested gate self-degradation blindness, here extended to agent-to-agent channel); POLICY 5 SIBLING-SWEEP category (i); POLICY 14 SAME-BURST PREDICATE-GATE CELL COUPLING (D-916).
-
-**Closes:** D-923 S-21.04-PASS-19-CLOSED (2026-07-27). `[process-gap; report-noise; report-fidelity; bats-lead-in; count-word; sibling-sweep; aggregation-cell; subagent-narrative-fidelity; D-449a-extension; META-LEVEL-24-agent-channel; POLICY-5; POLICY-14; D-923]`
+**Closes:** D-923 S-21.04-PASS-19-CLOSED (2026-07-27). `[process-gap; report-noise; report-fidelity; bats-lead-in; count-word; sibling-sweep; aggregation-cell; POLICY-5; POLICY-14; D-923]`
 
 ---
 
@@ -8220,6 +8211,46 @@ A subagent's narrative summary of shell output is NOT authoritative for gate dec
 
 **Anchors:** S-21.04 LOCAL cascade pass-19 (2026-07-27); adversary-pass-19.md reviewed_head `a4ec37d3`; devops-engineer factory-worktree-health gate D-923 burst; D-924 record-correction burst; `git log --oneline a14c9f72 -1` → `a14c9f72 story(S-21.04): v1.24 pass-19 leg`.
 
-**Cites:** D-924 (this correction burst); D-449(a) literal-shell-execution-evidence mandate; META-LEVEL-24 (narrative-attested gates cannot detect their own scope-degradation, extended to agent-to-agent reporting channel); POLICY 22 `subagent_report_fidelity_literal_shell` (D-924 new mandate); L-BB-p19-report-noise-process-gap (adjacent lesson covering bats-sweep-gap Class A + Class B instances (i)+(ii) in its D-923-addendum form; this lesson codifies the generalised principle with all 3 instances and the formal D-449(a) extension framing); L-BB-subagent-final-report-loss (adjacent lesson on agents going silent; this lesson covers a distinct failure class — reports delivered but content-incorrect, not missing).
+**(iv) D-923 `last_amended` chain understatement — scope-magnitude mis-attribution:** D-923's completion report described the STATE.md `last_amended` chain defect as "off-by-one (6 vs 7 brackets)". Literal-shell diagnosis of the actual chain: `len=58,815 chars; [Prior: openings=48; total [ =64; total ] =23; net unclosed=41` — 41 unclosed brackets, not 1. The narrative summary understated the scope by approximately 40×. The proper remedy is D-862-class compaction (restructuring the chain into separate files), not bracket-balancing. This is a POLICY 22 instance of the under-reporting class: the synthesizing agent summarized the shell diagnostic output and produced a quantitatively wrong magnitude claim that, if trusted, would have directed the wrong remediation.
 
-**Closes:** D-924-RECORD-CORRECTION (2026-07-27). `[process-gap; subagent-report-fidelity; literal-shell; narrative-attestation; agent-to-agent; META-LEVEL-24; D-449a-extension; POLICY-22; git-status-porcelain; severity-mislabel; sha-version-provenance; D-924]`
+**Adversary-agent delivery failure (distinct process-gap class — see `[[L-BB-adversary-agent-delivery-silent]]` D-925):** Three consecutive adversary dispatches for S-21.04 pass-20 (adv-p20, adv-p20b, adv-p20c) went idle and produced zero output. This is NOT an under-reporting instance (a report was delivered but content-incorrect) — it is a non-delivery failure where no output arrived at all. Codified separately in `L-BB-adversary-agent-delivery-silent` [D-925] as a distinct [process-gap] class requiring a different mitigation (retry + orchestrator-authored recovery path, not literal-shell re-verification of a received summary).
+
+**Cites:** D-924 (this correction burst); D-925 (fourth POLICY 22 instance + adversary-delivery note); D-449(a) literal-shell-execution-evidence mandate; META-LEVEL-24 (narrative-attested gates cannot detect their own scope-degradation, extended to agent-to-agent reporting channel); POLICY 22 `subagent_report_fidelity_literal_shell` (D-924 new mandate; 4th instance D-925); `[[L-BB-p19-report-noise-process-gap]]` (adjacent lesson covering bats-sweep-gap Class A; Class B instances (i)+(ii) deferred to this lesson); `[[L-BB-adversary-agent-delivery-silent]]` (adjacent lesson on adversary non-delivery; distinct failure class — agent silent, not report content-incorrect); L-BB-subagent-final-report-loss (adjacent lesson on agents going silent; this lesson covers a distinct failure class — reports delivered but content-incorrect, not missing).
+
+**Closes:** D-924-RECORD-CORRECTION (2026-07-27); D-925 (4th POLICY 22 instance + adversary-delivery cross-reference). `[process-gap; subagent-report-fidelity; literal-shell; narrative-attestation; agent-to-agent; META-LEVEL-24; D-449a-extension; POLICY-22; git-status-porcelain; severity-mislabel; sha-version-provenance; last-amended-chain-understatement; D-924; D-925]`
+
+---
+
+## L-BB-adversary-agent-delivery-silent [process-gap] [D-925]
+
+**Summary:** Three consecutive adversary dispatches for S-21.04 pass-20 (adv-p20, adv-p20b, adv-p20c) went idle and produced zero output. This is a distinct failure class from subagent report under-reporting (`[[L-BB-subagent-report-fidelity-literal-shell]]`): the agent received the dispatch, entered execution, and never delivered any output — not a content-incorrect report, but a non-delivery. The orchestrator's recovery path was to author the adversary review directly (orchestrator-authored class per `[[L-EDP1-074]]`), clearly marking the provenance deviation in the persisted record and leaving the BC-5.39.001 streak at 0/3 (adversary-agent delivery is an OPEN BLOCKER for streak progression).
+
+**Discovered:** 2026-07-27 (S-21.04 pass-20 adversary dispatch — three consecutive idle dispatches; orchestrator-authored recovery)
+
+**Three dispatch attempts:**
+1. **adv-p20 (first dispatch):** Adversary agent dispatched for pass-20 review at `a2112e8d`. Agent entered execution and went idle — zero output returned.
+2. **adv-p20b (second dispatch):** Retry dispatch. Same result — agent idle, zero output.
+3. **adv-p20c (third dispatch):** Second retry. Same result — agent idle, zero output.
+
+All three dispatches were fresh-context per BC-5.39.001 requirement. All three produced no output.
+
+**Recovery path:** Orchestrator-authored the pass-20 review (F-S2104-P20-001/002 BLOCKERs + F-S2104-P20-003 MEDIUM identified via orchestrator inspection of the fix wave). This satisfies the MANDATORY PROVENANCE DISCLOSURE requirement: `adversary-pass-20.md` records that the review was orchestrator-authored, not produced by an adversary agent, with explicit notation that BC-5.39.001 fresh-context requirement is NOT satisfied by this review.
+
+**Streak consequence:** S-21.04 pass-20 streak remains 0/3. Adversary-agent delivery is an OPEN BLOCKER for streak progression to 3-CLEAN. The next dispatch (pass-21) MUST be produced by the adversary agent — orchestrator-authored reviews cannot accumulate toward the streak.
+
+**Root cause (unknown):** The failure mode (three consecutive agent timeouts/idle states) does not yet have a confirmed root cause. Possible factors: context size at dispatch time; adversary agent model load; harness scheduling. No diagnostic was surfaced by the dispatcher log.
+
+**Generalized rule:** When an adversary agent dispatch goes idle (zero output), the orchestrator MUST:
+1. Retry at least once (different dispatch invocation) before concluding delivery failure.
+2. After N≥3 consecutive failures, invoke the orchestrator-authored class (per `[[L-EDP1-074]]`) as a recovery path.
+3. Record the provenance deviation PROMINENTLY in the persisted adversary pass file — both in frontmatter (`provenance: orchestrator-authored`) and in the body (`MANDATORY PROVENANCE DISCLOSURE` section).
+4. Keep the BC-5.39.001 streak at 0/3 — orchestrator-authored reviews do NOT count toward 3-CLEAN.
+5. The adversary-delivery failure remains an OPEN BLOCKER at the top of the next pass dispatch ticket.
+
+**Distinction from subagent report under-reporting:** `[[L-BB-subagent-report-fidelity-literal-shell]]` covers the case where a report was delivered but content was incorrect (truncated, mislabeled, or mis-attributed). This lesson covers non-delivery — no report arrived. The mitigation differs: under-reporting → literal-shell re-verification by the consumer; non-delivery → retry + orchestrator-authored recovery path.
+
+**Anchors:** S-21.04 pass-20 adversary dispatch (2026-07-27); adversary-pass-20.md provenance = orchestrator-authored; D-925 closure burst; `[[L-EDP1-074]]` orchestrator-authored class predicates.
+
+**Cites:** D-925 (this burst); BC-5.39.001 3-CLEAN protocol (streak 0/3); `[[L-EDP1-074]]` (orchestrator-authored class); `[[L-BB-subagent-report-fidelity-literal-shell]]` (D-924; distinct failure class — report delivered but content-incorrect); adversary-pass-20.md MANDATORY PROVENANCE DISCLOSURE.
+
+**Closes:** D-925 S-21.04-PASS-20-CLOSED (2026-07-27). `[process-gap; adversary-delivery; agent-idle; non-delivery; orchestrator-authored; BC-5.39.001; streak-0/3; OPEN-BLOCKER; D-925]`
