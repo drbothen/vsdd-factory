@@ -556,7 +556,7 @@ _run_teardown_preflight() {
     "_shared-context.md §Spec-Path Discipline: story-frontmatter files named as load-bearing case (BC-6.26.001 Invariant 4; AC-001(c))" \
     "$spec_path_section"
 
-  # --- DOC-PARITY §Spec-Path Discipline: AC-001(a) CWD-relative-path PROHIBITION (F-S2104-P12-003 .. F-S2104-P20-003) ---
+  # --- DOC-PARITY §Spec-Path Discipline: AC-001(a) CWD-relative-path PROHIBITION (F-S2104-P12-003 .. F-S2104-P21-001) ---
   # BC-6.26.001 PC1 core: the Write Discipline section must state that CWD-relative paths are
   # FORBIDDEN and that canonical absolute paths are MANDATED. Twenty-one independently mutant-proven
   # gates (pass-16 adds negation-transparency, block-wide polarity, sentence-scoped Gate 2 +
@@ -570,7 +570,11 @@ _run_teardown_preflight() {
   # assertion, CommonMark-correct link-ref-def strip, canonical-target domain widening, and
   # scope-restriction gate; pass-20 adds clause-scoped PW-B (F-S2104-P20-001), extended
   # write-directive referent covering artifact writes (F-S2104-P20-002), and PW-B
-  # directive-requirement narrowing to exclude explanatory prose (F-S2104-P20-003)):
+  # directive-requirement narrowing to exclude explanatory prose (F-S2104-P20-003); pass-21
+  # unifies the directive class: Gate PW-B and write-directive gate now share a single
+  # PWBD_DIRECTIVE_CLASS definition (F-S2104-P21-001), adding the bare-imperative alternation
+  # (Anchor|Write|Save|Store|Place|Record|Emit|Persist|Resolve|Use, line-anchored ^) to PW-B
+  # so bare-imperative mandates can no longer evade Gate PW-B by omitting a modal word):
   #   (1) Paragraph-level extractor from rendered_write_discipline domain (F-S2104-P18-004(b)):
   #       #### Write Discipline → strip HTML comments + link-reference-definitions → normative
   #       prohibition paragraph, anchor: 'All `.factory/**` artifact writes…'
@@ -614,7 +618,11 @@ _run_teardown_preflight() {
   #       For every DIRECTIVE clause containing a prohibited-target form, that clause MUST carry
   #       a prohibition token. Directive-token whitelist dropped (F-S2104-P17-002(a)); replaced
   #       by directive-requirement in F-S2104-P20-003 (narrowing, not widening).
-  #       directive: MUST|SHOULD|required|is the required form|is preferred|is acceptable|permits
+  #       directive (PWBD_DIRECTIVE_CLASS, unified F-S2104-P21-001): MUST|SHOULD|required|
+  #         is the required form|is preferred|is acceptable|permits|may|
+  #         ^(\*\*[^:*]+:\*\*[[:space:]]+)?(Anchor|Write|Save|Store|Place|Record|Emit|Persist|
+  #         Resolve|Use)[[:space:]] — shared with write-directive gate; line-anchored ^ for
+  #         bare-imperative alternation (prevents mid-sentence false positives).
   #       prohibited-target: CWD-relative|worktree-relative|relative paths?|story-worktree CWD|
   #         worktree's shadow|worktree CWD|shadow subtree|[Ww]orktree-local|in-worktree
   #       prohibition: FORBIDDEN|Forbidden|forbidden|MUST NOT|prohibited|never|forbid
@@ -627,13 +635,21 @@ _run_teardown_preflight() {
   #       M-P20-C (NEW): same prose + "MUST" → "Such writes MUST land in the story worktree's
   #         shadow .factory/ subtree..." — prohibited-target + MUST (directive), no prohibition
   #         → RED (proves directive requirement is load-bearing; removing MUST would restore GREEN).
-  #   (F-P18-001) WRITE-DIRECTIVE GATE (POSITIVE, open-trigger; F-S2104-P18-001/F-S2104-P18-005(d)):
-  #       Every sentence containing a write-directive (MUST|SHOULD|permits|is acceptable|is the
-  #       required form|is preferred|may) AND an action word (anchor|write|writes) MUST either
-  #       carry a prohibition token OR match 'MUST use canonical absolute'. Open-trigger design:
-  #       the trigger covers any write-directive + action combination, requirement is the escape
-  #       clause — closes PW-B's named-destination limitation with a form-based gate.
-  #       Alternation-direction for trigger class: (b) open — any write-directive+action sentence
+  #       M-P21-A (NEW): "Anchor every write to the story worktree CWD." — prohibited-target
+  #         'story worktree CWD' + 'Anchor' (bare-imperative, new in unified class), no prohibition
+  #         → RED ✓ (closes P20-003 regression; CONTROL-5 proves GREEN via old class).
+  #       M-P21-B (NEW): "Resolve all delivery paths from the story worktree CWD." — 'story
+  #         worktree CWD' + 'Resolve' (bare-imperative) → RED ✓.
+  #       M-P21-C (NEW): "Place each report in the worktree's shadow subtree." — 'worktree's
+  #         shadow' + 'Place' (bare-imperative) → RED ✓.
+  #   (F-P18-001) WRITE-DIRECTIVE GATE (POSITIVE, open-trigger; F-S2104-P18-001/F-S2104-P18-005(d)/
+  #       F-S2104-P21-001 unified class):
+  #       Every clause containing a directive (PWBD_DIRECTIVE_CLASS, shared with Gate PW-B per
+  #       F-S2104-P21-001) AND a referent (.factory/|ledger|artifact writes?) MUST either carry
+  #       a prohibition token OR match 'MUST use canonical absolute'. Open-trigger design:
+  #       the trigger covers any directive+referent combination, requirement is the escape clause —
+  #       closes PW-B's named-destination limitation with a form-based gate.
+  #       Alternation-direction for trigger class: (b) open — any directive+referent clause
   #       is in scope; escape clause is the load-bearing constant.
   #       Adversary verified empty-on-pristine and firing-on-M-P18-A by literal shell.
   #       M-P18-A: "Writers MUST anchor ... to the worktree's .factory/ subtree" → RED.
@@ -777,6 +793,28 @@ _run_teardown_preflight() {
   spec_path_prose_nosplit="$(printf '%s\n' "$spec_path_prose" | \
     sed 's/cf\. /cf_ABBREV_ /g; s/i\.e\. /ie_ABBREV_ /g; s/e\.g\. /eg_ABBREV_ /g')"
 
+  # Shared directive class for Gate PW-B and write-directive gate (F-S2104-P21-001).
+  # Single definition used by both gates, eliminating the independent-authoring drift that
+  # allowed bare-imperative mandates (P2 "Anchor every write to the story worktree CWD",
+  # P3 "Resolve all delivery paths from the story worktree CWD", P4 "Place each report in
+  # the worktree's shadow subtree") to evade Gate PW-B while also evading the write-directive
+  # gate (P2/P3/P4 lack the .factory/|ledger|artifact writes? referent that write-directive
+  # requires). The unified class is the union of both prior independent classes:
+  #   Prior PW-B class: MUST|SHOULD|required|is[[:space:]]+the[[:space:]]+required|
+  #     is[[:space:]]+preferred|is[[:space:]]+acceptable|permits
+  #   Prior write-directive class: MUST|SHOULD|permits|is acceptable|is the required form|
+  #     is preferred|may|^(\*\*[^:*]+:\*\*[[:space:]]+)?(Anchor|Write|Save|Store|Place|
+  #     Record|Emit|Persist|Resolve|Use)[[:space:]]
+  #   Union: all of the above.
+  # Bare-imperative alternation is LINE-ANCHORED (^ with optional **Label:** prefix) to prevent
+  # mid-sentence false positives from bare 'Use'/'Write'/'Place' etc. in other contexts.
+  # Verified empty-on-pristine: Gate PW-B with unified class returns no violations over
+  # write_discipline_prose_nosplit (adversary verified; write-directive gate's bare-imperative
+  # trigger was already verified empty-on-pristine over the wider spec_path_prose_nosplit domain
+  # at pass-19; the narrower PW-B domain is a subset and therefore also clean).
+  local PWBD_DIRECTIVE_CLASS
+  PWBD_DIRECTIVE_CLASS='MUST|SHOULD|required|is[[:space:]]+the[[:space:]]+required|is[[:space:]]+preferred|is[[:space:]]+acceptable|permits|may|^(\*\*[^:*]+:\*\*[[:space:]]+)?(Anchor|Write|Save|Store|Place|Record|Emit|Persist|Resolve|Use)[[:space:]]'
+
   # Boundary-completeness assertion (F-S2104-P19-004(b)): verifies the sentence splitter fires
   # on every '. [A-Z*`\[]' boundary it should split. The primary fix for the missed-boundary
   # direction (M-P19-D: lowercase-initial merged sentence) is the clause-scoping of the
@@ -881,8 +919,13 @@ _run_teardown_preflight() {
   # For every DIRECTIVE clause containing a prohibited-target form, that clause MUST carry a
   # prohibition token. Directive-token whitelist dropped (F-S2104-P17-002(a)): explanatory prose
   # is now excluded structurally via directive-requirement, not by listing permitted tokens.
-  # directive: MUST|SHOULD|required|is[[:space:]]+the[[:space:]]+required|is[[:space:]]+preferred|
-  #            is[[:space:]]+acceptable|permits
+  # Unified directive class (F-S2104-P21-001): PWBD_DIRECTIVE_CLASS is now shared with the
+  # write-directive gate — single definition, single callsite per gate. Adds bare-imperative
+  # alternation (line-anchored) to PW-B so P2-class mandates ("Anchor...", "Resolve...",
+  # "Place...") that omit a modal word can no longer evade PW-B.
+  # directive (PWBD_DIRECTIVE_CLASS): MUST|SHOULD|required|is[[:space:]]+the[[:space:]]+required|
+  #   is[[:space:]]+preferred|is[[:space:]]+acceptable|permits|may|
+  #   ^(\*\*[^:*]+:\*\*[[:space:]]+)?(Anchor|Write|Save|Store|Place|Record|Emit|Persist|Resolve|Use)[[:space:]]
   # prohibited-target: CWD-relative|worktree-relative|relative[[:space:]]+paths?|
   #                    story-worktree[[:space:]]+CWD|story[[:space:]]+worktree[[:space:]]+CWD|
   #                    worktree's[[:space:]]+shadow|worktree[[:space:]]+CWD|shadow[[:space:]]+subtree|
@@ -934,11 +977,73 @@ _run_teardown_preflight() {
   polarity_violations="$(printf '%s\n' "$write_discipline_prose_nosplit" | perl -pe 's/\.[[:space:]]+(?=[A-Z*`\[])/.\n/g' | \
     perl -pe 's/[;—]\s*/\n/g; s/,\s+(?:and|or|but)\s+/\n/g' | \
     grep -E 'CWD-relative|worktree-relative|relative[[:space:]]+paths?|story-worktree[[:space:]]+CWD|story[[:space:]]+worktree[[:space:]]+CWD|worktree'\''s[[:space:]]+shadow|worktree[[:space:]]+CWD|shadow[[:space:]]+subtree|[Ww]orktree-local|(^|[^[:alnum:]])[Ii]n-worktree' | \
-    grep -E 'MUST|SHOULD|required|is[[:space:]]+the[[:space:]]+required|is[[:space:]]+preferred|is[[:space:]]+acceptable|permits' | \
+    grep -E "$PWBD_DIRECTIVE_CLASS" | \
     grep -Ev 'FORBIDDEN|Forbidden|forbidden|MUST NOT|prohibited|never|forbid' || true)"
   if [ -n "$polarity_violations" ]; then
-    echo "DOC-PARITY FAIL [write-discipline section-wide clause polarity (Gate PW-B, F-S2104-P16-001(b)/F-S2104-P17-002/F-S2104-P20-001/F-S2104-P20-003)]: a DIRECTIVE clause in the Write Discipline section contains a prohibited-target form (CWD-relative|worktree-relative|relative paths?|story-worktree CWD|story worktree CWD|worktree's shadow|worktree CWD|shadow subtree|[Ww]orktree-local|in-worktree) without a prohibition token (FORBIDDEN|Forbidden|forbidden|MUST NOT|prohibited|never|forbid) — clause-scoped per F-S2104-P20-001; directive-requirement per F-S2104-P20-003 (explanatory prose without a directive token is excluded); M-P17-A S1 'Writers MUST anchor every write to the story worktree CWD' carries MUST + no prohibition; M-P17-C S2 clause 1 'CWD-relative paths are the required form' carries required + no prohibition; M-P20-A clause 1 'Writers MUST anchor every artifact write to the story worktree CWD' carries MUST + no prohibition (BC-6.26.001 PC1; AC-001(a))"
+    echo "DOC-PARITY FAIL [write-discipline section-wide clause polarity (Gate PW-B, F-S2104-P16-001(b)/F-S2104-P17-002/F-S2104-P20-001/F-S2104-P20-003/F-S2104-P21-001)]: a DIRECTIVE clause in the Write Discipline section contains a prohibited-target form (CWD-relative|worktree-relative|relative paths?|story-worktree CWD|story worktree CWD|worktree's shadow|worktree CWD|shadow subtree|[Ww]orktree-local|in-worktree) without a prohibition token (FORBIDDEN|Forbidden|forbidden|MUST NOT|prohibited|never|forbid) — clause-scoped per F-S2104-P20-001; directive-requirement per F-S2104-P20-003 (explanatory prose without a directive token is excluded); unified directive class per F-S2104-P21-001 (bare-imperative alternation Anchor|Write|Save|Store|Place|Record|Emit|Persist|Resolve|Use added to catch P2-class mandates that lack a modal word); M-P17-A S1 'Writers MUST anchor every write to the story worktree CWD' carries MUST + no prohibition; M-P17-C S2 clause 1 'CWD-relative paths are the required form' carries required + no prohibition; M-P20-A clause 1 'Writers MUST anchor every artifact write to the story worktree CWD' carries MUST + no prohibition; M-P21-A 'Anchor every write to the story worktree CWD' carries Anchor (bare-imperative) + no prohibition (BC-6.26.001 PC1; AC-001(a))"
     printf '%s\n' "$polarity_violations"
+    false
+  fi
+
+  # M-P21-A (F-S2104-P21-001 new vector): P2 "Anchor every write to the story worktree CWD."
+  #   prohibited-target 'story worktree CWD' + bare 'Anchor' (now in unified directive class) →
+  #   Gate PW-B fires → RED ✓. The word 'Anchor' is line-initial → matches the line-anchored
+  #   bare-imperative alternation in PWBD_DIRECTIVE_CLASS.
+  #   Evaded Gate PW-B at 9/9 (P20-003 regression): prior directive class lacked bare-imperative
+  #   alternation; 'Anchor' matched neither MUST/SHOULD/required/.../permits → gate SILENT.
+  #   Evaded write-directive gate: no .factory/, ledger, or artifact writes? referent in P2 → SILENT.
+  # M-P21-B (F-S2104-P21-001 new vector): P3 "Resolve all delivery paths from the story worktree CWD."
+  #   prohibited-target 'story worktree CWD' + bare 'Resolve' (unified directive class) → RED ✓.
+  # M-P21-C (F-S2104-P21-001 new vector): P4 "Place each report in the worktree's shadow subtree."
+  #   prohibited-target "worktree's shadow" + bare 'Place' (unified directive class) → RED ✓.
+  #   NOTE: P4 evaded PW-B because 'Place' was not in the prior directive class; 'worktree's shadow'
+  #   WAS in the prohibited-target class. So P4 was one gate (step 1) away from being caught — only
+  #   the directive-class gap prevented it. The unified class closes that gap for P4 specifically.
+  # CONTROL-5 (F-S2104-P21-001 load-bearing GREEN): P2 probe through OLD directive class only
+  #   (without bare-imperative alternation). Gate returns empty (GREEN) → proves bare-imperative
+  #   class is the sole load-bearing addition for P2; the prohibited-target filter already matched.
+  local mp21a_violations mp21b_violations mp21c_violations control5_result
+  mp21a_violations="$(printf '%s\n' 'Anchor every write to the story worktree CWD.' | \
+    perl -pe 's/[;—]\s*/\n/g; s/,\s+(?:and|or|but)\s+/\n/g' | \
+    grep -E 'CWD-relative|worktree-relative|relative[[:space:]]+paths?|story-worktree[[:space:]]+CWD|story[[:space:]]+worktree[[:space:]]+CWD|worktree'\''s[[:space:]]+shadow|worktree[[:space:]]+CWD|shadow[[:space:]]+subtree|[Ww]orktree-local|(^|[^[:alnum:]])[Ii]n-worktree' | \
+    grep -E "$PWBD_DIRECTIVE_CLASS" | \
+    grep -Ev 'FORBIDDEN|Forbidden|forbidden|MUST NOT|prohibited|never|forbid' || true)"
+  if [ -z "$mp21a_violations" ]; then
+    echo "MUTANT FAIL [M-P21-A (F-S2104-P21-001)]: probe P2 'Anchor every write to the story worktree CWD.' must fire Gate PW-B — unified directive class must match bare-imperative 'Anchor' when clause also contains prohibited-target 'story worktree CWD'; got empty (gate SILENT — imperative class not applied correctly)"
+    false
+  fi
+
+  mp21b_violations="$(printf '%s\n' 'Resolve all delivery paths from the story worktree CWD.' | \
+    perl -pe 's/[;—]\s*/\n/g; s/,\s+(?:and|or|but)\s+/\n/g' | \
+    grep -E 'CWD-relative|worktree-relative|relative[[:space:]]+paths?|story-worktree[[:space:]]+CWD|story[[:space:]]+worktree[[:space:]]+CWD|worktree'\''s[[:space:]]+shadow|worktree[[:space:]]+CWD|shadow[[:space:]]+subtree|[Ww]orktree-local|(^|[^[:alnum:]])[Ii]n-worktree' | \
+    grep -E "$PWBD_DIRECTIVE_CLASS" | \
+    grep -Ev 'FORBIDDEN|Forbidden|forbidden|MUST NOT|prohibited|never|forbid' || true)"
+  if [ -z "$mp21b_violations" ]; then
+    echo "MUTANT FAIL [M-P21-B (F-S2104-P21-001)]: probe P3 'Resolve all delivery paths from the story worktree CWD.' must fire Gate PW-B — 'Resolve' is a bare-imperative in the unified class; 'story worktree CWD' is a prohibited-target; no prohibition token → gate must fire RED"
+    false
+  fi
+
+  mp21c_violations="$(printf '%s\n' "Place each report in the worktree's shadow subtree." | \
+    perl -pe 's/[;—]\s*/\n/g; s/,\s+(?:and|or|but)\s+/\n/g' | \
+    grep -E 'CWD-relative|worktree-relative|relative[[:space:]]+paths?|story-worktree[[:space:]]+CWD|story[[:space:]]+worktree[[:space:]]+CWD|worktree'\''s[[:space:]]+shadow|worktree[[:space:]]+CWD|shadow[[:space:]]+subtree|[Ww]orktree-local|(^|[^[:alnum:]])[Ii]n-worktree' | \
+    grep -E "$PWBD_DIRECTIVE_CLASS" | \
+    grep -Ev 'FORBIDDEN|Forbidden|forbidden|MUST NOT|prohibited|never|forbid' || true)"
+  if [ -z "$mp21c_violations" ]; then
+    echo "MUTANT FAIL [M-P21-C (F-S2104-P21-001)]: probe P4 'Place each report in the worktree's shadow subtree.' must fire Gate PW-B — 'Place' is a bare-imperative in the unified class; 'worktree's shadow' is a prohibited-target; no prohibition token → gate must fire RED"
+    false
+  fi
+
+  # CONTROL-5 (F-S2104-P21-001 load-bearing GREEN): prove the bare-imperative class is the
+  # load-bearing addition by running the OLD directive class (no bare-imperative alternation)
+  # against P2 probe. Expected: empty (GREEN) — prohibited-target matches but old directive
+  # class misses 'Anchor' → gate SILENT, proving the new bare-imperative term is what closes P2.
+  control5_result="$(printf '%s\n' 'Anchor every write to the story worktree CWD.' | \
+    perl -pe 's/[;—]\s*/\n/g; s/,\s+(?:and|or|but)\s+/\n/g' | \
+    grep -E 'CWD-relative|worktree-relative|relative[[:space:]]+paths?|story-worktree[[:space:]]+CWD|story[[:space:]]+worktree[[:space:]]+CWD|worktree'\''s[[:space:]]+shadow|worktree[[:space:]]+CWD|shadow[[:space:]]+subtree|[Ww]orktree-local|(^|[^[:alnum:]])[Ii]n-worktree' | \
+    grep -E 'MUST|SHOULD|required|is[[:space:]]+the[[:space:]]+required|is[[:space:]]+preferred|is[[:space:]]+acceptable|permits' | \
+    grep -Ev 'FORBIDDEN|Forbidden|forbidden|MUST NOT|prohibited|never|forbid' || true)"
+  if [ -n "$control5_result" ]; then
+    echo "CONTROL FAIL [CONTROL-5 (F-S2104-P21-001)]: P2 probe 'Anchor every write to the story worktree CWD.' fired the OLD directive class (MUST|SHOULD|required|...|permits, WITHOUT bare-imperative alternation) — expected GREEN (empty) to prove the bare-imperative class is the load-bearing addition; if the old class already caught P2, the finding premise is wrong; got: $control5_result"
     false
   fi
 
@@ -1172,13 +1277,13 @@ _run_teardown_preflight() {
   write_directive_violations="$(printf '%s\n' "$spec_path_prose_nosplit" | \
     perl -pe 's/\.[[:space:]]+(?=[A-Z*`\[])/.\n/g' | \
     perl -pe 's/[;—]\s*/\n/g; s/,\s+(?:and|or|but)\s+/\n/g' | \
-    grep -E 'MUST|SHOULD|permits|is acceptable|is the required form|is preferred|may|^(\*\*[^:*]+:\*\*[[:space:]]+)?(Anchor|Write|Save|Store|Place|Record|Emit|Persist|Resolve|Use)[[:space:]]' | \
+    grep -E "$PWBD_DIRECTIVE_CLASS" | \
     grep -E '\.factory/|ledger|artifact[[:space:]]+writes?' | \
     grep -Ev 'FORBIDDEN|Forbidden|forbidden|MUST NOT|prohibited|never|forbid' | \
     grep -Ev 'MUST[[:space:]]+use[[:space:]]+canonical[[:space:]]+absolute' | \
     grep -Ev 'MUST[[:space:]]+be[[:space:]]+determined[[:space:]]+via' || true)"
   if [ -n "$write_directive_violations" ]; then
-    echo "DOC-PARITY FAIL [write-directive gate: write-directive clause without prohibition or canonical-absolute escape (F-S2104-P18-001/F-S2104-P19-001/P19-002/P19-003/F-S2104-P20-002)]: a clause in ### Spec-Path Discipline contains a write-directive or bare-imperative referencing .factory/, ledger, or artifact writes without either a prohibition token or 'MUST use canonical absolute' — clause-scoped (F-S2104-P19-001); domain extended to ### Spec-Path Discipline (F-S2104-P19-002); referent predicate extended to include artifact writes? (F-S2104-P20-002); M-P19-A ('; forbidden.' escape), M-P19-B (canonical-absolute co-clause), M-P19-C ('saved' verb), M-P19-D (merged lowercase), M-P19-H (above-heading mandate), M-P20-A (artifact-write evasion) all RED (BC-6.26.001 PC1; AC-001(a); F-S2104-P18-001)"
+    echo "DOC-PARITY FAIL [write-directive gate: write-directive clause without prohibition or canonical-absolute escape (F-S2104-P18-001/F-S2104-P19-001/P19-002/P19-003/F-S2104-P20-002/F-S2104-P21-001)]: a clause in ### Spec-Path Discipline contains a write-directive or bare-imperative referencing .factory/, ledger, or artifact writes without either a prohibition token or 'MUST use canonical absolute' — clause-scoped (F-S2104-P19-001); domain extended to ### Spec-Path Discipline (F-S2104-P19-002); referent predicate extended to include artifact writes? (F-S2104-P20-002); unified directive class per F-S2104-P21-001; M-P19-A ('; forbidden.' escape), M-P19-B (canonical-absolute co-clause), M-P19-C ('saved' verb), M-P19-D (merged lowercase), M-P19-H (above-heading mandate), M-P20-A (artifact-write evasion) all RED (BC-6.26.001 PC1; AC-001(a); F-S2104-P18-001)"
     printf '%s\n' "$write_directive_violations"
     false
   fi
