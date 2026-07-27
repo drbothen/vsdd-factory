@@ -12964,3 +12964,112 @@ D-927-ADVERSARY-ROOT-CAUSE-RECORD
 ### Date
 
 2026-07-27
+
+---
+
+## D-928
+
+**Subject:** Record F-S2104-P21-001 HIGH (PW-B bare-imperative hole) + fix 17921772 + two new lessons (regression-against-incomplete-corpus; fix-seeds-next-defect) + L-BB-mid-burst-addenda-unreliable state-discriminator refinement; STATE.md v6.59→v6.60.
+
+**Context:** Pass-21 adversary cascade (S-21.04). The F-S2104-P20-003 fix (`915b87ce`) added a directive-requirement filter to Gate PW-B whose directive class contained only modal operators (`MUST|SHOULD|required|…|permits`) and omitted the bare-imperative alternation (`Anchor|Write|…|Use`) that the write-directive gate included. Result: a bare-imperative harmful mandate escaped PW-B when it also lacked a `\.factory/|ledger|artifact writes?` referent — both gates silent. `P2 "Anchor every write to the story worktree CWD."` (near-verbatim restatement of `M-P17-A` with modal dropped) evaded both gates. Fix (`17921772`): introduced shared `PWBD_DIRECTIVE_CLASS` constant consumed by both gate greps at 5 call sites — removing the class of divergence rather than patching an instance. `F-S2104-P20-003` recorded CLOSED-WITH-REGRESSION; `F-S2104-P21-001` CLOSED at `17921772`. Eleventh-generation recurrence of invertible-primary-postcondition class; fourth "fix-seeds-next-defect" occurrence this session. Streak 0/3.
+
+### Dim-1: POLICY 16 GLOBAL-MAX GATE (literal shell stdout)
+
+```
+$ grep "^## D-" cycles/v1.0-brownfield-backfill/decision-log.md | tail -3
+## D-925
+## D-926
+## D-927
+```
+D-927 confirmed global max → D-928 allocated.
+
+### Dim-2: Literal-shell evidence (D-449(a))
+
+1. **NAMESPACE COLLISION CHECK** — `F-S2104-P21-001` is fully qualified. Confirmed unqualified IDs in other cycles:
+    ```
+    $ grep -rn "^### F-P21-001\|^### H-P21-001\|^## F-P21-001\|^## H-P21-001" .factory/cycles/
+    .factory/cycles/v1.0-brownfield-backfill/adv-e9-v1.7-amendment-pass-21.md:30:### H-P21-001 — ...
+    .factory/cycles/v1.0-feature-plugin-async-semantics-pass-1/F5-adversary-pass-21.md:29:### F-P21-001 [HIGH] ...
+    ```
+    `H-P21-001` = D-264 error-codes defect; `F-P21-001` = F2 cycle BC-5.34.004 defect. `F-S2104-P21-001` does not collide with either. PASS.
+
+2. **FIX COMMIT VERIFICATION**:
+    ```
+    $ git log --oneline --all | grep 17921772
+    17921772 fix(S-21.04): unify PW-B + write-directive directive class — close F-S2104-P21-001
+    ```
+    Commit exists on `feature/S-21.04-story-worktree-write-path-discipline`. PASS.
+
+3. **PWBD_DIRECTIVE_CLASS SHARED DEFINITION GATE**:
+    ```
+    $ git show 17921772:plugins/vsdd-factory/tests/story-worktree-write-path-discipline.bats | grep -n "PWBD_DIRECTIVE_CLASS" | head -6
+    575:  # PWBD_DIRECTIVE_CLASS definition (F-S2104-P21-001), adding the bare-imperative alternation
+    621:  #       directive (PWBD_DIRECTIVE_CLASS, unified F-S2104-P21-001): MUST|SHOULD|required|
+    647:  #       Every clause containing a directive (PWBD_DIRECTIVE_CLASS, shared with Gate PW-B per
+    815:  local PWBD_DIRECTIVE_CLASS
+    816:  PWBD_DIRECTIVE_CLASS='MUST|SHOULD|required|is[[:space:]]+the[[:space:]]+required|...|^(\*\*[^:*]+:\*\*[[:space:]]+)?(Anchor|Write|Save|Store|Place|Record|Emit|Persist|Resolve|Use)[[:space:]]'
+    922:  # Unified directive class (F-S2104-P21-001): PWBD_DIRECTIVE_CLASS is now shared with the
+    ```
+    Single shared definition at line 815-816, consumed at lines 980, 1009, 1019, 1029, 1280 (5 call sites per commit body). PASS.
+
+4. **POLICY 14 4-INDEX GATE (literal shell stdout)**:
+    ```
+    $ grep -m1 "^version:" specs/behavioral-contracts/BC-INDEX.md specs/verification-properties/VP-INDEX.md stories/STORY-INDEX.md specs/architecture/ARCH-INDEX.md
+    specs/verification-properties/VP-INDEX.md:version: "2.72"
+    specs/behavioral-contracts/BC-INDEX.md:version: "4.33"
+    specs/architecture/ARCH-INDEX.md:version: "3.34"
+    stories/STORY-INDEX.md:version: "4.267"
+    ```
+    BC v4.33 / VP v2.72 / STORY v4.267 / ARCH v3.34. ALL UNCHANGED this burst. PASS.
+
+5. **STATE.md v6.59→v6.60**: frontmatter-minimal (version + phase + last_amended). Lines 15-17 UNTOUCHED per hook constraint (precedent D-866..D-928). NOTE: STATE.md Decisions Log table preamble range not updated (frontmatter-minimal burst; D-863..D-928 range update deferred per D-866..D-927 class precedent).
+
+### Dim-3: Finding and fix record
+
+**F-S2104-P21-001** — HIGH — PW-B directive-requirement narrowing opened bare-imperative hole.
+
+The `F-S2104-P20-003` fix added a directive-requirement filter to Gate PW-B with class `MUST|SHOULD|required|is[[:space:]]+the[[:space:]]+required|is[[:space:]]+preferred|is[[:space:]]+acceptable|permits`. This class omitted the bare imperatives the write-directive gate includes (`Anchor|Write|Save|Store|Place|Record|Emit|Persist|Resolve|Use`). A bare-imperative harmful mandate therefore escapes PW-B; and it escapes the write-directive gate whenever the clause also lacks a `\.factory/|ledger|artifact writes?` referent — both gates silent.
+
+**Orchestrator-executed probe results at `915b87ce` (pre-fix):**
+```
+P1 "Anchor every ledger write to the story worktree CWD."   PW-B=SILENT  WD=FIRES(RED)
+P2 "Anchor every write to the story worktree CWD."          PW-B=SILENT  WD=SILENT  ← EVADES BOTH
+P3 "Resolve all delivery paths from the story worktree CWD."  PW-B=SILENT  WD=SILENT  ← EVADES BOTH
+P4 "Place each report in the worktree's shadow subtree."    PW-B=SILENT  WD=SILENT  ← EVADES BOTH
+```
+`P2` is `M-P17-A` with the modal dropped. It directly inverts **BC-6.26.001 PC1**.
+
+**Classification:** Eleventh-generation recurrence of the invertible-primary-postcondition class. Fourth "fix-seeds-next-defect" occurrence this session: dropping `artifact` (P20-002), rewording the doc (P20-003), narrowing PW-B's directive class (P21-001).
+
+**Root cause (structural asymmetry):** PW-B and the write-directive gate maintained TWO independently-authored directive classes. The divergence was the defect; any future independent maintenance reopens this class. The fix must remove the divergence, not add imperatives as a second copy.
+
+**Fix record — commit `17921772` (test-writer):** Introduced `PWBD_DIRECTIVE_CLASS` — a single shared local variable that is the union of both prior classes — consumed at 5 call sites (lines 980, 1009, 1019, 1029, 1280). Anchoring of the imperative alternation preserved (`^` with optional `**Label:**` prefix), preventing `Use|Write|Place` matching mid-sentence.
+
+**Verification (orchestrator-executed at `17921772`):**
+```
+P2 bare imperative (was EVADING)            PW-B=FIRES(RED)
+P3 'Resolve' (was EVADING)                  PW-B=FIRES(RED)
+P4 'Place' (was EVADING)                    PW-B=FIRES(RED)
+M-P20-B explanatory (must be GREEN)         PW-B=SILENT(GREEN)
+M-P20-A (must be RED)                       PW-B=FIRES(RED)
+pristine **Forbidden:** bullet (GREEN)      PW-B=SILENT(GREEN)
+```
+Suites: `story-worktree-write-path-discipline.bats` 9/9; `worktree-identity-preflight.bats` 14/14.
+
+**F-S2104-P20-003 STATUS: CLOSED-WITH-REGRESSION** (its fix narrowed PW-B's directive class, seeding P21-001).
+**F-S2104-P21-001 STATUS: CLOSED** at `17921772`.
+**BC-5.39.001 streak: 0/3** (P21-001 discovery resets the streak).
+
+### Dim-4: SECONDARY items
+
+**(a) f59c1624 overlap — not a defect.** `f59c1624` (D-927 burst) partially overlaps with D-926's root-cause codification: the D-926 block also mentions `opus` (3×). However, f59c1624 carries three unique artifacts absent from D-926: `L-BB-large-dispatch-item-loss` lesson, `adversary-pass-20.md` provenance extension ("formally codified D-927" + future-pass mandate), and STATE.md v6.59. The overlap is a cosmetic artifact caused by the orchestrator issuing a redundant dispatch (D-927 redirect was sent while sm-d927 was already mid-burst). **Squash considered and REJECTED:** unique content + already pushed + force-push is a human decision not sought for a non-defect. Overlap is architectural property of the mid-burst messaging failure class (see `L-BB-mid-burst-addenda-unreliable`).
+
+**(b) L-BB-mid-burst-addenda-unreliable state-discriminator refinement.** Team-lead confirmed the discriminator is agent STATE at delivery, not addendum-vs-dispatch. Mid-burst: 0/4 (D-924 re-scope, D-925 addenda ×2, D-927 redirect). Idle: works (sm-d923 d6ce2ab3, this exchange). Folded into the lesson (tag extended [D-926][D-928], fourth empirical failure added, state-discriminator subsection added, f59c1624 cited as concrete consequence).
+
+### Phase
+
+D-928-P21-001-FINDING-AND-FIX
+
+### Date
+
+2026-07-27

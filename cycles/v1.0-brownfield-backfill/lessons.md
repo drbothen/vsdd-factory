@@ -8316,9 +8316,9 @@ Validated fix: dispatch the adversary agent with an explicit `model: sonnet` ove
 
 ---
 
-## L-BB-mid-burst-addenda-unreliable [process-gap] [D-926]
+## L-BB-mid-burst-addenda-unreliable [process-gap] [D-926][D-928]
 
-**Summary:** Mid-burst `SendMessage` addenda — corrections or additional instructions sent to an agent after its initial dispatch message — are empirically unreliable: three for three in the D-923/D-924/D-925 session, they either collided with in-flight commits or were silently dropped. This process gap means that correctness-bearing information sent as a mid-burst addendum may not reach the agent, and the orchestrator has no signal that it was lost.
+**Summary:** Correctness-bearing `SendMessage` instructions sent to an agent while it is mid-burst are empirically unreliable: four for four mid-burst in the D-923/D-924/D-925/D-927 session, they either collided with in-flight commits or were silently dropped. Instructions sent to an IDLE agent work. **The discriminator is agent state at delivery, not addendum-vs-dispatch.** This process gap means that correctness-bearing information sent mid-burst may not reach the agent, and the orchestrator has no signal that it was lost.
 
 **Discovered:** 2026-07-27 (team-lead post-session analysis; D-926 dispatch).
 
@@ -8330,17 +8330,34 @@ Validated fix: dispatch the adversary agent with an explicit `model: sonnet` ove
 
 **(c) D-925 count-correction message — silent drop:** A message correcting the pass-20 finding count (Item 2 in this D-926 dispatch) was sent as a mid-burst addendum and dropped. The count defect persisted until the team-lead's next full dispatch.
 
+**(d) D-927 redirect — arrived too late:** The team-lead sent a redirect to sm-d927 while it was mid-burst (already committing f59c1624). The message arrived after the commit and push had completed. Result: f59c1624 partially overlapped with D-926's root-cause codification — cosmetically, not substantively — because the redirect was physically delivered after the point of no return. The content of f59c1624 was unique (L-BB-large-dispatch-item-loss, adversary-pass-20.md provenance extension, STATE.md v6.59), so squash was explicitly rejected. The overlap exists only because the redirect violated the rule codified here.
+
+**Agent-state discriminator (D-928 refinement):**
+
+The original lesson framed the failure as "addendum-vs-dispatch." The D-927 redirect case reveals the correct frame is **agent state at delivery**:
+
+| Delivery | Agent state | Outcome |
+|----------|-------------|---------|
+| D-924 re-scope | mid-burst | silently ignored |
+| D-925 addendum (Items 3+4) | mid-burst | silently dropped |
+| D-925 count-correction | mid-burst | silently dropped |
+| D-927 redirect | mid-burst (committing) | arrived too late |
+| sm-d923 addendum → d6ce2ab3 | idle | delivered correctly |
+| D-928 dispatch to sm-d927 | idle | delivered correctly (this exchange) |
+
+Mid-burst: 0/4. Idle: 2/2.
+
 **Root cause attribution:** The failure mode is inherent to the mid-burst messaging channel — the agent may already be in a commit-and-report phase when the addendum arrives, or the message may be lost to concurrency. This is NOT attributed to agent misconduct; it is an architectural property of the dispatch-and-message model. Attribution: orchestrator process-gap (relying on an unreliable channel for correctness-bearing corrections).
 
-**Generalized rule:** Corrections and additional scope items MUST go into the initial dispatch or be queued as a standalone subsequent dispatch (new burst). Mid-burst `SendMessage` addenda MUST NOT carry correctness-bearing instructions — they are unreliable and have no delivery confirmation. The orchestrator MUST treat any pending correction as a new dispatch item for the NEXT burst, not as a same-burst addendum.
+**Generalized rule:** Never send correctness-bearing instructions to an in-flight (mid-burst) agent. The correct action is: wait for idle confirmation, then issue a fresh standalone dispatch. Mid-burst `SendMessage` has no delivery guarantee and no signal on loss. Corrections and additional scope items MUST go into the initial dispatch or be queued as a standalone subsequent dispatch (new burst). The orchestrator MUST treat any pending correction as a new dispatch item for the NEXT burst, not as a same-burst addendum.
 
-**Mitigation now in force (D-926):** All D-926 items originated from the initial dispatch (no mid-burst addenda for this burst). This lesson is itself evidence: Items 3, 4, and 5 in the D-926 dispatch exist only because mid-burst addenda were dropped in D-925.
+**Mitigation now in force (D-926/D-928):** All D-926 items originated from the initial dispatch. D-928 dispatch was issued to sm-d927 only after idle confirmation — delivered correctly. This lesson is itself evidence: Items 3, 4, and 5 in the D-926 dispatch exist only because mid-burst addenda were dropped in D-925; f59c1624's partial overlap with D-926 exists only because the D-927 redirect was sent mid-burst.
 
-**Anchors:** D-923 addendum collision; D-925 addenda (a) Items 3+4 silent drop, (b) count-correction silent drop; team-lead analysis 2026-07-27; D-926 dispatch (initial dispatch includes all 5 items).
+**Anchors:** D-923 addendum collision; D-925 addenda (a) Items 3+4 silent drop, (b) count-correction silent drop; D-927 redirect (arrived after f59c1624 commit — mid-burst, too late); f59c1624 partial overlap with D-926 (concrete consequence of mid-burst redirect); sm-d923 idle addendum d6ce2ab3 (idle, delivered); D-928 dispatch to sm-d927 (idle, delivered); team-lead analysis 2026-07-27; D-926 dispatch (initial dispatch includes all 5 items).
 
-**Cites:** D-926 (this correction burst); `[[L-BB-commit-without-push]]` (adjacent lesson — push confirmation; dispatch-template gap class); `[[L-BB-count-after-enumeration]]` (adjacent lesson — count derived from addendum drop); `[[L-BB-adversary-agent-delivery-silent]]` (adjacent lesson — different agent-communication failure class).
+**Cites:** D-926 (originating correction burst); D-928 (state-discriminator refinement — agent state at delivery is the discriminator; 4th mid-burst failure; f59c1624 as concrete consequence); `[[L-BB-commit-without-push]]` (adjacent lesson — push confirmation; dispatch-template gap class); `[[L-BB-count-after-enumeration]]` (adjacent lesson — count derived from addendum drop); `[[L-BB-adversary-agent-delivery-silent]]` (adjacent lesson — different agent-communication failure class); `[[L-BB-large-dispatch-item-loss]]` (adjacent lesson — initial dispatch size; same dispatch-reliability class).
 
-**Closes:** D-926 S-21.04-PASS-20-CORRECTION (2026-07-27). `[process-gap; mid-burst-addenda; SendMessage; unreliable; collision; silent-drop; initial-dispatch; orchestrator-process-gap; D-926]`
+**Closes:** D-926 S-21.04-PASS-20-CORRECTION (2026-07-27); D-928 STATE-DISCRIMINATOR-REFINEMENT (2026-07-27). `[process-gap; mid-burst-addenda; SendMessage; unreliable; collision; silent-drop; initial-dispatch; orchestrator-process-gap; agent-state-at-delivery; mid-burst-0/4; idle-works; D-926; D-928]`
 
 ---
 
@@ -8374,3 +8391,54 @@ Validated fix: dispatch the adversary agent with an explicit `model: sonnet` ove
 **Cites:** D-927 (this burst — formal codification); D-926 (originating session — Item 1 dropped); `[[L-BB-mid-burst-addenda-unreliable]]` (D-926; adjacent process-gap — correction channel unreliable; this lesson covers initial dispatch size); `[[L-BB-adversary-agent-delivery-silent]]` (D-925/D-927; adjacent lesson — the dropped item IS the adversary root cause).
 
 **Closes:** D-927 ROOT-CAUSE-RECORD (2026-07-27). `[process-gap; large-dispatch; item-loss; silent-drop; initial-dispatch; orchestrator-process-gap; small-focused-dispatch; D-927]`
+
+---
+
+## L-BB-regression-against-incomplete-mutant-corpus [methodology] [D-928]
+
+**Summary:** A complete and honest regression run against an existing mutant corpus can produce a GREEN result while a real hole exists in the gate — because the hole lies in a direction NO existing mutant covers. `tw-p20-003`'s regression table was complete and accurate (every prior mutant genuinely stayed RED), yet `F-S2104-P21-001` existed as a blind spot the corpus could not see. A green regression run bounds confidence to the corpus, not to the gate.
+
+**Discovered:** 2026-07-27 (orchestrator probe analysis at `915b87ce`; D-928 codification).
+
+**Mechanism:** The `F-S2104-P20-003` fix narrowed Gate PW-B's directive class to modal operators only. Every existing mutant used modal operators. Therefore every existing mutant still fired RED after the fix — the regression was genuinely clean. But bare-imperative mandates (probes P2/P3/P4) were never in the corpus. The fix's narrowing was invisible to the existing tests.
+
+**The structural rule:** When a fix NARROWS or WIDENS a gate's scope, new probes MUST be authored for the newly-excluded or newly-included region. Re-running the existing corpus is insufficient by construction: the existing corpus was designed against the PRIOR scope. The fix changes scope; the corpus must change too.
+
+- **Narrowing fix (this case):** author probes for directives that now fall outside the class — confirm they remain blocked (or, if they should now pass, that is a regression).
+- **Widening fix:** author probes for items that now fall inside the class — confirm they fire, and that non-directive items near the boundary do NOT fire (false-positive check).
+
+**Why this matters at scale:** Every adversary pass in this cascade produced a finding that was invisible to the prior pass's corpus. The corpus asymptotically grows, but it can only ever cover directions already imagined. Novel injection angles (modal-vs-bare-imperative, two-gate vs one-gate, referent-filter interaction) each require deliberate new probes authored at fix time, not just after the next adversary surfaces them.
+
+**Anchors:** `F-S2104-P20-003` fix (`915b87ce`) — modal-only directive class; `F-S2104-P21-001` bare-imperative blind spot; `PWBD_DIRECTIVE_CLASS` shared definition fix (`17921772`) — closed the scope divergence structurally; D-928.
+
+**Cites:** D-928 (this burst); `[[L-BB-fix-seeds-next-defect]]` (adjacent lesson — fourth "fix-seeds-next-defect" this session; this lesson is the methodological complement); F-S2104-P20-003 (immediate predecessor).
+
+**Closes:** D-928 REGRESSION-METHODOLOGY-LESSON (2026-07-27). `[methodology; regression; mutant-corpus; incomplete-coverage; scope-change; narrowing; widening; adversary; D-928]`
+
+---
+
+## L-BB-fix-seeds-next-defect [pattern] [D-928]
+
+**Summary:** Four consecutive times in this session, a fix for one finding introduced the condition for the next finding. Each fix was correct for what it addressed; the defect was what the fix left unaddressed. The fourth instance (`F-S2104-P21-001`) is the first to be remedied with a shared-definition fix — removing a **class** of divergence rather than patching an instance.
+
+**Discovered:** 2026-07-27 (orchestrator pattern count at D-928; team-lead classification).
+
+**Four-occurrence sequence (S-21.04 cascade):**
+
+1. **F-S2104-P20-002 → F-S2104-P20-003:** Dropping `artifact` from the write-directive pattern (`F-S2104-P20-002` fix) loosened the referent filter — a less-specific pattern passed more clauses to the disposition stage, which then required the new directive-requirement filter (`F-S2104-P20-003`).
+
+2. **F-S2104-P20-003 (directive filter) → narrowed doc:** Rewording the disposal-path docs to match the new filter introduced a phrasing that the gate's own regex couldn't detect — a pass-20 finding about the documentation mismatch.
+
+3. **F-S2104-P20-003 (PW-B directive class) → F-S2104-P21-001:** Introducing the directive-requirement filter to PW-B with a modal-only class omitted bare imperatives — exactly the class the write-directive gate had always included. Two independently-maintained directive classes diverged immediately on introduction.
+
+4. **(Resolved)** `PWBD_DIRECTIVE_CLASS` shared definition (`17921772`) removes the class of divergence: both gates now read from a single definition. Future maintenance of one cannot create divergence without modifying the same line.
+
+**Why the shared-definition fix is different:** Fixes 1–3 each patched an instance: "add this word," "change this regex branch," "update this doc phrase." Each patch left a sibling instance unaddressed, which became the next finding. Fix 4 identified the **structural cause** (two independently-authored lists) and eliminated it: now there is one definition, and any future change affects both gates simultaneously.
+
+**Pattern rule:** When a fix-and-next-defect sequence recurs ≥3 times on related scope, stop patching instances. Audit whether the scope contains independently-maintained parallel structures that should be a single shared definition. If yes, the structural fix is the convergence point — instance patches will continue seeding defects indefinitely.
+
+**Anchors:** F-S2104-P20-002/003/P21-001 sequence; `PWBD_DIRECTIVE_CLASS` (`17921772`); team-lead pattern count 2026-07-27; `[[L-BB-regression-against-incomplete-mutant-corpus]]` (companion lesson — each instance was invisible to the prior corpus); D-928.
+
+**Cites:** D-928 (this burst — fourth occurrence and structural-fix codification); `[[L-BB-regression-against-incomplete-mutant-corpus]]` (adjacent lesson — why each instance was missed); F-S2104-P20-002, F-S2104-P20-003, F-S2104-P21-001 (the sequence); `[[L-EDP1-074]]` (orchestrator-authored class context).
+
+**Closes:** D-928 FIX-SEEDS-NEXT-DEFECT-PATTERN (2026-07-27). `[pattern; fix-seeds-defect; structural-fix; shared-definition; independently-maintained; instance-vs-class; fourth-occurrence; D-928]`
