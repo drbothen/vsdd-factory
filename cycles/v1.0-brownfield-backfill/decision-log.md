@@ -12625,3 +12625,6 @@ D-922-SESSION-WRAP-PAUSED
 ### Date
 
 2026-07-27
+
+### ADDENDUM (post-wrap, same session)
+Post-wrap fact: story-writer commit a14c9f72 (story v1.24, 21-gate Gate cell) was already committed and pushed before the stand-down arrived — benign race, no violation. It landed on factory-artifacts immediately after the wrap commit d77b8ed7 (HEAD sequence: d77b8ed7→a14c9f72). Checkpoint sections 1+3 superseded on that point (story v1.24 is current at pause; resume step (1) SATISFIED — skip story-leg re-dispatch).
