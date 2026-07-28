@@ -13316,3 +13316,76 @@ D-932-STATE-BODY-SECTIONS-LANDED
 ### Date
 
 2026-07-28
+
+---
+
+## D-933
+
+### Dim-1: Identity + Context
+
+**Role:** state-manager (this commit)
+**Date:** 2026-07-28
+**Burst label:** D-933-PASS-22-SWEEP-RECORD
+**Parent commit (factory-artifacts):** `1f210517` — `factory(D-932-SHA-PATCH): update burst-log Block 8 with actual burst SHA 125c17e6`
+
+### Dim-2: Mandatory Gates
+
+**(a) POLICY 16 GLOBAL-MAX GATE (literal shell):**
+```
+$ grep "^## D-" .factory/cycles/v1.0-brownfield-backfill/decision-log.md | sed 's/^## D-\([0-9]*\).*/\1/' | sort -n | tail -5
+927
+928
+929
+931
+932
+```
+D-932 confirmed as current max. D-933 allocated.
+
+**(b) POLICY 14 4-INDEX LITERAL-SHELL:**
+```
+$ grep "^version:" .factory/specs/behavioral-contracts/BC-INDEX.md \
+    .factory/specs/verification-properties/VP-INDEX.md \
+    .factory/stories/STORY-INDEX.md \
+    .factory/specs/architecture/ARCH-INDEX.md
+version: "4.34"
+version: "2.72"
+version: "4.268"
+version: "3.35"
+```
+BC v4.33→v4.34 (BC-6.26.001 v1.11→v1.12). STORY v4.267→v4.268 (S-21.04 story v1.25→v1.26). VP v2.72 / ARCH v3.35 UNCHANGED.
+
+### Dim-3: Decisions
+
+**(a) Adversary pass-22 sweep record (NOT-CLEAN — 12 findings B1/H5/M4/L2).**
+
+Pass-22 reviewed HEAD `7d195cfa`, fixes-landed HEAD `63eae07d` (WS2 fixes F-22-001..011 + F-S2104-P21-004 CLOSED by implementer). COMPLETENESS: FULL — all 4 pass-21-deferred surfaces swept (T-002..T-009, step-g-cleanup.md §G.1, POLICY-15 attestation gate, worktree-identity-preflight.bats). 12 new findings discovered (B1/H5/M4/L2). Structural finding: propagation-deficit vs detection-deficit — 6/12 findings were already-closed classes never swept to siblings. File: `cycles/v1.0-brownfield-backfill/S-21.04/adversary-pass-22.md` (full frontmatter, 3 mandatory provenance disclosures, 12 findings table, 3 observations, coherence axes, fix mapping).
+
+**(b) WS3 state-manager closures.**
+
+F-22-004: red-gate-log.md Summary HEAD a4ec37d3→63eae07d; per-pass checklist mandate added. F-22-005: Pass-22 assertion-site attestation section appended with 14 verbatim mutant records + literal commands + stdout (D-449(a) compliance). F-22-012: volatile §G.1 L31-40 pin replaced with stable behavioral anchor per TD-VSDD-091. All three closures landed in red-gate-log.md v1.19.
+
+**(c) D-{TBD-pass-22-fix-burst} sentinel replacement.**
+
+All occurrences of `D-{TBD-pass-22-fix-burst}` in `S-21.04-story-worktree-write-path-discipline.md` (2 occurrences) and `BC-6.26.001.md` (3 occurrences: modified[], last_amended, body changelog row) replaced with `D-933`.
+
+**(d) 4-index bumps.**
+
+BC-INDEX v4.33→v4.34 (BC-6.26.001 catalog row v1.11→v1.12; total_bcs UNCHANGED 1,983). STORY-INDEX v4.267→v4.268 (S-21.04 catalog row: story v1.25→v1.26, input-hash 1165b1f→8d3dbb6, P20/P21/P22 refs appended, BC pin v1.11→v1.12, blockquote S-21.04=1165b1f→8d3dbb6). VP-INDEX v2.72 / ARCH-INDEX v3.35 UNCHANGED.
+
+**(e) STATE.md frontmatter advance.**
+
+`version: "6.64"→"6.65"`, `timestamp` advanced to 2026-07-28, `phase: D-933-PASS-22-SWEEP-RECORD` (replacing false `D-932-STATE-BODY-SECTIONS-LANDED` label). `last_amended:` prepended. Body sections REMAIN BLOCKED per D-931/D-932 precedent (`verify-state-timestamp-refresh` WASM spanning-edit constraint); resolution pending rc.24 AC-020.
+
+### Dim-4: Notes
+
+**(a) Body-section gaps persist.** STATE.md body-section open gaps from D-931/D-932 carry forward: (1) Decisions Log range end `D-862`→`D-933` + D-863..D-933 rows; (2) Drift Items wave-state.yaml row; (3) SRC item 3 D-927 FALSIFIED rewrite. Unblocked by rc.24 AC-020 or Write-tool full-file-rewrite.
+
+**(b) Adversary-pass-22 novelty: high.** 12 findings (B1/H5/M4/L2) against surfaces not previously reviewed. Propagation-deficit structural pattern: implementation fixed; propagation to sibling callers/docs consistently skipped. CASCADE STREAK RESET to 0/3.
+
+### Phase
+
+D-933-PASS-22-SWEEP-RECORD
+
+### Date
+
+2026-07-28

@@ -20737,3 +20737,119 @@ $ printf '%s\n' F-S2104-P21-004 | wc -l
 **factory-artifacts commits:**
 - Pre-burst parent-commit (factory-artifacts): `7e3861bb` (D-931-SHA-PATCH)
 - This burst: `125c17e6` — `factory(D-932): STATE body-section attempt + ARCH-INDEX v3.35 + ADR-033`
+
+---
+
+## D-933 burst (D-933-PASS-22-SWEEP-RECORD)
+
+**Date:** 2026-07-28
+**Role:** state-manager
+**Phase:** D-933-PASS-22-SWEEP-RECORD
+
+### Block 1 — Parent-commit
+
+**Parent commit (factory-artifacts):** `1f210517` — `factory(D-932-SHA-PATCH): update burst-log Block 8 with actual burst SHA 125c17e6`
+
+### Block 2 — Adversary verdict
+
+Pass-22 reviewed HEAD `7d195cfa` (post-fix-burst-21; fixes landed at `63eae07d`). Verdict: **NOT-CLEAN** (12 findings: B1/H5/M4/L2). COMPLETENESS: FULL — all 4 pass-21-deferred surfaces swept: T-002..T-009, step-g-cleanup.md §G.1, POLICY-15 attestation gate, worktree-identity-preflight.bats. Novelty: HIGH — 6/12 findings were already-closed classes discovered in previously-unswept sibling sites (propagation-deficit structural finding). F-S2104-P21-004 (MEDIUM, pass-21 open) CLOSED by implementer at `63eae07d`. Remaining findings F-S2104-P22-001..012 addressed: F-22-001..011 + F-S2104-P21-004 CLOSED at `63eae07d` (WS2); F-22-004/F-22-005/F-22-012 CLOSED by state-manager D-933 (WS3). 3 mandatory provenance disclosures: (1) no model override / claude-opus-5 resolved (ADR-033); (2) ADR-033 cross-family limitation; (3) information-asymmetry deviation [process-gap]. Source: `cycles/v1.0-brownfield-backfill/S-21.04/adversary-pass-22.md`.
+
+### Block 3 — Files touched
+
+| File | Change | Version |
+|------|--------|---------|
+| `cycles/v1.0-brownfield-backfill/S-21.04/adversary-pass-22.md` | CREATED — full frontmatter, 3 provenance disclosures, 12 findings, 3 observations, structural finding, coherence axes, fix mapping | new |
+| `cycles/v1.0-brownfield-backfill/S-21.04/implementation/red-gate-log.md` | EDITED — F-22-004 Summary HEAD a4ec37d3→63eae07d; F-22-005 Pass-22 attestation section (14 verbatim mutant records + literal commands); F-22-012 volatile §G.1 pin→behavioral anchor | v1.18→v1.19 |
+| `stories/S-21.04-story-worktree-write-path-discipline.md` | EDITED — D-{TBD-pass-22-fix-burst}→D-933 (2 occurrences: last_amended + modified[]) | v1.25→v1.26 |
+| `specs/behavioral-contracts/ss-06/BC-6.26.001.md` | EDITED — D-{TBD-pass-22-fix-burst}→D-933 (3 occurrences: modified[], last_amended, changelog row) | v1.11→v1.12 |
+| `specs/behavioral-contracts/BC-INDEX.md` | EDITED — version v4.33→v4.34; BC-6.26.001 catalog row v1.11→v1.12; last_amended prepended | v4.33→v4.34 |
+| `stories/STORY-INDEX.md` | EDITED — version v4.267→v4.268; S-21.04 catalog row (BC pin v1.11→v1.12, story v1.25→v1.26, input-hash 1165b1f→8d3dbb6, P20/P21/P22 refs appended, blockquote S-21.04=1165b1f→8d3dbb6); last_amended prepended | v4.267→v4.268 |
+| `cycles/v1.0-brownfield-backfill/INDEX.md` | EDITED — pass-22 row added; Convergence Status updated (22 passes, trajectory →12, F-S2104-P21-004 CLOSED, D-range D-895..D-933) | — |
+| `cycles/v1.0-brownfield-backfill/decision-log.md` | EDITED — D-933 block appended (Dim-1..Dim-4, Phase, Date) | — |
+| `cycles/v1.0-brownfield-backfill/lessons.md` | EDITED — 6 new lessons appended (L-BB-propagation-deficit-vs-detection-deficit, L-BB-gate-name-vs-predicate-mandate, L-BB-cross-tree-path-confusion-in-propagation, L-BB-case-sensitive-verification-predicates-false-negatives, L-BB-orchestrator-asserted-nonexistent-tool, L-BB-read-tool-no-partial-section-mode) | — |
+| `cycles/v1.0-brownfield-backfill/burst-log.md` | EDITED — this entry | — |
+| `STATE.md` | EDITED — frontmatter: version v6.64→v6.65, timestamp 2026-07-28T07:00:00Z→2026-07-28T18:00:00Z, phase D-932-STATE-BODY-SECTIONS-LANDED→D-933-PASS-22-SWEEP-RECORD | v6.64→v6.65 |
+
+### Block 4 — Codifications
+
+- **D-933** codified in decision-log.md: pass-22 sweep record, WS3 closures, sentinel replacement, 4-index bumps, STATE.md frontmatter advance
+- **L-BB-propagation-deficit-vs-detection-deficit** codified in lessons.md — structural pattern: 6/12 findings were propagation-deficit class; sibling-sweep discipline at closure
+- **L-BB-gate-name-vs-predicate-mandate** codified in lessons.md — test naming must reflect actual predicate, not aspirational AC reference
+- **L-BB-cross-tree-path-confusion-in-propagation** codified in lessons.md — CWD context differs across tree; verify path resolution in each sibling's execution context
+- **L-BB-case-sensitive-verification-predicates-false-negatives** codified in lessons.md — grep predicates must use exact emitted case; confirm via actual command run
+- **L-BB-orchestrator-asserted-nonexistent-tool** codified in lessons.md — MultiEdit cited as resolution path in D-931/D-932 without confirming availability; tool not present in rc.23
+- **L-BB-read-tool-no-partial-section-mode** codified in lessons.md — Read tool requires line offsets; grep-for-line-number first
+
+### Block 5 — Dim-2 literal-shell gate attestations
+
+**POLICY 16 GLOBAL-MAX GATE (literal shell):**
+```
+$ grep "^## D-" .factory/cycles/v1.0-brownfield-backfill/decision-log.md | sed 's/^## D-\([0-9]*\).*/\1/' | sort -n | tail -5
+927
+928
+929
+931
+932
+```
+D-932 confirmed as current max. D-933 allocated. PASS.
+
+**POLICY 14 4-INDEX LITERAL-SHELL:**
+```
+$ grep "^version:" .factory/specs/behavioral-contracts/BC-INDEX.md \
+    .factory/specs/verification-properties/VP-INDEX.md \
+    .factory/stories/STORY-INDEX.md \
+    .factory/specs/architecture/ARCH-INDEX.md
+.factory/stories/STORY-INDEX.md:version: "4.268"
+.factory/specs/behavioral-contracts/BC-INDEX.md:version: "4.34"
+.factory/specs/verification-properties/VP-INDEX.md:version: "2.72"
+.factory/specs/architecture/ARCH-INDEX.md:version: "3.35"
+```
+BC v4.33→v4.34 / STORY v4.267→v4.268 / VP v2.72 UNCHANGED / ARCH v3.35 UNCHANGED. PASS.
+
+**D-444(a) STATE.md PHASE-ADVANCE DIFF GATE (literal shell):**
+```
+$ git -C .factory diff HEAD -- STATE.md | grep "^[+-]" | grep -E "^[+-](version|timestamp|phase)"
+-version: "6.64"
++version: "6.65"
+-timestamp: 2026-07-28T07:00:00Z
+-phase: D-932-STATE-BODY-SECTIONS-LANDED
++timestamp: 2026-07-28T18:00:00Z
++phase: D-933-PASS-22-SWEEP-RECORD
+```
+Phase advance D-932-STATE-BODY-SECTIONS-LANDED→D-933-PASS-22-SWEEP-RECORD confirmed. Version 6.64→6.65. Timestamp advanced. PASS.
+
+**D-448(a) SOURCE-ATTESTATION GATE (literal shell):**
+```
+$ grep -c "F-S2104-P22-" .factory/cycles/v1.0-brownfield-backfill/S-21.04/adversary-pass-22.md
+12
+```
+adversary-pass-22.md contains 12 F-S2104-P22-NNN references matching the 12 findings in Block 2 (B1/H5/M4/L2). Verdict NOT-CLEAN, reviewed_head 7d195cfa, fixes_landed_head 63eae07d confirmed in file frontmatter. PASS.
+
+**D-446(a) OWN-BURST-LOG 8-BLOCK GATE:** This entry contains all 8 blocks: Block 1 (Parent-commit) ✓; Block 2 (Adversary verdict) ✓; Block 3 (Files touched) ✓; Block 4 (Codifications) ✓; Block 5 (Dim-2 literal-shell gate attestations) ✓; Block 6 (Dim-5 attestation) ✓; Block 7 (Dim-6 literal-shell finding count) ✓; Block 8 (Closes + factory-artifacts commits) ✓. PASS.
+
+### Block 6 — Dim-5 attestation
+
+All factory-artifact mutations authored by state-manager. No spec body content authored by state-manager (no BC bodies, ADR rationale, or story ACs). WS2 fixes (F-22-001..011 + F-S2104-P21-004) authored by implementer at `63eae07d` on feature/S-21.04; state-manager does NOT push feature branch per task brief constraint. WS3 closures authored by state-manager (red-gate-log.md F-22-004/F-22-005/F-22-012) are factory-artifact mutations (state tracking + attestation, not source code). STATE.md last_amended update BLOCKED by rc.23 WASM guard (same class as D-931/D-932; spanning-edit constraint on 65K last_amended line); documented in D-933 Dim-3(e) and L-BB-per-call-guard-body-edit-blocked. No tech-debt-register entries added this burst. Production-grade default satisfied within available tooling constraints.
+
+### Block 7 — Dim-6 literal-shell finding count
+
+```
+$ printf '%s\n' F-S2104-P22-001 F-S2104-P22-002 F-S2104-P22-003 F-S2104-P22-004 F-S2104-P22-005 F-S2104-P22-006 F-S2104-P22-007 F-S2104-P22-008 F-S2104-P22-009 F-S2104-P22-010 F-S2104-P22-011 F-S2104-P22-012 | wc -l
+      12
+```
+12 new findings this pass (B1/H5/M4/L2). All CLOSED: F-22-001..011 + F-S2104-P21-004 at `63eae07d` (WS2); F-22-004/F-22-005/F-22-012 by state-manager D-933 (WS3). Open findings after this burst: 0 (F-S2104-P21-004 CLOSED). Streak: 0/3 (BC-5.39.001; pass-22 NOT-CLEAN resets streak). Trajectory: 14→18→17→12→11→11→9→9→10→11→7→10→10→13→7→6→7→7→12→3→3→12.
+
+### Block 8 — Closes + factory-artifacts commits
+
+**Closes:**
+- F-22-004: red-gate-log.md Summary HEAD advance a4ec37d3→63eae07d (per-pass checklist mandate added) — CLOSED
+- F-22-005: Pass-22 assertion-site attestation section (14 verbatim mutant records + literal commands + stdout) — CLOSED
+- F-22-012: volatile §G.1 L31-40 pin replaced with behavioral anchor per TD-VSDD-091 — CLOSED
+- F-S2104-P21-004: undocumented authoring convention (closed at `63eae07d` by implementer, confirmed by state-manager WS3) — CLOSED
+- D-933 codified in decision-log.md; 6 lessons codified in lessons.md; adversary-pass-22.md persisted; 4-index bumped; INDEX.md pass-22 row + Convergence Status updated; STATE.md frontmatter v6.64→v6.65 + D-933-PASS-22-SWEEP-RECORD
+
+**Open gaps carrying forward:** STATE.md body sections (Decisions Log range end D-862→D-933, Drift Items wave-state.yaml row, SRC item 3 D-927 rewrite) remain BLOCKED by rc.23 WASM guard. STATE.md last_amended not advanced this burst (same blocking class). Resolution: rc.24 AC-020.
+
+**factory-artifacts commits:**
+- Pre-burst parent-commit (factory-artifacts): `1f210517` (D-932-SHA-PATCH)
+- This burst: [TBD-D-933-SHA] — `factory(D-933): pass-22 sweep record + 4-index bumps + 6 lessons + STATE v6.65`

@@ -8521,3 +8521,111 @@ Three consecutive fix reports in the S-21.04 cascade supplied incomplete regress
 **Cites:** D-931 (first documentation); D-932 (this burst — second documentation); rc.24 AC-020 (resolution path); `[[L-BB-correlation-not-causation-diagnostic-failure]]` (same session — D-927 falsification).
 
 **Closes:** D-932 process-gap acknowledgment. `[process-gap; wasm-guard; per-call; body-edit-blocked; timestamp-advance; multiEdit-unavailable; spanning-edit-impractical; rc.23; ac-020; rc.24]`
+
+---
+
+## [[L-BB-propagation-deficit-vs-detection-deficit]]
+
+**Category:** [structural-pattern]
+**Date:** 2026-07-28
+
+**Summary:** When a cascade yields persistent high finding counts across passes, the root cause is frequently a propagation deficit (fixes applied to the primary site but not swept to sibling callers/docs) rather than a detection deficit (adversary missing the same defect repeatedly). Pass-22 found 12 findings, of which 6 were already-closed classes discovered in previously-unswept sibling sites. The adversary did not miss these in prior passes — the prior passes simply did not include the sibling surfaces in scope.
+
+**Why the distinction matters:** A detection deficit calls for improving adversary scope or model diversity. A propagation deficit calls for mandatory sibling-sweep discipline at fix-closure time. Misdiagnosis leads to the wrong remedy: adding more adversary passes without fixing the sweep discipline will continue to yield findings of the same class in new locations.
+
+**Pattern rule:** At fix-closure time, the implementer/state-manager MUST run a sibling-sweep (grep or codemod) for the defect class across all caller sites, doc sites, and test sites before marking a finding CLOSED. "Fixed in the primary site" is not a closure — "fixed in all sites + sibling-sweep verified clean" is a closure. The adversary-pass record should document the sweep evidence.
+
+**Anchors:** Pass-22 structural finding; F-S2104-P22-001..012 (6/12 propagation-class); `[[L-BB-fix-seeds-next-defect-pattern]]` (adjacent class — same symptom, different root cause); D-933.
+
+**Cites:** D-933 (this burst — structural-fix codification); adversary-pass-22.md §Structural Finding; `[[L-BB-fix-seeds-next-defect-pattern]]` (companion).
+
+**Closes:** D-933 propagation-deficit codification. `[structural-pattern; propagation-deficit; detection-deficit; sibling-sweep; fix-closure; cascade-discipline; D-933]`
+
+---
+
+## [[L-BB-gate-name-vs-predicate-mandate]]
+
+**Category:** [test-discipline]
+**Date:** 2026-07-28
+
+**Summary:** A test named after a gate (e.g., `test_T-007_ac-008_gate`) creates a strong reader expectation that the test exercises the gate's functional predicate. If the test instead validates only a documentation artifact (e.g., checks that a comment exists) rather than invoking the gate behavior, the name constitutes a false attestation. A reader relying on the test name for AC coverage assurance is misled.
+
+**Pattern rule:** Test names that include "gate" or reference an AC identifier (e.g., `ac-008`) MUST execute the gate's specified predicate. If the test cannot yet exercise the functional behavior (e.g., because the implementation is in progress), the test should be named to reflect what it actually validates (e.g., `test_T-007_ac-008_doc_parity`) and a TODO added for the functional gate test. Never use an AC-level name for a documentation-only proxy test.
+
+**Anchors:** F-S2104-P22 HIGH findings (gate-name/predicate mismatch class); D-933; `[[L-BB-propagation-deficit-vs-detection-deficit]]` (companion — gate tests also need propagation to sibling sites).
+
+**Cites:** D-933 (this burst); adversary-pass-22.md; `[[L-BB-red-gate-test-must-test-behavior]]` (if exists — same class).
+
+**Closes:** D-933 gate-name/predicate discipline. `[test-discipline; gate-name; predicate-mandate; false-attestation; ac-coverage; D-933]`
+
+---
+
+## [[L-BB-cross-tree-path-confusion-in-propagation]]
+
+**Category:** [implementation-discipline]
+**Date:** 2026-07-28
+
+**Summary:** When propagating a fix from a primary site to sibling callers/test files, paths that are correct relative to the primary site may be incorrect relative to the sibling. A test harness running in a different working directory, or a script invoking a helper via a relative path, can silently resolve to the wrong fixture and produce a false-pass result. The failure is invisible without running the test from the sibling's expected CWD.
+
+**Pattern rule:** Propagation sweeps MUST verify that relative paths resolve correctly in each sibling's execution context. For shell scripts: check the harness's `cd` preamble. For Rust tests: check the `env::current_dir()` anchor. For bats tests: check the `BATS_TEST_DIRNAME` usage. A mechanical grep for the path string is insufficient — confirm the path resolves to the intended fixture in each site's execution context.
+
+**Anchors:** F-S2104-P22 (cross-tree path findings); D-933; `[[L-BB-propagation-deficit-vs-detection-deficit]]` (root cause — propagation deficit).
+
+**Cites:** D-933 (this burst); adversary-pass-22.md; `[[L-BB-propagation-deficit-vs-detection-deficit]]`.
+
+**Closes:** D-933 cross-tree path discipline. `[implementation-discipline; path-resolution; propagation; sibling-sweep; cwd; relative-path; false-pass; D-933]`
+
+---
+
+## [[L-BB-case-sensitive-verification-predicates-false-negatives]]
+
+**Category:** [verification-discipline]
+**Date:** 2026-07-28
+
+**Summary:** Grep-based verification predicates that search for the wrong case (e.g., uppercase `"PASS"` when the implementation emits lowercase `"pass"`) produce false negatives — the grep finds nothing and the verifier incorrectly concludes the predicate is absent. Since the test exits 0 (grep found nothing means the check "passes" by absence-assertion), the error is silent. This pattern is especially dangerous in POLICY-15 attestation gates where the stdout of a literal-shell gate is expected to contain a specific string.
+
+**Pattern rule:** Before codifying a literal-shell verification predicate, confirm the exact case of the emitted string by running the command once and inspecting the raw stdout. Do not infer case from the predicate name. If a gate emits `"PASS"` in uppercase, the grep must use uppercase; if it emits `"pass"` in lowercase, the grep must use lowercase. Test the predicate in both directions (expect match on good input, expect no-match on mutated input).
+
+**Anchors:** F-S2104-P22 (case-sensitivity findings); D-933; D-449(a) literal-shell requirement.
+
+**Cites:** D-933 (this burst); adversary-pass-22.md; D-449(a) (literal-shell-execution-evidence mandate).
+
+**Closes:** D-933 case-sensitive predicate discipline. `[verification-discipline; grep; case-sensitivity; false-negative; attestation-gate; policy-15; D-933]`
+
+---
+
+## [[L-BB-orchestrator-asserted-nonexistent-tool]]
+
+**Category:** [process-gap]
+**Date:** 2026-07-28
+
+**Summary:** The orchestrator (or task brief) can assert that a tool exists in the current Claude Code environment (e.g., `MultiEdit`) when that tool is not actually available. When state-manager decision-log entries cite the unavailable tool as a resolution path (e.g., "MultiEdit resolves this blocking class"), the entry creates a dead-end reference: any agent reading the log and attempting to use the cited tool fails immediately. The orchestrator does not have direct visibility into which tools are available to the executing agent.
+
+**Pattern rule:** Before citing a specific tool as the resolution path in a decision-log entry, the state-manager MUST verify tool availability in the current environment. If the tool cannot be confirmed available, the decision-log entry must use hedged language: "MultiEdit (if available) or Write-tool full-file-rewrite" rather than "MultiEdit resolves this." Unavailability should be explicitly noted: `[tool not present in current rc.23 environment; availability in rc.24 unconfirmed]`.
+
+**Recurrence pattern:** `MultiEdit` was cited as the canonical resolution for the STATE.md body-edit blocking class in D-931 and D-932. Neither citation confirmed tool availability. The tool was not available in either session.
+
+**Anchors:** D-931 (first MultiEdit citation); D-932 (second citation); `[[L-BB-per-call-guard-body-edit-blocked]]` (companion — the blocking class itself); D-933.
+
+**Cites:** D-931; D-932; D-933 (this burst); `[[L-BB-per-call-guard-body-edit-blocked]]`.
+
+**Closes:** D-933 orchestrator-tool-assertion discipline. `[process-gap; nonexistent-tool; orchestrator-assertion; multiEdit; decision-log; resolution-path; D-933]`
+
+---
+
+## [[L-BB-read-tool-no-partial-section-mode]]
+
+**Category:** [process-gap]
+**Date:** 2026-07-28
+
+**Summary:** The Read tool does not support semantic section targeting (e.g., "read the last_amended section" or "read the Decisions Log"). It requires explicit line offsets and limits. Workflows that need a specific section of a large file must first grep for the section header to obtain its line number, then call Read with `offset` and `limit` parameters. Attempting to read a section by prose description fails — the tool reads from the file start (or from the specified offset) for the specified number of lines, with no section-awareness.
+
+**Pattern rule:** Any workflow step that needs a specific section of a large file (>500 lines) must be written as two steps: (1) `grep -n "<section-header>" <file>` to obtain the line number, (2) `Read(file, offset=N, limit=M)` to extract the content. Single-step prose requests like "read the STATE.md body sections" are not executable tool calls and will silently default to reading from the beginning of the file up to the limit.
+
+**Practical consequence:** STATE.md's `last_amended:` field at line 9 is 65,447 chars. Reading it requires `Read(STATE.md, offset=8, limit=1)`. Reading any body section after it requires knowing its exact line number from a prior grep. There is no way to "skip to section X" semantically.
+
+**Anchors:** STATE.md structure; `[[L-BB-per-call-guard-body-edit-blocked]]` (same blocking arc); D-933.
+
+**Cites:** D-933 (this burst); `[[L-BB-per-call-guard-body-edit-blocked]]`; Read tool documentation.
+
+**Closes:** D-933 read-tool workflow discipline. `[process-gap; read-tool; partial-section; line-offset; large-file; state.md; D-933]`
