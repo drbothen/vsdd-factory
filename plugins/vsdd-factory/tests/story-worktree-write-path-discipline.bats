@@ -308,6 +308,15 @@ _build_section_prose() {
     tr '\n' ' '
 }
 
+# Named wrapper for spec-path-section prose normalisation (F-S2104-P24-002/F-S2104-P24-003).
+# T-001's spec_path_prose (L867) and the pipeline probe's Leg C both call this function.
+# A revert of this function to bare 'tr' (no marker strip) makes leg_c_result empty — probe RED.
+# Mirrors Leg A's _build_section_prose dependency: the load-bearing assertion is the shared
+# function call, not an inline rebuild; reverting the function is the testable reversion point.
+_build_spec_path_section_prose() {
+  _build_section_prose "$1"
+}
+
 _assert_doc_marker() {
   # $1=regex  $2=label  $3=section_text
   printf '%s\n' "$3" | grep -qE "$1" || {
@@ -862,9 +871,11 @@ _run_teardown_preflight() {
   # The write-directive gate reads this domain; PW-B/2b/4/5 remain bounded to write_discipline_prose_nosplit.
   # Naive widening of PW-B/2b/4/5 false-positives on two read-discipline sentences above the
   # #### Write Discipline heading (adversary verified pristine-empty for write-directive gate only).
-  # F-S2104-P24-002: spec_path_prose now uses _build_section_prose (marker strip applied).
+  # F-S2104-P24-002: spec_path_prose now uses _build_spec_path_section_prose (marker strip applied).
+  # Calls the shared wrapper (not _build_section_prose directly) so the pipeline probe's Leg C
+  # depends on the same call site — reverting the wrapper to bare 'tr' breaks the probe (F-S2104-P24-003).
   local spec_path_prose
-  spec_path_prose="$(_build_section_prose "$spec_path_section")"
+  spec_path_prose="$(_build_spec_path_section_prose "$spec_path_section")"
   local spec_path_prose_nosplit
   spec_path_prose_nosplit="$(printf '%s\n' "$spec_path_prose" | \
     sed 's/cf\. /cf_ABBREV_ /g; s/i\.e\. /ie_ABBREV_ /g; s/e\.g\. /eg_ABBREV_ /g')"
@@ -1908,9 +1919,14 @@ _run_teardown_preflight() {
   # --- Leg C: '>' above #### Write Discipline in ### Spec-Path Discipline body (F-S2104-P24-002) ---
   # Injected immediately after '### Spec-Path Discipline' heading, which places the mutant
   # INSIDE spec_path_section but OUTSIDE write_discipline_section (bounded by #### Write Discipline).
-  # Without _build_section_prose being applied to spec_path_prose (the F-S2104-P24-002 gap), the
+  # Without marker normalisation being applied to spec_path_prose (the F-S2104-P24-002 gap), the
   # '>' survived and the ^Anchor bare-imperative did not match in the write-directive gate.
   # Mutant referent is '.factory/' + 'artifact write' (both in write-directive gate referent class).
+  # Load-bearing: sp_prose_c is built via _build_spec_path_section_prose — the SAME named function
+  # T-001's L867 calls. A revert of _build_spec_path_section_prose to bare 'tr' makes sp_prose_c
+  # retain the '>' prefix, ^Anchor fails at line-start → leg_c_result is empty → probe RED.
+  # This mirrors Leg A's structure: Leg A depends on _build_section_prose's implementation;
+  # Leg C depends on _build_spec_path_section_prose's implementation (F-S2104-P24-003).
   local fixture_c="$scratch/shared-context-c.md"
   awk '
     /^### Spec-Path Discipline/ { print; print "> Anchor every .factory/ artifact write to the story worktree CWD."; next }
@@ -1920,7 +1936,7 @@ _run_teardown_preflight() {
   SHARED_CONTEXT_MD="$fixture_c"
   local sp_section_c sp_prose_c sp_nosplit_c wd_section_c
   sp_section_c="$(_extract_spec_path_discipline_section)"
-  sp_prose_c="$(_build_section_prose "$sp_section_c")"
+  sp_prose_c="$(_build_spec_path_section_prose "$sp_section_c")"
   sp_nosplit_c="$(printf '%s\n' "$sp_prose_c" | \
     sed 's/cf\. /cf_ABBREV_ /g; s/i\.e\. /ie_ABBREV_ /g; s/e\.g\. /eg_ABBREV_ /g')"
   # Structural sanity: mutant must NOT appear in write_discipline_section (above-heading isolation)
@@ -1945,8 +1961,8 @@ _run_teardown_preflight() {
   if [ -z "$leg_c_result" ]; then
     echo "PIPELINE PROBE FAIL [Leg C — F-S2104-P24-002]: '> Anchor every .factory/ artifact write to the story worktree CWD.' above #### Write Discipline MUST fire write-directive gate via the real spec_path_prose pipeline."
     echo "  Marker strip removes '>' leaving 'Anchor every .factory/ artifact write...' → Anchor (bare-imperative) + .factory/ (referent) → gate fires."
-    echo "  Gate SILENT means _build_section_prose is NOT being applied to spec_path_prose."
-    echo "  This is F-S2104-P24-002: spec_path_prose was built via bare 'tr' with no marker strip."
+    echo "  Gate SILENT means _build_spec_path_section_prose is NOT applying the marker strip to spec_path_prose."
+    echo "  This is F-S2104-P24-002: _build_spec_path_section_prose reverted to bare 'tr' (no strip)."
     echo "  spec_path_prose first 200 chars: ${sp_prose_c:0:200}"
     rm -rf "$scratch"
     false
