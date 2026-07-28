@@ -21132,4 +21132,4 @@ $ grep -E "^\| F-S2104-P24-" .factory/cycles/v1.0-brownfield-backfill/S-21.04/ad
 
 **factory-artifacts commits:**
 - Pre-burst parent-commit (factory-artifacts): `f65c3b1e` (D-934-SHA-PATCH)
-- This burst: TBD — SHA-patch follow-up per D-447(c)/D-449(e)
+- This burst: `f5aa90f0` — `factory(D-935): pass-24 pipeline probe record + 6 lessons + STATE v6.67`
