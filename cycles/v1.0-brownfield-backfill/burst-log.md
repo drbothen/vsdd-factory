@@ -21133,3 +21133,156 @@ $ grep -E "^\| F-S2104-P24-" .factory/cycles/v1.0-brownfield-backfill/S-21.04/ad
 **factory-artifacts commits:**
 - Pre-burst parent-commit (factory-artifacts): `f65c3b1e` (D-934-SHA-PATCH)
 - This burst: `f5aa90f0` — `factory(D-935): pass-24 pipeline probe record + 6 lessons + STATE v6.67`
+
+---
+
+## D-936 — Pass-23-Closure Record (2026-07-28)
+
+### Block 1 — Parent-commit
+
+**factory-artifacts parent:** `9f99a0be` — `factory(D-935-SHA-PATCH): update burst-log Block 8 with actual burst SHA f5aa90f0`
+
+**Feature branch HEAD:** `5ccf5669` (all 12 pass-23 OPEN findings now CLOSED; test-writer closed P23-006/007/008/012 at `9b12aa00`; devops-engineer closed P23-011 + story-writer P23-003/004 + product-owner P23-005 at prior commits; state-manager closes P23-009/010/014 in this burst. Suite: 24/24 GREEN.)
+
+### Block 2 — Adversary verdict
+
+**Pass-23 remaining findings (state-manager workstreams):** MEDIUM/MEDIUM/LOW = 3 findings from original pass-23 set of 14.
+
+This is a pass-23-closure burst, not a new adversary pass. Adversary pass-23 (adversary-pass-23.md) produced 14 findings (B2/H4/M6/L2): F-S2104-P23-001..014 (P23-013 NON-FINDING; P23-014 LOW). Two BLOCKERs (P23-001/002) were closed at `888b5b73` (D-934). Six findings (P23-006/007/008/012 test-writer; P23-011 devops; P23-003/004 story-writer; P23-005 product-owner) were closed by prior agents. Remaining state-manager items:
+
+- F-S2104-P23-009 (MEDIUM): 5 sites using non-canonical `F-22-NNN` namespace instead of `F-S2104-P22-NNN`. Adversary found: blockquote-strip cites P22-004, PC2c cites P22-002, T-008 cites P22-003b, ordering record labelled `F-22-006`, log uses `F-22-NNN` namespace throughout.
+- F-S2104-P23-010 (MEDIUM): ≥5 stale narrative bats line pins in red-gate-log.md ("line 652"→713, "line 668"→730, "line 695"→767, "line 820"→1029, "line 897"). F-S2104-P22-012 closed ONE pin but left ≥5 same-class siblings. TD-VSDD-091 violation.
+- F-S2104-P23-014 (LOW): GENUINELY-CLOSED — adversary finding based on pre-D-934 state; D-934 already added 14 genuine per-guard mutant records covering guards (a)-(n).
+
+All 3 closed at `5ccf5669`. Streak 0/3 (B2 at pass-23 resets; zero CLEAN across 24 passes).
+
+Pass-23 finding set now fully resolved: B2 CLOSED (D-934 at `888b5b73`); H4 CLOSED (prior agent bursts); M6 CLOSED (multi-agent + this burst); L2 CLOSED (P23-014 GENUINELY-CLOSED + P23-013 NON-FINDING). All 14 findings accounted for.
+
+Trajectory: 14→18→17→12→11→11→9→9→10→11→7→10→10→13→7→6→7→7→12→3→3→12→14→**6** (tail LENGTH=4: →3→12→14→6). No new adversary pass — closure burst only.
+
+### Block 3 — Files touched
+
+**factory-artifacts branch (this burst):**
+- `cycles/v1.0-brownfield-backfill/S-21.04/implementation/red-gate-log.md` — version 1.21→1.22; F-22-NNN→F-S2104-P22-NNN namespace normalization (5 sites); input-hash f69d6b0→61af172; 12 stale bats-line-pins→behavioral anchors (TD-VSDD-091 full sweep); Pass-24 + Pass-23-closure summary table rows added; traces_to BC-6.26.001 v1.12→v1.13 + story v1.27; Pass-23-closure attestation section appended
+- `specs/behavioral-contracts/BC-INDEX.md` — version 4.34→4.35; BC-6.26.001 row v1.12→v1.13; last_amended D-936 prepended
+- `stories/STORY-INDEX.md` — version 4.268→4.269; S-21.04 row BC pin v1.12→v1.13 + story v1.26→v1.27 + P23/P24 refs appended; last_amended D-936 prepended
+- `cycles/v1.0-brownfield-backfill/INDEX.md` — pass-23-closure row added (source `9b12aa00` → fix `5ccf5669`); Convergence Status updated (12 pass-23 OPEN findings CLOSED; NEXT updated; 4-index BC v4.35 / STORY v4.269)
+- `cycles/v1.0-brownfield-backfill/decision-log.md` — D-936 block appended
+- `cycles/v1.0-brownfield-backfill/lessons.md` — 7 [process-gap] lessons appended
+- `cycles/v1.0-brownfield-backfill/burst-log.md` — this entry
+- `STATE.md` — frontmatter v6.67→v6.68; timestamp; phase D-936-PASS-23-FINDINGS-CLOSED; last_amended prepended
+
+**Feature branch `5ccf5669` (NOT pushed by state-manager — cascade mid-flight):**
+- State-manager workstreams are factory-artifacts only; feature branch at `5ccf5669` reflects all prior agents' work
+
+### Block 4 — Codifications
+
+**D-936** (this burst): pass-23-closure record; WS1 F-S2104-P23-009 namespace normalization (5 sites + input-hash fix); WS2 F-S2104-P23-010 bats-pin sweep (12 sites → behavioral anchors; TD-VSDD-091); WS3 F-S2104-P23-014 GENUINELY-CLOSED documentation; WS4 red-gate-log.md v1.21→v1.22 + attestation section; WS5 BC-INDEX v4.34→v4.35 + STORY-INDEX v4.268→v4.269; WS6 INDEX.md pass-23-closure row + Convergence Status; WS7 decision-log D-936 + 7 lessons + burst-log; WS8 STATE.md frontmatter v6.68.
+
+### Block 5 — Dim-2 literal-shell gate attestations
+
+**POLICY 16 GLOBAL-MAX GATE (literal shell):**
+```
+$ grep "^## D-" .factory/cycles/v1.0-brownfield-backfill/decision-log.md | grep -E "## D-[0-9]+$" | sort -t'-' -k2 -n | tail -5
+## D-933
+## D-933
+## D-934
+## D-934
+## D-935
+```
+D-935 confirmed max (numeric sort). D-936 allocated. PASS.
+
+**POLICY 14 4-INDEX LITERAL-SHELL (post-burst; BC-INDEX + STORY-INDEX bumped this burst):**
+```
+$ grep "^version:" .factory/specs/behavioral-contracts/BC-INDEX.md | head -1
+version: "4.35"
+$ grep "^version:" .factory/specs/verification-properties/VP-INDEX.md | head -1
+version: "2.72"
+$ grep "^version:" .factory/stories/STORY-INDEX.md | head -1
+version: "4.269"
+$ grep "^version:" .factory/specs/architecture/ARCH-INDEX.md | head -1
+version: "3.35"
+```
+BC v4.35 / VP v2.72 / STORY v4.269 / ARCH v3.35. BC-INDEX and STORY-INDEX bumped this burst. PASS.
+
+**F-S2104-P23-009 NAMESPACE NORMALIZATION GATE (literal shell):**
+```
+$ grep -n "F-22-" .factory/cycles/v1.0-brownfield-backfill/S-21.04/implementation/red-gate-log.md | grep -v "last_amended\|modified\|Pass-23-closure"
+(empty)
+$ grep -c "F-S2104-P22-" .factory/cycles/v1.0-brownfield-backfill/S-21.04/implementation/red-gate-log.md
+16
+```
+No body-usage occurrences of `F-22-` remain. 16 canonical `F-S2104-P22-` occurrences confirmed. F-S2104-P23-009 CLOSED. PASS.
+
+**F-S2104-P23-010 BATS-PIN SWEEP GATE (literal shell):**
+```
+$ grep -n "fires at bats line" .factory/cycles/v1.0-brownfield-backfill/S-21.04/implementation/red-gate-log.md
+(empty)
+$ grep -n "→ RED at bats line" .factory/cycles/v1.0-brownfield-backfill/S-21.04/implementation/red-gate-log.md
+(empty)
+$ grep -n "line 652" .factory/cycles/v1.0-brownfield-backfill/S-21.04/implementation/red-gate-log.md
+(empty)
+$ grep -En "bats line [0-9]+" .factory/cycles/v1.0-brownfield-backfill/S-21.04/implementation/red-gate-log.md | grep -v "# (in test file"
+(empty)
+```
+All 12 stale narrative bats line pins removed. One justified citation remains (`# (in test file ..., line 695)` in captured bats test output — TD-VSDD-091 exception for captured test evidence). F-S2104-P23-010 CLOSED. PASS.
+
+**D-448(a) SOURCE-ATTESTATION GATE (literal shell):**
+```
+$ grep -c "F-S2104-P23-" .factory/cycles/v1.0-brownfield-backfill/S-21.04/adversary-pass-23.md
+36
+$ grep -E "^\| F-S2104-P23-" .factory/cycles/v1.0-brownfield-backfill/S-21.04/adversary-pass-23.md | wc -l
+26
+```
+36 P23 finding ID references in adversary-pass-23.md; 26 finding table rows. Burst-log Block 2 describes: 14 findings total (B2/H4/M6/L2); F-S2104-P23-009 MEDIUM (5 sites; namespace) matches finding table; F-S2104-P23-010 MEDIUM (≥5 bats line pins; TD-VSDD-091) matches finding table; F-S2104-P23-014 LOW (header claimed 14 vectors; 13 code blocks) matches finding table; P23-013 NON-FINDING status matches; multi-agent closure mapping disclosed. SOURCE-ATTESTATION GATE PASS.
+
+**D-444(a) STATE.md PHASE-ADVANCE DIFF GATE (literal shell — executed at Commit E):**
+```
+$ git -C .factory diff HEAD -- STATE.md | grep "^[+-]" | grep -E "^[+-](version|timestamp|phase)"
+-version: "6.67"
++version: "6.68"
+-timestamp: 2026-07-28T22:45:00Z
++timestamp: 2026-07-28T23:45:00Z
+-phase: D-935-PASS-24-PIPELINE-PROBE-RECORD
++phase: D-936-PASS-23-FINDINGS-CLOSED
+```
+Phase advance D-935-PASS-24-PIPELINE-PROBE-RECORD→D-936-PASS-23-FINDINGS-CLOSED confirmed. Version 6.67→6.68. Timestamp 22:45→23:45 advanced (two STATE.md edit passes; each requires timestamp increment per verify-state-timestamp-refresh guard). PASS.
+
+**D-446(a) OWN-BURST-LOG 8-BLOCK GATE:** Verified at Commit E — all 8 D-444(c) blocks present in this entry (Blocks 1-8 enumerated above). PASS.
+
+### Block 6 — Dim-5 attestation
+
+This burst modifies only factory-artifacts branch files (cycle logs, index files, STATE.md frontmatter). No source code authored. No spec documents authored (index row updates and frontmatter syncs are state-manager domain per POLICY 7/8/9). No BCs, no VPs, no stories. Scope: state-manager domain only. No POL-3 bypass attempted. Edit/Write tools used exclusively for .factory/ mutations. No `--no-verify` flags. No AI attribution in commit message.
+
+### Block 7 — Dim-6 literal-shell finding count
+
+```
+$ grep -E "^\| F-S2104-P23-" .factory/cycles/v1.0-brownfield-backfill/S-21.04/adversary-pass-23.md | \
+    grep -oE "F-S2104-P23-[0-9]+" | sort -u | wc -l
+14
+```
+14 pass-23 findings (B2/H4/M6/L2; P23-013 NON-FINDING; P23-014 LOW GENUINELY-CLOSED). All 14 now resolved. No new adversary pass this burst. Streak: 0/3 (BC-5.39.001; B2 at pass-23 resets). Trajectory tail (LENGTH=4): →3→12→14→6.
+
+### Block 8 — Closes + factory-artifacts commits
+
+**Closes (state-manager workstreams this burst):**
+- F-S2104-P23-009: namespace normalization `F-22-NNN`→`F-S2104-P22-NNN` (5 sites; input-hash f69d6b0→61af172) — CLOSED by state-manager at `5ccf5669`
+- F-S2104-P23-010: 12 stale narrative bats line pins→behavioral anchors (TD-VSDD-091 full sweep) — CLOSED by state-manager at `5ccf5669`
+- F-S2104-P23-014: GENUINELY-CLOSED (D-934 already added 14 genuine per-guard records; finding was based on pre-D-934 state) — documented by state-manager at `5ccf5669`
+
+**Previously closed (other agents, recorded for completeness):**
+- F-S2104-P23-001/002: CLOSED at `888b5b73` (D-934; test-writer blockquote-strip + 14 genuine records)
+- F-S2104-P23-003/004: CLOSED by story-writer (AC Gate cells corrected)
+- F-S2104-P23-005: CLOSED by product-owner (BC-6.26.001 EC-005 corrected)
+- F-S2104-P23-006/007/008/012: CLOSED by test-writer at `9b12aa00` (nullification guards all-lines; guard (g) scoped; guard (b) extractor bounded; mandate-token class tightened)
+- F-S2104-P23-011: CLOSED by devops-engineer at `5ccf5669` (.lobster body constraint blocks)
+- F-S2104-P23-013: NON-FINDING (date-monotonicity session-spanning burst — not a defect)
+- D-936 codified in decision-log.md; 7 lessons codified in lessons.md; BC-INDEX v4.34→v4.35; STORY-INDEX v4.268→v4.269; INDEX.md pass-23-closure row + Convergence Status; red-gate-log.md v1.21→v1.22 + attestation; STATE.md frontmatter v6.67→v6.68 + D-936-PASS-23-FINDINGS-CLOSED
+
+**Open findings carrying forward:** None from pass-23. Pass-25 adversary dispatch will address: full unreviewed surfaces (bats L593-700/L1350-1992/L2098-2291/L2413-2582 + agents/devops-engineer.md + step-d5-adversary-convergence.md + ADR-031 + 2 .lobster bodies).
+
+**Open gaps carrying forward:** STATE.md body sections (Decisions Log range end, Drift Items wave-state.yaml row, SRC item 3) remain BLOCKED by rc.23 WASM guard. Resolution: rc.24 AC-020. New drift item: repo-wide input-hash drift (TOTAL=2384 MATCH=1 STALE=2136 UNCOMPUTED=55 NOINPUT=192) — pre-existing condition surfaced at revert-check time.
+
+**factory-artifacts commits:**
+- Pre-burst parent-commit (factory-artifacts): `9f99a0be` (D-935-SHA-PATCH)
+- This burst: TBD — SHA-patch follow-up per D-447(c)/D-449(e)

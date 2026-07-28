@@ -8874,3 +8874,136 @@ Three consecutive fix reports in the S-21.04 cascade supplied incomplete regress
 **Cites:** D-935 (this burst); POLICY 22.
 
 **Closes:** D-935 self-contaminating-verification-predicates-third-instance lesson. `[process-gap; self-contaminating-predicate; verification-scope; disclosure-obfuscation; third-recurrence; D-935]`
+
+---
+
+## [[L-BB-input-hash-hook-on-findingid-normalization]]
+
+**Category:** [process-gap]
+**Date:** 2026-07-28
+
+**Summary:** When state-manager applied the F-22-NNN→F-S2104-P22-NNN namespace normalization via replace_all to red-gate-log.md, the `validate-input-hash` hook immediately fired a PostToolUse block (`BLOCKED by validate-input-hash: input-hash drift in red-gate-log.md: stored f69d6b0 != computed 61af172`). The edit succeeded (PostToolUse is post-write), but the block notification required diagnosis. The input-hash is computed from INPUT FILES listed in `inputs:` frontmatter, not from the artifact's own content — so content edits alone do not cause drift. The drift was pre-existing: story v1.27 + BC v1.13 had already been produced by prior agents, but the red-gate-log.md `input-hash:` field still cited the stale `f69d6b0` value.
+
+**Pattern rule:** Before any state-manager burst that edits a file with `input-hash:` in its frontmatter, check whether `compute-input-hash --scan .factory` reports drift for that artifact. If drift exists, update `input-hash:` as the first substantive edit. Pre-emptive hash resolution avoids surprise hook blocks mid-burst and separates the hash-update concern from the content-update concern.
+
+**General lesson:** input-hash drift accumulates silently as input files change. State-manager bursts that touch red-gate-log.md (or any file with `inputs:` frontmatter) should run a hash-check first and resolve drift before content edits, not after a hook block surfaces it.
+
+**Anchors:** red-gate-log.md f69d6b0→61af172; F-S2104-P23-009; D-936.
+
+**Cites:** D-936 (this burst); validate-input-hash hook; TD-VSDD-091.
+
+**Closes:** D-936 input-hash-hook-on-findingid-normalization lesson. `[process-gap; input-hash; hook-block; pre-emptive-check; D-936]`
+
+---
+
+## [[L-BB-comprehensive-sweep-vs-adversary-cited-count]]
+
+**Category:** [process-gap]
+**Date:** 2026-07-28
+
+**Summary:** Adversary pass-23 F-S2104-P23-010 cited "≥5" stale narrative bats line pins. State-manager's comprehensive grep sweep of red-gate-log.md found 12 total occurrences — 7 more than the adversary's minimum count. The adversary cited the class and a lower-bound exemplar; it did not enumerate all instances. State-manager treating "≥5" as "exactly 5 to fix" would have left 7 stale pins in place after the burst.
+
+**Pattern rule:** When an adversary finding cites a count with `≥` or "at least N instances," treat it as a lower bound. The correct action is a comprehensive grep sweep across the entire file (or all affected files) to find the full set. Report the actual count found, not the adversary-cited minimum.
+
+**General lesson:** Adversary counts are minimum guarantees, not exact enumerations. State-manager must always sweep the full file rather than stopping at the adversary-cited count. This is especially important for text-pattern findings (bats line pins, volatile pins, namespace normalizations) where an incomplete sweep leaves a residue.
+
+**Anchors:** F-S2104-P23-010 ≥5→12 gap; D-936; TD-VSDD-091 full-sweep requirement.
+
+**Cites:** D-936 (this burst); F-S2104-P23-010; TD-VSDD-091.
+
+**Closes:** D-936 comprehensive-sweep-vs-adversary-cited-discrepancy lesson. `[process-gap; adversary-count; comprehensive-sweep; lower-bound; TD-VSDD-091; D-936]`
+
+---
+
+## [[L-BB-TD-VSDD-091-behavioral-anchor-replacement-form]]
+
+**Category:** [process-gap]
+**Date:** 2026-07-28
+
+**Summary:** TD-VSDD-091 prohibits narrative spec content from citing `file.rs:NNN` or `bats line NNN` line numbers that decay on subsequent diffs. When replacing stale bats line pins, the replacement must describe the behavioral trigger — what condition causes the gate to fire — not just remove the number. Replacements like `fires at bats line 820` → `fires on prohibited-target form without prohibition token` are correct; replacements that merely delete the pin but leave an incomplete predicate are insufficient.
+
+**Pattern rule:** Every stale bats line pin replacement must answer: "What behavioral condition triggers this gate?" The replacement anchor must be self-contained — a reader should be able to understand when the gate fires without looking at the test file. Anchors that cite function names, predicate classes, or observable behaviors are compliant; anchors that cite position in a file are not.
+
+**General lesson:** TD-VSDD-091 is about decay-resistance, not just number removal. The behavioral anchor must be richer than the number it replaces. State-manager must compose the replacement carefully, consulting the test file or gate description to get the behavioral condition right.
+
+**Anchors:** 12 bats-pin replacements; F-S2104-P23-010; D-936; TD-VSDD-091.
+
+**Cites:** D-936 (this burst); TD-VSDD-091; F-S2104-P23-010.
+
+**Closes:** D-936 TD-VSDD-091-behavioral-anchor-form lesson. `[process-gap; TD-VSDD-091; behavioral-anchor; decay-resistance; D-936]`
+
+---
+
+## [[L-BB-genuinely-closed-finding-documentation-pattern]]
+
+**Category:** [process-gap]
+**Date:** 2026-07-28
+
+**Summary:** F-S2104-P23-014 was classified GENUINELY-CLOSED: the adversary finding was based on a pre-D-934 read of the artifact, but D-934 had already added the 14 genuine per-guard mutant records that P23-014 claimed were missing. The finding was not wrong when written — it reflected the state at adversary dispatch time — but by the time state-manager addressed it, the fix was already in place from a prior burst. This class requires explicit documentation in the attestation section, not just a "CLOSED" notation, to make the closure reasoning auditable.
+
+**Pattern rule:** When a finding is classified GENUINELY-CLOSED (the fix was already present from a prior burst), the attestation section MUST document: (1) which prior burst closed it, (2) the D-NNN of that burst, and (3) why the adversary finding was valid-at-dispatch but pre-closed by the time state-manager addressed it. This prevents future readers from treating the notation as a finding that was never real.
+
+**General lesson:** GENUINELY-CLOSED is a valid closure category but requires more documentation than CLOSED-by-fix. The adversary was not wrong; the pipeline simply raced ahead of their read. Honest documentation of this pattern builds trust in the closure record.
+
+**Anchors:** F-S2104-P23-014; D-934 (prior burst that closed it); D-936; adversary-pass-23.md.
+
+**Cites:** D-936 (this burst); D-934; F-S2104-P23-014.
+
+**Closes:** D-936 genuinely-closed-documentation-pattern lesson. `[process-gap; genuinely-closed; closure-documentation; temporal-gap; D-934; D-936]`
+
+---
+
+## [[L-BB-policy15-evidence-for-namespace-normalization]]
+
+**Category:** [process-gap]
+**Date:** 2026-07-28
+
+**Summary:** F-S2104-P23-009 required namespace normalization (F-22-NNN → F-S2104-P22-NNN). POLICY 15 requires verbatim command + stdout for every record. For a replace_all edit operation, the POLICY 15 evidence must be post-fix grep verification showing (a) no remaining occurrences of the old pattern in body usage, and (b) the canonical pattern count is >0. The two grep results together constitute the POLICY 15 record: absence of the old + presence of the new.
+
+**Pattern rule:** For namespace-normalization findings, the POLICY 15 evidence pattern is: (1) `grep -n "<old-pattern>" <file>` — expected empty for body usage (documenting any remaining occurrences as justified meta-references); (2) `grep -c "<new-pattern>" <file>` — expected >0 confirming canonical form is present. Both commands with their verbatim stdout belong in the attestation section.
+
+**General lesson:** Replace_all operations need post-fix grep evidence, not pre-fix confirmation. The evidence proves the normalization landed correctly. Meta-reference occurrences (where the old string appears in last_amended/modified[] documentation prose) must be distinguished from body-usage occurrences and explicitly noted as justified.
+
+**Anchors:** F-S2104-P23-009; red-gate-log.md F-22-→F-S2104-P22- normalization; D-936; POLICY 15.
+
+**Cites:** D-936 (this burst); POLICY 15; F-S2104-P23-009; D-449(a).
+
+**Closes:** D-936 policy15-namespace-normalization-evidence lesson. `[process-gap; POLICY-15; namespace-normalization; post-fix-grep; evidence-pattern; D-936]`
+
+---
+
+## [[L-BB-multi-agent-closure-recording-in-single-burst-log]]
+
+**Category:** [process-gap]
+**Date:** 2026-07-28
+
+**Summary:** The pass-23-closure burst spanned three agents (test-writer, devops-engineer, state-manager) across two commits on the feature branch (`9b12aa00` from test-writer, `5ccf5669` from devops+state-manager). The burst-log entry must accurately attribute which agent closed which finding at which commit. When the burst-log Block 3 (Files touched) and Block 7 (Closes) cover multi-agent work, each finding's closure must cite the correct agent and commit SHA, not just the final HEAD.
+
+**Pattern rule:** Multi-agent closure bursts require per-finding agent+SHA attribution in the burst-log Closes block. Format: `F-S2104-P23-NNN: CLOSED by <agent> at <SHA>`. When the burst-log is written by state-manager (the last agent per POLICY 3), it must reconstruct the prior agents' closure records from git log and commit messages, not from memory.
+
+**General lesson:** Single-commit burst protocol (TD-VSDD-053) applies to the factory-artifacts commit. Multi-agent work on the feature branch is fine and expected. The burst-log records the complete multi-agent work in the single state-manager commit; per-agent attribution inside the burst-log body is the mechanism for audit fidelity.
+
+**Anchors:** 9b12aa00 (test-writer); 5ccf5669 (devops+state-manager); D-936; POLICY 3; TD-VSDD-053.
+
+**Cites:** D-936 (this burst); TD-VSDD-053; POLICY 3; D-444(c).
+
+**Closes:** D-936 multi-agent-closure-recording lesson. `[process-gap; multi-agent; burst-log; attribution; TD-VSDD-053; POLICY-3; D-936]`
+
+---
+
+## [[L-BB-state-manager-bats-pin-sweep-is-mandatory-not-advisory]]
+
+**Category:** [process-gap]
+**Date:** 2026-07-28
+
+**Summary:** TD-VSDD-091 prohibits stale bats line pins in narrative spec content. When the adversary identifies this class of finding, state-manager's obligation is a comprehensive full-file sweep, not just closing the adversary-enumerated sites. The adversary's list is a starter set; state-manager's sweep is the authoritative closure. In this burst, the adversary cited ≥5 but state-manager found 12. If state-manager had treated the adversary list as exhaustive, 7 stale pins would have remained — making the finding only partially closed.
+
+**Pattern rule:** For any TD-VSDD-091-class finding (bats line pins, volatile function-name pins, file:line pins), state-manager MUST run a comprehensive grep sweep across the full file (and sibling files if the class is cross-file) and fix ALL occurrences, not just the adversary-cited ones. The sweep command and its output belong in the Dim-2 attestation.
+
+**General lesson:** State-manager is the last agent in the chain and bears responsibility for completeness. Adversary findings describe a class with exemplars; state-manager must enumerate and close the full set. "I fixed the ones the adversary mentioned" is incomplete closure.
+
+**Anchors:** F-S2104-P23-010; ≥5→12 gap; D-936; TD-VSDD-091; comprehensive sweep.
+
+**Cites:** D-936 (this burst); TD-VSDD-091; F-S2104-P23-010.
+
+**Closes:** D-936 state-manager-bats-pin-sweep-obligation lesson. `[process-gap; state-manager; comprehensive-sweep; TD-VSDD-091; adversary-exemplar-vs-full-set; D-936]`

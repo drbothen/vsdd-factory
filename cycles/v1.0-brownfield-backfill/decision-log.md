@@ -13552,3 +13552,98 @@ D-935-PASS-24-PIPELINE-PROBE-RECORD
 ### Date
 
 2026-07-28
+
+---
+
+## D-936
+
+### Dim-1: Identity + Context
+
+**Role:** state-manager (this commit)
+**Date:** 2026-07-28
+**Burst label:** D-936-PASS-23-CLOSURE-RECORD
+**Parent commit (factory-artifacts):** `9f99a0be` — `factory(D-935-SHA-PATCH): update burst-log Block 8 with actual burst SHA f5aa90f0`
+
+Pass-23-closure burst. All 12 pass-23 OPEN findings now closed across three agents: test-writer (F-S2104-P23-006/007/008/012 at `9b12aa00`), devops-engineer (F-S2104-P23-011 at `5ccf5669`), state-manager (F-S2104-P23-009/010/014 at `5ccf5669`; story-writer P23-003/004 + product-owner P23-005 closed in prior bursts). Remaining state-manager workstreams: red-gate-log.md (namespace normalization, bats-pin sweep, attestation section), 4-index bumps (BC-INDEX v4.34→v4.35 / STORY-INDEX v4.268→v4.269), INDEX.md pass-23-closure row + Convergence Status update, decision-log.md (this entry), lessons.md (7 new lessons), burst-log.md (8-block entry), STATE.md frontmatter advance.
+
+### Dim-2: Mandatory Gates
+
+**(a) POLICY 16 GLOBAL-MAX GATE (literal shell):**
+```
+$ grep "^## D-" .factory/cycles/v1.0-brownfield-backfill/decision-log.md | grep -E "## D-[0-9]+$" | sort -t'-' -k2 -n | tail -5
+## D-933
+## D-933
+## D-934
+## D-934
+## D-935
+```
+D-935 confirmed as current max (numeric sort). D-936 allocated.
+
+**(b) POLICY 14 4-INDEX LITERAL SHELL (post-burst; BC-INDEX + STORY-INDEX bumped this burst):**
+```
+$ grep "^version:" .factory/specs/behavioral-contracts/BC-INDEX.md | head -1
+version: "4.35"
+$ grep "^version:" .factory/specs/verification-properties/VP-INDEX.md | head -1
+version: "2.72"
+$ grep "^version:" .factory/stories/STORY-INDEX.md | head -1
+version: "4.269"
+$ grep "^version:" .factory/specs/architecture/ARCH-INDEX.md | head -1
+version: "3.35"
+```
+BC v4.35 / VP v2.72 / STORY v4.269 / ARCH v3.35. BC-INDEX and STORY-INDEX bumped this burst (BC-6.26.001 v1.12→v1.13 + S-21.04 row v1.26→v1.27).
+
+**(c) D-446(a) OWN-BURST-LOG 8-BLOCK GATE:** To be verified via SHA-patch per D-447(c)/D-449(e) after commit; burst-log entry for D-936 must contain all 8 D-444(c) blocks before SHA-patch push.
+
+**(d) D-448(a) SOURCE-ATTESTATION GATE:** burst-log D-936 Adversary verdict paragraph faithfully describes adversary-pass-23.md Part A finding set for the pass-23-closure workstreams: 14 findings total (B2/H4/M6/L2); F-S2104-P23-001..014 IDs + severities match; P23-013 NON-FINDING and P23-014 GENUINELY-CLOSED status match; multi-agent closure mapping (story-writer P03/04, product-owner P05, test-writer P06/07/08/12, devops P11, state-manager P09/10/14) matches; BLOCKER P01/P02 closed at 888b5b73 (prior burst) matches. Verified structurally against adversary-pass-23.md.
+
+### Dim-3: Work Performed
+
+**(a) WS1 — F-S2104-P23-009 closure: namespace normalization.**
+
+red-gate-log.md: `F-22-` → `F-S2104-P22-` replace_all (5 body sites). Input-hash f69d6b0→61af172 (validate-input-hash hook block triggered; input-hash computed from INPUT FILES, not artifact content; story v1.27 + BC v1.13 drift-computed value `61af172`). F-S2104-P23-009 CLOSED.
+
+**(b) WS2 — F-S2104-P23-010 closure: stale bats line pins sweep.**
+
+red-gate-log.md: 12 stale narrative `fires at bats line NNN` / `→ RED at bats line NNN` / `line NNN` patterns → behavioral anchors per TD-VSDD-091. Adversary cited ≥5; comprehensive grep sweep found 12 total. All 12 replaced with behavioral anchor descriptions. Sweep confirmation: `grep -n "fires at bats line" red-gate-log.md` → empty; `grep -n "bats line [0-9]+" red-gate-log.md | grep -v "# (in test file"` → empty. F-S2104-P23-010 CLOSED.
+
+**(c) WS3 — F-S2104-P23-014 documentation: GENUINELY-CLOSED.**
+
+Adversary finding based on pre-D-934 state. D-934 already added 14 genuine per-guard mutant-verification records covering guards (a) through (n) per POLICY 15. Documented in red-gate-log.md Pass-23-closure attestation section. F-S2104-P23-014 GENUINELY-CLOSED.
+
+**(d) WS4 — red-gate-log.md structural updates.**
+
+Summary table: Pass-24 row added (9b12aa00; 6 findings; F-S2104-P24-001..006 ALL CLOSED); Pass-23-closure row added (5ccf5669; all 12 pass-23 OPEN findings CLOSED). Frontmatter: version 1.21→1.22; traces_to BC-6.26.001 v1.12→v1.13 + story v1.27 added; last_amended D-936 prepended; modified[] D-936 appended. Pass-23-closure attestation section appended with POLICY 15 literal-shell evidence for F-S2104-P23-009, F-S2104-P23-010, F-S2104-P23-014. Summary HEAD advanced to 5ccf5669 (24/24: 10/10+14/14).
+
+**(e) WS5 — 4-index bumps.**
+
+BC-INDEX v4.34→v4.35: BC-6.26.001 row v1.12→v1.13; last_amended D-936 prepended; closing bracket added. STORY-INDEX v4.268→v4.269: S-21.04 row BC pin v1.12→v1.13 + story v1.26→v1.27 + P23/P24 refs appended; last_amended D-936 prepended; closing bracket added. VP-INDEX v2.72 UNCHANGED. ARCH-INDEX v3.35 UNCHANGED.
+
+**(f) WS6 — INDEX.md pass-23-closure row + Convergence Status.**
+
+pass-23-closure row added: source `9b12aa00` → fix `5ccf5669`; all 14 pass-23 findings resolved. Convergence Status updated: 12 pass-23 OPEN findings CLOSED at 5ccf5669; NEXT note updated (pass-23 open findings now CLOSED; unreviewed surfaces anchor set); 4-index updated to v4.35/v2.72/v4.269/v3.35; D-range D-895..D-936.
+
+**(g) WS7 — decision-log.md (this entry), lessons.md (7 lessons), burst-log.md (8-block entry).**
+
+decision-log.md: D-936 block appended (this entry). lessons.md: 7 [process-gap] lessons appended covering: input-hash hook block on FindingID normalization; comprehensive-sweep vs adversary-cited discrepancy; TD-VSDD-091 behavioral anchor form; GENUINELY-CLOSED documentation pattern; POLICY 15 namespace normalization evidence; multi-agent closure recording; state-manager bats-pin sweep obligation. burst-log.md: pass-23-closure 8-block entry appended.
+
+**(h) WS8 — STATE.md frontmatter advance.**
+
+`version: "6.67"→"6.68"`, `timestamp` advanced, `phase: D-936-PASS-23-FINDINGS-CLOSED`. `last_amended:` prepended. Body sections REMAIN BLOCKED (precedent D-866..D-935; `verify-state-timestamp-refresh` WASM spanning-edit constraint on ~33k-token line 9; resolution pending rc.24 AC-020). Lines 15-17 UNTOUCHED per hook constraint.
+
+### Dim-4: Notes
+
+**(a) All 12 pass-23 OPEN findings closed.** Pass-23 (14 total findings: B2/H4/M6/L2 + P23-013 NON-FINDING + P23-014 GENUINELY-CLOSED) is now fully resolved. First time all findings from a pass are closed before the next adversary dispatch. Enables clean pass-25 adversary review with no trailing open anchor set.
+
+**(b) Input-hash discipline.** validate-input-hash hook blocked after F-22-→F-S2104-P22- namespace normalization because the input-hash `f69d6b0` was computed from pre-normalization input file state. The hook is correct: input-hash is computed from the INPUT FILES listed in `inputs:` frontmatter (story + BC), not from the artifact's own content. New value `61af172` reflects current story v1.27 + BC v1.13.
+
+**(c) TD-VSDD-091 sweep discipline.** Adversary cited ≥5 stale bats line pins; state-manager swept comprehensively and found 12 total. The 7-pin gap was from sites the adversary didn't enumerate. Full-file sweep is the correct practice, not adversary-cited count.
+
+**(d) Lessons codified.** 7 process-gap lessons appended to lessons.md: input-hash-hook-on-findingid-normalization, comprehensive-sweep-vs-adversary-cited-discrepancy, TD-VSDD-091-behavioral-anchor-form, genuinely-closed-documentation-pattern, policy15-namespace-normalization-evidence, multi-agent-closure-recording, state-manager-bats-pin-sweep-obligation.
+
+### Phase
+
+D-936-PASS-23-FINDINGS-CLOSED
+
+### Date
+
+2026-07-28
