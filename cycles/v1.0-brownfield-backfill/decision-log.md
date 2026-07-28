@@ -13467,3 +13467,88 @@ D-934-PASS-23-BLOCKER-CLOSURE-RECORD
 ### Date
 
 2026-07-28
+
+---
+
+## D-935
+
+### Dim-1: Identity + Context
+
+**Role:** state-manager (this commit)
+**Date:** 2026-07-28
+**Burst label:** D-935-PASS-24-PIPELINE-PROBE-RECORD
+**Parent commit (factory-artifacts):** `f65c3b1e` — `factory(D-934-SHA-PATCH): update burst-log Block 8 with actual burst SHA 57a9868d`
+
+### Dim-2: Mandatory Gates
+
+**(a) POLICY 16 GLOBAL-MAX GATE (literal shell):**
+```
+$ grep "^## D-" .factory/cycles/v1.0-brownfield-backfill/decision-log.md | grep -E "## D-[0-9]+$" | sort -t'-' -k2 -n | tail -5
+## D-932
+## D-932
+## D-933
+## D-933
+## D-934
+```
+D-934 confirmed as current max (numeric sort). D-935 allocated.
+
+**(b) POLICY 14 4-INDEX LITERAL SHELL (all four indexes read before burst):**
+```
+$ grep "^version:" .factory/specs/behavioral-contracts/BC-INDEX.md | head -1
+version: "4.34"
+$ grep "^version:" .factory/specs/verification-properties/VP-INDEX.md | head -1
+version: "2.72"
+$ grep "^version:" .factory/stories/STORY-INDEX.md | head -1
+version: "4.268"
+$ grep "^version:" .factory/specs/architecture/ARCH-INDEX.md | head -1
+version: "3.35"
+```
+BC v4.34 / VP v2.72 / STORY v4.268 / ARCH v3.35 — UNCHANGED. No spec, BC, VP, story, or architecture modifications in this burst.
+
+**(c) D-446(a) OWN-BURST-LOG 8-BLOCK GATE:** To be verified via SHA-patch per D-447(c)/D-449(e) after commit; burst-log entry for D-935 must contain all 8 D-444(c) blocks before SHA-patch push.
+
+**(d) D-448(a) SOURCE-ATTESTATION GATE:** burst-log D-935 Adversary verdict paragraph faithfully describes adversary-pass-24.md Part A finding set: B2/H2/M2/L0 = 6 findings; F-S2104-P24-001..006 IDs + severities match; targeted re-review scope (pass-23 BLOCKERs) disclosed; ADR-033 cross-family limitation disclosed; pass-23 BLOCKER closure verdicts (PARTIAL / GENUINELY-CLOSED) match; fix-mapping closure (all 6 at 9b12aa00) matches. Verified structurally against adversary-pass-24.md.
+
+### Dim-3: Work Performed
+
+**(a) WS1 — adversary-pass-24.md persisted.**
+
+New file `cycles/v1.0-brownfield-backfill/S-21.04/adversary-pass-24.md`. Targeted re-review (human-directed: pass-23 BLOCKERs + forward sweep). Reviewed HEAD `888b5b73`. 6 findings (B2/H2/M2/L0): F-S2104-P24-001 BLOCKER (non-recursive `>>` strip), F-S2104-P24-002 BLOCKER (spec_path_prose sibling not normalized — TD-VSDD-060), F-S2104-P24-003 HIGH (zero load-bearing assertions on pass-23 fix; domain-construction pipeline unguarded), F-S2104-P24-004 HIGH (list-prefix blind spot in PWBD_DIRECTIVE_CLASS), F-S2104-P24-005 MEDIUM (POLICY 15 "3 of 14" shortfall figure incorrect — orchestrator attribution; second relay-class evidence-fidelity failure), F-S2104-P24-006 MEDIUM (_assert_doc_marker self-satisfying by annotation). Pass-23 BLOCKER closure verification: F-S2104-P23-001 PARTIAL; F-S2104-P23-002 GENUINELY-CLOSED. Adversary meta-finding recorded: every remediation applied to named site without sibling sweep and without probe exercising domain-construction pipeline.
+
+**(b) WS2 — fix mapping for all 6 findings.**
+
+All 6 closed at `9b12aa00` (feature branch). P24-001: `02152c01` — `_build_section_prose` shared helper with recursive strip (`+` quantifier handles `>>` and deeper nesting). P24-002: `02152c01`/`20aee6a2` — `spec_path_prose` routed through `_build_spec_path_section_prose` → `_build_section_prose`; call-site parity probe (Leg E) added at `9b12aa00`. P24-003: `02152c01`+`20aee6a2`+`9b12aa00` — real-fixture pipeline probe with 5 legs (Leg A/B/C/D builder + Leg E call-site parity). Three-iteration history recorded honestly: at `02152c01` (builder only), at `20aee6a2` (wrapper added), at `9b12aa00` (call-site parity Leg E; all 4 orchestrator reversion classes now turn suite RED). P24-004: `02152c01` — list-marker strip added to `_build_section_prose` + Leg B probes. P24-005: `9b12aa00` (red-gate-log) — all 14 records (a)-(n) carry explicit `bats -f` in RED + explicit `git restore` in GREEN; orchestrator evidence verified 4-test reversion acceptance. P24-006: `02152c01` — `_assert_doc_marker 'Write Discipline'` → `_assert_doc_marker '^#### Write Discipline'`.
+
+**(c) WS3 — red-gate-log.md (test-writer pending modifications + orchestrator evidence).**
+
+red-gate-log.md: Summary HEAD `888b5b73`→`9b12aa00` (24/24: 10/10+14/14, 2026-07-28; pipeline probe T-010 added at `9b12aa00`; F-S2104-P24-005 POLICY 15 shortfall CLOSED — true prior state 1-2/14 RED commands / 0/14 restore commands; orchestrator attribution; second evidence-fidelity failure same class as F-S2104-P23-002); adversary-pass-24.md persisted (B2/H2/M2/L0 = 6 findings; targeted re-review); Pass-24 assertion-site attestation appended (4 orchestrator reversion tests verbatim; domain-construction pipeline now guarded at builder-implementation AND call-site-parity levels); version 1.20→1.21.
+
+**(d) WS4 — POLICY 16 gate, 4-INDEX check, INDEX.md, decision-log.md (this entry), lessons.md.**
+
+INDEX.md: pass-24 row added; Convergence Status updated (trajectory tail →3→12→14→**6** per D-433(e)/D-439(c) LENGTH=4; 24 passes; streak 0/3; zero CLEAN; 4-index UNCHANGED). decision-log.md: D-935 appended (this entry). lessons.md: 6 [process-gap] lessons appended: (1) probe must guard call site not just helper implementation; (2) second orchestrator evidence-fidelity failure — relay class persists; (3) unexecuted `Proof:` comment is a finding (third recurrence in 3 consecutive passes); (4) sibling-domain sweep must include relocation target; (5) stray untracked artifact from subagent reversion testing; (6) self-contaminating verification predicates (third instance in cascade). Self-contaminating grep observation: `grep -c "die SILENTLY" STATE.md` now returns 2 (line 273 = genuine stale SRC text; line 9 = D-934 honest disclosure); future checks must scope to SRC section only.
+
+**(e) WS5 — STATE.md frontmatter advance.**
+
+`version: "6.66"→"6.67"`, `timestamp` advanced, `phase: D-935-PASS-24-PIPELINE-PROBE-RECORD`. `last_amended:` prepended. Body sections REMAIN BLOCKED (precedent D-866..D-934; `verify-state-timestamp-refresh` WASM spanning-edit constraint on ~33k-token line 9; resolution pending rc.24 AC-020). Lines 15-17 UNTOUCHED per hook constraint.
+
+**(f) 4-index status.**
+
+BC v4.34 / VP v2.72 / STORY v4.268 / ARCH v3.35 — UNCHANGED. No spec, BC, VP, story, or architecture modifications in this burst (closures were bats + skill-doc amendments on feature branch `9b12aa00`; state-manager does not push feature branch).
+
+### Dim-4: Notes
+
+**(a) Structural breakthrough at pass-24.** First time in this cascade the domain-construction pipeline has load-bearing guards at BOTH levels — builder-implementation (Legs A/B/C/D cover `_build_section_prose` and `_build_spec_path_section_prose` internals) AND call-site-parity (Leg E verifies every `*_prose="$(` assignment routes through a `_build_*` builder). Prior three BLOCKERs (F-S2104-P23-001, F-S2104-P24-001, F-S2104-P24-002) all lived in this unguarded pipeline. Orchestrator verified all four reversion classes independently turn suite RED at `9b12aa00`.
+
+**(b) POLICY 15 relay-class evidence-fidelity failure pattern.** F-S2104-P24-005 is the second orchestrator evidence-fidelity failure in the same relay class as F-S2104-P23-002 (pass-23). The pattern: orchestrator asserts a numeric claim without verification → state-manager persists it → adversary finds the error. Mitigation: per BC-5.39.001 / D-449(a), numeric claims from orchestrator MUST be literal-shell verified before state-manager persists them. Self-contaminating grep observation codified: `grep -c "die SILENTLY" STATE.md` returns 2 (genuine text on line 273 + D-934 disclosure on line 9); future checks scope to SRC section.
+
+**(c) Pass-24 novelty HIGH.** 6 findings; targeted scope. Trajectory: 14→18→17→12→11→11→9→9→10→11→7→10→10→13→7→6→7→7→12→3→3→12→14→6. Tail (LENGTH=4): →3→12→14→6. Streak 0/3 (B2 resets; zero CLEAN across 24 passes). 12 pass-23 open findings deferred to pass-25 per human-directed targeted scope.
+
+**(d) Lessons codified.** 6 process-gap lessons appended to lessons.md: probe-must-guard-call-site, second-orchestrator-evidence-fidelity, unexecuted-proof-comment-third-recurrence, sibling-domain-sweep-includes-relocation-target, stray-untracked-artifact, self-contaminating-verification-predicates-third-instance.
+
+### Phase
+
+D-935-PASS-24-PIPELINE-PROBE-RECORD
+
+### Date
+
+2026-07-28

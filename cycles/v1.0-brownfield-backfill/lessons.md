@@ -8760,3 +8760,117 @@ Three consecutive fix reports in the S-21.04 cascade supplied incomplete regress
 **Cites:** D-934 (this burst).
 
 **Closes:** D-934 date-monotonicity-session-spanning-burst lesson. `[process-gap; date-monotonicity; session-spanning; overnight; non-finding; D-934]`
+
+---
+
+## [[L-BB-probe-must-guard-call-site-not-just-helper]]
+
+**Category:** [process-gap]
+**Date:** 2026-07-28
+
+**Summary:** F-S2104-P24-003 found that the pass-23 fix for F-S2104-P23-001 had zero load-bearing assertions on its own predicate. The M-P21 probe family verifies helper behavior over synthetic literals and reports `ok` even if the actual production code bypasses the helper entirely. Reverting the `_build_section_prose` strip left the suite 9/9 GREEN because no probe exercised the domain-construction pipeline (`extract → strip → tr → split`). The in-file `Proof:` comment was narrative only — never executed by any test.
+
+**Pattern rule:** A probe that verifies a helper works is NOT sufficient if it does not also verify that production calls the helper. Two guard levels are required: (1) implementation correctness (the helper does the right thing), and (2) call-site parity (the production path calls the helper, not a bypass). A finding that targets the helper implementation is NOT closed until a call-site parity gate also exists.
+
+**General lesson:** "Probe-guards-helper ≠ probe-guards-call-site." This is the root cause of the BLOCKER recurrence pattern across passes 22/23/24 in this cascade. All three BLOCKERs (F-S2104-P23-001, F-S2104-P24-001, F-S2104-P24-002) lived in the domain-construction pipeline and were undetectable without call-site parity gates. `9b12aa00` (Leg E) is the first guard closing this class structurally.
+
+**Anchors:** F-S2104-P24-003 (HIGH); F-S2104-P23-001 (PARTIAL); 9b12aa00 Leg E; D-935.
+
+**Cites:** D-935 (this burst); TD-VSDD-059; POLICY 11.
+
+**Closes:** D-935 probe-must-guard-call-site lesson. `[process-gap; call-site-parity; helper-probe-insufficient; domain-construction-pipeline; TD-VSDD-059; D-935]`
+
+---
+
+## [[L-BB-second-orchestrator-evidence-fidelity-relay-class]]
+
+**Category:** [process-gap]
+**Date:** 2026-07-28
+
+**Summary:** F-S2104-P24-005 found that the POLICY 15 shortfall disclosure in D-934 stated "3 of 14 records include the explicit command." The true count was 1-2 of 14 RED records (not 3), and 0 of 14 records included an explicit `git restore` command in their GREEN stdout headings. The inaccurate "3 of 14" figure originated with the orchestrator, which asserted it without verification and passed it to state-manager, which persisted it. This is the second orchestrator evidence-fidelity failure in the same relay class as F-S2104-P23-002 (pass-23).
+
+**Pattern rule:** Numeric claims from the orchestrator that are to be persisted in state artifacts MUST be verified by literal shell before state-manager persists them. The relay class is: orchestrator asserts count → state-manager persists without verification → adversary finds the error. Per BC-5.39.001 / D-449(a), literal-shell evidence requirements apply to state-manager verification of relay claims, not just to state-manager's own authored content.
+
+**General lesson:** The orchestrator is not a source-of-truth for quantitative claims about the artifact. State-manager's D-448(a) source-attestation gate applies to the adversary-review content; an equivalent gate is needed for orchestrator relay claims. Until such a gate is automated, state-manager must independently grep/count before accepting orchestrator-stated figures.
+
+**Anchors:** F-S2104-P24-005 (MEDIUM); F-S2104-P23-002 (BLOCKER, pass-23); D-935; POLICY 15.
+
+**Cites:** D-935 (this burst); POLICY 15; POLICY 22; D-449(a).
+
+**Closes:** D-935 second-orchestrator-evidence-fidelity lesson. `[process-gap; orchestrator-evidence-fidelity; relay-class; POLICY-15; numeric-claim-verification; D-935]`
+
+---
+
+## [[L-BB-unexecuted-proof-comment-third-recurrence]]
+
+**Category:** [process-gap]
+**Date:** 2026-07-28
+
+**Summary:** F-S2104-P24-003 found a `Proof:` comment in `_build_section_prose` claiming the recursive strip handles `>>`. The comment was narrative — unexecuted by any probe. This is the third consecutive pass (P22/P23/P24) finding unexecuted `Proof:` or `# Proves:` comments used as finding-closure evidence. The pattern: implementer adds a comment asserting correctness; no probe verifies the comment's claim; adversary re-opens the finding as `[paper-fix: comment not executable]`.
+
+**Pattern rule:** A `Proof:` comment, `# Proves:` comment, or inline narrative claim that a test exists or a property holds is NEVER a finding closure. Finding closure requires an executable assertion that turns RED when the property breaks. Per TD-VSDD-059: load-bearing assertions are required, not documentation assertions.
+
+**General lesson:** Three recurrences in three consecutive passes establishes this as a persistent anti-pattern in this cascade. Implementers adding `Proof:` comments are satisfying the text of the finding at documentation level without satisfying the spirit at verification level. The adversary now treats ALL `Proof:`/`# Proves:` comments as OPEN findings until executable tests are present.
+
+**Anchors:** F-S2104-P24-003 (HIGH); F-S2104-P23-001 (PARTIAL); F-S2104-P22 class; D-935.
+
+**Cites:** D-935 (this burst); TD-VSDD-059; POLICY 13.
+
+**Closes:** D-935 unexecuted-proof-comment-third-recurrence lesson. `[process-gap; proof-comment; unexecuted; paper-fix; TD-VSDD-059; three-consecutive-passes; D-935]`
+
+---
+
+## [[L-BB-sibling-domain-sweep-includes-relocation-target]]
+
+**Category:** [process-gap]
+**Date:** 2026-07-28
+
+**Summary:** F-S2104-P24-002 found that the pass-23 fix normalized `write_discipline_prose` but not `spec_path_prose`. Critically, the pass-23 fix RELOCATED its authoring annotation into the `spec_path_prose` domain — precisely the unnormalized sibling. The TD-VSDD-060 sibling-site sweep rule was violated: the fix normalized one domain and introduced new blockquote content into the sibling it did not normalize. The relocation target was not included in the sweep.
+
+**Pattern rule:** TD-VSDD-060 sibling-site sweep extends to ALL domains that the fix affects, including: (1) the named domain in the finding, (2) all sibling domains of the same construction class, AND (3) any domain that receives content from the fix via relocation, annotation, or reference. If the fix moves content from domain A to domain B, domain B must be swept for the same normalization class as domain A.
+
+**General lesson:** Relocating content as part of a fix is a sweep trigger, not a sweep exemption. The adversary should treat any "move this annotation from here to there" fix as requiring normalization verification at the destination, not just at the source.
+
+**Anchors:** F-S2104-P24-002 (BLOCKER); F-S2104-P23-001 (PARTIAL); TD-VSDD-060; D-935.
+
+**Cites:** D-935 (this burst); TD-VSDD-060.
+
+**Closes:** D-935 sibling-domain-sweep-includes-relocation-target lesson. `[process-gap; TD-VSDD-060; sibling-sweep; relocation-target; domain-normalization; D-935]`
+
+---
+
+## [[L-BB-stray-untracked-artifact-subagent-reversion-testing]]
+
+**Category:** [process-gap]
+**Date:** 2026-07-28
+
+**Summary:** The orchestrator's reversion testing at `9b12aa00` produced a stray untracked artifact in the feature branch working tree. The test procedure (mutate → run → restore) left at least one artifact not fully cleaned up. This is consistent with the D-923/POLICY 22 pattern (devops-engineer dropped a ` D` deletion from `git status --porcelain`). The stray artifact appeared during git-status verification before the D-935 burst commit.
+
+**Pattern rule:** Reversion testing that mutates source files MUST end with `git restore <artifact>` and MUST verify `git status --porcelain` returns empty before declaring the test complete. Any untracked file produced by the test framework (temp files, `.bak` files, partial outputs) must be explicitly removed. The test procedure is not complete until the worktree is pristine.
+
+**General lesson:** Orchestrator-run reversion tests are ephemeral mutations with mandatory cleanup. The orchestrator MUST run `git status --porcelain` after each restore and explicitly remove any untracked artifacts before proceeding. D-449(a) literal-shell evidence should include the final `git status --porcelain` output showing a clean tree.
+
+**Anchors:** `9b12aa00` reversion tests; D-923; POLICY 22; D-935.
+
+**Cites:** D-935 (this burst); D-923; POLICY 22; D-449(a).
+
+**Closes:** D-935 stray-untracked-artifact lesson. `[process-gap; reversion-testing; stray-artifact; git-status; worktree-clean; D-923; D-935]`
+
+---
+
+## [[L-BB-self-contaminating-verification-predicate-third-instance]]
+
+**Category:** [process-gap]
+**Date:** 2026-07-28
+
+**Summary:** The D-934 burst added an honest disclosure to STATE.md frontmatter (line 9) describing the `"die SILENTLY"` pattern found in line 273's SRC section. This means `grep -c "die SILENTLY" STATE.md` now returns 2 instead of 1 — the disclosure itself contains the string it was intended to be counted by. Any future check using `grep -c "die SILENTLY" STATE.md` to verify the stale content is present will be ambiguous. This is the third instance of self-contaminating verification predicates in this cascade.
+
+**Pattern rule:** Any disclosure text that describes a finding string MUST NOT itself contain that finding string in a form that would be matched by the verification predicate. Two mitigations: (1) use an anchored predicate scoped to the specific section (e.g., `grep -n "die SILENTLY" STATE.md | grep "SRC"`) rather than a whole-file count; (2) use an obfuscated form in the disclosure (e.g., split the string, use ellipsis, or quote it differently). Literal copy of the finding string into the disclosure creates a self-contaminating predicate.
+
+**General lesson:** Verification predicates must be scoped to their target section, not the whole file. When disclosures are necessary, they should use a non-matching form of the finding string. This class has now appeared three times in this cascade; it is a persistent pattern requiring structural mitigation.
+
+**Anchors:** D-934 STATE.md line 9 disclosure; D-934 STATE.md line 273 SRC content; D-935.
+
+**Cites:** D-935 (this burst); POLICY 22.
+
+**Closes:** D-935 self-contaminating-verification-predicates-third-instance lesson. `[process-gap; self-contaminating-predicate; verification-scope; disclosure-obfuscation; third-recurrence; D-935]`

@@ -7,7 +7,7 @@ producer: state-manager
 timestamp: 2026-05-20T00:00:00Z
 cycle: v1.0-brownfield-backfill
 inputs: [STATE.md]
-input-hash: "9df1d97"
+input-hash: "93732ce"
 traces_to: STATE.md
 ---
 
@@ -1550,7 +1550,7 @@ producer: state-manager
 timestamp: 2026-05-06T19:00:00Z
 cycle: "v1.0-brownfield-backfill"
 inputs: [STATE.md]
-input-hash: "9df1d97"
+input-hash: "93732ce"
 traces_to: STATE.md
 ---
 
@@ -3146,9 +3146,9 @@ PASS
 **Input hashes valid (non-pending):**
 ```
 $ grep "^input-hash:" .factory/specs/behavioral-contracts/ss-05/BC-5.39.007.md
-input-hash: "9df1d97"
+input-hash: "93732ce"
 $ grep "^input-hash:" .factory/specs/behavioral-contracts/ss-05/BC-5.39.008.md
-input-hash: "9df1d97"
+input-hash: "93732ce"
 ```
 PASS — both are lowercase hex (7 chars); no "pending" placeholder
 
@@ -12101,7 +12101,7 @@ grep "^version:\|^input-hash:" .factory/stories/S-19.06-read-prefix-bounded-part
 stdout:
 ```
 version: "1.13"
-input-hash: "9df1d97"
+input-hash: "93732ce"
 ```
 
 **Gate F — E-19 epic frontmatter version + input-hash:**
@@ -12111,7 +12111,7 @@ grep "^version:\|^input-hash:" .factory/stories/epics/E-19-post-rc22-operator-ha
 stdout:
 ```
 version: "v1.14"
-input-hash: "9df1d97"
+input-hash: "93732ce"
 ```
 
 ### Block 6 — Dim-5 (8-block presence self-verification)
@@ -12224,7 +12224,7 @@ grep "^version:\|^input-hash:" .factory/stories/S-19.07-verify-factory-lock-read
 stdout:
 ```
 version: "1.7"
-input-hash: "9df1d97"
+input-hash: "93732ce"
 ```
 S-19.07 at v1.7 — F-P17-001 + F-P17-002 fix burst complete.
 
@@ -14363,7 +14363,7 @@ $ plugins/vsdd-factory/bin/compute-input-hash \
     .factory/stories/S-19.07-verify-factory-lock-read-prefix-migration.md
 83e8cc4
 $ grep "input-hash" .factory/specs/behavioral-contracts/ss-04/BC-4.13.001.md
-input-hash: "9df1d97"
+input-hash: "93732ce"
 ```
 
 PASS: S-19.02=d208e66 / S-19.07=83e8cc4 — match SW-leg confirmed hashes. BC-4.13.001 declared input-hash 86fab85 non-placeholder. POLICY 18 satisfied; no placeholders.
@@ -20999,3 +20999,137 @@ $ printf '%s\n' \
 **factory-artifacts commits:**
 - Pre-burst parent-commit (factory-artifacts): `1d028751` (D-933-SHA-PATCH)
 - This burst: `57a9868d` — `factory(D-934): pass-23 BLOCKER closure record + 7 lessons + STATE v6.66`
+
+---
+
+## D-935 — Pass-24 Pipeline Probe Record (2026-07-28)
+
+### Block 1 — Parent-commit
+
+**factory-artifacts parent:** `f65c3b1e` — `factory(D-934-SHA-PATCH): update burst-log Block 8 with actual burst SHA 57a9868d`
+
+**Feature branch HEAD:** `9b12aa00` (F-S2104-P24-001/002/003/004/005/006 ALL CLOSED; suites 10/10 GREEN orchestrator-verified with 4-leg reversion evidence)
+
+### Block 2 — Adversary verdict
+
+**Pass 24 verdict:** NOT-CLEAN — B2/H2/M2/L0 = 6 findings (targeted re-review; human-directed scope: pass-23 BLOCKERs + new surfaces).
+
+Adversary reviewed HEAD `888b5b73` (post-pass-23 BLOCKER closures). Fixes-landed HEAD `9b12aa00`. Model: claude-opus-5 (agent-definition `model: opus` pin; ADR-033 cross-family limitation disclosed — ran Claude, same family as authoring agents). Asymmetry enforced structurally: pass-23 Part A inlined into dispatch; pass-23/pass-22 full files + cycle INDEX.md off-limits; adversary confirmed no prior pass file read.
+
+Two BLOCKERs:
+- F-S2104-P24-001: `_build_section_prose` marker strip is non-recursive — single-pass `sed 's/^[[:space:]]*>[[:space:]]*//'` leaves `> Anchor...` after stripping `>> Anchor...`; residual `> ` in rendered prose causes `^`-anchored `PWBD_DIRECTIVE_CLASS` to miss `^Anchor`; Gate PW-B fires SILENTLY; M-P21-A still evades detection with one extra `>` character.
+- F-S2104-P24-002: `spec_path_prose` construction bypassed the normalization applied to `write_discipline_prose` in pass-23. Pass-23 fix RELOCATED its authoring annotation into precisely this unnormalized sibling domain — textbook TD-VSDD-060 sibling-site sweep failure: fix normalized one domain, moved new blockquoted content into the domain it did not normalize.
+
+Pass-23 BLOCKER closure verification: F-S2104-P23-001 PARTIAL (single-`>` case closed; `>>`, list-prefix, post-colon unguarded; relocation site unnormalized); F-S2104-P23-002 GENUINELY-CLOSED (all 14 per-guard records verified line-by-line; tautology eliminated).
+
+ALL 6 CLOSED at `9b12aa00`. Streak 0/3 (B2 resets; zero CLEAN across 24 passes). 12 pass-23 open findings deferred to pass-25 per human-directed targeted scope.
+
+Structural breakthrough: first time domain-construction pipeline guarded at BOTH builder-implementation (Legs A/B/C/D) AND call-site-parity (Leg E) levels. Three-iteration fix history for P24-003: `02152c01` (builder only), `20aee6a2` (wrapper added), `9b12aa00` (call-site parity; all 4 reversion classes turn RED).
+
+Trajectory: 14→18→17→12→11→11→9→9→10→11→7→10→10→13→7→6→7→7→12→3→3→12→14→**6** (tail LENGTH=4: →3→12→14→6).
+
+### Block 3 — Files touched
+
+**factory-artifacts branch (this burst):**
+- `cycles/v1.0-brownfield-backfill/S-21.04/adversary-pass-24.md` — NEW (pass-24 targeted re-review: frontmatter, 4 provenance disclosures, 6-row finding table B2/H2/M2/L0, pass-23 BLOCKER closure verification, adversary meta-finding, Part B fix mapping)
+- `cycles/v1.0-brownfield-backfill/S-21.04/implementation/red-gate-log.md` — version 1.20→1.21; Summary HEAD 888b5b73→9b12aa00 (24/24: 10/10+14/14); all 14 records (a)-(n) updated with explicit bats/restore commands; POLICY 15 shortfall corrected (1-2/14 RED / 0/14 restore; orchestrator attribution); Pass-24 attestation section appended (4 orchestrator reversion tests verbatim)
+- `cycles/v1.0-brownfield-backfill/INDEX.md` — pass-24 row added; Convergence Status updated (trajectory →3→12→14→**6** LENGTH=4)
+- `cycles/v1.0-brownfield-backfill/decision-log.md` — D-935 block appended
+- `cycles/v1.0-brownfield-backfill/lessons.md` — 6 process-gap lessons appended
+- `cycles/v1.0-brownfield-backfill/burst-log.md` — this entry
+- `STATE.md` — frontmatter v6.66→v6.67; timestamp; phase D-935-PASS-24-PIPELINE-PROBE-RECORD; last_amended prepended
+
+**Feature branch `9b12aa00` (NOT pushed by state-manager):**
+- `plugins/vsdd-factory/tests/story-worktree-write-path-discipline.bats` — recursive strip (`+` quantifier), list-marker strip, call-site parity Leg E, T-010 pipeline probe with 5 legs
+- `plugins/vsdd-factory/skills/deliver-story/steps/_shared-context.md` / related files — `spec_path_prose` routed through `_build_spec_path_section_prose`; `_assert_doc_marker` anchored to `^####`
+
+### Block 4 — Codifications
+
+**D-935** (this burst): pass-24 targeted re-review record; WS1 adversary-pass-24.md persisted; WS2 fix mapping all 6 closed at 9b12aa00; WS3 red-gate-log v1.20→v1.21 + all 14 records corrected + Pass-24 attestation; WS4 INDEX.md + decision-log + lessons; WS5 STATE.md frontmatter v6.67.
+
+**6 lessons codified:**
+1. `[[L-BB-probe-must-guard-call-site-not-just-helper]]` — probe-guards-helper ≠ probe-guards-call-site; call-site parity gate required; root cause of 3-pass BLOCKER recurrence
+2. `[[L-BB-second-orchestrator-evidence-fidelity-relay-class]]` — second orchestrator relay-class evidence-fidelity failure; numeric claims must be literal-shell verified before persistence
+3. `[[L-BB-unexecuted-proof-comment-third-recurrence]]` — `Proof:` comment third consecutive pass; executable assertion required, not documentation assertion
+4. `[[L-BB-sibling-domain-sweep-includes-relocation-target]]` — TD-VSDD-060 extends to relocation targets; fix that moves content into domain B requires sweep of domain B
+5. `[[L-BB-stray-untracked-artifact-subagent-reversion-testing]]` — reversion testing must end with clean worktree verified via `git status --porcelain`
+6. `[[L-BB-self-contaminating-verification-predicate-third-instance]]` — third cascade instance; future `grep -c "die SILENTLY" STATE.md` scoped to SRC section
+
+### Block 5 — Dim-2 literal-shell gate attestations
+
+**POLICY 16 GLOBAL-MAX GATE (literal shell):**
+```
+$ grep "^## D-" .factory/cycles/v1.0-brownfield-backfill/decision-log.md | grep -E "## D-[0-9]+$" | sort -t'-' -k2 -n | tail -5
+## D-932
+## D-932
+## D-933
+## D-933
+## D-934
+```
+D-934 confirmed max (numeric sort). D-935 allocated. PASS.
+
+**POLICY 14 4-INDEX LITERAL-SHELL:**
+```
+$ grep "^version:" .factory/specs/behavioral-contracts/BC-INDEX.md | head -1
+version: "4.34"
+$ grep "^version:" .factory/specs/verification-properties/VP-INDEX.md | head -1
+version: "2.72"
+$ grep "^version:" .factory/stories/STORY-INDEX.md | head -1
+version: "4.268"
+$ grep "^version:" .factory/specs/architecture/ARCH-INDEX.md | head -1
+version: "3.35"
+```
+BC v4.34 / VP v2.72 / STORY v4.268 / ARCH v3.35. ALL UNCHANGED this burst. PASS.
+
+**D-444(a) STATE.md PHASE-ADVANCE DIFF GATE (literal shell — executed at Commit E):**
+```
+$ git -C .factory diff HEAD -- STATE.md | grep "^[+-]" | grep -E "^[+-](version|timestamp|phase)"
+-version: "6.66"
++version: "6.67"
+-timestamp: 2026-07-28T20:00:00Z
++timestamp: 2026-07-28T22:00:00Z
+-phase: D-934-PASS-23-BLOCKER-CLOSURE-RECORD
++phase: D-935-PASS-24-PIPELINE-PROBE-RECORD
+```
+Phase advance D-934-PASS-23-BLOCKER-CLOSURE-RECORD→D-935-PASS-24-PIPELINE-PROBE-RECORD confirmed. Version 6.66→6.67. Timestamp advanced. PASS.
+
+**D-448(a) SOURCE-ATTESTATION GATE (literal shell):**
+```
+$ grep -c "F-S2104-P24-" .factory/cycles/v1.0-brownfield-backfill/S-21.04/adversary-pass-24.md
+14
+```
+14 P24 finding ID references in adversary-pass-24.md (6 findings × multiple references: finding table, closure verification, fix mapping, meta-finding). Burst-log Block 2 Adversary verdict describes: B2/H2/M2/L0 = 6 findings; F-S2104-P24-001..006 severities match finding table; targeted re-review scope disclosed; ADR-033 cross-family limitation disclosed; P23-001 PARTIAL / P23-002 GENUINELY-CLOSED closure verdicts match; all 6 CLOSED at 9b12aa00. SOURCE-ATTESTATION GATE PASS.
+
+**D-446(a) OWN-BURST-LOG 8-BLOCK GATE:** Verified via SHA-patch per D-447(c)/D-449(e) after commit. All 8 D-444(c) blocks present in this entry (Blocks 1-8 enumerated above).
+
+### Block 6 — Dim-5 attestation
+
+This burst modifies only factory-artifacts branch files (cycle logs, STATE.md frontmatter). No source code, no spec documents, no BCs, no VPs, no stories authored in this burst. Scope: state-manager domain only. No POL-3 bypass attempted. Edit/Write tools used exclusively for .factory/ mutations. No `--no-verify` flags. No AI attribution in commit message.
+
+### Block 7 — Dim-6 literal-shell finding count
+
+```
+$ grep -E "^\| F-S2104-P24-" .factory/cycles/v1.0-brownfield-backfill/S-21.04/adversary-pass-24.md | \
+    grep -oE "F-S2104-P24-[0-9]+" | sort -u | wc -l
+6
+```
+6 findings this pass (B2/H2/M2/L0; targeted re-review). All 6 CLOSED at `9b12aa00`. Streak: 0/3 (BC-5.39.001; B2 resets). Trajectory: 14→18→17→12→11→11→9→9→10→11→7→10→10→13→7→6→7→7→12→3→3→12→14→**6** (LENGTH=4 tail: →3→12→14→6).
+
+### Block 8 — Closes + factory-artifacts commits
+
+**Closes:**
+- F-S2104-P24-001: `_build_section_prose` recursive strip (`+` quantifier; handles `>>` and deeper nesting) — CLOSED at `02152c01`/`9b12aa00`
+- F-S2104-P24-002: `spec_path_prose` routed through `_build_spec_path_section_prose` → `_build_section_prose`; Leg E call-site parity probe — CLOSED at `02152c01`/`20aee6a2`/`9b12aa00`
+- F-S2104-P24-003: real-fixture pipeline probe (test 2 of 10) with 5 legs; Leg E call-site parity source gate; 4-leg orchestrator reversion evidence — CLOSED at `9b12aa00`
+- F-S2104-P24-004: list-marker strip in `_build_section_prose` + Leg B probes — CLOSED at `02152c01`
+- F-S2104-P24-005: all 14 records (a)-(n) carry explicit `bats -f` (RED) + `git restore` (GREEN); orchestrator evidence corrected — CLOSED at `9b12aa00` (red-gate-log)
+- F-S2104-P24-006: `_assert_doc_marker '^#### Write Discipline'`; heading-form discriminability restored — CLOSED at `02152c01`
+- D-935 codified in decision-log.md; 6 lessons codified in lessons.md; adversary-pass-24.md persisted; INDEX.md pass-24 row + Convergence Status updated; red-gate-log.md v1.20→v1.21 + Pass-24 attestation; STATE.md frontmatter v6.66→v6.67 + D-935-PASS-24-PIPELINE-PROBE-RECORD
+
+**Open findings carrying forward (12 from pass-23):** F-S2104-P23-003/004/011 → story-writer; P23-005 → product-owner; P23-006/007/008/012 → test-writer; P23-009/010/014 → state-manager.
+
+**Open gaps carrying forward:** STATE.md body sections (Decisions Log range end D-862→D-935, Drift Items wave-state.yaml row, SRC item 3 D-927 self-contaminating grep: `grep -c "die SILENTLY" STATE.md` = 2 (line 9 D-934 disclosure + line 273 genuine SRC text) — future checks must scope to SRC section) remain BLOCKED by rc.23 WASM guard. Resolution: rc.24 AC-020.
+
+**factory-artifacts commits:**
+- Pre-burst parent-commit (factory-artifacts): `f65c3b1e` (D-934-SHA-PATCH)
+- This burst: TBD — SHA-patch follow-up per D-447(c)/D-449(e)
