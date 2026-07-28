@@ -13389,3 +13389,81 @@ D-933-PASS-22-SWEEP-RECORD
 ### Date
 
 2026-07-28
+
+---
+
+## D-934
+
+### Dim-1: Identity + Context
+
+**Role:** state-manager (this commit)
+**Date:** 2026-07-28
+**Burst label:** D-934-PASS-23-BLOCKER-CLOSURE-RECORD
+**Parent commit (factory-artifacts):** `1d028751` — `factory(D-933): pass-22 sweep record + 4-index bumps + 6 lessons + STATE v6.65` (soft-reset of routing-violation commit `a02976ca` re-authored into this burst per TD-VSDD-053)
+
+### Dim-2: Mandatory Gates
+
+**(a) POLICY 16 GLOBAL-MAX GATE (literal shell):**
+```
+$ grep "^## D-" .factory/cycles/v1.0-brownfield-backfill/decision-log.md | grep -E "## D-[0-9]+$" | sort -t'-' -k2 -n | tail -5
+## D-929
+## D-931
+## D-932
+## D-933
+```
+D-933 confirmed as current max (numeric sort). D-934 allocated.
+
+**(b) POLICY 14 4-INDEX LITERAL-SHELL:**
+```
+$ grep "^version:" .factory/specs/behavioral-contracts/BC-INDEX.md \
+    .factory/specs/verification-properties/VP-INDEX.md \
+    .factory/stories/STORY-INDEX.md \
+    .factory/specs/architecture/ARCH-INDEX.md
+version: "4.34"
+version: "2.72"
+version: "4.268"
+version: "3.35"
+```
+BC v4.34 / VP v2.72 / STORY v4.268 / ARCH v3.35. ALL UNCHANGED this burst (no spec or index modifications).
+
+### Dim-3: Decisions
+
+**(a) Adversary pass-23 record (NOT-CLEAN — 14 findings B2/H4/M6/L2; P23-013 NON-FINDING).**
+
+Pass-23 reviewed HEAD `63eae07d`, fixes-landed HEAD `888b5b73` (B2 CLOSED by test-writer/implementer at `888b5b73`; orchestrator-verified by literal shell). 14 findings discovered: 2 BLOCKER, 4 HIGH, 6 MEDIUM, 2 LOW. Novelty: HIGH. File: `cycles/v1.0-brownfield-backfill/S-21.04/adversary-pass-23.md` (frontmatter, 3 mandatory provenance disclosures including asymmetry-remedy, 14-row finding table, pass-22 closure verification table, structural observations, Part B fix mapping).
+
+**(b) Pre-work: routing-violation soft-reset.**
+
+Test-writer committed `a02976ca` directly to `factory-artifacts` (routing violation — state-manager owns `.factory/` commits per CLAUDE.md Routing Table). Content was correct and verified. Resolved via `git -C .factory reset --soft HEAD~1` to reclaim content into working tree, then re-authored as part of this single burst commit per TD-VSDD-053. The routing violation is codified as a lesson (see lessons.md `[[L-BB-subagent-factory-artifacts-routing-violation]]`).
+
+**(c) Pre-work: deleted-log handling (D-923/POLICY 22 class).**
+
+`git -C .factory status --porcelain` showed ` D logs/dispatcher-internal-2026-06-27.jsonl`. DELIBERATE DETERMINATION: intentional log rotation — file is 31+ days old (dated 2026-06-27; today 2026-07-28), not on disk, consistent with normal log rotation. Staged explicitly via `git -C .factory add logs/dispatcher-internal-2026-06-27.jsonl` so the deletion is committed intentionally rather than silently dropped. This is precisely the D-923/POLICY 22 class pattern (devops-engineer dropped a ` D` deletion from `git status --porcelain`).
+
+**(d) WS3 state-manager closures.**
+
+red-gate-log.md: Summary HEAD 63eae07d→888b5b73 (23/23: 9/9+14/14, 2026-07-28); Pass-23 attestation section appended with routing table + BLOCKER-closure proof + POLICY 15 shortfall disclosure; version 1.19→1.20; modified[] D-934 row appended. INDEX.md: pass-23 row added; Convergence Status updated (trajectory tail 12→**14** per D-433(e)/D-439(c) LENGTH=4: →3→3→12→14). adversary-pass-23.md persisted with escaped `\|` in table cells (validate-table-cell-count compliance).
+
+**(e) 4-index status.**
+
+BC v4.34 / VP v2.72 / STORY v4.268 / ARCH v3.35 — UNCHANGED. No spec, BC, VP, story, or architecture modifications in this burst (BLOCKER closures were bats + skill-doc amendments on feature branch `888b5b73`; state-manager does not push feature branch).
+
+**(f) STATE.md frontmatter advance.**
+
+`version: "6.65"→"6.66"`, `timestamp` advanced, `phase: D-934-PASS-23-BLOCKER-CLOSURE-RECORD`. `last_amended:` prepended. Body sections REMAIN BLOCKED (precedent D-866..D-933; `verify-state-timestamp-refresh` WASM spanning-edit constraint on ~33k-token line 9; resolution pending rc.24 AC-020). Lines 15-17 UNTOUCHED per hook constraint.
+
+### Dim-4: Notes
+
+**(a) Structural observations from pass-23 carry to pass-24.** Four structural patterns identified: (1) POLICY 15 clause-4 gap (command must target guard's own predicate against guard's bound artifact); (2) no domain-construction pipeline invariant (blockquote-strip class recurred after fence-exclusion class — two instances of same mechanism); (3) AC-001 Gate cell structurally unmaintainable (~9k chars, 21 gates, coupling mandate failed 6 of 8 passes); (4) two recurring meta-patterns (gate-fires-on-correct-prose remedied by blinding; `head -1` presented as whole-artifact guard).
+
+**(b) Pass-23 novelty: HIGH.** 14 findings against new surfaces not seen in prior passes. Trajectory advanced: 14→18→17→12→11→11→9→9→10→11→7→10→10→13→7→6→7→7→12→3→3→12→14. Asymptotic floor not yet visible; propagation-deficit pattern continues.
+
+**(c) Lessons codified.** 7 process-gap lessons appended to lessons.md: subagent-evidence-verification-before-persist, blinding-gate-is-never-the-remedy, POLICY-15-clause-4-gap, no-domain-construction-invariant, gate-cell-structurally-unmaintainable, factory-artifacts-routing-violation, date-monotonicity-session-spanning-burst.
+
+### Phase
+
+D-934-PASS-23-BLOCKER-CLOSURE-RECORD
+
+### Date
+
+2026-07-28

@@ -8629,3 +8629,134 @@ Three consecutive fix reports in the S-21.04 cascade supplied incomplete regress
 **Cites:** D-933 (this burst); `[[L-BB-per-call-guard-body-edit-blocked]]`; Read tool documentation.
 
 **Closes:** D-933 read-tool workflow discipline. `[process-gap; read-tool; partial-section; line-offset; large-file; state.md; D-933]`
+
+---
+
+## [[L-BB-subagent-evidence-verification-before-persist]]
+
+**Category:** [process-gap]
+**Date:** 2026-07-28
+
+**Summary:** The orchestrator relayed subagent-supplied evidence as authoritative without verifying it before hand-off to the state-manager. The orchestrator instructed state-manager to "persist test-writer's 14 mutant-verification records verbatim," which were tautological (0 actual bats invocations; 7 of 13 records mutated the wrong artifact). POLICY 22 was cited in that same dispatch for a different artifact and not applied to the evidence itself. The orchestrator verified the suites independently (23/23 GREEN) but not the evidence records.
+
+**Pattern rule:** Any subagent-supplied artifact that will be persisted as gate evidence MUST be verified by the orchestrator with literal shell before hand-off to state-manager. Suite-GREEN verification is necessary but not sufficient — POLICY 15 evidence quality (bound artifact, mutation, `not ok` frame) must also be verified independently. A tautological record that satisfies POLICY 15's surface form (command + stdout present) while evaluating the wrong artifact is strictly more dangerous than an honest narrative gap, because it creates false confidence.
+
+**Recurrence pattern:** F-S2104-P22-005 (pass-22) recorded the honest narrative gap. D-933 instructed state-manager to persist test-writer's records verbatim. Pass-23 found all 14 records tautological → BLOCKER F-S2104-P23-002.
+
+**Anchors:** F-S2104-P23-002; F-S2104-P22-005; D-933 (dispatch instruction); D-934 (this codification).
+
+**Cites:** D-933; D-934 (this burst); POLICY 22; POLICY 15.
+
+**Closes:** D-934 subagent-evidence-verification discipline. Highest-value lesson of pass-23. `[process-gap; orchestrator; subagent-evidence; gate-evidence; policy-22; policy-15; tautological-records; D-934]`
+
+---
+
+## [[L-BB-blinding-gate-is-never-the-remedy]]
+
+**Category:** [process-gap]
+**Date:** 2026-07-28
+
+**Summary:** A gate that fires on correct prose should be narrowed — never blinded. F-S2104-P23-001 is the THIRD live instance of gate-fires-on-correct-prose; each time the remedy blinded the gate family (whole-line exclusion, fence exclusion, blockquote exclusion) or constrained the author rather than making the predicate negation/meta-aware. The blockquote-strip remedy (`grep -Ev '^[[:space:]]*>'`) removed blockquote lines from the domain entirely, blinding six section-wide negative gates to ALL prose that appeared in blockquotes — including valid write-discipline directives.
+
+**Pattern rule:** When a gate fires on correct prose, the fix is a narrower predicate, not a broader exclusion. The correct question is: "what structural property of INCORRECT prose distinguishes it from CORRECT prose?" — answer that with a narrower class. Whole-line exclusions (`grep -Ev`, `grep -v`, section-strip) are almost always wrong when applied as false-positive remedies, because they remove the content from the domain rather than refining the predicate.
+
+**Three live instances:** (1) fence exclusion (passes unknown); (2) blockquote whole-line strip (pass-22); (3) scope-restriction class `\bis not\b|\bdoes not\b` matching adversary.md's canonical prose (F-S2104-P23-007; this pass).
+
+**Anchors:** F-S2104-P23-001; F-S2104-P18-002(b); D-934.
+
+**Cites:** D-934 (this burst); POLICY 13 FAIL-CLOSED; TD-VSDD-059.
+
+**Closes:** D-934 gate-narrowing discipline. `[process-gap; gate-fires-on-correct-prose; blinding; predicate-narrowing; fail-open; policy-13; D-934]`
+
+---
+
+## [[L-BB-policy15-clause4-gap]]
+
+**Category:** [process-gap]
+**Date:** 2026-07-28
+
+**Summary:** POLICY 15/D-889 mandates "verbatim command + captured stdout" but does NOT require that the command be the predicate under test against the artifact that the guard binds in `setup()`. F-S2104-P23-002 satisfied the letter (command + stdout present per record) while defeating the purpose (commands mutated `step-g-cleanup.md`, a file no worktree-identity-preflight guard reads). The POLICY needs a fourth clause: a per-guard record MUST cite the guard's own predicate, its bound artifact, and the resulting `not ok` frame.
+
+**Proposed fourth clause:** "The command must invoke the guard's own predicate against the artifact named in the guard's `setup()` function. A `not ok` frame must be captured. A record that mutates any other artifact satisfies neither the command nor the stdout requirement, regardless of format."
+
+**Pattern rule:** Any POLICY 15 compliance check should verify: (1) command present; (2) stdout present; (3) the artifact mutated in the command matches the artifact bound in the guard's `setup()`; (4) a `not ok` frame is present in the captured stdout.
+
+**Anchors:** F-S2104-P23-002; POLICY 15; D-889; D-934.
+
+**Cites:** D-934 (this burst); POLICY 15; D-889.
+
+**Closes:** D-934 POLICY-15-clause-4 structural observation. Consider `/vsdd-factory:policy-add` follow-up to codify clause 4. `[process-gap; policy-15; clause-4; bound-artifact; predicate-under-test; D-934]`
+
+---
+
+## [[L-BB-no-domain-construction-invariant]]
+
+**Category:** [process-gap]
+**Date:** 2026-07-28
+
+**Summary:** Six negative gates share one `local` variable whose definition a one-line edit can narrow, with nothing in the test harness detecting that the narrowing occurred. The class has now recurred twice: fence exclusion removed lines containing fenced code from the domain, blinding multiple gates; blockquote whole-line strip removed blockquote lines, blinding six gates. A domain-construction invariant (e.g., an assertion that the `local` variable contains the full unmodified section except for its structural wrapper) would have caught both in the same test file.
+
+**Pattern rule:** When multiple gates share a domain-construction pipeline (`local rendered_write_discipline=...`), add an invariant assertion at the beginning of each gate function that verifies the domain was correctly constructed — not just that the gate fired. Minimally: assert the domain is non-empty and contains at least one known-correct sentence.
+
+**Anchors:** F-S2104-P23-001; F-S2104-P22-001 (fence-exclusion class); D-934.
+
+**Cites:** D-934 (this burst); TD-VSDD-059.
+
+**Closes:** D-934 domain-construction-invariant structural observation. `[process-gap; domain-construction; invariant; shared-variable; gate-blinding; recurrence; D-934]`
+
+---
+
+## [[L-BB-gate-cell-structurally-unmaintainable]]
+
+**Category:** [process-gap]
+**Date:** 2026-07-28
+
+**Summary:** The AC-001 Gate cell is a ~9,000-character markdown table cell describing 21 gates across 5 domains. Its coupling mandate (cell must be updated whenever any gate predicate changes) has failed at passes 16, 17, 18, 19, 22, and 23 — six failures in eight passes. Narrative prose in a table cell cannot stay synchronized with a 2,582-line test file. The class will not close via discipline alone.
+
+**Structural remedy:** A generated-and-diffed manifest is the mechanism that closes this class. The manifest would be auto-generated from the bats file by extracting gate names and predicates, then diffed against the AC-001 table on each commit. Any divergence between the generated manifest and the table would be a CI-blocking diff. This is analogous to how API contract tests generate expectations from the spec rather than hand-maintaining them.
+
+**Pattern rule:** Any narrative description of a test file that is maintained by hand-editing in prose (not generated from the test file) will drift. For test files > 500 lines with > 10 gates, mandate a generated-and-diffed manifest.
+
+**Anchors:** F-S2104-P23-003; F-S2104-P23-004; F-S2104-P22-001; passes 16/17/18/19/22/23; D-934.
+
+**Cites:** D-934 (this burst); POLICY 8; TD-VSDD-060.
+
+**Closes:** D-934 gate-cell-unmaintainability structural observation. `[process-gap; gate-cell; coupling-mandate; generated-manifest; hand-maintained-prose; D-934]`
+
+---
+
+## [[L-BB-subagent-factory-artifacts-routing-violation]]
+
+**Category:** routing-violation
+**Date:** 2026-07-28
+
+**Summary:** Test-writer committed directly to `factory-artifacts` branch (`a02976ca`). Per CLAUDE.md Routing Table: "`.factory/STATE.md` updates, `.factory/` commits, cycle bookkeeping → `vsdd-factory:state-manager`". The test-writer's commit content was correct and verified (14 genuine per-guard mutant records replacing 13 tautological ones). The routing violation was resolved by `git -C .factory reset --soft HEAD~1` (soft-reset preserving working tree) and re-authoring the content inside the state-manager's single D-934 burst commit per TD-VSDD-053.
+
+**Pattern rule:** No agent other than state-manager may commit to `factory-artifacts`. If a non-state-manager agent needs to persist artifacts to `.factory/`, it must hand the content back to the orchestrator, which then dispatches state-manager to commit it. The test-writer completing its task on the feature branch and handing evidence back to the orchestrator is the correct flow; committing to `factory-artifacts` directly bypasses state-manager ownership.
+
+**Recovery procedure used:** `git -C .factory reset --soft HEAD~1` → content preserved in working tree → re-authored as part of single D-934 burst commit (no `--hard` reset; no content loss; no force-push to remote since `a02976ca` was unpushed).
+
+**Anchors:** `a02976ca` (routing-violation commit, now rebased); D-934 (this burst).
+
+**Cites:** D-934 (this burst); CLAUDE.md Routing Table; TD-VSDD-053.
+
+**Closes:** D-934 routing-violation lesson. `[routing-violation; factory-artifacts; state-manager; test-writer; soft-reset; TD-VSDD-053; D-934]`
+
+---
+
+## [[L-BB-date-monotonicity-session-spanning-burst]]
+
+**Category:** [process-gap]
+**Date:** 2026-07-28
+
+**Summary:** Pass-23 filed F-S2104-P23-013 as a finding: a `2026-07-28` attestation date in a log whose prior entries were dated `2026-07-27`. The adversary classified this as a forward-dated attestation defect. Re-evaluation at record time: the session crossed midnight between the attestation and the pass-23 review; the current date was already 2026-07-28 when pass-23 ran. The dates are consistent. F-S2104-P23-013 is correctly classified as a NON-FINDING.
+
+**Pattern rule:** Date-monotonicity checks in adversarial reviews must account for session-spanning bursts. When a burst starts on date D and the review runs on date D+1, entries dated D+1 in the artifact being reviewed are NOT forward-dated — they are correct. Monotonicity violations require both the PRIOR entry's date AND the CURRENT session date to be known; the adversary should note the session date when making date-related findings.
+
+**General lesson:** Any date-monotonicity check that treats "date > prior date" as a defect without considering the current session date is a false-positive generator for overnight sessions. The F-S2104-P12-010 class (non-monotonic date correction) remains applicable only when an entry is dated BEFORE its predecessor, not when it is dated after a day boundary.
+
+**Anchors:** F-S2104-P23-013 (NON-FINDING); F-S2104-P12-010 class; D-934.
+
+**Cites:** D-934 (this burst).
+
+**Closes:** D-934 date-monotonicity-session-spanning-burst lesson. `[process-gap; date-monotonicity; session-spanning; overnight; non-finding; D-934]`

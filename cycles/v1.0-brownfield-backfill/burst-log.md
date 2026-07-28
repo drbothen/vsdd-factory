@@ -20853,3 +20853,149 @@ $ printf '%s\n' F-S2104-P22-001 F-S2104-P22-002 F-S2104-P22-003 F-S2104-P22-004 
 **factory-artifacts commits:**
 - Pre-burst parent-commit (factory-artifacts): `1f210517` (D-932-SHA-PATCH)
 - This burst: `9dbc8d00` — `factory(D-933): pass-22 sweep record + 4-index bumps + 6 lessons + STATE v6.65`
+
+---
+
+## D-934 — Pass-23 BLOCKER Closure Record (2026-07-28)
+
+### Block 1 — Parent-commit
+
+**factory-artifacts parent:** `1d028751` — `factory(D-933): pass-22 sweep record + 4-index bumps + 6 lessons + STATE v6.65` (SHA-patch follow-up; the substantive D-933 commit is `9dbc8d00`)
+
+**Pre-work:** routing-violation commit `a02976ca` (test-writer direct commit to `factory-artifacts`) soft-reset via `git -C .factory reset --soft HEAD~1`; content re-authored into this single burst per TD-VSDD-053.
+
+**Feature branch HEAD:** `888b5b73` (F-S2104-P23-001 + F-S2104-P23-002 CLOSED; suites 23/23 GREEN orchestrator-verified)
+
+### Block 2 — Adversary verdict
+
+**Pass 23 verdict:** NOT-CLEAN — B2/H4/M6/L2 = 14 findings (P23-013 NON-FINDING).
+
+Adversary reviewed HEAD `63eae07d` (post-pass-22 sweep). Fixes-landed HEAD `888b5b73`. Model: claude-opus-5 (agent-definition `model: opus` pin; ADR-033 cross-family limitation disclosed — ran Claude, same family as authoring agents). Asymmetry enforced structurally: pass-22 Part A inlined into dispatch; pass-22/pass-21 full files + cycle INDEX.md off-limits; adversary confirmed no prior pass file read.
+
+Two BLOCKERs:
+- F-S2104-P23-001: blockquote whole-line strip (`grep -Ev '^[[:space:]]*>'`) in `write_discipline_prose` blinded SIX section-wide negative gates (PW-B, 2b(a), 2b(c), scope-restriction, 4, 5); re-opened M-P21-A/B/C + M-P17-D verbatim; false mutant-proof comment (anchor-count gate reads `rendered_write_discipline` with no blockquote strip → claimed RED never occurred); F-S2104-P18-002(b) anti-fail-open ruling directly regressed.
+- F-S2104-P23-002: 7 of 13 pass-22 mutant records mutated `step-g-cleanup.md` (a file no worktree-identity-preflight guard reads); zero `bats` invocations; zero `not ok` frames; 0/14 guards actually verified; F-S2104-P22-005 paper-fixed with tautological evidence satisfying POLICY 15 surface form while defeating purpose.
+
+Both BLOCKERs CLOSED at `888b5b73` (orchestrator-verified by literal shell). 12 findings OPEN (routed to pass-24). Streak 0/3 (B2 resets).
+
+Pass-22 closure verification: GENUINELY-CLOSED 5 (P22-003/004/007/010/011) · PARTIAL 5 (P22-001/002/006/009/012) · PAPER-FIX 1 (P22-005) · GATE-CLOSED-BUT-SPEC-REGRESSED 1 (P22-008).
+
+### Block 3 — Files touched
+
+**factory-artifacts branch (this burst):**
+- `cycles/v1.0-brownfield-backfill/S-21.04/adversary-pass-23.md` — NEW (pass-23 full review: frontmatter, 3 provenance disclosures, 14-row finding table with escaped `\|`, pass-22 closure verification table, structural observations, Part B fix mapping)
+- `cycles/v1.0-brownfield-backfill/S-21.04/implementation/red-gate-log.md` — version 1.19→1.20; Summary HEAD 63eae07d→888b5b73; Pass-23 summary row + attestation section appended; last_amended + modified[] D-934 entry added (incorporated from routing-violation commit `a02976ca`)
+- `cycles/v1.0-brownfield-backfill/INDEX.md` — pass-23 row added; Convergence Status updated (trajectory →3→3→12→14)
+- `cycles/v1.0-brownfield-backfill/decision-log.md` — D-934 block appended
+- `cycles/v1.0-brownfield-backfill/lessons.md` — 7 process-gap lessons appended (L-BB-subagent-evidence-verification-before-persist through L-BB-date-monotonicity-session-spanning-burst)
+- `cycles/v1.0-brownfield-backfill/burst-log.md` — this entry
+- `STATE.md` — frontmatter v6.65→v6.66; timestamp; phase D-934-PASS-23-BLOCKER-CLOSURE-RECORD; last_amended prepended
+- `logs/dispatcher-internal-2026-06-27.jsonl` — DELETED (intentional log rotation; 31+ days old; staged explicitly per D-923/POLICY 22 class discipline)
+- `logs/dispatcher-internal-2026-07-27.jsonl` — modified (routine daily log)
+- `logs/events-2026-07-27.jsonl` — modified (routine daily log)
+- `logs/dispatcher-internal-2026-07-28.jsonl` — NEW (new day's log)
+- `logs/events-2026-07-28.jsonl` — NEW (new day's log)
+
+**Feature branch `888b5b73` (NOT pushed by state-manager):**
+- `plugins/vsdd-factory/tests/story-worktree-write-path-discipline.bats` — F-S2104-P23-001: marker-only strip replacing whole-line blockquote strip
+- `plugins/vsdd-factory/skills/deliver-story/steps/_shared-context.md` — authoring-constraint relocated before `#### Write Discipline` heading
+- `cycles/v1.0-brownfield-backfill/S-21.04/implementation/red-gate-log.md` — 14 genuine per-guard mutant records replacing 13 tautological ones (F-S2104-P23-002)
+
+### Block 4 — Codifications
+
+**D-934** (this burst): pass-23 BLOCKER closure record; pre-work soft-reset + deleted-log handling; WS3 state-manager closures; 4-index unchanged; STATE.md frontmatter v6.66.
+
+**7 lessons codified:**
+1. `[[L-BB-subagent-evidence-verification-before-persist]]` — orchestrator must verify subagent gate evidence with literal shell before persisting; suite-GREEN is necessary but not sufficient
+2. `[[L-BB-blinding-gate-is-never-the-remedy]]` — third live instance; fix is predicate narrowing, never domain exclusion
+3. `[[L-BB-policy15-clause4-gap]]` — POLICY 15 needs clause 4: command must target guard's own predicate against guard's bound artifact
+4. `[[L-BB-no-domain-construction-invariant]]` — shared `local` variable class recurred twice; domain-construction invariant needed
+5. `[[L-BB-gate-cell-structurally-unmaintainable]]` — AC-001 Gate cell: 6 coupling failures in 8 passes; only generated-and-diffed manifest closes this class
+6. `[[L-BB-subagent-factory-artifacts-routing-violation]]` — test-writer committed to factory-artifacts directly; resolved via soft-reset; routing discipline codified
+7. `[[L-BB-date-monotonicity-session-spanning-burst]]` — P23-013 re-evaluated as NON-FINDING; date checks must account for sessions crossing midnight
+
+### Block 5 — Dim-2 literal-shell gate attestations
+
+**POLICY 16 GLOBAL-MAX GATE (literal shell):**
+```
+$ grep "^## D-" .factory/cycles/v1.0-brownfield-backfill/decision-log.md | grep -E "## D-[0-9]+$" | sort -t'-' -k2 -n | tail -5
+## D-929
+## D-931
+## D-932
+## D-933
+```
+D-933 confirmed max (numeric sort; D-929 self-contamination hazard avoided per D-929 note). D-934 allocated. PASS.
+
+**POLICY 14 4-INDEX LITERAL-SHELL:**
+```
+$ grep "^version:" \
+    .factory/specs/behavioral-contracts/BC-INDEX.md \
+    .factory/specs/verification-properties/VP-INDEX.md \
+    .factory/stories/STORY-INDEX.md \
+    .factory/specs/architecture/ARCH-INDEX.md
+.factory/specs/behavioral-contracts/BC-INDEX.md:version: "4.34"
+.factory/specs/verification-properties/VP-INDEX.md:version: "2.72"
+.factory/stories/STORY-INDEX.md:version: "4.268"
+.factory/specs/architecture/ARCH-INDEX.md:version: "3.35"
+```
+BC v4.34 / VP v2.72 / STORY v4.268 / ARCH v3.35. ALL UNCHANGED this burst. PASS.
+
+**D-444(a) STATE.md PHASE-ADVANCE DIFF GATE (literal shell — executed at Commit E):**
+```
+$ git -C .factory diff HEAD -- STATE.md | grep "^[+-]" | grep -E "^[+-](version|timestamp|phase)"
+-version: "6.65"
++version: "6.66"
+-timestamp: 2026-07-28T18:00:00Z
++timestamp: 2026-07-28T20:00:00Z
+-phase: D-933-PASS-22-SWEEP-RECORD
++phase: D-934-PASS-23-BLOCKER-CLOSURE-RECORD
+```
+Phase advance D-933-PASS-22-SWEEP-RECORD→D-934-PASS-23-BLOCKER-CLOSURE-RECORD confirmed. Version 6.65→6.66. Timestamp advanced. PASS.
+
+**D-448(a) SOURCE-ATTESTATION GATE (literal shell):**
+```
+$ grep -c "F-S2104-P23-" .factory/cycles/v1.0-brownfield-backfill/S-21.04/adversary-pass-23.md
+30
+```
+adversary-pass-23.md contains F-S2104-P23-NNN references matching the 14 findings in Block 2 (B2/H4/M6/L2). Verdict NOT-CLEAN, reviewed_head 63eae07d, fixes_landed_head 888b5b73 confirmed in file frontmatter. PASS.
+
+**D-446(a) OWN-BURST-LOG 8-BLOCK GATE:** This entry contains all 8 blocks: Block 1 (Parent-commit) ✓; Block 2 (Adversary verdict) ✓; Block 3 (Files touched) ✓; Block 4 (Codifications) ✓; Block 5 (Dim-2 literal-shell gate attestations) ✓; Block 6 (Dim-5 attestation) ✓; Block 7 (Dim-6 literal-shell finding count) ✓; Block 8 (Closes + factory-artifacts commits) ✓. PASS.
+
+**DELETED-LOG GATE (D-923/POLICY 22 class — literal shell):**
+```
+$ git -C .factory status --porcelain | grep "^ D "
+ D logs/dispatcher-internal-2026-06-27.jsonl
+```
+One deletion present. DELIBERATE DETERMINATION: intentional log rotation. File dated 2026-06-27; current date 2026-07-28 = 31 days elapsed. File absent from disk. Consistent with log rotation pattern (adjacent dates 2026-06-28, 2026-06-29 present in logs/). Staged explicitly with `git -C .factory add logs/dispatcher-internal-2026-06-27.jsonl`. NOT silently dropped. PASS.
+
+### Block 6 — Dim-5 attestation
+
+All factory-artifact mutations authored by state-manager. No spec body content authored by state-manager (no BC bodies, ADR rationale, or story ACs). B2 closures (F-S2104-P23-001 + F-S2104-P23-002) authored by test-writer/implementer at `888b5b73` on feature/S-21.04; state-manager does NOT push feature branch per task brief constraint. red-gate-log.md WS3 closures (Summary HEAD advance, Pass-23 attestation section) are factory-artifact mutations (state tracking + attestation, not source code). Routing violation `a02976ca` (test-writer direct commit) resolved via soft-reset; content re-authored by state-manager in this burst. STATE.md body sections REMAIN BLOCKED by rc.23 WASM guard (same class as D-931/D-932/D-933; spanning-edit constraint). No tech-debt-register entries added this burst. Production-grade default satisfied within available tooling constraints.
+
+### Block 7 — Dim-6 literal-shell finding count
+
+```
+$ printf '%s\n' \
+    F-S2104-P23-001 F-S2104-P23-002 F-S2104-P23-003 F-S2104-P23-004 \
+    F-S2104-P23-005 F-S2104-P23-006 F-S2104-P23-007 F-S2104-P23-008 \
+    F-S2104-P23-009 F-S2104-P23-010 F-S2104-P23-011 F-S2104-P23-012 \
+    F-S2104-P23-013 F-S2104-P23-014 | wc -l
+      14
+```
+14 findings this pass (B2/H4/M6/L2; P23-013 NON-FINDING). B2 CLOSED at `888b5b73`. 12 OPEN (routed to pass-24). Streak: 0/3 (BC-5.39.001; B2 resets). Trajectory: 14→18→17→12→11→11→9→9→10→11→7→10→10→13→7→6→7→7→12→3→3→12→**14** (LENGTH=4 tail: →3→3→12→14).
+
+### Block 8 — Closes + factory-artifacts commits
+
+**Closes:**
+- F-S2104-P23-001: blockquote whole-line strip→marker-only strip; authoring-constraint relocated — CLOSED at `888b5b73`
+- F-S2104-P23-002: 14 genuine per-guard records (bound artifact + mutation + `bats -f` + `not ok` frame + restore `ok`; `not ok` count 0→45) — CLOSED at `888b5b73`; known POLICY 15 shortfall (records (b)-(n) omit command restatement) carries to pass-24
+- D-934 codified in decision-log.md; 7 lessons codified in lessons.md; adversary-pass-23.md persisted; INDEX.md pass-23 row + Convergence Status updated; red-gate-log.md v1.19→v1.20 + Pass-23 attestation; STATE.md frontmatter v6.65→v6.66 + D-934-PASS-23-BLOCKER-CLOSURE-RECORD
+- Routing violation `a02976ca` resolved via soft-reset + re-authoring into this burst
+
+**Open findings carrying forward (12):** F-S2104-P23-003/004/011 → story-writer; P23-005 → product-owner; P23-006/007/008/012 → test-writer; P23-009/010/014 → state-manager.
+
+**Open gaps carrying forward:** STATE.md body sections (Decisions Log range end D-862→D-934, Drift Items wave-state.yaml row, SRC item 3 D-927 "die SILENTLY" text — `grep -c "die SILENTLY" STATE.md` = 1) remain BLOCKED by rc.23 WASM guard. Resolution: rc.24 AC-020.
+
+**factory-artifacts commits:**
+- Pre-burst parent-commit (factory-artifacts): `1d028751` (D-933-SHA-PATCH)
+- This burst: TBD (SHA-patch follow-up will update Block 8 per D-447(c)/D-449(e))
