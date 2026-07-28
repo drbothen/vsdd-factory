@@ -20998,4 +20998,4 @@ $ printf '%s\n' \
 
 **factory-artifacts commits:**
 - Pre-burst parent-commit (factory-artifacts): `1d028751` (D-933-SHA-PATCH)
-- This burst: TBD (SHA-patch follow-up will update Block 8 per D-447(c)/D-449(e))
+- This burst: `57a9868d` — `factory(D-934): pass-23 BLOCKER closure record + 7 lessons + STATE v6.66`
