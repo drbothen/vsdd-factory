@@ -54,9 +54,21 @@ setup() {
 #     verified within the "Worktree-Identity Preflight" section context.
 @test "test_BC_adversary_head_sha_mismatch_emits_dispatch_error_not_findings" {
   # Section-scoped check: extract the Worktree-Identity Preflight section
-  # (from "#### Worktree-Identity Preflight" up to the next "####" heading or "---")
-  # and verify both dispatch-error AND rev-parse HEAD co-occur within it.
-  preflight_section="$(awk '/^#### Worktree-Identity Preflight/{found=1} found{print} /^#### /{if(!found)next; if(found && !/^#### Worktree-Identity Preflight/)exit} /^---/{if(found)exit}' "$ADVERSARY_AGENT")"
+  # (from "#### Worktree-Identity Preflight" up to the next sibling/parent heading or "---").
+  # F-S2104-P23-008: prior awk only exited on ^#### or ^--- — ### Perimeter 2 and ### Perimeter 3
+  # (^### level) were not exit conditions, so the extractor ran past them into unrelated content.
+  # The correct boundary set (matching _extract_write_discipline_section in the sibling suite):
+  # ^#### (sibling #### headings), ^### (parent ### headings), ^## (grandparent ## headings), ^---.
+  # MUTANT: remove ^### exit → awk captures '### Perimeter 2: Wave-gate' prose → 'Wave-gate' found
+  #   in preflight_section → boundary-assertion fires → RED ✓.
+  # CONTROL: ^### exit present → Perimeter 2 content excluded → boundary-assertion GREEN ✓.
+  preflight_section="$(awk '/^#### Worktree-Identity Preflight/{found=1; next} found && /^#### /{exit} found && /^### /{exit} found && /^## /{exit} found && /^---/{exit} found{print}' "$ADVERSARY_AGENT")"
+  # Boundary assertion (F-S2104-P23-008): Perimeter 2 content must NOT appear in the extracted section.
+  # '### Perimeter 2: Wave-gate (Gate 3)' contains 'Wave-gate' — present if awk over-captures.
+  if printf '%s\n' "$preflight_section" | grep -q "Wave-gate"; then
+    echo "DOC-PARITY FAIL [adversary.md guard (b): preflight section extractor over-captures into Perimeter 2 — 'Wave-gate' found in extracted section; fix: ^### and ^## exit conditions must be present in awk (F-S2104-P23-008)]"
+    false
+  fi
   # dispatch-error must appear in the preflight section
   printf '%s\n' "$preflight_section" | grep -i "dispatch-error" >/dev/null
   # rev-parse HEAD OR the SHA comparison concept must appear in the preflight section
@@ -101,10 +113,20 @@ setup() {
   # CONTROL: "All feature-code reads MUST use worktree-rooted absolute paths" → GREEN ✓.
   run grep -i "worktree-rooted" "$ADVERSARY_AGENT"
   [ "$status" -eq 0 ]
-  local worktree_rooted_line
-  worktree_rooted_line="$(grep -i "worktree-rooted" "$ADVERSARY_AGENT" | head -1)"
-  if printf '%s\n' "$worktree_rooted_line" | grep -qiE '\bformerly\b|\bretired\b|\brescinded\b|\bsuperseded\b|\bno longer\b|\bnot applicable\b|\bdoes not apply\b|\boutside\b|\bnot required\b'; then
-    echo "DOC-PARITY FAIL [adversary.md: 'worktree-rooted' appears in nullification context (F-S2104-P22-006(d))]: term found in: $worktree_rooted_line"
+  # All-lines nullification guard (F-S2104-P23-006): scan ALL matching lines, not just head -1.
+  # head -1 is fail-open against an APPENDED exception — e.g. a valid affirmative first line
+  # followed by "worktree-rooted discipline is retired" still passes head -1 while nullifying
+  # the mandate. Collect all lines, filter out nullified forms, require ≥1 affirmative line.
+  # MUTANT: file has two 'worktree-rooted' lines: affirmative first, 'worktree-rooted: retired'
+  #   second → head -1 returns affirmative (old: PASS); all-lines filter removes both → empty
+  #   affirmative set (new: RED) ✓.
+  local wtr_all_lines wtr_affirmative_lines
+  wtr_all_lines="$(grep -i "worktree-rooted" "$ADVERSARY_AGENT")"
+  wtr_affirmative_lines="$(printf '%s\n' "$wtr_all_lines" | \
+    grep -viE '\bformerly\b|\bretired\b|\brescinded\b|\bsuperseded\b|\bno longer\b|\bnot applicable\b|\bdoes not apply\b|\boutside\b|\bnot required\b' || true)"
+  if [ -z "$wtr_affirmative_lines" ]; then
+    echo "DOC-PARITY FAIL [adversary.md: all 'worktree-rooted' occurrences appear in nullification context (F-S2104-P22-006(d))]: at least one affirmative (non-nullified) instance required; appended exception 'worktree-rooted: retired' no longer passes"
+    printf 'All worktree-rooted lines found:\n%s\n' "$wtr_all_lines"
     false
   fi
 }
@@ -132,17 +154,38 @@ setup() {
   [ "$status" -eq 0 ]
   run grep -i "checks out NOTHING under" "$ADVERSARY_AGENT"
   [ "$status" -eq 0 ]
-  # Nullification guards: none of the three tokens may appear in a retired/rescinded context
-  local fa_line cr_line co_line
-  fa_line="$(grep -i "factory-artifacts" "$ADVERSARY_AGENT" | grep -iv 'factory-artifacts branch\|origin.*factory-artifacts\|push.*factory-artifacts' | head -1 || true)"
-  cr_line="$(grep -i "canonical-repo-root" "$ADVERSARY_AGENT" | head -1)"
-  co_line="$(grep -i "checks out NOTHING under" "$ADVERSARY_AGENT" | head -1)"
-  for line in "$fa_line" "$cr_line" "$co_line"; do
-    if printf '%s\n' "$line" | grep -qiE '\bformerly\b|\bretired\b|\brescinded\b|\bsuperseded\b|\bno longer\b|\bnot applicable\b|\bdoes not apply\b|\bnot required\b'; then
-      echo "DOC-PARITY FAIL [adversary.md: corrected-model token appears in nullification context (F-S2104-P22-006(e))]: $line"
-      false
-    fi
-  done
+  # All-lines nullification guard (F-S2104-P23-006): each corrected-model token scanned across
+  # ALL matching lines. head -1 was fail-open against an appended exception that nullifies after
+  # a valid first occurrence. Require ≥1 affirmative (non-nullified) line per token.
+  # MUTANT per token: append "factory-artifacts: retired" / "canonical-repo-root: superseded" /
+  #   "checks out NOTHING under: no longer accurate" as a second occurrence → head -1 returns
+  #   the affirmative first line (old: PASS); all-lines filter removes all nullified lines →
+  #   empty affirmative set (new: RED) ✓.
+  local fa_all fa_aff cr_all cr_aff co_all co_aff
+  fa_all="$(grep -i "factory-artifacts" "$ADVERSARY_AGENT" | grep -iv 'factory-artifacts branch\|origin.*factory-artifacts\|push.*factory-artifacts' || true)"
+  fa_aff="$(printf '%s\n' "$fa_all" | \
+    grep -viE '\bformerly\b|\bretired\b|\brescinded\b|\bsuperseded\b|\bno longer\b|\bnot applicable\b|\bdoes not apply\b|\bnot required\b' || true)"
+  cr_all="$(grep -i "canonical-repo-root" "$ADVERSARY_AGENT")"
+  cr_aff="$(printf '%s\n' "$cr_all" | \
+    grep -viE '\bformerly\b|\bretired\b|\brescinded\b|\bsuperseded\b|\bno longer\b|\bnot applicable\b|\bdoes not apply\b|\bnot required\b' || true)"
+  co_all="$(grep -i "checks out NOTHING under" "$ADVERSARY_AGENT")"
+  co_aff="$(printf '%s\n' "$co_all" | \
+    grep -viE '\bformerly\b|\bretired\b|\brescinded\b|\bsuperseded\b|\bno longer\b|\bnot applicable\b|\bdoes not apply\b|\bnot required\b' || true)"
+  if [ -z "$fa_aff" ]; then
+    echo "DOC-PARITY FAIL [adversary.md: all 'factory-artifacts' occurrences appear in nullification context (F-S2104-P22-006(e))]: at least one affirmative instance required"
+    printf 'All factory-artifacts lines:\n%s\n' "$fa_all"
+    false
+  fi
+  if [ -z "$cr_aff" ]; then
+    echo "DOC-PARITY FAIL [adversary.md: all 'canonical-repo-root' occurrences appear in nullification context (F-S2104-P22-006(e))]: at least one affirmative instance required"
+    printf 'All canonical-repo-root lines:\n%s\n' "$cr_all"
+    false
+  fi
+  if [ -z "$co_aff" ]; then
+    echo "DOC-PARITY FAIL [adversary.md: all 'checks out NOTHING under' occurrences appear in nullification context (F-S2104-P22-006(e))]: at least one affirmative instance required"
+    printf 'All checks-out-NOTHING lines:\n%s\n' "$co_all"
+    false
+  fi
 }
 
 # (f) AC-006: adversary.md must mandate case-insensitive ID-bearing globs
@@ -155,10 +198,17 @@ setup() {
   # CONTROL: "use case-insensitive globs for adr/ADR, bc/BC" → GREEN ✓.
   run grep -i "case-insensitive" "$ADVERSARY_AGENT"
   [ "$status" -eq 0 ]
-  local ci_line
-  ci_line="$(grep -i "case-insensitive" "$ADVERSARY_AGENT" | head -1)"
-  if printf '%s\n' "$ci_line" | grep -qiE '\bformerly\b|\bretired\b|\brescinded\b|\bsuperseded\b|\bno longer\b|\bnot required\b|\bnot applicable\b|\bnot case-insensitive\b'; then
-    echo "DOC-PARITY FAIL [adversary.md: 'case-insensitive' appears in nullification context (F-S2104-P22-006(f))]: $ci_line"
+  # All-lines nullification guard (F-S2104-P23-006): scan ALL matching lines.
+  # MUTANT: append "case-insensitive: no longer required (simplified)" as a second line →
+  #   head -1 returns affirmative first line (old: PASS); all-lines filter removes all nullified
+  #   lines → empty affirmative set (new: RED) ✓.
+  local ci_all ci_aff
+  ci_all="$(grep -i "case-insensitive" "$ADVERSARY_AGENT")"
+  ci_aff="$(printf '%s\n' "$ci_all" | \
+    grep -viE '\bformerly\b|\bretired\b|\brescinded\b|\bsuperseded\b|\bno longer\b|\bnot required\b|\bnot applicable\b|\bnot case-insensitive\b' || true)"
+  if [ -z "$ci_aff" ]; then
+    echo "DOC-PARITY FAIL [adversary.md: all 'case-insensitive' occurrences appear in nullification context (F-S2104-P22-006(f))]: at least one affirmative instance required"
+    printf 'All case-insensitive lines found:\n%s\n' "$ci_all"
     false
   fi
 }
@@ -178,11 +228,34 @@ setup() {
   # And the class of findings it applies to must be named
   run grep -iE "absent file|missing deliverable|missing ADR" "$ADVERSARY_AGENT"
   [ "$status" -eq 0 ]
-  # Scope-restriction guard
-  local pc_line
-  pc_line="$(grep -i "path-corroborated" "$ADVERSARY_AGENT" | head -1)"
-  if printf '%s\n' "$pc_line" | grep -qiE '\bnot applicable\b|\bdoes not\b|\bis not\b|\boutside\b|\bnot required\b|\bexcept\b|\bexempt\b'; then
-    echo "DOC-PARITY FAIL [adversary.md: 'path-corroborated' appears in scope-restriction context (F-S2104-P22-006(g))]: $pc_line"
+  # All-lines scope-restriction guard (F-S2104-P23-006 + F-S2104-P23-007).
+  #
+  # P23-006: head -1 fail-open — appended exception after affirmative first line passes head -1
+  # while nullifying the mandate. All-lines scanning closes this.
+  #
+  # P23-007: '\bis not\b' and bare '\bdoes not\b' were too broad — they fired on the normative
+  # sentence "A finding ... that is NOT path-corroborated against the correct target for its
+  # artifact class MUST NOT be reported." This sentence ENFORCES the mandate (findings lacking
+  # path-corroboration MUST NOT be reported) — it does NOT restrict the mandate's scope.
+  # Third live instance of gate-fires-on-correct-prose (after PC2c and blockquote cases).
+  # Fix: predicate is now meta-aware. '\bis not\b' removed entirely; '\bdoes not\b' narrowed
+  # to '\bdoes not apply\b'. Genuine scope-restrictions say "does not apply to X", "not required
+  # for Y", "not applicable" — not "the finding is not path-corroborated therefore MUST NOT be
+  # reported."
+  #
+  # MUTANT (appended nullifier, P23-006): "path-corroborated: does not apply to ADR checks"
+  #   appended as second line → head -1 returns affirmative first (old: PASS); all-lines filter
+  #   removes both → empty affirmative set (new: RED) ✓.
+  # MUTANT (normative prose, P23-007): "finding that is NOT path-corroborated MUST NOT be
+  #   reported" → old '\bis not\b' triggers (false positive RED); new predicate does not trigger
+  #   → affirmative set non-empty (GREEN, no false positive) ✓.
+  local pc_all pc_aff
+  pc_all="$(grep -i "path-corroborated" "$ADVERSARY_AGENT")"
+  pc_aff="$(printf '%s\n' "$pc_all" | \
+    grep -viE '\bnot applicable\b|\bdoes not apply\b|\boutside\b|\bnot required\b|\bexcept\b|\bexempt\b' || true)"
+  if [ -z "$pc_aff" ]; then
+    echo "DOC-PARITY FAIL [adversary.md: all 'path-corroborated' occurrences appear in scope-restriction context (F-S2104-P22-006(g) / F-S2104-P23-007)]: at least one affirmative (non-scope-restricted) instance required"
+    printf 'All path-corroborated lines found:\n%s\n' "$pc_all"
     false
   fi
 }

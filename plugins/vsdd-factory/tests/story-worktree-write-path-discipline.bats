@@ -2632,22 +2632,32 @@ _run_teardown_preflight() {
       echo "DOC-PARITY FAIL [fully-qualified §G.1 path missing from $label]: surface must carry fully-qualified path 'plugins/vsdd-factory/skills/deliver-story/steps/step-g-cleanup.md' — bare §G.1 or step-g-cleanup alone is insufficient for cross-document traceability (BC-6.26.001 PC2 + AC-007(d); F-S2104-P4-009 / F-S2104-P9-class)"
       false
     }
-    # Mandate-token gate (F-S2104-P22-009): the §G.1 reference must appear in a mandatory context.
-    # Accepted mandate tokens (based on actual surface-document imperative forms):
-    #   MUST, required, mandatory, BEFORE, before, first (explicit obligation tokens), AND
-    #   Run/run (imperative-command form: "Run the §G.1 preflight"), AND
-    #   "proceed only" / "only on" (conditional-proceed form: "proceed only on PASS").
-    # A mutant "For context, see step-g-cleanup.md §G.1." has no mandate token → RED ✓.
-    # CONTROL: "Run the §G.1 preflight..." / "proceed only on PASS" → mandate token present → GREEN ✓.
+    # Mandate-token gate (F-S2104-P22-009 / F-S2104-P23-012): the §G.1 reference must appear in a
+    # mandatory context. Accepted mandate tokens are those that GENUINELY establish an obligation:
+    #   MUST / must, required, mandatory, BEFORE (directional obligation),
+    #   "proceed only" / "only on" (conditional-proceed mandate form).
+    # Removed near-vacuous tokens (F-S2104-P23-012): 'Run/run', 'before', 'first' are
+    # near-ubiquitous in procedural docs — "Always run" / "This path was run before the §G.1
+    # refactor" both satisfy them incidentally without establishing obligation.
+    # rules/worktree-protocol.md formerly passed on "Always run" (run/before match); updated
+    # to carry "MUST" on the step-g-cleanup.md reference line as part of this fix.
+    # A "for context, see step-g-cleanup.md §G.1" footnote reference with "run" or "before"
+    # elsewhere in the file satisfied the old class; new class requires MUST/required/mandatory/
+    # BEFORE/proceed-only → that sentence returns non-zero (load-bearing).
     local g1_ref_line g1_mandated_line
-    # Check ALL lines containing the qualified path for any mandate token (not just head -1)
+    # Check ALL lines containing the qualified path for any genuine mandate token (not just head -1).
+    # '\bBEFORE\b' removed (F-S2104-P23-012): with -iE, 'BEFORE' matches lowercase 'before' which
+    # is near-ubiquitous in procedural text ("run before every git worktree remove") and does not
+    # establish obligation by itself. Remaining tokens all carry unambiguous imperative force.
     g1_mandated_line="$(grep -E 'plugins/vsdd-factory/skills/deliver-story/steps/step-g-cleanup\.md' "$file" | \
-      grep -iE '\bMUST\b|\brequired\b|\bmandatory\b|\bBEFORE\b|\bbefore\b|\bfirst\b|\bRun\b|\brun\b|\bproceed only\b|\bonly on\b' | head -1 || true)"
+      grep -iE '\bMUST\b|\brequired\b|\bmandatory\b|\bproceed only\b|\bonly on\b' | head -1 || true)"
     if [ -z "$g1_mandated_line" ]; then
       g1_ref_line="$(grep -E 'plugins/vsdd-factory/skills/deliver-story/steps/step-g-cleanup\.md' "$file" | head -1)"
-      echo "DOC-PARITY FAIL [§G.1 reference in $label lacks mandate token (F-S2104-P22-009)]: no line containing the qualified step-g-cleanup.md path also carries a mandate token (MUST/required/mandatory/BEFORE/before/Run/run/proceed-only)"
+      echo "DOC-PARITY FAIL [§G.1 reference in $label lacks mandate token (F-S2104-P22-009 / F-S2104-P23-012)]: no line containing the qualified step-g-cleanup.md path also carries a genuine mandate token (MUST/required/mandatory/proceed-only/only-on)"
       printf 'Found line: %s\n' "$g1_ref_line"
-      false
+      # return 1 (not bare 'false') — 'false' followed by the ordering-gate 'if' returns 0 when
+      # the ordering gate is skipped (no git worktree remove in file), silently masking the error.
+      return 1
     fi
     # Ordering gate (F-S2104-P22-009): if git worktree remove appears in the file, the §G.1
     # reference must precede it — preflight before removal, not as a trailing footnote.
@@ -2660,6 +2670,24 @@ _run_teardown_preflight() {
         false
       }
     fi
+  }
+
+  # Mandate-token probe (F-S2104-P23-012): a sentence with near-vacuous tokens ('run', 'before')
+  # but no genuine mandate token MUST cause _assert_g1_ref to return non-zero.
+  # This proves the old broad class (\brun\b|\bbefore\b) was near-vacuous: "This path was run
+  # before the §G.1 refactor" would have passed the old class (run + before match) while
+  # carrying no actual obligation. The new class (MUST/required/mandatory/BEFORE/proceed-only)
+  # correctly rejects this sentence.
+  # CONTROL (new narrowed class): non-mandating sentence → _assert_g1_ref returns non-zero (RED for sentence) ✓.
+  # REVERSION (old broad class with \brun\b|\bbefore\b): same sentence passes → probe fires → test RED ✓.
+  local _p23012_probe_file
+  _p23012_probe_file="$(mktemp)"
+  printf 'This path was run before the G.1 refactor (plugins/vsdd-factory/skills/deliver-story/steps/step-g-cleanup.md §G.1).\n' > "$_p23012_probe_file"
+  run _assert_g1_ref "$_p23012_probe_file" "non-mandating-probe"
+  rm -f "$_p23012_probe_file"
+  [ "$status" -ne 0 ] || {
+    echo "MANDATE-TOKEN PROBE FAIL (F-S2104-P23-012): non-mandating sentence ('run'+'before' only, no MUST/required/proceed-only) with the qualified §G.1 path passed the mandate gate — near-vacuous tokens still present in class; expected non-zero status"
+    false
   }
 
   # --- 1. skills/worktree-manage/SKILL.md ---
