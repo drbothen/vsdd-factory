@@ -98,7 +98,7 @@ If `find` exits 0 with empty output → PC2a sub-case (b): no stray factory arti
 the Dispatch below. If `find` exits 0 with non-empty output → PC2b BLOCKED. If `find` exits
 non-zero → PC2c HALT.
 
-> **Gate-imposed authoring constraint (T-004/Gate PC2c — F-S2104-P22-002):** The PC2c block above MUST NOT contain `proceed to` or `proceed with` phrasing. The T-004 bats gate checks unconditionally for `[Pp]roceed[[:space:]]+(to|with)[[:space:]]` and fires immediately on any match in the extracted PC2c block, including explanatory sentences. Use `HALT`, `teardown MUST NOT continue`, or `do NOT invoke git worktree remove` instead.
+> **Gate-imposed authoring constraint (T-004/Gate PC2c — F-S2104-P22-002):** The PC2c block above MUST NOT contain affirmative `proceed to` or `proceed with` phrasing. The T-004 gate is negation-transparent (F-S2104-P22-008): it extracts lines matching `[Pp]roceed[[:space:]]+(to|with)[[:space:]]` then excludes negated forms (`NOT proceed`, `do not proceed`, `must not proceed`, `no proceed`) — only affirmative uses fire. `Do NOT proceed to git worktree remove` is exempt; `Proceed with the teardown` fires. Use `HALT`, `teardown MUST NOT continue`, or `do NOT invoke git worktree remove` instead.
 
 ### Dispatch (PC2a only — after a PASS preflight result)
 

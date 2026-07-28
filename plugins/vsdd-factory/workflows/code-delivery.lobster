@@ -436,6 +436,11 @@ workflow:
     # Step 16: Post-Merge Cleanup
     # =========================================================================
 
+    # Gate-imposed authoring constraint (T-008 / F-S2104-P22-003): The combined pattern
+    # "find … .factory/ … -type f" is forbidden in this file. Any text matching
+    # find[[:space:]]+[^[:space:]]*\.factory/?[^[:space:]]*[[:space:]].*-type[[:space:]]+f
+    # including inside code fences triggers the T-008 bats anti-pattern gate.
+    # Reference step-g-cleanup.md §G.1 for the authorized preflight command form.
     - name: cleanup-worktree
       type: agent
       agent: devops-engineer
