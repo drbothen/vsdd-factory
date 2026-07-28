@@ -21285,4 +21285,4 @@ $ grep -E "^\| F-S2104-P23-" .factory/cycles/v1.0-brownfield-backfill/S-21.04/ad
 
 **factory-artifacts commits:**
 - Pre-burst parent-commit (factory-artifacts): `9f99a0be` (D-935-SHA-PATCH)
-- This burst: TBD — SHA-patch follow-up per D-447(c)/D-449(e)
+- This burst: `d616110fee6352ae9e807c790181910cd642e210` (`d616110f`) — factory(D-936): pass-23-closure all-12-open-findings-closed + 7 lessons + STATE v6.68
