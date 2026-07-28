@@ -85,6 +85,8 @@ Parse `$ARGUMENTS` to determine the action:
    BLIND to gitignored shadow `.factory/` content — the §G.1 preflight is the only gate that catches it
    (BC-6.26.001 Invariant 5).
 
+   > **Gate-imposed authoring constraint (T-008 / F-S2104-P22-003):** The combined pattern `find … .factory/ … -type f` is forbidden in this file. Any text matching `find[[:space:]]+[^[:space:]]*\.factory/?[^[:space:]]*[[:space:]].*-type[[:space:]]+f` — including inside code fences — triggers the T-008 bats anti-pattern gate. Reference §G.1 step-g-cleanup.md for the authorized preflight command form.
+
    **Remove** worktree (only after PASS preflight result):
    ```bash
    git worktree remove .worktrees/STORY-NNN

@@ -803,6 +803,9 @@ workflow:
                   discrimination-chain protocol).
                   Remove worktree: git worktree remove .worktrees/STORY-NNN.
                   Update .factory/STATE.md with merge status.
+                  NOTE (Gate T-008 / F-S2104-P22-003): the combined pattern
+                  "find ... .factory/ ... -type f" is forbidden in this file including
+                  in task strings; use step-g-cleanup.md §G.1 reference instead.
 
           # --- Wave Integration Gate (after all stories in wave merged) ---
           - name: wave-integration-gate

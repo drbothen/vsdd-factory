@@ -790,8 +790,20 @@ _run_teardown_preflight() {
   # empty over the unexcluded pristine section by adversary literal shell.
   # Abbreviation-protect cf./i.e./e.g. before sentence-splitting (F-S2104-P16-001 M-P16-C2
   # hardening: cf. dot creates a false boundary that masks CWD-relative from Gate 1(c)/Gate 5).
+  # F-S2104-P22-004: Strip blockquote lines (> ) from write_discipline_prose domain before
+  # building the normative-mandate search domain. Blockquote lines are structural annotations
+  # (gate-imposed authoring constraints, explanatory notes) — NOT normative mandate or prohibition
+  # text. Including them caused false-positive gate fires on authoring-constraint blocks such as
+  # the T-001/Gate PW-B constraint added after the **Forbidden:** bullets (which contains
+  # 'prohibited' + 'outside', triggering the scope-restriction gate). Analogous to the
+  # link-ref-def stripping (F-S2104-P18-004) and HTML-comment stripping (F-S2104-P17-001(b)):
+  # the structural annotation is excluded from the normative domain because its purpose is
+  # meta-commentary, not mandate or prohibition.
+  # MUTANT: move the prohibition paragraph into a > blockquote → stripped from domain →
+  #   anchor count 0 → RED. This mutant proves the strip is not a fail-open loophole.
   local write_discipline_prose
-  write_discipline_prose="$(printf '%s\n' "$write_discipline_section" | tr '\n' ' ')"
+  write_discipline_prose="$(printf '%s\n' "$write_discipline_section" | \
+    grep -Ev '^[[:space:]]*>' | tr '\n' ' ')"
   local write_discipline_prose_nosplit
   write_discipline_prose_nosplit="$(printf '%s\n' "$write_discipline_prose" | \
     sed 's/cf\. /cf_ABBREV_ /g; s/i\.e\. /ie_ABBREV_ /g; s/e\.g\. /eg_ABBREV_ /g')"
@@ -1822,20 +1834,34 @@ _run_teardown_preflight() {
   # was RED at 60f0d2d6: step-g-cleanup.md §G.1 has [ ! -d ] (v1.5 form); gate tightened to ONLY accept [ ! -e ]
   # — no longer accepts [ ! -d ] (F-S2104-P4-007a strengthened from F-S2104-P3-001).
   # GREEN post-implementation: §G.1 updated to [ ! -e ] form (BC-6.26.001 EC-008).
-  _assert_doc_marker '\[ ! -e|test[[:space:]].*!.*-e.*\.factory|if.*\[.*!.*-e.*\.factory' \
-    "step-g-cleanup.md §G.1: normative discrimination predicate MUST be [ ! -e ] (existence) not [ ! -d ] (directory) — BC-6.26.001 EC-008: [ ! -d ] authorizes teardown when a regular file exists at .factory (wrong); [ ! -e ] correctly identifies any occupied path; was RED at 60f0d2d6 until implementer flips to [ ! -e ] at 73c2bade (F-S2104-P3-001 strengthened by F-S2104-P4-007a)" \
+  # F-S2104-P22-003: Tightened to require indented SHELL-EXPRESSION FORM — prose backtick
+  # references like `[ ! -e ]` in explanatory sentences ("If `[ ! -e ]` is FALSE...") also
+  # matched the prior alternation '\[ ! -e|test...|if...' and satisfied the gate even after
+  # the normative indented expression was deleted (all three prose occurrences survive deletion).
+  # This gate mirrors the [ -L ] shell-expression gate at F-S2104-P6-003a: ^[[:space:]]+\[ -L.
+  # The indented form ^[[:space:]]+\[ ! -e  is structurally distinct from prose backtick \`[ ! -e ]\`
+  # (which has a backtick before [, preventing ^[[:space:]]+\[ from matching).
+  # MUTANT: delete the indented `    [ ! -e "<worktree-path>/.factory" ]` line from §G.1 →
+  #   prose mentions remain → prior regex still GREEN → paper-gate confirmed; this gate → RED ✓.
+  _assert_doc_marker '^[[:space:]]+\[ ! -e ' \
+    "step-g-cleanup.md §G.1: literal [ ! -e ] shell expression required as indented command — prose backtick references like \`[ ! -e ]\` do NOT satisfy this gate (those survive clause deletion); ^<spaces>[ ! -e form required (BC-6.26.001 EC-008; F-S2104-P4-007a; F-S2104-P22-003)" \
     "$g1_section"
 
-  # Negative: [ ! -d ] MUST NOT appear as the normative path-absence predicate in §G.1.
-  # Allow -d in explanatory context only (e.g., "The -d test alone MUST NOT be used",
-  # BC-6.26.001 EC-008 non-directory paragraph).
-  # Forbid normative forms: lines with `[ ! -d` that are NOT in explanation/WARNING context.
+  # Negative: indented [ ! -d ] MUST NOT appear as a normative predicate in §G.1.
+  # F-S2104-P22-007: Structural gate — only the INDENTED form ^[[:space:]]+\[ ! -d is normative.
+  # Prose backtick mentions `[ ! -d ]` are explanatory (explaining why -d alone is wrong per
+  # BC-6.26.001 EC-008) and are structurally exempt — they start with backtick, not whitespace.
+  # The prior lexical exclusion (grep -Ev 'MUST NOT|wrong|alone|...') was fail-open: any
+  # exemption token in a comment on a normative line (e.g., `[ ! -d "<path>" ]  # alone...`)
+  # silently excluded the normative expression. POLICY 13 FAIL-CLOSED-IMPLICATION-DIRECTION
+  # requires ambiguity → BLOCK; the structural form is unambiguous.
+  # MUTANT: add `    [ ! -d "<worktree-path>/.factory" ]   # the -e test alone is not required`
+  #   → has 'alone' → OLD lexical exclusion silent; NEW structural gate → RED ✓.
   local forbidden_d_normative
   forbidden_d_normative="$(printf '%s\n' "$g1_section" | \
-    grep -E '\[ ! -d' | \
-    grep -Ev 'MUST NOT|wrong|alone|WARNING|incorrect|would.*true|would.*author|test alone|must not' || true)"
+    grep -E '^[[:space:]]+\[ ! -d' || true)"
   if [ -n "$forbidden_d_normative" ]; then
-    echo "DOC-PARITY FAIL [must NOT contain: [ ! -d ] as normative path-absence predicate — BC-6.26.001 EC-008 forbids -d-only check; regular file at .factory satisfies [ ! -d ] → wrong teardown authorization; use [ ! -e ] instead (F-S2104-P4-007a)]"
+    echo "DOC-PARITY FAIL [must NOT contain: indented [ ! -d ] as normative path-absence predicate — BC-6.26.001 EC-008 forbids -d-only check; prose backtick mentions exempted by structural form; use [ ! -e ] instead (F-S2104-P4-007a; F-S2104-P22-007)]"
     printf '%s\n' "$forbidden_d_normative"
     false
   fi
@@ -1983,16 +2009,13 @@ _run_teardown_preflight() {
   # Post-implementation: PC2c block in §G.1 → DOC-PARITY GREEN; harness emits PREFLIGHT HALT
   #   with exit code; REMOVE_LOG empty.
 
-  # Skip if running as root: chmod 000 is ineffective for root (find succeeds regardless).
-  if [ "$(id -u)" -eq 0 ]; then
-    skip "T-004 requires non-root user (chmod 000 is ineffective as root; find would succeed)"
-  fi
-
-  # --- Fixture: .factory/ with a permission-locked subdirectory ---
-  mkdir -p "$MOCK_WORKTREE/.factory/locked-subdir"
-  chmod 000 "$MOCK_WORKTREE/.factory/locked-subdir"
-
   # --- DOC-PARITY §G.1: PC2c semantic direction gates (F-S2104-P2-008) ---
+  # F-S2104-P22-010: root-skip moved to AFTER doc-parity gates (just before the chmod 000 fixture).
+  # The prior placement skipped the entire test before any doc-parity assertion ran on root
+  # runners — doc-parity correctness was not verified at all on root CI. The harness gates
+  # require chmod 000 to be effective (only meaningful for non-root) but doc-parity gates
+  # read documentation files and require no filesystem fixture. Separated here so both
+  # coverage classes are preserved: doc-parity always executes; harness skips on root.
   # The old broad alternation 'PC2c|...' allowed a mutant that rewrites the PC2c branch to
   # 'proceed' while keeping the label to pass (bare label match). Replaced with co-occurrence
   # gates on the extracted PC2c block: error condition + HALT direction + no proceed-forward
@@ -2011,12 +2034,38 @@ _run_teardown_preflight() {
     "step-g-cleanup.md §G.1 PC2c block: HALT direction mandatory — 'HALT' or 'NOT executed' must appear in the PC2c block (BC-6.26.001 PC2c fail-closed; F-S2104-P2-008)" \
     "$pc2c_block"
 
-  # PC2c block must NOT contain unconditional proceed-forward semantics
-  # 'Proceed to' / 'Proceed with' would authorize teardown — a mutant keeping 'PC2c' label
-  # while adding proceed semantics is caught here but passes the old bare-label assertion
-  _assert_no_doc_marker '[Pp]roceed[[:space:]]+(to|with)[[:space:]]' \
-    "step-g-cleanup.md §G.1 PC2c block: must NOT contain proceed-forward semantics — a PC2c→proceed mutant keeping the label passes the old assertion but fails this gate (F-S2104-P2-008)" \
-    "$pc2c_block"
+  # PC2c block must NOT contain AFFIRMATIVE proceed-forward semantics.
+  # F-S2104-P22-008: Negation-transparent — the prior gate '_assert_no_doc_marker
+  # [Pp]roceed[[:space:]]+(to|with)' was non-transparent: "Do NOT proceed to git worktree remove"
+  # (a valid prohibition phrasing in PC2c) fired the gate even though it NEGATES proceed.
+  # The sibling PC2b gate at F-S2104-P3-011 uses the narrow form '[Pp]roceed[[:space:]]+to
+  # [[:space:]]+the[[:space:]]+[Dd]ispatch' — affirmative-only by construction. PC2c mirrors
+  # that approach: after extracting lines containing 'proceed to/with', filter out negated lines
+  # (those containing NOT/do not/must not). POLICY 13 FAIL-CLOSED-IMPLICATION-DIRECTION:
+  # ambiguity → BLOCK; negated-proceed is not ambiguous — it is the opposite of authorization.
+  # MUTANT: "Proceed with the teardown per BC-6.26.001 PC2c." → not negated → RED ✓.
+  # CONTROL: "Do NOT proceed to git worktree remove." → negated → excluded → GREEN ✓.
+  local pc2c_proceed_fwd
+  pc2c_proceed_fwd="$(printf '%s\n' "$pc2c_block" | \
+    grep -iE '[Pp]roceed[[:space:]]+(to|with)[[:space:]]' | \
+    grep -viE '\bNOT[[:space:]]+proceed|\bdo[[:space:]]+not[[:space:]]+proceed|[Mm]ust[[:space:]]+[Nn]ot[[:space:]]+proceed|\bno[[:space:]]+proceed' || true)"
+  if [ -n "$pc2c_proceed_fwd" ]; then
+    echo "DOC-PARITY FAIL [step-g-cleanup.md §G.1 PC2c block: affirmative proceed-forward semantics (negation-transparent; F-S2104-P22-008)]: a PC2c→proceed mutant keeping the label while adding proceed semantics is caught here; negated forms (Do NOT proceed to...) are exempt"
+    printf '%s\n' "$pc2c_proceed_fwd"
+    false
+  fi
+
+  # F-S2104-P22-010: doc-parity legs complete. Skip harness legs if running as root —
+  # chmod 000 is ineffective for root (find succeeds regardless of permissions); harness
+  # assertions require an effective permission-denied scenario to exercise PC2c.
+  if [ "$(id -u)" -eq 0 ]; then
+    printf 'T-004 coverage: doc-parity legs=4 EXECUTED; harness legs=0 SKIPPED (root runner)\n'
+    skip "T-004 harness gates require non-root user (chmod 000 is ineffective as root; find would succeed)"
+  fi
+
+  # --- Fixture: .factory/ with a permission-locked subdirectory ---
+  mkdir -p "$MOCK_WORKTREE/.factory/locked-subdir"
+  chmod 000 "$MOCK_WORKTREE/.factory/locked-subdir"
 
   # --- HARNESS: find error → HALT (non-zero); PC2c message; exit code surfaced; REMOVE_LOG empty ---
   run _run_teardown_preflight "$MOCK_WORKTREE" "$REMOVE_LOG"
@@ -2070,8 +2119,11 @@ _run_teardown_preflight() {
 
   # --- DOC-PARITY §G.1: discrimination predicate must be [ ! -e ] (F-S2104-P4-007a) ---
   # [ ! -d ] (the v1.5 form) was superseded; only [ ! -e ] accepted now (BC-6.26.001 EC-008).
-  _assert_doc_marker '\[ ! -e|test[[:space:]].*!.*-e.*\.factory' \
-    "step-g-cleanup.md §G.1: [ ! -e ] existence predicate required (not [ ! -d ] alone) — regular file satisfies [ ! -d ] → wrong teardown authorization; [ ! -e ] correctly identifies path-occupancy (BC-6.26.001 EC-008; F-S2104-P4-007a)" \
+  # F-S2104-P22-003 tightening: require INDENTED SHELL-EXPRESSION form (^<spaces>[ ! -e ),
+  # mirroring the [ -L ] gate at F-S2104-P6-003a. Prose backtick `[ ! -e ]` survives deletion
+  # and would satisfy the prior alternation — this gate requires the normative indented expression.
+  _assert_doc_marker '^[[:space:]]+\[ ! -e ' \
+    "step-g-cleanup.md §G.1: [ ! -e ] indented shell expression required (not prose backtick form) — prose mentions survive clause deletion; structural form required (BC-6.26.001 EC-008; F-S2104-P4-007a; F-S2104-P22-003)" \
     "$g1_section"
 
   # --- DOC-PARITY §G.1: non-directory→PC2b BLOCKED clause presence (F-S2104-P4-007a second gate) ---
@@ -2156,17 +2208,35 @@ _run_teardown_preflight() {
     "step-g-cleanup.md §G.1: literal [ -L ] shell expression required as indented command — prose-only mention does not prove the test is present; bracket-L form ^<spaces>[ -L must appear (BC-6.26.001 PC2b symlink; T-006; F-S2104-P5-011)" \
     "$g1_section"
 
+  # --- DOC-PARITY §G.1: ORDERING — [ ! -e ] must precede [ -L ] (F-S2104-P22-003b) ---
+  # BC-6.26.001 step-1-before-step-2: path-absence check [ ! -e ] (step 1) MUST precede the
+  # symlink check [ -L ] (step 2). An ordering inversion would run the symlink test before the
+  # absence test, potentially running [ -L ] on an absent path (which is harmless on most shells
+  # but violates the documented discrimination chain order). This gate mirrors the [ -L ]-before-
+  # find ordering gate below — both use awk line-number comparison.
+  # MUTANT: swap the order of the two indented expressions in §G.1 → gate fires → RED ✓.
+  local bracket_e_lineno bracket_l_lineno
+  bracket_e_lineno="$(printf '%s\n' "$g1_section" | awk '/^[[:space:]]+\[ ! -e / { print NR; exit }')"
+  bracket_l_lineno="$(printf '%s\n' "$g1_section" | awk '/^[[:space:]]+\[ -L / { print NR; exit }')"
+  [ -n "$bracket_e_lineno" ] || {
+    echo "DOC-PARITY FAIL: [ ! -e ] shell expression not found in §G.1 section — bracket-!-e must be present as an indented command (BC-6.26.001 PC2a; F-S2104-P22-003b)"
+    false
+  }
+  [ -n "$bracket_l_lineno" ] || {
+    echo "DOC-PARITY FAIL: [ -L ] shell expression not found in §G.1 section — bracket-L must be present as an indented command for step-1-before-step-2 check (BC-6.26.001 PC2b symlink; F-S2104-P22-003b)"
+    false
+  }
+  [ "$bracket_e_lineno" -lt "$bracket_l_lineno" ] || {
+    echo "DOC-PARITY FAIL: [ ! -e ] line ($bracket_e_lineno) must precede [ -L ] line ($bracket_l_lineno) in §G.1 — ordering inversion violates BC-6.26.001 step-1-before-step-2 discrimination chain (F-S2104-P22-003b)"
+    false
+  }
+
   # --- DOC-PARITY §G.1: ORDERING — [ -L ] must precede first find invocation (F-S2104-P6-003b) ---
   # The [ -L ] check must appear BEFORE the find command within §G.1; an ordering inversion would
   # allow find to be called on a symlink-to-dir (which satisfies [ -d ] by dereferencing). Uses
   # the same awk line-number comparison pattern as the pass-2 preflight-before-dispatch gate.
-  local bracket_l_lineno find_lineno
-  bracket_l_lineno="$(printf '%s\n' "$g1_section" | awk '/^[[:space:]]+\[ -L / { print NR; exit }')"
+  local find_lineno
   find_lineno="$(printf '%s\n' "$g1_section" | awk '/^[[:space:]]*find[[:space:]]/ { print NR; exit }')"
-  [ -n "$bracket_l_lineno" ] || {
-    echo "DOC-PARITY FAIL: [ -L ] shell expression not found in §G.1 section — bracket-L must be present as an indented command (BC-6.26.001 PC2b symlink; F-S2104-P6-003b)"
-    false
-  }
   [ -n "$find_lineno" ] || {
     echo "DOC-PARITY FAIL: find invocation not found in §G.1 section — cannot verify [ -L ] ordering (BC-6.26.001 PC2b; F-S2104-P6-003b)"
     false
@@ -2233,8 +2303,16 @@ _run_teardown_preflight() {
   # Helper: assert anti-pattern absent in a file (inline bare find command).
   # Anti-pattern: `find <path>/.factory -type f` as an inline command the agent is instructed to run.
   # After fix: surface says "run §G.1 preflight" or "proceed on PASS" without inlining find.
+  # F-S2104-P22-009: Also catches the option-first form `find -type f <path>/.factory/`
+  # (e.g. `find -type f ".worktrees/STORY-NNN/.factory"`). A sibling-surface mutant reordering
+  # the flags to `find -type f <path>` evades the path-first pattern but is semantically
+  # identical — both inline the find command rather than delegating to §G.1 preflight.
+  # MUTANT: `find -type f ".worktrees/S-21.04/.factory/"` → option-first pattern RED ✓.
+  # CONTROL: "Run the §G.1 preflight in step-g-cleanup.md before calling git worktree remove" → GREEN ✓.
   _assert_no_inline_find_antipattern() {
     local file="$1" label="$2"
+    local antipattern_found=false
+    # Path-first form: find <path>/.factory[/]... -type f
     # Regex catches unquoted ('.factory -type f', '.factory/ -type f') AND the quoted canonical
     # form ('find "<worktree-path>/.factory/" -type f') from the canonical find command in step-g-cleanup.md §G.1.
     # The prior pattern '.factory/?[[:space:]]' failed on the quoted form: after '\.factory/',
@@ -2242,21 +2320,65 @@ _run_teardown_preflight() {
     # Fix: '[^[:space:]]*' after '\.factory/?' consumes any trailing non-space chars (e.g., '"')
     # before '[[:space:]]' matches the argument separator (F-S2104-P6-007 + F-S2104-P7-002).
     if grep -qE 'find[[:space:]]+[^[:space:]]*\.factory/?[^[:space:]]*[[:space:]].*-type[[:space:]]+f' "$file"; then
-      echo "DOC-PARITY FAIL [anti-pattern present in $label]: surface presents inline bare 'find ... .factory[/] ... -type f' as the first action — MUST NOT inline find command; delegate to §G.1 preflight instead (BC-6.26.001 PC2 + AC-007(d); absent-path check is first, not an unordered sibling; F-S2104-P4-009)"
+      antipattern_found=true
+    fi
+    # Option-first form: find -type f <path>/.factory[/] (F-S2104-P22-009)
+    # A mutant reordering flags to `find -type f <path>/.factory` evades the path-first pattern.
+    if grep -qE 'find[[:space:]]+-type[[:space:]]+f[[:space:]]+[^[:space:]]*\.factory' "$file"; then
+      antipattern_found=true
+    fi
+    if [ "$antipattern_found" = true ]; then
+      echo "DOC-PARITY FAIL [anti-pattern present in $label]: surface presents inline bare 'find ... .factory[/] ... -type f' (path-first OR option-first form) as the first action — MUST NOT inline find command; delegate to §G.1 preflight instead (BC-6.26.001 PC2 + AC-007(d); absent-path check is first, not an unordered sibling; F-S2104-P4-009; F-S2104-P22-009)"
       false
     fi
   }
 
-  # Helper: assert fully-qualified step-g-cleanup.md path present (F-S2104-P9-class strengthened).
-  # Prior bare alternation 'step-g-cleanup|§G\.1|G\.1' satisfiable by any incidental §G.1 mention
-  # without the qualified path form. All 6 surfaces carry the fully-qualified
-  # 'plugins/vsdd-factory/skills/deliver-story/steps/step-g-cleanup.md' path — require it.
+  # Helper: assert fully-qualified step-g-cleanup.md path present with ordering and mandate-token.
+  # F-S2104-P22-009: Prior gate gated only presence — a surface could satisfy it by citing the
+  # §G.1 path in a footer comment AFTER the git-worktree-remove call, or without a mandatory
+  # framing. Two additional gates close these escape hatches:
+  #   (i)  Mandate-token: the §G.1 reference line must carry MUST/required/mandatory/BEFORE —
+  #        a mere "see also step-g-cleanup.md" satisfies presence but not mandate.
+  #   (ii) Ordering: if git worktree remove also appears in the file, the §G.1 reference line
+  #        must precede it (preflight before removal, not after).
+  # MUTANT (mandate): "For context see step-g-cleanup.md §G.1." → no MUST token → RED ✓.
+  # MUTANT (ordering): §G.1 cited after "git worktree remove..." line → ordering fails → RED ✓.
+  # CONTROL: "MUST run step-g-cleanup.md §G.1 preflight before git worktree remove" → GREEN ✓.
   _assert_g1_ref() {
     local file="$1" label="$2"
+    # Presence gate (unchanged)
     grep -qE 'plugins/vsdd-factory/skills/deliver-story/steps/step-g-cleanup\.md' "$file" || {
       echo "DOC-PARITY FAIL [fully-qualified §G.1 path missing from $label]: surface must carry fully-qualified path 'plugins/vsdd-factory/skills/deliver-story/steps/step-g-cleanup.md' — bare §G.1 or step-g-cleanup alone is insufficient for cross-document traceability (BC-6.26.001 PC2 + AC-007(d); F-S2104-P4-009 / F-S2104-P9-class)"
       false
     }
+    # Mandate-token gate (F-S2104-P22-009): the §G.1 reference must appear in a mandatory context.
+    # Accepted mandate tokens (based on actual surface-document imperative forms):
+    #   MUST, required, mandatory, BEFORE, before, first (explicit obligation tokens), AND
+    #   Run/run (imperative-command form: "Run the §G.1 preflight"), AND
+    #   "proceed only" / "only on" (conditional-proceed form: "proceed only on PASS").
+    # A mutant "For context, see step-g-cleanup.md §G.1." has no mandate token → RED ✓.
+    # CONTROL: "Run the §G.1 preflight..." / "proceed only on PASS" → mandate token present → GREEN ✓.
+    local g1_ref_line g1_mandated_line
+    # Check ALL lines containing the qualified path for any mandate token (not just head -1)
+    g1_mandated_line="$(grep -E 'plugins/vsdd-factory/skills/deliver-story/steps/step-g-cleanup\.md' "$file" | \
+      grep -iE '\bMUST\b|\brequired\b|\bmandatory\b|\bBEFORE\b|\bbefore\b|\bfirst\b|\bRun\b|\brun\b|\bproceed only\b|\bonly on\b' | head -1 || true)"
+    if [ -z "$g1_mandated_line" ]; then
+      g1_ref_line="$(grep -E 'plugins/vsdd-factory/skills/deliver-story/steps/step-g-cleanup\.md' "$file" | head -1)"
+      echo "DOC-PARITY FAIL [§G.1 reference in $label lacks mandate token (F-S2104-P22-009)]: no line containing the qualified step-g-cleanup.md path also carries a mandate token (MUST/required/mandatory/BEFORE/before/Run/run/proceed-only)"
+      printf 'Found line: %s\n' "$g1_ref_line"
+      false
+    fi
+    # Ordering gate (F-S2104-P22-009): if git worktree remove appears in the file, the §G.1
+    # reference must precede it — preflight before removal, not as a trailing footnote.
+    local g1_ref_lineno wt_remove_lineno
+    g1_ref_lineno="$(grep -nE 'plugins/vsdd-factory/skills/deliver-story/steps/step-g-cleanup\.md' "$file" | head -1 | cut -d: -f1)"
+    wt_remove_lineno="$(grep -nE 'git[[:space:]]+worktree[[:space:]]+remove' "$file" | head -1 | cut -d: -f1 || true)"
+    if [ -n "$wt_remove_lineno" ]; then
+      [ "$g1_ref_lineno" -lt "$wt_remove_lineno" ] || {
+        echo "DOC-PARITY FAIL [§G.1 reference must precede git worktree remove in $label (F-S2104-P22-009)]: §G.1 ref at line $g1_ref_lineno, git worktree remove at line $wt_remove_lineno — preflight reference must appear before the removal call"
+        false
+      }
+    fi
   }
 
   # --- 1. skills/worktree-manage/SKILL.md ---

@@ -202,6 +202,8 @@ After successful merge (delegated to devops-engineer):
 2. Run the `plugins/vsdd-factory/skills/deliver-story/steps/step-g-cleanup.md §G.1` preflight
    (BC-6.26.001 PC2); proceed only on a PASS result (the §G.1 discrimination-chain protocol).
    Remove local worktree: `git worktree remove .worktrees/STORY-NNN`
+
+   > **Gate-imposed authoring constraint (T-008 / F-S2104-P22-003):** The combined pattern `find … .factory/ … -type f` is forbidden in this file. Any text matching `find[[:space:]]+[^[:space:]]*\.factory/?[^[:space:]]*[[:space:]].*-type[[:space:]]+f` — including inside code fences — triggers the T-008 bats anti-pattern gate. Reference §G.1 step-g-cleanup.md for the authorized preflight command form.
 3. Update `.factory/STATE.md` with merge status, PR number, and timestamp
 4. Write delivery report to `.factory/code-delivery/STORY-NNN/delivery.md`
 

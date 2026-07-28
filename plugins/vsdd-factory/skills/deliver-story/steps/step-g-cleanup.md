@@ -39,8 +39,11 @@ Outcomes:
     [ -L "<worktree-path>/.factory" ]
 
 If this test passes, a symlink occupies the path. `test -d` follows symlinks — a symlink-to-dir
-satisfies `[ -d ]` by dereferencing — but `find` does NOT descend symlinks, so a symlink-to-dir
-at the path would produce empty find output and falsely authorize teardown. Go directly to
+satisfies `[ -d ]` by dereferencing — and `find "<symlink-path>/"` (trailing-slash form) would
+dereference the symlink via POSIX pathname resolution, enumerating files from the TARGET directory
+outside the worktree boundary (out-of-scope traversal); if the target is empty, `find` returns
+empty output, falsely authorizing teardown; `git worktree remove` then removes only the symlink
+entry (target NOT destroyed, but operator not notified). Go directly to
 PC2b BLOCKED; list the path; do NOT invoke `find` on a symlink inode
 (symlink → PC2b BLOCKED, BC-6.26.001 EC-008).
 
@@ -94,6 +97,8 @@ not a non-directory inode), run:
 If `find` exits 0 with empty output → PC2a sub-case (b): no stray factory artifacts; proceed to
 the Dispatch below. If `find` exits 0 with non-empty output → PC2b BLOCKED. If `find` exits
 non-zero → PC2c HALT.
+
+> **Gate-imposed authoring constraint (T-004/Gate PC2c — F-S2104-P22-002):** The PC2c block above MUST NOT contain `proceed to` or `proceed with` phrasing. The T-004 bats gate checks unconditionally for `[Pp]roceed[[:space:]]+(to|with)[[:space:]]` and fires immediately on any match in the extracted PC2c block, including explanatory sentences. Use `HALT`, `teardown MUST NOT continue`, or `do NOT invoke git worktree remove` instead.
 
 ### Dispatch (PC2a only — after a PASS preflight result)
 

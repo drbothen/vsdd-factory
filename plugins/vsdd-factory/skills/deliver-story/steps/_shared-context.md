@@ -113,6 +113,8 @@ pre-provided `CANONICAL_FACTORY_ROOT`.
 - **Forbidden:** `Write(file_path=".factory/stories/S-NNN-DELIVERY.md", ...)` (relative path — silently writes to shadow tree)
 - **Forbidden:** `Write(file_path="../../.factory/stories/S-NNN-DELIVERY.md", ...)` (relative traversal — brittle and error-prone)
 
+> **Gate-imposed authoring constraint (T-001/Gate PW-B — F-S2104-P22-001):** Prohibition directives in this `#### Write Discipline` section MUST use `**Forbidden:**` bullet format. Bare RFC-2119 prose forms (`MUST NOT …`, `is prohibited`) written outside a `**Forbidden:**` bullet trigger Gate PW-B as a false positive — the bats fail-closed whitelist only passes constructions anchored to `**Forbidden:**` bullets.
+
 ### Story-Size Gate
 
 If a story is too large to fit any specialist's budget (≥60% of target model's context window), STOP and dispatch story-writer to split it before proceeding.

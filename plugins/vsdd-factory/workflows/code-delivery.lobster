@@ -445,3 +445,5 @@ workflow:
         (BC-6.26.001 PC2); proceed only on a PASS result (the §G.1 discrimination-chain protocol).
         Remove worktree: git worktree remove [worktree_path].
         Update .factory/STATE.md with merge status, PR number, timestamp.
+        NOTE (Gate T-008 / F-S2104-P22-003): the combined pattern "find ... .factory/ ... -type f"
+        is forbidden in this file including in task strings; use step-g-cleanup.md §G.1 reference.
