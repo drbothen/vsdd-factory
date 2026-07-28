@@ -279,6 +279,35 @@ _extract_g1_pc2b_block() {
   ' "$STEP_G_CLEANUP"
 }
 
+# _build_section_prose SECTION_CONTENT
+# Builds a normalised prose domain from a Markdown section for gate evaluation.
+# Single source of truth shared by T-001 and the pipeline probe (F-S2104-P24-003); using this
+# function in the probe ensures the probe exercises the real production code path rather than
+# re-implementing the pipeline over synthetic strings (POLICY 11 anti-tautology discipline).
+#
+# Applies in order:
+#   (1) Recursive blockquote-marker strip (F-S2104-P23-001 / F-S2104-P24-001):
+#       sed -E 's/^([[:space:]]*>[[:space:]]*)+//' removes all leading '>' chains from each line
+#       (single-level and multi-level: '>>' handled by the '+' quantifier), preserving content.
+#       Normalises blockquote form to plain text so gate predicates (including line-anchored
+#       bare-imperative ^Anchor/^Resolve/^Place) apply correctly. The non-recursive old form
+#       'sed s/^[[:space:]]*>[[:space:]]*//' consumed only one '>' — a '>> ...' line retained
+#       one '>' after strip, defeating ^-anchored bare-imperative detection (F-S2104-P24-001).
+#   (2) Bullet/numbered-list-marker strip (F-S2104-P24-004):
+#       sed -E 's/^[[:space:]]*[-*+][[:space:]]+//' removes leading hyphen/asterisk/plus list
+#       markers; sed -E 's/^[[:space:]]*[0-9]+\.[[:space:]]+//' removes numbered-list markers.
+#       Without this normalisation, '- Anchor every write ...' left the imperative after the
+#       list marker, preventing the line-anchored ^Anchor match in PWBD_DIRECTIVE_CLASS.
+#   (3) Newline-join (tr '\n' ' '): collapses multi-line section to single prose string.
+_build_section_prose() {
+  local section="$1"
+  printf '%s\n' "$section" | \
+    sed -E 's/^([[:space:]]*>[[:space:]]*)+//' | \
+    sed -E 's/^[[:space:]]*[-*+][[:space:]]+//' | \
+    sed -E 's/^[[:space:]]*[0-9]+\.[[:space:]]+//' | \
+    tr '\n' ' '
+}
+
 _assert_doc_marker() {
   # $1=regex  $2=label  $3=section_text
   printf '%s\n' "$3" | grep -qE "$1" || {
@@ -294,6 +323,19 @@ _assert_no_doc_marker() {
     false
   fi
 }
+
+# Shared directive class for Gate PW-B and write-directive gate (F-S2104-P21-001).
+# Defined at file scope so both T-001 and the pipeline probe (F-S2104-P24-003) share
+# one definition — prevents independent-authoring drift. Local definition in T-001 removed.
+# UNION of prior PW-B class and prior write-directive class:
+#   Prior PW-B class: MUST|SHOULD|required|is[[:space:]]+the[[:space:]]+required|
+#     is[[:space:]]+preferred|is[[:space:]]+acceptable|permits
+#   Prior write-directive class: above plus may|
+#     ^(\*\*[^:*]+:\*\*[[:space:]]+)?(Anchor|Write|Save|Store|Place|Record|Emit|Persist|Resolve|Use)
+# Bare-imperative alternation is LINE-ANCHORED (^ with optional **Label:** prefix) to prevent
+# mid-sentence false positives; list-marker prefixes are normalised out by _build_section_prose
+# BEFORE the domain is constructed, so ^-anchored matching works on normalised prose.
+PWBD_DIRECTIVE_CLASS='MUST|SHOULD|required|is[[:space:]]+the[[:space:]]+required|is[[:space:]]+preferred|is[[:space:]]+acceptable|permits|may|^(\*\*[^:*]+:\*\*[[:space:]]+)?(Anchor|Write|Save|Store|Place|Record|Emit|Persist|Resolve|Use)[[:space:]]'
 
 # ===========================================================================
 # EXECUTABLE-HARNESS helper
@@ -537,8 +579,14 @@ _run_teardown_preflight() {
   # --- DOC-PARITY _shared-context.md §Spec-Path Discipline Write Discipline clause (AC-001) ---
   local spec_path_section
   spec_path_section="$(_extract_spec_path_discipline_section)"
-  _assert_doc_marker 'Write Discipline' \
-    "_shared-context.md §Spec-Path Discipline: Write Discipline clause (BC-6.26.001 PC1, Invariant 1)" \
+  # F-S2104-P24-006 closure: gate changed from 'Write Discipline' (prose substring) to
+  # '^#### Write Discipline' (heading form). The annotation relocated to _shared-context.md L64
+  # at pass-23 contains the literal `#### Write Discipline` in backtick prose, which satisfied
+  # the old marker regardless of whether the actual heading was present. The heading form
+  # '^#### Write Discipline' requires a line starting with four # marks; the annotation starts
+  # with '> ' so it does NOT satisfy this pattern — gate is load-bearing again.
+  _assert_doc_marker '^#### Write Discipline' \
+    "_shared-context.md §Spec-Path Discipline: #### Write Discipline child-heading present in heading form (BC-6.26.001 PC1, Invariant 1; F-S2104-P24-006)" \
     "$spec_path_section"
   _assert_doc_marker 'CANONICAL_FACTORY_ROOT' \
     "_shared-context.md §Spec-Path Discipline: CANONICAL_FACTORY_ROOT mandate (BC-6.26.001 PC1, Invariant 3)" \
@@ -790,22 +838,22 @@ _run_teardown_preflight() {
   # empty over the unexcluded pristine section by adversary literal shell.
   # Abbreviation-protect cf./i.e./e.g. before sentence-splitting (F-S2104-P16-001 M-P16-C2
   # hardening: cf. dot creates a false boundary that masks CWD-relative from Gate 1(c)/Gate 5).
-  # F-S2104-P23-001 closure: blockquote strip replaced with blockquote-MARKER strip.
-  # The old strip removed ENTIRE lines starting with '>' — an unconditional fail-open that
-  # blinded Gate PW-B, Gate 2b(a)/(c), Gate scope-restriction, Gates 4 and 5 to any
-  # prohibited content placed in a blockquote (M-P21-A/B/C class and M-P17-D class).
-  # The correct fix strips ONLY the '^[[:space:]]*>[[:space:]]*' markdown presentation marker
-  # from each line while preserving the content — normalizing blockquote form to plain text
-  # so the gate predicates (including the bare-imperative line-anchor ^Anchor/^Resolve/^Place)
-  # apply correctly. The T-001/Gate PW-B authoring-constraint annotation that triggered the
-  # false-positive scope-restriction fire has been relocated OUTSIDE #### Write Discipline
-  # (placed before the heading, still within ### Spec-Path Discipline) so it is not in the
-  # gated domain. Proof: M-P21-A 'Anchor every write to the story worktree CWD.' fires PW-B
-  # when injected as '> Anchor...' (marker stripped → Anchor at line start → ^Anchor matches);
-  # M-P17-D 'The prohibition above has been rescinded and superseded.' fires Gate 2b(a).
+  # F-S2104-P23-001 + F-S2104-P24-001 closure: _build_section_prose applies the recursive
+  # blockquote-marker strip (handles '>>' double-blockquote) and list-marker normalisation.
+  # The old inline strip consumed only one '>' per line; '>> Anchor...' retained '>' after
+  # stripping, defeating the ^-anchored bare-imperative class (F-S2104-P24-001).
+  # F-S2104-P24-002 closure: spec_path_prose now built via _build_section_prose (same marker
+  # strip as write_discipline_prose), not the old bare 'tr' which left '>' markers intact.
+  # The pass-23 relocation of the authoring-constraint annotation to _shared-context.md L64
+  # placed it in ### Spec-Path Discipline above #### Write Discipline — inside spec_path_section
+  # but outside write_discipline_section. The annotation used '>' prefix; without the strip
+  # the spec_path_prose domain retained the '>' marker, preventing ^-anchored detection in the
+  # write-directive gate. _build_section_prose strips both domains identically (TD-VSDD-060
+  # sibling-site sweep: write_discipline_prose and spec_path_prose must both be normalised).
+  # PWBD_DIRECTIVE_CLASS: moved to file scope (defined above all @test blocks) so the pipeline
+  # probe shares the identical constant — no local redefinition here (F-S2104-P24-003).
   local write_discipline_prose
-  write_discipline_prose="$(printf '%s\n' "$write_discipline_section" | \
-    sed 's/^[[:space:]]*>[[:space:]]*//' | tr '\n' ' ')"
+  write_discipline_prose="$(_build_section_prose "$write_discipline_section")"
   local write_discipline_prose_nosplit
   write_discipline_prose_nosplit="$(printf '%s\n' "$write_discipline_prose" | \
     sed 's/cf\. /cf_ABBREV_ /g; s/i\.e\. /ie_ABBREV_ /g; s/e\.g\. /eg_ABBREV_ /g')"
@@ -814,33 +862,12 @@ _run_teardown_preflight() {
   # The write-directive gate reads this domain; PW-B/2b/4/5 remain bounded to write_discipline_prose_nosplit.
   # Naive widening of PW-B/2b/4/5 false-positives on two read-discipline sentences above the
   # #### Write Discipline heading (adversary verified pristine-empty for write-directive gate only).
+  # F-S2104-P24-002: spec_path_prose now uses _build_section_prose (marker strip applied).
   local spec_path_prose
-  spec_path_prose="$(printf '%s\n' "$spec_path_section" | tr '\n' ' ')"
+  spec_path_prose="$(_build_section_prose "$spec_path_section")"
   local spec_path_prose_nosplit
   spec_path_prose_nosplit="$(printf '%s\n' "$spec_path_prose" | \
     sed 's/cf\. /cf_ABBREV_ /g; s/i\.e\. /ie_ABBREV_ /g; s/e\.g\. /eg_ABBREV_ /g')"
-
-  # Shared directive class for Gate PW-B and write-directive gate (F-S2104-P21-001).
-  # Single definition used by both gates, eliminating the independent-authoring drift that
-  # allowed bare-imperative mandates (P2 "Anchor every write to the story worktree CWD",
-  # P3 "Resolve all delivery paths from the story worktree CWD", P4 "Place each report in
-  # the worktree's shadow subtree") to evade Gate PW-B while also evading the write-directive
-  # gate (P2/P3/P4 lack the .factory/|ledger|artifact writes? referent that write-directive
-  # requires). The unified class is the union of both prior independent classes:
-  #   Prior PW-B class: MUST|SHOULD|required|is[[:space:]]+the[[:space:]]+required|
-  #     is[[:space:]]+preferred|is[[:space:]]+acceptable|permits
-  #   Prior write-directive class: MUST|SHOULD|permits|is acceptable|is the required form|
-  #     is preferred|may|^(\*\*[^:*]+:\*\*[[:space:]]+)?(Anchor|Write|Save|Store|Place|
-  #     Record|Emit|Persist|Resolve|Use)[[:space:]]
-  #   Union: all of the above.
-  # Bare-imperative alternation is LINE-ANCHORED (^ with optional **Label:** prefix) to prevent
-  # mid-sentence false positives from bare 'Use'/'Write'/'Place' etc. in other contexts.
-  # Verified empty-on-pristine: Gate PW-B with unified class returns no violations over
-  # write_discipline_prose_nosplit (adversary verified; write-directive gate's bare-imperative
-  # trigger was already verified empty-on-pristine over the wider spec_path_prose_nosplit domain
-  # at pass-19; the narrower PW-B domain is a subset and therefore also clean).
-  local PWBD_DIRECTIVE_CLASS
-  PWBD_DIRECTIVE_CLASS='MUST|SHOULD|required|is[[:space:]]+the[[:space:]]+required|is[[:space:]]+preferred|is[[:space:]]+acceptable|permits|may|^(\*\*[^:*]+:\*\*[[:space:]]+)?(Anchor|Write|Save|Store|Place|Record|Emit|Persist|Resolve|Use)[[:space:]]'
 
   # Boundary-completeness assertion (F-S2104-P19-004(b)): verifies the sentence splitter fires
   # on every '. [A-Z*`\[]' boundary it should split. The primary fix for the missed-boundary
@@ -1156,7 +1183,7 @@ _run_teardown_preflight() {
     grep -E "$PWBD_DIRECTIVE_CLASS" | \
     grep -vE '\*\*Forbidden:\*\*' || true)"
   if [ -z "$mp21e_violations" ]; then
-    echo "MUTANT FAIL [M-P21-E (F-S2104-P21-003 'may' regression guard)]: probe 'Agents may deliver factory artifacts to the story worktree CWD.' must fire Gate PW-B — 'may' is in PWBD_DIRECTIVE_CLASS; 'story worktree CWD' is prohibited-target; no prohibition token → RED; deleting 'may' from PWBD_DIRECTIVE_CLASS at line 815 would not be caught by M-P21-A/B/C (all fire via bare-imperative); got empty (gate SILENT)"
+    echo "MUTANT FAIL [M-P21-E (F-S2104-P21-003 'may' regression guard)]: probe 'Agents may deliver factory artifacts to the story worktree CWD.' must fire Gate PW-B — 'may' is in PWBD_DIRECTIVE_CLASS (file-scope constant); 'story worktree CWD' is prohibited-target; no prohibition token → RED; deleting 'may' from PWBD_DIRECTIVE_CLASS would not be caught by M-P21-A/B/C (all fire via bare-imperative); got empty (gate SILENT)"
     false
   fi
 
@@ -1777,6 +1804,197 @@ _run_teardown_preflight() {
     echo "HARNESS FAIL: REMOVE_LOG non-empty — git worktree remove was invoked but MUST NOT be on PREFLIGHT BLOCKED path — log: $(cat "$REMOVE_LOG")"
     false
   }
+}
+
+# ===========================================================================
+# Pipeline probe (F-S2104-P24-003): domain-construction exercises real production code path
+#
+# Three consecutive BLOCKERs (pass-22, pass-23, pass-24) all lived in the domain-construction
+# pipeline (extract → strip → tr → split). None were caught because the M-P21 probe family
+# re-implements gate predicates over synthetic string literals and never exercises the pipeline
+# itself. The marker strip appeared exactly ONCE in the whole bats file at its own definition
+# (L808 pre-P24). No probe applied it. Reverting the strip to the old fail-open form left
+# the suite 9/9 GREEN — the pipeline was entirely unguarded.
+#
+# This probe closes that gap: it injects mutations into REAL copies of _shared-context.md and
+# runs the ACTUAL _extract_*_section + _build_section_prose + abbreviation-protection pipeline.
+# Reverting the strip to the old non-recursive form ('sed s/^[[:space:]]*>[[:space:]]*//')
+# MUST make this probe RED. Pristine _shared-context.md MUST stay GREEN.
+#
+# Legs covered:
+#   A — F-S2104-P24-001: '>> ...' double-blockquote inside #### Write Discipline → Gate PW-B
+#   B — F-S2104-P24-004: '- ...' / '+ ...' / '* ...' list-prefix inside #### Write Discipline → Gate PW-B
+#   C — F-S2104-P24-002: '> Anchor every .factory/ artifact write...' above #### Write Discipline
+#         (in ### Spec-Path Discipline body) → write-directive gate (verifies spec_path_prose strip)
+#   D — pristine fixture: both Gate PW-B and write-directive gate SILENT (GREEN)
+# ===========================================================================
+
+@test "BC-6.26.001 pipeline probe: real-fixture mutations exercise production domain-construction path (F-S2104-P24-003)" {
+  local scratch saved_shared_context
+  scratch="$(mktemp -d)"
+  saved_shared_context="$SHARED_CONTEXT_MD"
+
+  # --- Leg A: '>>' double-blockquote inside #### Write Discipline (F-S2104-P24-001) ---
+  # Injected immediately after '#### Write Discipline' heading (inside write_discipline_section
+  # domain). The _build_section_prose recursive strip 's/^([[:space:]]*>[[:space:]]*)+//'
+  # collapses '>>' → '' leaving 'Anchor...' at line-start. ^Anchor matches PWBD_DIRECTIVE_CLASS;
+  # 'story worktree CWD' matches the prohibited-target class; no **Forbidden:** → Gate PW-B fires.
+  # If strip is reverted to non-recursive form, '>>' → '>' (one '>' survives) and ^Anchor fails.
+  local fixture_a="$scratch/shared-context-a.md"
+  awk '
+    /^#### Write Discipline/ { print; print ">> Anchor every write to the story worktree CWD."; next }
+    { print }
+  ' "$saved_shared_context" > "$fixture_a"
+
+  SHARED_CONTEXT_MD="$fixture_a"
+  local wd_section_a wd_prose_a wd_nosplit_a
+  wd_section_a="$(_extract_write_discipline_section)"
+  wd_prose_a="$(_build_section_prose "$wd_section_a")"
+  wd_nosplit_a="$(printf '%s\n' "$wd_prose_a" | \
+    sed 's/cf\. /cf_ABBREV_ /g; s/i\.e\. /ie_ABBREV_ /g; s/e\.g\. /eg_ABBREV_ /g')"
+  SHARED_CONTEXT_MD="$saved_shared_context"
+
+  local leg_a_result
+  leg_a_result="$(printf '%s\n' "$wd_nosplit_a" | \
+    perl -pe 's/\.[[:space:]]+(?=[A-Z*`\[])/.\n/g' | \
+    perl -pe 's/[;—]\s*/\n/g; s/,\s+(?:and|or|but)\s+/\n/g' | \
+    grep -E 'CWD-relative|worktree-relative|relative[[:space:]]+paths?|story-worktree[[:space:]]+CWD|story[[:space:]]+worktree[[:space:]]+CWD|worktree'\''s[[:space:]]+shadow|worktree[[:space:]]+CWD|shadow[[:space:]]+subtree|[Ww]orktree-local|(^|[^[:alnum:]])[Ii]n-worktree|gitignored-shadow' | \
+    grep -E "$PWBD_DIRECTIVE_CLASS" | \
+    grep -vE '\*\*Forbidden:\*\*' || true)"
+  if [ -z "$leg_a_result" ]; then
+    echo "PIPELINE PROBE FAIL [Leg A — F-S2104-P24-001]: '>> Anchor every write to the story worktree CWD.' injected into #### Write Discipline MUST fire Gate PW-B via the real pipeline."
+    echo "  Recursive strip collapses '>>' → '' leaving 'Anchor...' at line-start (^Anchor in PWBD_DIRECTIVE_CLASS)."
+    echo "  Gate SILENT means _build_section_prose recursive strip is not working (reverted or broken)."
+    echo "  write_discipline_prose first 200 chars: ${wd_prose_a:0:200}"
+    rm -rf "$scratch"
+    false
+  fi
+
+  # --- Leg B: list-prefix forms inside #### Write Discipline (F-S2104-P24-004) ---
+  # Tests '- ', '+ ', '* ' unordered-list prefixes and '1. ' numbered-list prefix.
+  # _build_section_prose strips these before the domain is evaluated; without the strip,
+  # '- Anchor...' leaves the bare-imperative after the list marker and ^Anchor fails.
+  local list_prefix list_fixture leg_b_wd_section leg_b_wd_prose leg_b_nosplit leg_b_result
+  for list_prefix in '- ' '+ ' '* ' '1. '; do
+    list_fixture="$scratch/shared-context-b-${list_prefix:0:1}.md"
+    awk -v pfx="$list_prefix" '
+      /^#### Write Discipline/ { print; print pfx "Anchor every write to the story worktree CWD."; next }
+      { print }
+    ' "$saved_shared_context" > "$list_fixture"
+
+    SHARED_CONTEXT_MD="$list_fixture"
+    leg_b_wd_section="$(_extract_write_discipline_section)"
+    leg_b_wd_prose="$(_build_section_prose "$leg_b_wd_section")"
+    leg_b_nosplit="$(printf '%s\n' "$leg_b_wd_prose" | \
+      sed 's/cf\. /cf_ABBREV_ /g; s/i\.e\. /ie_ABBREV_ /g; s/e\.g\. /eg_ABBREV_ /g')"
+    SHARED_CONTEXT_MD="$saved_shared_context"
+
+    leg_b_result="$(printf '%s\n' "$leg_b_nosplit" | \
+      perl -pe 's/\.[[:space:]]+(?=[A-Z*`\[])/.\n/g' | \
+      perl -pe 's/[;—]\s*/\n/g; s/,\s+(?:and|or|but)\s+/\n/g' | \
+      grep -E 'CWD-relative|worktree-relative|relative[[:space:]]+paths?|story-worktree[[:space:]]+CWD|story[[:space:]]+worktree[[:space:]]+CWD|worktree'\''s[[:space:]]+shadow|worktree[[:space:]]+CWD|shadow[[:space:]]+subtree|[Ww]orktree-local|(^|[^[:alnum:]])[Ii]n-worktree|gitignored-shadow' | \
+      grep -E "$PWBD_DIRECTIVE_CLASS" | \
+      grep -vE '\*\*Forbidden:\*\*' || true)"
+    if [ -z "$leg_b_result" ]; then
+      echo "PIPELINE PROBE FAIL [Leg B — F-S2104-P24-004]: '${list_prefix}Anchor every write to the story worktree CWD.' injected into #### Write Discipline MUST fire Gate PW-B via the real pipeline."
+      echo "  List-marker strip removes '${list_prefix}' leaving 'Anchor...' at line-start (^Anchor in PWBD_DIRECTIVE_CLASS)."
+      echo "  Gate SILENT means _build_section_prose list-marker strip is not working (reverted or broken)."
+      echo "  write_discipline_prose first 200 chars: ${leg_b_wd_prose:0:200}"
+      rm -rf "$scratch"
+      false
+    fi
+  done
+
+  # --- Leg C: '>' above #### Write Discipline in ### Spec-Path Discipline body (F-S2104-P24-002) ---
+  # Injected immediately after '### Spec-Path Discipline' heading, which places the mutant
+  # INSIDE spec_path_section but OUTSIDE write_discipline_section (bounded by #### Write Discipline).
+  # Without _build_section_prose being applied to spec_path_prose (the F-S2104-P24-002 gap), the
+  # '>' survived and the ^Anchor bare-imperative did not match in the write-directive gate.
+  # Mutant referent is '.factory/' + 'artifact write' (both in write-directive gate referent class).
+  local fixture_c="$scratch/shared-context-c.md"
+  awk '
+    /^### Spec-Path Discipline/ { print; print "> Anchor every .factory/ artifact write to the story worktree CWD."; next }
+    { print }
+  ' "$saved_shared_context" > "$fixture_c"
+
+  SHARED_CONTEXT_MD="$fixture_c"
+  local sp_section_c sp_prose_c sp_nosplit_c wd_section_c
+  sp_section_c="$(_extract_spec_path_discipline_section)"
+  sp_prose_c="$(_build_section_prose "$sp_section_c")"
+  sp_nosplit_c="$(printf '%s\n' "$sp_prose_c" | \
+    sed 's/cf\. /cf_ABBREV_ /g; s/i\.e\. /ie_ABBREV_ /g; s/e\.g\. /eg_ABBREV_ /g')"
+  # Structural sanity: mutant must NOT appear in write_discipline_section (above-heading isolation)
+  wd_section_c="$(_extract_write_discipline_section)"
+  SHARED_CONTEXT_MD="$saved_shared_context"
+
+  if printf '%s\n' "$wd_section_c" | grep -qF 'Anchor every .factory/ artifact write'; then
+    echo "PIPELINE PROBE STRUCTURAL FAIL [Leg C]: mutant appeared in write_discipline_section — it should only be in spec_path_section (injected above #### Write Discipline). awk injection is broken."
+    rm -rf "$scratch"
+    false
+  fi
+
+  local leg_c_result
+  leg_c_result="$(printf '%s\n' "$sp_nosplit_c" | \
+    perl -pe 's/\.[[:space:]]+(?=[A-Z*`\[])/.\n/g' | \
+    perl -pe 's/[;—]\s*/\n/g; s/,\s+(?:and|or|but)\s+/\n/g' | \
+    grep -E "$PWBD_DIRECTIVE_CLASS" | \
+    grep -E '\.factory/|ledger|artifact[[:space:]]+writes?' | \
+    perl -ne 's/\b(?:not\s+(?:yet\s+|previously\s+|longer\s+)?|no\s+longer\s+(?:being\s+)?|never\s+(?:previously\s+)?)(FORBIDDEN|Forbidden|forbidden|MUST\s+NOT|prohibited|forbid)/NEGATED_PROHIBIT/gi; print if !/\b(?:FORBIDDEN|Forbidden|forbidden|MUST\s+NOT|prohibited|never\b|forbid\b)/' | \
+    grep -Ev 'MUST[[:space:]]+use[[:space:]]+canonical[[:space:]]+absolute' | \
+    grep -Ev 'MUST[[:space:]]+be[[:space:]]+determined[[:space:]]+via' || true)"
+  if [ -z "$leg_c_result" ]; then
+    echo "PIPELINE PROBE FAIL [Leg C — F-S2104-P24-002]: '> Anchor every .factory/ artifact write to the story worktree CWD.' above #### Write Discipline MUST fire write-directive gate via the real spec_path_prose pipeline."
+    echo "  Marker strip removes '>' leaving 'Anchor every .factory/ artifact write...' → Anchor (bare-imperative) + .factory/ (referent) → gate fires."
+    echo "  Gate SILENT means _build_section_prose is NOT being applied to spec_path_prose."
+    echo "  This is F-S2104-P24-002: spec_path_prose was built via bare 'tr' with no marker strip."
+    echo "  spec_path_prose first 200 chars: ${sp_prose_c:0:200}"
+    rm -rf "$scratch"
+    false
+  fi
+
+  # --- Leg D: pristine _shared-context.md must stay GREEN for both gates ---
+  # Proves the probe is not trivially firing. Gate PW-B over write_discipline_section must be
+  # SILENT; write-directive gate over spec_path_section must be SILENT.
+  local wd_section_d wd_prose_d wd_nosplit_d
+  wd_section_d="$(_extract_write_discipline_section)"
+  wd_prose_d="$(_build_section_prose "$wd_section_d")"
+  wd_nosplit_d="$(printf '%s\n' "$wd_prose_d" | \
+    sed 's/cf\. /cf_ABBREV_ /g; s/i\.e\. /ie_ABBREV_ /g; s/e\.g\. /eg_ABBREV_ /g')"
+  local sp_section_d sp_prose_d sp_nosplit_d
+  sp_section_d="$(_extract_spec_path_discipline_section)"
+  sp_prose_d="$(_build_section_prose "$sp_section_d")"
+  sp_nosplit_d="$(printf '%s\n' "$sp_prose_d" | \
+    sed 's/cf\. /cf_ABBREV_ /g; s/i\.e\. /ie_ABBREV_ /g; s/e\.g\. /eg_ABBREV_ /g')"
+
+  local leg_d_pwb leg_d_wdg
+  leg_d_pwb="$(printf '%s\n' "$wd_nosplit_d" | \
+    perl -pe 's/\.[[:space:]]+(?=[A-Z*`\[])/.\n/g' | \
+    perl -pe 's/[;—]\s*/\n/g; s/,\s+(?:and|or|but)\s+/\n/g' | \
+    grep -E 'CWD-relative|worktree-relative|relative[[:space:]]+paths?|story-worktree[[:space:]]+CWD|story[[:space:]]+worktree[[:space:]]+CWD|worktree'\''s[[:space:]]+shadow|worktree[[:space:]]+CWD|shadow[[:space:]]+subtree|[Ww]orktree-local|(^|[^[:alnum:]])[Ii]n-worktree|gitignored-shadow' | \
+    grep -E "$PWBD_DIRECTIVE_CLASS" | \
+    grep -vE '\*\*Forbidden:\*\*' || true)"
+  leg_d_wdg="$(printf '%s\n' "$sp_nosplit_d" | \
+    perl -pe 's/\.[[:space:]]+(?=[A-Z*`\[])/.\n/g' | \
+    perl -pe 's/[;—]\s*/\n/g; s/,\s+(?:and|or|but)\s+/\n/g' | \
+    grep -E "$PWBD_DIRECTIVE_CLASS" | \
+    grep -E '\.factory/|ledger|artifact[[:space:]]+writes?' | \
+    perl -ne 's/\b(?:not\s+(?:yet\s+|previously\s+|longer\s+)?|no\s+longer\s+(?:being\s+)?|never\s+(?:previously\s+)?)(FORBIDDEN|Forbidden|forbidden|MUST\s+NOT|prohibited|forbid)/NEGATED_PROHIBIT/gi; print if !/\b(?:FORBIDDEN|Forbidden|forbidden|MUST\s+NOT|prohibited|never\b|forbid\b)/' | \
+    grep -Ev 'MUST[[:space:]]+use[[:space:]]+canonical[[:space:]]+absolute' | \
+    grep -Ev 'MUST[[:space:]]+be[[:space:]]+determined[[:space:]]+via' || true)"
+  if [ -n "$leg_d_pwb" ]; then
+    echo "PIPELINE PROBE FAIL [Leg D — pristine Gate PW-B MUST be GREEN]: violations found in _shared-context.md #### Write Discipline section:"
+    printf '%s\n' "$leg_d_pwb"
+    rm -rf "$scratch"
+    false
+  fi
+  if [ -n "$leg_d_wdg" ]; then
+    echo "PIPELINE PROBE FAIL [Leg D — pristine write-directive gate MUST be GREEN]: violations found in _shared-context.md ### Spec-Path Discipline section:"
+    printf '%s\n' "$leg_d_wdg"
+    rm -rf "$scratch"
+    false
+  fi
+
+  rm -rf "$scratch"
 }
 
 # ===========================================================================
