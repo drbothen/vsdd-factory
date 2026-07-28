@@ -9007,3 +9007,156 @@ Three consecutive fix reports in the S-21.04 cascade supplied incomplete regress
 **Cites:** D-936 (this burst); TD-VSDD-091; F-S2104-P23-010.
 
 **Closes:** D-936 state-manager-bats-pin-sweep-obligation lesson. `[process-gap; state-manager; comprehensive-sweep; TD-VSDD-091; adversary-exemplar-vs-full-set; D-936]`
+
+---
+
+## [[L-BB-recorded-mutant-must-be-executable]]
+
+**Category:** [process-gap]
+**Date:** 2026-07-28
+
+**Summary:** Guard (g) in the bats corpus (test_BC_adversary_absent_file_finding_requires_path_corroboration) used a recorded mutant on L58 of the mandate line. Before pass-25, the recorded mutant was documentary — pasted into a comment or description — but the injection was not verified to fire the guard and the corpus regression test. B01 found that executing the recorded mutant IN PLACE only failed the production guard; T-015 (corpus regression) also had to fire for the fix to be structural. The fix replaced the documentary record with an executable one: an injection that fires both guards on execution.
+
+**Pattern rule:** Every recorded mutant in a bats corpus must be executable: `bash <inject-mutant> && bats <guard-test>` must produce `not ok`. Documentary-only records (pasted text with no execution path) pass code review but provide zero regression coverage. T-NNN corpus regression tests are the enforcement mechanism; they must cover every guard class.
+
+**Anchors:** B01; test_BC_B01_corpus_regression_guards_e_co_and_g_pc; D-937; T-015; guard (g) L58.
+
+**Cites:** D-937 (this burst); B01 finding; T-015 (corpus regression guard); adversary-pass-25.md §B01.
+
+**Closes:** D-937 recorded-mutant-executability lesson. `[process-gap; recorded-mutant; documentary-vs-executable; corpus-regression; bats-guard; T-015; D-937]`
+
+---
+
+## [[L-BB-any-affirmative-gate-is-not-fail-closed]]
+
+**Category:** [process-gap]
+**Date:** 2026-07-28
+
+**Summary:** Guard (e) and guard (co) used an any-affirmative pattern: pass if ANY of the probe lines match the expected condition. This is structurally fail-open: a partial corpus (only one guard fires) passes the check. The fail-closed form requires ALL relevant guards to fire. B01 exposed this: guards (e) and (co) could be individually satisfied while guard (g) remained unguarded, and the any-affirmative gate would still report PASS.
+
+**Pattern rule:** Gate conditions over a corpus of guards must be ALL-affirmative (or at minimum explicit-enumeration): each named guard must independently satisfy the condition. Any-affirmative patterns mask partial-corpus coverage deficits. When adding a new guard class, check whether existing gate conditions need to expand from any-affirmative to all-affirmative or explicit-member-enumeration form.
+
+**Anchors:** B01; guards (e)(co)(g); fail-open predicate; corpus regression T-015; D-937.
+
+**Cites:** D-937 (this burst); B01 finding; adversary-pass-25.md §B01.
+
+**Closes:** D-937 any-affirmative-not-fail-closed lesson. `[process-gap; any-affirmative; fail-closed; corpus-gate; all-affirmative; guard-enumeration; D-937]`
+
+---
+
+## [[L-BB-evidence-discipline-gates-every-bats-guard-edit]]
+
+**Category:** [process-gap]
+**Date:** 2026-07-28
+
+**Summary:** Every time a bats guard is added or modified, the corresponding pass-N adversary record must include POLICY 15 literal-shell evidence for that guard: the mutant injection command + `not ok` stdout. H01 found that four guards (test-writer P23-006/007/008/012) lacked this evidence in the adversary-pass-23.md record. The guards may have been correct, but the absence of evidence creates an audit gap — the adversary pass cannot be re-verified independently without the execution record.
+
+**Pattern rule:** POLICY 15 evidence discipline applies per-guard: for every bats guard cited in a pass record, the pass record must contain (a) the injection command, (b) the verbatim `not ok` stdout. This is not optional even when the guard "obviously works." The evidence record is the audit trail; narrative claims ("guard fires") without execution evidence are inadmissible under POLICY 15.
+
+**Anchors:** H01; F-S2104-P23-006/007/008/012; POLICY 15; D-937; bats-guard evidence.
+
+**Cites:** D-937 (this burst); H01 finding; POLICY 15; adversary-pass-25.md §H01.
+
+**Closes:** D-937 evidence-discipline-bats-guard lesson. `[process-gap; POLICY-15; evidence-discipline; per-guard; bats; literal-shell; D-937]`
+
+---
+
+## [[L-BB-sha-transposition-in-evidence-layer]]
+
+**Category:** [process-gap]
+**Date:** 2026-07-28
+
+**Summary:** 6 evidence citations in red-gate-log.md referenced `5ccf5669` (a nonexistent commit SHA — digit transposition of `5ccf5869`). All 6 were in positions where the SHA was used to anchor test execution results. Because git commits are content-addressed, a wrong SHA silently points to nothing — there is no runtime error; the wrong SHA simply fails silently if a consumer tries to verify. M04 found the error only because the adversary manually verified the SHA against git history.
+
+**Pattern rule:** Every SHA cited in an evidence record must be verified at citation-authoring time: `git -C <repo> cat-file -t <SHA>` or equivalent. Copy-pasting SHAs from memory or from a prior document without re-verification introduces the transposition class. For multi-digit SHAs, visual inspection is insufficient — programmatic verification is required.
+
+**Anchors:** M04; 5ccf5669 (wrong)→5ccf5869 (correct); 6 sites; D-937; git-verify-commit.
+
+**Cites:** D-937 (this burst); M04 finding; adversary-pass-25.md §M04.
+
+**Closes:** D-937 SHA-transposition-evidence-layer lesson. `[process-gap; SHA-transposition; evidence-layer; citation-verification; git-cat-file; D-937]`
+
+---
+
+## [[L-BB-sentinel-replacement-must-be-mechanical]]
+
+**Category:** [process-gap]
+**Date:** 2026-07-28
+
+**Summary:** M07 found that `D-{TBD-pass-23-fix-burst}` and `D-{TBD-pass-25-fix-burst}` sentinels remained in BC-6.26.001.md, ADR-031, and the story after the D-936 burst. These sentinels were introduced at spec-authoring time as placeholders and were supposed to be replaced by the state-manager before committing. The replacement was missed because no checklist item explicitly named "sentinel replacement" as a mandatory pre-commit step.
+
+**Pattern rule:** Sentinel replacement (D-{TBD-pass-N-fix-burst}→actual-D-NNN) is a mandatory pre-commit step for every state-manager burst. The pre-commit checklist must include: `grep -rn "D-{TBD-" .factory/ | grep -v "policies.yaml\|historical"` → must return zero results in live spec artifacts. This grep is the mechanical gate; it cannot be skipped or deferred.
+
+**Anchors:** M07; D-{TBD-pass-23-fix-burst}; D-{TBD-pass-25-fix-burst}; 5 sentinel locations; D-937.
+
+**Cites:** D-937 (this burst); M07 finding; adversary-pass-25.md §M07.
+
+**Closes:** D-937 sentinel-replacement-mechanical-gate lesson. `[process-gap; sentinel; D-{TBD}; pre-commit-gate; grep-mechanical; D-937]`
+
+---
+
+## [[L-BB-ordinal-cites-are-structurally-unstable]]
+
+**Category:** [process-gap]
+**Date:** 2026-07-28
+
+**Summary:** M05 found that the story used ordinal position ("the third criterion") to reference acceptance criteria instead of ID-anchored cites ("AC-003"). Ordinal references are structurally unstable: if an AC is inserted before the cited position, the ordinal is wrong without any tooling alert. ID-anchored cites are stable: AC-003 remains AC-003 regardless of insertion/reordering.
+
+**Pattern rule:** All cross-document references to acceptance criteria, behavioral contracts, invariants, or numbered spec elements must use ID-anchored form (AC-NNN, BC-S.SS.NNN, INV-NNN), never ordinal form ("first," "second," "third," "the N-th"). Story-writer must enforce this discipline at authoring time; adversary must flag ordinal cites as MEDIUM findings.
+
+**Anchors:** M05; ordinal cites; AC-ID; stable-reference; D-937.
+
+**Cites:** D-937 (this burst); M05 finding; adversary-pass-25.md §M05; TD-VSDD-091 (volatile-pin class).
+
+**Closes:** D-937 ordinal-cites-structurally-unstable lesson. `[process-gap; ordinal-cite; ID-anchor; stable-reference; story-writer; TD-VSDD-091; D-937]`
+
+---
+
+## [[L-BB-id-namespace-discipline-at-authoring-time]]
+
+**Category:** [process-gap]
+**Date:** 2026-07-28
+
+**Summary:** H03 found `F-S2104-P25-001` appeared in the bats test file and story in positions that should have used a different ID form or no ID at all. The finding ID `F-S2104-P25-001` was introduced before the adversary pass was finalized, creating forward-reference IDs that could conflict with the actual pass-25 finding numbering. ID namespace discipline requires that finding IDs be allocated only from finalized adversary pass records, not from advance-planning text.
+
+**Pattern rule:** Finding IDs (F-S2104-P25-NNN) must only appear in bats tests and spec artifacts AFTER the adversary pass record is finalized and the finding ID is confirmed. Pre-authoring a finding ID that "probably" will be issued creates namespace collisions and forward-reference fragility. If a test needs to reference an expected finding, use a descriptive anchor (e.g., `assert_absent_file_corroboration_required`) not an advance-issue ID.
+
+**Anchors:** H03; F-S2104-P25-001; forward-reference; namespace-collision; D-937.
+
+**Cites:** D-937 (this burst); H03 finding; adversary-pass-25.md §H03.
+
+**Closes:** D-937 ID-namespace-discipline lesson. `[process-gap; finding-ID; namespace; forward-reference; advance-issue; D-937]`
+
+---
+
+## [[L-BB-count-lead-in-sweeps-on-spec-change]]
+
+**Category:** [process-gap]
+**Date:** 2026-07-28
+
+**Summary:** M03 found that ADR-031 §Decision 1 lead-in text read "five" after a sixth surface was added. Count lead-ins ("five surfaces," "three criteria," "seven steps") are a maintenance liability: they must be updated whenever the enumerated set changes. M03 required a separate architect workstream to correct it. The fix for this class is either: (a) replace count lead-ins with COUNT-FREE forms ("the following surfaces:"), or (b) add a mandatory count-lead-in sweep to the spec-change checklist for the affected document.
+
+**Pattern rule:** When adding a new item to an enumerated spec section, the author MUST check for count lead-ins in the section header, surrounding prose, and any citing documents. Preferred mitigation: use COUNT-FREE section headers ("surfaces:" not "five surfaces:"). When COUNT-FREE form is not possible, cite the count in the same Edit that adds the item.
+
+**Anchors:** M03; ADR-031 §Decision 1; five→six; count-lead-in; D-937.
+
+**Cites:** D-937 (this burst); M03 finding; adversary-pass-25.md §M03; TD-VSDD-091 (volatile-pin class).
+
+**Closes:** D-937 count-lead-in-sweeps lesson. `[process-gap; count-lead-in; enumeration; spec-change; sweep; COUNT-FREE; D-937]`
+
+---
+
+## [[L-BB-volatile-pins-reintroduced-by-sweep-bursts]]
+
+**Category:** [process-gap]
+**Date:** 2026-07-28
+
+**Summary:** M06 found that volatile bats line pins were reintroduced by a sweep burst that replaced stable behavioral anchors with new line-number cites. TD-VSDD-091 mandates behavioral anchors, not line-number pins. The pattern: a comprehensive-sweep burst replaces old pins with new ones (fixing the stale-pin finding) but inadvertently introduces fresh pins for newly-added code, re-seeding the same finding class for the next pass. The sweep cures the symptom but not the discipline: sweep authors must use behavioral anchors, not updated line cites, when applying TD-VSDD-091 fixes.
+
+**Pattern rule:** When executing a TD-VSDD-091 sweep, every replacement must use a behavioral anchor (`_assert_guard_file_not_factory_path` style), NOT an updated line cite (`:2793`). A sweep that replaces `:1234` with `:5678` is NOT a TD-VSDD-091 fix — it is a stale-pin update. The correct fix is to replace the line cite with the relevant bats helper call, function name, or descriptive assertion string.
+
+**Anchors:** M06; volatile pins; TD-VSDD-091; sweep-burst; behavioral-anchor; reintroduction; D-937.
+
+**Cites:** D-937 (this burst); M06 finding; adversary-pass-25.md §M06; TD-VSDD-091.
+
+**Closes:** D-937 volatile-pins-reintroduced-by-sweep lesson. `[process-gap; volatile-pin; TD-VSDD-091; sweep-burst; reintroduction; behavioral-anchor; D-937]`

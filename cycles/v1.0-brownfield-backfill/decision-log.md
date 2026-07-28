@@ -13647,3 +13647,110 @@ D-936-PASS-23-FINDINGS-CLOSED
 ### Date
 
 2026-07-28
+
+## D-937
+
+### Dim-1: Identity + Context
+
+**Role:** state-manager (this commit)
+**Date:** 2026-07-28
+**Burst label:** D-937-PASS-25-FINDINGS-CLOSED
+**Parent commit (factory-artifacts):** `316d6c00` — `factory(D-936-SHA-PATCH): update burst-log Block 8 with actual burst SHA d616110f`
+
+Pass-25 record burst. adversary-pass-25.md persisted (B3/H4/M8/L2 = 17 findings + 1 deferred wave-gate). State-manager workstreams: (H01) POLICY 15 evidence persisted for P23-006/007/008/012 + red-gate-log Summary HEAD advanced 5ccf5869→4dc27251; (M04) SHA transposition 6 sites corrected (5ccf5669→5ccf5869); (M07) sentinel replacement D-936/D-937 + grep proof; red-gate-log frontmatter v1.22→v1.23 + Pass-25 attestation section + Pass-25 summary table row; 4-index bumps (BC-INDEX v4.35→v4.36 / STORY-INDEX v4.269→v4.270); INDEX.md pass-25 row + Convergence Status + M04-corrected pass-23-closure Fixes HEAD (5ccf5669→5ccf5869); decision-log.md D-937 (this entry); lessons.md 9 new lessons; burst-log.md 8-block entry; STATE.md frontmatter v6.68→v6.69. Note: ARCH-INDEX v3.36 (ADR-031 v1.14 M03 fix by architect; not state-manager scope).
+
+### Dim-2: Mandatory Gates
+
+**(a) POLICY 16 GLOBAL-MAX GATE (literal shell):**
+```
+$ grep "^## D-" .factory/cycles/v1.0-brownfield-backfill/decision-log.md | grep -E "## D-[0-9]+$" | sort -t'-' -k2 -n | tail -5
+## D-934
+## D-934
+## D-935
+## D-935
+## D-936
+```
+D-936 confirmed as current max (numeric sort). D-937 allocated.
+
+**(b) POLICY 14 4-INDEX LITERAL SHELL (post-burst; BC-INDEX + STORY-INDEX bumped this burst; ARCH-INDEX bumped by architect for M03):**
+```
+$ grep "^version:" .factory/specs/behavioral-contracts/BC-INDEX.md | head -1
+version: "4.36"
+$ grep "^version:" .factory/specs/verification-properties/VP-INDEX.md | head -1
+version: "2.72"
+$ grep "^version:" .factory/stories/STORY-INDEX.md | head -1
+version: "4.270"
+$ grep "^version:" .factory/specs/architecture/ARCH-INDEX.md | head -1
+version: "3.36"
+```
+BC v4.36 / VP v2.72 / STORY v4.270 / ARCH v3.36.
+
+**(c) M04 SHA transposition proof (literal shell):**
+```
+$ grep -c "5ccf5669" .factory/cycles/v1.0-brownfield-backfill/S-21.04/implementation/red-gate-log.md
+4
+```
+Count 4: all remaining instances in fix-description prose (last_amended, modified[], summary-table M04 cell, attestation note). Zero in evidence-citation positions (summary table Reviewed/Fixes HEAD columns, test-execution stdout). Six original wrong-SHA evidence citations corrected to `5ccf5869`.
+
+**(d) M07 SENTINEL PROOF (literal shell):**
+```
+$ grep -rn "D-{TBD-" .factory/ 2>/dev/null | grep -v "\.git" | grep -v "policies.yaml" | grep -v "adversary-pass-25\|burst-log\|decision-log\|red-gate-log\|BC-INDEX"
+(no output)
+```
+Zero live sentinels in spec artifacts (BC-6.26.001.md, ADR-031, story). All remaining matches are in historical records or fix-description prose.
+
+**(e) D-446(a) OWN-BURST-LOG 8-BLOCK GATE:** To be verified via SHA-patch per D-447(c)/D-449(e) after commit; burst-log entry for D-937 must contain all 8 D-444(c) blocks before SHA-patch push.
+
+**(f) D-448(a) SOURCE-ATTESTATION GATE:** burst-log D-937 Adversary verdict paragraph faithfully describes adversary-pass-25.md Part A finding set: 17 findings (B3/H4/M8/L2); B01-B03 BLOCKER class (fail-closed helpers, perl vocab, sed alternation); H01-H04 HIGH class (POLICY 15 gap, Leg E, ID re-anchoring, factory path refs); M01-M08 MEDIUM class (ordering gate, folded YAML, ADR-031 lead-in, SHA transposition, ordinal cites, volatile pins, sentinels, DOC-PARITY); L01-L02 LOW class (BC-6.26.001 row ordering, ADR-031 anchor); 1 deferred (S-21.WG2-001 wave-gate); novelty HIGH; ADR-033 cross-family deviation (POLICY 22 success). Verified structurally against adversary-pass-25.md.
+
+### Dim-3: Work Performed
+
+**(a) WS1 — adversary-pass-25.md persisted.**
+
+`.factory/cycles/v1.0-brownfield-backfill/S-21.04/adversary-pass-25.md` created. Frontmatter: pass:25, verdict:NOT-CLEAN, reviewed_head:"5ccf5869", fixes_landed_head:"4dc27251", novelty:high. Full Part A finding set: B01-B03/H01-H04/M01-M08/L01-L02 (17 findings) + 1 deferred (BC-5.44.001/S-21.02 ADR version pin → S-21.WG2-001). Fix mapping table included. ADR-033 cross-family deviation disclosed; POLICY 22 success (different model family via agy STDIN-pipe per D-927 mitigation).
+
+**(b) WS2 — H01 POLICY 15 evidence, M04 SHA transposition fix, M07 sentinel replacement.**
+
+H01: red-gate-log.md Summary HEAD advanced 5ccf5869→4dc27251 (25/25: 10/10+15/15); Pass-25 attestation section appended with orchestrator B01 verbatim evidence (recorded (g) mutant fires production guard + T-015 corpus regression; closes B01 structurally).
+
+M04: all 6 wrong-SHA `5ccf5669` evidence citations in red-gate-log.md corrected to `5ccf5869` (replace_all). Grep-c proof: 4 remaining instances all in fix-description prose.
+
+M07: sentinel replacements applied in three artifacts. BC-6.26.001.md: `D-{TBD-pass-23-fix-burst}`→D-936 (2 occurrences), `D-{TBD-pass-25-fix-burst}`→D-937 (3 occurrences). ADR-031: `D-{TBD-pass-25-fix-burst}`→D-937 (2 occurrences). Story: `D-{TBD-pass-25-fix-burst}`→D-937 (2 occurrences), `D-{TBD-pass-23-fix-burst}`→D-936 (1 occurrence). Grep proof: zero live sentinels in spec artifacts.
+
+**(c) WS3 — red-gate-log.md frontmatter + Pass-25 summary table row.**
+
+Frontmatter: version "1.22"→"1.23"; traces_to adds BC-6.26.001 v1.14 + story v1.28; last_amended prepended D-937 summary; modified[] D-937 entry added. Input-hash updates (hook-authoritative): story `e8ca00b`→`242b539` (BC-6.26.001 + ADR-031 input drift), red-gate-log `25955cd`→`101b1e6` (story + BC input drift). Pass-25 summary table row added (all 17 findings closed; deferred S-21.WG2-001 noted).
+
+**(d) WS4 — 4-index bumps + INDEX.md.**
+
+BC-INDEX.md: v4.35→v4.36; BC-6.26.001 row v1.13→v1.14; last_amended prepended. STORY-INDEX.md: v4.269→v4.270; S-21.04 catalog row story v1.27→v1.28, BC pin v1.13→v1.14, input-hash 8d3dbb6→242b539 (three-way parity), P25 refs added, T-015 added; blockquote S-21.04=8d3dbb6→242b539; last_amended prepended.
+
+INDEX.md: pass-25 adversary row added (NOT-CLEAN, B3/H4/M8/L2, 17 findings, reviewed_head 5ccf5869, fixes_head 4dc27251, D-937, streak 0/3); pass-23-closure Fixes HEAD corrected 5ccf5669→5ccf5869 [M04-CORRECTED]; Convergence Status updated (trajectory tail →12→14→6→17; LENGTH=4 per D-433(e); 25 passes total; 4-index BC v4.36/VP v2.72/STORY v4.270/ARCH v3.36).
+
+**(e) WS5 — decision-log.md D-937 (this entry), lessons.md (9 lessons), burst-log.md (8-block entry).**
+
+decision-log.md: D-937 block appended (this entry). lessons.md: 9 [process-gap] lessons appended. burst-log.md: pass-25 8-block entry appended.
+
+**(f) WS6 — STATE.md frontmatter advance.**
+
+`version: "6.68"→"6.69"`, `timestamp` advanced, `phase: D-937-PASS-25-FINDINGS-CLOSED`. `last_amended:` prepended. Body sections REMAIN BLOCKED (precedent D-866..D-936; `verify-state-timestamp-refresh` WASM spanning-edit constraint on ~33k-token line 9; resolution pending rc.24 AC-020). Lines 15-17 UNTOUCHED per hook constraint.
+
+### Dim-4: Notes
+
+**(a) Pass-25 closes 17 findings including 3 BLOCKERs.** B01 introduces T-015 corpus regression guard — recorded (g) mutant is now executable, not documentary. B02 removes perl vocab neutralizer from write-directive gate. B03 unifies sed alternation. All 17 closed by multi-agent fix burst (test-writer, story-writer, product-owner, devops-engineer, architect, state-manager). Streak resets to 0/3 (B3 at pass-25).
+
+**(b) M04 SHA transposition class.** 6 evidence citations in red-gate-log.md referenced `5ccf5669` (nonexistent commit) instead of `5ccf5869` (actual commit). This is the digit-transposition evidence-fragility class — a typo in a SHA propagates through all downstream citations that copy-paste from the original. Resolution: grep-based sweep of the wrong SHA + replace_all. Lessons: SHA cites in evidence layer require per-cite git-verify-commit before persisting.
+
+**(c) Three-way equality restored.** STORY-INDEX catalog row input-hash + blockquote + story frontmatter all now cite `242b539`. Gate: catalog=242b539, blockquote=242b539, frontmatter=242b539.
+
+**(d) ARCH-INDEX v3.36.** Bumped by architect for M03 (ADR-031 v1.14 lead-in five→six). State-manager detected and corrected stale v3.35 cites in INDEX.md Convergence Status and BC-INDEX.md + STORY-INDEX.md last_amended. Defensive-sweep discipline (S-7.02) applied.
+
+**(e) Lessons codified.** 9 process-gap lessons appended to lessons.md covering: recorded-mutant executability, any-affirmative gate pattern, evidence-discipline bats-guard, SHA transposition, sentinel replacement mechanics, ordinal-cite fragility, ID-namespace discipline, count-lead-in sweeps, volatile pin re-introduction.
+
+### Phase
+
+D-937-PASS-25-FINDINGS-CLOSED
+
+### Date
+
+2026-07-28
