@@ -2010,6 +2010,51 @@ _run_teardown_preflight() {
     false
   fi
 
+  # --- Leg E: call-site parity gate (F-S2104-P25-001) ---
+  # Self-referential: greps this bats file's own source for every _prose="$( assignment and
+  # asserts every one routes through a _build_* normalising builder function.
+  #
+  # Problem class: Legs A–C prove the builders are correctly implemented by calling them
+  # directly with synthetic fixtures. They cannot detect a reverted call site in T-001 —
+  # e.g., L878 reverted to bare 'printf … | tr' bypasses the wrapper entirely while Leg C's
+  # sp_prose_c still calls _build_spec_path_section_prose directly (Leg C passes; hole open).
+  # The same class applies to L865 (write_discipline_prose): Leg A calls _build_section_prose
+  # directly so L865's call site is not independently tested.
+  #
+  # Fix: grep own source for all _prose="$( assignments and assert each contains _build_.
+  # A bare-tr revert at L865 or L878 lacks _build_ → gate fires naming the offending line.
+  # Structural: closes the class for current AND future prose domains — any future _prose="$(
+  # that bypasses the builder is detected at the first run.
+  #
+  # SELF-REFERENTIAL NOTE: this gate greps the bats file's own source. A 'not ok' signals
+  # that a prose-domain call site in this file bypasses the builder chain, not that a
+  # production doc was mutated. Failure message names the offending variable and line.
+  local leg_e_this_file leg_e_all_prose_lines leg_e_bare_lines
+  leg_e_this_file="${BATS_TEST_DIRNAME}/story-worktree-write-path-discipline.bats"
+  # Comment lines are excluded (grep -v '^[0-9]*:[[:space:]]*#') so the gate does not
+  # match its own explanatory text (which contains the literal pattern _prose="$( for
+  # documentation purposes). Only executable assignment lines are checked.
+  leg_e_all_prose_lines="$(grep -n '_prose="\$(' "$leg_e_this_file" | grep -v '^[0-9]*:[[:space:]]*#')"
+  # Safety: the gate must find at least one assignment; zero means the grep pattern broke.
+  if [ -z "$leg_e_all_prose_lines" ]; then
+    echo "PIPELINE PROBE FAIL [Leg E — call-site parity (F-S2104-P25-001)]: grep '_prose=\"\$(' found no assignments in this bats file — gate integrity check failed (self-referential gate over own source)"
+    echo "  Expected: at least write_discipline_prose (L865) and spec_path_prose (L878)"
+    rm -rf "$scratch"
+    false
+  fi
+  # Assert every _prose="$( assignment calls a _build_* builder (no bare 'printf … | tr' allowed).
+  leg_e_bare_lines="$(printf '%s\n' "$leg_e_all_prose_lines" | grep -v '_build_')" || true
+  if [ -n "$leg_e_bare_lines" ]; then
+    echo "PIPELINE PROBE FAIL [Leg E — call-site parity (F-S2104-P25-001)]: _prose=\"\$( assignment does not route through a _build_* normalising builder."
+    echo "  Bare construction (e.g., printf '%s\n' \"\$section\" | tr '\\n' ' ') bypasses marker strip."
+    echo "  Expected: every domain construction calls _build_section_prose or _build_spec_path_section_prose."
+    echo "  Offending line(s) in this bats file (self-referential gate greps own source):"
+    printf '%s\n' "$leg_e_bare_lines"
+    echo "  Fix: route through _build_section_prose or a named _build_*_prose wrapper."
+    rm -rf "$scratch"
+    false
+  fi
+
   rm -rf "$scratch"
 }
 
