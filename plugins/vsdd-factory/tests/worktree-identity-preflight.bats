@@ -29,6 +29,62 @@ setup() {
   STEP_D5="$PLUGIN_ROOT/skills/deliver-story/steps/step-d5-adversary-convergence.md"
 }
 
+# ===========================================================================
+# B01 STRUCTURAL CORPUS HELPERS (F-S2104-P25-B01-STRUCTURAL)
+# Factored out so both the production guards and the corpus regression @test
+# can call the same code. POLICY 11 anti-tautology: corpus exercises real guard.
+# ===========================================================================
+
+# Guard (e) "checks out NOTHING under" sub-gate (fail-closed).
+# $1 = path to the agent file to inspect.
+# Returns 0 if ZERO nullified occurrences AND ≥1 affirmative.
+# Returns non-zero (via 'return 1') if any occurrence is in nullification context
+# or no affirmative occurrence is found.
+_guard_e_checks_out_nothing() {
+  local agent_file="$1"
+  local co_all co_nullified co_aff
+  co_all="$(grep -i "checks out NOTHING under" "$agent_file")"
+  co_nullified="$(printf '%s\n' "$co_all" | \
+    grep -iE '\bformerly\b|\bretired\b|\brescinded\b|\bsuperseded\b|\bno longer\b|\bnot applicable\b|\bdoes not apply\b|\bnot required\b' || true)"
+  co_aff="$(printf '%s\n' "$co_all" | \
+    grep -viE '\bformerly\b|\bretired\b|\brescinded\b|\bsuperseded\b|\bno longer\b|\bnot applicable\b|\bdoes not apply\b|\bnot required\b' || true)"
+  if [ -n "$co_nullified" ]; then
+    echo "DOC-PARITY FAIL [adversary.md: a 'checks out NOTHING under' occurrence is in nullification context (FAIL-CLOSED: zero nullified required — F-S2104-P23-006 B01 regression fix / F-S2104-P22-006(e))]: all occurrences must be affirmative; adversary.md has two occurrences (Rule 4 uppercase NOTHING, Rule 6 sub-bullet lowercase nothing) — nullifying either fires this gate"
+    printf 'Nullified occurrences:\n%s\n' "$co_nullified"
+    return 1
+  fi
+  if [ -z "$co_aff" ]; then
+    echo "DOC-PARITY FAIL [adversary.md: all 'checks out NOTHING under' occurrences appear in nullification context (F-S2104-P22-006(e))]: at least one affirmative instance required"
+    printf 'All checks-out-NOTHING lines:\n%s\n' "$co_all"
+    return 1
+  fi
+}
+
+# Guard (g) "path-corroborated" sub-gate (fail-closed).
+# $1 = path to the agent file to inspect.
+# Returns 0 if ZERO nullified occurrences AND ≥1 affirmative.
+# Returns non-zero (via 'return 1') if any occurrence is in scope-restriction context
+# or no affirmative occurrence is found.
+_guard_g_path_corroborated() {
+  local agent_file="$1"
+  local pc_all pc_nullified pc_aff
+  pc_all="$(grep -i "path-corroborated" "$agent_file")"
+  pc_nullified="$(printf '%s\n' "$pc_all" | \
+    grep -iE '\bnot applicable\b|\bdoes not apply\b|\boutside\b|\bnot required\b|\bexcept\b|\bexempt\b' || true)"
+  pc_aff="$(printf '%s\n' "$pc_all" | \
+    grep -viE '\bnot applicable\b|\bdoes not apply\b|\boutside\b|\bnot required\b|\bexcept\b|\bexempt\b' || true)"
+  if [ -n "$pc_nullified" ]; then
+    echo "DOC-PARITY FAIL [adversary.md: a 'path-corroborated' occurrence is in scope-restriction context (FAIL-CLOSED: zero nullified required — F-S2104-P23-006 B01 regression fix / F-S2104-P22-006(g) / F-S2104-P23-007)]: all occurrences must be affirmative; adversary.md has two occurrences (Rule 6 opening mandate, Rule 6 closing normative closure) — scope-restriction on either fires this gate"
+    printf 'Nullified occurrences:\n%s\n' "$pc_nullified"
+    return 1
+  fi
+  if [ -z "$pc_aff" ]; then
+    echo "DOC-PARITY FAIL [adversary.md: all 'path-corroborated' occurrences appear in scope-restriction context (F-S2104-P22-006(g) / F-S2104-P23-007)]: at least one affirmative (non-scope-restricted) instance required"
+    printf 'All path-corroborated lines found:\n%s\n' "$pc_all"
+    return 1
+  fi
+}
+
 # ============================================================
 # File (A): plugins/vsdd-factory/agents/adversary.md
 # Required: a "Worktree-Identity Preflight" discipline section
@@ -154,26 +210,45 @@ setup() {
   [ "$status" -eq 0 ]
   run grep -i "checks out NOTHING under" "$ADVERSARY_AGENT"
   [ "$status" -eq 0 ]
-  # All-lines nullification guard (F-S2104-P23-006): each corrected-model token scanned across
-  # ALL matching lines. head -1 was fail-open against an appended exception that nullifies after
-  # a valid first occurrence. Require ≥1 affirmative (non-nullified) line per token.
+  # All-lines nullification guard (F-S2104-P23-006, B01 regression fix): each corrected-model
+  # token scanned across ALL matching lines. head -1 was fail-open against an appended exception
+  # that nullifies after a valid first occurrence. Fail-closed form: ZERO nullified occurrences
+  # required AND ≥1 affirmative. A single nullified occurrence (even alongside an affirmative)
+  # means the doc is compromised — the nullified form is adversary-visible.
   # MUTANT per token: append "factory-artifacts: retired" / "canonical-repo-root: superseded" /
   #   "checks out NOTHING under: no longer accurate" as a second occurrence → head -1 returns
-  #   the affirmative first line (old: PASS); all-lines filter removes all nullified lines →
-  #   empty affirmative set (new: RED) ✓.
-  local fa_all fa_aff cr_all cr_aff co_all co_aff
+  #   the affirmative first line (old: PASS); zero-nullified gate fires on the new occurrence →
+  #   RED ✓ (B01 regression closed).
+  # MUTANT (recorded adversary.md Rule 4 + Rule 6 sub-bullet, B01 structural): adversary.md
+  #   has two "checks out NOTHING under" occurrences (Rule 4 uppercase NOTHING, Rule 6 sub-bullet
+  #   lowercase nothing); nullifying Rule 4 while Rule 6 sub-bullet survives → co_nullified
+  #   non-empty → RED ✓ (zero-nullified gate in _guard_e_checks_out_nothing catches).
+  # "checks out NOTHING under" sub-gate factored into _guard_e_checks_out_nothing() helper
+  #   so the B01 corpus regression @test can call the real guard (POLICY 11 anti-tautology).
+  local fa_all fa_nullified fa_aff cr_all cr_nullified cr_aff
   fa_all="$(grep -i "factory-artifacts" "$ADVERSARY_AGENT" | grep -iv 'factory-artifacts branch\|origin.*factory-artifacts\|push.*factory-artifacts' || true)"
+  fa_nullified="$(printf '%s\n' "$fa_all" | \
+    grep -iE '\bformerly\b|\bretired\b|\brescinded\b|\bsuperseded\b|\bno longer\b|\bnot applicable\b|\bdoes not apply\b|\bnot required\b' || true)"
   fa_aff="$(printf '%s\n' "$fa_all" | \
     grep -viE '\bformerly\b|\bretired\b|\brescinded\b|\bsuperseded\b|\bno longer\b|\bnot applicable\b|\bdoes not apply\b|\bnot required\b' || true)"
   cr_all="$(grep -i "canonical-repo-root" "$ADVERSARY_AGENT")"
+  cr_nullified="$(printf '%s\n' "$cr_all" | \
+    grep -iE '\bformerly\b|\bretired\b|\brescinded\b|\bsuperseded\b|\bno longer\b|\bnot applicable\b|\bdoes not apply\b|\bnot required\b' || true)"
   cr_aff="$(printf '%s\n' "$cr_all" | \
     grep -viE '\bformerly\b|\bretired\b|\brescinded\b|\bsuperseded\b|\bno longer\b|\bnot applicable\b|\bdoes not apply\b|\bnot required\b' || true)"
-  co_all="$(grep -i "checks out NOTHING under" "$ADVERSARY_AGENT")"
-  co_aff="$(printf '%s\n' "$co_all" | \
-    grep -viE '\bformerly\b|\bretired\b|\brescinded\b|\bsuperseded\b|\bno longer\b|\bnot applicable\b|\bdoes not apply\b|\bnot required\b' || true)"
+  if [ -n "$fa_nullified" ]; then
+    echo "DOC-PARITY FAIL [adversary.md: a 'factory-artifacts' occurrence is in nullification context (FAIL-CLOSED: zero nullified required — F-S2104-P23-006 B01 regression fix)]: all occurrences must be affirmative; a nullified occurrence alongside an affirmative one is caught by this zero-nullified gate"
+    printf 'Nullified occurrences:\n%s\n' "$fa_nullified"
+    false
+  fi
   if [ -z "$fa_aff" ]; then
     echo "DOC-PARITY FAIL [adversary.md: all 'factory-artifacts' occurrences appear in nullification context (F-S2104-P22-006(e))]: at least one affirmative instance required"
     printf 'All factory-artifacts lines:\n%s\n' "$fa_all"
+    false
+  fi
+  if [ -n "$cr_nullified" ]; then
+    echo "DOC-PARITY FAIL [adversary.md: a 'canonical-repo-root' occurrence is in nullification context (FAIL-CLOSED: zero nullified required — F-S2104-P23-006 B01 regression fix)]: all occurrences must be affirmative"
+    printf 'Nullified occurrences:\n%s\n' "$cr_nullified"
     false
   fi
   if [ -z "$cr_aff" ]; then
@@ -181,11 +256,7 @@ setup() {
     printf 'All canonical-repo-root lines:\n%s\n' "$cr_all"
     false
   fi
-  if [ -z "$co_aff" ]; then
-    echo "DOC-PARITY FAIL [adversary.md: all 'checks out NOTHING under' occurrences appear in nullification context (F-S2104-P22-006(e))]: at least one affirmative instance required"
-    printf 'All checks-out-NOTHING lines:\n%s\n' "$co_all"
-    false
-  fi
+  _guard_e_checks_out_nothing "$ADVERSARY_AGENT"
 }
 
 # (f) AC-006: adversary.md must mandate case-insensitive ID-bearing globs
@@ -228,7 +299,7 @@ setup() {
   # And the class of findings it applies to must be named
   run grep -iE "absent file|missing deliverable|missing ADR" "$ADVERSARY_AGENT"
   [ "$status" -eq 0 ]
-  # All-lines scope-restriction guard (F-S2104-P23-006 + F-S2104-P23-007).
+  # All-lines scope-restriction guard (F-S2104-P23-006 + F-S2104-P23-007 + B01 regression fix).
   #
   # P23-006: head -1 fail-open — appended exception after affirmative first line passes head -1
   # while nullifying the mandate. All-lines scanning closes this.
@@ -243,21 +314,24 @@ setup() {
   # for Y", "not applicable" — not "the finding is not path-corroborated therefore MUST NOT be
   # reported."
   #
+  # B01 regression fix: adversary.md has TWO "path-corroborated" occurrences (Rule 6 opening
+  # mandate and Rule 6 closing normative closure). Nullifying the mandate while the normative
+  # closure survives → pc_aff non-empty → old affirmative-only check PASSES (BUG). Zero-nullified
+  # gate in _guard_g_path_corroborated catches this: pc_nullified non-empty → RED ✓.
+  #
   # MUTANT (appended nullifier, P23-006): "path-corroborated: does not apply to ADR checks"
-  #   appended as second line → head -1 returns affirmative first (old: PASS); all-lines filter
-  #   removes both → empty affirmative set (new: RED) ✓.
+  #   appended as second line → head -1 returns affirmative first (old: PASS); zero-nullified
+  #   gate fires on the new occurrence → RED ✓ (B01 regression closed).
+  # MUTANT (recorded B01, adversary.md Rule 6 two-occurrence): adversary.md has two
+  #   "path-corroborated" occurrences — Rule 6 opening mandate and Rule 6 closing normative
+  #   closure. Nullifying the mandate while normative closure survives → pc_aff non-empty
+  #   (old: PASS); pc_nullified non-empty → RED ✓ (zero-nullified gate catches).
   # MUTANT (normative prose, P23-007): "finding that is NOT path-corroborated MUST NOT be
   #   reported" → old '\bis not\b' triggers (false positive RED); new predicate does not trigger
   #   → affirmative set non-empty (GREEN, no false positive) ✓.
-  local pc_all pc_aff
-  pc_all="$(grep -i "path-corroborated" "$ADVERSARY_AGENT")"
-  pc_aff="$(printf '%s\n' "$pc_all" | \
-    grep -viE '\bnot applicable\b|\bdoes not apply\b|\boutside\b|\bnot required\b|\bexcept\b|\bexempt\b' || true)"
-  if [ -z "$pc_aff" ]; then
-    echo "DOC-PARITY FAIL [adversary.md: all 'path-corroborated' occurrences appear in scope-restriction context (F-S2104-P22-006(g) / F-S2104-P23-007)]: at least one affirmative (non-scope-restricted) instance required"
-    printf 'All path-corroborated lines found:\n%s\n' "$pc_all"
-    false
-  fi
+  # "path-corroborated" sub-gate factored into _guard_g_path_corroborated() helper so the
+  #   B01 corpus regression @test can call the real guard (POLICY 11 anti-tautology).
+  _guard_g_path_corroborated "$ADVERSARY_AGENT"
 }
 
 # ============================================================
@@ -440,4 +514,86 @@ setup() {
     printf 'All preflight assertion lines:\n%s\n' "$(grep -i "preflight assertion" "$STEP_D5")"
     false
   fi
+}
+
+# ===========================================================================
+# B01 STRUCTURAL: Corpus regression suite for guards (e) co and (g) pc
+# (F-S2104-P25-B01-STRUCTURAL)
+#
+# Exercises the REAL helpers _guard_e_checks_out_nothing and
+# _guard_g_path_corroborated against four recorded B01 mutant vectors.
+# POLICY 11 anti-tautology: the corpus calls the real guard, not a copy.
+# ===========================================================================
+
+@test "test_BC_B01_corpus_regression_guards_e_co_and_g_pc" {
+  local corpus_scratch
+  corpus_scratch="$(mktemp)"
+
+  # --- Guard (e) co mutants ---
+
+  # M1: pass-22 recorded — uppercase NOTHING occurrence nullified (sed without g: first match only),
+  # lowercase nothing occurrence intact → old affirmative-only check sees lowercase line → PASS (BUG).
+  # New zero-nullified gate fires on the nullified uppercase occurrence → RED ✓.
+  sed 's/checks out NOTHING under/formerly checks out NOTHING under (no longer applicable)/' \
+    "$ADVERSARY_AGENT" > "$corpus_scratch"
+  run _guard_e_checks_out_nothing "$corpus_scratch"
+  if [ "$status" -eq 0 ]; then
+    echo "CORPUS FAIL [guard (e) co M1 — pass-22 recorded / B01 regression direction A]: scratch with nullified uppercase NOTHING (Rule 4) and intact lowercase nothing (Rule 6 sub-bullet) returned GREEN — zero-nullified gate must fire RED"
+    rm -f "$corpus_scratch"
+    false
+  fi
+
+  # M2: B01 regression direction B — lowercase nothing occurrence nullified, uppercase intact.
+  sed 's/checks out nothing under/checks out nothing under (no longer required — Rule 6 sub-bullet scope)/' \
+    "$ADVERSARY_AGENT" > "$corpus_scratch"
+  run _guard_e_checks_out_nothing "$corpus_scratch"
+  if [ "$status" -eq 0 ]; then
+    echo "CORPUS FAIL [guard (e) co M2 — B01 regression direction B]: scratch with nullified lowercase nothing (Rule 6 sub-bullet) and intact uppercase NOTHING (Rule 4) returned GREEN — zero-nullified gate must fire RED"
+    rm -f "$corpus_scratch"
+    false
+  fi
+
+  # Control: production adversary.md must pass guard (e) co.
+  run _guard_e_checks_out_nothing "$ADVERSARY_AGENT"
+  if [ "$status" -ne 0 ]; then
+    echo "CORPUS FAIL [guard (e) co CONTROL]: production adversary.md returned non-zero from _guard_e_checks_out_nothing — production artifact must be GREEN"
+    rm -f "$corpus_scratch"
+    false
+  fi
+
+  # --- Guard (g) pc mutants ---
+
+  # M3: pass-22 recorded — blanket all-occurrences nullification.
+  sed 's/path-corroborated/path-corroborated: does not apply to ADR directory checks/g' \
+    "$ADVERSARY_AGENT" > "$corpus_scratch"
+  run _guard_g_path_corroborated "$corpus_scratch"
+  if [ "$status" -eq 0 ]; then
+    echo "CORPUS FAIL [guard (g) pc M3 — pass-22 recorded all-occurrences]: blanket nullification returned GREEN — gate must fire RED"
+    rm -f "$corpus_scratch"
+    false
+  fi
+
+  # M4: B01 regression — first occurrence only nullified via awk (Rule 6 mandate modified,
+  # Rule 6 closure intact). Old affirmative-only check sees intact closure → PASS (BUG).
+  # Zero-nullified gate fires on the nullified mandate → RED ✓.
+  awk '/path-corroborated/ && !done {
+    sub(/path-corroborated/, "path-corroborated: does not apply to ADR directory checks")
+    done=1
+  } 1' "$ADVERSARY_AGENT" > "$corpus_scratch"
+  run _guard_g_path_corroborated "$corpus_scratch"
+  if [ "$status" -eq 0 ]; then
+    echo "CORPUS FAIL [guard (g) pc M4 — B01 regression first-occurrence only]: first-occurrence nullification (Rule 6 mandate modified, Rule 6 closure intact) returned GREEN — zero-nullified gate must fire RED"
+    rm -f "$corpus_scratch"
+    false
+  fi
+
+  # Control: production adversary.md must pass guard (g) pc.
+  run _guard_g_path_corroborated "$ADVERSARY_AGENT"
+  if [ "$status" -ne 0 ]; then
+    echo "CORPUS FAIL [guard (g) pc CONTROL]: production adversary.md returned non-zero from _guard_g_path_corroborated — production artifact must be GREEN"
+    rm -f "$corpus_scratch"
+    false
+  fi
+
+  rm -f "$corpus_scratch"
 }

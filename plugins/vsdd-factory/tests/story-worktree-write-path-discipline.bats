@@ -301,15 +301,18 @@ _extract_g1_pc2b_block() {
 #   (3) Newline-join (tr '\n' ' '): collapses multi-line section to single prose string.
 _build_section_prose() {
   local section="$1"
+  # Unified single-pass marker strip (B03 F-S2104-P25-B03): alternation with + quantifier handles
+  # any combination of blockquote '>', unordered-list '- '/'+ '/'* ', and numbered-list '1. '
+  # markers in any order at line start — mixed markers ('- > ', '> 1. ') are fully consumed in
+  # one pass. Previous 3-pass approach left residue on out-of-order combinations (e.g., '- > Anchor'
+  # stripped '- ' in pass 2 leaving '> Anchor', which the already-executed pass 1 could not re-strip).
   printf '%s\n' "$section" | \
-    sed -E 's/^([[:space:]]*>[[:space:]]*)+//' | \
-    sed -E 's/^[[:space:]]*[-*+][[:space:]]+//' | \
-    sed -E 's/^[[:space:]]*[0-9]+\.[[:space:]]+//' | \
+    sed -E 's/^([[:space:]]*(>[[:space:]]*|[-*+][[:space:]]+|[0-9]+\.[[:space:]]+))+//' | \
     tr '\n' ' '
 }
 
 # Named wrapper for spec-path-section prose normalisation (F-S2104-P24-002/F-S2104-P24-003).
-# T-001's spec_path_prose (L867) and the pipeline probe's Leg C both call this function.
+# T-001's spec_path_prose and the pipeline probe's Leg C both call this function.
 # A revert of this function to bare 'tr' (no marker strip) makes leg_c_result empty — probe RED.
 # Mirrors Leg A's _build_section_prose dependency: the load-bearing assertion is the shared
 # function call, not an inline rebuild; reverting the function is the testable reversion point.
@@ -344,7 +347,12 @@ _assert_no_doc_marker() {
 # Bare-imperative alternation is LINE-ANCHORED (^ with optional **Label:** prefix) to prevent
 # mid-sentence false positives; list-marker prefixes are normalised out by _build_section_prose
 # BEFORE the domain is constructed, so ^-anchored matching works on normalised prose.
-PWBD_DIRECTIVE_CLASS='MUST|SHOULD|required|is[[:space:]]+the[[:space:]]+required|is[[:space:]]+preferred|is[[:space:]]+acceptable|permits|may|^(\*\*[^:*]+:\*\*[[:space:]]+)?(Anchor|Write|Save|Store|Place|Record|Emit|Persist|Resolve|Use)[[:space:]]'
+# ^ removed from bare-imperative alternation (B03 F-S2104-P25-B03): after unified marker strip the
+# imperative verb may be at line start OR mid-prose after sentence splitting — position-independent
+# match is required. Previous ^-anchor only fired when the verb was the first token on the line;
+# tr '\n' ' ' collapses multi-line prose before gate application so bare-imperative after a '> - '
+# mixed-marker sequence was anchored to start of the collapsed prose, missing most sentences.
+PWBD_DIRECTIVE_CLASS='MUST|SHOULD|required|is[[:space:]]+the[[:space:]]+required|is[[:space:]]+preferred|is[[:space:]]+acceptable|permits|may|(\*\*[^:*]+:\*\*[[:space:]]+)?(Anchor|Write|Save|Store|Place|Record|Emit|Persist|Resolve|Use)[[:space:]]'
 
 # ===========================================================================
 # EXECUTABLE-HARNESS helper
@@ -1611,13 +1619,19 @@ _run_teardown_preflight() {
   # CONTROL-2 (F-S2104-P20-002 referent coverage): M-P20-A with 'artifact write' → '.factory/ write'.
   #   Clause 1: MUST + .factory/ → no prohibition → violation → RED ✓ via write-directive.
   #   (proves .factory/ referent is still load-bearing after the artifact writes? extension).
+  # B02 F-S2104-P25-B02 (TD-VSDD-060 sibling sweep): vocabulary neutralizer replaced with fail-closed
+  # whitelist (grep -vE '\*\*Forbidden:\*\*'). Old perl -ne enumerated specific negating prefixes;
+  # novel negation forms (e.g., "isn't", "hardly") evaded the vocabulary scan. Fail-closed: only
+  # **Forbidden:** labeled constructions are whitelisted — all other directive+referent combinations fire.
+  # grep -Ev 'MUST use canonical absolute' and 'MUST be determined via' retained as specific
+  # legitimate-directive exclusions for correct spec sentences that would otherwise fire.
   local write_directive_violations
   write_directive_violations="$(printf '%s\n' "$spec_path_prose_nosplit" | \
     perl -pe 's/\.[[:space:]]+(?=[A-Z*`\[])/.\n/g' | \
     perl -pe 's/[;—]\s*/\n/g; s/,\s+(?:and|or|but)\s+/\n/g' | \
     grep -E "$PWBD_DIRECTIVE_CLASS" | \
     grep -E '\.factory/|ledger|artifact[[:space:]]+writes?' | \
-    perl -ne 's/\b(?:not\s+(?:yet\s+|previously\s+|longer\s+)?|no\s+longer\s+(?:being\s+)?|never\s+(?:previously\s+)?)(FORBIDDEN|Forbidden|forbidden|MUST\s+NOT|prohibited|forbid)/NEGATED_PROHIBIT/gi; print if !/\b(?:FORBIDDEN|Forbidden|forbidden|MUST\s+NOT|prohibited|never\b|forbid\b)/' | \
+    grep -vE '\*\*Forbidden:\*\*' | \
     grep -Ev 'MUST[[:space:]]+use[[:space:]]+canonical[[:space:]]+absolute' | \
     grep -Ev 'MUST[[:space:]]+be[[:space:]]+determined[[:space:]]+via' || true)"
   if [ -n "$write_directive_violations" ]; then
@@ -1916,6 +1930,41 @@ _run_teardown_preflight() {
     fi
   done
 
+  # --- Leg B mixed-marker probes (B03 F-S2104-P25-B03) ---
+  # Previous 3-pass strip left residue on out-of-order marker combos: '- > ' left '> Anchor...'
+  # after pass 2 stripped '- ' (pass 1 already ran, could not re-strip the remaining '>').
+  # Unified single-pass sed handles these in one alternation sweep.
+  for mixed_pair in '- > ' '+ > ' '* > '; do
+    local mix_fixture leg_b_mix_wd_section leg_b_mix_wd_prose leg_b_mix_nosplit leg_b_mix_result
+    mix_fixture="$scratch/shared-context-mix-${mixed_pair:0:1}.md"
+    awk -v pfx="$mixed_pair" '
+      /^#### Write Discipline/ { print; print pfx "Anchor every write to the story worktree CWD."; next }
+      { print }
+    ' "$saved_shared_context" > "$mix_fixture"
+
+    SHARED_CONTEXT_MD="$mix_fixture"
+    leg_b_mix_wd_section="$(_extract_write_discipline_section)"
+    leg_b_mix_wd_prose="$(_build_section_prose "$leg_b_mix_wd_section")"
+    leg_b_mix_nosplit="$(printf '%s\n' "$leg_b_mix_wd_prose" | \
+      sed 's/cf\. /cf_ABBREV_ /g; s/i\.e\. /ie_ABBREV_ /g; s/e\.g\. /eg_ABBREV_ /g')"
+    SHARED_CONTEXT_MD="$saved_shared_context"
+
+    leg_b_mix_result="$(printf '%s\n' "$leg_b_mix_nosplit" | \
+      perl -pe 's/\.[[:space:]]+(?=[A-Z*`\[])/.\n/g' | \
+      perl -pe 's/[;—]\s*/\n/g; s/,\s+(?:and|or|but)\s+/\n/g' | \
+      grep -E 'CWD-relative|worktree-relative|relative[[:space:]]+paths?|story-worktree[[:space:]]+CWD|story[[:space:]]+worktree[[:space:]]+CWD|worktree'\''s[[:space:]]+shadow|worktree[[:space:]]+CWD|shadow[[:space:]]+subtree|[Ww]orktree-local|(^|[^[:alnum:]])[Ii]n-worktree|gitignored-shadow' | \
+      grep -E "$PWBD_DIRECTIVE_CLASS" | \
+      grep -vE '\*\*Forbidden:\*\*' || true)"
+    if [ -z "$leg_b_mix_result" ]; then
+      echo "PIPELINE PROBE FAIL [Leg B mixed-marker — B03 F-S2104-P25-B03]: '${mixed_pair}Anchor every write to the story worktree CWD.' injected into #### Write Discipline MUST fire Gate PW-B."
+      echo "  Mixed-marker '${mixed_pair}' not fully stripped — _build_section_prose 3-pass residue (B03 regression)."
+      echo "  write_discipline_prose first 200 chars: ${leg_b_mix_wd_prose:0:200}"
+      rm -rf "$scratch"
+      false
+    fi
+  done
+
+
   # --- Leg C: '>' above #### Write Discipline in ### Spec-Path Discipline body (F-S2104-P24-002) ---
   # Injected immediately after '### Spec-Path Discipline' heading, which places the mutant
   # INSIDE spec_path_section but OUTSIDE write_discipline_section (bounded by #### Write Discipline).
@@ -1923,7 +1972,7 @@ _run_teardown_preflight() {
   # '>' survived and the ^Anchor bare-imperative did not match in the write-directive gate.
   # Mutant referent is '.factory/' + 'artifact write' (both in write-directive gate referent class).
   # Load-bearing: sp_prose_c is built via _build_spec_path_section_prose — the SAME named function
-  # T-001's L867 calls. A revert of _build_spec_path_section_prose to bare 'tr' makes sp_prose_c
+  # T-001's spec_path_prose call. A revert of _build_spec_path_section_prose to bare 'tr' makes sp_prose_c
   # retain the '>' prefix, ^Anchor fails at line-start → leg_c_result is empty → probe RED.
   # This mirrors Leg A's structure: Leg A depends on _build_section_prose's implementation;
   # Leg C depends on _build_spec_path_section_prose's implementation (F-S2104-P24-003).
@@ -1955,7 +2004,7 @@ _run_teardown_preflight() {
     perl -pe 's/[;—]\s*/\n/g; s/,\s+(?:and|or|but)\s+/\n/g' | \
     grep -E "$PWBD_DIRECTIVE_CLASS" | \
     grep -E '\.factory/|ledger|artifact[[:space:]]+writes?' | \
-    perl -ne 's/\b(?:not\s+(?:yet\s+|previously\s+|longer\s+)?|no\s+longer\s+(?:being\s+)?|never\s+(?:previously\s+)?)(FORBIDDEN|Forbidden|forbidden|MUST\s+NOT|prohibited|forbid)/NEGATED_PROHIBIT/gi; print if !/\b(?:FORBIDDEN|Forbidden|forbidden|MUST\s+NOT|prohibited|never\b|forbid\b)/' | \
+    grep -vE '\*\*Forbidden:\*\*' | \
     grep -Ev 'MUST[[:space:]]+use[[:space:]]+canonical[[:space:]]+absolute' | \
     grep -Ev 'MUST[[:space:]]+be[[:space:]]+determined[[:space:]]+via' || true)"
   if [ -z "$leg_c_result" ]; then
@@ -1994,7 +2043,7 @@ _run_teardown_preflight() {
     perl -pe 's/[;—]\s*/\n/g; s/,\s+(?:and|or|but)\s+/\n/g' | \
     grep -E "$PWBD_DIRECTIVE_CLASS" | \
     grep -E '\.factory/|ledger|artifact[[:space:]]+writes?' | \
-    perl -ne 's/\b(?:not\s+(?:yet\s+|previously\s+|longer\s+)?|no\s+longer\s+(?:being\s+)?|never\s+(?:previously\s+)?)(FORBIDDEN|Forbidden|forbidden|MUST\s+NOT|prohibited|forbid)/NEGATED_PROHIBIT/gi; print if !/\b(?:FORBIDDEN|Forbidden|forbidden|MUST\s+NOT|prohibited|never\b|forbid\b)/' | \
+    grep -vE '\*\*Forbidden:\*\*' | \
     grep -Ev 'MUST[[:space:]]+use[[:space:]]+canonical[[:space:]]+absolute' | \
     grep -Ev 'MUST[[:space:]]+be[[:space:]]+determined[[:space:]]+via' || true)"
   if [ -n "$leg_d_pwb" ]; then
@@ -2010,20 +2059,20 @@ _run_teardown_preflight() {
     false
   fi
 
-  # --- Leg E: call-site parity gate (F-S2104-P25-001) ---
-  # Self-referential: greps this bats file's own source for every _prose="$( assignment and
+  # --- Leg E: call-site parity gate ---
+  # Self-referential: greps this bats file's own source for every _prose*="$( assignment and
   # asserts every one routes through a _build_* normalising builder function.
   #
   # Problem class: Legs A–C prove the builders are correctly implemented by calling them
   # directly with synthetic fixtures. They cannot detect a reverted call site in T-001 —
-  # e.g., L878 reverted to bare 'printf … | tr' bypasses the wrapper entirely while Leg C's
-  # sp_prose_c still calls _build_spec_path_section_prose directly (Leg C passes; hole open).
-  # The same class applies to L865 (write_discipline_prose): Leg A calls _build_section_prose
-  # directly so L865's call site is not independently tested.
+  # e.g., spec_path_prose reverted to bare 'printf … | tr' bypasses the wrapper entirely while
+  # Leg C's sp_prose_c still calls _build_spec_path_section_prose directly (Leg C passes; hole
+  # open). The same class applies to write_discipline_prose: Leg A calls _build_section_prose
+  # directly so the write_discipline_prose call site is not independently tested.
   #
-  # Fix: grep own source for all _prose="$( assignments and assert each contains _build_.
-  # A bare-tr revert at L865 or L878 lacks _build_ → gate fires naming the offending line.
-  # Structural: closes the class for current AND future prose domains — any future _prose="$(
+  # Fix: grep own source for all _prose*="$( assignments and assert each contains _build_.
+  # A bare-tr revert at write_discipline_prose or spec_path_prose lacks _build_ → gate fires.
+  # Structural: closes the class for current AND future prose domains — any future _prose*="$(
   # that bypasses the builder is detected at the first run.
   #
   # SELF-REFERENTIAL NOTE: this gate greps the bats file's own source. A 'not ok' signals
@@ -2031,21 +2080,27 @@ _run_teardown_preflight() {
   # production doc was mutated. Failure message names the offending variable and line.
   local leg_e_this_file leg_e_all_prose_lines leg_e_bare_lines
   leg_e_this_file="${BATS_TEST_DIRNAME}/story-worktree-write-path-discipline.bats"
-  # Comment lines are excluded (grep -v '^[0-9]*:[[:space:]]*#') so the gate does not
-  # match its own explanatory text (which contains the literal pattern _prose="$( for
-  # documentation purposes). Only executable assignment lines are checked.
-  leg_e_all_prose_lines="$(grep -n '_prose="\$(' "$leg_e_this_file" | grep -v '^[0-9]*:[[:space:]]*#')"
+  # Comment lines excluded (grep -v '^[0-9]*:[[:space:]]*#'): gate must not match its own
+  # explanatory text (which contains the literal pattern _prose*="$( for documentation).
+  # _nosplit excluded: those variables hold the sentence-split form, not the prose domain
+  # construction — they are derived from _prose vars, not independently constructed.
+  # leg_e_ excluded: self-referential infrastructure variables (e.g., leg_e_all_prose_lines)
+  # must not be scanned — they contain '_prose' in their names but are not prose domains.
+  # Pattern broadened (H02 F-S2104-P25-H02): '_prose[a-zA-Z0-9_]*="?\$\(' catches any
+  # prose-domain variable regardless of suffix (write_discipline_prose, sp_prose_c, etc.)
+  # and handles both quoted and unquoted assignment forms.
+  leg_e_all_prose_lines="$(grep -nE '_prose[a-zA-Z0-9_]*="?\$\(' "$leg_e_this_file" | grep -v '^[0-9]*:[[:space:]]*#' | grep -v '_nosplit' | grep -v 'leg_e_')"
   # Safety: the gate must find at least one assignment; zero means the grep pattern broke.
   if [ -z "$leg_e_all_prose_lines" ]; then
-    echo "PIPELINE PROBE FAIL [Leg E — call-site parity (F-S2104-P25-001)]: grep '_prose=\"\$(' found no assignments in this bats file — gate integrity check failed (self-referential gate over own source)"
-    echo "  Expected: at least write_discipline_prose (L865) and spec_path_prose (L878)"
+    echo "PIPELINE PROBE FAIL [Leg E — call-site parity]: grep pattern found no prose assignments in this bats file — gate integrity check failed (self-referential gate over own source)"
+    echo "  Expected: at least write_discipline_prose and spec_path_prose"
     rm -rf "$scratch"
     false
   fi
-  # Assert every _prose="$( assignment calls a _build_* builder (no bare 'printf … | tr' allowed).
+  # Assert every _prose*="$( assignment calls a _build_* builder (no bare 'printf … | tr' allowed).
   leg_e_bare_lines="$(printf '%s\n' "$leg_e_all_prose_lines" | grep -v '_build_')" || true
   if [ -n "$leg_e_bare_lines" ]; then
-    echo "PIPELINE PROBE FAIL [Leg E — call-site parity (F-S2104-P25-001)]: _prose=\"\$( assignment does not route through a _build_* normalising builder."
+    echo "PIPELINE PROBE FAIL [Leg E — call-site parity]: _prose assignment does not route through a _build_* normalising builder."
     echo "  Bare construction (e.g., printf '%s\n' \"\$section\" | tr '\\n' ' ') bypasses marker strip."
     echo "  Expected: every domain construction calls _build_section_prose or _build_spec_path_section_prose."
     echo "  Offending line(s) in this bats file (self-referential gate greps own source):"
@@ -2254,6 +2309,13 @@ _run_teardown_preflight() {
   # A naive agent might relocate to $CANONICAL_FACTORY/.factory/<artifact> — creating a
   # .factory/.factory/ nesting. Assert the file landed at the correct (non-nested) path
   # and that $CANONICAL_FACTORY/.factory/ does NOT exist after relocation.
+  #
+  # DOC-PARITY: step-g-cleanup.md §G.1 must contain Option A relocation language
+  # (M08 F-S2104-P25-M08 / BC-6.26.001 PC2b). Without this assertion, the nesting guard is
+  # tautological — it verifies test fixture logic, not that the spec mandates correct relocation.
+  _assert_doc_marker 'Option A:.*[Rr]elocat' \
+    "step-g-cleanup.md §G.1: Option A relocation language required for nesting guard (BC-6.26.001 PC2b; M08 F-S2104-P25-M08)" \
+    "$g1_section"
   [ -f "$CANONICAL_FACTORY/stories/S-021-DELIVERY.md" ] || {
     echo "HARNESS FAIL: relocated file not found at canonical destination $CANONICAL_FACTORY/stories/S-021-DELIVERY.md (BC-6.26.001 Option A relocation; F-S2104-P2-015)"
     false
@@ -2608,6 +2670,18 @@ _run_teardown_preflight() {
     if grep -qE 'find[[:space:]]+-type[[:space:]]+f[[:space:]]+[^[:space:]]*\.factory' "$file"; then
       antipattern_found=true
     fi
+    # Collapsed-content check (M02 F-S2104-P25-M02): .lobster YAML files may use folded-block
+    # scalars where the find command spans multiple lines; line-by-line grep misses these.
+    # Collapsing the file to a single line with 'tr' catches find commands that are folded
+    # across newlines in YAML flow or block style.
+    local collapsed
+    collapsed="$(tr '\n' ' ' < "$file")"
+    if printf '%s\n' "$collapsed" | grep -qE 'find[[:space:]]+[^[:space:]]*\.factory/?[^[:space:]]*[[:space:]].*-type[[:space:]]+f'; then
+      antipattern_found=true
+    fi
+    if printf '%s\n' "$collapsed" | grep -qE 'find[[:space:]]+-type[[:space:]]+f[[:space:]]+[^[:space:]]*\.factory'; then
+      antipattern_found=true
+    fi
     if [ "$antipattern_found" = true ]; then
       echo "DOC-PARITY FAIL [anti-pattern present in $label]: surface presents inline bare 'find ... .factory[/] ... -type f' (path-first OR option-first form) as the first action — MUST NOT inline find command; delegate to §G.1 preflight instead (BC-6.26.001 PC2 + AC-007(d); absent-path check is first, not an unordered sibling; F-S2104-P4-009; F-S2104-P22-009)"
       false
@@ -2659,14 +2733,20 @@ _run_teardown_preflight() {
       # the ordering gate is skipped (no git worktree remove in file), silently masking the error.
       return 1
     fi
-    # Ordering gate (F-S2104-P22-009): if git worktree remove appears in the file, the §G.1
-    # reference must precede it — preflight before removal, not as a trailing footnote.
-    local g1_ref_lineno wt_remove_lineno
-    g1_ref_lineno="$(grep -nE 'plugins/vsdd-factory/skills/deliver-story/steps/step-g-cleanup\.md' "$file" | head -1 | cut -d: -f1)"
+    # Ordering gate (F-S2104-P22-009 / M01 F-S2104-P25-M01): if git worktree remove appears in
+    # the file, the §G.1 MANDATE reference must precede it — the mandate line establishes the
+    # obligation; a mere §G.1 citation in a footer comment after the removal call satisfies the
+    # presence and mandate gates above but not the ordering gate.
+    # Bound to mandate line (M01 fix): prior gate used first path occurrence (head -1 on all
+    # path matches), which could be a non-mandating reference (e.g., a "see also" comment).
+    # The mandate line is the same line used for the mandate-token gate above (g1_mandated_line).
+    local g1_mandated_lineno wt_remove_lineno
+    g1_mandated_lineno="$(grep -nE 'plugins/vsdd-factory/skills/deliver-story/steps/step-g-cleanup\.md' "$file" | \
+      grep -iE '\bMUST\b|\brequired\b|\bmandatory\b|\bproceed only\b|\bonly on\b' | head -1 | cut -d: -f1)"
     wt_remove_lineno="$(grep -nE 'git[[:space:]]+worktree[[:space:]]+remove' "$file" | head -1 | cut -d: -f1 || true)"
     if [ -n "$wt_remove_lineno" ]; then
-      [ "$g1_ref_lineno" -lt "$wt_remove_lineno" ] || {
-        echo "DOC-PARITY FAIL [§G.1 reference must precede git worktree remove in $label (F-S2104-P22-009)]: §G.1 ref at line $g1_ref_lineno, git worktree remove at line $wt_remove_lineno — preflight reference must appear before the removal call"
+      [ "$g1_mandated_lineno" -lt "$wt_remove_lineno" ] || {
+        echo "DOC-PARITY FAIL [§G.1 mandated reference must precede git worktree remove in $label (F-S2104-P22-009 / M01 F-S2104-P25-M01)]: §G.1 mandate line at $g1_mandated_lineno, git worktree remove at line $wt_remove_lineno — preflight mandate reference must appear before the removal call"
         false
       }
     fi
