@@ -1,6 +1,6 @@
 ---
 name: step-d5-adversary-convergence
-description: Run the per-story adversary convergence loop to 3 clean NITPICK_ONLY passes before proceeding to demos. Writes convergence-state.json per BC-5.39.001.
+description: Run the per-story adversary convergence loop to 3 clean NITPICK_ONLY passes before proceeding to demos. State-manager persists convergence-state.json at canonical-repo-root per BC-5.39.001.
 ---
 
 # Step D.5: Per-Story Adversary Convergence
@@ -20,7 +20,7 @@ Ensures the story implementation is adversarially reviewed to convergence before
 ## Convergence Criterion
 
 `passes_clean >= 3 AND last_classification == "NITPICK_ONLY"` in
-`.factory/cycles/<cycle-id>/<story-id>/adversary-convergence-state.json`.
+`<canonical-repo-root>/.factory/cycles/<cycle-id>/<story-id>/adversary-convergence-state.json`.
 
 The `passes_clean` counter increments by 1 per pass where `last_classification == "NITPICK_ONLY"`.
 It RESETS to 0 if any pass produces a finding above NITPICK_ONLY. Minimum 3 clean passes — no exceptions.
@@ -87,13 +87,13 @@ Dispatch `adversary` agent (model tier: Capable) with context:
 - Anchored BCs listed in the story's `behavioral_contracts:` frontmatter field — canonical repo-root paths only
 - Current convergence state file (if it exists)
 
-Task: "Review the story diff against the story spec and anchored BCs. Classify each finding as CRITICAL, HIGH, MEDIUM, LOW, or NITPICK_ONLY. Tag out-of-scope findings (cross-story, integration, system-level, architectural) as deferred per BC-5.39.002. Write updated convergence state JSON to `.factory/cycles/<cycle-id>/<story-id>/adversary-convergence-state.json`."
+Task: "Review the story diff against the story spec and anchored BCs. Classify each finding as CRITICAL, HIGH, MEDIUM, LOW, or NITPICK_ONLY. Tag out-of-scope findings (cross-story, integration, system-level, architectural) as deferred per BC-5.39.002. Return updated convergence state JSON in the response (adversary agent denies Write/Edit/Bash — persistence is handled by the orchestrator via state-manager in Step 2, not by the adversary)."
 
-**Step 2 — State-manager backup:**
-Dispatch `state-manager` to commit the updated state file to `factory-artifacts`.
+**Step 2 — State-manager persist and commit:**
+The adversary returns convergence state JSON as chat text per the adversary agent contract (adversary.md denies Write/Edit/Bash; findings are returned as chat text and the orchestrator persists them via state-manager). Dispatch `state-manager` to (a) write the state JSON to `<canonical-repo-root>/.factory/cycles/<cycle-id>/<story-id>/adversary-convergence-state.json` — where `<canonical-repo-root>` is the main checkout root from the WORKTREE-IDENTITY TUPLE, NOT a worktree-relative `.factory/` path — and (b) commit the updated state file to `factory-artifacts`.
 
 **Step 3 — Check convergence:**
-Read `.factory/cycles/<cycle-id>/<story-id>/adversary-convergence-state.json`.
+Read `<canonical-repo-root>/.factory/cycles/<cycle-id>/<story-id>/adversary-convergence-state.json`.
 - If `passes_clean < 3` OR `last_classification != "NITPICK_ONLY"`:
   dispatch `implementer` to fix within-story findings, then repeat from Step 1.
 - If `passes_clean >= 3 AND last_classification == "NITPICK_ONLY"`: proceed to Step E.
@@ -111,7 +111,7 @@ Deferred categories:
 
 ## State File Schema (BC-5.39.001 PC2)
 
-Path: `.factory/cycles/<cycle-id>/<story-id>/adversary-convergence-state.json`
+Path: `<canonical-repo-root>/.factory/cycles/<cycle-id>/<story-id>/adversary-convergence-state.json`
 
 ```json
 {
@@ -131,7 +131,7 @@ Path: `.factory/cycles/<cycle-id>/<story-id>/adversary-convergence-state.json`
 
 ## Artifacts
 
-- `.factory/cycles/<cycle-id>/<story-id>/adversary-convergence-state.json` — convergence state (committed to factory-artifacts by state-manager)
+- `<canonical-repo-root>/.factory/cycles/<cycle-id>/<story-id>/adversary-convergence-state.json` — convergence state (written and committed to factory-artifacts by state-manager per Step 2)
 - Any within-story fix commits on the feature branch
 
 ## Note on Bootstrap Exemption (D-354)
