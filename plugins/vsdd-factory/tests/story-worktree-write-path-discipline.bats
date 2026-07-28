@@ -790,20 +790,22 @@ _run_teardown_preflight() {
   # empty over the unexcluded pristine section by adversary literal shell.
   # Abbreviation-protect cf./i.e./e.g. before sentence-splitting (F-S2104-P16-001 M-P16-C2
   # hardening: cf. dot creates a false boundary that masks CWD-relative from Gate 1(c)/Gate 5).
-  # F-S2104-P22-004: Strip blockquote lines (> ) from write_discipline_prose domain before
-  # building the normative-mandate search domain. Blockquote lines are structural annotations
-  # (gate-imposed authoring constraints, explanatory notes) — NOT normative mandate or prohibition
-  # text. Including them caused false-positive gate fires on authoring-constraint blocks such as
-  # the T-001/Gate PW-B constraint added after the **Forbidden:** bullets (which contains
-  # 'prohibited' + 'outside', triggering the scope-restriction gate). Analogous to the
-  # link-ref-def stripping (F-S2104-P18-004) and HTML-comment stripping (F-S2104-P17-001(b)):
-  # the structural annotation is excluded from the normative domain because its purpose is
-  # meta-commentary, not mandate or prohibition.
-  # MUTANT: move the prohibition paragraph into a > blockquote → stripped from domain →
-  #   anchor count 0 → RED. This mutant proves the strip is not a fail-open loophole.
+  # F-S2104-P23-001 closure: blockquote strip replaced with blockquote-MARKER strip.
+  # The old strip removed ENTIRE lines starting with '>' — an unconditional fail-open that
+  # blinded Gate PW-B, Gate 2b(a)/(c), Gate scope-restriction, Gates 4 and 5 to any
+  # prohibited content placed in a blockquote (M-P21-A/B/C class and M-P17-D class).
+  # The correct fix strips ONLY the '^[[:space:]]*>[[:space:]]*' markdown presentation marker
+  # from each line while preserving the content — normalizing blockquote form to plain text
+  # so the gate predicates (including the bare-imperative line-anchor ^Anchor/^Resolve/^Place)
+  # apply correctly. The T-001/Gate PW-B authoring-constraint annotation that triggered the
+  # false-positive scope-restriction fire has been relocated OUTSIDE #### Write Discipline
+  # (placed before the heading, still within ### Spec-Path Discipline) so it is not in the
+  # gated domain. Proof: M-P21-A 'Anchor every write to the story worktree CWD.' fires PW-B
+  # when injected as '> Anchor...' (marker stripped → Anchor at line start → ^Anchor matches);
+  # M-P17-D 'The prohibition above has been rescinded and superseded.' fires Gate 2b(a).
   local write_discipline_prose
   write_discipline_prose="$(printf '%s\n' "$write_discipline_section" | \
-    grep -Ev '^[[:space:]]*>' | tr '\n' ' ')"
+    sed 's/^[[:space:]]*>[[:space:]]*//' | tr '\n' ' ')"
   local write_discipline_prose_nosplit
   write_discipline_prose_nosplit="$(printf '%s\n' "$write_discipline_prose" | \
     sed 's/cf\. /cf_ABBREV_ /g; s/i\.e\. /ie_ABBREV_ /g; s/e\.g\. /eg_ABBREV_ /g')"

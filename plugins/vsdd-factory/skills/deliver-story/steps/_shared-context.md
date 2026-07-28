@@ -61,6 +61,8 @@ Pass only the specific files each specialist needs. Never pass the whole story f
 
 **Enforcement:** Before building the context package for any specialist dispatch involving spec files, the orchestrator MUST resolve the canonical repo-root path for each spec file and pass that path — not `<worktree>/.factory/<anything>`. If the canonical path cannot be resolved (e.g., factory-artifacts worktree is not mounted), STOP and report to the human before dispatching.
 
+> **Gate-imposed authoring constraint (T-001/Gate PW-B — F-S2104-P22-001):** Prohibition directives in the `#### Write Discipline` section below MUST use `**Forbidden:**` bullet format. Bare RFC-2119 prose forms (`MUST NOT …`, `is prohibited`) written outside a `**Forbidden:**` bullet trigger Gate PW-B as a false positive — the bats fail-closed whitelist only passes constructions anchored to `**Forbidden:**` bullets.
+
 #### Write Discipline — `.factory/**` artifact writes from story worktrees (BC-6.26.001 PC1, Invariants 1, 3, 4)
 
 All `.factory/**` artifact writes performed during story delivery MUST use canonical absolute paths
@@ -112,8 +114,6 @@ pre-provided `CANONICAL_FACTORY_ROOT`.
 - **Correct:** `Write(file_path="$CANONICAL_FACTORY_ROOT/.factory/stories/S-NNN-DELIVERY.md", ...)`
 - **Forbidden:** `Write(file_path=".factory/stories/S-NNN-DELIVERY.md", ...)` (relative path — silently writes to shadow tree)
 - **Forbidden:** `Write(file_path="../../.factory/stories/S-NNN-DELIVERY.md", ...)` (relative traversal — brittle and error-prone)
-
-> **Gate-imposed authoring constraint (T-001/Gate PW-B — F-S2104-P22-001):** Prohibition directives in this `#### Write Discipline` section MUST use `**Forbidden:**` bullet format. Bare RFC-2119 prose forms (`MUST NOT …`, `is prohibited`) written outside a `**Forbidden:**` bullet trigger Gate PW-B as a false positive — the bats fail-closed whitelist only passes constructions anchored to `**Forbidden:**` bullets.
 
 ### Story-Size Gate
 
