@@ -21426,4 +21426,4 @@ Three-way equality: story frontmatter=242b539, catalog=242b539, blockquote=242b5
 
 **factory-artifacts commits:**
 - Pre-burst parent-commit (factory-artifacts): `316d6c00` (D-936-SHA-PATCH)
-- This burst: [SHA-TBD — to be filled by SHA-patch per D-447(c)/D-449(e) after commit]
+- This burst: `a86970a530d8bd33d6d1f7bc62150dfaa7d9703c` (`a86970a5`) — factory(D-937): pass-25 record — adversary-pass-25.md + 4-index BC4.36/STORY4.270/ARCH3.36 + 9 lessons + STATE v6.69
