@@ -20852,4 +20852,4 @@ $ printf '%s\n' F-S2104-P22-001 F-S2104-P22-002 F-S2104-P22-003 F-S2104-P22-004 
 
 **factory-artifacts commits:**
 - Pre-burst parent-commit (factory-artifacts): `1f210517` (D-932-SHA-PATCH)
-- This burst: [TBD-D-933-SHA] — `factory(D-933): pass-22 sweep record + 4-index bumps + 6 lessons + STATE v6.65`
+- This burst: `9dbc8d00` — `factory(D-933): pass-22 sweep record + 4-index bumps + 6 lessons + STATE v6.65`
