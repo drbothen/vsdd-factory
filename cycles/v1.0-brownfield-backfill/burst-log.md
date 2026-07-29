@@ -21824,4 +21824,4 @@ No BC body content, ADR rationale text, VP prose, or story AC content was author
 
 **factory-artifacts commits:**
 - Pre-burst parent-commit (factory-artifacts): `d34b7e25` (D-939)
-- This burst: TBD — factory(D-940): pass-27 record — adversary-pass-27.md + 7 findings CLOSED + POLICY15 residual CLOSED + BC v4.37 + STORY v4.272 + 7 lessons + STATE v6.72
+- This burst: `28ef00c5` — factory(D-940): pass-27 record — adversary-pass-27.md + 7 findings CLOSED + POLICY15 residual CLOSED + BC v4.37 + STORY v4.272 + 7 lessons + STATE v6.72
