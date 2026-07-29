@@ -11,7 +11,7 @@ inputs:
   - specs/architecture/decisions/ADR-031-e21-factory-state-data-loss-hardening.md
   - specs/behavioral-contracts/ss-06/BC-6.26.001.md
   - cycles/v1.0-brownfield-backfill/S-21.04/implementation/red-gate-log.md
-input-hash: "15725e3"
+input-hash: "1fa6cc2"
 traces_to: "BC-6.26.001 v1.14; story v1.28"
 pass: 26
 verdict: NOT-CLEAN
@@ -199,7 +199,7 @@ Finding IDs for this cascade use the format: `F-S2104-P<PASS>-<SEV><SEQ>` (proje
 - **Proposed Fix:** Balance parentheses; preserve `ADR-031 §Decision 4` anchor.
 - **References:** —
 
-## Fix Mapping (10 of 11 CLOSED; 1 OPEN)
+## Fix Mapping (11 of 11 CLOSED; POLICY 15 restore-leg residual OPEN — pass-27 anchor)
 
 | Finding | Owner | Status at `7c3338e7` | Notes |
 |---------|-------|---------------------|-------|
@@ -208,7 +208,7 @@ Finding IDs for this cascade use the format: `F-S2104-P<PASS>-<SEV><SEQ>` (proje
 | H01 | story-writer | CLOSED at `ac478e41` + `7c3338e7` | Gate cell resynced to HEAD; 21→23 gates; `^` removed; escape clauses corrected |
 | H02 | architect | CLOSED at `ac478e41` | ADR-031 v1.14→v1.15; three retracted claims corrected; ARCH-INDEX v3.36→v3.37 |
 | H03 | test-writer | CLOSED at `ac478e41` | `_build_nosplit()` wires `_nosplit` vars; `grep -v '_nosplit'` removed; mechanism 3 closed |
-| **H04** | — | **OPEN** | Records requested twice and not produced. red-gate-log.md unmodified. Recording as closed would reproduce the exact defect class H04 and P25-H01 describe. Pass-27 priority #1. |
+| **H04** | state-manager | **CLOSED at `a8ec290e` (D-939 SUPERSESSION)** | 7/8 per-guard records produced in-flight during D-938 burst (committed by `a8ec290e`); P25-M06 NOT PRODUCIBLE (editorial TD-VSDD-091 fix; no executable guard); D-938 asserted OPEN per honest-recording on evidence available at dispatch time; D-939 supersedes. POLICY 15 restore-leg residual OPEN (restore commands present as prose but not in `$ `-prefixed format; pass-27 anchor). |
 | M01 | story-writer | CLOSED at `ac478e41` | T-015 registered in §Test Plan/§Architecture Mapping/§File Structure Requirements/§Tasks |
 | M02 (gate) | test-writer | CLOSED at `ac478e41` | Meta-aware `MUST (NOT\|not) (use\|write\|store\|…)` escape added |
 | M02 (doc) | story-writer | CLOSED at `7c3338e7` | Constraint scope corrected `#### Write Discipline` → `### Spec-Path Discipline` |

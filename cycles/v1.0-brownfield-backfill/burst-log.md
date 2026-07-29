@@ -21446,7 +21446,7 @@ Three-way equality: story frontmatter=242b539, catalog=242b539, blockquote=242b5
 - H01: AC-001 Gate cell desynced with AC-001(a)/(b) split. CLOSED at 7c3338e7.
 - H02: ADR-031 retains retracted BC claims. CLOSED at 7c3338e7.
 - H03: Leg E closes only 1 of 3 mechanisms it should cover. CLOSED at 7c3338e7.
-- H04: red-gate-log §Pass-25 missing per-guard mutant verification for P25-B02/-H02/-M01/-M02/-M08. **OPEN** — evidence requested twice, not produced; recorded OPEN per honest-recording discipline.
+- H04: red-gate-log §Pass-25 missing per-guard mutant verification for P25-B02/-H02/-M01/-M02/-M08. Recorded **OPEN** at D-938 per honest-recording discipline. **SUPERSEDED by D-939: CLOSED at `a8ec290e`** — 7/8 per-guard records committed in-flight during D-938 dispatch race; P25-M06 NOT PRODUCIBLE; POLICY 15 restore-leg residual OPEN (pass-27 anchor).
 - M01: T-015 unregistered in 4 inventories. CLOSED at 7c3338e7.
 - M02: Write-directive gate scope wider than authoring-constraint scope. CLOSED at 7c3338e7.
 - M03: Guard (k) fail-open fallback (`|| true`). CLOSED at 7c3338e7.
@@ -21551,11 +21551,109 @@ No BC body content, ADR rationale text, VP prose, or story AC content was author
 - F-S2104-P26-B02: CLOSED (state-manager — orchestrator B02 evidence recorded)
 - F-S2104-P26-H01/H02/H03/M01/M02/M03/L01/L02: CLOSED by other agents at 7c3338e7 (per adversary-pass-26.md Fix Mapping)
 - F-S2104-P26-L01: NON-FINDING (adjudicated by adversary)
-- F-S2104-P26-H04: **OPEN** — per-guard mutant evidence not produced; H04 carries forward as pass-27 lead item
+- F-S2104-P26-H04: **CLOSED at `a8ec290e` (D-939 SUPERSESSION)** — 7/8 per-guard records produced in-flight; P25-M06 NOT PRODUCIBLE; D-938 OPEN record superseded by D-939; POLICY 15 restore-leg residual OPEN (pass-27 anchor)
 - D-{TBD-pass-26-fix-burst} sentinels: CLOSED (6 sites → D-938; ARCH-INDEX ×2, ADR-031 ×2, story ×2)
 
-**Open gaps carrying forward:** H04 OPEN (per-guard mutant evidence for P25-B02/-H02/-M01/-M02/-M08). STATE.md body sections remain BLOCKED by rc.23 WASM guard per D-931/D-932 precedent.
+**Open gaps carrying forward:** H04 POLICY 15 restore-leg residual (restore commands present as prose, not `$ `-prefixed; pass-27 anchor). STATE.md body sections remain BLOCKED by rc.23 WASM guard per D-931/D-932 precedent.
 
 **factory-artifacts commits:**
 - Pre-burst parent-commit (factory-artifacts): `4c82cec0` (D-937-SHA-PATCH)
 - This burst: `a8ec290e` — factory(D-938): pass-26 record — adversary-pass-26.md + sentinels→D-938 + 8 lessons + STATE v6.70
+
+---
+
+## D-939 — H04 record-correction burst (state-manager, 2026-07-28)
+
+### Block 1: Parent commit
+
+**Parent commit (factory-artifacts HEAD before this burst):** `f9207762` — `factory(D-938-SHA-PATCH): update burst-log Block 8 with actual burst SHA a8ec290e`
+
+### Block 2: Adversary verdict
+
+**Pass-26 adversary verdict (correction context):** NOT-CLEAN (original, unchanged). H04 was recorded OPEN at D-938 per honest-recording discipline. D-939 supersedes: H04 CLOSED at `a8ec290e` — records committed in-flight during orchestrator dispatch race.
+
+**Correction summary:**
+- H04: red-gate-log §Pass-25 per-guard mutant verification. Recorded **OPEN** at D-938. **SUPERSEDED by D-939: CLOSED at `a8ec290e`** — 7/8 records (B01-Gate1e, B01-LegD, P25-B02, P25-H02, P25-M01, P25-M02, P25-M08) produced with mutation + RED + restore + GREEN; P25-M06 NOT PRODUCIBLE (editorial TD-VSDD-091; no executable guard).
+- POLICY 15 restore-leg residual: OPEN (pass-27 anchor) — restore commands in prose form, not `$ `-prefixed; `awk 'NR>1930 && NR<2290' red-gate-log.md | grep -cE "^\$ .*restore|^\$ git checkout"` → 0.
+
+### Block 3: Files touched
+
+**State-manager files (factory-artifacts branch):**
+- `.factory/cycles/v1.0-brownfield-backfill/decision-log.md` — EDITED (D-938 supersession blockquote added; D-939 block appended)
+- `.factory/cycles/v1.0-brownfield-backfill/burst-log.md` — EDITED (D-938 Block 2/Block 8 H04 OPEN→CLOSED; D-939 entry appended)
+- `.factory/cycles/v1.0-brownfield-backfill/INDEX.md` — EDITED (pass-26 row H04 OPEN→CLOSED + POLICY 15 residual; Convergence Status updated)
+- `.factory/cycles/v1.0-brownfield-backfill/S-21.04/adversary-pass-26.md` — EDITED (Fix Mapping header 10/11→11/11; H04 row OPEN→CLOSED; input-hash updated)
+- `.factory/cycles/v1.0-brownfield-backfill/S-21.04/implementation/red-gate-log.md` — EDITED (§Pass-26 attestation H04 section: OPEN→CLOSED with supersession + POLICY 15 residual; summary table row updated; frontmatter version 1.24→1.25; D-939 modified[] entry prepended)
+- `.factory/cycles/v1.0-brownfield-backfill/lessons.md` — EDITED (3 L-BB-* lessons appended)
+- `.factory/STATE.md` — EDITED (frontmatter v6.70→v6.71; phase D-939-H04-CLOSED-RECORD-CORRECTION)
+
+**Feature branch (NOT touched by state-manager):** `7c3338e7` — per task constraint.
+
+### Block 4: Codifications
+
+- **D-939** codified: H04 record correction; orchestrator dispatch race process lesson; POLICY 15 editorial scope boundary; 3 L-BB-* lessons.
+- **3 L-BB-* lessons** codified: dispatch-race; honest-recording self-correction; POLICY 15 editorial NOT-PRODUCIBLE scope.
+
+### Block 5: Dim-2 mandatory gate evidence (literal shell stdout)
+
+**(a) POLICY 16 GLOBAL-MAX:**
+```
+grep -n "^## D-" .factory/cycles/v1.0-brownfield-backfill/decision-log.md | sort -t'-' -k2 -n | tail -3
+13651:## D-937
+13780:## D-937
+13760:## D-938
+```
+D-938 confirmed max → D-939 allocated.
+
+**(b) 4-INDEX VERSIONS (UNCHANGED):**
+```
+grep "^version:" .factory/specs/behavioral-contracts/BC-INDEX.md | head -1
+version: "4.36"
+grep "^version:" .factory/specs/verification-properties/VP-INDEX.md | head -1
+version: "2.72"
+grep "^version:" .factory/stories/STORY-INDEX.md | head -1
+version: "4.271"
+grep "^version:" .factory/specs/architecture/ARCH-INDEX.md | head -1
+version: "3.37"
+```
+BC v4.36 / VP v2.72 / STORY v4.271 / ARCH v3.37. UNCHANGED.
+
+**(c) H04 OPEN SITE COUNT IN DECISION-LOG:**
+```
+grep -c "H04.*OPEN\|OPEN.*H04" .factory/cycles/v1.0-brownfield-backfill/decision-log.md
+8
+```
+8 occurrences — all within D-938 historical block (preserved per audit-trail discipline; D-939 supersession note added).
+
+**(d) POLICY 15 RESTORE-LEG VERIFICATION:**
+```
+awk 'NR>1930 && NR<2290' .factory/cycles/v1.0-brownfield-backfill/S-21.04/implementation/red-gate-log.md | grep -cE "^\$ .*restore|^\$ git checkout"
+0
+```
+Zero `$ `-prefixed restore commands. POLICY 15 restore-leg residual confirmed OPEN (pass-27 anchor).
+
+**(e) D-446(a) OWN-BURST-LOG 8-BLOCK CHECK:** All 8 D-444(c) blocks present in this D-939 entry (verified: Block 1 through Block 8).
+
+**(f) D-448(a) SOURCE-ATTESTATION CHECK:** Block 2 Correction summary faithfully describes the race-condition correction: H04 CLOSED with 7/8 per-guard records; P25-M06 NOT PRODUCIBLE; POLICY 15 restore-leg residual OPEN. Structurally consistent with adversary-pass-26.md Fix Mapping (11/11 CLOSED) and red-gate-log.md §Pass-26 attestation H04 section.
+
+### Block 6: Dim-5 attestations
+
+No BC body content, ADR rationale text, VP prose, or story AC content was authored by state-manager in this burst. All edits are: status corrections (OPEN→CLOSED), supersession notes, frontmatter version bumps, and process lessons.
+
+### Block 7: Dim-6/7 attestations
+
+**Dim-6 (no spec content authored):** State-manager edits: status corrections; version bumps; supersession blockquotes; process lessons. No BC, ADR, VP, or story AC content authored.
+
+**Dim-7 (factory-artifacts branch only):** All writes target `.factory/` files under factory-artifacts worktree. No source code (plugins/, crates/, workflows/) touched.
+
+### Block 8: Closes + factory-artifacts commits
+
+**Closes:**
+- F-S2104-P26-H04: **CLOSED at `a8ec290e`** (D-939 supersession of D-938 OPEN record) — 7/8 per-guard records produced in-flight; P25-M06 NOT PRODUCIBLE; POLICY 15 restore-leg residual OPEN (pass-27 anchor)
+- D-938 self-contradiction: CORRECTED (race-condition root cause documented; D-938 historical record preserved)
+
+**Open items carrying forward:** POLICY 15 restore-leg residual (pass-27 anchor). STATE.md body sections remain BLOCKED by rc.23 WASM guard per D-931/D-932 precedent.
+
+**factory-artifacts commits:**
+- Pre-burst parent-commit (factory-artifacts): `f9207762` (D-938-SHA-PATCH)
+- This burst: [SHA-TBD — update after push]

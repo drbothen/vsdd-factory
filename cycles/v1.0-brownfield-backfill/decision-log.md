@@ -13759,6 +13759,8 @@ D-937-PASS-25-FINDINGS-CLOSED
 
 ## D-938
 
+> **H04 STATUS SUPERSEDED by D-939 (2026-07-28):** H04 OPEN assertions below were accurate when this burst was authored — the per-guard evidence records were simultaneously committed by `a8ec290e` during an orchestrator dispatch race. **D-939 corrects: H04 CLOSED at `a8ec290e`.** D-938 historical record preserved as-is per audit-trail discipline.
+
 ### Dim-1: Identity + Context
 
 **Role:** state-manager (this commit)
@@ -13848,6 +13850,99 @@ red-gate-log.md: version 1.23→1.24; Summary HEAD 4dc27251→7c3338e7; Pass-26 
 ### Phase
 
 D-938-PASS-26-FINDINGS-CLOSED-H04-OPEN
+
+### Date
+
+2026-07-28
+
+---
+
+## D-939
+
+### Dim-1: Identity + Context
+
+**Role:** state-manager (this commit)
+**Date:** 2026-07-28
+**Burst label:** D-939-H04-CLOSED-RECORD-CORRECTION
+**Parent commit (factory-artifacts):** `a8ec290e` — `factory(D-938): pass-26 record — adversary-pass-26.md + sentinels→D-938 + 8 lessons + STATE v6.70` (via SHA-patch `f9207762`)
+
+D-939 record-correction burst. Corrects the D-938 self-contradiction: commit `a8ec290e` simultaneously asserted H04 OPEN in eight prose locations AND committed 415 lines of test-writer per-guard POLICY 15 evidence. Root cause: orchestrator dispatch race — state-manager burst was dispatched while test-writer was still in flight; both committed to `a8ec290e`. D-938's honest OPEN recording was correct on evidence available at dispatch time. D-939 supersedes with the accurate record.
+
+**H04 STATUS CORRECTION:** `F-S2104-P26-H04` CLOSED at `a8ec290e` (supersession of D-938 OPEN record).
+
+Evidence (red-gate-log.md §Pass-25 fix-burst POLICY 15 evidence, lines 1939+, committed by `a8ec290e`):
+- **B01 Gate 1(e):** `_guard_e_checks_out_nothing` / `adversary.md` — mutation + RED + restore + GREEN
+- **B01 write-directive/Leg D:** pipeline probe Leg D / `_shared-context.md` — mutation + RED + restore + GREEN
+- **P25-B02:** T-001 `write_directive_violations` novel negation "It isn't required to place…" / `_shared-context.md` — mutation + RED + restore + GREEN
+- **P25-H02:** pipeline probe Leg E call-site parity / bats file (self-referential) — mutation + RED + restore + GREEN
+- **P25-M01:** `_assert_g1_ref` ordering gate / `worktree-manage/SKILL.md` — mutation + RED + restore + GREEN
+- **P25-M02:** `_assert_no_inline_find_antipattern` collapsed YAML check / `code-delivery.lobster` — mutation + RED + restore + GREEN
+- **P25-M06:** NOT PRODUCIBLE (editorial TD-VSDD-091 fix; no executable guard detects `(LNNN)` pins in prose comments; per-guard mandate categorically inapplicable to editorial-only fixes — POLICY 15/D-889 scope boundary)
+- **P25-M08:** T-003 `_assert_doc_marker 'Option A:.*[Rr]elocat'` / `step-g-cleanup.md` — mutation + RED + restore + GREEN
+
+7 of 8 records produced; 1 NOT PRODUCIBLE by category.
+
+**POLICY 15 RESIDUAL (OPEN — pass-27 anchor):** 8 records carry mutation commands and `not ok` frames, plus restore/GREEN sections in "Restore command: `cp ...`" prose form. Zero records use explicit `$ `-prefixed shell commands for the restore leg. Orchestrator-verified: `awk 'NR>1930 && NR<2290' red-gate-log.md | grep -cE "^\$ .*restore|^\$ git checkout"` → 0. POLICY 15 requires command AND stdout for both RED and restore legs. Same half-compliance class as F-S2104-P24-005 (restore absent 14/14). Anchored to pass-27.
+
+### Dim-2: Mandatory Gates
+
+**(a) POLICY 16 GLOBAL-MAX GATE (literal shell):**
+```
+$ grep -n "^## D-" .factory/cycles/v1.0-brownfield-backfill/decision-log.md | sort -t'-' -k2 -n | tail -3
+13651:## D-937
+13780:## D-937
+13760:## D-938
+```
+D-938 confirmed max (numeric sort). D-939 allocated.
+
+**(b) POLICY 14 4-INDEX UNCHANGED (literal shell):**
+```
+$ grep "^version:" .factory/specs/behavioral-contracts/BC-INDEX.md | head -1
+version: "4.36"
+$ grep "^version:" .factory/specs/verification-properties/VP-INDEX.md | head -1
+version: "2.72"
+$ grep "^version:" .factory/stories/STORY-INDEX.md | head -1
+version: "4.271"
+$ grep "^version:" .factory/specs/architecture/ARCH-INDEX.md | head -1
+version: "3.37"
+```
+BC v4.36 / VP v2.72 / STORY v4.271 / ARCH v3.37. All UNCHANGED — no spec content authored this burst.
+
+**(c) H04 SITE COUNT (literal shell):**
+```
+$ grep -c "H04.*OPEN\|OPEN.*H04" .factory/cycles/v1.0-brownfield-backfill/decision-log.md
+8
+```
+8 OPEN assertions — all within D-938 block (historical record; superseded by D-939 blockquote). D-938 entry preserved intact per audit-trail discipline.
+
+**(d) D-446(a) OWN-BURST-LOG 8-BLOCK GATE:** Verified below — all 8 D-444(c) blocks present in D-939 burst-log entry.
+
+**(e) D-448(a) SOURCE-ATTESTATION GATE:** burst-log D-939 Adversary verdict paragraph faithfully describes the race-condition correction: H04 CLOSED with 7/8 per-guard records; P25-M06 NOT PRODUCIBLE; POLICY 15 restore-leg residual.
+
+### Dim-3: Work Performed
+
+Sites corrected (H04 OPEN → CLOSED with supersession record):
+- `decision-log.md` D-938 block: supersession blockquote added (8 OPEN assertions preserved as historical record); D-939 block appended
+- `burst-log.md` D-938 Block 2 + Block 8: H04 OPEN → CLOSED (superseded by D-939); D-939 8-block entry appended
+- `INDEX.md` pass-26 row + Convergence Status: H04 OPEN → CLOSED (D-939 supersession + POLICY 15 residual)
+- `adversary-pass-26.md` Fix Mapping header + H04 row: (10/11 CLOSED; 1 OPEN) → (11/11 CLOSED; POLICY 15 residual OPEN); input-hash updated
+- `red-gate-log.md` §Pass-26 attestation H04 section: OPEN → CLOSED with supersession + POLICY 15 residual; summary table row updated; frontmatter version 1.24→1.25; D-939 modified[] entry prepended
+
+3 lessons appended to lessons.md: L-BB-orchestrator-dispatch-race-state-manager-runs-last-in-time, L-BB-honest-open-recording-self-corrects-auditably, L-BB-policy15-editorial-fix-not-producible-scope-boundary.
+
+STATE.md: frontmatter v6.70→v6.71; phase D-939-H04-CLOSED-RECORD-CORRECTION.
+
+### Dim-4: Notes
+
+**(a) Race condition acknowledged.** Orchestrator dispatched state-manager while test-writer was still in flight; both committed to `a8ec290e`. POLICY 3 ("state-manager runs last") means last in TIME, not merely last in dispatch order. Rule: confirm all producing agents have terminated and their artifacts are on disk before dispatching the state-manager record burst.
+
+**(b) Honest-recording discipline validated.** Recording H04 OPEN was correct on available evidence; the correction path is cheap and auditable via D-939. A fabricated closure would have persisted undetected — the exact failure class H04 describes.
+
+**(c) POLICY 15/D-889 editorial scope boundary.** `P25-M06` (volatile-pins) is a TD-VSDD-091 editorial fix with no executable guard. Per-guard mutant records are categorically impossible for editorial-only fixes. POLICY 15/D-889 per-guard mandate does not apply; honest NOT-PRODUCIBLE declaration is correct discipline. Policy needs explicit exemption clause.
+
+### Phase
+
+D-939-H04-CLOSED-RECORD-CORRECTION
 
 ### Date
 

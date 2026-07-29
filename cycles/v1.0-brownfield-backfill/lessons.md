@@ -9296,3 +9296,54 @@ Three consecutive fix reports in the S-21.04 cascade supplied incomplete regress
 **Cites:** D-938 (this burst); M02 finding; adversary-pass-26.md §M02; TD-VSDD-091; S-7.02 defensive-sweep discipline.
 
 **Closes:** D-938 count-lead-in-drift-enumeration-sets lesson. `[process-gap; count-lead-in; enumeration-set; scope-drift; authoring-constraint; D-938]`
+
+---
+
+## [[L-BB-orchestrator-dispatch-race-state-manager-runs-last-in-time]]
+
+**Category:** [process-gap]
+**Date:** 2026-07-28
+
+**Summary:** D-938 recorded H04 as OPEN because the state-manager's adversary-pass-26.md Fix Mapping was authored before the test-writer's per-guard evidence commits landed. The state-manager was dispatched while the test-writer was still in flight; the evidence records (committed by `a8ec290e`) arrived after the state-manager had already written its OPEN assessment. The result was a self-contradiction: D-938 simultaneously asserted H04 OPEN in 8 prose locations AND committed the evidence that closed it. Root cause: the orchestrator dispatched state-manager in parallel with the test-writer without waiting for the test-writer's final commit.
+
+**Pattern rule:** The orchestrator MUST NOT dispatch state-manager to write adversary pass Fix Mapping / burst record until all specialist agents for that pass have produced their final artifacts and the orchestrator has verified each against the finding set. State-manager runs LAST IN TIME in the fix-burst sequence. If the orchestrator dispatches state-manager while any specialist is still in-flight, the Fix Mapping will contain stale status. The honest-recording discipline (D-939) corrects these races auditabily, but avoidance is preferable.
+
+**Anchors:** D-938; D-939; dispatch-race; state-manager-last; honest-recording; H04; test-writer-in-flight.
+
+**Cites:** D-939 (this burst); D-938 dispatch race; CLAUDE.md Pipeline Authority; D-444(c) burst-log structure.
+
+**Closes:** D-939 orchestrator-dispatch-race lesson. `[process-gap; dispatch-race; state-manager-last; honest-recording; D-938; D-939]`
+
+---
+
+## [[L-BB-honest-open-recording-self-corrects-auditabily]]
+
+**Category:** [process-gap]
+**Date:** 2026-07-28
+
+**Summary:** When state-manager honestly recorded H04 as OPEN (D-938) despite being uncertain, the self-contradiction was detectable in the commit history: `a8ec290e` simultaneously contained both the OPEN assertion in prose and the 415-line evidence block that closed it. The honest-recording discipline enabled the discrepancy to surface and be corrected (D-939) without touching D-938's historical record. A CLOSED-with-fabricated-evidence approach would have permanently obscured the race condition.
+
+**Pattern rule:** When the state-manager is uncertain whether evidence exists, record OPEN and attach the honest-recording note. Do NOT fabricate closure evidence. The race condition will surface at the next pass review (or immediately, if the evidence lands in the same commit). The honest-recording + D-939-style supersession pattern preserves full audit trail: D-938 historical record intact, D-939 correction block cites the race explicitly, both are visible in git log.
+
+**Anchors:** D-938; D-939; honest-recording; audit-trail; dispatch-race; supersession; OPEN-vs-CLOSED.
+
+**Cites:** D-939 (this burst); D-938 honest-recording note; audit-trail-discipline; CLAUDE.md Operational Discipline TDs.
+
+**Closes:** D-939 honest-recording-self-corrects lesson. `[process-gap; honest-recording; audit-trail; supersession; D-938; D-939]`
+
+---
+
+## [[L-BB-policy15-editorial-fix-not-producible-scope-boundary]]
+
+**Category:** [process-gap]
+**Date:** 2026-07-28
+
+**Summary:** P25-M06 was classified NOT PRODUCIBLE because the finding was editorial (TD-VSDD-091 volatile-line-number pin) — there is no executable guard to run, no mutation to apply, no GREEN to verify. The POLICY 15 per-guard mutant evidence protocol requires: identify mutant → apply → observe RED → restore → confirm GREEN. For editorial corrections with no load-bearing executable component, there is no mutation/RED/GREEN cycle possible. Recording NOT PRODUCIBLE is the correct scope boundary.
+
+**Pattern rule:** POLICY 15 per-guard mutant evidence is NOT PRODUCIBLE for: (1) TD-VSDD-091 editorial fixes (volatile line-number pin removal, doc-comment reformatting), (2) formatting-only changes, (3) comment corrections with no behavior change. The mutant/RED/GREEN cycle requires an executable assertion to flip. When a finding is editorial-only, mark the guard row as `NOT PRODUCIBLE (editorial TD-VSDD-091; no executable guard)` in the Fix Mapping and evidence block. Do NOT attempt to fabricate a RED gate for a non-executable correction.
+
+**Anchors:** P25-M06; POLICY 15; NOT-PRODUCIBLE; TD-VSDD-091; editorial-fix; scope-boundary; per-guard-mutant.
+
+**Cites:** D-939 (this burst); POLICY 15 (D-889); TD-VSDD-091; adversary-pass-26.md Fix Mapping.
+
+**Closes:** D-939 policy15-editorial-not-producible lesson. `[process-gap; policy15; not-producible; editorial; TD-VSDD-091; scope-boundary; D-939]`
