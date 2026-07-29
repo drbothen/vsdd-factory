@@ -21656,4 +21656,4 @@ No BC body content, ADR rationale text, VP prose, or story AC content was author
 
 **factory-artifacts commits:**
 - Pre-burst parent-commit (factory-artifacts): `f9207762` (D-938-SHA-PATCH)
-- This burst: [SHA-TBD — update after push]
+- This burst: `d34b7e25` — factory(D-939): H04 record-correction — OPEN→CLOSED at a8ec290e dispatch-race supersession
