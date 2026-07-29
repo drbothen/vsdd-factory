@@ -9466,3 +9466,20 @@ Three consecutive fix reports in the S-21.04 cascade supplied incomplete regress
 **Cites:** D-940 (this burst); F-S2104-P27-M03; adversary-pass-27.md Completeness Statement; BC-6.26.001 v1.15 EC-009.
 
 **Closes:** D-940 behavioural-widening-flag lesson. `[process-gap; behavioural-widening; false-positive; pass-28-lead; M03a; D-940]`
+
+---
+
+## [[L-BB-pipeline-field-no-liveness-signal]]
+
+**Category:** [process-gap]
+**Date:** 2026-07-29
+
+**Summary:** The `pipeline:` frontmatter field in STATE.md is NOT a reliable liveness signal. It was set to `PAUSED` at D-878 (2026-07-22) by a session-wrap burst and remained stale through D-931..D-940 (see decision-log.md for full range) — spanning 6 adversary passes and 8 record bursts during which the pipeline was fully ACTIVE. The field was never updated because D-417(b) strict dispatch-side advance only modifies `phase:` and `current_step:`, not `pipeline:`. Only a full session-wrap burst (like D-878 or D-941) or an explicit unpaused-governance burst updates `pipeline:`.
+
+**Pattern rule:** Do NOT use `pipeline:` as a liveness indicator. Use `phase:` and the Session Resume Checkpoint instead. The SRC is written at every session wrap and explicitly states whether the pipeline is active or paused. The `phase:` field (e.g., `D-941-SESSION-WRAP-PAUSED` vs `D-879-E21-W1-S-21.01-DISPATCHED`) is the authoritative indicator of session state. The `pipeline:` field is cosmetic/informational and may be stale by many sessions.
+
+**Anchors:** D-878; D-931..D-940; D-417(b); dispatch-side-advance; pipeline-liveness; phase-field; SRC; session-wrap; stale-frontmatter.
+
+**Cites:** D-941 (this burst); D-878 (last `pipeline:` write); D-417(b) strict dispatch-side advance rule.
+
+**Closes:** D-941 pipeline-liveness-signal lesson. `[process-gap; pipeline-field; liveness; dispatch-side-advance; D-417b; D-941]`
