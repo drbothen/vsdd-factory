@@ -85,6 +85,140 @@ _guard_g_path_corroborated() {
   fi
 }
 
+# Guard (d) "worktree-rooted" sub-gate (fail-closed, F-S2104-P26-B02).
+# $1 = path to the agent file to inspect.
+# Returns 0 if ZERO nullified occurrences AND ≥1 affirmative.
+# Returns non-zero (via 'return 1') if any occurrence is in nullification context
+# or no affirmative occurrence is found.
+# B02 sweep: affirmative-only form (guard (d) inline) was fail-open against a second
+# nullified occurrence appearing alongside an affirmative — zero-nullified gate closes this.
+_guard_d_worktree_rooted() {
+  local agent_file="$1"
+  local wtr_all wtr_nullified wtr_aff
+  wtr_all="$(grep -i "worktree-rooted" "$agent_file")"
+  wtr_nullified="$(printf '%s\n' "$wtr_all" | \
+    grep -iE '\bformerly\b|\bretired\b|\brescinded\b|\bsuperseded\b|\bno longer\b|\bnot applicable\b|\bdoes not apply\b|\boutside\b|\bnot required\b' || true)"
+  wtr_aff="$(printf '%s\n' "$wtr_all" | \
+    grep -viE '\bformerly\b|\bretired\b|\brescinded\b|\bsuperseded\b|\bno longer\b|\bnot applicable\b|\bdoes not apply\b|\boutside\b|\bnot required\b' || true)"
+  if [ -n "$wtr_nullified" ]; then
+    echo "DOC-PARITY FAIL [adversary.md: a 'worktree-rooted' occurrence is in nullification context (FAIL-CLOSED: zero nullified required — F-S2104-P26-B02)]: all occurrences must be affirmative; adversary.md has one occurrence (Rule 3) — nullifying it fires this gate; a future second occurrence in nullification context also fires (safe-by-accident guard closed)"
+    printf 'Nullified occurrences:\n%s\n' "$wtr_nullified"
+    return 1
+  fi
+  if [ -z "$wtr_aff" ]; then
+    echo "DOC-PARITY FAIL [adversary.md: all 'worktree-rooted' occurrences appear in nullification context (F-S2104-P22-006(d))]: at least one affirmative (non-nullified) instance required; appended exception 'worktree-rooted: retired' no longer passes"
+    printf 'All worktree-rooted lines found:\n%s\n' "$wtr_all"
+    return 1
+  fi
+}
+
+# Guard (f) "case-insensitive" sub-gate (fail-closed, F-S2104-P26-B02).
+# $1 = path to the agent file to inspect.
+# Returns 0 if ZERO nullified occurrences AND ≥1 affirmative.
+# Returns non-zero (via 'return 1') if any occurrence is in nullification context
+# or no affirmative occurrence is found.
+# B02 sweep: adversary.md has 3 'case-insensitive' occurrences (Rule 2 body x1, Rule 5 x2).
+# Only Rule 5 is the mandate; nullifying Rule 5 leaves 2 incidental affirmatives — old check
+# returns GREEN (BUG). Zero-nullified gate fires on the nullified Rule 5 occurrence → RED ✓.
+_guard_f_case_insensitive() {
+  local agent_file="$1"
+  local ci_all ci_nullified ci_aff
+  ci_all="$(grep -i "case-insensitive" "$agent_file")"
+  ci_nullified="$(printf '%s\n' "$ci_all" | \
+    grep -iE '\bformerly\b|\bretired\b|\brescinded\b|\bsuperseded\b|\bno longer\b|\bnot required\b|\bnot applicable\b|\bnot case-insensitive\b' || true)"
+  ci_aff="$(printf '%s\n' "$ci_all" | \
+    grep -viE '\bformerly\b|\bretired\b|\brescinded\b|\bsuperseded\b|\bno longer\b|\bnot required\b|\bnot applicable\b|\bnot case-insensitive\b' || true)"
+  if [ -n "$ci_nullified" ]; then
+    echo "DOC-PARITY FAIL [adversary.md: a 'case-insensitive' occurrence is in nullification context (FAIL-CLOSED: zero nullified required — F-S2104-P26-B02)]: adversary.md has 3 case-insensitive occurrences (Rule 2 body x1, Rule 5 heading+body x2); only Rule 5 is the mandate; nullifying Rule 5 while incidentals survive causes old affirmative-only check to return GREEN (BUG); zero-nullified gate fires on the nullified Rule 5 occurrence → RED ✓"
+    printf 'Nullified occurrences:\n%s\n' "$ci_nullified"
+    return 1
+  fi
+  if [ -z "$ci_aff" ]; then
+    echo "DOC-PARITY FAIL [adversary.md: all 'case-insensitive' occurrences appear in nullification context (F-S2104-P22-006(f))]: at least one affirmative instance required"
+    printf 'All case-insensitive lines found:\n%s\n' "$ci_all"
+    return 1
+  fi
+}
+
+# Guard (l) "off-limits" sub-gate (fail-closed, F-S2104-P26-B02).
+# $1 = path to the doc file to inspect.
+# Returns 0 if ZERO negated occurrences AND ≥1 affirmative.
+# Returns non-zero (via 'return 1') if any occurrence is in directly-negated context
+# or no affirmative occurrence is found.
+# B02 sweep: _shared-context.md has one 'off-limits' occurrence; a second in negated form
+# would pass old affirmative-only check while nullifying the mandate — zero-negated gate closes.
+_guard_l_off_limits() {
+  local doc_file="$1"
+  local ol_all ol_nullified ol_aff
+  ol_all="$(grep -i "off-limits" "$doc_file")"
+  ol_nullified="$(printf '%s\n' "$ol_all" | \
+    grep -iE '\bnot[[:space:]]+off-limits\b|\bno[[:space:]]+longer[[:space:]]+off-limits\b|\bexempt[[:space:]]+from[[:space:]]+off-limits\b' || true)"
+  ol_aff="$(printf '%s\n' "$ol_all" | \
+    grep -viE '\bnot[[:space:]]+off-limits\b|\bno[[:space:]]+longer[[:space:]]+off-limits\b|\bexempt[[:space:]]+from[[:space:]]+off-limits\b' || true)"
+  if [ -n "$ol_nullified" ]; then
+    echo "DOC-PARITY FAIL [_shared-context.md: a 'off-limits' occurrence is in directly-negated context (FAIL-CLOSED: zero negated required — F-S2104-P26-B02)]: the prohibition must state worktree .factory/ content IS off-limits; a negated form alongside an affirmative passes the old check (BUG) — zero-negated gate closes this"
+    printf 'Negated occurrences:\n%s\n' "$ol_nullified"
+    return 1
+  fi
+  if [ -z "$ol_aff" ]; then
+    echo "DOC-PARITY FAIL [_shared-context.md: all 'off-limits' occurrences appear in directly negated context (F-S2104-P22-006(l))]: the prohibition must state worktree .factory/ content IS off-limits, not that it is not off-limits"
+    printf 'All off-limits lines found:\n%s\n' "$ol_all"
+    return 1
+  fi
+}
+
+# Guard (e) "factory-artifacts" sub-gate (fail-closed, F-S2104-P26-B02).
+# $1 = path to the agent file to inspect.
+# Returns 0 if ZERO nullified occurrences AND ≥1 affirmative (non-branch/push occurrences).
+# Returns non-zero (via 'return 1') if any occurrence is in nullification context
+# or no affirmative occurrence is found.
+# Factored from inline guard (e) code to enable corpus regression @test (POLICY 11 anti-tautology).
+_guard_e_factory_artifacts() {
+  local agent_file="$1"
+  local fa_all fa_nullified fa_aff
+  fa_all="$(grep -i "factory-artifacts" "$agent_file" | grep -iv 'factory-artifacts branch\|origin.*factory-artifacts\|push.*factory-artifacts' || true)"
+  fa_nullified="$(printf '%s\n' "$fa_all" | \
+    grep -iE '\bformerly\b|\bretired\b|\brescinded\b|\bsuperseded\b|\bno longer\b|\bnot applicable\b|\bdoes not apply\b|\bnot required\b' || true)"
+  fa_aff="$(printf '%s\n' "$fa_all" | \
+    grep -viE '\bformerly\b|\bretired\b|\brescinded\b|\bsuperseded\b|\bno longer\b|\bnot applicable\b|\bdoes not apply\b|\bnot required\b' || true)"
+  if [ -n "$fa_nullified" ]; then
+    echo "DOC-PARITY FAIL [adversary.md: a 'factory-artifacts' occurrence is in nullification context (FAIL-CLOSED: zero nullified required — F-S2104-P23-006 B01 regression fix)]: all occurrences must be affirmative; a nullified occurrence alongside an affirmative one is caught by this zero-nullified gate"
+    printf 'Nullified occurrences:\n%s\n' "$fa_nullified"
+    return 1
+  fi
+  if [ -z "$fa_aff" ]; then
+    echo "DOC-PARITY FAIL [adversary.md: all 'factory-artifacts' occurrences appear in nullification context (F-S2104-P22-006(e))]: at least one affirmative instance required"
+    printf 'All factory-artifacts lines:\n%s\n' "$fa_all"
+    return 1
+  fi
+}
+
+# Guard (e) "canonical-repo-root" sub-gate (fail-closed, F-S2104-P26-B02).
+# $1 = path to the agent file to inspect.
+# Returns 0 if ZERO nullified occurrences AND ≥1 affirmative.
+# Returns non-zero (via 'return 1') if any occurrence is in nullification context
+# or no affirmative occurrence is found.
+# Factored from inline guard (e) code to enable corpus regression @test (POLICY 11 anti-tautology).
+_guard_e_canonical_repo_root() {
+  local agent_file="$1"
+  local cr_all cr_nullified cr_aff
+  cr_all="$(grep -i "canonical-repo-root" "$agent_file")"
+  cr_nullified="$(printf '%s\n' "$cr_all" | \
+    grep -iE '\bformerly\b|\bretired\b|\brescinded\b|\bsuperseded\b|\bno longer\b|\bnot applicable\b|\bdoes not apply\b|\bnot required\b' || true)"
+  cr_aff="$(printf '%s\n' "$cr_all" | \
+    grep -viE '\bformerly\b|\bretired\b|\brescinded\b|\bsuperseded\b|\bno longer\b|\bnot applicable\b|\bdoes not apply\b|\bnot required\b' || true)"
+  if [ -n "$cr_nullified" ]; then
+    echo "DOC-PARITY FAIL [adversary.md: a 'canonical-repo-root' occurrence is in nullification context (FAIL-CLOSED: zero nullified required — F-S2104-P23-006 B01 regression fix)]: all occurrences must be affirmative"
+    printf 'Nullified occurrences:\n%s\n' "$cr_nullified"
+    return 1
+  fi
+  if [ -z "$cr_aff" ]; then
+    echo "DOC-PARITY FAIL [adversary.md: all 'canonical-repo-root' occurrences appear in nullification context (F-S2104-P22-006(e))]: at least one affirmative instance required"
+    printf 'All canonical-repo-root lines:\n%s\n' "$cr_all"
+    return 1
+  fi
+}
+
 # ============================================================
 # File (A): plugins/vsdd-factory/agents/adversary.md
 # Required: a "Worktree-Identity Preflight" discipline section
@@ -176,15 +310,12 @@ _guard_g_path_corroborated() {
   # MUTANT: file has two 'worktree-rooted' lines: affirmative first, 'worktree-rooted: retired'
   #   second → head -1 returns affirmative (old: PASS); all-lines filter removes both → empty
   #   affirmative set (new: RED) ✓.
-  local wtr_all_lines wtr_affirmative_lines
-  wtr_all_lines="$(grep -i "worktree-rooted" "$ADVERSARY_AGENT")"
-  wtr_affirmative_lines="$(printf '%s\n' "$wtr_all_lines" | \
-    grep -viE '\bformerly\b|\bretired\b|\brescinded\b|\bsuperseded\b|\bno longer\b|\bnot applicable\b|\bdoes not apply\b|\boutside\b|\bnot required\b' || true)"
-  if [ -z "$wtr_affirmative_lines" ]; then
-    echo "DOC-PARITY FAIL [adversary.md: all 'worktree-rooted' occurrences appear in nullification context (F-S2104-P22-006(d))]: at least one affirmative (non-nullified) instance required; appended exception 'worktree-rooted: retired' no longer passes"
-    printf 'All worktree-rooted lines found:\n%s\n' "$wtr_all_lines"
-    false
-  fi
+  # B02 F-S2104-P26-B02: zero-nullified form factored into _guard_d_worktree_rooted().
+  # MUTANT (appended nullifier): "worktree-rooted: retired" appended alongside affirmative →
+  #   old affirmative-only check returns GREEN (BUG); zero-nullified gate fires → RED ✓.
+  # MUTANT (inline nullifier): "formerly worktree-rooted (superseded)" → zero-nullified fires → RED ✓.
+  # CONTROL: "All feature-code reads MUST use worktree-rooted absolute paths" → GREEN ✓.
+  _guard_d_worktree_rooted "$ADVERSARY_AGENT"
 }
 
 # (e) AC-005: adversary.md must assert that spec/ADR/BC ground-truth is ALWAYS read from the
@@ -225,37 +356,10 @@ _guard_g_path_corroborated() {
   #   non-empty → RED ✓ (zero-nullified gate in _guard_e_checks_out_nothing catches).
   # "checks out NOTHING under" sub-gate factored into _guard_e_checks_out_nothing() helper
   #   so the B01 corpus regression @test can call the real guard (POLICY 11 anti-tautology).
-  local fa_all fa_nullified fa_aff cr_all cr_nullified cr_aff
-  fa_all="$(grep -i "factory-artifacts" "$ADVERSARY_AGENT" | grep -iv 'factory-artifacts branch\|origin.*factory-artifacts\|push.*factory-artifacts' || true)"
-  fa_nullified="$(printf '%s\n' "$fa_all" | \
-    grep -iE '\bformerly\b|\bretired\b|\brescinded\b|\bsuperseded\b|\bno longer\b|\bnot applicable\b|\bdoes not apply\b|\bnot required\b' || true)"
-  fa_aff="$(printf '%s\n' "$fa_all" | \
-    grep -viE '\bformerly\b|\bretired\b|\brescinded\b|\bsuperseded\b|\bno longer\b|\bnot applicable\b|\bdoes not apply\b|\bnot required\b' || true)"
-  cr_all="$(grep -i "canonical-repo-root" "$ADVERSARY_AGENT")"
-  cr_nullified="$(printf '%s\n' "$cr_all" | \
-    grep -iE '\bformerly\b|\bretired\b|\brescinded\b|\bsuperseded\b|\bno longer\b|\bnot applicable\b|\bdoes not apply\b|\bnot required\b' || true)"
-  cr_aff="$(printf '%s\n' "$cr_all" | \
-    grep -viE '\bformerly\b|\bretired\b|\brescinded\b|\bsuperseded\b|\bno longer\b|\bnot applicable\b|\bdoes not apply\b|\bnot required\b' || true)"
-  if [ -n "$fa_nullified" ]; then
-    echo "DOC-PARITY FAIL [adversary.md: a 'factory-artifacts' occurrence is in nullification context (FAIL-CLOSED: zero nullified required — F-S2104-P23-006 B01 regression fix)]: all occurrences must be affirmative; a nullified occurrence alongside an affirmative one is caught by this zero-nullified gate"
-    printf 'Nullified occurrences:\n%s\n' "$fa_nullified"
-    false
-  fi
-  if [ -z "$fa_aff" ]; then
-    echo "DOC-PARITY FAIL [adversary.md: all 'factory-artifacts' occurrences appear in nullification context (F-S2104-P22-006(e))]: at least one affirmative instance required"
-    printf 'All factory-artifacts lines:\n%s\n' "$fa_all"
-    false
-  fi
-  if [ -n "$cr_nullified" ]; then
-    echo "DOC-PARITY FAIL [adversary.md: a 'canonical-repo-root' occurrence is in nullification context (FAIL-CLOSED: zero nullified required — F-S2104-P23-006 B01 regression fix)]: all occurrences must be affirmative"
-    printf 'Nullified occurrences:\n%s\n' "$cr_nullified"
-    false
-  fi
-  if [ -z "$cr_aff" ]; then
-    echo "DOC-PARITY FAIL [adversary.md: all 'canonical-repo-root' occurrences appear in nullification context (F-S2104-P22-006(e))]: at least one affirmative instance required"
-    printf 'All canonical-repo-root lines:\n%s\n' "$cr_all"
-    false
-  fi
+  # B02 F-S2104-P26-B02: factory-artifacts and canonical-repo-root sub-gates factored into
+  # helpers to enable corpus regression @test (POLICY 11 anti-tautology).
+  _guard_e_factory_artifacts "$ADVERSARY_AGENT"
+  _guard_e_canonical_repo_root "$ADVERSARY_AGENT"
   _guard_e_checks_out_nothing "$ADVERSARY_AGENT"
 }
 
@@ -273,15 +377,11 @@ _guard_g_path_corroborated() {
   # MUTANT: append "case-insensitive: no longer required (simplified)" as a second line →
   #   head -1 returns affirmative first line (old: PASS); all-lines filter removes all nullified
   #   lines → empty affirmative set (new: RED) ✓.
-  local ci_all ci_aff
-  ci_all="$(grep -i "case-insensitive" "$ADVERSARY_AGENT")"
-  ci_aff="$(printf '%s\n' "$ci_all" | \
-    grep -viE '\bformerly\b|\bretired\b|\brescinded\b|\bsuperseded\b|\bno longer\b|\bnot required\b|\bnot applicable\b|\bnot case-insensitive\b' || true)"
-  if [ -z "$ci_aff" ]; then
-    echo "DOC-PARITY FAIL [adversary.md: all 'case-insensitive' occurrences appear in nullification context (F-S2104-P22-006(f))]: at least one affirmative instance required"
-    printf 'All case-insensitive lines found:\n%s\n' "$ci_all"
-    false
-  fi
+  # B02 F-S2104-P26-B02: zero-nullified form factored into _guard_f_case_insensitive().
+  # adversary.md has 3 case-insensitive occurrences (Rule 2 body x1, Rule 5 heading+body x2).
+  # Only Rule 5 is the mandate; nullifying Rule 5 while 2 incidentals survive — old affirmative-
+  # only check returns GREEN (BUG); zero-nullified gate fires on nullified Rule 5 → RED ✓.
+  _guard_f_case_insensitive "$ADVERSARY_AGENT"
 }
 
 # (g) AC-007: adversary.md must require path-corroboration before reporting
@@ -409,13 +509,14 @@ _guard_g_path_corroborated() {
   # MUTANT: "canonical repo-root" only in a header comment (# former: canonical repo-root paths) → section scope fails → RED ✓.
   # CONTROL: "canonical repo-root" in the Spec-Path Discipline section → GREEN ✓.
   spec_path_section="$(awk '/^#{1,4}[[:space:]].*[Ss]pec[-[:space:]][Pp]ath|^#{1,4}[[:space:]].*[Ww]rite[[:space:]][Dd]iscipline|^#{1,4}[[:space:]].*[Pp]ath[[:space:]][Dd]iscipline/{found=1} found{print} /^#{1,4}[[:space:]]/{if(!found)next; if(found && !/[Ss]pec[-[:space:]][Pp]ath|[Ww]rite[[:space:]][Dd]iscipline|[Pp]ath[[:space:]][Dd]iscipline/)exit}' "$SHARED_CTX")"
-  if [ -n "$spec_path_section" ]; then
-    printf '%s\n' "$spec_path_section" | grep -i "canonical repo-root" >/dev/null
-  else
-    # Fallback: whole-file check if section extraction yields nothing (heading name may differ)
-    run grep -i "canonical repo-root" "$SHARED_CTX"
-    [ "$status" -eq 0 ]
+  # M03 F-S2104-P26-M03: POLICY 13 empty-extraction BLOCK — no fallback to whole-file grep.
+  # MUTANT: rename the section heading → extractor returns empty → fallback (old) whole-file grep
+  #   might still find "canonical repo-root" in a comment → GREEN (BUG); BLOCK form → RED ✓.
+  if [ -z "$spec_path_section" ]; then
+    echo "DOC-PARITY FAIL [_shared-context.md guard (k) BLOCK: section extraction returned empty (POLICY 13 empty-extraction BLOCK — F-S2104-P26-M03)]: the Spec-Path Discipline / Write Discipline / Path Discipline heading extractor returned no content; POLICY 13 requires empty-extraction to BLOCK rather than degrade to a whole-file grep; the spec section heading may be absent or renamed"
+    false
   fi
+  printf '%s\n' "$spec_path_section" | grep -i "canonical repo-root" >/dev/null
 }
 
 # (l) AC-012: _shared-context.md must explicitly state that worktree `.factory/`
@@ -443,15 +544,10 @@ _guard_g_path_corroborated() {
   # WITHOUT the direct-negation prefix.
   # MUTANT: file contains only "NOT off-limits" or "no longer off-limits" → negation RED ✓.
   # CONTROL: "It is off-limits for spec ground-truth" (no direct "not off-limits") → GREEN ✓.
-  local off_limits_lines affirmative_lines
-  off_limits_lines="$(grep -i "off-limits" "$SHARED_CTX")"
-  affirmative_lines="$(printf '%s\n' "$off_limits_lines" | \
-    grep -viE '\bnot[[:space:]]+off-limits\b|\bno[[:space:]]+longer[[:space:]]+off-limits\b|\bexempt[[:space:]]+from[[:space:]]+off-limits\b' || true)"
-  if [ -z "$affirmative_lines" ]; then
-    echo "DOC-PARITY FAIL [_shared-context.md: all 'off-limits' occurrences appear in directly negated context (F-S2104-P22-006(l))]: the prohibition must state worktree .factory/ content IS off-limits, not that it is not off-limits"
-    printf 'All off-limits lines found:\n%s\n' "$off_limits_lines"
-    false
-  fi
+  # B02 F-S2104-P26-B02: zero-nullified form factored into _guard_l_off_limits().
+  # _shared-context.md has 1 'off-limits' occurrence; a second in negated form would pass
+  # old affirmative-only check while nullifying the mandate — zero-negated gate closes this.
+  _guard_l_off_limits "$SHARED_CTX"
 }
 
 # ============================================================
@@ -526,6 +622,9 @@ _guard_g_path_corroborated() {
 # ===========================================================================
 
 @test "test_BC_B01_corpus_regression_guards_e_co_and_g_pc" {
+  # any-affirmative guard family coverage (F-S2104-P26-B02):
+  # COVERED (7/7): (d) wtr, (e) fa, (e) cr, (e) co, (f) ci, (g) pc, (l) ol
+  # UNCOVERED: none
   local corpus_scratch
   corpus_scratch="$(mktemp)"
 
@@ -591,6 +690,115 @@ _guard_g_path_corroborated() {
   run _guard_g_path_corroborated "$ADVERSARY_AGENT"
   if [ "$status" -ne 0 ]; then
     echo "CORPUS FAIL [guard (g) pc CONTROL]: production adversary.md returned non-zero from _guard_g_path_corroborated — production artifact must be GREEN"
+    rm -f "$corpus_scratch"
+    false
+  fi
+
+  # --- Guard (d) wtr mutants (B02 F-S2104-P26-B02) ---
+
+  # M5: appended nullifier — affirmative occurrence intact, new nullified occurrence appended.
+  # Old affirmative-only check: affirmative line → GREEN (BUG).
+  # Zero-nullified gate: nullified line → wtr_nullified non-empty → RED ✓.
+  { cat "$ADVERSARY_AGENT"; printf '\nworktree-rooted: retired — see updated §G.4\n'; } > "$corpus_scratch"
+  run _guard_d_worktree_rooted "$corpus_scratch"
+  if [ "$status" -eq 0 ]; then
+    echo "CORPUS FAIL [guard (d) wtr M5 — B02 regression appended-nullifier]: appended 'worktree-rooted: retired' alongside affirmative returned GREEN — zero-nullified gate must fire RED"
+    rm -f "$corpus_scratch"
+    false
+  fi
+
+  # Control: production adversary.md must pass guard (d) wtr.
+  run _guard_d_worktree_rooted "$ADVERSARY_AGENT"
+  if [ "$status" -ne 0 ]; then
+    echo "CORPUS FAIL [guard (d) wtr CONTROL]: production adversary.md returned non-zero from _guard_d_worktree_rooted — production artifact must be GREEN"
+    rm -f "$corpus_scratch"
+    false
+  fi
+
+  # --- Guard (f) ci mutants (B02 F-S2104-P26-B02) ---
+
+  # M6: B02 specific — Rule 5 line nullified while Rule 2 incidental ('case-insensitively') intact.
+  # Targets the line containing 'Use case-insensitive matching for ID-bearing' (Rule 5 heading+body).
+  # Old affirmative-only check: Rule 2 incidental line → ci_aff non-empty → GREEN (BUG).
+  # Zero-nullified gate: nullified Rule 5 occurrence → ci_nullified non-empty → RED ✓.
+  sed '/Use case-insensitive matching for ID-bearing/s/case-insensitive/case-insensitive (no longer required — simplified)/g' \
+    "$ADVERSARY_AGENT" > "$corpus_scratch"
+  run _guard_f_case_insensitive "$corpus_scratch"
+  if [ "$status" -eq 0 ]; then
+    echo "CORPUS FAIL [guard (f) ci M6 — B02 specific Rule-5-nullified/incidentals-intact]: Rule 5 'case-insensitive' nullified while Rule 2 incidental survives; old affirmative-only check returns GREEN (BUG); zero-nullified gate must fire RED"
+    rm -f "$corpus_scratch"
+    false
+  fi
+
+  # Control: production adversary.md must pass guard (f) ci.
+  run _guard_f_case_insensitive "$ADVERSARY_AGENT"
+  if [ "$status" -ne 0 ]; then
+    echo "CORPUS FAIL [guard (f) ci CONTROL]: production adversary.md returned non-zero from _guard_f_case_insensitive — production artifact must be GREEN"
+    rm -f "$corpus_scratch"
+    false
+  fi
+
+  # --- Guard (l) ol mutants (B02 F-S2104-P26-B02) ---
+
+  # M7: sole 'off-limits' occurrence replaced by 'NOT off-limits'.
+  # sed uses space-delimited form (not \b) — macOS sed does not support \b word-boundaries.
+  # grep -iE '\bnot[[:space:]]+off-limits\b' works on macOS (grep supports \b in -E mode).
+  # Zero-negated gate: ol_nullified non-empty → RED ✓.
+  sed 's/ off-limits / NOT off-limits /g' \
+    "$SHARED_CTX" > "$corpus_scratch"
+  run _guard_l_off_limits "$corpus_scratch"
+  if [ "$status" -eq 0 ]; then
+    echo "CORPUS FAIL [guard (l) ol M7 — all-occurrences negated]: 'off-limits' replaced by 'NOT off-limits' returned GREEN — zero-negated gate must fire RED"
+    rm -f "$corpus_scratch"
+    false
+  fi
+
+  # Control: production _shared-context.md must pass guard (l) ol.
+  run _guard_l_off_limits "$SHARED_CTX"
+  if [ "$status" -ne 0 ]; then
+    echo "CORPUS FAIL [guard (l) ol CONTROL]: production _shared-context.md returned non-zero from _guard_l_off_limits — production artifact must be GREEN"
+    rm -f "$corpus_scratch"
+    false
+  fi
+
+  # --- Guard (e) fa mutants (B02 F-S2104-P26-B02 factoring) ---
+
+  # M8: 'factory-artifacts' in mandate context nullified (targets Rule 4 spec-ground-truth sentence).
+  # Zero-nullified gate: fa_nullified non-empty → RED ✓.
+  sed 's/canonical factory-artifacts, NOT/canonical factory-artifacts (no longer required), NOT/' \
+    "$ADVERSARY_AGENT" > "$corpus_scratch"
+  run _guard_e_factory_artifacts "$corpus_scratch"
+  if [ "$status" -eq 0 ]; then
+    echo "CORPUS FAIL [guard (e) fa M8 — nullified factory-artifacts in mandate context]: 'factory-artifacts (no longer required)' returned GREEN — zero-nullified gate must fire RED"
+    rm -f "$corpus_scratch"
+    false
+  fi
+
+  # Control: production adversary.md must pass guard (e) fa.
+  run _guard_e_factory_artifacts "$ADVERSARY_AGENT"
+  if [ "$status" -ne 0 ]; then
+    echo "CORPUS FAIL [guard (e) fa CONTROL]: production adversary.md returned non-zero from _guard_e_factory_artifacts — production artifact must be GREEN"
+    rm -f "$corpus_scratch"
+    false
+  fi
+
+  # --- Guard (e) cr mutants (B02 F-S2104-P26-B02 factoring) ---
+
+  # M9: 'canonical-repo-root' blanket nullification.
+  # Zero-nullified gate: cr_nullified non-empty → RED ✓.
+  sed 's/canonical-repo-root/canonical-repo-root (superseded)/g' \
+    "$ADVERSARY_AGENT" > "$corpus_scratch"
+  run _guard_e_canonical_repo_root "$corpus_scratch"
+  if [ "$status" -eq 0 ]; then
+    echo "CORPUS FAIL [guard (e) cr M9 — nullified canonical-repo-root]: 'canonical-repo-root (superseded)' returned GREEN — zero-nullified gate must fire RED"
+    rm -f "$corpus_scratch"
+    false
+  fi
+
+  # Control: production adversary.md must pass guard (e) cr.
+  run _guard_e_canonical_repo_root "$ADVERSARY_AGENT"
+  if [ "$status" -ne 0 ]; then
+    echo "CORPUS FAIL [guard (e) cr CONTROL]: production adversary.md returned non-zero from _guard_e_canonical_repo_root — production artifact must be GREEN"
     rm -f "$corpus_scratch"
     false
   fi

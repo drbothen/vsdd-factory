@@ -320,6 +320,18 @@ _build_spec_path_section_prose() {
   _build_section_prose "$1"
 }
 
+# Abbreviation-protection builder for sentence-split domains (H03 F-S2104-P26-H03).
+# Replaces inline 'printf ... | sed' nosplit construction at call sites so every _nosplit
+# variable whose name contains _prose routes through a _build_* function — required for
+# Leg E call-site parity gate. Applies cf./i.e./e.g. protection in a single named pass.
+# Call sites MUST use this function rather than bare inline sed; _nosplit assignment directly
+# from 'printf ... | sed' bypasses Leg E once grep -v '_nosplit' is removed.
+_build_nosplit() {
+  local prose="$1"
+  printf '%s\n' "$prose" | \
+    sed 's/cf\. /cf_ABBREV_ /g; s/i\.e\. /ie_ABBREV_ /g; s/e\.g\. /eg_ABBREV_ /g'
+}
+
 _assert_doc_marker() {
   # $1=regex  $2=label  $3=section_text
   printf '%s\n' "$3" | grep -qE "$1" || {
@@ -872,8 +884,7 @@ _run_teardown_preflight() {
   local write_discipline_prose
   write_discipline_prose="$(_build_section_prose "$write_discipline_section")"
   local write_discipline_prose_nosplit
-  write_discipline_prose_nosplit="$(printf '%s\n' "$write_discipline_prose" | \
-    sed 's/cf\. /cf_ABBREV_ /g; s/i\.e\. /ie_ABBREV_ /g; s/e\.g\. /eg_ABBREV_ /g')"
+  write_discipline_prose_nosplit="$(_build_nosplit "$write_discipline_prose")"
 
   # Domain for write-directive gate (F-S2104-P19-002): whole ### Spec-Path Discipline section.
   # The write-directive gate reads this domain; PW-B/2b/4/5 remain bounded to write_discipline_prose_nosplit.
@@ -885,8 +896,7 @@ _run_teardown_preflight() {
   local spec_path_prose
   spec_path_prose="$(_build_spec_path_section_prose "$spec_path_section")"
   local spec_path_prose_nosplit
-  spec_path_prose_nosplit="$(printf '%s\n' "$spec_path_prose" | \
-    sed 's/cf\. /cf_ABBREV_ /g; s/i\.e\. /ie_ABBREV_ /g; s/e\.g\. /eg_ABBREV_ /g')"
+  spec_path_prose_nosplit="$(_build_nosplit "$spec_path_prose")"
 
   # Boundary-completeness assertion (F-S2104-P19-004(b)): verifies the sentence splitter fires
   # on every '. [A-Z*`\[]' boundary it should split. The primary fix for the missed-boundary
@@ -946,6 +956,15 @@ _run_teardown_preflight() {
     echo "DOC-PARITY FAIL [write-discipline prohibition block affirmative-mandate (sentence-scoped, zero-DoF, F-S2104-P16-001(a))]: the mandate sentence (containing 'artifact writes') must contain 'MUST use canonical absolute' (zero-DoF: no tokens between MUST and use) — the prior MUST[^.]*use[^.]*canonical pattern passed M-P16-A 'MUST NOT use canonical absolute' because [^.]* spans the negation token; this tightening closes that bypass (BC-6.26.001 PC1; AC-001(a); F-S2104-P15-001 / F-S2104-P14R-001)"
     false
   }
+  # Gate 1(e): anchor-target gate — mandate sentence MUST name a canonical anchor target
+  # (main-checkout|CANONICAL_FACTORY_ROOT) (F-S2104-P26-B01).
+  # B01 mutant: "anchored to the story worktree's own .factory/ subtree" — passes Gate 1(a)
+  # (MUST use canonical absolute intact) but lacks canonical anchor → Gate 1(e) fires → RED ✓.
+  # CONTROL: "anchored to the main-checkout root" → matches main-checkout → GREEN ✓.
+  printf '%s\n' "$mandate_sentence" | grep -qE 'main-checkout|\$CANONICAL_FACTORY_ROOT' || {
+    echo "DOC-PARITY FAIL [write-discipline prohibition block anchor-target absent (Gate 1(e), F-S2104-P26-B01)]: the mandate sentence must name a canonical anchor target — 'main-checkout' or '\$CANONICAL_FACTORY_ROOT'; the B01 mutant 'anchored to the story worktree's own .factory/ subtree' passes Gate 1(a) (MUST use canonical absolute intact) but names a non-canonical anchor target — Gate 1(e) fires (BC-6.26.001 PC1; AC-001(a))"
+    false
+  }
   # Gate 1(b): negation-transparency paired gate — mandate sentence must NOT contain MUST + NOT/not/never + canonical absolute
   # M-P16-A: "MUST NOT use canonical absolute paths" → MUST[^.]*(NOT|not|never)[^.]*canonical → RED.
   if printf '%s\n' "$mandate_sentence" | grep -qE 'MUST[^.]*(NOT|not|never)[^.]*canonical[[:space:]]+absolute'; then
@@ -968,6 +987,16 @@ _run_teardown_preflight() {
   # in-worktree .factory/** writes from the canonical-absolute requirement.
   if printf '%s\n' "$mandate_sentence" | grep -qE 'only[[:space:]]+(when|where|if)|when[[:space:]]+the[[:space:]]+target|unless'; then
     echo "DOC-PARITY FAIL [write-discipline prohibition block conditional-mandate-scoping (Gate 1(d), F-S2104-P17-002(c))]: the mandate sentence contains conditional scoping of the MUST-use mandate ('only when/where/if', 'when the target', or 'unless') — BC-6.26.001 Invariant 1 declares CWD-relative paths 'categorically forbidden'; M-P17-C scopes the mandate to 'when the target lies outside the story worktree', narrowing the categorical prohibition to a sub-case and exempting in-worktree .factory/** writes entirely (BC-6.26.001 PC1; AC-001(a))"
+    false
+  fi
+  # Gate 1(f): negative anchor-target gate — mandate sentence MUST NOT name a worktree anchor
+  # (F-S2104-P26-B01).
+  # B01 mutant: "anchored to the story worktree's own .factory/ subtree" → 'anchored to' followed
+  # by 'worktree' fires this gate → RED ✓.
+  # CONTROL: "anchored to the main-checkout root" → 'anchored to' present but 'worktree' absent
+  # in the remainder → GREEN ✓.
+  if printf '%s\n' "$mandate_sentence" | grep -qE 'anchored[[:space:]]+to[^.]*worktree'; then
+    echo "DOC-PARITY FAIL [write-discipline prohibition block non-canonical anchor (Gate 1(f), F-S2104-P26-B01)]: the mandate sentence names a worktree anchor target — 'anchored to[^.]*worktree' — which anchors writes to the story worktree rather than the main checkout; B01 mutant 'anchored to the story worktree's own .factory/ subtree' fires this gate (BC-6.26.001 PC1; AC-001(a))"
     false
   fi
 
@@ -1623,8 +1652,12 @@ _run_teardown_preflight() {
   # whitelist (grep -vE '\*\*Forbidden:\*\*'). Old perl -ne enumerated specific negating prefixes;
   # novel negation forms (e.g., "isn't", "hardly") evaded the vocabulary scan. Fail-closed: only
   # **Forbidden:** labeled constructions are whitelisted — all other directive+referent combinations fire.
-  # grep -Ev 'MUST use canonical absolute' and 'MUST be determined via' retained as specific
-  # legitimate-directive exclusions for correct spec sentences that would otherwise fire.
+  # B01 F-S2104-P26-B01: 'MUST use canonical absolute' escape narrowed to require canonical anchor
+  # (main-checkout|$CANONICAL_FACTORY_ROOT). B01 mutant 'MUST use canonical absolute paths anchored
+  # to the story worktree's own .factory/ subtree' now fires — it lacks a canonical anchor.
+  # M02 F-S2104-P26-M02: meta-aware escape added for 'MUST NOT use' clauses — prohibition sentences
+  # ('artifact writes MUST NOT use CWD-relative paths') are correctly prohibiting bad behavior and
+  # must not trigger the write-directive gate as false positives.
   local write_directive_violations
   write_directive_violations="$(printf '%s\n' "$spec_path_prose_nosplit" | \
     perl -pe 's/\.[[:space:]]+(?=[A-Z*`\[])/.\n/g' | \
@@ -1632,7 +1665,8 @@ _run_teardown_preflight() {
     grep -E "$PWBD_DIRECTIVE_CLASS" | \
     grep -E '\.factory/|ledger|artifact[[:space:]]+writes?' | \
     grep -vE '\*\*Forbidden:\*\*' | \
-    grep -Ev 'MUST[[:space:]]+use[[:space:]]+canonical[[:space:]]+absolute' | \
+    grep -Ev 'MUST[[:space:]]+use[[:space:]]+canonical[[:space:]]+absolute.*(main-checkout|\$CANONICAL_FACTORY_ROOT)' | \
+    grep -Ev 'MUST[[:space:]]+(NOT|not)[[:space:]]+(use|write|store|save|place|record|emit|persist|resolve)[[:space:]]' | \
     grep -Ev 'MUST[[:space:]]+be[[:space:]]+determined[[:space:]]+via' || true)"
   if [ -n "$write_directive_violations" ]; then
     echo "DOC-PARITY FAIL [write-directive gate: write-directive clause without prohibition or canonical-absolute escape (F-S2104-P18-001/F-S2104-P19-001/P19-002/P19-003/F-S2104-P20-002/F-S2104-P21-001)]: a clause in ### Spec-Path Discipline contains a write-directive or bare-imperative referencing .factory/, ledger, or artifact writes without either a prohibition token or 'MUST use canonical absolute' — clause-scoped (F-S2104-P19-001); domain extended to ### Spec-Path Discipline (F-S2104-P19-002); referent predicate extended to include artifact writes? (F-S2104-P20-002); unified directive class per F-S2104-P21-001; M-P19-A ('; forbidden.' escape), M-P19-B (canonical-absolute co-clause), M-P19-C ('saved' verb), M-P19-D (merged lowercase), M-P19-H (above-heading mandate), M-P20-A (artifact-write evasion) all RED (BC-6.26.001 PC1; AC-001(a); F-S2104-P18-001)"
@@ -2005,7 +2039,8 @@ _run_teardown_preflight() {
     grep -E "$PWBD_DIRECTIVE_CLASS" | \
     grep -E '\.factory/|ledger|artifact[[:space:]]+writes?' | \
     grep -vE '\*\*Forbidden:\*\*' | \
-    grep -Ev 'MUST[[:space:]]+use[[:space:]]+canonical[[:space:]]+absolute' | \
+    grep -Ev 'MUST[[:space:]]+use[[:space:]]+canonical[[:space:]]+absolute.*(main-checkout|\$CANONICAL_FACTORY_ROOT)' | \
+    grep -Ev 'MUST[[:space:]]+(NOT|not)[[:space:]]+(use|write|store|save|place|record|emit|persist|resolve)[[:space:]]' | \
     grep -Ev 'MUST[[:space:]]+be[[:space:]]+determined[[:space:]]+via' || true)"
   if [ -z "$leg_c_result" ]; then
     echo "PIPELINE PROBE FAIL [Leg C — F-S2104-P24-002]: '> Anchor every .factory/ artifact write to the story worktree CWD.' above #### Write Discipline MUST fire write-directive gate via the real spec_path_prose pipeline."
@@ -2044,7 +2079,8 @@ _run_teardown_preflight() {
     grep -E "$PWBD_DIRECTIVE_CLASS" | \
     grep -E '\.factory/|ledger|artifact[[:space:]]+writes?' | \
     grep -vE '\*\*Forbidden:\*\*' | \
-    grep -Ev 'MUST[[:space:]]+use[[:space:]]+canonical[[:space:]]+absolute' | \
+    grep -Ev 'MUST[[:space:]]+use[[:space:]]+canonical[[:space:]]+absolute.*(main-checkout|\$CANONICAL_FACTORY_ROOT)' | \
+    grep -Ev 'MUST[[:space:]]+(NOT|not)[[:space:]]+(use|write|store|save|place|record|emit|persist|resolve)[[:space:]]' | \
     grep -Ev 'MUST[[:space:]]+be[[:space:]]+determined[[:space:]]+via' || true)"
   if [ -n "$leg_d_pwb" ]; then
     echo "PIPELINE PROBE FAIL [Leg D — pristine Gate PW-B MUST be GREEN]: violations found in _shared-context.md #### Write Discipline section:"
@@ -2082,14 +2118,16 @@ _run_teardown_preflight() {
   leg_e_this_file="${BATS_TEST_DIRNAME}/story-worktree-write-path-discipline.bats"
   # Comment lines excluded (grep -v '^[0-9]*:[[:space:]]*#'): gate must not match its own
   # explanatory text (which contains the literal pattern _prose*="$( for documentation).
-  # _nosplit excluded: those variables hold the sentence-split form, not the prose domain
-  # construction — they are derived from _prose vars, not independently constructed.
+  # _nosplit INCLUDED (H03 F-S2104-P26-H03): removed grep -v '_nosplit' exclusion — all gates
+  # consume *_nosplit vars, so _prose*_nosplit assignments must route through _build_nosplit().
+  # Previously excluded because nosplit vars were constructed inline; now write_discipline_prose_nosplit
+  # and spec_path_prose_nosplit are built via _build_nosplit() and must be scanned for parity.
   # leg_e_ excluded: self-referential infrastructure variables (e.g., leg_e_all_prose_lines)
   # must not be scanned — they contain '_prose' in their names but are not prose domains.
   # Pattern broadened (H02 F-S2104-P25-H02): '_prose[a-zA-Z0-9_]*="?\$\(' catches any
   # prose-domain variable regardless of suffix (write_discipline_prose, sp_prose_c, etc.)
   # and handles both quoted and unquoted assignment forms.
-  leg_e_all_prose_lines="$(grep -nE '_prose[a-zA-Z0-9_]*="?\$\(' "$leg_e_this_file" | grep -v '^[0-9]*:[[:space:]]*#' | grep -v '_nosplit' | grep -v 'leg_e_')"
+  leg_e_all_prose_lines="$(grep -nE '_prose[a-zA-Z0-9_]*="?\$\(' "$leg_e_this_file" | grep -v '^[0-9]*:[[:space:]]*#' | grep -v 'leg_e_')"
   # Safety: the gate must find at least one assignment; zero means the grep pattern broke.
   if [ -z "$leg_e_all_prose_lines" ]; then
     echo "PIPELINE PROBE FAIL [Leg E — call-site parity]: grep pattern found no prose assignments in this bats file — gate integrity check failed (self-referential gate over own source)"
@@ -2098,7 +2136,13 @@ _run_teardown_preflight() {
     false
   fi
   # Assert every _prose*="$( assignment calls a _build_* builder (no bare 'printf … | tr' allowed).
-  leg_e_bare_lines="$(printf '%s\n' "$leg_e_all_prose_lines" | grep -v '_build_')" || true
+  # Mechanism 3 (H03 F-S2104-P26-H03): strip trailing comments before checking for _build_ —
+  # a line ending with '# ... _build_section_prose ...' contains '_build_' in the comment but
+  # NOT in the assignment itself; grep -v '_build_' would filter it out, hiding a bare construction.
+  # Strip comment suffix (from first '# ' onwards) before the _build_ check.
+  leg_e_bare_lines="$(printf '%s\n' "$leg_e_all_prose_lines" | \
+    sed 's/[[:space:]]*#[[:space:]][^"]*$//' | \
+    grep -v '_build_')" || true
   if [ -n "$leg_e_bare_lines" ]; then
     echo "PIPELINE PROBE FAIL [Leg E — call-site parity]: _prose assignment does not route through a _build_* normalising builder."
     echo "  Bare construction (e.g., printf '%s\n' \"\$section\" | tr '\\n' ' ') bypasses marker strip."
