@@ -1,7 +1,7 @@
 ---
 document_type: behavioral-contract
 level: L3
-version: "1.5"
+version: "1.6"
 status: active
 producer: product-owner
 timestamp: 2026-05-20T00:00:00Z
@@ -13,7 +13,7 @@ inputs:
   - .factory/specs/behavioral-contracts/ss-05/BC-5.39.006.md
   - .factory/policies.yaml
   - .factory/specs/architecture/decisions/ADR-021-wasm-cargo-audit-sandboxing.md
-input-hash: "a379371"
+input-hash: "ba314a3"
 traces_to: .factory/cycles/v1.0-brownfield-backfill/s-15.03-wave-plan-2026-05-15.md
 extracted_from: .factory/cycles/v1.0-brownfield-backfill/s-15.03-wave-plan-2026-05-15.md
 origin: brownfield
@@ -27,6 +27,7 @@ modified:
   - 2026-05-19
   - 2026-05-19
   - 2026-05-20
+  - 2026-07-29
 deprecated: null
 deprecated_by: null
 replacement: null
@@ -35,10 +36,10 @@ removed: null
 removal_reason: null
 bc_id: BC-5.39.008
 section: "5.39"
-last_amended: "2026-05-20 (v1.5) — Pass-5 fix-burst closing F-BC006P5-002 BC-008 leg-4 + F-BC007P5-001 BC-008 (full BC-006-parity sweep Edge Cases + Test Vectors per orchestrator adjudication; ~19 bare→assoc-fn conversions) + F-BC006P5-004 BC-008 leg (5-leg KK-N quintuple parity per D-490; timestamp refresh). [Prior: 2026-05-19 (v1.2) — Pass-2 adversary fix-burst (product-owner; brownfield-backfill M3 3M3a-r fix-burst pass-2; INV-017 applied). Closes F-BC008P2-001 (CRITICAL: invariant 4 + PC4 + EC-003/004/005 + Test Vectors rewritten from POLICY \\d{3} to integer id: format per production policies.yaml), F-BC008P2-002 (CRITICAL: PC10 false exec_subprocess claim replaced with ADR-021 canonical sandboxing rationale), F-BC008P2-003 (HIGH: invariant 5 severity self-contradiction removed; HIGH+MEDIUM strict, P0/P4 future-amendment paragraph deleted), F-BC008P2-004 (MEDIUM: PC2 scope clarification orphan renamed to ### PC2 — Scope clarification with proper anchor), F-BC008P2-005 (MEDIUM: ADR-021 line 251 cite replaced with section-anchor cite), F-BC007P2-006 (MEDIUM: ADR-021 Open Sub-Questions §2 cited in PC13 as source of advisory-severity-threshold answer), F-BC008P2-007 (LOW: phase updated to section-12-step-3M3a-r-pass-2), F-BC008P2-008/009 (NITPICK: changelog v1.2 row structured per BC-5.39.006 convention). [Prior: 2026-05-18 (v1.1) — Pass-1 adversary fix-burst (product-owner; brownfield-backfill M3 3M3a-r fix-burst). F-BC008P1-001 DO NOT ACT (FALSE POSITIVE — TD-VSDD-101 registered at tech-debt-register.md:45; env-var present in origin/develop ci.yml; adversary grepped stale local main). Closes F-BC008P1-002..020. [Prior: 2026-05-18 (v1.0) — Initial authoring (product-owner; brownfield-backfill S-15.03 M3 wave story authoring 3M3a). Anchors F-PASS14-004+F-PASS14-006+TD-74-Option-b. BC-5.39.008 allocated as next monotonic ID after BC-5.39.007 in ss-05/. lifecycle_status: draft (POL-14 auto-promotion to active on S-15.15 merge).]"
+last_amended: "2026-07-29 (v1.6) — rc.24 release-blocker ruling (product-owner; v1.0-feature-engine-discipline-pass-1). Ruling: fail-open is NEVER valid for a governance gate's primary target when host::read_file returns a capability-class error in PostToolUse context. PC11/PC14 amended to fail-closed for all HostErrors; PC12 split NotFound(fail-open)/CapabilityDenied(block); Invariant 9 updated; EC-015/016 updated; EC-024/025 added. [Prior: 2026-05-20 (v1.5) — Pass-5 fix-burst closing F-BC006P5-002 BC-008 leg-4 + F-BC007P5-001 BC-008 (full BC-006-parity sweep Edge Cases + Test Vectors per orchestrator adjudication; ~19 bare→assoc-fn conversions) + F-BC006P5-004 BC-008 leg (5-leg KK-N quintuple parity per D-490; timestamp refresh). [Prior: 2026-05-19 (v1.2) — Pass-2 adversary fix-burst (product-owner; brownfield-backfill M3 3M3a-r fix-burst pass-2; INV-017 applied). Closes F-BC008P2-001 (CRITICAL: invariant 4 + PC4 + EC-003/004/005 + Test Vectors rewritten from POLICY \\d{3} to integer id: format per production policies.yaml), F-BC008P2-002 (CRITICAL: PC10 false exec_subprocess claim replaced with ADR-021 canonical sandboxing rationale), F-BC008P2-003 (HIGH: invariant 5 severity self-contradiction removed; HIGH+MEDIUM strict, P0/P4 future-amendment paragraph deleted), F-BC008P2-004 (MEDIUM: PC2 scope clarification orphan renamed to ### PC2 — Scope clarification with proper anchor), F-BC008P2-005 (MEDIUM: ADR-021 line 251 cite replaced with section-anchor cite), F-BC007P2-006 (MEDIUM: ADR-021 Open Sub-Questions §2 cited in PC13 as source of advisory-severity-threshold answer), F-BC008P2-007 (LOW: phase updated to section-12-step-3M3a-r-pass-2), F-BC008P2-008/009 (NITPICK: changelog v1.2 row structured per BC-5.39.006 convention). [Prior: 2026-05-18 (v1.1) — Pass-1 adversary fix-burst (product-owner; brownfield-backfill M3 3M3a-r fix-burst). F-BC008P1-001 DO NOT ACT (FALSE POSITIVE — TD-VSDD-101 registered at tech-debt-register.md:45; env-var present in origin/develop ci.yml; adversary grepped stale local main). Closes F-BC008P1-002..020. [Prior: 2026-05-18 (v1.0) — Initial authoring (product-owner; brownfield-backfill S-15.03 M3 wave story authoring 3M3a). Anchors F-PASS14-004+F-PASS14-006+TD-74-Option-b. BC-5.39.008 allocated as next monotonic ID after BC-5.39.007 in ss-05/. lifecycle_status: draft (POL-14 auto-promotion to active on S-15.15 merge).]"
 ---
 
-# BC-5.39.008: validate-policies-schema WASM hook MUST block on policies.yaml missing required header fields, non-canonical POLICY ID format, duplicate POLICY IDs, missing lint_hook or codified_at fields, and referenced lint-hook plugins absent from hooks-registry.toml; and MUST emit advisory on dispatch packages recommending crates with known RUSTSEC advisories
+# BC-5.39.008: validate-policies-schema WASM hook MUST block on policies.yaml missing required header fields, non-canonical POLICY ID format, duplicate POLICY IDs, missing lint_hook or codified_at fields, referenced lint-hook plugins absent from hooks-registry.toml, and capability-denied read errors on PostToolUse primary targets; and MUST emit advisory on dispatch packages recommending crates with known RUSTSEC advisories
 
 ## Description
 
@@ -118,9 +119,17 @@ This v1.1 fix-burst closes all actionable findings (001 DO NOT ACT, 002-020 clos
 
 ### Part B — hooks-registry cross-reference
 
-8. The hooks-registry.toml file is accessible via `host::read_file` at the canonical path
-   `plugins/vsdd-factory/hooks-registry.toml` for lint_hook reference validation. If this
-   file is not accessible, the lint_hook-existence check fails-open per invariant 9(b).
+8. The hooks-registry.toml file is read via `host::read_file` at the canonical path
+   `plugins/vsdd-factory/hooks-registry.toml` for lint_hook reference validation. The
+   response to a read failure depends on the error class:
+
+   - **`HostError::NotFound`:** the lint_hook-existence check is skipped; a warning is
+     logged via `host::log_warn`; other schema checks continue — partial fail-open for
+     this secondary cross-reference only.
+   - **`HostError::CapabilityDenied`, `HostError::PathNotAllowed`, or any
+     capability-class error:** the hook emits `HookResult::block_with_fix(...)` naming
+     the access-denied error and path — sandbox misconfiguration on a secondary file
+     still indicates broken infrastructure and must never be silently continued.
 
 ### PC2 — Scope clarification
 
@@ -136,10 +145,14 @@ an advisory log (not a block) per postcondition 8.
    matches `td-*-dispatch.md` glob pattern (i.e., basename starts with `td-` and ends with
    `-dispatch.md`; path-component-strict check on filename, not full path).
 10. The `cargo-audit-cache.json` file at `.factory/hooks/cargo-audit-cache.json` is
-    accessible via `host::read_file`. If the file is absent, the hook emits an advisory-log
-    message via `host::log_warn` and `HookResult::Continue` (non-blocking per ADR-021
-    absent-file advisory policy). If the file is present but invalid JSON, the hook emits
-    `HookResult::Continue` and logs a parse-error warning — fail-open.
+    accessible via `host::read_file`. If the file is absent (`HostError::NotFound`), the hook
+    emits an advisory-log message via `host::log_warn` and `HookResult::Continue`
+    (non-blocking per ADR-021 absent-file advisory policy — legitimate not-yet-provisioned
+    state). If the file is present but invalid JSON, the hook emits `HookResult::Continue`
+    and logs a parse-error warning — fail-open. If `host::read_file` returns
+    `HostError::CapabilityDenied` or any capability-class error, the hook emits
+    `HookResult::block_with_fix(...)` naming the access-denied error — sandbox misconfiguration
+    is not the same as "cache not yet provisioned."
 
     **ADR-021 Option (b) WASM integration rationale:** The bash-data-provisioner +
     WASM-decision-maker layering exists for three reasons per ADR-021
@@ -243,15 +256,60 @@ an advisory log (not a block) per postcondition 8.
 10. Multiple violations produce a single `HookResult::block_with_fix(...)`
     message enumerating ALL violations (schema-violation cascade: one bad field does not
     mask others — all violations are reported together).
-11. If `host::read_file` returns an error for policies.yaml (HostError of any kind), the
-    hook emits `HookResult::Continue` and logs a warning via `host::log_warn` — fail-open.
+11. If `host::read_file` returns an error for policies.yaml, the hook's response depends on
+    the error class (amended v1.6 — the v1.0–v1.5 "fail-open for any HostError" posture is
+    STRUCK):
+
+    - **`HostError::CapabilityDenied`, `HostError::PathNotAllowed`, or any
+      capability-class error:** the hook emits `HookResult::block_with_fix(...)` with
+      message `"validate-policies-schema: cannot read <path>: capability denied — verify
+      path_allow includes .factory/ in the hook registry entry"`. This is NEVER fail-open.
+      In PostToolUse context, the write just succeeded; capability-denied means the hook's
+      sandbox is misconfigured and has not performed validation. Continuing silently
+      constitutes a false-clean governance signal.
+
+    - **`HostError::NotFound` after a PostToolUse Write event:** the hook emits
+      `HookResult::block_with_fix(...)` with message `"validate-policies-schema: cannot
+      read <path>: file not found after successful Write — structural contradiction"`.
+      The file was just written; NotFound indicates a structural fault, not a benign
+      absence to be silently tolerated.
+
+    - **`HostError::Timeout` or any other HostError:** the hook emits
+      `HookResult::block_with_fix(...)` naming the error class. A governance gate that
+      cannot read its primary target within its configured timeout has not performed
+      validation; a timeout is a misconfiguration symptom, not a transient condition
+      warranting silent continuation.
+
+    **Rationale:** The original BC v1.0–v1.5 rationale ("fail-open prevents false-positive
+    blocks during setup") is STRUCK. In PostToolUse context, the file was just written;
+    `host::read_file` failure is never a benign setup transient — it is either sandbox
+    misconfiguration (`CapabilityDenied`) or a structural contradiction (`NotFound`).
+    Fail-open on `HostError of any kind` for the primary target is a paper-fix under
+    TD-VSDD-059: the hook signals "validated" when it has not validated. The governing
+    principle is the Canonical Principle (CLAUDE.md production-grade default); the specific
+    pattern is TD-VSDD-059 paper-fix prohibition. Note: POLICY 13 FAIL-CLOSED-IMPLICATION-
+    DIRECTION in policies.yaml governs bats test gate predicate design, not runtime WASM
+    hook behavior; it does not directly mandate this change, though its spirit aligns.
 
 ### Part C — dispatch package arm (td-*-dispatch.md)
 
-12. If `cargo-audit-cache.json` is absent or unreadable, the hook emits
-    `HookResult::Continue` with advisory log message via `host::log_warn`:
-    `"cargo-audit-cache.json absent or unreadable; skipping advisory check. Run
-    update-cargo-audit-cache.sh to populate."` per ADR-021 absent-file advisory policy.
+12. If `cargo-audit-cache.json` returns a read error, the hook's response depends on the
+    error class:
+
+    - **`HostError::NotFound`:** the hook emits `HookResult::Continue` with advisory log
+      via `host::log_warn`: `"cargo-audit-cache.json absent; skipping advisory check. Run
+      update-cargo-audit-cache.sh to populate."` This is the legitimate not-yet-provisioned
+      state: the bash data-provisioner has not yet run. Fail-open is intentional per
+      ADR-021 absent-file advisory policy.
+
+    - **`HostError::CapabilityDenied`, `HostError::PathNotAllowed`, or any
+      capability-class error:** the hook emits `HookResult::block_with_fix(...)` naming
+      the access-denied error. Sandbox misconfiguration is not the same as "cache not yet
+      provisioned" — it indicates the hook cannot access a path it is supposed to read.
+
+    - **Invalid JSON (file present but parse error):** the hook logs a parse-error warning
+      via `host::log_warn` and emits `HookResult::Continue` — the original fail-open
+      semantics for malformed cache are preserved (bash provisioner can repopulate).
 
 13. If `cargo-audit-cache.json` is present and parseable, the hook extracts crate
     dependency lines from the dispatch package file via regex (pattern: lines matching
@@ -278,8 +336,17 @@ an advisory log (not a block) per postcondition 8.
     citing the RUSTSEC ID and affected crate. The final `HookResult` is a single Block
     (if any HIGH/CRITICAL found) or Continue (all MEDIUM/LOW).
 
-14. If `host::read_file` returns an error for `td-*-dispatch.md` (HostError of any kind),
-    the hook emits `HookResult::Continue` and logs a warning — fail-open.
+14. If `host::read_file` returns an error for `td-*-dispatch.md`, the hook's response
+    follows the same error-class differentiation as postcondition 11 (amended v1.6):
+
+    - **`HostError::CapabilityDenied`, `HostError::PathNotAllowed`, or any
+      capability-class error:** `HookResult::block_with_fix(...)` naming the access-denied
+      error and path — never fail-open. This is a PostToolUse hook; the dispatch file was
+      just written.
+    - **`HostError::NotFound` after PostToolUse Write:** `HookResult::block_with_fix(...)`
+      citing structural contradiction (file just written, cannot be absent).
+    - **`HostError::Timeout` or any other HostError:** `HookResult::block_with_fix(...)`
+      naming the error class. Same rationale as postcondition 11.
 
 ## Invariants
 
@@ -337,15 +404,24 @@ an advisory log (not a block) per postcondition 8.
    single combined Block. This ensures the author can fix all issues in one edit rather than
    iterating one-at-a-time. The cascade applies to Part B only; Part C emits per-advisory
    advisory logs (non-batched) with a single final HookResult.
-9. Fail-open invariants:
+9. Read-error response invariants (amended v1.6):
    (a) If `host::read_file` for policies.yaml returns any HostError, the hook emits
-       `HookResult::Continue` + `host::log_warn`. Unreadable file cannot be validated;
-       fail-open prevents false-positive blocks during setup.
-   (b) If `host::read_file` for hooks-registry.toml returns any HostError, the hook skips
-       the lint_hook-existence check and logs a warning — fail-open for the existence check
-       only; other schema checks still run.
-   (c) If `cargo-audit-cache.json` is absent or returns HostError, the hook logs advisory
-       via `host::log_warn` and emits `HookResult::Continue`; never blocks.
+       `HookResult::block_with_fix(...)` naming the error class and path. There is NO
+       fail-open path for the primary validation target in PostToolUse context. The v1.0–v1.5
+       "unreadable file → fail-open to prevent false-positive blocks during setup" rationale
+       is STRUCK: in PostToolUse context, the write just succeeded, making any read failure
+       a structural contradiction or sandbox misconfiguration — never a benign setup transient.
+   (b) If `host::read_file` for hooks-registry.toml returns `HostError::NotFound`, the hook
+       skips the lint_hook-existence check and logs a warning — partial fail-open for this
+       secondary cross-reference check only; schema checks continue. If `host::read_file`
+       for hooks-registry.toml returns `HostError::CapabilityDenied` or any capability-class
+       error, the hook emits `HookResult::block_with_fix(...)` — sandbox misconfiguration on
+       a secondary file still indicates broken infrastructure.
+   (c) If `cargo-audit-cache.json` returns `HostError::NotFound`, the hook logs advisory via
+       `host::log_warn` and emits `HookResult::Continue` — legitimate not-yet-provisioned
+       state (bash data-provisioner not yet run). If `cargo-audit-cache.json` returns
+       `HostError::CapabilityDenied` or any capability-class error, the hook emits
+       `HookResult::block_with_fix(...)` — sandbox misconfiguration, not provisioner absence.
 10. TD-VSDD-101 independence: the CI env-var `VSDD_SKIP_PRODUCTION_STATE_MD_TEST=1` in
     `.github/workflows/ci.yml` is a CI-test-infrastructure paper-fix unrelated to this BC's
     invariants. This BC's postconditions are satisfied by the WASM hook implementation
@@ -373,15 +449,17 @@ an advisory log (not a block) per postcondition 8.
 | EC-012 | policies.yaml has YAML comments (`# ...`) on field lines | `HookResult::Continue`; comments stripped before validation |
 | EC-013 | policies.yaml has an extra unknown field `custom_flag: true` in a policy entry | `HookResult::Continue` + `host::log_warn` advisory; forward-compatible extra field (not block) |
 | EC-014 | Multiple violations: missing `codified_at` + duplicate ID + non-canonical format | Single `HookResult::block_with_fix(...)` enumerating all 3 violations (cascade per invariant 8) |
-| EC-015 | `host::read_file` returns HostError::Timeout for policies.yaml | `HookResult::Continue` + `host::log_warn`; fail-open |
-| EC-016 | `host::read_file` for hooks-registry.toml fails | Skip lint_hook-existence check; `host::log_warn`; other checks continue |
+| EC-015 | `host::read_file` returns `HostError::Timeout` for policies.yaml | `HookResult::block_with_fix(...)` naming Timeout error class; fail-closed per amended PC11 — a governance gate that cannot read its primary target within its configured timeout has not performed validation (amended v1.6; prior v1.5: fail-open) |
+| EC-016 | `host::read_file` for hooks-registry.toml returns `HostError::NotFound` | Skip lint_hook-existence check; `host::log_warn`; other schema checks continue — partial fail-open for secondary cross-reference only (NotFound path; amended v1.6). If `HostError::CapabilityDenied` instead: `HookResult::block_with_fix(...)` naming access-denied error — sandbox misconfiguration blocks even for secondary files |
 | EC-017 | `td-99-dispatch.md` recommends `serde_yaml = "0.9.34"`; cache has RUSTSEC-2025-0068 with severity `high` | `HookResult::block_with_fix(...)` citing RUSTSEC-2025-0068; HIGH advisory blocks |
-| EC-018 | `cargo-audit-cache.json` is absent | `host::log_warn` advisory + `HookResult::Continue`; no block |
-| EC-019 | `cargo-audit-cache.json` is present but invalid JSON | `HookResult::Continue` + parse-error warning; fail-open |
+| EC-018 | `cargo-audit-cache.json` is absent (`HostError::NotFound`) | `host::log_warn` advisory + `HookResult::Continue`; no block — legitimate not-yet-provisioned state |
+| EC-019 | `cargo-audit-cache.json` is present but invalid JSON | `HookResult::Continue` + parse-error warning; fail-open for malformed cache |
 | EC-020 | File path is `/some/dir/xpolicies.yaml` (ends_with "policies.yaml" but file_name is "xpolicies.yaml") | `HookResult::Continue`; path-component-strict guard; not a target file |
 | EC-021 | `td-dispatch.md` recommends two crates; cache has RUSTSEC advisory for each (both `medium` severity) | `host::log_warn` for each crate (2 separate log calls); `HookResult::Continue`; MEDIUM does not block |
 | EC-022 | `td-dispatch.md` recommends crate with CRITICAL advisory and another with MEDIUM advisory | `HookResult::block_with_fix(...)` citing CRITICAL advisory; `host::log_warn` for MEDIUM advisory (per-advisory emission, single final block) |
 | EC-023 | Policy entry has `lint_hook: "vsdd-factory:validate-burst-log"` (namespaced slug) | `HookResult::Continue` for lint_hook format check; namespaced slug is valid per postcondition 6 |
+| EC-024 | PostToolUse Write to `.factory/policies.yaml` triggers the hook, but `host::read_file` returns `HostError::PathNotAllowed` (`path_not_allowed`) — the hook's sandbox lacks read access to `.factory/` paths despite `path_allow` configuration | `HookResult::block_with_fix(...)` with message citing `CapabilityDenied`/`PathNotAllowed` error and directing the operator to verify `path_allow` in the hook registry entry. NEVER `HookResult::Continue`. This is the **capability-denied-on-own-write** class: the hook was triggered by a successful Write but structurally cannot read the file it was spawned to validate. |
+| EC-025 | policies.yaml YAML document 2 (the `policies:` array) contains invalid YAML (e.g., `\+` escape sequences in double-quoted scalars rejected by YAML 1.1 parsers) but the parse error is NEVER DETECTED because EC-024's `CapabilityDenied` path silently returns `HookResult::Continue` via the v1.0–v1.5 fail-open invariant — the registry remains unparseable across multiple passes with zero validator output | This EC MUST NOT be reachable in a correctly configured pipeline. Its existence proves that EC-024 (fail-open on `CapabilityDenied`) is the root enabler of silent registry corruption. Correct behavior chain: EC-024's `CapabilityDenied` triggers block → operator fixes sandbox → next Write fires EC-001 (YAML parse error on document 2) → operator fixes YAML. EC-025 appearing in production (0 "YAML parse error" log entries across all dispatcher logs) is a P0 indicator that the fail-open path was in effect. The **unparseable-registry-silently-undetected** class: a governance validator that is dark due to sandbox misconfiguration cannot protect against content defects in its target. |
 
 ## Canonical Test Vectors
 
@@ -400,9 +478,10 @@ an advisory log (not a block) per postcondition 8.
 | Cascade: 3 violations | Missing `codified_at` + dup ID (both `id: 3`) + string-format id | Single `HookResult::block_with_fix(...)` enumerating all 3 | PC2, ID format, duplicate checks all violated | BLOCK |
 | Part C: HIGH advisory crate | `td-dispatch.md` recommends `serde_yaml = "0.9.34"`; cache has RUSTSEC-2025-0068 severity `high` | `HookResult::block_with_fix(...)` citing RUSTSEC-2025-0068 | PC9, PC10; HIGH threshold triggers block | BLOCK |
 | Part C: MEDIUM advisory only | `td-dispatch.md` crate with MEDIUM advisory in cache | `HookResult::Continue` + `host::log_warn` | PC9, PC10; MEDIUM below block threshold | ADVISORY |
-| Part C: cache absent | `cargo-audit-cache.json` not found | `HookResult::Continue` + `host::log_warn` advisory | PC10 absent-file path | PASS (advisory) |
+| Part C: cache absent | `cargo-audit-cache.json` not found (`HostError::NotFound`) | `HookResult::Continue` + `host::log_warn` advisory | PC10 NotFound absent-file path | PASS (advisory) |
 | Part C: clean dispatch | `td-dispatch.md` recommends `serde_norway = "0.9.0"`; no advisory in cache | `HookResult::Continue` | PC9, PC10; no advisories found | PASS |
-| Read failure policies.yaml | `host::read_file` returns HostError | `HookResult::Continue` + `host::log_warn` | PC4 fail-open | PASS (fail-open) |
+| Read failure policies.yaml (Timeout) | `host::read_file` returns `HostError::Timeout` for policies.yaml | `HookResult::block_with_fix(...)` naming Timeout error class | PC11 amended — all HostErrors for primary target fail-closed | BLOCK |
+| Capability-denied on own write (EC-024) | PostToolUse Write to `.factory/policies.yaml`; `host::read_file` returns `HostError::PathNotAllowed` | `HookResult::block_with_fix(...)` citing sandbox misconfiguration; directs operator to verify `path_allow` in hook registry entry | PC11 amended — CapabilityDenied/PathNotAllowed class never fail-open | BLOCK |
 | xpolicies.yaml path | file_name is "xpolicies.yaml" | `HookResult::Continue` (path-component-strict guard) | PC1 not triggered | PASS (not target) |
 | Namespaced lint_hook slug | `lint_hook: "vsdd-factory:validate-burst-log"` (exists in registry) | `HookResult::Continue` | PC6; namespaced slug valid | PASS |
 
@@ -421,6 +500,8 @@ semantically unrelated to POLICY 13/16 and is NOT cited in those rows.
 | ADR-021 Option b | cargo-audit cache file provisioning for Part C advisory checks (Option (a) REJECTED per ADR-021 §"Alternatives Considered — Option (a)" (lines 245-258)) | 12/13 |
 | POLICY 13 | `lint_hook` field required per POLICY 13 codification at D-472 | 6 |
 | POLICY 16 | `codified_at` field required per POLICY 16 codification at D-472 | 7 |
+| Canonical Principle + TD-VSDD-059 | fail-closed for all HostErrors on primary validation target in PostToolUse context | 11 |
+| Canonical Principle + TD-VSDD-059 | fail-closed for all HostErrors on td-*-dispatch.md in PostToolUse context | 14 |
 
 ## Verification Properties
 
@@ -438,8 +519,8 @@ semantically unrelated to POLICY 13/16 and is NOT cited in those rows.
 | (pending) | Extra-Field Advisory Invariant — hook emits Continue + log_warn (not block) for unknown fields | bats integration test (pass-extra-field-advisory fixture) |
 | (pending) | Part C HIGH-Advisory Block Invariant — hook emits Block when HIGH RUSTSEC advisory found | bats integration test (fail-advisory-rustsec-high fixture) |
 | (pending) | Part C MEDIUM-Advisory Continue Invariant — hook emits Continue + log_warn when only MEDIUM advisory found | bats integration test (pass-advisory-rustsec-medium fixture) |
-| (pending) | Part C Cache-Absent Pass Invariant — hook emits Continue when cargo-audit-cache.json absent | bats integration test (pass-cache-absent fixture) |
-| (pending) | Fail-open Invariant — hook emits Continue when file is unreadable | bats integration test (fail-open-policies-unreadable fixture) |
+| (pending) | Part C Cache-Absent Pass Invariant — hook emits Continue when cargo-audit-cache.json absent (NotFound) | bats integration test (pass-cache-absent fixture) |
+| (pending) | Capability-Denied Block Invariant — hook emits Block (not Continue) when host::read_file returns CapabilityDenied/PathNotAllowed for policies.yaml; amended v1.6 replaces prior "Fail-open Invariant" VP | bats integration test (fail-capability-denied-policies-yaml fixture) |
 | (pending) | Namespaced-Lint-Hook Pass Invariant — hook accepts namespaced slug `vsdd-factory:plugin-name` | bats integration test (pass-namespaced-lint-hook fixture) |
 
 VP IDs are pending VP-INDEX allocation by state-manager at post-merge burst.
@@ -451,7 +532,7 @@ VP IDs are pending VP-INDEX allocation by state-manager at post-merge burst.
 | L2 Capability | E-12 (Engine Governance — policies.yaml schema enforcement automation; Part A + Part B) and E-13 (Artifact Integrity — cargo-audit advisory check; Part C) |
 | Capability Anchor Justification | E-12 governs factory engine discipline automation. Part A + Part B of this BC formalizes the PostToolUse gate that mechanically enforces the policies.yaml schema invariants codified at D-472 (POLICY 13/16), F-PASS14-004 (header fields), and F-PASS14-006 (three-digit ID canonical form per human direction 2026-05-15). The hook targets policies.yaml — the governance policy registry artifact. Part C enforces artifact integrity for dispatch packages by cross-referencing crate dependencies against known RUSTSEC advisories (TD #74 Option b per ADR-021 Option b ACCEPTED 2026-05-15). E-12 and E-13 as used in the BC-5.39.xxx family per engine-discipline automation sub-capability convention. |
 | Architecture Module | `crates/hook-plugins/validate-policies-schema/` (Rust WASM plugin, new crate); `plugins/vsdd-factory/hooks-registry.toml` (registry entry); `plugins/vsdd-factory/hook-plugins/validate-policies-schema.wasm` (compiled binary); `.factory/hooks/cargo-audit-cache.json` (Part C data file, written by pre-commit bash script per ADR-021 Option b) |
-| D-NNN Sub-Clauses Closed | F-PASS14-004 (policies.yaml frontmatter header); F-PASS14-006 (integer id field canonical form per production policies.yaml); POLICY 13+16 schema requirements (D-472 codification); ADR-021 Option b (cargo-audit cache reader; Option (a) REJECTED per ADR-021 §"Alternatives Considered — Option (a)" (lines 245-258)) |
+| D-NNN Sub-Clauses Closed | F-PASS14-004 (policies.yaml frontmatter header); F-PASS14-006 (integer id field canonical form per production policies.yaml); POLICY 13+16 schema requirements (D-472 codification); ADR-021 Option b (cargo-audit cache reader; Option (a) REJECTED per ADR-021 §"Alternatives Considered — Option (a)" (lines 245-258)); Canonical Principle + TD-VSDD-059 (fail-closed for CapabilityDenied on primary targets, v1.6) |
 | ADR References | ADR-021 (WASM Plugin Cargo-Audit Integration Sandboxing — Option b bash cache + WASM reader; ACCEPTED 2026-05-15; gates Part C; Option (a) REJECTED) |
 | Stories | S-15.15 |
 | L2 Invariants | (none currently assigned — this BC is a process-automation gate; no L2 domain invariants apply) |
@@ -460,7 +541,7 @@ VP IDs are pending VP-INDEX allocation by state-manager at post-merge burst.
 
 - BC-5.39.001 — governs the per-story adversarial convergence loop (3-CLEAN gate); S-15.15 must achieve 3-CLEAN per BC-5.39.001 before PR dispatch
 - BC-5.39.002 — governs adversary scope limits (out-of-scope findings deferred)
-- BC-5.39.004 — governs validate-burst-log hook (sister PostToolUse hook; same hook-sdk pattern + fail-open + path-component-strict guard)
+- BC-5.39.004 — governs validate-burst-log hook (sister PostToolUse hook; same hook-sdk pattern + path-component-strict guard; NOTE: BC-5.39.004 may carry the same fail-open HostError posture as the pre-v1.6 BC-5.39.008 PC11 — implementer must sweep sibling hooks under TD-VSDD-060 when fixing validate-policies-schema)
 - BC-5.39.005 — governs validate-state-structure Phase 1 hook (sister PostToolUse hook)
 - BC-5.39.006 — governs validate-dispatch-advance WASM hook (sister PostToolUse hook; same crate scaffolding pattern)
 - BC-4.11.001 — validates write targets against artifact-path-registry (sister PostToolUse hook; structural analog for path validation)
@@ -487,6 +568,7 @@ VP IDs pending VP-INDEX allocation by state-manager at S-15.15 post-merge burst.
 
 | Version | Date | Description |
 |---------|------|-------------|
+| 1.6 | 2026-07-29 | rc.24 release-blocker ruling (product-owner; v1.0-feature-engine-discipline-pass-1). Human halted S-21.04 adversarial cascade; classified fail-open posture for CapabilityDenied errors as P0 rc.24 release blocker. Ruling: fail-open is NEVER valid for a governance gate's primary target when `host::read_file` returns a capability-class error in PostToolUse context. Governing instruments: Canonical Principle (CLAUDE.md production-grade default) + TD-VSDD-059 (paper-fix prohibition). POLICY 13 FAIL-CLOSED-IMPLICATION-DIRECTION in policies.yaml governs bats test gate predicates specifically, not runtime WASM hook behavior; the applicable instruments are the Canonical Principle and TD-VSDD-059. PC11 amended: all HostErrors for policies.yaml → block (CapabilityDenied/PathNotAllowed class: block with sandbox-misconfiguration message; NotFound after PostToolUse Write: block with structural-contradiction message; Timeout/other: block). PC12 amended: cargo-audit-cache.json NotFound → fail-open retained (legitimately optional external file); CapabilityDenied → block. PC14 amended: all HostErrors for td-*-dispatch.md → block (same reasoning as PC11). Invariant 9(a) amended: removes "HostError of any kind → Continue" for primary targets; strikes the "setup" rationale as inapplicable to PostToolUse context. Invariant 9(b) amended: NotFound for hooks-registry.toml → skip check only; CapabilityDenied → block. Invariant 9(c) amended: NotFound for cargo-audit-cache.json → Continue retained; CapabilityDenied → block. H1 amended: adds "capability-denied read errors on PostToolUse primary targets" to blocking behaviors. Precondition 8 amended: split NotFound vs CapabilityDenied for hooks-registry.toml. EC-015 amended: Timeout → BLOCK (was fail-open). EC-016 amended: bifurcates NotFound (skip check) vs CapabilityDenied (block). EC-024 added (capability-denied-on-own-write). EC-025 added (unparseable-registry-silently-undetected — proof that EC-024 fail-open is the root enabler of silent registry corruption observed 2026-07-26..2026-07-29). Canonical test vector for "Read failure policies.yaml" updated from PASS(fail-open) to BLOCK; EC-024 vector row added; "Fail-open Invariant" VP entry updated to "Capability-Denied Block Invariant". D-NNN Anchor Coverage table: two rows added (Canonical Principle + TD-VSDD-059 for PC11, PC14). Routes code changes to implementer: 5+ sibling fail-open sites in `crates/hook-plugins/validate-policies-schema/src/lib.rs` (PC11/PC12/PC14 arms per `skipping (fail-open per BC-5.39.008 PC11/PC12/PC14)` log strings) must be amended per new postconditions; TD-VSDD-060 sibling-site sweep across all 5+ sites required in same burst; sister hook BCs (BC-5.39.004, BC-5.39.005, BC-5.39.006) must be reviewed for same fail-open posture. |
 | 1.5 | 2026-05-20 | Pass-5 fix-burst (product-owner; brownfield-backfill M3 3M3a-r). Closes F-BC006P5-002 BC-008 leg-4 (HIGH: `last_amended:` text-prefix stale; updated to `"2026-05-20 (v1.5)"`). Closes F-BC007P5-001 BC-008 (LOW: full BC-006-parity sweep per orchestrator adjudication — all bare `HookResult::Block` in body tables converted to assoc-fn `HookResult::block_with_fix(...)` form; scope: Edge Cases table 10 occurrences + Test Vectors table 9 occurrences = 19 total bare→assoc-fn conversions; POLICY-1-exempt historical content in Changelog rows excluded from sweep). Closes F-BC006P5-004 BC-008 leg (LOW: frontmatter `timestamp:` refreshed to 2026-05-20T00:00:00Z). Pre-fix bare count (body, non-changelog): 19. Post-fix target: 0 in body (changelog historical exempt). INV-019 cure type: cure (c) pattern-by-construction — post-fix, no bare `HookResult::Block` tokens exist in non-historical body. |
 | 1.4 | 2026-05-19 | Pass-4 adversary fix-burst (product-owner; brownfield-backfill M3 3M3a-r fix-burst pass-4). Closes F-BC008P4-001 (MEDIUM: v1.3 changelog row INV-018 residual-class sweep used pattern `PC3.*POLICY.POLICY.*PC3` which is STRUCTURALLY NARROWER than the narrow pattern `POLICY 13.POLICY 16` — violating INV-018's "genuinely broader" requirement). Corrective documentation: the v1.3 narrow pattern `grep -nE 'POLICY 13.POLICY 16'` confirmed PC3/PC6 and PC3/PC7 mis-anchors at lines 401-402 (verified correct). The v1.3 residual sweep should have used `PC[0-9]+/PC[0-9]+` (any multi-PC anchor combination, any ordinals) or `PC[0-9]+.*POLICY` (any PC ordinal co-occurring with any POLICY citation) — both genuinely broader than the two-specific-row narrow pattern. The v1.3 spec content corrections (POLICY 13 → postcondition 6; POLICY 16 → postcondition 7) are correct and stand; the defect was exclusively in the changelog row's INV-018 evidence discipline. Corrected residual sweep (genuinely broader): `sed -n '1,485p' .factory/specs/behavioral-contracts/ss-05/BC-5.39.008.md \| grep -cE 'PC[0-9]+/PC[0-9]+'` → `0` (no multi-PC-anchor rows remain in spec body; confirming zero residual mis-anchors of this class). Closes F-BC007P4-NIT (cross-BC idiom alignment: 7 occurrences of struct-pattern form in Postconditions 1-5, 9-10 replaced with assoc-fn `HookResult::block_with_fix(...)` per BC-5.39.006 precedent and hook-sdk `block_with_fix` pub-fn constructor). INV-017 pre-fix narrow-pattern evidence (struct-pattern body count, lines 1-485): `sed -n '1,485p' .factory/specs/behavioral-contracts/ss-05/BC-5.39.008.md \| grep -cE 'HookResult::Block \{ reason: block_with_fix'` → `7`. INV-017 post-fix narrow-pattern (same sed-bounded grep): `0` (all 7 replaced). INV-018 residual-class sweep (broader — any `Block \{ reason` form in spec body): `sed -n '1,485p' .factory/specs/behavioral-contracts/ss-05/BC-5.39.008.md \| grep -cE 'HookResult::Block \{ reason'` → `0` post-fix. INV-019 cure: cure (a) line-range-exclude — all greps bounded to lines 1-485 (spec body, pre-Changelog), excluding this row and all Changelog rows; line range documented for reproducibility. |
 | 1.3 | 2026-05-19 | Pass-3 adversary fix-burst (product-owner; brownfield-backfill M3 3M3a-r fix-burst pass-3; INV-018 dual-grep applied). Closes F-BC008P3-001 (HIGH: D-NNN Anchor Coverage table semantic mis-anchor — POLICY 13 → PC3/PC6 and POLICY 16 → PC3/PC7; PC3 is "tool_input.content is not source of truth" — semantically unrelated to lint_hook/codified_at validation). Corrections: POLICY 13 row "Postcondition" column changed from `PC3/PC6` to `6` (postcondition 6 = lint_hook field existence check); POLICY 16 row changed from `PC3/PC7` to `7` (postcondition 7 = codified_at coupling validation). Convention-clarity note added above D-NNN Anchor Coverage table. INV-018 pre-fix narrow-pattern: `grep -nE 'POLICY 13.POLICY 16' .factory/specs/behavioral-contracts/ss-05/BC-5.39.008.md` → lines 401 (PC3/PC6) and 402 (PC3/PC7) confirmed. INV-018 post-fix narrow-pattern (POLICY 13 and 16 rows in table): `grep -nE 'POLICY 13.POLICY 16' .factory/specs/behavioral-contracts/ss-05/BC-5.39.008.md` → lines show `6` and `7` in Postcondition column. INV-018 residual-class sweep (PC3 mis-anchors in POLICY rows): `grep -nE 'PC3.*POLICY.POLICY.*PC3' .factory/specs/behavioral-contracts/ss-05/BC-5.39.008.md` → `(zero output)`. Closes F-BC008P3-002 (LOW: PC4 `[1, 999]` range over-specified without rationale). Fix: added range rationale in postcondition 4 body citing three-digit-ID canonical form (POLICY 15/F-PASS14-006), current production count (1..18), expected growth trajectory, and hard-cap purpose (3-digit display formatting). INV-018 pre-fix evidence: `grep -nE '^  - id:' .factory/policies.yaml` (first 5 results) → `33: - id: 1` through `90: - id: 5` (current format bare integer confirmed). INV-018 residual-class sweep: `grep -nE 'id: [0-9]{4,}' .factory/policies.yaml` → `(zero output)` (no 4+ digit IDs in production; hard cap 999 is forward-protection only). Closes F-BC008P3-003 (LOW: cross-BC closure citation inconsistency — BC-5.39.008 v1.2 frontmatter closes `F-BC007P2-006` which is a BC-007 namespace finding). Note appended: F-BC007P2-006 was a BC-007 namespace finding relocated to BC-008 PC13 by orchestrator at pass-2 because the fix lived at BC-008. This relocation is mechanically defensible. Future findings about cross-BC fixes will use the originating BC's namespace in the closing BC's changelog row with explicit relocation citation (e.g., "Closes F-BC007P2-006 (relocated from BC-007 namespace to BC-008 at pass-2 per orchestrator direction — fix lives at BC-008 PC13)"). This note is documentary; no spec content change required. |
