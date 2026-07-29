@@ -21558,4 +21558,4 @@ No BC body content, ADR rationale text, VP prose, or story AC content was author
 
 **factory-artifacts commits:**
 - Pre-burst parent-commit (factory-artifacts): `4c82cec0` (D-937-SHA-PATCH)
-- This burst: TBD — SHA-patch to follow per D-447(c)/D-449(e)
+- This burst: `a8ec290e` — factory(D-938): pass-26 record — adversary-pass-26.md + sentinels→D-938 + 8 lessons + STATE v6.70
