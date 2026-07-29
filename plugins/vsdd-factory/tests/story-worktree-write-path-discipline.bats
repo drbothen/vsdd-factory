@@ -376,11 +376,11 @@ PWBD_DIRECTIVE_CLASS='MUST|SHOULD|required|is[[:space:]]+the[[:space:]]+required
 #   $2  remove_log     — sentinel file; 'worktree-remove-invoked' appended on PC2a proceed
 #
 # Anti-tautology gate (TD-VSDD-059, F-S2104-P1-002e): extracts the find command verbatim
-# from step-g-cleanup.md §G.1 (line matching 'find ... .factory ... -type f' without
+# from step-g-cleanup.md §G.1 (line matching 'find ... .factory ... ! -type d' without
 # 2>/dev/null), substitutes <worktree-path> with the fixture path, and evaluates that
 # extracted command. A -type d or -name '*.tmp' doc-mutant changes which files find returns,
 # failing T-001 (stray file not found) or T-002 (directory found instead of nothing).
-# A harness hardcoding 'find ... -type f 2>/dev/null || true' would pass T-002 tautologically
+# A harness hardcoding 'find ... ! -type d 2>/dev/null || true' would pass T-002 tautologically
 # regardless of doc content; this gate closes that tautology.
 #
 # PC2a sub-case (a): .factory/ absent → no stray files, proceed (return 0)
@@ -394,21 +394,23 @@ _run_teardown_preflight() {
   g1_section="$(_extract_g1_section)"
 
   # Anti-tautology gate: extract the specific find command line from §G.1.
-  # The line must contain 'find', '.factory', and '-type f'.
+  # The line must contain 'find', '.factory', and '! -type d' (M01(a)/M03(a): trailing-slash
+  # mandate retracted; predicate widened from -type f to '! -type d' so symlinks inside a real
+  # shadow .factory/ are also detected; whitespace between '!' and '-type' is variable).
   # It must NOT contain '2>/dev/null' (BC v1.5 removed blanket suppression for PC2c).
-  # Pre-implementation (doc has 2>/dev/null or wrong -type): gate fires.
-  # Post-implementation (conformant find ... -type f): gate passes, extracted command is eval'd.
+  # Pre-implementation (doc has 2>/dev/null or wrong predicate): gate fires.
+  # Post-implementation (conformant find ... ! -type d): gate passes, extracted command is eval'd.
   local find_cmd_line
   find_cmd_line="$(printf '%s\n' "$g1_section" | \
     grep -E '^[[:space:]]*find[[:space:]]' | \
     grep '\.factory' | \
-    grep -- '-type f' | \
+    grep -E '![[:space:]]*-type[[:space:]]+d' | \
     grep -v '2>/dev/null' | \
     head -1)"
 
   if [ -z "$find_cmd_line" ]; then
     printf 'HARNESS FAIL: could not extract conformant find command from step-g-cleanup.md §G.1\n'
-    printf '  Required: line matching find ... .factory ... -type f (without 2>/dev/null)\n'
+    printf '  Required: line matching find ... .factory ... ! -type d (without 2>/dev/null)\n'
     printf '  BC-6.26.001 PC2 preflight not yet in conformant form (blanket 2>/dev/null must be removed)\n'
     return 1
   fi
@@ -516,7 +518,7 @@ _run_teardown_preflight() {
   mkdir -p "$MOCK_WORKTREE/.factory/stories"
   printf 'stray DELIVERY ledger — written via CWD-relative path from story worktree CWD\n' \
     > "$MOCK_WORKTREE/.factory/stories/S-021-DELIVERY.md"
-  # Non-.md stray artifact: makes the 'any file type' property of -type f load-bearing
+  # Non-.md stray artifact: makes the 'any non-directory type' property of '! -type d' load-bearing
   # (F-S2104-P2-010). A '-name *.md' doc-mutant would skip this file — the assertion below
   # on 'engine-config.yaml' catches the mutant. Issue #523 confirmed-loss set includes
   # non-.md engine-config artifacts.
@@ -526,13 +528,14 @@ _run_teardown_preflight() {
   local g1_section
   g1_section="$(_extract_g1_section)"
 
-  # --- DOC-PARITY §G.1: exact preflight command form — find + -type f, NO blanket 2>/dev/null (F-S2104-P1-002a) ---
+  # --- DOC-PARITY §G.1: exact preflight command form — find + ! -type d, NO blanket 2>/dev/null (F-S2104-P1-002a) ---
   # BC-6.26.001 v1.5 removed blanket 2>/dev/null; PC2c requires visible find exit codes.
-  # RED pre-implementation (doc has 2>/dev/null); GREEN post-implementation.
-  _assert_doc_marker 'find.*\.factory.*-type[[:space:]]+f' \
-    "step-g-cleanup.md §G.1: find .factory -type f command present (BC-6.26.001 PC2)" \
+  # M01(a): trailing-slash mandate retracted; M03(a): predicate widened -type f → ! -type d.
+  # RED pre-implementation (doc has 2>/dev/null or wrong predicate); GREEN post-implementation.
+  _assert_doc_marker 'find.*\.factory.*![[:space:]]*-type[[:space:]]+d' \
+    "step-g-cleanup.md §G.1: find .factory ! -type d command present (BC-6.26.001 PC2; M01(a)/M03(a))" \
     "$g1_section"
-  _assert_no_doc_marker 'find.*\.factory.*-type[[:space:]]+f.*2>/dev/null' \
+  _assert_no_doc_marker 'find.*\.factory.*![[:space:]]*-type[[:space:]]+d.*2>/dev/null' \
     "step-g-cleanup.md §G.1: blanket 2>/dev/null suppression FORBIDDEN on preflight find command (BC-6.26.001 PC2; suppression removed to enable PC2c fail-closed detection)" \
     "$g1_section"
 
@@ -1851,9 +1854,9 @@ _run_teardown_preflight() {
     echo "HARNESS FAIL: stray file path 'S-021-DELIVERY.md' must appear verbatim in PREFLIGHT BLOCKED output — got: $output"
     false
   }
-  # Non-.md stray file must also appear in output (F-S2104-P2-010: 'any file type' property
-  # of -type f is load-bearing; a '-name *.md' doc-mutant would miss engine-config.yaml,
-  # causing this assertion to fail — the mutant is caught here, not by changed find semantics)
+  # Non-.md stray file must also appear in output (F-S2104-P2-010: 'any non-directory type'
+  # property of '! -type d' is load-bearing; a '-name *.md' doc-mutant would miss
+  # engine-config.yaml, causing this assertion to fail — the mutant is caught here)
   printf '%s\n' "$output" | grep -q 'engine-config.yaml' || {
     echo "HARNESS FAIL: non-.md stray file 'engine-config.yaml' must appear in PREFLIGHT BLOCKED output — a '-name *.md' doc-mutant would skip non-.md files; got: $output"
     false
@@ -2241,10 +2244,10 @@ _run_teardown_preflight() {
   local g1_section
   g1_section="$(_extract_g1_section)"
 
-  _assert_doc_marker 'find.*\.factory.*-type[[:space:]]+f' \
-    "step-g-cleanup.md §G.1: find .factory -type f preflight command (BC-6.26.001 PC2)" \
+  _assert_doc_marker 'find.*\.factory.*![[:space:]]*-type[[:space:]]+d' \
+    "step-g-cleanup.md §G.1: find .factory ! -type d preflight command (BC-6.26.001 PC2; M01(a)/M03(a))" \
     "$g1_section"
-  _assert_no_doc_marker 'find.*\.factory.*-type[[:space:]]+f.*2>/dev/null' \
+  _assert_no_doc_marker 'find.*\.factory.*![[:space:]]*-type[[:space:]]+d.*2>/dev/null' \
     "step-g-cleanup.md §G.1: blanket 2>/dev/null FORBIDDEN on preflight command (BC-6.26.001 PC2)" \
     "$g1_section"
   _assert_doc_marker 'PREFLIGHT BLOCKED' \
@@ -2365,10 +2368,10 @@ _run_teardown_preflight() {
   local g1_section
   g1_section="$(_extract_g1_section)"
 
-  _assert_doc_marker 'find.*\.factory.*-type[[:space:]]+f' \
-    "step-g-cleanup.md §G.1: find .factory -type f preflight command (BC-6.26.001 PC2b → PC2a retry path)" \
+  _assert_doc_marker 'find.*\.factory.*![[:space:]]*-type[[:space:]]+d' \
+    "step-g-cleanup.md §G.1: find .factory ! -type d preflight command (BC-6.26.001 PC2b → PC2a retry path; M01(a)/M03(a))" \
     "$g1_section"
-  _assert_no_doc_marker 'find.*\.factory.*-type[[:space:]]+f.*2>/dev/null' \
+  _assert_no_doc_marker 'find.*\.factory.*![[:space:]]*-type[[:space:]]+d.*2>/dev/null' \
     "step-g-cleanup.md §G.1: blanket 2>/dev/null FORBIDDEN (BC-6.26.001 PC2)" \
     "$g1_section"
   _assert_doc_marker 'PREFLIGHT BLOCKED' \

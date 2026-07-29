@@ -29,7 +29,7 @@ Outcomes:
   from a `find` traversal error). Proceed to the Dispatch section below.
 
 - *Sub-case (b) — `find` exits 0, empty output:* If `.factory/` exists AND is a real directory —
-  not a symlink (confirmed by the guards below) — run `find "<worktree-path>/.factory/" -type f`
+  not a symlink (confirmed by the guards below) — run `find "<worktree-path>/.factory" ! -type d`
   (see the Preflight command section below). If `find` exits 0 with empty output, no stray factory
   artifacts exist. Proceed to the Dispatch section below.
 
@@ -39,11 +39,10 @@ Outcomes:
     [ -L "<worktree-path>/.factory" ]
 
 If this test passes, a symlink occupies the path. `test -d` follows symlinks — a symlink-to-dir
-satisfies `[ -d ]` by dereferencing — and `find "<symlink-path>/"` (trailing-slash form) would
-dereference the symlink via POSIX pathname resolution, enumerating files from the TARGET directory
-outside the worktree boundary (out-of-scope traversal); if the target is empty, `find` returns
-empty output, falsely authorizing teardown; `git worktree remove` then removes only the symlink
-entry (target NOT destroyed, but operator not notified). Go directly to
+satisfies `[ -d ]` by dereferencing — and `find "<symlink-path>" ! -type d` (plain-path form)
+would return the symlink path itself (a symlink has type `l`, not `d`, so `! -type d` matches),
+triggering PC2b BLOCKED with no out-of-scope traversal; the `[ -L ]` guard provides
+defense-in-depth by short-circuiting `find` invocation entirely on symlink inodes. Go directly to
 PC2b BLOCKED; list the path; do NOT invoke `find` on a symlink inode
 (symlink → PC2b BLOCKED, BC-6.26.001 EC-008).
 
@@ -92,7 +91,7 @@ gitignored content in this scenario.
 discrimination chain above confirms `.factory/` is present and is a real directory (not a symlink,
 not a non-directory inode), run:
 
-    find "<worktree-path>/.factory/" -type f
+    find "<worktree-path>/.factory" ! -type d
 
 If `find` exits 0 with empty output → PC2a sub-case (b): no stray factory artifacts; proceed to
 the Dispatch below. If `find` exits 0 with non-empty output → PC2b BLOCKED. If `find` exits
