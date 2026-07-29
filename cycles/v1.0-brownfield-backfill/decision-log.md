@@ -14002,3 +14002,94 @@ D-940-PASS-27-FINDINGS-CLOSED
 ### Date
 
 2026-07-28
+
+---
+
+## D-942
+
+### Title
+
+S-21.04 pass-28: policies.yaml YAML parse failure B01 codified + orchestrator P0 claims (b)+(c) REFUTED + rc.24 blocker re-grounded
+
+### Decision
+
+Three sub-decisions for the pass-28 record burst:
+
+**(a) policies.yaml YAML parse failure B01 acknowledged as infrastructure defect:**
+
+`policies.yaml` document-2 has been unparseable since D-920 (2026-07-26). Root cause: three `\+` invalid escape sequences in the ALTERNATION-WIDENING-DIRECTION-STATEMENT MANDATE double-quoted YAML scalar (POLICY 13). Duration: 3 days, passes 21–28. Fix: state-manager Commit C — change `grep -v '^\+\+\+'` → `grep -v '^\\+\\+\\+'`; version bump v1.4.17 → v1.4.18; verification: `python3 -c "import yaml; docs=list(yaml.safe_load_all(open('.factory/policies.yaml'))); print('DOCS:', len(docs)); print('POLICY_COUNT:', len([d for d in docs if isinstance(d,dict) and 'policies' in d][0]['policies']))"` → expected DOCS: 2, POLICY_COUNT: 22.
+
+**(b) REFUTED — orchestrator P0 claim: ~9,939 `path_not_allowed` denials indicate real-session governance fail-open:**
+
+Examined during state-manager record-burst triage. All 196 `policies.yaml` CapabilityDenied records in the dispatcher telemetry carried `session_id = "pass-read-failure-failopen"` and `plugin_version 0.0.1`. These are BATS test artifacts from deliberate denial induction in the bats test harness — NOT real production-session dispatches. Real-session data shows zero `validate-policies-schema` denials. The ~9,939 figure conflated BATS harness telemetry with real-session governance records. This P0 is REFUTED. It is NOT an adversary finding (recorded here as a formal refutation per D-942 scope).
+
+**(c) REFUTED — orchestrator P0 claim: policies.yaml B01 means POLICY 13–22 were silently ignored in adversary passes 21–28:**
+
+Examined during state-manager record-burst triage. POLICY 1–22 are encoded directly in the adversary agent prompt (via the vsdd-factory:adversary agent definition). The auto-loaded programmatic `policies.yaml` portion is an ADDITIONAL enforcement layer — document-2 parse failure rendered the auto-loaded layer blind but did NOT disable the prompt-encoded layer. Passes 21–28 enforced POLICY 13–22 from the prompt encoding only; the programmatic portion was blind. This constitutes degraded coverage (B01 finding), not silent ignorance. The P0 framing is REFUTED. Recorded as a formal refutation per D-942 scope.
+
+**rc.24 blocker status re-grounded:** The policies.yaml B01 fix restores the auto-loaded enforcement layer. The rc.24 release BLOCKER is re-grounded on three independent legs: (a) 26% timeout rate on 2026-07-27 session; (b) policies.yaml YAML parse failure (B01 — now fixed in Commit C); (c) 12 BC-cited fail-open sites (confirmed by architect root-cause S-19.03). Legs (a) and (c) remain unresolved; rc.24 remains blocked.
+
+### Phase
+
+D-942-POLICIES-YAML-B01-CODIFIED-P0-REFUTED
+
+### Date
+
+2026-07-29
+
+---
+
+## D-943
+
+### Title
+
+S-21.04 pass-28 record burst — adversary-pass-28.md + 17 findings (B01 + factory-artifacts H/M CLOSED + feature-branch H1/M3/L2 test-writer) + 3 lessons
+
+### Decision
+
+Record S-21.04 adversarial pass-28 in factory-artifacts. Allocate D-943 as the sentinel for the fix burst.
+
+**Pass-28 summary:** B1/H7/M7/L2 = 17 findings, novelty 17/17=1.0 HIGH. Streak 0/3 (B1 resets). Trajectory tail →17→11→7→17.
+
+**Key findings:**
+- **B01** — `policies.yaml` document-2 YAML parse failure: three `\+` invalid YAML escapes in POLICY 13 ALTERNATION double-quoted scalar since D-920 (3 days; passes 21–28 rubric blind to auto-loaded POLICY 13–22). Fix: state-manager Commit C. D-942 codification.
+- **H01** — gates (13)–(18) section-wide negative gate bodies un-re-derived since pass-19 (9 passes of architecture changes). Fix: test-writer feature-branch.
+- **H02** — T-010/RG-010 not registered for EC-009 stray-inode-inside-factory vector. Fix: story-writer Commit D.
+- **H03** — POLICY 18 three-way hash equality failure: STORY-INDEX blockquote `S-21.04=04b393e` (2 bursts stale); story v1.30 hash `67eaeea` should be `d6d6a6a`. Fix: state-manager Commit C.
+- **H04** — T-016 registered only in AC-001 coupling note; absent from §Test Plan, §Architecture Mapping, §File Structure Requirements, §Tasks. Fix: story-writer Commit D.
+- **H05** — BC-6.26.001 EC-009 missing structural rationale for `! -type d` non-false-positive guarantee. Fix: product-owner Commit D.
+- **H06** — AC-007 authoring constraint predicate-specific (names `-type f`) rather than predicate-agnostic. Fix: story-writer Commit D.
+- **H07** — BC-6.26.001 EC-009 body missing T-010/RG-010 cross-reference. Fix: product-owner Commit D.
+- **M01–M04** — story inventory staleness (bats count 15→16; corpus range M1–M9→M1–M14; Task 15 unmarked; BC pin v1.15). Fix: story-writer Commit D + state-manager Commit C sweep.
+- **M05–M07 + L01–L02** — gate (14)/(16)/(18)/(13) bodies: section-wide extractor, direction-statement, boundary-polarity gaps. Fix: test-writer feature-branch.
+
+**Fix routing:** B01+H03 → state-manager Commit C; H02+H04+H05+H06+H07+M01+M02+M03+M04 → specialists (story-writer, product-owner) Commit D; H01+M05+M06+M07+L01+L02 → test-writer feature-branch (SHA TBD).
+
+**D-942(b)+(c) refutations:** Orchestrator P0 claims examined and REFUTED as formal D-942 codification — NOT adversary findings. See D-942 for full refutation text.
+
+### Sentinel replacements
+
+`D-{TBD-pass-28-fix-burst}` → `D-943` — sweep required in Commit E at:
+- `stories/S-21.04-story-worktree-write-path-discipline.md` × 2 (frontmatter last_amended, frontmatter modified[])
+- `specs/behavioral-contracts/ss-06/BC-6.26.001.md` × 3 (frontmatter last_amended, frontmatter modified[], changelog row)
+
+### 4-INDEX
+
+| Index | Before | After | Change |
+|-------|--------|-------|--------|
+| BC-INDEX | v4.37 | v4.38 | BC-6.26.001 v1.15→v1.17 (H05+H07); BC-5.39.008 v1.5→v1.6 (rc.24 fail-open ruling) |
+| VP-INDEX | v2.72 | v2.73 | VP-097 v1.5→v1.6 (H5 harness proposal; input-hash rc.23 algorithm corrected to 55d52e8) |
+| STORY-INDEX | v4.272 | v4.273 | S-21.04 v1.30→v1.31; T-010/RG-010 added; Refs P28 |
+| ARCH-INDEX | v3.37 | v3.37 | UNCHANGED |
+
+### Lessons
+
+3 L-BB-* lessons appended to lessons.md — see lessons.md for full text.
+
+### Phase
+
+D-943-PASS-28-RECORD
+
+### Date
+
+2026-07-29

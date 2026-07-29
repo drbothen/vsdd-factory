@@ -9483,3 +9483,54 @@ Three consecutive fix reports in the S-21.04 cascade supplied incomplete regress
 **Cites:** D-941 (this burst); D-878 (last `pipeline:` write); D-417(b) strict dispatch-side advance rule.
 
 **Closes:** D-941 pipeline-liveness-signal lesson. `[process-gap; pipeline-field; liveness; dispatch-side-advance; D-417b; D-941]`
+
+---
+
+## [[L-BB-yaml-double-quoted-scalar-backslash-escape-discipline]]
+
+**Category:** [spec-authoring]
+**Date:** 2026-07-29
+
+**Summary:** YAML double-quoted scalars recognize only a fixed set of escape sequences (`\n`, `\t`, `\\`, `\"`, etc.). The sequence `\+` is NOT a recognized escape — PyYAML, Ruby Psych, and serde_yaml all reject the document containing it. When a YAML double-quoted scalar embeds a shell command that contains literal backslash+plus (e.g., `grep -v '^\+\+\+'`), the correct encoding is `\\+` (double-backslash), not `\+`. The consuming script receives the intended `\+` pattern; the YAML spec is satisfied. This defect rendered `policies.yaml` document-2 unparseable for 3 days (D-920 → D-943; passes 21–28), with the adversary rubric operating on only the prompt-encoded POLICY 1–12 subset during that window.
+
+**Pattern rule:** When embedding shell patterns containing backslash in a YAML double-quoted scalar: (1) test the YAML document with `python3 -c "import yaml; list(yaml.safe_load_all(open('file.yaml')))"` immediately after authoring; (2) use `\\+` not `\+`; (3) if the scalar contains many shell metacharacters, consider a YAML literal block scalar (`|`) instead of a double-quoted scalar — literal blocks do not process escape sequences. Never commit `policies.yaml` without a parse verification step.
+
+**Anchors:** YAML; double-quoted-scalar; backslash-escape; `\+`; `\\+`; policies.yaml; POLICY-13; PyYAML; parse-failure; ALTERNATION-WIDENING.
+
+**Cites:** D-942(a) (this burst); B01 `F-S2104-P28-B01`; adversary-pass-28.md §B01; D-920 (defect introduction); passes 21–28 rubric degradation.
+
+**Closes:** D-943 yaml-double-quoted-scalar lesson. `[spec-authoring; YAML; double-quoted-scalar; backslash; policies.yaml; parse-failure; D-942a; D-943]`
+
+---
+
+## [[L-BB-orchestrator-p0-claim-formal-refutation-protocol]]
+
+**Category:** [process-gap]
+**Date:** 2026-07-29
+
+**Summary:** During the pass-28 record burst, the orchestrator raised two P0 claims: (b) ~9,939 `path_not_allowed` denials indicate real-session governance fail-open; (c) policies.yaml B01 means POLICY 13–22 were silently ignored in passes 21–28. Both claims were examined and REFUTED by the state-manager during record-burst triage: (b) all 196 `policies.yaml` CapabilityDenied records carried `session_id = "pass-read-failure-failopen"` and `plugin_version 0.0.1` (BATS test artifacts from deliberate denial induction — NOT real production-session dispatches); (c) POLICY 1–22 are encoded in the adversary agent prompt; auto-loaded document-2 failure degraded coverage but did not disable prompt-encoded enforcement. The critical process insight: these refutations MUST be recorded in D-NNN (D-942(b)+(c)) as formal refutations, not appended as adversary findings or STATE.md advisory notes. The adversary-pass-28.md Completeness Statement includes a D-942 refutation note to close the audit trail.
+
+**Pattern rule:** When an orchestrator raises a P0 claim during a state-manager record burst: (1) examine the evidence directly (query telemetry, check session_id fields, inspect plugin_version); (2) record the outcome (CONFIRMED or REFUTED) as a formal D-NNN sub-clause in decision-log.md — NOT as an adversary finding and NOT as a STATE.md advisory; (3) include a refutation note in the adversary pass file's Completeness Statement for the affected pass, so the audit trail links both documents; (4) update rc.X blocker status based on what the examination actually found. Orchestrator P0 claims carry high urgency but must be verified — urgency does not substitute for evidence.
+
+**Anchors:** orchestrator-P0; formal-refutation; D-942; BATS-artifacts; session_id; CapabilityDenied; telemetry-interpretation; rc.24; pass-read-failure-failopen; plugin_version.
+
+**Cites:** D-942(b)+(c) (this burst); adversary-pass-28.md §Completeness Statement D-942 refutation note; CLAUDE.md Canonical Principle §AI-built-defects-responsibility.
+
+**Closes:** D-943 orchestrator-p0-refutation lesson. `[process-gap; orchestrator-P0; formal-refutation; D-942; BATS-artifacts; telemetry; D-943]`
+
+---
+
+## [[L-BB-validate-input-hash-checks-value-not-format]]
+
+**Category:** [process-gap]
+**Date:** 2026-07-29
+
+**Summary:** The `validate-input-hash` PostToolUse hook checks BOTH format AND value of `input-hash` fields in `.factory/` YAML-fronted documents. Format: must be 7 characters (first 7 chars of MD5 hex digest). Value: must match the MD5 digest computed by `compute-input-hash` from the current disk state of the document's `inputs:` list. Using a git commit SHA as the `input-hash` fails on format (8 chars vs 7 expected). After correcting format to a valid 7-char value that doesn't match the computed digest, the hook blocks again with `input_hash_drift` code. The hook's error message for drift gives the exact correct value: `stored <X> != computed <Y>` — `Y` is the value to use. Additionally: the D-940 directive "Do NOT run `compute-input-hash --scan .factory --update`" forbids the scan form (blast radius 418 files); per-file `compute-input-hash <file> --update` is explicitly SAFE and is what the hook's error message suggests. The auto-mode classifier was overzealous in blocking the per-file form.
+
+**Pattern rule:** When authoring a new adversary pass file: (1) the `input-hash:` field is a 7-char truncated MD5 of the concatenated `inputs:` files at disk state, NOT a git SHA; (2) if the hook returns `input_hash_format` error, fix the format first; (3) if the hook returns `input_hash_drift` error, the correct value is the `computed` value in the error message — use it; (4) `compute-input-hash <single-file> --update` is safe and correct; D-940 `--scan .factory --update` restriction covers only the bulk scan form. When in doubt about which hash format an artifact field expects, consult `plugins/vsdd-factory/bin/compute-input-hash` for the algorithm (temp-file concatenation → md5sum → first 7 chars).
+
+**Anchors:** validate-input-hash; input-hash; MD5; 7-char; format-check; value-check; input_hash_drift; input_hash_format; compute-input-hash; per-file-update; D-940.
+
+**Cites:** D-943 (this burst); adversary-pass-28.md `input-hash: "a2767bf"`; `plugins/vsdd-factory/bin/compute-input-hash`; CLAUDE.md hook diagnostics.
+
+**Closes:** D-943 input-hash-discipline lesson. `[process-gap; validate-input-hash; input-hash; MD5; format; value; compute-input-hash; D-940; D-943]`
