@@ -61,7 +61,7 @@ Pass only the specific files each specialist needs. Never pass the whole story f
 
 **Enforcement:** Before building the context package for any specialist dispatch involving spec files, the orchestrator MUST resolve the canonical repo-root path for each spec file and pass that path — not `<worktree>/.factory/<anything>`. If the canonical path cannot be resolved (e.g., factory-artifacts worktree is not mounted), STOP and report to the human before dispatching.
 
-> **Gate-imposed authoring constraint (T-001/Gate PW-B — F-S2104-P22-001):** Prohibition directives in the `#### Write Discipline` section below MUST use `**Forbidden:**` bullet format. Bare RFC-2119 prose forms (`MUST NOT …`, `is prohibited`) written outside a `**Forbidden:**` bullet trigger Gate PW-B as a false positive — the bats fail-closed whitelist only passes constructions anchored to `**Forbidden:**` bullets.
+> **Gate-imposed authoring constraint (T-001/Gate PW-B + write-directive gate — F-S2104-P22-001):** Prohibition directives anywhere in the `### Spec-Path Discipline` section (not only the `#### Write Discipline` subsection) MUST use `**Forbidden:**` bullet format. Bare RFC-2119 prose forms (`MUST NOT …`, `is prohibited`) written outside a `**Forbidden:**` bullet trigger Gate PW-B or the write-directive gate as a false positive — the bats fail-closed whitelist only passes constructions anchored to `**Forbidden:**` bullets. Exception: `MUST NOT (use|write|store|save|place|record|emit|persist|resolve)` forms are now exempt via the M02 meta-aware escape added at ac478e41 (F-S2104-P26-M02).
 
 #### Write Discipline — `.factory/**` artifact writes from story worktrees (BC-6.26.001 PC1, Invariants 1, 3, 4)
 

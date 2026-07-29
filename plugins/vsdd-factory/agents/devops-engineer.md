@@ -358,7 +358,7 @@ git push --force-with-lease origin feature/STORY-NNN
 After the story PR merges, and before executing `git worktree remove` on a story worktree, verify that
 the dispatching caller ran the `plugins/vsdd-factory/skills/deliver-story/steps/step-g-cleanup.md §G.1`
 preflight (PASS result). If not evident from the dispatch, run the §G.1 preflight yourself first
-(BC-6.26.001 Invariant 2, PC2, Precondition 3; executor-side defense-in-depth consistent with ADR-031 §Decision 4 (caller-side gating PRIMARY; §Rationale F-P2-007 + F-S2104-P6-005 adjudication).
+(BC-6.26.001 Invariant 2, PC2, Precondition 3; executor-side defense-in-depth consistent with ADR-031 §Decision 4 (caller-side gating PRIMARY; §Rationale F-P2-007 + F-S2104-P6-005 adjudication)).
 
 Cleanup command:
 ```bash
