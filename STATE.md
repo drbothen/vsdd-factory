@@ -4,7 +4,7 @@ level: ops
 version: "6.73"
 status: draft
 producer: state-manager
-timestamp: 2026-07-29T13:39:17Z
+timestamp: 2026-07-29T13:39:18Z
 phase: D-941-SESSION-WRAP-PAUSED
 last_amended: "2026-07-29 (v6.73) — D-941-SESSION-WRAP-PAUSED (state-manager): session-wrap burst — pipeline PAUSED per human /wrap; SRC FULL REPLACEMENT (D-930 checkpoint archived); lesson L-BB-pipeline-field-no-liveness-signal appended; Current Phase Steps D-941 row; POLICY 16: D-940 max→D-941 allocated; POLICY 16 gate stdout: 13760:## D-938 / 13860:## D-939 / 13953:## D-940 (numeric sort). 4-INDEX UNCHANGED: BC v4.37 / VP v2.72 / STORY v4.272 / ARCH v3.37. [Prior history compacted 2026-07-29 (D-941 burst); full chain SoT: decision-log.md D-862 compaction note + STATE.md Decisions Log table below for per-decision summary chain.]"
 inputs: []
@@ -211,13 +211,13 @@ dtu_services: []
 
 > **SELF-SUFFICIENT RESUME CONTEXT — ASSUMES ZERO PRIOR CONTEXT.**
 
-**Position.** S-21.04 LOCAL adversarial cascade (BC-5.39.001), E-21 Wave 2, deliver-story Step 4.5. Pass-27 REVIEWED, findings CLOSED, recorded at D-940 (`28ef00c5`). Feature branch `feature/S-21.04-story-worktree-write-path-discipline` @ `c7c61688` — clean, pushed, NO PR open (correct: mid-cascade). develop `948f0fb1`. Suites at `c7c61688`: story-worktree-write-path-discipline 10/10; worktree-identity-preflight 16/16 (26/26 total).
+**Position.** S-21.04 LOCAL adversarial cascade (BC-5.39.001), E-21 Wave 2, deliver-story Step 4.5. Pass-27 REVIEWED, findings CLOSED, recorded at D-940 (`28ef00c5`). Feature branch `feature/S-21.04-story-worktree-write-path-discipline` @ `c7c61688` — clean, pushed, NO PR open (correct: mid-cascade; 13 commits). develop `948f0fb1`. Suites at `c7c61688`: story-worktree-write-path-discipline 10/10; worktree-identity-preflight 16/16 (26/26 total).
 
 **Convergence.** Streak **0/3**. Twenty-seven passes, **ZERO CLEAN verdicts**. Trajectory tail →6→17→11→7.
 
 **In-flight.** NONE. No story mid-TDD, no abandoned sub-agent steps, all commits pushed.
 
-**D-927 status.** FALSIFIED at D-931 — the silent-skip hypothesis was wrong. Adversary passes 22–27 are GENUINE passes (information asymmetry intact). Two structural guard improvements: pass-22 structural whitelist (fail-closed); pass-27 positional conjunct + deletion corpus. ADR-033 captures the cross-family model-diversity limitation accepted at D-940.
+**D-927 status.** FALSIFIED at D-931. Root cause: `claude-opus-4` model alias resolves to `claude-opus-5` (verified by three live no-override dispatches: `adversary`, `spec-reviewer`, `pr-reviewer`) — agents do NOT die silently. The `model`-override mitigation is **RETRACTED** — it forced agents off an available opus and reduced diversity. Phases 4 and 6 are NOT categorically broken; dispatch opus-pinned agents with **NO override**. ADR-033 ruling: amend cross-family definitions (specifications claim Gemini/GPT-5 diversity; all actual dispatches are Claude); cross-family opt-in via `VSDD_CROSS_FAMILY_DISPATCH`; prior convergences **ANNOTATED not invalidated**. Two structural guards added and verified by reversion testing: **D-935** real-fixture pipeline probe (code layer); **D-937** executable mutant corpus (evidence layer) — closing the structural holes behind every BLOCKER in this cascade. Pass-27 broke a 26-pass starvation of BC-6.26.001 body sections → M03(a).
 
 **Pass summary (passes 22–27 since D-927 falsification).**
 - Pass-22: 17 findings (starvation break pattern first observed)
@@ -228,12 +228,14 @@ dtu_services: []
 - Pass-27: 7 findings (POLICY-15 restore-leg residual CLOSED via CONTROL-equivalence; ADR-033; streak still 0/3)
 
 **Resume items.**
-1. **STATE.md body-section gaps** — convergence-trajectory.md may not reflect passes 22–27. Check before next adversary dispatch.
-2. **Stale `wave-state.yaml`** — passes 22–27 results may not be reflected. Verify with `cat .factory/wave-state.yaml` before next dispatch.
-3. **Input-hash drift** — do NOT run `compute-input-hash --update` (D-940 directive; production code authoritative).
-4. **ADR-033 stubs** — created at D-940; body not yet expanded. Route: architect.
-5. **F-S2104-P21-004 OPEN** (MEDIUM) — whitelist imposes undocumented authoring convention (prohibitions must be `**Forbidden:**` bullets). Remedy = document. Route: story-writer / technical-writer.
-6. **Standing backlog** — rc.24 release pending (load-bearing); 7 dependabot vulns on develop (2 high); PR #729 REQUEST_CHANGES; issue-close comments #342/#365/#358 pending human.
+1. **STATE.md structural gaps (three deferred fixes — resolution: rc.24 AC-020, `ae263781`, on develop, absent from rc.23; structurally blocked: `Edit` cannot span the ~33k-token `last_amended` on line 9; `Write` cannot re-read it; `MultiEdit` not available in this harness; human-directed: no rc cut until E-21 done; no bypass):** (a) Decisions Log missing rows D-863..D-940 (see decision-log.md for full range); (b) Drift Items table lacks `wave-state.yaml` W1 (E-19) stale-state row; (c) this SRC retains the phrase "die SILENTLY" — a FALSE claim (FALSIFIED at D-931; see D-927 status above); NOTE: tracking predicate is self-contaminated (`grep -c "die SILENTLY"` returns >1 because later disclosures quote the phrase — scope any check to the SRC section).
+2. **`wave-state.yaml` points to a closed epic.** It reads `wave: W1 (E-19)` — E-19 closed at D-851, three wave boundaries stale; `/wave-handoff` was never run across those boundaries. **A resuming session must NOT trust `/rehydrate-wave` output until the manifest is regenerated** — it will inject the wrong epic's 11 spec files.
+3. **Input-hash drift — do NOT run `compute-input-hash --update`.** Reason: repo-wide blast radius — at the D-936 burst it churned **418 files** and had to be reverted. Current state: `TOTAL=2384 MATCH=1 STALE=2136`; POLICY 18 is effectively unenforced. D-940 directive stands.
+4. **ADR-033 body not expanded.** S-22.01/S-22.02 (P0) and S-22.03 (P1) registered when ADR-033 was authored (stub state; pre-dates D-940). Route: architect.
+5. **Pass-28 lead: Gates (13)–(18) section-wide negative gates — un-re-derived since pass-19.** Now the cascade's oldest stale surface; pass-27 truncated priority-4 (bats) as authorized and named this as where residual risk concentrates. Also unaudited: bats T-002/T-003/T-005/T-006 assertion bodies, pipeline probe Legs A–D, `F-S2104-P4-002/003`.
+6. **Pass-28 lead: M03(a) behavioural widening.** `find … ! -type d` now blocks teardown on **FIFOs, sockets and device nodes** inside the shadow tree (not just regular files and symlinks). product-owner argued no false positives (nothing legitimate should exist there; empty-directory verified clean) — but the widening genuinely expands *when teardown halts* and should be scrutinised on its own terms, not on empirical tests alone.
+7. **Standing backlog.** rc.24 release pending (load-bearing); 7 dependabot vulns on develop (2 high); PR #729 REQUEST_CHANGES; issue-close comments #342/#365/#358 pending human.
+8. **Main repo pre-existing uncommitted state.** `M .claude/scheduled_tasks.lock` (always modified; do not commit) + untracked `plugins/vsdd-factory/tests/report.tap` (bats artifact; candidate for `.gitignore`). Deliberately uncommitted.
 
 **Pending human decisions.** Standing ruling: **"grind to 3 clean"** — asymptotic acceptance declined. Next action = Pass-28 adversary dispatch.
 
