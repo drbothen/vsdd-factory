@@ -21657,3 +21657,171 @@ No BC body content, ADR rationale text, VP prose, or story AC content was author
 **factory-artifacts commits:**
 - Pre-burst parent-commit (factory-artifacts): `f9207762` (D-938-SHA-PATCH)
 - This burst: `d34b7e25` — factory(D-939): H04 record-correction — OPEN→CLOSED at a8ec290e dispatch-race supersession
+
+---
+
+## D-940 — pass-27 record burst (state-manager, 2026-07-28)
+
+### Block 1: Parent commit
+
+**Parent commit (factory-artifacts HEAD before this burst):** `d34b7e25` — `factory(D-939): H04 record-correction — OPEN→CLOSED at a8ec290e dispatch-race supersession`
+
+### Block 2: Adversary verdict
+
+**Pass-27 adversary verdict:** NOT-CLEAN — B1/H2/M4/L0 = 7 findings. Model: `claude-opus-5` (no override). ADR-033 cross-family limitation acknowledged (same family as authoring agents; fresh context + information asymmetry intact). Asymmetry enforced structurally: pass-26 Part A inlined; prior pass files and cycle INDEX.md off-limits.
+
+**Finding summary:**
+- F-S2104-P27-B01 BLOCKER: `_guard_*` family location-blind — deletion axis. Each helper asserting any-affirmative anywhere in file; deleting a numbered mandate clause while incidental occurrences survive → FALSE NEGATIVE. Orchestrator-verified: Rule 5 deleted, 2 incidental `case-insensitive` survive → guards (f) + corpus fire `not ok`. Fix: positional conjunct (awk section extraction → `^N.` clause assertion) on all 7 helpers + corpus M10–M14 deletion vectors. Fourth axis; first shape-change.
+- F-S2104-P27-H01 HIGH: `_guard_e_factory_artifacts` vestigial `grep -iv` pre-filter before nullification — TD-VSDD-060 sibling-sweep gap from pass-26 B01 write-directive fix. CLOSED: pre-filter removed.
+- F-S2104-P27-H02 HIGH: AC-001 Gate cell `Twenty-one` stale (actual `Twenty-three`); `line 638` volatile pin; stale deferral. Ninth consecutive coupling-mandate failure. CLOSED: corrected + mechanical coupling gate T-016 added.
+- F-S2104-P27-M01/M02/M03 MEDIUM: BC-6.26.001 body — trailing-slash mandate stranded (rationale retracted at v1.12, no replacement); 5 non-mandated bare-form sites falsifying prior sweep claims; `-type f` inconsistent by depth (interior symlinks invisible). CLOSED: BC v1.14→v1.15 (plain-path; `! -type d`; EC-009).
+- F-S2104-P27-M04 MEDIUM: Leg E comment-strip `[^"]*$` no-ops on quote-bearing comments. CLOSED: `.*$`.
+- POLICY 15 restore-leg residual CLOSED via CONTROL-equivalence (corpus vectors followed by CONTROL blocks re-executing real guards on every CI run — stronger than one-time restore leg).
+- Adversary retracted PC2b-ungated hypothesis after finding REMOVE_LOG sentinel — evidence of genuine analysis.
+
+**ALL 7 CLOSED at `c7c61688`** (amended from RED `8ae161f8`; atomicity repair). Suites 26/26 (10/10 + 16/16). Streak 0/3 (B1 resets).
+
+### Block 3: Files touched
+
+**Specialist files (feature branch `c7c61688` — state-manager does NOT touch these):**
+- `plugins/vsdd-factory/tests/worktree-identity-preflight.bats` — B01 positional conjuncts × 7 guards + H01 pre-filter removal + M10–M14 deletion corpus + T-016 coupling gate (test-writer, `dc3b83b3`)
+- `plugins/vsdd-factory/tests/story-worktree-write-path-discipline.bats` — M04 comment-strip fix + M03(a) harness `! -type d` update (test-writer/devops-engineer, `dc3b83b3`→`c7c61688`)
+- `.factory/specs/behavioral-contracts/ss-06/BC-6.26.001.md` — v1.14→v1.15: M01 trailing-slash→plain-path; M02 14 live sites; M03 `-type f`→`! -type d`; EC-009 (product-owner, `dc3b83b3`)
+- `.factory/stories/S-21.04-story-worktree-write-path-discipline.md` — v1.29→v1.30: H02 count-word + volatile pin + deferral; BC propagation; EC-009; input-hash (story-writer, `dc3b83b3`)
+- `plugins/vsdd-factory/skills/deliver-story/steps/step-g-cleanup.md` — §G.1 `! -type d` plain-path (story-writer, `dc3b83b3`; atomicity-repaired at `c7c61688`)
+- `plugins/vsdd-factory/agents/adversary.md` — 7 worktree-identity rules (story-writer, `dc3b83b3`)
+
+**State-manager files (factory-artifacts branch — this burst):**
+- `.factory/cycles/v1.0-brownfield-backfill/S-21.04/adversary-pass-27.md` — CREATED (pass-27 full report; B1/H2/M4/L0; Fix Mapping 7/7 CLOSED; POLICY 15 residual CLOSED)
+- `.factory/cycles/v1.0-brownfield-backfill/S-21.04/implementation/red-gate-log.md` — EDITED (frontmatter v1.26→v1.27; Summary HEAD 7c3338e7→c7c61688 26/26; T-016 added; Pass-27 suite-GREEN attestation + POLICY 15 CLOSED section; POLICY 15 residual CLOSED via CONTROL-equivalence)
+- `.factory/specs/behavioral-contracts/ss-06/BC-6.26.001.md` — EDITED (3 D-{TBD-pass-27-fix-burst}→D-940 sentinels replaced)
+- `.factory/stories/S-21.04-story-worktree-write-path-discipline.md` — EDITED (2 D-{TBD-pass-27-fix-burst}→D-940 sentinels replaced; input-hash 67eaeea→d6d6a6a)
+- `.factory/specs/behavioral-contracts/BC-INDEX.md` — EDITED (BC-6.26.001 v1.14→v1.15; frontmatter v4.36→v4.37 + last_amended)
+- `.factory/stories/STORY-INDEX.md` — EDITED (S-21.04 v1.29→v1.30, input-hash, T-016; frontmatter v4.271→v4.272 + last_amended)
+- `.factory/cycles/v1.0-brownfield-backfill/INDEX.md` — EDITED (pass-27 row added; Convergence Status updated; trajectory tail →6→17→11→7)
+- `.factory/cycles/v1.0-brownfield-backfill/decision-log.md` — EDITED (D-940 block appended)
+- `.factory/cycles/v1.0-brownfield-backfill/lessons.md` — EDITED (7 L-BB-* lessons appended)
+- `.factory/cycles/v1.0-brownfield-backfill/burst-log.md` — EDITED (this D-940 entry)
+- `.factory/STATE.md` — EDITED (frontmatter v6.71→v6.72; phase D-940-PASS-27-FINDINGS-CLOSED; timestamp; last_amended)
+
+### Block 4: Codifications
+
+- **D-940** codified: pass-27 record; 7 findings CLOSED; 4-index BC v4.37 / VP v2.72 / STORY v4.272 / ARCH v3.37; 7 L-BB-* lessons.
+- **7 L-BB-* lessons** codified: harden-predicate-shape-not-mutant-vocabulary; starved-audit-surface-needs-mandated-order-not-restatement; mechanical-gates-end-prose-mandate-classes; orchestrator-non-atomic-interlocked-commit-error; verify-state-after-agent-death-before-resuming; positive-discipline-adjudication-not-deferral; behavioural-widening-flag-for-next-pass.
+
+### Block 5: Dim-2 mandatory gate evidence (literal shell stdout)
+
+**(a) POLICY 16 GLOBAL-MAX GATE (numeric sort, D-929 self-contamination avoided):**
+
+```
+$ grep -oE '\bD-[0-9]{3,4}\b' .factory/cycles/v1.0-brownfield-backfill/decision-log.md | sed 's/D-//' | sort -n | uniq | tail -5
+935
+936
+937
+938
+939
+```
+
+D-939 confirmed max → **D-940 allocated**.
+
+**(b) D-446(a) OWN-BURST-LOG 8-BLOCK GATE:**
+
+All 8 D-444(c) blocks present in this D-940 entry:
+- Block 1: Parent commit
+- Block 2: Adversary verdict
+- Block 3: Files touched
+- Block 4: Codifications
+- Block 5: Dim-2 mandatory gate evidence (this block)
+- Block 6: Dim-5 attestations
+- Block 7: Dim-6/7 attestations
+- Block 8: Closes + factory-artifacts commits
+
+**(c) D-448(a) SOURCE-ATTESTATION GATE:**
+
+Block 2 Adversary verdict paragraph faithfully describes adversary-pass-27.md Part A + Part B: B01 deletion-axis location-blind; H01 sibling-sweep gap; H02 ninth coupling-mandate failure + T-016; M01/M02/M03 BC body (trailing-slash; sites; depth-inconsistency); M04 comment-strip; POLICY 15 residual CLOSED CONTROL-equivalence; retraction recorded. Consistent with adversary-pass-27.md Fix Mapping (7/7 CLOSED) and Workstream 3 orchestrator acceptance evidence.
+
+**(d) SENTINEL SWEEP:**
+
+```
+$ grep -rn "D-{TBD-pass-27" .factory/specs .factory/stories
+(0 results — no pass-27 sentinels remain)
+```
+
+Legacy BC-INDEX pre-existing sentinels:
+
+```
+$ grep -c "D-{TBD-" .factory/specs/behavioral-contracts/BC-INDEX.md
+9
+```
+
+9 legacy sentinels confirmed (BC-5.39.009 pre-existing debt; untouched by this burst).
+
+**(e) 4-INDEX VERSIONS:**
+
+```
+$ grep "^version:" .factory/specs/behavioral-contracts/BC-INDEX.md | head -1
+version: "4.37"
+$ grep "^version:" .factory/specs/verification-properties/VP-INDEX.md | head -1
+version: "2.72"
+$ grep "^version:" .factory/stories/STORY-INDEX.md | head -1
+version: "4.272"
+$ grep "^version:" .factory/specs/architecture/ARCH-INDEX.md | head -1
+version: "3.37"
+```
+
+BC v4.37 / VP v2.72 / STORY v4.272 / ARCH v3.37.
+
+**(f) B01 DELETION-AXIS ACCEPTANCE (orchestrator-verified):**
+
+```
+$ # Rule 5 deleted; incidental 'case-insensitive' still present: 2
+--- guard (f) ---
+not ok 1 test_BC_adversary_id_bearing_globs_must_be_case_insensitive
+--- corpus    ---
+not ok 1 test_BC_B01_corpus_regression_guards_e_co_and_g_pc
+```
+
+Previously GREEN. Fourth axis; first shape-change fix.
+
+**(g) INTERLOCK PROOF (orchestrator-verified):**
+
+After §G.1 updated to `! -type d` but before harness followed: `not ok` on T-001/T-002/T-003/T-004/T-005. Gate load-bearing. Green restored only once both halves landed.
+
+**(h) COUPLING GATE PROOF (orchestrator-verified):**
+
+Preflight test 16 passed on first run against story-writer H02 fix: story `(23 gates` → 23; bats `Twenty-three` → 23; equal. Mandate that failed 9 times as prose validated mechanically on first run.
+
+**(i) ATOMICITY REPAIR:**
+
+`8ae161f8` was RED commit (committed doc still `-type f`; `grep -c "type f" step-g-cleanup.md` → 2). Amended to `c7c61688`; `grep -c "type f"` → **0**. Suites 10/10 + 16/16 with clean tree at `c7c61688`.
+
+**(j) WASM FUEL TIMEOUT NOTE:** PostToolUse hooks on BC-INDEX.md, STORY-INDEX.md, decision-log.md, and lessons.md timed out (fail-closed; `block_intent=true exit_code=2`). Per CLAUDE.md and D-442(e): PostToolUse — writes succeed; advisory only. Root fix scoped to S-15.03 PRIORITY-A. All writes verified applied.
+
+### Block 6: Dim-5 attestations
+
+No BC body content, ADR rationale text, VP prose, or story AC content was authored by state-manager in this burst. All state-manager edits are: frontmatter version bumps, index row updates, sentinel replacements, cycle-log entries (adversary-pass-27.md, INDEX.md pass-27 row, Convergence Status, D-940 decision block, 7 L-BB lessons, burst-log), and STATE.md frontmatter.
+
+### Block 7: Dim-6/7 attestations
+
+**Dim-6 (no spec content authored):** State-manager writes: adversary-pass-27.md (cycle log); index row updates (no spec body content); sentinel D-940 substitutions (mechanical replacement only); frontmatter bumps; process lessons. No BC, ADR, VP, or story AC content authored.
+
+**Dim-7 (factory-artifacts branch only):** All state-manager writes target `.factory/` files on factory-artifacts worktree. Feature branch `c7c61688` is NOT touched by state-manager. No source code (plugins/, crates/, workflows/) touched.
+
+### Block 8: Closes + factory-artifacts commits
+
+**Closes:**
+- F-S2104-P27-B01: CLOSED at `dc3b83b3` (positional conjuncts on all 7 helpers; deletion-axis corpus M10–M14)
+- F-S2104-P27-H01: CLOSED at `dc3b83b3` (vestigial pre-filter removed; sibling sweep)
+- F-S2104-P27-H02: CLOSED at `dc3b83b3` (count-word corrected; volatile pin removed; T-016 coupling gate)
+- F-S2104-P27-M01: CLOSED at `dc3b83b3` (BC-6.26.001 v1.15 trailing-slash retracted)
+- F-S2104-P27-M02: CLOSED at `dc3b83b3` (14 live sites normalized)
+- F-S2104-P27-M03: CLOSED at `dc3b83b3` (predicate widened `-type f`→`! -type d`; EC-009)
+- F-S2104-P27-M04: CLOSED at `dc3b83b3` (comment-strip `.*$`)
+- POLICY 15 restore-leg residual: CLOSED via CONTROL-equivalence (D-940)
+- D-940 sentinels replaced in BC-6.26.001 × 3 + story × 2
+
+**Open items carrying forward:** STATE.md body sections remain BLOCKED by rc.23 WASM guard per D-931/D-932 precedent. Repo-wide input-hash drift (`MATCH=1` of 2384). 9 legacy BC-INDEX sentinels (BC-5.39.009). S-21.WG2-001 wave-gate deferred. **Pass-28 leads:** (a) gates (13)–(18) section-wide negative gate bodies un-re-derived since pass-19; (b) M03(a) behavioural widening scrutiny.
+
+**factory-artifacts commits:**
+- Pre-burst parent-commit (factory-artifacts): `d34b7e25` (D-939)
+- This burst: TBD — factory(D-940): pass-27 record — adversary-pass-27.md + 7 findings CLOSED + POLICY15 residual CLOSED + BC v4.37 + STORY v4.272 + 7 lessons + STATE v6.72

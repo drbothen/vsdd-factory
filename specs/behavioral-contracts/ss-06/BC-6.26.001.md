@@ -1,7 +1,7 @@
 ---
 document_type: behavioral-contract
 level: L3
-version: "1.14"
+version: "1.15"
 status: draft
 producer: product-owner
 timestamp: 2026-07-25T00:00:00Z
@@ -33,6 +33,7 @@ modified:
   - "2026-07-25 (v1.11) — S-21.04 pass-10 F-S2104-P10-005 architecture-surface traceability completion (product-owner): §Traceability Architecture Module row and §Architecture Anchors extended to name all five obligation surfaces with obligation classes. v1.10 attestation gap acknowledged in changelog (error-acknowledgment discipline; v1.10 entry not rewritten)."
   - "2026-07-27 (v1.12) — S-21.04 pass-22 F-S2104-P22-002 self-contradiction fix (product-owner; D-933): two mutually exclusive claims about the mandated trailing-slash find command corrected at six body sites — (1) 'POSIX find without -H/-L does not descend symlinks → empty output' applies only to the no-trailing-slash form; the BC mandates the trailing-slash form (find \"<path>/\") which dereferences a symlink-to-directory via POSIX pathname resolution — find enumerates target files outside worktree boundary (out-of-scope traversal); corrected in §Description step 2, §Postconditions non-directory/symlink-path paragraph, §Invariant 5(a); (2) 'rm -rf destroys the symlink target' is empirically false — recursive-remove removes only the symlink entry, target is untouched; corrected in §Description step 2, §Postconditions non-directory/symlink-path paragraph, EC-008 contrast, T-7 contrast; (3) trailing-slash defense-in-depth claim removed from §Description step 3 parenthetical — trailing slash dereferences rather than protects; [ -L ] guard in step 2 is the actual protection. Changelog v1.7 entries preserved per append-only/error-acknowledgment policy."
   - "2026-07-28 (v1.13) — S-21.04 pass-23 F-S2104-P23-005 un-swept seventh site (product-owner; D-936): EC-005 note corrected — retracted claim 'falls through to find which returns empty → false PC2a' replaced with verified mechanism: POSIX test -d follows symlinks (symlink-to-directory satisfies [ -d ] → [ ! -d ] is false → falls through to find); trailing-slash form dereferences symlink-to-directory via POSIX pathname resolution, enumerating files from target directory outside worktree boundary (out-of-scope traversal); empty target yields false PC2a(b) → teardown proceeds; symlink entry removed without operator notification; no target data loss (recursive-remove does not follow symlinks). Consistent with EC-008 contrast and T-7 contrast corrected at v1.12."
+  - "2026-07-28 (v1.15) — S-21.04 pass-27 F-S2104-P27-M01/M02/M03 find-form adjudication (product-owner; D-940): M01: trailing-slash mandate retracted; plain-path form `find \"<path>/.factory\"` adopted; rationale in §Description step 2 + Invariant 5(a). M02: EC-003, EC-004, T-3, T-4 normalized to quoted plain-path form. M03: predicate widened from `-type f` to `! -type d` at all normative sites; EC-009 added; contrast prose updated. TD-VSDD-060 sweep: all 14 live `find` sites updated; changelog/historical sites preserved per append-only policy."
   - "2026-07-28 (v1.14) — S-21.04 pass-25 F-S2104-P25-L01 changelog row ordering (product-owner; D-937): ## Changelog table v1.0 row moved to table bottom (was misplaced between v1.4 and v1.3). Full-table row sweep: no other out-of-order or duplicated rows found."
 deprecated: null
 deprecated_by: null
@@ -42,7 +43,7 @@ removed: null
 removal_reason: null
 bc_id: BC-6.26.001
 section: "6.26"
-last_amended: "(v1.14) — S-21.04 pass-25 F-S2104-P25-L01 changelog row ordering (product-owner; D-937): ## Changelog v1.0 row moved to table bottom (ordering/formatting only). [Prior: (v1.13) — F-S2104-P23-005. (v1.12) — F-S2104-P22-002. (v1.11) — F-S2104-P10-005. (v1.10) — F-S2104-P8-003. (v1.9) — F-S2104-P7-006. (v1.8) — F-S2104-P6-005(b). (v1.7) — F-S2104-P5-011/F-P5-009/F-P5-010. (v1.6) — F-S2104-P4-007. (v1.5) — F-002/O-005. (v1.4) — F-004/006/007/010. (v1.3) — F-P1-005. (v1.2) — research. (v1.1) — CAP-036. (v1.0) — Initial.]"
+last_amended: "(v1.15) — S-21.04 pass-27 F-S2104-P27-M01/M02/M03 find-form adjudication (product-owner; D-940): trailing-slash retracted; `! -type d`; EC-009. [Prior: (v1.14) — F-S2104-P25-L01. (v1.13) — F-S2104-P23-005. (v1.12) — F-S2104-P22-002. (v1.11) — F-S2104-P10-005. (v1.10) — F-S2104-P8-003. (v1.9) — F-S2104-P7-006. (v1.8) — F-S2104-P6-005(b). (v1.7) — F-S2104-P5-011/009/010. (v1.6) — F-S2104-P4-007. (v1.5) — F-002/O-005. (v1.4) — F-004/006/007/010. (v1.3) — F-P1-005. (v1.2) — research. (v1.1) — CAP-036. (v1.0) — Initial.]"
 ---
 
 # BC-6.26.001: deliver-story step agents MUST write all `.factory/**` artifacts using absolute paths anchored to the canonical main-checkout `.factory/` mount, and step-G cleanup MUST run a worktree `.factory/` inventory preflight before `git worktree remove`
@@ -71,9 +72,10 @@ git's untracked-file clean-state check, so the check passes silently as a false 
 the shadow tree contains stray factory artifacts. The underlying `rm -rf <worktree-path>` then
 silently destroys the gitignored shadow content with no warning.
 
-The teardown preflight (`find "<worktree-path>/.factory/" -type f`) is the correct fix
-precisely because `find` reads the filesystem directly — it sees gitignored files that git's
-clean-state check ignores. The preflight is the only mechanism that catches this class of loss.
+The teardown preflight (`find "<worktree-path>/.factory" ! -type d`) is the correct fix
+precisely because `find` reads the filesystem directly — it sees gitignored files and other
+non-directory inodes that git's clean-state check ignores. The preflight is the only mechanism
+that catches this class of loss.
 
 **Secondary note (`--force` as an additional bypass):** If a future change introduced `--force` to
 the worktree remove command, that would additionally strip git's built-in unclean-worktree
@@ -104,16 +106,20 @@ a story worktree, step G MUST apply a fail-closed `.factory/` inventory protocol
    or any other non-real-directory inode), treat as stray shadow content — proceed directly to
    PC2b BLOCKED (list the path; do NOT run `find`; do NOT proceed with `git worktree remove`).
    The `[ -L ]` test MUST precede any `[ -d ]` test: POSIX `test -d` follows symlinks, so a
-   symlink-to-directory satisfies `[ -d ]` and would otherwise fall through to the `find` branch;
-   with the mandated trailing-slash `find` form (`find "<path>/" -type f`), POSIX pathname
-   resolution dereferences a symlink-to-directory, causing `find` to enumerate files from the
-   target directory outside the worktree boundary — an out-of-scope traversal that cannot
-   reliably detect stray worktree content.
+   symlink-to-directory satisfies `[ -d ]` and would otherwise fall through to the `find` branch.
+   Plain-path `find` without `-H`/`-L` lstats its entries; a symlink-to-directory has inode type
+   `l`, not `f`, so the prior `-type f` predicate returned empty output — false PC2a(b) — and
+   teardown would proceed, silently removing the symlink entry without operator notification (no
+   target data loss since recursive-remove does not follow symlinks). The corrected `! -type d`
+   predicate catches the symlink itself (type `l` satisfies `! -type d`), yielding a PC2b BLOCKED
+   signal even if the `[ -L ]` guard were bypassed — but the `[ -L ]` guard remains the normative
+   protection, routing symlinks to PC2b before `find` is invoked at all.
 3. If `.factory/` exists and IS a real directory (not a symlink), run
-   `find "<worktree-path>/.factory/" -type f` (no blanket error suppression). A `find` exit error for any reason (e.g., permission denial, path error) MUST
+   `find "<worktree-path>/.factory" ! -type d` (no blanket error suppression). A `find` exit error for any reason (e.g., permission denial, path error) MUST
    HALT teardown — this is a fail-closed error (PC2c); do not proceed with `git worktree remove`.
-4. Empty `find` output → no stray files (PC2a sub-case b — real directory exists, no files).
-   Non-empty output → stray artifacts found (PC2b-blocked).
+4. Empty `find` output → no non-directory content (PC2a sub-case b — real directory exists, no
+   stray files, symlinks, FIFOs, or other non-directory inodes).
+   Non-empty output → stray non-directory content found (PC2b-blocked).
 
 If the result is non-empty (any files found), step G MUST NOT proceed with `git worktree remove`.
 Instead it MUST either: (a) relocate each found file to the canonical `.factory/` mount (if valid
@@ -179,8 +185,8 @@ The discrimination chain routes to exactly one of the following outcomes:
 **PC2a — No stray files (teardown authorized):** Either (a) nothing exists at path
 `<worktree-path>/.factory` (`[ ! -e "<worktree-path>/.factory" ]` is true — nothing to inspect or
 destroy), or (b) `.factory/` exists as a real directory (not a symlink) AND
-`find "<worktree-path>/.factory/" -type f` succeeds with empty output. In both sub-cases no stray
-factory artifacts exist; teardown is authorized. Step G proceeds with plain `git worktree remove`
+`find "<worktree-path>/.factory" ! -type d` succeeds with empty output. In both sub-cases no stray
+non-directory content exists; teardown is authorized. Step G proceeds with plain `git worktree remove`
 (no `--force` — `--force` is prohibited by this BC because it strips git's built-in
 unclean-worktree protection for non-gitignored untracked files; this prohibition is a BC mandate,
 not a guard-enforced constraint).
@@ -191,14 +197,14 @@ dangling), OR if something exists at that path but is NOT a real directory (regu
 node, or other non-directory non-symlink inode), it constitutes stray shadow content — subject to
 exactly the same `rm -rf` destruction risk as files inside a shadow `.factory/` directory tree.
 Step G MUST proceed to PC2b BLOCKED, listing the path. `find` MUST NOT be invoked. The `-d` test
-alone MUST NOT be used as the discriminator: POSIX `test -d` follows symlinks, and a
-symlink-to-directory satisfies `[ -d ]`, causing it to fall through to the `find` branch; with
-the mandated trailing-slash `find` form, POSIX pathname resolution dereferences the symlink and
-`find` enumerates files from the target directory outside the worktree boundary — an out-of-scope
-traversal that cannot reliably detect stray worktree content.
+alone MUST NOT be used as the discriminator: POSIX `test -d` follows symlinks, so a
+symlink-to-directory satisfies `[ -d ]`, causing it to fall through to the `find` branch. The
+`[ -L ]` symlink guard must precede any `[ -d ]` test to ensure all symlinks (regardless of
+target type) are routed to PC2b BLOCKED before `find` is invoked.
 
 **PC2b — Stray factory artifacts found (teardown blocked):** Either (a) the `find` command
-returns one or more file paths, or (b) a symlink or non-directory inode occupies
+returns one or more non-directory inode paths (regular files, symlinks, FIFOs, or other
+non-directory inodes inside the shadow tree), or (b) a symlink or non-directory inode occupies
 `<worktree-path>/.factory` (any symlink regardless of target type, or any non-directory non-symlink
 inode — see non-directory-or-symlink-path paragraph above). In either case, step G MUST NOT
 proceed with `git worktree remove`. It MUST:
@@ -217,7 +223,7 @@ proceed with `git worktree remove`. It MUST:
 2. Halt teardown. `git worktree remove` is NOT executed.
 3. The story cleanup MUST NOT complete until the preflight returns an empty result.
 
-**PC2c — Preflight error (fail-closed):** `find "<worktree-path>/.factory/" -type f` exits
+**PC2c — Preflight error (fail-closed):** `find "<worktree-path>/.factory" ! -type d` exits
 non-zero for any reason (note: path nonexistence is unreachable at this point — step 1 has already
 confirmed something exists at the path; symlink-at-path is also unreachable — step 2 has already
 routed all symlinks to PC2b before `find` is invoked; any non-zero exit therefore signals a genuine
@@ -238,7 +244,7 @@ empty-`.factory/` assertion.
 
 2. **INV-E21-004 (Story Worktree Teardown Preflight):** `git worktree remove` on a story worktree
    MUST be preceded by the full discrimination-chain preflight: existence check → symlink/non-directory
-   guard (`[ -L ]` before any `[ -d ]` test) → `find "<worktree>/.factory/" -type f` inventory
+   guard (`[ -L ]` before any `[ -d ]` test) → `find "<worktree>/.factory" ! -type d` inventory
    check (for real directories only). No exceptions — not even when the agent is confident no
    `.factory/` writes occurred (the preflight is the mechanical gate, not agent confidence).
    This invariant covers both obligation surfaces: the caller-side dispatch gate (Precondition 2 —
@@ -264,11 +270,13 @@ empty-`.factory/` assertion.
    `.factory/` content inside the story worktree is gitignored, not untracked. The clean-state
    check therefore passes silently (false negative) regardless of the shadow tree's contents, and
    the underlying `rm -rf` destroys it without warning. The discrimination chain preflight is
-   load-bearing: (a) the `[ -L ]` symlink guard catches any symlink at the path (including
-   symlink-to-directory, where the mandated trailing-slash `find` form would dereference the symlink
-   and enumerate files from the target directory outside the worktree boundary — an out-of-scope
-   traversal that cannot reliably detect stray worktree content); (b) the `find "<worktree>/.factory/" -type f` check reads the
-   filesystem without gitignore filtering and catches stray files inside real shadow directories.
+   load-bearing: (a) the `[ -L ]` symlink guard catches any symlink at the path before `find` is
+   invoked (including symlink-to-directory, where plain-path `find "<worktree>/.factory" ! -type d`
+   without `-H`/`-L` would lstat the path as type `l` — returning it as a PC2b BLOCKED signal —
+   but the `[ -L ]` guard routes the symlink to PC2b without invoking `find` at all, providing
+   fail-fast behavior); (b) the `find "<worktree>/.factory" ! -type d` check reads the filesystem
+   without gitignore filtering and catches all non-directory stray content — regular files,
+   symlinks, FIFOs, and other non-directory inodes — inside real shadow directories.
    No alternative git-level check (git status, git ls-files) would catch gitignored content in
    this scenario.
 
@@ -278,12 +286,13 @@ empty-`.factory/` assertion.
 |----|-------------|-------------------|
 | EC-001 | Agent writes `Write(".factory/stories/S-021-DELIVERY.md")` with CWD = `.worktrees/S-021/` | FORBIDDEN: relative path resolves to shadow tree; violates PC1 (INV-E21-002) |
 | EC-002 | Agent writes `Write("/abs/repo/.factory/stories/S-021-DELIVERY.md")` | CORRECT: absolute path anchored to canonical root; PC1 compliant |
-| EC-003 | `find .worktrees/S-021/.factory -type f` returns empty | Teardown proceeds (PC2a) |
-| EC-004 | `find .worktrees/S-021/.factory -type f` returns `.worktrees/S-021/.factory/stories/S-021-DELIVERY.md` | BLOCKED: PC2b; relocate or discard then retry |
-| EC-005 | Story worktree has nothing at the `.factory/` path (`[ ! -e ]` is true; clean worktree) | Path nonexistent → PC2a sub-case (a): no stray files, teardown authorized. Path-nonexistent is not a PC2c error; it is the expected clean state. Distinguished from PC2c (`find` errors such as permission denial). Note: use `[ ! -e ]` not `[ ! -d ]` — a regular file at that path would satisfy `[ ! -d ]` (true, wrong: authorizes teardown), while a symlink-to-directory would NOT satisfy `[ ! -d ]` (POSIX `test -d` follows symlinks → false; falls through to `find`; the mandated trailing-slash form dereferences the symlink-to-directory via POSIX pathname resolution, enumerating files from the target directory outside the worktree boundary — an out-of-scope traversal that cannot reliably detect stray worktree content; an empty target yields false PC2a(b) → teardown proceeds; the symlink entry is removed without operator notification — no target data loss, since recursive-remove does not follow symlinks). The `[ -L ]` guard in step 2 handles the symlink-to-directory case (EC-008). |
+| EC-003 | `find ".worktrees/S-021/.factory" ! -type d` returns empty | Teardown proceeds (PC2a sub-case b) |
+| EC-004 | `find ".worktrees/S-021/.factory" ! -type d` returns `.worktrees/S-021/.factory/stories/S-021-DELIVERY.md` | BLOCKED: PC2b; relocate or discard then retry |
+| EC-005 | Story worktree has nothing at the `.factory/` path (`[ ! -e ]` is true; clean worktree) | Path nonexistent → PC2a sub-case (a): no stray files, teardown authorized. Path-nonexistent is not a PC2c error; it is the expected clean state. Distinguished from PC2c (`find` errors such as permission denial). Note: use `[ ! -e ]` not `[ ! -d ]` — a regular file at that path would satisfy `[ ! -d ]` (true, wrong: authorizes teardown), while a symlink-to-directory would NOT satisfy `[ ! -d ]` (POSIX `test -d` follows symlinks → false; falls through to `find`; with the corrected plain-path `find ! -type d` form, the symlink inode has type `l` — `! -type d` is true — so the symlink path appears in output → PC2b BLOCKED, operator notified; the `[ -L ]` guard provides fail-fast routing before `find` is invoked, but `find ! -type d` catches the symlink even if the guard were bypassed). The `[ -L ]` guard in step 2 handles the symlink-to-directory case (EC-008). |
 | EC-006 | Agent correctly writes DELIVERY ledger to canonical path, but a prior agent also wrote to the shadow tree | Preflight catches the stray copy; step G blocked until resolved |
 | EC-007 | pr-reviewer writes `pr-review.md` using a relative path from its CWD (story worktree) | FORBIDDEN: violates PC1; shadow-tree write; would be lost at teardown |
-| EC-008 | Story worktree has `.factory` as a regular file OR any symlink (symlink-to-file, symlink-to-directory, or dangling) at the worktree root | Any non-real-directory inode at path → PC2b BLOCKED: stray shadow content subject to `rm -rf` destruction; list the path; do NOT run `find`; do NOT proceed with `git worktree remove`. For a regular file: `[ ! -e ]` is false; `[ -L ]` is false; path is not a real directory → step 2 routes to PC2b. For a symlink-to-directory: `[ ! -e ]` is false; `[ -L ]` is true → step 2 routes to PC2b immediately. Wrong approach (contrast): using only `[ ! -d ]` — a regular file satisfies it (true, wrong, authorizes teardown); a symlink-to-directory does NOT satisfy it (test -d follows symlinks → false, falls through to find; trailing-slash find dereferences the symlink and enumerates target-directory files; an empty target produces false PC2a(b) → teardown executes and removes the symlink entry; recursive-remove does not follow symlinks into their targets — no target data loss, but the unexpected symlink is silently removed without operator notification). |
+| EC-008 | Story worktree has `.factory` as a regular file OR any symlink (symlink-to-file, symlink-to-directory, or dangling) at the worktree root | Any non-real-directory inode at path → PC2b BLOCKED: stray shadow content subject to `rm -rf` destruction; list the path; do NOT run `find`; do NOT proceed with `git worktree remove`. For a regular file: `[ ! -e ]` is false; `[ -L ]` is false; path is not a real directory → step 2 routes to PC2b. For a symlink-to-directory: `[ ! -e ]` is false; `[ -L ]` is true → step 2 routes to PC2b immediately. Wrong approach (contrast): using only `[ ! -d ]` — a regular file satisfies it (true, wrong: authorizes teardown — this is the primary failure of `[ ! -d ]` alone); a symlink-to-directory does NOT satisfy it (test -d follows symlinks → false, falls through to find; with plain-path `find ! -type d`, the symlink has type `l` → `! -type d` is true → symlink path appears in output → PC2b BLOCKED, operator notified — `find ! -type d` provides defense-in-depth even if `[ ! -d ]` were used alone for the directory predicate; however `[ ! -d ]` is still wrong because it authorizes teardown for a regular file at the path). |
+| EC-009 | Shadow `.factory/` exists as a real directory containing a stray symlink inside the tree (e.g., `<worktree>/.factory/stories/S-021-DELIVERY.md` is a symlink-to-file rather than a regular file) | `find "<worktree>/.factory" ! -type d` returns the symlink path (type `l` satisfies `! -type d`) → PC2b BLOCKED: operator notified, teardown halted. Prior `-type f` form missed this (type `l` ≠ `f` → empty output → false PC2a(b) → teardown authorized, symlink removed without notification; no target data loss since recursive-remove does not follow symlinks). |
 
 ## Canonical Test Vectors
 
@@ -291,11 +300,11 @@ empty-`.factory/` assertion.
 |--------|-------------|--------|----------------|
 | T-1 | Agent CWD = `.worktrees/S-021/` | `Write(".factory/stories/S-021-DELIVERY.md")` | FORBIDDEN: violates PC1 (caught by adversarial review or step check) |
 | T-2 | Agent CWD = `.worktrees/S-021/` | `Write("/abs/repo/.factory/stories/S-021-DELIVERY.md")` | Correct: PC1 compliant; file lands on canonical mount |
-| T-3 | Shadow tree empty | Step G: `find .worktrees/S-021/.factory -type f` | Returns empty; teardown proceeds |
-| T-4 | Shadow tree has `S-021-DELIVERY.md` | Step G: `find .worktrees/S-021/.factory -type f` | Non-empty: teardown BLOCKED; PC2b error message |
+| T-3 | Shadow tree empty (real directory, no files or symlinks) | Step G: `find ".worktrees/S-021/.factory" ! -type d` | Returns empty; teardown proceeds (PC2a sub-case b) |
+| T-4 | Shadow tree has `S-021-DELIVERY.md` (regular file) | Step G: `find ".worktrees/S-021/.factory" ! -type d` | Non-empty: teardown BLOCKED; PC2b error message |
 | T-5 | Shadow tree has stray file; file relocated to canonical mount; re-run find | Step G retry: find returns empty | Teardown proceeds after relocation |
 | T-6 | `.factory` exists as a regular file (not a directory) in story worktree | Step G discrimination: step 1 `[ ! -e ]` is false; step 2 `[ -L ]` is false; path is not a real directory → PC2b. (Wrong approach contrast: `[ ! -d ]` would be true → authorizes teardown.) | PC2b BLOCKED: non-directory inode at `.factory/` path listed as stray shadow content; `find` NOT invoked; teardown halted |
-| T-7 | `.factory` exists as a symlink-to-directory in story worktree (symlink target is a real directory) | Step G discrimination: step 1 `[ ! -e ]` is false; step 2 `[ -L ]` is true → PC2b immediately. Without `[ -L ]` guard: `[ -d ]` is true (test -d follows symlinks) → falls through to `find`; trailing-slash `find "symlink/"` dereferences the symlink via POSIX pathname resolution, enumerating files from the external target; an empty target directory yields false PC2a(b) → `git worktree remove` executes; recursive-remove removes the symlink entry only (does not follow symlinks into targets — no target data loss, but the unexpected symlink is silently removed without operator notification) | PC2b BLOCKED: symlink-to-directory at `.factory/` path listed as stray shadow content; `find` NOT invoked; `git worktree remove` NOT called |
+| T-7 | `.factory` exists as a symlink-to-directory in story worktree (symlink target is a real directory) | Step G discrimination: step 1 `[ ! -e ]` is false; step 2 `[ -L ]` is true → PC2b immediately. Without `[ -L ]` guard: `[ -d ]` is true (test -d follows symlinks) → falls through to `find`; plain-path `find ! -type d` without `-H`/`-L` lstats the starting path — the symlink-to-directory has type `l`, which satisfies `! -type d` → symlink path appears in output → PC2b BLOCKED, operator notified (defense-in-depth: `find ! -type d` catches the symlink even without the `[ -L ]` guard; prior `-type f` form would have returned empty output → false PC2a(b) → teardown authorized, symlink silently removed) | PC2b BLOCKED: symlink-to-directory at `.factory/` path listed as stray shadow content; `find` NOT invoked; `git worktree remove` NOT called |
 
 ## Verification Properties
 
@@ -343,6 +352,7 @@ TBD — VP IDs to be assigned after VP authoring pass.
 
 | Version | Date | Description |
 |---------|------|-------------|
+| 1.15 | 2026-07-28 | S-21.04 pass-27 F-S2104-P27-M01/M02/M03 find-form adjudication (product-owner; D-940): M01 — trailing-slash mandate retracted; plain-path form adopted throughout; rationale: `[ -L ]` guard is the actual protection; for real directories (the only `find` input in correct execution) both forms produce identical output; with `! -type d` (M03), plain-path on a symlink-to-dir returns the symlink path itself (PC2b signal), whereas trailing-slash enumerates target contents (out-of-scope traversal). M02 — five non-normative sites (EC-003, EC-004, T-3, T-4, T-5) normalized to match normative form (no trailing slash, quoted paths). M03 — predicate widened from `-type f` to `! -type d` at all normative sites; rationale: symlink inside a real shadow directory has type `l`, invisible to `-type f`, visible to `! -type d`; BC's own harm criterion (EC-008/T-7: unexpected non-directory inode silently removed without operator notification) applies identically one level deeper; no false positives (empty shadow dir returns empty under both predicates). EC-009 added: symlink inside real shadow directory. Contrast prose in step 2 of §Description, §Postconditions non-directory paragraph, Invariant 5(a), EC-005/EC-008/T-7 updated to reflect plain-path `! -type d` behavior (defense-in-depth: catches symlink-to-dir even if `[ -L ]` guard bypassed). Gating: harness extraction gate in `story-worktree-write-path-discipline.bats` (pattern `-type f`) must be updated by test-writer; see downstream propagation list in pass-27 adjudication record. |
 | 1.14 | 2026-07-28 | S-21.04 pass-25 F-S2104-P25-L01 changelog row ordering (product-owner; D-937): ## Changelog table v1.0 row corrected — was misplaced between v1.4 and v1.3; moved to table bottom to restore monotonic newest-first descending order. Full-table sweep verdict: v1.13–v1.4 correct monotonic descent (CLEAN); v1.3–v1.1 correct relative order after removal of misplaced v1.0 (CLEAN); no duplicate row version numbers found. Ordering/formatting-only change; no substantive row text altered. |
 | 1.13 | 2026-07-28 | S-21.04 pass-23 F-S2104-P23-005 un-swept seventh site (product-owner; D-936): EC-005 note corrected — retracted claim 'falls through to find which returns empty → false PC2a' replaced with verified mechanism. POSIX `test -d` follows symlinks (symlink-to-directory satisfies `[ -d ]`, so `[ ! -d ]` is false → falls through to `find`); the mandated trailing-slash form dereferences the symlink-to-directory via POSIX pathname resolution, enumerating files from the target directory outside the worktree boundary (out-of-scope traversal that cannot reliably detect stray worktree content); an empty target yields false PC2a(b) → teardown proceeds; the symlink entry is removed without operator notification — no target data loss, since recursive-remove does not follow symlinks. Consistent with EC-008 contrast and T-7 contrast corrected at v1.12. Sweep confirmed: one live body site (EC-005). All other 'returns empty' / 'false PC2a' hits are historical changelog entries (preserved per append-only/error-acknowledgment policy) or already-corrected contrast text in EC-008/T-7. |
 | 1.12 | 2026-07-27 | S-21.04 pass-22 F-S2104-P22-002 self-contradiction fix (product-owner; D-933): two mutually exclusive claims about the mandated trailing-slash `find` command corrected at six body sites. (1) 'POSIX find without -H/-L does not descend symlinks → empty output → false PC2a' — applies only to the no-trailing-slash form; the BC mandates `find "<path>/"` (trailing slash), which POSIX pathname resolution dereferences on a symlink-to-directory — find enumerates files from the target directory outside the worktree boundary (out-of-scope traversal), not empty output. Corrected in §Description step 2, §Postconditions non-directory/symlink-path paragraph, §Invariant 5(a). (2) 'rm -rf destroys the symlink target' — empirically false: recursive-remove removes only the symlink entry; target directory is untouched. Corrected in §Description step 2, §Postconditions non-directory/symlink-path paragraph, EC-008 contrast, T-7 contrast. (3) 'trailing slash is defense-in-depth against symlinks' — removed from §Description step 3 parenthetical; trailing slash on a real directory is harmless but would dereference (not protect against) a symlink that reached this branch; the [ -L ] guard in step 2 is the actual protection. [ -L ] guard, all postconditions, and invariant conclusions unchanged. Changelog v1.7 entries preserved per append-only/error-acknowledgment policy; v1.7 entries contain the now-corrected claims. |

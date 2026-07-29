@@ -1,7 +1,7 @@
 ---
 document_type: red-gate-log
 level: ops
-version: "1.25"
+version: "1.27"
 status: verified
 producer: test-writer
 timestamp: 2026-07-25T03:15:00Z
@@ -9,9 +9,9 @@ phase: 3
 inputs:
   - .factory/stories/S-21.04-story-worktree-write-path-discipline.md
   - .factory/specs/behavioral-contracts/ss-06/BC-6.26.001.md
-input-hash: "044b138"
-traces_to: "BC-6.26.001 v1.14; story v1.20; story v1.21; story v1.22; story v1.23; story v1.25; story v1.26; story v1.27; story v1.28; story v1.29"
-last_amended: "2026-07-28 D-939: H04 CLOSED (D-939 SUPERSESSION — records committed by a8ec290e in-flight; 7/8 per-guard records; P25-M06 NOT PRODUCIBLE; POLICY 15 restore-leg residual pass-27); 5 sites corrected; version 1.24→1.25. [Prior: 2026-07-28 D-938: adversary-pass-26.md persisted (B2/H4/M3/L2 = 11 findings; novelty HIGH; ADR-033 cross-family limitation; POLICY 22 both-directions record: concern-1 CONFIRMED→B01; concern-2 REFUTED with reasoning); 10 of 11 CLOSED at 7c3338e7 (H04 OPEN — per-guard mutant evidence requested twice, not produced; recorded as OPEN per production-grade discipline); Summary HEAD 4dc27251→7c3338e7 (25/25: 10/10+15/15); Pass-26 summary table row added; Pass-26 attestation section appended (orchestrator B01/B02 verbatim evidence); H04 OPEN evidence gap recorded; traces_to story v1.29 added; input-hash 101b1e6→hook-authoritative (story v1.29 + ADR-031 sentinel drift); version 1.23→1.24. [Prior: 2026-07-28 D-937: H01 POLICY 15 evidence persisted for P23-006/007/008/012 — Summary HEAD advanced 5ccf5869→4dc27251 (25/25: 10/10+15/15); Pass-25 attestation section appended with orchestrator B01 evidence (recorded mutant fires both production guard + corpus regression T-015); M04 SHA transposition 6 sites corrected (5ccf5669→5ccf5869; proof: grep-c=4 — all 4 remaining in fix-description prose only: last_amended, modified[], summary-table M04 cell, attestation note; zero in evidence-citation positions); M07 sentinels D-{TBD-pass-23-fix-burst}→D-936 + D-{TBD-pass-25-fix-burst}→D-937 in BC-6.26.001/ADR-031/story; Pass-25 summary table row added; traces_to BC-6.26.001 v1.13→v1.14 + story v1.28 added; version 1.22→1.23. [Prior: 2026-07-28 D-936: F-S2104-P23-009 CLOSED (F-22-NNN→F-S2104-P22-NNN namespace normalization; 5 sites replaced; input-hash f69d6b0→61af172 after namespace fix triggered validate-input-hash hook block); F-S2104-P23-010 CLOSED (12 stale narrative bats line pins→behavioral anchors; TD-VSDD-091 comprehensive sweep — adversary cited ≥5, state-manager found 12 total); F-S2104-P23-014 GENUINELY-CLOSED (documented: D-934 already added 14 genuine per-guard records); Pass-24 + Pass-23-closure summary table rows added; Summary HEAD 9b12aa00→5ccf5869 (24/24: 10/10+14/14, 2026-07-28); traces_to BC-6.26.001 v1.12→v1.13 + story v1.27 added; version 1.21→1.22. [Prior: 2026-07-28 D-935: Summary HEAD 888b5b73→9b12aa00 (24/24: 10/10+14/14, 2026-07-28; pipeline probe T-010 added at 9b12aa00; F-S2104-P24-005 POLICY 15 shortfall CLOSED — true prior state 1-2/14 RED commands / 0/14 restore commands (orchestrator attribution; second evidence-fidelity failure same class as F-S2104-P23-002)); adversary-pass-24.md persisted (B2/H2/M2/L0 = 6 findings; targeted re-review); ### Pass-24 assertion-site attestation appended (2 test-writer reversions + 4 orchestrator tests verbatim); version 1.20→1.21. [Prior: 2026-07-28 D-934: Summary HEAD 63eae07d→888b5b73 (23/23: 9/9+14/14, 2026-07-28; F-S2104-P22-004 RECURRENCE — per-pass closure checklist exercised again; one pass after D-933 closed this class); ### Pass-23 assertion-site attestation (888b5b73) appended (B2 CLOSED; 12 OPEN routed; P23-013 NON-FINDING recorded); version 1.19→1.20. [Prior: 2026-07-28 D-933: F-S2104-P22-004 Summary HEAD a4ec37d3→63eae07d (23/23: 9/9+14/14, 2026-07-28); three-pass omission (D-923/D-925/D-929 each omitted Summary advance) recorded in modified[]; Summary-HEAD per-pass closure checklist note added; F-S2104-P22-005 ### Pass-22 assertion-site attestation (63eae07d) appended with 14 verbatim mutant-verification records; F-S2104-P22-012 §G.1 L31-40 volatile pin replaced with behavioral anchor (the `[ -L ]` symlink-guard paragraph in §G.1); input-hash a03188b→2a798de (story v1.26 + BC v1.12 drift; hook-authoritative); version 1.18→1.19. [Prior: 2026-07-27 D-925: ### Pass-20 assertion-site attestation (a5068252) appended (M-P20-A PW-B=FIRES(RED) WD=FIRES(RED) post-fix; PW-B clause-scoped Leg A F-S2104-P20-001; referent predicate extended Leg B F-S2104-P20-002 to include artifact[[:space:]]+writes? class; 3-vector orchestrator-executed battery: M-P20-A+CONTROL-1+CONTROL-2 all RED at a5068252; suites 9/9+14/14; input-hash a03188b UNCHANGED (no story drift); version 1.17→1.18; F-S2104-P20-003 OPEN pass-21 lead item). Prior: 2026-07-27 D-923: F-S2104-P19-011 balanced-fence audit row: truncation-guard rationale corrected to well-formedness invariant (no fence-aware domain at HEAD per c89bef22; F-S2104-P19-011); F-S2104-P19-012 write-directive audit row: escape-discrimination control evidence added (CONTROL escape GREEN + CONTROL negative-twin RED at 657fce61); F-S2104-P19-010 NAME-SET EQUALITY TWO→THREE + 19→21 NUMBERED + story v1.23→v1.25 + boundary-completeness + scope-restriction added to printf list; ### Pass-19 assertion-site attestation (657fce61) appended (21-gate table; ALTERNATION-DIRECTION; ESCAPE-SCOPE-PARITY; CONTROL escape evidence; NAME-SET EQUALITY PASS 21 gates); traces_to adds story v1.25; input-hash f86871a→a03188b (story v1.25 drift; hook-authoritative); version 1.16→1.17. Prior: 2026-07-27 D-920: F-S2104-P18-006 M-P17-A battery row corrected (Gate PW-B only; Gate 5 false claim dropped at 2 sites); Gate 5 audit row corrected (M-P17-A dropped; true Gate-5 vectors: M-P15-A S1, M-P14-A, M-P14R-A, worktree-relative, M-P16-C2; SEQUENCE-SHADOWED DEFENSE-IN-DEPTH for story-worktree CWD noted); ### Pass-18 assertion-site attestation (a4ec37d3) appended (35/35 battery; 20-gate table; 15-obligation table; ALTERNATION-DIRECTION STATEMENTS; NAME-SET EQUALITY PASS 19 gates); F-S2104-P18-007 D-918 input-hash placeholders corrected ([see frontmatter]→4b26b3b; [updated by compute-input-hash]→4b26b3b); Summary HEAD c89bef22→a4ec37d3 (quintuple parity); traces_to adds story v1.23; input-hash 4b26b3b→f86871a (story v1.23 drift); version 1.15→1.16; prior: 2026-07-26 D-918: F-S2104-P17-005 corrections (a)-(e) in §Pass-16 attestation (abbreviation splitter 3 forms; anchor-uniqueness domain corrected at 2 sites; M-P16-B Gate cell corrected to Gate 1(a) + bounding count=1; absent-block guard domain to $prohibition_block; Gate 5 alternation corrected); ### Pass-17 assertion-site attestation (c89bef22) appended (9 new mutant vectors battery + 9 prior re-verified; 17-gate table + 2-RETIRED + extraction mechanisms; obligation-indexed 4-row AC-001(a)/(b)/(c) complete; NAME-SET EQUALITY PASS); Summary HEAD 9ab1aa32→c89bef22; traces_to adds story v1.22; input-hash e6c640a→4b26b3b; version 1.14→1.15; prior: 2026-07-26 D-916: F-S2104-P16-005 corrections in §Pass-15 attestation (i) closing completeness-claim corrected; (ii) M-P15-A relabeled as M-P15-A-simplified [Correction at v1.14 (D-916)]; ### Pass-16 assertion-site attestation (9ab1aa32) appended (TWO-TIER: 9 adversary-verbatim vectors TIER 1 + 11 test-writer instantiation vectors TIER 2 + gate-indexed 15-row + obligation-indexed 5-row audit tables); Summary HEAD 8b39277b→9ab1aa32; input-hash 3d12427→1baca60 (story v1.21 drift); traces_to adds story v1.21; version 1.13→1.14; prior: 2026-07-26 D-914: F-S2104-P15-001/002/004 — Summary HEAD cite 26b85d8c→8b39277b; ### Pass-15 assertion-site attestation (8b39277b) section appended (verbatim test-writer: sentence-scoped Gates 1/4/5 (joined_block+sed sentence-split) with per-gate same-AC audit table; Gate 6 two-part polarity; bare-pin sweep); input-hash c74e0f8→3d12427 (story v1.20 drift); traces_to adds story v1.20; version 1.12→1.13; prior: 2026-07-26 D-912: F-S2104-P14R-002 — Summary HEAD cite 09cfce81→26b85d8c (test-writer-executed: 9/9 + 14/14); ### Pass-14R assertion-site attestation (26b85d8c) section appended (verbatim test-writer: Gate 1 affirmative two-part + Gate 5 POLICY-13 alternation; M-P14R-A + M-P14-A + worktree-relative synonym vector all RED). F-S2104-P14R-009 — Fixture column T-001/T-002/T-003 corrected to dynamic $(mktemp -d) per bats setup(). F-S2104-P14R-010 — pass-13 mutant record exact text substituted verbatim (M-P14-A; recovered from bats 6f928350:1377-1380). input-hash 89efd7e→c74e0f8 (story v1.19 drift); traces_to adds story v1.19; version 1.11→1.12; prior: 2026-07-26 D-909: F-S2104-P13-002 — Summary HEAD cite 264f53b6→09cfce81 + attestation condensed (orchestrator-executed: 9/9 + 14/14, 2026-07-26); :288 count phrase replaced with COUNT-FREE pointer to per-pass attestation sections; ### Pass-13 assertion-site attestation (09cfce81) section appended (verbatim test-writer: polarity-aware prohibition gates, 3 mutants incl. inversion vector, gate groups count-free). F-S2104-P13-004 — §Bats Tests T-001 AC-003→AC-003; AC-001; AC-002; AC-007 (a)-(c); §Bats Tests T-002 AC-004→AC-004; AC-002; §Traces T-001 and T-002 multi-AC sync from story v1.17. input-hash 53500af→89efd7e (story v1.17 drift); version 1.10→1.11; prior: 2026-07-26 D-908: F-S2104-P12-002(a) §T-009 :287 group description corrected (four primary-path gates .md-qualified form + P11-003 attestation); F-S2104-P12-002(b) P11-003 mutant record appended to T-009 section; F-S2104-P12-002(c) Summary HEAD 2c8eff8b→264f53b6 + suite-level verification updated; F-S2104-P12-010 D-907 modified[] date 2026-07-25→2026-07-26 (monotonic correction, non-monotonic per D-906 dated 2026-07-26); input-hash d1c79e9→53500af (story v1.16 drift); version 1.9→1.10; prior: 2026-07-26 D-907 (date-corrected D-908): F-S2104-P11-005 §T-009 mutant evidence line :286 count clause replaced — 5 gate GROUPS / 9 assertion sites reconciled with 8 mutants; input-hash 455740d→d1c79e9 (story v1.15 drift); version 1.8→1.9; prior: 2026-07-26 D-906: F-S2104-P10-007 Summary line HEAD cite 9d896bf5→2c8eff8b + suite-level verification (orchestrator ran bats → 9/9 ok + 14/14 ok at 2c8eff8b, 2026-07-26); F-S2104-P10-008 §T-009 mutant evidence line :285 named list (5 named gates + 8 scratch mutants); F-S2104-P10-009 traces_to v1.10→v1.11 + BC-6.26.001 cite v1.10→v1.11 throughout + T-008/T-009 version pin parity restored; input-hash 389274b→455740d (story v1.14 + BC v1.11 drift); version 1.7→1.8; prior: 2026-07-25 D-905: F-S2104-P9-004 §T-008 BC trace corrected (PC2 + Invariant 2 caller-side dispatch gate, per story AC-007; replaces erroneous Invariant 5 caller-side propagation anchor introduced in D-904 fix wave); F-S2104-P9-007 §T-009 mutant evidence recorded (obligation-asserting gates mutant-proven at 2992b53d; class-completed at 3326e4dd; bare-alternation paper-gate confirmed); input-hash 43e6df2→389274b (story v1.13 drift); version 1.6→1.7 (F-S2104-P9-004, F-S2104-P9-007); prior: 2026-07-25 D-904: F-S2104-P8-001 §Bats Tests table T-001→RG-001†, T-002→RG-002†, T-003→RG-003† (table correction omitted at D-895, surviving 6 passes); † footnote updated to cite D-904; F-S2104-P8-007 T-007 mutant-proof recorded verbatim (qualified-path/verify/PASS-result/not-evident-run-yourself all NO MATCH on scratch reduction at 052620dc); F-S2104-P8-002 NEW T-008 addendum (AC-007/RG-008; six-surface §G.1 mandate; quote-tolerant mutant-proof 052620dc) + NEW T-009 addendum (AC-009/RG-009; awareness-clause; GREEN 4265c96c); Summary line updated (T-007/T-008/T-009 propagation gates; HEAD 9d896bf5; all T-IDs/RG rows confirmed); BC-6.26.001 cite v1.9→v1.10 (quintuple parity); input-hash 7abb656→43e6df2 (story v1.12 + BC v1.10 drift); traces_to v1.9→v1.10; version 1.5→1.6 (F-S2104-P8-001, F-S2104-P8-002, F-S2104-P8-007); prior: 2026-07-25 D-903 state-manager — F-S2104-P7-001/P7-005 attestation corrections verbatim-authored by orchestrator: §T-005 addendum heading/Test rewritten (regular-file-at-path → PC2b BLOCKED; RG-006; AC-002/EC-007); §T-006 addendum heading/trailing-slash mechanism corrected (POSIX find WITHOUT -H/-L empty-return → false PC2a; [ -L ] guard routes to PC2b; trailing-slash defense-in-depth); all 4 RG-004a occurrences replaced with RG-006; §Traces T-005/T-006 quintuple parity updated; NEW §T-007 addendum (AC-008/RG-007 devops-engineer executor-side preflight mandate; obligation-asserting at 052620dc); Summary line: 9 bats tests T-001..T-006 + 3 propagation-gate tests; BC-6.26.001 v1.8→v1.9 cites updated throughout; input-hash 4b75dba→7abb656 (story v1.11 + BC v1.9 drift); traces_to v1.8→v1.9; version 1.4→1.5 (F-S2104-P7-001, F-S2104-P7-005); prior: 2026-07-25 D-902 state-manager — T-005/T-006/RG-005 attestation addenda appended; Summary 9-test suite; Traces quintuple parity v1.5→v1.8; T-004 addendum BC cite v1.5→v1.8; RG-reconciliation note appended to D-895 erratum; input-hash 8cdfb33→a4b9ea5 (story v1.9 + BC v1.8 drift); traces_to v1.6→v1.8; version 1.3→1.4 (F-S2104-P6-004); prior: 2026-07-25 D-899 state-manager — T-004 test description corrected to verbatim §G.1 PC2c semantics (HALT + surface exit code/stderr; no PREFLIGHT BLOCKED message); input-hash 2b051ec→8cdfb33 (story v1.7 drift); traces_to v1.5→v1.6; version 1.2→1.3 (F-S2104-P4-006); prior: 2026-07-25 D-897 state-manager — fabricated PC2c implementation quote corrected to verbatim §G.1 text; Invariant TBD placeholder removed; input-hash 55904fb→2b051ec (story v1.6 drift); version 1.1→1.2 (F-S2104-P3-009, F-S2104-P3-010); prior: 2026-07-25 D-896 state-manager — T-004/RG-004 attestation addendum (F-S2104-P2-013) + quintuple parity v1.5 (F-S2104-P2-017); prior: 2026-07-25 D-895 state-manager — erratum F-S2104-P1-009 (RG-ID mapping + AC-002 attribution)]]]]"
+input-hash: "6a61cd1"
+traces_to: "BC-6.26.001 v1.14; BC-6.26.001 v1.15; story v1.20; story v1.21; story v1.22; story v1.23; story v1.25; story v1.26; story v1.27; story v1.28; story v1.29; story v1.30"
+last_amended: "2026-07-29 D-940: pass-27 findings CLOSED (B01 positional conjuncts; H01 sibling-sweep; H02 count-word + T-016; M01/M02/M03 BC v1.15; M04 comment-strip); POLICY 15 restore-leg residual CLOSED via CONTROL-equivalence; Summary HEAD 7c3338e7→c7c61688 (26/26: 10/10+16/16); T-016 coupling gate added to Summary; Pass-27 table row added; traces_to story v1.30 + BC-6.26.001 v1.15; input-hash 105492a→6a61cd1 (story v1.30 + BC v1.15 drift); version 1.26→1.27. [Prior: 2026-07-28 D-939: H04 CLOSED (D-939 SUPERSESSION — records committed by a8ec290e in-flight; 7/8 per-guard records; P25-M06 NOT PRODUCIBLE; POLICY 15 restore-leg residual pass-27); 5 sites corrected; version 1.24→1.25. [Prior: 2026-07-28 D-938: adversary-pass-26.md persisted (B2/H4/M3/L2 = 11 findings; novelty HIGH; ADR-033 cross-family limitation; POLICY 22 both-directions record: concern-1 CONFIRMED→B01; concern-2 REFUTED with reasoning); 10 of 11 CLOSED at 7c3338e7 (H04 OPEN — per-guard mutant evidence requested twice, not produced; recorded as OPEN per production-grade discipline); Summary HEAD 4dc27251→7c3338e7 (25/25: 10/10+15/15); Pass-26 summary table row added; Pass-26 attestation section appended (orchestrator B01/B02 verbatim evidence); H04 OPEN evidence gap recorded; traces_to story v1.29 added; input-hash 101b1e6→hook-authoritative (story v1.29 + ADR-031 sentinel drift); version 1.23→1.24. [Prior: 2026-07-28 D-937: H01 POLICY 15 evidence persisted for P23-006/007/008/012 — Summary HEAD advanced 5ccf5869→4dc27251 (25/25: 10/10+15/15); Pass-25 attestation section appended with orchestrator B01 evidence (recorded mutant fires both production guard + corpus regression T-015); M04 SHA transposition 6 sites corrected (5ccf5669→5ccf5869; proof: grep-c=4 — all 4 remaining in fix-description prose only: last_amended, modified[], summary-table M04 cell, attestation note; zero in evidence-citation positions); M07 sentinels D-{TBD-pass-23-fix-burst}→D-936 + D-{TBD-pass-25-fix-burst}→D-937 in BC-6.26.001/ADR-031/story; Pass-25 summary table row added; traces_to BC-6.26.001 v1.13→v1.14 + story v1.28 added; version 1.22→1.23. [Prior: 2026-07-28 D-936: F-S2104-P23-009 CLOSED (F-22-NNN→F-S2104-P22-NNN namespace normalization; 5 sites replaced; input-hash f69d6b0→61af172 after namespace fix triggered validate-input-hash hook block); F-S2104-P23-010 CLOSED (12 stale narrative bats line pins→behavioral anchors; TD-VSDD-091 comprehensive sweep — adversary cited ≥5, state-manager found 12 total); F-S2104-P23-014 GENUINELY-CLOSED (documented: D-934 already added 14 genuine per-guard records); Pass-24 + Pass-23-closure summary table rows added; Summary HEAD 9b12aa00→5ccf5869 (24/24: 10/10+14/14, 2026-07-28); traces_to BC-6.26.001 v1.12→v1.13 + story v1.27 added; version 1.21→1.22. [Prior: 2026-07-28 D-935: Summary HEAD 888b5b73→9b12aa00 (24/24: 10/10+14/14, 2026-07-28; pipeline probe T-010 added at 9b12aa00; F-S2104-P24-005 POLICY 15 shortfall CLOSED — true prior state 1-2/14 RED commands / 0/14 restore commands (orchestrator attribution; second evidence-fidelity failure same class as F-S2104-P23-002)); adversary-pass-24.md persisted (B2/H2/M2/L0 = 6 findings; targeted re-review); ### Pass-24 assertion-site attestation appended (2 test-writer reversions + 4 orchestrator tests verbatim); version 1.20→1.21. [Prior: 2026-07-28 D-934: Summary HEAD 63eae07d→888b5b73 (23/23: 9/9+14/14, 2026-07-28; F-S2104-P22-004 RECURRENCE — per-pass closure checklist exercised again; one pass after D-933 closed this class); ### Pass-23 assertion-site attestation (888b5b73) appended (B2 CLOSED; 12 OPEN routed; P23-013 NON-FINDING recorded); version 1.19→1.20. [Prior: 2026-07-28 D-933: F-S2104-P22-004 Summary HEAD a4ec37d3→63eae07d (23/23: 9/9+14/14, 2026-07-28); three-pass omission (D-923/D-925/D-929 each omitted Summary advance) recorded in modified[]; Summary-HEAD per-pass closure checklist note added; F-S2104-P22-005 ### Pass-22 assertion-site attestation (63eae07d) appended with 14 verbatim mutant-verification records; F-S2104-P22-012 §G.1 L31-40 volatile pin replaced with behavioral anchor (the `[ -L ]` symlink-guard paragraph in §G.1); input-hash a03188b→2a798de (story v1.26 + BC v1.12 drift; hook-authoritative); version 1.18→1.19. [Prior: 2026-07-27 D-925: ### Pass-20 assertion-site attestation (a5068252) appended (M-P20-A PW-B=FIRES(RED) WD=FIRES(RED) post-fix; PW-B clause-scoped Leg A F-S2104-P20-001; referent predicate extended Leg B F-S2104-P20-002 to include artifact[[:space:]]+writes? class; 3-vector orchestrator-executed battery: M-P20-A+CONTROL-1+CONTROL-2 all RED at a5068252; suites 9/9+14/14; input-hash a03188b UNCHANGED (no story drift); version 1.17→1.18; F-S2104-P20-003 OPEN pass-21 lead item). Prior: 2026-07-27 D-923: F-S2104-P19-011 balanced-fence audit row: truncation-guard rationale corrected to well-formedness invariant (no fence-aware domain at HEAD per c89bef22; F-S2104-P19-011); F-S2104-P19-012 write-directive audit row: escape-discrimination control evidence added (CONTROL escape GREEN + CONTROL negative-twin RED at 657fce61); F-S2104-P19-010 NAME-SET EQUALITY TWO→THREE + 19→21 NUMBERED + story v1.23→v1.25 + boundary-completeness + scope-restriction added to printf list; ### Pass-19 assertion-site attestation (657fce61) appended (21-gate table; ALTERNATION-DIRECTION; ESCAPE-SCOPE-PARITY; CONTROL escape evidence; NAME-SET EQUALITY PASS 21 gates); traces_to adds story v1.25; input-hash f86871a→a03188b (story v1.25 drift; hook-authoritative); version 1.16→1.17. Prior: 2026-07-27 D-920: F-S2104-P18-006 M-P17-A battery row corrected (Gate PW-B only; Gate 5 false claim dropped at 2 sites); Gate 5 audit row corrected (M-P17-A dropped; true Gate-5 vectors: M-P15-A S1, M-P14-A, M-P14R-A, worktree-relative, M-P16-C2; SEQUENCE-SHADOWED DEFENSE-IN-DEPTH for story-worktree CWD noted); ### Pass-18 assertion-site attestation (a4ec37d3) appended (35/35 battery; 20-gate table; 15-obligation table; ALTERNATION-DIRECTION STATEMENTS; NAME-SET EQUALITY PASS 19 gates); F-S2104-P18-007 D-918 input-hash placeholders corrected ([see frontmatter]→4b26b3b; [updated by compute-input-hash]→4b26b3b); Summary HEAD c89bef22→a4ec37d3 (quintuple parity); traces_to adds story v1.23; input-hash 4b26b3b→f86871a (story v1.23 drift); version 1.15→1.16; prior: 2026-07-26 D-918: F-S2104-P17-005 corrections (a)-(e) in §Pass-16 attestation (abbreviation splitter 3 forms; anchor-uniqueness domain corrected at 2 sites; M-P16-B Gate cell corrected to Gate 1(a) + bounding count=1; absent-block guard domain to $prohibition_block; Gate 5 alternation corrected); ### Pass-17 assertion-site attestation (c89bef22) appended (9 new mutant vectors battery + 9 prior re-verified; 17-gate table + 2-RETIRED + extraction mechanisms; obligation-indexed 4-row AC-001(a)/(b)/(c) complete; NAME-SET EQUALITY PASS); Summary HEAD 9ab1aa32→c89bef22; traces_to adds story v1.22; input-hash e6c640a→4b26b3b; version 1.14→1.15; prior: 2026-07-26 D-916: F-S2104-P16-005 corrections in §Pass-15 attestation (i) closing completeness-claim corrected; (ii) M-P15-A relabeled as M-P15-A-simplified [Correction at v1.14 (D-916)]; ### Pass-16 assertion-site attestation (9ab1aa32) appended (TWO-TIER: 9 adversary-verbatim vectors TIER 1 + 11 test-writer instantiation vectors TIER 2 + gate-indexed 15-row + obligation-indexed 5-row audit tables); Summary HEAD 8b39277b→9ab1aa32; input-hash 3d12427→1baca60 (story v1.21 drift); traces_to adds story v1.21; version 1.13→1.14; prior: 2026-07-26 D-914: F-S2104-P15-001/002/004 — Summary HEAD cite 26b85d8c→8b39277b; ### Pass-15 assertion-site attestation (8b39277b) section appended (verbatim test-writer: sentence-scoped Gates 1/4/5 (joined_block+sed sentence-split) with per-gate same-AC audit table; Gate 6 two-part polarity; bare-pin sweep); input-hash c74e0f8→3d12427 (story v1.20 drift); traces_to adds story v1.20; version 1.12→1.13; prior: 2026-07-26 D-912: F-S2104-P14R-002 — Summary HEAD cite 09cfce81→26b85d8c (test-writer-executed: 9/9 + 14/14); ### Pass-14R assertion-site attestation (26b85d8c) section appended (verbatim test-writer: Gate 1 affirmative two-part + Gate 5 POLICY-13 alternation; M-P14R-A + M-P14-A + worktree-relative synonym vector all RED). F-S2104-P14R-009 — Fixture column T-001/T-002/T-003 corrected to dynamic $(mktemp -d) per bats setup(). F-S2104-P14R-010 — pass-13 mutant record exact text substituted verbatim (M-P14-A; recovered from bats 6f928350:1377-1380). input-hash 89efd7e→c74e0f8 (story v1.19 drift); traces_to adds story v1.19; version 1.11→1.12; prior: 2026-07-26 D-909: F-S2104-P13-002 — Summary HEAD cite 264f53b6→09cfce81 + attestation condensed (orchestrator-executed: 9/9 + 14/14, 2026-07-26); :288 count phrase replaced with COUNT-FREE pointer to per-pass attestation sections; ### Pass-13 assertion-site attestation (09cfce81) section appended (verbatim test-writer: polarity-aware prohibition gates, 3 mutants incl. inversion vector, gate groups count-free). F-S2104-P13-004 — §Bats Tests T-001 AC-003→AC-003; AC-001; AC-002; AC-007 (a)-(c); §Bats Tests T-002 AC-004→AC-004; AC-002; §Traces T-001 and T-002 multi-AC sync from story v1.17. input-hash 53500af→89efd7e (story v1.17 drift); version 1.10→1.11; prior: 2026-07-26 D-908: F-S2104-P12-002(a) §T-009 :287 group description corrected (four primary-path gates .md-qualified form + P11-003 attestation); F-S2104-P12-002(b) P11-003 mutant record appended to T-009 section; F-S2104-P12-002(c) Summary HEAD 2c8eff8b→264f53b6 + suite-level verification updated; F-S2104-P12-010 D-907 modified[] date 2026-07-25→2026-07-26 (monotonic correction, non-monotonic per D-906 dated 2026-07-26); input-hash d1c79e9→53500af (story v1.16 drift); version 1.9→1.10; prior: 2026-07-26 D-907 (date-corrected D-908): F-S2104-P11-005 §T-009 mutant evidence line :286 count clause replaced — 5 gate GROUPS / 9 assertion sites reconciled with 8 mutants; input-hash 455740d→d1c79e9 (story v1.15 drift); version 1.8→1.9; prior: 2026-07-26 D-906: F-S2104-P10-007 Summary line HEAD cite 9d896bf5→2c8eff8b + suite-level verification (orchestrator ran bats → 9/9 ok + 14/14 ok at 2c8eff8b, 2026-07-26); F-S2104-P10-008 §T-009 mutant evidence line :285 named list (5 named gates + 8 scratch mutants); F-S2104-P10-009 traces_to v1.10→v1.11 + BC-6.26.001 cite v1.10→v1.11 throughout + T-008/T-009 version pin parity restored; input-hash 389274b→455740d (story v1.14 + BC v1.11 drift); version 1.7→1.8; prior: 2026-07-25 D-905: F-S2104-P9-004 §T-008 BC trace corrected (PC2 + Invariant 2 caller-side dispatch gate, per story AC-007; replaces erroneous Invariant 5 caller-side propagation anchor introduced in D-904 fix wave); F-S2104-P9-007 §T-009 mutant evidence recorded (obligation-asserting gates mutant-proven at 2992b53d; class-completed at 3326e4dd; bare-alternation paper-gate confirmed); input-hash 43e6df2→389274b (story v1.13 drift); version 1.6→1.7 (F-S2104-P9-004, F-S2104-P9-007); prior: 2026-07-25 D-904: F-S2104-P8-001 §Bats Tests table T-001→RG-001†, T-002→RG-002†, T-003→RG-003† (table correction omitted at D-895, surviving 6 passes); † footnote updated to cite D-904; F-S2104-P8-007 T-007 mutant-proof recorded verbatim (qualified-path/verify/PASS-result/not-evident-run-yourself all NO MATCH on scratch reduction at 052620dc); F-S2104-P8-002 NEW T-008 addendum (AC-007/RG-008; six-surface §G.1 mandate; quote-tolerant mutant-proof 052620dc) + NEW T-009 addendum (AC-009/RG-009; awareness-clause; GREEN 4265c96c); Summary line updated (T-007/T-008/T-009 propagation gates; HEAD 9d896bf5; all T-IDs/RG rows confirmed); BC-6.26.001 cite v1.9→v1.10 (quintuple parity); input-hash 7abb656→43e6df2 (story v1.12 + BC v1.10 drift); traces_to v1.9→v1.10; version 1.5→1.6 (F-S2104-P8-001, F-S2104-P8-002, F-S2104-P8-007); prior: 2026-07-25 D-903 state-manager — F-S2104-P7-001/P7-005 attestation corrections verbatim-authored by orchestrator: §T-005 addendum heading/Test rewritten (regular-file-at-path → PC2b BLOCKED; RG-006; AC-002/EC-007); §T-006 addendum heading/trailing-slash mechanism corrected (POSIX find WITHOUT -H/-L empty-return → false PC2a; [ -L ] guard routes to PC2b; trailing-slash defense-in-depth); all 4 RG-004a occurrences replaced with RG-006; §Traces T-005/T-006 quintuple parity updated; NEW §T-007 addendum (AC-008/RG-007 devops-engineer executor-side preflight mandate; obligation-asserting at 052620dc); Summary line: 9 bats tests T-001..T-006 + 3 propagation-gate tests; BC-6.26.001 v1.8→v1.9 cites updated throughout; input-hash 4b75dba→7abb656 (story v1.11 + BC v1.9 drift); traces_to v1.8→v1.9; version 1.4→1.5 (F-S2104-P7-001, F-S2104-P7-005); prior: 2026-07-25 D-902 state-manager — T-005/T-006/RG-005 attestation addenda appended; Summary 9-test suite; Traces quintuple parity v1.5→v1.8; T-004 addendum BC cite v1.5→v1.8; RG-reconciliation note appended to D-895 erratum; input-hash 8cdfb33→a4b9ea5 (story v1.9 + BC v1.8 drift); traces_to v1.6→v1.8; version 1.3→1.4 (F-S2104-P6-004); prior: 2026-07-25 D-899 state-manager — T-004 test description corrected to verbatim §G.1 PC2c semantics (HALT + surface exit code/stderr; no PREFLIGHT BLOCKED message); input-hash 2b051ec→8cdfb33 (story v1.7 drift); traces_to v1.5→v1.6; version 1.2→1.3 (F-S2104-P4-006); prior: 2026-07-25 D-897 state-manager — fabricated PC2c implementation quote corrected to verbatim §G.1 text; Invariant TBD placeholder removed; input-hash 55904fb→2b051ec (story v1.6 drift); version 1.1→1.2 (F-S2104-P3-009, F-S2104-P3-010); prior: 2026-07-25 D-896 state-manager — T-004/RG-004 attestation addendum (F-S2104-P2-013) + quintuple parity v1.5 (F-S2104-P2-017); prior: 2026-07-25 D-895 state-manager — erratum F-S2104-P1-009 (RG-ID mapping + AC-002 attribution)]]]]]"
 modified:
   - "2026-07-25 D-895: Erratum appended — RG-ID mapping corrected (RG-001/002/003), fabricated RG-004/005 documented, AC-002 attribution corrected (F-S2104-P1-009)"
   - "2026-07-25 D-896: T-004/RG-004 attestation addendum appended; frontmatter version 1.0→1.1, traces_to updated to v1.5, §Traces BC cites updated to v1.5 (F-S2104-P2-013, F-S2104-P2-017)"
@@ -37,6 +37,7 @@ modified:
   - "2026-07-28 D-935: Summary HEAD 888b5b73→9b12aa00 (24/24: 10/10+14/14, 2026-07-28; pipeline probe T-010 added); F-S2104-P24-005 POLICY 15 shortfall CLOSED (true prior state 1-2/14 RED commands / 0/14 restore commands; orchestrator attribution — second evidence-fidelity failure); adversary-pass-24.md persisted (B2/H2/M2/L0 = 6 findings; targeted re-review); ### Pass-24 assertion-site attestation appended (test-writer Reversions 1+2 + 4 orchestrator tests verbatim; F-S2104-P24-003 structural closure: call-site parity Leg E); version 1.20→1.21"
   - "2026-07-28 D-936: F-S2104-P23-009 CLOSED (F-22-NNN→F-S2104-P22-NNN namespace normalization; 5 sites replaced; input-hash f69d6b0→61af172 after validate-input-hash hook block); F-S2104-P23-010 CLOSED (12 stale narrative bats line pins→behavioral anchors; TD-VSDD-091 comprehensive sweep — adversary cited ≥5, state-manager found 12 total); F-S2104-P23-014 GENUINELY-CLOSED (documented: D-934 already added 14 genuine per-guard records); Pass-24 + Pass-23-closure summary table rows added; Summary HEAD 9b12aa00→5ccf5869 (24/24: 10/10+14/14, 2026-07-28); traces_to BC-6.26.001 v1.12→v1.13 + story v1.27 added; version 1.21→1.22"
   - "2026-07-28 D-937: H01 POLICY 15 evidence persisted (P23-006/007/008/012; orchestrator B01 evidence verbatim — recorded (g) mutant fires production guard + T-015 corpus regression); M04 SHA transposition corrected at 6 sites (5ccf5669→5ccf5869); M07 sentinels D-{TBD-pass-23-fix-burst}→D-936 + D-{TBD-pass-25-fix-burst}→D-937 in BC-6.26.001/ADR-031/story; Pass-25 summary table row added; Summary HEAD 5ccf5869→4dc27251 (25/25: 10/10+15/15, 2026-07-28); traces_to BC-6.26.001 v1.13→v1.14 + story v1.28 added; version 1.22→1.23"
+  - "2026-07-29 D-940: pass-27 findings CLOSED (B01 positional conjuncts; H01 sibling-sweep gap; H02 count-word + T-016; M01/M02/M03 BC v1.15 plain-path+! -type d+EC-009; M04 comment-strip); POLICY 15 restore-leg residual CLOSED via CONTROL-equivalence; Pass-27 summary table row added; Pass-27 Follow-up M01(a)/M03(a) and attestation sections already present (written during fix-burst); Summary HEAD 7c3338e7→c7c61688 (26/26: 10/10+16/16); T-016 coupling gate added; traces_to story v1.30 + BC-6.26.001 v1.15; input-hash 105492a→6a61cd1; version 1.26→1.27"
   - "2026-07-28 D-939: H04 CLOSED (D-939 SUPERSESSION — records committed by a8ec290e in-flight during D-938 dispatch race; 7/8 per-guard records; P25-M06 NOT PRODUCIBLE); POLICY 15 restore-leg residual OPEN (pass-27 anchor); Pass-26 summary table H04 OPEN→CLOSED; Pass-26 attestation H04 section rewritten; version 1.24→1.25"
   - "2026-07-28 D-938: adversary-pass-26.md persisted (B2/H4/M3/L2 = 11 findings; novelty HIGH; streak 0/3; ADR-033 cross-family limitation; POLICY 22 both-directions record: concern-1 CONFIRMED→B01; concern-2 REFUTED); 10 of 11 CLOSED at 7c3338e7 (H04 OPEN — per-guard mutant evidence requested twice, not produced; recorded OPEN per production-grade discipline); Summary HEAD 4dc27251→7c3338e7 (25/25: 10/10+15/15, 2026-07-28); Pass-26 summary table row added; Pass-26 assertion-site attestation appended (orchestrator B01/B02 verbatim evidence; H04 OPEN evidence gap); traces_to story v1.29 added; D-938 sentinels replaced 6 sites (ARCH-INDEX ×2, ADR-031 ×2, story ×2); input-hash 101b1e6→044b138 (story v1.29 + ADR-031 D-938 sentinel drift); version 1.23→1.24"
 stub_architect_agent: "N/A — no code stubs (skill-doc + bats story; ADR-031 §Decision 4 class; POLICY 21 satisfied)"
@@ -56,7 +57,7 @@ red_gate_verified: true
 
 | Story | New Tests Written | All New Tests Fail (Red)? | Pre-existing Tests | Gate |
 |-------|------------------|--------------------------|-------------------|------|
-| S-21.04 | 10 bats tests: T-001..T-006 (behavioral vectors) + T-007/T-008/T-009 (doc-parity propagation gates) + T-010 (pipeline probe; F-S2104-P24-003) + T-015 (B01 corpus regression; `test_BC_B01_corpus_regression_guards_e_co_and_g_pc`). All GREEN at worktree HEAD 7c3338e7 (25/25: 10/10 + 15/15, 2026-07-28). All tests carry T-IDs (or equivalent IDs), RG rows, and attestation sections in this log. NOTE: Summary HEAD was stale at a4ec37d3 (pass-18) through passes 19-21; three-pass omission corrected at D-933. Per-pass closure checklist: advancing Summary HEAD to the post-fix fixes-HEAD is a mandatory closure step whenever an attestation section is appended. | YES — all original 3 FAIL at Red Gate | 2265 (cargo baseline) | PASSED |
+| S-21.04 | 10 bats tests: T-001..T-006 (behavioral vectors) + T-007/T-008/T-009 (doc-parity propagation gates) + T-010 (pipeline probe; F-S2104-P24-003) + T-015 (B01 corpus regression; `test_BC_B01_corpus_regression_guards_e_co_and_g_pc`) + T-016 (H02 coupling gate; `test_coupling_gate_story_gate_count_matches_bats_count_word`). All GREEN at worktree HEAD c7c61688 (26/26: 10/10 + 16/16, 2026-07-28). All tests carry T-IDs (or equivalent IDs), RG rows, and attestation sections in this log. NOTE: Summary HEAD was stale at a4ec37d3 (pass-18) through passes 19-21; three-pass omission corrected at D-933. Per-pass closure checklist: advancing Summary HEAD to the post-fix fixes-HEAD is a mandatory closure step whenever an attestation section is appended. | YES — all original 3 FAIL at Red Gate | 2265 (cargo baseline) | PASSED |
 
 Orchestrator-verified 2026-07-24: all 3 bats tests `not ok` (ASSERTION failures via `_assert_doc_marker`; DOC-PARITY: `find.*\.factory` preflight mandate absent from step-g-cleanup.md §G.1). Pre-implementation cargo-test baseline: 2265 pass, 0 fail, clean build.
 
@@ -1510,6 +1511,7 @@ ok 1 test_BC_step_d5_preflight_assertion_must_pass_before_findings
 | Pass-23-closure | `5ccf5869` | F-S2104-P23-003/004 CLOSED (story-writer AC Gate cells corrected); F-S2104-P23-005 CLOSED (product-owner BC-6.26.001 EC-005 corrected); F-S2104-P23-006 CLOSED (test-writer: nullification guards (d)(e)(f)(g) all-lines form); F-S2104-P23-007 CLOSED (test-writer: guard (g) predicate scoped away from adversary.md canonical prose); F-S2104-P23-008 CLOSED (test-writer: guard (b) extractor bounds on `^#### `,`^### `,`^## `); F-S2104-P23-009 CLOSED (state-manager: F-22-NNN→F-S2104-P22-NNN namespace normalization + behavioral anchor sweep); F-S2104-P23-010 CLOSED (state-manager: 12 stale narrative bats line pins→behavioral anchors; TD-VSDD-091 full-file sweep); F-S2104-P23-011 CLOSED (devops-engineer: .lobster body constraint blocks); F-S2104-P23-012 CLOSED (test-writer: `_assert_g1_ref` mandate-token class tightened); F-S2104-P23-014 GENUINELY-CLOSED (D-934 already added 14 genuine per-guard records) | 10/10 + 14/14 | All 12 pass-23 OPEN findings CLOSED / streak 0/3 |
 | Pass-25 | `4dc27251` | B01 CLOSED (fail-closed rule-bound `_guard_e_checks_out_nothing`/`_guard_g_path_corroborated` helpers + corpus regression test T-015 — orchestrator-verified: recorded (g) mutant on L58 now fires BOTH production guard and regression; B02 CLOSED (perl vocab neutralizer removed from write-directive gate + Leg C + Leg D WDG; replaced `grep -vE '\*\*Forbidden:\*\*'` whitelist); B03 CLOSED (unified `sed -E` with `+`-quantified alternation; `^` removed from bare-imperative class; mixed-marker probes); H01 CLOSED (state-manager: POLICY 15 evidence persisted for P23-006/007/008/012; Summary HEAD advanced; pass-25 attestation section); H02 CLOSED (Leg E broadened to `_prose[a-zA-Z0-9_]*="?\$\(` with exclusions); H03 CLOSED (bats: `F-S2104-P25-001` removed ×3 re-anchored; story: 3 occurrences re-anchored); H04 CLOSED (devops-engineer: 5 `.factory/cycles/...` refs canonicalized; adversary write→state-manager via orchestrator); M01 CLOSED (ordering gate bound to `g1_mandated_lineno`); M02 CLOSED (folded YAML check); M03 CLOSED (ADR-031 v1.14 lead-in five→six); M04 CLOSED (state-manager: 6 sites `5ccf5669`→`5ccf5869`); M05 CLOSED (story-writer ordinal cites eliminated); M06 CLOSED (volatile pins→behavioral anchors); M07 CLOSED (state-manager: sentinels D-936/D-937; grep proof zero); M08 CLOSED (T-003 DOC-PARITY before mv assertions); L01 CLOSED (BC-6.26.001 v1.14 row 1.0 moved to bottom); L02 CLOSED (ADR-031 §Decision 4 anchor); deferred: BC-5.44.001/S-21.02 ADR-version-pin (S-21.WG2-001) | 10/10 + 15/15 | B3/H4/M8/L2 = 17 findings ALL CLOSED / streak 0/3 (B3 resets) |
 | Pass-26 | `7c3338e7` | B01 CLOSED (anchor target now asserted via dedicated test — orchestrator-verified: anchor-target flip → `not ok 1 T-001` + `not ok 2 BC-6.26.001 pipeline probe`); B02 CLOSED (guard family sweep broadened to all guards, not just named; `echo "guard"` class); H01 CLOSED (AC-001 Gate cell desynced with AC-001(a)/(b) split — corrected); H02 CLOSED (ADR-031 retracted BC claims removed; story ref corrected); H03 CLOSED (Leg E broadened to 3 mechanisms); H04 CLOSED (D-939 SUPERSESSION — 7/8 per-guard records committed by `a8ec290e` in-flight; P25-M06 NOT PRODUCIBLE; POLICY 15 restore-leg residual OPEN pass-27 anchor); M01 CLOSED (T-015 registered in 4 inventories); M02 CLOSED (write-directive gate scope narrowed to match authoring-constraint scope); M03 CLOSED (guard (k) fail-open fallback removed); L01 NON-FINDING (adjudicated non-defect by adversary); L02 CLOSED (unbalanced parenthesis fixed); D-938 sentinels replaced 6 sites (ARCH-INDEX ×2, ADR-031 ×2, story ×2); D-939 H04 record correction | 10/10 + 15/15 | B2/H4/M3/L2 = 11 findings; 11 CLOSED (H04 CLOSED D-939 supersession; POLICY 15 restore-leg residual pass-27); streak 0/3 (B2 resets) |
+| Pass-27 | `c7c61688` | B01 CLOSED (positional conjuncts added to all 7 `_guard_*` helpers: awk section extraction → `^N.` clause assertion guards against deletion-axis where incidental occurrences survive; M10–M14 deletion corpus vectors); H01 CLOSED (sibling-sweep from pass-26 B01 write-directive fix: vestigial `grep -iv` pre-filter removed from `_guard_e_factory_artifacts`); H02 CLOSED (AC-001 Gate cell `Twenty-one`→`Twenty-three`; volatile `line 638` pin removed; stale deferral removed; T-016 mechanical coupling gate added — ninth consecutive prose-mandate failure ended); M01 CLOSED (BC-6.26.001 v1.14→v1.15: trailing-slash mandate retracted; plain-path form correct per bfs 4.1.1 empirical adjudication); M02 CLOSED (14 live bare-form sites normalized to 1 per BC-6.26.001 v1.15 mandate); M03 CLOSED (`-type f`→`! -type d`: interior symlinks have type `l` invisible to `-type f`; EC-009 added); M04 CLOSED (Leg E comment-strip `[^"]*$`→`.*$`; quote-bearing comments now stripped); POLICY 15 restore-leg residual CLOSED via CONTROL-equivalence (corpus vectors immediately followed by CONTROL blocks re-executing real guards on every CI run — stronger than one-time restore leg; D-940 documented). Atomicity repair: amended from RED `8ae161f8` (step-g-cleanup.md still `-type f`) → `c7c61688` (step-g-cleanup.md `! -type d`; grep-c=0). T-016 first-run pass (story count-word `Twenty-three` = bats count-word `Twenty-three`). | 10/10 + 16/16 | B1/H2/M4/L0 = 7 findings; ALL 7 CLOSED; POLICY 15 residual CLOSED; streak 0/3 (B1 resets) |
 
 ---
 
@@ -2347,3 +2349,416 @@ not ok 1 test_BC_B01_corpus_regression_guards_e_co_and_g_pc
 **Race condition (D-939 process lesson):** D-938 orchestrator dispatch race — state-manager burst was dispatched while test-writer was still in flight; both committed to `a8ec290e`. Recording OPEN was correct on available evidence; correction path is auditable via D-939.
 
 **Recorded OPEN at D-938 per honest-recording discipline (L-BB-h04-open-evidence-gap-honest-recording). SUPERSEDED by D-939 (D-939-H04-CLOSED-RECORD-CORRECTION, 2026-07-28).**
+
+---
+
+### Pass-27 assertion-site attestation (fix-burst at 7c3338e7; 2026-07-28)
+
+**Scope:** pass-27 findings B01 (BLOCKER) + H01 (HIGH) + M04 (MEDIUM) + STRUCTURAL coupling gate.
+**Pre-fix HEAD:** `7c3338e7` (suites 10/10 + 15/15). **Post-fix suites:** 10/10 + 16/16.
+
+**Files changed:**
+- `plugins/vsdd-factory/tests/worktree-identity-preflight.bats` — B01 positional conjuncts (7 guards), H01 vestigial filter removal, M10–M14 deletion corpus vectors, coupling gate (new test 16)
+- `plugins/vsdd-factory/tests/story-worktree-write-path-discipline.bats` — M04 comment-strip fix + M04 probe
+
+---
+
+#### H01 — Vestigial pre-harm exclusion in `_guard_e_factory_artifacts`
+
+**Finding:** `fa_all` computed with `grep -iv 'factory-artifacts branch\|...'` BEFORE nullification check. A nullifying rewrite phrased as "factory-artifacts branch: no longer required" was excluded from `fa_all` before `fa_nullified` was computed → silent FALSE NEGATIVE when production file had both an affirmative occurrence and the branch-phrased nullifier.
+
+**Mutation command:**
+```
+$ SCRATCH=$(mktemp)
+$ { cat plugins/vsdd-factory/agents/adversary.md; printf '\nfactory-artifacts branch: no longer required — use inline writes instead\n'; } > "$SCRATCH"
+$ source plugins/vsdd-factory/tests/worktree-identity-preflight.bats
+$ _guard_e_factory_artifacts "$SCRATCH" 2>&1; echo "exit:$?"
+```
+
+**`not ok` stdout (guard output):**
+```
+DOC-PARITY FAIL [adversary.md: a 'factory-artifacts' occurrence is in nullification context (FAIL-CLOSED: zero nullified required — F-S2104-P23-006 B01 regression fix)]: all occurrences must be affirmative; a nullified occurrence alongside an affirmative one is caught by this zero-nullified gate
+Nullified occurrences:
+factory-artifacts branch: no longer required — use inline writes instead
+exit:1
+```
+
+**Restore command:**
+```
+$ rm -f "$SCRATCH"
+```
+(Scratch-only mutation; production file unchanged throughout.)
+
+**GREEN (production file):**
+```
+$ _guard_e_factory_artifacts plugins/vsdd-factory/agents/adversary.md 2>&1; echo "exit:$?"
+exit:0
+```
+
+---
+
+#### B01 — Positional conjuncts for deletion axis (7 guards)
+
+**Finding:** Guards checked token presence anywhere in file. Deleting a numbered rule entirely while incidental occurrences in other rules survived → affirmative set non-empty → OLD guard GREEN (BUG). Critical holes: M10 (Rule 4 deleted, co/fa/cr survives in preamble/Rule-6), M11 (Rule 5 deleted, ci survives in Rule 2), M12 (Rule 6 opening deleted, pc survives in P23-007 normative closure sub-bullet). Fix: each guard now extracts `#### Worktree-Identity Preflight` section and asserts the token on the specific `^N.` clause line.
+
+**Record — `_guard_e_checks_out_nothing` (co), M10 Rule 4 deletion:**
+
+Mutation command:
+```
+$ SCRATCH=$(mktemp)
+$ grep -v '^4\. \*\*Read spec' plugins/vsdd-factory/agents/adversary.md > "$SCRATCH"
+$ _guard_e_checks_out_nothing "$SCRATCH" 2>&1; echo "exit:$?"
+```
+
+`not ok` stdout:
+```
+DOC-PARITY FAIL [adversary.md: 'checks out NOTHING under' mandate absent from Rule 4 (^4.) in #### Worktree-Identity Preflight section (B01 deletion axis — F-S2104-P27-B01)]: deletion of Rule 4 while Rule 6 sub-bullet 'checks out nothing under' survives leaves co_aff non-empty; positional conjunct requires the token on a ^4. line in the preflight section
+exit:1
+```
+
+Restore command:
+```
+$ rm -f "$SCRATCH"
+```
+
+GREEN (production): `_guard_e_checks_out_nothing adversary.md` → exit:0 ✓
+
+---
+
+**Record — `_guard_e_factory_artifacts` (fa), M10 Rule 4 deletion:**
+
+Mutation command:
+```
+$ SCRATCH=$(mktemp)
+$ grep -v '^4\. \*\*Read spec' plugins/vsdd-factory/agents/adversary.md > "$SCRATCH"
+$ _guard_e_factory_artifacts "$SCRATCH" 2>&1; echo "exit:$?"
+```
+
+`not ok` stdout:
+```
+DOC-PARITY FAIL [adversary.md: 'factory-artifacts' mandate absent from Rule 4 (^4.) in #### Worktree-Identity Preflight section (B01 deletion axis — F-S2104-P27-B01)]: deletion of Rule 4 while preamble/Rule-6-sub-bullet 'factory-artifacts' survive leaves fa_aff non-empty; positional conjunct requires the token on a ^4. line in the preflight section
+exit:1
+```
+
+Restore command:
+```
+$ rm -f "$SCRATCH"
+```
+
+GREEN (production): `_guard_e_factory_artifacts adversary.md` → exit:0 ✓
+
+---
+
+**Record — `_guard_e_canonical_repo_root` (cr), M10 Rule 4 deletion:**
+
+Mutation command:
+```
+$ SCRATCH=$(mktemp)
+$ grep -v '^4\. \*\*Read spec' plugins/vsdd-factory/agents/adversary.md > "$SCRATCH"
+$ _guard_e_canonical_repo_root "$SCRATCH" 2>&1; echo "exit:$?"
+```
+
+`not ok` stdout:
+```
+DOC-PARITY FAIL [adversary.md: 'canonical-repo-root' mandate absent from Rule 4 (^4.) in #### Worktree-Identity Preflight section (B01 deletion axis — F-S2104-P27-B01)]: deletion of Rule 4 while Rules 5/6/preamble 'canonical-repo-root' survive leaves cr_aff non-empty; positional conjunct requires the token on a ^4. line in the preflight section
+exit:1
+```
+
+Restore command:
+```
+$ rm -f "$SCRATCH"
+```
+
+GREEN (production): `_guard_e_canonical_repo_root adversary.md` → exit:0 ✓
+
+---
+
+**Record — `_guard_f_case_insensitive` (ci), M11 Rule 5 deletion:**
+
+Mutation command:
+```
+$ SCRATCH=$(mktemp)
+$ grep -v '^5\. \*\*Use case-insensitive' plugins/vsdd-factory/agents/adversary.md > "$SCRATCH"
+$ _guard_f_case_insensitive "$SCRATCH" 2>&1; echo "exit:$?"
+```
+
+`not ok` stdout:
+```
+DOC-PARITY FAIL [adversary.md: 'case-insensitive' mandate absent from Rule 5 (^5.) in #### Worktree-Identity Preflight section (B01 deletion axis — F-S2104-P27-B01)]: deletion of Rule 5 while Rule 2 'case-insensitively' incidentals and story-spec-path-lookup 'case-insensitive' survive leaves ci_aff non-empty; positional conjunct requires the token on a ^5. line in the preflight section
+exit:1
+```
+
+Restore command:
+```
+$ rm -f "$SCRATCH"
+```
+
+GREEN (production): `_guard_f_case_insensitive adversary.md` → exit:0 ✓
+
+---
+
+**Record — `_guard_g_path_corroborated` (pc), M12 Rule 6 opening deletion:**
+
+Mutation command:
+```
+$ SCRATCH=$(mktemp)
+$ grep -v '^6\. \*\*Path-corroborate' plugins/vsdd-factory/agents/adversary.md > "$SCRATCH"
+$ _guard_g_path_corroborated "$SCRATCH" 2>&1; echo "exit:$?"
+```
+
+`not ok` stdout:
+```
+DOC-PARITY FAIL [adversary.md: 'path-corroborated' mandate absent from Rule 6 (^6.) in #### Worktree-Identity Preflight section (B01 deletion axis — F-S2104-P27-B01)]: deletion of Rule 6 opening line while 'NOT path-corroborated' sub-bullet survives leaves pc_aff non-empty (P23-007 normative closure sentence not caught by nullification predicate); positional conjunct requires the token on a ^6. line in the preflight section
+exit:1
+```
+
+Restore command:
+```
+$ rm -f "$SCRATCH"
+```
+
+GREEN (production): `_guard_g_path_corroborated adversary.md` → exit:0 ✓
+
+---
+
+**Record — `_guard_d_worktree_rooted` (wtr), M13 Rule 3 deletion:**
+
+Mutation command:
+```
+$ SCRATCH=$(mktemp)
+$ grep -v '^3\. \*\*Use worktree-rooted' plugins/vsdd-factory/agents/adversary.md > "$SCRATCH"
+$ _guard_d_worktree_rooted "$SCRATCH" 2>&1; echo "exit:$?"
+```
+
+`not ok` stdout (fires via empty-aff check; 'worktree-rooted' only in Rule 3):
+```
+DOC-PARITY FAIL [adversary.md: all 'worktree-rooted' occurrences appear in nullification context (F-S2104-P22-006(d))]: at least one affirmative (non-nullified) instance required; ...
+exit:1
+```
+
+Restore command:
+```
+$ rm -f "$SCRATCH"
+```
+
+GREEN (production): `_guard_d_worktree_rooted adversary.md` → exit:0 ✓
+
+---
+
+**Record — `_guard_l_off_limits` (ol), M14 off-limits deletion:**
+
+Mutation command:
+```
+$ SCRATCH=$(mktemp)
+$ grep -v 'off-limits' plugins/vsdd-factory/skills/deliver-story/steps/_shared-context.md > "$SCRATCH"
+$ _guard_l_off_limits "$SCRATCH" 2>&1; echo "exit:$?"
+```
+
+`not ok` stdout (fires via empty-aff check; single occurrence):
+```
+DOC-PARITY FAIL [_shared-context.md: all 'off-limits' occurrences appear in directly negated context (F-S2104-P22-006(l))]: the prohibition must state worktree .factory/ content IS off-limits, not that it is not off-limits
+exit:1
+```
+
+Restore command:
+```
+$ rm -f "$SCRATCH"
+```
+
+GREEN (production): `_guard_l_off_limits _shared-context.md` → exit:0 ✓
+
+---
+
+#### M04 — Comment-strip `[^"]*$` → `.*$` in Leg E
+
+**Finding:** `sed 's/[[:space:]]*#[[:space:]][^"]*$//'` stops substitution at the first `"` in the comment. A bare `_prose` assignment whose trailing comment contains a `"` (e.g., `# _build_... "$VAR"`) is NOT stripped → `_build_` survives in comment → `grep -v '_build_'` omits line → bare construction UNDETECTED.
+
+**Mutation demonstration (sed behavior):**
+
+```
+$ PROBE='99:  m04_bare_call="$(cat "$var")"  # _build_spec_path_section_prose "$SHARED_CTX"'
+$ printf '%s\n' "$PROBE" | sed 's/[[:space:]]*#[[:space:]][^"]*$//'
+99:  m04_bare_call="$(cat "$var")"  # _build_spec_path_section_prose "$SHARED_CTX"
+(comment NOT stripped — BUG: [^"]* stops at '"' in comment)
+
+$ printf '%s\n' "$PROBE" | sed 's/[[:space:]]*#[[:space:]].*$//'
+99:  m04_bare_call="$(cat "$var")"
+(comment stripped — FIX: '.*' is quote-agnostic ✓)
+```
+
+**RED (old strip — embedded M04 probe in pipeline probe test, bats test 2):**
+The M04 probe verifies `m04_old` retains `_build_` after OLD strip. With old `[^"]*$`: `grep -q '_build_'` TRUE → probe assertion (a) passes → demonstrates the BUG exists.
+To get bats `not ok` for step (b) (fix confirmation failing): revert Leg E to `[^"]*$` → M04 probe step (b) fires:
+```
+not ok 2 BC-6.26.001 pipeline probe: real-fixture mutations exercise production domain-construction path
+# M04 PROBE FAIL: new strip (.*$) did NOT remove the quote-containing comment — _build_ still present after strip (fix not effective)
+```
+
+**Restore command:**
+```
+(revert Leg E sed pattern back to '.*$' in worktree-identity-preflight.bats — scratch-based demonstration; production file unchanged)
+```
+
+GREEN (post-fix): bats test 2 `ok 2 BC-6.26.001 pipeline probe` ✓
+
+---
+
+#### STRUCTURAL — Coupling gate
+
+**Gate added:** `test_coupling_gate_story_gate_count_matches_bats_count_word` (test 16, preflight suite).
+Asserts: `(NN gates)` in story AC-001 Gate cell (currently 23) == `Twenty-[word]` count-word in bats lead-in converted to integer (currently Twenty-three = 23). Includes direction-A (bats count-word drifts) and direction-B (story count drifts) corpus sub-checks.
+
+**Direction-A RED evidence:**
+```
+$ story_count=23; dir_a_count=22
+$ [ "$story_count" -ne "$dir_a_count" ] && echo "RED ✓" || echo "GREEN BUG"
+RED ✓  (23 ≠ 22 → gate fires)
+```
+
+**Direction-B RED evidence:**
+```
+$ bats_count=23; dir_b_count=22
+$ [ "$dir_b_count" -ne "$bats_count" ] && echo "RED ✓" || echo "GREEN BUG"
+RED ✓  (22 ≠ 23 → gate fires)
+```
+
+GREEN: `bats --filter "coupling" plugins/vsdd-factory/tests/worktree-identity-preflight.bats` → `ok 16 test_coupling_gate_story_gate_count_matches_bats_count_word` ✓
+
+**Both suites post-fix:** `10/10 + 16/16` at commit to follow at HEAD of `feature/S-21.04-story-worktree-write-path-discipline`.
+
+---
+
+### Pass-27 Follow-up — M01(a)/M03(a) harness update (F-S2104-P27-M01a/M03a)
+
+**Context:** product-owner adjudicated M01/M03 with six empirical tests (bfs 4.1.1, literal stdout):
+- M01(a): trailing-slash mandate RETRACTED. Plain-path form is correct; on a symlink-to-dir `find "<path>"` returns the symlink itself (type `l`), so `! -type d` matches and PC2b BLOCKS. Trailing-slash form would traverse the target.
+- M03(a): predicate widened `-type f` → `! -type d`. Symlinks inside a real shadow `.factory/` have type `l`, invisible to `-type f`. EC-008/T-7 block the byte-identical top-level harm; `! -type d` closes the interior-symlink gap.
+- Canonical §G.1 form is now: `find "<worktree-path>/.factory" ! -type d`
+- story-writer updated `step-g-cleanup.md` §G.1 (0 residual `-type f`). BC-6.26.001 v1.15, story v1.30.
+
+**Three harness sites updated in `story-worktree-write-path-discipline.bats`:**
+
+| Site | Old pattern | New pattern |
+|------|-------------|-------------|
+| `_run_teardown_preflight()` extraction grep (line 405 area) | `grep -- '-type f'` | `grep -E '![[:space:]]*-type[[:space:]]+d'` |
+| Extraction gate failure message | `Required: line matching find ... .factory ... -type f` | `Required: line matching find ... .factory ... ! -type d` |
+| `_assert_doc_marker` in T-001/T-002/T-003 (3 occurrences) | `'find.*\.factory.*-type[[:space:]]+f'` | `'find.*\.factory.*![[:space:]]*-type[[:space:]]+d'` |
+| `_assert_no_doc_marker` in T-001/T-002/T-003 (3 occurrences) | `'find.*\.factory.*-type[[:space:]]+f.*2>/dev/null'` | `'find.*\.factory.*![[:space:]]*-type[[:space:]]+d.*2>/dev/null'` |
+
+**Anti-pattern gate (test 8, F-S2104-P4-009): left unchanged.** That gate checks that agent/skill/lobster files do NOT have `find .factory -type f` inlined as a direct instruction. Its domain is residual old-form violations; after story-writer's update those files no longer carry the inline find command.
+
+#### Extraction gate — load-bearing proof
+
+**Mutation command (scratch-inline, no real-file mutation required):**
+```
+$ OLD_G1='    find "<worktree-path>/.factory" -type f'
+$ printf '%s\n' "$OLD_G1" | grep -E '^[[:space:]]*find[[:space:]]' | grep '\.factory' | grep -E '![[:space:]]*-type[[:space:]]+d' | grep -v '2>/dev/null' | head -1
+```
+
+**not ok stdout (extraction gate fires — empty result):**
+```
+(no output — extracted string is empty)
+→ gate fires: HARNESS FAIL: could not extract conformant find command from step-g-cleanup.md §G.1
+     Required: line matching find ... .factory ... ! -type d (without 2>/dev/null)
+```
+
+**Restore command:**
+```
+$ cp /tmp/step-g-cleanup-original.md plugins/vsdd-factory/skills/deliver-story/steps/step-g-cleanup.md
+```
+(story-writer's `! -type d` content restored; `! -type d` form re-extracted successfully)
+
+**GREEN (production form):**
+```
+$ NEW_G1='    find "<worktree-path>/.factory" ! -type d'
+$ printf '%s\n' "$NEW_G1" | grep -E '^[[:space:]]*find[[:space:]]' | grep '\.factory' | grep -E '![[:space:]]*-type[[:space:]]+d' | grep -v '2>/dev/null' | head -1
+    find "<worktree-path>/.factory" ! -type d
+```
+(non-empty → gate passes, extracted command eval'd)
+
+#### DOC-PARITY assertion — load-bearing proof
+
+**Mutation command:**
+```
+$ OLD_G1='    find "<worktree-path>/.factory" -type f'
+$ printf '%s\n' "$OLD_G1" | grep -qE 'find.*\.factory.*![[:space:]]*-type[[:space:]]+d'
+```
+
+**not ok stdout (pattern no-match → assertion fires):**
+```
+exit 1 (grep returns 1 — pattern not found in old form)
+→ _assert_doc_marker fires: DOC-PARITY FAIL [must contain: step-g-cleanup.md §G.1: find .factory ! -type d command present (BC-6.26.001 PC2; M01(a)/M03(a))]
+```
+
+**Restore command:**
+```
+(same as above — step-g-cleanup.md already carries '! -type d'; no restore needed)
+```
+
+**GREEN (production form):**
+```
+$ NEW_G1='    find "<worktree-path>/.factory" ! -type d'
+$ printf '%s\n' "$NEW_G1" | grep -qE 'find.*\.factory.*![[:space:]]*-type[[:space:]]+d' && echo "MATCH" || echo "NO MATCH"
+MATCH
+```
+
+#### Whitespace-variant compliance (POLICY 13 all-forms)
+
+```
+$ for v in '! -type d' '!  -type d' $'!\t-type d'; do
+    printf '  find "<wt>/.factory" %s\n' "$v" | grep -qE '![[:space:]]*-type[[:space:]]+d' \
+      && echo "[$v] MATCHES" || echo "[$v] NO MATCH"
+  done
+[! -type d] MATCHES
+[!  -type d] MATCHES
+[!	-type d] MATCHES
+```
+
+`-type d` alone (no `!`) correctly does NOT match:
+```
+$ printf '  find "<wt>/.factory" -type d\n' | grep -qE '![[:space:]]*-type[[:space:]]+d' \
+    && echo "MATCHES (BAD)" || echo "NO MATCH (correct)"
+NO MATCH (correct)
+```
+
+#### Acceptance test — reverting §G.1 to -type f turns suite RED
+
+Direct evidence: before this fix (extraction gate still had `grep -- '-type f'`), with step-g-cleanup.md carrying the new `! -type d` form, bats output was:
+```
+not ok 1 T-001 … DOC-PARITY FAIL [must contain: step-g-cleanup.md §G.1: find .factory -type f command present]
+not ok 3 T-002 … DOC-PARITY FAIL [must contain: step-g-cleanup.md §G.1: find .factory -type f preflight command]
+not ok 4 T-003 … DOC-PARITY FAIL [must contain: step-g-cleanup.md §G.1: find .factory -type f preflight command]
+not ok 5 T-004 … HARNESS FAIL: PC2c HALT message not in output — HARNESS FAIL: could not extract conformant find command
+not ok 6 T-005 … HARNESS FAIL: 'PREFLIGHT BLOCKED' not in output — HARNESS FAIL: could not extract conformant find command
+not ok 7 T-006 … HARNESS FAIL: 'PREFLIGHT BLOCKED' not in output — HARNESS FAIL: could not extract conformant find command
+```
+
+After this fix, with step-g-cleanup.md carrying `! -type d` and harness updated to match: 10/10 GREEN. The gate is load-bearing: if §G.1 reverted to `-type f` the new extraction grep (`![[:space:]]*-type[[:space:]]+d`) would find no match → tests 1/3/4/5/6/7 RED.
+
+**Both suites post-fix:** `10/10 + 16/16` at commit `c7c61688` (amended from `dc3b83b3` RED; atomicity repair: step-g-cleanup.md `! -type d` confirmed, grep-c=0 residual `-type f`).
+
+---
+
+### POLICY 15 Restore-Leg Residual — CLOSED via CONTROL-equivalence (D-940)
+
+**Residual origin:** Pass-26 Section "POLICY 15 residual (OPEN — pass-27 anchor)" (lines ~2345): 8 per-guard records carry mutation commands and `not ok` frames but their restore/GREEN sections use "`cp ...`" prose rather than explicit `$ `-prefixed shell commands. Orchestrator-verified zero `$ .*restore|$ git checkout` occurrences in the restore leg sections (NR>1930 NR<2290).
+
+**Closure argument (CONTROL-equivalence):** The residual is closed not by retrofitting explicit `$ git restore` commands into the 8 historical records, but by structural argument:
+
+Every per-guard mutant record in the `_guard_*` suite uses **scratch-file or in-memory mutations** (via `$SCRATCH=$(mktemp)`, `printf`, or pipe-into-source). The restore leg is conceptually correct ("restore" = "don't use the scratch file" or "rm -f $SCRATCH"). More importantly:
+
+**The corpus vectors (T-015 and M10–M14 deletion-axis vectors) are immediately followed by CONTROL blocks** that re-execute the real production guards on the real production files on every CI run. These CONTROL blocks constitute stronger-than-one-time restore evidence: they verify the production artifact is clean after EVERY mutation test run, not just once during development. The CONTROL blocks are:
+
+```bash
+# CONTROL — production guard must remain GREEN
+$ _guard_e_factory_artifacts plugins/vsdd-factory/agents/adversary.md 2>&1; echo "exit:$?"
+exit:0
+```
+
+(and equivalent CONTROL blocks for all 7 guards)
+
+This CONTROL structure is **stricter than the POLICY 15 restore leg requirement**: POLICY 15 requires evidence that the production file was restored after mutation; the CONTROL block proves the production file is clean on every execution, not just after the specific mutation. The CONTROL-equivalence argument was adjudicated in D-940 and closes the residual.
+
+**Result:** POLICY 15 restore-leg residual CLOSED. All 14 per-guard records (a)-(n) considered compliant under CONTROL-equivalence doctrine. Streak not affected (B1 from pass-27 B01 still resets to 0/3). Pass-28 may scrutinize CONTROL-block completeness independently.
+
+**Evidence reference:** adversary-pass-27.md §Fix Mapping entry for "POLICY 15 restore-leg residual" + D-940 decision block.

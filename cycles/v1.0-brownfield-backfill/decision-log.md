@@ -13947,3 +13947,58 @@ D-939-H04-CLOSED-RECORD-CORRECTION
 ### Date
 
 2026-07-28
+
+---
+
+## D-940
+
+### Title
+
+S-21.04 pass-27 record burst — adversary-pass-27.md + 7 findings ALL CLOSED + POLICY 15 residual CLOSED + 4-index update + 7 lessons
+
+### Decision
+
+Record S-21.04 adversarial pass-27 in factory-artifacts. Allocate D-940 as the sentinel for the fix burst.
+
+**Pass-27 summary:** B1/H2/M4/L0 = 7 findings, ALL CLOSED at `c7c61688`. POLICY 15 restore-leg residual closed via CONTROL-equivalence argument (corpus vectors immediately followed by CONTROL blocks re-executing real guards on every CI run — stronger equivalent of a one-time restore leg). Streak 0/3 (B1 resets). Trajectory tail →6→17→11→7.
+
+**Key findings:**
+- **B01** — `_guard_*` any-affirmative family location-blind: deletion axis. Fix: positional conjunct added to all 7 helpers via awk section extraction; corpus M10–M14. SHAPE change, not vocabulary change. Four axes total on this family; this is the first fix that would catch clause deletion.
+- **H01** — `_guard_e_factory_artifacts` vestigial pre-filter. Fix: `grep -iv` exclusion removed; TD-VSDD-060 sibling sweep. Pass-26 fixed the write-directive gate but did not sweep this sibling.
+- **H02** — AC-001 Gate cell count-word stale (`Twenty-one`→`Twenty-three`); volatile `line 638` pin; stale deferral. Fix: corrected + coupling gate T-016 added (`test_coupling_gate_story_gate_count_matches_bats_count_word`). Ninth consecutive failure of prose mandate ended by mechanical gate.
+- **M01/M02/M03** — BC-6.26.001 body: trailing-slash retracted (plain-path); 14 live sites normalized; `-type f`→`! -type d`; EC-009 added. BC body §Description/§Preconditions/§Invariants/§Canonical-Test-Vectors audited first time in 27 passes.
+- **M04** — Leg E comment-strip `[^"]*$`→`.*$`.
+- **POLICY 15 residual** — CLOSED via CONTROL-equivalence.
+
+**Provenance:** ADR-033 cross-family limitation; adversary retracted PC2b-ungated hypothesis (genuine analysis evidence); `model: opus` → `claude-opus-5`.
+
+**Atomicity note:** `c7c61688` amended from RED commit `8ae161f8` (harness expected `! -type d` while committed doc still read `-type f`). Local-only branch; no force-push required.
+
+### Sentinel replacements
+
+`D-{TBD-pass-27-fix-burst}` → `D-940` at 5 sites:
+- `specs/behavioral-contracts/ss-06/BC-6.26.001.md` × 3 (frontmatter last_amended, frontmatter modified[], changelog row)
+- `stories/S-21.04-story-worktree-write-path-discipline.md` × 2 (frontmatter last_amended, frontmatter modified[])
+
+Sentinel sweep: `grep -rn "D-{TBD-pass-27" .factory/specs .factory/stories` → 0 results. Legacy 9 BC-INDEX sentinels confirmed (BC-5.39.009; pre-existing debt).
+
+### 4-INDEX
+
+| Index | Before | After | Change |
+|-------|--------|-------|--------|
+| BC-INDEX | v4.36 | v4.37 | BC-6.26.001 v1.14→v1.15 |
+| VP-INDEX | v2.72 | v2.72 | UNCHANGED |
+| STORY-INDEX | v4.271 | v4.272 | S-21.04 v1.29→v1.30; input-hash 04b393e→d6d6a6a |
+| ARCH-INDEX | v3.37 | v3.37 | UNCHANGED |
+
+### Lessons
+
+7 L-BB-* lessons appended to lessons.md — see lessons.md for full text.
+
+### Phase
+
+D-940-PASS-27-FINDINGS-CLOSED
+
+### Date
+
+2026-07-28

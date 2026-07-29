@@ -9347,3 +9347,122 @@ Three consecutive fix reports in the S-21.04 cascade supplied incomplete regress
 **Cites:** D-939 (this burst); POLICY 15 (D-889); TD-VSDD-091; adversary-pass-26.md Fix Mapping.
 
 **Closes:** D-939 policy15-editorial-not-producible lesson. `[process-gap; policy15; not-producible; editorial; TD-VSDD-091; scope-boundary; D-939]`
+
+---
+
+## [[L-BB-harden-predicate-shape-not-mutant-vocabulary]]
+
+**Category:** [process-gap]
+**Date:** 2026-07-28
+
+**Summary:** B01 is the third "closure" of the `_guard_*` any-affirmative family along a third axis (pass-25: `head -1`; pass-26: in-place annotation; pass-27: deletion). A location-blind any-affirmative gate structurally cannot detect removal of the clause it protects — so each vocabulary widening merely relocates the hole rather than closing the axis class. The remedy: a positional conjunct anchoring the affirmative assertion to its numbered clause inside the bounded section. Pass-27 is the first fix that changed the predicate's SHAPE rather than its vocabulary, and is the first fix that would catch clause deletion.
+
+**Pattern rule:** When a finding recurs across multiple passes on the same guard family, ask: "Is the fix hardening the predicate's SHAPE, or just the predicate's vocabulary for the specific mutant?" If the answer is vocabulary only, the fix will fail on the next axis. Shape-change = positional/structural constraint that holds regardless of vocabulary. Vocabulary-change = adding/removing a specific token pattern that the next mutant sidesteps.
+
+**Anchors:** B01; F-S2104-P27-B01; `_guard_*` family; location-blind; deletion axis; positional conjunct; predicate shape; predicate vocabulary; axis class.
+
+**Cites:** D-940 (this burst); F-S2104-P25-B01; F-S2104-P26-B01; F-S2104-P27-B01; adversary-pass-27.md.
+
+**Closes:** D-940 harden-predicate-shape lesson. `[process-gap; guard-family; predicate-shape; deletion-axis; axis-class; B01; D-940]`
+
+---
+
+## [[L-BB-starved-audit-surface-needs-mandated-order-not-restatement]]
+
+**Category:** [process-gap]
+**Date:** 2026-07-28
+
+**Summary:** BC-6.26.001's body sections went unswept for 26 passes because two consecutive dispatches ranked the 2971-line bats suite first and exhausted the context budget. Explicitly ordering the BC body as priority-1 and forbidding bats truncation produced three novel findings (M01/M02/M03) on its first successful audit, including M03 — a real detection gap where `-type f` missed symlinks inside real shadow directories.
+
+**Pattern rule:** When an audit surface has been explicitly starved twice in a row (budget used up before reaching it), a priority-restatement in the next dispatch prompt will fail for the same reason. Instead: (1) MANDATE the surface as priority-1 and NAME what may be truncated instead (bats in this case); (2) forbid truncation of the mandated surface explicitly. This is stronger than a priority hint because it gives the adversary permission to skip a lower-priority surface rather than trying to fit everything.
+
+**Anchors:** BC-6.26.001; audit-starvation; budget-exhaustion; mandated-order; priority-1; bats-truncation; M01; M02; M03.
+
+**Cites:** D-940 (this burst); adversary-pass-27.md Completeness Statement; F-S2104-P27-M01/M02/M03.
+
+**Closes:** D-940 starved-audit-surface lesson. `[process-gap; audit-starvation; mandated-order; budget-exhaustion; BC-body; D-940]`
+
+---
+
+## [[L-BB-mechanical-gates-end-prose-mandate-classes]]
+
+**Category:** [process-gap]
+**Date:** 2026-07-28
+
+**Summary:** The coupling mandate (AC-001 Gate cell count-word parity with bats) failed nine consecutive times while being restated in prose each time. A ~10-line mechanical gate (T-016 `test_coupling_gate_story_gate_count_matches_bats_count_word`) caught the very next drift on its first run, validating the correction immediately. Consistent with L-EDP1-007/051/061.
+
+**Pattern rule:** If a prose mandate has failed more than twice, it will continue to fail as prose. The fix is not a better restatement — it is a mechanical gate. The gate does not need to be elaborate: T-016 is ~10 lines asserting story gate count = grepped bats value, with both drift directions proven. Once the gate exists, the prose mandate becomes redundant (the gate is the enforcement); the prose can stay for documentation but is no longer load-bearing.
+
+**Anchors:** coupling-mandate; prose-mandate; mechanical-gate; T-016; H02; count-word-parity; AC-001-Gate; nine-consecutive-failures.
+
+**Cites:** D-940 (this burst); L-EDP1-007; L-EDP1-051; L-EDP1-061; F-S2104-P27-H02; adversary-pass-27.md.
+
+**Closes:** D-940 mechanical-gates-end-prose-mandate-classes lesson. `[process-gap; mechanical-gate; prose-mandate; coupling-mandate; H02; T-016; D-940]`
+
+---
+
+## [[L-BB-orchestrator-non-atomic-interlocked-commit-error]]
+
+**Category:** [process-gap]
+**Date:** 2026-07-28
+
+**Summary:** Orchestrator instructed test-writer not to commit another agent's file while the two changes (step-g-cleanup.md §G.1 and bats harness extraction gate) were only valid together. This produced RED commit `8ae161f8`: harness expected `! -type d` while the committed doc still read `-type f`. Repaired by non-destructive amend to `c7c61688`. Local-only branch, no force-push required.
+
+**Pattern rule:** When two edits are only jointly valid (neither is correct without the other), assign the commit to the PAIR rather than per-agent, and state explicitly that the commit must be atomic. Do not instruct one agent to "not commit" another agent's file — instruct both agents that BOTH files must land in a single commit. The amend path (non-destructive, local-only) is the correct recovery when the branch is unpushed.
+
+**Anchors:** orchestrator-error; non-atomic-commit; interlocked-edits; RED-commit; amend; `8ae161f8`→`c7c61688`; step-g-cleanup; bats-harness; atomicity.
+
+**Cites:** D-940 (this burst); `8ae161f8`; `c7c61688`; adversary-pass-27.md Workstream 3 atomicity note.
+
+**Closes:** D-940 orchestrator-non-atomic-interlocked-commit lesson. `[process-gap; orchestrator-error; atomicity; interlocked-commit; RED-commit; D-940]`
+
+---
+
+## [[L-BB-verify-state-after-agent-death-before-resuming]]
+
+**Category:** [process-gap]
+**Date:** 2026-07-28
+
+**Summary:** story-writer was killed by an API stall immediately before its first edit. Verifying the worktree was clean (no partial damage) before resuming confirmed no data was lost, and resuming from transcript preserved its completed research rather than re-reading ~130k tokens.
+
+**Pattern rule:** After an agent dies mid-task (API stall, timeout, context exhaustion), before resuming: (1) run `git -C .factory status --short` (or equivalent) to confirm no partial writes; (2) check the worktree for any uncommitted half-edits; (3) only then resume the agent from transcript. This costs ~30 seconds and prevents silent partial-damage accumulation. The research is preserved in transcript regardless of whether the agent committed; re-reading is wasteful.
+
+**Anchors:** agent-death; API-stall; mid-task-kill; state-verification; worktree-check; transcript-resume; partial-damage.
+
+**Cites:** D-940 (this burst); adversary-pass-27.md Workstream 5.
+
+**Closes:** D-940 verify-state-after-agent-death lesson. `[process-gap; agent-death; API-stall; state-verification; resume; D-940]`
+
+---
+
+## [[L-BB-positive-discipline-adjudication-not-deferral]]
+
+**Category:** [process-gap]
+**Date:** 2026-07-28
+
+**Summary:** product-owner adjudicated two genuine specification decisions (M01 trailing-slash retraction; M03 predicate widening) with six empirical tests and named the binary (`bfs 4.1.1`) — no "pending architect review" placeholder. story-writer correctly distinguished the FORBIDDEN anti-pattern site from normative usage and left it intact. test-writer correctly left the orthogonal anti-pattern gate and historical corpus notes alone. All three are the Companion Principle working: specialists stayed in their domain, adjudicated rather than deferred, and did not silently over-correct into adjacent domains.
+
+**Pattern rule:** Adjudication is a first-class deliverable of the specialist role. When a BC body change requires a genuine specification decision (not just a consistency fix), the specialist (product-owner) should: (1) name the candidate options explicitly; (2) run empirical tests; (3) name the binary/version; (4) state the decision with rationale inline. This is production-grade behaviour. "Pending architect review" is appropriate only for cross-component decisions genuinely beyond the specialist's scope.
+
+**Anchors:** product-owner; adjudication; empirical-tests; bfs-4.1.1; M01; M03; trailing-slash; predicate-widening; Companion-Principle; anti-pattern-site; orthogonal-gate.
+
+**Cites:** D-940 (this burst); adversary-pass-27.md Workstream 2; CLAUDE.md Canonical Principle §Six rules rule-6; CLAUDE.md Companion Principle.
+
+**Closes:** D-940 positive-discipline-adjudication lesson. `[process-gap; product-owner; adjudication; Companion-Principle; empirical-tests; D-940]`
+
+---
+
+## [[L-BB-behavioural-widening-flag-for-next-pass]]
+
+**Category:** [process-gap]
+**Date:** 2026-07-28
+
+**Summary:** M03(a) means the teardown preflight now blocks on FIFOs, sockets and device nodes inside the shadow tree, not merely regular files and symlinks. product-owner argued no false positives (nothing legitimate should ever exist there; empty directory verified clean), but this genuinely widens *when teardown is blocked*. The adversary flagged this for pass-28 scrutiny rather than filing it as a finding — the empirical tests are compelling but the widening deserves independent re-derivation on its own terms.
+
+**Pattern rule:** When a BC predicate is widened (not just tightened), the widening should be scrutinized in the next adversary pass independently of the implementer's empirical tests. "Empirical tests show no false positives on empty directory" is necessary but not sufficient — the next adversary should derive from first principles: what other inputs are plausible; what does "type not d" match that "type f" did not; are any of those inputs legitimate? File as a carry-forward note, not as a finding, if the widening is well-argued. This is honest prospective disclosure, not a defect.
+
+**Anchors:** M03(a); behavioural-widening; `! -type d`; FIFOs; sockets; device-nodes; false-positive-domain; empirical-tests; independent-re-derivation; pass-28-lead.
+
+**Cites:** D-940 (this burst); F-S2104-P27-M03; adversary-pass-27.md Completeness Statement; BC-6.26.001 v1.15 EC-009.
+
+**Closes:** D-940 behavioural-widening-flag lesson. `[process-gap; behavioural-widening; false-positive; pass-28-lead; M03a; D-940]`
