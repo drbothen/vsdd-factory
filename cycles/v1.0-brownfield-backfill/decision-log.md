@@ -13754,3 +13754,101 @@ D-937-PASS-25-FINDINGS-CLOSED
 ### Date
 
 2026-07-28
+
+---
+
+## D-938
+
+### Dim-1: Identity + Context
+
+**Role:** state-manager (this commit)
+**Date:** 2026-07-28
+**Burst label:** D-938-PASS-26-FINDINGS-CLOSED-H04-OPEN
+**Parent commit (factory-artifacts):** `4c82cec0` — `factory(D-937-SHA-PATCH): update burst-log Block 8 with actual burst SHA`
+
+Pass-26 record burst. adversary-pass-26.md persisted (B2/H4/M3/L2 = 11 findings; NOT-CLEAN; novelty HIGH; streak 0/3; ADR-033 same-family limitation; POLICY 22 two-direction record). State-manager workstreams: (WS1) adversary-pass-26.md persisted; (WS2) D-{TBD-pass-26-fix-burst} → D-938 sentinels replaced 6 sites (ARCH-INDEX ×2, ADR-031 ×2, story ×2); (WS3) orchestrator B01/B02 acceptance evidence recorded verbatim; (WS4) red-gate-log.md v1.23→v1.24 (Summary HEAD 4dc27251→7c3338e7, Pass-26 summary table row, Pass-26 attestation section, H04 OPEN evidence gap, traces_to story v1.29, input-hash 101b1e6→044b138); STORY-INDEX v4.270→v4.271 (S-21.04 row story v1.28→v1.29 + input-hash 242b539→04b393e + P26 refs + blockquote three-way parity); INDEX.md pass-26 row + Convergence Status (trajectory tail →14→6→17→11); decision-log.md D-938 (this entry); lessons.md 8 new L-BB-* lessons; burst-log.md 8-block entry; STATE.md frontmatter v6.69→v6.70. Note: H04 explicitly OPEN — per-guard mutant evidence for P25-B02/-H02/-M01/-M02/-M08 requested twice, not produced; recorded OPEN per honest-recording discipline (production-grade Canonical Principle Rule 4).
+
+### Dim-2: Mandatory Gates
+
+**(a) POLICY 16 GLOBAL-MAX GATE (literal shell):**
+```
+$ grep "^## D-" .factory/cycles/v1.0-brownfield-backfill/decision-log.md | grep -E "## D-[0-9]+$" | sort -t'-' -k2 -n | tail -5
+## D-935
+## D-935
+## D-936
+## D-936
+## D-937
+```
+D-937 confirmed as current max (numeric sort). D-938 allocated.
+
+**(b) POLICY 14 4-INDEX LITERAL SHELL (post-burst; STORY-INDEX bumped this burst; ARCH-INDEX bumped by architect for M03 pass-26 fix at 7c3338e7):**
+```
+$ grep "^version:" .factory/specs/behavioral-contracts/BC-INDEX.md | head -1
+version: "4.36"
+$ grep "^version:" .factory/specs/verification-properties/VP-INDEX.md | head -1
+version: "2.72"
+$ grep "^version:" .factory/stories/STORY-INDEX.md | head -1
+version: "4.271"
+$ grep "^version:" .factory/specs/architecture/ARCH-INDEX.md | head -1
+version: "3.37"
+```
+BC v4.36 / VP v2.72 / STORY v4.271 / ARCH v3.37.
+
+**(c) SENTINEL PROOF (literal shell):**
+```
+$ grep -rn "D-{TBD-pass-26-fix-burst}" .factory/specs .factory/stories 2>/dev/null | grep -v ".git"
+(no output)
+```
+Zero live sentinels. All 6 D-{TBD-pass-26-fix-burst} occurrences replaced with D-938 (ARCH-INDEX ×2, ADR-031 ×2, story ×2).
+
+**(d) THREE-WAY EQUALITY GATE (literal shell):**
+```
+$ FRONT=$(grep "^input-hash:" .factory/stories/S-21.04-story-worktree-write-path-discipline.md | head -1 | grep -oE '"[0-9a-f]+"' | tr -d '"') && \
+  CAT=$(grep "^| S-21\.04 " .factory/stories/STORY-INDEX.md | grep -oE "input-hash [0-9a-f]+" | head -1 | awk '{print $2}') && \
+  BQ=$(grep "^> \*\*E-21 delivery" .factory/stories/STORY-INDEX.md | grep -oE "S-21\.04=[0-9a-f]+" | head -1 | cut -d= -f2) && \
+  echo "frontmatter: $FRONT  catalog: $CAT  blockquote: $BQ"
+frontmatter: 04b393e  catalog: 04b393e  blockquote: 04b393e
+```
+THREE-WAY EQUALITY: PASS. frontmatter=catalog=blockquote=04b393e.
+
+**(e) D-446(a) OWN-BURST-LOG 8-BLOCK GATE:** Verified in burst-log.md D-938 entry — all 8 D-444(c) blocks present (Block 1 parent commit, Block 2 adversary verdict, Block 3 files touched, Block 4 codifications, Block 5 Dim-2 literal shell stdout, Block 6 Dim-5, Block 7 Dim-6/7, Block 8 Closes + factory-artifacts commits).
+
+**(f) D-448(a) SOURCE-ATTESTATION GATE:** burst-log D-938 Adversary verdict paragraph faithfully describes adversary-pass-26.md Part A finding set: 11 findings (B2/H4/M3/L2); B01 anchor target unasserted; B02 guard family sweep named-only; H01-H04 HIGH class (AC-001 Gate cell, ADR-031 retracted claims, Leg E mechanisms, per-guard mutant evidence gap); M01-M03 MEDIUM class (T-015 inventories, gate scope, guard (k) fallback); L01-L02 LOW class (NON-FINDING adjudicated, unbalanced parenthesis); novelty HIGH; ADR-033 cross-family limitation; POLICY 22 both-directions record (concern-1 CONFIRMED; concern-2 REFUTED). H04 explicitly OPEN. Verified structurally against adversary-pass-26.md.
+
+### Dim-3: Work Performed
+
+**(a) WS1 — adversary-pass-26.md persisted.**
+
+`.factory/cycles/v1.0-brownfield-backfill/S-21.04/adversary-pass-26.md` created. Frontmatter: pass:26, verdict:NOT-CLEAN, reviewed_head:"4dc27251", fixes_landed_head:"7c3338e7", novelty:high, streak:"0/3", findings_count:11, severity_breakdown:"B2/H4/M3/L2". Full Part A finding set: B01-B02/H01-H04/M01-M03/L01-L02 (11 findings). Fix mapping: 10/11 CLOSED at 7c3338e7; H04 explicitly OPEN (per-guard mutant evidence gap). ADR-033 cross-family limitation acknowledged; POLICY 22 both-directions record (concern-1 CONFIRMED→B01 guard; concern-2 REFUTED with reasoning: removing `^` is fail-closed widening, not under-match).
+
+**(b) WS2 — D-{TBD-pass-26-fix-burst} sentinel replacement.**
+
+6 sentinels replaced with D-938: ARCH-INDEX.md (×2 in changelog rows), ADR-031-e21-factory-state-data-loss-hardening.md (×2 in D-938 rationale rows), S-21.04-story-worktree-write-path-discipline.md (×2 in changelog/modified rows). Story input-hash drift triggered by ADR-031 content change: f8845a9→04b393e (validated by dry-run compute-input-hash; three-way equality gate PASS).
+
+**(c) WS3 — orchestrator acceptance evidence recorded.**
+
+B01 acceptance evidence (verbatim): anchor-target flip mutant → `not ok 1 T-001` + `not ok 2 BC-6.26.001 pipeline probe`. B02 acceptance evidence (verbatim): guard-(f) nullification → `not ok 1 test_BC_adversary_id_bearing_globs_must_be_case_insensitive` + `not ok 1 test_BC_B01_corpus_regression_guards_e_co_and_g_pc`. Both recorded in red-gate-log.md §Pass-26 assertion-site attestation and in adversary-pass-26.md Part A.
+
+**(d) WS4 — red-gate-log.md, STORY-INDEX, INDEX.md, decision-log, lessons, burst-log, STATE.md updated.**
+
+red-gate-log.md: version 1.23→1.24; Summary HEAD 4dc27251→7c3338e7; Pass-26 summary table row; Pass-26 assertion-site attestation (B01/B02 evidence, H04 OPEN); H04 recorded OPEN per honest-recording discipline; traces_to story v1.29; input-hash 101b1e6→044b138. STORY-INDEX: v4.270→v4.271; S-21.04 story v1.28→v1.29; input-hash 242b539→04b393e; P26 refs appended; blockquote three-way parity 04b393e. INDEX.md: pass-26 row; Convergence Status trajectory tail →14→6→17→11; D-range D-895..D-938; 4-index BC v4.36/VP v2.72/STORY v4.271/ARCH v3.37. Lessons.md: 8 L-BB-* lessons appended. Burst-log.md: D-938 8-block entry. STATE.md: frontmatter v6.69→v6.70.
+
+### Dim-4: Notes
+
+**(a) Pass-26 closes 10 of 11 findings including both BLOCKERs.** B01 (anchor target unasserted across 26 passes) was the longest-standing open finding in the cascade — now closed with dedicated assertion + orchestrator mutant verification. B02 (guard family sweep named-only) closed by broadening sweep predicate. H04 recorded OPEN — per-guard mutant evidence for P25-B02/-H02/-M01/-M02/-M08 was requested twice during pass-25 fix burst and never produced.
+
+**(b) POLICY 22 both-directions record (orchestrator concerns).** Concern-1 (B01 guard substantiveness — does T-001 substantively assert the anchor target?) CONFIRMED: anchor-target flip fires both T-001 and BC-6.26.001 pipeline probe. Concern-2 (removing `^` from guard predicate is under-match per adversary claim) REFUTED with reasoning: removing `^` in grep patterns is fail-closed widening (more lines match → guard fires more readily → safer), not narrowing. Adversary was wrong; finding does not stand as filed. This is the first explicit two-direction POLICY 22 record in the S-21.04 cascade.
+
+**(c) H04 honest-recording discipline.** Recording H04 as CLOSED without actual per-guard mutant evidence would reproduce the exact defect class it describes. Production-grade Canonical Principle Rule 4: AI-built defects are the AI's responsibility to fix. The fix for H04 requires the per-guard mutant records themselves, not a paper closure. Recorded OPEN at pass-26; becomes pass-27 lead item.
+
+**(d) Three-way equality restored.** frontmatter=catalog=blockquote=04b393e. Gate PASS (literal shell, Dim-2(d)).
+
+**(e) 8 lessons appended.** Covering: gate-must-assert-substantive-claim; sweep-predicate-family-not-examples; lexical-exclusions-after-harm-predicate; parallel-dispatch-hazard-git-restore; h04-open-evidence-gap-honest-recording; orchestrator-verification-predicates-need-context; companion-principle-correct-routing-evidence; count-lead-in-drift-enumeration-sets.
+
+### Phase
+
+D-938-PASS-26-FINDINGS-CLOSED-H04-OPEN
+
+### Date
+
+2026-07-28

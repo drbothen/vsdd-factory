@@ -9160,3 +9160,139 @@ Three consecutive fix reports in the S-21.04 cascade supplied incomplete regress
 **Cites:** D-937 (this burst); M06 finding; adversary-pass-25.md §M06; TD-VSDD-091.
 
 **Closes:** D-937 volatile-pins-reintroduced-by-sweep lesson. `[process-gap; volatile-pin; TD-VSDD-091; sweep-burst; reintroduction; behavioral-anchor; D-937]`
+
+---
+
+## [[L-BB-gate-must-assert-substantive-claim]]
+
+**Category:** [process-gap]
+**Date:** 2026-07-28
+
+**Summary:** B01 (pass-26) found that a guard had tested the presence of an anchor token but never asserted that the anchor *target* — the substantive behavioral claim — was present and unmodified. The guard fired RED when the token was removed, but a mutant that replaced the target with a synonym or inert paraphrase would pass GREEN. A gate that only checks whether a label exists is a documentary gate, not a substantive gate.
+
+**Pattern rule:** Every guard that asserts the presence of a behavioral mandate MUST also assert the substance of that mandate. For adversary guards: grepping for the anchor string is necessary but not sufficient; the mandate's operative predicate (the "what you must do") must also be pattern-matched. Recommended: include one short behavioral clause from the mandate in the guard predicate, so anchor-target flip mutants produce RED.
+
+**Anchors:** B01; anchor-target; substantive-claim; documentary-gate; mutant-verification; D-938.
+
+**Cites:** D-938 (this burst); B01 finding; adversary-pass-26.md §B01; orchestrator mutant evidence (anchor-target flip → `not ok 1 T-001` + `not ok 2 BC-6.26.001 pipeline probe`).
+
+**Closes:** D-938 gate-must-assert-substantive-claim lesson. `[process-gap; anchor-target; substantive-gate; documentary-gate; mutant-verification; D-938]`
+
+---
+
+## [[L-BB-sweep-predicate-family-not-examples]]
+
+**Category:** [process-gap]
+**Date:** 2026-07-28
+
+**Summary:** B02 (pass-26) found that the guard family sweep was scoped to a hardcoded list of named guards rather than a predicate that covers the full guard family. When a new guard in the same family was added, it was not covered by the sweep. Listing examples instead of a family predicate is a form of scope decay: the list is always one item behind the code.
+
+**Pattern rule:** When writing a sweep or multi-guard test, define the scope as a structural predicate (e.g., "all functions matching `_guard_[a-z]_`") rather than an enumerated list. If a list is necessary for bootstrapping, add a count-assertion gate so that adding a new guard without updating the list produces a RED failure. Orchestrator acceptance evidence: guard-(f) nullification → `not ok 1 test_BC_adversary_id_bearing_globs_must_be_case_insensitive` + `not ok 1 test_BC_B01_corpus_regression_guards_e_co_and_g_pc`.
+
+**Anchors:** B02; sweep-predicate; family-predicate; enumerated-list; scope-decay; D-938.
+
+**Cites:** D-938 (this burst); B02 finding; adversary-pass-26.md §B02; orchestrator mutant evidence.
+
+**Closes:** D-938 sweep-predicate-family-not-examples lesson. `[process-gap; sweep-predicate; family-predicate; enumerated-list; scope-decay; D-938]`
+
+---
+
+## [[L-BB-lexical-exclusions-after-harm-predicate]]
+
+**Category:** [process-gap]
+**Date:** 2026-07-28
+
+**Summary:** M03 (pass-26) found that a guard's fail-open fallback returned success when the harm predicate (the thing the guard is trying to detect) was present but accompanied by a lexical exclusion. The `|| true` fallback made the guard structurally fail-open: any condition that triggered the fallback — including a genuine violation accompanied by an exclusion keyword — would silently pass. Lexical exclusions are fine for reducing false positives, but must never be positioned after a harm predicate such that they swallow genuine violations.
+
+**Pattern rule:** In guard predicates that use lexical exclusions, the exclusion must be applied BEFORE the harm test, not as a catch-all after. Pattern: `grep HARM_CLASS | grep -v EXCLUSIONS` is correct. `grep HARM_CLASS || true` is fail-open. The `|| true` idiom is appropriate only for setup/teardown steps that genuinely should not propagate errors.
+
+**Anchors:** M03; guard-k; fail-open; lexical-exclusion; harm-predicate; || true; D-938.
+
+**Cites:** D-938 (this burst); M03 finding; adversary-pass-26.md §M03.
+
+**Closes:** D-938 lexical-exclusions-after-harm-predicate lesson. `[process-gap; guard; fail-open; lexical-exclusion; harm-predicate; D-938]`
+
+---
+
+## [[L-BB-parallel-dispatch-hazard-git-restore]]
+
+**Category:** [process-gap]
+**Date:** 2026-07-28
+
+**Summary:** H04 (pass-26) identified that a parallel multi-agent dispatch included a `git restore` in one specialist's work. The constraint "do NOT run `git restore`/`git checkout`/`git stash` in the feature worktree" was set by the orchestrator for a specific reason: a concurrent specialist may have an in-progress mutation that `git restore` would silently undo, producing a false GREEN or an invisible regression. In parallel dispatch, any destructive file operation by one specialist can corrupt the working state of another.
+
+**Pattern rule:** When dispatching specialists in parallel over a shared worktree, the orchestrator MUST explicitly state which operations are forbidden for each specialist. `git restore` / `git checkout --` / `git stash` are destructive operations that assume no concurrent modifications — they MUST NOT be issued in a parallel dispatch context. Each specialist must use `cp`-based or in-place mutation+restore patterns instead.
+
+**Anchors:** H04; parallel-dispatch; git-restore; concurrent-mutation; worktree; D-938.
+
+**Cites:** D-938 (this burst); H04 finding; adversary-pass-26.md §H04; CLAUDE.md git safety protocol.
+
+**Closes:** D-938 parallel-dispatch-hazard-git-restore lesson. `[process-gap; parallel-dispatch; git-restore; concurrent-mutation; worktree; D-938]`
+
+---
+
+## [[L-BB-h04-open-evidence-gap-honest-recording]]
+
+**Category:** [process-gap]
+**Date:** 2026-07-28
+
+**Summary:** H04 (pass-26) could not be closed because the required per-guard mutant records for P25-B02/-H02/-M01/-M02/-M08 were requested twice during the pass-25 fix burst and never produced. Recording H04 as CLOSED without those records would reproduce the exact defect class the finding describes: a closure claim with no executable verification evidence. Production-grade discipline requires honest recording of open evidence gaps rather than paper closures.
+
+**Pattern rule:** A finding that requires specific execution evidence (per-guard mutant records, POLICY 15 bats output, orchestrator verification) MUST NOT be recorded as CLOSED unless that evidence is literally present in the artifact. "The fix was applied" is not evidence. "Here is the captured stdout showing RED before and GREEN after" is evidence. When evidence is not available, record the finding as OPEN with an explanation of what evidence is missing and how to produce it.
+
+**Anchors:** H04; open-evidence-gap; honest-recording; paper-closure; per-guard-mutant; POLICY 15; D-938.
+
+**Cites:** D-938 (this burst); H04 finding; adversary-pass-26.md §H04; CLAUDE.md Canonical Principle Rule 4.
+
+**Closes:** D-938 h04-open-evidence-gap-honest-recording lesson. `[process-gap; evidence-gap; honest-recording; paper-closure; POLICY 15; D-938]`
+
+---
+
+## [[L-BB-orchestrator-verification-predicates-need-context]]
+
+**Category:** [process-gap]
+**Date:** 2026-07-28
+
+**Summary:** POLICY 22 concern-2 (pass-26) required the adversary to independently verify the orchestrator's claim that removing `^` from a guard predicate was an under-match (narrowing). The adversary's independent analysis found the claim was wrong: removing `^` from a grep pattern is fail-closed widening (more lines match), not narrowing. The orchestrator's concern was stated as a categorical claim without the grep-semantics context needed to evaluate it. Verification predicates submitted to the adversary must include enough technical context for independent evaluation.
+
+**Pattern rule:** When an orchestrator submits a verification concern to the adversary (POLICY 22), the concern MUST include: (a) the exact text or code being evaluated, (b) the claimed effect, and (c) enough context for the adversary to independently reason about the semantics. A concern stated as "removing `^` is under-match" without the surrounding grep pattern cannot be independently verified and risks CONFIRMED verdicts on non-defects.
+
+**Anchors:** POLICY 22; concern-2; REFUTED; orchestrator-context; grep-semantics; ^ anchor; D-938.
+
+**Cites:** D-938 (this burst); POLICY 22 both-directions record; adversary-pass-26.md §POLICY 22.
+
+**Closes:** D-938 orchestrator-verification-predicates-need-context lesson. `[process-gap; POLICY 22; orchestrator-concern; grep-semantics; context; D-938]`
+
+---
+
+## [[L-BB-companion-principle-correct-routing-evidence]]
+
+**Category:** [process-gap]
+**Date:** 2026-07-28
+
+**Summary:** H02 (pass-26) found that ADR-031 retained BC claims that had been retracted in the BC itself. The finding required both ADR content (architect domain) and BC content (product-owner domain) to be corrected atomically. In the pass-25 fix burst this was routed to devops-engineer (wrong specialist) rather than state-manager + architect + product-owner. Correct-agent-routing (Companion Principle) requires that the routing be based on which specialist owns the artifact domain, not which specialist is already in flight.
+
+**Pattern rule:** When a finding touches artifacts in multiple specialist domains (e.g., ADR = architect, BC = product-owner, spec prose = story-writer), the orchestrator MUST route each artifact to its owner. A finding that touches two domains requires two specialist dispatches (possibly in parallel). Routing all work to a convenient already-dispatched specialist violates domain ownership and produces domain-incompetent fixes.
+
+**Anchors:** H02; companion-principle; correct-routing; ADR-031; BC; domain-ownership; D-938.
+
+**Cites:** D-938 (this burst); H02 finding; adversary-pass-26.md §H02; CLAUDE.md Companion Principle.
+
+**Closes:** D-938 companion-principle-correct-routing-evidence lesson. `[process-gap; companion-principle; correct-routing; domain-ownership; D-938]`
+
+---
+
+## [[L-BB-count-lead-in-drift-enumeration-sets]]
+
+**Category:** [process-gap]
+**Date:** 2026-07-28
+
+**Summary:** M02 (pass-26) found that the write-directive gate scope (an enumeration of items to which the gate applied) had drifted from the authoring-constraint scope (the corresponding enumeration in the spec). The two enumerations were independently maintained and diverged when one was extended. Count lead-ins and enumeration sets are a two-location invariant: wherever the canonical set is defined, every citation of that set's cardinality or membership must be updated atomically.
+
+**Pattern rule:** Whenever a spec or gate defines a set of items (guards, surfaces, ACs, paths), identify all other artifacts that cite the cardinality or enumerate the same members. Apply any extension or contraction atomically across all citations in the same Edit/burst. Use COUNT-FREE forms where possible. Where counts are unavoidable, add a sibling-sweep grep to the burst-log Dim-2 evidence.
+
+**Anchors:** M02; count-lead-in; enumeration-set; scope-drift; write-directive-gate; authoring-constraint; D-938.
+
+**Cites:** D-938 (this burst); M02 finding; adversary-pass-26.md §M02; TD-VSDD-091; S-7.02 defensive-sweep discipline.
+
+**Closes:** D-938 count-lead-in-drift-enumeration-sets lesson. `[process-gap; count-lead-in; enumeration-set; scope-drift; authoring-constraint; D-938]`

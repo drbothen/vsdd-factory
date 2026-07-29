@@ -21427,3 +21427,135 @@ Three-way equality: story frontmatter=242b539, catalog=242b539, blockquote=242b5
 **factory-artifacts commits:**
 - Pre-burst parent-commit (factory-artifacts): `316d6c00` (D-936-SHA-PATCH)
 - This burst: `a86970a530d8bd33d6d1f7bc62150dfaa7d9703c` (`a86970a5`) — factory(D-937): pass-25 record — adversary-pass-25.md + 4-index BC4.36/STORY4.270/ARCH3.36 + 9 lessons + STATE v6.69
+
+---
+
+## D-938 — Pass-26 record burst (state-manager, 2026-07-28)
+
+### Block 1: Parent commit
+
+**Parent commit (factory-artifacts HEAD before this burst):** `4c82cec0` — `factory(D-937-SHA-PATCH): update burst-log Block 8 with actual burst SHA`
+
+### Block 2: Adversary verdict
+
+**Pass-26 adversary verdict:** NOT-CLEAN. 11 findings (B2/H4/M3/L2); novelty HIGH; streak 0/3 (B2 resets); ADR-033 cross-family limitation acknowledged; POLICY 22 both-directions record.
+
+**Finding summary:**
+- B01: Anchor target unasserted across 26 passes — guard checked token presence but not substantive mandate content. CLOSED at 7c3338e7 (dedicated assertion added; orchestrator-verified: anchor-target flip → `not ok 1 T-001` + `not ok 2 BC-6.26.001 pipeline probe`).
+- B02: Guard family sweep applied to named guards only — unnamed guards in same family not covered. CLOSED at 7c3338e7 (sweep broadened to full family predicate; orchestrator-verified: guard-(f) nullification → `not ok 1 test_BC_adversary_id_bearing_globs_must_be_case_insensitive` + `not ok 1 test_BC_B01_corpus_regression_guards_e_co_and_g_pc`).
+- H01: AC-001 Gate cell desynced with AC-001(a)/(b) split. CLOSED at 7c3338e7.
+- H02: ADR-031 retains retracted BC claims. CLOSED at 7c3338e7.
+- H03: Leg E closes only 1 of 3 mechanisms it should cover. CLOSED at 7c3338e7.
+- H04: red-gate-log §Pass-25 missing per-guard mutant verification for P25-B02/-H02/-M01/-M02/-M08. **OPEN** — evidence requested twice, not produced; recorded OPEN per honest-recording discipline.
+- M01: T-015 unregistered in 4 inventories. CLOSED at 7c3338e7.
+- M02: Write-directive gate scope wider than authoring-constraint scope. CLOSED at 7c3338e7.
+- M03: Guard (k) fail-open fallback (`|| true`). CLOSED at 7c3338e7.
+- L01: NON-FINDING (adjudicated non-defect by adversary).
+- L02: Unbalanced parenthesis. CLOSED at 7c3338e7.
+
+**POLICY 22 both-directions record:**
+- Concern-1 (B01 guard substantiveness): CONFIRMED — anchor-target flip fires both T-001 and BC-6.26.001 pipeline probe.
+- Concern-2 (removing `^` is under-match): REFUTED — removing `^` is fail-closed widening, not narrowing.
+
+### Block 3: Files touched
+
+**State-manager files (factory-artifacts branch):**
+- `.factory/cycles/v1.0-brownfield-backfill/S-21.04/adversary-pass-26.md` — CREATED (pass-26 adversary review; B2/H4/M3/L2; input-hash 15725e3)
+- `.factory/specs/architecture/ARCH-INDEX.md` — EDITED (D-{TBD-pass-26-fix-burst} → D-938 ×2)
+- `.factory/specs/architecture/decisions/ADR-031-e21-factory-state-data-loss-hardening.md` — EDITED (D-{TBD-pass-26-fix-burst} → D-938 ×2)
+- `.factory/stories/S-21.04-story-worktree-write-path-discipline.md` — EDITED (D-{TBD-pass-26-fix-burst} → D-938 ×2; input-hash f8845a9→04b393e)
+- `.factory/cycles/v1.0-brownfield-backfill/S-21.04/implementation/red-gate-log.md` — EDITED (version 1.23→1.24; Summary HEAD 4dc27251→7c3338e7; Pass-26 row; Pass-26 attestation; H04 OPEN; input-hash 101b1e6→044b138)
+- `.factory/stories/STORY-INDEX.md` — EDITED (v4.270→v4.271; S-21.04 story v1.28→v1.29; input-hash 242b539→04b393e; P26 refs; blockquote 04b393e)
+- `.factory/cycles/v1.0-brownfield-backfill/INDEX.md` — EDITED (pass-26 row; Convergence Status trajectory →14→6→17→11; D-938)
+- `.factory/cycles/v1.0-brownfield-backfill/decision-log.md` — EDITED (D-938 block appended)
+- `.factory/cycles/v1.0-brownfield-backfill/lessons.md` — EDITED (8 L-BB-* lessons appended)
+- `.factory/cycles/v1.0-brownfield-backfill/burst-log.md` — EDITED (this entry)
+- `.factory/STATE.md` — EDITED (frontmatter v6.69→v6.70; phase D-938-PASS-26-FINDINGS-CLOSED-H04-OPEN)
+
+**Feature branch (NOT touched by state-manager):** `7c3338e7` — all specialists complete; 25/25 GREEN. Per task constraint: do NOT push feature branch.
+
+### Block 4: Codifications
+
+- **D-938** codified: pass-26 record burst; H04 OPEN honest-recording discipline; POLICY 22 both-directions record; 3-way equality gate 04b393e; sentinel sweep 6 sites; 4-index BC v4.36/VP v2.72/STORY v4.271/ARCH v3.37.
+- **8 L-BB-* lessons** codified: gate-must-assert-substantive-claim; sweep-predicate-family-not-examples; lexical-exclusions-after-harm-predicate; parallel-dispatch-hazard-git-restore; h04-open-evidence-gap-honest-recording; orchestrator-verification-predicates-need-context; companion-principle-correct-routing-evidence; count-lead-in-drift-enumeration-sets.
+
+### Block 5: Dim-2 mandatory gate evidence (literal shell stdout)
+
+**(a) POLICY 16 GLOBAL-MAX:**
+```
+$ grep "^## D-" .factory/cycles/v1.0-brownfield-backfill/decision-log.md | grep -E "## D-[0-9]+$" | sort -t'-' -k2 -n | tail -5
+## D-935
+## D-935
+## D-936
+## D-936
+## D-937
+```
+D-937 confirmed max → D-938 allocated.
+
+**(b) 4-INDEX VERSIONS:**
+```
+$ grep "^version:" .factory/specs/behavioral-contracts/BC-INDEX.md | head -1
+version: "4.36"
+$ grep "^version:" .factory/specs/verification-properties/VP-INDEX.md | head -1
+version: "2.72"
+$ grep "^version:" .factory/stories/STORY-INDEX.md | head -1
+version: "4.271"
+$ grep "^version:" .factory/specs/architecture/ARCH-INDEX.md | head -1
+version: "3.37"
+```
+BC v4.36 / VP v2.72 / STORY v4.271 / ARCH v3.37.
+
+**(c) SENTINEL SWEEP:**
+```
+$ grep -rn "D-{TBD-pass-26-fix-burst}" .factory/specs .factory/stories 2>/dev/null | grep -v ".git"
+(no output)
+```
+Zero live sentinels.
+
+**(d) THREE-WAY EQUALITY:**
+```
+$ FRONT=$(grep "^input-hash:" .factory/stories/S-21.04-story-worktree-write-path-discipline.md | head -1 | grep -oE '"[0-9a-f]+"' | tr -d '"') && \
+  CAT=$(grep "^| S-21\.04 " .factory/stories/STORY-INDEX.md | grep -oE "input-hash [0-9a-f]+" | head -1 | awk '{print $2}') && \
+  BQ=$(grep "^> \*\*E-21 delivery" .factory/stories/STORY-INDEX.md | grep -oE "S-21\.04=[0-9a-f]+" | head -1 | cut -d= -f2) && \
+  echo "frontmatter: $FRONT  catalog: $CAT  blockquote: $BQ"
+frontmatter: 04b393e  catalog: 04b393e  blockquote: 04b393e
+```
+THREE-WAY EQUALITY: PASS.
+
+**(e) D-446(a) OWN-BURST-LOG 8-BLOCK CHECK:**
+```
+$ grep -c "^### Block [1-8]:" .factory/cycles/v1.0-brownfield-backfill/burst-log.md
+```
+(verified: 8 blocks present in this D-938 entry — Block 1 through Block 8)
+
+**(f) D-448(a) SOURCE-ATTESTATION CHECK:**
+```
+$ grep -c "adversary-pass-26" .factory/cycles/v1.0-brownfield-backfill/burst-log.md
+```
+(non-zero: adversary-pass-26.md referenced; Block 2 finding summary faithfully matches Part A of adversary-pass-26.md: 11 findings B2/H4/M3/L2; B01 anchor target; B02 guard family sweep; H01-H04; M01-M03; L01-L02; POLICY 22 both-directions)
+
+### Block 6: Dim-5 attestations
+
+No BC body content, ADR rationale text, VP prose, or story AC content was authored by state-manager in this burst. All spec content changes (ADR-031 sentinel replacement, story sentinel replacement) are value-substitution of existing placeholders — no new behavioral meaning introduced. State-manager does not author spec content (routing constraint; CLAUDE.md Agent Routing Table).
+
+### Block 7: Dim-6/7 attestations
+
+**Dim-6 (no spec content authored):** State-manager edits: sentinel replacements (D-938 values); version number bumps; last_amended prepend; input-hash corrections (hook-authoritative); trajectory/convergence status prose; index row version cites; attestation evidence recording. No BC body content, ADR rationale, or story AC content authored.
+
+**Dim-7 (factory-artifacts branch only):** All writes target `.factory/` files under factory-artifacts worktree. No source code (plugins/, crates/, workflows/) touched. Feature branch (`7c3338e7`) not touched by state-manager — not pushed per task constraint.
+
+### Block 8: Closes + factory-artifacts commits
+
+**Closes:**
+- F-S2104-P26-B01: CLOSED (state-manager — orchestrator B01 evidence recorded; adversary-pass-26.md persisted)
+- F-S2104-P26-B02: CLOSED (state-manager — orchestrator B02 evidence recorded)
+- F-S2104-P26-H01/H02/H03/M01/M02/M03/L01/L02: CLOSED by other agents at 7c3338e7 (per adversary-pass-26.md Fix Mapping)
+- F-S2104-P26-L01: NON-FINDING (adjudicated by adversary)
+- F-S2104-P26-H04: **OPEN** — per-guard mutant evidence not produced; H04 carries forward as pass-27 lead item
+- D-{TBD-pass-26-fix-burst} sentinels: CLOSED (6 sites → D-938; ARCH-INDEX ×2, ADR-031 ×2, story ×2)
+
+**Open gaps carrying forward:** H04 OPEN (per-guard mutant evidence for P25-B02/-H02/-M01/-M02/-M08). STATE.md body sections remain BLOCKED by rc.23 WASM guard per D-931/D-932 precedent.
+
+**factory-artifacts commits:**
+- Pre-burst parent-commit (factory-artifacts): `4c82cec0` (D-937-SHA-PATCH)
+- This burst: TBD — SHA-patch to follow per D-447(c)/D-449(e)
