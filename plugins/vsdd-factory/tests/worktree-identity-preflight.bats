@@ -58,6 +58,19 @@ _guard_e_checks_out_nothing() {
     printf 'All checks-out-NOTHING lines:\n%s\n' "$co_all"
     return 1
   fi
+  # B01 positional conjunct (F-S2104-P27-B01): affirmative must appear on Rule 4's numbered-item
+  # line within the #### Worktree-Identity Preflight section. Deletion attack: delete Rule 4
+  # entirely → Rule 6 sub-bullet 'checks out nothing under' (lowercase) survives → co_aff
+  # non-empty (old: GREEN BUG); positional check: no ^4. line with token in preflight → RED ✓.
+  # MUTANT (M10 deletion axis): grep -v '^4\. \*\*Read spec' removes Rule 4 → co_clause empty → RED ✓.
+  # RESTORE: revert to production adversary.md → ^4. line present → co_clause non-empty → GREEN ✓.
+  local co_preflight_section co_clause
+  co_preflight_section="$(awk '/^#### Worktree-Identity Preflight/{found=1; next} found && /^#### /{exit} found && /^### /{exit} found && /^## /{exit} found && /^---/{exit} found{print}' "$agent_file")"
+  co_clause="$(printf '%s\n' "$co_preflight_section" | grep -i 'checks out NOTHING under' | grep -E '^4\.' || true)"
+  if [ -z "$co_clause" ]; then
+    echo "DOC-PARITY FAIL [adversary.md: 'checks out NOTHING under' mandate absent from Rule 4 (^4.) in #### Worktree-Identity Preflight section (B01 deletion axis — F-S2104-P27-B01)]: deletion of Rule 4 while Rule 6 sub-bullet 'checks out nothing under' survives leaves co_aff non-empty; positional conjunct requires the token on a ^4. line in the preflight section"
+    return 1
+  fi
 }
 
 # Guard (g) "path-corroborated" sub-gate (fail-closed).
@@ -81,6 +94,21 @@ _guard_g_path_corroborated() {
   if [ -z "$pc_aff" ]; then
     echo "DOC-PARITY FAIL [adversary.md: all 'path-corroborated' occurrences appear in scope-restriction context (F-S2104-P22-006(g) / F-S2104-P23-007)]: at least one affirmative (non-scope-restricted) instance required"
     printf 'All path-corroborated lines found:\n%s\n' "$pc_all"
+    return 1
+  fi
+  # B01 positional conjunct (F-S2104-P27-B01): affirmative must appear on Rule 6's numbered-item
+  # line within the #### Worktree-Identity Preflight section. Deletion attack: delete Rule 6's
+  # opening ^6. line while sub-bullet 'NOT path-corroborated' text survives in pc_aff (the
+  # nullification predicate does not match the P23-007 normative closure sentence form) → old
+  # guard GREEN (BUG); positional check: no ^6. line with token in preflight → RED ✓.
+  # MUTANT (M12 deletion axis): grep -v '^6\. \*\*Path-corroborate' removes opening line →
+  #   pc_clause empty → RED ✓.
+  # RESTORE: revert to production adversary.md → ^6. line present → pc_clause non-empty → GREEN ✓.
+  local pc_preflight_section pc_clause
+  pc_preflight_section="$(awk '/^#### Worktree-Identity Preflight/{found=1; next} found && /^#### /{exit} found && /^### /{exit} found && /^## /{exit} found && /^---/{exit} found{print}' "$agent_file")"
+  pc_clause="$(printf '%s\n' "$pc_preflight_section" | grep -i 'path-corroborated' | grep -E '^6\.' || true)"
+  if [ -z "$pc_clause" ]; then
+    echo "DOC-PARITY FAIL [adversary.md: 'path-corroborated' mandate absent from Rule 6 (^6.) in #### Worktree-Identity Preflight section (B01 deletion axis — F-S2104-P27-B01)]: deletion of Rule 6 opening line while 'NOT path-corroborated' sub-bullet survives leaves pc_aff non-empty (P23-007 normative closure sentence not caught by nullification predicate); positional conjunct requires the token on a ^6. line in the preflight section"
     return 1
   fi
 }
@@ -108,6 +136,20 @@ _guard_d_worktree_rooted() {
   if [ -z "$wtr_aff" ]; then
     echo "DOC-PARITY FAIL [adversary.md: all 'worktree-rooted' occurrences appear in nullification context (F-S2104-P22-006(d))]: at least one affirmative (non-nullified) instance required; appended exception 'worktree-rooted: retired' no longer passes"
     printf 'All worktree-rooted lines found:\n%s\n' "$wtr_all"
+    return 1
+  fi
+  # B01 positional conjunct (F-S2104-P27-B01): affirmative must appear on Rule 3's numbered-item
+  # line within the #### Worktree-Identity Preflight section. 'worktree-rooted' has a single
+  # occurrence (Rule 3 only) — deletion of Rule 3 already caught by empty wtr_aff. Positional
+  # conjunct is defense-in-depth: if the token moves outside the section or to a different rule
+  # number, this fires → RED ✓. Deletion axis M13: grep -v '^3\. ...' removes Rule 3 →
+  # wtr_aff empty → both empty-aff check and positional check fire → RED ✓.
+  # RESTORE: revert to production adversary.md → ^3. line present → wtr_clause non-empty → GREEN ✓.
+  local wtr_preflight_section wtr_clause
+  wtr_preflight_section="$(awk '/^#### Worktree-Identity Preflight/{found=1; next} found && /^#### /{exit} found && /^### /{exit} found && /^## /{exit} found && /^---/{exit} found{print}' "$agent_file")"
+  wtr_clause="$(printf '%s\n' "$wtr_preflight_section" | grep -i 'worktree-rooted' | grep -E '^3\.' || true)"
+  if [ -z "$wtr_clause" ]; then
+    echo "DOC-PARITY FAIL [adversary.md: 'worktree-rooted' mandate absent from Rule 3 (^3.) in #### Worktree-Identity Preflight section (B01 deletion axis — F-S2104-P27-B01)]: positional conjunct requires the token on a ^3. line in the preflight section; if Rule 3 is deleted or the token migrates to a different rule number, this fires"
     return 1
   fi
 }
@@ -138,6 +180,21 @@ _guard_f_case_insensitive() {
     printf 'All case-insensitive lines found:\n%s\n' "$ci_all"
     return 1
   fi
+  # B01 positional conjunct (F-S2104-P27-B01): affirmative must appear on Rule 5's numbered-item
+  # line within the #### Worktree-Identity Preflight section. Deletion attack (primary hole):
+  # delete Rule 5 entirely → Rule 2 body 'case-insensitively' and story-spec-path-lookup text
+  # 'case-insensitive' survive → ci_aff non-empty (old: GREEN BUG). Positional check: no ^5.
+  # line with token in preflight section → RED ✓. B01 is the structural fix for this guard.
+  # MUTANT (M11 deletion axis): grep -v '^5\. \*\*Use case-insensitive' removes Rule 5 → ci_clause
+  #   empty → RED ✓ (old guard PASSES on this mutant because ci_aff still has Rule 2 incidentals).
+  # RESTORE: revert to production adversary.md → ^5. line present → ci_clause non-empty → GREEN ✓.
+  local ci_preflight_section ci_clause
+  ci_preflight_section="$(awk '/^#### Worktree-Identity Preflight/{found=1; next} found && /^#### /{exit} found && /^### /{exit} found && /^## /{exit} found && /^---/{exit} found{print}' "$agent_file")"
+  ci_clause="$(printf '%s\n' "$ci_preflight_section" | grep -i 'case-insensitive' | grep -E '^5\.' || true)"
+  if [ -z "$ci_clause" ]; then
+    echo "DOC-PARITY FAIL [adversary.md: 'case-insensitive' mandate absent from Rule 5 (^5.) in #### Worktree-Identity Preflight section (B01 deletion axis — F-S2104-P27-B01)]: deletion of Rule 5 while Rule 2 'case-insensitively' incidentals and story-spec-path-lookup 'case-insensitive' survive leaves ci_aff non-empty; positional conjunct requires the token on a ^5. line in the preflight section"
+    return 1
+  fi
 }
 
 # Guard (l) "off-limits" sub-gate (fail-closed, F-S2104-P26-B02).
@@ -165,6 +222,20 @@ _guard_l_off_limits() {
     printf 'All off-limits lines found:\n%s\n' "$ol_all"
     return 1
   fi
+  # B01 positional conjunct (F-S2104-P27-B01): affirmative must appear within the
+  # ### Spec-Path Discipline section of _shared-context.md. The 'off-limits' sentence lives
+  # inside that section (confirmed: single occurrence at production HEAD). Positional check is
+  # defense-in-depth: if the sentence migrates outside the section or the section is renamed,
+  # this fires → RED ✓. Deletion axis M14: deleting the off-limits line is already caught by
+  # if [ -z "$ol_aff" ]; positional adds structural-location defense.
+  # RESTORE: revert to production _shared-context.md → ol_clause non-empty → GREEN ✓.
+  local ol_spec_path_section ol_clause
+  ol_spec_path_section="$(awk '/^#{1,4}[[:space:]].*Spec-Path[[:space:]]Discipline/{found=1; next} found && /^#{1,4}[[:space:]]/{exit} found{print}' "$doc_file")"
+  ol_clause="$(printf '%s\n' "$ol_spec_path_section" | grep -i 'off-limits' || true)"
+  if [ -z "$ol_clause" ]; then
+    echo "DOC-PARITY FAIL [_shared-context.md: 'off-limits' prohibition absent from ### Spec-Path Discipline section (B01 deletion axis — F-S2104-P27-B01)]: positional conjunct requires the 'off-limits' mandate to appear within the Spec-Path Discipline section; if the sentence is moved outside the section or the section is renamed, this fires → RED ✓"
+    return 1
+  fi
 }
 
 # Guard (e) "factory-artifacts" sub-gate (fail-closed, F-S2104-P26-B02).
@@ -176,7 +247,14 @@ _guard_l_off_limits() {
 _guard_e_factory_artifacts() {
   local agent_file="$1"
   local fa_all fa_nullified fa_aff
-  fa_all="$(grep -i "factory-artifacts" "$agent_file" | grep -iv 'factory-artifacts branch\|origin.*factory-artifacts\|push.*factory-artifacts' || true)"
+  # H01 fix (F-S2104-P27-H01): removed vestigial pre-harm exclusion
+  # 'grep -iv factory-artifacts branch|origin.*factory-artifacts|push.*factory-artifacts'.
+  # That filter ran BEFORE fa_nullified was computed, creating a hidden channel: a nullifying
+  # rewrite phrased as "factory-artifacts branch: no longer required" was excluded from fa_all
+  # before the nullified check could catch it → silent FALSE NEGATIVE. The exclusion matched
+  # ZERO lines in the current adversary.md (confirmed: grep returns empty) — fully vestigial.
+  # H01 sweep: no other guards have the same pre-harm exclusion pattern.
+  fa_all="$(grep -i "factory-artifacts" "$agent_file" || true)"
   fa_nullified="$(printf '%s\n' "$fa_all" | \
     grep -iE '\bformerly\b|\bretired\b|\brescinded\b|\bsuperseded\b|\bno longer\b|\bnot applicable\b|\bdoes not apply\b|\bnot required\b' || true)"
   fa_aff="$(printf '%s\n' "$fa_all" | \
@@ -189,6 +267,19 @@ _guard_e_factory_artifacts() {
   if [ -z "$fa_aff" ]; then
     echo "DOC-PARITY FAIL [adversary.md: all 'factory-artifacts' occurrences appear in nullification context (F-S2104-P22-006(e))]: at least one affirmative instance required"
     printf 'All factory-artifacts lines:\n%s\n' "$fa_all"
+    return 1
+  fi
+  # B01 positional conjunct (F-S2104-P27-B01): affirmative must appear on Rule 4's numbered-item
+  # line within the #### Worktree-Identity Preflight section. Deletion attack: delete Rule 4
+  # entirely → preamble and Rule 6 sub-bullet still mention 'factory-artifacts' → fa_aff non-empty
+  # (old: GREEN BUG); positional check: no ^4. line with token in preflight section → RED ✓.
+  # MUTANT (M10 deletion axis): grep -v '^4\. \*\*Read spec' removes Rule 4 → fa_clause empty → RED ✓.
+  # RESTORE: revert to production adversary.md → ^4. line present → fa_clause non-empty → GREEN ✓.
+  local fa_preflight_section fa_clause
+  fa_preflight_section="$(awk '/^#### Worktree-Identity Preflight/{found=1; next} found && /^#### /{exit} found && /^### /{exit} found && /^## /{exit} found && /^---/{exit} found{print}' "$agent_file")"
+  fa_clause="$(printf '%s\n' "$fa_preflight_section" | grep -i 'factory-artifacts' | grep -E '^4\.' || true)"
+  if [ -z "$fa_clause" ]; then
+    echo "DOC-PARITY FAIL [adversary.md: 'factory-artifacts' mandate absent from Rule 4 (^4.) in #### Worktree-Identity Preflight section (B01 deletion axis — F-S2104-P27-B01)]: deletion of Rule 4 while preamble/Rule-6-sub-bullet 'factory-artifacts' survive leaves fa_aff non-empty; positional conjunct requires the token on a ^4. line in the preflight section"
     return 1
   fi
 }
@@ -215,6 +306,20 @@ _guard_e_canonical_repo_root() {
   if [ -z "$cr_aff" ]; then
     echo "DOC-PARITY FAIL [adversary.md: all 'canonical-repo-root' occurrences appear in nullification context (F-S2104-P22-006(e))]: at least one affirmative instance required"
     printf 'All canonical-repo-root lines:\n%s\n' "$cr_all"
+    return 1
+  fi
+  # B01 positional conjunct (F-S2104-P27-B01): affirmative must appear on Rule 4's numbered-item
+  # line within the #### Worktree-Identity Preflight section. Deletion attack: delete Rule 4
+  # entirely → Rules 5, 6, preamble and story-spec-path-lookup still mention 'canonical-repo-root'
+  # → cr_aff non-empty (old: GREEN BUG); positional check: no ^4. line with token in preflight
+  # section → RED ✓.
+  # MUTANT (M10 deletion axis): grep -v '^4\. \*\*Read spec' removes Rule 4 → cr_clause empty → RED ✓.
+  # RESTORE: revert to production adversary.md → ^4. line present → cr_clause non-empty → GREEN ✓.
+  local cr_preflight_section cr_clause
+  cr_preflight_section="$(awk '/^#### Worktree-Identity Preflight/{found=1; next} found && /^#### /{exit} found && /^### /{exit} found && /^## /{exit} found && /^---/{exit} found{print}' "$agent_file")"
+  cr_clause="$(printf '%s\n' "$cr_preflight_section" | grep -i 'canonical-repo-root' | grep -E '^4\.' || true)"
+  if [ -z "$cr_clause" ]; then
+    echo "DOC-PARITY FAIL [adversary.md: 'canonical-repo-root' mandate absent from Rule 4 (^4.) in #### Worktree-Identity Preflight section (B01 deletion axis — F-S2104-P27-B01)]: deletion of Rule 4 while Rules 5/6/preamble 'canonical-repo-root' survive leaves cr_aff non-empty; positional conjunct requires the token on a ^4. line in the preflight section"
     return 1
   fi
 }
@@ -803,5 +908,190 @@ _guard_e_canonical_repo_root() {
     false
   fi
 
+  # ===========================================================================
+  # DELETION AXIS VECTORS M10–M14 (F-S2104-P27-B01 positional conjunct coverage)
+  #
+  # These vectors exercise the B01 positional conjunct: they DELETE a numbered
+  # rule or prohibition sentence entirely (rather than annotating it), which the
+  # old location-blind affirmative checks could not catch because incidental token
+  # occurrences in other rules kept the affirmative set non-empty.
+  # ===========================================================================
+
+  # M10: Rule 4 deleted — all three guards (co, fa, cr) exercise the ^4. positional conjunct.
+  # Rule 4 = 'checks out NOTHING under', 'factory-artifacts' mandate, 'canonical-repo-root' mandate.
+  # Old co/fa/cr guards: incidental occurrences survive (Rule 6 sub-bullet, preamble, Rules 5+6)
+  # → aff non-empty → GREEN (BUG). New positional conjunct: no ^4. line → RED ✓.
+  grep -v '^4\. \*\*Read spec' "$ADVERSARY_AGENT" > "$corpus_scratch"
+
+  run _guard_e_checks_out_nothing "$corpus_scratch"
+  if [ "$status" -eq 0 ]; then
+    echo "CORPUS FAIL [guard (e) co M10 — B01 deletion axis: Rule 4 deleted, Rule-6-sub-bullet 'checks out nothing under' survives]: old affirmative-only check returns GREEN (BUG); B01 positional ^4. conjunct must fire RED"
+    rm -f "$corpus_scratch"
+    false
+  fi
+
+  run _guard_e_factory_artifacts "$corpus_scratch"
+  if [ "$status" -eq 0 ]; then
+    echo "CORPUS FAIL [guard (e) fa M10 — B01 deletion axis: Rule 4 deleted, preamble 'factory-artifacts' survives]: old affirmative-only check returns GREEN (BUG); B01 positional ^4. conjunct must fire RED"
+    rm -f "$corpus_scratch"
+    false
+  fi
+
+  run _guard_e_canonical_repo_root "$corpus_scratch"
+  if [ "$status" -eq 0 ]; then
+    echo "CORPUS FAIL [guard (e) cr M10 — B01 deletion axis: Rule 4 deleted, Rules 5/6/preamble 'canonical-repo-root' survive]: old affirmative-only check returns GREEN (BUG); B01 positional ^4. conjunct must fire RED"
+    rm -f "$corpus_scratch"
+    false
+  fi
+
+  # M11: Rule 5 deleted — ci guard exercises the ^5. positional conjunct.
+  # Rule 5 = 'case-insensitive' mandate. Old ci guard: Rule 2 'case-insensitively' incidental
+  # and story-spec-path-lookup 'case-insensitive' survive → ci_aff non-empty → GREEN (BUG).
+  # New positional conjunct: no ^5. line → RED ✓.
+  grep -v '^5\. \*\*Use case-insensitive' "$ADVERSARY_AGENT" > "$corpus_scratch"
+
+  run _guard_f_case_insensitive "$corpus_scratch"
+  if [ "$status" -eq 0 ]; then
+    echo "CORPUS FAIL [guard (f) ci M11 — B01 deletion axis: Rule 5 deleted, Rule 2/story-spec-path-lookup 'case-insensitive' incidentals survive]: old affirmative-only check returns GREEN (BUG); B01 positional ^5. conjunct must fire RED"
+    rm -f "$corpus_scratch"
+    false
+  fi
+
+  # M12: Rule 6 opening line deleted — pc guard exercises the ^6. positional conjunct.
+  # 'NOT path-corroborated' text in sub-bullet survives (P23-007 normative closure sentence;
+  # nullification predicate does not match 'NOT path-corroborated' form) → pc_aff non-empty
+  # → old guard GREEN (BUG). New positional conjunct: no ^6. line → RED ✓.
+  grep -v '^6\. \*\*Path-corroborate' "$ADVERSARY_AGENT" > "$corpus_scratch"
+
+  run _guard_g_path_corroborated "$corpus_scratch"
+  if [ "$status" -eq 0 ]; then
+    echo "CORPUS FAIL [guard (g) pc M12 — B01 deletion axis: Rule 6 opening line deleted, 'NOT path-corroborated' sub-bullet survives in pc_aff (nullification predicate does not match this form; P23-007)]: old guard returns GREEN (BUG); B01 positional ^6. conjunct must fire RED"
+    rm -f "$corpus_scratch"
+    false
+  fi
+
+  # M13: Rule 3 deleted — wtr guard fires via both empty-aff and positional checks.
+  # 'worktree-rooted' appears only in Rule 3: deletion empties wtr_all → wtr_aff empty →
+  # old guard already fires RED ✓. Positional conjunct adds defense-in-depth.
+  grep -v '^3\. \*\*Use worktree-rooted' "$ADVERSARY_AGENT" > "$corpus_scratch"
+
+  run _guard_d_worktree_rooted "$corpus_scratch"
+  if [ "$status" -eq 0 ]; then
+    echo "CORPUS FAIL [guard (d) wtr M13 — deletion axis: Rule 3 deleted (single 'worktree-rooted' occurrence)]: gate must fire RED (empty-aff or positional conjunct)"
+    rm -f "$corpus_scratch"
+    false
+  fi
+
+  # M14: off-limits prohibition sentence deleted from _shared-context.md — ol guard fires.
+  # Single occurrence; deletion empties ol_all → ol_aff empty → old guard already fires RED ✓.
+  # Positional conjunct also fires (empty section extract). Corpus vector explicitly covers
+  # the deletion axis for _shared-context.md.
+  grep -v 'off-limits' "$SHARED_CTX" > "$corpus_scratch"
+
+  run _guard_l_off_limits "$corpus_scratch"
+  if [ "$status" -eq 0 ]; then
+    echo "CORPUS FAIL [guard (l) ol M14 — deletion axis: off-limits sentence deleted from _shared-context.md]: gate must fire RED (empty-aff or positional conjunct)"
+    rm -f "$corpus_scratch"
+    false
+  fi
+
   rm -f "$corpus_scratch"
+}
+
+# ===========================================================================
+# COUPLING GATE (F-S2104-P27-STRUCT)
+#
+# Mechanical assertion that the story's AC-001 Gate cell stated gate count
+# (numeric) and the bats suite's lead-in count-word (converted to integer)
+# represent the same number. Any burst that changes either side without
+# updating the other causes this gate to fire with a failure message naming
+# both the story value and the bats value and what each reads.
+#
+# Direction-A failure: story gate count changes (e.g., 23 → 22) while bats
+#   still says "Twenty-three" (23) → 22 ≠ 23 → RED ✓.
+# Direction-B failure: bats count-word changes (e.g., "Twenty-three" → "Twenty-two")
+#   while story still says "23 gates" (23) → 23 ≠ 22 → RED ✓.
+# ===========================================================================
+
+@test "test_coupling_gate_story_gate_count_matches_bats_count_word" {
+  # Locate factory-artifacts worktree to read the story spec.
+  local fa_wt
+  fa_wt="$(git -C "$PLUGIN_ROOT" worktree list --porcelain | \
+    awk '/^worktree/{wt=$2; next} /^branch.*factory-artifacts/{print wt; exit}')"
+  if [ -z "$fa_wt" ]; then
+    echo "COUPLING GATE FAIL: factory-artifacts worktree not found via 'git worktree list --porcelain'; ensure the factory-artifacts worktree is mounted before running this suite"
+    false
+  fi
+
+  local story_file bats_suite
+  story_file="$fa_wt/stories/S-21.04-story-worktree-write-path-discipline.md"
+  bats_suite="$PLUGIN_ROOT/tests/story-worktree-write-path-discipline.bats"
+
+  if [ ! -f "$story_file" ]; then
+    echo "COUPLING GATE FAIL: story file not found at $story_file"
+    false
+  fi
+
+  # Extract story gate count from pattern "(NN gates" in the AC-001 Gate cell.
+  local story_count
+  story_count="$(grep -oE '\([0-9]+ gates' "$story_file" | head -1 | grep -oE '[0-9]+')"
+  if [ -z "$story_count" ]; then
+    echo "COUPLING GATE FAIL: story file does not contain pattern '(NN gates' — story gate count not extractable (story: $story_file)"
+    false
+  fi
+
+  # Extract bats lead-in count-word from "Twenty-[word] independently mutant-proven gates".
+  local bats_word bats_count
+  bats_word="$(grep -oiE 'Twenty-[a-z]+' "$bats_suite" | head -1)"
+  if [ -z "$bats_word" ]; then
+    echo "COUPLING GATE FAIL: bats suite does not contain 'Twenty-[word]' lead-in count-word (suite: $bats_suite)"
+    false
+  fi
+
+  # Word-to-integer map. Extend when gate count exceeds current maximum.
+  case "$(printf '%s' "$bats_word" | tr '[:upper:]' '[:lower:]')" in
+    "twenty-one")   bats_count=21 ;;
+    "twenty-two")   bats_count=22 ;;
+    "twenty-three") bats_count=23 ;;
+    "twenty-four")  bats_count=24 ;;
+    "twenty-five")  bats_count=25 ;;
+    "twenty-six")   bats_count=26 ;;
+    "twenty-seven") bats_count=27 ;;
+    "twenty-eight") bats_count=28 ;;
+    "twenty-nine")  bats_count=29 ;;
+    "thirty")       bats_count=30 ;;
+    *)
+      echo "COUPLING GATE FAIL: unrecognized bats count-word '$bats_word' — extend the word-to-integer map in this gate when the gate count grows"
+      false
+      ;;
+  esac
+
+  # Primary coupling assertion.
+  if [ "$story_count" -ne "$bats_count" ]; then
+    echo "COUPLING GATE FAIL [F-S2104-P27-STRUCT]: story gate count ($story_count) ≠ bats count-word numeric ($bats_count, from '$bats_word')"
+    echo "  Story file : $story_file"
+    echo "  Story reads: $(grep -oE '\([0-9]+ gates[^)]*\)' "$story_file" | head -1)"
+    echo "  Bats suite : $bats_suite"
+    echo "  Bats reads : $(grep -i 'Twenty' "$bats_suite" | head -1 | sed 's/^[[:space:]]*//')"
+    echo "  Fix: update whichever side drifted so both represent the same gate count"
+    false
+  fi
+
+  # Direction-A corpus: if story count were different, gate fires. Verify arithmetic.
+  # Simulated story_count = story_count - 1 must differ from bats_count.
+  local dir_a_count
+  dir_a_count=$(( story_count - 1 ))
+  if [ "$dir_a_count" -eq "$bats_count" ]; then
+    echo "COUPLING GATE DIRECTION-A SETUP ERROR: story_count-1 ($dir_a_count) equals bats_count ($bats_count) — test at single-gate boundary; add one more gate to disambiguate"
+    false
+  fi
+
+  # Direction-B corpus: if bats count were different, gate fires. Verify arithmetic.
+  # Simulated bats_count = bats_count - 1 must differ from story_count.
+  local dir_b_count
+  dir_b_count=$(( bats_count - 1 ))
+  if [ "$dir_b_count" -eq "$story_count" ]; then
+    echo "COUPLING GATE DIRECTION-B SETUP ERROR: bats_count-1 ($dir_b_count) equals story_count ($story_count) — test at single-gate boundary; add one more gate to disambiguate"
+    false
+  fi
 }

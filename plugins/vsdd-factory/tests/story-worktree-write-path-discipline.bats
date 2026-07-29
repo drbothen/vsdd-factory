@@ -2140,8 +2140,16 @@ _run_teardown_preflight() {
   # a line ending with '# ... _build_section_prose ...' contains '_build_' in the comment but
   # NOT in the assignment itself; grep -v '_build_' would filter it out, hiding a bare construction.
   # Strip comment suffix (from first '# ' onwards) before the _build_ check.
+  # M04 fix (F-S2104-P27-M04): changed comment-strip from '[^"]*$' to '.*$'.
+  # OLD '[^"]*$': the [^"] class stops substitution at the first double-quote in the comment,
+  # so a comment containing '"' (e.g., '# replaces _build_foo "$VAR"') is NOT stripped →
+  # _build_ survives in the (non-stripped) comment → grep -v '_build_' omits the line →
+  # bare construction goes UNDETECTED (silent FALSE NEGATIVE).
+  # NEW '.*$': '.*' is greedy and quote-agnostic, so any trailing comment is fully stripped
+  # regardless of double-quote content → _build_ removed → grep -v '_build_' INCLUDES the
+  # bare line → gate fires correctly. M04 probe below confirms the fix is load-bearing.
   leg_e_bare_lines="$(printf '%s\n' "$leg_e_all_prose_lines" | \
-    sed 's/[[:space:]]*#[[:space:]][^"]*$//' | \
+    sed 's/[[:space:]]*#[[:space:]].*$//' | \
     grep -v '_build_')" || true
   if [ -n "$leg_e_bare_lines" ]; then
     echo "PIPELINE PROBE FAIL [Leg E — call-site parity]: _prose assignment does not route through a _build_* normalising builder."
@@ -2150,6 +2158,57 @@ _run_teardown_preflight() {
     echo "  Offending line(s) in this bats file (self-referential gate greps own source):"
     printf '%s\n' "$leg_e_bare_lines"
     echo "  Fix: route through _build_section_prose or a named _build_*_prose wrapper."
+    rm -rf "$scratch"
+    false
+  fi
+
+  # --- M04 probe (F-S2104-P27-M04): comment-strip must handle quote-containing comments ---
+  # A bare _prose assignment whose trailing comment contains a double quote (e.g., a variable
+  # reference like "$VAR") exposes the OLD [^"]*$ failure mode: [^"] stops at the first '"'
+  # in the comment → comment survives → _build_ stays in the line → grep -v '_build_' omits
+  # the line → bare construction UNDETECTED (FALSE NEGATIVE, BUG).
+  # The NEW .*$ pattern strips any trailing comment regardless of quote content.
+  # This probe synthesizes such a line and verifies:
+  #   (a) OLD strip leaves _build_ in the line (BUG confirmed);
+  #   (b) NEW strip removes _build_ from the line (fix confirmed);
+  #   (c) NEW strip still leaves the _prose assignment itself (no over-stripping).
+  local m04_probe_line m04_old m04_new m04_bare
+  # Probe line: a bare construction assignment; _build_ appears ONLY inside the quote-containing
+  # comment. The comment '# _build_spec_path_section_prose "$SHARED_CTX"' contains a '"' before
+  # $SHARED_CTX — causing [^"]*$ to stop there and leave the comment intact.
+  # NOTE: variable name uses 'm04_bare_call' (not a _prose[a-zA-Z0-9_]*="$( form) to prevent
+  # the self-referential Leg E grep from matching this probe line as a real prose assignment.
+  # The sed comment-strip behavior being tested is independent of the variable name.
+  m04_probe_line='99:  m04_bare_call="$(cat "$var")"  # _build_spec_path_section_prose "$SHARED_CTX"'
+
+  # (a) OLD strip: [^"]*$ stops at first '"' in comment → comment NOT stripped → _build_ survives
+  m04_old="$(printf '%s\n' "$m04_probe_line" | sed 's/[[:space:]]*#[[:space:]][^"]*$//')"
+  if ! printf '%s\n' "$m04_old" | grep -q '_build_'; then
+    echo "M04 PROBE SETUP FAIL: old strip ([^\"]*\$) unexpectedly removed _build_ from quote-containing comment — probe design error or sed behaves differently than expected on this platform"
+    rm -rf "$scratch"
+    false
+  fi
+
+  # (b) NEW strip: .*$ is quote-agnostic → comment fully stripped → _build_ removed
+  m04_new="$(printf '%s\n' "$m04_probe_line" | sed 's/[[:space:]]*#[[:space:]].*$//')"
+  if printf '%s\n' "$m04_new" | grep -q '_build_'; then
+    echo "M04 PROBE FAIL: new strip (.*\$) did NOT remove the quote-containing comment — _build_ still present after strip (fix not effective)"
+    rm -rf "$scratch"
+    false
+  fi
+
+  # (c) NEW strip does not over-strip: assignment target itself remains intact
+  # Check for 'm04_bare_call' (the LHS of the probe assignment) — must survive after comment removal.
+  if ! printf '%s\n' "$m04_new" | grep -q 'm04_bare_call'; then
+    echo "M04 PROBE FAIL: new strip (.*\$) removed the assignment target itself (over-stripping)"
+    rm -rf "$scratch"
+    false
+  fi
+
+  # (d) NEW result: grep -v '_build_' INCLUDES the stripped bare line → gate fires correctly
+  m04_bare="$(printf '%s\n' "$m04_new" | grep -v '_build_' || true)"
+  if [ -z "$m04_bare" ]; then
+    echo "M04 PROBE FAIL: after new strip, grep -v '_build_' produced empty output — bare construction not detected (fix not effective)"
     rm -rf "$scratch"
     false
   fi
