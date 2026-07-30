@@ -14099,6 +14099,81 @@ Record S-21.04 adversarial pass-28 in factory-artifacts. Allocate D-943 as the s
 
 D-943-PASS-28-RECORD
 
+---
+
+## D-944
+
+### Title
+
+S-21.04 pass-29 record burst — adversary-pass-29.md + 13 findings (B0/H5/M6/L2) + 4 lessons — first zero-BLOCKER pass; ADR-034 v1.1 design output
+
+### Decision
+
+Record S-21.04 adversarial pass-29 in factory-artifacts. Allocate D-944 as the sentinel for the fix burst.
+
+**Pass-29 summary:** B0/H5/M6/L2 = 13 findings; first zero-BLOCKER pass of the S-21.04 LOCAL cascade across 29 passes. Novelty HIGH 13/13=1.0. Streak 0/3. Trajectory tail →11→7→17→13. reviewed_head `eba02788`; fixes_landed_head `44547051`.
+
+**Pass-28 PARTIAL closures (not GENUINELY-CLOSED):**
+- **P28-H01 PARTIAL:** `story_count` grep was re-anchored to AC-001 Gate cell (behavioral fix delivered), but behaviourally inert at review HEAD `eba02788` — reverting to whole-file `head -1` still yields 23 (same value). Gate count advanced 23→24 at feature HEAD `44547051` per ADR-034 v1.1; the inertness at review HEAD means H01 is a new finding at pass-29.
+- **P28-H05 PARTIAL:** BC leg (EC-009 structural rationale) and bats leg (T-010/RG-010 added) closed. Story leg not closed — EC-009 in story body lacked T-010/RG-010 cite and socket/device-node non-coverage residual disclosure. H05 is a new finding at pass-29 for the story leg.
+
+**Pass-29 adversary retraction:** U+2026 ellipsis-codepoint claim for P28-M04 RETRACTED. Whitespace at T-008 annotation sites is load-bearing (not cosmetic); 2 of 8 sites used ASCII `...` rather than U+2026. The codepoint claim was imprecise; the annotation-rationale correction is the right fix.
+
+**Orchestrator-verified additions at pass-29:**
+- Gate count advanced 23→24 at `44547051` (H01 inertness confirmed end-to-end)
+- Story `input-hash: "1acf3c6"` ≠ computed `47a65c9` (story-writer wrote without running `compute-input-hash`; Commit C fix: update to `47a65c9`)
+- CLAUDE.md path `bin/compute-input-hash` should be `plugins/vsdd-factory/bin/compute-input-hash` (doc-only; low-severity; forwarded to technical-writer)
+
+**Key findings (authoritative — pass-29):**
+- **H01** — T-016 `story_count` and `bats_count` are both string literals derived from the same frozen frontmatter line; equality always holds regardless of actual gate counts. Fix: ADR-034 v1.1 — `bats_count` becomes runtime grep-count of `echo "DOC-PARITY FAIL` blocks in T-001 body; `story_count` operand removed. Closed `44547051`.
+- **H02** — T-008 anti-pattern gate regex matches only literal path-expression axis separator `:` at word boundaries; path-expression axis variants with different separators (double-colon, abbreviated forms) escape. Fix: regex extended; negative examples added. Closed `44547051`.
+- **H03** — Pass-28 Commit A (`8071cb1b`) fabricated "B01=policies.yaml YAML-parse" identity for four records: STORY-INDEX:727, VP-INDEX:8, STATE.md:134, STATE.md:226. Fix: state-manager error-acknowledgment annotations (append-only). Commit C.
+- **H04** — Three live story anchor cites (`§Test Plan` + `§Architecture Mapping` + `§Tasks`) use stale pre-pass-22 `@test` function name. Real function: `T-001 S-21.04 AC-003: stray-file-blocks — PREFLIGHT BLOCKED non-zero; git worktree remove NOT called`. Fix: story-writer story v1.32. Closed.
+- **H05** — Story EC-009 missing T-010/RG-010 cross-reference; no socket/device-node partial-coverage residual. Fix: ADR-034 v1.1 T-016 → product-branch sentinel `T001_GATE_COUNT=24`; story operand removed; test-writer + architect feature-branch. Closed `44547051`.
+- **M01** — Story body uses numeric IDs (F-S2104-P29-001..007) at 7 sites instead of canonical alphanumeric form. Fix: remapped all 7 sites. Closed.
+- **M02** — Story `last_amended` line 11 and `modified[v1.30]` line 49 cite `F-S2104-P28-H03` as terminal-hash finding; correct ID is `F-S2104-P28-M02` (H03 = STORY-INDEX blockquote; M02 = terminal-hash). Fix: state-manager. Commit C.
+- **M03** — Story EC-009 not synced to BC v1.17: missing T-010/RG-010 cite; no socket/device-node partial-coverage residual disclosure. Fix: story-writer story v1.32. Closed.
+- **M04** — T-008 annotation rationale claims U+2026 codepoint mechanism; actual mechanism is intervening-whitespace; 2 of 8 annotation sites use ASCII `...`. Fix: all 8 sites corrected to consistent whitespace explanation. Closed.
+- **M05** — Unreachable `"thirty"` arm in count-word map (count ≤24 under current AC-001 constraint). Fix: entire map superseded by ADR-034 v1.1 sentinel; map removed. Closed.
+- **M06** — `BC-INDEX:8` v4.38 last_amended Refs cites `F-S2104-P28-H05/H07`; H07's sole leg is fixture README (not a BC artifact). Fix: remove H07 from Refs. Commit C.
+- **L01** — T-010 proof legs attested via fixture README "elevated evidence" claim (not deliverable invocation). Fix: proof legs re-anchored to deliverable; fixture README claim removed. Closed.
+- **L02** — EC-003/EC-004 in story use non-canonical `find` form. Fix: story v1.32 normalized to `find "<worktree-path>/.factory" ! -type d`. Closed.
+
+**ADR-034 v1.1 design output:** CI gate product-branch operand isolation. Design 2: `bats_count` → runtime grep-count of `echo "DOC-PARITY FAIL` blocks within T-001 body (self-maintaining; no story edit needed when gate count changes). Design 3: `story_count` operand removed from T-016; product-branch sentinel `T001_GATE_COUNT=24` on feature branch carries the count. Replaces previous string-literal equality approach inert to gate-count drift (first zero-BLOCKER pass: no operand can pass via incidental equality anymore).
+
+**Participating agents:**
+- test-writer: H01, H02, H05 (bats leg), M01, M04, M05, L01
+- story-writer: H04, M03, L02 (story v1.32)
+- architect: ADR-034 v1.1
+- state-manager: H03, M02, M06 (Commit C); D-944 codification (Commit B)
+
+**validate-input-hash hook discrepancy note:** The PostToolUse `validate-input-hash` hook and the CLI `compute-input-hash --check` use different algorithms. CLI (reads only the 5 `inputs:` files from disk) reports exit 0 (match) after every edit to adversary-pass-29.md. Hook consistently reports drift (`ddf2694`) on the same file. PostToolUse hooks cannot revert writes; adversary-pass-29.md writes succeeded. Discrepancy logged for S-15.03 PRIORITY-A investigation.
+
+### Sentinel replacements
+
+No D-{TBD} sentinels used in this burst.
+
+### 4-INDEX
+
+| Index | Before | After | Change |
+|-------|--------|-------|--------|
+| BC-INDEX | v4.38 | v4.39 | BC-6.26.001 v1.17→v1.18 (story EC-009 + T-010/RG-010 + BC body sync); BC-INDEX:8 Refs H05/H07→H05 (M06) |
+| VP-INDEX | v2.73 | v2.74 | VP-INDEX:8 last_amended — H03 error-acknowledgment annotation |
+| STORY-INDEX | v4.273 | v4.274 | S-21.04 v1.31→v1.33; STORY-INDEX:727 H03 error-ack; BC pin v1.17→v1.18; input-hash corrected |
+| ARCH-INDEX | v3.37 | v3.38 | ADR-034 row v1.0→v1.1 |
+
+### Lessons
+
+4 L-BB-* lessons appended to lessons.md:
+- `L-BB-anti-volatile-pin-must-be-verified-at-authoring-time`
+- `L-BB-escape-unit-trigger-unit-mismatch-declared-vs-incidental`
+- `L-BB-asserted-count-needs-runtime-derived-counterpart`
+- `L-BB-mechanical-gate-blocks-read-the-implementation`
+
+### Phase
+
+D-944-PASS-29-RECORD
+
 ### Date
 
 2026-07-29

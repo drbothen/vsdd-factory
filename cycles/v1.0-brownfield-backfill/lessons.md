@@ -9534,3 +9534,73 @@ Three consecutive fix reports in the S-21.04 cascade supplied incomplete regress
 **Cites:** D-943 (this burst); adversary-pass-28.md `input-hash: "a2767bf"`; `plugins/vsdd-factory/bin/compute-input-hash`; CLAUDE.md hook diagnostics.
 
 **Closes:** D-943 input-hash-discipline lesson. `[process-gap; validate-input-hash; input-hash; MD5; format; value; compute-input-hash; D-940; D-943]`
+
+---
+
+## [[L-BB-anti-volatile-pin-must-be-verified-at-authoring-time]]
+
+**Category:** [spec-authoring]
+**Date:** 2026-07-30
+
+**Summary:** TD-VSDD-091 prohibits volatile pins (file:line-NNN citations) in favor of behavioral anchors (function names, identifier strings, AC text). But behavioral anchors are only non-volatile if they are VERIFIED TO EXIST at the time of authoring. Three anchor cites in S-21.04 story (§Test Plan, §Architecture Mapping, §Tasks) used the pre-pass-22 `@test` function name verbatim. The function was renamed at pass-22 during structural refactoring; the story's anchor cites were never updated. The result: three spec citations pointed at a non-existent function for 7 passes (passes 22–29) without detection, because the spec's text looked structurally correct. The defect is a TD-VSDD-091 violation in disguise: using a stale behavioral anchor is functionally equivalent to a stale line-number pin.
+
+**Pattern rule:** When authoring or updating a behavioral anchor (function name, identifier, AC text), run `grep -rn "<anchor>"` on the relevant test files before committing and include the captured stdout as inline evidence in the spec or burst-log. A function name that "should exist" is not sufficient. The grep evidence is the proof; without it, the anchor is unverified and may be stale. This applies to EVERY anchor update, not just new ones — a rename at any later pass immediately invalidates all prior anchor cites.
+
+**Anchors:** TD-VSDD-091; behavioral-anchor; function-name; volatile-pin; stale-anchor; grep-verification; authoring-time; F-S2104-P29-H04; S-21.04.
+
+**Cites:** D-944 (this burst); adversary-pass-29.md §H04; S-21.04 story v1.32 (fix: three anchor sites corrected); TD-VSDD-091 (anti-volatile-pin).
+
+**Closes:** D-944 anti-volatile-pin authoring-time verification lesson. `[spec-authoring; TD-VSDD-091; behavioral-anchor; stale-anchor; grep-verification; authoring-time; function-name; D-944]`
+
+---
+
+## [[L-BB-escape-unit-trigger-unit-mismatch-declared-vs-incidental]]
+
+**Category:** [test-discipline]
+**Date:** 2026-07-30
+
+**Summary:** A test corpus containing escape cases must distinguish between DECLARED escapes (cases that intentionally trigger the escape mechanism the test is designed to allow) and INCIDENTAL escapes (cases where the same escape outcome occurs via a different, coincidental mechanism). In S-21.04 pass-28 M04 finding: T-008 annotation rationale claimed all 8 sites escape via U+2026 ellipsis codepoint. In fact, 2 of 8 sites use ASCII `...`. Both codepoint and ASCII forms produce the same escape outcome (the gate skips them), but via different mechanisms. The annotation was wrong about the declared mechanism for 2 sites, which makes the test's own documentation unreliable as evidence of what is being verified.
+
+**Pattern rule:** When annotating why a corpus entry escapes a gate, the annotation MUST reflect the actual mechanism that causes the escape — verified by inspection of the specific test-corpus entry and the gate's regex. Never copy an annotation from one escape site to another without confirming the mechanism is identical. POLICY 13 ESCAPE-SCOPE-PARITY: the declared escape class (the set of patterns in the ESCAPES annotation) MUST be a subset of the trigger unit (the set of patterns that the gate's regex actually skips). Annotations that name a mechanism the regex cannot detect are false attestations.
+
+**Anchors:** POLICY 13; ESCAPE-SCOPE-PARITY; declared-escape; incidental-escape; annotation-rationale; U+2026; ASCII-ellipsis; trigger-unit; F-S2104-P29-M04; T-008.
+
+**Cites:** D-944 (this burst); adversary-pass-29.md §M04; T-008 (S-21.04 bats test); POLICY 13 ESCAPE-SCOPE-PARITY.
+
+**Closes:** D-944 escape-unit-trigger-unit-mismatch lesson. `[test-discipline; POLICY-13; ESCAPE-SCOPE-PARITY; declared-escape; incidental-escape; annotation-rationale; false-attestation; D-944]`
+
+---
+
+## [[L-BB-asserted-count-needs-runtime-derived-counterpart]]
+
+**Category:** [verification-discipline]
+**Date:** 2026-07-30
+
+**Summary:** Any count asserted in a spec surface (BC, story, test operand) will drift unless it has a mechanically-enforced runtime-derived counterpart. In S-21.04 pass-29 H01: T-016 checked that `story_count == bats_count` where both were string literals derived from the same frozen frontmatter line (the story's `last_amended` summary). The equality always held regardless of actual gate counts, making the gate behaviourally inert. The defect was invisible across 8 passes because the count happened to be correct (23) during that window. When the gate count advanced to 24 (at `44547051`), the inertness was unmasked — a divergence that the gate SHOULD have caught passed silently through T-016.
+
+**Pattern rule:** Every count in a spec surface that is intended to detect drift MUST be paired with a runtime-derived counterpart: either (a) a test operand computed from the current implementation at test-execution time (e.g., `bats_count=$(grep -c "echo.*DOC-PARITY FAIL" T-001.bats)`), or (b) an explicit documentation-only annotation acknowledging the count is advisory and will not be mechanically enforced. "The count is currently correct" is not the same as "the count is mechanically enforced." ADR-034 v1.1 resolves this class via the product-branch sentinel approach: story-side count removed; feature-branch sentinel carries the authoritative count; test derives the count at runtime.
+
+**Anchors:** T-016; story_count; bats_count; runtime-derived; string-literal; behaviourally-inert; gate-count; ADR-034-v1.1; product-branch-sentinel; F-S2104-P29-H01; drift-detection.
+
+**Cites:** D-944 (this burst); adversary-pass-29.md §H01; ADR-034 v1.1 (design output); T-016 test (S-21.04 bats); `[[L-BB-propagation-deficit-vs-detection-deficit]]` (related class — count drift propagation).
+
+**Closes:** D-944 asserted-count-runtime-derived-counterpart lesson. `[verification-discipline; count-drift; runtime-derived; string-literal; behaviourally-inert; ADR-034-v1.1; product-branch-sentinel; T-016; D-944]`
+
+---
+
+## [[L-BB-mechanical-gate-blocks-read-the-implementation]]
+
+**Category:** [process-gap]
+**Date:** 2026-07-30
+
+**Summary:** When a mechanical gate (hook, validator, CI check) blocks a tool call, the correct first response is to READ THE GATE'S IMPLEMENTATION SOURCE — not to theorize about its semantics from the error message. In this burst, the `validate-input-hash` PostToolUse hook blocked on `input-hash: "TBD"` (correct: wrong format). The state-manager then inferred, from the hook's subsequent `input_hash_drift` error, that the hash must be a self-seal (computed from the adversary file itself). This inference was WRONG. The coordinator confirmed by reading the tool source: the hash is computed purely from the 5 files in the `inputs:` array — the adversary file is NOT part of its own hash computation. The wrong model led to a fabricated diagnosis (circular dependency), unnecessary escalation, and two-turn delay. Reading `plugins/vsdd-factory/bin/compute-input-hash` lines 2 and 13 would have resolved the question in under 30 seconds.
+
+The sharpened rule (from this burst's exchange): the prohibition "do NOT run `compute-input-hash --update`" was written without a scope caveat (it targeted the bulk `--scan --update` form and the story file's self-certification, not per-file authoring-time sealing). When a prohibition lacks a rationale or scope, it cannot be applied correctly under novel conditions. The generalizable principle is narrower than "don't write blanket prohibitions": **when a mechanical gate blocks you, read the gate's implementation before theorizing about its semantics from error behavior.**
+
+**Pattern rule:** (1) When a validator blocks, grep the validator's source for the error code (e.g., `input_hash_drift`, `input_hash_format`) to understand the exact check being performed. (2) Do not infer semantics from the shape of the error alone — the error tells you WHAT failed; the source tells you WHY and what the invariant actually is. (3) If a prohibition in a dispatch instruction seems to block a legitimate fix path, check the prohibition's stated rationale before escalating. A prohibition without a rationale is incomplete; ask whether the rationale applies to the specific invocation form being considered. (4) Reading the tool source is always faster than theorizing — and correct.
+
+**Anchors:** validate-input-hash; input-hash; self-seal; circularity; tool-source; gate-implementation; prohibition-scope; compute-input-hash; inputs-array; D-940; process-gap.
+
+**Cites:** D-944 (this burst); adversary-pass-29.md §input-hash field; `plugins/vsdd-factory/bin/compute-input-hash` source; D-940 (prohibition source); `[[L-BB-validate-input-hash-checks-value-not-format]]` (companion — format vs value distinction).
+
+**Closes:** D-944 mechanical-gate-blocks-read-implementation lesson. `[process-gap; validate-input-hash; input-hash; tool-source; gate-semantics; prohibition-scope; circularity-inference; D-940; D-944]`
