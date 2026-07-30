@@ -21986,5 +21986,5 @@ No BC body content, ADR rationale text, VP prose, or story AC content was author
 - Commit D: `e6060f8e` — 4-index version bumps + specialist files (BC-5.39.008/BC-6.26.001/VP-097/VCM)
 - Commit E: `f41dd19f` — STATE.md v6.73→v6.74 + burst-log completion
 - SHA-patch: `b4fa89c9` — burst-log Commit E TBD→actual SHA
-- Correction commit: `TBD` — POLICY 22 correction: adversary-pass-28.md Part B rewrite (authoritative 17 findings) + decision-log.md D-942/D-943 B01 mislabel corrections + burst-log Block 2/4/8 corrections
+- Correction commit: `3d12b780` — POLICY 22 correction: adversary-pass-28.md Part B rewrite (authoritative 17 findings) + decision-log.md D-942/D-943 B01 mislabel corrections + burst-log Block 2/4/8 corrections
 
