@@ -795,7 +795,7 @@ workflow:
 
               # Gate-imposed authoring constraint (T-008 / F-S2104-P22-003): Any inline "find … .factory"
               # is forbidden in this file (predicate-agnostic: -type f, ! -type d, or any other form;
-              # F-S2104-P28-007 widened from -type f). Text matching
+              # F-S2104-P28-H06 widened from -type f). Text matching
               # find[[:space:]]+[^[:space:]]*\.factory (path-first form) or
               # find[[:space:]]+(![[:space:]]+)?-type[[:space:]]+[^[:space:]]+[[:space:]]+[^[:space:]]*\.factory
               # (option-first form) including inside code fences triggers the T-008 bats anti-pattern gate.
@@ -810,8 +810,8 @@ workflow:
                   discrimination-chain protocol).
                   Remove worktree: git worktree remove .worktrees/STORY-NNN.
                   Update .factory/STATE.md with merge status.
-                  NOTE (Gate T-008 / F-S2104-P22-003): any inline "find ... .factory/" is forbidden
-                  in this file including in task strings (predicate-agnostic; F-S2104-P28-007);
+                  NOTE (Gate T-008 / F-S2104-P22-003): any inline "find … .factory/" is forbidden
+                  in this file including in task strings (predicate-agnostic; F-S2104-P28-H06);
                   use step-g-cleanup.md §G.1 reference instead.
 
           # --- Wave Integration Gate (after all stories in wave merged) ---

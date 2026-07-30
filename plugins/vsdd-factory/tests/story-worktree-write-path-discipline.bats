@@ -70,7 +70,7 @@
 #   T-004  AC-006  pc2c-halt:               find error (non-path-absent) → HALT non-zero, exit code+stderr surfaced, worktree-remove NOT called
 #   T-005  AC-002  file-at-path:            regular file at .factory → PC2b BLOCKED non-dir case; find NOT invoked; worktree-remove NOT called (BC-6.26.001 EC-008/T-6; F-S2104-P4-007)
 #   T-006  AC-002  symlink-at-path:         symlink at .factory → PC2b BLOCKED regardless of target type; find NOT invoked; worktree-remove NOT called (BC-6.26.001 PC2b symlink; T-006; F-S2104-P5-011)
-#   T-010  EC-009  stray-inode-inside-factory: symlink + FIFO inside real .factory/ dir → PREFLIGHT BLOCKED via ! -type d; missed by -type f (M03(a) predicate-delta proof; BC-6.26.001 EC-009; F-S2104-P28-006)
+#   T-010  EC-009  stray-inode-inside-factory: symlink + FIFO inside real .factory/ dir → PREFLIGHT BLOCKED via ! -type d; missed by -type f (M03(a) predicate-delta proof; BC-6.26.001 EC-009; F-S2104-P28-H05)
 #   T-007  AC-008  devops-mandate:          agents/devops-engineer.md §Worktree Cleanup — preflight-verification mandate (F-S2104-P4-003)
 #   T-008  AC-007(d)  6-surface-mandate:    6 ungated mandate surfaces — §G.1 delegation; anti-pattern absent (F-S2104-P4-009)
 #   T-009  AC-009  adv-awareness: adversary.md + adversarial-review/SKILL.md §G.1/BC-6.26.001 teardown-preflight awareness (F-S2104-P4-002)
@@ -638,8 +638,9 @@ _run_teardown_preflight() {
     "$spec_path_section"
 
   # --- DOC-PARITY §Spec-Path Discipline: AC-001(a) CWD-relative-path PROHIBITION (F-S2104-P12-003 .. F-S2104-P21-001) ---
+  # T001_GATE_COUNT=24
   # BC-6.26.001 PC1 core: the Write Discipline section must state that CWD-relative paths are
-  # FORBIDDEN and that canonical absolute paths are MANDATED. Twenty-three independently mutant-proven
+  # FORBIDDEN and that canonical absolute paths are MANDATED. Twenty-four independently mutant-proven
   # gates (pass-16 adds negation-transparency, block-wide polarity, sentence-scoped Gate 2 +
   # retirement-language guard, Gate 3 tightened + Gate 7 CWD-relative bullet polarity, and
   # anchor-uniqueness bounded to #### Write Discipline; pass-17 adds whole-section domain,
@@ -2733,7 +2734,7 @@ _run_teardown_preflight() {
 # T-010 / EC-009 / BC-6.26.001 PC2b predicate-widening (M03(a)):
 # Stray symlink + FIFO INSIDE a real shadow .factory/ directory
 # → PREFLIGHT BLOCKED via ! -type d; missed by retired -type f
-# Load-bearing delta proof of M03(a) widening — F-S2104-P28-006
+# Load-bearing delta proof of M03(a) widening — F-S2104-P28-H05
 # ===========================================================================
 
 @test "T-010 S-21.04 EC-009: stray-inode-inside-factory — symlink + FIFO inside real .factory/ dir → PREFLIGHT BLOCKED via ! -type d; missed by -type f predicate (M03(a) delta proof)" {
@@ -2774,10 +2775,14 @@ _run_teardown_preflight() {
   # Stray FIFO inside real .factory/ (type p — satisfies ! -type d, fails -type f)
   mkfifo "$MOCK_WORKTREE/.factory/stray-fifo"
 
-  # --- Load-bearing delta proof: -type f misses both inodes; ! -type d catches both ---
-  # These direct find assertions prove the behavioral delta independently of the extraction
-  # gate. They constitute the Red Gate evidence for EC-009: reverting to -type f makes
-  # find return empty, which would suppress PREFLIGHT BLOCKED and authorize teardown.
+  # --- POSIX find semantics proof: -type f misses both inodes; ! -type d catches both ---
+  # These direct find invocations prove POSIX find semantics for the EC-009 inode classes:
+  # -type f returns empty (symlinks and FIFOs are not regular files); ! -type d returns
+  # both inodes. This demonstrates a property of POSIX find, not a property derived from
+  # step-g-cleanup.md §G.1. The doc-extraction gate inside _run_teardown_preflight is what
+  # makes this test document-behavioral: extracting '! -type d' from §G.1 and running it
+  # against the fixture. The genuinely behavioral evidence against a predicate-reversion
+  # doc-mutant is the harness call via _run_teardown_preflight below (F-S2104-P29-L01).
   local find_type_f_result find_not_type_d_result
   find_type_f_result="$(find "$MOCK_WORKTREE/.factory" -type f 2>/dev/null || true)"
   find_not_type_d_result="$(find "$MOCK_WORKTREE/.factory" ! -type d 2>/dev/null || true)"
@@ -2871,20 +2876,25 @@ _run_teardown_preflight() {
     # regardless of predicate. The regex engine backtracks through [^[:space:]]* to find
     # .factory as a suffix of the first non-space token after 'find'.
     # POLICY 13 ALTERNATION-WIDENING-DIRECTION-STATEMENT: widened from -type f specific
-    # to predicate-agnostic at F-S2104-P28-007 — cannot be re-opened by the next predicate
+    # to predicate-agnostic at F-S2104-P28-H06 — cannot be re-opened by the next predicate
     # change (exactly how this defect arose when M03 widened -type f to ! -type d).
     # Catches: 'find .factory -type f' (old), 'find ".factory/" ! -type d' (M03 canonical),
     # any future predicate form where .factory appears as the primary path argument.
-    # The annotation blocks in surface files use Unicode '…' (U+2026) between 'find' and
-    # '.factory/', creating a space gap that prevents the pattern from matching — annotation
-    # prose is correctly excluded; only actual inline find commands fire.
+    # Escape mechanism (path-first and option-first legs): annotation blocks write
+    # 'find … .factory' or 'find ... .factory/' with an ellipsis placeholder and a
+    # space before '.factory'. The space prevents '.factory' from being a suffix of
+    # the first non-space token (path-first leg) and prevents '-type' from appearing
+    # as the first option immediately after 'find' (option-first leg). The load-bearing
+    # escape is the intervening whitespace gap, not the Unicode codepoint — both the
+    # U+2026 form and the ASCII '...' form evade via the same whitespace mechanism
+    # (F-S2104-P29-M04 rationale correction).
     if grep -qE 'find[[:space:]]+[^[:space:]]*\.factory' "$file"; then
       antipattern_found=true
     fi
     # Option-first form (type-agnostic): find [-!] -type <val> <path>/.factory (F-S2104-P22-009)
     # A mutant reordering flags to 'find -type f <path>/.factory' evades the path-first pattern.
     # After M03, the M03 option-first form is 'find ! -type d <path>/.factory'.
-    # Widened from -type f specific to any -type value (F-S2104-P28-007).
+    # Widened from -type f specific to any -type value (F-S2104-P28-H06).
     # MUTANT: 'find ! -type d ".worktrees/S-21.04/.factory/"' → fires → RED ✓.
     if grep -qE 'find[[:space:]]+(![[:space:]]+)?-type[[:space:]]+[^[:space:]]+[[:space:]]+[^[:space:]]*\.factory' "$file"; then
       antipattern_found=true
@@ -2893,7 +2903,7 @@ _run_teardown_preflight() {
     # scalars where the find command spans multiple lines; line-by-line grep misses these.
     # Collapsing the file to a single line with 'tr' catches find commands that are folded
     # across newlines in YAML flow or block style.
-    # Both patterns widened to predicate-agnostic / type-agnostic (F-S2104-P28-007).
+    # Both patterns widened to predicate-agnostic / type-agnostic (F-S2104-P28-H06).
     local collapsed
     collapsed="$(tr '\n' ' ' < "$file")"
     if printf '%s\n' "$collapsed" | grep -qE 'find[[:space:]]+[^[:space:]]*\.factory'; then
@@ -2902,8 +2912,85 @@ _run_teardown_preflight() {
     if printf '%s\n' "$collapsed" | grep -qE 'find[[:space:]]+(![[:space:]]+)?-type[[:space:]]+[^[:space:]]+[[:space:]]+[^[:space:]]*\.factory'; then
       antipattern_found=true
     fi
+    # Position/predicate-agnostic leg (F-S2104-P29-H02, revised from path-separator):
+    # catches inline find commands where '.factory' appears anywhere after 'find' in the
+    # same command — including -name, -path, -prune, and continuation forms that evade
+    # the path-first and option-first legs.
+    #
+    # Trigger: find[[:space:]][^;&|]*\.factory — 'find' followed by '.factory' anywhere
+    # in the command, not separated by command terminators (;, &, |).
+    #
+    # Escape (declared annotation convention): annotation prose uses the form
+    # 'find ELLIPSIS .factory' where an ellipsis token (U+2026 '…' or ASCII '...')
+    # directly precedes '.factory' as the first argument after 'find'. The exclusion
+    # pattern is:
+    #   find[[:space:]]+(\.\.\.|…)[[:space:]]+\.factory([^[:alnum:]_]|$)
+    # Specifically: ellipsis IMMEDIATELY after 'find[[:space:]]+', followed by '.factory'
+    # as a bare word whose first character after the terminal 'y' is non-alphanumeric
+    # (space, punctuation, backtick, quote, slash, end-of-line). This covers all current
+    # annotation forms: bare prose, backtick-quoted markdown, double-quoted comment text,
+    # and trailing-slash variants ('find … .factory/', 'find … .factory`', etc.).
+    # The ellipsis convention is now DECLARED: surface files MUST use an ellipsis token
+    # immediately after 'find' to mark annotation prose, not any other placeholder.
+    #
+    # Negative-twin property: 'find … /.factory' (ellipsis present, but '.factory' is
+    # inside a path token starting with '/', not a bare word directly after the ellipsis)
+    # is NOT excluded — the '/.factory' token starts with '/', so '\.factory' does not
+    # match at the position right after 'find[[:space:]]+(\.\.\.|…)[[:space:]]+', and
+    # the trigger fires. The negative-twin control probe verifies this in the mutant block.
+    #
+    # BOUNDARY-POLARITY: CLOSED (F-S2104-P29-H02). The excluded region is any line where
+    # 'find ELLIPSIS' is followed by '.factory' as a bare word (non-alphanumeric terminal).
+    # Harmful content of opposite polarity (a genuine inline find command) could appear only
+    # if '.factory' occurs both as the bare word directly after the ellipsis AND as a path
+    # argument later on the same line (e.g. 'find … .factory -name .factory'). This residual
+    # is CLOSED by a count check: strip backslash-escaped occurrences ('\.factory' becomes
+    # 'ESCAPED', eliminating regex documentation in annotation block text), then if two bare
+    # '.factory' remain on the excluded line, the second cannot be the annotation's own bare
+    # word — fire. The actual discriminator is that a real inline find command never contains
+    # an ellipsis token at all; ellipsis is the annotation convention, not a shell token.
+    # Count check applied per-line only (not collapsed): the collapsed form merges the entire
+    # file into one mega-line, making per-annotation counting meaningless across files with
+    # multiple annotation sections. See _p29h02_bpolarity_probe (FIRES) and
+    # _p29h02_annot_single_ctrl (CLEAN) mutants below.
+    #
+    # POLICY 13 ALTERNATION-WIDENING-DIRECTION-STATEMENT: widened trigger axis from
+    # path-separator-only (F-S2104-P29-H02 initial) to full position/predicate-agnostic
+    # coverage. The path-separator leg missed -name .factory and -path "*.factory*" forms
+    # because those have no '/' preceding '.factory'. The revised leg covers all predicate
+    # and position forms as required by AC-007(d) ("any inline find … .factory command
+    # regardless of predicate").
+    # MUTANTS (see POLICY 13 block below): _p29h02_name_probe (-name .factory fires),
+    #   _p29h02_pathwild_probe (-path "*.factory*" fires),
+    #   _p29h02_negtwn_probe (negative twin: find … /.factory fires),
+    #   _p29h02_path_probe (-path "*/.factory/*" form fires; retained),
+    #   _p29h02_continuation_probe (collapsed continuation fires; retained),
+    #   _p29h02_bpolarity_probe (find … .factory -name .factory fires; count closure),
+    #   _p29h02_annot_single_ctrl (find … .factory single form stays CLEAN; count control).
+    if grep -E 'find[[:space:]][^;&|]*\.factory' "$file" | \
+       grep -qvE 'find[[:space:]]+(\.\.\.|…)[[:space:]]+\.factory([^[:alnum:]_]|$)'; then
+      antipattern_found=true
+    fi
+    # Residual closure (BOUNDARY-POLARITY CLOSED): for annotation-excluded lines where two
+    # bare '.factory' appear (e.g. 'find … .factory -name .factory'), the second cannot be
+    # the annotation's own bare word — fire. Strip '\.factory' (backslash-escaped forms in
+    # regex documentation within annotation block text) first so only unescaped instances
+    # are counted. Applied per-line only: the collapsed form merges the whole file to one
+    # mega-line where multiple annotation sections produce multiple '.factory' occurrences,
+    # causing false positives on legitimate annotation-only files.
+    if grep -E 'find[[:space:]][^;&|]*\.factory' "$file" | \
+       grep -E 'find[[:space:]]+(\.\.\.|…)[[:space:]]+\.factory([^[:alnum:]_]|$)' | \
+       sed 's/\\\.factory/ESCAPED/g' | \
+       grep -qE '\.factory.*\.factory'; then
+      antipattern_found=true
+    fi
+    if printf '%s\n' "$collapsed" | grep -E 'find[[:space:]][^;&|]*\.factory' | \
+       grep -qvE 'find[[:space:]]+(\.\.\.|…)[[:space:]]+\.factory([^[:alnum:]_]|$)'; then
+      antipattern_found=true
+    fi
+    # No count check on collapsed form — see BOUNDARY-POLARITY note above.
     if [ "$antipattern_found" = true ]; then
-      echo "DOC-PARITY FAIL [anti-pattern present in $label]: surface presents inline 'find ... .factory[/] ...' (path-first OR option-first, any predicate form) — MUST NOT inline find command; delegate to §G.1 preflight instead (BC-6.26.001 PC2 + AC-007(d); absent-path check is first, not an unordered sibling; F-S2104-P4-009; F-S2104-P22-009; F-S2104-P28-007 predicate-agnostic widening)"
+      echo "DOC-PARITY FAIL [anti-pattern present in $label]: surface presents inline 'find ... .factory[/] ...' (path-first OR option-first OR position/predicate-agnostic, any predicate form) — MUST NOT inline find command; delegate to §G.1 preflight instead (BC-6.26.001 PC2 + AC-007(d); absent-path check is first, not an unordered sibling; F-S2104-P4-009; F-S2104-P22-009; F-S2104-P28-H06 predicate-agnostic widening; F-S2104-P29-H02 position/predicate-agnostic widening)"
       false
     fi
   }
@@ -2990,7 +3077,7 @@ _run_teardown_preflight() {
     false
   }
 
-  # --- POLICY 13 ALTERNATION-WIDENING-DIRECTION-STATEMENT: mutant probes for F-S2104-P28-007 ---
+  # --- POLICY 13 ALTERNATION-WIDENING-DIRECTION-STATEMENT: mutant probes for F-S2104-P28-H06 ---
   # Prove the predicate-agnostic widening fires on the M03(a) canonical ! -type d inline form.
   # Path-first probe: 'find "<path>/.factory" ! -type d' (the canonical M03 inline form).
   # Before widening (only -type f caught), this bypassed all four patterns → surfaces could
@@ -3002,7 +3089,7 @@ _run_teardown_preflight() {
   run _assert_no_inline_find_antipattern "$_p28007_pathfirst_probe" "p28007-path-first-probe"
   rm -f "$_p28007_pathfirst_probe"
   [ "$status" -ne 0 ] || {
-    echo "WIDENING-MUTANT FAIL (F-S2104-P28-007 path-first): 'find \".worktrees/S-21.04/.factory\" ! -type d' passed the antipattern gate — predicate-agnostic widening not effective on the M03 canonical path-first form; the old gate only caught -type f; expected non-zero status (F-S2104-P28-007)"
+    echo "WIDENING-MUTANT FAIL (F-S2104-P28-H06 path-first): 'find \".worktrees/S-21.04/.factory\" ! -type d' passed the antipattern gate — predicate-agnostic widening not effective on the M03 canonical path-first form; the old gate only caught -type f; expected non-zero status (F-S2104-P28-H06)"
     false
   }
   # Option-first probe: 'find ! -type d "<path>/.factory/"' (option-first M03 form).
@@ -3013,7 +3100,103 @@ _run_teardown_preflight() {
   run _assert_no_inline_find_antipattern "$_p28007_optionfirst_probe" "p28007-option-first-probe"
   rm -f "$_p28007_optionfirst_probe"
   [ "$status" -ne 0 ] || {
-    echo "WIDENING-MUTANT FAIL (F-S2104-P28-007 option-first): 'find ! -type d \".worktrees/S-21.04/.factory/\"' passed the antipattern gate — type-agnostic widening not effective on option-first ! -type d form; expected non-zero status (F-S2104-P28-007)"
+    echo "WIDENING-MUTANT FAIL (F-S2104-P28-H06 option-first): 'find ! -type d \".worktrees/S-21.04/.factory/\"' passed the antipattern gate — type-agnostic widening not effective on option-first ! -type d form; expected non-zero status (F-S2104-P28-H06)"
+    false
+  }
+
+  # --- POLICY 13 ALTERNATION-WIDENING-DIRECTION-STATEMENT: mutant probes for F-S2104-P29-H02 ---
+  # Prove the position/predicate-agnostic leg fires on all newly-covered evasion forms.
+  # Five probes: two previously-evading forms added in the revised leg (-name and -path
+  # wildcard), one negative-twin control (ellipsis + real path), and two retained from
+  # the initial path-separator leg (-path predicate and continuation).
+  #
+  # -name probe: 'find "$WT" -name .factory -prune' — .factory appears as a bare -name
+  # argument with no '/'. Missed by all prior legs; caught by position/predicate-agnostic
+  # trigger because '.factory' appears after 'find' with no ellipsis-direct-precede form.
+  local _p29h02_name_probe
+  _p29h02_name_probe="$(mktemp)"
+  printf 'find "$WT" -name .factory -prune\n' > "$_p29h02_name_probe"
+  run _assert_no_inline_find_antipattern "$_p29h02_name_probe" "p29h02-name-probe"
+  rm -f "$_p29h02_name_probe"
+  [ "$status" -ne 0 ] || {
+    echo "WIDENING-MUTANT FAIL (F-S2104-P29-H02 -name form): 'find \"\$WT\" -name .factory -prune' passed the antipattern gate — position/predicate-agnostic leg not effective on -name .factory form; expected non-zero status (F-S2104-P29-H02)"
+    false
+  }
+  # -path wildcard probe: 'find "$WT" -path "*.factory*" ! -type d' — .factory appears
+  # inside a -path argument with no preceding '/'. Missed by path-separator leg; caught
+  # by position/predicate-agnostic trigger.
+  local _p29h02_pathwild_probe
+  _p29h02_pathwild_probe="$(mktemp)"
+  printf 'find "$WT" -path "*.factory*" ! -type d\n' > "$_p29h02_pathwild_probe"
+  run _assert_no_inline_find_antipattern "$_p29h02_pathwild_probe" "p29h02-pathwild-probe"
+  rm -f "$_p29h02_pathwild_probe"
+  [ "$status" -ne 0 ] || {
+    echo "WIDENING-MUTANT FAIL (F-S2104-P29-H02 -path wildcard form): 'find \"\$WT\" -path \"*.factory*\" ! -type d' passed the antipattern gate — position/predicate-agnostic leg not effective on -path wildcard form; expected non-zero status (F-S2104-P29-H02)"
+    false
+  }
+  # Negative-twin control: 'find … /.factory' — contains an ellipsis after 'find' but
+  # '.factory' is inside a path token starting with '/', not a bare word directly after
+  # the ellipsis+space. The exclusion requires '.factory' as a bare word immediately after
+  # 'find[[:space:]]+ELLIPSIS[[:space:]]+'; '/.factory' starts with '/' so the exclusion
+  # pattern does not match, and the trigger fires. This proves the ellipsis exclusion is
+  # not over-broad: genuine inline path commands with an ellipsis in the prose still fire.
+  local _p29h02_negtwn_probe
+  _p29h02_negtwn_probe="$(mktemp)"
+  printf 'find \342\200\246 /.factory\n' > "$_p29h02_negtwn_probe"
+  run _assert_no_inline_find_antipattern "$_p29h02_negtwn_probe" "p29h02-negtwn-probe"
+  rm -f "$_p29h02_negtwn_probe"
+  [ "$status" -ne 0 ] || {
+    echo "WIDENING-MUTANT FAIL (F-S2104-P29-H02 negative-twin: find … /.factory): passed the antipattern gate — ellipsis exclusion is over-broad: 'find … /.factory' (genuine inline path with ellipsis in prose) must fire; expected non-zero status (F-S2104-P29-H02)"
+    false
+  }
+  # -path form (retained from initial path-separator leg): 'find "$WT" -path "*/.factory/*"'
+  # — .factory appears in a -path argument with preceding '/'.
+  local _p29h02_path_probe
+  _p29h02_path_probe="$(mktemp)"
+  printf 'find "$WT" -path "*/.factory/*"\n' > "$_p29h02_path_probe"
+  run _assert_no_inline_find_antipattern "$_p29h02_path_probe" "p29h02-path-probe"
+  rm -f "$_p29h02_path_probe"
+  [ "$status" -ne 0 ] || {
+    echo "WIDENING-MUTANT FAIL (F-S2104-P29-H02 -path form): 'find \"\$WT\" -path \"*/.factory/*\"' passed the antipattern gate — position/predicate-agnostic leg not effective on -path predicate form; expected non-zero status (F-S2104-P29-H02)"
+    false
+  }
+  # Continuation form (retained): backslash line-continuation collapses (tr '\n' ' ') to
+  # 'find \  "test/.factory"'. Path-first leg misses ('find' followed by '\', not a path);
+  # collapsed position/predicate-agnostic leg catches via '.factory' after 'find'.
+  local _p29h02_continuation_probe
+  _p29h02_continuation_probe="$(mktemp)"
+  printf 'find \\\n  "test/.factory"\n' > "$_p29h02_continuation_probe"
+  run _assert_no_inline_find_antipattern "$_p29h02_continuation_probe" "p29h02-continuation-probe"
+  rm -f "$_p29h02_continuation_probe"
+  [ "$status" -ne 0 ] || {
+    echo "WIDENING-MUTANT FAIL (F-S2104-P29-H02 continuation form): collapsed 'find \\  \"test/.factory\"' passed the antipattern gate — collapsed position/predicate-agnostic leg not effective on backslash-continuation form; expected non-zero status (F-S2104-P29-H02)"
+    false
+  }
+  # BOUNDARY-POLARITY closed-residual mutant: 'find … .factory -name .factory' — ellipsis
+  # directly before bare '.factory' (matches exclusion), but a second bare '.factory'
+  # appears later on the same line (-name argument). After sed strips backslash-escaped
+  # forms, two bare '.factory' remain → count check fires. Without the count check this
+  # was a documented residual where the exclusion silently swallowed the genuine command.
+  local _p29h02_bpolarity_probe
+  _p29h02_bpolarity_probe="$(mktemp)"
+  printf 'find \342\200\246 .factory -name .factory\n' > "$_p29h02_bpolarity_probe"
+  run _assert_no_inline_find_antipattern "$_p29h02_bpolarity_probe" "p29h02-bpolarity-probe"
+  rm -f "$_p29h02_bpolarity_probe"
+  [ "$status" -ne 0 ] || {
+    echo "BOUNDARY-POLARITY-MUTANT FAIL (F-S2104-P29-H02 count-closure): 'find … .factory -name .factory' passed the antipattern gate — count check (two bare .factory on excluded line) not effective; expected non-zero status (F-S2104-P29-H02)"
+    false
+  }
+  # Single-occurrence annotation control: bare 'find … .factory' stays CLEAN after count
+  # check. The ellipsis exclusion fires; only one bare '.factory' remains after sed strip;
+  # count check does NOT fire. Verifies the count check does not regress legitimate
+  # single-occurrence annotation lines.
+  local _p29h02_annot_single_ctrl
+  _p29h02_annot_single_ctrl="$(mktemp)"
+  printf 'find \342\200\246 .factory\n' > "$_p29h02_annot_single_ctrl"
+  run _assert_no_inline_find_antipattern "$_p29h02_annot_single_ctrl" "p29h02-annot-single-ctrl"
+  rm -f "$_p29h02_annot_single_ctrl"
+  [ "$status" -eq 0 ] || {
+    echo "ANNOTATION-CONTROL FAIL (F-S2104-P29-H02 single-occurrence): 'find … .factory' (single annotation form) was blocked — count check regression: single bare '.factory' on excluded line must not fire (F-S2104-P29-H02)"
     false
   }
 

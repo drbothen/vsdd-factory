@@ -1065,121 +1065,133 @@ _guard_e_canonical_repo_root() {
 }
 
 # ===========================================================================
-# COUPLING GATE (F-S2104-P27-STRUCT)
+# _check_t001_gate_count: T-016 coupling gate predicate (ADR-034 v1.1,
+# Decisions 1-3). $1 = path to the bats suite to inspect.
 #
-# Mechanical assertion that the story's AC-001 Gate cell stated gate count
-# (numeric) and the bats suite's lead-in count-word (converted to integer)
-# represent the same number. Any burst that changes either side without
-# updating the other causes this gate to fire with a failure message naming
-# both the story value and the bats value and what each reads.
+# Counts inline 'echo "DOC-PARITY FAIL"' lines within the AC-001(a) section
+# of the supplied bats suite (bounded by two stable section-marker comments)
+# and compares to the # T001_GATE_COUNT=N sentinel in the same file.
+# Returns 0 if actual_count == declared_count && actual_count > 0.
+# Returns 1 with a diagnostic echo on any failure.
+# No .factory/ access — both operands are on the product branch (Decision 1).
+# ===========================================================================
+_check_t001_gate_count() {
+  local bats_suite="$1"
+  if [ ! -f "$bats_suite" ]; then
+    echo "COUPLING GATE FAIL: bats suite not found at $bats_suite"
+    return 1
+  fi
+
+  # Count inline DOC-PARITY FAIL blocks in the AC-001(a) section.
+  # Section bounded by stable comment markers (ADR-034 Decision 2):
+  #   opening: '# --- DOC-PARITY §Spec-Path Discipline: AC-001(a)'
+  #   closing: '# --- DOC-PARITY §Spec-Path Discipline: EC-006 WARNING'
+  local actual_count
+  actual_count="$(awk \
+    '/# --- DOC-PARITY .*Spec-Path Discipline: AC-001\(a\)/,/# --- DOC-PARITY .*Spec-Path Discipline: EC-006 WARNING/' \
+    "$bats_suite" | grep -cE '^\s+echo "DOC-PARITY FAIL')"
+
+  # Zero-count guard: a broken section marker must not yield a vacuous 0 == 0 pass
+  # (ADR-034 Decision 2; BC-5.39.008 v1.6 fail-open prohibition).
+  if [ "$actual_count" -eq 0 ]; then
+    echo "COUPLING GATE FAIL [zero-count trap]: actual_count=0 — AC-001(a) section markers not found or section contains no 'echo \"DOC-PARITY FAIL\"' lines in $bats_suite; a section-marker rename or extraction failure must not produce a vacuous pass"
+    return 1
+  fi
+
+  # Extract declared constant from the product-branch sentinel (ADR-034 Decision 3).
+  # Sentinel form: '# T001_GATE_COUNT=N' — the only hand-maintained token.
+  # Adding a gate increments actual_count by 1; developer bumps T001_GATE_COUNT by 1;
+  # _check_t001_gate_count catches any mismatch in either direction.
+  local declared_count
+  declared_count="$(grep -oE '# T001_GATE_COUNT=[0-9]+' "$bats_suite" | sed 's/# T001_GATE_COUNT=//' | head -1)"
+
+  if [ -z "$declared_count" ]; then
+    echo "COUPLING GATE FAIL: sentinel '# T001_GATE_COUNT=N' not found in $bats_suite; add '# T001_GATE_COUNT=<actual_count>' immediately after the AC-001(a) section opening marker"
+    return 1
+  fi
+
+  # Primary coupling assertion.
+  if [ "$actual_count" -ne "$declared_count" ]; then
+    echo "COUPLING GATE FAIL [ADR-034 v1.1 / F-S2104-P29-H01/H05]: actual DOC-PARITY FAIL block count ($actual_count) != declared T001_GATE_COUNT ($declared_count)"
+    echo "  Suite   : $bats_suite"
+    echo "  Actual  : $actual_count inline echo \"DOC-PARITY FAIL\" blocks in AC-001(a) section"
+    echo "  Declared: $declared_count (# T001_GATE_COUNT sentinel)"
+    echo "  Fix: update T001_GATE_COUNT to match actual, or add/remove the mismatched gate"
+    return 1
+  fi
+}
+
+# ===========================================================================
+# COUPLING GATE (ADR-034 v1.1 rewrite; supersedes F-S2104-P27-STRUCT)
 #
-# Direction-A failure: story gate count changes (e.g., 23 → 22) while bats
-#   still says "Twenty-three" (23) → 22 ≠ 23 → RED ✓.
-# Direction-B failure: bats count-word changes (e.g., "Twenty-three" → "Twenty-two")
-#   while story still says "23 gates" (23) → 23 ≠ 22 → RED ✓.
+# ADR-034 Decision 1: No .factory/ reads — both operands on the product branch.
+#   Removed: fa_wt discovery loop, story_file, story_count, word-to-integer map.
+# ADR-034 Decision 2: actual_count = runtime count of 'echo "DOC-PARITY FAIL"'
+#   lines in the AC-001(a) section of story-worktree-write-path-discipline.bats,
+#   bounded by stable section-marker comments.
+# ADR-034 Decision 3: declared_count = # T001_GATE_COUNT=N sentinel in the same
+#   file — the ONLY hand-maintained token. Adding a gate increments actual_count
+#   by 1; developer bumps T001_GATE_COUNT by 1; T-016 catches the mismatch.
+# ADR-034 Decision 4: required/fail-closed — actual_count=0 is a hard fail
+#   (zero-count trap; BC-5.39.008 v1.6 fail-open prohibition).
+#
+# Direction-A failure: gate added, T001_GATE_COUNT not bumped → 25 ≠ 24 → RED ✓.
+# Direction-B failure: gate deleted, T001_GATE_COUNT not decremented → 23 ≠ 24 → RED ✓.
 # ===========================================================================
 
 @test "test_coupling_gate_story_gate_count_matches_bats_count_word" {
-  # Locate factory-artifacts worktree by path using the main checkout root as anchor.
-  # F-S2104-P28-001: CI mounts .factory from origin/factory-artifacts (detached HEAD),
-  # which yields no 'branch' line in --porcelain; branch-matching fails → CI-breaking.
-  # F-S2104-P28-015: use ${line#worktree } prefix stripping instead of awk $2 to
-  # preserve paths containing spaces (adversary.md Rule 2 space-safe mandate).
-  # Anchor: git worktree list --porcelain is repo-global; the FIRST 'worktree' entry
-  # is always the main checkout root regardless of which worktree the process runs in.
-  # rev-parse --show-toplevel returns the CWD's worktree root (wrong when running
-  # from a story worktree like S-21.04 — returns .worktrees/S-21.04, not the main root).
-  # Idiom: _shared-context.md main_worktree_path pattern.
-  # Precondition on CI lag: CI explicitly fetches origin/factory-artifacts before
-  # mounting; if the fetched commit is current, story_count == branch-tip count.
-  # A stale fetch could expose count divergence, but CI's fetch step mitigates this.
-  local main_root fa_wt _line _wt_path
-  main_root=""
-  fa_wt=""
-  while IFS= read -r _line; do
-    case "$_line" in
-      "worktree "*)
-        _wt_path="${_line#worktree }"
-        if [ -z "$main_root" ]; then
-          main_root="$_wt_path"
-        elif [ "$_wt_path" = "$main_root/.factory" ]; then
-          fa_wt="$_wt_path"
-          break
-        fi
-        ;;
-    esac
-  done < <(git -C "$PLUGIN_ROOT" worktree list --porcelain)
-  if [ -z "$fa_wt" ]; then
-    echo "COUPLING GATE FAIL: factory-artifacts worktree not found at $main_root/.factory; ensure .factory is mounted at the main checkout root (local: 'git worktree add .factory factory-artifacts'; CI: 'git worktree add .factory origin/factory-artifacts')"
-    false
-  fi
-
-  local story_file bats_suite
-  story_file="$fa_wt/stories/S-21.04-story-worktree-write-path-discipline.md"
+  # ADR-034 v1.1 (Decisions 1-3): rewritten. No .factory/ access.
+  local bats_suite
   bats_suite="$PLUGIN_ROOT/tests/story-worktree-write-path-discipline.bats"
 
-  if [ ! -f "$story_file" ]; then
-    echo "COUPLING GATE FAIL: story file not found at $story_file"
+  # --- Production check ---
+  run _check_t001_gate_count "$bats_suite"
+  if [ "$status" -ne 0 ]; then
+    printf '%s\n' "$output"
     false
   fi
 
-  # Extract story gate count from the AC-001 table row.
-  # F-S2104-P28-002: anchored to '| AC-001 |' to avoid consuming the frontmatter
-  # provenance line (which also contains '(NN gates' patterns quoting historical
-  # counts). head -1 on the whole file takes the first match in the file, which
-  # may be the frontmatter — anchoring to the AC-001 row is the authoritative site.
-  local ac001_row story_count
-  ac001_row="$(grep '| AC-001 |' "$story_file" | head -1)"
-  story_count="$(printf '%s\n' "$ac001_row" | grep -oE '\([0-9]+ gates' | grep -oE '[0-9]+' | head -1)"
-  if [ -z "$story_count" ]; then
-    echo "COUPLING GATE FAIL: AC-001 table row not found or does not contain pattern '(NN gates' — story gate count not extractable (story: $story_file)"
+  # --- Per-guard mutant verification (POLICY 15 / D-889) ---
+  # A probe without an assertion proves nothing (TD-VSDD-059).
+  local m_scratch
+  m_scratch="$(mktemp)"
+
+  # Mutant 1 (gate deletion): remove the first 'echo "DOC-PARITY FAIL"' block from
+  # the AC-001(a) section → actual_count drops to 23 ≠ declared_count 24 → must FIRE RED.
+  # Section bounded by the same stable markers used in _check_t001_gate_count.
+  awk 'BEGIN{done=0}
+    /# --- DOC-PARITY .*Spec-Path Discipline: AC-001\(a\)/{in_sec=1}
+    /# --- DOC-PARITY .*Spec-Path Discipline: EC-006 WARNING/{in_sec=0}
+    in_sec && /echo "DOC-PARITY FAIL/ && !done{done=1; next}
+    {print}' "$bats_suite" > "$m_scratch"
+  run _check_t001_gate_count "$m_scratch"
+  if [ "$status" -eq 0 ]; then
+    echo "MUTANT PROBE FAIL [gate deletion M1]: removing one DOC-PARITY FAIL block returned GREEN — _check_t001_gate_count must fire RED"
+    rm -f "$m_scratch"
     false
   fi
 
-  # Extract bats lead-in count-word from "Twenty-[word] independently mutant-proven gates".
-  local bats_word bats_count
-  bats_word="$(grep -oiE 'Twenty-[a-z]+' "$bats_suite" | head -1)"
-  if [ -z "$bats_word" ]; then
-    echo "COUPLING GATE FAIL: bats suite does not contain 'Twenty-[word]' lead-in count-word (suite: $bats_suite)"
+  # Mutant 2 (sentinel drift): replace T001_GATE_COUNT=24 with T001_GATE_COUNT=99 →
+  # declared_count=99 ≠ actual_count=24 → must FIRE RED.
+  sed 's/# T001_GATE_COUNT=[0-9]*/# T001_GATE_COUNT=99/' "$bats_suite" > "$m_scratch"
+  run _check_t001_gate_count "$m_scratch"
+  if [ "$status" -eq 0 ]; then
+    echo "MUTANT PROBE FAIL [sentinel drift M2]: T001_GATE_COUNT=99 returned GREEN — _check_t001_gate_count must fire RED"
+    rm -f "$m_scratch"
     false
   fi
 
-  # Word-to-integer map. Extend when gate count exceeds current maximum.
-  case "$(printf '%s' "$bats_word" | tr '[:upper:]' '[:lower:]')" in
-    "twenty-one")   bats_count=21 ;;
-    "twenty-two")   bats_count=22 ;;
-    "twenty-three") bats_count=23 ;;
-    "twenty-four")  bats_count=24 ;;
-    "twenty-five")  bats_count=25 ;;
-    "twenty-six")   bats_count=26 ;;
-    "twenty-seven") bats_count=27 ;;
-    "twenty-eight") bats_count=28 ;;
-    "twenty-nine")  bats_count=29 ;;
-    "thirty")       bats_count=30 ;;
-    *)
-      echo "COUPLING GATE FAIL: unrecognized bats count-word '$bats_word' — extend the word-to-integer map in this gate when the gate count grows"
-      false
-      ;;
-  esac
-
-  # Primary coupling assertion.
-  if [ "$story_count" -ne "$bats_count" ]; then
-    echo "COUPLING GATE FAIL [F-S2104-P27-STRUCT]: story gate count ($story_count) ≠ bats count-word numeric ($bats_count, from '$bats_word')"
-    echo "  Story file : $story_file"
-    echo "  Story reads: $(grep -oE '\([0-9]+ gates[^)]*\)' "$story_file" | head -1)"
-    echo "  Bats suite : $bats_suite"
-    echo "  Bats reads : $(grep -i 'Twenty' "$bats_suite" | head -1 | sed 's/^[[:space:]]*//')"
-    echo "  Fix: update whichever side drifted so both represent the same gate count"
+  # Mutant 3 (zero-count trap): break the AC-001(a) opening section marker →
+  # awk range never starts → actual_count=0 → zero-count guard must fire RED,
+  # not produce a vacuous 0 == declared pass (ADR-034 Decision 2; BC-5.39.008 v1.6).
+  sed 's/§Spec-Path Discipline: AC-001(a)/§Spec-Path Discipline: AC-001(BROKEN)/' \
+    "$bats_suite" > "$m_scratch"
+  run _check_t001_gate_count "$m_scratch"
+  if [ "$status" -eq 0 ]; then
+    echo "MUTANT PROBE FAIL [zero-count trap M3]: broken AC-001(a) opening marker returned GREEN — zero-count guard in _check_t001_gate_count must fire RED"
+    rm -f "$m_scratch"
     false
   fi
 
-  # F-S2104-P28-003: the former Direction-A and Direction-B corpus blocks were
-  # arithmetic tautologies. After the primary equality assertion above,
-  # story_count == bats_count is guaranteed; the blocks tested N-1 == N, which is
-  # unconditionally false for any integer. They executed zero real mutant vectors
-  # and the comments claiming direction coverage were a TD-VSDD-059 paper fix.
-  # Option (a): delete the dead blocks and re-attest honestly. The single equality
-  # assertion at the primary assertion above covers both drift directions:
-  # Direction-A (story count changes, bats stays): story_count ≠ bats_count → RED ✓.
-  # Direction-B (bats count-word changes, story stays): story_count ≠ bats_count → RED ✓.
+  rm -f "$m_scratch"
 }

@@ -120,9 +120,12 @@ The anti-tautology gate catches two classes of doc-mutant through different mech
   line (no `!`) both fail this requirement, leaving `find_cmd_line` empty. The function returns
   1 with `HARNESS FAIL: could not extract conformant find command...`. T-001 fails because
   `PREFLIGHT BLOCKED` is absent from output; T-002 fails because `worktree-remove-invoked` is
-  absent. T-010 provides additional direct evidence: the `find ... -type f` delta assertions
-  fail purely on find semantics before the extraction gate can fire. The load-bearing gates are
-  the extraction grep (primary) and T-010's delta proof (secondary behavioral evidence).
+  absent. The load-bearing gate is the extraction grep. T-010's direct find invocations prove
+  POSIX find semantics (that `-type f` misses symlinks and FIFOs) but not a property of
+  `step-g-cleanup.md §G.1` — re-deriving the retired `-type f` leg by extracting from the doc
+  is infeasible because the doc no longer contains `-type f` in any extractable form. The
+  genuinely behavioral evidence against a predicate-reversion doc-mutant is the harness call
+  via `_run_teardown_preflight` (F-S2104-P29-L01).
 
 - A `-name '*.md'` mutant (restricting find to `.md` files only) is caught by the **non-.md
   output assertion** in T-001. `engine-config.yaml` (a `.yaml` stray file in the T-001
@@ -146,7 +149,7 @@ fixtures (S-21.04) because the preflight mechanism is `find` (filesystem-direct)
 | EC-004 | `find` returns stray file (shadow .factory/ has content) | T-001, T-003 (first pass) |
 | EC-007 | Regular file (not directory) at `.factory/` path → PC2b BLOCKED without find | T-005 (story EC-007; BC-6.26.001 PC2b non-directory clause) |
 | EC-008 | Symlink at `.factory/` path → PC2b BLOCKED without find (regardless of target type) | T-006 (story EC-008; BC-6.26.001 PC2b symlink clause) |
-| EC-009 | Stray symlink or FIFO INSIDE real `.factory/` dir → PREFLIGHT BLOCKED via `! -type d`; missed by `-type f` | T-010 (BC-6.26.001 EC-009; M03(a) predicate-delta proof; F-S2104-P28-006) |
+| EC-009 | Stray symlink or FIFO INSIDE real `.factory/` dir → PREFLIGHT BLOCKED via `! -type d`; missed by `-type f` | T-010 (BC-6.26.001 EC-009; M03(a) predicate-delta proof; F-S2104-P28-H05) |
 | PC2c   | `find` exits non-zero for non-path-absent reason | T-004 (chmod 000 subdir) |
 
 ## POLICY 21 note

@@ -85,7 +85,7 @@ Parse `$ARGUMENTS` to determine the action:
    BLIND to gitignored shadow `.factory/` content — the §G.1 preflight is the only gate that catches it
    (BC-6.26.001 Invariant 5).
 
-   > **Gate-imposed authoring constraint (T-008 / F-S2104-P22-003):** Any inline `find … .factory` is forbidden in this file (predicate-agnostic: `-type f`, `! -type d`, or any other form; F-S2104-P28-007 widened from `-type f`). Text matching `find[[:space:]]+[^[:space:]]*\.factory` (path-first form) or `find[[:space:]]+(![[:space:]]+)?-type[[:space:]]+[^[:space:]]+[[:space:]]+[^[:space:]]*\.factory` (option-first form) — including inside code fences — triggers the T-008 bats anti-pattern gate. Reference §G.1 step-g-cleanup.md for the authorized preflight command form.
+   > **Gate-imposed authoring constraint (T-008 / F-S2104-P22-003):** Any inline `find … .factory` is forbidden in this file (predicate-agnostic: `-type f`, `! -type d`, or any other form; F-S2104-P28-H06 widened from `-type f`). Text matching `find[[:space:]]+[^[:space:]]*\.factory` (path-first form) or `find[[:space:]]+(![[:space:]]+)?-type[[:space:]]+[^[:space:]]+[[:space:]]+[^[:space:]]*\.factory` (option-first form) — including inside code fences — triggers the T-008 bats anti-pattern gate. Reference §G.1 step-g-cleanup.md for the authorized preflight command form.
 
    **Remove** worktree (only after PASS preflight result):
    ```bash
