@@ -14179,3 +14179,73 @@ D-944-PASS-29-RECORD
 ### Date
 
 2026-07-29
+
+## D-945
+
+### Title
+
+BC-5.39.010 / ADR-035 / S-21.07 design arc record — research-driven architecture ruling for cross-site correspondence; datum-copy ruling; MultiEdit escape channel closure; seventh consecutive cite cascade
+
+### Decision
+
+Record D-945 as the sentinel for the BC-5.39.010 / ADR-035 / S-21.07 design arc burst.
+
+**Sequence (recorded faithfully, including where I was wrong):**
+
+**(a)** After pass-30 returned 16 findings (up from pass-29's 13), human chose option 1 — change the generating function, not the count.
+
+**(b)** Product-owner allocated **BC-5.39.010** (BC-5.39.009 already taken by `validate-trajectory-tail-cell-completeness`). Scoped to **content correspondence, not presence** — pass-29 established that POLICY 14 leg 5's cell was *present* in all six failures and only its value was stale; a presence gate would have passed every one.
+
+**(c)** BC returned three times: Class A's story-side gap closed by **inverting the trigger** (story-side read of `behavioral_contracts:` + deterministic BC path derivation, no `list_dir`); 40 uses of "advisory" reconciled against BC-5.39.008 v1.6 fail-closed ruling with explicit per-arm rationales; and **Invariant 11** added distinguishing a *fabricated* hash (equals no computed value at any revision) from a *stale* one (equals a previously-valid value) — different remediations.
+
+**(d)** **External research (research-agent, 5 MCP calls, cite-backed):** Across Sphinx, Antora/AsciiDoc, Spectral, Vale, MkDocs, `remark-validate-links`, Bazel, DOORS, Sphinx-Needs, StrictDoc and ReqIF — **no system provides a mechanism for validating that a scalar is replicated consistently**; all use single-source-plus-projection instead. Existence checking is a corpus property: Sphinx's `BuildEnvironment`, Sphinx-Needs' `post_process_needs_data` (→ `has_dead_links`, escalated by `-W`), and StrictDoc's `TraceabilityIndex` all collect-then-resolve after a full read. `sphinx-doc/sphinx#10416` is the canonical incremental-only failure: repeating a build with the same invalid reference can omit the warning because the file was no longer rebuilt. `fd_readdir` **is** available in WASI preview1 and implemented by wasmtime, so our missing `list_dir` is an unimplemented host function, not a platform limit; wasmtime re-enumerates the whole directory per call, making paginated listing O(n²) with the cost landing on the fuel budget.
+
+**(e)** **Over-rotation corrected by architect.** I proposed that generation should *replace* validation for Classes A and B. Architect ruled the sequencing inverted: the generator does not exist, a validator that catches generation failures is more valuable than a lone generator, and the research's own "layer, don't choose" finding supports shipping `BC-5.39.010`'s validation now with generation as a future **Tier 2B** complement. Ruling accepted.
+
+**(f)** **Three-tier architecture (ADR-035).** Tier 1 WASM PostToolUse file-local (Class E); **Tier 2A** WASM cross-site validation (Classes A+B — ships as BC-5.39.010); Tier 2B future Rust generation binary; Tier 3 bats spec-validation with a Rust test binary (Class C count↔enumeration parity, Class D-semantic finding-ID existence). Irreducible and staying authored: the STORY-INDEX pass-refs column.
+
+**(g)** **Datum-copy ruling (product-owner).** Architect claimed the STORY-INDEX BC-version pin is "a quality assertion, not a datum copy," recording which BC version a story's ACs were reconciled against. `STORY-INDEX.md:53` reads *"BCs cells reconciled with source frontmatter for 7 E-12 stories"* — the language of syncing a copy. Product-owner ruled **datum-copy semantics**, on the ground that under marker semantics POLICY 14 leg-5's same-burst update obligation would be structurally incoherent since a marker may legitimately lag. Consequence: the five prior leg-5 sweeps were correct, and Arm A2's blocking behaviour is right as specified.
+
+**(h)** **A `MultiEdit` escape channel was found and closed.** Story-writer found BC-5.39.010 v1.1 §Gate Spec specifying `tools = ["Edit", "Write"]` — array notation, plural field, `MultiEdit` omitted — while `grep -ho 'tool = "[^"]*"' hooks-registry.toml | sort | uniq -c` shows **41** hooks using `tool = "^(Edit|Write|MultiEdit)$"`. As specified, a `MultiEdit` on any governed file would have bypassed all five arms. Corrected in v1.2. POLICY 13 ESCAPE-SCOPE-PARITY.
+
+**VP allocation decision:** BC-5.39.010 §VP Anchors states "VP IDs pending VP-INDEX allocation by state-manager at post-merge burst." Seventeen (17) pending VPs (VP-102..VP-118) are scheduled for allocation at S-21.07 post-merge burst. This obligation is recorded explicitly in STATE.md Drift Items; VP-INDEX unchanged at v2.74 this burst.
+
+**create-adr skill defect:** `/vsdd-factory:create-adr` did not insert the ARCH-INDEX row for ADR-035 (it did so correctly for ADR-034). Finding recorded as drift item. ADR-035 row manually inserted at Commit A.
+
+**Cite cascade note:** This is the **seventh consecutive occurrence** of the version-pin cascade. It was generated *by the burst authoring the gate designed to prevent it*. Product-owner enumerated all 11 stale cites rather than leaving them silent; 7 of the 11 were in S-21.07 body (already propagated by story-writer); 4 remain in STORY-INDEX and are swept at Commit C.
+
+**Participating agents:**
+- product-owner: BC-5.39.010 (v1.0 → v1.1 → v1.2)
+- story-writer: S-21.07 (v1.0 → v1.1)
+- architect: ADR-035 v1.0
+- research-agent: 5 MCP calls (external research; cite-backed)
+- state-manager: D-945 codification (Commit B); cite sweep (Commit C); 4-index bumps (Commit D); STATE.md + burst-log (Commit E); ADR-035 row insertion (Commit A)
+
+### Sentinel replacements
+
+No D-{TBD} sentinels used in this burst.
+
+### 4-INDEX
+
+| Index | Before | After | Change |
+|-------|--------|-------|--------|
+| BC-INDEX | v4.41 | v4.42 | BC-5.39.010 v1.1→v1.2 (row body already updated by product-owner; frontmatter version bump only) |
+| VP-INDEX | v2.74 | v2.74 | UNCHANGED — 17 pending VPs deferred to S-21.07 post-merge burst per BC-5.39.010 §VP Anchors |
+| STORY-INDEX | v4.274 | v4.275 | S-21.07 v1.0→v1.1; input-hash 34e7afc→eb04511; BC-5.39.010 v1.1→v1.2 in 4 locations (lines 719, 730×2, 733) |
+| ARCH-INDEX | v3.38 | v3.39 | ADR-035 row inserted (Commit A; create-adr skill defect) |
+
+### Lessons
+
+4 L-BB-* lessons appended to lessons.md:
+- `L-BB-prior-art-favors-layer-not-replace`
+- `L-BB-bc-gate-spec-must-diff-against-live-registry-convention`
+- `L-BB-blanket-tool-prohibitions-induce-fabrication`
+- `L-BB-external-research-resolved-in-repo-blind-spots`
+
+### Phase
+
+D-945-BC-5.39.010-ADR-035-S-21.07-DESIGN-ARC
+
+### Date
+
+2026-07-30

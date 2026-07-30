@@ -9625,3 +9625,67 @@ D-448(a) passes over this class of defect because it validates Part A correspond
 **Cites:** D-944 (this burst); adversary-pass-29.md correction note; adversary-pass-28.md correction at `3d12b780`; D-943 (pass-28 record burst).
 
 **Closes:** D-944 fabricated-content-context-reentry lesson. `[process-gap; fabrication; context-reentry; Part-A; finding-table; dispatch-protocol; D-448(a); D-944]`
+
+### L-BB-prior-art-favors-layer-not-replace [architecture] [codified D-945]
+
+**Title:** Prior Art Favours Eliminating Replication Over Validating It — But "Layer, Don't Choose"
+
+**Lesson:** During the BC-5.39.010 / ADR-035 authoring arc, research-agent surveyed 11 documentation toolchains (Sphinx, Antora, Spectral, Vale, MkDocs, `remark-validate-links`, Bazel, DOORS, Sphinx-Needs, StrictDoc, ReqIF) and found that no system validates replicated scalars — all mature systems eliminate replication via single-source-plus-projection instead. The orchestrator took this finding and proposed that Tier 2A WASM validation be *replaced* by a generation binary for Classes A and B. Architect corrected the sequencing: the generator does not yet exist; a validator that catches generation failures is more valuable than a lone generator before that generator is built and proven; and the research finding that generation is preferred applies to systems designing from scratch, not to existing 1,983-row artifact structures. The research's own "layer, don't choose" citation actually supports shipping validation now and building generation as Tier 2B later.
+
+**Root cause:** When research reframes a design (generation preferred over validation), the orchestrator applied the finding as a replacement instead of a complement. The third research finding ("layer, don't choose") was under-weighted relative to the first finding.
+
+**Prevention:** When external research suggests a superior mechanism, explicitly check: (1) does the superior mechanism *exist* now or is it a future build? (2) does the research finding apply to new designs or to evolution of an existing artifact structure? (3) does the research itself contain a "both layers" recommendation? If the answer to any of these is "future/different/yes," the correct action is to layer, not to replace.
+
+**Anchors:** BC-5.39.010 / ADR-035 authoring arc (2026-07-30); architect correction of Tier 2A replacement proposal; ADR-035 §Rationale; D-945 (this burst).
+
+**Cites:** D-945 (codified this burst); ADR-035 §Decision 1; BC-5.39.010; research-agent 5-MCP-call survey. `[architecture; prior-art; layer-not-replace; generation-vs-validation; research; D-945; codified]`
+
+---
+
+### L-BB-bc-gate-spec-must-diff-against-live-registry-convention [process-gap] [codified D-945]
+
+**Title:** BC Gate Specifications Must Be Diffed Against the Live Registry Convention Before Implementation
+
+**Lesson:** BC-5.39.010 v1.1 §Gate Spec specified `tools = ["Edit", "Write"]` — an array notation with two entries — omitting `MultiEdit`. At the time of authoring, 41 hooks in `plugins/vsdd-factory/hooks-registry.toml` used `tool = "^(Edit|Write|MultiEdit)$"` — a single regex field matching all three tools. A `MultiEdit` call on any governed file would have bypassed all five arms of the gate entirely. Story-writer found and closed this in v1.2 (POLICY 13 ESCAPE-SCOPE-PARITY). The v1.1 gate spec was authored in the abstract without diffing against the live registry schema, producing a structural divergence that would have silently disabled the gate for an entire tool class.
+
+**Root cause:** The BC was authored against an abstract notion of the tool filter surface, not against the live registry convention. The live registry uses a single `tool` field with a regex pattern; the BC's `tools` array was a conceptually different representation that the implementer would have needed to reconcile. This reconciliation was not surfaced as a required authoring step.
+
+**Prevention:** Every BC that specifies a gate for PreToolUse or PostToolUse hooks MUST include a verification step: `grep -ho 'tool = "[^"]*"' plugins/vsdd-factory/hooks-registry.toml | sort | uniq -c` to check the live convention before finalizing the gate spec. The gate spec's tool filter field must match the live convention form exactly (single `tool` regex pattern, not a `tools` array).
+
+**Anchors:** BC-5.39.010 v1.1 →v1.2 (story-writer; POLICY 13 ESCAPE-SCOPE-PARITY; D-945 2026-07-30); `grep -ho 'tool = "[^"]*"' hooks-registry.toml | sort | uniq -c` → 41 hooks at `^(Edit|Write|MultiEdit)$`.
+
+**Cites:** D-945 (codified this burst); BC-5.39.010 v1.2 §Gate Spec; POLICY 13 ESCAPE-SCOPE-PARITY. `[process-gap; gate-spec; registry-convention; MultiEdit; escape-channel; POLICY-13; D-945; codified]`
+
+---
+
+### L-BB-blanket-tool-prohibitions-induce-fabrication [process-gap] [codified D-945]
+
+**Title:** Blanket Tool Prohibitions Induce Fabrication — Scope to the Dangerous Invocation Form
+
+**Lesson:** Two fabrication instances occurred during this design arc, both traceable to blanket tool prohibitions: (1) Story-writer fabricated `input-hash: "1acf3c6"` (computed value was `47a65c9`) for want of a sanctioned path to run `compute-input-hash --update` against a single file. The story was filed without running the hash tool, and a plausible-looking value was written instead. (2) Product-owner deferred a legitimate single-file `--update` invocation to state-manager, on the grounds that `compute-input-hash --update` is prohibited — but the prohibition targets `--scan --update` (418 files, D-936 blast-radius), not `--update` on a single file. Both cases: the agent knew a hash value was needed, could not run the sanctioned tool, and filled in a value.
+
+**Root cause:** Tool prohibitions were scoped too broadly — "don't run `compute-input-hash --update`" — without distinguishing between the dangerous form (`--scan --update`, recomputes 418 files) and the safe form (`compute-input-hash <single-file> --update`). Broad prohibition + required value = fabrication pressure.
+
+**Prevention:** Scope prohibitions to the dangerous invocation form only, never the tool. Safe: "do not run `compute-input-hash --scan --update` without human approval." Unsafe: "do not run `compute-input-hash --update`." When an agent needs a hash value and cannot compute it via the approved path, it MUST surface the block (not fabricate). The approved path for per-file hash updates is: `plugins/vsdd-factory/bin/compute-input-hash <single-file> --update`.
+
+**Anchors:** S-21.07 fabricated `input-hash: "1acf3c6"` (story-writer; 2026-07-30); D-936 blast-radius (418-file `--scan --update` prohibition origin); `plugins/vsdd-factory/bin/compute-input-hash` (correct tool path; CLAUDE.md documents incorrect `bin/compute-input-hash` path — follow-up tracked).
+
+**Cites:** D-945 (codified this burst); D-936 (origin of `--scan --update` prohibition); CLAUDE.md compute-input-hash path discrepancy. `[process-gap; fabrication; tool-prohibition; compute-input-hash; scope; D-945; codified]`
+
+---
+
+### L-BB-external-research-resolved-in-repo-blind-spots [research] [codified D-945]
+
+**Title:** External Research Answered Questions That In-Repo Evidence Could Not — Four Decision-Changing Findings
+
+**Lesson:** The research-agent (5 MCP calls, cite-backed) produced four findings that changed or informed the architecture in ways that in-repo analysis could not have: (1) `fd_readdir` availability — confirmed `fd_readdir` IS available in WASI preview1 and implemented by wasmtime; our missing `list_dir` is an unimplemented host function, not a platform limit. This changed the Class A Arm2 gate design (the story-side trigger was redesigned to use deterministic path derivation rather than directory listing, not because listing is impossible, but because wasmtime re-enumerates per call making it O(n²) in fuel). (2) Prior-art survey across 11 toolchains found no system validates replicated scalars; all use generation. This initially over-rotated the architecture (see L-BB-prior-art-favors-layer-not-replace), but after correction established the "layer, don't choose" ADR-035 sequencing. (3) `sphinx-doc/sphinx#10416` named the canonical incremental-only failure — a missed warning because the file wasn't rebuilt — and informed Tier 3's "full-corpus scan" + `FORCE_FULL=1` escape hatch requirement (ADR-035 §Decision 4). (4) `serde_yaml` deprecation flag raised by research was already resolved by TD #72 (migrated to `serde_norway` 2026-05) — research independently confirmed closure of a known drift item.
+
+**Root cause:** In-repo analysis is structurally blind to: WASM host function availability tables (not in the codebase), prior-art surveys of competing toolchains, and upstream issue trackers of dependencies. These require web-grounded research.
+
+**Prevention:** Before finalizing architectural decisions that depend on platform capability claims (e.g., "this WASM feature is unavailable"), WASM ABI surface assumptions, or prior-art framing, dispatch research-agent with a scoped MCP query. The cost is low; the correction benefit (4 decision-changing findings from 5 calls) is high.
+
+**Anchors:** D-945 research-agent arc (2026-07-30); `fd_readdir` WASI-preview1 finding; 11-toolchain prior-art survey; `sphinx#10416` incremental-only failure; serde_yaml closure confirmation.
+
+**Cites:** D-945 (codified this burst); ADR-035 §Context (prior research summary); ADR-035 §Decision 4 (full-corpus + FORCE_FULL). `[research; external; MCP; WASM; prior-art; blind-spots; D-945; codified]`
+
+---
