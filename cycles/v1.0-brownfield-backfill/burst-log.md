@@ -21960,5 +21960,5 @@ No BC body content, ADR rationale text, VP prose, or story AC content was author
 - Commit B: `541c278b` — D-942 + D-943 decision blocks + 3 L-BB lessons
 - Commit C: `79403c0b` — policies.yaml fix (B01) + story hash correction + version-cite sweep
 - Commit D: `e6060f8e` — 4-index version bumps + specialist files (BC-5.39.008/BC-6.26.001/VP-097/VCM)
-- Commit E: TBD (this commit — STATE.md + burst-log completion)
+- Commit E: `f41dd19f` — STATE.md v6.73→v6.74 + burst-log completion
 
