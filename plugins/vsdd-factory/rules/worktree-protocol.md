@@ -79,7 +79,7 @@ The `.factory/` worktree is **permanent** — never remove it.
   subtree pass git's check silently and are permanently destroyed at teardown. The §G.1 preflight
   closes this blind spot. Do NOT rely on git's built-in check as a substitute.
 
-> **Gate-imposed authoring constraint (T-008 / F-S2104-P22-003):** The combined pattern `find … .factory/ … -type f` is forbidden in this file. Any text matching `find[[:space:]]+[^[:space:]]*\.factory/?[^[:space:]]*[[:space:]].*-type[[:space:]]+f` — including inside code fences — triggers the T-008 bats anti-pattern gate. Reference §G.1 step-g-cleanup.md for the authorized preflight command form.
+> **Gate-imposed authoring constraint (T-008 / F-S2104-P22-003):** Any inline `find … .factory` is forbidden in this file (predicate-agnostic: `-type f`, `! -type d`, or any other form; F-S2104-P28-007 widened from `-type f`). Text matching `find[[:space:]]+[^[:space:]]*\.factory` (path-first form) or `find[[:space:]]+(![[:space:]]+)?-type[[:space:]]+[^[:space:]]+[[:space:]]+[^[:space:]]*\.factory` (option-first form) — including inside code fences — triggers the T-008 bats anti-pattern gate. Reference §G.1 step-g-cleanup.md for the authorized preflight command form.
 
 - `git worktree list` to audit active worktrees.
 - `.worktrees/` is gitignored — worktrees are ephemeral, not tracked.

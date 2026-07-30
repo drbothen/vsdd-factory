@@ -436,10 +436,12 @@ workflow:
     # Step 16: Post-Merge Cleanup
     # =========================================================================
 
-    # Gate-imposed authoring constraint (T-008 / F-S2104-P22-003): The combined pattern
-    # "find … .factory/ … -type f" is forbidden in this file. Any text matching
-    # find[[:space:]]+[^[:space:]]*\.factory/?[^[:space:]]*[[:space:]].*-type[[:space:]]+f
-    # including inside code fences triggers the T-008 bats anti-pattern gate.
+    # Gate-imposed authoring constraint (T-008 / F-S2104-P22-003): Any inline "find … .factory"
+    # is forbidden in this file (predicate-agnostic: -type f, ! -type d, or any other form;
+    # F-S2104-P28-007 widened from -type f). Text matching
+    # find[[:space:]]+[^[:space:]]*\.factory (path-first form) or
+    # find[[:space:]]+(![[:space:]]+)?-type[[:space:]]+[^[:space:]]+[[:space:]]+[^[:space:]]*\.factory
+    # (option-first form) including inside code fences triggers the T-008 bats anti-pattern gate.
     # Reference step-g-cleanup.md §G.1 for the authorized preflight command form.
     - name: cleanup-worktree
       type: agent
@@ -450,5 +452,5 @@ workflow:
         (BC-6.26.001 PC2); proceed only on a PASS result (the §G.1 discrimination-chain protocol).
         Remove worktree: git worktree remove [worktree_path].
         Update .factory/STATE.md with merge status, PR number, timestamp.
-        NOTE (Gate T-008 / F-S2104-P22-003): the combined pattern "find ... .factory/ ... -type f"
-        is forbidden in this file including in task strings; use step-g-cleanup.md §G.1 reference.
+        NOTE (Gate T-008 / F-S2104-P22-003): any inline "find ... .factory/" is forbidden in this
+        file including in task strings (predicate-agnostic; F-S2104-P28-007); use step-g-cleanup.md §G.1.

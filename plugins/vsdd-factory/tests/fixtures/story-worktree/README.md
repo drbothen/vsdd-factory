@@ -17,7 +17,7 @@ fully cleaned up by `teardown()` via `chmod -R 755 + rm -rf "$WORK"` (the chmod 
 T-004's chmod 000 subdirectory).
 
 A "story-worktree fixture" simulates the state of `.worktrees/<STORY-ID>/` just before
-step G teardown. Six fixture configurations are used by the six fixture-bearing tests (T-001..T-006); T-007, T-008, and T-009 are doc-parity-only and consume no fixture:
+step G teardown. Seven fixture configurations are used by the seven fixture-bearing tests (T-001..T-006 and T-010); T-007, T-008, and T-009 are doc-parity-only and consume no fixture:
 
 ```
 T-001 (stray file present — PC2b):
@@ -26,7 +26,7 @@ T-001 (stray file present — PC2b):
       .factory/
         stories/
           S-021-DELIVERY.md       ← stray .md file: written via CWD-relative path
-        engine-config.yaml        ← stray non-.md file: makes -type f any-file-type load-bearing
+        engine-config.yaml        ← stray non-.md file: makes `! -type d` any-non-directory load-bearing
     canonical-factory/            ← simulated canonical .factory/ mount
     worktree-remove.log           ← sentinel (must remain empty on PREFLIGHT BLOCKED)
 
@@ -65,6 +65,20 @@ T-006 (symlink at .factory pointing at real dir — PC2b symlink per BC-6.26.001
   [ -L .factory ] is TRUE  (symlink detected at step 2; PC2b fires without invoking find)
   [ -d .factory ] is TRUE  (symlink-to-dir satisfies -d, so v1.6 check alone would miss it)
   find NOT invoked; PREFLIGHT BLOCKED (symlink case); exit non-zero.
+
+T-010 (stray symlink + FIFO INSIDE real .factory/ dir — EC-009 / M03(a) predicate-delta proof):
+  $WORK/
+    story-worktree/
+      .factory/                     ← REAL DIRECTORY (not a symlink-at-path as in T-006)
+        stray-shadow-symlink        ← SYMLINK (type l): satisfies ! -type d, fails -type f
+        stray-fifo                  ← FIFO (type p): satisfies ! -type d, fails -type f
+        stories/                    ← subdirectory (type d): excluded by ! -type d
+    worktree-remove.log             ← sentinel (must remain empty on PREFLIGHT BLOCKED)
+  [ -L .factory ] is FALSE (real dir, not symlink — step 2 does not fire)
+  [ -d .factory ] is TRUE  (real dir — step 3 does not fire; find IS invoked via step 4)
+  find ! -type d returns both inodes → PREFLIGHT BLOCKED (stray content found); exit non-zero.
+  find -type f returns empty (neither symlink nor FIFO is a regular file) → predicate-delta proof:
+    reverting §G.1 to -type f makes find return empty → teardown would incorrectly proceed → RED.
 ```
 
 ## Stray file anatomy
@@ -99,12 +113,16 @@ The BC discrimination chain (steps 1–3 HARDCODED; step 4 doc-derived via extra
 
 The anti-tautology gate catches two classes of doc-mutant through different mechanisms:
 
-- A `-type d` mutant (replacing `-type f` with `-type d`) is caught by the **extraction
-  grep**, not by changed find semantics. The filter `grep -- '-type f'` inside
-  `_run_teardown_preflight` does not match a `-type d` line, leaving `find_cmd_line` empty.
-  The function returns 1 with `HARNESS FAIL: could not extract conformant find command...`.
-  T-001 fails because `PREFLIGHT BLOCKED` is absent from output; T-002 fails because
-  `worktree-remove-invoked` is absent. The load-bearing gate is the extraction grep.
+- A predicate-reversion mutant (reverting `! -type d` back to `-type f`, or changing it to
+  `-type d` by removing the `!`) is caught by the **extraction grep**, not by changed find
+  semantics. The extraction grep inside `_run_teardown_preflight` requires the find command
+  to match `![[:space:]]*-type[[:space:]]+d`. A reverted `-type f` line and a changed `-type d`
+  line (no `!`) both fail this requirement, leaving `find_cmd_line` empty. The function returns
+  1 with `HARNESS FAIL: could not extract conformant find command...`. T-001 fails because
+  `PREFLIGHT BLOCKED` is absent from output; T-002 fails because `worktree-remove-invoked` is
+  absent. T-010 provides additional direct evidence: the `find ... -type f` delta assertions
+  fail purely on find semantics before the extraction gate can fire. The load-bearing gates are
+  the extraction grep (primary) and T-010's delta proof (secondary behavioral evidence).
 
 - A `-name '*.md'` mutant (restricting find to `.md` files only) is caught by the **non-.md
   output assertion** in T-001. `engine-config.yaml` (a `.yaml` stray file in the T-001
@@ -112,7 +130,7 @@ The anti-tautology gate catches two classes of doc-mutant through different mech
   `grep -q 'engine-config.yaml'` fails. The load-bearing gate is the non-.md artifact
   assertion, not changed find semantics.
 
-A harness hardcoding its own `find ... -type f 2>/dev/null || true` would not catch either
+A harness hardcoding its own `find ... ! -type d 2>/dev/null || true` would not catch either
 class of doc-mutant.
 
 This approach follows the W1 S-21.03 precedent of inline bash harness helpers operating
@@ -128,6 +146,7 @@ fixtures (S-21.04) because the preflight mechanism is `find` (filesystem-direct)
 | EC-004 | `find` returns stray file (shadow .factory/ has content) | T-001, T-003 (first pass) |
 | EC-007 | Regular file (not directory) at `.factory/` path → PC2b BLOCKED without find | T-005 (story EC-007; BC-6.26.001 PC2b non-directory clause) |
 | EC-008 | Symlink at `.factory/` path → PC2b BLOCKED without find (regardless of target type) | T-006 (story EC-008; BC-6.26.001 PC2b symlink clause) |
+| EC-009 | Stray symlink or FIFO INSIDE real `.factory/` dir → PREFLIGHT BLOCKED via `! -type d`; missed by `-type f` | T-010 (BC-6.26.001 EC-009; M03(a) predicate-delta proof; F-S2104-P28-006) |
 | PC2c   | `find` exits non-zero for non-path-absent reason | T-004 (chmod 000 subdir) |
 
 ## POLICY 21 note

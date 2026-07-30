@@ -70,6 +70,7 @@
 #   T-004  AC-006  pc2c-halt:               find error (non-path-absent) → HALT non-zero, exit code+stderr surfaced, worktree-remove NOT called
 #   T-005  AC-002  file-at-path:            regular file at .factory → PC2b BLOCKED non-dir case; find NOT invoked; worktree-remove NOT called (BC-6.26.001 EC-008/T-6; F-S2104-P4-007)
 #   T-006  AC-002  symlink-at-path:         symlink at .factory → PC2b BLOCKED regardless of target type; find NOT invoked; worktree-remove NOT called (BC-6.26.001 PC2b symlink; T-006; F-S2104-P5-011)
+#   T-010  EC-009  stray-inode-inside-factory: symlink + FIFO inside real .factory/ dir → PREFLIGHT BLOCKED via ! -type d; missed by -type f (M03(a) predicate-delta proof; BC-6.26.001 EC-009; F-S2104-P28-006)
 #   T-007  AC-008  devops-mandate:          agents/devops-engineer.md §Worktree Cleanup — preflight-verification mandate (F-S2104-P4-003)
 #   T-008  AC-007(d)  6-surface-mandate:    6 ungated mandate surfaces — §G.1 delegation; anti-pattern absent (F-S2104-P4-009)
 #   T-009  AC-009  adv-awareness: adversary.md + adversarial-review/SKILL.md §G.1/BC-6.26.001 teardown-preflight awareness (F-S2104-P4-002)
@@ -2729,6 +2730,110 @@ _run_teardown_preflight() {
 }
 
 # ===========================================================================
+# T-010 / EC-009 / BC-6.26.001 PC2b predicate-widening (M03(a)):
+# Stray symlink + FIFO INSIDE a real shadow .factory/ directory
+# → PREFLIGHT BLOCKED via ! -type d; missed by retired -type f
+# Load-bearing delta proof of M03(a) widening — F-S2104-P28-006
+# ===========================================================================
+
+@test "T-010 S-21.04 EC-009: stray-inode-inside-factory — symlink + FIFO inside real .factory/ dir → PREFLIGHT BLOCKED via ! -type d; missed by -type f predicate (M03(a) delta proof)" {
+  # EC-009: a stray symlink (type 'l') or FIFO (type 'p') INSIDE a real shadow .factory/
+  # directory is returned by 'find ... ! -type d' because type l and type p both satisfy
+  # the negation (l != d, p != d). The retired '-type f' predicate misses both: symlinks
+  # and FIFOs are NOT regular files, so '-type f' returns empty and teardown incorrectly
+  # proceeds. This test is the load-bearing proof of the M03(a) predicate widening.
+  #
+  # Key distinction from T-006 (symlink AT .factory path):
+  #   T-006: $MOCK_WORKTREE/.factory is itself a SYMLINK → caught by [ -L ] at step 2 of
+  #          the discrimination chain; find is never invoked.
+  #   T-010: $MOCK_WORKTREE/.factory is a REAL DIRECTORY → [ -L ] does not fire; find IS
+  #          invoked and must detect stray non-directory inodes INSIDE the directory.
+  #
+  # FIFO coverage rationale: mkfifo creates a named pipe (POSIX type 'p'), available on
+  # macOS and Linux CI. FIFOs represent a distinct inode class from symlinks (type l).
+  # Both satisfy '! -type d' and both fail '-type f'. Including both proves the widening
+  # covers the whole non-regular-non-directory inode space, not just symlinks.
+  # Device nodes (mknod) require root on most Linux systems — excluded (not CI-portable).
+  # Unix domain sockets require additional cleanup — excluded (handled separately if needed).
+  #
+  # Red gate proof (why this test fails under -type f revert):
+  #   Under -type f: find returns empty (symlinks and FIFOs are not regular files) →
+  #     _run_teardown_preflight returns 0 (PC2a proceeds) → REMOVE_LOG written → the
+  #     [ ! -s "$REMOVE_LOG" ] assertion fails → RED ✓.
+  #   Under ! -type d: find returns both inodes → PREFLIGHT BLOCKED → status non-zero →
+  #     the [ "$status" -ne 0 ] assertion passes → GREEN ✓.
+  # Note: the extraction grep in _run_teardown_preflight also requires '! -type d', so
+  # reverting §G.1 to '-type f' causes HARNESS FAIL (extraction failure) before the
+  # behavioral delta can manifest. The direct find assertions below are the primary
+  # delta proof — they bypass the extraction gate and fail purely on find semantics.
+
+  # --- Fixture setup: real .factory/ dir containing stray symlink and FIFO ---
+  mkdir -p "$MOCK_WORKTREE/.factory/stories"
+  # Stray symlink inside real .factory/ (type l — satisfies ! -type d, fails -type f)
+  ln -s /dev/null "$MOCK_WORKTREE/.factory/stray-shadow-symlink"
+  # Stray FIFO inside real .factory/ (type p — satisfies ! -type d, fails -type f)
+  mkfifo "$MOCK_WORKTREE/.factory/stray-fifo"
+
+  # --- Load-bearing delta proof: -type f misses both inodes; ! -type d catches both ---
+  # These direct find assertions prove the behavioral delta independently of the extraction
+  # gate. They constitute the Red Gate evidence for EC-009: reverting to -type f makes
+  # find return empty, which would suppress PREFLIGHT BLOCKED and authorize teardown.
+  local find_type_f_result find_not_type_d_result
+  find_type_f_result="$(find "$MOCK_WORKTREE/.factory" -type f 2>/dev/null || true)"
+  find_not_type_d_result="$(find "$MOCK_WORKTREE/.factory" ! -type d 2>/dev/null || true)"
+
+  # -type f must return empty (symlinks and FIFOs are not regular files)
+  # If non-empty: the fixture accidentally contains a regular file; EC-009 delta proof is invalid.
+  if [ -n "$find_type_f_result" ]; then
+    echo "EC-009 DELTA FAIL: 'find ... -type f' returned non-empty on a fixture containing only symlinks and FIFOs — a regular file was unexpectedly present in .factory/; fixture must contain NO regular files for the predicate-delta proof (BC-6.26.001 EC-009; M03(a))"
+    false
+  fi
+
+  # ! -type d must detect the stray symlink
+  printf '%s\n' "$find_not_type_d_result" | grep -q 'stray-shadow-symlink' || {
+    echo "EC-009 DELTA FAIL: 'find ... ! -type d' did not return the stray symlink path — symlinks (type l) must satisfy '! -type d' (l != d); this is the core of the M03(a) predicate-widening proof (BC-6.26.001 EC-009)"
+    false
+  }
+
+  # ! -type d must detect the stray FIFO
+  printf '%s\n' "$find_not_type_d_result" | grep -q 'stray-fifo' || {
+    echo "EC-009 DELTA FAIL: 'find ... ! -type d' did not return the FIFO path — FIFOs (type p) must satisfy '! -type d' (p != d); FIFO coverage proves the widening applies to all non-directory inodes, not just symlinks (BC-6.26.001 EC-009)"
+    false
+  }
+
+  # --- HARNESS: run the doc-extracted preflight on the EC-009 fixture ---
+  # _run_teardown_preflight extracts '! -type d' from §G.1 and runs it on the fixture.
+  # With the correct predicate, find returns the stray symlink and FIFO → PREFLIGHT BLOCKED.
+  run _run_teardown_preflight "$MOCK_WORKTREE" "$REMOVE_LOG"
+  [ "$status" -ne 0 ] || {
+    echo "HARNESS FAIL: EC-009 fixture (stray symlink + FIFO inside real .factory/) must return non-zero (PREFLIGHT BLOCKED) — got status 0; 'find ... ! -type d' must detect non-directory inodes INSIDE a real shadow .factory/ directory (BC-6.26.001 EC-009; M03(a))"
+    false
+  }
+  printf '%s\n' "$output" | grep -q 'PREFLIGHT BLOCKED' || {
+    echo "HARNESS FAIL: 'PREFLIGHT BLOCKED' not in output for EC-009 fixture (stray symlink + FIFO inside real .factory/) — got: $output"
+    false
+  }
+
+  # Stray symlink path must appear in the PREFLIGHT BLOCKED message
+  printf '%s\n' "$output" | grep -q 'stray-shadow-symlink' || {
+    echo "HARNESS FAIL: stray symlink path 'stray-shadow-symlink' must appear in PREFLIGHT BLOCKED output (BC-6.26.001 PC2b; EC-009) — got: $output"
+    false
+  }
+
+  # Stray FIFO path must appear in the PREFLIGHT BLOCKED message
+  printf '%s\n' "$output" | grep -q 'stray-fifo' || {
+    echo "HARNESS FAIL: stray FIFO path 'stray-fifo' must appear in PREFLIGHT BLOCKED output (BC-6.26.001 PC2b; EC-009) — got: $output"
+    false
+  }
+
+  # Mutant-proving sentinel: git worktree remove MUST NOT be invoked on PREFLIGHT BLOCKED path
+  [ ! -s "$REMOVE_LOG" ] || {
+    echo "HARNESS FAIL: REMOVE_LOG non-empty on EC-009 PREFLIGHT BLOCKED path — git worktree remove MUST NOT be invoked when stray non-directory inodes are found inside .factory/ (BC-6.26.001 PC2b; EC-009) — log: $(cat "$REMOVE_LOG")"
+    false
+  }
+}
+
+# ===========================================================================
 # F-S2104-P4-009: DOC-PARITY regression gates for 6 ungated mandate surfaces
 # BC-6.26.001 PC2 + AC-007(d)
 # Target surfaces: worktree-manage/SKILL.md, code-delivery/SKILL.md, fix-pr-delivery/SKILL.md,
@@ -2761,35 +2866,44 @@ _run_teardown_preflight() {
   _assert_no_inline_find_antipattern() {
     local file="$1" label="$2"
     local antipattern_found=false
-    # Path-first form: find <path>/.factory[/]... -type f
-    # Regex catches unquoted ('.factory -type f', '.factory/ -type f') AND the quoted canonical
-    # form ('find "<worktree-path>/.factory/" -type f') from the canonical find command in step-g-cleanup.md §G.1.
-    # The prior pattern '.factory/?[[:space:]]' failed on the quoted form: after '\.factory/',
-    # the closing '"' precedes the space, so '[[:space:]]' could not match (F-S2104-P7-002).
-    # Fix: '[^[:space:]]*' after '\.factory/?' consumes any trailing non-space chars (e.g., '"')
-    # before '[[:space:]]' matches the argument separator (F-S2104-P6-007 + F-S2104-P7-002).
-    if grep -qE 'find[[:space:]]+[^[:space:]]*\.factory/?[^[:space:]]*[[:space:]].*-type[[:space:]]+f' "$file"; then
+    # Path-first form (predicate-agnostic): find <path>/.factory[/]... <any-predicate>
+    # Catches any inline find command where the .factory path appears as the first argument,
+    # regardless of predicate. The regex engine backtracks through [^[:space:]]* to find
+    # .factory as a suffix of the first non-space token after 'find'.
+    # POLICY 13 ALTERNATION-WIDENING-DIRECTION-STATEMENT: widened from -type f specific
+    # to predicate-agnostic at F-S2104-P28-007 — cannot be re-opened by the next predicate
+    # change (exactly how this defect arose when M03 widened -type f to ! -type d).
+    # Catches: 'find .factory -type f' (old), 'find ".factory/" ! -type d' (M03 canonical),
+    # any future predicate form where .factory appears as the primary path argument.
+    # The annotation blocks in surface files use Unicode '…' (U+2026) between 'find' and
+    # '.factory/', creating a space gap that prevents the pattern from matching — annotation
+    # prose is correctly excluded; only actual inline find commands fire.
+    if grep -qE 'find[[:space:]]+[^[:space:]]*\.factory' "$file"; then
       antipattern_found=true
     fi
-    # Option-first form: find -type f <path>/.factory[/] (F-S2104-P22-009)
-    # A mutant reordering flags to `find -type f <path>/.factory` evades the path-first pattern.
-    if grep -qE 'find[[:space:]]+-type[[:space:]]+f[[:space:]]+[^[:space:]]*\.factory' "$file"; then
+    # Option-first form (type-agnostic): find [-!] -type <val> <path>/.factory (F-S2104-P22-009)
+    # A mutant reordering flags to 'find -type f <path>/.factory' evades the path-first pattern.
+    # After M03, the M03 option-first form is 'find ! -type d <path>/.factory'.
+    # Widened from -type f specific to any -type value (F-S2104-P28-007).
+    # MUTANT: 'find ! -type d ".worktrees/S-21.04/.factory/"' → fires → RED ✓.
+    if grep -qE 'find[[:space:]]+(![[:space:]]+)?-type[[:space:]]+[^[:space:]]+[[:space:]]+[^[:space:]]*\.factory' "$file"; then
       antipattern_found=true
     fi
     # Collapsed-content check (M02 F-S2104-P25-M02): .lobster YAML files may use folded-block
     # scalars where the find command spans multiple lines; line-by-line grep misses these.
     # Collapsing the file to a single line with 'tr' catches find commands that are folded
     # across newlines in YAML flow or block style.
+    # Both patterns widened to predicate-agnostic / type-agnostic (F-S2104-P28-007).
     local collapsed
     collapsed="$(tr '\n' ' ' < "$file")"
-    if printf '%s\n' "$collapsed" | grep -qE 'find[[:space:]]+[^[:space:]]*\.factory/?[^[:space:]]*[[:space:]].*-type[[:space:]]+f'; then
+    if printf '%s\n' "$collapsed" | grep -qE 'find[[:space:]]+[^[:space:]]*\.factory'; then
       antipattern_found=true
     fi
-    if printf '%s\n' "$collapsed" | grep -qE 'find[[:space:]]+-type[[:space:]]+f[[:space:]]+[^[:space:]]*\.factory'; then
+    if printf '%s\n' "$collapsed" | grep -qE 'find[[:space:]]+(![[:space:]]+)?-type[[:space:]]+[^[:space:]]+[[:space:]]+[^[:space:]]*\.factory'; then
       antipattern_found=true
     fi
     if [ "$antipattern_found" = true ]; then
-      echo "DOC-PARITY FAIL [anti-pattern present in $label]: surface presents inline bare 'find ... .factory[/] ... -type f' (path-first OR option-first form) as the first action — MUST NOT inline find command; delegate to §G.1 preflight instead (BC-6.26.001 PC2 + AC-007(d); absent-path check is first, not an unordered sibling; F-S2104-P4-009; F-S2104-P22-009)"
+      echo "DOC-PARITY FAIL [anti-pattern present in $label]: surface presents inline 'find ... .factory[/] ...' (path-first OR option-first, any predicate form) — MUST NOT inline find command; delegate to §G.1 preflight instead (BC-6.26.001 PC2 + AC-007(d); absent-path check is first, not an unordered sibling; F-S2104-P4-009; F-S2104-P22-009; F-S2104-P28-007 predicate-agnostic widening)"
       false
     fi
   }
@@ -2873,6 +2987,33 @@ _run_teardown_preflight() {
   rm -f "$_p23012_probe_file"
   [ "$status" -ne 0 ] || {
     echo "MANDATE-TOKEN PROBE FAIL (F-S2104-P23-012): non-mandating sentence ('run'+'before' only, no MUST/required/proceed-only) with the qualified §G.1 path passed the mandate gate — near-vacuous tokens still present in class; expected non-zero status"
+    false
+  }
+
+  # --- POLICY 13 ALTERNATION-WIDENING-DIRECTION-STATEMENT: mutant probes for F-S2104-P28-007 ---
+  # Prove the predicate-agnostic widening fires on the M03(a) canonical ! -type d inline form.
+  # Path-first probe: 'find "<path>/.factory" ! -type d' (the canonical M03 inline form).
+  # Before widening (only -type f caught), this bypassed all four patterns → surfaces could
+  # inline ! -type d without triggering the antipattern gate. After widening to predicate-
+  # agnostic path-first, this probe fires → _assert_no_inline_find_antipattern returns non-zero.
+  local _p28007_pathfirst_probe
+  _p28007_pathfirst_probe="$(mktemp)"
+  printf 'find ".worktrees/S-21.04/.factory" ! -type d\n' > "$_p28007_pathfirst_probe"
+  run _assert_no_inline_find_antipattern "$_p28007_pathfirst_probe" "p28007-path-first-probe"
+  rm -f "$_p28007_pathfirst_probe"
+  [ "$status" -ne 0 ] || {
+    echo "WIDENING-MUTANT FAIL (F-S2104-P28-007 path-first): 'find \".worktrees/S-21.04/.factory\" ! -type d' passed the antipattern gate — predicate-agnostic widening not effective on the M03 canonical path-first form; the old gate only caught -type f; expected non-zero status (F-S2104-P28-007)"
+    false
+  }
+  # Option-first probe: 'find ! -type d "<path>/.factory/"' (option-first M03 form).
+  # Widens the option-first pattern from -type f specific to any -type value.
+  local _p28007_optionfirst_probe
+  _p28007_optionfirst_probe="$(mktemp)"
+  printf 'find ! -type d ".worktrees/S-21.04/.factory/"\n' > "$_p28007_optionfirst_probe"
+  run _assert_no_inline_find_antipattern "$_p28007_optionfirst_probe" "p28007-option-first-probe"
+  rm -f "$_p28007_optionfirst_probe"
+  [ "$status" -ne 0 ] || {
+    echo "WIDENING-MUTANT FAIL (F-S2104-P28-007 option-first): 'find ! -type d \".worktrees/S-21.04/.factory/\"' passed the antipattern gate — type-agnostic widening not effective on option-first ! -type d form; expected non-zero status (F-S2104-P28-007)"
     false
   }
 

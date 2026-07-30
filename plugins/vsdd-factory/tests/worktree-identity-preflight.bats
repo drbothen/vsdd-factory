@@ -230,7 +230,16 @@ _guard_l_off_limits() {
   # if [ -z "$ol_aff" ]; positional adds structural-location defense.
   # RESTORE: revert to production _shared-context.md → ol_clause non-empty → GREEN ✓.
   local ol_spec_path_section ol_clause
-  ol_spec_path_section="$(awk '/^#{1,4}[[:space:]].*Spec-Path[[:space:]]Discipline/{found=1; next} found && /^#{1,4}[[:space:]]/{exit} found{print}' "$doc_file")"
+  # F-S2104-P28-016 + coordinator correction: adaptive section-bounded extractor
+  # tolerant of ##–#### heading levels (no heading-level hardcode).
+  # Start: /^#{2,4}[[:space:]].*Spec-Path Discipline/ matches at any depth ##–####.
+  # ERE interval {2,4}: supported on GNU awk (CI/Linux) and BSD awk (macOS) — verified
+  # locally (macOS awk supports {N,M} in ERE mode). Depth recorded via
+  # match($0,/^#+/)+RLENGTH. Exit on any heading whose RLENGTH ≤ section depth
+  # (same-level sibling or parent); NOT on deeper child headings (e.g., #### Write
+  # Discipline inside ### Spec-Path Discipline). Added /^---/{exit} leg to match the
+  # six sibling guards.
+  ol_spec_path_section="$(awk '/^#{2,4}[[:space:]].*Spec-Path Discipline/{found=1; match($0,/^#+/); depth=RLENGTH; next} found && /^#+ /{match($0,/^#+/); if(RLENGTH<=depth)exit} found && /^---/{exit} found{print}' "$doc_file")"
   ol_clause="$(printf '%s\n' "$ol_spec_path_section" | grep -i 'off-limits' || true)"
   if [ -z "$ol_clause" ]; then
     echo "DOC-PARITY FAIL [_shared-context.md: 'off-limits' prohibition absent from ### Spec-Path Discipline section (B01 deletion axis — F-S2104-P27-B01)]: positional conjunct requires the 'off-limits' mandate to appear within the Spec-Path Discipline section; if the sentence is moved outside the section or the section is renamed, this fires → RED ✓"
@@ -944,6 +953,27 @@ _guard_e_canonical_repo_root() {
     false
   fi
 
+  # Restore M10: production adversary.md must pass guards co, fa, cr.
+  # F-S2104-P28-017: CONTROL leg added to make restore-attestation true as written.
+  run _guard_e_checks_out_nothing "$ADVERSARY_AGENT"
+  if [ "$status" -ne 0 ]; then
+    echo "CORPUS FAIL [guard (e) co M10 RESTORE]: production adversary.md returned non-zero from _guard_e_checks_out_nothing — production artifact must be GREEN"
+    rm -f "$corpus_scratch"
+    false
+  fi
+  run _guard_e_factory_artifacts "$ADVERSARY_AGENT"
+  if [ "$status" -ne 0 ]; then
+    echo "CORPUS FAIL [guard (e) fa M10 RESTORE]: production adversary.md returned non-zero from _guard_e_factory_artifacts — production artifact must be GREEN"
+    rm -f "$corpus_scratch"
+    false
+  fi
+  run _guard_e_canonical_repo_root "$ADVERSARY_AGENT"
+  if [ "$status" -ne 0 ]; then
+    echo "CORPUS FAIL [guard (e) cr M10 RESTORE]: production adversary.md returned non-zero from _guard_e_canonical_repo_root — production artifact must be GREEN"
+    rm -f "$corpus_scratch"
+    false
+  fi
+
   # M11: Rule 5 deleted — ci guard exercises the ^5. positional conjunct.
   # Rule 5 = 'case-insensitive' mandate. Old ci guard: Rule 2 'case-insensitively' incidental
   # and story-spec-path-lookup 'case-insensitive' survive → ci_aff non-empty → GREEN (BUG).
@@ -953,6 +983,15 @@ _guard_e_canonical_repo_root() {
   run _guard_f_case_insensitive "$corpus_scratch"
   if [ "$status" -eq 0 ]; then
     echo "CORPUS FAIL [guard (f) ci M11 — B01 deletion axis: Rule 5 deleted, Rule 2/story-spec-path-lookup 'case-insensitive' incidentals survive]: old affirmative-only check returns GREEN (BUG); B01 positional ^5. conjunct must fire RED"
+    rm -f "$corpus_scratch"
+    false
+  fi
+
+  # Restore M11: production adversary.md must pass guard ci.
+  # F-S2104-P28-017: CONTROL leg added to make restore-attestation true as written.
+  run _guard_f_case_insensitive "$ADVERSARY_AGENT"
+  if [ "$status" -ne 0 ]; then
+    echo "CORPUS FAIL [guard (f) ci M11 RESTORE]: production adversary.md returned non-zero from _guard_f_case_insensitive — production artifact must be GREEN"
     rm -f "$corpus_scratch"
     false
   fi
@@ -970,6 +1009,15 @@ _guard_e_canonical_repo_root() {
     false
   fi
 
+  # Restore M12: production adversary.md must pass guard pc.
+  # F-S2104-P28-017: CONTROL leg added to make restore-attestation true as written.
+  run _guard_g_path_corroborated "$ADVERSARY_AGENT"
+  if [ "$status" -ne 0 ]; then
+    echo "CORPUS FAIL [guard (g) pc M12 RESTORE]: production adversary.md returned non-zero from _guard_g_path_corroborated — production artifact must be GREEN"
+    rm -f "$corpus_scratch"
+    false
+  fi
+
   # M13: Rule 3 deleted — wtr guard fires via both empty-aff and positional checks.
   # 'worktree-rooted' appears only in Rule 3: deletion empties wtr_all → wtr_aff empty →
   # old guard already fires RED ✓. Positional conjunct adds defense-in-depth.
@@ -978,6 +1026,15 @@ _guard_e_canonical_repo_root() {
   run _guard_d_worktree_rooted "$corpus_scratch"
   if [ "$status" -eq 0 ]; then
     echo "CORPUS FAIL [guard (d) wtr M13 — deletion axis: Rule 3 deleted (single 'worktree-rooted' occurrence)]: gate must fire RED (empty-aff or positional conjunct)"
+    rm -f "$corpus_scratch"
+    false
+  fi
+
+  # Restore M13: production adversary.md must pass guard wtr.
+  # F-S2104-P28-017: CONTROL leg added to make restore-attestation true as written.
+  run _guard_d_worktree_rooted "$ADVERSARY_AGENT"
+  if [ "$status" -ne 0 ]; then
+    echo "CORPUS FAIL [guard (d) wtr M13 RESTORE]: production adversary.md returned non-zero from _guard_d_worktree_rooted — production artifact must be GREEN"
     rm -f "$corpus_scratch"
     false
   fi
@@ -991,6 +1048,15 @@ _guard_e_canonical_repo_root() {
   run _guard_l_off_limits "$corpus_scratch"
   if [ "$status" -eq 0 ]; then
     echo "CORPUS FAIL [guard (l) ol M14 — deletion axis: off-limits sentence deleted from _shared-context.md]: gate must fire RED (empty-aff or positional conjunct)"
+    rm -f "$corpus_scratch"
+    false
+  fi
+
+  # Restore M14: production _shared-context.md must pass guard ol.
+  # F-S2104-P28-017: CONTROL leg added to make restore-attestation true as written.
+  run _guard_l_off_limits "$SHARED_CTX"
+  if [ "$status" -ne 0 ]; then
+    echo "CORPUS FAIL [guard (l) ol M14 RESTORE]: production _shared-context.md returned non-zero from _guard_l_off_limits — production artifact must be GREEN"
     rm -f "$corpus_scratch"
     false
   fi
@@ -1014,12 +1080,37 @@ _guard_e_canonical_repo_root() {
 # ===========================================================================
 
 @test "test_coupling_gate_story_gate_count_matches_bats_count_word" {
-  # Locate factory-artifacts worktree to read the story spec.
-  local fa_wt
-  fa_wt="$(git -C "$PLUGIN_ROOT" worktree list --porcelain | \
-    awk '/^worktree/{wt=$2; next} /^branch.*factory-artifacts/{print wt; exit}')"
+  # Locate factory-artifacts worktree by path using the main checkout root as anchor.
+  # F-S2104-P28-001: CI mounts .factory from origin/factory-artifacts (detached HEAD),
+  # which yields no 'branch' line in --porcelain; branch-matching fails → CI-breaking.
+  # F-S2104-P28-015: use ${line#worktree } prefix stripping instead of awk $2 to
+  # preserve paths containing spaces (adversary.md Rule 2 space-safe mandate).
+  # Anchor: git worktree list --porcelain is repo-global; the FIRST 'worktree' entry
+  # is always the main checkout root regardless of which worktree the process runs in.
+  # rev-parse --show-toplevel returns the CWD's worktree root (wrong when running
+  # from a story worktree like S-21.04 — returns .worktrees/S-21.04, not the main root).
+  # Idiom: _shared-context.md main_worktree_path pattern.
+  # Precondition on CI lag: CI explicitly fetches origin/factory-artifacts before
+  # mounting; if the fetched commit is current, story_count == branch-tip count.
+  # A stale fetch could expose count divergence, but CI's fetch step mitigates this.
+  local main_root fa_wt _line _wt_path
+  main_root=""
+  fa_wt=""
+  while IFS= read -r _line; do
+    case "$_line" in
+      "worktree "*)
+        _wt_path="${_line#worktree }"
+        if [ -z "$main_root" ]; then
+          main_root="$_wt_path"
+        elif [ "$_wt_path" = "$main_root/.factory" ]; then
+          fa_wt="$_wt_path"
+          break
+        fi
+        ;;
+    esac
+  done < <(git -C "$PLUGIN_ROOT" worktree list --porcelain)
   if [ -z "$fa_wt" ]; then
-    echo "COUPLING GATE FAIL: factory-artifacts worktree not found via 'git worktree list --porcelain'; ensure the factory-artifacts worktree is mounted before running this suite"
+    echo "COUPLING GATE FAIL: factory-artifacts worktree not found at $main_root/.factory; ensure .factory is mounted at the main checkout root (local: 'git worktree add .factory factory-artifacts'; CI: 'git worktree add .factory origin/factory-artifacts')"
     false
   fi
 
@@ -1032,11 +1123,16 @@ _guard_e_canonical_repo_root() {
     false
   fi
 
-  # Extract story gate count from pattern "(NN gates" in the AC-001 Gate cell.
-  local story_count
-  story_count="$(grep -oE '\([0-9]+ gates' "$story_file" | head -1 | grep -oE '[0-9]+')"
+  # Extract story gate count from the AC-001 table row.
+  # F-S2104-P28-002: anchored to '| AC-001 |' to avoid consuming the frontmatter
+  # provenance line (which also contains '(NN gates' patterns quoting historical
+  # counts). head -1 on the whole file takes the first match in the file, which
+  # may be the frontmatter — anchoring to the AC-001 row is the authoritative site.
+  local ac001_row story_count
+  ac001_row="$(grep '| AC-001 |' "$story_file" | head -1)"
+  story_count="$(printf '%s\n' "$ac001_row" | grep -oE '\([0-9]+ gates' | grep -oE '[0-9]+' | head -1)"
   if [ -z "$story_count" ]; then
-    echo "COUPLING GATE FAIL: story file does not contain pattern '(NN gates' — story gate count not extractable (story: $story_file)"
+    echo "COUPLING GATE FAIL: AC-001 table row not found or does not contain pattern '(NN gates' — story gate count not extractable (story: $story_file)"
     false
   fi
 
@@ -1077,21 +1173,13 @@ _guard_e_canonical_repo_root() {
     false
   fi
 
-  # Direction-A corpus: if story count were different, gate fires. Verify arithmetic.
-  # Simulated story_count = story_count - 1 must differ from bats_count.
-  local dir_a_count
-  dir_a_count=$(( story_count - 1 ))
-  if [ "$dir_a_count" -eq "$bats_count" ]; then
-    echo "COUPLING GATE DIRECTION-A SETUP ERROR: story_count-1 ($dir_a_count) equals bats_count ($bats_count) — test at single-gate boundary; add one more gate to disambiguate"
-    false
-  fi
-
-  # Direction-B corpus: if bats count were different, gate fires. Verify arithmetic.
-  # Simulated bats_count = bats_count - 1 must differ from story_count.
-  local dir_b_count
-  dir_b_count=$(( bats_count - 1 ))
-  if [ "$dir_b_count" -eq "$story_count" ]; then
-    echo "COUPLING GATE DIRECTION-B SETUP ERROR: bats_count-1 ($dir_b_count) equals story_count ($story_count) — test at single-gate boundary; add one more gate to disambiguate"
-    false
-  fi
+  # F-S2104-P28-003: the former Direction-A and Direction-B corpus blocks were
+  # arithmetic tautologies. After the primary equality assertion above,
+  # story_count == bats_count is guaranteed; the blocks tested N-1 == N, which is
+  # unconditionally false for any integer. They executed zero real mutant vectors
+  # and the comments claiming direction coverage were a TD-VSDD-059 paper fix.
+  # Option (a): delete the dead blocks and re-attest honestly. The single equality
+  # assertion at the primary assertion above covers both drift directions:
+  # Direction-A (story count changes, bats stays): story_count ≠ bats_count → RED ✓.
+  # Direction-B (bats count-word changes, story stays): story_count ≠ bats_count → RED ✓.
 }
