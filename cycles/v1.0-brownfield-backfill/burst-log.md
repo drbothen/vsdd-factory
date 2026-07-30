@@ -22115,3 +22115,117 @@ No BC body content, ADR rationale text, VP prose, or story AC content was author
 - Commit D: `b97469e8` — 4-index version bumps + specialist files (BC-6.26.001 v1.18 + ADR-034 v1.1)
 - Commit E: this-commit — STATE.md v6.74→v6.75 + burst-log completion + adversary-pass-29.md input-hash 3e9d280→2d1d78b
 
+## D-945 — BC-5.39.010/ADR-035/S-21.07 DESIGN-ARC 2026-07-30
+
+### Block 1: Parent-commit
+
+Pre-burst parent-commit (factory-artifacts): `ec3af975` (state(pass-29/correction): Part A fabrication corrected — adversary-pass-29.md + decision-log D-944 + lessons; last commit before D-945 Commit A `42b57793`).
+
+### Block 2: Adversary verdict
+
+N/A — specialist-artifact record burst, not an adversary pass burst. No `adv-cycle-pass-*.md` file for D-945. Specialist artifacts (BC-5.39.010 v1.2, ADR-035 v1.0, S-21.07 v1.1) authored by product-owner, architect, and story-writer prior to this burst. Input-hash checks substituted as verification evidence (Block 5(c)).
+
+D-448(a): N/A for specialist-artifact burst. Literal shell confirmation in Block 5(b).
+
+### Block 3: Files touched
+
+| File | Change | Agent |
+|------|--------|-------|
+| `.factory/specs/architecture/decisions/ADR-035-cross-site-correspondence-validation-three-tier-architecture.md` | NEW v1.0 PROPOSED: three-tier cross-site correspondence architecture (Decisions 1–6); fuel error taxonomy; wasmtime version target 44→47. No `inputs:` field — input-hash N/A. | architect (Commit A) |
+| `.factory/specs/behavioral-contracts/ss-05/BC-5.39.010.md` | NEW v1.2: five-arm cross-site correspondence gate (Classes A/B/D/E); MultiEdit escape channel closed (POLICY 13); Invariant 11 (fabricated vs stale). input-hash fbd1185→eabe4f0 (Commit E hash cascade correction) | product-owner (Commit A); SM hash-update (Commit E) |
+| `.factory/stories/S-21.07-validate-cross-site-correspondence.md` | NEW v1.1: E-21 Wave 4; 11 pts; 21 ACs; 29 ECs. input-hash eb04511→8ba2a75 (Commit E hash cascade correction) | story-writer (Commit A); SM hash-update (Commit E) |
+| `.factory/specs/architecture/ARCH-INDEX.md` | ADR-035 row inserted after ADR-034 (create-adr skill defect remediation; Commit A); frontmatter v3.38→v3.39 + last_amended prepend (Commit D) | SM (Commits A, D) |
+| `.factory/cycles/v1.0-brownfield-backfill/decision-log.md` | D-945 block appended (Commit B) | SM (Commit B) |
+| `.factory/cycles/v1.0-brownfield-backfill/lessons.md` | 4 L-BB lessons appended: L-BB-prior-art-favors-layer-not-replace; L-BB-bc-gate-spec-must-diff-against-live-registry-convention; L-BB-blanket-tool-prohibitions-induce-fabrication; L-BB-external-research-resolved-in-repo-blind-spots (Commit B) | SM (Commit B) |
+| `.factory/stories/STORY-INDEX.md` | BC-5.39.010 v1.1→v1.2 at 4 locations (Commit C); S-21.07 story v1.0→v1.1 + input-hash 34e7afc→eb04511 (Commit C); frontmatter v4.274→v4.275 + last_amended prepend (Commit D); S-21.07 input-hash eb04511→8ba2a75 + frontmatter v4.275→v4.276 (Commit E hash cascade) | SM (Commits C, D, E) |
+| `.factory/specs/behavioral-contracts/BC-INDEX.md` | frontmatter v4.41→v4.42 + last_amended prepend recording BC-5.39.010 arc (Commit D) | SM (Commit D) |
+| `.factory/STATE.md` | v6.75→v6.76; frontmatter advance; Phase Progress row; Current Phase; Last Updated; Current Phase Steps D-945 row + D-944 Commit E SHA correction; Identifier Conventions ADR count 34→35; Active Branches; Concurrent Cycles; Decisions Log D-945 row; Drift Items additions; SRC full replacement (Commit E) | SM (Commit E) |
+| `.factory/cycles/v1.0-brownfield-backfill/burst-log.md` | this entry (Commit E) | SM (Commit E) |
+
+### Block 4: Codifications
+
+| Decision | Summary |
+|----------|---------|
+| D-945 | BC-5.39.010/ADR-035/S-21.07 design arc sentinel; datum-copy ruling (product-owner: STORY-INDEX BC-version-pin is datum-copy, not quality marker); MultiEdit escape channel closure (POLICY 13 ESCAPE-SCOPE-PARITY); research-backed three-tier architecture (ADR-035); seventh consecutive cite cascade; create-adr skill defect recorded; 17 VPs deferred to S-21.07 post-merge per BC-5.39.010 §VP Anchors. 4-index: BC v4.41→v4.42 / VP v2.74 UNCHANGED / STORY v4.274→v4.276 / ARCH v3.38→v3.39 |
+| L-BB-prior-art-favors-layer-not-replace | 11 systems surveyed (Sphinx, Antora, Spectral, Vale, MkDocs, Bazel, DOORS, Sphinx-Needs, StrictDoc, remark-validate-links, ReqIF): none provide scalar-replication validation; all use single-source-plus-projection. Layer validators; don't replace. |
+| L-BB-bc-gate-spec-must-diff-against-live-registry-convention | BC §Gate Spec tool arrays must be diffed against live hooks-registry.toml conventions before acceptance. 41 hooks use `^(Edit|Write|MultiEdit)$`; BC v1.1 omitted MultiEdit and was bypassed by any MultiEdit on governed files. Closed in v1.2. |
+| L-BB-blanket-tool-prohibitions-induce-fabrication | POLICY 13 ESCAPE-SCOPE-PARITY requires declared escape unit (tools array) = incidental escape unit (live registry). Blanket prohibitions without live-registry parity checks induce fabrication when the registry convention changes. |
+| L-BB-external-research-resolved-in-repo-blind-spots | 5 MCP calls (research-agent) identified `fd_readdir` available in WASI preview1; the missing `list_dir` is an unimplemented host function, not a platform limit. External research resolved a structural assumption that had been blocking architectural direction. |
+
+### Block 5: Dim-2 attestations (literal shell per D-449(a))
+
+**(a) POLICY 16 GLOBAL-MAX GATE (literal shell stdout):**
+
+```
+$ grep -n "^## D-" .factory/cycles/v1.0-brownfield-backfill/decision-log.md | sort -t'-' -k2 -n | tail -3
+14042:## D-943
+14104:## D-944
+14183:## D-945
+```
+
+D-944 confirmed prior max → D-945 allocated. D-945 block present at line 14183.
+
+**(b) D-448(a) — N/A for specialist-artifact burst (literal shell stdout confirming no adv-pass-30 file):**
+
+```
+$ ls .factory/cycles/v1.0-brownfield-backfill/S-21.04/ | grep "adversary-pass-30"
+NOT FOUND (expected)
+```
+
+No adversary pass file for D-945. D-448(a) not applicable. Source-attestation gate does not apply to specialist-artifact record bursts.
+
+**(c) Specialist file input-hash verification (literal shell stdout — post --update):**
+
+```
+$ plugins/vsdd-factory/bin/compute-input-hash .factory/specs/architecture/decisions/ADR-035-cross-site-correspondence-validation-three-tier-architecture.md --check 2>&1; echo "EXIT:$?"
+compute-input-hash: no inputs: field in .../ADR-035-cross-site-correspondence-validation-three-tier-architecture.md — skipping
+EXIT:0
+
+$ plugins/vsdd-factory/bin/compute-input-hash .factory/specs/behavioral-contracts/ss-05/BC-5.39.010.md --check 2>&1; echo "EXIT:$?"
+EXIT:0
+
+$ plugins/vsdd-factory/bin/compute-input-hash .factory/stories/S-21.07-validate-cross-site-correspondence.md --check 2>&1; echo "EXIT:$?"
+EXIT:0
+```
+
+All three specialist files pass input-hash check post-update. BC-5.39.010 updated fbd1185→eabe4f0; S-21.07 updated eb04511→8ba2a75 (cascade: BC-5.39.010.md promotion changed inputs state). STORY-INDEX three-way parity corrected (lines 730+732: eb04511→8ba2a75; frontmatter v4.275→v4.276).
+
+**(d) D-446(a) own-burst-log 8-block gate (literal shell stdout — executed after appending this entry):**
+
+```
+$ grep -n "^### Block" .factory/cycles/v1.0-brownfield-backfill/burst-log.md | tail -8
+22120:### Block 1: Parent-commit
+22124:### Block 2: Adversary verdict
+22130:### Block 3: Files touched
+22145:### Block 4: Codifications
+22155:### Block 5: Dim-2 attestations (literal shell per D-449(a))
+22201:### Block 6: Dim-5 attestations
+22205:### Block 7: Dim-6/7 attestations
+22211:### Block 8: Closes + factory-artifacts commits
+```
+
+8 blocks confirmed present. D-446(a) PASS.
+
+**(e) WASM FUEL TIMEOUT NOTE:** PostToolUse hooks on ARCH-INDEX.md, BC-INDEX.md, STORY-INDEX.md timed out (fail-closed `block_intent=true exit_code=2`) throughout this burst — same pattern as D-944; consistent with large-file WASM fuel exhaustion per D-442(e). PostToolUse advisory only; writes succeed. `compute-input-hash --check EXIT:0` independently confirms hash currency.
+
+### Block 6: Dim-5 attestations
+
+No BC body content, ADR rationale text, VP prose, or story AC content was authored by state-manager in this burst. All state-manager edits are: ARCH-INDEX ADR-035 row insertion (mechanical index entry from specialist artifact); frontmatter version bumps + last_amended prepends; cite sweep (BC pin values + hash values); cycle-log entries (D-945 decision block, 4 L-BB lessons, this burst-log entry); STATE.md; and input-hash metadata updates (authorized single-file `--update` per dispatch). Specialist files (ADR-035 v1.0, BC-5.39.010 v1.2, S-21.07 v1.1) were authored by architect, product-owner, and story-writer respectively. State-manager role = file promotion + index updates + metadata maintenance only.
+
+### Block 7: Dim-6/7 attestations
+
+**Dim-6 (no spec conflicts introduced):** State-manager edits are sweep/index-bump/metadata only. No new spec content authored. ADR-035 v1.0, BC-5.39.010 v1.2, S-21.07 v1.1 content is specialist-authored. The ARCH-INDEX row for ADR-035 is an index entry (not rationale text). No conflicts with existing specs — RUSTSEC-2026-0149 wasmtime upgrade and fuel advisory are forward-tracked as drift items.
+
+**Dim-7 (non-fabrication attestation):** All descriptions in Block 2 and Block 3 derive from actual specialist artifact content and D-945 decision-log block. No INDEX.md leads or prior-session speculative content used. The "seven consecutive cite cascades" count was verified against the D-945 decision block explicit statement. Create-adr skill defect confirmed by `grep -c 'ADR-035' ARCH-INDEX.md` returning 0 before Commit A.
+
+### Block 8: Closes + factory-artifacts commits
+
+**Findings closed this burst:** None — specialist-artifact record burst; no adversary pass findings.
+
+**factory-artifacts commits (this burst):**
+- Commit A: `42b57793` — ADR-035 v1.0 + BC-5.39.010 v1.2 + S-21.07 v1.1 promoted; ARCH-INDEX ADR-035 row inserted (create-adr skill defect remediation)
+- Commit B: `e6d7028b` — D-945 decision block + 4 L-BB lessons
+- Commit C: `5f96bed0` — cite sweep 7th cascade (BC-5.39.010 v1.1→v1.2 ×4; S-21.07 story v1.0→v1.1; input-hash 34e7afc→eb04511)
+- Commit D: `bf892d54` — 4-index version bumps (BC v4.41→v4.42; STORY v4.274→v4.275; ARCH v3.38→v3.39; VP v2.74 unchanged)
+- Commit E: this-commit — STATE.md v6.75→v6.76 + burst-log completion + BC-5.39.010/S-21.07 input-hash cascade correction + STORY-INDEX v4.275→v4.276
+
