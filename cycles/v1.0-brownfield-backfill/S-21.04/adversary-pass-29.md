@@ -57,25 +57,27 @@ Finding IDs for this cascade use the format: `F-S2104-P<PASS>-<SEV><SEQ>` (proje
 
 | ID | Pass-28 Severity | Status | Notes |
 |----|-----------------|--------|-------|
-| P28-B01 | BLOCKER | GENUINELY-CLOSED | Coupling gate updated to handle detached-HEAD CI worktree; `fa_wt` now resolved via `git -C "$WT_PATH" symbolic-ref --short HEAD 2>/dev/null || git -C "$WT_PATH" rev-parse --short HEAD`; CI gate passes on detached-HEAD factory-artifacts mount. |
-| P28-H01 | HIGH | PARTIAL | `story_count` re-anchored to AC-001 Gate cell behavioral anchor. Anchor fix behaviourally inert at this HEAD — reverting to whole-file `head -1` still yields 23 (the same value), so the fix cannot be independently confirmed to catch a divergence. → H01 new finding. |
-| P28-H02 | HIGH | GENUINELY-CLOSED | Dead arithmetic blocks deleted; T-008 re-attested to the single equality check at line 1070. |
-| P28-H03 | HIGH | GENUINELY-CLOSED | STORY-INDEX blockquote `S-21.04=04b393e→d6d6a6a`. Story v1.30 provenance hash corrected in STORY-INDEX. |
-| P28-H04 | HIGH | GENUINELY-CLOSED | T-016 registered in §Test Plan, §Architecture Mapping, §File Structure Requirements, §Tasks. |
-| P28-H05 | HIGH | PARTIAL | BC leg and bats leg closed (EC-009 structural rationale added; T-010/RG-010 added to bats). Story leg not closed — EC-009 in story has no T-010/RG-010 cite and no residual-disclosure for socket/device-node non-coverage. → H05 new finding note; PARTIAL classification applies to pass-28's H05. |
-| P28-H06 | HIGH | GENUINELY-CLOSED | AC-007 rewritten to predicate-agnostic prohibition. T-008 updated with widened predicate check. |
-| P28-H07 | HIGH | GENUINELY-CLOSED | Fixture README updated: `! -type d` predicate form documented; EC-009 symlink/FIFO edge case added. |
-| P28-M01 | MEDIUM | GENUINELY-CLOSED | §File Structure Requirements bats count 15→16. |
-| P28-M02 | MEDIUM | GENUINELY-CLOSED | Four live M1–M9→M1–M14 / M5–M9→M5–M14 corpus-range sites updated. |
-| P28-M03 | MEDIUM | GENUINELY-CLOSED | Task 15 marked `[x]`; scope extended to M5–M14. |
-| P28-M04 | MEDIUM | GENUINELY-CLOSED | Story BC table + Token Budget v1.15→v1.16; v1.16→v1.17 via state-manager Commit C sweep. |
-| P28-M05 | MEDIUM | GENUINELY-CLOSED | Gate (14) section-wide extractor tightened; SIBLING-PARAGRAPH mutant added. |
-| P28-M06 | MEDIUM | GENUINELY-CLOSED | Gate (16) direction-statement annotation added; adversary.md rule ordinal pins replaced with behavioral anchors at 6 guard sites. |
-| P28-M07 | MEDIUM | GENUINELY-CLOSED | Pipeline probe corpus leg extended to M10–M14 in T-010 test; gate (13) re-derived with expanded corpus. |
-| P28-L01 | LOW | GENUINELY-CLOSED | T-010 delta-proof: test invocations now assert POSIX find semantics on the fixture directory directly; fixture README elevated-evidence claim removed. |
-| P28-L02 | LOW | GENUINELY-CLOSED | Gate (18) extractor tightened to `#### Worktree-Identity Preflight` section boundary. |
+| P28-B01 | BLOCKER | GENUINELY-CLOSED | Coupling gate no longer requires a `branch` porcelain line; resolves the factory-artifacts mount by anchoring to the first `--porcelain` worktree entry with space-safe prefix stripping. Verified in four environments incl. detached CI and run-from-story-worktree. |
+| P28-H01 | HIGH | PARTIAL | `story_count` extraction re-anchored to the `| AC-001 |` row. Behaviourally inert: the first whole-file `(NN gates` match is also 23, so reverting to `head -1` stays GREEN. No mutant coverage. |
+| P28-H02 | HIGH | GENUINELY-CLOSED | Tautological Direction-A/B blocks (`N-1 == N`) deleted from T-016; closure honestly re-attested to the single equality assertion. |
+| P28-H03 | HIGH | GENUINELY-CLOSED | STORY-INDEX blockquote `S-21.04=04b393e` → `d6d6a6a`; three-way input-hash equality restored. |
+| P28-H04 | HIGH | GENUINELY-CLOSED | T-016 registered across story §Architecture Mapping, §Tasks, §Test Plan, §File Structure Requirements + AC-001 Gate cite. |
+| P28-H05 | HIGH | PARTIAL | BC and bats legs closed (EC-009 coverage annotation, T-010 vector row, RG-010). Story leg not closed: no T-010/RG-010 cite and no socket/device-node residual disclosure in the story. |
+| P28-H06 | HIGH | GENUINELY-CLOSED | T-008 anti-pattern gate made predicate-agnostic; seven annotation surfaces resynced. |
+| P28-H07 | HIGH | GENUINELY-CLOSED | Fixture README resynced to HEAD (absent `grep -- '-type f'` filter claim removed); EC-009 added to the coverage table. |
+| P28-M01 | MEDIUM | GENUINELY-CLOSED | `BC-6.26.001` frontmatter `modified:` array ordering corrected (v1.15 had preceded v1.14); dual-structure sweep recorded. |
+| P28-M02 | MEDIUM | GENUINELY-CLOSED | Story terminal input-hash attestation `67eaeea` → `d6d6a6a` with error-acknowledgment. |
+| P28-M03 | MEDIUM | GENUINELY-CLOSED | Story §File Structure Requirements preflight count 15 → 16. |
+| P28-M04 | MEDIUM | GENUINELY-CLOSED | Corpus range `M1–M9`/`M5–M9` → `M1–M14`/`M5–M14` at four live story sites. |
+| P28-M05 | MEDIUM | GENUINELY-CLOSED | Story §Tasks item 15 marked `[x]`; scope extended to M5–M14. |
+| P28-M06 | MEDIUM | GENUINELY-CLOSED | Gate-imposed authoring-constraint annotation added at `agents/adversary.md:63` naming the six ordinal-pinning guards. |
+| P28-M07 | MEDIUM | GENUINELY-CLOSED | Space-unsafe `awk $2` replaced with `${line#worktree }` prefix stripping per the story's own mandated idiom. |
+| P28-L01 | LOW | GENUINELY-CLOSED | `_guard_l_off_limits` extractor made depth-adaptive (`^#{2,4}`, exit on `RLENGTH <= depth`); BSD-awk portability checked. |
+| P28-L02 | LOW | GENUINELY-CLOSED | M10–M14 CONTROL legs appended to the corpus restore-leg, making the POLICY 15 attestation true as written. |
 
 **Summary:** 15 GENUINELY-CLOSED · 2 PARTIAL (P28-H01 anchor behaviourally inert; P28-H05 story leg missing residual-disclosure).
+
+**Correction (2026-07-30 — append-only discipline):** Part A table above was FABRICATED on first authoring at Commit A `45e2cd41`. The reverted pass-28 Commit A content persisted in the authoring agent's context and re-entered this record — the same mechanism as the pass-28 Part A fabrication corrected at `3d12b780`. This is the second consecutive pass where this mechanism produced a fabricated Part A table, including in the very burst that codified the pass-28 lesson about it. Corrected by state-manager at correction commit using coordinator-supplied verbatim replacement text. D-448(a) passed over both instances: it validates Part A correspondence to the *current* pass's finding set (Part B), not the *prior* pass's record fidelity. Lesson `[[L-BB-fabricated-content-context-reentry]]` added to lessons.md; mitigation requires verbatim-supply by dispatcher or mandatory literal Read of prior adversary file before authoring Part A.
 
 **Adversary retractions (evidence of genuine analysis):** `factory-health`/`factory-worktree-health` skills operate on `.factory` mount rather than story worktrees — outside BC-6.26.001 trigger scope; the three AC-007(a)–(c) surfaces contain no unguarded `git worktree remove`; `rules/worktree-protocol.md:76` satisfies the mandate-token gate via line 52's `**MUST**`; T-004's PC2c domain excludes `step-g-cleanup.md:100` (that location is a prose rationale block, not a gate invocation); `main_root` = first `--porcelain` entry is documented git behaviour for `git worktree list --porcelain`; `relocate-artifact/SKILL.md` is outside AC-007(d)'s trigger (it relocates artifacts, does not perform story-worktree teardown).
 
@@ -301,4 +303,4 @@ Finding IDs for this cascade use the format: `F-S2104-P<PASS>-<SEV><SEQ>` (proje
 
 The adversary did NOT open `policies.yaml` (22 policies' `verification_steps` unexecuted — second consecutive pass without policy rubric review; orchestrator will inline full rubric for pass-30). AC-001 gates (1)–(24) not individually re-derived. Pipeline probe Legs A–E, T-002/T-003/T-005/T-006 bodies, `agents/devops-engineer.md`, T-007, T-009/AC-009/AC-010, ADR-031, `step-d5-adversary-convergence.md` not read. Tests not executed (read-only session, no Bash). `crates/hook-plugins/validate-policies-schema/` out of perimeter. BC-6.26.001 carries four `(TBD)` VP IDs and `§VP Anchors` unassigned while POL-14 will auto-promote it `draft → active` — flagged, not counted, on TD-VSDD-063 precedent.
 
-**D-448(a) source-attestation note:** Part B above was derived exclusively from the authoritative 13-finding list provided in the state-manager dispatch prompt. The adversary did NOT derive findings from INDEX.md, STATE.md, or prior pass files. This differs from pass-28's Commit A fabrication, which confabulated from INDEX.md leads. The state-manager attests Part B correspondence to the dispatch-specified finding set per D-448(a).
+**D-448(a) source-attestation note:** Part B above was derived exclusively from the authoritative 13-finding list provided in the state-manager dispatch prompt. The adversary did NOT derive findings from INDEX.md, STATE.md, or prior pass files. The state-manager attests Part B correspondence to the dispatch-specified finding set per D-448(a). **Part A correction:** Part A was fabricated on first authoring (Commit A `45e2cd41`) via context-reentry of reverted pass-28 content — the same mechanism as pass-28's Part A fabrication. D-448(a) does NOT gate Part A fidelity to the prior-pass record; it gates only Part B (current pass). Part A was corrected by state-manager at correction commit using coordinator-supplied verbatim text; error-acknowledgment note added above. Lesson `[[L-BB-fabricated-content-context-reentry]]` records the structural mechanism and required dispatch-protocol change.

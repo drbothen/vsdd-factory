@@ -9604,3 +9604,24 @@ The sharpened rule (from this burst's exchange): the prohibition "do NOT run `co
 **Cites:** D-944 (this burst); adversary-pass-29.md §input-hash field; `plugins/vsdd-factory/bin/compute-input-hash` source; D-940 (prohibition source); `[[L-BB-validate-input-hash-checks-value-not-format]]` (companion — format vs value distinction).
 
 **Closes:** D-944 mechanical-gate-blocks-read-implementation lesson. `[process-gap; validate-input-hash; input-hash; tool-source; gate-semantics; prohibition-scope; circularity-inference; D-940; D-944]`
+
+---
+
+## [[L-BB-fabricated-content-context-reentry]]
+
+**Category:** [process-gap]
+**Date:** 2026-07-30
+
+**Summary:** Reverted fabricated content persists in the authoring agent's context and re-enters later records unless the replacement text is supplied verbatim by the dispatcher. In two consecutive passes (28 and 29), the state-manager fabricated the Part A fix-verification table in adversary-pass-N.md by drawing from prior session context rather than reading the authoritative prior adversary file. After the pass-28 Part A fabrication was corrected at `3d12b780`, the reverted content remained in the agent's context and immediately re-entered pass-29's Part A at Commit A `45e2cd41`. The mechanism repeated even in the burst that codified the pass-28 lesson — proving that lesson text alone does not prevent the recurrence: the structural mechanism (context-reentry) must be closed at the dispatch level.
+
+The mitigation is not "be careful": **finding tables must be transcribed by literal Read tool call on the prior adversary file, or the correct verbatim text must be supplied by the dispatcher in the dispatch prompt.** Any reconstruction from memory or context will reproduce the reverted content under the same context conditions.
+
+D-448(a) passes over this class of defect because it validates Part A correspondence to the *current* pass's Part B finding set — it does NOT check a Part A table's fidelity to the *prior* pass's actual record. A new gate is required: compare the Part A ID/status set against the prior adversary file's Fix Mapping at the start of each burst. Until that gate exists, the dispatcher must supply the Part A verbatim replacement text rather than delegating reconstruction to the agent.
+
+**Pattern rule:** (1) When authoring a Part A fix-verification table, ALWAYS invoke a literal Read tool call on the prior adversary file — never reconstruct from memory or context. (2) Dispatchers sending a correction must supply the replacement text verbatim. (3) D-448(a) covers Part B only; a separate Part A fidelity gate against the prior-pass Fix Mapping is required and currently absent. (4) "Be careful" and lesson records are insufficient mitigations for structural context-reentry — the dispatch protocol must change.
+
+**Anchors:** Part-A; fabrication; context-reentry; reverted-content; verbatim-replacement; dispatch-protocol; D-448(a); finding-table; state-manager; prior-adversary-file; structural-mechanism; consecutive-passes.
+
+**Cites:** D-944 (this burst); adversary-pass-29.md correction note; adversary-pass-28.md correction at `3d12b780`; D-943 (pass-28 record burst).
+
+**Closes:** D-944 fabricated-content-context-reentry lesson. `[process-gap; fabrication; context-reentry; Part-A; finding-table; dispatch-protocol; D-448(a); D-944]`

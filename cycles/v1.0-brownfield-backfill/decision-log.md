@@ -14149,6 +14149,8 @@ Record S-21.04 adversarial pass-29 in factory-artifacts. Allocate D-944 as the s
 
 **validate-input-hash hook discrepancy note:** The PostToolUse `validate-input-hash` hook and the CLI `compute-input-hash --check` use different algorithms. CLI (reads only the 5 `inputs:` files from disk) reports exit 0 (match) after every edit to adversary-pass-29.md. Hook consistently reports drift (`ddf2694`) on the same file. PostToolUse hooks cannot revert writes; adversary-pass-29.md writes succeeded. Discrepancy logged for S-15.03 PRIORITY-A investigation.
 
+**Part A fabrication correction (2026-07-30 — append-only):** adversary-pass-29.md Part A table was FABRICATED on first authoring at Commit A `45e2cd41`. The reverted pass-28 Commit A content persisted in the authoring agent's context and re-entered this record — the same mechanism as the pass-28 Part A fabrication corrected at `3d12b780`. This is the second consecutive pass where this mechanism produced a fabricated Part A table, including in the very burst that codified the pass-28 lesson about it. Corrected by state-manager at correction commit using coordinator-supplied verbatim replacement text. D-448(a) passed over both instances: it validates Part A correspondence to the *current* pass's Part B finding set; it does NOT check a Part A table's fidelity to the *prior* pass's record. Lesson `[[L-BB-fabricated-content-context-reentry]]` appended to lessons.md.
+
 ### Sentinel replacements
 
 No D-{TBD} sentinels used in this burst.
