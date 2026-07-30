@@ -14009,13 +14009,13 @@ D-940-PASS-27-FINDINGS-CLOSED
 
 ### Title
 
-S-21.04 pass-28: policies.yaml YAML parse failure B01 codified + orchestrator P0 claims (b)+(c) REFUTED + rc.24 blocker re-grounded
+S-21.04 pass-28: policies.yaml YAML parse failure codified as D-942 infrastructure defect + orchestrator P0 claims (b)+(c) REFUTED + rc.24 blocker re-grounded
 
 ### Decision
 
 Three sub-decisions for the pass-28 record burst:
 
-**(a) policies.yaml YAML parse failure B01 acknowledged as infrastructure defect:**
+**(a) policies.yaml YAML parse failure acknowledged as D-942 infrastructure defect (NOT a pass-28 adversary finding):**
 
 `policies.yaml` document-2 has been unparseable since D-920 (2026-07-26). Root cause: three `\+` invalid escape sequences in the ALTERNATION-WIDENING-DIRECTION-STATEMENT MANDATE double-quoted YAML scalar (POLICY 13). Duration: 3 days, passes 21–28. Fix: state-manager Commit C — change `grep -v '^\+\+\+'` → `grep -v '^\\+\\+\\+'`; version bump v1.4.17 → v1.4.18; verification: `python3 -c "import yaml; docs=list(yaml.safe_load_all(open('.factory/policies.yaml'))); print('DOCS:', len(docs)); print('POLICY_COUNT:', len([d for d in docs if isinstance(d,dict) and 'policies' in d][0]['policies']))"` → expected DOCS: 2, POLICY_COUNT: 22.
 
@@ -14023,15 +14023,15 @@ Three sub-decisions for the pass-28 record burst:
 
 Examined during state-manager record-burst triage. All 196 `policies.yaml` CapabilityDenied records in the dispatcher telemetry carried `session_id = "pass-read-failure-failopen"` and `plugin_version 0.0.1`. These are BATS test artifacts from deliberate denial induction in the bats test harness — NOT real production-session dispatches. Real-session data shows zero `validate-policies-schema` denials. The ~9,939 figure conflated BATS harness telemetry with real-session governance records. This P0 is REFUTED. It is NOT an adversary finding (recorded here as a formal refutation per D-942 scope).
 
-**(c) REFUTED — orchestrator P0 claim: policies.yaml B01 means POLICY 13–22 were silently ignored in adversary passes 21–28:**
+**(c) REFUTED — orchestrator P0 claim: policies.yaml YAML parse failure means POLICY 13–22 were silently ignored in adversary passes 21–28:**
 
-Examined during state-manager record-burst triage. POLICY 1–22 are encoded directly in the adversary agent prompt (via the vsdd-factory:adversary agent definition). The auto-loaded programmatic `policies.yaml` portion is an ADDITIONAL enforcement layer — document-2 parse failure rendered the auto-loaded layer blind but did NOT disable the prompt-encoded layer. Passes 21–28 enforced POLICY 13–22 from the prompt encoding only; the programmatic portion was blind. This constitutes degraded coverage (B01 finding), not silent ignorance. The P0 framing is REFUTED. Recorded as a formal refutation per D-942 scope.
+Examined during state-manager record-burst triage. POLICY 1–22 are encoded directly in the adversary agent prompt (via the vsdd-factory:adversary agent definition). The auto-loaded programmatic `policies.yaml` portion is an ADDITIONAL enforcement layer — document-2 parse failure rendered the auto-loaded layer blind but did NOT disable the prompt-encoded layer. Passes 21–28 enforced POLICY 13–22 from the prompt encoding only; the programmatic portion was blind. This constitutes degraded coverage (D-942 infrastructure defect — not a pass-28 adversary finding), not silent ignorance. The P0 framing is REFUTED. Recorded as a formal refutation per D-942 scope.
 
-**rc.24 blocker status re-grounded:** The policies.yaml B01 fix restores the auto-loaded enforcement layer. The rc.24 release BLOCKER is re-grounded on three independent legs: (a) 26% timeout rate on 2026-07-27 session; (b) policies.yaml YAML parse failure (B01 — now fixed in Commit C); (c) 12 BC-cited fail-open sites (confirmed by architect root-cause S-19.03). Legs (a) and (c) remain unresolved; rc.24 remains blocked.
+**rc.24 blocker status re-grounded:** The policies.yaml YAML parse fix restores the auto-loaded enforcement layer. The rc.24 release BLOCKER is re-grounded on three independent legs: (a) 26% timeout rate on 2026-07-27 session; (b) policies.yaml YAML parse failure (D-942 fix — now fixed in Commit C); (c) 12 BC-cited fail-open sites (confirmed by architect root-cause S-19.03). Legs (a) and (c) remain unresolved; rc.24 remains blocked.
 
 ### Phase
 
-D-942-POLICIES-YAML-B01-CODIFIED-P0-REFUTED
+D-942-POLICIES-YAML-DEFECT-CODIFIED-P0-REFUTED
 
 ### Date
 
@@ -14043,27 +14043,36 @@ D-942-POLICIES-YAML-B01-CODIFIED-P0-REFUTED
 
 ### Title
 
-S-21.04 pass-28 record burst — adversary-pass-28.md + 17 findings (B01 + factory-artifacts H/M CLOSED + feature-branch H1/M3/L2 test-writer) + 3 lessons
+S-21.04 pass-28 record burst — adversary-pass-28.md + 17 findings (B1/H7/M7/L2) + 3 lessons — CORRECTED from fabricated Commit A content
 
 ### Decision
 
 Record S-21.04 adversarial pass-28 in factory-artifacts. Allocate D-943 as the sentinel for the fix burst.
 
+> **FABRICATION CORRECTION NOTICE:** The original Commit A (`8071cb1b`) version of adversary-pass-28.md Part B was substantially fabricated (POLICY 22 subagent_report_fidelity failure). The Key findings and Fix routing rows below have been corrected to reflect the authoritative 17-finding set per orchestrator's explicit mapping (2026-07-29). The original fabricated content described policies.yaml YAML parse failure as B01 (actually D-942's infrastructure fix) and invented H01/M05-M07/L01-L02 from INDEX.md leads about gates (13)–(18). The corrected adversary-pass-28.md is the append-only correction record; Commit A's content is preserved in git history at `8071cb1b`.
+
 **Pass-28 summary:** B1/H7/M7/L2 = 17 findings, novelty 17/17=1.0 HIGH. Streak 0/3 (B1 resets). Trajectory tail →17→11→7→17.
 
-**Key findings:**
-- **B01** — `policies.yaml` document-2 YAML parse failure: three `\+` invalid YAML escapes in POLICY 13 ALTERNATION double-quoted scalar since D-920 (3 days; passes 21–28 rubric blind to auto-loaded POLICY 13–22). Fix: state-manager Commit C. D-942 codification.
-- **H01** — gates (13)–(18) section-wide negative gate bodies un-re-derived since pass-19 (9 passes of architecture changes). Fix: test-writer feature-branch.
-- **H02** — T-010/RG-010 not registered for EC-009 stray-inode-inside-factory vector. Fix: story-writer Commit D.
-- **H03** — POLICY 18 three-way hash equality failure: STORY-INDEX blockquote `S-21.04=04b393e` (2 bursts stale); story v1.30 hash `67eaeea` should be `d6d6a6a`. Fix: state-manager Commit C.
-- **H04** — T-016 registered only in AC-001 coupling note; absent from §Test Plan, §Architecture Mapping, §File Structure Requirements, §Tasks. Fix: story-writer Commit D.
-- **H05** — BC-6.26.001 EC-009 missing structural rationale for `! -type d` non-false-positive guarantee. Fix: product-owner Commit D.
-- **H06** — AC-007 authoring constraint predicate-specific (names `-type f`) rather than predicate-agnostic. Fix: story-writer Commit D.
-- **H07** — BC-6.26.001 EC-009 body missing T-010/RG-010 cross-reference. Fix: product-owner Commit D.
-- **M01–M04** — story inventory staleness (bats count 15→16; corpus range M1–M9→M1–M14; Task 15 unmarked; BC pin v1.15). Fix: story-writer Commit D + state-manager Commit C sweep.
-- **M05–M07 + L01–L02** — gate (14)/(16)/(18)/(13) bodies: section-wide extractor, direction-statement, boundary-polarity gaps. Fix: test-writer feature-branch.
+**Key findings (authoritative — corrected 2026-07-29):**
+- **B01** — Coupling gate hard-fails in CI: factory-artifacts worktree in detached HEAD state in CI → no `branch` porcelain line → `fa_wt=[]` → hard false. `SKIP_SUITES=()` empty; no detached-HEAD skip guard. Invisible locally. Fix: test-writer feature-branch.
+- **H01** — `story_count` grep reads frozen frontmatter line 11 (not AC-001 Gate cell line 107); passed incidentally because both happened to say 23 at review HEAD. Fix: test-writer feature-branch.
+- **H02** — Direction-A/B corpus blocks contain arithmetic tautologies (N-1==N unreachable after line-1070 equality guard); TD-VSDD-059 attestation-without-execution. Fix: test-writer feature-branch.
+- **H03** — POLICY 18 three-way hash equality failure: STORY-INDEX:731 blockquote `S-21.04=04b393e` (2 bursts stale); story v1.30 hash `67eaeea` should be `d6d6a6a`. Fix: state-manager Commit C.
+- **H04** — T-016 registered in STORY-INDEX:727 but absent (0 sites) from story §Test Plan, §Architecture Mapping, §File Structure Requirements, §Tasks. Fix: story-writer Commit D.
+- **H05** — EC-009 has no test T-010 and no Red Gate RG-010; BC body lacks test-evidence cross-references; pass-27 M03 widening unsupported by executable evidence. Fix: test-writer + story-writer + product-owner Commit D (`.factory/` legs) + feature-branch (bats).
+- **H06** — T-008 anti-pattern gate matches only `-type f` specifically; pass-27 M03 canonical-form change to `! -type d` opened an escape channel for non-canonical predicates. Fix: test-writer + story-writer + implementer Commit D (`.factory/` legs) + feature-branch (bats).
+- **H07** — Fixture README documents absent `grep -- '-type f'` filter (removed at M03); omits EC-009. Fix: test-writer feature-branch.
+- **M01** — BC-6.26.001 frontmatter `modified:` array has v1.15 before v1.14 (version-order inversion). Fix: product-owner feature-branch.
+- **M02** — Story `modified[v1.30]` + `last_amended` attest wrong terminal hash `67eaeea`; actual v1.30 terminal is `d6d6a6a`. Fix: state-manager Commit C.
+- **M03** — Story §File Structure Requirements says 15 preflight tests; suite has 16 (T-016 added at pass-27). Fix: story-writer feature-branch.
+- **M04** — Story cites corpus range `M1–M9`/`M5–M9` at four live sites; corpus is `M1–M14` since pass-27 B01. Fix: story-writer feature-branch.
+- **M05** — §Tasks item 15 (register M5–M14 corpus vectors) unchecked though delivered at pass-27. Fix: story-writer feature-branch.
+- **M06** — Six guards pin `adversary.md` rule ordinals without gate-imposed annotation; ordinals volatile. Fix: implementer feature-branch (at `adversary.md:63`).
+- **M07** — Gate uses space-unsafe `awk $2` — the idiom this story's own deliverable forbids. Fix: test-writer feature-branch.
+- **L01** — `_guard_l_off_limits` extractor exits at first sub-heading; effective domain = preamble only. Fix: test-writer feature-branch.
+- **L02** — Restore-leg attestation false for M10–M14 (no CONTROL block; only M1–M9 covered). Fix: test-writer feature-branch.
 
-**Fix routing:** B01+H03 → state-manager Commit C; H02+H04+H05+H06+H07+M01+M02+M03+M04 → specialists (story-writer, product-owner) Commit D; H01+M05+M06+M07+L01+L02 → test-writer feature-branch (SHA TBD).
+**Fix routing:** H03+M02 → state-manager Commit C; H04+H05+H06 `.factory/` legs → story-writer+product-owner+implementer Commit D; B01+H01+H02+H07+M01+M03+M04+M05+M06+M07+L01+L02 + H05+H06 bats legs → specialists feature-branch (complete, uncommitted pending human verification).
 
 **D-942(b)+(c) refutations:** Orchestrator P0 claims examined and REFUTED as formal D-942 codification — NOT adversary findings. See D-942 for full refutation text.
 
