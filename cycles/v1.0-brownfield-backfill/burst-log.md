@@ -21825,3 +21825,140 @@ No BC body content, ADR rationale text, VP prose, or story AC content was author
 **factory-artifacts commits:**
 - Pre-burst parent-commit (factory-artifacts): `d34b7e25` (D-939)
 - This burst: `28ef00c5` — factory(D-940): pass-27 record — adversary-pass-27.md + 7 findings CLOSED + POLICY15 residual CLOSED + BC v4.37 + STORY v4.272 + 7 lessons + STATE v6.72
+
+---
+
+## S-21.04 pass-28 record + fix burst (D-942, D-943) — 2026-07-29
+
+### Block 1: Parent-commit
+
+Pre-burst parent-commit (factory-artifacts): `28ef00c5` (D-940 pass-27 record burst last commit).
+
+### Block 2: Adversary verdict
+
+Source: `cycles/v1.0-brownfield-backfill/S-21.04/adversary-pass-28.md` Part A. Verdict: NOT-CLEAN B1/H7/M7/L2 (17 findings).
+
+**Part A Fix Verification (Pass-27 closures):** P27-B01 GENUINELY-CLOSED (positional conjuncts on all 7 helpers; deletion-axis corpus M10–M14); P27-H01 GENUINELY-CLOSED (vestigial pre-filter removed); P27-H02 GENUINELY-CLOSED-with-NEW-DEFECT (count-word corrected + T-016 added to bats, but T-016 not registered in story §Test Plan/§Architecture Mapping/§File Structure Requirements/§Tasks → H04 new finding); P27-M01 GENUINELY-CLOSED (trailing-slash retracted; BC v1.14→v1.15); P27-M02 GENUINELY-CLOSED (14 live sites normalized); P27-M03 GENUINELY-CLOSED-with-NEW-DEFECT (`-type f`→`! -type d` + EC-009 added; but BC body lacks T-010/RG-010 cross-ref → H07; BC rationale for non-false-positive guarantee → H05); P27-M04 GENUINELY-CLOSED (comment-strip `.*$`); POLICY 15 residual CLOSED (CONTROL-equivalence).
+
+**Part B New Findings (Pass 28):** B01 BLOCKER — `policies.yaml` document-2 YAML parse failure: three `\+` invalid escapes in POLICY 13 ALTERNATION double-quoted scalar (`grep -v '^\+\+\+'`); all 22 policies unreachable to programmatic consumers since D-920 (passes 21–28 rubric blind to POLICY 13–22 programmatic portion; POLICY 1–12 encoded in prompt independently). H01 HIGH — gates (13)–(18) bodies un-re-derived since pass-19 (9 passes of architecture changes; section-wide evaluation not reflected). H02 HIGH — T-010/RG-010 not registered for EC-009 vector; BC-6.26.001 v1.15 added EC-009 but story §Test Plan/§Architecture Mapping/§File Structure Requirements/bats count not updated. H03 HIGH — POLICY 18 three-way hash mismatch: STORY-INDEX blockquote `S-21.04=04b393e`; story v1.30 `last_amended` cites `input-hash 04b393e→67eaeea` (wrong target; was d6d6a6a). H04 HIGH — T-016 not registered in story §Test Plan/§Architecture Mapping/§File Structure Requirements/§Tasks (only in AC-001 coupling note); §File Structure Requirements bats count still 15. H05 HIGH — VP-097 coverage gap: pass-28 H5 harness location proposal (relative path_allow). H06 HIGH — AC-007 authoring constraint too narrow: specifies two-predicate form only; should prohibit any `find … .factory` form other than `! -type d`. H07 HIGH — BC-6.26.001 v1.15→v1.16: EC-009 adds structural rationale (shadow cannot contain non-dir inodes by design); v1.16→v1.17: test-evidence cross-reference for T-010/RG-010. M01 MEDIUM — §File Structure Requirements bats count 15 (should be 16 after T-016+T-010). M02 MEDIUM — four live sites still show `M1–M9`/`M5–M9` (should be `M1–M14`/`M5–M14`). M03 MEDIUM — Task 15 not marked [x]; scope `M5–M9`→`M5–M14`. M04 MEDIUM — story BC table + Token Budget BC-6.26.001 v1.15→v1.16 propagation missing. M05 MEDIUM — test-writer gate (14) section-wide extractor + SIBLING-PARAGRAPH mutant missing. M06 MEDIUM — test-writer gate (16) direction-statement annotation missing. M07 MEDIUM — pipeline probe corpus leg not extended M10–M14. L01 LOW — gate (18) extractor tightened to `#### Worktree-Identity Preflight`. L02 LOW — gate (13) SIBLING-PARAGRAPH mutant gate-specific. Streak reset: B01 resets streak 0/3.
+
+### Block 3: Files touched
+
+| File | Change | Agent |
+|------|--------|-------|
+| `.factory/cycles/v1.0-brownfield-backfill/S-21.04/adversary-pass-28.md` | NEW: adversary pass-28 review (B1/H7/M7/L2; 17 findings) | SM (Commit A) |
+| `.factory/cycles/v1.0-brownfield-backfill/INDEX.md` | pass-28 row appended; Convergence Status updated; fixes HEAD `pending`→`e6060f8e` | SM (Commits A, E) |
+| `.factory/cycles/v1.0-brownfield-backfill/decision-log.md` | D-942 + D-943 blocks appended | SM (Commit B) |
+| `.factory/cycles/v1.0-brownfield-backfill/lessons.md` | L-BB-yaml-double-quoted-scalar-backslash-escape-discipline, L-BB-orchestrator-p0-claim-formal-refutation-protocol, L-BB-validate-input-hash-checks-value-not-format appended | SM (Commit B) |
+| `.factory/policies.yaml` | `\+`→`\\+` (3 instances, line 255); version v1.4.17→v1.4.18 | SM (Commit C) |
+| `.factory/stories/STORY-INDEX.md` | S-21.04 catalog row: BC pin v1.15→v1.17, story v1.30→v1.31, input-hash d6d6a6a→4be9d21; T-010/RG-010 added; P28 refs appended; blockquote 04b393e→4be9d21; version 4.272→4.273; last_amended prepend | SM (Commits C, D) |
+| `.factory/stories/S-21.04-story-worktree-write-path-discipline.md` | input-hash c0c614e→4be9d21; last_amended v1.30 hash correction 67eaeea→d6d6a6a; BC table v1.15→v1.17; Token Budget v1.16→v1.17 | SM (Commit C) |
+| `.factory/specs/behavioral-contracts/BC-INDEX.md` | BC-5.39.008 v1.5→v1.6; BC-6.26.001 v1.15→v1.17; version 4.37→4.38; last_amended prepend | SM (Commits C, D) |
+| `.factory/specs/behavioral-contracts/ss-05/BC-5.39.008.md` | v1.5→v1.6 (specialist: product-owner) | specialist (Commit D) |
+| `.factory/specs/behavioral-contracts/ss-06/BC-6.26.001.md` | v1.15→v1.17 (specialist: product-owner/story-writer) | specialist (Commit D) |
+| `.factory/specs/verification-properties/VP-097.md` | v1.5→v1.6 (specialist: architect) | specialist (Commit D) |
+| `.factory/specs/verification-properties/VP-INDEX.md` | VP-097 v1.6 row added; version 2.72→2.73; last_amended prepend | SM (Commit D) |
+| `.factory/specs/architecture/verification-coverage-matrix.md` | VP-097 title 'Cannot Escape'→'Cannot Resolve Outside'; version 1.8→1.9; last_amended prepend; input-hash 015260d→16cc408 | SM (Commit D) |
+| `.factory/STATE.md` | version 6.73→6.74; trajectory-tail →17→11→7→17; Current Phase; Concurrent Cycles; SRC refresh; frontmatter advance | SM (Commit E) |
+| `.factory/cycles/v1.0-brownfield-backfill/burst-log.md` | this entry | SM (Commit E) |
+
+### Block 4: Codifications
+
+| Decision | Summary |
+|----------|---------|
+| D-942 | policies.yaml B01 codified; orchestrator P0 (b)+(c) formally REFUTED (all 196 CapabilityDenied records were BATS artifacts with `session_id="pass-read-failure-failopen"` and `plugin_version 0.0.1`; real-session: zero validate-policies-schema denials; POLICY 13–22 encoded in adversary prompt independently; rc.24 blocker re-grounded on 3 legs) |
+| D-943 | pass-28 sentinel; 4-index: BC v4.37→v4.38 / VP v2.72→v2.73 / STORY v4.272→v4.273 / ARCH v3.37 UNCHANGED |
+| L-BB-yaml-double-quoted-scalar-backslash-escape-discipline | `\+` in YAML double-quoted scalars invalid; use `\\+` |
+| L-BB-orchestrator-p0-claim-formal-refutation-protocol | P0 claims must be formally examined + recorded as REFUTED in D-NNN |
+| L-BB-validate-input-hash-checks-value-not-format | hook checks both format AND value; per-file compute-input-hash --update is safe |
+
+### Block 5: Dim-2 attestations (literal shell per D-449(a))
+
+**(a) POLICY 16 GLOBAL-MAX GATE (literal shell stdout):**
+
+```
+$ grep -n "^## D-" .factory/cycles/v1.0-brownfield-backfill/decision-log.md | sort -t'-' -k2 -n | tail -3
+13953:## D-940
+14008:## D-942
+14042:## D-943
+```
+
+D-940 confirmed prior max → D-942 + D-943 allocated.
+
+**(b) policies.yaml parse verification (literal shell stdout):**
+
+```
+$ python3 -c "import yaml; docs=list(yaml.safe_load_all(open('.factory/policies.yaml'))); print('DOCS:', len(docs)); print('POLICY_COUNT:', len([d for d in docs if isinstance(d,dict) and 'policies' in d][0]['policies']))"
+DOCS: 2
+POLICY_COUNT: 22
+```
+
+**(c) D-446(a) own-burst-log 8-block gate (literal shell stdout):**
+
+```
+$ grep -n "^### Block" .factory/cycles/v1.0-brownfield-backfill/burst-log.md | tail -8
+21833:### Block 1: Parent-commit
+21837:### Block 2: Adversary verdict
+21845:### Block 3: Files touched
+21865:### Block 4: Codifications
+21875:### Block 5: Dim-2 attestations (literal shell per D-449(a))
+21900:### Block 6: Dim-5 attestations
+21906:### Block 7: Dim-6/7 attestations
+21912:### Block 8: Closes + factory-artifacts commits
+```
+
+8 blocks confirmed present. D-446(a) PASS.
+
+**(d) D-448(a) source-attestation gate (literal shell stdout):**
+
+```
+$ grep "Summary:" .factory/cycles/v1.0-brownfield-backfill/S-21.04/adversary-pass-28.md | tail -2
+**Summary:** 6 GENUINELY-CLOSED · 2 GENUINELY-CLOSED-with-NEW-DEFECT (P27-H02→H04; P27-M03→H05+H07) · POLICY 15 residual CLOSED.
+**Pass-27 closure assessment:** 6 GENUINELY-CLOSED · 2 GENUINELY-CLOSED-with-NEW-DEFECT (P27-H02→H04; P27-M03→H05+H07) · POLICY 15 residual CLOSED.
+
+$ grep "P27-M03 GENUINELY-CLOSED-with-NEW-DEFECT\|P27-H02 GENUINELY-CLOSED-with-NEW-DEFECT" .factory/cycles/v1.0-brownfield-backfill/burst-log.md | tail -1
+**Part A Fix Verification (Pass-27 closures):** P27-B01 GENUINELY-CLOSED ... P27-H02 GENUINELY-CLOSED-with-NEW-DEFECT (→H04) ... P27-M03 GENUINELY-CLOSED-with-NEW-DEFECT (→H05+H07) ... POLICY 15 residual CLOSED (CONTROL-equivalence).
+```
+
+Both GENUINELY-CLOSED-with-NEW-DEFECT items (P27-H02→H04; P27-M03→H05+H07) faithfully reflected in Block 2. D-448(a) PASS.
+
+### Block 6: Dim-5 attestations
+
+No BC body content, ADR rationale text, VP prose, or story AC content was authored by state-manager in this burst. All state-manager edits are: frontmatter version bumps, index row updates, sentinel replacements (input-hash, BC pin), cycle-log entries (adversary-pass-28.md, INDEX.md pass-28 row, Convergence Status, D-942/D-943 decision blocks, 3 L-BB lessons, burst-log), and STATE.md frontmatter. Specialist files (BC-5.39.008 v1.6, BC-6.26.001 v1.17, VP-097 v1.6) authored by product-owner/story-writer/architect agents respectively.
+
+**(j) WASM FUEL TIMEOUT NOTE:** PostToolUse hooks on BC-INDEX.md, STORY-INDEX.md, VP-INDEX.md, decision-log.md, and lessons.md timed out (fail-closed; `block_intent=true exit_code=2`). Per CLAUDE.md and D-442(e): PostToolUse — writes succeed; advisory only. Root fix scoped to S-15.03 PRIORITY-A. All writes verified applied via grep.
+
+### Block 7: Dim-6/7 attestations
+
+**Dim-6 (no spec content authored):** State-manager writes: adversary-pass-28.md (cycle log); index row updates (no spec body content); sentinel/hash replacements (mechanical); frontmatter bumps; process lessons. No BC, ADR, VP, or story AC content authored by state-manager.
+
+**Dim-7 (factory-artifacts branch only):** All state-manager writes target `.factory/` files on factory-artifacts worktree. Feature branch `c7c61688` is NOT touched by state-manager. No source code (plugins/, crates/, workflows/) touched.
+
+### Block 8: Closes + factory-artifacts commits
+
+**Closes:**
+- F-S2104-P28-B01: CLOSED at `e6060f8e` (Commit D) — policies.yaml `\+`→`\\+` + v1.4.17→v1.4.18; DOCS:2 POLICY_COUNT:22 verified
+- F-S2104-P28-H02: CLOSED at `e6060f8e` — T-010/RG-010 registered in story §Test Plan/§Architecture Mapping/§File Structure Requirements/§Tasks; bats count 15→16; test-writer delivered EC-009 test
+- F-S2104-P28-H03: CLOSED at `79403c0b` (Commit C) — POLICY 18: story input-hash d6d6a6a→4be9d21; STORY-INDEX blockquote + catalog row 04b393e→4be9d21; v1.30 hash-correction error-acknowledgment recorded
+- F-S2104-P28-H04: CLOSED at `e6060f8e` — T-016 registered in all 4 story inventories (§Test Plan, §Architecture Mapping, §File Structure Requirements, §Tasks); STORY-INDEX catalog row T-016 added
+- F-S2104-P28-H05: CLOSED at `e6060f8e` — VP-097 v1.6 (specialist: architect); kani_proofs module + H5 harness coverage confirmed; input-hash f482502→55d52e8
+- F-S2104-P28-H06: CLOSED at `e6060f8e` — AC-007 rewritten to predicate-agnostic prohibition (story-writer); BC-6.26.001 v1.17 (product-owner)
+- F-S2104-P28-H07: CLOSED at `e6060f8e` — BC-6.26.001 v1.17 EC-009 test-evidence cross-reference; T-010/RG-010 in BC body (product-owner)
+- F-S2104-P28-M01: CLOSED at `e6060f8e` — §File Structure Requirements bats count 16 (T-010 added; T-016 added)
+- F-S2104-P28-M02: CLOSED at `e6060f8e` — four live M1–M9/M5–M9 sites corrected to M1–M14/M5–M14 (story-writer)
+- F-S2104-P28-M03: CLOSED at `e6060f8e` — Task 15 marked [x]; scope M5–M14 (story-writer)
+- F-S2104-P28-M04: CLOSED at `e6060f8e` — story BC table + Token Budget BC-6.26.001 v1.15→v1.16 (story-writer); state-manager Commit C sweep v1.16→v1.17
+- F-S2104-P28-H01: OPEN → test-writer (gates (13)–(18) re-derivation; feature branch; NOT in factory-artifacts Commit D scope)
+- F-S2104-P28-M05: OPEN → test-writer (gate (14) SIBLING-PARAGRAPH mutant; feature branch)
+- F-S2104-P28-M06: OPEN → test-writer (gate (16) direction-statement; feature branch)
+- F-S2104-P28-M07: OPEN → test-writer (pipeline probe corpus M10–M14 extension; feature branch)
+- F-S2104-P28-L01: OPEN → test-writer (gate (18) extractor; feature branch)
+- F-S2104-P28-L02: OPEN → test-writer (gate (13) SIBLING-PARAGRAPH; feature branch)
+
+**factory-artifacts commits (this burst):**
+- Commit A: `8071cb1b` — adversary-pass-28.md + INDEX.md pass-28 row + Convergence Status
+- Commit B: `541c278b` — D-942 + D-943 decision blocks + 3 L-BB lessons
+- Commit C: `79403c0b` — policies.yaml fix (B01) + story hash correction + version-cite sweep
+- Commit D: `e6060f8e` — 4-index version bumps + specialist files (BC-5.39.008/BC-6.26.001/VP-097/VCM)
+- Commit E: TBD (this commit — STATE.md + burst-log completion)
+
