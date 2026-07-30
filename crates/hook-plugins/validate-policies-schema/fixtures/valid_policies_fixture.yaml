@@ -1,0 +1,48 @@
+---
+document_type: governance-policy-registry
+version: "1.0"
+last_amended: "2026-07-29"
+---
+
+# Positive fixture for validate-policies-schema regression tests (S-21.04).
+#
+# This fixture exercises the exact structural shape that caused the de37915c defect:
+# a multi-document YAML file whose second document contains a long double-quoted
+# scalar with backslash sequences — but using VALID YAML escapes (\\+ not \+).
+#
+# In YAML double-quoted scalars:
+#   \\  -> literal backslash (the only valid backslash escape for a bare backslash)
+#   \n  -> newline (valid)
+#   \+  -> INVALID (unknown escape; causes serde_norway to reject the file)
+#
+# The description field in policy id=1 uses \\+ (two backslashes → one literal
+# backslash before the +), which is valid YAML.  This is the corrected form of the
+# shell grep pattern that appeared as \+ in commit de37915c.
+#
+# Structural requirements verified by test_BC_5_39_008_real_fixture_valid_schema_checks_produce_no_violations:
+#   - multi-document format (frontmatter doc + policies doc separated by ---)
+#   - all 7 required fields present on each entry
+#   - integer id values in [1, 999]
+#   - severity exactly HIGH or MEDIUM
+#   - non-empty name, scope, description
+#   - lint_hook: null (no plugin existence check triggered)
+#   - codified_at: null (acceptable when lint_hook is null per BC-5.39.008 PC7)
+
+policies:
+  - id: 1
+    name: shell_pattern_validator
+    description: "Validates grep patterns with backslash sequences: git diff HEAD~ -- *.bats | grep '^+.*|' | grep -v '^+++' | grep -v '^\\+\\+\\+'"
+    severity: HIGH
+    scope:
+      - factory
+      - specs
+      - bc
+    lint_hook: null
+    codified_at: null
+  - id: 2
+    name: simple_schema_policy
+    description: "A policy with a straightforward description containing no special backslash sequences"
+    severity: MEDIUM
+    scope: ".factory/"
+    lint_hook: null
+    codified_at: null

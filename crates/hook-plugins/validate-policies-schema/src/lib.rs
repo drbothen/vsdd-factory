@@ -1645,6 +1645,149 @@ policies:
         );
     }
 
+    // ---- Committed-fixture regression tests (D-935 real-fixture probe) ----
+    //
+    // Structural hole closed by S-21.04: parse_policies_yaml was exercised only
+    // against synthetic inline strings. grep for include_str!/read_to_string
+    // over src/lib.rs returns 0 (verified). The validator that guards
+    // .factory/policies.yaml had never been run against realistic registry content.
+    // Nine adversary passes (19-27) ran against an unparseable registry without
+    // any gate detecting it (commit de37915c, 2026-07-26).
+    //
+    // Strategy: committed fixtures inside this crate — unconditionally present in CI
+    // because include_str! is a compile-time macro; "file not found" is a hard
+    // compile error, not a skip. There is no fail-open path.
+    //
+    // Positive fixture (fixtures/valid_policies_fixture.yaml):
+    //   Multi-document YAML with a long double-quoted scalar containing shell text
+    //   and VALID backslash escapes (\\+ not \+). Must parse cleanly and produce
+    //   non-empty entries that clear all structural checks.
+    //
+    // Negative fixture (fixtures/invalid_backslash_escape_fixture.yaml):
+    //   Same structure but with \\+ replaced by \+ — the exact de37915c defect.
+    //   serde_norway must reject it with a located error citing "escape".
+    //   This is the load-bearing mutant per D-937 executable-mutant-corpus discipline.
+    //   A positive-only test is not sufficient evidence (POLICY 13 FAIL-CLOSED).
+    //
+    // BC trace: BC-5.39.008 postcondition 1 (parse success and parse failure paths).
+
+    /// Positive fixture: multi-document YAML with a long double-quoted scalar
+    /// containing shell text and valid backslash escapes (\\+ not \\+).
+    ///
+    /// parse_policies_yaml must return Ok with non-empty entries. This verifies
+    /// that the correct form of the de37915c scalar does not regress.
+    ///
+    /// Fixture committed at fixtures/valid_policies_fixture.yaml — CI-unconditional.
+    /// BC trace: BC-5.39.008 postcondition 1 (parse success path).
+    #[test]
+    fn test_BC_5_39_008_real_fixture_valid_yaml_parses_and_has_policies() {
+        let content = include_str!("../fixtures/valid_policies_fixture.yaml");
+        let result = parse_policies_yaml(content);
+        assert!(
+            result.is_ok(),
+            "valid_policies_fixture.yaml must parse without error; \
+             serde_norway error: {:?}",
+            result.err()
+        );
+        let (header, entries) = result.unwrap();
+        assert_eq!(
+            header.document_type.as_deref(),
+            Some("governance-policy-registry"),
+            "fixture header must declare document_type: governance-policy-registry"
+        );
+        assert!(
+            !entries.is_empty(),
+            "valid_policies_fixture.yaml must produce at least one policy entry"
+        );
+    }
+
+    /// Negative fixture (D-937 executable mutant): reproduces the de37915c defect —
+    /// a double-quoted YAML scalar containing \\+ escape sequences (invalid in YAML;
+    /// recognised escapes are \\n, \\t, \\\\, \\\" etc.; \\+ is not listed in RFC 9512).
+    ///
+    /// serde_norway must reject this with a located parse error. parse_policies_yaml
+    /// must propagate it as Err. The assertion is that Err IS returned — this test
+    /// PASSES when the defect is correctly detected, and would FAIL if a future parser
+    /// change silently accepted invalid escapes.
+    ///
+    /// Exact serde_norway error shape (from the live policies.yaml investigation):
+    ///   "found unknown escape character at line N column M, while parsing a quoted
+    ///    scalar at line N column K"
+    /// propagated as: "YAML parse error: found unknown escape character..."
+    ///
+    /// Fixture committed at fixtures/invalid_backslash_escape_fixture.yaml.
+    /// BC trace: BC-5.39.008 postcondition 1 (parse failure -> Err with location).
+    #[test]
+    fn test_BC_5_39_008_real_fixture_invalid_backslash_escape_rejected_by_parser() {
+        let content = include_str!("../fixtures/invalid_backslash_escape_fixture.yaml");
+        let result = parse_policies_yaml(content);
+        assert!(
+            result.is_err(),
+            "invalid_backslash_escape_fixture.yaml must fail to parse; \
+             serde_norway must reject \\+ escape sequences in double-quoted YAML scalars; \
+             parse_policies_yaml unexpectedly returned Ok: {:?}",
+            result.ok()
+        );
+        let err_msg = result.unwrap_err();
+        // serde_norway surfaces "found unknown escape character" in the error.
+        // parse_policies_yaml wraps it as "YAML parse error: found unknown escape character..."
+        assert!(
+            err_msg.contains("escape") || err_msg.contains("parse error"),
+            "parse error must cite an escape or parse failure; \
+             error message did not contain 'escape' or 'parse error': {err_msg}"
+        );
+    }
+
+    /// Schema-level regression: the valid fixture clears all pure-function structural
+    /// checks without violations. Exercises that a realistic registry shape
+    /// (multi-doc, array-typed scope, null lint_hook, null codified_at) passes the
+    /// full check layer — not just the parse layer.
+    ///
+    /// Does NOT call validate_policies_schema() (which requires host I/O). Calls
+    /// the pure check functions directly, matching the pattern of existing tests.
+    ///
+    /// BC trace: BC-5.39.008 postconditions 2-5.
+    #[test]
+    fn test_BC_5_39_008_real_fixture_valid_schema_checks_produce_no_violations() {
+        let content = include_str!("../fixtures/valid_policies_fixture.yaml");
+        let (header, entries) = parse_policies_yaml(content)
+            .expect("valid_policies_fixture.yaml must parse for schema-level check");
+
+        let header_violations = check_header_fields(&header);
+        assert!(
+            header_violations.is_empty(),
+            "valid fixture header must produce no violations; got: {header_violations:?}"
+        );
+
+        for (i, entry) in entries.iter().enumerate() {
+            let req_violations = check_required_fields(entry, i);
+            assert!(
+                req_violations.is_empty(),
+                "valid fixture entry {i} must have no required-field violations; \
+                 got: {req_violations:?}"
+            );
+            let id_violations = check_policy_id_format(entry, i);
+            assert!(
+                id_violations.is_empty(),
+                "valid fixture entry {i} must have no id-format violations; \
+                 got: {id_violations:?}"
+            );
+            let sev_violations = check_severity_value(entry, i);
+            assert!(
+                sev_violations.is_empty(),
+                "valid fixture entry {i} must have no severity violations; \
+                 got: {sev_violations:?}"
+            );
+        }
+
+        let dup_violations = check_duplicate_ids(&entries);
+        assert!(
+            dup_violations.is_empty(),
+            "valid fixture must produce no duplicate-id violations; \
+             got: {dup_violations:?}"
+        );
+    }
+
     #[test]
     fn test_single_document_with_both_header_and_policies() {
         // Regression test for IMP-001 (pass-2): when `---` separator is absent

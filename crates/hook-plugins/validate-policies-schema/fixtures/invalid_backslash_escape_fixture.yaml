@@ -1,0 +1,39 @@
+---
+document_type: governance-policy-registry
+version: "1.0"
+last_amended: "2026-07-29"
+---
+
+# Negative fixture for validate-policies-schema regression tests (S-21.04).
+#
+# INTENTIONALLY BROKEN: this fixture reproduces the de37915c defect — a
+# double-quoted YAML scalar containing \+ escape sequences, which are NOT
+# valid YAML escape sequences (RFC 9512 / YAML 1.2 escape table).
+#
+# In YAML double-quoted scalars, only these backslash escapes are valid:
+#   \\  \"  \/  \a  \b  \e  \f  \n  \r  \t  \v  \N  \_  \L  \P
+#   \xNN  \uNNNN  \UNNNNNNNN
+#
+# \+ is not in that list. serde_norway (0.9.42) — the actual consumer of
+# .factory/policies.yaml — rejects it with:
+#   "found unknown escape character at line N column M,
+#    while parsing a quoted scalar at line N column K"
+#
+# This fixture is the load-bearing mutant per D-937 executable-mutant-corpus
+# discipline. The test test_BC_5_39_008_real_fixture_invalid_backslash_escape_rejected_by_parser
+# asserts that parse_policies_yaml returns Err on this content, proving the gate
+# is non-vacuous (a test that only has positive fixtures cannot detect parser
+# regressions that silently accept invalid escapes).
+#
+# DO NOT "FIX" this fixture — its purpose is to be broken.
+# state-manager corrects .factory/policies.yaml separately (de37915c fix burst).
+
+policies:
+  - id: 1
+    name: broken_shell_pattern_policy
+    description: "Invalid YAML escape sequences: git diff HEAD~ -- *.bats | grep '^+.*|' | grep -v '^+++' | grep -v '^\+\+\+'"
+    severity: HIGH
+    scope:
+      - factory
+    lint_hook: null
+    codified_at: null
