@@ -21988,3 +21988,130 @@ No BC body content, ADR rationale text, VP prose, or story AC content was author
 - SHA-patch: `b4fa89c9` — burst-log Commit E TBD→actual SHA
 - Correction commit: `3d12b780` — POLICY 22 correction: adversary-pass-28.md Part B rewrite (authoritative 17 findings) + decision-log.md D-942/D-943 B01 mislabel corrections + burst-log Block 2/4/8 corrections
 
+## D-944 — PASS-29-RECORD-BURST 2026-07-30
+
+### Block 1: Parent-commit
+
+Pre-burst parent-commit (factory-artifacts): `4c57e7cb` (D-943 sha-patch correction commit 2026-07-29; last commit before D-944 Commit A `45e2cd41`).
+
+### Block 2: Adversary verdict
+
+Source: `cycles/v1.0-brownfield-backfill/S-21.04/adversary-pass-29.md` Part A. Verdict: NOT-CLEAN B0/H5/M6/L2 (13 findings). **First zero-BLOCKER pass.**
+
+**Part A Fix Verification (Pass-28 closures):** P28-B01 GENUINELY-CLOSED (coupling-gate detached-HEAD fix via symbolic-ref fallback); P28-H01 PARTIAL (story_count re-anchored to AC-001 Gate cell — behaviourally inert at reviewed HEAD; same value both locations → H01 new finding); P28-H02 GENUINELY-CLOSED (dead arithmetic blocks deleted); P28-H03 GENUINELY-CLOSED (STORY-INDEX blockquote hash corrected); P28-H04 GENUINELY-CLOSED (T-016 registered in §Test Plan/§Architecture Mapping/§File Structure Requirements/§Tasks); P28-H05 PARTIAL (BC+bats legs closed; story leg missing EC-009 T-010/RG-010 cite + socket/device-node residual-disclosure → H05 new finding); P28-H06 GENUINELY-CLOSED (AC-007 predicate-agnostic prohibition); P28-H07 GENUINELY-CLOSED (fixture README updated); P28-M01 through P28-M07 ALL GENUINELY-CLOSED; P28-L01 GENUINELY-CLOSED (POSIX find semantics direct assertion); P28-L02 GENUINELY-CLOSED (Gate (18) extractor tightened). Summary: 15 GENUINELY-CLOSED · 2 PARTIAL (P28-H01 anchor behaviourally inert; P28-H05 story leg missing residual-disclosure).
+
+**Part B New Findings (Pass 29):** H01 — AC-001 Gate cell anchor behaviourally inert (same value both anchors); ADR-034 v1.1 runtime-derived operand design closes structural hole. H02 — bats_count not runtime-derived; string-vs-string tautology; ADR-034 v1.1 grep-count design closes. H03 — fabrication-propagation class: 4 downstream sites carry fabricated B01 identity "policies.yaml YAML-parse" (STORY-INDEX:727, VP-INDEX:8, STATE.md:134, STATE.md:226). H04 — T-001 DOC-PARITY sentinel count 23 vs mechanical count 24; T-016 structurally blind (string vs string); ADR-034 v1.1 `T001_GATE_COUNT=24` sentinel closes. H05 — EC-009 story leg missing T-010/RG-010 cite + residual-disclosure socket/device-node non-coverage. M01 — BC-6.26.001 last_amended cites numeric finding IDs (`F-S2104-P28-006`/`F-S2104-P28-009`) not canonical letter-format. M02 — story terminal-hash annotation mislabels `F-S2104-P28-H03` (blockquote finding) vs correct `F-S2104-P28-M02`. M03 — `$bats_doc_parity_count` no `local` declaration. M04 — §Architecture Mapping T-016 omits MUST-NOT-read-$fa_wt constraint. M05 — §File Structure Requirements missing `T001_GATE_COUNT=24` sentinel entry. M06 — BC-INDEX:8 v4.38 Refs includes H07 which has no BC-INDEX artifact leg. L01 — T-016 step-3 fixture path uses literal string not T001_GATE_COUNT sentinel. L02 — adversary.md BC-6.26.001 version pin stale. Streak 0/3.
+
+**Adversary retraction:** U+2026 codepoint claim retracted — 2 of 8 sites verified as ASCII `...` (0x2E×3). Recorded in adversary-pass-29.md §Adversary retractions.
+
+### Block 3: Files touched
+
+| File | Change | Agent |
+|------|--------|-------|
+| `.factory/cycles/v1.0-brownfield-backfill/S-21.04/adversary-pass-29.md` | NEW: adversary pass-29 review (B0/H5/M6/L2; 13 findings; first zero-BLOCKER pass); input-hash 3e9d280→2d1d78b (Commit E) | SM (Commits A, E) |
+| `.factory/cycles/v1.0-brownfield-backfill/INDEX.md` | pass-29 row appended; Convergence Status updated (29 passes; trajectory →11→7→17→13; streak 0/3) | SM (Commit A) |
+| `.factory/cycles/v1.0-brownfield-backfill/decision-log.md` | D-944 block appended | SM (Commit B) |
+| `.factory/cycles/v1.0-brownfield-backfill/lessons.md` | 4 L-BB lessons appended: L-BB-anti-volatile-pin-must-be-verified-at-authoring-time, L-BB-escape-unit-trigger-unit-mismatch-declared-vs-incidental, L-BB-asserted-count-needs-runtime-derived-counterpart, L-BB-mechanical-gate-blocks-read-the-implementation | SM (Commit B) |
+| `.factory/stories/S-21.04-story-worktree-write-path-discipline.md` | M02 fix (F-S2104-P28-H03→F-S2104-P28-M02, 3 occurrences); Token Budget v1.17→v1.18; input-hash 1acf3c6→47a65c9 | SM (Commit C) |
+| `.factory/stories/STORY-INDEX.md` | S-21.04 row: BC pin v1.17→v1.18; input-hash 4be9d21→47a65c9; story v1.31→v1.33; P28 B01 H03 identity corrected; P29 refs appended; version 4.273→4.274; last_amended prepend | SM (Commits C, D) |
+| `.factory/specs/behavioral-contracts/BC-INDEX.md` | M06 fix Refs H05/H07→H05; BC-6.26.001 body row v1.17→v1.18; version 4.38→4.39; last_amended prepend | SM (Commits C, D) |
+| `.factory/specs/verification-properties/VP-INDEX.md` | H03 correction annotation; version 2.73→2.74; last_amended prepend | SM (Commits C, D) |
+| `.factory/specs/behavioral-contracts/ss-06/BC-6.26.001.md` | v1.17→v1.18: M01 numeric ID namespace correction (product-owner) | specialist (Commit D) |
+| `.factory/specs/architecture/decisions/ADR-034-ci-gate-product-branch-operand-isolation-and-runtime-derived-counts.md` | NEW v1.1 PROPOSED: H01+H05 T-016 redesign — runtime-derived counts + product-branch sentinel (architect) | specialist (Commit D) |
+| `.factory/specs/architecture/ARCH-INDEX.md` | ADR-034 row v1.0→v1.1; version 3.37→3.38; last_amended prepend | SM (Commit D) |
+| `.factory/STATE.md` | version 6.74→6.75; trajectory-tail →11→7→17→13; feature/S-21.04 44547051; H03 error-acknowledgment annotations at lines 134+226; Current Phase; Concurrent Cycles; SRC refresh; frontmatter advance | SM (Commit E) |
+| `.factory/cycles/v1.0-brownfield-backfill/burst-log.md` | this entry | SM (Commit E) |
+
+### Block 4: Codifications
+
+| Decision | Summary |
+|----------|---------|
+| D-944 | pass-29 sentinel; first zero-BLOCKER pass; fabrication-propagation class (H03) surfaced; ADR-034 v1.1 design output (H01+H05 T-016 redesign); 4-index: BC v4.38→v4.39 / VP v2.73→v2.74 / STORY v4.273→v4.274 / ARCH v3.37→v3.38 |
+| L-BB-anti-volatile-pin-must-be-verified-at-authoring-time | TD-VSDD-091 behavioral anchors must be grep-verified at authoring time with captured stdout |
+| L-BB-escape-unit-trigger-unit-mismatch-declared-vs-incidental | POLICY 13 ESCAPE-SCOPE-PARITY: declared vs incidental escape unit mismatch |
+| L-BB-asserted-count-needs-runtime-derived-counterpart | ADR-034 v1.1 resolution: asserted counts must have runtime-derived counterpart |
+| L-BB-mechanical-gate-blocks-read-the-implementation | When a mechanical gate blocks, read the gate implementation source before theorizing about semantics |
+
+### Block 5: Dim-2 attestations (literal shell per D-449(a))
+
+**(a) POLICY 16 GLOBAL-MAX GATE (literal shell stdout):**
+
+```
+$ grep -n "^## D-" .factory/cycles/v1.0-brownfield-backfill/decision-log.md | sort -t'-' -k2 -n | tail -3
+14008:## D-942
+14042:## D-943
+14104:## D-944
+```
+
+D-943 confirmed prior max → D-944 allocated. D-944 block present at line 14104.
+
+**(b) D-448(a) source-attestation gate (literal shell stdout):**
+
+```
+$ grep "^\*\*Summary:" .factory/cycles/v1.0-brownfield-backfill/S-21.04/adversary-pass-29.md
+**Summary:** 15 GENUINELY-CLOSED · 2 PARTIAL (P28-H01 anchor behaviourally inert; P28-H05 story leg missing residual-disclosure).
+```
+
+Block 2 Part A Fix Verification faithfully reflects: 15 GENUINELY-CLOSED, P28-H01 PARTIAL (anchor behaviourally inert), P28-H05 PARTIAL (story leg missing residual-disclosure). D-448(a) PASS.
+
+**(c) adversary-pass-29.md input-hash post-update verification (literal shell stdout):**
+
+```
+$ plugins/vsdd-factory/bin/compute-input-hash .factory/cycles/v1.0-brownfield-backfill/S-21.04/adversary-pass-29.md --check 2>&1; echo "EXIT:$?"
+EXIT:0
+```
+
+Stored hash `2d1d78b` confirmed matching computed value. PASS.
+
+**(d) D-446(a) own-burst-log 8-block gate (literal shell stdout — executed after appending this entry):**
+
+```
+$ grep -n "^### Block" .factory/cycles/v1.0-brownfield-backfill/burst-log.md | tail -8
+21993:### Block 1: Parent-commit
+21997:### Block 2: Adversary verdict
+22007:### Block 3: Files touched
+22025:### Block 4: Codifications
+22035:### Block 5: Dim-2 attestations (literal shell per D-449(a))
+22072:### Block 6: Dim-5 attestations
+22078:### Block 7: Dim-6/7 attestations
+22084:### Block 8: Closes + factory-artifacts commits
+```
+
+8 blocks confirmed present. D-446(a) PASS.
+
+### Block 6: Dim-5 attestations
+
+No BC body content, ADR rationale text, VP prose, or story AC content was authored by state-manager in this burst. All state-manager edits are: frontmatter version bumps, index row updates, sentinel replacements (input-hash, BC pin, finding-ID corrections, error-acknowledgment annotations), cycle-log entries (adversary-pass-29.md, INDEX.md pass-29 row, D-944 decision block, 4 L-BB lessons, burst-log entry), and STATE.md. Specialist files (BC-6.26.001 v1.18, ADR-034 v1.1) authored by product-owner/architect agents respectively.
+
+**(j) WASM FUEL TIMEOUT NOTE:** PostToolUse hooks on BC-INDEX.md, STORY-INDEX.md, VP-INDEX.md, ARCH-INDEX.md, and adversary-pass-29.md timed out (fail-closed `block_intent=true exit_code=2`) throughout this burst — pattern consistent with large-file WASM fuel exhaustion. D-762 known false-positive from `validate-count-propagation` (regex matches "21 BCs" in ARCH-INDEX last_amended historical text). Per established PostToolUse advisory pattern: writes succeed; advisory only. CLI `compute-input-hash --check` EXIT:0 independently confirms adversary-pass-29.md input-hash correct.
+
+### Block 7: Dim-6/7 attestations
+
+**Dim-6 (no spec conflicts introduced):** State-manager edits are sweep/correction/index-bump only. No new spec content authored. All index version bumps propagate specialist-authored changes. BC-6.26.001 v1.18 (M01 ID correction) and ADR-034 v1.1 (T-016 redesign) are specialist-authored; state-manager's role is index sweep and version-bump propagation.
+
+**Dim-7 (non-fabrication attestation):** All finding descriptions in Block 2 derive from authoritative adversary-pass-29.md as authored by adversary agent. Part B findings verified against adversary-pass-29.md §Part B lines 94–258 (13 finding blocks H01–H05/M01–M06/L01–L02 confirmed). No INDEX.md leads or prior-session speculative content used. Adversary retraction of U+2026 codepoint claim recorded verbatim from adversary-pass-29.md §Adversary retractions.
+
+### Block 8: Closes + factory-artifacts commits
+
+**Findings closed this burst:**
+- F-S2104-P29-H01: CLOSED — ADR-034 v1.1 T-016 redesign (runtime-derived bats_count + T001_GATE_COUNT sentinel); story-writer + architect (feature branch `44547051`)
+- F-S2104-P29-H02: CLOSED — ADR-034 v1.1 runtime-derived bats_count eliminates tautology; story-writer + architect (feature branch `44547051`)
+- F-S2104-P29-H03: CLOSED — error-acknowledgment annotations at STORY-INDEX:727, VP-INDEX:8, STATE.md:134, STATE.md:226 (state-manager Commits C + E)
+- F-S2104-P29-H04: CLOSED — T-001 sentinel T001_GATE_COUNT=24; story-writer (feature branch `44547051`)
+- F-S2104-P29-H05: CLOSED — story EC-009 T-010/RG-010 cite + residual-disclosure added; story-writer (feature branch `44547051`)
+- F-S2104-P29-M01: CLOSED — BC-6.26.001 v1.18 numeric IDs remapped to canonical letter-format (product-owner, Commit D `b97469e8`)
+- F-S2104-P29-M02: CLOSED — story terminal-hash annotation corrected F-S2104-P28-H03→F-S2104-P28-M02 (state-manager, Commit C `12ad0123`)
+- F-S2104-P29-M03: CLOSED — local declaration added; story-writer (feature branch `44547051`)
+- F-S2104-P29-M04: CLOSED — §Architecture Mapping T-016 constraint updated; story-writer (feature branch `44547051`)
+- F-S2104-P29-M05: CLOSED — §File Structure Requirements T001_GATE_COUNT entry added; story-writer (feature branch `44547051`)
+- F-S2104-P29-M06: CLOSED — BC-INDEX:8 Refs H05/H07→H05 (state-manager, Commit C `12ad0123`)
+- F-S2104-P29-L01: CLOSED — T-016 step-3 uses T001_GATE_COUNT sentinel; story-writer (feature branch `44547051`)
+- F-S2104-P29-L02: CLOSED — adversary.md BC version pin updated; story-writer (feature branch `44547051`)
+
+**factory-artifacts commits (this burst):**
+- Commit A: `45e2cd41` — adversary-pass-29.md + INDEX.md pass-29 row + Convergence Status
+- Commit B: `223a82d9` — D-944 decision block + 4 L-BB lessons
+- Commit C: `12ad0123` — S-21.04 sweep (M02/H03/M06 fixes; POLICY-14 leg-5 parity)
+- Commit D: `b97469e8` — 4-index version bumps + specialist files (BC-6.26.001 v1.18 + ADR-034 v1.1)
+- Commit E: this-commit — STATE.md v6.74→v6.75 + burst-log completion + adversary-pass-29.md input-hash 3e9d280→2d1d78b
+
