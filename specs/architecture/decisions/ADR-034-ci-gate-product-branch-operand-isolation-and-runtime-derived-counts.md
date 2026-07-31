@@ -1,7 +1,7 @@
 ---
 document_type: adr
 adr_id: ADR-034
-version: "1.1"
+version: "1.2"
 title: "ADR-034: CI gate product-branch operand isolation and runtime-derived counts"
 status: proposed
 date: 2026-07-30
@@ -15,16 +15,13 @@ traces_to: .factory/specs/architecture/ARCH-INDEX.md
 related_adrs:
   - ADR-027 (factory-artifacts worktree path discipline — established canonical `.factory/` mount convention this ADR constrains for required CI gates)
   - ADR-030 (pr-manager merge operation integrity enforcement — adjacent governance gate design; same fail-closed requirement class)
-anchors:
-  - SS-05
-  - SS-06
-subsystems_affected:
-  - SS-05
-  - SS-06
-last_amended: "2026-07-30 (v1.1) — Decision 2 revised (architect): counting predicate corrected from _assert_doc_marker call sites (wrong surface) to inline echo-DOC-PARITY-FAIL blocks within AC-001(a) section (correct surface, verified count = 24). T001_GATE_COUNT declared value updated to 24. Story routing updated."
+anchors: []
+subsystems_affected: []
+last_amended: "2026-07-31 (v1.2) — F-S2104-P30-L02/M05/H07 corrections (architect): §Downstream Routing extended with second count-word sweep site (T-001 summary comment) and mechanical grep derivation (L02). anchors/subsystems_affected corrected — SS-05/SS-06 were wrong; no registered SS owns plugins/vsdd-factory/tests/ or .github/workflows/ci.yml; registry gap noted in §Subsystem Ownership Gap (M05). ARCH-INDEX ADR-034 row corrected summary text supplied for state-manager in §ARCH-INDEX Row Correction (H07): Decision 2 counting surface corrected from _assert_doc_marker calls to DOC-PARITY FAIL lines within AC-001(a) block; Decision 3 sentinel placement corrected; downstream routing corrected (product-owner BC review removed, second sweep site added)."
 modified:
   - "2026-07-30 (v1.0) — initial ruling"
   - "2026-07-30 (v1.1) — Decision 2 amendment: correct counting surface, declared value 24"
+  - "2026-07-31 (v1.2) — F-S2104-P30-L02/M05/H07: routing table second sweep site + grep derivation; anchors/subsystems_affected corrected to empty (registry gap); ARCH-INDEX row corrected summary text supplied for state-manager"
 ---
 
 # ADR-034: CI gate product-branch operand isolation and runtime-derived counts
@@ -326,6 +323,27 @@ to "Twenty-four" (route: test-writer, same commit as T-016 rewrite).
 BC-6.26.001 does not specify the mechanism of the coupling gate or the gate count;
 no BC amendment is required.
 
+### Status as of v1.2 (2026-07-31)
+
+Proposed. Three corrections applied (F-S2104-P30-L02/M05/H07):
+
+- §Downstream Routing extended to enumerate both count-word sweep sites in
+  `story-worktree-write-path-discipline.bats` (T-001 lead-in comment + T-001
+  summary comment) with a mechanical grep derivation. The v1.1 routing table named
+  only the lead-in site; the summary comment ("All twenty-three gates survive
+  independently") was the unrouted site that produced F-S2104-P30-H05.
+- `anchors:` and `subsystems_affected:` corrected from SS-05/SS-06 to empty — no
+  registered subsystem owns `plugins/vsdd-factory/tests/` or
+  `.github/workflows/ci.yml`. Registry gap documented in §Subsystem Ownership Gap.
+- ARCH-INDEX ADR-034 row corrected summary text supplied for state-manager in
+  §ARCH-INDEX Row Correction. The v1.1 row described the forbidden `_assert_doc_marker`
+  counting surface (Decision 2) and the wrong sentinel placement (Decision 3). The
+  ADR body itself was correct at v1.1; only the index row was stale.
+
+The v1.1 implementation routing remains in force: test-writer rewrites T-016; story-writer
+updates AC-001 gate count cell; test-writer updates both count-word sites in the bats
+suite (see §Downstream Routing).
+
 ## Alternatives Considered
 
 - **Option (a) as-proposed by adversary (move operands to product branch via product-branch file):** This ADR adopts Option (a) with a precise implementation: the product-branch operand is a sentinel comment `T001_GATE_COUNT=N` in the bats suite itself, not a separate file. Both operands then live in a single product-branch file. Accepted.
@@ -363,9 +381,58 @@ no BC amendment is required.
 
 ### Downstream Routing
 
+**Count-word sweep derivation — complete site set.** Any update to the gate count
+involves changing `twenty-three` / `twenty-four` (case-insensitive) in
+`story-worktree-write-path-discipline.bats`. Derive the complete site set mechanically
+before writing this table:
+
+```
+$ grep -in 'twenty-three\|twenty-four' plugins/vsdd-factory/tests/story-worktree-write-path-discipline.bats
+```
+
+At v1.2 this command returns exactly two lines: the T-001 lead-in comment and the
+T-001 summary comment (verified at pass-30 HEAD 44547051). The routing table below
+enumerates both. Any future gate-count bump MUST re-run this grep and verify the line
+count before writing the routing table — a hand-listed routing table becomes the
+sweep's upper bound and will miss newly added sites.
+
 | Artifact | Change | Route |
 |----------|--------|-------|
 | Story `S-21.04-story-worktree-write-path-discipline.md` AC-001 gate count cell | Update from "(twenty-three gates)" to "(twenty-four gates)" to match `T001_GATE_COUNT=24` | story-writer |
-| `story-worktree-write-path-discipline.bats` T-001 inline comment | Update "Twenty-three independently mutant-proven gates" to "Twenty-four" (same commit as T-016 rewrite) | test-writer |
+| `story-worktree-write-path-discipline.bats` T-001 lead-in comment (sweep site 1 of 2) | Update "Twenty-three independently mutant-proven gates" to "Twenty-four" (same commit as T-016 rewrite) | test-writer |
+| `story-worktree-write-path-discipline.bats` T-001 summary comment (sweep site 2 of 2) | Update "All twenty-three gates survive independently" to "All twenty-four gates survive independently" (same commit as T-016 rewrite) | test-writer |
 | `plugins/vsdd-factory/tests/worktree-identity-preflight.bats` T-016 | Implement Decisions 1-3: remove `$fa_wt` block; add `T001_GATE_COUNT=24` sentinel extraction; count DOC-PARITY FAIL blocks in AC-001(a) section as `actual_count`; assert `actual_count == T001_GATE_COUNT` | test-writer |
 | `BC-6.26.001` | No changes required — BC does not specify the coupling gate mechanism or gate count | — |
+
+### Subsystem Ownership Gap (F-S2104-P30-M05)
+
+ADR-034 constrains `plugins/vsdd-factory/tests/` (the bats suite containing T-016 and
+T-001) and `.github/workflows/ci.yml` (the `bats-full-suite` required CI job). Neither
+path is registered under any subsystem in the ARCH-INDEX Subsystem Registry
+(registry rows SS-01 through SS-10 verified at ARCH-INDEX v3.39):
+
+- SS-05 (Pipeline Orchestration): `plugins/vsdd-factory/agents/`, `plugins/vsdd-factory/workflows/*.lobster`, `plugins/vsdd-factory/workflows/phases/`
+- SS-06 (Skill Catalog): `plugins/vsdd-factory/skills/`
+- No SS row lists `plugins/vsdd-factory/tests/` or `.github/workflows/ci.yml`
+
+`anchors:` and `subsystems_affected:` are set to empty pending a registry extension
+that assigns an owner for the test-infrastructure and CI-workflow surfaces. The
+ADR-030 precedent (SS-04/SS-05/SS-07/SS-10 anchored for WASM plugin / pr-manager /
+hooks-registry / bin tools) does not cover the bats test suite or CI workflow files.
+Until the registry is extended, this ADR has no subsystem anchor.
+
+### ARCH-INDEX Row Correction (F-S2104-P30-H07)
+
+The ARCH-INDEX v3.39 ADR-034 row carries v1.0 language in its Decision 2 and
+Decision 3 summary while asserting `ADR-034 v1.1`. The corrected row text for
+state-manager to paste verbatim:
+
+```
+| ADR-034 | CI gate product-branch operand isolation and runtime-derived counts: Decision 1 — T-016 (`test_coupling_gate_story_gate_count_matches_bats_count_word`) MUST NOT read from `$fa_wt` (mounted factory-artifacts worktree); cross-branch `story_count` operand removed entirely; Decision 2 — `bats_count` replaced with runtime-derived count of inline `echo "DOC-PARITY FAIL"` lines within the AC-001(a) Write Discipline block (bounded by stable `# --- DOC-PARITY §Spec-Path Discipline: AC-001(a)` and `# --- DOC-PARITY §Spec-Path Discipline: EC-006 WARNING` section markers); **Do NOT count `_assert_doc_marker` calls** (those appear in §G.1 + Primary-paths layers only; count = 21, not valid for this gate); fail-loud when count is zero; verified count = 24; Decision 3 — `story_count` replaced with product-branch sentinel `# T001_GATE_COUNT=24` on its own line immediately after the `# --- DOC-PARITY §Spec-Path Discipline: AC-001(a)` opening marker and before the first gate code; T-016 fails loud when sentinel absent; declared value = 24; Decision 4 — T-016 remains required fail-closed check; fail-open options (b) skip-with-warning and (c) advisory job rejected under BC-5.39.008 v1.6 (fail-open never valid for governance gate that cannot read its target); Decision 5 — governance pattern for future coupling gates: spec-validation suites whose subject matter is spec content on factory-artifacts may read cross-branch (permitted by design); required coupling checks that derive equality-assertion operands MUST use product-branch sources or runtime-derived counts only; advisory coupling checks in non-blocking CI jobs are permitted with explicit advisory label. Adjudicates F-S2104-P29-H05 (cross-branch operand in required CI check) + F-S2104-P29-H01 (string-vs-string comparison, neither operand runtime-derived) jointly as a single T-016 rewrite. Downstream routing: story-writer updates AC-001 gate count cell (twenty-three → twenty-four; this cell is documentation-only — T-016 no longer reads the story); test-writer updates two count-word sites in `story-worktree-write-path-discipline.bats` — lead-in comment ("Twenty-three independently mutant-proven gates" → "Twenty-four") and summary comment ("All twenty-three gates survive independently" → "All twenty-four gates survive independently"); BC-6.26.001 no changes required. **PROPOSED 2026-07-30; ADR-034 v1.2 (F-S2104-P30-H07/M05/L02 corrections).** | (no registered SS — registry gap; F-S2104-P30-M05) | decisions/ADR-034-ci-gate-product-branch-operand-isolation-and-runtime-derived-counts.md |
+```
+
+The two v1.0 errors corrected:
+1. **Decision 2 counting surface** — v1.0/stale row said "grep-count of `_assert_doc_marker` calls within T-001's body". This is explicitly forbidden by ADR-034 §Decision 2 ("Do NOT count `_assert_doc_marker` or `_assert_no_doc_marker` calls … A count of `_assert_doc_marker` calls gives 21 … and must not be used"). The correct surface is inline `echo "DOC-PARITY FAIL"` lines within the AC-001(a) block; count = 24.
+2. **Decision 3 sentinel placement** — v1.0/stale row said "immediately preceding T-001's first assertion in the bats suite". The correct placement is immediately after the `# --- DOC-PARITY §Spec-Path Discipline: AC-001(a)` opening marker and before the first gate code (not "immediately preceding T-001's first assertion", which would place it in a different position).
+
+The stale row also incorrectly routed a product-owner review of BC-6.26.001 ("product-owner reviews BC-6.26.001 for any invariant requiring T-016 to read the story document from factory-artifacts"). ADR-034 §Downstream Routing explicitly closes this as "No changes required". Removed from the corrected row.
