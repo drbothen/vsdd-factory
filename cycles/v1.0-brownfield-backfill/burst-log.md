@@ -22357,5 +22357,6 @@ No BC body content, ADR rationale text, VP prose, or story AC content was author
 - Commit B: `f74fbaa2` — four SM finding fixes (H02/M02/M03/H07-row)
 - Commit C: `ef3a2141` — Leg-5 sweep (STORY-INDEX catalog row story v1.33→v1.35)
 - Commit D: `2bdfe378` — 4-index version bumps (BC v4.42→v4.43; STORY v4.276→v4.277; ARCH v3.39→v3.40; VP v2.74 unchanged)
-- Commit E: this-commit — STATE.md v6.77→v6.78 + burst-log completion + D-947 decision block + 3 L-BB lessons
+- Commit E: `1e4fe0e4` — STATE.md v6.77→v6.78 + burst-log completion + D-947 decision block + 3 L-BB lessons
+- SHA-patch: this-commit — Active Branches + CPS row Commit E SHA update (1e4fe0e4)
 
