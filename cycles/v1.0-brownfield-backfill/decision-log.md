@@ -14287,3 +14287,68 @@ D-946-PASS-30-RECORD-BURST
 ### Date
 
 2026-07-30
+
+---
+
+## D-947
+
+### Title
+
+PASS-30-FIX-BURST — four state-manager findings closed (H02/M02/M03/H07-row); 4-index bumped BC v4.42→v4.43 / STORY v4.276→v4.277 / ARCH v3.39→v3.40 / VP v2.74 unchanged; feature branch 44547051→323f440f
+
+### Decision
+
+Record D-947 as the sentinel for the pass-30 fix burst.
+
+**(a) POLICY 16 GLOBAL-MAX GATE:** `grep -n "^## D-" .factory/cycles/v1.0-brownfield-backfill/decision-log.md | sort -t'-' -k2 -n | tail -3` → 14104:## D-944 / 14183:## D-945 / 14255:## D-946; D-946 confirmed prior max → D-947 allocated.
+
+**(b) Burst scope:** Pass-30 fix burst closing four state-manager-owned findings from adversary-pass-30.md. (1) H02: STORY-INDEX aggregation blockquote carried stale hash `S-21.04=4be9d21` while frontmatter and catalog row were updated to `47a65c9`; POLICY 18 THREE-WAY-INPUT-HASH-EQUALITY regression — Leg 3 broken. (2) M02: story modified[] v1.32 terminal-hash entry terminated at fabricated hash `1acf3c6` with no [PROVENANCE-BREAK] annotation; BC-5.39.010 Invariant 11 requires documented provenance break for fabricated hashes (distinct from stale hashes). (3) M03: BC-INDEX v4.38 changelog entry attributed v1.16 and v1.17 version bumps to wrong finding IDs — `v1.16: P28-H05 T-010/RG-010 cross-ref; v1.17: H07 T-010/RG-010` contradicts BC-6.26.001's own modified[] which shows v1.16 as M01 (frontmatter array ordering) and v1.17 as H05 (EC-009 structural rationale); H07 not in Refs cell (Refs: F-S2104-P28-H05, D-943). (4) H07: ARCH-INDEX ADR-034 row carried v1.0 Decision 2/3 content (counting `_assert_doc_marker` calls; sentinel `immediately preceding T-001's first assertion`) under a v1.1 label; POLICY 14 leg-5 content-correspondence failure — ADR-034 v1.1 explicitly forbids counting `_assert_doc_marker` calls and relocates the sentinel to `immediately after the # --- DOC-PARITY §Spec-Path Discipline: AC-001(a) opening marker`.
+
+**(c) Specialists completed prior to this burst:** story-writer (S-21.04 v1.35 on feature branch `323f440f`; bats suites 11/11 + 16/16 GREEN; H01/H03/H04/H05/H06/H09/M01/M04/M05/L01/L02 closed); architect (ADR-034 v1.2 on feature branch `323f440f`; §ARCH-INDEX Row Correction provides verbatim replacement text for H07/M05 corrections); test-writer (red-gate-log H08/H09/T-010/T-017 POLICY 15 attestations committed; 16/16 GREEN confirmed).
+
+**(d) Commit A (e6b373ff):** S-21.04 story v1.35 + ADR-034 v1.2 + red-gate-log POLICY 15 attestations promoted from specialist outputs.
+
+**(e) Commit B (f74fbaa2):** Four state-manager findings closed. H02: STORY-INDEX:731 blockquote `S-21.04=4be9d21` → `S-21.04=47a65c9` (Leg 3 of POLICY 18 three-way hash equality restored). M02: story modified[] v1.32 terminal string extended with `[PROVENANCE-BREAK F-S2104-P30-M02: modified[] v1.32 terminal hash 1acf3c6 was FABRICATED — story-writer wrote it without a compute-input-hash invocation at that revision; no computed value existed; correct computed value is 47a65c9 (verified post-burst --check exit 0); per BC-5.39.010 Invariant 11 (fabricated hash is distinct from stale hash — fabricated requires documented provenance break; stale requires sweep)]`. M03: BC-INDEX v4.38 Refs attribution corrected: v1.16 attribution changed from `P28-H05 T-010/RG-010 cross-ref` to `M01 frontmatter modified: array ordering`; v1.17 attribution changed from `H07 T-010/RG-010` to `H05 EC-009 structural rationale` (H07 removed from Refs — not in BC's authoritative Refs cell). H07: ARCH-INDEX ADR-034 row replaced verbatim with architect's v1.2 §ARCH-INDEX Row Correction content: Decision 2 `echo "DOC-PARITY FAIL" lines within AC-001(a) Write Discipline block` (count: 24, verified) replaces `_assert_doc_marker calls` (21, forbidden); Decision 3 sentinel `immediately after the # --- DOC-PARITY §Spec-Path Discipline: AC-001(a) opening marker and before the first gate code` replaces `immediately preceding T-001's first assertion`; subsystems `(no registered SS — registry gap; F-S2104-P30-M05)` replaces `SS-05, SS-06`; version label `ADR-034 v1.2 (F-S2104-P30-H07/M05/L02 corrections)`.
+
+**(f) Commit C (ef3a2141):** Leg-5 sweep — STORY-INDEX catalog row updated `story v1.33` → `story v1.35` (unique anchor: `input-hash 47a65c9; CAP-036; closes issue #523; story v1.33`).
+
+**(g) Commit D (2bdfe378):** 4-index version bumps. BC-INDEX v4.42→v4.43 (last_amended prepend M03/D-947). STORY-INDEX v4.276→v4.277 (last_amended prepend H02/M02/D-947). ARCH-INDEX v3.39→v3.40 (last_amended prepend H07/M05/D-947). VP-INDEX v2.74 UNCHANGED. 4-index cite: BC v4.43 / VP v2.74 / STORY v4.277 / ARCH v3.40.
+
+**(h) Commit E (this commit):** D-947 codified in decision-log.md; 3 L-BB lessons appended to lessons.md; burst-log D-947 entry appended (all 8 D-444(c) blocks; D-446(a) and D-448(a) gates invoked via literal shell per D-449(a)); STATE.md v6.77→v6.78 (phase D-947-PASS-30-FIX-BURST; frontmatter advance per D-443(a)/D-444(a)/D-449(a) verbatim-strict; Phase Progress row; Current Phase Steps; Last Updated; Concurrent Cycles; Active Branches feature/S-21.04 SHA 44547051→323f440f; SRC full replacement).
+
+**(i) 4-INDEX summary:** BC v4.42→v4.43 / VP v2.74 UNCHANGED / STORY v4.276→v4.277 / ARCH v3.39→v3.40.
+
+### Participating agents
+
+- story-writer: S-21.04 v1.33→v1.35 (H01/H03/H04/H05/H06/H09/M01/M04/M05/L01/L02)
+- architect: ADR-034 v1.1→v1.2 (H07/M05)
+- test-writer: red-gate-log H08/H09/T-010/T-017 attestations
+- state-manager: H02/M02/M03/H07-row corrections (Commits B–E)
+
+### Sentinel replacements
+
+No D-{TBD} sentinels used in this burst.
+
+### 4-INDEX
+
+| Index | Before | After | Change |
+|-------|--------|-------|--------|
+| BC-INDEX | v4.42 | v4.43 | M03 Refs attribution corrected; last_amended prepend |
+| VP-INDEX | v2.74 | v2.74 | UNCHANGED |
+| STORY-INDEX | v4.276 | v4.277 | H02 blockquote Leg 3 47a65c9; M02 provenance-break annotation; story v1.35 catalog row; last_amended prepend |
+| ARCH-INDEX | v3.39 | v3.40 | H07 ADR-034 row verbatim v1.2 (architect); M05 registry-gap note; last_amended prepend |
+
+### Lessons
+
+3 L-BB lessons appended to lessons.md:
+- `L-BB-three-way-hash-equality-all-three-legs-same-burst`
+- `L-BB-fabricated-hash-provenance-break-annotation-required`
+- `L-BB-bc-index-refs-derives-from-bc-modified-array`
+
+### Phase
+
+D-947-PASS-30-FIX-BURST
+
+### Date
+
+2026-07-31

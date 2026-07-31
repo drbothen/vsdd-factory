@@ -9707,3 +9707,51 @@ D-448(a) passes over this class of defect because it validates Part A correspond
 **Cites:** D-946 (codified this burst); ADR-035 §Decision 4 (Tier 3 corpus check candidate); BC-5.39.001 3-CLEAN protocol. `[process-gap; post-adversary-persistence; orchestrator; volatile-context; D-946; codified]`
 
 ---
+
+### L-BB-three-way-hash-equality-all-three-legs-same-burst [process-gap] [D-947]
+
+**Title:** STORY-INDEX Three-Way Hash Gate Has Three Legs — All Must Advance in the Same Burst
+
+**Lesson:** POLICY 18 THREE-WAY-INPUT-HASH-EQUALITY requires three distinct STORY-INDEX locations to carry identical hash values for each story: (1) story frontmatter `input-hash:`, (2) STORY-INDEX catalog row `input-hash NNN` field, and (3) STORY-INDEX aggregation blockquote `S-NN.MM=<hash>`. When pass-28 fix burst (D-943) corrected the fabricated hash `4be9d21` → `47a65c9`, the fix swept Legs 1+2 but not Leg 3 (blockquote `S-21.04=4be9d21` remained stale). Pass-30 H02 surfaced the same class again: Leg 3 was still stale at `44547051`. A burst that updates a story's input-hash in the frontmatter and catalog row is incomplete until the aggregation blockquote is also updated in the same burst. The three legs use different grep patterns: `input-hash:` (story frontmatter), `input-hash NNN` (catalog row), and `S-NN.MM=NNN` (aggregation blockquote). Only all three patterns together constitute a complete sweep.
+
+**Root cause:** The blockquote is at a different visual location in STORY-INDEX than the catalog row. Fix-burst sweeps that grep for `input-hash NNN` find Legs 1+2 but miss the `S-NN.MM=NNN` pattern of Leg 3.
+
+**Prevention:** Any burst that updates a story's `input-hash:` value must include a grep for `S-NN.MM=` in STORY-INDEX before closing the finding. All three patterns must be verified in the same burst.
+
+**Anchors:** F-S2104-P30-H02 (pass-30); F-S2104-P28-H03 (prior regression source at D-943); STORY-INDEX:731 (Leg 3 at time of fix); D-947 (this burst). POLICY 18 THREE-WAY-INPUT-HASH-EQUALITY.
+
+**Cites:** D-947 (codified this burst); BC-5.39.010 §Class-D (three-way equality gate). `[process-gap; three-way-hash; STORY-INDEX; Leg-3; POLICY-18; D-947; codified]`
+
+---
+
+### L-BB-fabricated-hash-provenance-break-annotation-required [process-gap] [D-947]
+
+**Title:** Fabricated Hashes Require [PROVENANCE-BREAK] Annotation — Silent Correction Is a BC-5.39.010 Invariant 11 Violation
+
+**Lesson:** When a hash value in a story's `modified[]` array entry is discovered to be FABRICATED (written without a `compute-input-hash` invocation at the cited revision — no computed value ever existed for that SHA), overwriting the entry with the correct hash is insufficient. BC-5.39.010 Invariant 11 distinguishes fabricated hashes from stale hashes: a fabricated hash requires a documented provenance break because the historical record has a structural integrity gap, not just a temporal one. The correct action is to EXTEND the existing `modified[]` entry string (without rewriting the historical text) with a `[PROVENANCE-BREAK F-S2104-PNN-MNN: <annotation>]` suffix explaining what was fabricated, what the correct computed value is, how it was verified, and the applicable BC reference. Pass-28 fix burst (D-943) silently corrected the frontmatter hash from `4be9d21` to `47a65c9` without annotating the `modified[]` entry whose terminal hash `1acf3c6` was fabricated. Pass-30 M02 surfaced the unannotated fabrication again.
+
+**Root cause:** The hash correction sweep updated the observable values (frontmatter, catalog row) but missed the historical chain in `modified[]` that still cited the fabricated value as a terminal hash. Fabricated hashes require annotation at their point of origin in the `modified[]` array, not only at the observable hash fields.
+
+**Prevention:** When correcting a fabricated hash anywhere in the document chain, scan the story's `modified[]` array for any entry that cites the old (fabricated) value as its terminal hash. Those entries must receive a [PROVENANCE-BREAK] annotation in the same burst. The annotation preserves the historical audit chain while documenting the integrity gap.
+
+**Anchors:** F-S2104-P30-M02 (pass-30); story modified[] v1.32 terminal entry `1acf3c6` (fabricated); correct computed value `47a65c9` (verified `--check exit 0`); D-947 (this burst). BC-5.39.010 Invariant 11.
+
+**Cites:** D-947 (codified this burst); BC-5.39.010 Invariant 11 (fabricated vs stale). `[process-gap; fabricated-hash; provenance-break; modified-array; BC-5.39.010; D-947; codified]`
+
+---
+
+### L-BB-bc-index-refs-derives-from-bc-modified-array [process-gap] [D-947]
+
+**Title:** BC-INDEX Changelog Refs Cells Must Derive from the BC's Own modified[] — Not from Orchestrator Attribution or Prior Burst Narrative
+
+**Lesson:** BC-INDEX changelog rows include a `Refs:` cell that lists the finding IDs responsible for each version bump. These must be derived from the BC file's own `modified[]` frontmatter array — the authoritative record of what each version change addressed. In pass-28 fix burst (D-943), the BC-INDEX v4.38 entry was written from the orchestrator's working narrative rather than from BC-6.26.001's actual `modified[]` entries. The result: v1.16 was attributed to `P28-H05 T-010/RG-010 cross-ref` (incorrect — v1.16 was M01: frontmatter array ordering) and v1.17 cited `H07 T-010/RG-010` as an additional Refs entry (incorrect — H07 is not in the BC's authoritative Refs cell `F-S2104-P28-H05, D-943`). Pass-30 M03 surfaced the attribution errors. The authoritative source is always the BC file's `modified[]` array, not the state-manager's recollection of which findings drove the burst.
+
+**Root cause:** State-manager composed the BC-INDEX Refs entry from the orchestrator's attributed finding-ID list rather than reading BC-6.26.001's actual `modified[]` frontmatter array at the time of the Commit D write. The BC was modified by product-owner in an earlier commit in the same burst; state-manager should have re-read the `modified[]` field before writing the index entry.
+
+**Prevention:** Before writing any BC-INDEX Refs cell, read the BC file's `modified[]` frontmatter array. The Refs cell is a projection of that array; it must match the array, not the orchestrator's attribution. Never derive Refs from prior burst narrative or orchestrator summary.
+
+**Anchors:** F-S2104-P30-M03 (pass-30); BC-6.26.001 modified[] v1.16/v1.17 entries; BC-INDEX v4.38 Refs cell defect; D-947 (this burst). POLICY 8.
+
+**Cites:** D-947 (codified this burst); POLICY 8 (BC frontmatter bcs-array propagation discipline). `[process-gap; BC-INDEX; Refs; modified-array; state-manager; POLICY-8; D-947; codified]`
+
+---
