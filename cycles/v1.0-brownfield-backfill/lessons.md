@@ -9689,3 +9689,21 @@ D-448(a) passes over this class of defect because it validates Part A correspond
 **Cites:** D-945 (codified this burst); ADR-035 §Context (prior research summary); ADR-035 §Decision 4 (full-corpus + FORCE_FULL). `[research; external; MCP; WASM; prior-art; blind-spots; D-945; codified]`
 
 ---
+
+### L-BB-post-adversary-persistence [process-gap] [D-946]
+
+**Title:** Post-Adversary Persistence Must Be Immediate — Topic Change Does Not Suspend the Obligation
+
+**Lesson:** Pass-30 of the S-21.04 cascade ran and completed (16 findings, B0/H9/M5/L2). The orchestrator then pivoted to a strategic question (BC-5.39.010/ADR-035 design arc) before performing Post-Adversary Persistence. Consequence: adversary-pass-30.md was never written; INDEX.md and STATE.md instructed a future session to re-dispatch a completed pass; 16 real findings were invisible to the factory state for the duration of a full D-945 burst.
+
+**Root cause:** Post-Adversary Persistence was treated as a deferrable step. It cannot be deferred. The adversary agent has Read/Grep/Glob only — it cannot write files. Its output exists only in the orchestrator's working context until persisted. A mid-review topic change is exactly the failure mode this step was designed against: context collapses at session boundary, and nothing in `.factory/` indicates the pass ran.
+
+**Detection:** The state defect is detectable: every pass number cited as "COMPLETE" or in "NEXT: pass-N+1" in INDEX.md Convergence Status must have a corresponding `adversary-pass-N.md` file. This is a candidate Tier 3 corpus check (ADR-035 §Decision 4).
+
+**Prevention:** Persist the adversary review BEFORE responding to any redirection. Sequence: adversary output received → write adversary-pass-N.md → update INDEX.md → update STATE.md → THEN respond to the redirection.
+
+**Anchors:** pass-30 at `44547051` (2026-07-30); `/tmp/p30.md` (volatile source — recovered this burst); D-945 design arc (the pivot that caused the gap); D-946 (this burst).
+
+**Cites:** D-946 (codified this burst); ADR-035 §Decision 4 (Tier 3 corpus check candidate); BC-5.39.001 3-CLEAN protocol. `[process-gap; post-adversary-persistence; orchestrator; volatile-context; D-946; codified]`
+
+---

@@ -14249,3 +14249,41 @@ D-945-BC-5.39.010-ADR-035-S-21.07-DESIGN-ARC
 ### Date
 
 2026-07-30
+
+---
+
+## D-946
+
+### Title
+
+PASS-30-RECORD-BURST — pass-30 persistence recovery + state correction after orchestrator skipped mandatory Post-Adversary Persistence
+
+### Decision
+
+Record D-946 as the sentinel for the pass-30 record burst.
+
+**(a) POLICY 16 GLOBAL-MAX GATE:** `grep -n "^## D-" .factory/cycles/v1.0-brownfield-backfill/decision-log.md | sed 's/:## D-/ /' | sort -k2 -n | tail -3` → last three lines showed D-943, D-944, D-945; D-945 confirmed prior max → D-946 allocated.
+
+**(b) Recovery context:** Pass-30 of the S-21.04 LOCAL cascade ran and completed (2026-07-30), returning 16 findings (B0/H9/M5/L2). The orchestrator skipped mandatory Post-Adversary Persistence — the step that writes the review file, adds the INDEX.md row, and corrects STATE.md — because a human topic change (pivot to BC-5.39.010/ADR-035/S-21.07 design arc) redirected context before persistence occurred. The adversary review resided only in volatile `/tmp/p30.md` (54,197 bytes) and the session transcript until this burst.
+
+**(c) Consequence:** adversary-pass-30.md was never written; INDEX.md and STATE.md both instructed a resuming session to dispatch a pass that had already completed; 16 real findings were invisible to the factory state for the duration of the full D-945 design arc burst.
+
+**(d) Recovery (Commit A):** adversary-pass-30.md CREATED verbatim from `/tmp/p30.md` authoritative source (input-hash ae93f6f). INDEX.md pass-30 row INSERTED; Convergence Status updated: trajectory →11→7→17→13 → →7→17→13→16; "29 passes" → "30 passes"; "NEXT: pass-30 adversary dispatch" → "NEXT: pass-30 fix burst (16 findings), then pass-31". Commit A SHA: ed55ead1.
+
+**(e) State correction (Commit B — this commit):** All "NEXT: pass-30 adversary dispatch" occurrences in STATE.md corrected to "pass-30 fix burst (16 findings), then pass-31"; both "29 passes" corrected to "30 passes"; trajectory tail →11→7→17→13 → →7→17→13→16; D-946 codified; L-BB-post-adversary-persistence lesson appended; STATE.md version bumped.
+
+**(f) Orchestrator attribution:** H04 (AC-001 cell states "24 gates" but enumerates only (1)…(23)) was caused by the orchestrator driving the 23→24 correction from a mechanical count without checking the enumeration list in the same cell. Recorded per instructions.
+
+**(g) Pass-30 findings (UNFIXED — fix burst pending):** B0/H9/M5/L2 = 16 total. Second consecutive zero-BLOCKER pass. Streak 0/3. H01: story body BC table v1.17 vs BC v1.18 (POLICY 8/5(c) sixth leg re-stale). H02: STORY-INDEX aggregation blockquote input-hash stale (POLICY 18 THREE-WAY regression). H03: story `last_amended:` prefix `(v1.31)` vs version `1.33` (POLICY 14/17 leg-4). H04: AC-001 "24 gates" enumerates only (1)…(23) (orchestrator-caused). H05: bats T-001 summary `twenty-three` unswept + story false attestation + stale deferral (TD-VSDD-060 + TD-VSDD-059). H06: four story T-016 inventory descriptions still describe retired semantics (POLICY 14). H07: ARCH-INDEX ADR-034 row v1.0 content under v1.1 label (POLICY 14 leg-5). H08: two consecutive gate-hardening waves with no red-gate-log attestation ([process-gap]). H09: T-010 ID collision (POLICY 1). M01–M05: sibling-site gaps and attribution defects. L01–L02: misnomer and under-enumeration.
+
+**(h) Lesson recorded:** L-BB-post-adversary-persistence appended to lessons.md.
+
+**(i) 4-INDEX: UNCHANGED** — BC v4.42/VP v2.74/STORY v4.276/ARCH v3.39 (no specialist artifact changes this burst).
+
+### Phase
+
+D-946-PASS-30-RECORD-BURST
+
+### Date
+
+2026-07-30
