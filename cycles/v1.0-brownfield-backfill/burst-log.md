@@ -22268,6 +22268,9 @@ Pre-burst parent-commit (factory-artifacts): `4e66d44e` (state(D-946/SHA-patch):
 | L-BB-three-way-hash-equality-all-three-legs-same-burst | POLICY 18 has three Legs: story frontmatter `input-hash:`, STORY-INDEX catalog `input-hash NNN`, and STORY-INDEX blockquote `S-NN.MM=NNN`; all three must advance in the same burst when a story hash changes; Leg 3 uses a different grep pattern (`S-NN.MM=`) and is the one most commonly missed |
 | L-BB-fabricated-hash-provenance-break-annotation-required | Fabricated hashes (never computed at the cited revision) require a [PROVENANCE-BREAK] annotation in the `modified[]` entry where the fabricated value appears as the terminal hash; silent correction of observable fields is insufficient per BC-5.39.010 Invariant 11 |
 | L-BB-bc-index-refs-derives-from-bc-modified-array | BC-INDEX Refs cells must be derived from the BC file's own `modified[]` frontmatter array at write time; deriving from orchestrator attribution or prior burst narrative produces wrong finding IDs and contradicts the BC's authoritative record |
+| L-BB-cross-file-identifier-rename-not-parallelisable-by-reporting | Cross-file identifier renames cannot be parallelised by "A reports the new name so B can apply it" — the second agent is already executing; the rename–cite dependency must be sequenced or the new name supplied upfront in both briefs; orchestrator cause for F-S2104-P30-H04 re-creation inside this burst |
+| L-BB-count-assertion-three-leg-claim-enum-runtime | A count assertion has three legs: (a) claimed value, (b) enumeration length, (c) runtime-derived count; correcting (a)+(c) without checking (b) leaves the enumeration shorter than the claimed number; orchestrator cause for F-S2104-P30-H04 |
+| L-BB-missing-identifier-label-hides-double-allocation | An artifact without its own identifier label cannot prevent double-allocation; traceability must hold in both directions — code-side label AND registry-side entry; missing T-ID on pipeline probe test allowed T-010 collision to hide for six passes, detectable only by cross-referencing red-gate-log |
 
 ### Block 5: Dim-2 attestations (literal shell per D-449(a))
 
@@ -22310,13 +22313,13 @@ $ grep -n "^### Block" .factory/cycles/v1.0-brownfield-backfill/burst-log.md | t
 22238:### Block 2: Adversary verdict
 22248:### Block 3: Files touched
 22263:### Block 4: Codifications
-22272:### Block 5: Dim-2 attestations (literal shell per D-449(a))
-22312:### Block 6: Dim-5 attestations
-22318:### Block 7: Dim-6/7 attestations
-22324:### Block 8: Closes + factory-artifacts commits
+22275:### Block 5: Dim-2 attestations (literal shell per D-449(a))
+22326:### Block 6: Dim-5 attestations
+22332:### Block 7: Dim-6/7 attestations
+22338:### Block 8: Closes + factory-artifacts commits
 ```
 
-8 blocks confirmed present. D-446(a) PASS.
+8 blocks confirmed present. D-446(a) PASS. (Line numbers updated after follow-up lesson-set extension: Block 4 +3 rows; Blocks 5–8 shifted accordingly.)
 
 **(e) WASM FUEL TIMEOUT NOTE:** PostToolUse hooks on STORY-INDEX.md, BC-INDEX.md, ARCH-INDEX.md, S-21.04 story, decision-log.md, and lessons.md timed out (fail-closed `block_intent=true exit_code=2`) throughout this burst — consistent with large-file WASM fuel exhaustion per D-442(e). PostToolUse advisory only; writes confirmed via targeted grep/python checks after each edit. `compute-input-hash --check EXIT:0` independently confirms S-21.04 story hash currency. BC-6.26.001 and adversary-pass-30.md show drift (EXIT:2) expected: their inputs (the story, BC) were updated by specialists in this burst; these files are product-owner/adversary-authored and their hash updates are deferred to their respective specialist post-burst flows.
 
@@ -22358,5 +22361,6 @@ No BC body content, ADR rationale text, VP prose, or story AC content was author
 - Commit C: `ef3a2141` — Leg-5 sweep (STORY-INDEX catalog row story v1.33→v1.35)
 - Commit D: `2bdfe378` — 4-index version bumps (BC v4.42→v4.43; STORY v4.276→v4.277; ARCH v3.39→v3.40; VP v2.74 unchanged)
 - Commit E: `1e4fe0e4` — STATE.md v6.77→v6.78 + burst-log completion + D-947 decision block + 3 L-BB lessons
-- SHA-patch: this-commit — Active Branches + CPS row Commit E SHA update (1e4fe0e4)
+- SHA-patch: `cd777074` — Active Branches + CPS row Commit E SHA update (1e4fe0e4)
+- Follow-up: this-commit — 3 orchestration process lessons + D-947 decision-log lesson-set extension note
 

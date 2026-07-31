@@ -14314,9 +14314,11 @@ Record D-947 as the sentinel for the pass-30 fix burst.
 
 **(g) Commit D (2bdfe378):** 4-index version bumps. BC-INDEX v4.42→v4.43 (last_amended prepend M03/D-947). STORY-INDEX v4.276→v4.277 (last_amended prepend H02/M02/D-947). ARCH-INDEX v3.39→v3.40 (last_amended prepend H07/M05/D-947). VP-INDEX v2.74 UNCHANGED. 4-index cite: BC v4.43 / VP v2.74 / STORY v4.277 / ARCH v3.40.
 
-**(h) Commit E (this commit):** D-947 codified in decision-log.md; 3 L-BB lessons appended to lessons.md; burst-log D-947 entry appended (all 8 D-444(c) blocks; D-446(a) and D-448(a) gates invoked via literal shell per D-449(a)); STATE.md v6.77→v6.78 (phase D-947-PASS-30-FIX-BURST; frontmatter advance per D-443(a)/D-444(a)/D-449(a) verbatim-strict; Phase Progress row; Current Phase Steps; Last Updated; Concurrent Cycles; Active Branches feature/S-21.04 SHA 44547051→323f440f; SRC full replacement).
+**(h) Commit E (1e4fe0e4):** D-947 codified in decision-log.md; 3 initial L-BB lessons appended to lessons.md (L-BB-three-way-hash-equality-all-three-legs-same-burst / L-BB-fabricated-hash-provenance-break-annotation-required / L-BB-bc-index-refs-derives-from-bc-modified-array); burst-log D-947 entry appended (all 8 D-444(c) blocks; D-446(a) and D-448(a) gates invoked via literal shell per D-449(a)); STATE.md v6.77→v6.78 (phase D-947-PASS-30-FIX-BURST; frontmatter advance per D-443(a)/D-444(a)/D-449(a) verbatim-strict; Phase Progress row; Current Phase Steps; Last Updated; Concurrent Cycles; Active Branches feature/S-21.04 SHA 44547051→323f440f; SRC full replacement).
 
 **(i) 4-INDEX summary:** BC v4.42→v4.43 / VP v2.74 UNCHANGED / STORY v4.276→v4.277 / ARCH v3.39→v3.40.
+
+**(j) Lesson-set extension (follow-up after SHA-patch cd777074):** The three initial lessons recorded at Commit E covered the four state-manager-owned findings (artifact mechanics). The orchestrator noted that three process-level lessons covering the other twelve findings — and the orchestrator's own dispatch errors — were missing. Three additional L-BB lessons appended to lessons.md in a follow-up commit: (1) L-BB-cross-file-identifier-rename-not-parallelisable-by-reporting (dispatch-structure rule: rename–cite dependency cannot be parallelised via narrative reporting; orchestrator cause for F-S2104-P30-H04 re-creation); (2) L-BB-count-assertion-three-leg-claim-enum-runtime (count assertion three-leg rule: claimed value + enumeration length + runtime-derived count must all agree; orchestrator cause for F-S2104-P30-H04); (3) L-BB-missing-identifier-label-hides-double-allocation (identifier traceability must hold code-side AND registry-side; missing T-ID label on pipeline probe test allowed T-010 double-allocation to hide for six passes). Omission recorded here so the audit trail shows the lesson set was incomplete at Commit E and corrected in the follow-up.
 
 ### Participating agents
 
@@ -14340,10 +14342,17 @@ No D-{TBD} sentinels used in this burst.
 
 ### Lessons
 
-3 L-BB lessons appended to lessons.md:
+6 L-BB lessons appended to lessons.md (3 at Commit E; 3 in follow-up after SHA-patch cd777074 per orchestrator direction):
+
+Commit E (artifact mechanics — state-manager findings):
 - `L-BB-three-way-hash-equality-all-three-legs-same-burst`
 - `L-BB-fabricated-hash-provenance-break-annotation-required`
 - `L-BB-bc-index-refs-derives-from-bc-modified-array`
+
+Follow-up (orchestration process — orchestrator-attributed findings):
+- `L-BB-cross-file-identifier-rename-not-parallelisable-by-reporting`
+- `L-BB-count-assertion-three-leg-claim-enum-runtime`
+- `L-BB-missing-identifier-label-hides-double-allocation`
 
 ### Phase
 

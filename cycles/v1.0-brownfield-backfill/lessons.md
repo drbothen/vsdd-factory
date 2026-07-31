@@ -9755,3 +9755,51 @@ D-448(a) passes over this class of defect because it validates Part A correspond
 **Cites:** D-947 (codified this burst); POLICY 8 (BC frontmatter bcs-array propagation discipline). `[process-gap; BC-INDEX; Refs; modified-array; state-manager; POLICY-8; D-947; codified]`
 
 ---
+
+### L-BB-cross-file-identifier-rename-not-parallelisable-by-reporting [orchestration] [dispatch-structure] [D-947-follow-up]
+
+**Title:** Cross-File Identifier Renames Cannot Be Parallelised by "A Reports the New Name So B Can Apply It" — the Dependency Must Be Sequenced or Supplied Upfront
+
+**Lesson:** When one agent renames an identifier (test ID, function name, constant) and another agent's artifact cites that identifier, the work cannot be parallelised by requesting that the first agent report the new name so the second can apply it. The second agent is already executing when the first agent reports. The dependency must be either: (a) sequenced — first agent completes the rename and reports the new name, then the second agent is dispatched with the correct name in its brief; or (b) pre-supplied — the correct new name is determined before dispatch and included in both agents' briefs. In D-947, test-writer was dispatched alongside story-writer to address T-016 semantic changes; test-writer renamed identifiers while story-writer was already running. Story-writer received stale names at eight sites including the AC-001 Gate cell, re-creating the phantom-anchor class from F-S2104-P29-H04 inside a single burst. Orchestrator cause. This is a dispatch-structure rule, not an artifact rule: the rename–cite ordering constraint is structural.
+
+**Root cause:** Dispatch structure assumed parallel agents could synchronise via narrative reporting during execution, which is impossible since they run concurrently. The rename-then-cite dependency is a strict ordering constraint.
+
+**Prevention:** Before dispatching two agents with an identifier rename + cite dependency, determine whether the correct new identifier is known at dispatch time. If yes: supply it in both agents' briefs. If no: sequence the dispatch — rename agent first, cite agent second with the confirmed new name.
+
+**Anchors:** F-S2104-P30-H04 (regenerated in D-947 burst; original class F-S2104-P29-H04); D-947 (burst); story AC-001 Gate cell (8-site phantom name). Orchestrator attribution.
+
+**Cites:** D-947-follow-up (orchestration lesson; codified after SHA-patch `cd777074`). `[orchestration; dispatch-structure; parallel-dependency; identifier-rename; phantom-anchor; D-947-follow-up; codified]`
+
+---
+
+### L-BB-count-assertion-three-leg-claim-enum-runtime [orchestration] [count-parity] [D-947-follow-up]
+
+**Title:** A Count Assertion Has Three Legs — Claimed Value, Enumeration Length, and Runtime-Derived Count — Correcting One or Two Without All Three Is Incomplete
+
+**Lesson:** Any count assertion is composed of three legs that must all be consistent: (a) the claimed value — the literal number written in prose or an AC; (b) the enumeration length — the count of items in the explicit numbered list that accompanies the claim; and (c) the runtime-derived count — a sentinel constant or grep-based computation that produces the number mechanically. Correcting leg (a) and verifying leg (c) without checking leg (b) produces a broken assertion where the written number matches runtime but the explicit list is shorter. In D-947, AC-001 was corrected from 23 to 24 on legs (a) and (c) — "twenty-four gates" in prose matched `T001_GATE_COUNT=24` — but the enumeration still ran `(1)…(23)` with 23 items, producing F-S2104-P30-H04. This class parallels POLICY 18's three-way hash structure (L-BB-three-way-hash-equality-all-three-legs-same-burst): in both cases the number claims more than the enumeration or hash-set contains. Orchestrator cause.
+
+**Root cause:** Count correction procedure addressed the literal number and the sentinel, but did not check that the enumerated list was also extended to the correct length.
+
+**Prevention:** Any count correction must verify all three legs before declaring the finding closed: (a) update the claimed value, (b) extend the enumeration to match the new count, (c) verify the runtime-derived count agrees. A finding is not closed until all three legs are consistent.
+
+**Anchors:** F-S2104-P30-H04 (pass-30); AC-001 Gate cell enumeration `(1)…(23)` vs claimed 24; T001_GATE_COUNT=24 (runtime sentinel); D-947 (burst). Orchestrator attribution.
+
+**Cites:** D-947-follow-up (orchestration lesson; codified after SHA-patch `cd777074`); ADR-034 v1.2 §T001_GATE_COUNT. `[orchestration; count-parity; three-leg; enumeration; sentinel; D-947-follow-up; codified]`
+
+---
+
+### L-BB-missing-identifier-label-hides-double-allocation [identifier-discipline] [traceability] [D-947-follow-up]
+
+**Title:** An Artifact Without Its Own Identifier Label Cannot Prevent Double-Allocation — Traceability Must Hold in Both Directions
+
+**Lesson:** When an artifact (test, function, component) lacks an embedded identifier label that matches its registry entry, double-allocation of the same ID to two different artifacts can only be detected from the registry side by comparing both sources — it is invisible from the code side alone. The pipeline probe test ran without a T-ID label in its `@test` name for six passes; red-gate-log attributed `T-010` to it retrospectively. When the EC-009 stray-inode test separately claimed `T-010`, the collision was undetectable from the test file and only became visible by cross-referencing red-gate-log against the test suite. Identifier traceability must hold in both directions: (a) the artifact must carry the ID in its own label (code-side), and (b) the registry must name the artifact by its label (registry-side). A missing code-side label creates a one-directional traceability gap that allows double-allocation to hide until an adversary performs the cross-reference.
+
+**Root cause:** The pipeline probe test was written without a T-ID in its `@test` name; the ID was assigned retrospectively in red-gate-log only. Without a code-side label, mechanical checks on the test file cannot detect that `T-010` was already claimed by another test.
+
+**Prevention:** Red-gate tests must carry their T-ID in the `@test` name at write time, not as a post-discovery annotation. Format: `@test "T-NNN: <description>"`. The red-gate-log entry and the `@test` name must contain matching T-IDs. A lint or gate check should verify this parity before each push.
+
+**Anchors:** F-S2104-P30-H09 (pass-30); T-010 double-allocation (pipeline probe + EC-009 stray-inode); red-gate-log (registry-side attribution only); D-947 (burst).
+
+**Cites:** D-947-follow-up (identifier-discipline lesson; codified after SHA-patch `cd777074`); POLICY 15 (red-gate-log). `[identifier-discipline; traceability; double-allocation; T-ID-label; red-gate; D-947-follow-up; codified]`
+
+---
