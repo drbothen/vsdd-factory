@@ -230,7 +230,7 @@ _guard_l_off_limits() {
   # if [ -z "$ol_aff" ]; positional adds structural-location defense.
   # RESTORE: revert to production _shared-context.md → ol_clause non-empty → GREEN ✓.
   local ol_spec_path_section ol_clause
-  # F-S2104-P28-016 + coordinator correction: adaptive section-bounded extractor
+  # F-S2104-P28-L01 + coordinator correction: adaptive section-bounded extractor
   # tolerant of ##–#### heading levels (no heading-level hardcode).
   # Start: /^#{2,4}[[:space:]].*Spec-Path Discipline/ matches at any depth ##–####.
   # ERE interval {2,4}: supported on GNU awk (CI/Linux) and BSD awk (macOS) — verified
@@ -954,7 +954,7 @@ _guard_e_canonical_repo_root() {
   fi
 
   # Restore M10: production adversary.md must pass guards co, fa, cr.
-  # F-S2104-P28-017: CONTROL leg added to make restore-attestation true as written.
+  # F-S2104-P28-L02: CONTROL leg added to make restore-attestation true as written.
   run _guard_e_checks_out_nothing "$ADVERSARY_AGENT"
   if [ "$status" -ne 0 ]; then
     echo "CORPUS FAIL [guard (e) co M10 RESTORE]: production adversary.md returned non-zero from _guard_e_checks_out_nothing — production artifact must be GREEN"
@@ -988,7 +988,7 @@ _guard_e_canonical_repo_root() {
   fi
 
   # Restore M11: production adversary.md must pass guard ci.
-  # F-S2104-P28-017: CONTROL leg added to make restore-attestation true as written.
+  # F-S2104-P28-L02: CONTROL leg added to make restore-attestation true as written.
   run _guard_f_case_insensitive "$ADVERSARY_AGENT"
   if [ "$status" -ne 0 ]; then
     echo "CORPUS FAIL [guard (f) ci M11 RESTORE]: production adversary.md returned non-zero from _guard_f_case_insensitive — production artifact must be GREEN"
@@ -1010,7 +1010,7 @@ _guard_e_canonical_repo_root() {
   fi
 
   # Restore M12: production adversary.md must pass guard pc.
-  # F-S2104-P28-017: CONTROL leg added to make restore-attestation true as written.
+  # F-S2104-P28-L02: CONTROL leg added to make restore-attestation true as written.
   run _guard_g_path_corroborated "$ADVERSARY_AGENT"
   if [ "$status" -ne 0 ]; then
     echo "CORPUS FAIL [guard (g) pc M12 RESTORE]: production adversary.md returned non-zero from _guard_g_path_corroborated — production artifact must be GREEN"
@@ -1031,7 +1031,7 @@ _guard_e_canonical_repo_root() {
   fi
 
   # Restore M13: production adversary.md must pass guard wtr.
-  # F-S2104-P28-017: CONTROL leg added to make restore-attestation true as written.
+  # F-S2104-P28-L02: CONTROL leg added to make restore-attestation true as written.
   run _guard_d_worktree_rooted "$ADVERSARY_AGENT"
   if [ "$status" -ne 0 ]; then
     echo "CORPUS FAIL [guard (d) wtr M13 RESTORE]: production adversary.md returned non-zero from _guard_d_worktree_rooted — production artifact must be GREEN"
@@ -1053,7 +1053,7 @@ _guard_e_canonical_repo_root() {
   fi
 
   # Restore M14: production _shared-context.md must pass guard ol.
-  # F-S2104-P28-017: CONTROL leg added to make restore-attestation true as written.
+  # F-S2104-P28-L02: CONTROL leg added to make restore-attestation true as written.
   run _guard_l_off_limits "$SHARED_CTX"
   if [ "$status" -ne 0 ]; then
     echo "CORPUS FAIL [guard (l) ol M14 RESTORE]: production _shared-context.md returned non-zero from _guard_l_off_limits — production artifact must be GREEN"
@@ -1139,7 +1139,7 @@ _check_t001_gate_count() {
 # Direction-B failure: gate deleted, T001_GATE_COUNT not decremented → 23 ≠ 24 → RED ✓.
 # ===========================================================================
 
-@test "test_coupling_gate_story_gate_count_matches_bats_count_word" {
+@test "test_coupling_gate_bats_sentinel_matches_runtime_gate_count" {
   # ADR-034 v1.1 (Decisions 1-3): rewritten. No .factory/ access.
   local bats_suite
   bats_suite="$PLUGIN_ROOT/tests/story-worktree-write-path-discipline.bats"

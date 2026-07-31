@@ -70,7 +70,7 @@
 #   T-004  AC-006  pc2c-halt:               find error (non-path-absent) → HALT non-zero, exit code+stderr surfaced, worktree-remove NOT called
 #   T-005  AC-002  file-at-path:            regular file at .factory → PC2b BLOCKED non-dir case; find NOT invoked; worktree-remove NOT called (BC-6.26.001 EC-008/T-6; F-S2104-P4-007)
 #   T-006  AC-002  symlink-at-path:         symlink at .factory → PC2b BLOCKED regardless of target type; find NOT invoked; worktree-remove NOT called (BC-6.26.001 PC2b symlink; T-006; F-S2104-P5-011)
-#   T-010  EC-009  stray-inode-inside-factory: symlink + FIFO inside real .factory/ dir → PREFLIGHT BLOCKED via ! -type d; missed by -type f (M03(a) predicate-delta proof; BC-6.26.001 EC-009; F-S2104-P28-H05)
+#   T-017  EC-009  stray-inode-inside-factory: symlink + FIFO inside real .factory/ dir → PREFLIGHT BLOCKED via ! -type d; missed by -type f (M03(a) predicate-delta proof; BC-6.26.001 EC-009; F-S2104-P28-H05)
 #   T-007  AC-008  devops-mandate:          agents/devops-engineer.md §Worktree Cleanup — preflight-verification mandate (F-S2104-P4-003)
 #   T-008  AC-007(d)  6-surface-mandate:    6 ungated mandate surfaces — §G.1 delegation; anti-pattern absent (F-S2104-P4-009)
 #   T-009  AC-009  adv-awareness: adversary.md + adversarial-review/SKILL.md §G.1/BC-6.26.001 teardown-preflight awareness (F-S2104-P4-002)
@@ -783,7 +783,7 @@ _run_teardown_preflight() {
   #       (b) → canonical-target gate.
   #   (canonical-target) NEGATIVE (F-S2104-P17-004): no **Correct:** bullet with non-canonical
   #       file_path=. M-P17-G, M-P15-B, M-P16-D all → RED.
-  # All twenty-three gates survive independently.
+  # All twenty-four gates survive independently.
 
   # Whole-section domain extraction (needed before rendered domain and prose domain).
   local write_discipline_section
@@ -1893,7 +1893,7 @@ _run_teardown_preflight() {
 #   D — pristine fixture: both Gate PW-B and write-directive gate SILENT (GREEN)
 # ===========================================================================
 
-@test "BC-6.26.001 pipeline probe: real-fixture mutations exercise production domain-construction path (F-S2104-P24-003)" {
+@test "T-010 BC-6.26.001 pipeline probe: real-fixture mutations exercise production domain-construction path (F-S2104-P24-003)" {
   local scratch saved_shared_context
   scratch="$(mktemp -d)"
   saved_shared_context="$SHARED_CONTEXT_MD"
@@ -2731,13 +2731,14 @@ _run_teardown_preflight() {
 }
 
 # ===========================================================================
-# T-010 / EC-009 / BC-6.26.001 PC2b predicate-widening (M03(a)):
+# T-017 / EC-009 / BC-6.26.001 PC2b predicate-widening (M03(a)):
 # Stray symlink + FIFO INSIDE a real shadow .factory/ directory
 # → PREFLIGHT BLOCKED via ! -type d; missed by retired -type f
 # Load-bearing delta proof of M03(a) widening — F-S2104-P28-H05
+# (T-010 is the pipeline probe; T-017 allocated to EC-009 per POLICY 1 — F-S2104-P30-H09)
 # ===========================================================================
 
-@test "T-010 S-21.04 EC-009: stray-inode-inside-factory — symlink + FIFO inside real .factory/ dir → PREFLIGHT BLOCKED via ! -type d; missed by -type f predicate (M03(a) delta proof)" {
+@test "T-017 S-21.04 EC-009: stray-inode-inside-factory — symlink + FIFO inside real .factory/ dir → PREFLIGHT BLOCKED via ! -type d; missed by -type f predicate (M03(a) delta proof)" {
   # EC-009: a stray symlink (type 'l') or FIFO (type 'p') INSIDE a real shadow .factory/
   # directory is returned by 'find ... ! -type d' because type l and type p both satisfy
   # the negation (l != d, p != d). The retired '-type f' predicate misses both: symlinks
