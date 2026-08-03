@@ -88,10 +88,7 @@ pub fn parse_story_index_catalog_hash(index_content: &[u8], story_id: &str) -> O
 ///
 /// # BC trace
 /// BC-5.39.010 precondition 20 (B3 blockquote extraction).
-pub fn parse_story_index_blockquote_hash(
-    index_content: &[u8],
-    story_id: &str,
-) -> Option<String> {
+pub fn parse_story_index_blockquote_hash(index_content: &[u8], story_id: &str) -> Option<String> {
     let content = std::str::from_utf8(index_content).ok()?;
     let prefix = format!("> {}=", story_id);
     for line in content.lines() {
@@ -293,14 +290,14 @@ pub fn run_arm_b2(story_index_content: &str) -> Vec<Violation> {
     for line in story_index_content.lines() {
         if line.starts_with('|') {
             // Catalog table row — extract story_id (first cell) and input-hash token
-            if let Some(story_id) = extract_story_id_from_table_row(line) {
-                if let Some(hash) = extract_input_hash_token(line) {
-                    catalog.push((story_id, hash));
-                }
+            if let (Some(story_id), Some(hash)) = (
+                extract_story_id_from_table_row(line),
+                extract_input_hash_token(line),
+            ) {
+                catalog.push((story_id, hash));
             }
-        } else if line.starts_with("> ") {
+        } else if let Some(rest) = line.strip_prefix("> ") {
             // Blockquote entry: `> S-21.07=47a65c9`
-            let rest = &line[2..];
             if let Some(eq_pos) = rest.find('=') {
                 let story_id = rest[..eq_pos].trim().to_string();
                 let hash: String = rest[eq_pos + 1..]
@@ -382,11 +379,7 @@ fn extract_story_id_from_table_row(line: &str) -> Option<String> {
     let first_cell = cells.next()?;
     let id = first_cell.trim().to_string();
     // A story ID starts with "S-"
-    if id.starts_with("S-") {
-        Some(id)
-    } else {
-        None
-    }
+    if id.starts_with("S-") { Some(id) } else { None }
 }
 
 /// Classify the provenance of a hash mismatch for invariant 11.
@@ -439,14 +432,13 @@ mod tests {
     #[test]
     fn test_BC_5_39_010_arm_b1_hash_mismatch_blocks() {
         // B1=47a65c9, INDEX has catalog row 4be9d21 → mismatch
-        let index_content =
-            b"| S-21.07 | ... | input-hash 4be9d21 | ...\n> S-21.07=4be9d21\n";
-        let (violations, _) = run_arm_b1_with_index_result(
-            "S-21.07",
-            "47a65c9",
-            Ok(index_content.to_vec()),
+        let index_content = b"| S-21.07 | ... | input-hash 4be9d21 | ...\n> S-21.07=4be9d21\n";
+        let (violations, _) =
+            run_arm_b1_with_index_result("S-21.07", "47a65c9", Ok(index_content.to_vec()));
+        assert!(
+            !violations.is_empty(),
+            "hash mismatch must produce a blocking violation"
         );
-        assert!(!violations.is_empty(), "hash mismatch must produce a blocking violation");
         let msg = &violations[0].description;
         assert!(msg.contains("[Class B]"), "violation must cite [Class B]");
         assert!(msg.contains("POLICY 18"), "violation must cite POLICY 18");
@@ -460,13 +452,9 @@ mod tests {
     /// AC-009 CONTROL: three-way match passes.
     #[test]
     fn test_BC_5_39_010_arm_b1_hash_match_passes() {
-        let index_content =
-            b"| S-21.07 | ... | input-hash 47a65c9 | ...\n> S-21.07=47a65c9\n";
-        let (violations, _) = run_arm_b1_with_index_result(
-            "S-21.07",
-            "47a65c9",
-            Ok(index_content.to_vec()),
-        );
+        let index_content = b"| S-21.07 | ... | input-hash 47a65c9 | ...\n> S-21.07=47a65c9\n";
+        let (violations, _) =
+            run_arm_b1_with_index_result("S-21.07", "47a65c9", Ok(index_content.to_vec()));
         assert!(violations.is_empty(), "three-way hash match must not block");
     }
 
@@ -475,13 +463,16 @@ mod tests {
     fn test_BC_5_39_010_arm_b1_absent_index_sites_advisory() {
         // STORY-INDEX.md exists but has no entry for this story yet
         let index_content = b"| S-21.06 | ... | input-hash aabbcc | ...\n> S-21.06=aabbcc\n";
-        let (violations, advisories) = run_arm_b1_with_index_result(
-            "S-21.07",
-            "47a65c9",
-            Ok(index_content.to_vec()),
+        let (violations, advisories) =
+            run_arm_b1_with_index_result("S-21.07", "47a65c9", Ok(index_content.to_vec()));
+        assert!(
+            violations.is_empty(),
+            "absent secondary sites must not block"
         );
-        assert!(violations.is_empty(), "absent secondary sites must not block");
-        assert!(!advisories.is_empty(), "absent secondary sites must emit advisory");
+        assert!(
+            !advisories.is_empty(),
+            "absent secondary sites must emit advisory"
+        );
     }
 
     /// AC-010: no input-hash field → Arm B1 skips entirely.
@@ -492,7 +483,10 @@ mod tests {
         // None → skips. Test via parse_story_input_hash which is pure.
         let content = "---\nstory_id: S-21.07\n---\nbody\n";
         let hash = parse_story_input_hash(content);
-        assert!(hash.is_none(), "no input-hash field must return None (B1 skips)");
+        assert!(
+            hash.is_none(),
+            "no input-hash field must return None (B1 skips)"
+        );
     }
 
     /// EC-009 / BC-5.39.010 precondition 26 second clause: STORY-INDEX.md returns
@@ -504,11 +498,8 @@ mod tests {
     /// ("CapabilityDenied → block"). This test enforces the BC, not the stub comment.
     #[test]
     fn test_BC_5_39_010_arm_b1_story_index_capability_denied_blocks() {
-        let (violations, _) = run_arm_b1_with_index_result(
-            "S-21.07",
-            "47a65c9",
-            Err(HostError::CapabilityDenied),
-        );
+        let (violations, _) =
+            run_arm_b1_with_index_result("S-21.07", "47a65c9", Err(HostError::CapabilityDenied));
         assert!(
             !violations.is_empty(),
             "CapabilityDenied on STORY-INDEX.md must produce a blocking violation \
@@ -547,7 +538,10 @@ mod tests {
         let content = "| S-21.07 | ... | input-hash 47a65c9 | ...\n\
             > S-21.07=4be9d21\n";
         let violations = run_arm_b2(content);
-        assert!(!violations.is_empty(), "catalog/blockquote mismatch must produce violations");
+        assert!(
+            !violations.is_empty(),
+            "catalog/blockquote mismatch must produce violations"
+        );
         assert!(
             violations[0].description.contains("[Class B]"),
             "violation must cite [Class B]"
@@ -560,6 +554,9 @@ mod tests {
         let content = "| S-21.07 | ... | input-hash 47a65c9 | ...\n\
             > S-21.07=47a65c9\n";
         let violations = run_arm_b2(content);
-        assert!(violations.is_empty(), "matching catalog/blockquote must not block");
+        assert!(
+            violations.is_empty(),
+            "matching catalog/blockquote must not block"
+        );
     }
 }

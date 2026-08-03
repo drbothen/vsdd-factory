@@ -125,7 +125,7 @@ pub fn extract_last_amended_outer_version(last_amended: &str) -> Option<String> 
 pub fn strip_date_annotation(entry: &str) -> String {
     // Strip everything after the first whitespace to extract just YYYY-MM-DD.
     // All chars before first whitespace are ASCII so byte slicing is safe.
-    match entry.find(|c: char| c == ' ' || c == '\t') {
+    match entry.find([' ', '\t']) {
         Some(idx) => entry[..idx].to_string(),
         None => entry.to_string(),
     }
@@ -145,7 +145,7 @@ pub fn strip_date_annotation(entry: &str) -> String {
 /// # BC trace
 /// BC-5.39.010 preconditions 35-37; postconditions 19-21; invariant 9.
 pub fn run_arm_e1(content: &str) -> (Vec<Violation>, Vec<Advisory>) {
-    use crate::frontmatter::{extract_frontmatter_field};
+    use crate::frontmatter::extract_frontmatter_field;
 
     let version = match extract_frontmatter_field(content, "version") {
         Some(v) => v,
@@ -245,15 +245,17 @@ mod tests {
         // AC-015: unparseable format → None (advisory path in run_arm_e1)
         let last_amended = "some-nonstandard-format-here";
         let result = extract_last_amended_outer_version(last_amended);
-        assert!(result.is_none(), "unparseable last_amended must return None");
+        assert!(
+            result.is_none(),
+            "unparseable last_amended must return None"
+        );
     }
 
     /// AC-017: Prior-chain version excluded by positional anchor (EC-018).
     #[test]
     fn test_BC_5_39_010_class_e1_prior_chain_version_excluded() {
         // The positional anchor matches only the outermost (v1.6), not the Prior (v1.5)
-        let last_amended =
-            "2026-07-30 (v1.6) — Active text. [Prior: 2026-07-01 (v1.5) — old text]";
+        let last_amended = "2026-07-30 (v1.6) — Active text. [Prior: 2026-07-01 (v1.5) — old text]";
         let result = extract_last_amended_outer_version(last_amended);
         assert_eq!(
             result,
@@ -294,7 +296,10 @@ mod tests {
         let content = "---\nversion: \"1.33\"\n\
             last_amended: \"2026-07-29 (v1.31) — some text\"\n---\nbody\n";
         let (violations, _) = run_arm_e1(content);
-        assert!(!violations.is_empty(), "version mismatch must produce a blocking violation");
+        assert!(
+            !violations.is_empty(),
+            "version mismatch must produce a blocking violation"
+        );
         let msg = &violations[0].description;
         assert!(msg.contains("[Class E1]"), "violation must cite [Class E1]");
         assert!(
@@ -317,7 +322,10 @@ mod tests {
     fn test_BC_5_39_010_class_e1_unparseable_last_amended_advisory() {
         let content = "---\nversion: \"1.6\"\nlast_amended: \"nonstandard\"\n---\nbody\n";
         let (violations, advisories) = run_arm_e1(content);
-        assert!(violations.is_empty(), "unparseable last_amended must not block");
+        assert!(
+            violations.is_empty(),
+            "unparseable last_amended must not block"
+        );
         assert!(
             !advisories.is_empty(),
             "unparseable last_amended must emit an advisory"
@@ -332,7 +340,10 @@ mod tests {
             last_amended: \"2026-07-30 (v1.6) — Active. [Prior: 2026-07-01 (v1.5) — old.]\"\n\
             ---\nbody\n";
         let (violations, _) = run_arm_e1(content);
-        assert!(violations.is_empty(), "Prior-chain (v1.5) must not trigger E1 mismatch");
+        assert!(
+            violations.is_empty(),
+            "Prior-chain (v1.5) must not trigger E1 mismatch"
+        );
     }
 
     /// Over-broad exclusion mutant for E1 (BC-5.39.010 EC-018 / precondition 37):
@@ -372,7 +383,10 @@ mod tests {
         let content = "---\nmodified:\n  - \"2026-05-14\"\n  - \"2026-05-18 (v1.1)\"\n\
             - \"2026-05-15\"\n---\nbody\n";
         let violations = run_arm_e2(content);
-        assert!(!violations.is_empty(), "non-monotonic modified[] must block");
+        assert!(
+            !violations.is_empty(),
+            "non-monotonic modified[] must block"
+        );
         assert!(
             violations[0].description.contains("[Class E2]"),
             "violation must cite [Class E2]"
@@ -385,7 +399,10 @@ mod tests {
         let content = "---\nmodified:\n  - \"2026-05-14\"\n  - \"2026-05-18\"\n\
             - \"2026-05-20 (v1.3)\"\n---\nbody\n";
         let violations = run_arm_e2(content);
-        assert!(violations.is_empty(), "strictly ascending modified[] must not block");
+        assert!(
+            violations.is_empty(),
+            "strictly ascending modified[] must not block"
+        );
     }
 
     /// Over-broad exclusion mutant for E2: an entry with a complex annotation

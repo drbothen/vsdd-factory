@@ -116,8 +116,7 @@ fn extract_version_token(text: &str) -> Option<String> {
                         end += 1;
                     }
                     // Check boundary: next char must be non-alphanumeric (word boundary)
-                    let next_ok = end >= bytes.len()
-                        || !bytes[end].is_ascii_alphanumeric();
+                    let next_ok = end >= bytes.len() || !bytes[end].is_ascii_alphanumeric();
                     if next_ok {
                         // version_start..end is ASCII (digits and dot), safe byte slice
                         return Some(text[start..end].to_string());
@@ -151,7 +150,7 @@ fn extract_version_token(text: &str) -> Option<String> {
 pub fn run_arm_a1_with_index_result(
     bc_id: &str,
     bc_version: &str,
-    bc_file_path: &str,
+    _bc_file_path: &str,
     index_read_result: Result<Vec<u8>, HostError>,
 ) -> (Vec<Violation>, Vec<Advisory>) {
     match index_read_result {
@@ -254,7 +253,11 @@ pub fn run_arm_a1_with_index_result(
 ///
 /// # BC trace
 /// BC-5.39.010 preconditions 7-8; invariants 4-5 (fail-closed on CapabilityDenied).
-pub fn run_arm_a1(bc_id: &str, bc_version: &str, bc_file_path: &str) -> (Vec<Violation>, Vec<Advisory>) {
+pub fn run_arm_a1(
+    bc_id: &str,
+    bc_version: &str,
+    bc_file_path: &str,
+) -> (Vec<Violation>, Vec<Advisory>) {
     let index_result = vsdd_hook_sdk::host::read_file(
         ".factory/specs/behavioral-contracts/BC-INDEX.md",
         BC_INDEX_MAX_BYTES,
@@ -299,8 +302,7 @@ mod tests {
     /// AC-001 MUTANT: stale INDEX row blocks (BC-5.39.010 postcondition 2).
     #[test]
     fn test_BC_5_39_010_arm_a1_stale_index_blocks() {
-        let index_content =
-            b"| BC-5.39.010 | some title | v1.5 | 2026-07-01 | active |\n";
+        let index_content = b"| BC-5.39.010 | some title | v1.5 | 2026-07-01 | active |\n";
         let (violations, _) = run_arm_a1_with_index_result(
             "BC-5.39.010",
             "1.6",
@@ -316,8 +318,14 @@ mod tests {
             msg.contains("[Class A Arm1]"),
             "violation must cite [Class A Arm1]"
         );
-        assert!(msg.contains("v1.5"), "violation must cite stale version v1.5");
-        assert!(msg.contains("1.6"), "violation must cite current version 1.6");
+        assert!(
+            msg.contains("v1.5"),
+            "violation must cite stale version v1.5"
+        );
+        assert!(
+            msg.contains("1.6"),
+            "violation must cite current version 1.6"
+        );
         assert!(
             msg.contains("POLICY 14 leg 5"),
             "violation must cite POLICY 14 leg 5"
@@ -327,15 +335,17 @@ mod tests {
     /// AC-001 CONTROL: current INDEX row passes (BC-5.39.010 postcondition 1).
     #[test]
     fn test_BC_5_39_010_arm_a1_current_index_passes() {
-        let index_content =
-            b"| BC-5.39.010 | some title | v1.6 | 2026-07-01 | active |\n";
+        let index_content = b"| BC-5.39.010 | some title | v1.6 | 2026-07-01 | active |\n";
         let (violations, _) = run_arm_a1_with_index_result(
             "BC-5.39.010",
             "1.6",
             ".factory/specs/behavioral-contracts/ss-05/BC-5.39.010.md",
             Ok(index_content.to_vec()),
         );
-        assert!(violations.is_empty(), "current INDEX row must produce no violations");
+        assert!(
+            violations.is_empty(),
+            "current INDEX row must produce no violations"
+        );
     }
 
     /// AC-002: v1.0 BC not in INDEX → advisory-only (BC-5.39.010 postcondition 3).
@@ -350,7 +360,10 @@ mod tests {
             Ok(index_content.to_vec()),
         );
         assert!(violations.is_empty(), "v1.0 not-in-INDEX must not block");
-        assert!(!advisories.is_empty(), "v1.0 not-in-INDEX must emit an advisory");
+        assert!(
+            !advisories.is_empty(),
+            "v1.0 not-in-INDEX must emit an advisory"
+        );
     }
 
     /// AC-002: v1.1 BC not in INDEX → block (BC-5.39.010 postcondition 4).
@@ -364,7 +377,10 @@ mod tests {
             ".factory/specs/behavioral-contracts/ss-09/BC-9.99.001.md",
             Ok(index_content.to_vec()),
         );
-        assert!(!violations.is_empty(), "v1.1 not-in-INDEX must produce a blocking violation");
+        assert!(
+            !violations.is_empty(),
+            "v1.1 not-in-INDEX must produce a blocking violation"
+        );
     }
 
     /// AC-003: BC-INDEX.md CapabilityDenied → block (BC-5.39.010 invariant 5).
@@ -391,8 +407,14 @@ mod tests {
             ".factory/specs/behavioral-contracts/ss-05/BC-5.39.010.md",
             Err(HostError::NotFound),
         );
-        assert!(violations.is_empty(), "NotFound on BC-INDEX.md must not block");
-        assert!(!advisories.is_empty(), "NotFound on BC-INDEX.md must emit an advisory");
+        assert!(
+            violations.is_empty(),
+            "NotFound on BC-INDEX.md must not block"
+        );
+        assert!(
+            !advisories.is_empty(),
+            "NotFound on BC-INDEX.md must emit an advisory"
+        );
     }
 
     /// AC-019: Read cap constant values match the spec (BC-5.39.010 §AC-019).

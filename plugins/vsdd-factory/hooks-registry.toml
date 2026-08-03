@@ -662,6 +662,47 @@ path_allow = [
   ".factory/HANDOFF.md",
 ]
 
+# ---------- validate-cross-site-correspondence (PostToolUse, Edit|Write|MultiEdit) ----------
+# BC-5.39.010 v1.2 §Gate Spec: PostToolUse cross-site value-correspondence gate.
+# Six arms: Class A Arm1 (BC version vs BC-INDEX row), Class A Arm2 (story BC-table
+# citations vs BC frontmatter), Class B Arm1 (story input-hash three-way equality),
+# Class B Arm2 (STORY-INDEX internal catalog/blockquote parity), Class D (finding-ID
+# namespace format advisory — advisory-only, never blocks), Class E (frontmatter
+# version/last_amended parity + modified[] monotonicity).
+# priority = 460: next available slot after validate-wave-handoff-completeness (450).
+# on_error = "continue": fuel exhaustion (debug build, oversized artifact) → silent
+#   non-finding, not spurious block (ADR-035 §Decision 5). max_bytes caps calibrated
+#   to keep reads within the 10M-instruction fuel budget at typical artifact sizes.
+# tool = "^(Edit|Write|MultiEdit)$": aligns with all 41 Edit/Write/MultiEdit hooks
+#   in the live registry. BC-5.39.010 v1.1 §Gate Spec had MultiEdit omitted — a
+#   POLICY 13 ESCAPE-SCOPE-PARITY gap. v1.2 corrects to include MultiEdit.
+# No fuel_cap field: max_bytes caps (512 KiB for BC/story, 1–2 MiB for index/cycle)
+#   are sufficient to stay within the 10M-instruction fuel budget at current sizes.
+#   Adding fuel_cap without evidence of exhaustion is premature (BC-5.39.010 v1.2
+#   §Gate Spec; ADR-035 §Decision 5).
+# path_allow: covers .factory/specs/behavioral-contracts/, .factory/specs/
+#   verification-properties/, .factory/stories/, .factory/cycles/ — all four
+#   directory subtrees the hook reads from.
+# S-21.07 deliverable — E-21 W4 cross-site correspondence validation.
+
+[[hooks]]
+name = "validate-cross-site-correspondence"
+event = "PostToolUse"
+tool = "^(Edit|Write|MultiEdit)$"
+plugin = "hook-plugins/validate-cross-site-correspondence.wasm"
+priority = 460
+timeout_ms = 8000
+on_error = "continue"
+async = false
+
+[hooks.capabilities.read_file]
+path_allow = [
+  ".factory/specs/behavioral-contracts/",
+  ".factory/specs/verification-properties/",
+  ".factory/stories/",
+  ".factory/cycles/",
+]
+
 # ---------- PreToolUse ----------
 
 [[hooks]]

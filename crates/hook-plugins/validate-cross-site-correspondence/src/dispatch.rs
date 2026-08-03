@@ -222,7 +222,8 @@ mod tests {
     #[test]
     fn test_BC_5_39_010_dispatch_story_file_detected() {
         // BC-5.39.010 PC9: story file under .factory/stories/
-        let result = is_story_file(".factory/stories/S-21.07-validate-cross-site-correspondence.md");
+        let result =
+            is_story_file(".factory/stories/S-21.07-validate-cross-site-correspondence.md");
         assert!(result, "canonical story path must be detected");
     }
 
@@ -230,7 +231,10 @@ mod tests {
     fn test_BC_5_39_010_dispatch_story_index_not_story_file() {
         // STORY-INDEX.md must NOT match is_story_file (it's Arm B2's trigger)
         let result = is_story_file(".factory/stories/STORY-INDEX.md");
-        assert!(!result, "STORY-INDEX.md must not be classified as a story file");
+        assert!(
+            !result,
+            "STORY-INDEX.md must not be classified as a story file"
+        );
     }
 
     #[test]
@@ -243,9 +247,8 @@ mod tests {
     #[test]
     fn test_BC_5_39_010_dispatch_burst_log_detected() {
         // BC-5.39.010 PC28: burst-log.md under cycles/
-        let result = is_cycle_artifact(
-            ".factory/cycles/v1.0-feature-engine-discipline-pass-1/burst-log.md",
-        );
+        let result =
+            is_cycle_artifact(".factory/cycles/v1.0-feature-engine-discipline-pass-1/burst-log.md");
         assert_eq!(
             result,
             Some(CycleArtifactKind::BurstLog),
@@ -255,9 +258,8 @@ mod tests {
 
     #[test]
     fn test_BC_5_39_010_dispatch_lessons_md_detected() {
-        let result = is_cycle_artifact(
-            ".factory/cycles/v1.0-feature-engine-discipline-pass-1/lessons.md",
-        );
+        let result =
+            is_cycle_artifact(".factory/cycles/v1.0-feature-engine-discipline-pass-1/lessons.md");
         assert_eq!(
             result,
             Some(CycleArtifactKind::Lessons),

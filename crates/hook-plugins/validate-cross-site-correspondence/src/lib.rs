@@ -37,8 +37,8 @@ pub mod dispatch;
 pub mod frontmatter;
 
 use vsdd_hook_sdk::{
-    host::{self, HostError},
     HookPayload, HookResult,
+    host::{self},
 };
 
 /// Maximum bytes to read for a primary target file.
@@ -171,8 +171,8 @@ pub fn on_post_tool_use(payload: HookPayload) -> HookResult {
     // BC file: Arm A1 + Class E
     if dispatch::is_bc_file(&file_path) {
         let bc_id = extract_stem_from_path(&file_path);
-        let bc_version = frontmatter::extract_frontmatter_field(&content, "version")
-            .unwrap_or_default();
+        let bc_version =
+            frontmatter::extract_frontmatter_field(&content, "version").unwrap_or_default();
         let (a1_v, a1_a) = arm_a1::run_arm_a1(&bc_id, &bc_version, &file_path);
         violations.extend(a1_v);
         advisories.extend(a1_a);
@@ -324,18 +324,16 @@ mod tests {
         // ONE combined block. Verified via combine_violations_into_block.
         let violations = vec![
             Violation {
-                description:
-                    "validate-cross-site-correspondence [Class A Arm1]: BC-INDEX stale".to_string(),
+                description: "validate-cross-site-correspondence [Class A Arm1]: BC-INDEX stale"
+                    .to_string(),
             },
             Violation {
-                description:
-                    "validate-cross-site-correspondence [Class E1]: version mismatch".to_string(),
+                description: "validate-cross-site-correspondence [Class E1]: version mismatch"
+                    .to_string(),
             },
         ];
-        let result = combine_violations_into_block(
-            "validate-cross-site-correspondence",
-            &violations,
-        );
+        let result =
+            combine_violations_into_block("validate-cross-site-correspondence", &violations);
         // combine_violations_into_block is todo!() → panics → RED gate holds.
         assert_eq!(
             result.exit_code(),

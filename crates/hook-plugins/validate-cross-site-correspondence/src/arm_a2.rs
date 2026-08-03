@@ -39,10 +39,7 @@ use vsdd_hook_sdk::host::HostError;
 /// # BC trace
 /// BC-5.39.010 §Architecture Anchors `extract_story_bc_version_citations`;
 /// preconditions 12-13 (table row detection + version token regex).
-pub fn extract_story_bc_version_citations(
-    content: &str,
-    bc_id: &str,
-) -> Vec<(String, String)> {
+pub fn extract_story_bc_version_citations(content: &str, bc_id: &str) -> Vec<(String, String)> {
     // Scan content for pipe-delimited table rows (|...|) that contain both
     // the bc_id token AND a version token matching \bv([0-9]+\.[0-9]+)\b.
     // Returns Vec<(row_location, version)>.
@@ -194,7 +191,7 @@ pub fn run_arm_a2_for_bc(
     bc_id: &str,
     citations: &[(String, String)],
 ) -> (Vec<Violation>, Vec<Advisory>) {
-    use crate::arm_a1::{derive_bc_path, BC_MAX_BYTES, BC_TIMEOUT_MS};
+    use crate::arm_a1::{BC_MAX_BYTES, BC_TIMEOUT_MS, derive_bc_path};
     let bc_path = derive_bc_path(bc_id);
     let bc_result = vsdd_hook_sdk::host::read_file(&bc_path, BC_MAX_BYTES, BC_TIMEOUT_MS);
     run_arm_a2_for_bc_with_result(story_id, bc_id, citations, bc_result)
@@ -210,7 +207,8 @@ pub fn run_arm_a2_for_bc(
 /// # BC trace
 /// BC-5.39.010 postcondition 7 (cascade); preconditions 9-15.
 pub fn run_arm_a2(story_id: &str, story_content: &str) -> (Vec<Violation>, Vec<Advisory>) {
-    let bc_ids = crate::frontmatter::extract_frontmatter_sequence(story_content, "behavioral_contracts");
+    let bc_ids =
+        crate::frontmatter::extract_frontmatter_sequence(story_content, "behavioral_contracts");
     if bc_ids.is_empty() {
         return (vec![], vec![]);
     }
@@ -243,8 +241,7 @@ mod tests {
         use crate::arm_a1::derive_bc_path;
         let path = derive_bc_path("BC-6.26.001");
         assert_eq!(
-            path,
-            ".factory/specs/behavioral-contracts/ss-06/BC-6.26.001.md",
+            path, ".factory/specs/behavioral-contracts/ss-06/BC-6.26.001.md",
             "Arm A2 must use derive_bc_path to derive BC paths deterministically"
         );
     }
@@ -255,7 +252,10 @@ mod tests {
             | BC-6.26.001 | Title | v1.17 | active |\n";
         let result = extract_story_bc_version_citations(content, "BC-6.26.001");
         assert_eq!(result.len(), 1);
-        assert_eq!(result[0].1, "1.17", "version token must be extracted from table row");
+        assert_eq!(
+            result[0].1, "1.17",
+            "version token must be extracted from table row"
+        );
     }
 
     #[test]
@@ -285,11 +285,23 @@ mod tests {
             &citations,
             Ok(bc_content.to_vec()),
         );
-        assert!(!violations.is_empty(), "stale citation must produce a blocking violation");
+        assert!(
+            !violations.is_empty(),
+            "stale citation must produce a blocking violation"
+        );
         let msg = &violations[0].description;
-        assert!(msg.contains("[Class A Arm2]"), "violation must cite [Class A Arm2]");
-        assert!(msg.contains("v1.17"), "violation must cite stale version v1.17");
-        assert!(msg.contains("1.18"), "violation must cite current BC version 1.18");
+        assert!(
+            msg.contains("[Class A Arm2]"),
+            "violation must cite [Class A Arm2]"
+        );
+        assert!(
+            msg.contains("v1.17"),
+            "violation must cite stale version v1.17"
+        );
+        assert!(
+            msg.contains("1.18"),
+            "violation must cite current BC version 1.18"
+        );
     }
 
     /// AC-005 CONTROL: current citation passes.
@@ -327,8 +339,14 @@ mod tests {
     fn test_BC_5_39_010_arm_a2_empty_bcs_skips() {
         let story_content = "---\nbehavioral_contracts: []\n---\nbody\n";
         let (violations, advisories) = run_arm_a2("S-21.07", story_content);
-        assert!(violations.is_empty(), "empty BCs must not produce violations");
-        assert!(advisories.is_empty(), "empty BCs must not produce advisories");
+        assert!(
+            violations.is_empty(),
+            "empty BCs must not produce violations"
+        );
+        assert!(
+            advisories.is_empty(),
+            "empty BCs must not produce advisories"
+        );
     }
 
     /// AC-008: no version-citing row for a BC → skip that BC (postcondition 8).
@@ -343,7 +361,10 @@ mod tests {
             &citations,
             Ok(bc_content.to_vec()),
         );
-        assert!(violations.is_empty(), "no version-citing rows must skip (not block)");
+        assert!(
+            violations.is_empty(),
+            "no version-citing rows must skip (not block)"
+        );
     }
 
     /// AC-008: BC file NotFound → advisory + Continue (postcondition 10).

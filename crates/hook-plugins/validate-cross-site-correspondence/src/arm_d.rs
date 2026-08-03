@@ -33,7 +33,7 @@
 //! # BC trace
 //! BC-5.39.010 preconditions 28-33; postconditions 16-18; invariant 6.
 
-use crate::{Advisory};
+use crate::Advisory;
 use crate::dispatch::CycleArtifactKind;
 
 /// The known-safe prefix exclusion list (BC-5.39.010 precondition 32).
@@ -59,10 +59,7 @@ pub const EXCLUDED_PREFIXES: &[&str] = &[
 ///
 /// # BC trace
 /// BC-5.39.010 precondition 30 (scope-limited extraction); AC-014.
-pub fn extract_scope_limited_region<'a>(
-    content: &'a str,
-    kind: CycleArtifactKind,
-) -> &'a str {
+pub fn extract_scope_limited_region(content: &str, kind: CycleArtifactKind) -> &str {
     match kind {
         CycleArtifactKind::BurstLog => {
             // Return content from start of LAST `## ` heading to EOF.
@@ -83,14 +80,8 @@ pub fn extract_scope_limited_region<'a>(
                 // If there IS a '\n## ' later, we already found it; no need to override
             }
             match last_h2_byte_offset {
-                Some(offset) => {
-                    if content.is_char_boundary(offset) {
-                        &content[offset..]
-                    } else {
-                        ""
-                    }
-                }
-                None => "",
+                Some(offset) if content.is_char_boundary(offset) => &content[offset..],
+                _ => "",
             }
         }
         CycleArtifactKind::Lessons => {
@@ -110,9 +101,9 @@ pub fn extract_scope_limited_region<'a>(
                         let between = &after_prefix[..colon_pos];
                         // Accept: one or more digit groups separated by dashes
                         // e.g. "001" or "001-062"
-                        let all_digit_groups = between
-                            .split('-')
-                            .all(|part| !part.is_empty() && part.bytes().all(|b| b.is_ascii_digit()));
+                        let all_digit_groups = between.split('-').all(|part| {
+                            !part.is_empty() && part.bytes().all(|b| b.is_ascii_digit())
+                        });
                         if all_digit_groups && !between.is_empty() {
                             last_anchor_offset = Some(byte_offset);
                         }
@@ -199,7 +190,9 @@ pub fn extract_scope_limited_region<'a>(
 /// # BC trace
 /// BC-5.39.010 precondition 32 (exclusion list); postcondition 16 (known-safe tokens).
 pub fn is_excluded_namespace(token: &str) -> bool {
-    EXCLUDED_PREFIXES.iter().any(|prefix| token.starts_with(prefix))
+    EXCLUDED_PREFIXES
+        .iter()
+        .any(|prefix| token.starts_with(prefix))
 }
 
 /// Returns `true` if `token` matches the finding-like shape.
@@ -295,9 +288,7 @@ pub fn run_arm_d(scoped_region: &str, file_path: &str) -> Vec<Advisory> {
 
         // Split by whitespace and commas to extract tokens
         for raw_token in after_colon.split(|c: char| c == ',' || c.is_whitespace()) {
-            let token = raw_token.trim_matches(|c: char| {
-                !c.is_ascii_alphanumeric() && c != '-'
-            });
+            let token = raw_token.trim_matches(|c: char| !c.is_ascii_alphanumeric() && c != '-');
             if token.is_empty() {
                 continue;
             }
@@ -333,24 +324,48 @@ mod tests {
     /// AC-012: D- prefix is excluded → Continue, no advisory.
     #[test]
     fn test_BC_5_39_010_class_d_excluded_namespace_d944_passes() {
-        assert!(is_excluded_namespace("D-944"), "D-944 must be excluded (D- prefix)");
+        assert!(
+            is_excluded_namespace("D-944"),
+            "D-944 must be excluded (D- prefix)"
+        );
     }
 
     /// AC-012: S-, BC-, VP-, L-, ADR-, FM- prefixes are all excluded.
     #[test]
     fn test_BC_5_39_010_class_d_excluded_namespace_s_bc_vp_passes() {
-        assert!(is_excluded_namespace("S-21.03"), "S- prefix must be excluded");
-        assert!(is_excluded_namespace("BC-5.39.010"), "BC- prefix must be excluded");
-        assert!(is_excluded_namespace("VP-091"), "VP- prefix must be excluded");
-        assert!(is_excluded_namespace("L-EDP1-052"), "L- prefix must be excluded");
-        assert!(is_excluded_namespace("ADR-035"), "ADR- prefix must be excluded");
-        assert!(is_excluded_namespace("FM-001"), "FM- prefix must be excluded");
+        assert!(
+            is_excluded_namespace("S-21.03"),
+            "S- prefix must be excluded"
+        );
+        assert!(
+            is_excluded_namespace("BC-5.39.010"),
+            "BC- prefix must be excluded"
+        );
+        assert!(
+            is_excluded_namespace("VP-091"),
+            "VP- prefix must be excluded"
+        );
+        assert!(
+            is_excluded_namespace("L-EDP1-052"),
+            "L- prefix must be excluded"
+        );
+        assert!(
+            is_excluded_namespace("ADR-035"),
+            "ADR- prefix must be excluded"
+        );
+        assert!(
+            is_excluded_namespace("FM-001"),
+            "FM- prefix must be excluded"
+        );
     }
 
     #[test]
     fn test_BC_5_39_010_class_d_non_excluded_prefix_not_excluded() {
         assert!(!is_excluded_namespace("B01"), "B01 has no excluded prefix");
-        assert!(!is_excluded_namespace("P45-001"), "P45 has no excluded prefix");
+        assert!(
+            !is_excluded_namespace("P45-001"),
+            "P45 has no excluded prefix"
+        );
     }
 
     // -----------------------------------------------------------------------
@@ -364,18 +379,27 @@ mod tests {
 
     #[test]
     fn test_BC_5_39_010_class_d_finding_like_f_prefixed() {
-        assert!(is_finding_like("F-S2104-P29-H01"), "F-S2104-P29-H01 is finding-like");
+        assert!(
+            is_finding_like("F-S2104-P29-H01"),
+            "F-S2104-P29-H01 is finding-like"
+        );
     }
 
     #[test]
     fn test_BC_5_39_010_class_d_bare_numeric_not_finding_like() {
         // EC-012: bare numeric like "001" starts with digit → not finding-like
-        assert!(!is_finding_like("001"), "bare numeric must not be finding-like");
+        assert!(
+            !is_finding_like("001"),
+            "bare numeric must not be finding-like"
+        );
     }
 
     #[test]
     fn test_BC_5_39_010_class_d_all_alpha_not_finding_like() {
-        assert!(!is_finding_like("Closes"), "all-alpha token must not be finding-like");
+        assert!(
+            !is_finding_like("Closes"),
+            "all-alpha token must not be finding-like"
+        );
     }
 
     // -----------------------------------------------------------------------
@@ -431,7 +455,10 @@ mod tests {
         // Closes: B01, F-S2104-P29-H01 → advisory for B01, Continue for F- token
         let region = "**Closes:** B01, F-S2104-P29-H01\n";
         let advisories = run_arm_d(region, "burst-log.md");
-        assert!(!advisories.is_empty(), "non-F- token B01 must produce an advisory");
+        assert!(
+            !advisories.is_empty(),
+            "non-F- token B01 must produce an advisory"
+        );
         assert!(
             advisories[0].message.contains("B01"),
             "advisory must cite the offending token"
@@ -441,7 +468,11 @@ mod tests {
             "advisory must cite [Class D]"
         );
         // Exactly 1 advisory — F- token must NOT trigger one
-        assert_eq!(advisories.len(), 1, "only B01 must produce an advisory; F- token must not");
+        assert_eq!(
+            advisories.len(),
+            1,
+            "only B01 must produce an advisory; F- token must not"
+        );
     }
 
     /// AC-013 CONTROL: only F- prefix tokens → Continue, no advisory.
@@ -449,7 +480,10 @@ mod tests {
     fn test_BC_5_39_010_class_d_all_f_prefix_passes() {
         let region = "**Closes:** F-S2104-P29-H01, F-S2104-P29-H02\n";
         let advisories = run_arm_d(region, "burst-log.md");
-        assert!(advisories.is_empty(), "all F- tokens must produce no advisories");
+        assert!(
+            advisories.is_empty(),
+            "all F- tokens must produce no advisories"
+        );
     }
 
     /// EC-024: D-944 in Refs → Continue, no advisory (D- excluded).
@@ -457,7 +491,10 @@ mod tests {
     fn test_BC_5_39_010_class_d_refs_d944_no_advisory() {
         let region = "**Refs:** D-944\n";
         let advisories = run_arm_d(region, "burst-log.md");
-        assert!(advisories.is_empty(), "D-944 in Refs must produce no advisory");
+        assert!(
+            advisories.is_empty(),
+            "D-944 in Refs must produce no advisory"
+        );
     }
 
     /// Over-broad exclusion mutant for Class D scope-limited extraction (lessons.md).

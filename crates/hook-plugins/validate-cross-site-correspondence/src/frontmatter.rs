@@ -98,9 +98,9 @@ pub fn extract_frontmatter_sequence(content: &str, field: &str) -> Vec<String> {
         if found_field {
             // We're collecting block-sequence items
             let trimmed = line.trim();
-            if trimmed.starts_with("- ") {
+            if let Some(item_raw) = trimmed.strip_prefix("- ") {
                 // Block sequence item: "  - value" or "- value"
-                let item = trimmed[2..].trim();
+                let item = item_raw.trim();
                 result.push(strip_quotes(item));
             } else if !trimmed.is_empty() && !trimmed.starts_with('-') {
                 // End of block sequence (next non-empty, non-item line)
@@ -140,10 +140,11 @@ fn strip_quotes(s: &str) -> String {
     if s.len() >= 2 {
         let first = s.as_bytes()[0];
         let last = s.as_bytes()[s.len() - 1];
-        if (first == b'"' && last == b'"') || (first == b'\'' && last == b'\'') {
-            if s.is_char_boundary(1) && s.is_char_boundary(s.len() - 1) {
-                return s[1..s.len() - 1].to_string();
-            }
+        if ((first == b'"' && last == b'"') || (first == b'\'' && last == b'\''))
+            && s.is_char_boundary(1)
+            && s.is_char_boundary(s.len() - 1)
+        {
+            return s[1..s.len() - 1].to_string();
         }
     }
     s.to_string()
@@ -183,16 +184,21 @@ mod tests {
     fn test_BC_5_39_010_frontmatter_field_no_frontmatter_returns_none() {
         let content = "# heading\nbody text\n";
         let result = extract_frontmatter_field(content, "version");
-        assert!(result.is_none(), "content without frontmatter must return None");
+        assert!(
+            result.is_none(),
+            "content without frontmatter must return None"
+        );
     }
 
     #[test]
     fn test_BC_5_39_010_frontmatter_field_last_amended_with_prior_chain() {
         // BC-5.39.010 EC-018: last_amended with [Prior: ...] chain — must return full value
-        let content =
-            "---\nlast_amended: \"2026-07-30 (v1.6) — Active. [Prior: 2026-07-01 (v1.5) — ...]\"\n---\n";
+        let content = "---\nlast_amended: \"2026-07-30 (v1.6) — Active. [Prior: 2026-07-01 (v1.5) — ...]\"\n---\n";
         let result = extract_frontmatter_field(content, "last_amended");
-        assert!(result.is_some(), "last_amended with Prior chain must be extracted");
+        assert!(
+            result.is_some(),
+            "last_amended with Prior chain must be extracted"
+        );
         let val = result.unwrap();
         assert!(
             val.starts_with("2026-07-30 (v1.6)"),
@@ -231,7 +237,10 @@ mod tests {
     fn test_BC_5_39_010_frontmatter_sequence_absent_field() {
         let content = "---\nstory_id: S-21.07\n---\n";
         let result = extract_frontmatter_sequence(content, "behavioral_contracts");
-        assert!(result.is_empty(), "absent sequence field must return empty Vec");
+        assert!(
+            result.is_empty(),
+            "absent sequence field must return empty Vec"
+        );
     }
 
     #[test]
