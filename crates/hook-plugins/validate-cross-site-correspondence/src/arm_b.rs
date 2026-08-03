@@ -366,18 +366,60 @@ pub fn run_arm_b2(story_index_content: &str) -> Vec<Violation> {
 // ---------------------------------------------------------------------------
 
 /// Extract `input-hash <hex>` token from a table row or any content line.
-/// Returns the hex hash string, or None if not present.
+///
+/// Returns the hex hash string, or `None` if not present or not valid hex.
+///
+/// F-S2107-P1B-009: PC20 requires `\binput-hash\s+([0-9a-f]{7,40})\b`.
+/// - `is_ascii_alphanumeric()` accepted non-hex tokens like "bonus" (has 'o', 'n', 'u', 's').
+/// - Single space needle missed multi-space forms (`\s+`).
+/// - No retry past a non-conforming first match (live STORY-INDEX has "convention",
+///   "mismatch", "bonus", "updated" at 6+ sites).
+///
+/// Fix: validate hex-only, bound to {7,40}, allow `\s+`, retry past bad matches.
 fn extract_input_hash_token(line: &str) -> Option<String> {
-    let needle = "input-hash ";
-    if let Some(pos) = line.find(needle) {
-        let after = &line[pos + needle.len()..];
-        let hash: String = after
+    let keyword = "input-hash";
+    let mut search_start = 0;
+
+    while search_start < line.len() {
+        let search_in = &line[search_start..];
+        let Some(rel_pos) = search_in.find(keyword) else { break };
+        let pos = search_start + rel_pos;
+
+        // Word boundary before "input-hash"
+        let wb_before_ok = pos == 0 || {
+            let prev = line[..pos].chars().last().unwrap_or('\0');
+            !prev.is_ascii_alphanumeric()
+        };
+        let after_keyword = pos + keyword.len();
+        if !wb_before_ok || after_keyword >= line.len() {
+            search_start = pos + 1;
+            continue;
+        }
+
+        // Skip \s+ (at least one whitespace required — PC20)
+        let mut hash_start = after_keyword;
+        while hash_start < line.len()
+            && (line.as_bytes()[hash_start] == b' ' || line.as_bytes()[hash_start] == b'\t')
+        {
+            hash_start += 1;
+        }
+        if hash_start == after_keyword {
+            // No whitespace found — not a valid "input-hash \s+" pattern
+            search_start = pos + 1;
+            continue;
+        }
+
+        // Extract hex-only token bounded to {7,40} chars
+        let hash: String = line[hash_start..]
             .chars()
-            .take_while(|c| c.is_ascii_alphanumeric())
+            .take_while(|c| matches!(c, '0'..='9' | 'a'..='f'))
             .collect();
-        if !hash.is_empty() {
+
+        if hash.len() >= 7 && hash.len() <= 40 {
             return Some(hash);
         }
+        // Non-conforming token: retry past this occurrence
+        search_start = hash_start + 1;
     }
     None
 }
