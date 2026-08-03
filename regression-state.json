@@ -1,1 +1,1 @@
-{"status":"pass","timestamp":"2026-08-03T14:12:18Z","command":"cargo fmt --check --all 2>&1 && echo \"fmt:OK\" && \\\ncargo clippy --workspace --all-targets -- -D warnings 2>&1 | tail -3 && echo \"clippy:OK\" && \\\ncargo test --workspace --all-targets 2>&1 | grep -E \"^test result|FAILED|passed\" && echo \"cargo-test:OK\""}
+{"status":"pass","timestamp":"2026-08-03T14:57:39Z","command":"cargo test -p validate-cross-site-correspondence --all-targets 2>&1 | tail -25"}

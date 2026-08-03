@@ -22,3 +22,10 @@
 {"type":"hook.block","hook":"validate-template-compliance","reason":"template_drift","ts":"2026-08-03T08:59:17-0500","ts_epoch":1785765557,"schema_version":1}
 {"type":"hook.block","hook":"validate-template-compliance","reason":"template_drift","ts":"2026-08-03T08:59:17-0500","ts_epoch":1785765557,"schema_version":1}
 {"type":"hook.block","hook":"validate-template-compliance","reason":"template_drift","ts":"2026-08-03T08:59:18-0500","ts_epoch":1785765558,"schema_version":1}
+{"type":"hook.block","hook":"destructive-command-guard","reason":"sot_delete","ts":"2026-08-03T09:59:29-0500","ts_epoch":1785769169,"schema_version":1}
+{"type":"hook.block","hook":"validate-table-cell-count","reason":"table_cell_count","ts":"2026-08-03T11:10:08-0500","ts_epoch":1785773408,"schema_version":1}
+{"type":"hook.block","hook":"validate-template-compliance","reason":"template_drift","ts":"2026-08-03T11:10:08-0500","ts_epoch":1785773408,"schema_version":1}
+{"type":"hook.block","hook":"validate-table-cell-count","reason":"table_cell_count","ts":"2026-08-03T11:18:32-0500","ts_epoch":1785773912,"schema_version":1}
+{"type":"hook.block","hook":"validate-template-compliance","reason":"template_drift","ts":"2026-08-03T11:18:32-0500","ts_epoch":1785773912,"schema_version":1}
+{"type":"hook.block","hook":"validate-template-compliance","reason":"template_drift","ts":"2026-08-03T11:25:04-0500","ts_epoch":1785774304,"schema_version":1}
+{"type":"hook.block","hook":"validate-template-compliance","reason":"template_drift","ts":"2026-08-03T11:26:02-0500","ts_epoch":1785774362,"schema_version":1}
