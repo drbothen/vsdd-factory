@@ -22662,5 +22662,5 @@ POLICY 18 three-way hash equality SATISFIED: frontmatter=`52f0bf3` / catalog=`52
 - F-S2107-P1C-016 MEDIUM: adversary-hash-corpus scope gap (composite 3-scope dispatch — per-arm hash corpus never independently verified by a single unified fresh-context reviewer); adjudication remains open
 
 **factory-artifacts commits (this burst — TD-VSDD-053 single-commit):**
-- Single-commit: TBD (this-commit)
+- Single-commit: 5d244238
 
