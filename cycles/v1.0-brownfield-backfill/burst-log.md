@@ -22493,7 +22493,7 @@ POLICY 18 three-way hash equality SATISFIED: frontmatter=`52f0bf3` / catalog=`52
 
 **factory-artifacts commits (this burst — TD-VSDD-053 single-commit):**
 - Single-commit: `89c2e8ee` — D-949 S-21.07 pass-1 fix burst PARTIAL: policies.yaml POLICY 19 fix + BC-INDEX v4.44 + STORY-INDEX v4.278 + cycle files + STATE.md v6.79→v6.80
-- Erratum-commit: `TBD` — D-949-erratum POLICY 18 leg-3 sync + five-arm sweep + bats-failure re-characterization (SHA-patch follow-up)
+- Erratum-commit: `4c53d32f` — D-949-erratum POLICY 18 leg-3 sync + five-arm sweep + bats-failure re-characterization
 
 ---
 
