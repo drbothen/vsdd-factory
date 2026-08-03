@@ -22413,7 +22413,7 @@ dispatch_shape: "COMPOSITE — union of three scoped fresh-context reviewers (Sc
 | Decision / Lesson | Summary |
 |-------------------|---------|
 | D-949 | S-21.07 pass-1 fix burst PARTIAL; 7/7 BLOCKERs closed (implementer); 2 HIGH SM findings closed (F-S2107-P1C-009 BC-INDEX; F-S2107-P1C-010 policies.yaml YAML type); STORY-INDEX POLICY 18 three-way hash propagation; 4 bats FAILING; 1 MEDIUM carried; 4-INDEX BC v4.43→v4.44 / STORY v4.277→v4.278 / VP+ARCH UNCHANGED; streak 0/3; pass-2 NEXT |
-| L-BB-red-gate-completeness-only-attests-to-what-it-encodes | Green CI only attests to what the Red Gate encoded; PARTIAL burst is correct when CI turns green on a subset while a known remaining subset is still failing; 4 bats failures (AC-005/T-037/AC-013 MUTANT, T-045 CONTROL) are pre-existing gaps, not regressions |
+| L-BB-red-gate-completeness-only-attests-to-what-it-encodes | Green CI only attests to what the Red Gate encoded; PARTIAL burst is correct when CI turns green on a subset while a known remaining subset is still failing; 4 bats failures are NOT pre-existing (D-949-erratum): AC-005/T-037 MUTANT are suspected regressions from FIX C section-bounding (→ implementer); AC-013 MUTANT is a log-path mismatch in test body (→ test-writer); T-045 CONTROL is a test-design defect — fixture BC-INDEX.md lacks BC-5.39.010 (v2) row (→ test-writer) |
 | L-BB-yaml-bare-scalar-silently-corrupts-sequence-fields | Multi-word bare scalar on a sequence-typed YAML field corrupts the field silently; `scope:` fields in policies.yaml MUST use proper YAML sequence syntax `scope: [slug]` even for single-element sequences |
 
 ### Block 5: Dim-2 attestations (literal shell per D-449(a))
@@ -22465,7 +22465,7 @@ POLICY 18 three-way hash equality SATISFIED: frontmatter=`52f0bf3` / catalog=`52
 
 ### Block 6: Dim-5 attestation
 
-**Dim-5 (no regression introduced):** All implementer fixes target validate-cross-site-correspondence WASM hook source only. No changes to hook-sdk, factory-dispatcher, or other crates. Workspace CI green: 2360/0 tests. 4 known bats failures (AC-005 MUTANT, T-037 MUTANT, AC-013 MUTANT, T-045 CONTROL) are pre-existing gaps in Red Gate coverage, not regressions introduced by this burst. SM-owned edits (policies.yaml, BC-INDEX.md, STORY-INDEX.md, STATE.md, cycle files) are index/metadata updates with no code-path impact. POLICY 14 5-leg parity self-applied: BC-INDEX.md last_amended leg matches version bump; changelog backfill fills v4.42+v4.43 gap; STORY-INDEX three-way hash equality confirmed `52f0bf3==52f0bf3==52f0bf3` per Dim-2 gate.
+**Dim-5 (no regression introduced):** All implementer fixes target validate-cross-site-correspondence WASM hook source only. No changes to hook-sdk, factory-dispatcher, or other crates. Workspace CI green: 2360/0 tests. 4 bats failures remain — corrected characterization per D-949(h) erratum (NOT pre-existing; tests PASSED before this burst and FAIL against WASM from post-fix source da9ec911): AC-005 MUTANT (expected exit 2, got 0 — suspected regression from FIX C section-bounding: ## Token Budget heading match → implementer); T-037 MUTANT (expected exit 2, got 0 — suspected regression from FIX C/FIX 6 → implementer); AC-013 MUTANT (advisory IS present in dispatcher log but test lookup fails — log-path mismatch in test body → test-writer); T-045 CONTROL (expected exit 0, got 2 — Arm A1 fires because fixture BC-INDEX.md has no BC-5.39.010 (v2) row → test-design defect → test-writer). Genuinely pre-existing unrelated failures: resolver-capability-confinement + resolver-integration (mktemp collision, transient, unrelated to this burst). SM-owned edits (policies.yaml, BC-INDEX.md, STORY-INDEX.md, STATE.md, cycle files) are index/metadata updates with no code-path impact. POLICY 14 5-leg parity self-applied: BC-INDEX.md last_amended leg matches version bump; changelog backfill fills v4.42+v4.43 gap; STORY-INDEX three-way hash equality confirmed `52f0bf3==52f0bf3==52f0bf3` per Dim-2 gate.
 
 ### Block 7: Dim-6/7 attestations
 
@@ -22484,9 +22484,51 @@ POLICY 18 three-way hash equality SATISFIED: frontmatter=`52f0bf3` / catalog=`52
 - Majority of H/M/L findings: CLOSED — implementer, product-owner, story-writer, test-writer (feature/S-21.07)
 
 **Carried to pass-2 (5 items):**
-- AC-005 MUTANT, T-037 MUTANT, AC-013 MUTANT, T-045 CONTROL: bats test failures (Red Gate coverage gap)
+- AC-005 MUTANT: suspected regression from FIX C section-bounding (## Token Budget heading match may exclude fixture section → implementer)
+- T-037 MUTANT: suspected regression from FIX C/FIX 6 (→ implementer)
+- AC-013 MUTANT: test-body log-path mismatch (advisory IS in dispatcher log; test lookup fails → test-writer)
+- T-045 CONTROL: test-design defect — fixture BC-INDEX.md missing BC-5.39.010 (v2) row; A1 fires before E1 exercised (→ test-writer)
 - F-S2107-P1C-016 MEDIUM: adversary-hash-corpus scope gap (composite 3-scope dispatch)
+- [Pre-existing unrelated] resolver-capability-confinement + resolver-integration: mktemp collision failures (transient; unrelated to this burst)
 
 **factory-artifacts commits (this burst — TD-VSDD-053 single-commit):**
 - Single-commit: `89c2e8ee` — D-949 S-21.07 pass-1 fix burst PARTIAL: policies.yaml POLICY 19 fix + BC-INDEX v4.44 + STORY-INDEX v4.278 + cycle files + STATE.md v6.79→v6.80
+- Erratum-commit: `TBD` — D-949-erratum POLICY 18 leg-3 sync + five-arm sweep + bats-failure re-characterization (SHA-patch follow-up)
+
+---
+
+### D-949-erratum Corrigendum — 2026-08-03
+
+**Three defects corrected (state-manager, single-commit TD-VSDD-053):**
+
+**(h-1) POLICY 18 leg-3 stale-ref [REGRESSION-class]:** D-949 last_amended in STORY-INDEX.md cited delivery-blockquote hash as 8ba2a75 using S-21.07-equals notation in provenance text; unanchored grep on the whole file returned stale value before line-732 correct `S-21.07=52f0bf3`. The delivery blockquote content at line 732 was already correct; only the last_amended description was wrong. Pattern: F-S2107-P1B-003 third-leg-stale reproduced in D-949 own bookkeeping — the exact defect the S-21.07 gate exists to catch, manifested in the burst that fixed that gate. Corrected: STORY-INDEX v4.278→v4.279; last_amended description rewritten to eliminate the stale-value literal.
+
+**(h-2) five-arm residual [TD-VSDD-060 sibling-sweep miss]:** D-949 last_amended contained two occurrences of "five-arm" (in E-21 epic blockquote and BC-coverage blockquote provenance descriptions). The content sites (lines 719, 730, 733) were already correct. Changed description to "arm-count→seven-arm" notation throughout. Post-erratum `grep -c "five-arm" STORY-INDEX.md` = 0.
+
+**(h-3) Bats failure re-characterization [POLICY 22 record-fidelity]:** Three sites incorrectly described the 4 bats failures as "pre-existing". Ground truth: these tests PASSED before this burst and FAIL against WASM rebuilt from post-fix source (commit `da9ec911`, 224,449 bytes). Accurate analysis: AC-005/T-037 MUTANT are suspected regressions from FIX C section-bounding (→ implementer); AC-013 MUTANT is a log-path mismatch in the test body (→ test-writer); T-045 CONTROL is a test-design defect — fixture BC-INDEX.md missing `BC-5.39.010 (v2)` row so A1 fires before E1 (→ test-writer). Three corrected sites: burst-log Codifications row, burst-log Dim-5, lessons.md L-BB-red-gate lesson.
+
+**Dim-2 erratum attestation (literal shell stdout — D-449(a)):**
+
+Post-erratum five-arm zero-residual:
+```
+$ grep -c "five-arm" .factory/stories/STORY-INDEX.md
+0
+```
+
+Post-erratum three-leg hash equality — unanchored grep now returns only the correct value:
+```
+$ grep -oE 'S-21\.07=[0-9a-f]+' .factory/stories/STORY-INDEX.md
+S-21.07=52f0bf3
+
+$ grep -m1 "^input-hash:" .factory/stories/S-21.07-validate-cross-site-correspondence.md
+input-hash: "52f0bf3"
+
+$ sed -n '730p' .factory/stories/STORY-INDEX.md | grep -oE 'input-hash [0-9a-f]+'
+input-hash 52f0bf3
+
+$ sed -n '732p' .factory/stories/STORY-INDEX.md | grep -oE 'S-21\.07=[0-9a-f]+'
+S-21.07=52f0bf3
+```
+
+All three legs = `52f0bf3`. Stale reference `8ba2a75` no longer reachable by unanchored grep.
 

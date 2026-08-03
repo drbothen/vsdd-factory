@@ -14476,3 +14476,19 @@ D-949-S-21.07-PASS-1-FIX-BURST-PARTIAL
 ### Date
 
 2026-08-03
+
+---
+
+### (h) Erratum — 2026-08-03 (parent-commit `89c2e8ee` + SHA-patch `28b353b2`)
+
+Three defects in the D-949 burst were identified by the orchestrator via literal-shell re-derivation (POLICY 22 independent verification). Corrected in a single erratum commit per TD-VSDD-053. No new D-NNN allocated — POLICY 16 reserves allocation for new bursts; this is a sub-clause correction.
+
+**(h-1) POLICY 18 leg-3 stale-ref [REGRESSION-class]:** STORY-INDEX.md `last_amended` at v4.278 contained the literal delivery-blockquote hash `8ba2a75` cited with `S-21.07-equals` notation in a provenance description. Unanchored grep of the full file returned this stale value as the first match before line-732's correct `S-21.07=52f0bf3`. The burst used line-targeted verification (`sed -n '732p'`) which correctly showed the live content, and self-reported POLICY 18 three-way sync as complete. This is precisely the F-S2107-P1B-003 / S-21.04 pass-30 H02 third-leg-stale pattern — reproduced in the burst that fixed that pattern. Correction: STORY-INDEX v4.278→v4.279; `last_amended` rewritten to eliminate the stale-value literal. Post-erratum unanchored grep returns only `S-21.07=52f0bf3`.
+
+**(h-2) five-arm residual [TD-VSDD-060]:** The v4.278 `last_amended` description contained two occurrences of the literal "five-arm" in provenance notes; content sites (lines 719, 730, 733) were already correct. Correction: both description occurrences changed to "arm-count→seven-arm". Post-erratum `grep -c "five-arm" STORY-INDEX.md` = 0.
+
+**(h-3) Bats failure re-characterization [POLICY 22]:** Three sites (burst-log Codifications row, burst-log Dim-5, lessons.md L-BB-red-gate lesson) incorrectly described the 4 failing bats tests as "pre-existing". Ground truth: these tests PASSED before this burst and FAIL against WASM rebuilt from post-fix source (commit `da9ec911`, 224,449 bytes). Correction: all three sites updated with accurate per-test routing: AC-005/T-037 MUTANT — suspected regressions from FIX C section-bounding (→ implementer); AC-013 MUTANT — log-path mismatch in test body (→ test-writer); T-045 CONTROL — test-design defect, fixture BC-INDEX.md missing `BC-5.39.010 (v2)` row so A1 fires before E1 (→ test-writer). Genuinely pre-existing: resolver-capability-confinement + resolver-integration (mktemp collision, transient, unrelated to this burst).
+
+**4-INDEX erratum delta:** STORY-INDEX v4.278→v4.279 (last_amended description only; content unchanged). BC-INDEX v4.44 / VP-INDEX v2.74 / ARCH-INDEX v3.40 all unchanged.
+
+**Lesson codified:** L-BB-third-leg-stale-self-reproduced-in-own-bookkeeping (lessons.md) — a burst that fixes a cross-site-correspondence gate reproduced that gate's own third-leg-stale defect in its own bookkeeping. Generalizes POLICY 22: specialist completion claims for N-leg parity sweeps must be verified per-leg via unanchored grep, because partial sweeps self-report as whole.
