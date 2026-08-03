@@ -126,10 +126,59 @@ The critical change: `plugin.invoked` is written BEFORE execution starts. Only
 
 ---
 
+## Pass-2 Fix Burst — Four Additional Red Gate Tests
+
+**Date:** 2026-08-03
+**Context:** Pass-1 produced 14 failing tests; implementer made 91 green (CI green). Four of nine
+required fixes were never implemented because the Red Gate did not encode them. Pass-2 adds exactly
+four failing tests for the four remaining unfixed defects.
+
+Red Gate run timestamp: 2026-08-03
+Command: `cargo test -p validate-cross-site-correspondence`
+Result: 91 passed; **4 failed** (all new tests, all failing for correct reasons)
+
+### New Tests — Red Gate Results (Pass 2)
+
+#### lib.rs — 2 new tests (T-046, T-047)
+
+| Test | Assertion Site | Red Gate Failure (verbatim) |
+|------|---------------|----------------------------|
+| `test_BC_5_39_010_unclassified_path_returns_continue_not_block` | lib.rs:351 | `left: Block { reason: "BLOCKED by validate-cross-site-correspondence: [1] validate-cross-site-correspondence [primary-read] POLICY 14: cannot read primary target 'crates/hook-plugins/validate-cross-site-correspondence/src/lib.rs': CapabilityDenied. Fail-closed per BC-5.39.010 invariant 4. Fix: review and fix all cross-site correspondence issues listed above, then retry the write. Code: POLICY 14/18." } right: Continue` |
+| `test_BC_5_39_010_ac019_extended_all_six_read_caps_fully_pinned` | lib.rs:445 | `assertion 'left == right' failed: BC/story primary read cap MUST equal BC_MAX_BYTES=524288, not PRIMARY_READ_MAX_BYTES=1048576. F-S2107-P1C-002 (BLOCKER). left: 1048576 right: 524288` |
+
+#### arm_a2.rs — 2 new tests (T-048, T-049)
+
+| Test | Assertion Site | Red Gate Failure (verbatim) |
+|------|---------------|----------------------------|
+| `test_BC_5_39_010_arm_a2_bare_version_bc_table_row_detected` | arm_a2.rs:429 | `assertion 'left == right' failed: bare version '1.3' in Behavioral Contracts table row must be detected. F-S2107-P1B-002: extract_version_token_from_table_row only checks bytes[i]==b'v', silently skipping bare version cells. Current citations: [] left: 0 right: 1` |
+| `test_BC_5_39_010_arm_a2_edge_cases_rows_not_scanned_section_bounded` | arm_a2.rs:514 | `assertion 'left == right' failed: Edge Cases table rows must NOT produce BC version citations. F-S2107-P1B-001: unbounded scan yields spurious citations from EC-002 (v1.17), EC-015 (v1.31), and EC-017 (v1.3). Current citations: [("table row 9", "1.3"), ("table row 15", "1.17"), ("table row 16", "1.31"), ("table row 17", "1.3")] left: 4 right: 1` |
+
+### Test 4 (F-S2107-P1B-012) — Explicitly Skipped
+
+**Finding:** `frontmatter.rs::extract_frontmatter_field` binds the slice `&trimmed[1..trimmed.len() - 1]`
+BEFORE the `is_char_boundary` guard. Ostensibly the guard should come first.
+
+**Conclusion after analysis:** No test is possible. The guard is vacuously true in the ASCII-quote
+branch: the outer `if trimmed.starts_with('"') && trimmed.ends_with('"')` ensures the first and
+last bytes are ASCII `"` (0x22). Slicing at byte indices 1 and `len-1` of a string whose endpoints
+are single-byte ASCII characters is always valid. No input can reach the else-branch and observe
+different behavior between current ordering and the correct ordering.
+
+**Per brief:** "If you conclude no test can meaningfully distinguish the fixed ordering from the
+current one, say so plainly and skip Test 4 — a fabricated test is worse than an acknowledged gap
+(POLICY 11, TD-VSDD-059)."
+
+Test 4 is intentionally absent. The implementer should apply the cosmetic guard-first reorder as a
+no-behavior-change cleanup when touching frontmatter.rs for other fixes.
+
+---
+
 ## Finding Coverage
 
 | Finding | Rust Unit Test | Bats Test |
 |---------|---------------|-----------|
+| F-S2107-P1B-001 (unbounded EC section scan) | T-049 arm_a2 | — (unit sufficient) |
+| F-S2107-P1B-002 (bare version not detected) | T-048 arm_a2 | — (unit sufficient) |
 | F-S2107-P1B-003 (B3 blockquote inert) | arm_b tests | T-037 |
 | F-S2107-P1B-004 (B2 spurious orphaned) | arm_b tests | AC-011 CONTROL (production fixture) |
 | F-S2107-P1B-005 (BC-INDEX classified as BC) | dispatch + lib tests | T-035 |
@@ -138,8 +187,12 @@ The critical change: `plugin.invoked` is written BEFORE execution starts. Only
 | F-S2107-P1B-008 (cross-story row match) | arm_b tests | T-038 |
 | F-S2107-P1B-009 (non-hex catalog accepted) | arm_b tests | — (unit sufficient) |
 | F-S2107-P1B-010 (epic file as story) | dispatch tests | — (unit sufficient) |
+| F-S2107-P1B-012 (frontmatter guard order) | SKIPPED — vacuous guard, no reachable panic | — |
+| F-S2107-P1C-001 (read before classify) | T-046 lib.rs | — (unit sufficient) |
+| F-S2107-P1C-002 (PRIMARY_READ_MAX_BYTES wrong for BC/story) | T-047 lib.rs (assertion 9) | — |
+| F-S2107-P1C-003 (PRIMARY_READ_MAX_BYTES wrong for cycle artifact) | T-047 lib.rs (assertion 10) | — |
+| F-S2107-P1C-011 (else-if Closes/Refs) | deferred — rare ordering | — |
+| F-S2107-P1C-012 (L-EDP1 line-start) | deferred — rare prose pattern | — |
 | F-S2107-P1C-014 (15-byte last_amended) | arm_e + lib tests | T-045 |
 | F-S2107-P1C-015 (absent last_amended silent) | arm_e tests | — (unit sufficient) |
 | F-S2107-P1C-020 (discloses: false-match) | arm_d tests | AC-012 log-check |
-| F-S2107-P1C-011 (else-if Closes/Refs) | deferred — rare ordering | — |
-| F-S2107-P1C-012 (L-EDP1 line-start) | deferred — rare prose pattern | — |

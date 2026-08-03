@@ -637,6 +637,21 @@ jobs:
             esac
             cp "$wasm" plugins/vsdd-factory/hook-plugins/
           done
+          # F-S2107-P1-008 (a): count-floor guard — sibling parity with cargo-host
+          # "Stage WASM plugins to hook-plugins directory" step which already has this
+          # guard. Without it a silent build regression drops WASM files and the bats
+          # suite reports all-skipped (false-green) because the dispatcher treats missing
+          # plugins as non-fatal in advisory mode. Floor is derived from wasm-producing
+          # crates only (those with [[bin]]) per P5-H1 (S-17.04).
+          expected=$(grep -rl '^\[\[bin\]\]' crates/hook-plugins/*/Cargo.toml | grep -v read-prefix-fixture | wc -l | tr -d ' ')
+          count=$(ls plugins/vsdd-factory/hook-plugins/*.wasm 2>/dev/null | wc -l | tr -d ' ')
+          if [ "$count" -lt "$expected" ]; then
+            echo "::error::Only $count WASM plugins staged; expected >= $expected (wasm-producing crates in crates/hook-plugins/ with [[bin]]). Build output:"
+            ls target/wasm32-wasip1/release/*.wasm 2>/dev/null || echo "  (no wasm files in release target)"
+            exit 1
+          fi
+          echo "Staged $count WASM plugins to hook-plugins/ (floor: $expected wasm-producing crates in crates/hook-plugins/)."
+          ls plugins/vsdd-factory/hook-plugins/
 
       - name: Run full bats suite (run-all.sh)
         # This is the canonical gate that release.yml runs. Running it on every PR
@@ -650,6 +665,15 @@ jobs:
         # runner exits 0) executes its real path exclusively on this Linux job.
         # WASM: pr-manager-completion-guard.wasm is staged above (workspace build);
         # setup_file() on-demand build is a no-op when the artifact is already present.
+        # F-S2107-P1C-018 (b): CI_REQUIRE_ARTIFACTS=1 converts _require_artifacts()
+        # skips into hard failures — prevents the suite from reporting "All tests passed."
+        # when the dispatcher binary or a required WASM is absent and every test in the
+        # affected suites silently skips. Without this, a broken staging step produces
+        # a false-green run with 0 active coverage. Blast radius: all ~37 payload tests
+        # including AC-004 (fail-closed primary-target invariant), AC-018, and AC-019.
+        shell: bash
+        env:
+          CI_REQUIRE_ARTIFACTS: "1"
         run: cd plugins/vsdd-factory/tests && ./run-all.sh
 
   bats-wave-handoff-macos:
