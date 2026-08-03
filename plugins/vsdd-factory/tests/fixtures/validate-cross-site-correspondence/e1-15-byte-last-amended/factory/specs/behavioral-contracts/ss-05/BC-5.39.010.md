@@ -11,12 +11,11 @@ modified:
 
 # BC-5.39.010: validate-cross-site-correspondence
 
-Test fixture for T-045: 15-byte last_amended CONTROL.
+Test fixture for T-045 (NOT the trigger file — this BC file is present but unused).
 
-`last_amended: "2026-07-30 (v2)"` is 15 bytes (no sub-version like "v2.1").
-BC-5.39.010 v1.3 §E1: accepts YYYY-MM-DD (vN) format where N can be single-digit.
-extract_last_amended_outer_version should return "2" for this string.
-Current code: `if len < 17 { return None }` → 15 < 17 → returns None → advisory.
-"2" (BC version) vs None (extracted) → advisory fires for unparseable format.
-Expected: exit 0 with NO advisory (format is valid and versions match).
-Test should assert both: exit 0 AND no "unparseable" in output.
+NOTE: T-045 triggers a VP file write (VP-039.md), not this BC file. Arm A1 cannot
+handle single-integer versions like "v2" in BC-INDEX (extract_version_token requires
+vN.N format with a decimal point). Using a VP file instead isolates Class E1.
+
+This BC file remains in the fixture for historical context only. It is NOT read by
+the dispatcher in T-045 because the write event points to VP-039.md, not BC-5.39.010.md.

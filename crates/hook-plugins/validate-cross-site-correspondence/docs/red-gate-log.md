@@ -196,3 +196,63 @@ no-behavior-change cleanup when touching frontmatter.rs for other fixes.
 | F-S2107-P1C-014 (15-byte last_amended) | arm_e + lib tests | T-045 |
 | F-S2107-P1C-015 (absent last_amended silent) | arm_e tests | — (unit sufficient) |
 | F-S2107-P1C-020 (discloses: false-match) | arm_d tests | AC-012 log-check |
+
+---
+
+## Pass-3 Fix Burst — Test-Side Assertion Correctness (POLICY 15)
+
+**Date:** 2026-08-03
+**Context:** Three bats assertion defects discovered after pass-2 implementer green. Two tests were
+failing (T-037, T-045); one passed for wrong reason (AC-013 MUTANT grep silently vacuous). No
+production code was modified. Fixes are fixture data, grep patterns, and fixture-trigger isolation
+only.
+
+Bats result after fixes: **41 pass / 0 fail / 0 skip**
+
+### Assertion Site RG-007 — T-037 fixture charset (Defect 1)
+
+**File:** `plugins/vsdd-factory/tests/fixtures/validate-cross-site-correspondence/b1-b3-only-mismatch/factory/stories/STORY-INDEX.md`
+**Change:** `S-21.07=DEADBEE` → `S-21.07=deadbee` in the delivery blockquote (plus matching
+comments).
+**Root cause:** BC-5.39.010 PC20/PC21 specify hash charset `([0-9a-f]{7,40})` — lowercase only.
+`DEADBEE` (uppercase) would not be parsed by `parse_blockquote_hash`, so `B3` would be `None`
+rather than `Some("deadbee")`. With B3=None and B1=B2, the three-way check finds no mismatch and
+exits 0 — opposite of the expected exit 2. The test was failing because the fixture violated the
+BC's own charset constraint, making the blockquote parse silently return None.
+**Assertion site:** T-037 bats assertion `assert_equal "$status" "2"` with `[Class B]` in output.
+After fix: `parse_blockquote_hash` returns `Some("deadbee")` → B3≠B1 → exit 2 ✓.
+
+### Assertion Site RG-008 — AC-013 MUTANT grep pattern (Defect 2)
+
+**File:** `plugins/vsdd-factory/tests/validate-cross-site-correspondence.bats`
+**Line:** AC-013 MUTANT dispatcher-log grep
+**Change:** `grep -q '"B01"'` → `grep -q 'B01'`
+**Root cause:** `class_d_advisory_message` formats the token with single quotes: `token 'B01' on
+line`. The dispatcher stores the advisory message verbatim in a JSON string value. Inside JSON,
+single quotes are not escaped — the stored string contains `'B01'` (single-quoted). The original
+grep searched for `"B01"` (double-quoted), which never appears in the JSONL record. The advisory
+WAS being fired (exit 0 was correct), but the test was silently not finding the log evidence,
+making the log-check assertion always fail with the original grep. Fix: search for `B01` without
+quote-type assumption — present in any quoting variant.
+**Assertion site:** `grep -q 'B01' <<< "$log_output"` in the AC-013 MUTANT log-verification block.
+After fix: grep finds `'B01'` in the stored message → log-check passes ✓.
+
+### Assertion Site RG-009 — T-045 fixture trigger isolation (Defect 3)
+
+**Files:**
+- `plugins/vsdd-factory/tests/validate-cross-site-correspondence.bats` (T-045 envelope)
+- `plugins/vsdd-factory/tests/fixtures/validate-cross-site-correspondence/e1-15-byte-last-amended/factory/specs/verification-properties/VP-039.md` (NEW fixture file)
+**Change:** T-045 envelope changed from `.factory/specs/behavioral-contracts/ss-05/BC-5.39.010.md`
+to `.factory/specs/verification-properties/VP-039.md`. New VP-039.md fixture created with
+`version: "2"` and `last_amended: "2026-07-30 (v2)"` (15 bytes).
+**Root cause:** `extract_version_token` in arm_a1.rs requires `vN.N` format (decimal point
+mandatory). The 15-byte format `"2026-07-30 (v2)"` produces outer version `"2"` (single integer,
+no decimal). BC-INDEX.md in the fixture had `| v2 |` which cannot match — `extract_version_token`
+returns `None` for `v2`. Arm A1 then blocks: version "2" ≠ "1.0" (no matching INDEX entry) →
+"dropped registration" violation → exit 2. E1 was never reached.
+**Isolation strategy:** VP files trigger `is_frontmatter_parity_target` (so E1 runs) but NOT
+`is_bc_file` (so A1 does NOT run). By triggering a VP write instead of a BC write, A1 is bypassed
+entirely and E1 runs in isolation. `extract_last_amended_outer_version("2026-07-30 (v2)")` returns
+`Some("2")` after the len-threshold fix; `version: "2"` == `"2"` → no E1 violation → exit 0 ✓.
+**Assertion site:** T-045 `assert_equal "$status" "0"` and absence of `[Class E]` in output.
+After fix: VP isolation → A1 skipped → E1 clean → exit 0 ✓.

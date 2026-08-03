@@ -634,7 +634,7 @@ _assert_plugin_ran_not_crashed() {
 
 # ---------------------------------------------------------------------------
 # T-037: Class B — B1=B2 agree but B3 mismatch blocks (B3-only mismatch)
-# Fixture: b1-b3-only-mismatch (B1=47a65c9, B2=47a65c9, B3=DEADBEE)
+# Fixture: b1-b3-only-mismatch (B1=47a65c9, B2=47a65c9, B3=deadbee)
 # F-S2107-P1B-003: parse_story_index_blockquote_hash uses starts_with("> S-21.07=")
 #   → production prose blockquote shape never matches → B3=None → inert (no block)
 # BC-5.39.010 v1.3 invariant 11: B3≠B1 must block (blockquote hash mismatch).
@@ -646,7 +646,7 @@ _assert_plugin_ran_not_crashed() {
   _write_registry
 
   local envelope
-  # story frontmatter B1=47a65c9, STORY-INDEX catalog B2=47a65c9, blockquote B3=DEADBEE
+  # story frontmatter B1=47a65c9, STORY-INDEX catalog B2=47a65c9, blockquote B3=deadbee
   # After fix: B3 extracted → B3≠B1 → exit 2 [Class B]
   # F-S2107-P1B-003 RED GATE: blockquote parser inert on production shape → B3=None
   # → no three-way comparison → exit 0 → test expects 2 → FAILS
@@ -828,7 +828,7 @@ _assert_plugin_ran_not_crashed() {
   grep '"plugin_name":"validate-cross-site-correspondence"' "$log" 2>/dev/null \
     | grep '"type":"plugin.log"' \
     | grep '"level":"warn"' \
-    | grep -q '"B01"' || {
+    | grep -q 'B01' || {
       echo "FAIL: expected advisory mentioning 'B01' not found in dispatcher log"
       echo "  BC-5.39.010 invariant 6: Class D must emit advisory for non-F- token B01"
       grep '"plugin_name":"validate-cross-site-correspondence"' "$log" \
@@ -1072,7 +1072,11 @@ _assert_plugin_ran_not_crashed() {
 
 # ---------------------------------------------------------------------------
 # T-045: Class E1 — 15-byte last_amended format accepted (no spurious advisory)
-# Fixture: e1-15-byte-last-amended (BC-5.39.010 v2; last_amended "2026-07-30 (v2)")
+# Fixture: e1-15-byte-last-amended (VP-039; version "2"; last_amended "2026-07-30 (v2)")
+# Isolation strategy: VP file write is used (NOT a BC file write) because VP files do
+# NOT trigger Arm A1 (A1 is BC-file-only). Arm A1 can't parse single-integer versions
+# like "v2" in BC-INDEX (extract_version_token requires vN.N format). Using a VP file
+# isolates E1 so the test is genuinely discriminating.
 # F-S2107-P1C-014: extract_last_amended_outer_version `if len < 17 { return None }`
 #   → 15-byte "2026-07-30 (v2)" → None → advisory "unparseable format" fires.
 # BC-5.39.010 v1.3 §E1: YYYY-MM-DD (vN) with single-digit outer version is valid.
@@ -1084,10 +1088,11 @@ _assert_plugin_ran_not_crashed() {
   _write_registry
 
   local envelope
-  # BC-5.39.010 v2; last_amended "2026-07-30 (v2)" = 15 bytes.
+  # VP-039; version "2"; last_amended "2026-07-30 (v2)" = 15 bytes.
+  # VP files skip Arm A1 entirely — only Class E runs. This isolates the 15-byte E1 check.
   # After fix: len threshold lowered → Some("2") extracted → "2"=="2" → no E1 advisory → exit 0
   # F-S2107-P1C-014 RED GATE: len < 17 → None → advisory fires → log has warn record → FAILS
-  envelope="$(_post_write_event '.factory/specs/behavioral-contracts/ss-05/BC-5.39.010.md')"
+  envelope="$(_post_write_event '.factory/specs/verification-properties/VP-039.md')"
   _run_dispatcher "$envelope"
 
   _assert_plugin_ran_not_crashed
