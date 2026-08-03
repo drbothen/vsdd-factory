@@ -468,9 +468,21 @@ mod tests {
     #[test]
     fn test_BC_5_39_010_ac019_extended_all_six_read_caps_fully_pinned() {
         // (1–8) Already-correct constants — regression protection only:
-        assert_eq!(arm_a1::BC_INDEX_MAX_BYTES, 1_048_576, "BC-INDEX secondary: 1 MiB");
-        assert_eq!(arm_a1::BC_INDEX_TIMEOUT_MS, 3_000, "BC-INDEX secondary: 3000 ms");
-        assert_eq!(arm_a1::BC_MAX_BYTES, 524_288, "BC secondary (arm A2): 512 KiB");
+        assert_eq!(
+            arm_a1::BC_INDEX_MAX_BYTES,
+            1_048_576,
+            "BC-INDEX secondary: 1 MiB"
+        );
+        assert_eq!(
+            arm_a1::BC_INDEX_TIMEOUT_MS,
+            3_000,
+            "BC-INDEX secondary: 3000 ms"
+        );
+        assert_eq!(
+            arm_a1::BC_MAX_BYTES,
+            524_288,
+            "BC secondary (arm A2): 512 KiB"
+        );
         assert_eq!(arm_a1::BC_TIMEOUT_MS, 3_000, "BC secondary: 3000 ms");
         assert_eq!(
             arm_b::STORY_INDEX_B1_MAX_BYTES,

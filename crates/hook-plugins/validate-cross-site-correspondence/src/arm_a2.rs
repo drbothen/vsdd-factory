@@ -60,8 +60,7 @@ pub fn extract_story_bc_version_citations(content: &str, bc_id: &str) -> Vec<(St
         // Detect ## heading and update section context
         if let Some(rest) = line.strip_prefix("## ") {
             let heading = rest.trim();
-            skip_section =
-                heading != "Behavioral Contracts" && heading != "Token Budget";
+            skip_section = heading != "Behavioral Contracts" && heading != "Token Budget";
             continue;
         }
 
@@ -109,17 +108,15 @@ fn extract_version_token_from_table_row(line: &str) -> Option<String> {
         }
 
         // Determine start of digit run (skip optional 'v' prefix per PC13)
-        let digit_start = if bytes[i] == b'v'
-            && i + 1 < bytes.len()
-            && bytes[i + 1].is_ascii_digit()
-        {
-            i + 1 // optional 'v' prefix; digit run starts at i+1
-        } else if bytes[i].is_ascii_digit() {
-            i // bare digit: digit run starts at i
-        } else {
-            i += 1;
-            continue;
-        };
+        let digit_start =
+            if bytes[i] == b'v' && i + 1 < bytes.len() && bytes[i + 1].is_ascii_digit() {
+                i + 1 // optional 'v' prefix; digit run starts at i+1
+            } else if bytes[i].is_ascii_digit() {
+                i // bare digit: digit run starts at i
+            } else {
+                i += 1;
+                continue;
+            };
 
         // Scan the integer part of the version
         let mut end = digit_start;
