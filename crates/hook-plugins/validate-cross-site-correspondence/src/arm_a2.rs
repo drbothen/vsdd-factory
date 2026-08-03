@@ -27,7 +27,7 @@ use vsdd_hook_sdk::host::HostError;
 /// Extract all table-row version citations for a given BC ID in story body content.
 ///
 /// Scans `content` for pipe-delimited table rows (`|...|`) that contain both
-/// the `bc_id` token and a version token matching `\bv([0-9]+\.[0-9]+)\b`.
+/// the `bc_id` token and a version token matching `\bv?([0-9]+\.[0-9]+)\b`.
 /// Returns a `Vec<(location, version)>` where `location` is a human-readable
 /// row identifier and `version` is the cited version string (e.g., `"1.17"`).
 ///
@@ -36,23 +36,47 @@ use vsdd_hook_sdk::host::HostError;
 /// included — this is the skip-not-block semantic for absent citations
 /// (BC-5.39.010 postcondition 8).
 ///
+/// # Section bounding (PC13 amended, F-S2107-P1B-001)
+/// The scan is bounded to named sections that carry BC-table citations:
+/// `## Behavioral Contracts` and `## Token Budget`. Any other `## ` heading
+/// switches the scanner to skip mode, preventing spurious matches from descriptive
+/// sections (e.g., `## Edge Cases`) that contain BC IDs in example/scenario cells.
+///
+/// Content that has no `## ` headings at all (e.g., simple unit-test fixtures) is
+/// scanned without restriction — the scanner starts in "no active section" state
+/// which is treated as scannable.
+///
 /// # BC trace
 /// BC-5.39.010 §Architecture Anchors `extract_story_bc_version_citations`;
-/// preconditions 12-13 (table row detection + version token regex).
+/// preconditions 12-13 (table row detection + version token regex); PC13 (amended:
+/// section-bounded scan, optional `v` prefix, last/rightmost token).
 pub fn extract_story_bc_version_citations(content: &str, bc_id: &str) -> Vec<(String, String)> {
-    // Scan content for pipe-delimited table rows (|...|) that contain both
-    // the bc_id token AND a version token matching \bv([0-9]+\.[0-9]+)\b.
-    // Returns Vec<(row_location, version)>.
     let mut citations = Vec::new();
+    // skip_section: true when inside a named ## section that is NOT a target section.
+    // Starts false (content before any ## heading is scannable).
+    let mut skip_section = false;
+
     for (line_num, line) in content.lines().enumerate() {
+        // Detect ## heading and update section context
+        if let Some(rest) = line.strip_prefix("## ") {
+            let heading = rest.trim();
+            skip_section =
+                heading != "Behavioral Contracts" && heading != "Token Budget";
+            continue;
+        }
+
+        if skip_section {
+            continue;
+        }
+
         if !line.contains('|') {
             continue;
         }
         if !line.contains(bc_id) {
             continue;
         }
-        // Line contains both bc_id and pipe chars (table row)
-        // Now look for a version token vN.N in this row
+
+        // Row is in a scannable section and contains the BC ID: extract version
         if let Some(version) = extract_version_token_from_table_row(line) {
             let location = format!("table row {}", line_num + 1);
             citations.push((location, version));
@@ -180,7 +204,25 @@ pub fn run_arm_a2_for_bc_with_result(
             (vec![violation], vec![])
         }
         Ok(bc_bytes) => {
-            let bc_content = std::str::from_utf8(&bc_bytes).unwrap_or("");
+            // F-S2107-P1B-016: surface UTF-8 decode failure as a distinct violation;
+            // unwrap_or("") silently turns a corrupt BC file into bc_version="" which
+            // mismatches every citation and directs the fixer toward a version bump.
+            let bc_content = match std::str::from_utf8(&bc_bytes) {
+                Ok(s) => s,
+                Err(_) => {
+                    return (
+                        vec![Violation {
+                            description: format!(
+                                "validate-cross-site-correspondence [Class A Arm2]: \
+                                BC file '{bc_id}' content is not valid UTF-8 — \
+                                cannot verify version citations in story '{story_id}'. \
+                                Fix: ensure the BC file is saved as UTF-8."
+                            ),
+                        }],
+                        vec![],
+                    );
+                }
+            };
             let bc_version = crate::frontmatter::extract_frontmatter_field(bc_content, "version")
                 .unwrap_or_default();
 
