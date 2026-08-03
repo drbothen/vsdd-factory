@@ -1,0 +1,415 @@
+//! arm_e.rs — Class E: frontmatter version/last_amended parity and modified[] monotonicity.
+//!
+//! Pure-core module (ADR-035 §Decision 1): operates on already-read content.
+//!
+//! # Two sub-arms
+//!
+//! ## E1 — version vs last_amended outer prefix
+//! Fires on BC, VP, story, and epic file writes. Compares the `version:` field
+//! against the outermost version prefix in `last_amended:`.
+//! Extraction uses regex `^\d{4}-\d{2}-\d{2}\s+\(v([0-9]+(?:\.[0-9]+)*)\)` anchored
+//! at CHARACTER POSITION 0 of the field value (BC-5.39.010 precondition 37).
+//! Prior-chain versions inside `[Prior: ... (v1.5) ...]` are excluded STRUCTURALLY
+//! by the positional anchor (not by `[Prior:` pattern match).
+//!
+//! ## E2 — modified[] date sequence monotonicity
+//! Fires on BC, VP, story, and epic file writes. Extracts the `modified:` sequence,
+//! strips annotation suffixes (e.g., `(v1.1)` → strip to `YYYY-MM-DD`), and verifies
+//! dates are strictly ascending.
+//!
+//! # Block semantics
+//! Both E1 and E2 violations are blocking. A single file write may trigger both.
+//! All violations are combined into ONE `block_with_fix` message (postcondition 23).
+//!
+//! # Advisory semantics
+//! If `last_amended:` does not match the regex (unparseable format), emit advisory
+//! and return Continue — do NOT block on unparseable format (precondition 37 last sentence).
+//!
+//! # BC trace
+//! BC-5.39.010 preconditions 34-39; postconditions 19-23; invariant 9 (UTF-8 safety).
+
+use crate::{Advisory, Violation};
+
+/// Extract the outermost version prefix from a `last_amended:` field value.
+///
+/// Applies regex `^\d{4}-\d{2}-\d{2}\s+\(v([0-9]+(?:\.[0-9]+)*)\)` anchored at
+/// CHARACTER POSITION 0 of `last_amended` (the field value, not the full frontmatter line).
+///
+/// Returns `Some(version_string)` if the regex matches (e.g., `Some("1.6")`).
+/// Returns `None` if the regex does not match (unparseable format).
+///
+/// The positional anchor at character position 0 ensures nested `(v1.5)` tokens
+/// inside a `[Prior: ...]` chain are NEVER matched — they are not at position 0.
+/// This is a structural exclusion, NOT a pattern-match exclusion on `[Prior:`.
+///
+/// Hand-rolled: no `regex` crate. Uses manual byte-walk for date and version parsing
+/// within the WASM fuel budget.
+///
+/// # BC trace
+/// BC-5.39.010 precondition 37 (positional regex anchor); EC-018 (Prior-chain exclusion).
+pub fn extract_last_amended_outer_version(last_amended: &str) -> Option<String> {
+    // Hand-rolled parse of: ^\d{4}-\d{2}-\d{2}\s+\(v([0-9]+(?:\.[0-9]+)*)\)
+    // anchored at CHARACTER POSITION 0 of last_amended.
+    let bytes = last_amended.as_bytes();
+    let len = bytes.len();
+
+    // Need at least: YYYY-MM-DD (v1.0)  = 10 + 1 + 3 + ... = at least 17 chars
+    if len < 17 {
+        return None;
+    }
+
+    // Match \d{4}-\d{2}-\d{2}
+    let date_ok = bytes[0..4].iter().all(|b| b.is_ascii_digit())
+        && bytes[4] == b'-'
+        && bytes[5..7].iter().all(|b| b.is_ascii_digit())
+        && bytes[7] == b'-'
+        && bytes[8..10].iter().all(|b| b.is_ascii_digit());
+
+    if !date_ok {
+        return None;
+    }
+
+    // Skip whitespace after date (\s+)
+    let mut pos = 10;
+    while pos < len && (bytes[pos] == b' ' || bytes[pos] == b'\t') {
+        pos += 1;
+    }
+    if pos >= len || bytes[pos] != b'(' {
+        return None;
+    }
+    pos += 1; // skip '('
+
+    // Match 'v'
+    if pos >= len || bytes[pos] != b'v' {
+        return None;
+    }
+    pos += 1; // skip 'v'
+
+    // Match [0-9]+(\.[0-9]+)*
+    let version_start = pos;
+    if pos >= len || !bytes[pos].is_ascii_digit() {
+        return None;
+    }
+    while pos < len && bytes[pos].is_ascii_digit() {
+        pos += 1;
+    }
+    while pos < len && bytes[pos] == b'.' {
+        pos += 1;
+        if pos >= len || !bytes[pos].is_ascii_digit() {
+            return None;
+        }
+        while pos < len && bytes[pos].is_ascii_digit() {
+            pos += 1;
+        }
+    }
+    let version_end = pos;
+
+    // Match ')'
+    if pos >= len || bytes[pos] != b')' {
+        return None;
+    }
+
+    // version_start..version_end is guaranteed ASCII (digits and dots)
+    Some(last_amended[version_start..version_end].to_string())
+}
+
+/// Strip annotation suffixes from a `modified:` sequence entry.
+///
+/// Entries may have suffixes like `(v1.1)`, `v1.3`, `: description text`, etc.
+/// Strip everything after the first whitespace to extract just the `YYYY-MM-DD` date.
+///
+/// Returns the stripped date string. All characters are ASCII so byte slicing is safe.
+///
+/// # BC trace
+/// BC-5.39.010 precondition 38 (suffix strip for E2 monotonicity check).
+pub fn strip_date_annotation(entry: &str) -> String {
+    // Strip everything after the first whitespace to extract just YYYY-MM-DD.
+    // All chars before first whitespace are ASCII so byte slicing is safe.
+    match entry.find(|c: char| c == ' ' || c == '\t') {
+        Some(idx) => entry[..idx].to_string(),
+        None => entry.to_string(),
+    }
+}
+
+/// Class E1 check: version vs last_amended outer version parity.
+///
+/// Returns a `Vec<Violation>` (0 or 1 entries):
+/// - Empty: `version:` and `last_amended:` outer prefix agree.
+/// - One violation: mismatch between `version:` and `last_amended:` outer prefix.
+///   Message must contain `[Class E1]`, both version values, and cite
+///   `POLICY 14 leg 4 / POLICY 17`.
+///
+/// Returns a separate `Vec<Advisory>` for the unparseable-format case:
+/// - One advisory: `last_amended:` does not match the regex (precondition 37 last sentence).
+///
+/// # BC trace
+/// BC-5.39.010 preconditions 35-37; postconditions 19-21; invariant 9.
+pub fn run_arm_e1(content: &str) -> (Vec<Violation>, Vec<Advisory>) {
+    use crate::frontmatter::{extract_frontmatter_field};
+
+    let version = match extract_frontmatter_field(content, "version") {
+        Some(v) => v,
+        None => return (vec![], vec![]), // No version field → no check
+    };
+
+    let last_amended_raw = match extract_frontmatter_field(content, "last_amended") {
+        Some(la) => la,
+        None => return (vec![], vec![]), // No last_amended field → no check
+    };
+
+    match extract_last_amended_outer_version(&last_amended_raw) {
+        None => {
+            // Unparseable format → advisory, not block (PC37 last sentence)
+            let advisory = Advisory {
+                message: format!(
+                    "validate-cross-site-correspondence [Class E1] advisory: \
+                    unparseable last_amended format — could not extract outer version prefix from '{last_amended_raw}'. \
+                    Expected format: 'YYYY-MM-DD (vN.N) — description'."
+                ),
+            };
+            (vec![], vec![advisory])
+        }
+        Some(amended_version) => {
+            if amended_version == version {
+                (vec![], vec![])
+            } else {
+                let violation = Violation {
+                    description: format!(
+                        "validate-cross-site-correspondence [Class E1]: version '{version}' \
+                        does not match last_amended outer version prefix '(v{amended_version})'. \
+                        Update last_amended to reflect the current version. \
+                        POLICY 14 leg 4 / POLICY 17."
+                    ),
+                };
+                (vec![violation], vec![])
+            }
+        }
+    }
+}
+
+/// Class E2 check: modified[] sequence monotonicity.
+///
+/// Returns a `Vec<Violation>` (0 or more entries):
+/// - Empty: dates are strictly ascending after suffix strip.
+/// - One violation: first out-of-order pair found (block on first violation).
+///   Message must contain `[Class E2]` and identify the non-monotonic pair.
+///
+/// # BC trace
+/// BC-5.39.010 precondition 38 (suffix strip); postconditions 22-23.
+pub fn run_arm_e2(content: &str) -> Vec<Violation> {
+    use crate::frontmatter::extract_frontmatter_sequence;
+
+    let modified = extract_frontmatter_sequence(content, "modified");
+    if modified.len() < 2 {
+        return vec![];
+    }
+
+    let dates: Vec<String> = modified.iter().map(|e| strip_date_annotation(e)).collect();
+
+    // Verify strictly ascending: each date must be > previous
+    for window in dates.windows(2) {
+        let prev = &window[0];
+        let curr = &window[1];
+        // Lexicographic comparison works for YYYY-MM-DD dates
+        if curr <= prev {
+            return vec![Violation {
+                description: format!(
+                    "validate-cross-site-correspondence [Class E2]: modified[] sequence is not \
+                    strictly ascending — '{curr}' ≤ '{prev}'. Dates must be in ascending order. \
+                    POLICY 14 leg 4."
+                ),
+            }];
+        }
+    }
+    vec![]
+}
+
+#[cfg(test)]
+#[allow(clippy::expect_used, clippy::unwrap_used)]
+mod tests {
+    use super::*;
+
+    // -----------------------------------------------------------------------
+    // extract_last_amended_outer_version — BC-5.39.010 precondition 37
+    // -----------------------------------------------------------------------
+
+    #[test]
+    fn test_BC_5_39_010_class_e1_last_amended_version_extracted() {
+        let last_amended = "2026-07-29 (v1.6) — some description text";
+        let result = extract_last_amended_outer_version(last_amended);
+        assert_eq!(result, Some("1.6".to_string()));
+    }
+
+    #[test]
+    fn test_BC_5_39_010_class_e1_unparseable_last_amended_returns_none() {
+        // AC-015: unparseable format → None (advisory path in run_arm_e1)
+        let last_amended = "some-nonstandard-format-here";
+        let result = extract_last_amended_outer_version(last_amended);
+        assert!(result.is_none(), "unparseable last_amended must return None");
+    }
+
+    /// AC-017: Prior-chain version excluded by positional anchor (EC-018).
+    #[test]
+    fn test_BC_5_39_010_class_e1_prior_chain_version_excluded() {
+        // The positional anchor matches only the outermost (v1.6), not the Prior (v1.5)
+        let last_amended =
+            "2026-07-30 (v1.6) — Active text. [Prior: 2026-07-01 (v1.5) — old text]";
+        let result = extract_last_amended_outer_version(last_amended);
+        assert_eq!(
+            result,
+            Some("1.6".to_string()),
+            "positional anchor must extract only outermost version (v1.6)"
+        );
+    }
+
+    // -----------------------------------------------------------------------
+    // strip_date_annotation — BC-5.39.010 precondition 38
+    // -----------------------------------------------------------------------
+
+    #[test]
+    fn test_BC_5_39_010_class_e2_strip_plain_date() {
+        let result = strip_date_annotation("2026-05-14");
+        assert_eq!(result, "2026-05-14");
+    }
+
+    #[test]
+    fn test_BC_5_39_010_class_e2_strip_version_annotation() {
+        let result = strip_date_annotation("2026-05-18 (v1.1)");
+        assert_eq!(result, "2026-05-18");
+    }
+
+    #[test]
+    fn test_BC_5_39_010_class_e2_strip_descriptive_suffix() {
+        let result = strip_date_annotation("2026-05-20 v1.3: Added Class E2");
+        assert_eq!(result, "2026-05-20");
+    }
+
+    // -----------------------------------------------------------------------
+    // run_arm_e1 — BC-5.39.010 postconditions 19-21
+    // -----------------------------------------------------------------------
+
+    /// AC-015 MUTANT: version 1.33 vs last_amended (v1.31) → block [Class E1].
+    #[test]
+    fn test_BC_5_39_010_class_e1_version_mismatch_blocks() {
+        let content = "---\nversion: \"1.33\"\n\
+            last_amended: \"2026-07-29 (v1.31) — some text\"\n---\nbody\n";
+        let (violations, _) = run_arm_e1(content);
+        assert!(!violations.is_empty(), "version mismatch must produce a blocking violation");
+        let msg = &violations[0].description;
+        assert!(msg.contains("[Class E1]"), "violation must cite [Class E1]");
+        assert!(
+            msg.contains("POLICY 14 leg 4") || msg.contains("POLICY 17"),
+            "violation must cite POLICY 14 leg 4 / POLICY 17"
+        );
+    }
+
+    /// AC-015 CONTROL: version 1.6 matches last_amended (v1.6) → passes.
+    #[test]
+    fn test_BC_5_39_010_class_e1_version_match_passes() {
+        let content =
+            "---\nversion: \"1.6\"\nlast_amended: \"2026-07-29 (v1.6) — text\"\n---\nbody\n";
+        let (violations, _) = run_arm_e1(content);
+        assert!(violations.is_empty(), "matching version must not block");
+    }
+
+    /// AC-015: unparseable last_amended → advisory, not block.
+    #[test]
+    fn test_BC_5_39_010_class_e1_unparseable_last_amended_advisory() {
+        let content = "---\nversion: \"1.6\"\nlast_amended: \"nonstandard\"\n---\nbody\n";
+        let (violations, advisories) = run_arm_e1(content);
+        assert!(violations.is_empty(), "unparseable last_amended must not block");
+        assert!(
+            !advisories.is_empty(),
+            "unparseable last_amended must emit an advisory"
+        );
+    }
+
+    /// AC-017: Prior-chain version in last_amended is excluded by positional anchor.
+    #[test]
+    fn test_BC_5_39_010_class_e1_prior_chain_excluded() {
+        // version "1.6"; last_amended outermost prefix "(v1.6)"; prior chain has "(v1.5)"
+        let content = "---\nversion: \"1.6\"\n\
+            last_amended: \"2026-07-30 (v1.6) — Active. [Prior: 2026-07-01 (v1.5) — old.]\"\n\
+            ---\nbody\n";
+        let (violations, _) = run_arm_e1(content);
+        assert!(violations.is_empty(), "Prior-chain (v1.5) must not trigger E1 mismatch");
+    }
+
+    /// Over-broad exclusion mutant for E1 (BC-5.39.010 EC-018 / precondition 37):
+    /// The OUTERMOST version in last_amended is WRONG AND a [Prior:] chain is present.
+    ///
+    /// A bad implementation that says "skip check if [Prior: is present" would miss
+    /// this genuine mismatch. The positional anchor ONLY excludes nested Prior-chain
+    /// versions, not the outermost position-0 version.
+    ///
+    /// BC-5.39.010 precondition 37: extraction is by CHARACTER POSITION 0, not by
+    /// [Prior: pattern matching. F-S2104-P29-H02 failed exactly this shape.
+    #[test]
+    fn test_BC_5_39_010_class_e1_outermost_wrong_prior_chain_present_still_blocks() {
+        // version "1.6" but outermost last_amended says "(v1.5)" AND has [Prior:] chain
+        // The outermost mismatch MUST block despite the Prior chain being present
+        let content = "---\nversion: \"1.6\"\n\
+            last_amended: \"2026-07-30 (v1.5) — Active. [Prior: 2026-07-01 (v1.4) — old.]\"\n\
+            ---\nbody\n";
+        let (violations, _) = run_arm_e1(content);
+        assert!(
+            !violations.is_empty(),
+            "outermost version mismatch (1.5 vs 1.6) must block even when [Prior:] chain \
+            is present — exclusion is positional (char pos 0), not pattern-based"
+        );
+        let msg = &violations[0].description;
+        assert!(msg.contains("[Class E1]"), "violation must cite [Class E1]");
+    }
+
+    // -----------------------------------------------------------------------
+    // run_arm_e2 — BC-5.39.010 postcondition 22
+    // -----------------------------------------------------------------------
+
+    /// AC-016 MUTANT: non-ascending modified[] → block [Class E2].
+    #[test]
+    fn test_BC_5_39_010_class_e2_non_monotonic_blocks() {
+        // ["2026-05-14", "2026-05-18 (v1.1)", "2026-05-15"] — 2026-05-15 < 2026-05-18
+        let content = "---\nmodified:\n  - \"2026-05-14\"\n  - \"2026-05-18 (v1.1)\"\n\
+            - \"2026-05-15\"\n---\nbody\n";
+        let violations = run_arm_e2(content);
+        assert!(!violations.is_empty(), "non-monotonic modified[] must block");
+        assert!(
+            violations[0].description.contains("[Class E2]"),
+            "violation must cite [Class E2]"
+        );
+    }
+
+    /// AC-016 CONTROL: strictly ascending modified[] → passes.
+    #[test]
+    fn test_BC_5_39_010_class_e2_ascending_passes() {
+        let content = "---\nmodified:\n  - \"2026-05-14\"\n  - \"2026-05-18\"\n\
+            - \"2026-05-20 (v1.3)\"\n---\nbody\n";
+        let violations = run_arm_e2(content);
+        assert!(violations.is_empty(), "strictly ascending modified[] must not block");
+    }
+
+    /// Over-broad exclusion mutant for E2: an entry with a complex annotation
+    /// (including [Prior:] or similar frozen-provenance text) must still have its
+    /// DATE checked for monotonicity after suffix strip.
+    ///
+    /// BC-5.39.010 precondition 38: strip suffix, compare dates. A bad implementation
+    /// that skips entries containing "Prior" would miss the date violation below.
+    #[test]
+    fn test_BC_5_39_010_class_e2_entry_with_complex_annotation_still_checked() {
+        // "2026-07-18 (v1.1): Active [Prior: ...]" → strip → "2026-07-18"
+        // Followed by "2026-07-15" → 2026-07-15 < 2026-07-18 → non-monotonic → BLOCK
+        // A bad implementation that skips "Prior" entries would pass this incorrectly
+        let content = "---\nmodified:\n  - \"2026-07-14\"\n  \
+            - \"2026-07-18 (v1.1): Active [Prior: 2026-07-01 (v1.0) — first]\"\n  \
+            - \"2026-07-15\"\n---\nbody\n";
+        let violations = run_arm_e2(content);
+        // run_arm_e2 is todo!() → panics → test FAILS (RED Gate confirmed)
+        // When implemented: strip suffixes → ["2026-07-14", "2026-07-18", "2026-07-15"]
+        // 2026-07-15 < 2026-07-18 → non-monotonic → block
+        assert!(
+            !violations.is_empty(),
+            "modified[] entries with complex annotations must still have dates checked \
+            for monotonicity after suffix strip (BC-5.39.010 PC38)"
+        );
+    }
+}
