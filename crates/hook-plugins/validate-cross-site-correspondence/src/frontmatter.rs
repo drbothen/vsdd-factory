@@ -41,19 +41,19 @@ pub fn extract_frontmatter_field(content: &str, field: &str) -> Option<String> {
         if line.starts_with(&prefix) {
             let rest = &line[prefix.len()..];
             let trimmed = rest.trim();
-            // Strip surrounding quotes (single or double)
+            // Strip surrounding quotes (single or double).
+            // Guard-first: evaluate is_char_boundary BEFORE slicing to prevent
+            // a slice panic if a non-ASCII multi-byte sequence falls on the quote
+            // position. In practice this branch is reached only for ASCII quotes
+            // (the guard is vacuously true), but the correct pattern checks first.
             let value = if (trimmed.starts_with('"') && trimmed.ends_with('"'))
                 || (trimmed.starts_with('\'') && trimmed.ends_with('\''))
             {
-                // Safety: trimmed is at least 2 chars if it has surrounding quotes
-                if trimmed.len() >= 2 {
-                    let inner = &trimmed[1..trimmed.len() - 1];
-                    // Verify char boundary for multi-byte UTF-8
-                    if trimmed.is_char_boundary(1) && trimmed.is_char_boundary(trimmed.len() - 1) {
-                        inner
-                    } else {
-                        trimmed
-                    }
+                if trimmed.len() >= 2
+                    && trimmed.is_char_boundary(1)
+                    && trimmed.is_char_boundary(trimmed.len() - 1)
+                {
+                    &trimmed[1..trimmed.len() - 1]
                 } else {
                     trimmed
                 }
