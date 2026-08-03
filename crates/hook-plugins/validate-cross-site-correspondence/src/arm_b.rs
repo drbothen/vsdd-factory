@@ -89,17 +89,43 @@ pub fn parse_story_index_catalog_hash(index_content: &[u8], story_id: &str) -> O
 /// # BC trace
 /// BC-5.39.010 precondition 20 (B3 blockquote extraction).
 pub fn parse_story_index_blockquote_hash(index_content: &[u8], story_id: &str) -> Option<String> {
+    // F-S2107-P1B-003: production STORY-INDEX blockquote is ONE prose line with all hashes
+    // embedded as `S-XX.YY=HHHHHHH` tokens (not one line per story). PC21 specifies a
+    // WITHIN-line search for `\b<id>=([0-9a-f]{7,40})\b` on `^> ` lines.
     let content = std::str::from_utf8(index_content).ok()?;
-    let prefix = format!("> {}=", story_id);
+    let needle = format!("{}=", story_id);
+
     for line in content.lines() {
-        if line.starts_with(&prefix) {
-            let rest = &line[prefix.len()..];
-            let hash: String = rest
-                .chars()
-                .take_while(|c| c.is_ascii_alphanumeric())
-                .collect();
-            if !hash.is_empty() {
-                return Some(hash);
+        if !line.starts_with("> ") {
+            continue;
+        }
+        // Search for `story_id=HHHHHHH` anywhere within the line, with word boundary before.
+        let mut search_start = 0;
+        while search_start < line.len() {
+            let search_in = &line[search_start..];
+            if let Some(rel_pos) = search_in.find(&needle) {
+                let abs_pos = search_start + rel_pos;
+                // Word boundary before story_id: preceding char must not be alphanumeric
+                let wb_ok = abs_pos == 0 || {
+                    let prev = line[..abs_pos].chars().last().unwrap_or('\0');
+                    !prev.is_ascii_alphanumeric()
+                };
+                if wb_ok {
+                    let hash_start = abs_pos + needle.len();
+                    if hash_start <= line.len() {
+                        // Extract hex-only token bounded to 7..=40 chars (PC21)
+                        let hash: String = line[hash_start..]
+                            .chars()
+                            .take_while(|c| matches!(c, '0'..='9' | 'a'..='f'))
+                            .collect();
+                        if hash.len() >= 7 && hash.len() <= 40 {
+                            return Some(hash);
+                        }
+                    }
+                }
+                search_start = abs_pos + 1;
+            } else {
+                break;
             }
         }
     }
@@ -296,52 +322,40 @@ pub fn run_arm_b2(story_index_content: &str) -> Vec<Violation> {
             ) {
                 catalog.push((story_id, hash));
             }
-        } else if let Some(rest) = line.strip_prefix("> ") {
-            // Blockquote entry: `> S-21.07=47a65c9`
-            if let Some(eq_pos) = rest.find('=') {
-                let story_id = rest[..eq_pos].trim().to_string();
-                let hash: String = rest[eq_pos + 1..]
-                    .chars()
-                    .take_while(|c| c.is_ascii_alphanumeric())
-                    .collect();
-                if !story_id.is_empty() && !hash.is_empty() {
-                    blockquote.push((story_id, hash));
-                }
+        } else if line.starts_with("> ") {
+            // F-S2107-P1B-004: production STORY-INDEX blockquote is ONE prose line with
+            // multiple `S-XX.YY=HHHHHHH` tokens. The current single-`find('=')` approach
+            // grabs the whole prose prefix as story_id. Fix: extract ALL id=hash pairs.
+            for (story_id, hash) in extract_blockquote_pairs(line) {
+                blockquote.push((story_id, hash));
             }
         }
     }
 
-    // Compare: for each blockquote entry, find corresponding catalog row
-    for (bq_story_id, bq_hash) in &blockquote {
-        let cat_hash = catalog
+    // Compare catalog→blockquote direction (BC-5.39.010 PC22 note: "scans all story IDs
+    // in the catalog"). This direction correctly ignores blockquote entries for stories
+    // not in the catalog (they belong to other wave aggregations).
+    for (cat_story_id, cat_hash) in &catalog {
+        let bq_hash = blockquote
             .iter()
-            .find(|(id, _)| id == bq_story_id)
+            .find(|(id, _)| id == cat_story_id)
             .map(|(_, h)| h.as_str());
 
-        match cat_hash {
-            Some(cat_h) => {
-                if cat_h != bq_hash {
-                    violations.push(Violation {
-                        description: format!(
-                            "validate-cross-site-correspondence [Class B] POLICY 18: \
-                            STORY-INDEX.md internal parity violation for story {bq_story_id} \
-                            — catalog={cat_h} blockquote={bq_hash} \
-                            — run `compute-input-hash --update`"
-                        ),
-                    });
-                }
-            }
-            None => {
-                // Blockquote entry without catalog row — orphaned entry → violation
+        if let Some(bq_h) = bq_hash {
+            if bq_h != cat_hash {
                 violations.push(Violation {
                     description: format!(
                         "validate-cross-site-correspondence [Class B] POLICY 18: \
-                        STORY-INDEX.md blockquote entry for {bq_story_id} has no corresponding \
-                        catalog row — orphaned blockquote entry (stale or manually added)"
+                        STORY-INDEX.md internal parity violation for story {cat_story_id} \
+                        — catalog={cat_hash} blockquote={bq_h} \
+                        — run `compute-input-hash --update`"
                     ),
                 });
             }
+            // If they match: no violation (correct)
         }
+        // If bq_hash is None (story not in blockquote): no violation — blockquote may
+        // aggregate multiple waves; absence is not an error for Arm B2.
     }
 
     violations
@@ -380,6 +394,92 @@ fn extract_story_id_from_table_row(line: &str) -> Option<String> {
     let id = first_cell.trim().to_string();
     // A story ID starts with "S-"
     if id.starts_with("S-") { Some(id) } else { None }
+}
+
+/// Extract all `S-XX.YY=HHHHHHH` pairs from a blockquote line.
+///
+/// F-S2107-P1B-004: production STORY-INDEX uses ONE prose `> ` line containing all
+/// story hashes as semicolon-separated `S-XX.YY=HHHHHHH` tokens. This helper extracts
+/// ALL such pairs (not just the first) using a word-boundary-aware scan. Returns only
+/// pairs with valid hex hashes bounded to {7,40} chars.
+fn extract_blockquote_pairs(line: &str) -> Vec<(String, String)> {
+    let mut pairs = Vec::new();
+    // Skip the "> " prefix
+    let rest = if let Some(r) = line.strip_prefix("> ") { r } else { return pairs };
+
+    let mut search_pos = 0;
+    while search_pos < rest.len() {
+        // Find next "S-" at a word boundary
+        let Some(rel) = rest[search_pos..].find("S-") else { break };
+        let abs = search_pos + rel;
+
+        // Word boundary: char before "S" must not be alphanumeric
+        let wb_ok = abs == 0 || {
+            let prev = rest[..abs].chars().last().unwrap_or('\0');
+            !prev.is_ascii_alphanumeric()
+        };
+        if !wb_ok {
+            search_pos = abs + 1;
+            continue;
+        }
+
+        // Parse S-[0-9]+\.[0-9]+ id
+        let candidate = &rest[abs..];
+        let id_len = parse_story_id_len(candidate);
+        if id_len == 0 {
+            search_pos = abs + 1;
+            continue;
+        }
+
+        // Must be followed immediately by '='
+        if id_len >= candidate.len() || candidate.as_bytes()[id_len] != b'=' {
+            search_pos = abs + id_len;
+            continue;
+        }
+
+        let story_id = &candidate[..id_len];
+        let hash_start = id_len + 1;
+        let hash: String = candidate[hash_start..]
+            .chars()
+            .take_while(|c| matches!(c, '0'..='9' | 'a'..='f'))
+            .collect();
+
+        if hash.len() >= 7 && hash.len() <= 40 {
+            pairs.push((story_id.to_string(), hash.clone()));
+        }
+        search_pos = abs + hash_start + hash.len().max(1);
+    }
+    pairs
+}
+
+/// Parse the byte-length of a `S-[0-9]+\.[0-9]+` story ID prefix at the start of `s`.
+/// Returns the length of the match, or 0 if no valid story ID starts at position 0.
+fn parse_story_id_len(s: &str) -> usize {
+    let bytes = s.as_bytes();
+    if bytes.len() < 4 || bytes[0] != b'S' || bytes[1] != b'-' {
+        return 0;
+    }
+    let mut i = 2;
+    // First digit group
+    if i >= bytes.len() || !bytes[i].is_ascii_digit() {
+        return 0;
+    }
+    while i < bytes.len() && bytes[i].is_ascii_digit() {
+        i += 1;
+    }
+    // Dot separator
+    if i >= bytes.len() || bytes[i] != b'.' {
+        return 0;
+    }
+    i += 1;
+    // Second digit group
+    if i >= bytes.len() || !bytes[i].is_ascii_digit() {
+        return 0;
+    }
+    while i < bytes.len() && bytes[i].is_ascii_digit() {
+        i += 1;
+    }
+    i
 }
 
 /// Classify the provenance of a hash mismatch for invariant 11.
@@ -557,6 +657,142 @@ mod tests {
         assert!(
             violations.is_empty(),
             "matching catalog/blockquote must not block"
+        );
+    }
+
+    // -----------------------------------------------------------------------
+    // F-S2107-P1B-003: parse_story_index_blockquote_hash uses starts_with
+    // "> S-21.07=" which only matches synthetic per-story blockquote lines.
+    // Production STORY-INDEX.md uses ONE prose line:
+    //   > **E-21 delivery:** ... S-21.07=47a65c9. All 7 distinct.
+    // This shape never starts with "> S-21.07=" → B3 is always None → advisory
+    // (never blocking) even when blockquote hash mismatches → gate is inert.
+    // BC-5.39.010 v1.3 §B3 invariant: B3 must be extracted from the prose line.
+    // -----------------------------------------------------------------------
+
+    /// F-S2107-P1B-003: production blockquote B3 must be extractable from prose line.
+    ///
+    /// RED GATE: `starts_with("> S-21.07=")` never matches production prose.
+    /// parse_story_index_blockquote_hash returns None → assert_eq fails → RED gate.
+    /// After fix (scan embedded `S-21.07=HHHHHHH` token in prose line):
+    /// returns Some("47a65c9") → PASSES.
+    #[test]
+    fn test_BC_5_39_010_arm_b1_production_blockquote_b3_extracted() {
+        // Production STORY-INDEX.md blockquote: ONE prose line with all story hashes
+        // embedded as `S-XX.YY=HHHHHHH` tokens separated by `;`.
+        let content = concat!(
+            "| S-21.07 | ... | input-hash 47a65c9 |\n",
+            "> **E-21 delivery:** Completed E-21 wave-4 stories.",
+            " Input-hashes: S-21.01=32aaccc; S-21.02=11bbddd; S-21.07=47a65c9.",
+            " All 7 distinct.\n",
+        );
+        let b3 = parse_story_index_blockquote_hash(content.as_bytes(), "S-21.07");
+        assert_eq!(
+            b3,
+            Some("47a65c9".to_string()),
+            "production blockquote prose line must yield B3 = '47a65c9'. \
+            Red Gate: starts_with('> S-21.07=') never matches production shape → None (F-S2107-P1B-003)"
+        );
+    }
+
+    // -----------------------------------------------------------------------
+    // F-S2107-P1B-004: run_arm_b2 parses the blockquote by splitting each "> "
+    // line on the first '='. Production prose line starts with "> **E-21 delivery:**"
+    // which has an '=' in "delivery" after the '**'. No — actually the first '='
+    // in the line is in the embedded `S-XX.YY=HHHHHHH` token. But `rest.find('=')`
+    // from position 0 finds the FIRST '=' in the entire line-after-"> ". The story_id
+    // parser takes everything before the first '=' as the story_id.
+    //
+    // For line "> **E-21 delivery:** ... S-21.01=32aaccc; ...",
+    // after stripping "> ", rest = "**E-21 delivery:** ... S-21.01=32aaccc; ..."
+    // `rest.find('=')` → position of '=' in "S-21.01=32aaccc" → rest[..pos] = garbage
+    // → `garbage.starts_with("S-")` → false → orphaned entry → B2 cascade violation.
+    //
+    // Even if catalog rows agree, run_arm_b2 generates spurious violations for
+    // every production blockquote "> " line because story_id extraction fails.
+    // -----------------------------------------------------------------------
+
+    /// F-S2107-P1B-004: production blockquote shape must not generate spurious B2 violations.
+    ///
+    /// RED GATE: run_arm_b2 on production-shaped STORY-INDEX with matching hashes
+    /// generates "orphaned blockquote entry" violations. violations NOT empty.
+    /// assert!(violations.is_empty()) FAILS → RED gate.
+    /// After fix (parse embedded tokens from prose line): violations empty → PASSES.
+    #[test]
+    fn test_BC_5_39_010_arm_b2_production_blockquote_shape_no_spurious_violations() {
+        // Production-shaped STORY-INDEX: catalog row + production prose blockquote.
+        // Both agree on S-21.07=47a65c9. Expected: zero violations.
+        let content = concat!(
+            "| S-21.07 | validate-cross-site-correspondence | E-21 | 11 | P1",
+            " | [] | [] | draft | [BC-5.39.010 v1.2] input-hash 47a65c9 |\n",
+            "> **E-21 delivery:** Completed E-21 wave-4 stories.",
+            " Input-hashes: S-21.01=32aaccc; S-21.07=47a65c9. All 7 distinct.\n",
+        );
+        let violations = run_arm_b2(content);
+        assert!(
+            violations.is_empty(),
+            "production-shaped STORY-INDEX with catalog=blockquote=47a65c9 must not block. \
+            Red Gate: run_arm_b2 generates spurious 'orphaned blockquote entry' from \
+            production prose line (F-S2107-P1B-004)"
+        );
+    }
+
+    // -----------------------------------------------------------------------
+    // F-S2107-P1B-009: extract_input_hash_token accepts any 7+ char alphanumeric
+    // token after "input-hash ". Non-hex tokens like "bonus" are accepted.
+    // BC-5.39.010 v1.3 precondition 17: input-hash value must be hex (0-9a-f only).
+    // -----------------------------------------------------------------------
+
+    /// F-S2107-P1B-009: non-hex catalog token must not be accepted as input-hash.
+    ///
+    /// RED GATE: current code returns Some("bonus") — no hex validation.
+    /// assert!(catalog_hash.is_none()) FAILS → RED gate.
+    /// After fix (validate hex charset): returns None → PASSES.
+    #[test]
+    fn test_BC_5_39_010_arm_b_non_hex_catalog_token_not_accepted() {
+        // "bonus" contains letters outside 0-9a-f ('o', 'n', 'u', 's') → non-hex
+        let content = "| S-21.07 | ... | input-hash bonus | ...\n";
+        let catalog_hash = parse_story_index_catalog_hash(content.as_bytes(), "S-21.07");
+        assert!(
+            catalog_hash.is_none(),
+            "non-hex token 'bonus' must not be accepted as input-hash value. \
+            BC-5.39.010 PC17: input-hash must be hex (F-S2107-P1B-009). \
+            Red Gate: current code returns Some(\"bonus\") → assertion fails"
+        );
+    }
+
+    // -----------------------------------------------------------------------
+    // F-S2107-P1B-008: parse_story_index_catalog_hash uses naive contains(story_id).
+    // When STORY-INDEX.md has a row for S-18.00 that includes "S-18.01" in its
+    // blocks or depends_on column, `contains("S-18.01")` matches the S-18.00 row
+    // FIRST (before the actual S-18.01 row), returning the wrong hash.
+    // BC-5.39.010 v1.3 PC16: catalog lookup must match the CANONICAL S-NNN.NNN row
+    // (i.e., the row whose FIRST cell is the story_id, not any row mentioning it).
+    // -----------------------------------------------------------------------
+
+    /// F-S2107-P1B-008: cross-story catalog lookup must not match wrong row.
+    ///
+    /// When S-18.00 row contains "S-18.01" in a later column, naive contains("S-18.01")
+    /// matches the S-18.00 row first, returning S-18.00's hash instead of S-18.01's.
+    ///
+    /// RED GATE: parse_story_index_catalog_hash("S-18.01") returns "e5bc551" (S-18.00 hash).
+    /// assert_eq!(catalog_hash, Some("1b4ea21")) FAILS → RED gate.
+    /// After fix (match only rows where first cell == story_id): returns "1b4ea21" → PASSES.
+    #[test]
+    fn test_BC_5_39_010_arm_b1_cross_story_catalog_correct_row_matched() {
+        // S-18.00 row mentions S-18.01 in a blocks/depends column — comes BEFORE S-18.01 row.
+        // Naive contains("S-18.01") hits S-18.00 first → returns S-18.00 hash "e5bc551".
+        let index = concat!(
+            "| S-18.00 | parent epic | E-18 | ... | [S-18.01] | input-hash e5bc551 |\n",
+            "| S-18.01 | child story | E-18 | ... | []        | input-hash 1b4ea21 |\n",
+            "> **E-18 delivery:** S-18.00=e5bc551; S-18.01=1b4ea21.\n",
+        );
+        let catalog_hash = parse_story_index_catalog_hash(index.as_bytes(), "S-18.01");
+        assert_eq!(
+            catalog_hash,
+            Some("1b4ea21".to_string()),
+            "S-18.01 catalog lookup must return '1b4ea21' (own row), not 'e5bc551' (S-18.00 row). \
+            Red Gate: naive contains('S-18.01') matches S-18.00 row first → wrong hash (F-S2107-P1B-008)"
         );
     }
 }
