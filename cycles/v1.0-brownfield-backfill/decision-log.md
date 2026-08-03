@@ -14492,3 +14492,75 @@ Three defects in the D-949 burst were identified by the orchestrator via literal
 **4-INDEX erratum delta:** STORY-INDEX v4.278→v4.279 (last_amended description only; content unchanged). BC-INDEX v4.44 / VP-INDEX v2.74 / ARCH-INDEX v3.40 all unchanged.
 
 **Lesson codified:** L-BB-third-leg-stale-self-reproduced-in-own-bookkeeping (lessons.md) — a burst that fixes a cross-site-correspondence gate reproduced that gate's own third-leg-stale defect in its own bookkeeping. Generalizes POLICY 22: specialist completion claims for N-leg parity sweeps must be verified per-leg via unanchored grep, because partial sweeps self-report as whole.
+
+---
+
+## D-950
+
+S-21.07 integration-closure burst — pass-1 fix cycle COMPLETE (4 bats failures closed; BC-5.39.010 v1.4; streak 0/3)
+
+### Decision
+
+**(a) POLICY 16 GLOBAL-MAX GATE:** `grep -n "^## D-" .factory/cycles/v1.0-brownfield-backfill/decision-log.md | sort -t'-' -k2 -n | tail -3` → `14367:## D-948 / 14416:## D-949 / (this entry)`; D-949 confirmed prior max → D-950 allocated.
+
+**(b) Integration closure scope:** D-949 declared the pass-1 fix burst PARTIAL — 7/7 BLOCKERs closed but 4 bats integration tests were failing (AC-005 MUTANT, T-037 MUTANT, AC-013 MUTANT, T-045 CONTROL). This burst closes all four bats failures and advances BC-5.39.010 to v1.4. The pass-1 fix cycle is now COMPLETE. Streak remains 0/3 — pass-1 was NOT-CLEAN; only a new CLEAN adversary pass advances the streak.
+
+**(c) BC-5.39.010 v1.4 — PC13 word-boundary heading tolerance:**
+Root cause of all four bats failures: the same spec-vs-reality class that dominated pass-1. PC13's bounding-section heading match was written as exact equality (`## Behavioral Contracts` and `## Token Budget`), but 133 of 144 real stories use `## Token Budget Estimate` or `## Token Budget Estimate (MANDATORY)` (only 11 use the bare form). Exact equality therefore skipped 92% of real Token Budget sections and let stale Token Budget citations go undetected — one of the two things BC-5.39.010's H1 promises to catch.
+
+Product-owner amended PC13 from exact equality to prefix-with-word-boundary predicates: `^## Behavioral Contracts\b` and `^## Token Budget\b`, where `\b` matches space, `(`, or end-of-line. Corpus verified: 133-of-144 Token Budget headings now match; zero false positives (`## Edge Cases` 148 occurrences still excluded). Non-conformance note added: string equality is non-conforming. BC-5.39.010 v1.3→v1.4; input-hash 2c769fa (operator-verified against cache binary).
+
+**(d) Bats closure attribution:**
+- AC-005 MUTANT (expected exit 2, got 0 — `^## Token Budget` prefix now matches `## Token Budget Estimate` fixture sections; section bounding correct): implementer (feature/S-21.07)
+- T-037 MUTANT (expected exit 2, got 0 — FIX C section-bounding fix interacted with AC-005 fixture pattern): implementer (feature/S-21.07)
+- AC-013 MUTANT (advisory IS present in dispatcher log but test lookup was failing — log-path mismatch corrected): test-writer (feature/S-21.07)
+- T-045 CONTROL (expected exit 0, got 2 — fixture BC-INDEX.md was missing `BC-5.39.010 (v2)` row, causing A1 to fire before E1 was exercised; fixture fixed): test-writer (feature/S-21.07)
+
+**(e) State-manager-owned closures this burst:**
+- BC-INDEX v4.44→v4.45: BC-5.39.010 body-table row version cell v1.3→v1.4 (POLICY 7 H1 parity: H1 title UNCHANGED); changelog row v4.45 added.
+- STORY-INDEX v4.279→v4.280: BC-5.39.010 version cite v1.3→v1.4 in 3 sites (epic blockquote line 719; catalog row title+BCs column line 730; BC-coverage blockquote line 733). Story v1.2 and input-hash 52f0bf3 UNCHANGED. POLICY 18 three-way equality maintained.
+- decision-log.md D-950 block (this entry).
+- burst-log.md D-950 entry (8 mandatory blocks).
+- lessons.md 2 new lessons appended.
+- STATE.md v6.81→v6.82: frontmatter + Phase Progress + Current Phase + Last Updated + CPS + Decisions Log + Concurrent Cycles tail + SRC refresh.
+
+**(f) FOURTH spec-describes-imagined-shape instance (generalized root cause):**
+This is the fourth time in the S-21.07 cascade that a BC clause specified an artifact shape that does not occur in the real corpus:
+1. PC13 v1.2 `v`-prefix requirement vs bare version cells (pass-1 F-P1B-002)
+2. PC31 `^Closes:` vs bold-markdown `**Closes:**` format (pass-1 F-P1B-003)
+3. PC13 exact heading text `## Token Budget` vs `## Token Budget Estimate` (this burst — 133-of-144 real stories)
+4. PC20/PC21 lowercase-only charset vs an uppercase `DEADBEE` test fixture (test-writer fixed the fixture, not the spec)
+
+Generalization: any spec clause naming a literal artifact form — regex, heading text, marker syntax, charset — must be validated against a corpus measurement at authoring time, and the measurement recorded in the clause. PC13 v1.4 now does this (cites 133-of-144 count); prior clauses did not.
+
+**(g) Caught-and-reverted spec drift:**
+To make T-037 MUTANT pass, the implementer first widened the charset to `is_ascii_hexdigit()` (`[0-9a-fA-F]`) at two sites in `arm_b.rs`. This contradicts PC20 (lowercase `[0-9a-f]{7,40}`) and PC21 (lowercase). Orchestrator caught it per Architectural Authority rule 12 (spec wins). Git hashes are lowercase by convention; sibling fixtures use lowercase; accepting uppercase would admit malformed hashes. Implementer reverted to `matches!(c, '0'..='9' | 'a'..='f')` at both sites with inline comments citing PC20/PC21 and warning against re-widening. Fixture T-037 was corrected by test-writer (DEADBEE→deadbee) rather than widening production code.
+
+**(h) 4-INDEX:** BC v4.44→v4.45; VP v2.74 UNCHANGED; STORY v4.279→v4.280; ARCH v3.40 UNCHANGED.
+
+**(i) VP-039.md test fixture:** test-writer added `VP-039.md` under `plugins/vsdd-factory/tests/fixtures/` as a T-045 fixture. This is a TEST FIXTURE, not a real verification property. It must NOT be registered in VP-INDEX. The 17 pending VPs (VP-102..VP-118) per BC-5.39.010 §VP Anchors remain deferred to S-21.07 post-merge burst. VP-INDEX v2.74 UNCHANGED.
+
+### Participating agents
+
+- product-owner: BC-5.39.010 v1.3→v1.4 (PC13 word-boundary predicate; 133-of-144 corpus validation)
+- implementer: AC-005/T-037 MUTANT closure (feature/S-21.07)
+- test-writer: AC-013/T-045 fixture corrections (feature/S-21.07)
+- devops-engineer: earlier `da9ec911` (ci.yml WASM staging count-floor + `CI_REQUIRE_ARTIFACTS: "1"`; covered in D-949)
+- state-manager: D-950 codification; BC-INDEX v4.45; STORY-INDEX v4.280; STATE.md v6.81→v6.82
+
+### 4-INDEX
+
+| Index | Before | After | Change |
+|-------|--------|-------|--------|
+| BC-INDEX | v4.44 | v4.45 | BC-5.39.010 body row v1.4 + v4.45 changelog entry |
+| VP-INDEX | v2.74 | v2.74 | UNCHANGED |
+| STORY-INDEX | v4.279 | v4.280 | BC-5.39.010 v1.3→v1.4 in 3 cite sites (POLICY 18 three-way hash maintained) |
+| ARCH-INDEX | v3.40 | v3.40 | UNCHANGED |
+
+### Phase
+
+D-950-S-21.07-INTEGRATION-CLOSURE
+
+### Date
+
+2026-08-03

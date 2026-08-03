@@ -1,7 +1,7 @@
 ---
 document_type: behavioral-contract
 level: L3
-version: "1.3"
+version: "1.4"
 status: draft
 producer: product-owner
 timestamp: 2026-07-30T00:00:00Z
@@ -16,7 +16,7 @@ inputs:
   - .factory/cycles/v1.0-feature-engine-discipline-pass-1/adv-cycle-pass-29.md
   - .factory/cycles/v1.0-feature-engine-discipline-pass-1/adv-cycle-pass-30.md
   - .factory/cycles/v1.0-brownfield-backfill/S-21.07/adversary-pass-1.md
-input-hash: "b7691c2"
+input-hash: "2c769fa"
 traces_to: .factory/cycles/v1.0-feature-engine-discipline-pass-1/decision-log.md
 extracted_from: null
 origin: brownfield
@@ -29,6 +29,7 @@ modified:
   - "2026-07-30 (v1.1)"
   - "2026-07-30 (v1.2)"
   - "2026-07-30 (v1.3)"
+  - "2026-08-03 (v1.4)"
 deprecated: null
 deprecated_by: null
 replacement: null
@@ -37,7 +38,7 @@ removed: null
 removal_reason: null
 bc_id: BC-5.39.010
 section: "5.39"
-last_amended: "2026-07-30 (v1.3) — PC13: bounding section added (scan confined to ##Behavioral Contracts + ##Token Budget sections; ≥9 spurious blocks from Edge Cases rows eliminated); dual version-token format (\\bv?([0-9]+\\.[0-9]+)\\b covers both bare 1.2 and v-prefixed v1.2); LAST rightmost pipe-field algorithm stated. PC31: bold-markdown form (**Closes:**/**Refs:**) required to match D-444(c) real burst-log format; union scan not else-if. PC38 + postcondition 21: non-decreasing relation (∀i: date[i] ≤ date[i+1]); equal same-day dates PERMITTED; EC-030/031 + test vectors added. Amendment 4: no spec change — PC29 (2 MiB) and PC33 (NotFound advisory+Continue on cycle artifact) already unambiguous; fault is purely implementational. PC32: O- deliberately non-excluded per D-449(d)(i); ruling made explicit. POLICY 14 five-leg parity; v1.1 modified[] entry restored (missing since initial authoring — irony: this hook checks modified[] monotonicity but not modified[]↔Changelog row correspondence, so it structurally cannot catch this defect in its own governing BC). (product-owner.) [Prior: 2026-07-30 (v1.2) — Registry entry corrected: tools = [...] array replaced with tool = \"^(Edit|Write|MultiEdit)$\" regex string (field name singular + MultiEdit added; POLICY 13 ESCAPE-SCOPE-PARITY). Fuel-exhaustion note added to Gate Specifications per ADR-035 §Decision 5. BC-version-pin datum-copy ruling added to Postconditions §Part A Arm2. (product-owner.) [Prior: 2026-07-30 (v1.1) — Part A Arm2 (story-file-side trigger) added; advisory rationales made explicit for every advisory arm; Class D tokenizer namespace-exclusion list added (D-, S-, BC-, VP-, R-, L-, ADR-, EC-, NFR-, ASM-, FM-); EC-024 rationale corrected; Class A coverage-gap routing replaced with correctly-sized latency-gap explanation; Invariant 11 (fabricated vs stale hash provenance) added; EC-026/027/028/029 added; Gate Spec updated with run_part_a_arm2; VP table extended to 17 entries. (product-owner; coordinator review.) [Prior: 2026-07-30 (v1.0) — Initial authoring (product-owner; pre-pass-30 fix-burst). BC-5.39.010 allocated after BC-5.39.009. input-hash d248fc3 per hook-authoritative marketplace binary. lifecycle_status: draft.]]]"
+last_amended: "2026-08-03 (v1.4) — PC13: bounding-section heading-match predicates changed from exact equality to prefix-with-word-boundary (^## Behavioral Contracts\\b, ^## Token Budget\\b); 133 of 144 production stories use ## Token Budget Estimate or ## Token Budget Estimate (MANDATORY), which exact equality skipped, causing stale Token Budget citations to go undetected; corpus check (2026-08-03) confirmed zero false positives on .factory/stories/*.md; ## Edge Cases (148 occurrences) remains excluded. Architecture Anchor for extract_story_bc_version_citations updated. Exact-equality non-conformance note added. (product-owner.) [Prior: 2026-07-30 (v1.3) — PC13: bounding section added (scan confined to ##Behavioral Contracts + ##Token Budget sections; ≥9 spurious blocks from Edge Cases rows eliminated); dual version-token format (\\bv?([0-9]+\\.[0-9]+)\\b covers both bare 1.2 and v-prefixed v1.2); LAST rightmost pipe-field algorithm stated. PC31: bold-markdown form (**Closes:**/**Refs:**) required to match D-444(c) real burst-log format; union scan not else-if. PC38 + postcondition 21: non-decreasing relation (∀i: date[i] ≤ date[i+1]); equal same-day dates PERMITTED; EC-030/031 + test vectors added. Amendment 4: no spec change — PC29 (2 MiB) and PC33 (NotFound advisory+Continue on cycle artifact) already unambiguous; fault is purely implementational. PC32: O- deliberately non-excluded per D-449(d)(i); ruling made explicit. POLICY 14 five-leg parity; v1.1 modified[] entry restored (missing since initial authoring — irony: this hook checks modified[] monotonicity but not modified[]↔Changelog row correspondence, so it structurally cannot catch this defect in its own governing BC). (product-owner.) [Prior: 2026-07-30 (v1.2) — Registry entry corrected: tools = [...] array replaced with tool = \"^(Edit|Write|MultiEdit)$\" regex string (field name singular + MultiEdit added; POLICY 13 ESCAPE-SCOPE-PARITY). Fuel-exhaustion note added to Gate Specifications per ADR-035 §Decision 5. BC-version-pin datum-copy ruling added to Postconditions §Part A Arm2. (product-owner.) [Prior: 2026-07-30 (v1.1) — Part A Arm2 (story-file-side trigger) added; advisory rationales made explicit for every advisory arm; Class D tokenizer namespace-exclusion list added (D-, S-, BC-, VP-, R-, L-, ADR-, EC-, NFR-, ASM-, FM-); EC-024 rationale corrected; Class A coverage-gap routing replaced with correctly-sized latency-gap explanation; Invariant 11 (fabricated vs stale hash provenance) added; EC-026/027/028/029 added; Gate Spec updated with run_part_a_arm2; VP table extended to 17 entries. (product-owner; coordinator review.) [Prior: 2026-07-30 (v1.0) — Initial authoring (product-owner; pre-pass-30 fix-burst). BC-5.39.010 allocated after BC-5.39.009. input-hash d248fc3 per hook-authoritative marketplace binary. lifecycle_status: draft.]]]"
 ---
 
 # BC-5.39.010: validate-cross-site-correspondence WASM hook MUST block on stale BC-INDEX version-cite after a BC frontmatter bump (Class A Arm1), stale story body BC-table and Token Budget citations after a story edit (Class A Arm2), STORY-INDEX three-way input-hash inequality (Class B), and frontmatter version↔last_amended text-prefix mismatch and modified[] date-decrease (Class E); MUST emit advisory on finding-ID namespace format violations in Closes/Refs lines (Class D); Class C count/enumeration parity is not mechanically checkable in WASM
@@ -117,15 +118,44 @@ test per POLICY 21.
     - No directory enumeration required; path is mechanically derived from the BC ID.
 12. For each BC, the hook reads the BC file via `host::read_file` with `max_bytes = 524288` and
     `timeout_ms = 3000`. Extracts the BC's `version:` from frontmatter.
-13. Within the story file content, **the scan is CONFINED to the two BC-citation sections**:
-    - `## Behavioral Contracts` section (text from that H2 line to the next `^## ` heading)
-    - `## Token Budget` section (text from that H2 line to the next `^## ` heading or EOF)
-    Rows outside these two sections MUST NOT be scanned. Rationale: the Edge Cases section,
-    Out-of-Scope section, and other narrative sections in a story file contain references of
-    the form `BC-S.SS.NNN EC-0NN` and descriptions that incidentally carry version-like tokens
-    (e.g., `v1.0`, `v1.17`); an unbounded scan generates ≥9 spurious blocking violations on
-    any story that documents BC edge cases in a table, making the gate unwritable for its own
-    governing story.
+13. Within the story file content, **the scan is CONFINED to the two BC-citation sections**,
+    identified by the following heading-match predicates applied to each `^## ` boundary line:
+
+    - **Behavioral Contracts section start predicate**: a heading line H matches iff H satisfies
+      `^## Behavioral Contracts\b` — the text after `## ` begins with the byte sequence
+      `Behavioral Contracts` immediately followed by a word boundary (`\b`): a space, `(`, or
+      end-of-line. This covers all corpus variants measured 2026-08-03 against
+      `.factory/stories/*.md` (139 total sections): `## Behavioral Contracts` (131),
+      `## Behavioral Contracts Table` (6), `## Behavioral Contracts Referenced` (1),
+      `## Behavioral Contracts (BC Count: NNN)` (1).
+
+    - **Token Budget section start predicate**: a heading line H matches iff H satisfies
+      `^## Token Budget\b` — the text after `## ` begins with `Token Budget` immediately
+      followed by a word boundary. This covers all corpus variants measured 2026-08-03 (144
+      total sections): `## Token Budget` (11), `## Token Budget Estimate` (39),
+      `## Token Budget Estimate (MANDATORY)` (94).
+
+    Both predicates MUST be evaluated as regex prefix-with-word-boundary matches, NOT as exact
+    equality. An implementation using `heading == "Behavioral Contracts"` or
+    `heading == "Token Budget"` (string equality) is **non-conforming**: it silently skips 133
+    of 144 production Token Budget sections (`## Token Budget Estimate` and
+    `## Token Budget Estimate (MANDATORY)`) and leaves stale Token Budget citations undetected —
+    which is one of the two failure modes the BC's H1 title explicitly promises to catch.
+    The prior v1.3 text named exact heading text and was misread as exact equality by the
+    implementer; this clause corrects that by stating the predicate form normatively.
+
+    **False-positive safety**: the corpus check found zero other `^## ` headings in
+    `.factory/stories/*.md` that match either predicate. `## Edge Cases` (148 occurrences)
+    begins with `Edge` — it does NOT match `^## Behavioral Contracts\b` or `^## Token Budget\b`,
+    so the ≥9-spurious-block regression introduced by an unbounded scan remains prevented.
+
+    Each matched section spans from the matching H2 line to the next `^## ` heading (or EOF for
+    the final section). Rows outside these two sections MUST NOT be scanned. Rationale: the Edge
+    Cases section, Out-of-Scope section, and other narrative sections in a story file contain
+    references of the form `BC-S.SS.NNN EC-0NN` and descriptions that incidentally carry
+    version-like tokens (e.g., `v1.0`, `v1.17`); an unbounded scan generates ≥9 spurious
+    blocking violations on any story that documents BC edge cases in a table, making the gate
+    unwritable for its own governing story.
 
     Within each BC-citation section, a **version citation** is a table row (contains `|`) where:
     - The BC ID is present as an **exact word-boundary token**: the text `BC-S.SS.NNN` must be
@@ -602,7 +632,7 @@ for bc_id in bc_ids:
     bc_version = extract_frontmatter_field(bc_content, "version") |> strip_v_prefix
     citations = extract_story_bc_version_citations(story_content, bc_id)
     // Vec<(location: String, cited_version: String)>
-    // scoped to ## Behavioral Contracts + ## Token Budget sections only (PC13)
+    // scoped to sections matching ^## Behavioral Contracts\b or ^## Token Budget\b (PC13 prefix predicates)
     // bc_id must be an exact word-boundary token (\b on both sides)
     // version token: \bv?([0-9]+\.[0-9]+)\b (bare AND v-prefixed)
     // version extracted from LAST rightmost pipe-field containing a version token
@@ -666,7 +696,7 @@ VP IDs pending VP-INDEX allocation by state-manager at post-merge burst.
 - `crates/hook-sdk/src/host.rs` — `host::read_file`, `host::log_warn`
 - `crates/hook-sdk/src/result.rs` — `HookResult::Continue`, `HookResult::block_with_fix`
 - `derive_bc_path(bc_id)` — deterministic BC file path derivation from BC ID (no list_dir)
-- `extract_story_bc_version_citations(content, bc_id)` — finds version-citing table rows for a given BC ID within the `## Behavioral Contracts` and `## Token Budget` sections ONLY (section-scoped); matches both bare `1.2` and v-prefixed `v1.2` forms via `\bv?([0-9]+\.[0-9]+)\b`; extracts version from LAST rightmost pipe-field containing a version token; returns Vec<(location, version)>
+- `extract_story_bc_version_citations(content, bc_id)` — finds version-citing table rows for a given BC ID within sections matching `^## Behavioral Contracts\b` or `^## Token Budget\b` ONLY (PC13 prefix-with-word-boundary predicates; NOT exact equality — see PC13 non-conformance note); matches both bare `1.2` and v-prefixed `v1.2` forms via `\bv?([0-9]+\.[0-9]+)\b`; extracts version from LAST rightmost pipe-field containing a version token; returns Vec<(location, version)>
 - `extract_frontmatter_sequence(content, field)` — parses YAML sequence field from frontmatter
 
 ## Story Anchor
@@ -681,6 +711,7 @@ VP IDs pending VP-INDEX allocation by state-manager at post-merge burst.
 
 | Version | Date | Description |
 |---------|------|-------------|
+| 1.4 | 2026-08-03 | PC13 amended: bounding-section heading-match predicates changed from exact equality to prefix-with-word-boundary (`^## Behavioral Contracts\b`, `^## Token Budget\b`). v1.3 named exact heading text which the implementer rendered as `heading == "Behavioral Contracts"` and `heading == "Token Budget"` — causing 133 of 144 production stories (those using `## Token Budget Estimate` or `## Token Budget Estimate (MANDATORY)`) to be skipped, making stale Token Budget citations invisible. Corpus check (2026-08-03) against `.factory/stories/*.md` confirmed all measured variants covered and zero false positives: no other `^## ` heading in the corpus matches either predicate; `## Edge Cases` (148 occurrences) begins with `Edge` and remains excluded, preserving the ≥9-spurious-block regression fix from v1.3. Architecture Anchor for `extract_story_bc_version_citations` updated. Pseudocode scoping comment updated. Explicit non-conformance note added to PC13 body. (product-owner; S-21.07 LOCAL adversary cascade pass-1b fix.) |
 | 1.3 | 2026-07-30 | PC13 amended: bounding section added — scan confined to `## Behavioral Contracts` and `## Token Budget` sections only; unbounded scan caused ≥9 spurious blocking violations on stories that document BC edge cases in a table (Edge Cases rows carry `BC-5.39.010 EC-0NN` + prose `v1.x` tokens). Dual version-token format: `\bv?([0-9]+\.[0-9]+)\b` matches both bare `1.2` (body BC-table) and v-prefixed `v1.2` (Token Budget rows); prior regex `\bv([0-9]+\.[0-9]+)\b` was unreachable for bare form. LAST rightmost pipe-field algorithm stated explicitly (was already mandated but not algorithmic). Amendment 2 (PC31): bold-markdown form `**Closes:**`/`**Refs:**` required to match D-444(c) real burst-log format; prior plain-colon `^Closes:\s*` matched zero real burst-log lines; union scan (not `else if`) required so compound lines carrying both markers (e.g., `**Closes:** F-X ... **Refs:** B01`) must scan both segments. Amendment 3 (PC38 + postcondition 21): non-decreasing relation stated explicitly as `∀i: date[i] ≤ date[i+1]`; equal same-day dates PERMITTED (not a violation); prior "ascending" wording admitted strict-comparison re-implementation that would self-violate on this BC's own `modified[]`; EC-030/031 added; test vectors for equal-dates and genuine-decrease added. Amendment 4: no spec change — PC29 (`max_bytes = 2097152`) and PC33 (NotFound → advisory+Continue on cycle artifact) already unambiguous; implementation used wrong 1 MiB constant and wrong NotFound handling, both purely implementational faults. Amendment 5 (PC32): `O-` observation IDs deliberately non-excluded per D-449(d)(i) which scopes Closes/Refs to findings, PG, D-NNN only; ruling made explicit to prevent ambiguity. POLICY 14 five-leg parity; v1.1 `modified[]` entry restored (was missing — irony: this hook verifies `modified[]` monotonicity but not `modified[]`↔Changelog row correspondence, so it structurally cannot catch this defect in its own governing BC). (product-owner; S-21.07 LOCAL adversary pass-1 fix-burst.) |
 | 1.2 | 2026-07-30 | Registry entry corrected: `tools = [...]` array replaced with `tool = "^(Edit\|Write\|MultiEdit)$"` regex string (field name singular + MultiEdit added; all 41 Edit/Write hooks in live registry guard this pattern; omitting MultiEdit was a POLICY 13 ESCAPE-SCOPE-PARITY gap identical in class to F-S2104-P29-H02). Fuel-exhaustion note added to Gate Specifications per ADR-035 §Decision 5: `on_error = "continue"` silences the hook non-blockingly on fuel exhaustion (not WASM-side logic); `max_bytes` caps bound reads inside the fuel budget; `fuel_cap` not required. BC-version-pin datum-copy ruling added as design note in §Postconditions Part A Arm2. (product-owner.) |
 | 1.1 | 2026-07-30 | Part A Arm2 (story-file-side trigger) added: PostToolUse on story → read each `behavioral_contracts:` BC via deterministic path derivation → compare against story version citations (Token Budget + BC-table rows). No list_dir required. Latency gap correctly sized (all 6 observed failures occurred during story-editing bursts). Advisory rationales made explicit for every advisory arm; confirmed no arm is advisory merely because the check is partial. Class D tokenizer namespace-exclusion list added (D-, S-, BC-, VP-, R-, L-, ADR-, EC-, NFR-, ASM-, FM-); EC-024 rationale corrected (D-944 matches shape BUT is excluded by namespace list). Invariant 11 added: stale vs fabricated hash provenance — stale = sweep fix, fabricated = POLICY 18 acknowledgment required (pass-30 M02 precedent). EC-026/027/028/029 added. Gate Spec updated with run_part_a_arm2 pseudocode and story-file dispatch branch. VP table extended to 17 entries. |

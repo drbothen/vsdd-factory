@@ -9851,3 +9851,35 @@ D-448(a) passes over this class of defect because it validates Part A correspond
 **Cites:** D-949-erratum (state-manager codification); POLICY 18; POLICY 22. `[POLICY-18; POLICY-22; third-leg-stale; self-reproduced-defect; parity-sweep; unanchored-grep; description-field; D-949-erratum; codified]`
 
 ---
+
+### L-BB-spec-drift-by-widening [spec-drift] [tdd] [production-grade] [D-950]
+
+**Title:** An Implementer Who Correctly Refuses to Weaken Tests May Still Introduce Spec Drift by Widening Production Code to Make a Defective Fixture Pass
+
+**Lesson:** In D-950, when AC-005 and T-037 bats tests failed (MUTANT tests expecting exit 2 got exit 0), the implementer correctly refused to weaken or remove the mutant tests — preserving Red Gate integrity. However, the implementer widened the production charset predicate from `matches!(c, '0'..='9' | 'a'..='f')` (lowercase-only, per PC20/PC21 specification) to `is_ascii_hexdigit()` (which includes uppercase A–F). This made the failing tests pass, but it did so by changing production behavior rather than fixing the upstream cause: the fixture contained `DEADBEE` (uppercase hex digit `D`), which should never appear in a valid lowercase hex ID per spec. The orchestrator caught the deviation by independently diffing the production charset against PC20/PC21.
+
+**Root cause:** When a test fails, there are three options — (1) the production code is wrong and must be fixed, (2) the test is wrong and must be fixed, (3) the fixture contains data that does not match the spec's stated constraints. Option 3 (wrong fixture) was the correct diagnosis here but was not explicitly considered. The implementer chose option 1 (widening code) because it produced a green test without weakening the mutant logic, but the widening violated PC20/PC21. Only by diffing the production predicate against the spec was the error visible.
+
+**Prevention:** (1) When a mutant test fails with a fixture that appears to contain a spec-invalid input (e.g., uppercase hex `DEADBEE` when spec says lowercase), the first diagnostic step is to verify whether the fixture itself satisfies all spec constraints before modifying production code. (2) Any change to a production predicate that widens the accepted input set MUST be explicitly traced to a spec clause that justifies the widening; widening without a spec-citation is a production-grade violation. (3) Orchestrator re-derives production predicates from spec when validating any implementer claim of "tests now pass." Implementer self-disclosure of risk severity is NOT authoritative per CANONICAL PRINCIPLE + SOUL.md.
+
+**Anchors:** D-950 (integration closure); AC-005 MUTANT + T-037 MUTANT (4 bats failures); PC20 + PC21 (BC-5.39.010 v1.4 — lowercase hex predicate); `is_ascii_hexdigit()` (widened, reverted); `matches!(c, '0'..='9' | 'a'..='f')` (correct per spec); fixture DEADBEE→deadbee (test-writer correction).
+
+**Cites:** D-950 (integration-closure burst; state-manager codification); BC-5.39.010 v1.4 PC20/PC21; CANONICAL PRINCIPLE Rule 2. `[spec-drift; widening; production-predicate; tdd; mutant-test; fixture-defect; D-950; codified]`
+
+---
+
+### L-BB-spec-describes-imagined-shape-fourth-instance [spec-authoring] [corpus-validation] [D-950]
+
+**Title:** Four Clauses in One Cascade Specified Literal Artifact Forms Not Present in the Real Corpus — Corpus Measurement Is Mandatory at Authoring Time
+
+**Lesson:** In the S-21.07 cascade, four distinct spec clauses specified literal artifact forms that do not occur (or rarely occur) in the real production corpus. The fourth instance is BC-5.39.010 v1.2/v1.3's PC13, which specified exact equality matches for `## Behavioral Contracts` and `## Token Budget` as section-bounding headings. However, 133 of 144 real stories use `## Token Budget Estimate` or `## Token Budget Estimate (MANDATORY)` — only 11 use the bare `## Token Budget` form. The exact-equality predicate therefore silently skipped 92% of real Token Budget sections, meaning any stale BC version cite in a Token Budget section would be missed by the validator. This defect was present from v1.2 and carried through v1.3 before the corpus measurement in v1.4 authoring exposed it.
+
+**Generalizes prior instances:** (1) Fixture shapes written as ASCII identifiers rather than real lowercase-hex SHA prefixes. (2) A schema claiming all stories use a particular frontmatter key structure when many do not. (3) A count assertion claiming a specific number of VP citations when the actual count differs. In all four cases, the spec author knew the artifact existed but wrote the literal form from memory rather than measuring the actual corpus.
+
+**Prevention:** (1) Any spec clause containing a literal artifact form (heading text, file extension, path pattern, field name, identifier format) MUST be validated against a corpus measurement BEFORE the clause is finalized. The measurement count MUST be recorded inline in the clause or an adjacent annotation: e.g., `## Token Budget\b` (11 of 144 stories use this form; majority use `## Token Budget Estimate`). (2) If the measurement reveals variant forms, the clause MUST either use a prefix/word-boundary pattern that covers all observed variants or explicitly enumerate them with counts. Exact-equality on heading text is almost always wrong unless the corpus shows zero exceptions. (3) Spec reviewers MUST ask for the corpus count for any literal artifact form introduced in a new spec clause.
+
+**Anchors:** D-950 (integration closure); BC-5.39.010 v1.2/v1.3 PC13 (exact equality heading match); BC-5.39.010 v1.4 PC13 (word-boundary prefix predicates; 133-of-144 corpus-validated); S-21.07 pass-1 adversary (AC-005/T-037 bats failures traced to PC13).
+
+**Cites:** D-950 (integration-closure burst; state-manager codification); BC-5.39.010 v1.4 PC13; CANONICAL PRINCIPLE Rule 1. `[spec-authoring; corpus-validation; literal-artifact-form; heading-exact-equality; fourth-instance; D-950; codified]`
+
+---

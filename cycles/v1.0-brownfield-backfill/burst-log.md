@@ -22532,3 +22532,135 @@ S-21.07=52f0bf3
 
 All three legs = `52f0bf3`. Stale reference `8ba2a75` no longer reachable by unanchored grep.
 
+---
+
+## D-950 — S-21.07 PASS-1-FIX-BURST-COMPLETE (integration closure) 2026-08-03
+
+### Block 1: Parent-commit
+
+Pre-burst parent-commit (factory-artifacts): `802fc931` (factory(D-949-erratum-SHA-patch): burst-log Corrigendum TBD→4c53d32f).
+
+### Block 2: Adversary verdict (D-448(a) gate)
+
+**Adversary:** `vsdd-factory:adversary` (claude-sonnet-4-6; composite 3-scope fresh-context dispatch after 5 background failures; pass-1; DISPATCH-SHAPE DEVIATION per ADR-033 — synchronous 3-scoped dispatch; cross-family independence absent; information asymmetry intact per scope). Reviewed HEAD `db381c1b` (develop base `948f0fb1`). **Verdict: NOT-CLEAN** · B7/H19/M13/L8 = 47 findings (pre-dedup) · 3 confirmed dedup pairs (P1B-011↔P1C-003, P1B-015↔P1C-013, P1-008↔P1C-018) · Streak: 0/3.
+
+**Pass-1 closure status (D-950 integration closure):** D-949 declared the fix burst PARTIAL — 7/7 BLOCKERs closed, 4 bats integration tests failing, 1 MEDIUM carried. This burst (D-950) is the integration-closure burst completing the pass-1 fix cycle. All four bats failures are now CLOSED; bats 41/0/0 GREEN. BC-5.39.010 advances to v1.4 (PC13 word-boundary prefix predicates; 133-of-144 corpus-validated). Pass-1 fix cycle COMPLETE. Streak remains 0/3 — pass-1 was NOT-CLEAN; a new adversary pass is required to advance the streak. Next action: pass-2 adversary dispatch.
+
+**Part A — Prior pass closure verification:** Pass-1 is the FIRST S-21.07 adversary pass. Part A reviewed three session-carry-forwards from delivery: A1 (vacuous bats `_assert_plugin_ran_not_crashed` — PARTIAL; spawned F-S2107-P1-001); A2 (false "accepted per session context" claim — CLOSED); A3 (E2 monotonicity polarity — CLOSED unverified count; spawned F-S2107-P1-007 spec gap). D-950 integration closure: AC-005/T-037 MUTANT (PC13 section-bounding) + T-045 CONTROL (fixture BC-INDEX.md missing BC-5.39.010 (v2) row) + AC-013 MUTANT (test-body log-path) ALL CLOSED.
+
+**D-448(a) source-attestation gate (literal shell):**
+```
+$ grep -E "^verdict:|^findings_count:|^severity_breakdown:|dispatch_shape:" .factory/cycles/v1.0-brownfield-backfill/S-21.07/adversary-pass-1.md | head -10
+verdict: NOT-CLEAN
+findings_count: 47
+severity_breakdown: "B7/H19/M13/L8"
+dispatch_shape: "COMPOSITE — union of three scoped fresh-context reviewers (Scope A/B/C); synchronous dispatch after 5 background failures"
+```
+
+Burst-log Block 2 adversary verdict (NOT-CLEAN · B7/H19/M13/L8 = 47 findings · composite 3-scope) faithfully describes adversary-pass-1.md Part A+B finding set. D-950 is an integration-closure burst (no new adversary pass); same adversary-pass-1.md as D-949. No fabrication.
+
+### Block 3: Files touched
+
+| File | Change | Agent |
+|------|--------|-------|
+| `.factory/specs/behavioral-contracts/ss-05/BC-5.39.010.md` | v1.3→v1.4: PC13 heading-tolerance amendment — word-boundary prefix predicates `^## Behavioral Contracts\b` and `^## Token Budget\b` (was exact equality); 133-of-144 corpus validation confirms real story shapes; input-hash `2c769fa` | product-owner (feature/S-21.07) |
+| `crates/hook-plugins/validate-cross-site-correspondence/src/lib.rs` | PC13 section-bounding fix matching BC-5.39.010 v1.4 word-boundary prefix predicates; spec-drift REVERTED — implementer had widened charset to `is_ascii_hexdigit()` (uppercase + lowercase hex) to make AC-005/T-037 pass; orchestrator caught deviation from PC20/PC21 spec (`matches!(c, '0'..='9' \| 'a'..='f')` lowercase-only); reverted; test-writer corrected upstream fixture DEADBEE→deadbee | implementer (feature/S-21.07) |
+| `plugins/vsdd-factory/hook-plugins/validate-cross-site-correspondence.wasm` | rebuilt WASM from v1.4 PC13-fix source (224,887 bytes; prior at D-949: 224,449 bytes) | implementer (feature/S-21.07) |
+| Bats test fixtures (AC-005/T-037/T-045/AC-013 targets) | AC-005 MUTANT: fixture updated for PC13 word-boundary section-bounding; T-037 MUTANT: fixture updated for PC13 + FIX 6 alignment; T-045 CONTROL: BC-INDEX.md fixture addition of `BC-5.39.010 (v2)` row (Arm A1 was firing before E1; test-design defect); AC-013 MUTANT: log-path correction in test body (advisory IS present in dispatcher log; test lookup was failing due to path mismatch) | test-writer (feature/S-21.07) |
+| `.github/workflows/ci.yml` | bats integration stage updated for v1.4 WASM | devops-engineer (feature/S-21.07) |
+| `.factory/specs/behavioral-contracts/BC-INDEX.md` | v4.44→v4.45; last_amended prepend v4.45; changelog entry v4.45; BC-5.39.010 body table row version cell `v1.3`→`v1.3 \| v1.4` (POLICY 7 H1 UNCHANGED; total_bcs UNCHANGED 1,983) | SM (this-commit) |
+| `.factory/stories/STORY-INDEX.md` | v4.279→v4.280; last_amended prepend v4.280; BC-5.39.010 version cites v1.3→v1.4 at 3 sites (epic blockquote line 719; catalog row title+BCs line 730; BC-coverage blockquote line 733); story v1.2 UNCHANGED; input-hash `52f0bf3` UNCHANGED; POLICY 18 three-way equality maintained | SM (this-commit) |
+| `.factory/cycles/v1.0-brownfield-backfill/decision-log.md` | D-950 block appended (this-commit) | SM (this-commit) |
+| `.factory/cycles/v1.0-brownfield-backfill/INDEX.md` | S-21.07 pass-1 row PARTIAL D-949 → COMPLETE D-950; Convergence Status updated: bats 41/0/0 GREEN; 1 MEDIUM carried (F-S2107-P1C-016); streak 0/3; NEXT: pass-2 adversary dispatch | SM (this-commit) |
+| `.factory/cycles/v1.0-brownfield-backfill/lessons.md` | 2 L-BB lessons appended: L-BB-spec-drift-by-widening; L-BB-spec-describes-imagined-shape-fourth-instance (this-commit) | SM (this-commit) |
+| `.factory/STATE.md` | v6.81→v6.82; pipeline ACTIVE; frontmatter D-950-S-21.07-INTEGRATION-CLOSURE; Phase Progress D-950 row; Current Phase Steps D-950 row; Decisions Log D-950 row; Concurrent Cycles tail LENGTH=4 per D-433(e)+D-439(c); SRC refresh; 4-INDEX BC v4.45/VP v2.74/STORY v4.280/ARCH v3.40 (this-commit) | SM (this-commit) |
+| `.factory/cycles/v1.0-brownfield-backfill/burst-log.md` | this entry (this-commit) | SM (this-commit) |
+
+### Block 4: Codifications
+
+| Decision / Lesson | Summary |
+|-------------------|---------|
+| D-950 | S-21.07 pass-1 fix burst COMPLETE (integration closure); 4 bats failures CLOSED (AC-005/T-037/AC-013/T-045); BC-5.39.010 v1.4 (PC13 word-boundary prefix predicates; 133-of-144 corpus-validated); caught-and-reverted spec drift (implementer widened charset `is_ascii_hexdigit()` to make tests pass; orchestrator caught deviation from PC20/PC21; reverted to `matches!(c, '0'..='9' \| 'a'..='f')`; test-writer corrected upstream fixture DEADBEE→deadbee); fourth instance of spec-describes-imagined-shape root cause generalized; SM closures: BC-INDEX v4.44→v4.45 (BC-5.39.010 body row v1.4) + STORY-INDEX v4.279→v4.280 (3 BC version cite sites); 4-INDEX: BC v4.45/VP v2.74 UNCHANGED/STORY v4.280/ARCH v3.40 UNCHANGED; bats 41/0/0; cargo 2360/0; streak 0/3; 1 MEDIUM carried (F-S2107-P1C-016); pass-2 adversary NEXT |
+| L-BB-spec-drift-by-widening | Implementer correctly refused to weaken tests but widened production charset (`is_ascii_hexdigit()` = lowercase + uppercase hex) to make failing fixture pass; third option (fixture contains wrong-case hex digit DEADBEE) must be explicitly considered before widening production code; caught only by orchestrator diffing charset against PC20/PC21 spec — test-writer then corrected fixture DEADBEE→deadbee |
+| L-BB-spec-describes-imagined-shape-fourth-instance | Four clauses in one cascade specified literal artifact forms not occurring in the real corpus (PC13 exact heading equality: 133 of 144 real stories use `Token Budget Estimate` variant, not bare `Token Budget`; only 11 use exact form); any spec clause naming a literal artifact form MUST be corpus-validated at authoring time with count recorded in the clause |
+
+### Block 5: Dim-2 attestations (literal shell per D-449(a))
+
+**(a) POLICY 16 GLOBAL-MAX GATE (post-allocation confirmation — D-950 appended in prior session, confirmed committed):**
+
+```
+$ grep -n "^## D-" .factory/cycles/v1.0-brownfield-backfill/decision-log.md | sort -t'-' -k2 -n | tail -3
+14367:## D-948
+14416:## D-949
+14498:## D-950
+```
+
+D-949 confirmed prior max at allocation time; D-950 allocated and committed at line 14498. (Pre-allocation gate recorded in D-950 decision-log block: `→ 14367:## D-948 / 14416:## D-949 / (this entry)`.)
+
+**(b) D-446(a) own-burst-log 8-block gate (literal shell stdout — scoped to D-950 entry):**
+
+```
+$ awk '/^## D-950/,0' .factory/cycles/v1.0-brownfield-backfill/burst-log.md | grep -c "^### Block [1-8]:"
+8
+```
+
+8 of 8 mandatory D-444(c) blocks confirmed present in this entry.
+
+**(c) D-448(a) source-attestation gate (literal shell stdout):**
+
+```
+$ grep -E "^verdict:|^findings_count:|^severity_breakdown:|dispatch_shape:" .factory/cycles/v1.0-brownfield-backfill/S-21.07/adversary-pass-1.md | head -10
+verdict: NOT-CLEAN
+findings_count: 47
+severity_breakdown: "B7/H19/M13/L8"
+dispatch_shape: "COMPOSITE — union of three scoped fresh-context reviewers (Scope A/B/C); synchronous dispatch after 5 background failures"
+```
+
+Burst-log Block 2 adversary verdict (NOT-CLEAN · B7/H19/M13/L8 = 47 findings · composite 3-scope) faithfully describes adversary-pass-1.md Part A+B finding set. No fabrication.
+
+**(d) POLICY 18 three-way hash equality gate (literal shell stdout — post D-950 SM edits; targeted per-line + unanchored):**
+
+```
+$ grep -m1 "^input-hash:" .factory/stories/S-21.07-validate-cross-site-correspondence.md
+input-hash: "52f0bf3"
+$ sed -n '730p' .factory/stories/STORY-INDEX.md | grep -oE 'input-hash [0-9a-f]+'
+input-hash 52f0bf3
+$ sed -n '732p' .factory/stories/STORY-INDEX.md | grep -oE 'S-21\.07=[0-9a-f]+'
+S-21.07=52f0bf3
+$ grep -oE 'S-21\.07=[0-9a-f]+' .factory/stories/STORY-INDEX.md
+S-21.07=52f0bf3
+```
+
+POLICY 18 three-way hash equality SATISFIED: frontmatter=`52f0bf3` / catalog=`52f0bf3` / blockquote=`52f0bf3` — all three equal. Unanchored grep returns only the correct value (no stale literals). Story v1.2 and input-hash `52f0bf3` UNCHANGED by this burst (only BC version cite changed v1.3→v1.4).
+
+### Block 6: Dim-5 attestation
+
+**Dim-5 (no regression introduced):** All specialist fixes target validate-cross-site-correspondence WASM hook source only. No changes to hook-sdk, factory-dispatcher, or other crates. Workspace CI green: 2360/0 tests (cargo). Bats 41/0/0 GREEN (all four integration failures CLOSED). WASM 224,887 bytes. Spec-drift reverted: implementation correctly uses `matches!(c, '0'..='9' | 'a'..='f')` per PC20/PC21 — no charset regression introduced. SM-owned edits (BC-INDEX.md, STORY-INDEX.md, STATE.md, cycle files) are index/metadata updates with no code-path impact. POLICY 14 5-leg parity self-applied: BC-INDEX.md changelog v4.45 entry present; STORY-INDEX three-way hash equality `52f0bf3==52f0bf3==52f0bf3` confirmed per Dim-2(d).
+
+### Block 7: Dim-6/7 attestations
+
+**Dim-6 (no spec conflicts introduced):** State-manager edits are index/metadata updates and version-cite propagations. BC-5.39.010 v1.4 is product-owner-authored; SM records it in BC-INDEX and STORY-INDEX only. The BC-5.39.010 body table row version cell change (`v1.3`→`v1.3 | v1.4`) follows the established format for BC version history (consistent with BC-5.43.001 `v1.3 | v1.4` and BC-5.44.001 `v1.4 | v1.5` patterns in BC-INDEX). POLICY 7 H1 title UNCHANGED. total_bcs 1,983 UNCHANGED. No new spec content authored by state-manager. No conflicts with existing specs introduced.
+
+**Dim-7 (non-fabrication attestation):** All finding descriptions in Block 2 derive from authoritative adversary-pass-1.md as authored by the three scoped adversary agents (orchestrator-transcribed per POLICY 22). D-448(a) source-attestation gate in Dim-2(c) confirms verdict/count/severity against adversary-pass-1.md frontmatter via literal shell grep. POLICY 18 gate in Dim-2(d) independently confirms three-way hash equality. All WASM size, bats count, and cargo count values are orchestrator-verified gate state from integration closure.
+
+### Block 8: Closes + factory-artifacts commits
+
+**Findings closed this burst (integration closure — 4 bats failures):**
+- AC-005 MUTANT: CLOSED — PC13 word-boundary section-bounding fix (implementer) + fixture update for v1.4 section shape (test-writer); feature/S-21.07
+- T-037 MUTANT: CLOSED — PC13 + FIX 6 alignment (implementer) + fixture update (test-writer); feature/S-21.07
+- AC-013 MUTANT: CLOSED — test-body log-path correction; advisory IS present in dispatcher log (test-writer); feature/S-21.07
+- T-045 CONTROL: CLOSED — BC-INDEX.md fixture addition of `BC-5.39.010 (v2)` row; Arm A1 no longer fires before E1 (test-writer); feature/S-21.07
+
+**SM-owned closures (this burst):**
+- BC-INDEX.md v4.44→v4.45: BC-5.39.010 body row version cell `v1.3`→`v1.3 | v1.4` (POLICY 7 H1 UNCHANGED; total_bcs 1,983 UNCHANGED)
+- STORY-INDEX.md v4.279→v4.280: 3 BC version cite sites updated v1.3→v1.4 (lines 719, 730, 733); story v1.2 UNCHANGED; input-hash 52f0bf3 UNCHANGED
+
+**Caught-and-reverted spec drift (this burst):**
+- Implementer widened charset from `matches!(c, '0'..='9' | 'a'..='f')` to `is_ascii_hexdigit()` (PC20/PC21 violation); orchestrator caught the deviation; reverted before commit; test-writer corrected upstream fixture DEADBEE→deadbee; no spec-drift persisted to this commit
+
+**Carried to pass-2 (1 item):**
+- F-S2107-P1C-016 MEDIUM: adversary-hash-corpus scope gap (composite 3-scope dispatch — per-arm hash corpus never independently verified by a single unified fresh-context reviewer); adjudication remains open
+
+**factory-artifacts commits (this burst — TD-VSDD-053 single-commit):**
+- Single-commit: TBD (this-commit)
+
