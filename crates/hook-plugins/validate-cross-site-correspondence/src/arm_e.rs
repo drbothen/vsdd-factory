@@ -54,8 +54,12 @@ pub fn extract_last_amended_outer_version(last_amended: &str) -> Option<String> 
     let bytes = last_amended.as_bytes();
     let len = bytes.len();
 
-    // Need at least: YYYY-MM-DD (v1.0)  = 10 + 1 + 3 + ... = at least 17 chars
-    if len < 17 {
+    // F-S2107-P1C-014: minimum valid pattern is `YYYY-MM-DD (v1)` = 15 bytes
+    // (single-digit outer version with no sub-version suffix). The old guard
+    // `len < 17` rejected valid 15-byte strings. New threshold: 14 (strictly
+    // less than 15 = minimum valid). All subsequent bounds checks are safe for
+    // len ≥ 14 because they iterate with `pos < len` guards throughout.
+    if len < 14 {
         return None;
     }
 
@@ -448,6 +452,67 @@ mod tests {
         assert!(
             violations[0].description.contains("[Class E2]"),
             "violation must cite [Class E2]"
+        );
+    }
+
+    // -----------------------------------------------------------------------
+    // F-S2107-P1C-014: 15-byte last_amended string rejected by length guard.
+    // BC-5.39.010 v1.3 §E1: "2026-07-30 (v2)" is a valid last_amended format
+    // (single-digit outer version, no sub-version suffix). The string is 15 bytes.
+    // Current code: `if len < 17 { return None }` — 15 < 17 → returns None.
+    // Returns None → advisory "unparseable format" fires → exit 2.
+    // Expected: extract Some("2"), match BC version "2", exit 0, no advisory.
+    // -----------------------------------------------------------------------
+
+    /// T-045 (Rust unit test): 15-byte last_amended must parse to Some("2") (F-S2107-P1C-014).
+    ///
+    /// RED GATE: `if len < 17 { return None }` → 15 < 17 → returns None.
+    /// assert_eq!(result, Some("2".to_string())) FAILS → RED gate.
+    /// After fix (lower threshold to 14): returns Some("2") → PASSES.
+    #[test]
+    fn test_BC_5_39_010_class_e1_15_byte_last_amended_accepted() {
+        // "2026-07-30 (v2)" is exactly 15 bytes: 10 + 1 + 1 + 1 + 1 + 1 = 15
+        let s = "2026-07-30 (v2)";
+        assert_eq!(s.len(), 15, "precondition: string must be 15 bytes");
+
+        let result = extract_last_amended_outer_version(s);
+        assert_eq!(
+            result,
+            Some("2".to_string()),
+            "15-byte last_amended '2026-07-30 (v2)' must parse to outer version '2'. \
+            BC-5.39.010 v1.3 §E1 single-digit outer versions are valid (F-S2107-P1C-014). \
+            Red Gate: current `if len < 17 {{return None}}` rejects 15-byte strings → None"
+        );
+    }
+
+    // -----------------------------------------------------------------------
+    // F-S2107-P1C-015: run_arm_e1 returns (vec![], vec![]) when version present
+    // but last_amended field absent — silently passes instead of emitting advisory.
+    // BC-5.39.010 v1.3 §E1: when version: is present, last_amended: must also be
+    // present. If absent, an advisory MUST be emitted (not a silent pass).
+    // -----------------------------------------------------------------------
+
+    /// F-S2107-P1C-015: absent last_amended when version present must emit advisory.
+    ///
+    /// RED GATE: current code returns `(vec![], vec![])` on None from
+    /// `extract_frontmatter_field(content, "last_amended")` — no advisory emitted.
+    /// `assert!(!advisories.is_empty())` FAILS → RED gate.
+    /// After fix (return advisory when last_amended missing but version present):
+    /// advisory vector non-empty → PASSES.
+    #[test]
+    fn test_BC_5_39_010_class_e1_absent_last_amended_emits_advisory() {
+        // BC file with version but NO last_amended field
+        let content = "---\nversion: \"1.6\"\nstatus: draft\n---\n\nbody content\n";
+        let (violations, advisories) = run_arm_e1(content);
+        assert!(
+            violations.is_empty(),
+            "absent last_amended must not BLOCK — only advisory (F-S2107-P1C-015)"
+        );
+        assert!(
+            !advisories.is_empty(),
+            "absent last_amended when version present must emit advisory. \
+            BC-5.39.010 v1.3 §E1: both fields must be present (F-S2107-P1C-015). \
+            Red Gate: current code returns (vec![], vec![]) silently → advisory IS empty → FAILS"
         );
     }
 
