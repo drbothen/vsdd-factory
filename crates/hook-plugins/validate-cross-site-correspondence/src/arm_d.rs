@@ -266,47 +266,82 @@ pub fn class_d_advisory_message(token: &str, line: &str, section: &str, file: &s
 ///
 /// # BC trace
 /// BC-5.39.010 preconditions 28-33; postconditions 16-18; invariant 6.
+/// Scan tokens after a keyword match in `line`, appending advisories.
+///
+/// `keyword_pos` is the byte offset where the keyword starts in `line`.
+/// `keyword_len` is the byte length of the keyword (including the colon).
+fn scan_tokens_after_keyword(
+    line: &str,
+    keyword_pos: usize,
+    keyword_len: usize,
+    file_path: &str,
+    advisories: &mut Vec<Advisory>,
+) {
+    let after_colon = &line[keyword_pos + keyword_len..];
+    for raw_token in after_colon.split(|c: char| c == ',' || c.is_whitespace()) {
+        let token = raw_token.trim_matches(|c: char| !c.is_ascii_alphanumeric() && c != '-');
+        if token.is_empty() {
+            continue;
+        }
+        if !is_finding_like(token) {
+            continue;
+        }
+        if is_excluded_namespace(token) {
+            continue;
+        }
+        if token.starts_with("F-") {
+            continue;
+        }
+        let msg = class_d_advisory_message(token, line, "Closes/Refs section", file_path);
+        advisories.push(Advisory { message: msg });
+    }
+}
+
+/// Find the next occurrence of `keyword` in `lower` at a word boundary.
+///
+/// F-S2107-P1C-020: `.contains("closes:")` false-triggers on "discloses:" and
+/// "forecloses:". A word boundary before "closes" requires the preceding character
+/// to be non-alphanumeric.
+fn find_keyword_word_boundary(lower: &str, keyword: &str, start: usize) -> Option<usize> {
+    let mut search_from = start;
+    while let Some(rel) = lower[search_from..].find(keyword) {
+        let abs = search_from + rel;
+        let wb_ok = abs == 0 || {
+            let prev = lower[..abs].chars().last().unwrap_or('\0');
+            !prev.is_ascii_alphanumeric()
+        };
+        if wb_ok {
+            return Some(abs);
+        }
+        search_from = abs + 1;
+    }
+    None
+}
+
 pub fn run_arm_d(scoped_region: &str, file_path: &str) -> Vec<Advisory> {
     let mut advisories = Vec::new();
 
     for line in scoped_region.lines() {
-        // Only process lines that contain Closes: or Refs:
         let lower = line.to_ascii_lowercase();
-        if !lower.contains("closes:") && !lower.contains("refs:") {
+
+        // PC31 was amended to bold-markdown form `**Closes:**` / `**Refs:**`.
+        // Apply BOTH independently as UNION (not else-if) so a single line
+        // `**Closes:** F-X | **Refs:** B01` scans tokens from both keywords.
+        //
+        // F-S2107-P1C-020: word-boundary check prevents "discloses:" / "forecloses:"
+        // from matching. Only standalone "closes:" (preceded by non-alphanumeric) fires.
+        let closes_pos = find_keyword_word_boundary(&lower, "closes:", 0);
+        let refs_pos = find_keyword_word_boundary(&lower, "refs:", 0);
+
+        if closes_pos.is_none() && refs_pos.is_none() {
             continue;
         }
 
-        // Find the colon position and take tokens after it
-        // Find the first occurrence of "closes:" or "refs:" (case-insensitive)
-        let after_colon = if let Some(pos) = lower.find("closes:") {
-            &line[pos + 7..]
-        } else if let Some(pos) = lower.find("refs:") {
-            &line[pos + 5..]
-        } else {
-            continue;
-        };
-
-        // Split by whitespace and commas to extract tokens
-        for raw_token in after_colon.split(|c: char| c == ',' || c.is_whitespace()) {
-            let token = raw_token.trim_matches(|c: char| !c.is_ascii_alphanumeric() && c != '-');
-            if token.is_empty() {
-                continue;
-            }
-            // Skip if not finding-like
-            if !is_finding_like(token) {
-                continue;
-            }
-            // Skip if excluded namespace
-            if is_excluded_namespace(token) {
-                continue;
-            }
-            // Skip if starts with F-
-            if token.starts_with("F-") {
-                continue;
-            }
-            // This token is finding-like, not excluded, and not F- → advisory
-            let msg = class_d_advisory_message(token, line, "Closes/Refs section", file_path);
-            advisories.push(Advisory { message: msg });
+        if let Some(pos) = closes_pos {
+            scan_tokens_after_keyword(line, pos, 7, file_path, &mut advisories);
+        }
+        if let Some(pos) = refs_pos {
+            scan_tokens_after_keyword(line, pos, 5, file_path, &mut advisories);
         }
     }
     advisories
@@ -533,6 +568,35 @@ mod tests {
         assert!(
             !advisories.iter().any(|a| a.message.contains("P45-001")),
             "historical P45-001 (outside scope window) must NOT produce advisory"
+        );
+    }
+
+    // -----------------------------------------------------------------------
+    // F-S2107-P1C-020: run_arm_d uses line.to_lowercase().contains("closes:")
+    // which also matches "discloses:" and "forecloses:". A burst-log narrative
+    // saying "this commit discloses: <token> ..." would generate a spurious
+    // advisory for <token> if it is finding-like.
+    // BC-5.39.010 v1.3 §D precondition 31: only lines starting with "Closes:"
+    // or "Refs:" (case-insensitive) are scanned for finding tokens.
+    // -----------------------------------------------------------------------
+
+    /// F-S2107-P1C-020: line with "discloses:" must NOT trigger Class D advisory.
+    ///
+    /// RED GATE: `contains("closes:")` matches "discloses: A01 as described."
+    /// Finding-like "A01" is extracted → advisory fires.
+    /// assert!(advisories.is_empty()) FAILS → RED gate.
+    /// After fix (starts_with or line-start anchor on "closes:"): skipped → PASSES.
+    #[test]
+    fn test_BC_5_39_010_class_d_discloses_not_false_positive() {
+        // "discloses:" contains "closes:" as a substring — must NOT match
+        // "A01" is finding-like (alpha start, digit end) and not an excluded prefix
+        let region = "This commit discloses: A01 as described above.\n";
+        let advisories = run_arm_d(region, "burst-log.md");
+        assert!(
+            advisories.is_empty(),
+            "line with 'discloses:' must not trigger Class D advisory — only lines \
+            starting with 'Closes:' or 'Refs:' are scanned (F-S2107-P1C-020). \
+            Red Gate: contains('closes:') matches 'discloses:' → A01 advisory fires"
         );
     }
 
