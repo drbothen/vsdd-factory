@@ -62,13 +62,21 @@ pub fn parse_story_input_hash(story_content: &str) -> Option<String> {
 /// # BC trace
 /// BC-5.39.010 precondition 19 (B2 catalog row extraction).
 pub fn parse_story_index_catalog_hash(index_content: &[u8], story_id: &str) -> Option<String> {
+    // F-S2107-P1B-008: naive `contains(story_id)` matches rows WHERE story_id appears
+    // in depends_on/blocks columns (e.g. S-18.00's row contains "[S-18.01]"), returning
+    // the wrong row's hash. PC16: catalog lookup must anchor on the FIRST pipe-delimited
+    // cell — the row whose first cell is exactly the story_id.
     let content = std::str::from_utf8(index_content).ok()?;
     for line in content.lines() {
-        // Must be a table row (starts with |) containing story_id
+        // Must be a table row (starts with |)
         if !line.starts_with('|') {
             continue;
         }
-        if !line.contains(story_id) {
+        // First cell must be exactly the story_id (trim surrounding whitespace)
+        let mut cells = line.split('|');
+        cells.next(); // skip leading empty segment before first '|'
+        let first_cell = cells.next().map(|c| c.trim()).unwrap_or("");
+        if first_cell != story_id {
             continue;
         }
         // Extract `input-hash <hash>` from this row
