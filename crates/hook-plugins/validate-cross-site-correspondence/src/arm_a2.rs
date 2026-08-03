@@ -61,43 +61,74 @@ pub fn extract_story_bc_version_citations(content: &str, bc_id: &str) -> Vec<(St
     citations
 }
 
-/// Extract a version token `vN.N` or `vN.NN` from a table row string.
-/// Hand-rolled — no regex crate.
-/// Returns the version number without the leading `v`.
+/// Extract a version token `v?N.N` or `v?N.NN` from a table row string.
+///
+/// Implements `\bv?([0-9]+\.[0-9]+)\b` semantics (PC13 amended): the `v` prefix
+/// is optional. Returns the version number without any leading `v`.
+///
+/// Per PC13 (LAST/rightmost pipe-field token): scans the entire line and returns
+/// the LAST matching token, not the first. This prevents spurious matches from
+/// BC ID fragments like "BC-5.39.010" (which contains "5.39") from masking the
+/// actual version column that appears later in the row.
+///
+/// Hand-rolled — no regex crate (ADR-035 §Decision 5 fuel-budget constraint).
 fn extract_version_token_from_table_row(line: &str) -> Option<String> {
     let bytes = line.as_bytes();
+    let mut last_match: Option<String> = None;
     let mut i = 0;
     while i < bytes.len() {
-        if bytes[i] == b'v' && i + 1 < bytes.len() && bytes[i + 1].is_ascii_digit() {
-            // Check previous char is not alphanumeric (word boundary at start)
-            let prev_ok = i == 0 || !bytes[i - 1].is_ascii_alphanumeric();
-            if !prev_ok {
-                i += 1;
+        // Word boundary check: preceding char must not be alphanumeric (F-S2107-P1B-002)
+        let prev_ok = i == 0 || !bytes[i - 1].is_ascii_alphanumeric();
+        if !prev_ok {
+            i += 1;
+            continue;
+        }
+
+        // Determine start of digit run (skip optional 'v' prefix per PC13)
+        let digit_start = if bytes[i] == b'v'
+            && i + 1 < bytes.len()
+            && bytes[i + 1].is_ascii_digit()
+        {
+            i + 1 // optional 'v' prefix; digit run starts at i+1
+        } else if bytes[i].is_ascii_digit() {
+            i // bare digit: digit run starts at i
+        } else {
+            i += 1;
+            continue;
+        };
+
+        // Scan the integer part of the version
+        let mut end = digit_start;
+        while end < bytes.len() && bytes[end].is_ascii_digit() {
+            end += 1;
+        }
+
+        // Require exactly one dot followed by at least one digit (N.N shape)
+        if end < bytes.len() && bytes[end] == b'.' {
+            let post_dot = end + 1;
+            if post_dot < bytes.len() && bytes[post_dot].is_ascii_digit() {
+                end = post_dot;
+                while end < bytes.len() && bytes[end].is_ascii_digit() {
+                    end += 1;
+                }
+                // Word boundary at end: next char must not be alphanumeric
+                let next_ok = end >= bytes.len() || !bytes[end].is_ascii_alphanumeric();
+                if next_ok {
+                    // All bytes in digit_start..end are ASCII digits or '.': safe slice
+                    last_match = Some(line[digit_start..end].to_string());
+                    i = end;
+                    continue;
+                }
+                // Not a word boundary: advance past the matched digit run's start
+                i = digit_start + 1;
                 continue;
             }
-            let start = i + 1; // skip 'v'
-            let mut end = start;
-            while end < bytes.len() && bytes[end].is_ascii_digit() {
-                end += 1;
-            }
-            if end < bytes.len() && bytes[end] == b'.' {
-                end += 1;
-                if end < bytes.len() && bytes[end].is_ascii_digit() {
-                    while end < bytes.len() && bytes[end].is_ascii_digit() {
-                        end += 1;
-                    }
-                    // Word boundary at end
-                    let next_ok = end >= bytes.len() || !bytes[end].is_ascii_alphanumeric();
-                    if next_ok {
-                        // Pure ASCII (digits and dot) — safe byte slice
-                        return Some(line[start..end].to_string());
-                    }
-                }
-            }
         }
-        i += 1;
+
+        // No valid N.N token starting here; advance one byte
+        i = digit_start + 1;
     }
-    None
+    last_match
 }
 
 /// Class A Arm2 check for a single BC, with the BC file read result as a seam.
@@ -379,5 +410,151 @@ mod tests {
         );
         assert!(violations.is_empty(), "NotFound BC must not block");
         assert!(!advisories.is_empty(), "NotFound BC must emit an advisory");
+    }
+
+    // -----------------------------------------------------------------------
+    // T-048 / F-S2107-P1B-002: bare version token (no `v` prefix) must be detected.
+    //
+    // The real S-21.07 Behavioral Contracts table row is:
+    //   | BC-5.39.010 | <title> | 1.3 | AC-001 through AC-021 |
+    //
+    // BC-5.39.010 v1.3 AC-017 (amended PC13) explicitly requires the version
+    // column in the Behavioral Contracts table to be treated as authoritative even
+    // without a `v` prefix. The production story file S-21.07 uses bare "1.3".
+    //
+    // Bug: `extract_version_token_from_table_row` only checks `bytes[i] == b'v'`.
+    // A bare "1.3" cell has no `v` byte at position 0, so the digit sequence is
+    // invisible → function returns None → zero citations for the story's own BC.
+    //
+    // This means the arm fires NO version check against BC-5.39.010 v1.3 when the
+    // story body references it — a complete silent bypass of the Arm A2 gate for
+    // the governing BC of this very plugin.
+    //
+    // After fix (optional `v?` prefix: check for bare digit start in addition to
+    // `b'v'` prefix): detect "1.3" → citation added → 1 citation returned.
+    //
+    // RED GATE: extract_version_token_from_table_row only matches b'v'; bare "1.3"
+    // returns None → citations.len() == 0 ≠ 1 → assertion FAILS.
+    // -----------------------------------------------------------------------
+
+    /// T-048 / F-S2107-P1B-002: bare version '1.3' in BC table row must be detected.
+    ///
+    /// RED GATE: extract_story_bc_version_citations returns 0 citations (bare version
+    /// invisible to extract_version_token_from_table_row). assert_eq!(len, 1) FAILS.
+    #[test]
+    fn test_BC_5_39_010_arm_a2_bare_version_bc_table_row_detected() {
+        // Production-shaped: matches the real S-21.07 Behavioral Contracts table row
+        // structure. Version cell is "1.3" with no leading `v`.
+        let content = "---\n\
+            behavioral_contracts: [BC-5.39.010]\n\
+            ---\n\
+            \n\
+            ## Behavioral Contracts\n\
+            \n\
+            | BC ID | Title | Version | ACs |\n\
+            | --- | --- | --- | --- |\n\
+            | BC-5.39.010 | WASM hook cross-site correspondence gate | 1.3 | AC-001 through AC-021 |\n";
+
+        let citations = extract_story_bc_version_citations(content, "BC-5.39.010");
+
+        assert_eq!(
+            citations.len(),
+            1,
+            "bare version '1.3' in Behavioral Contracts table row must be detected. \
+            F-S2107-P1B-002: extract_version_token_from_table_row only checks bytes[i]==b'v', \
+            silently skipping bare version cells. Current citations: {:?}",
+            citations
+        );
+        if citations.len() == 1 {
+            assert_eq!(
+                citations[0].1, "1.3",
+                "extracted version must be '1.3' (without v prefix)"
+            );
+        }
+    }
+
+    // -----------------------------------------------------------------------
+    // T-049 / F-S2107-P1B-001: scan must be bounded to the Behavioral Contracts
+    // section; Edge Cases table rows must NOT be scanned.
+    //
+    // Current bug: `extract_story_bc_version_citations` scans ALL lines that
+    // contain both bc_id and a pipe character. In the real S-21.07 story file,
+    // the Edge Cases table contains rows like:
+    //
+    //   EC-002: "BC bumped v1.17→v1.18; INDEX says v1.17" in col 2, "BC-5.39.010 EC-002" in col 4
+    //   EC-015: "BC written `version: "1.33"`, `last_amended: "... (v1.31) ..."` " in col 2,
+    //           "BC-5.39.010 EC-015" in col 4
+    //   EC-017: "modified: ["2026-05-14", "2026-05-18", "2026-05-20 (v1.3)"]" in col 2,
+    //           "BC-5.39.010 EC-017" in col 4
+    //
+    // All three rows pass the "contains bc_id" check (last cell has "BC-5.39.010 EC-NNN").
+    // All three rows have version tokens in other columns (v1.17, v1.31, v1.3 respectively).
+    // The unbounded scan therefore picks up spurious "stale version" citations from
+    // descriptive content, leading to false-positive blocking violations.
+    //
+    // The fix (amended PC13): scan is bounded to the `## Behavioral Contracts`
+    // and `## Token Budget` sections only; scanning stops at the next `##` heading.
+    //
+    // Additionally the v? prefix fix (T-048) is needed to detect the actual BC table
+    // row — in this test we use a v-prefixed version "v1.3" in the BC table row
+    // to isolate the section-bounding issue from the bare-version issue.
+    //
+    // After fix (section-bounded + optional v?):
+    //   - Only the `## Behavioral Contracts` section is scanned
+    //   - BC table row (v1.3) → 1 citation
+    //   - EC-002, EC-015, EC-017 rows NOT scanned → 0 spurious citations
+    //   - Total: exactly 1 citation
+    //
+    // RED GATE: unbounded scan hits BC table + EC-002 + EC-015 (all contain BC-5.39.010
+    // and a version token) → 3 citations → assert_eq!(citations.len(), 1) FAILS.
+    // -----------------------------------------------------------------------
+
+    /// T-049 / F-S2107-P1B-001: Edge Cases rows must not be scanned.
+    ///
+    /// RED GATE: unbounded scan returns ≥3 citations (BC table + EC-002 + EC-015).
+    /// assert_eq!(citations.len(), 1) FAILS.
+    #[test]
+    fn test_BC_5_39_010_arm_a2_edge_cases_rows_not_scanned_section_bounded() {
+        // Production-shaped content from S-21.07 — v-prefixed version in the BC table
+        // row to isolate the section-bounding defect from the bare-version defect (T-048).
+        // EC-002 and EC-015 rows carry BC-5.39.010 in the last column (Source cell)
+        // plus incidental version tokens in the scenario description column.
+        let content = "---\n\
+            behavioral_contracts: [BC-5.39.010]\n\
+            ---\n\
+            \n\
+            ## Behavioral Contracts\n\
+            \n\
+            | BC ID | Title | Version | ACs |\n\
+            | --- | --- | --- | --- |\n\
+            | BC-5.39.010 | WASM hook cross-site correspondence gate | v1.3 | AC-001 through AC-021 |\n\
+            \n\
+            ## Edge Cases\n\
+            \n\
+            | ID | Scenario | Expected | Source |\n\
+            | --- | --- | --- | --- |\n\
+            | EC-002 | BC bumped v1.17\u{2192}v1.18; INDEX says v1.17 | Block: Class A Arm1 | BC-5.39.010 EC-002 |\n\
+            | EC-015 | BC written `version: \"1.33\"`, `last_amended: \"... (v1.31) ...\"` | Block: Class E1 | BC-5.39.010 EC-015 |\n\
+            | EC-017 | modified: [\"2026-05-14\", \"2026-05-18\", \"2026-05-20 (v1.3)\"] | Part E passes | BC-5.39.010 EC-017 |\n";
+
+        let citations = extract_story_bc_version_citations(content, "BC-5.39.010");
+
+        // After fix: exactly 1 citation from the ## Behavioral Contracts section row.
+        // Currently (unbounded): BC table row (v1.3) + EC-002 (v1.17) + EC-015 (v1.31)
+        // + EC-017 (v1.3) = 4 citations. assert_eq! FAILS.
+        assert_eq!(
+            citations.len(),
+            1,
+            "Edge Cases table rows must NOT produce BC version citations. \
+            F-S2107-P1B-001: unbounded scan yields spurious citations from EC-002 (v1.17), \
+            EC-015 (v1.31), and EC-017 (v1.3). Current citations: {:?}",
+            citations
+        );
+        if citations.len() == 1 {
+            assert_eq!(
+                citations[0].1, "1.3",
+                "only the Behavioral Contracts table row citation must be returned"
+            );
+        }
     }
 }
