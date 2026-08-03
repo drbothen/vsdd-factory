@@ -15,7 +15,8 @@
 //! ## E2 — modified[] date sequence monotonicity
 //! Fires on BC, VP, story, and epic file writes. Extracts the `modified:` sequence,
 //! strips annotation suffixes (e.g., `(v1.1)` → strip to `YYYY-MM-DD`), and verifies
-//! dates are strictly ascending.
+//! dates are non-decreasing (monotonic). Equal dates (same-day entries) are permitted;
+//! only a genuine decrease triggers a violation.
 //!
 //! # Block semantics
 //! Both E1 and E2 violations are blocking. A single file write may trigger both.
@@ -190,9 +191,13 @@ pub fn run_arm_e1(content: &str) -> (Vec<Violation>, Vec<Advisory>) {
 /// Class E2 check: modified[] sequence monotonicity.
 ///
 /// Returns a `Vec<Violation>` (0 or more entries):
-/// - Empty: dates are strictly ascending after suffix strip.
-/// - One violation: first out-of-order pair found (block on first violation).
+/// - Empty: dates are non-decreasing (monotonic) after suffix strip. Equal dates are
+///   permitted — same-day entries (multiple bursts in one day) are the normal cadence.
+/// - One violation: first genuine decrease found (block on first violation).
 ///   Message must contain `[Class E2]` and identify the non-monotonic pair.
+///
+/// The relation checked is `∀i: date[i] ≤ date[i+1]`. Only a genuine decrease
+/// (`date[i+1] < date[i]`) is a violation; equality is allowed.
 ///
 /// # BC trace
 /// BC-5.39.010 precondition 38 (suffix strip); postconditions 22-23.
@@ -206,16 +211,19 @@ pub fn run_arm_e2(content: &str) -> Vec<Violation> {
 
     let dates: Vec<String> = modified.iter().map(|e| strip_date_annotation(e)).collect();
 
-    // Verify strictly ascending: each date must be > previous
+    // Verify non-decreasing (monotonic): each date must be >= previous.
+    // Equal dates are permitted (same-day entries are normal).
+    // Only a genuine decrease (curr < prev) is a violation.
     for window in dates.windows(2) {
         let prev = &window[0];
         let curr = &window[1];
-        // Lexicographic comparison works for YYYY-MM-DD dates
-        if curr <= prev {
+        // Lexicographic comparison works for YYYY-MM-DD dates.
+        if curr < prev {
             return vec![Violation {
                 description: format!(
-                    "validate-cross-site-correspondence [Class E2]: modified[] sequence is not \
-                    strictly ascending — '{curr}' ≤ '{prev}'. Dates must be in ascending order. \
+                    "validate-cross-site-correspondence [Class E2]: modified[] sequence is \
+                    non-monotonic — '{curr}' is earlier than preceding '{prev}'. \
+                    Dates must be in non-decreasing order (equal dates are permitted). \
                     POLICY 14 leg 4."
                 ),
             }];
@@ -402,6 +410,44 @@ mod tests {
         assert!(
             violations.is_empty(),
             "strictly ascending modified[] must not block"
+        );
+    }
+
+    /// E2 boundary CONTROL: equal dates (same-day entries) must be permitted.
+    ///
+    /// BC-5.39.010 specifies monotonicity (`∀i: date[i] ≤ date[i+1]`) — equality is
+    /// allowed. Multiple bursts per day is the normal cadence; blocking on equal dates
+    /// would fire on nearly every multi-burst day and render the gate useless.
+    ///
+    /// Without this test, `curr <= prev` (strict) silently re-passes all existing tests
+    /// yet breaks on real-world same-day entries.
+    #[test]
+    fn test_BC_5_39_010_class_e2_equal_dates_permitted() {
+        // ["2026-05-14", "2026-05-14"] — same day, two bursts — monotonic by ≤
+        let content = "---\nmodified:\n  - \"2026-05-14\"\n  - \"2026-05-14\"\n---\nbody\n";
+        let violations = run_arm_e2(content);
+        assert!(
+            violations.is_empty(),
+            "equal dates (same-day entries) must not trigger E2 — \
+            monotonicity allows equality (∀i: date[i] ≤ date[i+1])"
+        );
+    }
+
+    /// E2 boundary MUTANT: genuine decrease must still block.
+    ///
+    /// Confirms that changing `<=` to `<` did not accidentally allow genuine decreases.
+    #[test]
+    fn test_BC_5_39_010_class_e2_genuine_decrease_blocks() {
+        // ["2026-05-18", "2026-05-14"] — date goes backward — non-monotonic → block
+        let content = "---\nmodified:\n  - \"2026-05-18\"\n  - \"2026-05-14\"\n---\nbody\n";
+        let violations = run_arm_e2(content);
+        assert!(
+            !violations.is_empty(),
+            "genuine decrease (2026-05-14 after 2026-05-18) must block"
+        );
+        assert!(
+            violations[0].description.contains("[Class E2]"),
+            "violation must cite [Class E2]"
         );
     }
 

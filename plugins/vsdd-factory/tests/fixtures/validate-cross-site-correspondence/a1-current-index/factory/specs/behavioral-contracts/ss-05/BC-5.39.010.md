@@ -8,7 +8,7 @@ section: "5.39"
 last_amended: "2026-01-01 (v1.6) — test fixture: A1 current-index control"
 modified:
   - "2026-01-01"
-  - "2026-06-01 (v1.6)"
+  - "2026-01-01 (v1.6)"
 ---
 
 # BC-5.39.010: test fixture for A1 current-index control
