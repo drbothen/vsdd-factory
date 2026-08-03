@@ -22488,5 +22488,5 @@ POLICY 18 three-way hash equality SATISFIED: frontmatter=`52f0bf3` / catalog=`52
 - F-S2107-P1C-016 MEDIUM: adversary-hash-corpus scope gap (composite 3-scope dispatch)
 
 **factory-artifacts commits (this burst — TD-VSDD-053 single-commit):**
-- Single-commit: `[this-commit]` — D-949 S-21.07 pass-1 fix burst PARTIAL: policies.yaml POLICY 19 fix + BC-INDEX v4.44 + STORY-INDEX v4.278 + cycle files + STATE.md v6.79→v6.80
+- Single-commit: `89c2e8ee` — D-949 S-21.07 pass-1 fix burst PARTIAL: policies.yaml POLICY 19 fix + BC-INDEX v4.44 + STORY-INDEX v4.278 + cycle files + STATE.md v6.79→v6.80
 
