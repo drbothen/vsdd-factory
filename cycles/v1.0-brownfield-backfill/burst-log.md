@@ -22364,3 +22364,129 @@ No BC body content, ADR rationale text, VP prose, or story AC content was author
 - SHA-patch: `cd777074` — Active Branches + CPS row Commit E SHA update (1e4fe0e4)
 - Follow-up: this-commit — 3 orchestration process lessons + D-947 decision-log lesson-set extension note
 
+---
+
+## D-949 — S-21.07 PASS-1-FIX-BURST-PARTIAL 2026-08-03
+
+### Block 1: Parent-commit
+
+Pre-burst parent-commit (factory-artifacts): `a68a8b73` (cycle(S-21.07): adversary pass-1 record — NOT-CLEAN B7/H19/M13/L8; INDEX S-21.07 section; pass-30 D-947 staleness corrected).
+
+### Block 2: Adversary verdict (D-448(a) gate)
+
+**Adversary:** `vsdd-factory:adversary` (claude-sonnet-4-6; composite 3-scope fresh-context dispatch after 5 background failures; pass-1; DISPATCH-SHAPE DEVIATION per ADR-033 — synchronous 3-scoped dispatch; cross-family independence absent; information asymmetry intact per scope). Reviewed HEAD `db381c1b` (develop base `948f0fb1`). **Verdict: NOT-CLEAN** · B7/H19/M13/L8 = 47 findings (pre-dedup) · 3 confirmed dedup pairs (P1B-011↔P1C-003, P1B-015↔P1C-013, P1-008↔P1C-018) · Streak: 0/3.
+
+**Part A — Prior pass closure verification:** Pass-1 is the FIRST pass; no prior S-21.07 adversary pass. Part A reviews the three session-carry-forwards from S-21.07 delivery: A1 (vacuous bats `_assert_plugin_ran_not_crashed` — PARTIAL; spawns F-S2107-P1-001); A2 (false "accepted per session context" claim — CLOSED); A3 (E2 monotonicity polarity — CLOSED unverified count; spawns F-S2107-P1-007 spec gap).
+
+**Part B — 47 new findings (pre-dedup):** Scope A (B0/H4/M4/L2): F-S2107-P1-001..010. Scope B (B4/H7/M4/L2): F-S2107-P1B-001..017. Scope C (B3/H8/M5/L4): F-S2107-P1C-001..019. BLOCKER-class root cause: extractors written against synthetic fixtures (not production artifact shape); path allow-list overly broad; read-before-classify with global cap.
+
+**D-448(a) source-attestation gate (literal shell):**
+```
+$ grep -E "^verdict:|^findings_count:|^severity_breakdown:|dispatch_shape:" .factory/cycles/v1.0-brownfield-backfill/S-21.07/adversary-pass-1.md | head -10
+verdict: NOT-CLEAN
+findings_count: 47
+severity_breakdown: "B7/H19/M13/L8"
+dispatch_shape: "COMPOSITE — union of three scoped fresh-context reviewers (Scope A/B/C); synchronous dispatch after 5 background failures"
+```
+
+**State-manager-owned findings closed this burst:** F-S2107-P1C-009 HIGH (BC-INDEX changelog backfill + body row v1.3); F-S2107-P1C-010 HIGH (POLICY 19 YAML type fix). STORY-INDEX POLICY 18 three-way hash propagation (not a numbered finding but mandatory POLICY 18 compliance). Remaining B/H/M/L findings closed by specialists on feature/S-21.07. 5 open items carried to pass-2 (4 bats failures + F-S2107-P1C-016 MEDIUM).
+
+### Block 3: Files touched
+
+| File | Change | Agent |
+|------|--------|-------|
+| `crates/hook-plugins/validate-cross-site-correspondence/src/` | F-P1C-001 path allow-list tightening; F-P1B-001 edge-case table extractor production fixture; F-P1B-002 bare-version-token A2 extractor fix; F-P1B-003 B3 leg `starts_with` → within-line; F-P1B-004 `find('=')` offset fix; F-P1B-005 `is_bc_file` BC-INDEX.md admission guard; F-P1C-002 classify-first pattern; HIGH/MEDIUM/LOW findings | implementer (feature/S-21.07) |
+| `plugins/vsdd-factory/hook-plugins/validate-cross-site-correspondence.wasm` | rebuilt WASM after implementer source fixes (216KB) | implementer (feature/S-21.07) |
+| `.factory/specs/behavioral-contracts/ss-05/BC-5.39.010.md` | v1.2→v1.3: title `non-monotonicity`→`date-decrease`; 7-arm schema (six blocking + one advisory); POLICY 7 H1 parity | product-owner (feature/S-21.07) |
+| `.factory/stories/S-21.07-validate-cross-site-correspondence.md` | v1.1→v1.2: 31 ECs (was 29); seven-arm; BC-5.39.010 v1.3 pin | story-writer (feature/S-21.07) |
+| `.factory/policies.yaml` | F-S2107-P1C-010 (Commit this-burst): POLICY 19 scope field `behavioral-contracts traceability rows` (bare scalar) → `[behavioral-contracts-traceability-rows]` (proper YAML sequence); field ordering normalized; version v1.4.18→v1.4.19 | SM (this-commit) |
+| `.factory/specs/behavioral-contracts/BC-INDEX.md` | F-S2107-P1C-009 (Commit this-burst): version v4.43→v4.44; last_amended prepend v4.44; changelog backfill (v4.42: D-945 arc record; v4.43: D-947 pass-30 fix-burst); BC-5.39.010 body table row title `non-monotonicity`→`date-decrease` + `v1.2`→`v1.3` | SM (this-commit) |
+| `.factory/stories/STORY-INDEX.md` | POLICY 18 three-way hash propagation (Commit this-burst): version v4.277→v4.278; epic blockquote line 719 BC-5.39.010 v1.2→v1.3 + five-arm→seven-arm; catalog row line 730 input-hash 8ba2a75→52f0bf3 + BC-5.39.010 v1.2→v1.3 + five-arm→seven-arm + 29 ECs→31 ECs + story v1.1→v1.2; delivery blockquote line 732 S-21.07=8ba2a75→52f0bf3; BC-coverage blockquote line 733 BC-5.39.010 v1.2→v1.3 + five-arm→seven-arm | SM (this-commit) |
+| `.factory/cycles/v1.0-brownfield-backfill/decision-log.md` | D-949 block appended (this-commit) | SM (this-commit) |
+| `.factory/cycles/v1.0-brownfield-backfill/lessons.md` | 2 L-BB lessons appended: L-BB-red-gate-completeness-only-attests-to-what-it-encodes; L-BB-yaml-bare-scalar-silently-corrupts-sequence-fields (this-commit) | SM (this-commit) |
+| `.factory/cycles/v1.0-brownfield-backfill/INDEX.md` | S-21.07 pass-1 row status: UNFIXED→PARTIAL D-949; Convergence Status: 5 open items listed (this-commit) | SM (this-commit) |
+| `.factory/STATE.md` | v6.79→v6.80; pipeline ACTIVE; frontmatter D-949-S-21.07-PASS-1-FIX-BURST-PARTIAL; Phase Progress D-949 row; Current Phase; Last Updated; Current Phase Steps D-949 row (replace D-948); Decisions Log D-949 row; Concurrent Cycles tail LENGTH=4; SRC refresh (this-commit) | SM (this-commit) |
+| `.factory/cycles/v1.0-brownfield-backfill/burst-log.md` | this entry (this-commit) | SM (this-commit) |
+
+### Block 4: Codifications
+
+| Decision / Lesson | Summary |
+|-------------------|---------|
+| D-949 | S-21.07 pass-1 fix burst PARTIAL; 7/7 BLOCKERs closed (implementer); 2 HIGH SM findings closed (F-S2107-P1C-009 BC-INDEX; F-S2107-P1C-010 policies.yaml YAML type); STORY-INDEX POLICY 18 three-way hash propagation; 4 bats FAILING; 1 MEDIUM carried; 4-INDEX BC v4.43→v4.44 / STORY v4.277→v4.278 / VP+ARCH UNCHANGED; streak 0/3; pass-2 NEXT |
+| L-BB-red-gate-completeness-only-attests-to-what-it-encodes | Green CI only attests to what the Red Gate encoded; PARTIAL burst is correct when CI turns green on a subset while a known remaining subset is still failing; 4 bats failures (AC-005/T-037/AC-013 MUTANT, T-045 CONTROL) are pre-existing gaps, not regressions |
+| L-BB-yaml-bare-scalar-silently-corrupts-sequence-fields | Multi-word bare scalar on a sequence-typed YAML field corrupts the field silently; `scope:` fields in policies.yaml MUST use proper YAML sequence syntax `scope: [slug]` even for single-element sequences |
+
+### Block 5: Dim-2 attestations (literal shell per D-449(a))
+
+**(a) POLICY 16 GLOBAL-MAX GATE (literal shell stdout):**
+
+```
+$ grep -n "^## D-" .factory/cycles/v1.0-brownfield-backfill/decision-log.md | sort -t'-' -k2 -n | tail -3
+14255:## D-946
+14293:## D-947
+14367:## D-948
+```
+
+D-948 confirmed prior max → D-949 allocated.
+
+**(b) D-446(a) own-burst-log 8-block gate (literal shell stdout — scoped to D-949 entry):**
+
+```
+$ awk '/^## D-949/,0' .factory/cycles/v1.0-brownfield-backfill/burst-log.md | grep -c "^### Block [1-8]:"
+8
+```
+
+8 of 8 mandatory D-444(c) blocks confirmed present in this entry.
+
+**(c) D-448(a) source-attestation gate (literal shell stdout):**
+
+```
+$ grep -E "^verdict:|^findings_count:|^severity_breakdown:|dispatch_shape:" .factory/cycles/v1.0-brownfield-backfill/S-21.07/adversary-pass-1.md | head -10
+verdict: NOT-CLEAN
+findings_count: 47
+severity_breakdown: "B7/H19/M13/L8"
+dispatch_shape: "COMPOSITE — union of three scoped fresh-context reviewers (Scope A/B/C); synchronous dispatch after 5 background failures"
+```
+
+Burst-log Block 2 adversary verdict (NOT-CLEAN · B7/H19/M13/L8 = 47 findings · composite 3-scope) faithfully describes adversary-pass-1.md Part A+B finding set. No fabrication.
+
+**(d) POLICY 18 three-way hash equality gate (literal shell stdout — targeted per-line to avoid last_amended false-match):**
+
+```
+$ grep -m1 "^input-hash:" .factory/stories/S-21.07-validate-cross-site-correspondence.md
+input-hash: "52f0bf3"
+$ sed -n '730p' .factory/stories/STORY-INDEX.md | grep -oE 'input-hash [0-9a-f]+'
+input-hash 52f0bf3
+$ sed -n '732p' .factory/stories/STORY-INDEX.md | grep -oE 'S-21\.07=[0-9a-f]+'
+S-21.07=52f0bf3
+```
+
+POLICY 18 three-way hash equality SATISFIED: frontmatter=`52f0bf3` / catalog=`52f0bf3` / blockquote=`52f0bf3` — all three equal.
+
+### Block 6: Dim-5 attestation
+
+**Dim-5 (no regression introduced):** All implementer fixes target validate-cross-site-correspondence WASM hook source only. No changes to hook-sdk, factory-dispatcher, or other crates. Workspace CI green: 2360/0 tests. 4 known bats failures (AC-005 MUTANT, T-037 MUTANT, AC-013 MUTANT, T-045 CONTROL) are pre-existing gaps in Red Gate coverage, not regressions introduced by this burst. SM-owned edits (policies.yaml, BC-INDEX.md, STORY-INDEX.md, STATE.md, cycle files) are index/metadata updates with no code-path impact. POLICY 14 5-leg parity self-applied: BC-INDEX.md last_amended leg matches version bump; changelog backfill fills v4.42+v4.43 gap; STORY-INDEX three-way hash equality confirmed `52f0bf3==52f0bf3==52f0bf3` per Dim-2 gate.
+
+### Block 7: Dim-6/7 attestations
+
+**Dim-6 (no spec conflicts introduced):** State-manager edits are index/metadata updates, changelog backfills, and YAML type corrections. BC-5.39.010 v1.3 (product-owner) and S-21.07 v1.2 (story-writer) are specialist-authored artifacts; SM records them in indexes only. POLICY 19 `scope:` field correction is a YAML type fix that restores the declared intent (the bare scalar `behavioral-contracts traceability rows` was never the intended semantics; the fix changes YAML type to match the intended sequence). No new spec content authored by state-manager. No conflicts with existing specs introduced.
+
+**Dim-7 (non-fabrication attestation):** All finding descriptions in Block 2 derive from authoritative adversary-pass-1.md as authored by the three scoped adversary agents (orchestrator-transcribed per POLICY 22). D-448(a) source-attestation gate in Dim-2(c) confirms verdict/count/severity against adversary-pass-1.md frontmatter via literal shell grep. No INDEX.md leads or speculative content used. POLICY 18 gate in Dim-2(d) independently confirms three-way hash equality. No finding IDs, severities, or policy cites modified from the adversary-authored record.
+
+### Block 8: Closes + factory-artifacts commits
+
+**Findings closed this burst (state-manager scope):**
+- F-S2107-P1C-009 HIGH: CLOSED — BC-INDEX.md v4.43→v4.44; changelog backfill (v4.42 D-945, v4.43 D-947); BC-5.39.010 body row title `non-monotonicity`→`date-decrease` + v1.2→v1.3 (POLICY 7 H1 parity); SM (this-commit)
+- F-S2107-P1C-010 HIGH: CLOSED — policies.yaml POLICY 19 `scope:` bare scalar → proper YAML sequence `[behavioral-contracts-traceability-rows]`; v1.4.18→v1.4.19; SM (this-commit)
+
+**Findings closed by specialists (feature/S-21.07 branch, attributed):**
+- F-P1C-001 BLOCKER, F-P1B-001 BLOCKER, F-P1B-002 BLOCKER, F-P1B-003 BLOCKER, F-P1B-004 BLOCKER, F-P1B-005 BLOCKER, F-P1C-002 BLOCKER: CLOSED — implementer (feature/S-21.07)
+- Majority of H/M/L findings: CLOSED — implementer, product-owner, story-writer, test-writer (feature/S-21.07)
+
+**Carried to pass-2 (5 items):**
+- AC-005 MUTANT, T-037 MUTANT, AC-013 MUTANT, T-045 CONTROL: bats test failures (Red Gate coverage gap)
+- F-S2107-P1C-016 MEDIUM: adversary-hash-corpus scope gap (composite 3-scope dispatch)
+
+**factory-artifacts commits (this burst — TD-VSDD-053 single-commit):**
+- Single-commit: `[this-commit]` — D-949 S-21.07 pass-1 fix burst PARTIAL: policies.yaml POLICY 19 fix + BC-INDEX v4.44 + STORY-INDEX v4.278 + cycle files + STATE.md v6.79→v6.80
+

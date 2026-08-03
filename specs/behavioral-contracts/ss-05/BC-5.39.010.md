@@ -1,7 +1,7 @@
 ---
 document_type: behavioral-contract
 level: L3
-version: "1.2"
+version: "1.3"
 status: draft
 producer: product-owner
 timestamp: 2026-07-30T00:00:00Z
@@ -15,7 +15,8 @@ inputs:
   - .factory/cycles/v1.0-feature-engine-discipline-pass-1/adv-cycle-pass-28.md
   - .factory/cycles/v1.0-feature-engine-discipline-pass-1/adv-cycle-pass-29.md
   - .factory/cycles/v1.0-feature-engine-discipline-pass-1/adv-cycle-pass-30.md
-input-hash: "eabe4f0"
+  - .factory/cycles/v1.0-brownfield-backfill/S-21.07/adversary-pass-1.md
+input-hash: "b7691c2"
 traces_to: .factory/cycles/v1.0-feature-engine-discipline-pass-1/decision-log.md
 extracted_from: null
 origin: brownfield
@@ -25,7 +26,9 @@ lifecycle_status: draft
 introduced: v1.0-feature-engine-discipline-pass-1
 modified:
   - "2026-07-30"
+  - "2026-07-30 (v1.1)"
   - "2026-07-30 (v1.2)"
+  - "2026-07-30 (v1.3)"
 deprecated: null
 deprecated_by: null
 replacement: null
@@ -34,10 +37,10 @@ removed: null
 removal_reason: null
 bc_id: BC-5.39.010
 section: "5.39"
-last_amended: "2026-07-30 (v1.2) — Registry entry corrected: tools = [...] array replaced with tool = \"^(Edit|Write|MultiEdit)$\" regex string (field name singular + MultiEdit added; POLICY 13 ESCAPE-SCOPE-PARITY). Fuel-exhaustion note added to Gate Specifications per ADR-035 §Decision 5. BC-version-pin datum-copy ruling added to Postconditions §Part A Arm2. (product-owner.) [Prior: 2026-07-30 (v1.1) — Part A Arm2 (story-file-side trigger) added; advisory rationales made explicit for every advisory arm; Class D tokenizer namespace-exclusion list added (D-, S-, BC-, VP-, R-, L-, ADR-, EC-, NFR-, ASM-, FM-); EC-024 rationale corrected; Class A coverage-gap routing replaced with correctly-sized latency-gap explanation; Invariant 11 (fabricated vs stale hash provenance) added; EC-026/027/028/029 added; Gate Spec updated with run_part_a_arm2; VP table extended to 17 entries. (product-owner; coordinator review.) [Prior: 2026-07-30 (v1.0) — Initial authoring (product-owner; pre-pass-30 fix-burst). BC-5.39.010 allocated after BC-5.39.009. input-hash d248fc3 per hook-authoritative marketplace binary. lifecycle_status: draft.]]"
+last_amended: "2026-07-30 (v1.3) — PC13: bounding section added (scan confined to ##Behavioral Contracts + ##Token Budget sections; ≥9 spurious blocks from Edge Cases rows eliminated); dual version-token format (\\bv?([0-9]+\\.[0-9]+)\\b covers both bare 1.2 and v-prefixed v1.2); LAST rightmost pipe-field algorithm stated. PC31: bold-markdown form (**Closes:**/**Refs:**) required to match D-444(c) real burst-log format; union scan not else-if. PC38 + postcondition 21: non-decreasing relation (∀i: date[i] ≤ date[i+1]); equal same-day dates PERMITTED; EC-030/031 + test vectors added. Amendment 4: no spec change — PC29 (2 MiB) and PC33 (NotFound advisory+Continue on cycle artifact) already unambiguous; fault is purely implementational. PC32: O- deliberately non-excluded per D-449(d)(i); ruling made explicit. POLICY 14 five-leg parity; v1.1 modified[] entry restored (missing since initial authoring — irony: this hook checks modified[] monotonicity but not modified[]↔Changelog row correspondence, so it structurally cannot catch this defect in its own governing BC). (product-owner.) [Prior: 2026-07-30 (v1.2) — Registry entry corrected: tools = [...] array replaced with tool = \"^(Edit|Write|MultiEdit)$\" regex string (field name singular + MultiEdit added; POLICY 13 ESCAPE-SCOPE-PARITY). Fuel-exhaustion note added to Gate Specifications per ADR-035 §Decision 5. BC-version-pin datum-copy ruling added to Postconditions §Part A Arm2. (product-owner.) [Prior: 2026-07-30 (v1.1) — Part A Arm2 (story-file-side trigger) added; advisory rationales made explicit for every advisory arm; Class D tokenizer namespace-exclusion list added (D-, S-, BC-, VP-, R-, L-, ADR-, EC-, NFR-, ASM-, FM-); EC-024 rationale corrected; Class A coverage-gap routing replaced with correctly-sized latency-gap explanation; Invariant 11 (fabricated vs stale hash provenance) added; EC-026/027/028/029 added; Gate Spec updated with run_part_a_arm2; VP table extended to 17 entries. (product-owner; coordinator review.) [Prior: 2026-07-30 (v1.0) — Initial authoring (product-owner; pre-pass-30 fix-burst). BC-5.39.010 allocated after BC-5.39.009. input-hash d248fc3 per hook-authoritative marketplace binary. lifecycle_status: draft.]]]"
 ---
 
-# BC-5.39.010: validate-cross-site-correspondence WASM hook MUST block on stale BC-INDEX version-cite after a BC frontmatter bump (Class A Arm1), stale story body BC-table and Token Budget citations after a story edit (Class A Arm2), STORY-INDEX three-way input-hash inequality (Class B), and frontmatter version↔last_amended text-prefix mismatch and modified[] non-monotonicity (Class E); MUST emit advisory on finding-ID namespace format violations in Closes/Refs lines (Class D); Class C count/enumeration parity is not mechanically checkable in WASM
+# BC-5.39.010: validate-cross-site-correspondence WASM hook MUST block on stale BC-INDEX version-cite after a BC frontmatter bump (Class A Arm1), stale story body BC-table and Token Budget citations after a story edit (Class A Arm2), STORY-INDEX three-way input-hash inequality (Class B), and frontmatter version↔last_amended text-prefix mismatch and modified[] date-decrease (Class E); MUST emit advisory on finding-ID namespace format violations in Closes/Refs lines (Class D); Class C count/enumeration parity is not mechanically checkable in WASM
 
 ## Description
 
@@ -114,14 +117,36 @@ test per POLICY 21.
     - No directory enumeration required; path is mechanically derived from the BC ID.
 12. For each BC, the hook reads the BC file via `host::read_file` with `max_bytes = 524288` and
     `timeout_ms = 3000`. Extracts the BC's `version:` from frontmatter.
-13. Within the story file content, the hook finds all version citations for the given BC ID.
-    A version citation is any table row (contains `|`) that:
-    - Contains the BC ID as an exact token (`\bBC-S\.SS\.NNN\b`)
-    - Contains a version token matching `\bv([0-9]+\.[0-9]+)\b`
-    The hook extracts the LAST version-like token per row (version is conventionally the last
-    column). All matching rows are checked: Token Budget table rows, body BC-table rows, etc.
-    If no version-citing row is found for a given BC ID: skip that BC (not all BCs are explicitly
-    version-tracked in every story's visible cells — absence is not a violation here).
+13. Within the story file content, **the scan is CONFINED to the two BC-citation sections**:
+    - `## Behavioral Contracts` section (text from that H2 line to the next `^## ` heading)
+    - `## Token Budget` section (text from that H2 line to the next `^## ` heading or EOF)
+    Rows outside these two sections MUST NOT be scanned. Rationale: the Edge Cases section,
+    Out-of-Scope section, and other narrative sections in a story file contain references of
+    the form `BC-S.SS.NNN EC-0NN` and descriptions that incidentally carry version-like tokens
+    (e.g., `v1.0`, `v1.17`); an unbounded scan generates ≥9 spurious blocking violations on
+    any story that documents BC edge cases in a table, making the gate unwritable for its own
+    governing story.
+
+    Within each BC-citation section, a **version citation** is a table row (contains `|`) where:
+    - The BC ID is present as an **exact word-boundary token**: the text `BC-S.SS.NNN` must be
+      bounded by `\b` on both sides. A line ending `| BC-5.39.010 EC-001 |` does NOT match
+      because the right `\b` is followed by a space then `EC-` (the BC ID is not a standalone
+      token there). Implementations MUST NOT use a plain `line.contains(bc_id)` test.
+    - At least one **version token** is present in the row. A version token matches
+      `\bv?([0-9]+\.[0-9]+)\b` — the `v` prefix is OPTIONAL to cover both:
+      - Bare form `1.2` used in the body `## Behavioral Contracts` table Version column
+      - `v`-prefixed form `v1.2` used in `## Token Budget` rows and prose
+      The prior regex `\bv([0-9]+\.[0-9]+)\b` (mandatory `v`) was unreachable for the bare
+      form and would silently skip every body BC-table row, defeating Arm A2's headline purpose.
+
+    **Version extraction — LAST rightmost pipe-field algorithm**: split the row by `|` delimiter;
+    iterate fields in REVERSE order (right to left); return the version token from the first
+    (rightmost) field whose stripped content contains a `\bv?([0-9]+\.[0-9]+)\b` match. Do NOT
+    use first-match-forward: a title field or description field often contains version-like
+    substrings before the actual version column, causing first-match to read the wrong token.
+
+    If no version-citing row is found for a given BC ID in either BC-citation section: skip
+    that BC (`HookResult::Continue` for that BC). Absence is not a violation.
 
 ### Part A — Arm2 read failure semantics
 
@@ -179,13 +204,30 @@ Three sites that must hold identical values for each story S-NNN:
     - `burst-log.md`: last H2 section (text from last `^## ` heading through end-of-file)
     - `lessons.md`: last `^L-EDP1-[0-9]+-[0-9]+:` anchor block; if absent, last 200 lines
     - `INDEX.md`: `## Adversarial Reviews` section (between that heading and the next `^## `)
-31. Extract all lines matching `^Closes:\s*(.+)$` and `^Refs:\s*(.+)$` from the scoped region.
+31. Extract all Closes and Refs lines from the scoped region using the **bold-markdown form**
+    that D-444(c) mandatory blocks actually use in `burst-log.md`:
+    - Closes lines: `^\*\*Closes:\*\*\s*(.+)$`
+    - Refs lines: `^\*\*Refs:\*\*\s*(.+)$`
+    **Both patterns are applied independently (UNION, not `else if`)** to every line.
+    Rationale: (i) plain-colon forms `^Closes:\s*` and `^Refs:\s*` match zero real burst-log
+    lines — D-444(c) blocks always use bold-markdown; a plain-colon implementation would make
+    Class D entirely inert, undetectably. (ii) a compound line carrying both markers
+    (e.g., `**Closes:** F-X ... **Refs:** B01`) must have BOTH segments tokenized — an `else if`
+    implementation drops the Refs tokens from compound lines. Each line is tested against both
+    patterns independently; all matching content is collected for tokenization.
 32. For each Closes/Refs line: tokenize by comma and whitespace. A token is classified as
     **finding-like** if and only if BOTH conditions hold:
     - It matches shape `[A-Za-z][A-Za-z0-9-]*[0-9]+` (starts with letter, ends with digit)
     - It does NOT start with any known-safe namespace prefix:
       `D-`, `S-`, `BC-`, `VP-`, `R-`, `L-`, `ADR-`, `EC-`, `NFR-`, `ASM-`, `FM-`
     Finding-like tokens that do NOT start with `F-` are flagged for advisory.
+    **`O-` observation IDs are DELIBERATELY non-excluded.** Rationale: D-449(d)(i) explicitly
+    scopes 4-index changelog `Refs:` cells to findings (`F-`), policy gates (`PG`), and
+    D-NNN decisions only — observation IDs (`O-P30-001`) are declared out of scope for those
+    cells. Flagging `O-` tokens as advisory (postcondition 17) correctly surfaces misuse of
+    observation IDs in `Closes:`/`Refs:` lines and enforces D-449(d)(i). If a future cycle
+    legitimately needs to reference observations in burst-log Closes/Refs, add `O-` to the
+    exclusion list with new D-NNN authorization. No such authorization exists as of v1.3.
 
 ### Part D — read failure semantics
 
@@ -207,7 +249,14 @@ Three sites that must hold identical values for each story S-NNN:
     excluded structurally by the positional anchor. If regex fails to match: `host::log_warn`
     advisory + `HookResult::Continue` (do NOT block on unparseable format).
 38. **modified: extraction**: extract YAML sequence under `modified:`. Strip annotation suffixes
-    (e.g., `" (v1.3)"`); compare date strings lexicographically. If absent or empty: skip E2.
+    (e.g., `" (v1.3)"`); compare date strings lexicographically. The required ordering relation
+    is **non-decreasing (weak-ascending)**: `∀i: date[i] ≤ date[i+1]`. Equal consecutive dates
+    are PERMITTED — a date[i] == date[i+1] pair does NOT violate E2. Only a strict decrease
+    (date[i] > date[i+1] after suffix-strip) is a violation. Rationale: same-day multi-burst
+    authoring is normal factory operation; this BC's own `modified[]` array at v1.0/v1.1
+    authoring was `["2026-07-30", "2026-07-30 (v1.1)"]`, an equal-date pair that would
+    self-violate under strict-ascending comparison — the spec must not prohibit its own
+    authoring pattern. If absent or empty: skip E2.
 39. Any HostError on the primary target file: `HookResult::block_with_fix(...)` — fail-closed.
 
 ## Postconditions
@@ -329,8 +378,9 @@ infeasible in WASM (unbounded scan). Routed to Rust workspace test per POLICY 21
     `"validate-cross-site-correspondence [Class E1]: frontmatter version: \"<ver_fm>\" does not
     match last_amended: outermost text-prefix \"(v<ver_la>)\". Update last_amended: text-prefix
     to (v<ver_fm>) per POLICY 14 leg 4 / POLICY 17."`.
-21. E2 ascending: `HookResult::Continue`.
-22. E2 non-monotonic: first out-of-order pair: `HookResult::block_with_fix(...)`.
+21. E2 non-decreasing (∀i: date[i] ≤ date[i+1], including equal dates): `HookResult::Continue`.
+22. E2 strict-decrease: first pair where date[i] > date[i+1] after suffix-strip:
+    `HookResult::block_with_fix(...)`.
 23. Combined E1 + E2 violations: ONE combined block enumerating both.
 
 ### Cross-arm combination
@@ -432,6 +482,8 @@ follow-on story.
 | EC-027 | Story S-21.04 written; `behavioral_contracts: [BC-5.39.010]`; BC-5.39.010.md returns `HostError::NotFound` | Advisory for NotFound BC + Continue. |
 | EC-028 | Story S-21.04 written; `behavioral_contracts: [BC-6.26.001, BC-5.39.008]`; both stale | Single combined block listing both BCs (cascade). |
 | EC-029 | Story written; `behavioral_contracts: [BC-6.26.001]`; BC cited only in prose, no version token in any table row | Arm A2 finds no version-citing rows → skip → Continue. |
+| EC-030 | BC written with `modified: ["2026-07-30", "2026-07-30 (v1.1)"]` — two entries with equal date after suffix-strip | Part E passes. Equal consecutive dates satisfy `date[i] ≤ date[i+1]`; same-day multi-burst cadence is permitted. This BC's own v1.0/v1.1 `modified[]` is exactly this shape. |
+| EC-031 | BC written with `modified: ["2026-07-30", "2026-07-29 (v1.1)"]` — date decreases after suffix-strip | Block: Class E2. `2026-07-30 > 2026-07-29` — strict decrease violates the non-decreasing requirement. |
 
 ## Canonical Test Vectors
 
@@ -447,6 +499,8 @@ follow-on story.
 | D — phantom | "Closes: B01, F-S2104-P29-H01" | advisory for B01 + Continue | D | only "F-..." → Continue | |
 | E1 — match | version "1.6"; last_amended "(v1.6)" | Continue | E | "(v1.5)" → block | Prior chain "(v1.5)" deeper → Continue |
 | E2 — out-of-order | modified: ["2026-05-14","2026-05-18","2026-05-15"] | block | E | Ascending → Continue | |
+| E2 — equal dates | modified: ["2026-07-30","2026-07-30 (v1.1)"] — same date after suffix-strip | Continue (equal dates satisfy ≤) | E | strict-ascending impl rejects equal → block (wrong) | strictly ascending dates → Continue |
+| E2 — genuine decrease | modified: ["2026-07-30","2026-07-29 (v1.1)"] — date decreases after suffix-strip | block: E2 (decrease) | E | non-decreasing → Continue | |
 | Combined A+E | INDEX stale + E1 mismatch | single combined block | A+E | each alone → block | both fixed → Continue |
 
 ## Gate Specifications
@@ -548,7 +602,10 @@ for bc_id in bc_ids:
     bc_version = extract_frontmatter_field(bc_content, "version") |> strip_v_prefix
     citations = extract_story_bc_version_citations(story_content, bc_id)
     // Vec<(location: String, cited_version: String)>
-    // finds all table rows containing bc_id + a version token; location = row description
+    // scoped to ## Behavioral Contracts + ## Token Budget sections only (PC13)
+    // bc_id must be an exact word-boundary token (\b on both sides)
+    // version token: \bv?([0-9]+\.[0-9]+)\b (bare AND v-prefixed)
+    // version extracted from LAST rightmost pipe-field containing a version token
     for (location, cited_ver) in citations:
         if strip_v_prefix(cited_ver) != bc_version:
             violations.push(stale_arm2_msg(story_id, bc_id, location, cited_ver, bc_version))
@@ -609,7 +666,7 @@ VP IDs pending VP-INDEX allocation by state-manager at post-merge burst.
 - `crates/hook-sdk/src/host.rs` — `host::read_file`, `host::log_warn`
 - `crates/hook-sdk/src/result.rs` — `HookResult::Continue`, `HookResult::block_with_fix`
 - `derive_bc_path(bc_id)` — deterministic BC file path derivation from BC ID (no list_dir)
-- `extract_story_bc_version_citations(content, bc_id)` — finds version-citing table rows for a given BC ID; returns Vec<(location, version)>
+- `extract_story_bc_version_citations(content, bc_id)` — finds version-citing table rows for a given BC ID within the `## Behavioral Contracts` and `## Token Budget` sections ONLY (section-scoped); matches both bare `1.2` and v-prefixed `v1.2` forms via `\bv?([0-9]+\.[0-9]+)\b`; extracts version from LAST rightmost pipe-field containing a version token; returns Vec<(location, version)>
 - `extract_frontmatter_sequence(content, field)` — parses YAML sequence field from frontmatter
 
 ## Story Anchor
@@ -624,6 +681,7 @@ VP IDs pending VP-INDEX allocation by state-manager at post-merge burst.
 
 | Version | Date | Description |
 |---------|------|-------------|
+| 1.3 | 2026-07-30 | PC13 amended: bounding section added — scan confined to `## Behavioral Contracts` and `## Token Budget` sections only; unbounded scan caused ≥9 spurious blocking violations on stories that document BC edge cases in a table (Edge Cases rows carry `BC-5.39.010 EC-0NN` + prose `v1.x` tokens). Dual version-token format: `\bv?([0-9]+\.[0-9]+)\b` matches both bare `1.2` (body BC-table) and v-prefixed `v1.2` (Token Budget rows); prior regex `\bv([0-9]+\.[0-9]+)\b` was unreachable for bare form. LAST rightmost pipe-field algorithm stated explicitly (was already mandated but not algorithmic). Amendment 2 (PC31): bold-markdown form `**Closes:**`/`**Refs:**` required to match D-444(c) real burst-log format; prior plain-colon `^Closes:\s*` matched zero real burst-log lines; union scan (not `else if`) required so compound lines carrying both markers (e.g., `**Closes:** F-X ... **Refs:** B01`) must scan both segments. Amendment 3 (PC38 + postcondition 21): non-decreasing relation stated explicitly as `∀i: date[i] ≤ date[i+1]`; equal same-day dates PERMITTED (not a violation); prior "ascending" wording admitted strict-comparison re-implementation that would self-violate on this BC's own `modified[]`; EC-030/031 added; test vectors for equal-dates and genuine-decrease added. Amendment 4: no spec change — PC29 (`max_bytes = 2097152`) and PC33 (NotFound → advisory+Continue on cycle artifact) already unambiguous; implementation used wrong 1 MiB constant and wrong NotFound handling, both purely implementational faults. Amendment 5 (PC32): `O-` observation IDs deliberately non-excluded per D-449(d)(i) which scopes Closes/Refs to findings, PG, D-NNN only; ruling made explicit to prevent ambiguity. POLICY 14 five-leg parity; v1.1 `modified[]` entry restored (was missing — irony: this hook verifies `modified[]` monotonicity but not `modified[]`↔Changelog row correspondence, so it structurally cannot catch this defect in its own governing BC). (product-owner; S-21.07 LOCAL adversary pass-1 fix-burst.) |
 | 1.2 | 2026-07-30 | Registry entry corrected: `tools = [...]` array replaced with `tool = "^(Edit\|Write\|MultiEdit)$"` regex string (field name singular + MultiEdit added; all 41 Edit/Write hooks in live registry guard this pattern; omitting MultiEdit was a POLICY 13 ESCAPE-SCOPE-PARITY gap identical in class to F-S2104-P29-H02). Fuel-exhaustion note added to Gate Specifications per ADR-035 §Decision 5: `on_error = "continue"` silences the hook non-blockingly on fuel exhaustion (not WASM-side logic); `max_bytes` caps bound reads inside the fuel budget; `fuel_cap` not required. BC-version-pin datum-copy ruling added as design note in §Postconditions Part A Arm2. (product-owner.) |
 | 1.1 | 2026-07-30 | Part A Arm2 (story-file-side trigger) added: PostToolUse on story → read each `behavioral_contracts:` BC via deterministic path derivation → compare against story version citations (Token Budget + BC-table rows). No list_dir required. Latency gap correctly sized (all 6 observed failures occurred during story-editing bursts). Advisory rationales made explicit for every advisory arm; confirmed no arm is advisory merely because the check is partial. Class D tokenizer namespace-exclusion list added (D-, S-, BC-, VP-, R-, L-, ADR-, EC-, NFR-, ASM-, FM-); EC-024 rationale corrected (D-944 matches shape BUT is excluded by namespace list). Invariant 11 added: stale vs fabricated hash provenance — stale = sweep fix, fabricated = POLICY 18 acknowledgment required (pass-30 M02 precedent). EC-026/027/028/029 added. Gate Spec updated with run_part_a_arm2 pseudocode and story-file dispatch branch. VP table extended to 17 entries. |
 | 1.0 | 2026-07-30 | Initial authoring (product-owner; pre-pass-30 fix-burst). Classes A Arm1/B/D/E gated; Class C honest-gap + Rust test recommendation. |

@@ -9803,3 +9803,35 @@ D-448(a) passes over this class of defect because it validates Part A correspond
 **Cites:** D-947-follow-up (identifier-discipline lesson; codified after SHA-patch `cd777074`); POLICY 15 (red-gate-log). `[identifier-discipline; traceability; double-allocation; T-ID-label; red-gate; D-947-follow-up; codified]`
 
 ---
+
+### L-BB-red-gate-completeness-only-attests-to-what-it-encodes [tdd] [red-gate] [D-949]
+
+**Title:** Red-Gate Completeness Only Attests to What the Red Gate Encoded — Green Tests Cannot Detect Fixes the Red Gate Did Not Require
+
+**Lesson:** A green workspace CI suite guarantees nothing about the correctness of fixes for code behaviors that the Red Gate never asserted. In D-949 (S-21.07 pass-1 fix burst), 7 BLOCKER-class findings were closed in code, workspace CI turned green (2360/0), and yet 4 bats integration tests remained failing. The test suite turned green because the 4 still-failing tests exercise behaviors that were not encoded as Red Gate requirements — the Red Gate only required the 7 BLOCKER behaviors. The FAILING tests expose behaviors the Red Gate silently omitted: AC-005 MUTANT, T-037 MUTANT, AC-013 MUTANT, T-045 CONTROL. "CI green" is a partial statement: it means "all currently RED gates are now GREEN," not "all behaviors are correct." A fix burst declared PARTIAL (rather than COMPLETE) is correct when CI turns green on a subset of required behaviors while a known remaining subset is still failing. The bats failures are not regressions — they are pre-existing gaps between what was encoded in the Red Gate and what the spec requires.
+
+**Root cause:** The Red Gate tests were authored against BC-5.39.010 v1.2 (five-arm). The pass-1 fix burst advanced the implementation to seven-arm (BC-5.39.010 v1.3), but test-writer's Red Gate additions for the two new arms had partial coverage gaps that produce failures in the bats suite without appearing in unit tests. The 4 failing bats tests were visible before the fix burst; they are not newly introduced.
+
+**Prevention:** (1) When declaring a fix burst PARTIAL, enumerate the specific open items so pass-2 adversary has a clear target list. (2) "Workspace CI green" is a meaningful but incomplete gate — the burst log and STATE.md must also record any known bats failures as open items. (3) Do not interpret "CI 2360/0" as proof that all pass-1 findings are closed; cross-reference with the Red Gate coverage inventory.
+
+**Anchors:** D-949 (pass-1 fix burst PARTIAL); AC-005 MUTANT, T-037 MUTANT, AC-013 MUTANT, T-045 CONTROL (4 failing bats); BC-5.39.010 v1.3 seven-arm; workspace CI 2360/0.
+
+**Cites:** D-949 (pass-1 fix burst; state-manager codification). `[tdd; red-gate; partial-ci-green; bats-failures; coverage-gaps; D-949; codified]`
+
+---
+
+### L-BB-yaml-bare-scalar-silently-corrupts-sequence-fields [yaml-discipline] [policies] [D-949]
+
+**Title:** A Multi-Word YAML Bare Scalar Parses as a Character Array, Not a String — Sequence Fields Must Use Proper YAML List Syntax
+
+**Lesson:** YAML bare scalars that contain spaces are parsed as strings by compliant parsers, but a bare scalar on a field typed as a sequence (list) does not produce a list — it either fails to parse, produces a one-element list containing the whole string, or in some implementations produces a character-array depending on the deserializer. In D-949, `policies.yaml` POLICY 19 had `scope: behavioral-contracts traceability rows` as a bare multi-word scalar. The intended semantic was a sequence with one element `behavioral-contracts-traceability-rows`. The adversary rubric auto-loader (which reads `policies.yaml` to build its evaluation rubric) receives a corrupted scope signal — the rubric was silently omitting this policy's scope constraint from adversary dispatch. The defect was invisible to casual inspection because the file appeared valid and no parse error was emitted; only adversary pass-1 (F-S2107-P1C-010) surfaced the type corruption.
+
+**Root cause:** POLICY 19 was authored by hand without matching the YAML type convention used by all 21 sibling policies (each of which uses `scope: [kebab-case-slug]` proper sequence syntax). The field order also differed from sibling policies, which made the entry visually irregular.
+
+**Prevention:** (1) All `scope:` fields in policies.yaml MUST use proper YAML sequence syntax `scope: [slug]` even for single-element sequences. (2) When adding or amending a policies.yaml entry, verify field ordering matches sibling policies (consistency gate). (3) The adversary rubric auto-loader should validate that all `scope:` fields parse as sequences; a string result should emit a warning. Anchor: S-15.03 PRIORITY-A lint gate extension.
+
+**Anchors:** F-S2107-P1C-010 HIGH (pass-1); policies.yaml POLICY 19 `scope: behavioral-contracts traceability rows` (bare scalar); corrected `scope: [behavioral-contracts-traceability-rows]`; policies.yaml v1.4.18→v1.4.19 (D-949).
+
+**Cites:** D-949 (pass-1 fix burst; state-manager codification); TD-VSDD-060 sibling-site sweep applied (21 policies checked). `[yaml-discipline; policies; scope-field; sequence-type; adversary-rubric; D-949; codified]`
+
+---

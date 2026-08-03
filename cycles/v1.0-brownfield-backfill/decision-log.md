@@ -14410,3 +14410,69 @@ D-948-SESSION-WRAP-PAUSED
 ### Date
 
 2026-08-03
+
+---
+
+## D-949
+
+S-21.07 pass-1 fix burst — PARTIAL (7/7 BLOCKERs closed; 4 bats FAILING; 1 MEDIUM carried; streak 0/3)
+
+### Decision
+
+**(a) POLICY 16 GLOBAL-MAX GATE:** `grep -n "^## D-" .factory/cycles/v1.0-brownfield-backfill/decision-log.md | sort -t'-' -k2 -n | tail -3` → `14255:## D-946 / 14293:## D-947 / 14367:## D-948`; D-948 confirmed prior max → D-949 allocated.
+
+**(b) PARTIAL closure scope:** S-21.07 pass-1 contained 47 pre-dedup findings (B7/H19/M13/L8); 3 confirmed dedup pairs. This fix burst closes all 7 BLOCKER-class findings plus the majority of HIGH/MEDIUM/LOW findings. 1 MEDIUM (F-S2107-P1C-016: adversary-hash-corpus missing from composite 3-scope dispatch) is deliberately carried to pass-2. 4 bats integration tests remain failing (AC-005 MUTANT, T-037 MUTANT, AC-013 MUTANT, T-045 CONTROL). Workspace CI green: 2360/0 tests.
+
+**(c) Root causes — two classes:**
+
+1. **Extractor-vs-production-shape gap:** All 7 BLOCKER-class findings stemmed from extractors and path-allow-lists written against synthetic fixtures rather than production artifact shape. Implementer applied classify-first pattern (validate-closes-completeness precedent); production-shaped fixtures; path allow-list tightening.
+
+2. **POLICY 19 YAML schema corruption:** `policies.yaml` POLICY 19 `scope:` field was a bare multi-word YAML scalar (`behavioral-contracts traceability rows`); YAML parses this as a character array, silently corrupting the adversary rubric. Fix: converted to proper YAML sequence (`[behavioral-contracts-traceability-rows]`); field ordering normalized to match 21 sibling policies.
+
+**(d) BLOCKER closure attribution:**
+- F-P1C-001: path allow-list + regex tightening — implementer (feature/S-21.07)
+- F-P1B-001: edge-case table extractor production fixture — implementer (feature/S-21.07)
+- F-P1B-002: bare-version-token A2 extractor — implementer (feature/S-21.07)
+- F-P1B-003: B3 leg `starts_with` fix — implementer (feature/S-21.07)
+- F-P1B-004: `find('=')` offset extractor fix — implementer (feature/S-21.07)
+- F-P1B-005: `is_bc_file` BC-INDEX.md admission guard — implementer (feature/S-21.07)
+- F-P1C-002: cycle-artifact read-before-classify BLOCK on Err — implementer (feature/S-21.07)
+
+**(e) State-manager-owned findings closed this burst:**
+- F-S2107-P1C-009 HIGH: BC-INDEX.md missing v4.42 and v4.43 changelog backfill; BC-5.39.010 body row title `non-monotonicity` → `date-decrease` and version v1.2→v1.3 (POLICY 7 H1 parity). BC-INDEX v4.43→v4.44.
+- F-S2107-P1C-010 HIGH: POLICY 19 scope field YAML type corruption — bare scalar → proper sequence. policies.yaml v1.4.18→v1.4.19.
+- STORY-INDEX three-way hash propagation (POLICY 18): epic blockquote + catalog row + delivery blockquote + BC-coverage blockquote all updated — five-arm→seven-arm, BC-5.39.010 v1.2→v1.3, input-hash 8ba2a75→52f0bf3, 29 ECs→31 ECs, story v1.1→v1.2. STORY-INDEX v4.277→v4.278.
+
+**(f) 5 open items for pass-2:**
+1. AC-005 MUTANT — bats mutant test still failing after implementer fix
+2. T-037 MUTANT — bats mutant test still failing after implementer fix
+3. AC-013 MUTANT — bats mutant test still failing after implementer fix
+4. T-045 CONTROL — bats control test still failing after implementer fix
+5. F-S2107-P1C-016 MEDIUM — adversary-hash-corpus missing from composite 3-scope dispatch; carried to pass-2
+
+**(g) 4-INDEX:** BC v4.43→v4.44; VP v2.74 UNCHANGED; STORY v4.277→v4.278; ARCH v3.40 UNCHANGED.
+
+### Participating agents
+
+- implementer: F-P1C-001/F-P1B-001–005/F-P1C-002 BLOCKER closures (feature/S-21.07)
+- product-owner: BC-5.39.010 v1.2→v1.3 (title `date-decrease`; 7-arm schema)
+- story-writer: S-21.07 v1.1→v1.2 (31 ECs; seven-arm)
+- test-writer: test coverage alignment with v1.3 schema
+- state-manager: D-949 codification; policies.yaml F-S2107-P1C-010; BC-INDEX F-S2107-P1C-009; STORY-INDEX POLICY 18 propagation; STATE.md v6.79→v6.80
+
+### 4-INDEX
+
+| Index | Before | After | Change |
+|-------|--------|-------|--------|
+| BC-INDEX | v4.43 | v4.44 | +0 BCs; BC-5.39.010 body row v1.3 + v4.42/v4.43 changelog backfill |
+| VP-INDEX | v2.74 | v2.74 | UNCHANGED |
+| STORY-INDEX | v4.277 | v4.278 | S-21.07 hash/EC/version propagation (POLICY 18 three-way) |
+| ARCH-INDEX | v3.40 | v3.40 | UNCHANGED |
+
+### Phase
+
+D-949-S-21.07-PASS-1-FIX-BURST-PARTIAL
+
+### Date
+
+2026-08-03
