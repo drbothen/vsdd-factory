@@ -25,6 +25,27 @@ pub enum CycleArtifactKind {
     CycleIndex,
 }
 
+/// Returns `true` if `filename` matches the canonical BC filename shape:
+/// `^BC-[0-9]+\.[0-9]+\.[0-9]+\.md$` (three dot-separated numeric groups).
+///
+/// Excludes BC-INDEX.md and any other non-contract files that merely start with "BC-".
+///
+/// # BC trace
+/// BC-5.39.010 PC1 — bc_id shape guard; F-S2107-P1B-005 (BC-INDEX.md exclusion).
+fn is_canonical_bc_filename(filename: &str) -> bool {
+    // Must start with "BC-" and end with ".md"
+    let inner = match filename.strip_prefix("BC-").and_then(|s| s.strip_suffix(".md")) {
+        Some(s) => s,
+        None => return false,
+    };
+    // inner must be N.N.NNN format: exactly three dot-separated non-empty digit groups
+    let parts: Vec<&str> = inner.split('.').collect();
+    parts.len() == 3
+        && parts
+            .iter()
+            .all(|p| !p.is_empty() && p.bytes().all(|b| b.is_ascii_digit()))
+}
+
 /// Returns `true` if `file_path` names a BC file under
 /// `.factory/specs/behavioral-contracts/` using path-component-strict matching.
 ///
@@ -50,10 +71,13 @@ pub fn is_bc_file(file_path: &str) -> bool {
     let has_bc = components
         .iter()
         .any(|c| matches!(c, Component::Normal(s) if *s == "behavioral-contracts"));
+    // BC-5.39.010 PC1: filename must match ^BC-[0-9]+\.[0-9]+\.[0-9]+\.md$ — three
+    // dot-separated numeric groups. This excludes BC-INDEX.md (F-S2107-P1B-005)
+    // and any other non-contract files that merely start with "BC-".
     let filename_ok = path
         .file_name()
         .and_then(|f| f.to_str())
-        .map(|f| f.starts_with("BC-") && f.ends_with(".md"))
+        .map(|f| is_canonical_bc_filename(f))
         .unwrap_or(false);
     has_factory && has_specs && has_bc && filename_ok
 }
@@ -274,6 +298,67 @@ mod tests {
         assert!(
             result.is_none(),
             "stories/STORY-INDEX.md must not classify as cycle artifact"
+        );
+    }
+
+    // -----------------------------------------------------------------------
+    // F-S2107-P1B-005: BC-INDEX.md must not be classified as a BC file.
+    // is_bc_file uses `starts_with("BC-") && ends_with(".md")` which admits
+    // "BC-INDEX.md" — but BC-INDEX.md is the index file, not a behavioral contract.
+    // When classified as a BC file, arm A1 runs with BC-INDEX.md as primary target,
+    // treating "BC-INDEX.md" as the bc_id, producing spurious violations.
+    // BC-5.39.010 v1.3 §Classification invariant: bc_id guard excludes index.
+    // -----------------------------------------------------------------------
+
+    /// T-035: BC-INDEX.md must NOT be classified as a BC file (F-S2107-P1B-005).
+    ///
+    /// RED GATE: current `starts_with("BC-") && ends_with(".md")` matches "BC-INDEX.md".
+    /// `is_bc_file` returns true → assert!(!result) FAILS → RED gate.
+    /// After fix (exclude index file by name): returns false → PASSES.
+    #[test]
+    fn test_BC_5_39_010_dispatch_bc_index_not_bc_file() {
+        let result = is_bc_file(".factory/specs/behavioral-contracts/BC-INDEX.md");
+        assert!(
+            !result,
+            "BC-INDEX.md must NOT be classified as a BC file — it is the index, \
+            not a behavioral contract (F-S2107-P1B-005)"
+        );
+    }
+
+    // -----------------------------------------------------------------------
+    // F-S2107-P1B-010: Epic file under .factory/stories/epics/ must not be
+    // classified as a story file. is_story_file has no basename guard against
+    // the epics/ subdirectory, so any .md file under .factory/stories/ passes.
+    // BC-5.39.010 v1.3 §Classification invariant: story_id must match S-XX.YY format.
+    // -----------------------------------------------------------------------
+
+    /// F-S2107-P1B-010: epic file in stories/epics/ must NOT be classified as story file.
+    ///
+    /// RED GATE: current code has no basename guard for `S-` prefix; any `.md` not named
+    /// STORY-INDEX.md under `.factory/stories/` matches. `is_story_file` returns true for
+    /// "E-21-W4.md" → assert!(!result) FAILS → RED gate.
+    /// After fix (basename must start with "S-"): returns false → PASSES.
+    #[test]
+    fn test_BC_5_39_010_dispatch_epic_file_not_story_file() {
+        let result = is_story_file(".factory/stories/epics/E-21-W4.md");
+        assert!(
+            !result,
+            "epic file under .factory/stories/epics/ must NOT be classified as a story file \
+            (F-S2107-P1B-010)"
+        );
+    }
+
+    /// F-S2107-P1B-010: canonical story basename IS classified as story file.
+    ///
+    /// Complement test: verifies the story guard still fires for real story basenames
+    /// after the basename guard is applied.
+    #[test]
+    fn test_BC_5_39_010_dispatch_story_file_s_prefix_basename_accepted() {
+        let result =
+            is_story_file(".factory/stories/S-21.07-validate-cross-site-correspondence.md");
+        assert!(
+            result,
+            "canonical story file with S-XX.YY basename must be classified as story file"
         );
     }
 }
