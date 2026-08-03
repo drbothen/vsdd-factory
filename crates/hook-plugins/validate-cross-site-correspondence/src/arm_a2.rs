@@ -24,6 +24,42 @@
 use crate::{Advisory, Violation};
 use vsdd_hook_sdk::host::HostError;
 
+/// Returns `true` if `heading` (the text after `## `) identifies a target section
+/// that must be scanned for BC-version citations.
+///
+/// A target section matches iff the heading starts with the section prefix AND
+/// the next character (if any) is a word boundary: space or `(`. This implements
+/// `^## Behavioral Contracts\b` and `^## Token Budget\b` per PC13 (amended, v1.4).
+///
+/// Admitted examples:
+/// - `Behavioral Contracts`, `Behavioral Contracts Table`, `Behavioral Contracts (BC Count: N)`
+/// - `Token Budget`, `Token Budget Estimate`, `Token Budget Estimate (MANDATORY)`
+///
+/// Excluded by word-boundary guard:
+/// - `Behavioral Contracting` (not `starts_with("Behavioral Contracts")` — position 19 is 'i' vs 's')
+///
+/// # BC trace
+/// BC-5.39.010 PC13 (amended v1.4): word-boundary prefix predicate; non-conformance note
+/// explicitly forbids `heading == "..."` string equality.
+fn is_target_heading(heading: &str) -> bool {
+    is_section_prefix(heading, "Behavioral Contracts") || is_section_prefix(heading, "Token Budget")
+}
+
+/// Returns `true` if `heading` starts with `prefix` followed by a word boundary
+/// (space, `(`, or end-of-string). Does NOT admit `prefix` followed by an alphanumeric
+/// continuation (e.g., `Token Budgeting` would not match `Token Budget`).
+fn is_section_prefix(heading: &str, prefix: &str) -> bool {
+    if heading == prefix {
+        return true;
+    }
+    if let Some(rest) = heading.strip_prefix(prefix) {
+        // Word boundary: next char must be ' ' or '('
+        matches!(rest.chars().next(), Some(' ') | Some('('))
+    } else {
+        false
+    }
+}
+
 /// Extract all table-row version citations for a given BC ID in story body content.
 ///
 /// Scans `content` for pipe-delimited table rows (`|...|`) that contain both
@@ -36,11 +72,14 @@ use vsdd_hook_sdk::host::HostError;
 /// included — this is the skip-not-block semantic for absent citations
 /// (BC-5.39.010 postcondition 8).
 ///
-/// # Section bounding (PC13 amended, F-S2107-P1B-001)
-/// The scan is bounded to named sections that carry BC-table citations:
-/// `## Behavioral Contracts` and `## Token Budget`. Any other `## ` heading
-/// switches the scanner to skip mode, preventing spurious matches from descriptive
-/// sections (e.g., `## Edge Cases`) that contain BC IDs in example/scenario cells.
+/// # Section bounding (PC13 amended v1.4, F-S2107-P1B-001)
+/// The scan is bounded to named sections that carry BC-table citations.
+/// A `## ` heading switches the scanner to skip mode UNLESS the heading matches
+/// the word-boundary prefix predicate (see `is_target_heading`):
+/// - `^## Behavioral Contracts\b` — admits `Behavioral Contracts`, `Behavioral Contracts Table`, etc.
+/// - `^## Token Budget\b` — admits `Token Budget`, `Token Budget Estimate`, `Token Budget Estimate (MANDATORY)`, etc.
+///
+/// Using exact string equality is non-conforming per PC13 v1.4 non-conformance note.
 ///
 /// Content that has no `## ` headings at all (e.g., simple unit-test fixtures) is
 /// scanned without restriction — the scanner starts in "no active section" state
@@ -48,8 +87,8 @@ use vsdd_hook_sdk::host::HostError;
 ///
 /// # BC trace
 /// BC-5.39.010 §Architecture Anchors `extract_story_bc_version_citations`;
-/// preconditions 12-13 (table row detection + version token regex); PC13 (amended:
-/// section-bounded scan, optional `v` prefix, last/rightmost token).
+/// preconditions 12-13 (table row detection + version token regex); PC13 (amended v1.4:
+/// word-boundary prefix predicate, optional `v` prefix, last/rightmost token).
 pub fn extract_story_bc_version_citations(content: &str, bc_id: &str) -> Vec<(String, String)> {
     let mut citations = Vec::new();
     // skip_section: true when inside a named ## section that is NOT a target section.
@@ -60,7 +99,7 @@ pub fn extract_story_bc_version_citations(content: &str, bc_id: &str) -> Vec<(St
         // Detect ## heading and update section context
         if let Some(rest) = line.strip_prefix("## ") {
             let heading = rest.trim();
-            skip_section = heading != "Behavioral Contracts" && heading != "Token Budget";
+            skip_section = !is_target_heading(heading);
             continue;
         }
 
