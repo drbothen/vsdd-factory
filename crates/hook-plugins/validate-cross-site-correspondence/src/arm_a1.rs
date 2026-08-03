@@ -74,34 +74,54 @@ pub fn derive_bc_path(bc_id: &str) -> String {
 pub fn extract_bc_index_version(bc_id: &str, index_content: &[u8]) -> Option<String> {
     // Scan BC-INDEX.md body table for a row containing bc_id and extract the version cell.
     // Version cell format: `vN.N` or `vN.NN` token in a pipe-delimited table row.
+    //
+    // F-S2107-P1B-007: use starts_with('|') so YAML frontmatter lines (changelog entries
+    // containing bc_id and '|') are skipped. Sibling precedent: arm_b::parse_story_index_catalog_hash.
+    //
+    // F-S2107-P1B-006: return the LAST version token found across all cells, not the first.
+    // Production BC-INDEX rows use escaped-pipe chains (`v1.3 \| v1.4 \| ... \| v1.6`);
+    // split('|') yields each segment, and the current version is always the LAST token.
     let content = std::str::from_utf8(index_content).unwrap_or("");
+    let mut last_version: Option<String> = None;
 
     for line in content.lines() {
-        // Only check pipe-delimited table rows containing bc_id
-        if !line.contains('|') || !line.contains(bc_id) {
+        // Only check body table rows (starts_with '|' — skips frontmatter lines)
+        if !line.starts_with('|') {
             continue;
         }
-        // Extract cells from table row
+        if !line.contains(bc_id) {
+            continue;
+        }
+        // Iterate ALL pipe-separated segments; last version token wins
         for cell in line.split('|') {
             let cell = cell.trim();
-            // Look for a token matching vN.N or vN.NN (version token)
             if let Some(version) = extract_version_token(cell) {
-                return Some(version);
+                last_version = Some(version);
             }
         }
     }
-    None
+    last_version
 }
 
 /// Extract a `vN.N` or `vN.NN` version token from a string.
 /// Returns the version number without the leading `v`.
+///
+/// F-P1B-014: leading word-boundary check (parity with arm_a2 sibling
+/// `extract_version_token_from_table_row`). Tokens like `rev1.5` or `Nov1.6`
+/// must NOT yield a version because the preceding character is alphanumeric.
 fn extract_version_token(text: &str) -> Option<String> {
-    // Hand-rolled: find first occurrence of 'v' followed by digits.dot.digits
+    // Hand-rolled: find occurrence of 'v' at word boundary followed by digits.dot.digits
     let bytes = text.as_bytes();
     let mut i = 0;
     while i < bytes.len() {
         if bytes[i] == b'v' && i + 1 < bytes.len() && bytes[i + 1].is_ascii_digit() {
-            // Found 'v' followed by digit — extract vN.N pattern
+            // Word boundary at start: preceding char must not be alphanumeric
+            let prev_ok = i == 0 || !bytes[i - 1].is_ascii_alphanumeric();
+            if !prev_ok {
+                i += 1;
+                continue;
+            }
+            // Found 'v' at word boundary followed by digit — extract vN.N pattern
             let start = i + 1; // skip 'v'
             let mut end = start;
             // Consume digits
@@ -414,6 +434,97 @@ mod tests {
         assert!(
             !advisories.is_empty(),
             "NotFound on BC-INDEX.md must emit an advisory"
+        );
+    }
+
+    // -----------------------------------------------------------------------
+    // F-S2107-P1B-006: escaped-pipe version chain — extract_bc_index_version
+    // splits on '|' (which also splits at `\|` sequences in the raw bytes),
+    // then calls extract_version_token on each cell. The first cell has "v1.3"
+    // and is returned immediately without scanning later cells for a higher version.
+    // Production BC-INDEX rows use `v1.3 \| v1.4 \| ... \| v1.12`; current version
+    // is always the LAST token. Current code returns "1.3" → "1.3" ≠ "1.12" → BLOCK.
+    //
+    // F-S2107-P1B-007: frontmatter changelog pipe false-match — the YAML frontmatter
+    // of BC-INDEX.md contains changelog entries that reference BC IDs with `|` chars
+    // in the version column. `extract_bc_index_version` scans ALL lines and matches
+    // any line containing BOTH '|' AND the bc_id. A frontmatter line like:
+    //   `    change: "v4.43: BC-5.39.010 v1.5|v1.6."` → matches before the body row.
+    // Result: returns "4.43" (from `v4.43`) instead of "1.6" → BLOCK.
+    // -----------------------------------------------------------------------
+
+    /// T-039 (Rust unit test): escaped-pipe chain must use LAST token (F-S2107-P1B-006).
+    ///
+    /// BC-5.39.010 v1.3 invariant 10: when version_history has escaped-pipe delimiter,
+    /// only the FINAL version token is authoritative.
+    ///
+    /// RED GATE: current code returns "1.3" (first token from split('|') on
+    /// `v1.3 \| v1.4 \| v1.5 \| v1.6`). "1.3" ≠ "1.6" → violation → NOT empty.
+    /// assert!(violations.is_empty()) FAILS → RED gate.
+    /// After fix (scan all tokens, return last version found): "1.6" → empty → PASSES.
+    #[test]
+    fn test_BC_5_39_010_arm_a1_escaped_pipe_chain_last_token_wins() {
+        // Production-shaped INDEX row: `v1.3 \| v1.4 \| v1.5 \| v1.6` (4-version chain)
+        // split('|') yields cells: `""`, `" [BC-5.39.010]..."`, ..., `" v1.3 \"`, ...
+        // extract_version_token on first cell "v1.3 \" → "1.3" (first match)
+        // extract_version_token on last cell " v1.6 " → "1.6"
+        // After fix: LAST version token is authoritative → returns "1.6"
+        let index = concat!(
+            "| [BC-5.39.010](ss-05/BC-5.39.010.md) | title | draft | CAP-032 | S-21.07",
+            " | v1.3 \\| v1.4 \\| v1.5 \\| v1.6 |\n",
+        );
+        let (violations, _) = run_arm_a1_with_index_result(
+            "BC-5.39.010",
+            "1.6",
+            ".factory/specs/behavioral-contracts/ss-05/BC-5.39.010.md",
+            Ok(index.as_bytes().to_vec()),
+        );
+        assert!(
+            violations.is_empty(),
+            "escaped-pipe version chain `v1.3 \\| v1.4 \\| v1.5 \\| v1.6`: current version \
+            '1.6' is the LAST token → must not block. \
+            Red Gate: current code extracts first token '1.3' → '1.3' ≠ '1.6' → violation (F-S2107-P1B-006)"
+        );
+    }
+
+    /// T-039b (Rust unit test): frontmatter changelog line must not be matched as BC body row
+    /// (F-S2107-P1B-007).
+    ///
+    /// BC-5.39.010 v1.3 invariant 10: extract_bc_index_version must scan only table body
+    /// rows (after the closing `---` of YAML frontmatter), not frontmatter content.
+    ///
+    /// RED GATE: current code scans ALL lines. Frontmatter changelog entry
+    /// `    change: "v4.43: BC-5.39.010 v1.5|v1.6."` contains both `|` and "BC-5.39.010"
+    /// → matched first. extract_version_token on `    change: "v4.43: BC-5.39.010 v1.5`
+    /// returns "4.43". "4.43" ≠ "1.6" → violation → violations NOT empty.
+    /// assert!(violations.is_empty()) FAILS → RED gate.
+    /// After fix (skip lines before body): body row `| v1.6 |` → "1.6" → empty → PASSES.
+    #[test]
+    fn test_BC_5_39_010_arm_a1_frontmatter_changelog_pipe_not_matched_as_table_row() {
+        // YAML frontmatter has changelog line with both `|` and BC-5.39.010 → false match
+        // body table row correctly has v1.6 → should pass
+        let index = concat!(
+            "---\n",
+            "document_type: bc-index\n",
+            "changelog:\n",
+            "  - date: 2026-07-31\n",
+            "    change: \"v4.43: BC-5.39.010 v1.5|v1.6.\"\n",
+            "---\n\n",
+            "| BC ID | Title | Status | Version |\n",
+            "|-------|-------|--------|---------|\n",
+            "| [BC-5.39.010](ss-05/BC-5.39.010.md) | title | draft | v1.6 |\n",
+        );
+        let (violations, _) = run_arm_a1_with_index_result(
+            "BC-5.39.010",
+            "1.6",
+            ".factory/specs/behavioral-contracts/ss-05/BC-5.39.010.md",
+            Ok(index.as_bytes().to_vec()),
+        );
+        assert!(
+            violations.is_empty(),
+            "frontmatter changelog line `change: \"v4.43: BC-5.39.010 v1.5|v1.6.\"` must NOT \
+            be matched as BC body table row. Red Gate: current code returns '4.43' from \
+            frontmatter → '4.43' ≠ '1.6' → violation (F-S2107-P1B-007)"
         );
     }
 
