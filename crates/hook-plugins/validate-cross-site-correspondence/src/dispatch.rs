@@ -108,7 +108,10 @@ pub fn is_story_file(file_path: &str) -> bool {
     let is_md = filename.ends_with(".md");
     // STORY-INDEX.md is Arm B2's trigger, not a story file
     let not_index = filename != "STORY-INDEX.md";
-    has_factory && has_stories && is_md && not_index
+    // PC9/PC16: story basename must start with "S-" to exclude epics (E-XX-*) and
+    // other .md files under .factory/stories/ (F-S2107-P1B-010).
+    let is_story_basename = filename.starts_with("S-");
+    has_factory && has_stories && is_md && not_index && is_story_basename
 }
 
 /// Returns `true` if `file_path` names `STORY-INDEX.md` under `.factory/stories/`.
