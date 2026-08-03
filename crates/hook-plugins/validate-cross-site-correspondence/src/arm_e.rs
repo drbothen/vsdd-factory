@@ -159,7 +159,18 @@ pub fn run_arm_e1(content: &str) -> (Vec<Violation>, Vec<Advisory>) {
 
     let last_amended_raw = match extract_frontmatter_field(content, "last_amended") {
         Some(la) => la,
-        None => return (vec![], vec![]), // No last_amended field → no check
+        None => {
+            // F-S2107-P1C-015: when version: is present, last_amended: should also be
+            // present. Emit an advisory (not a block) so the author can add the field.
+            let advisory = Advisory {
+                message: format!(
+                    "validate-cross-site-correspondence [Class E1] advisory: \
+                    version '{version}' is set but last_amended field is absent. \
+                    Both fields must be present per BC-5.39.010 §E1."
+                ),
+            };
+            return (vec![], vec![advisory]);
+        }
     };
 
     match extract_last_amended_outer_version(&last_amended_raw) {
