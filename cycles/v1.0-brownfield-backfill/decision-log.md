@@ -14361,3 +14361,52 @@ D-947-PASS-30-FIX-BURST
 ### Date
 
 2026-07-31
+
+---
+
+## D-948
+
+### Title
+
+SESSION-WRAP-PAUSED — S-21.07 delivered (feature/S-21.07 @ db381c1b, 79 unit tests + 35 bats GREEN); S-21.04 pass-30 CLOSED (D-947); PIPELINE PAUSED per human /wrap 2026-08-03
+
+### Decision
+
+Record D-948 as the sentinel for the session-wrap pause burst.
+
+**(a) POLICY 16 GLOBAL-MAX GATE:** `grep -n "^## D-" .factory/cycles/v1.0-brownfield-backfill/decision-log.md | sort -t'-' -k2 -n | tail -3` → 14183:## D-945 / 14255:## D-946 / 14293:## D-947; D-947 confirmed prior max → D-948 allocated.
+
+**(b) Human /wrap directive 2026-08-03.** Single atomic commit per TD-VSDD-053; no A–E chain (session-wrap burst, not phase burst).
+
+**(c) Session-wrap scope:** (1) pipeline PAUSED per human /wrap directive. (2) D-947 checkpoint (2026-07-31) archived to session-checkpoints.md. (3) New SRC written: position = S-21.04 pass-30 CLOSED (D-947; streak 0/3; 30 passes) + S-21.07 delivered (W4; 11 pts; 79 unit tests + 35 bats GREEN); resume = human sequencing decision (S-21.07 demos/cascade OR S-21.04 pass-31). (4) 4-INDEX UNCHANGED: BC v4.43/VP v2.74/STORY v4.277/ARCH v3.40.
+
+**(d) Two stories in flight at pause:**
+- S-21.07 (W4): feature/S-21.07-validate-cross-site-correspondence @ db381c1b; pushed; 79 unit tests + 35 bats GREEN; fmt+clippy clean; six blocking arms (A1/A2/B1/B2/E1/E2) + one advisory (D); WASM 216KB tracked at `plugins/vsdd-factory/hook-plugins/validate-cross-site-correspondence.wasm` (dashed `[[bin]]` artifact — underscored cdylib 75 bytes, empty by design); BC-5.39.010 v1.2 + ADR-035 v1.0 + ADR-034 v1.2 committed. Remaining: demo evidence → LOCAL adversary cascade → operator-cache staging per AC-021 → PR. Nothing abandoned.
+- S-21.04 (W2): feature/S-21.04-story-worktree-write-path-discipline @ 323f440f; pushed, NO PR (correct: mid-cascade); pass-30 fix burst COMPLETE (D-947); streak 0/3 (30 passes). Remaining: pass-31 adversary dispatch.
+
+**(e) Three defects caught in S-21.07 delivery by report-vs-contract review — POLICY 22 load-bearing evidence:** (1) test-writer's 21 bats controls permanently vacuous (`on_error = "continue"` turns `todo!()` panic into exit 0); fixed with `_assert_plugin_ran_not_crashed` reading dispatcher internal log. (2) test-writer recorded vacuous controls as "accepted per session context" — no such acceptance was given. (3) implementer's `run_arm_e2` used `curr <= prev` (strictly ascending) while BC-5.39.010 specifies non-strict monotonicity (`date[i] ≤ date[i+1]`); fix: `curr < prev`; three edited fixtures reverted; permanent boundary pair added.
+
+**(f) Governance artifacts committed this session:** BC-5.39.010 v1.2 (five correspondence classes, content-not-presence); ADR-035 v1.0 (three-tier architecture: Tier 1 file-local WASM / Tier 2A cross-site WASM / Tier 2B future generation / Tier 3 corpus pass); ADR-034 v1.2.
+
+**(g) 4-INDEX summary:** BC v4.43/VP v2.74/STORY v4.277/ARCH v3.40 UNCHANGED.
+
+### Participating agents
+
+- state-manager: D-948 codification; prior-checkpoint archive to session-checkpoints.md; SRC full replacement; STATE.md v6.78→v6.79
+
+### 4-INDEX
+
+| Index | Before | After | Change |
+|-------|--------|-------|--------|
+| BC-INDEX | v4.43 | v4.43 | UNCHANGED |
+| VP-INDEX | v2.74 | v2.74 | UNCHANGED |
+| STORY-INDEX | v4.277 | v4.277 | UNCHANGED |
+| ARCH-INDEX | v3.40 | v3.40 | UNCHANGED |
+
+### Phase
+
+D-948-SESSION-WRAP-PAUSED
+
+### Date
+
+2026-08-03

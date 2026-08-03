@@ -1556,3 +1556,42 @@ F-S2104-P21-004 MEDIUM (undocumented authoring convention; route story-writer / 
 
 ### 5. Critical SHAs
 develop `948f0fb1`; main `80e5cd7b`; factory-artifacts HEAD = D-929-BURST `1b597f16`; feature/S-21.04 @ `7d195cfa`; v1.0.0-rc.23 @ `0f8b2a89` (tag); bot commit `80e5cd7b`. origin=drbothen/vsdd-factory. 4-index: BC v4.33/VP v2.72/STORY v4.267/ARCH v3.34.
+
+---
+
+## D-947 Checkpoint (2026-07-31 — D-947-PASS-30-FIX-BURST; PIPELINE ACTIVE)
+
+> SELF-SUFFICIENT RESUME CONTEXT — ASSUMES ZERO PRIOR CONTEXT.
+
+**Position.** S-21.04 LOCAL adversarial cascade (BC-5.39.001), E-21 Wave 2, deliver-story Step 4.5. D-947 PASS-30-FIX-BURST COMPLETE (Commits A–E). Pass-30 fix burst COMPLETE: four SM findings closed (H02/M02/M03/H07-row); specialists: story-writer S-21.04 v1.33→v1.35 + architect ADR-034 v1.1→v1.2 + test-writer POLICY 15 red-gate-log. Feature branch `feature/S-21.04-story-worktree-write-path-discipline` @ `323f440f` — clean, pushed, NO PR open (correct: mid-cascade). develop `948f0fb1`. 4-index BC v4.43/VP v2.74/STORY v4.277/ARCH v3.40.
+
+**Convergence.** Streak **0/3**. Thirty passes, **ZERO CLEAN verdicts**. Trajectory tail →7→17→13→16 (UNCHANGED — no new adversary pass in D-947 fix burst). First zero-BLOCKER pass was at pass-29; pass-30 had 9 HIGH findings (B0/H9/M5/L2 = 16 total); pass-30 fix burst COMPLETE.
+
+**In-flight.** NONE. No story mid-TDD, no abandoned sub-agent steps, all commits pushed. Code committed at `323f440f`: bats 11/11 + 16/16 GREEN; fmt+clippy clean.
+
+**D-927 status.** FALSIFIED at D-931. The `model: opus` pin resolves correctly; ADR-033 ruling: amend cross-family definitions; two structural guards (D-935 pipeline probe; D-937 executable mutant corpus). Pass-29: ALL 13 findings CLOSED (first zero-BLOCKER pass). ADR-034 v1.1 NEW (T-016 redesigned with runtime-derived `bats_count`); ADR-034 v1.2 (D-947; S-21.04 v1.35 formal ACs + behavioral documentation).
+
+**Pass summary (passes 24–30).**
+- Pass-24: B2 / H2 / M2 / L0 = 6 findings
+- Pass-25: B3 / H4 / M8 / L2 = 17 findings (regression; streak reset)
+- Pass-26: B2 / H4 / M3 / L2 = 11 findings
+- Pass-27: B1 / H2 / M4 / L0 = 7 findings
+- Pass-28: B1 / H7 / M7 / L2 = 17 findings (B01 FIXED [CORRECTED H03: "policies.yaml YAML-parse" was FABRICATED identity; real B01 = coupling-gate detached-HEAD CI failure CLOSED 44547051]; streak 0/3)
+- Pass-29: B0 / H5 / M6 / L2 = 13 findings (first zero-BLOCKER pass; ADR-034 v1.1 T-016 redesign; ALL CLOSED; streak 0/3)
+- Pass-30: B0 / H9 / M5 / L2 = 16 findings (RECOVERED from /tmp/p30.md via D-946; four SM findings CLOSED D-947; 12 findings closed by specialists; fix burst COMPLETE D-947; streak 0/3)
+
+**Resume items.**
+1. **Pass-31 adversary dispatch is NEXT.** Pass-30 fix burst COMPLETE (D-947). Route: dispatch fresh-context adversary against `feature/S-21.04 @ 323f440f`. adversary-pass-30.md at `.factory/cycles/v1.0-brownfield-backfill/S-21.04/adversary-pass-30.md` is the prior-pass reference for the adversary.
+2. **STATE.md structural gaps:** (a) Drift Items table lacks `wave-state.yaml` W1 (E-19) stale-state row (pre-existing; next maintenance sweep); (b) Decisions Log visible table shows abbreviated rows; D-863..D-947 (see decision-log.md for full range) full detail in decision-log.md SoT.
+3. **`wave-state.yaml` points to a closed epic.** It reads `wave: W1 (E-19)` — E-19 closed at D-851; **do NOT trust `/rehydrate-wave` output** until manifest is regenerated.
+4. **Input-hash drift — do NOT run `compute-input-hash --update`.** POLICY 18 effectively unenforced (D-936 blast-radius: 418 files). D-940 directive stands. Per-file `--check` and `--resolve` remain safe.
+5. **ADR-033 body not expanded.** S-22.01/S-22.02 (P0) and S-22.03 (P1) are NOT YET registered as stories — they appear in SRC narrative only. Route: architect + story-writer to author stub stories.
+6. **D-945 obligations.** (a) VP-102..VP-118 allocation DEFERRED to S-21.07 post-merge burst (OBLIGATION: VP-INDEX v2.74→v2.91). (b) create-adr skill defect root fix pending next maintenance sweep.
+7. **Standing backlog.** rc.24 release pending (load-bearing); 7 dependabot vulns on develop (2 high); PR #729 REQUEST_CHANGES; issue-close comments #342/#365/#358 pending human.
+8. **Main repo pre-existing uncommitted state.** `M .claude/scheduled_tasks.lock` (always modified; do not commit) + untracked `plugins/vsdd-factory/tests/report.tap`. Deliberately uncommitted.
+
+**Pending human decisions.** Standing ruling: **"grind to 3 clean"** — asymptotic acceptance declined. Next action = Pass-31 adversary dispatch.
+
+**CAUTION: `pipeline: ACTIVE` as of D-947. D-417(b) strict dispatch-side advance only modifies `phase:` + `current_step:`, not `pipeline:`. Use `phase:` field and this SRC as the authoritative liveness indicators.**
+
+**Resume command.** `/vsdd-factory:next-step` — do NOT run `/rehydrate-wave` first (this is NOT a wave-boundary clear; resume directly from this SRC).
