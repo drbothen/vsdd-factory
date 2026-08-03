@@ -122,13 +122,12 @@ pub fn parse_story_index_blockquote_hash(index_content: &[u8], story_id: &str) -
                     let hash_start = abs_pos + needle.len();
                     if hash_start <= line.len() {
                         // Extract hex-only token bounded to 7..=40 chars (PC21).
-                        // Case-insensitive: accept both [0-9a-f] and [0-9A-F]
-                        // (is_ascii_hexdigit). Preserve original casing so mismatch
-                        // comparison with story frontmatter hash (always lowercase)
-                        // works correctly for synthetic test fixtures using uppercase.
+                        // PC21 specifies [0-9a-f]{7,40} — lowercase only. This is
+                        // deliberate and spec-mandated (BC-5.39.010 PC21); do not
+                        // widen to is_ascii_hexdigit().
                         let hash: String = line[hash_start..]
                             .chars()
-                            .take_while(|c| c.is_ascii_hexdigit())
+                            .take_while(|c| matches!(c, '0'..='9' | 'a'..='f'))
                             .collect();
                         if hash.len() >= 7 && hash.len() <= 40 {
                             return Some(hash);
@@ -501,11 +500,11 @@ fn extract_blockquote_pairs(line: &str) -> Vec<(String, String)> {
 
         let story_id = &candidate[..id_len];
         let hash_start = id_len + 1;
-        // Case-insensitive: accept [0-9a-fA-F] (is_ascii_hexdigit) for parity with
-        // parse_story_index_blockquote_hash (same blockquote source).
+        // PC20/PC21 specify [0-9a-f]{7,40} — lowercase only. This is deliberate and
+        // spec-mandated (BC-5.39.010 PC20/PC21); do not widen to is_ascii_hexdigit().
         let hash: String = candidate[hash_start..]
             .chars()
-            .take_while(|c| c.is_ascii_hexdigit())
+            .take_while(|c| matches!(c, '0'..='9' | 'a'..='f'))
             .collect();
 
         if hash.len() >= 7 && hash.len() <= 40 {
