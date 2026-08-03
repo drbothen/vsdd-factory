@@ -349,17 +349,17 @@ pub fn run_arm_b2(story_index_content: &str) -> Vec<Violation> {
             .find(|(id, _)| id == cat_story_id)
             .map(|(_, h)| h.as_str());
 
-        if let Some(bq_h) = bq_hash {
-            if bq_h != cat_hash {
-                violations.push(Violation {
-                    description: format!(
-                        "validate-cross-site-correspondence [Class B] POLICY 18: \
-                        STORY-INDEX.md internal parity violation for story {cat_story_id} \
-                        — catalog={cat_hash} blockquote={bq_h} \
-                        — run `compute-input-hash --update`"
-                    ),
-                });
-            }
+        if let Some(bq_h) = bq_hash
+            && bq_h != cat_hash
+        {
+            violations.push(Violation {
+                description: format!(
+                    "validate-cross-site-correspondence [Class B] POLICY 18: \
+                    STORY-INDEX.md internal parity violation for story {cat_story_id} \
+                    — catalog={cat_hash} blockquote={bq_h} \
+                    — run `compute-input-hash --update`"
+                ),
+            });
             // If they match: no violation (correct)
         }
         // If bq_hash is None (story not in blockquote): no violation — blockquote may
@@ -390,7 +390,9 @@ fn extract_input_hash_token(line: &str) -> Option<String> {
 
     while search_start < line.len() {
         let search_in = &line[search_start..];
-        let Some(rel_pos) = search_in.find(keyword) else { break };
+        let Some(rel_pos) = search_in.find(keyword) else {
+            break;
+        };
         let pos = search_start + rel_pos;
 
         // Word boundary before "input-hash"
@@ -455,12 +457,18 @@ fn extract_story_id_from_table_row(line: &str) -> Option<String> {
 fn extract_blockquote_pairs(line: &str) -> Vec<(String, String)> {
     let mut pairs = Vec::new();
     // Skip the "> " prefix
-    let rest = if let Some(r) = line.strip_prefix("> ") { r } else { return pairs };
+    let rest = if let Some(r) = line.strip_prefix("> ") {
+        r
+    } else {
+        return pairs;
+    };
 
     let mut search_pos = 0;
     while search_pos < rest.len() {
         // Find next "S-" at a word boundary
-        let Some(rel) = rest[search_pos..].find("S-") else { break };
+        let Some(rel) = rest[search_pos..].find("S-") else {
+            break;
+        };
         let abs = search_pos + rel;
 
         // Word boundary: char before "S" must not be alphanumeric

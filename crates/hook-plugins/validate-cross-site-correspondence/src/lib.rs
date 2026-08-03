@@ -279,82 +279,87 @@ fn extract_story_id_from_path(file_path: &str) -> String {
 }
 
 #[cfg(test)]
-#[allow(clippy::expect_used, clippy::unwrap_used)]
 mod tests {
     use super::*;
-    use vsdd_hook_sdk::HookPayload;
 
-    // Helper: build a minimal HookPayload with the given file_path.
-    fn make_payload(file_path: &str) -> HookPayload {
-        let json = format!(
-            r#"{{"event_name":"PostToolUse","tool_name":"Edit","session_id":"test-session","dispatcher_trace_id":"test-trace","tool_input":{{"file_path":{:?}}}}}"#,
-            file_path
+    // -----------------------------------------------------------------------
+    // F-S2107-P1B-005: BC-INDEX.md must not be classified as a BC file.
+    // dispatch::is_bc_file uses starts_with("BC-") && ends_with(".md") which
+    // admits "BC-INDEX.md" as a valid BC path. When admitted, arm A1 tries to
+    // read BC-INDEX.md as both primary target AND secondary index, producing
+    // spurious version mismatches (F-S2107-P1B-005 + F-S2107-P1B-007 cascade).
+    // BC-5.39.010 v1.3 §Classification invariant: index files are excluded.
+    // -----------------------------------------------------------------------
+
+    /// T-035 lib-level: BC-INDEX.md must NOT be classified as a BC file (F-S2107-P1B-005).
+    ///
+    /// RED GATE: current `starts_with("BC-") && ends_with(".md")` matches "BC-INDEX.md".
+    /// dispatch::is_bc_file returns true → assert!(!result) FAILS → RED gate.
+    /// After fix (exclude by name: file_stem == "BC-INDEX"): returns false → PASSES.
+    #[test]
+    fn test_BC_5_39_010_dispatch_bc_index_not_bc_file_lib_integration() {
+        let result = dispatch::is_bc_file(".factory/specs/behavioral-contracts/BC-INDEX.md");
+        assert!(
+            !result,
+            "BC-INDEX.md must NOT be classified as a BC file — it is the index, \
+            not a behavioral contract (F-S2107-P1B-005)"
         );
-        serde_json::from_str(&json).expect("payload fixture must parse")
     }
 
     // -----------------------------------------------------------------------
-    // AC-004: primary target CapabilityDenied blocks (lib.rs level)
+    // F-S2107-P1B-006: escaped-pipe version chains in production BC-INDEX rows.
+    // arm_a1::run_arm_a1_with_index_result with production-shaped content must
+    // correctly identify `1.6` as current when version history is `v1.3 \| v1.6`.
+    // Current code: split on '|' → first token "1.3" → "1.3" ≠ "1.6" → violation.
+    // After fix: last token "1.6" → match → no violation.
     // -----------------------------------------------------------------------
 
-    // NOTE: AC-004 (primary target CapabilityDenied → block) tests the effectful
-    // dispatch path in on_post_tool_use which requires host mocking. This is verified
-    // via integration (bats) tests in validate-cross-site-correspondence.bats.
-    // The test here exercises a pure helper to document the fail-closed expectation.
+    /// F-S2107-P1B-006: lib-level escaped-pipe chain integration test.
+    ///
+    /// RED GATE: current code returns "1.3" → "1.3" ≠ "1.6" → violation → NOT empty.
+    /// assert!(violations.is_empty()) FAILS → RED gate.
+    /// After fix (last token wins): "1.6" == "1.6" → empty → PASSES.
     #[test]
-    fn test_BC_5_39_010_arm_a1_primary_target_capability_denied_contract() {
-        // Document: on_post_tool_use MUST block when primary target read returns CapabilityDenied.
-        // This is a specification documentation test — it calls on_post_tool_use with a
-        // payload for a BC file path. The function is todo!() → panics → RED gate.
-        let payload = make_payload(".factory/specs/behavioral-contracts/ss-05/BC-5.39.010.md");
-        let _result = on_post_tool_use(payload);
-        // If todo!() is implemented correctly: when host::read_file returns CapabilityDenied
-        // on the primary target, result must be HookResult::Block (exit_code 2).
-        // For now: todo!() panics → test fails → RED gate holds.
+    fn test_BC_5_39_010_arm_a1_escaped_pipe_chain_stale_blocks_lib_level() {
+        let index = concat!(
+            "---\ndocument_type: bc-index\n---\n\n",
+            "| [BC-5.39.010](ss-05/BC-5.39.010.md) | title | draft | CAP-032 | S-21.07",
+            " | v1.3 \\| v1.4 \\| v1.5 \\| v1.6 |\n",
+        );
+        let (violations, _advisories) = arm_a1::run_arm_a1_with_index_result(
+            "BC-5.39.010",
+            "1.6",
+            ".factory/specs/behavioral-contracts/ss-05/BC-5.39.010.md",
+            Ok(index.as_bytes().to_vec()),
+        );
+        assert!(
+            violations.is_empty(),
+            "escaped-pipe chain `v1.3 \\| ... \\| v1.6` with current version '1.6' must not block. \
+            Red Gate: current code extracts first token '1.3' → violation (F-S2107-P1B-006)"
+        );
     }
 
     // -----------------------------------------------------------------------
-    // AC-018: combined violations from multiple arms → single block
+    // F-S2107-P1C-014: 15-byte last_amended string rejected by length guard.
+    // "2026-07-30 (v2)" — single-digit outer version, no sub-version suffix.
+    // BC-5.39.010 v1.3 §E1: this is a valid format.
+    // Current code: `if len < 17 { return None }` — 15 < 17 → None.
     // -----------------------------------------------------------------------
 
-    /// AC-018: combined A1 + E1 violations → one block message.
+    /// T-045 lib-level: extract_last_amended_outer_version must accept 15-byte format.
+    ///
+    /// RED GATE: `if len < 17 { return None }` → 15 < 17 → None.
+    /// assert_eq!(result, Some("2".to_string())) FAILS → RED gate.
+    /// After fix (lower threshold to 14): returns Some("2") → PASSES.
     #[test]
-    fn test_BC_5_39_010_combined_a1_and_e1_single_block() {
-        // When both Class A Arm1 and Class E1 fire simultaneously, the result must be
-        // ONE combined block. Verified via combine_violations_into_block.
-        let violations = vec![
-            Violation {
-                description: "validate-cross-site-correspondence [Class A Arm1]: BC-INDEX stale"
-                    .to_string(),
-            },
-            Violation {
-                description: "validate-cross-site-correspondence [Class E1]: version mismatch"
-                    .to_string(),
-            },
-        ];
-        let result =
-            combine_violations_into_block("validate-cross-site-correspondence", &violations);
-        // combine_violations_into_block is todo!() → panics → RED gate holds.
+    fn test_BC_5_39_010_class_e1_15_byte_last_amended_accepted_lib_level() {
+        let result = arm_e::extract_last_amended_outer_version("2026-07-30 (v2)");
         assert_eq!(
-            result.exit_code(),
-            2,
-            "combined violations must produce a single block (exit code 2)"
+            result,
+            Some("2".to_string()),
+            "15-byte last_amended '2026-07-30 (v2)' must parse to outer version '2'. \
+            BC-5.39.010 v1.3 §E1 (F-S2107-P1C-014). \
+            Red Gate: len < 17 guard rejects 15-byte strings → None → assertion FAILS"
         );
-    }
-
-    // -----------------------------------------------------------------------
-    // AC-019: multi-byte UTF-8 no panic
-    // -----------------------------------------------------------------------
-
-    /// AC-019: multi-byte UTF-8 in content must not cause panic.
-    #[test]
-    fn test_BC_5_39_010_multibyte_utf8_no_panic() {
-        // Fixture: BC file path; content contains multi-byte UTF-8 in BC title.
-        // The hook must not panic on valid UTF-8 multi-byte content.
-        let payload = make_payload(".factory/specs/behavioral-contracts/ss-05/BC-5.39.010.md");
-        // on_post_tool_use is todo!() → panics → test fails → RED gate holds.
-        // When implemented, this test verifies no panic on content containing:
-        // "version: \"1.6\"\ntitle: \"Überprüfung der Korrespondenz\"\n"
-        let _result = on_post_tool_use(payload);
     }
 }

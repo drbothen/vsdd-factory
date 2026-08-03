@@ -1,15 +1,26 @@
 ---
 document_type: story-index
-version: "2.0"
+version: "4.278"
+last_amended: "2026-07-31 (v4.278)"
 ---
 
 # STORY-INDEX
 
 <!-- Fixture: B1 mutant — catalog row has 4be9d21 ≠ story frontmatter 47a65c9 -->
-<!-- Blockquote also has 4be9d21 so B2 and B3 match each other but not B1 -->
+<!-- B1 = story frontmatter input-hash = "47a65c9" -->
+<!-- B2 = catalog row input-hash = "4be9d21"  (MUTANT — diverges from B1) -->
+<!-- B3 = blockquote S-21.07=4be9d21 embedded in production prose line -->
+<!-- Expected: Class B Arm1 fires (B1 ≠ B2), exit 2 -->
+<!-- BC-5.39.010 TV: "B Arm1 — mismatch | story 47a65c9; catalog 4be9d21 | Block [Class B]" -->
+<!--                                                                                        -->
+<!-- PRODUCTION SHAPE: blockquote is ONE prose line. The current                            -->
+<!-- parse_story_index_blockquote_hash looks for starts_with("> S-21.07=") — permanently   -->
+<!-- inert on this format (F-S2107-P1B-003). After fix: B3=Some("4be9d21"),                -->
+<!-- B1≠B3 adds to violation. Current code: B2 mismatch already sufficient for EXIT 2.     -->
 
-| Story ID | Title | input-hash 4be9d21 | Wave | Priority |
-|----------|-------|---------------------|------|----------|
-| S-21.07 | test fixture | input-hash 4be9d21 | W4 | P1 |
+| Story ID | Title | Epic | Points | Priority | depends_on | blocks | status | Notes |
+|----------|-------|------|--------|----------|------------|--------|--------|-------|
+| S-21.01 | validate-factory-path-staging WASM guard | E-21 | 11 | P1 | [] | [] | merged | [BC-4.16.001 v1.8] (wave 1; subsystems SS-04; tdd_mode strict; input-hash 32aaccc) |
+| S-21.07 | validate-cross-site-correspondence WASM hook — five-arm PostToolUse cross-site value-correspondence gate (Classes A/B/D/E; BC-5.39.010 v1.2) | E-21 | 11 | P1 | [] | [] | draft | [BC-5.39.010 v1.2] (wave 4; subsystems SS-04, SS-05; tdd_mode strict; input-hash 4be9d21; AC-001..AC-021) |
 
-> S-21.07=4be9d21
+> **E-21 delivery:** W1 (parallel): {S-21.01 (11 pts), S-21.02 (3 pts), S-21.03 (3 pts)} → W2 (parallel): {S-21.04 (5 pts), S-21.05 (5 pts)} → W3 (sequential): {S-21.06 (8 pts; depends_on [S-21.01])} → W4 (independent): {S-21.07 (11 pts; depends_on [])}. 7 stories total. 46 pts. DAG has no cycles. Input-hashes: S-21.01=32aaccc; S-21.02=8bd32e5; S-21.03=59e687e; S-21.04=a1b2c3d; S-21.05=c9265f0; S-21.06=b807086; S-21.07=4be9d21. All 7 distinct. [Fixture: S-21.07=4be9d21 diverges from story frontmatter 47a65c9 → B1≠B2 violation]

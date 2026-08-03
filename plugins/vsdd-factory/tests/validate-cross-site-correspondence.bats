@@ -16,10 +16,11 @@
 # Discriminating signal: _assert_plugin_ran_not_crashed reads
 #   $WORK/.factory/logs/dispatcher-internal-YYYY-MM-DD.jsonl
 # and asserts that:
-#   (a) a plugin.invoked record exists for validate-cross-site-correspondence, AND
-#   (b) no plugin.crashed record exists for it.
-# Under the stub, condition (b) always fails → ALL 31 payload tests FAIL in Red Gate.
-# After implementation, the stub is replaced with real logic, no plugin.crashed fires,
+#   (a) a plugin.completed record exists for validate-cross-site-correspondence, AND
+#   (b) no plugin.crashed OR plugin.timeout record exists for it.
+# Under the stub, condition (a) always fails (stub panics → plugin.crashed, not plugin.completed).
+# → ALL 37+ payload tests FAIL in Red Gate.
+# After implementation, the stub is replaced with real logic, plugin.completed fires,
 # and the tests pass or fail based on actual arm behavior.
 #
 # NOTE: VSDD_SINK_FILE is not functional in rc.23 (the file is never created).
@@ -222,21 +223,28 @@ _plugin_log() {
 
 # Assert that validate-cross-site-correspondence was invoked AND did NOT crash.
 #
-# In Red Gate: FAILS because the stub panics → plugin.crashed in internal log.
-# Post-implementation: PASSES when the plugin runs to completion (no crash event).
+# In Red Gate: FAILS because the stub panics → plugin.crashed (not plugin.completed) in log.
+# Post-implementation: PASSES when the plugin runs to completion (plugin.completed fires).
 #
-# This makes ALL 31 payload-driven tests fail in Red Gate — even controls asserting
+# RG-006 (T-036): This helper is itself tested by a permanent mutant below that injects
+# a plugin.crashed-only log and asserts the helper fails. See T-036 comment block.
+#
+# This makes ALL 37+ payload-driven tests fail in Red Gate — even controls asserting
 # exit 0, which previously passed vacuously because on_error="continue" swallows panics.
 # BC-5.38.001 Red Gate: every test must fail for the right reason, not by exit-code coincidence.
 _assert_plugin_ran_not_crashed() {
   local log; log="$(_plugin_log)"
 
-  # Must have an invocation record — confirms the hook triggered at all.
-  if ! grep -q '"plugin_name":"validate-cross-site-correspondence"' "$log" 2>/dev/null; then
-    echo "FAIL: no record for validate-cross-site-correspondence in internal log"
-    echo "  Possible causes: dispatcher not found, hook pattern mismatch, VSDD_LOG_DIR not set"
+  # Must have a plugin.completed record — confirms execution ran to completion.
+  # plugin.invoked is written BEFORE execution starts; only plugin.completed proves
+  # the plugin ran its full code path without crashing or timing out.
+  if ! grep '"plugin_name":"validate-cross-site-correspondence"' "$log" 2>/dev/null \
+       | grep -q '"type":"plugin.completed"'; then
+    echo "FAIL: no plugin.completed record for validate-cross-site-correspondence"
+    echo "  Plugin never ran, crashed before completion, or timed out."
     echo "  Log path: $log"
-    cat "$log" 2>/dev/null || echo "  (log file absent)"
+    grep '"plugin_name":"validate-cross-site-correspondence"' "$log" 2>/dev/null | head -5 \
+      || echo "  (no matching records in log)"
     false
     return
   fi
@@ -245,10 +253,20 @@ _assert_plugin_ran_not_crashed() {
   if grep '"plugin_name":"validate-cross-site-correspondence"' "$log" 2>/dev/null \
        | grep -q '"type":"plugin.crashed"'; then
     echo "FAIL: plugin.crashed found for validate-cross-site-correspondence"
-    echo "  The plugin stub panicked (todo!() body). This FAILS correctly in Red Gate."
-    echo "  After implementation, the stub is replaced and this test will PASS."
+    echo "  The plugin panicked (todo!() body). Correct Red Gate failure."
     grep '"plugin_name":"validate-cross-site-correspondence"' "$log" 2>/dev/null \
       | grep '"type":"plugin.crashed"' | head -3
+    false
+    return
+  fi
+
+  # Must NOT have a plugin.timeout record — confirms the plugin did not exceed budget.
+  if grep '"plugin_name":"validate-cross-site-correspondence"' "$log" 2>/dev/null \
+       | grep -q '"type":"plugin.timeout"'; then
+    echo "FAIL: plugin.timeout found for validate-cross-site-correspondence"
+    echo "  Plugin exceeded its time budget — check WASM fuel or timeout_ms setting."
+    grep '"plugin_name":"validate-cross-site-correspondence"' "$log" 2>/dev/null \
+      | grep '"type":"plugin.timeout"' | head -3
     false
     return
   fi
@@ -278,8 +296,62 @@ _assert_plugin_ran_not_crashed() {
     local registry="$BATS_TEST_DIRNAME/../../../plugins/vsdd-factory/hooks-registry.toml"
     run awk '/name = "validate-cross-site-correspondence"/,/^\[\[hooks\]\]/' "$registry"
     [ "$status" -eq 0 ]
+    # Guard: entry must exist — empty output means the section was never found,
+    # which would make the fuel_cap absence check vacuously true.
+    [ -n "$output" ] || {
+      echo "FAIL: no 'validate-cross-site-correspondence' section found in registry"
+      false
+    }
     # fuel_cap must NOT be present (BC-5.39.010 v1.2 §Gate Spec; ADR-035 §Decision 5)
     [[ "$output" != *"fuel_cap"* ]]
+}
+
+# ---------------------------------------------------------------------------
+# T-036 (RG-006) PERMANENT MUTANT: _assert_plugin_ran_not_crashed self-test.
+#
+# This test validates the helper function itself — not a plugin execution.
+# It ALWAYS PASSES (both in Red Gate and after implementation) because it tests
+# that the helper correctly detects a plugin.crashed-only log as a failure.
+#
+# RG-006: without this mutant, a bug that makes _assert_plugin_ran_not_crashed
+# return success on a crashed-only log would silently invalidate ALL 37+ tests.
+# The helper must fail when:
+#   (a) only plugin.crashed record exists (no plugin.completed), AND
+#   (b) only plugin.timeout record exists (no plugin.completed).
+#
+# ALWAYS PASSES: This is a meta-test of the Red Gate mechanism, not of plugin
+# behavior. It passes both in Red Gate and post-implementation.
+# ---------------------------------------------------------------------------
+
+@test "T-036 RG-006 PERMANENT MUTANT: _assert_plugin_ran_not_crashed fails on crashed-only log" {
+  # Create a fake internal log with ONLY plugin.crashed (no plugin.completed)
+  local fake_log
+  fake_log="$WORK/.factory/logs/dispatcher-internal-$(date +%Y-%m-%d).jsonl"
+  mkdir -p "$(dirname "$fake_log")"
+  printf '{"type":"plugin.crashed","plugin_name":"validate-cross-site-correspondence","message":"todo!() panic"}\n' > "$fake_log"
+
+  # _assert_plugin_ran_not_crashed must FAIL with this log
+  # (no plugin.completed record → first check fails)
+  if _assert_plugin_ran_not_crashed 2>/dev/null; then
+    echo "FAIL: _assert_plugin_ran_not_crashed must fail when only plugin.crashed in log"
+    echo "  (no plugin.completed record found — stub panic not detected)"
+    false
+  fi
+  # Test passes: helper correctly returned failure for crashed-only log
+}
+
+@test "T-036b RG-006 PERMANENT MUTANT: _assert_plugin_ran_not_crashed fails on timeout-only log" {
+  # Create a fake internal log with ONLY plugin.timeout (no plugin.completed)
+  local fake_log
+  fake_log="$WORK/.factory/logs/dispatcher-internal-$(date +%Y-%m-%d).jsonl"
+  mkdir -p "$(dirname "$fake_log")"
+  printf '{"type":"plugin.timeout","plugin_name":"validate-cross-site-correspondence","message":"exceeded budget"}\n' > "$fake_log"
+
+  # _assert_plugin_ran_not_crashed must FAIL (no plugin.completed AND has timeout record)
+  if _assert_plugin_ran_not_crashed 2>/dev/null; then
+    echo "FAIL: _assert_plugin_ran_not_crashed must fail when only plugin.timeout in log"
+    false
+  fi
 }
 
 # ---------------------------------------------------------------------------
@@ -308,6 +380,31 @@ _assert_plugin_ran_not_crashed() {
 
   local envelope
   envelope="$(_post_write_event '.factory/specs/behavioral-contracts/ss-05/BC-5.39.010.md')"
+  _run_dispatcher "$envelope"
+
+  _assert_plugin_ran_not_crashed
+  _assert_exit 0
+}
+
+# ---------------------------------------------------------------------------
+# T-039: Class A Arm1 — escaped-pipe version chain CONTROL
+# Fixture: a1-escaped-pipe-current (BC-1.13.001 v1.12; INDEX row v1.3 \| ... \| v1.12)
+# F-S2107-P1B-006: escaped-pipe chain → extract_bc_index_version returns FIRST token "1.3"
+# F-S2107-P1B-007: frontmatter changelog line with pipe also false-matches before body row
+# BC-5.39.010 v1.3 invariant 10: LAST version token in escaped-pipe chain is authoritative.
+# ---------------------------------------------------------------------------
+
+@test "T-039 CONTROL: escaped-pipe version chain last token matches — exit code 0" {
+  _require_artifacts
+  _load_fixture "a1-escaped-pipe-current"
+  _write_registry
+
+  local envelope
+  # BC-1.13.001 at v1.12; INDEX row v1.3 \| ... \| v1.12
+  # After fix: last token "1.12" matched → no violation → exit 0
+  # F-S2107-P1B-006 RED GATE: split('|') returns first token "1.3" → "1.3"≠"1.12" → exit 2 → FAILS
+  # F-S2107-P1B-007 RED GATE: frontmatter changelog line matches first → "4.43"≠"1.12" → exit 2 → FAILS
+  envelope="$(_post_write_event '.factory/specs/behavioral-contracts/ss-01/BC-1.13.001.md')"
   _run_dispatcher "$envelope"
 
   _assert_plugin_ran_not_crashed
@@ -536,6 +633,55 @@ _assert_plugin_ran_not_crashed() {
 }
 
 # ---------------------------------------------------------------------------
+# T-037: Class B — B1=B2 agree but B3 mismatch blocks (B3-only mismatch)
+# Fixture: b1-b3-only-mismatch (B1=47a65c9, B2=47a65c9, B3=DEADBEE)
+# F-S2107-P1B-003: parse_story_index_blockquote_hash uses starts_with("> S-21.07=")
+#   → production prose blockquote shape never matches → B3=None → inert (no block)
+# BC-5.39.010 v1.3 invariant 11: B3≠B1 must block (blockquote hash mismatch).
+# ---------------------------------------------------------------------------
+
+@test "T-037 MUTANT: B1=B2 agree but B3 mismatch in production blockquote blocks" {
+  _require_artifacts
+  _load_fixture "b1-b3-only-mismatch"
+  _write_registry
+
+  local envelope
+  # story frontmatter B1=47a65c9, STORY-INDEX catalog B2=47a65c9, blockquote B3=DEADBEE
+  # After fix: B3 extracted → B3≠B1 → exit 2 [Class B]
+  # F-S2107-P1B-003 RED GATE: blockquote parser inert on production shape → B3=None
+  # → no three-way comparison → exit 0 → test expects 2 → FAILS
+  envelope="$(_post_write_event '.factory/stories/S-21.07-test.md')"
+  _run_dispatcher "$envelope"
+
+  _assert_plugin_ran_not_crashed
+  _assert_exit 2 "[Class B]"
+}
+
+# ---------------------------------------------------------------------------
+# T-038: Class B — cross-story catalog row correct lookup
+# Fixture: b1-cross-story-catalog (S-18.00 row mentions S-18.01 in blocks column)
+# F-S2107-P1B-008: parse_story_index_catalog_hash naive contains(story_id) matches
+#   S-18.00 row first (because it mentions "S-18.01" in blocks/depends column)
+# BC-5.39.010 v1.3 PC16: catalog lookup must return hash from CANONICAL story row only.
+# ---------------------------------------------------------------------------
+
+@test "T-038 CONTROL: cross-story catalog row lookup returns own-story hash (exit code 0)" {
+  _require_artifacts
+  _load_fixture "b1-cross-story-catalog"
+  _write_registry
+
+  local envelope
+  # S-18.01-test.md B1=1b4ea21; STORY-INDEX: S-18.00 row mentions S-18.01 (hash e5bc551)
+  # before S-18.01 row (hash 1b4ea21). After fix: S-18.01 row matched → B2=1b4ea21=B1 → exit 0
+  # F-S2107-P1B-008 RED GATE: naive contains("S-18.01") hits S-18.00 row → "e5bc551"≠"1b4ea21" → exit 2
+  envelope="$(_post_write_event '.factory/stories/S-18.01-test.md')"
+  _run_dispatcher "$envelope"
+
+  _assert_plugin_ran_not_crashed
+  _assert_exit 0
+}
+
+# ---------------------------------------------------------------------------
 # AC-010: absent secondary sites are advisory-only
 # Fixtures: b1-no-story-index (input-hash present, STORY-INDEX absent)
 #           b1-no-input-hash (no input-hash field)
@@ -624,9 +770,13 @@ _assert_plugin_ran_not_crashed() {
   _assert_exit 0
 }
 
-@test "AC-012: S-, BC-, VP- tokens in burst-log Refs produce exit code 0" {
+@test "AC-012: excluded-namespace tokens produce exit code 0 AND no advisory in log" {
+  # Strengthened: also verifies NO advisory is emitted for excluded-namespace tokens.
+  # First AC-012 tests only exit code; this test additionally checks the dispatcher log
+  # to confirm no spurious `plugin.log warn` record was emitted.
+  # F-S2107-P1C-020 overlap: if "discloses:" triggers advisory for excluded tokens,
+  # this test would catch it because advisories would appear in the log.
   _require_artifacts
-  # Same d-clean-tokens fixture covers both Refs tokens and D- Closes
   _load_fixture "d-clean-tokens"
   _write_registry
 
@@ -636,6 +786,17 @@ _assert_plugin_ran_not_crashed() {
 
   _assert_plugin_ran_not_crashed
   _assert_exit 0
+
+  # No advisory must be emitted for excluded-namespace tokens (D-, S-, BC-, VP-, etc.)
+  local log; log="$(_plugin_log)"
+  if grep '"plugin_name":"validate-cross-site-correspondence"' "$log" 2>/dev/null \
+       | grep '"type":"plugin.log"' | grep -q '"level":"warn"'; then
+    echo "FAIL: unexpected advisory emitted for excluded-namespace tokens in Closes/Refs"
+    echo "  All tokens in d-clean-tokens are excluded-namespace; no advisory expected."
+    grep '"plugin_name":"validate-cross-site-correspondence"' "$log" \
+      | grep '"type":"plugin.log"' | grep '"level":"warn"' | head -3
+    false
+  fi
 }
 
 # ---------------------------------------------------------------------------
@@ -644,7 +805,7 @@ _assert_plugin_ran_not_crashed() {
 # BC-5.39.010 invariant 6: Class D NEVER blocks; advisory-only
 # ---------------------------------------------------------------------------
 
-@test "AC-013 MUTANT: B01 in burst-log Closes produces advisory (exit code 0, not 2)" {
+@test "AC-013 MUTANT: B01 in burst-log Closes produces advisory in log (exit code 0, not 2)" {
   _require_artifacts
   _load_fixture "d-non-f-token"
   _write_registry
@@ -655,8 +816,25 @@ _assert_plugin_ran_not_crashed() {
 
   _assert_plugin_ran_not_crashed
   # Class D is advisory-only per BC-5.39.010 invariant 6: NEVER blocks → exit 0 always.
-  # Post-implementation: also verify the advisory text is present in dispatcher output.
   _assert_exit 0
+
+  # Advisory for "B01" must be present in the dispatcher internal log.
+  # BC-5.39.010 PC33: advisory must be emitted for non-F- tokens; message cites the token.
+  # F-S2107-P1C-020 overlap guard: if "closes:" false-matches for excluded content, no advisory
+  # would fire for B01 → this assertion would catch the wrong behavior.
+  # RED GATE: stub panics → _assert_plugin_ran_not_crashed fails before this check.
+  # Post-stub: advisory must appear in log as plugin.log warn record mentioning "B01".
+  local log; log="$(_plugin_log)"
+  grep '"plugin_name":"validate-cross-site-correspondence"' "$log" 2>/dev/null \
+    | grep '"type":"plugin.log"' \
+    | grep '"level":"warn"' \
+    | grep -q '"B01"' || {
+      echo "FAIL: expected advisory mentioning 'B01' not found in dispatcher log"
+      echo "  BC-5.39.010 invariant 6: Class D must emit advisory for non-F- token B01"
+      grep '"plugin_name":"validate-cross-site-correspondence"' "$log" \
+        | grep '"type":"plugin.log"' | head -5 || echo "  (no plugin.log records)"
+      false
+    }
 }
 
 @test "AC-013 CONTROL: only F- tokens in burst-log Closes produces exit code 0" {
@@ -842,51 +1020,88 @@ _assert_plugin_ran_not_crashed() {
 }
 
 # ---------------------------------------------------------------------------
-# AC-019: cap-passing — max_bytes constants actually passed to host::read_file
-#
-# BC-5.39.010 AC-019: every secondary host::read_file call MUST pass explicit
-# max_bytes and timeout_ms values (no default-zero calls).
-#
-# Test strategy (indirect verification):
-#   If max_bytes = 0 or undefined, the dispatcher returns InvalidArgument (-4)
-#   or OutputTooLarge (-3), causing the plugin to block (exit 2) or crash.
-#   Successful exit 0 on a fixture where secondary reads actually execute proves
-#   that BC_INDEX_MAX_BYTES (1_048_576) and STORY_INDEX_B1_MAX_BYTES (1_048_576)
-#   are correctly passed to host::read_file.
-#
-# Two sub-tests:
-#   (a) A1 secondary read: BC-INDEX.md read during BC file write
-#   (b) B1 secondary read: STORY-INDEX.md read during story file write
+# T-035: Class A Arm1 — BC-INDEX.md must NOT be classified as a BC file
+# Fixture: a1-current-index (reuse — BC-INDEX.md exists in this fixture)
+# F-S2107-P1B-005: dispatch::is_bc_file uses starts_with("BC-") && ends_with(".md")
+#   → "BC-INDEX.md" matches → A1 runs with bc_id="BC-INDEX" → spurious violations.
+# BC-5.39.010 v1.3 §Classification invariant: index files excluded from BC classification.
 # ---------------------------------------------------------------------------
 
-@test "AC-019 (a): A1 secondary BC-INDEX.md read completes — BC_INDEX_MAX_BYTES cap passed correctly" {
+@test "T-035 CONTROL: BC-INDEX.md write event produces exit code 0 (not classified as BC file)" {
   _require_artifacts
   _load_fixture "a1-current-index"
   _write_registry
 
   local envelope
-  # BC file write triggers A1 → secondary read of BC-INDEX.md with max_bytes=1_048_576
-  # If max_bytes were 0 or negative, the dispatcher returns InvalidArgument (-4)
-  # and the plugin blocks (exit 2). Clean exit 0 proves the cap is correctly passed.
-  envelope="$(_post_write_event '.factory/specs/behavioral-contracts/ss-05/BC-5.39.010.md')"
+  # Writing BC-INDEX.md must NOT trigger Arm A1 (not a behavioral contract file).
+  # After fix: dispatch skips BC-INDEX.md → Continue → exit 0
+  # F-S2107-P1B-005 RED GATE: is_bc_file returns true for BC-INDEX.md → A1 runs →
+  #   bc_id="BC-INDEX", bc_version=index-version → no row for "BC-INDEX" or wrong version
+  #   → exit 2 → FAILS
+  envelope="$(_post_write_event '.factory/specs/behavioral-contracts/BC-INDEX.md')"
   _run_dispatcher "$envelope"
 
   _assert_plugin_ran_not_crashed
   _assert_exit 0
 }
 
-@test "AC-019 (b): B1 secondary STORY-INDEX.md read completes — STORY_INDEX_B1_MAX_BYTES cap passed correctly" {
+# ---------------------------------------------------------------------------
+# T-038: Class B Arm1 — cross-story catalog row correct lookup
+# Fixture: b1-cross-story-catalog (S-18.00 row mentions S-18.01 in blocks column)
+# F-S2107-P1B-008: parse_story_index_catalog_hash naive contains("S-18.01") matches
+#   S-18.00 row first (mentions "S-18.01" in blocks/depends column; hash e5bc551)
+#   → "e5bc551" ≠ S-18.01 story frontmatter "1b4ea21" → spurious exit 2.
+# BC-5.39.010 v1.3 PC16: catalog lookup must match CANONICAL story row (first cell).
+# ---------------------------------------------------------------------------
+
+@test "T-038 CONTROL: cross-story catalog lookup returns own-story hash (exit code 0)" {
   _require_artifacts
-  _load_fixture "b1-hash-match"
+  _load_fixture "b1-cross-story-catalog"
   _write_registry
 
   local envelope
-  # Story file write triggers B1 → secondary read of STORY-INDEX.md with max_bytes=1_048_576
-  # If max_bytes were 0 or negative, the dispatcher returns InvalidArgument (-4)
-  # and the plugin blocks (exit 2). Clean exit 0 proves the cap is correctly passed.
-  envelope="$(_post_write_event '.factory/stories/S-21.07-test.md')"
+  # S-18.01-test.md B1=1b4ea21; S-18.00 row mentions "S-18.01" in blocks column (hash e5bc551)
+  # S-18.01 catalog row hash = 1b4ea21. After fix: S-18.01 row matched → B2=1b4ea21=B1 → exit 0
+  # F-S2107-P1B-008 RED GATE: naive contains("S-18.01") hits S-18.00 first → "e5bc551"≠"1b4ea21" → exit 2
+  envelope="$(_post_write_event '.factory/stories/S-18.01-test.md')"
   _run_dispatcher "$envelope"
 
   _assert_plugin_ran_not_crashed
   _assert_exit 0
+}
+
+# ---------------------------------------------------------------------------
+# T-045: Class E1 — 15-byte last_amended format accepted (no spurious advisory)
+# Fixture: e1-15-byte-last-amended (BC-5.39.010 v2; last_amended "2026-07-30 (v2)")
+# F-S2107-P1C-014: extract_last_amended_outer_version `if len < 17 { return None }`
+#   → 15-byte "2026-07-30 (v2)" → None → advisory "unparseable format" fires.
+# BC-5.39.010 v1.3 §E1: YYYY-MM-DD (vN) with single-digit outer version is valid.
+# ---------------------------------------------------------------------------
+
+@test "T-045 CONTROL: 15-byte last_amended 2026-07-30 (v2) produces no advisory (exit 0)" {
+  _require_artifacts
+  _load_fixture "e1-15-byte-last-amended"
+  _write_registry
+
+  local envelope
+  # BC-5.39.010 v2; last_amended "2026-07-30 (v2)" = 15 bytes.
+  # After fix: len threshold lowered → Some("2") extracted → "2"=="2" → no E1 advisory → exit 0
+  # F-S2107-P1C-014 RED GATE: len < 17 → None → advisory fires → log has warn record → FAILS
+  envelope="$(_post_write_event '.factory/specs/behavioral-contracts/ss-05/BC-5.39.010.md')"
+  _run_dispatcher "$envelope"
+
+  _assert_plugin_ran_not_crashed
+  _assert_exit 0
+
+  # No Class E1 advisory must appear in the dispatcher log.
+  # The 15-byte format is valid; no "unparseable" advisory expected.
+  local log; log="$(_plugin_log)"
+  if grep '"plugin_name":"validate-cross-site-correspondence"' "$log" 2>/dev/null \
+       | grep '"type":"plugin.log"' | grep '"level":"warn"' | grep -qi 'last.amended\|unparseable\|unrecognized'; then
+    echo "FAIL: unexpected E1 advisory about last_amended format for valid 15-byte string"
+    echo "  '2026-07-30 (v2)' is a valid format per BC-5.39.010 v1.3 §E1 (F-S2107-P1C-014)"
+    grep '"plugin_name":"validate-cross-site-correspondence"' "$log" \
+      | grep '"type":"plugin.log"' | grep '"level":"warn"' | head -3
+    false
+  fi
 }

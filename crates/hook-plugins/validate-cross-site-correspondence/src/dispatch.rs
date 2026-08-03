@@ -34,7 +34,10 @@ pub enum CycleArtifactKind {
 /// BC-5.39.010 PC1 — bc_id shape guard; F-S2107-P1B-005 (BC-INDEX.md exclusion).
 fn is_canonical_bc_filename(filename: &str) -> bool {
     // Must start with "BC-" and end with ".md"
-    let inner = match filename.strip_prefix("BC-").and_then(|s| s.strip_suffix(".md")) {
+    let inner = match filename
+        .strip_prefix("BC-")
+        .and_then(|s| s.strip_suffix(".md"))
+    {
         Some(s) => s,
         None => return false,
     };
@@ -77,7 +80,7 @@ pub fn is_bc_file(file_path: &str) -> bool {
     let filename_ok = path
         .file_name()
         .and_then(|f| f.to_str())
-        .map(|f| is_canonical_bc_filename(f))
+        .map(is_canonical_bc_filename)
         .unwrap_or(false);
     has_factory && has_specs && has_bc && filename_ok
 }
