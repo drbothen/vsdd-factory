@@ -1074,7 +1074,10 @@ _assert_plugin_ran_not_crashed() {
 # BC-5.39.010 v1.3 PC16: catalog lookup must match CANONICAL story row (first cell).
 # ---------------------------------------------------------------------------
 
-@test "T-038 CONTROL: cross-story catalog lookup returns own-story hash (exit code 0)" {
+@test "T-048 CONTROL: cross-story catalog lookup returns own-story hash (exit code 0)" {
+  # F-S2107-P3-018: duplicate T-038 ID de-duplicated → T-048. Original T-038 (line 668)
+  # tests the same scenario from fixture b1-cross-story-catalog but with different
+  # envelope path. Both must exist; IDs must be unique per BC-5.39.010 bats discipline.
   _require_artifacts
   _load_fixture "b1-cross-story-catalog"
   _write_registry

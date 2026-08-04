@@ -368,6 +368,9 @@ mod tests {
 
     /// AC-012: D- prefix is excluded → Continue, no advisory.
     #[test]
+    #[ignore = "[DEFERRED v1.6 — Class D] Class D arm removed per D-953; these tests remain \
+    for future re-enablement but must not give false confidence in a deferred arm. \
+    F-S2107-P3-017."]
     fn test_BC_5_39_010_class_d_excluded_namespace_d944_passes() {
         assert!(
             is_excluded_namespace("D-944"),
@@ -377,6 +380,7 @@ mod tests {
 
     /// AC-012: S-, BC-, VP-, L-, ADR-, FM- prefixes are all excluded.
     #[test]
+    #[ignore = "[DEFERRED v1.6 — Class D] F-S2107-P3-017."]
     fn test_BC_5_39_010_class_d_excluded_namespace_s_bc_vp_passes() {
         assert!(
             is_excluded_namespace("S-21.03"),
@@ -405,6 +409,7 @@ mod tests {
     }
 
     #[test]
+    #[ignore = "[DEFERRED v1.6 — Class D] F-S2107-P3-017."]
     fn test_BC_5_39_010_class_d_non_excluded_prefix_not_excluded() {
         assert!(!is_excluded_namespace("B01"), "B01 has no excluded prefix");
         assert!(
@@ -418,11 +423,13 @@ mod tests {
     // -----------------------------------------------------------------------
 
     #[test]
+    #[ignore = "[DEFERRED v1.6 — Class D] F-S2107-P3-017."]
     fn test_BC_5_39_010_class_d_finding_like_b01() {
         assert!(is_finding_like("B01"), "B01 is finding-like");
     }
 
     #[test]
+    #[ignore = "[DEFERRED v1.6 — Class D] F-S2107-P3-017."]
     fn test_BC_5_39_010_class_d_finding_like_f_prefixed() {
         assert!(
             is_finding_like("F-S2104-P29-H01"),
@@ -431,6 +438,7 @@ mod tests {
     }
 
     #[test]
+    #[ignore = "[DEFERRED v1.6 — Class D] F-S2107-P3-017."]
     fn test_BC_5_39_010_class_d_bare_numeric_not_finding_like() {
         // EC-012: bare numeric like "001" starts with digit → not finding-like
         assert!(
@@ -440,6 +448,7 @@ mod tests {
     }
 
     #[test]
+    #[ignore = "[DEFERRED v1.6 — Class D] F-S2107-P3-017."]
     fn test_BC_5_39_010_class_d_all_alpha_not_finding_like() {
         assert!(
             !is_finding_like("Closes"),
@@ -453,6 +462,7 @@ mod tests {
 
     /// AC-014: historical section excluded — only last H2 section scanned in burst-log.
     #[test]
+    #[ignore = "[DEFERRED v1.6 — Class D] F-S2107-P3-017."]
     fn test_BC_5_39_010_class_d_historical_section_excluded() {
         // lessons.md with old L-EDP1-001 containing P45-001 (non-F-)
         // and a NEW L-EDP1-062 block with clean Closes: F-xxx lines
@@ -474,6 +484,7 @@ mod tests {
     }
 
     #[test]
+    #[ignore = "[DEFERRED v1.6 — Class D] F-S2107-P3-017."]
     fn test_BC_5_39_010_class_d_burst_log_last_h2_extracted() {
         let content = "## Pass 29 Fix Burst\n\
             Some content with P-OLD-001\n\n\
@@ -496,6 +507,7 @@ mod tests {
 
     /// AC-013 MUTANT: non-F- token B01 triggers advisory (not block — invariant 6).
     #[test]
+    #[ignore = "[DEFERRED v1.6 — Class D] F-S2107-P3-017."]
     fn test_BC_5_39_010_class_d_non_f_token_b01_advisory() {
         // Closes: B01, F-S2104-P29-H01 → advisory for B01, Continue for F- token
         let region = "**Closes:** B01, F-S2104-P29-H01\n";
@@ -522,6 +534,7 @@ mod tests {
 
     /// AC-013 CONTROL: only F- prefix tokens → Continue, no advisory.
     #[test]
+    #[ignore = "[DEFERRED v1.6 — Class D] F-S2107-P3-017."]
     fn test_BC_5_39_010_class_d_all_f_prefix_passes() {
         let region = "**Closes:** F-S2104-P29-H01, F-S2104-P29-H02\n";
         let advisories = run_arm_d(region, "burst-log.md");
@@ -533,6 +546,7 @@ mod tests {
 
     /// EC-024: D-944 in Refs → Continue, no advisory (D- excluded).
     #[test]
+    #[ignore = "[DEFERRED v1.6 — Class D] F-S2107-P3-017."]
     fn test_BC_5_39_010_class_d_refs_d944_no_advisory() {
         let region = "**Refs:** D-944\n";
         let advisories = run_arm_d(region, "burst-log.md");
@@ -555,6 +569,7 @@ mod tests {
     /// BC-5.39.010 precondition 30: scope by structural position (last L-EDP1 anchor).
     /// Derived from canonical test vector: D — phantom + historical-excluded rows.
     #[test]
+    #[ignore = "[DEFERRED v1.6 — Class D] F-S2107-P3-017."]
     fn test_BC_5_39_010_class_d_latest_lessons_entry_non_f_advisory() {
         // Historical L-EDP1-001 block (excluded positionally) contains P45-001.
         // Latest L-EDP1-062 block (in scope) contains B01 (non-F- → must fire advisory).
@@ -597,6 +612,7 @@ mod tests {
     /// assert!(advisories.is_empty()) FAILS → RED gate.
     /// After fix (starts_with or line-start anchor on "closes:"): skipped → PASSES.
     #[test]
+    #[ignore = "[DEFERRED v1.6 — Class D] F-S2107-P3-017."]
     fn test_BC_5_39_010_class_d_discloses_not_false_positive() {
         // "discloses:" contains "closes:" as a substring — must NOT match
         // "A01" is finding-like (alpha start, digit end) and not an excluded prefix
@@ -615,6 +631,7 @@ mod tests {
     ///
     /// BC-5.39.010 precondition 31 (extraction only from Closes:/Refs: lines).
     #[test]
+    #[ignore = "[DEFERRED v1.6 — Class D] F-S2107-P3-017."]
     fn test_BC_5_39_010_class_d_no_closes_refs_no_advisory() {
         // P45-001 appears in prose and a list item, but NOT in a Closes:/Refs: line
         let region = "## Fix Burst\n\

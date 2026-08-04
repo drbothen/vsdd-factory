@@ -625,4 +625,97 @@ mod tests {
             "[AC-019] BC timeout_ms must be 3000 per BC-5.39.010"
         );
     }
+
+    // -----------------------------------------------------------------------
+    // F-S2107-P3-001 (BLOCKER): three-state extractor — RowPresentNoVersion
+    //
+    // BC-5.39.010 v1.7 PC5 (amended): extract_bc_index_version must distinguish
+    // three states, not two:
+    //   RowAbsent         — no line for this BC ID in the index
+    //   RowPresentNoVersion — row exists but has no version-chain cell (5-column shape)
+    //   Version(v)        — row exists and carries a version token
+    //
+    // The canonical BC-INDEX shape is 5 columns:
+    //   | BC ID | Title | Status | Capability | Stories |
+    // Version-chain cell (6th column) appears on only ~40 of 1983 rows.
+    // The REMAINING ~1943 rows are RowPresentNoVersion — NOT an error.
+    //
+    // Two-state None conflation: current code returns None for BOTH RowAbsent
+    // AND RowPresentNoVersion. In the None branch, version > "1.0" → BLOCK.
+    // This silently blocks every write to ~1943 BCs (e.g., BC-1.01.001).
+    //
+    // Post-fix: RowPresentNoVersion → silent-continue (no violations, no advisory).
+    // -----------------------------------------------------------------------
+
+    /// F-S2107-P3-001 RED GATE: 5-column row (RowPresentNoVersion) with version > "1.0"
+    /// must NOT block.
+    ///
+    /// BC-5.39.010 v1.7 PC5: RowPresentNoVersion is the canonical state for ~1,943 of
+    /// 1,983 BC-INDEX rows. Current two-state None conflation blocks ALL of them when
+    /// version != "1.0". After fix: RowPresentNoVersion → silent-continue → no violations.
+    ///
+    /// RED GATE: current None path → is_v1_0=false → block → violations NOT empty.
+    #[test]
+    fn test_BC_5_39_010_arm_a1_row_present_no_version_cell_not_blocked() {
+        // 5-column canonical BC-INDEX shape: no version-chain cell.
+        // The story-ID "S-99.01" in cell 5 contains "99.01" which looks like a version
+        // token — the current extractor returns Some("99.01"), then "99.01" != "1.2" → block.
+        let index_content =
+            b"| [BC-9.99.001](ss-09/BC-9.99.001.md) | Some title | draft | CAP-TBD | S-99.01 |\n";
+        let (violations, advisories) = run_arm_a1_with_index_result(
+            "BC-9.99.001",
+            "1.2",
+            ".factory/specs/behavioral-contracts/ss-09/BC-9.99.001.md",
+            Ok(index_content.to_vec()),
+        );
+        assert!(
+            violations.is_empty(),
+            "5-column row (no version-chain cell) with bc_version='1.2' must NOT block. \
+            BC-5.39.010 v1.7 PC5: RowPresentNoVersion is canonical for ~1,943/1,983 rows. \
+            F-S2107-P3-001 BLOCKER: current None branch treats this as RowAbsent → block. \
+            Fix: three-state extractor; RowPresentNoVersion → silent-continue. \
+            Violations: {:?}",
+            violations
+        );
+        assert!(
+            advisories.is_empty(),
+            "RowPresentNoVersion must be fully silent — no advisory either. \
+            BC-5.39.010 v1.7 PC5 note. Advisories: {:?}",
+            advisories
+        );
+    }
+
+    /// F-S2107-P3-001 RED GATE: exact BC-1.01.001 INDEX row shape must not block.
+    ///
+    /// Live corpus evidence (adversary pass-3 verified):
+    ///   BC-INDEX row: `| [BC-1.01.001](ss-01/BC-1.01.001.md) | Registry rejects unknown
+    ///   schema version | draft | CAP-TBD | S-15.01 |`
+    ///   BC-1.01.001.md version: "1.2"
+    ///
+    /// This is the canonical RowPresentNoVersion example — 5-column row, no version cell.
+    /// The extractor currently returns Some("15.01") (from story-ID fragment "S-15.01"),
+    /// then "15.01" != "1.2" → block.
+    ///
+    /// RED GATE: violations not empty. After fix: RowPresentNoVersion → silent-continue.
+    #[test]
+    fn test_BC_5_39_010_arm_a1_bc_1_01_001_exact_row_shape_not_blocked() {
+        // Exact row shape from live BC-INDEX.md (adversary pass-3 corpus verification).
+        let index_content = b"| [BC-1.01.001](ss-01/BC-1.01.001.md) | Registry rejects \
+            unknown schema version | draft | CAP-TBD | S-15.01 |\n";
+        let (violations, _) = run_arm_a1_with_index_result(
+            "BC-1.01.001",
+            "1.2",
+            ".factory/specs/behavioral-contracts/ss-01/BC-1.01.001.md",
+            Ok(index_content.to_vec()),
+        );
+        assert!(
+            violations.is_empty(),
+            "BC-1.01.001 canonical 5-column INDEX row with version='1.2' must NOT block. \
+            Row: '| [BC-1.01.001](...) | Registry rejects unknown schema version | draft | \
+            CAP-TBD | S-15.01 |'. The extractor extracts '15.01' from the S-15.01 story ID \
+            and produces a stale-version block. Blast radius: ≥1,712 BCs in the same situation. \
+            F-S2107-P3-001 BLOCKER. Violations: {:?}",
+            violations
+        );
+    }
 }

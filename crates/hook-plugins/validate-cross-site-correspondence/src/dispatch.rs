@@ -533,4 +533,76 @@ mod tests {
             RED GATE: currently returns Some(Lessons)."
         );
     }
+
+    // -----------------------------------------------------------------------
+    // F-S2107-P3-009 (HIGH): is_frontmatter_parity_target epic arm defects
+    //
+    // PC34 bullet 4 requires epic files to satisfy THREE conditions:
+    //   1. `.factory` component present
+    //   2. `stories` component present  ← MISSING from current impl
+    //   3. `epics` component present
+    //   4. Basename matches `^E-[0-9]+-`  ← MISSING from current impl
+    //
+    // Current impl checks only `.factory` + `epics` + ends-with-`.md`.
+    // Consequence: `.factory/epics/README.md` → true (should be false).
+    // Blast radius: any non-story .md under a path with "epics" component fires Class E.
+    // -----------------------------------------------------------------------
+
+    /// F-S2107-P3-009 RED GATE: epic file without `stories` component must NOT be
+    /// classified as a frontmatter parity target.
+    ///
+    /// `.factory/epics/E-21-test.md` lacks the `stories` path component (correct path
+    /// is `.factory/stories/epics/E-21-test.md`). Current impl: has `.factory` + `epics`
+    /// + ends `.md` → true. After fix (requires `stories`): false.
+    ///
+    /// RED GATE: current impl returns true → assert!(!result) FAILS.
+    #[test]
+    fn test_BC_5_39_010_dispatch_epic_missing_stories_component_rejected() {
+        let result = is_frontmatter_parity_target(".factory/epics/E-21-test.md");
+        assert!(
+            !result,
+            "'.factory/epics/E-21-test.md' lacks the `stories` path component and must \
+            NOT be classified as a frontmatter parity target. \
+            PC34 bullet 4: epic path requires both `stories` AND `epics` components. \
+            F-S2107-P3-009: current impl checks only `.factory`+`epics`+`.md` → true. \
+            RED GATE."
+        );
+    }
+
+    /// F-S2107-P3-009 RED GATE: epic file without numeric basename must NOT be classified
+    /// as a frontmatter parity target.
+    ///
+    /// `.factory/stories/epics/README.md` has the correct path components but
+    /// `README.md` does not match `^E-[0-9]+-`. Current impl: any `.md` under
+    /// `.factory/...epics/` → true. After fix (requires `^E-[0-9]+-` basename): false.
+    ///
+    /// RED GATE: current impl returns true → assert!(!result) FAILS.
+    #[test]
+    fn test_BC_5_39_010_dispatch_epic_non_numeric_basename_rejected() {
+        let result = is_frontmatter_parity_target(".factory/stories/epics/README.md");
+        assert!(
+            !result,
+            "'.factory/stories/epics/README.md' has basename 'README.md' which does not \
+            match `^E-[0-9]+-`. Must NOT be classified as frontmatter parity target. \
+            PC34 bullet 4: epic basename must match `^E-[0-9]+-.*\\.md$`. \
+            F-S2107-P3-009: current `ends_with('.md')` admits all .md files under epics/. \
+            RED GATE."
+        );
+    }
+
+    /// F-S2107-P3-009 GREEN: canonical epic file at correct path IS a parity target.
+    ///
+    /// Complement test: after fix, `.factory/stories/epics/E-21-name.md` must still
+    /// be classified correctly. Verifies the guard does not over-exclude real epics.
+    #[test]
+    fn test_BC_5_39_010_dispatch_epic_correct_path_accepted() {
+        let result = is_frontmatter_parity_target(
+            ".factory/stories/epics/E-21-factory-state-data-loss-hardening.md",
+        );
+        assert!(
+            result,
+            "canonical epic path '.factory/stories/epics/E-21-*.md' must be a \
+            frontmatter parity target (PC34 bullet 4). GREEN guard test."
+        );
+    }
 }

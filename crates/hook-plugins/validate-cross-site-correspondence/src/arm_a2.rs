@@ -742,4 +742,97 @@ mod tests {
             );
         }
     }
+
+    // -----------------------------------------------------------------------
+    // F-S2107-P3-004 (HIGH carried): PC13 word-boundary token test
+    //
+    // `line.contains(bc_id)` is the verbatim forbidden construct in PC13.
+    // Live consequences: prefix collisions ("BC-5.39.0101" contains "BC-5.39.010")
+    // cause the wrong BC's version token to be extracted.
+    //
+    // After fix: word-boundary token test; "BC-5.39.010" NOT a match in "BC-5.39.0101"
+    // because the digit '1' immediately after "010" is NOT a word boundary.
+    // -----------------------------------------------------------------------
+
+    /// F-S2107-P3-004 RED GATE: prefix-collision must NOT produce a citation.
+    ///
+    /// "BC-5.39.0101" contains "BC-5.39.010" as a substring. `line.contains("BC-5.39.010")`
+    /// matches it → version "15.01" extracted from S-15.01 → citation produced. WRONG.
+    ///
+    /// After fix (word-boundary token test): '0' in "010" is followed by '1' in "0101"
+    /// — NOT a word boundary → no match → empty citations.
+    ///
+    /// RED GATE: citations NOT empty (contains prefix-collision citation). Fails now.
+    #[test]
+    fn test_BC_5_39_010_arm_a2_pc13_prefix_collision_no_citation() {
+        // "BC-5.39.0101" is a hypothetical BC whose ID starts with "BC-5.39.010".
+        // Current contains("BC-5.39.010") matches → extracts "15.01" from S-15.01.
+        let content = concat!(
+            "## Behavioral Contracts\n\n",
+            "| BC | Version | Status | Stories |\n",
+            "|----|---------|--------|--------|\n",
+            "| BC-5.39.0101 | Some other contract | draft | S-15.01 |\n",
+        );
+        let citations = extract_story_bc_version_citations(content, "BC-5.39.010");
+        assert!(
+            citations.is_empty(),
+            "Row '| BC-5.39.0101 | ...' must NOT produce a citation for 'BC-5.39.010'. \
+            PC13 (MUST NOT): word-boundary token test required — '0101' has '1' after '010' \
+            so 'BC-5.39.010' is NOT a standalone token. \
+            F-S2107-P3-004: current `line.contains(\"BC-5.39.010\")` matches → \
+            extracts '15.01' from S-15.01 → citation produced. RED GATE. \
+            Citations: {:?}",
+            citations
+        );
+    }
+
+    // -----------------------------------------------------------------------
+    // F-S2107-P3-022 (MEDIUM): reverse-field algorithm not implemented.
+    //
+    // PC13 prescribes: split the row by `|` delimiter; iterate fields in REVERSE
+    // order (right to left); return the version token from the first (rightmost)
+    // field whose stripped content contains a match.
+    //
+    // Current code scans the ENTIRE LINE left-to-right and returns the LAST token.
+    // The docstring claims this "prevents spurious matches from BC ID fragments like
+    // 'BC-5.39.010' (which contains '5.39')". It does NOT: a BC-citing row with an
+    // EMPTY version cell has no later version token, so "5.39" from the BC ID is the
+    // last (and only) match → citation "5.39" produced. Incorrect.
+    //
+    // After fix: reverse-field algorithm excludes or deprioritises the BC-ID-containing
+    // field (or the implementer anchors the version field by cell position), so
+    // "5.39" from "BC-5.39.010" is not returned as the version.
+    // -----------------------------------------------------------------------
+
+    /// F-S2107-P3-022 RED GATE: BC ID fragment "5.39" in "BC-5.39.010" must NOT be
+    /// extracted as the version when the version cell is empty.
+    ///
+    /// Row: `| BC-5.39.010 | description only | |`
+    /// Expected: no citation (empty version cell → nothing to extract).
+    /// Current: `extract_version_token_from_table_row` finds "5.39" from the BC ID
+    ///          fragment → citation ("table row N", "5.39") produced. WRONG.
+    ///
+    /// RED GATE: citations NOT empty. Fails now.
+    #[test]
+    fn test_BC_5_39_010_arm_a2_bc_id_fragment_no_version_citation() {
+        // BC ID "BC-5.39.010" contains "5.39" which the left-to-right scanner returns
+        // when there is no other version token in the row.
+        let content = concat!(
+            "## Behavioral Contracts\n\n",
+            "| BC | Description | Version |\n",
+            "|----|-------------|--------|\n",
+            "| BC-5.39.010 | description only | |\n",
+        );
+        let citations = extract_story_bc_version_citations(content, "BC-5.39.010");
+        assert!(
+            citations.is_empty(),
+            "Row '| BC-5.39.010 | description only | |' (empty version cell) must produce \
+            NO citation. 'BC-5.39.010' contains the substring '5.39' which the left-to-right \
+            scanner returns when no other version token exists. \
+            F-S2107-P3-022: BC ID fragment '5.39' must not be extracted as the version. \
+            After fix (reverse-field algorithm): empty version cell → no citation. RED GATE. \
+            Citations: {:?}",
+            citations
+        );
+    }
 }

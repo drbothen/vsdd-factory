@@ -574,3 +574,124 @@ satisfy their intended predicates. T-045 was additionally a latent false-green (
 same rename).
 
 No crate changes needed. Crate tests stay at 108/0/2. Do NOT run bats — devops re-runs the gate.
+
+---
+
+## Pass-4 Fix Burst — RED GATE Tests (test-writer)
+
+**Date:** 2026-08-04
+**BC:** BC-5.38.001 (Red Gate: all tests must fail before implementation)
+**Cycle:** v1.0-brownfield-backfill / S-21.07 adversary pass-3 fix burst (25 findings: B3/H7/M12/L3)
+**Governing spec:** BC-5.39.010 v1.7
+
+Red Gate run command: `cargo test -p validate-cross-site-correspondence`
+Red Gate result: **99 passed; 13 failed; 17 ignored** — all 13 new tests fail; 99 pre-existing green; 0 pre-existing green → red regressions.
+
+Verbatim `file:line:` panic sites (captured stdout):
+
+```
+thread 'arm_a1::tests::test_BC_5_39_010_arm_a1_bc_1_01_001_exact_row_shape_not_blocked' panicked at crates/hook-plugins/validate-cross-site-correspondence/src/arm_a1.rs:711:9
+thread 'arm_a1::tests::test_BC_5_39_010_arm_a1_row_present_no_version_cell_not_blocked' panicked at crates/hook-plugins/validate-cross-site-correspondence/src/arm_a1.rs:671:9
+thread 'arm_a2::tests::test_BC_5_39_010_arm_a2_bc_id_fragment_no_version_citation' panicked at crates/hook-plugins/validate-cross-site-correspondence/src/arm_a2.rs:827:9
+thread 'arm_a2::tests::test_BC_5_39_010_arm_a2_pc13_prefix_collision_no_citation' panicked at crates/hook-plugins/validate-cross-site-correspondence/src/arm_a2.rs:777:9
+thread 'arm_b::tests::test_BC_5_39_010_arm_b1_volatile_advisory_prescribed_text' panicked at crates/hook-plugins/validate-cross-site-correspondence/src/arm_b.rs:1200:9
+thread 'arm_b::tests::test_BC_5_39_010_arm_b2_non_canonical_story_id_rejected' panicked at crates/hook-plugins/validate-cross-site-correspondence/src/arm_b.rs:1235:9
+thread 'arm_b::tests::test_BC_5_39_010_pc40_adv_cycle_pass_not_volatile' panicked at crates/hook-plugins/validate-cross-site-correspondence/src/arm_b.rs:1111:9
+thread 'arm_b::tests::test_BC_5_39_010_pc40_arch_index_md_is_volatile' panicked at crates/hook-plugins/validate-cross-site-correspondence/src/arm_b.rs:1091:9
+thread 'arm_b::tests::test_BC_5_39_010_pc40_bc_index_wrong_path_not_volatile' panicked at crates/hook-plugins/validate-cross-site-correspondence/src/arm_b.rs:1149:9
+thread 'arm_b::tests::test_BC_5_39_010_pc40_vp_index_not_volatile' panicked at crates/hook-plugins/validate-cross-site-correspondence/src/arm_b.rs:1131:9
+thread 'dispatch::tests::test_BC_5_39_010_dispatch_epic_missing_stories_component_rejected' panicked at crates/hook-plugins/validate-cross-site-correspondence/src/dispatch.rs:562:9
+thread 'dispatch::tests::test_BC_5_39_010_dispatch_epic_non_numeric_basename_rejected' panicked at crates/hook-plugins/validate-cross-site-correspondence/src/dispatch.rs:583:9
+thread 'tests::test_BC_5_39_010_corpus_arm_a1_row_present_no_version_cell_majority_shape' panicked at crates/hook-plugins/validate-cross-site-correspondence/src/lib.rs:800:9
+test result: FAILED. 99 passed; 13 failed; 17 ignored; 0 measured; 0 filtered out; finished in 0.00s
+```
+
+### RED GATE — 13 failing tests by finding
+
+#### arm_a1.rs — 2 new tests (F-S2107-P3-001 BLOCKER)
+
+| Test | Assertion | Red Gate Failure | File:line |
+|------|-----------|-----------------|-----------|
+| `test_BC_5_39_010_arm_a1_row_present_no_version_cell_not_blocked` | `assert!(violations.is_empty())` — 5-column row, no version cell | `extract_bc_index_version` returns `Some("99.01")` from story ID fragment in last cell → stale-version block | arm_a1.rs:671:9 |
+| `test_BC_5_39_010_arm_a1_bc_1_01_001_exact_row_shape_not_blocked` | `assert!(violations.is_empty())` — live BC-1.01.001 row shape, bc_version="1.2" | `extract_bc_index_version` returns `Some("15.01")` from "S-15.01" in last cell → stale-version block | arm_a1.rs:711:9 |
+
+#### arm_a2.rs — 2 new tests (F-S2107-P3-004, F-S2107-P3-022)
+
+| Test | Assertion | Red Gate Failure | File:line |
+|------|-----------|-----------------|-----------|
+| `test_BC_5_39_010_arm_a2_pc13_prefix_collision_no_citation` | `assert!(citations.is_empty())` — row with "BC-5.39.0101" (PC13 prefix collision) | `line.contains("BC-5.39.010")` matches "BC-5.39.0101" → citation extracted | arm_a2.rs:777:9 |
+| `test_BC_5_39_010_arm_a2_bc_id_fragment_no_version_citation` | `assert!(citations.is_empty())` — row `\| BC-5.39.010 \| description \| \|` (empty version cell) | Scanner finds "5.39" from BC-ID fragment "BC-5.39.010" and returns it as version token | arm_a2.rs:827:9 |
+
+#### arm_b.rs — 7 new tests (F-S2107-P3-002, F-S2107-P3-012, F-S2107-P3-015)
+
+| Test | Assertion | Red Gate Failure | File:line |
+|------|-----------|-----------------|-----------|
+| `test_BC_5_39_010_pc40_arch_index_md_is_volatile` | `assert!(is_volatile_path(".factory/specs/architecture/ARCH-INDEX.md"))` | ARCH-INDEX.md absent from impl → returns false | arm_b.rs:1091:9 |
+| `test_BC_5_39_010_pc40_adv_cycle_pass_not_volatile` | `assert!(!is_volatile_path(".factory/cycles/v1.0-feature-engine-discipline-pass-1/adv-cycle-pass-1.md"))` | Blanket `cycles` component check → returns true | arm_b.rs:1111:9 |
+| `test_BC_5_39_010_pc40_vp_index_not_volatile` | `assert!(!is_volatile_path(".factory/specs/verification-properties/VP-INDEX.md"))` | "VP-INDEX.md" filename match → returns true | arm_b.rs:1131:9 |
+| `test_BC_5_39_010_pc40_bc_index_wrong_path_not_volatile` | `assert!(!is_volatile_path(".factory/cycles/v1.0/BC-INDEX.md"))` | Both cycles component AND "BC-INDEX.md" filename → returns true | arm_b.rs:1149:9 |
+| `test_BC_5_39_010_arm_b1_volatile_advisory_prescribed_text` | `assert!(msg.contains("ADR-037 §Decision 2"))` and `assert!(msg.contains("Class B BLOCK suspended"))` | Current volatile advisory lacks both prescribed strings | arm_b.rs:1200:9 |
+| `test_BC_5_39_010_arm_b2_non_canonical_story_id_rejected` | `assert!(result.is_none())` — input "S-README" | `starts_with("S-")` returns `Some("S-README")` — no numeric validation | arm_b.rs:1235:9 |
+
+Plus 5 GREEN documentary per-row tests (PC40 shape invariants, not new RED):
+- `test_BC_5_39_010_pc40_per_row_1_factory_state_md_volatile` — PASSES
+- `test_BC_5_39_010_pc40_per_row_2_cycles_state_md_volatile` — PASSES
+- `test_BC_5_39_010_pc40_per_row_3_cycles_named_files_volatile` — PASSES
+- `test_BC_5_39_010_pc40_per_row_7_bc_index_volatile` — PASSES
+- `test_BC_5_39_010_pc40_per_row_8_story_index_volatile` — PASSES
+
+#### dispatch.rs — 2 new RED + 1 new GREEN tests (F-S2107-P3-009)
+
+| Test | Status | Assertion | Red Gate Failure | File:line |
+|------|--------|-----------|-----------------|-----------|
+| `test_BC_5_39_010_dispatch_epic_missing_stories_component_rejected` | RED | `assert!(!result)` — path `.factory/epics/E-21-test.md` (missing `stories`) | Current impl checks only `.factory` + `epics` + `.md` → returns true | dispatch.rs:562:9 |
+| `test_BC_5_39_010_dispatch_epic_non_numeric_basename_rejected` | RED | `assert!(!result)` — path `.factory/stories/epics/README.md` | Current `ends_with(".md")` admits all .md files under epics/ | dispatch.rs:583:9 |
+| `test_BC_5_39_010_dispatch_epic_correct_path_accepted` | GREEN | `assert!(result)` — `.factory/stories/epics/E-21-factory-state-data-loss-hardening.md` | Passes (regression guard — not a new RED) | — |
+
+#### lib.rs — 1 new RED corpus test (F-S2107-P3-001 BLOCKER)
+
+| Test | Assertion | Red Gate Failure | File:line |
+|------|-----------|-----------------|-----------|
+| `test_BC_5_39_010_corpus_arm_a1_row_present_no_version_cell_majority_shape` | `assert!(violations.is_empty())` — BC-1.01.001, version="1.2", live BC-INDEX.md | `run_arm_a1_with_index_result` returns `[Violation { description: "…BC-1.01.001…has no row in BC-INDEX.md…" }]` — extract_bc_index_version returns Some("15.01") from S-15.01 → block fires | lib.rs:800:9 |
+
+### Structural changes (test-side only, no production code)
+
+| File | Change | Finding |
+|------|--------|---------|
+| `src/lib.rs` | Removed dead `Err(e) if cycle_kind.is_some()` fail-open arm (structurally unreachable) | F-S2107-P3-008 |
+| `src/lib.rs` | Corrected false `// STORY-INDEX.md: no E arm` comment | F-S2107-P3-019 |
+| `src/lib.rs` | Changed `unreachable!()` → `panic!()` in `test_BC_5_39_010_invariant_7_ac018_multi_arm_violations_both_in_combined_block` `_ =>` arm; added `#[allow(clippy::panic)]` | F-S2107-P3-025 |
+| `src/arm_d.rs` | Added `#[ignore = "[DEFERRED v1.6 — Class D]…"]` to all 15 arm_d tests | F-S2107-P3-017 |
+| `plugins/vsdd-factory/tests/validate-cross-site-correspondence.bats` | Renamed second `T-038` → `T-048` (de-duplicate) | F-S2107-P3-018 |
+| `plugins/vsdd-factory/tests/fixtures/.../e1-15-byte-last-amended/.../VP-039.md` | DELETED (dead residue renamed to VP-9999.md in pass-2) | F-S2107-P3-020 |
+| `plugins/vsdd-factory/tests/fixtures/.../e1-15-byte-last-amended/.../BC-5.39.010.md` | Fixed two stale "VP-039.md" NOTE references → "VP-9999.md" | F-S2107-P3-020 |
+
+### BC v1.7 imagined-shape surface
+
+No eighth spec-describes-imagined-shape instance found. All 13 RED GATE tests are grounded in behavior observable in the live corpus or in the BC's explicit precondition/postcondition text. BC-5.39.010 v1.7 is consistent with the corpus shapes tested.
+
+### Devops rebuild handoff (D-693)
+
+The WASM binary must be rebuilt before the bats integration gate can execute. Per D-693, devops-engineer must rebuild `validate-cross-site-correspondence.wasm` from this worktree before running `./run-all.sh`. The 13 new RED GATE unit tests are cargo-level only; bats T-038→T-048 rename and no new bats tests were added.
+
+### Findings disposition
+
+| Finding | Severity | Test-writer action | Test name |
+|---------|----------|--------------------|-----------|
+| F-S2107-P3-001 | BLOCKER | 2 unit + 1 corpus RED GATE | arm_a1.rs:671, arm_a1.rs:711, lib.rs:800 |
+| F-S2107-P3-002(a) | BLOCKER | RED GATE | arm_b.rs:1091 |
+| F-S2107-P3-002(b) | BLOCKER | RED GATE | arm_b.rs:1111 |
+| F-S2107-P3-002(c) | BLOCKER | 2 RED GATE | arm_b.rs:1131, arm_b.rs:1149 |
+| F-S2107-P3-004 | HIGH | RED GATE | arm_a2.rs:777 |
+| F-S2107-P3-008 | HIGH | Structural deletion (dead unreachable arm removed) | lib.rs — no test possible for deleted dead code |
+| F-S2107-P3-009 | HIGH | 2 RED GATE + 1 GREEN regression guard | dispatch.rs:562, dispatch.rs:583 |
+| F-S2107-P3-012 | MEDIUM | RED GATE | arm_b.rs:1200 |
+| F-S2107-P3-015 | MEDIUM | RED GATE | arm_b.rs:1235 |
+| F-S2107-P3-017 | MEDIUM | 15 arm_d tests → `#[ignore]` | arm_d.rs (all 15) |
+| F-S2107-P3-018 | LOW | T-038 → T-048 rename in bats | validate-cross-site-correspondence.bats |
+| F-S2107-P3-019 | LOW | False comment corrected | lib.rs |
+| F-S2107-P3-020 | LOW | VP-039.md deleted; BC fixture NOTE updated | e1-15-byte-last-amended fixture dir |
+| F-S2107-P3-022 | MEDIUM | RED GATE | arm_a2.rs:827 |
+| F-S2107-P3-025 | LOW | `unreachable!()` → `panic!()` + `#[allow(clippy::panic)]` | lib.rs:~1000 |
+| F-S2107-P3-005 | LOW | Documentary GREEN per-row tests × 5 | arm_b.rs:1043–1075 |
+| F-S2107-P3-003, F-S2107-P3-006, F-S2107-P3-007, F-S2107-P3-010, F-S2107-P3-011, F-S2107-P3-013, F-S2107-P3-014, F-S2107-P3-016, F-S2107-P3-021, F-S2107-P3-023, F-S2107-P3-024 | various | Handled by implementer (no test required or out of test-writer scope) | — |

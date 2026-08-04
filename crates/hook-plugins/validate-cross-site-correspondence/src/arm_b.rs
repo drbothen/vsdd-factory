@@ -996,4 +996,250 @@ mod tests {
         let inputs = parse_story_volatile_inputs(story);
         assert_eq!(inputs, vec![".factory/STATE.md".to_string()]);
     }
+
+    // -----------------------------------------------------------------------
+    // F-S2107-P3-002 (BLOCKER): is_volatile_path three-way drift
+    //
+    // BC-5.39.010 v1.7 PC40 specifies EXACTLY 6 volatile-input patterns:
+    //   1. `.factory/STATE.md` (direct child, parent==".factory")
+    //   2. `.factory/cycles/**/STATE.md`
+    //   3. `.factory/cycles/**/decision-log.md`
+    //   4. `.factory/cycles/**/lessons.md`
+    //   5. `.factory/cycles/**/burst-log.md`
+    //   6. `.factory/specs/architecture/ARCH-INDEX.md`
+    //   7. `.factory/specs/behavioral-contracts/BC-INDEX.md`  (path-equals)
+    //   8. `.factory/stories/STORY-INDEX.md`                  (path-equals)
+    //
+    // Current impl has THREE drifts from this spec:
+    //   (a) ARCH-INDEX.md ABSENT — causes live self-block on S-21.07 writes
+    //   (b) `.factory/cycles/**` ANY-FILE — too broad; adv-cycle-pass-N.md is volatile
+    //   (c) VP-INDEX.md PRESENT — not in PC40; always returns true for VP-INDEX.md
+    //       at any depth under .factory/
+    //   (d) Index files matched by FILENAME ONLY (no path-depth check) — e.g.,
+    //       .factory/cycles/v1.0/BC-INDEX.md currently returns true
+    //
+    // Per-row documentary tests (patterns 1-5) confirm currently-correct behavior.
+    // RED GATE tests cover the three drifts.
+    // -----------------------------------------------------------------------
+
+    // -- Per-row documentary tests (GREEN) -----------------------------------
+
+    /// PC40 pattern 1: `.factory/STATE.md` direct child is volatile.
+    #[test]
+    fn test_BC_5_39_010_pc40_per_row_1_factory_state_md_volatile() {
+        assert!(
+            is_volatile_path(".factory/STATE.md"),
+            "PC40 pattern 1: '.factory/STATE.md' must be volatile"
+        );
+    }
+
+    /// PC40 pattern 2: `STATE.md` under cycles/ is volatile.
+    #[test]
+    fn test_BC_5_39_010_pc40_per_row_2_cycles_state_md_volatile() {
+        assert!(
+            is_volatile_path(".factory/cycles/v1.0-feature-engine-discipline-pass-1/STATE.md"),
+            "PC40 pattern 2: STATE.md under cycles/ must be volatile"
+        );
+    }
+
+    /// PC40 patterns 3-5: decision-log.md, lessons.md, burst-log.md under cycles/ volatile.
+    #[test]
+    fn test_BC_5_39_010_pc40_per_row_3_cycles_named_files_volatile() {
+        assert!(
+            is_volatile_path(".factory/cycles/v1.0/decision-log.md"),
+            "PC40 pattern 3: decision-log.md under cycles/ must be volatile"
+        );
+        assert!(
+            is_volatile_path(".factory/cycles/v1.0/lessons.md"),
+            "PC40 pattern 4: lessons.md under cycles/ must be volatile"
+        );
+        assert!(
+            is_volatile_path(".factory/cycles/v1.0/burst-log.md"),
+            "PC40 pattern 5: burst-log.md under cycles/ must be volatile"
+        );
+    }
+
+    /// PC40 pattern 7 (path-equals): `.factory/specs/behavioral-contracts/BC-INDEX.md`.
+    #[test]
+    fn test_BC_5_39_010_pc40_per_row_7_bc_index_volatile() {
+        assert!(
+            is_volatile_path(".factory/specs/behavioral-contracts/BC-INDEX.md"),
+            "PC40 pattern 7: '.factory/specs/behavioral-contracts/BC-INDEX.md' must be volatile"
+        );
+    }
+
+    /// PC40 pattern 8 (path-equals): `.factory/stories/STORY-INDEX.md`.
+    #[test]
+    fn test_BC_5_39_010_pc40_per_row_8_story_index_volatile() {
+        assert!(
+            is_volatile_path(".factory/stories/STORY-INDEX.md"),
+            "PC40 pattern 8: '.factory/stories/STORY-INDEX.md' must be volatile"
+        );
+    }
+
+    // -- RED GATE tests for F-S2107-P3-002 drifts ---------------------------
+
+    /// F-S2107-P3-002(a) RED GATE: ARCH-INDEX.md must be volatile (PC40 pattern 6).
+    ///
+    /// ARCH-INDEX.md is absent from the current implementation. Every write to S-21.07
+    /// itself (which lists ARCH-INDEX.md in its inputs:) self-blocks. 66 stories under
+    /// .factory/stories/ reference ARCH-INDEX.md.
+    ///
+    /// RED GATE: current impl has no ARCH-INDEX.md match → returns false → FAILS.
+    #[test]
+    fn test_BC_5_39_010_pc40_arch_index_md_is_volatile() {
+        assert!(
+            is_volatile_path(".factory/specs/architecture/ARCH-INDEX.md"),
+            "PC40 pattern 6: '.factory/specs/architecture/ARCH-INDEX.md' must be volatile. \
+            F-S2107-P3-002(a): ARCH-INDEX.md absent from impl — S-21.07 self-blocks on every \
+            write. 66 stories list ARCH-INDEX.md in inputs:. RED GATE."
+        );
+    }
+
+    /// F-S2107-P3-002(b) RED GATE: arbitrary file under cycles/ must NOT be volatile.
+    ///
+    /// Blanket `.factory/cycles/**` (any file under cycles) permanently suppresses
+    /// Class B for all ~20 stories that list cycles/ artifacts in their inputs:, even
+    /// files like `adv-cycle-pass-1.md` that have no volatility rationale.
+    ///
+    /// PC40 guarantees no permanent weakening: only STATE.md + {decision-log,lessons,burst-log}.md
+    /// under cycles/ are volatile. Other cycles/ files must return false.
+    ///
+    /// RED GATE: current blanket cycles component check → true → FAILS.
+    #[test]
+    fn test_BC_5_39_010_pc40_adv_cycle_pass_not_volatile() {
+        assert!(
+            !is_volatile_path(
+                ".factory/cycles/v1.0-feature-engine-discipline-pass-1/adv-cycle-pass-1.md"
+            ),
+            "adv-cycle-pass-1.md is an immutable historical artifact — must NOT be volatile. \
+            PC40 guarantees no permanent weakening of Class B gate. \
+            F-S2107-P3-002(b): blanket cycles component check permanently suppresses BLOCKING \
+            gate for ~20 stories. After fix: only 5 named patterns are volatile under cycles/. \
+            RED GATE: current impl returns true for any path with a 'cycles' component."
+        );
+    }
+
+    /// F-S2107-P3-002(c) RED GATE: VP-INDEX.md is NOT in PC40 and must NOT be volatile.
+    ///
+    /// VP-INDEX.md appears in the current impl's filename matches but is absent from
+    /// ADR-037 §Decision 2 and BC-5.39.010 v1.7 PC40. It must NOT be volatile.
+    ///
+    /// RED GATE: current `matches!(filename, "BC-INDEX.md" | "VP-INDEX.md" | ...)` → true.
+    #[test]
+    fn test_BC_5_39_010_pc40_vp_index_not_volatile() {
+        assert!(
+            !is_volatile_path(".factory/specs/verification-properties/VP-INDEX.md"),
+            "VP-INDEX.md is NOT in PC40 (ADR-037 §Decision 2) and must NOT be volatile. \
+            F-S2107-P3-002(c): current impl has 'VP-INDEX.md' in filename matches → true. \
+            After fix: VP-INDEX.md removed from volatile list. RED GATE."
+        );
+    }
+
+    /// F-S2107-P3-002(c) RED GATE: BC-INDEX.md at wrong path must NOT be volatile.
+    ///
+    /// PC40 specifies path-equals semantics for index files. Only the canonical path
+    /// `.factory/specs/behavioral-contracts/BC-INDEX.md` is volatile. BC-INDEX.md
+    /// at a cycles/ path (or any other non-canonical path) must NOT match.
+    ///
+    /// RED GATE: current filename-only check `matches!(filename, "BC-INDEX.md" | ...)` plus
+    /// the blanket cycles component check → `.factory/cycles/v1.0/BC-INDEX.md` returns true.
+    #[test]
+    fn test_BC_5_39_010_pc40_bc_index_wrong_path_not_volatile() {
+        assert!(
+            !is_volatile_path(".factory/cycles/v1.0/BC-INDEX.md"),
+            "BC-INDEX.md at a cycles/ path must NOT be volatile. \
+            PC40 specifies path-equals for '.factory/specs/behavioral-contracts/BC-INDEX.md'. \
+            F-S2107-P3-002(c): current filename-only check admits BC-INDEX.md at any depth. \
+            RED GATE: cycles component check also fires → returns true."
+        );
+    }
+
+    // -----------------------------------------------------------------------
+    // F-S2107-P3-012 (MEDIUM): volatile advisory message must use ADR-037 prescribed text
+    //
+    // Current advisory text:
+    //   "has volatile inputs {paths:?} — skipping three-way input-hash comparison
+    //   per BC-5.39.010 v1.6 PC40 ... Update input-hash manually when non-volatile
+    //   inputs change."
+    //
+    // Prescribed text (ADR-037 §Decision 4 / BC-5.39.010 v1.7 PC40 note):
+    //   "Story <id> has volatile inputs per ADR-037 §Decision 2 — three-way equality
+    //   is unsatisfiable until story-writer removes volatile inputs and state-manager
+    //   recomputes the hash; Class B BLOCK suspended. Volatile path(s): <list>"
+    //
+    // Differences: missing "ADR-037 §Decision 2" cite; missing "Class B BLOCK suspended";
+    // wrong remediation instruction ("Update input-hash manually" vs. the spec's).
+    // -----------------------------------------------------------------------
+
+    /// F-S2107-P3-012 RED GATE: volatile advisory must cite ADR-037 §Decision 2
+    /// and say "Class B BLOCK suspended".
+    ///
+    /// `run_arm_b1` returns early (before host call) when volatile inputs are detected.
+    /// Safe to call in unit tests without a host — volatile check returns at line 379.
+    ///
+    /// RED GATE: current message lacks "ADR-037 §Decision 2" → assertion FAILS.
+    #[test]
+    fn test_BC_5_39_010_arm_b1_volatile_advisory_prescribed_text() {
+        // Story with input-hash + volatile STATE.md in inputs → early return (no host call)
+        let story_content = concat!(
+            "---\n",
+            "input-hash: \"abc1234\"\n",
+            "inputs:\n",
+            "  - .factory/STATE.md\n",
+            "---\n",
+            "body\n",
+        );
+        let (violations, advisories) = run_arm_b1("S-21.07", story_content);
+        assert!(violations.is_empty(), "volatile inputs must not block");
+        assert!(
+            !advisories.is_empty(),
+            "volatile inputs must produce an advisory"
+        );
+        let msg = &advisories[0].message;
+        assert!(
+            msg.contains("ADR-037 §Decision 2"),
+            "advisory must cite 'ADR-037 §Decision 2' per prescribed text. \
+            F-S2107-P3-012: current message uses 'BC-5.39.010 v1.6 PC40' instead. \
+            RED GATE. Advisory: {msg}"
+        );
+        assert!(
+            msg.contains("Class B BLOCK suspended"),
+            "advisory must say 'Class B BLOCK suspended' per prescribed text. \
+            F-S2107-P3-012: current message omits this phrase entirely. \
+            RED GATE. Advisory: {msg}"
+        );
+    }
+
+    // -----------------------------------------------------------------------
+    // F-S2107-P3-015 (MEDIUM): extract_story_id_from_table_row too broad
+    //
+    // Current `id.starts_with("S-")` admits non-canonical IDs like "S-README".
+    // TD-VSDD-060 sibling sweep: dispatch.rs F-P2-011 fixed is_canonical_story_basename
+    // but the fix was not swept to arm_b.rs extract_story_id_from_table_row.
+    //
+    // PC9/PC16: story ID must match S-[0-9]+\.[0-9]+ (e.g., "S-21.07", "S-1.1").
+    // -----------------------------------------------------------------------
+
+    /// F-S2107-P3-015 RED GATE: non-canonical story IDs like "S-README" must return None.
+    ///
+    /// `extract_story_id_from_table_row("| S-README | ... |")` → currently returns
+    /// Some("S-README") via `starts_with("S-")`. After fix (canonical predicate): None.
+    ///
+    /// RED GATE: current impl returns Some("S-README") → assert!(result.is_none()) FAILS.
+    #[test]
+    fn test_BC_5_39_010_arm_b2_non_canonical_story_id_rejected() {
+        let result = extract_story_id_from_table_row(
+            "| S-README | Some README title | input-hash abc1234 |",
+        );
+        assert!(
+            result.is_none(),
+            "extract_story_id_from_table_row must reject non-canonical IDs like 'S-README'. \
+            PC9/PC16: story ID must match S-[0-9]+\\.[0-9]+. \
+            TD-VSDD-060 sibling-site sweep: dispatch.rs F-P2-011 fix not swept to arm_b.rs. \
+            F-S2107-P3-015: current `starts_with('S-')` admits 'S-README'. RED GATE. \
+            Got: {:?}",
+            result
+        );
+    }
 }

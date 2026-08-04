@@ -159,16 +159,10 @@ pub fn on_post_tool_use(payload: HookPayload) -> HookResult {
 
     let primary_bytes = match host::read_file(&file_path, primary_max, primary_timeout_ms) {
         Ok(bytes) => bytes,
-        Err(e) if cycle_kind.is_some() => {
-            // Class D: advisory-only, never blocking (invariant 6).
-            // NotFound → advisory + Continue per PC33; any other error → advisory (invariant 6).
-            host::log_warn(&format!(
-                "validate-cross-site-correspondence [Class D primary-read]: \
-                cannot read cycle artifact '{file_path}': {e:?}. \
-                Advisory-only per BC-5.39.010 invariant 6."
-            ));
-            return HookResult::Continue;
-        }
+        // Note: the Err(e) if cycle_kind.is_some() arm is structurally removed here.
+        // cycle_kind is always None (is_cycle_artifact returns None per Class D deferral
+        // in D-953). When Class D is re-enabled in S-21.08, restore the arm alongside
+        // the is_cycle_artifact body. F-S2107-P3-008 (dead code deletion).
         Err(e) => {
             // Fail-closed: CapabilityDenied or any error on classified non-cycle target → block
             // (BC-5.39.010 invariant 4 + BC-5.39.008 v1.6)
@@ -206,7 +200,9 @@ pub fn on_post_tool_use(payload: HookPayload) -> HookResult {
     if is_si {
         let b2_violations = arm_b::run_arm_b2(&content);
         violations.extend(b2_violations);
-        // STORY-INDEX.md: no E arm (no version:/last_amended: frontmatter)
+        // STORY-INDEX.md: no Class E arm — PC34 scopes Class E to BC/VP/story/epic files
+        // only. STORY-INDEX.md is excluded despite having version:/last_amended: fields
+        // because it is the Arm B2 trigger, not a per-artifact spec file. F-S2107-P3-019.
         emit_advisories(&advisories);
         return if violations.is_empty() {
             HookResult::Continue
@@ -755,6 +751,64 @@ mod tests {
     }
 
     // -----------------------------------------------------------------------
+    // Corpus test 1b — arm_a1 RowPresentNoVersion majority (RED GATE)
+    //
+    // F-S2107-P3-001 BLOCKER: BC-INDEX corpus test MUST sample the ~1,943-row
+    // RowPresentNoVersion majority. The prior corpus test (corpus test 1) sampled
+    // BC-1.17.001 — one of the ~40 rows that DOES carry a version-chain cell —
+    // allowing the three-state defect to survive three adversary passes undetected.
+    //
+    // Sampled BC: BC-1.01.001 (5-column row, no version-chain cell, version "1.2").
+    // Expected: run_arm_a1_with_index_result produces no violations.
+    // Current: extract_bc_index_version returns Some("15.01") (from S-15.01 fragment)
+    //          → "15.01" != "1.2" → violation → FAILS.
+    // -----------------------------------------------------------------------
+
+    /// CORPUS RED GATE (F-S2107-P3-001): run_arm_a1 must not block for a BC whose
+    /// INDEX row has no version-chain cell (RowPresentNoVersion majority shape).
+    ///
+    /// Reads LIVE BC-INDEX.md and BC-1.01.001.md. BC-1.01.001 has a 5-column row
+    /// (no version-chain cell) and version "1.2". Current two-state None conflation
+    /// returns Some("15.01") from the story-ID fragment → block.
+    /// After fix (three-state): RowPresentNoVersion → silent-continue → no violations.
+    ///
+    /// DURABLE: reads both live files; survives BC-1.01.001 version bumps.
+    #[test]
+    fn test_BC_5_39_010_corpus_arm_a1_row_present_no_version_cell_majority_shape() {
+        let root = corpus_root_or_skip!();
+        let bc_index_bytes = std::fs::read(root.join("specs/behavioral-contracts/BC-INDEX.md"))
+            .expect("BC-INDEX.md must be readable from corpus root");
+        let bc_file_str =
+            std::fs::read_to_string(root.join("specs/behavioral-contracts/ss-01/BC-1.01.001.md"))
+                .expect("BC-1.01.001.md must be readable from corpus root");
+        let bc_version = frontmatter::extract_frontmatter_field(&bc_file_str, "version")
+            .expect("BC-1.01.001.md must have a version: field");
+        // Verify this is a meaningful test: version must not be "1.0" (RowAbsent path)
+        assert_ne!(
+            bc_version, "1.0",
+            "BC-1.01.001 must have version != '1.0' for the RowPresentNoVersion test to \
+            distinguish from the RowAbsent v1.0 advisory path"
+        );
+        let (violations, _) = arm_a1::run_arm_a1_with_index_result(
+            "BC-1.01.001",
+            &bc_version,
+            &root
+                .join("specs/behavioral-contracts/ss-01/BC-1.01.001.md")
+                .to_string_lossy(),
+            Ok(bc_index_bytes),
+        );
+        assert!(
+            violations.is_empty(),
+            "BC-1.01.001 (version={bc_version}) has a 5-column RowPresentNoVersion row in the \
+            live BC-INDEX.md. run_arm_a1_with_index_result must NOT produce violations. \
+            BC-5.39.010 v1.7 PC5: RowPresentNoVersion → silent-continue. \
+            F-S2107-P3-001 BLOCKER: corpus test sampling the ~1,943-row majority. \
+            Current: extract_bc_index_version returns Some(\"15.01\") from S-15.01 story ID → \
+            stale-version block. Violations: {violations:?}"
+        );
+    }
+
+    // -----------------------------------------------------------------------
     // Corpus test 2 — arm_a2 (RED GATE — F-P2-001 live corpus evidence)
     //
     // extract_story_bc_version_citations on LIVE S-21.04 must return only citations
@@ -918,6 +972,9 @@ mod tests {
     /// COVERAGE TEST (immediately GREEN): combine_violations_into_block already works.
     /// Adding Rust-level assertion per F-P1C-016 (previously bats-only coverage).
     #[test]
+    #[allow(clippy::panic)] // F-S2107-P3-025: panic! is intentional — defect detection,
+    // not production code. unreachable! claims this arm can never
+    // be reached; panic! correctly signals reachable-on-defect.
     fn test_BC_5_39_010_invariant_7_ac018_multi_arm_violations_both_in_combined_block() {
         // Two violations from different arms (simulating A1 + E1 co-firing on a BC write)
         let a1_v = Violation {
@@ -945,10 +1002,11 @@ mod tests {
                     BC-5.39.010 invariant 7 / AC-018 / F-P1C-016. reason: {reason}"
                 );
             }
-            _ => unreachable!(
+            _ => panic!(
                 "two violations must produce HookResult::Block, not Continue — \
-                if this arm is reached, combine_violations_into_block has a correctness \
-                defect. BC-5.39.010 invariant 7 / postcondition 23 (F-P1C-016)."
+                reaching this arm means combine_violations_into_block has a correctness \
+                defect. BC-5.39.010 invariant 7 / postcondition 23 (F-P1C-016). \
+                F-S2107-P3-025: unreachable! replaced with panic! (reachable on defect)."
             ),
         }
     }
