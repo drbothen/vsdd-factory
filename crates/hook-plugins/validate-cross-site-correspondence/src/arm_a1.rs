@@ -650,16 +650,18 @@ mod tests {
     /// F-S2107-P3-001 RED GATE: 5-column row (RowPresentNoVersion) with version > "1.0"
     /// must NOT block.
     ///
-    /// BC-5.39.010 v1.7 PC5: RowPresentNoVersion is the canonical state for ~1,943 of
-    /// 1,983 BC-INDEX rows. Current two-state None conflation blocks ALL of them when
-    /// version != "1.0". After fix: RowPresentNoVersion → silent-continue → no violations.
+    /// BC-5.39.010 v1.8 PC5: COLUMN-COUNT-ANCHORED classification. After escape-aware
+    /// split, count non-empty fields: exactly 5 → RowPresentNoVersion unconditionally —
+    /// no token search performed. Current token-search implementation returns None
+    /// (no v-prefixed token) which maps to the old RowAbsent → block path.
+    /// After fix: RowPresentNoVersion → silent-continue → no violations.
     ///
     /// RED GATE: current None path → is_v1_0=false → block → violations NOT empty.
     #[test]
     fn test_BC_5_39_010_arm_a1_row_present_no_version_cell_not_blocked() {
         // 5-column canonical BC-INDEX shape: no version-chain cell.
-        // The story-ID "S-99.01" in cell 5 contains "99.01" which looks like a version
-        // token — the current extractor returns Some("99.01"), then "99.01" != "1.2" → block.
+        // BC-5.39.010 v1.8 PC5: column count alone determines state — no token search
+        // is performed on any field, including story IDs in the Stories column.
         let index_content =
             b"| [BC-9.99.001](ss-09/BC-9.99.001.md) | Some title | draft | CAP-TBD | S-99.01 |\n";
         let (violations, advisories) = run_arm_a1_with_index_result(
@@ -671,16 +673,17 @@ mod tests {
         assert!(
             violations.is_empty(),
             "5-column row (no version-chain cell) with bc_version='1.2' must NOT block. \
-            BC-5.39.010 v1.7 PC5: RowPresentNoVersion is canonical for ~1,943/1,983 rows. \
+            BC-5.39.010 v1.8 PC5: column-count-anchored — exactly 5 fields → RowPresentNoVersion \
+            unconditionally; no token search on any field. \
             F-S2107-P3-001 BLOCKER: current None branch treats this as RowAbsent → block. \
-            Fix: three-state extractor; RowPresentNoVersion → silent-continue. \
+            Fix: escape-aware split → count fields → 5 → RowPresentNoVersion → silent-continue. \
             Violations: {:?}",
             violations
         );
         assert!(
             advisories.is_empty(),
             "RowPresentNoVersion must be fully silent — no advisory either. \
-            BC-5.39.010 v1.7 PC5 note. Advisories: {:?}",
+            BC-5.39.010 v1.8 PC5. Advisories: {:?}",
             advisories
         );
     }
@@ -692,14 +695,16 @@ mod tests {
     ///   schema version | draft | CAP-TBD | S-15.01 |`
     ///   BC-1.01.001.md version: "1.2"
     ///
-    /// This is the canonical RowPresentNoVersion example — 5-column row, no version cell.
-    /// The extractor currently returns Some("15.01") (from story-ID fragment "S-15.01"),
-    /// then "15.01" != "1.2" → block.
+    /// BC-5.39.010 v1.8 PC5: column-count-anchored — 5 non-empty fields after escape-aware
+    /// split → RowPresentNoVersion unconditionally. No token search on any field, including
+    /// the Stories column which contains "S-15.01". Current implementation performs token
+    /// search and finds no v-prefixed token → None → RowAbsent path → block.
     ///
     /// RED GATE: violations not empty. After fix: RowPresentNoVersion → silent-continue.
     #[test]
     fn test_BC_5_39_010_arm_a1_bc_1_01_001_exact_row_shape_not_blocked() {
         // Exact row shape from live BC-INDEX.md (adversary pass-3 corpus verification).
+        // BC-5.39.010 v1.8 PC5: 5 fields → RowPresentNoVersion, no token search performed.
         let index_content = b"| [BC-1.01.001](ss-01/BC-1.01.001.md) | Registry rejects \
             unknown schema version | draft | CAP-TBD | S-15.01 |\n";
         let (violations, _) = run_arm_a1_with_index_result(
@@ -710,11 +715,118 @@ mod tests {
         );
         assert!(
             violations.is_empty(),
-            "BC-1.01.001 canonical 5-column INDEX row with version='1.2' must NOT block. \
-            Row: '| [BC-1.01.001](...) | Registry rejects unknown schema version | draft | \
-            CAP-TBD | S-15.01 |'. The extractor extracts '15.01' from the S-15.01 story ID \
-            and produces a stale-version block. Blast radius: ≥1,712 BCs in the same situation. \
+            "BC-1.01.001 canonical 5-column INDEX row with bc_version='1.2' must NOT block. \
+            BC-5.39.010 v1.8 PC5: 5 fields escape-aware → RowPresentNoVersion unconditionally. \
             F-S2107-P3-001 BLOCKER. Violations: {:?}",
+            violations
+        );
+    }
+
+    /// F-S2107-P3-001 RED GATE (product-owner regression guard): row with S-15.01 in the
+    /// Stories column MUST yield RowPresentNoVersion, NOT Version("15.01").
+    ///
+    /// BC-5.39.010 v1.8 PC5 (corpus stat): 194 of 1,943 five-field rows carry story IDs
+    /// whose decimal fragments (e.g., "15.01") resemble version tokens. This is the single
+    /// most important test in this burst — it names the exact defect the v1.8 contract was
+    /// designed to eliminate. Any extractor that converts "S-15.01" → Version("15.01")
+    /// is non-conforming with BC-5.39.010 v1.8 PC5.
+    ///
+    /// RED GATE: current None path → RowAbsent → block → violations NOT empty.
+    #[test]
+    fn test_BC_5_39_010_arm_a1_stories_column_s15_01_yields_row_present_no_version() {
+        // Same corpus row as bc_1_01_001_exact_row_shape_not_blocked, explicitly named for
+        // the S-15.01 regression guard as required by product-owner (BC-5.39.010 v1.8).
+        let index_content = b"| [BC-1.01.001](ss-01/BC-1.01.001.md) | Registry rejects \
+            unknown schema version | draft | CAP-TBD | S-15.01 |\n";
+        let (violations, _) = run_arm_a1_with_index_result(
+            "BC-1.01.001",
+            "1.2",
+            ".factory/specs/behavioral-contracts/ss-01/BC-1.01.001.md",
+            Ok(index_content.to_vec()),
+        );
+        assert!(
+            violations.is_empty(),
+            "S-15.01 in the Stories column must yield RowPresentNoVersion, NOT Version('15.01'). \
+            BC-5.39.010 v1.8 PC5 regression guard: column-count 5 → RowPresentNoVersion, \
+            no token search on any field. This is the exact false-positive the v1.8 \
+            column-count-anchored contract was designed to close. Violations: {:?}",
+            violations
+        );
+    }
+
+    /// BC-5.39.010 v1.8 PC5 escape-aware split RED GATE: 5-field row where the Stories cell
+    /// contains a literal `\|` (escaped pipe) must NOT be inflated to 6+ fields.
+    ///
+    /// Row shape: `| [BC-9.99.002](...) | Title | active | CAP-TBD | S-1.03 \| S-2.06 |`
+    ///
+    /// Naive `|` split: 6 segments (the `\|` in the Stories cell creates a phantom boundary).
+    /// Escape-aware split (substitute `\|` → placeholder, split on `|`, restore):
+    ///   field 1: [BC-9.99.002](...)  field 2: Title  field 3: active
+    ///   field 4: CAP-TBD             field 5: S-1.03 \| S-2.06
+    ///   → 5 non-empty fields → RowPresentNoVersion.
+    ///
+    /// Current implementation (naive split + token search) returns None on this row (no
+    /// v-prefixed token) → RowAbsent path → block. After fix: escape-aware 5 fields →
+    /// RowPresentNoVersion → silent-continue.
+    ///
+    /// RED GATE: violations NOT empty.
+    #[test]
+    fn test_BC_5_39_010_arm_a1_escape_aware_5field_stories_pipe_not_a_version_cell() {
+        // Stories cell contains `\|` which naive splitting inflates to phantom 6th field.
+        // BC-5.39.010 v1.8 PC5: escape-aware split must count this as 5 fields → RowPresentNoVersion.
+        let index_content =
+            b"| [BC-9.99.002](ss-09/BC-9.99.002.md) | Two linked stories | active | \
+            CAP-TBD | S-1.03 \\| S-2.06 |\n";
+        let (violations, _) = run_arm_a1_with_index_result(
+            "BC-9.99.002",
+            "1.2",
+            ".factory/specs/behavioral-contracts/ss-09/BC-9.99.002.md",
+            Ok(index_content.to_vec()),
+        );
+        assert!(
+            violations.is_empty(),
+            "5-field row with \\| in Stories cell must NOT block. \
+            BC-5.39.010 v1.8 PC5: escape-aware split → 5 non-empty fields → RowPresentNoVersion. \
+            Naive split inflates to 6 fields, converting a RowPresentNoVersion row into a \
+            spurious Version check. Violations: {:?}",
+            violations
+        );
+    }
+
+    /// BC-5.39.010 v1.8 PC5 escape-aware split GREEN regression guard: 6-field row where
+    /// the Version cell contains a `\|`-separated version chain must still yield the correct
+    /// version.
+    ///
+    /// Row shape:
+    ///   `| [BC-9.99.003](...) | Title | active | CAP-TBD | S-99.01 | v1.5 \| v1.6 \| v1.7 |`
+    ///
+    /// Naive split: 9 segments. Escape-aware split:
+    ///   field 1: [BC-9.99.003](...)  field 2: Title  field 3: active
+    ///   field 4: CAP-TBD             field 5: S-99.01
+    ///   field 6: v1.5 \| v1.6 \| v1.7  → ≥6 fields → extract rightmost vN.N from field 6
+    ///
+    /// Current token-search over naive-split segments accidentally produces the correct answer
+    /// ("v1.7" is found in the rightmost phantom segment). This GREEN test is the regression
+    /// guard ensuring the escape-aware implementation continues to extract "1.7" correctly.
+    #[test]
+    fn test_BC_5_39_010_arm_a1_escape_aware_6field_version_chain_with_pipe_regression() {
+        // 6-field row: version chain uses `\|` as delimiter within the version cell.
+        // The current code passes; this is a GREEN regression guard for the v1.8 fix.
+        let index_content =
+            b"| [BC-9.99.003](ss-09/BC-9.99.003.md) | Version chain test | active | \
+            CAP-TBD | S-99.01 | v1.5 \\| v1.6 \\| v1.7 |\n";
+        let (violations, _) = run_arm_a1_with_index_result(
+            "BC-9.99.003",
+            "1.7",
+            ".factory/specs/behavioral-contracts/ss-09/BC-9.99.003.md",
+            Ok(index_content.to_vec()),
+        );
+        assert!(
+            violations.is_empty(),
+            "6-field version chain row with \\| separators in version cell must extract 'v1.7'. \
+            BC-5.39.010 v1.8 PC5: escape-aware split → 6 fields → Version from field 6 \
+            (rightmost vN.N). This is a regression guard — the fix must NOT break this case. \
+            Violations: {:?}",
             violations
         );
     }

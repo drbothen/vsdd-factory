@@ -695,3 +695,87 @@ The WASM binary must be rebuilt before the bats integration gate can execute. Pe
 | F-S2107-P3-025 | LOW | `unreachable!()` → `panic!()` + `#[allow(clippy::panic)]` | lib.rs:~1000 |
 | F-S2107-P3-005 | LOW | Documentary GREEN per-row tests × 5 | arm_b.rs:1043–1075 |
 | F-S2107-P3-003, F-S2107-P3-006, F-S2107-P3-007, F-S2107-P3-010, F-S2107-P3-011, F-S2107-P3-013, F-S2107-P3-014, F-S2107-P3-016, F-S2107-P3-021, F-S2107-P3-023, F-S2107-P3-024 | various | Handled by implementer (no test required or out of test-writer scope) | — |
+
+---
+
+## Pass-5 Amendment — BC-5.39.010 v1.8 Column-Count-Anchored PC5 + Two-Phase PC13
+
+**Date:** 2026-08-04
+**BC:** BC-5.39.010 v1.8 (SHA 6cde912d — updated from v1.7 while pass-4 burst was in flight)
+**Trigger:** Coordinator amendment requiring re-targeting of arm_a1 tests to v1.8 column-count-anchored
+PC5, addition of the S-15.01 product-owner regression guard, escape-aware boundary tests, and three
+two-phase PC13 collision-class tests for arm_a2.
+
+Red Gate run command: `cargo test -p validate-cross-site-correspondence`
+Red Gate result: **100 passed; 18 failed; 17 ignored** — 5 new tests RED GATE; 13 prior RED GATE tests
+carry forward; 1 new GREEN regression guard passes; 100 pre-existing green tests unaffected.
+
+Verbatim `file:line:` panic sites (captured stdout):
+
+```
+thread 'arm_a1::tests::test_BC_5_39_010_arm_a1_bc_1_01_001_exact_row_shape_not_blocked' (196787138) panicked at crates/hook-plugins/validate-cross-site-correspondence/src/arm_a1.rs:716:9
+thread 'arm_a1::tests::test_BC_5_39_010_arm_a1_escape_aware_5field_stories_pipe_not_a_version_cell' (196787145) panicked at crates/hook-plugins/validate-cross-site-correspondence/src/arm_a1.rs:786:9
+thread 'arm_a1::tests::test_BC_5_39_010_arm_a1_row_present_no_version_cell_not_blocked' (196787150) panicked at crates/hook-plugins/validate-cross-site-correspondence/src/arm_a1.rs:673:9
+thread 'arm_a1::tests::test_BC_5_39_010_arm_a1_stories_column_s15_01_yields_row_present_no_version' (196787152) panicked at crates/hook-plugins/validate-cross-site-correspondence/src/arm_a1.rs:747:9
+thread 'arm_a2::tests::test_BC_5_39_010_arm_a2_bc_id_fragment_no_version_citation' (196787155) panicked at crates/hook-plugins/validate-cross-site-correspondence/src/arm_a2.rs:827:9
+thread 'arm_a2::tests::test_BC_5_39_010_arm_a2_pc13_class1_story_id_trace_column_not_cited' (196787166) panicked at crates/hook-plugins/validate-cross-site-correspondence/src/arm_a2.rs:891:9
+thread 'arm_a2::tests::test_BC_5_39_010_arm_a2_pc13_class2_acs_column_deferred_yields_version_cell' (196787167) panicked at crates/hook-plugins/validate-cross-site-correspondence/src/arm_a2.rs:939:9
+thread 'arm_a2::tests::test_BC_5_39_010_arm_a2_pc13_class3_token_budget_bc_id_section_number_not_cited' (196787168) panicked at crates/hook-plugins/validate-cross-site-correspondence/src/arm_a2.rs:980:9
+thread 'arm_a2::tests::test_BC_5_39_010_arm_a2_pc13_prefix_collision_no_citation' (196787169) panicked at crates/hook-plugins/validate-cross-site-correspondence/src/arm_a2.rs:777:9
+thread 'arm_b::tests::test_BC_5_39_010_arm_b1_volatile_advisory_prescribed_text' (196787181) panicked at crates/hook-plugins/validate-cross-site-correspondence/src/arm_b.rs:1200:9
+thread 'arm_b::tests::test_BC_5_39_010_arm_b2_non_canonical_story_id_rejected' (196787185) panicked at crates/hook-plugins/validate-cross-site-correspondence/src/arm_b.rs:1235:9
+thread 'arm_b::tests::test_BC_5_39_010_pc40_adv_cycle_pass_not_volatile' (196787190) panicked at crates/hook-plugins/validate-cross-site-correspondence/src/arm_b.rs:1111:9
+thread 'arm_b::tests::test_BC_5_39_010_pc40_arch_index_md_is_volatile' (196787191) panicked at crates/hook-plugins/validate-cross-site-correspondence/src/arm_b.rs:1091:9
+thread 'arm_b::tests::test_BC_5_39_010_pc40_bc_index_wrong_path_not_volatile' (196787192) panicked at crates/hook-plugins/validate-cross-site-correspondence/src/arm_b.rs:1149:9
+thread 'arm_b::tests::test_BC_5_39_010_pc40_vp_index_not_volatile' (196787198) panicked at crates/hook-plugins/validate-cross-site-correspondence/src/arm_b.rs:1131:9
+thread 'dispatch::tests::test_BC_5_39_010_dispatch_epic_missing_stories_component_rejected' (196787224) panicked at crates/hook-plugins/validate-cross-site-correspondence/src/dispatch.rs:562:9
+thread 'dispatch::tests::test_BC_5_39_010_dispatch_epic_non_numeric_basename_rejected' (196787225) panicked at crates/hook-plugins/validate-cross-site-correspondence/src/dispatch.rs:583:9
+thread 'tests::test_BC_5_39_010_corpus_arm_a1_row_present_no_version_cell_majority_shape' (196787248) panicked at crates/hook-plugins/validate-cross-site-correspondence/src/lib.rs:800:9
+test result: FAILED. 100 passed; 18 failed; 17 ignored; 0 measured; 0 filtered out; finished in 0.00s
+```
+
+### Pass-5 RED GATE — 5 new failing tests (amendment)
+
+#### arm_a1.rs — 2 new tests (BC-5.39.010 v1.8 PC5 amendment)
+
+| Test | Assertion | Red Gate Failure | File:line |
+|------|-----------|-----------------|-----------|
+| `test_BC_5_39_010_arm_a1_stories_column_s15_01_yields_row_present_no_version` | `assert!(violations.is_empty())` — S-15.01 product-owner regression guard (BC-1.01.001, v1.8 PC5) | `extract_bc_index_version` returns `None` (no v-prefixed token found) → RowAbsent path → block (violation: "no row in BC-INDEX.md") | arm_a1.rs:747:9 |
+| `test_BC_5_39_010_arm_a1_escape_aware_5field_stories_pipe_not_a_version_cell` | `assert!(violations.is_empty())` — 5-field row with `S-1.03 \| S-2.06` in Stories cell | Naive split on `\|` → phantom 6th field; current token search finds no v-prefixed token → None → RowAbsent → block | arm_a1.rs:786:9 |
+
+#### arm_a2.rs — 3 new tests (BC-5.39.010 v1.8 PC13 two-phase collision classes)
+
+| Test | Assertion | Red Gate Failure | File:line |
+|------|-----------|-----------------|-----------|
+| `test_BC_5_39_010_arm_a2_pc13_class1_story_id_trace_column_not_cited` | `assert!(citations.is_empty())` — BC-3.07.002 corpus row (S-4.07), story IDs in Scope Reason cell | Old optional-v last-token: "4.07" extracted from "S-4.07" in Trace column → citation produced. Class 1 (29 rows, 6 stories). | arm_a2.rs:891:9 |
+| `test_BC_5_39_010_arm_a2_pc13_class2_acs_column_deferred_yields_version_cell` | `assert_eq!(citations[0].1, "1.7")` — BC-5.39.010 corpus row (S-21.07), "1.7" in Version field, "DEFERRED v1.6" in ACs field | Old optional-v last-token: "1.6" from "v1.6" in ACs cell (after "1.7" in Version cell) → citation "1.6" ≠ expected "1.7". Class 2 (1 row, S-21.07). | arm_a2.rs:939:9 |
+| `test_BC_5_39_010_arm_a2_pc13_class3_token_budget_bc_id_section_number_not_cited` | `assert!(citations.is_empty())` — BC-1.13.001 corpus row (S-12.03), Token Budget 2-column row | Old optional-v: "1.13" extracted from "BC-1.13.001" BC-section-number (word boundary at '-'). Class 3 (Token Budget bare BC-ID). | arm_a2.rs:980:9 |
+
+### Pass-5 GREEN test — escape-aware 6-field regression guard
+
+| Test | Status | Note |
+|------|--------|------|
+| `test_BC_5_39_010_arm_a1_escape_aware_6field_version_chain_with_pipe_regression` | PASSES | Green regression guard: 6-field row with `\|` separators in version chain cell correctly yields "v1.7" via current naive-split token search. The implementer's escape-aware fix must not break this case. |
+
+### Docstring amendments (arm_a1.rs only)
+
+The two pre-existing RED GATE tests (`row_present_no_version_cell_not_blocked` and
+`bc_1_01_001_exact_row_shape_not_blocked`) had docstrings referencing "v1.7 PC5" and
+"current two-state None conflation." Both updated to reference "v1.8 PC5 column-count-anchored"
+semantics. Assertions unchanged; test behavior unchanged; RED GATE status unchanged.
+
+### F-S2107-P3-025 justification (unreachable! → panic!)
+
+The `unreachable!()` → `panic!()` change in `test_BC_5_39_010_invariant_7_ac018_multi_arm_violations_both_in_combined_block` is retained. The adversary pass-3 text (F-S2107-P3-025) states verbatim:
+
+> "The arm's own message states it **is** reachable on defect. `unreachable!()` asserts a state the programmer believes cannot occur; the correct construct for 'this must not happen and the test must fail if it does' is `panic!()` or `assert!(matches!(…))`. Functionally identical today; semantically inverted, and it will read as a compiler-provable invariant to the next maintainer."
+
+The `panic!()` form is semantically correct. `unreachable!()` would claim the `_ =>` arm is unreachable — but the arm's own message documents it is reachable on defect. `#[allow(clippy::panic)]` is annotated with a comment citing F-S2107-P3-025 and the rationale.
+
+### Corpus sampling adequacy (arm_a1)
+
+The two existing corpus tests cover both BC-INDEX row populations:
+- `test_BC_5_39_010_corpus_arm_a1_row_present_no_version_cell_majority_shape` (lib.rs:800): BC-1.01.001 — from the 1,943-row `RowPresentNoVersion` majority.
+- `test_BC_5_39_010_corpus_arm_a1_bc_1_17_001_own_row_version_not_cross_ref` (arm_a1.rs): BC-1.17.001 — from the 40-row `Version(v)` population.
+
+Both populations are covered. No additional corpus sampling required.
