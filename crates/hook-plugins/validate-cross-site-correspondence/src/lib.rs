@@ -215,15 +215,11 @@ pub fn on_post_tool_use(payload: HookPayload) -> HookResult {
         };
     }
 
-    // Arm D: cycle artifact advisory (never blocks; primary-read errors already handled above)
-    if let Some(kind) = cycle_kind {
-        let scoped = arm_d::extract_scope_limited_region(&content, kind);
-        let d_advisories = arm_d::run_arm_d(scoped, &file_path);
-        for adv in d_advisories {
-            host::log_warn(&adv.message);
-        }
-        return HookResult::Continue;
-    }
+    // [DEFERRED v1.6 — Class D]: arm_d dispatch removed per BC-5.39.010 v1.6 / D-953.
+    // cycle_kind is always None (is_cycle_artifact returns None); the cap-selection
+    // and primary-read-error branches above are kept intact so re-enabling Class D
+    // only requires restoring is_cycle_artifact body + adding back this dispatch block.
+    // arm_d module is retained for its own tests.
 
     // BC file: Arm A1 + Class E
     if is_bc {
@@ -336,7 +332,7 @@ fn extract_story_id_from_path(file_path: &str) -> String {
 }
 
 #[cfg(test)]
-#[allow(clippy::expect_used, clippy::unwrap_used)]
+#[allow(clippy::expect_used, clippy::unwrap_used, clippy::panic)]
 mod tests {
     use super::*;
     // BC_STORY_PRIMARY_MAX_BYTES and CYCLE_ARTIFACT_PRIMARY_MAX_BYTES are
@@ -794,13 +790,11 @@ mod tests {
             root.join("stories/S-21.04-story-worktree-write-path-discipline.md"),
         )
         .expect("S-21.04 must be readable from corpus root");
-        let bc_str = std::fs::read_to_string(
-            root.join("specs/behavioral-contracts/ss-06/BC-6.26.001.md"),
-        )
-        .expect("BC-6.26.001.md must be readable from corpus root");
-        let expected =
-            frontmatter::extract_frontmatter_field(&bc_str, "version")
-                .expect("BC-6.26.001.md must have a version: field");
+        let bc_str =
+            std::fs::read_to_string(root.join("specs/behavioral-contracts/ss-06/BC-6.26.001.md"))
+                .expect("BC-6.26.001.md must be readable from corpus root");
+        let expected = frontmatter::extract_frontmatter_field(&bc_str, "version")
+            .expect("BC-6.26.001.md must have a version: field");
         let citations = arm_a2::extract_story_bc_version_citations(&story_str, "BC-6.26.001");
         assert!(
             !citations.is_empty(),
@@ -835,7 +829,8 @@ mod tests {
     fn test_BC_5_39_010_corpus_dispatch_vp_index_excluded_from_class_e_live_path() {
         let root = corpus_root_or_skip!();
         assert!(
-            root.join("specs/verification-properties/VP-INDEX.md").is_file(),
+            root.join("specs/verification-properties/VP-INDEX.md")
+                .is_file(),
             "VP-INDEX.md must exist in live corpus"
         );
         assert!(
@@ -857,7 +852,8 @@ mod tests {
     fn test_BC_5_39_010_corpus_dispatch_vp_canonical_file_accepted_by_class_e_live_path() {
         let root = corpus_root_or_skip!();
         assert!(
-            root.join("specs/verification-properties/VP-039.md").is_file(),
+            root.join("specs/verification-properties/VP-039.md")
+                .is_file(),
             "VP-039.md must exist in live corpus"
         );
         assert!(

@@ -85,6 +85,33 @@ pub fn is_bc_file(file_path: &str) -> bool {
     has_factory && has_specs && has_bc && filename_ok
 }
 
+/// Returns `true` if `filename` is a canonical story basename: `^S-[0-9]+\.[0-9]+`.
+///
+/// Admits `S-21.07-name.md`, `S-1.1.md`, etc. Rejects `S-README.md` (no digit before
+/// the dot) and `S-ARCH.md` (no dot at all).
+///
+/// # BC trace
+/// BC-5.39.010 PC9/PC16: story basename pattern `^S-[0-9]+\.[0-9]+`.
+/// F-P2-011: prior `starts_with("S-")` admitted S-README.md, S-ARCH.md, etc.
+fn is_canonical_story_basename(filename: &str) -> bool {
+    // Strip "S-" prefix
+    let rest = match filename.strip_prefix("S-") {
+        Some(r) => r,
+        None => return false,
+    };
+    // Find the first dot; there must be at least one digit before it
+    let dot_pos = match rest.find('.') {
+        Some(p) if p > 0 => p,
+        _ => return false,
+    };
+    // All characters before the dot must be ASCII digits
+    if !rest[..dot_pos].chars().all(|c| c.is_ascii_digit()) {
+        return false;
+    }
+    // The character immediately after the dot must be an ASCII digit
+    matches!(rest[dot_pos + 1..].chars().next(), Some(c) if c.is_ascii_digit())
+}
+
 /// Returns `true` if `file_path` names a story file under `.factory/stories/`
 /// using path-component-strict matching.
 ///
@@ -92,11 +119,13 @@ pub fn is_bc_file(file_path: &str) -> bool {
 /// - A `.factory` path component AND
 /// - A `stories` path component AND
 /// - Filename ending in `.md` (but NOT `STORY-INDEX.md` — that is Arm B2's trigger)
+/// - Basename matching `^S-[0-9]+\.[0-9]+` (canonical story ID, excluding S-README etc.)
 ///
 /// # BC trace
 /// BC-5.39.010 precondition 9 (Class A Arm2 trigger condition).
 /// BC-5.39.010 precondition 16 (Class B Arm1 trigger condition).
 /// BC-5.39.010 invariant 3.
+/// F-P2-011: canonical story basename requires numeric section.subsection.
 pub fn is_story_file(file_path: &str) -> bool {
     use std::path::{Component, Path};
     let path = Path::new(file_path);
@@ -111,9 +140,9 @@ pub fn is_story_file(file_path: &str) -> bool {
     let is_md = filename.ends_with(".md");
     // STORY-INDEX.md is Arm B2's trigger, not a story file
     let not_index = filename != "STORY-INDEX.md";
-    // PC9/PC16: story basename must start with "S-" to exclude epics (E-XX-*) and
-    // other .md files under .factory/stories/ (F-S2107-P1B-010).
-    let is_story_basename = filename.starts_with("S-");
+    // PC9/PC16+F-P2-011: canonical story basename (^S-[0-9]+\.[0-9]+) excludes
+    // epics (E-XX-*), index files, and non-story S-README/S-ARCH etc.
+    let is_story_basename = is_canonical_story_basename(filename);
     has_factory && has_stories && is_md && not_index && is_story_basename
 }
 
@@ -146,35 +175,37 @@ pub fn is_story_index(file_path: &str) -> bool {
 /// Returns `Some(CycleArtifactKind)` if `file_path` names a cycle artifact
 /// under `.factory/cycles/` that Arm D should scan.
 ///
-/// Cycle artifacts are:
-/// - `burst-log.md`: basename == "burst-log.md" AND a `cycles` path component.
-/// - `lessons.md`: basename == "lessons.md" AND a `cycles` path component.
-/// - `INDEX.md`: basename == "INDEX.md" AND a `cycles` path component (NOT STATE.md, not stories INDEX.md).
+/// **[DEFERRED v1.6 — Class D]**: BC-5.39.010 v1.6 descopes Class D (D-953,
+/// human-approved). This function always returns `None` so cycle artifact writes
+/// are unclassified → `HookResult::Continue` (no primary read attempted).
+/// `.factory/cycles/` is removed from `path_allow` as part of this deferral.
 ///
-/// Returns `None` for non-cycle-artifact files (caller emits `HookResult::Continue`).
+/// When Class D is re-enabled, restore the body from git history and add
+/// `.factory/cycles/` back to path_allow in hooks-registry.toml.
 ///
 /// # BC trace
-/// BC-5.39.010 precondition 28 (Class D trigger condition).
+/// BC-5.39.010 precondition 28 (Class D trigger condition — DEFERRED).
 /// BC-5.39.010 invariant 3.
-pub fn is_cycle_artifact(file_path: &str) -> Option<CycleArtifactKind> {
-    use std::path::{Component, Path};
-    let path = Path::new(file_path);
-    let components: Vec<_> = path.components().collect();
-    let has_factory = components
-        .iter()
-        .any(|c| matches!(c, Component::Normal(s) if *s == ".factory"));
-    let has_cycles = components
-        .iter()
-        .any(|c| matches!(c, Component::Normal(s) if *s == "cycles"));
-    if !has_factory || !has_cycles {
-        return None;
-    }
-    match path.file_name().and_then(|f| f.to_str()) {
-        Some("burst-log.md") => Some(CycleArtifactKind::BurstLog),
-        Some("lessons.md") => Some(CycleArtifactKind::Lessons),
-        Some("INDEX.md") => Some(CycleArtifactKind::CycleIndex),
-        _ => None,
-    }
+pub fn is_cycle_artifact(_file_path: &str) -> Option<CycleArtifactKind> {
+    // [DEFERRED v1.6 — Class D]: cycle artifact dispatch removed per BC-5.39.010 v1.6.
+    // Cycle artifact writes are unclassified → Continue (no primary read attempted).
+    None
+}
+
+/// Returns `true` if `filename` is a canonical VP basename: `^VP-[0-9]+\.md$`.
+///
+/// Admits `VP-039.md`, `VP-100.md`, etc. Rejects `VP-INDEX.md` (inner "INDEX" is not
+/// all-digits) and `VP-9999-test.md` (inner "9999-test" contains a non-digit).
+///
+/// # BC trace
+/// BC-5.39.010 PC34: VP canonical filename pattern `^VP-[0-9]+\.md$`.
+/// F-P2-003+F-P2-008: prior `starts_with("VP-") && ends_with(".md")` admitted VP-INDEX.md.
+fn is_canonical_vp_filename(filename: &str) -> bool {
+    let inner = filename
+        .strip_prefix("VP-")
+        .and_then(|s| s.strip_suffix(".md"))
+        .unwrap_or("");
+    !inner.is_empty() && inner.chars().all(|c| c.is_ascii_digit())
 }
 
 /// Returns `true` if `file_path` is a BC, VP, story, or epic file (Class E trigger).
@@ -209,7 +240,7 @@ pub fn is_frontmatter_parity_target(file_path: &str) -> bool {
     let vp_filename_ok = path
         .file_name()
         .and_then(|f| f.to_str())
-        .map(|f| f.starts_with("VP-") && f.ends_with(".md"))
+        .map(is_canonical_vp_filename)
         .unwrap_or(false);
     if has_factory && has_specs && has_vp && vp_filename_ok {
         return true;
@@ -275,6 +306,7 @@ mod tests {
     }
 
     #[test]
+    #[ignore = "[DEFERRED v1.6 — Class D] is_cycle_artifact always returns None after Class D removal per BC-5.39.010 v1.6 / D-953"]
     fn test_BC_5_39_010_dispatch_burst_log_detected() {
         // BC-5.39.010 PC28: burst-log.md under cycles/
         let result =
@@ -287,6 +319,7 @@ mod tests {
     }
 
     #[test]
+    #[ignore = "[DEFERRED v1.6 — Class D] is_cycle_artifact always returns None after Class D removal per BC-5.39.010 v1.6 / D-953"]
     fn test_BC_5_39_010_dispatch_lessons_md_detected() {
         let result =
             is_cycle_artifact(".factory/cycles/v1.0-feature-engine-discipline-pass-1/lessons.md");
@@ -469,9 +502,8 @@ mod tests {
         // BC-5.39.010 v1.6 Class D DEFERRED: is_cycle_artifact must return None.
         // Cycle artifact writes become unclassified → no primary read → Continue.
         // F-P2-007 resolution: Class D arm removed → is_cycle_artifact → None for all paths.
-        let result = is_cycle_artifact(
-            ".factory/cycles/v1.0-feature-engine-discipline-pass-1/burst-log.md",
-        );
+        let result =
+            is_cycle_artifact(".factory/cycles/v1.0-feature-engine-discipline-pass-1/burst-log.md");
         assert!(
             result.is_none(),
             "burst-log.md must NOT classify as cycle artifact after Class D deferral \
@@ -488,9 +520,8 @@ mod tests {
     /// After fix: returns None → PASSES.
     #[test]
     fn test_BC_5_39_010_dispatch_class_d_deferred_lessons_returns_none() {
-        let result = is_cycle_artifact(
-            ".factory/cycles/v1.0-feature-engine-discipline-pass-1/lessons.md",
-        );
+        let result =
+            is_cycle_artifact(".factory/cycles/v1.0-feature-engine-discipline-pass-1/lessons.md");
         assert!(
             result.is_none(),
             "lessons.md must NOT classify as cycle artifact after Class D deferral \

@@ -89,10 +89,23 @@ pub fn extract_bc_index_version(bc_id: &str, index_content: &[u8]) -> Option<Str
         if !line.starts_with('|') {
             continue;
         }
-        if !line.contains(bc_id) {
+        // F-P2-002: anchor on the FIRST pipe-cell only.
+        // `line.contains(bc_id)` would match any row that cites bc_id anywhere
+        // (e.g., a cross-reference in the Title or Depends column). Combined with
+        // LAST-wins semantics, that overrides the correct own-row version.
+        // splitn(3, '|') on "| BC-1.17.001 | ..." yields:
+        //   ["", " BC-1.17.001 ", " rest..."]
+        // so segments[1].trim() is the first-cell content.
+        // Handles both plain "BC-1.17.001" and markdown-linked "[BC-1.17.001](path)" forms
+        // by using contains() rather than equality.
+        let mut segments = line.splitn(3, '|');
+        let _ = segments.next(); // leading empty segment (before first '|')
+        let first_cell = segments.next().map(|s| s.trim()).unwrap_or("");
+        if !first_cell.contains(bc_id) {
             continue;
         }
-        // Iterate ALL pipe-separated segments; last version token wins
+        // Iterate ALL pipe-separated segments; last version token wins.
+        // (Escaped-pipe version chains: "v1.3 \| v1.4 \| v1.7" — last is current.)
         for cell in line.split('|') {
             let cell = cell.trim();
             if let Some(version) = extract_version_token(cell) {

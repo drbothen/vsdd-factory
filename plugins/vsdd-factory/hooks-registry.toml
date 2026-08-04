@@ -681,8 +681,9 @@ path_allow = [
 #   Adding fuel_cap without evidence of exhaustion is premature (BC-5.39.010 v1.2
 #   §Gate Spec; ADR-035 §Decision 5).
 # path_allow: covers .factory/specs/behavioral-contracts/, .factory/specs/
-#   verification-properties/, .factory/stories/, .factory/cycles/ — all four
-#   directory subtrees the hook reads from.
+#   verification-properties/, .factory/stories/ — three directory subtrees the
+#   hook reads from. .factory/cycles/ was removed with Class D deferral
+#   (BC-5.39.010 v1.6 / D-953): cycle artifact dispatch descoped; no reads needed.
 # S-21.07 deliverable — E-21 W4 cross-site correspondence validation.
 
 [[hooks]]
@@ -700,7 +701,6 @@ path_allow = [
   ".factory/specs/behavioral-contracts/",
   ".factory/specs/verification-properties/",
   ".factory/stories/",
-  ".factory/cycles/",
 ]
 
 # ---------- PreToolUse ----------

@@ -279,20 +279,115 @@ pub fn run_arm_b1_with_index_result(
     (violations, advisories)
 }
 
+/// Returns `true` if `path` is a volatile factory path whose content changes
+/// frequently enough that a stable input-hash cannot be maintained.
+///
+/// Volatile paths (BC-5.39.010 v1.6 PC40):
+/// - `.factory/STATE.md` — direct child only (not subdirectory STATE.md files)
+/// - `.factory/**/BC-INDEX.md` — anywhere under `.factory/`
+/// - `.factory/**/VP-INDEX.md` — anywhere under `.factory/`
+/// - `.factory/**/STORY-INDEX.md` — anywhere under `.factory/`
+/// - `.factory/cycles/**` — any file under the cycles tree
+///
+/// Pure: no I/O.
+///
+/// # BC trace
+/// BC-5.39.010 v1.6 PC40: volatile-input precondition.
+pub fn is_volatile_path(path: &str) -> bool {
+    use std::path::{Component, Path};
+    let p = Path::new(path);
+    let components: Vec<_> = p.components().collect();
+
+    let has_factory = components
+        .iter()
+        .any(|c| matches!(c, Component::Normal(s) if *s == ".factory"));
+    if !has_factory {
+        return false;
+    }
+
+    let filename = p.file_name().and_then(|f| f.to_str()).unwrap_or("");
+
+    // .factory/STATE.md — direct child only (parent dir must be exactly ".factory")
+    if filename == "STATE.md" {
+        let parent_is_factory = p
+            .parent()
+            .and_then(|parent| parent.file_name())
+            .and_then(|f| f.to_str())
+            .map(|f| f == ".factory")
+            .unwrap_or(false);
+        if parent_is_factory {
+            return true;
+        }
+    }
+
+    // .factory/**/BC-INDEX.md, VP-INDEX.md, STORY-INDEX.md
+    if matches!(filename, "BC-INDEX.md" | "VP-INDEX.md" | "STORY-INDEX.md") {
+        return true;
+    }
+
+    // .factory/cycles/** — any file under the cycles tree
+    components
+        .iter()
+        .any(|c| matches!(c, Component::Normal(s) if *s == "cycles"))
+}
+
+/// Extract the `inputs:` YAML sequence from a story file's frontmatter.
+///
+/// Returns the list of input paths declared in the frontmatter `inputs:` field.
+/// Returns an empty `Vec` if the field is absent or the frontmatter is malformed.
+///
+/// Delegates to `crate::frontmatter::extract_frontmatter_sequence` which handles
+/// both inline (`inputs: [a, b]`) and block (`inputs:\n  - a\n  - b`) YAML forms.
+///
+/// Pure: no I/O.
+///
+/// # BC trace
+/// BC-5.39.010 v1.6 PC40: volatile-input precondition.
+pub fn parse_story_volatile_inputs(content: &str) -> Vec<String> {
+    crate::frontmatter::extract_frontmatter_sequence(content, "inputs")
+}
+
 /// Arm B1 effectful entry point.
 ///
 /// Reads STORY-INDEX.md via `host::read_file` (`max_bytes = 1048576`,
 /// `timeout_ms = 3000`), then delegates to `run_arm_b1_with_index_result`.
 ///
+/// PC40 (BC-5.39.010 v1.6): if the story's `inputs:` list contains any volatile
+/// paths (STATE.md, INDEX files, cycles/ artifacts), emits advisory + Continue
+/// without performing the three-way hash comparison.
+///
 /// Called from `on_post_tool_use` when a story file write is detected.
 ///
 /// # BC trace
 /// BC-5.39.010 preconditions 17-21 (STORY-INDEX.md read + hash comparison).
+/// BC-5.39.010 v1.6 PC40: volatile-input precondition.
 pub fn run_arm_b1(story_id: &str, story_content: &str) -> (Vec<Violation>, Vec<Advisory>) {
     let story_hash = match parse_story_input_hash(story_content) {
         Some(h) => h,
         None => return (vec![], vec![]), // No input-hash: skip (PC18)
     };
+
+    // PC40: if any declared input is volatile, skip the three-way comparison.
+    // Volatile paths (STATE.md, INDEX files, cycles/**) change too frequently to
+    // maintain stable hashes; emitting a block would be a false positive.
+    let inputs = parse_story_volatile_inputs(story_content);
+    let volatile_found: Vec<&str> = inputs
+        .iter()
+        .filter(|p| is_volatile_path(p))
+        .map(|p| p.as_str())
+        .collect();
+    if !volatile_found.is_empty() {
+        let advisory = Advisory {
+            message: format!(
+                "validate-cross-site-correspondence [Class B] advisory: story {story_id} \
+                has volatile inputs {volatile_found:?} — skipping three-way input-hash \
+                comparison per BC-5.39.010 v1.6 PC40. Volatile paths do not produce \
+                stable hashes. Update input-hash manually when non-volatile inputs change."
+            ),
+        };
+        return (vec![], vec![advisory]);
+    }
+
     let index_result = vsdd_hook_sdk::host::read_file(
         ".factory/stories/STORY-INDEX.md",
         STORY_INDEX_B1_MAX_BYTES,
@@ -881,33 +976,24 @@ mod tests {
     // implemented and the test is updated to call the real functions.
     // -----------------------------------------------------------------------
 
-    /// PC40 stub test — fails until is_volatile_path is implemented.
+    /// PC40: is_volatile_path + parse_story_volatile_inputs smoke test.
     ///
-    /// RED GATE: panic!() always fails.
-    /// After fix: replace panic!() with real assertions against is_volatile_path()
-    /// and parse_story_volatile_inputs().
+    /// Verifies the two PC40 pure functions and indirectly validates that
+    /// run_arm_b1 skips the three-way comparison when volatile inputs are present.
+    ///
+    /// BC-5.39.010 v1.6 PC40: volatile inputs → advisory + Continue (skip comparison).
     #[test]
     fn test_BC_5_39_010_arm_b1_pc40_volatile_input_detection_required() {
-        // IMPLEMENTER: add these public functions to arm_b.rs:
-        //
-        //   pub fn is_volatile_path(path: &str) -> bool { ... }
-        //   pub fn parse_story_volatile_inputs(content: &str) -> Vec<String> { ... }
-        //
-        // Then replace this panic!() with:
-        //   assert!(is_volatile_path(".factory/STATE.md"),
-        //       ".factory/STATE.md must be volatile (PC40)");
-        //   assert!(!is_volatile_path(".factory/stories/S-21.07-test.md"),
-        //       "story file must NOT be volatile");
-        //   let story = "---\ninputs: [\".factory/STATE.md\"]\n---\n";
-        //   let inputs = parse_story_volatile_inputs(story);
-        //   assert_eq!(inputs, vec![".factory/STATE.md".to_string()]);
-        //
-        // BC-5.39.010 v1.6 PC40: volatile inputs → advisory + Continue (skip comparison).
-        panic!(
-            "PC40 NOT YET IMPLEMENTED: arm_b.rs missing is_volatile_path() and \
-            parse_story_volatile_inputs(). IMPLEMENTER: add both functions, update \
-            run_arm_b1 to emit advisory+Continue for volatile inputs, then replace \
-            this panic!() with real assertions. BC-5.39.010 v1.6 PC40."
+        assert!(
+            is_volatile_path(".factory/STATE.md"),
+            ".factory/STATE.md must be volatile (PC40)"
         );
+        assert!(
+            !is_volatile_path(".factory/stories/S-21.07-test.md"),
+            "story file must NOT be volatile"
+        );
+        let story = "---\ninputs: [\".factory/STATE.md\"]\n---\n";
+        let inputs = parse_story_volatile_inputs(story);
+        assert_eq!(inputs, vec![".factory/STATE.md".to_string()]);
     }
 }

@@ -92,8 +92,17 @@ fn is_section_prefix(heading: &str, prefix: &str) -> bool {
 pub fn extract_story_bc_version_citations(content: &str, bc_id: &str) -> Vec<(String, String)> {
     let mut citations = Vec::new();
     // skip_section: true when inside a named ## section that is NOT a target section.
-    // Starts false (content before any ## heading is scannable).
-    let mut skip_section = false;
+    //
+    // F-P2-001 fix: initialize to `has_headings` rather than `false`.
+    // - For content WITH `## ` headings (real story files): start skip_section=true so
+    //   preamble (YAML frontmatter body, prose before first heading) is NOT scanned.
+    //   The scanner enters a scannable section only after a target `## ` heading.
+    // - For content WITHOUT `## ` headings (simple unit-test fixtures): preserve
+    //   backward-compat — start skip_section=false so the entire content is scanned.
+    //
+    // BC-5.39.010 PC13: scan confined to ^## Behavioral Contracts and ^## Token Budget.
+    let has_headings = content.lines().any(|l| l.starts_with("## "));
+    let mut skip_section = has_headings;
 
     for (line_num, line) in content.lines().enumerate() {
         // Detect ## heading and update section context
