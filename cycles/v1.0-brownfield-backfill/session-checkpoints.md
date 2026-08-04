@@ -7,7 +7,7 @@ producer: state-manager
 timestamp: 2026-04-26T12:00:00Z
 cycle: v1.0-brownfield-backfill
 inputs: [STATE.md]
-input-hash: "e32ec2a"
+input-hash: "5f95a9e"
 traces_to: STATE.md
 ---
 
@@ -1593,5 +1593,43 @@ develop `948f0fb1`; main `80e5cd7b`; factory-artifacts HEAD = D-929-BURST `1b597
 **Pending human decisions.** Standing ruling: **"grind to 3 clean"** — asymptotic acceptance declined. Next action = Pass-31 adversary dispatch.
 
 **CAUTION: `pipeline: ACTIVE` as of D-947. D-417(b) strict dispatch-side advance only modifies `phase:` + `current_step:`, not `pipeline:`. Use `phase:` field and this SRC as the authoritative liveness indicators.**
+
+---
+
+## Session Resume Checkpoint (2026-08-04 — D-953-ADR-037-VOLATILE-INPUTS-RULING-BC-5.39.010-V1.6-CLASS-D-DESCOPE; BC-5.39.010 v1.6 Class D DESCOPED; PIPELINE ACTIVE)
+
+Archived from STATE.md by SESSION-WRAP-PAUSED 2026-08-04 per content-routing rules.
+
+> **SELF-SUFFICIENT RESUME CONTEXT — ASSUMES ZERO PRIOR CONTEXT.**
+
+**Position.** Cycle `v1.0-brownfield-backfill`. PIPELINE ACTIVE. D-953 ADR-037 volatile-inputs ruling burst COMPLETE (artifacts at `727164e3`; body-advance this-commit). Two stories in flight.
+
+**S-21.07** (validate-cross-site-correspondence, E-21 W4, 11 pts) — pass-2 adversary RECORDED (D-951): NOT-CLEAN B3/H7/M5/L3 (18 findings + 4 obs). BC-5.39.010 now **v1.6** (Class D DESCOPED per D-953; human-approved). Branch `feature/S-21.07` @ `e28aa098`. **4-INDEX (post-D-953):** BC v4.46 / VP v2.74 / STORY v4.281 / ARCH v3.42. trajectory-tail →7→17→13→16. streak 0/3 (2 passes completed). F-S2107-P1B-013 still open. F-S2107-P1C-016 MEDIUM (compute-input-hash binary authority) — carried from pass-1.
+
+**Ordered next actions:**
+
+1. **story-writer**: (a) Descope S-21.07 to Classes A/B/E — drop all Class D ACs; correct arm count to six arms across three classes (all blocking); propagate BC-5.39.010 v1.3→**v1.6** through S-21.07 body (F-S2107-P2-003: nine live stale `v1.3` sites plus `version:`/`last_amended:`/`modified[]`/`## Changelog`); drop `ADR-035 v1.0` volatile pin (F-S2107-P2-014). (b) Author **S-21.08** (Phase 1 = `Closes`/`Refs` convention standardization; Phase 2 = Class D implementation; Phase 2 depends on Phase 1; brief lives in BC-5.39.010 `## Deferred Scope — Class D`). (c) Strip volatile `inputs:` entries from 19 stories: S-7.01 S-7.02 S-7.06 S-7.07 S-7.08 S-7.09 S-14.01 S-14.06 S-14.07 S-14.08 S-14.09 S-15.08 S-15.09 S-15.12 S-15.14 S-15.15 S-15.17 S-18.09 S-19.01 — then state-manager performs hash recompute + STORY-INDEX three-way sync (**S-19.01: stored `0ad9c4b`, computed `242af2f`; MUST NOT correct hash until `inputs:` is fixed**).
+
+2. **implementer**: (a) Remove `is_cycle_artifact` dispatch arm, `run_part_d`, and `.factory/cycles/` from `path_allow`. (b) Pass-2 BLOCKER fixes: F-P2-001 `skip_section=true` (leading-edge bounding; currently `false` causes false-blocks on S-21.04 and five more); F-P2-002 anchored first-cell row selection in `arm_a1::extract_bc_index_version` (false-blocks BC-1.17.001); PC34 flat VP path `^VP-[0-9]+\.md$` + `VP-INDEX.md` guard (F-P1B-013); invariant-6 I/O-vs-content split (F-P2-007); PC40 volatile-input precondition; `is_story_file` PC9 regex fix (F-P2-011).
+
+3. **test-writer**: Real root-cause fix — at least one test per extractor reading an ACTUAL `.factory/` artifact (look-alike fixtures let two live false positives through green 41/41 suite); rename `VP-039` fixture off live VP ID; add T-045 positive-coverage assertion (F-P2-013); restore AC-018 unit-level aggregation coverage (F-P1C-016).
+
+4. **devops**: WASM rebuild + bats re-run with `CI_REQUIRE_ARTIFACTS=1`.
+
+5. **pass-3 adversary**, then continue toward 3-CLEAN streak.
+
+**S-21.04** (story-worktree write-path discipline, E-21 W2) — 30 passes, 0 CLEAN, streak 0/3. Branch `feature/S-21.04` @ `323f440f` — no PR open (correct: mid-cascade). Pass-31 adversary pending (separate cascade from S-21.07).
+
+**Governance:** BC-5.39.010 v1.6 (Class D DESCOPED; Classes A/B/E blocking; Class D → S-21.08 Phase 2). ADR-035 v1.0. ADR-034 v1.2. ADR-037 v1.0 (volatile-inputs ruling).
+
+**Open items carried forward:**
+- Two BC-5.39.010 fabrication annotation sites (lines 476+493) — routes to **product-owner** (NOT state-manager)
+- AC-021 operator-cache gate staging ON HOLD until S-21.07 3-CLEAN; operator cache holds fixed hash script (ADR-036; `.rc23-orig` preserved)
+- VP-102..VP-118 (17 VPs) deferred to S-21.07 post-merge burst
+- Standing directive: **no rc cut until E-21 done**
+
+**Cautions:** Do NOT run `compute-input-hash --scan --update` (418-file blast radius, D-936). Do NOT run `/rehydrate-wave` (wave-state.yaml points at closed W1 E-19 epic). `pipeline:` field is not a reliable liveness signal (D-941 lesson). Main-repo noise: `.claude/scheduled_tasks.lock` (M) and `plugins/vsdd-factory/tests/report.tap` (untracked) are deliberately uncommitted.
+
+**Resume command.** `/vsdd-factory:next-step`.
 
 **Resume command.** `/vsdd-factory:next-step` — do NOT run `/rehydrate-wave` first (this is NOT a wave-boundary clear; resume directly from this SRC).

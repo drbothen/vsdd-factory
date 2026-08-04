@@ -5,3 +5,7 @@
 {"type":"hook.block","hook":"validate-changelog-monotonicity","reason":"changelog_frontmatter_mismatch","ts":"2026-08-04T01:50:32-0500","ts_epoch":1785826232,"schema_version":1}
 {"type":"hook.block","hook":"validate-count-propagation","reason":"count_propagation_drift","ts":"2026-08-04T02:23:52-0500","ts_epoch":1785828232,"schema_version":1}
 {"type":"hook.block","hook":"validate-count-propagation","reason":"count_propagation_drift","ts":"2026-08-04T02:25:06-0500","ts_epoch":1785828306,"schema_version":1}
+{"type":"hook.block","hook":"validate-table-cell-count","reason":"table_cell_count","ts":"2026-08-04T03:26:19-0500","ts_epoch":1785831979,"schema_version":1}
+{"type":"hook.block","hook":"validate-table-cell-count","reason":"table_cell_count","ts":"2026-08-04T03:31:18-0500","ts_epoch":1785832278,"schema_version":1}
+{"type":"hook.block","hook":"protect-secrets","reason":"env_file_read_shell","ts":"2026-08-04T08:35:00-0500","ts_epoch":1785850500,"schema_version":1}
+{"type":"hook.block","hook":"validate-input-hash","reason":"input_hash_drift","ts":"2026-08-04T08:46:14-0500","ts_epoch":1785851174,"schema_version":1}
