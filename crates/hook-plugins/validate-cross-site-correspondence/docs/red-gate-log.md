@@ -516,3 +516,61 @@ restriction." This contradicts `skip_section = true` (heading-free → zero cita
 unrestricted scan). The doc comment describes the pre-fix skip_section=false behavior. Correcting
 the doc comment is implementation code; out of scope per coordinator constraint "Fixtures and tests
 only." Routed to implementer as a doc-comment cleanup for the next touch of arm_a2.rs.
+
+---
+
+## T-046 Fixture Filename Correction — VP-9999-test.md → VP-9999.md (POLICY 15)
+
+**Date:** 2026-08-04
+**Context:** D-693 pre-green gate: T-046 FAILED with exit 0 (expected exit 2). Root cause:
+`is_canonical_vp_filename` (tightened by implementer per PC34) requires `^VP-[0-9]+\.md$` — all-digit
+inner part. Fixture `VP-9999-test.md` has inner `"9999-test"` containing a hyphen → predicate returns
+`false` → `is_frontmatter_parity_target` returns `false` → Class E1 never invoked → plugin returns
+Continue → exit 0.
+
+This is the same spec-describes-imagined-shape class as the arm_a2 heading-absent fixtures: the
+fixture encodes a shape the production predicate does not admit. The test-writer's rename from
+`VP-039.md` (live corpus ID) was correct instinct; the implementer's PC34 tightening was correct;
+they collided. The fixture name is the non-conformant artifact.
+
+**Affected files:**
+- `plugins/vsdd-factory/tests/fixtures/validate-cross-site-correspondence/e1-15-byte-last-amended/factory/specs/verification-properties/VP-9999-test.md` → `VP-9999.md`
+- `plugins/vsdd-factory/tests/fixtures/validate-cross-site-correspondence/e1-vp-version-mismatch/factory/specs/verification-properties/VP-9999-test.md` → `VP-9999.md`
+- `plugins/vsdd-factory/tests/validate-cross-site-correspondence.bats` lines 1095/1112/1116/1117 (T-045) and 1138/1153/1157 (T-046)
+
+**VP-9999 collision check:** Live corpus has 102 VP files. Highest IDs are VP-100, VP-101, VP-102.
+No `VP-9999` exists in `.factory/specs/verification-properties/`. No collision.
+
+**T-045 latent-false-green analysis:** T-045 (15-byte format, exit 0) was also affected — with
+`VP-9999-test.md`, Class E1 never ran, so T-045 passed for the wrong reason (Class E bypassed,
+not "Class E ran and found no violation"). After rename, `VP-9999.md` satisfies
+`is_canonical_vp_filename` → `is_frontmatter_parity_target` returns `true` → Class E1 runs →
+correctly validates 15-byte format → exit 0 for the RIGHT reason.
+
+**Comprehensive fixture-name sweep against tightened predicates (PC34, PC1, PC9):**
+
+All fixture file basenames were checked against:
+- `is_canonical_vp_filename`: `^VP-[0-9]+\.md$`
+- `is_canonical_bc_filename`: `^BC-[0-9]+\.[0-9]+\.[0-9]+\.md$`
+- `is_canonical_story_basename`: `^S-[0-9]+\.[0-9]+`
+
+| Fixture file basename | Intended predicate | Verdict |
+|----------------------|-------------------|---------|
+| `VP-9999-test.md` (×2) | VP (E1 trigger) | NON-CONFORMANT — inner "9999-test" has non-digit → FIXED to VP-9999.md |
+| `VP-039.md` | VP (present in e1-15-byte-last-amended, not triggered by T-045 event) | CONFORMANT — inner "039" all digits |
+| `BC-5.39.010.md` (×9) | BC (A1 trigger) | CONFORMANT — three dot-separated digit groups |
+| `BC-6.26.001.md` (×2) | BC (A2 BC read) | CONFORMANT |
+| `BC-7.27.002.md` (×1) | BC (A2 BC read) | CONFORMANT |
+| `BC-9.99.001.md` (×2) | BC (A1 trigger) | CONFORMANT |
+| `BC-1.13.001.md` (×1) | BC (A1 trigger) | CONFORMANT |
+| `BC-INDEX.md` (×9) | INDEX (intentionally excluded) | CONFORMANT — `is_canonical_bc_filename("BC-INDEX.md")` correctly returns false |
+| `S-21.07-test.md` (×7) | Story (B1/A2 trigger) | CONFORMANT — starts with `S-21.07` |
+| `S-18.01-test.md` (×1) | Story (B1 trigger) | CONFORMANT — starts with `S-18.01` |
+| `STORY-INDEX.md` (×5) | INDEX (intentionally excluded from story predicate) | CONFORMANT — `is_story_file` checks story dirs only |
+| `burst-log.md`, `lessons.md` | Cycle artifacts (Class D DEFERRED) | N/A — Class D deferred; `is_cycle_artifact` returns None |
+
+**Result:** Only the two `VP-9999-test.md` files were non-conformant. All other fixture basenames
+satisfy their intended predicates. T-045 was additionally a latent false-green (corrected by the
+same rename).
+
+No crate changes needed. Crate tests stay at 108/0/2. Do NOT run bats — devops re-runs the gate.

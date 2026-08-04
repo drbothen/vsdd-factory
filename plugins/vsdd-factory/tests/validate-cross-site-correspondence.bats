@@ -1092,7 +1092,7 @@ _assert_plugin_ran_not_crashed() {
 
 # ---------------------------------------------------------------------------
 # T-045: Class E1 — 15-byte last_amended format accepted (no spurious advisory)
-# Fixture: e1-15-byte-last-amended (VP-9999-test; version "2"; last_amended "2026-07-30 (v2)")
+# Fixture: e1-15-byte-last-amended (VP-9999; version "2"; last_amended "2026-07-30 (v2)")
 # Isolation strategy: VP file write is used (NOT a BC file write) because VP files do
 # NOT trigger Arm A1 (A1 is BC-file-only). Arm A1 can't parse single-integer versions
 # like "v2" in BC-INDEX (extract_version_token requires vN.N format). Using a VP file
@@ -1100,7 +1100,8 @@ _assert_plugin_ran_not_crashed() {
 # F-S2107-P1C-014: extract_last_amended_outer_version `if len < 17 { return None }`
 #   → 15-byte "2026-07-30 (v2)" → None → advisory "unparseable format" fires.
 # BC-5.39.010 v1.3 §E1: YYYY-MM-DD (vN) with single-digit outer version is valid.
-# Fixture renamed: VP-039.md → VP-9999-test.md (VP-039 is a live corpus ID; F-P2-corpus-hygiene).
+# Fixture renamed: VP-039.md → VP-9999-test.md → VP-9999.md (PC34: is_canonical_vp_filename
+# requires all-digit inner part; VP-9999-test.md had non-digit in inner, so E1 never ran).
 # ---------------------------------------------------------------------------
 
 @test "T-045 CONTROL: 15-byte last_amended 2026-07-30 (v2) produces no advisory (exit 0)" {
@@ -1109,12 +1110,12 @@ _assert_plugin_ran_not_crashed() {
   _write_registry
 
   local envelope
-  # VP-9999-test; version "2"; last_amended "2026-07-30 (v2)" = 15 bytes.
+  # VP-9999; version "2"; last_amended "2026-07-30 (v2)" = 15 bytes.
   # VP files skip Arm A1 entirely — only Class E runs. This isolates the 15-byte E1 check.
   # After fix: len threshold lowered → Some("2") extracted → "2"=="2" → no E1 advisory → exit 0
   # F-S2107-P1C-014 RED GATE: len < 17 → None → advisory fires → log has warn record → FAILS
-  # Fixture uses VP-9999-test.md (non-live ID) to avoid corpus-churn pollution.
-  envelope="$(_post_write_event '.factory/specs/verification-properties/VP-9999-test.md')"
+  # Fixture uses VP-9999.md (non-live all-digit ID) to satisfy is_canonical_vp_filename.
+  envelope="$(_post_write_event '.factory/specs/verification-properties/VP-9999.md')"
   _run_dispatcher "$envelope"
 
   _assert_plugin_ran_not_crashed
@@ -1135,7 +1136,7 @@ _assert_plugin_ran_not_crashed() {
 
 # ---------------------------------------------------------------------------
 # T-046: Class E1 positive-coverage mutant — VP file version/last_amended mismatch
-# Fixture: e1-vp-version-mismatch (VP-9999-test; version "1.7"; last_amended "2026-07-30 (v1.6)")
+# Fixture: e1-vp-version-mismatch (VP-9999; version "1.7"; last_amended "2026-07-30 (v1.6)")
 # F-P2-013: T-045 only asserts exit 0 + absence of warn advisory. A mutation where
 # Class E never ran (or E1 was disabled) would still pass T-045. T-046 adds a MUTANT
 # that asserts exit 2 when there IS a version/last_amended mismatch.
@@ -1150,11 +1151,11 @@ _assert_plugin_ran_not_crashed() {
   _write_registry
 
   local envelope
-  # VP-9999-test: version "1.7", last_amended "2026-07-30 (v1.6)".
+  # VP-9999: version "1.7", last_amended "2026-07-30 (v1.6)".
   # extract_last_amended_outer_version("2026-07-30 (v1.6)") → "1.6".
   # "1.7" ≠ "1.6" → Class E1 violation → exit 2.
   # VP file → no Arm A1 (A1 is BC-file-only). Class E1 runs in isolation.
-  envelope="$(_post_write_event '.factory/specs/verification-properties/VP-9999-test.md')"
+  envelope="$(_post_write_event '.factory/specs/verification-properties/VP-9999.md')"
   _run_dispatcher "$envelope"
 
   _assert_plugin_ran_not_crashed
