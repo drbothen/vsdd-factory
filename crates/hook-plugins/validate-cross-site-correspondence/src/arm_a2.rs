@@ -81,14 +81,19 @@ fn is_section_prefix(heading: &str, prefix: &str) -> bool {
 ///
 /// Using exact string equality is non-conforming per PC13 v1.4 non-conformance note.
 ///
-/// Content that has no `## ` headings at all (e.g., simple unit-test fixtures) is
-/// scanned without restriction — the scanner starts in "no active section" state
-/// which is treated as scannable.
+/// Content with no `## ` headings — or no headings matching either target predicate —
+/// yields **zero citations**. The scanner initializes in skip mode (`skip_section = true`)
+/// and only enters a scannable state upon encountering a target `## ` heading. Absent
+/// any such heading, no rows are inspected. This is the correct PC13 (v1.3) behavior:
+/// the unbounded-scan regression that PC13 was introduced to prevent is exactly the
+/// case where content before the first target section is treated as scannable.
+/// (F-P2-001: prior `skip_section = false` initialization admitted preamble content.)
 ///
 /// # BC trace
 /// BC-5.39.010 §Architecture Anchors `extract_story_bc_version_citations`;
 /// preconditions 12-13 (table row detection + version token regex); PC13 (amended v1.4:
-/// word-boundary prefix predicate, optional `v` prefix, last/rightmost token).
+/// word-boundary prefix predicate, optional `v` prefix, last/rightmost token);
+/// F-P2-001 (skip_section initialization — preamble must not be scanned).
 pub fn extract_story_bc_version_citations(content: &str, bc_id: &str) -> Vec<(String, String)> {
     let mut citations = Vec::new();
     // skip_section: true when inside a named ## section that is NOT a target section.

@@ -63,14 +63,23 @@ pub fn derive_bc_path(bc_id: &str) -> String {
 
 /// Extract the version cell from BC-INDEX.md for the given BC ID.
 ///
-/// Scans the BC-INDEX.md body table for a row containing `bc_id` and extracts
-/// the version cell (the cell containing a `vN.N` or `vN.NN` token). Returns
-/// `None` if no row is found for this BC ID (new BC not yet registered).
+/// Scans the BC-INDEX.md body table for a row whose **first pipe-cell** contains
+/// `bc_id`, then extracts the last version token (`vN.N` or `vN.NN`) across all
+/// pipe-cells in that row. Returns `None` if no matching first-cell row is found
+/// (new BC not yet registered).
+///
+/// First-cell anchoring (F-P2-002): matching on any cell (`line.contains(bc_id)`)
+/// would pick up cross-reference rows whose non-first cells mention `bc_id` (e.g.,
+/// a "depends on BC-X.YY.ZZZ" note in the Title column). Combined with last-wins
+/// semantics, that overwrites the correct own-row version. The fix uses `splitn(3,
+/// '|')` to extract the first cell and checks `first_cell.contains(bc_id)`, which
+/// handles both plain `BC-1.17.001` and markdown-linked `[BC-1.17.001](path)` forms.
 ///
 /// Pure: operates on already-read bytes. Called from `run_arm_a1_with_index_result`.
 ///
 /// # BC trace
-/// BC-5.39.010 postconditions 1-4 (version cell matching logic).
+/// BC-5.39.010 postconditions 1-4 (version cell matching logic);
+/// F-P2-002 (first-cell anchor — cross-reference row must not win over own row).
 pub fn extract_bc_index_version(bc_id: &str, index_content: &[u8]) -> Option<String> {
     // Scan BC-INDEX.md body table for a row containing bc_id and extract the version cell.
     // Version cell format: `vN.N` or `vN.NN` token in a pipe-delimited table row.
