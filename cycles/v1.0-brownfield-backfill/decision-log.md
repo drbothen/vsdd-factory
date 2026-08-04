@@ -14693,3 +14693,51 @@ D-952-ADR-036-HASH-AUTHORITY-MIGRATION
 ### Date
 
 2026-08-03
+
+---
+
+## D-953
+
+ADR-037 volatile-inputs ruling + BC-5.39.010 v1.5/v1.6 amendments + frontmatter block-scalar convention + 19-story remediation obligation
+
+### Decision
+
+**(a) POLICY 16 GLOBAL-MAX GATE:** `grep -n "^## D-" .factory/cycles/v1.0-brownfield-backfill/decision-log.md | sort -t'-' -k2 -n | tail -3` → `14498:## D-950 / 14570:## D-951 / 14640:## D-952`; D-952 confirmed prior max → D-953 allocated.
+
+**(b) ADR-037 ruling — volatile cycle artifacts MUST NOT be story hash inputs:** ADR-037 establishes the stable-input constraint: a file belongs in `inputs:` only if a content change after story-authoring would require spec re-examination. Volatile append-only cycle artifacts (`decision-log.md`, `lessons.md`, `burst-log.md`, `STATE.md`, cycle `INDEX.md`) fail this test — they change on every burst including the burst that records the story's own work, making three-way equality structurally unsatisfiable. This is a modelling error, not a hashing problem. Decision 2 explicitly forbids patterns `.factory/cycles/**/{decision-log,lessons,burst-log}.md`, `.factory/STATE.md`, and catalog indexes (`STORY-INDEX.md`, `BC-INDEX.md`, `ARCH-INDEX.md`) in any story `inputs:` array. Decision 5 establishes the remediation sequence: story-writer removes volatile entries from 19 affected stories (S-7.01 S-7.02 S-7.06 S-7.07 S-7.08 S-7.09 S-14.01 S-14.06 S-14.07 S-14.08 S-14.09 S-15.08 S-15.09 S-15.12 S-15.14 S-15.15 S-15.17 S-18.09 S-19.01), then state-manager recomputes per-story hashes via single-file `compute-input-hash --update` invocations. S-19.01 stored hash `0ad9c4b` MUST NOT be corrected before story-writer removes `lessons.md` from its `inputs:` — correcting under pre-remediation semantics stores a hash that breaks again at the next lesson append (empirically demonstrated: D-952 burst appended L-BB-tooling-version-divergence-masquerades-as-fabrication to lessons.md; S-19.01 stored `0ad9c4b` → computed `242af2f` at next sweep). 29 stories referencing only frozen `adv-cycle-pass-N.md` or wave plan files are stable and require no remediation (Decision 7: frozen files are write-once by construction). ADR-037 §Decision 4: BC-5.39.010 Class B MUST add volatile-input precondition — if `inputs:` contains §Decision 2 patterns, emit ADVISORY and skip three-way equality check. Deferral target: S-21.08 (pending story-writer authoring).
+
+**(c) BC-5.39.010 v1.5 four amendments:**
+
+1. **PC31 Closes/Refs word-boundary form** — regex pattern for Closes/Refs detection amended to word-boundary form to reduce false positives.
+2. **PC34 flat VP path** — `^VP-[0-9]+\.md$` (flat, no `ss-*` subdirectory); `VP-INDEX.md` excluded; epics clause specified. This is the correct fix for the previously misdiagnosed F-P1B-013 — NOT enforcing the ss-* clause (which would have made Class E inert for all 102 VPs per F-P2-008).
+3. **Invariant-6 adjudication vs PC33** — I/O faults (`CapabilityDenied`, `Timeout`) BLOCK per PC33; finding-content inspection results are advisory. Adjudicates the D-949 dispatch misread of PC33 (F-P2-007).
+4. **PC40 volatile-input precondition per ADR-037 §Decision 4** — added EC-032 and test vector.
+
+**(d) BC-5.39.010 v1.6 Class D DESCOPED — human-approved scope decision:** Class D (finding-ID namespace advisory in Closes/Refs lines) deferred pending Closes/Refs convention standardization. Rationale: the `Closes` convention has six distinct shapes in the active corpus (measured against `v1.0-brownfield-backfill/burst-log.md`: `**Closes:**` 70, `**Closes (per …):**` 13, `**Closes …` no-colon 13, non-bold `Closes …` 12, non-bold `Closes-…` 8; bold total 96, grand total 116). PC31 was amended three times (v1.2 plain-colon, v1.3 bold-colon, v1.5 bold-word-boundary-colon) and produced three of the seven spec-vs-corpus defects in this cascade while being the only advisory-only arm — Class D produced maximal spec churn with zero enforcement value. D-444(c) mandates a Closes block but never standardized its shape; Class D cannot reliably detect compliance with a convention that has no canonical form. All Class D clause IDs preserved in BC-5.39.010 marked `[DEFERRED v1.6]` per POLICY 1 (PC28–PC33 Part D, postconditions 16/17/18/24, invariant 6, EC-010/011/012/013/024/033, three test vectors, three VP entries, `is_cycle_artifact` dispatch arm commented out in Gate Spec, `.factory/cycles/` removed from `path_allow`). New `## Deferred Scope — Class D` section preserves the analysis. H1 and §Description corrected from "four mechanically-gateable classes (A, B, D, E)" to three (A, B, E). Deferral target: S-21.08 — Phase 1 standardize Closes/Refs convention; Phase 2 implement Class D. BC-INDEX body-table title updated to H1 parity per POLICY 7; version cell v1.4→v1.6.
+
+**(e) Frontmatter regression + attribution:** BC-5.39.010 v1.5 wrote regex (`^\*\*Closes\b[^:]*:\*\*`) into a double-quoted YAML scalar, where `\*` is an invalid escape sequence. This made the BC's frontmatter unparseable by any strict YAML parser. Attribution discipline: product-owner initially classified this as "pre-existing since v1.3"; orchestrator disproved by parsing at three revisions (`0d2e8c3e` v1.4 PARSE-OK, `70070064` v1.4 PARSE-OK, working-tree v1.5 FAIL). The regression was introduced in v1.5 and repaired in v1.6 via conversion to YAML literal block scalar (`|-`). **Adopted convention (codified):** long narrative frontmatter fields that accumulate regex citations, path patterns, or quoted strings MUST use a YAML literal block scalar (`|-`), never a double-quoted scalar — block scalars perform no escape processing, eliminating the error class structurally. Note: the double-quoted form was additionally corrupting content silently (`\b` parsed as backspace, `\\.` collapsed to `\.`).
+
+**(f) 4-INDEX:** BC v4.45→v4.46 (BC-5.39.010 body-row title POLICY 7 parity + version cell v1.6); VP v2.74 UNCHANGED; STORY v4.281 UNCHANGED; ARCH v3.41→v3.42 (total_adrs 36→37).
+
+### Participating agents
+
+- architect: ADR-037 v1.0 authored (volatile-inputs ruling)
+- product-owner: BC-5.39.010 v1.5 four amendments + v1.6 Class D descope + frontmatter block-scalar regression fix
+- state-manager: D-953 codification; BC-INDEX v4.45→v4.46 (body-row title + version cell); ARCH-INDEX v3.41→v3.42 (total_adrs 36→37); decision-log.md D-953 entry; lessons.md 4 entries; STATE.md v6.84→v6.85; 2 Drift Items added
+
+### 4-INDEX
+
+| Index | Before | After | Change |
+|-------|--------|-------|--------|
+| BC-INDEX | v4.45 | v4.46 | BC-5.39.010 body-row title POLICY 7 parity; version cell v1.4→v1.6 |
+| VP-INDEX | v2.74 | v2.74 | UNCHANGED |
+| STORY-INDEX | v4.281 | v4.281 | UNCHANGED |
+| ARCH-INDEX | v3.41 | v3.42 | total_adrs 36→37 |
+
+### Phase
+
+D-953-ADR-037-VOLATILE-INPUTS-RULING-BC-5.39.010-V1.6-CLASS-D-DESCOPE
+
+### Date
+
+2026-08-04

@@ -9935,3 +9935,75 @@ D-448(a) passes over this class of defect because it validates Part A correspond
 **Cites:** D-952 (ADR-036 codification; state-manager codification); CANONICAL PRINCIPLE Rule 4 (AI-built defects are the AI's responsibility to fix — the misdiagnosis annotation propagated uncorrected across two passes before the root cause was identified). `[hash-authority; tooling; algorithm-divergence; fabrication-misdiagnosis; operator-cache; compute-input-hash; binary-version; ADR-036; D-952; codified]`
 
 ---
+
+---
+
+### L-BB-class-d-descope-gate-convention-before-gating-compliance [spec-authoring] [adversarial] [D-953]
+
+**Title:** Class D Descope — An Unstandardized Source Convention Cannot Be Gated by Regex
+
+**Lesson:** PC31 was amended three times (v1.2 plain-colon `**Closes:**`, v1.3 bold-colon `^\*\*Closes:\*\*`, v1.5 bold-word-boundary-colon `^\*\*Closes\b[^:]*:\*\*`) and failed each time. Orchestrator-measured across both cycle burst-logs, the `Closes` convention has six distinct shapes: `**Closes:**` 70, `**Closes (per …):**` 13, `**Closes …` no-colon 13, non-bold `Closes …` 12, non-bold `Closes-…` 8 (bold total 96, grand total 116). D-444(c) mandates a Closes block but never standardized its shape. Class D produced three of the seven spec-vs-corpus defects in this cascade while being the only advisory-only arm, so deferring it forfeits no enforcement value.
+
+**Generalization:** Gate the convention before gating compliance with it. A spec clause asserting a corpus-level syntactic form (regex, path pattern, keyword shape) is only as strong as the convention's consistency. If the corpus has six shapes, any regex covers at most one; every subsequent amendment adds a new shape without retiring the old ones. The correct sequencing is: (1) standardize the convention with a tooling/process gate so new entries conform; (2) once the corpus converges, author the compliance-checking gate.
+
+**Prevention:** (1) Before authoring a spec clause that checks a free-form text convention (Closes/Refs lines, section heading spellings, identifier prefixes), measure how many distinct shapes the convention has in the live corpus. If count > 1, standardize the convention first as a prerequisite story. (2) A spec clause that requires N amendments to handle discovered shapes is a symptom of an unstandardized convention, not of an insufficiently precise regex. (3) Class D advisory arms with zero enforcement power and high spec-churn cost should be deferred until the convention they gate is standardized — deferring does not forfeit the governance intent.
+
+**Anchors:** D-953 (Class D descope + S-21.08 deferral); BC-5.39.010 v1.2/v1.3/v1.5 PC31 three-amendment history; F-P2-004/F-P2-005 (PC31 fifth spec-describes-imagined-shape); burst-log corpus measurement (brownfield-backfill: 116 Closes occurrences, 6 shapes; EDP-pass-1: 38 occurrences, 2 shapes).
+
+**Cites:** D-953 (codified this burst); BC-5.39.010 v1.6 §Deferred Scope; CANONICAL PRINCIPLE Rule 1 (no deferrals without explicit human direction + concrete dependency + future anchor). `[spec-authoring; adversarial; class-d; descope; convention-standardization; regex; corpus-measurement; D-953; codified]`
+
+---
+
+### L-BB-frontmatter-block-scalar-prevents-regex-corruption [spec-authoring] [frontmatter] [D-953]
+
+**Title:** Frontmatter Regression + Attribution Discipline — YAML Literal Block Scalars are Mandatory for Fields Containing Regex or Path Patterns
+
+**Lesson:** BC-5.39.010 v1.5 wrote regex `^\*\*Closes\b[^:]*:\*\*` into a double-quoted YAML scalar. The `\*` sequences are invalid YAML escape sequences (YAML double-quoted scalars recognize only `\\`, `\"`, `\n`, `\t`, `\b`, `\r`, `\f`, `\/`, `\uXXXX`, `\UXXXXXXXX`). This made the BC's frontmatter unparseable by any strict YAML parser. Product-owner initially classified this as "pre-existing since v1.3"; orchestrator disproved it by parsing the file at three git revisions (`0d2e8c3e` v1.4 PARSE-OK, `70070064` v1.4 PARSE-OK, working-tree v1.5 FAIL). The repair was conversion to a YAML literal block scalar (`|-`). This is the pass-28 BLOCKER class recurring — there, three `\+` escapes left the adversary rubric blind for eight passes.
+
+**Adopted convention (codified D-953):** Long narrative frontmatter fields that accumulate regex citations, path patterns, or quoted strings MUST use a YAML literal block scalar (`|-`), never a double-quoted scalar. Block scalars perform no escape processing — `\b`, `\*`, `\.` are literal two-character sequences, not escape sequences — so the entire error class is structurally impossible. The double-quoted form additionally corrupted content silently: `\b` parsed as backspace (U+0008), `\\.` collapsed to `\.` losing one backslash.
+
+**Attribution discipline:** Never classify a parse failure as pre-existing without parsing an earlier revision. The diagnostic "the stricter parser is wrong" is not a diagnosis. Standard protocol: (1) `git show <prior-SHA>:.factory/specs/... | python3 -c "import sys,yaml; yaml.safe_load(sys.stdin)"` for at least two prior versions; (2) identify the commit that introduced the regression; (3) attribute correctly. Pre-existing classification requires evidence of failure at an earlier revision.
+
+**Prevention:** (1) Any spec frontmatter field containing regex syntax, file paths with special characters, or multi-line strings MUST use `|-` block scalar form. (2) After authoring any frontmatter with a `last_amended:`, `description:`, or similar narrative field, run `python3 -c "import yaml; yaml.safe_load(open('<file>').read())"` to verify parsability before committing. (3) A validation step that detects parse failure cannot be trusted to report the commit that introduced it — always check prior revisions before attributing.
+
+**Anchors:** D-953 (frontmatter regression repair; block-scalar convention codified); BC-5.39.010 v1.5 (regression introduced by product-owner); BC-5.39.010 v1.6 (repaired to `|-`); pass-28 BLOCKER class (three `\+` escapes in adversary rubric; same structural root).
+
+**Cites:** D-953 (codified this burst); CANONICAL PRINCIPLE Rule 4 (AI-built defects are AI's responsibility); POLICY 4 (spec accuracy). `[spec-authoring; frontmatter; yaml; block-scalar; regex; double-quoted-scalar; escape; parse-failure; attribution; D-953; codified]`
+
+---
+
+### L-BB-volatile-inputs-are-modelling-error [input-hash] [story-authoring] [D-953]
+
+**Title:** Volatile Inputs Are a Modelling Error — Append-Only Cycle Logs Cannot Be Story Hash Inputs
+
+**Lesson:** A story's `input-hash:` over append-only cycle logs is self-invalidating: the burst that records the work perturbs the hash of the work. Demonstrated empirically in D-952: S-19.01's `inputs:` included `lessons.md`; D-952 appended L-BB-tooling-version-divergence-masquerades-as-fabrication to lessons.md; S-19.01 stored hash `0ad9c4b` → recomputed `242af2f` after the append. POLICY 18 three-way equality was therefore unsatisfiable — no sweep converges — and BC-5.39.010 Class B would have blocked writes to all 19 affected stories after the next burst, including the bursts needed to repair them.
+
+**Root cause:** `inputs:` was used as a provenance log ("this D-NNN entry informed this story") rather than as a drift-detection mechanism ("a content change here would require spec re-examination"). The distinction matters: D-NNN entries in decision-log.md are immutable once written, but the file that contains them grows on every burst. A story that lists `decision-log.md` as an input is not detecting spec-relevant drift — it is guaranteed to falsely flag drift on every burst.
+
+**Correct form:** Decision-log entries that informed a story belong in `closes:`, `last_amended:`, and the story body (prose references to D-NNN). They do NOT belong in `inputs:`. The hash gates real spec-dependency drift; provenance belongs in prose.
+
+**Remediation sequence (ADR-037 §Decision 5):** story-writer removes volatile entries from 19 stories → state-manager recomputes per-story hashes via single-file `compute-input-hash --update` invocations. S-19.01 MUST NOT be corrected before story-writer removes `lessons.md` — correcting under pre-remediation semantics breaks again at the next lesson append.
+
+**Prevention:** (1) When listing a file in `inputs:`, ask: "If this file changes after I ship this story, does that require me to re-examine the spec?" If the answer is "it changes on every burst regardless," the file is volatile and MUST NOT be in `inputs:`. (2) `inputs:` is for spec-dependency drift detection; `closes:` and `last_amended:` are for provenance. (3) Catalog indexes (`STORY-INDEX.md`, `BC-INDEX.md`, `ARCH-INDEX.md`) are also volatile — they are updated by state-manager on every burst and MUST NOT be in `inputs:` per ADR-037 §Decision 2.
+
+**Anchors:** D-953 (ADR-037 codification); ADR-037 §Decision 5 (remediation sequence); D-952 (empirical demonstration: S-19.01 hash perturbation by lesson append); POLICY 18 (three-way equality); BC-5.39.010 Class B (three-way equality gate); 19 affected stories.
+
+**Cites:** D-953 (codified this burst); ADR-037 §Decision 1 (drift-detection semantics); CANONICAL PRINCIPLE Rule 1. `[input-hash; story-authoring; volatile-inputs; modelling-error; inputs-array; provenance; drift-detection; D-953; codified]`
+
+---
+
+### L-BB-corpus-measurement-must-cite-measured-corpus [spec-authoring] [measurement] [D-953]
+
+**Title:** Seventh Spec-vs-Corpus Instance — A Corpus Measurement Backing a Spec Clause Must State Which Corpus Was Measured
+
+**Lesson:** BC-5.39.010 v1.5 PC31 amendment measured `Closes` convention shapes against `v1.0-feature-engine-discipline-pass-1/burst-log.md` while the ACTIVE cycle is `v1.0-brownfield-backfill` (STATE.md `current_cycle:`). The measurement found 34/38 vs 52/58 depending on which cycle's burst-log was consulted. The spec clause was calibrated to the wrong corpus.
+
+**Pattern:** This is the seventh spec-vs-corpus defect in the S-21.07 cascade. Six prior instances (F-P2-004 through F-P2-009 class) followed the same pattern: a spec clause described an imagined shape rather than a measured shape, or measured the wrong corpus. The active-cycle distinction matters: the brownfield-backfill burst-log has 116 Closes occurrences; the EDP-pass-1 burst-log has ~38. A regex calibrated to one corpus silently fails on the other.
+
+**Measurement-hygiene rule (codified D-953):** A corpus measurement backing a spec clause MUST: (1) state which file(s) were measured; (2) for cycle artifacts (burst-log, lessons, decision-log), state which cycle directory was scanned; (3) use the ACTIVE cycle (`STATE.md current_cycle:`) as the primary measurement corpus, not a prior-cycle artifact; (4) record the count inline in the clause or an adjacent annotation (e.g., "`**Closes:**` 70/116 brownfield-backfill burst-log 2026-08-04").
+
+**Prevention:** (1) Before authoring or amending a spec clause that references a literal corpus form, run the measurement against `current_cycle:` artifacts, not against prior-cycle artifacts that may have a different distribution. (2) The measurement annotation in the spec clause must name the file and date, so a future adversary can re-run the measurement and detect drift. (3) A spec clause with no measurement annotation is unverifiable; treat it as spec-describes-imagined-shape until the measurement is added.
+
+**Anchors:** D-953 (seventh spec-vs-corpus instance; measurement-hygiene rule codified); BC-5.39.010 v1.5 PC31 (wrong corpus — EDP-pass-1 instead of brownfield-backfill); F-P2-004/F-P2-005 (PC31 fifth instance, pass-2 findings); STATE.md `current_cycle: v1.0-brownfield-backfill`.
+
+**Cites:** D-953 (codified this burst); CANONICAL PRINCIPLE Rule 1 (no spec shortcuts); POLICY 4 (spec accuracy). `[spec-authoring; measurement; corpus; active-cycle; measurement-hygiene; spec-vs-corpus; seventh-instance; D-953; codified]`
