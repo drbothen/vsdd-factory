@@ -22921,5 +22921,5 @@ B1=cf3a0c6 == B2=cf3a0c6 == B3=cf3a0c6 — **THREE-WAY EQUAL. POLICY 18 VERIFIED
 - 6 pass-2 findings confirmed unclosed: F-P2-006/F-P2-009/F-P2-016/F-P2-017/F-P2-018; VP-039 residue
 
 **factory-artifacts commits (this burst — TD-VSDD-053 single-commit):**
-- Single-commit: `[SHA-patch pending — see Active Branches after push]` — `cycle(S-21.07): pass-3 record burst — NOT-CLEAN B3/H7/M12/L3 25 findings; STORY-INDEX v4.283 POLICY18 S-21.07 hash sync`
+- Single-commit: `9ec78f38` — `artifacts: D-954 S-21.07-PASS-3-RECORD-BURST — NOT-CLEAN B3/H7/M12/L3 (25+5 obs); REGRESSION 18→25; STORY-INDEX v4.283 (POLICY 18 S-21.07 ACHIEVED 9603a5b); P0 validate-factory-path-staging ADDED; 5 Drift Items; 5 lessons; STATE.md v6.86→v6.87`
 
