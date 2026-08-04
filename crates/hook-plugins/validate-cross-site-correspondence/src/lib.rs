@@ -624,6 +624,299 @@ mod tests {
     // for AC-018. The implementation pre-existed; the test coverage gap is the finding.
     // -----------------------------------------------------------------------
 
+    // -----------------------------------------------------------------------
+    // REAL-CORPUS TESTS — reads live .factory/ corpus files.
+    //
+    // ROOT CAUSE CLOSURE: no prior test read a real corpus file; spec-describes-imagined-
+    // shape defects survived a green test suite. Pass-2 found F-P2-004 (S-21.04 Arm A2)
+    // and F-P2-005 (BC-1.17.001 Arm A1) as corpus-unverifiable because no test exercised
+    // the real corpus shape. These tests make corpus shape load-bearing going forward.
+    //
+    // CI GATING (decided here, not deferred):
+    //   - Default: tests skip gracefully if .factory/ corpus is unavailable (normal CI
+    //     without factory-artifacts branch checked out). No CI flakiness.
+    //   - CI_REQUIRE_ARTIFACTS=1: tests FAIL if corpus not found (use for corpus-aware CI
+    //     jobs that explicitly mount the factory-artifacts worktree).
+    //   Rationale: bats integration tests already use this env-var pattern; consistent
+    //   treatment across Rust unit tests and bats tests unifies the CI configuration.
+    //
+    // DURABILITY vs. LOAD-BEARING balance:
+    //   - Assertions compare extractor output against LIVE frontmatter fields, not
+    //     hardcoded expected values (e.g., "1.7"). This survives BC version bumps: when
+    //     BC-1.17.001 advances to v1.8, both BC-INDEX.md and BC-1.17.001.md are updated;
+    //     the test still passes. It fails ONLY when the extractor returns a wrong value
+    //     (the bug we're catching).
+    //   - A test that passes regardless of corpus content (e.g., always skips if file
+    //     missing) is a paper-fix (TD-VSDD-059). These tests assert real behavior when
+    //     the corpus IS available.
+    // -----------------------------------------------------------------------
+
+    /// Discover the live .factory/ corpus root.
+    /// Priority: VSDD_CORPUS_ROOT env var → parent-directory walk from CARGO_MANIFEST_DIR.
+    /// Story-worktree layout: .factory/ is mounted ~5 levels above the crate root in the
+    /// MAIN checkout, not in the worktree. Walk finds it by ascending.
+    ///
+    /// Validation: the discovered .factory/ MUST contain `specs/behavioral-contracts/`
+    /// to be accepted as the real corpus root (excludes worktree stub .factory/ directories
+    /// that only have `cycles/` and `logs/`).
+    fn live_factory_root() -> Option<std::path::PathBuf> {
+        /// Returns true only for a .factory/ root that has the real corpus structure.
+        fn is_real_corpus(root: &std::path::Path) -> bool {
+            root.join("specs/behavioral-contracts").is_dir()
+        }
+        // 1. Explicit env var (recommended for CI and non-standard layouts)
+        if let Ok(root) = std::env::var("VSDD_CORPUS_ROOT") {
+            let path = std::path::PathBuf::from(root);
+            if path.is_dir() && is_real_corpus(&path) {
+                return Some(path);
+            }
+        }
+        // 2. Auto-discover: walk up from crate manifest directory
+        //    (env!() is evaluated at compile time, baked into the test binary)
+        let mut dir = std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR"));
+        for _ in 0..8 {
+            let candidate = dir.join(".factory");
+            if candidate.is_dir() && is_real_corpus(&candidate) {
+                return Some(candidate);
+            }
+            match dir.parent().map(|p| p.to_path_buf()) {
+                Some(p) => dir = p,
+                None => break,
+            }
+        }
+        None
+    }
+
+    /// Skip gracefully or fail hard based on CI_REQUIRE_ARTIFACTS.
+    /// Usage: `let root = corpus_root_or_skip!();` at the top of each corpus test.
+    macro_rules! corpus_root_or_skip {
+        () => {{
+            match live_factory_root() {
+                Some(r) => r,
+                None => {
+                    if std::env::var("CI_REQUIRE_ARTIFACTS").as_deref() == Ok("1") {
+                        panic!(
+                            "CI_REQUIRE_ARTIFACTS=1 but .factory/ corpus not found. \
+                            Set VSDD_CORPUS_ROOT=/path/to/.factory to run corpus tests. \
+                            Or mount the factory-artifacts worktree before running."
+                        );
+                    }
+                    eprintln!(
+                        "[CORPUS-SKIP] .factory/ not found; set VSDD_CORPUS_ROOT or \
+                        CI_REQUIRE_ARTIFACTS=1 to require. Skipping corpus test."
+                    );
+                    return;
+                }
+            }
+        }};
+    }
+
+    // -----------------------------------------------------------------------
+    // Corpus test 1 — arm_a1 (RED GATE)
+    //
+    // extract_bc_index_version("BC-1.17.001") on the LIVE BC-INDEX.md must return
+    // BC-1.17.001's OWN row version, not BC-2.07.001's version.
+    //
+    // Bug (F-P2-002): BC-2.07.001's row (line ~693 in BC-INDEX.md) contains text
+    // "aligned to BC-1.17.001/BC-4.13.001 convention" in its v1.4 changelog segment.
+    // The unanchored `line.contains("BC-1.17.001")` check matches BOTH rows.
+    // LAST-wins across all matching rows then overwrites last_version = "1.7" (from
+    // BC-1.17.001's own row) with "1.6" (BC-2.07.001's latest version).
+    //
+    // Verified manually: BC-1.17.001 row = line 659, BC-2.07.001 row = line 693;
+    // BC-2.07.001 last version token = "1.6"; result = Some("1.6") (WRONG).
+    // BC-1.17.001 frontmatter version: "1.7".
+    // -----------------------------------------------------------------------
+
+    /// CORPUS RED GATE: arm_a1 first-cell anchoring — BC-1.17.001 own-row version wins.
+    ///
+    /// Reads LIVE BC-INDEX.md and BC-1.17.001.md. Asserts extractor returns BC-1.17.001's
+    /// own INDEX row version (from BC-1.17.001.md frontmatter) — not BC-2.07.001's latest
+    /// version picked up via unanchored cross-reference scan.
+    /// DURABLE: reads both live files; survives BC-1.17.001 version bumps.
+    /// RED GATE: current LAST-wins + unanchored contains returns Some("1.6") ≠ Some("1.7").
+    #[test]
+    fn test_BC_5_39_010_corpus_arm_a1_bc_1_17_001_own_row_version_not_cross_ref() {
+        let root = corpus_root_or_skip!();
+        let bc_index_bytes = std::fs::read(root.join("specs/behavioral-contracts/BC-INDEX.md"))
+            .expect("BC-INDEX.md must be readable from corpus root");
+        let bc_file_str =
+            std::fs::read_to_string(root.join("specs/behavioral-contracts/ss-01/BC-1.17.001.md"))
+                .expect("BC-1.17.001.md must be readable from corpus root");
+        // Read expected version from live BC frontmatter — durable (updates with the file)
+        let expected = frontmatter::extract_frontmatter_field(&bc_file_str, "version")
+            .expect("BC-1.17.001.md must have a version: field");
+        let result = arm_a1::extract_bc_index_version("BC-1.17.001", &bc_index_bytes);
+        assert_eq!(
+            result,
+            Some(expected.clone()),
+            "extract_bc_index_version('BC-1.17.001') must return BC-1.17.001's own INDEX row \
+            version ('{expected}'), not a version from a later row that cross-references \
+            BC-1.17.001 in its changelog text. BC-2.07.001's row at line ~693 mentions \
+            'BC-1.17.001' in a v1.4 annotation and ends with v1.6 — unanchored LAST-wins \
+            overwrites the correct answer. CORPUS RED GATE: F-P2-002 first-cell anchoring."
+        );
+    }
+
+    // -----------------------------------------------------------------------
+    // Corpus test 2 — arm_a2 (RED GATE — F-P2-001 live corpus evidence)
+    //
+    // extract_story_bc_version_citations on LIVE S-21.04 must return only citations
+    // from the Behavioral Contracts section (matching the live BC-6.26.001 frontmatter).
+    //
+    // Bug (F-P2-001 / PC13): skip_section initializes to `false`, so lines BEFORE the
+    // first `## ` heading are scanned. S-21.04's `last_amended:` YAML field (line 11)
+    // is a very long string that contains `|` pipe characters (from gate patterns like
+    // `(^\|[^a-zA-Z0-9_])bcs:`) AND contains "BC-6.26.001" AND old version tokens
+    // (e.g., "BC-6.26.001 v1.3→v1.4" in the historical changelog text). The extractor
+    // returns a phantom citation "1.3" from the YAML frontmatter line.
+    //
+    // Verified: `extract_story_bc_version_citations(s21_04, "BC-6.26.001")` returns
+    // [("table row 11", "1.3"), ("table row 161", "1.18")] with current buggy code.
+    // The "1.3" phantom citation (from the last_amended YAML line) causes the assertion
+    // `version == "1.18"` to fail.
+    //
+    // After fix (skip_section starts true): frontmatter lines are not scanned;
+    // only the Behavioral Contracts section produces citations. Returns [("table row 161",
+    // "1.18")] — exactly one citation matching the current BC version.
+    // -----------------------------------------------------------------------
+
+    /// CORPUS RED GATE: arm_a2 must not scan YAML frontmatter preamble for BC citations.
+    ///
+    /// Reads LIVE S-21.04 story and BC-6.26.001.md. Asserts all citations match the
+    /// live BC frontmatter version. Current bug (skip_section=false) causes phantom "1.3"
+    /// citation from the last_amended YAML field. DURABLE: reads both live files.
+    /// RED GATE: extractor returns "1.3" ≠ "1.18" from S-21.04 last_amended YAML line.
+    #[test]
+    fn test_BC_5_39_010_corpus_arm_a2_s21_04_bc_citations_match_live_bc_frontmatter() {
+        let root = corpus_root_or_skip!();
+        let story_str = std::fs::read_to_string(
+            root.join("stories/S-21.04-story-worktree-write-path-discipline.md"),
+        )
+        .expect("S-21.04 must be readable from corpus root");
+        let bc_str = std::fs::read_to_string(
+            root.join("specs/behavioral-contracts/ss-06/BC-6.26.001.md"),
+        )
+        .expect("BC-6.26.001.md must be readable from corpus root");
+        let expected =
+            frontmatter::extract_frontmatter_field(&bc_str, "version")
+                .expect("BC-6.26.001.md must have a version: field");
+        let citations = arm_a2::extract_story_bc_version_citations(&story_str, "BC-6.26.001");
+        assert!(
+            !citations.is_empty(),
+            "S-21.04 Behavioral Contracts section must have at least one BC-6.26.001 citation. \
+            extract_story_bc_version_citations returned empty — section bounding or table-row \
+            detection is broken. CORPUS shape invariant: F-P2-001."
+        );
+        for (location, version) in &citations {
+            assert_eq!(
+                version.as_str(),
+                expected.as_str(),
+                "S-21.04 BC-6.26.001 citation at {location} cites v{version} but BC-6.26.001 \
+                frontmatter is v{expected}. Extractor returned a stale or phantom citation. \
+                CORPUS shape invariant: F-P2-001 / section bounding guard."
+            );
+        }
+    }
+
+    // -----------------------------------------------------------------------
+    // Corpus tests 3 + 4 — dispatch (RED GATE + GREEN on arrival)
+    //
+    // is_frontmatter_parity_target on the LIVE VP-INDEX.md path must return false.
+    // Current code: starts_with("VP-") && ends_with(".md") admits VP-INDEX.md.
+    // F-P2-003 / PC34 corpus evidence.
+    // -----------------------------------------------------------------------
+
+    /// CORPUS RED GATE: VP-INDEX.md path must be excluded by is_frontmatter_parity_target.
+    ///
+    /// Verifies VP-INDEX.md exists in live corpus and the path classifier returns false.
+    /// RED GATE: current starts_with("VP-") && ends_with(".md") admits VP-INDEX.md → true.
+    #[test]
+    fn test_BC_5_39_010_corpus_dispatch_vp_index_excluded_from_class_e_live_path() {
+        let root = corpus_root_or_skip!();
+        assert!(
+            root.join("specs/verification-properties/VP-INDEX.md").is_file(),
+            "VP-INDEX.md must exist in live corpus"
+        );
+        assert!(
+            !dispatch::is_frontmatter_parity_target(
+                ".factory/specs/verification-properties/VP-INDEX.md"
+            ),
+            "VP-INDEX.md MUST NOT be a frontmatter parity target. \
+            BC-5.39.010 PC34: explicit VP-INDEX.md guard required. \
+            CORPUS RED GATE: starts_with/ends_with check admits VP-INDEX.md. F-P2-003/F-P2-008."
+        );
+    }
+
+    /// CORPUS shape invariant: VP-039.md path must be accepted by is_frontmatter_parity_target.
+    ///
+    /// Verifies VP-039.md exists in live corpus and the path classifier returns true.
+    /// Complement guard: PC34 fix must NOT over-exclude canonical VP files.
+    /// GREEN on arrival; prevents regression if PC34 fix is over-broad.
+    #[test]
+    fn test_BC_5_39_010_corpus_dispatch_vp_canonical_file_accepted_by_class_e_live_path() {
+        let root = corpus_root_or_skip!();
+        assert!(
+            root.join("specs/verification-properties/VP-039.md").is_file(),
+            "VP-039.md must exist in live corpus"
+        );
+        assert!(
+            dispatch::is_frontmatter_parity_target(
+                ".factory/specs/verification-properties/VP-039.md"
+            ),
+            "VP-039.md MUST be a frontmatter parity target. The PC34 fix (VP-INDEX.md \
+            exclusion) must NOT accidentally exclude canonical VP files. F-P2-003 regression guard."
+        );
+    }
+
+    // -----------------------------------------------------------------------
+    // Corpus test 5 — arm_e (GREEN on arrival)
+    //
+    // extract_last_amended_outer_version on LIVE VP-100.md must match version: field.
+    // VP-100.md has: version: "1.2", last_amended: "2026-07-10 (v1.2) — ..."
+    // Tests real corpus format compatibility, including [Prior: ...] chain exclusion.
+    // -----------------------------------------------------------------------
+
+    /// CORPUS shape invariant: arm_e1 extract_last_amended_outer_version on live VP-100.md.
+    ///
+    /// Reads LIVE VP-100.md. Asserts outer version matches version: field.
+    /// Tests real corpus format compatibility: [Prior: ...] chains must not pollute result.
+    /// GREEN on arrival — arm_e implementation is correct for this format. Regression guard.
+    #[test]
+    fn test_BC_5_39_010_corpus_arm_e1_vp100_last_amended_outer_version_matches_version_field() {
+        let root = corpus_root_or_skip!();
+        let vp_str = std::fs::read_to_string(root.join("specs/verification-properties/VP-100.md"))
+            .expect("VP-100.md must be readable from corpus root");
+        let version = frontmatter::extract_frontmatter_field(&vp_str, "version")
+            .expect("VP-100.md must have a version: field");
+        let last_amended = frontmatter::extract_frontmatter_field(&vp_str, "last_amended")
+            .expect("VP-100.md must have a last_amended: field");
+        let outer = arm_e::extract_last_amended_outer_version(&last_amended).expect(
+            "VP-100.md last_amended must be parseable. If None, the extractor has a format \
+            compatibility bug with real VP files. CORPUS shape invariant: F-P2-013.",
+        );
+        assert_eq!(
+            outer, version,
+            "VP-100.md: extract_last_amended_outer_version returned '{outer}' but version: \
+            is '{version}'. Extractor has a parsing bug OR VP-100.md has a live E1 violation \
+            (hook failure). CORPUS shape invariant: arm_e1 format guard."
+        );
+    }
+
+    // -----------------------------------------------------------------------
+    // F-P1C-016 / AC-018: invariant-7 multi-arm aggregation — Rust unit assertion.
+    //
+    // BC-5.39.010 invariant 7: arms MUST NOT suppress each other.
+    // When both A1 and E1 produce violations, ALL violations must appear in the
+    // combined block message (postcondition 23: combined violations → single block).
+    //
+    // Previously: AC-018 had bats-only coverage. This test adds Rust-level assertion.
+    //
+    // COVERAGE TEST (not RED GATE): combine_violations_into_block is already correctly
+    // implemented. This test passes immediately — it adds Rust-level regression coverage
+    // for AC-018. The implementation pre-existed; the test coverage gap is the finding.
+    // -----------------------------------------------------------------------
+
     /// F-P1C-016 / AC-018: both A1 and E1 violations appear in combined block.
     ///
     /// COVERAGE TEST (immediately GREEN): combine_violations_into_block already works.

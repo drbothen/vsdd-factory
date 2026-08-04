@@ -261,6 +261,69 @@ Requires fixture `b1-volatile-input` (created).
 
 ---
 
+## Real-Corpus RED GATE Tests (corpus-tests amendment, same pass-2 burst)
+
+**Date:** 2026-08-04 (amendment to pass-2 fix burst — coordinator-requested corpus coverage)
+**Root cause addressed:** no test read a real `.factory/` corpus file; spec-describes-imagined-shape
+defects survived a green test suite (F-P2-004 S-21.04 Arm A2 and F-P2-005 BC-1.17.001 Arm A1
+were called corpus-unverifiable false positives in pass-2 because no test exercised real shapes).
+
+Red Gate run timestamp: 2026-08-04 (amendment)
+Command: `cargo test -p validate-cross-site-correspondence`
+Result after corpus tests added: **99 passed; 10 failed** (7 original + 3 corpus RED GATE)
+
+### Corpus test helper design
+
+**Discovery**: `live_factory_root()` in `lib.rs` tests module. Priority:
+1. `VSDD_CORPUS_ROOT` env var (explicit override, recommended for CI)
+2. Parent-walk from `CARGO_MANIFEST_DIR` up to 8 levels; validates found root has
+   `specs/behavioral-contracts/` subdir (excludes worktree stub `.factory/` directories)
+
+**CI_REQUIRE_ARTIFACTS gating** (decision recorded here per coordinator requirement):
+- Default (env var absent): tests skip gracefully with `[CORPUS-SKIP]` message. No CI flakiness.
+- `CI_REQUIRE_ARTIFACTS=1`: tests FAIL if corpus root not found. Use for corpus-aware CI jobs
+  that explicitly mount the factory-artifacts worktree.
+- Justification: bats integration tests already use this env-var pattern; uniform treatment
+  across Rust unit tests and bats tests. The standard CI pipeline runs without `.factory/`
+  mounted (no `factory-artifacts` branch checkout), so default-skip prevents false failures.
+
+**Durability design**: assertions compare extractor output against LIVE frontmatter fields read
+at test time, not hardcoded expected values. When BC-1.17.001 advances to v1.8 (both
+`BC-INDEX.md` and `BC-1.17.001.md` are updated), the arm_a1 corpus test still passes.
+The test fails ONLY when the extractor returns a wrong value — the bug being caught.
+
+### Corpus test results
+
+| Test | Arm | RED/GREEN | Failure reason (current buggy code) |
+|------|-----|-----------|--------------------------------------|
+| `test_BC_5_39_010_corpus_arm_a1_bc_1_17_001_own_row_version_not_cross_ref` | arm_a1 | RED GATE | Returns `Some("1.6")` (from BC-2.07.001 cross-ref row) ≠ `Some("1.7")` (BC-1.17.001 frontmatter). F-P2-002 CONFIRMED in live corpus. |
+| `test_BC_5_39_010_corpus_arm_a2_s21_04_bc_citations_match_live_bc_frontmatter` | arm_a2 | RED GATE | Returns phantom citation `"1.3"` from `last_amended:` YAML line 11 of S-21.04 (contains `\|` chars + old BC version refs) ≠ `"1.18"`. F-P2-001 CONFIRMED in live corpus. See note below. |
+| `test_BC_5_39_010_corpus_dispatch_vp_index_excluded_from_class_e_live_path` | dispatch | RED GATE | `is_frontmatter_parity_target(".factory/specs/verification-properties/VP-INDEX.md")` returns `true` ≠ `false`. F-P2-003 CONFIRMED in live corpus. |
+| `test_BC_5_39_010_corpus_dispatch_vp_canonical_file_accepted_by_class_e_live_path` | dispatch | GREEN (shape invariant) | VP-039.md correctly classified as parity target. Post-fix regression guard. |
+| `test_BC_5_39_010_corpus_arm_e1_vp100_last_amended_outer_version_matches_version_field` | arm_e | GREEN (shape invariant) | VP-100.md: `extract_last_amended_outer_version("2026-07-10 (v1.2) — ...")` returns `"1.2"` = `version: "1.2"`. arm_e correctly handles real VP format. |
+
+### Note on corpus arm_a2 test — initial prediction was wrong
+
+The test-writer initially predicted `corpus_arm_a2` would be GREEN on arrival (claiming S-21.04
+preamble has no `|` lines with BC-6.26.001). This was incorrect. The live corpus revealed:
+
+S-21.04's `last_amended:` YAML field (line 11) is a very long single-line string containing:
+- `|` pipe characters from gate pattern text like `(^\|[^a-zA-Z0-9_])bcs:`
+- `BC-6.26.001` references (the story's governing BC)
+- Old version tokens like `v1.3→v1.4` in the historical changelog text
+
+With `skip_section = false` initially, `extract_story_bc_version_citations` scans this YAML
+frontmatter line and extracts a phantom citation `("table row 11", "1.3")`. The test correctly
+catches this as a bug — F-P2-001 is confirmed in the live corpus.
+
+This is a "seventh spec-describes-imagined-shape" instance: the test-writer's prediction that
+the preamble was clean was wrong, and only running against the live corpus revealed the real bug.
+**Proposed routing**: F-P2-001 is already in scope for the implementer (skip_section must start
+true). No product-owner routing needed — this is implementation-level evidence for an already-
+scoped finding.
+
+---
+
 ## Finding Coverage
 
 | Finding | Rust Unit Test | Bats Test |
