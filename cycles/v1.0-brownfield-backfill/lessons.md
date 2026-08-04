@@ -9917,3 +9917,21 @@ D-448(a) passes over this class of defect because it validates Part A correspond
 **Cites:** D-951 (pass-2 record burst; state-manager codification); CANONICAL PRINCIPLE Rule 2 (implementer is not authoritative on risk severity; neither is orchestrator); TD-VSDD-059 (proposed remediation must be independently verified). `[adversary; routing; orchestrator-error; proposed-remediation; corpus-verification; ss-star-clause; PC33-misread; D-951; codified]`
 
 ---
+
+### L-BB-tooling-version-divergence-masquerades-as-fabrication [hash-authority] [tooling] [D-952]
+
+**Title:** Tooling-Version Divergence Between Operator Cache and Develop Branch Masquerades as Data Fabrication for Multiple Full Passes
+
+**Lesson:** Two consecutive adversarial passes (S-21.04 pass-30 and E-19/E-21 F-S2107-P2-010) diagnosed hash values as FABRICATED (i.e., written without a compute-input-hash invocation, BC-5.39.010 Invariant 11 PROVENANCE-BREAK). The actual root cause was that the operator plugin cache binary (`~/.claude/plugins/cache/claude-mp/vsdd-factory/1.0.0-rc.23/bin/compute-input-hash`) used `echo -n "$CONCAT"` to assemble the input string, which silently strips trailing newlines. The develop-branch source (post-#715 / e628b884) uses temp-file raw-byte accumulation. Both binaries are deterministic; both produce legitimate computed values; neither result is fabricated. A hash computed by a superseded binary is ALGORITHM-DIVERGENT (ADR-036 §Decision 4), not FABRICATED.
+
+**Root cause:** The fabrication classification relied on the implicit assumption that there is exactly one version of the compute-input-hash binary in the operational environment. This assumption was false: the operator cache and the develop branch diverged at #715. Because the diagnostic protocol was: "run current binary, compare to stored hash, if mismatch classify as fabricated" — any hash produced by the old binary would be misclassified. The current binary could not reproduce the old binary's output, which looked identical to a value that was never computed at all.
+
+**Durable remedy:** ADR-036 formalises the three-classification system: `stale` (content changed since computation), `algorithm-divergent` (computed by superseded binary, non-reproducible by current binary but deterministically traceable to prior binary), and `fabricated` (no documented computation trace). The fabricated classification requires ruling out algorithm-divergent before it can be applied. Standard diagnostic protocol: (1) identify the binary version in use at the time the hash was recorded (git log + release tags); (2) attempt reproduction with that binary version before classifying as fabricated.
+
+**Prevention:** (1) Before classifying any hash mismatch as FABRICATED, check whether the compute-input-hash binary version changed between the hash recording commit and the verification commit. (2) Release notes for any compute-input-hash algorithm change MUST include: the old binary's output for a canonical test input, the new binary's output for the same input, and the migration procedure for existing stored hashes. (3) The operator cache binary version and the develop-branch source version must be tracked as a two-field identifier in STATE.md divergence records when they differ. (4) ADR-036 §Decision 4 ALGORITHM-DIVERGENT annotation text is canonical; do not reclassify as FABRICATED without ruling out version divergence first.
+
+**Anchors:** D-952 (ADR-036 codification + E-19/E-21 sweep); ADR-036 §Decision 4 (ALGORITHM-DIVERGENT classification); F-S2104-P30-M02 (original misdiagnosis on S-21.04); F-S2107-P2-010 (pass-2 E-19/E-21 POLICY 18 gap); BC-5.39.010 Invariant 11; #715 / e628b884 (algorithm fix commit).
+
+**Cites:** D-952 (ADR-036 codification; state-manager codification); CANONICAL PRINCIPLE Rule 4 (AI-built defects are the AI's responsibility to fix — the misdiagnosis annotation propagated uncorrected across two passes before the root cause was identified). `[hash-authority; tooling; algorithm-divergence; fabrication-misdiagnosis; operator-cache; compute-input-hash; binary-version; ADR-036; D-952; codified]`
+
+---

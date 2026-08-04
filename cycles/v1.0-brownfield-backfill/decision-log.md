@@ -14634,3 +14634,62 @@ D-951-S-21.07-PASS-2-RECORD-BURST
 ### Date
 
 2026-08-03
+
+---
+
+## D-952
+
+ADR-036 hash-authority migration — E-19/E-21 POLICY 18 three-way equality sweep; ALGORITHM-DIVERGENT third classification; fabrication misdiagnosis corrected
+
+### Decision
+
+**(a) POLICY 16 GLOBAL-MAX GATE:** `grep -n "^## D-" .factory/cycles/v1.0-brownfield-backfill/decision-log.md | sort -t'-' -k2 -n | tail -3` → `14416:## D-949 / 14498:## D-950 / 14570:## D-951`; D-951 confirmed prior max → D-952 allocated.
+
+**(b) ADR-036 ruling — third hash classification:** ADR-036 establishes `compute-input-hash` binary as the canonical hash authority (ADR-036 §Decision 1). It introduces a third invariant-11 classification beyond `stale` and `fabricated`: **ALGORITHM-DIVERGENT** (§Decision 4) — a hash legitimately produced by a superseded binary version but distinct from the current algorithm's output. The rc.23 cache binary used `echo -n "$CONCAT"` which strips trailing newlines; the fixed binary (post-#715 / e628b884) uses temp-file raw-byte accumulation. Both implementations are deterministic; neither involves fabrication. Value `1acf3c6` (S-21.04 prior hash) is ALGORITHM-DIVERGENT, not FABRICATED.
+
+**(c) Bootstrap migration:** The operator plugin cache binary at `~/.claude/plugins/cache/claude-mp/vsdd-factory/1.0.0-rc.23/bin/` was updated to match the fixed develop-version algorithm. Original preserved at `.rc23-orig` (reversible). `cmp` between old and new binary exits 0 confirming replacement. Self-heals at rc.24 when #715 publishes. Distinct from AC-021 operator-cache gate staging (ON HOLD until S-21.07 3-CLEAN).
+
+**(d) E-19 POLICY 18 three-way equality sweep — 9 stories:** Stories S-19.01–S-19.09 had frontmatter↔catalog↔blockquote disagreement per F-S2107-P2-010 (all three legs diverged). Fixed-algorithm hashes recomputed via single-file `compute-input-hash <file>` invocations. All three legs updated atomically:
+- S-19.01: `b382a86` → `0ad9c4b`
+- S-19.02: `83ceba1` → `cbd3e91`
+- S-19.03: `d0d9568` → `9fcba37`
+- S-19.04: `97e5d8a` → `323a2db`
+- S-19.05: `176450f` → `2b0d072`
+- S-19.06: `4104833` → `c9076de`
+- S-19.07: `180b85d` → `3977fe5`
+- S-19.08: `cb14706` → `9dede4f`
+- S-19.09: `acef91e` → `a15c2fe`
+
+**(e) E-21 POLICY 18 three-way equality sweep — 5 stories in scope:** Stories S-21.01/02/03/05/06 had stable inputs and required hash recompute under corrected algorithm. S-21.04 verified at `47a65c9` (correct fixed-algorithm value, no change). S-21.07 explicitly OUT OF SCOPE — input-hash `52f0bf3` and all three STORY-INDEX legs UNTOUCHED (S-21.07 is the active story under pass-3 adversarial work; touching its hash mid-cycle would invalidate pass-2 record).
+- S-21.01: `32aaccc` → `4bde987`
+- S-21.02: `8bd32e5` → `9f5c7e9`
+- S-21.03: `59e687e` → `f902141`
+- S-21.05: `c9265f0` → `6f20e8e`
+- S-21.06: `b807086` → `537b230`
+
+**(f) PROVENANCE-BREAK → ALGORITHM-DIVERGENT annotation correction:** S-21.04 story file `modified[]` entry at the v1.32 terminal hash `1acf3c6` was annotated `[PROVENANCE-BREAK F-S2104-P30-M02: ... FABRICATED]`. This misdiagnosis originated from two full passes of adversarial analysis before the tooling-version divergence was identified. Corrected to: `[ALGORITHM-DIVERGENT per ADR-036 §Decision 4: 1acf3c6 was produced by the rc.23 script, which strips trailing newlines (fixed by #715 / e628b884); the corrected algorithm yields 47a65c9 from the same inputs; no fabrication occurred]`.
+
+**(g) BC-5.39.010 annotation routing:** Lines 476 and 493 of `BC-5.39.010.md` contain fabrication claims about `1acf3c6` that should be updated to ALGORITHM-DIVERGENT framing per ADR-036 §Decision 4. Per routing table, BC body content routes to product-owner, NOT state-manager. NOT EDITED in this burst. Reported to product-owner for correction in a follow-up dispatch.
+
+**(h) 4-INDEX:** BC v4.45 UNCHANGED; VP v2.74 UNCHANGED; STORY v4.280 → v4.281 (POLICY 18 three-way equality restored for 14 stories); ARCH v3.40 → v3.41 (ADR-036 total_adrs 35→36 registration completion).
+
+### Participating agents
+
+- state-manager: D-952 codification; E-19/E-21 story frontmatter updates (14 files); STORY-INDEX three-way leg updates + v4.281; ARCH-INDEX total_adrs 35→36 + v3.41; S-21.04 annotation correction; STATE.md v6.83→v6.84; decision-log.md D-952 entry; lessons.md 1 entry
+
+### 4-INDEX
+
+| Index | Before | After | Change |
+|-------|--------|-------|--------|
+| BC-INDEX | v4.45 | v4.45 | UNCHANGED |
+| VP-INDEX | v2.74 | v2.74 | UNCHANGED |
+| STORY-INDEX | v4.280 | v4.281 | POLICY 18 three-way equality restored (9 E-19 + 5 E-21 stories) |
+| ARCH-INDEX | v3.40 | v3.41 | ADR-036 registration; total_adrs 35→36 |
+
+### Phase
+
+D-952-ADR-036-HASH-AUTHORITY-MIGRATION
+
+### Date
+
+2026-08-03
