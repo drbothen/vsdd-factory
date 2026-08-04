@@ -407,3 +407,112 @@ entirely and E1 runs in isolation. `extract_last_amended_outer_version("2026-07-
 `Some("2")` after the len-threshold fix; `version: "2"` == `"2"` → no E1 violation → exit 0 ✓.
 **Assertion site:** T-045 `assert_equal "$status" "0"` and absence of `[Class E]` in output.
 After fix: VP isolation → A1 skipped → E1 clean → exit 0 ✓.
+
+---
+
+## Fixture Correction Burst — arm_a2 Synthetic Fixtures (POLICY 15)
+
+**Date:** 2026-08-04
+**Context:** Implementer commit `72166f36` set `skip_section = true` unconditionally (spec-correct
+per BC-5.39.010 PC13 v1.3+). Two synthetic arm_a2 fixtures placed BC table rows directly after
+frontmatter with no `## Behavioral Contracts` heading. Under `skip_section = true`, those rows are
+never scanned → 0 citations → the tests failed for the wrong reason (fixture describes imagined
+corpus shape). These are spec-describes-imagined-shape defects at the fixture level.
+
+Command: `cargo test -p validate-cross-site-correspondence`
+Result after corrections: **108 passed; 0 failed; 2 ignored**
+Workspace: `cargo fmt --check --all` clean; `cargo clippy --workspace --all-targets -- -D warnings` clean.
+
+### Fixture Correction 1 — `test_BC_5_39_010_arm_a2_version_citation_extracted_from_table_row`
+
+**File:** `src/arm_a2.rs`
+
+**Before:**
+```
+let content = "---\nbehavioral_contracts: [BC-6.26.001]\n---\n\
+    | BC-6.26.001 | Title | v1.17 | active |\n";
+```
+
+**After:**
+```
+let content = "---\nbehavioral_contracts: [BC-6.26.001]\n---\n\
+    ## Behavioral Contracts\n\n\
+    | BC-6.26.001 | Title | v1.17 | active |\n";
+```
+
+**Root cause:** Fixture placed BC table row after frontmatter with no `## ` heading.
+Under `skip_section = true`, the row was never scanned → 0 citations → `assert_eq!(len, 1)` FAILED.
+
+**After fix:** `## Behavioral Contracts` heading activates scanner → citation extracted →
+`result.len() == 1` → test PASSES for the right reason (in-section citation detected).
+
+**BC trace:** BC-5.39.010 PC13 (v1.3+); POLICY 8 (BC table lives under its section heading).
+
+### Fixture Correction 2 — `test_BC_5_39_010_arm_a2_two_stale_bcs_combined_block`
+
+**File:** `src/arm_a2.rs`
+
+**Before:**
+```
+let story_content = "---\nbehavioral_contracts: [BC-6.26.001, BC-5.39.008]\n---\n\
+    | BC-6.26.001 | Title | v1.17 | active |\n\
+    | BC-5.39.008 | Title | v1.5 | active |\n";
+// comment: "The BC calls will todo!() → panic → test FAILS (RED gate holds)"
+```
+
+**After:**
+```
+let story_content = "---\nbehavioral_contracts: [BC-6.26.001, BC-5.39.008]\n---\n\
+    ## Behavioral Contracts\n\n\
+    | BC-6.26.001 | Title | v1.17 | active |\n\
+    | BC-5.39.008 | Title | v1.5 | active |\n";
+// comment: updated to describe current behavior (CapabilityDenied path)
+```
+
+**Root cause:** Same heading-absent defect. Old comment also referenced `todo!()` stubs which
+no longer exist (implementer has completed `run_arm_a2_for_bc`).
+
+**After fix:** Heading activates scanner → citations extracted for both BCs → `run_arm_a2_for_bc`
+called with non-empty citations → `host::read_file` returns `CapabilityDenied` (non-WASM stub:
+`ffi::read_file` returns -1 on non-wasm32 targets, confirmed in `crates/hook-sdk/src/ffi.rs`) →
+fail-closed path produces violations → `!violations.is_empty()` → test PASSES.
+
+**BC trace:** BC-5.39.010 PC13 (v1.3+); postcondition 7 (cascade); invariant 4 (fail-closed).
+
+### New Test — `test_BC_5_39_010_arm_a2_heading_free_story_yields_zero_citations`
+
+Pins the lower bound explicitly: a fixture with a BC table row but NO `## Behavioral Contracts`
+heading produces zero citations. `skip_section = true` means the scanner never activates for
+heading-free content. Added immediately after the two corrected tests.
+
+**BC trace:** BC-5.39.010 PC13 (amended v1.3+, skip_section starts true); F-P2-001.
+
+### Synthetic Fixture Sweep — Other arm_a2 Tests
+
+All other arm_a2 test fixtures were audited for the same defect (BC table rows without section heading):
+
+| Test | Fixture shape | Verdict |
+|------|--------------|---------|
+| `arm_a2_no_table_row_returns_empty` | Prose-only (no `\|` row), no heading | CLEAN — no `\|` row; result empty regardless of heading |
+| `arm_a2_stale_token_budget_row_blocks` | Uses seam (`run_arm_a2_for_bc_with_result`) | CLEAN — no content fixture |
+| `arm_a2_current_citation_passes` | Uses seam | CLEAN — no content fixture |
+| `arm_a2_empty_bcs_skips` | No BC IDs — early exit | CLEAN |
+| `arm_a2_no_version_row_skips` | Uses seam | CLEAN — no content fixture |
+| `arm_a2_bc_not_found_advisory` | Uses seam | CLEAN — no content fixture |
+| `arm_a2_bare_version_bc_table_row_detected` | Has `## Behavioral Contracts\n\n` heading | CLEAN |
+| `arm_a2_frontmatter_preamble_not_scanned_skip_section_true` | Has `## Behavioral Contracts\n\n` heading | CLEAN |
+| `arm_a2_edge_cases_rows_not_scanned_section_bounded` | Has `## Behavioral Contracts\n\n` heading | CLEAN |
+| `arm_a2_bc_path_derivation_correct` | Path derivation only | CLEAN |
+
+**Other source files (arm_a1.rs, arm_b.rs, arm_e.rs, dispatch.rs, lib.rs):** No calls to
+`extract_story_bc_version_citations` outside arm_a2.rs tests and lib.rs corpus tests.
+Corpus tests read live files; no synthetic heading-absent fixtures. CLEAN sweep.
+
+### Observation (scope-boundary, not fixed in this burst)
+
+The doc comment on `extract_story_bc_version_citations` (lines 83–86 of arm_a2.rs) states:
+"Content that has no `## ` headings at all (e.g., simple unit-test fixtures) is scanned without
+restriction." This contradicts `skip_section = true` (heading-free → zero citations, not
+unrestricted scan). The doc comment describes the pre-fix skip_section=false behavior. Correcting
+the doc comment is implementation code; out of scope per coordinator constraint "Fixtures and tests
+only." Routed to implementer as a doc-comment cleanup for the next touch of arm_a2.rs.

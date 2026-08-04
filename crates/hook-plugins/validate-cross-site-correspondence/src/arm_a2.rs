@@ -364,7 +364,11 @@ mod tests {
 
     #[test]
     fn test_BC_5_39_010_arm_a2_version_citation_extracted_from_table_row() {
+        // Fixture reflects real corpus shape: BC table row lives under the
+        // ## Behavioral Contracts section heading (POLICY 8 / PC13 v1.3+).
+        // Without the heading, skip_section starts true and nothing is scanned.
         let content = "---\nbehavioral_contracts: [BC-6.26.001]\n---\n\
+            ## Behavioral Contracts\n\n\
             | BC-6.26.001 | Title | v1.17 | active |\n";
         let result = extract_story_bc_version_citations(content, "BC-6.26.001");
         assert_eq!(result.len(), 1);
@@ -437,16 +441,46 @@ mod tests {
     /// AC-006: two stale BCs → single combined block (postcondition 7 cascade).
     #[test]
     fn test_BC_5_39_010_arm_a2_two_stale_bcs_combined_block() {
-        // Test via run_arm_a2 with story content containing two stale BCs
+        // Fixture reflects real corpus shape: BC table rows live under the
+        // ## Behavioral Contracts section heading (POLICY 8 / PC13 v1.3+).
+        // Citations are extracted → run_arm_a2_for_bc called → host::read_file
+        // returns CapabilityDenied (non-WASM stub: -1) → fail-closed violation.
         let story_content = "---\nbehavioral_contracts: [BC-6.26.001, BC-5.39.008]\n---\n\
+            ## Behavioral Contracts\n\n\
             | BC-6.26.001 | Title | v1.17 | active |\n\
             | BC-5.39.008 | Title | v1.5 | active |\n";
         let (violations, _) = run_arm_a2("S-21.07", story_content);
-        // Both BCs are stale — combined into one or multiple violations
-        // The BC calls will todo!() → panic → test FAILS (RED gate holds)
         assert!(
             !violations.is_empty(),
             "two stale BCs must produce combined violations"
+        );
+    }
+
+    /// PC13 bound: a story file with no `## ` headings yields zero citations.
+    ///
+    /// `skip_section` starts `true` unconditionally per BC-5.39.010 PC13 (amended
+    /// v1.3+, F-P2-001). A file that places BC table rows directly after frontmatter
+    /// (with no `## Behavioral Contracts` heading) produces zero citations — the
+    /// scanner never activates. This pins the heading-free lower bound and validates
+    /// that heading-free fixtures are spec-describes-imagined-shape: they do NOT match
+    /// real corpus shape (POLICY 8 requires the section heading).
+    ///
+    /// BC trace: BC-5.39.010 PC13 v1.3+ (skip_section starts true); F-P2-001.
+    #[test]
+    fn test_BC_5_39_010_arm_a2_heading_free_story_yields_zero_citations() {
+        // Fixture: BC table row placed directly after frontmatter close, no ## heading.
+        // This shape does NOT exist in the real corpus (POLICY 8 requires the section
+        // heading), but confirms that skip_section=true produces zero citations rather
+        // than scanning out-of-section content.
+        let content = "---\nbehavioral_contracts: [BC-6.26.001]\n---\n\
+            | BC-6.26.001 | Title | v1.17 | active |\n";
+        let citations = extract_story_bc_version_citations(content, "BC-6.26.001");
+        assert_eq!(
+            citations.len(),
+            0,
+            "a heading-free story file must yield zero citations: skip_section starts \
+            true (BC-5.39.010 PC13, F-P2-001). No ## Behavioral Contracts heading → \
+            scanner never activates → no citations regardless of row content."
         );
     }
 
