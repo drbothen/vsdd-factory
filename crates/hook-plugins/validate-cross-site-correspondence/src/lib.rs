@@ -332,7 +332,7 @@ fn extract_story_id_from_path(file_path: &str) -> String {
 }
 
 #[cfg(test)]
-#[allow(clippy::expect_used, clippy::unwrap_used, clippy::panic)]
+#[allow(clippy::expect_used, clippy::unwrap_used)]
 mod tests {
     use super::*;
     // BC_STORY_PRIMARY_MAX_BYTES and CYCLE_ARTIFACT_PRIMARY_MAX_BYTES are
@@ -945,9 +945,10 @@ mod tests {
                     BC-5.39.010 invariant 7 / AC-018 / F-P1C-016. reason: {reason}"
                 );
             }
-            _ => panic!(
-                "two violations must produce HookResult::Block, not Continue. \
-                BC-5.39.010 invariant 7 / postcondition 23 (F-P1C-016)."
+            _ => unreachable!(
+                "two violations must produce HookResult::Block, not Continue — \
+                if this arm is reached, combine_violations_into_block has a correctness \
+                defect. BC-5.39.010 invariant 7 / postcondition 23 (F-P1C-016)."
             ),
         }
     }

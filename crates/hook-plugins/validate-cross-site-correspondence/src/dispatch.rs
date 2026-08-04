@@ -13,6 +13,10 @@
 
 /// Which category of cycle artifact a triggered write maps to.
 ///
+/// **[DEFERRED v1.6 — Class D]**: `is_cycle_artifact` always returns `None` per
+/// BC-5.39.010 v1.6 / D-953. Variants are constructed only inside `#[ignore]`d tests.
+/// Retained for S-21.08 Phase 2 re-enablement alongside `arm_d.rs`.
+///
 /// Used by Arm D to determine the scope-limited extraction strategy
 /// (BC-5.39.010 precondition 30).
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]

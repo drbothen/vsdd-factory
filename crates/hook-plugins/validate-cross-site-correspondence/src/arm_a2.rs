@@ -93,16 +93,14 @@ pub fn extract_story_bc_version_citations(content: &str, bc_id: &str) -> Vec<(St
     let mut citations = Vec::new();
     // skip_section: true when inside a named ## section that is NOT a target section.
     //
-    // F-P2-001 fix: initialize to `has_headings` rather than `false`.
-    // - For content WITH `## ` headings (real story files): start skip_section=true so
-    //   preamble (YAML frontmatter body, prose before first heading) is NOT scanned.
-    //   The scanner enters a scannable section only after a target `## ` heading.
-    // - For content WITHOUT `## ` headings (simple unit-test fixtures): preserve
-    //   backward-compat — start skip_section=false so the entire content is scanned.
-    //
-    // BC-5.39.010 PC13: scan confined to ^## Behavioral Contracts and ^## Token Budget.
-    let has_headings = content.lines().any(|l| l.starts_with("## "));
-    let mut skip_section = has_headings;
+    // F-P2-001 fix: initialize to `true` unconditionally.
+    // BC-5.39.010 PC13 (v1.3+): scan confined to ^## Behavioral Contracts and
+    // ^## Token Budget ONLY. Content before the first target heading — YAML frontmatter
+    // body, preamble prose, any line outside a scoped section — must NOT be scanned.
+    // A file with zero ## headings contains zero scannable sections; correct output is
+    // zero citations. Initializing to false inverts this guarantee and reintroduces the
+    // unbounded-scan regression PC13 v1.3 was introduced to prevent.
+    let mut skip_section = true;
 
     for (line_num, line) in content.lines().enumerate() {
         // Detect ## heading and update section context

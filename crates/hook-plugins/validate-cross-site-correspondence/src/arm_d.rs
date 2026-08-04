@@ -1,5 +1,15 @@
 //! arm_d.rs — Class D: finding-ID namespace format advisory.
 //!
+//! **[DEFERRED v1.6 — Class D]**: BC-5.39.010 v1.6 (D-953) descopes Class D.
+//! This module is unreachable from `lib.rs::on_post_tool_use` — `dispatch::is_cycle_artifact`
+//! always returns `None`, the arm_d dispatch block in `lib.rs` has been removed, and
+//! `.factory/cycles/` was removed from `path_allow` in `hooks-registry.toml`.
+//!
+//! The module is **retained intact** for S-21.08 Phase 2 re-enablement of Class D.
+//! To re-enable: restore `is_cycle_artifact` body in `dispatch.rs`, add back the
+//! `if let Some(kind) = cycle_kind { arm_d::... }` dispatch block in `lib.rs`, and
+//! add `.factory/cycles/` back to `path_allow`. Do NOT delete this module.
+//!
 //! Pure-core module (ADR-035 §Decision 1): operates on already-read content.
 //! ALWAYS returns `HookResult::Continue` — Class D is advisory-only (BC-5.39.010
 //! invariant 6). Advisories are emitted via `host::log_warn` in `lib.rs`.
