@@ -22773,5 +22773,5 @@ Burst-log Block 2 adversary verdict (NOT-CLEAN · B3/H7/M5/L3 = 18 findings · h
 - O-P2-01 through O-P2-04: persisted to adversary-pass-2.md §4
 
 **factory-artifacts commits (this burst — TD-VSDD-053 single-commit):**
-- Single-commit: TBD (SHA-patch follow-up per D-447(c)+D-449(e))
+- Single-commit: `9cf5c2d0` — `cycle(S-21.07): adversary pass-2 record — NOT-CLEAN B3/H7/M5/L3; root cause NOT closed`
 
