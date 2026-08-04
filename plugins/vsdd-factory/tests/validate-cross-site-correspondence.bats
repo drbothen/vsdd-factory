@@ -757,6 +757,11 @@ _assert_plugin_ran_not_crashed() {
 # ---------------------------------------------------------------------------
 
 @test "AC-012: Closes: D-944 in burst-log produces exit code 0 (no advisory)" {
+  # [DEFERRED v1.6 — Class D] BC-5.39.010 v1.6 defers Class D entirely.
+  # is_cycle_artifact() will return None after Class D removal; burst-log.md writes
+  # become unclassified → Continue (no Class D advisory arm runs).
+  # Restore this test when Class D is re-implemented in a future wave.
+  skip "[DEFERRED v1.6 — Class D] burst-log.md unclassified after Class D arm removal; test preserved per POLICY 1 for future re-activation"
   _require_artifacts
   _load_fixture "d-clean-tokens"
   _write_registry
@@ -771,6 +776,10 @@ _assert_plugin_ran_not_crashed() {
 }
 
 @test "AC-012: excluded-namespace tokens produce exit code 0 AND no advisory in log" {
+  # [DEFERRED v1.6 — Class D] BC-5.39.010 v1.6 defers Class D entirely.
+  # Class D advisory arm removed; burst-log.md writes are unclassified → Continue.
+  # Restore this test when Class D is re-implemented in a future wave.
+  skip "[DEFERRED v1.6 — Class D] burst-log.md unclassified after Class D arm removal; test preserved per POLICY 1 for future re-activation"
   # Strengthened: also verifies NO advisory is emitted for excluded-namespace tokens.
   # First AC-012 tests only exit code; this test additionally checks the dispatcher log
   # to confirm no spurious `plugin.log warn` record was emitted.
@@ -806,6 +815,10 @@ _assert_plugin_ran_not_crashed() {
 # ---------------------------------------------------------------------------
 
 @test "AC-013 MUTANT: B01 in burst-log Closes produces advisory in log (exit code 0, not 2)" {
+  # [DEFERRED v1.6 — Class D] BC-5.39.010 v1.6 defers Class D entirely.
+  # Class D advisory arm removed; burst-log.md writes are unclassified → Continue.
+  # Restore when Class D is re-implemented.
+  skip "[DEFERRED v1.6 — Class D] burst-log.md unclassified after Class D arm removal; test preserved per POLICY 1 for future re-activation"
   _require_artifacts
   _load_fixture "d-non-f-token"
   _write_registry
@@ -838,6 +851,9 @@ _assert_plugin_ran_not_crashed() {
 }
 
 @test "AC-013 CONTROL: only F- tokens in burst-log Closes produces exit code 0" {
+  # [DEFERRED v1.6 — Class D] BC-5.39.010 v1.6 defers Class D entirely.
+  # Restore when Class D is re-implemented.
+  skip "[DEFERRED v1.6 — Class D] burst-log.md unclassified after Class D arm removal; test preserved per POLICY 1 for future re-activation"
   _require_artifacts
   _load_fixture "d-all-f-token"
   _write_registry
@@ -857,6 +873,10 @@ _assert_plugin_ran_not_crashed() {
 # ---------------------------------------------------------------------------
 
 @test "AC-014: P45-001 in old L-EDP1 block not flagged (positional exclusion)" {
+  # [DEFERRED v1.6 — Class D] BC-5.39.010 v1.6 defers Class D entirely.
+  # is_cycle_artifact() returns None after removal; lessons.md writes are unclassified → Continue.
+  # Restore when Class D is re-implemented.
+  skip "[DEFERRED v1.6 — Class D] lessons.md unclassified after Class D arm removal; test preserved per POLICY 1 for future re-activation"
   _require_artifacts
   _load_fixture "d-historical-excluded"
   _write_registry
@@ -1072,7 +1092,7 @@ _assert_plugin_ran_not_crashed() {
 
 # ---------------------------------------------------------------------------
 # T-045: Class E1 — 15-byte last_amended format accepted (no spurious advisory)
-# Fixture: e1-15-byte-last-amended (VP-039; version "2"; last_amended "2026-07-30 (v2)")
+# Fixture: e1-15-byte-last-amended (VP-9999-test; version "2"; last_amended "2026-07-30 (v2)")
 # Isolation strategy: VP file write is used (NOT a BC file write) because VP files do
 # NOT trigger Arm A1 (A1 is BC-file-only). Arm A1 can't parse single-integer versions
 # like "v2" in BC-INDEX (extract_version_token requires vN.N format). Using a VP file
@@ -1080,6 +1100,7 @@ _assert_plugin_ran_not_crashed() {
 # F-S2107-P1C-014: extract_last_amended_outer_version `if len < 17 { return None }`
 #   → 15-byte "2026-07-30 (v2)" → None → advisory "unparseable format" fires.
 # BC-5.39.010 v1.3 §E1: YYYY-MM-DD (vN) with single-digit outer version is valid.
+# Fixture renamed: VP-039.md → VP-9999-test.md (VP-039 is a live corpus ID; F-P2-corpus-hygiene).
 # ---------------------------------------------------------------------------
 
 @test "T-045 CONTROL: 15-byte last_amended 2026-07-30 (v2) produces no advisory (exit 0)" {
@@ -1088,11 +1109,12 @@ _assert_plugin_ran_not_crashed() {
   _write_registry
 
   local envelope
-  # VP-039; version "2"; last_amended "2026-07-30 (v2)" = 15 bytes.
+  # VP-9999-test; version "2"; last_amended "2026-07-30 (v2)" = 15 bytes.
   # VP files skip Arm A1 entirely — only Class E runs. This isolates the 15-byte E1 check.
   # After fix: len threshold lowered → Some("2") extracted → "2"=="2" → no E1 advisory → exit 0
   # F-S2107-P1C-014 RED GATE: len < 17 → None → advisory fires → log has warn record → FAILS
-  envelope="$(_post_write_event '.factory/specs/verification-properties/VP-039.md')"
+  # Fixture uses VP-9999-test.md (non-live ID) to avoid corpus-churn pollution.
+  envelope="$(_post_write_event '.factory/specs/verification-properties/VP-9999-test.md')"
   _run_dispatcher "$envelope"
 
   _assert_plugin_ran_not_crashed
@@ -1109,4 +1131,72 @@ _assert_plugin_ran_not_crashed() {
       | grep '"type":"plugin.log"' | grep '"level":"warn"' | head -3
     false
   fi
+}
+
+# ---------------------------------------------------------------------------
+# T-046: Class E1 positive-coverage mutant — VP file version/last_amended mismatch
+# Fixture: e1-vp-version-mismatch (VP-9999-test; version "1.7"; last_amended "2026-07-30 (v1.6)")
+# F-P2-013: T-045 only asserts exit 0 + absence of warn advisory. A mutation where
+# Class E never ran (or E1 was disabled) would still pass T-045. T-046 adds a MUTANT
+# that asserts exit 2 when there IS a version/last_amended mismatch.
+# Isolation: VP file → no Arm A1 trigger → pure Class E1 isolation.
+# RED GATE: before fix (Class E1 not yet implemented): plugin.crashed → T-046 FAILS.
+# Post-fix: E1 detects "1.7" ≠ "1.6" → violation → exit 2 → PASSES.
+# ---------------------------------------------------------------------------
+
+@test "T-046 MUTANT (F-P2-013): VP file version/last_amended mismatch produces exit 2" {
+  _require_artifacts
+  _load_fixture "e1-vp-version-mismatch"
+  _write_registry
+
+  local envelope
+  # VP-9999-test: version "1.7", last_amended "2026-07-30 (v1.6)".
+  # extract_last_amended_outer_version("2026-07-30 (v1.6)") → "1.6".
+  # "1.7" ≠ "1.6" → Class E1 violation → exit 2.
+  # VP file → no Arm A1 (A1 is BC-file-only). Class E1 runs in isolation.
+  envelope="$(_post_write_event '.factory/specs/verification-properties/VP-9999-test.md')"
+  _run_dispatcher "$envelope"
+
+  _assert_plugin_ran_not_crashed
+  _assert_exit 2 "[Class E1]"
+}
+
+# ---------------------------------------------------------------------------
+# T-047: PC40 — story with volatile input-hash inputs emits advisory, exits 0
+# Fixture: b1-volatile-input (S-21.07-test: input-hash + inputs: [.factory/STATE.md];
+#   STORY-INDEX.md with MISMATCHED hash to prove PC40 suppresses the comparison)
+# BC-5.39.010 v1.6 PC40: volatile inputs → advisory + Continue, NOT three-way comparison.
+# RED GATE: without PC40 fix, arm B1 runs three-way comparison → finds mismatch → exit 2.
+# Post-fix: volatile inputs detected → advisory → exit 0.
+# ---------------------------------------------------------------------------
+
+@test "T-047 (PC40): story with volatile input path emits advisory and exits 0 not 2" {
+  _require_artifacts
+  _load_fixture "b1-volatile-input"
+  _write_registry
+
+  local envelope
+  # S-21.07-test.md: input-hash abc123; inputs: [".factory/STATE.md"] (volatile).
+  # STORY-INDEX.md: S-21.07 catalog row has hash xyz789 (≠ abc123) — deliberate mismatch
+  # to prove PC40 suppresses the comparison (without PC40, this would produce exit 2).
+  envelope="$(_post_write_event '.factory/stories/S-21.07-test.md')"
+  _run_dispatcher "$envelope"
+
+  _assert_plugin_ran_not_crashed
+  # PC40: volatile input path → advisory + Continue, NOT block.
+  # Without fix: three-way comparison runs → B1≠B2 → exit 2. With fix: exit 0.
+  _assert_exit 0
+
+  # Advisory mentioning volatile must be present in the dispatcher log.
+  local log; log="$(_plugin_log)"
+  grep '"plugin_name":"validate-cross-site-correspondence"' "$log" 2>/dev/null \
+    | grep '"type":"plugin.log"' \
+    | grep '"level":"warn"' \
+    | grep -qi 'volatile' || {
+      echo "FAIL: expected advisory mentioning 'volatile' not found in dispatcher log"
+      echo "  PC40: story with volatile inputs must emit advisory + Continue (BC-5.39.010 v1.6)"
+      grep '"plugin_name":"validate-cross-site-correspondence"' "$log" \
+        | grep '"type":"plugin.log"' | head -5 || echo "  (no plugin.log records)"
+      false
+    }
 }

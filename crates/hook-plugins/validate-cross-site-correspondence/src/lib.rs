@@ -609,4 +609,57 @@ mod tests {
             Red Gate: len < 17 guard rejects 15-byte strings → None → assertion FAILS"
         );
     }
+
+    // -----------------------------------------------------------------------
+    // F-P1C-016 / AC-018: invariant-7 multi-arm aggregation — Rust unit assertion.
+    //
+    // BC-5.39.010 invariant 7: arms MUST NOT suppress each other.
+    // When both A1 and E1 produce violations, ALL violations must appear in the
+    // combined block message (postcondition 23: combined violations → single block).
+    //
+    // Previously: AC-018 had bats-only coverage. This test adds Rust-level assertion.
+    //
+    // COVERAGE TEST (not RED GATE): combine_violations_into_block is already correctly
+    // implemented. This test passes immediately — it adds Rust-level regression coverage
+    // for AC-018. The implementation pre-existed; the test coverage gap is the finding.
+    // -----------------------------------------------------------------------
+
+    /// F-P1C-016 / AC-018: both A1 and E1 violations appear in combined block.
+    ///
+    /// COVERAGE TEST (immediately GREEN): combine_violations_into_block already works.
+    /// Adding Rust-level assertion per F-P1C-016 (previously bats-only coverage).
+    #[test]
+    fn test_BC_5_39_010_invariant_7_ac018_multi_arm_violations_both_in_combined_block() {
+        // Two violations from different arms (simulating A1 + E1 co-firing on a BC write)
+        let a1_v = Violation {
+            description: "validate-cross-site-correspondence [Class A Arm1]: \
+                BC-5.39.010 INDEX stale (1.5 ≠ 1.6)"
+                .to_string(),
+        };
+        let e1_v = Violation {
+            description: "validate-cross-site-correspondence [Class E1]: \
+                version '1.6' ≠ last_amended outer '1.5'"
+                .to_string(),
+        };
+        let result =
+            combine_violations_into_block("validate-cross-site-correspondence", &[a1_v, e1_v]);
+        match result {
+            HookResult::Block { reason } => {
+                assert!(
+                    reason.contains("Class A Arm1"),
+                    "A1 violation must appear in combined block. \
+                    BC-5.39.010 invariant 7 / AC-018 / F-P1C-016. reason: {reason}"
+                );
+                assert!(
+                    reason.contains("Class E1"),
+                    "E1 violation must appear in combined block. \
+                    BC-5.39.010 invariant 7 / AC-018 / F-P1C-016. reason: {reason}"
+                );
+            }
+            _ => panic!(
+                "two violations must produce HookResult::Block, not Continue. \
+                BC-5.39.010 invariant 7 / postcondition 23 (F-P1C-016)."
+            ),
+        }
+    }
 }

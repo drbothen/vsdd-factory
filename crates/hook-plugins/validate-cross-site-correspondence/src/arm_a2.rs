@@ -587,6 +587,67 @@ mod tests {
     // and a version token) → 3 citations → assert_eq!(citations.len(), 1) FAILS.
     // -----------------------------------------------------------------------
 
+    // -----------------------------------------------------------------------
+    // F-P2-001 (BLOCKER): extract_story_bc_version_citations — skip_section leading-edge.
+    //
+    // Bug: arm_a2.rs line 96 initializes `skip_section = false`. Under this init,
+    // ALL content before the first `## ` heading (YAML frontmatter body, preamble
+    // prose) is in the scan window. Any preamble line that contains a pipe, the
+    // bc_id, and a version token is spuriously picked up as a BC version citation.
+    //
+    // Adversary F-P2-001 orch-verified: S-21.04 has 20 occurrences of BC-6.26.001
+    // in frontmatter; line 11 of S-21.04 contains a pipe → false citation → block.
+    //
+    // BC-5.39.010 PC13: scan must be confined to ^## Behavioral Contracts and
+    // ^## Token Budget sections only. skip_section MUST be initialized to TRUE.
+    // -----------------------------------------------------------------------
+
+    /// F-P2-001 (BLOCKER): preamble before any ## heading must not be scanned.
+    ///
+    /// RED GATE: `skip_section = false` → preamble line is in scan window →
+    /// "Cross-reference note | BC-5.39.010 | see version v1.0 |" yields citation "1.0" →
+    /// total 2 citations → `assert_eq!(citations.len(), 1)` FAILS.
+    /// After fix (skip_section = true): preamble NOT scanned → 1 citation (BC section only).
+    #[test]
+    fn test_BC_5_39_010_arm_a2_frontmatter_preamble_not_scanned_skip_section_true() {
+        // Content with a preamble line (before any ## heading) that contains
+        // a pipe + bc_id + version token. Should produce ZERO preamble citations.
+        let content = concat!(
+            "---\n",
+            "behavioral_contracts: [BC-5.39.010]\n",
+            "version: 1.5\n",
+            "---\n",
+            "\n",
+            // Preamble line: has pipe + BC-5.39.010 + version token v1.0
+            // skip_section=false (BUG): SCANNED → spurious citation "1.0"
+            // skip_section=true  (FIX): NOT scanned → no citation from preamble
+            "Cross-reference note | BC-5.39.010 | see version v1.0 for prior schema |\n",
+            "\n",
+            "## Behavioral Contracts\n",
+            "\n",
+            "| BC-5.39.010 | WASM hook gate | v1.5 | AC-001 |\n",
+        );
+        let citations = extract_story_bc_version_citations(content, "BC-5.39.010");
+        // After fix: exactly 1 citation from ## Behavioral Contracts section row.
+        // Currently (skip_section=false): 2 citations — preamble "1.0" + BC section "1.5".
+        assert_eq!(
+            citations.len(),
+            1,
+            "preamble lines before any ## heading must NOT produce BC citations. \
+            BC-5.39.010 PC13: skip_section must be initialized to true (F-P2-001). \
+            RED GATE: skip_section=false → {} citations (preamble + BC section). \
+            Expected: 1 (BC section only). Citations: {:?}",
+            citations.len(),
+            citations
+        );
+        if citations.len() == 1 {
+            assert_eq!(
+                citations[0].1, "1.5",
+                "only the Behavioral Contracts table row version (1.5) must be returned"
+            );
+        }
+    }
+
     /// T-049 / F-S2107-P1B-001: Edge Cases rows must not be scanned.
     ///
     /// RED GATE: unbounded scan returns ≥3 citations (BC table + EC-002 + EC-015).

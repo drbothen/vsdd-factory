@@ -367,4 +367,135 @@ mod tests {
             "canonical story file with S-XX.YY basename must be classified as story file"
         );
     }
+
+    // -----------------------------------------------------------------------
+    // F-P2-003 + F-P2-008 (BLOCKER): VP-INDEX.md admitted by is_frontmatter_parity_target.
+    //
+    // Bug: vp_filename_ok uses `f.starts_with("VP-") && f.ends_with(".md")` which
+    // admits "VP-INDEX.md". BC-5.39.010 PC34 requires the basename to match
+    // `^VP-[0-9]+\.md$` and mandates an explicit `file_name() != "VP-INDEX.md"` guard.
+    //
+    // When VP-INDEX.md is classified as a frontmatter parity target, Class E1 runs
+    // against it. VP-INDEX.md has no `version:` or `last_amended:` frontmatter →
+    // precondition 37 fires → advisory + Continue (not blocking). But the primary-read
+    // still fires and the spurious arm call wastes cycles and may emit noise.
+    //
+    // F-P2-003 and F-P2-008 both trace to the same root (flat VP path + INDEX guard).
+    // -----------------------------------------------------------------------
+
+    /// F-P2-003+F-P2-008 (BLOCKER): VP-INDEX.md must NOT be a frontmatter parity target.
+    ///
+    /// RED GATE: `f.starts_with("VP-") && f.ends_with(".md")` → true for "VP-INDEX.md" →
+    /// is_frontmatter_parity_target returns true → `assert!(!result)` FAILS.
+    /// After fix (guard `file_name() != "VP-INDEX.md"` OR digit-anchored regex): returns false.
+    #[test]
+    fn test_BC_5_39_010_dispatch_vp_index_excluded_from_class_e() {
+        let result =
+            is_frontmatter_parity_target(".factory/specs/verification-properties/VP-INDEX.md");
+        assert!(
+            !result,
+            "VP-INDEX.md must NOT be classified as a frontmatter parity target. \
+            BC-5.39.010 PC34: explicit VP-INDEX.md guard required. \
+            F-P2-003+F-P2-008: starts_with('VP-')&&ends_with('.md') admits VP-INDEX.md. \
+            RED GATE: current check returns true."
+        );
+    }
+
+    /// F-P2-003+F-P2-008 complement: canonical VP file IS classified as parity target.
+    ///
+    /// Regression guard: verifies the guard does not over-exclude real VP files.
+    /// This test PASSES in Red Gate (is_frontmatter_parity_target already returns true for
+    /// canonical VP files).
+    #[test]
+    fn test_BC_5_39_010_dispatch_vp_canonical_file_accepted_as_class_e_target() {
+        let result =
+            is_frontmatter_parity_target(".factory/specs/verification-properties/VP-039.md");
+        assert!(
+            result,
+            "canonical VP file VP-039.md must be classified as a frontmatter parity target \
+            (Class E regression guard after VP-INDEX.md exclusion fix)"
+        );
+    }
+
+    // -----------------------------------------------------------------------
+    // F-P2-011 (HIGH): is_story_file must require numeric section.subsection ID.
+    //
+    // Bug: `filename.starts_with("S-")` is too broad — admits S-README.md, S-ARCH.md,
+    // S-TODO.md, S-NOTES.md, and any other `.md` file starting with "S-" that is not
+    // a story. BC-5.39.010 PC9: story basename must match `^S-[0-9]+\.[0-9]+.*\.md$`.
+    // -----------------------------------------------------------------------
+
+    /// F-P2-011 (HIGH): S-README.md must not be classified as a story file.
+    ///
+    /// RED GATE: `"S-README.md".starts_with("S-")` → true → is_story_file returns true
+    /// → `assert!(!result)` FAILS.
+    /// After fix (regex guard `^S-[0-9]+\.[0-9]+`): "S-README.md" has no numeric part
+    /// → returns false → PASSES.
+    #[test]
+    fn test_BC_5_39_010_dispatch_story_file_s_readme_rejected_requires_numeric_id() {
+        let result = is_story_file(".factory/stories/S-README.md");
+        assert!(
+            !result,
+            "S-README.md must NOT be classified as a story file. \
+            PC9: basename must match ^S-[0-9]+\\.[0-9]+.*\\.md$ (has numeric section+subsection). \
+            F-P2-011: starts_with('S-') too broad — admits S-README, S-ARCH, etc. \
+            RED GATE: current check returns true."
+        );
+    }
+
+    // -----------------------------------------------------------------------
+    // Class D deferral (BC-5.39.010 v1.6): is_cycle_artifact MUST return None
+    // for all paths once the Class D dispatch arm is removed.
+    //
+    // F-P2-007: invariant-6 I/O-BLOCK vs content-advisory split.
+    // Resolution per BC-5.39.010 v1.6: Class D is DEFERRED. The implementer
+    // removes the is_cycle_artifact dispatch, run_arm_d, and .factory/cycles/
+    // from path_allow. After removal, cycle artifact writes are unclassified →
+    // Continue (no primary read attempted).
+    //
+    // The EXISTING tests test_BC_5_39_010_dispatch_burst_log_detected and
+    // test_BC_5_39_010_dispatch_lessons_md_detected assert Some(BurstLog/Lessons).
+    // The implementer must update those tests to assert None (or DEFERRED-skip them)
+    // when removing the Class D arm. Both cannot coexist with these new tests.
+    // -----------------------------------------------------------------------
+
+    /// [DEFERRED v1.6 — Class D] burst-log.md must return None after Class D removal.
+    ///
+    /// RED GATE: is_cycle_artifact currently returns Some(BurstLog) →
+    /// `result.is_none()` is false → assertion FAILS.
+    /// After fix (remove is_cycle_artifact cycle-artifact dispatch): returns None.
+    #[test]
+    fn test_BC_5_39_010_dispatch_class_d_deferred_burst_log_returns_none() {
+        // BC-5.39.010 v1.6 Class D DEFERRED: is_cycle_artifact must return None.
+        // Cycle artifact writes become unclassified → no primary read → Continue.
+        // F-P2-007 resolution: Class D arm removed → is_cycle_artifact → None for all paths.
+        let result = is_cycle_artifact(
+            ".factory/cycles/v1.0-feature-engine-discipline-pass-1/burst-log.md",
+        );
+        assert!(
+            result.is_none(),
+            "burst-log.md must NOT classify as cycle artifact after Class D deferral \
+            (BC-5.39.010 v1.6 Class D DEFERRED). \
+            F-P2-007 resolution: is_cycle_artifact dispatch removed. \
+            RED GATE: currently returns Some(BurstLog)."
+        );
+    }
+
+    /// [DEFERRED v1.6 — Class D] lessons.md must return None after Class D removal.
+    ///
+    /// RED GATE: is_cycle_artifact currently returns Some(Lessons) →
+    /// `result.is_none()` is false → assertion FAILS.
+    /// After fix: returns None → PASSES.
+    #[test]
+    fn test_BC_5_39_010_dispatch_class_d_deferred_lessons_returns_none() {
+        let result = is_cycle_artifact(
+            ".factory/cycles/v1.0-feature-engine-discipline-pass-1/lessons.md",
+        );
+        assert!(
+            result.is_none(),
+            "lessons.md must NOT classify as cycle artifact after Class D deferral \
+            (BC-5.39.010 v1.6 Class D DEFERRED). \
+            RED GATE: currently returns Some(Lessons)."
+        );
+    }
 }

@@ -173,6 +173,94 @@ no-behavior-change cleanup when touching frontmatter.rs for other fixes.
 
 ---
 
+---
+
+## Adversary Pass-2 Fix Burst — RED GATE Tests (test-writer)
+
+**Date:** 2026-08-04
+**BC:** BC-5.38.001 (Red Gate: all tests must fail before implementation)
+**Cycle:** v1.0-brownfield-backfill / S-21.07 adversary pass-2 fix burst
+**Root cause closure:** no test reads a real `.factory/` corpus file (spec-describes-imagined-shape class)
+
+Red Gate run timestamp: 2026-08-04
+Command: `cargo test -p validate-cross-site-correspondence`
+Result: **97 passed; 7 failed** (all new tests, all failing for correct reasons)
+Bats: converted 5 Class D tests to DEFERRED skip; added T-046 mutant + T-047 PC40
+
+### Rust Unit Tests — RED GATE Results (Pass-2 Fix Burst)
+
+#### arm_a1.rs — 1 new failing test (F-P2-002)
+
+| Test | Assertion | Red Gate Failure (verbatim) |
+|------|-----------|----------------------------|
+| `test_BC_5_39_010_arm_a1_cross_reference_in_later_row_own_row_version_wins` | `assert_eq!(result, Some("1.7"))` | `assertion 'left == right' failed: extract_bc_index_version must anchor on first cell only. BC-1.17.001 own row is v1.7; later BC-2.07.001 row mentions BC-1.17.001 in a non-first cell with v1.6. LAST-wins + unanchored contains returns '1.6' (WRONG). F-P2-002 RED GATE. Current: Some("1.6") — left: Some("1.6") right: Some("1.7")` |
+
+#### arm_a2.rs — 1 new failing test (F-P2-001)
+
+| Test | Assertion | Red Gate Failure (verbatim) |
+|------|-----------|----------------------------|
+| `test_BC_5_39_010_arm_a2_frontmatter_preamble_not_scanned_skip_section_true` | `assert_eq!(citations.len(), 1)` | `assertion 'left == right' failed: preamble lines before any ## heading must NOT produce BC citations. BC-5.39.010 PC13: skip_section must be initialized to true (F-P2-001). RED GATE: skip_section=false → 2 citations (preamble + BC section). Expected: 1 (BC section only). Citations: [("table row 6", "1.0"), ("table row 10", "1.5")] — left: 2 right: 1` |
+
+#### arm_b.rs — 1 new failing test (PC40)
+
+| Test | Assertion | Red Gate Failure (verbatim) |
+|------|-----------|----------------------------|
+| `test_BC_5_39_010_arm_b1_pc40_volatile_input_detection_required` | `panic!()` stub | `PC40 NOT YET IMPLEMENTED: arm_b.rs missing is_volatile_path() and parse_story_volatile_inputs(). IMPLEMENTER: add both functions, update run_arm_b1 to emit advisory+Continue for volatile inputs, then replace this panic!() with real assertions. BC-5.39.010 v1.6 PC40.` |
+
+#### dispatch.rs — 4 new failing tests (F-P2-003, F-P2-011, F-P2-007/Class D)
+
+| Test | Assertion | Red Gate Failure (verbatim) |
+|------|-----------|----------------------------|
+| `test_BC_5_39_010_dispatch_vp_index_excluded_from_class_e` | `assert!(!is_frontmatter_parity_target("...VP-INDEX.md"))` | `VP-INDEX.md must NOT be classified as a frontmatter parity target. BC-5.39.010 PC34: explicit VP-INDEX.md guard required. F-P2-003+F-P2-008: starts_with('VP-')&&ends_with('.md') admits VP-INDEX.md. RED GATE: current check returns true.` |
+| `test_BC_5_39_010_dispatch_story_file_s_readme_rejected_requires_numeric_id` | `assert!(!is_story_file("...S-README.md"))` | `S-README.md must NOT be classified as a story file. PC9: basename must match ^S-[0-9]+\.[0-9]+.*\.md$. F-P2-011: starts_with('S-') too broad. RED GATE: current check returns true.` |
+| `test_BC_5_39_010_dispatch_class_d_deferred_burst_log_returns_none` | `assert!(result.is_none())` | `burst-log.md must NOT classify as cycle artifact after Class D deferral (BC-5.39.010 v1.6 Class D DEFERRED). F-P2-007 resolution: is_cycle_artifact dispatch removed. RED GATE: currently returns Some(BurstLog).` |
+| `test_BC_5_39_010_dispatch_class_d_deferred_lessons_returns_none` | `assert!(result.is_none())` | `lessons.md must NOT classify as cycle artifact after Class D deferral (BC-5.39.010 v1.6 Class D DEFERRED). RED GATE: currently returns Some(Lessons).` |
+
+#### lib.rs — 1 new PASSING test (F-P1C-016, coverage only)
+
+| Test | Status | Note |
+|------|--------|------|
+| `test_BC_5_39_010_invariant_7_ac018_multi_arm_violations_both_in_combined_block` | PASSES immediately | Coverage test — `combine_violations_into_block` already correct. F-P1C-016 was a coverage gap, not an implementation bug. Rust-level assertion added per finding. |
+
+### Bats Tests — Changes (Pass-2 Fix Burst)
+
+#### Class D DEFERRED conversions (5 tests → skip with POLICY 1 preserve)
+
+All five Class D bats tests (AC-012 ×2, AC-013 ×2, AC-014 ×1) converted to `skip "[DEFERRED v1.6 — Class D]..."`. Test IDs preserved per POLICY 1 append-only — bodies retained for future re-activation when Class D is re-implemented.
+
+#### T-045 fixture rename (corpus-hygiene)
+
+T-045 envelope changed from `.factory/specs/verification-properties/VP-039.md` to
+`.factory/specs/verification-properties/VP-9999-test.md`. New `VP-9999-test.md` fixture
+created at `e1-15-byte-last-amended/factory/specs/verification-properties/VP-9999-test.md`.
+VP-039 is a live corpus VP ID that changes independently; using it as a fixture risks
+flakiness from corpus churn. VP-9999-test is a stable non-live fixture ID.
+
+#### T-046 MUTANT — F-P2-013 positive-coverage mutant
+
+New bats test asserting exit 2 when VP file has version ≠ last_amended. Requires fixture
+`e1-vp-version-mismatch` with VP-9999-test.md (`version: "1.7"`, `last_amended: "2026-07-30 (v1.6)"`).
+RED GATE: before fix (Class E1 not yet implemented), `_assert_plugin_ran_not_crashed` fails
+(stub panics). Post-fix: E1 detects "1.7" ≠ "1.6" → violation → exit 2.
+
+#### T-047 (PC40) — volatile-input story exits 0
+
+New bats test asserting exit 0 when story has `inputs: [".factory/STATE.md"]` AND
+STORY-INDEX has a MISMATCHED hash. RED GATE: without PC40 fix, three-way comparison runs
+→ mismatch → exit 2. With fix: volatile input → advisory + Continue → exit 0.
+Requires fixture `b1-volatile-input` (created).
+
+### New Fixture Files (Pass-2 Fix Burst)
+
+| Fixture Path | Purpose |
+|-------------|---------|
+| `e1-15-byte-last-amended/factory/specs/verification-properties/VP-9999-test.md` | T-045 fixture rename (non-live VP ID) |
+| `e1-vp-version-mismatch/factory/specs/verification-properties/VP-9999-test.md` | T-046 E1 mutant (version "1.7" vs last_amended v1.6) |
+| `b1-volatile-input/factory/stories/S-21.07-test.md` | T-047 PC40 story with volatile input |
+| `b1-volatile-input/factory/stories/STORY-INDEX.md` | T-047 PC40 STORY-INDEX with mismatched hash |
+
+---
+
 ## Finding Coverage
 
 | Finding | Rust Unit Test | Bats Test |

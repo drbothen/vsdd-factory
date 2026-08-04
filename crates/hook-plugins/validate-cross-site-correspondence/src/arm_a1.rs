@@ -528,6 +528,50 @@ mod tests {
         );
     }
 
+    // -----------------------------------------------------------------------
+    // F-P2-002 (BLOCKER): extract_bc_index_version — unanchored first-cell lookup.
+    //
+    // Bug: `line.contains(bc_id)` matches ANY row that mentions bc_id, not just the
+    // row whose FIRST cell IS bc_id. Combined with LAST-wins semantics, a later row
+    // that merely cites bc_id in a non-first cell (e.g., a cross-reference in the
+    // Title or Depends column) overwrites the correct row's version.
+    //
+    // ORCH-VERIFIED: BC-INDEX row for BC-1.17.001 (own row) has v1.7; row for BC-2.07.001
+    // mentions "BC-1.17.001" in its Title column and has v1.6. LAST-wins + contains picks
+    // the later row → returns "1.6" → spurious violation on every BC-1.17.001 write.
+    //
+    // Fix: anchor on first pipe-cell — only rows whose first cell trims to bc_id match.
+    // -----------------------------------------------------------------------
+
+    /// F-P2-002 (BLOCKER): own-row version wins over cross-reference in later row.
+    ///
+    /// RED GATE: `line.contains("BC-1.17.001")` matches BOTH rows.
+    /// LAST-wins picks BC-2.07.001 row's last version token "1.6" → returns Some("1.6").
+    /// `assert_eq!(result, Some("1.7"))` FAILS.
+    /// After fix (first-cell anchor): only BC-1.17.001's own row matches → "1.7" → PASSES.
+    #[test]
+    fn test_BC_5_39_010_arm_a1_cross_reference_in_later_row_own_row_version_wins() {
+        // BC-INDEX with two rows:
+        //   row 1: BC-1.17.001 own row — v1.7 in version column (first cell IS bc_id)
+        //   row 2: BC-2.07.001 row — mentions "BC-1.17.001" in Title cell (non-first) with v1.6
+        // Expected: extract_bc_index_version("BC-1.17.001", ...) → Some("1.7")
+        let index = concat!(
+            "---\ndocument_type: bc-index\n---\n\n",
+            "| BC-1.17.001 | Title A: session-replay gate | draft | CAP-017 | S-14.03 | v1.7 |\n",
+            "| BC-2.07.001 | Title B: depends on BC-1.17.001 parity | draft | CAP-018 | S-14.04 | v1.6 |\n",
+        );
+        let result = extract_bc_index_version("BC-1.17.001", index.as_bytes());
+        assert_eq!(
+            result,
+            Some("1.7".to_string()),
+            "extract_bc_index_version must anchor on first cell only. \
+            BC-1.17.001 own row is v1.7; later BC-2.07.001 row mentions BC-1.17.001 \
+            in a non-first cell with v1.6. LAST-wins + unanchored contains returns \
+            '1.6' (WRONG). F-P2-002 RED GATE. Current: {:?}",
+            result
+        );
+    }
+
     /// AC-019: Read cap constant values match the spec (BC-5.39.010 §AC-019).
     ///
     /// This test verifies the constant VALUES are correct per spec. It does NOT verify

@@ -858,4 +858,56 @@ mod tests {
             Red Gate: naive contains('S-18.01') matches S-18.00 row first → wrong hash (F-S2107-P1B-008)"
         );
     }
+
+    // -----------------------------------------------------------------------
+    // PC40 (BC-5.39.010 v1.6 amendment): volatile-input precondition.
+    //
+    // When a story has `input-hash:` AND `inputs:` containing volatile paths
+    // (STATE.md, INDEX files, cycles/ artifacts), Arm B1 must emit advisory +
+    // Continue rather than proceeding with the three-way comparison.
+    //
+    // Volatile paths: .factory/STATE.md, .factory/**/BC-INDEX.md,
+    // .factory/**/VP-INDEX.md, .factory/**/STORY-INDEX.md, .factory/cycles/**
+    //
+    // IMPLEMENTATION REQUIREMENT:
+    //   1. Add `pub fn is_volatile_path(path: &str) -> bool` to arm_b.rs.
+    //   2. Add `pub fn parse_story_volatile_inputs(content: &str) -> Vec<String>`
+    //      that extracts the `inputs:` frontmatter YAML list.
+    //   3. Modify `run_arm_b1` to check for volatile inputs BEFORE calling
+    //      `run_arm_b1_with_index_result`; if any volatile path found, emit
+    //      advisory + return Continue (skip the three-way comparison).
+    //
+    // RED GATE strategy: test calls panic!() stub — always fails until PC40 is
+    // implemented and the test is updated to call the real functions.
+    // -----------------------------------------------------------------------
+
+    /// PC40 stub test — fails until is_volatile_path is implemented.
+    ///
+    /// RED GATE: panic!() always fails.
+    /// After fix: replace panic!() with real assertions against is_volatile_path()
+    /// and parse_story_volatile_inputs().
+    #[test]
+    fn test_BC_5_39_010_arm_b1_pc40_volatile_input_detection_required() {
+        // IMPLEMENTER: add these public functions to arm_b.rs:
+        //
+        //   pub fn is_volatile_path(path: &str) -> bool { ... }
+        //   pub fn parse_story_volatile_inputs(content: &str) -> Vec<String> { ... }
+        //
+        // Then replace this panic!() with:
+        //   assert!(is_volatile_path(".factory/STATE.md"),
+        //       ".factory/STATE.md must be volatile (PC40)");
+        //   assert!(!is_volatile_path(".factory/stories/S-21.07-test.md"),
+        //       "story file must NOT be volatile");
+        //   let story = "---\ninputs: [\".factory/STATE.md\"]\n---\n";
+        //   let inputs = parse_story_volatile_inputs(story);
+        //   assert_eq!(inputs, vec![".factory/STATE.md".to_string()]);
+        //
+        // BC-5.39.010 v1.6 PC40: volatile inputs → advisory + Continue (skip comparison).
+        panic!(
+            "PC40 NOT YET IMPLEMENTED: arm_b.rs missing is_volatile_path() and \
+            parse_story_volatile_inputs(). IMPLEMENTER: add both functions, update \
+            run_arm_b1 to emit advisory+Continue for volatile inputs, then replace \
+            this panic!() with real assertions. BC-5.39.010 v1.6 PC40."
+        );
+    }
 }
