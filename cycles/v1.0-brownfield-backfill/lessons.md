@@ -10007,3 +10007,93 @@ D-448(a) passes over this class of defect because it validates Part A correspond
 **Anchors:** D-953 (seventh spec-vs-corpus instance; measurement-hygiene rule codified); BC-5.39.010 v1.5 PC31 (wrong corpus — EDP-pass-1 instead of brownfield-backfill); F-P2-004/F-P2-005 (PC31 fifth instance, pass-2 findings); STATE.md `current_cycle: v1.0-brownfield-backfill`.
 
 **Cites:** D-953 (codified this burst); CANONICAL PRINCIPLE Rule 1 (no spec shortcuts); POLICY 4 (spec accuracy). `[spec-authoring; measurement; corpus; active-cycle; measurement-hygiene; spec-vs-corpus; seventh-instance; D-953; codified]`
+
+---
+
+### L-BB-src-dispatch-order-inverted-red-gate [process-gap] [adversarial] [D-954]
+
+**Title:** SRC Dispatch Order Error — State-Manager Runs Last; Pass-3 Adversary Was Dispatched Before State-Manager Completed Its Pass-2 Record Burst
+
+**Lesson:** The Session Resume Checkpoint (SRC) for SESSION-WRAP-2026-08-04 stated "Pass-2 fix burst pending" and listed the dispatch order as: story-writer → implementer → test-writer → devops → pass-3 adversary → state-manager. State-manager was correctly listed last. The human-approved dispatch followed this order. Result: pass-3 adversary reviewed HEAD `6854a951` (devops final commit) while state-manager's pass-2 record burst was still pending. Pass-3 adversary was working from a correct source tree, so no adversarial finding was invalidated. However, the STORY-INDEX three-way POLICY 18 disagreement (F-S2107-P3-003) was introduced by the story-writer commit that state-manager had not yet swept — state-manager's job at pass-2 record time would have been to detect and fix that three-way disagreement before the adversary reviewed. Instead, F-S2107-P3-003 became a BLOCKER in pass-3.
+
+**Generalization:** The SRC dispatch order is the source of truth for burst sequence. When state-manager is listed last in the dispatch order, any per-burst index sync (POLICY 18, 4-index bumps, STORY-INDEX row updates) that should accompany a prior-agent's commit is delayed until state-manager's turn. Any adversarial pass dispatched before state-manager's record burst runs will see the index drift that state-manager would have corrected. This is correct sequencing — but it means every adversarial pass dispatched between story-writer/implementer commits and state-manager's record burst will flag any index drift as a finding.
+
+**Prevention:** (1) Do not dispatch the adversary before state-manager's record burst completes for the pass being recorded. The SRC should sequence: ...(specialist agents)... → pass-N adversary → state-manager (record burst) → (only then) pass-N+1 adversary. (2) When the SRC lists state-manager last but an adversary pass is being dispatched, confirm that state-manager's prior record burst is COMPLETE before the adversary reads any index file (STORY-INDEX, BC-INDEX, ARCH-INDEX). (3) F-S2107-P3-003 was a direct consequence of this sequence gap — it is not a state-manager failure to sweep, but a timing gap where the adversary was dispatched before state-manager completed the prior burst's sweep.
+
+**Anchors:** D-954 (this burst; F-S2107-P3-003 REMEDIATED here); SESSION-WRAP-2026-08-04 SRC (dispatch order definition); story-writer `743553b8` (S-21.07 v1.2→v1.3 + hash 52f0bf3→9603a5b introduced; STORY-INDEX not swept at that commit); POLICY 18 three-way equality invariant; F-S2107-P3-003 BLOCKER (pass-3 adversary detected the drift).
+
+**Cites:** D-954 (codified this burst); POLICY 18 (D-923; three-way equality); POLICY 3 (state-manager runs last); CANONICAL PRINCIPLE §Companion Principle (agent routing discipline). `[process-gap; adversarial; dispatch-order; state-manager; src; policy-18; timing-gap; D-954; codified]`
+
+---
+
+### L-BB-defect-class-recurs-across-three-media [adversarial] [corpus-coverage] [D-954]
+
+**Title:** Defect Classes Persist Across Three Media — Code, Spec, and Test All Carry the Same Drift When the Root Cause Is Structural
+
+**Lesson:** F-S2107-P3-010 (HIGH; carried from F-P2-017) named 9 sites across 5 files carrying stale `BC-5.39.010 v1.2` cites plus descoped Class D documentation. Pass-2 explicitly named 5 of these sites; the fix burst corrected 2 docstrings and stopped. Pass-3 found 9 sites still wrong — spanning `lib.rs` (2 sites), `main.rs` (2 sites), `Cargo.toml` (1 site), `hooks-registry.toml` (3 sites), `tests/...bats` (2 sites). The bust made these worse: Class D was descoped while Class D remained documented as shipping in the crate's published description (`Cargo.toml:9`).
+
+**Root cause:** The fix addressed the two docstring sites the finding happened to name, not the class of all BC-version-cite sites. The pass-2 finding named 5 sites; the actual class was 9+. The right fix discipline is: when a finding names "N sites with stale X," grep the entire perimeter for ALL instances of stale X and fix all of them at once (TD-VSDD-060 sibling-site sweep).
+
+**Generalization:** When a defect class (stale version cite, stale class name, wrong arm count) is identified in a finding, the fix scope is the full class, not the named instances. Each pass an adversary finds a "this was in the finding and is still wrong" item, the next implementer will face the same class. The class never shrinks unless someone performs a systematic sweep. Partial fixes create a false convergence signal: the count drops by the number of named instances, then rises again when a new adversary reads the remaining un-named instances.
+
+**Prevention:** (1) For any finding that says "X sites with stale Y," the fix commit MUST include a grep sweep of the perimeter for ALL occurrences of stale Y and fix ALL of them. (2) TD-VSDD-060 sibling-site sweep is MANDATORY — the prior finding is not a complete enumeration; it is a lower bound. (3) Implementers must run `grep -r "stale-string" crates/ plugins/ tests/` before closing a finding. (4) If `Cargo.toml:description` describes a feature that was just descoped, that site must be updated in the same burst as the descope — it is the crate's published identity.
+
+**Anchors:** D-954 (F-S2107-P3-010 HIGH, third consecutive pass carrying this class); F-P2-017 (pass-2 first identified; 5 named sites); F-S2107-P3-010 (pass-3; 9 sites confirmed; severity elevated to HIGH from LOW); TD-VSDD-060 (sibling-site sweep mandate); `Cargo.toml:9` (crate published description advertises descoped Class D).
+
+**Cites:** D-954 (codified this burst); TD-VSDD-060 (sibling-site sweep); CANONICAL PRINCIPLE Rule 4 (AI-built defects are AI's responsibility to fix). `[adversarial; corpus-coverage; sibling-sweep; stale-cite; class-vs-instance; TD-VSDD-060; D-954; codified]`
+
+---
+
+### L-BB-latent-false-green-from-fixture-naming [testing] [adversarial] [D-954]
+
+**Title:** Latent False Green From Fixture Naming — T-038 Duplicate Test ID Inflates Pass Count and Suppresses Failure Signal
+
+**Lesson:** F-S2107-P3-018 (MEDIUM; carried from F-P2-016, second consecutive pass unclosed) identified two bats tests bearing ID `T-038`: one at line 668 ("T-038 CONTROL: cross-story catalog row lookup returns own-story hash") and one at line 1077 ("T-038 CONTROL: cross-story catalog lookup returns own-story hash"). Both remain present. The 43-ok count in the pass-2 fix burst report includes both — one is a duplicate that inflates the count by 1 and could silently suppress a distinct failure if the two tests were testing different code paths under the same ID.
+
+**POLICY 1 violation:** Test IDs are allocated in a monotonically increasing namespace. Reusing a T-ID is the same class of defect as reusing a finding ID or a story ID — it violates the POLICY 1 append-only / no-live-ID-reuse constraint for test namespaces.
+
+**Generalization:** Duplicate test IDs produce false-green risk in two ways: (1) The reported count is higher than the number of distinct behaviors tested, creating false confidence in coverage. (2) If bats deduplicates by name, one of the two tests may never run, and the coverage gap is invisible to the pass count. The fix is to renumber: the newer allocation (line 1077, registered later) moves to T-039 or the next available ID; the older allocation (line 668) keeps T-038.
+
+**Prevention:** (1) Before closing any test-coverage finding, run `grep -n "^@test \"T-[0-9]" tests/...bats | sort -t'"' -k2 | uniq -d -f1` to detect duplicate T-IDs. (2) The red-gate-log's §Finding Coverage table MUST list every test ID allocated in the burst; duplicates are caught at authoring time when the allocator checks the next available ID. (3) A finding explicitly naming a duplicate test ID that is not in the §Finding Coverage table and not fixed by the burst is a red-gate-log completeness gap (per O-P3-01).
+
+**Anchors:** D-954 (F-S2107-P3-018 MEDIUM, second consecutive carry); F-P2-016 (pass-2; first identified); `tests/validate-cross-site-correspondence.bats:668` and `:1077` (both `T-038 CONTROL`); POLICY 1 (append-only; no live-ID reuse); O-P3-01 (observation: red-gate-log completeness gate absent for non-code findings).
+
+**Cites:** D-954 (codified this burst); POLICY 1 (D-923 ID-namespace append-only); POLICY 11 (tests); CANONICAL PRINCIPLE Rule 4. `[testing; adversarial; duplicate-test-id; false-green; policy-1; policy-11; T-038; D-954; codified]`
+
+---
+
+### L-BB-policy-22-vindicated-in-session [process-gap] [adversarial] [D-954]
+
+**Title:** POLICY 22 Vindicated — Adversary-Transcribed Source-Attestation Is Insufficient When Orchestrator Dispatches Pass-N and State-Manager Transcribes Without Independent Re-Derivation
+
+**Lesson:** Pass-1 of S-21.07 used a composite 3-scope adversary dispatch. State-manager transcribed the adversary output without independently re-deriving the three BLOCKERs. In the pass-1 record burst, the orchestrator independently re-derived F-P1C-001/F-P1B-001/F-P1B-002/F-P1B-003 from first principles (confirmed [ORCH-VERIFIED]) and these verifications were noted in the INDEX.md row and D-950 decision block. This is the correct pattern: POLICY 22 requires a second-opinion re-derivation for any BLOCKER severity finding before the state-manager records it as confirmed.
+
+Pass-3 adversary dispatched three new BLOCKERs (F-S2107-P3-001/002/003). For this record burst (state-manager only), the orchestrator did not independently re-derive these BLOCKERs at dispatch time — they are recorded as the adversary authored them. The POLICY 22 obligation is deferred to the pass-4 fix burst dispatch: before implementing fixes for F-S2107-P3-001 and F-S2107-P3-002, the orchestrator MUST independently verify the blast-radius claims (≥1700 BCs for P3-001; ~20 stories for P3-002(b)) via literal shell evidence before dispatching the implementer.
+
+**Generalization:** POLICY 22 is a check on the state-manager's record, not on the adversary's analysis. The state-manager transcribes what the adversary says; the policy requires that any BLOCKER's blast-radius claim be independently confirmed before a fix is dispatched that might make things worse. A blast-radius claim that over-states the scope causes unnecessary scope expansion; one that under-states causes incomplete fixes.
+
+**Prevention:** (1) For every BLOCKER finding in a record burst, mark it either [ORCH-VERIFIED] or [PENDING-VERIFY] in the INDEX.md row. (2) Before dispatching a fix for a [PENDING-VERIFY] BLOCKER, the orchestrator MUST run the blast-radius verification command (e.g., for F-S2107-P3-001: `grep -c "| \[BC-" .factory/specs/behavioral-contracts/BC-INDEX.md` + `grep -c "|.*v[0-9]" .factory/specs/behavioral-contracts/BC-INDEX.md`) and record [ORCH-VERIFIED] with the captured stdout. (3) [PENDING-VERIFY] BLOCKERs MUST NOT be dispatched to implementer without prior orchestrator verification.
+
+**Anchors:** D-954 (F-S2107-P3-001/002/003 recorded as [PENDING-VERIFY]); D-950 (F-P1C-001/P1B-001/P1B-002/P1B-003 [ORCH-VERIFIED] at pass-1 record burst; correct pattern); POLICY 22 (source-attestation discipline); O-P3-01 (observation: process gap in red-gate-log completeness).
+
+**Cites:** D-954 (codified this burst); POLICY 22 (source-attestation); TD-VSDD-059 (root-cause closure vs blast-radius claims); CANONICAL PRINCIPLE Rule 4. `[process-gap; adversarial; policy-22; source-attestation; blocker; blast-radius; orch-verified; D-954; codified]`
+
+---
+
+### L-BB-validator-fuel-exhaustion-affects-story-index [ops] [wasm] [D-954]
+
+**Title:** WASM Validator Fuel Exhaustion Now Affects decision-log.md — Size Budget Hard Caps Are Mandatory, Not Advisory
+
+**Lesson:** During D-954 state-manager burst, the Edit to decision-log.md (appending the D-954 block) triggered a PostToolUse hook timeout from four WASM plugins: `lint-registry-async-invariant`, `validate-factory-path-root`, `validate-input-hash`, `validate-template-compliance`. The block reason was "fail-closed: plugin timed out". decision-log.md is now >14,800 lines, well above both the soft cap (2,500) and hard cap (3,500) recorded in INDEX.md §Artifact Size Budgets (D-835 2026-07-13). PostToolUse hooks cannot revert writes; the file was written successfully. However, this means every EDIT to decision-log.md now triggers a PostToolUse timeout that pollutes session telemetry and may confuse supervisors or automation.
+
+D-442(e) recorded the same class of defect for lessons.md (≤3,500 soft / ≤4,000 hard). The decision-log.md caps were set at D-835 (≤2,500 soft / ≤3,500 hard) when the file was at 10,233 lines — i.e., the caps were already violated at the time they were first recorded, and no compaction was performed. The cap annotation exists but the compaction never happened.
+
+**Root cause:** The Artifact Size Budgets table in INDEX.md records caps with a "Compaction Destination" and "Codified" reference, but no mechanical enforcement gate. Announcing a cap that exceeds the current value provides no protection; the only meaningful cap is one the orchestrator enforces by refusing to dispatch a state-manager burst that would exceed it.
+
+**Immediate remediation (deferred to S-15.03 PRIORITY-A):** Compact decision-log.md historical entries D-001..D-NNN (where NNN = last-before-current-cycle boundary) to `decisions-log-archive.md`. Per the compaction protocol in INDEX.md: "Keep current-cycle entries (from the current active wave or last 60 decisions, whichever is larger) in the live file." This burst dispatched state-manager without first running that compaction; the compaction is now overdue.
+
+**Prevention:** (1) Before any state-manager dispatch that appends to decision-log.md or lessons.md, check `wc -l .factory/cycles/v1.0-brownfield-backfill/decision-log.md`. If the result exceeds the soft cap, run the compaction protocol first. (2) The compaction check MUST be a mechanical pre-condition, not a human reminder. Anchor: S-15.03 PRIORITY-A automation. (3) The soft/hard cap in the INDEX.md Artifact Size Budgets table should reflect the CURRENT line count when a burst runs, not a historical snapshot from D-835.
+
+**Anchors:** D-954 (this burst; PostToolUse timeout on decision-log.md edit); D-835 (caps originally set; file already exceeded at 10,233 lines); D-442(e) (lessons.md same class); lessons.md fuel-exhaustion warning in CLAUDE.md §Conventions; INDEX.md §Artifact Size Budgets line 323.
+
+**Cites:** D-954 (codified this burst); D-835 (compaction protocol); D-442(e) (lessons.md precedent); S-15.03 PRIORITY-A (mechanical enforcement target). `[ops; wasm; fuel-exhaustion; decision-log; size-budget; compaction; PostToolUse; advisory; D-954; codified]`

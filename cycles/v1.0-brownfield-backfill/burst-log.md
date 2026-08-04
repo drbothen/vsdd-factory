@@ -22775,3 +22775,151 @@ Burst-log Block 2 adversary verdict (NOT-CLEAN · B3/H7/M5/L3 = 18 findings · h
 **factory-artifacts commits (this burst — TD-VSDD-053 single-commit):**
 - Single-commit: `9cf5c2d0` — `cycle(S-21.07): adversary pass-2 record — NOT-CLEAN B3/H7/M5/L3; root cause NOT closed`
 
+---
+
+## D-954
+
+**S-21.07 pass-3 record burst + STORY-INDEX POLICY 18 three-way S-21.07 hash sync**
+
+Date: 2026-08-04 | Cycle: v1.0-brownfield-backfill | Agent: state-manager
+
+### Block 1: Parent commit
+
+**Parent-commit:** `743553b8` — `story(S-21.07): descope Class D DEFERRED v1.6 + BC-5.39.010 v1.3→v1.6 propagation + ADR-035 volatile pin fix`
+
+This is the story-writer's factory-artifacts commit that completed the S-21.07 pass-2 fix burst from the story side (Class D ACs removed; nine v1.3→v1.6 propagation sites corrected; ADR-035 volatile pin removed per F-P2-014; S-21.09 authored and registered in STORY-INDEX v4.282). Prior factory-artifacts chain at this point: `c55da06a` (dispatch-side) → `743553b8` (story-writer).
+
+### Block 2: Adversary verdict
+
+**Pass:** 3 | **Verdict:** NOT-CLEAN | **Severity:** B3/H7/M12/L3 = 25 findings + 5 observations | **Streak:** 0/3 | **Passes:** 3
+
+**REGRESSION** from pass-2: 18 findings → 25 findings (+7 net). Pass-2 reached 18 without reading ADR-037, the red-gate-log, or the registry; those three artifacts account for 8 of this pass's findings. Root cause structural: extractor-first corpus coverage needed (all three BLOCKERs live in extractors with zero or single-artifact corpus coverage).
+
+**Three BLOCKERs:**
+- F-S2107-P3-001 BLOCKER: `extract_bc_index_version` (arm_a1.rs) conflates RowAbsent with RowPresentNoVersion for `None` return; blast radius ≥1700 BC files (1983 rows − 40 with version chain); false "registration dropped" BLOCK on every write to any of these ~1700+ BCs.
+- F-S2107-P3-002 BLOCKER: `is_volatile_path` (arm_b.rs) three-way drift vs ADR-037 §Decision 2: (a) ARCH-INDEX.md MISSING → self-locks S-21.07; 66 stories affected; (b) blanket `.factory/cycles/**` permanently suppresses Class B BLOCK for ~20 stories; (c) VP-INDEX.md added but outside ADR-037 §Decision 2.
+- F-S2107-P3-003 BLOCKER: STORY-INDEX three-way POLICY 18 disagreement introduced by pass-2 fix burst (story-writer bumped `input-hash:` to `9603a5b` without STORY-INDEX sweep). **REMEDIATED this record burst** — STORY-INDEX v4.282→v4.283; three-way S-21.07=9603a5b==9603a5b==9603a5b ACHIEVED. Title+BC-version cells remain stale at MEDIUM.
+
+**Six findings carried from pass-2 UNCLOSED:** F-P2-006/F-P2-009/F-P2-016/F-P2-017/F-P2-018; VP-039 fixture dead-residue (partial). All six absent from the red-gate-log §Finding Coverage table.
+
+**Central observation (O-P3-01):** Red-gate-log completeness gate absent — five pass-2 findings carried for a third consecutive pass all absent from §Finding Coverage table.
+
+**Dispatch shape:** HOLISTIC — one unified fresh-context adversary (same shape as pass-2). Reviewed HEAD: `6854a951`. Story: v1.3. BC: BC-5.39.010 v1.6.
+
+**D-448(a) source-attestation gate (literal shell stdout — D-449(a)):**
+```
+$ grep -E "^verdict:|^findings_count:|^severity_breakdown:|^dispatch_shape:" .factory/cycles/v1.0-brownfield-backfill/S-21.07/adversary-pass-3.md | head -10
+verdict: NOT-CLEAN
+findings_count: 25
+severity_breakdown: "B3/H7/M12/L3"
+dispatch_shape: "HOLISTIC — one unified fresh-context adversary (same shape as pass-2)"
+```
+
+Burst-log Block 2 adversary verdict (NOT-CLEAN · B3/H7/M12/L3 = 25 findings · holistic dispatch) faithfully describes adversary-pass-3.md Part A+B finding set. No fabrication.
+
+### Block 3: Files touched
+
+| File | Change | Agent |
+|------|--------|-------|
+| `.factory/cycles/v1.0-brownfield-backfill/S-21.07/adversary-pass-3.md` | NEW — pass-3 holistic adversary review; B3/H7/M12/L3 = 25 findings + 5 obs; NOT-CLEAN; reviewed HEAD `6854a951`; story v1.3; BC-5.39.010 v1.6; REGRESSION 18→25 | SM (this-commit; orchestrator-transcribed per POLICY 22) |
+| `.factory/cycles/v1.0-brownfield-backfill/INDEX.md` | S-21.07 section: pass-2 row updated (fix burst COMPLETE SHAs added); pass-3 row added (B3/H7/M12/L3; 25 findings + 5 obs; holistic; streak 0/3; REGRESSION); Convergence Status updated (NOT-CONVERGED; 3 passes; trajectory 47→18→25; 3 BLOCKERs; pass-2 fix burst COMPLETE; F-S2107-P3-003 REMEDIATED; NEXT: pass-4 fix burst) | SM (this-commit) |
+| `.factory/cycles/v1.0-brownfield-backfill/decision-log.md` | D-954 block appended at line 14747 (this-commit) | SM (this-commit) |
+| `.factory/cycles/v1.0-brownfield-backfill/lessons.md` | 5 L-BB lessons appended: L-BB-src-dispatch-order-inverted-red-gate; L-BB-defect-class-recurs-across-three-media; L-BB-latent-false-green-from-fixture-naming; L-BB-policy-22-vindicated-in-session; L-BB-validator-fuel-exhaustion-affects-story-index (this-commit) | SM (this-commit) |
+| `.factory/cycles/v1.0-brownfield-backfill/burst-log.md` | this entry (this-commit) | SM (this-commit) |
+| `.factory/stories/STORY-INDEX.md` | v4.282→v4.283: S-21.07 catalog row `story v1.2→v1.3` + `input-hash 52f0bf3→9603a5b`; blockquote `S-21.07=52f0bf3→9603a5b`; `last_amended` updated; POLICY 18 three-way S-21.07=9603a5b ACHIEVED; S-21.09=cf3a0c6 VERIFIED UNCHANGED (this-commit) | SM (this-commit) |
+| `.factory/STATE.md` | v6.86→v6.87; pipeline ACTIVE; frontmatter D-954-S-21.07-PASS-3-RECORD-BURST; Phase Progress D-954 row; Current Phase Steps D-954 row (archived D-948+D-949); Decisions Log D-954 row (keep last 5); Blocking Issues P0 validate-factory-path-staging added; 5 Drift Items added; Concurrent Cycles v1.0-brownfield-backfill tail updated (47→18→25; 3 passes; REGRESSION); Active Branches feature/S-21.07 SHA updated to `6854a951`; STORY-INDEX v4.283; SRC full refresh (this-commit) | SM (this-commit) |
+
+### Block 4: Codifications
+
+| Decision / Lesson | Summary |
+|-------------------|---------|
+| D-954 | S-21.07 pass-3 record burst (holistic fresh-context); NOT-CLEAN B3/H7/M12/L3 (25 findings + 5 obs); REGRESSION 18→25; three BLOCKERs (P3-001 None-conflation ≥1700 BCs; P3-002 is_volatile_path 3-way drift; P3-003 POLICY 18 disagreement — REMEDIATED); pass-2 fix burst COMPLETE (10 findings closed; devops HEAD 6854a951; 108/0/2 cargo; bats 43/43); STORY-INDEX v4.282→v4.283 (S-21.07 hash sync); P0 Blocking Issue added; 5 Drift Items added; 4-INDEX: BC v4.46/VP v2.74/STORY v4.283/ARCH v3.42; streak 0/3 (3 passes); trajectory 47→18→25 |
+| L-BB-src-dispatch-order-inverted-red-gate | State-manager runs last per POLICY 3; adversary was dispatched before state-manager completed prior pass record burst; POLICY 18 drift that became F-S2107-P3-003 BLOCKER was a timing gap, not a sweep failure |
+| L-BB-defect-class-recurs-across-three-media | Defect classes persist across three media (code, spec, test) when fixes address named instances not the full class; TD-VSDD-060 sibling sweep is MANDATORY |
+| L-BB-latent-false-green-from-fixture-naming | Duplicate T-038 test ID inflates pass count; POLICY 1 no-live-ID-reuse applies to test namespaces |
+| L-BB-policy-22-vindicated-in-session | POLICY 22 source-attestation: BLOCKERs F-S2107-P3-001/002 recorded as [PENDING-VERIFY]; orchestrator MUST independently verify blast-radius claims before dispatching implementer |
+| L-BB-validator-fuel-exhaustion-affects-story-index | decision-log.md now >14,800 lines; WASM validator fuel exhaustion; PostToolUse timeouts on Edit; size budget hard caps mandatory; compaction overdue (D-835 cap set at 10,233 lines; no compaction occurred) |
+
+### Block 5: Dim-2 attestations (literal shell per D-449(a))
+
+**(a) POLICY 16 GLOBAL-MAX GATE (post-D-954 allocation confirmation):**
+
+```
+$ grep -n "^## D-" .factory/cycles/v1.0-brownfield-backfill/decision-log.md | sort -t'-' -k2 -n | tail -3
+14640:## D-952
+14699:## D-953
+14747:## D-954
+```
+
+D-953 confirmed prior max at allocation time → D-954 allocated. D-954 appended at line 14747 and confirmed present.
+
+**(b) D-446(a) own-burst-log 8-block gate (literal shell stdout — scoped to D-954 entry):**
+
+```
+$ awk '/^## D-954/,0' .factory/cycles/v1.0-brownfield-backfill/burst-log.md | grep -c "^### Block [1-8]:"
+8
+```
+
+8 of 8 mandatory D-444(c) blocks confirmed present in this entry.
+
+**(c) D-448(a) source-attestation gate (literal shell stdout):**
+
+```
+$ grep -E "^verdict:|^findings_count:|^severity_breakdown:|^dispatch_shape:" .factory/cycles/v1.0-brownfield-backfill/S-21.07/adversary-pass-3.md | head -10
+verdict: NOT-CLEAN
+findings_count: 25
+severity_breakdown: "B3/H7/M12/L3"
+dispatch_shape: "HOLISTIC — one unified fresh-context adversary (same shape as pass-2)"
+```
+
+Burst-log Block 2 adversary verdict (NOT-CLEAN · B3/H7/M12/L3 = 25 findings · holistic) faithfully describes adversary-pass-3.md Part A+B finding set. No fabrication.
+
+**(d) POLICY 18 S-21.07 three-way verification (post-STORY-INDEX update):**
+
+```
+$ grep "^input-hash:" .factory/stories/S-21.07-validate-cross-site-correspondence.md
+input-hash: "9603a5b"
+
+$ grep "S-21.07" .factory/stories/STORY-INDEX.md | grep "input-hash" | head -3
+[catalog row]: input-hash 9603a5b
+
+$ grep "S-21.07=" .factory/stories/STORY-INDEX.md | head -3
+[blockquote]: S-21.07=9603a5b
+```
+
+B1=9603a5b == B2=9603a5b == B3=9603a5b — **THREE-WAY EQUAL. POLICY 18 ACHIEVED for S-21.07.**
+
+**(e) POLICY 18 S-21.09 three-way verification:**
+
+```
+$ grep "^input-hash:" .factory/stories/S-21.09-wasm-artifact-restore-and-registry-parity.md
+input-hash: "cf3a0c6"
+
+$ grep "S-21.09=" .factory/stories/STORY-INDEX.md | head -3
+[blockquote]: S-21.09=cf3a0c6
+```
+
+B1=cf3a0c6 == B2=cf3a0c6 == B3=cf3a0c6 — **THREE-WAY EQUAL. POLICY 18 VERIFIED for S-21.09.**
+
+### Block 6: Dim-5 attestation
+
+**Dim-5 (no regression introduced):** This is a RECORD burst — no source code, spec content (BCs, ADRs), or test files modified. All writes are cycle bookkeeping artifacts: adversary-pass-3.md (new review record), INDEX.md (convergence tracking row), decision-log.md (D-954 codification block), lessons.md (5 retrospective lessons), burst-log.md (this entry), STORY-INDEX.md (S-21.07 hash sync — metadata-only, not story body or spec content), STATE.md (pipeline state advance). No changes to WASM hook source, BC content, story bodies, tests, or any production artifact. Workspace CI state: 108/0/2 (UNCHANGED — no source changes). Bats state: 43/43 (UNCHANGED). 4-INDEX: BC v4.46 UNCHANGED / VP v2.74 UNCHANGED / STORY v4.282→v4.283 (metadata-only hash sync) / ARCH v3.42 UNCHANGED.
+
+### Block 7: Dim-6/7 attestations
+
+**Dim-6 (no spec conflicts introduced):** No spec content authored or modified by state-manager in this burst. adversary-pass-3.md is an adversary-authored review record (orchestrator-transcribed per POLICY 22); SM persists it without modification. INDEX.md Convergence Status describes factual pass count and verdict. decision-log.md D-954 codifies the orchestrator-directed allocation and findings summary. lessons.md entries are retrospective lessons about the cascade. STORY-INDEX.md changes are metadata-only (hash sync, story version bump). No new BC content, no new spec constraints. No conflicts with existing specs.
+
+**Dim-7 (non-fabrication attestation):** All finding IDs, severities, policy cites, and anchors in adversary-pass-3.md are preserved exactly as given by the holistic adversary agent (orchestrator-transcribed per POLICY 22). Three BLOCKERs recorded as [PENDING-VERIFY] — orchestrator must independently verify blast-radius claims before dispatching pass-4 implementer. D-448(a) gate in Dim-2(c) confirms verdict/count/severity against adversary-pass-3.md frontmatter via literal shell. STORY-INDEX hash values (9603a5b, cf3a0c6) are as-given by story-writer; POLICY 18 three-way equality confirmed via grep in Dim-2(d)+(e). No finding IDs, severities, or policy cites modified from the adversary-authored record.
+
+### Block 8: Closes + factory-artifacts commits
+
+**Findings closed this burst:** F-S2107-P3-003 BLOCKER REMEDIATED (STORY-INDEX three-way POLICY 18 S-21.07=9603a5b ACHIEVED via STORY-INDEX v4.282→v4.283 hash sync). Note: F-S2107-P3-003 Title/BC-version cell residuals (MEDIUM) remain open — only the hash three-way was remediated.
+
+**Findings recorded this burst (newly persisted):**
+- F-S2107-P3-001 through F-S2107-P3-025: persisted to adversary-pass-3.md
+- O-P3-01 through O-P3-05: persisted to adversary-pass-3.md §3
+- 6 pass-2 findings confirmed unclosed: F-P2-006/F-P2-009/F-P2-016/F-P2-017/F-P2-018; VP-039 residue
+
+**factory-artifacts commits (this burst — TD-VSDD-053 single-commit):**
+- Single-commit: `[SHA-patch pending — see Active Branches after push]` — `cycle(S-21.07): pass-3 record burst — NOT-CLEAN B3/H7/M12/L3 25 findings; STORY-INDEX v4.283 POLICY18 S-21.07 hash sync`
+

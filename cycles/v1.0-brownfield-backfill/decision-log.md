@@ -14741,3 +14741,55 @@ D-953-ADR-037-VOLATILE-INPUTS-RULING-BC-5.39.010-V1.6-CLASS-D-DESCOPE
 ### Date
 
 2026-08-04
+
+---
+
+## D-954
+
+S-21.07 pass-3 adversary record burst + STORY-INDEX POLICY 18 three-way S-21.07 hash sync
+
+### Decision
+
+**(a) POLICY 16 GLOBAL-MAX GATE (pre-append):** `grep -n "^## D-" .factory/cycles/v1.0-brownfield-backfill/decision-log.md | sort -t'-' -k2 -n | tail -3` → `14570:## D-951 / 14640:## D-952 / 14699:## D-953`; D-953 confirmed prior max → D-954 allocated.
+
+**(b) Pass-3 adversary outcome:** S-21.07 pass-3 adversary: holistic fresh-context dispatch (same shape as pass-2). **NOT-CLEAN** — B3/H7/M12/L3 = 25 findings + 5 observations. Reviewed HEAD `6854a951` (devops final commit, pass-2 fix burst complete); story v1.3; BC-5.39.010 v1.6. Streak **0/3** (3 passes; zero CLEAN verdicts). **REGRESSION:** pass-2 18 findings → pass-3 25 findings (+7 net). Pass-2 reached 18 without reading ADR-037, the red-gate-log, or the registry — those 3 artifacts account for 8 new findings. **RECORD burst only — no fixes applied this burst.**
+
+**(c) Three BLOCKERs this pass:**
+
+1. **F-S2107-P3-001 BLOCKER** — `extract_bc_index_version` (arm_a1.rs) conflates `RowAbsent` with `RowPresentNoVersion` (None returned for both). BC-INDEX has 1,983 rows; only 40 carry a version chain. The 1,943-row no-version-cell class all trigger the RowAbsent path → false "registration dropped" BLOCK on any write to any of these ~1,700+ BC files (1983 − 40 with version cell − at most 231 at v1.0). Root fix: three-state extractor + PC5 amendment.
+
+2. **F-S2107-P3-002 BLOCKER** — `is_volatile_path` (arm_b.rs) drifts in three directions vs ADR-037 §Decision 2: (a) ARCH-INDEX.md **missing** from the match set → self-locks S-21.07 (story `inputs:` includes `.factory/specs/architecture/ARCH-INDEX.md`; 66 stories similarly affected); (b) blanket `.factory/cycles/**` match permanently suppresses Class B BLOCK for ~20 stories whose `inputs:` cite frozen adversary-pass files; (c) VP-INDEX.md added but not specified in ADR-037 §Decision 2. Root fix: replace with `const VOLATILE_PATTERNS` slice 1:1 from ADR-037 §Decision 2.
+
+3. **F-S2107-P3-003 BLOCKER** — STORY-INDEX three-way POLICY 18 disagreement introduced by pass-2 fix burst: B1 frontmatter `9603a5b` vs B2 catalog row `52f0bf3` vs B3 blockquote `S-21.07=52f0bf3`. REMEDIATED this record burst (below). Title cell and BC-version cell residuals remain at MEDIUM severity (stale seven-arm/v1.4 vs story H1 six-arm/v1.6).
+
+**(d) Pass-2 fix burst closures recorded:** F-P2-001 (arm_a2.rs `skip_section=true` unconditional; CLOSED story-writer+implementer); F-P2-002 (arm_a1.rs `starts_with('|') && first_cell.contains(bc_id)` anchored; CLOSED implementer); F-P2-003 (story v1.3 Class D descoped; BC-5.39.010 v1.6 propagated; CLOSED story-writer `743553b8`); F-P2-008 (arm_b.rs `is_canonical_vp_filename` `^VP-[0-9]+\.md$`; CLOSED implementer); F-P2-011 (`is_canonical_story_basename` numeric section required; CLOSED implementer); F-P2-007 (invariant-6 I/O-BLOCK vs content-advisory adjudication; CLOSED implementer); PC40 (`is_volatile_path` + `parse_story_volatile_inputs` + `run_arm_b1` volatile branch; structurally CLOSED — substantively NON-CONFORMANT per F-S2107-P3-002); F-P2-013 (T-046 MUTANT Class E1 VP version/last_amended mismatch; CLOSED test-writer); F-P1C-016/AC-018 (`test_BC_5_39_010_invariant_7_ac018_multi_arm_violations_both_in_combined_block`; CLOSED test-writer); F-S2107-P1B-013 (PC34 flat VP path `^VP-[0-9]+\.md$`; CLOSED implementer per F-P2-003 descope). Gate evidence: 108 crate tests/0 fail/2 ignored; bats 43/43 on both legs; cargo fmt+clippy+test clean; devops rebuild HEAD `6854a951`.
+
+**(e) STORY-INDEX POLICY 18 three-way S-21.07 hash sync:** story v1.3 advanced `input-hash:` frontmatter to `9603a5b` (story-writer `743553b8`). STORY-INDEX catalog row (B2) and blockquote (B3) still showed stale `52f0bf3`. This burst applies: STORY-INDEX v4.282→v4.283 — catalog row S-21.07 `story v1.2→v1.3` + `input-hash 52f0bf3→9603a5b`; blockquote `S-21.07=52f0bf3→9603a5b`. Three-way equality: B1=9603a5b == B2=9603a5b == B3=9603a5b — **ACHIEVED**. POLICY 18 S-21.09 three-way: B1=cf3a0c6 == B2=cf3a0c6 == B3=cf3a0c6 — **VERIFIED UNCHANGED** (story-writer already correct at registration).
+
+**(f) P0 Blocking Issue added:** `validate-factory-path-staging` WASM guard declared in hooks-registry.toml (priority 460, tier sync) but `.wasm` artifact absent from disk since 2026-07-23 (rc.23 ship). Dispatcher logs confirm 0 invocations for this plugin vs 889 for sibling guards (`validate-factory-path-staging`: 0; next sibling `validate-wave-gate-prerequisite`: 889). Root cause: git-ignored path was not committed with `git add -f` at rc.23. Story S-21.09 authored to fix: Half 1 restore WASM via `git add -f`; Half 2 replace count-based POLICY 20 parity with per-name declared-vs-built set-difference check.
+
+**(g) 5 Drift Items added:** (1) 5 pass-2 findings unclosed in red-gate-log (F-P2-006/009/016/017/018 absent from §Finding Coverage table); (2) root cause: extractor-first corpus coverage missing (all three P3 BLOCKERs in uncovered extractors); (3) arm_d.rs spec-vs-tree divergence (story §File Structure says "do NOT create" vs file present); (4) `extract_bc_index_version` no-version-cell class uncovered by corpus test; (5) CHANGELOG.md `[Unreleased]` still empty (F-P2-009 = Task 20 gate unclosed).
+
+**(h) 4-INDEX:** BC v4.46 UNCHANGED; VP v2.74 UNCHANGED; STORY v4.282→v4.283 (S-21.07 hash sync); ARCH v3.42 UNCHANGED. streak 0/3 (3 passes). trajectory 47→18→25. parent-commit: 743553b8 (story-writer S-21.07 Class D descope + v1.6 propagation).
+
+### Participating agents
+
+- adversary: S-21.07 pass-3 holistic fresh-context review (NOT-CLEAN B3/H7/M12/L3 = 25 findings + 5 obs; reviewed HEAD 6854a951)
+- state-manager: D-954 codification; adversary-pass-3.md persisted; INDEX.md pass-3 row + Convergence Status; decision-log.md D-954 entry; 5 lessons appended; burst-log.md D-954 (8 blocks); STORY-INDEX v4.282→v4.283 (S-21.07 hash sync); P0 Blocking Issue + 5 Drift Items; STATE.md v6.86→v6.87
+
+### 4-INDEX
+
+| Index | Before | After | Change |
+|-------|--------|-------|--------|
+| BC-INDEX | v4.46 | v4.46 | UNCHANGED |
+| VP-INDEX | v2.74 | v2.74 | UNCHANGED |
+| STORY-INDEX | v4.282 | v4.283 | S-21.07 story v1.2→v1.3; input-hash 52f0bf3→9603a5b; blockquote S-21.07=52f0bf3→9603a5b |
+| ARCH-INDEX | v3.42 | v3.42 | UNCHANGED |
+
+### Phase
+
+D-954-S-21.07-PASS-3-RECORD-BURST-STORY-INDEX-POLICY18-SYNC
+
+### Date
+
+2026-08-04
