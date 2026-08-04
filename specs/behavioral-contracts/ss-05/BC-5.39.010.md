@@ -1,7 +1,7 @@
 ---
 document_type: behavioral-contract
 level: L3
-version: "1.7"
+version: "1.8"
 status: draft
 producer: product-owner
 timestamp: 2026-07-30T00:00:00Z
@@ -33,6 +33,7 @@ modified:
   - "2026-08-04 (v1.5)"
   - "2026-08-04 (v1.6)"
   - "2026-08-04 (v1.7)"
+  - "2026-08-04 (v1.8)"
 deprecated: null
 deprecated_by: null
 replacement: null
@@ -42,7 +43,7 @@ removal_reason: null
 bc_id: BC-5.39.010
 section: "5.39"
 last_amended: |-
-  2026-08-04 (v1.7) — PC5 corrected: BC-INDEX canonical shape is 5-column (`| BC ID | Title | Status | Capability | Stories |`); version-chain cell is ad-hoc 6th column present on only 40 of 1983 body-table rows (corpus 2026-08-04, adversary pass-3 verified); `extract_bc_index_version` rearchitected from two-state `Option<String>` to three-state `RowAbsent` / `RowPresentNoVersion` / `Version(v)` — two-state `None` conflating the first two misdiagnosed ≥1,712 correct registrations as structural faults per F-S2107-P3-001. Postcondition 4 expanded: `RowAbsent` + version > "1.0" → block (unchanged; genuine structural fault); `RowPresentNoVersion` → silent-continue (5-column canonical shape is standard for ~98% of rows; advisory would be unactionable noise). Part B postconditions note and invariant 11 corrected: `1acf3c6` reclassified from "fabricated" to ALGORITHM-DIVERGENT per ADR-036 §Decision 4 — produced by rc.23 CACHE binary trailing-newline-stripping algorithm, not fabricated; no PROVENANCE-BREAK annotation was warranted; Pass-30 M02 POLICY 18 violation claim for `1acf3c6` retracted. Invariant 11 title updated to three-category taxonomy (stale / fabricated / algorithm-divergent). Gate Spec `run_part_a_arm1` pseudocode updated to reflect three-state match. PC40 confirmed as-written conformant — F-S2107-P3-002 is implementation non-conformance to existing spec, not a spec defect; no PC40 amendment warranted. (product-owner; closes F-S2107-P3-001 spec-side; closes ADR-036 §Decision 4 annotation corrections routed at D-952.) [Prior: 2026-08-04 (v1.6) — Class D (finding-ID namespace advisory in Closes/Refs lines) descoped entirely; active gated classes now A, B, E only. `is_cycle_artifact` dispatch branch marked DEFERRED; `.factory/cycles/` removed from registry path_allow. Premise unsound against unstandardized Closes/Refs convention: six shapes measured across both cycle burst-logs (`**Closes:**`=70, `**Closes (per …):**`=13, no-colon bold=13, non-bold=12, hyphen-form=8); PC31 failed three iterations (v1.2 plain-colon→0 matches; v1.3 bold-bare-colon→20/34; v1.5 bold-word-boundary-colon→86/96 bold but 0/20 non-bold); v1.5 measurement taken against wrong cycle. PC28-PC33 DEFERRED; postconditions 16-18/24 DEFERRED; invariant 6 DEFERRED — all IDs preserved per POLICY 1 append-only. Knowledge preserved in §Deferred Scope with follow-up story target S-21.08 (E-21 epic). PC34 VP-path correction, PC40 volatile-input precondition, invariant-6 I/O-vs-content adjudication, and all Class A/B/E amendments from v1.4-v1.5 survive intact. (product-owner; human-approved scope decision 2026-08-04.) [Prior: 2026-08-04 (v1.5) — Amendment 1 (PC31): Closes/Refs regex corrected to `^\*\*Closes\b[^:]*:\*\*`/`^\*\*Refs\b[^:]*:\*\*` — bare-colon form `^\*\*Closes:\*\*` matched only 20 of 34 burst-log Closes lines (corpus check 2026-08-04, full-file grep); 14 missed (parenthetical `**Closes (per ...):**` x11 + bare-word `**Closes per ...:**` x3); Refs = 0 corpus instances, retained forward-looking; PC31a scope-count advisory added (postcondition 24). Amendment 2 (PC34): VP path `ss-*/VP-*.md` → flat `^VP-[0-9]+\.md$` with VP-INDEX.md exclusion (corpus 2026-08-04: zero ss-* subdirs; 102 VPs flat); epics clause added (dispatch.rs carried arm without PC34 counterpart). Amendment 3 (invariant 6 adjudication): CapabilityDenied/Timeout on cycle artifact is BLOCKING per PC33/postcondition 18/invariant 5; invariant 6 scopes to finding-content verdicts only; postcondition 18 expanded to include Timeout. Amendment 4 (PC40): volatile-input precondition for Class B Arm B1 per ADR-037 §Decision 4; scan story inputs: for volatile patterns; emit prescribed advisory + Continue if found; transitional (vacuous post-remediation); EC-032 added. (product-owner.) [Prior: 2026-08-03 (v1.4) — PC13: bounding-section heading-match predicates changed from exact equality to prefix-with-word-boundary (^## Behavioral Contracts\b, ^## Token Budget\b); 133 of 144 production stories use ## Token Budget Estimate or ## Token Budget Estimate (MANDATORY), which exact equality skipped, causing stale Token Budget citations to go undetected; corpus check (2026-08-03) confirmed zero false positives on .factory/stories/*.md; ## Edge Cases (148 occurrences) remains excluded. Architecture Anchor for extract_story_bc_version_citations updated. Exact-equality non-conformance note added. (product-owner.) [Prior: 2026-07-30 (v1.3) — PC13: bounding section added (scan confined to ##Behavioral Contracts + ##Token Budget sections; ≥9 spurious blocks from Edge Cases rows eliminated); dual version-token format (\bv?([0-9]+\.[0-9]+)\b covers both bare 1.2 and v-prefixed v1.2); LAST rightmost pipe-field algorithm stated. PC31: bold-markdown form (**Closes:**/**Refs:**) required to match D-444(c) real burst-log format; union scan not else-if. PC38 + postcondition 21: non-decreasing relation (∀i: date[i] ≤ date[i+1]); equal same-day dates PERMITTED; EC-030/031 + test vectors added. Amendment 4: no spec change — PC29 (2 MiB) and PC33 (NotFound advisory+Continue on cycle artifact) already unambiguous; fault is purely implementational. PC32: O- deliberately non-excluded per D-449(d)(i); ruling made explicit. POLICY 14 five-leg parity; v1.1 modified[] entry restored (missing since initial authoring — irony: this hook checks modified[] monotonicity but not modified[]↔Changelog row correspondence, so it structurally cannot catch this defect in its own governing BC). (product-owner.) [Prior: 2026-07-30 (v1.2) — Registry entry corrected: tools = [...] array replaced with tool = "^(Edit|Write|MultiEdit)$" regex string (field name singular + MultiEdit added; POLICY 13 ESCAPE-SCOPE-PARITY). Fuel-exhaustion note added to Gate Specifications per ADR-035 §Decision 5. BC-version-pin datum-copy ruling added to Postconditions §Part A Arm2. (product-owner.) [Prior: 2026-07-30 (v1.1) — Part A Arm2 (story-file-side trigger) added; advisory rationales made explicit for every advisory arm; Class D tokenizer namespace-exclusion list added (D-, S-, BC-, VP-, R-, L-, ADR-, EC-, NFR-, ASM-, FM-); EC-024 rationale corrected; Class A coverage-gap routing replaced with correctly-sized latency-gap explanation; Invariant 11 (fabricated vs stale hash provenance) added; EC-026/027/028/029 added; Gate Spec updated with run_part_a_arm2; VP table extended to 17 entries. (product-owner; coordinator review.) [Prior: 2026-07-30 (v1.0) — Initial authoring (product-owner; pre-pass-30 fix-burst). BC-5.39.010 allocated after BC-5.39.009. input-hash d248fc3 per hook-authoritative marketplace binary. lifecycle_status: draft.]]]]
+  2026-08-04 (v1.8) — PC5 column-anchored locator: state classification now uses escape-aware column count (5 fields → RowPresentNoVersion unconditionally; 6+ fields → Version(v) from 6th column) — token-search approach was a spec gap because story IDs like `S-15.01` in the Stories column match bare-form `\bv?([0-9]+\.[0-9]+)\b`, producing Version("15.01") instead of RowPresentNoVersion; 194 of 1,943 canonical rows carry such story IDs (load-bearing count). Escape-aware splitting required: `\|` within version-chain cells is non-splitting literal; naive `|` split inflates field count. PC13 two-phase algorithm: Phase 1 pure-version field (`^v?[0-9]+\.[0-9]+$`) covers 58 BC-section rows; Phase 2 mandatory-v inline (`\bv([0-9]+\.[0-9]+)\b`) covers 30 Token Budget rows; prior optional-v bare form excluded — produces story-ID collision (29 rows / 6 stories), BC-section-number collision (Token Budget `BC-5.39.010 v1.7` → `5.39` extracted before `1.7`), and ACs-column collision (S-21.07 `DEFERRED v1.6` in rightmost ACs field). Corpus-validated 2026-08-04: 1983 total rows; 1943 five-field (RowPresentNoVersion); 40 six-field (Version(v)); 194 story-ID hazard rows; 1 ACs-column hazard row (S-21.07/BC-5.39.010). PC5 also corrects: version-chain extraction algorithm — latest (rightmost) `\bv([0-9]+\.[0-9]+)\b` match in 6th field. (product-owner; closes F-S2107-P3-001 + PC13 two-phase. Prior v1.7 fixes retained.) [Prior: 2026-08-04 (v1.7) — PC5 corrected: BC-INDEX canonical shape is 5-column (`| BC ID | Title | Status | Capability | Stories |`); version-chain cell is ad-hoc 6th column present on only 40 of 1983 body-table rows (corpus 2026-08-04, adversary pass-3 verified); `extract_bc_index_version` rearchitected from two-state `Option<String>` to three-state `RowAbsent` / `RowPresentNoVersion` / `Version(v)` — two-state `None` conflating the first two misdiagnosed ≥1,712 correct registrations as structural faults per F-S2107-P3-001. Postcondition 4 expanded: `RowAbsent` + version > "1.0" → block (unchanged; genuine structural fault); `RowPresentNoVersion` → silent-continue (5-column canonical shape is standard for ~98% of rows; advisory would be unactionable noise). Part B postconditions note and invariant 11 corrected: `1acf3c6` reclassified from "fabricated" to ALGORITHM-DIVERGENT per ADR-036 §Decision 4 — produced by rc.23 CACHE binary trailing-newline-stripping algorithm, not fabricated; no PROVENANCE-BREAK annotation was warranted; Pass-30 M02 POLICY 18 violation claim for `1acf3c6` retracted. Invariant 11 title updated to three-category taxonomy (stale / fabricated / algorithm-divergent). Gate Spec `run_part_a_arm1` pseudocode updated to reflect three-state match. PC40 confirmed as-written conformant — F-S2107-P3-002 is implementation non-conformance to existing spec, not a spec defect; no PC40 amendment warranted. (product-owner; closes F-S2107-P3-001 spec-side; closes ADR-036 §Decision 4 annotation corrections routed at D-952.) [Prior: 2026-08-04 (v1.6) — Class D (finding-ID namespace advisory in Closes/Refs lines) descoped entirely; active gated classes now A, B, E only. `is_cycle_artifact` dispatch branch marked DEFERRED; `.factory/cycles/` removed from registry path_allow. Premise unsound against unstandardized Closes/Refs convention: six shapes measured across both cycle burst-logs (`**Closes:**`=70, `**Closes (per …):**`=13, no-colon bold=13, non-bold=12, hyphen-form=8); PC31 failed three iterations (v1.2 plain-colon→0 matches; v1.3 bold-bare-colon→20/34; v1.5 bold-word-boundary-colon→86/96 bold but 0/20 non-bold); v1.5 measurement taken against wrong cycle. PC28-PC33 DEFERRED; postconditions 16-18/24 DEFERRED; invariant 6 DEFERRED — all IDs preserved per POLICY 1 append-only. Knowledge preserved in §Deferred Scope with follow-up story target S-21.08 (E-21 epic). PC34 VP-path correction, PC40 volatile-input precondition, invariant-6 I/O-vs-content adjudication, and all Class A/B/E amendments from v1.4-v1.5 survive intact. (product-owner; human-approved scope decision 2026-08-04.) [Prior: 2026-08-04 (v1.5) — Amendment 1 (PC31): Closes/Refs regex corrected to `^\*\*Closes\b[^:]*:\*\*`/`^\*\*Refs\b[^:]*:\*\*` — bare-colon form `^\*\*Closes:\*\*` matched only 20 of 34 burst-log Closes lines (corpus check 2026-08-04, full-file grep); 14 missed (parenthetical `**Closes (per ...):**` x11 + bare-word `**Closes per ...:**` x3); Refs = 0 corpus instances, retained forward-looking; PC31a scope-count advisory added (postcondition 24). Amendment 2 (PC34): VP path `ss-*/VP-*.md` → flat `^VP-[0-9]+\.md$` with VP-INDEX.md exclusion (corpus 2026-08-04: zero ss-* subdirs; 102 VPs flat); epics clause added (dispatch.rs carried arm without PC34 counterpart). Amendment 3 (invariant 6 adjudication): CapabilityDenied/Timeout on cycle artifact is BLOCKING per PC33/postcondition 18/invariant 5; invariant 6 scopes to finding-content verdicts only; postcondition 18 expanded to include Timeout. Amendment 4 (PC40): volatile-input precondition for Class B Arm B1 per ADR-037 §Decision 4; scan story inputs: for volatile patterns; emit prescribed advisory + Continue if found; transitional (vacuous post-remediation); EC-032 added. (product-owner.) [Prior: 2026-08-03 (v1.4) — PC13: bounding-section heading-match predicates changed from exact equality to prefix-with-word-boundary (^## Behavioral Contracts\b, ^## Token Budget\b); 133 of 144 production stories use ## Token Budget Estimate or ## Token Budget Estimate (MANDATORY), which exact equality skipped, causing stale Token Budget citations to go undetected; corpus check (2026-08-03) confirmed zero false positives on .factory/stories/*.md; ## Edge Cases (148 occurrences) remains excluded. Architecture Anchor for extract_story_bc_version_citations updated. Exact-equality non-conformance note added. (product-owner.) [Prior: 2026-07-30 (v1.3) — PC13: bounding section added (scan confined to ##Behavioral Contracts + ##Token Budget sections; ≥9 spurious blocks from Edge Cases rows eliminated); dual version-token format (\bv?([0-9]+\.[0-9]+)\b covers both bare 1.2 and v-prefixed v1.2); LAST rightmost pipe-field algorithm stated. PC31: bold-markdown form (**Closes:**/**Refs:**) required to match D-444(c) real burst-log format; union scan not else-if. PC38 + postcondition 21: non-decreasing relation (∀i: date[i] ≤ date[i+1]); equal same-day dates PERMITTED; EC-030/031 + test vectors added. Amendment 4: no spec change — PC29 (2 MiB) and PC33 (NotFound advisory+Continue on cycle artifact) already unambiguous; fault is purely implementational. PC32: O- deliberately non-excluded per D-449(d)(i); ruling made explicit. POLICY 14 five-leg parity; v1.1 modified[] entry restored (missing since initial authoring — irony: this hook checks modified[] monotonicity but not modified[]↔Changelog row correspondence, so it structurally cannot catch this defect in its own governing BC). (product-owner.) [Prior: 2026-07-30 (v1.2) — Registry entry corrected: tools = [...] array replaced with tool = "^(Edit|Write|MultiEdit)$" regex string (field name singular + MultiEdit added; POLICY 13 ESCAPE-SCOPE-PARITY). Fuel-exhaustion note added to Gate Specifications per ADR-035 §Decision 5. BC-version-pin datum-copy ruling added to Postconditions §Part A Arm2. (product-owner.) [Prior: 2026-07-30 (v1.1) — Part A Arm2 (story-file-side trigger) added; advisory rationales made explicit for every advisory arm; Class D tokenizer namespace-exclusion list added (D-, S-, BC-, VP-, R-, L-, ADR-, EC-, NFR-, ASM-, FM-); EC-024 rationale corrected; Class A coverage-gap routing replaced with correctly-sized latency-gap explanation; Invariant 11 (fabricated vs stale hash provenance) added; EC-026/027/028/029 added; Gate Spec updated with run_part_a_arm2; VP table extended to 17 entries. (product-owner; coordinator review.) [Prior: 2026-07-30 (v1.0) — Initial authoring (product-owner; pre-pass-30 fix-burst). BC-5.39.010 allocated after BC-5.39.009. input-hash d248fc3 per hook-authoritative marketplace binary. lifecycle_status: draft.]]]]]
 ---
 
 # BC-5.39.010: validate-cross-site-correspondence WASM hook MUST block on stale BC-INDEX version-cite after a BC frontmatter bump (Class A Arm1), stale story body BC-table and Token Budget citations after a story edit (Class A Arm2), STORY-INDEX three-way input-hash inequality (Class B), and frontmatter version↔last_amended text-prefix mismatch and modified[] date-decrease (Class E); Class C count/enumeration parity is not mechanically checkable in WASM; Class D (finding-ID namespace advisory in Closes/Refs lines) deferred pending Closes/Refs convention standardization
@@ -91,29 +92,63 @@ test per POLICY 21.
 5. The hook locates the body-table row for the BC ID post-frontmatter (pattern `^\| \[<id>\]` or
    `^\| <id> \|`). **BC-INDEX canonical table shape is 5-column: `| BC ID | Title | Status | Capability | Stories |`.**
    A version-chain cell is an **ad-hoc 6th column** present on only **40 of 1983** body-table rows
-   (corpus 2026-08-04, adversary pass-3 verified: `grep -cE '^\| \[BC-[0-9]+\.[0-9]+\.[0-9]+\]'
-   BC-INDEX.md` → 1983; `\| v[0-9]+\.[0-9]+` line count → 40). The `extract_bc_index_version`
-   function MUST return one of three normative states — **NOT** a two-state `Option<String>` that
-   conflates the first two into a single `None`:
+   (corpus 2026-08-04, escape-aware count: total 1983; 5-field 1943; 6-field 40).
+
+   **Escape-aware splitting is required.** The version-chain cell uses `\|` (backslash+pipe) as
+   an internal separator between version tokens (e.g., `v1.3 \| v1.4 \| v1.5`). The row splitter
+   MUST substitute `\|` → placeholder before splitting on `|`, then restore — so that `\|` within
+   the version-chain cell does NOT create additional column boundaries. A naive `|` split on a
+   version-chain row produces 15+ fields instead of 6; the escape-aware split yields exactly 6.
+   Corpus verification (2026-08-04):
+   `python3 -c "import re; lines = open('BC-INDEX.md').readlines(); [...]"` →
+   `5-field rows: 1943 / 6+-field rows: 40 / total: 1983`.
+
+   **Column-count-anchored state classification.** After escape-aware splitting, count non-empty
+   (whitespace-stripped) fields. The `extract_bc_index_version` function MUST return one of three
+   normative states — **NOT** a two-state `Option<String>` that conflates the first two:
    - **`RowAbsent`**: no body-table row found for this BC ID post-frontmatter. This is the
      genuine structural fault: a previously registered BC whose INDEX row was dropped.
-   - **`RowPresentNoVersion`**: a body-table row is found; no `\bv[0-9]+\.[0-9]+\b` token exists
-     in any pipe-delimited field of that row. This is the canonical normal state for approximately
-     **1,943 of 1,983** rows — 5-column rows that carry no version chain. It is NOT a defect.
-   - **`Version(v)`**: a body-table row is found and a `\bv[0-9]+\.[0-9]+\b` token is extracted
-     from one of its pipe-delimited fields.
+   - **`RowPresentNoVersion`**: row found AND non-empty field count is exactly **5** (the 5-column
+     canonical shape). This state is determined **structurally by column count alone** — **no
+     token search is performed on any field of the row**. This is the canonical normal state for
+     exactly **1,943 of 1,983** rows (corpus 2026-08-04). It is NOT a defect.
+   - **`Version(v)`**: row found AND non-empty field count is **≥6**. The **6th field** is the
+     version-chain cell. Extract the **latest (rightmost)** version token from that cell using
+     `\bv([0-9]+\.[0-9]+)\b` (mandatory `v` prefix — all real version-chain tokens use `v` prefix).
+     Exactly **40 of 1,983** rows are in this state (corpus 2026-08-04).
+
+   **Why column-anchored, not token-search.** A token-search implementation (scanning all pipe
+   fields for any `\bv?([0-9]+\.[0-9]+)\b` match) is **NON-CONFORMING** for two reasons:
+
+   (a) **RowAbsent/RowPresentNoVersion conflation (F-S2107-P3-001 blast radius ≥1,712)**: a
+   two-state `Option<String>` mapping both states to `None` misdiagnoses ≥1,712 correct
+   registrations as dropped rows (`RowAbsent` false positives). Per F-S2107-P3-001 corpus
+   analysis: 1,983 − 40 version-cell rows − at most 231 v1.0 advisory rows = ≥1,712 false BLOCKs.
+
+   (b) **Story-ID column collision (194 rows)**: the Stories column (field 5) of 194 of the 1,943
+   canonical rows contains a story ID of the form `S-NNN.NN` (e.g., `S-15.01`) whose digits
+   `NNN.NN` match the bare-form pattern `\bv?([0-9]+\.[0-9]+)\b`. A token-search extractor returns
+   `Version("15.01")` for such rows instead of `RowPresentNoVersion`, then compares `15.01`
+   against the BC's actual version (e.g., `1.0`) and blocks falsely. The 194 count is the
+   load-bearing corpus figure — it is why column-anchoring is necessary rather than merely tidier.
+   Corpus verification (2026-08-04):
+   `grep -E '^\| \[BC-[0-9]+\.[0-9]+\.[0-9]+\]' BC-INDEX.md | grep -vE '\| v[0-9]+\.[0-9]+' | grep -cE '\| S-[0-9]+\.[0-9]+'`
+   → **194**.
+
    An implementation returning `Option<String>` that maps both `RowAbsent` and `RowPresentNoVersion`
    to `None` is **NON-CONFORMING**: it misdiagnoses ≥1,712 correct registrations as structural
-   faults (1,983 − 40 version-cell rows − at most 231 v1.0 advisory rows = ≥1,712 false BLOCKs
-   per F-S2107-P3-001 corpus analysis, blast radius confirmed). **Additionally**: the test
-   `corpus_arm_a1` MUST NOT select only from the 40 version-cell rows — it MUST include at least
-   one BC from the ≥1,943 `RowPresentNoVersion` majority; selecting only version-chain rows cannot
-   detect this failure class (the corpus test picked BC-1.17.001, one of the 40, allowing
-   F-S2107-P3-001 to survive three passes undetected).
+   faults (blast radius confirmed, F-S2107-P3-001). **Additionally**: the test `corpus_arm_a1`
+   MUST NOT select only from the 40 version-cell rows — it MUST include at least one BC from the
+   1,943 `RowPresentNoVersion` majority; selecting only version-chain rows cannot detect this
+   failure class (the corpus test picked BC-1.17.001, one of the 40, allowing F-S2107-P3-001 to
+   survive three passes undetected).
 6. `RowPresentNoVersion` route: the hook proceeds directly to postcondition 4 (silent-continue).
-   No version comparison is performed. `Version(v)` route: the extracted token is normalized by
-   stripping a leading `v`; both values (frontmatter `version:` and extracted token) compared as
-   case-sensitive decimal strings after normalization (postconditions 1-2).
+   No version comparison is performed. `Version(v)` route: the version token is the LAST
+   (rightmost) `\bv([0-9]+\.[0-9]+)\b` match in the 6th column's cell content, representing the
+   current version in the chain; it is normalized by stripping the leading `v`; both values
+   (frontmatter `version:` and extracted token) compared as case-sensitive decimal strings after
+   normalization (postconditions 1-2). Note: the 6th column may contain multiple version tokens
+   separated by `\|` (e.g., `v1.3 \| v1.4 \| v1.5`); the rightmost token is always the current.
 
 ### Part A — Arm1 read failure semantics
 
@@ -183,26 +218,57 @@ test per POLICY 21.
     blocking violations on any story that documents BC edge cases in a table, making the gate
     unwritable for its own governing story.
 
-    Within each BC-citation section, a **version citation** is a table row (contains `|`) where:
-    - The BC ID is present as an **exact word-boundary token**: the text `BC-S.SS.NNN` must be
-      bounded by `\b` on both sides. A line ending `| BC-5.39.010 EC-001 |` does NOT match
-      because the right `\b` is followed by a space then `EC-` (the BC ID is not a standalone
-      token there). Implementations MUST NOT use a plain `line.contains(bc_id)` test.
-    - At least one **version token** is present in the row. A version token matches
-      `\bv?([0-9]+\.[0-9]+)\b` — the `v` prefix is OPTIONAL to cover both:
-      - Bare form `1.2` used in the body `## Behavioral Contracts` table Version column
-      - `v`-prefixed form `v1.2` used in `## Token Budget` rows and prose
-      The prior regex `\bv([0-9]+\.[0-9]+)\b` (mandatory `v`) was unreachable for the bare
-      form and would silently skip every body BC-table row, defeating Arm A2's headline purpose.
+    Within each BC-citation section, a **version citation** is a table row (contains `|`) where
+    the BC ID is present as an **exact word-boundary token**: the text `BC-S.SS.NNN` must be
+    bounded by `\b` on both sides. Implementations MUST NOT use a plain `line.contains(bc_id)`
+    test. Version extraction uses a **two-phase algorithm**:
 
-    **Version extraction — LAST rightmost pipe-field algorithm**: split the row by `|` delimiter;
-    iterate fields in REVERSE order (right to left); return the version token from the first
-    (rightmost) field whose stripped content contains a `\bv?([0-9]+\.[0-9]+)\b` match. Do NOT
-    use first-match-forward: a title field or description field often contains version-like
-    substrings before the actual version column, causing first-match to read the wrong token.
+    **Phase 1 — Pure-version field**: scan all pipe-delimited fields of the row. If any field's
+    stripped content matches `^v?([0-9]+\.[0-9]+)$` exactly (the entire field is exclusively a
+    version number, optionally v-prefixed), use it. Strip the leading `v` if present. This covers
+    the `## Behavioral Contracts` body table where the Version column is an isolated field like
+    `1.7` or `v1.6`. Corpus count (2026-08-04): **58 rows** across all story files.
 
-    If no version-citing row is found for a given BC ID in either BC-citation section: skip
-    that BC (`HookResult::Continue` for that BC). Absence is not a violation.
+    **Phase 2 — Inline v-prefixed token (fallback)**: if Phase 1 finds no pure-version field,
+    scan fields in **REVERSE order** (rightmost first) for the pattern `\bv([0-9]+\.[0-9]+)\b`
+    (**mandatory `v` prefix**). Return the first match found. This covers `## Token Budget` rows
+    where the BC ID and version appear inline in a single field (e.g., `BC-5.39.010 v1.7 (full
+    text, 33 ECs...)`). Corpus count (2026-08-04): **30 rows** across all story files.
+
+    If neither phase produces a match: the row is NOT a version citation; skip it
+    (`HookResult::Continue` for that BC). Absence is not a violation.
+
+    **Why the prior `\bv?([0-9]+\.[0-9]+)\b` bare form (v1.3–v1.7) is NON-CONFORMING:**
+
+    The optional-v bare form creates three collision classes confirmed by corpus analysis
+    (2026-08-04, 197 story files):
+
+    (1) **Story-ID collision** (29 rows / 6 stories): story files use tables like `| BC ID | Title
+    | Trace |` where the Trace column carries the implementing story ID (`S-1.03 implements
+    HookResult...`). The bare form `1.03` matches `\bv?([0-9]+\.[0-9]+)\b`, extracting `1.03` as
+    the cited version. The referenced BCs (BC-2.01.001 at `v1.0`, BC-2.02.001 at `v1.1`, etc.)
+    are not at version `1.03` → false BLOCK on 29 rows across `S-0.03`, `S-1.03`, `S-2.06`,
+    `S-3.01`, `S-4.07`, `S-8.09`. Corpus command:
+    `python3 -c "...BC rows where S-N.NN in rightmost Trace field and no Version col..." → 29`.
+
+    (2) **BC-section-number collision** (Token Budget rows): Token Budget rows embed BC ID inline
+    (`BC-5.39.010 v1.7 (full text...)`). The bare-form rightmost algorithm extracts `5.39` (from
+    `BC-5.39.010`) before `v1.7` (the actual version), because `5.39` is a word-boundary match
+    appearing before `v1.7` in the string. All 30 v-prefix-inline Token Budget rows and all 82
+    bare-only-or-none Token Budget rows are mishandled. The two-phase algorithm's Phase 2
+    (mandatory `v`) correctly extracts `v1.7` from `BC-5.39.010 v1.7 (...)`.
+
+    (3) **ACs-column collision** (1 row — S-21.07, this BC): the Story ACs column contains
+    `AC-001 through AC-021 (AC-012/013/014 DEFERRED v1.6 — Class D)`. The rightmost algorithm
+    returns `v1.6` from this column instead of `1.7` from the Version column (which is to the
+    LEFT of the ACs column). BC-5.39.010 is at `v1.7` → false BLOCK on its own governing story.
+    Phase 1 resolves this by finding the isolated `1.7` pure-version field before the ACs column.
+
+    **Corpus summary (2026-08-04):**
+    `## Behavioral Contracts` rows: 58 pure-v-col + 10 v-prefix-inline + 375 bare/none = 443 total.
+    `## Token Budget` rows: 30 v-prefix-inline + 82 bare/none = 112 total.
+    Story-ID hazard (correctly excluded by mandatory-v Phase 2): 29 rows.
+    ACs-column hazard (correctly resolved by Phase 1): 1 row.
 
 ### Part A — Arm2 read failure semantics
 
@@ -919,7 +985,7 @@ fm_version = extract_frontmatter_field(content, "version") |> strip_v_prefix
 index_content = host::read_file(BC_INDEX_PATH, 1048576, 3000)
   // NotFound → log_warn advisory + return []
   // CapabilityDenied → return [block(cap_denied)]
-match extract_bc_index_version(index_content, bc_id):  // three-state per PC5
+match extract_bc_index_version(index_content, bc_id):  // three-state per PC5; column-anchored: escape-aware split (\| non-splitting), count non-empty fields; 5 → RowPresentNoVersion; 6+ → Version(v) from 6th field rightmost v-token
     RowAbsent:
         if fm_version == "1.0": log_warn(new_bc_advisory); return []
         else: return [block(row_absent_v_gt_1_message)]     // postcondition 4 blocking path
@@ -951,8 +1017,11 @@ for bc_id in bc_ids:
     // Vec<(location: String, cited_version: String)>
     // scoped to sections matching ^## Behavioral Contracts\b or ^## Token Budget\b (PC13 prefix predicates)
     // bc_id must be an exact word-boundary token (\b on both sides)
-    // version token: \bv?([0-9]+\.[0-9]+)\b (bare AND v-prefixed)
-    // version extracted from LAST rightmost pipe-field containing a version token
+    // TWO-PHASE version extraction (PC13 v1.8):
+    //   Phase 1: any field matching ^v?([0-9]+\.[0-9]+)$ exactly (pure-version field) → use it
+    //   Phase 2 (fallback): rightmost field with \bv([0-9]+\.[0-9]+)\b (mandatory v-prefix)
+    // prior optional-v \bv?([0-9]+\.[0-9]+)\b is NON-CONFORMING: story-ID collision (29 rows),
+    // BC-section-number collision (Token Budget), ACs-column collision (1 row, S-21.07)
     for (location, cited_ver) in citations:
         if strip_v_prefix(cited_ver) != bc_version:
             violations.push(stale_arm2_msg(story_id, bc_id, location, cited_ver, bc_version))
@@ -1044,7 +1113,7 @@ VP IDs pending VP-INDEX allocation by state-manager at post-merge burst.
 - `crates/hook-sdk/src/host.rs` — `host::read_file`, `host::log_warn`
 - `crates/hook-sdk/src/result.rs` — `HookResult::Continue`, `HookResult::block_with_fix`
 - `derive_bc_path(bc_id)` — deterministic BC file path derivation from BC ID (no list_dir)
-- `extract_story_bc_version_citations(content, bc_id)` — finds version-citing table rows for a given BC ID within sections matching `^## Behavioral Contracts\b` or `^## Token Budget\b` ONLY (PC13 prefix-with-word-boundary predicates; NOT exact equality — see PC13 non-conformance note); matches both bare `1.2` and v-prefixed `v1.2` forms via `\bv?([0-9]+\.[0-9]+)\b`; extracts version from LAST rightmost pipe-field containing a version token; returns Vec<(location, version)>
+- `extract_story_bc_version_citations(content, bc_id)` — finds version-citing table rows for a given BC ID within sections matching `^## Behavioral Contracts\b` or `^## Token Budget\b` ONLY (PC13 prefix-with-word-boundary predicates; NOT exact equality); two-phase version extraction: Phase 1 pure-version field (`^v?[0-9]+\.[0-9]+$`), Phase 2 fallback mandatory-v inline (`\bv([0-9]+\.[0-9]+)\b` rightmost-first); prior optional-v bare form NON-CONFORMING (29-row story-ID collision, Token Budget BC-section-number collision, 1-row ACs-column collision); returns Vec<(location, version)>
 - `extract_frontmatter_sequence(content, field)` — parses YAML sequence field from frontmatter
 - `check_volatile_inputs(story_content, story_id)` — scans story `inputs:` sequence for ADR-037 §Decision 2 volatile patterns; returns `Some(Continue)` with prescribed advisory if found, `None` to proceed with three-way check (PC40)
 - `is_frontmatter_parity_target(file_path)` — PC34 classifier (BC, VP, story, epic files); VP arm uses flat `verification-properties/` path + `^VP-[0-9]+\.md$` predicate (no `ss-*/`)
@@ -1061,6 +1130,7 @@ VP IDs pending VP-INDEX allocation by state-manager at post-merge burst.
 
 | Version | Date | Description |
 |---------|------|-------------|
+| 1.8 | 2026-08-04 | PC5 column-anchored locator: state classification changed from token-search-based to escape-aware column-count-anchored — split by unescaped `|` (treating `\|` as non-splitting), count non-empty fields: 5 → RowPresentNoVersion unconditionally; ≥6 → Version(v) from 6th column. Token-search approach was NON-CONFORMING: 194 of 1,943 canonical rows carry story IDs (e.g., `S-15.01`) in the Stories column whose digits match bare `\bv?([0-9]+\.[0-9]+)\b` → Version("15.01") false-BLOCK; 194 is the load-bearing corpus count. Corpus-validated: 1983 total / 1943 five-field / 40 six-field / 194 story-ID hazard rows. PC6 updated: Version(v) extraction uses rightmost `\bv([0-9]+\.[0-9]+)\b` match in 6th field. PC13 two-phase algorithm replaces LAST rightmost pipe-field algorithm (prior optional-v form NON-CONFORMING): Phase 1 pure-version field (`^v?[0-9]+\.[0-9]+$`, 58 BC-section rows); Phase 2 mandatory-v inline (`\bv([0-9]+\.[0-9]+)\b`, 30 Token Budget rows); eliminates: (1) story-ID collision 29 rows/6 stories, (2) BC-section-number collision in Token Budget rows, (3) ACs-column collision 1 row S-21.07/BC-5.39.010. Gate Spec pseudocode and Architecture Anchor updated. PC40 ruling and ALGORITHM-DIVERGENT corrections from v1.7 retained. (product-owner.) |
 | 1.7 | 2026-08-04 | PC5 corrected: BC-INDEX canonical shape 5-column (`| BC ID | Title | Status | Capability | Stories |`); version-chain cell is ad-hoc 6th column present on only 40 of 1983 body-table rows (corpus 2026-08-04, adversary pass-3 verified); `extract_bc_index_version` rearchitected to three-state return `RowAbsent` / `RowPresentNoVersion` / `Version(v)` — prior two-state `Option<String>` conflating `RowAbsent` and `RowPresentNoVersion` into a single `None` produced ≥1,712 false BLOCKs per F-S2107-P3-001. Postcondition 4 expanded: `RowAbsent` + version > "1.0" → block (unchanged, genuine structural fault); `RowPresentNoVersion` → silent-continue (5-column canonical shape is standard for ~98% of rows; advisory would be unactionable noise). Part B postconditions note and invariant 11 corrected: `1acf3c6` reclassified from fabricated to ALGORITHM-DIVERGENT per ADR-036 §Decision 4 — produced by rc.23 CACHE binary (trailing-newline-stripping algorithm), not fabricated; no PROVENANCE-BREAK annotation was warranted; Pass-30 M02 POLICY 18 violation claim for `1acf3c6` retracted. Invariant 11 updated to three-category taxonomy. Gate Spec `run_part_a_arm1` pseudocode updated to reflect three-state match. PC40 confirmed conformant — F-S2107-P3-002 is implementation non-conformance, not a spec defect; no PC40 amendment warranted. (product-owner; F-S2107-P3-001 spec-side; ADR-036 §Decision 4 annotation corrections per D-952.) |
 | 1.6 | 2026-08-04 | Class D (finding-ID namespace advisory in Closes/Refs lines) descoped entirely per human-approved scope decision 2026-08-04. Active gated classes: A, B, E only. `is_cycle_artifact` dispatch branch marked DEFERRED — must not be compiled into v1.6 hook. `.factory/cycles/` removed from registry `path_allow`. Rationale: Closes/Refs convention is unstandardized (six shapes across both cycle burst-logs; PC31 failed three iterations: v1.2 plain-colon→0 matches, v1.3 bold-bare-colon→20/34, v1.5 bold-word-boundary-colon→86/96 bold but 0/20 non-bold); v1.5 measurement taken against wrong cycle (`v1.0-feature-engine-discipline-pass-1` while active cycle is `v1.0-brownfield-backfill`). PC28-PC33 and postconditions 16-18/24 and invariant 6 marked DEFERRED; IDs preserved per POLICY 1 append-only. Knowledge carried forward in §Deferred Scope with follow-up story target S-21.08 (E-21 epic). Class A, B, E amendments from v1.4-v1.5 (PC34 VP-path correction, PC40 volatile-input precondition, invariant-6 adjudication) survive intact. (product-owner; human-approved scope decision.) |
 | 1.5 | 2026-08-04 | Amendment 1 (PC31): Closes/Refs regex corrected — bare-colon `^\*\*Closes:\*\*` matched only 20 of 34 burst-log Closes lines (corpus 2026-08-04; 14 missed due to parenthetical/bare-word qualifiers); new form `^\*\*Closes\b[^:]*:\*\*` covers all 34; Refs=0 corpus instances, forward-looking; PC31a scope-count advisory added (postcondition 24) so inert scope is observable. Amendment 2 (PC34): VP path corrected from `ss-*/VP-*.md` (inert for all 102 VPs) to flat `^VP-[0-9]+\.md$` with VP-INDEX.md exclusion (corpus 2026-08-04: zero ss-* dirs, 102 VPs flat); epics clause added (dispatch.rs carried it without PC34 counterpart; closes spec gap). Amendment 3 (invariant 6 adjudication): CapabilityDenied/Timeout on cycle artifact remain BLOCKING per PC33/postcondition 18/invariant 5 — invariant 6 scopes to finding-content verdicts only; postcondition 18 expanded to include Timeout; non-conforming swallow-all error arm named explicitly. Amendment 4 (PC40): volatile-input precondition for Class B Arm B1 per ADR-037 §Decision 4 — scan story inputs: for volatile patterns (decision-log/lessons/burst-log/STATE.md/catalog indexes); emit prescribed advisory + Continue if found; transitional clause (vacuous once 19-story remediation complete, per ADR-037 §Decision 5); EC-032 + test vector added. (product-owner; S-21.07 LOCAL adversary pass-2 fix.) |
