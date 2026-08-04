@@ -279,56 +279,64 @@ pub fn run_arm_b1_with_index_result(
     (violations, advisories)
 }
 
+/// Volatile path patterns transcribed 1:1 from ADR-037 §Decision 2.
+///
+/// Six canonical patterns; each is checked in order by `is_volatile_path`.
+/// Paths NOT in this table are non-volatile and MUST NOT match.
+///
+/// | # | Pattern | Rationale |
+/// |---|---------|-----------|
+/// | 1 | `.factory/STATE.md` | pipeline state (direct child) |
+/// | 2 | `.factory/cycles/**/STATE.md` | per-cycle state |
+/// | 3 | `.factory/cycles/**/decision-log.md` | append-only cycle log |
+/// | 4 | `.factory/cycles/**/lessons.md` | append-only cycle log |
+/// | 5 | `.factory/cycles/**/burst-log.md` | append-only cycle log |
+/// | 6 | `.factory/specs/architecture/ARCH-INDEX.md` | growing architecture catalog |
+/// | 7 | `.factory/specs/behavioral-contracts/BC-INDEX.md` | growing BC catalog |
+/// | 8 | `.factory/stories/STORY-INDEX.md` | growing story catalog |
+///
+/// Note: VP-INDEX.md is intentionally absent (not in ADR-037 §Decision 2).
+/// Note: `.factory/cycles/**` any-file widening is intentionally absent (immutable
+/// historical artifacts like adv-cycle-pass-N.md are not volatile).
+const VOLATILE_PATTERNS_CYCLES_NAMED: [&str; 4] =
+    ["STATE.md", "decision-log.md", "lessons.md", "burst-log.md"];
+
 /// Returns `true` if `path` is a volatile factory path whose content changes
 /// frequently enough that a stable input-hash cannot be maintained.
 ///
-/// Volatile paths (BC-5.39.010 v1.6 PC40):
-/// - `.factory/STATE.md` — direct child only (not subdirectory STATE.md files)
-/// - `.factory/**/BC-INDEX.md` — anywhere under `.factory/`
-/// - `.factory/**/VP-INDEX.md` — anywhere under `.factory/`
-/// - `.factory/**/STORY-INDEX.md` — anywhere under `.factory/`
-/// - `.factory/cycles/**` — any file under the cycles tree
+/// Implements ADR-037 §Decision 2 exactly — six canonical patterns (see
+/// `VOLATILE_PATTERNS_CYCLES_NAMED` doc table above).
 ///
 /// Pure: no I/O.
 ///
 /// # BC trace
-/// BC-5.39.010 v1.6 PC40: volatile-input precondition.
+/// BC-5.39.010 v1.8 PC40: volatile-input precondition.
+/// ADR-037 §Decision 2: canonical volatile path list.
 pub fn is_volatile_path(path: &str) -> bool {
-    use std::path::{Component, Path};
-    let p = Path::new(path);
-    let components: Vec<_> = p.components().collect();
+    use std::path::Path;
 
-    let has_factory = components
-        .iter()
-        .any(|c| matches!(c, Component::Normal(s) if *s == ".factory"));
-    if !has_factory {
-        return false;
-    }
-
-    let filename = p.file_name().and_then(|f| f.to_str()).unwrap_or("");
-
-    // .factory/STATE.md — direct child only (parent dir must be exactly ".factory")
-    if filename == "STATE.md" {
-        let parent_is_factory = p
-            .parent()
-            .and_then(|parent| parent.file_name())
-            .and_then(|f| f.to_str())
-            .map(|f| f == ".factory")
-            .unwrap_or(false);
-        if parent_is_factory {
-            return true;
-        }
-    }
-
-    // .factory/**/BC-INDEX.md, VP-INDEX.md, STORY-INDEX.md
-    if matches!(filename, "BC-INDEX.md" | "VP-INDEX.md" | "STORY-INDEX.md") {
+    // Pattern 1: `.factory/STATE.md` — pipeline state, direct child only.
+    if path == ".factory/STATE.md" {
         return true;
     }
 
-    // .factory/cycles/** — any file under the cycles tree
-    components
-        .iter()
-        .any(|c| matches!(c, Component::Normal(s) if *s == "cycles"))
+    // Patterns 2–5: files under `.factory/cycles/**/`.
+    // Only four named files are volatile; any other cycles/ file is an immutable
+    // historical artifact and must NOT match.
+    if path.starts_with(".factory/cycles/") {
+        let filename = Path::new(path).file_name().and_then(|f| f.to_str()).unwrap_or("");
+        return VOLATILE_PATTERNS_CYCLES_NAMED.contains(&filename);
+    }
+
+    // Patterns 6–8: path-equals for the three index files.
+    // Filename-only matching is intentionally avoided: BC-INDEX.md under cycles/
+    // must NOT match (only the canonical spec path is volatile).
+    matches!(
+        path,
+        ".factory/specs/architecture/ARCH-INDEX.md"
+            | ".factory/specs/behavioral-contracts/BC-INDEX.md"
+            | ".factory/stories/STORY-INDEX.md"
+    )
 }
 
 /// Extract the `inputs:` YAML sequence from a story file's frontmatter.
@@ -377,12 +385,13 @@ pub fn run_arm_b1(story_id: &str, story_content: &str) -> (Vec<Violation>, Vec<A
         .map(|p| p.as_str())
         .collect();
     if !volatile_found.is_empty() {
+        // ADR-037 §Decision 4 prescribed advisory text — transcribed verbatim.
         let advisory = Advisory {
             message: format!(
-                "validate-cross-site-correspondence [Class B] advisory: story {story_id} \
-                has volatile inputs {volatile_found:?} — skipping three-way input-hash \
-                comparison per BC-5.39.010 v1.6 PC40. Volatile paths do not produce \
-                stable hashes. Update input-hash manually when non-volatile inputs change."
+                "Story {story_id} has volatile inputs per ADR-037 §Decision 2 — \
+                three-way equality is unsatisfiable until story-writer removes volatile \
+                inputs and state-manager recomputes the hash; Class B BLOCK suspended. \
+                Volatile path(s): {volatile_found:?}"
             ),
         };
         return (vec![], vec![advisory]);
@@ -536,14 +545,28 @@ fn extract_input_hash_token(line: &str) -> Option<String> {
 ///
 /// Table row format: `| S-21.07 | title | ... |`
 /// The story ID is in the first pipe-delimited cell.
+///
+/// Returns `None` for non-canonical IDs like `S-README` that do not match
+/// `S-[0-9]+\.[0-9]+` (PC9/PC16). Uses `parse_story_id_len` — the same
+/// canonical predicate as `extract_blockquote_pairs` — so both extraction
+/// sites enforce the same story-ID pattern.
+///
+/// # BC trace
+/// BC-5.39.010 PC9/PC16: story ID canonical pattern `S-[0-9]+\.[0-9]+`.
+/// F-S2107-P3-015: TD-VSDD-060 sibling-site sweep.
 fn extract_story_id_from_table_row(line: &str) -> Option<String> {
-    // Split by | and find the first non-empty cell
     let mut cells = line.split('|');
     cells.next(); // skip leading empty (before first |)
     let first_cell = cells.next()?;
-    let id = first_cell.trim().to_string();
-    // A story ID starts with "S-"
-    if id.starts_with("S-") { Some(id) } else { None }
+    let trimmed = first_cell.trim();
+    // parse_story_id_len: length of S-[0-9]+\.[0-9]+ prefix, or 0 if no match.
+    // Require the entire trimmed cell to be a canonical story ID (no trailing garbage).
+    let len = parse_story_id_len(trimmed);
+    if len > 0 && len == trimmed.len() {
+        Some(trimmed.to_string())
+    } else {
+        None
+    }
 }
 
 /// Extract all `S-XX.YY=HHHHHHH` pairs from a blockquote line.
