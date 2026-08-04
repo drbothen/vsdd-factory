@@ -22664,3 +22664,114 @@ POLICY 18 three-way hash equality SATISFIED: frontmatter=`52f0bf3` / catalog=`52
 **factory-artifacts commits (this burst — TD-VSDD-053 single-commit):**
 - Single-commit: 5d244238
 
+---
+
+## D-951 — S-21.07 PASS-2-RECORD-BURST 2026-08-03
+
+### Block 1: Parent-commit
+
+Pre-burst parent-commit (factory-artifacts): `0d2e8c3e` (factory(D-950-sha-patch): burst-log Block 8 factory-artifacts SHA → 5d244238 (D-447(c)+D-449(e))). Per D-419(b).
+
+### Block 2: Adversary verdict (D-448(a) gate)
+
+**Adversary:** `vsdd-factory:adversary` (claude-sonnet-4-6; holistic fresh-context dispatch; pass-2). Reviewed code HEAD `e28aa098` (feature/S-21.07; bats 41/0/0 GREEN; factory artifacts HEAD `0d2e8c3e`). **Verdict: NOT-CLEAN** · B3/H7/M5/L3 = 18 findings + 4 observations · Streak: 0/3 · Trajectory: 47→18.
+
+**Dispatch shape change:** Pass-1 used a three-scope split; pass-2 is one holistic fresh-context adversary. Rationale: the three-scope split under-detected cross-scope defects, which pass-2 confirms (F-P2-001/F-P2-002/F-P2-006/F-P2-007/F-P2-008 span multiple arms or BC clauses).
+
+**Three BLOCKERs:**
+- F-P2-001 [regression]: `arm_a2.rs` `skip_section=false` leaves leading edge unbounded; YAML frontmatter in scan window → false Arm A2 block on S-21.04 (and S-19.05/06/07, S-15.17, S-18.09). [ORCH-VERIFIED]. Direct regression of F-P1B-001's claimed closure.
+- F-P2-002: `arm_a1.rs` `starts_with('|') && contains(bc_id)` with LAST-wins across ALL rows → later cross-reference row beats the BC's own row. [ORCH-VERIFIED: BC-1.17.001 v1.7 own row 657 loses to v1.6 mention in row 691]. Blast radius: 7 BC-INDEX body rows with foreign BC IDs.
+- F-P2-003: Story S-21.07 v1.2 body still pinned to BC-5.39.010 v1.3 (nine live sites); under shipped hook the deliverable blocks its own spec.
+
+**Seven HIGH, five MEDIUM, three LOW findings** per adversary-pass-2.md Part B. Four observations per §4.
+
+**Central meta-finding:** pass-1's systemic root cause did NOT close — no test reads a real `.factory/` artifact; spec-describes-imagined-shape now SIX instances (PC13 v-prefix; PC31 plain-colon; PC13 exact heading text; PC20/PC21 uppercase fixture; PC31 bold-vs-parenthetical; PC34 `ss-*` vs flat VP layout).
+
+**Bookkeeping gap rectified:** F-S2107-P1B-013 was UNRECORDED in INDEX.md + decision-log.md; this pass records it. The proposed pass-1 remediation (enforce PC34 `ss-*` clause) was WRONG and would have made Class E inert for all 102 flat VPs.
+
+**D-448(a) source-attestation gate (literal shell stdout — D-449(a)):**
+```
+$ grep -E "^verdict:|^findings_count:|^severity_breakdown:|^dispatch_shape:" .factory/cycles/v1.0-brownfield-backfill/S-21.07/adversary-pass-2.md | head -10
+verdict: NOT-CLEAN
+findings_count: 18
+severity_breakdown: "B3/H7/M5/L3"
+dispatch_shape: "HOLISTIC — one unified fresh-context adversary; deliberate change from pass-1 three-scope split to detect cross-scope defects"
+```
+
+Burst-log Block 2 adversary verdict (NOT-CLEAN · B3/H7/M5/L3 = 18 findings · holistic dispatch) faithfully describes adversary-pass-2.md Part A+B finding set. No fabrication.
+
+### Block 3: Files touched
+
+| File | Change | Agent |
+|------|--------|-------|
+| `.factory/cycles/v1.0-brownfield-backfill/S-21.07/adversary-pass-2.md` | NEW — pass-2 holistic adversary review; B3/H7/M5/L3 = 18 findings + 4 obs; NOT-CLEAN; reviewed HEAD e28aa098; factory HEAD 0d2e8c3e; story v1.2; BC-5.39.010 v1.4 | SM (this-commit; orchestrator-transcribed per POLICY 22) |
+| `.factory/cycles/v1.0-brownfield-backfill/INDEX.md` | S-21.07 section: pass-2 row added (B3/H7/M5/L3; 18 findings + 4 obs; holistic; streak 0/3); Convergence Status updated (NOT-CONVERGED; 2 passes; trajectory 47→18; 3 BLOCKERs; root cause NOT closed; bookkeeping gap rectified; NEXT: pass-2 fix burst) | SM (this-commit) |
+| `.factory/cycles/v1.0-brownfield-backfill/decision-log.md` | D-951 block appended at line 14570 (this-commit) | SM (this-commit) |
+| `.factory/cycles/v1.0-brownfield-backfill/lessons.md` | 2 L-BB lessons appended: L-BB-look-alike-fixtures-do-not-close-production-shape-root-cause; L-BB-proposed-remediation-can-be-worse-than-the-finding (this-commit) | SM (this-commit) |
+| `.factory/cycles/v1.0-brownfield-backfill/burst-log.md` | this entry (this-commit) | SM (this-commit) |
+| `.factory/STATE.md` | v6.82→v6.83; pipeline ACTIVE; frontmatter D-951-S-21.07-PASS-2-RECORD-BURST; Phase Progress D-951 row; Current Phase Steps D-951 row; Decisions Log D-951 row; Concurrent Cycles tail LENGTH=4; SRC refresh (this-commit) | SM (this-commit) |
+
+### Block 4: Codifications
+
+| Decision / Lesson | Summary |
+|-------------------|---------|
+| D-951 | S-21.07 pass-2 adversary record (holistic fresh-context); NOT-CLEAN B3/H7/M5/L3 (18 findings + 4 obs); root cause NOT closed (no test reads real `.factory/` artifact); spec-describes-imagined-shape SIX instances; two live corpus-verified false positives (S-21.04 Arm A2; BC-1.17.001 Arm A1); F-S2107-P1B-013 bookkeeping gap rectified (UNRECORDED in INDEX.md+decision-log.md); D-949 dispatch "advisory+Continue per PC33" misread recorded; 4-INDEX UNCHANGED BC v4.45/VP v2.74/STORY v4.280/ARCH v3.40; streak 0/3; trajectory 47→18; NEXT: pass-2 fix burst |
+| L-BB-look-alike-fixtures | Look-alike fixtures do not close a production-shape root cause — at least one test per extractor must read the real corpus file; fixtures shaped like production is an interim improvement, not a closure |
+| L-BB-proposed-remediation-can-be-worse | A proposed remediation can be worse than the finding — PC34 `ss-*` fix would have made Class E inert for all 102 VPs; D-949 dispatch "advisory+Continue per PC33" misread recorded; orchestrator routing is not exempt from corpus verification |
+
+### Block 5: Dim-2 attestations (literal shell per D-449(a))
+
+**(a) POLICY 16 GLOBAL-MAX GATE (post-D-951 allocation confirmation):**
+
+```
+$ grep -n "^## D-" .factory/cycles/v1.0-brownfield-backfill/decision-log.md | sort -t'-' -k2 -n | tail -3
+14416:## D-949
+14498:## D-950
+14570:## D-951
+```
+
+D-950 confirmed prior max at allocation time → D-951 allocated at line 14570. D-951 appended and confirmed committed.
+
+**(b) D-446(a) own-burst-log 8-block gate (literal shell stdout — scoped to D-951 entry):**
+
+```
+$ awk '/^## D-951/,0' .factory/cycles/v1.0-brownfield-backfill/burst-log.md | grep -c "^### Block [1-8]:"
+8
+```
+
+8 of 8 mandatory D-444(c) blocks confirmed present in this entry.
+
+**(c) D-448(a) source-attestation gate (literal shell stdout):**
+
+```
+$ grep -E "^verdict:|^findings_count:|^severity_breakdown:|^dispatch_shape:" .factory/cycles/v1.0-brownfield-backfill/S-21.07/adversary-pass-2.md | head -10
+verdict: NOT-CLEAN
+findings_count: 18
+severity_breakdown: "B3/H7/M5/L3"
+dispatch_shape: "HOLISTIC — one unified fresh-context adversary; deliberate change from pass-1 three-scope split to detect cross-scope defects"
+```
+
+Burst-log Block 2 adversary verdict (NOT-CLEAN · B3/H7/M5/L3 = 18 findings · holistic) faithfully describes adversary-pass-2.md Part A+B finding set. No fabrication.
+
+### Block 6: Dim-5 attestation
+
+**Dim-5 (no regression introduced):** This is a RECORD burst — no source code, spec content, or test files modified. All writes are cycle bookkeeping artifacts: adversary-pass-2.md (new review record), INDEX.md (convergence tracking row), decision-log.md (D-951 codification block), lessons.md (2 retrospective lessons), burst-log.md (this entry), STATE.md (pipeline state advance). No changes to WASM hook source, BC content, story content, tests, or any production artifact. Workspace CI state: 2360/0 (UNCHANGED — no source changes). Bats state: 41/0/0 (UNCHANGED). 4-INDEX: BC v4.45/VP v2.74/STORY v4.280/ARCH v3.40 all UNCHANGED.
+
+### Block 7: Dim-6/7 attestations
+
+**Dim-6 (no spec conflicts introduced):** No spec content authored or modified by state-manager in this burst. adversary-pass-2.md is an adversary-authored review record (orchestrator-transcribed per POLICY 22); SM persists it without modification. INDEX.md Convergence Status describes the factual pass count and verdict. decision-log.md D-951 codifies the orchestrator-directed allocation and findings summary. lessons.md entries are retrospective lessons about the cascade. No new BC content, no new spec constraints. No conflicts with existing specs.
+
+**Dim-7 (non-fabrication attestation):** All finding IDs, severities, policy cites, and anchors in adversary-pass-2.md are preserved exactly as given by the holistic adversary agent (orchestrator-transcribed per POLICY 22). Three BLOCKERs independently re-derived by literal shell before transcription and marked [ORCH-VERIFIED]. D-448(a) gate in Dim-2(c) confirms verdict/count/severity against adversary-pass-2.md frontmatter via literal shell. No finding IDs, severities, or policy cites modified from the adversary-authored record. No INDEX.md leads or speculative content used.
+
+### Block 8: Closes + factory-artifacts commits
+
+**Findings closed this burst:** None (RECORD burst — no fixes applied).
+
+**Findings recorded this burst (newly persisted):**
+- F-P2-001 BLOCKER [regression] through F-P2-018 LOW: persisted to adversary-pass-2.md
+- F-S2107-P1B-013 bookkeeping gap: rectified — finding now recorded in INDEX.md Convergence Status and D-951 decision-log block (was UNRECORDED in both prior to this burst)
+- O-P2-01 through O-P2-04: persisted to adversary-pass-2.md §4
+
+**factory-artifacts commits (this burst — TD-VSDD-053 single-commit):**
+- Single-commit: TBD (SHA-patch follow-up per D-447(c)+D-449(e))
+

@@ -14564,3 +14564,73 @@ D-950-S-21.07-INTEGRATION-CLOSURE
 ### Date
 
 2026-08-03
+
+---
+
+## D-951
+
+S-21.07 pass-2 adversary record — NOT-CLEAN B3/H7/M5/L3 (18 findings + 4 obs); root cause NOT closed; two live corpus-verified false positives confirmed
+
+### Decision
+
+**(a) POLICY 16 GLOBAL-MAX GATE:** `grep -n "^## D-" .factory/cycles/v1.0-brownfield-backfill/decision-log.md | sort -t'-' -k2 -n | tail -3` → `14367:## D-948 / 14416:## D-949 / 14498:## D-950`; D-950 confirmed prior max → D-951 allocated.
+
+**(b) Pass-2 adversary dispatch shape:** Holistic fresh-context adversary — deliberate change from pass-1's three-scope split (under-detected cross-scope defects, confirmed by pass-2). Reviewed code HEAD `e28aa098` (feature/S-21.07; bats 41/0/0 GREEN). Factory artifacts HEAD `0d2e8c3e`. Story v1.2; BC-5.39.010 v1.4. One prior adversary pass read (Part A only per information asymmetry protocol).
+
+**(c) Pass-2 findings — B3/H7/M5/L3 = 18 findings + 4 observations:**
+
+Three BLOCKERs:
+- **F-P2-001 [regression]** `arm_a2.rs::extract_story_bc_version_citations`: `skip_section=false` leaves leading edge unbounded; YAML frontmatter in scan window → false `[Class A Arm2]` block on S-21.04 (and S-19.05/06/07, S-15.17, S-18.09). [ORCH-VERIFIED]. Direct regression of F-P1B-001's claimed closure. Fix: initialise `skip_section = true`.
+- **F-P2-002** `arm_a1.rs::extract_bc_index_version`: `starts_with('|') && contains(bc_id)` with LAST-wins across ALL rows → later cross-reference row wins over the BC's own row. [ORCH-VERIFIED: BC-INDEX row 691 > row 657 for BC-1.17.001; v1.6 wins over correct v1.7]. Seven BC-INDEX body rows have foreign BC IDs. Fix: anchored first-cell selection.
+- **F-P2-003** Story S-21.07 v1.2 body still pinned to BC-5.39.010 v1.3 (nine live sites) while BC is v1.4; under shipped hook the deliverable blocks its own spec. Route: story-writer sweep + state-manager STORY-INDEX re-sync.
+
+Seven HIGH findings:
+- F-P2-004 [process-gap]: PC31 fifth spec-describes-imagined-shape — `^\*\*Closes:\*\*` matches only 20 of 38 real `^\*\*Closes` lines; `^\*\*Refs` = 0 matches in burst-log; Class D has zero matchable lines in live scope.
+- F-P2-005: `arm_d.rs::run_arm_d` + `find_keyword_word_boundary` searches lowercase `"closes:"`/`"refs:"` without `**` or `^`; over-broad and blind to dominant form.
+- F-P2-006: `arm_a2.rs` implements `line.contains(bc_id)` — verbatim what PC13 explicitly forbids. PC13's worked counter-example `| BC-5.39.010 EC-001 |` is admitted.
+- F-P2-007: `lib.rs::on_post_tool_use` swallows ALL `HostError` into `log_warn` + Continue; PC33 + postcondition 18 require BLOCK for `CapabilityDenied`/`Timeout`. **Record: D-949 dispatch wording "advisory+Continue per PC33" MISREAD PC33.** Route: product-owner adjudicates in v1.5.
+- F-P2-008: PC34 scopes Class E to `verification-properties/ss-*/VP-*.md` but zero `ss-*` directories exist; 102 flat VP-NNN.md files. Sixth spec-describes-imagined-shape. The pass-1 proposed fix for F-P1B-013 INVERTS the correct fix. Fix: amend PC34 to flat path + `^VP-[0-9]+\.md$`.
+- F-P2-009: `CHANGELOG.md ## [Unreleased]` holds only placeholder comment; zero matches for S-21.07; Task 20 (MANDATORY) gates PR creation.
+- F-P2-010: POLICY 18 / invariant 11 live block-on-ship — catalog↔blockquote disagree for S-19.02/04/07; story-frontmatter↔index disagree for all nine E-19 stories. Hard prerequisite for AC-021 staging.
+
+Five MEDIUM findings:
+- F-P2-011: `is_story_file` ships `starts_with("S-")` not PC9 regex; `extract_story_id_from_path` would produce nonsense for `S-README.md`-shaped path.
+- F-P2-012: `arm_d` Lessons arm uses `line.find("L-EDP1-")` at any offset; mid-line sibling-corrigendum mentions qualify as false anchors. PC30 two-group regex `[0-9]+-[0-9]+` doesn't match real single-group `L-EDP1-078:` form.
+- F-P2-013: T-045 CONTROL only asserts exit 0 + absence of warn; both hold if Class E never ran. No mutant exercises discriminating power.
+- F-P2-014: `ADR-035 v1.0` volatile pin in S-21.07 `## Token Budget Estimate` row (TD-VSDD-091/060). S-21.07 authored after E-21 pass-4 normalisation sweep and never swept.
+- F-P2-015: BC-5.39.010 `## Story Anchor` / Traceability / BC-INDEX Stories cell all read "TBD" while S-21.07 declares the BC. One-directional anchoring.
+
+Three LOW findings:
+- F-P2-016: Duplicate bats T-038 CONTROL (names differ by one word; fixture/assertions identical). Inflates 41-ok count.
+- F-P2-017: Stale `BC-5.39.010 v1.2` cites in `lib.rs`, `main.rs` (×2), `Cargo.toml`, bats header, `hooks-registry.toml` (×3). TD-VSDD-060.
+- F-P2-018: `if is_si` branch comment falsely claims STORY-INDEX has no `version:`/`last_amended:` frontmatter; both present. Behaviour correct, comment misleads.
+
+Four observations: O-P2-01 aggregate-only positive-coverage guard; O-P2-02 index drift invisible to PC34 scope; O-P2-03 17 pending VPs; O-P2-04 A1 missing UTF-8 violation class.
+
+**(d) Central meta-finding:** Pass-1's systemic root cause (fixtures not reading real `.factory/` artifacts) did NOT close. Two live corpus-verified false positives survived green bats + workspace run. Spec-describes-imagined-shape now SIX instances.
+
+**(e) Bookkeeping gap rectified:** F-S2107-P1B-013 was confirmed in pass-1 but UNRECORDED in INDEX.md and decision-log.md (orchestrator-verified: zero occurrences). Pass-2 record closes this ledger gap. The finding was: `is_story_file` does not use PC9 regex (now F-P2-011). The proposed pass-1 remediation (enforce PC34's `ss-*` clause) was WRONG and would have made Class E inert — see F-P2-008.
+
+**(f) 4-INDEX:** BC v4.45 UNCHANGED; VP v2.74 UNCHANGED; STORY v4.280 UNCHANGED; ARCH v3.40 UNCHANGED. No artifact content changed in this record burst.
+
+### Participating agents
+
+- adversary: holistic fresh-context adversarial review at e28aa098
+- state-manager: D-951 codification; INDEX.md pass-2 row + Convergence Status; burst-log.md D-951 entry; lessons.md 2 entries; STATE.md v6.82→v6.83
+
+### 4-INDEX
+
+| Index | Before | After | Change |
+|-------|--------|-------|--------|
+| BC-INDEX | v4.45 | v4.45 | UNCHANGED |
+| VP-INDEX | v2.74 | v2.74 | UNCHANGED |
+| STORY-INDEX | v4.280 | v4.280 | UNCHANGED |
+| ARCH-INDEX | v3.40 | v3.40 | UNCHANGED |
+
+### Phase
+
+D-951-S-21.07-PASS-2-RECORD-BURST
+
+### Date
+
+2026-08-03

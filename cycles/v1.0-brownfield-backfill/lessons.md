@@ -9883,3 +9883,37 @@ D-448(a) passes over this class of defect because it validates Part A correspond
 **Cites:** D-950 (integration-closure burst; state-manager codification); BC-5.39.010 v1.4 PC13; CANONICAL PRINCIPLE Rule 1. `[spec-authoring; corpus-validation; literal-artifact-form; heading-exact-equality; fourth-instance; D-950; codified]`
 
 ---
+
+### L-BB-look-alike-fixtures-do-not-close-production-shape-root-cause [spec-authoring] [tdd] [corpus-validation] [D-951]
+
+**Title:** Look-Alike Fixtures Do Not Close a Production-Shape Root Cause — At Least One Test Per Extractor Must Read the Real Corpus File
+
+**Lesson:** In the S-21.07 cascade, pass-1 diagnosed "extractors validated against synthetic fixtures" as the root cause. The pass-1 remedy produced fixtures *shaped like* production excerpts. Pass-2 found two live false positives anyway (F-P2-001: false block on S-21.04 via Arm A2; F-P2-002: false block on BC-1.17.001 via Arm A1) because no test reads a real `.factory/` artifact. A fixture that *looks like* a production file is not the same as a production file: the fixture omits the cross-reference rows, YAML frontmatter, and version-history prose that trigger the actual bugs. The WASM running in production reads the real files; the bats suite running in CI reads hand-crafted stubs.
+
+**Root cause:** The root-cause diagnosis was correct (synthetic fixtures), but the remedy (better-shaped fixtures) addressed the symptom rather than the mechanism. The mechanism is that there is no test feedback loop from the real corpus: a regression that only manifests against real artifacts is invisible to a test suite that never reads them.
+
+**Durable remedy:** At least one test per extractor must read the actual corpus file (e.g., the real `BC-INDEX.md`, the real `STORY-INDEX.md`, the real `S-21.04-*.md`) as its input fixture, so that corpus drift surfaces as a test failure rather than as a production block. These can be integration tests gated on `CI_REQUIRE_ARTIFACTS: "1"` (as the existing bats suite already does for WASM staging).
+
+**Prevention:** (1) When diagnosing "synthetic fixtures" as a root cause, the fix criteria must include at least one test that reads the real corpus file per affected extractor. (2) "Fixtures shaped like production" is an interim improvement, not a closure. (3) Pass-N adversary should explicitly verify whether the test suite includes any real-file reads before accepting the root-cause closure claim.
+
+**Anchors:** D-951 (pass-2 record burst); F-P2-001 (skip_section=false → false block on S-21.04); F-P2-002 (unanchored row selection → false block on BC-1.17.001); S-21.07 pass-1 fix burst (fixtures reshaped but real-file tests absent); BC-5.39.010 v1.4.
+
+**Cites:** D-951 (pass-2 record burst; state-manager codification); CANONICAL PRINCIPLE Rule 4. `[spec-authoring; tdd; corpus-validation; synthetic-fixtures; production-shape; real-file-tests; D-951; codified]`
+
+---
+
+### L-BB-proposed-remediation-can-be-worse-than-the-finding [adversary] [routing] [D-951]
+
+**Title:** A Proposed Remediation Can Be Worse Than the Finding — Orchestrator-Authored Routing Is Not Exempt From Corpus Verification
+
+**Lesson:** In S-21.07 pass-1, the adversary identified F-P1B-013: `is_story_file` does not use PC9's regex. The orchestrator's proposed fix was to enforce PC34's `ss-*` sub-path clause for Class E. Pass-2's F-P2-008 confirms that this fix would have been catastrophically wrong: zero `ss-*` directories exist; all 102 VPs are flat `VP-NNN.md` files. Enforcing the `ss-*` clause would have made Class E inert for every VP in the repo and made T-045 vacuous. The proposed fix would have made the code silently worse than the bug it was fixing. Simultaneously, the orchestrator's D-949 dispatch wording described PC33 as "advisory+Continue" — which is the opposite of what PC33 says (BLOCK for `CapabilityDenied`/`Timeout`). Two routing errors in one pass from the orchestrating agent.
+
+**Root cause:** The orchestrator read PC34's `ss-*` clause and the current VPs' path pattern without cross-referencing the actual directory structure. The proposed fix was derived from the spec clause, not from the live filesystem. Similarly, the PC33 misread was derived from a plausible interpretation of invariant 6 without checking PC33's actual wording.
+
+**Prevention:** (1) Any proposed remediation that references a path pattern, directory structure, or corpus shape MUST be verified against the actual filesystem/corpus before being included in the fix-burst routing. (2) A proposed fix that "makes a class inert" or "makes a test vacuous" is self-evidently wrong — the adversary should flag this class of remediation as a BLOCKER regardless of the finding's original severity. (3) Orchestrator routing is subject to the same spec-describes-imagined-shape root cause as spec authoring: the orchestrator can misread the corpus just as readily as the original spec author. (4) When a fix is proposed for a MEDIUM finding that would make a BLOCKER-class gate silently inert, the proposed fix severity must be upgraded to BLOCKER.
+
+**Anchors:** D-951 (pass-2 record burst); F-P2-008 (PC34 `ss-*` clause inverts correct fix); F-P2-007 (D-949 dispatch "advisory+Continue per PC33" misread); F-P1B-013 (original finding); PC34 bullet 2; PC33 CapabilityDenied/Timeout BLOCK.
+
+**Cites:** D-951 (pass-2 record burst; state-manager codification); CANONICAL PRINCIPLE Rule 2 (implementer is not authoritative on risk severity; neither is orchestrator); TD-VSDD-059 (proposed remediation must be independently verified). `[adversary; routing; orchestrator-error; proposed-remediation; corpus-verification; ss-star-clause; PC33-misread; D-951; codified]`
+
+---
