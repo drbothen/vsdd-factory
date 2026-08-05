@@ -249,16 +249,49 @@ pub fn is_frontmatter_parity_target(file_path: &str) -> bool {
     if has_factory && has_specs && has_vp && vp_filename_ok {
         return true;
     }
-    // Epic files under .factory/epics/
+    // Epic files under .factory/stories/epics/ — PC34 bullet 4 (F-S2107-P3-009):
+    // requires THREE components (`.factory`, `stories`, `epics`) AND basename
+    // matching `^E-[0-9]+-.*\.md$`. Absent either component or wrong basename → false.
+    let has_stories = components
+        .iter()
+        .any(|c| matches!(c, Component::Normal(s) if *s == "stories"));
     let has_epics = components
         .iter()
         .any(|c| matches!(c, Component::Normal(s) if *s == "epics"));
     let epic_filename_ok = path
         .file_name()
         .and_then(|f| f.to_str())
-        .map(|f| f.ends_with(".md"))
+        .map(is_canonical_epic_basename)
         .unwrap_or(false);
-    has_factory && has_epics && epic_filename_ok
+    has_factory && has_stories && has_epics && epic_filename_ok
+}
+
+/// Returns `true` if `filename` is a canonical epic basename: `^E-[0-9]+-.*\.md$`.
+///
+/// Admits `E-21-name.md`, `E-1-foo.md`. Rejects `README.md`, `E-.md`, `E-21.md`
+/// (missing `-` separator after digits), `E-21-name.txt`.
+///
+/// # BC trace
+/// BC-5.39.010 PC34 bullet 4: epic basename pattern `^E-[0-9]+-.*\.md$`.
+/// F-S2107-P3-009: prior `ends_with(".md")` admitted README.md and any .md file.
+fn is_canonical_epic_basename(filename: &str) -> bool {
+    let Some(rest) = filename.strip_prefix("E-") else {
+        return false;
+    };
+    let bytes = rest.as_bytes();
+    if bytes.is_empty() || !bytes[0].is_ascii_digit() {
+        return false;
+    }
+    let mut i = 0;
+    while i < bytes.len() && bytes[i].is_ascii_digit() {
+        i += 1;
+    }
+    // Digits must be followed by '-'
+    if i >= bytes.len() || bytes[i] != b'-' {
+        return false;
+    }
+    // Remainder must end with ".md"
+    filename.ends_with(".md")
 }
 
 #[cfg(test)]
