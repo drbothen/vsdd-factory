@@ -46,6 +46,11 @@ setup() {
   INTERNAL_LOG_RS="$REPO_ROOT/crates/factory-dispatcher/src/internal_log.rs"
   EXECUTOR_RS="$REPO_ROOT/crates/factory-dispatcher/src/executor.rs"
   VSDD_SINK_RS="$REPO_ROOT/crates/factory-dispatcher/src/vsdd_sink.rs"
+  TEST_TMP="$(mktemp -d "${BATS_TMPDIR}/host-abi-hygiene-XXXXXX")"
+}
+
+teardown() {
+  rm -rf "${TEST_TMP}"
 }
 
 # ---------------------------------------------------------------------------
@@ -202,7 +207,7 @@ setup() {
 
   # Mutation-liveness: verify the grep pattern matches the expected declaration form.
   local mut_file
-  mut_file=$(mktemp /tmp/t009_mutant_XXXXXX.rs)
+  mut_file="${TEST_TMP}/mutant.rs"
   printf 'pub const INTERNAL_FILE_NOT_FOUND: &str = "internal.file_not_found";\n' > "$mut_file"
   if ! grep -qE 'pub[[:space:]]+const[[:space:]]+INTERNAL_FILE_NOT_FOUND' "$mut_file"; then
     rm -f "$mut_file"
@@ -242,7 +247,7 @@ setup() {
 
   # Mutation-liveness: verify the grep pattern matches the expected declaration form.
   local mut_file
-  mut_file=$(mktemp /tmp/t010_mutant_XXXXXX.rs)
+  mut_file="${TEST_TMP}/mutant.rs"
   printf 'pub const PLUGIN_ABANDONED: &str = "plugin.abandoned";\n' > "$mut_file"
   if ! grep -qE 'pub[[:space:]]+const[[:space:]]+PLUGIN_ABANDONED' "$mut_file"; then
     rm -f "$mut_file"
@@ -348,7 +353,7 @@ _scan_bare_literals() {
   # Mutation-liveness check: inject a bare literal into a temp copy of
   # read_file.rs's production region and assert the gate fires.
   local mut_file
-  mut_file=$(mktemp /tmp/t011_mutant_XXXXXX.rs)
+  mut_file="${TEST_TMP}/mutant.rs"
   # Insert the mutation line immediately before the #[cfg(test)] boundary.
   awk '{
     if (/^#\[cfg\(test\)\]/) {
@@ -374,7 +379,7 @@ _scan_bare_literals() {
   # Inject "plugin.completed" (one of the two new D22 classes) immediately
   # before the #[cfg(test)] boundary and assert the gate fires on it.
   local mut_file2
-  mut_file2=$(mktemp /tmp/t011_mutant2_XXXXXX.rs)
+  mut_file2="${TEST_TMP}/mutant2.rs"
   awk '{
     if (/^#\[cfg\(test\)\]/) {
       print "    let _ = \"plugin.completed\"; // mutation-liveness injection (D22 extension)"
@@ -400,7 +405,7 @@ _scan_bare_literals() {
   # and assert the 4-stage scan fires — proves the widened perimeter detects
   # a future bare literal in executor.rs production code (F-P2-001).
   local mut_file3
-  mut_file3=$(mktemp /tmp/t011_mutant3_XXXXXX.rs)
+  mut_file3="${TEST_TMP}/mutant3.rs"
   awk '{
     if (/^#\[cfg\(test\)\]/) {
       print "    let _ = \"plugin.completed\"; // mutation-liveness injection (executor.rs extension)"
