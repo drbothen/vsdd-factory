@@ -2,7 +2,7 @@
 document_type: architecture-decision-record
 level: L3
 adr_id: ADR-037
-version: "1.0"
+version: "1.1"
 title: "ADR-037: input-hash stable-input constraint — volatile cycle artifacts and catalog indexes must not be story hash inputs"
 status: accepted
 date: 2026-08-04
@@ -14,6 +14,11 @@ subsystems_affected: [SS-05, SS-10]
 supersedes: null
 superseded_by: null
 traces_to: .factory/specs/architecture/ARCH-INDEX.md
+last_amended: |-
+  2026-08-05 (v1.1) — F-S2107-P4-013 ADR-side remediation (architect; S-21.07 pass-5 fix burst): S-21.07 added to §Context volatile-roster table and §Decision 5 blast radius. Mechanical full-corpus re-derivation on 2026-08-05 reveals 78 stories with volatile inputs (vs original 19 from partial manual scan; see corpus re-derivation block in §Context). Table corrected: S-15.14 entry had only `STORY-INDEX.md` — also carries `BC-INDEX.md` and `ARCH-INDEX.md`; S-15.15 entry had only `STORY-INDEX.md` — also carries `ARCH-INDEX.md`; S-15.17 entry was missing `ARCH-INDEX.md`. 58 additional stories added to table. §Decision 5 blast radius updated 19→78. §Decision 7 frozen-artifact count updated ~29→23 per corpus scan. Corpus counts recorded per D-950. [Prior: 2026-08-04 (v1.0) — initial ruling (architect): volatile-artifact exclusion from `inputs:`; 19-story remediation scope; D-952 empirical demonstration; BC-5.39.010 Class B precondition requirement routed to product-owner.]
+modified:
+  - "2026-08-05 (v1.1)"
+  - "2026-08-04 (v1.0)"
 ---
 
 # ADR-037: input-hash stable-input constraint — volatile cycle artifacts and catalog indexes must not be story hash inputs
@@ -22,7 +27,7 @@ traces_to: .factory/specs/architecture/ARCH-INDEX.md
 
 The `inputs:` frontmatter array on story files drives the `compute-input-hash` tool (SS-10; authoritative binary per ADR-036 §Decision 3). The hash is a drift-detection signal: if inputs change materially after a story is authored, the POLICY 18 three-way equality check (story frontmatter `input-hash` == STORY-INDEX catalog row == aggregation blockquote) flags the story for review. BC-5.39.010 Class B, implemented by the `validate-cross-site-correspondence` WASM gate (S-21.07, currently in LOCAL adversary cascade), enforces this three-way equality with BLOCKING severity.
 
-A structural defect in the `inputs:` modeling of 19 stories makes BC-5.39.010 Class B permanently unsatisfiable for those stories. These stories list append-only cycle logs, the main pipeline STATE.md, or growing catalog indexes as inputs. Every state-manager burst that appends a decision-log entry, a lesson, or a burst-log entry regenerates a new hash for those files — invalidating the `input-hash` of the affected stories without any change to the stories' specifications.
+A structural defect in the `inputs:` modeling of **78 stories** makes BC-5.39.010 Class B permanently unsatisfiable for those stories. (The v1.0 enumeration identified 19 stories from a partial manual scan; mechanical full-corpus re-derivation on 2026-08-05 — see derivation block below — found 78.) These stories list append-only cycle logs, the main pipeline STATE.md, or growing catalog indexes as inputs. Every state-manager burst that appends a decision-log entry, a lesson, or a burst-log entry regenerates a new hash for those files — invalidating the `input-hash` of the affected stories without any change to the stories' specifications.
 
 The defect was empirically demonstrated in the D-952 burst: S-19.01's hash was computed as `0ad9c4b` before the burst appended `L-BB-tooling-version-divergence-masquerades-as-fabrication` to `.factory/cycles/v1.0-brownfield-backfill/lessons.md`. The recomputed hash after that lesson entry is `242af2f`. No other story was affected; all other E-21 and E-19 swept stories retained correct hashes. This confirms the mechanism — lesson append, not a transcription error.
 
@@ -36,12 +41,54 @@ The affected stories and their volatile inputs are:
 | S-15.08 | `.factory/cycles/v1.0-feature-engine-discipline-pass-1/decision-log.md`, `BC-INDEX.md` |
 | S-15.09 | `BC-INDEX.md`, `STORY-INDEX.md`, `ARCH-INDEX.md` |
 | S-15.12 | `STORY-INDEX.md`, `ARCH-INDEX.md` |
-| S-15.14, S-15.15 | `STORY-INDEX.md` |
-| S-15.17 | `.factory/cycles/v1.0-feature-engine-discipline-pass-1/decision-log.md`, `.factory/cycles/v1.0-feature-engine-discipline-pass-1/STATE.md`, `STORY-INDEX.md` |
+| S-15.14 | `BC-INDEX.md`, `STORY-INDEX.md`, `ARCH-INDEX.md` |
+| S-15.15 | `STORY-INDEX.md`, `ARCH-INDEX.md` |
+| S-15.17 | `.factory/cycles/v1.0-feature-engine-discipline-pass-1/decision-log.md`, `.factory/cycles/v1.0-feature-engine-discipline-pass-1/STATE.md`, `STORY-INDEX.md`, `ARCH-INDEX.md` |
 | S-18.09 | `ARCH-INDEX.md`, `.factory/cycles/v1.0-brownfield-backfill/lessons.md` |
 | S-19.01 | `.factory/cycles/v1.0-brownfield-backfill/lessons.md` |
+| S-0.01, S-0.02, S-0.03, S-0.04, S-0.05 | `ARCH-INDEX.md` |
+| S-1.01, S-1.02, S-1.03, S-1.04, S-1.05, S-1.06, S-1.07, S-1.08, S-1.09 | `ARCH-INDEX.md` |
+| S-2.01, S-2.02, S-2.03, S-2.04, S-2.05, S-2.06, S-2.07, S-2.08 | `ARCH-INDEX.md` |
+| S-3.01, S-3.02, S-3.03, S-3.04 | `ARCH-INDEX.md` |
+| S-4.01, S-4.02, S-4.03, S-4.04, S-4.05, S-4.06, S-4.07, S-4.08 | `ARCH-INDEX.md` |
+| S-5.01, S-5.02, S-5.03, S-5.04, S-5.05, S-5.06, S-5.07 | `ARCH-INDEX.md` |
+| S-6.01 | `ARCH-INDEX.md` |
+| S-8.10 | `ARCH-INDEX.md` |
+| S-15.07 | `BC-INDEX.md`, `STORY-INDEX.md`, `ARCH-INDEX.md` |
+| S-15.10 | `STORY-INDEX.md`, `ARCH-INDEX.md` |
+| S-15.11 | `BC-INDEX.md`, `STORY-INDEX.md`, `ARCH-INDEX.md` |
+| S-15.13 | `STORY-INDEX.md`, `ARCH-INDEX.md` |
+| S-15.16 | `STORY-INDEX.md` |
+| S-17.01, S-17.02, S-17.03 | `ARCH-INDEX.md` |
+| S-18.03, S-18.05, S-18.06, S-18.07, S-18.08, S-18.12 | `ARCH-INDEX.md` |
+| S-18.11 | `STORY-INDEX.md` |
+| S-21.07 | `ARCH-INDEX.md` |
 
-An additional 29 stories reference frozen cycle artifacts (`adv-cycle-pass-N.md` files, wave plan documents, delta analyses). Those files are write-once by construction — each adversary pass creates a new numbered file; prior passes are never amended. Wave plan files are authored once during cycle planning and do not grow. Those 29 stories do NOT exhibit the regeneration problem and are excluded from this ADR's remediation scope.
+**Corpus re-derivation (2026-08-05; D-950):** The original 19-story figure was produced by manual inspection of recently-active stories in the engine-discipline cycle; it did not scan the full corpus. The mechanical re-derivation below confirms 78 stories. Commands executed against `.factory/stories/` (epics excluded, STORY-INDEX.md excluded):
+
+```
+grep -rl "^  - \.factory/cycles/.*\(decision-log\|lessons\|burst-log\)\.md" .factory/stories/ | grep -v "STORY-INDEX\|epics/"
+→ 13 stories
+
+grep -rl "^  - \.factory/STATE\.md" .factory/stories/ | grep -v "STORY-INDEX\|epics/"
+→ 2 stories
+
+grep -rl "^  - \.factory/cycles/.*STATE\.md" .factory/stories/ | grep -v "STORY-INDEX\|epics/"
+→ 1 story (S-15.17, also counted in decision-log pattern)
+
+grep -rl "^  - \.factory/stories/STORY-INDEX\.md" .factory/stories/ | grep -v "STORY-INDEX\|epics/"
+→ 11 stories
+
+grep -rl "^  - \.factory/specs/behavioral-contracts/BC-INDEX\.md" .factory/stories/ | grep -v "STORY-INDEX\|epics/"
+→ 5 stories
+
+grep -rl "^  - \.factory/specs/architecture/ARCH-INDEX\.md" .factory/stories/ | grep -v "STORY-INDEX\|epics/"
+→ 63 stories (65 including epics)
+
+De-duplicated union: 78 stories total.
+```
+
+An additional 23 stories reference only frozen cycle artifacts (`adv-cycle-pass-N.md` files, wave plan documents, delta analyses). Those files are write-once by construction — each adversary pass creates a new numbered file; prior passes are never amended. Wave plan files are authored once during cycle planning and do not grow. Those 23 stories do NOT exhibit the regeneration problem and are excluded from this ADR's remediation scope. (The v1.0 figure of "~29" was approximate; corpus scan on 2026-08-05 confirmed 23.)
 
 `compute-input-hash` has no exclusion mechanism: it reads `inputs:` and resolves each path unconditionally (verified: no `EXCLUDE`, `SKIP`, or ignore logic in the script). Tool-level exclusions would hide the modelling error without fixing it.
 
@@ -80,7 +127,7 @@ Removing a volatile file from `inputs:` does not delete provenance. Each story a
 - Story body narrative — cites specific decisions in context
 - `traces_to:` field — captures the artifact the story traces back to
 
-For the 19 affected stories, the specific D-NNN or L-NNN entry that justified the story's inclusion of the cycle log is already recorded in `closes:` or `last_amended:`. The `inputs:` entry adds no provenance beyond what those fields already carry.
+For the 78 affected stories, the specific D-NNN or L-NNN entry that justified the story's inclusion of the cycle log (where one exists) is already recorded in `closes:` or `last_amended:`. The `inputs:` entry adds no provenance beyond what those fields already carry.
 
 ### Decision 4 — BC-5.39.010 Class B precondition required
 
@@ -98,9 +145,9 @@ This amendment is a product-owner responsibility; the architect does not edit BC
 
 ### Decision 5 — Remediation sequence and blast radius
 
-The remediation sequence for the 19 affected stories is:
+The remediation sequence for the 78 affected stories is:
 
-1. **Story-writer** removes all volatile-pattern entries from each story's `inputs:` array. No other story content is changed. Blast radius: the 19 stories listed in §Context, plus any story the consistency-validator identifies as having the same pattern after a full-corpus scan.
+1. **Story-writer** removes all volatile-pattern entries from each story's `inputs:` array. No other story content is changed. Blast radius: the 78 stories listed in §Context (full-corpus scan completed 2026-08-05; no additional stories expected). S-21.07 is explicitly included: its `inputs:` array carries `ARCH-INDEX.md` (corpus-verified; line 18 of story frontmatter). Story-writer removes that entry; state-manager then recomputes S-21.07's hash over the corrected (stable) input set.
 2. **State-manager** (or implementer acting on state-manager's behalf) runs `plugins/vsdd-factory/bin/compute-input-hash` per-story single-file `--update` invocations (D-936 forbids `--scan --update`; per-story form required) after each story's `inputs:` is corrected.
 3. **State-manager** propagates the updated `input-hash` values to STORY-INDEX three-way equality cells.
 4. Remediation is complete when no story's `inputs:` matches §Decision 2 patterns and all STORY-INDEX three-way cells are consistent.
@@ -115,12 +162,12 @@ The potential for cascading hash invalidation is mitigated by §Decision 2: once
 
 ### Decision 7 — Frozen artifacts verification
 
-The 29 stories referencing `adv-cycle-pass-N.md` files, wave plan documents, and per-cycle delta analyses hold stable hashes. These files are genuinely immutable:
+The 23 stories referencing `adv-cycle-pass-N.md` files, wave plan documents, and per-cycle delta analyses hold stable hashes. (The v1.0 figure of "29" was approximate; corpus scan on 2026-08-05 confirmed 23 stories with frozen-only cycle artifact references and no volatile-pattern inputs.) These files are genuinely immutable:
 - `adv-cycle-pass-N.md`: write-once; each adversary pass creates a new numbered file; the adversary never amends a prior pass
 - Wave plan files (e.g., `s-15.03-wave-plan-*.md`, `s-15.03-wave-m1-dispatch.md`): authored at wave-planning time; not append-only logs
 - Delta analysis documents: point-in-time spec-evolution artifacts; stable after authoring
 
-No evidence of continuing amendments to any of these file types. Filesystem modification timestamps (all at 2026-07-28 14:11 for the `adv-cycle-pass-*.md` corpus) confirm bulk-write from factory-artifacts branch, not incremental appends. The frozen 29 do not exhibit the regeneration problem.
+No evidence of continuing amendments to any of these file types. Filesystem modification timestamps (all at 2026-07-28 14:11 for the `adv-cycle-pass-*.md` corpus) confirm bulk-write from factory-artifacts branch, not incremental appends. The frozen 23 do not exhibit the regeneration problem.
 
 ## Rationale
 
@@ -136,7 +183,7 @@ No evidence of continuing amendments to any of these file types. Filesystem modi
 
 ### Why Class B must remain BLOCKING (with precondition) rather than downgraded
 
-Downgrading Class B to ADVISORY for all stories would remove the production-grade three-way hash enforcement that BC-5.39.010 exists to provide. The volatile-input problem affects a bounded set of 19 stories with a clear remediation path. The correct response is to fix the inputs, not to weaken the gate. The precondition described in §Decision 4 is a transitional clause that becomes vacuous once the 19 stories are remediated; at that point Class B enforces full BLOCKING with no carve-outs.
+Downgrading Class B to ADVISORY for all stories would remove the production-grade three-way hash enforcement that BC-5.39.010 exists to provide. The volatile-input problem affects a bounded set of 78 stories with a clear remediation path. The correct response is to fix the inputs, not to weaken the gate. The precondition described in §Decision 4 is a transitional clause that becomes vacuous once the 78 stories are remediated; at that point Class B enforces full BLOCKING with no carve-outs.
 
 ### The self-locking risk
 
@@ -148,23 +195,23 @@ Without this ADR, once `validate-cross-site-correspondence` ships and its Class 
 
 ### Positive
 
-- BC-5.39.010 Class B becomes satisfiable and permanently stable for all 19 affected stories after the story-writer remediation sweep
-- S-21.07 merge is unblocked: the Class B volatile-input precondition (§Decision 4) prevents the gate from blocking on the 19 stories before remediation is complete
+- BC-5.39.010 Class B becomes satisfiable and permanently stable for all 78 affected stories after the story-writer remediation sweep
+- S-21.07 merge is unblocked: the Class B volatile-input precondition (§Decision 4) prevents the gate from blocking on the 78 stories before remediation is complete
 - No new tool infrastructure required; the fix is a data correction in story `inputs:` arrays
 - `compute-input-hash` remains a simple full-file accumulator with no exclusion logic; the stability guarantee is enforced at the spec layer, not the tool layer
 - Provenance is preserved in `closes:` and `last_amended:` fields that are already present and complete
-- The frozen 29 stories require no remediation
+- The frozen 23 stories require no remediation (corpus-verified 2026-08-05)
 
 ### Negative / Trade-offs
 
-- Story-writer remediation sweep over 19 stories required before Class B can enforce full BLOCKING for those stories; this is a bounded one-time cost
+- Story-writer remediation sweep over 78 stories required before Class B can enforce full BLOCKING for those stories; this is a bounded one-time cost (59 newly-identified stories are mostly merged greenfield stories that only need their `inputs:` corrected — no spec content changes required)
 - S-19.01's hash cannot be corrected before story-writer removes `lessons.md` from its `inputs:`; the stored hash `0ad9c4b` remains stale until then
 - Story authors must understand that cycle log citations belong in `closes:` (provenance) not `inputs:` (drift detection); this distinction requires documentation in the story-writer agent prompt
 - Story-to-story dependencies (story A lists story B in `inputs:`) remain subject to hash invalidation when story B is amended; this is intentional and correct behavior, but it means merged stories that undergo metadata-only amendments (version bumps, citation sweeps) will propagate hash staleness to their dependents
 
-### Status as of 2026-08-04
+### Status as of 2026-08-05 (v1.1)
 
-Accepted. The ARCH-INDEX row is inserted at v3.42. Remediation (§Decision 5) is pending: story-writer sweep of 19 stories has not yet occurred. Class B precondition (§Decision 4) must be delivered by product-owner before S-21.07 merges to prevent self-lock. S-19.01 hash `0ad9c4b` remains stale pending story-writer remediation of its `inputs:` array.
+Accepted. The ARCH-INDEX row was inserted at v3.42. Remediation (§Decision 5) is pending: story-writer sweep of **78 stories** has not yet occurred (up from 19 — see §Context corpus re-derivation). S-21.07 is included in the sweep; its volatile `ARCH-INDEX.md` input has been identified and is story-writer-routed (the actual `inputs:` edit is story-writer scope; this ADR records the obligation). Class B precondition (§Decision 4) was delivered by product-owner in BC-5.39.010 v1.5 before S-21.07 merges to prevent self-lock. S-19.01 hash `0ad9c4b` remains stale pending story-writer remediation of its `inputs:` array.
 
 ## Alternatives Considered
 
@@ -177,7 +224,15 @@ Accepted. The ARCH-INDEX row is inserted at v3.42. Remediation (§Decision 5) is
 ## Source / Origin
 
 - **Empirical demonstration:** D-952 burst — S-19.01 stored hash `0ad9c4b`, post-burst recomputed hash `242af2f`; cause confirmed as `L-BB-tooling-version-divergence-masquerades-as-fabrication` lesson append to `.factory/cycles/v1.0-brownfield-backfill/lessons.md` (listed in S-19.01 `inputs:`)
-- **F-S2107-P2-010:** Adversary pass-2 finding — nine E-19 stories have live block-on-ship condition against POLICY 18 three-way equality; true exposure confirmed as 19 stories by this ADR's investigation
+- **F-S2107-P2-010:** Adversary pass-2 finding — nine E-19 stories have live block-on-ship condition against POLICY 18 three-way equality; true exposure confirmed as 19 stories (v1.0) → corrected to 78 stories (v1.1) by full-corpus re-derivation
+- **F-S2107-P4-013:** Adversary pass-4 finding — PC40's "imposes no permanent weakening" guarantee is false for S-21.07 because ADR-037 §Context omitted S-21.07 from the 19-story table; the v1.1 amendment corrects this
 - **BC-5.39.010:** Normative twin to ADR-035; Class B arm implementation in S-21.07 `validate-cross-site-correspondence` WASM gate
 - **ADR-035 §Decision 1:** Three-tier architecture — Tier 2A WASM PostToolUse cross-site gate enforces Class B with BLOCKING severity
 - **ADR-036 §Decision 3:** Authoritative binary `plugins/vsdd-factory/bin/compute-input-hash`; per-story `--update` invocations; `--scan --update` forbidden (D-936)
+
+## Changelog
+
+| Version | Date | Summary |
+|---------|------|---------|
+| 1.1 | 2026-08-05 | F-S2107-P4-013 ADR-side remediation (architect; S-21.07 pass-5 fix burst): S-21.07 added to §Context table and §Decision 5 blast radius. Mechanical full-corpus re-derivation confirms 78 volatile stories (vs 19 in v1.0). S-15.14, S-15.15, S-15.17 entries corrected (incomplete volatile-input listings). 58 additional stories added to table. §Decision 5 blast radius 19→78. §Decision 7 frozen-only count ~29→23 (corpus-verified). Corpus scan commands added per D-950. |
+| 1.0 | 2026-08-04 | Initial ruling: volatile-artifact exclusion from `inputs:`; 19-story remediation scope (partial manual scan); D-952 empirical demonstration; BC-5.39.010 §Decision 4 precondition requirement routed to product-owner. |
