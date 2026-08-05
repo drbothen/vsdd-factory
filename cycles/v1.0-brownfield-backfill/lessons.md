@@ -10167,3 +10167,99 @@ D-442(e) recorded the same class of defect for lessons.md (≤3,500 soft / ≤4,
 **Closes:** D-955
 
 **Cites:** D-955 (codified this burst); D-945 (RUSTSEC-2026-0149 tracking); ADR-035 (wasmtime upgrade target). `[security; dependabot; vulnerability; unrecorded; triage-needed; security-reviewer; D-955; codified]`
+
+---
+
+## L-BB-hand-count-roster-wrong-by-4x [process-gap] [D-956]
+
+**Category:** process-gap
+
+**Title:** A Hand-Counted Roster Was Wrong by 4× and Propagated Into an ADR
+
+**Lesson:** D-953 recorded 19 stories needing volatile-`inputs:` remediation per ADR-037 §Decision 5. Architect re-derived the count mechanically (six greps, one per ADR-037 §Decision 2 pattern, de-duplicated) and got **78**; the original was a manual scan of recently-active engine-discipline stories that missed the entire greenfield corpus. `ARCH-INDEX.md` alone appears in 63 stories' `inputs:` arrays. Three already-listed rows had incomplete pattern listings. "~29 frozen-only" resolved to exactly **23**. **Generalization:** any population count entering a spec or ADR MUST be derived by literal shell with the command recorded, never hand-enumerated.
+
+**Anchors:** D-953 (original 19-story ruling); D-956 (correction 19→78); ADR-037 v1.0→v1.1; F-S2107-P6-006.
+
+**Closes:** D-956
+
+**Cites:** D-956 (codified this burst); D-953 (original count); ADR-037 v1.1. `[process-gap; count-derivation; mechanical-verification; ADR-accuracy; D-956; codified]`
+
+---
+
+## L-BB-recorded-risk-without-mechanical-gate-recurs [process-gap] [D-956]
+
+**Category:** process-gap
+
+**Title:** A Recorded Risk Without a Mechanical Gate Recurs
+
+**Lesson:** `PG-S-15.11-bats-prod-registry-parity-gate` had sat in Drift Items requiring "bats inline `path_allow` arrays byte-identical to production" — and F-S2107-P4-018 found the bats helper granting `.factory/cycles/` while production omits it, so the capability-confinement guard was tested against a **more permissive** registry than it ships with and never exercised the real `path_allow`. Test-writer implemented a runtime parity guard reading `hooks-registry.toml`; devops verified it non-vacuous. **Generalization:** a Drift Item describing an invariant is not enforcement; convert to a gate or expect the violation.
+
+**Anchors:** D-956 (this burst); F-S2107-P4-018; PG-S-15.11; hooks-registry.toml; devops `b78b27ef`.
+
+**Closes:** D-956
+
+**Cites:** D-956 (codified this burst); F-S2107-P4-018. `[process-gap; drift-item; parity-gate; test-quality; bats; D-956; codified]`
+
+---
+
+## L-BB-full-corpus-bats-non-deterministic [process-gap] [D-956]
+
+**Category:** process-gap
+
+**Title:** The Full-Corpus Bats Run Is Non-Deterministic — "N/N GREEN" From It Is Unreliable
+
+**Lesson:** Three corpus-leg runs this burst produced three different failure sets: {resolver×2, registry-tool-filter-anchoring, regression-v1.0, validate-factory-path-staging} / {resolver×2, sprint-state-format, validate-factory-path-staging} / {resolver×2, validate-factory-path-staging}. Develop failed a suite the feature branch did not. All suspect suites pass in isolation and in a 92-test chain; no shared helper branches on `CI_REQUIRE_ARTIFACTS`/`VSDD_CORPUS_ROOT`. Bears directly on D-693 gate integrity and on the existing `[process-gap] CI-green-attestation` item (D-692). **Generalization:** local "N/N GREEN" from the full-corpus run is unreliable unless the dispatcher path and `CI_REQUIRE_ARTIFACTS` setting are recorded alongside the result. Needs a story.
+
+**Anchors:** D-956 (this burst); D-693; D-692; F-S2107-P6-017 (dispatcher provenance not recorded); bats run-all.sh.
+
+**Closes:** D-956
+
+**Cites:** D-956 (codified this burst); D-693; D-692; F-S2107-P6-016; F-S2107-P6-017. `[process-gap; bats; non-determinism; CI-green-attestation; D-956; needs-story; codified]`
+
+---
+
+## L-BB-capture-truncation-destroys-failure-record [process-gap] [D-956]
+
+**Category:** process-gap
+
+**Title:** Capture Truncation Destroyed the Only Record of a Failure
+
+**Lesson:** The original failing corpus run was captured with `tail -20`, so the verbatim assertion text for `registry-tool-filter-anchoring` and `regression-v1.0` is **permanently lost** — the same class as pass-30's lost `/tmp` output (D-946). **Generalization:** failing-run captures MUST be full-output; `tail`/`head` truncation on a gate run is evidence destruction. This is now the second incident of this class in the S-21.07 cascade; D-946 established the precedent but the lesson was not applied to local bats captures.
+
+**Anchors:** D-956 (this burst); D-946 (pass-30 prior instance); F-S2107-P6-016; full-corpus bats run.
+
+**Closes:** D-956
+
+**Cites:** D-956 (codified this burst); D-946 (prior instance); F-S2107-P6-016. `[process-gap; evidence-destruction; capture-truncation; gate-run; D-956; codified]`
+
+---
+
+## L-BB-self-lock-policy3-ordering-architectural [process-gap] [D-956]
+
+**Category:** process-gap
+
+**Title:** Closing a Self-Lock Exposed a POLICY 3 Ordering Contradiction
+
+**Lesson:** F-S2107-P6-001 identified that the hook evaluates its blocking postconditions at the **primary-write instant**, while POLICY 3 requires secondary-site (index) updates to land LAST. PC40's volatile-input suppression had been masking this; removing `ARCH-INDEX.md` from S-21.07's `inputs:` — the correct fix for F-S2107-P4-013 — retired the shield and made both governing artifacts live-blocked. **This is architectural, not a content defect:** the gate's evaluation instant and the burst protocol's ordering are in direct conflict, and no amount of index-syncing resolves it. Route to **architect** for adjudication; record for human decision. Related open question already logged: whether the adversary should run after the index-sync leg, or owed-and-recorded obligations be declared out-of-perimeter.
+
+**Anchors:** D-956 (this burst); F-S2107-P6-001; POLICY 3 (`state_manager_runs_last`); BC-5.39.010 PC3/PC12 rationale; F-S2107-P4-013 (ARCH-INDEX.md removal from inputs:).
+
+**Closes:** D-956
+
+**Cites:** D-956 (codified this burst); F-S2107-P6-001; F-S2107-P4-013; POLICY 3. `[process-gap; architectural; self-lock; policy3; evaluation-instant; architect-routing; D-956; codified]`
+
+---
+
+## L-BB-pass-numbering-error [process-gap] [D-956]
+
+**Category:** process-gap
+
+**Title:** Orchestrator Pass-Numbering Error — Fix Bursts Do Not Consume Pass Numbers
+
+**Lesson:** The orchestrator labelled a fix burst "pass-5" and numbered the next adversary "pass-6", leaving `adversary-pass-5.md` nonexistent and the streak stated as "6 passes" against **five** actual reviews. The adversary caught it as F-S2107-P6-021, and F-S2107-P6-024 separately noted the absent file. Resolution: the file was persisted as `adversary-pass-5.md` with F-S2107-P6-NNN finding IDs retained verbatim (POLICY 1 append-only; IDs cannot be renumbered). **Generalization:** pass numbers denote adversary reviews; fix bursts take the number of the review they remediate (e.g., "pass-4 fix burst" fixes pass-4 findings). The next adversary review after a fix burst is "pass-5", not "pass-6".
+
+**Anchors:** D-956 (this burst); F-S2107-P6-021; F-S2107-P6-024; adversary-pass-5.md (persisted this burst).
+
+**Closes:** D-956
+
+**Cites:** D-956 (codified this burst); F-S2107-P6-021; F-S2107-P6-024. `[process-gap; pass-numbering; adversary-review; orchestrator-discipline; D-956; codified]`

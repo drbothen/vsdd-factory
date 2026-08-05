@@ -1,1 +1,1 @@
-{"status":"pass","timestamp":"2026-08-05T01:00:11Z","command":"cd /Users/zious/Documents/GITHUB/vsdd-factory/.worktrees/S-21.07 && cargo test --workspace --all-targets 2>&1 | tail -10; echo \"WORKSPACE_TEST_EXIT:$?\""}
+{"status":"pass","timestamp":"2026-08-05T15:26:25Z","command":"cd /Users/zious/Documents/GITHUB/vsdd-factory/.worktrees/S-21.07 && cargo test --workspace --all-targets 2>&1 | grep -E \"FAILED|error\\[\" | head -20"}

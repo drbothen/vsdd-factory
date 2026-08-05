@@ -14849,3 +14849,53 @@ D-955-S-21.07-PASS-4-RECORD-BURST-INDEX-SYNCS
 ### Date
 
 2026-08-04
+
+---
+
+## D-956
+
+### Summary
+
+S-21.07 pass-5 record burst: adversary-pass-5.md persisted verbatim from volatile tool-results; D-956 index syncs applied (BC-5.39.010 v1.9→v1.10; S-21.07 hash 25c7324→dd5c9d2 three-way ACHIEVED; ADR-037 Decision 5 19→78 stories + v1.0→v1.1); pass-numbering discrepancy resolved (file persisted as adversary-pass-5.md; finding IDs F-S2107-P6-NNN retained verbatim per POLICY 1; F-S2107-P6-021 resolved by persistence); fix-burst closures F-P4-002..025 recorded (product-owner 926c9250; architect 384d0fb1; story-writer 571ccf65; test-writer 1bc3d711+43fcf46e; implementer 6b86a9c2+df31c027; devops b78b27ef); 6 lessons appended.
+
+### Decision
+
+**(a) Pass-numbering resolution:** The review self-identifies as pass 6 with F-S2107-P6-NNN finding IDs. The orchestrator labelled a fix burst "pass-5" and numbered the next adversary "pass-6," leaving adversary-pass-5.md nonexistent and creating a sequence gap. The cascade has had **five** adversary reviews (passes 1, 2, 3, 4, and this one). **Ruling: persist as adversary-pass-5.md.** The file is the 5th adversary review (true sequence). Finding IDs F-S2107-P6-NNN retained verbatim (POLICY 1 append-only; IDs cannot be renumbered). The label/sequence discrepancy — `pass: 6` in frontmatter vs. 5th review in sequence — is documented here. F-S2107-P6-021 (adversary-pass-5.md absent) is resolved by this persistence. **Streak count uses true adversary-review count: 5.** The orchestrator pass-numbering lesson is codified at L-BB-pass-numbering-error.
+
+**(b) BC-INDEX leg 5 sync:** BC-5.39.010 body-table row 6th escape-aware field updated v1.9→v1.10. BC-INDEX version v4.47→v4.48. Closes F-S2107-P6-001 data leg (BC-INDEX stale).
+
+**(c) ARCH-INDEX leg 5 sync:** ADR-037 body-table row Decision 5 "19 affected stories" corrected to "78 affected stories" per architect's mechanical re-derivation (six greps, de-duplicated; ARCH-INDEX.md leg alone: 65 files − 3 non-story = 62 stories, delta S-21.07 discharged this burst). ACCEPTED note amended: ADR-037 v1.0→v1.1. ARCH-INDEX version v3.42→v3.43.
+
+**(d) STORY-INDEX six corrections:** Catalog row S-21.07 — title BC-5.39.010 v1.9→v1.10; notes [BC-5.39.010 v1.9]→v1.10; input-hash 25c7324→dd5c9d2; story v1.4→v1.5. Delivery blockquote line 733: S-21.07=25c7324→dd5c9d2. BC-coverage blockquote line 734: BC-5.39.010 v1.9→v1.10. STORY-INDEX version v4.284→v4.285. POLICY 18 three-way equality S-21.07=dd5c9d2 ACHIEVED (compute-input-hash stdout: `dd5c9d2`). S-21.09=cf3a0c6 VERIFIED UNCHANGED (stdout: `cf3a0c6`). Closes F-S2107-P6-001 STORY-INDEX data legs.
+
+**(e) VP-INDEX:** UNCHANGED. No VP content changed this burst.
+
+**(f) Fix-burst closures recorded:** pass-5 fix burst (run prior to this adversary pass) closed F-P4-002/003/004/005/006/007/008/010/011/013/014/015/016/017/018/019/020/023/024/025 via product-owner `926c9250` (BC v1.9→v1.10: PC5 two-level locator/body-table predicate resolving self-contradiction; full-file candidate selection; PC4a MUST-verbatim; PC22 prescribed message; PC36 block-scalar; PC40 confirmed correct); architect `384d0fb1` (ADR-037 v1.1: roster 19→78, frozen 29→23, S-21.07 added to §Decision 5); story-writer `571ccf65` (story v1.4→v1.5: 12 cites→v1.10, ARCH-INDEX.md removed from inputs:, arm count 4→6, hash 25c7324→dd5c9d2); test-writer `1bc3d711`+`43fcf46e` (8 RED then green; E-class fixtures→6-field; a1-row-malformed fixture; block-scalar+live-corpus tests; registry parity PG-S-15.11 runtime guard; wrapper deleted); implementer `6b86a9c2`+`df31c027` (block-scalar parsing all four indicators; full-file candidate selection; classify_provenance deleted; leg 5/3 corrections; starts_with→contains; Class D→DEFERRED); devops `b78b27ef` (WASM 226,794 bytes; D-693 gate PASS).
+
+**(g) F-S2107-P6-001 architectural routing:** The blocking postconditions (PC2/PC13) evaluate at the primary-write instant while POLICY 3 forces secondary-site (index) updates to land last — a spec-level ordering defect, not a data-staleness defect. Data-legs applied this burst (BC-INDEX v1.10; STORY-INDEX dd5c9d2) close today's instance but the spec defect recurs next burst by construction. **Route: architect** adjudicates whether to extend the PC3/PC12 carve-out reasoning to the staleness branches (downgrade stale-version/stale-hash to advisory when the primary artifact is newer than the index cite) or move Arm A1/B1 blocking to the index write event. Human decision on adversary sequencing also required (whether adversary should run after the index-sync leg). This is F-P6-001 open item in Drift Items.
+
+**(h) POLICY 18 mechanical verification:** `compute-input-hash .factory/stories/S-21.07-validate-cross-site-correspondence.md` → stdout: `dd5c9d2`. `compute-input-hash .factory/stories/S-21.09-wasm-artifact-restore-and-registry-parity.md` → stdout: `cf3a0c6`. Three-way legs: B1=dd5c9d2 (frontmatter); B2=dd5c9d2 (STORY-INDEX:730); B3=dd5c9d2 (STORY-INDEX:733). All three equal. POLICY 18 SATISFIED.
+
+**(i) 4-INDEX:** BC v4.47→v4.48; VP v2.74 UNCHANGED; STORY v4.284→v4.285; ARCH v3.42→v3.43. streak 0/3 (5 true adversary reviews). trajectory 47→18→25→25→24. parent-commit: `b78b27ef` (devops; pass-5 fix burst final commit).
+
+### Participating agents
+
+- adversary: S-21.07 pass-5 holistic fresh-context review (NOT-CLEAN B3/H8/M10/L3 = 24 findings + 5 obs; reviewed HEAD b78b27ef; self-identifies as pass 6 per orchestrator numbering error; file persisted as adversary-pass-5.md)
+- state-manager: D-956 codification; adversary-pass-5.md persisted from volatile tool-results; INDEX.md pass-5 row + Convergence Status; decision-log.md D-956 entry; 6 lessons appended; burst-log.md D-956 (8 blocks); BC-INDEX v4.47→v4.48; STORY-INDEX v4.284→v4.285; ARCH-INDEX v3.42→v3.43; STATE.md advance
+
+### 4-INDEX
+
+| Index | Before | After | Change |
+|-------|--------|-------|--------|
+| BC-INDEX | v4.47 | v4.48 | BC-5.39.010 version cell v1.9→v1.10 |
+| VP-INDEX | v2.74 | v2.74 | UNCHANGED |
+| STORY-INDEX | v4.284 | v4.285 | S-21.07 four corrections (BC v1.9→v1.10, hash 25c7324→dd5c9d2, story v1.4→v1.5); delivery blockquote dd5c9d2; BC-coverage v1.9→v1.10 |
+| ARCH-INDEX | v3.42 | v3.43 | ADR-037 row: Decision 5 19→78 affected stories; AMENDED v1.1 note |
+
+### Phase
+
+D-956-S-21.07-PASS-5-RECORD-BURST-INDEX-SYNCS
+
+### Date
+
+2026-08-05
