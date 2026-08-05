@@ -219,13 +219,28 @@ pub fn run_arm_b1_with_index_result(
                     let b3_match = b3 == story_hash;
 
                     if !b2_match || !b3_match {
-                        let provenance = classify_provenance(story_hash, &b2, &b3);
                         violations.push(Violation {
                             description: format!(
-                                "validate-cross-site-correspondence [Class B] POLICY 18: \
-                                input-hash mismatch for story {story_id} \
-                                — story={story_hash} catalog={b2} blockquote={b3} \
-                                — {provenance}"
+                                "validate-cross-site-correspondence [Class B]: \
+                                Story {story_id} input-hash three-way mismatch: \
+                                frontmatter={story_hash} STORY-INDEX-catalog={b2} \
+                                STORY-INDEX-blockquote={b3}. \
+                                All three present sites must agree. \
+                                Update per POLICY 18 (D-923). \
+                                This hook detects inconsistency only — operator MUST \
+                                determine which of the following applies before \
+                                remediating: \
+                                (a) STALE: previously valid hash; inputs changed after \
+                                authoring; remedy: rerun `compute-input-hash --update` \
+                                on the story. \
+                                (b) FABRICATED: hash was never output of \
+                                `compute-input-hash --update` at any revision \
+                                (POLICY 18 violation); remedy: acknowledge \
+                                PROVENANCE-BREAK in burst-log before recomputing. \
+                                (c) ALGORITHM-DIVERGENT: hash produced by prior binary \
+                                version per ADR-036 §Decision 4; NOT fabricated; \
+                                remedy: recompute with current authoritative binary, \
+                                no PROVENANCE-BREAK annotation required."
                             ),
                         });
                     }
@@ -281,7 +296,7 @@ pub fn run_arm_b1_with_index_result(
 
 /// Volatile path patterns transcribed 1:1 from ADR-037 §Decision 2.
 ///
-/// Six canonical patterns; each is checked in order by `is_volatile_path`.
+/// Eight canonical patterns; each is checked in order by `is_volatile_path`.
 /// Paths NOT in this table are non-volatile and MUST NOT match.
 ///
 /// | # | Pattern | Rationale |
@@ -304,14 +319,15 @@ const VOLATILE_PATTERNS_CYCLES_NAMED: [&str; 4] =
 /// Returns `true` if `path` is a volatile factory path whose content changes
 /// frequently enough that a stable input-hash cannot be maintained.
 ///
-/// Implements ADR-037 §Decision 2 exactly — six canonical patterns (see
+/// Implements ADR-037 §Decision 2 exactly — eight canonical patterns (see
 /// `VOLATILE_PATTERNS_CYCLES_NAMED` doc table above).
 ///
 /// Pure: no I/O.
 ///
 /// # BC trace
-/// BC-5.39.010 v1.9 PC40: volatile-input precondition.
+/// BC-5.39.010 v1.10 PC40: volatile-input precondition.
 /// ADR-037 §Decision 2: canonical volatile path list.
+/// F-S2107-P4-020: `starts_with` narrowing fixed to `contains` per spec predicate.
 pub fn is_volatile_path(path: &str) -> bool {
     use std::path::Path;
 
@@ -323,7 +339,9 @@ pub fn is_volatile_path(path: &str) -> bool {
     // Patterns 2–5: files under `.factory/cycles/**/`.
     // Only four named files are volatile; any other cycles/ file is an immutable
     // historical artifact and must NOT match.
-    if path.starts_with(".factory/cycles/") {
+    // BC-5.39.010 PC40: spec says "path **contains** `.factory/cycles/`" not starts_with —
+    // repo-root-relative paths are the common case but `contains` is the conforming predicate.
+    if path.contains(".factory/cycles/") {
         let filename = Path::new(path)
             .file_name()
             .and_then(|f| f.to_str())
@@ -664,24 +682,6 @@ fn parse_story_id_len(s: &str) -> usize {
         i += 1;
     }
     i
-}
-
-/// Classify the provenance of a hash mismatch for invariant 11.
-///
-/// - stale: B2 == B3 but ≠ B1 → story updated, index needs --update sweep
-/// - fabricated: B1 == B2 but ≠ B3 → story frontmatter matches catalog but not blockquote
-/// - stale (generic): any other mismatch pattern
-fn classify_provenance(b1: &str, b2: &str, b3: &str) -> &'static str {
-    if b2 == b3 && b1 != b2 {
-        // Index is internally consistent, story disagrees → index is stale
-        "stale — STORY-INDEX.md needs `compute-input-hash --update` sweep"
-    } else if b1 == b2 && b1 != b3 {
-        // Story frontmatter matches catalog but not blockquote → fabricated B3
-        "fabricated — blockquote hash disagrees with story frontmatter and catalog row"
-    } else {
-        // Multiple mismatches
-        "stale — multiple hash mismatches; run `compute-input-hash --update`"
-    }
 }
 
 #[cfg(test)]

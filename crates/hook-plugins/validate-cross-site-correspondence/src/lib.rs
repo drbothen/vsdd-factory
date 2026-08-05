@@ -7,12 +7,12 @@
 //! **Class A Arm2 (story file write):** story body BC-table version citations vs BC frontmatter.
 //! **Class B Arm1 (story file write):** story `input-hash:` vs STORY-INDEX catalog row vs blockquote.
 //! **Class B Arm2 (STORY-INDEX.md write):** internal catalog vs blockquote hash parity.
-//! **Class D (cycle artifact write):** finding-ID namespace format advisory (NEVER blocks).
+//! **Class D (cycle artifact write):** finding-ID namespace format advisory — **[DEFERRED to S-21.08; not compiled]**.
 //! **Class E1 (BC/VP/story/epic write):** `version:` vs `last_amended:` outer prefix mismatch.
 //! **Class E2 (BC/VP/story/epic write):** `modified:` sequence date monotonicity.
 //!
 //! # Governing BC
-//! BC-5.39.010 v1.9 — five-arm PostToolUse cross-site value-correspondence gate.
+//! BC-5.39.010 v1.10 — six-arm PostToolUse cross-site value-correspondence gate (A1/A2/B1/B2/E1/E2; Class D deferred).
 //!
 //! # Architecture
 //! - **Tier 2A** (ADR-035 §Decision 1): PostToolUse read-only validator.
@@ -801,7 +801,7 @@ mod tests {
             violations.is_empty(),
             "BC-1.01.001 (version={bc_version}) has a 5-column RowPresentNoVersion row in the \
             live BC-INDEX.md. run_arm_a1_with_index_result must NOT produce violations. \
-            BC-5.39.010 v1.9 PC5: RowPresentNoVersion → silent-continue. \
+            BC-5.39.010 v1.10 PC5: RowPresentNoVersion → silent-continue. \
             F-S2107-P3-001 BLOCKER: corpus test sampling the ~1,943-row majority. \
             Current: extract_bc_index_version returns Some(\"15.01\") from S-15.01 story ID → \
             stale-version block. Violations: {violations:?}"

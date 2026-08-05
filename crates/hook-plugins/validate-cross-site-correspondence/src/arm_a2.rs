@@ -333,11 +333,21 @@ pub fn run_arm_a2_for_bc_with_result(
             (vec![], vec![advisory])
         }
         Err(other) => {
-            // CapabilityDenied or other → block (fail-closed)
+            // CapabilityDenied or other → block (fail-closed).
+            // Include cited versions in the message so the operator knows which
+            // versions were referenced (F-P4-015: stale-citation violations carry
+            // version info; fail-closed violations must also surface it for
+            // actionable diagnostics).
+            let cited: String = citations
+                .iter()
+                .map(|(_, v)| format!("v{v}"))
+                .collect::<Vec<_>>()
+                .join(", ");
             let violation = Violation {
                 description: format!(
                     "validate-cross-site-correspondence [Class A Arm2]: \
                     host error reading BC '{bc_id}' for story '{story_id}': {other:?}. \
+                    Story cites '{bc_id}' at version(s) {cited}. \
                     Verify read_file path_allow includes '.factory/specs/behavioral-contracts/'."
                 ),
             };
@@ -372,9 +382,9 @@ pub fn run_arm_a2_for_bc_with_result(
                     violations.push(Violation {
                         description: format!(
                             "validate-cross-site-correspondence [Class A Arm2]: \
-                            story '{story_id}' cites '{bc_id}' at version v{cited_version} \
-                            in {location}, but BC frontmatter says version {bc_version}. \
-                            Update the story's BC-table citation to v{bc_version}. POLICY 14 leg 3."
+                            story {story_id} cites {bc_id} at v{cited_version} \
+                            (in {location}) but BC frontmatter version: is \"{bc_version}\". \
+                            Update story citation same-burst per POLICY 14 leg 5."
                         ),
                     });
                 }

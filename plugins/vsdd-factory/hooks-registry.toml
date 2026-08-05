@@ -663,12 +663,12 @@ path_allow = [
 ]
 
 # ---------- validate-cross-site-correspondence (PostToolUse, Edit|Write|MultiEdit) ----------
-# BC-5.39.010 v1.2 §Gate Spec: PostToolUse cross-site value-correspondence gate.
-# Six arms: Class A Arm1 (BC version vs BC-INDEX row), Class A Arm2 (story BC-table
+# BC-5.39.010 v1.10 §Gate Spec: PostToolUse cross-site value-correspondence gate.
+# Six active arms: Class A Arm1 (BC version vs BC-INDEX row), Class A Arm2 (story BC-table
 # citations vs BC frontmatter), Class B Arm1 (story input-hash three-way equality),
-# Class B Arm2 (STORY-INDEX internal catalog/blockquote parity), Class D (finding-ID
-# namespace format advisory — advisory-only, never blocks), Class E (frontmatter
-# version/last_amended parity + modified[] monotonicity).
+# Class B Arm2 (STORY-INDEX internal catalog/blockquote parity), Class E1 (frontmatter
+# version/last_amended parity), Class E2 (modified[] monotonicity).
+# Class D (finding-ID namespace format advisory) is DEFERRED to S-21.08 (BC-5.39.010 v1.6 / D-953).
 # priority = 460: next available slot after validate-wave-handoff-completeness (450).
 # on_error = "continue": fuel exhaustion (debug build, oversized artifact) → silent
 #   non-finding, not spurious block (ADR-035 §Decision 5). max_bytes caps calibrated

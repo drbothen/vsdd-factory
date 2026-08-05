@@ -63,7 +63,7 @@ pub fn derive_bc_path(bc_id: &str) -> String {
 
 /// Four-state result for BC-INDEX.md row classification.
 ///
-/// BC-5.39.010 v1.9 PC5 (column-count-anchored, four-state):
+/// BC-5.39.010 v1.10 PC5 (column-count-anchored, four-state, full-file scan):
 /// - `RowAbsent`: NO candidate line found at all for this BC ID. A candidate line must
 ///   satisfy the normative recognition predicate conditions (1)+(2): (1) starts with `|`;
 ///   (2) first non-empty field is `[bc_id]` link form or `bc_id` plain form. If no line
@@ -85,11 +85,13 @@ pub fn derive_bc_path(bc_id: &str) -> String {
 ///   BC-ID-candidate lines have ≥5 fields. This state is forward-looking protection.
 ///
 /// # BC trace
-/// BC-5.39.010 v1.9 PC5: four-state classification with explicit recognition predicate.
+/// BC-5.39.010 v1.10 PC5: four-state classification with full-file scan (F-S2107-P4-005).
 /// F-S2107-P3-001 BLOCKER: two-state `Option<String>` conflated RowAbsent with
 /// RowPresentNoVersion — every 5-column row triggered a spurious block for v>1.0 BCs.
-/// v1.9 resolves Conflict 2: found-but-<5-fields → RowMalformed (advisory); only
+/// v1.9 resolved Conflict 2: found-but-<5-fields → RowMalformed (advisory); only
 /// "no candidate line at all" → RowAbsent (potential block for v>1.0 BCs).
+/// v1.10 resolved first-match-wins (F-S2107-P4-005): full-file scan preferred; RowMalformed
+/// only when ALL locator-matched lines fail condition (3).
 #[derive(Debug, PartialEq)]
 pub enum BcIndexVersionState {
     /// No candidate line found at all for this BC ID in BC-INDEX.md.
@@ -104,22 +106,29 @@ pub enum BcIndexVersionState {
     RowMalformed(usize),
 }
 
-/// Extract the BC-INDEX.md row state for `bc_id` using the v1.9 four-state algorithm.
+/// Extract the BC-INDEX.md row state for `bc_id` using the v1.10 four-state algorithm.
 ///
-/// **Algorithm (BC-5.39.010 v1.9 PC5 — column-count-anchored, four-state):**
+/// **Algorithm (BC-5.39.010 v1.10 PC5 — column-count-anchored, full-file scan):**
 ///
-/// For each line in `index_content`:
+/// Scans ALL lines in `index_content`. For each line:
 /// 1. **Condition (1):** line starts with `|` — skips YAML frontmatter, prose, blank lines.
 /// 2. **Condition (2):** first non-empty pipe-cell matches the normative locator pattern —
 ///    link form `[bc_id](...)` or plain form `bc_id` exactly (see `first_cell_matches_bc_id`).
 ///    This is the recognition predicate. If neither form matches, skip the line.
 /// 3. **Condition (3):** If (1)+(2) both hold, this is a CANDIDATE line. Apply
 ///    escape-aware split (replace `\|` → `\x00`, split on `|`, count non-empty trimmed fields):
-///    - Exactly 5 fields → `RowPresentNoVersion` (canonical shape; no version-chain cell)
-///    - ≥6 fields → extract rightmost `\bv([0-9]+\.[0-9]+)\b` from 6th field → `Version(v)`
-///    - <5 fields → `RowMalformed(n)` (candidate found but not a valid body-table row)
+///    - Exactly 5 fields → return `RowPresentNoVersion` immediately
+///    - ≥6 fields → extract rightmost `\bv([0-9]+\.[0-9]+)\b` from 6th field → return `Version(v)` immediately
+///    - <5 fields → record as malformed candidate; **continue scanning for a valid line**
 ///
-/// If no line satisfies conditions (1)+(2): return `RowAbsent` (no candidate found at all).
+/// **F-P4-005 full-file selection order (BC-5.39.010 v1.10):**
+/// Return the FIRST (1)+(2)+(3)-satisfying line (≥5 fields). Return `RowMalformed(n)` ONLY
+/// when ALL locator-matched lines fail condition (3). First-match-wins on malformed lines
+/// is NON-CONFORMING — a malformed line earlier in the file MUST NOT shadow a valid row later.
+///
+/// After full scan:
+/// - If a malformed candidate was found (but no valid one): `RowMalformed(n)` (first malformed count)
+/// - If no candidate at all: `RowAbsent`
 ///
 /// Note: `RowAbsent` exclusively means "no candidate line found at all" — it does NOT cover
 /// found-but-malformed cases (those are `RowMalformed`). This distinction is critical:
@@ -128,7 +137,7 @@ pub enum BcIndexVersionState {
 /// Pure: operates on already-read bytes.
 ///
 /// # BC trace
-/// BC-5.39.010 v1.9 PC5: four-state escape-aware algorithm with recognition predicate.
+/// BC-5.39.010 v1.10 PC5: full-file-scan selection order (F-S2107-P4-005).
 /// F-S2107-P2-002: first-cell anchor (cross-reference rows must not match).
 /// F-S2107-P1B-006: last-wins token extraction for version-chain cells.
 /// F-S2107-P1B-007: starts_with('|') to skip YAML frontmatter lines.
@@ -138,6 +147,10 @@ pub(crate) fn extract_bc_index_version_state(
     index_content: &[u8],
 ) -> BcIndexVersionState {
     let content = std::str::from_utf8(index_content).unwrap_or("");
+
+    // Track the first malformed candidate's field count. Used as the RowMalformed(n) value
+    // only when the full-file scan finds NO valid (≥5-field) candidate line.
+    let mut first_malformed_count: Option<usize> = None;
 
     for line in content.lines() {
         // Condition (1): skip non-pipe-table lines (YAML frontmatter, prose, blank lines).
@@ -168,31 +181,40 @@ pub(crate) fn extract_bc_index_version_state(
             .filter(|s| !s.is_empty())
             .collect();
 
-        return match non_empty_fields.len() {
-            5 => BcIndexVersionState::RowPresentNoVersion,
+        match non_empty_fields.len() {
+            5 => return BcIndexVersionState::RowPresentNoVersion,
             n if n >= 6 => {
                 // 6th non-empty field (index 5) is the version-chain cell.
                 let sixth = non_empty_fields[5];
-                match extract_last_v_token(sixth) {
+                return match extract_last_v_token(sixth) {
                     Some(v) => BcIndexVersionState::Version(v),
                     None => BcIndexVersionState::RowPresentNoVersion,
+                };
+            }
+            // <5 fields: candidate found but not a valid body-table row.
+            // BC-5.39.010 v1.10 PC5 (F-P4-005): do NOT return here — keep scanning for
+            // a valid (≥5-field) line. RowMalformed is returned only when the entire file
+            // has been scanned and NO valid candidate was found.
+            // MUST NOT be collapsed into RowAbsent — that would trigger false BLOCKs.
+            n => {
+                if first_malformed_count.is_none() {
+                    first_malformed_count = Some(n);
                 }
             }
-            // <5 fields: candidate found but not a valid body-table row (RowMalformed).
-            // BC-5.39.010 v1.9 PC5: advisory + Continue (postcondition 4a). NEVER blocks.
-            // MUST NOT be collapsed into RowAbsent — that would trigger false BLOCKs.
-            n => BcIndexVersionState::RowMalformed(n),
-        };
+        }
     }
 
-    // No candidate line found at all — genuinely absent from the index.
-    BcIndexVersionState::RowAbsent
+    // Full scan complete. No valid (≥5-field) candidate found.
+    match first_malformed_count {
+        Some(n) => BcIndexVersionState::RowMalformed(n),
+        None => BcIndexVersionState::RowAbsent,
+    }
 }
 
 /// Returns `true` if the trimmed first pipe-cell content of a BC-INDEX body-table row
 /// matches the given BC ID under the normative recognition predicate.
 ///
-/// **Normative recognition predicate condition (2) per BC-5.39.010 v1.9 PC5:**
+/// **Normative recognition predicate condition (2) per BC-5.39.010 v1.10 PC5:**
 /// - **Link form:** first cell starts with `[bc_id]` followed by `(` (markdown link:
 ///   `[BC-5.39.010](ss-05/BC-5.39.010.md)`)
 /// - **Plain form:** first cell equals `bc_id` exactly (e.g., `BC-5.39.010`)
@@ -202,7 +224,7 @@ pub(crate) fn extract_bc_index_version_state(
 /// from being classified as the BC's own registration row.
 ///
 /// # BC trace
-/// BC-5.39.010 v1.9 PC5: normative recognition predicate condition (2).
+/// BC-5.39.010 v1.10 PC5: normative recognition predicate condition (2).
 /// F-P2-002: first-cell anchor.
 fn first_cell_matches_bc_id(first_cell: &str, bc_id: &str) -> bool {
     // Plain form: cell IS the bc_id (e.g., "BC-5.39.010")
@@ -346,7 +368,7 @@ pub fn run_arm_a1_with_index_result(
             (vec![violation], vec![])
         }
         Ok(index_bytes) => {
-            // BC-5.39.010 v1.9 PC5: four-state classification.
+            // BC-5.39.010 v1.10 PC5: four-state classification (full-file scan).
             match extract_bc_index_version_state(bc_id, &index_bytes) {
                 BcIndexVersionState::RowAbsent => {
                     // No candidate line found at all — BC not in INDEX.
@@ -402,16 +424,19 @@ pub fn run_arm_a1_with_index_result(
                     // PC5 postcondition 4a: advisory + Continue. NEVER blocks.
                     // MUST NOT reach the RowAbsent blocking path (postcondition 4) —
                     // a found-but-malformed line is not a dropped registration.
-                    // BC-5.39.010 v1.9 PC5 postcondition 4a.
+                    // BC-5.39.010 v1.10 PC5 postcondition 4a (NORMATIVE — verbatim):
+                    //   both clauses below are MUST-verbatim per postcondition 4a.
                     let advisory = Advisory {
                         message: format!(
                             "validate-cross-site-correspondence [Class A Arm1] advisory: \
                             malformed candidate line for '{bc_id}' ({field_count} non-empty \
                             fields found; expected ≥5 for a valid BC-INDEX body-table row). \
-                            Not blocking — this is not a dropped registration. Manual \
-                            verification recommended. The genuine dropped-registration case \
+                            Registration status cannot be determined from this line. \
+                            Verify BC-INDEX body-table registration manually. \
+                            Not blocking — this is not a dropped registration. \
+                            The genuine dropped-registration case \
                             (no candidate line at all) is RowAbsent (postcondition 4). \
-                            BC-5.39.010 v1.9 PC5 postcondition 4a."
+                            BC-5.39.010 v1.10 PC5 postcondition 4a."
                         ),
                     };
                     (vec![], vec![advisory])

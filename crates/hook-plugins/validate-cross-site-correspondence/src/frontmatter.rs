@@ -18,13 +18,26 @@
 ///
 /// Scans the leading `---` … `---` region of `content` for the first line
 /// matching `^<field>:` and returns the value after the colon, trimmed.
-/// Handles bare, single-quoted, and double-quoted YAML values.
+/// Handles bare, single-quoted, double-quoted, and YAML block scalar values.
 /// Returns `None` if the frontmatter region is absent or the field is not found.
+///
+/// # Block scalars (BC-5.39.010 PC36)
+/// All four YAML block scalar indicators are handled:
+/// - `|` — literal block, clip chomp (preserve newlines; callers receive lines joined with `\n`)
+/// - `|-` — literal block, strip chomp (same join, trailing blank lines stripped)
+/// - `>` — folded block, clip chomp (single newlines folded to spaces; blank lines → `\n`)
+/// - `>-` — folded block, strip chomp (same fold, trailing blank lines stripped)
+///
+/// For single-line block scalar bodies (the common case for `last_amended:` date
+/// strings), literal and folded produce identical output: the single content line
+/// with its block-indent prefix stripped.
 ///
 /// # BC trace
 /// BC-5.39.010 §Architecture Anchors `extract_frontmatter_field`; used by
 /// arm_a1 (extract `version:`), arm_a2 (extract `story_id:`), arm_e (extract
 /// `version:`, `last_amended:`).
+/// BC-5.39.010 PC36: YAML block scalar indicators must NOT be returned as the value.
+/// F-P4-004: prior implementation returned `"|-"` for `last_amended: |-` — NON-CONFORMING.
 pub fn extract_frontmatter_field(content: &str, field: &str) -> Option<String> {
     // Find the frontmatter region: lines between first --- and second ---
     let mut lines = content.lines();
@@ -32,7 +45,10 @@ pub fn extract_frontmatter_field(content: &str, field: &str) -> Option<String> {
     if lines.next()? != "---" {
         return None;
     }
-    for line in lines {
+    // Use loop+next() instead of for-in so that `lines` stays in scope for
+    // block-scalar body collection (requires passing &mut lines to a helper).
+    loop {
+        let line = lines.next()?; // None = EOF before closing `---` → field absent
         if line == "---" {
             return None; // End of frontmatter, field not found
         }
@@ -41,6 +57,17 @@ pub fn extract_frontmatter_field(content: &str, field: &str) -> Option<String> {
         if line.starts_with(&prefix) {
             let rest = &line[prefix.len()..];
             let trimmed = rest.trim();
+
+            // BC-5.39.010 PC36: detect YAML block scalar indicators.
+            // The indicator itself is NOT the field value. Collect the body from
+            // subsequent indented lines. Returning the indicator string (e.g. "|-")
+            // is NON-CONFORMING.
+            if matches!(trimmed, "|" | "|-" | ">" | ">-") {
+                let is_folded = trimmed.starts_with('>');
+                let is_strip = trimmed.ends_with('-');
+                return collect_block_scalar_body(&mut lines, is_folded, is_strip);
+            }
+
             // Strip surrounding quotes (single or double).
             // Guard-first: evaluate is_char_boundary BEFORE slicing to prevent
             // a slice panic if a non-ASCII multi-byte sequence falls on the quote
@@ -63,7 +90,115 @@ pub fn extract_frontmatter_field(content: &str, field: &str) -> Option<String> {
             return Some(value.to_string());
         }
     }
-    None
+}
+
+/// Collect and return the body of a YAML block scalar from subsequent lines.
+///
+/// Called after `extract_frontmatter_field` encounters a block scalar indicator
+/// (`|`, `|-`, `>`, `>-`). Reads from `lines` until it finds either `---`
+/// (frontmatter close) or a line less indented than the established block indent.
+///
+/// The block indent is established by the first non-empty content line. Empty lines
+/// within the block are accumulated as paragraph separators.
+///
+/// # Semantics (BC-5.39.010 PC36)
+/// - **Literal** (`is_folded = false`): content lines joined with `\n`.
+/// - **Folded** (`is_folded = true`): single newlines folded to spaces; blank
+///   lines become paragraph-separating `\n` characters.
+/// - **Strip** (`is_strip = true`, `-` suffix): all trailing blank lines removed.
+/// - **Clip** (`is_strip = false`, no suffix): one trailing newline preserved.
+///   For field-value extraction (comparison / regex use), the trailing `\n` is
+///   omitted in both modes since callers use `.contains()` or position-0 regex
+///   and are not performing round-trip YAML serialization.
+///
+/// Returns `None` if no non-empty content lines are found before `---` or EOF.
+///
+/// # BC trace
+/// BC-5.39.010 PC36: four block-scalar indicators with correct literal/folded and
+/// clip/strip semantics. F-P4-004 (block body extraction).
+fn collect_block_scalar_body<'a>(
+    lines: &mut impl Iterator<Item = &'a str>,
+    is_folded: bool,
+    _is_strip: bool, // Both modes strip trailing blanks for field-value extraction.
+) -> Option<String> {
+    let mut content_lines: Vec<String> = Vec::new();
+    let mut block_indent: Option<usize> = None;
+
+    for raw_line in lines.by_ref() {
+        if raw_line == "---" {
+            break;
+        }
+
+        // Count leading ASCII spaces for indentation.
+        // YAML block scalars use space-only indent (BC-5.39.010 PC36 implementation note).
+        let indent = raw_line.len() - raw_line.trim_start_matches(' ').len();
+        let is_blank = raw_line.trim().is_empty();
+
+        if is_blank {
+            // Blank line inside block: paragraph separator (not yet a hard break).
+            content_lines.push(String::new());
+            continue;
+        }
+
+        if let Some(bi) = block_indent {
+            if indent < bi {
+                // Less indented than block indent: end of block.
+                // This line belongs to the next YAML field — do not consume it.
+                // (We cannot un-consume from an Iterator; the next field's data
+                // is unreachable after this point, but extract_frontmatter_field
+                // returns immediately after collecting the block, so that is fine.)
+                break;
+            }
+            // Strip exactly `bi` leading spaces; preserve any excess indent.
+            // Safety: `bi` leading chars are all ASCII spaces (single-byte) so
+            // `bi` is a valid byte index into the str.
+            let stripped = &raw_line[bi..];
+            content_lines.push(stripped.to_string());
+        } else {
+            // First non-empty content line: establishes the block indent.
+            block_indent = Some(indent);
+            let stripped = &raw_line[indent..];
+            content_lines.push(stripped.to_string());
+        }
+    }
+
+    // Remove trailing blank lines (strip-mode semantic; also applied for clip
+    // since we do not add a trailing newline for field-value extraction).
+    while content_lines.last().map(String::is_empty).unwrap_or(false) {
+        content_lines.pop();
+    }
+
+    if content_lines.is_empty() {
+        return None;
+    }
+
+    let result = if is_folded {
+        // Folded mode: single newlines → spaces; blank lines → paragraph `\n`.
+        let mut buf = String::new();
+        for line in &content_lines {
+            if line.is_empty() {
+                // Blank line: paragraph separator — trim trailing space and insert \n.
+                let trimmed_end = buf.trim_end_matches(' ').len();
+                buf.truncate(trimmed_end);
+                buf.push('\n');
+            } else {
+                if !buf.is_empty() && !buf.ends_with('\n') {
+                    buf.push(' ');
+                }
+                buf.push_str(line);
+            }
+        }
+        buf
+    } else {
+        // Literal mode: join lines with \n, preserving intra-block newlines.
+        content_lines.join("\n")
+    };
+
+    if result.is_empty() {
+        None
+    } else {
+        Some(result)
+    }
 }
 
 /// Extract a YAML sequence field from YAML frontmatter.
