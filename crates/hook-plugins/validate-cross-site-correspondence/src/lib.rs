@@ -738,12 +738,12 @@ mod tests {
         // Read expected version from live BC frontmatter — durable (updates with the file)
         let expected = frontmatter::extract_frontmatter_field(&bc_file_str, "version")
             .expect("BC-1.17.001.md must have a version: field");
-        let result = arm_a1::extract_bc_index_version("BC-1.17.001", &bc_index_bytes);
+        let result = arm_a1::extract_bc_index_version_state("BC-1.17.001", &bc_index_bytes);
         assert_eq!(
             result,
-            Some(expected.clone()),
-            "extract_bc_index_version('BC-1.17.001') must return BC-1.17.001's own INDEX row \
-            version ('{expected}'), not a version from a later row that cross-references \
+            arm_a1::BcIndexVersionState::Version(expected.clone()),
+            "extract_bc_index_version_state('BC-1.17.001') must return Version(BC-1.17.001's own \
+            INDEX row version ('{expected}')), not a version from a later row that cross-references \
             BC-1.17.001 in its changelog text. BC-2.07.001's row at line ~693 mentions \
             'BC-1.17.001' in a v1.4 annotation and ends with v1.6 — unanchored LAST-wins \
             overwrites the correct answer. CORPUS RED GATE: F-P2-002 first-cell anchoring."

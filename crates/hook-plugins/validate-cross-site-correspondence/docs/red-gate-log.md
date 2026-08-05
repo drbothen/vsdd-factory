@@ -582,7 +582,7 @@ No crate changes needed. Crate tests stay at 108/0/2. Do NOT run bats — devops
 **Date:** 2026-08-04
 **BC:** BC-5.38.001 (Red Gate: all tests must fail before implementation)
 **Cycle:** v1.0-brownfield-backfill / S-21.07 adversary pass-3 fix burst (25 findings: B3/H7/M12/L3)
-**Governing spec:** BC-5.39.010 v1.9
+**Governing spec:** BC-5.39.010 v1.10
 
 Red Gate run command: `cargo test -p validate-cross-site-correspondence`
 Red Gate result: **99 passed; 13 failed; 17 ignored** — all 13 new tests fail; 99 pre-existing green; 0 pre-existing green → red regressions.
@@ -1076,3 +1076,97 @@ actually tests T-037 (B3-only mismatch, expected exit 2).
 **Fix:** Updated `last_amended`, `# heading`, and body prose to correctly describe the T-037
 B3-only-mismatch scenario. The `input-hash: "47a65c9"` value is correct (B1 = correct hash;
 blockquote B3 = "deadbee" in STORY-INDEX diverges → mismatch detected).
+
+---
+
+## Amendment 4 — Pass-4 Adversary Findings: Harness Parity, Wrapper Removal, Cite Refresh
+
+**Date:** 2026-08-05
+**Adversary pass:** Pass-4 (follow-up to Amendment 3)
+**Test-writer assignments:** F-P4-018, F-P4-016, arm_b.rs comment, harness sweep, v1.9→v1.10 cite refresh
+**Governing spec:** BC-5.39.010 v1.10
+**Command:** `cargo test -p validate-cross-site-correspondence`
+**Result:** 127 passed; **0 failed**; 17 ignored (maintenance — no new RED GATE tests)
+
+No new RED GATE tests in this amendment. All changes are test/fixture harness corrections and
+governing-spec cite refreshes. The 127 previously-passing tests remain green throughout.
+
+### F-P4-018: bats `_write_registry` default path_allow parity
+
+**Finding:** `_write_registry` default `path_allow_lines` included `.factory/cycles/"` as a
+fourth prefix. Production `hooks-registry.toml` has exactly three prefixes:
+`.factory/specs/behavioral-contracts/`, `.factory/specs/verification-properties/`,
+`.factory/stories/`. The AC-004 test override also carried `.factory/cycles/"` spuriously.
+
+**Fix:**
+- Removed `.factory/cycles/"` from `_write_registry` default (now three prefixes matching production).
+- Removed `.factory/cycles/"` from AC-004 override (the test omits behavioral-contracts/ to
+  trigger CapabilityDenied; cycles/ was never needed).
+- Updated `_write_registry` header comment from "all four .factory/ subtrees" to
+  "three prefixes, matching hooks-registry.toml for validate-cross-site-correspondence (PG-S-15.11)".
+
+**Class D tests unaffected:** All five Class D tests (AC-012/AC-013/AC-014) already carry
+`skip "[DEFERRED v1.6 — Class D]"` and never execute. The path_allow fix does not change their
+skip status.
+
+**PG-S-15.11 parity guard added:** New bats test verifying `_write_registry` default path_allow
+matches production hooks-registry.toml byte-for-byte. Parses both TOML files at test runtime,
+so future production registry changes will surface as a test failure rather than silent drift.
+The test PASSES immediately (default now matches production).
+
+### arm_b.rs: F-S2107-P3-002 block comment correction
+
+**Finding:** Comment at `arm_b.rs:1034` (test module) stated "BC-5.39.010 v1.7 PC40 specifies
+EXACTLY 6 volatile-input patterns" while the list below it contained 8 items.
+
+**Fix:** Updated comment to accurately state: "BC-5.39.010 v1.10 (ADR-037 §Decision 2) specifies
+six canonical volatile-input patterns, expanded to eight concrete path forms in the implementation
+(pattern 3, `{decision-log,lessons,burst-log}`, yields three concrete forms)." Also updated
+two additional v1.7 cites in the arm_b.rs test module to v1.10:
+- `arm_b.rs:1157` (`ADR-037 §Decision 2 and BC-5.39.010 v1.7 PC40` → v1.10)
+- `arm_b.rs:1197` (`BC-5.39.010 v1.7 PC40 note` → v1.10)
+
+### F-P4-016: `extract_bc_index_version` wrapper deleted; callers migrated
+
+**Finding:** `#[cfg(test)] pub(crate) fn extract_bc_index_version` collapses the four PC5 states
+(`RowAbsent | RowPresentNoVersion | RowMalformed(_) → None`), which is NON-CONFORMING per
+BC-5.39.010 v1.10 PC5. Two test callers (arm_a1.rs and lib.rs) used the wrapper.
+
+**Fix:**
+1. Deleted the wrapper function entirely from arm_a1.rs.
+2. Migrated `arm_a1.rs` F-P2-002 test caller to `extract_bc_index_version_state` + assert
+   `BcIndexVersionState::Version("1.7".to_string())` (was `Some("1.7")`).
+3. Migrated `lib.rs` corpus test caller to `arm_a1::extract_bc_index_version_state` + assert
+   `arm_a1::BcIndexVersionState::Version(expected.clone())` (was `Some(expected.clone())`).
+4. Updated all comment references to the deleted wrapper (block comments and doc comments in
+   the `#[cfg(test)]` module) to reference `extract_bc_index_version_state`.
+
+Both migrated tests remain green — they test the `Version(v)` branch which is present in both
+the wrapper and the state extractor; the migration makes the assertion precise.
+
+### Harness-level divergence sweep
+
+Swept all bats helper functions for production config contradictions. Findings:
+- `_write_registry` default: fixed (see F-P4-018 above).
+- `_write_registry` AC-004 override: fixed (see F-P4-018 above).
+- `_assert_exit`: no divergence.
+- `_assert_plugin_ran_not_crashed`: no divergence.
+- `_plugin_log`: no divergence.
+- AC-020 tests (read registry directly): no divergence — they read production registry at runtime.
+- No other helper encodes assumptions contradicting production config.
+
+### v1.7/v1.8/v1.9 → v1.10 governing-spec cite refresh
+
+All governing-spec cites in `#[cfg(test)]` modules and the red-gate-log were updated to v1.10.
+Historical development commentary was preserved per coordinator directive.
+
+| File | Locations updated | Historical references preserved |
+|------|-------------------|--------------------------------|
+| `arm_a1.rs` | All `v1.9 PC5` in test module → `v1.10 PC5` | "the v1.8 contract was designed to eliminate", "regression guard for the v1.8 fix" |
+| `arm_a2.rs` | All `v1.9 PC13` and `v1.9 two-phase` in test module → `v1.10` | None (all were governing-spec cites) |
+| `arm_b.rs` | `v1.7 PC40` × 3 in test module → `v1.10 PC40` | None |
+| `red-gate-log.md` | Pass-4 Fix Burst `Governing spec: v1.9` → `v1.10` | Amendment 2 section (v1.9 PC5, v1.8 contract history) preserved unmodified |
+
+Also updated doc comments on production functions in arm_a2.rs (lines 148, 246, 267) that
+described "v1.9 two-phase PC13 algorithm" to "v1.10 two-phase PC13 algorithm" since the
+current governing spec is v1.10.

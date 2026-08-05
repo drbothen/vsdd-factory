@@ -1031,7 +1031,9 @@ mod tests {
     // -----------------------------------------------------------------------
     // F-S2107-P3-002 (BLOCKER): is_volatile_path three-way drift
     //
-    // BC-5.39.010 v1.7 PC40 specifies EXACTLY 6 volatile-input patterns:
+    // BC-5.39.010 v1.10 (ADR-037 §Decision 2) specifies six canonical volatile-input
+    // patterns, expanded to eight concrete path forms in the implementation (pattern 3,
+    // `{decision-log,lessons,burst-log}`, yields three concrete forms):
     //   1. `.factory/STATE.md` (direct child, parent==".factory")
     //   2. `.factory/cycles/**/STATE.md`
     //   3. `.factory/cycles/**/decision-log.md`
@@ -1154,7 +1156,7 @@ mod tests {
     /// F-S2107-P3-002(c) RED GATE: VP-INDEX.md is NOT in PC40 and must NOT be volatile.
     ///
     /// VP-INDEX.md appears in the current impl's filename matches but is absent from
-    /// ADR-037 §Decision 2 and BC-5.39.010 v1.7 PC40. It must NOT be volatile.
+    /// ADR-037 §Decision 2 and BC-5.39.010 v1.10 PC40. It must NOT be volatile.
     ///
     /// RED GATE: current `matches!(filename, "BC-INDEX.md" | "VP-INDEX.md" | ...)` → true.
     #[test]
@@ -1194,7 +1196,7 @@ mod tests {
     //   per BC-5.39.010 v1.6 PC40 ... Update input-hash manually when non-volatile
     //   inputs change."
     //
-    // Prescribed text (ADR-037 §Decision 4 / BC-5.39.010 v1.7 PC40 note):
+    // Prescribed text (ADR-037 §Decision 4 / BC-5.39.010 v1.10 PC40 note):
     //   "Story <id> has volatile inputs per ADR-037 §Decision 2 — three-way equality
     //   is unsatisfiable until story-writer removes volatile inputs and state-manager
     //   recomputes the hash; Class B BLOCK suspended. Volatile path(s): <list>"

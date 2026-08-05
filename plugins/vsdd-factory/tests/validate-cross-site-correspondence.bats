@@ -116,12 +116,13 @@ _load_fixture() {
 # ---------------------------------------------------------------------------
 # Registry writer: write a synthetic hooks-registry.toml with one entry.
 # Optional argument overrides the path_allow list (double-quoted TOML strings,
-# comma-separated). Default: full production path_allow covering all four
-# .factory/ subtrees.
+# comma-separated). Default: production path_allow — three prefixes, matching
+# hooks-registry.toml for validate-cross-site-correspondence (PG-S-15.11).
 # ---------------------------------------------------------------------------
 
 _write_registry() {
-  # Build the TOML path_allow list. Default uses all four production subtrees.
+  # Build the TOML path_allow list. Default matches the three production
+  # path_allow prefixes in plugins/vsdd-factory/hooks-registry.toml.
   # Callers can pass a custom list as the first argument.
   local path_allow_lines
   if [ $# -ge 1 ]; then
@@ -129,8 +130,7 @@ _write_registry() {
   else
     path_allow_lines='".factory/specs/behavioral-contracts/",
   ".factory/specs/verification-properties/",
-  ".factory/stories/",
-  ".factory/cycles/"'
+  ".factory/stories/"'
   fi
 
   cat > "$WORK/hooks-registry.toml" <<TOML
@@ -304,6 +304,50 @@ _assert_plugin_ran_not_crashed() {
     }
     # fuel_cap must NOT be present (BC-5.39.010 v1.2 §Gate Spec; ADR-035 §Decision 5)
     [[ "$output" != *"fuel_cap"* ]]
+}
+
+# ---------------------------------------------------------------------------
+# PG-S-15.11: _write_registry default path_allow parity guard.
+#
+# Asserts that the bats _write_registry helper's default path_allow array is
+# byte-identical to the production path_allow in hooks-registry.toml for
+# validate-cross-site-correspondence. Catches silent drift so that integration
+# tests always run against the same capabilities the production plugin sees.
+#
+# ALWAYS PASSES (no dispatcher invocation, no WASM execution). The test reads
+# two TOML files and compares extracted path entries.
+# ---------------------------------------------------------------------------
+
+@test "PG-S-15.11: _write_registry default path_allow matches production hooks-registry.toml" {
+  local registry_path
+  registry_path="$BATS_TEST_DIRNAME/../../../plugins/vsdd-factory/hooks-registry.toml"
+
+  [ -f "$registry_path" ] || {
+    echo "FAIL: production hooks-registry.toml not found at $registry_path"
+    false
+  }
+
+  # Extract path_allow entries from production registry (under validate-cross-site-correspondence)
+  local prod_entries
+  prod_entries="$(grep -A 50 '"validate-cross-site-correspondence"' "$registry_path" \
+    | awk '/path_allow = \[/{in_arr=1; next} in_arr && /\]/{in_arr=0} in_arr{gsub(/[[:space:]",]/, ""); if(length($0)>0) print}' \
+    | sort)"
+
+  # Write default registry and extract its path_allow entries
+  _write_registry
+  local bats_entries
+  bats_entries="$(awk '/path_allow = \[/{in_arr=1; next} in_arr && /\]/{in_arr=0} in_arr{gsub(/[[:space:]",]/, ""); if(length($0)>0) print}' \
+    "$WORK/hooks-registry.toml" | sort)"
+
+  [ "$prod_entries" = "$bats_entries" ] || {
+    echo "FAIL: bats _write_registry default path_allow does not match production hooks-registry.toml"
+    echo "  Production entries (sorted):"
+    printf '%s\n' "$prod_entries" | while IFS= read -r line; do echo "    $line"; done
+    echo "  Bats default entries (sorted):"
+    printf '%s\n' "$bats_entries" | while IFS= read -r line; do echo "    $line"; done
+    echo "  PG-S-15.11: update _write_registry default to match production path_allow"
+    false
+  }
 }
 
 # ---------------------------------------------------------------------------
@@ -487,8 +531,7 @@ _assert_plugin_ran_not_crashed() {
   _require_artifacts
   _load_fixture "a1-stale-index"
   # path_allow omits behavioral-contracts/ entirely → primary BC file read → CapabilityDenied
-  _write_registry '".factory/stories/",
-  ".factory/cycles/"'
+  _write_registry '".factory/stories/"'
 
   local envelope
   envelope="$(_post_write_event '.factory/specs/behavioral-contracts/ss-05/BC-5.39.010.md')"
