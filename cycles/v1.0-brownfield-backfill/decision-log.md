@@ -14793,3 +14793,59 @@ D-954-S-21.07-PASS-3-RECORD-BURST-STORY-INDEX-POLICY18-SYNC
 ### Date
 
 2026-08-04
+
+---
+
+## D-955
+
+S-21.07 pass-4 adversary record burst + owed index syncs (BC-INDEX + STORY-INDEX + BC-5.39.010 Traceability)
+
+### Decision
+
+**(a) POLICY 16 GLOBAL-MAX GATE (pre-append):** `grep -n "^## D-" .factory/cycles/v1.0-brownfield-backfill/decision-log.md | sort -t'-' -k2 -n | tail -3` → `14640:## D-952 / 14699:## D-953 / 14747:## D-954`; D-954 confirmed prior max → D-955 allocated.
+
+**(b) Pass-4 adversary outcome:** S-21.07 pass-4 adversary: holistic fresh-context dispatch. **NOT-CLEAN** — B4/H9/M9/L3 = 25 findings + 5 observations. Reviewed HEAD `256023c6`; story v1.4; BC-5.39.010 v1.9. Streak **0/3** (4 passes; zero CLEAN verdicts). **FLAT:** pass-3 25 findings → pass-4 25 findings (stable, not regressed). **RECORD burst only — owed index syncs applied (POLICY 3 deferred work); no fix-burst code changes.**
+
+**(c) Four BLOCKERs this pass:**
+
+1. **F-S2107-P4-001 BLOCKER** — BC-INDEX.md BC-5.39.010 version cell `v1.6` stale vs frontmatter `v1.9` (three hops v1.6→v1.7→v1.8→v1.9 missed POLICY 14 leg 5). **CLOSED THIS BURST** — BC-INDEX v4.46→v4.47: version cell v1.6→v1.9 + Stories cell TBD→S-21.07 (closes F-S2107-P4-001 + F-S2107-P4-021).
+
+2. **F-S2107-P4-002 BLOCKER** — Story v1.4 POLICY 8 BC-5.39.010 v1.9 propagation incomplete — title/H1, BC Status, BC table, Token Budget, Task 1 still cite v1.7. **Pass-5 story-writer.**
+
+3. **F-S2107-P4-003 BLOCKER** — `RowMalformed` (v1.9 PC5 fourth state) has no mutant test or CONTROL at unit level, and no bats fixture. **Pass-5 test-writer.**
+
+4. **F-S2107-P4-004 BLOCKER** — `extract_frontmatter_field` (arm_e.rs) does not handle YAML block-scalar modifiers (`|`, `|-`, `>`, `>-`). `last_amended: |-` is the canonical form in STORY-INDEX and BC files; the extractor silently returns empty on any spec artifact using it. No fixture carries the real shape. **Pass-5 test-writer + implementer.**
+
+**(d) BC-INDEX v1.6→v1.9 + Stories TBD→S-21.07 sync (closes F-S2107-P4-001 + F-S2107-P4-021):** BC-5.39.010 was amended three times in one burst: v1.6 (Class D descope) → v1.7 (three-state rearchitect) → v1.8 (column-anchored locator) → v1.9 (RowMalformed fourth state). Each amendment obligated POLICY 14 five-leg parity. State-manager was deferred (POLICY 3) for all three hops; this burst applies the cumulative update: BC-INDEX body-table row version cell v1.6→v1.9 + Stories TBD→S-21.07. BC-INDEX v4.46→v4.47.
+
+**(e) STORY-INDEX POLICY 18 three-way S-21.07 hash sync + catalog row six corrections (closes F-S2107-P4-012):** story v1.4 frontmatter `input-hash: "25c7324"` (set by story-writer at last update). STORY-INDEX catalog row (B2) and blockquote (B3) still showed stale `9603a5b`. Six corrections applied: (1) title cell seven-arm/Classes A/B/D/E/v1.4 → six-arm/Classes A/B/E/v1.9 (per story-writer authority + task instruction to use v1.9; story H1 still says v1.7 — DISAGREEMENT noted: story-writer must update story H1 to v1.9 at pass-5); (2) BCs `[v1.4]` → `[v1.9]`; (3) `input-hash 9603a5b` → `input-hash 25c7324`; (4) `story v1.3` → `story v1.4`; (5) `ADR-035 v1.0 §Decision 1 Tier-2A` → `ADR-035 §Decision 1 Tier-2A` (TD-VSDD-091 volatile pin removed per story body precedent at v1.3); (6) AC count 21 VERIFIED from story (21 `^### AC-` sections; 3 marked DEFERRED v1.6). Delivery blockquote `S-21.07=9603a5b` → `S-21.07=25c7324`. BC-coverage blockquote `BC-5.39.010 v1.4 seven-arm` → `BC-5.39.010 v1.9 six-arm Classes A/B/E`. Three-way equality: B1=25c7324 == B2=25c7324 == B3=25c7324 — **ACHIEVED**. POLICY 18 S-21.09: B1=cf3a0c6 == B2=cf3a0c6 == B3=cf3a0c6 — **VERIFIED UNCHANGED** (compute-input-hash stdout: `cf3a0c6`). STORY-INDEX v4.283→v4.284.
+
+**(f) BC-5.39.010 Traceability backlink Stories TBD→S-21.07:** cross-document sync owed since story-writer burst. BC-5.39.010.md Traceability table `Stories | TBD` → `Stories | S-21.07`. BC-5.39.010.md input-hash updated `d3b45cf` → `fb4cc4a` (compute-input-hash stdout after content change; validate-input-hash blocked with `fb4cc4a`).
+
+**(g) POLICY 18 mechanical verification (per task mandate):** `compute-input-hash .factory/stories/S-21.07-validate-cross-site-correspondence.md` → `b717ff2` (computed; diverges from stored `25c7324` because BC-5.39.010.md was amended v1.7→v1.9 after story v1.4 was authored — story input-hash update is pass-5 work). `compute-input-hash .factory/stories/S-21.09-wasm-artifact-restore-and-registry-parity.md` → `cf3a0c6` (matches frontmatter). POLICY 18 three-way equality for this burst targets frontmatter-stored `25c7324` (the value set by story-writer at v1.4 authoring time); the recomputed divergence is a downstream obligation for pass-5.
+
+**(h) 5 lessons appended:** L-BB-mid-burst-spec-amendment-cascade-cost `[process-gap]`; L-BB-fixture-shape-unvalidated-belief `[test-quality]`; L-BB-policy3-ordering-makes-index-legs-legitimately-unsynced `[process-gap]`; L-BB-adversary-readonly-profile-forces-persistence-handoff `[process-gap]`; L-BB-dependabot-vulnerabilities-unrecorded `[security]`.
+
+**(i) 4-INDEX:** BC v4.46→v4.47 (BC-5.39.010 v1.6→v1.9 + TBD→S-21.07); VP v2.74 UNCHANGED; STORY v4.283→v4.284 (S-21.07 six corrections + hash 25c7324 three-way); ARCH v3.42 UNCHANGED. streak 0/3 (4 passes). trajectory 47→18→25→25. parent-commit: `256023c6` (devops; pass-3 fix burst final commit).
+
+### Participating agents
+
+- adversary: S-21.07 pass-4 holistic fresh-context review (NOT-CLEAN B4/H9/M9/L3 = 25 findings + 5 obs; reviewed HEAD 256023c6)
+- state-manager: D-955 codification; adversary-pass-4.md persisted; INDEX.md pass-4 row + Convergence Status; decision-log.md D-955 entry; 5 lessons appended; burst-log.md D-955 (8 blocks); BC-INDEX v4.46→v4.47; STORY-INDEX v4.283→v4.284 (S-21.07 six corrections + hash 25c7324); BC-5.39.010 Traceability Stories TBD→S-21.07; STATE.md advance
+
+### 4-INDEX
+
+| Index | Before | After | Change |
+|-------|--------|-------|--------|
+| BC-INDEX | v4.46 | v4.47 | BC-5.39.010 version cell v1.6→v1.9 + Stories TBD→S-21.07 |
+| VP-INDEX | v2.74 | v2.74 | UNCHANGED |
+| STORY-INDEX | v4.283 | v4.284 | S-21.07 six corrections (title/BC/hash/story/ADR-pin/AC); hash 9603a5b→25c7324 three-way; blockquote S-21.07=25c7324; BC coverage v1.4→v1.9 six-arm |
+| ARCH-INDEX | v3.42 | v3.42 | UNCHANGED |
+
+### Phase
+
+D-955-S-21.07-PASS-4-RECORD-BURST-INDEX-SYNCS
+
+### Date
+
+2026-08-04

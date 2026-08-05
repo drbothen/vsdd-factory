@@ -10097,3 +10097,73 @@ D-442(e) recorded the same class of defect for lessons.md (≤3,500 soft / ≤4,
 **Anchors:** D-954 (this burst; PostToolUse timeout on decision-log.md edit); D-835 (caps originally set; file already exceeded at 10,233 lines); D-442(e) (lessons.md same class); lessons.md fuel-exhaustion warning in CLAUDE.md §Conventions; INDEX.md §Artifact Size Budgets line 323.
 
 **Cites:** D-954 (codified this burst); D-835 (compaction protocol); D-442(e) (lessons.md precedent); S-15.03 PRIORITY-A (mechanical enforcement target). `[ops; wasm; fuel-exhaustion; decision-log; size-budget; compaction; PostToolUse; advisory; D-954; codified]`
+
+---
+
+### L-BB-mid-burst-spec-amendment-cascade-cost [process-gap] [D-955]
+
+**Title:** Mid-burst Spec Amendment Has an Unpriced Cascade Cost
+
+**Lesson:** BC-5.39.010 was amended three times in one burst (v1.6→v1.7→v1.8→v1.9). Each hop obligated POLICY 14 five-leg parity and invalidated downstream work already done: code version cites were swept to v1.8 then re-swept to v1.9; the story went v1.3→v1.4; S-21.07's `input-hash` moved `52f0bf3`→`9603a5b`→`25c7324`, each move obliging a fresh three-leg STORY-INDEX sync; test-writer's 13 RED tests had to be re-anchored when the contract changed under them. Every individual amendment was justified by a verified defect, but the aggregate re-work is invisible at the moment each amendment is approved. **Candidate mitigation:** batch spec amendments to a burst boundary rather than applying them one at a time mid-burst. BC amendments discovered mid-implementation should be queued and applied together in a single story-writer burst at the next natural boundary, then all downstream legs swept once.
+
+**Anchors:** D-955 (this burst); BC-5.39.010 v1.6→v1.7→v1.8→v1.9 within one burst; POLICY 14 five-leg parity; STORY-INDEX three-way POLICY 18 equality; story-writer propagation obligation.
+
+**Closes:** D-955
+
+**Cites:** D-955 (codified this burst); POLICY 14; POLICY 18; POLICY 8. `[process-gap; spec-amendment; cascade-cost; mid-burst; POLICY-14; POLICY-18; D-955; codified]`
+
+---
+
+### L-BB-fixture-shape-unvalidated-belief [test-quality] [D-955]
+
+**Title:** Fixture Shape Is an Unvalidated Belief — Four Fixtures Were Green While Testing Nothing
+
+**Lesson:** Eight fixture-shape defects in one burst: two heading-free `arm_a2` fixtures; `VP-9999-test.md` (silently disabling T-045 AND T-046); two stale docstrings; `stale_index_blocks` and `current_index_passes` (fabricated 3rd-column BC-INDEX layout); `frontmatter_changelog_pipe_not_matched` (riding the `RowMalformed` advisory path); `combined-a1-e1/BC-INDEX.md` (would have failed AC-018 under the v1.9 WASM). Four never entered the code path they claimed to test. Pass-2's root cause was stated as "no test reads a real corpus file"; the deeper truth is that a fixture encodes a *belief* about artifact shape and nothing validates that belief — so a wrong belief yields a test that passes while testing nothing. **Generalization:** whenever a production predicate is tightened, sweep every fixture basename and shape against it in the same burst; a fixture that cannot reach its arm is a latent false-green.
+
+**Anchors:** D-955 (this burst); F-S2107-P4-007 (7 fixtures); F-S2107-P4-003 (RowMalformed fixture missing); F-S2107-P4-004 (block-scalar fixture missing); VP-9999-test.md silencing T-045+T-046.
+
+**Closes:** D-955
+
+**Cites:** D-955 (codified this burst); F-S2107-P4-007; F-S2107-P4-003; F-S2107-P4-004; TD-VSDD-059. `[test-quality; fixture-shape; false-green; corpus-coverage; unvalidated-belief; D-955; codified]`
+
+---
+
+### L-BB-policy3-ordering-makes-index-legs-legitimately-unsynced [process-gap] [D-955]
+
+**Title:** POLICY 3 Ordering Makes Index Legs Legitimately Unsynced at Adversary Time — Inflating Counts
+
+**Lesson:** Pass-4's top BLOCKER (F-S2107-P4-001, BC-INDEX `v1.6` vs frontmatter `1.9`) and F-S2107-P4-012 (three-way hash inequality) are both obligations correctly deferred to state-manager, which runs LAST per POLICY 3. The adversary reviewed a state where they were genuinely live and correctly flagged them — but they were never "defects" in the sense of unnoticed errors; they were scheduled work. This inflates finding counts and depresses the streak for structural reasons. **Question for the cycle owner:** should the adversary run after the index-sync leg rather than before, or should owed-and-recorded obligations be declared out-of-perimeter? Do not resolve unilaterally — record for human adjudication.
+
+**Anchors:** D-955 (this burst); F-S2107-P4-001 (BC-INDEX stale version); F-S2107-P4-012 (three-way hash inequality); POLICY 3 (state-manager runs last); POLICY 14; POLICY 18.
+
+**Closes:** D-955
+
+**Cites:** D-955 (codified this burst); POLICY 3; POLICY 14; POLICY 18. `[process-gap; POLICY-3; index-ordering; adversary-timing; finding-inflation; streak-depression; D-955; codified; NEEDS-HUMAN-ADJUDICATION]`
+
+---
+
+### L-BB-adversary-readonly-profile-forces-persistence-handoff [process-gap] [D-955]
+
+**Title:** Adversary Read-Only Profile Forces a Persistence Hand-Off — and Prevents Mechanical POLICY 18 Verification
+
+**Lesson:** Passes 3 and 4 both produced their reviews into volatile tool-results files because the adversary's profile is `Read`/`Grep`/`Glob`. Pass-30's output was lost this way (D-946). The hand-off worked both times only because the orchestrator prioritized persistence as the first act of the record burst. **Also:** the read-only profile prevented the adversary from mechanically verifying POLICY 18 hashes, which it explicitly recorded as OWED — so a policy demanding mechanical verification cannot be checked by the agent whose job is checking. This creates a structural gap: the adversary asserts a POLICY 18 violation it cannot independently verify; the state-manager inherits the obligation without a cross-check trail. The current workaround is to treat POLICY 18 verification as OWED at state-manager time (captured in this burst via `compute-input-hash` stdout).
+
+**Anchors:** D-955 (this burst); D-946 (pass-30 lost output); adversary-pass-3.md + adversary-pass-4.md persistence; POLICY 18 mechanical verification gap.
+
+**Closes:** D-955
+
+**Cites:** D-955 (codified this burst); D-946 (pass-30 reconstruction); POLICY 18; D-923. `[process-gap; adversary-profile; readonly; persistence-handoff; POLICY-18; mechanical-verification; D-955; codified]`
+
+---
+
+### L-BB-dependabot-vulnerabilities-unrecorded [security] [D-955]
+
+**Title:** 8 Dependabot Vulnerabilities on Default Branch — Only 1 Tracked in Drift Items
+
+**Lesson:** GitHub reported 3 high + 5 moderate Dependabot vulnerabilities on `drbothen/vsdd-factory` during the push at `256023c6`. Only RUSTSEC-2026-0149 (wasmtime-wasi HIGH, tracked at D-945 with an ADR-035 wasmtime-v47 upgrade target) is currently recorded in the Drift Items table in STATE.md. The other 7 are unrecorded. A security vulnerability that is not in the Drift Items table cannot be triaged, prioritized, or assigned. **Route to security-reviewer** for triage of all 7 unrecorded advisories. Candidate action: add them to STATE.md Drift Items with severity and CVE/RUSTSEC IDs, then route to implementer for patching or explicit risk-acceptance with expiry date.
+
+**Anchors:** D-955 (this burst); push `256023c6`; RUSTSEC-2026-0149 (D-945; ADR-035); 7 unrecorded advisories.
+
+**Closes:** D-955
+
+**Cites:** D-955 (codified this burst); D-945 (RUSTSEC-2026-0149 tracking); ADR-035 (wasmtime upgrade target). `[security; dependabot; vulnerability; unrecorded; triage-needed; security-reviewer; D-955; codified]`

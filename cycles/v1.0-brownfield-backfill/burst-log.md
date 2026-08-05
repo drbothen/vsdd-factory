@@ -22923,3 +22923,178 @@ B1=cf3a0c6 == B2=cf3a0c6 == B3=cf3a0c6 — **THREE-WAY EQUAL. POLICY 18 VERIFIED
 **factory-artifacts commits (this burst — TD-VSDD-053 single-commit):**
 - Single-commit: `9ec78f38` — `artifacts: D-954 S-21.07-PASS-3-RECORD-BURST — NOT-CLEAN B3/H7/M12/L3 (25+5 obs); REGRESSION 18→25; STORY-INDEX v4.283 (POLICY 18 S-21.07 ACHIEVED 9603a5b); P0 validate-factory-path-staging ADDED; 5 Drift Items; 5 lessons; STATE.md v6.86→v6.87`
 
+## D-955
+
+**S-21.07 pass-4 record burst + BC-INDEX/STORY-INDEX/BC-5.39.010 index syncs**
+
+Date: 2026-08-04 | Cycle: v1.0-brownfield-backfill | Agent: state-manager
+
+### Block 1: Parent commit
+
+**Parent-commit:** `3a64511e` — `spec(BC-5.39.010): v1.9 — RowMalformed fourth state, normative body-table predicate, postcondition 4a`
+
+This is the product-owner's BC-5.39.010 v1.9 spec amendment — the final commit in the S-21.07 pass-4 fix burst. Prior factory-artifacts chain for the pass-4 fix burst: `e35a18d7` (SHA-patch: D-954 burst SHA) → `eba19306` (BC-5.39.010 v1.7) → `224c4976` (feat: S-21.07 story v1.3→v1.4, v1.6→v1.7 propagation) → `6cde912d` (BC-5.39.010 v1.8) → `3a64511e` (BC-5.39.010 v1.9). The pass-4 adversary review was dispatched after `3a64511e` (story HEAD `256023c6`) and found NOT-CLEAN B4/H9/M9/L3.
+
+### Block 2: Adversary verdict (D-448(a) gate)
+
+**Pass:** 4 | **Verdict:** NOT-CLEAN | **Severity:** B4/H9/M9/L3 = 25 findings + 5 observations | **Streak:** 0/3 | **Passes:** 4
+
+**FLAT from pass-3** (25→25 net; same count but composition changed). Pass-4 reviewed BC-5.39.010 v1.9 (up from v1.6 at pass-3); four BLOCKERs replace three: the extractor-gap BLOCKERs from pass-3 were fixed (arm_a1 three-state extractor, is_volatile_path), but BC-5.39.010 mid-burst spec amendments (v1.6→v1.7→v1.8→v1.9) exposed three POLICY 14 leg-5 index desync findings and two structural gaps in the new v1.9 postconditions.
+
+**Four BLOCKERs:**
+- F-S2107-P4-001 BLOCKER: BC-INDEX.md version cell for BC-5.39.010 reads `v1.6` while BC frontmatter is `v1.9`. Three mid-burst amendments each failed POLICY 14 leg-5 parity. Arm A1 would block on its own governing BC. **REMEDIATED this burst** — BC-INDEX row updated v1.6→v1.9 (BC-INDEX v4.46→v4.47).
+- F-S2107-P4-002 BLOCKER: Story S-21.07 v1.4 cites BC v1.7 at both gate-visible sites (BC table row `:565`, Token Budget `:650`); BC is v1.9. Arm A2 emits two violations against its own story. **OPEN — pass-5 implementer/story-writer fix required.**
+- F-S2107-P4-003 BLOCKER: `RowMalformed` / postcondition 4a has zero test coverage; the v1.9 amendment is a paper-fix. No test distinguishes a malformed-row block from a version-mismatch block. **OPEN — pass-5 fix required.**
+- F-S2107-P4-004 BLOCKER: `extract_frontmatter_field` cannot parse `last_amended: |-` (block-scalar indicator). Class E1 is structurally inert on BC-5.39.010.md and S-21.07's own story file. **OPEN — pass-5 fix required.**
+
+**High-severity findings (9):** F-S2107-P4-005 through F-S2107-P4-013 (first-candidate-wins ordering silencer; AC-009 provenance unimplemented; seven E-class bats BC-INDEX fixtures 5-field shape defect; arm A2 leg-cite wrong; four mutually contradictory arm counts; Class D advertised as shipped; F-P3-010 stale-cite sweep incomplete; STORY-INDEX three-way POLICY 18 inequality; PC40 guarantee false for governing story).
+
+**Medium findings (9) + Low findings (3):** F-S2107-P4-014 through F-S2107-P4-025 (fixture unreachable hash mismatch; AC-006 Rust test shortfall; three structural normative gaps; bats synthetic registry divergence; stale CHANGELOG; is_volatile_path starts_with vs contains; BC-5.39.010 traceability TBD backlinks; self-contradictory PC5/RowMalformed; pass-numbering incoherence; advisory text not verbatim). **F-S2107-P4-021 REMEDIATED this burst** — BC-5.39.010 §Traceability Stories + BC-INDEX Stories cell TBD→S-21.07.
+
+**D-448(a) source-attestation gate (literal shell stdout — D-449(a)):**
+```
+$ grep -E "^reviewed_head:|^story_version:|^bc:|^verdict:|^findings_count:|^  BLOCKER:|^  HIGH:|^  MEDIUM:|^  LOW:" .factory/cycles/v1.0-brownfield-backfill/S-21.07/adversary-pass-4.md | head -12
+reviewed_head: "256023c6"
+story_version: "1.4"
+bc: "BC-5.39.010 v1.9"
+verdict: NOT-CLEAN
+findings_count: 25
+severity_breakdown:
+  BLOCKER: 4
+  HIGH: 9
+  MEDIUM: 9
+  LOW: 3
+```
+
+Burst-log Block 2 adversary verdict (NOT-CLEAN · B4/H9/M9/L3 = 25 findings · reviewed HEAD 256023c6 · story v1.4 · BC v1.9) faithfully describes adversary-pass-4.md Part A finding set. No fabrication.
+
+### Block 3: Files touched
+
+| File | Change | Agent |
+|------|--------|-------|
+| `.factory/cycles/v1.0-brownfield-backfill/S-21.07/adversary-pass-4.md` | NEW — pass-4 adversary review; B4/H9/M9/L3 = 25 findings + 5 obs; NOT-CLEAN; reviewed HEAD `256023c6`; story v1.4; BC-5.39.010 v1.9; FLAT 25→25; 4 BLOCKERs | SM (this-commit; orchestrator-transcribed per POLICY 22) |
+| `.factory/specs/behavioral-contracts/BC-INDEX.md` | v4.46→v4.47: BC-5.39.010 body-table row version cell v1.6→v1.9 + Stories cell TBD→S-21.07 (POLICY 14 leg 5; closes F-S2107-P4-001+F-S2107-P4-021); changelog entry prepended; `last_amended` updated | SM (this-commit) |
+| `.factory/stories/STORY-INDEX.md` | v4.283→v4.284: S-21.07 catalog row 6 corrections (title seven-arm→six-arm; v1.4→v1.9 BC pin; input-hash 9603a5b→25c7324; story v1.3→v1.4; ADR-035 volatile-pin removed; AC count 21 VERIFIED); delivery blockquote S-21.07=9603a5b→25c7324; BC-coverage blockquote BC-5.39.010 v1.4→v1.9 six-arm; POLICY 18 three-way S-21.07=25c7324 ACHIEVED; S-21.09=cf3a0c6 VERIFIED | SM (this-commit) |
+| `.factory/specs/behavioral-contracts/ss-05/BC-5.39.010.md` | §Traceability `Stories` cell TBD→S-21.07 (closes F-S2107-P4-021); `input-hash` d3b45cf→fb4cc4a (recomputed after content change; validate-input-hash hook real-block resolved) | SM (this-commit) |
+| `.factory/cycles/v1.0-brownfield-backfill/INDEX.md` | S-21.07 section: pass-4 row added (B4/H9/M9/L3; 25 findings + 5 obs; FLAT; streak 0/3; reviewed `256023c6`; F-S2107-P4-001+P4-021+P4-012 CLOSED); Convergence Status updated (NOT-CONVERGED; 4 passes; trajectory 47→18→25→25; 3 open BLOCKERs; NEXT: pass-5 fix burst) | SM (this-commit) |
+| `.factory/cycles/v1.0-brownfield-backfill/decision-log.md` | D-955 block appended (this-commit) | SM (this-commit) |
+| `.factory/cycles/v1.0-brownfield-backfill/lessons.md` | 5 L-BB lessons appended: L-BB-mid-burst-spec-amendment-cascade-cost; L-BB-fixture-shape-unvalidated-belief; L-BB-policy3-ordering-makes-index-legs-legitimately-unsynced; L-BB-adversary-readonly-profile-forces-persistence-handoff; L-BB-dependabot-vulnerabilities-unrecorded (this-commit) | SM (this-commit) |
+| `.factory/cycles/v1.0-brownfield-backfill/burst-log.md` | this entry (this-commit) | SM (this-commit) |
+| `.factory/STATE.md` | v6.87→v6.88; pipeline ACTIVE; frontmatter D-955-S-21.07-PASS-4-RECORD-BURST-INDEX-SYNCS; Phase Progress D-955 row; Current Phase Steps updated (last 5); Decisions Log D-955 row; Blocking Issues retained; Drift Item added (8 Dependabot vulnerabilities); Concurrent Cycles v1.0-brownfield-backfill tail updated (→18→25→25 LENGTH=4); Active Branches feature/S-21.07 SHA updated to `256023c6`; STORY-INDEX v4.284; BC-INDEX v4.47; SRC full refresh including merge-order constraint (this-commit) | SM (this-commit) |
+
+### Block 4: Codifications
+
+| Decision / Lesson | Summary |
+|-------------------|---------|
+| D-955 | S-21.07 pass-4 record burst (holistic fresh-context); NOT-CLEAN B4/H9/M9/L3 (25 findings + 5 obs); FLAT 25→25; four BLOCKERs (P4-001 BC-INDEX v1.6/v1.9 REMEDIATED; P4-002 story cites BC v1.7 OPEN; P4-003 RowMalformed zero test coverage OPEN; P4-004 extract_frontmatter_field cannot parse `last_amended: \|-` OPEN); BC-INDEX v4.46→v4.47 (BC-5.39.010 v1.6→v1.9 + Stories S-21.07); STORY-INDEX v4.283→v4.284 (6 corrections; POLICY 18 S-21.07=25c7324 ACHIEVED); BC-5.39.010 backlink TBD→S-21.07; input-hash d3b45cf→fb4cc4a; F-S2107-P4-001+P4-021 CLOSED; F-S2107-P4-012 partially closed (hash three-way ACHIEVED; story body v1.7 cites remain open); 5 lessons; 4-INDEX: BC v4.47/VP v2.74/STORY v4.284/ARCH v3.42; streak 0/3 (4 passes); trajectory 47→18→25→25 |
+| L-BB-mid-burst-spec-amendment-cascade-cost | Three consecutive BC-5.39.010 amendments (v1.6→v1.7→v1.8→v1.9) within one pass-4 fix burst each failed POLICY 14 leg-5 parity; cumulative index drift was legitimate per POLICY 3 ordering but requires explicit SM record-burst to close |
+| L-BB-fixture-shape-unvalidated-belief | Seven E-class bats BC-INDEX fixtures carried 5-field shape (missing version column); pass-3 fix burst declared them "FUNCTIONALLY CORRECT" based on an unverified belief that the extractor normalizes field count; adversary independently contradicted this (META-LEVEL-24 self-application: implementer self-disclosure of risk severity is NOT authoritative) |
+| L-BB-policy3-ordering-makes-index-legs-legitimately-unsynced | POLICY 3 (state-manager runs last) means that index-leg syncs for mid-burst spec amendments are legitimately deferred to the record burst; this is expected drift, not a defect, but must be explicitly recorded per POLICY 14 leg-5 at SM record time |
+| L-BB-adversary-readonly-profile-forces-persistence-handoff | Adversary dispatched under read-only tool profile cannot invoke `bin/compute-input-hash`; POLICY 18 mechanical verification must be OWED to the state-manager record burst (F-S2107-P4-012 pattern); this is a structural gap in the dispatch profile, not an adversary deficiency |
+| L-BB-dependabot-vulnerabilities-unrecorded | Eight Dependabot alerts on vsdd-factory repo (GHSA-2…) observed during session; not recorded in `.factory/STATE.md` Drift Items or tech-debt-register; constitutes information known to participants but absent from the canonical state record; Drift Item added this burst |
+
+### Block 5: Dim-2 attestations (literal shell per D-449(a))
+
+**(a) POLICY 16 GLOBAL-MAX GATE (post-D-955 allocation confirmation):**
+
+```
+$ grep -n "^## D-" .factory/cycles/v1.0-brownfield-backfill/decision-log.md | sort -t'-' -k2 -n | tail -5
+14570:## D-951
+14640:## D-952
+14699:## D-953
+14747:## D-954
+14799:## D-955
+```
+
+D-954 confirmed prior max at allocation time → D-955 allocated. D-955 appended at line 14799 and confirmed present.
+
+**(b) D-446(a) own-burst-log 8-block gate (literal shell stdout — scoped to D-955 entry):**
+
+```
+$ awk '/^## D-955/,0' .factory/cycles/v1.0-brownfield-backfill/burst-log.md | grep -c "^### Block [1-8]:"
+8
+```
+
+8 of 8 mandatory D-444(c) blocks confirmed present in this entry.
+
+**(c) D-448(a) source-attestation gate — diff between Block 2 verdict and adversary-pass-4.md Part A frontmatter (literal shell stdout):**
+
+```
+$ grep -E "^reviewed_head:|^story_version:|^bc:|^verdict:|^findings_count:|^  BLOCKER:|^  HIGH:|^  MEDIUM:|^  LOW:" .factory/cycles/v1.0-brownfield-backfill/S-21.07/adversary-pass-4.md | head -12
+reviewed_head: "256023c6"
+story_version: "1.4"
+bc: "BC-5.39.010 v1.9"
+verdict: NOT-CLEAN
+findings_count: 25
+severity_breakdown:
+  BLOCKER: 4
+  HIGH: 9
+  MEDIUM: 9
+  LOW: 3
+```
+
+Block 2 cites: verdict=NOT-CLEAN, B4/H9/M9/L3=25 findings, reviewed_head=256023c6, story_version=1.4, bc=BC-5.39.010 v1.9. Frontmatter confirms all fields. No fabrication.
+
+**(d) POLICY 18 S-21.07 three-way verification (post-STORY-INDEX update, literal shell stdout):**
+
+```
+$ grep "^input-hash:" .factory/stories/S-21.07-validate-cross-site-correspondence.md
+input-hash: "25c7324"
+
+$ grep "| S-21.07 " .factory/stories/STORY-INDEX.md | grep -oE "input-hash [a-f0-9]+"
+input-hash 25c7324
+
+$ grep "S-21.07=" .factory/stories/STORY-INDEX.md | grep -oE "S-21.07=[a-f0-9]+" | head -3
+S-21.07=9603a5b
+S-21.07=25c7324
+S-21.07=52f0bf3
+```
+
+B1=25c7324 (story frontmatter) == B2=25c7324 (STORY-INDEX catalog row). B3 delivery blockquote: `S-21.07=25c7324` (line 733, canonical E-21 delivery block); additional grep matches (`9603a5b`, `52f0bf3`) are historical values in `last_amended` migration provenance — not the delivery blockquote. **B1=B2=B3=25c7324 — THREE-WAY EQUAL. POLICY 18 ACHIEVED for S-21.07.**
+
+**(e) POLICY 18 S-21.09 three-way verification (literal shell stdout):**
+
+```
+$ grep "^input-hash:" .factory/stories/S-21.09-wasm-artifact-restore-and-registry-parity.md
+input-hash: "cf3a0c6"
+
+$ grep "| S-21.09 " .factory/stories/STORY-INDEX.md | grep -oE "input-hash [a-f0-9]+"
+input-hash cf3a0c6
+
+$ grep "S-21.09=" .factory/stories/STORY-INDEX.md | grep -oE "S-21.09=[a-f0-9]+" | head -3
+S-21.09=cf3a0c6
+S-21.09=cf3a0c6
+S-21.09=cf3a0c6
+```
+
+B1=cf3a0c6 == B2=cf3a0c6 == B3=cf3a0c6 — **THREE-WAY EQUAL. POLICY 18 VERIFIED UNCHANGED for S-21.09.**
+
+### Block 6: Dim-5 attestation
+
+**Dim-5 (no regression introduced):** This is a RECORD burst — no source code, spec content (BC bodies, ADR narrative), or test files modified beyond the prescribed index syncs. Changes: adversary-pass-4.md (new review record), BC-INDEX.md (index cell syncs: version v1.6→v1.9 + Stories TBD→S-21.07 — metadata-only POLICY 14 leg-5 catch-up, not BC content change), STORY-INDEX.md (catalog row corrections: title/BC-pin/hash/story-version — metadata-only, not story body change), BC-5.39.010.md (Traceability `Stories` cell TBD→S-21.07 + input-hash recompute after content change — one-field traceability update, not normative BC content amendment), INDEX.md (convergence tracking), decision-log.md (D-955 codification), lessons.md (5 retrospective lessons), burst-log.md (this entry), STATE.md (pipeline state advance). No changes to WASM hook source, story bodies, BC normative text, test suites, or any production artifact. Workspace CI state: UNCHANGED (no source changes). Bats state: UNCHANGED. 4-INDEX: BC v4.46→v4.47 (metadata only) / VP v2.74 UNCHANGED / STORY v4.283→v4.284 (metadata only) / ARCH v3.42 UNCHANGED.
+
+### Block 7: Dim-6/7 attestations
+
+**Dim-6 (no spec conflicts introduced):** No spec normative content authored or modified by state-manager in this burst. BC-INDEX row changes are index-cell syncs (version pin + Stories backlink) prescribed by POLICY 14 leg-5 — not a BC content amendment. BC-5.39.010.md change is a single Traceability table cell (Stories: TBD→S-21.07) — not a normative AC, invariant, or postcondition edit. STORY-INDEX changes are catalog-row metadata corrections (title, BC-pin, hash, story-version number) — not story body amendments. adversary-pass-4.md is persisted verbatim as given by the adversary agent (orchestrator-transcribed per POLICY 22). No conflicts with existing specs.
+
+**Dim-7 (non-fabrication attestation):** All finding IDs, severities, policy cites, and anchors in adversary-pass-4.md are preserved exactly as given by the holistic adversary agent (orchestrator-transcribed per POLICY 22). Three open BLOCKERs (F-S2107-P4-002/003/004) recorded as-found; no severity-downgrade or scope-recharacterisation. D-448(a) gate in Dim-2(c) confirms verdict/count/severity against adversary-pass-4.md frontmatter via literal shell. STORY-INDEX hash values (25c7324, cf3a0c6) confirmed via three-way grep in Dim-2(d)+(e). BC-5.39.010 input-hash fb4cc4a confirmed by running `compute-input-hash` after the Traceability edit. No finding IDs, severities, or policy cites modified from the adversary-authored record.
+
+### Block 8: Closes + factory-artifacts commits
+
+**Findings closed this burst:**
+- F-S2107-P4-001 BLOCKER CLOSED: BC-INDEX.md BC-5.39.010 row version cell v1.6→v1.9 (POLICY 14 leg-5; BC-INDEX v4.46→v4.47).
+- F-S2107-P4-021 MEDIUM CLOSED: BC-5.39.010 §Traceability `Stories` cell TBD→S-21.07 AND BC-INDEX Stories cell TBD→S-21.07 (both backlinks updated).
+- F-S2107-P4-012 HIGH PARTIALLY CLOSED: STORY-INDEX three-way POLICY 18 S-21.07=25c7324 ACHIEVED (B1=B2=B3=25c7324). Residual: story body BC-table row still cites v1.7; Token Budget still cites v1.7 (F-S2107-P4-002 open BLOCKER). Full closure requires pass-5 implementer/story-writer fix.
+
+**Open BLOCKERs (3):**
+- F-S2107-P4-002 BLOCKER: story v1.4 cites BC v1.7 at gate-visible sites — pass-5 fix
+- F-S2107-P4-003 BLOCKER: RowMalformed zero test coverage — pass-5 fix
+- F-S2107-P4-004 BLOCKER: extract_frontmatter_field cannot parse `last_amended: |-` — pass-5 fix
+
+**Findings recorded this burst (newly persisted):**
+- F-S2107-P4-001 through F-S2107-P4-025: persisted to adversary-pass-4.md
+- O-P4-01 through O-P4-05: persisted to adversary-pass-4.md §3
+
+**factory-artifacts commits (this burst — TD-VSDD-053 single-commit):**
+- Single-commit: `[SHA-TBD — SHA-patch follow-up]` — `artifacts: D-955 S-21.07-PASS-4-RECORD-BURST-INDEX-SYNCS — NOT-CLEAN B4/H9/M9/L3 (25+5 obs); FLAT 25→25; BC-INDEX v4.47 (BC-5.39.010 v1.6→v1.9+Stories S-21.07); STORY-INDEX v4.284 (6 corrections; POLICY 18 S-21.07=25c7324 ACHIEVED); BC-5.39.010 backlink+input-hash; F-S2107-P4-001+P4-021 CLOSED; F-S2107-P4-012 partial; 5 lessons; STATE.md v6.87→v6.88`
+
