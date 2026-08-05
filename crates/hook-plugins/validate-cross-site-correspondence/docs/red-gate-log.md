@@ -582,7 +582,7 @@ No crate changes needed. Crate tests stay at 108/0/2. Do NOT run bats — devops
 **Date:** 2026-08-04
 **BC:** BC-5.38.001 (Red Gate: all tests must fail before implementation)
 **Cycle:** v1.0-brownfield-backfill / S-21.07 adversary pass-3 fix burst (25 findings: B3/H7/M12/L3)
-**Governing spec:** BC-5.39.010 v1.7
+**Governing spec:** BC-5.39.010 v1.8
 
 Red Gate run command: `cargo test -p validate-cross-site-correspondence`
 Red Gate result: **99 passed; 13 failed; 17 ignored** — all 13 new tests fail; 99 pre-existing green; 0 pre-existing green → red regressions.

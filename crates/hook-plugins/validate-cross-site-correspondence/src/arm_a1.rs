@@ -221,51 +221,6 @@ pub fn extract_bc_index_version(bc_id: &str, index_content: &[u8]) -> Option<Str
     }
 }
 
-/// Extract a `vN.N` or `vN.NN` version token from a string.
-/// Returns the version number without the leading `v`.
-///
-/// F-P1B-014: leading word-boundary check (parity with arm_a2 sibling
-/// `extract_version_token_from_table_row`). Tokens like `rev1.5` or `Nov1.6`
-/// must NOT yield a version because the preceding character is alphanumeric.
-fn extract_version_token(text: &str) -> Option<String> {
-    // Hand-rolled: find occurrence of 'v' at word boundary followed by digits.dot.digits
-    let bytes = text.as_bytes();
-    let mut i = 0;
-    while i < bytes.len() {
-        if bytes[i] == b'v' && i + 1 < bytes.len() && bytes[i + 1].is_ascii_digit() {
-            // Word boundary at start: preceding char must not be alphanumeric
-            let prev_ok = i == 0 || !bytes[i - 1].is_ascii_alphanumeric();
-            if !prev_ok {
-                i += 1;
-                continue;
-            }
-            // Found 'v' at word boundary followed by digit — extract vN.N pattern
-            let start = i + 1; // skip 'v'
-            let mut end = start;
-            // Consume digits
-            while end < bytes.len() && bytes[end].is_ascii_digit() {
-                end += 1;
-            }
-            // Check for '.' followed by digits
-            if end < bytes.len() && bytes[end] == b'.' {
-                end += 1; // skip '.'
-                if end < bytes.len() && bytes[end].is_ascii_digit() {
-                    while end < bytes.len() && bytes[end].is_ascii_digit() {
-                        end += 1;
-                    }
-                    // Check boundary: next char must be non-alphanumeric (word boundary)
-                    let next_ok = end >= bytes.len() || !bytes[end].is_ascii_alphanumeric();
-                    if next_ok {
-                        // version_start..end is ASCII (digits and dot), safe byte slice
-                        return Some(text[start..end].to_string());
-                    }
-                }
-            }
-        }
-        i += 1;
-    }
-    None
-}
 
 /// Class A Arm1 check with the BC-INDEX.md read result provided as a seam.
 ///

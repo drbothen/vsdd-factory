@@ -198,13 +198,23 @@ pub fn is_cycle_artifact(_file_path: &str) -> Option<CycleArtifactKind> {
 
 /// Returns `true` if `filename` is a canonical VP basename: `^VP-[0-9]+\.md$`.
 ///
-/// Admits `VP-039.md`, `VP-100.md`, etc. Rejects `VP-INDEX.md` (inner "INDEX" is not
-/// all-digits) and `VP-9999-test.md` (inner "9999-test" contains a non-digit).
+/// Admits `VP-039.md`, `VP-100.md`, etc. Rejects `VP-INDEX.md` (explicit basename guard
+/// per PC34 REQUIRED defence-in-depth) and `VP-9999-test.md` (inner "9999-test" contains
+/// a non-digit).
 ///
 /// # BC trace
 /// BC-5.39.010 PC34: VP canonical filename pattern `^VP-[0-9]+\.md$`.
 /// F-P2-003+F-P2-008: prior `starts_with("VP-") && ends_with(".md")` admitted VP-INDEX.md.
+/// F-S2107-P3-011: explicit `filename == "VP-INDEX.md"` guard REQUIRED for defence-in-depth
+/// per PC34 bullet 2 (normative "REQUIRED") — digit predicate excludes VP-INDEX.md today
+/// but a future relaxation of the digit predicate would silently re-admit it without this guard.
 fn is_canonical_vp_filename(filename: &str) -> bool {
+    // Defence-in-depth guard: explicitly reject VP-INDEX.md regardless of digit predicate.
+    // PC34 bullet 2 (normative "REQUIRED"): "an explicit basename guard
+    // `file_name() != "VP-INDEX.md"` is REQUIRED for defence-in-depth".
+    if filename == "VP-INDEX.md" {
+        return false;
+    }
     let inner = filename
         .strip_prefix("VP-")
         .and_then(|s| s.strip_suffix(".md"))
