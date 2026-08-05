@@ -23096,5 +23096,5 @@ B1=cf3a0c6 == B2=cf3a0c6 == B3=cf3a0c6 — **THREE-WAY EQUAL. POLICY 18 VERIFIED
 - O-P4-01 through O-P4-05: persisted to adversary-pass-4.md §3
 
 **factory-artifacts commits (this burst — TD-VSDD-053 single-commit):**
-- Single-commit: `[SHA-TBD — SHA-patch follow-up]` — `artifacts: D-955 S-21.07-PASS-4-RECORD-BURST-INDEX-SYNCS — NOT-CLEAN B4/H9/M9/L3 (25+5 obs); FLAT 25→25; BC-INDEX v4.47 (BC-5.39.010 v1.6→v1.9+Stories S-21.07); STORY-INDEX v4.284 (6 corrections; POLICY 18 S-21.07=25c7324 ACHIEVED); BC-5.39.010 backlink+input-hash; F-S2107-P4-001+P4-021 CLOSED; F-S2107-P4-012 partial; 5 lessons; STATE.md v6.87→v6.88`
+- Single-commit: `f4841583` — `artifacts: D-955 S-21.07-PASS-4-RECORD-BURST-INDEX-SYNCS — NOT-CLEAN B4/H9/M9/L3 (25+5 obs); FLAT 25→25; BC-INDEX v4.47 (BC-5.39.010 v1.6→v1.9+Stories S-21.07); STORY-INDEX v4.284 (6 corrections; POLICY 18 S-21.07=25c7324 ACHIEVED); BC-5.39.010 backlink+input-hash; F-S2107-P4-001+P4-021 CLOSED; F-S2107-P4-012 partial; 5 lessons; STATE.md v6.87→v6.88`
 
