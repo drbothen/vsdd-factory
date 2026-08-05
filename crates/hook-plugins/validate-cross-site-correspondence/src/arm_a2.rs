@@ -122,7 +122,7 @@ pub fn extract_story_bc_version_citations(content: &str, bc_id: &str) -> Vec<(St
         if !line.contains('|') {
             continue;
         }
-        if !line.contains(bc_id) {
+        if !line_contains_bc_id_at_boundary(line, bc_id) {
             continue;
         }
 
@@ -135,72 +135,164 @@ pub fn extract_story_bc_version_citations(content: &str, bc_id: &str) -> Vec<(St
     citations
 }
 
-/// Extract a version token `v?N.N` or `v?N.NN` from a table row string.
+/// Returns `true` if `line` contains `bc_id` as a standalone token.
 ///
-/// Implements `\bv?([0-9]+\.[0-9]+)\b` semantics (PC13 amended): the `v` prefix
-/// is optional. Returns the version number without any leading `v`.
-///
-/// Per PC13 (LAST/rightmost pipe-field token): scans the entire line and returns
-/// the LAST matching token, not the first. This prevents spurious matches from
-/// BC ID fragments like "BC-5.39.010" (which contains "5.39") from masking the
-/// actual version column that appears later in the row.
+/// `line.contains(bc_id)` has a prefix-collision defect (F-S2107-P3-004):
+/// "BC-5.39.0101" contains "BC-5.39.010" as a substring. The word-boundary
+/// check requires that the character immediately AFTER bc_id in the line is
+/// NOT alphanumeric (digit or ASCII letter).
 ///
 /// Hand-rolled — no regex crate (ADR-035 §Decision 5 fuel-budget constraint).
-fn extract_version_token_from_table_row(line: &str) -> Option<String> {
-    let bytes = line.as_bytes();
+///
+/// # BC trace
+/// BC-5.39.010 v1.8 PC13: word-boundary bc_id token test.
+/// F-S2107-P3-004: `line.contains(bc_id)` prefix-collision fix.
+fn line_contains_bc_id_at_boundary(line: &str, bc_id: &str) -> bool {
+    let mut search_start = 0;
+    while search_start < line.len() {
+        let Some(rel) = line[search_start..].find(bc_id) else {
+            return false;
+        };
+        let abs = search_start + rel;
+        let end = abs + bc_id.len();
+        // Word boundary at end: char after bc_id must not be alphanumeric.
+        let boundary_ok = line[end..]
+            .chars()
+            .next()
+            .map(|c| !c.is_ascii_alphanumeric())
+            .unwrap_or(true); // end-of-string is always a boundary
+        if boundary_ok {
+            return true;
+        }
+        // Not a boundary: advance and try again
+        search_start = abs + 1;
+    }
+    false
+}
+
+/// Check if `s` is a pure-version string `^v?[0-9]+\.[0-9]+$`.
+///
+/// Returns the version string WITHOUT a leading `v`.
+/// Admits "1.7", "v1.7", "1.3", "v1.3", "1.10", "v1.10".
+/// Rejects "BC-5.39.010", "S-4.07", "~4,000", "DEFERRED v1.6 text".
+fn parse_pure_version_field(s: &str) -> Option<String> {
+    let inner = s.strip_prefix('v').unwrap_or(s);
+    let bytes = inner.as_bytes();
+    if bytes.is_empty() || !bytes[0].is_ascii_digit() {
+        return None;
+    }
+    let mut i = 0;
+    while i < bytes.len() && bytes[i].is_ascii_digit() {
+        i += 1;
+    }
+    if i >= bytes.len() || bytes[i] != b'.' {
+        return None;
+    }
+    i += 1;
+    if i >= bytes.len() || !bytes[i].is_ascii_digit() {
+        return None;
+    }
+    while i < bytes.len() && bytes[i].is_ascii_digit() {
+        i += 1;
+    }
+    // Must consume the entire string (pure-version field, not a substring)
+    if i == inner.len() {
+        Some(inner.to_string())
+    } else {
+        None
+    }
+}
+
+/// Find the rightmost `\bv([0-9]+\.[0-9]+)\b` token in a single field.
+///
+/// The `v` prefix is mandatory (Phase 2 of PC13). Returns the version without `v`.
+/// Scans left-to-right and keeps updating `last_match` — callers receive the
+/// rightmost occurrence.
+fn extract_mandatory_v_inline(s: &str) -> Option<String> {
+    let bytes = s.as_bytes();
     let mut last_match: Option<String> = None;
     let mut i = 0;
     while i < bytes.len() {
-        // Word boundary check: preceding char must not be alphanumeric (F-S2107-P1B-002)
-        let prev_ok = i == 0 || !bytes[i - 1].is_ascii_alphanumeric();
-        if !prev_ok {
-            i += 1;
-            continue;
-        }
-
-        // Determine start of digit run (skip optional 'v' prefix per PC13)
-        let digit_start =
-            if bytes[i] == b'v' && i + 1 < bytes.len() && bytes[i + 1].is_ascii_digit() {
-                i + 1 // optional 'v' prefix; digit run starts at i+1
-            } else if bytes[i].is_ascii_digit() {
-                i // bare digit: digit run starts at i
-            } else {
-                i += 1;
-                continue;
-            };
-
-        // Scan the integer part of the version
-        let mut end = digit_start;
-        while end < bytes.len() && bytes[end].is_ascii_digit() {
-            end += 1;
-        }
-
-        // Require exactly one dot followed by at least one digit (N.N shape)
-        if end < bytes.len() && bytes[end] == b'.' {
-            let post_dot = end + 1;
-            if post_dot < bytes.len() && bytes[post_dot].is_ascii_digit() {
-                end = post_dot;
-                while end < bytes.len() && bytes[end].is_ascii_digit() {
-                    end += 1;
+        if bytes[i] == b'v' {
+            let prev_ok = i == 0 || !bytes[i - 1].is_ascii_alphanumeric();
+            if prev_ok && i + 1 < bytes.len() && bytes[i + 1].is_ascii_digit() {
+                let digit_start = i + 1;
+                let mut j = digit_start;
+                while j < bytes.len() && bytes[j].is_ascii_digit() {
+                    j += 1;
                 }
-                // Word boundary at end: next char must not be alphanumeric
-                let next_ok = end >= bytes.len() || !bytes[end].is_ascii_alphanumeric();
-                if next_ok {
-                    // All bytes in digit_start..end are ASCII digits or '.': safe slice
-                    last_match = Some(line[digit_start..end].to_string());
-                    i = end;
-                    continue;
+                if j < bytes.len() && bytes[j] == b'.' {
+                    let post_dot = j + 1;
+                    if post_dot < bytes.len() && bytes[post_dot].is_ascii_digit() {
+                        let mut k = post_dot;
+                        while k < bytes.len() && bytes[k].is_ascii_digit() {
+                            k += 1;
+                        }
+                        let next_ok = k >= bytes.len() || !bytes[k].is_ascii_alphanumeric();
+                        if next_ok {
+                            last_match = Some(s[digit_start..k].to_string());
+                            i = k;
+                            continue;
+                        }
+                    }
                 }
-                // Not a word boundary: advance past the matched digit run's start
-                i = digit_start + 1;
-                continue;
             }
         }
-
-        // No valid N.N token starting here; advance one byte
-        i = digit_start + 1;
+        i += 1;
     }
     last_match
+}
+
+/// Extract a version token from a table row using the v1.8 two-phase PC13 algorithm.
+///
+/// **Phase 1 (pure-version field):** split row by `|`; scan fields right-to-left;
+/// return the version from the first (rightmost) field whose trimmed content
+/// matches `^v?[0-9]+\.[0-9]+$`. The `v` prefix is optional in Phase 1.
+///
+/// **Phase 2 (mandatory-v fallback):** if Phase 1 finds nothing, scan fields
+/// right-to-left for the rightmost `\bv([0-9]+\.[0-9]+)\b` inline token.
+/// The `v` prefix is MANDATORY in Phase 2.
+///
+/// Three collision classes fixed versus the prior optional-v left-to-right scanner:
+///   - Class 1: story IDs like "S-4.07" → no pure-version field, no mandatory-v
+///     token → no citation (29 rows across 6 stories).
+///   - Class 2: "DEFERRED v1.6" in ACs column when Version column is "1.7" →
+///     Phase 1 finds "1.7" first (rightmost pure-version field); "v1.6" never reached.
+///   - Class 3: "BC-1.13.001" fragments → Phase 1 no pure-version; Phase 2 no
+///     mandatory-v → no citation.
+///
+/// Hand-rolled — no regex crate (ADR-035 §Decision 5 fuel-budget constraint).
+///
+/// # BC trace
+/// BC-5.39.010 v1.8 PC13: two-phase version extraction algorithm.
+/// F-S2107-P3-022: reverse-field algorithm (replaces left-to-right last-token).
+/// F-S2107-P1B-002: optional-v Phase 1 (detects bare "1.3" version cells).
+fn extract_version_token_from_table_row(line: &str) -> Option<String> {
+    let fields: Vec<&str> = line.split('|').collect();
+
+    // Phase 1: pure-version field — rightmost field first.
+    for field in fields.iter().rev() {
+        let trimmed = field.trim();
+        if trimmed.is_empty() {
+            continue;
+        }
+        if let Some(v) = parse_pure_version_field(trimmed) {
+            return Some(v);
+        }
+    }
+
+    // Phase 2: mandatory-v inline token — rightmost field first.
+    for field in fields.iter().rev() {
+        let trimmed = field.trim();
+        if trimmed.is_empty() {
+            continue;
+        }
+        if let Some(v) = extract_mandatory_v_inline(trimmed) {
+            return Some(v);
+        }
+    }
+
+    None
 }
 
 /// Class A Arm2 check for a single BC, with the BC file read result as a seam.
