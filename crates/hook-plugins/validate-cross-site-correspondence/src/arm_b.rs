@@ -310,7 +310,7 @@ const VOLATILE_PATTERNS_CYCLES_NAMED: [&str; 4] =
 /// Pure: no I/O.
 ///
 /// # BC trace
-/// BC-5.39.010 v1.8 PC40: volatile-input precondition.
+/// BC-5.39.010 v1.9 PC40: volatile-input precondition.
 /// ADR-037 §Decision 2: canonical volatile path list.
 pub fn is_volatile_path(path: &str) -> bool {
     use std::path::Path;

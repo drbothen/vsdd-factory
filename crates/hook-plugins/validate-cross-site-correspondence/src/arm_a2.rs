@@ -145,7 +145,7 @@ pub fn extract_story_bc_version_citations(content: &str, bc_id: &str) -> Vec<(St
 /// Hand-rolled — no regex crate (ADR-035 §Decision 5 fuel-budget constraint).
 ///
 /// # BC trace
-/// BC-5.39.010 v1.8 PC13: word-boundary bc_id token test.
+/// BC-5.39.010 v1.9 PC13: word-boundary bc_id token test.
 /// F-S2107-P3-004: `line.contains(bc_id)` prefix-collision fix.
 fn line_contains_bc_id_at_boundary(line: &str, bc_id: &str) -> bool {
     let mut search_start = 0;
@@ -264,7 +264,7 @@ fn extract_mandatory_v_inline(s: &str) -> Option<String> {
 /// Hand-rolled — no regex crate (ADR-035 §Decision 5 fuel-budget constraint).
 ///
 /// # BC trace
-/// BC-5.39.010 v1.8 PC13: two-phase version extraction algorithm.
+/// BC-5.39.010 v1.9 PC13: two-phase version extraction algorithm.
 /// F-S2107-P3-022: reverse-field algorithm (replaces left-to-right last-token).
 /// F-S2107-P1B-002: optional-v Phase 1 (detects bare "1.3" version cells).
 fn extract_version_token_from_table_row(line: &str) -> Option<String> {
@@ -929,7 +929,7 @@ mod tests {
     }
 
     // -----------------------------------------------------------------------
-    // BC-5.39.010 v1.8 PC13: two-phase algorithm — three collision classes.
+    // BC-5.39.010 v1.9 PC13: two-phase algorithm — three collision classes.
     //
     // The v1.8 two-phase PC13 algorithm:
     //   Phase 1: scan fields right-to-left for a pure-version field
@@ -950,7 +950,7 @@ mod tests {
     // wrong output. After two-phase fix, all three pass.
     // -----------------------------------------------------------------------
 
-    /// BC-5.39.010 v1.8 PC13 RED GATE — Collision Class 1 (story-ID Trace column):
+    /// BC-5.39.010 v1.9 PC13 RED GATE — Collision Class 1 (story-ID Trace column):
     /// story IDs in the Scope Reason cell must NOT be extracted as version citations.
     ///
     /// Corpus shape (S-4.07, BC-3.07.002 BC table row — 3-column reference table):
@@ -983,7 +983,7 @@ mod tests {
         assert!(
             citations.is_empty(),
             "Story-ID tokens in the Scope Reason column (S-4.10, S-4.07) must NOT be \
-            extracted as version citations. BC-5.39.010 v1.8 PC13 Class 1: old optional-v \
+            extracted as version citations. BC-5.39.010 v1.9 PC13 Class 1: old optional-v \
             last-token finds '4.07' from 'S-4.07' in the Trace column. Two-phase fix: \
             Phase 1 no pure-version field; Phase 2 no mandatory-v token → no citation. \
             29 rows across 6 stories (S-0.03, S-1.03, S-2.06, S-3.01, S-4.07, S-8.09) \
@@ -992,7 +992,7 @@ mod tests {
         );
     }
 
-    /// BC-5.39.010 v1.8 PC13 RED GATE — Collision Class 2 (ACs-column DEFERRED annotation):
+    /// BC-5.39.010 v1.9 PC13 RED GATE — Collision Class 2 (ACs-column DEFERRED annotation):
     /// version from Version cell must be returned, NOT the later "v1.6" from ACs cell.
     ///
     /// Corpus shape (S-21.07, BC-5.39.010 BC table row — 4-column row):
@@ -1025,20 +1025,20 @@ mod tests {
             citations.len(),
             1,
             "Row with Version field '1.7' and ACs 'DEFERRED v1.6' must produce exactly 1 \
-            citation. BC-5.39.010 v1.8 PC13 Class 2. Citations: {:?}",
+            citation. BC-5.39.010 v1.9 PC13 Class 2. Citations: {:?}",
             citations
         );
         assert_eq!(
             citations[0].1, "1.7",
             "Citation must be '1.7' (Version field), NOT '1.6' (ACs DEFERRED annotation). \
-            BC-5.39.010 v1.8 PC13 Class 2: Phase 1 pure-version field (right-to-left) \
+            BC-5.39.010 v1.9 PC13 Class 2: Phase 1 pure-version field (right-to-left) \
             returns the Version column '1.7' before reaching the 'DEFERRED v1.6' in ACs. \
             Old optional-v last-token incorrectly returns '1.6'. Citation: {:?}",
             citations[0]
         );
     }
 
-    /// BC-5.39.010 v1.8 PC13 RED GATE — Collision Class 3 (Token Budget bare BC-ID):
+    /// BC-5.39.010 v1.9 PC13 RED GATE — Collision Class 3 (Token Budget bare BC-ID):
     /// BC-section-number fragment in "BC-1.13.001" must NOT be extracted as a version.
     ///
     /// Corpus shape (S-12.03, Token Budget section row — 2-column row):
@@ -1072,7 +1072,7 @@ mod tests {
         assert!(
             citations.is_empty(),
             "BC-section-number '1.13' from 'BC-1.13.001' in a Token Budget row must NOT \
-            be extracted as a version citation. BC-5.39.010 v1.8 PC13 Class 3: old \
+            be extracted as a version citation. BC-5.39.010 v1.9 PC13 Class 3: old \
             optional-v last-token finds '1.13' (bare digit after '-' word boundary). \
             Two-phase fix: Phase 1 no pure-version field (BC-1.13.001 is not ^v?N.N$); \
             Phase 2 no mandatory-v token → no citation. \
