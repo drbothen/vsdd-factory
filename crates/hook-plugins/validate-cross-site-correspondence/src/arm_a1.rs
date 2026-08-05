@@ -486,7 +486,7 @@ mod tests {
     /// AC-001 MUTANT: stale INDEX row blocks (BC-5.39.010 postcondition 2).
     #[test]
     fn test_BC_5_39_010_arm_a1_stale_index_blocks() {
-        let index_content = b"| BC-5.39.010 | some title | v1.5 | 2026-07-01 | active |\n";
+        let index_content = b"| BC-5.39.010 | some title | draft | CAP-032 | S-21.07 | v1.5 |\n";
         let (violations, _) = run_arm_a1_with_index_result(
             "BC-5.39.010",
             "1.6",
@@ -519,7 +519,7 @@ mod tests {
     /// AC-001 CONTROL: current INDEX row passes (BC-5.39.010 postcondition 1).
     #[test]
     fn test_BC_5_39_010_arm_a1_current_index_passes() {
-        let index_content = b"| BC-5.39.010 | some title | v1.6 | 2026-07-01 | active |\n";
+        let index_content = b"| BC-5.39.010 | some title | draft | CAP-032 | S-21.07 | v1.6 |\n";
         let (violations, _) = run_arm_a1_with_index_result(
             "BC-5.39.010",
             "1.6",
@@ -662,11 +662,12 @@ mod tests {
     /// → matched first. extract_version_token on `    change: "v4.43: BC-5.39.010 v1.5`
     /// returns "4.43". "4.43" ≠ "1.6" → violation → violations NOT empty.
     /// assert!(violations.is_empty()) FAILS → RED gate.
-    /// After fix (skip lines before body): body row `| v1.6 |` → "1.6" → empty → PASSES.
+    /// After fix (skip lines before body): canonical 6-field body row with `v1.6` in
+    /// the version column → Version("1.6") → "1.6" matches bc_version "1.6" → empty → PASSES.
     #[test]
     fn test_BC_5_39_010_arm_a1_frontmatter_changelog_pipe_not_matched_as_table_row() {
         // YAML frontmatter has changelog line with both `|` and BC-5.39.010 → false match
-        // body table row correctly has v1.6 → should pass
+        // canonical 6-field body row with v1.6 in the version column → should pass
         let index = concat!(
             "---\n",
             "document_type: bc-index\n",
@@ -674,9 +675,9 @@ mod tests {
             "  - date: 2026-07-31\n",
             "    change: \"v4.43: BC-5.39.010 v1.5|v1.6.\"\n",
             "---\n\n",
-            "| BC ID | Title | Status | Version |\n",
-            "|-------|-------|--------|---------|\n",
-            "| [BC-5.39.010](ss-05/BC-5.39.010.md) | title | draft | v1.6 |\n",
+            "| BC ID | Title | Status | Capabilities | Stories | Version History |\n",
+            "|-------|-------|--------|-------------|---------|------------------|\n",
+            "| [BC-5.39.010](ss-05/BC-5.39.010.md) | title | draft | CAP-032 | S-21.07 | v1.6 |\n",
         );
         let (violations, _) = run_arm_a1_with_index_result(
             "BC-5.39.010",

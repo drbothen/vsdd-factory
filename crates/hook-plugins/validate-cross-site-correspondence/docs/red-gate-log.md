@@ -779,3 +779,172 @@ The two existing corpus tests cover both BC-INDEX row populations:
 - `test_BC_5_39_010_corpus_arm_a1_bc_1_17_001_own_row_version_not_cross_ref` (arm_a1.rs): BC-1.17.001 — from the 40-row `Version(v)` population.
 
 Both populations are covered. No additional corpus sampling required.
+
+---
+
+## Amendment 2 — BC-5.39.010 v1.9 Fixture Sweep & stale_index_blocks Correction (POLICY 15)
+
+**Date:** 2026-08-04
+**BC:** BC-5.39.010 v1.9 (SHA `3a64511e` — updated from v1.8 while pass-5 burst was in flight)
+**Trigger:** Implementer commit `b3515d8d` completed v1.9 implementation, leaving 117 passed /
+1 failed / 17 ignored. Single failure: `test_BC_5_39_010_arm_a1_stale_index_blocks`. Coordinator
+amendment required: fix failing fixture, sweep all fixtures against v1.9 predicates, refresh v1.8
+governing-spec cites to v1.9.
+
+This is the 5th fixture-shape defect of this burst. Root cause class: all four corrected fixtures
+encoded an imagined or outdated BC-INDEX row shape that v1.9 PC5 (column-count-anchored, four-state)
+classifies differently than the earlier v1.7/v1.8 token-search scanner.
+
+Command: `cargo test -p validate-cross-site-correspondence`
+Result before correction: **117 passed; 1 failed; 17 ignored** (implementer commit `b3515d8d`)
+Result after corrections: **118 passed; 0 failed; 17 ignored**
+Workspace: `cargo fmt --check --all` clean; `cargo clippy --workspace --all-targets -- -D warnings` clean.
+
+### Fixture Correction 1 — `test_BC_5_39_010_arm_a1_stale_index_blocks` (PRIMARY — test was FAILING)
+
+**File:** `src/arm_a1.rs`
+
+**Before:**
+```
+let index_content = b"| BC-5.39.010 | some title | v1.5 | 2026-07-01 | active |\n";
+// 5-field row: "v1.5" in field 3 — imagined 3rd-column version schema
+```
+
+**After:**
+```
+let index_content = b"| BC-5.39.010 | some title | draft | CAP-032 | S-21.07 | v1.5 |\n";
+// 6-field canonical row: "v1.5" in field 6 (Version History column)
+```
+
+**Root cause:** Fixture imagined a `| BC-ID | Title | version | date | status |` schema that has
+never existed in the real BC-INDEX. Under v1.9 PC5: 5 non-empty fields → `RowPresentNoVersion` →
+arm A1 silent → violations empty → `assert!(!violations.is_empty())` FAILED.
+
+**Block path verification (Version(v) mismatch, NOT RowAbsent):**
+- `first_cell_matches_bc_id("BC-5.39.010", "BC-5.39.010")` → TRUE (exact match)
+- 6 non-empty fields → 6th field `"v1.5"` → `extract_last_v_token("v1.5")` = `Some("1.5")` → `Version("1.5")`
+- Compare `"1.5"` ≠ `"1.6"` (bc_version) → MISMATCH via `Version(v)` path, NOT `RowAbsent`
+- Violation message contains `"[Class A Arm1]"`, `"v1.5"`, `"1.6"`, `"POLICY 14 leg 5"` → all four assertions pass
+
+### Fixture Correction 2 — `test_BC_5_39_010_arm_a1_current_index_passes` (LATENT FALSE-GREEN)
+
+**File:** `src/arm_a1.rs`
+
+**Before:**
+```
+let index_content = b"| BC-5.39.010 | some title | v1.6 | 2026-07-01 | active |\n";
+// 5-field → RowPresentNoVersion → arm A1 silent → violations empty → PASSES (wrong path)
+```
+
+**After:**
+```
+let index_content = b"| BC-5.39.010 | some title | draft | CAP-032 | S-21.07 | v1.6 |\n";
+// 6-field canonical → Version("1.6") → "1.6" == "1.6" → match → violations empty (right path)
+```
+
+**Root cause:** Same imagined schema as Correction 1. Test passed via `RowPresentNoVersion` silent
+path rather than the `Version("1.6") == "1.6"` exact-match happy path. The test's behavioral
+assertion was correct (no violation when versions match); only the state-path was wrong.
+
+### Fixture Correction 3 — `test_BC_5_39_010_arm_a1_frontmatter_changelog_pipe_not_matched_as_table_row` (LATENT PATH DEFECT)
+
+**File:** `src/arm_a1.rs`
+
+**Before:**
+```
+"| BC ID | Title | Status | Version |\n",
+"|-------|-------|--------|---------|\n",
+"| [BC-5.39.010](ss-05/BC-5.39.010.md) | title | draft | v1.6 |\n",
+// 4-field body row → RowMalformed(4) → advisory + Continue → violations empty (wrong path)
+```
+
+**After:**
+```
+"| BC ID | Title | Status | Capabilities | Stories | Version History |\n",
+"|-------|-------|--------|-------------|---------|------------------|\n",
+"| [BC-5.39.010](ss-05/BC-5.39.010.md) | title | draft | CAP-032 | S-21.07 | v1.6 |\n",
+// 6-field canonical → Version("1.6") → "1.6" == "1.6" → match → violations empty (right path)
+```
+
+**Root cause:** Body row had 4 non-empty fields (link + title + status + version, with version
+in field 4 rather than field 6). Under v1.9 PC5: 4 fields → `RowMalformed(4)` → advisory-only
+Continue. Test passed (correct outcome) but via `RowMalformed` path instead of `Version("1.6")`
+match. The test's purpose (frontmatter line not matched as table row) is served correctly by either
+path; canonical form required to exercise `Version` match path.
+
+### Fixture Correction 4 — `combined-a1-e1/BC-INDEX.md` (LATENT BATS FAILURE)
+
+**File:** `plugins/vsdd-factory/tests/fixtures/validate-cross-site-correspondence/combined-a1-e1/factory/specs/behavioral-contracts/BC-INDEX.md`
+
+**Before:**
+```
+| BC ID | Title | Version | Date | Status |
+|-------|-------|---------|------|--------|
+| [BC-5.39.010](ss-05/BC-5.39.010.md) | test fixture | v1.5 | 2026-01-01 | active |
+// 5-field → RowPresentNoVersion → arm A1 SILENT
+// Bats AC-018 _assert_exit 2 "[Class A Arm1]" would FAIL under v1.9 WASM
+```
+
+**After:**
+```
+| BC ID | Title | Status | Capabilities | Stories | Version History |
+|-------|-------|--------|-------------|---------|-----------------|
+| [BC-5.39.010](ss-05/BC-5.39.010.md) | test fixture | draft | CAP-032 | S-21.07 | v1.5 |
+// 6-field canonical → Version("1.5") → compare "1.5" ≠ "1.33" (BC frontmatter version) → [Class A Arm1] fires
+```
+
+**Root cause:** Bats fixture used 5-field schema. Under old v1.7/v1.8 token-search scanner, any
+row containing the BC ID would be found and version extracted from token search. Under v1.9 PC5
+column-count-anchored: 5 fields → `RowPresentNoVersion` → A1 silent → bats AC-018 assertion
+`_assert_exit 2 "[Class A Arm1]"` absent → bats test FAILS once v1.9 WASM is compiled.
+
+### v1.8 → v1.9 Governing-Spec Cite Refresh (arm_a2.rs)
+
+All occurrences where "v1.8" described the two-phase PC13 algorithm as the current governing spec
+were updated to "v1.9" (SHA `3a64511e`). Historical preservation notes in arm_a1.rs referencing
+"the defect the v1.8 contract was designed to fix" and "GREEN regression guard for the v1.8 fix"
+were intentionally preserved as historical context.
+
+| Location | Before | After |
+|----------|--------|-------|
+| `arm_a2.rs` function docstring (L246) | `v1.8 two-phase PC13 algorithm` | `v1.9 two-phase PC13 algorithm` |
+| `arm_a2.rs` test section comment (L~934) | `The v1.8 two-phase PC13 algorithm:` | `The v1.9 two-phase PC13 algorithm:` |
+| `arm_a2.rs` class1 docstring | `v1.8 two-phase PC13:` | `v1.9 two-phase PC13:` |
+| `arm_a2.rs` class1 test comment | `v1.8: no citation.` | `v1.9: no citation.` |
+| `arm_a2.rs` class2 docstring | `v1.8 two-phase PC13:` | `v1.9 two-phase PC13:` |
+| `arm_a2.rs` class2 test comment | `v1.8 Phase 1:` | `v1.9 Phase 1:` |
+| `arm_a2.rs` class3 docstring | `v1.8 two-phase PC13:` | `v1.9 two-phase PC13:` |
+| `arm_a2.rs` class3 test comment | `v1.8 two-phase:` | `v1.9 two-phase:` |
+
+### Full v1.9 Fixture Sweep Results
+
+#### Bats BC-INDEX.md fixtures
+
+| Fixture | Shape | Under v1.9 PC5 | Status |
+|---------|-------|----------------|--------|
+| `a1-stale-index/BC-INDEX.md` | 6-field, v1.5 in 6th field | `Version("1.5")` → mismatch → block | CONFORMANT ✓ |
+| `a1-current-index/BC-INDEX.md` | 6-field, v1.6 in 6th field | `Version("1.6")` → match → pass | CONFORMANT ✓ |
+| `a1-escaped-pipe-current/BC-INDEX.md` | 6-field with `\|` chain | `Version("1.12")` → match → pass | CONFORMANT ✓ |
+| `a1-v1-0-not-in-index/BC-INDEX.md` | 5-field (BC-5.39.010 row; tested bc_id is BC-9.99.001) | `RowAbsent` for BC-9.99.001 (first-cell mismatch) | CONFORMANT ✓ |
+| `a1-v1-1-not-in-index/BC-INDEX.md` | 5-field (BC-5.39.010 row; tested bc_id is BC-9.99.001) | `RowAbsent` for BC-9.99.001 (first-cell mismatch) | CONFORMANT ✓ |
+| `combined-a1-e1/BC-INDEX.md` | **FIXED**: 6-field, v1.5 in 6th field | `Version("1.5")` → mismatch vs BC "1.33" → [Class A Arm1] | CORRECTED ✓ |
+| `e1-*/e2-* BC-INDEX.md` files | 5-field shape defect; A1 silent | E1/E2 arms fire independently of A1 | FUNCTIONALLY CORRECT ✓ |
+
+#### Rust unit test inline fixtures
+
+| Test | Before | After | State path |
+|------|--------|-------|------------|
+| `stale_index_blocks` | 5-field (FAILING) | 6-field canonical | `Version("1.5")` mismatch |
+| `current_index_passes` | 5-field (false-green) | 6-field canonical | `Version("1.6")` match |
+| `frontmatter_changelog_pipe` body row | 4-field (`RowMalformed` path) | 6-field canonical | `Version("1.6")` match |
+| Tests with bc_id ≠ fixture first cell (advisory, v1.1 block) | `RowAbsent` via first-cell mismatch | Unchanged | Not affected |
+
+#### Story fixtures (a2-* bats, arm_a2.rs inline)
+
+All story fixtures use v-prefixed tokens (`v1.17`, `v1.18`, `v1.08`) in Token Budget and
+Behavioral Contracts sections → mandatory-v form → conformant with v1.9 PC13 Phase 2 ✓.
+No changes required.
+
+#### VP fixtures (e1-*)
+
+`VP-9999.md` basename matches `^VP-[0-9]+\.md$` → conformant ✓ (corrected in prior burst).
