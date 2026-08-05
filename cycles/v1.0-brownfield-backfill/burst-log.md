@@ -23269,5 +23269,5 @@ ADR-037 Decision 5 roster corrected 19→78. ARCH-INDEX v3.43. ADR-037 v1.1.
 - O-P5-01 through O-P5-05: persisted to adversary-pass-5.md §3
 
 **factory-artifacts commits (this burst — TD-VSDD-053 single-commit):**
-- Single-commit: TBD (SHA recorded after push) — `artifacts: D-956 S-21.07-PASS-5-RECORD-BURST-INDEX-SYNCS — NOT-CLEAN B3/H8/M10/L3 (24+5 obs); FLAT-MINUS-ONE 25→24; BC-INDEX v4.48 (BC-5.39.010 v1.9→v1.10); ARCH-INDEX v3.43 (ADR-037 Decision 5 19→78; v1.1); STORY-INDEX v4.285 (6 corrections; POLICY 18 S-21.07=dd5c9d2 ACHIEVED); F-S2107-P6-001 data-legs CLOSED; 6 lessons; STATE.md v6.88→v6.89`
+- Single-commit: `e2789993` — `factory(D-956): S-21.07-PASS-5-RECORD-BURST-INDEX-SYNCS — NOT-CLEAN B3/H8/M10/L3 (24+5 obs); FLAT-MINUS-ONE 25→24; BC-INDEX v4.48 (BC-5.39.010 v1.9→v1.10); ARCH-INDEX v3.43 (ADR-037 Decision 5 19→78; v1.1); STORY-INDEX v4.285 (6 corrections; POLICY 18 S-21.07=dd5c9d2 ACHIEVED); F-S2107-P6-001 data-legs CLOSED; 6 lessons; STATE.md v6.88→v6.89`
 
