@@ -61,68 +61,164 @@ pub fn derive_bc_path(bc_id: &str) -> String {
     format!(".factory/specs/behavioral-contracts/ss-{section_padded}/{bc_id}.md")
 }
 
+/// Three-state result for BC-INDEX.md row classification.
+///
+/// BC-5.39.010 v1.8 PC5 (column-count-anchored):
+/// - `RowAbsent`: no row in BC-INDEX.md whose first cell contains `bc_id`.
+/// - `RowPresentNoVersion`: row found; after escape-aware split, exactly 5 non-empty
+///   fields — the canonical 5-column shape `| BC ID | Title | Status | Capability | Stories |`.
+///   The version-chain cell (6th column) is absent on ~1,943 of 1,983 rows. Silent-continue.
+/// - `Version(v)`: row found; ≥6 non-empty fields after escape-aware split;
+///   version extracted from the 6th field via rightmost `\bv([0-9]+\.[0-9]+)\b`.
+///
+/// Note: rows with < 5 non-empty fields after escape-aware split are unclassified
+/// (pending product-owner ruling per F-S2107-P3-001 Conflict 2); treated as `RowAbsent`
+/// provisionally.
+///
+/// # BC trace
+/// BC-5.39.010 v1.8 PC5: column-count-anchored three-state classification.
+/// F-S2107-P3-001 BLOCKER: two-state `Option<String>` conflated RowAbsent with
+/// RowPresentNoVersion — every 5-column row triggered a spurious block for v>1.0 BCs.
+#[derive(Debug, PartialEq)]
+pub enum BcIndexVersionState {
+    /// No row in BC-INDEX.md whose first cell contains the BC ID.
+    RowAbsent,
+    /// Row found; exactly 5 non-empty fields (canonical shape) — no version-chain cell.
+    RowPresentNoVersion,
+    /// Row found; ≥6 non-empty fields — version extracted from 6th field.
+    Version(String),
+}
+
+/// Extract the BC-INDEX.md row state for `bc_id` using the v1.8 three-state algorithm.
+///
+/// **Algorithm (BC-5.39.010 v1.8 PC5 — column-count-anchored escape-aware):**
+/// 1. Scan body table rows (`starts_with('|')`) for a row whose first cell contains bc_id.
+/// 2. If no such row: return `RowAbsent`.
+/// 3. Escape-aware split: replace literal `\|` (backslash+pipe) with a null-byte
+///    placeholder, split on `|`, count non-empty (trimmed) segments.
+/// 4. Exactly 5 non-empty fields → `RowPresentNoVersion` (no token search performed).
+/// 5. ≥6 non-empty fields → extract rightmost `\bv([0-9]+\.[0-9]+)\b` from 6th field
+///    → `Version(v)`.
+/// 6. <5 non-empty fields → `RowAbsent` (provisional, pending product-owner ruling).
+///
+/// Pure: operates on already-read bytes.
+///
+/// # BC trace
+/// BC-5.39.010 v1.8 PC5: three-state escape-aware algorithm.
+/// F-S2107-P2-002: first-cell anchor (cross-reference rows must not match).
+/// F-S2107-P1B-006: last-wins token extraction for version-chain cells.
+/// F-S2107-P1B-007: starts_with('|') to skip YAML frontmatter lines.
+pub(crate) fn extract_bc_index_version_state(
+    bc_id: &str,
+    index_content: &[u8],
+) -> BcIndexVersionState {
+    let content = std::str::from_utf8(index_content).unwrap_or("");
+
+    for line in content.lines() {
+        // F-S2107-P1B-007: skip non-table-row lines (frontmatter changelog, prose, etc.)
+        if !line.starts_with('|') {
+            continue;
+        }
+        // F-P2-002: anchor on the first pipe-cell only.
+        // splitn(3, '|') → ["", " first_cell ", " rest ..."]; segments[1] is first cell.
+        // Handles both plain "BC-1.17.001" and markdown-linked "[BC-1.17.001](path)".
+        let mut seg = line.splitn(3, '|');
+        let _ = seg.next(); // leading empty
+        let first_cell = seg.next().map(|s| s.trim()).unwrap_or("");
+        if !first_cell.contains(bc_id) {
+            continue;
+        }
+
+        // Row found. Escape-aware split: replace literal `\|` with null placeholder
+        // to prevent phantom field boundaries within version-chain or Stories cells.
+        let escaped = line.replace("\\|", "\x00");
+        let non_empty_fields: Vec<&str> = escaped
+            .split('|')
+            .map(str::trim)
+            .filter(|s| !s.is_empty())
+            .collect();
+
+        return match non_empty_fields.len() {
+            5 => BcIndexVersionState::RowPresentNoVersion,
+            n if n >= 6 => {
+                // 6th non-empty field (index 5) is the version-chain cell.
+                let sixth = non_empty_fields[5];
+                match extract_last_v_token(sixth) {
+                    Some(v) => BcIndexVersionState::Version(v),
+                    None => BcIndexVersionState::RowPresentNoVersion,
+                }
+            }
+            // <5 fields: malformed row — RowAbsent pending product-owner ruling (F-S2107-P3-001)
+            _ => BcIndexVersionState::RowAbsent,
+        };
+    }
+
+    BcIndexVersionState::RowAbsent
+}
+
+/// Find the rightmost `\bv([0-9]+\.[0-9]+)\b` token in `text`.
+///
+/// Scans left-to-right and keeps overwriting `last_match` so the final value
+/// is the rightmost (last) v-prefixed version token. Used for 6th-field version
+/// extraction where escaped-pipe chains like `v1.3 \x00 v1.4 \x00 v1.6` must
+/// yield the current (last) version.
+fn extract_last_v_token(text: &str) -> Option<String> {
+    let bytes = text.as_bytes();
+    let mut last_match: Option<String> = None;
+    let mut i = 0;
+    while i < bytes.len() {
+        if bytes[i] == b'v' {
+            let prev_ok = i == 0 || !bytes[i - 1].is_ascii_alphanumeric();
+            if prev_ok && i + 1 < bytes.len() && bytes[i + 1].is_ascii_digit() {
+                let start = i + 1;
+                let mut end = start;
+                while end < bytes.len() && bytes[end].is_ascii_digit() {
+                    end += 1;
+                }
+                if end < bytes.len() && bytes[end] == b'.' {
+                    end += 1;
+                    if end < bytes.len() && bytes[end].is_ascii_digit() {
+                        while end < bytes.len() && bytes[end].is_ascii_digit() {
+                            end += 1;
+                        }
+                        let next_ok = end >= bytes.len() || !bytes[end].is_ascii_alphanumeric();
+                        if next_ok {
+                            last_match = Some(text[start..end].to_string());
+                            i = end;
+                            continue;
+                        }
+                    }
+                }
+            }
+        }
+        i += 1;
+    }
+    last_match
+}
+
 /// Extract the version cell from BC-INDEX.md for the given BC ID.
+///
+/// **Backward-compatibility wrapper** for the test at line 575 that calls this
+/// function directly. New callers should use `extract_bc_index_version_state`.
 ///
 /// Scans the BC-INDEX.md body table for a row whose **first pipe-cell** contains
 /// `bc_id`, then extracts the last version token (`vN.N` or `vN.NN`) across all
 /// pipe-cells in that row. Returns `None` if no matching first-cell row is found
-/// (new BC not yet registered).
+/// (new BC not yet registered) or if the row has ≤5 pipe-columns (RowPresentNoVersion).
 ///
-/// First-cell anchoring (F-P2-002): matching on any cell (`line.contains(bc_id)`)
-/// would pick up cross-reference rows whose non-first cells mention `bc_id` (e.g.,
-/// a "depends on BC-X.YY.ZZZ" note in the Title column). Combined with last-wins
-/// semantics, that overwrites the correct own-row version. The fix uses `splitn(3,
-/// '|')` to extract the first cell and checks `first_cell.contains(bc_id)`, which
-/// handles both plain `BC-1.17.001` and markdown-linked `[BC-1.17.001](path)` forms.
+/// F-P2-002: first-cell anchoring. F-S2107-P1B-006: last-wins extraction.
+/// F-S2107-P1B-007: starts_with('|') to skip frontmatter lines.
 ///
-/// Pure: operates on already-read bytes. Called from `run_arm_a1_with_index_result`.
+/// Pure: operates on already-read bytes. Called from the backward-compat test only.
 ///
 /// # BC trace
 /// BC-5.39.010 postconditions 1-4 (version cell matching logic);
 /// F-P2-002 (first-cell anchor — cross-reference row must not win over own row).
 pub fn extract_bc_index_version(bc_id: &str, index_content: &[u8]) -> Option<String> {
-    // Scan BC-INDEX.md body table for a row containing bc_id and extract the version cell.
-    // Version cell format: `vN.N` or `vN.NN` token in a pipe-delimited table row.
-    //
-    // F-S2107-P1B-007: use starts_with('|') so YAML frontmatter lines (changelog entries
-    // containing bc_id and '|') are skipped. Sibling precedent: arm_b::parse_story_index_catalog_hash.
-    //
-    // F-S2107-P1B-006: return the LAST version token found across all cells, not the first.
-    // Production BC-INDEX rows use escaped-pipe chains (`v1.3 \| v1.4 \| ... \| v1.6`);
-    // split('|') yields each segment, and the current version is always the LAST token.
-    let content = std::str::from_utf8(index_content).unwrap_or("");
-    let mut last_version: Option<String> = None;
-
-    for line in content.lines() {
-        // Only check body table rows (starts_with '|' — skips frontmatter lines)
-        if !line.starts_with('|') {
-            continue;
-        }
-        // F-P2-002: anchor on the FIRST pipe-cell only.
-        // `line.contains(bc_id)` would match any row that cites bc_id anywhere
-        // (e.g., a cross-reference in the Title or Depends column). Combined with
-        // LAST-wins semantics, that overrides the correct own-row version.
-        // splitn(3, '|') on "| BC-1.17.001 | ..." yields:
-        //   ["", " BC-1.17.001 ", " rest..."]
-        // so segments[1].trim() is the first-cell content.
-        // Handles both plain "BC-1.17.001" and markdown-linked "[BC-1.17.001](path)" forms
-        // by using contains() rather than equality.
-        let mut segments = line.splitn(3, '|');
-        let _ = segments.next(); // leading empty segment (before first '|')
-        let first_cell = segments.next().map(|s| s.trim()).unwrap_or("");
-        if !first_cell.contains(bc_id) {
-            continue;
-        }
-        // Iterate ALL pipe-separated segments; last version token wins.
-        // (Escaped-pipe version chains: "v1.3 \| v1.4 \| v1.7" — last is current.)
-        for cell in line.split('|') {
-            let cell = cell.trim();
-            if let Some(version) = extract_version_token(cell) {
-                last_version = Some(version);
-            }
-        }
+    match extract_bc_index_version_state(bc_id, index_content) {
+        BcIndexVersionState::Version(v) => Some(v),
+        BcIndexVersionState::RowPresentNoVersion | BcIndexVersionState::RowAbsent => None,
     }
-    last_version
 }
 
 /// Extract a `vN.N` or `vN.NN` version token from a string.
@@ -231,11 +327,10 @@ pub fn run_arm_a1_with_index_result(
             (vec![violation], vec![])
         }
         Ok(index_bytes) => {
-            match extract_bc_index_version(bc_id, &index_bytes) {
-                None => {
-                    // BC not in INDEX
-                    // postcondition 3: v1.0 → advisory
-                    // postcondition 4: v > 1.0 → block (previous registration dropped)
+            // BC-5.39.010 v1.8 PC5: three-state classification.
+            match extract_bc_index_version_state(bc_id, &index_bytes) {
+                BcIndexVersionState::RowAbsent => {
+                    // BC not in INDEX — postcondition 3/4.
                     let is_v1_0 = bc_version == "1.0";
                     if is_v1_0 {
                         let advisory = Advisory {
@@ -258,8 +353,14 @@ pub fn run_arm_a1_with_index_result(
                         (vec![violation], vec![])
                     }
                 }
-                Some(index_version) => {
-                    // Compare index version against BC frontmatter version
+                BcIndexVersionState::RowPresentNoVersion => {
+                    // Row exists with canonical 5-column shape — no version-chain cell.
+                    // PC5: RowPresentNoVersion → silent-continue (no violations, no advisory).
+                    // ~1,943 of 1,983 BC-INDEX rows have this shape; none are an error.
+                    (vec![], vec![])
+                }
+                BcIndexVersionState::Version(index_version) => {
+                    // Row has explicit version-chain cell; compare against BC frontmatter.
                     if index_version == bc_version {
                         (vec![], vec![])
                     } else {
