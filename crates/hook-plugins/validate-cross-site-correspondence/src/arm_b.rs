@@ -294,9 +294,13 @@ pub fn run_arm_b1_with_index_result(
     (violations, advisories)
 }
 
-/// Volatile path patterns transcribed 1:1 from ADR-037 §Decision 2.
+/// Volatile filename set for the `.factory/cycles/**` family of patterns.
 ///
-/// Eight canonical patterns; each is checked in order by `is_volatile_path`.
+/// ADR-037 §Decision 2 defines **six canonical patterns**; patterns 2–5
+/// are the `.factory/cycles/**/<named-file>` family, covering four specific
+/// filenames. Those four expand to four entries in this constant, giving
+/// **eight concrete path forms** in the implementation (patterns 1, 2–5
+/// expanded ×4, 6, 7, 8). Each is checked in order by `is_volatile_path`.
 /// Paths NOT in this table are non-volatile and MUST NOT match.
 ///
 /// | # | Pattern | Rationale |
@@ -319,7 +323,8 @@ const VOLATILE_PATTERNS_CYCLES_NAMED: [&str; 4] =
 /// Returns `true` if `path` is a volatile factory path whose content changes
 /// frequently enough that a stable input-hash cannot be maintained.
 ///
-/// Implements ADR-037 §Decision 2 exactly — eight canonical patterns (see
+/// Implements ADR-037 §Decision 2 exactly — six canonical patterns per the
+/// spec, expanded to eight concrete path forms in implementation (see
 /// `VOLATILE_PATTERNS_CYCLES_NAMED` doc table above).
 ///
 /// Pure: no I/O.

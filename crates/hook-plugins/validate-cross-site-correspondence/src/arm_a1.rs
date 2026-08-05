@@ -159,27 +159,31 @@ pub(crate) fn extract_bc_index_version_state(
         if !line.starts_with('|') {
             continue;
         }
-        // Condition (2): normative recognition predicate — first non-empty pipe-cell must
-        // match the BC ID in either link form `[bc_id](...)` or plain form `bc_id`.
-        // F-P2-002: anchor on the first pipe-cell only; cross-reference rows that cite
-        // bc_id in Title or Depends columns must not be matched.
-        let mut seg = line.splitn(3, '|');
-        let _ = seg.next(); // leading empty segment before the first `|`
-        let first_cell = seg.next().map(|s| s.trim()).unwrap_or("");
-        if !first_cell_matches_bc_id(first_cell, bc_id) {
-            continue;
-        }
-
-        // Conditions (1)+(2) satisfied — this is a candidate line.
-        // Condition (3): escape-aware field count classifies the state.
-        // Replace literal `\|` (backslash+pipe) with a null-byte placeholder to prevent
-        // phantom field boundaries within version-chain or multi-story Stories cells.
+        // Escape-aware split: replace literal `\|` with null-byte before splitting.
+        // Applied here (before condition (2)) so that both the first-cell extraction
+        // (condition 2) and the field count (condition 3) use the same escaped view.
+        // F-P4-017: first-cell extraction must use the escape-aware split to conform
+        // to PC5's "first non-empty pipe-cell" normative predicate — using splitn(3,'|')
+        // on the raw line was non-conforming when `\|` appears before the BC ID cell.
         let escaped = line.replace("\\|", "\x00");
         let non_empty_fields: Vec<&str> = escaped
             .split('|')
             .map(str::trim)
             .filter(|s| !s.is_empty())
             .collect();
+
+        // Condition (2): normative recognition predicate — first non-empty pipe-cell must
+        // match the BC ID in either link form `[bc_id](...)` or plain form `bc_id`.
+        // BC-5.39.010 v1.10 PC5: "first non-empty field" (escape-aware).
+        // F-P2-002: anchor on the first pipe-cell only; cross-reference rows that cite
+        // bc_id in Title or Depends columns must not be matched.
+        let first_cell = non_empty_fields.first().copied().unwrap_or("");
+        if !first_cell_matches_bc_id(first_cell, bc_id) {
+            continue;
+        }
+
+        // Conditions (1)+(2) satisfied — this is a candidate line.
+        // Condition (3): non-empty field count from the escape-aware split above.
 
         match non_empty_fields.len() {
             5 => return BcIndexVersionState::RowPresentNoVersion,
@@ -283,23 +287,25 @@ fn extract_last_v_token(text: &str) -> Option<String> {
 
 /// Extract the version cell from BC-INDEX.md for the given BC ID.
 ///
-/// **Backward-compatibility wrapper** for the test at line 575 that calls this
-/// function directly. New callers should use `extract_bc_index_version_state`.
+/// **TEST SEAM ONLY — do NOT use in production code.**
+/// Use `extract_bc_index_version_state` instead. This wrapper returns
+/// `Option<String>` which re-collapses the four PC5 states to two
+/// (`Some(v)` for `Version(v)`, `None` for all others), which is
+/// NON-CONFORMING per BC-5.39.010 v1.10 PC5 (F-P4-016).
 ///
-/// Scans the BC-INDEX.md body table for a row whose **first pipe-cell** contains
-/// `bc_id`, then extracts the last version token (`vN.N` or `vN.NN`) across all
-/// pipe-cells in that row. Returns `None` if no matching first-cell row is found
-/// (new BC not yet registered) or if the row has ≤5 pipe-columns (RowPresentNoVersion).
+/// Kept `pub(crate)` — accessible from the crate's own test code but not
+/// exposed as part of the public API.
 ///
 /// F-P2-002: first-cell anchoring. F-S2107-P1B-006: last-wins extraction.
 /// F-S2107-P1B-007: starts_with('|') to skip frontmatter lines.
 ///
-/// Pure: operates on already-read bytes. Called from the backward-compat test only.
+/// Pure: operates on already-read bytes.
 ///
 /// # BC trace
 /// BC-5.39.010 postconditions 1-4 (version cell matching logic);
 /// F-P2-002 (first-cell anchor — cross-reference row must not win over own row).
-pub fn extract_bc_index_version(bc_id: &str, index_content: &[u8]) -> Option<String> {
+#[cfg(test)]
+pub(crate) fn extract_bc_index_version(bc_id: &str, index_content: &[u8]) -> Option<String> {
     match extract_bc_index_version_state(bc_id, index_content) {
         BcIndexVersionState::Version(v) => Some(v),
         BcIndexVersionState::RowPresentNoVersion

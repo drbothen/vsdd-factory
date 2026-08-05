@@ -239,7 +239,7 @@ pub fn run_arm_e2(content: &str) -> Vec<Violation> {
                     "validate-cross-site-correspondence [Class E2]: modified[] sequence is \
                     non-monotonic — '{curr}' is earlier than preceding '{prev}'. \
                     Dates must be in non-decreasing order (equal dates are permitted). \
-                    POLICY 14 leg 4."
+                    POLICY 14 leg 3."
                 ),
             }];
         }
