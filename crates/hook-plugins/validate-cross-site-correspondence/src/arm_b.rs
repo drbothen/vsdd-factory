@@ -324,7 +324,10 @@ pub fn is_volatile_path(path: &str) -> bool {
     // Only four named files are volatile; any other cycles/ file is an immutable
     // historical artifact and must NOT match.
     if path.starts_with(".factory/cycles/") {
-        let filename = Path::new(path).file_name().and_then(|f| f.to_str()).unwrap_or("");
+        let filename = Path::new(path)
+            .file_name()
+            .and_then(|f| f.to_str())
+            .unwrap_or("");
         return VOLATILE_PATTERNS_CYCLES_NAMED.contains(&filename);
     }
 

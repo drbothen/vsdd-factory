@@ -221,7 +221,6 @@ pub fn extract_bc_index_version(bc_id: &str, index_content: &[u8]) -> Option<Str
     }
 }
 
-
 /// Class A Arm1 check with the BC-INDEX.md read result provided as a seam.
 ///
 /// This is the pure-seam entry point for unit testing: the caller provides the
