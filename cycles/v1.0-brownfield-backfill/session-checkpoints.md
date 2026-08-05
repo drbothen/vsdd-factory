@@ -7,11 +7,28 @@ producer: state-manager
 timestamp: 2026-04-26T12:00:00Z
 cycle: v1.0-brownfield-backfill
 inputs: [STATE.md]
-input-hash: "5f95a9e"
+input-hash: "382b5e6"
 traces_to: STATE.md
 ---
 
 # Session Checkpoints — v1.0-brownfield-backfill
+
+---
+
+## Session Resume Checkpoint (2026-08-05 — D-956 S-21.07-PASS-5-RECORD-BURST-INDEX-SYNCS COMPLETE; SHA-patch `e2789993`; PIPELINE ACTIVE; pass-6 fix burst NEXT; streak 0/3, 5 passes; trajectory-tail →18→25→25→24)
+
+Archived from STATE.md by SESSION-WRAP-2026-08-05 pause burst (2026-08-05). Full content preserved in git: `git show e3defa50:.factory/STATE.md` (factory-artifacts HEAD at archive time).
+
+Key state at D-956 archive:
+- Pipeline ACTIVE; pass-6 fix burst NEXT. S-21.07 pass-5 NOT-CLEAN B3/H8/M10/L3 (24 findings + 5 obs); FLAT-MINUS-ONE 25→24; streak 0/3 (5 passes completed); trajectory 47→18→25→25→24.
+- 3 open BLOCKERs: F-S2107-P6-001 (ARCHITECTURAL; routes architect), F-S2107-P6-002 (PC4a undefined; routes product-owner), F-S2107-P6-003 (PC40/T-047 gap; routes test-writer). 1 HIGH: F-S2107-P6-004 (BC Anchors stale).
+- MERGE-ORDER CONSTRAINT: S-21.09 must land before S-21.07.
+- P0 Blocking Issue: validate-factory-path-staging guard inert (0 invocations vs 889 siblings); fix story S-21.09.
+- 4-INDEX: BC v4.48 / VP v2.74 / STORY v4.285 / ARCH v3.43.
+- factory-artifacts HEAD: e3defa50 (SHA-patch); D-956 main: e2789993.
+- develop: 948f0fb1; main: 80e5cd7b.
+
+**This checkpoint superseded by SESSION-WRAP-2026-08-05 pause burst 2026-08-05.**
 
 ---
 
