@@ -250,4 +250,115 @@ mod tests {
         let result = extract_frontmatter_sequence(content, "modified");
         assert_eq!(result.len(), 2);
     }
+
+    // -----------------------------------------------------------------------
+    // F-P4-004 — YAML block scalar handling in extract_frontmatter_field
+    //
+    // BC-5.39.010 PC36: extract_frontmatter_field MUST handle YAML block scalar
+    // indicators: `|`, `|-`, `>`, `>-`. Returning the indicator string itself
+    // ("|-", ">-", etc.) is NON-CONFORMING.
+    //
+    // BC-5.39.010.md and S-21.07 story both use `last_amended: |-` (block literal
+    // strip). Current implementation returns Some("|-") for this field → E1 inert.
+    //
+    // RED GATE: all four tests fail because extract_frontmatter_field returns the
+    // indicator string instead of the block body. After the PC36 fix, the function
+    // must scan subsequent indented lines and return the first non-empty body line.
+    // -----------------------------------------------------------------------
+
+    /// F-P4-004 RED GATE: `|` literal block scalar — body must be returned, not indicator.
+    ///
+    /// BC-5.39.010 PC36: `|` indicates a literal block scalar. The value is the
+    /// block body, not the `|` character. Current impl returns Some("|"). Test FAILS.
+    #[test]
+    fn test_BC_5_39_010_frontmatter_field_block_scalar_pipe_literal() {
+        // `|` — literal block scalar (clip chomp: keep one trailing newline)
+        // RED GATE: current impl returns Some("|"), not the block body
+        let content = "---\nlast_amended: |\n  2026-08-05 (v1.10) — test fixture\n---\n";
+        let result = extract_frontmatter_field(content, "last_amended");
+        let val = result.expect(
+            "block scalar `|` last_amended must return Some(...). \
+            BC-5.39.010 PC36: block indicators must not be returned as the value.",
+        );
+        assert!(
+            val.contains("2026-08-05"),
+            "block scalar `|` body must be extracted. \
+            BC-5.39.010 PC36: indicator `|` is NOT the field value. Got: {val:?}"
+        );
+    }
+
+    /// F-P4-004 RED GATE: `|-` literal block strip scalar — body must be returned.
+    ///
+    /// BC-5.39.010 PC36: `|-` indicates a literal block scalar with strip chomp.
+    /// This is the exact form used in BC-5.39.010.md and S-21.07 story.
+    /// Current impl returns Some("|-"). Test FAILS.
+    #[test]
+    fn test_BC_5_39_010_frontmatter_field_block_scalar_pipe_strip() {
+        // `|-` — literal block scalar with strip chomp (no trailing newline)
+        // RED GATE: current impl returns Some("|-"), not the block body
+        // This is the exact shape in BC-5.39.010.md: `last_amended: |-`
+        let content = "---\nlast_amended: |-\n  2026-08-05 (v1.10) — test fixture\n---\n";
+        let result = extract_frontmatter_field(content, "last_amended");
+        let val = result.expect(
+            "block scalar `|-` last_amended must return Some(...). \
+            BC-5.39.010 PC36: `|-` is a block scalar indicator, not the field value.",
+        );
+        assert!(
+            val.contains("2026-08-05"),
+            "block scalar `|-` body (first line) must be extracted. \
+            BC-5.39.010 PC36: indicator `|-` is NOT the field value. \
+            Current extract_frontmatter_field returns '|-' → E1 structurally inert \
+            on BC-5.39.010.md and S-21.07 story (F-P4-004). Got: {val:?}"
+        );
+        assert!(
+            !val.starts_with("|-"),
+            "indicator '|-' must NOT be the returned value. Got: {val:?}"
+        );
+    }
+
+    /// F-P4-004 RED GATE: `>` fold block scalar — body must be returned, not indicator.
+    ///
+    /// BC-5.39.010 PC36: `>` indicates a folded block scalar. The value is the
+    /// block body, not the `>` character. Current impl returns Some(">"). Test FAILS.
+    #[test]
+    fn test_BC_5_39_010_frontmatter_field_block_scalar_fold_gt() {
+        // `>` — folded block scalar (clip chomp)
+        // RED GATE: current impl returns Some(">"), not the block body
+        let content = "---\nlast_amended: >\n  2026-08-05 (v1.10) — test fixture\n---\n";
+        let result = extract_frontmatter_field(content, "last_amended");
+        let val = result.expect(
+            "block scalar `>` last_amended must return Some(...). \
+            BC-5.39.010 PC36: block indicators must not be returned as the value.",
+        );
+        assert!(
+            val.contains("2026-08-05"),
+            "block scalar `>` body must be extracted. \
+            BC-5.39.010 PC36: indicator `>` is NOT the field value. Got: {val:?}"
+        );
+    }
+
+    /// F-P4-004 RED GATE: `>-` fold strip block scalar — body must be returned.
+    ///
+    /// BC-5.39.010 PC36: `>-` indicates a folded block scalar with strip chomp.
+    /// Current impl returns Some(">-"). Test FAILS.
+    #[test]
+    fn test_BC_5_39_010_frontmatter_field_block_scalar_fold_strip() {
+        // `>-` — folded block scalar with strip chomp
+        // RED GATE: current impl returns Some(">-"), not the block body
+        let content = "---\nlast_amended: >-\n  2026-08-05 (v1.10) — test fixture\n---\n";
+        let result = extract_frontmatter_field(content, "last_amended");
+        let val = result.expect(
+            "block scalar `>-` last_amended must return Some(...). \
+            BC-5.39.010 PC36: `>-` is a block scalar indicator, not the field value.",
+        );
+        assert!(
+            val.contains("2026-08-05"),
+            "block scalar `>-` body must be extracted. \
+            BC-5.39.010 PC36: indicator `>-` is NOT the field value. Got: {val:?}"
+        );
+        assert!(
+            !val.starts_with('>'),
+            "indicator '>-' must NOT be the returned value. Got: {val:?}"
+        );
+    }
 }

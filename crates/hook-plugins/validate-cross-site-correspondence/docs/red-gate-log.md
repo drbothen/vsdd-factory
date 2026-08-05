@@ -948,3 +948,131 @@ No changes required.
 #### VP fixtures (e1-*)
 
 `VP-9999.md` basename matches `^VP-[0-9]+\.md$` → conformant ✓ (corrected in prior burst).
+
+---
+
+## Amendment 3 — Pass-4 Adversary Findings (RED GATE + Fixture Corrections)
+
+**Date:** 2026-08-05
+**Adversary pass:** Pass-4 (NOT-CLEAN, 25 findings)
+**Test-writer assignments:** F-P4-003, F-P4-007, F-P4-014, F-P4-015, F-P4-023, F-P4-004 (test side)
+**Command:** `cargo test -p validate-cross-site-correspondence --lib`
+**Result before amendment:** 119 passed; **0 failed**; 17 ignored
+**Result after RED GATE tests added:** 119 passed; **8 failed**; 17 ignored
+
+### RED GATE Run (POLICY 15 — command + captured file:line: stdout)
+
+```
+$ cargo test -p validate-cross-site-correspondence --lib 2>&1 | grep -E "panicked at [a-z]" | sed "s/.*panicked at //"
+crates/hook-plugins/validate-cross-site-correspondence/src/arm_a1.rs:1062:9:
+crates/hook-plugins/validate-cross-site-correspondence/src/arm_a1.rs:1094:9:
+crates/hook-plugins/validate-cross-site-correspondence/src/arm_a2.rs:579:9:
+crates/hook-plugins/validate-cross-site-correspondence/src/frontmatter.rs:333:9:
+crates/hook-plugins/validate-cross-site-correspondence/src/frontmatter.rs:354:9:
+crates/hook-plugins/validate-cross-site-correspondence/src/frontmatter.rs:283:9:
+crates/hook-plugins/validate-cross-site-correspondence/src/frontmatter.rs:306:9:
+crates/hook-plugins/validate-cross-site-correspondence/src/lib.rs:990:9:
+```
+
+All 8 new failing tests are for not-yet-fixed findings. The 119 previously-passing tests
+(including 4 RowMalformed control tests that pass) are unaffected.
+
+### F-P4-003: RowMalformed unit tests (arm_a1.rs)
+
+**Finding:** `RowMalformed` state added to enum and match arm but ZERO tests exercise it;
+the shipped advisory text omits both verbatim operator-actionable clauses from postcondition 4a.
+
+**Tests written (RED GATE):**
+
+| Test | File:Line | Failure reason |
+|------|-----------|----------------|
+| `test_BC_5_39_010_arm_a1_row_malformed_advisory_clause_registration_status` | `arm_a1.rs:1062:9` | advisory omits "Registration status cannot be determined from this line" |
+| `test_BC_5_39_010_arm_a1_row_malformed_advisory_clause_verify_bc_index` | `arm_a1.rs:1094:9` | advisory omits "Verify BC-INDEX body-table registration manually" |
+
+**Tests written (GREEN — control and field-count assertions pass on current code):**
+
+| Test | Result | Reason |
+|------|--------|--------|
+| `test_BC_5_39_010_arm_a1_row_malformed_no_block` | PASS | current code does not block on RowMalformed |
+| `test_BC_5_39_010_arm_a1_row_malformed_advisory_cites_field_count` | PASS | current message contains "2 non-empty fields found" which includes "2" |
+
+**Fixture created:** `a1-row-malformed/` — BC-INDEX.md with 2-field locator-matched line;
+BC-5.39.010.md fixture. Bats test added asserting both verbatim clauses in advisory log output.
+
+### F-P4-004: Block-scalar unit tests (frontmatter.rs + lib.rs)
+
+**Finding:** `extract_frontmatter_field` returns the indicator string for YAML block scalars
+(`|`, `|-`, `>`, `>-`). BC-5.39.010.md uses `last_amended: |-` → returns `"|-"` → E1 inert.
+
+**Tests written (RED GATE):**
+
+| Test | File:Line | Failure reason |
+|------|-----------|----------------|
+| `test_BC_5_39_010_frontmatter_field_block_scalar_pipe_literal` | `frontmatter.rs:283:9` | returns `"|"` not block body |
+| `test_BC_5_39_010_frontmatter_field_block_scalar_pipe_strip` | `frontmatter.rs:306:9` | returns `"|-"` not block body |
+| `test_BC_5_39_010_frontmatter_field_block_scalar_fold_gt` | `frontmatter.rs:333:9` | returns `">"` not block body |
+| `test_BC_5_39_010_frontmatter_field_block_scalar_fold_strip` | `frontmatter.rs:354:9` | returns `">-"` not block body |
+| `test_BC_5_39_010_corpus_arm_e1_bc5_39_010_block_scalar_last_amended_parseable` | `lib.rs:990:9` | returns `"|-"` for BC-5.39.010.md last_amended → outer_version = None |
+
+### F-P4-007: E-class BC-INDEX.md fixture corrections (7 files)
+
+**Finding:** All seven E-class fixtures had 5-field BC-INDEX rows. Under v1.10 PC5, 5-field rows
+classify as `RowPresentNoVersion` → Arm A1 silent, no version comparison. Fixture comments claimed
+A1 was "clean because versions match" — a semantic the 5-field shape cannot produce.
+
+**Fixture corrections applied (no tests needed — shape correction only):**
+
+| Fixture | Before | After | A1 state now |
+|---------|--------|-------|--------------|
+| `e1-version-match/BC-INDEX.md` | 5-field `v1.6` in field 3 | 6-field `v1.6` in field 6 | `Version("1.6")` == BC v1.6 → A1 clean (match) |
+| `e1-version-mismatch/BC-INDEX.md` | 5-field `v1.33` in field 3 | 6-field `v1.33` in field 6 | `Version("1.33")` == BC v1.33 → A1 clean (match) |
+| `e1-unparseable/BC-INDEX.md` | 5-field `v1.6` in field 3 | 6-field `v1.6` in field 6 | `Version("1.6")` == BC v1.6 → A1 clean (match) |
+| `e1-prior-chain-correct/BC-INDEX.md` | 5-field `v1.6` in field 3 | 6-field `v1.6` in field 6 | `Version("1.6")` == BC v1.6 → A1 clean (match) |
+| `e1-prior-chain-wrong-outermost/BC-INDEX.md` | 5-field `v1.6` in field 3 | 6-field `v1.6` in field 6 | `Version("1.6")` == BC v1.6 → A1 clean (match) |
+| `e2-non-monotonic/BC-INDEX.md` | 5-field `v1.3` in field 3 | 6-field `v1.3` in field 6 | `Version("1.3")` == BC v1.3 → A1 clean (match) |
+| `e2-ascending/BC-INDEX.md` | 5-field `v1.3` in field 3 | 6-field `v1.3` in field 6 | `Version("1.3")` == BC v1.3 → A1 clean (match) |
+
+All 7 fixtures now produce `Version(v)` from the 6th field and compare correctly to BC frontmatter.
+Existing bats tests (AC-015, AC-016, AC-017) remain valid — they test E1/E2 arms which are
+independent of the A1 version comparison and unaffected by the BC-INDEX column structure.
+
+### F-P4-014: b1-volatile-input STORY-INDEX.md fixture (invalid hex hash)
+
+**Finding:** STORY-INDEX.md used `xyz789` as the mismatch hash. `xyz789` fails hex charset
+validation ('y' is not hex) → both B2 and B3 extractors return None → "not yet registered"
+advisory → exit 0 regardless of PC40. The fixture could not discriminate PC40 from non-PC40.
+
+**Fix:** Replaced all occurrences of `xyz789` with `def456` (valid 7-char hex string, different
+from B1 hash `abc123`). With valid hex:
+- WITHOUT PC40: B1=Some("abc123") ≠ B2=Some("def456") → three-way mismatch → exit 2
+- WITH PC40: volatile inputs detected → advisory + Continue → exit 0
+
+T-047 exit-code assertion now discriminates correctly.
+
+### F-P4-015: AC-006 tautology in arm_a2.rs (RED GATE)
+
+**Finding:** `test_BC_5_39_010_arm_a2_two_stale_bcs_combined_block` called `run_arm_a2`
+which produces CapabilityDenied fail-closed violations (not stale-citation violations). The
+single assertion `!violations.is_empty()` passed on any non-empty behavioral_contracts list.
+
+**Test modified (RED GATE):**
+
+| Assertion added | File:Line | Failure reason |
+|----------------|-----------|----------------|
+| `combined.contains("v1.17")` | `arm_a2.rs:579:9` | CapabilityDenied message omits stale version |
+| `combined.contains("v1.5")` | (same block) | CapabilityDenied message omits stale version |
+| `combined.contains("[Class A Arm2]")` | (same block) | PASSES even on CapabilityDenied (message format includes class tag) |
+
+RED GATE: the v1.17/v1.5 assertions fail against the CapabilityDenied message format. After the
+implementer refactors to inject BC content via `run_arm_a2_for_bc_with_result`, stale-citation
+violations carry the version strings → assertions pass.
+
+### F-P4-023: b1-b3-only-mismatch S-21.07-test.md docstring (fixture correction)
+
+**Finding:** The story fixture file was a verbatim copy of b1-hash-match's content, claiming
+"all three sites B1=B2=B3=47a65c9" and "Expected: Class B Arm1 passes, exit 0". The fixture
+actually tests T-037 (B3-only mismatch, expected exit 2).
+
+**Fix:** Updated `last_amended`, `# heading`, and body prose to correctly describe the T-037
+B3-only-mismatch scenario. The `input-hash: "47a65c9"` value is correct (B1 = correct hash;
+blockquote B3 = "deadbee" in STORY-INDEX diverges → mismatch detected).

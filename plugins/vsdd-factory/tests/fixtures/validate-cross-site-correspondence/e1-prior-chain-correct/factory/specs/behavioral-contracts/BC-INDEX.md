@@ -6,7 +6,8 @@ version: "2.0"
 # BC-INDEX
 
 <!-- Fixture: AC-017 control — A1 clean (INDEX v1.6 matches BC v1.6); only E1 tested here -->
+<!-- F-P4-007: 6-field canonical shape; Version("1.6") in field 6 matches BC frontmatter v1.6 → A1 clean -->
 
-| BC ID | Title | Version | Date | Status |
-|-------|-------|---------|------|--------|
-| [BC-5.39.010](ss-05/BC-5.39.010.md) | test fixture | v1.6 | 2026-07-29 | active |
+| BC ID | Title | Status | Capabilities | Stories | Version History |
+|-------|-------|--------|--------------|---------|-----------------|
+| [BC-5.39.010](ss-05/BC-5.39.010.md) | test fixture | draft | CAP-032 | S-21.07 | v1.6 |

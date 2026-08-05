@@ -954,6 +954,64 @@ mod tests {
     }
 
     // -----------------------------------------------------------------------
+    // F-P4-004 — Corpus test 5b: block-scalar `last_amended` on BC-5.39.010.md
+    //
+    // BC-5.39.010.md uses `last_amended: |-` (YAML literal block strip scalar).
+    // Current extract_frontmatter_field returns "|-" for this field →
+    // extract_last_amended_outer_version("|-") → None (len 2 < 14) → E1 inert.
+    //
+    // RED GATE: corpus_arm_e1_vp100 test passes because VP-100.md uses inline form.
+    // This test reads the governing BC itself — the one artifact E1 most needs to gate —
+    // and asserts that block-scalar last_amended is parseable into an outer version.
+    // -----------------------------------------------------------------------
+
+    /// F-P4-004 CORPUS RED GATE: extract_frontmatter_field on BC-5.39.010.md must not
+    /// return the `|-` indicator string for `last_amended`.
+    ///
+    /// BC-5.39.010.md uses `last_amended: |-` block scalar form. Current implementation
+    /// returns Some("|-") → E1 structurally inert on its own governing BC.
+    /// BC-5.39.010 PC36: block scalars (`|`, `|-`, `>`, `>-`) MUST be parsed.
+    ///
+    /// RED GATE: extract_frontmatter_field returns "|-" → outer_version = None → FAILS.
+    /// After PC36 fix: first body line extracted → outer_version = Some(vN.N) → PASSES.
+    #[test]
+    fn test_BC_5_39_010_corpus_arm_e1_bc5_39_010_block_scalar_last_amended_parseable() {
+        let root = corpus_root_or_skip!();
+        let bc_str =
+            std::fs::read_to_string(root.join("specs/behavioral-contracts/ss-05/BC-5.39.010.md"))
+                .expect(
+                    "BC-5.39.010.md must be readable from corpus root. \
+            Verify VSDD_CORPUS_ROOT or .factory/ is accessible.",
+                );
+        let last_amended = frontmatter::extract_frontmatter_field(&bc_str, "last_amended").expect(
+            "BC-5.39.010.md must have a last_amended: field. \
+                If None, the frontmatter scanner missed the field.",
+        );
+        assert!(
+            !last_amended.starts_with("|-"),
+            "extract_frontmatter_field must NOT return '|-' for BC-5.39.010.md \
+            last_amended. BC-5.39.010 PC36: `|-` is a block scalar indicator — the \
+            function must scan subsequent indented lines and return the block body. \
+            F-P4-004 RED GATE. Got: {last_amended:?}"
+        );
+        assert!(
+            !last_amended.starts_with('>'),
+            "extract_frontmatter_field must not return a block scalar indicator (`>`, `>-`). \
+            Got: {last_amended:?}"
+        );
+        // After the PC36 fix, the outer version must be extractable so E1 can gate.
+        let outer = arm_e::extract_last_amended_outer_version(&last_amended);
+        assert!(
+            outer.is_some(),
+            "extract_last_amended_outer_version must return Some(version) for \
+            BC-5.39.010.md last_amended after block-scalar fix. \
+            Current: extract_frontmatter_field returns '|-' → len 2 < 14 → None → \
+            E1 inert on its own governing BC. BC-5.39.010 PC36 / postcondition 20. \
+            F-P4-004 RED GATE. Got last_amended: {last_amended:?}"
+        );
+    }
+
+    // -----------------------------------------------------------------------
     // F-P1C-016 / AC-018: invariant-7 multi-arm aggregation — Rust unit assertion.
     //
     // BC-5.39.010 invariant 7: arms MUST NOT suppress each other.

@@ -1204,3 +1204,64 @@ _assert_plugin_ran_not_crashed() {
       false
     }
 }
+
+# ---------------------------------------------------------------------------
+# F-P4-003: RowMalformed — locator-matched <5-field BC-INDEX line emits advisory
+# Fixture: a1-row-malformed (BC-INDEX has a 2-field notes-table row carrying the BC link)
+# BC-5.39.010 v1.10 PC5 postcondition 4a: RowMalformed → advisory + Continue (exit 0).
+# BOTH verbatim operator-actionable clauses MUST appear in the advisory:
+#   "Registration status cannot be determined from this line"
+#   "Verify BC-INDEX body-table registration manually"
+# RED GATE: shipped advisory message omits both clauses → grep tests FAIL.
+# After fix: advisory carries the verbatim postcondition-4a text → PASSES.
+# ---------------------------------------------------------------------------
+
+@test "F-P4-003 (RowMalformed): 2-field BC-INDEX candidate line emits advisory, exits 0" {
+  _require_artifacts
+  _load_fixture "a1-row-malformed"
+  _write_registry
+
+  local envelope
+  # Trigger Arm A1 by writing the BC file — hook reads BC-INDEX.md (from fixture),
+  # finds the 2-field locator-matched line → RowMalformed(2) → advisory + Continue.
+  envelope="$(_post_write_event '.factory/specs/behavioral-contracts/ss-05/BC-5.39.010.md')"
+  _run_dispatcher "$envelope"
+
+  _assert_plugin_ran_not_crashed
+  # RowMalformed MUST NOT block — advisory-only path (postcondition 4a).
+  _assert_exit 0
+
+  local log; log="$(_plugin_log)"
+
+  # RED GATE assertion 1: advisory must contain verbatim clause 1.
+  # BC-5.39.010 v1.10 postcondition 4a: "Registration status cannot be determined
+  # from this line" — operator-actionable clause 1.
+  grep '"plugin_name":"validate-cross-site-correspondence"' "$log" 2>/dev/null \
+    | grep '"type":"plugin.log"' \
+    | grep '"level":"warn"' \
+    | grep -q 'Registration status cannot be determined from this line' || {
+      echo "FAIL: advisory missing verbatim postcondition-4a clause 1:"
+      echo "  'Registration status cannot be determined from this line'"
+      echo "  BC-5.39.010 v1.10 PC5 postcondition 4a. F-P4-003 / F-P4-025 RED GATE."
+      grep '"plugin_name":"validate-cross-site-correspondence"' "$log" \
+        | grep '"type":"plugin.log"' | grep '"level":"warn"' | head -3 \
+        || echo "  (no warn plugin.log records)"
+      false
+    }
+
+  # RED GATE assertion 2: advisory must contain verbatim clause 2.
+  # BC-5.39.010 v1.10 postcondition 4a: "Verify BC-INDEX body-table registration
+  # manually" — the operator-actionable remediation instruction.
+  grep '"plugin_name":"validate-cross-site-correspondence"' "$log" 2>/dev/null \
+    | grep '"type":"plugin.log"' \
+    | grep '"level":"warn"' \
+    | grep -q 'Verify BC-INDEX body-table registration manually' || {
+      echo "FAIL: advisory missing verbatim postcondition-4a clause 2:"
+      echo "  'Verify BC-INDEX body-table registration manually'"
+      echo "  BC-5.39.010 v1.10 PC5 postcondition 4a. F-P4-003 / F-P4-025 RED GATE."
+      grep '"plugin_name":"validate-cross-site-correspondence"' "$log" \
+        | grep '"type":"plugin.log"' | grep '"level":"warn"' | head -3 \
+        || echo "  (no warn plugin.log records)"
+      false
+    }
+}

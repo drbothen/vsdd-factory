@@ -973,4 +973,163 @@ mod tests {
             violations
         );
     }
+
+    // -----------------------------------------------------------------------
+    // F-P4-003 / F-P4-025 — RowMalformed advisory coverage
+    //
+    // BC-5.39.010 v1.10 postcondition 4a (NORMATIVE VERBATIM):
+    //   "validate-cross-site-correspondence [Class A Arm1]: BC-INDEX.md contains a
+    //   malformed candidate line for <id> (<N> fields found; expected ≥5 for a valid
+    //   body-table row). This line is structurally not a BC-INDEX body-table row (likely
+    //   a Changelog entry or notes table). Registration status cannot be determined from
+    //   this line. Verify BC-INDEX body-table registration manually."
+    //
+    // Fixture: locator-matched line with 2 non-empty fields (real corpus shape: a
+    // changelog/notes table row carrying the BC ID link in cell 1, a note in cell 2).
+    //
+    // RED GATE: current advisory message omits BOTH operator-actionable clauses.
+    // The shipped message (arm_a1.rs:406-415) substitutes non-normative prose:
+    //   "Not blocking — this is not a dropped registration. Manual verification
+    //   recommended. The genuine dropped-registration case (no candidate line at all)
+    //   is RowAbsent (postcondition 4). BC-5.39.010 v1.9 PC5 postcondition 4a."
+    // Neither "Registration status cannot be determined from this line" nor
+    // "Verify BC-INDEX body-table registration manually" appears.
+    // -----------------------------------------------------------------------
+
+    /// F-P4-003: RowMalformed MUST NOT block (advisory-only, postcondition 4a).
+    ///
+    /// Fixture: 2-field locator-matched line (notes table row shape).
+    /// BC-5.39.010 v1.10 PC5 postcondition 4a: RowMalformed → advisory + Continue.
+    /// NEVER blocks — a found-but-malformed line is not a dropped registration.
+    ///
+    /// RED GATE: if this test fails, advisory-only path is broken (test should pass
+    /// once advisory message is otherwise corrected per postcondition 4a).
+    /// Note: this specific assertion is GREEN (no block) — the RED GATE assertions
+    /// are the verbatim-clause tests below.
+    #[test]
+    fn test_BC_5_39_010_arm_a1_row_malformed_no_block() {
+        // 2-field locator-matched line: carries BC link in cell 1, a note in cell 2.
+        // Real corpus shape: a notes/changelog table row that happens to carry the BC ID.
+        // BC-5.39.010 v1.10 PC5: 2 non-empty fields < 5 → RowMalformed(2) → advisory only.
+        let index_content = concat!(
+            "| BC ID | Title | Status | Capabilities | Stories | Version History |\n",
+            "|-------|-------|--------|--------------|---------|----------------|\n",
+            "| [BC-5.39.010](ss-05/BC-5.39.010.md) | see D-954 |\n",
+        );
+        let (violations, advisories) = run_arm_a1_with_index_result(
+            "BC-5.39.010",
+            "1.6",
+            "ss-05/BC-5.39.010.md",
+            Ok(index_content.as_bytes().to_vec()),
+        );
+        assert!(
+            violations.is_empty(),
+            "RowMalformed MUST NOT block (BC-5.39.010 v1.10 postcondition 4a: \
+            advisory + Continue only). Violations: {:?}",
+            violations
+        );
+        assert!(
+            !advisories.is_empty(),
+            "RowMalformed MUST emit an advisory (BC-5.39.010 v1.10 postcondition 4a). \
+            Advisories: {:?}",
+            advisories
+        );
+    }
+
+    /// F-P4-003 / F-P4-025 RED GATE: advisory MUST contain verbatim clause 1.
+    ///
+    /// BC-5.39.010 v1.10 postcondition 4a NORMATIVE: advisory MUST contain
+    /// "Registration status cannot be determined from this line".
+    ///
+    /// RED GATE: shipped message omits this clause entirely. Test FAILS until
+    /// the implementer updates the advisory message to match postcondition 4a verbatim.
+    #[test]
+    fn test_BC_5_39_010_arm_a1_row_malformed_advisory_clause_registration_status() {
+        let index_content = concat!(
+            "| BC ID | Title | Status | Capabilities | Stories | Version History |\n",
+            "|-------|-------|--------|--------------|---------|----------------|\n",
+            "| [BC-5.39.010](ss-05/BC-5.39.010.md) | see D-954 |\n",
+        );
+        let (violations, advisories) = run_arm_a1_with_index_result(
+            "BC-5.39.010",
+            "1.6",
+            "ss-05/BC-5.39.010.md",
+            Ok(index_content.as_bytes().to_vec()),
+        );
+        assert!(violations.is_empty(), "RowMalformed MUST NOT block");
+        assert!(!advisories.is_empty(), "RowMalformed MUST emit advisory");
+        let msg = &advisories[0].message;
+        assert!(
+            msg.contains("Registration status cannot be determined from this line"),
+            "advisory MUST contain verbatim postcondition-4a clause: \
+            'Registration status cannot be determined from this line'. \
+            BC-5.39.010 v1.10 PC5 postcondition 4a (F-P4-003 / F-P4-025). \
+            Got: {msg:?}"
+        );
+    }
+
+    /// F-P4-003 / F-P4-025 RED GATE: advisory MUST contain verbatim clause 2.
+    ///
+    /// BC-5.39.010 v1.10 postcondition 4a NORMATIVE: advisory MUST contain
+    /// "Verify BC-INDEX body-table registration manually".
+    ///
+    /// RED GATE: shipped message omits this operator-actionable instruction.
+    /// Test FAILS until the implementer updates the advisory message per postcondition 4a.
+    #[test]
+    fn test_BC_5_39_010_arm_a1_row_malformed_advisory_clause_verify_bc_index() {
+        let index_content = concat!(
+            "| BC ID | Title | Status | Capabilities | Stories | Version History |\n",
+            "|-------|-------|--------|--------------|---------|----------------|\n",
+            "| [BC-5.39.010](ss-05/BC-5.39.010.md) | see D-954 |\n",
+        );
+        let (violations, advisories) = run_arm_a1_with_index_result(
+            "BC-5.39.010",
+            "1.6",
+            "ss-05/BC-5.39.010.md",
+            Ok(index_content.as_bytes().to_vec()),
+        );
+        assert!(violations.is_empty(), "RowMalformed MUST NOT block");
+        assert!(!advisories.is_empty(), "RowMalformed MUST emit advisory");
+        let msg = &advisories[0].message;
+        assert!(
+            msg.contains("Verify BC-INDEX body-table registration manually"),
+            "advisory MUST contain verbatim postcondition-4a clause: \
+            'Verify BC-INDEX body-table registration manually'. \
+            BC-5.39.010 v1.10 PC5 postcondition 4a (F-P4-003 / F-P4-025). \
+            Got: {msg:?}"
+        );
+    }
+
+    /// F-P4-003: RowMalformed advisory must cite the field count.
+    ///
+    /// Fixture: 2-field line → RowMalformed(2). Advisory must mention "2" to tell
+    /// the operator how many fields were found.
+    /// BC-5.39.010 v1.10 postcondition 4a: "(<N> fields found; expected ≥5 …)".
+    ///
+    /// Note: this assertion is ADDITIONALLY a RED GATE because the current message
+    /// says "non-empty fields found" (different from spec's "fields found") and
+    /// the verbatim-clause assertions above will fail first.
+    #[test]
+    fn test_BC_5_39_010_arm_a1_row_malformed_advisory_cites_field_count() {
+        let index_content = concat!(
+            "| BC ID | Title | Status | Capabilities | Stories | Version History |\n",
+            "|-------|-------|--------|--------------|---------|----------------|\n",
+            "| [BC-5.39.010](ss-05/BC-5.39.010.md) | see D-954 |\n",
+        );
+        let (violations, advisories) = run_arm_a1_with_index_result(
+            "BC-5.39.010",
+            "1.6",
+            "ss-05/BC-5.39.010.md",
+            Ok(index_content.as_bytes().to_vec()),
+        );
+        assert!(violations.is_empty(), "RowMalformed MUST NOT block");
+        assert!(!advisories.is_empty(), "RowMalformed MUST emit advisory");
+        let msg = &advisories[0].message;
+        assert!(
+            msg.contains('2'),
+            "advisory MUST cite the field count (2 for this fixture). \
+            BC-5.39.010 v1.10 postcondition 4a: '(<N> fields found; …)'. \
+            Got: {msg:?}"
+        );
+    }
 }

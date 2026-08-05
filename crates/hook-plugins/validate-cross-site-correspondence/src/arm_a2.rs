@@ -535,13 +535,28 @@ mod tests {
         assert!(violations.is_empty(), "current citation must not block");
     }
 
-    /// AC-006: two stale BCs → single combined block (postcondition 7 cascade).
+    /// AC-006: two stale BCs → stale-citation violations with both BC IDs and versions.
+    ///
+    /// BC-5.39.010 postcondition 7 cascade: all stale citations across all BCs are
+    /// collected and returned. Violations must reference both BC IDs and the stale
+    /// versions from the story's citation table.
+    ///
+    /// RED GATE (F-P4-015): current test calls `run_arm_a2` → host::read_file →
+    /// CapabilityDenied → fail-closed violations that do NOT contain stale-version info.
+    /// The assertions `combined.contains("v1.17")` and `combined.contains("v1.5")` FAIL
+    /// against CapabilityDenied messages (which never mention cited versions).
+    ///
+    /// After fix: implementer must inject BC content via `run_arm_a2_for_bc_with_result`
+    /// so that real stale-citation violations are produced. Those violations carry
+    /// "v1.17" and "v1.5" from the story's citation table → assertions pass.
     #[test]
     fn test_BC_5_39_010_arm_a2_two_stale_bcs_combined_block() {
         // Fixture reflects real corpus shape: BC table rows live under the
         // ## Behavioral Contracts section heading (POLICY 8 / PC13 v1.3+).
         // Citations are extracted → run_arm_a2_for_bc called → host::read_file
         // returns CapabilityDenied (non-WASM stub: -1) → fail-closed violation.
+        // NOTE: CapabilityDenied violations do NOT contain stale-version strings;
+        // the RED GATE assertions below fail against this path.
         let story_content = "---\nbehavioral_contracts: [BC-6.26.001, BC-5.39.008]\n---\n\
             ## Behavioral Contracts\n\n\
             | BC-6.26.001 | Title | v1.17 | active |\n\
@@ -550,6 +565,35 @@ mod tests {
         assert!(
             !violations.is_empty(),
             "two stale BCs must produce combined violations"
+        );
+        // RED GATE assertions (F-P4-015): require stale-citation format, not CapabilityDenied.
+        // CapabilityDenied message = "host error reading BC 'BC-6.26.001' … CapabilityDenied."
+        // Stale-citation message = "… cites 'BC-6.26.001' at version v1.17 … BC says 1.X."
+        // The combined message must reference stale versions v1.17 and v1.5 (from the
+        // story's citation table). CapabilityDenied messages omit version info → FAILS.
+        let combined: String = violations
+            .iter()
+            .map(|v| v.description.as_str())
+            .collect::<Vec<_>>()
+            .join(" | ");
+        assert!(
+            combined.contains("v1.17"),
+            "violations must reference stale citation version v1.17 for BC-6.26.001. \
+            CapabilityDenied path does not carry version info → test fails until \
+            refactored to inject BC content. F-P4-015 RED GATE. \
+            Got combined: {combined:?}"
+        );
+        assert!(
+            combined.contains("v1.5"),
+            "violations must reference stale citation version v1.5 for BC-5.39.008. \
+            CapabilityDenied path does not carry version info → test fails until \
+            refactored to inject BC content. F-P4-015 RED GATE. \
+            Got combined: {combined:?}"
+        );
+        assert!(
+            combined.contains("[Class A Arm2]"),
+            "violations must cite [Class A Arm2]. \
+            BC-5.39.010 postcondition 7. Got combined: {combined:?}"
         );
     }
 
