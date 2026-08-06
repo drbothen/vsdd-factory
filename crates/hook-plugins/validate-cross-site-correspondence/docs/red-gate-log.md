@@ -1,4 +1,4 @@
-# Red Gate Log — S-21.07 (Test-Writer, Passes 1–6)
+# Red Gate Log — S-21.07 (Test-Writer, Passes 1–7)
 
 **Date:** 2026-08-03
 **BC:** BC-5.38.001 (Red Gate: all tests must fail before implementation)
@@ -1327,3 +1327,207 @@ bats validate-cross-site-correspondence.bats → 51/51 ok
 
 The 1 cargo failure is the BC-INDEX corpus sync test (expected; see obligation table above).
 All 6 new bats gates, all 16 new unit tests pass. 17 ignored = prior arm_d Class D deferrals unchanged.
+
+---
+
+## Pass-7 Fix Burst — BC-5.39.010 v1.13 Phase-2 Algorithm, PC13c Half-Present, Harness Correctness, Assertion-Site Strengthening (test-writer)
+
+**Date:** 2026-08-06
+**BC:** BC-5.38.001 (Red Gate: all tests must fail before implementation)
+**Cycle:** v1.0-brownfield-backfill / S-21.07 test-writer pass-7 (F-P7-004b, F-P7-007/008, F-P7-010/011/013/014/015/020)
+**Governing spec:** BC-5.39.010 v1.13
+
+**Prior attestation note:** The line 1191 attestation cites `b78b27ef402f11e36c8c23f68f65d6335c37dd14`, stale by two commits (`42c952b9`, then `295585185308629f10ff4333647a15b474192c3f`). That commit's own subject also claims "226,794 bytes" against a 231,121-byte artifact (F-S2107-P7-019 defect). This attestation is verified by hash comparison and `cmp` across three independent measurements (orchestrator, devops-engineer, implementer), all agreeing.
+
+Red Gate run command: `cargo test -p validate-cross-site-correspondence`
+Red Gate result: the three Phase 2 arm_a2 tests and two PC13c arm_b tests fail before implementation for the correct reason; five harness-correctness tests fail via `should_panic` assertion absent; corpus arm_b2 teeth test fails on stale arm.
+Post-implementation: **162 passed; 1 failed; 17 ignored** (independent verification 2026-08-06).
+The 1 expected failure is `test_BC_corpus_version_sync_all_indexed_bcs_match_frontmatter` —
+BC-5.39.010 frontmatter `version="1.13"` not yet in BC-INDEX row; resolves at state-manager Commit D.
+
+**WASM artifact (commit `295585185308629f10ff4333647a15b474192c3f`, triangulated by three independent measurements):**
+- Size: **231,661** bytes (shifted from 231,113 at `42c952b9` — genuine Phase 2 production change)
+- SHA-256: `853c802e74ec372864912448130f3b0740aeeae6f92b8230c7eb25f639dc32b8`
+- `cmp` `target/wasm32-wasip1/release/` ↔ `plugins/vsdd-factory/hook-plugins/` → byte-identical
+
+assertion-site attestation (295585185308629f10ff4333647a15b474192c3f)
+
+---
+
+### Bats Integration Tests — D-916 Obligation-Indexed Table
+
+One row per obligation. "Anti-vacuity" names the control or inline check that proves the gate is non-trivial.
+
+| Obligation (BC-5.39.010 v1.13 clause) | Gate ID | Gate test (bats label) | Anti-vacuity | Pre-F-P7-013/014 state | Post-impl |
+|---|---|---|---|---|---|
+| PC4a: PC2a normative advisory text MUST match verbatim; triple-substring grep-q gate insufficient (F-S2107-P7-013) | T-P6A (equality) | `AC-022 / T-P6A (PC2a): primary-newer-than-index emits advisory, exits 0` | `wrong_substr_msg` ≠ `expected_decoded`: fabricated wrong-format string containing all original substrings is rejected by equality gate (old grep-q would have accepted it) | PASS (vacuous — old substring gate accepted wrong-format messages that the equality gate rejects) | GREEN |
+| PC4a: PC13a normative advisory text MUST match verbatim; triple-substring grep-q gate insufficient (F-S2107-P7-013) | T-P6C (equality) | `AC-023 / T-P6C (PC13a): B2==B3 story-index-consistent-stale emits advisory, exits 0` | same anti-vacuity pattern: fabricated wrong-format message rejected by equality gate | PASS (vacuous) | GREEN |
+| Coverage gate MUST bound execution paths, not declaration count; exactly 45 `_require_artifacts` call sites (F-S2107-P7-014, D-916 execution-bound rule) | F-P6-016 (execution-bounded) | `F-P6-016: coverage gate — 5 deferred, 45 dispatcher-gated, execution-bounded attestation` | Attestation echo distinguishes when-present (46 passed / 5 skipped) from when-absent (6 passed / 45 skipped) — proves the two execution paths are structurally different; old declaration count of 51 concealed this distinction | PASS (but concealing — declaration count = 51; call-site count = 45; 6 non-gated non-deferred tests were invisible) | GREEN |
+
+---
+
+### Rust Unit Tests — D-916 Obligation-Indexed Table
+
+#### arm_a2.rs — Phase 2 algorithm RED GATE × 3 + 4 controls (F-P7-004b, ADR-038 §Decision 5 v1.2)
+
+Finding: the live `extract_story_bc_version_citations` Phase 2 algorithm remained `reverse-field rightmost-match` while BC v1.13 and ADR-038 §Decision 5 v1.2 mandate `BC-ID-anchored first-v-token of last-entry`. 258 live story rows affected per corpus audit. BC v1.13 explicitly declares rightmost-match NON-CONFORMING.
+
+| Obligation | Test | File:Line | RED Gate failure (pre-impl) / Control status |
+|---|---|---|---|
+| Phase 1 (pure-version `^v?[0-9]+\.[0-9]+$`) MUST remain functional after Phase 2 rearchitect (regression guard) | `test_BC_5_39_010_arm_a2_pc13_phase1_pure_version_field_regression_guard` | arm_a2.rs:1325 | CONTROL — GREEN pre-impl; confirms Phase 2 fix is scope-contained |
+| Phase 2 single-v-token happy path: both algorithms agree (baseline control) | `test_BC_5_39_010_arm_a2_pc13_phase2_single_v_token_anchor_field_both_algorithms_agree` | arm_a2.rs:1354 | CONTROL — GREEN pre-impl |
+| Phase 2 RED GATE: annotation prose carries later v-token after the version field; MUST return first-v-token of last-entry, NOT the rightmost | `test_BC_5_39_010_arm_a2_pc13_phase2_annotation_prose_later_v_token_not_returned` | arm_a2.rs:1399 | RED — old rightmost-match extracted annotation token from prose following the version field |
+| Phase 2: anchor field with a v-token produces citation (normal path, non-RED) | `test_BC_5_39_010_arm_a2_pc13_phase2_anchor_field_with_v_token_produces_citation` | arm_a2.rs:1439 | CONTROL — GREEN pre-impl |
+| Phase 2 RED GATE: a different BC-ID's row in the same table MUST NOT contaminate result (BC-ID-anchored; cross-BC field → None) | `test_BC_5_39_010_arm_a2_pc13_phase2_cross_bc_field_contamination_returns_none` | arm_a2.rs:1481 | RED — old rightmost-match scanned all rows and returned v-token from wrong BC-ID's field |
+| Phase 2 conjunction single v-token, no annotation (green control) | `test_BC_5_39_010_arm_a2_pc13_phase2_conjunction_single_v_token_control` | arm_a2.rs:1516 | CONTROL — GREEN pre-impl |
+| Phase 2 RED GATE: conjunction annotation carries first-v-token; MUST be returned, not the later rightmost | `test_BC_5_39_010_arm_a2_pc13_phase2_conjunction_annotation_first_v_token_returned` | arm_a2.rs:1566 | RED — old rightmost-match returned the later conjunction token |
+
+#### arm_b.rs — PC13c half-present advisory × 2 + control (F-P7-007/008, AC-024)
+
+Finding: BC-5.39.010 v1.13 PC13c (ADR-038 §Decision 3) — when exactly one of B2/B3 is present, the implementation MUST emit advisory + Continue (not block). Prior code had no half-present path; a mismatching B2 with absent B3 caused a block (exit 2).
+
+| Obligation | Test | File:Line | RED Gate failure (pre-impl) / Control status |
+|---|---|---|---|
+| PC13c RED GATE: (B2=Some(x), B3=None, B1≠B2) → advisory + Continue; MUST NOT block | `test_BC_5_39_010_arm_b1_half_present_catalog_mismatch_is_advisory_not_block` | arm_b.rs:1368 | RED — old code reached block path; exit 2 instead of exit 0 |
+| PC13c: (B2=Some(x), B3=None, B1==B2) → advisory (half-present even on match; gate non-triviality proof) | `test_BC_5_39_010_arm_b1_half_present_catalog_match_is_advisory` | arm_b.rs:1400 | CONTROL — confirms half-present always emits advisory regardless of B1/B2 equality |
+| PC13c RED GATE: (B3=Some(x), B2=None, B1≠B3) → advisory + Continue; MUST NOT block | `test_BC_5_39_010_arm_b1_half_present_blockquote_mismatch_is_advisory_not_block` | arm_b.rs:1432 | RED — old code blocked; exit 2 instead of exit 0 |
+
+#### lib.rs — corpus test harness correctness × 5 (F-P7-003b)
+
+Finding: `require_artifacts` skipped gracefully regardless of `CI_REQUIRE_ARTIFACTS`; `VSDD_CORPUS_ROOT` invalid paths were silently absorbed; discovery had no test for the no-`.factory/` walk case.
+
+| Obligation | Test | File:Line | RED Gate failure (pre-impl) / Control status |
+|---|---|---|---|
+| CI_REQUIRE_ARTIFACTS=1 → require_artifacts MUST panic (CI MUST fail when corpus unavailable, not silently skip) | `test_corpus_fail_hard_panics_when_ci_require_artifacts_set` | lib.rs:806 | RED — `should_panic` assertion failed: function skipped gracefully instead |
+| CI_REQUIRE_ARTIFACTS unset → skip gracefully (existing behavior must not regress) | `test_corpus_graceful_skip_when_ci_require_artifacts_not_set` | lib.rs:817 | CONTROL — GREEN pre-impl; discriminates the two CI env branches |
+| VSDD_CORPUS_ROOT → nonexistent path → panic (fail-closed; MUST NOT silently fall back) | `test_corpus_invalid_corpus_root_override_panics_nonexistent_path` | lib.rs:835 | RED — `should_panic` failed: nonexistent path silently ignored, default root used |
+| VSDD_CORPUS_ROOT → dir present but no `.factory/` → panic (fail-closed; prevents wrong-corpus corpus runs) | `test_corpus_invalid_corpus_root_override_panics_dir_without_corpus_structure` | lib.rs:851 | RED — `should_panic` failed: same |
+| corpus discovery → None when `.factory/` not found in walk (correct boundary condition) | `test_corpus_discovery_returns_none_when_no_factory_in_walk` | lib.rs:867 | RED — discovery returned incorrect result or panicked in the no-factory walk case |
+
+#### lib.rs — corpus arm_b2 × 3
+
+Finding: arm_b2 (internal catalog/blockquote consistency) had no corpus-level tests and no teeth-proving mutant.
+
+| Obligation | Test | File:Line | Anti-vacuity |
+|---|---|---|---|
+| arm_b2 MUST NOT produce false violations on live STORY-INDEX (no false-positive regression) | `test_BC_5_39_010_corpus_arm_b2_live_story_index_no_violations` | lib.rs:1474 | Anti-vacuity: teeth-mutant below confirms fixture exercises the real comparison path |
+| Teeth mutant: injected catalog/blockquote mismatch MUST be detected (vacuity guard for the live-corpus test) | `test_BC_5_39_010_corpus_arm_b2_teeth_mutant_injected_mismatch_detected` | lib.rs:1505 | Mutant for the live-corpus test above |
+| half-present at lib-level: B2 catalog present, B3 blockquote entries empty → no violation (PC13c lib-level) | `test_BC_5_39_010_arm_b2_half_present_catalog_no_blockquote_no_violation` | lib.rs:1548 | Mutant: arm_b.rs:1368 proves mismatch in the half-present case does produce advisory |
+
+#### lib.rs — F-S2107-P7-010: production-scale arm_a1 fixture (≥574 KB)
+
+| Obligation | Test | File:Line | Anti-vacuity |
+|---|---|---|---|
+| arm_a1 pure Rust functions MUST handle production-scale BC-INDEX (≥574,311 bytes, 2,800 rows) without regression | `test_F_P7_010_production_scale_arm_a1_scan_no_regression` | lib.rs:2252 | Mutant: bc_version="1.10" vs index v1.13 → PC2b violations non-empty (proves fixture exercises the real comparison path, not just an empty-index trivial pass); size gate: `assert!(fixture_bytes >= 574_311)` |
+
+#### Batch 1 — assertion-body tightening fixes (F-S2107-P7-011/015/020)
+
+No new tests. These harden existing passing tests against vacuity or documentation drift.
+
+| Finding | Location | Change |
+|---|---|---|
+| F-S2107-P7-011: stale NOTE in compensating corpus guard | lib.rs:1734–1736 | NOTE updated: was "F-P6-019a-d pending fix"; corrected to "fixed in the S-21.07 pass-7 burst" with algorithm description (extract_first_v_token_of_last_entry, trim_start_matches('v') normalization, fields[5..].join("|") GFM-escape handling). Compensating guard retained as CI-layer safety net. |
+| F-S2107-P7-015: F-P6-019-GUARD exclusion MUST be file-specific, not a wildcard over any `trim_start_matches` use | lib.rs:2177 | Exclusion tightened: `line.contains("trim_start_matches")` → `file_name == "frontmatter.rs" && line.contains("trim_start_matches('v')")`. Old escape would exempt any caller in any file that used `trim_start_matches` beside the trigger tokens. Negative twin (lib.rs:2204–2228): asserts old escape would have exempted a synthetic non-frontmatter.rs caller using `trim_start_matches`, proving the wildcard gap. |
+| F-S2107-P7-020: normalization vacuity in corpus arm_a1 test | lib.rs:967–986 | Negative twin added: proves `extract_version_field` strips leading 'v' before `assert_ne`, so the vacuity guard fires correctly for the 18 BCs in corpus with `version: "v1.0"`. Without this, `assert_ne("v1.0", "1.0")` passes vacuously (the strings are unequal), silently defeating the guard. |
+
+---
+
+### D-918 Name-Set-Equality Check
+
+D-918 requires a literal diff of sorted gate labels between the story's AC Gate cells for this burst and the audit table.
+
+**Story AC Gate cells for pass-7** (S-21.07 v1.8 AC-024 body, lines 662–672; no T-P7x rows were added to the formal Test Plan table — only the AC-024 section names tests):
+
+```
+arm_b1_half_present_blockquote_mismatch_is_advisory_not_block
+arm_b1_half_present_catalog_match_is_advisory
+arm_b1_half_present_catalog_mismatch_is_advisory_not_block
+```
+
+**Audit table gate IDs (this pass-7 section, sorted):**
+
+```
+AC-022/T-P6A equality gate (F-S2107-P7-013)
+AC-023/T-P6C equality gate (F-S2107-P7-013)
+arm_a2_pc13_phase1_pure_version_field_regression_guard
+arm_a2_pc13_phase2_anchor_field_with_v_token_produces_citation
+arm_a2_pc13_phase2_annotation_prose_later_v_token_not_returned
+arm_a2_pc13_phase2_conjunction_annotation_first_v_token_returned
+arm_a2_pc13_phase2_conjunction_single_v_token_control
+arm_a2_pc13_phase2_cross_bc_field_contamination_returns_none
+arm_a2_pc13_phase2_single_v_token_anchor_field_both_algorithms_agree
+arm_b1_half_present_blockquote_mismatch_is_advisory_not_block
+arm_b1_half_present_catalog_match_is_advisory
+arm_b1_half_present_catalog_mismatch_is_advisory_not_block
+arm_b2_half_present_catalog_no_blockquote_no_violation
+corpus_arm_b2_live_story_index_no_violations
+corpus_arm_b2_teeth_mutant_injected_mismatch_detected
+corpus_discovery_returns_none_when_no_factory_in_walk
+corpus_fail_hard_panics_when_ci_require_artifacts_set
+corpus_graceful_skip_when_ci_require_artifacts_not_set
+corpus_invalid_corpus_root_override_panics_dir_without_corpus_structure
+corpus_invalid_corpus_root_override_panics_nonexistent_path
+F-P6-016 execution-bounded rewrite (F-S2107-P7-014)
+F-P6-019-GUARD escape tightening (F-S2107-P7-015)
+F-P7-010 production-scale fixture (F-S2107-P7-010)
+F-P7-020 normalization vacuity twin
+```
+
+**Diff (items in story gate cells not in audit table) — gaps:**
+
+```
+(none)
+```
+
+All 3 story AC Gate cells are present in the audit table. **Name-set-equality PASS under D-918.**
+
+**Diff (items in audit not in story gate cells):**
+
+```
+AC-022/T-P6A equality gate (F-S2107-P7-013)
+AC-023/T-P6C equality gate (F-S2107-P7-013)
+arm_a2_pc13_phase1_pure_version_field_regression_guard
+arm_a2_pc13_phase2_anchor_field_with_v_token_produces_citation
+arm_a2_pc13_phase2_annotation_prose_later_v_token_not_returned
+arm_a2_pc13_phase2_conjunction_annotation_first_v_token_returned
+arm_a2_pc13_phase2_conjunction_single_v_token_control
+arm_a2_pc13_phase2_cross_bc_field_contamination_returns_none
+arm_a2_pc13_phase2_single_v_token_anchor_field_both_algorithms_agree
+arm_b2_half_present_catalog_no_blockquote_no_violation
+corpus_arm_b2_live_story_index_no_violations
+corpus_arm_b2_teeth_mutant_injected_mismatch_detected
+corpus_discovery_returns_none_when_no_factory_in_walk
+corpus_fail_hard_panics_when_ci_require_artifacts_set
+corpus_graceful_skip_when_ci_require_artifacts_not_set
+corpus_invalid_corpus_root_override_panics_dir_without_corpus_structure
+corpus_invalid_corpus_root_override_panics_nonexistent_path
+F-P6-016 execution-bounded rewrite (F-S2107-P7-014)
+F-P6-019-GUARD escape tightening (F-S2107-P7-015)
+F-P7-010 production-scale fixture (F-S2107-P7-010)
+F-P7-020 normalization vacuity twin
+```
+
+Audit-only items explained:
+- Phase 2 arm_a2 tests (7): F-P7-004b finding; no T-P7x rows in story Test Plan; Phase 2 algorithm fix under ADR-038 §Decision 5 v1.2, not a new story AC
+- Fail-hard/discovery tests (5): harness correctness; no individual story AC owns these
+- Corpus arm_b2 (live + teeth): corpus-layer tests; the half-present lib-level test is in both story and audit; live + teeth are not AC-mapped
+- AC-022/023 equality gates: AC-022/023 are pass-6 ACs; pass-7 work is assertion strengthening (not a new AC)
+- F-P6-016 rewrite: structural coverage gate, not AC-mapped
+- F-P6-019-GUARD tightening + F-P7-020 twin: test body additions to existing tests, no new AC
+
+No gaps.
+
+---
+
+### Post-Implementation Summary
+
+Independent verification run 2026-08-06 (commit=295585185308629f10ff4333647a15b474192c3f):
+
+```
+cargo fmt --check --all          → EXIT:0
+cargo clippy -- -D warnings      → EXIT:0
+cargo test -p validate-cross-site-correspondence  → 162 passed; 1 failed; 17 ignored
+```
+
+The 1 cargo failure is the BC-INDEX corpus sync test (expected; see obligation table above).
+18 new Rust unit tests pass (7 Phase 2 arm_a2, 3 PC13c arm_b, 5 harness correctness, 3 corpus arm_b2), 1 new Rust test via F-S2107-P7-010 (production-scale fixture), 3 Rust test body additions (F-S2107-P7-015/020 negative twins + F-S2107-P7-011 NOTE correction), 2 bats assertion gates strengthened (AC-022/023 equality), 1 bats coverage gate rewritten (F-P6-016). 17 ignored = arm_d Class D deferrals unchanged.
