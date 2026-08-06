@@ -2,7 +2,7 @@
 document_type: architecture-decision-record
 level: L3
 adr_id: ADR-038
-version: "1.2"
+version: "1.3"
 title: "ADR-038: BC-INDEX version-chain extraction algorithm — first-token-of-last-entry replaces rightmost-of-field-6; PC13 half-present disposition is advisory; Phase 2 story-row extraction requires BC-ID-anchored first v-token"
 status: accepted
 date: 2026-08-06
@@ -15,7 +15,19 @@ supersedes: null
 superseded_by: null
 traces_to: .factory/specs/architecture/ARCH-INDEX.md
 last_amended: |-
-  2026-08-06 (v1.2) — §Empirical Measurement corrected (architect; orchestrator catch):
+  2026-08-06 (v1.3) — §Decision 4 Change 1 prescribed text + §Source / Origin corrected
+  (architect; orchestrator catch): v1.2 was itself an instance of fix-the-named-site-not-the-
+  class — it corrected §Empirical Measurement (the named site) but left `1964` in two other
+  live-assertion locations where the wrong figure could propagate downstream: Change 1 prescribed
+  normative replacement text (the verbatim copy-paste template product-owner uses to amend
+  BC-5.39.010 — this is the site that caused the BC to contain `1964` originally) and §Source /
+  Origin empirical-measurement provenance bullet. This is the third recursion of the same defect
+  on this ADR (v1.0 introduced wrong figure; v1.2 fixed §Empirical Measurement but not the
+  class; v1.3 closes remaining class instances). Fixes: Change 1 text corrected to
+  `5-field rows: 1943 / ... / total: 1983 / rows with n≥6: 40`; §Source / Origin corrected to
+  histogram {5: 1943, 6: 39, 9: 1} over 1983 catalog rows. §Decisions 1-5 unaltered;
+  n≥6 = 40 invariant preserved.
+  [Prior: 2026-08-06 (v1.2) — §Empirical Measurement corrected (architect; orchestrator catch):
   v1.0/v1.1 histogram measured all pipe-starting lines in BC-INDEX.md (sum 2017), not
   catalog rows. Correct predicate: first non-empty field starts with `[BC-` (markdown-link
   form). Corrected histogram: {5: 1943, 6: 39, 9: 1} over 1983 catalog rows. The "1977"
@@ -41,11 +53,12 @@ last_amended: |-
   reach n≥6 arm (39 six-field + 1 nine-field); confirms F-P7-017 arithmetic.
   Four-row proof table confirms implementation correct on all four rows; spec algorithm
   wrong on three of four. PC13 half-present case ruled advisory per PC12 literal text.
-  BC-4.13.001 source format defect ruled: both source escape fix AND extractor robustness.]]
+  BC-4.13.001 source format defect ruled: both source escape fix AND extractor robustness.]]]
 modified:
   - "2026-08-06 (v1.0)"
   - "2026-08-06 (v1.1)"
   - "2026-08-06 (v1.2)"
+  - "2026-08-06 (v1.3)"
 ---
 
 # ADR-038: BC-INDEX version-chain extraction algorithm — first-token-of-last-entry replaces rightmost-of-field-6; PC13 half-present disposition is advisory
@@ -468,8 +481,8 @@ With:
 > contains unescaped `|` characters (e.g., regex annotations like
 > `^(Edit\|Write\|MultiEdit\|Agent)$` that were recorded with bare `|`). The
 > `fields[5..].join("|")` reassembly step is REQUIRED to reconstruct the complete version-chain
-> cell before token extraction. Corpus measurement (2026-08-06): `5-field rows: 1964 /
-> 6-field rows: 39 / 9-field rows: 1 (BC-4.13.001) / total rows with n≥6: 40`."
+> cell before token extraction. Corpus measurement (2026-08-06): `5-field rows: 1943 /
+> 6-field rows: 39 / 9-field rows: 1 (BC-4.13.001) / total: 1983 / rows with n≥6: 40`."
 
 **Change 2: PC5 Version(v) bullet — replace extraction direction.**
 
@@ -842,9 +855,10 @@ callsite sweep. ARCH-INDEX row title amendment pending (state-manager Commit D, 
   exists precisely for this phenomenon.
 - **F-S2107-P7-008 (HIGH):** Adversary pass-6 of S-21.07 — PC13 half-present case undefined;
   implementation blocks; PC12 says advisory; two live corpus instances (S-18.11, S-18.12).
-- **Empirical measurement 2026-08-06:** Field-count histogram {5: 1964, 6: 39, 9: 1}; four-row
-  algorithm comparison table (BC-3.08.001, BC-7.03.079, BC-4.13.001, BC-5.24.006); shell
-  commands in §Empirical Measurement section above.
+- **Empirical measurement 2026-08-06 (corrected v1.3):** Field-count histogram {5: 1943, 6: 39, 9: 1}
+  over 1983 catalog rows (predicate: `[BC-` link-form); four-row algorithm comparison table
+  (BC-3.08.001, BC-7.03.079, BC-4.13.001, BC-5.24.006); reproducible command in §Empirical
+  Measurement section above.
 - **ADR-035:** Cross-site correspondence three-tier architecture (normative twin BC-5.39.010).
 - **ADR-037:** Input-hash volatile-inputs exclusion (motivates PC40 and Class B arm context).
 
