@@ -2,7 +2,7 @@
 document_type: architecture-decision-record
 level: L3
 adr_id: ADR-037
-version: "1.2"
+version: "1.3"
 title: "ADR-037: input-hash stable-input constraint — volatile cycle artifacts and catalog indexes must not be story hash inputs"
 status: accepted
 date: 2026-08-04
@@ -15,11 +15,34 @@ supersedes: null
 superseded_by: null
 traces_to: .factory/specs/architecture/ARCH-INDEX.md
 last_amended: |-
-  2026-08-05 (v1.2) — F-S2107-P6-006 + F-S2107-P6-011 ADR-side remediation (architect; S-21.07 pass-6 fix burst): S-21.07 removed from §Context volatile-roster table (already remediated in pass-5 burst). Full-corpus re-derivation 2026-08-05 yields ARCH-INDEX leg 62 (was 63), de-duplicated union 77 (was 78). All blast-radius figures updated 78→77. §Status updated: S-21.07 described as remediated rather than pending. modified[] array corrected to ascending order. [Prior: 2026-08-05 (v1.1) — F-S2107-P4-013 ADR-side remediation (architect; S-21.07 pass-5 fix burst): S-21.07 added to §Context volatile-roster table and §Decision 5 blast radius. Mechanical full-corpus re-derivation on 2026-08-05 reveals 78 stories with volatile inputs (vs original 19 from partial manual scan; see corpus re-derivation block in §Context). Table corrected: S-15.14 entry had only `STORY-INDEX.md` — also carries `BC-INDEX.md` and `ARCH-INDEX.md`; S-15.15 entry had only `STORY-INDEX.md` — also carries `ARCH-INDEX.md`; S-15.17 entry was missing `ARCH-INDEX.md`. 58 additional stories added to table. §Decision 5 blast radius updated 19→78. §Decision 7 frozen-artifact count updated ~29→23 per corpus scan. Corpus counts recorded per D-950. [Prior: 2026-08-04 (v1.0) — initial ruling (architect): volatile-artifact exclusion from `inputs:`; 19-story remediation scope; D-952 empirical demonstration; BC-5.39.010 Class B precondition requirement routed to product-owner.]]
+  2026-08-06 (v1.3) — F-S2107-P7-018 ADR-side remediation (architect; S-21.07 pass-7 fix burst):
+  corpus re-derivation predicate corrected to `is_volatile_path` exact-match semantics. The ARCH-INDEX
+  grep lacked a `$` end-anchor, causing `ARCH-INDEX.md:75` (S-8.10's line-pinned TD-VSDD-091 defect) to
+  match as if it were a canonical volatile path. Production predicate `is_volatile_path` uses exact path
+  equality for patterns 6-8 — the `:75` suffix causes equality to fail. Corrected: ARCH-INDEX leg 62→61,
+  de-duplicated union 77→76 (production predicate count). S-8.10 in remediation roster as TD-VSDD-091
+  defect; total remediation scope 77. PC40 exact-equality ruling: exact equality is correct; no BC
+  amendment required; story inputs must use canonical paths. Routing: story-writer via orchestrator for
+  S-8.10 malformed entry removal.
+  [Prior: 2026-08-05 (v1.2) — F-S2107-P6-006 + F-S2107-P6-011 ADR-side remediation (architect; S-21.07
+  pass-6 fix burst): S-21.07 removed from §Context volatile-roster table (already remediated in pass-5
+  burst). Full-corpus re-derivation 2026-08-05 yields ARCH-INDEX leg 62 (was 63), de-duplicated union 77
+  (was 78). All blast-radius figures updated 78→77. §Status updated: S-21.07 described as remediated
+  rather than pending. modified[] array corrected to ascending order.
+  [Prior: 2026-08-05 (v1.1) — F-S2107-P4-013 ADR-side remediation (architect; S-21.07 pass-5 fix burst):
+  S-21.07 added to §Context volatile-roster table and §Decision 5 blast radius. Mechanical full-corpus
+  re-derivation on 2026-08-05 reveals 78 stories with volatile inputs (vs original 19 from partial manual
+  scan). Table corrected: S-15.14 also carries `BC-INDEX.md` + `ARCH-INDEX.md`; S-15.15 also carries
+  `ARCH-INDEX.md`; S-15.17 was missing `ARCH-INDEX.md`. 58 additional stories added to table. §Decision 5
+  blast radius 19→78. §Decision 7 frozen-artifact count ~29→23. Corpus counts per D-950.
+  [Prior: 2026-08-04 (v1.0) — initial ruling (architect): volatile-artifact exclusion from `inputs:`;
+  19-story remediation scope; D-952 empirical demonstration; BC-5.39.010 Class B precondition requirement
+  routed to product-owner.]]]
 modified:
   - "2026-08-04 (v1.0)"
   - "2026-08-05 (v1.1)"
   - "2026-08-05 (v1.2)"
+  - "2026-08-06 (v1.3)"
 ---
 
 # ADR-037: input-hash stable-input constraint — volatile cycle artifacts and catalog indexes must not be story hash inputs
@@ -54,7 +77,7 @@ The affected stories and their volatile inputs are:
 | S-4.01, S-4.02, S-4.03, S-4.04, S-4.05, S-4.06, S-4.07, S-4.08 | `ARCH-INDEX.md` |
 | S-5.01, S-5.02, S-5.03, S-5.04, S-5.05, S-5.06, S-5.07 | `ARCH-INDEX.md` |
 | S-6.01 | `ARCH-INDEX.md` |
-| S-8.10 | `ARCH-INDEX.md` |
+| S-8.10 | `ARCH-INDEX.md` (actual `inputs:` entry: `.factory/specs/architecture/ARCH-INDEX.md:75` — line-pinned; TD-VSDD-091 defect; excluded from `is_volatile_path` predicate count; routing: story-writer removes malformed entry) |
 | S-15.07 | `BC-INDEX.md`, `STORY-INDEX.md`, `ARCH-INDEX.md` |
 | S-15.10 | `STORY-INDEX.md`, `ARCH-INDEX.md` |
 | S-15.11 | `BC-INDEX.md`, `STORY-INDEX.md`, `ARCH-INDEX.md` |
@@ -64,7 +87,7 @@ The affected stories and their volatile inputs are:
 | S-18.03, S-18.05, S-18.06, S-18.07, S-18.08, S-18.12 | `ARCH-INDEX.md` |
 | S-18.11 | `STORY-INDEX.md` |
 
-**Corpus re-derivation (2026-08-05; D-950; updated v1.2):** The original 19-story figure was produced by manual inspection of recently-active stories in the engine-discipline cycle; it did not scan the full corpus. The mechanical re-derivation below confirms 77 stories (v1.1 recorded 78; S-21.07 was remediated in the same pass-5 burst that produced v1.1, reducing the count by 1). Commands executed against `.factory/stories/` (epics excluded, STORY-INDEX.md excluded):
+**Corpus re-derivation (2026-08-06; updated v1.3):** Derivation corrected to use `is_volatile_path` production-predicate semantics (F-S2107-P7-018). The v1.2 ARCH-INDEX grep lacked a `$` end-anchor, matching `ARCH-INDEX.md:75` (S-8.10's line-pinned TD-VSDD-091 defect) as if it were a canonical volatile path. `is_volatile_path` uses exact path equality for patterns 6–8 — the `:75` suffix causes equality to fail. This is the same predicate-vs-proxy pattern as ADR-038 F-S2107-P7-004 (POLICY 22). Corrected commands executed against `.factory/stories/` (epics excluded, STORY-INDEX.md excluded):
 
 ```
 grep -rl "^  - \.factory/cycles/.*\(decision-log\|lessons\|burst-log\)\.md" .factory/stories/ | grep -v "STORY-INDEX\|epics/"
@@ -82,11 +105,13 @@ grep -rl "^  - \.factory/stories/STORY-INDEX\.md" .factory/stories/ | grep -v "S
 grep -rl "^  - \.factory/specs/behavioral-contracts/BC-INDEX\.md" .factory/stories/ | grep -v "STORY-INDEX\|epics/"
 → 5 stories
 
-grep -rl "^  - \.factory/specs/architecture/ARCH-INDEX\.md" .factory/stories/ | grep -v "STORY-INDEX\|epics/"
-→ 62 stories (64 including epics); S-21.07 already remediated in v1.1 burst
+grep -rl "^  - \.factory/specs/architecture/ARCH-INDEX\.md$" .factory/stories/ | grep -v "STORY-INDEX\|epics/"
+→ 61 stories (corrected from 62; S-21.07 remediated; S-8.10 excluded — see note below)
 
-De-duplicated union: 77 stories total (v1.1 reported 78; S-21.07 remediated in same burst, excluded from remaining scope).
+De-duplicated union: 76 stories (is_volatile_path production predicate; 2026-08-06 re-derivation; corrected from 77).
 ```
+
+**S-8.10 note (F-S2107-P7-018):** S-8.10 carries `  - .factory/specs/architecture/ARCH-INDEX.md:75` in its `inputs:` — a line-pinned path that `is_volatile_path` rejects (exact equality fails at the `:75` suffix; TD-VSDD-091 violation). S-8.10 is in the remediation roster above: its malformed ARCH-INDEX reference must be removed by story-writer. Total remediation scope: **77 stories** (76 `is_volatile_path` predicate + S-8.10 TD-VSDD-091 defect). Routing: orchestrator → story-writer.
 
 An additional 23 stories reference only frozen cycle artifacts (`adv-cycle-pass-N.md` files, wave plan documents, delta analyses). Those files are write-once by construction — each adversary pass creates a new numbered file; prior passes are never amended. Wave plan files are authored once during cycle planning and do not grow. Those 23 stories do NOT exhibit the regeneration problem and are excluded from this ADR's remediation scope. (The v1.0 figure of "~29" was approximate; corpus scan on 2026-08-05 confirmed 23.)
 
@@ -209,9 +234,9 @@ Without this ADR, once `validate-cross-site-correspondence` ships and its Class 
 - Story authors must understand that cycle log citations belong in `closes:` (provenance) not `inputs:` (drift detection); this distinction requires documentation in the story-writer agent prompt
 - Story-to-story dependencies (story A lists story B in `inputs:`) remain subject to hash invalidation when story B is amended; this is intentional and correct behavior, but it means merged stories that undergo metadata-only amendments (version bumps, citation sweeps) will propagate hash staleness to their dependents
 
-### Status as of 2026-08-05 (v1.2)
+### Status as of 2026-08-06 (v1.3)
 
-Accepted. The ARCH-INDEX row was inserted at v3.42. Remediation (§Decision 5) is pending: story-writer sweep of **77 stories** has not yet occurred (originally 19 in v1.0, expanded to 78 in v1.1 by full-corpus re-derivation, reduced to 77 when S-21.07 was remediated in the same pass-5 burst). S-21.07 is remediated: its volatile `ARCH-INDEX.md` entry was removed from `inputs:` in the pass-5 fix burst (2026-08-05) and the hash recomputed over the corrected (stable) input set. Class B precondition (§Decision 4) was delivered by product-owner in BC-5.39.010 v1.5 before S-21.07 merges to prevent self-lock. S-19.01 hash `0ad9c4b` remains stale pending story-writer remediation of its `inputs:` array.
+Accepted. The ARCH-INDEX row was inserted at v3.42. Remediation (§Decision 5) is pending: story-writer sweep of **77 stories** (76 `is_volatile_path` predicate + S-8.10 TD-VSDD-091 defect) has not yet occurred. S-21.07 is remediated: its volatile `ARCH-INDEX.md` entry was removed in the pass-5 fix burst (2026-08-05) and the hash recomputed over the corrected (stable) input set. S-8.10 requires additional routing: story-writer must remove the malformed `ARCH-INDEX.md:75` line-pinned `inputs:` entry (TD-VSDD-091 + volatile-file reference). Class B precondition (§Decision 4) was delivered by product-owner in BC-5.39.010 v1.5. S-19.01 hash `0ad9c4b` remains stale pending story-writer remediation of its `inputs:` array.
 
 ## Alternatives Considered
 
@@ -226,6 +251,7 @@ Accepted. The ARCH-INDEX row was inserted at v3.42. Remediation (§Decision 5) i
 - **Empirical demonstration:** D-952 burst — S-19.01 stored hash `0ad9c4b`, post-burst recomputed hash `242af2f`; cause confirmed as `L-BB-tooling-version-divergence-masquerades-as-fabrication` lesson append to `.factory/cycles/v1.0-brownfield-backfill/lessons.md` (listed in S-19.01 `inputs:`)
 - **F-S2107-P2-010:** Adversary pass-2 finding — nine E-19 stories have live block-on-ship condition against POLICY 18 three-way equality; true exposure confirmed as 19 stories (v1.0) → corrected to 78 stories (v1.1) by full-corpus re-derivation → corrected to 77 stories (v1.2) after S-21.07 remediation
 - **F-S2107-P4-013:** Adversary pass-4 finding — PC40's "imposes no permanent weakening" guarantee is false for S-21.07 because ADR-037 §Context omitted S-21.07 from the 19-story table; the v1.1 amendment corrects this
+- **F-S2107-P7-018:** Adversary pass-6 finding — ARCH-INDEX leg derivation grep was a prefix match, not exact equality; S-8.10's line-pinned `ARCH-INDEX.md:75` passes prefix grep but fails `is_volatile_path` exact equality; ARCH-INDEX leg 62→61, de-duplicated union 77→76 (production predicate); S-8.10 in remediation roster as TD-VSDD-091 defect; PC40 exact-equality ruling: no BC amendment required (story inputs must use canonical paths); total remediation scope 77 (76 predicate + S-8.10)
 - **BC-5.39.010:** Normative twin to ADR-035; Class B arm implementation in S-21.07 `validate-cross-site-correspondence` WASM gate
 - **ADR-035 §Decision 1:** Three-tier architecture — Tier 2A WASM PostToolUse cross-site gate enforces Class B with BLOCKING severity
 - **ADR-036 §Decision 3:** Authoritative binary `plugins/vsdd-factory/bin/compute-input-hash`; per-story `--update` invocations; `--scan --update` forbidden (D-936)
@@ -234,6 +260,7 @@ Accepted. The ARCH-INDEX row was inserted at v3.42. Remediation (§Decision 5) i
 
 | Version | Date | Summary |
 |---------|------|---------|
+| 1.3 | 2026-08-06 | F-S2107-P7-018 ADR-side remediation (architect; S-21.07 pass-7 fix burst): corpus re-derivation predicate corrected to `is_volatile_path` exact-match semantics (added `$` anchor to ARCH-INDEX grep). ARCH-INDEX leg 62→61; de-duplicated union 77→76 (production predicate count). S-8.10 identified as TD-VSDD-091 defect: `inputs:` carries line-pinned `ARCH-INDEX.md:75` that the production predicate rejects; S-8.10 in remediation roster as separate TD-VSDD-091 defect; total remediation scope 77 (76 predicate + S-8.10). PC40 exact-equality ruling: exact equality is correct; no BC amendment required; story inputs must use canonical paths. Routing: story-writer via orchestrator to remove S-8.10 malformed ARCH-INDEX entry. |
 | 1.2 | 2026-08-05 | F-S2107-P6-006 + F-S2107-P6-011 ADR-side remediation (architect; S-21.07 pass-6 fix burst): S-21.07 removed from §Context volatile-roster table (remediated in pass-5 burst — ARCH-INDEX.md entry already removed from story inputs:). Corpus re-derivation 2026-08-05 yields ARCH-INDEX leg 63→62, de-duplicated union 78→77. All §Decision 5 blast-radius figures and §Status updated 78→77. §Status S-21.07-pending language replaced with S-21.07-remediated acknowledgment. modified[] array corrected to ascending order (F-S2107-P6-011). |
 | 1.1 | 2026-08-05 | F-S2107-P4-013 ADR-side remediation (architect; S-21.07 pass-5 fix burst): S-21.07 added to §Context table and §Decision 5 blast radius. Mechanical full-corpus re-derivation confirms 78 volatile stories (vs 19 in v1.0). S-15.14, S-15.15, S-15.17 entries corrected (incomplete volatile-input listings). 58 additional stories added to table. §Decision 5 blast radius 19→78. §Decision 7 frozen-only count ~29→23 (corpus-verified). Corpus scan commands added per D-950. |
 | 1.0 | 2026-08-04 | Initial ruling: volatile-artifact exclusion from `inputs:`; 19-story remediation scope (partial manual scan); D-952 empirical demonstration; BC-5.39.010 §Decision 4 precondition requirement routed to product-owner. |
