@@ -1449,28 +1449,54 @@ for line in sys.stdin:
   # PC2a: primary newer → advisory + Continue, NOT block.
   _assert_exit 0
 
-  # Advisory MUST contain normative substrings (AC-022 verbatim assertions).
+  # AC-022: full-string equality on the complete PC2a normative advisory text.
+  # BC-5.39.010 v1.13 PC4a forbids .contains()-only assertions on normative messages.
+  # Fixture: BC-5.39.010 frontmatter v1.6; BC-INDEX row cites v1.5.
   local log; log="$(_plugin_log)"
-  local warn_line
-  warn_line="$(grep '"plugin_name":"validate-cross-site-correspondence"' "$log" 2>/dev/null \
-    | grep '"type":"plugin.log"' \
-    | grep '"level":"warn"' || true)"
 
-  echo "$warn_line" | grep -q '\[Class A Arm1\] advisory:' || {
-    echo "FAIL: AC-022 advisory must contain '[Class A Arm1] advisory:' (verbatim)."
-    echo "  BC-5.39.010 v1.12 PC2a prescribed text."
-    echo "  RED GATE: v1.10 impl blocks; no advisory emitted."
-    echo "$warn_line" | head -3 || echo "  (no plugin.log warn records)"
+  # Extract the message field from the JSONL log record using python3 JSON decode.
+  # Handles Unicode (em dash: —) and JSON-escaped characters correctly.
+  local actual_msg
+  actual_msg=$(python3 -c "
+import sys, json
+for line in sys.stdin:
+    line = line.strip()
+    if not line:
+        continue
+    try:
+        obj = json.loads(line)
+    except Exception:
+        continue
+    if (obj.get('plugin_name') == 'validate-cross-site-correspondence' and
+            obj.get('type') == 'plugin.log' and
+            obj.get('level') == 'warn'):
+        print(obj.get('message', ''), end='')
+        sys.exit(0)
+" < "$log" 2>/dev/null || true)
+
+  # Decode expected text through Python to handle Unicode (em dash —) correctly.
+  local expected_decoded
+  expected_decoded=$(python3 -c "print('validate-cross-site-correspondence [Class A Arm1] advisory: BC-INDEX.md body-table row for BC-5.39.010 cites v1.5 but frontmatter version: is \"1.6\" — primary newer than index; state-manager index update pending; Class A BLOCK suspended.', end='')" 2>/dev/null || true)
+
+  [ "$actual_msg" = "$expected_decoded" ] || {
+    echo "FAIL: PC2a advisory does not match v1.13 normative verbatim text."
+    echo "  F-S2107-P7-013 gate: BC-5.39.010 v1.13 PC4a requires full-string equality."
+    echo "  Expected: $expected_decoded"
+    echo "  Actual:   $actual_msg"
+    echo "  (empty actual_msg = no warn advisory in log; mismatch = wrong message format)"
+    grep '"plugin_name":"validate-cross-site-correspondence"' "$log" 2>/dev/null \
+      | grep '"type":"plugin.log"' | grep '"level":"warn"' | head -3 \
+      || echo "  (no warn plugin.log records)"
     false
   }
-  echo "$warn_line" | grep -q 'primary newer than index' || {
-    echo "FAIL: AC-022 advisory must contain 'primary newer than index' (verbatim)."
-    echo "  BC-5.39.010 v1.12 PC2a prescribed text."
-    false
-  }
-  echo "$warn_line" | grep -q 'Class A BLOCK suspended' || {
-    echo "FAIL: AC-022 advisory must contain 'Class A BLOCK suspended' (verbatim)."
-    echo "  BC-5.39.010 v1.12 PC2a prescribed text."
+
+  # Anti-vacuity: a message that passes all three old grep-q substring checks but differs
+  # from the normative text must be rejected by full-string equality. Proves PC4a has teeth.
+  local wrong_substr_msg
+  wrong_substr_msg="validate-cross-site-correspondence [Class A Arm1] advisory: (WRONG FORMAT) primary newer than index; Class A BLOCK suspended."
+  [ "$wrong_substr_msg" != "$expected_decoded" ] || {
+    echo "FAIL: ANTI-VACUITY: substring-passing wrong message must not equal normative text."
+    echo "  The equality gate failed to discriminate. expected_decoded may be incorrect."
     false
   }
 }
@@ -1563,28 +1589,54 @@ for line in sys.stdin:
   # PC13a: B2==B3, B1 differs → advisory + Continue, NOT block.
   _assert_exit 0
 
-  # Advisory MUST contain normative substrings (AC-023 verbatim assertions).
+  # AC-023: full-string equality on the complete PC13a normative advisory text.
+  # BC-5.39.010 v1.13 PC4a forbids .contains()-only assertions on normative messages.
+  # Fixture: S-21.07-test B1=47a65c9; STORY-INDEX B2=4be9d21, B3=4be9d21 (B2==B3).
   local log; log="$(_plugin_log)"
-  local warn_line
-  warn_line="$(grep '"plugin_name":"validate-cross-site-correspondence"' "$log" 2>/dev/null \
-    | grep '"type":"plugin.log"' \
-    | grep '"level":"warn"' || true)"
 
-  echo "$warn_line" | grep -q '\[Class B\] advisory:' || {
-    echo "FAIL: AC-023 advisory must contain '[Class B] advisory:' (verbatim)."
-    echo "  BC-5.39.010 v1.12 PC13a prescribed text."
-    echo "  RED GATE: v1.10 impl blocks; no advisory emitted."
-    echo "$warn_line" | head -3 || echo "  (no plugin.log warn records)"
+  # Extract the message field from the JSONL log record using python3 JSON decode.
+  # Handles Unicode (em dash: —) and JSON-escaped characters correctly.
+  local actual_msg
+  actual_msg=$(python3 -c "
+import sys, json
+for line in sys.stdin:
+    line = line.strip()
+    if not line:
+        continue
+    try:
+        obj = json.loads(line)
+    except Exception:
+        continue
+    if (obj.get('plugin_name') == 'validate-cross-site-correspondence' and
+            obj.get('type') == 'plugin.log' and
+            obj.get('level') == 'warn'):
+        print(obj.get('message', ''), end='')
+        sys.exit(0)
+" < "$log" 2>/dev/null || true)
+
+  # Decode expected text through Python to handle Unicode (em dash —) correctly.
+  local expected_decoded
+  expected_decoded=$(python3 -c "print('validate-cross-site-correspondence [Class B] advisory: Story S-21.07-test input-hash mismatch — frontmatter=47a65c9; STORY-INDEX-catalog=4be9d21; STORY-INDEX-blockquote=4be9d21. STORY-INDEX sites agree with each other; story frontmatter differs. State-manager STORY-INDEX update pending; Class B BLOCK suspended.', end='')" 2>/dev/null || true)
+
+  [ "$actual_msg" = "$expected_decoded" ] || {
+    echo "FAIL: PC13a advisory does not match v1.13 normative verbatim text."
+    echo "  F-S2107-P7-013 gate: BC-5.39.010 v1.13 PC4a requires full-string equality."
+    echo "  Expected: $expected_decoded"
+    echo "  Actual:   $actual_msg"
+    echo "  (empty actual_msg = no warn advisory in log; mismatch = wrong message format)"
+    grep '"plugin_name":"validate-cross-site-correspondence"' "$log" 2>/dev/null \
+      | grep '"type":"plugin.log"' | grep '"level":"warn"' | head -3 \
+      || echo "  (no warn plugin.log records)"
     false
   }
-  echo "$warn_line" | grep -q 'STORY-INDEX sites agree with each other' || {
-    echo "FAIL: AC-023 advisory must contain 'STORY-INDEX sites agree with each other' (verbatim)."
-    echo "  BC-5.39.010 v1.12 PC13a prescribed text."
-    false
-  }
-  echo "$warn_line" | grep -q 'State-manager STORY-INDEX update pending; Class B BLOCK suspended' || {
-    echo "FAIL: AC-023 advisory must contain 'State-manager STORY-INDEX update pending; Class B BLOCK suspended' (verbatim)."
-    echo "  BC-5.39.010 v1.12 PC13a prescribed text."
+
+  # Anti-vacuity: a message that passes all three old grep-q substring checks but differs
+  # from the normative text must be rejected by full-string equality. Proves PC4a has teeth.
+  local wrong_substr_msg
+  wrong_substr_msg="validate-cross-site-correspondence [Class B] advisory: (WRONG FORMAT) STORY-INDEX sites agree with each other. State-manager STORY-INDEX update pending; Class B BLOCK suspended."
+  [ "$wrong_substr_msg" != "$expected_decoded" ] || {
+    echo "FAIL: ANTI-VACUITY: substring-passing wrong message must not equal normative text."
+    echo "  The equality gate failed to discriminate. expected_decoded may be incorrect."
     false
   }
 }
@@ -1675,38 +1727,74 @@ for line in sys.stdin:
 }
 
 # ---------------------------------------------------------------------------
-# F-P6-016: Coverage assertion — 5 Class-D-DEFERRED skips AND >=40 @test declarations.
-# Verifies structural invariants of the bats file itself:
+# F-P6-016: Coverage gate — execution-bounded counts.
+# Verifies structural invariants of the bats file itself by counting execution sites,
+# not just declarations (process-gap: a coverage gate must count executions, not declarations).
 #   (a) Exactly 5 tests carry the "[DEFERRED v1.6 — Class D]" skip marker.
 #       These are the five Class D tests (AC-012 x2, AC-013, AC-014, AC-015) deferred
 #       per BC-5.39.010 v1.6. No new Class D deferred tests should be added without
 #       updating this count. No existing ones should be silently removed.
-#   (b) At least 40 @test declarations total (T-P6x + T-047-CONTROL + F-P6-016 + F-P6-002
-#       push the count above 40; confirms all new tests were added).
-# ALWAYS PASSES: no dispatcher invocation. Pure file structure assertion.
+#   (b) Exactly 45 _require_artifacts call sites.
+#       Each site becomes a skip when the factory-dispatcher binary or WASM is absent.
+#       Bounding this explicitly prevents silent growth in dispatcher-gated test count.
+#   (c) Total @test declarations >=40 (sanity floor; not the primary execution measure).
+#
+# Execution-bounded attestation (derived from (a)+(b)+(c)):
+#   When dispatcher + WASM present: (total - deferred) passed / deferred skipped / 0 failed
+#   When dispatcher + WASM absent:  (total - req_sites) passed / req_sites skipped / 0 failed
+#
+# ALWAYS PASSES: no dispatcher invocation. Pure file-structure analysis.
 # ---------------------------------------------------------------------------
 
-@test "F-P6-016: exactly 5 Class-D-DEFERRED skips and >=40 test declarations" {
+@test "F-P6-016: coverage gate — 5 deferred, 45 dispatcher-gated, execution-bounded attestation" {
   local bats_file="$BATS_TEST_FILENAME"
 
   # (a) Class-D-DEFERRED skip count: must be exactly 5.
-  local skip_count
-  skip_count=$(grep -c 'skip "\[DEFERRED v1\.6 — Class D\]' "$bats_file" 2>/dev/null || echo 0)
-  [ "$skip_count" -eq 5 ] || {
-    echo "FAIL: expected exactly 5 Class-D-DEFERRED skip lines, got $skip_count."
+  local deferred_count
+  deferred_count=$(grep -c 'skip "\[DEFERRED v1\.6 — Class D\]' "$bats_file" 2>/dev/null || echo 0)
+  [ "$deferred_count" -eq 5 ] || {
+    echo "FAIL: expected exactly 5 Class-D-DEFERRED skip lines, got $deferred_count."
     echo "  BC-5.39.010 v1.6 deferred Class D (AC-012 x2, AC-013, AC-014, AC-015)."
     echo "  If a new deferred test was added, update this count. If one was removed, investigate."
     false
   }
 
-  # (b) Total @test count: must be >=40.
-  local test_count
-  test_count=$(grep -c '^@test ' "$bats_file" 2>/dev/null || echo 0)
-  [ "$test_count" -ge 40 ] || {
-    echo "FAIL: expected >=40 @test declarations, got $test_count."
-    echo "  F-P6-016: T-P6A/B/C/D + T-047-CONTROL + F-P6-016 + F-P6-002 push count above 40."
-    echo "  If this fails, the new tests from F-P6-001 may not have been added."
+  # (b) _require_artifacts call sites: must be exactly 45.
+  # Each site becomes a skip when the factory-dispatcher binary or WASM is absent.
+  # Bounding this explicitly prevents silent inflation: a new dispatcher-gated test added
+  # without updating this count will fail the gate, not silently grow the skip count.
+  local req_count
+  req_count=$(grep -c '^\s*_require_artifacts$' "$bats_file" 2>/dev/null || echo 0)
+  [ "$req_count" -eq 45 ] || {
+    echo "FAIL: expected exactly 45 _require_artifacts call sites, got $req_count."
+    echo "  This bounds the number of tests that skip when the factory-dispatcher binary"
+    echo "  or WASM artifact is absent. Update this count when adding or removing a"
+    echo "  dispatcher-gated test."
     false
   }
+
+  # (c) Total @test declarations: sanity floor >=40.
+  local total_count
+  total_count=$(grep -c '^@test ' "$bats_file" 2>/dev/null || echo 0)
+  [ "$total_count" -ge 40 ] || {
+    echo "FAIL: expected >=40 @test declarations, got $total_count."
+    echo "  Sanity floor. If this fails, tests may have been silently removed."
+    false
+  }
+
+  # Execution-bounded attestation: derive expected run/skip breakdown from structural counts.
+  # - deferred tests: skip regardless of artifact presence (skip fires before _require_artifacts).
+  # - req_count includes the 5 deferred tests (they have _require_artifacts in body, never reached).
+  # - total - req_count = tests WITHOUT _require_artifacts (always run).
+  local run_when_present=$(( total_count - deferred_count ))
+  local skip_when_present=$deferred_count
+  local run_when_absent=$(( total_count - req_count ))
+  local skip_when_absent=$req_count
+  echo "Coverage attestation (F-P6-016, execution-bounded):"
+  echo "  Total declared: $total_count"
+  echo "  Class-D-DEFERRED (always skip): $deferred_count"
+  echo "  _require_artifacts call sites (dispatcher-gated): $req_count"
+  echo "  When dispatcher + WASM present: $run_when_present passed / $skip_when_present skipped / 0 failed"
+  echo "  When dispatcher + WASM absent:  $run_when_absent passed / $skip_when_absent skipped / 0 failed"
 }
 

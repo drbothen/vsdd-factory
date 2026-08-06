@@ -6,7 +6,7 @@ license.workspace = true
 repository.workspace = true
 authors.workspace = true
 rust-version.workspace = true
-description = "WASM hook plugin: PostToolUse gate that validates cross-site value-correspondence for BC version citations, story input-hash three-way equality, frontmatter version/last_amended parity, and modified[] monotonicity (BC-5.39.010 v1.12 Classes A/B/E; Class D deferred to S-21.08)"
+description = "WASM hook plugin: PostToolUse gate that validates cross-site value-correspondence for BC version citations, story input-hash three-way equality, frontmatter version/last_amended parity, and modified[] monotonicity (BC-5.39.010 v1.13 Classes A/B/E; Class D deferred to S-21.08)"
 publish = false
 
 [lib]

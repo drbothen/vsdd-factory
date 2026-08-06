@@ -91,8 +91,9 @@ fn is_section_prefix(heading: &str, prefix: &str) -> bool {
 ///
 /// # BC trace
 /// BC-5.39.010 §Architecture Anchors `extract_story_bc_version_citations`;
-/// preconditions 12-13 (table row detection + version token regex); PC13 (amended v1.4:
-/// word-boundary prefix predicate, optional `v` prefix, last/rightmost token);
+/// preconditions 12-13 (table row detection + version token regex); PC13 (v1.13:
+/// word-boundary prefix predicate, two-phase extraction — Phase 1 pure-version field
+/// rightmost, Phase 2 BC-ID-anchored first-v-token per ADR-038 §Decision 5);
 /// F-P2-001 (skip_section initialization — preamble must not be scanned).
 pub fn extract_story_bc_version_citations(content: &str, bc_id: &str) -> Vec<(String, String)> {
     let mut citations = Vec::new();
@@ -126,8 +127,24 @@ pub fn extract_story_bc_version_citations(content: &str, bc_id: &str) -> Vec<(St
             continue;
         }
 
-        // Row is in a scannable section and contains the BC ID: extract version
-        if let Some(version) = extract_version_token_from_table_row(line) {
+        // Row is in a scannable section and contains the BC ID: extract version.
+        // Phase 1 (pure-version field, right-to-left) via extract_version_token_from_table_row.
+        // Phase 2 (BC-ID-anchored first-v-token, left-to-right) when Phase 1 returns None.
+        // ADR-038 §Decision 5: scan fields left-to-right; for each field containing
+        // bc_id at a word boundary, return the first \bv([0-9]+\.[0-9]+)\b after bc_id.
+        let version = extract_version_token_from_table_row(line).or_else(|| {
+            for field in line.split('|') {
+                let trimmed = field.trim();
+                if let Some(after_bc_id) = find_bc_id_boundary_end(trimmed, bc_id)
+                    && let Some(v) = extract_first_v_token_after_position(trimmed, after_bc_id)
+                {
+                    return Some(v);
+                }
+                // bc_id present at boundary but no subsequent v-token; try next field.
+            }
+            None
+        });
+        if let Some(version) = version {
             let location = format!("table row {}", line_num + 1);
             citations.push((location, version));
         }
@@ -145,7 +162,7 @@ pub fn extract_story_bc_version_citations(content: &str, bc_id: &str) -> Vec<(St
 /// Hand-rolled — no regex crate (ADR-035 §Decision 5 fuel-budget constraint).
 ///
 /// # BC trace
-/// BC-5.39.010 v1.12 PC13: word-boundary bc_id token test.
+/// BC-5.39.010 v1.13 PC13: word-boundary bc_id token test.
 /// F-S2107-P3-004: `line.contains(bc_id)` prefix-collision fix.
 fn line_contains_bc_id_at_boundary(line: &str, bc_id: &str) -> bool {
     let mut search_start = 0;
@@ -203,15 +220,57 @@ fn parse_pure_version_field(s: &str) -> Option<String> {
     }
 }
 
-/// Find the rightmost `\bv([0-9]+\.[0-9]+)\b` token in a single field.
+/// Find the byte offset immediately after the first boundary occurrence of `bc_id`
+/// in `s`. A boundary occurrence is one where the character immediately following
+/// `bc_id` is not ASCII alphanumeric (or `bc_id` ends at end-of-string).
 ///
-/// The `v` prefix is mandatory (Phase 2 of PC13). Returns the version without `v`.
-/// Scans left-to-right and keeps updating `last_match` — callers receive the
-/// rightmost occurrence.
-fn extract_mandatory_v_inline(s: &str) -> Option<String> {
+/// Returns `Some(end)` where `end = bc_id_start + bc_id.len()` for the first
+/// qualifying match — i.e., the offset of the first character after `bc_id`.
+/// Returns `None` if no boundary occurrence exists in `s`.
+///
+/// Hand-rolled — no regex crate (ADR-035 §Decision 5 fuel-budget constraint).
+///
+/// # BC trace
+/// BC-5.39.010 v1.13 PC13 Phase 2 (ADR-038 §Decision 5): position anchor for
+/// first-v-token extraction in `extract_story_bc_version_citations`.
+fn find_bc_id_boundary_end(s: &str, bc_id: &str) -> Option<usize> {
+    let mut search_start = 0;
+    while search_start < s.len() {
+        let rel = s[search_start..].find(bc_id)?;
+        let abs = search_start + rel;
+        let end = abs + bc_id.len();
+        let boundary_ok = s[end..]
+            .chars()
+            .next()
+            .map(|c| !c.is_ascii_alphanumeric())
+            .unwrap_or(true);
+        if boundary_ok {
+            return Some(end);
+        }
+        search_start = abs + 1;
+    }
+    None
+}
+
+/// Find the first `\bv([0-9]+\.[0-9]+)\b` token at or after byte offset `start` in `s`.
+///
+/// The `v` prefix is mandatory. Returns the version digits without the leading `v`
+/// (e.g., `"1.9"` from `"v1.9"`). Returns `None` if no such token exists from
+/// `start` onward.
+///
+/// Semantics differ from the removed `extract_mandatory_v_inline` (Phase 2 prior
+/// to ADR-038 §Decision 5), which returned the LAST (rightmost) match. This
+/// function returns the FIRST match from `start` — required for the BC-ID-anchored
+/// first-v-token algorithm.
+///
+/// Hand-rolled — no regex crate (ADR-035 §Decision 5 fuel-budget constraint).
+///
+/// # BC trace
+/// BC-5.39.010 v1.13 PC13 Phase 2 (ADR-038 §Decision 5): first-v-token-after-bc_id
+/// extraction for the BC-ID-anchored pass in `extract_story_bc_version_citations`.
+fn extract_first_v_token_after_position(s: &str, start: usize) -> Option<String> {
     let bytes = s.as_bytes();
-    let mut last_match: Option<String> = None;
-    let mut i = 0;
+    let mut i = start;
     while i < bytes.len() {
         if bytes[i] == b'v' {
             let prev_ok = i == 0 || !bytes[i - 1].is_ascii_alphanumeric();
@@ -230,9 +289,7 @@ fn extract_mandatory_v_inline(s: &str) -> Option<String> {
                         }
                         let next_ok = k >= bytes.len() || !bytes[k].is_ascii_alphanumeric();
                         if next_ok {
-                            last_match = Some(s[digit_start..k].to_string());
-                            i = k;
-                            continue;
+                            return Some(s[digit_start..k].to_string());
                         }
                     }
                 }
@@ -240,32 +297,31 @@ fn extract_mandatory_v_inline(s: &str) -> Option<String> {
         }
         i += 1;
     }
-    last_match
+    None
 }
 
-/// Extract a version token from a table row using the v1.12 two-phase PC13 algorithm.
+/// Extract a version token from a table row using Phase 1 of the v1.13 PC13 algorithm.
 ///
 /// **Phase 1 (pure-version field):** split row by `|`; scan fields right-to-left;
 /// return the version from the first (rightmost) field whose trimmed content
 /// matches `^v?[0-9]+\.[0-9]+$`. The `v` prefix is optional in Phase 1.
 ///
-/// **Phase 2 (mandatory-v fallback):** if Phase 1 finds nothing, scan fields
-/// right-to-left for the rightmost `\bv([0-9]+\.[0-9]+)\b` inline token.
-/// The `v` prefix is MANDATORY in Phase 2.
+/// Returns `None` when no field is a pure-version field. The caller
+/// (`extract_story_bc_version_citations`) applies Phase 2 (BC-ID-anchored
+/// first-v-token per ADR-038 §Decision 5) when Phase 1 returns `None`.
 ///
 /// Three collision classes fixed versus the prior optional-v left-to-right scanner:
-///   - Class 1: story IDs like "S-4.07" → no pure-version field, no mandatory-v
-///     token → no citation (29 rows across 6 stories).
+///   - Class 1: story IDs like "S-4.07" → no pure-version field → no Phase 1 match
+///     (29 rows across 6 stories). Phase 2 BC-ID anchor also produces no v-token.
 ///   - Class 2: "DEFERRED v1.6" in ACs column when Version column is "1.7" →
-///     Phase 1 finds "1.7" first (rightmost pure-version field); "v1.6" never reached.
-///   - Class 3: "BC-1.13.001" fragments → Phase 1 no pure-version; Phase 2 no
-///     mandatory-v → no citation.
+///     Phase 1 finds "1.7" first (rightmost pure-version field); Phase 2 not reached.
+///   - Class 3: "BC-1.13.001" fragments → Phase 1 no pure-version; Phase 2 anchor
+///     field has no subsequent v-token → no citation.
 ///
 /// Hand-rolled — no regex crate (ADR-035 §Decision 5 fuel-budget constraint).
 ///
 /// # BC trace
-/// BC-5.39.010 v1.12 PC13: two-phase version extraction algorithm.
-/// F-S2107-P3-022: reverse-field algorithm (replaces left-to-right last-token).
+/// BC-5.39.010 v1.13 PC13: Phase 1 pure-version field (right-to-left) algorithm.
 /// F-S2107-P1B-002: optional-v Phase 1 (detects bare "1.3" version cells).
 fn extract_version_token_from_table_row(line: &str) -> Option<String> {
     let fields: Vec<&str> = line.split('|').collect();
@@ -277,17 +333,6 @@ fn extract_version_token_from_table_row(line: &str) -> Option<String> {
             continue;
         }
         if let Some(v) = parse_pure_version_field(trimmed) {
-            return Some(v);
-        }
-    }
-
-    // Phase 2: mandatory-v inline token — rightmost field first.
-    for field in fields.iter().rev() {
-        let trimmed = field.trim();
-        if trimmed.is_empty() {
-            continue;
-        }
-        if let Some(v) = extract_mandatory_v_inline(trimmed) {
             return Some(v);
         }
     }
@@ -1220,6 +1265,336 @@ mod tests {
             Over-normalisation would incorrectly pass this citation. \
             Violations: {:?}",
             violations
+        );
+    }
+
+    // -----------------------------------------------------------------------
+    // ADR-038 §Decision 5 — Phase 2 BC-ID-anchored first-v-token (regression guards)
+    //
+    // BC-5.39.010 v1.13 PC13 declared Phase 2's reverse-field (rightmost-first)
+    // algorithm NON-CONFORMING. The correct algorithm is:
+    //   For each pipe-delimited field (left-to-right): locate the field containing
+    //   the BC ID at a word boundary (same predicate as line_contains_bc_id_at_boundary).
+    //   Return the FIRST `\bv([0-9]+\.[0-9]+)\b` token appearing AFTER the BC ID
+    //   position within that field. If no field contains both the BC ID and a
+    //   subsequent v-token, Phase 2 returns None.
+    //
+    // Citation: ADR-038 §Decision 5 (v1.2); BC-5.39.010 v1.13 PC13.
+    //
+    // Implementation (S-21.07 pass-7 fix burst): the implementer reused
+    // `line_contains_bc_id_at_boundary` as the per-field anchor predicate, built
+    // first-match extraction at the anchor offset (superseding the prior rightmost-
+    // match helper), and lifted Phase 2 into `extract_story_bc_version_citations`
+    // where `bc_id` was already in scope. The TD-VSDD-060 sibling sweep was trivial.
+    //
+    // Three proof fixtures from ADR-038 §Empirical Measurement (v1.1):
+    //
+    //   Fixture 1 — S-15.17 / BC-5.39.009 class (pre-fix WRONG ANSWER):
+    //     Row shape: "BC-5.39.009 v1.9 (per POLICY 5 v1.3.6 verification gate)"
+    //     Phase 2 pre-fix (rightmost-field): rightmost-match scan returned "1.3"
+    //       (v1.3 extracted from v1.3.6 annotation prose — last_match semantics).
+    //     Phase 2 fixed: first v-token after BC-5.39.009 in the anchor field = "1.9".
+    //
+    //   Fixture 2 — S-4.08 / BC-9.01.002 class (cross-BC contamination):
+    //     Row shape: "| BC-9.01.002 | ... | v1.1 (traces ONLY to BC-9.01.001) |"
+    //     Phase 2 pre-fix (reverse-field): reverse field scan reached the v1.1 field
+    //       (about BC-9.01.001), returned "1.1" WRONG (token from a different BC).
+    //     Phase 2 fixed: anchor field for BC-9.01.002 contains no subsequent v-token
+    //       → None.
+    //
+    //   Fixture 3 — S-10.05 / BC-2.06.001 class (conjunction annotation):
+    //     Row shape: "| BC-2.06.001 | ... | (BC-2.06.001 v1.3+v1.4 Invariant 2) |"
+    //     Phase 2 pre-fix (rightmost-field): returned "1.4" (rightmost in field).
+    //     Phase 2 fixed: first v-token after BC-2.06.001 in anchor field = "1.3".
+    //
+    // GATE STATUS (post-fix S-21.07 pass-7):
+    //   Fixtures 1–3: GREEN — BC-ID-anchored algorithm now in effect.
+    //     Retained as permanent regression guards.
+    //   Phase 1 regression guard + per-fixture GREEN controls: GREEN (unchanged).
+    // -----------------------------------------------------------------------
+
+    /// ADR-038 §Decision 5 Phase 1 regression guard.
+    ///
+    /// A standard Behavioral Contracts table row with a pure-version cell: Phase 1
+    /// (right-to-left pure-version field scan) finds the version directly and Phase 2
+    /// is never reached. Must remain GREEN before and after the Phase 2 algorithm change.
+    ///
+    /// Corpus count: 58 rows use Phase 1 (pure-version cell); ADR-038 confirms Phase 1
+    /// is unchanged by §Decision 5.
+    #[test]
+    fn test_BC_5_39_010_arm_a2_pc13_phase1_pure_version_field_regression_guard() {
+        let content = concat!(
+            "## Behavioral Contracts\n",
+            "\n",
+            "| BC ID | Title | Version | ACs |\n",
+            "| BC-5.39.009 | trajectory tail cell completeness | 1.9 | AC-001 |\n",
+        );
+        let citations = extract_story_bc_version_citations(content, "BC-5.39.009");
+        assert_eq!(
+            citations.len(),
+            1,
+            "Phase 1 must find the pure-version field '1.9' and produce exactly 1 citation. \
+            Phase 2 is never reached. Phase 1 must be unaffected by any Phase 2 algorithm change. \
+            Citations: {citations:?}"
+        );
+        assert_eq!(
+            citations[0].1, "1.9",
+            "Phase 1 pure-version field must return '1.9'. \
+            Regression guard: this must be GREEN before and after the Phase 2 algorithm change."
+        );
+    }
+
+    /// ADR-038 §Decision 5 Fixture 1 control.
+    ///
+    /// Token Budget row where the anchor field has exactly ONE v-token after the BC ID.
+    /// Both the pre-fix reverse-field algorithm and the BC-ID-anchored algorithm
+    /// return the same value — proving the Fixture 1 regression guard is distinguishable.
+    /// GREEN under both algorithms.
+    #[test]
+    fn test_BC_5_39_010_arm_a2_pc13_phase2_single_v_token_anchor_field_both_algorithms_agree() {
+        // "BC-5.39.009 v1.9 (full AC coverage)" — one v-token, no annotation prose.
+        // Phase 2 pre-fix (rightmost in field): last_match = "1.9". Returned "1.9".
+        // Phase 2 correct (first after BC ID): first v-token after BC-5.39.009 = "1.9".
+        // Both return "1.9". GREEN control.
+        let content = concat!(
+            "## Token Budget Estimate (MANDATORY)\n",
+            "\n",
+            "| Context Source | Tokens |\n",
+            "| BC-5.39.009 v1.9 (full AC coverage) | ~4,000 |\n",
+        );
+        let citations = extract_story_bc_version_citations(content, "BC-5.39.009");
+        assert_eq!(
+            citations.len(),
+            1,
+            "Single-v-token Token Budget row must produce exactly 1 citation. \
+            Phase 1 does not fire (not a pure-version field). Phase 2 required. \
+            Citations: {citations:?}"
+        );
+        assert_eq!(
+            citations[0].1, "1.9",
+            "Both pre-fix and BC-ID-anchored algorithms agree on a single-v-token anchor \
+            field: 'v1.9' is the only token and must be returned. \
+            GREEN control: proves Fixture 1 regression guard is not vacuous. \
+            Citation: {citations:?}"
+        );
+    }
+
+    /// ADR-038 §Decision 5 Fixture 1 regression guard — annotation prose later v-token.
+    ///
+    /// Row shape mirrors S-15.17 BC-5.39.009: the Token Budget anchor field contains
+    /// "BC-5.39.009 v1.9 (per POLICY 5 v1.3.6 verification gate)". The annotation prose
+    /// introduces a second, later v-token ("v1.3" extracted from "v1.3.6") that
+    /// lexicographically follows "v1.9" in left-to-right order but is LOWER in version.
+    ///
+    /// Phase 2 pre-fix (reverse-field rightmost): rightmost-match scan updated last_match
+    ///   each time: v1.9 → last_match="1.9", then v1.3 (from v1.3.6 annotation) →
+    ///   last_match="1.3". Returned "1.3". WRONG (pre-fix behavior).
+    ///
+    /// Phase 2 fixed (BC-ID-anchored): first v-token after "BC-5.39.009" in the
+    ///   anchor field is "v1.9". Returns "1.9". CORRECT.
+    ///
+    /// GREEN (post-fix): passes after Phase 2 was fixed in S-21.07 pass-7.
+    /// Retained as a regression guard — rightmost-field behavior must not return.
+    #[test]
+    fn test_BC_5_39_010_arm_a2_pc13_phase2_annotation_prose_later_v_token_not_returned() {
+        // Phase 1: "BC-5.39.009 v1.9 (per POLICY 5 v1.3.6 verification gate)" is not a
+        //   pure-version field (starts with 'B'). "~4,000" is not a pure-version field.
+        //   Phase 1 returns None → Phase 2 required.
+        // Phase 2 pre-fix (reverse-field): rightmost non-empty field with v-token was the
+        //   BC-5.39.009 field. Rightmost-match scan: v1.9 → v1.3 (from v1.3.6);
+        //   last_match = "1.3". Returned "1.3". WRONG (pre-fix behavior).
+        // Phase 2 correct (BC-ID-anchored): anchor field contains BC-5.39.009. First v-token
+        //   after BC-5.39.009: "v1.9". Returns "1.9". CORRECT.
+        // ADR-038 §Decision 5 Fixture 1 (S-15.17 BC-5.39.009 class).
+        let content = concat!(
+            "## Token Budget Estimate (MANDATORY)\n",
+            "\n",
+            "| Context Source | Tokens |\n",
+            "| BC-5.39.009 v1.9 (per POLICY 5 v1.3.6 verification gate) | ~4,000 |\n",
+        );
+        let citations = extract_story_bc_version_citations(content, "BC-5.39.009");
+        assert_eq!(
+            citations.len(),
+            1,
+            "Token Budget row with annotation prose must produce exactly 1 citation. \
+            Phase 2 is required (no pure-version field). \
+            ADR-038 §Decision 5 Fixture 1: {citations:?}"
+        );
+        assert_eq!(
+            citations[0].1, "1.9",
+            "Phase 2 must return '1.9' (first v-token after 'BC-5.39.009'), NOT '1.3' \
+            (from annotation prose 'POLICY 5 v1.3.6'). \
+            Pre-fix reverse-field returned '1.3' — spurious PC2a stale advisory. \
+            ADR-038 §Decision 5 Fixture 1 (S-15.17 BC-5.39.009 class). Regression guard. \
+            Citation: {citations:?}"
+        );
+    }
+
+    /// ADR-038 §Decision 5 Fixture 2 control.
+    ///
+    /// The anchor field for BC-9.01.002 itself contains a v-token ("v1.1"). Both the
+    /// pre-fix and BC-ID-anchored algorithms agree and return "1.1". GREEN control — proves
+    /// the Fixture 2 regression guard (cross-BC contamination) is distinguishable.
+    #[test]
+    fn test_BC_5_39_010_arm_a2_pc13_phase2_anchor_field_with_v_token_produces_citation() {
+        // "BC-9.01.002 v1.1 (gating story)" — anchor field contains BC-9.01.002 AND v1.1.
+        // Phase 2 pre-fix (reverse-field): rightmost field with v-token was the BC-9.01.002
+        //   field itself. Rightmost-match scan: last_match = "1.1". Returned "1.1".
+        // Phase 2 correct (BC-ID-anchored): anchor field is BC-9.01.002 field. First v-token
+        //   after BC-9.01.002: "v1.1". Returns "1.1". Both agree → GREEN control.
+        let content = concat!(
+            "## Token Budget Estimate (MANDATORY)\n",
+            "\n",
+            "| Context Source | Tokens |\n",
+            "| BC-9.01.002 v1.1 (gating story) | ~1,000 |\n",
+        );
+        let citations = extract_story_bc_version_citations(content, "BC-9.01.002");
+        assert_eq!(
+            citations.len(),
+            1,
+            "Anchor field containing BC-9.01.002 and v1.1 must produce 1 citation. \
+            Citations: {citations:?}"
+        );
+        assert_eq!(
+            citations[0].1, "1.1",
+            "Both algorithms agree: anchor field has BC-9.01.002 v1.1 → returns '1.1'. \
+            GREEN control: proves Fixture 2 cross-BC regression guard is not vacuous."
+        );
+    }
+
+    /// ADR-038 §Decision 5 Fixture 2 regression guard — cross-BC field contamination.
+    ///
+    /// Row shape mirrors S-4.08 BC-9.01.002: the BC ID field contains only "BC-9.01.002"
+    /// (no v-token), while a later field contains "v1.1 candidate (traces ONLY to
+    /// BC-9.01.001 PC2)". The v1.1 token belongs to BC-9.01.001, not BC-9.01.002.
+    ///
+    /// Phase 2 pre-fix (reverse-field): scanned right-to-left across ALL fields; the
+    ///   rightmost field with a v-token was the BC-9.01.001 field. Returned "1.1". WRONG
+    ///   (pre-fix). Cross-BC contamination defect: the token belonged to a sibling BC.
+    ///
+    /// Phase 2 fixed (BC-ID-anchored): the anchor field for BC-9.01.002 is the field
+    ///   containing "BC-9.01.002". That field has no subsequent v-token. Returns None.
+    ///
+    /// GREEN (post-fix): passes after Phase 2 was fixed in S-21.07 pass-7.
+    /// Retained as a regression guard — BC-scoped anchor must not regress.
+    #[test]
+    fn test_BC_5_39_010_arm_a2_pc13_phase2_cross_bc_field_contamination_returns_none() {
+        // Phase 1: "v1.1 candidate (traces ONLY to BC-9.01.001 PC2)" starts with 'v' but
+        //   is not a pure-version field (has trailing non-digit chars). "gating story" →
+        //   None. "BC-9.01.002" → None. Phase 1 returns None → Phase 2 required.
+        // Phase 2 pre-fix (reverse-field): rightmost field = "v1.1 candidate ..." field.
+        //   Rightmost-match scan: "v1.1" → last_match = "1.1". Returned "1.1". WRONG (pre-fix).
+        // Phase 2 correct (BC-ID-anchored): find field containing "BC-9.01.002" at boundary.
+        //   Field 1: "BC-9.01.002". No v-token after BC-9.01.002 in this field. No other
+        //   field contains "BC-9.01.002". Returns None. CORRECT.
+        // ADR-038 §Decision 5 Fixture 2 (S-4.08 BC-9.01.002 class).
+        let content = concat!(
+            "## Token Budget Estimate (MANDATORY)\n",
+            "\n",
+            "| Context | Notes | Status |\n",
+            "| BC-9.01.002 | gating story | v1.1 candidate (traces ONLY to BC-9.01.001 PC2) |\n",
+        );
+        let citations = extract_story_bc_version_citations(content, "BC-9.01.002");
+        assert!(
+            citations.is_empty(),
+            "BC-9.01.002 anchor field has no subsequent v-token; the v1.1 token in a later \
+            field belongs to BC-9.01.001 (cross-BC contamination). \
+            Phase 2 BC-ID-anchored must return None → citations empty. \
+            Phase 2 pre-fix (reverse-field) returned '1.1' (from BC-9.01.001 field). \
+            ADR-038 §Decision 5 Fixture 2 (S-4.08 BC-9.01.002 class). Regression guard. \
+            Citations: {citations:?}"
+        );
+    }
+
+    /// ADR-038 §Decision 5 Fixture 3 control.
+    ///
+    /// A description field with exactly ONE v-token after the BC ID. Both the pre-fix
+    /// (rightmost) and BC-ID-anchored (first-after-id) algorithms return the same value.
+    /// GREEN under both algorithms — proves the Fixture 3 conjunction regression guard
+    /// is distinguishable from a vacuous test.
+    #[test]
+    fn test_BC_5_39_010_arm_a2_pc13_phase2_conjunction_single_v_token_control() {
+        // Field "[BC-2.06.001](path)" contains BC-2.06.001 but no v-token.
+        // Field "(BC-2.06.001 v1.4 Invariant 2)" contains BC-2.06.001 and v1.4 (one token).
+        // Phase 2 pre-fix (rightmost): rightmost field with v-token = description field. Only
+        //   "v1.4" → last_match = "1.4". Returned "1.4".
+        // Phase 2 fixed: left-to-right anchor scan. "[BC-2.06.001](path)" → no v-token
+        //   after BC-2.06.001 in that field. "(BC-2.06.001 v1.4 Invariant 2)" → BC-2.06.001
+        //   present; first v-token after it: "v1.4". Returns "1.4". Both agree → GREEN.
+        let content = concat!(
+            "## Behavioral Contracts\n",
+            "\n",
+            "| BC | Title | Scope |\n",
+            "| [BC-2.06.001](path) | VSDD Invariant 2 | (BC-2.06.001 v1.4 Invariant 2) |\n",
+        );
+        let citations = extract_story_bc_version_citations(content, "BC-2.06.001");
+        assert_eq!(
+            citations.len(),
+            1,
+            "Single-v-token description field must produce 1 citation. \
+            Citations: {citations:?}"
+        );
+        assert_eq!(
+            citations[0].1, "1.4",
+            "Both algorithms agree on single-v-token anchor field: 'v1.4'. \
+            GREEN control: proves Fixture 3 conjunction regression guard is not vacuous. \
+            Citation: {citations:?}"
+        );
+    }
+
+    /// ADR-038 §Decision 5 Fixture 3 regression guard — conjunction annotation first-v-token.
+    ///
+    /// Row shape mirrors S-10.05 BC-2.06.001: the description field contains
+    /// "(BC-2.06.001 v1.3+v1.4 Invariant 2 + EC-006)". The conjunction "v1.3+v1.4"
+    /// is a non-canonical authoring defect (ADR-038 §Decision 5); the gate should
+    /// extract the FIRST cited version (v1.3), not the rightmost (v1.4).
+    ///
+    /// Phase 2 pre-fix (reverse-field rightmost): rightmost-match scan updated last_match:
+    ///   v1.3 → last_match="1.3", v1.4 → last_match="1.4". Returned "1.4". WRONG (pre-fix).
+    ///
+    /// Phase 2 fixed (BC-ID-anchored): find anchor field containing "BC-2.06.001"
+    ///   at word boundary. First v-token AFTER BC-2.06.001 in that field: "v1.3".
+    ///   Returns "1.3". CORRECT.
+    ///
+    /// Note: if BC-2.06.001 is currently at v1.4, the gate correctly blocks the
+    /// citation (stale at v1.3). The conjunction format is the authoring defect;
+    /// the gate resolves it via first-cited-wins.
+    ///
+    /// GREEN (post-fix): passes after Phase 2 was fixed in S-21.07 pass-7.
+    /// Retained as a regression guard — conjunction first-cited-wins must not regress.
+    #[test]
+    fn test_BC_5_39_010_arm_a2_pc13_phase2_conjunction_annotation_first_v_token_returned() {
+        // Phase 1: "(BC-2.06.001 v1.3+v1.4 Invariant 2 + EC-006)" starts with '(' →
+        //   not pure-version. "VSDD Invariant 2" → None. "BC-2.06.001" → None.
+        //   Phase 1 returns None → Phase 2 required.
+        // Phase 2 pre-fix (reverse-field): rightmost field with v-token = description field.
+        //   Rightmost-match scan: v1.3 → last_match="1.3"; v1.4 → last_match="1.4".
+        //   Returned "1.4". WRONG (pre-fix behavior).
+        // Phase 2 correct (BC-ID-anchored): left-to-right anchor scan. "BC-2.06.001" field
+        //   has no v-token after it. Description field "(BC-2.06.001 v1.3+v1.4 ...)" has
+        //   BC-2.06.001; first v-token after it: "v1.3". Returns "1.3". CORRECT.
+        // ADR-038 §Decision 5 Fixture 3 (S-10.05 BC-2.06.001 class).
+        let content = concat!(
+            "## Behavioral Contracts\n",
+            "\n",
+            "| BC | Title | Scope |\n",
+            "| BC-2.06.001 | VSDD Invariant 2 | (BC-2.06.001 v1.3+v1.4 Invariant 2 + EC-006) |\n",
+        );
+        let citations = extract_story_bc_version_citations(content, "BC-2.06.001");
+        assert_eq!(
+            citations.len(),
+            1,
+            "Row with conjunction 'BC-2.06.001 v1.3+v1.4' must produce exactly 1 citation. \
+            ADR-038 §Decision 5 Fixture 3 (S-10.05 BC-2.06.001 class). \
+            Citations: {citations:?}"
+        );
+        assert_eq!(
+            citations[0].1, "1.3",
+            "Phase 2 must return '1.3' (first v-token after 'BC-2.06.001'), NOT '1.4' \
+            (rightmost in the field). \
+            Conjunction 'v1.3+v1.4' — first-cited-wins per ADR-038 §Decision 5. \
+            Pre-fix reverse-field returned '1.4'. Regression guard. \
+            Citation: {citations:?}"
         );
     }
 }

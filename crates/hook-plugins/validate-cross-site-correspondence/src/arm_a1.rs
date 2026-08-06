@@ -63,7 +63,7 @@ pub fn derive_bc_path(bc_id: &str) -> String {
 
 /// Four-state result for BC-INDEX.md row classification.
 ///
-/// BC-5.39.010 v1.12 PC5 (column-count-anchored, four-state, full-file scan):
+/// BC-5.39.010 v1.13 PC5 (column-count-anchored, four-state, full-file scan):
 /// - `RowAbsent`: NO candidate line found at all for this BC ID. A candidate line must
 ///   satisfy the normative recognition predicate conditions (1)+(2): (1) starts with `|`;
 ///   (2) first non-empty field is `[bc_id]` link form or `bc_id` plain form. If no line
@@ -90,7 +90,7 @@ pub fn derive_bc_path(bc_id: &str) -> String {
 ///   BC-ID-candidate lines have ≥5 fields. This state is forward-looking protection.
 ///
 /// # BC trace
-/// BC-5.39.010 v1.12 PC5: four-state classification with full-file scan (F-S2107-P4-005).
+/// BC-5.39.010 v1.13 PC5: four-state classification with full-file scan (F-S2107-P4-005).
 /// F-P6-018: ≥6-field/no-v-token state classified as `RowPresentNoVersion` (normative).
 /// F-S2107-P3-001 BLOCKER: two-state `Option<String>` conflated RowAbsent with
 /// RowPresentNoVersion — every 5-column row triggered a spurious block for v>1.0 BCs.
@@ -112,9 +112,9 @@ pub enum BcIndexVersionState {
     RowMalformed(usize),
 }
 
-/// Extract the BC-INDEX.md row state for `bc_id` using the v1.12 four-state algorithm.
+/// Extract the BC-INDEX.md row state for `bc_id` using the v1.13 four-state algorithm.
 ///
-/// **Algorithm (BC-5.39.010 v1.12 PC5 — column-count-anchored, full-file scan):**
+/// **Algorithm (BC-5.39.010 v1.13 PC5 — column-count-anchored, full-file scan):**
 ///
 /// Scans ALL lines in `index_content`. For each line:
 /// 1. **Condition (1):** line starts with `|` — skips YAML frontmatter, prose, blank lines.
@@ -124,12 +124,13 @@ pub enum BcIndexVersionState {
 /// 3. **Condition (3):** If (1)+(2) both hold, this is a CANDIDATE line. Apply
 ///    escape-aware split (replace `\|` → `\x00`, split on `|`, count non-empty trimmed fields):
 ///    - Exactly 5 fields → return `RowPresentNoVersion` immediately
-///    - ≥6 fields → extract rightmost `\bv([0-9]+\.[0-9]+)\b` from 6th field:
+///    - ≥6 fields → join `fields[5..]` with `\|`, split on `\x00`, take last non-empty
+///      entry, extract first `\bv([0-9]+\.[0-9]+)\b` token (F-P6-019b/019c; rightmost-of-field[5] NON-CONFORMING per ADR-038 §Decision 1):
 ///      - Token found → return `Version(v)`
 ///      - No token found → return `RowPresentNoVersion` (F-P6-018 normative: ≥6-field/no-v-token)
 ///    - <5 fields → record as malformed candidate; **continue scanning for a valid line**
 ///
-/// **F-P4-005 full-file selection order (BC-5.39.010 v1.12):**
+/// **F-P4-005 full-file selection order (BC-5.39.010 v1.13):**
 /// Return the FIRST (1)+(2)+(3)-satisfying line (≥5 fields). Return `RowMalformed(n)` ONLY
 /// when ALL locator-matched lines fail condition (3). First-match-wins on malformed lines
 /// is NON-CONFORMING — a malformed line earlier in the file MUST NOT shadow a valid row later.
@@ -145,7 +146,7 @@ pub enum BcIndexVersionState {
 /// Pure: operates on already-read bytes.
 ///
 /// # BC trace
-/// BC-5.39.010 v1.12 PC5: full-file-scan selection order (F-S2107-P4-005).
+/// BC-5.39.010 v1.13 PC5: full-file-scan selection order (F-S2107-P4-005).
 /// F-P6-018: ≥6-field/no-v-token → `RowPresentNoVersion` (normative).
 /// F-S2107-P2-002: first-cell anchor (cross-reference rows must not match).
 /// F-P6-019b/019c: first-token-of-last-entry extraction (replaces F-S2107-P1B-006 last-wins).
@@ -725,8 +726,8 @@ mod tests {
 
     /// T-039 (Rust unit test): escaped-pipe chain must use LAST token (F-S2107-P1B-006).
     ///
-    /// BC-5.39.010 v1.3 invariant 10: when version_history has escaped-pipe delimiter,
-    /// only the FINAL version token is authoritative.
+    /// BC-5.39.010 v1.13 PC5 (F-P6-019b/019c): when the version-chain cell has an
+    /// escaped-pipe-delimited chain, the first token of the last chain entry is authoritative.
     ///
     /// RED GATE: current code returns "1.3" (first token from split('|') on
     /// `v1.3 \| v1.4 \| v1.5 \| v1.6`). "1.3" ≠ "1.6" → violation → NOT empty.
@@ -760,8 +761,8 @@ mod tests {
     /// T-039b (Rust unit test): frontmatter changelog line must not be matched as BC body row
     /// (F-S2107-P1B-007).
     ///
-    /// BC-5.39.010 v1.3 invariant 10: extract_bc_index_version_state must scan only table body
-    /// rows (after the closing `---` of YAML frontmatter), not frontmatter content.
+    /// BC-5.39.010 v1.13 PC5 condition (1) (F-S2107-P1B-007): extract_bc_index_version_state
+    /// must scan only lines starting with '|' — skipping YAML frontmatter, prose, and blank lines.
     ///
     /// RED GATE: current code scans ALL lines. Frontmatter changelog entry
     /// `    change: "v4.43: BC-5.39.010 v1.5|v1.6."` contains both `|` and "BC-5.39.010"
