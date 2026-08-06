@@ -2,7 +2,7 @@
 document_type: architecture-decision-record
 level: L3
 adr_id: ADR-038
-version: "1.1"
+version: "1.2"
 title: "ADR-038: BC-INDEX version-chain extraction algorithm — first-token-of-last-entry replaces rightmost-of-field-6; PC13 half-present disposition is advisory; Phase 2 story-row extraction requires BC-ID-anchored first v-token"
 status: accepted
 date: 2026-08-06
@@ -15,7 +15,14 @@ supersedes: null
 superseded_by: null
 traces_to: .factory/specs/architecture/ARCH-INDEX.md
 last_amended: |-
-  2026-08-06 (v1.1) — Phase 2 story-row extraction algorithm adjudicated (architect;
+  2026-08-06 (v1.2) — §Empirical Measurement corrected (architect; orchestrator catch):
+  v1.0/v1.1 histogram measured all pipe-starting lines in BC-INDEX.md (sum 2017), not
+  catalog rows. Correct predicate: first non-empty field starts with `[BC-` (markdown-link
+  form). Corrected histogram: {5: 1943, 6: 39, 9: 1} over 1983 catalog rows. The "1977"
+  total in v1.0 was a transcription error; the actual all-lines sum was 2017. n≥6 = 40 is
+  invariant across both populations (non-catalog lines all have <6 fields); §Decisions 1-5
+  stand unchanged. Original BC "5-field rows: 1943 / total 1983" figures were accurate.
+  [Prior: 2026-08-06 (v1.1) — Phase 2 story-row extraction algorithm adjudicated (architect;
   S-21.07 pass-7 sibling-extractor ruling routed by orchestrator):
   Phase 2 rightmost-in-rightmost-field algorithm empirically confirmed wrong on 1 live row
   (S-15.17 BC-5.39.009: returns v1.3 from annotation prose `POLICY 5 v1.3.6`, correct is
@@ -29,14 +36,16 @@ last_amended: |-
   (extract_version_token_from_table_row signature + logic change).
   [Prior: 2026-08-06 (v1.0) — Initial ruling (architect; S-21.07 pass-7 adjudication):
   F-S2107-P7-004 + F-S2107-P7-017 + F-S2107-P7-008 empirically adjudicated.
-  Corpus measurement 2026-08-06: field-count histogram {5: 1964, 6: 39, 9: 1}; 40 rows
+  Corpus measurement 2026-08-06: histogram {5: 1943, 6: 39, 9: 1} (corrected in v1.2;
+  original wrong value was {5: 1964, 6: 39, 9: 1} from all-lines population); 40 rows
   reach n≥6 arm (39 six-field + 1 nine-field); confirms F-P7-017 arithmetic.
   Four-row proof table confirms implementation correct on all four rows; spec algorithm
   wrong on three of four. PC13 half-present case ruled advisory per PC12 literal text.
-  BC-4.13.001 source format defect ruled: both source escape fix AND extractor robustness.]
+  BC-4.13.001 source format defect ruled: both source escape fix AND extractor robustness.]]
 modified:
   - "2026-08-06 (v1.0)"
   - "2026-08-06 (v1.1)"
+  - "2026-08-06 (v1.2)"
 ---
 
 # ADR-038: BC-INDEX version-chain extraction algorithm — first-token-of-last-entry replaces rightmost-of-field-6; PC13 half-present disposition is advisory
@@ -70,22 +79,55 @@ other absent — with no normative disposition. The implementation blocks in thi
 PC12 as written says "B2 or B3 absent: advisory + Continue" unconditionally. Two live
 corpus instances exist (S-18.11, S-18.12 — catalog rows present, no blockquote entries).
 
-## Empirical Measurement (2026-08-06)
+## Empirical Measurement (2026-08-06; corrected v1.2)
 
-**Field-count histogram — escape-aware split on all `|`-starting lines in BC-INDEX.md:**
+**Population:** BC-INDEX.md catalog rows only — lines starting with `|` whose first
+non-empty field begins with `[BC-` (the markdown-link form used for all BC IDs in the catalog
+body table). This predicate excludes the subsystem-summary table, the `| **Total** |`
+summary row, and all header/separator lines, which together account for the difference between
+1983 catalog rows and 2017 total pipe-starting lines.
 
+> **v1.0/v1.1 measurement error (corrected here):** The original script matched all
+> pipe-starting lines, producing histogram `{2:1, 4:12, 5:1964, 6:39, 9:1}` (sum 2017; the
+> "1977" figure in v1.0 was a transcription error — the actual sum was 2017, not 1977). This
+> inflated the 5-field bucket by 21 rows due to header, separator, and summary lines. The
+> `n≥6 = 40` aggregate is invariant across both populations (non-catalog lines all have fewer
+> than 6 fields), which is why §Decisions 1–5 stand unchanged despite the wrong denominator.
+
+**Field-count histogram — catalog rows only (reproducible command):**
+
+```bash
+$ python3 -c "
+with open('specs/behavioral-contracts/BC-INDEX.md') as f:
+    lines = f.readlines()
+def esc_split(line):
+    return [f.strip() for f in line.replace('\\\\|', '\x00').split('|') if f.strip()]
+histogram = {}
+for line in lines:
+    line = line.rstrip()
+    if not line.startswith('|'): continue
+    fields = esc_split(line)
+    if not fields or not fields[0].startswith('[BC-'): continue
+    n = len(fields)
+    histogram[n] = histogram.get(n, 0) + 1
+total = sum(histogram.values())
+n6 = sum(v for k,v in histogram.items() if k >= 6)
+print(f'catalog rows: {total}  histogram: {dict(sorted(histogram.items()))}  n>=6: {n6}')
+"
+catalog rows: 1983  histogram: {5: 1943, 6: 39, 9: 1}  n>=6: 40
 ```
-python3 field_count_histogram.py specs/behavioral-contracts/BC-INDEX.md
-→ {2: 1, 4: 12, 5: 1964, 6: 39, 9: 1}
-→ total rows: 1977 pipe-starting lines
-→ rows with n≥6 non-empty fields: 40 (39 six-field + 1 nine-field)
-→ nine-field row: BC-4.13.001 (bare | in annotation ^(Edit|Write|MultiEdit|Agent)$)
-```
 
-The live corpus has **1964 five-field rows** (vs. BC's stated 1943) and **1 nine-field row**.
-The aggregate count of 40 rows reaching the `n >= 6` branch is confirmed. The "exactly 6"
-claim and "5-field rows: 1943" figure are stale — the BC-INDEX grew between the v1.8
-corpus measurement (2026-08-04) and this measurement (2026-08-06).
+The live corpus has **1943 five-field rows**, **39 six-field rows**, **1 nine-field row**
+(BC-4.13.001, bare `|` in annotation `^(Edit|Write|MultiEdit|Agent)$`), and **40 rows
+total reaching the `n >= 6` branch**. BC-5.39.010's stated figures "5-field rows: 1943" and
+"total 1983" are confirmed accurate as of 2026-08-06; the v1.0/v1.1 assertion that they were
+stale was incorrect.
+
+*Separate note:* BC-INDEX.md frontmatter `total_bcs: 1983` matches the catalog row count
+exactly. The subsystem-summary table shows `| **Total** | | **1975** |` — an 8-BC gap with
+SS-01..SS-10 counts summing to 1975, not 1983. This gap does not affect this ADR's ruling
+(which rests on per-row behavior, not aggregate counts) and is routed separately to
+state-manager as BC-INDEX owner.
 
 **Four-row proof table — both algorithms against all rows the adversary cited:**
 
