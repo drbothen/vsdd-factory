@@ -1,4 +1,4 @@
-# Red Gate Log — S-21.07 Pass-1 Fix Burst (Test-Writer)
+# Red Gate Log — S-21.07 (Test-Writer, Passes 1–6)
 
 **Date:** 2026-08-03
 **BC:** BC-5.38.001 (Red Gate: all tests must fail before implementation)
@@ -581,7 +581,7 @@ No crate changes needed. Crate tests stay at 108/0/2. Do NOT run bats — devops
 
 **Date:** 2026-08-04
 **BC:** BC-5.38.001 (Red Gate: all tests must fail before implementation)
-**Cycle:** v1.0-brownfield-backfill / S-21.07 adversary pass-3 fix burst (25 findings: B3/H7/M12/L3)
+**Cycle:** v1.0-brownfield-backfill / S-21.07 test-writer pass-4 (response to adversary pass-3, 25 findings: B3/H7/M12/L3)
 **Governing spec:** BC-5.39.010 v1.10
 
 Red Gate run command: `cargo test -p validate-cross-site-correspondence`
@@ -1170,3 +1170,160 @@ Historical development commentary was preserved per coordinator directive.
 Also updated doc comments on production functions in arm_a2.rs (lines 148, 246, 267) that
 described "v1.9 two-phase PC13 algorithm" to "v1.10 two-phase PC13 algorithm" since the
 current governing spec is v1.10.
+
+---
+
+## Pass-6 Fix Burst — BC-5.39.010 v1.12 PC2a/PC13a Advisory Paths + Normalization Asymmetry Class (test-writer)
+
+**Date:** 2026-08-05
+**BC:** BC-5.38.001 (Red Gate: all tests must fail before implementation)
+**Cycle:** v1.0-brownfield-backfill / S-21.07 test-writer pass-6 (response to adversary pass-6, 20 findings: B4/H7/M8/L1)
+**Governing spec:** BC-5.39.010 v1.12
+
+**Pass-5 continuity note:** Amendments 2–4 (above) constitute test-writer pass-5 work: pass-5 Amendment addressed BC-5.39.010 v1.8/v1.9 spec propagation (new tests for column-count-anchored PC5 and two-phase PC13); Amendment 3 and Amendment 4 addressed adversary pass-4 findings (F-P4-003/004/007/014/015/016/018/023). The "Amendment" naming reflects spec-driven amendments rather than a new adversary-initiated cascade.
+
+Red Gate run command: `cargo test -p validate-cross-site-correspondence`
+Red Gate result: tests listed below FAIL before implementation for the correct reason.
+Post-implementation: **143 passed; 1 failed; 17 ignored** (independent verification 2026-08-05).
+The 1 expected failure is `test_BC_corpus_version_sync_all_indexed_bcs_match_frontmatter` —
+BC-5.39.010 frontmatter `version="1.12"` not yet in BC-INDEX row; resolves at state-manager Commit D.
+
+assertion-site attestation (b78b27ef402f11e36c8c23f68f65d6335c37dd14)
+
+---
+
+### Bats Integration Tests — D-916 Obligation-Indexed Table
+
+One row per AC clause. Column "Control/Complement" names the test that proves the gate discriminates
+rather than trivially passing.
+
+| Obligation (BC-5.39.010 v1.12 clause) | Gate ID | Mutant/Gate test (bats label) | Control/Complement | RED Gate pre-impl | Post-impl |
+|---|---|---|---|---|---|
+| PC2a: primary-newer-than-index → advisory, exit 0 (AC-022) | T-P6A | `AC-022 / T-P6A (PC2a): primary-newer-than-index emits advisory, exits 0` | T-P6B: same direction but PC2b still blocks | exit 2 instead of 0 (advisory path absent) | GREEN |
+| PC2b: index-newer-than-primary → block with v1.12 prescribed text (AC-001 strengthened) | T-P6B | `T-P6B (PC2b): BC-5.39.010 v1.12 index-newer-than-primary blocks with prescribed text` | T-P6A: advisory direction | prescribed-text substrings absent from prior WASM block message | GREEN |
+| PC13a: B2==B3 AND B1≠B2 → advisory, exit 0 (AC-023) | T-P6C | `AC-023 / T-P6C (PC13a): B2==B3 story-index-consistent-stale emits advisory, exits 0` | T-P6D: B2≠B3 still blocks | exit 2 instead of 0 (advisory path absent) | GREEN |
+| PC13b: B2≠B3 → block with v1.12 three-provenance text (AC-009 strengthened) | T-P6D | `T-P6D (PC13b): B2!=B3 story-index-inconsistent blocks with three-provenance message` | T-P6C: advisory direction | three-provenance text absent from prior WASM block message | GREEN |
+| PC40 discrimination proof: non-volatile inputs do NOT suppress Class B BLOCK (T-047 isolation) | T-047-CONTROL | `T-047-CONTROL: without volatile inputs B2!=B3 blocks (PC13b; proves T-047 discrimination)` | T-047: volatile path emits advisory not block | GREEN immediately (control vacuity-check — non-volatile path blocks as expected) | GREEN |
+| Suite structural consistency: 5 Class-D-DEFERRED skips AND ≥40 @test declarations (POLICY 1) | F-P6-016 | `F-P6-016: exactly 5 Class-D-DEFERRED skips and >=40 test declarations` | (self-checking structural gate) | GREEN immediately (suite already has 5 skips and 51 declarations post-pass-5) | GREEN |
+
+---
+
+### Rust Unit Tests — D-916 Obligation-Indexed Table
+
+#### Corpus tests (lib.rs) — 3 new tests (F-P6-005 class)
+
+Tests read live `.factory/` corpus files. Gated by `CI_REQUIRE_ARTIFACTS`; skip gracefully if `.factory/` is not mounted.
+
+| Obligation | Test | RED Gate failure (pre-impl) | Post-impl |
+|---|---|---|---|
+| arm_a1 self-consistency: BC-5.39.010 applied to its own BC file produces no violations (F-P6-019a-d root-cause validation in corpus) | `test_BC_5_39_010_corpus_arm_a1_bc5_39_010_no_violations_self_consistent` | false violation from v-prefix or annotation-extraction bug before 019a-d fixed | GREEN |
+| arm_b1 live S-21.07 story produces no violations (B arm no false-positives on S-21.07) | `test_BC_5_39_010_corpus_arm_b1_s21_07_no_violations` | blocked if B1/B2/B3 mismatch or volatile inputs not handled | GREEN |
+| is_volatile_path matches live story `inputs:` field values (PC40 live-corpus conformance) | `test_BC_5_39_010_corpus_is_volatile_path_live_story_inputs` | returns false for paths that must be volatile per ADR-037 | GREEN |
+
+#### BC-INDEX corpus sync + helper teeth (lib.rs) — 2 new tests (F-P6-010-D class)
+
+| Obligation | Test | RED Gate failure (pre-impl) | Post-impl |
+|---|---|---|---|
+| bc_index_row_contains_version helper correctness: teeth test proves helper returns false for wrong version and true for correct version | `test_bc_index_row_contains_version_teeth` | helper returns wrong value | GREEN |
+| Commit-layer gate: every BC in BC-INDEX row set must have its frontmatter version token in its INDEX row (state-manager sync obligation, F-P6-010-D) | `test_BC_corpus_version_sync_all_indexed_bcs_match_frontmatter` | BC-5.39.010 v1.12 not in INDEX row | **RED (EXPECTED)** — resolves at state-manager Commit D |
+
+#### F-P6-019 normalization asymmetry class (arm_a1.rs, arm_a2.rs, arm_e.rs)
+
+Tests for the normalization asymmetry class: `extract_bc_index_version_state` returned stale versions
+due to last-wins extraction and annotation noise (019b/c/d), and raw-frontmatter reads were compared
+against v-stripped values without normalizing the frontmatter side first (019a/e/f).
+
+| Finding | Test | RED Gate failure (pre-impl) |
+|---|---|---|
+| F-P6-019a: bc_version with leading `v` prefix causes false PC2b block (arm_a1 comparison site) | `test_F_P6_019a_v_prefix_in_bc_version_must_not_block` | `violations` non-empty: "v1.3" ≠ "1.3" → stale-version violation |
+| F-P6-019b: parenthetical backward reference `(promoted v1.23)` shadows current version v1.24 (last-wins) | `test_F_P6_019b_parenthetical_backward_reference_returns_current_version` | `assert_eq!` fails: got `Version("1.23")` expected `Version("1.24")` |
+| F-P6-019c: `[prior: v1.4]` annotation shadows current version v1.5 (last-wins) | `test_F_P6_019c_prior_annotation_returns_current_version` | `assert_eq!` fails: got `Version("1.4")` expected `Version("1.5")` |
+| F-P6-019d: unescaped `\|` in annotation creates phantom field boundaries, truncating field 6 before current version | `test_F_P6_019d_unescaped_pipe_in_annotation_must_not_displace_version_field` | `assert_eq!` fails: got `Version("1.16")` expected `Version("1.18")` |
+| F-P6-019e RED: arm_a2 cited_version (v-stripped) vs raw frontmatter bc_version → false stale-citation block | `test_F_P6_019e_v_prefix_asymmetry_must_not_block` | `violations` non-empty: "1.3" ≠ "v1.3" → false Class A Arm2 violation |
+| F-P6-019e CONTROL: genuinely stale citation still blocks (019e gate discriminates) | `test_F_P6_019e_genuinely_stale_citation_still_blocks` | GREEN (control must pass pre-impl) |
+| F-P6-019f RED: arm_e1 amended_version (v-stripped via parse-time skip) vs raw frontmatter version → false E1 block | `test_F_P6_019f_v_prefix_asymmetry_must_not_block` | `violations` non-empty: "1.3" ≠ "v1.3" → false Class E1 violation |
+| F-P6-019f CONTROL: genuinely stale last_amended still blocks (019f gate discriminates) | `test_F_P6_019f_genuinely_stale_last_amended_still_blocks` | GREEN (control must pass pre-impl) |
+
+Post-implementation all 8 GREEN (019a-d fixed by `extract_bc_index_version_state` first-token-of-last-entry +
+v-prefix normalization; 019e fixed by `lib.rs:224` → `extract_version_field`; 019f fixed by arm_e1
+comparison normalization).
+
+#### F-P6-019-GUARD — production code enforcement (lib.rs)
+
+| Obligation | Test | RED Gate failure (pre-impl) | Post-impl |
+|---|---|---|---|
+| No production code may call `extract_frontmatter_field(_, "version")` directly — must use `extract_version_field` (F-P6-019 root-cause elimination) | `test_F_P6_019_guard_no_raw_version_field_access_in_production_code` | `lib.rs:224` raw call detected: "Found 1 violation(s): lib.rs:224: frontmatter::extract_frontmatter_field(&content, \"version\").unwrap_or_default();" | GREEN |
+
+Vacuity protection: asserts `src/` is non-empty. Exclusion list: one entry — lines containing
+`trim_start_matches` (the `extract_version_field` wrapper body is the one legitimate raw caller).
+
+#### Folded block-scalar branch tests (frontmatter.rs) — 2 new tests (F-P4-004 follow-on)
+
+| Obligation | Test | RED Gate failure (pre-impl) | Post-impl |
+|---|---|---|---|
+| Folded block scalar (`>`) multi-line value: continuation lines space-joined, trailing newline stripped | `test_BC_5_39_010_frontmatter_folded_multi_line_space_joined` | returned `">"` indicator string instead of joined body | GREEN |
+| Folded block scalar (`>`): blank line between continuation lines produces paragraph break (double space) | `test_BC_5_39_010_frontmatter_folded_blank_line_paragraph_break` | returned `">"` indicator string; paragraph-break handling absent | GREEN |
+
+---
+
+### D-918 Name-Set-Equality Check
+
+D-918 requires a literal diff of sorted gate labels between story AC Gate cells and the audit table.
+
+**Story Red Gate Test Plan gate labels for new ACs added this burst** (S-21.07 v1.6/v1.7 changelog;
+lines `T-P6A | AC-022` and `T-P6C | AC-023` in the story's Red Gate Test Plan table):
+
+```
+T-P6A
+T-P6C
+```
+
+**Audit table bats gate IDs (this pass-6 section, sorted):**
+
+```
+AC-022/T-P6A(PC2a)
+AC-023/T-P6C(PC13a)
+F-P6-016
+T-047-CONTROL
+T-P6B(PC2b)
+T-P6D(PC13b)
+```
+
+**Diff (items in audit not in story gate cells):**
+
+```
+F-P6-016
+T-047-CONTROL
+T-P6B(PC2b)
+T-P6D(PC13b)
+```
+
+**Diff (items in story gate cells not in audit) — gaps:**
+
+```
+(none)
+```
+
+All story gate cells (T-P6A, T-P6C) are present in the audit table. The four audit-only items are:
+- `T-P6B`: strengthening of existing AC-001 bats test to require v1.12 prescribed text (revision, not a new AC)
+- `T-P6D`: strengthening of existing AC-009 bats test to require v1.12 three-provenance text (revision, not a new AC)
+- `T-047-CONTROL`: control for prior-pass T-047 proving PC40 discrimination is non-vacuous
+- `F-P6-016`: structural coverage gate not mapped to an individual AC clause
+
+No gaps. Name-set-equality PASS under D-918.
+
+---
+
+### Post-Implementation Summary
+
+Independent verification run 2026-08-05 (cargo + bats, sha=9997bfc5, mtime=2026-08-03T08:57:39):
+
+```
+cargo fmt --check --all          → EXIT:0
+cargo clippy -- -D warnings      → EXIT:0
+cargo test --workspace           → 143 passed; 1 failed; 17 ignored
+bats validate-cross-site-correspondence.bats → 51/51 ok
+```
+
+The 1 cargo failure is the BC-INDEX corpus sync test (expected; see obligation table above).
+All 6 new bats gates, all 16 new unit tests pass. 17 ignored = prior arm_d Class D deferrals unchanged.

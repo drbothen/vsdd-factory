@@ -34,10 +34,23 @@
 ///
 /// # BC trace
 /// BC-5.39.010 §Architecture Anchors `extract_frontmatter_field`; used by
-/// arm_a1 (extract `version:`), arm_a2 (extract `story_id:`), arm_e (extract
-/// `version:`, `last_amended:`).
+/// arm_a1 (extract `version:` via the parameter normalization shadow),
+/// arm_a2 (extract `story_id:`), arm_e (extract `last_amended:`).
 /// BC-5.39.010 PC36: YAML block scalar indicators must NOT be returned as the value.
 /// F-P4-004: prior implementation returned `"|-"` for `last_amended: |-` — NON-CONFORMING.
+///
+/// # WARNING — do NOT call this with `field = "version"`
+///
+/// Every extractor that reads a version from structured text (`extract_last_amended_outer_version`,
+/// `extract_first_v_token`, `bc_index_row_contains_version`, etc.) strips the leading `v` during
+/// extraction, returning bare digit strings like `"1.3"`. This function returns the raw frontmatter
+/// value — e.g., `"v1.3"` — so comparing its output directly to any extracted version is **wrong
+/// by construction** and produces false violations.
+///
+/// F-P6-019a/019e/019f: this bit three arms before the fix.
+///
+/// **Use [`extract_version_field`] instead.** It calls this function and strips the leading `v`,
+/// ensuring a consistent normalization boundary at all version comparison sites.
 pub fn extract_frontmatter_field(content: &str, field: &str) -> Option<String> {
     // Find the frontmatter region: lines between first --- and second ---
     let mut lines = content.lines();
@@ -64,8 +77,7 @@ pub fn extract_frontmatter_field(content: &str, field: &str) -> Option<String> {
             // is NON-CONFORMING.
             if matches!(trimmed, "|" | "|-" | ">" | ">-") {
                 let is_folded = trimmed.starts_with('>');
-                let is_strip = trimmed.ends_with('-');
-                return collect_block_scalar_body(&mut lines, is_folded, is_strip);
+                return collect_block_scalar_body(&mut lines, is_folded);
             }
 
             // Strip surrounding quotes (single or double).
@@ -92,6 +104,31 @@ pub fn extract_frontmatter_field(content: &str, field: &str) -> Option<String> {
     }
 }
 
+/// Extract and normalize the `version` frontmatter field.
+///
+/// Convenience wrapper around [`extract_frontmatter_field`] that strips any
+/// leading `v` from the returned value.
+///
+/// All version comparison sites in this crate must use this accessor rather
+/// than calling `extract_frontmatter_field(content, "version")` directly.
+/// This establishes a single normalization boundary: raw frontmatter values
+/// (`"v1.3"`) always compare equal to index-extracted versions (`"1.3"`).
+///
+/// Do not use this for non-comparison reads where the exact authored string
+/// is required. In practice the arms compare the normalized form and surface
+/// it in messages, which is acceptable since the mismatch message is only
+/// reached when the values genuinely differ after normalization.
+///
+/// # BC trace
+/// F-P6-019a/019e/019f — normalization asymmetry class. Closes the
+/// structural gap: every function that extracts a version from structured
+/// text strips `v` during extraction, but `extract_frontmatter_field`
+/// returns raw frontmatter — asymmetry guaranteed by construction at every
+/// comparison site without this accessor.
+pub fn extract_version_field(content: &str) -> Option<String> {
+    extract_frontmatter_field(content, "version").map(|v| v.trim_start_matches('v').to_string())
+}
+
 /// Collect and return the body of a YAML block scalar from subsequent lines.
 ///
 /// Called after `extract_frontmatter_field` encounters a block scalar indicator
@@ -105,21 +142,22 @@ pub fn extract_frontmatter_field(content: &str, field: &str) -> Option<String> {
 /// - **Literal** (`is_folded = false`): content lines joined with `\n`.
 /// - **Folded** (`is_folded = true`): single newlines folded to spaces; blank
 ///   lines become paragraph-separating `\n` characters.
-/// - **Strip** (`is_strip = true`, `-` suffix): all trailing blank lines removed.
-/// - **Clip** (`is_strip = false`, no suffix): one trailing newline preserved.
-///   For field-value extraction (comparison / regex use), the trailing `\n` is
-///   omitted in both modes since callers use `.contains()` or position-0 regex
-///   and are not performing round-trip YAML serialization.
+/// - **Clip vs strip chomp:** for field-value extraction (comparison / regex use),
+///   trailing blank lines are stripped in both modes since callers use `.contains()`
+///   or position-0 regex and are not performing round-trip YAML serialization.
+///   The `is_strip` distinction is therefore irrelevant at this extraction layer and
+///   is not accepted as a parameter.
 ///
 /// Returns `None` if no non-empty content lines are found before `---` or EOF.
 ///
 /// # BC trace
 /// BC-5.39.010 PC36: four block-scalar indicators with correct literal/folded and
-/// clip/strip semantics. F-P4-004 (block body extraction).
+/// clip/strip semantics. F-P4-004 (block body extraction). F-P6-013: removed the
+/// formerly-silently-ignored `_is_strip` parameter — both modes already strip
+/// trailing blanks for field-value extraction.
 fn collect_block_scalar_body<'a>(
     lines: &mut impl Iterator<Item = &'a str>,
     is_folded: bool,
-    _is_strip: bool, // Both modes strip trailing blanks for field-value extraction.
 ) -> Option<String> {
     let mut content_lines: Vec<String> = Vec::new();
     let mut block_indent: Option<usize> = None;
@@ -494,6 +532,62 @@ mod tests {
         assert!(
             !val.starts_with('>'),
             "indicator '>-' must NOT be the returned value. Got: {val:?}"
+        );
+    }
+
+    // -----------------------------------------------------------------------
+    // F-P6-013 — folded block scalar multi-line branch coverage
+    //
+    // BC-5.39.010 PC36 / collect_block_scalar_body `is_folded = true` path:
+    // Prior tests only covered single-line bodies; the multi-line folded code
+    // paths (space-joining consecutive non-blank lines; blank-line → paragraph `\n`)
+    // had zero test coverage.
+    // -----------------------------------------------------------------------
+
+    /// F-P6-013: folded multi-line scalar — consecutive non-blank lines joined with space.
+    ///
+    /// BC-5.39.010 PC36 / collect_block_scalar_body (is_folded=true):
+    /// Two consecutive non-blank content lines in a folded block scalar must be
+    /// joined with a single space (YAML folded scalar semantics). The space-insertion
+    /// branch (`if !buf.is_empty() && !buf.ends_with('\n') { buf.push(' ') }`) is the
+    /// zero-coverage path — this test exercises it.
+    #[test]
+    fn test_BC_5_39_010_frontmatter_folded_multi_line_space_joined() {
+        // Two content lines with no blank line between them — must be joined with space.
+        let content = "---\nfield: >\n  line one\n  line two\n---\n";
+        let result = extract_frontmatter_field(content, "field");
+        let val = result.expect("folded multi-line scalar must return Some(...)");
+        assert_eq!(
+            val, "line one line two",
+            "folded consecutive non-blank lines must be joined with a space. \
+            collect_block_scalar_body (is_folded=true) space-join branch. Got: {val:?}"
+        );
+    }
+
+    /// F-P6-013: folded multi-line scalar with blank line — paragraph separator → `\n`.
+    ///
+    /// BC-5.39.010 PC36 / collect_block_scalar_body (is_folded=true):
+    /// A blank line within a folded block scalar becomes a paragraph-separating `\n`
+    /// (trailing space trimmed before the `\n` is pushed). This is the blank-line branch
+    /// inside the folded loop — exercised here for the first time.
+    #[test]
+    fn test_BC_5_39_010_frontmatter_folded_blank_line_paragraph_break() {
+        // Content with blank line between two paragraphs.
+        let content = "---\nfield: >\n  para one\n\n  para two\n---\n";
+        let result = extract_frontmatter_field(content, "field");
+        let val = result.expect("folded scalar with blank-line paragraph must return Some(...)");
+        assert!(
+            val.contains('\n'),
+            "blank line in folded scalar must produce a paragraph-separating \\n. \
+            collect_block_scalar_body blank-line branch. Got: {val:?}"
+        );
+        assert!(
+            val.starts_with("para one"),
+            "first paragraph must start the result. Got: {val:?}"
+        );
+        assert!(
+            val.contains("para two"),
+            "second paragraph must be present after the \\n separator. Got: {val:?}"
         );
     }
 }

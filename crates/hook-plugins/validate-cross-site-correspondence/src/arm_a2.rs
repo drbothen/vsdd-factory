@@ -145,7 +145,7 @@ pub fn extract_story_bc_version_citations(content: &str, bc_id: &str) -> Vec<(St
 /// Hand-rolled — no regex crate (ADR-035 §Decision 5 fuel-budget constraint).
 ///
 /// # BC trace
-/// BC-5.39.010 v1.10 PC13: word-boundary bc_id token test.
+/// BC-5.39.010 v1.12 PC13: word-boundary bc_id token test.
 /// F-S2107-P3-004: `line.contains(bc_id)` prefix-collision fix.
 fn line_contains_bc_id_at_boundary(line: &str, bc_id: &str) -> bool {
     let mut search_start = 0;
@@ -243,7 +243,7 @@ fn extract_mandatory_v_inline(s: &str) -> Option<String> {
     last_match
 }
 
-/// Extract a version token from a table row using the v1.10 two-phase PC13 algorithm.
+/// Extract a version token from a table row using the v1.12 two-phase PC13 algorithm.
 ///
 /// **Phase 1 (pure-version field):** split row by `|`; scan fields right-to-left;
 /// return the version from the first (rightmost) field whose trimmed content
@@ -264,7 +264,7 @@ fn extract_mandatory_v_inline(s: &str) -> Option<String> {
 /// Hand-rolled — no regex crate (ADR-035 §Decision 5 fuel-budget constraint).
 ///
 /// # BC trace
-/// BC-5.39.010 v1.10 PC13: two-phase version extraction algorithm.
+/// BC-5.39.010 v1.12 PC13: two-phase version extraction algorithm.
 /// F-S2107-P3-022: reverse-field algorithm (replaces left-to-right last-token).
 /// F-S2107-P1B-002: optional-v Phase 1 (detects bare "1.3" version cells).
 fn extract_version_token_from_table_row(line: &str) -> Option<String> {
@@ -373,8 +373,12 @@ pub fn run_arm_a2_for_bc_with_result(
                     );
                 }
             };
-            let bc_version = crate::frontmatter::extract_frontmatter_field(bc_content, "version")
-                .unwrap_or_default();
+            // F-P6-019e: extract_version_field normalizes at the parse boundary —
+            // strips any leading `v` so "v1.3" → "1.3". `cited_version` arrives
+            // v-stripped via `parse_pure_version_field`; consistent with the accessor.
+            // See frontmatter::extract_version_field for the class-level rationale.
+            let bc_version =
+                crate::frontmatter::extract_version_field(bc_content).unwrap_or_default();
 
             let mut violations = Vec::new();
             for (location, cited_version) in citations {
@@ -1132,6 +1136,90 @@ mod tests {
             Phase 2 no mandatory-v token → no citation. \
             Corpus: S-12.03 Token Budget row. Citations: {:?}",
             citations
+        );
+    }
+
+    // -----------------------------------------------------------------------
+    // F-P6-019e — arm_a2 v-prefix normalization asymmetry
+    //
+    // Root cause (same class as F-P6-019a in arm_a1):
+    //   `cited_version` arrives from `extract_story_bc_version_citations` via
+    //   `parse_pure_version_field`, which calls `strip_prefix('v')` — always
+    //   v-stripped (e.g., "1.3").
+    //   `bc_version` comes from `extract_frontmatter_field(bc_content, "version")`
+    //   — raw frontmatter, may have a leading `v` (e.g., "v1.3").
+    //
+    //   Comparison at `if *cited_version != bc_version`: "1.3" != "v1.3" is
+    //   true → false violation produced even though the story correctly cites
+    //   the current BC version.
+    //
+    // Fix (implementer): normalize `bc_version` with `strip_prefix('v')` before
+    // the comparison, so "1.3" == "1.3".
+    //
+    // The control (019e-b) verifies that a genuinely stale citation still blocks
+    // after the fix — preventing over-broad normalization from silencing real
+    // staleness violations.
+    // -----------------------------------------------------------------------
+
+    /// F-P6-019e RED GATE: story correctly cites `v1.3` for a BC whose frontmatter
+    /// is `version: "v1.3"` — currently a false violation; must produce NO violation.
+    ///
+    /// `parse_pure_version_field("v1.3")` → `"1.3"` (v-stripped).
+    /// `extract_frontmatter_field(..., "version")` → `"v1.3"` (raw).
+    /// Comparison: `"1.3" != "v1.3"` → violation. WRONG.
+    ///
+    /// RED GATE: `violations.is_empty()` FAILS (false violation produced now).
+    /// After fix (strip `v` from `bc_version` before comparison): no violation.
+    #[test]
+    fn test_F_P6_019e_v_prefix_asymmetry_must_not_block() {
+        // Synthetic fixture: BC frontmatter uses `version: "v1.3"` (v-prefixed,
+        // as many real BCs do). The story table cites "v1.3", which is normalized
+        // to "1.3" by parse_pure_version_field before reaching this seam.
+        let bc_content = b"---\nversion: \"v1.3\"\n---\n# BC-5.24.006\n";
+        let citations = vec![("Token Budget row".to_string(), "1.3".to_string())];
+        let (violations, _advisories) = run_arm_a2_for_bc_with_result(
+            "S-21.07",
+            "BC-5.24.006",
+            &citations,
+            Ok(bc_content.to_vec()),
+        );
+        assert!(
+            violations.is_empty(),
+            "F-P6-019e: story correctly cites v1.3 for BC-5.24.006 whose frontmatter is \
+            version: \"v1.3\". `cited_version` arrives as \"1.3\" (v-stripped by \
+            parse_pure_version_field); `bc_version` is raw \"v1.3\". \
+            Comparison \"1.3\" != \"v1.3\" produces a false violation. \
+            Must produce NO violation after fix (normalize bc_version to strip leading v). \
+            Violations: {:?}",
+            violations
+        );
+    }
+
+    /// F-P6-019e CONTROL: genuinely stale citation must still block after the fix.
+    ///
+    /// Same BC (`version: "v1.3"`), but citation is `"1.2"` (genuinely old version).
+    /// After fix: `bc_version` normalised to `"1.3"`. `"1.2" != "1.3"` → violation.
+    ///
+    /// This test is GREEN now (passes against the unfixed code) and must remain GREEN
+    /// after the fix to prevent over-normalisation from silencing real staleness.
+    #[test]
+    fn test_F_P6_019e_genuinely_stale_citation_still_blocks() {
+        let bc_content = b"---\nversion: \"v1.3\"\n---\n# BC-5.24.006\n";
+        let citations = vec![("Token Budget row".to_string(), "1.2".to_string())];
+        let (violations, _advisories) = run_arm_a2_for_bc_with_result(
+            "S-21.07",
+            "BC-5.24.006",
+            &citations,
+            Ok(bc_content.to_vec()),
+        );
+        assert!(
+            !violations.is_empty(),
+            "F-P6-019e CONTROL: citation '1.2' is genuinely stale against BC frontmatter \
+            version: \"v1.3\" (normalised to \"1.3\"). Must still produce a blocking \
+            violation after the v-prefix normalization fix. \
+            Over-normalisation would incorrectly pass this citation. \
+            Violations: {:?}",
+            violations
         );
     }
 }

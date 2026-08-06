@@ -215,17 +215,42 @@ pub fn run_arm_b1_with_index_result(
                     });
                 }
                 (Some(b2), Some(b3)) => {
-                    let b2_match = b2 == story_hash;
-                    let b3_match = b3 == story_hash;
-
-                    if !b2_match || !b3_match {
+                    // BC-5.39.010 v1.12 PC13: directional two sub-cases.
+                    // PC13a: B2==B3 AND B1!=B2 — STORY-INDEX internally consistent;
+                    //   story frontmatter stale (burst-ordering artefact). Advisory + Continue.
+                    // PC13b: B2!=B3 — STORY-INDEX internally inconsistent; anomalous block.
+                    // When B1==B2==B3: all three agree — no action.
+                    if b2 == story_hash && b3 == story_hash {
+                        // All three sites agree — no action.
+                    } else if b2 == b3 {
+                        // PC13a: STORY-INDEX internally consistent (B2==B3), story frontmatter
+                        // differs. Burst-ordering artefact: story was just written; state-manager
+                        // STORY-INDEX update is pending (POLICY 3). Advisory + Continue.
+                        advisories.push(Advisory {
+                            message: format!(
+                                "validate-cross-site-correspondence [Class B] advisory: \
+                                Story {story_id} input-hash mismatch — \
+                                frontmatter={story_hash}; \
+                                STORY-INDEX-catalog={b2}; \
+                                STORY-INDEX-blockquote={b3}. \
+                                STORY-INDEX sites agree with each other; story frontmatter \
+                                differs. State-manager STORY-INDEX update pending; \
+                                Class B BLOCK suspended."
+                            ),
+                        });
+                    } else {
+                        // PC13b: STORY-INDEX internally inconsistent (B2!=B3) — anomalous.
+                        // No burst-ordering argument explains internal STORY-INDEX
+                        // inconsistency: catalog row and blockquote are written in the
+                        // same state-manager commit. Block with three-provenance message.
                         violations.push(Violation {
                             description: format!(
                                 "validate-cross-site-correspondence [Class B]: \
                                 Story {story_id} input-hash three-way mismatch: \
                                 frontmatter={story_hash} STORY-INDEX-catalog={b2} \
                                 STORY-INDEX-blockquote={b3}. \
-                                All three present sites must agree. \
+                                STORY-INDEX catalog and blockquote disagree — \
+                                this is anomalous and has no burst-ordering explanation. \
                                 Update per POLICY 18 (D-923). \
                                 This hook detects inconsistency only — operator MUST \
                                 determine which of the following applies before \
@@ -330,7 +355,7 @@ const VOLATILE_PATTERNS_CYCLES_NAMED: [&str; 4] =
 /// Pure: no I/O.
 ///
 /// # BC trace
-/// BC-5.39.010 v1.10 PC40: volatile-input precondition.
+/// BC-5.39.010 v1.12 PC40: volatile-input precondition.
 /// ADR-037 §Decision 2: canonical volatile path list.
 /// F-S2107-P4-020: `starts_with` narrowing fixed to `contains` per spec predicate.
 pub fn is_volatile_path(path: &str) -> bool {
@@ -376,7 +401,7 @@ pub fn is_volatile_path(path: &str) -> bool {
 /// Pure: no I/O.
 ///
 /// # BC trace
-/// BC-5.39.010 v1.6 PC40: volatile-input precondition.
+/// BC-5.39.010 v1.12 PC40: volatile-input precondition.
 pub fn parse_story_volatile_inputs(content: &str) -> Vec<String> {
     crate::frontmatter::extract_frontmatter_sequence(content, "inputs")
 }
@@ -414,7 +439,8 @@ pub fn run_arm_b1(story_id: &str, story_content: &str) -> (Vec<Violation>, Vec<A
         // ADR-037 §Decision 4 prescribed advisory text — transcribed verbatim.
         let advisory = Advisory {
             message: format!(
-                "Story {story_id} has volatile inputs per ADR-037 §Decision 2 — \
+                "validate-cross-site-correspondence [Class B] advisory: \
+                Story {story_id} has volatile inputs per ADR-037 §Decision 2 — \
                 three-way equality is unsatisfiable until story-writer removes volatile \
                 inputs and state-manager recomputes the hash; Class B BLOCK suspended. \
                 Volatile path(s): {volatile_found:?}"
@@ -717,24 +743,37 @@ mod tests {
     // run_arm_b1_with_index_result — BC-5.39.010 postconditions 12-13
     // -----------------------------------------------------------------------
 
-    /// AC-009 MUTANT: hash mismatch blocks (BC-5.39.010 postcondition 13).
+    /// AC-009 MUTANT: STORY-INDEX internally inconsistent blocks (BC-5.39.010 v1.12 PC13b).
+    ///
+    /// BC-5.39.010 v1.12 PC13 directional carve-out:
+    /// - PC13a (B2==B3, B1!=B2): advisory (burst-ordering artefact; STORY-INDEX consistent).
+    /// - PC13b (B2!=B3): block (anomalous — STORY-INDEX internal inconsistency has no
+    ///   burst-ordering explanation; catalog row and blockquote written in the same commit).
+    ///
+    /// This test covers PC13b: B2!=B3 regardless of B1 → block.
+    /// For PC13a (B2==B3, B1!=B2 → advisory) see T-P6C bats integration test.
     #[test]
     fn test_BC_5_39_010_arm_b1_hash_mismatch_blocks() {
-        // B1=47a65c9, INDEX has catalog row 4be9d21 → mismatch
-        let index_content = b"| S-21.07 | ... | input-hash 4be9d21 | ...\n> S-21.07=4be9d21\n";
+        // PC13b: B2="4be9d21" (catalog) != B3="aabbcc0" (blockquote) → anomalous block.
+        // B1 value is irrelevant for PC13b — B2!=B3 always blocks regardless of B1.
+        let index_content = b"| S-21.07 | ... | input-hash 4be9d21 | ...\n> S-21.07=aabbcc0\n";
         let (violations, _) =
             run_arm_b1_with_index_result("S-21.07", "47a65c9", Ok(index_content.to_vec()));
         assert!(
             !violations.is_empty(),
-            "hash mismatch must produce a blocking violation"
+            "PC13b (B2!=B3): STORY-INDEX internal inconsistency must produce a blocking violation"
         );
         let msg = &violations[0].description;
         assert!(msg.contains("[Class B]"), "violation must cite [Class B]");
         assert!(msg.contains("POLICY 18"), "violation must cite POLICY 18");
-        // Provenance note: stale vs fabricated (invariant 11)
+        // PC13b three-provenance note (invariant 11, BC-5.39.010 v1.12)
         assert!(
-            msg.contains("stale") || msg.contains("fabricated"),
-            "violation must include provenance note (stale/fabricated)"
+            msg.contains("STALE") || msg.contains("FABRICATED"),
+            "violation must include provenance categories (STALE/FABRICATED/ALGORITHM-DIVERGENT)"
+        );
+        assert!(
+            msg.contains("catalog and blockquote disagree"),
+            "PC13b violation must describe the internal STORY-INDEX inconsistency"
         );
     }
 

@@ -663,7 +663,7 @@ path_allow = [
 ]
 
 # ---------- validate-cross-site-correspondence (PostToolUse, Edit|Write|MultiEdit) ----------
-# BC-5.39.010 v1.10 §Gate Spec: PostToolUse cross-site value-correspondence gate.
+# BC-5.39.010 v1.12 §Gate Spec: PostToolUse cross-site value-correspondence gate.
 # Six active arms: Class A Arm1 (BC version vs BC-INDEX row), Class A Arm2 (story BC-table
 # citations vs BC frontmatter), Class B Arm1 (story input-hash three-way equality),
 # Class B Arm2 (STORY-INDEX internal catalog/blockquote parity), Class E1 (frontmatter
@@ -678,7 +678,7 @@ path_allow = [
 #   POLICY 13 ESCAPE-SCOPE-PARITY gap. v1.2 corrects to include MultiEdit.
 # No fuel_cap field: max_bytes caps (512 KiB for BC/story, 1–2 MiB for index/cycle)
 #   are sufficient to stay within the 10M-instruction fuel budget at current sizes.
-#   Adding fuel_cap without evidence of exhaustion is premature (BC-5.39.010 v1.2
+#   Adding fuel_cap without evidence of exhaustion is premature (BC-5.39.010 v1.12
 #   §Gate Spec; ADR-035 §Decision 5).
 # path_allow: covers .factory/specs/behavioral-contracts/, .factory/specs/
 #   verification-properties/, .factory/stories/ — three directory subtrees the

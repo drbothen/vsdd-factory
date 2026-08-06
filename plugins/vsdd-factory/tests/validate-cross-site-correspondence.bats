@@ -3,7 +3,7 @@
 # validate-cross-site-correspondence PostToolUse WASM hook plugin.
 #
 # These tests deliver full payload-delivery scenarios for AC-001 through AC-018,
-# covering the seven arms (A1, A2, B1, B2, D, E1, E2) via fixture files.
+# covering the six arms (A1, A2, B1, B2, E1, E2) via fixture files; Class D deferred.
 #
 # RED GATE (BC-5.38.001): Every payload-driven test MUST FAIL before implementation.
 #
@@ -19,7 +19,7 @@
 #   (a) a plugin.completed record exists for validate-cross-site-correspondence, AND
 #   (b) no plugin.crashed OR plugin.timeout record exists for it.
 # Under the stub, condition (a) always fails (stub panics → plugin.crashed, not plugin.completed).
-# → ALL 37+ payload tests FAIL in Red Gate.
+# → ALL 40+ payload tests FAIL in Red Gate.
 # After implementation, the stub is replaced with real logic, plugin.completed fires,
 # and the tests pass or fail based on actual arm behavior.
 #
@@ -35,13 +35,28 @@
 # AC-020 registry shape tests: PASS in Red Gate legitimately — they grep the TOML registry
 # file directly and do not invoke the dispatcher at all. Their passing is expected and correct.
 #
-# Governing BC: BC-5.39.010 v1.2
+# Governing BC: BC-5.39.010 v1.12
 # Story: S-21.07
 #
 # Fixture layout: fixtures/validate-cross-site-correspondence/<scenario>/factory/
 # The "factory/" subtree is copied to $WORK/.factory/ in each test setup.
 
 FIXTURE_BASE="$(cd "$(dirname "$BATS_TEST_FILENAME")/fixtures/validate-cross-site-correspondence" && pwd)"
+
+# ---------------------------------------------------------------------------
+# setup_file: once-per-suite provenance record.
+# F-P6-017: emit factory-dispatcher binary provenance to TAP comment stream
+# so every run records which binary was exercised, its sha256, and mtime.
+# D-693: "N/N GREEN" attestation is only meaningful when the specific binary
+# is recorded. Mirrors helpers/dispatcher-provenance.bash from develop.
+# ---------------------------------------------------------------------------
+
+setup_file() {
+  load "${BATS_TEST_DIRNAME}/helpers/dispatcher-provenance.bash"
+  # Auto-resolve: debug preferred over release; emits to >&3 (TAP comments).
+  # Under CI_REQUIRE_ARTIFACTS=1, returns non-zero if binary not found.
+  emit_dispatcher_provenance
+}
 
 # ---------------------------------------------------------------------------
 # setup / teardown
@@ -51,11 +66,18 @@ setup() {
   REPO_ROOT="$(cd "${BATS_TEST_DIRNAME}/../../.." && pwd)"
   PLUGIN_ROOT="$REPO_ROOT/plugins/vsdd-factory"
 
-  # Dispatcher: prefer locally built release binary; fall back to operator cache.
-  DISPATCHER="$REPO_ROOT/target/release/factory-dispatcher"
-  if [ ! -x "$DISPATCHER" ]; then
-    DISPATCHER="$(find "$HOME/.claude/plugins/cache/claude-mp/vsdd-factory" \
-      -name "factory-dispatcher" -path "*/darwin-arm64/*" 2>/dev/null | sort -V | tail -1)"
+  # Dispatcher: debug preferred over release; NO operator-cache fallback.
+  # F-P6-017 / D-693: the operator-cache binary is only updated on release —
+  # silently falling back to it would validate the wrong binary under development.
+  # An absent local build produces a loud FATAL rather than a silent stale result.
+  DISPATCHER="${REPO_ROOT}/target/debug/factory-dispatcher"
+  if [[ ! -x "${DISPATCHER}" ]]; then
+    DISPATCHER="${REPO_ROOT}/target/release/factory-dispatcher"
+  fi
+  if [[ ! -x "${DISPATCHER}" ]]; then
+    echo "FATAL: factory-dispatcher not found (tried debug + release builds)." >&2
+    echo "  Run: cargo build -p factory-dispatcher" >&2
+    return 1
   fi
 
   GUARD_WASM="$PLUGIN_ROOT/hook-plugins/validate-cross-site-correspondence.wasm"
@@ -302,7 +324,7 @@ _assert_plugin_ran_not_crashed() {
       echo "FAIL: no 'validate-cross-site-correspondence' section found in registry"
       false
     }
-    # fuel_cap must NOT be present (BC-5.39.010 v1.2 §Gate Spec; ADR-035 §Decision 5)
+    # fuel_cap must NOT be present (BC-5.39.010 v1.12 §Gate Spec; ADR-035 §Decision 5)
     [[ "$output" != *"fuel_cap"* ]]
 }
 
@@ -399,22 +421,45 @@ _assert_plugin_ran_not_crashed() {
 }
 
 # ---------------------------------------------------------------------------
-# AC-001: Class A Arm1 — stale BC-INDEX version row blocks
-# Fixture: a1-stale-index (BC v1.6, INDEX v1.5)
-# BC-5.39.010 PC2: stale row → Block [Class A Arm1]
+# AC-001: Class A Arm1 — index-newer-than-primary blocks (traces to BC-5.39.010 postcondition 2b)
+# Fixture: a1-stale-index (BC v1.5, INDEX v1.6 — index NEWER than primary)
+# BC-5.39.010 v1.12 PC2b: index_version > fm_version → anomalous → Block [Class A Arm1]
+# Message must contain "index is newer than primary" and "POLICY 14 leg 5".
+# (AC-022 / T-P6A covers the opposite direction: primary-newer → advisory.)
 # ---------------------------------------------------------------------------
 
-@test "AC-001 MUTANT: stale BC-INDEX row produces exit code 2 with [Class A Arm1]" {
+@test "AC-001 MUTANT: index-newer-than-primary BC-INDEX row blocks with prescribed text" {
   _require_artifacts
   _load_fixture "a1-stale-index"
   _write_registry
 
   local envelope
+  # BC frontmatter version="1.5"; INDEX row cites v1.6.
+  # index (1.6) > primary (1.5) → PC2b → anomalous → BLOCK.
+  # RED GATE: v1.10 impl blocks but with wrong message (no "index is newer than primary").
+  # After v1.11 implementation: PC2b block with normative text → PASSES.
   envelope="$(_post_write_event '.factory/specs/behavioral-contracts/ss-05/BC-5.39.010.md')"
   _run_dispatcher "$envelope"
 
   _assert_plugin_ran_not_crashed
   _assert_exit 2 "[Class A Arm1]"
+
+  # AC-001 normative assertions: message must cite the index version, frontmatter version,
+  # the directional phrase, and the POLICY anchor.
+  local combined
+  combined="$(cat "$_DISP_STDERR" 2>/dev/null) $output"
+  [[ "$combined" == *"index is newer than primary"* ]] || {
+    echo "FAIL: AC-001 block message must contain 'index is newer than primary' (PC2b normative)."
+    echo "  BC-5.39.010 v1.12 PC2b: index-newer-than-primary is anomalous."
+    echo "  Combined: $combined"
+    false
+  }
+  [[ "$combined" == *"POLICY 14 leg 5"* ]] || {
+    echo "FAIL: AC-001 block message must cite 'POLICY 14 leg 5'."
+    echo "  BC-5.39.010 v1.12 PC2b postcondition 2b prescribed anchor."
+    echo "  Combined: $combined"
+    false
+  }
 }
 
 @test "AC-001 CONTROL: current BC-INDEX row produces exit code 0" {
@@ -435,7 +480,7 @@ _assert_plugin_ran_not_crashed() {
 # Fixture: a1-escaped-pipe-current (BC-1.13.001 v1.12; INDEX row v1.3 \| ... \| v1.12)
 # F-S2107-P1B-006: escaped-pipe chain → extract_bc_index_version returns FIRST token "1.3"
 # F-S2107-P1B-007: frontmatter changelog line with pipe also false-matches before body row
-# BC-5.39.010 v1.3 invariant 10: LAST version token in escaped-pipe chain is authoritative.
+# BC-5.39.010 PC5/PC6: LAST version token in escaped-pipe chain is authoritative.
 # ---------------------------------------------------------------------------
 
 @test "T-039 CONTROL: escaped-pipe version chain last token matches — exit code 0" {
@@ -644,22 +689,50 @@ _assert_plugin_ran_not_crashed() {
 }
 
 # ---------------------------------------------------------------------------
-# AC-009: Class B Arm1 — three-way input-hash mismatch blocks
-# Fixtures: b1-hash-mismatch (story 47a65c9, INDEX 4be9d21) / b1-hash-match (all agree)
-# BC-5.39.010 PC16-21
+# AC-009: Class B Arm1 — B2≠B3 STORY-INDEX internal inconsistency blocks (traces to BC-5.39.010 postcondition 13b)
+# Fixture: b1-hash-mismatch (B1=47a65c9, B2=4be9d21, B3=c3f9811 — catalog≠blockquote)
+# BC-5.39.010 v1.12 PC13b: B2 ≠ B3 → STORY-INDEX internally inconsistent → Block [Class B]
+# Message must cite POLICY 18 (D-923) and enumerate all three provenance categories
+# (stale/fabricated/algorithm-divergent) WITHOUT asserting which applies.
+# (AC-023 / T-P6C covers the opposite direction: B2==B3, B1≠B2 → advisory.)
 # ---------------------------------------------------------------------------
 
-@test "AC-009 MUTANT: B1≠B2 hash mismatch produces exit code 2 with [Class B]" {
+@test "AC-009 MUTANT: B2≠B3 STORY-INDEX internal inconsistency blocks with provenance categories" {
   _require_artifacts
   _load_fixture "b1-hash-mismatch"
   _write_registry
 
   local envelope
+  # B1=47a65c9 (frontmatter); B2=4be9d21 (catalog); B3=c3f9811 (blockquote).
+  # B2 ≠ B3 → STORY-INDEX internally inconsistent → PC13b → BLOCK.
+  # RED GATE: v1.10 impl blocks on B1≠B2 with wrong message (no provenance categories).
+  # After v1.11 implementation: PC13b block with normative provenance text → PASSES.
   envelope="$(_post_write_event '.factory/stories/S-21.07-test.md')"
   _run_dispatcher "$envelope"
 
   _assert_plugin_ran_not_crashed
   _assert_exit 2 "[Class B]"
+
+  # AC-009 normative assertions: message must cite POLICY anchor and enumerate provenance
+  # categories WITHOUT asserting which applies (NON-CONFORMING per F-S2107-P4-006).
+  local combined
+  combined="$(cat "$_DISP_STDERR" 2>/dev/null) $output"
+  [[ "$combined" == *"POLICY 18 (D-923)"* ]] || {
+    echo "FAIL: AC-009 block message must cite 'POLICY 18 (D-923)'."
+    echo "  BC-5.39.010 v1.12 PC13b normative anchor."
+    echo "  Combined: $combined"
+    false
+  }
+  # All three provenance categories must be enumerated (NON-CONFORMING to assert which applies).
+  # Implementation emits categories in UPPERCASE (STALE / FABRICATED / ALGORITHM-DIVERGENT).
+  for category in "STALE" "FABRICATED" "ALGORITHM-DIVERGENT"; do
+    [[ "$combined" == *"$category"* ]] || {
+      echo "FAIL: AC-009 block message must enumerate provenance category '$category'."
+      echo "  BC-5.39.010 v1.12 PC13b: all three categories listed without classification."
+      echo "  Combined: $combined"
+      false
+    }
+  done
 }
 
 @test "AC-009 CONTROL: three-way hash match produces exit code 0" {
@@ -680,7 +753,7 @@ _assert_plugin_ran_not_crashed() {
 # Fixture: b1-b3-only-mismatch (B1=47a65c9, B2=47a65c9, B3=deadbee)
 # F-S2107-P1B-003: parse_story_index_blockquote_hash uses starts_with("> S-21.07=")
 #   → production prose blockquote shape never matches → B3=None → inert (no block)
-# BC-5.39.010 v1.3 invariant 11: B3≠B1 must block (blockquote hash mismatch).
+# BC-5.39.010 PC13b: B3≠B1 must block (blockquote hash mismatch).
 # ---------------------------------------------------------------------------
 
 @test "T-037 MUTANT: B1=B2 agree but B3 mismatch in production blockquote blocks" {
@@ -1057,11 +1130,14 @@ _assert_plugin_ran_not_crashed() {
 
 # ---------------------------------------------------------------------------
 # AC-018: combined violations from multiple arms → single block
-# Fixture: combined-a1-e1 (BC v1.33, INDEX v1.5, last_amended "(v1.31)")
-# BC-5.39.010 postcondition 23: all violations combined into ONE block_with_fix
+# Fixture: combined-a1-e1 (BC v1.5, INDEX v1.6 — index-newer PC2b; last_amended "(v1.33)")
+# BC-5.39.010 v1.12: A1 fires via PC2b (index-newer → block); E1 fires via version≠last_amended.
+# BC-5.39.010 postcondition 23: all violations combined into ONE block_with_fix.
+# v1.11 rationale: prior v1.10 fixture (primary-newer) now produces only PC2a advisory from A1,
+# so combined-block path requires index-newer direction to make both arms block independently.
 # ---------------------------------------------------------------------------
 
-@test "AC-018: A1 stale INDEX + E1 mismatch produces single combined block message" {
+@test "AC-018: A1 index-newer block + E1 mismatch produces single combined block message" {
   _require_artifacts
   _load_fixture "combined-a1-e1"
   _write_registry
@@ -1109,12 +1185,12 @@ _assert_plugin_ran_not_crashed() {
 }
 
 # ---------------------------------------------------------------------------
-# T-038: Class B Arm1 — cross-story catalog row correct lookup
+# T-048: Class B Arm1 — cross-story catalog row correct lookup
 # Fixture: b1-cross-story-catalog (S-18.00 row mentions S-18.01 in blocks column)
 # F-S2107-P1B-008: parse_story_index_catalog_hash naive contains("S-18.01") matches
 #   S-18.00 row first (mentions "S-18.01" in blocks/depends column; hash e5bc551)
 #   → "e5bc551" ≠ S-18.01 story frontmatter "1b4ea21" → spurious exit 2.
-# BC-5.39.010 v1.3 PC16: catalog lookup must match CANONICAL story row (first cell).
+# BC-5.39.010 PC16: catalog lookup must match CANONICAL story row (first cell).
 # ---------------------------------------------------------------------------
 
 @test "T-048 CONTROL: cross-story catalog lookup returns own-story hash (exit code 0)" {
@@ -1224,8 +1300,11 @@ _assert_plugin_ran_not_crashed() {
 
   local envelope
   # S-21.07-test.md: input-hash abc123; inputs: [".factory/STATE.md"] (volatile).
-  # STORY-INDEX.md: S-21.07 catalog row has hash xyz789 (≠ abc123) — deliberate mismatch
-  # to prove PC40 suppresses the comparison (without PC40, this would produce exit 2).
+  # STORY-INDEX.md: catalog=def4567, blockquote=deadb00 (B2≠B3 → PC13b without PC40).
+  # F-P6-003: fixture was "def456" (6-char); {7,40} extractor returned None → test
+  # passed vacuously via (None,None) arm. Now "def4567"/"deadb00" (7-char valid hex) →
+  # extractors succeed → without PC40: PC13b block (exit 2); with PC40: advisory exit 0.
+  # Discrimination is genuine: PC40 is what prevents the block, not None-arms.
   envelope="$(_post_write_event '.factory/stories/S-21.07-test.md')"
   _run_dispatcher "$envelope"
 
@@ -1251,15 +1330,23 @@ _assert_plugin_ran_not_crashed() {
 # ---------------------------------------------------------------------------
 # F-P4-003: RowMalformed — locator-matched <5-field BC-INDEX line emits advisory
 # Fixture: a1-row-malformed (BC-INDEX has a 2-field notes-table row carrying the BC link)
-# BC-5.39.010 v1.10 PC5 postcondition 4a: RowMalformed → advisory + Continue (exit 0).
-# BOTH verbatim operator-actionable clauses MUST appear in the advisory:
-#   "Registration status cannot be determined from this line"
-#   "Verify BC-INDEX body-table registration manually"
-# RED GATE: shipped advisory message omits both clauses → grep tests FAIL.
-# After fix: advisory carries the verbatim postcondition-4a text → PASSES.
+# BC-5.39.010 v1.12 PC5 postcondition 4a: RowMalformed → advisory + Continue (exit 0).
+# Advisory message (NORMATIVE — BC-5.39.010 v1.12 postcondition 4a verbatim, bc_id=BC-5.39.010,
+# field_count=2):
+#   "validate-cross-site-correspondence [Class A Arm1]: BC-INDEX.md contains a malformed
+#    candidate line for BC-5.39.010 (2 fields found; expected ≥5 for a valid body-table row).
+#    This line is structurally not a BC-INDEX body-table row (likely a Changelog entry or
+#    notes table). Registration status cannot be determined from this line. Verify BC-INDEX
+#    body-table registration manually."
+# F-P6-002 RED GATE: prior test used two .contains() substrings — insufficient to gate the
+# COMPLETE verbatim message (BC-5.39.010 v1.12 postcondition 4a MUST-verbatim clause).
+# An equality check on the COMPLETE string is required. The current impl uses a DIFFERENT
+# message format (different prefix, different sentence structure) → full-string equality
+# FAILS → RED GATE.
+# After v1.11 implementation: advisory uses the exact normative text → PASSES.
 # ---------------------------------------------------------------------------
 
-@test "F-P4-003 (RowMalformed): 2-field BC-INDEX candidate line emits advisory, exits 0" {
+@test "F-P4-003 (RowMalformed): 2-field BC-INDEX candidate line emits verbatim advisory, exits 0" {
   _require_artifacts
   _load_fixture "a1-row-malformed"
   _write_registry
@@ -1276,35 +1363,350 @@ _assert_plugin_ran_not_crashed() {
 
   local log; log="$(_plugin_log)"
 
-  # RED GATE assertion 1: advisory must contain verbatim clause 1.
-  # BC-5.39.010 v1.10 postcondition 4a: "Registration status cannot be determined
-  # from this line" — operator-actionable clause 1.
-  grep '"plugin_name":"validate-cross-site-correspondence"' "$log" 2>/dev/null \
-    | grep '"type":"plugin.log"' \
-    | grep '"level":"warn"' \
-    | grep -q 'Registration status cannot be determined from this line' || {
-      echo "FAIL: advisory missing verbatim postcondition-4a clause 1:"
-      echo "  'Registration status cannot be determined from this line'"
-      echo "  BC-5.39.010 v1.10 PC5 postcondition 4a. F-P4-003 / F-P4-025 RED GATE."
-      grep '"plugin_name":"validate-cross-site-correspondence"' "$log" \
-        | grep '"type":"plugin.log"' | grep '"level":"warn"' | head -3 \
-        || echo "  (no warn plugin.log records)"
-      false
-    }
+  # F-P6-002: full-string equality on the COMPLETE v1.12 normative RowMalformed message.
+  # BC-5.39.010 v1.12 PC5 postcondition 4a (NORMATIVE — MUST reproduce verbatim):
+  #   bc_id=BC-5.39.010, field_count=2.
+  # This check gates:
+  #   (a) correct prefix: "[Class A Arm1]:" not "[Class A Arm1] advisory:"
+  #   (b) preamble: "BC-INDEX.md contains a malformed candidate line for BC-5.39.010"
+  #   (c) field count: "(2 fields found; ...)" not "(2 non-empty fields found; ...)"
+  #   (d) sentence 2: "This line is structurally not a BC-INDEX body-table row..."
+  #   (e) both operator-actionable clauses present in the prescribed order
+  #   (f) no trailing v1.10 annotation or "Not blocking — ..." tail
+  # Two independent .contains() checks cannot detect (a), (d), or (f): the prior test
+  # passed against a non-conforming message that had both substrings but wrong surrounding
+  # text. BC-5.39.010 v1.12 postcondition 4a prohibits .contains()-only assertions.
+  local expected_msg
+  expected_msg='validate-cross-site-correspondence [Class A Arm1]: BC-INDEX.md contains a malformed candidate line for BC-5.39.010 (2 fields found; expected ≥5 for a valid body-table row). This line is structurally not a BC-INDEX body-table row (likely a Changelog entry or notes table). Registration status cannot be determined from this line. Verify BC-INDEX body-table registration manually.'
 
-  # RED GATE assertion 2: advisory must contain verbatim clause 2.
-  # BC-5.39.010 v1.10 postcondition 4a: "Verify BC-INDEX body-table registration
-  # manually" — the operator-actionable remediation instruction.
-  grep '"plugin_name":"validate-cross-site-correspondence"' "$log" 2>/dev/null \
-    | grep '"type":"plugin.log"' \
-    | grep '"level":"warn"' \
-    | grep -q 'Verify BC-INDEX body-table registration manually' || {
-      echo "FAIL: advisory missing verbatim postcondition-4a clause 2:"
-      echo "  'Verify BC-INDEX body-table registration manually'"
-      echo "  BC-5.39.010 v1.10 PC5 postcondition 4a. F-P4-003 / F-P4-025 RED GATE."
-      grep '"plugin_name":"validate-cross-site-correspondence"' "$log" \
-        | grep '"type":"plugin.log"' | grep '"level":"warn"' | head -3 \
-        || echo "  (no warn plugin.log records)"
-      false
-    }
+  local actual_msg
+  # Extract the message field from the JSONL log record using python3 JSON decode.
+  # This handles Unicode escapes (≥ for ≥) and JSON-escaped characters correctly.
+  actual_msg=$(python3 -c "
+import sys, json
+for line in sys.stdin:
+    line = line.strip()
+    if not line:
+        continue
+    try:
+        obj = json.loads(line)
+    except Exception:
+        continue
+    if (obj.get('plugin_name') == 'validate-cross-site-correspondence' and
+            obj.get('type') == 'plugin.log' and
+            obj.get('level') == 'warn'):
+        print(obj.get('message', ''), end='')
+        sys.exit(0)
+" < "$log" 2>/dev/null || true)
+
+  # Construct expected with Python to decode ≥ → ≥ (Unicode).
+  local expected_decoded
+  expected_decoded=$(python3 -c "print('validate-cross-site-correspondence [Class A Arm1]: BC-INDEX.md contains a malformed candidate line for BC-5.39.010 (2 fields found; expected ≥5 for a valid body-table row). This line is structurally not a BC-INDEX body-table row (likely a Changelog entry or notes table). Registration status cannot be determined from this line. Verify BC-INDEX body-table registration manually.', end='')" 2>/dev/null || true)
+
+  [ "$actual_msg" = "$expected_decoded" ] || {
+    echo "FAIL: RowMalformed advisory does not match v1.12 normative verbatim text."
+    echo "  F-P6-002 RED GATE: BC-5.39.010 v1.12 postcondition 4a requires full-string equality."
+    echo "  Expected: $expected_decoded"
+    echo "  Actual:   $actual_msg"
+    echo "  (empty actual_msg = no warn advisory in log; wrong message format = mismatch)"
+    grep '"plugin_name":"validate-cross-site-correspondence"' "$log" 2>/dev/null \
+      | grep '"type":"plugin.log"' | grep '"level":"warn"' | head -3 \
+      || echo "  (no warn plugin.log records)"
+    false
+  }
 }
+
+# ---------------------------------------------------------------------------
+# AC-022 / T-P6A (F-P6-001): PC2a — primary newer than index → advisory + exit 0
+# Fixture: a1-index-behind-primary (BC-5.39.010 frontmatter v1.6; INDEX row v1.5)
+# BC-5.39.010 v1.12 PC2a directional carve-out: when primary is NEWER than index,
+# POLICY 3 (state_manager_runs_last) guarantees this is the correct burst-ordering
+# intermediate state (BC written before INDEX update). Advisory + Continue, NOT block.
+#
+# Advisory MUST match (verbatim, <id>/<index_version>/<fm_version> substituted):
+# "validate-cross-site-correspondence [Class A Arm1] advisory: BC-INDEX.md body-table row
+# for <id> cites v<index_version> but frontmatter version: is \"<fm_version>\" — primary
+# newer than index; state-manager index update pending; Class A BLOCK suspended."
+#
+# RED GATE (v1.10 implementation): any version mismatch → block (exit 2).
+# Test expects exit 0 → FAILS under current implementation.
+# After v1.11 implementation: PC2a carve-out → advisory + exit 0 → PASSES.
+# ---------------------------------------------------------------------------
+
+@test "AC-022 / T-P6A (PC2a): primary-newer-than-index emits advisory, exits 0" {
+  _require_artifacts
+  _load_fixture "a1-index-behind-primary"
+  _write_registry
+
+  local envelope
+  # BC-5.39.010 frontmatter version="1.6"; BC-INDEX row cites v1.5.
+  # primary (1.6) > index (1.5) → PC2a → advisory + Continue.
+  # RED GATE: v1.10 impl blocks on any mismatch (exit 2). Test expects exit 0 → FAILS.
+  envelope="$(_post_write_event '.factory/specs/behavioral-contracts/ss-05/BC-5.39.010.md')"
+  _run_dispatcher "$envelope"
+
+  _assert_plugin_ran_not_crashed
+  # PC2a: primary newer → advisory + Continue, NOT block.
+  _assert_exit 0
+
+  # Advisory MUST contain normative substrings (AC-022 verbatim assertions).
+  local log; log="$(_plugin_log)"
+  local warn_line
+  warn_line="$(grep '"plugin_name":"validate-cross-site-correspondence"' "$log" 2>/dev/null \
+    | grep '"type":"plugin.log"' \
+    | grep '"level":"warn"' || true)"
+
+  echo "$warn_line" | grep -q '\[Class A Arm1\] advisory:' || {
+    echo "FAIL: AC-022 advisory must contain '[Class A Arm1] advisory:' (verbatim)."
+    echo "  BC-5.39.010 v1.12 PC2a prescribed text."
+    echo "  RED GATE: v1.10 impl blocks; no advisory emitted."
+    echo "$warn_line" | head -3 || echo "  (no plugin.log warn records)"
+    false
+  }
+  echo "$warn_line" | grep -q 'primary newer than index' || {
+    echo "FAIL: AC-022 advisory must contain 'primary newer than index' (verbatim)."
+    echo "  BC-5.39.010 v1.12 PC2a prescribed text."
+    false
+  }
+  echo "$warn_line" | grep -q 'Class A BLOCK suspended' || {
+    echo "FAIL: AC-022 advisory must contain 'Class A BLOCK suspended' (verbatim)."
+    echo "  BC-5.39.010 v1.12 PC2a prescribed text."
+    false
+  }
+}
+
+# ---------------------------------------------------------------------------
+# T-P6B (F-P6-001): PC2b — index newer than primary → block with prescribed message
+# Fixture: a1-index-ahead-of-primary (BC-5.39.010 frontmatter v1.10; INDEX row cites v1.11)
+# BC-5.39.010 v1.12 PC2b: index NEWER than primary is anomalous (no POLICY 3 explanation).
+# Block message (normative): "...index is newer than primary. This is anomalous..."
+#
+# RED GATE: current impl exits 2 with a DIFFERENT message format that lacks
+# "index is newer than primary" and "This is anomalous" — test asserts the v1.11
+# prescribed substring → FAILS under current implementation.
+# After v1.11 implementation: block with normative text → PASSES.
+# ---------------------------------------------------------------------------
+
+@test "T-P6B (PC2b): BC-5.39.010 v1.12 index-newer-than-primary blocks with prescribed text" {
+  _require_artifacts
+  _load_fixture "a1-index-ahead-of-primary"
+  _write_registry
+
+  local envelope
+  # BC-5.39.010 frontmatter version="1.10"; BC-INDEX row last cites v1.11.
+  # index (1.11) > primary (1.10) → PC2b → BLOCK.
+  # Block message must contain "index is newer than primary" and "This is anomalous".
+  # RED GATE: current block message is "...cites version v1.11 but BC frontmatter says
+  # version 1.10. Update the BC-INDEX.md row to v1.10. POLICY 14 leg 5." — no "anomalous".
+  envelope="$(_post_write_event '.factory/specs/behavioral-contracts/ss-05/BC-5.39.010.md')"
+  _run_dispatcher "$envelope"
+
+  _assert_plugin_ran_not_crashed
+  # PC2b: index newer → anomalous → BLOCK (exit 2).
+  _assert_exit 2 "[Class A Arm1]"
+
+  # Block message must contain v1.12 normative "index is newer than primary" phrasing.
+  # BC-5.39.010 v1.12 PC2b prescribed text. Current impl uses "BC frontmatter says version"
+  # phrasing — the normative substring "index is newer than primary" is ABSENT → FAILS.
+  local combined
+  combined="$(cat "$_DISP_STDERR" 2>/dev/null) $output"
+  [[ "$combined" == *"index is newer than primary"* ]] || {
+    echo "FAIL: PC2b block message must contain 'index is newer than primary'."
+    echo "  BC-5.39.010 v1.12 PC2b normative text: '...index is newer than primary."
+    echo "  This is anomalous: the index cannot legitimately advance ahead of the BC it cites...'"
+    echo "  RED GATE: current message says 'BC frontmatter says version' — normative substring absent."
+    echo "  Combined: $combined"
+    false
+  }
+
+  # Also verify the anomalous-direction phrase is present (PC2b rationale).
+  [[ "$combined" == *"This is anomalous"* ]] || {
+    echo "FAIL: PC2b block message must contain 'This is anomalous'."
+    echo "  BC-5.39.010 v1.12 PC2b: index-ahead-of-primary is anomalous; message must say so."
+    echo "  Combined: $combined"
+    false
+  }
+}
+
+# ---------------------------------------------------------------------------
+# AC-023 / T-P6C (F-P6-001): PC13a — B2==B3, B1≠B2 → advisory + exit 0
+# Fixture: b1-story-index-consistent-stale (B1=47a65c9, B2=4be9d21, B3=4be9d21)
+# BC-5.39.010 v1.12 PC13a: B2==B3 (STORY-INDEX internally consistent) AND B1≠B2
+# (story just rewritten, STORY-INDEX not yet updated by state-manager per POLICY 3).
+# Advisory + Continue, NOT block.
+#
+# Advisory MUST match (verbatim, <id>/<h1>/<h2>/<h3> substituted):
+# "validate-cross-site-correspondence [Class B] advisory: Story <id> input-hash mismatch —
+# frontmatter=<h1>; STORY-INDEX-catalog=<h2>; STORY-INDEX-blockquote=<h3>. STORY-INDEX
+# sites agree with each other; story frontmatter differs. State-manager STORY-INDEX update
+# pending; Class B BLOCK suspended."
+#
+# RED GATE (v1.10 implementation): B2 and B3 present, any mismatch with B1 → block (exit 2).
+# Test expects exit 0 → FAILS under current implementation.
+# After v1.11 implementation: PC13a carve-out → advisory + exit 0 → PASSES.
+# ---------------------------------------------------------------------------
+
+@test "AC-023 / T-P6C (PC13a): B2==B3 story-index-consistent-stale emits advisory, exits 0" {
+  _require_artifacts
+  _load_fixture "b1-story-index-consistent-stale"
+  _write_registry
+
+  local envelope
+  # S-21.07-test: B1=47a65c9; STORY-INDEX: B2=4be9d21, B3=4be9d21 (B2==B3, B1 differs).
+  # PC13a: B2==B3 → STORY-INDEX internally consistent; B1 differs (story just written).
+  # RED GATE: v1.10 impl: B2 and B3 present, !b2_match || !b3_match → block (exit 2).
+  # Test expects exit 0 → FAILS.
+  envelope="$(_post_write_event '.factory/stories/S-21.07-test.md')"
+  _run_dispatcher "$envelope"
+
+  _assert_plugin_ran_not_crashed
+  # PC13a: B2==B3, B1 differs → advisory + Continue, NOT block.
+  _assert_exit 0
+
+  # Advisory MUST contain normative substrings (AC-023 verbatim assertions).
+  local log; log="$(_plugin_log)"
+  local warn_line
+  warn_line="$(grep '"plugin_name":"validate-cross-site-correspondence"' "$log" 2>/dev/null \
+    | grep '"type":"plugin.log"' \
+    | grep '"level":"warn"' || true)"
+
+  echo "$warn_line" | grep -q '\[Class B\] advisory:' || {
+    echo "FAIL: AC-023 advisory must contain '[Class B] advisory:' (verbatim)."
+    echo "  BC-5.39.010 v1.12 PC13a prescribed text."
+    echo "  RED GATE: v1.10 impl blocks; no advisory emitted."
+    echo "$warn_line" | head -3 || echo "  (no plugin.log warn records)"
+    false
+  }
+  echo "$warn_line" | grep -q 'STORY-INDEX sites agree with each other' || {
+    echo "FAIL: AC-023 advisory must contain 'STORY-INDEX sites agree with each other' (verbatim)."
+    echo "  BC-5.39.010 v1.12 PC13a prescribed text."
+    false
+  }
+  echo "$warn_line" | grep -q 'State-manager STORY-INDEX update pending; Class B BLOCK suspended' || {
+    echo "FAIL: AC-023 advisory must contain 'State-manager STORY-INDEX update pending; Class B BLOCK suspended' (verbatim)."
+    echo "  BC-5.39.010 v1.12 PC13a prescribed text."
+    false
+  }
+}
+
+# ---------------------------------------------------------------------------
+# T-P6D (F-P6-001): PC13b — B2≠B3 → block with three-provenance message
+# Fixture: b1-story-index-inconsistent (B1=abc1234, B2=def4567, B3=deadb00, B2≠B3)
+# BC-5.39.010 v1.12 PC13b: B2≠B3 → STORY-INDEX internally inconsistent → BLOCK.
+# Block message must contain "catalog and blockquote disagree" (PC13b normative phrasing).
+# No burst-ordering argument explains B2≠B3 — both sites written in same state-manager commit.
+#
+# RED GATE: current impl blocks on any B1 mismatch (exit 2) but with a DIFFERENT message:
+# "All three present sites must agree" — does NOT contain "catalog and blockquote disagree"
+# or "has no burst-ordering explanation". Test asserts PC13b normative substring → FAILS.
+# After v1.11 implementation: block with normative three-provenance text → PASSES.
+# ---------------------------------------------------------------------------
+
+@test "T-P6D (PC13b): B2!=B3 story-index-inconsistent blocks with three-provenance message" {
+  _require_artifacts
+  _load_fixture "b1-story-index-inconsistent"
+  _write_registry
+
+  local envelope
+  # S-21.07-test: B1=abc1234; STORY-INDEX: B2=def4567, B3=deadb00 (B2 != B3).
+  # PC13b: B2 != B3 → STORY-INDEX internally inconsistent → BLOCK.
+  # Block message must contain "catalog and blockquote disagree" (normative) and enumerate
+  # all three provenance categories: STALE, FABRICATED, ALGORITHM-DIVERGENT.
+  # RED GATE: current message says "All three present sites must agree" — normative
+  # "catalog and blockquote disagree" substring is ABSENT → FAILS.
+  envelope="$(_post_write_event '.factory/stories/S-21.07-test.md')"
+  _run_dispatcher "$envelope"
+
+  _assert_plugin_ran_not_crashed
+  # PC13b: B2 != B3 → BLOCK (exit 2).
+  _assert_exit 2 "[Class B]"
+
+  # Block message must contain v1.12 PC13b normative phrasing.
+  local combined
+  combined="$(cat "$_DISP_STDERR" 2>/dev/null) $output"
+  [[ "$combined" == *"catalog and blockquote disagree"* ]] || {
+    echo "FAIL: PC13b block message must contain 'catalog and blockquote disagree'."
+    echo "  BC-5.39.010 v1.12 PC13b: B2 != B3 → 'STORY-INDEX catalog and blockquote disagree"
+    echo "  — this is anomalous and has no burst-ordering explanation'."
+    echo "  RED GATE: current message says 'All three present sites must agree' — normative"
+    echo "  substring absent. Three-provenance enumeration also required."
+    echo "  Combined: $combined"
+    false
+  }
+
+  # Block message must enumerate all three provenance categories (invariant 11 requirement).
+  [[ "$combined" == *"STALE"* && "$combined" == *"FABRICATED"* && "$combined" == *"ALGORITHM-DIVERGENT"* ]] || {
+    echo "FAIL: PC13b block message must enumerate STALE, FABRICATED, and ALGORITHM-DIVERGENT."
+    echo "  BC-5.39.010 v1.12 PC13b + invariant 11: all three provenance categories required."
+    echo "  Combined: $combined"
+    false
+  }
+}
+
+# ---------------------------------------------------------------------------
+# T-047-CONTROL: without volatile input, B2≠B3 blocks (proves T-047 discrimination)
+# Fixture: b1-story-index-inconsistent (B1=abc1234, B2=def4567, B3=deadb00; no volatile)
+# F-P6-003 control: complements T-047 (with volatile → exit 0). This control proves
+# that the same B2≠B3 mismatch blocks when volatile inputs are NOT declared.
+# Without volatile: no PC40 → PC13b (B2≠B3) → BLOCK (exit 2).
+# With volatile (T-047): PC40 fires → advisory + exit 0.
+# DISCRIMINATION: PC40 is what prevents the block — not (None,None) arms (old bug).
+#
+# GREEN once T-P6D passes: this uses the same fixture as T-P6D. Named as "CONTROL"
+# to document the T-047 discrimination invariant per F-P6-003.
+# ---------------------------------------------------------------------------
+
+@test "T-047-CONTROL: without volatile inputs B2!=B3 blocks (PC13b; proves T-047 discrimination)" {
+  _require_artifacts
+  _load_fixture "b1-story-index-inconsistent"
+  _write_registry
+
+  local envelope
+  # No volatile inputs in S-21.07-test.md (b1-story-index-inconsistent fixture).
+  # B1=abc1234, B2=def4567, B3=deadb00 (B2 != B3).
+  # PC40 does NOT fire (no volatile inputs) → PC13b fires → BLOCK (exit 2).
+  # CONTROL for T-047: same B2 != B3 data, but no volatile → proves PC40 is what prevents
+  # the block in T-047, not the (None,None) arms from invalid-length hashes (F-P6-003).
+  envelope="$(_post_write_event '.factory/stories/S-21.07-test.md')"
+  _run_dispatcher "$envelope"
+
+  _assert_plugin_ran_not_crashed
+  _assert_exit 2 "[Class B]"
+}
+
+# ---------------------------------------------------------------------------
+# F-P6-016: Coverage assertion — 5 Class-D-DEFERRED skips AND >=40 @test declarations.
+# Verifies structural invariants of the bats file itself:
+#   (a) Exactly 5 tests carry the "[DEFERRED v1.6 — Class D]" skip marker.
+#       These are the five Class D tests (AC-012 x2, AC-013, AC-014, AC-015) deferred
+#       per BC-5.39.010 v1.6. No new Class D deferred tests should be added without
+#       updating this count. No existing ones should be silently removed.
+#   (b) At least 40 @test declarations total (T-P6x + T-047-CONTROL + F-P6-016 + F-P6-002
+#       push the count above 40; confirms all new tests were added).
+# ALWAYS PASSES: no dispatcher invocation. Pure file structure assertion.
+# ---------------------------------------------------------------------------
+
+@test "F-P6-016: exactly 5 Class-D-DEFERRED skips and >=40 test declarations" {
+  local bats_file="$BATS_TEST_FILENAME"
+
+  # (a) Class-D-DEFERRED skip count: must be exactly 5.
+  local skip_count
+  skip_count=$(grep -c 'skip "\[DEFERRED v1\.6 — Class D\]' "$bats_file" 2>/dev/null || echo 0)
+  [ "$skip_count" -eq 5 ] || {
+    echo "FAIL: expected exactly 5 Class-D-DEFERRED skip lines, got $skip_count."
+    echo "  BC-5.39.010 v1.6 deferred Class D (AC-012 x2, AC-013, AC-014, AC-015)."
+    echo "  If a new deferred test was added, update this count. If one was removed, investigate."
+    false
+  }
+
+  # (b) Total @test count: must be >=40.
+  local test_count
+  test_count=$(grep -c '^@test ' "$bats_file" 2>/dev/null || echo 0)
+  [ "$test_count" -ge 40 ] || {
+    echo "FAIL: expected >=40 @test declarations, got $test_count."
+    echo "  F-P6-016: T-P6A/B/C/D + T-047-CONTROL + F-P6-016 + F-P6-002 push count above 40."
+    echo "  If this fails, the new tests from F-P6-001 may not have been added."
+    false
+  }
+}
+

@@ -220,8 +220,11 @@ pub fn on_post_tool_use(payload: HookPayload) -> HookResult {
     // BC file: Arm A1 + Class E
     if is_bc {
         let bc_id = extract_stem_from_path(&file_path);
-        let bc_version =
-            frontmatter::extract_frontmatter_field(&content, "version").unwrap_or_default();
+        // F-P6-019(lib): extract_version_field normalizes at the parse boundary.
+        // run_arm_a1_with_index_result shadows its bc_version parameter (F-P6-019a), so
+        // passing raw "v1.3" was benign-but-wrong — no observable defect while the shadow
+        // exists, but a latent trap for any comparison added before that shadow.
+        let bc_version = frontmatter::extract_version_field(&content).unwrap_or_default();
         let (a1_v, a1_a) = arm_a1::run_arm_a1(&bc_id, &bc_version, &file_path);
         violations.extend(a1_v);
         advisories.extend(a1_a);
@@ -1067,5 +1070,794 @@ mod tests {
                 F-S2107-P3-025: unreachable! replaced with panic! (reachable on defect)."
             ),
         }
+    }
+
+    // -----------------------------------------------------------------------
+    // F-P6-010 CORPUS TEST A — Arm A1 on live BC-5.39.010
+    //
+    // BC-5.39.010 is the governing BC for this hook. Its own presence in the live
+    // corpus verifies that Arm A1 does not spuriously block when processing itself.
+    //
+    // BC-5.39.010 uses a block-scalar `last_amended: |-` frontmatter (see F-P4-004).
+    // After the PC36 block-scalar fix, the version is parseable. The live BC-INDEX
+    // row for BC-5.39.010 may be: RowAbsent (if version > "1.0"), RowPresentNoVersion,
+    // or Version(v). This corpus test verifies that whatever the live state is,
+    // run_arm_a1_with_index_result does NOT produce a violation for BC-5.39.010's
+    // own current version (i.e., the corpus is in a self-consistent state).
+    //
+    // GREEN on arrival IF the corpus is consistent; RED otherwise — detects live corpus
+    // drift where BC-5.39.010's INDEX row is stale against its frontmatter version.
+    // F-P6-010: no prior corpus test exercised Arm A1 on BC-5.39.010 itself.
+    // -----------------------------------------------------------------------
+
+    /// CORPUS shape invariant (F-P6-010): Arm A1 produces no violations for live BC-5.39.010.
+    ///
+    /// Reads LIVE BC-INDEX.md and BC-5.39.010.md. Asserts run_arm_a1_with_index_result
+    /// produces no violations — confirming the corpus is self-consistent for the governing BC.
+    /// Also confirms that the block-scalar `last_amended: |-` parse (PC36) does not prevent
+    /// the version from being extracted (prerequisite for E1 arm coverage on BC-5.39.010).
+    ///
+    /// GREEN on arrival when corpus is consistent.
+    /// RED when BC-5.39.010 version has been bumped without updating BC-INDEX — live corpus drift.
+    #[test]
+    fn test_BC_5_39_010_corpus_arm_a1_bc5_39_010_no_violations_self_consistent() {
+        let root = corpus_root_or_skip!();
+        let bc_index_bytes = std::fs::read(root.join("specs/behavioral-contracts/BC-INDEX.md"))
+            .expect("BC-INDEX.md must be readable from corpus root");
+        let bc_file_str =
+            std::fs::read_to_string(root.join("specs/behavioral-contracts/ss-05/BC-5.39.010.md"))
+                .expect("BC-5.39.010.md must be readable from corpus root");
+        let bc_version = frontmatter::extract_frontmatter_field(&bc_file_str, "version").expect(
+            "BC-5.39.010.md must have a version: field. \
+            If None, frontmatter scanner or block-scalar parse (PC36) has a bug. \
+            F-P4-004/PC36 prerequisite: block-scalar last_amended must be parseable.",
+        );
+        let (violations, _) = arm_a1::run_arm_a1_with_index_result(
+            "BC-5.39.010",
+            &bc_version,
+            &root
+                .join("specs/behavioral-contracts/ss-05/BC-5.39.010.md")
+                .to_string_lossy(),
+            Ok(bc_index_bytes),
+        );
+        assert!(
+            violations.is_empty(),
+            "BC-5.39.010 (version={bc_version}) must not produce Arm A1 violations against the \
+            live BC-INDEX.md. The corpus is self-inconsistent: BC-5.39.010's INDEX row is stale \
+            against its current frontmatter version. F-P6-010 corpus shape invariant: \
+            run_arm_a1_with_index_result must not block on the governing BC's own live state. \
+            Violations: {violations:?}"
+        );
+    }
+
+    // -----------------------------------------------------------------------
+    // F-P6-010 CORPUS TEST B — Arm B1 on live S-21.07
+    //
+    // S-21.07 is the story delivered in this cycle. This test calls
+    // run_arm_b1_with_index_result (pure function) with live STORY-INDEX bytes.
+    //
+    // Corpus-shape invariants asserted upfront (fail loud, not silent):
+    //   (1) S-21.07 must have NO volatile inputs in its `inputs:` block.
+    //       If a future burst adds a volatile input (e.g. ARCH-INDEX.md was
+    //       removed last burst — the reverse is plausible), this test fails
+    //       with a diagnostic message rather than silently degrading to a
+    //       branch that never exercises Arm B1's three-way comparison.
+    //   (2) S-21.07 must have an `input-hash:` field present.
+    //       If absent, Arm B1 skips entirely — not a valid regression guard.
+    //
+    // If either invariant breaks: fix the test (re-scope for the new corpus
+    // shape) or add a separate fixture-based PC40 test, but do NOT allow this
+    // test to silently pass without testing Arm B1.
+    //
+    // F-P6-010: no prior corpus test exercised Arm B1 on live S-21.07 itself.
+    // -----------------------------------------------------------------------
+
+    /// CORPUS shape invariant (F-P6-010): Arm B1 produces no violations for live S-21.07.
+    ///
+    /// Asserts corpus preconditions loudly (no volatile inputs, has input-hash), then
+    /// unconditionally calls run_arm_b1_with_index_result against live STORY-INDEX bytes.
+    /// Fails loud if corpus shape changes rather than silently degrading to a vacuous pass.
+    ///
+    /// GREEN when corpus is self-consistent for S-21.07 (no volatile inputs, hashes agree).
+    /// RED when S-21.07 input-hash disagrees with STORY-INDEX — live corpus drift.
+    /// RED (corpus-shape invariant) when S-21.07 gains volatile inputs or loses input-hash.
+    #[test]
+    fn test_BC_5_39_010_corpus_arm_b1_s21_07_no_violations() {
+        let root = corpus_root_or_skip!();
+
+        // Find S-21.07 story file — name may vary. Try canonical path first.
+        let story_path =
+            root.join("stories/S-21.07-validate-cross-site-correspondence-wasm-hook.md");
+        let story_str = if story_path.is_file() {
+            std::fs::read_to_string(&story_path)
+                .expect("S-21.07 story must be readable from corpus root")
+        } else {
+            // Fallback: scan stories/ for a file whose frontmatter story_id == "S-21.07"
+            let entries = std::fs::read_dir(root.join("stories"))
+                .expect("stories/ directory must be readable from corpus root");
+            let mut found = None;
+            for entry in entries.flatten() {
+                let p = entry.path();
+                if p.extension().and_then(|e| e.to_str()) != Some("md") {
+                    continue;
+                }
+                if let Ok(content) = std::fs::read_to_string(&p)
+                    && let Some(id) = frontmatter::extract_frontmatter_field(&content, "story_id")
+                    && id == "S-21.07"
+                {
+                    found = Some(content);
+                    break;
+                }
+            }
+            found.expect(
+                "S-21.07 story must exist in corpus stories/ directory. \
+                Set VSDD_CORPUS_ROOT or CI_REQUIRE_ARTIFACTS=1 if missing. \
+                F-P6-010 corpus shape invariant.",
+            )
+        };
+
+        // Corpus-shape invariant (1): S-21.07 must have NO volatile inputs.
+        // A future burst could add ARCH-INDEX.md, STATE.md, or another volatile
+        // path to inputs:. If that happens, this test fails loud rather than
+        // silently degrading to a branch that never calls run_arm_b1_with_index_result.
+        let volatile_inputs = arm_b::parse_story_volatile_inputs(&story_str);
+        let volatile_found: Vec<&str> = volatile_inputs
+            .iter()
+            .filter(|p| arm_b::is_volatile_path(p))
+            .map(|s| s.as_str())
+            .collect();
+        assert!(
+            volatile_found.is_empty(),
+            "CORPUS SHAPE CHANGED: S-21.07 now declares volatile inputs: {:?}. \
+            This test assumed no volatile inputs so that run_arm_b1_with_index_result \
+            is exercised unconditionally. Either (a) remove the volatile input if it \
+            was added in error, or (b) re-scope this test to a non-volatile story and \
+            write a separate fixture-based PC40 test. F-P6-010 corpus shape invariant.",
+            volatile_found
+        );
+
+        // Corpus-shape invariant (2): S-21.07 must have an input-hash: field.
+        // Without it, Arm B1 skips entirely (PC18) and this test provides no coverage.
+        let story_hash = arm_b::parse_story_input_hash(&story_str).expect(
+            "CORPUS SHAPE CHANGED: S-21.07 has no input-hash: field. \
+            Without input-hash:, Arm B1 skips and this test is not a valid regression guard. \
+            Either add the field or re-scope this test. F-P6-010 corpus shape invariant.",
+        );
+
+        // Both preconditions hold: run the three-way comparison unconditionally.
+        let story_index_bytes = std::fs::read(root.join("stories/STORY-INDEX.md")).expect(
+            "STORY-INDEX.md must be readable from corpus root. \
+            F-P6-010 corpus test B: three-way comparison requires STORY-INDEX.md.",
+        );
+        let (violations, _) =
+            arm_b::run_arm_b1_with_index_result("S-21.07", &story_hash, Ok(story_index_bytes));
+        assert!(
+            violations.is_empty(),
+            "S-21.07 must not produce Arm B1 violations against the live STORY-INDEX.md. \
+            The corpus is self-inconsistent: S-21.07 input-hash disagrees with STORY-INDEX.md. \
+            F-P6-010 corpus shape invariant. Violations: {violations:?}"
+        );
+    }
+
+    // -----------------------------------------------------------------------
+    // F-P6-010 CORPUS TEST C — is_volatile_path on all live story inputs
+    //
+    // Sweeps ALL story files in .factory/stories/*.md (except STORY-INDEX.md itself)
+    // and for each story that declares an inputs: list, verifies is_volatile_path
+    // against each declared path. Checks two invariants:
+    //
+    //   (1) STATE.md-referencing stories: at least one story must declare
+    //       ".factory/STATE.md" and is_volatile_path must return true for it.
+    //
+    //   (2) No story declares a VP-NNN.md or BC-NNN.NNN.NNN.md path that
+    //       is_volatile_path returns true for (VP/BC files are stable corpus artifacts
+    //       and must NOT be treated as volatile by PC40).
+    //
+    // F-P6-010: prior is_volatile_path tests used synthetic fixtures. This test
+    // exercises the function against the real corpus inputs: declarations.
+    // -----------------------------------------------------------------------
+
+    /// CORPUS shape invariant (F-P6-010): is_volatile_path correct on live story inputs.
+    ///
+    /// Sweeps live .factory/stories/*.md. Asserts STATE.md is volatile, VP/BC files are not.
+    /// GREEN on arrival assuming is_volatile_path is correctly implemented (post-fix).
+    #[test]
+    #[allow(clippy::panic)] // test code: panic on unreadable stories/ is intentional
+    fn test_BC_5_39_010_corpus_is_volatile_path_live_story_inputs() {
+        let root = corpus_root_or_skip!();
+        let stories_dir = root.join("stories");
+        let entries = match std::fs::read_dir(&stories_dir) {
+            Ok(e) => e,
+            Err(err) => panic!(
+                "stories/ directory must be readable: {err}. \
+                Set VSDD_CORPUS_ROOT or CI_REQUIRE_ARTIFACTS=1. \
+                F-P6-010 corpus sweep."
+            ),
+        };
+
+        let mut found_state_md_story = false;
+        let mut stories_with_inputs = 0usize;
+
+        for entry in entries.flatten() {
+            let p = entry.path();
+            if p.file_name().and_then(|f| f.to_str()) == Some("STORY-INDEX.md") {
+                continue; // Skip the index file itself
+            }
+            if p.extension().and_then(|e| e.to_str()) != Some("md") {
+                continue;
+            }
+            let content = match std::fs::read_to_string(&p) {
+                Ok(s) => s,
+                Err(_) => continue,
+            };
+            let inputs = arm_b::parse_story_volatile_inputs(&content);
+            if inputs.is_empty() {
+                continue;
+            }
+            stories_with_inputs += 1;
+
+            for path in &inputs {
+                // Invariant 2: VP/BC canonical spec files must NOT be volatile.
+                // They are stable corpus artifacts. PC40 applies only to STATE.md,
+                // INDEX files (BC/VP/STORY/ARCH), and cycles/ artifacts.
+                if (path.contains("/VP-")
+                    && path.ends_with(".md")
+                    && !path.contains("/VP-INDEX.md"))
+                    || (path.contains("/BC-")
+                        && path.ends_with(".md")
+                        && !path.contains("/BC-INDEX.md"))
+                {
+                    assert!(
+                        !arm_b::is_volatile_path(path),
+                        "is_volatile_path must return false for stable spec file '{path}'. \
+                        BC-5.39.010 PC40: PC40 applies only to STATE.md, INDEX files, and \
+                        cycles/ artifacts. VP/BC canonical spec files are stable and must NOT \
+                        match volatile patterns. F-P6-010 corpus sweep."
+                    );
+                }
+
+                // Track STATE.md declarations.
+                if path == ".factory/STATE.md" {
+                    found_state_md_story = true;
+                    assert!(
+                        arm_b::is_volatile_path(path),
+                        "is_volatile_path must return true for '.factory/STATE.md'. \
+                        BC-5.39.010 PC40 pattern 1: .factory/STATE.md is the canonical \
+                        volatile pipeline state file. F-P6-010 corpus sweep."
+                    );
+                }
+            }
+        }
+
+        // Corpus shape invariant: at least some stories must have inputs: declared.
+        assert!(
+            stories_with_inputs > 0,
+            "Expected at least one story in .factory/stories/ to declare an inputs: list. \
+            If all stories lack inputs:, the corpus may be malformed or the \
+            parse_story_volatile_inputs extractor has a bug. F-P6-010 corpus sweep. \
+            stories_with_inputs={stories_with_inputs}"
+        );
+
+        // Corpus shape invariant: at least one story should declare STATE.md.
+        // S-21.07 is known to declare it (as of v1.x). If this fails in a future cycle
+        // where no story declares STATE.md anymore, update this expectation.
+        assert!(
+            found_state_md_story,
+            "Expected at least one story in .factory/stories/ to declare '.factory/STATE.md' \
+            in its inputs: list. S-21.07 (this story) is known to declare it. \
+            If no story declares STATE.md anymore, update this assertion. \
+            F-P6-010 corpus sweep: is_volatile_path must be exercised against live data."
+        );
+    }
+
+    // -----------------------------------------------------------------------
+    // Helper: collect_md_files
+    //
+    // Recursively collects all .md files under `dir` into `out`.
+    // Used by corpus sweep tests that need to walk the entire BC/VP/story corpus.
+    // -----------------------------------------------------------------------
+    fn collect_md_files(dir: &std::path::Path, out: &mut Vec<std::path::PathBuf>) {
+        if let Ok(entries) = std::fs::read_dir(dir) {
+            for entry in entries.flatten() {
+                let path = entry.path();
+                if path.is_dir() {
+                    collect_md_files(&path, out);
+                } else if path.extension().and_then(|e| e.to_str()) == Some("md") {
+                    out.push(path);
+                }
+            }
+        }
+    }
+
+    // -----------------------------------------------------------------------
+    // F-P6-010 CORPUS TEST D — BC-INDEX version-sync sweep (compensating guard)
+    //
+    // Rationale: Under v1.10, primary-newer-than-index BLOCKED, which
+    // incidentally caught state-manager sync failures at write time. Under v1.11
+    // PC2a, primary-newer-than-index becomes an advisory — so a BC bumped without
+    // its BC-INDEX row updated produces an advisory and nothing fails at the hook.
+    //
+    // The hook is CORRECT: PC2a tolerates the transient mid-burst state
+    // (primary written, index not yet synced — guaranteed by POLICY 3). But once a
+    // burst is COMMITTED, index and frontmatter must agree. This test restores the
+    // invariant at the cargo-test (CI) layer instead of the write layer:
+    // write-time advisory, commit-time hard failure.
+    //
+    // Scope:
+    //   - Scans ALL .md files in specs/behavioral-contracts/ recursively.
+    //   - Excludes *-INDEX.md files (index files, not BC definitions).
+    //   - Excludes files whose names do not start with "BC-" (naming convention guard).
+    //   - Extracts frontmatter `version:` from each BC file.
+    //   - Calls arm_a1::extract_bc_index_version_state for presence/absence detection.
+    //   - RowAbsent: BC not registered in INDEX — NOT a sync failure. Skip.
+    //   - RowPresentNoVersion: BC registered but no version chain — NOT a sync failure.
+    //     These are BCs using the legacy INDEX shape (no version-cell column) or
+    //     BCs whose 6th cell carries no vN.N token. Skip.
+    //   - RowMalformed: INDEX row is structurally malformed — separate concern. Skip.
+    //   - Version(_): INDEX has a version chain. The actual version match uses
+    //     bc_index_row_contains_version() — a direct raw-line search that bypasses
+    //     the last-wins algorithm edge cases (F-P6-019a–d, see below).
+    //     Normalized frontmatter version (leading 'v' stripped) must appear in the row.
+    //
+    // F-P6-019 edge cases handled by bc_index_row_contains_version:
+    //   a. BC-5.24.006: frontmatter `version: "v1.3"` has a leading 'v' that
+    //      arm_a1 strips — strip it here too via trim_start_matches('v').
+    //   b. BC-3.08.001: last \| chain entry starts with '(' not 'v' (POL-14
+    //      no-op annotation); last-wins picks the "promoted v1.23" inside it.
+    //      Raw line search correctly finds "v1.24" as a complete token.
+    //   c. BC-7.03.079: [prior: v1.4] annotation follows v1.5 entry; last-wins
+    //      picks "v1.4". Raw line search finds "v1.5" as the first complete token.
+    //   d. BC-4.13.001: unescaped | inside `^(Edit|Write|MultiEdit|Agent)$`
+    //      text truncates field 6 before v1.17–v1.18; arm_a1 returns Version("1.16").
+    //      Raw line search finds "v1.18" because it scans the whole line.
+    //
+    // NOTE: F-P6-019a–d are pre-existing production bugs in arm_a1 (PC2a/PC2b).
+    // They are reported to team-lead and out of scope for S-21.07 test-writer work.
+    // This compensating test is deliberately at the CI layer only.
+    //
+    // Scale: ~1,983 BC files total; approximately 40 carry version chains.
+    // The test asserts checked_count >= 5 to prove the sweep has teeth —
+    // a zero-check run would silently pass while asserting nothing.
+    //
+    // F-P6-010: compensating guard, human-approved in S-21.07 burst.
+    // -----------------------------------------------------------------------
+
+    /// Search the raw BC-INDEX line for `v{normalized_version}` with a word-boundary check.
+    ///
+    /// `bc_id`: bare ID string e.g. "BC-5.39.010".
+    /// `normalized_version`: bare `N.M` with no leading 'v'.
+    /// `index_content`: full BC-INDEX.md text.
+    ///
+    /// Returns true if a matching row line is found AND the token `vN.M` appears in it
+    /// where `N.M` is not immediately followed by another ASCII digit (prevents "v1.3"
+    /// matching "v1.30").
+    ///
+    /// Bypasses last-wins algorithm edge cases (F-P6-019a–d):
+    ///   - BC-4.13.001: unescaped `|` inside cell content — scans whole raw line.
+    ///   - BC-3.08.001: backward ref in POL-14 annotation — no field parsing.
+    ///   - BC-7.03.079: [prior:] annotation — finds first token, not last.
+    ///   - BC-5.24.006: 'v' prefix handled by caller via trim_start_matches.
+    fn bc_index_row_contains_version(
+        bc_id: &str,
+        normalized_version: &str,
+        index_content: &str,
+    ) -> bool {
+        let row_prefix = format!("| [{bc_id}](");
+        let row_line = match index_content.lines().find(|l| l.starts_with(&row_prefix)) {
+            Some(l) => l,
+            None => return false,
+        };
+        let needle = format!("v{normalized_version}");
+        let mut search = row_line;
+        while let Some(pos) = search.find(&needle) {
+            let after = &search[pos + needle.len()..];
+            // Accept if next char is not an ASCII digit (word-boundary approximation).
+            if after.chars().next().is_none_or(|c| !c.is_ascii_digit()) {
+                return true;
+            }
+            search = &search[pos + 1..];
+        }
+        false
+    }
+
+    // -----------------------------------------------------------------------
+    // TEETH PROOF for bc_index_row_contains_version (F-P6-010-D)
+    //
+    // The corpus test is GREEN when the corpus is synced and RED when a BC's
+    // frontmatter version is absent from its BC-INDEX row. This unit test proves
+    // bc_index_row_contains_version correctly returns false in the absent case —
+    // which is exactly the mechanism the corpus test relies on.
+    //
+    // Synthetic data mirrors the real BC-5.39.010 INDEX row structure:
+    //   BEFORE perturbation: row ends with `v1.10 \| v1.11 |`  → contains v1.11 → GREEN
+    //   AFTER perturbation:  row ends with `v1.10 |`            → no v1.11      → RED
+    //
+    // Expected RED output from test_BC_corpus_version_sync_all_indexed_bcs_match_frontmatter
+    // when BC-5.39.010's INDEX row has v1.11 removed:
+    //
+    //   BC-INDEX VERSION SYNC FAILURE — commit-layer gate (F-P6-010-D).
+    //   These BCs have their frontmatter version token absent from the BC-INDEX row.
+    //   State-manager must sync BC-INDEX in the same burst as a BC version bump.
+    //
+    //   Mismatches (1 total):
+    //   BC-5.39.010: BC frontmatter version="1.11" (normalized="1.11") not found
+    //   in BC-INDEX row. State-manager must sync the INDEX row in the same burst
+    //   as a BC version bump.
+    //
+    //   Sweep scope summary (1984 files scanned):
+    //     assertions made (Version state): 40
+    //     RowAbsent (not registered — not a sync failure): 1
+    //     RowPresentNoVersion (no version chain — not a sync failure): 1943
+    //     RowMalformed (structural — separate concern): 0
+    // -----------------------------------------------------------------------
+
+    /// Unit test: bc_index_row_contains_version returns true when the version token is
+    /// present and false when it is absent. Synthetic data mirrors BC-5.39.010's row.
+    /// Proves the helper function has teeth without touching the live corpus.
+    #[test]
+    fn test_bc_index_row_contains_version_teeth() {
+        // Synthetic BC-INDEX row mimicking BC-5.39.010's real structure.
+        // BEFORE perturbation: v1.11 is present.
+        let index_before = "\
+| [BC-5.39.010](ss-05/BC-5.39.010.md) | validate-cross-site-correspondence | \
+active | CAP-123 | S-21.07 | v1.10 \\| v1.11 |\n";
+        // AFTER perturbation: v1.11 is removed (simulates state-manager sync miss).
+        let index_after = "\
+| [BC-5.39.010](ss-05/BC-5.39.010.md) | validate-cross-site-correspondence | \
+active | CAP-123 | S-21.07 | v1.10 |\n";
+
+        // GREEN: v1.11 present → returns true.
+        assert!(
+            bc_index_row_contains_version("BC-5.39.010", "1.11", index_before),
+            "TEETH FAILURE: bc_index_row_contains_version should return true when \
+            v1.11 is present in the row (BEFORE perturbation). The corpus test would \
+            be GREEN."
+        );
+
+        // RED trigger: v1.11 absent → returns false → corpus test would fail.
+        assert!(
+            !bc_index_row_contains_version("BC-5.39.010", "1.11", index_after),
+            "TEETH FAILURE: bc_index_row_contains_version should return false when \
+            v1.11 is absent from the row (AFTER perturbation). The corpus test would \
+            produce 'Mismatches (1 total): BC-5.39.010: BC frontmatter version=\"1.11\" \
+            not found in BC-INDEX row.'"
+        );
+
+        // Digit-suffix boundary: v1.1 must not match v1.10 or v1.11.
+        assert!(
+            !bc_index_row_contains_version("BC-5.39.010", "1.1", index_before),
+            "TEETH FAILURE: v1.1 should NOT match v1.10 or v1.11 (digit-suffix check)."
+        );
+
+        // Row absent case: unknown BC ID → returns false.
+        assert!(
+            !bc_index_row_contains_version("BC-9.99.999", "1.11", index_before),
+            "TEETH FAILURE: absent BC ID should return false."
+        );
+
+        // F-P6-019a: v-prefix in frontmatter is stripped by caller; helper gets bare "1.3".
+        let index_v_prefix = "\
+| [BC-5.24.006](ss-05/BC-5.24.006.md) | some description | draft | TBD | TBD | \
+v1.3 (v1.3 2026-07-22 D-875: some note) |\n";
+        assert!(
+            bc_index_row_contains_version("BC-5.24.006", "1.3", index_v_prefix),
+            "TEETH FAILURE: bare 1.3 (v-stripped by caller) should match v1.3 in row."
+        );
+
+        // F-P6-019b/c: backward ref in parenthetical — v1.23 appears after v1.24.
+        let index_backward_ref = "\
+| [BC-3.08.001](ss-03/BC-3.08.001.md) | some description | active | CAP-003 | S-15 | \
+v1.24 (promoted v1.23 D-839; no promotion required) |\n";
+        assert!(
+            bc_index_row_contains_version("BC-3.08.001", "1.24", index_backward_ref),
+            "TEETH FAILURE: v1.24 should be found even when followed by 'promoted v1.23'."
+        );
+        // v1.23 also found in the row (it's in the note) — test would NOT flag it as missing.
+        // Only the frontmatter version matters; the test checks frontmatter, not the row's canonical.
+        assert!(
+            bc_index_row_contains_version("BC-3.08.001", "1.23", index_backward_ref),
+            "v1.23 is in the row text (it should be findable for reference)."
+        );
+
+        // F-P6-019c: [prior: v1.4] annotation after v1.5 — v1.5 must be findable.
+        let index_prior_annotation = "\
+| [BC-7.03.079](ss-07/BC-7.03.079.md) | track-agent-start | active | TBD | S-8.08 | \
+v1.5 (some note) [prior: v1.4 (some note)] |\n";
+        assert!(
+            bc_index_row_contains_version("BC-7.03.079", "1.5", index_prior_annotation),
+            "TEETH FAILURE: v1.5 should be found when followed by [prior: v1.4]."
+        );
+    }
+
+    /// CORPUS shape invariant (F-P6-010-D): every BC with a BC-INDEX version chain
+    /// has its frontmatter `version:` token present in that chain row.
+    ///
+    /// COMMIT-LAYER guard: CI fails on a sync failure that actually landed,
+    /// while the v1.11 write-time hook correctly stays advisory during authoring (PC2a).
+    ///
+    /// GREEN when corpus is synced (normal post-burst state).
+    /// RED when a BC frontmatter is bumped without updating BC-INDEX, or vice versa.
+    #[test]
+    fn test_BC_corpus_version_sync_all_indexed_bcs_match_frontmatter() {
+        let root = corpus_root_or_skip!();
+
+        // Read BC-INDEX.md once as a String — shared for all BC ID lookups.
+        // String form is required for bc_index_row_contains_version(); pass
+        // .as_bytes() to extract_bc_index_version_state() where needed.
+        let bc_index_str =
+            std::fs::read_to_string(root.join("specs/behavioral-contracts/BC-INDEX.md")).expect(
+                "BC-INDEX.md must be readable. \
+                    F-P6-010-D corpus sync invariant.",
+            );
+
+        // Collect all BC .md files, excluding *-INDEX.md files.
+        let bc_dir = root.join("specs/behavioral-contracts");
+        let mut all_bc_files: Vec<std::path::PathBuf> = Vec::new();
+        collect_md_files(&bc_dir, &mut all_bc_files);
+        all_bc_files.retain(|p| {
+            let name = p.file_name().and_then(|n| n.to_str()).unwrap_or("");
+            // Keep only files that look like BC definitions: "BC-*.md", not "*-INDEX.md".
+            name.starts_with("BC-") && !name.ends_with("-INDEX.md")
+        });
+        all_bc_files.sort(); // deterministic order for reproducible output
+
+        // Corpus-shape invariant: BC directory must be non-trivially populated.
+        assert!(
+            all_bc_files.len() >= 100,
+            "CORPUS SHAPE ANOMALY: only {} BC .md files found in specs/behavioral-contracts/. \
+            Expected at least 100 (corpus has ~1983 BCs). \
+            Check that VSDD_CORPUS_ROOT points to a populated .factory/ directory. \
+            F-P6-010-D corpus sync invariant.",
+            all_bc_files.len()
+        );
+
+        let mut mismatches: Vec<String> = Vec::new();
+        let mut row_absent_count = 0usize;
+        let mut row_no_version_count = 0usize;
+        let mut row_malformed_count = 0usize;
+        let mut checked_count = 0usize;
+
+        for bc_path in &all_bc_files {
+            let bc_id = bc_path
+                .file_stem()
+                .and_then(|s| s.to_str())
+                .unwrap_or("")
+                .to_string();
+            if bc_id.is_empty() {
+                continue;
+            }
+
+            let content = match std::fs::read_to_string(bc_path) {
+                Ok(c) => c,
+                Err(e) => {
+                    mismatches.push(format!(
+                        "{bc_id}: cannot read file {}: {e}",
+                        bc_path.display()
+                    ));
+                    continue;
+                }
+            };
+
+            let frontmatter_version = frontmatter::extract_frontmatter_field(&content, "version");
+
+            // Use extract_bc_index_version_state for RowAbsent/RowPresentNoVersion/
+            // RowMalformed/Version presence/absence detection.
+            // For the actual version match, use bc_index_row_contains_version to
+            // bypass the last-wins edge cases (F-P6-019a–d).
+            let index_state =
+                arm_a1::extract_bc_index_version_state(&bc_id, bc_index_str.as_bytes());
+
+            match index_state {
+                arm_a1::BcIndexVersionState::RowAbsent => {
+                    // Not registered in INDEX — not a sync failure (draft or unregistered).
+                    row_absent_count += 1;
+                }
+                arm_a1::BcIndexVersionState::RowPresentNoVersion => {
+                    // Registered but no version chain — not a sync failure.
+                    row_no_version_count += 1;
+                }
+                arm_a1::BcIndexVersionState::RowMalformed(_) => {
+                    // INDEX row structurally malformed — separate concern from version sync.
+                    row_malformed_count += 1;
+                }
+                arm_a1::BcIndexVersionState::Version(_) => {
+                    // INDEX has a version chain. Use raw-line search for the actual match.
+                    checked_count += 1;
+                    match &frontmatter_version {
+                        None => {
+                            // INDEX has a version chain but BC has no frontmatter version:.
+                            mismatches.push(format!(
+                                "{bc_id}: BC-INDEX has a version chain but BC frontmatter \
+                                has no version: field. \
+                                Add version: to the BC frontmatter, or remove the version \
+                                chain from BC-INDEX."
+                            ));
+                        }
+                        Some(fv) => {
+                            // Normalize: strip leading 'v' from frontmatter version.
+                            // BC-INDEX canonical form is bare "N.M"; some BCs use "vN.M"
+                            // in frontmatter (F-P6-019a pattern — BC-5.24.006).
+                            let normalized_fv = fv.trim_start_matches('v');
+                            if !bc_index_row_contains_version(&bc_id, normalized_fv, &bc_index_str)
+                            {
+                                mismatches.push(format!(
+                                    "{bc_id}: BC frontmatter version={fv:?} \
+                                    (normalized={normalized_fv:?}) not found in BC-INDEX row. \
+                                    State-manager must sync the INDEX row in the same burst \
+                                    as a BC version bump."
+                                ));
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        // Corpus-shape invariant: at least 5 versioned BCs must have been checked.
+        // If checked_count == 0 the sweep asserted nothing — silent vacuous pass.
+        assert!(
+            checked_count >= 5,
+            "CORPUS SHAPE ANOMALY: only {checked_count} BCs had a Version(_) INDEX state \
+            (expected >= 5; corpus has approximately 40 versioned BCs). \
+            Either BC-INDEX has lost its version chains, or extract_bc_index_version_state \
+            has regressed. Scope: {} files scanned. F-P6-010-D corpus sync invariant.",
+            all_bc_files.len()
+        );
+
+        assert!(
+            mismatches.is_empty(),
+            "BC-INDEX VERSION SYNC FAILURE — commit-layer gate (F-P6-010-D).\n\
+            These BCs have their frontmatter version token absent from the BC-INDEX row.\n\
+            State-manager must sync BC-INDEX in the same burst as a BC version bump.\n\
+            \n\
+            Mismatches ({} total):\n{}\n\
+            \n\
+            Sweep scope summary ({} files scanned):\n\
+              assertions made (Version state): {checked_count}\n\
+              RowAbsent (not registered — not a sync failure): {row_absent_count}\n\
+              RowPresentNoVersion (no version chain — not a sync failure): {row_no_version_count}\n\
+              RowMalformed (structural — separate concern): {row_malformed_count}\n",
+            mismatches.len(),
+            mismatches.join("\n"),
+            all_bc_files.len(),
+        );
+    }
+
+    // -----------------------------------------------------------------------
+    // F-P6-019-GUARD — executable enforcement that no production code reads
+    // `version` via the raw `extract_frontmatter_field(_, "version")` accessor.
+    //
+    // Root cause being guarded (F-P6-019 class):
+    //   Every function that extracts a version from structured text strips the
+    //   leading `v`, but `extract_frontmatter_field` returns raw frontmatter.
+    //   The fix is `extract_version_field` — a wrapper that normalises at the
+    //   single boundary. A doc-comment WARNING on `extract_frontmatter_field`
+    //   is a narrative check; this test is the executable enforcement.
+    //
+    // SCAN STRATEGY:
+    //   For each .rs source file in src/:
+    //     1. Truncate at the first `#[cfg(test)]` line — everything after is
+    //        test code and may legitimately call `extract_frontmatter_field`
+    //        with any field for isolation testing.
+    //     2. Skip lines that begin with `//` (doc comments and inline comments)
+    //        to avoid false positives from documentation examples.
+    //     3. Any remaining production line containing BOTH `extract_frontmatter_field`
+    //        AND `"version"` is a violation — except the one entry in the
+    //        EXCLUSION LIST below.
+    //
+    // EXCLUSION LIST (closed; every legitimate raw call must be named here):
+    //
+    //   Entry 1 — frontmatter.rs: the `extract_version_field` wrapper body.
+    //     `extract_frontmatter_field(content, "version").map(|v| v.trim_start_matches('v')...`
+    //     This IS the wrapper; the one caller that should be raw.
+    //     Detected by: line also contains `trim_start_matches`.
+    //
+    //   Zero other entries. If a new legitimate raw caller is added without
+    //   updating this list, this test fails — forcing an explicit decision.
+    //   An exclusion list that grows silently is the vulnerability class this
+    //   test was written to eliminate (cf. "45/45" concealing skips, burst-6).
+    //
+    // MULTILINE CALL LIMITATION:
+    //   Calls split across two lines (argument on the next line) are not
+    //   detected. This is acceptable: all call sites in this crate use
+    //   single-line invocations per the established code style, and the
+    //   compiler's type system would still require passing "version" explicitly.
+    // -----------------------------------------------------------------------
+
+    /// F-P6-019-GUARD: no production code may call
+    /// `extract_frontmatter_field(_, "version")` directly.
+    ///
+    /// RED: any production source file contains the banned pattern outside the
+    /// `extract_version_field` wrapper body. Teeth proof: `lib.rs` contained the
+    /// live violation `frontmatter::extract_frontmatter_field(&content, "version")`
+    /// before the implementer's fix — this test was RED against that code and
+    /// GREEN after the fix.
+    ///
+    /// GREEN: all production version reads go through `extract_version_field`.
+    #[test]
+    fn test_F_P6_019_guard_no_raw_version_field_access_in_production_code() {
+        use std::fs;
+        use std::path::PathBuf;
+
+        let src_dir = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("src");
+
+        // Collect all .rs source files deterministically.
+        let mut rs_files: Vec<PathBuf> = fs::read_dir(&src_dir)
+            .expect("src/ directory must be readable")
+            .filter_map(|e| {
+                let p = e.expect("dir entry readable").path();
+                if p.extension().and_then(|s| s.to_str()) == Some("rs") {
+                    Some(p)
+                } else {
+                    None
+                }
+            })
+            .collect();
+        rs_files.sort();
+
+        assert!(
+            !rs_files.is_empty(),
+            "F-P6-019-GUARD vacuity check: src/ must contain at least one .rs file. \
+            Empty file list means the scan is guarding nothing."
+        );
+
+        let mut violations: Vec<String> = Vec::new();
+
+        for file_path in &rs_files {
+            let file_name = file_path
+                .file_name()
+                .and_then(|s| s.to_str())
+                .unwrap_or("?");
+            let content =
+                fs::read_to_string(file_path).expect("source file must be readable as UTF-8");
+
+            // Truncate at the first `#[cfg(test)]` — everything after is test code.
+            // Test modules may call `extract_frontmatter_field` directly to exercise
+            // the function in isolation; those are not production call sites.
+            let production_code = match content.find("#[cfg(test)]") {
+                Some(pos) => &content[..pos],
+                None => content.as_str(),
+            };
+
+            for (line_idx, line) in production_code.lines().enumerate() {
+                // Must contain both tokens to be a candidate.
+                if !line.contains("extract_frontmatter_field") || !line.contains("\"version\"") {
+                    continue;
+                }
+
+                // Skip comment and doc-comment lines — these are documentation examples,
+                // not call sites. Detected by: trimmed line begins with `//`.
+                if line.trim_start().starts_with("//") {
+                    continue;
+                }
+
+                // EXCLUSION LIST — Entry 1: the `extract_version_field` wrapper body.
+                // The single legitimate raw caller: it normalises via `trim_start_matches`.
+                // All other production callers are violations.
+                if line.contains("trim_start_matches") {
+                    continue;
+                }
+
+                violations.push(format!("  {}:{}: {}", file_name, line_idx + 1, line.trim()));
+            }
+        }
+
+        assert!(
+            violations.is_empty(),
+            "F-P6-019-GUARD: production code must not call \
+            `extract_frontmatter_field(_, \"version\")` directly. \
+            All production version reads must go through \
+            `frontmatter::extract_version_field(content)`, which normalises \
+            the leading 'v' so that raw frontmatter \"v1.3\" compares equal to \
+            index-extracted \"1.3\" (F-P6-019 normalization asymmetry class). \
+            \n\nFound {} violation(s):\n{}\n\
+            \nFix: replace each raw call with \
+            `frontmatter::extract_version_field(content)` (returns Option<String> \
+            without leading 'v'). \
+            \nTo add a new legitimate raw caller, update the EXCLUSION LIST in \
+            this test and document why normalization is not required at that site.",
+            violations.len(),
+            violations.join("\n")
+        );
     }
 }

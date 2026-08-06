@@ -151,8 +151,15 @@ pub fn strip_date_annotation(entry: &str) -> String {
 /// BC-5.39.010 preconditions 35-37; postconditions 19-21; invariant 9.
 pub fn run_arm_e1(content: &str) -> (Vec<Violation>, Vec<Advisory>) {
     use crate::frontmatter::extract_frontmatter_field;
+    // F-P6-019f: extract_version_field normalizes at the parse boundary.
+    // `extract_last_amended_outer_version` skips 'v' during extraction and
+    // always returns a bare digit string (e.g., "1.3"). Without this accessor,
+    // raw frontmatter `version: "v1.3"` would compare as "v1.3" != "1.3" →
+    // false [Class E1] violation even when both values agree.
+    // See frontmatter::extract_version_field for the class-level rationale.
+    use crate::frontmatter::extract_version_field;
 
-    let version = match extract_frontmatter_field(content, "version") {
+    let version = match extract_version_field(content) {
         Some(v) => v,
         None => return (vec![], vec![]), // No version field → no check
     };
@@ -549,6 +556,84 @@ mod tests {
             !violations.is_empty(),
             "modified[] entries with complex annotations must still have dates checked \
             for monotonicity after suffix strip (BC-5.39.010 PC38)"
+        );
+    }
+
+    // -----------------------------------------------------------------------
+    // F-P6-019f — arm_e1 v-prefix normalization asymmetry
+    //
+    // Root cause (same class as F-P6-019a / F-P6-019e):
+    //   `extract_last_amended_outer_version` skips the `v` byte at parse time
+    //   (arm_e.rs: `pos += 1; // skip 'v'`; `version_start = pos`) and returns
+    //   the bare digit substring — always v-stripped (e.g., "1.3").
+    //
+    //   `version` comes from `extract_frontmatter_field(content, "version")` —
+    //   raw frontmatter, may have a leading `v` (e.g., "v1.3").
+    //
+    //   Comparison at `if amended_version == version`:
+    //     "1.3" == "v1.3" → false → spurious [Class E1] violation.
+    //
+    // Fix (implementer): normalize `version` with `strip_prefix('v')` before
+    // the comparison at arm_e.rs run_arm_e1, so "1.3" == "1.3".
+    //
+    // The control (019f-b) verifies that a genuinely stale last_amended still
+    // blocks after the fix — preventing over-normalisation from silencing real
+    // E1 violations.
+    // -----------------------------------------------------------------------
+
+    /// F-P6-019f RED GATE: BC with `version: "v1.3"` and matching `last_amended: "... (v1.3) ..."`
+    /// currently fires a false [Class E1] violation; must produce NO violation after fix.
+    ///
+    /// `extract_last_amended_outer_version("2026-07-22 (v1.3) — desc")` → `"1.3"` (v-stripped).
+    /// `extract_frontmatter_field(content, "version")` → `"v1.3"` (raw).
+    /// Comparison: `"1.3" == "v1.3"` → false → violation. WRONG.
+    ///
+    /// RED GATE: `violations.is_empty()` FAILS (false violation produced now).
+    /// After fix (normalize `version` to strip leading `v` before comparison): no violation.
+    #[test]
+    fn test_F_P6_019f_v_prefix_asymmetry_must_not_block() {
+        // Synthetic fixture: BC frontmatter uses `version: "v1.3"` (v-prefixed).
+        // The last_amended outer version is "(v1.3)" — a matching, current value.
+        // extract_last_amended_outer_version skips 'v', returns "1.3".
+        // extract_frontmatter_field returns "v1.3".
+        // "1.3" == "v1.3" → false → false violation produced.
+        let content = "---\nversion: \"v1.3\"\n\
+            last_amended: \"2026-07-22 (v1.3) — description text\"\n\
+            ---\nbody\n";
+        let (violations, _advisories) = run_arm_e1(content);
+        assert!(
+            violations.is_empty(),
+            "F-P6-019f: BC with version: \"v1.3\" and last_amended outer version (v1.3) \
+            are in agreement — must produce NO violation. \
+            `extract_last_amended_outer_version` returns \"1.3\" (v-stripped); \
+            `extract_frontmatter_field` returns \"v1.3\" (raw). \
+            Comparison \"1.3\" == \"v1.3\" is false → false [Class E1] block. \
+            Fix: normalize version with strip_prefix('v') before comparison. \
+            Violations: {:?}",
+            violations
+        );
+    }
+
+    /// F-P6-019f CONTROL: genuinely stale last_amended must still block after the fix.
+    ///
+    /// `version: "v1.3"` but `last_amended` outer prefix is `(v1.2)` — a real E1 mismatch.
+    /// After fix: `version` normalised to `"1.3"`, `amended_version` is `"1.2"`. `"1.2" != "1.3"` → violation.
+    ///
+    /// This test is GREEN now and must remain GREEN after the fix — over-normalisation
+    /// must not silence genuine last_amended staleness violations.
+    #[test]
+    fn test_F_P6_019f_genuinely_stale_last_amended_still_blocks() {
+        let content = "---\nversion: \"v1.3\"\n\
+            last_amended: \"2026-07-20 (v1.2) — previous description\"\n\
+            ---\nbody\n";
+        let (violations, _advisories) = run_arm_e1(content);
+        assert!(
+            !violations.is_empty(),
+            "F-P6-019f CONTROL: last_amended outer version '1.2' is genuinely stale \
+            against version: \"v1.3\" (normalised to \"1.3\"). Must still produce a \
+            blocking [Class E1] violation after the v-prefix normalization fix. \
+            Violations: {:?}",
+            violations
         );
     }
 }

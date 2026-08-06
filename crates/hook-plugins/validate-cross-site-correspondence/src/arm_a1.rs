@@ -63,15 +63,20 @@ pub fn derive_bc_path(bc_id: &str) -> String {
 
 /// Four-state result for BC-INDEX.md row classification.
 ///
-/// BC-5.39.010 v1.10 PC5 (column-count-anchored, four-state, full-file scan):
+/// BC-5.39.010 v1.12 PC5 (column-count-anchored, four-state, full-file scan):
 /// - `RowAbsent`: NO candidate line found at all for this BC ID. A candidate line must
 ///   satisfy the normative recognition predicate conditions (1)+(2): (1) starts with `|`;
 ///   (2) first non-empty field is `[bc_id]` link form or `bc_id` plain form. If no line
 ///   satisfies (1)+(2), the result is `RowAbsent`. `RowAbsent` means EXCLUSIVELY "no
 ///   candidate line found" — NOT "found but wrong shape."
-/// - `RowPresentNoVersion`: candidate found AND non-empty field count is exactly 5 —
-///   the canonical 5-column shape `| BC ID | Title | Status | Capability | Stories |`.
-///   The version-chain cell (6th column) is absent on ~1,943 of 1,983 rows. Silent-continue.
+/// - `RowPresentNoVersion`: candidate found AND (a) non-empty field count is exactly 5
+///   (the canonical 5-column shape `| BC ID | Title | Status | Capability | Stories |`,
+///   present on ~1,943 of 1,983 rows), OR (b) non-empty field count is ≥6 AND the 6th
+///   non-empty field contains no `\bv([0-9]+\.[0-9]+)\b` token — the version-chain cell
+///   exists structurally but carries no parseable version (F-P6-018 normative addition).
+///   Both forms produce the same Continue outcome. An empty 6th column `| |` is filtered
+///   by the non-empty predicate and counts as exactly 5 fields (field 6 unread).
+///   Silent-continue in all `RowPresentNoVersion` cases.
 /// - `Version(v)`: candidate found AND ≥6 non-empty fields after escape-aware split;
 ///   version extracted from the 6th field via rightmost `\bv([0-9]+\.[0-9]+)\b`.
 /// - `RowMalformed(n)`: a candidate line WAS found (conditions (1)+(2) hold) but after
@@ -85,7 +90,8 @@ pub fn derive_bc_path(bc_id: &str) -> String {
 ///   BC-ID-candidate lines have ≥5 fields. This state is forward-looking protection.
 ///
 /// # BC trace
-/// BC-5.39.010 v1.10 PC5: four-state classification with full-file scan (F-S2107-P4-005).
+/// BC-5.39.010 v1.12 PC5: four-state classification with full-file scan (F-S2107-P4-005).
+/// F-P6-018: ≥6-field/no-v-token state classified as `RowPresentNoVersion` (normative).
 /// F-S2107-P3-001 BLOCKER: two-state `Option<String>` conflated RowAbsent with
 /// RowPresentNoVersion — every 5-column row triggered a spurious block for v>1.0 BCs.
 /// v1.9 resolved Conflict 2: found-but-<5-fields → RowMalformed (advisory); only
@@ -106,9 +112,9 @@ pub enum BcIndexVersionState {
     RowMalformed(usize),
 }
 
-/// Extract the BC-INDEX.md row state for `bc_id` using the v1.10 four-state algorithm.
+/// Extract the BC-INDEX.md row state for `bc_id` using the v1.12 four-state algorithm.
 ///
-/// **Algorithm (BC-5.39.010 v1.10 PC5 — column-count-anchored, full-file scan):**
+/// **Algorithm (BC-5.39.010 v1.12 PC5 — column-count-anchored, full-file scan):**
 ///
 /// Scans ALL lines in `index_content`. For each line:
 /// 1. **Condition (1):** line starts with `|` — skips YAML frontmatter, prose, blank lines.
@@ -118,10 +124,12 @@ pub enum BcIndexVersionState {
 /// 3. **Condition (3):** If (1)+(2) both hold, this is a CANDIDATE line. Apply
 ///    escape-aware split (replace `\|` → `\x00`, split on `|`, count non-empty trimmed fields):
 ///    - Exactly 5 fields → return `RowPresentNoVersion` immediately
-///    - ≥6 fields → extract rightmost `\bv([0-9]+\.[0-9]+)\b` from 6th field → return `Version(v)` immediately
+///    - ≥6 fields → extract rightmost `\bv([0-9]+\.[0-9]+)\b` from 6th field:
+///      - Token found → return `Version(v)`
+///      - No token found → return `RowPresentNoVersion` (F-P6-018 normative: ≥6-field/no-v-token)
 ///    - <5 fields → record as malformed candidate; **continue scanning for a valid line**
 ///
-/// **F-P4-005 full-file selection order (BC-5.39.010 v1.10):**
+/// **F-P4-005 full-file selection order (BC-5.39.010 v1.12):**
 /// Return the FIRST (1)+(2)+(3)-satisfying line (≥5 fields). Return `RowMalformed(n)` ONLY
 /// when ALL locator-matched lines fail condition (3). First-match-wins on malformed lines
 /// is NON-CONFORMING — a malformed line earlier in the file MUST NOT shadow a valid row later.
@@ -137,9 +145,11 @@ pub enum BcIndexVersionState {
 /// Pure: operates on already-read bytes.
 ///
 /// # BC trace
-/// BC-5.39.010 v1.10 PC5: full-file-scan selection order (F-S2107-P4-005).
+/// BC-5.39.010 v1.12 PC5: full-file-scan selection order (F-S2107-P4-005).
+/// F-P6-018: ≥6-field/no-v-token → `RowPresentNoVersion` (normative).
 /// F-S2107-P2-002: first-cell anchor (cross-reference rows must not match).
-/// F-S2107-P1B-006: last-wins token extraction for version-chain cells.
+/// F-P6-019b/019c: first-token-of-last-entry extraction (replaces F-S2107-P1B-006 last-wins).
+/// F-P6-019d: join fields[5..] to recover cell content fragmented by bare `|` characters.
 /// F-S2107-P1B-007: starts_with('|') to skip YAML frontmatter lines.
 /// F-S2107-P3-001 Conflict 2 resolution: <5 fields → RowMalformed (advisory), not RowAbsent.
 pub(crate) fn extract_bc_index_version_state(
@@ -174,7 +184,7 @@ pub(crate) fn extract_bc_index_version_state(
 
         // Condition (2): normative recognition predicate — first non-empty pipe-cell must
         // match the BC ID in either link form `[bc_id](...)` or plain form `bc_id`.
-        // BC-5.39.010 v1.10 PC5: "first non-empty field" (escape-aware).
+        // BC-5.39.010 v1.12 PC5: "first non-empty field" (escape-aware).
         // F-P2-002: anchor on the first pipe-cell only; cross-reference rows that cite
         // bc_id in Title or Depends columns must not be matched.
         let first_cell = non_empty_fields.first().copied().unwrap_or("");
@@ -188,15 +198,26 @@ pub(crate) fn extract_bc_index_version_state(
         match non_empty_fields.len() {
             5 => return BcIndexVersionState::RowPresentNoVersion,
             n if n >= 6 => {
-                // 6th non-empty field (index 5) is the version-chain cell.
-                let sixth = non_empty_fields[5];
-                return match extract_last_v_token(sixth) {
+                // Reconstruct the full version-chain cell by joining all non-empty fields
+                // from index 5 onwards with `|`.
+                //
+                // F-P6-019d: bare (unescaped) `|` characters inside the version-chain cell
+                // create phantom field boundaries when splitting on `|`, scattering later
+                // version tokens (e.g., v1.17, v1.18) into fields 7+. Joining
+                // non_empty_fields[5..] with `|` recovers the complete cell content.
+                // For rows without bare pipes (the common case), this joins a single field —
+                // equivalent to using non_empty_fields[5] alone.
+                let version_cell = non_empty_fields[5..].join("|");
+                return match extract_first_v_token_of_last_entry(&version_cell) {
                     Some(v) => BcIndexVersionState::Version(v),
+                    // F-P6-018 (BC-5.39.010 v1.12 PC5 normative): ≥6 fields AND no
+                    // \bv([0-9]+\.[0-9]+)\b in field 6 → RowPresentNoVersion.
+                    // Same Continue outcome as the 5-field case; no version to compare.
                     None => BcIndexVersionState::RowPresentNoVersion,
                 };
             }
             // <5 fields: candidate found but not a valid body-table row.
-            // BC-5.39.010 v1.10 PC5 (F-P4-005): do NOT return here — keep scanning for
+            // BC-5.39.010 v1.12 PC5 (F-P4-005): do NOT return here — keep scanning for
             // a valid (≥5-field) line. RowMalformed is returned only when the entire file
             // has been scanned and NO valid candidate was found.
             // MUST NOT be collapsed into RowAbsent — that would trigger false BLOCKs.
@@ -218,7 +239,7 @@ pub(crate) fn extract_bc_index_version_state(
 /// Returns `true` if the trimmed first pipe-cell content of a BC-INDEX body-table row
 /// matches the given BC ID under the normative recognition predicate.
 ///
-/// **Normative recognition predicate condition (2) per BC-5.39.010 v1.10 PC5:**
+/// **Normative recognition predicate condition (2) per BC-5.39.010 v1.12 PC5:**
 /// - **Link form:** first cell starts with `[bc_id]` followed by `(` (markdown link:
 ///   `[BC-5.39.010](ss-05/BC-5.39.010.md)`)
 /// - **Plain form:** first cell equals `bc_id` exactly (e.g., `BC-5.39.010`)
@@ -228,7 +249,7 @@ pub(crate) fn extract_bc_index_version_state(
 /// from being classified as the BC's own registration row.
 ///
 /// # BC trace
-/// BC-5.39.010 v1.10 PC5: normative recognition predicate condition (2).
+/// BC-5.39.010 v1.12 PC5: normative recognition predicate condition (2).
 /// F-P2-002: first-cell anchor.
 fn first_cell_matches_bc_id(first_cell: &str, bc_id: &str) -> bool {
     // Plain form: cell IS the bc_id (e.g., "BC-5.39.010")
@@ -245,15 +266,17 @@ fn first_cell_matches_bc_id(first_cell: &str, bc_id: &str) -> bool {
     false
 }
 
-/// Find the rightmost `\bv([0-9]+\.[0-9]+)\b` token in `text`.
+/// Find the FIRST `\bv([0-9]+\.[0-9]+)\b` token in `text`.
 ///
-/// Scans left-to-right and keeps overwriting `last_match` so the final value
-/// is the rightmost (last) v-prefixed version token. Used for 6th-field version
-/// extraction where escaped-pipe chains like `v1.3 \x00 v1.4 \x00 v1.6` must
-/// yield the current (last) version.
-fn extract_last_v_token(text: &str) -> Option<String> {
+/// Scans left-to-right and returns the first v-prefixed version token encountered.
+/// Used to extract the authoritative version from a single chain entry, where the
+/// first v-token is the current version and subsequent tokens are annotation prose
+/// (e.g., back-references in `(promoted v1.23 D-839)` clauses or `[prior: v1.4]`).
+///
+/// # BC trace
+/// F-P6-019b/019c: first-token-of-entry semantics (replaces last-wins extraction).
+fn extract_first_v_token(text: &str) -> Option<String> {
     let bytes = text.as_bytes();
-    let mut last_match: Option<String> = None;
     let mut i = 0;
     while i < bytes.len() {
         if bytes[i] == b'v' {
@@ -272,9 +295,7 @@ fn extract_last_v_token(text: &str) -> Option<String> {
                         }
                         let next_ok = end >= bytes.len() || !bytes[end].is_ascii_alphanumeric();
                         if next_ok {
-                            last_match = Some(text[start..end].to_string());
-                            i = end;
-                            continue;
+                            return Some(text[start..end].to_string());
                         }
                     }
                 }
@@ -282,7 +303,36 @@ fn extract_last_v_token(text: &str) -> Option<String> {
         }
         i += 1;
     }
-    last_match
+    None
+}
+
+/// Extract the current version from a version-chain cell.
+///
+/// Algorithm (F-P6-019b/019c — first-token-of-last-chain-entry):
+/// 1. Split on `\x00` (the escape sentinel substituted from `\|` before this call).
+///    Chain entries are ordered oldest-to-newest; `\x00` is the entry separator.
+/// 2. Take the LAST non-empty segment — the most-recent chain entry.
+/// 3. Extract the FIRST `\bv([0-9]+\.[0-9]+)\b` token from that segment.
+///    The first v-token in an entry is the authoritative current version; subsequent
+///    v-tokens are annotation prose (e.g., `(promoted v1.23 D-839)`, `[prior: v1.4]`).
+///
+/// For cells with no `\x00` separators (single-entry or annotation-only cells),
+/// this is equivalent to extracting the first v-token from the entire cell.
+///
+/// Returns `None` if the cell is empty or if no v-token exists in the last non-empty
+/// chain entry.
+///
+/// # BC trace
+/// F-P6-019b: parenthetical backward reference `(promoted v1.23)` must not shadow
+///   the current version `v1.24` that precedes it in the same chain entry.
+/// F-P6-019c: `[prior: v1.4]` annotation must not shadow the current version `v1.5`.
+/// F-P6-019d (via caller): version_cell reconstruction joins fields 5+ so that
+///   bare-pipe fragments in entry annotations are reassembled before this call.
+fn extract_first_v_token_of_last_entry(cell: &str) -> Option<String> {
+    // Split on \x00 (escape sentinel) to isolate chain entries.
+    // For cells without any \x00 (no \| escape-chains), produces a single entry.
+    let last_entry = cell.split('\x00').rfind(|s| !s.trim().is_empty())?;
+    extract_first_v_token(last_entry)
 }
 
 /// Class A Arm1 check with the BC-INDEX.md read result provided as a seam.
@@ -345,7 +395,12 @@ pub fn run_arm_a1_with_index_result(
             (vec![violation], vec![])
         }
         Ok(index_bytes) => {
-            // BC-5.39.010 v1.10 PC5: four-state classification (full-file scan).
+            // F-P6-019a: normalize bc_version — strip leading `v` if present.
+            // BC frontmatter may carry `version: "v1.3"` (BC-5.24.006 pattern).
+            // extract_bc_index_version_state returns version tokens without the v prefix.
+            // Shadow the parameter so all downstream comparisons use the same format.
+            let bc_version = bc_version.trim_start_matches('v');
+            // BC-5.39.010 v1.12 PC5: four-state classification (full-file scan).
             match extract_bc_index_version_state(bc_id, &index_bytes) {
                 BcIndexVersionState::RowAbsent => {
                     // No candidate line found at all — BC not in INDEX.
@@ -380,18 +435,56 @@ pub fn run_arm_a1_with_index_result(
                 }
                 BcIndexVersionState::Version(index_version) => {
                     // Candidate found; explicit version-chain cell — compare versions.
+                    // BC-5.39.010 v1.12 PC2: directional carve-out.
+                    // Strip 'v' prefix (already stripped by extract_last_v_token); parse
+                    // as major.minor integers for directional comparison.
+                    // PC2a: bc_version > index_version → burst-ordering artefact (primary
+                    //        written before index); advisory + Continue.
+                    // PC2b: index_version >= bc_version (and not equal) OR parse failure
+                    //        → anomalous block (index cannot legitimately advance ahead of BC).
                     if index_version == bc_version {
                         (vec![], vec![])
                     } else {
-                        let violation = Violation {
-                            description: format!(
-                                "validate-cross-site-correspondence [Class A Arm1]: \
-                                BC-INDEX.md row for '{bc_id}' cites version v{index_version} \
-                                but BC frontmatter says version {bc_version}. \
-                                Update the BC-INDEX.md row to v{bc_version}. POLICY 14 leg 5."
-                            ),
+                        let parse_version = |v: &str| -> Option<(u32, u32)> {
+                            let mut it = v.splitn(2, '.');
+                            let maj = it.next()?.parse::<u32>().ok()?;
+                            let min = it.next()?.parse::<u32>().ok()?;
+                            Some((maj, min))
                         };
-                        (vec![violation], vec![])
+                        let primary_newer =
+                            match (parse_version(bc_version), parse_version(&index_version)) {
+                                (Some(fm), Some(idx)) => fm > idx,
+                                // Parse failure → treat as PC2b (anomalous, block).
+                                _ => false,
+                            };
+                        if primary_newer {
+                            // PC2a: primary newer than index — burst-ordering artefact.
+                            // Advisory + Continue (Class A BLOCK suspended).
+                            let advisory = Advisory {
+                                message: format!(
+                                    "validate-cross-site-correspondence [Class A Arm1] advisory: \
+                                    BC-INDEX.md body-table row for {bc_id} cites v{index_version} \
+                                    but frontmatter version: is \"{bc_version}\" — primary newer \
+                                    than index; state-manager index update pending; \
+                                    Class A BLOCK suspended."
+                                ),
+                            };
+                            (vec![], vec![advisory])
+                        } else {
+                            // PC2b: index newer than primary OR parse failure — anomalous, block.
+                            let violation = Violation {
+                                description: format!(
+                                    "validate-cross-site-correspondence [Class A Arm1]: \
+                                    BC-INDEX.md body-table row for {bc_id} cites v{index_version} \
+                                    but frontmatter version: is \"{bc_version}\" — index is newer \
+                                    than primary. This is anomalous: the index cannot legitimately \
+                                    advance ahead of the BC it cites. Verify no index row was \
+                                    updated out-of-burst or under the wrong BC path. \
+                                    Update per POLICY 14 leg 5."
+                                ),
+                            };
+                            (vec![violation], vec![])
+                        }
                     }
                 }
                 BcIndexVersionState::RowMalformed(field_count) => {
@@ -401,19 +494,16 @@ pub fn run_arm_a1_with_index_result(
                     // PC5 postcondition 4a: advisory + Continue. NEVER blocks.
                     // MUST NOT reach the RowAbsent blocking path (postcondition 4) —
                     // a found-but-malformed line is not a dropped registration.
-                    // BC-5.39.010 v1.10 PC5 postcondition 4a (NORMATIVE — verbatim):
-                    //   both clauses below are MUST-verbatim per postcondition 4a.
+                    // BC-5.39.010 v1.12 PC4a (NORMATIVE — verbatim message required):
                     let advisory = Advisory {
                         message: format!(
-                            "validate-cross-site-correspondence [Class A Arm1] advisory: \
-                            malformed candidate line for '{bc_id}' ({field_count} non-empty \
-                            fields found; expected ≥5 for a valid BC-INDEX body-table row). \
-                            Registration status cannot be determined from this line. \
-                            Verify BC-INDEX body-table registration manually. \
-                            Not blocking — this is not a dropped registration. \
-                            The genuine dropped-registration case \
-                            (no candidate line at all) is RowAbsent (postcondition 4). \
-                            BC-5.39.010 v1.10 PC5 postcondition 4a."
+                            "validate-cross-site-correspondence [Class A Arm1]: \
+                            BC-INDEX.md contains a malformed candidate line for {bc_id} \
+                            ({field_count} fields found; expected ≥5 for a valid body-table \
+                            row). This line is structurally not a BC-INDEX body-table row \
+                            (likely a Changelog entry or notes table). Registration status \
+                            cannot be determined from this line. \
+                            Verify BC-INDEX body-table registration manually."
                         ),
                     };
                     (vec![], vec![advisory])
@@ -485,19 +575,29 @@ mod tests {
     // run_arm_a1_with_index_result — BC-5.39.010 postconditions 1-6
     // -----------------------------------------------------------------------
 
-    /// AC-001 MUTANT: stale INDEX row blocks (BC-5.39.010 postcondition 2).
+    /// AC-001 MUTANT: index-ahead-of-primary blocks (BC-5.39.010 v1.12 PC2b postcondition 2).
+    ///
+    /// BC-5.39.010 v1.12 PC2 directional carve-out:
+    /// - PC2a (primary newer than index): advisory + Continue (burst-ordering artefact).
+    /// - PC2b (index newer than primary): block (anomalous — index cannot legitimately
+    ///   advance ahead of the BC it cites).
+    ///
+    /// This test covers PC2b: bc_version < index_version → block.
+    /// For PC2a (bc_version > index_version → advisory) see T-P6A bats integration test.
     #[test]
     fn test_BC_5_39_010_arm_a1_stale_index_blocks() {
-        let index_content = b"| BC-5.39.010 | some title | draft | CAP-032 | S-21.07 | v1.5 |\n";
+        // PC2b: INDEX row cites v1.10, but BC frontmatter is only at v1.9.
+        // index (1.10) > primary (1.9) → anomalous block.
+        let index_content = b"| BC-5.39.010 | some title | draft | CAP-032 | S-21.07 | v1.10 |\n";
         let (violations, _) = run_arm_a1_with_index_result(
             "BC-5.39.010",
-            "1.6",
+            "1.9",
             ".factory/specs/behavioral-contracts/ss-05/BC-5.39.010.md",
             Ok(index_content.to_vec()),
         );
         assert!(
             !violations.is_empty(),
-            "stale BC-INDEX row must produce a blocking violation"
+            "index-ahead-of-primary (PC2b) must produce a blocking violation"
         );
         let msg = &violations[0].description;
         assert!(
@@ -505,12 +605,16 @@ mod tests {
             "violation must cite [Class A Arm1]"
         );
         assert!(
-            msg.contains("v1.5"),
-            "violation must cite stale version v1.5"
+            msg.contains("v1.10"),
+            "violation must cite the index version v1.10"
         );
         assert!(
-            msg.contains("1.6"),
-            "violation must cite current version 1.6"
+            msg.contains("1.9"),
+            "violation must cite the primary version 1.9"
+        );
+        assert!(
+            msg.contains("index is newer than primary"),
+            "violation must describe the PC2b anomalous direction"
         );
         assert!(
             msg.contains("POLICY 14 leg 5"),
@@ -805,7 +909,7 @@ mod tests {
     #[test]
     fn test_BC_5_39_010_arm_a1_row_present_no_version_cell_not_blocked() {
         // 5-column canonical BC-INDEX shape: no version-chain cell.
-        // BC-5.39.010 v1.10 PC5: column count alone determines state — no token search
+        // BC-5.39.010 v1.12 PC5: column count alone determines state — no token search
         // is performed on any field, including story IDs in the Stories column.
         let index_content =
             b"| [BC-9.99.001](ss-09/BC-9.99.001.md) | Some title | draft | CAP-TBD | S-99.01 |\n";
@@ -818,17 +922,52 @@ mod tests {
         assert!(
             violations.is_empty(),
             "5-column row (no version-chain cell) with bc_version='1.2' must NOT block. \
-            BC-5.39.010 v1.10 PC5: column-count-anchored — exactly 5 fields → RowPresentNoVersion \
+            BC-5.39.010 v1.12 PC5: column-count-anchored — exactly 5 fields → RowPresentNoVersion \
             unconditionally; no token search on any field. \
-            F-S2107-P3-001 BLOCKER: current None branch treats this as RowAbsent → block. \
-            Fix: escape-aware split → count fields → 5 → RowPresentNoVersion → silent-continue. \
             Violations: {:?}",
             violations
         );
         assert!(
             advisories.is_empty(),
             "RowPresentNoVersion must be fully silent — no advisory either. \
-            BC-5.39.010 v1.10 PC5. Advisories: {:?}",
+            BC-5.39.010 v1.12 PC5. Advisories: {:?}",
+            advisories
+        );
+    }
+
+    /// F-P6-018: ≥6-field row with no v-token in field 6 → RowPresentNoVersion (normative).
+    ///
+    /// BC-5.39.010 v1.12 PC5 (F-P6-018 normative addition): a row with ≥6 non-empty fields
+    /// where the 6th field contains no `\bv([0-9]+\.[0-9]+)\b` token is classified as
+    /// `RowPresentNoVersion`, producing the same `Continue` outcome as the 5-field case.
+    ///
+    /// Rationale: the version-chain cell exists structurally but carries no parseable version.
+    /// No direction comparison is possible → same silent-continue as absent version cell.
+    /// Both escape paths (≥6 fields / no v-token, and 5 non-empty fields from a blank cell)
+    /// produce `Continue` silently (F-P6-018 confirms both are `RowPresentNoVersion`).
+    #[test]
+    fn test_BC_5_39_010_arm_a1_six_field_no_v_token_row_present_no_version() {
+        // ≥6 fields, but 6th field is "N/A" — no \bv[0-9]+\.[0-9]+\b token.
+        // F-P6-018: must return RowPresentNoVersion (not RowAbsent or a block).
+        let index_content = b"| BC-9.99.001 | Some title | draft | CAP-TBD | S-99.01 | N/A |\n";
+        let (violations, advisories) = run_arm_a1_with_index_result(
+            "BC-9.99.001",
+            "1.2",
+            ".factory/specs/behavioral-contracts/ss-09/BC-9.99.001.md",
+            Ok(index_content.to_vec()),
+        );
+        assert!(
+            violations.is_empty(),
+            "6-field row with no v-token in field 6 must NOT block. \
+            F-P6-018 (BC-5.39.010 v1.12 PC5 normative): ≥6 fields AND no v-token → \
+            RowPresentNoVersion → silent-continue. Violations: {:?}",
+            violations
+        );
+        assert!(
+            advisories.is_empty(),
+            "6-field row with no v-token in field 6 must emit NO advisory. \
+            F-P6-018 (BC-5.39.010 v1.12 PC5): RowPresentNoVersion is fully silent. \
+            Advisories: {:?}",
             advisories
         );
     }
@@ -1132,6 +1271,237 @@ mod tests {
             "advisory MUST cite the field count (2 for this fixture). \
             BC-5.39.010 v1.10 postcondition 4a: '(<N> fields found; …)'. \
             Got: {msg:?}"
+        );
+    }
+
+    // -----------------------------------------------------------------------
+    // F-P6-019a — v-prefix normalization (BC-5.24.006)
+    //
+    // Root cause: `run_arm_a1_with_index_result` compares `index_version == bc_version`
+    // without stripping the leading `v` from bc_version. When the BC frontmatter carries
+    // `version: "v1.3"` (leading v), the extracted index_version is "1.3" but bc_version
+    // is "v1.3". The strings differ; `parse_version("v1.3")` then fails because the `v`
+    // prefix causes `"v1".parse::<u32>()` to return Err. Parse failure is treated as PC2b
+    // → false block.
+    //
+    // Three root causes in these four bugs:
+    //   019a → normalization (strip v-prefix from bc_version before comparison)
+    //   019b + 019c → last-wins vs first-cell anchoring (same root cause — last v-token
+    //                 in the entire field 6 text, not the first token of the last chain entry)
+    //   019d → escape-unaware bare-pipe field fragmentation (bare | inside an annotation
+    //           creates phantom field boundaries, displacing the version field)
+    // -----------------------------------------------------------------------
+
+    /// F-P6-019a RED GATE: bc_version with leading `v` prefix must not trigger PC2b block.
+    ///
+    /// Real BC: BC-5.24.006 (frontmatter `version: "v1.3"`; INDEX row `v1.3 (…)`).
+    ///
+    /// Bug: `run_arm_a1_with_index_result` receives `bc_version = "v1.3"` from the
+    /// frontmatter parser. `extract_bc_index_version_state` returns `Version("1.3")`.
+    /// String comparison `"1.3" != "v1.3"` enters the comparison branch.
+    /// `parse_version("v1.3")` → `"v1".parse::<u32>()` fails → `None`.
+    /// `(None, Some((1,3)))` match arm → `primary_newer = false` → PC2b BLOCK.
+    ///
+    /// Fix: strip leading `v` from `bc_version` before the equality check and
+    /// before `parse_version` (e.g., `bc_version.trim_start_matches('v')`).
+    ///
+    /// RED GATE: current implementation produces a violation for bc_version = "v1.3"
+    /// with INDEX row "v1.3" → assert!(violations.is_empty()) FAILS.
+    #[test]
+    fn test_F_P6_019a_v_prefix_in_bc_version_must_not_block() {
+        // Synthetic row mirroring BC-5.24.006's INDEX shape.
+        // bc_version has the v prefix as it appears in the frontmatter.
+        let index_content = b"| [BC-5.24.006](ss-05/BC-5.24.006.md) | phase-4:scenario-rotation | \
+            draft | CAP-074 | TBD | v1.3 (v1.3 D-875: correction note; input-hash abc1234) |\n";
+        let (violations, advisories) = run_arm_a1_with_index_result(
+            "BC-5.24.006",
+            "v1.3", // ← leading v as it appears in frontmatter `version: "v1.3"`
+            ".factory/specs/behavioral-contracts/ss-05/BC-5.24.006.md",
+            Ok(index_content.to_vec()),
+        );
+        assert!(
+            violations.is_empty(),
+            "F-P6-019a: bc_version 'v1.3' with INDEX row 'v1.3' must produce NO violation. \
+            Root cause: v-prefix on bc_version causes parse_version() to fail → PC2b BLOCK. \
+            Fix: strip leading v from bc_version before comparison. \
+            Violations: {:?}",
+            violations
+        );
+        assert!(
+            advisories.is_empty(),
+            "F-P6-019a: bc_version 'v1.3' with INDEX row 'v1.3' must produce NO advisory. \
+            Advisories: {:?}",
+            advisories
+        );
+    }
+
+    // -----------------------------------------------------------------------
+    // F-P6-019b — backward reference in parenthetical note (BC-3.08.001)
+    //
+    // Root cause: last-wins extraction scans the entire field-6 text left-to-right and
+    // keeps overwriting `last_match`. In BC-3.08.001's real INDEX row, the last chain
+    // entry ends with `(promoted v1.23 D-839 S-19.05)` — a backward reference to an
+    // older version in the annotation prose. The actual current version (`v1.24`) appears
+    // BEFORE the annotation in the same entry, but last-wins overwrites it with `v1.23`.
+    //
+    // Same root cause as 019c: last-wins vs first-token-of-last-chain-entry.
+    // -----------------------------------------------------------------------
+
+    /// F-P6-019b RED GATE: parenthetical backward reference must not shadow the current version.
+    ///
+    /// Real BC: BC-3.08.001 (frontmatter `version: "1.24"`; INDEX row ends with
+    ///   `\| (2026-07-16 D-848: ... v1.24 already active (promoted v1.23 D-839) ...)`).
+    ///
+    /// Bug: `extract_last_v_token` on field 6 finds:
+    ///   `v1.15`, `v1.16`, ..., `v1.24`, `v1.24` (again in annotation) → `v1.23` (from
+    ///   "promoted v1.23 D-839") → LAST wins → returns "1.23".
+    /// `index_version = "1.23"`, `bc_version = "1.24"`.
+    /// `bc (1,24) > index (1,23)` → `primary_newer = true` → false PC2a advisory.
+    ///
+    /// Fix: use first-token-of-last-chain-entry (split field 6 on `\x00`, take the last
+    /// non-empty segment, extract the FIRST v-token from it — the version itself, before
+    /// annotation prose).
+    ///
+    /// RED GATE: `extract_bc_index_version_state` returns `Version("1.23")` instead of
+    /// `Version("1.24")` → assert_eq!(result, BcIndexVersionState::Version("1.24")) FAILS.
+    #[test]
+    fn test_F_P6_019b_parenthetical_backward_reference_returns_current_version() {
+        // Synthetic row mimicking the BC-3.08.001 last chain entry structure:
+        // current version v1.24 appears first in the entry, then backward-reference to v1.23.
+        let index = concat!(
+            "| [BC-3.08.001](ss-03/BC-3.08.001.md) | dispatcher async-semantics | ",
+            "active | CAP-003 | S-15.01, S-19.05 | v1.22 \\| v1.23 \\| v1.24 (v1.24 2026-07-15: ",
+            "event-6-timestamp-field-parity; input-hash 6549a11 unchanged) \\| (2026-07-16 ",
+            "D-848: POL-14 PASS-ALREADY-ACTIVE; BC-3.08.001 v1.24 already active (promoted ",
+            "v1.23 D-839 S-19.05); no promotion required; input-hash 6549a11 UNCHANGED) |\n",
+        );
+        let result = extract_bc_index_version_state("BC-3.08.001", index.as_bytes());
+        assert_eq!(
+            result,
+            BcIndexVersionState::Version("1.24".to_string()),
+            "F-P6-019b: parenthetical backward reference 'promoted v1.23' must NOT shadow \
+            the current version v1.24. extract_bc_index_version_state must return \
+            Version(\"1.24\"), not Version(\"1.23\"). \
+            Root cause: last-wins picks the last v-token in field 6 ('v1.23' from \
+            '(promoted v1.23 D-839)'). Fix: first-token-of-last-chain-entry. \
+            Got: {:?}",
+            result
+        );
+    }
+
+    // -----------------------------------------------------------------------
+    // F-P6-019c — [prior: vN.M] annotation (BC-7.03.079)
+    //
+    // Root cause: same as 019b — last-wins on field 6. BC-7.03.079's INDEX row uses a
+    // `[prior: v1.4 (...)]` suffix (no `\|` separator — a different annotation style).
+    // The current version `v1.5` appears first; `[prior: v1.4 ...]` appears last.
+    // Last-wins returns "1.4" instead of "1.5".
+    //
+    // Note: BC-7.03.079 also has a v-prefix in its frontmatter (`version: "v1.5"`),
+    // so 019a AND 019c fire together. The 019c test below uses bc_version "1.5" (bare)
+    // to isolate the extraction bug from the v-prefix bug.
+    // -----------------------------------------------------------------------
+
+    /// F-P6-019c RED GATE: `[prior: vN.M]` annotation must not shadow the current version.
+    ///
+    /// Real BC: BC-7.03.079 (frontmatter `version: "v1.5"`; INDEX row field 6:
+    ///   `v1.5 (D-838: POL-14 auto-promotion) [prior: v1.4 (D-837: invariant-1)]`).
+    ///
+    /// Bug: `extract_last_v_token` on field 6 finds `v1.5`, then `v1.5` again, then
+    /// `v1.4` from `[prior: v1.4 (...]`. Last-wins returns "1.4".
+    /// `index_version = "1.4"`, `bc_version = "1.5"` (v-prefix stripped for isolation).
+    /// `bc (1,5) > index (1,4)` → `primary_newer = true` → false PC2a advisory.
+    ///
+    /// Fix: same as 019b — first-token-of-last-chain-entry (here: field 6 has no `\x00`
+    /// separators; the last chain entry IS the whole field; first v-token = "1.5").
+    ///
+    /// RED GATE: `extract_bc_index_version_state` returns `Version("1.4")` instead of
+    /// `Version("1.5")` → assert_eq!(result, BcIndexVersionState::Version("1.5")) FAILS.
+    #[test]
+    fn test_F_P6_019c_prior_annotation_returns_current_version() {
+        // Synthetic row mirroring BC-7.03.079's INDEX shape.
+        // The [prior: v1.4 (...)] suffix is a no-\| annotation style.
+        let index = concat!(
+            "| [BC-7.03.079](ss-07/BC-7.03.079.md) | track-agent-start: identity & ",
+            "registry binding | active | TBD | S-8.08 | v1.5 (v1.5 2026-07-13 D-838: ",
+            "POL-14 auto-promotion draft→active; input-hash 118ab49 UNCHANGED) ",
+            "[prior: v1.4 (2026-07-13 D-837: Invariant 1 tuple-scoping per architect ",
+            "ruling; anchored ^Agent$ cites; input-hash 118ab49)] |\n",
+        );
+        let result = extract_bc_index_version_state("BC-7.03.079", index.as_bytes());
+        assert_eq!(
+            result,
+            BcIndexVersionState::Version("1.5".to_string()),
+            "F-P6-019c: '[prior: v1.4]' annotation must NOT shadow the current version v1.5. \
+            extract_bc_index_version_state must return Version(\"1.5\"), not Version(\"1.4\"). \
+            Root cause: last-wins picks 'v1.4' from '[prior: v1.4 (...)]'. \
+            Fix: first-token-of-last-chain-entry (same root cause as F-P6-019b). \
+            Got: {:?}",
+            result
+        );
+    }
+
+    // -----------------------------------------------------------------------
+    // F-P6-019d — unescaped `|` in version annotation displaces field 6 (BC-4.13.001)
+    //
+    // Root cause: the escape-aware split converts `\|` → `\x00` but leaves bare `|`
+    // characters untouched. BC-4.13.001's v1.16 changelog annotation contains
+    // `^(Edit|Write|MultiEdit|Agent)$` — four bare `|` chars inside the version history
+    // field. These create phantom field boundaries when the row is split on `|`, shifting
+    // the actual version entries (v1.17, v1.18) into fields 7–9, beyond the field-6 window
+    // that `extract_bc_index_version_state` reads.
+    //
+    // Result: field 6 contains only the beginning of the chain up to the first bare `|` in
+    // the v1.16 annotation. `extract_last_v_token` on that truncated field 6 returns "1.16"
+    // (the last version token before the phantom boundary). bc_version = "1.18".
+    // "1.16" ≠ "1.18"; bc (1,18) > index (1,16) → primary_newer = true → false PC2a advisory.
+    //
+    // Fix: escape ALL bare `|` within cell content before splitting (full escape-aware
+    // parsing that handles unescaped pipes in markdown table cells — possibly switching
+    // to a raw substring search like bc_index_row_contains_version).
+    // -----------------------------------------------------------------------
+
+    /// F-P6-019d RED GATE: unescaped `|` in version annotation must not displace field 6.
+    ///
+    /// Real BC: BC-4.13.001 (frontmatter `version: "1.18"`; INDEX row v1.16 annotation
+    ///   contains `^(Edit|Write|MultiEdit|Agent)$` with four unescaped `|` chars).
+    ///
+    /// Bug: escape-aware split converts `\|` → `\x00` but not bare `|`. The four bare `|`
+    /// in `^(Edit|Write|MultiEdit|Agent)$` fragment field 6 at the first bare `|`, so field 6
+    /// ends at `^(Edit`. `extract_last_v_token` on the truncated field 6 returns "1.16".
+    /// `index_version = "1.16"`, `bc_version = "1.18"`. `bc (1,18) > index (1,16)` →
+    /// false PC2a advisory.
+    ///
+    /// RED GATE: `extract_bc_index_version_state` returns `Version("1.16")` instead of
+    /// `Version("1.18")` → the assert_eq!(result, BcIndexVersionState::Version("1.18")) FAILS.
+    #[test]
+    fn test_F_P6_019d_unescaped_pipe_in_annotation_must_not_displace_version_field() {
+        // Synthetic row mirroring BC-4.13.001's structure:
+        // v1.16 annotation contains ^(Edit|Write|MultiEdit|Agent)$ — 3 bare `|` inside.
+        // v1.17 and v1.18 appear after the annotation in the same version-history cell.
+        // After escape-aware split on bare `|`, field 6 is truncated at the first unescaped
+        // `|` inside the annotation, cutting off v1.17 and v1.18 from field 6.
+        let index = concat!(
+            "| [BC-4.13.001](ss-04/BC-4.13.001.md) | verify-factory-lock guard | ",
+            "active | CAP-031 | S-19.02, S-19.07 | v1.15 \\| v1.16 (v1.16 D-837: Invariant 5 ",
+            "TOML snippet anchored — primary entry ^(Edit|Write|MultiEdit|Agent)$; ",
+            "Bash arm ^Bash$; input-hash 14c1190) \\| v1.17 (v1.17 D-853: Phase-B-active; ",
+            "input-hash ddbfdc2) \\| v1.18 (v1.18 D-853: W3G-001+W3G-002 closure; ",
+            "EC-018/EC-019 added; input-hash c3ce066) |\n",
+        );
+        let result = extract_bc_index_version_state("BC-4.13.001", index.as_bytes());
+        assert_eq!(
+            result,
+            BcIndexVersionState::Version("1.18".to_string()),
+            "F-P6-019d: unescaped `|` in v1.16 annotation must NOT displace the version field. \
+            extract_bc_index_version_state must return Version(\"1.18\"), not Version(\"1.16\"). \
+            Root cause: escape-aware split handles \\| but not bare | — unescaped `|` chars in \
+            '^(Edit|Write|MultiEdit|Agent)$' create phantom field boundaries, truncating field 6 \
+            before v1.17 and v1.18 are reached. Fix: escape-unaware field splitting cannot handle \
+            this — switch to bc_index_row_contains_version raw-substring strategy, or pre-escape \
+            bare `|` inside markdown table cells before splitting. \
+            Got: {:?}",
+            result
         );
     }
 }

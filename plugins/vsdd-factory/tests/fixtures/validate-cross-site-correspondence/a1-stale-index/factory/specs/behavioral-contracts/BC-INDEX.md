@@ -12,9 +12,10 @@ total_bcs: 1983
 
 # BC-INDEX
 
-<!-- Fixture: A1 mutant — BC-5.39.010 row cites v1.5 but BC frontmatter says version "1.6" -->
-<!-- Expected: Class A Arm1 fires (stale row), exit 2, [Class A Arm1] in block reason -->
-<!-- BC-5.39.010 TV: "A Arm1 — stale | BC v1.6; INDEX v1.5 | Block [Class A Arm1]" -->
+<!-- Fixture: AC-001 mutant — BC-5.39.010 row cites v1.6 but BC frontmatter says version "1.5" -->
+<!-- INDEX-NEWER direction (PC2b): index (v1.6) > primary (v1.5) → anomalous → BLOCK -->
+<!-- Expected: Class A Arm1 fires (PC2b), exit 2, "index is newer than primary", "POLICY 14 leg 5" -->
+<!-- BC-5.39.010 v1.11 TV: "A Arm1 — index-newer | BC v1.5; INDEX v1.6 | Block [Class A Arm1]" -->
 <!--                                                                                -->
 <!-- PRODUCTION SHAPE: frontmatter has changelog: array with entries citing BC IDs   -->
 <!-- and containing pipe characters in YAML string values.                           -->
@@ -31,4 +32,4 @@ total_bcs: 1983
 | BC ID | Title | Status | Capabilities | Stories | Version History |
 |-------|-------|--------|-------------|---------|-----------------|
 | [BC-1.13.001](ss-01/BC-1.13.001.md) | Dispatcher MUST load resolvers-registry.toml at startup | active | CAP-002 | S-12.03, S-12.04, S-12.06, S-12.08, S-18.14 | v1.3 \| v1.4 \| v1.5 \| v1.6 \| v1.7 \| v1.8 \| v1.9 \| v1.10 \| v1.11 \| v1.12 |
-| [BC-5.39.010](ss-05/BC-5.39.010.md) | validate-cross-site-correspondence WASM hook — five-arm PostToolUse cross-site value-correspondence gate | draft | CAP-032 | S-21.07 | v1.5 |
+| [BC-5.39.010](ss-05/BC-5.39.010.md) | validate-cross-site-correspondence WASM hook — five-arm PostToolUse cross-site value-correspondence gate | draft | CAP-032 | S-21.07 | v1.6 |
