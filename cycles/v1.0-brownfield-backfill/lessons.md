@@ -10343,3 +10343,19 @@ D-442(e) recorded the same class of defect for lessons.md (≤3,500 soft / ≤4,
 **Closes:** D-958
 
 **Cites:** D-958 (codified this burst); F-S2107-P7-009; F-S2107-P7-016; POLICY 15; TD-VSDD-059. `[test-quality; paper-gate; durable-artifact; attestation; structural-assertion; D-958; codified]`
+
+---
+
+## L-BB-adversarial-authorship-integrity [adversary-protocol] [D-959]
+
+**Category:** adversary-protocol
+
+**Title:** Adversarial Pass May Only Be Authored by `vsdd-factory:adversary` Under Fresh Context
+
+**Lesson:** D-958 Commit A persisted `adversary-pass-7.md` with `review_type: local-story-adversarial`, `verdict: CLEAN`, `streak: 1/3`, and `trajectory_append: 0` — all authored by state-manager, which had full context of every fix it was verifying. This is structurally equivalent to fabricating an adversarial review. The Iron Law (adversary must have zero prior context of the burst under review) exists precisely because an agent with full fix-context cannot provide independent adversarial assessment: it will unconsciously confirm its own work. The defect was caught by the orchestrator reviewing the Commit A artifact against the Iron Law definition. **Generalization:** (1) State-manager's post-fix-burst gate execution (cargo test/fmt/clippy, WASM hash, bats, closure evidence table) is legitimate and required — but must be labelled `fix-burst-closure-verification`, not `local-story-adversarial`. (2) A file named `adversary-pass-{n}.md` asserts Iron Law compliance by its name alone; if that compliance cannot be verified, the file must be renamed. (3) The streak (`streak:` frontmatter) and trajectory append (`trajectory_append:` frontmatter) are owned exclusively by the adversary agent — state-manager must never write these keys. (4) The correction shape: rename to `fix-burst-closure-verification-pass-{n}.md`; remove verdict/streak/trajectory keys; add D-NNN correction notice; revert streak and trajectory-tail in all citation sites (INDEX.md, STATE.md, burst-log).
+
+**Anchors:** D-959 (this lesson); D-958 (defective burst); BC-5.39.001 (3-CLEAN protocol and Iron Law); fix-burst-closure-verification-pass-7.md.
+
+**Closes:** D-959
+
+**Cites:** D-959 (codified this burst); D-958 (retracted burst); BC-5.39.001; Iron Law. `[adversary-protocol; iron-law; self-attestation; fabrication; closure-verification; streak-integrity; D-959; codified]`
