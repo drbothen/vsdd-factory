@@ -14972,3 +14972,62 @@ D-957-S-21.07-PASS-6-RECORD-BURST-INDEX-SYNCS
 ### Date
 
 2026-08-05
+
+---
+
+## D-958 — S-21.07-PASS-7-RECORD-BURST-INDEX-SYNCS
+
+### Summary
+
+Single-commit A/B/C/D/E burst 2026-08-06. S-21.07 pass-7 adversary reviewed HEAD `fbb5183c` and returned CLEAN (0 findings, 0 BLOCKERs). All 20 pass-6 findings (F-S2107-P7-001..020) verified closed. Streak 0/3 → 1/3 (first CLEAN pass in S-21.07 LOCAL cascade). Two observations: O-P8-01 (CWE-778 → CWE-636/CWE-390 reclassification) and O-P8-02 (BC-INDEX 8-BC total_bcs/subsystem-table gap recorded as drift item). BC-INDEX updated: BC-1.01.016 + BC-1.03.017 NEW (SS-01 +2); BC-5.39.010 v1.12→v1.13; SS-01 118→120; Total 1975→1977; total_bcs 1983→1985. STORY-INDEX updated: S-21.07 v1.7→v1.8 (c0ab6a3); S-8.10 v1.3 (9ca3574); S-21.10/S-21.11 NEW (E-21 W5/W6); S-21.12/E-22 NEW (E-22 W1). sprint-state.yaml: S-21.07 + S-21.09 added (draft). Trajectory appends 0: →25→24→20→0.
+
+### Decision
+
+**(a) Pass-7 verdict persistence:** adversary-pass-7.md created with CLEAN verdict, 0 findings, 2 observations. Finding IDs F-S2107-P7-001..020 all recorded as CLOSED with closure evidence. Iron Law honoured: prior_pass_records_read = adversary-pass-6.md Part A only.
+
+**(b) Process-gap codifications (3 new lessons):**
+- L-BB-cross-worktree-git-mutation: agent stash in wrong worktree destroyed 2 burst payloads. Rule: never run tree-mutating git commands in a worktree not dispatched to you.
+- L-BB-coverage-gate-must-count-executions: a gate must assert execution count (T-047 skip-count), not declaration count. The T-047 fixture had 6 chars; `{7,40}` extractor requires ≥7; coverage vacuously satisfied.
+- L-BB-gate-must-assert-durable-artifact: a gate that asserts against prose, declaration counts, or header-matching rows rather than the durable artifact it claims to govern is a paper gate. Closing F-P7-009 (red-gate-log) and F-P7-016 (coverage gate) both exemplify this.
+
+**(c) BC-INDEX registrations:**
+- BC-1.01.016 (SS-01, ADR-039 §Decision 1+2 Phase 1 schema leg) NEW v1.0 draft; stories S-21.10
+- BC-1.03.017 (SS-01, ADR-039 §Decision 3+6 Phase 4 enforcement leg) NEW v1.0 draft; stories S-21.10, S-21.11
+
+**(d) STORY-INDEX registrations:**
+- S-21.10 (E-21 W5, v1.1, input-hash d9d5e33, draft): failure_policy registry schema extension (ADR-039 D1+D2 Phase 1)
+- S-21.11 (E-21 W6, v1.1, input-hash 2fb1b75, draft): validator exhaustion fail-closed calibration and enforcement (ADR-039 D3+D6 Phase 4)
+- S-21.12 (E-22 W1, v1.1, input-hash d451e49, draft): wasmtime major-version move ≥46.0.2 + cargo-deny CI gate
+- E-22 (v1.0, input-hash d532199, draft): Dependency Security Hardening
+
+**(e) sprint-state.yaml entries:**
+- S-21.07: status draft (task #39 closure — bats test was failing due to missing entry)
+- S-21.09: status draft (task #39 closure — bats test was failing due to missing entry)
+
+**(f) SRC §6/§7 correction (retraction of PR #769 S-21.09 claim):** SRC §6/§7 incorrectly stated S-21.09 had PR #769 open. Empirically verified: S-21.09 has no branch and no PR. PR #769 does not exist as an open S-21.09 PR. SRC corrected in STATE.md v6.92.
+
+**(g) SRC §9 CI-fired retraction:** SRC §9 stated "CI fired on push 49d542a2". GitHub Actions outage (confirmed major incident 2026-08-05T21:30+) means no CI has fired since that time. The claim was an over-claim. Retracted in STATE.md v6.92.
+
+### Participating agents
+
+- adversary: S-21.07 pass-7 holistic fresh-context review (CLEAN 0 findings + 2 obs; reviewed HEAD fbb5183c)
+- story-writer: S-21.07 v1.7→v1.8 story amendment (BC-5.39.010 v1.13 cites); S-21.10 v1.1 NEW; S-21.11 v1.1 NEW; S-21.12 v1.1 NEW; E-22 v1.0 NEW; S-8.10 v1.3 amended
+- product-owner: BC-1.01.016 v1.0 NEW; BC-1.03.017 v1.0 NEW; BC-5.39.010 v1.13 CWE-636/390 correction
+- state-manager: D-958 codification; adversary-pass-7.md persisted; INDEX.md pass-7 row + Convergence Status; decision-log.md D-958 entry; 3 lessons appended; burst-log.md D-958 (8 blocks); BC-INDEX v4.49→v4.50; STORY-INDEX v4.286→v4.287; sprint-state.yaml S-21.07+S-21.09 added; STATE.md v6.91→v6.92
+
+### 4-INDEX
+
+| Index | Before | After | Change |
+|-------|--------|-------|--------|
+| BC-INDEX | v4.49 | v4.50 | BC-1.01.016 NEW + BC-1.03.017 NEW; BC-5.39.010 v1.12→v1.13; SS-01 118→120; Total 1975→1977; total_bcs 1983→1985; BC-4.13.001 v1.16 pipe-escape fix |
+| VP-INDEX | v2.74 | v2.74 | UNCHANGED |
+| STORY-INDEX | v4.286 | v4.287 | S-21.07 v1.7→v1.8 c0ab6a3; S-8.10 v1.3 9ca3574; S-21.10/S-21.11 NEW E-21; S-21.12/E-22 NEW; sprint-state.yaml S-21.07+S-21.09 added |
+| ARCH-INDEX | v3.44 | v3.44 | UNCHANGED |
+
+### Phase
+
+D-958-S-21.07-PASS-7-RECORD-BURST-INDEX-SYNCS
+
+### Date
+
+2026-08-06

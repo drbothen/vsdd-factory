@@ -10295,3 +10295,51 @@ D-442(e) recorded the same class of defect for lessons.md (≤3,500 soft / ≤4,
 **Closes:** D-957
 
 **Cites:** D-957 (codified this burst); F-S2107-P7-003; TD-VSDD-059. `[test-quality; CI-wiring; compensating-gate; vacuous-skip; D-957; codified]`
+
+---
+
+## L-BB-cross-worktree-git-mutation [process-gap] [D-958]
+
+**Category:** process-gap
+
+**Title:** Agent Stash in the Wrong Worktree Destroyed Two Burst Payloads
+
+**Lesson:** During the pass-7 fix burst, the implementer dispatched to close F-P7-001 ran a stash operation in the main worktree instead of in the S-21.07 worktree. This stashed the devops burst payload and the test-writer burst payload, both of which existed only as uncommitted changes in the S-21.07 worktree. Both payloads had to be reconstructed from scratch. The root cause: the agent was operating in a context that included both worktrees and ran a tree-mutating git command without verifying which worktree it was in. **Rule: never run `git stash`, `git reset`, tree-mutating checkout forms, or other destructive operations in a worktree you were not explicitly dispatched to.** If you need to save work before switching contexts, always verify `git worktree list` and confirm the working directory before running destructive operations.
+
+**Anchors:** D-958 (this burst); F-S2107-P7-001 (the BLOCKER that triggered the impl dispatch); task #37 (INCIDENT process-gap stash); task #40 (ROOT CAUSE identified); stash incident notes.
+
+**Closes:** D-958
+
+**Cites:** D-958 (codified this burst); F-S2107-P7-001; task #37; task #40. `[process-gap; git-worktree; destructive-operation; stash; cross-worktree; D-958; codified]`
+
+---
+
+## L-BB-coverage-gate-must-count-executions [test-quality] [D-958]
+
+**Category:** test-quality
+
+**Title:** A Coverage Gate Must Count Execution Sites, Not Declaration Counts
+
+**Lesson:** F-S2107-P7-016 identified that T-047's fixture used `def456` (6 characters) while the extractor requires `{7,40}` characters for a valid version token. This means the arm B2/B3 extraction paths returned `None` unconditionally — not because the logic was correct, but because the input was malformed and triggered an early-return before reaching the arm B logic. The test appeared to exercise B2/B3 skip logic but was actually exercising the early-return branch. The root cause is that the gate counted declarations (the fixture was present, the test was present) rather than execution (the arm B2/B3 code paths were never reached). **Generalization:** when writing a coverage test or a gate test, verify that the specific code paths you intend to exercise are actually reached under the fixture inputs. A vacuous test that satisfies coverage at the declaration level while silently exercising the wrong path is worse than no test — it creates false assurance. Exact-count assertions on skip populations (`assert_eq!(skip_count, EXPECTED_N)`) are the correct form.
+
+**Anchors:** D-958 (this burst); F-S2107-P7-016; T-047 fixture character length; `{7,40}` extractor bound; exact-count assertion.
+
+**Closes:** D-958
+
+**Cites:** D-958 (codified this burst); F-S2107-P7-016; TD-VSDD-059. `[test-quality; coverage-gate; vacuous-test; fixture-validity; execution-path; D-958; codified]`
+
+---
+
+## L-BB-gate-must-assert-durable-artifact [test-quality] [D-958]
+
+**Category:** test-quality
+
+**Title:** A Gate Must Assert Against the Durable Artifact It Claims to Govern
+
+**Lesson:** Pass-7 closed F-S2107-P7-009 (red-gate-log attestation) and F-S2107-P7-016 (coverage gate teeth). Both share a common failure shape: the gate makes an assertion about something adjacent to the artifact rather than the artifact itself. F-P7-009's gate checked that the prose section header existed in red-gate-log.md, but not that the attestation data under it was present and populated. F-P7-016's gate checked that the coverage test was declared, but not that it executed (the fixture made execution vacuous). In both cases, the gate would pass even if the artifact's content was missing or wrong. **Generalization:** a gate is valid only if its assertion is structurally identical to the claim being enforced. If the claim is "red-gate-log.md has a pass-6 attestation section", the gate must assert that the section exists AND contains a non-empty assertion-site SHA, not just that a header matches. If the claim is "arm B2/B3 skip paths are tested", the gate must assert that the skip-count under a valid fixture is a known exact value, not just that a skip-annotated test exists.
+
+**Anchors:** D-958 (this burst); F-S2107-P7-009; F-S2107-P7-016; red-gate-log.md; T-047; POLICY 15 ATTESTATION-LOCATION GATE; TD-VSDD-059.
+
+**Closes:** D-958
+
+**Cites:** D-958 (codified this burst); F-S2107-P7-009; F-S2107-P7-016; POLICY 15; TD-VSDD-059. `[test-quality; paper-gate; durable-artifact; attestation; structural-assertion; D-958; codified]`
