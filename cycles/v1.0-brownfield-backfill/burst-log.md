@@ -23455,3 +23455,6 @@ BC-5.39.010 row 6th field confirmed v1.10 \| v1.11 \| v1.12. F-S2107-P7-007 BC-I
 - **(a) red-gate-log.md parent-SHA convention (D-419(b)+D-420(d)+D-421(a)):** `red-gate-log.md` Pass-6 Fix Burst section cites `assertion-site attestation (b78b27ef402f11e36c8c23f68f65d6335c37dd14)`. The SHA `b78b27ef` is the code branch HEAD at adversary-review time — per the parent-commit-SHA convention (D-419(b)/D-420(d)/D-421(a)), this is the CORRECT citation. It is NOT a POLICY 15 `<HEAD-SHA>` literal placeholder; the convention mandates citing the pre-burst adversary-review HEAD, not the post-burst code-burst SHA (`49d542a2`).
 - **(b) F-P7-019 D-693 WASM size correction (D-447(c) SHA-patch item):** D-693 commit message (`b78b27ef`) attested `226,794 bytes` (pass-5 WASM artifact at review time). The deployed `.wasm` in code burst `49d542a2` is `231,121 bytes` — the actual size of the pass-6 implementation. The D-693 commit message is a stale size citation from pass-5; the live artifact carried by `49d542a2` is authoritative. STATE.md Drift Item `[D-957] F-S2107-P7-019` updated to reflect code-burst provenance.
 
+
+
+## D-958 S-21.07-PASS-7-RECORD-BURST-INDEX-SYNCS (2026-08-06)
