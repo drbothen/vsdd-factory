@@ -4,7 +4,7 @@ level: ops
 version: "6.91"
 status: draft
 producer: state-manager
-timestamp: 2026-08-06T08:30:00Z
+timestamp: 2026-08-06T09:00:00Z
 phase: D-957-S-21.07-PASS-6-RECORD-BURST-INDEX-SYNCS
 last_amended: "2026-08-05 (v6.91) — D-957-S-21.07-PASS-6-RECORD-BURST-INDEX-SYNCS (state-manager): Pass-6 adversary RECORDED NOT-CLEAN B4/H7/M8/L1 (20+6 obs; IMPROVING 24→20; reviewed HEAD b78b27ef+UNCOMMITTED); BC-INDEX v4.48→v4.49 (BC-5.39.010 v1.11→v1.12); ARCH-INDEX v3.43→v3.44; STORY-INDEX v4.285→v4.286 (S-18.06/08/11/12 POLICY 18; S-18.11 hash f7ab2d0); F-S2107-P7-001/002(SM)/007 CLOSED; 3 lessons; STATE.md v6.90→v6.91. [Prior: 2026-08-05 (v6.90) — SESSION-WRAP-2026-08-05 (state-manager): PIPELINE PAUSED per human /wrap 2026-08-05; D-956 SRC archived to session-checkpoints.md; new PAUSED SRC written. 4-INDEX UNCHANGED BC v4.48/VP v2.74/STORY v4.285/ARCH v3.43. STATE.md v6.89→v6.90. [Prior: ...]]"
 inputs: []
@@ -49,6 +49,7 @@ dtu_services: []
   ~308 lines (estimated post-SESSION-WRAP-2026-08-05 PIPELINE PAUSED 2026-08-05; v6.89→v6.90; soft-target margin 415-308=+107 UNDER-SOFT-TARGET)
   314 lines (wc-l post-update; D-957-sha-patch SHA-patch follow-up 2026-08-06; v6.91; soft-target margin 415-314=+101 UNDER-SOFT-TARGET)
   314 lines (wc-l post-update; SESSION-WRAP-2026-08-06 PIPELINE PAUSED 2026-08-06; v6.91; soft-target margin 415-314=+101 UNDER-SOFT-TARGET)
+  315 lines (wc-l post-update; SESSION-WRAP-2026-08-06-ERRATUM SRC push-status correction 2026-08-06; v6.91; soft-target margin 415-315=+100 UNDER-SOFT-TARGET)
   D-862 E21-PHASE-3-W1-DISPATCH-APPROVED 2026-07-20; v6.08→v6.09; SM governance/dispatch burst; human gate decision W1 APPROVED SEQUENTIAL; input-drift resolved (12 files, metadata-only); STATE.md stale-points corrected (W1 15pts→17pts, per-story values 5/5/5/6/6→11/3/3/5/5); frontmatter last_amended COMPACTED + Current Phase Steps/Decisions Log compacted to last-5 policy (this compaction is the size-budget remediation flagged OVER-SOFT-TARGET at D-861); PIPELINE UNPAUSED; 4-index ALL UNCHANGED BC v4.11/VP v2.72/STORY v4.227/ARCH v3.11. Full per-burst wc-l history D-819..D-861 (see decision-log.md for full range) archived; SoT: decision-log.md + git show 9debd920:.factory/STATE.md for D-861 pre-compaction state.
 -->
 
@@ -109,7 +110,7 @@ dtu_services: []
 | D-956 S-21.07-PASS-5-RECORD-BURST-INDEX-SYNCS 2026-08-05 (pass-5 RECORD+INDEX-SYNC burst; SM this-commit) | state-manager | COMPLETE | (1) POLICY 16 GLOBAL-MAX GATE: D-955 confirmed max → D-956 allocated (decision-log.md line 14855). (2) RECORD+INDEX-SYNC burst COMPLETE: adversary-pass-5.md CREATED (NOT-CLEAN B3/H8/M10/L3; 24+5 obs; FLAT-MINUS-ONE 25→24; reviewed HEAD b78b27ef); INDEX.md pass-5 row; D-956 codified; 6 lessons; burst-log.md D-956 (8 blocks). (3) BC-INDEX v4.47→v4.48: BC-5.39.010 row v1.9→v1.10 (F-S2107-P6-001 data-legs CLOSED). (4) ARCH-INDEX v3.42→v3.43: ADR-037 Decision 5 roster 19→78 + AMENDED v1.1. (5) STORY-INDEX v4.284→v4.285: POLICY 18 S-21.07=dd5c9d2 THREE-WAY ACHIEVED. (6) 4 Drift Items. (7) 4-INDEX: BC v4.47→v4.48; VP v2.74 UNCHANGED; STORY v4.284→v4.285; ARCH v3.42→v3.43. streak 0/3 (5 passes). trajectory-tail →18→25→25→24. parent-commit: 571ccf65. SHA-patch DONE: `e2789993`. |
 | SESSION-WRAP-2026-08-05 (session-wrap burst; SM this-commit) | state-manager | COMPLETE | (1) PIPELINE PAUSED: human /wrap directive 2026-08-05. (2) D-956 SRC archived to session-checkpoints.md. (3) New PAUSED SRC written: S-21.07 pass-6 fix burst pending; streak 0/3; 3 BLOCKERs OPEN (F-S2107-P6-001/002/003); 1 HIGH OPEN (F-S2107-P6-004); S-21.09 merge-order constraint CRITICAL. (4) D-953 archived to D-836..D-953 (see decision-log.md for full range) summary row. (5) 4-INDEX UNCHANGED: BC v4.48/VP v2.74/STORY v4.285/ARCH v3.43. trajectory-tail →18→25→25→24. |
 | D-957 S-21.07-PASS-6-RECORD-BURST-INDEX-SYNCS 2026-08-05 (pass-6 RECORD+INDEX-SYNC burst; SM this-commit) | state-manager | COMPLETE | (1) POLICY 16 GLOBAL-MAX GATE: D-956 confirmed max → D-957 allocated. (2) RECORD+INDEX-SYNC burst COMPLETE: adversary-pass-6.md CREATED (NOT-CLEAN B4/H7/M8/L1; 20+6 obs; IMPROVING 24→20; reviewed HEAD b78b27ef+UNCOMMITTED); INDEX.md pass-6 row; D-957 codified; 3 lessons; burst-log.md D-957 (8 blocks). (3) BC-INDEX v4.48→v4.49: BC-5.39.010 v1.11→v1.12 (F-S2107-P7-007 HIGH CLOSED). (4) ARCH-INDEX v3.43→v3.44: ADR-037 v1.2 frontmatter fix. (5) STORY-INDEX v4.285→v4.286: S-18.06/08/11/12 POLICY 18 ACHIEVED; S-18.11 d774716→a9320c2 (F-S2107-P7-002 SM-leg CLOSED). (6) 4-INDEX: BC v4.48→v4.49; VP v2.74 UNCHANGED; STORY v4.285→v4.286; ARCH v3.43→v3.44. streak 0/3 (6 passes). trajectory-tail →25→25→24→20. parent-commit: e3defa50. SHA-patch DONE: f0f25194. |
-| SESSION-WRAP-2026-08-06 (session-wrap burst; SM this-commit) | state-manager | COMPLETE | (1) PIPELINE PAUSED: human /wrap directive 2026-08-06. (2) D-957 SRC archived to session-checkpoints.md. (3) New PAUSED SRC written: S-21.07 pass-6 COMPLETE NOT-CLEAN B4/H7/M8/L1 (20 findings + 6 obs); 3 BLOCKERs OPEN (F-P7-002/003/004); streak 0/3; code burst 49d542a2 committed LOCAL not pushed; factory-artifacts tip 3e07fd93; cargo test ALL PASS; bats 46/5/0. (4) 4-INDEX UNCHANGED: BC v4.49/VP v2.74/STORY v4.286/ARCH v3.44. trajectory-tail →25→25→24→20. |
+| SESSION-WRAP-2026-08-06 (session-wrap burst; SM this-commit) | state-manager | COMPLETE | (1) PIPELINE PAUSED: human /wrap directive 2026-08-06. (2) D-957 SRC archived to session-checkpoints.md. (3) New PAUSED SRC written: S-21.07 pass-6 COMPLETE NOT-CLEAN B4/H7/M8/L1 (20 findings + 6 obs); 3 BLOCKERs OPEN (F-P7-002/003/004); streak 0/3; code burst 49d542a2 committed AND pushed to origin; factory-artifacts tip 3e07fd93; cargo test ALL PASS; bats 46/5/0. (4) 4-INDEX UNCHANGED: BC v4.49/VP v2.74/STORY v4.286/ARCH v3.44. trajectory-tail →25→25→24→20. |
 
 ## Identifier Conventions
 
@@ -267,7 +268,7 @@ dtu_services: []
 
 ### §1. Position and Status
 
-Cycle `v1.0-brownfield-backfill`. **PIPELINE PAUSED** — human `/wrap` directive 2026-08-06. Last decision: **D-957** (S-21.07 pass-6 RECORD+INDEX-SYNC burst; SHA-patch DONE: f0f25194). **4-INDEX:** BC v4.49 / VP v2.74 / STORY v4.286 / ARCH v3.44. trajectory 47→18→25→25→24→20; trajectory-tail →25→25→24→20. streak **0/3** (6 passes). Code burst `49d542a2` committed LOCAL on `feature/S-21.07-validate-cross-site-correspondence` — **NOT PUSHED**.
+Cycle `v1.0-brownfield-backfill`. **PIPELINE PAUSED** — human `/wrap` directive 2026-08-06. Last decision: **D-957** (S-21.07 pass-6 RECORD+INDEX-SYNC burst; SHA-patch DONE: f0f25194). **4-INDEX:** BC v4.49 / VP v2.74 / STORY v4.286 / ARCH v3.44. trajectory 47→18→25→25→24→20; trajectory-tail →25→25→24→20. streak **0/3** (6 passes). Code burst **`49d542a2`** (full: `49d542a2ff42e57c549588273aa67bc6e09f4625`) on `feature/S-21.07-validate-cross-site-correspondence` — 28 files; **committed AND pushed to origin** (fast-forward `b78b27ef..49d542a2`, no divergence, no force). Local and `origin/feature/S-21.07-validate-cross-site-correspondence` both at `49d542a2ff42e57c549588273aa67bc6e09f4625` — verified by SHA equality. **No PR opened** — the story is mid-cascade at streak 0/3 with 3 BLOCKERs open and is not mergeable.
 
 ### §2. S-21.07 Status
 
@@ -303,7 +304,7 @@ ADR-037 remediation: **77 stories** (roster per pass-6 ARCH-INDEX v3.44). Full-c
 
 ### §9. Cautions
 
-Do NOT run `compute-input-hash --scan --update` (418-file blast radius, D-936). Do NOT run `/rehydrate-wave` (wave-state.yaml points at closed E-19 W1 epic). **5 rc.23 cached hooks fire spuriously** on new-format STATE.md — expected advisory noise. `pipeline:` not a reliable liveness signal. Main-repo noise: `.claude/scheduled_tasks.lock` (M) + `tests/report.tap` (untracked) deliberately uncommitted.
+Do NOT run `compute-input-hash --scan --update` (418-file blast radius, D-936). Do NOT run `/rehydrate-wave` (wave-state.yaml points at closed E-19 W1 epic). **5 rc.23 cached hooks fire spuriously** on new-format STATE.md — expected advisory noise. `pipeline:` not a reliable liveness signal. Main-repo noise: `.claude/scheduled_tasks.lock` (M) + `tests/report.tap` (untracked) deliberately uncommitted. CI fired on code burst push `49d542a2`; any red is pass-7 WIP information — the branch carries known open BLOCKERs (F-P7-002/003/004), not a regression.
 
 ### §10. Pending Human Decisions
 
