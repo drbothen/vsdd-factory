@@ -2,7 +2,7 @@
 document_type: architecture-decision-record
 level: L3
 adr_id: ADR-039
-version: "1.0"
+version: "1.1"
 title: "ADR-039: Validator failure policy for resource exhaustion — per-plugin failure_policy field, fail-closed default for authorization-class validators, and safe migration ordering"
 status: proposed
 date: 2026-08-06
@@ -17,7 +17,14 @@ traces_to: .factory/specs/architecture/ARCH-INDEX.md
 research_basis: .factory/research/wasm-fuel-exhaustion-detection.md
 extends: ADR-035 §Decision 5
 last_amended: |-
-  2026-08-06 (v1.0) — Initial ruling (architect; S-21.07 pass-7 validator-failure-policy
+  2026-08-06 (v1.1) — Context + Decision 3 amended (architect; orchestrator observation):
+  PostToolUse blocks on ARCH-INDEX.md during ADR authoring (2026-08-06) confirm the
+  self-lock hazard is already live for today's fail-closed validators
+  (validate-factory-path-root, validate-input-hash, validate-template-compliance —
+  all on_error=block). Context "self-lock hazard" paragraph expanded with observational
+  evidence; Decision 3 "observed evidence" paragraph added. Phase 3-before-Phase 4
+  ordering constraint strengthened from precautionary to response-to-active-failure.
+  [Prior: 2026-08-06 (v1.0) — Initial ruling (architect; S-21.07 pass-7 validator-failure-policy
   adjudication routed by orchestrator): CWE-636 fail-open confirmed for Timeout+on_error=Continue
   path. Six decisions: (1) failure_policy and on_error are separate axes; (2) per-plugin
   failure_policy field in hooks-registry.toml; (3) self-lock hazard — fuel-cap calibration
@@ -25,9 +32,10 @@ last_amended: |-
   (5) near-term mitigations — headroom warning + ≥574 KB fixture; (6) verification requirement
   — behavioral test must exercise observed outcome, not documented intent.
   fail_closed_timeout_with_on_error_continue_is_open test encodes current policy and MUST be
-  revised deliberately. Adjudicates F-S2107-P7-010/011/015 (design legs). PROPOSED 2026-08-06.
+  revised deliberately. Adjudicates F-S2107-P7-010/011/015 (design legs). PROPOSED 2026-08-06.]
 modified:
   - "2026-08-06 (v1.0)"
+  - "2026-08-06 (v1.1)"
 ---
 
 # ADR-039: Validator failure policy for resource exhaustion — per-plugin `failure_policy` field, fail-closed default for authorization-class validators, and safe migration ordering
@@ -57,11 +65,21 @@ asserts that `Timeout { cause: TimeoutCause::Fuel } + on_error=Continue` MUST NO
 fail-closed. This test was written with intent. Changing the policy requires revising this
 test deliberately, not deleting it quietly.
 
-**The self-lock hazard is live today.** `lessons.md` already exhausts the fixed 10M fuel
-budget during PostToolUse validation (D-442(e); ≤3500 soft / ≤4000 hard line-count
-workaround). Any naive flip of `on_error = "continue"` to `"block"` for lessons.md validators
-would immediately hard-block `.factory/` writes. The correct remediation is a new orthogonal
-`failure_policy` axis with safe migration ordering.
+**The self-lock hazard is already live today — not a hypothetical future risk introduced by
+the migration.** During the authoring of this ADR (2026-08-06), writes to ARCH-INDEX.md
+triggered `fail-closed: plugin timed out` PostToolUse blocks from `validate-factory-path-root`,
+`validate-input-hash`, and `validate-template-compliance` — three plugins with
+`on_error = "block"`. When those plugins exhaust their fuel budget processing a large file,
+`plugin_fail_closed` returns `true` (`on_error=Block` + `Timeout`) and the dispatcher fires a
+block signal. The writes succeeded in that session only because PostToolUse fires after the
+write completes; the block was asserted but could not retroactively prevent the write.
+`lessons.md` exhibits the same pattern at its current size (D-442(e); ≤3500 soft / ≤4000 hard
+line-count workaround). Any naive flip of `on_error = "continue"` to `"block"` — or of
+`failure_policy` to `"fail-closed"` without a recalibrated cap — for validators that read
+these artifacts would extend this failure mode to PreToolUse gates, where the block would be
+hard and unconditional. The Phase 3-before-Phase 4 ordering constraint in Decision 3 is
+therefore not precautionary: it is a response to a failure mode already manifesting in
+production today.
 
 **ADR-035 §Decision 5 precedent.** ADR-035 established that `TimeoutCause::Fuel` is a
 resource-policy error (not a validation result), that an advisory message MUST be emitted on
@@ -181,6 +199,17 @@ with the factory default `fuel_cap = 10_000_000`.
 against a lessons.md at or above the D-442(e) hard limit (4000 lines). The D-442(e)
 line-count workaround is a symptom, not a solution; the root fix is a calibrated per-plugin
 budget that accommodates production-size lessons.md without exhausting.
+
+**Observed evidence that the constraint is non-hypothetical (2026-08-06):** During the session
+that authored this ADR, writes to ARCH-INDEX.md triggered `fail-closed: plugin timed out`
+PostToolUse blocks from `validate-factory-path-root`, `validate-input-hash`, and
+`validate-template-compliance`. These three plugins have `on_error = "block"` today and
+already exhaust their fuel budget on large files. The writes succeeded only because PostToolUse
+cannot retroactively block a completed write. Any `on_error = "continue"` validator that
+receives `failure_policy = "fail-closed"` without a recalibrated cap will exhibit the same
+failure mode — and for PreToolUse gates, that would produce a hard unconditional block on every
+large-artifact write. Phase 3 calibration is not a best-practice recommendation; it is a
+prerequisite for preventing the specific failure mode currently observed in production.
 
 ### Decision 4 — Fuel budgeting: p99-derived per-plugin caps; fixed `10_000_000` constant is the wrong shape
 
