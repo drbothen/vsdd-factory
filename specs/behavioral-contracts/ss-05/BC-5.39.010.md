@@ -1,7 +1,7 @@
 ---
 document_type: behavioral-contract
 level: L3
-version: "1.10"
+version: "1.12"
 status: draft
 producer: product-owner
 timestamp: 2026-07-30T00:00:00Z
@@ -16,7 +16,7 @@ inputs:
   - .factory/cycles/v1.0-feature-engine-discipline-pass-1/adv-cycle-pass-29.md
   - .factory/cycles/v1.0-feature-engine-discipline-pass-1/adv-cycle-pass-30.md
   - .factory/cycles/v1.0-brownfield-backfill/S-21.07/adversary-pass-1.md
-input-hash: "fb4cc4a"
+input-hash: "1053116"
 traces_to: .factory/cycles/v1.0-feature-engine-discipline-pass-1/decision-log.md
 extracted_from: null
 origin: brownfield
@@ -36,6 +36,8 @@ modified:
   - "2026-08-04 (v1.8)"
   - "2026-08-04 (v1.9)"
   - "2026-08-05 (v1.10)"
+  - "2026-08-05 (v1.11)"
+  - "2026-08-05 (v1.12)"
 deprecated: null
 deprecated_by: null
 replacement: null
@@ -45,7 +47,7 @@ removal_reason: null
 bc_id: BC-5.39.010
 section: "5.39"
 last_amended: |-
-  2026-08-05 (v1.10) — PC5 self-contradiction fixed (F-S2107-P4-022): split into two-level locator/body-table predicates; RowMalformed redefined as "locator-matched line (conditions (1)+(2) satisfied) with <5 fields after escape-aware split" — eliminating the contradiction where the normative three-condition candidacy predicate made RowMalformed empty by construction. PC5 candidate-selection order added (F-S2107-P4-005): full-file scan must prefer first (1)+(2)+(3)-satisfying line; RowMalformed only when ALL locator-matched lines fail (3); first-match-wins implementation is NON-CONFORMING. Postcondition 4a pinned normatively (F-S2107-P4-025): prescribed advisory text is MUST-verbatim with <id>/<N> as only substitutions; omitting "Registration status cannot be determined" and "Verify BC-INDEX body-table registration manually" is NON-CONFORMING. Postcondition 13 expanded with three-category enumeration (F-S2107-P4-006 ruling): hook MUST enumerate stale/fabricated/algorithm-divergent as possible explanations without asserting which applies; classify_provenance heuristic picking one label is NON-CONFORMING; invariant 11 governs; AC-009 stops requiring classification. Invariant 11 SHOULD→MUST. Postcondition 22 prescribed message added citing POLICY 14 leg 3 (F-S2107-P4-008 sibling sweep: postconditions 2 and 7 both cite leg 5 correctly; postcondition 20 cites leg 4 correctly; gap was postcondition 22 only). PC36 block-scalar normative requirement added (F-S2107-P4-004 coupling): extract_frontmatter_field MUST handle |- block scalars; returning "|-" is NON-CONFORMING; corpus 2 occurrences (this BC + S-21.07 story); load-bearing for Class E1 enforcement on governing artifacts. PC40 transitional clause updated (F-S2107-P4-013 BC-side ruling): "no permanent weakening" guarantee requires exhaustive ADR-037 §Context enumeration; S-21.07 absent from 19-story table; correction routed to architect; story-writer removes volatile ARCH-INDEX.md input. Gate Spec pseudocode updated for two-level predicates. Architecture Anchors: extract_bc_index_version updated v1.9→v1.10 terminology; extract_frontmatter_field block-scalar requirement added. Story Anchor and §Traceability Stories TBD→S-21.07. (product-owner; pass-5 fix burst.) [Prior: 2026-08-04 (v1.9) — PC5 fourth state `RowMalformed`: a candidate line matching the locator pattern (`^\| \[<id>\]` or `^\| <id> \|`) was found but has <5 non-empty fields after escape-aware splitting — it is NOT a valid body-table row (likely a Changelog entry, subsystem-section row, or notes table that incidentally carries the BC ID link). `RowMalformed` disposition: advisory + Continue; NEVER reaches postcondition 4 blocking path. This state is distinct from `RowAbsent`: a candidate line WAS found; the found-but-malformed case cannot be collapsed into RowAbsent without triggering false BLOCKs. Narrows `RowAbsent` to exclusively mean "no candidate line found at all." Normative body-table row recognition predicate specified: condition (1) starts with `|`; condition (2) first non-empty field matches `^\[X\]` link form or equals `X` plain form; condition (3) total non-empty field count ≥5. First-cell link form alone is insufficient — a 4-field line `| [BC-5.39.010](path) | title | draft | v1.6 |` satisfies condition (2) but fails condition (3) and is NOT a body-table row. Corpus-validated 2026-08-04: 0 RowMalformed lines in real BC-INDEX (all 1,983 BC-ID-matching lines have ≥5 fields); forward-looking protection. Postcondition 4a added: advisory message prescribing manual verification. Gate Spec `run_part_a_arm1` match extended to four arms. (product-owner; resolves internal contradiction discovered by implementer during v1.8 implementation.) [Prior: 2026-08-04 (v1.8) — PC5 column-anchored locator: state classification now uses escape-aware column count (5 fields → RowPresentNoVersion unconditionally; 6+ fields → Version(v) from 6th column) — token-search approach was a spec gap because story IDs like `S-15.01` in the Stories column match bare-form `\bv?([0-9]+\.[0-9]+)\b`, producing Version("15.01") instead of RowPresentNoVersion; 194 of 1,943 canonical rows carry such story IDs (load-bearing count). Escape-aware splitting required: `\|` within version-chain cells is non-splitting literal; naive `|` split inflates field count. PC13 two-phase algorithm: Phase 1 pure-version field (`^v?[0-9]+\.[0-9]+$`) covers 58 BC-section rows; Phase 2 mandatory-v inline (`\bv([0-9]+\.[0-9]+)\b`) covers 30 Token Budget rows; prior optional-v bare form excluded — produces story-ID collision (29 rows / 6 stories), BC-section-number collision (Token Budget `BC-5.39.010 v1.7` → `5.39` extracted before `1.7`), and ACs-column collision (S-21.07 `DEFERRED v1.6` in rightmost ACs field). Corpus-validated 2026-08-04: 1983 total rows; 1943 five-field (RowPresentNoVersion); 40 six-field (Version(v)); 194 story-ID hazard rows; 1 ACs-column hazard row (S-21.07/BC-5.39.010). PC5 also corrects: version-chain extraction algorithm — latest (rightmost) `\bv([0-9]+\.[0-9]+)\b` match in 6th field. (product-owner; closes F-S2107-P3-001 + PC13 two-phase. Prior v1.7 fixes retained.) [Prior: 2026-08-04 (v1.7) — PC5 corrected: BC-INDEX canonical shape is 5-column (`| BC ID | Title | Status | Capability | Stories |`); version-chain cell is ad-hoc 6th column present on only 40 of 1983 body-table rows (corpus 2026-08-04, adversary pass-3 verified); `extract_bc_index_version` rearchitected from two-state `Option<String>` to three-state `RowAbsent` / `RowPresentNoVersion` / `Version(v)` — two-state `None` conflating the first two misdiagnosed ≥1,712 correct registrations as structural faults per F-S2107-P3-001. Postcondition 4 expanded: `RowAbsent` + version > "1.0" → block (unchanged; genuine structural fault); `RowPresentNoVersion` → silent-continue (5-column canonical shape is standard for ~98% of rows; advisory would be unactionable noise). Part B postconditions note and invariant 11 corrected: `1acf3c6` reclassified from "fabricated" to ALGORITHM-DIVERGENT per ADR-036 §Decision 4 — produced by rc.23 CACHE binary trailing-newline-stripping algorithm, not fabricated; no PROVENANCE-BREAK annotation was warranted; Pass-30 M02 POLICY 18 violation claim for `1acf3c6` retracted. Invariant 11 title updated to three-category taxonomy (stale / fabricated / algorithm-divergent). Gate Spec `run_part_a_arm1` pseudocode updated to reflect three-state match. PC40 confirmed as-written conformant — F-S2107-P3-002 is implementation non-conformance to existing spec, not a spec defect; no PC40 amendment warranted. (product-owner; closes F-S2107-P3-001 spec-side; closes ADR-036 §Decision 4 annotation corrections routed at D-952.) [Prior: 2026-08-04 (v1.6) — Class D (finding-ID namespace advisory in Closes/Refs lines) descoped entirely; active gated classes now A, B, E only. `is_cycle_artifact` dispatch branch marked DEFERRED; `.factory/cycles/` removed from registry path_allow. Premise unsound against unstandardized Closes/Refs convention: six shapes measured across both cycle burst-logs (`**Closes:**`=70, `**Closes (per …):**`=13, no-colon bold=13, non-bold=12, hyphen-form=8); PC31 failed three iterations (v1.2 plain-colon→0 matches; v1.3 bold-bare-colon→20/34; v1.5 bold-word-boundary-colon→86/96 bold but 0/20 non-bold); v1.5 measurement taken against wrong cycle. PC28-PC33 DEFERRED; postconditions 16-18/24 DEFERRED; invariant 6 DEFERRED — all IDs preserved per POLICY 1 append-only. Knowledge preserved in §Deferred Scope with follow-up story target S-21.08 (E-21 epic). PC34 VP-path correction, PC40 volatile-input precondition, invariant-6 I/O-vs-content adjudication, and all Class A/B/E amendments from v1.4-v1.5 survive intact. (product-owner; human-approved scope decision 2026-08-04.) [Prior: 2026-08-04 (v1.5) — Amendment 1 (PC31): Closes/Refs regex corrected to `^\*\*Closes\b[^:]*:\*\*`/`^\*\*Refs\b[^:]*:\*\*` — bare-colon form `^\*\*Closes:\*\*` matched only 20 of 34 burst-log Closes lines (corpus check 2026-08-04, full-file grep); 14 missed (parenthetical `**Closes (per ...):**` x11 + bare-word `**Closes per ...:**` x3); Refs = 0 corpus instances, retained forward-looking; PC31a scope-count advisory added (postcondition 24). Amendment 2 (PC34): VP path `ss-*/VP-*.md` → flat `^VP-[0-9]+\.md$` with VP-INDEX.md exclusion (corpus 2026-08-04: zero ss-* subdirs; 102 VPs flat); epics clause added (dispatch.rs carried arm without PC34 counterpart). Amendment 3 (invariant 6 adjudication): CapabilityDenied/Timeout on cycle artifact is BLOCKING per PC33/postcondition 18/invariant 5; invariant 6 scopes to finding-content verdicts only; postcondition 18 expanded to include Timeout. Amendment 4 (PC40): volatile-input precondition for Class B Arm B1 per ADR-037 §Decision 4; scan story inputs: for volatile patterns; emit prescribed advisory + Continue if found; transitional (vacuous post-remediation); EC-032 added. (product-owner.) [Prior: 2026-08-03 (v1.4) — PC13: bounding-section heading-match predicates changed from exact equality to prefix-with-word-boundary (^## Behavioral Contracts\b, ^## Token Budget\b); 133 of 144 production stories use ## Token Budget Estimate or ## Token Budget Estimate (MANDATORY), which exact equality skipped, causing stale Token Budget citations to go undetected; corpus check (2026-08-03) confirmed zero false positives on .factory/stories/*.md; ## Edge Cases (148 occurrences) remains excluded. Architecture Anchor for extract_story_bc_version_citations updated. Exact-equality non-conformance note added. (product-owner.) [Prior: 2026-07-30 (v1.3) — PC13: bounding section added (scan confined to ##Behavioral Contracts + ##Token Budget sections; ≥9 spurious blocks from Edge Cases rows eliminated); dual version-token format (\bv?([0-9]+\.[0-9]+)\b covers both bare 1.2 and v-prefixed v1.2); LAST rightmost pipe-field algorithm stated. PC31: bold-markdown form (**Closes:**/**Refs:**) required to match D-444(c) real burst-log format; union scan not else-if. PC38 + postcondition 21: non-decreasing relation (∀i: date[i] ≤ date[i+1]); equal same-day dates PERMITTED; EC-030/031 + test vectors added. Amendment 4: no spec change — PC29 (2 MiB) and PC33 (NotFound advisory+Continue on cycle artifact) already unambiguous; fault is purely implementational. PC32: O- deliberately non-excluded per D-449(d)(i); ruling made explicit. POLICY 14 five-leg parity; v1.1 modified[] entry restored (missing since initial authoring — irony: this hook checks modified[] monotonicity but not modified[]↔Changelog row correspondence, so it structurally cannot catch this defect in its own governing BC). (product-owner.) [Prior: 2026-07-30 (v1.2) — Registry entry corrected: tools = [...] array replaced with tool = "^(Edit|Write|MultiEdit)$" regex string (field name singular + MultiEdit added; POLICY 13 ESCAPE-SCOPE-PARITY). Fuel-exhaustion note added to Gate Specifications per ADR-035 §Decision 5. BC-version-pin datum-copy ruling added to Postconditions §Part A Arm2. (product-owner.) [Prior: 2026-07-30 (v1.1) — Part A Arm2 (story-file-side trigger) added; advisory rationales made explicit for every advisory arm; Class D tokenizer namespace-exclusion list added (D-, S-, BC-, VP-, R-, L-, ADR-, EC-, NFR-, ASM-, FM-); EC-024 rationale corrected; Class A coverage-gap routing replaced with correctly-sized latency-gap explanation; Invariant 11 (fabricated vs stale hash provenance) added; EC-026/027/028/029 added; Gate Spec updated with run_part_a_arm2; VP table extended to 17 entries. (product-owner; coordinator review.) [Prior: 2026-07-30 (v1.0) — Initial authoring (product-owner; pre-pass-30 fix-burst). BC-5.39.010 allocated after BC-5.39.009. input-hash d248fc3 per hook-authoritative marketplace binary. lifecycle_status: draft.]]]]]]]
+  2026-08-05 (v1.12) — EC table aligned with v1.11 normative postconditions (F-P6-001 Option 1 propagation; story-writer routing): EC-002 corrected (primary-newer-than-index direction → advisory + Continue per PC2a; prior text erroneously prescribed Block for this direction); EC-005 description updated (block trigger is B2≠B3 per PC13b, not B2≠B1 — parenthetical was semantically incorrect under v1.11); EC-019 updated (Class A Arm1 primary-newer direction is advisory per PC2a, not a block violation; cross-arm output is advisory + E1 block, not combined-block); EC-034 added (PC13a advisory path: B2==B3 AND B1≠B2 → advisory + Continue; state-manager STORY-INDEX update pending; no internal inconsistency); EC-035 added (PC2b block path: index-newer-than-primary → Block; anomalous direction). Canonical Test Vector "A Arm1 — stale" corrected (advisory + Continue per PC2a; mutant extended with PC2b block case). Gate Spec §Parts B, D, E run_part_b_arm1 prose extended: v1.11 PC13a/13b split described inline (prior prose described only the PC40/v1.5 volatile-check change, leaving the v1.11 behavioral change undescribed). VP table updated: "A Arm1 Stale-Index Block" renamed to "A Arm1 Index-Newer-than-Primary Block (PC2b)" to match the actual PC2b condition; "A Arm1 Primary-Newer-than-Index Advisory (PC2a)" and "B Arm1 STORY-INDEX-Consistent Advisory (PC13a)" added as new pending VP entries. (product-owner; F-P6-001 Option 1 propagation.) [Prior: 2026-08-05 (v1.11) — PC2 directional carve-out (F-P6-001 human-approved Option 1): primary-newer-than-index direction downgraded to advisory ("primary newer than index; state-manager index update pending; Class A BLOCK suspended"); index-newer-than-primary retains BLOCK (anomalous; no POLICY 3 ordering explanation). PC13 two sub-cases (F-P6-001): B2==B3 AND B1≠B2 → advisory (POLICY 3 ordering artefact; STORY-INDEX internally consistent); B2≠B3 → retains BLOCK (STORY-INDEX internal inconsistency). Both carve-outs mirror PC3/PC12 POLICY 3 rationale. PC4a verbatim assertion strengthened (F-P6-002): test-writer MUST assert COMPLETE formatted string by equality check; .contains()-only on substrings is NON-CONFORMING. PC5 ≥6-field no-v-token state defined normatively (F-P6-018): ≥6 non-empty fields AND no \bv([0-9]+\.[0-9]+)\b in field 6 → RowPresentNoVersion; non-empty counting confirmed canonical; empty cell → counts as 5 non-empty → RowPresentNoVersion, field 6 unread. PC36 corpus updated 2→3 (F-P6-012): ADR-037 adopted last_amended: |- in v1.1 amendment; grep confirmed 3 files. PC40 transitional clause corrected (F-P6-007): both prior preconditions satisfied in pass-5 burst (S-21.07 added to ADR-037 §Context; ARCH-INDEX.md removed from S-21.07 inputs:); PC40 vacuous for S-21.07; "no permanent weakening" guarantee holds; "widening" characterization of ARCH-INDEX.md in is_volatile_path WITHDRAWN — pattern 6 is normative conformance per ADR-037 §Decision 2; 77 stories remain in scope. Architecture Anchors corrected (F-P6-004): extract_bc_index_version_state replaces extract_bc_index_version (wrapper deleted by F-P4-016 in pass-5 burst; spec named the deleted symbol); is_volatile_path(path: &str) -> bool + parse_story_volatile_inputs(content: &str) -> Vec<String> replace check_volatile_inputs (never existed; actual shape is two public fns + inline check in run_arm_b1). §Traceability Stories + §Story Anchor: v1.4 in flight → v1.5 in flight (F-P6-005). §VP Anchors: v1.1 Changelog erratum added — "VP table extended to 17 entries" was a planning annotation; VP-102..VP-118 anchored to S-21.07 post-merge per D-945; state-manager allocates at post-merge burst; no VP table was written into BC body. Gate Spec pseudocode: PC2a/PC2b split in run_part_a_arm1 Version arm; PC13a/PC13b split in B1 check; check_volatile_inputs reference replaced with is_volatile_path + parse_story_volatile_inputs. (product-owner; S-21.07 pass-6 fix burst.) [Prior: 2026-08-05 (v1.10) — PC5 self-contradiction fixed (F-S2107-P4-022): split into two-level locator/body-table predicates; RowMalformed redefined as "locator-matched line (conditions (1)+(2) satisfied) with <5 fields after escape-aware split" — eliminating the contradiction where the normative three-condition candidacy predicate made RowMalformed empty by construction. PC5 candidate-selection order added (F-S2107-P4-005): full-file scan must prefer first (1)+(2)+(3)-satisfying line; RowMalformed only when ALL locator-matched lines fail (3); first-match-wins implementation is NON-CONFORMING. Postcondition 4a pinned normatively (F-S2107-P4-025): prescribed advisory text is MUST-verbatim with <id>/<N> as only substitutions; omitting "Registration status cannot be determined" and "Verify BC-INDEX body-table registration manually" is NON-CONFORMING. Postcondition 13 expanded with three-category enumeration (F-S2107-P4-006 ruling): hook MUST enumerate stale/fabricated/algorithm-divergent as possible explanations without asserting which applies; classify_provenance heuristic picking one label is NON-CONFORMING; invariant 11 governs; AC-009 stops requiring classification. Invariant 11 SHOULD→MUST. Postcondition 22 prescribed message added citing POLICY 14 leg 3 (F-S2107-P4-008 sibling sweep: postconditions 2 and 7 both cite leg 5 correctly; postcondition 20 cites leg 4 correctly; gap was postcondition 22 only). PC36 block-scalar normative requirement added (F-S2107-P4-004 coupling): extract_frontmatter_field MUST handle |- block scalars; returning "|-" is NON-CONFORMING; corpus 2 occurrences (this BC + S-21.07 story); load-bearing for Class E1 enforcement on governing artifacts. PC40 transitional clause updated (F-S2107-P4-013 BC-side ruling): "no permanent weakening" guarantee requires exhaustive ADR-037 §Context enumeration; S-21.07 absent from 19-story table; correction routed to architect; story-writer removes volatile ARCH-INDEX.md input. Gate Spec pseudocode updated for two-level predicates. Architecture Anchors: extract_bc_index_version updated v1.9→v1.10 terminology; extract_frontmatter_field block-scalar requirement added. Story Anchor and §Traceability Stories TBD→S-21.07. (product-owner; pass-5 fix burst.) [Prior: 2026-08-04 (v1.9) — PC5 fourth state `RowMalformed`: a candidate line matching the locator pattern (`^\| \[<id>\]` or `^\| <id> \|`) was found but has <5 non-empty fields after escape-aware splitting — it is NOT a valid body-table row (likely a Changelog entry, subsystem-section row, or notes table that incidentally carries the BC ID link). `RowMalformed` disposition: advisory + Continue; NEVER reaches postcondition 4 blocking path. This state is distinct from `RowAbsent`: a candidate line WAS found; the found-but-malformed case cannot be collapsed into RowAbsent without triggering false BLOCKs. Narrows `RowAbsent` to exclusively mean "no candidate line found at all." Normative body-table row recognition predicate specified: condition (1) starts with `|`; condition (2) first non-empty field matches `^\[X\]` link form or equals `X` plain form; condition (3) total non-empty field count ≥5. First-cell link form alone is insufficient — a 4-field line `| [BC-5.39.010](path) | title | draft | v1.6 |` satisfies condition (2) but fails condition (3) and is NOT a body-table row. Corpus-validated 2026-08-04: 0 RowMalformed lines in real BC-INDEX (all 1,983 BC-ID-matching lines have ≥5 fields); forward-looking protection. Postcondition 4a added: advisory message prescribing manual verification. Gate Spec `run_part_a_arm1` match extended to four arms. (product-owner; resolves internal contradiction discovered by implementer during v1.8 implementation.) [Prior: 2026-08-04 (v1.8) — PC5 column-anchored locator: state classification now uses escape-aware column count (5 fields → RowPresentNoVersion unconditionally; 6+ fields → Version(v) from 6th column) — token-search approach was a spec gap because story IDs like `S-15.01` in the Stories column match bare-form `\bv?([0-9]+\.[0-9]+)\b`, producing Version("15.01") instead of RowPresentNoVersion; 194 of 1,943 canonical rows carry such story IDs (load-bearing count). Escape-aware splitting required: `\|` within version-chain cells is non-splitting literal; naive `|` split inflates field count. PC13 two-phase algorithm: Phase 1 pure-version field (`^v?[0-9]+\.[0-9]+$`) covers 58 BC-section rows; Phase 2 mandatory-v inline (`\bv([0-9]+\.[0-9]+)\b`) covers 30 Token Budget rows; prior optional-v bare form excluded — produces story-ID collision (29 rows / 6 stories), BC-section-number collision (Token Budget `BC-5.39.010 v1.7` → `5.39` extracted before `1.7`), and ACs-column collision (S-21.07 `DEFERRED v1.6` in rightmost ACs field). Corpus-validated 2026-08-04: 1983 total rows; 1943 five-field (RowPresentNoVersion); 40 six-field (Version(v)); 194 story-ID hazard rows; 1 ACs-column hazard row (S-21.07/BC-5.39.010). PC5 also corrects: version-chain extraction algorithm — latest (rightmost) `\bv([0-9]+\.[0-9]+)\b` match in 6th field. (product-owner; closes F-S2107-P3-001 + PC13 two-phase. Prior v1.7 fixes retained.) [Prior: 2026-08-04 (v1.7) — PC5 corrected: BC-INDEX canonical shape is 5-column (`| BC ID | Title | Status | Capability | Stories |`); version-chain cell is ad-hoc 6th column present on only 40 of 1983 body-table rows (corpus 2026-08-04, adversary pass-3 verified); `extract_bc_index_version` rearchitected from two-state `Option<String>` to three-state `RowAbsent` / `RowPresentNoVersion` / `Version(v)` — two-state `None` conflating the first two misdiagnosed ≥1,712 correct registrations as structural faults per F-S2107-P3-001. Postcondition 4 expanded: `RowAbsent` + version > "1.0" → block (unchanged; genuine structural fault); `RowPresentNoVersion` → silent-continue (5-column canonical shape is standard for ~98% of rows; advisory would be unactionable noise). Part B postconditions note and invariant 11 corrected: `1acf3c6` reclassified from "fabricated" to ALGORITHM-DIVERGENT per ADR-036 §Decision 4 — produced by rc.23 CACHE binary trailing-newline-stripping algorithm, not fabricated; no PROVENANCE-BREAK annotation was warranted; Pass-30 M02 POLICY 18 violation claim for `1acf3c6` retracted. Invariant 11 title updated to three-category taxonomy (stale / fabricated / algorithm-divergent). Gate Spec `run_part_a_arm1` pseudocode updated to reflect three-state match. PC40 confirmed as-written conformant — F-S2107-P3-002 is implementation non-conformance to existing spec, not a spec defect; no PC40 amendment warranted. (product-owner; closes F-S2107-P3-001 spec-side; closes ADR-036 §Decision 4 annotation corrections routed at D-952.) [Prior: 2026-08-04 (v1.6) — Class D (finding-ID namespace advisory in Closes/Refs lines) descoped entirely; active gated classes now A, B, E only. `is_cycle_artifact` dispatch branch marked DEFERRED; `.factory/cycles/` removed from registry path_allow. Premise unsound against unstandardized Closes/Refs convention: six shapes measured across both cycle burst-logs (`**Closes:**`=70, `**Closes (per …):**`=13, no-colon bold=13, non-bold=12, hyphen-form=8); PC31 failed three iterations (v1.2 plain-colon→0 matches; v1.3 bold-bare-colon→20/34; v1.5 bold-word-boundary-colon→86/96 bold but 0/20 non-bold); v1.5 measurement taken against wrong cycle. PC28-PC33 DEFERRED; postconditions 16-18/24 DEFERRED; invariant 6 DEFERRED — all IDs preserved per POLICY 1 append-only. Knowledge preserved in §Deferred Scope with follow-up story target S-21.08 (E-21 epic). PC34 VP-path correction, PC40 volatile-input precondition, invariant-6 I/O-vs-content adjudication, and all Class A/B/E amendments from v1.4-v1.5 survive intact. (product-owner; human-approved scope decision 2026-08-04.) [Prior: 2026-08-04 (v1.5) — Amendment 1 (PC31): Closes/Refs regex corrected to `^\*\*Closes\b[^:]*:\*\*`/`^\*\*Refs\b[^:]*:\*\*` — bare-colon form `^\*\*Closes:\*\*` matched only 20 of 34 burst-log Closes lines (corpus check 2026-08-04, full-file grep); 14 missed (parenthetical `**Closes (per ...):**` x11 + bare-word `**Closes per ...:**` x3); Refs = 0 corpus instances, retained forward-looking; PC31a scope-count advisory added (postcondition 24). Amendment 2 (PC34): VP path `ss-*/VP-*.md` → flat `^VP-[0-9]+\.md$` with VP-INDEX.md exclusion (corpus 2026-08-04: zero ss-* subdirs; 102 VPs flat); epics clause added (dispatch.rs carried arm without PC34 counterpart). Amendment 3 (invariant 6 adjudication): CapabilityDenied/Timeout on cycle artifact is BLOCKING per PC33/postcondition 18/invariant 5; invariant 6 scopes to finding-content verdicts only; postcondition 18 expanded to include Timeout. Amendment 4 (PC40): volatile-input precondition for Class B Arm B1 per ADR-037 §Decision 4; scan story inputs: for volatile patterns; emit prescribed advisory + Continue if found; transitional (vacuous post-remediation); EC-032 added. (product-owner.) [Prior: 2026-08-03 (v1.4) — PC13: bounding-section heading-match predicates changed from exact equality to prefix-with-word-boundary (^## Behavioral Contracts\b, ^## Token Budget\b); 133 of 144 production stories use ## Token Budget Estimate or ## Token Budget Estimate (MANDATORY), which exact equality skipped, causing stale Token Budget citations to go undetected; corpus check (2026-08-03) confirmed zero false positives on .factory/stories/*.md; ## Edge Cases (148 occurrences) remains excluded. Architecture Anchor for extract_story_bc_version_citations updated. Exact-equality non-conformance note added. (product-owner.) [Prior: 2026-07-30 (v1.3) — PC13: bounding section added (scan confined to ##Behavioral Contracts + ##Token Budget sections; ≥9 spurious blocks from Edge Cases rows eliminated); dual version-token format (\bv?([0-9]+\.[0-9]+)\b covers both bare 1.2 and v-prefixed v1.2); LAST rightmost pipe-field algorithm stated. PC31: bold-markdown form (**Closes:**/**Refs:**) required to match D-444(c) real burst-log format; union scan not else-if. PC38 + postcondition 21: non-decreasing relation (∀i: date[i] ≤ date[i+1]); equal same-day dates PERMITTED; EC-030/031 + test vectors added. Amendment 4: no spec change — PC29 (2 MiB) and PC33 (NotFound advisory+Continue on cycle artifact) already unambiguous; fault is purely implementational. PC32: O- deliberately non-excluded per D-449(d)(i); ruling made explicit. POLICY 14 five-leg parity; v1.1 modified[] entry restored (missing since initial authoring — irony: this hook checks modified[] monotonicity but not modified[]↔Changelog row correspondence, so it structurally cannot catch this defect in its own governing BC). (product-owner.) [Prior: 2026-07-30 (v1.2) — Registry entry corrected: tools = [...] array replaced with tool = "^(Edit|Write|MultiEdit)$" regex string (field name singular + MultiEdit added; POLICY 13 ESCAPE-SCOPE-PARITY). Fuel-exhaustion note added to Gate Specifications per ADR-035 §Decision 5. BC-version-pin datum-copy ruling added to Postconditions §Part A Arm2. (product-owner.) [Prior: 2026-07-30 (v1.1) — Part A Arm2 (story-file-side trigger) added; advisory rationales made explicit for every advisory arm; Class D tokenizer namespace-exclusion list added (D-, S-, BC-, VP-, R-, L-, ADR-, EC-, NFR-, ASM-, FM-); EC-024 rationale corrected; Class A coverage-gap routing replaced with correctly-sized latency-gap explanation; Invariant 11 (fabricated vs stale hash provenance) added; EC-026/027/028/029 added; Gate Spec updated with run_part_a_arm2; VP table extended to 17 entries. (product-owner; coordinator review.) [Prior: 2026-07-30 (v1.0) — Initial authoring (product-owner; pre-pass-30 fix-burst). BC-5.39.010 allocated after BC-5.39.009. input-hash d248fc3 per hook-authoritative marketplace binary. lifecycle_status: draft.]]]]]]]]
 ---
 
 # BC-5.39.010: validate-cross-site-correspondence WASM hook MUST block on stale BC-INDEX version-cite after a BC frontmatter bump (Class A Arm1), stale story body BC-table and Token Budget citations after a story edit (Class A Arm2), STORY-INDEX three-way input-hash inequality (Class B), and frontmatter version↔last_amended text-prefix mismatch and modified[] date-decrease (Class E); Class C count/enumeration parity is not mechanically checkable in WASM; Class D (finding-ID namespace advisory in Closes/Refs lines) deferred pending Closes/Refs convention standardization
@@ -106,8 +108,8 @@ test per POLICY 21.
    `5-field rows: 1943 / 6+-field rows: 40 / total: 1983`.
 
    **Column-count-anchored state classification.** After escape-aware splitting, count non-empty
-   (whitespace-stripped) fields. The `extract_bc_index_version` function MUST return one of **four**
-   normative states — **NOT** a two-state `Option<String>` that conflates the first two:
+   (whitespace-stripped) fields. The `extract_bc_index_version_state` function MUST return one of
+   **four** normative states — **NOT** a two-state `Option<String>` that conflates the first two:
    - **`RowAbsent`**: **no candidate line found at all** for this BC ID post-frontmatter. No line
      matching the locator pattern (`^\| \[<id>\]` or `^\| <id> \|`) exists in BC-INDEX.md. This
      is the genuine structural fault: a previously registered BC whose INDEX row was dropped.
@@ -117,10 +119,25 @@ test per POLICY 21.
      canonical shape). This state is determined **structurally by column count alone** — **no
      token search is performed on any field of the row**. This is the canonical normal state for
      exactly **1,943 of 1,983** rows (corpus 2026-08-04). It is NOT a defect.
-   - **`Version(v)`**: row found AND non-empty field count is **≥6**. The **6th field** is the
-     version-chain cell. Extract the **latest (rightmost)** version token from that cell using
-     `\bv([0-9]+\.[0-9]+)\b` (mandatory `v` prefix — all real version-chain tokens use `v` prefix).
-     Exactly **40 of 1,983** rows are in this state (corpus 2026-08-04).
+   - **`Version(v)`**: row found AND non-empty field count is **≥6** AND the 6th non-empty field
+     contains at least one `\bv([0-9]+\.[0-9]+)\b` token. The 6th field is the version-chain cell.
+     Extract the **latest (rightmost)** such token (mandatory `v` prefix — all real version-chain
+     tokens use `v` prefix). Exactly **40 of 1,983** rows are in this state (corpus 2026-08-04).
+
+   **≥6-field / no-v-token case (normative; F-P6-018)**: row found AND non-empty field count is
+   **≥6** AND the 6th non-empty field contains **no** `\bv([0-9]+\.[0-9]+)\b` token → classified
+   as **`RowPresentNoVersion`**. Rationale: the version-chain cell exists structurally (≥6 fields)
+   but carries no recognizable v-prefixed version token. This is a forward-looking state for future
+   BC-INDEX annotations in the 6th column that are not version chains. Disposition is identical to
+   the 5-field `RowPresentNoVersion` case: `HookResult::Continue` silently with no version
+   comparison.
+
+   **Empty-cell counting (normative)**: field count uses **non-empty** (whitespace-stripped) fields.
+   A 6-column row (6 pipe-delimited cells) with any one cell blank has 5 non-empty fields →
+   classified as `RowPresentNoVersion` regardless of structural column count. The 6th positional
+   cell is never read in the 5-count case. Both escape paths (≥6 fields / no v-token, and ≤5
+   non-empty fields from a blank cell) produce the same safe outcome: `Continue` silently.
+
    - **`RowMalformed`**: a **locator-matched line was found** — a line satisfying the locator
      predicate (conditions (1)+(2); see Normative Recognition Predicates below) — but after
      escape-aware splitting the total non-empty field count is **<5** (1–4 fields). The line
@@ -475,10 +492,14 @@ Three sites that must hold identical values for each story S-NNN:
     return causes `extract_last_amended_outer_version("|-")` to fail (length 2 < 14) → advisory
     branch → Class E1 structurally inert on any artifact using block scalar form. **BC-5.39.010
     itself uses `last_amended: |-` (per D-953 block-scalar convention for long narrative fields),
-    as does S-21.07's own story file — these are the two files this hook most needs to gate.**
-    Corpus (2026-08-04): `grep -rc '^last_amended: |-' .factory/` → 2 occurrences (these two
-    files only). Block-scalar support is a load-bearing normative requirement to prevent silent
-    regression of Class E1 enforcement on the BC's own governing artifacts.
+    as does S-21.07's own story file and ADR-037 — these are the three files this hook most needs
+    to gate.**
+    Corpus (2026-08-05): `grep -rl '^last_amended: |-' .factory/` → **3 occurrences**:
+    `BC-5.39.010.md`, `S-21.07-validate-cross-site-correspondence.md`, and
+    `ADR-037-input-hash-stable-input-constraint-volatile-artifacts-excluded.md` (ADR-037 adopted
+    the `|-` convention in its v1.1 amendment, 2026-08-05). Block-scalar support is a load-bearing
+    normative requirement to prevent silent regression of Class E1 enforcement on the BC's own
+    governing artifacts.
 37. **last_amended: outermost version extraction**: apply regex
     `^\d{4}-\d{2}-\d{2}\s+\(v([0-9]+(?:\.[0-9]+)*)\)` at CHARACTER POSITION 0 of the field value.
     Captures the outermost (active) version. `[Prior:` chains appear later in the string and are
@@ -531,15 +552,28 @@ Three sites that must hold identical values for each story S-NNN:
     have had their `inputs:` arrays corrected per ADR-037 §Decision 5. After exhaustive
     remediation, no story matches the volatile patterns and Class B enforces full BLOCKING severity
     for all stories with no carve-outs. **The "imposes no permanent weakening" guarantee holds only
-    if ADR-037 §Context enumerates every story with a volatile input exhaustively.** As of pass-4
-    adversarial review (F-S2107-P4-013), S-21.07 is absent from ADR-037 §Context's 19-story table;
-    the v1.10 amendment added `ARCH-INDEX.md` to `is_volatile_path` to unblock implementation
-    rather than removing it from S-21.07's `inputs:`, widening the suppression rather than closing
-    it. Until ADR-037 §Context is corrected to include S-21.07 (architect-routed per F-S2107-P4-013
-    ADR side) and S-21.07's `inputs:` array removes the volatile `ARCH-INDEX.md` entry (story-
-    writer-routed), PC40 remains non-vacuous for S-21.07 and the "no permanent weakening" claim
-    does not hold for that story. This clause exists solely to prevent the self-locking failure
-    mode described in ADR-037 §Rationale during the transition window.
+    if ADR-037 §Context enumerates every story with a volatile input exhaustively.**
+
+    **Status as of v1.11 (F-P6-007 correction)**: both preconditions named in the v1.10
+    transitional clause have been satisfied. ADR-037 v1.1 §Context added S-21.07 to the
+    volatile-story table (corrected to 77 stories in ADR-037 v1.2 after S-21.07 remediation), and
+    S-21.07's `inputs:` array no longer contains `ARCH-INDEX.md` (removed in the pass-5 fix burst,
+    2026-08-05). **PC40 is therefore vacuous for S-21.07** — `volatile_found` is empty, and Class B
+    proceeds to the full three-way check. **The "no permanent weakening" guarantee holds for
+    S-21.07.**
+
+    **Remaining remediation scope**: ADR-037 v1.2 records **77 stories** with volatile inputs.
+    PC40 remains non-vacuous for those 77 stories until story-writer completes the §Decision 5
+    remediation sweep.
+
+    **Note on `.factory/specs/architecture/ARCH-INDEX.md` in the volatile pattern table** (row 6):
+    including `ARCH-INDEX.md` in `is_volatile_path` is **mandated conformance** to ADR-037
+    §Decision 2 — it is one of the six canonical volatile patterns listed there. The v1.10
+    characterization of this addition as "widening the suppression rather than closing it" was
+    **incorrect and is withdrawn**. Pattern 6 is normative per ADR-037 §Decision 2.
+
+    This clause exists solely to prevent the self-locking failure mode described in ADR-037
+    §Rationale during the transition window.
 
     **Arm B2 not affected**: Arm B2 (PC22-25) fires on STORY-INDEX.md writes and checks
     catalog-vs-blockquote consistency only; it does not read individual story `inputs:` arrays.
@@ -550,11 +584,39 @@ Three sites that must hold identical values for each story S-NNN:
 ### Part A Arm1 postconditions
 
 1. BC ID found in BC-INDEX body table with matching version cell (normalized): `HookResult::Continue`.
-2. BC ID found with DIFFERENT version cell:
+2. BC ID found with DIFFERENT version cell. Two sub-cases (directional carve-out per F-P6-001
+   Option 1; rationale mirrors PC3/PC12 — POLICY 3 (`state_manager_runs_last`) guarantees the BC
+   file is always written before the BC-INDEX row in a conforming burst; at the PostToolUse
+   instant after a BC write, "index behind primary" is the expected intermediate state of a correct
+   in-progress burst, not a defect):
+
+   **2a. Primary newer than index** (strip-v-prefix(`fm_version`) parses as numerically greater
+   than strip-v-prefix(`index_version`), comparing `major.minor` as decimal integers):
+   `host::log_warn` advisory + `HookResult::Continue`:
+   `"validate-cross-site-correspondence [Class A Arm1] advisory: BC-INDEX.md body-table row for
+   <id> cites v<index_version> but frontmatter version: is \"<fm_version>\" — primary newer than
+   index; state-manager index update pending; Class A BLOCK suspended."`.
+   **Advisory rationale**: POLICY 3 forces state-manager to update BC-INDEX (secondary site) AFTER
+   the product-owner writes the BC (primary site). "Index behind primary" at the primary-write
+   instant is therefore guaranteed in every conforming burst — it is a burst-ordering artefact, not
+   a defect. Blocking here produces a spurious `exit 2` for every correct BC authoring burst. This
+   is the only direction for which the POLICY 3 ordering argument applies; sub-case (b) has no such
+   explanation and retains BLOCK.
+
+   **2b. Index newer than primary** (strip-v-prefix(`index_version`) parses as numerically greater
+   than strip-v-prefix(`fm_version`)):
    `HookResult::block_with_fix(...)`:
    `"validate-cross-site-correspondence [Class A Arm1]: BC-INDEX.md body-table row for <id> cites
-   v<index_version> but frontmatter version: is \"<fm_version>\" — stale cite. Update BC-INDEX
-   body-table same-burst per POLICY 14 leg 5."`.
+   v<index_version> but frontmatter version: is \"<fm_version>\" — index is newer than primary.
+   This is anomalous: the index cannot legitimately advance ahead of the BC it cites. Verify no
+   index row was updated out-of-burst or under the wrong BC path. Update per POLICY 14 leg 5."`.
+   **Rationale**: no burst-ordering argument explains the index carrying a higher version than the
+   BC file itself. This direction is genuinely anomalous.
+
+   **Version comparison**: strip the leading `v` from both tokens; split on `.`; compare `major`
+   then `minor` as non-negative integers. If either token fails to parse as `major.minor` decimal:
+   treat as anomalous and emit the 2b block — an unparseable version cell is itself an anomaly.
+
 3. `RowAbsent` (BC ID not in BC-INDEX body table) AND frontmatter `version:` is `"1.0"`:
    `host::log_warn` advisory + `HookResult::Continue`.
    **Advisory rationale**: a v1.0 BC not yet in BC-INDEX is the expected state immediately after
@@ -590,8 +652,15 @@ Three sites that must hold identical values for each story S-NNN:
     registration manually."`.
     The clauses "Registration status cannot be determined from this line" and "Verify BC-INDEX
     body-table registration manually" are the operator-actionable instructions — omitting them
-    is **NON-CONFORMING** regardless of what other text is injected. Test-writer MUST assert
-    both clauses verbatim in the `RowMalformed` unit test and bats fixture.
+    is **NON-CONFORMING** regardless of what other text is injected. **Test-writer MUST assert
+    the COMPLETE formatted message text verbatim** (equality check on the full rendered string,
+    NOT only `.contains()` assertions on individual clauses) in the `RowMalformed` unit test and
+    bats fixture. A test that asserts only two `.contains()` substrings does NOT satisfy the
+    MUST-verbatim requirement: it cannot detect an injected sentence, an altered phrase, or a
+    dropped sentence that leaves both target substrings intact. Full-string equality is the
+    load-bearing gate on the MUST-verbatim clause. The only permissible interpolation points are
+    `<id>` and `<N>`; all surrounding text including the hook-name+class prefix, the preamble,
+    sentence 2, and both operator-actionable clauses must be reproduced exactly.
     **Rationale**: a found-but-malformed line indicates structural ambiguity, not a confirmed
     dropped registration. The genuine dropped-registration case (no locator-matched line at all)
     is `RowAbsent` (postcondition 4). Blocking on `RowMalformed` would false-positive on any
@@ -656,20 +725,43 @@ is warranted by this ruling.
     Advisory fires only when absence is the anomaly, and absence has a known-legitimate
     interpretation (correct burst ordering). Blocking on absence would cause systematic false
     positives in correct new-story authoring bursts.
-13. Arm B1 — B2 or B3 present but differs from B1:
+13. Arm B1 — B2 or B3 present but differs from B1. Two sub-cases (directional carve-out per
+    F-P6-001 Option 1; rationale mirrors PC3/PC12 and PC2a — POLICY 3 (`state_manager_runs_last`)
+    forces STORY-INDEX secondary sites to be updated AFTER the primary story write in every
+    conforming burst):
+
+    **13a. STORY-INDEX internally consistent, story just rewritten** (B2 == B3 AND B1 ≠ B2):
+    `host::log_warn` advisory + `HookResult::Continue`:
+    `"validate-cross-site-correspondence [Class B] advisory: Story <id> input-hash mismatch —
+    frontmatter=<h1>; STORY-INDEX-catalog=<h2>; STORY-INDEX-blockquote=<h3>. STORY-INDEX sites
+    agree with each other; story frontmatter differs. State-manager STORY-INDEX update pending;
+    Class B BLOCK suspended."`.
+    **Advisory rationale**: POLICY 3 forces STORY-INDEX (both catalog row and blockquote) to be
+    updated AFTER the primary story write. When B2==B3 but B1≠B2, the natural explanation is that
+    the story was rewritten this burst and the hash has not yet propagated — the POLICY 3 ordering
+    artefact. No STORY-INDEX inconsistency exists. Blocking produces a spurious `exit 2` on every
+    correct story authoring burst.
+
+    **13b. STORY-INDEX internally inconsistent** (B2 ≠ B3, regardless of B1):
     `HookResult::block_with_fix(...)` (**NORMATIVE — implementation MUST enumerate all three
     provenance categories; a `classify_provenance` heuristic that picks one label is
     NON-CONFORMING per invariant 11**):
     `"validate-cross-site-correspondence [Class B]: Story <id> input-hash three-way mismatch:
     frontmatter=<h1> STORY-INDEX-catalog=<h2 or absent> STORY-INDEX-blockquote=<h3 or absent>.
-    All three present sites must agree. Update per POLICY 18 (D-923). This hook detects
-    inconsistency only — operator MUST determine which of the following applies before
-    remediating: (a) STALE: previously valid hash; inputs changed after authoring; remedy:
-    rerun \`compute-input-hash --update\` on the story. (b) FABRICATED: hash was never output
-    of \`compute-input-hash --update\` at any revision (POLICY 18 violation); remedy: acknowledge
-    PROVENANCE-BREAK in burst-log before recomputing. (c) ALGORITHM-DIVERGENT: hash produced by
-    prior binary version per ADR-036 §Decision 4; NOT fabricated; remedy: recompute with current
-    authoritative binary, no PROVENANCE-BREAK annotation required."`.
+    STORY-INDEX catalog and blockquote disagree — this is anomalous and has no burst-ordering
+    explanation. Update per POLICY 18 (D-923). This hook detects inconsistency only — operator
+    MUST determine which of the following applies before remediating: (a) STALE: previously valid
+    hash; inputs changed after authoring; remedy: rerun \`compute-input-hash --update\` on the
+    story. (b) FABRICATED: hash was never output of \`compute-input-hash --update\` at any
+    revision (POLICY 18 violation); remedy: acknowledge PROVENANCE-BREAK in burst-log before
+    recomputing. (c) ALGORITHM-DIVERGENT: hash produced by prior binary version per ADR-036
+    §Decision 4; NOT fabricated; remedy: recompute with current authoritative binary, no
+    PROVENANCE-BREAK annotation required."`.
+    **Rationale for blocking on B2≠B3 regardless of B1**: internal STORY-INDEX inconsistency has
+    no burst-ordering explanation — both catalog row and blockquote are written by state-manager in
+    the same commit. B2≠B3 indicates partial-write, wrong-story editing, or a state-manager bug,
+    none of which POLICY 3 explains.
+
 14. Arm B2 — catalog and blockquote agree for all blockquote stories: `HookResult::Continue`.
 15. Arm B2 — catalog ≠ blockquote for any story: `HookResult::block_with_fix(...)` reporting ALL
     mismatching stories in one message (cascade).
@@ -975,10 +1067,10 @@ Do not implement Phase 2 until Phase 1 is complete and all burst-log lines are i
 | ID | Description | Expected Behavior |
 |----|-------------|-------------------|
 | EC-001 | BC file written with version "1.0" not yet in BC-INDEX body table | Advisory + Continue. New BC; registration expected in same burst. |
-| EC-002 | BC bumped v1.17→v1.18; BC-INDEX row still says v1.17 | Block: Class A Arm1 (v1.17 vs v1.18). |
+| EC-002 | BC bumped v1.17→v1.18; BC-INDEX row still says v1.17 | Advisory + Continue: Class A Arm1, sub-case 2a (primary newer than index; fm=v1.18 > index=v1.17; state-manager index update pending; Class A BLOCK suspended per PC2a). |
 | EC-003 | BC file write; BC-INDEX.md returns `HostError::NotFound` | Advisory + Continue. Secondary target NotFound = bootstrap. |
 | EC-004 | BC file write; `host::read_file` for the BC file returns `HostError::CapabilityDenied` | Block. Primary target fail-closed. |
-| EC-005 | Story S-21.04 frontmatter hash "47a65c9"; STORY-INDEX catalog "4be9d21"; blockquote "S-21.04=47a65c9" | Block: Class B (B2 ≠ B1). |
+| EC-005 | Story S-21.04 frontmatter hash "47a65c9"; STORY-INDEX catalog "4be9d21"; blockquote "S-21.04=47a65c9" | Block: Class B Arm1, sub-case 13b (B2≠B3: catalog="4be9d21" ≠ blockquote="47a65c9"; STORY-INDEX internally inconsistent; no POLICY 3 ordering explanation). |
 | EC-006 | Story file has no `input-hash:` field | Continue — Arm B1 skips. |
 | EC-007 | STORY-INDEX.md written; blockquote "S-21.04=47a65c9"; catalog row "input-hash 47a65c9" | Continue — B2 == B3 (Arm B2 passes). |
 | EC-008 | STORY-INDEX.md written; blockquote "S-21.04=47a65c9"; catalog row "input-hash 1acf3c6" | Block: Class B Arm B2 mismatch. |
@@ -992,7 +1084,7 @@ Do not implement Phase 2 until Phase 1 is complete and all burst-log lines are i
 | EC-016 | BC written with `modified: ["2026-05-14", "2026-05-18 (v1.1)", "2026-05-15"]` | Block: Class E2 (2026-05-15 follows 2026-05-18). |
 | EC-017 | BC written with `modified: ["2026-05-14", "2026-05-18", "2026-05-20 (v1.3)"]` | Part E passes (ascending after suffix strip). |
 | EC-018 | BC with `last_amended:` containing `[Prior: ... (v1.5) ...]`; version "1.6"; outermost prefix "(v1.6)" | Part E passes — positional anchor matches `(v1.6)` at date position; Prior tokens excluded structurally. |
-| EC-019 | BC write triggers Class A Arm1 (index stale) + Class E1 (version mismatch) | Single combined block enumerating both violations. |
+| EC-019 | BC write triggers Class A Arm1 (index stale, primary-newer direction: fm=v1.18, index=v1.17) + Class E1 (fm version "1.18" ≠ last_amended "(v1.17)") | Advisory from Class A Arm1 (PC2a; BLOCK suspended) emitted to log + Block from Class E1. Arms run independently; Class A advisory does not suppress Class E1 block. Note: combined two-violation block requires PC2b direction (index-newer-than-primary) + E1 — see EC-035 for the PC2b block scenario. |
 | EC-020 | VP file written with `version: "2.4"` and `last_amended: "2026-05-20 (v2.4)"` | Part E passes. VP files are in Part E scope (PC34). |
 | EC-021 | Story S-21.04 written; B1 = "47a65c9"; B2 absent; B3 absent | Advisory + Continue. New story pre-registration. |
 | EC-022 | `last_amended:` does not match `\d{4}-\d{2}-\d{2}\s+\(v` | Advisory + Continue. Do NOT block on unparseable format. |
@@ -1007,16 +1099,18 @@ Do not implement Phase 2 until Phase 1 is complete and all burst-log lines are i
 | EC-031 | BC written with `modified: ["2026-07-30", "2026-07-29 (v1.1)"]` — date decreases after suffix-strip | Block: Class E2. `2026-07-30 > 2026-07-29` — strict decrease violates the non-decreasing requirement. |
 | EC-032 | Story S-19.01 written; `inputs:` contains `.factory/cycles/v1.0-brownfield-backfill/lessons.md`; input-hash present; B2 and B3 absent | Advisory (volatile input detected per ADR-037 §Decision 2; Class B BLOCK suspended; story-writer must remove volatile input) + Continue. PC40 fires at Arm B1 before reading STORY-INDEX.md. |
 | EC-033 | `burst-log.md` last H2 section contains no lines matching `^\*\*Closes\b` or `^\*\*Refs\b` | **(DEFERRED v1.6 — Class D)** Scope-count advisory "0 Closes/Refs line(s) scanned" emitted (postcondition 24) + Continue. Namespace-format check loop is skipped (nothing to tokenize). N=0 makes inert scope observable rather than vacuously passing. |
+| EC-034 | Story S-21.04 written; input-hash B1="d4f8a12"; STORY-INDEX catalog B2="47a65c9"; blockquote B3="47a65c9" (B2==B3; B1≠B2) | Advisory + Continue: Class B Arm1, sub-case 13a (STORY-INDEX sites agree with each other; story frontmatter differs from index; state-manager STORY-INDEX update pending; Class B BLOCK suspended per PC13a). |
+| EC-035 | BC at frontmatter v1.17; BC-INDEX row shows v1.18 (index version numerically greater than BC frontmatter) | Block: Class A Arm1, sub-case 2b (index newer than primary — anomalous; no POLICY 3 burst-ordering explanation; verify no index row was updated out-of-burst per PC2b message). |
 
 ## Canonical Test Vectors
 
 | Scenario | Input Condition | Expected Output | Part | Mutant | Control |
 |----------|----------------|-----------------|------|--------|---------|
 | A Arm1 — new BC | v1.0; no INDEX row | advisory + Continue | A Arm1 | v1.1, no row → block | v1.0 with INDEX row v1.0 → Continue |
-| A Arm1 — stale | BC-5.39.008 v1.6; INDEX "v1.5" | block | A Arm1 | INDEX "v1.6" → Continue | |
+| A Arm1 — primary-newer advisory (PC2a) | BC-5.39.008 v1.6; INDEX "v1.5" (primary newer than index) | advisory + Continue (PC2a) | A Arm1 | INDEX "v1.6" (equal) → Continue; INDEX "v1.7" (index newer, PC2b) → block | |
 | A Arm2 — current | S-21.04; `behavioral_contracts: [BC-6.26.001]`; story Token Budget "v1.18"; BC fm "1.18" | Continue | A Arm2 | BC fm "1.19" while story says "v1.18" → block | `behavioral_contracts:` empty → Continue |
 | A Arm2 — stale | S-21.04; story cites "v1.17"; BC fm "1.18" | block | A Arm2 | Both "v1.18" → Continue | |
-| B Arm1 — match | hash "47a65c9"; catalog "47a65c9"; blockquote "47a65c9" | Continue | B Arm1 | blockquote "4be9d21" → block | no input-hash → Continue |
+| B Arm1 — match | hash "47a65c9"; catalog "47a65c9"; blockquote "47a65c9" | Continue | B Arm1 | B1="d4f8a12" (story rewritten), B2=B3="47a65c9" → advisory (PC13a); B3="4be9d21" while B2="47a65c9" (B2≠B3) → block (PC13b) | no input-hash → Continue |
 | B Arm2 — mismatch | STORY-INDEX catalog "47a65c9"; blockquote "4be9d21" | block | B Arm2 | both "47a65c9" → Continue | |
 | D — excluded token | "Closes: F-S2104-P29-H01, D-944" | Continue (D-944 excluded) | D (DEFERRED v1.6) | "Closes: B01" → advisory | |
 | D — phantom | "Closes: B01, F-S2104-P29-H01" | advisory for B01 + Continue | D (DEFERRED v1.6) | only "F-..." → Continue | |
@@ -1025,7 +1119,7 @@ Do not implement Phase 2 until Phase 1 is complete and all burst-log lines are i
 | E2 — equal dates | modified: ["2026-07-30","2026-07-30 (v1.1)"] — same date after suffix-strip | Continue (equal dates satisfy ≤) | E | strict-ascending impl rejects equal → block (wrong) | strictly ascending dates → Continue |
 | E2 — genuine decrease | modified: ["2026-07-30","2026-07-29 (v1.1)"] — date decreases after suffix-strip | block: E2 (decrease) | E | non-decreasing → Continue | |
 | Combined A+E | INDEX stale + E1 mismatch | single combined block | A+E | each alone → block | both fixed → Continue |
-| B volatile-input | Story with `inputs: [".factory/cycles/v1.0-brownfield-backfill/lessons.md"]`; input-hash present | advisory (volatile; B suspended) + Continue | B Arm1 | Same story, `inputs:` corrected (no volatile) + B2≠B1 → block (B enforces fully) | inputs: corrected + all three sites equal → Continue |
+| B volatile-input | Story with `inputs: [".factory/cycles/v1.0-brownfield-backfill/lessons.md"]`; input-hash present | advisory (volatile; B suspended) + Continue | B Arm1 | `inputs:` corrected (no volatile) + B2==B3 but B1≠B2 → advisory (PC13a; story just rewritten, STORY-INDEX update pending); `inputs:` corrected + B2≠B3 → block (PC13b; STORY-INDEX internally inconsistent) | `inputs:` corrected + all three sites equal → Continue |
 | D zero-scope | `burst-log.md` last H2 has no `**Closes`/`**Refs` lines | scope-count advisory N=0 + Continue | D (DEFERRED v1.6) | Scope has 1 Closes line → N=1 scope-count advisory emitted | |
 
 ## Gate Specifications
@@ -1102,8 +1196,8 @@ fm_version = extract_frontmatter_field(content, "version") |> strip_v_prefix
 index_content = host::read_file(BC_INDEX_PATH, 1048576, 3000)
   // NotFound → log_warn advisory + return []
   // CapabilityDenied → return [block(cap_denied)]
-match extract_bc_index_version(index_content, bc_id):
-    // four-state per PC5 v1.10; two-level predicates:
+match extract_bc_index_version_state(index_content, bc_id):
+    // four-state per PC5 v1.11; two-level predicates:
     //   locator predicate: (1) line starts with |; (2) first non-empty field matches ^\[<id>\] or equals <id>
     //   body-table row predicate: locator-matched AND (3) non-empty field count ≥5 after escape-aware split
     //   scan MUST prefer first (1)+(2)+(3) line — full-file scan; RowMalformed only if ALL (1)+(2) lines fail (3)
@@ -1118,9 +1212,17 @@ match extract_bc_index_version(index_content, bc_id):
         // locator-matched line found but ALL such lines have <5 fields — not a body-table row
         log_warn(malformed_candidate_advisory(bc_id, field_count)); return []  // postcondition 4a; never blocks
     Version(index_version):
-        if strip_v_prefix(fm_version) != strip_v_prefix(index_version):
-            return [block(stale_arm1_msg(bc_id, index_version, fm_version))]
+        // PC2 directional carve-out (v1.11 / F-P6-001 Option 1):
+        // compare major.minor as decimal integers after stripping 'v' prefix
+        if parse_version(fm_version) > parse_version(index_version):
+            // 2a: primary newer than index — POLICY 3 ordering artefact; advisory only
+            log_warn(advisory_primary_newer_msg(bc_id, index_version, fm_version)); return []
+        elif parse_version(fm_version) < parse_version(index_version):
+            // 2b: index newer than primary — anomalous; retain BLOCK
+            return [block(anomalous_index_newer_msg(bc_id, index_version, fm_version))]
+        // equal: postcondition 1 — Continue
         return []
+        // parse_version failure (unparseable token) → treat as anomalous → 2b block
 ```
 
 ### Part A Arm2: `run_part_a_arm2(story_path, story_content)`
@@ -1159,10 +1261,27 @@ return violations
 `run_part_b_arm2` and `run_part_e` are unchanged from v1.0 specification.
 
 `run_part_b_arm1` changed per v1.5 Amendment 4 (PC40): after extracting `input-hash` (PC18),
-call `check_volatile_inputs(story_content, story_id)` before reading STORY-INDEX.md. If it
-returns a result, return that result immediately (skipping PC19-21). See PC40 for the
-volatile-pattern table and prescribed advisory message. If `inputs:` is absent or empty,
-`check_volatile_inputs` returns None and B1 proceeds normally.
+call `parse_story_volatile_inputs(story_content)` to extract the `inputs:` sequence, then check
+each entry against `is_volatile_path(path)` before reading STORY-INDEX.md. If any volatile path
+is found, emit the PC40 prescribed advisory and return `HookResult::Continue` immediately
+(skipping PC19-21). See PC40 for the volatile-pattern table and prescribed advisory message. If
+`inputs:` is absent or empty, `volatile_found` is empty and B1 proceeds normally. (Corrected
+from `check_volatile_inputs` which was never the shipped function name — F-P6-004.)
+
+`run_part_b_arm1` also changed per v1.11 (F-P6-001 PC13 directional carve-out): after the
+three-way comparison (PC19-21), when B2 or B3 is present but the values do not all agree, the
+hook MUST distinguish two sub-cases per postcondition 13:
+- **(13a) B2==B3 AND B1≠B2**: `host::log_warn` advisory + `HookResult::Continue`. STORY-INDEX
+  catalog row and blockquote agree with each other; the story frontmatter just differs. This is
+  the POLICY 3 burst-ordering artefact — state-manager writes STORY-INDEX AFTER the primary
+  story write in every conforming burst. No inconsistency exists in STORY-INDEX itself.
+- **(13b) B2≠B3, regardless of B1**: `HookResult::block_with_fix(...)`. STORY-INDEX catalog
+  row and blockquote disagree with each other. No burst-ordering argument explains this; it
+  indicates a partial write, wrong-story edit, or state-manager bug.
+**The prior any-mismatch-blocks behavior** (blocking whenever B1≠B2 OR B1≠B3, regardless of
+the B2/B3 relationship) **is NON-CONFORMING** under v1.11. Conforming implementations MUST
+check B2≠B3 as the blocking condition. See postconditions 13a and 13b for prescribed advisory
+and block messages respectively.
 
 **[DEFERRED v1.6 — `run_part_d` is NOT part of the v1.6 hook implementation]**
 `run_part_d` specification: after scope-limited line extraction (PC30), count the lines matched
@@ -1182,26 +1301,32 @@ fn run_part_d(file_path, content):
     // postcondition 18 — handled via read_primary (PC29) before this point
     return []   // Class D never returns violations; all advisory-only
 
-fn check_volatile_inputs(story_content, story_id) -> Option<HookResult>:
-    inputs = extract_frontmatter_sequence(story_content, "inputs")
-    volatile_found = [p for p in inputs if matches_volatile_pattern(p)]  // PC40 table
-    if volatile_found.is_empty(): return None
-    host::log_warn(volatile_advisory_msg(story_id, volatile_found))
-    return Some(HookResult::Continue)
+// Volatile-check shape (F-P6-004 correction — check_volatile_inputs was never the shipped fn):
+// run_arm_b1 calls: is_volatile_path(path: &str) -> bool          [arm_b.rs]
+//                   parse_story_volatile_inputs(content: &str) -> Vec<String>  [arm_b.rs]
+// Inline logic in run_arm_b1:
+//   inputs = parse_story_volatile_inputs(story_content)
+//   volatile_found = [p for p in inputs if is_volatile_path(p)]   // PC40 table
+//   if volatile_found is non-empty:
+//     host::log_warn(volatile_advisory_msg(story_id, volatile_found))
+//     return HookResult::Continue   // skip PC19-21
+//   // proceed to PC19 normally
 ```
 
 ## Verification Properties
 
 | VP-NNN | Property | Proof Method |
 |--------|----------|-------------|
-| (pending) | A Arm1 Stale-Index Block | bats integration test |
+| (pending) | A Arm1 Index-Newer-than-Primary Block (PC2b) | bats integration test |
+| (pending) | A Arm1 Primary-Newer-than-Index Advisory (PC2a) | bats integration test |
 | (pending) | A Arm1 New-BC Advisory | bats integration test |
 | (pending) | A Arm1 Primary-CapabilityDenied Block | bats integration test |
 | (pending) | A Arm2 Stale-Citation Block | bats integration test (story Token Budget stale) |
 | (pending) | A Arm2 No-Citation Skip (Continue) | bats integration test (no version-citing rows) |
 | (pending) | A Arm2 BC-NotFound Advisory (Continue) | bats integration test |
 | (pending) | A Arm2 BC-CapabilityDenied Block | bats integration test |
-| (pending) | B Arm1 Three-Way Mismatch Block | bats integration test |
+| (pending) | B Arm1 STORY-INDEX-Internally-Inconsistent Block (PC13b) | bats integration test |
+| (pending) | B Arm1 STORY-INDEX-Consistent Advisory (PC13a) | bats integration test |
 | (pending) | B Arm1 Absent-Sites Advisory | bats integration test |
 | (pending) | B Arm2 Internal Mismatch Block | bats integration test |
 | (pending; DEFERRED v1.6 — Class D) | D Namespace-Excluded Token Pass (D-944) | bats integration test |
@@ -1222,7 +1347,7 @@ VP IDs pending VP-INDEX allocation by state-manager at post-merge burst.
 | Capability Anchor Justification | E-12 governs factory engine discipline automation. This BC formalizes PostToolUse gates enforcing cross-site value correspondence invariants recurring across passes 28-30 of the F5 adversarial cycle: Class A = POLICY 14 leg 5 (two-arm: BC-INDEX Arm1 + story citation Arm2); Class B = POLICY 18 THREE-WAY-INPUT-HASH-EQUALITY-GATE (D-923); Class E = POLICY 14 leg 4 / POLICY 17; Class D = finding-ID namespace advisory. No formal CAP-NNN from domain-spec/capabilities.md covers engine process governance automation at this layer; E-12 is the established sub-capability anchor for this BC family per BC-5.39.008 §Traceability. |
 | Architecture Module | `crates/hook-plugins/validate-cross-site-correspondence/` (new WASM crate); `plugins/vsdd-factory/hooks-registry.toml`; `plugins/vsdd-factory/hook-plugins/validate-cross-site-correspondence.wasm` |
 | D-NNN Sub-Clauses Closed | POLICY 14 leg 5 (BC-INDEX body-table + story citation sync; Class A Arm1 + Arm2); POLICY 18 D-923 (Class B); POLICY 14 leg 4 / POLICY 17 (Class E); Canonical Principle + TD-VSDD-059 (fail-closed) |
-| Stories | S-21.07 (implementing story; v1.4 in flight) |
+| Stories | S-21.07 (implementing story; v1.5 in flight) |
 | L2 Invariants | (none — process-automation gate) |
 
 ## Related BCs
@@ -1238,26 +1363,33 @@ VP IDs pending VP-INDEX allocation by state-manager at post-merge burst.
 - `crates/hook-plugins/validate-cross-site-correspondence/`
 - `crates/hook-sdk/src/host.rs` — `host::read_file`, `host::log_warn`
 - `crates/hook-sdk/src/result.rs` — `HookResult::Continue`, `HookResult::block_with_fix`
-- `extract_bc_index_version(content, bc_id)` — four-state return per PC5 v1.10: `RowAbsent` (no locator-matched line at all), `RowPresentNoVersion` (locator-matched; exactly 5 fields), `Version(v)` (locator-matched; ≥6 fields; version from 6th field), `RowMalformed` (locator-matched but ALL such lines have <5 fields; NOT a body-table row — advisory + Continue). Two-level predicates: locator=(1)+(2); body-table=(1)+(2)+(3). Scan MUST prefer first valid (≥5-field) locator-matched line; first-match-wins on malformed line is NON-CONFORMING (F-S2107-P4-005). Uses escape-aware splitting (`\|` non-splitting). `RowMalformed` MUST NOT be collapsed into `RowAbsent`.
+- `extract_bc_index_version_state(content: &[u8], bc_id: &str) -> BcIndexVersionState` — four-state return per PC5 v1.11 (corrected from `extract_bc_index_version`, which was deleted by F-P4-016 in the pass-5 burst; spec named the deleted symbol): `RowAbsent` (no locator-matched line at all), `RowPresentNoVersion` (locator-matched; exactly 5 non-empty fields, OR ≥6 non-empty fields but no `\bv([0-9]+\.[0-9]+)\b` in field 6 — F-P6-018 normative addition), `Version(v)` (locator-matched; ≥6 non-empty fields AND field 6 contains a `\bv([0-9]+\.[0-9]+)\b` token), `RowMalformed` (locator-matched but ALL such lines have <5 non-empty fields; NOT a body-table row — advisory + Continue). Two-level predicates: locator=(1)+(2); body-table=(1)+(2)+(3). Scan MUST prefer first valid (≥5-field) locator-matched line; first-match-wins on malformed line is NON-CONFORMING (F-S2107-P4-005). Uses escape-aware splitting (`\|` non-splitting). `RowMalformed` MUST NOT be collapsed into `RowAbsent`.
 - `extract_frontmatter_field(content, field)` — extracts a named YAML field from frontmatter. **MUST handle block scalar forms** (`|`, `|-`, `>`, `>-`): when the field line ends with a block scalar indicator, collect the block body from subsequent indented lines (do not return the literal indicator). Returning `"|-"` for a block-scalar field is NON-CONFORMING (PC36 normative requirement; BC-5.39.010 and S-21.07 both use `last_amended: |-`).
 - `derive_bc_path(bc_id)` — deterministic BC file path derivation from BC ID (no list_dir)
 - `extract_story_bc_version_citations(content, bc_id)` — finds version-citing table rows for a given BC ID within sections matching `^## Behavioral Contracts\b` or `^## Token Budget\b` ONLY (PC13 prefix-with-word-boundary predicates; NOT exact equality); two-phase version extraction: Phase 1 pure-version field (`^v?[0-9]+\.[0-9]+$`), Phase 2 fallback mandatory-v inline (`\bv([0-9]+\.[0-9]+)\b` rightmost-first); prior optional-v bare form NON-CONFORMING (29-row story-ID collision, Token Budget BC-section-number collision, 1-row ACs-column collision); returns Vec<(location, version)>
 - `extract_frontmatter_sequence(content, field)` — parses YAML sequence field from frontmatter
-- `check_volatile_inputs(story_content, story_id)` — scans story `inputs:` sequence for ADR-037 §Decision 2 volatile patterns; returns `Some(Continue)` with prescribed advisory if found, `None` to proceed with three-way check (PC40)
+- `is_volatile_path(path: &str) -> bool` — returns `true` if `path` matches any ADR-037 §Decision 2 volatile pattern from the PC40 table; used by `run_arm_b1` inline logic to scan the story's `inputs:` sequence. (Corrected from `check_volatile_inputs` which was never the shipped function name — F-P6-004.)
+- `parse_story_volatile_inputs(content: &str) -> Vec<String>` — extracts the `inputs:` YAML sequence from story frontmatter content, returning the list of input paths. Called by `run_arm_b1` before invoking `is_volatile_path` per-path. (Part of the actual volatile-check shape; replaces the non-existent `check_volatile_inputs` wrapper.)
 - `is_frontmatter_parity_target(file_path)` — PC34 classifier (BC, VP, story, epic files); VP arm uses flat `verification-properties/` path + `^VP-[0-9]+\.md$` predicate (no `ss-*/`)
 
 ## Story Anchor
 
-S-21.07 — `validate-cross-site-correspondence` WASM hook (v1.4 in flight; BC-5.39.010 is the governing behavioral contract per story frontmatter `behavioral_contracts: [BC-5.39.010]`).
+S-21.07 — `validate-cross-site-correspondence` WASM hook (v1.5 in flight; BC-5.39.010 is the governing behavioral contract per story frontmatter `behavioral_contracts: [BC-5.39.010]`).
 
 ## VP Anchors
 
-VP IDs pending VP-INDEX allocation by state-manager at post-merge burst.
+VP-102 through VP-118 (17 VPs) are planned for this story per D-945 (anchored to S-21.07
+post-merge). VP IDs have not yet been formally allocated to VP-INDEX — that occurs at the
+state-manager post-merge burst per established practice. Once allocated, this section will be
+updated to a full VP table with property names and proof methods. The story carries
+`verification_properties: []` reflecting this pending state.
 
 ## Changelog
 
 | Version | Date | Description |
 |---------|------|-------------|
+| 1.12 | 2026-08-05 | EC table aligned with v1.11 normative postconditions (F-P6-001 Option 1 propagation): EC-002 corrected (primary-newer → advisory + Continue per PC2a; was Block — incorrect); EC-005 block trigger clarified as B2≠B3 per PC13b (was "B2 ≠ B1" — misleading); EC-019 updated (Class A Arm1 primary-newer is advisory, not a violation; output is advisory + E1 block, not combined-block); EC-034 added (PC13a advisory: B2==B3/B1≠B2 → advisory + Continue); EC-035 added (PC2b block: index-newer-than-primary → Block). Canonical Test Vector "A Arm1 — stale" corrected to advisory + Continue per PC2a; PC2b block mutant added. Gate Spec run_part_b_arm1 prose extended with v1.11 PC13a/13b split (prior prose described only PC40/v1.5 change). VP table updated: "A Arm1 Stale-Index Block" → "A Arm1 Index-Newer-than-Primary Block (PC2b)"; new VP entries for PC2a advisory and PC13a advisory added. Refs: F-P6-001, Option 1. (product-owner.) |
+| 1.11 | 2026-08-05 | PC2 directional carve-out (F-P6-001 Option 1): primary-newer-than-index → advisory ("state-manager index update pending; Class A BLOCK suspended"); index-newer-than-primary → retains BLOCK (anomalous). PC13 two sub-cases (F-P6-001): B2==B3/B1≠B2 → advisory (POLICY 3 artefact); B2≠B3 → retains BLOCK (STORY-INDEX internal inconsistency). Both carve-outs mirror PC3/PC12 POLICY 3 ordering rationale. PC4a verbatim assertion strengthened (F-P6-002): test-writer MUST assert COMPLETE formatted string by equality check; .contains()-only is NON-CONFORMING. PC5 ≥6-field/no-v-token state normatively defined as RowPresentNoVersion (F-P6-018); empty-cell counting confirmed canonical. PC36 corpus updated 2→3 (F-P6-012): ADR-037 adopted last_amended: |- in v1.1 amendment; grep -rl confirmed 3 files. PC40 transitional clause corrected (F-P6-007): both conditions satisfied in pass-5 burst; PC40 vacuous for S-21.07; "widening" characterization WITHDRAWN — ARCH-INDEX.md in is_volatile_path is normative per ADR-037 §Decision 2; 77 stories remain. Architecture Anchors (F-P6-004): extract_bc_index_version_state replaces deleted extract_bc_index_version; is_volatile_path + parse_story_volatile_inputs replace non-existent check_volatile_inputs. §Traceability + §Story Anchor: v1.4→v1.5 (F-P6-005). §VP Anchors: D-945 basis documented; erratum added to v1.1 row (F-P6-024). Gate Spec: PC2a/PC2b Version arm split; PC13a/PC13b B1 split; check_volatile_inputs reference corrected. (product-owner; S-21.07 pass-6 fix burst.) |
 | 1.10 | 2026-08-05 | PC5 self-contradiction fixed (F-S2107-P4-022): split into two-level locator/body-table predicates; `RowMalformed` redefined as "locator-matched line (conditions (1)+(2)) with <5 fields". PC5 candidate-selection order added (F-S2107-P4-005): full-file scan must prefer first valid (≥5-field) locator-matched line; first-match-wins on malformed is NON-CONFORMING. Postcondition 4a pinned normatively (F-S2107-P4-025): prescribed advisory text is MUST-verbatim; omitting operator-actionable clauses is NON-CONFORMING. Postcondition 13 expanded with three-category enumeration (F-S2107-P4-006 ruling: hook MUST enumerate stale/fabricated/algorithm-divergent as possibilities without classifying; `classify_provenance` heuristic is NON-CONFORMING; AC-009 stops requiring classification; invariant 11 governs). Invariant 11 SHOULD→MUST. Postcondition 22 prescribed message added citing POLICY 14 leg 3 (F-S2107-P4-008 sibling sweep: all other leg citations confirmed correct — postconditions 2 and 7 both already cite leg 5 correctly; postcondition 20 cites leg 4 correctly). PC36 block-scalar normative requirement: `extract_frontmatter_field` MUST handle `\|-` block scalars; returning `"|-"` is NON-CONFORMING (F-S2107-P4-004 coupling declared; corpus: 2 occurrences). PC40 transitional clause updated: "no permanent weakening" guarantee requires exhaustive ADR-037 §Context; S-21.07 absent from that table; architect-routed (F-S2107-P4-013 BC-side ruling). Gate Spec pseudocode updated for two-level predicates and selection order. Architecture Anchors: `extract_bc_index_version` description updated to v1.10 terminology; `extract_frontmatter_field` block-scalar requirement added. Story Anchor and §Traceability Stories updated TBD→S-21.07. (product-owner; pass-5 fix burst.) |
 | 1.9 | 2026-08-04 | PC5 fourth state `RowMalformed`: a candidate line matching the locator pattern (`^\| \[<id>\]` or `^\| <id> \|`) was found but has <5 non-empty fields after escape-aware splitting — it is NOT a valid body-table row (likely a Changelog entry, subsystem-section row, or notes table that incidentally carries the BC ID link). `RowMalformed` disposition: advisory + Continue; NEVER reaches postcondition 4 blocking path. Narrows `RowAbsent` to exclusively mean "no candidate line found at all." Normative body-table row recognition predicate: first-cell link/plain match AND field count ≥5 both required for valid body-table classification. Corpus-validated 2026-08-04: 0 RowMalformed lines in real BC-INDEX (all 1,983 BC-ID-matching lines have ≥5 fields); forward-looking protection. Postcondition 4a added. Gate Spec `run_part_a_arm1` match extended to four arms. (product-owner; resolves internal contradiction discovered by implementer during v1.8 implementation.) |
 | 1.8 | 2026-08-04 | PC5 column-anchored locator: state classification changed from token-search-based to escape-aware column-count-anchored — split by unescaped `|` (treating `\|` as non-splitting), count non-empty fields: 5 → RowPresentNoVersion unconditionally; ≥6 → Version(v) from 6th column. Token-search approach was NON-CONFORMING: 194 of 1,943 canonical rows carry story IDs (e.g., `S-15.01`) in the Stories column whose digits match bare `\bv?([0-9]+\.[0-9]+)\b` → Version("15.01") false-BLOCK; 194 is the load-bearing corpus count. Corpus-validated: 1983 total / 1943 five-field / 40 six-field / 194 story-ID hazard rows. PC6 updated: Version(v) extraction uses rightmost `\bv([0-9]+\.[0-9]+)\b` match in 6th field. PC13 two-phase algorithm replaces LAST rightmost pipe-field algorithm (prior optional-v form NON-CONFORMING): Phase 1 pure-version field (`^v?[0-9]+\.[0-9]+$`, 58 BC-section rows); Phase 2 mandatory-v inline (`\bv([0-9]+\.[0-9]+)\b`, 30 Token Budget rows); eliminates: (1) story-ID collision 29 rows/6 stories, (2) BC-section-number collision in Token Budget rows, (3) ACs-column collision 1 row S-21.07/BC-5.39.010. Gate Spec pseudocode and Architecture Anchor updated. PC40 ruling and ALGORITHM-DIVERGENT corrections from v1.7 retained. (product-owner.) |
@@ -1267,5 +1399,5 @@ VP IDs pending VP-INDEX allocation by state-manager at post-merge burst.
 | 1.4 | 2026-08-03 | PC13 amended: bounding-section heading-match predicates changed from exact equality to prefix-with-word-boundary (`^## Behavioral Contracts\b`, `^## Token Budget\b`). v1.3 named exact heading text which the implementer rendered as `heading == "Behavioral Contracts"` and `heading == "Token Budget"` — causing 133 of 144 production stories (those using `## Token Budget Estimate` or `## Token Budget Estimate (MANDATORY)`) to be skipped, making stale Token Budget citations invisible. Corpus check (2026-08-03) against `.factory/stories/*.md` confirmed all measured variants covered and zero false positives: no other `^## ` heading in the corpus matches either predicate; `## Edge Cases` (148 occurrences) begins with `Edge` and remains excluded, preserving the ≥9-spurious-block regression fix from v1.3. Architecture Anchor for `extract_story_bc_version_citations` updated. Pseudocode scoping comment updated. Explicit non-conformance note added to PC13 body. (product-owner; S-21.07 LOCAL adversary cascade pass-1b fix.) |
 | 1.3 | 2026-07-30 | PC13 amended: bounding section added — scan confined to `## Behavioral Contracts` and `## Token Budget` sections only; unbounded scan caused ≥9 spurious blocking violations on stories that document BC edge cases in a table (Edge Cases rows carry `BC-5.39.010 EC-0NN` + prose `v1.x` tokens). Dual version-token format: `\bv?([0-9]+\.[0-9]+)\b` matches both bare `1.2` (body BC-table) and v-prefixed `v1.2` (Token Budget rows); prior regex `\bv([0-9]+\.[0-9]+)\b` was unreachable for bare form. LAST rightmost pipe-field algorithm stated explicitly (was already mandated but not algorithmic). Amendment 2 (PC31): bold-markdown form `**Closes:**`/`**Refs:**` required to match D-444(c) real burst-log format; prior plain-colon `^Closes:\s*` matched zero real burst-log lines; union scan (not `else if`) required so compound lines carrying both markers (e.g., `**Closes:** F-X ... **Refs:** B01`) must scan both segments. Amendment 3 (PC38 + postcondition 21): non-decreasing relation stated explicitly as `∀i: date[i] ≤ date[i+1]`; equal same-day dates PERMITTED (not a violation); prior "ascending" wording admitted strict-comparison re-implementation that would self-violate on this BC's own `modified[]`; EC-030/031 added; test vectors for equal-dates and genuine-decrease added. Amendment 4: no spec change — PC29 (`max_bytes = 2097152`) and PC33 (NotFound → advisory+Continue on cycle artifact) already unambiguous; implementation used wrong 1 MiB constant and wrong NotFound handling, both purely implementational faults. Amendment 5 (PC32): `O-` observation IDs deliberately non-excluded per D-449(d)(i) which scopes Closes/Refs to findings, PG, D-NNN only; ruling made explicit to prevent ambiguity. POLICY 14 five-leg parity; v1.1 `modified[]` entry restored (was missing — irony: this hook verifies `modified[]` monotonicity but not `modified[]`↔Changelog row correspondence, so it structurally cannot catch this defect in its own governing BC). (product-owner; S-21.07 LOCAL adversary pass-1 fix-burst.) |
 | 1.2 | 2026-07-30 | Registry entry corrected: `tools = [...]` array replaced with `tool = "^(Edit\|Write\|MultiEdit)$"` regex string (field name singular + MultiEdit added; all 41 Edit/Write hooks in live registry guard this pattern; omitting MultiEdit was a POLICY 13 ESCAPE-SCOPE-PARITY gap identical in class to F-S2104-P29-H02). Fuel-exhaustion note added to Gate Specifications per ADR-035 §Decision 5: `on_error = "continue"` silences the hook non-blockingly on fuel exhaustion (not WASM-side logic); `max_bytes` caps bound reads inside the fuel budget; `fuel_cap` not required. BC-version-pin datum-copy ruling added as design note in §Postconditions Part A Arm2. (product-owner.) |
-| 1.1 | 2026-07-30 | Part A Arm2 (story-file-side trigger) added: PostToolUse on story → read each `behavioral_contracts:` BC via deterministic path derivation → compare against story version citations (Token Budget + BC-table rows). No list_dir required. Latency gap correctly sized (all 6 observed failures occurred during story-editing bursts). Advisory rationales made explicit for every advisory arm; confirmed no arm is advisory merely because the check is partial. Class D tokenizer namespace-exclusion list added (D-, S-, BC-, VP-, R-, L-, ADR-, EC-, NFR-, ASM-, FM-); EC-024 rationale corrected (D-944 matches shape BUT is excluded by namespace list). Invariant 11 added: stale vs fabricated hash provenance — stale = sweep fix, fabricated = POLICY 18 acknowledgment required (pass-30 M02 precedent). EC-026/027/028/029 added. Gate Spec updated with run_part_a_arm2 pseudocode and story-file dispatch branch. VP table extended to 17 entries. |
+| 1.1 | 2026-07-30 | Part A Arm2 (story-file-side trigger) added: PostToolUse on story → read each `behavioral_contracts:` BC via deterministic path derivation → compare against story version citations (Token Budget + BC-table rows). No list_dir required. Latency gap correctly sized (all 6 observed failures occurred during story-editing bursts). Advisory rationales made explicit for every advisory arm; confirmed no arm is advisory merely because the check is partial. Class D tokenizer namespace-exclusion list added (D-, S-, BC-, VP-, R-, L-, ADR-, EC-, NFR-, ASM-, FM-); EC-024 rationale corrected (D-944 matches shape BUT is excluded by namespace list). Invariant 11 added: stale vs fabricated hash provenance — stale = sweep fix, fabricated = POLICY 18 acknowledgment required (pass-30 M02 precedent). EC-026/027/028/029 added. Gate Spec updated with run_part_a_arm2 pseudocode and story-file dispatch branch. *[Erratum v1.11 (F-P6-024): "VP table extended to 17 entries" was a planning annotation — VP-102..VP-118 (17 VPs) were anchored to S-21.07 post-merge per D-945, but no VP table was written into the BC body at v1.1; §VP Anchors placeholder correctly reflects pending state-manager allocation.]* |
 | 1.0 | 2026-07-30 | Initial authoring (product-owner; pre-pass-30 fix-burst). Classes A Arm1/B/D/E gated; Class C honest-gap + Rust test recommendation. |

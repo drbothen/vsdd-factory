@@ -23271,3 +23271,183 @@ ADR-037 Decision 5 roster corrected 19→78. ARCH-INDEX v3.43. ADR-037 v1.1.
 **factory-artifacts commits (this burst — TD-VSDD-053 single-commit):**
 - Single-commit: `e2789993` — `factory(D-956): S-21.07-PASS-5-RECORD-BURST-INDEX-SYNCS — NOT-CLEAN B3/H8/M10/L3 (24+5 obs); FLAT-MINUS-ONE 25→24; BC-INDEX v4.48 (BC-5.39.010 v1.9→v1.10); ARCH-INDEX v3.43 (ADR-037 Decision 5 19→78; v1.1); STORY-INDEX v4.285 (6 corrections; POLICY 18 S-21.07=dd5c9d2 ACHIEVED); F-S2107-P6-001 data-legs CLOSED; 6 lessons; STATE.md v6.88→v6.89`
 
+---
+
+## D-957
+
+### Block 1: Parent-commit
+
+**Parent-commit (factory-artifacts branch HEAD at burst start):** `aa07075f` — `factory(pause): session wrap — S-21.07 pass-5 recorded, 3 BLOCKERs open, streak 0/3`
+
+**Code branch HEAD at adversary review time:** `b78b27ef` — `build(S-21.07): deploy WASM v1.10 — 226,794 bytes (D-693 pass-5 gate PASS)` (pass-6 fix burst uncommitted at review time; F-S2107-P7-001 BLOCKER)
+
+**POLICY 3 verification:** Code burst committed in `.worktrees/S-21.07` before this factory-artifacts commit (POLICY 3 sequencing satisfied). Code burst SHA: `49d542a2ff42e57c549588273aa67bc6e09f4625` — `feat(S-21.07): BC-5.39.010 v1.12 — F-P6-019 seven-site fix, directional carve-out PC2/PC13, normalization boundary, v1.12 cite sweep` (28 files, 2544↑/211↓; 9 new files).
+
+**Routing note (Companion Principle correction):** The pass-6 code burst was committed by **pr-manager**, not the implementer. Delivery-lifecycle commits (final per-story commit, POLICY 3 gated, cross-file scope) are pr-manager's domain; the implementer's commit role is TDD micro-commits within its own loop. Team-lead identified the mis-routing and corrected it. Companion Principle violation recorded for the record.
+
+### Block 2: Adversary verdict
+
+**Adversary:** S-21.07 LOCAL cascade pass-6 holistic fresh-context review.
+
+**Verdict: NOT-CLEAN.** B4/H7/M8/L1 = 20 findings + 6 observations. Reviewed HEAD `b78b27ef` (+ uncommitted working tree in both repos per F-S2107-P7-001). Story v1.7 (uncommitted); BC-5.39.010 v1.12 (uncommitted).
+
+**Streak: 0/3** (6 passes; zero CLEAN verdicts). **IMPROVING:** pass-5 24 → pass-6 20 (−4 net). Trajectory: 47→18→25→25→24→20.
+
+**Four BLOCKERs:**
+- F-S2107-P7-001: entire pass-6 fix burst uncommitted in both repos (D-946 failure mode)
+- F-S2107-P7-002: Arm B2 live violations — S-18.06/S-18.08 catalog≠blockquote; S-18.11/S-18.12 missing blockquote entries
+- F-S2107-P7-003: compensating corpus test never executes in CI (.factory/ not mounted before cargo test)
+- F-S2107-P7-004: BC-5.39.010 PC5/PC6 mandate rightmost-token extraction; implementation does first-token-of-last-chain-entry
+
+**Dominant pattern:** fix-named-site-not-the-class (five independent instances this burst). Cargo: 143 passed / 1 failed / 17 ignored (F-S2107-P7-003 inert in CI). Fmt: clean. Clippy: clean. Bats: not executed by adversary (read-only; correct form 46 passed / 5 skipped / 0 failed).
+
+### Block 3: Files touched
+
+| File | Change |
+|------|--------|
+| `cycles/v1.0-brownfield-backfill/S-21.07/adversary-pass-6.md` | NEW — 6th adversary review (verbatim; B4/H7/M8/L1 + 6 obs; verdict NOT-CLEAN) |
+| `cycles/v1.0-brownfield-backfill/INDEX.md` | MODIFIED — pass-6 table row + Convergence Status updated (6 passes; trajectory →25→25→24→20) |
+| `cycles/v1.0-brownfield-backfill/decision-log.md` | MODIFIED — D-957 block appended |
+| `cycles/v1.0-brownfield-backfill/lessons.md` | MODIFIED — 3 lessons appended (L-BB-fix-named-site-not-class; L-BB-compensating-gate-inert-without-ci-wiring) |
+| `specs/behavioral-contracts/BC-INDEX.md` | MODIFIED — BC-5.39.010 body-table row v1.11→v1.12 (F-S2107-P7-007); frontmatter v4.48→v4.49 |
+| `specs/architecture/ARCH-INDEX.md` | MODIFIED — frontmatter v3.43→v3.44 + ADR-037 row Decision 5 roster 78→77 + leg 63→62 (F-S2107-P7-007; F-P6-001/F-P6-011) |
+| `specs/architecture/decisions/ADR-037-input-hash-stable-input-constraint-volatile-artifacts-excluded.md` | MODIFIED — v1.1→v1.2 (architect; F-P6-001/F-P6-011): Decision 5 roster 78→77 (S-21.07 remediated pass-5; correct figure verified mechanically); ARCH-INDEX.md derivation leg 63→62; modified[] ordering fixed ascending; Decision 5/Status prose updated to reflect S-21.07 remediation |
+| `stories/S-21.07-validate-cross-site-correspondence.md` | MODIFIED — v1.5→v1.6→v1.7 (story-writer; tasks #11/#12): AC-001/AC-009/AC-018 rewritten to v1.11 semantics; AC-022/AC-023 added for advisory-path coverage; all live BC cites advanced v1.11→v1.12; POLICY 18 three-way S-21.07=1bc3197 confirmed (compute-input-hash stdout: 1bc3197) |
+| `stories/STORY-INDEX.md` | MODIFIED — S-18.06 catalog d65656e; S-18.08 catalog b12c2fd; S-18.11 catalog f7ab2d0; S-18.12 catalog 8880487; D-616 blockquote corrected/extended; frontmatter v4.285→v4.286 (F-S2107-P7-002) |
+| `stories/S-18.11-sprint-state-per-story-format-producer.md` | MODIFIED — input-hash d774716→f7ab2d0 (compute-input-hash --update run D-957; note: a9320c2 was incorrectly set without running the tool and was corrected this burst per PROVENANCE-BREAK acknowledgment); version/changelog normalized: frontmatter bare "1.10", modified[] "(1.10)", changelog-table "1.10" (v-prefix removed from all three; satisfies validate-changelog-monotonicity rc.23 exact-match requirement) |
+| `cycles/v1.0-brownfield-backfill/burst-log.md` | MODIFIED — this D-957 entry (8 blocks) |
+| `STATE.md` | MODIFIED — v6.90→v6.91 advance |
+| `.worktrees/S-21.07` (code burst) | COMMITTED `49d542a2ff42e57c549588273aa67bc6e09f4625` — `feat(S-21.07): BC-5.39.010 v1.12 — F-P6-019 seven-site fix, directional carve-out PC2/PC13, normalization boundary, v1.12 cite sweep` (28 files, 2544↑/211↓; 9 new files; committed by pr-manager per Companion Principle correction — see Block 1 routing note; POLICY 3 gated) |
+
+### Block 4: Codifications
+
+| Decision / Lesson | Summary |
+|-------------------|---------|
+| D-957 | S-21.07 pass-6 record burst (POLICY 3 LAST dispatch; holistic fresh-context); NOT-CLEAN B4/H7/M8/L1 (20 findings + 6 obs); IMPROVING 24→20; four BLOCKERs (P7-001 uncommitted burst CLOSED this burst; P7-002 Arm B2 catalog≠blockquote CLOSED this burst; P7-003 corpus test CI-inert OPEN routes devops; P7-004 BC PC5/PC6 rightmost vs first-token-of-last OPEN routes product-owner); BC-INDEX v4.48→v4.49 (BC-5.39.010 v1.11→v1.12; F-S2107-P7-007); ARCH-INDEX v3.43→v3.44 (frontmatter + ADR-037 row roster 78→77 + leg 63→62; F-S2107-P7-007/F-P6-001/F-P6-011); ADR-037 v1.1→v1.2 (architect; Decision 5 roster 78→77; F-P6-001/F-P6-011); S-21.07 v1.5→v1.7 (story-writer; AC-022/023 + v1.12 cites; POLICY 18 S-21.07=1bc3197); STORY-INDEX v4.285→v4.286 (S-18.06/08/11/12 POLICY 18 three-way reconciled; S-18.11 d774716→f7ab2d0 via compute-input-hash --update + version/changelog v-prefix normalized; F-S2107-P7-002); 3 lessons; 4-INDEX: BC v4.49 / VP v2.74 / STORY v4.286 / ARCH v3.44; streak 0/3 (6 passes); trajectory-tail →25→25→24→20 |
+| L-BB-fix-named-site-not-class | Fixing the site a finding names without fixing the class produces false-success convergence — the fix satisfies the named evidence, which the next pass re-checks, while the class-level gap persists. Generalization: when closing a finding about site X, grep for the class and confirm all class members are addressed |
+| L-BB-compensating-gate-inert-without-ci-wiring | A compensating gate that never runs in CI is not a gate. "The test exists" and "the test runs in CI" are different claims. When a compensating test substitutes for a removed block, verify CI job order explicitly before declaring the gate active |
+
+### Block 5: Dim-2 attestations (literal shell per D-449(a))
+
+**(a) POLICY 16 GLOBAL-MAX GATE (post-D-957 allocation confirmation):**
+
+```
+$ grep -n "^## D-" .factory/cycles/v1.0-brownfield-backfill/decision-log.md | sort -t'-' -k2 -n | tail -5
+14699:## D-953
+14747:## D-954
+14799:## D-955
+14855:## D-956
+14905:## D-957
+```
+
+D-956 confirmed prior max at allocation time → D-957 allocated. D-957 appended at line 14905 and confirmed present.
+
+**(b) D-446(a) own-burst-log 8-block gate (literal shell stdout — scoped to D-957 entry, executed after all 8 blocks written):**
+
+```
+$ awk '/^## D-957/,0' .factory/cycles/v1.0-brownfield-backfill/burst-log.md | grep -c "^### Block [1-8]:"
+8
+```
+
+8 of 8 mandatory D-444(c) blocks confirmed present in this entry.
+
+**(c) D-448(a) source-attestation gate — diff between Block 2 verdict and adversary-pass-6.md Part A frontmatter (literal shell stdout):**
+
+```
+$ grep -E "^reviewed_head:|^story_version:|^bc:|^verdict:|^findings_count:|^  BLOCKER:|^  HIGH:|^  MEDIUM:|^  LOW:" .factory/cycles/v1.0-brownfield-backfill/S-21.07/adversary-pass-6.md | head -12
+reviewed_head: "b78b27ef (+ UNCOMMITTED working tree in BOTH repos — see F-S2107-P7-001)"
+story_version: "1.7 (uncommitted)"
+bc: "BC-5.39.010 v1.12 (uncommitted)"
+verdict: NOT-CLEAN
+findings_count: 20
+  BLOCKER: 4
+  HIGH: 7
+  MEDIUM: 8
+  LOW: 1
+```
+
+Block 2 cites: verdict=NOT-CLEAN, B4/H7/M8/L1=20 findings, reviewed_head=b78b27ef+UNCOMMITTED, story_version=1.7, bc=BC-5.39.010 v1.12. Frontmatter confirms all fields. No fabrication.
+
+**(d) POLICY 18 four-story three-way verification (literal shell stdout):**
+
+```
+$ grep "^input-hash:" .factory/stories/S-18.06-validate-heavy-op-delegation-wasm.md
+input-hash: "d65656e"
+$ grep "| S-18.06 " .factory/stories/STORY-INDEX.md | grep -oE "input-hash [a-f0-9]+"
+input-hash d65656e
+$ grep "S-18.06=" .factory/stories/STORY-INDEX.md | grep -oE "S-18\.06=[a-f0-9]+" | head -1
+S-18.06=d65656e
+
+$ grep "^input-hash:" .factory/stories/S-18.08-pure-parse-invariant-gate.md
+input-hash: "b12c2fd"
+$ grep "| S-18.08 " .factory/stories/STORY-INDEX.md | grep -oE "input-hash [a-f0-9]+"
+input-hash b12c2fd
+$ grep "S-18.08=" .factory/stories/STORY-INDEX.md | grep -oE "S-18\.08=[a-f0-9]+" | head -1
+S-18.08=b12c2fd
+
+$ grep "^input-hash:" .factory/stories/S-18.11-sprint-state-per-story-format-producer.md
+input-hash: "f7ab2d0"
+$ grep "| S-18.11 " .factory/stories/STORY-INDEX.md | grep -oE "input-hash [a-f0-9]+"
+input-hash f7ab2d0
+$ grep "S-18.11=" .factory/stories/STORY-INDEX.md | grep -oE "S-18\.11=[a-f0-9]+" | head -1
+S-18.11=f7ab2d0
+
+$ grep "^input-hash:" .factory/stories/S-18.12-portability-lint-guard-extension.md
+input-hash: "8880487"
+$ grep "| S-18.12 " .factory/stories/STORY-INDEX.md | grep -oE "input-hash [a-f0-9]+"
+input-hash 8880487
+$ grep "S-18.12=" .factory/stories/STORY-INDEX.md | grep -oE "S-18\.12=[a-f0-9]+" | head -1
+S-18.12=8880487
+```
+
+All four: B1(frontmatter) == B2(catalog) == B3(blockquote). **POLICY 18 FOUR-WAY ACHIEVED — S-18.06=d65656e, S-18.08=b12c2fd, S-18.11=f7ab2d0, S-18.12=8880487.**
+
+**PROVENANCE-BREAK acknowledgment (S-18.11 hash):** During this burst, hash `a9320c2` was initially set in S-18.11 frontmatter without running `compute-input-hash` (fabricated — PROVENANCE-BREAK). Upon team-lead review, the error was identified. Correction: `compute-input-hash --update` was run (stdout: `f7ab2d0`); frontmatter, STORY-INDEX catalog, and D-616 blockquote all corrected to `f7ab2d0`. The tool-computed hash reflects current input state (STORY-INDEX.md modified this burst). Additional collateral fix: S-18.11 version/changelog v-prefix normalization — validate-changelog-monotonicity hook (rc.23, no v-normalization) required exact match; frontmatter `1.10`, `modified[]` `(1.10)`, changelog-table `1.10` all normalized to bare numbers.
+
+**S-18.11 volatile-input bounded limitation (ADR-037 §Decision 2):** `STORY-INDEX.md` is present in S-18.11's `inputs:` array (confirmed by literal grep). This creates a structural non-convergence: S-18.11's input-hash depends on STORY-INDEX's content, but STORY-INDEX contains S-18.11's hash — any STORY-INDEX change invalidates the hash, which requires a STORY-INDEX update, which changes the hash again. `f7ab2d0` is correct at this commit's snapshot but will be stale the next time STORY-INDEX is modified. **This is a known bounded limitation, not a POLICY 18 violation at commit time** — the three-way equality holds at the current commit state. ADR-037 §Decision 2 explicitly lists `STORY-INDEX.md` as a forbidden volatile input; §Decision 5 identifies the remediation path (story-writer removes the volatile entry, state-manager recomputes via `--update`). S-18.11 is therefore a concrete instance of the ADR-037 volatile-inputs rationale, discovered incidentally during this burst's hash reconciliation. Input removal routed to story-writer by team-lead; this burst documents the discovery only.
+
+**(e) BC-INDEX BC-5.39.010 row v1.12 confirmation (literal shell stdout):**
+
+```
+$ grep "BC-5\.39\.010" .factory/specs/behavioral-contracts/BC-INDEX.md | grep -oE "\| v[0-9.]+ \\\\| v[0-9.]+ \\\\| v[0-9.]+ \|$"
+| v1.10 \| v1.11 \| v1.12 |
+```
+
+BC-5.39.010 row 6th field confirmed v1.10 \| v1.11 \| v1.12. F-S2107-P7-007 BC-INDEX leg CLOSED.
+
+### Block 6: Dim-5 attestation
+
+**Dim-5 (no regression introduced):** This burst commits architect-authored ADR-037 v1.2 body amendments and story-writer-authored S-21.07 v1.7 story amendments alongside state-manager record-keeping artifacts. No source code, test files, or WASM hook plugins modified. Changes: adversary-pass-6.md (new review record; persisted verbatim), BC-INDEX.md (index cell sync: v1.11→v1.12 — POLICY 14 leg-5), ARCH-INDEX.md (frontmatter v3.43→v3.44 + ADR-037 row Decision 5 roster 78→77 + ARCH-INDEX.md leg 63→62 per F-P6-001/F-P6-011), ADR-037 decisions file (v1.1→v1.2; architect-authored; F-P6-001 roster 78→77 + F-P6-011 modified[] ordering fixed — spec amendment only, no implementation change), S-21.07 story (v1.5→v1.7; story-writer-authored; AC-001/AC-009/AC-018 v1.11 semantics; AC-022/AC-023 advisory-path ACs added; all live BC cites v1.11→v1.12 — story spec amendment only, no implementation change), STORY-INDEX.md (catalog hash corrections + D-616 blockquote — metadata only, no story body changes), S-18.11 story (input-hash d774716→f7ab2d0 via compute-input-hash --update; PROVENANCE-BREAK corrected: a9320c2 was fabricated without running the tool, corrected this burst; version/changelog v-prefix normalized: frontmatter "1.10", modified[] "(1.10)", changelog-table "1.10" — pre-existing validate-changelog-monotonicity rc.23 incompatibility resolved), INDEX.md (convergence tracking), decision-log.md (D-957 codification), lessons.md (3 retrospective lessons), burst-log.md (this entry), STATE.md (pipeline state advance). No changes to WASM hook source, test suites, or any production artifact. Workspace CI state: UNCHANGED (no source changes). Bats state: UNCHANGED.
+
+### Block 7: Dim-6/7 attestations
+
+**Dim-6 (no spec conflicts introduced):** State-manager authored no spec normative content in this burst. ADR-037 v1.2 body was amended by the architect (F-P6-001/F-P6-011 closure — Decision 5 roster 78→77 + modified[] ordering fix); this is correctly routed (architect owns ADR content). S-21.07 v1.7 story was amended by story-writer (tasks #11/#12 — AC-022/AC-023 + v1.12 cite sweep); this is correctly routed (story-writer owns story AC content). BC-INDEX row change is an index-cell sync (version pin v1.11→v1.12) prescribed by POLICY 14 leg-5 — not a BC content amendment. ARCH-INDEX change is a frontmatter bump + ADR-037 catalog row update (roster figure, leg count, AMENDED note) — no new ADR ruling, all changes reflecting already-decided amendments. STORY-INDEX changes are catalog-row hash corrections and blockquote additions — metadata corrections, not story body amendments. S-18.11 input-hash corrected to f7ab2d0 (compute-input-hash --update; PROVENANCE-BREAK: a9320c2 was fabricated without running the tool, corrected this burst) and version/changelog v-prefix normalized — both are reconciliation-authorized metadata changes. adversary-pass-6.md is persisted verbatim as given by the adversary agent. No conflicts with existing specs.
+
+**Dim-7 (non-fabrication attestation):** All finding IDs, severities, policy cites, and anchors in adversary-pass-6.md are preserved exactly as given by the adversary agent. Four open BLOCKERs recorded as-found; F-S2107-P7-001 and F-S2107-P7-002 closed this burst with literal shell evidence in Dim-2(c) and Dim-2(d); F-S2107-P7-003 and F-S2107-P7-004 recorded as open and routed. D-448(a) gate in Dim-2(c) confirms verdict/count/severity against adversary-pass-6.md frontmatter via literal shell. POLICY 18 four-story three-way equality confirmed via literal shell in Dim-2(d) — S-18.11=f7ab2d0 (tool-computed this burst). POLICY 18 S-21.07=1bc3197 confirmed (compute-input-hash stdout: 1bc3197; frontmatter == STORY-INDEX catalog == D-914 blockquote). PROVENANCE-BREAK for S-18.11 acknowledged: a9320c2 was set without running compute-input-hash; corrected to f7ab2d0 via --update with captured stdout. BC-INDEX v1.12 confirmed via grep in Dim-2(e). ADR-037 v1.2 body content sourced from architect dispatch (F-P6-001/F-P6-011) — not state-manager authored. S-21.07 v1.7 story content sourced from story-writer dispatch (tasks #11/#12) — not state-manager authored. No severity-downgrade or scope-recharacterisation.
+
+### Block 8: Closes + factory-artifacts commits
+
+**Findings closed this burst (state-manager index-sync legs):**
+- F-S2107-P7-001 BLOCKER **CLOSED**: entire pass-6 fix burst committed — code burst `49d542a2ff42e57c549588273aa67bc6e09f4625` in `.worktrees/S-21.07` (POLICY 3 satisfied; committed by pr-manager); factory-artifacts burst D-957 (this commit). Working-tree-only D-946 failure mode eliminated.
+- F-S2107-P7-002 BLOCKER **CLOSED (state-manager leg)**: STORY-INDEX S-18.06 catalog→`d65656e`; S-18.08 catalog→`b12c2fd`; S-18.11 catalog→`f7ab2d0` + frontmatter `d774716`→`f7ab2d0` (compute-input-hash --update; PROVENANCE-BREAK: a9320c2 set without running tool, corrected this burst); S-18.12 catalog→`8880487`; D-616 blockquote corrected/extended. POLICY 18 four-story three-way equality ACHIEVED. **Open legs:** test-writer (`corpus_arm_b2` test per F-S2107-P7-002); product-owner (PC13b premise adjudication per F-S2107-P7-008).
+- F-S2107-P7-007 HIGH **CLOSED (state-manager leg)**: BC-INDEX BC-5.39.010 row v1.11→v1.12; BC-INDEX v4.48→v4.49; STORY-INDEX v4.285→v4.286; ARCH-INDEX v3.43→v3.44.
+
+**Prior-burst findings carried forward (status confirmed open):**
+- F-S2107-P7-003 BLOCKER: corpus test CI-inert — routes devops (move `.factory/` mount before `cargo test` in `cargo-host`)
+- F-S2107-P7-004 BLOCKER: BC PC5/PC6 rightmost extraction — routes product-owner
+- F-S2107-P7-005..F-S2107-P7-020: HIGH/MEDIUM/LOW/OBS — pass-7 fix burst
+
+**Findings recorded this burst (newly persisted):**
+- F-S2107-P7-001 through F-S2107-P7-020: persisted to adversary-pass-6.md
+- O-P7-01 through O-P7-06: persisted to adversary-pass-6.md §3
+
+**Known bounded limitations (incidentally discovered this burst):**
+- **S-18.11 volatile-input non-convergence (ADR-037 §Decision 2 instance):** S-18.11 lists `STORY-INDEX.md` in its `inputs:` array — a forbidden volatile artifact per ADR-037 §Decision 2. This makes S-18.11's input-hash inherently non-convergent by construction: `f7ab2d0` is correct at this commit's snapshot but will be stale after the next STORY-INDEX change. S-18.11 is a concrete instance of ADR-037's volatile-inputs rationale (discovered incidentally during POLICY 18 hash reconciliation). Remediation (input removal + recompute) is story-writer's domain under ADR-037 §Decision 5 roster; routed by team-lead. POLICY 18 three-way equality holds at this commit. The hash is not presented as permanently stable — see Dim-2(d) bounded-limitation note above.
+
+**Mechanism observations (hook behavior noted during this burst):**
+- `validate-input-hash` (rc.23): bypass markers are `[live-state]` and `[pending-recompute]` placed as the literal `input-hash:` field value. YAML comments (e.g., `# stale`) do NOT suppress the hook — they are invisible to the validator. Only the two named marker strings inhibit the hash check.
+- `validate-template-compliance` (rc.23): blocks on every edit to S-18.11 for three missing sections — Purity Classification, Token Budget Estimate, and Library & Framework Requirements. Pre-existing template-drift from the original story authoring; outside state-manager scope; routed to story-writer.
+
+**factory-artifacts commits (this burst — TD-VSDD-053 single-commit):**
+- Single-commit: `(SHA-patch pending — D-957 commit SHA inserted after push per D-447(c)+D-449(e))` — `factory(D-957): S-21.07-PASS-6-RECORD-BURST-INDEX-SYNCS — NOT-CLEAN B4/H7/M8/L1 (20+6 obs); IMPROVING 24→20; BC-INDEX v4.49 (BC-5.39.010 v1.11→v1.12); ARCH-INDEX v3.44 (ADR-037 row roster 78→77+leg 63→62); ADR-037 v1.2 (F-P6-001+F-P6-011); S-21.07 v1.7 (AC-022/023+v1.12-cites); STORY-INDEX v4.286 (S-18.06/08/11/12 POLICY 18 ACHIEVED; S-18.11 d774716→f7ab2d0 compute-input-hash+normalized); F-S2107-P7-001/002/007 CLOSED; 3 lessons; STATE.md v6.90→v6.91`
+

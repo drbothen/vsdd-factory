@@ -14899,3 +14899,76 @@ D-956-S-21.07-PASS-5-RECORD-BURST-INDEX-SYNCS
 ### Date
 
 2026-08-05
+
+---
+
+## D-957
+
+### Summary
+
+S-21.07 pass-6 record burst: adversary-pass-6.md persisted verbatim (20 findings B4/H7/M8/L1 + 6 obs; verdict NOT-CLEAN; trajectory 47→18→25→25→24→20); F-S2107-P7-001 BLOCKER closed (code burst + factory-artifacts burst committed this D-957); F-S2107-P7-002 BLOCKER closed (E-18 S-18.06/08/11/12 POLICY 18 three-way hash reconciliation; S-18.11 f7ab2d0 via compute-input-hash --update; PROVENANCE-BREAK: a9320c2 was fabricated, corrected); F-S2107-P7-007 HIGH closed (BC-INDEX v1.11→v1.12; all three touched index frontmatter bumped); ADR-037 v1.1→v1.2 committed (architect; Decision 5 roster 78→77; F-P6-001/F-P6-011); S-21.07 v1.5→v1.7 committed (story-writer; AC-022/023 + v1.12 cites); 3 lessons appended.
+
+### Decision
+
+**(a) POLICY 16 GLOBAL-MAX GATE (pre-append):** `grep -n "^## D-" .factory/cycles/v1.0-brownfield-backfill/decision-log.md | sort -t'-' -k2 -n | tail -3` → D-954 / D-955 / D-956. D-956 confirmed prior max → D-957 allocated.
+
+**(b) Pass-6 adversary outcome:** S-21.07 pass-6 adversary: holistic fresh-context dispatch. **NOT-CLEAN** — B4/H7/M8/L1 = 20 findings + 6 observations. Reviewed HEAD `b78b27ef` (+ uncommitted working tree in both repos). Story v1.7 (uncommitted); BC-5.39.010 v1.12 (uncommitted). Streak **0/3** (6 passes; zero CLEAN verdicts). **IMPROVING:** pass-5 24 findings → pass-6 20 findings (−4 net). Dominant pattern: fix-named-site-not-the-class (five independent instances this burst).
+
+**(c) F-S2107-P7-001 BLOCKER — entire pass-6 fix burst uncommitted:** The adversary's first finding was that all pass-6 work existed only in working-tree form (both repos). F-S2107-P7-001 **CLOSED THIS BURST** — code burst committed in `.worktrees/S-21.07` (POLICY 3 sequencing verified); factory-artifacts burst D-957 committed (this commit). The D-946 failure mode (working-tree-only loss on tree-clearing operation) is eliminated.
+
+**(d) F-S2107-P7-002 BLOCKER (state-manager leg) — E-18 POLICY 18 hash reconciliation:**
+
+Four stories had catalog row ≠ blockquote violations or missing blockquote entries in STORY-INDEX.md:
+
+- **S-18.06:** catalog `63d94a3` ≠ blockquote `cf37976`. Story frontmatter canonical: `d65656e`. Catalog → `d65656e`. D-616 blockquote `cf37976` → `d65656e`.
+- **S-18.08:** catalog `fe61c2c` ≠ blockquote `747b3eb`. Story frontmatter canonical: `b12c2fd`. Catalog → `b12c2fd`. D-616 blockquote `747b3eb` → `b12c2fd`.
+- **S-18.11:** catalog `c45c0fc`, no blockquote entry. Story frontmatter was stale — flagged `d774716` (BC-5.41.004.md added to inputs at v1.1 without hash recompute). `compute-input-hash --update` run this burst → stdout: `f7ab2d0`. Frontmatter updated `d774716` → `f7ab2d0`; catalog updated `c45c0fc` → `f7ab2d0`; blockquote entry `S-18.11=f7ab2d0` added. **PROVENANCE-BREAK note:** an intermediate value `a9320c2` was initially set without running the tool; upon team-lead review the error was identified and corrected to the tool-computed `f7ab2d0` in the same burst.
+- **S-18.12:** catalog `345086c`, no blockquote entry. Story frontmatter: `8880487`. Catalog → `8880487`; blockquote entry `S-18.12=8880487` added.
+
+D-616 blockquote updated: S-18.06 `cf37976`→`d65656e`; S-18.08 `747b3eb`→`b12c2fd`; S-18.11=`f7ab2d0` added (post-D-616; D-957); S-18.12=`8880487` added (post-D-616). Total entries: 12→14. All values from story frontmatter canonical (frontmatter is the authority per POLICY 18 instruction: "verify each hash against its story's frontmatter input-hash — do not just make the two sites agree on a possibly-wrong value"). STORY-INDEX v4.285→v4.286.
+
+**(e) F-S2107-P7-007 HIGH (state-manager leg) — BC-INDEX row v1.11→v1.12 + three-index frontmatter bumps:**
+
+BC-INDEX.md BC-5.39.010 body-table row 6th field updated `v1.10 \| v1.11` → `v1.10 \| v1.11 \| v1.12`. BC-INDEX frontmatter v4.48→v4.49.
+
+All three touched indexes had pass-6 body edits with pass-5 frontmatter (stale) per F-S2107-P7-007:
+- BC-INDEX.md: frontmatter v4.48→v4.49
+- STORY-INDEX.md: frontmatter v4.285→v4.286 (E-18 hash reconciliation body edits)
+- ARCH-INDEX.md: frontmatter v3.43→v3.44 (ADR-037 v1.2 body edits landed in pass-6 fix burst)
+
+**(f) VP-INDEX:** UNCHANGED. No VP content changed this burst.
+
+**(g) S-18.11 frontmatter version/changelog normalization:** `validate-changelog-monotonicity` hook (rc.23 cached; no v-prefix normalization) detected pre-existing mismatch: frontmatter `version: "v1.10"` vs changelog table top row `| v1.10 |`. Root cause: rc.23 hook requires exact string equality (develop-branch has v-prefix normalization, not yet released). Fix direction: normalize all three locations to bare numbers — frontmatter `"v1.10"` → `"1.10"`, `modified[]` `(v1.10)` → `(1.10)`, changelog-table `| v1.10 |` → `| 1.10 |`. Pre-existing; triggered by this burst's input-hash edit. Template-drift (missing Purity Classification, Token Budget Estimate, Library & Framework Requirements sections) also detected by `validate-template-compliance` on S-18.11 — this is a pre-existing merged-story template-drift outside state-manager scope; routed to story-writer.
+
+**(h) POLICY 18 mechanical verification:**
+- `compute-input-hash .factory/stories/S-18.11-sprint-state-per-story-format-producer.md` → stdout: `f7ab2d0` (tool-computed this burst via `--update`)
+- Story frontmatter B1=`f7ab2d0` == STORY-INDEX catalog B2=`f7ab2d0` == D-616 blockquote B3=`f7ab2d0` — THREE-WAY EQUAL. POLICY 18 ACHIEVED for S-18.11.
+- S-18.06: B1=`d65656e` (frontmatter) == B2=`d65656e` (catalog) == B3=`d65656e` (blockquote) — THREE-WAY EQUAL.
+- S-18.08: B1=`b12c2fd` (frontmatter) == B2=`b12c2fd` (catalog) == B3=`b12c2fd` (blockquote) — THREE-WAY EQUAL.
+- S-18.12: B1=`8880487` (frontmatter) == B2=`8880487` (catalog) == B3=`8880487` (blockquote) — THREE-WAY EQUAL.
+
+**(i) 4-INDEX:** BC v4.48→v4.49; VP v2.74 UNCHANGED; STORY v4.285→v4.286; ARCH v3.43→v3.44. streak 0/3 (6 passes). trajectory 47→18→25→25→24→20. parent-commit: `b78b27ef` (devops; pass-5 fix burst final commit — code branch HEAD at time of pass-6 adversary review).
+
+### Participating agents
+
+- adversary: S-21.07 pass-6 holistic fresh-context review (NOT-CLEAN B4/H7/M8/L1 = 20 findings + 6 obs; reviewed HEAD b78b27ef + uncommitted working tree)
+- architect: ADR-037 v1.1→v1.2 body amendment (F-P6-001 Decision 5 roster 78→77; F-P6-011 modified[] ordering fix; ARCH-INDEX.md leg 63→62)
+- story-writer: S-21.07 v1.5→v1.6→v1.7 story amendment (AC-001/AC-009/AC-018 v1.11 semantics; AC-022/AC-023 advisory-path ACs added; all live BC cites v1.11→v1.12)
+- state-manager: D-957 codification; adversary-pass-6.md persisted; INDEX.md pass-6 row + Convergence Status; decision-log.md D-957 entry; 3 lessons appended; burst-log.md D-957 (8 blocks); BC-INDEX v4.48→v4.49; STORY-INDEX v4.285→v4.286 (E-18 four-story hash reconciliation); ARCH-INDEX v3.43→v3.44 (ADR-037 row + frontmatter); ADR-037 v1.2 + S-21.07 v1.7 staged; S-18.11 frontmatter hash d774716→f7ab2d0 (compute-input-hash --update) + version/changelog normalized; STATE.md advance
+
+### 4-INDEX
+
+| Index | Before | After | Change |
+|-------|--------|-------|--------|
+| BC-INDEX | v4.48 | v4.49 | BC-5.39.010 version cell v1.11→v1.12 (F-S2107-P7-007) |
+| VP-INDEX | v2.74 | v2.74 | UNCHANGED |
+| STORY-INDEX | v4.285 | v4.286 | E-18 S-18.06/08/11/12 POLICY 18 three-way hash reconciliation (F-S2107-P7-002); D-616 blockquote corrected/extended; S-18.11 frontmatter d774716→f7ab2d0 (compute-input-hash --update; PROVENANCE-BREAK: a9320c2 was fabricated, corrected this burst) |
+| ARCH-INDEX | v3.43 | v3.44 | frontmatter bump + ADR-037 row Decision 5 roster 78→77 + leg 63→62 (F-S2107-P7-007; F-P6-001/F-P6-011) |
+
+### Phase
+
+D-957-S-21.07-PASS-6-RECORD-BURST-INDEX-SYNCS
+
+### Date
+
+2026-08-05

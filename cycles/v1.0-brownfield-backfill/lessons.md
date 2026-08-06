@@ -10263,3 +10263,35 @@ D-442(e) recorded the same class of defect for lessons.md (≤3,500 soft / ≤4,
 **Closes:** D-956
 
 **Cites:** D-956 (codified this burst); F-S2107-P6-021; F-S2107-P6-024. `[process-gap; pass-numbering; adversary-review; orchestrator-discipline; D-956; codified]`
+
+---
+
+## L-BB-fix-named-site-not-class [test-quality] [D-957]
+
+**Category:** test-quality
+
+**Title:** Fixing the Named Site Without Fixing the Class Produces False-Success Convergence
+
+**Lesson:** Pass-6 found five independent instances of the same meta-pattern: a finding names site X, the fix lands at X, and the class recurs at site Y in the same burst. The v1.11→v1.12 version-cite sweep corrected `bats:38`, `Cargo.toml`, `hooks-registry.toml` — and left ~53 cites in `crates/` including `lib.rs`'s module header. F-P6-009 fixed 2 of 4 `invariant-10` mis-anchors and left 2 live. F-P6-010 added corpus tests for A1/B1 and never measured B2, where the live corpus was already red. PC4a's verbatim strengthening was applied to PC4a and not propagated to the two sibling advisory clauses added in the same burst. The finding count fell 24→20 — real work was done — but the residual pattern is structurally self-concealing: the fix satisfies the finding's named evidence, the named evidence is what the next pass re-checks, and the class-level gap persists through successive passes. **Generalization:** when closing a finding about site X, explicitly grep for the class (not just the site) and confirm all members are addressed before declaring done. A sweep that stops at the named site is half a sweep.
+
+**Anchors:** D-957 (this burst); F-S2107-P7-005 (v1.12 sweep miss ~53 cites); F-S2107-P7-006 (invariant-10 partial fix); F-S2107-P7-002 (B2 skipped while A1/B1 covered); F-S2107-P7-013 (PC4a class not propagated); POLICY 5 v1.3.4 SIBLING-SWEEP LITERAL-SHELL VERIFICATION GATE.
+
+**Closes:** D-957
+
+**Cites:** D-957 (codified this burst); F-S2107-P7-005; F-S2107-P7-006; F-S2107-P7-002; F-S2107-P7-013. `[test-quality; sweep-completeness; class-vs-site; false-convergence; D-957; codified]`
+
+---
+
+## L-BB-compensating-gate-inert-without-ci-wiring [test-quality] [D-957]
+
+**Category:** test-quality
+
+**Title:** A Compensating Gate That Never Runs in CI Is Not a Gate
+
+**Lesson:** The corpus sync test was approved as the substitute for the PC2a block PC2a removed. Its design is correct: `corpus_root_or_skip!` gracefully skips when `.factory/` is absent, fires in full when mounted. But `.factory/` is mounted AFTER `cargo test` in the CI job — so the test skips on every CI run and the invariant PC2 enforced is now enforced nowhere in any automated gate. Pass-6 independently verified this: `CI_REQUIRE_ARTIFACTS=1` appears only on bats steps, never on the cargo test step; the mount step is downstream of the test step in `cargo-host`. The compensating guard closes the shape gap (the test exists, it has teeth locally) and leaves the enforcement gap open (it never fires in CI). **Generalization:** when a compensating test is approved as a substitute for a removed block, verify the CI job order explicitly — "the test exists" and "the test runs in CI" are different claims. A gate that skips vacuously on every CI run is not a gate.
+
+**Anchors:** D-957 (this burst); F-S2107-P7-003; `.github/workflows/ci.yml` job `cargo-host` step order; `corpus_root_or_skip!` macro; `CI_REQUIRE_ARTIFACTS`.
+
+**Closes:** D-957
+
+**Cites:** D-957 (codified this burst); F-S2107-P7-003; TD-VSDD-059. `[test-quality; CI-wiring; compensating-gate; vacuous-skip; D-957; codified]`
