@@ -137,20 +137,46 @@ jobs:
       - name: cargo check (workspace, all targets)
         run: cargo check --workspace --all-targets
 
+      - name: Mount factory artifacts
+        # .factory/ is needed by two consumers in this job:
+        #   1. Corpus tests in validate-cross-site-correspondence (cargo test step below) —
+        #      the compensating BC/BC-INDEX sync invariant requires .factory/ to be present
+        #      so corpus tests execute under CI_REQUIRE_ARTIFACTS=1 rather than silently
+        #      skipping (F-S2107-P7-003 fix: mount now precedes cargo test).
+        #   2. perf-baseline.bats (later step) — needs .factory/ script + fixture + baseline
+        #      doc. Must remain in cargo-host (not validate) because setup_file() calls
+        #      `cargo build --release -p factory-dispatcher` when the binary is absent, and
+        #      the validate job has no Rust toolchain.
+        run: |
+          git fetch origin factory-artifacts:refs/remotes/origin/factory-artifacts
+          git rev-parse origin/factory-artifacts || (echo "factory-artifacts ref missing" >&2; exit 1)
+          git worktree add .factory origin/factory-artifacts
+
       - name: cargo test (workspace, all targets)
-        # VSDD_SKIP_PRODUCTION_STATE_MD_TEST=1: validate-dispatch-advance
-        # has load-bearing production-file tests (validate_production_state_md_no_false_positive,
-        # validate_production_edp1_index_md_no_false_positive) that read
-        # .factory/STATE.md and .factory/cycles/.../INDEX.md from the
-        # factory-artifacts orphan branch. The Mount factory artifacts step
-        # in this job runs AFTER cargo test (it needs the Rust toolchain
-        # that precedes it, and must precede the bats steps that follow).
-        # The tests support an explicit opt-out via this env var for exactly
-        # this scenario — ephemeral CI runners without a factory worktree
-        # mounted at test time. Local dev (where .factory/ is always mounted)
-        # continues to exercise these tests without the env var set.
+        # F-S2107-P7-003 fix: mount precedes cargo test (prior ordering was reversed,
+        # making all 11 corpus tests silently skip on every CI run).
+        #
+        # CI_REQUIRE_ARTIFACTS=1: corpus tests in validate-cross-site-correspondence
+        # (corpus_arm_a1_*, corpus_arm_b1_*, corpus_version_sync_*, etc.) skip gracefully
+        # when .factory/ is absent. With CI_REQUIRE_ARTIFACTS=1 they FAIL instead of
+        # skipping — the flag converts absence from silent skip to hard failure.
+        # The mount step above is what actually enables execution: it places .factory/
+        # at the workspace root so the 8-level parent-walk from CARGO_MANIFEST_DIR finds it.
+        #
+        # VSDD_CORPUS_ROOT: belt-and-braces explicit override. live_factory_root() checks
+        # this env var first; if the path is_dir() AND contains specs/behavioral-contracts/
+        # it is used, otherwise the var is silently ignored and parent-walk discovery runs.
+        # In CI the mount is the real source; this var adds one extra hop of explicitness,
+        # not a different codepath.
+        #
+        # VSDD_SKIP_PRODUCTION_STATE_MD_TEST: removed. .factory/ is now mounted before
+        # this step, so validate-dispatch-advance production-file tests
+        # (validate_production_state_md_no_false_positive,
+        # validate_production_edp1_index_md_no_false_positive) run and pass on every PR.
+        # Verified locally: both pass against the live factory-artifacts worktree.
         env:
-          VSDD_SKIP_PRODUCTION_STATE_MD_TEST: "1"
+          CI_REQUIRE_ARTIFACTS: "1"
+          VSDD_CORPUS_ROOT: ${{ github.workspace }}/.factory
         run: cargo test --workspace --all-targets
 
       - name: cargo publish --dry-run (hook-sdk crates) (S-2.5)
@@ -205,16 +231,6 @@ jobs:
             exit 1
           fi
           echo "Built $count wasm files (floor: $expected wasm-producing crates in crates/hook-plugins/)."
-
-      - name: Mount factory artifacts (for perf-baseline bats)
-        # perf-baseline.bats needs .factory/ (script + fixture + baseline doc).
-        # Must run in cargo-host (not validate) because setup_file() calls
-        # `cargo build --release -p factory-dispatcher` when the binary is absent,
-        # and the validate job has no Rust toolchain.
-        run: |
-          git fetch origin factory-artifacts:refs/remotes/origin/factory-artifacts
-          git rev-parse origin/factory-artifacts || (echo "factory-artifacts ref missing" >&2; exit 1)
-          git worktree add .factory origin/factory-artifacts
 
       - name: Stage WASM plugins to hook-plugins directory
         # plugins/vsdd-factory/hook-plugins/ is gitignored (.gitignore:58) —
@@ -444,6 +460,17 @@ jobs:
         if: matrix.use_cross
         run: cross build --release --target ${{ matrix.target }}
 
+      - name: Mount factory artifacts (corpus tests)
+        if: ${{ matrix.run_tests && !matrix.use_cross }}
+        # Corpus tests in validate-cross-site-correspondence require .factory/ to be
+        # present so they execute under CI_REQUIRE_ARTIFACTS=1 rather than silently
+        # skipping. F-S2107-P7-003 class fix — sweeps build-dispatcher in addition to
+        # cargo-host; mount precedes Test (cargo) on every test-enabled matrix entry.
+        run: |
+          git fetch origin factory-artifacts:refs/remotes/origin/factory-artifacts
+          git rev-parse origin/factory-artifacts || (echo "factory-artifacts ref missing" >&2; exit 1)
+          git worktree add .factory origin/factory-artifacts
+
       - name: Test (cargo)
         if: ${{ matrix.run_tests && !matrix.use_cross }}
         # --workspace runs every package's tests; --all-targets includes
@@ -451,14 +478,17 @@ jobs:
         # cargo-host. We don't pass --target here for native runs because
         # the host triple equals matrix.target; passing it makes cargo
         # rebuild std-test infrastructure for no benefit.
-        # VSDD_SKIP_PRODUCTION_STATE_MD_TEST=1: validate-dispatch-advance
-        # has production-file tests that read .factory/STATE.md and
-        # .factory/cycles/.../INDEX.md from the factory-artifacts orphan
-        # branch, which is not mounted in this job. Tests skip gracefully
-        # when this env var is set — local dev (where .factory/ is always
-        # mounted) exercises these tests without the env var.
+        # F-S2107-P7-003 class fix. The mount step above places .factory/ at the workspace
+        # root so the 8-level parent-walk from CARGO_MANIFEST_DIR finds it; CI_REQUIRE_ARTIFACTS=1
+        # converts absent-corpus from silent skip to hard failure; VSDD_CORPUS_ROOT is an
+        # explicit override that is used only when valid (is_dir() + specs/behavioral-contracts/),
+        # otherwise falls through silently to parent-walk — it is belt-and-braces, not the
+        # load-bearing mechanism.
+        # VSDD_SKIP_PRODUCTION_STATE_MD_TEST: removed. .factory/ is mounted before this step,
+        # so validate-dispatch-advance production-file tests run and pass on every matrix entry.
         env:
-          VSDD_SKIP_PRODUCTION_STATE_MD_TEST: "1"
+          CI_REQUIRE_ARTIFACTS: "1"
+          VSDD_CORPUS_ROOT: ${{ github.workspace }}/.factory
         run: cargo test --release --features factory-dispatcher/test-support --target ${{ matrix.target }} --workspace
 
       - name: Build all native WASM plugins (release)

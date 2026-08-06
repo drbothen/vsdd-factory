@@ -271,10 +271,15 @@ pub fn run_arm_b1_with_index_result(
                     }
                 }
                 (Some(b2), None) => {
-                    // Only catalog row present — no blockquote entry yet
+                    // Only catalog row present — no blockquote entry yet.
+                    // ADR-038 §Decision 3: half-present is ALWAYS advisory + Continue per PC12
+                    // ("B2 or B3 absent → advisory + Continue"). The hash comparison is
+                    // irrelevant: the absent-site state is indistinguishable from mid-burst
+                    // write ordering at trigger time (state-manager writes catalog and blockquote
+                    // in the same STORY-INDEX commit). Blocking here creates a live self-lock.
                     if b2 != story_hash {
-                        violations.push(Violation {
-                            description: format!(
+                        advisories.push(Advisory {
+                            message: format!(
                                 "validate-cross-site-correspondence [Class B] POLICY 18: \
                                 input-hash mismatch for story {story_id} \
                                 — story={story_hash} catalog={b2} blockquote=absent \
@@ -292,10 +297,15 @@ pub fn run_arm_b1_with_index_result(
                     }
                 }
                 (None, Some(b3)) => {
-                    // Only blockquote entry present — no catalog row yet
+                    // Only blockquote entry present — no catalog row yet.
+                    // ADR-038 §Decision 3: half-present is ALWAYS advisory + Continue per PC12
+                    // ("B2 or B3 absent → advisory + Continue"). The hash comparison is
+                    // irrelevant: the absent-site state is indistinguishable from mid-burst
+                    // write ordering at trigger time (state-manager writes catalog and blockquote
+                    // in the same STORY-INDEX commit). Blocking here creates a live self-lock.
                     if b3 != story_hash {
-                        violations.push(Violation {
-                            description: format!(
+                        advisories.push(Advisory {
+                            message: format!(
                                 "validate-cross-site-correspondence [Class B] POLICY 18: \
                                 input-hash mismatch for story {story_id} \
                                 — story={story_hash} catalog=absent blockquote={b3} \
@@ -1312,6 +1322,134 @@ mod tests {
             F-S2107-P3-015: current `starts_with('S-')` admits 'S-README'. RED GATE. \
             Got: {:?}",
             result
+        );
+    }
+
+    // -----------------------------------------------------------------------
+    // ADR-038 §Decision 3 RED GATE — half-present case in run_arm_b1_with_index_result
+    //
+    // Current behavior (pre-fix): when exactly one of {B2, B3} is present and disagrees
+    // with B1, run_arm_b1_with_index_result produces a VIOLATION (block).
+    //
+    //   (Some(b2), None) where b2 != story_hash → violations.push(...)  ← BLOCKS
+    //   (None, Some(b3)) where b3 != story_hash → violations.push(...)  ← BLOCKS
+    //
+    // Required behavior (ADR-038 §Decision 3): advisory + Continue, NOT block.
+    //   PC12 literal: "B2 or B3 absent → advisory + Continue" — unconditional
+    //   inclusive-or. Half-present satisfies this predicate because one site is absent.
+    //
+    // Live corpus counterexamples: S-18.11 (catalog=c45c0fc, no blockquote) and
+    // S-18.12 (catalog=345086c, no blockquote) currently block Arm B1 gate on
+    // STORY-INDEX.md writes — the correct behavior is advisory + Continue.
+    //
+    // RED GATE status:
+    //   - Both tests below are RED until the implementer changes the (Some(b2), None)
+    //     and (None, Some(b3)) arms from `violations.push` to `advisories.push`.
+    //   - The match-case controls (B1==B2, no blockquote) are GREEN immediately.
+    // -----------------------------------------------------------------------
+
+    /// ADR-038 §Decision 3 RED GATE: half-present (catalog present, mismatch) →
+    /// advisory + Continue, NOT block.
+    ///
+    /// (Some(b2), None) where b2 != story_hash: current code pushes to violations (blocks).
+    /// Required: push to advisories (advisory + Continue per PC12).
+    ///
+    /// S-18.11 shape: STORY-INDEX has catalog row with hash c45c0fc; no blockquote entry.
+    /// Arm B1 triggered on a story-file write where B1 = "aabbccd" (differs from B2).
+    ///
+    /// TEETH: current code returns violations=[...] for this input → assert!(violations.is_empty())
+    /// FAILS. Proves the test is genuinely RED, not vacuous.
+    /// Control companion below proves the match case (B1==B2) is advisory (not blocking).
+    ///
+    /// RED GATE: current `if b2 != story_hash { violations.push(...) }` in (Some(b2), None)
+    /// arm → violations not empty → FAILS.
+    /// GREEN after implementer changes arm to `advisories.push(...)`.
+    #[test]
+    fn test_BC_5_39_010_arm_b1_half_present_catalog_mismatch_is_advisory_not_block() {
+        let index_content = b"| S-18.11 | some story | input-hash c45c0fc |\n\
+            # No blockquote entry for S-18.11\n";
+        let (violations, advisories) = run_arm_b1_with_index_result(
+            "S-18.11",
+            "aabbccd", // B1 differs from B2 (c45c0fc)
+            Ok(index_content.to_vec()),
+        );
+        assert!(
+            violations.is_empty(),
+            "ADR-038 §Decision 3: half-present (catalog=c45c0fc, blockquote=absent, B1=aabbccd) \
+            must be advisory + Continue per PC12 ('B2 or B3 absent → advisory + Continue'). \
+            RED GATE: current (Some(b2), None) arm pushes to violations when b2 != story_hash. \
+            GREEN after implementer changes the arm to push to advisories instead. \
+            Violations: {violations:?}"
+        );
+        assert!(
+            !advisories.is_empty(),
+            "ADR-038 §Decision 3: half-present case must emit at least one advisory. \
+            Advisories: {advisories:?}"
+        );
+    }
+
+    /// CONTROL for half-present catalog mismatch RED GATE: when B1 == B2 and blockquote
+    /// absent, the result must also be advisory (not a violation).
+    ///
+    /// This is the currently-GREEN adjacent case: (Some(b2), None) where b2 == story_hash
+    /// already emits an advisory in the current code. Proves the RED GATE above is
+    /// distinguishable from this passing case — if both passed, the RED GATE would be suspect.
+    ///
+    /// GREEN immediately (current code handles this correctly).
+    #[test]
+    fn test_BC_5_39_010_arm_b1_half_present_catalog_match_is_advisory() {
+        let index_content = b"| S-18.11 | some story | input-hash c45c0fc |\n\
+            # No blockquote entry for S-18.11\n";
+        let (violations, advisories) = run_arm_b1_with_index_result(
+            "S-18.11",
+            "c45c0fc", // B1 == B2: same hash
+            Ok(index_content.to_vec()),
+        );
+        assert!(
+            violations.is_empty(),
+            "Half-present (B1==B2, blockquote absent) must not block. \
+            Control for ADR-038 §Decision 3 RED GATE. Violations: {violations:?}"
+        );
+        assert!(
+            !advisories.is_empty(),
+            "Half-present (B1==B2, blockquote absent) must emit advisory. \
+            Advisories: {advisories:?}"
+        );
+    }
+
+    /// ADR-038 §Decision 3 RED GATE: half-present (blockquote present, mismatch) →
+    /// advisory + Continue, NOT block.
+    ///
+    /// (None, Some(b3)) where b3 != story_hash: current code pushes to violations (blocks).
+    /// Required: push to advisories (advisory + Continue per PC12).
+    ///
+    /// S-18.12 shape: STORY-INDEX has no catalog row; blockquote entry has hash 345086c.
+    /// Arm B1 triggered on a story-file write where B1 = "aabbccd" (differs from B3).
+    ///
+    /// TEETH: current code returns violations=[...] for this input → FAILS.
+    /// GREEN after implementer changes (None, Some(b3)) arm to advisory + Continue.
+    #[test]
+    fn test_BC_5_39_010_arm_b1_half_present_blockquote_mismatch_is_advisory_not_block() {
+        // Only blockquote present; no catalog row for S-18.12.
+        let index_content = b"| S-18.11 | other story | input-hash c45c0fc |\n\
+            > S-18.12=345086c\n";
+        let (violations, advisories) = run_arm_b1_with_index_result(
+            "S-18.12",
+            "aabbccd", // B1 differs from B3 (345086c)
+            Ok(index_content.to_vec()),
+        );
+        assert!(
+            violations.is_empty(),
+            "ADR-038 §Decision 3: half-present (catalog=absent, blockquote=345086c, B1=aabbccd) \
+            must be advisory + Continue per PC12. \
+            RED GATE: current (None, Some(b3)) arm pushes to violations when b3 != story_hash. \
+            GREEN after implementer changes the arm to push to advisories instead. \
+            Violations: {violations:?}"
+        );
+        assert!(
+            !advisories.is_empty(),
+            "ADR-038 §Decision 3: half-present case must emit at least one advisory. \
+            Advisories: {advisories:?}"
         );
     }
 }

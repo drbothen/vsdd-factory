@@ -646,29 +646,50 @@ mod tests {
     //     the corpus IS available.
     // -----------------------------------------------------------------------
 
-    /// Discover the live .factory/ corpus root.
-    /// Priority: VSDD_CORPUS_ROOT env var → parent-directory walk from CARGO_MANIFEST_DIR.
-    /// Story-worktree layout: .factory/ is mounted ~5 levels above the crate root in the
-    /// MAIN checkout, not in the worktree. Walk finds it by ascending.
+    /// Discover the corpus root from an injectable override and walk base.
     ///
-    /// Validation: the discovered .factory/ MUST contain `specs/behavioral-contracts/`
-    /// to be accepted as the real corpus root (excludes worktree stub .factory/ directories
-    /// that only have `cycles/` and `logs/`).
-    fn live_factory_root() -> Option<std::path::PathBuf> {
-        /// Returns true only for a .factory/ root that has the real corpus structure.
+    /// Injectable seam for unit testing — production callers go through `live_factory_root`.
+    ///
+    /// `corpus_root_override`: value of `VSDD_CORPUS_ROOT`, if set.
+    ///   - `Some(s)` where `s` is a valid corpus directory → returns `Some(path)`.
+    ///   - `Some(s)` where `s` is invalid/nonexistent → **panics**. An explicit override
+    ///     that is invalid is always a configuration error. Silent fallback to auto-discovery
+    ///     would mask the error: a typo'd `VSDD_CORPUS_ROOT` could find the dev worktree's
+    ///     `.factory/` and make corpus tests appear to run against unintended data — the
+    ///     worst failure class: false success.
+    ///   - `None` → walk up from `walk_start` up to 8 levels.
+    /// `walk_start`: directory to begin the upward walk. Tests pass a tmpdir to isolate
+    ///   from the real `.factory/`; `live_factory_root` passes `CARGO_MANIFEST_DIR`.
+    ///
+    /// # BC trace
+    /// F-P7-003b: injectable seam added to make panic branch and invalid-override path
+    /// reachable in unit tests without env-var manipulation (unsafe in concurrent tests).
+    #[allow(clippy::panic)] // test helper: panic on invalid VSDD_CORPUS_ROOT is intentional
+    fn discover_factory_root(
+        corpus_root_override: Option<&str>,
+        walk_start: &std::path::Path,
+    ) -> Option<std::path::PathBuf> {
         fn is_real_corpus(root: &std::path::Path) -> bool {
             root.join("specs/behavioral-contracts").is_dir()
         }
-        // 1. Explicit env var (recommended for CI and non-standard layouts)
-        if let Ok(root) = std::env::var("VSDD_CORPUS_ROOT") {
-            let path = std::path::PathBuf::from(root);
+
+        if let Some(root_str) = corpus_root_override {
+            let path = std::path::PathBuf::from(root_str);
             if path.is_dir() && is_real_corpus(&path) {
                 return Some(path);
             }
+            // Explicit override set but not a valid corpus: always fatal.
+            // Never fall through to auto-discovery — that would mask the error.
+            panic!(
+                "VSDD_CORPUS_ROOT is set to {root_str:?} but is not a valid corpus root \
+                (directory must exist and contain 'specs/behavioral-contracts/'). \
+                Fix: correct VSDD_CORPUS_ROOT to point at a real .factory/ corpus, \
+                or unset it to use auto-discovery."
+            );
         }
-        // 2. Auto-discover: walk up from crate manifest directory
-        //    (env!() is evaluated at compile time, baked into the test binary)
-        let mut dir = std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR"));
+
+        // Auto-discover: walk up from walk_start up to 8 levels.
+        let mut dir = walk_start.to_path_buf();
         for _ in 0..8 {
             let candidate = dir.join(".factory");
             if candidate.is_dir() && is_real_corpus(&candidate) {
@@ -682,6 +703,56 @@ mod tests {
         None
     }
 
+    /// Discover the live .factory/ corpus root.
+    ///
+    /// Priority: VSDD_CORPUS_ROOT env var → parent-directory walk from CARGO_MANIFEST_DIR.
+    /// Story-worktree layout: .factory/ is mounted ~5 levels above the crate root in the
+    /// MAIN checkout, not in the worktree. Walk finds it by ascending.
+    ///
+    /// Validation: the discovered .factory/ MUST contain `specs/behavioral-contracts/`
+    /// to be accepted as the real corpus root (excludes worktree stub .factory/ directories
+    /// that only have `cycles/` and `logs/`).
+    ///
+    /// VSDD_CORPUS_ROOT set-but-invalid → panics immediately (see `discover_factory_root`).
+    /// The CI fail-hard branch is tested via `handle_corpus_absent(true)`.
+    ///
+    /// # BC trace
+    /// F-P7-003b: refactored to call `discover_factory_root` for testability.
+    fn live_factory_root() -> Option<std::path::PathBuf> {
+        let corpus_root_override = std::env::var("VSDD_CORPUS_ROOT").ok();
+        discover_factory_root(
+            corpus_root_override.as_deref(),
+            std::path::Path::new(env!("CARGO_MANIFEST_DIR")),
+        )
+    }
+
+    /// Respond to absent corpus: skip gracefully or fail hard.
+    ///
+    /// Called from `corpus_root_or_skip!` when `live_factory_root()` returns `None`.
+    /// Extracted as a function so the panic branch is unit-testable without env-var
+    /// manipulation (unsafe in concurrent tests).
+    ///
+    /// `require = true`  (CI_REQUIRE_ARTIFACTS=1): panics — corpus must be present in CI.
+    /// `require = false` : prints `[CORPUS-SKIP]` and returns; caller should `return`.
+    ///
+    /// # BC trace
+    /// F-P7-003b: injectable `require` parameter replaces the inline env-var read so both
+    /// branches are reachable from unit tests without manipulating `CI_REQUIRE_ARTIFACTS`.
+    #[allow(clippy::panic)] // test helper: panic on CI_REQUIRE_ARTIFACTS=1 is intentional
+    fn handle_corpus_absent(require: bool) {
+        if require {
+            panic!(
+                "CI_REQUIRE_ARTIFACTS=1 but .factory/ corpus not found. \
+                Set VSDD_CORPUS_ROOT=/path/to/.factory to run corpus tests. \
+                Or mount the factory-artifacts worktree before running."
+            );
+        }
+        eprintln!(
+            "[CORPUS-SKIP] .factory/ not found; set VSDD_CORPUS_ROOT or \
+            CI_REQUIRE_ARTIFACTS=1 to require. Skipping corpus test."
+        );
+    }
+
     /// Skip gracefully or fail hard based on CI_REQUIRE_ARTIFACTS.
     /// Usage: `let root = corpus_root_or_skip!();` at the top of each corpus test.
     macro_rules! corpus_root_or_skip {
@@ -689,21 +760,120 @@ mod tests {
             match live_factory_root() {
                 Some(r) => r,
                 None => {
-                    if std::env::var("CI_REQUIRE_ARTIFACTS").as_deref() == Ok("1") {
-                        panic!(
-                            "CI_REQUIRE_ARTIFACTS=1 but .factory/ corpus not found. \
-                            Set VSDD_CORPUS_ROOT=/path/to/.factory to run corpus tests. \
-                            Or mount the factory-artifacts worktree before running."
-                        );
-                    }
-                    eprintln!(
-                        "[CORPUS-SKIP] .factory/ not found; set VSDD_CORPUS_ROOT or \
-                        CI_REQUIRE_ARTIFACTS=1 to require. Skipping corpus test."
-                    );
+                    let require = std::env::var("CI_REQUIRE_ARTIFACTS").as_deref() == Ok("1");
+                    handle_corpus_absent(require);
                     return;
                 }
             }
         }};
+    }
+
+    // -----------------------------------------------------------------------
+    // F-P7-003b — fail-hard branch testability + VSDD_CORPUS_ROOT invalid detection
+    //
+    // Three untested behaviors identified by independent verification:
+    //   (1) CI_REQUIRE_ARTIFACTS=1 + absent corpus → panic (fail-hard), not skip.
+    //   (2) VSDD_CORPUS_ROOT set-but-invalid → panic immediately, not fall through to
+    //       auto-discovery (which would find the real .factory/ and mask the error).
+    //   (3) CI_REQUIRE_ARTIFACTS unset + absent corpus → graceful skip (no panic).
+    //
+    // Root cause of prior untestability:
+    //   (1) live_factory_root() always returns Some in this repo: CARGO_MANIFEST_DIR walk
+    //       finds the real .factory/ within 8 levels. The panic branch is structurally
+    //       unreachable from any env-var combination when the corpus is mounted.
+    //   (2) Before this refactor, VSDD_CORPUS_ROOT set-but-invalid silently fell through
+    //       to auto-discovery, returning the real .factory/ — masking the error.
+    //
+    // Fix applied (this burst):
+    //   (a) discover_factory_root(override, walk_start) — injectable seam.
+    //   (b) handle_corpus_absent(require) — injectable require flag.
+    //   (c) VSDD_CORPUS_ROOT set-but-invalid now panics (not fall-through).
+    //   (d) Tests call discover_factory_root + handle_corpus_absent directly —
+    //       no env-var manipulation, safe for concurrent test execution.
+    // -----------------------------------------------------------------------
+
+    /// F-P7-003b(1): CI_REQUIRE_ARTIFACTS=1 + absent corpus → panics (fail-hard).
+    ///
+    /// TEETH: #[should_panic] fails if handle_corpus_absent(true) does NOT panic —
+    /// proving the panic is genuinely load-bearing. The expected= suffix additionally
+    /// catches regressions where the message changes but a panic still fires.
+    ///
+    /// Models the corpus_root_or_skip! behavior when CI_REQUIRE_ARTIFACTS=1 and
+    /// live_factory_root() returns None (structurally unreachable in this repo by
+    /// other means — injectable seam is the only viable test path).
+    #[test]
+    #[should_panic(expected = "CI_REQUIRE_ARTIFACTS=1 but .factory/ corpus not found")]
+    fn test_corpus_fail_hard_panics_when_ci_require_artifacts_set() {
+        handle_corpus_absent(true);
+    }
+
+    /// F-P7-003b(1) CONTROL: CI_REQUIRE_ARTIFACTS unset + absent corpus → no panic.
+    ///
+    /// CONTROL for the fail-hard test above: handle_corpus_absent(false) must NOT panic.
+    /// If both handle_corpus_absent(true) and handle_corpus_absent(false) panicked, the
+    /// fail-hard test would be vacuous (it cannot distinguish mode). This control
+    /// proves the two modes are distinct.
+    #[test]
+    fn test_corpus_graceful_skip_when_ci_require_artifacts_not_set() {
+        // Must complete without panic. In corpus_root_or_skip!, the macro then issues
+        // `return` to exit the test function. That `return` is not testable from a unit
+        // test (we're not inside a corpus_root_or_skip! call here), but the non-panic
+        // path is the only testable concern for handle_corpus_absent(false).
+        handle_corpus_absent(false);
+    }
+
+    /// F-P7-003b(2a): VSDD_CORPUS_ROOT set to nonexistent path → panics immediately.
+    ///
+    /// Before this fix: discover_factory_root silently fell through to auto-discovery,
+    /// finding the real .factory/ and returning Some — masking the typo'd override.
+    /// After fix: panics immediately when the override path fails is_real_corpus().
+    ///
+    /// TEETH: #[should_panic(expected = "VSDD_CORPUS_ROOT")] fails if discover_factory_root
+    /// returns Some or None instead of panicking — proving the panic is load-bearing.
+    #[test]
+    #[should_panic(expected = "VSDD_CORPUS_ROOT")]
+    fn test_corpus_invalid_corpus_root_override_panics_nonexistent_path() {
+        discover_factory_root(
+            Some("/vsdd-test-nonexistent-corpus-path-9876543210"),
+            std::path::Path::new("/tmp"),
+        );
+    }
+
+    /// F-P7-003b(2b): VSDD_CORPUS_ROOT set to existing dir without corpus structure → panics.
+    ///
+    /// Distinct from (2a): the path exists as a directory but lacks the
+    /// `specs/behavioral-contracts/` subdirectory required by is_real_corpus().
+    /// Verifies that corpus structure validation fires, not just path existence.
+    ///
+    /// /tmp always exists as a directory on the test platform but has no corpus structure.
+    #[test]
+    #[should_panic(expected = "VSDD_CORPUS_ROOT")]
+    fn test_corpus_invalid_corpus_root_override_panics_dir_without_corpus_structure() {
+        discover_factory_root(Some("/tmp"), std::path::Path::new("/tmp"));
+    }
+
+    /// F-P7-003b(3): auto-discovery returns None when walk finds no corpus.
+    ///
+    /// When VSDD_CORPUS_ROOT is None and the walk from /tmp finds no .factory/
+    /// within 8 ancestors, discover_factory_root must return None (not panic).
+    /// The macro then calls handle_corpus_absent to decide skip vs fail-hard.
+    ///
+    /// /tmp ancestors on Linux/macOS: /tmp → / → None (at most 2 levels).
+    /// Neither has .factory/specs/behavioral-contracts/, so None is guaranteed.
+    ///
+    /// CONTROL: If discover_factory_root returned Some for the /tmp walk, all corpus
+    /// tests would be broken — they rely on None triggering the skip path.
+    #[test]
+    fn test_corpus_discovery_returns_none_when_no_factory_in_walk() {
+        let result = discover_factory_root(None, std::path::Path::new("/tmp"));
+        assert!(
+            result.is_none(),
+            "discover_factory_root(None, /tmp) must return None: /tmp's ancestors do not \
+            contain .factory/specs/behavioral-contracts/. \
+            F-P7-003b(3): no-panic for absent corpus (panic only in handle_corpus_absent). \
+            Got Some path, which means /tmp's ancestor tree unexpectedly contains a corpus. \
+            This is a test environment anomaly — check if VSDD_CORPUS_ROOT is set."
+        );
     }
 
     // -----------------------------------------------------------------------
@@ -1236,6 +1406,134 @@ mod tests {
             "S-21.07 must not produce Arm B1 violations against the live STORY-INDEX.md. \
             The corpus is self-inconsistent: S-21.07 input-hash disagrees with STORY-INDEX.md. \
             F-P6-010 corpus shape invariant. Violations: {violations:?}"
+        );
+    }
+
+    // -----------------------------------------------------------------------
+    // F-S2107-P7-002 CORPUS TEST B2 — run_arm_b2 on live STORY-INDEX.md
+    //
+    // F-S2107-P7-002 (pass-7): the corpus-test sweep covered Arm A1 (Test A) and
+    // Arm B1 (Test B) but skipped Arm B2 — the arm that checks STORY-INDEX.md's
+    // internal consistency (catalog rows vs. aggregation blockquote).
+    //
+    // Live corpus state at burst time (requires state-manager action to clear):
+    // Live corpus state when test added (pass-7 burst):
+    //   - S-18.06: catalog=63d94a3, blockquote=cf37976 → MISMATCH (RED at test-write time)
+    //   - S-18.08: catalog=fe61c2c, blockquote=747b3eb → MISMATCH (RED at test-write time)
+    //   - S-18.11: catalog=c45c0fc, blockquote=absent  → half-present → advisory (GREEN)
+    //   - S-18.12: catalog=345086c, blockquote=absent  → half-present → advisory (GREEN)
+    //
+    // D-957 state-manager reconciliation (2026-08-05): all four entries fixed.
+    // Current corpus is CLEAN: test is now GREEN as a permanent regression guard.
+    //
+    // ADR-038 §Decision 3: half-present case (exactly one of {B2,B3} present, the
+    // other absent) is advisory + Continue per PC12 ("B2 or B3 absent → advisory +
+    // Continue" — unconditional inclusive-or). run_arm_b2 correctly produces no
+    // violation for the half-present case (catalog-only rows: bq_hash=None branch).
+    //
+    // Test lifecycle:
+    //   - corpus test (B2 live): GREEN after D-957; turns RED if corpus drifts again
+    //   - mutant/teeth test: GREEN always (injected mismatch is always caught)
+    //   - half-present control: GREEN always (run_arm_b2 already handles it)
+    // -----------------------------------------------------------------------
+
+    /// CORPUS shape invariant (F-S2107-P7-002): run_arm_b2 must produce no violations
+    /// on the live STORY-INDEX.md.
+    ///
+    /// Was RED at test-write time (S-18.06/S-18.08 catalog↔blockquote mismatches).
+    /// Became GREEN after D-957 state-manager reconciliation (2026-08-05).
+    /// Now serves as permanent regression guard: fails if any story's catalog and
+    /// blockquote diverge in a future STORY-INDEX.md burst.
+    ///
+    /// Half-present stories (catalog present, no blockquote) must NOT produce violations
+    /// per ADR-038 §Decision 3 (PC12 literal). The mutant companion below proves this
+    /// test has teeth and is not vacuous.
+    #[test]
+    fn test_BC_5_39_010_corpus_arm_b2_live_story_index_no_violations() {
+        let root = corpus_root_or_skip!();
+        let story_index_str = std::fs::read_to_string(root.join("stories/STORY-INDEX.md")).expect(
+            "STORY-INDEX.md must be readable from corpus root. \
+                F-S2107-P7-002 corpus Arm B2.",
+        );
+        let violations = arm_b::run_arm_b2(&story_index_str);
+        assert!(
+            violations.is_empty(),
+            "STORY-INDEX.md must have no Arm B2 catalog↔blockquote violations. \
+            F-S2107-P7-002: permanent regression guard — any story whose catalog hash \
+            differs from its blockquote hash is a corpus inconsistency. \
+            STATE-MANAGER ACTION: reconcile catalog↔blockquote in the same burst as any \
+            story input-hash update. \
+            ADR-038 §Decision 3: half-present stories (catalog present, no blockquote) \
+            must NOT produce violations (PC12 literal: B2 or B3 absent → advisory). \
+            Violations: {violations:?}"
+        );
+    }
+
+    /// TEETH PROOF for corpus_arm_b2: run_arm_b2 with an injected mismatch must detect it.
+    ///
+    /// Proves the corpus test has teeth after reconciliation: if run_arm_b2 were broken
+    /// and always returned an empty Vec, THIS mutant test would fail — exposing the vacuity.
+    ///
+    /// Mutant: appends a synthetic story S-99.99 whose catalog hash (aabbcc1) differs from
+    /// its blockquote hash (ddeeff2) into the live STORY-INDEX content, then asserts
+    /// run_arm_b2 detects the injected mismatch.
+    ///
+    /// GREEN immediately (the injected mismatch is always caught regardless of corpus state).
+    #[test]
+    fn test_BC_5_39_010_corpus_arm_b2_teeth_mutant_injected_mismatch_detected() {
+        let root = corpus_root_or_skip!();
+        let story_index_str = std::fs::read_to_string(root.join("stories/STORY-INDEX.md")).expect(
+            "STORY-INDEX.md must be readable from corpus root. \
+                F-S2107-P7-002 teeth mutant.",
+        );
+        // Inject a catalog row + blockquote pair with a guaranteed mismatch.
+        // S-99.99 is a synthetic ID that cannot appear in the real corpus.
+        let mutated = format!(
+            "{story_index_str}\n\
+            | S-99.99 | MUTANT-TEETH-TEST | input-hash aabbcc1 |\n\
+            > S-99.99=ddeeff2\n"
+        );
+        let violations = arm_b::run_arm_b2(&mutated);
+        assert!(
+            !violations.is_empty(),
+            "TEETH PROOF FAILED: run_arm_b2 must detect injected S-99.99 catalog=aabbcc1 \
+            vs blockquote=ddeeff2 mismatch. \
+            If violations is empty, run_arm_b2 is broken and would pass the corpus test \
+            vacuously after state-manager reconciles the real mismatches. \
+            F-S2107-P7-002 anti-vacuity requirement."
+        );
+        let found = violations.iter().any(|v| v.description.contains("S-99.99"));
+        assert!(
+            found,
+            "At least one violation must mention the injected story ID 'S-99.99'. \
+            Violations: {violations:?}"
+        );
+    }
+
+    /// ADR-038 §Decision 3 SHAPE CONTROL: half-present catalog row (no blockquote) →
+    /// no violation from run_arm_b2.
+    ///
+    /// Pins the ruling so a future implementer cannot accidentally change the half-present
+    /// arm to block without breaking this control. Uses a synthetic fixture (no corpus mount
+    /// needed) to isolate the shape invariant from live corpus state.
+    ///
+    /// PC12 literal: "B2 or B3 absent → advisory + Continue" — unconditional inclusive-or.
+    /// Half-present satisfies this predicate because the blockquote (B3) is absent.
+    ///
+    /// GREEN immediately. If this breaks, it means run_arm_b2 began blocking on
+    /// catalog-only entries — a regression against ADR-038 §Decision 3.
+    #[test]
+    fn test_BC_5_39_010_arm_b2_half_present_catalog_no_blockquote_no_violation() {
+        // S-18.11 shape: catalog row present, hash extractable, no blockquote entry.
+        let content = "| S-18.11 | some story | input-hash c45c0fc |\n\
+            # No blockquote entry for S-18.11\n";
+        let violations = arm_b::run_arm_b2(content);
+        assert!(
+            violations.is_empty(),
+            "ADR-038 §Decision 3: half-present case (catalog present, blockquote absent) \
+            must produce no Arm B2 violation. \
+            PC12 literal: 'B2 or B3 absent → advisory + Continue' is unconditional. \
+            Violations: {violations:?}"
         );
     }
 
