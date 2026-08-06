@@ -4,7 +4,7 @@ level: ops
 version: "6.91"
 status: draft
 producer: state-manager
-timestamp: 2026-08-06T05:00:00Z
+timestamp: 2026-08-06T05:30:00Z
 phase: D-957-S-21.07-PASS-6-RECORD-BURST-INDEX-SYNCS
 last_amended: "2026-08-05 (v6.91) — D-957-S-21.07-PASS-6-RECORD-BURST-INDEX-SYNCS (state-manager): Pass-6 adversary RECORDED NOT-CLEAN B4/H7/M8/L1 (20+6 obs; IMPROVING 24→20; reviewed HEAD b78b27ef+UNCOMMITTED); BC-INDEX v4.48→v4.49 (BC-5.39.010 v1.11→v1.12); ARCH-INDEX v3.43→v3.44; STORY-INDEX v4.285→v4.286 (S-18.06/08/11/12 POLICY 18; S-18.11 hash f7ab2d0); F-S2107-P7-001/002(SM)/007 CLOSED; 3 lessons; STATE.md v6.90→v6.91. [Prior: 2026-08-05 (v6.90) — SESSION-WRAP-2026-08-05 (state-manager): PIPELINE PAUSED per human /wrap 2026-08-05; D-956 SRC archived to session-checkpoints.md; new PAUSED SRC written. 4-INDEX UNCHANGED BC v4.48/VP v2.74/STORY v4.285/ARCH v3.43. STATE.md v6.89→v6.90. [Prior: ...]]"
 inputs: []
@@ -47,7 +47,7 @@ dtu_services: []
   ~335 lines (estimated post-D-955 S-21.07-PASS-4-RECORD-BURST-INDEX-SYNCS 2026-08-04; v6.87→v6.88; soft-target margin 415-335=+80 UNDER-SOFT-TARGET)
   ~310 lines (estimated post-D-956 S-21.07-PASS-5-RECORD-BURST-INDEX-SYNCS 2026-08-05; v6.88→v6.89; soft-target margin 415-310=+105 UNDER-SOFT-TARGET)
   ~308 lines (estimated post-SESSION-WRAP-2026-08-05 PIPELINE PAUSED 2026-08-05; v6.89→v6.90; soft-target margin 415-308=+107 UNDER-SOFT-TARGET)
-  ~335 lines (estimated post-D-957 S-21.07-PASS-6-RECORD-BURST-INDEX-SYNCS 2026-08-05; v6.90→v6.91; soft-target margin 415-335=+80 UNDER-SOFT-TARGET)
+  314 lines (wc-l post-update; D-957-sha-patch SHA-patch follow-up 2026-08-06; v6.91; soft-target margin 415-314=+101 UNDER-SOFT-TARGET)
   D-862 E21-PHASE-3-W1-DISPATCH-APPROVED 2026-07-20; v6.08→v6.09; SM governance/dispatch burst; human gate decision W1 APPROVED SEQUENTIAL; input-drift resolved (12 files, metadata-only); STATE.md stale-points corrected (W1 15pts→17pts, per-story values 5/5/5/6/6→11/3/3/5/5); frontmatter last_amended COMPACTED + Current Phase Steps/Decisions Log compacted to last-5 policy (this compaction is the size-budget remediation flagged OVER-SOFT-TARGET at D-861); PIPELINE UNPAUSED; 4-index ALL UNCHANGED BC v4.11/VP v2.72/STORY v4.227/ARCH v3.11. Full per-burst wc-l history D-819..D-861 (see decision-log.md for full range) archived; SoT: decision-log.md + git show 9debd920:.factory/STATE.md for D-861 pre-compaction state.
 -->
 
