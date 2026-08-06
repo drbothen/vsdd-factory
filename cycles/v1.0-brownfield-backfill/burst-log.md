@@ -23614,4 +23614,4 @@ BC-5.39.010 row confirmed v1.11 \| v1.12 \| v1.13. O-P8-02 / BC-INDEX v1.13 row 
 - Commit B: `be4cb7a9` — `factory(D-958/B): D-958 codification — decision-log D-958 block + 3 lessons (L-BB-cross-worktree/coverage-gate/durable-artifact)`
 - Commit C: `d32207bf` — `factory(D-958/C): content corrections + registrations — BC/STORY-INDEX body, sprint-state, BC-5.39.010 v1.13, S-21.07 v1.8, S-8.10 v1.3, BC-1.01.016+BC-1.03.017 new, S-21.10/11/12+E-22 registered, research+PR-770 artifacts`
 - Commit D: `304156dd` — `factory(D-958/D): 4-index frontmatter bumps — BC-INDEX v4.49→v4.50 (+total_bcs 1983→1985), STORY-INDEX v4.286→v4.287, VP-INDEX v2.74→v2.75, ARCH-INDEX v3.44→v3.45 (+total_adrs 37→39 ADR-038+039)`
-- Commit E: `[pending — this commit]` — `factory(D-958/E): STATE.md v6.91→v6.92 advance + burst-log D-958 8 blocks (CLEAN pass-7; streak 1/3)`
+- Commit E: `61e23c44` — `factory(D-958/E): STATE.md v6.91→v6.92 advance + burst-log D-958 8 blocks (CLEAN pass-7; streak 1/3)`
