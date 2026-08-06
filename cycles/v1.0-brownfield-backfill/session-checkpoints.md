@@ -7,7 +7,7 @@ producer: state-manager
 timestamp: 2026-04-26T12:00:00Z
 cycle: v1.0-brownfield-backfill
 inputs: [STATE.md]
-input-hash: "382b5e6"
+input-hash: "1642efa"
 traces_to: STATE.md
 ---
 
@@ -1650,3 +1650,59 @@ Archived from STATE.md by SESSION-WRAP-PAUSED 2026-08-04 per content-routing rul
 **Resume command.** `/vsdd-factory:next-step`.
 
 **Resume command.** `/vsdd-factory:next-step` — do NOT run `/rehydrate-wave` first (this is NOT a wave-boundary clear; resume directly from this SRC).
+
+---
+
+## Session Resume Checkpoint (2026-08-05 — D-957-S-21.07-PASS-6-RECORD-BURST-INDEX-SYNCS; NOT-CLEAN B4/H7/M8/L1 (20+6 obs); streak 0/3, 6 passes; trajectory-tail →25→25→24→20)
+
+> **SELF-SUFFICIENT RESUME CONTEXT — ASSUMES ZERO PRIOR CONTEXT.**
+
+### §1. Position and Status
+
+Cycle `v1.0-brownfield-backfill`. **PIPELINE ACTIVE** — D-957 record burst COMPLETE. Last decision: **D-957** (S-21.07 pass-6 RECORD+INDEX-SYNC burst; SHA-patch DONE: f0f25194). **4-INDEX:** BC v4.49 / VP v2.74 / STORY v4.286 / ARCH v3.44. trajectory 47→18→25→25→24→20; trajectory-tail →25→25→24→20. streak **0/3** (6 passes). S-21.07 + S-21.04 both in-cascade.
+
+### §2. S-21.07 Status
+
+**S-21.07** (validate-cross-site-correspondence, E-21 W4, 11 pts) — LOCAL cascade 6 passes, streak 0/3. Branch `feature/S-21.07-validate-cross-site-correspondence` @ **`b78b27ef`** (pass-6 code burst committed as `49d542a2` before factory-artifacts per POLICY 3; SHA-patch DONE: f0f25194 per D-447(c)+D-449(e)). Governing spec **BC-5.39.010 v1.12**; story **v1.7**; **ADR-037 v1.2**. Pass-6 adversary: NOT-CLEAN B4/H7/M8/L1 (20 findings + 6 obs); IMPROVING 24→20.
+
+### §3. Three Open BLOCKERs + 6 HIGHs (pass-6, finding IDs F-S2107-P7-NNN)
+
+Source: `cycles/v1.0-brownfield-backfill/S-21.07/adversary-pass-6.md`.
+
+- **F-P7-002 (BLOCKER) — SM-leg CLOSED; arch/impl scope open.** Arm B2 still blocks on live STORY-INDEX.md: Option 1 carve-out closed 2 of 4 legs; remaining Arm B2 behavior-correctness violations live. Needs implementer fix + re-run.
+- **F-P7-003 (BLOCKER)** — Compensating corpus test CI-inert: all 8 corpus tests skip silently in CI (VSDD_CORPUS_ROOT + CI_REQUIRE_ARTIFACTS unset) → implementer.
+- **F-P7-004 (BLOCKER)** — BC-5.39.010 v1.12 PC5/PC6 mandate rightmost-token; implementation delivers first-token-of-last-chain-entry. Spec wins (CLAUDE.md §12) → product-owner or architect to amend spec OR implementer to realign.
+- **F-P7-005/006/008/009/010/011 (6 HIGHs)** — v1.11→v1.12 live-cite sweep missed ~53 crates/ sites (005); arm_a1.rs mis-anchor F-P6-009 (006); PC13 half-present case undefined (008); red-gate-log.md no pass-6 section (009); corpus tests native not WASM sandbox (010); compensating guard match predicate too broad (011). See adversary-pass-6.md for full descriptions.
+- **F-P7-001 CLOSED** (burst committed). **F-P7-007 CLOSED** (BC-INDEX v1.11→v1.12). **F-P7-002 SM-leg CLOSED** (STORY-INDEX three-way hash reconciliation POLICY 18 ACHIEVED).
+
+### §4. Merge-Order Constraint (CRITICAL)
+
+S-21.07's branch adds `CI_REQUIRE_ARTIFACTS: "1"` to `.github/workflows/ci.yml` (commit `da9ec911`). Once S-21.07 merges, `validate-factory-path-staging.bats` (36 tests) runs against the missing WASM → develop turns RED. **S-21.09 must land before S-21.07.** First decision on resume: sequencing, not coding.
+
+### §5. S-21.04 Status
+
+**S-21.04** (story-worktree write-path discipline, E-21 W2) — 30 passes, 0 CLEAN, streak 0/3. Branch @ `323f440f`, no PR (correct: mid-cascade). Pass-31 adversary pending; separate cascade, untouched this session.
+
+### §6. S-21.09
+
+**S-21.09** (wasm-artifact-restore-and-registry-parity) — NEW D-954. E-21 Wave 4, 8 pts, 7 ACs, anchored BC-4.16.001 + ADR-031 §Decision 2+3, `input-hash cf3a0c6`, status draft. Must merge before S-21.07.
+
+### §7. P0 Blocking Issue
+
+`validate-factory-path-staging` WASM guard inert since 2026-07-23: registry declares `hook-plugins/validate-factory-path-staging.wasm`, artifact absent from disk, **0** invocations vs 889/888 `^Bash$` siblings. `on_error = "continue"` makes a missing plugin indistinguishable from a passing one. **BC-4.16.001 v1.8 Precondition 3 structurally unsatisfiable.** Root cause: `CI_REQUIRE_ARTIFACTS=1` absent from develop `ci.yml` — 25 AC tests silently skipped every PR. Fix story: **S-21.09**.
+
+### §8. Open Drift Items to Carry
+
+ADR-037 remediation: **78 stories** (pass-6 F-P7-018: roster derived by prefix grep disagrees with `is_volatile_path` by 1; re-scoping needed). Full-corpus bats **non-deterministic** (3 runs → 3 different failure sets). **8 Dependabot vulns** (3 high, 5 moderate; only RUSTSEC-2026-0149 tracked; 7 unrecorded → security-reviewer). 2 committed **debug-build WASMs** on develop. **Pass-6 D-693 attestation stale**: committed .wasm 231,121 bytes (code burst `49d542a2`); D-693 commit message cites 226,794 (F-P7-019; SHA-patch DONE f0f25194).
+
+### §9. Cautions
+
+Do NOT run `compute-input-hash --scan --update` (418-file blast radius, D-936). Do NOT run `/rehydrate-wave` (wave-state.yaml points at closed E-19 W1 epic). `pipeline:` not a reliable liveness signal (D-941). Adversary agent is **read-only** — persistence is the record burst's first act. Main-repo noise: `.claude/scheduled_tasks.lock` (M) + `tests/report.tap` (untracked) deliberately uncommitted.
+
+### §10. Pending Human Decisions
+
+(1) F-P7-004 spec-vs-implementation: amend BC-5.39.010 PC5/PC6 OR realign implementation (CLAUDE.md §12 spec wins; human or architect must authorize spec amendment); (2) F-P7-003 CI wiring for corpus tests; (3) re-scoping 78-story ADR-037 sweep; (4) standing directive unchanged — **no rc cut until E-21 is done**.
+
+### §11. Resume Command
+
+`/vsdd-factory:next-step`. Recommended agent order: **product-owner or architect (F-P7-004 spec/implementation divergence) → implementer (F-P7-002/003/005/006/009/010/011) → pass-7 adversary → state-manager LAST.** Critical: S-21.09 must merge BEFORE S-21.07 (merge-order constraint).

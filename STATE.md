@@ -4,7 +4,7 @@ level: ops
 version: "6.91"
 status: draft
 producer: state-manager
-timestamp: 2026-08-06T05:30:00Z
+timestamp: 2026-08-06T08:30:00Z
 phase: D-957-S-21.07-PASS-6-RECORD-BURST-INDEX-SYNCS
 last_amended: "2026-08-05 (v6.91) — D-957-S-21.07-PASS-6-RECORD-BURST-INDEX-SYNCS (state-manager): Pass-6 adversary RECORDED NOT-CLEAN B4/H7/M8/L1 (20+6 obs; IMPROVING 24→20; reviewed HEAD b78b27ef+UNCOMMITTED); BC-INDEX v4.48→v4.49 (BC-5.39.010 v1.11→v1.12); ARCH-INDEX v3.43→v3.44; STORY-INDEX v4.285→v4.286 (S-18.06/08/11/12 POLICY 18; S-18.11 hash f7ab2d0); F-S2107-P7-001/002(SM)/007 CLOSED; 3 lessons; STATE.md v6.90→v6.91. [Prior: 2026-08-05 (v6.90) — SESSION-WRAP-2026-08-05 (state-manager): PIPELINE PAUSED per human /wrap 2026-08-05; D-956 SRC archived to session-checkpoints.md; new PAUSED SRC written. 4-INDEX UNCHANGED BC v4.48/VP v2.74/STORY v4.285/ARCH v3.43. STATE.md v6.89→v6.90. [Prior: ...]]"
 inputs: []
@@ -12,7 +12,7 @@ input-hash: "[live-state]"
 traces_to: prd.md
 project: vsdd-factory
 mode: brownfield
-pipeline: ACTIVE
+pipeline: PAUSED
 current_step: "D-957-S-21.07-PASS-6-RECORD-BURST-INDEX-SYNCS (state-manager this-commit). D-chain cite D-957 latest brownfield. S-21.07 pass-6 adversary RECORDED (D-957; NOT-CLEAN B4/H7/M8/L1; 20 findings + 6 obs; IMPROVING 24→20; trajectory 47→18→25→25→24→20; streak 0/3; 6 passes); F-S2107-P7-001/002(SM)/007 CLOSED; F-S2107-P7-002(arch)/003/004 OPEN BLOCKER. (1) adversary-pass-6.md CREATED; INDEX.md pass-6 row; D-957 codified; 3 lessons; burst-log D-957 (8 blocks). (2) BC-INDEX v4.48→v4.49: BC-5.39.010 v1.11→v1.12 (F-S2107-P7-007 HIGH CLOSED). (3) ARCH-INDEX v3.43→v3.44: ADR-037 row roster 78→77 + leg 63→62 + frontmatter bump (F-P6-001/F-P6-011). (4) ADR-037 v1.1→v1.2 (architect; Decision 5 roster 78→77; F-P6-001/F-P6-011 CLOSED). (5) S-21.07 v1.5→v1.7 (story-writer; AC-022/023 + v1.12 cites; POLICY 18 S-21.07=1bc3197 CONFIRMED). (6) STORY-INDEX v4.285→v4.286: S-18.06/08/11/12 POLICY 18 three-way hash equality ACHIEVED; S-18.11 d774716→f7ab2d0 (compute-input-hash --update; +version/changelog normalized; F-S2107-P7-002 SM-leg CLOSED). (7) 4-INDEX: BC v4.48→v4.49; VP v2.74 UNCHANGED; STORY v4.285→v4.286; ARCH v3.43→v3.44. trajectory-tail →25→25→24→20. parent-commit: e3defa50. SHA-patch: f0f25194."
 current_cycle: v1.0-brownfield-backfill
 dtu_required: false
@@ -48,6 +48,7 @@ dtu_services: []
   ~310 lines (estimated post-D-956 S-21.07-PASS-5-RECORD-BURST-INDEX-SYNCS 2026-08-05; v6.88→v6.89; soft-target margin 415-310=+105 UNDER-SOFT-TARGET)
   ~308 lines (estimated post-SESSION-WRAP-2026-08-05 PIPELINE PAUSED 2026-08-05; v6.89→v6.90; soft-target margin 415-308=+107 UNDER-SOFT-TARGET)
   314 lines (wc-l post-update; D-957-sha-patch SHA-patch follow-up 2026-08-06; v6.91; soft-target margin 415-314=+101 UNDER-SOFT-TARGET)
+  314 lines (wc-l post-update; SESSION-WRAP-2026-08-06 PIPELINE PAUSED 2026-08-06; v6.91; soft-target margin 415-314=+101 UNDER-SOFT-TARGET)
   D-862 E21-PHASE-3-W1-DISPATCH-APPROVED 2026-07-20; v6.08→v6.09; SM governance/dispatch burst; human gate decision W1 APPROVED SEQUENTIAL; input-drift resolved (12 files, metadata-only); STATE.md stale-points corrected (W1 15pts→17pts, per-story values 5/5/5/6/6→11/3/3/5/5); frontmatter last_amended COMPACTED + Current Phase Steps/Decisions Log compacted to last-5 policy (this compaction is the size-budget remediation flagged OVER-SOFT-TARGET at D-861); PIPELINE UNPAUSED; 4-index ALL UNCHANGED BC v4.11/VP v2.72/STORY v4.227/ARCH v3.11. Full per-burst wc-l history D-819..D-861 (see decision-log.md for full range) archived; SoT: decision-log.md + git show 9debd920:.factory/STATE.md for D-861 pre-compaction state.
 -->
 
@@ -64,8 +65,8 @@ dtu_services: []
 | **Mode** | brownfield-onboarding |
 | **Language** | Rust + Bash + Markdown |
 | **Started** | 2026-04-25 |
-| **Last Updated** | 2026-08-05 — D-957-S-21.07-PASS-6-RECORD-BURST-INDEX-SYNCS: pass-6 adversary RECORDED NOT-CLEAN B4/H7/M8/L1 (20+6 obs; IMPROVING 24→20); BC-INDEX v4.48→v4.49; ARCH-INDEX v3.43→v3.44; STORY-INDEX v4.285→v4.286 (POLICY 18 S-18.06/08/11/12); F-S2107-P7-001/002(SM)/007 CLOSED; trajectory-tail →25→25→24→20; STATE.md v6.90→v6.91. |
-| **Current Phase** | **D-957-S-21.07-PASS-6-RECORD-BURST-INDEX-SYNCS (2026-08-05). PIPELINE ACTIVE — pass-6 record burst COMPLETE. Last burst D-957 (SHA-patch DONE: f0f25194). develop 948f0fb1. main 80e5cd7b. merged_count 107. 4-INDEX BC v4.49/VP v2.74/STORY v4.286/ARCH v3.44. trajectory-tail →25→25→24→20. streak 0/3 (6 passes). S-21.07 pass-6 NOT-CLEAN B4/H7/M8/L1 (20+6 obs); 3 open BLOCKERs (F-P7-002/003/004); MERGE-ORDER: S-21.09 MUST land before S-21.07.** |
+| **Last Updated** | 2026-08-06 — SESSION-WRAP-2026-08-06: PIPELINE PAUSED per human /wrap; code burst 49d542a2 committed LOCAL not pushed; factory-artifacts tip SHA-patch pending; trajectory-tail →25→25→24→20. |
+| **Current Phase** | **SESSION-WRAP-2026-08-06 (2026-08-06). PIPELINE PAUSED — pass-6 complete NOT-CLEAN B4/H7/M8/L1 (20 findings); streak 0/3; 3 BLOCKERs OPEN (F-P7-002/003/004). Last D-NNN burst: D-957 (f0f25194). develop 948f0fb1. main 80e5cd7b. merged_count 107. 4-INDEX BC v4.49/VP v2.74/STORY v4.286/ARCH v3.44. trajectory-tail →25→25→24→20.** |
 | **Current Cycle** | v1.0-brownfield-backfill |
 
 ## Phase Progress
@@ -108,6 +109,7 @@ dtu_services: []
 | D-956 S-21.07-PASS-5-RECORD-BURST-INDEX-SYNCS 2026-08-05 (pass-5 RECORD+INDEX-SYNC burst; SM this-commit) | state-manager | COMPLETE | (1) POLICY 16 GLOBAL-MAX GATE: D-955 confirmed max → D-956 allocated (decision-log.md line 14855). (2) RECORD+INDEX-SYNC burst COMPLETE: adversary-pass-5.md CREATED (NOT-CLEAN B3/H8/M10/L3; 24+5 obs; FLAT-MINUS-ONE 25→24; reviewed HEAD b78b27ef); INDEX.md pass-5 row; D-956 codified; 6 lessons; burst-log.md D-956 (8 blocks). (3) BC-INDEX v4.47→v4.48: BC-5.39.010 row v1.9→v1.10 (F-S2107-P6-001 data-legs CLOSED). (4) ARCH-INDEX v3.42→v3.43: ADR-037 Decision 5 roster 19→78 + AMENDED v1.1. (5) STORY-INDEX v4.284→v4.285: POLICY 18 S-21.07=dd5c9d2 THREE-WAY ACHIEVED. (6) 4 Drift Items. (7) 4-INDEX: BC v4.47→v4.48; VP v2.74 UNCHANGED; STORY v4.284→v4.285; ARCH v3.42→v3.43. streak 0/3 (5 passes). trajectory-tail →18→25→25→24. parent-commit: 571ccf65. SHA-patch DONE: `e2789993`. |
 | SESSION-WRAP-2026-08-05 (session-wrap burst; SM this-commit) | state-manager | COMPLETE | (1) PIPELINE PAUSED: human /wrap directive 2026-08-05. (2) D-956 SRC archived to session-checkpoints.md. (3) New PAUSED SRC written: S-21.07 pass-6 fix burst pending; streak 0/3; 3 BLOCKERs OPEN (F-S2107-P6-001/002/003); 1 HIGH OPEN (F-S2107-P6-004); S-21.09 merge-order constraint CRITICAL. (4) D-953 archived to D-836..D-953 (see decision-log.md for full range) summary row. (5) 4-INDEX UNCHANGED: BC v4.48/VP v2.74/STORY v4.285/ARCH v3.43. trajectory-tail →18→25→25→24. |
 | D-957 S-21.07-PASS-6-RECORD-BURST-INDEX-SYNCS 2026-08-05 (pass-6 RECORD+INDEX-SYNC burst; SM this-commit) | state-manager | COMPLETE | (1) POLICY 16 GLOBAL-MAX GATE: D-956 confirmed max → D-957 allocated. (2) RECORD+INDEX-SYNC burst COMPLETE: adversary-pass-6.md CREATED (NOT-CLEAN B4/H7/M8/L1; 20+6 obs; IMPROVING 24→20; reviewed HEAD b78b27ef+UNCOMMITTED); INDEX.md pass-6 row; D-957 codified; 3 lessons; burst-log.md D-957 (8 blocks). (3) BC-INDEX v4.48→v4.49: BC-5.39.010 v1.11→v1.12 (F-S2107-P7-007 HIGH CLOSED). (4) ARCH-INDEX v3.43→v3.44: ADR-037 v1.2 frontmatter fix. (5) STORY-INDEX v4.285→v4.286: S-18.06/08/11/12 POLICY 18 ACHIEVED; S-18.11 d774716→a9320c2 (F-S2107-P7-002 SM-leg CLOSED). (6) 4-INDEX: BC v4.48→v4.49; VP v2.74 UNCHANGED; STORY v4.285→v4.286; ARCH v3.43→v3.44. streak 0/3 (6 passes). trajectory-tail →25→25→24→20. parent-commit: e3defa50. SHA-patch DONE: f0f25194. |
+| SESSION-WRAP-2026-08-06 (session-wrap burst; SM this-commit) | state-manager | COMPLETE | (1) PIPELINE PAUSED: human /wrap directive 2026-08-06. (2) D-957 SRC archived to session-checkpoints.md. (3) New PAUSED SRC written: S-21.07 pass-6 COMPLETE NOT-CLEAN B4/H7/M8/L1 (20 findings + 6 obs); 3 BLOCKERs OPEN (F-P7-002/003/004); streak 0/3; code burst 49d542a2 committed LOCAL not pushed; factory-artifacts tip 3e07fd93; cargo test ALL PASS; bats 46/5/0. (4) 4-INDEX UNCHANGED: BC v4.49/VP v2.74/STORY v4.286/ARCH v3.44. trajectory-tail →25→25→24→20. |
 
 ## Identifier Conventions
 
@@ -153,7 +155,7 @@ dtu_services: []
 | Cycle | Type | Status | Notes |
 |-------|------|--------|-------|
 | F-block-ai-attribution-message-file-arm | feature | F3 COMPLETE — F4 READY | F1+F2+F3 done 2026-05-12; 2 stories ready; E-16 under SS-07/SS-04; milestone v1.0.0-rc.17 |
-| v1.0-brownfield-backfill | brownfield | **D-957-S-21.07-PASS-6-RECORD-BURST-INDEX-SYNCS 2026-08-05 PIPELINE ACTIVE. develop 948f0fb1; main 80e5cd7b; merged_count 107; BC-INDEX v4.49; VP-INDEX v2.74; STORY-INDEX v4.286; ARCH-INDEX v3.44; streak 0/3 (6 passes); trajectory-tail →25→25→24→20 (LENGTH=4). S-21.07 pass-6 NOT-CLEAN B4/H7/M8/L1 (20+6 obs; IMPROVING 24→20); 3 open BLOCKERs (F-P7-002/003/004); MERGE-ORDER: S-21.09 MUST land before S-21.07 merge. S-21.04 pass-31 pending.** | D-957 S-21.07-PASS-6-RECORD-BURST-INDEX-SYNCS 2026-08-05 trajectory-tail →25→25→24→20; D-956 S-21.07-PASS-5-RECORD-BURST-INDEX-SYNCS 2026-08-05; D-955 S-21.07-PASS-4-RECORD-BURST-INDEX-SYNCS 2026-08-04; D-954 S-21.07-PASS-3-RECORD-BURST 2026-08-04. [Earlier: D-953 and prior — see decision-log.md] |
+| v1.0-brownfield-backfill | brownfield | **D-957-S-21.07-PASS-6-RECORD-BURST-INDEX-SYNCS 2026-08-05 PIPELINE PAUSED (session wrap 2026-08-06). develop 948f0fb1; main 80e5cd7b; merged_count 107; BC-INDEX v4.49; VP-INDEX v2.74; STORY-INDEX v4.286; ARCH-INDEX v3.44; streak 0/3 (6 passes); trajectory-tail →25→25→24→20 (LENGTH=4). S-21.07 pass-6 NOT-CLEAN B4/H7/M8/L1 (20+6 obs; IMPROVING 24→20); 3 open BLOCKERs (F-P7-002/003/004); MERGE-ORDER: S-21.09 MUST land before S-21.07 merge. S-21.04 pass-31 pending.** | D-957 S-21.07-PASS-6-RECORD-BURST-INDEX-SYNCS 2026-08-05 trajectory-tail →25→25→24→20; D-956 S-21.07-PASS-5-RECORD-BURST-INDEX-SYNCS 2026-08-05; D-955 S-21.07-PASS-4-RECORD-BURST-INDEX-SYNCS 2026-08-04; D-954 S-21.07-PASS-3-RECORD-BURST 2026-08-04. [Earlier: D-953 and prior — see decision-log.md] |
 | v1.0-feature-engine-discipline-pass-1 | feature | **PAUSED** | F5 pass-75 adversary complete D-510 2026-05-27; META-LEVEL-30 CANDIDATE-CONFIRMED; trajectory →9→9→9→11. |
 | v1.0-feature-plugin-async-semantics-pass-1 | feature | CLOSED | All PRs merged; rc.14 shipped |
 
@@ -259,56 +261,54 @@ dtu_services: []
 - `cycles/v1.0-feature-plugin-async-semantics-pass-1/burst-log.md` | `session-checkpoints.md` | `lessons.md`
 - `cycles/v1.0-feature-engine-discipline-pass-1/burst-log.md` (adversary reviews at `S-12.03/`, `S-12.04/`, `S-12.05/` subdirs)
 
-## Session Resume Checkpoint (2026-08-05 — D-957-S-21.07-PASS-6-RECORD-BURST-INDEX-SYNCS; NOT-CLEAN B4/H7/M8/L1 (20+6 obs); streak 0/3, 6 passes; trajectory-tail →25→25→24→20)
+## Session Resume Checkpoint (2026-08-06 — SESSION-WRAP — S-21.07 pass-6 COMPLETE NOT-CLEAN B4/H7/M8/L1 (20 findings), streak 0/3, PIPELINE PAUSED)
 
-> **SELF-SUFFICIENT RESUME CONTEXT — ASSUMES ZERO PRIOR CONTEXT.**
+> **SELF-SUFFICIENT RESUME CONTEXT — ASSUMES ZERO PRIOR CONTEXT. PIPELINE PAUSED — do NOT invoke /rehydrate-wave on resume.**
 
 ### §1. Position and Status
 
-Cycle `v1.0-brownfield-backfill`. **PIPELINE ACTIVE** — D-957 record burst COMPLETE. Last decision: **D-957** (S-21.07 pass-6 RECORD+INDEX-SYNC burst; SHA-patch DONE: f0f25194). **4-INDEX:** BC v4.49 / VP v2.74 / STORY v4.286 / ARCH v3.44. trajectory 47→18→25→25→24→20; trajectory-tail →25→25→24→20. streak **0/3** (6 passes). S-21.07 + S-21.04 both in-cascade.
+Cycle `v1.0-brownfield-backfill`. **PIPELINE PAUSED** — human `/wrap` directive 2026-08-06. Last decision: **D-957** (S-21.07 pass-6 RECORD+INDEX-SYNC burst; SHA-patch DONE: f0f25194). **4-INDEX:** BC v4.49 / VP v2.74 / STORY v4.286 / ARCH v3.44. trajectory 47→18→25→25→24→20; trajectory-tail →25→25→24→20. streak **0/3** (6 passes). Code burst `49d542a2` committed LOCAL on `feature/S-21.07-validate-cross-site-correspondence` — **NOT PUSHED**.
 
 ### §2. S-21.07 Status
 
-**S-21.07** (validate-cross-site-correspondence, E-21 W4, 11 pts) — LOCAL cascade 6 passes, streak 0/3. Branch `feature/S-21.07-validate-cross-site-correspondence` @ **`b78b27ef`** (pass-6 code burst committed as `49d542a2` before factory-artifacts per POLICY 3; SHA-patch DONE: f0f25194 per D-447(c)+D-449(e)). Governing spec **BC-5.39.010 v1.12**; story **v1.7**; **ADR-037 v1.2**. Pass-6 adversary: NOT-CLEAN B4/H7/M8/L1 (20 findings + 6 obs); IMPROVING 24→20.
+**S-21.07** (validate-cross-site-correspondence, E-21 W4, 11 pts) — LOCAL cascade 6 passes, streak 0/3. Branch `feature/S-21.07-validate-cross-site-correspondence` @ **`b78b27ef`** (pass-6 code burst committed as `49d542a2` LOCAL NOT PUSHED). Governing spec **BC-5.39.010 v1.12**; story **v1.7**; **ADR-037 v1.2**. Pass-6 adversary: NOT-CLEAN B4/H7/M8/L1 (20 findings + 6 obs); IMPROVING 24→20. **factory-artifacts tip: 3e07fd93** (D-957-sha-patch). Gates: cargo test ALL PASS / 0 failed; bats 46 executed / 5 Class-D skipped / 0 failed.
 
-### §3. Three Open BLOCKERs + 6 HIGHs (pass-6, finding IDs F-S2107-P7-NNN)
+### §3. Three Open BLOCKERs (pass-7 START HERE)
 
 Source: `cycles/v1.0-brownfield-backfill/S-21.07/adversary-pass-6.md`.
 
-- **F-P7-002 (BLOCKER) — SM-leg CLOSED; arch/impl scope open.** Arm B2 still blocks on live STORY-INDEX.md: Option 1 carve-out closed 2 of 4 legs; remaining Arm B2 behavior-correctness violations live. Needs implementer fix + re-run.
-- **F-P7-003 (BLOCKER)** — Compensating corpus test CI-inert: all 8 corpus tests skip silently in CI (VSDD_CORPUS_ROOT + CI_REQUIRE_ARTIFACTS unset) → implementer.
-- **F-P7-004 (BLOCKER)** — BC-5.39.010 v1.12 PC5/PC6 mandate rightmost-token; implementation delivers first-token-of-last-chain-entry. Spec wins (CLAUDE.md §12) → product-owner or architect to amend spec OR implementer to realign.
-- **F-P7-005/006/008/009/010/011 (6 HIGHs)** — v1.11→v1.12 live-cite sweep missed ~53 crates/ sites (005); arm_a1.rs mis-anchor F-P6-009 (006); PC13 half-present case undefined (008); red-gate-log.md no pass-6 section (009); corpus tests native not WASM sandbox (010); compensating guard match predicate too broad (011). See adversary-pass-6.md for full descriptions.
-- **F-P7-001 CLOSED** (burst committed). **F-P7-007 CLOSED** (BC-INDEX v1.11→v1.12). **F-P7-002 SM-leg CLOSED** (STORY-INDEX three-way hash reconciliation POLICY 18 ACHIEVED).
+- **F-P7-002 (BLOCKER) — SM-leg CLOSED; arch/impl scope open.** Arm B2 still blocks on live STORY-INDEX.md. Routes: product-owner adjudicates PC13b carve-out validity + test-writer adds corpus_arm_b2 RED assertion.
+- **F-P7-003 (BLOCKER) — START HERE** → devops-engineer: move `Mount factory artifacts` step above `cargo test` in `cargo-host` job; set `CI_REQUIRE_ARTIFACTS=1` in CI YAML.
+- **F-P7-004 (BLOCKER)** — BC-5.39.010 v1.12 PC5/PC6 rightmost-token spec vs implementation divergence → product-owner or architect.
 
 ### §4. Merge-Order Constraint (CRITICAL)
 
-S-21.07's branch adds `CI_REQUIRE_ARTIFACTS: "1"` to `.github/workflows/ci.yml` (commit `da9ec911`). Once S-21.07 merges, `validate-factory-path-staging.bats` (36 tests) runs against the missing WASM → develop turns RED. **S-21.09 must land before S-21.07.** First decision on resume: sequencing, not coding.
+S-21.07's branch adds `CI_REQUIRE_ARTIFACTS: "1"` to `.github/workflows/ci.yml` (commit `da9ec911`). Once S-21.07 merges, `validate-factory-path-staging.bats` (36 tests) runs against the missing WASM → develop turns RED. **S-21.09 must land before S-21.07.**
 
 ### §5. S-21.04 Status
 
-**S-21.04** (story-worktree write-path discipline, E-21 W2) — 30 passes, 0 CLEAN, streak 0/3. Branch @ `323f440f`, no PR (correct: mid-cascade). Pass-31 adversary pending; separate cascade, untouched this session.
+**S-21.04** — 30 passes, 0 CLEAN, streak 0/3. Branch @ `323f440f`, no PR open (correct: mid-cascade). Pass-31 adversary pending.
 
 ### §6. S-21.09
 
-**S-21.09** (wasm-artifact-restore-and-registry-parity) — NEW D-954. E-21 Wave 4, 8 pts, 7 ACs, anchored BC-4.16.001 + ADR-031 §Decision 2+3, `input-hash cf3a0c6`, status draft. Must merge before S-21.07.
+**S-21.09** (wasm-artifact-restore-and-registry-parity) — E-21 Wave 4, input-hash `cf3a0c6`. Must merge before S-21.07. PR #769 OPEN, 13 checks green, `mergeStateStatus CLEAN`.
 
-### §7. P0 Blocking Issue
+### §7. PR #769 Status
 
-`validate-factory-path-staging` WASM guard inert since 2026-07-23: registry declares `hook-plugins/validate-factory-path-staging.wasm`, artifact absent from disk, **0** invocations vs 889/888 `^Bash$` siblings. `on_error = "continue"` makes a missing plugin indistinguishable from a passing one. **BC-4.16.001 v1.8 Precondition 3 structurally unsatisfiable.** Root cause: `CI_REQUIRE_ARTIFACTS=1` absent from develop `ci.yml` — 25 AC tests silently skipped every PR. Fix story: **S-21.09**.
+PR #769 (S-21.09): OPEN, 13 checks green, `mergeStateStatus CLEAN`. Ready to merge.
 
 ### §8. Open Drift Items to Carry
 
-ADR-037 remediation: **78 stories** (pass-6 F-P7-018: roster derived by prefix grep disagrees with `is_volatile_path` by 1; re-scoping needed). Full-corpus bats **non-deterministic** (3 runs → 3 different failure sets). **8 Dependabot vulns** (3 high, 5 moderate; only RUSTSEC-2026-0149 tracked; 7 unrecorded → security-reviewer). 2 committed **debug-build WASMs** on develop. **Pass-6 D-693 attestation stale**: committed .wasm 231,121 bytes (code burst `49d542a2`); D-693 commit message cites 226,794 (F-P7-019; SHA-patch DONE f0f25194).
+ADR-037 remediation: **77 stories** (roster per pass-6 ARCH-INDEX v3.44). Full-corpus bats **non-deterministic** (3 runs → 3 different failure sets; 46 executed / 5 Class-D skipped / 0 failed per last run). **8 Dependabot vulns** (3 high, 5 moderate). 2 committed **debug-build WASMs** on develop. **Pass-6 D-693 attestation stale** (F-P7-019; commit message cites 226,794 bytes; actual deployed .wasm is 231,121 bytes; SHA-patch DONE f0f25194).
 
 ### §9. Cautions
 
-Do NOT run `compute-input-hash --scan --update` (418-file blast radius, D-936). Do NOT run `/rehydrate-wave` (wave-state.yaml points at closed E-19 W1 epic). `pipeline:` not a reliable liveness signal (D-941). Adversary agent is **read-only** — persistence is the record burst's first act. Main-repo noise: `.claude/scheduled_tasks.lock` (M) + `tests/report.tap` (untracked) deliberately uncommitted.
+Do NOT run `compute-input-hash --scan --update` (418-file blast radius, D-936). Do NOT run `/rehydrate-wave` (wave-state.yaml points at closed E-19 W1 epic). **5 rc.23 cached hooks fire spuriously** on new-format STATE.md — expected advisory noise. `pipeline:` not a reliable liveness signal. Main-repo noise: `.claude/scheduled_tasks.lock` (M) + `tests/report.tap` (untracked) deliberately uncommitted.
 
 ### §10. Pending Human Decisions
 
-(1) F-P7-004 spec-vs-implementation: amend BC-5.39.010 PC5/PC6 OR realign implementation (CLAUDE.md §12 spec wins; human or architect must authorize spec amendment); (2) F-P7-003 CI wiring for corpus tests; (3) re-scoping 78-story ADR-037 sweep; (4) standing directive unchanged — **no rc cut until E-21 is done**.
+(1) F-P7-004 spec-vs-implementation: amend BC-5.39.010 PC5/PC6 OR realign implementation (CLAUDE.md §12 spec wins; human or architect must authorize spec amendment); (2) F-P7-003 CI wiring for corpus tests (devops-engineer priority); (3) re-scoping 77-story ADR-037 sweep; (4) standing directive unchanged — **no rc cut until E-21 is done**.
 
 ### §11. Resume Command
 
-`/vsdd-factory:next-step`. Recommended agent order: **product-owner or architect (F-P7-004 spec/implementation divergence) → implementer (F-P7-002/003/005/006/009/010/011) → pass-7 adversary → state-manager LAST.** Critical: S-21.09 must merge BEFORE S-21.07 (merge-order constraint).
+`/vsdd-factory:next-step`. Recommended: **F-P7-003 (devops-engineer, CI mount ordering) — START HERE.** Then product-owner (F-P7-004 PC5/PC6 ruling) → product-owner (F-P7-002 PC13b adjudication) → test-writer (F-P7-002 corpus_arm_b2 RED assertion) → implementer (F-P7-005/006/009/010/011) → pass-7 adversary → state-manager LAST. Critical: S-21.09 must merge BEFORE S-21.07 (merge-order). **Do NOT run /rehydrate-wave.**
