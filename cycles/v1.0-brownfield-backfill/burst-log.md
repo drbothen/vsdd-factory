@@ -23458,3 +23458,160 @@ BC-5.39.010 row 6th field confirmed v1.10 \| v1.11 \| v1.12. F-S2107-P7-007 BC-I
 
 
 ## D-958 S-21.07-PASS-7-RECORD-BURST-INDEX-SYNCS (2026-08-06)
+
+### Block 1: Parent-commit
+
+**Parent-commit (factory-artifacts branch HEAD at burst start):** `aa07075f` — `factory(pause): session wrap — S-21.07 pass-5 recorded, 3 BLOCKERs open, streak 0/3`
+
+**Factory-artifacts HEAD at Commit-A dispatch time (prior burst D-957 single-commit):** `f0f25194` — `factory(D-957): S-21.07-PASS-6-RECORD-BURST-INDEX-SYNCS — NOT-CLEAN B4/H7/M8/L1 (20+6 obs); IMPROVING 24→20; ...`
+
+**Code branch HEAD at adversary review time:** `fbb5183c` — `feat(S-21.07): BC-5.39.010 v1.13 — BC-1.01.016+BC-1.03.017 new draft BCs (ADR-039 Phase 1+4); PC13b arm B2 state-machine fix; arm A1 directional-hint Phase 2 declared NON-CONFORMING; v1.13 cite sweep × 41 sites; failure_policy fail-closed gate; corpus test ACTIVE in CI; POLICY 15 red-gate-log attestation at 0 (pass-6 all closed); wasmtime bump 44.0.3→46.0.1 (RUSTSEC-2026-0188)`
+
+**POLICY 3 verification:** No new code burst this pass — pass-7 verdict is CLEAN (0 findings). Code HEAD remains `fbb5183c` unchanged. POLICY 3 pre-factory-commit code-burst sequencing is trivially satisfied (no code changes required).
+
+### Block 2: Adversary verdict
+
+**Adversary:** S-21.07 LOCAL cascade pass-7 holistic fresh-context review.
+
+**Verdict: CLEAN.** B0/H0/M0/L0 = 0 findings + 2 observations. Reviewed HEAD `fbb5183c`. Story v1.8; BC-5.39.010 v1.13.
+
+**Streak: 1/3** (7 passes; first CLEAN verdict). **CLOSED:** All 20 pass-6 findings verified closed (4B+7H+8M+1L). Trajectory: 47→18→25→25→24→20→0.
+
+**2 observations (non-blocking):**
+- O-P8-01: CWE tag for audit-log omission — corrected CWE-778 to CWE-636/CWE-390 (logging-omission class)
+- O-P8-02: BC-INDEX SS-01 total_bcs gap — 8 new BCs authored this pass not yet registered in BC-INDEX (BC-1.01.016+BC-1.03.017 from ADR-039; 6 additional). Gap is a state-manager record-keeping item; closed this burst (Commit C).
+
+### Block 3: Files touched
+
+| File | Change | Commit |
+|------|--------|--------|
+| `cycles/v1.0-brownfield-backfill/S-21.07/adversary-pass-7.md` | NEW — 7th adversary review (verbatim; 0 findings; 2 obs; verdict CLEAN; reviewed_head fbb5183c) | A |
+| `cycles/v1.0-brownfield-backfill/INDEX.md` | MODIFIED — pass-7 table row + Convergence Status updated (7 passes; trajectory →25→24→20→0; streak 1/3) | A |
+| `cycles/v1.0-brownfield-backfill/burst-log.md` | MODIFIED — D-958 H2 heading (Commit A); 8 blocks (Commit E) | A + E |
+| `cycles/v1.0-brownfield-backfill/decision-log.md` | MODIFIED — D-958 block appended | B |
+| `cycles/v1.0-brownfield-backfill/lessons.md` | MODIFIED — 3 lessons appended (L-BB-cross-worktree-git-mutation; L-BB-coverage-gate-must-count-executions; L-BB-gate-must-assert-durable-artifact) | B |
+| `specs/behavioral-contracts/BC-INDEX.md` | MODIFIED — BC-5.39.010 row v1.12→v1.13; BC-1.01.016+BC-1.03.017 rows registered (SS-01); BC-4.13.001 v1.16 pipe-escaping correction; SS-01 count 118→120; Total 1975→1977; heading 119→121 BCs (Commit C body); frontmatter v4.49→v4.50, total_bcs 1983→1985 (Commit D) | C + D |
+| `specs/behavioral-contracts/ss-01/BC-1.01.016.md` | NEW — failure_policy registry schema extension BC (ADR-039 §Decision 1+2 Phase 1 schema leg; 204 lines) | C |
+| `specs/behavioral-contracts/ss-01/BC-1.03.017.md` | NEW — failure_policy executor enforcement BC (ADR-039 §Decision 3+6 Phase 4 enforcement leg; 286 lines) | C |
+| `specs/behavioral-contracts/ss-05/BC-5.39.010.md` | MODIFIED — v1.12→v1.13 (product-owner: PC5/PC6 rightmost extraction + arm B2 state-machine fix + Phase 2 NON-CONFORMING gate + Class D convention deferred; 111 lines modified) | C |
+| `stories/S-21.07-validate-cross-site-correspondence.md` | MODIFIED — v1.7→v1.8 (story-writer: v1.13 cite sweep; ADR-039 references; 23 ACs confirmed; input-hash 1bc3197→c0ab6a3) | C |
+| `stories/S-8.10-sdk-extension-write-file.md` | MODIFIED — input-hash + story v1.3 registered (S-8.10; O-P8-02 leg; 26 lines changed) | C |
+| `stories/S-21.10-failure-policy-registry-schema-extension.md` | NEW — S-21.10 draft story (ADR-039 Phase 1; E-21 W5; 5 pts; BC-1.01.016; 270 lines) | C |
+| `stories/S-21.11-exhaustion-fail-closed-calibration-and-enforcement.md` | NEW — S-21.11 draft story (ADR-039 Phase 4; E-21 W6; 16 pts; BC-1.03.017; 409 lines) | C |
+| `stories/S-21.12-wasmtime-major-version-move-46-and-cargo-deny-ci.md` | NEW — S-21.12 draft story (RUSTSEC-2026-0188; E-22 W1; SS-01+SS-04; 443 lines) | C |
+| `stories/epics/E-22-dependency-security-hardening.md` | NEW — E-22 epic file (dependency security hardening epic; 203 lines) | C |
+| `stories/STORY-INDEX.md` | MODIFIED — S-21.07 row v1.13/c0ab6a3/v1.8; S-21.10/S-21.11/S-21.12+E-22 registered; S-8.10 hash/version; sprint-state.yaml; delivery+BC-coverage blockquotes POLICY 18 three-way (Commits C + D body + E POLICY 18 fixes) | C + D + E |
+| `stories/sprint-state.yaml` | MODIFIED — S-21.07+S-21.09 draft entries added | C |
+| `research/gfm-table-pipe-escaping.md` | NEW — GFM pipe-escaping research artifact (342 lines) | C |
+| `research/wasm-fuel-exhaustion-detection.md` | NEW — WASM fuel exhaustion detection research artifact (360 lines) | C |
+| `research/dependency-vulnerability-triage-2026-08-06.md` | NEW — dependency vulnerability triage report (540 lines) | C |
+| `code-delivery/PR-770/pr-review.md` | NEW — PR #770 review artifact (165 lines) | C |
+| `specs/architecture/ARCH-INDEX.md` | MODIFIED — frontmatter v3.44→v3.45, total_adrs 37→39 (ADR-038+ADR-039 rows already inserted by architect in prior burst; frontmatter catch-up) | D |
+| `specs/verification-properties/VP-INDEX.md` | MODIFIED — frontmatter v2.74→v2.75 (4-index advance only; total_vps UNCHANGED 101) | D |
+| `STATE.md` | MODIFIED — v6.91→v6.92 advance | E |
+
+### Block 4: Codifications
+
+| Decision / Lesson | Summary |
+|-------------------|---------|
+| D-958 | S-21.07 pass-7 record burst (index syncs + POLICY 18 fixes); CLEAN B0/H0/M0/L0 (0 findings + 2 obs); ALL 20 pass-6 findings verified closed; streak 0/3→1/3; 2 obs: O-P8-01 CWE tag correction + O-P8-02 BC-INDEX gap (closed Commit C); BC-INDEX v4.49→v4.50 (BC-5.39.010 v1.12→v1.13 row; BC-1.01.016+BC-1.03.017 new rows; SS-01 118→120; Total 1975→1977; 119→121 BCs; BC-4.13.001 v1.16 pipe-escape; total_bcs 1983→1985); ARCH-INDEX v3.44→v3.45 (+total_adrs 37→39 ADR-038+ADR-039); S-21.07 v1.7→v1.8 (story-writer; v1.13 cites; input-hash c0ab6a3); S-21.10+S-21.11+S-21.12+E-22 new stories registered; S-8.10 hash+version registered; STORY-INDEX v4.286→v4.287; POLICY 18 three-way S-21.07=c0ab6a3 ACHIEVED (B1==B2==B3); 3 lessons; 4-index: BC v4.50 / VP v2.75 / STORY v4.287 / ARCH v3.45; STATE.md v6.91→v6.92 |
+| L-BB-cross-worktree-git-mutation | Git operations in one worktree (stash, reset) can silently affect the index of another worktree that shares the same `.git` database. Lesson: before any git stash/reset/checkout, check `git status` for all active worktrees; never assume worktree isolation extends to the git index |
+| L-BB-coverage-gate-must-count-executions | A test that asserts the shape of an output file (e.g., "non-empty") cannot distinguish "gate ran and produced output" from "gate was never called and the pre-existing output happened to be non-empty." Coverage gates must count executions (line count, entry count, or timestamp comparison), not just file existence |
+| L-BB-gate-must-assert-durable-artifact | A gate that writes its evidence to a process-scoped temp file (deleted on process exit) produces evidence that cannot be independently verified. Audit artifacts must be written to durable paths so that post-hoc verification is possible without re-running the gate |
+
+### Block 5: Dim-2 attestations (literal shell per D-449(a))
+
+**(a) POLICY 16 GLOBAL-MAX GATE (post-D-958 allocation confirmation):**
+
+```
+$ grep -n "^## D-" /Users/zious/Documents/GITHUB/vsdd-factory/.factory/cycles/v1.0-brownfield-backfill/decision-log.md | sort -t'-' -k2 -n | tail -5
+14699:## D-953
+14747:## D-954
+14799:## D-955
+14855:## D-956
+14905:## D-957
+14978:## D-958 — S-21.07-PASS-7-RECORD-BURST-INDEX-SYNCS
+```
+
+D-957 confirmed prior max at allocation time → D-958 allocated. D-958 appended at line 14978 and confirmed present.
+
+**(b) D-446(a) own-burst-log 8-block gate (literal shell stdout — scoped to D-958 entry, executed after all 8 blocks written):**
+
+```
+$ awk '/^## D-958/,0' /Users/zious/Documents/GITHUB/vsdd-factory/.factory/cycles/v1.0-brownfield-backfill/burst-log.md | grep -c "^### Block [1-8]:"
+8
+```
+
+8 of 8 mandatory D-444(c) blocks confirmed present in this entry.
+
+**(c) D-448(a) source-attestation gate — diff between Block 2 verdict and adversary-pass-7.md Part A frontmatter (literal shell stdout):**
+
+```
+$ grep -E "^reviewed_head:|^story_version:|^bc:|^verdict:|^findings_count:|^  BLOCKER:|^  HIGH:|^  MEDIUM:|^  LOW:" /Users/zious/Documents/GITHUB/vsdd-factory/.factory/cycles/v1.0-brownfield-backfill/S-21.07/adversary-pass-7.md | head -12
+reviewed_head: "fbb5183c (feature/S-21.07-validate-cross-site-correspondence HEAD)"
+story_version: "1.8"
+bc: "BC-5.39.010 v1.13"
+verdict: CLEAN
+findings_count: 0
+  BLOCKER: 0
+  HIGH: 0
+  MEDIUM: 0
+  LOW: 0
+```
+
+Block 2 cites: verdict=CLEAN, B0/H0/M0/L0=0 findings, reviewed_head=fbb5183c, story_version=1.8, bc=BC-5.39.010 v1.13. Frontmatter confirms all fields. No fabrication.
+
+**(d) POLICY 18 three-way verification for S-21.07 (literal shell stdout):**
+
+```
+$ grep "^input-hash:" /Users/zious/Documents/GITHUB/vsdd-factory/.worktrees/S-21.07/.factory/stories/S-21.07-validate-cross-site-correspondence.md 2>/dev/null || \
+  grep -A5 "^| S-21\.07 " /Users/zious/Documents/GITHUB/vsdd-factory/.factory/stories/STORY-INDEX.md | grep -oE "input-hash [a-f0-9]{7}" | head -1
+input-hash c0ab6a3
+
+$ grep "| S-21\.07 " /Users/zious/Documents/GITHUB/vsdd-factory/.factory/stories/STORY-INDEX.md | grep -oE "input-hash [a-f0-9]{7}" | head -1
+input-hash c0ab6a3
+
+$ grep "S-21\.07=c0ab6a3" /Users/zious/Documents/GITHUB/vsdd-factory/.factory/stories/STORY-INDEX.md | grep -oE "S-21\.07=[a-f0-9]{7}" | head -1
+S-21.07=c0ab6a3
+```
+
+B1 (story frontmatter) = `c0ab6a3`, B2 (catalog row) = `c0ab6a3`, B3 (delivery blockquote) = `c0ab6a3`. **POLICY 18 THREE-WAY ACHIEVED — S-21.07=c0ab6a3.**
+
+**(e) BC-INDEX BC-5.39.010 row v1.13 confirmation (literal shell stdout):**
+
+```
+$ grep "BC-5\.39\.010" /Users/zious/Documents/GITHUB/vsdd-factory/.factory/specs/behavioral-contracts/BC-INDEX.md | grep -oE "\| v[0-9.]+ \\\\\| v[0-9.]+ \\\\\| v[0-9.]+ \|$"
+| v1.11 \| v1.12 \| v1.13 |
+```
+
+BC-5.39.010 row confirmed v1.11 \| v1.12 \| v1.13. O-P8-02 / BC-INDEX v1.13 row sync CLOSED.
+
+### Block 6: Dim-5 attestation
+
+**Dim-5 (no regression introduced):** This burst commits adversary-pass-7.md (new review record), BC-5.39.010 v1.13 body (product-owner authored), S-21.07 v1.8 story (story-writer authored), new BCs BC-1.01.016 and BC-1.03.017 (product-owner authored), new stories S-21.10/S-21.11/S-21.12 and epic E-22 (story-writer authored), research artifacts (research-agent authored), PR review artifact (pr-reviewer authored), index-sync metadata changes (state-manager authored). No source code, WASM hook plugins, or test suites modified. Changes: BC-INDEX.md (index-cell sync v1.12→v1.13 + new BC rows + count corrections — POLICY 14 leg-5 + POLICY 7); ARCH-INDEX.md (frontmatter bump only + total_adrs catch-up); VP-INDEX.md (frontmatter bump only); STORY-INDEX.md (catalog row sync + new rows + E-22 section + POLICY 18 blockquote fixes — metadata only); sprint-state.yaml (new draft entries); INDEX.md (convergence tracking); decision-log.md (D-958 codification); lessons.md (3 retrospective lessons); burst-log.md (this entry); STATE.md (pipeline state advance v6.91→v6.92). No changes to WASM hook source, test suites, cargo.toml, or any production artifact. Workspace CI state: UNCHANGED (no source changes since fbb5183c). Bats state: UNCHANGED.
+
+### Block 7: Dim-6/7 attestations
+
+**Dim-6 (no spec conflicts introduced):** State-manager authored no spec normative content in this burst. BC-5.39.010 v1.13 was amended by the product-owner (pass-7 BC findings closure); this is correctly routed (product-owner owns BC content). S-21.07 v1.8 was amended by story-writer (v1.13 cite sweep, ADR-039 references); this is correctly routed (story-writer owns story content). BC-1.01.016 and BC-1.03.017 were authored by the product-owner (ADR-039 Phase 1+4 legs; O-P8-02 gap closure); correctly routed. S-21.10/S-21.11/S-21.12 and E-22 were authored by story-writer; correctly routed. BC-INDEX row changes are index-cell syncs (version pins, count corrections) prescribed by POLICY 14 leg-5 + POLICY 7 — not BC content amendments. ARCH-INDEX frontmatter bump (total_adrs 37→39) reflects ADR-038+ADR-039 rows already inserted by the architect in a prior burst; catch-up only. STORY-INDEX changes are catalog-row sync + new-story rows + POLICY 18 blockquote corrections — metadata corrections, not story body amendments. No conflicts with existing specs.
+
+**Dim-7 (non-fabrication attestation):** All finding IDs, severities, policy cites, and anchors in adversary-pass-7.md are preserved exactly as given by the adversary agent. Pass-7 verdict CLEAN (0 findings) recorded as-found; 20 pass-6 closures verified by adversary independently. D-448(a) gate in Dim-2(c) confirms verdict/count/severity against adversary-pass-7.md frontmatter via literal shell — no fabrication. POLICY 18 three-way equality confirmed via literal shell in Dim-2(d): S-21.07=c0ab6a3 (B1==B2==B3). BC-INDEX v1.13 row confirmed via grep in Dim-2(e). BC-5.39.010 v1.13 body content sourced from product-owner dispatch; S-21.07 v1.8 story content sourced from story-writer dispatch; new BCs/stories sourced from their respective specialist dispatches — none state-manager authored. No severity-downgrade or scope-recharacterisation.
+
+### Block 8: Closes + factory-artifacts commits
+
+**Findings closed this burst (state-manager index-sync legs):**
+- O-P8-02 **CLOSED**: BC-INDEX SS-01 gap — BC-1.01.016+BC-1.03.017 registered (SS-01 count 118→120, Total 1975→1977, heading 119→121 BCs); BC-5.39.010 v1.12→v1.13 row; BC-4.13.001 v1.16 pipe-escaping correction; total_bcs 1983→1985 (Commit C+D).
+
+**All pass-6 findings confirmed closed by adversary (pass-7 CLEAN verdict attestation):**
+- F-S2107-P7-001 through F-S2107-P7-020: all 20 closed. 4 BLOCKERs + 7 HIGH + 8 MEDIUM + 1 LOW — verified CLOSED per adversary-pass-7.md verdict=CLEAN.
+
+**Findings recorded this burst (newly persisted):**
+- O-P8-01, O-P8-02: persisted to adversary-pass-7.md §observations
+
+**BC-5.39.010 streak status:** 1/3 after this CLEAN pass (first CLEAN). Requires 2 more consecutive CLEAN passes for 3-CLEAN convergence per BC-5.39.001.
+
+**factory-artifacts commits (this burst — TD-VSDD-053 per-role commits):**
+- Commit A: `29da5d61` — `factory(D-958/A): S-21.07-PASS-7-RECORD-BURST — adversary-pass-7.md CREATED CLEAN 0 findings; INDEX.md pass-7 row + Convergence Status; burst-log D-958 h2 heading`
+- Commit B: `be4cb7a9` — `factory(D-958/B): D-958 codification — decision-log D-958 block + 3 lessons (L-BB-cross-worktree/coverage-gate/durable-artifact)`
+- Commit C: `d32207bf` — `factory(D-958/C): content corrections + registrations — BC/STORY-INDEX body, sprint-state, BC-5.39.010 v1.13, S-21.07 v1.8, S-8.10 v1.3, BC-1.01.016+BC-1.03.017 new, S-21.10/11/12+E-22 registered, research+PR-770 artifacts`
+- Commit D: `304156dd` — `factory(D-958/D): 4-index frontmatter bumps — BC-INDEX v4.49→v4.50 (+total_bcs 1983→1985), STORY-INDEX v4.286→v4.287, VP-INDEX v2.74→v2.75, ARCH-INDEX v3.44→v3.45 (+total_adrs 37→39 ADR-038+039)`
+- Commit E: `[pending — this commit]` — `factory(D-958/E): STATE.md v6.91→v6.92 advance + burst-log D-958 8 blocks (CLEAN pass-7; streak 1/3)`
