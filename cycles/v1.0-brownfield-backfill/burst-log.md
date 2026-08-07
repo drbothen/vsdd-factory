@@ -23620,4 +23620,170 @@ BC-5.39.010 row confirmed v1.11 \| v1.12 \| v1.13. O-P8-02 / BC-INDEX v1.13 row 
 - SHA-patch: `2878a195` — `factory(D-958/SHA-patch): Active Branches + burst-log Block 8 SHA-patch — factory-artifacts row updated to Commit E 61e23c44`
 - D-959 correction: `a0d87706` — `factory(D-959/correction): retract self-attested adversary-pass-7 — rename to fix-burst-closure-verification; streak reverts 1/3→0/3; trajectory reverts →0 drop; D-959 adversarial-authorship-integrity codified`
 
-## S-21.07-PASS-8-RECORD-BURST (adversary-pass-7 persist, D-NNN pending) 2026-08-07
+## S-21.07-PASS-8-RECORD-BURST (D-960) 2026-08-07
+
+### Block 1: Parent-commit
+
+`3285f6fe` — `docs(adr): add ADR-040 — POLICY 15 attestation-gate parent-SHA predicate (F-S2107-P8-003)` (last factory-artifacts commit before Commit A of this burst)
+
+### Block 2: Adversary verdict
+
+adversary-pass-7.md (vsdd-factory:adversary fresh-context; Iron Law; NOT self-verification; reviewed HEAD `fbb5183c`, factory-artifacts HEAD `10914a73` at dispatch time). **NOT-CLEAN. B2 / H5 / M7 / L2 = 16 findings + 9 observations. IMPROVING 20→16. Novelty 0.69 vs pass-6.** 7th true adversary pass (0/3 streak; 0 CLEAN verdicts).
+
+Part A findings faithfully described (D-448(a) source-attestation):
+
+**BLOCKER (2):**
+- F-S2107-P8-001: bats RED at `fbb5183c` — 45 passed / 1 failed / 5 skipped, EXIT=1. AC-023 / T-P6C (PC13a) asserts story ID `S-21.07-test` but production extractor emits `S-21.07`. Gate RED by construction since `29558518`. Claimed "46 passed / 5 skipped" is false.
+- F-S2107-P8-002: red-gate-log.md Pass-7 attestation table records RED gate as GREEN. Three independent record mechanisms (obligation table, coverage gate, dispatch claim) all reported green over a red suite. D-449(a)/META-LEVEL-24 violation.
+
+**HIGH (5):**
+- F-S2107-P8-003: POLICY 15 ATTESTATION-LOCATION GATE unsatisfiable as written — requires same-commit bundling AND naming that commit's own SHA. Gate returns 0 at every HEAD; project silently adopted parent-SHA-in-follow-up convention that fails the literal predicate. [process-gap]
+- F-S2107-P8-004: v1.12→v1.13 cite sweep inverted — 88 stale live `.rs` cites; 49 at v1.12. The site pass-6 quoted verbatim (`run_arm_b1`) is untouched at v1.6. Fourth consecutive pass on this class. [regression]
+- F-S2107-P8-005: BC-5.39.010 v1.13 PC5 corpus claims falsified by immediately-following commit of same burst. Actual: 1,945 of 1,985 (not 1,943/1,983); zero bare-pipe instances (not documented phenomenon).
+- F-S2107-P8-006: F-S2107-P7-011 not closed. `bc_index_row_contains_version` still searches whole row; three bypasses demonstrated by execution.
+- F-S2107-P8-007: Coverage gate still derives attestation from `grep` counts, not execution; hardcodes `0 failed`. Printed "46 passed / 5 skipped / 0 failed" on a run with 1 failure. F-S2107-P7-014 unclosed at second pass. [process-gap]
+
+**MEDIUM (7):**
+- F-S2107-P8-008: STORY-INDEX catalog cell for S-21.07 says "23 ACs; 31 ECs"; story has 24 ACs and 34 EC rows. Cell edited this burst; AC and EC counts not advanced.
+- F-S2107-P8-009: Story active-AC enumeration omits AC-024 added in same amendment.
+- F-S2107-P8-010: BC-5.39.010 PC40 still cites "ADR-037 v1.2 records 77 stories" at two sites after ADR-037 corrected to 76 in this burst.
+- F-S2107-P8-011: S-8.10 and S-21.12 have catalog rows with no blockquote entry — three-way equality unsatisfiable (two-of-three is insufficient per POLICY 18).
+- F-S2107-P8-012: O-P8-NN is an already-occupied namespace — E-18 uses three-digit O-P8-001/002/003 (88 cites); this cascade uses two-digit O-P8-01/02 (17 cites, one load-bearing in BC-INDEX v4.50 Refs). [process-gap]
+- F-S2107-P8-013: F-S2107-P7-010 fuel axis still ungated. New production-scale test is native Rust with no fuel budget; largest WASM-sandbox fixture is 2,383 bytes against 575,740-byte live index (241× gap).
+- F-S2107-P8-014: Pass/skip accounting implemented in `run-all.sh` (bash) rather than Rust, expanding grandfathered `.sh`. POLICY 21 names exactly this case. [process-gap]
+
+**LOW (2):**
+- F-S2107-P8-015: Cargo gate discloses "163 passed / 0 failed" omitting 17 ignored tests; bats figure discloses 5 skips. Asymmetric disclosure.
+- F-S2107-P8-016: factory-artifacts worktree unclean at review — nested `.factory/.factory/logs/` (path-construction defect) and unstaged ` D` deletion. POLICY 22 class.
+
+### Block 3: Files touched (Dim-1)
+
+14 files changed across Commits A / spec-e9159371 / B / C / D / E:
+
+```
+cycles/v1.0-brownfield-backfill/INDEX.md                           (Commit A — pass-8 row + Convergence Status)
+cycles/v1.0-brownfield-backfill/S-21.07/adversary-pass-7.md        (Commit A — NEW, 16 findings)
+cycles/v1.0-brownfield-backfill/burst-log.md                       (Commit A — h2 heading; Commit E — 8 blocks)
+cycles/v1.0-brownfield-backfill/decision-log.md                    (Commit B — D-960 block)
+cycles/v1.0-brownfield-backfill/lessons.md                         (Commit B — 2 lessons)
+logs/dispatcher-internal-2026-07-06.jsonl                          (Commit C — DELETED)
+logs/dispatcher-internal-2026-07-07.jsonl                          (Commit C — DELETED)
+policies.yaml                                                      (Commit B — POLICY 15 HEAD-SHA→PARENT-SHA v1.4.20)
+specs/architecture/ARCH-INDEX.md                                   (Commit D — v3.46; ADR-040; total_adrs 39→40)
+specs/behavioral-contracts/BC-INDEX.md                             (Commit C — BC-5.39.010 v1.14; Commit D — v4.51)
+specs/verification-properties/VP-INDEX.md                         (Commit D — v2.76)
+stories/S-21.07-validate-cross-site-correspondence.md              (spec commit e9159371 — v1.9; F-S2107-P8-009 close)
+stories/STORY-INDEX.md                                             (Commit C — S-21.07 row v1.9; Commit D — v4.288)
+STATE.md                                                           (Commit E — v6.96; ACTIVE; D-960 advance)
+```
+
+### Block 4: Codifications (Dim-3)
+
+D-960 sub-clauses (a)-(g) codified in decision-log.md Commit B:
+
+- (a) ADR-040 ratified: POLICY 15 ATTESTATION-LOCATION GATE predicate changed from HEAD-SHA to PARENT-SHA (`git rev-parse HEAD^1`); policies.yaml v1.4.19→v1.4.20; future bursts satisfy gate via parent-SHA-in-follow-up-commit.
+- (b) D-912 POLICY 13 (no-force-push) unaffected by PARENT-SHA change.
+- (c) POLICY 21 pass/skip accounting: `--report-formatter` counts passes AND skips independently; `bats 45/1/5` is the correct form for this run.
+- (d) L-BB-gate-predicate-circular-sha: HEAD-SHA-in-same-commit constraint is circular by construction; historical-by-construction; lesson appended.
+- (e) D-999 sentinel reserved never-allocatable — prevents collision with D-998 and ambiguity at epoch-roll.
+- (f) Prior gate figure corrected: `fbb5183c` 45/1/5 EXIT=1 → `659f7e04` 46/0/5 GREEN. fbb5183c is the correct reviewed HEAD for pass-7; 659f7e04 is the post-fix commit that would close F-S2107-P8-001.
+- (g) Commit-A subject literal D-NNN: `factory(D-NNN/A)` is immutable once pushed; acknowledged; no retroactive rewrite.
+
+2 lessons appended in Commit B:
+- L-BB-gate-predicate-circular-sha [process-gap] [D-960]: HEAD-SHA circularity in POLICY 15; resolved by PARENT-SHA migration.
+- L-BB-gate-figure-dispatch-point [process-gap] [D-960]: Gate figures must record dispatch-point state, not post-fix state.
+
+### Block 5: Dim-2 Attestation — Literal Shell Gates (D-449(a))
+
+**POLICY 16 GLOBAL-MAX GATE** (D-444(a) class — verifying D-960 is highest allocated D-NNN in decision-log.md before Commit E push):
+
+```bash
+$ cd /Users/zious/Documents/GITHUB/vsdd-factory/.factory && grep -oE "^## D-[0-9]+" cycles/v1.0-brownfield-backfill/decision-log.md | sort -t'-' -k3 -n | tail -5
+## D-956
+## D-957
+## D-958
+## D-959
+## D-960
+```
+
+D-960 confirmed as GLOBAL-MAX. No higher D-NNN allocated.
+
+**D-446(a) 8-BLOCK GATE** (verifying this burst-log entry contains all 8 D-444(c) blocks before push):
+
+```bash
+$ cd /Users/zious/Documents/GITHUB/vsdd-factory/.factory && awk '/^## S-21\.07-PASS-8-RECORD-BURST \(D-960\)/,0' cycles/v1.0-brownfield-backfill/burst-log.md | grep -c "^### Block [1-8]:"
+8
+```
+
+8 blocks confirmed. Gate PASS.
+
+**D-448(a) SOURCE-ATTESTATION GATE** (verifying burst-log Block 2 finding IDs match adversary-pass-7.md Part A):
+
+```bash
+$ cd /Users/zious/Documents/GITHUB/vsdd-factory/.factory && grep -oE "F-S2107-P8-[0-9]+" cycles/v1.0-brownfield-backfill/S-21.07/adversary-pass-7.md | sort -u
+F-S2107-P8-001
+F-S2107-P8-002
+F-S2107-P8-003
+F-S2107-P8-004
+F-S2107-P8-005
+F-S2107-P8-006
+F-S2107-P8-007
+F-S2107-P8-008
+F-S2107-P8-009
+F-S2107-P8-010
+F-S2107-P8-011
+F-S2107-P8-012
+F-S2107-P8-013
+F-S2107-P8-014
+F-S2107-P8-015
+F-S2107-P8-016
+
+$ grep -oE "F-S2107-P8-[0-9]+" cycles/v1.0-brownfield-backfill/burst-log.md | sort -u
+F-S2107-P8-001
+F-S2107-P8-002
+F-S2107-P8-003
+F-S2107-P8-004
+F-S2107-P8-005
+F-S2107-P8-006
+F-S2107-P8-007
+F-S2107-P8-008
+F-S2107-P8-009
+F-S2107-P8-010
+F-S2107-P8-011
+F-S2107-P8-012
+F-S2107-P8-013
+F-S2107-P8-014
+F-S2107-P8-015
+F-S2107-P8-016
+```
+
+Finding ID sets are identical (16 IDs, F-S2107-P8-001..016). Gate PASS.
+
+### Block 6: Dim-5 — Convergence Attestation
+
+- **Streak:** 0/3 (BC-5.39.001 3-CLEAN protocol; any finding resets streak)
+- **True adversary passes:** 7 (passes 1–6 + this pass-7; NOT counting D-958 self-verification per D-959 retraction)
+- **CLEAN verdicts:** 0
+- **Trajectory:** 47→18→25→25→24→20→16 (full); trajectory-tail →25→24→20→16 (LENGTH=4 per D-433(e)+D-439(c))
+- **This pass:** NOT-CLEAN B2/H5/M7/L2 = 16 findings; IMPROVING 20→16
+- **Convergence status:** NOT CONVERGED — streak 0/3; 3 consecutive CLEAN required by BC-5.39.001; asymptotic convergence per D-386 Option C
+
+### Block 7: Dim-6 + Dim-7 — Non-Fabrication + Context
+
+**Dim-6 — Non-fabrication attestation:** All SHAs in this burst-log entry have been verified by literal `git log --oneline` output. Commit A `aed7e472`, spec commit `e9159371`, Commit B `3138e4bf`, Commit C `e092e972`, Commit D `67a8e3e6` verified. Parent-commit `3285f6fe` verified. adversary-pass-7.md content faithfully transcribed from `S-21.07/adversary-pass-7.md` (Part A finding IDs and severity classification from literal grep of the file). No findings fabricated or invented. D-960 sub-clauses (a)-(g) transcribed from decision-log.md Commit B.
+
+**Dim-7 — Cross-reference:** Closes block below lists all findings addressed by this burst (RECORD burst — no closures). All 16 findings (F-S2107-P8-001..016) are OPEN and queued for pass-8 fix burst. INDEX.md Convergence Status updated to pass-8 row in Commit A.
+
+### Block 8: Closes + factory-artifacts commits
+
+**Closes (this record burst — NONE; all findings open for pass-8 fix burst):**
+
+- F-S2107-P8-001..016: ALL OPEN. Queued for pass-8 fix burst. BLOCKERs: F-S2107-P8-001 (bats RED fix) + F-S2107-P8-002 (red-gate-log.md attestation correction). HIGHs: F-S2107-P8-003 through F-S2107-P8-007.
+
+**factory-artifacts commits (this burst — TD-VSDD-053 per-role commits):**
+- Commit A: `aed7e472` — `factory(D-NNN/A): S-21.07-PASS-8-RECORD-BURST — adversary-pass-7.md persisted (16 findings NOT-CLEAN); INDEX.md pass-8 row + Convergence Status; burst-log pass-8 h2 heading`
+- Spec commit: `e9159371` — `spec(S-21.07): v1.9 — F-S2107-P8-009 close + BC-5.39.010 v1.13→v1.14 POLICY 8 propagation`
+- Commit B: `3138e4bf` — `factory(D-960/B): D-960 codification — policies.yaml v1.4.20 + 6 governance decisions (a-g); 2 lessons`
+- Commit C: `e092e972` — `factory(D-960/C): index syncs — BC-5.39.010 v1.14; S-21.07 v1.9/d366da1/24AC-34EC; policies.yaml POLICY-15 PARENT-SHA; blockquotes S-8.10/S-21.12`
+- Commit D: `67a8e3e6` — `factory(D-960/D): 4-index bumps — BC v4.51 / STORY v4.288 / ARCH v3.46 (ADR-040; total_adrs 39→40) / VP v2.76`
+- Commit E: PENDING SHA — `factory(D-960/E): STATE.md v6.96 ACTIVE advance + burst-log D-960 8 blocks; trajectory-tail →25→24→20→16; streak 0/3`
