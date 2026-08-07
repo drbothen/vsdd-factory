@@ -70,6 +70,24 @@ pub const FACTORY_ARTIFACTS_BRANCH: &str = "refs/heads/factory-artifacts";
 pub const PUSH_REMOTE: &str = "origin";
 pub const PUSH_BRANCH: &str = "factory-artifacts";
 
+/// Derive the expected factory-artifacts worktree path from the project cwd string.
+///
+/// Guard (F-S2107-P8-016): when `cwd_str` basename is already `.factory`
+/// (the factory-artifacts worktree IS the project dir), return `cwd_str` unchanged.
+/// Appending `.factory` again produces the nested `.factory/.factory` double-path,
+/// which never canonicalizes to match `wt_path` from `git worktree list` →
+/// false DURABILITY DEGRADED advisory → precompact flush silently skipped.
+///
+/// Used by the AC-017 canonicalize assertion (Tier 1 error message + Tier 2 comparison).
+pub fn expected_worktree_path(cwd_str: &str) -> String {
+    let trimmed = cwd_str.trim_end_matches('/');
+    if vsdd_hook_sdk::path_util::is_dot_factory_basename(std::path::Path::new(trimmed)) {
+        trimmed.to_string()
+    } else {
+        format!("{}/.factory", trimmed)
+    }
+}
+
 // ---------------------------------------------------------------------------
 // Data types used by the pure state machine
 // ---------------------------------------------------------------------------
@@ -445,7 +463,7 @@ where
     if !wt_path.ends_with("/.factory") {
         let expected_raw = cwd
             .as_deref()
-            .map(|c| format!("{}/.factory", c.trim_end_matches('/')))
+            .map(expected_worktree_path)
             .unwrap_or_else(|| "<cwd>/.factory".to_string());
         eprintln!(
             "precompact-flush: DURABILITY DEGRADED — factory-artifacts worktree path \
@@ -459,7 +477,11 @@ where
 
     // Tier 2: canonicalize comparison (only for paths ending with "/.factory").
     if let Some(ref cwd_str) = cwd {
-        let expected_raw = format!("{}/.factory", cwd_str.trim_end_matches('/'));
+        // F-S2107-P8-016: use expected_worktree_path to guard against the case where
+        // cwd_str is already the factory-artifacts worktree path (ending in .factory).
+        // Without the guard, appending .factory again produces .factory/.factory, which
+        // never canonicalizes to the same path as wt_path → false DURABILITY DEGRADED.
+        let expected_raw = expected_worktree_path(cwd_str);
 
         // Try canonicalize; fall back to raw string comparison if paths don't exist.
         //
@@ -471,9 +493,7 @@ where
         // std::path::Path::canonicalize is unavailable inside the WASM sandbox.
         let mismatch = match (
             std::path::Path::new(&wt_path).canonicalize(),
-            std::path::Path::new(cwd_str)
-                .join(".factory")
-                .canonicalize(),
+            std::path::Path::new(&expected_raw).canonicalize(),
         ) {
             (Ok(disc), Ok(exp)) => disc != exp,
             (Err(_), _) | (_, Err(_)) => {
@@ -790,5 +810,89 @@ where
             // Push succeeded → exit 0. (AC-009 / BC-7.07.001 PC5)
             HookResult::Continue
         }
+    }
+}
+
+// ---------------------------------------------------------------------------
+// F-S2107-P8-016 Red Gate tests — expected_worktree_path guard
+//
+// These tests verify that `expected_worktree_path` does NOT produce the nested
+// `.factory/.factory` path when `cwd_str` is already a `.factory` path.
+//
+// POLICY 13 BOUNDARY-POLARITY MANDATE: both polarities are tested.
+//
+// RED-state (pre-guard): `expected_worktree_path` unconditionally appended `.factory`.
+//   → negative-polarity test FAILS: result is cwd/.factory (double-path).
+// GREEN-state (post-guard): guard detects .factory basename and returns cwd as-is.
+//   → both tests PASS.
+//
+// Fail-closed: assert_eq! with concrete expected values — unexpected/empty results fail.
+// ---------------------------------------------------------------------------
+#[cfg(test)]
+mod tests_f_s2107_p8_016 {
+    #![allow(clippy::expect_used, clippy::unwrap_used)]
+    use super::expected_worktree_path;
+
+    // -----------------------------------------------------------------------
+    // NEGATIVE POLARITY (primary Red Gate):
+    // cwd IS already .factory → expected path must be cwd, NOT cwd/.factory.
+    //
+    // RED before guard: format!("{}/.factory", cwd) → "/repo/.factory/.factory" → FAIL.
+    // GREEN after guard: is_dot_factory_basename fires → returns "/repo/.factory" → PASS.
+    // -----------------------------------------------------------------------
+    #[test]
+    fn test_expected_worktree_path_no_double_when_cwd_is_dot_factory() {
+        let cwd_str = "/repo/.factory";
+        let result = expected_worktree_path(cwd_str);
+        assert_eq!(
+            result, cwd_str,
+            "expected_worktree_path must return cwd unchanged when cwd IS .factory; \
+             got {result:?} — double-path .factory/.factory regression (F-S2107-P8-016)"
+        );
+        assert_ne!(
+            result, "/repo/.factory/.factory",
+            "expected_worktree_path must not produce .factory/.factory"
+        );
+    }
+
+    // -----------------------------------------------------------------------
+    // Trailing-slash variant: cwd ends with ".factory/" (trimmed identically).
+    // -----------------------------------------------------------------------
+    #[test]
+    fn test_expected_worktree_path_no_double_when_cwd_is_dot_factory_trailing_slash() {
+        let cwd_str = "/repo/.factory/";
+        let result = expected_worktree_path(cwd_str);
+        // After trimming trailing slash, "/repo/.factory/" → "/repo/.factory".
+        assert_eq!(
+            result, "/repo/.factory",
+            "expected_worktree_path must return trimmed cwd when cwd IS .factory/; got {result:?}"
+        );
+    }
+
+    // -----------------------------------------------------------------------
+    // POSITIVE POLARITY (over-correction guard):
+    // cwd is NOT .factory → expected path must be cwd/.factory.
+    // -----------------------------------------------------------------------
+    #[test]
+    fn test_expected_worktree_path_appends_for_normal_cwd() {
+        let cwd_str = "/repo";
+        let result = expected_worktree_path(cwd_str);
+        assert_eq!(
+            result, "/repo/.factory",
+            "expected_worktree_path must append .factory for normal cwd; got {result:?}"
+        );
+    }
+
+    // -----------------------------------------------------------------------
+    // Trailing-slash normal cwd: trimming must not produce double slash.
+    // -----------------------------------------------------------------------
+    #[test]
+    fn test_expected_worktree_path_appends_for_normal_cwd_trailing_slash() {
+        let cwd_str = "/repo/";
+        let result = expected_worktree_path(cwd_str);
+        assert_eq!(
+            result, "/repo/.factory",
+            "expected_worktree_path must trim trailing slash before appending; got {result:?}"
+        );
     }
 }

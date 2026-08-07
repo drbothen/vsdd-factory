@@ -36,6 +36,7 @@
 
 mod ffi;
 pub mod host;
+pub mod path_util;
 mod payload;
 mod result;
 

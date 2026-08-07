@@ -390,7 +390,10 @@ async fn run(internal_log: Arc<InternalLog>) -> anyhow::Result<i32> {
     // factory_dir is derived from CLAUDE_PROJECT_DIR (base_host_ctx.cwd) + ".factory".
     // The call is fail-open: git errors produce all-empty git_context (BC-1.16.001 PC2).
     // Non-qualifying events are skipped without mutation (AC-003, AC-004).
-    let factory_dir = base_host_ctx.cwd.join(".factory");
+    //
+    // F-S2107-P8-016 guard: derive_factory_dir applies is_dot_factory_basename to avoid
+    // re-appending .factory when cwd is already the factory-artifacts worktree path.
+    let factory_dir = derive_factory_dir(&base_host_ctx.cwd);
     factory_dispatcher::invoke::inject_git_context_if_qualifying(
         &payload,
         &mut payload_value,
@@ -832,6 +835,37 @@ fn extract_reason_from_outcome(result: &PluginResult) -> Option<String> {
     }
 }
 
+/// Derive the factory-artifacts directory from the dispatcher's host context CWD.
+///
+/// Guard (F-S2107-P8-016): when `cwd` basename is already `.factory`
+/// (the factory-artifacts worktree IS the project dir, i.e. `CLAUDE_PROJECT_DIR`
+/// points at `<repo>/.factory`), the cwd IS the factory dir — returning
+/// `cwd.join(".factory")` would produce the nested `<repo>/.factory/.factory`
+/// double-path. Instead, return `cwd` as-is.
+///
+/// This guard mirrors the Level C check in `log_dir::resolve_log_dir_from_params`
+/// (the sibling site that first codified this guard). The helper is extracted so
+/// the logic is testable and the guard is not duplicated
+/// (TD-VSDD-060 sibling-site sweep).
+/// Derive the factory-artifacts directory from the dispatcher's host context CWD.
+///
+/// Guard (F-S2107-P8-016): when `cwd` basename is already `.factory`
+/// (the factory-artifacts worktree IS the project dir — `CLAUDE_PROJECT_DIR`
+/// points at `<repo>/.factory`), return `cwd` unchanged. Re-appending `.factory`
+/// would produce the nested `<repo>/.factory/.factory` double-path.
+///
+/// This guard mirrors the Level C check in `log_dir::resolve_log_dir_from_params`,
+/// the sibling site that first codified this guard. Reuses the existing
+/// `is_dot_factory_basename` helper rather than duplicating the logic
+/// (TD-VSDD-060 sibling-site sweep).
+fn derive_factory_dir(cwd: &std::path::Path) -> PathBuf {
+    if factory_dispatcher::log_dir::is_dot_factory_basename(cwd) {
+        cwd.to_path_buf()
+    } else {
+        cwd.join(".factory")
+    }
+}
+
 fn resolve_registry_path() -> anyhow::Result<PathBuf> {
     let plugin_root = std::env::var(ENV_PLUGIN_ROOT).map_err(|_| {
         anyhow::anyhow!(
@@ -1123,6 +1157,83 @@ mod red_gate_s18_14_log_dir {
             Path::new(log_dir_value).is_absolute(),
             "log_dir field value must be an absolute path (BC-1.13.001 PC-10 absolutize-on-emit); \
              got: {log_dir_value:?} (relative path means absolutize-on-emit fix is not applied)"
+        );
+    }
+}
+
+// ---------------------------------------------------------------------------
+// Red Gate tests — F-S2107-P8-016 factory_dir double-path guard
+//
+// These tests verify that `derive_factory_dir` does NOT produce the nested
+// `.factory/.factory` path when invoked with a cwd whose basename is
+// already `.factory` (the factory-artifacts worktree scenario).
+//
+// POLICY 13 BOUNDARY-POLARITY MANDATE: both polarities are tested —
+//   Negative polarity: cwd IS .factory → result must equal cwd (no re-append)
+//   Positive polarity: cwd is NOT .factory → result must be cwd/.factory
+//
+// RED-state (pre-guard): `derive_factory_dir` was `cwd.join(".factory")` unconditionally.
+//   → negative-polarity test FAILS: result is cwd/.factory, not cwd.
+// GREEN-state (post-guard): `derive_factory_dir` checks is_dot_factory_basename first.
+//   → both tests PASS.
+//
+// Fail-closed requirement: assertions use assert_eq! / assert! with no fallback
+// — an unexpected/empty result is a test failure, not a pass.
+// ---------------------------------------------------------------------------
+#[cfg(test)]
+mod tests_factory_dir_derivation {
+    #![allow(clippy::expect_used, clippy::unwrap_used)]
+    use super::derive_factory_dir;
+
+    // -----------------------------------------------------------------------
+    // NEGATIVE POLARITY (primary Red Gate):
+    // When cwd basename IS `.factory`, derive_factory_dir MUST return cwd unchanged.
+    // It MUST NOT produce cwd/.factory (the .factory/.factory double-path).
+    //
+    // RED before guard: cwd.join(".factory") returns cwd/.factory → assert_eq fails.
+    // GREEN after guard: is_dot_factory_basename fires → returns cwd → assert_eq passes.
+    // -----------------------------------------------------------------------
+    #[test]
+    fn test_factory_dir_not_doubled_when_cwd_is_dot_factory() {
+        let dir = tempfile::tempdir().expect("tempdir");
+        let factory_cwd = dir.path().join(".factory");
+        std::fs::create_dir_all(&factory_cwd).expect("create .factory");
+
+        let result = derive_factory_dir(&factory_cwd);
+
+        // FAIL-CLOSED: if result is empty or wrong, assert_eq catches it.
+        assert_eq!(
+            result, factory_cwd,
+            "derive_factory_dir must return cwd unchanged when cwd basename is .factory; \
+             got {result:?} — double-path .factory/.factory regression (F-S2107-P8-016)"
+        );
+
+        // Belt-and-suspenders: explicitly confirm the double-path is absent.
+        let double = factory_cwd.join(".factory");
+        assert_ne!(
+            result, double,
+            "derive_factory_dir produced the nested .factory/.factory path {double:?}"
+        );
+    }
+
+    // -----------------------------------------------------------------------
+    // POSITIVE POLARITY (over-correction guard):
+    // When cwd basename is NOT `.factory`, derive_factory_dir MUST return cwd/.factory.
+    // The guard must not suppress the append for normal project dirs.
+    // -----------------------------------------------------------------------
+    #[test]
+    fn test_factory_dir_appends_for_normal_cwd() {
+        let dir = tempfile::tempdir().expect("tempdir");
+        // dir.path() basename is a random hex string from tempdir — definitely not .factory.
+        let normal_cwd = dir.path();
+
+        let result = derive_factory_dir(normal_cwd);
+        let expected = normal_cwd.join(".factory");
+
+        assert_eq!(
+            result, expected,
+            "derive_factory_dir must append .factory for a normal cwd; \
+             got {result:?}, expected {expected:?}"
         );
     }
 }

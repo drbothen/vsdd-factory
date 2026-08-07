@@ -68,10 +68,15 @@ pub fn session_learning_logic(now_fn: impl Fn() -> String, fs_root: &str) -> Hoo
 
     // Step 2: Check if .factory/ directory exists; if not, return Continue immediately
     // (AC-003, BC-7.03.078 postcondition 1).
+    //
+    // F-S2107-P8-016 guard: when fs_root basename is already `.factory` (the
+    // factory-artifacts worktree scenario), use fs_root directly — do NOT re-append
+    // `.factory` which would produce the nested `.factory/.factory` double-path and
+    // cause `is_dir()` to return false, silently swallowing the sidecar write.
     let factory_dir = if fs_root.is_empty() || fs_root == "." {
         Path::new(".factory").to_path_buf()
     } else {
-        Path::new(fs_root).join(".factory")
+        vsdd_hook_sdk::path_util::derive_factory_dir(Path::new(fs_root))
     };
 
     if !factory_dir.is_dir() {

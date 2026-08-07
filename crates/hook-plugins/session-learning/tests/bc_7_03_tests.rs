@@ -517,6 +517,68 @@ fn test_BC_7_03_077_sidecar_header_constant_matches_bash_output() {
     );
 }
 
+// ---------------------------------------------------------------------------
+// F-S2107-P8-016 sibling-site guard — session-learning factory_dir derivation
+//
+// When `fs_root` is a path whose basename is already `.factory` (the
+// factory-artifacts worktree scenario), `session_learning_logic` must use
+// `fs_root` directly as the factory directory — NOT re-append `.factory`.
+//
+// POLICY 13 BOUNDARY-POLARITY MANDATE: both polarities tested.
+//
+// RED (pre-guard, else-branch of factory_dir derivation uses plain .join):
+//   session_learning_logic sees fs_root = "/tmp/xxx/.factory";
+//   computes factory_dir = "/tmp/xxx/.factory/.factory" (double-path, not a dir);
+//   returns Continue without writing sidecar → sidecar.exists() == false → FAIL.
+// GREEN (post-guard):
+//   derive_factory_dir returns "/tmp/xxx/.factory" directly;
+//   factory_dir.is_dir() == true; sidecar is written → sidecar.exists() == true → PASS.
+// ---------------------------------------------------------------------------
+
+/// F-S2107-P8-016 NEGATIVE POLARITY:
+/// When fs_root basename IS `.factory`, the plugin must still write sidecar.md.
+#[test]
+fn test_f_s2107_p8_016_session_learning_works_when_fs_root_is_dot_factory() {
+    let tmp = tempfile::tempdir().unwrap();
+    let factory_dir = tmp.path().join(".factory");
+    std::fs::create_dir_all(&factory_dir).unwrap();
+
+    // Pass the .factory dir itself as fs_root — simulates the factory-artifacts
+    // worktree scenario where CLAUDE_PROJECT_DIR == <repo>/.factory.
+    let result = session_learning_logic(fixed_ts, factory_dir.to_str().unwrap());
+
+    assert_eq!(result, HookResult::Continue);
+
+    // Sidecar MUST exist directly inside factory_dir (not inside a nested .factory).
+    let sidecar = factory_dir.join("sidecar-learning.md");
+    assert!(
+        sidecar.exists(),
+        "sidecar-learning.md must be written inside factory_dir when fs_root IS .factory; \
+         absent means the guard (F-S2107-P8-016) is not applied and the plugin silently \
+         did nothing (double-path .factory/.factory → is_dir() false → early Continue)"
+    );
+}
+
+/// F-S2107-P8-016 POSITIVE POLARITY (over-correction guard):
+/// When fs_root is a normal path (basename NOT `.factory`), factory_dir is
+/// still correctly derived as `<fs_root>/.factory`.
+#[test]
+fn test_f_s2107_p8_016_session_learning_normal_fs_root_still_works() {
+    let tmp = tempfile::tempdir().unwrap();
+    // factory_dir is inside the tempdir (basename of factory_dir is .factory, but
+    // fs_root itself is the tempdir — its basename is NOT .factory).
+    let factory_dir = tmp.path().join(".factory");
+    std::fs::create_dir_all(&factory_dir).unwrap();
+
+    let result = session_learning_logic(fixed_ts, tmp.path().to_str().unwrap());
+
+    assert_eq!(result, HookResult::Continue);
+    assert!(
+        factory_dir.join("sidecar-learning.md").exists(),
+        "normal fs_root must still produce sidecar in <fs_root>/.factory/sidecar-learning.md"
+    );
+}
+
 /// Parity: MARKER_FORMAT must use '{}' placeholder exactly once.
 #[test]
 fn test_BC_7_03_077_marker_format_has_single_placeholder() {

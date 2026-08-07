@@ -124,7 +124,11 @@ pub fn resolve_log_dir_from(project_dir: Option<&str>, cwd: &Path) -> PathBuf {
 
 /// Returns `true` if the path's final component is `.factory`
 /// (case-insensitive on macOS/Windows; case-sensitive on Linux).
-fn is_dot_factory_basename(path: &Path) -> bool {
+///
+/// Exported so that sibling derivation sites (e.g. `main.rs` `factory_dir`
+/// computation) can reuse this guard rather than duplicating the logic
+/// (TD-VSDD-060 sibling-site sweep; F-S2107-P8-016).
+pub fn is_dot_factory_basename(path: &Path) -> bool {
     path.file_name()
         .and_then(|n| n.to_str())
         .map(is_factory_name)
