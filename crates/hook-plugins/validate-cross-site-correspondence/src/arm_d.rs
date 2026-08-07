@@ -601,7 +601,7 @@ mod tests {
     // which also matches "discloses:" and "forecloses:". A burst-log narrative
     // saying "this commit discloses: <token> ..." would generate a spurious
     // advisory for <token> if it is finding-like.
-    // BC-5.39.010 v1.3 §D precondition 31: only lines starting with "Closes:"
+    // BC-5.39.010 v1.14 §D precondition 31: only lines starting with "Closes:"
     // or "Refs:" (case-insensitive) are scanned for finding tokens.
     // -----------------------------------------------------------------------
 

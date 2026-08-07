@@ -393,7 +393,7 @@ mod tests {
     // "BC-INDEX.md" — but BC-INDEX.md is the index file, not a behavioral contract.
     // When classified as a BC file, arm A1 runs with BC-INDEX.md as primary target,
     // treating "BC-INDEX.md" as the bc_id, producing spurious violations.
-    // BC-5.39.010 v1.3 §Classification invariant: bc_id guard excludes index.
+    // BC-5.39.010 v1.14 §Classification invariant: bc_id guard excludes index.
     // -----------------------------------------------------------------------
 
     /// T-035: BC-INDEX.md must NOT be classified as a BC file (F-S2107-P1B-005).
@@ -415,7 +415,7 @@ mod tests {
     // F-S2107-P1B-010: Epic file under .factory/stories/epics/ must not be
     // classified as a story file. is_story_file has no basename guard against
     // the epics/ subdirectory, so any .md file under .factory/stories/ passes.
-    // BC-5.39.010 v1.3 §Classification invariant: story_id must match S-XX.YY format.
+    // BC-5.39.010 v1.14 §Classification invariant: story_id must match S-XX.YY format.
     // -----------------------------------------------------------------------
 
     /// F-S2107-P1B-010: epic file in stories/epics/ must NOT be classified as story file.

@@ -475,7 +475,7 @@ mod tests {
 
     // -----------------------------------------------------------------------
     // F-S2107-P1C-014: 15-byte last_amended string rejected by length guard.
-    // BC-5.39.010 v1.3 §E1: "2026-07-30 (v2)" is a valid last_amended format
+    // BC-5.39.010 v1.14 §E1: "2026-07-30 (v2)" is a valid last_amended format
     // (single-digit outer version, no sub-version suffix). The string is 15 bytes.
     // Current code: `if len < 17 { return None }` — 15 < 17 → returns None.
     // Returns None → advisory "unparseable format" fires → exit 2.
@@ -498,7 +498,7 @@ mod tests {
             result,
             Some("2".to_string()),
             "15-byte last_amended '2026-07-30 (v2)' must parse to outer version '2'. \
-            BC-5.39.010 v1.3 §E1 single-digit outer versions are valid (F-S2107-P1C-014). \
+            BC-5.39.010 v1.14 §E1 single-digit outer versions are valid (F-S2107-P1C-014). \
             Red Gate: current `if len < 17 {{return None}}` rejects 15-byte strings → None"
         );
     }
@@ -506,7 +506,7 @@ mod tests {
     // -----------------------------------------------------------------------
     // F-S2107-P1C-015: run_arm_e1 returns (vec![], vec![]) when version present
     // but last_amended field absent — silently passes instead of emitting advisory.
-    // BC-5.39.010 v1.3 §E1: when version: is present, last_amended: must also be
+    // BC-5.39.010 v1.14 §E1: when version: is present, last_amended: must also be
     // present. If absent, an advisory MUST be emitted (not a silent pass).
     // -----------------------------------------------------------------------
 
@@ -529,7 +529,7 @@ mod tests {
         assert!(
             !advisories.is_empty(),
             "absent last_amended when version present must emit advisory. \
-            BC-5.39.010 v1.3 §E1: both fields must be present (F-S2107-P1C-015). \
+            BC-5.39.010 v1.14 §E1: both fields must be present (F-S2107-P1C-015). \
             Red Gate: current code returns (vec![], vec![]) silently → advisory IS empty → FAILS"
         );
     }
