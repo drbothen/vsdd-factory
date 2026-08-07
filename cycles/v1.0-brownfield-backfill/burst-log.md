@@ -23927,3 +23927,6 @@ fmt/clippy/test all exit 0; 189 ok lines
 
 **factory-artifacts commits (this burst — TD-VSDD-053 single-commit-per-burst):**
 - Commit B (this burst): `e2bfec65` — `factory(D-961/B): D-961 recording burst — ARCH-INDEX v3.47; policies.yaml v1.4.21; decision-log D-961; lessons x3; burst-log 8-blocks; pipeline-state v6.98`
+- SHA-patch commit: `407c23a3` — `factory(D-961/B-sha-patch): SHA-patch — D-961 Commit B e2bfec65 resolved; STATE.md v6.98 tip updated; burst-log Block 8 finalized`
+
+**Circular-SHA ruling (post-close, 2026-08-07):** A second-level SHA-patch follow-up was considered — updating Active Branches / `current_step` / burst-log Block 8 from `e2bfec65` to `407c23a3`. Rejected as circular per `L-BB-gate-predicate-circular-sha` [D-960] and ADR-040 PARENT-SHA convention. A commit cannot contain its own SHA (hash circularity); updating to `407c23a3` from within a new commit relocates the problem to the new commit's own SHA, generating infinite regress. `e2bfec65` cited in `407c23a3` is the parent SHA — fixed at authoring time, citable without circularity per ADR-040/D-960(d) PARENT-SHA convention by design. STATE.md `SHA-patch: e2bfec65 DONE` at four sites in `407c23a3` is **correct as committed**. This ruling closes the phantom obligation and prevents future adversary passes from re-raising it as unfinished work.

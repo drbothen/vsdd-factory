@@ -10433,3 +10433,17 @@ D-442(e) recorded the same class of defect for lessons.md (≤3,500 soft / ≤4,
 **Closes:** D-961
 
 **Cites:** D-961 (codified this burst); D-743; D-853. `[process-gap; sprint-state; story-index; sync; D-743; D-961; codified]`
+
+## L-BB-self-violation-at-codifying-burst [process-gap] [D-961]
+
+**Category:** process-gap
+
+**Title:** Self-Violation at the Codifying Burst — Mechanical Detection Required
+
+**Lesson:** D-961 codified the circular-SHA generalization (`L-BB-gate-predicate-circular-sha` [D-960]: a gate predicate that requires a committed artifact to contain its own content-hash is circular and non-terminating). Then, in the same burst's SHA-patch follow-up, proposed a "second-level SHA-patch" — updating Active Branches / `current_step` / burst-log Block 8 from Commit B SHA `e2bfec65` to SHA-patch commit SHA `407c23a3` — which is precisely an instance of that same circular-SHA anti-pattern. The proposer did not recognize the instance as covered by the recently codified generalization. This is the same pattern observed in the E-10 cascade where 4 of 6 newly codified policies were self-violated at their own codifying burst: the codification goes into a lessons file but no mechanical gate prevents the very agent that wrote the lesson from immediately violating it. **Corollary:** lessons that require recognizing pattern membership at authoring time are unreliable under author discipline alone — they require mechanical detection (static analysis, hook guards, pre-commit pattern checkers) to be effective. `L-BB-gate-narrower-than-its-claim` and `L-BB-gate-predicate-circular-sha` both exhibit this property: the author who produces the narrow gate or the circular predicate is the least likely to recognize it, since they are reasoning in the same frame as the original defect. **Rule:** when codifying a new lesson about an anti-pattern, the codification burst MUST include a self-audit pass applying the lesson's predicate to all artifacts produced in the same burst before sealing the commit.
+
+**Anchors:** D-961; L-BB-gate-predicate-circular-sha; L-BB-gate-narrower-than-its-claim; ADR-040; E-10-cascade.
+
+**Closes:** D-961
+
+**Cites:** D-961 (post-close observation); L-BB-gate-predicate-circular-sha; L-BB-gate-narrower-than-its-claim; ADR-040. `[process-gap; self-violation; codifying-burst; mechanical-detection; circular-sha; D-961; codified]`
