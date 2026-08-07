@@ -444,20 +444,48 @@ _assert_plugin_ran_not_crashed() {
   _assert_plugin_ran_not_crashed
   _assert_exit 2 "[Class A Arm1]"
 
-  # AC-001 normative assertions: message must cite the index version, frontmatter version,
-  # the directional phrase, and the POLICY anchor.
-  local combined
-  combined="$(cat "$_DISP_STDERR" 2>/dev/null) $output"
-  [[ "$combined" == *"index is newer than primary"* ]] || {
-    echo "FAIL: AC-001 block message must contain 'index is newer than primary' (PC2b normative)."
-    echo "  BC-5.39.010 v1.12 PC2b: index-newer-than-primary is anomalous."
-    echo "  Combined: $combined"
+  # AC-001 normative assertions: full-string equality on the complete PC2b block message.
+  # BC-5.39.010 v1.13 PC4a: test-writer MUST assert COMPLETE formatted string by equality
+  # check; .contains()-only is NON-CONFORMING. The exit-code check above confirms detection;
+  # these assertions confirm the normative text is reproduced verbatim.
+  # Fixture a1-stale-index: BC frontmatter v1.5; BC-INDEX row cites v1.6.
+  local actual_block_reason
+  actual_block_reason=$(python3 -c "
+import sys
+data = open(sys.argv[1]).read()
+for line in data.splitlines():
+    key = 'block_reason=\"'
+    if key in line:
+        idx = line.find(key) + len(key)
+        val = line[idx:]
+        if val.endswith('\"'):
+            val = val[:-1]
+        val = val.replace('\\\\n', '\\n').replace('\\\\r', '\\r')
+        print(val, end='')
+        break
+" "$_DISP_STDERR" 2>/dev/null || true)
+
+  local expected_decoded
+  # Full block_reason as surfaced by dispatcher stderr (includes BLOCKED by / [N] / Fix / Code
+  # wrapper from HookResult::block_with_fix + combine_violations_into_block; trailing period
+  # on description stripped by trim_end_matches('.') in block_with_fix implementation).
+  expected_decoded=$(python3 -c "print('BLOCKED by validate-cross-site-correspondence: [1] validate-cross-site-correspondence [Class A Arm1]: BC-INDEX.md body-table row for BC-5.39.010 cites v1.6 but frontmatter version: is \"1.5\" — index is newer than primary. This is anomalous: the index cannot legitimately advance ahead of the BC it cites. Verify no index row was updated out-of-burst or under the wrong BC path. Update per POLICY 14 leg 5. Fix: review and fix all cross-site correspondence issues listed above, then retry the write. Code: POLICY 14/18.', end='')" 2>/dev/null || true)
+
+  [ "$actual_block_reason" = "$expected_decoded" ] || {
+    echo "FAIL: AC-001 block message does not match v1.13 normative verbatim text."
+    echo "  F-S2107-P7-013 gate: BC-5.39.010 v1.13 PC4a requires full-string equality."
+    echo "  Expected: $expected_decoded"
+    echo "  Actual:   $actual_block_reason"
+    echo "  (empty actual = block_reason not found in dispatcher stderr; mismatch = wrong message)"
     false
   }
-  [[ "$combined" == *"POLICY 14 leg 5"* ]] || {
-    echo "FAIL: AC-001 block message must cite 'POLICY 14 leg 5'."
-    echo "  BC-5.39.010 v1.12 PC2b postcondition 2b prescribed anchor."
-    echo "  Combined: $combined"
+
+  # Anti-vacuity: a message containing only the old substrings but wrong format fails equality.
+  local wrong_substr_msg
+  wrong_substr_msg="(WRONG FORMAT) index is newer than primary. POLICY 14 leg 5."
+  [ "$wrong_substr_msg" != "$expected_decoded" ] || {
+    echo "FAIL: ANTI-VACUITY: substring-passing wrong message must not equal normative text."
+    echo "  The equality gate failed to discriminate. expected_decoded may be incorrect."
     false
   }
 }
@@ -713,26 +741,52 @@ _assert_plugin_ran_not_crashed() {
   _assert_plugin_ran_not_crashed
   _assert_exit 2 "[Class B]"
 
-  # AC-009 normative assertions: message must cite POLICY anchor and enumerate provenance
-  # categories WITHOUT asserting which applies (NON-CONFORMING per F-S2107-P4-006).
-  local combined
-  combined="$(cat "$_DISP_STDERR" 2>/dev/null) $output"
-  [[ "$combined" == *"POLICY 18 (D-923)"* ]] || {
-    echo "FAIL: AC-009 block message must cite 'POLICY 18 (D-923)'."
-    echo "  BC-5.39.010 v1.12 PC13b normative anchor."
-    echo "  Combined: $combined"
+  # AC-009 normative assertions: full-string equality on the complete PC13b block message.
+  # BC-5.39.010 v1.13 PC4a: test-writer MUST assert COMPLETE formatted string by equality
+  # check; .contains()-only (including loop-over-categories) is NON-CONFORMING. The exit-code
+  # check above confirms detection; these assertions confirm the normative text (including all
+  # three provenance categories per invariant 11, and the POLICY 18 (D-923) anchor) verbatim.
+  # Fixture b1-hash-mismatch: B1=47a65c9 (frontmatter); B2=4be9d21 (catalog); B3=c3f9811 (blockquote).
+  # Story ID S-21.07 extracted from basename S-21.07-test via PC17 ^(S-[0-9]+\.[0-9]+) regex.
+  local actual_block_reason
+  actual_block_reason=$(python3 -c "
+import sys
+data = open(sys.argv[1]).read()
+for line in data.splitlines():
+    key = 'block_reason=\"'
+    if key in line:
+        idx = line.find(key) + len(key)
+        val = line[idx:]
+        if val.endswith('\"'):
+            val = val[:-1]
+        val = val.replace('\\\\n', '\\n').replace('\\\\r', '\\r')
+        print(val, end='')
+        break
+" "$_DISP_STDERR" 2>/dev/null || true)
+
+  local expected_decoded
+  # Full block_reason as surfaced by dispatcher stderr (includes BLOCKED by / [N] / Fix / Code
+  # wrapper from HookResult::block_with_fix + combine_violations_into_block; trailing period
+  # on description stripped by trim_end_matches('.') in block_with_fix implementation).
+  expected_decoded=$(python3 -c "print('BLOCKED by validate-cross-site-correspondence: [1] validate-cross-site-correspondence [Class B]: Story S-21.07 input-hash three-way mismatch: frontmatter=47a65c9 STORY-INDEX-catalog=4be9d21 STORY-INDEX-blockquote=c3f9811. STORY-INDEX catalog and blockquote disagree — this is anomalous and has no burst-ordering explanation. Update per POLICY 18 (D-923). This hook detects inconsistency only — operator MUST determine which of the following applies before remediating: (a) STALE: previously valid hash; inputs changed after authoring; remedy: rerun \`compute-input-hash --update\` on the story. (b) FABRICATED: hash was never output of \`compute-input-hash --update\` at any revision (POLICY 18 violation); remedy: acknowledge PROVENANCE-BREAK in burst-log before recomputing. (c) ALGORITHM-DIVERGENT: hash produced by prior binary version per ADR-036 §Decision 4; NOT fabricated; remedy: recompute with current authoritative binary, no PROVENANCE-BREAK annotation required. Fix: review and fix all cross-site correspondence issues listed above, then retry the write. Code: POLICY 14/18.', end='')" 2>/dev/null || true)
+
+  [ "$actual_block_reason" = "$expected_decoded" ] || {
+    echo "FAIL: AC-009 block message does not match v1.13 normative verbatim text."
+    echo "  F-S2107-P7-013 gate: BC-5.39.010 v1.13 PC4a requires full-string equality."
+    echo "  Expected: $expected_decoded"
+    echo "  Actual:   $actual_block_reason"
+    echo "  (empty actual = block_reason not found in dispatcher stderr; mismatch = wrong message)"
     false
   }
-  # All three provenance categories must be enumerated (NON-CONFORMING to assert which applies).
-  # Implementation emits categories in UPPERCASE (STALE / FABRICATED / ALGORITHM-DIVERGENT).
-  for category in "STALE" "FABRICATED" "ALGORITHM-DIVERGENT"; do
-    [[ "$combined" == *"$category"* ]] || {
-      echo "FAIL: AC-009 block message must enumerate provenance category '$category'."
-      echo "  BC-5.39.010 v1.12 PC13b: all three categories listed without classification."
-      echo "  Combined: $combined"
-      false
-    }
-  done
+
+  # Anti-vacuity: a message containing only the old substrings but wrong format fails equality.
+  local wrong_substr_msg
+  wrong_substr_msg="(WRONG FORMAT) POLICY 18 (D-923) STALE FABRICATED ALGORITHM-DIVERGENT."
+  [ "$wrong_substr_msg" != "$expected_decoded" ] || {
+    echo "FAIL: ANTI-VACUITY: substring-passing wrong message must not equal normative text."
+    echo "  The equality gate failed to discriminate. expected_decoded may be incorrect."
+    false
+  }
 }
 
 @test "AC-009 CONTROL: three-way hash match produces exit code 0" {
@@ -1531,25 +1585,46 @@ for line in sys.stdin:
   # PC2b: index newer → anomalous → BLOCK (exit 2).
   _assert_exit 2 "[Class A Arm1]"
 
-  # Block message must contain v1.12 normative "index is newer than primary" phrasing.
-  # BC-5.39.010 v1.12 PC2b prescribed text. Current impl uses "BC frontmatter says version"
-  # phrasing — the normative substring "index is newer than primary" is ABSENT → FAILS.
-  local combined
-  combined="$(cat "$_DISP_STDERR" 2>/dev/null) $output"
-  [[ "$combined" == *"index is newer than primary"* ]] || {
-    echo "FAIL: PC2b block message must contain 'index is newer than primary'."
-    echo "  BC-5.39.010 v1.12 PC2b normative text: '...index is newer than primary."
-    echo "  This is anomalous: the index cannot legitimately advance ahead of the BC it cites...'"
-    echo "  RED GATE: current message says 'BC frontmatter says version' — normative substring absent."
-    echo "  Combined: $combined"
+  # T-P6B: full-string equality on the complete PC2b normative block text.
+  # BC-5.39.010 v1.13 PC4a forbids .contains()-only assertions on normative messages.
+  # Fixture: BC-5.39.010 frontmatter v1.10; BC-INDEX row last cites v1.11 (index newer → PC2b).
+  local actual_block_reason
+  actual_block_reason=$(python3 -c "
+import sys
+data = open(sys.argv[1]).read()
+for line in data.splitlines():
+    key = 'block_reason=\"'
+    if key in line:
+        idx = line.find(key) + len(key)
+        val = line[idx:]
+        if val.endswith('\"'):
+            val = val[:-1]
+        val = val.replace('\\\\n', '\\n').replace('\\\\r', '\\r')
+        print(val, end='')
+        break
+" "$_DISP_STDERR" 2>/dev/null || true)
+
+  local expected_decoded
+  # Full block_reason as surfaced by dispatcher stderr (includes BLOCKED by / [N] / Fix / Code
+  # wrapper from HookResult::block_with_fix + combine_violations_into_block; trailing period
+  # on description stripped by trim_end_matches('.') in block_with_fix implementation).
+  expected_decoded=$(python3 -c "print('BLOCKED by validate-cross-site-correspondence: [1] validate-cross-site-correspondence [Class A Arm1]: BC-INDEX.md body-table row for BC-5.39.010 cites v1.11 but frontmatter version: is \"1.10\" — index is newer than primary. This is anomalous: the index cannot legitimately advance ahead of the BC it cites. Verify no index row was updated out-of-burst or under the wrong BC path. Update per POLICY 14 leg 5. Fix: review and fix all cross-site correspondence issues listed above, then retry the write. Code: POLICY 14/18.', end='')" 2>/dev/null || true)
+
+  [ "$actual_block_reason" = "$expected_decoded" ] || {
+    echo "FAIL: PC2b block message does not match v1.13 normative verbatim text."
+    echo "  F-S2107-P7-013 gate: BC-5.39.010 v1.13 PC4a requires full-string equality."
+    echo "  Expected: $expected_decoded"
+    echo "  Actual:   $actual_block_reason"
+    echo "  (empty actual = block_reason not found in dispatcher stderr; mismatch = wrong message)"
     false
   }
 
-  # Also verify the anomalous-direction phrase is present (PC2b rationale).
-  [[ "$combined" == *"This is anomalous"* ]] || {
-    echo "FAIL: PC2b block message must contain 'This is anomalous'."
-    echo "  BC-5.39.010 v1.12 PC2b: index-ahead-of-primary is anomalous; message must say so."
-    echo "  Combined: $combined"
+  # Anti-vacuity: a message containing both old substring targets but wrong format fails equality.
+  local wrong_substr_msg
+  wrong_substr_msg="BLOCKED by validate-cross-site-correspondence: [1] (WRONG FORMAT) index is newer than primary. This is anomalous."
+  [ "$wrong_substr_msg" != "$expected_decoded" ] || {
+    echo "FAIL: ANTI-VACUITY: substring-passing wrong message must not equal normative text."
+    echo "  The equality gate failed to discriminate. expected_decoded may be incorrect."
     false
   }
 }
@@ -1616,7 +1691,7 @@ for line in sys.stdin:
 
   # Decode expected text through Python to handle Unicode (em dash —) correctly.
   local expected_decoded
-  expected_decoded=$(python3 -c "print('validate-cross-site-correspondence [Class B] advisory: Story S-21.07-test input-hash mismatch — frontmatter=47a65c9; STORY-INDEX-catalog=4be9d21; STORY-INDEX-blockquote=4be9d21. STORY-INDEX sites agree with each other; story frontmatter differs. State-manager STORY-INDEX update pending; Class B BLOCK suspended.', end='')" 2>/dev/null || true)
+  expected_decoded=$(python3 -c "print('validate-cross-site-correspondence [Class B] advisory: Story S-21.07 input-hash mismatch — frontmatter=47a65c9; STORY-INDEX-catalog=4be9d21; STORY-INDEX-blockquote=4be9d21. STORY-INDEX sites agree with each other; story frontmatter differs. State-manager STORY-INDEX update pending; Class B BLOCK suspended.', end='')" 2>/dev/null || true)
 
   [ "$actual_msg" = "$expected_decoded" ] || {
     echo "FAIL: PC13a advisory does not match v1.13 normative verbatim text."
@@ -1673,24 +1748,51 @@ for line in sys.stdin:
   # PC13b: B2 != B3 → BLOCK (exit 2).
   _assert_exit 2 "[Class B]"
 
-  # Block message must contain v1.12 PC13b normative phrasing.
-  local combined
-  combined="$(cat "$_DISP_STDERR" 2>/dev/null) $output"
-  [[ "$combined" == *"catalog and blockquote disagree"* ]] || {
-    echo "FAIL: PC13b block message must contain 'catalog and blockquote disagree'."
-    echo "  BC-5.39.010 v1.12 PC13b: B2 != B3 → 'STORY-INDEX catalog and blockquote disagree"
-    echo "  — this is anomalous and has no burst-ordering explanation'."
-    echo "  RED GATE: current message says 'All three present sites must agree' — normative"
-    echo "  substring absent. Three-provenance enumeration also required."
-    echo "  Combined: $combined"
+  # T-P6D normative assertion: full-string equality on the complete PC13b block message.
+  # BC-5.39.010 v1.13 PC4a: test-writer MUST assert COMPLETE formatted string by equality
+  # check; .contains()-only (including compound &&-checks) is NON-CONFORMING. The exit-code
+  # check above confirms detection; these assertions confirm the normative text (including
+  # "catalog and blockquote disagree", all three provenance categories per invariant 11,
+  # and the POLICY 18 (D-923) anchor) is reproduced verbatim.
+  # Fixture b1-story-index-inconsistent: B1=abc1234; B2=def4567 (catalog); B3=deadb00 (blockquote).
+  # Story ID S-21.07 extracted from basename S-21.07-test via PC17 ^(S-[0-9]+\.[0-9]+) regex.
+  local actual_block_reason
+  actual_block_reason=$(python3 -c "
+import sys
+data = open(sys.argv[1]).read()
+for line in data.splitlines():
+    key = 'block_reason=\"'
+    if key in line:
+        idx = line.find(key) + len(key)
+        val = line[idx:]
+        if val.endswith('\"'):
+            val = val[:-1]
+        val = val.replace('\\\\n', '\\n').replace('\\\\r', '\\r')
+        print(val, end='')
+        break
+" "$_DISP_STDERR" 2>/dev/null || true)
+
+  local expected_decoded
+  # Full block_reason as surfaced by dispatcher stderr (includes BLOCKED by / [N] / Fix / Code
+  # wrapper from HookResult::block_with_fix + combine_violations_into_block; trailing period
+  # on description stripped by trim_end_matches('.') in block_with_fix implementation).
+  expected_decoded=$(python3 -c "print('BLOCKED by validate-cross-site-correspondence: [1] validate-cross-site-correspondence [Class B]: Story S-21.07 input-hash three-way mismatch: frontmatter=abc1234 STORY-INDEX-catalog=def4567 STORY-INDEX-blockquote=deadb00. STORY-INDEX catalog and blockquote disagree — this is anomalous and has no burst-ordering explanation. Update per POLICY 18 (D-923). This hook detects inconsistency only — operator MUST determine which of the following applies before remediating: (a) STALE: previously valid hash; inputs changed after authoring; remedy: rerun \`compute-input-hash --update\` on the story. (b) FABRICATED: hash was never output of \`compute-input-hash --update\` at any revision (POLICY 18 violation); remedy: acknowledge PROVENANCE-BREAK in burst-log before recomputing. (c) ALGORITHM-DIVERGENT: hash produced by prior binary version per ADR-036 §Decision 4; NOT fabricated; remedy: recompute with current authoritative binary, no PROVENANCE-BREAK annotation required. Fix: review and fix all cross-site correspondence issues listed above, then retry the write. Code: POLICY 14/18.', end='')" 2>/dev/null || true)
+
+  [ "$actual_block_reason" = "$expected_decoded" ] || {
+    echo "FAIL: T-P6D block message does not match v1.13 normative verbatim text."
+    echo "  F-S2107-P7-013 gate: BC-5.39.010 v1.13 PC4a requires full-string equality."
+    echo "  Expected: $expected_decoded"
+    echo "  Actual:   $actual_block_reason"
+    echo "  (empty actual = block_reason not found in dispatcher stderr; mismatch = wrong message)"
     false
   }
 
-  # Block message must enumerate all three provenance categories (invariant 11 requirement).
-  [[ "$combined" == *"STALE"* && "$combined" == *"FABRICATED"* && "$combined" == *"ALGORITHM-DIVERGENT"* ]] || {
-    echo "FAIL: PC13b block message must enumerate STALE, FABRICATED, and ALGORITHM-DIVERGENT."
-    echo "  BC-5.39.010 v1.12 PC13b + invariant 11: all three provenance categories required."
-    echo "  Combined: $combined"
+  # Anti-vacuity: a message containing only the old substrings but wrong format fails equality.
+  local wrong_substr_msg
+  wrong_substr_msg="(WRONG FORMAT) catalog and blockquote disagree. STALE FABRICATED ALGORITHM-DIVERGENT."
+  [ "$wrong_substr_msg" != "$expected_decoded" ] || {
+    echo "FAIL: ANTI-VACUITY: substring-passing wrong message must not equal normative text."
+    echo "  The equality gate failed to discriminate. expected_decoded may be incorrect."
     false
   }
 }
