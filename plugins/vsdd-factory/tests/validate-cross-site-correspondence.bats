@@ -421,6 +421,57 @@ _assert_plugin_ran_not_crashed() {
 }
 
 # ---------------------------------------------------------------------------
+# F-S2107-P8-013: Production-scale fuel-budget gate.
+#
+# F-S2107-P7-010 (fuel axis closure): the WASM sandbox must scan the live-scale
+# BC-INDEX.md without exhausting its fuel budget. The largest fixture before this
+# test was 2,383 bytes; the live BC-INDEX.md is 576,396 bytes — a 241× gap.
+# With on_error="continue", fuel exhaustion converts to HookResult::Continue with
+# no violation and no advisory — output-identical to a clean corpus. No gate
+# previously distinguished "validated 1,985 rows, found nothing" from "exhausted
+# fuel on row 200 and returned Continue."
+#
+# This test closes the sandbox × production-scale combination:
+#   Fixture: a1-production-scale — BC-INDEX.md is a copy of the live file
+#     (576,396 bytes, ~1985 rows; comparable in row count to production corpus).
+#   Trigger: write BC-5.39.010.md (frontmatter version="1.14", matches INDEX v1.14
+#     last-chain-entry) → Arm A1 happy-path scan across the full index.
+#   Assertion: plugin.completed present AND plugin.timeout absent
+#     (via _assert_plugin_ran_not_crashed, which already checks both conditions;
+#     proved non-vacuous by T-036b: a timeout-only log makes the helper fail).
+#   Anti-vacuity: exit 0 from _assert_plugin_ran_not_crashed proves the plugin
+#     ran to completion; a fuel-exhausted plugin would produce plugin.timeout
+#     (timeout-only log) → _assert_plugin_ran_not_crashed FAILS.
+#
+# Proof the assertion can fail: T-036b (bats line ~410) feeds a synthetic
+# timeout-only log and asserts _assert_plugin_ran_not_crashed returns failure.
+# That self-test is the permanent mutant demonstrating the assertion has teeth.
+# ---------------------------------------------------------------------------
+
+@test "F-S2107-P8-013: production-scale BC-INDEX (576KB) — plugin.completed present, plugin.timeout absent" {
+  _require_artifacts
+  _load_fixture "a1-production-scale"
+  _write_registry
+
+  local envelope
+  # Trigger: write BC-5.39.010.md (version="1.14") against the 576 KB BC-INDEX.md.
+  # BC-5.39.010 v1.14 is the last chain entry in the live index (confirmed at fixture
+  # creation: "v1.10 \| v1.11 \| v1.12 \| v1.13 \| v1.14").
+  # Happy path: frontmatter matches last-chain-entry → no block, exit 0.
+  # The assertion is not about the exit code but about plugin.completed vs plugin.timeout.
+  envelope="$(_post_write_event '.factory/specs/behavioral-contracts/ss-05/BC-5.39.010.md')"
+  _run_dispatcher "$envelope"
+
+  # plugin.completed must be present AND plugin.timeout must be absent.
+  # _assert_plugin_ran_not_crashed checks both conditions (see T-036 / T-036b for
+  # proof that both checks have teeth against crashed-only and timeout-only logs).
+  _assert_plugin_ran_not_crashed
+
+  # Also assert exit 0 (happy-path: version matches, no block).
+  _assert_exit 0
+}
+
+# ---------------------------------------------------------------------------
 # AC-001: Class A Arm1 — index-newer-than-primary blocks (traces to BC-5.39.010 postcondition 2b)
 # Fixture: a1-stale-index (BC v1.5, INDEX v1.6 — index NEWER than primary)
 # BC-5.39.010 v1.14 PC2b: index_version > fm_version → anomalous → Block [Class A Arm1]
@@ -1829,26 +1880,28 @@ for line in data.splitlines():
 }
 
 # ---------------------------------------------------------------------------
-# F-P6-016: Coverage gate — execution-bounded counts.
-# Verifies structural invariants of the bats file itself by counting execution sites,
-# not just declarations (process-gap: a coverage gate must count executions, not declarations).
+# F-P6-016: Coverage gate — structural counts only (F-S2107-P8-007 fix).
+# Verifies structural invariants of the bats file itself by counting declaration
+# and skip-marker sites.
 #   (a) Exactly 5 tests carry the "[DEFERRED v1.6 — Class D]" skip marker.
 #       These are the five Class D tests (AC-012 x2, AC-013, AC-014, AC-015) deferred
 #       per BC-5.39.010 v1.6. No new Class D deferred tests should be added without
 #       updating this count. No existing ones should be silently removed.
-#   (b) Exactly 45 _require_artifacts call sites.
+#   (b) Exactly 46 _require_artifacts call sites.
 #       Each site becomes a skip when the factory-dispatcher binary or WASM is absent.
 #       Bounding this explicitly prevents silent growth in dispatcher-gated test count.
+#       (was 45; +1 for F-S2107-P8-013 production-scale fuel-budget gate)
 #   (c) Total @test declarations >=40 (sanity floor; not the primary execution measure).
 #
-# Execution-bounded attestation (derived from (a)+(b)+(c)):
-#   When dispatcher + WASM present: (total - deferred) passed / deferred skipped / 0 failed
-#   When dispatcher + WASM absent:  (total - req_sites) passed / req_sites skipped / 0 failed
+# F-S2107-P8-007: removed the "N passed / M skipped / 0 failed" echo that was derived
+# from grep counts and hardcoded "0 failed". A test cannot observe its own run's results;
+# the echo was fabricating runtime truth from static declarations. run-all.sh TAP
+# accounting is the single source of truth for runtime pass/skip/fail figures.
 #
 # ALWAYS PASSES: no dispatcher invocation. Pure file-structure analysis.
 # ---------------------------------------------------------------------------
 
-@test "F-P6-016: coverage gate — 5 deferred, 45 dispatcher-gated, execution-bounded attestation" {
+@test "F-P6-016: coverage gate — 5 deferred, 46 dispatcher-gated, structural counts only" {
   local bats_file="$BATS_TEST_FILENAME"
 
   # (a) Class-D-DEFERRED skip count: must be exactly 5.
@@ -1861,14 +1914,15 @@ for line in data.splitlines():
     false
   }
 
-  # (b) _require_artifacts call sites: must be exactly 45.
+  # (b) _require_artifacts call sites: must be exactly 46.
   # Each site becomes a skip when the factory-dispatcher binary or WASM is absent.
   # Bounding this explicitly prevents silent inflation: a new dispatcher-gated test added
   # without updating this count will fail the gate, not silently grow the skip count.
+  # (was 45; +1 for F-S2107-P8-013 production-scale fuel-budget gate)
   local req_count
   req_count=$(grep -c '^\s*_require_artifacts$' "$bats_file" 2>/dev/null || echo 0)
-  [ "$req_count" -eq 45 ] || {
-    echo "FAIL: expected exactly 45 _require_artifacts call sites, got $req_count."
+  [ "$req_count" -eq 46 ] || {
+    echo "FAIL: expected exactly 46 _require_artifacts call sites, got $req_count."
     echo "  This bounds the number of tests that skip when the factory-dispatcher binary"
     echo "  or WASM artifact is absent. Update this count when adding or removing a"
     echo "  dispatcher-gated test."
@@ -1884,19 +1938,21 @@ for line in data.splitlines():
     false
   }
 
-  # Execution-bounded attestation: derive expected run/skip breakdown from structural counts.
-  # - deferred tests: skip regardless of artifact presence (skip fires before _require_artifacts).
-  # - req_count includes the 5 deferred tests (they have _require_artifacts in body, never reached).
-  # - total - req_count = tests WITHOUT _require_artifacts (always run).
-  local run_when_present=$(( total_count - deferred_count ))
-  local skip_when_present=$deferred_count
-  local run_when_absent=$(( total_count - req_count ))
-  local skip_when_absent=$req_count
-  echo "Coverage attestation (F-P6-016, execution-bounded):"
-  echo "  Total declared: $total_count"
+  # Structural count summary (F-S2107-P8-007 fix: no pass/failed/skipped words here;
+  # a test cannot observe its own run's results — run-all.sh TAP accounting is the
+  # single source of truth for runtime pass/skip/fail counts).
+  # - deferred: always skip regardless of artifact presence.
+  # - req_count: dispatcher-gated (skip when artifacts absent).
+  # - non-deferred = total - deferred: tests that CAN run when artifacts present.
+  # - non-gated = total - req_count: tests that always run (no _require_artifacts).
+  local non_deferred=$(( total_count - deferred_count ))
+  local non_gated=$(( total_count - req_count ))
+  echo "Coverage structural counts (F-P6-016):"
+  echo "  Total @test declarations: $total_count"
   echo "  Class-D-DEFERRED (always skip): $deferred_count"
   echo "  _require_artifacts call sites (dispatcher-gated): $req_count"
-  echo "  When dispatcher + WASM present: $run_when_present passed / $skip_when_present skipped / 0 failed"
-  echo "  When dispatcher + WASM absent:  $run_when_absent passed / $skip_when_absent skipped / 0 failed"
+  echo "  Non-deferred tests (require dispatcher + WASM): $non_deferred"
+  echo "  Non-gated tests (no _require_artifacts, always run): $non_gated"
+  echo "  Runtime pass/skip/fail: see run-all.sh TAP output (not derived here)"
 }
 
