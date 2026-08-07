@@ -3168,7 +3168,7 @@ mod tests {
     /// pass-range annotation `pass-61→62` — inflates the count by 1, producing a false
     /// "5 components" violation.
     ///
-    /// Example line: `"D-999 ...; trajectory-tail →2→0→0→0; pass-61→62"`
+    /// Example line: `"D-99999 ...; trajectory-tail →2→0→0→0; pass-61→62"`
     ///
     /// - `count_target` after token-strip = `"→2→0→0→0; pass-61→62"`
     /// - `count_arrow_digit_matches(count_target)` = 5 (→2, →0, →0, →0 from tail +
@@ -3192,7 +3192,7 @@ mod tests {
         // Banner line: canonical 4-component tail followed by `; pass-61→62`.
         // The `→62` in `pass-61→62` is an `→digit` match that end-of-line counting
         // picks up, inflating the count to 5.
-        let banner_line = "D-999 fix-burst burst-E; trajectory-tail \u{2192}2\u{2192}0\u{2192}0\u{2192}0; pass-61\u{2192}62";
+        let banner_line = "D-99999 fix-burst burst-E; trajectory-tail \u{2192}2\u{2192}0\u{2192}0\u{2192}0; pass-61\u{2192}62";
 
         // Precondition A: verify that count_arrow_digit_matches on the count_target
         // substring (what the current fix passes to the counter) returns 5.

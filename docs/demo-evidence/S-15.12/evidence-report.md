@@ -25,7 +25,7 @@
 | AC-15 | `fail-multiple-violations.bats` | PASS (single BlockWithFix with all violations) |
 | AC-16 | `fail-open-unreadable.bats` | PASS (Continue + log_warn, no block) |
 | AC-17 | `pass-xstate-md-not-target.bats` | PASS (path-component-strict guard works) |
-| AC-18 | `pass-phase1-advisory-only.bats` | PASS (D-999 cite → Continue + log_warn) |
+| AC-18 | `pass-phase1-advisory-only.bats` | PASS (D-99999 cite → Continue + log_warn) |
 | AC-19 | `cargo build --release --target wasm32-wasip1` | PASS (zero warnings) |
 | AC-20 | `integration-production-registry.bats` | PASS (registry shape confirmed) |
 | AC-21 | Pre-flight 4-gate | PASS (fmt + clippy + bats + cargo all clean) |

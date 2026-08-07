@@ -1527,7 +1527,9 @@ event = "PostToolUse"
     fn test_is_d_nnn_format_valid() {
         assert!(is_d_nnn_format("D-381"));
         assert!(is_d_nnn_format("D-1"));
-        assert!(is_d_nnn_format("D-999"));
+        // D-99999 is the canonical sentinel value (correctly formatted but nonexistent)
+        // per ADR-041 §Decision 1. Validate format-check accepts it.
+        assert!(is_d_nnn_format("D-99999"));
     }
 
     #[test]

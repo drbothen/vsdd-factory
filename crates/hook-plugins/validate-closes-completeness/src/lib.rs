@@ -482,7 +482,7 @@ pub fn check_cite_id_format(closes_line: &str) -> Vec<Violation> {
             });
         }
         // Note: cross-site staleness (valid format, nonexistent D-NNN) is Phase 2 only.
-        // We do NOT check whether D-999 exists. The caller emits log_warn for advisory.
+        // We do NOT check whether D-99999 exists. The caller emits log_warn for advisory.
     }
 
     violations
@@ -1701,10 +1701,11 @@ Body 2.
     }
 
     #[test]
-    fn test_cite_id_phase1_advisory_d999() {
-        // D-999 is correctly formatted — should NOT produce a violation.
-        // Cross-site staleness is Phase 2 only.
-        let line = "**Closes:** D-999";
+    fn test_cite_id_phase1_advisory_d99999() {
+        // D-99999 is correctly formatted — should NOT produce a violation.
+        // Cross-site staleness is Phase 2 only. D-99999 is the canonical sentinel value
+        // (correctly formatted but nonexistent D-NNN) per ADR-041.
+        let line = "**Closes:** D-99999";
         assert!(check_cite_id_format(line).is_empty());
     }
 

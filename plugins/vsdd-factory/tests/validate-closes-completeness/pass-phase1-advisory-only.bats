@@ -1,5 +1,5 @@
 #!/usr/bin/env bats
-# pass-phase1-advisory-only.bats — AC-18: cross-site staleness (cite "D-999" with correct
+# pass-phase1-advisory-only.bats — AC-18: cross-site staleness (cite "D-99999" with correct
 #                                    format, nonexistent in decision-log) produces advisory
 #                                    log only — NOT a block (Phase 1 boundary)
 #
@@ -8,11 +8,12 @@
 #   BC-5.39.007 EC-010 (Phase 1/2 boundary: staleness detection deferred to Phase 2)
 #   BC-5.39.007 invariant 3 (path-component-strict guard)
 #
-# CRITICAL BOUNDARY: D-999 is a correctly-formatted cite ID matching the D-\d+ pattern.
+# CRITICAL BOUNDARY: D-99999 is a correctly-formatted cite ID matching the D-\d+ pattern.
 # Phase 1 does NOT block on correctly-formatted IDs that reference nonexistent decisions.
 # Cross-site staleness detection is Phase 2 scope per BC-5.39.007 Phase 1/2 boundary table.
+# D-99999 is the canonical sentinel value per ADR-041 §Decision 1.
 #
-# Fixture: lessons.md entry with "**Closes:** D-999" (correct format, nonexistent D-NNN).
+# Fixture: lessons.md entry with "**Closes:** D-99999" (correct format, nonexistent D-NNN).
 # Expected: hook exits 0 (no block) — advisory log_warn only.
 #
 # RED GATE PHASE: test skips because validate-closes-completeness.wasm is not yet compiled.
@@ -73,12 +74,12 @@ _lessons_md_envelope() {
 }
 
 # ---------------------------------------------------------------------------
-# AC-18: correctly-formatted cite D-999 (nonexistent) => exits 0 (advisory only, NOT block)
+# AC-18: correctly-formatted cite D-99999 (nonexistent) => exits 0 (advisory only, NOT block)
 # Traces to BC-5.39.007 postcondition 10 / EC-010
 # CRITICAL: if this test fails (exits 2), the Phase 1/2 boundary is broken.
 # ---------------------------------------------------------------------------
 
-@test "AC-18 PASS: hook emits Continue for correctly-formatted D-999 cite (cross-site staleness is advisory only in Phase 1)" {
+@test "AC-18 PASS: hook emits Continue for correctly-formatted D-99999 cite (cross-site staleness is advisory only in Phase 1)" {
   _require_artifacts
   _setup_fixture
   _write_registry

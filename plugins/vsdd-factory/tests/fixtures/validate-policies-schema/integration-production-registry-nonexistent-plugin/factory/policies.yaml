@@ -11,4 +11,4 @@ policies:
     severity: HIGH
     scope: ".factory/"
     lint_hook: "nonexistent-plugin"
-    codified_at: "D-999"
+    codified_at: "D-99999"
