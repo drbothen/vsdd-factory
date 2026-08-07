@@ -10391,3 +10391,45 @@ D-442(e) recorded the same class of defect for lessons.md (≤3,500 soft / ≤4,
 **Closes:** D-960
 
 **Cites:** D-960 (codified this burst); D-960(f); D-958 (erroneous figure). `[process-gap; gate-figure; dispatch-point; timing; burst-log; evidence-integrity; D-960; codified]`
+
+## L-BB-gate-narrower-than-its-claim [process-gap] [D-961]
+
+**Category:** process-gap
+
+**Title:** Gates Whose Predicate Is Narrower Than the Claim They Make
+
+**Lesson:** The cascade's dominant defect class: *a gate whose predicate is narrower than the claim it makes, converting absence-of-signal into pass.* Seven instances observed in a single session, four in work produced during that session: (1) F-S2107-P8-006 — `bc_index_row_contains_version` searched the whole table row rather than extracting the terminal version field; three distinct bypass vectors demonstrated by execution. (2) F-S2107-P8-007 — coverage gate derived its attestation from a `grep` count and hardcoded `0 failed`, printed GREEN on a run with one failure. (3) F-S2107-P8-013 — fuel-axis gate asserted "not measured" (no fixture large enough to stress the budget); largest WASM-sandbox fixture was 2,383 bytes against a 575,740-byte live index (241× gap). (4) ADR-041's own first ceiling-gate draft — `^## D-` missed F5's table-cell form and all 26 h3 entries, and `max_d=0`-on-empty was fail-open. (5) ADR-041's first self-tests were narrative, not executed (META-LEVEL-24 recurrence in brand-new work). (6) Product-owner's verification used a **line-scoped** `grep -v 'D-99999'` filter that discarded lines containing both the sentinel and other tokens, producing a FALSE CLEAN attestation. (7) The orchestrator's own post-hoc causal inference — concluded the missing sprint-state entry caused the T-14 ordering failure because the suite went green after the edit, when the edit did two things and `git show HEAD:` proved the violation pre-existed. **Generalization:** reasoned attestation is not evidence at ANY layer, orchestrator included; only mechanical gates with captured stdout and a proof-of-firing mutant are.
+
+**Anchors:** D-961; F-S2107-P8-006; F-S2107-P8-007; F-S2107-P8-013; ADR-041; POLICY 16 ALLOCATOR-CEILING GATE; META-LEVEL-24.
+
+**Closes:** D-961
+
+**Cites:** D-961 (codified this burst); F-S2107-P8-006; F-S2107-P8-007; F-S2107-P8-013; ADR-041. `[process-gap; gate-predicate; narrower-than-claim; mechanical-gate; META-LEVEL-24; D-961; codified]`
+
+## L-BB-sibling-sweep-yields-more-than-inventoried [implementation] [D-961]
+
+**Category:** implementation
+
+**Title:** Sibling Sweep Always Finds More Sites Than the Authoritative Inventory Claimed
+
+**Lesson:** Twice this burst a specialist's tree-wide sweep found MORE sites than the authoritative inventory named: (1) Implementer found 3 unguarded `.join(".factory")` sites where the diagnosis named 1; 2 of the 3 had silent failure modes (`session-learning` silently skipped the sidecar write; `precompact-flush` emitted a FALSE `DURABILITY DEGRADED` alert). (2) Test-writer found 8 sentinel sites where ADR-041's inventory listed 6; reconciled count: **8 sites total, 7 within `crates/` + `plugins/`, 1 in `docs/`** — two test-writer reports gave inconsistent figures (8 vs 7) depending on whether `docs/` was in scope; the reconciled figure is the authoritative count. In both cases the additional sites produced real behavioral consequences. **Corollary:** treat a design-doc site inventory as a lower bound, never a specification. When a TD-VSDD-060 sibling-sweep is dispatched with an inventory list, the implementer MUST perform a tree-wide grep to verify the list is complete before beginning fixes — the additional sites caught in the sweep are the production risk the fix was introduced to close.
+
+**Anchors:** D-961; F-S2107-P8-016; TD-VSDD-060; ADR-041.
+
+**Closes:** D-961
+
+**Cites:** D-961 (codified this burst); F-S2107-P8-016; TD-VSDD-060; ADR-041. `[implementation; sibling-sweep; inventory; lower-bound; TD-VSDD-060; D-961; codified]`
+
+## L-BB-story-index-transition-requires-sprint-state-sync [process-gap] [D-961]
+
+**Category:** process-gap
+
+**Title:** STORY-INDEX Transitions Must Be Synced to sprint-state.yaml Immediately
+
+**Lesson:** D-743 evidence: three stories (S-21.10, S-21.11, S-21.12) sat registered in STORY-INDEX with no `sprint-state.yaml` entry from the moment of registration (D-958), and the resulting failure surfaced two layers away — in a partition-ordering test (`sprint-state-format.bats` T-14) triggered by the missing entries corrupting the merged_count predicate. `sprint-state.yaml` is the canonical `merged_count` predicate source (D-853); an unsynced transition corrupts this source of truth silently. The defect can persist across multiple sessions before manifesting. **Rule:** any burst that registers a new story in STORY-INDEX MUST add a corresponding entry to `sprint-state.yaml` in the same commit. State-manager owns the STORY-INDEX; story-writer owns the sprint-state.yaml sync; orchestrator MUST verify both are done before the burst commit is sealed.
+
+**Anchors:** D-961; D-743; D-853; S-21.10; S-21.11; S-21.12; sprint-state.yaml.
+
+**Closes:** D-961
+
+**Cites:** D-961 (codified this burst); D-743; D-853. `[process-gap; sprint-state; story-index; sync; D-743; D-961; codified]`

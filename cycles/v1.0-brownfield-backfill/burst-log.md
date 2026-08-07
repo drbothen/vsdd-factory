@@ -23787,3 +23787,143 @@ Finding ID sets are identical (16 IDs, F-S2107-P8-001..016). Gate PASS.
 - Commit C: `e092e972` — `factory(D-960/C): index syncs — BC-5.39.010 v1.14; S-21.07 v1.9/d366da1/24AC-34EC; policies.yaml POLICY-15 PARENT-SHA; blockquotes S-8.10/S-21.12`
 - Commit D: `67a8e3e6` — `factory(D-960/D): 4-index bumps — BC v4.51 / STORY v4.288 / ARCH v3.46 (ADR-040; total_adrs 39→40) / VP v2.76`
 - Commit E: `46b7cef2` — `factory(D-960/E): STATE.md v6.96 ACTIVE advance + burst-log D-960 8 blocks; trajectory-tail →25→24→20→16; streak 0/3`
+
+## D-961-RECORDING-BURST (D-961) 2026-08-07
+
+### Block 1: Parent-commit
+
+`9c54f35e` — `factory(session-wrap): SHA-patch — session-wrap 9750700d this-commit resolved` (last factory-artifacts commit before this burst; confirmed via `git -C .factory log --oneline -1`)
+
+### Block 2: Adversary verdict
+
+No adversary pass ran this session. This is a multi-specialist recording and fix burst for D-961. The iron-law fresh-context adversary (BC-5.39.001) was NOT dispatched — this burst records decisions, closes findings, and advances state only. Streak remains **0/3** — not advanced (no new adversary pass). Trajectory tail **→25→24→20→16** — not modified (no finding-count to append). Pass-9 adversary dispatch is NEXT; F-S2107-P8-006/-007/-013 require adversarial re-verification under the iron law — implementer-side closures are NOT adversarially confirmed per D-959 principle.
+
+### Block 3: Files touched (Dim-1)
+
+Files changed in this D-961 burst across all specialists:
+
+```
+specs/architecture/ARCH-INDEX.md                                   (state-manager — v3.46→v3.47; total_adrs 40→41; ADR-041 body row pipe-escape pre-existing defect fixed)
+policies.yaml                                                      (state-manager — v1.4.20→v1.4.21; POLICY 16 ALLOCATOR-CEILING GATE bullet already added by architect; frontmatter advance only)
+cycles/v1.0-brownfield-backfill/decision-log.md                    (state-manager — D-961 block appended with sub-clauses a-h)
+cycles/v1.0-brownfield-backfill/lessons.md                         (state-manager — 3 new lessons appended: L-BB-gate-narrower-than-its-claim; L-BB-sibling-sweep-yields-more-than-inventoried; L-BB-story-index-transition-requires-sprint-state-sync)
+cycles/v1.0-brownfield-backfill/burst-log.md                       (state-manager — this D-961 entry, 8 D-444(c) blocks)
+stories/epics/E-22-dependency-security-hardening.md                (DELETION BLOCKED — human-authorized git rm blocked by permission classifier; team-lead must execute manually)
+specs/behavioral-contracts/BC-INDEX.md                             (product-owner — v4.51→v4.52; BC-5.39.007 v1.6→v1.7 row updated)
+stories/STORY-INDEX.md                                             (story-writer — v4.288→v4.289; S-21.12 re-anchored E-22→E-21 W4; E-22 section dissolved)
+STATE.md                                                           (state-manager — v6.97→v6.98; SHA-drift fix feature/S-21.07 fbb5183c→67ffbdcc LOCAL UNPUSHED; 2 new branches registered; D-961 advance; SRC §§1-11 refreshed)
+```
+
+### Block 4: Codifications (Dim-3)
+
+D-961 sub-clauses (a)-(h) codified in decision-log.md:
+
+- **(a) ADR-041 RATIFIED:** D-999 sentinel MIGRATED to ADR-041 canonical sentinel value; POLICY 16 ALLOCATOR-CEILING GATE added to policies.yaml; D-960(e) SUPERSEDED.
+- **(b) Sentinel migration COMPLETE:** BC-5.39.007 v1.7 (product-owner); S-15.12 v1.5 (story-writer); code/fixtures 8 sites closed in commit bf642fd9 on fix/d999-sentinel-code-migration; ADR-041 authored. All D-999 narrative references are historical-by-construction and not subject to scan.
+- **(c) S-21.12 re-anchored E-22→E-21 W4:** E-21 epic v1.8→v1.9; story_count 6→11; 35→83 story points. E-22 epic DISSOLVED (human-authorized D-961(c)); epic file deletion PENDING operator execution — agent `git rm` blocked by permission classifier; file `.factory/stories/epics/E-22-dependency-security-hardening.md` remains on disk; D-961/B commit proceeds WITHOUT E-22 deletion; operator will execute `git rm` separately.
+- **(d) push.default=current SET REPO-LOCAL:** 9 branch.*.merge entries audited clean; one dangerous auto-removed entry confirmed; all worktrees inherit.
+- **(e) NO REBASE RULING:** S-21.07 and S-21.04 NOT rebased per explicit human ruling. POLICY 18 SHA citations preserved as-is.
+- **(f) F-S2107-P8-016 CLOSED:** 3 unguarded `.join(".factory")` sites found and fixed (1 diagnosed + 2 silent-failure-mode siblings via sibling sweep); both-polarity tests added; commit 09f052a9 on fix/nested-factory-path-derivation.
+- **(g) Pass-8 findings COMPLETE:** F-S2107-P8-006 CLOSED; F-S2107-P8-007 CLOSED; F-S2107-P8-013 CLOSED (production-scale 576,396B fixture + runtime assertion); F-S2107-P8-014 GRANDFATHERED per human ruling D-960(c). All pass-8 findings resolved.
+- **(h) Sprint-state sync COMPLETE:** S-21.10/S-21.11/S-21.12 added to sprint-state.yaml; S-21.06 depth corrected to depth-2 zone; sprint-state-format.bats 14/14 passing.
+
+3 lessons appended to lessons.md:
+- L-BB-gate-narrower-than-its-claim [process-gap] [D-961]: A gate that claims to enforce a property must enforce it at ALL sites, not just the one that prompted its creation. Narrower coverage creates false-green signals.
+- L-BB-sibling-sweep-yields-more-than-inventoried [implementation] [D-961]: When a sibling sweep uncovers more sites than the finding listed, ALL sites must be fixed (TD-VSDD-060). The inventoried count is a lower bound, not a complete list.
+- L-BB-story-index-transition-requires-sprint-state-sync [process-gap] [D-961]: When a story transitions state in STORY-INDEX.md, sprint-state.yaml must receive the matching update in the same burst. Divergence produces false-green CI.
+
+### Block 5: Dim-2 Attestation — Literal Shell Gates (D-449(a))
+
+**POLICY 16 GLOBAL-MAX GATE — post-D-961 allocation (literal shell stdout captured 2026-08-07):**
+
+```
+$ cd .factory && max_d=$({ grep -hE '^#{2,} D-[0-9]+' cycles/*/decision-log.md 2>/dev/null; grep -hE '^\| *D-[0-9]+' cycles/*/decision-log.md 2>/dev/null; } | grep -oE 'D-[0-9]+' | sed 's/D-//' | sort -n | tail -1); if [ -z "$max_d" ]; then printf 'FAIL: D-NNN ceiling gate: zero allocation records found\n'; exit 1; fi; [ "$max_d" -lt 9000 ] && printf 'PASS: global max D-%s < D-9000 ceiling\n' "$max_d" || { printf 'FAIL: D-NNN allocation ceiling breach: max=D-%s\n' "$max_d"; exit 1; }
+PASS: global max D-961 < D-9000 ceiling
+```
+
+**D-446(a) 8-BLOCK SELF-GATE — verifying this burst-log entry contains all 8 D-444(c) blocks:**
+
+```
+$ awk '/^## D-961-RECORDING-BURST/,0' .factory/cycles/v1.0-brownfield-backfill/burst-log.md | grep -c "^### Block [1-8]:"
+8
+```
+
+8 blocks confirmed. Gate PASS.
+
+**D-448(a) SOURCE-ATTESTATION GATE — no adversary pass this burst (N/A):**
+
+This is a multi-specialist recording burst. No new adversary-pass-N.md was produced this session. D-448(a) source-attestation comparison (burst-log Adversary verdict ↔ adv-cycle-pass-N.md Part A) is not applicable. The Block 2 verdict above accurately states that no adversary pass ran and that pass-9 dispatch is NEXT. Pass-9 adversary finding re-verification of F-S2107-P8-006/-007/-013 closures is deferred to the next session per the iron law.
+
+**Bats evidence (provided by team-lead specialists; verbatim copy-in):**
+
+```
+$ bats validate-closes-completeness/pass-phase1-advisory-only.bats
+1..1
+ok 1 AC-18 PASS: hook emits Continue for correctly-formatted D-99999 cite (cross-site staleness is advisory only in Phase 1)
+
+$ bats validate-closes-completeness/pass-phase1-advisory-d99999.bats
+1..2
+ok 1 ADR-041 sentinel PASS: hook emits Continue for D-99999 cite (correctly formatted, nonexistent, Phase 1 advisory only)
+ok 2 ADR-041 sentinel MUTANT PROOF: hook blocks on malformed cite (proves Scenario A gate is live)
+
+$ bats sprint-state-format.bats
+1..14
+...
+ok 12 completeness/status-fidelity
+...
+ok 14 partition depth ordering
+14 tests, 0 failures
+```
+
+**Workspace gate (feature/S-21.07 @ 67ffbdcc — provided by test-writer):**
+
+```
+FMT_EXIT=0, CLIPPY_EXIT=0, cargo test 167 passed / 0 failed / 17 ignored
+bats 2198 executed, 51 skipped, 254 suites, BATS_EXIT=0, not-ok count 0
+```
+
+**Implementer gate (F-S2107-P8-016 fix @ fix/nested-factory-path-derivation — provided by implementer):**
+
+```
+fmt/clippy/test all exit 0; 189 ok lines
+```
+
+### Block 6: Dim-5 — Convergence Attestation
+
+- **Streak:** 0/3 (BC-5.39.001 3-CLEAN protocol; no adversary pass this session — streak not advanced, not reset)
+- **True adversary passes:** 7 (unchanged since pass-8 record burst; pass-9 is NEXT)
+- **CLEAN verdicts:** 0 (unchanged)
+- **Trajectory (full):** 47→18→25→25→24→20→16
+- **Trajectory-tail (LENGTH=4 per D-433(e)+D-439(c)):** →25→24→20→16 (UNCHANGED — no new pass)
+- **This burst:** Multi-specialist recording and fix burst — not an adversary pass; no trajectory-tail append
+- **Convergence status:** NOT CONVERGED — streak 0/3; pass-9 adversary dispatch NEXT; F-S2107-P8-006/-007/-013 require adversarial re-verification
+
+### Block 7: Dim-6 + Dim-7 — Non-Fabrication + Cross-reference
+
+**Dim-6 — Non-fabrication attestation:** All literal shell gate stdout captured from actual invocations (POLICY 16 gate run live; D-446(a) gate post-write). Bats and workspace gate evidence transcribed verbatim from team-lead specialist reports. D-961 sub-clauses (a)-(h) transcribed from decision-log.md D-961 block already appended by this burst. No findings fabricated. SHAs cited are from task instructions and verified against git log. E-22 git rm was blocked by permission classifier — recorded as blocked, not circumvented per TD-FACTORY-HOOK-BYPASS-001 P0 and task instruction explicit guidance.
+
+**Dim-7 — Cross-reference:**
+- F-S2107-P8-006/-007/-013 CLOSED (see Block 8); adversarial re-verification NEXT pass-9
+- F-S2107-P8-016 CLOSED at fix/nested-factory-path-derivation @ 09f052a9
+- D-999 sentinel migration COMPLETE at fix/d999-sentinel-code-migration @ bf642fd9
+- E-22 file deletion: BLOCKED this session — team-lead must execute `git -C .factory rm stories/epics/E-22-dependency-security-hardening.md` and amend commit
+- New branches registered in STATE.md Active Branches: fix/nested-factory-path-derivation, fix/d999-sentinel-code-migration
+- SHA-drift corrected: feature/S-21.07 fbb5183c→67ffbdcc LOCAL UNPUSHED (1 ahead of origin 37022ecc)
+- E-22 security scope preserved as Drift Items in STATE.md: SEC-001 sequencing constraint; RUSTSEC-2026-0222; RUSTSEC-2026-0204; 7 batched Dependabot alerts; EAC-002; ADR-033 namespace ambiguity
+
+### Block 8: Closes + factory-artifacts commits
+
+**Closes (this D-961 recording burst):**
+
+- F-S2107-P8-006: CLOSED — `bc_index_row_contains_version` helper DELETED; direct index comparison replaces whole-row string search; 3 permanent bypass-mutant tests retained. (implementer; feature/S-21.07 @ 67ffbdcc)
+- F-S2107-P8-007: CLOSED — fabricated `echo` attestation removed from bats hook; runtime accounting delegated to `run-all.sh` TAP output. (implementer; feature/S-21.07 @ 67ffbdcc)
+- F-S2107-P8-013: CLOSED — 576,396-byte production-scale fixture added; `plugin.completed` event asserted present; `plugin.timeout` event asserted absent. (test-writer; feature/S-21.07 @ 67ffbdcc)
+- F-S2107-P8-014: GRANDFATHERED per human ruling D-960(c) — cosmetic test isolation; no functional regression
+- F-S2107-P8-016: CLOSED — 3 unguarded `.join(".factory")` sites fixed (1 diagnosed + 2 sibling sites); both-polarity guard tests added. (implementer; fix/nested-factory-path-derivation @ 09f052a9)
+- E-22 epic file deletion: BLOCKED (permission classifier); team-lead must complete
+- D-999 sentinel migration: COMPLETE — BC-5.39.007 v1.7 + S-15.12 v1.5 + code/fixtures 8 sites. (fix/d999-sentinel-code-migration @ bf642fd9)
+- S-21.12 E-22→E-21 W4 re-anchor: COMPLETE (story-writer)
+- Sprint-state sync: COMPLETE — 14/14 bats passing
+
+**factory-artifacts commits (this burst — TD-VSDD-053 single-commit-per-burst):**
+- Commit B (this burst): SHA TBD — `factory(D-961/B): D-961 recording burst — ARCH-INDEX v3.47; policies.yaml v1.4.21; decision-log D-961; lessons ×3; burst-log 8-blocks; STATE.md v6.98`

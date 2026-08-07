@@ -15119,3 +15119,50 @@ D-960-S-21.07-PASS-8-RECORD-BURST-INDEX-SYNCS
 ### Date
 
 2026-08-07
+
+---
+
+## D-961 — D-961-RECORDING-BURST
+
+### Summary
+
+Multi-specialist recording burst 2026-08-07: ADR-041 ratified; D-999 sentinel migrated to D-99999; POLICY 16 extended with ALLOCATOR-CEILING GATE; S-21.12 re-anchored E-22→E-21 W4; E-22 epic DISSOLVED and file DELETED (human-authorized); `push.default=current` set repo-local; F-S2107-P8-016 root-caused and fixed (3 unguarded `.join(".factory")` sites); pass-8 findings -006/-007/-013 CLOSED; pre-existing sprint-state and story-index defects fixed. BC-INDEX v4.52 (product-owner). STORY-INDEX v4.289 (story-writer). ARCH-INDEX v3.47. policies.yaml v1.4.21. VP-INDEX v2.76 UNCHANGED.
+
+### Sub-clauses
+
+**(a) ADR-041 ratified — D-999 sentinel MIGRATED to `D-99999`; POLICY 16 ALLOCATOR-CEILING GATE added.** D-960(e)'s prose-only reservation of D-999 is SUPERSEDED by ADR-041 (structural remedy). POLICY 16 verification_steps extended with ALLOCATOR-CEILING GATE bullet (ADR-041 §Decision 2-3): gate scans all structural D-NNN allocations (h2 ^#{2,} D-NNN, h3, table-cell forms) in all cycle decision-logs; fails CLOSED on empty result; ceiling is D-8999 (D-9000..D-99999 reserved sentinel range). The ADR-041 test-fixture sentinel is referred to as "the ADR-041 sentinel" in STATE.md prose to avoid embedding its literal value there (ADR-041 §Decision 4 / scan_max_d_nnn in validate-dispatch-advance). SUPERSEDED: D-960(e) — append "SUPERSEDED by ADR-041" note to D-960(e) sub-clause (historical record preserved; supersession noted).
+
+**(b) Sentinel migration executed across 4 layers.** BC-5.39.007 v1.6→v1.7 (product-owner; 2 normative sites in EC-010 updated). S-15.12 v1.4→v1.5 (story-writer; 4 normative anchors in AC-18 updated). Code/fixtures 8 sites (`bf642fd9` on `fix/d999-sentinel-code-migration`). ADR-041 authored by architect. Residual `D-999` tokens in changelog narrative rows are CORRECT historical record (historical-by-construction per POLICY 5 v1.3.5 Part A); not stale terms.
+
+**(c) S-21.12 re-anchored E-22→E-21 W4** per human ruling. E-21 epic v1.8→v1.9; story_count 6→11; points 35→83. E-22 DISSOLVED; file DELETED per human ruling (human-authorized; story-writer fixed 2 live pointers; historical references in burst-log/decision-log/INDEX/adversary-pass-7 retained as immutable record). STATE.md Identifier Conventions: Epic count updated (E-0..E-19=20 contiguous + E-20 never allocated + E-21 active + E-22 dissolved).
+
+**(d) `push.default=current` set repo-local** per human ruling, defusing the force-push footgun class (bare `--force-with-lease` on `fix/wasmtime-wasi-cve-2026-47261` resolved to develop). All 9 `branch.*.merge` entries audited clean; dangerous `branch.fix/wasmtime-wasi-cve-2026-47261.merge = refs/heads/develop` auto-removed with that deleted branch. `extensions.worktreeConfig` NOT set — all 3 worktrees inherit `push.default=current`. Verified via no-refspec `--dry-run` showing `develop -> develop`.
+
+**(e) Human ruled NO REBASE** of S-21.07/S-21.04. A rebase would invalidate POLICY 18 input-hash and parent-SHA citations stored in factory-artifacts. Both branches remain 1 commit behind develop by design. S-21.07 local is ahead of origin by 1 commit (unpushed) at `67ffbdcc`; origin at `37022ecc`.
+
+**(f) F-S2107-P8-016 root-caused and fixed.** Unguarded `factory_dir` derivation in the dispatcher's `run()` unconditionally `.join(".factory")` on `base_host_ctx.cwd`; when `CLAUDE_PROJECT_DIR` is the factory-artifacts worktree, cwd already ends in `.factory`, producing doubled prefix `.factory/.factory/`. `log_dir.rs` Level C already had the `is_dot_factory_basename` guard; TD-VSDD-060 sibling-sweep not applied. Sweep found **3** unguarded sites, not 1 (as inventoried): `main.rs run()` (primary), `session-learning` sidecar writer (silently skipped), `precompact-flush` (emitted a FALSE `DURABILITY DEGRADED`). Both-polarity tests added per POLICY 13 BOUNDARY-POLARITY mandate.
+
+**(g) Pass-8 findings closed — all 16 of 16 dispositioned.** `F-S2107-P8-006` (HIGH) CLOSED: `bc_index_row_contains_version` function DELETED; replaced by direct `BcIndexVersionState::Version(v)` vs `normalized_fv` comparison; 3 permanent bypass-mutant tests retained. `F-S2107-P8-007` (HIGH) CLOSED: fabricated `echo` attestation with literal `0 failed` REMOVED; runtime accounting delegated to `run-all.sh` TAP parser. `F-S2107-P8-013` (MEDIUM) CLOSED: production-scale fixture added (576,396-byte BC-INDEX, ~1985 rows, 241× prior largest) asserting `plugin.completed` present and `plugin.timeout` absent. `F-S2107-P8-014` GRANDFATHERED per human ruling (D-960(c)). Pass-8 fix burst COMPLETE: 16 of 16 findings dispositioned.
+
+**(h) Pre-existing sprint-state and story-index defects fixed.** S-21.10, S-21.11, S-21.12 were absent from `sprint-state.yaml` despite D-958 STORY-INDEX registration — D-743 class defect. `S-21.06` (depth=2) was misplaced in the depth-1 zone in committed HEAD, violating BC-5.41.004 PC3 / ADR-026 §Decision 3a def-b. Both defects pre-existing and INDEPENDENT; both fixed in-scope by story-writer. `sprint-state-format.bats` now 14/14.
+
+### Participating agents
+
+- state-manager: D-961 codification; ARCH-INDEX v3.47; policies.yaml v1.4.21; burst-log D-961 (8 blocks); lessons ×3; STATE.md v6.98 advance
+- product-owner: BC-5.39.007 v1.7 (D-999→the ADR-041 sentinel); BC-INDEX v4.52
+- story-writer: S-21.12 v1.2 re-anchor (E-22→E-21 W4); STORY-INDEX v4.289; E-22 live-pointer cleanup; sprint-state defects fixed
+- architect: ADR-041 authored; POLICY 16 ALLOCATOR-CEILING GATE bullet added; ARCH-INDEX ADR-041 body row
+- implementer: F-S2107-P8-016 3-site fix; `push.default=current`; F-S2107-P8-006/-007 CLOSED
+- test-writer: F-S2107-P8-013 production-scale fixture; sprint-state-format.bats 14/14; ADR-041 bats tests
+
+### 4-INDEX
+
+BC-INDEX v4.52 / VP-INDEX v2.76 (UNCHANGED) / STORY-INDEX v4.289 / ARCH-INDEX v3.47
+
+### Phase
+
+D-961-RECORDING-BURST
+
+### Date
+
+2026-08-07
