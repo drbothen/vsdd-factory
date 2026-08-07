@@ -23786,4 +23786,4 @@ Finding ID sets are identical (16 IDs, F-S2107-P8-001..016). Gate PASS.
 - Commit B: `3138e4bf` — `factory(D-960/B): D-960 codification — policies.yaml v1.4.20 + 6 governance decisions (a-g); 2 lessons`
 - Commit C: `e092e972` — `factory(D-960/C): index syncs — BC-5.39.010 v1.14; S-21.07 v1.9/d366da1/24AC-34EC; policies.yaml POLICY-15 PARENT-SHA; blockquotes S-8.10/S-21.12`
 - Commit D: `67a8e3e6` — `factory(D-960/D): 4-index bumps — BC v4.51 / STORY v4.288 / ARCH v3.46 (ADR-040; total_adrs 39→40) / VP v2.76`
-- Commit E: PENDING SHA — `factory(D-960/E): STATE.md v6.96 ACTIVE advance + burst-log D-960 8 blocks; trajectory-tail →25→24→20→16; streak 0/3`
+- Commit E: `46b7cef2` — `factory(D-960/E): STATE.md v6.96 ACTIVE advance + burst-log D-960 8 blocks; trajectory-tail →25→24→20→16; streak 0/3`
