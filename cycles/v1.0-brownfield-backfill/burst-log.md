@@ -23619,3 +23619,5 @@ BC-5.39.010 row confirmed v1.11 \| v1.12 \| v1.13. O-P8-02 / BC-INDEX v1.13 row 
 - Commit E: `61e23c44` — `factory(D-958/E): STATE.md v6.91→v6.92 advance + burst-log D-958 8 blocks (CLEAN pass-7; streak 1/3)` *(CORRECTED D-959: streak was NOT advanced; STATE.md corrected in D-959 correction commit)*
 - SHA-patch: `2878a195` — `factory(D-958/SHA-patch): Active Branches + burst-log Block 8 SHA-patch — factory-artifacts row updated to Commit E 61e23c44`
 - D-959 correction: `a0d87706` — `factory(D-959/correction): retract self-attested adversary-pass-7 — rename to fix-burst-closure-verification; streak reverts 1/3→0/3; trajectory reverts →0 drop; D-959 adversarial-authorship-integrity codified`
+
+## S-21.07-PASS-8-RECORD-BURST (adversary-pass-7 persist, D-NNN pending) 2026-08-07
