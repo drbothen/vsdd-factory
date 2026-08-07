@@ -1095,7 +1095,7 @@ mod tests {
         );
     }
 
-    /// BC-5.39.010 v1.10 PC13 RED GATE — Collision Class 2 (ACs-column DEFERRED annotation):
+    /// BC-5.39.010 v1.14 PC13 RED GATE — Collision Class 2 (ACs-column DEFERRED annotation):
     /// version from Version cell must be returned, NOT the later "v1.6" from ACs cell.
     ///
     /// Corpus shape (S-21.07, BC-5.39.010 BC table row — 4-column row):

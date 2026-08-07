@@ -12,7 +12,7 @@
 //! **Class E2 (BC/VP/story/epic write):** `modified:` sequence date monotonicity.
 //!
 //! # Governing BC
-//! BC-5.39.010 v1.13 — six-arm PostToolUse cross-site value-correspondence gate (A1/A2/B1/B2/E1/E2; Class D deferred).
+//! BC-5.39.010 v1.14 — six-arm PostToolUse cross-site value-correspondence gate (A1/A2/B1/B2/E1/E2; Class D deferred).
 //!
 //! # Architecture
 //! - **Tier 2A** (ADR-035 §Decision 1): PostToolUse read-only validator.
