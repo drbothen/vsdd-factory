@@ -15078,3 +15078,44 @@ D-959-ADVERSARIAL-AUTHORSHIP-INTEGRITY-CORRECTION
 ### Date
 
 2026-08-06
+
+---
+
+## D-960 — S-21.07-PASS-8-RECORD-BURST-INDEX-SYNCS
+
+### Summary
+
+Single-commit B/C/D/E burst 2026-08-07. S-21.07 pass-8 adversary review recorded (16 findings NOT-CLEAN). Index syncs: BC-5.39.010 v1.13→v1.14; S-21.07 v1.8→v1.9 (input-hash c0ab6a3→d366da1; 23 ACs/31 ECs→24 ACs/34 ECs). POLICY 15 ATTESTATION-LOCATION GATE updated from HEAD-SHA (circular, unsatisfiable) to PARENT-SHA predicate per ADR-040 (human-ratified). policies.yaml v1.4.19→v1.4.20. D-999 reserved as never-allocatable sentinel. Prior pass-7 gate figure corrected (45/1/5→46/0/5 post-fix). Commit A subject sentinel typo acknowledged (immutable). S-8.10 + S-21.12 blockquote entries added to STORY-INDEX. logs/dispatcher-internal-2026-07-06.jsonl + 2026-07-07.jsonl deletions staged.
+
+### Decision
+
+**(a) ADR-040 ratified; policies.yaml v1.4.19→v1.4.20:** Human ratified ADR-040 (POLICY 15 ATTESTATION-LOCATION GATE predicate: HEAD-SHA → PARENT-SHA). The existing POLICY 15 ATTESTATION-LOCATION GATE bullet in `policies.yaml` is replaced verbatim with the text in ADR-040 §Proposed policies.yaml Replacement Text, effective v1.4.20. Key change: the literal-shell predicate no longer uses `<HEAD-SHA>` (the hash of the commit being constructed — circular and computationally infeasible) but instead uses `PARENT=$(git -C <factory-worktree-root> rev-parse HEAD^1) && grep -c "assertion-site attestation ($PARENT)" <red-gate-log-path>` → 1, where PARENT-SHA is the parent commit hash (available before the current commit is finalized). Same-commit bundling (TD-VSDD-053) is retained.
+
+**(b) Supersession scope:** ADR-040 supersedes only D-912's ATTESTATION-LOCATION GATE clause. D-912's second mandate (POLICY 13 MUTANT-DERIVED-GATE ALTERNATION MANDATE) is unaffected and remains in force.
+
+**(c) POLICY 21 grandfather approval for run-all.sh pass/skip accounting extension (finding F-S2107-P8-014):** Human approved the pass/skip accounting extension to `plugins/vsdd-factory/tests/run-all.sh` under the existing POLICY 21 grandfather clause covering that file. No new policies.yaml entry required; the grandfather list in prior D-846/D-889 decisions already covers run-all.sh. Finding -014 is thereby closeable.
+
+**(d) L-BB-red-gate-attestation-location-gate historical note:** The lesson `L-BB-red-gate-attestation-location-gate` (codified D-912) in `cycles/v1.0-brownfield-backfill/lessons.md` contains the retired HEAD-SHA predicate verbatim in its procedural steps 1 and 3 (illustrating the original broken gate form). This content is historical-by-construction: the lesson describes the defect that prompted D-912, and the retired predicate is the subject of the lesson. Do NOT amend the lesson body — the HEAD-SHA predicate in the lesson body text is not the live POLICY 15 gate; it is archival evidence of the original failure class.
+
+**(e) D-999 reserved as never-allocatable sentinel:** D-999 is permanently reserved as a never-allocatable D-NNN sentinel. It appears as a fixture value in `BC-5.39.007 EC-010` (lines 359 and 387) and `S-15.12 AC-18` (lines 198, 230, 528, 537) to test that allocation gates fire before the D-999 boundary is reached. Allocating D-999 would silently break these tests. The maximum allocatable D-NNN is D-998; D-999 is reserved forever. All cycle decision-logs share the global D-NNN namespace (POLICY 16); this reservation applies across all cycles.
+
+**(f) Prior gate figure correction — pass-7 dispatch figure:** The D-958 record burst's dispatch-point gate figure claimed bats `"46 passed / 5 skipped GREEN"`. This was false: the true breakdown at commit `fbb5183c` (the HEAD when pass-7 adversary was dispatched) was `45 passed / 1 failed / 5 skipped` (known-red: 1 failure from the pre-existing failing test). The GREEN claim should have read `RED (known-red: 1 failure from pre-existing failing test at fbb5183c)`. The post-fix figure at `659f7e04` (after pass-7 fix burst) was `46 passed / 0 failed / 5 skipped GREEN`. State-manager recorded the post-fix figure at the dispatch-point slot; the corrected dispatch-point figure is recorded here. Per finding -015, all gate figures in burst records MUST state ignored/skipped counts on both cargo and bats legs.
+
+**(g) Commit A subject sentinel typo acknowledged:** Commit A of this burst (SHA `aed7e472`) used the literal string `D-NNN` in its subject line (`factory(D-NNN/A): S-21.07-PASS-8-RECORD-BURST — adversary-pass-7.md persisted...`) instead of the POLICY 16 sentinel form `D-{TBD-pass-8-fix-burst}`. This commit is immutable (already pushed to origin/factory-artifacts). The deviation is acknowledged here; POLICY 16 was not violated in substance because this D-960 codification block is persisted in the same overall burst. The literal `D-NNN` form is a cosmetic defect in the commit subject formatting only.
+
+### Participating agents
+
+- state-manager: D-960 codification; policies.yaml v1.4.19→v1.4.20; BC-INDEX/STORY-INDEX/ARCH-INDEX/VP-INDEX body syncs; S-21.07 v1.9/d366da1/24AC-34EC propagation; S-8.10+S-21.12 blockquote entries; log file deletions staged; burst-log pass-8 8-block completion; STATE.md v6.95→v6.96 advance
+- product-owner: BC-5.39.010 v1.14 (spec update at `e9159371`; F-S2107-P8-009 closed)
+
+### 4-INDEX
+
+BC-INDEX v4.50→v4.51 / VP-INDEX v2.75→v2.76 / STORY-INDEX v4.287→v4.288 / ARCH-INDEX v3.45→v3.46 (+total_adrs 39→40 ADR-040)
+
+### Phase
+
+D-960-S-21.07-PASS-8-RECORD-BURST-INDEX-SYNCS
+
+### Date
+
+2026-08-07

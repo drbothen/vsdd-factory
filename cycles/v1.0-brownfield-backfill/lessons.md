@@ -10359,3 +10359,35 @@ D-442(e) recorded the same class of defect for lessons.md (≤3,500 soft / ≤4,
 **Closes:** D-959
 
 **Cites:** D-959 (codified this burst); D-958 (retracted burst); BC-5.39.001; Iron Law. `[adversary-protocol; iron-law; self-attestation; fabrication; closure-verification; streak-integrity; D-959; codified]`
+
+---
+
+## L-BB-gate-predicate-circular-sha [process-gap] [D-960]
+
+**Category:** process-gap
+
+**Title:** A Gate Predicate That Commits to Its Own Hash Is Computationally Infeasible
+
+**Lesson:** POLICY 15's ATTESTATION-LOCATION GATE (D-912 form) required `grep -c 'assertion-site attestation (<HEAD-SHA>)' red-gate-log.md` → 1, where `<HEAD-SHA>` is the SHA of the commit being pushed. This predicate is self-referential: the SHA of a commit includes a hash over the entire tree at that commit, which includes the red-gate-log.md content, which must contain the SHA. Satisfying the predicate without brute-force SHA mining is impossible — the content affects the hash, which must appear in the content. The predicate had been a stable recurrent finding (D-912 fourth-generation class) because every attempt to satisfy it by appending the expected SHA changes the tree hash, invalidating the SHA. The fix (ADR-040 D-960) uses `git rev-parse HEAD^1` (the parent commit's SHA) instead: the parent hash is fixed at authoring time before the commit is finalized. **Generalization:** any gate predicate that requires a committed artifact to contain its own content-hash is a circular predicate. Such predicates are detectable by the pattern: "check that file F contains value V, where V depends on the hash of a tree containing F." Cure: use a hash of a prior, already-fixed artifact (parent commit SHA, prior file SHA) rather than the current commit's own hash.
+
+**Anchors:** D-960 (this lesson); ADR-040 (PARENT-SHA fix); D-912 (original codification); POLICY 15 ATTESTATION-LOCATION GATE; F-S2107-P8-003.
+
+**Closes:** D-960
+
+**Cites:** D-960 (codified this burst); ADR-040; D-912; POLICY 15; F-S2107-P8-003. `[process-gap; circular-sha; gate-predicate; self-referential; parent-sha; D-960; codified]`
+
+---
+
+## L-BB-gate-figure-dispatch-point [process-gap] [D-960]
+
+**Category:** process-gap
+
+**Title:** Gate Figures Must Be Recorded at the Dispatch Point, Not Post-Fix
+
+**Lesson:** D-958's burst record claimed bats `"46 passed / 5 skipped GREEN"` as the gate figure for the pass-7 adversary dispatch. The true figure at `fbb5183c` (the actual HEAD when pass-7 was dispatched) was `45 passed / 1 failed / 5 skipped` — RED with one known-red failing test. The GREEN figure was from `659f7e04` (post-fix burst). Recording the post-fix figure in the dispatch-point slot misrepresents the starting condition, makes the pass-N findings count inconsistent with the test state, and gives a false impression that the adversary saw a green codebase. **Generalization:** burst log gate figures must capture the test state AT THE MOMENT of adversary dispatch, not the state after fixes. If the codebase has a known-failing test at dispatch time, the burst log MUST say "RED (known-red: N failing tests)" — do not record the post-fix state at the dispatch-point slot. The post-fix figure belongs in the Dim-2 closure evidence, not the adversary-dispatch gate figure.
+
+**Anchors:** D-960 (this lesson); D-960(f) sub-clause; fbb5183c (dispatch-point HEAD); 659f7e04 (post-fix HEAD).
+
+**Closes:** D-960
+
+**Cites:** D-960 (codified this burst); D-960(f); D-958 (erroneous figure). `[process-gap; gate-figure; dispatch-point; timing; burst-log; evidence-integrity; D-960; codified]`
