@@ -1,19 +1,19 @@
 ---
 document_type: pipeline-state
 level: ops
-version: "6.96"
+version: "6.97"
 status: draft
 producer: state-manager
-timestamp: 2026-08-07T00:06:00Z
-phase: D-960-S-21.07-PASS-8-RECORD-BURST-INDEX-SYNCS
-last_amended: "2026-08-07 (v6.96) — D-960-S-21.07-PASS-8-RECORD-BURST-INDEX-SYNCS (state-manager): adversary pass-7 COMPLETE (16 findings B2/H5/M7/L2 NOT-CLEAN; IMPROVING 20→16; 7th true adversary pass); D-960 codified (7 sub-clauses); 2 lessons; policies.yaml v1.4.19→v1.4.20 (POLICY 15 HEAD-SHA→PARENT-SHA; ADR-040 ratified); 4-index: BC-INDEX v4.51/VP-INDEX v2.76/STORY-INDEX v4.288/ARCH-INDEX v3.46; SRC §6 corrected (PR #770=wasmtime-wasi; S-21.07 no PR); trajectory-tail →25→24→20→16; streak 0/3. [Prior: 2026-08-06 (v6.95) — push-status-correction (state-manager): SRC §3 LOCAL-ONLY corrected to PUSHED (devops full workspace gate green; fbb5183c origin SHA-equal); SRC §11 stash@{0} note updated (harmless vestige; destructive-command-guard blocked drop); SRC §12 push task removed (renumbered); Active Branches feature/S-21.07 row updated; push-status discipline noted (third occurrence this session, class pattern for future D-NNN codification); version v6.94→v6.95. [Prior: 2026-08-06 (v6.94) — SESSION-WRAP-2026-08-06 (state-manager): PIPELINE PAUSED per human /wrap directive; D-959 SRC archived to session-checkpoints.md; new PAUSED SRC written (adversary pass-7 NOT YET RUN; streak 0/3); wc-l banner appended per D-446(c) dual-margin; 4-INDEX UNCHANGED BC v4.50/VP v2.75/STORY v4.287/ARCH v3.45. [Prior: 2026-08-06 (v6.93) — D-959-ADVERSARIAL-AUTHORSHIP-INTEGRITY-CORRECTION (state-manager): D-958 RETRACTION: adversary-pass-7.md was state-manager self-verification (Iron Law violated); relabelled fix-burst-closure-verification-pass-7.md; streak reverts 1/3→0/3; trajectory-tail reverts →0 drop (tail remains →25→25→24→20); adversary pass-7 NOT YET RUN; D-959 adversarial-authorship-integrity codified; L-BB-adversarial-authorship-integrity lesson appended; bats count corrected 35/35→46/5; INDEX.md Convergence Status corrected; burst-log.md D-958 Blocks 2/3/4/5/6/7/8 corrected. 4-INDEX UNCHANGED. [Prior: 2026-08-06 (v6.92) — D-958-S-21.07-PASS-7-RECORD-BURST-INDEX-SYNCS (state-manager): Pass-7 fix burst COMPLETE (NOT adversary pass — corrected D-959); 20 findings implementation-verified closed at fbb5183c; BC-INDEX v4.49→v4.50; ARCH-INDEX v3.44→v3.45; VP-INDEX v2.74→v2.75; S-21.07 v1.7→v1.8 (c0ab6a3; POLICY 18 ACHIEVED); STORY-INDEX v4.286→v4.287; 3 lessons; STATE.md v6.91→v6.92. [Prior: ...]]]]]]]]"
+timestamp: 2026-08-07T19:50:00Z
+phase: SESSION-WRAP-2026-08-07-PIPELINE-PAUSED
+last_amended: "2026-08-07 (v6.97) — SESSION-WRAP-2026-08-07 (state-manager): PIPELINE PAUSED per human /wrap directive; D-960 SRC archived to session-checkpoints.md; new PAUSED SRC written (pass-8 fix burst NEXT; 12 of 16 pass-7 findings closed; 3 OPEN: -006/-007/-013; -014 GRANDFATHERED per D-960(c); develop 700b4dd3 PR #770 MERGED wasmtime-wasi 44.0.3; RUSTSEC-2026-0149+RUSTSEC-2026-0182 CLEARED; dead branch fix/wasmtime-wasi-cve-2026-47261 @ 23e307bb merged+deleted; D-999 collision ~39 allocations; force-push footgun explicit-refspec discipline noted); wc-l banner appended per D-446(c) dual-margin; 4-INDEX UNCHANGED BC v4.51/VP v2.76/STORY v4.288/ARCH v3.46. [Prior: 2026-08-07 (v6.96) — D-960-S-21.07-PASS-8-RECORD-BURST-INDEX-SYNCS (state-manager): adversary pass-7 COMPLETE (16 findings B2/H5/M7/L2 NOT-CLEAN; IMPROVING 20→16; 7th true adversary pass); D-960 codified (7 sub-clauses); 2 lessons; policies.yaml v1.4.19→v1.4.20 (POLICY 15 HEAD-SHA→PARENT-SHA; ADR-040 ratified); 4-index: BC-INDEX v4.51/VP-INDEX v2.76/STORY-INDEX v4.288/ARCH-INDEX v3.46; SRC §6 corrected (PR #770=wasmtime-wasi; S-21.07 no PR); trajectory-tail →25→24→20→16; streak 0/3. [Prior: 2026-08-06 (v6.95) — push-status-correction (state-manager): SRC §3 LOCAL-ONLY corrected to PUSHED (devops full workspace gate green; fbb5183c origin SHA-equal); SRC §11 stash@{0} note updated (harmless vestige; destructive-command-guard blocked drop); SRC §12 push task removed (renumbered); Active Branches feature/S-21.07 row updated; push-status discipline noted (third occurrence this session, class pattern for future D-NNN codification); version v6.94→v6.95. [Prior: 2026-08-06 (v6.94) — SESSION-WRAP-2026-08-06 (state-manager): PIPELINE PAUSED per human /wrap directive; D-959 SRC archived to session-checkpoints.md; new PAUSED SRC written (adversary pass-7 NOT YET RUN; streak 0/3); wc-l banner appended per D-446(c) dual-margin; 4-INDEX UNCHANGED BC v4.50/VP v2.75/STORY v4.287/ARCH v3.45. [Prior: 2026-08-06 (v6.93) — D-959-ADVERSARIAL-AUTHORSHIP-INTEGRITY-CORRECTION (state-manager): D-958 RETRACTION: adversary-pass-7.md was state-manager self-verification (Iron Law violated); relabelled fix-burst-closure-verification-pass-7.md; streak reverts 1/3→0/3; trajectory-tail reverts →0 drop (tail remains →25→25→24→20); adversary pass-7 NOT YET RUN; D-959 adversarial-authorship-integrity codified; L-BB-adversarial-authorship-integrity lesson appended; bats count corrected 35/35→46/5; INDEX.md Convergence Status corrected; burst-log.md D-958 Blocks 2/3/4/5/6/7/8 corrected. 4-INDEX UNCHANGED. [Prior: 2026-08-06 (v6.92) — D-958-S-21.07-PASS-7-RECORD-BURST-INDEX-SYNCS (state-manager): Pass-7 fix burst COMPLETE (NOT adversary pass — corrected D-959); 20 findings implementation-verified closed at fbb5183c; BC-INDEX v4.49→v4.50; ARCH-INDEX v3.44→v3.45; VP-INDEX v2.74→v2.75; S-21.07 v1.7→v1.8 (c0ab6a3; POLICY 18 ACHIEVED); STORY-INDEX v4.286→v4.287; 3 lessons; STATE.md v6.91→v6.92. [Prior: ...]]]]]]]]"
 inputs: []
 input-hash: "[live-state]"
 traces_to: prd.md
 project: vsdd-factory
 mode: brownfield
-pipeline: ACTIVE
-current_step: "D-960-S-21.07-PASS-8-RECORD-BURST-INDEX-SYNCS (state-manager this-commit). D-chain cite D-960 latest brownfield. adversary-pass-7.md persisted 16 findings NOT-CLEAN B2/H5/M7/L2; IMPROVING 20→16; 7th true adversary pass. D-960 codified (7 sub-clauses (a)-(g)): (a) ADR-040 POLICY 15 HEAD-SHA→PARENT-SHA; (b) D-912 POLICY 13 unaffected; (c) POLICY 21 pass/skip accounting; (d) L-BB circular-SHA historical-by-construction; (e) D-999 sentinel reserved; (f) prior gate figure corrected fbb5183c 45/1/5 EXIT=1→659f7e04 46/0/5 GREEN; (g) Commit-A subject literal D-NNN acknowledged. 2 lessons. SRC §6 corrected: PR #770=wasmtime-wasi fix (fix/wasmtime-wasi-cve-2026-47261 a66964aa); S-21.07 no PR. trajectory-tail →25→24→20→16 (LENGTH=4). 4-INDEX: BC v4.51 / VP v2.76 / STORY v4.288 / ARCH v3.46. D-444(a)/D-446(a)/D-448(a) gates invoked literal shell in burst-log Dim-2 per D-449(a). parent-commit: 67a8e3e6."
+pipeline: PAUSED
+current_step: "SESSION-WRAP-2026-08-07 (state-manager this-commit). PIPELINE PAUSED per human /wrap directive. D-960 SRC (ada929d4) archived to session-checkpoints.md. New PAUSED SRC written: pass-8 fix burst NEXT (F-S2107-P8-001..016; 12 of 16 closed; 3 OPEN for pass-9: -006/-007/-013; -014 GRANDFATHERED per D-960(c)); streak 0/3 (7 true adversary passes; 0 CLEAN); trajectory-tail →25→24→20→16 (LENGTH=4). PR #770 MERGED: develop 700b4dd3; wasmtime-wasi 44.0.3 live; RUSTSEC-2026-0149+RUSTSEC-2026-0182 CLEARED; fix/wasmtime-wasi-cve-2026-47261 DEAD (merged; remote deleted; local 23e307bb). CRITICAL: main checkout dead branch — first action on resume: git checkout develop && git pull. D-999 collision time-bomb: ~39 allocations. Cautions: explicit-refspec force-push discipline; .factory/.factory/ nested-path leak unresolved (F-S2107-P8-016, devops-engineer, pending). 4-INDEX UNCHANGED: BC v4.51/VP v2.76/STORY v4.288/ARCH v3.46. wc-l banner appended per D-446(c) dual-margin. parent-commit: ada929d4."
 current_cycle: v1.0-brownfield-backfill
 dtu_required: false
 dtu_assessment: 2026-04-25
@@ -56,6 +56,7 @@ dtu_services: []
   334 lines (wc-l post-update; push-status-correction SESSION-WRAP-2026-08-06 2026-08-06; v6.94→v6.95; soft-target margin 415-334=+81 UNDER-SOFT-TARGET)
   ~336 lines (estimated post-D-960 S-21.07-PASS-8-RECORD-BURST-INDEX-SYNCS 2026-08-07; v6.95→v6.96; soft-target margin 415-336=+79 UNDER-SOFT-TARGET)
   329 lines (wc-l post-D-960 S-21.07-PASS-8-RECORD-BURST-INDEX-SYNCS SHA-patch 2026-08-07; v6.96; Commit E 46b7cef2 pushed; soft-target margin 415-329=+86 UNDER-SOFT-TARGET)
+  338 lines (wc-l post-SESSION-WRAP-2026-08-07 PIPELINE PAUSED 2026-08-07; v6.96→v6.97; soft-target margin 415-338=+77 UNDER-SOFT-TARGET)
   D-862 E21-PHASE-3-W1-DISPATCH-APPROVED 2026-07-20; v6.08→v6.09; SM governance/dispatch burst; human gate decision W1 APPROVED SEQUENTIAL; input-drift resolved (12 files, metadata-only); STATE.md stale-points corrected (W1 15pts→17pts, per-story values 5/5/5/6/6→11/3/3/5/5); frontmatter last_amended COMPACTED + Current Phase Steps/Decisions Log compacted to last-5 policy (this compaction is the size-budget remediation flagged OVER-SOFT-TARGET at D-861); PIPELINE UNPAUSED; 4-index ALL UNCHANGED BC v4.11/VP v2.72/STORY v4.227/ARCH v3.11. Full per-burst wc-l history D-819..D-861 (see decision-log.md for full range) archived; SoT: decision-log.md + git show 9debd920:.factory/STATE.md for D-861 pre-compaction state.
 -->
 
@@ -72,8 +73,8 @@ dtu_services: []
 | **Mode** | brownfield-onboarding |
 | **Language** | Rust + Bash + Markdown |
 | **Started** | 2026-04-25 |
-| **Last Updated** | 2026-08-07 — D-960 pass-8 record burst COMPLETE: adversary pass-7 COMPLETE (16 findings B2/H5/M7/L2 NOT-CLEAN; IMPROVING 20→16; 7th true adversary pass); D-960 codified; 2 lessons; SRC §6 corrected (PR #770=wasmtime-wasi; S-21.07 no PR); trajectory-tail →25→24→20→16; 4-INDEX BC v4.51/VP v2.76/STORY v4.288/ARCH v3.46. |
-| **Current Phase** | **D-960-S-21.07-PASS-8-RECORD-BURST-INDEX-SYNCS (2026-08-07). PIPELINE ACTIVE — streak 0/3 (7 true adversary passes; 0 CLEAN); trajectory-tail →25→24→20→16; last D-NNN: D-960 (Commit E 46b7cef2). develop 948f0fb1. main 80e5cd7b. merged_count 107. 4-INDEX BC v4.51/VP v2.76/STORY v4.288/ARCH v3.46.** |
+| **Last Updated** | 2026-08-07 — SESSION-WRAP-2026-08-07 PIPELINE PAUSED: pass-8 fix burst NEXT; PR #770 MERGED (wasmtime-wasi 44.0.3; develop 700b4dd3); streak 0/3 (7 true adversary passes); trajectory-tail →25→24→20→16; 4-INDEX UNCHANGED BC v4.51/VP v2.76/STORY v4.288/ARCH v3.46. |
+| **Current Phase** | **SESSION-WRAP-2026-08-07 (2026-08-07). PIPELINE PAUSED — human /wrap directive. streak 0/3 (7 true adversary passes; 0 CLEAN); trajectory-tail →25→24→20→16; last D-NNN: D-960 (Commit E 46b7cef2). develop 700b4dd3 (PR #770 MERGED; wasmtime-wasi 44.0.3 live). main 80e5cd7b. merged_count 107. 4-INDEX BC v4.51/VP v2.76/STORY v4.288/ARCH v3.46.** |
 | **Current Cycle** | v1.0-brownfield-backfill |
 
 ## Phase Progress
@@ -99,10 +100,10 @@ dtu_services: []
 | D-954 S-21.07-PASS-3-RECORD-BURST 2026-08-04: S-21.07 pass-3 adversary RECORDED; NOT-CLEAN B3/H7/M12/L3 (25 findings + 5 obs); REGRESSION 18→25; RECORD burst only; adversary-pass-3.md CREATED (reviewed HEAD 6854a951); STORY-INDEX v4.282→v4.283; P0 Blocking Issue added; 5 Drift Items. 4-INDEX: BC v4.46 UNCHANGED; VP v2.74 UNCHANGED; STORY v4.282→v4.283; ARCH v3.42 UNCHANGED. streak 0/3 (3 passes). trajectory-tail →47→18→25→25 | **COMPLETE** | PIPELINE ACTIVE — pass-4 fix burst NEXT |
 | D-955 S-21.07-PASS-4-RECORD-BURST-INDEX-SYNCS 2026-08-04: S-21.07 pass-4 adversary RECORDED; NOT-CLEAN B4/H9/M9/L3 (25 findings + 5 obs); FLAT 25→25; RECORD+INDEX-SYNC burst; adversary-pass-4.md CREATED (reviewed HEAD 256023c6); BC-INDEX v4.46→v4.47; STORY-INDEX v4.283→v4.284; BC-5.39.010 backlink+input-hash closed. 4-INDEX: BC v4.46→v4.47; VP v2.74 UNCHANGED; STORY v4.283→v4.284; ARCH v3.42 UNCHANGED. streak 0/3 (4 passes). trajectory-tail →47→18→25→25 | **COMPLETE** | PIPELINE ACTIVE — pass-5 fix burst NEXT |
 | D-956 S-21.07-PASS-5-RECORD-BURST-INDEX-SYNCS 2026-08-05: S-21.07 pass-5 adversary RECORDED (single-commit TD-VSDD-053 `e2789993`); NOT-CLEAN B3/H8/M10/L3 (24 findings + 5 obs); FLAT-MINUS-ONE 25→24; adversary-pass-5.md CREATED (file=pass-5.md; IDs=F-S2107-P6-NNN); INDEX.md pass-5 row; decision-log.md D-956; 6 lessons; burst-log.md D-956 (8 blocks); BC-INDEX v4.47→v4.48 (BC-5.39.010 v1.9→v1.10); ARCH-INDEX v3.42→v3.43 (ADR-037 Decision 5 roster 19→78); STORY-INDEX v4.284→v4.285 (POLICY 18 S-21.07=dd5c9d2 THREE-WAY ACHIEVED). 4-INDEX: BC v4.47→v4.48; VP v2.74 UNCHANGED; STORY v4.284→v4.285; ARCH v3.42→v3.43. streak 0/3 (5 passes). trajectory-tail →18→25→25→24. SHA-patch DONE: `e2789993` | **COMPLETE** | PIPELINE ACTIVE — D-957 record burst NEXT |
-| D-957 S-21.07-PASS-6-RECORD-BURST-INDEX-SYNCS 2026-08-05: S-21.07 pass-6 adversary RECORDED (single-commit TD-VSDD-053; SHA-patch DONE: f0f25194); NOT-CLEAN B4/H7/M8/L1 (20 findings + 6 obs); IMPROVING 24→20; adversary-pass-6.md CREATED (reviewed HEAD b78b27ef+UNCOMMITTED); INDEX.md pass-6 row; D-957 codified; 3 lessons; burst-log.md D-957 (8 blocks); BC-INDEX v4.48→v4.49 (BC-5.39.010 v1.11→v1.12 F-P7-007 CLOSED); ARCH-INDEX v3.43→v3.44 (ADR-037 v1.2); STORY-INDEX v4.285→v4.286 (S-18.06/08/11/12 POLICY 18; S-18.11 d774716→a9320c2 F-P7-002 SM CLOSED); F-P7-001/002(SM)/007 CLOSED. 4-INDEX: BC v4.48→v4.49; VP v2.74 UNCHANGED; STORY v4.285→v4.286; ARCH v3.43→v3.44. streak 0/3 (6 passes). trajectory-tail →25→25→24→20. | **COMPLETE** | PIPELINE ACTIVE — pass-6 fix burst NEXT |
+| D-957 S-21.07-PASS-6-RECORD-BURST-INDEX-SYNCS 2026-08-05: S-21.07 pass-6 adversary RECORDED (single-commit TD-VSDD-053; SHA-patch DONE: f0f25194); NOT-CLEAN B4/H7/M8/L1 (20 findings + 6 obs); IMPROVING 24→20; adversary-pass-6.md CREATED (reviewed HEAD b78b27ef+UNCOMMITTED); INDEX.md pass-6 row; D-957 codified; 3 lessons; burst-log.md D-957 (8 blocks); BC-INDEX v4.48→v4.49 (BC-5.39.010 v1.11→v1.12 F-P7-007 CLOSED); ARCH-INDEX v3.43→v3.44 (ADR-037 v1.2); STORY-INDEX v4.285→v4.286 (S-18.06/08/11/12 POLICY 18; S-18.11 d774716→a9320c2 F-P7-002 SM CLOSED). F-P7-001/002(SM)/007 CLOSED. 4-INDEX: BC v4.48→v4.49; VP v2.74 UNCHANGED; STORY v4.285→v4.286; ARCH v3.43→v3.44. streak 0/3 (6 passes). trajectory-tail →25→25→24→20. | **COMPLETE** | PIPELINE ACTIVE — pass-6 fix burst NEXT |
 | D-958 S-21.07-PASS-7-RECORD-BURST-INDEX-SYNCS 2026-08-06: [D-959 RETRACTION: adversary-pass-7.md was state-manager self-verification (Iron Law violated); relabelled fix-burst-closure-verification-pass-7.md; CLEAN verdict VOID; streak NOT advanced.] S-21.07 pass-6 fix burst implementation-verified (20 findings closed at fbb5183c); fix-burst-closure-verification-pass-7.md RENAMED (was adversary-pass-7.md); INDEX.md pass-7 row; D-958 codified; 3 lessons; burst-log.md D-958 (8 blocks); BC-INDEX v4.49→v4.50 (BC-5.39.010 v1.12→v1.13; BC-1.01.016+BC-1.03.017 NEW; SS-01 118→120; total_bcs 1983→1985); ARCH-INDEX v3.44→v3.45 (total_adrs 37→39); VP-INDEX v2.74→v2.75. STORY-INDEX v4.286→v4.287 (S-21.07 v1.13/c0ab6a3/v1.8; S-21.10+S-21.11+S-21.12+E-22 registered; POLICY 18 S-21.07=c0ab6a3). 4-INDEX: BC v4.49→v4.50; VP v2.74→v2.75; STORY v4.286→v4.287; ARCH v3.44→v3.45. streak 0/3 UNCHANGED (6 true adversary passes). trajectory-tail →25→25→24→20. | **COMPLETE** | D-959 RETRACTION applied — adversary pass-7 NOT YET RUN |
 | D-959 ADVERSARIAL-AUTHORSHIP-INTEGRITY-CORRECTION 2026-08-06: D-958 adversarial-authorship-integrity retraction COMPLETE (single-commit a0d87706 + SHA-patch 159bb192); adversary-pass-7.md RENAMED → fix-burst-closure-verification-pass-7.md; INDEX.md pass-7 row CORRECTED (streak 1/3→0/3; verdict VOID; file ref corrected); burst-log.md D-958 Blocks 2-8 CORRECTED; decision-log.md D-958 correction notice + D-959 full block (a)-(g) APPENDED; lessons.md L-BB-adversarial-authorship-integrity APPENDED; STATE.md streak 0/3 (6 true adversary passes); trajectory-tail →25→25→24→20; Drift Items F-S2107-P3-001/002/P7-002/003/004 de-CLEAN-attested (implementation-verified fbb5183c; adversary pass-7 NOT YET RUN). 4-INDEX UNCHANGED: BC v4.50/VP v2.75/STORY v4.287/ARCH v3.45. | **COMPLETE** | PIPELINE ACTIVE — adversary pass-7 NEXT |
-| SESSION-WRAP-2026-08-06 PIPELINE PAUSED 2026-08-06 (session-wrap burst; SM 2ab91777+8977b94f+this-commit) | **COMPLETE** | (1) PIPELINE PAUSED: human /wrap directive 2026-08-06. (2) D-959 SRC archived to session-checkpoints.md. (3) New PAUSED SRC written: adversary pass-7 NOT YET RUN; streak 0/3; S-21.07 fbb5183c (pushed per push-status-correction this-commit); PR #770 (a66964aa) OPEN, zero CI (outage); MERGE-ORDER S-21.09→S-21.07 CRITICAL. (4) wc-l banners appended (multiple corrections). (5) 4-INDEX UNCHANGED: BC v4.50/VP v2.75/STORY v4.287/ARCH v3.45. trajectory-tail →25→25→24→20. (6) push-status-correction this-commit: SRC §3/§11/§12 updated; LOCAL-ONLY removed; stash@{0} note corrected; push-status discipline noted (pattern, three occurrences this session). |
+| SESSION-WRAP-2026-08-06 PIPELINE PAUSED 2026-08-06 (session-wrap burst; SM 2ab91777+8977b94f+this-commit) | **COMPLETE** | (1) PIPELINE PAUSED: human /wrap directive 2026-08-06. (2) D-959 SRC archived. (3) PAUSED SRC written: adversary pass-7 NOT YET RUN. (4) wc-l banners appended. (5) 4-INDEX UNCHANGED: BC v4.50/VP v2.75/STORY v4.287/ARCH v3.45. trajectory-tail →25→25→24→20. parent-commit: 8977b94f. |
 | D-960 S-21.07-PASS-8-RECORD-BURST-INDEX-SYNCS 2026-08-07: adversary pass-7 COMPLETE (vsdd-factory:adversary fresh-context; NOT-CLEAN B2/H5/M7/L2; 16 findings + 9 obs; IMPROVING 20→16; reviewed HEAD fbb5183c); adversary-pass-7.md CREATED; INDEX.md pass-8 row + Convergence Status; burst-log.md D-960 (8 blocks); D-960 codified (7 sub-clauses (a)-(g)); 2 lessons; policies.yaml v1.4.19→v1.4.20 (POLICY 15 HEAD-SHA→PARENT-SHA; ADR-040 ratified); BC-INDEX v4.50→v4.51 (BC-5.39.010 v1.13→v1.14; O-S2107-P8-02 resolution); STORY-INDEX v4.287→v4.288 (S-21.07 v1.9/d366da1/24AC-34EC; S-8.10+S-21.12 blockquotes); ARCH-INDEX v3.45→v3.46 (ADR-040; total_adrs 39→40). VP-INDEX v2.75→v2.76. SRC §6 corrected (PR #770=wasmtime-wasi; S-21.07 no PR). 4-INDEX: BC v4.51; VP v2.76; STORY v4.288; ARCH v3.46. streak 0/3 (7 true adversary passes). trajectory-tail →25→24→20→16. SHA-patch DONE: 46b7cef2. | **COMPLETE** | PIPELINE ACTIVE — D-960 pass-8 fix burst NEXT |
 | **E-18 CAP-002 context-durability epic (#173): waves 1-9 + prereqs, S-18.00..S-18.14, 18 stories** | **EPIC COMPLETE 2026-07-01 D-744** | Final story S-18.12 MERGED PR #384 ec05606a. All 18 E-18 stories + 2 prereqs merged; merged_count 95→96. Full ledger: `cycles/v1.0-brownfield-backfill/merged-stories-ledger.md`. |
 
@@ -120,6 +121,7 @@ dtu_services: []
 | D-959 ADVERSARIAL-AUTHORSHIP-INTEGRITY-CORRECTION 2026-08-06 (correction-commit; SM this-commit) | state-manager | COMPLETE | (1) D-958 RETRACTION: adversary-pass-7.md RENAMED → fix-burst-closure-verification-pass-7.md; streak 1/3→0/3 REVERTED; trajectory-tail →0 append REVERTED. (2) INDEX.md pass-7 row CORRECTED. (3) burst-log.md D-958 Blocks 2/3/4/5/6/7/8 ALL CORRECTED. (4) decision-log.md D-958 correction notice + D-959 full block. (5) lessons.md L-BB-adversarial-authorship-integrity APPENDED. (6) STATE.md streak 0/3; trajectory-tail →25→25→24→20. Correction commit: a0d87706. SHA-patch: 159bb192. parent-commit: 2878a195. |
 | SESSION-WRAP-2026-08-06 PIPELINE PAUSED 2026-08-06 (session-wrap burst; SM 2ab91777+8977b94f+this-commit) | state-manager | COMPLETE | (1) PIPELINE PAUSED per human /wrap. (2) D-959 SRC archived. (3) PAUSED SRC written: adversary pass-7 NOT YET RUN. (4) wc-l banners appended. (5) 4-INDEX UNCHANGED: BC v4.50/VP v2.75/STORY v4.287/ARCH v3.45. trajectory-tail →25→25→24→20. parent-commit: 8977b94f. |
 | D-960 S-21.07-PASS-8-RECORD-BURST-INDEX-SYNCS 2026-08-07 (pass-8 RECORD+INDEX-SYNC burst; SM this-commit) | state-manager | COMPLETE | (1) POLICY 16 GLOBAL-MAX GATE: D-959 confirmed max → D-960 allocated. (2) RECORD+INDEX-SYNC burst COMPLETE: adversary-pass-7.md CREATED (NOT-CLEAN B2/H5/M7/L2; 16+9 obs; IMPROVING 20→16; reviewed HEAD fbb5183c); INDEX.md pass-8 row; D-960 codified (7 sub-clauses); 2 lessons; burst-log.md D-960 (8 blocks). (3) policies.yaml v1.4.19→v1.4.20: POLICY 15 HEAD-SHA→PARENT-SHA (ADR-040 ratified). (4) BC-INDEX v4.50→v4.51: BC-5.39.010 v1.13→v1.14 (O-S2107-P8-02 resolution). (5) STORY-INDEX v4.287→v4.288: S-21.07 v1.9/d366da1/24AC-34EC; S-8.10+S-21.12 blockquotes. (6) ARCH-INDEX v3.45→v3.46: ADR-040; total_adrs 39→40. (7) VP-INDEX v2.75→v2.76. (8) SRC §6 corrected: PR #770=wasmtime-wasi; S-21.07 no PR. (9) 4-INDEX: BC v4.51; VP v2.76; STORY v4.288; ARCH v3.46. streak 0/3 (7 true adversary passes). trajectory-tail →25→24→20→16. parent-commit: 67a8e3e6. SHA-patch DONE: 46b7cef2. |
+| SESSION-WRAP-2026-08-07 PIPELINE PAUSED 2026-08-07 (session-wrap burst; SM this-commit) | state-manager | COMPLETE | (1) PIPELINE PAUSED per human /wrap directive. (2) D-960 SRC (ada929d4) archived to session-checkpoints.md. (3) PAUSED SRC written: pass-8 fix burst NEXT (12 of 16 closed; 3 OPEN: -006/-007/-013; -014 GRANDFATHERED); streak 0/3; PR #770 MERGED (develop 700b4dd3; wasmtime-wasi 44.0.3); RUSTSEC-2026-0149+RUSTSEC-2026-0182 CLEARED; dead branch fix/wasmtime-wasi-cve-2026-47261. (4) wc-l banner appended per D-446(c) dual-margin. (5) 4-INDEX UNCHANGED: BC v4.51/VP v2.76/STORY v4.288/ARCH v3.46. trajectory-tail →25→24→20→16. parent-commit: ada929d4. |
 
 ## Identifier Conventions
 
@@ -149,11 +151,11 @@ dtu_services: []
 | Branch / Tag | SHA | Notes |
 |--------------|-----|-------|
 | main | 80e5cd7b | rc.23 bot binary bundle commit 2026-07-18 |
-| develop | 948f0fb1 | feat(S-21.04): pass-27 CLOSED D-940 |
-| factory-artifacts | 46b7cef2 | D-960 pass-8 record burst COMPLETE (Commit E 46b7cef2 pushed 2026-08-07). Prior: 1ea882cf (SESSION-WRAP-2026-08-06 push-status correction v6.95). SHA-patch DONE: 46b7cef2. |
+| develop | 700b4dd3 | fix(security): bump wasmtime-wasi 44.0.1→44.0.3 (#770 squash-merge 2026-08-07T18:44:24Z). Local stale at 948f0fb1 — pull on resume. |
+| factory-artifacts | this-commit | SESSION-WRAP-2026-08-07 PAUSED (v6.97) pushed 2026-08-07. Prior: ada929d4 (D-960 SHA-patch). |
 | feature/S-21.04 | 323f440f | feat(S-21.04): pass-30 fix burst COMPLETE; S-21.04 v1.35 + ADR-034 v1.2 + POLICY 15 red-gate-log; bats 11/11 + 16/16 GREEN; NO PR open (correct: mid-cascade) |
 | feature/S-21.07 | fbb5183c | feat(S-21.07): adversary pass-7 COMPLETE (16 findings NOT-CLEAN; D-960); streak 0/3; NO PR (S-21.07 has no PR; PR #770 is wasmtime-wasi fix). origin SHA-equal at fbb5183c (pushed by devops-engineer; full workspace gate green — fmt PASS / clippy PASS / cargo test zero failures). MERGE-ORDER: S-21.09 MUST land first. |
-| fix/wasmtime-wasi-cve-2026-47261 | a66964aa | fix(security): bump wasmtime-wasi 44.0.1→44.0.3 (CVE-2026-47261 / GHSA-2r75-cxrj-cmph); PR #770 OPEN (6/9 review findings closed; PR-002/003/006 pending human git commit --amend; zero CI — GitHub Actions outage). |
+| fix/wasmtime-wasi-cve-2026-47261 | 23e307bb | MERGED via PR #770 2026-08-07T18:44:24Z (squash-merge 700b4dd3 to develop; wasmtime-wasi 44.0.3; RUSTSEC-2026-0149+RUSTSEC-2026-0182 CLEARED); remote branch auto-deleted. Dead local branch at 23e307bb — delete on resume (git checkout develop first). |
 | feature/S-21.01 | DELETED (was merged) | MERGED via PR #759 2026-07-23 (D-879); branch deleted at merge |
 | feature/S-21.02 | DELETED (was merged) | MERGED via PR #760 2026-07-24 (D-880); branch deleted at merge |
 | feature/S-21.03 | DELETED (was merged) | MERGED via PR #761 2026-07-24 (D-881); branch deleted at merge |
@@ -166,7 +168,7 @@ dtu_services: []
 | Cycle | Type | Status | Notes |
 |-------|------|--------|-------|
 | F-block-ai-attribution-message-file-arm | feature | F3 COMPLETE — F4 READY | F1+F2+F3 done 2026-05-12; 2 stories ready; E-16 under SS-07/SS-04; milestone v1.0.0-rc.17 |
-| v1.0-brownfield-backfill | brownfield | D-960-S-21.07-PASS-8-RECORD-BURST-INDEX-SYNCS 2026-08-07. PIPELINE ACTIVE. develop 948f0fb1; main 80e5cd7b; merged_count 107; BC-INDEX v4.51; VP-INDEX v2.76; STORY-INDEX v4.288; ARCH-INDEX v3.46; streak 0/3 (7 true adversary passes); trajectory-tail →25→24→20→16 (LENGTH=4). adversary pass-7 COMPLETE (vsdd-factory:adversary fresh-context; NOT-CLEAN B2/H5/M7/L2; 16 findings IMPROVING 20→16). MERGE-ORDER: S-21.09 (no branch/PR — must deliver first) MUST land before S-21.07 merge. | D-960 S-21.07-PASS-8-RECORD-BURST-INDEX-SYNCS 2026-08-07; D-959 ADVERSARIAL-AUTHORSHIP-INTEGRITY-CORRECTION 2026-08-06; D-958 S-21.07-PASS-7-RECORD-BURST-INDEX-SYNCS 2026-08-06 [RETRACTED]; D-957 S-21.07-PASS-6-RECORD-BURST-INDEX-SYNCS 2026-08-05. [Earlier: D-956 and prior — see decision-log.md] |
+| v1.0-brownfield-backfill | brownfield | SESSION-WRAP-2026-08-07 PIPELINE PAUSED. develop 700b4dd3 (PR #770 MERGED — wasmtime-wasi 44.0.3 live; RUSTSEC-2026-0149+RUSTSEC-2026-0182 CLEARED); main 80e5cd7b; merged_count 107; BC-INDEX v4.51; VP-INDEX v2.76; STORY-INDEX v4.288; ARCH-INDEX v3.46; streak 0/3 (7 true adversary passes); trajectory-tail →25→24→20→16 (LENGTH=4). adversary pass-7 COMPLETE NOT-CLEAN 16 findings; pass-8 fix burst NEXT (3 OPEN: -006/-007/-013; -014 GRANDFATHERED). MERGE-ORDER: S-21.12→S-21.09→S-21.07. | SESSION-WRAP-2026-08-07 PAUSED (v6.97); D-960 S-21.07-PASS-8-RECORD-BURST-INDEX-SYNCS 2026-08-07; D-959 ADVERSARIAL-AUTHORSHIP-INTEGRITY-CORRECTION 2026-08-06; D-958 S-21.07-PASS-7-RECORD-BURST-INDEX-SYNCS 2026-08-06 [RETRACTED]; D-957 S-21.07-PASS-6-RECORD-BURST-INDEX-SYNCS 2026-08-05. [Earlier: D-956 and prior — see decision-log.md] |
 | v1.0-feature-engine-discipline-pass-1 | feature | PAUSED | F5 pass-75 adversary complete D-510 2026-05-27; META-LEVEL-30 CANDIDATE-CONFIRMED; trajectory →9→9→9→11. |
 | v1.0-feature-plugin-async-semantics-pass-1 | feature | CLOSED | All PRs merged; rc.14 shipped |
 
@@ -211,7 +213,7 @@ dtu_services: []
 | **TD-VSDD-101 (CI env-var paper-fix)** | OPEN 2026-05-18 — anchored S-15.15 | `VSDD_SKIP_PRODUCTION_STATE_MD_TEST=1` skips production STATE.md bats test in CI. |
 | **S-15.17-CR-001/002** | ACCEPTED-DEFERRED 2026-05-31 | `check_index_sites` + `rows_after_heading` advisory-arm defects. |
 | **test_F_P2_001 / resolver-integration timing flake** | **RESOLVED 2026-07-02 — PR #431 35b345f4 (D-749)** | wall-clock lower-bound replaced with InternalLog JSONL behavioral assertion. |
-| **RUSTSEC-2026-0149** | OPEN 2026-06-11 — wasmtime HIGH | ADR-035 §Decision 6 sets wasmtime target v47; awaiting S-21.07 implementation. |
+| **RUSTSEC-2026-0149** | **RESOLVED 2026-08-07 — PR #770 MERGED (squash-merge 700b4dd3; wasmtime-wasi 44.0.3)** | CVE-2026-47261/GHSA-2r75-cxrj-cmph CLEARED (patched >=44.0.2). RUSTSEC-2026-0182 also CLEARED (patched >=44.0.3). |
 | **O-PASS16-002 header stale doc-comment** | OPEN 2026-06-08 | Stale function header. Cosmetic; next spec-touch. |
 | **VP-087 DEFERRED (null-SHA hard-block VP)** | DEFERRED 2026-06-15 | Create VP-087 if future adversary flags missing coverage. |
 | **[D-703 drift-1] stale precompact-flush.sh ref** | **RESOLVED 2026-06-27 — PR #304 e10dedc0 (D-709)** | Tree-wide TD-VSDD-060 sibling-sweep. |
@@ -246,7 +248,7 @@ dtu_services: []
 | **[D-826 W1-tracked] Kani infra gap + VP-097 spec-drift** | OPEN 2026-07-11 | Kani toolchain incompatibility; VP-097 stale signature. |
 | **[D-838 process-gap] DI-001..018 in invariants.md missing Cited-by lines** | OPEN 2026-07-13 | Anchor: next maintenance sweep. |
 | **[D-863 hook false-positive] validate-dispatch-advance regex** | OPEN 2026-07-20 | word-final-D + `-YEAR` pattern triggers bogus D-NNNN token. |
-| **[D-945] RUSTSEC-2026-0149 wasmtime target v47** | OPEN 2026-07-30 | Closed when S-21.07 implements crate with wasmtime >= 47.0.0. |
+| **[D-945] RUSTSEC-2026-0149 wasmtime target v47** | **RESOLVED 2026-08-07 — PR #770 MERGED (wasmtime-wasi 44.0.3)** | CVE-2026-47261 CLEARED. 44.0.3 satisfies ADR-035 §Decision 6 interim threshold (>=44.0.2); full v47 target carries forward to S-21.07 via wasmtime dep. |
 | **[D-945] ADR-035 §Decision 5 fuel budget advisory** | OPEN 2026-07-30 | May need revision after S-21.07 benchmarks. |
 | **[D-945] create-adr skill defect** | OPEN 2026-07-30 — root fix PENDING | ADR-035 row omitted; manually remediated. |
 | **[D-945] VP-102..VP-118 pending allocation** | DEFERRED 2026-07-30 — anchored S-21.07 post-merge | 17 VPs per BC-5.39.010 §VP Anchors. |
@@ -266,7 +268,7 @@ dtu_services: []
 | **[D-958] 60 of 158 stories lack tdd_mode — template-compliance gap** | OPEN 2026-08-06 | validate-template-compliance blocks edits to affected stories. Anchor: S-15.03 PRIORITY-A. |
 | **[D-958] GATE DEFECT: validate-pr-review-posted scans prose not GitHub state** | OPEN 2026-08-06 | Paper-gate: hook reads PR description, not GitHub API merge state. Anchor: follow-up story. |
 | **[D-958] GATE DEFECT: validate-changelog-monotonicity header-skip grep misreads data rows** | OPEN 2026-08-06 | Forced artifact degradation when changelog data rows trigger header pattern. Anchor: follow-up story. |
-| **[D-958] GitHub Actions MAJOR OUTAGE** | OPEN 2026-08-06 — human-only resolution | No CI runs fired since 2026-08-05T21:30. All PR CI status stale. Human monitors for GitHub infrastructure resolution. |
+| **[D-958] GitHub Actions MAJOR OUTAGE** | **RESOLVED 2026-08-07** | CI resumed; PR #770 (`23e307bb`) fully green including build-dispatcher (windows-x64). Outage window: 2026-08-05T21:30..2026-08-07 (approx). |
 
 ## Historical Content
 
@@ -274,56 +276,63 @@ dtu_services: []
 - `cycles/v1.0-feature-plugin-async-semantics-pass-1/burst-log.md` | `session-checkpoints.md` | `lessons.md`
 - `cycles/v1.0-feature-engine-discipline-pass-1/burst-log.md` (adversary reviews at `S-12.03/`, `S-12.04/`, `S-12.05/` subdirs)
 
-## Session Resume Checkpoint (2026-08-07 — D-960-S-21.07-PASS-8-RECORD-BURST COMPLETE — adversary pass-7 DONE; streak 0/3; trajectory-tail →25→24→20→16)
+## Session Resume Checkpoint (2026-08-07 — SESSION-WRAP-2026-08-07 — PIPELINE PAUSED; pass-8 fix burst NEXT; streak 0/3; trajectory-tail →25→24→20→16)
 
-> **SELF-SUFFICIENT RESUME CONTEXT — ASSUMES ZERO PRIOR CONTEXT. PIPELINE ACTIVE.**
+> **SELF-SUFFICIENT RESUME CONTEXT — ASSUMES ZERO PRIOR CONTEXT. PIPELINE PAUSED.**
 
-### §1. FIRST AND MOST PROMINENT: Pass-8 Fix Burst is NEXT
+### §1 Position
 
-**Adversary pass-7 is COMPLETE (16 findings NOT-CLEAN B2/H5/M7/L2; IMPROVING 20→16; 7th true adversary pass; D-960 codified).** First task on resume: pass-8 fix burst (F-S2107-P8-001..016). BLOCKERs: F-S2107-P8-001 (bats RED at `fbb5183c` 45/1/5 EXIT=1; GREEN at `659f7e04` post-fix) + F-S2107-P8-002 (`bc_index_row_contains_version` 3 demonstrable bypasses). **IMPORTANT: S-21.07 has NO PR.** PR #770 is the wasmtime-wasi security fix on `fix/wasmtime-wasi-cve-2026-47261`, not S-21.07.
+Cycle `v1.0-brownfield-backfill`. **D-960 S-21.07 pass-8 record burst COMPLETE** (Commits A–E + SHA-patch). factory-artifacts tip **`ada929d4`** (Commit E `46b7cef2` + SHA-patch `ada929d4`), origin SHA-equal. 4-INDEX: **BC v4.51 / VP v2.76 / STORY v4.288 / ARCH v3.46**. `policies.yaml` **v1.4.20**. Telemetry churn committed alongside this session-wrap.
 
-### §2. Position and Status
+### §2 Convergence
 
-Cycle `v1.0-brownfield-backfill`. **PIPELINE ACTIVE** (D-960 pass-8 record burst COMPLETE 2026-08-07). Last decision: **D-960** (Commit E `46b7cef2` pushed). **factory-artifacts tip: `46b7cef2`** (D-960 pass-8 record burst COMPLETE; pushed 2026-08-07). **4-INDEX:** BC v4.51 / VP v2.76 / STORY v4.288 / ARCH v3.46. trajectory 47→18→25→25→24→20→16; trajectory-tail →25→24→20→16. streak **0/3** (7 true adversary passes; 0 CLEAN). Code HEAD **`fbb5183c`** on `feature/S-21.07-validate-cross-site-correspondence` — **pushed** (origin SHA-equal at `fbb5183c`; devops full workspace gate green — fmt PASS / clippy PASS / cargo test zero failures).
+Streak **0/3**. **7 true adversary passes, ZERO CLEAN verdicts.** Trajectory `47 → 18 → 25 → 25 → 24 → 20 → 16`; tail LENGTH=4 → `→25→24→20→16`.
 
-### §3. S-21.07 Code State
+### §3 Pass-7 Findings — 12 of 16 CLOSED
 
-Branch `feature/S-21.07-validate-cross-site-correspondence` at `fbb5183c`. Three commits in pass-7 burst: `42c952b9` (fix: CI corpus gate, PC13c advisory, arm_b2 coverage + WASM v1.13), `29558518` (fix: Phase 2 BC-ID anchor, cite sweep, guard fixes, WASM v1.13), `fbb5183c` (docs: pass-7 burst 3 — F-S2107-P7-009 red-gate-log attestation). Branch is **PUSHED** — `origin/feature/S-21.07-validate-cross-site-correspondence` is SHA-equal to local at `fbb5183c`; devops ran full workspace gate (fmt PASS / clippy PASS / cargo test --workspace zero failures) before push.
+Closed: `-001` (bats RED — fixed, `BATS_EXIT=0`), `-002` (false GREEN attestation corrected), `-003` (POLICY 15 impossible gate — ADR-040 ratified, `policies.yaml` v1.4.20 PARENT-SHA), `-004` (4-pass cite regression — sound predicate returns empty), `-005`, `-008`, `-009`, `-010`, `-011`, `-012`, `-015`, `-016`. **STILL OPEN for pass-9: `-006`** (`bc_index_row_contains_version` searches whole row; 3 bypasses demonstrated; routes test-writer), **`-007`** (coverage gate derives attestation from grep not execution; hardcodes `0 failed`; routes test-writer), **`-013`** (fuel axis ungated — largest WASM-sandbox fixture 2,383 bytes vs 575,740-byte live index, 241× gap; routes test-writer). **`-014` GRANDFATHERED** by human ruling (POLICY 21 `run-all.sh` accounting extension, D-960(c)).
 
-### §4. WASM Attestation
+### §4 Branch States — All Pushed, All Origin SHA-Equal (Verified After Push)
 
-231,661 bytes; sha256 `853c802e74ec372864912448130f3b0740aeeae6f92b8230c7eb25f639dc32b8`; `cmp` byte-identical between worktree build and deployed artifact; triangulated by three independent measurements (implementer, devops gate, state-manager closure verification).
+- `factory-artifacts` @ this-commit (session-wrap commit; prior: `ada929d4` D-960 SHA-patch)
+- `feature/S-21.07-validate-cross-site-correspondence` @ **`fbb5183c`** — clean, **behind develop by 1**
+- `feature/S-21.04-story-worktree-write-path-discipline` @ `323f440f` — clean, **behind develop by 1**, 30 passes / 0 CLEAN / streak 0/3, pass-31 pending, no PR
+- `develop` @ **`700b4dd3`** (remote; local stale at `948f0fb1` — pull on resume)
 
-### §5. Gate Status
+### §5 PR #770 — MERGED
 
-Crate: cargo test **163 passed / 0 failed** at `fbb5183c`. Bats **45/1/5 FAILING** at `fbb5183c` — F-S2107-P8-001 BLOCKER (T-P6C(PC13a) assertion mismatch; GREEN at `659f7e04` post-fix). `validate-state-structure` green with banner at 334 (v6.95). Pass-8 fix burst will close F-S2107-P8-001.
+All 9 review findings closed. Squash-merged `700b4dd3` at 2026-08-07T18:44:24Z; develop `948f0fb1` → `700b4dd3`. **`wasmtime-wasi = 44.0.3` verified live on develop**, clearing `RUSTSEC-2026-0149` (CVE-2026-47261, patched `>=44.0.2`) and `RUSTSEC-2026-0182` (patched `>=44.0.3`). CI fully green on `23e307bb` including `build-dispatcher (windows-x64)`. Remote branch auto-deleted.
 
-### §6. PR #770 Status
+### §6 CRITICAL — Main Checkout on Dead Branch
 
-**PR #770** (`a66964aa`) is `fix(security): bump wasmtime-wasi 44.0.1→44.0.3 (CVE-2026-47261 / GHSA-2r75-cxrj-cmph)` on branch `fix/wasmtime-wasi-cve-2026-47261` — **NOT S-21.07**. S-21.07 has **no PR**. PR #770 status: 6/9 review findings closed; PR-002/003/006 open pending human `git commit --amend`; head `a66964aa`; zero CI (GitHub Actions outage; use close+reopen on CI recovery to re-fire webhook without invalidating security-review attestation).
+The main working tree sits on `fix/wasmtime-wasi-cve-2026-47261` @ `23e307bb`, which is **merged and whose remote is deleted**. Any work started there lands on an orphan. **First action on resume: `git checkout develop && git pull`, then `git branch -d fix/wasmtime-wasi-cve-2026-47261`** (or `/clean_gone`). Uncommitted there: `.claude/scheduled_tasks.lock` (M) and `plugins/vsdd-factory/tests/report.tap` (??) — harness artifacts, do not commit.
 
-### §7. Merge-Order Constraint (CRITICAL)
+### §7 Recommended Merge Order
 
-S-21.07's branch adds `CI_REQUIRE_ARTIFACTS: "1"` to `.github/workflows/ci.yml` (commit `da9ec911`). Once S-21.07 merges, `validate-factory-path-staging.bats` (36 tests) runs against the missing WASM → develop turns RED. **S-21.09 must land before S-21.07.** S-21.09 has **no branch and no PR** — must be delivered fresh (story-writer → implementer → pr-manager) before S-21.07 merge. S-21.07 itself also has no PR — after S-21.09 merges, create S-21.07 PR targeting develop.
+**S-21.12 → S-21.09 → S-21.07**. S-21.12 and S-21.07 will both modify `ci.yml`; whichever lands second inherits a conflict — accepted deliberately to close the residual CVE sooner. Correction: S-21.07 **broadens** `CI_REQUIRE_ARTIFACTS` from 3 to 6 jobs (silent-skip → hard-fail); it does NOT introduce the env var (develop already has 3 occurrences).
 
-### §8. S-21.04 Status
+### §8 Pending Human Decisions (3)
 
-**S-21.04** — 30 passes, 0 CLEAN, streak 0/3. Branch @ `323f440f`, no PR open. Pass-31 adversary pending. Lower priority than S-21.07 cascade completion.
+1. **S-21.12 epic-anchoring ruling** — story carries `epic_id` unresolved (`E-22`, P0, wave 1, `depends_on: []`). Blocks clearing `RUSTSEC-2026-0188` (GHSA-4ch3-9j33-3pmj / CVE-2026-58494, **I:High**, patched floor `>=45.0.3`) and `RUSTSEC-2026-0222`, and blocks SEC-001 safety.
+2. **D-999 — reserve or migrate.** Orchestrator recommends **migrate**.
+3. **Upstream-tracking sweep** — `push.default=current` would defuse the force-push footgun class.
 
-### §9. Pending Human Decisions
+### §9 New Findings This Session
 
-(1) **Pass-8 fix burst triage** (F-S2107-P8-001..016; 2 BLOCKERs, 5 HIGH, 7 MEDIUM, 2 LOW); (2) **RUSTSEC-2026-0188**: wasmtime >=46.0.2 required (S-21.12, E-22, P0, blocks SEC-001 — note: 44.0.3 does NOT unblock; needs >=45.0.3/46.0.1); (3) **7 Dependabot vulnerabilities** (3 high, 5 moderate) — GHSA series; human triage; (4) **ADR-039 Phase 3 fuel calibration** before any fail-closed flip; (5) GitHub Actions outage: monitor status page; merge S-21.09 once CI confirmed green; (6) standing directive: no rc cut until E-21 complete.
+- **D-999 collision time-bomb:** D-999 sentinel cited in `BC-5.39.007` EC-010 and `S-15.12` AC-18; counter at D-960; ~39 more allocations → S-15.12 AC-18 silently inverts. Reserved at D-960(e); structural remediation needed (architect → product-owner → test-writer).
+- **Force-push footgun:** `branch.fix/wasmtime-wasi-cve-2026-47261.merge = refs/heads/develop`; bare `--force-with-lease` resolved to develop. Use explicit refspecs (`git push origin HEAD:<branch>`) as the default in this repo.
+- **Fuel budget wrong model:** `ARCH-INDEX.md` at 572 lines and `burst-log.md` at 23,623 lines both trigger PostToolUse fail-closed timeouts. Driver is likely bytes-scanned or table-parse cost, NOT line count — so D-442(e)'s line-based budget cannot work. Feeds S-15.03 PRIORITY-A.
+- **TD #70 evidence:** PR #770 `build-dispatcher` matrix ran ~2 hours with no cargo cache reuse. A 2h loop on the only gate compiling `cfg(windows)` makes merging on partial evidence structural.
+- **Dependabot job failure:** `npm_and_yarn dompurify` #1512840542 FAILED 18:44:36 — pre-existing class, unrelated to the merge.
 
-### §10. Deferred Backlog
-
-**60 of 158 stories missing `tdd_mode`** (spec-steward, S-15.03 PRIORITY-A). **18 BCs with v-prefixed versions** (feeds F-P7-020). **`.factory/.factory/` nested-path leak** (committed in `125c17e6`; S-21.01 guard dormant until rc cut). **Dispatcher fuel-headroom warning** (574KB fixture). **`validate-changelog-monotonicity` header-skip grep bug** (hook line 96). **`validate-pr-review-posted` prose-scanning defect** (paper-gate).
-
-### §11. Cautions
+### §10 Cautions
 
 - Do NOT run `/rehydrate-wave` — wave-state points at a closed epic.
-- Do NOT run `compute-input-hash --scan --update` — 418-file blast radius per D-936.
-- `stash@{0}` on the S-21.07 worktree is retained (harmless vestige): `git stash show --stat` confirmed only `ci.yml`, `arm_b.rs`, `lib.rs` — all committed in `42c952b9`/`29558518`, no unique work. `git stash drop` was blocked by the `destructive-command-guard` hook ("git stash drop/clear discards stashed work irreversibly"); drop outside the hook context or leave indefinitely.
+- Do NOT run `compute-input-hash --scan --update` — 418-file blast radius per D-936. Single-file only.
+- Use **explicit refspecs** for pushes (`git push origin HEAD:<branch>`).
+- `.factory/.factory/logs/dispatcher-internal-2026-08-06.jsonl` remains untracked — nested path-staging leak (F-S2107-P8-016, devops-engineer, unresolved). Do not commit it; do not `rm -rf` without devops diagnosis.
+- Open PRs: **#769** (green), **#768** (NO_CHECKS/action_required), **#767** (dependabot postcss, green), **#729** (green), **#632** (DRAFT/FAILING, pre-existing).
 
-### §12. Resume Command
+### §11 Resume Command
 
-`/vsdd-factory:next-step`. Tasks in order: (1) pass-8 fix burst (F-S2107-P8-001..016; 2 BLOCKERs: bats RED fix + bc_index_row bypass fix); (2) deliver S-21.09 fresh (story-writer → implementer → pr-manager; no branch/PR exists) then merge before S-21.07; (3) create S-21.07 PR after S-21.09 merges; (4) monitor CI recovery for PR #770 (wasmtime-wasi fix on `fix/wasmtime-wasi-cve-2026-47261`) close+reopen (close+reopen to fire webhook without invalidating security-review attestation; PR-002/003/006 pending human `git commit --amend`). factory-artifacts tip: `46b7cef2` (D-960 pass-8 record burst COMPLETE 2026-08-07). D-960 burst: Commit A `aed7e472` + spec `e9159371` + Commit B `3138e4bf` + Commit C `e092e972` + Commit D `67a8e3e6` + Commit E `46b7cef2` (pushed).
+`/vsdd-factory:next-step`. First actions in order: (1) `git checkout develop && git pull` + delete dead local branch; (2) obtain S-21.12 epic-anchoring ruling; (3) rebase S-21.07 and S-21.04 onto develop (trivial — only develop change is `Cargo.lock`); (4) pass-8 fix burst for S-21.07 OR deliver S-21.12/S-21.09 per §7. factory-artifacts tip: this-commit (SESSION-WRAP-2026-08-07 PAUSED; prior ada929d4).

@@ -7,7 +7,7 @@ producer: state-manager
 timestamp: 2026-04-26T12:00:00Z
 cycle: v1.0-brownfield-backfill
 inputs: [STATE.md]
-input-hash: "6e7f50a"
+input-hash: "c7687f7"
 traces_to: STATE.md
 ---
 
@@ -1722,3 +1722,21 @@ Key state at D-959 archive:
 - develop: 948f0fb1; main: 80e5cd7b.
 
 **This checkpoint superseded by SESSION-WRAP-2026-08-06 pause burst 2026-08-06.**
+
+---
+
+## Session Resume Checkpoint (2026-08-07 — D-960-S-21.07-PASS-8-RECORD-BURST COMPLETE; adversary pass-7 DONE; streak 0/3; trajectory-tail →25→24→20→16; PIPELINE ACTIVE → PAUSED)
+
+Archived from STATE.md by SESSION-WRAP-2026-08-07 pause burst (2026-08-07). Full content preserved in git: `git show ada929d4:.factory/STATE.md` (factory-artifacts HEAD at D-960 SHA-patch archive time).
+
+Key state at D-960 archive:
+- Pipeline ACTIVE (being PAUSED by session wrap). Adversary pass-7 COMPLETE (NOT-CLEAN B2/H5/M7/L2; 16 findings + 9 obs; IMPROVING 20→16; D-960 codified 7 sub-clauses). Streak 0/3 (7 true adversary passes; 0 CLEAN). Trajectory-tail →25→24→20→16. 4-INDEX: BC v4.51 / VP v2.76 / STORY v4.288 / ARCH v3.46.
+- S-21.07 branch `feature/S-21.07-validate-cross-site-correspondence` at `fbb5183c` — pushed (origin SHA-equal). Pass-8 fix burst NEXT: 12 of 16 pass-7 findings closed; 3 OPEN for pass-9 (-006/-007/-013); -014 GRANDFATHERED per D-960(c). WASM: 231,661 bytes, sha256 `853c802e74ec372864912448130f3b0740aeeae6f92b8230c7eb25f639dc32b8`.
+- PR #770 (`a66964aa`/`23e307bb`) MERGED 2026-08-07T18:44:24Z (squash-merge `700b4dd3`; wasmtime-wasi 44.0.3; develop 948f0fb1→700b4dd3; RUSTSEC-2026-0149+RUSTSEC-2026-0182 CLEARED; remote branch auto-deleted).
+- CRITICAL: main working tree on dead branch `fix/wasmtime-wasi-cve-2026-47261` @ `23e307bb`. First action on resume: `git checkout develop && git pull`, then `git branch -d fix/wasmtime-wasi-cve-2026-47261`.
+- D-999 collision time-bomb: D-999 sentinel cited in BC-5.39.007 EC-010 and S-15.12 AC-18; counter at D-960; ~39 allocations until collision.
+- Force-push footgun: `branch.fix/wasmtime-wasi-cve-2026-47261.merge = refs/heads/develop`; bare `--force-with-lease` resolved to develop. Use explicit refspecs (`git push origin HEAD:<branch>`) as default.
+- factory-artifacts HEAD: `ada929d4` (D-960 SHA-patch; Active Branches + burst-log Block 8 SHA-patch).
+- develop: 700b4dd3 (remote; local stale at 948f0fb1 — pull on resume); main: 80e5cd7b.
+
+**This checkpoint superseded by SESSION-WRAP-2026-08-07 pause burst 2026-08-07.**
