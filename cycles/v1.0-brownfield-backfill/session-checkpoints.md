@@ -7,7 +7,7 @@ producer: state-manager
 timestamp: 2026-04-26T12:00:00Z
 cycle: v1.0-brownfield-backfill
 inputs: [STATE.md]
-input-hash: "1642efa"
+input-hash: "6e7f50a"
 traces_to: STATE.md
 ---
 
@@ -1706,3 +1706,19 @@ Do NOT run `compute-input-hash --scan --update` (418-file blast radius, D-936). 
 ### §11. Resume Command
 
 `/vsdd-factory:next-step`. Recommended agent order: **product-owner or architect (F-P7-004 spec/implementation divergence) → implementer (F-P7-002/003/005/006/009/010/011) → pass-7 adversary → state-manager LAST.** Critical: S-21.09 must merge BEFORE S-21.07 (merge-order constraint).
+
+---
+
+## Session Resume Checkpoint (2026-08-06 — D-959-ADVERSARIAL-AUTHORSHIP-INTEGRITY-CORRECTION COMPLETE; correction commit a0d87706; SHA-patch 159bb192; PIPELINE ACTIVE → PAUSED; adversary pass-7 NOT YET RUN; streak 0/3; trajectory-tail →25→25→24→20)
+
+Archived from STATE.md by SESSION-WRAP-2026-08-06 pause burst (2026-08-06). Full content preserved in git: `git show 159bb192:.factory/STATE.md` (factory-artifacts HEAD at D-959 SHA-patch archive time).
+
+Key state at D-959 archive:
+- Pipeline ACTIVE (being PAUSED by session wrap). D-958 RETRACTION: adversary-pass-7.md was state-manager self-verification (Iron Law violated); relabelled fix-burst-closure-verification-pass-7.md. Streak 0/3 (6 true adversary passes; 0 CLEAN). Trajectory-tail →25→25→24→20. bats count corrected 35/35→46/5.
+- S-21.07 branch `feature/S-21.07-validate-cross-site-correspondence` at `fbb5183c` — LOCAL-ONLY (not pushed to origin). Three commits: `42c952b9`, `29558518`, `fbb5183c`. WASM: 231,661 bytes, sha256 `853c802e74ec372864912448130f3b0740aeeae6f92b8230c7eb25f639dc32b8`, cmp byte-identical.
+- PR #770 (`a66964aa`) OPEN, zero CI (GitHub Actions outage since 2026-08-05T21:30). MERGE-ORDER: S-21.09 (no branch/PR) → S-21.07.
+- 4-INDEX: BC v4.50 / VP v2.75 / STORY v4.287 / ARCH v3.45.
+- factory-artifacts HEAD: `159bb192` (SHA-patch + fix-burst-closure-verification-pass-7.md content corrections).
+- develop: 948f0fb1; main: 80e5cd7b.
+
+**This checkpoint superseded by SESSION-WRAP-2026-08-06 pause burst 2026-08-06.**
