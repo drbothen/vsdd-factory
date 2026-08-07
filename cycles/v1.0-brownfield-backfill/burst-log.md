@@ -23926,4 +23926,4 @@ fmt/clippy/test all exit 0; 189 ok lines
 - Sprint-state sync: COMPLETE — 14/14 bats passing
 
 **factory-artifacts commits (this burst — TD-VSDD-053 single-commit-per-burst):**
-- Commit B (this burst): SHA TBD — `factory(D-961/B): D-961 recording burst — ARCH-INDEX v3.47; policies.yaml v1.4.21; decision-log D-961; lessons ×3; burst-log 8-blocks; STATE.md v6.98`
+- Commit B (this burst): `e2bfec65` — `factory(D-961/B): D-961 recording burst — ARCH-INDEX v3.47; policies.yaml v1.4.21; decision-log D-961; lessons x3; burst-log 8-blocks; pipeline-state v6.98`
