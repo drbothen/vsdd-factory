@@ -4,7 +4,7 @@ level: ops
 version: "6.94"
 status: draft
 producer: state-manager
-timestamp: 2026-08-06T16:18:00Z
+timestamp: 2026-08-06T16:19:00Z
 phase: SESSION-WRAP-2026-08-06
 last_amended: "2026-08-06 (v6.94) — SESSION-WRAP-2026-08-06 (state-manager): PIPELINE PAUSED per human /wrap directive; D-959 SRC archived to session-checkpoints.md; new PAUSED SRC written (adversary pass-7 NOT YET RUN; streak 0/3); wc-l banner appended per D-446(c) dual-margin; 4-INDEX UNCHANGED BC v4.50/VP v2.75/STORY v4.287/ARCH v3.45. [Prior: 2026-08-06 (v6.93) — D-959-ADVERSARIAL-AUTHORSHIP-INTEGRITY-CORRECTION (state-manager): D-958 RETRACTION: adversary-pass-7.md was state-manager self-verification (Iron Law violated); relabelled fix-burst-closure-verification-pass-7.md; streak reverts 1/3→0/3; trajectory-tail reverts →0 drop (tail remains →25→25→24→20); adversary pass-7 NOT YET RUN; D-959 adversarial-authorship-integrity codified; L-BB-adversarial-authorship-integrity lesson appended; bats count corrected 35/35→46/5; INDEX.md Convergence Status corrected; burst-log.md D-958 Blocks 2/3/4/5/6/7/8 corrected. 4-INDEX UNCHANGED. [Prior: 2026-08-06 (v6.92) — D-958-S-21.07-PASS-7-RECORD-BURST-INDEX-SYNCS (state-manager): Pass-7 fix burst COMPLETE (NOT adversary pass — corrected D-959); 20 findings implementation-verified closed at fbb5183c; BC-INDEX v4.49→v4.50; ARCH-INDEX v3.44→v3.45; VP-INDEX v2.74→v2.75; S-21.07 v1.7→v1.8 (c0ab6a3; POLICY 18 ACHIEVED); STORY-INDEX v4.286→v4.287; 3 lessons; STATE.md v6.91→v6.92. [Prior: ...]]]]"
 inputs: []
@@ -149,7 +149,7 @@ dtu_services: []
 |--------------|-----|-------|
 | main | 80e5cd7b | rc.23 bot binary bundle commit 2026-07-18 |
 | develop | 948f0fb1 | feat(S-21.04): pass-27 CLOSED D-940 |
-| factory-artifacts | [pending session-wrap commit] | SESSION-WRAP-2026-08-06: PIPELINE PAUSED; SRC archived; wc-l banner appended; adversary pass-7 NOT YET RUN; streak 0/3. Prior commit: 159bb192 (D-959 SHA-patch). |
+| factory-artifacts | 2ab91777 | SESSION-WRAP-2026-08-06: PIPELINE PAUSED; SRC archived; wc-l banner appended; adversary pass-7 NOT YET RUN; streak 0/3. SHA-patch follow-up: this commit. |
 | feature/S-21.04 | 323f440f | feat(S-21.04): pass-30 fix burst COMPLETE; S-21.04 v1.35 + ADR-034 v1.2 + POLICY 15 red-gate-log; bats 11/11 + 16/16 GREEN; NO PR open (correct: mid-cascade) |
 | feature/S-21.07 | fbb5183c | feat(S-21.07): BC-5.39.010 v1.13 — 20 pass-6 findings implementation-verified at fbb5183c; adversary pass-7 NOT YET RUN (D-959); streak 0/3; NO PR open (correct: mid-cascade). LOCAL-ONLY — not yet pushed to origin; push is second resume task after pass-7 adversary dispatch completes. MERGE-ORDER: S-21.09 MUST land first. |
 | feature/S-21.01 | DELETED (was merged) | MERGED via PR #759 2026-07-23 (D-879); branch deleted at merge |
@@ -286,7 +286,7 @@ dtu_services: []
 
 ### §2. Position and Status
 
-Cycle `v1.0-brownfield-backfill`. **PIPELINE PAUSED** (human /wrap directive 2026-08-06). Last decision: **D-959** (D-958 retraction; correction commit `a0d87706` + SHA-patch `159bb192`). **factory-artifacts tip: `[pending session-wrap commit]`** — use `git -C .factory log --oneline -3` to confirm HEAD. **4-INDEX:** BC v4.50 / VP v2.75 / STORY v4.287 / ARCH v3.45. trajectory 47→18→25→25→24→20; trajectory-tail →25→25→24→20. streak **0/3** (6 true adversary passes; 0 CLEAN). Code HEAD **`fbb5183c`** on `feature/S-21.07-validate-cross-site-correspondence` — **LOCAL-ONLY (not yet pushed to origin)**; push is the second resume task after pass-7 adversary dispatch completes.
+Cycle `v1.0-brownfield-backfill`. **PIPELINE PAUSED** (human /wrap directive 2026-08-06). Last decision: **D-959** (D-958 retraction; correction commit `a0d87706` + SHA-patch `159bb192`). **factory-artifacts tip: `2ab91777`** (SHA-patch this-commit). **4-INDEX:** BC v4.50 / VP v2.75 / STORY v4.287 / ARCH v3.45. trajectory 47→18→25→25→24→20; trajectory-tail →25→25→24→20. streak **0/3** (6 true adversary passes; 0 CLEAN). Code HEAD **`fbb5183c`** on `feature/S-21.07-validate-cross-site-correspondence` — **LOCAL-ONLY (not yet pushed to origin)**; push is the second resume task after pass-7 adversary dispatch completes.
 
 ### §3. S-21.07 Code State
 
@@ -328,4 +328,4 @@ S-21.07's branch adds `CI_REQUIRE_ARTIFACTS: "1"` to `.github/workflows/ci.yml` 
 
 ### §12. Resume Command
 
-`/vsdd-factory:next-step`. Tasks in order: (1) dispatch fresh-context `vsdd-factory:adversary` for pass-7 (Iron Law: reads ONLY `adversary-pass-6.md` Part A; must NOT see D-958/D-959 retraction context); (2) push `feature/S-21.07-validate-cross-site-correspondence` branch to origin; (3) deliver S-21.09 (no branch/PR exists) then merge before S-21.07; (4) monitor CI recovery for PR #770 close+reopen. Session-wrap factory-artifacts commit SHA: `[pending — see git -C .factory log --oneline -1]`.
+`/vsdd-factory:next-step`. Tasks in order: (1) dispatch fresh-context `vsdd-factory:adversary` for pass-7 (Iron Law: reads ONLY `adversary-pass-6.md` Part A; must NOT see D-958/D-959 retraction context); (2) push `feature/S-21.07-validate-cross-site-correspondence` branch to origin; (3) deliver S-21.09 (no branch/PR exists) then merge before S-21.07; (4) monitor CI recovery for PR #770 close+reopen. Session-wrap factory-artifacts commit SHA: `2ab91777`.
