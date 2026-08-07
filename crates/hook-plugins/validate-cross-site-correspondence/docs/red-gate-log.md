@@ -1531,3 +1531,84 @@ cargo test -p validate-cross-site-correspondence  → 162 passed; 1 failed; 17 i
 
 The 1 cargo failure is the BC-INDEX corpus sync test (expected; see obligation table above).
 18 new Rust unit tests pass (7 Phase 2 arm_a2, 3 PC13c arm_b, 5 harness correctness, 3 corpus arm_b2), 1 new Rust test via F-S2107-P7-010 (production-scale fixture), 3 Rust test body additions (F-S2107-P7-015/020 negative twins + F-S2107-P7-011 NOTE correction), 2 bats assertion gates strengthened (AC-022/023 equality), 1 bats coverage gate rewritten (F-P6-016). 17 ignored = arm_d Class D deferrals unchanged.
+
+---
+
+## Pass-8 Fix Burst — BC-5.39.010 v1.14 Assertion-Site Correctness + DEFENSIVE Reassembly Pinning Test (test-writer)
+
+**Date:** 2026-08-07
+**BC:** BC-5.38.001 / BC-5.39.010 v1.14
+**Cycle:** v1.0-brownfield-backfill / S-21.07 test-writer pass-8 (F-S2107-P8-001, F-S2107-P8-002)
+**Governing spec:** BC-5.39.010 v1.14
+
+**Prior attestation correction (F-S2107-P8-002):** The Pass-7 D-916 table at line 1364 above records T-P6C as "Post-impl: GREEN." That attestation was asserted before it was true. At the point of recording, (a) `AC-023 / T-P6C` expected_decoded still contained `S-21.07-test`, while BC-5.39.010 v1.13 PC17 derives `S-21.07` via `^(S-[0-9]+\.[0-9]+)` regex on the file basename — the test would fail immediately on first run; and (b) the bats suite was overall red at the cited commit (`295585185308629f10ff4333647a15b474192c3f`) because F-S2107-P8-001 was unresolved. No measured BATS_EXIT=0 run existed at that point. This pass corrects both the test defect and the attestation record.
+
+---
+
+### Assertion-Site Fixes (commit `659f7e04`, 2026-08-07) — F-S2107-P8-001
+
+All changes are bats test-side only. No production `.rs` code modified.
+
+| Obligation (BC-5.39.010 v1.14 clause) | Gate ID | Change | Finding |
+|---|---|---|---|
+| AC-023/T-P6C expected_decoded MUST use PC17-derived story ID (`^(S-[0-9]+\.[0-9]+)` on basename → `S-21.07`, not `S-21.07-test`) | T-P6C | `expected_decoded` corrected: `S-21.07-test` → `S-21.07` | F-S2107-P8-001 |
+| T-P6B block message MUST be asserted by full-string equality (PC4a: "COMPLETE formatted string by equality check; .contains()-only NON-CONFORMING") | T-P6B | Two substring `.contains()` assertions → full-string equality with Python `block_reason` extraction; anti-vacuity guard added | F-S2107-P8-001 |
+| AC-001 MUTANT normative block message assertions MUST be full-string equality (PC4a) | AC-001 MUTANT | Two substring assertions → full-string equality; anti-vacuity guard added | F-S2107-P8-001 |
+| AC-009 MUTANT normative block message assertions MUST be full-string equality (PC4a) | AC-009 MUTANT | POLICY-anchor check + category-loop substring assertions → full-string equality; anti-vacuity guard added | F-S2107-P8-001 |
+| T-P6D normative block message assertion MUST be full-string equality (PC4a) | T-P6D | Compound `&&` substring check → full-string equality; anti-vacuity guard added | F-S2107-P8-001 |
+
+Per-site PC4a non-conversion reasoning (three sites deliberately left as substring):
+- Line 222 (`validate-cross-site-correspondence` class-label): class-label detection, not normative-text pin; substring is correct gate type.
+- Lines 669/674 (BC identifiers in Class E block): data-value coverage assertions; substring is correct gate type.
+- Line 1208 (`[Class E1]`): class-label detection; substring is correct gate type.
+
+---
+
+### Pinning Test — DEFENSIVE Reassembly Arm (arm_a1.rs, this commit) — ADR-038 §Decision 4
+
+New test: `test_BC_5_39_010_arm_a1_defensive_reassembly_n_gt_6_extracts_correct_version` added to `src/arm_a1.rs`.
+
+**Obligation (ADR-038 §Decision 4):** `fields[5..].join("|")` in `extract_bc_index_version_state` is retained by PO adjudication for future bare-pipe annotation rows. As of S-21.07 pass-8, 0 live corpus rows produce n>6 (histogram: {5: 1945, 6: 40, >6: 0}). This pinning test prevents silent regression if the defensive arm is removed or narrowed.
+
+**Fixture design:** Synthetic BC-INDEX row with chain `v1.10 \| (BAD|v1.13)` where `\|` is the escaped chain separator and the bare `|` inside `(BAD|v1.13)` is annotation text producing a phantom field boundary. After `line.replace("\\|", "\x00")` and `.split('|')`, n=7 non-empty fields are produced. `non_empty_fields[5..].join("|")` reconstructs `"v1.10 \x00 (BAD|v1.13)"`. `extract_first_v_token_of_last_entry` splits on `\x00`, takes last non-empty segment `" (BAD|v1.13)"`, extracts first v-token → `Version("1.13")`.
+
+**Teeth (why the join matters):** Without the join, `non_empty_fields[5]` alone is `"v1.10 \x00 (BAD"`. The last `\x00`-segment is `" (BAD"` — no v-token → `RowPresentNoVersion`. The assertion `Version("1.13")` ≠ `RowPresentNoVersion` proves the join is load-bearing for the n>6 case.
+
+**Gate status:** Passes immediately against current code (the defensive join is already present). This is a regression-pinning gate per ADR-038 §Decision 4, not a Red Gate introduction.
+
+---
+
+### Post-Implementation Gate (D-449(a) — literal shell, captured stdout)
+
+Commands run in `/Users/zious/Documents/GITHUB/vsdd-factory/.worktrees/S-21.07`:
+
+```
+$ cargo fmt --check --all
+(no output)
+FMT_EXIT:0
+
+$ cargo clippy --workspace --all-targets -- -D warnings
+    Checking validate-cross-site-correspondence v0.1.0 (...)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 2.39s
+CLIPPY_EXIT:0
+
+$ cargo test -p validate-cross-site-correspondence
+running 181 tests
+...
+test result: ok. 164 passed; 0 failed; 17 ignored; 0 measured; 0 filtered out; finished in 3.81s
+CARGO_TEST_EXIT:0
+
+$ bats validate-cross-site-correspondence.bats --tap
+1..51
+# dispatcher-provenance: sha256=9997bfc50df9b612438910bd55e9652fee14b9bbdfd9e93d3af600496f4bb3f7  mtime=2026-08-03T08:57:39
+ok 1 ... ok 26 (non-deferred)
+ok 27 ... ok 31 # skip [DEFERRED v1.6 — Class D]
+ok 32 ... ok 51 (non-deferred)
+BATS_EXIT:0
+```
+
+**Measured figures (F-S2107-P8-015 — ignored/skipped disclosed on both legs):**
+- cargo: **164 passed; 0 failed; 17 ignored** — 17 ignored are arm_d Class D deferrals (15 `arm_d::tests::*` + 2 `dispatch::tests::*`), all carrying `[DEFERRED v1.6 — Class D]` per D-953.
+- bats: **46 passed; 0 failed; 5 skipped** of 51 declared; BATS_EXIT=0 — 5 skipped are tests 27–31, all `[DEFERRED v1.6 — Class D]` (AC-012 ×2, AC-013 ×2, AC-014 ×1), preserved per POLICY 1 append-only.
+
+No WASM artifact triangulation recorded in this pass (WASM not rebuilt; last measured triangulation at Pass-7 commit `295585185308629f10ff4333647a15b474192c3f`).

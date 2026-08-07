@@ -1462,6 +1462,45 @@ mod tests {
     // to a raw substring search like bc_index_row_contains_version).
     // -----------------------------------------------------------------------
 
+    /// ADR-038 §Decision 4 pinning test — DEFENSIVE `fields[5..].join("|")` reassembly arm (n>6).
+    ///
+    /// Motivation: The PO-adjudicated `fields[5..].join("|")` join (F-P6-019d) is retained
+    /// for future bare-pipe annotation rows. As of S-21.07 pass-8, 0 live corpus rows produce
+    /// n>6 (histogram: {5: 1945, 6: 40, >6: 0}). This pinning test prevents silent regression
+    /// if the defensive arm is ever removed or narrowed.
+    ///
+    /// Teeth: without the join, `non_empty_fields[5]` alone ends at the first bare `|` inside
+    /// the annotation `(BAD|v1.13)`, leaving only `"v1.10 \x00 (BAD"` — the last `\x00`-segment
+    /// `" (BAD"` contains no v-token, so the function would return `RowPresentNoVersion`.
+    /// With the join, `fields[5..].join("|")` = `"v1.10 \x00 (BAD|v1.13)"` — the last
+    /// `\x00`-segment is `" (BAD|v1.13)"` and `extract_first_v_token` returns `"1.13"`.
+    ///
+    /// Fixture: a synthetic BC-INDEX row where the version chain is `v1.10 \| (BAD|v1.13)`.
+    /// The escaped `\|` is the chain separator (→ `\x00`). The bare `|` inside `(BAD|v1.13)`
+    /// is the annotation text that fragments the field. n=7 after escape-aware split.
+    #[test]
+    fn test_BC_5_39_010_arm_a1_defensive_reassembly_n_gt_6_extracts_correct_version() {
+        // Row: version chain "v1.10 \| (BAD|v1.13)" where \\| = escaped chain separator.
+        // The bare | after (BAD displaces v1.13 into fields[6].
+        // fields[5..].join("|") reassembles the full cell; extract_first_v_token_of_last_entry
+        // finds v1.13 in the last \x00-segment " (BAD|v1.13)".
+        let index = concat!(
+            "| [BC-PINTEST.001](ss-00/BC-PINTEST.001.md)",
+            " | Title | desc | active | S-21.07",
+            " | v1.10 \\| (BAD|v1.13) |\n",
+        );
+        let result = extract_bc_index_version_state("BC-PINTEST.001", index.as_bytes());
+        assert_eq!(
+            result,
+            BcIndexVersionState::Version("1.13".to_string()),
+            "ADR-038 §Decision 4: DEFENSIVE reassembly arm (fields[5..].join(\"|\")) MUST \
+            recover v-token displaced by bare | into fields[6+]. Without the join, fields[5] \
+            ends at '(BAD' and the last \\x00-segment contains no v-token → RowPresentNoVersion. \
+            With the join the reconstructed cell yields Version(\"1.13\"). Got: {:?}",
+            result
+        );
+    }
+
     /// F-P6-019d RED GATE: unescaped `|` in version annotation must not displace field 6.
     ///
     /// Real BC: BC-4.13.001 (frontmatter `version: "1.18"`; INDEX row v1.16 annotation
