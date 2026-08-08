@@ -4,7 +4,7 @@ level: ops
 version: "7.01"
 status: draft
 producer: state-manager
-timestamp: 2026-08-08T21:17:00Z
+timestamp: 2026-08-08T21:18:00Z
 phase: D-964-PASS-9-CLOSURE-PIPELINE-PAUSED
 last_amended: "2026-08-08 (v7.01) — D-964-PASS-9-CLOSURE-FUEL-REMEDIATION-BURST (state-manager): pass-9 ALL 8 FINDINGS CLOSED — P9-002 CLOSED (ADR-042 10M→20M; gate impl `5370db80`; S-21.13 W7 anchor); P9-003 CLOSED (ADR-040 §Decision 6; `5370db80` 3 attestation sections). ADR-042 v1.2 ratified; S-21.13 registered E-21 W7; D-945 DISCHARGED. ORCHESTRATOR ERROR corrected: D-963 falsified-diagnosis wrong — both measurements valid two scenarios; ~29× by placement; BC v1.17. `fix/fuel-cap-raise-20m` `7cbb9232` NOT YET EFFECTIVE (release-gated). 4-INDEX ADVANCED: BC v4.55/VP v2.76/STORY v4.291/ARCH v3.51. STATE.md v7.00→v7.01. [Prior: 2026-08-08 (v7.00) — D-963-BC-CORRECTION-BURST: BC-5.39.010 ~110 FALSIFIED; ERRATUM; 2 Drift Items; 4-INDEX UNCHANGED; SHA-patch e4bc6683.]"
 inputs: []
@@ -48,7 +48,8 @@ dtu_services: []
   ~400 lines (estimated post-D-962 PASS-9-RECORD-BURST + SHA-patch 2026-08-08; v6.98→v6.99)
   ~415 lines (estimated post-D-963 BC-CORRECTION-BURST 2026-08-08; v6.99→v7.00; at soft-target)
   ~415 lines (estimated post-D-963 SHA-patch e4bc6683 2026-08-08; v7.00 UNCHANGED)
-  281 lines (wc-l post-D-964 PASS-9-CLOSURE-BURST 2026-08-08; v7.00→v7.01; SHA-patch to follow)
+  281 lines (wc-l post-D-964 PASS-9-CLOSURE-BURST 2026-08-08; v7.00→v7.01)
+  282 lines (wc-l post-D-964 SHA-patch d8334693 2026-08-08; v7.01 UNCHANGED)
 -->
 
 # Pipeline State: vsdd-factory
@@ -104,7 +105,7 @@ dtu_services: []
 | D-961-RECORDING-BURST 2026-08-07 (SHA-patch e2bfec65) | state-manager | COMPLETE | All pass-8 findings resolved; ADR-041 sentinel COMPLETE; E-22 dissolved (file RETAINED); BC v4.52; STORY v4.289; ARCH v3.47; trajectory-tail UNCHANGED. |
 | D-962-PASS-9-RECORD-BURST 2026-08-08 (SHA-patch c4e1e66d) | state-manager | COMPLETE | adversary-pass-9.md persisted (NOT-CLEAN B0/H3/M3/L1/NIT1; HALVING 16→8); BC v4.53; STORY v4.290; trajectory-tail →24→20→16→8; P9-003 OPEN. |
 | D-963-BC-CORRECTION-BURST 2026-08-08 (SHA-patch e4bc6683) | state-manager | COMPLETE | BC-5.39.010 ~110 FALSIFIED; ERRATUM inserted; 2 Drift Items; D-963 codified; 4-INDEX UNCHANGED; STATE.md v7.00. |
-| D-964-PASS-9-CLOSURE-FUEL-REMEDIATION-BURST 2026-08-08 | state-manager | COMPLETE | pass-9 ALL 8 FINDINGS CLOSED; ADR-042 v1.2 ratified; S-21.13 registered; D-945 DISCHARGED; ORCH ERROR corrected; BC v4.55; STORY v4.291; ARCH v3.51; STATE.md v7.01. pass-10 adversary NEXT. |
+| D-964-PASS-9-CLOSURE-FUEL-REMEDIATION-BURST 2026-08-08 (SHA-patch d8334693) | state-manager | COMPLETE | pass-9 ALL 8 FINDINGS CLOSED; ADR-042 v1.2 ratified; S-21.13 registered; D-945 DISCHARGED; ORCH ERROR corrected; BC v4.55; STORY v4.291; ARCH v3.51; STATE.md v7.01; SHA-patch d8334693. pass-10 adversary NEXT. |
 
 ## Identifier Conventions
 
@@ -133,7 +134,7 @@ dtu_services: []
 |--------------|-----|-------|
 | main | 80e5cd7b | rc.23 bot binary bundle 2026-07-18 |
 | develop | 700b4dd3 | PR #770 squash-merged 2026-08-07. Local stale at 948f0fb1 — pull on resume. |
-| factory-artifacts | 1659cf08 | D-963/B SHA-patch (D-964/B SHA pending — SHA-patch to follow). |
+| factory-artifacts | d8334693 | D-964/B SHA-patch complete. |
 | feature/S-21.07 | 5370db80 | ALL PASS-9 FINDINGS CLOSED D-964. LOCAL ONLY — 3 ahead origin 37022ecc. FROZEN per team-lead; MERGE-ORDER: S-21.09 first. |
 | feature/S-21.04 | 323f440f | pass-31 pending; no PR |
 | fix/nested-factory-path-derivation | 9afc3226 | F-S2107-P8-016 + P9-008 CLOSED. LOCAL, not pushed. |
@@ -220,7 +221,7 @@ dtu_services: []
 
 ### §1 Position
 
-Cycle `v1.0-brownfield-backfill`. **D-964 pass-9 closure + fuel-remediation burst COMPLETE** (single Commit B pending SHA-patch). factory-artifacts tip **`1659cf08`** (D-963/B SHA-patch; D-964/B SHA pending). 4-INDEX: **BC v4.55 / VP v2.76 / STORY v4.291 / ARCH v3.51** (ADVANCED from D-963). ALL 8 PASS-9 FINDINGS CLOSED. pass-10 adversary dispatch is NEXT.
+Cycle `v1.0-brownfield-backfill`. **D-964 pass-9 closure + fuel-remediation burst COMPLETE** (SHA-patch d8334693 complete). factory-artifacts tip **`d8334693`** (D-964/B SHA-patch complete). 4-INDEX: **BC v4.55 / VP v2.76 / STORY v4.291 / ARCH v3.51** (ADVANCED from D-963). ALL 8 PASS-9 FINDINGS CLOSED. pass-10 adversary dispatch is NEXT.
 
 ### §2 Convergence
 
@@ -232,7 +233,7 @@ Streak **0/3**. **8 true adversary passes, ZERO CLEAN verdicts.** Trajectory `47
 
 ### §4 Branch States
 
-- `factory-artifacts` @ `1659cf08` (D-963/B SHA-patch; D-964/B SHA-patch pending)
+- `factory-artifacts` @ `d8334693` (D-964/B SHA-patch complete)
 - `feature/S-21.07` @ **`5370db80`** — LOCAL ONLY, 3 ahead of origin `37022ecc` (FROZEN per team-lead; NO REBASE; MERGE-ORDER: S-21.09 first)
 - `feature/S-21.04` @ `323f440f` — pass-31 pending, no PR
 - `fix/nested-factory-path-derivation` @ `9afc3226` — LOCAL, NOT pushed
@@ -251,7 +252,7 @@ Working tree on `fix/wasmtime-wasi-cve-2026-47261` @ `23e307bb` (merged, remote 
 
 ### §7 Recommended Next Actions (team-lead instruction D-964(h))
 
-**(1) Cut a release** so `fix/fuel-cap-raise-20m` takes effect (1138-events/day until release). **(2) ADR-042 §Decision 3 class (a)** silent-exhaustion work on `feature/S-21.07` (attestation must cite parent `5370db80` per POLICY 15). **(3) pass-10 adversary** (iron law fresh-context; diff base `5370db80`). **(4) Human ratification of `policies.yaml` v1.4.22.**
+**(1) Cut a release** so `fix/fuel-cap-raise-20m` takes effect (1138-events/day until release). **(2) ADR-042 §Decision 3 class (a)** silent-exhaustion work on `feature/S-21.07` (attestation must cite parent `5370db80` per POLICY 15). **(3) pass-10 adversary** (iron law fresh-context; diff base `5370db80`; aware of platform-wide fuel exhaustion + policies.yaml v1.4.22 PROPOSED). **(4) Human ratification of `policies.yaml` v1.4.22.**
 
 ### §8 Pending Human Decisions
 
@@ -278,4 +279,4 @@ Working tree on `fix/wasmtime-wasi-cve-2026-47261` @ `23e307bb` (merged, remote 
 
 ### §11 Resume Command
 
-`/vsdd-factory:next-step`. D-964/B SHA-patch pending. First action on resume: SHA-patch STATE.md Active Branches factory-artifacts → D-964/B actual SHA. Then dispatch pass-10 adversary (iron law fresh-context; diff base `5370db80`; aware of platform-wide fuel exhaustion + policies.yaml v1.4.22 PROPOSED).
+`/vsdd-factory:next-step`. D-964/B SHA-patch COMPLETE (`d8334693`). First action on resume: dispatch pass-10 adversary (iron law fresh-context; diff base `5370db80`; aware of platform-wide fuel exhaustion + policies.yaml v1.4.22 PROPOSED).

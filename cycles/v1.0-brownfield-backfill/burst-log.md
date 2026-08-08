@@ -24319,4 +24319,4 @@ $ awk '/^## D-964-PASS-9-CLOSURE-FUEL-REMEDIATION-BURST/,0' .factory/cycles/v1.0
 - D-964(g) ORCHESTRATOR ERROR: corrected in decision-log, burst-log, lessons; BC v1.17 (product-owner); attributed to orchestrator
 
 **factory-artifacts commits (this burst — TD-VSDD-053 single-commit-per-burst):**
-- Commit B (this burst): [SHA pending — STATE.md v7.01 written last; commit to follow]
+- Commit B (this burst): `d8334693` — `state(D-964): pass-9 closure + fuel-remediation recording burst`
