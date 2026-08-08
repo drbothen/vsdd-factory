@@ -24325,4 +24325,4 @@ $ awk '/^## D-964-PASS-9-CLOSURE-FUEL-REMEDIATION-BURST/,0' .factory/cycles/v1.0
 **factory-artifacts commits (this burst — TD-VSDD-053 single-commit-per-burst):**
 - Commit B (this burst): `d8334693` — `state(D-964): pass-9 closure + fuel-remediation recording burst`
 - SHA-patch (this burst): `5accfc59` — `state(D-964/SHA-patch): Active Branches + burst-log Block 8 + SIZE BUDGET d8334693`
-- Dim-2 evidence correction: `[SHA pending — follow-up commit in progress]` — `state(D-964/dim2-correction): fix POLICY 16 predicate reproducibility + ALLOCATOR-CEILING gate mislabel`
+- Dim-2 evidence correction: `d48ca057` — `state(D-964/dim2-correction): fix POLICY 16 predicate reproducibility + ALLOCATOR-CEILING gate mislabel`
