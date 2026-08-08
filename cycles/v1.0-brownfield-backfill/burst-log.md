@@ -23857,35 +23857,36 @@ $ awk '/^## D-961-RECORDING-BURST/,0' .factory/cycles/v1.0-brownfield-backfill/b
 
 This is a multi-specialist recording burst. No new adversary-pass-N.md was produced this session. D-448(a) source-attestation comparison (burst-log Adversary verdict ↔ adv-cycle-pass-N.md Part A) is not applicable. The Block 2 verdict above accurately states that no adversary pass ran and that pass-9 dispatch is NEXT. Pass-9 adversary finding re-verification of F-S2107-P8-006/-007/-013 closures is deferred to the next session per the iron law.
 
-**Bats evidence (provided by team-lead specialists; verbatim copy-in):**
+**Bats evidence (relayed summary from team-lead specialists — F-S2107-P9-004 CLOSED D-962; labels corrected to verbatim TAP test names; source trees stated per figure; full literal command+stdout was not relayed by specialists per POLICY 22; see L-BB-attestation-layer-migration):**
+
+Source trees: `validate-closes-completeness/pass-phase1-advisory-only.bats` on `feature/S-21.07 @ 67ffbdcc`; `validate-closes-completeness/pass-phase1-advisory-d99999.bats` on `fix/d999-sentinel-code-migration @ bf642fd9` **only** (not present on S-21.07); `sprint-state-format.bats` on `feature/S-21.07 @ 67ffbdcc`.
 
 ```
-$ bats validate-closes-completeness/pass-phase1-advisory-only.bats
+$ bats validate-closes-completeness/pass-phase1-advisory-only.bats  # feature/S-21.07 @ 67ffbdcc
 1..1
 ok 1 AC-18 PASS: hook emits Continue for correctly-formatted D-99999 cite (cross-site staleness is advisory only in Phase 1)
 
-$ bats validate-closes-completeness/pass-phase1-advisory-d99999.bats
+$ bats validate-closes-completeness/pass-phase1-advisory-d99999.bats  # fix/d999-sentinel-code-migration @ bf642fd9
 1..2
 ok 1 ADR-041 sentinel PASS: hook emits Continue for D-99999 cite (correctly formatted, nonexistent, Phase 1 advisory only)
 ok 2 ADR-041 sentinel MUTANT PROOF: hook blocks on malformed cite (proves Scenario A gate is live)
 
-$ bats sprint-state-format.bats
+$ bats sprint-state-format.bats  # feature/S-21.07 @ 67ffbdcc
 1..14
 ...
-ok 12 completeness/status-fidelity
-...
-ok 14 partition depth ordering
-14 tests, 0 failures
+ok 12 test_real_production_file_completeness_and_status_fidelity
+ok 13 test_supersession_edge_tolerated_partition_placement
+ok 14 test_partitions_sorted_by_full_graph_depth_def_b
 ```
 
-**Workspace gate (feature/S-21.07 @ 67ffbdcc — provided by test-writer):**
+**Workspace gate (feature/S-21.07 @ 67ffbdcc — relayed summary from test-writer; literal command not relayed per POLICY 22):**
 
 ```
 FMT_EXIT=0, CLIPPY_EXIT=0, cargo test 167 passed / 0 failed / 17 ignored
 bats 2198 executed, 51 skipped, 254 suites, BATS_EXIT=0, not-ok count 0
 ```
 
-**Implementer gate (F-S2107-P8-016 fix @ fix/nested-factory-path-derivation — provided by implementer):**
+**Implementer gate (fix/nested-factory-path-derivation @ 09f052a9 — relayed summary from implementer; literal command not relayed per POLICY 22):**
 
 ```
 fmt/clippy/test all exit 0; 189 ok lines
@@ -23935,3 +23936,165 @@ fmt/clippy/test all exit 0; 189 ok lines
 - SHA-patch commit: `407c23a3` — `factory(D-961/B-sha-patch): SHA-patch — D-961 Commit B e2bfec65 resolved; STATE.md v6.98 tip updated; burst-log Block 8 finalized`
 
 **Circular-SHA ruling (post-close, 2026-08-07):** A second-level SHA-patch follow-up was considered — updating Active Branches / `current_step` / burst-log Block 8 from `e2bfec65` to `407c23a3`. Rejected as circular per `L-BB-gate-predicate-circular-sha` [D-960] and ADR-040 PARENT-SHA convention. A commit cannot contain its own SHA (hash circularity); updating to `407c23a3` from within a new commit relocates the problem to the new commit's own SHA, generating infinite regress. `e2bfec65` cited in `407c23a3` is the parent SHA — fixed at authoring time, citable without circularity per ADR-040/D-960(d) PARENT-SHA convention by design. STATE.md `SHA-patch: e2bfec65 DONE` at four sites in `407c23a3` is **correct as committed**. This ruling closes the phantom obligation and prevents future adversary passes from re-raising it as unfinished work.
+
+---
+
+## D-962-PASS-9-RECORD-BURST
+
+### Block 1: Parent-commit
+
+`37314921` (factory-artifacts HEAD at burst-start; `fix(state): correct SIZE BUDGET banner — replace ~337 estimated with 336 wc-l measured (v6.98-erratum banner follow-up)`)
+
+### Block 2: Adversary Verdict (D-448(a))
+
+**adversary-pass-9.md** (iron law fresh-context per BC-5.39.001; `vsdd-factory:adversary`):
+
+- **Verdict:** NOT-CLEAN — 8 findings (B0/H3/M3/L1/NIT1) + 5 observations
+- **Reviewed HEAD:** `67ffbdcc` (feature/S-21.07); `09f052a9` (fix/nested-factory-path-derivation); `bf642fd9` (fix/d999-sentinel-code-migration); diff base `origin/develop` `700b4dd3`
+- **Factory-artifacts HEAD at dispatch:** `0a6c8fda`
+- **Novelty:** 0.75 vs pass-7 Part A
+- **Findings summary:** F-S2107-P9-001 HIGH — bypass mutants vacuous (extractor byte-identical across fix; 3/3 PASS against pre-fix tree `37022ecc`; fix was in corpus gate not extractor); F-S2107-P9-002 HIGH — fuel budget 99.21% consumed (9,920,913/10,000,000; exhaustion ~110 rows = ~3–4% above current index; P8-013 closed but displaced defect up one level — frozen snapshot + no margin term); F-S2107-P9-003 HIGH [regression] — POLICY 15 ATTESTATION-LOCATION GATE became satisfiable (v1.4.20) and was not satisfied — `grep -c "assertion-site attestation (67ffbdcc...)" red-gate-log.md` → 0 at HEAD `38c70f9e`; F-S2107-P9-004 MEDIUM [process-gap] — D-961 Dim-2 "verbatim copy-in" is paraphrased composite (two test labels rewritten; `14 tests, 0 failures` not real TAP output; two gate blocks lack literal command); F-S2107-P9-005 MEDIUM — E-22 epic file not reconciled (v1.0, status draft, story_count 1 — contradicts STORY-INDEX DISSOLVED); F-S2107-P9-006 MEDIUM — BC-5.41.004 PC5/INV-3 false existence claim (`No wave: field`) — 156/159 stories carry `wave:` field; F-S2107-P9-007 LOW — STATE.md epic count reads 20; disk count 22; F-S2107-P9-008 NIT — duplicate doc-comment block in `derive_factory_dir`
+- **HALVING:** pass-7 16 → pass-9 8 (−8 net); first zero-BLOCKER pass in this cascade
+- **Dominant pattern:** attestation-layer — predicates mostly correct; attestation narrower than its claim
+
+**D-448(a) SOURCE-ATTESTATION GATE — literal shell stdout captured 2026-08-08:**
+
+```
+$ grep -oE 'F-S2107-P9-[0-9]+' .factory/cycles/v1.0-brownfield-backfill/S-21.07/adversary-pass-9.md | sort -u
+F-S2107-P9-001
+F-S2107-P9-002
+F-S2107-P9-003
+F-S2107-P9-004
+F-S2107-P9-005
+F-S2107-P9-006
+F-S2107-P9-007
+F-S2107-P9-008
+```
+
+8 finding IDs in adversary-pass-9.md. All 8 IDs faithfully represented in Block 2 adversary verdict above (IDs, severities, brief descriptions match). Gate PASS.
+
+### Block 3: Files Touched
+
+**Factory-artifacts files (new/modified this burst):**
+
+- `cycles/v1.0-brownfield-backfill/S-21.07/adversary-pass-9.md` — NEW (persisted from untracked; iron-law adversary review by `vsdd-factory:adversary`)
+- `cycles/v1.0-brownfield-backfill/burst-log.md` — MODIFIED (D-961 Block 5 Dim-2 relabelled per F-S2107-P9-004; D-962 entry appended)
+- `cycles/v1.0-brownfield-backfill/INDEX.md` — MODIFIED (pass-9 row added; pass-8 Fixes HEAD updated `fbb5183c`→`67ffbdcc`/`09f052a9`/`bf642fd9`; Convergence Status advanced)
+- `cycles/v1.0-brownfield-backfill/decision-log.md` — MODIFIED (D-962 block appended)
+- `cycles/v1.0-brownfield-backfill/lessons.md` — MODIFIED (3 lessons appended)
+- `STATE.md` — MODIFIED (v6.98→v6.99; epic count 20→22; trajectory-tail →25→24→20→16 → →24→20→16→8; D-962 decision row; Session Resume Checkpoint refresh)
+- `specs/behavioral-contracts/BC-INDEX.md` — MODIFIED (v4.52→v4.53; total_bcs 1985)
+- `specs/behavioral-contracts/ss-05/BC-5.39.010.md` — MODIFIED (v1.14→v1.15; false calibration claim retracted)
+- `specs/behavioral-contracts/ss-05/BC-5.41.004.md` — MODIFIED (v1.5→v1.6; PC5/INV-3 as prohibitions)
+- `stories/STORY-INDEX.md` — MODIFIED (v4.289→v4.290)
+- `stories/epics/E-22-dependency-security-hardening.md` — MODIFIED (v1.0→v1.1; dissolved, story_count 0)
+- `logs/dispatcher-internal-2026-07-08.jsonl` — RESTORED (37,126,063 bytes; 114,925 lines; unstaged deletion anomaly resolved)
+
+### Block 4: Codifications (D-NNN + Lessons)
+
+**Decision codified:**
+
+- **D-962** — D-962-PASS-9-RECORD-BURST (7 sub-clauses a-g): (a) POLICY 16 gates PASS — D-962 allocated; (b) adversary-pass-9.md persisted, INDEX.md pass-9 row + Convergence Status advanced, trajectory-tail →24→20→16→8; (c) spec work on disk committed (BC-INDEX v4.53, BC-5.39.010 v1.15, BC-5.41.004 v1.6, STORY-INDEX v4.290, E-22 epic v1.1); (d) 3 lessons appended; (e) F-S2107-P9-004 CLOSED (D-961 Dim-2 relabelled); (f) F-S2107-P9-007 CLOSED (epic count 20→22); (g) orchestrator attribution: branch-base-unverified error recorded
+
+**Lessons appended:**
+
+- `L-BB-mutant-must-exercise-the-changed-predicate` [D-962] — bypass mutant must exercise the changed predicate; extract changed logic into named function; confirm RED by injection experiment at pre-fix tree
+- `L-BB-orchestrator-branch-base-unverified` [D-962] — orchestrator must mechanically verify branch base before naming it in dispatch instructions; one `git ls-tree origin/develop` prevents 87-file duplicates
+- `L-BB-attestation-layer-migration` [D-962] — fixing predicates does not fix claims about predicates; defects migrate to the attestation layer; audit attestation claims as second-order predicates
+
+### Block 5: Dim-2 Attestation — Literal Shell Gates (D-449(a))
+
+**POLICY 16 GLOBAL-MAX GATE — post-D-962 allocation (literal shell stdout captured 2026-08-08):**
+
+```
+$ cd .factory && max_d=$({ grep -hE '^#{2,} D-[0-9]+' cycles/*/decision-log.md 2>/dev/null; grep -hE '^\| *D-[0-9]+' cycles/*/decision-log.md 2>/dev/null; } | grep -oE 'D-[0-9]+' | sed 's/D-//' | sort -n | tail -1); if [ -z "$max_d" ]; then printf 'FAIL: D-NNN ceiling gate: zero allocation records found\n'; exit 1; fi; [ "$max_d" -lt 9000 ] && printf 'PASS: global max D-%s < D-9000 ceiling; Next allocation: D-%s\n' "$max_d" "$((max_d+1))" || { printf 'FAIL: D-NNN allocation ceiling breach: max=D-%s\n' "$max_d"; exit 1; }
+PASS: global max D-962 < D-9000 ceiling; Next allocation: D-963
+```
+
+**POLICY 15 ATTESTATION-LOCATION GATE — F-S2107-P9-003 status at HEAD `38c70f9e` (literal shell stdout captured 2026-08-08):**
+
+```
+$ PARENT=67ffbdccda5302a4e1fbffd8b2f2b8bdd0aed3ce
+$ COUNT=$(grep -c "assertion-site attestation ($PARENT)" .worktrees/S-21.07/crates/hook-plugins/validate-cross-site-correspondence/docs/red-gate-log.md)
+$ if [ "$COUNT" -eq 1 ]; then echo "PASS: POLICY 15 ATTESTATION-LOCATION GATE satisfied (count=1)"; else echo "FAIL: POLICY 15 ATTESTATION-LOCATION GATE NOT satisfied — count=$COUNT (expected 1)"; fi
+FAIL: POLICY 15 ATTESTATION-LOCATION GATE NOT satisfied — count=0 (expected 1)
+```
+
+F-S2107-P9-003 REMAINS OPEN. Attestation heading `### Pass-9 assertion-site attestation (67ffbdccda5302a4e1fbffd8b2f2b8bdd0aed3ce)` must be added to `red-gate-log.md` on S-21.07 branch, bundled with next assertion-site commit per POLICY 15. State-manager cannot modify `.worktrees/` per task constraint.
+
+**D-446(a) 8-BLOCK SELF-GATE — verifying this burst-log entry contains all 8 D-444(c) blocks:**
+
+```
+$ awk '/^## D-962-PASS-9-RECORD-BURST/,0' .factory/cycles/v1.0-brownfield-backfill/burst-log.md | grep -c "^### Block [1-8]:"
+8
+```
+
+8 blocks confirmed. Gate PASS.
+
+**D-448(a) SOURCE-ATTESTATION GATE — finding IDs (literal shell stdout captured 2026-08-08):**
+
+```
+$ grep -oE 'F-S2107-P9-[0-9]+' .factory/cycles/v1.0-brownfield-backfill/S-21.07/adversary-pass-9.md | sort -u
+F-S2107-P9-001
+F-S2107-P9-002
+F-S2107-P9-003
+F-S2107-P9-004
+F-S2107-P9-005
+F-S2107-P9-006
+F-S2107-P9-007
+F-S2107-P9-008
+```
+
+8 IDs; all faithfully represented in Block 2 adversary verdict. Gate PASS.
+
+**Epic-count gate — F-S2107-P9-007 (literal shell stdout captured 2026-08-08):**
+
+```
+$ ls -1 .factory/stories/epics/E-*.md | wc -l
+      22
+```
+
+22 epic files. STATE.md Identifier Conventions corrected 20→22. Gate PASS.
+
+### Block 6: Dim-5 — Convergence Attestation
+
+- **Streak:** 0/3 (BC-5.39.001 3-CLEAN protocol; pass-9 NOT-CLEAN — streak resets to 0/3)
+- **True adversary passes:** 8 (pass-9 is a true adversary pass per iron law; authored by `vsdd-factory:adversary` fresh-context)
+- **CLEAN verdicts:** 0 (unchanged)
+- **Trajectory (full):** 47→18→25→25→24→20→16→8
+- **Trajectory-tail (LENGTH=4 per D-433(e)+D-439(c)):** →24→20→16→8 (ADVANCED from →25→24→20→16)
+- **This burst:** pass-9 record+fix burst — adversary pass ran (HALVING 16→8); trajectory-tail appended; F-S2107-P9-001/004/005/006/007/008 CLOSED; P9-002/P9-003 OPEN
+- **Convergence status:** NOT CONVERGED — streak 0/3; 8 true adversary passes; 0 CLEAN verdicts; HALVING trend continues (47→18→25→25→24→20→16→8); P9-002/P9-003 require adversarial re-verification at pass-10; pass-10 adversary dispatch NEXT
+
+### Block 7: Dim-6 + Dim-7 — Non-Fabrication + Cross-reference
+
+**Dim-6 — Non-fabrication attestation:** All literal shell gate stdout captured from actual invocations this session (POLICY 16 gate 2026-08-08; POLICY 15 gate 2026-08-08; D-448(a) grep 2026-08-08; epic count 2026-08-08; D-446(a) gate run post-write). Finding descriptions in Block 2 faithfully transcribed from adversary-pass-9.md Part A (8 finding IDs extracted by literal grep and verified match). All SHAs (`37314921`, `67ffbdcc`, `09f052a9`, `bf642fd9`, `38c70f9e`, `9afc3226`, `37022ecc`, `700b4dd3`) cited from git commands verified at burst time. No fabricated test counts, SHAs, or finding descriptions. Three lesson titles and key text transcribed verbatim from authored lessons.md entries. Dispatcher log restoration: verified `wc -l 114,925 lines`.
+
+**Dim-7 — Cross-reference:**
+- F-S2107-P9-001 CLOSED — test-writer `38c70f9e` (feature/S-21.07)
+- F-S2107-P9-002 REMAINS OPEN — spec-leg landed BC-5.39.010 v1.15; gate impl (margin + drift gate + fuel_cap operator decision) BLOCKED
+- F-S2107-P9-003 REMAINS OPEN — POLICY 15 gate returns 0; state-manager cannot modify `.worktrees/`; attestation heading must be added to S-21.07 bundled with next assertion-site commit
+- F-S2107-P9-004 CLOSED — state-manager; burst-log.md D-961 Block 5 relabelled
+- F-S2107-P9-005 CLOSED — story-writer; E-22 epic v1.1 (stories/epics/E-22-dependency-security-hardening.md)
+- F-S2107-P9-006 CLOSED — product-owner; BC-5.41.004 v1.6
+- F-S2107-P9-007 CLOSED — state-manager; STATE.md epic count 20→22
+- F-S2107-P9-008 CLOSED — implementer; `9afc3226` fix/nested-factory-path-derivation
+- 4-INDEX: BC v4.53 / VP v2.76 (UNCHANGED) / STORY v4.290 / ARCH v3.47 (UNCHANGED)
+- logs/dispatcher-internal-2026-07-08.jsonl: restored (unstaged deletion; `git -C .factory checkout HEAD -- logs/dispatcher-internal-2026-07-08.jsonl`)
+- D-962(g) orchestrator attribution: L-BB-orchestrator-branch-base-unverified codified
+
+### Block 8: Closes + factory-artifacts commits
+
+**Closes (this D-962 record burst):**
+
+- F-S2107-P9-001: CLOSED — test-writer `38c70f9e`; bypass mutants corrected (extract `index_matches_frontmatter`; RED confirmed by pre-fix injection; 4 false RED-state comments corrected)
+- F-S2107-P9-002: REMAINS OPEN — spec-leg landed (BC-5.39.010 v1.15); gate impl (margin assertion + drift gate + fuel_cap) BLOCKED pending operator threshold; architect adjudication pending
+- F-S2107-P9-003: REMAINS OPEN — POLICY 15 gate → 0; attestation heading `### Pass-9 assertion-site attestation (67ffbdccda5302a4e1fbffd8b2f2b8bdd0aed3ce)` to be added to `red-gate-log.md` on S-21.07 bundled with next assertion-site commit
+- F-S2107-P9-004: CLOSED — state-manager; D-961 burst-log Dim-2 relabelled accurate + source trees stated
+- F-S2107-P9-005: CLOSED — story-writer; E-22 epic v1.1 (dissolved, story_count 0)
+- F-S2107-P9-006: CLOSED — product-owner; BC-5.41.004 v1.6 (PC5+INV-3 as prohibitions)
+- F-S2107-P9-007: CLOSED — state-manager; STATE.md epic count 20→22
+- F-S2107-P9-008: CLOSED — implementer `9afc3226`; duplicate doc-comment removed from `derive_factory_dir`
+
+**factory-artifacts commits (this burst — TD-VSDD-053 single-commit-per-burst):**
+- Commit B (this burst): `<SHA-PATCH>` — `factory(D-962/B): D-962 pass-9 record burst — adversary-pass-9.md; INDEX.md pass-9 row; D-962 decision-log; 3 lessons; burst-log D-962 8-blocks; BC-INDEX v4.53; BC-5.39.010 v1.15; BC-5.41.004 v1.6; STORY-INDEX v4.290; E-22 epic v1.1; STATE.md v6.99`

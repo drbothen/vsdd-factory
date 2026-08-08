@@ -10447,3 +10447,45 @@ D-442(e) recorded the same class of defect for lessons.md (≤3,500 soft / ≤4,
 **Closes:** D-961
 
 **Cites:** D-961 (post-close observation); L-BB-gate-predicate-circular-sha; L-BB-gate-narrower-than-its-claim; ADR-040. `[process-gap; self-violation; codifying-burst; mechanical-detection; circular-sha; D-961; codified]`
+
+## L-BB-mutant-must-exercise-the-changed-predicate [implementation] [D-962]
+
+**Category:** implementation
+
+**Title:** A Bypass Mutant Must Exercise the Changed Predicate — Not a Collaborator the Fix Did Not Touch
+
+**Lesson:** F-S2107-P9-001 evidence: the three "bypass mutant" tests for F-S2107-P8-006 exercised `arm_a1::extract_bc_index_version_state`, which was byte-identical between the pre-fix and post-fix trees. The defect that was fixed was not in the extractor — it was in the corpus gate, which discarded the extracted value and called the deleted `bc_index_row_contains_version` helper. All three mutants passed against the pre-fix tree (`37022ecc`) where the weak helper was still live. The tests thus proved a proposition that was already true before the fix (`Version("1.19") != "1.18"`), and the gate strengthening was unpinned. **Distinguishing predicate**: a mutation experiment that should produce `REGRESSED_EXIT:101` (bypass mutant fails against old code) but instead produces `REVERTED_EXIT:0` (pass against old code, pass against new code) reveals that the mutant does not exercise the changed logic. **Rule**: before writing a bypass mutant test, identify exactly which function or expression the fix changed; extract that logic into a named function if necessary (e.g. `index_matches_frontmatter`); call that function in the test; inject the mutant verbatim into the pre-fix tree and confirm it goes RED before accepting the test as a bypass pin. The comments claiming the tests "FAILED against the previous helper" should cite captured injection output (`REGRESSED_EXIT:101`), not narrative assertion.
+
+**Anchors:** D-962; F-S2107-P9-001; F-S2107-P8-006; BC-5.39.010; TD-VSDD-059; POLICY 11; POLICY 15.
+
+**Closes:** D-962
+
+**Cites:** D-962 (codified this burst); F-S2107-P9-001; F-S2107-P8-006; TD-VSDD-059. `[implementation; mutant; bypass; changed-predicate; pin; extractor; D-962; codified]`
+
+## L-BB-orchestrator-branch-base-unverified [process-gap] [D-962]
+
+**Category:** process-gap
+
+**Title:** Orchestrator Must Mechanically Verify Branch Base Before Naming It in Dispatch Instructions
+
+**Lesson:** D-962(g) evidence: the orchestrator specified a branch base for S-21.07 without verifying that the target code existed at that base. The implementer created the branch off an older state, producing an 87-file duplicate of existing develop content that had to be rebased out. One `git ls-tree origin/develop <path>` check would have revealed the absence before the branch was created. The orchestrator had the information needed to verify (the expected file path and the target branch name) and did not verify it. The gap is similar to the class captured in `L-BB-gate-narrower-than-its-claim`: an attestation (implied) that a precondition holds when it was not tested. **Rule**: any dispatch instruction that names a branch (`origin/develop`), path (`.worktrees/S-21.07`), or artifact (`adversary-pass-9.md`) as the starting point for a specialist's work MUST include a mechanical verification step confirming the target exists at the named reference before the specialist executes the work. The verification may be as simple as `git ls-tree <ref> <path>` or `git rev-parse --verify <branch>` — one command, run by the orchestrator before dispatch, eliminates the class. Unverified base assumptions are a root cause of silent scope corruption, non-obvious rebase obligations, and 87-file inflations.
+
+**Anchors:** D-962; D-962(g); S-21.07; L-BB-gate-narrower-than-its-claim.
+
+**Closes:** D-962
+
+**Cites:** D-962 (codified this burst); D-962(g). `[process-gap; orchestrator; branch-base; verification; dispatch; D-962; codified]`
+
+## L-BB-attestation-layer-migration [process-gap] [D-962]
+
+**Category:** process-gap
+
+**Title:** Fixing Predicates Does Not Fix Claims About Predicates — Defects Migrate to the Attestation Layer
+
+**Lesson:** F-S2107-P9 dominant pattern: the predicates in the pass-8 fix burst were mostly correct by pass-9 — the ceiling gate covers every corpus form, the cite sweep is real, the production-scale fixture is byte-identical to production, the coverage gate stopped synthesising figures. But the attestation layer carried four new defects: (1) a mutant set that proves a proposition already true before the fix (P9-001 — vacuous mutant, wrong proposition); (2) a budget gate with no margin term over a frozen snapshot (P9-002 — predicate binary, not margin-aware); (3) a policy gate that became satisfiable and was then not satisfied (P9-003 — gate present, postcondition unmet); (4) a "verbatim copy-in" label over paraphrased composite output (P9-004 — label overstates fidelity). In all four cases the underlying assertion site was correct; what was wrong was the *claim made about the assertion site*. This is a structural migration: as individual predicates are strengthened under adversarial pressure, the defect moves from "predicate wrong" to "claim about predicate wrong." **The same gate-narrower-than-its-claim shape applies one level up**: a mutant that claims to pin a bypass but does not actually exercise the changed code; a gate that claims to assert margin but asserts only presence; a heading that claims a gate is satisfied but the gate is not checked; a label that claims verbatim but is paraphrased. **Rule**: after any wave of predicate fixes, explicitly audit the attestation layer — the comments asserting RED/GREEN, the labels on evidence blocks, the gate-satisfaction checks, and any budget assertions with fixed thresholds. Treat each attestation claim as a second predicate that must itself be tested, not accepted as narrative. See [[L-BB-gate-narrower-than-its-claim]].
+
+**Anchors:** D-962; F-S2107-P9-001..004; L-BB-gate-narrower-than-its-claim; D-449(a); POLICY 15; POLICY 22.
+
+**Closes:** D-962
+
+**Cites:** D-962 (codified this burst); F-S2107-P9-001..004; L-BB-gate-narrower-than-its-claim; D-449(a). `[process-gap; attestation-layer; predicate; migration; verbatim; mutant; margin; D-962; codified]`

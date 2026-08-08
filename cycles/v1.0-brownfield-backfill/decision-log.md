@@ -15168,3 +15168,48 @@ D-961-RECORDING-BURST
 ### Date
 
 2026-08-07
+
+---
+
+## D-962 — D-962-PASS-9-RECORD-BURST
+
+### Summary
+
+Pass-9 adversary review record burst 2026-08-08. `adversary-pass-9.md` persisted (NOT-CLEAN B0/H3/M3/L1/NIT1; 8 findings + 5 obs; HALVING 16→8; first zero-BLOCKER pass in this cascade; dominant pattern: attestation-layer — predicates mostly correct, attestation narrower than its claim). POLICY 16 GLOBAL-MAX GATE PASS (D-961 confirmed max < D-9000; D-962 allocated). INDEX.md pass-9 row added; Convergence Status advanced (trajectory 47→18→25→25→24→20→16→8; tail →24→20→16→8). Spec work on disk committed: BC-INDEX v4.53 (product-owner), BC-5.39.010 v1.15 (false calibration claim retracted; measured fuel 99.21% consumed), BC-5.41.004 v1.6 (PC5/INV-3 restated as prohibitions), STORY-INDEX v4.290, E-22 epic v1.1 (dissolved, story_count 0). Three lessons appended. F-S2107-P9-004 CLOSED (D-961 Dim-2 relabelled accurate; source trees stated); F-S2107-P9-007 CLOSED (epic count 20→22); F-S2107-P9-001 CLOSED (test-writer `38c70f9e`); F-S2107-P9-005 CLOSED (story-writer; E-22 epic v1.1); F-S2107-P9-006 CLOSED (product-owner; BC-5.41.004 v1.6); F-S2107-P9-008 CLOSED (implementer `9afc3226`). OPEN: F-S2107-P9-002 (fuel 99.21% consumed — spec-leg landed; gate impl blocked pending operator threshold), F-S2107-P9-003 (POLICY 15 gate returns 0; attestation section must be added to S-21.07 bundled with next assertion-site commit). Dispatcher log `logs/dispatcher-internal-2026-07-08.jsonl` restored (unstaged deletion anomaly; restored via `git checkout HEAD -- <path>`).
+
+### Sub-clauses
+
+**(a) POLICY 16 GLOBAL-MAX GATE + ALLOCATOR-CEILING GATE — D-962 allocated.** Both gates run at burst-start with literal shell stdout captured (D-449(a)): `PASS: global max D-961 < D-9000 ceiling; Next allocation: D-962`. No allocation breach. D-962 is the correct next allocation.
+
+**(b) adversary-pass-9.md persisted; INDEX.md pass-9 row added; Convergence Status advanced.** `cycles/v1.0-brownfield-backfill/S-21.07/adversary-pass-9.md` was untracked on disk (authored by `vsdd-factory:adversary` under iron law fresh-context per BC-5.39.001). Persisted via commit staging. Pass-9 row added to INDEX.md S-21.07 adversary reviews table. Convergence Status updated: trajectory 47→18→25→25→24→20→16→8 (tail LENGTH=4: →24→20→16→8 per D-433(e)+D-439(c)). Streak 0/3 UNCHANGED (NOT-CLEAN verdict). Pass-8 row Fixes HEAD updated from `fbb5183c` to `67ffbdcc`/`09f052a9`/`bf642fd9` (actual fix SHAs). 8th true adversary pass; 0 CLEAN verdicts.
+
+**(c) Finalized spec work on disk committed.** Files were already on disk (modified, uncommitted) from prior specialist dispatches. Committed this burst per single-commit-per-burst (TD-VSDD-053): BC-INDEX v4.53 (product-owner; total_bcs 1985); BC-5.39.010 v1.15 (false calibration claim retracted — measured reality: fuel_consumed 9,920,913 of 10,000,000 = 99.21%; margin+drift gate specified normatively; fuel_cap prohibition retained per human ruling 2026-08-08); BC-5.41.004 v1.6 (PC5 and INV-3 restated as prohibitions — "MAY be present, MUST NOT be consulted for ordering" — rather than false existence claims); STORY-INDEX v4.290 (story-writer); E-22 epic v1.1 (story-writer; status dissolved, story_count 0, EAC-001..004 reframed as charter criteria, Placement Justification marked superseded).
+
+**(d) Three lessons appended to lessons.md.** (1) `L-BB-mutant-must-exercise-the-changed-predicate`: a mutant that calls only a collaborator the fix did not modify proves a proposition already true before the fix — demonstrates `REGRESSED_EXIT:101`/`REVERTED_EXIT:0` distinguishing pattern; extract changed logic into named function and assert against it. (2) `L-BB-orchestrator-branch-base-unverified`: orchestrator specified a branch base without verifying target code existed there; one `git ls-tree origin/develop` check would have prevented the 87-file duplicate; dispatch instructions naming a branch, path, or artifact MUST be mechanically verified. (3) `L-BB-attestation-layer-migration`: fixing predicates does not fix claims about predicates — defects migrated to the attestation layer (vacuous mutant set, budget assertion with no margin, policy gate made satisfiable then left unsatisfied, "verbatim" block that is paraphrased); codified per F-S2107-P9-004 pattern.
+
+**(e) F-S2107-P9-004 CLOSED (state-manager).** D-961 burst-log Dim-2 block `## D-961-RECORDING-BURST`, `### Block 5` relabelled: "verbatim copy-in" replaced with accurate "relayed summary from team-lead specialists"; two paraphrased TAP test labels corrected to verbatim names (`ok 12 test_real_production_file_completeness_and_status_fidelity`, `ok 14 test_partitions_sorted_by_full_graph_depth_def_b`); spurious `14 tests, 0 failures` line removed; source trees stated per figure for all three bats sub-blocks and both gate sub-blocks; notation added that `pass-phase1-advisory-d99999.bats` exists only on `fix/d999-sentinel-code-migration @ bf642fd9`. Literal invocations for workspace gate and implementer gate not relayed by specialists per POLICY 22 — relayed-figure constraint documented with reference to `L-BB-attestation-layer-migration`.
+
+**(f) F-S2107-P9-007 CLOSED (state-manager).** STATE.md Identifier Conventions epic-count cell corrected from `20` to `22`. Enumeration basis: E-0..E-9 = 10 files + E-10..E-19 = 10 files + E-21 active + E-22 dissolved-retained; `ls -1 .factory/stories/epics/E-*.md | wc -l` → 22; E-20 never allocated. The prior count of 20 was an error introduced in D-961(c) which stated "count stays at 20" without measuring the actual file count; E-21 and E-22 were both excluded from the stated count despite both files existing on disk.
+
+**(g) Orchestrator attribution recorded: branch-base-unverified error.** A dispatch instruction in a prior session specified the branch base for S-21.07 (instructing the implementer to derive from `origin/develop`) without verifying that the target code existed at that base. This produced an 87-file duplicate when the implementer created the branch off an older state. One `git ls-tree origin/develop` check would have revealed the absence before the branch was created. Lesson `L-BB-orchestrator-branch-base-unverified` codified. **Rule**: any dispatch instruction that names a branch, path, or artifact as the starting point MUST include a mechanical verification step confirming the target exists at that reference; unverified base assumptions are a root cause of silent scope corruption.
+
+### Participating agents
+
+- state-manager: D-962 codification; burst-log D-962 (8 blocks); 3 lessons; STATE.md v6.99 advance; F-S2107-P9-004 fix (burst-log Dim-2 relabelling); F-S2107-P9-007 fix (epic count 20→22); INDEX.md pass-9 row + Convergence Status advance; POLICY 16/ALLOCATOR-CEILING gate run; July-8 log anomaly investigation + restore
+- test-writer: F-S2107-P9-001 CLOSED (bypass mutants corrected to exercise the changed predicate; `38c70f9e`)
+- product-owner: BC-5.41.004 v1.6 (PC5/INV-3 as prohibitions); BC-INDEX v4.53 (total_bcs 1985)
+- story-writer: E-22 epic v1.1 (dissolved, story_count 0, EAC reframed); STORY-INDEX v4.290
+- implementer: F-S2107-P9-008 CLOSED (`9afc3226` fix/nested-factory-path-derivation — duplicate doc-comment removed from `derive_factory_dir`)
+- (spec-only, no code): BC-5.39.010 v1.15 (false calibration claim retracted; measured fuel 99.21%; margin+drift gate normatively specified; fuel_cap prohibition retained)
+
+### 4-INDEX
+
+BC-INDEX v4.53 / VP-INDEX v2.76 (UNCHANGED) / STORY-INDEX v4.290 / ARCH-INDEX v3.47 (UNCHANGED)
+
+### Phase
+
+D-962-PASS-9-RECORD-BURST
+
+### Date
+
+2026-08-08

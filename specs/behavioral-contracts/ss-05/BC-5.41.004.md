@@ -1,11 +1,11 @@
 ---
 document_type: behavioral-contract
 level: L3
-version: "1.5"
+version: "1.6"
 status: draft
 producer: product-owner
 timestamp: 2026-06-29T00:00:00Z
-last_amended: "(v1.5) — POL-14 lifecycle promotion (state-manager): S-18.11 PR #340 squash-merged 531dacfb to develop 2026-06-29; lifecycle_status draft→active. No behavioral change. [Prior: (v1.4) — PC3 intra-partition ordering switched from partition-restricted edges (def a) to full-graph wave-depth (def b) per ADR-026 §Decision 3a v1.37 + human directive 'full rigor option b'; EC-010 detection unchanged, depth basis now full-graph; supersession-edge note updated to reflect edge INCLUDED in depth computation (not excluded from topo-sort). [Prior: (v1.3) — EC-010 narrowed to tolerate supersession edges (depended-on story carries superseded_by) + hard-abort genuine anomalies; PC3 cross-partition supersession-edge note added; +2 test vectors (topo-violation-genuine-anomaly, topo-violation-supersession-tolerated); per ADR-026 §Decision 3a v1.36, human directive — S-3.04 stays partial pending post-E-18 ADR-015 revisit. [Prior: (v1.2) — PC3 amended to two-partition ordering rule per ADR-026 §Decision 3a (S-18.11 PC3-vs-guard reconciliation, human-approved); TopoViolation guard obligation added as new EC-010. [Prior: (v1.1) — Architecture Anchors/Related BCs producer-authority corrected to BC-5.41.004 per AC-007 (F-P5-001); Description INV-cite INV-4→INV-2 (F-P5-002); comprehensive internal-consistency sweep: PC3 wave_id phrasing updated to wave-group-ordinal (2026-06-28). [Prior: v1.0 — initial creation (product-owner): producer-side sprint-state.yaml per-story format obligation (S-18.11 T-2; closes O-P9-001 producer arm).]]]"
+last_amended: "(v1.6) — PC5 and INV-3 corrected (F-S2107-P9-006): false existence claims replaced with prohibitions — `wave:` frontmatter field MAY be present on story files (156 of 159 at 2026-08-08; corpus evidence per PC5) but MUST NOT be consulted for ordering; wave assignment derived exclusively from STORY-INDEX.md `depends_on:` dependency graph. INV-3 renamed from 'No phantom `wave:` field' to '`wave:` frontmatter MUST NOT be consulted for ordering'; 'No such field exists on story specs' sentence removed. Description corrected: 'which does not exist (INV-3)' replaced with accurate prohibition cite. DI-023 traceability text updated to remove 'phantom' characterization. (product-owner; closes F-S2107-P9-006.) [Prior: (v1.5) — POL-14 lifecycle promotion (state-manager): S-18.11 PR #340 squash-merged 531dacfb to develop 2026-06-29; lifecycle_status draft→active. No behavioral change. [Prior: (v1.4) — PC3 intra-partition ordering switched from partition-restricted edges (def a) to full-graph wave-depth (def b) per ADR-026 §Decision 3a v1.37 + human directive 'full rigor option b'; EC-010 detection unchanged, depth basis now full-graph; supersession-edge note updated to reflect edge INCLUDED in depth computation (not excluded from topo-sort). [Prior: (v1.3) — EC-010 narrowed to tolerate supersession edges (depended-on story carries superseded_by) + hard-abort genuine anomalies; PC3 cross-partition supersession-edge note added; +2 test vectors (topo-violation-genuine-anomaly, topo-violation-supersession-tolerated); per ADR-026 §Decision 3a v1.36, human directive — S-3.04 stays partial pending post-E-18 ADR-015 revisit. [Prior: (v1.2) — PC3 amended to two-partition ordering rule per ADR-026 §Decision 3a (S-18.11 PC3-vs-guard reconciliation, human-approved); TopoViolation guard obligation added as new EC-010. [Prior: (v1.1) — Architecture Anchors/Related BCs producer-authority corrected to BC-5.41.004 per AC-007 (F-P5-001); Description INV-cite INV-4→INV-2 (F-P5-002); comprehensive internal-consistency sweep: PC3 wave_id phrasing updated to wave-group-ordinal (2026-06-28). [Prior: v1.0 — initial creation (product-owner): producer-side sprint-state.yaml per-story format obligation (S-18.11 T-2; closes O-P9-001 producer arm).]]]"
 phase: F3
 inputs:
   - .factory/stories/S-18.11-sprint-state-per-story-format-producer.md
@@ -13,7 +13,7 @@ inputs:
   - .factory/specs/behavioral-contracts/ss-05/BC-5.41.002.md
   - .factory/stories/sprint-state.yaml
   - .factory/specs/architecture/decisions/ADR-026-wave-boundary-checkpoint-reset-and-lossless-intra-wave-compaction.md
-input-hash: ""
+input-hash: "7bec9f0"
 traces_to: .factory/specs/prd.md
 origin: greenfield
 extracted_from: null
@@ -23,6 +23,7 @@ lifecycle_status: active
 introduced: v1.0-feature-context-durability-E18
 modified:
   - "2026-06-29 (v1.5) — POL-14 lifecycle promotion (state-manager): S-18.11 PR #340 squash-merged 531dacfb to develop 2026-06-29; lifecycle_status draft→active. No behavioral change."
+  - "2026-08-08 (v1.6) — PC5 and INV-3 corrected (F-S2107-P9-006): false existence claims replaced with prohibitions."
   - "2026-06-29 (v1.4) — PC3 intra-partition ordering switched from partition-restricted edges (def a) to full-graph wave-depth (def b) per ADR-026 §Decision 3a v1.37 + human directive 'full rigor option b'; EC-010 detection unchanged, depth basis now full-graph."
   - "2026-06-29 (v1.3) — EC-010 narrowed to tolerate supersession edges (depended-on story carries superseded_by) + hard-abort genuine anomalies; PC3 cross-partition supersession-edge note added; +2 test vectors (topo-violation-genuine-anomaly, topo-violation-supersession-tolerated); per ADR-026 §Decision 3a v1.36, human directive — S-3.04 stays partial pending post-E-18 ADR-015 revisit."
   - "2026-06-28 (v1.2) — PC3 amended to two-partition ordering rule per ADR-026 §Decision 3a (S-18.11 PC3-vs-guard reconciliation, human-approved); EC-010 TopoViolation guard added."
@@ -39,7 +40,7 @@ removal_reason: null
 
 ## Description
 
-The wave-scheduling skill (or any equivalent sprint-state.yaml producer) MUST write a top-level `stories:` key in `.factory/stories/sprint-state.yaml`. The value is a list of per-story objects; each object has at minimum `id: <S-N.NN>` and `status: <canonical-sprint-status>`. List order MUST be wave-ascending based on the dependency-graph topo-sort from STORY-INDEX.md `depends_on:` arrays — not from a phantom `wave:` story frontmatter field, which does not exist (INV-3). Every story that appears with a non-retired status in STORY-INDEX.md MUST appear in the list; status values MUST be read mechanically from STORY-INDEX.md catalog rows, never inferred or RAG-approximated (INV-2; producer-side complement to BC-5.41.002 INV4). This BC is the producer-side complement to the consumer-side obligations in BC-5.41.001 (PC2 P-SPRINT-STATE-WAVE-ORDER precondition) and BC-5.41.002 (PC3 stories derivation).
+The wave-scheduling skill (or any equivalent sprint-state.yaml producer) MUST write a top-level `stories:` key in `.factory/stories/sprint-state.yaml`. The value is a list of per-story objects; each object has at minimum `id: <S-N.NN>` and `status: <canonical-sprint-status>`. List order MUST be wave-ascending based on the dependency-graph topo-sort from STORY-INDEX.md `depends_on:` arrays — not from a `wave:` story frontmatter field, which MAY be present as informational metadata but MUST NOT be consulted for ordering (INV-3). Every story that appears with a non-retired status in STORY-INDEX.md MUST appear in the list; status values MUST be read mechanically from STORY-INDEX.md catalog rows, never inferred or RAG-approximated (INV-2; producer-side complement to BC-5.41.002 INV4). This BC is the producer-side complement to the consumer-side obligations in BC-5.41.001 (PC2 P-SPRINT-STATE-WAVE-ORDER precondition) and BC-5.41.002 (PC3 stories derivation).
 
 ## Preconditions
 
@@ -47,7 +48,19 @@ The wave-scheduling skill (or any equivalent sprint-state.yaml producer) MUST wr
 2. STORY-INDEX.md is accessible from the current working tree and is current — its catalog rows are the authoritative source for story IDs and statuses.
 3. STORY-INDEX.md `depends_on:` arrays are the authoritative source for dependency edges used to compute wave-ascending topo-sort order.
 4. The producer does NOT exec any `git` command to derive story status or ordering (`git rev-parse`, `git cat-file`, etc. are forbidden for this purpose — MUST read STORY-INDEX.md directly from the working tree as a plain file).
-5. No `wave:` frontmatter field exists on individual story files. Wave assignment is derived exclusively from the dependency graph.
+5. A `wave:` frontmatter field MAY be present on individual story files as informational metadata. The producer MUST NOT consult this field for ordering; wave assignment is derived exclusively from the STORY-INDEX.md `depends_on:` dependency graph. Corpus evidence (2026-08-08, factory-artifacts `0a6c8fda`):
+
+   ```
+   $ cnt=0; for f in .factory/stories/S-*.md; do
+       awk 'NR==1&&/^---/{p=1;next} p&&/^---/{exit} p&&/^wave:/{print}' "$f" | grep -q . && cnt=$((cnt+1)); done; echo "COUNT=$cnt"
+   COUNT=156
+   $ ls .factory/stories/S-*.md | wc -l
+        159
+   $ grep -nE '^wave:' .factory/stories/S-21.12-*.md
+   25:wave: 4
+   ```
+
+   156 of 159 story files carry `wave:` frontmatter; S-21.12, re-anchored this burst, carries `wave: 4`. The field is legitimate informational metadata and MUST NOT be removed or treated as a violation. The ordering invariant is INV-3: the producer MUST NOT derive ordering from this field.
 
 ## Postconditions
 
@@ -86,7 +99,7 @@ The wave-scheduling skill (or any equivalent sprint-state.yaml producer) MUST wr
 
 2. **No fabricated statuses**: Each `status:` value in the `stories:` list MUST be a direct read from the STORY-INDEX.md catalog row for that story — specifically the `| S-NNN | ... | <status> |` pipe-delimited column. No AI-inferred, context-estimated, RAG-retrieved, or environment-variable-based status values are permitted. This rule is the producer-side complement to BC-5.41.002 INV4 (no RAG on the consumer side).
 
-3. **No phantom `wave:` field**: The topo-sort ordering MUST be derived from STORY-INDEX.md `depends_on:` dependency edges, NOT from a `wave:` frontmatter field on individual story files. No such field exists on story specs. Consulting `wave:` frontmatter produces undefined/absent values that silently corrupt the ordering. The producer MUST implement the Kahn/DFS dependency-order topo-sort over STORY-INDEX.md `depends_on:` arrays.
+3. **`wave:` frontmatter MUST NOT be consulted for ordering**: The topo-sort ordering MUST be derived from STORY-INDEX.md `depends_on:` dependency edges, NOT from a `wave:` frontmatter field on individual story files. The `wave:` field exists on 156 of 159 story files at 2026-08-08 (corpus evidence: see PC5) and serves as informational metadata; its presence is legitimate and MUST NOT be treated as a violation. Consulting `wave:` frontmatter for ordering silently corrupts the sort when the field value diverges from the graph-derived depth. The producer MUST implement the Kahn/DFS dependency-order topo-sort over STORY-INDEX.md `depends_on:` arrays.
 
 4. **No git exec for status or ordering**: The producer MUST derive all `status:` values and topo-sort edges by reading STORY-INDEX.md as a plain working-tree file. Commands such as `git log`, `git cat-file`, or `git rev-parse` MUST NOT be used to derive story status or ordering. Shell POSIX tools (`awk`, `grep -E`, `sort`) are permitted for YAML key extraction and sorting.
 
@@ -158,7 +171,7 @@ S-18.11 (sprint-state.yaml producer migration to per-story {id, status} format)
 |-------|-------|
 | L2 Capability | CAP-032 ("Guarantee lossless context-window transitions via wave-boundary checkpoint and PreCompact flush") per capabilities.md §CAP-032 |
 | Capability Anchor Justification | CAP-032 ("Guarantee lossless context-window transitions via wave-boundary checkpoint and PreCompact flush") per capabilities.md §CAP-032 — this BC governs the sprint-state.yaml producer format that enables the wave-gate consumers (BC-5.41.001 PC2, BC-5.41.002 PC3) to mechanically derive `wave_id` and `next_wave_stories` without a bespoke format adapter; a conformant sprint-state.yaml producer is a prerequisite for lossless wave-boundary handoffs (Part A of the CAP-032 context-durability guarantee) |
-| L2 Domain Invariants | DI-020 (Wave/phase boundary transitions must not lose load-bearing pipeline state — enforced here by the producer-side obligation: a non-conformant sprint-state.yaml breaks the wave-handoff chain, losing pipeline state at wave boundaries); DI-023 (Wave/phase identity and next-wave story lists derive from real persisted substrate fields; no phantom fields — enforced here by the topo-sort-from-STORY-INDEX obligation: ordering derived from `depends_on:` real dependency edges, NOT from phantom `wave:` frontmatter) |
+| L2 Domain Invariants | DI-020 (Wave/phase boundary transitions must not lose load-bearing pipeline state — enforced here by the producer-side obligation: a non-conformant sprint-state.yaml breaks the wave-handoff chain, losing pipeline state at wave boundaries); DI-023 (Wave/phase identity and next-wave story lists derive from real persisted substrate fields with authoritative ordering semantics — enforced here by the topo-sort-from-STORY-INDEX obligation: ordering derived from `depends_on:` real dependency edges, NOT from the `wave:` frontmatter field, which MAY be present as informational metadata but has no authoritative ordering semantics) |
 | Architecture Module | SS-05 (Pipeline Orchestration) — wave-scheduling skill producer |
 | ADR | ADR-026 §Decision 3 (wave-state.yaml derived from sprint-state.yaml; requires per-story format this BC mandates); ADR-026 §Decision 8 (EPIC-COMPLETE via `next_wave_stories: []`; arises from EC-005 empty `stories:` list on this BC) |
 | Stories | S-18.11 |
@@ -169,6 +182,7 @@ S-18.11 (sprint-state.yaml producer migration to per-story {id, status} format)
 
 | Version | Date | Author | Change |
 |---------|------|--------|--------|
+| 1.6 | 2026-08-08 | product-owner | PC5 and INV-3 corrected (F-S2107-P9-006): false existence claims "No `wave:` frontmatter field exists on individual story files" (PC5) and "No such field exists on story specs" (INV-3) replaced with prohibitions. Corpus evidence: 156 of 159 story files carry `wave:` frontmatter at 2026-08-08 (literal shell in PC5); S-21.12 carries `wave: 4` (re-anchored this burst). INV-3 renamed from "No phantom `wave:` field" to "`wave:` frontmatter MUST NOT be consulted for ordering"; body updated: field MAY be present as informational metadata, MUST NOT be used for ordering. PC5 amended to match: field MAY be present, producer MUST NOT consult it. Description corrected: "which does not exist (INV-3)" → "which MAY be present but MUST NOT be consulted for ordering (INV-3)". DI-023 traceability inline text updated to remove "phantom" characterization. Direction chosen: field is legitimate (156/159 corpus evidence is definitive), PC5/INV-3 were wrong; no story-file remediation required. Refs: F-S2107-P9-006. |
 | v1.5 | 2026-06-29 | state-manager | POL-14 lifecycle promotion: S-18.11 PR #340 squash-merged 531dacfb to develop 2026-06-29; lifecycle_status draft→active. No behavioral change. |
 | v1.4 | 2026-06-29 | product-owner | PC3 intra-partition ordering switched from partition-restricted edges (def a) to full-graph wave-depth (def b) per ADR-026 §Decision 3a v1.37 + human directive "full rigor, option b". Intra-partition sort key for both partitions is now (full-graph wave-depth ASC, story-ID lex ASC); full-graph wave-depth is computed over the FULL `depends_on` graph including cross-partition edges (depth = 1 for roots; 1 + max(depth(parents)) for all others). Cross-partition supersession-edge note updated: edge INCLUDED in depth computation (not excluded from topo-sort); terminal story still appears in Partition A before its superseded non-terminal dependency in Partition B (partition placement governed by terminal/non-terminal status). EC-010 detection logic unchanged (tolerate-superseded / abort-genuine-anomaly via `superseded_by:` presence); EC-010 wording reconciled to def-b phrasing — no residual "exclude from topo-sort" language; tolerate vs abort governed exclusively by `superseded_by:` presence. Test vector `topo-violation-supersession-tolerated` updated to reflect "supersession edge INCLUDED in depth computation." |
 | v1.3 | 2026-06-29 | product-owner | EC-010 narrowed to tolerate supersession edges (depended-on story carries `superseded_by:`) and hard-abort genuine anomalies; PC3 cross-partition supersession-edge note added (tolerated-by-supersession edges excluded from Partition-A intra-partition topo-sort, emit normally); +2 canonical test vectors (topo-violation-genuine-anomaly, topo-violation-supersession-tolerated); per ADR-026 §Decision 3a v1.36, human directive — S-3.04 stays partial pending post-E-18 ADR-015 revisit. |
