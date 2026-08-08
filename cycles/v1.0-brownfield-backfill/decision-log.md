@@ -15213,3 +15213,56 @@ D-962-PASS-9-RECORD-BURST
 ### Date
 
 2026-08-08
+
+---
+
+## D-963-BC-CORRECTION-BURST
+
+**Type:** measurement-correction burst (single-commit, TD-VSDD-053)
+
+**Context:** D-962 Commit B `c4e1e66d` was pushed with BC-5.39.010 v1.15 carrying `~110 additional BC-INDEX rows` runway figures derived from an unsound calculation. Performance-engineer measurement (team-lead relay, 2026-08-08) directly falsified the ~110 figure. D-963 records the correction, adds errata to BC-5.39.010, and codifies the causal chain and two new Drift Items.
+
+**(a) POLICY 16 GLOBAL-MAX GATE PASS — D-963 allocated.** Pre-burst shell gate (literal stdout captured 2026-08-08): `PASS: global max D-962 < D-9000 ceiling; Next allocation: D-963`. ALLOCATOR-CEILING GATE confirmed. Parent-commit: `710b12e7`.
+
+**(b) ~110 rows runway figure FALSIFIED by direct measurement.** Performance-engineer measurement (literal captured stdout, 2026-08-08; binary + WASM from `.worktrees/fuel-loud` `fbb9dcb6`, temp workspace `/tmp/fuel-measure-01/`; caveat: test-writer WASM `b0373eb2` 231,661 bytes is a different build — figures comparable in magnitude, not identical):
+
+```
+extra_rows_before   fuel_consumed   status
+                0       9,920,913   OK   ← adversary pass-9 baseline
+                1       9,936,674   OK
+                2       9,953,444   OK
+                3       9,970,304   OK
+                4       9,989,369   OK
+                5      10,000,000   TIMEOUT/fuel
+```
+
+**True runway: 4 rows safe, 5th exhausts for SS-05-sized entries (~486 bytes/row). ~17 rows for shorter entries (~140 bytes/row).** The `~110` figure overstates by ~22×. The `~16` figure cited by state-manager was coincidentally the right order of magnitude for ~140-byte rows via an unsound derivation (divided total fuel by total rows, which implicitly assumes the entire index is scanned — it is not). Neither estimate was correct; both are superseded by the measured value.
+
+**Early-return scope qualifier:** `extract_bc_index_version_state` early-returns at BC-5.39.010's position (row 921). Only rows 1–920 consume fuel on a write to this BC. New BCs appended after row 921 cost nothing for this hook. The runway figure (4–17 rows depending on entry size) applies only to BCs that land in positions 1–920.
+
+**(c) Linear, not O(n²) — ADR-035 §Decision 5 quadratic warning not observed for this plugin.** Regression over 24 measurement points (N=5..986 extra rows; R² = 0.998790): `fuel = 2,585,970 + 53.18 × var_bytes`. Quadratic coefficient 5.42×10⁻⁵; R² improvement +0.075% — negligible. ADR-035 §Decision 5's O(n²) warning is NOT observed for `validate-cross-site-correspondence`. Drift Item added: route to architect at next ADR-035 touch for correction.
+
+**(d) Silent-in-production exhaustion confirmed — worse than v1.15 acknowledged.** `plugin.timeout` IS written to the internal dispatcher log (`{"type":"plugin.timeout","cause":"fuel","elapsed_ms":1,"fuel_consumed":10000000}`). However, dispatcher exits 0 with empty stdout — output-identical to a clean scan. `block_intent=false exit_code=0`; stdout empty. A live writing agent receives no signal that validation was skipped. The bats margin gate (normative requirement, BC-5.39.010 v1.15) catches this when the suite is run; the live-operation gap is NOT covered by any currently-implemented gate. Drift Item added: this live-operation gap is distinct from the bats coverage and must be addressed in v1.16 + margin-gate implementation.
+
+**(e) Measurement provenance.** Binary + WASM from `.worktrees/fuel-loud` (`fbb9dcb6`), abandoned branch — artifact still valid for measurement purposes; no repo files modified. Temp workspace `/tmp/fuel-measure-01/`. Regression: N=5..986 extra rows, `fuel = 2,585,970 + 53.18 × var_bytes`, R² = 0.998790; marginal cost ~16,400 fuel per 486-byte SS-05 row; fixed cost 2,585,970 fuel. Test-writer WASM `b0373eb2` (231,661 bytes) is a DIFFERENT BUILD from the measured WASM — figures comparable in magnitude but not identical; production gate MUST use the same binary as deployment.
+
+**(f) Two compounding errors in ~110 derivation recorded.** Error 1: bytes-to-exhaustion applied against total index growth (1,985-row index) rather than the pre-BC-5.39.010 scan region (rows 1–920 only). Error 2: ~155 bytes/row (average across all 1,985 rows) used instead of ~486 bytes/row for SS-05 entries most likely to land before position 921. Combined effect: ~22× overestimate. The ~110 figure never reached the normative section of BC-5.39.010 without challenge — it entered via adversary-pass-9 which did not have the measurement data at time of authoring.
+
+**(g) BC-5.39.010 correction notice added inline; 4-INDEX UNCHANGED.** Erratum block inserted immediately before the normative fuel text (`on_error = "continue"` section). Changelog erratum row `1.15-erratum` added. Normative text not modified (product-owner owns BC content; v1.16 from product-owner pending). Input-hash updated to `2db1ebe`. 4-INDEX: BC v4.53 (UNCHANGED; BC-5.39.010 version string stays 1.15 — erratum is documentary, not a normative version bump) / VP v2.76 (UNCHANGED) / STORY v4.290 (UNCHANGED) / ARCH v3.47 (UNCHANGED). STATE.md v6.99→v7.00.
+
+### Participating agents
+
+- state-manager: D-963 codification; BC-5.39.010 erratum notice; burst-log D-963 (8 blocks); STATE.md v7.00 advance; 2 Drift Items added (ADR-035 quadratic/linear; silent-in-production live-operation gap); input-hash update (single-file)
+- (source): performance-engineer measurement relayed by team-lead (2026-08-08); no code modified
+
+### 4-INDEX
+
+BC-INDEX v4.53 (UNCHANGED) / VP-INDEX v2.76 (UNCHANGED) / STORY-INDEX v4.290 (UNCHANGED) / ARCH-INDEX v3.47 (UNCHANGED)
+
+### Phase
+
+D-963-BC-CORRECTION-BURST
+
+### Date
+
+2026-08-08

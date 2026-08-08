@@ -16,7 +16,7 @@ inputs:
   - .factory/cycles/v1.0-feature-engine-discipline-pass-1/adv-cycle-pass-29.md
   - .factory/cycles/v1.0-feature-engine-discipline-pass-1/adv-cycle-pass-30.md
   - .factory/cycles/v1.0-brownfield-backfill/S-21.07/adversary-pass-1.md
-input-hash: "316d4ed"
+input-hash: "2db1ebe"
 traces_to: .factory/cycles/v1.0-feature-engine-discipline-pass-1/decision-log.md
 extracted_from: null
 origin: brownfield
@@ -1200,6 +1200,48 @@ timeout_ms = 8000
 `on_error = "continue"`: fuel exhaustion or plugin crash is non-blocking. At current corpus scale,
 fuel exhaustion is **measured and imminent**, not hypothetical.
 
+> **⚠ ERRATUM (D-963, 2026-08-08): The `~110 rows` runway figure derived in v1.15 is FALSIFIED by
+> direct measurement.** Binary and WASM from `.worktrees/fuel-loud` (`fbb9dcb6`), temp workspace
+> `/tmp/fuel-measure-01/`; caveat — test-writer WASM at `b0373eb2` (231,661 bytes) is a different
+> build; figures comparable in magnitude, not identical. Literal captured stdout:
+>
+> ```
+> extra_rows_before   fuel_consumed   status
+>                 0       9,920,913   OK   ← adversary pass-9 baseline
+>                 1       9,936,674   OK
+>                 2       9,953,444   OK
+>                 3       9,970,304   OK
+>                 4       9,989,369   OK
+>                 5      10,000,000   TIMEOUT/fuel
+> ```
+>
+> **True runway: 4 rows safe, 5th exhausts — for SS-05-sized entries (~486 bytes/row, typical row
+> in the scan region). For shorter entries (~140 bytes/row), runway is ~17 rows.**
+>
+> **Early-return scope qualifier:** `extract_bc_index_version_state` early-returns at
+> BC-5.39.010's position (row 921). Only rows 1–920 are scanned on a write to this BC. New BCs
+> appended in sections beyond SS-05 §5.40 (rows > 921) cost nothing for this hook.
+>
+> **Two compounding errors in the ~110 derivation:** (1) bytes-to-exhaustion applied against total
+> index growth rather than the pre-BC-5.39.010 scan region (921 rows, not 1,985); (2) ~155
+> bytes/row (average across all 1,985 rows) used instead of ~486 bytes/row for SS-05 entries
+> most likely to land before position 921. The ~16-row figure was coincidentally right order of
+> magnitude for ~140-byte rows via an unsound derivation.
+>
+> **Linear, not O(n²):** Regression over 24 points (N=5..986): `fuel = 2,585,970 + 53.18 × var_bytes`,
+> R² = 0.998790. ADR-035 §Decision 5's quadratic warning is not observed for this plugin.
+> Architect correction pending at next ADR-035 touch (Drift Item added D-963).
+>
+> **Silent-in-production gap (confirmed, worse than stated in normative text below):**
+> `plugin.timeout` IS written to the dispatcher internal log. However, the dispatcher exits 0 with
+> empty stdout — identical to a clean scan. A live writing agent receives no signal that validation
+> was skipped. The bats margin gate catches this only when the bats suite is run; the live-operation
+> gap is not covered by any currently-implemented gate (Drift Item added D-963).
+>
+> **v1.16 from product-owner is pending** to integrate this measurement into the normative text,
+> correct all `~110` instances, and add the early-return scope qualifier. The normative text below
+> is **STALE** wherever `~110` appears.
+
 **Measured fuel consumption (F-S2107-P9-002; adversary-pass-9 at factory-artifacts `0a6c8fda`,
 against production-scale BC-INDEX fixture sha256-identical to live BC-INDEX.md at 576,396 bytes /
 1,985 rows; verbatim stdout in §SDK Grounding Evidence):** `fuel_consumed= 9920913` of 10,000,000
@@ -1575,6 +1617,7 @@ The adversary independently re-derived 76/61 at factory-artifacts `10914a73` usi
 
 | Version | Date | Description |
 |---------|------|-------------|
+| 1.15-erratum | 2026-08-08 | ERRATUM (D-963): `~110 rows` runway figure falsified by direct measurement. True: 4 rows safe, 5th exhausts for SS-05-sized (~486 bytes/row) entries; ~17 rows for shorter entries. `extract_bc_index_version_state` early-returns at row 921 — only rows 1–920 scanned; rows beyond cost nothing. Two compounding errors recorded (total-index vs scan-region; average vs SS-05 row size). Linear, not O(n²): R²=0.998790 (quadratic coefficient negligible). Silent-in-production: `plugin.timeout` logged internally but dispatcher exits 0/empty — live agents receive no signal. Correction notice inserted before normative fuel text. v1.16 from product-owner pending. (state-manager, D-963.) |
 | 1.15 | 2026-08-08 | §Gate Spec fuel-exhaustion section corrected (F-S2107-P9-002): false calibration claim "calibrated to bound reads inside the fuel budget" retracted — 1 MiB PC4 cap is ~76% above the ~594 KB exhaustion point; measured fuel 9,920,913/10,000,000 (99.21% consumed) at 576,396 bytes/1,985 rows; headroom 79,087 fuel (0.79%); exhaustion threshold 593,525–601,548 bytes (~110 additional BC-INDEX rows). Normative requirement added: bats gate MUST assert `fuel_consumed ≤ 6,000,000` (margin gate, fires on approach) AND fixture sha256/row-count drift gate (prevents stale snapshot). fuel_cap paragraph updated: evidentiary precondition now confirmed by 2026-08-08 measurement; prohibition retained per human ruling 2026-08-08 — operator chose margin-gate over cap increase, `fuel_cap` remains unauthorized. Operational consequence stated: exhaustion expected within ~110 rows of ordinary registration traffic, now surfaces loudly via margin gate, not silently. §SDK Grounding Evidence: fuel measurement subsection added. (product-owner.) |
 | 1.14 | 2026-08-07 | PC5 corpus figures corrected (three stale claims falsified by same burst's leg D: registered two BCs + escaped BC-4.13.001 annotation pipes before leg C's spec was re-measured): RowPresentNoVersion count 1,943/1,983 → 1,945/1,985 (structural invariant documented; verbatim stdout in §SDK Grounding Evidence). Old-algorithm non-conformance count corrected two-of-four (not three): BC-4.13.001 oldalg now equals first-of-last after pipe-escaping; BC-3.08.001 and BC-7.03.079 still differ. fields[5..].join("\|") reassembly arm adjudicated DEFENSIVE: zero live n>6 rows at 2026-08-07; step retained for future bare-pipe annotation rows; pinning test reported to test-writer. PC40 77→76 at two sites (ADR-037 §Context corrected in same burst; BC not swept per POLICY 5 v1.3.4 SIBLING-SWEEP); ADR-037 v1.2 version pins replaced with ADR-037 §Context anchor form per TD-VSDD-091. §SDK Grounding Evidence section added. Refs: F-S2107-P8-005, F-S2107-P8-010. (product-owner.) |
 | 1.13 | 2026-08-06 | PC5 escape-aware splitting paragraph corrected (ADR-038 §Decision 4 Change 1): "yields exactly 6" replaced with "yields 6 for most rows but MAY yield more for bare-`\|` annotation rows"; `fields[5..].join("\|")` reassembly step REQUIRED; corpus re-verified at 2026-08-06: 5-field 1943 and total 1983 confirmed unchanged from v1.8 measurement; 6-field figure refined to 39 six-field + 1 nine-field (BC-4.13.001) = 40 rows with n≥6. PC5 Version(v) bullet extraction algorithm replaced (ADR-038 §Decision 4 Change 2): rightmost-of-field[5] → first-token-of-last-chain-entry (join fields[5..] with `\|`, split on `\x00`, take last non-empty entry, extract first v-token); "The 6th field is the version-chain cell" removed (inaccurate for bare-pipe rows); rightmost-of-field[5] marked NON-CONFORMING with four-row empirical proof. PC6 Version(v) route replaced (ADR-038 §Decision 4 Change 3): same algorithm; "rightmost token is always the current" removed; rightmost-of-cell algorithm marked NON-CONFORMING. PC13c added (ADR-038 §Decision 4 Change 4): half-present case — exactly one of {B2, B3} present-and-differing, other absent → advisory + Continue per PC12 inclusive-or; MUST NOT block for (Some(b2), None) or (None, Some(b3)); live instances S-18.11/S-18.12. Gate Spec run_part_b_arm1 extended with 13c bullet and NON-CONFORMING note updated. Gate Spec run_part_a_arm1 pseudocode comment updated with algorithm reference. Architecture Anchor for extract_bc_index_version_state: Version(v) description updated with first-token-of-last-chain-entry algorithm and NON-CONFORMING note. EC-036 added (half-present advisory + Continue). Canonical test vector added (B Arm1 — half-present PC13c). Refs: F-S2107-P7-004, F-S2107-P7-017, F-S2107-P7-008, ADR-038. (product-owner; ADR-038 §Decision 4 routing.) PC13 Phase 2 algorithm replaced (ADR-038 §Decision 5 / §Decision 4 Change 5): reverse-field (rightmost-first) → BC-ID-anchored first-v-token (locate anchor field containing BC ID by word-boundary test identical to `line_contains_bc_id_at_boundary`; return FIRST `\bv([0-9]+\.[0-9]+)\b` token AFTER BC ID position in that field); return None if no field contains BC ID + subsequent v-token. Reverse-field algorithm NON-CONFORMING per ADR-038 §Decision 5: (a) S-15.17 BC-5.39.009 wrong answer — rightmost returns v1.3 from `POLICY 5 v1.3.6` annotation prose, correct is v1.9; (b) S-4.08 BC-9.01.002 cross-BC contamination — returns v1.1 from a field about BC-9.01.001. Corpus count updated: 30 rows (2026-08-04, stale) → 67 Phase 2 rows / 44 containing BC IDs (2026-08-06); same defect class as PC5 count corrected by ADR-038 §Decision 4 Change 1. Architecture Anchor for `extract_story_bc_version_citations` updated with BC-ID-anchored algorithm and NON-CONFORMING note. Gate Spec pseudocode comment updated. Phase 1 corpus date updated (2026-08-04 → 2026-08-06; count 58 confirmed unchanged per ADR-038 §Empirical Measurement v1.1). Refs: ADR-038 §Decision 5. (product-owner; ADR-038 §Decision 4 Change 5 routing.) |

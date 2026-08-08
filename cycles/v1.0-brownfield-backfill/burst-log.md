@@ -24098,3 +24098,98 @@ $ ls -1 .factory/stories/epics/E-*.md | wc -l
 
 **factory-artifacts commits (this burst — TD-VSDD-053 single-commit-per-burst):**
 - Commit B (this burst): `c4e1e66d` — `factory(D-962/B): D-962 pass-9 record burst — adversary-pass-9.md; INDEX.md pass-9 row; D-962 decision-log; 3 lessons; burst-log D-962 8-blocks; BC-INDEX v4.53; BC-5.39.010 v1.15; BC-5.41.004 v1.6; STORY-INDEX v4.290; E-22 epic v1.1; STATE.md v6.99`
+
+---
+
+## D-963-BC-CORRECTION-BURST
+
+### Block 1: Pre-burst context
+
+Pre-burst parent-commit (factory-artifacts): `710b12e7` — `factory(D-962/B-sha-patch): SHA-patch — burst-log Block 8 c4e1e66d resolved; STATE.md v6.99 trajectory-tail fixed`. Per D-419(b).
+
+**Dispatch context:** D-963 measurement-correction burst (state-manager; 2026-08-08). Triggered by performance-engineer measurement (team-lead relay 2026-08-08) that directly falsified BC-5.39.010 v1.15's `~110 rows` runway figure already committed in `c4e1e66d`. Not an adversary burst. Single-commit per TD-VSDD-053.
+
+**Product branch context:** no product branch changes this burst. Factory-artifacts only.
+
+### Block 2: Adversary verdict
+
+**Not an adversary burst.** D-963 is a measurement-correction burst triggered by direct performance measurement data relayed by the team-lead. No adversary review was dispatched this burst. Prior adversary-pass-9.md (NOT-CLEAN B0/H3/M3/L1/NIT1; reviewed HEAD `67ffbdcc`) remains the active adversary verdict. Pass-10 adversary dispatch is NEXT.
+
+**D-448(a) SOURCE-ATTESTATION GATE:** N/A — no adversary review file for this correction burst. Gate inapplicable; noted per D-963(a).
+
+### Block 3: Files Touched
+
+**Factory-artifacts files (new/modified this burst):**
+
+- `specs/behavioral-contracts/ss-05/BC-5.39.010.md` — MODIFIED (ERRATUM block inserted before normative fuel text; changelog `1.15-erratum` row added; input-hash updated `316d4ed` → `2db1ebe`)
+- `cycles/v1.0-brownfield-backfill/decision-log.md` — MODIFIED (D-963 block appended)
+- `cycles/v1.0-brownfield-backfill/burst-log.md` — MODIFIED (D-963 entry appended)
+- `STATE.md` — MODIFIED (v6.99→v7.00; 2 Drift Items added; D-963 decision row; Phase Progress row; Session Resume Checkpoint refresh)
+
+### Block 4: Codifications (D-NNN + Lessons)
+
+**Decision codified:**
+
+- **D-963** — D-963-BC-CORRECTION-BURST (7 sub-clauses a-g): (a) POLICY 16 GATE PASS; D-963 allocated; parent-commit `710b12e7`; (b) `~110` figure FALSIFIED — true 4 safe / 5th exhausts for SS-05-sized entries (~486 bytes/row); early-return at row 921; ~17 rows for shorter entries; (c) linear not O(n²); ADR-035 §Decision 5 quadratic not observed for this plugin; Drift Item added (route architect); (d) silent-in-production gap confirmed — `plugin.timeout` logged internally, dispatcher exits 0/empty; live-operation gap Drift Item; (e) measurement provenance: `.worktrees/fuel-loud` `fbb9dcb6`, `/tmp/fuel-measure-01/`, caveat on WASM build identity; (f) two compounding errors recorded; (g) BC-5.39.010 erratum notice added; normative text UNCHANGED; input-hash `2db1ebe`; v1.16 product-owner pending; 4-INDEX UNCHANGED; STATE.md v6.99→v7.00
+
+**Lessons appended:** none this burst (correction burst; no new process discoveries requiring lesson codification beyond what D-963 sub-clauses record)
+
+### Block 5: Dim-2 Attestation — Literal Shell Gates (D-449(a))
+
+**POLICY 16 GLOBAL-MAX GATE — post-D-963 allocation (literal shell stdout captured 2026-08-08):**
+
+```
+$ cd .factory && max_d=$({ grep -hE '^#{2,} D-[0-9]+' cycles/*/decision-log.md 2>/dev/null; grep -hE '^\| *D-[0-9]+' cycles/*/decision-log.md 2>/dev/null; } | grep -oE 'D-[0-9]+' | sed 's/D-//' | sort -n | tail -1); if [ -z "$max_d" ]; then printf 'FAIL: D-NNN ceiling gate: zero allocation records found\n'; exit 1; fi; [ "$max_d" -lt 9000 ] && printf 'PASS: global max D-%s < D-9000 ceiling; Next allocation: D-%s\n' "$max_d" "$((max_d+1))" || { printf 'FAIL: D-NNN allocation ceiling breach: max=D-%s\n' "$max_d"; exit 1; }
+PASS: global max D-962 < D-9000 ceiling; Next allocation: D-963
+```
+
+Note: gate run pre-D-963-append (before decision-log.md was updated); D-963 is now the allocated number.
+
+**D-448(a) SOURCE-ATTESTATION GATE:** N/A — correction burst, no adversary review file.
+
+**Input-hash update — BC-5.39.010.md single-file (literal stdout captured 2026-08-08):**
+
+```
+$ /Users/zious/.claude/plugins/cache/claude-mp/vsdd-factory/1.0.0-rc.23/bin/compute-input-hash \
+    specs/behavioral-contracts/ss-05/BC-5.39.010.md --update
+2db1ebe
+compute-input-hash: updated .../BC-5.39.010.md input-hash → 2db1ebe
+```
+
+**D-446(a) 8-BLOCK SELF-GATE — verifying this burst-log entry contains all 8 D-444(c) blocks:**
+
+```
+$ awk '/^## D-963-BC-CORRECTION-BURST/,0' .factory/cycles/v1.0-brownfield-backfill/burst-log.md | grep -c "^### Block [1-8]:"
+8
+```
+
+8 blocks confirmed. Gate PASS.
+
+### Block 6: Dim-5 — Convergence Attestation
+
+- **Streak:** 0/3 (UNCHANGED — D-963 is not an adversary pass)
+- **True adversary passes:** 8 (UNCHANGED)
+- **CLEAN verdicts:** 0 (UNCHANGED)
+- **Trajectory (full):** 47→18→25→25→24→20→16→8 (UNCHANGED)
+- **Trajectory-tail (LENGTH=4 per D-433(e)+D-439(c)):** →24→20→16→8 (UNCHANGED)
+- **This burst:** measurement-correction burst only; convergence state UNCHANGED
+- **Convergence status:** NOT CONVERGED — streak 0/3; 8 true adversary passes; 0 CLEAN verdicts; pass-10 adversary NEXT
+
+### Block 7: Dim-6 + Dim-7 — Non-Fabrication + Cross-reference
+
+**Dim-6 — Non-fabrication attestation:** POLICY 16 gate stdout captured from literal shell invocation (2026-08-08; pre-D-963-append). Input-hash update stdout captured from literal shell invocation (2026-08-08). D-963 sub-clause (b) measurement table relayed verbatim from team-lead performance-engineer message (2026-08-08). No fabricated SHAs, finding descriptions, or measurement values. All SHAs (`710b12e7`, `c4e1e66d`, `67ffbdcc`) cited from git log verified at burst time.
+
+**Dim-7 — Cross-reference:**
+- BC-5.39.010 ERRATUM inserted (v1.15 normative text STALE; v1.16 product-owner pending); input-hash `2db1ebe`
+- D-963(b): `~110` falsified; 4 safe / 5th exhausts (SS-05-sized ~486 bytes/row); early-return row 921; rows beyond position 921 cost nothing
+- D-963(c): ADR-035 §Decision 5 quadratic not observed; Drift Item → architect routing
+- D-963(d): live-operation silent exhaustion gap confirmed; `plugin.timeout` exits 0/empty; bats-only margin gate insufficient for live writes; Drift Item added
+- 4-INDEX UNCHANGED: BC v4.53 / VP v2.76 / STORY v4.290 / ARCH v3.47
+- Parent-commit: `710b12e7` (D-962/B-sha-patch)
+
+### Block 8: Closes + factory-artifacts commits
+
+**Closes (this D-963 correction burst):** No finding closures. Correction burst addresses measurement falsification only.
+
+**factory-artifacts commits (this burst — TD-VSDD-053 single-commit-per-burst):**
+- Commit B (this burst): `<SHA-PATCH>` — `factory(D-963/B): D-963 BC-correction burst — BC-5.39.010 erratum (~110 falsified; 4-5 rows SS-05); decision-log D-963; burst-log D-963 8-blocks; STATE.md v7.00; 2 Drift Items`
