@@ -24251,23 +24251,27 @@ Pre-burst parent-commit (factory-artifacts): `1659cf08` — `state(D-963/sha-pat
 
 ### Block 5: Dim-2 Attestation — Literal Shell Gates (D-449(a))
 
-**POLICY 16 GLOBAL-MAX GATE — pre-D-964-allocation (literal shell stdout captured 2026-08-08):**
+**POLICY 16 GLOBAL-MAX GATE / ALLOCATOR-CEILING GATE — post-burst confirmation (ADR-041 §Decision 3 canonical predicate; literal shell stdout captured 2026-08-08):**
+
+> **Correction note (follow-up Dim-2-evidence commit):** Original Dim-2 used anchored heading+table-cell predicate but with `D-964` hardcoded in the printf — making the command non-reproducible post-allocation (now outputs "Next allocation: D-964" where D-964 is also the newly allocated max, same as `max_d`). Additionally, the SendMessage confirmation paraphrase used the pre-ADR-041 unanchored form (`grep -oE 'D-[0-9]+'` scanning prose), which latches `D-99999` sentinel and returns FAIL when reproduced. D-449(a) command-reproducibility defect. Replaced with ADR-041 §Decision 3 canonical predicate; re-run post-allocation.
 
 ```
-$ cd /Users/zious/Documents/GITHUB/vsdd-factory && max_d=$({ grep -hE '^#{2,} D-[0-9]+' .factory/cycles/*/decision-log.md 2>/dev/null; grep -hE '^[|] *D-[0-9]+' .factory/cycles/*/decision-log.md 2>/dev/null; } | grep -oE 'D-[0-9]+' | sed 's/D-//' | sort -n | tail -1); if [ -z "$max_d" ]; then printf 'FAIL: D-NNN ceiling gate: zero allocation records found — corpus scan failure; gate fails closed\n'; exit 1; fi; [ "$max_d" -lt 9000 ] && printf 'PASS: global max D-%s < D-9000 ceiling; Next allocation: D-964\n' "$max_d" || { printf 'FAIL: D-NNN allocation ceiling breach: max=D-%s\n' "$max_d"; exit 1; }
-PASS: global max D-963 < D-9000 ceiling; Next allocation: D-964
+$ cd /Users/zious/Documents/GITHUB/vsdd-factory && max_d=$({ grep -hE '^#{2,} D-[0-9]+' .factory/cycles/*/decision-log.md 2>/dev/null; grep -hE '^[|] *D-[0-9]+' .factory/cycles/*/decision-log.md 2>/dev/null; } | grep -oE 'D-[0-9]+' | sed 's/D-//' | sort -n | tail -1) && if [ -z "$max_d" ]; then printf 'FAIL: D-NNN ceiling gate: corpus scan found zero allocated D-NNN entries across all structural forms — decision-log path missing or predicate broken; gate fails closed\n'; exit 1; fi && [ "$max_d" -lt 9000 ] && printf 'PASS: global max D-%s < D-9000 ceiling (forms: h2 ^#{2,}, h3 ^#{2,}, table-cell ^[|])\n' "$max_d" || { printf 'FAIL: D-NNN allocation ceiling breach: max=D-%s exceeds D-8999 maximum allocatable\n' "$max_d"; exit 1; }
+PASS: global max D-964 < D-9000 ceiling (forms: h2 ^#{2,}, h3 ^#{2,}, table-cell ^[|])
 ```
 
-Gate PASS. D-964 allocated.
+Gate PASS. D-964 (allocated this burst) is within D-8999 ceiling. Pre-allocation state was D-963 < D-9000; post-allocation confirmation D-964 < D-9000.
 
-**ALLOCATOR-CEILING GATE — fuel-exhaustion events + distinct plugins (literal shell stdout captured 2026-08-08):**
+**FUEL-EXHAUSTION CENSUS — D-964(c) platform scope documentation (literal shell stdout captured 2026-08-08):**
+
+> **Correction note (follow-up Dim-2-evidence commit):** Original Dim-2 mislabeled this block "ALLOCATOR-CEILING GATE". The ALLOCATOR-CEILING gate (ADR-041 §Decision 2-3) is the D-NNN max < D-9000 check above. This block documents the fuel-exhaustion event count for D-964(c) scope purposes — it is a diagnostic census, not an allocation-blocking gate. Count updated from 1138 to 1226 (live metric; grew during this burst; per team-lead instruction: timestamp all fuel census figures).
 
 ```
-$ cd /Users/zious/Documents/GITHUB/vsdd-factory && fuel_count=$(grep '"type":"plugin.timeout"' .factory/logs/dispatcher-internal-2026-08-08.jsonl 2>/dev/null | grep -c '"cause":"fuel"'); distinct_count=$(grep '"type":"plugin.timeout"' .factory/logs/dispatcher-internal-2026-08-08.jsonl 2>/dev/null | grep '"cause":"fuel"' | grep -o '"plugin_name":"[^"]*"' | sort -u | wc -l | tr -d ' '); printf 'ALLOCATOR-CEILING GATE: fuel-exhaustion events=%s; distinct plugins=%s\n' "$fuel_count" "$distinct_count"
-ALLOCATOR-CEILING GATE: fuel-exhaustion events=1138; distinct plugins=35
+$ cd /Users/zious/Documents/GITHUB/vsdd-factory && fuel_count=$(grep '"type":"plugin.timeout"' .factory/logs/dispatcher-internal-2026-08-08.jsonl 2>/dev/null | grep -c '"cause":"fuel"'); distinct_count=$(grep '"type":"plugin.timeout"' .factory/logs/dispatcher-internal-2026-08-08.jsonl 2>/dev/null | grep '"cause":"fuel"' | grep -o '"plugin_name":"[^"]*"' | sort -u | wc -l | tr -d ' '); printf 'FUEL-EXHAUSTION CENSUS (2026-08-08 snapshot): fuel-exhaustion events=%s; distinct plugins=%s\n' "$fuel_count" "$distinct_count"
+FUEL-EXHAUSTION CENSUS (2026-08-08 snapshot): fuel-exhaustion events=1226; distinct plugins=35
 ```
 
-1138 fuel-exhaustion events (architect snapshot earlier today: 839; log grew through the day). 35 distinct plugins matches team-lead stated count. Gate confirms platform-wide exhaustion scope. NOTE: gate is informational / scope confirmation for D-964(c) — not an allocation-blocking gate. Primary allocation gate above (POLICY 16) PASSES.
+1226 fuel-exhaustion events as of this follow-up burst snapshot (2026-08-08); up from 1138 in D-964 main burst. 35 distinct plugins unchanged. Live metric — grows with each large-file write. Scope documentation for D-964(c); not an allocation-blocking gate.
 
 **D-448(a) SOURCE-ATTESTATION GATE:** N/A — closure burst, no adversary review file. Noted in Block 2.
 
@@ -24292,7 +24296,7 @@ $ awk '/^## D-964-PASS-9-CLOSURE-FUEL-REMEDIATION-BURST/,0' .factory/cycles/v1.0
 
 ### Block 7: Dim-6 + Dim-7 — Non-Fabrication + Cross-reference
 
-**Dim-6 — Non-fabrication attestation:** POLICY 16 gate stdout captured from literal shell invocation (2026-08-08; pre-D-964-append to decision-log). ALLOCATOR-CEILING gate stdout captured from literal shell invocation (2026-08-08). Both gate commands and outputs are verbatim from this session. Parent commit `1659cf08` verified by `git -C .factory log --oneline -1` at burst-start. 4-INDEX versions verified from live frontmatter: BC v4.55 (`grep -E "^version:" .factory/specs/behavioral-contracts/BC-INDEX.md`), VP v2.76 (unchanged), STORY v4.291 (`grep -E "^version:" .factory/stories/STORY-INDEX.md`), ARCH v3.51 (`grep -E "^version:" .factory/specs/architecture/ARCH-INDEX.md`). `feature/S-21.07` @ `5370db80` per team-lead message (LOCAL ONLY; 3 commits ahead origin `37022ecc`); `fix/fuel-cap-raise-20m` @ `7cbb9232` per team-lead message (2 commits off develop). Fuel count 1138 and distinct count 35 are literal shell output from `dispatcher-internal-2026-08-08.jsonl`. Lessons titles and key text transcribed verbatim from authored lessons.md entries. D-964(g) orchestrator error attributed to orchestrator per team-lead instruction; faithful recording.
+**Dim-6 — Non-fabrication attestation:** POLICY 16 / ALLOCATOR-CEILING gate stdout captured from ADR-041 §Decision 3 canonical predicate (2026-08-08; post-allocation run in follow-up Dim-2-evidence commit; original D-964 main burst command had hardcoded `D-964` in printf — see Block 5 correction note). Fuel-exhaustion census stdout captured from literal shell invocation (2026-08-08; count updated to 1226 in follow-up — live metric per team-lead instruction). Parent commit `1659cf08` verified by `git -C .factory log --oneline -1` at burst-start. 4-INDEX versions verified from live frontmatter: BC v4.55 (`grep -E "^version:" .factory/specs/behavioral-contracts/BC-INDEX.md`), VP v2.76 (unchanged), STORY v4.291 (`grep -E "^version:" .factory/stories/STORY-INDEX.md`), ARCH v3.51 (`grep -E "^version:" .factory/specs/architecture/ARCH-INDEX.md`). `feature/S-21.07` @ `5370db80` per team-lead message (LOCAL ONLY; 3 commits ahead origin `37022ecc`); `fix/fuel-cap-raise-20m` @ `7cbb9232` per team-lead message (2 commits off develop). Fuel count 1226 and distinct count 35 are literal shell output from `dispatcher-internal-2026-08-08.jsonl` (follow-up snapshot). Lessons titles and key text transcribed verbatim from authored lessons.md entries. D-964(g) orchestrator error attributed to orchestrator per team-lead instruction; faithful recording.
 
 **Dim-7 — Cross-reference:**
 - F-S2107-P9-001: CLOSED D-962 — test-writer `38c70f9e` (bypass mutants corrected; `index_ver_matches_frontmatter` extracted)
@@ -24320,3 +24324,5 @@ $ awk '/^## D-964-PASS-9-CLOSURE-FUEL-REMEDIATION-BURST/,0' .factory/cycles/v1.0
 
 **factory-artifacts commits (this burst — TD-VSDD-053 single-commit-per-burst):**
 - Commit B (this burst): `d8334693` — `state(D-964): pass-9 closure + fuel-remediation recording burst`
+- SHA-patch (this burst): `5accfc59` — `state(D-964/SHA-patch): Active Branches + burst-log Block 8 + SIZE BUDGET d8334693`
+- Dim-2 evidence correction: `[SHA pending — follow-up commit in progress]` — `state(D-964/dim2-correction): fix POLICY 16 predicate reproducibility + ALLOCATOR-CEILING gate mislabel`
