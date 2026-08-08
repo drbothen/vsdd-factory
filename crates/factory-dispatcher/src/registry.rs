@@ -184,7 +184,9 @@ impl Default for RegistryDefaults {
     fn default() -> Self {
         Self {
             timeout_ms: 5_000,
-            fuel_cap: 10_000_000,
+            // ADR-042 §Decision 1: raised 10M → 20M (measurement-validated).
+            // Mirrors InvokeLimits::default().fuel_cap; both must be kept in sync.
+            fuel_cap: 20_000_000,
             on_error: OnError::Continue,
             priority: 500,
         }
@@ -567,7 +569,7 @@ extra = { key = "value" }
     fn defaults_applied_when_missing() {
         let reg = Registry::parse_str(minimal_toml()).unwrap();
         assert_eq!(reg.defaults.timeout_ms, 5_000);
-        assert_eq!(reg.defaults.fuel_cap, 10_000_000);
+        assert_eq!(reg.defaults.fuel_cap, 20_000_000);
         assert_eq!(reg.defaults.priority, 500);
         assert_eq!(reg.defaults.on_error, OnError::Continue);
         assert_eq!(reg.hooks[0].priority(&reg.defaults), 500);

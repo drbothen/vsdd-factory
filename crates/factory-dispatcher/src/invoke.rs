@@ -268,7 +268,11 @@ impl Default for InvokeLimits {
     fn default() -> Self {
         Self {
             timeout_ms: 5_000,
-            fuel_cap: 10_000_000,
+            // ADR-042 §Decision 1: raised 10M → 20M (measurement-validated).
+            // Worst-case legacy-bash-adapter payload consumed 10,406,058 fuel
+            // (ARCH-INDEX + 50 KB last_assistant_message, 377,109 payload bytes),
+            // exhausting the former 10M cap. 20M leaves ~9.6M headroom (92% margin).
+            fuel_cap: 20_000_000,
         }
     }
 }
@@ -1055,6 +1059,81 @@ mod tests {
 
     fn bare_ctx() -> HostContext {
         HostContext::new("plugin", "0.0.1", "sess", "trace")
+    }
+
+    // ADR-042 §Decision 1: global fuel cap raised 10M → 20M (measurement-validated).
+    // 838 fuel-exhaustion events across 35 plugins confirmed by perf-engineer;
+    // worst-case payload (ARCH-INDEX + 50 KB assistant message) measured 10,406,058 fuel.
+    #[test]
+    fn invoke_limits_default_fuel_cap_is_20m() {
+        assert_eq!(InvokeLimits::default().fuel_cap, 20_000_000);
+    }
+
+    // Demonstrates that the 10M→20M raise resolves the class of exhaustions seen in
+    // production. The WAT loop runs 1,200,000 iterations at ~9 WASM instructions each
+    // (≈10.8M fuel) — above the former 10M cap, below the new 20M cap.
+    // Calibrated against the perf-engineer model:
+    //   fuel = 29,452 + 27.514 × payload_bytes (R²=0.9999999).
+    // At 377,109 bytes (ARCH-INDEX + 50 KB assistant msg): 10,406,058 fuel.
+    #[test]
+    fn fuel_workload_exhausts_10m_completes_at_20m() {
+        let engine = build_engine().unwrap();
+        // Arithmetic loop: 1,200,000 iterations x ~9 instructions = ~10.8M fuel.
+        let module = compile(
+            &engine,
+            r#"
+            (module
+              (memory (export "memory") 1)
+              (func (export "_start")
+                (local $i i32)
+                (local.set $i (i32.const 0))
+                (block $done
+                  (loop $l
+                    (local.set $i (i32.add (local.get $i) (i32.const 1)))
+                    (br_if $done (i32.ge_u (local.get $i) (i32.const 1200000)))
+                    (br $l)))))
+            "#,
+        );
+
+        // At the former 10M cap: fuel exhaustion.
+        let res_10m = invoke_plugin(
+            &engine,
+            &module,
+            bare_ctx(),
+            b"",
+            InvokeLimits {
+                timeout_ms: 30_000,
+                fuel_cap: 10_000_000,
+            },
+        )
+        .unwrap();
+        assert!(
+            matches!(
+                res_10m,
+                PluginResult::Timeout {
+                    cause: TimeoutCause::Fuel,
+                    ..
+                }
+            ),
+            "expected Timeout{{Fuel}} at 10M cap, got {res_10m:?}"
+        );
+
+        // At the new 20M cap: completes successfully.
+        let res_20m = invoke_plugin(
+            &engine,
+            &module,
+            bare_ctx(),
+            b"",
+            InvokeLimits {
+                timeout_ms: 30_000,
+                fuel_cap: 20_000_000,
+            },
+        )
+        .unwrap();
+        assert!(
+            matches!(res_20m, PluginResult::Ok { exit_code: 0, .. }),
+            "expected Ok(exit_code=0) at 20M cap, got {res_20m:?}"
+        );
     }
 
     #[test]
