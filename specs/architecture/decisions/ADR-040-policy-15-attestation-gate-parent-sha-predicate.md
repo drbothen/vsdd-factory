@@ -2,7 +2,7 @@
 document_type: architecture-decision-record
 level: L3
 adr_id: ADR-040
-version: "1.0"
+version: "1.1"
 title: "ADR-040: POLICY 15 ATTESTATION-LOCATION GATE — parent-SHA predicate replaces self-referential HEAD-SHA (resolves F-S2107-P8-003 logical impossibility)"
 status: proposed
 date: 2026-08-07
@@ -16,14 +16,21 @@ supersedes: "POLICY 15 ATTESTATION-LOCATION GATE clause codified at D-912 (D-912
 superseded_by: null
 traces_to: .factory/specs/architecture/ARCH-INDEX.md
 last_amended: |-
-  2026-08-07 (v1.0) — Initial ruling (architect; F-S2107-P8-003 impossibility diagnosis;
-  S-21.07 pass-7 fix wave design): self-referential SHA predicate in POLICY 15
+  2026-08-08 (v1.1) — AMENDED (architect): §Decision 6 added — detection-scope
+  correction (obligation was commit-class-conditional; detection clause was
+  unconditional — contradiction; resolved by propagating applicability condition into
+  detection) + self-match prevention (line-anchored predicate ^### .*) + optional
+  stability-record heading form; §Proposed policies.yaml Replacement Text updated to
+  v1.4.22. Triggered by F-S2107-P9-003 close revealing the scope mismatch in practice.
+  [Prior: 2026-08-07 (v1.0) — Initial ruling (architect; F-S2107-P8-003 impossibility
+  diagnosis; S-21.07 pass-7 fix wave design): self-referential SHA predicate in POLICY 15
   ATTESTATION-LOCATION GATE (D-912) is logically unsatisfiable; parent-SHA predicate
   preserves all three of D-912's original goals while removing the impossibility.
   policies.yaml NOT yet edited — human ratification required per §Status.
-  ADR-040 PROPOSED 2026-08-07.
+  ADR-040 PROPOSED 2026-08-07.]
 modified:
   - "2026-08-07 (v1.0)"
+  - "2026-08-08 (v1.1)"
 ---
 
 # ADR-040: POLICY 15 ATTESTATION-LOCATION GATE — parent-SHA predicate replaces self-referential HEAD-SHA
@@ -106,8 +113,9 @@ this attestation", is not achievable. This ADR preserves all three goals by repl
 
 ## Decision
 
-This ADR makes five rulings covering the predicate replacement, heading format, TD-VSDD-053
-interaction, mechanization verdict, and sibling-sweep finding.
+This ADR makes six rulings covering the predicate replacement, heading format, TD-VSDD-053
+interaction, mechanization verdict, sibling-sweep finding, and (v1.1) detection-scope
+correction plus self-match prevention.
 
 ---
 
@@ -251,6 +259,153 @@ SHA or references state that cannot be known at authoring time.
 ATTESTATION-LOCATION GATE is the only predicate in the registry that contains this defect.
 No further sibling sweep is required in this burst.
 
+### Decision 6 — AMENDED (v1.1): detection-scope correction and self-match prevention
+
+Two defects in the §Decision 2 detection procedure, both surfaced during F-S2107-P9-003 close:
+
+**Defect 1 — Scope mismatch (obligation vs detection).** The obligation is commit-class-conditional:
+"a fix wave that **adds or strengthens any bats assertion site** MUST NOT be pushed until..."
+A docs-only or state-bookkeeping commit is exempted by the obligation. The §Decision 2 detection
+clause is unconditional: "adversary verifies that... a matching section... exists in
+red-gate-log.md; if absent, flag as POLICY 15 HIGH." The detection fires even when the
+obligation does not apply. This produced a false positive: test-writer commit `5370db80`
+(a red-gate-log.md stability entry with no assertion-site files changed) was flagged, because
+the detection clause checked for an attestation heading that the obligation never required.
+
+**Defect 2 — Self-match vulnerability.** The §Decision 4 predicate
+`grep -c "assertion-site attestation ($PARENT)"` is not line-anchored. If a prior attestation
+heading string is quoted inside a prose paragraph in `red-gate-log.md` (e.g., in a changelog
+or "see-also" reference), that prose line produces a second grep hit, yielding count = 2. The
+count ≠ 1 check then incorrectly blocks a valid push. Observed during F-S2107-P9-003: quoting
+a prior attestation heading in an inline reference caused count = 2 at a HEAD whose attestation
+was correctly present.
+
+#### Ruling 6(a) — Propagate the applicability condition into detection
+
+The gate (both the §Decision 4 mechanized hook and the adversary manual check) MUST first
+determine whether the reviewed commit touched assertion-site files. Literal shell:
+
+```bash
+git diff --name-only "${H}^1" "${H}" -- '*.rs' '*.bats' 2>/dev/null
+```
+
+- **Empty output:** commit did not touch assertion-site files → gate is INAPPLICABLE →
+  no POLICY 15 flag is raised. Adversary records:
+  `POLICY 15: no assertion-site files changed at <H> — ATTESTATION-LOCATION GATE inapplicable`
+- **Non-empty output:** at least one *.rs or *.bats file changed → proceed to the attestation
+  check.
+
+#### Ruling 6(b) — Line-anchor the grep predicate
+
+Replace the §Decision 2 literal shell check:
+
+```bash
+# Before (§Decision 2 / §Decision 4):
+grep -c "assertion-site attestation ($PARENT)"
+
+# After (§Decision 6):
+grep -cE "^### .*assertion-site attestation \($PARENT\)"
+```
+
+The `^### ` anchor restricts matches to lines beginning with `### ` (markdown H3 heading
+syntax). Prose inside section bodies — paragraphs, code spans, inline references — does not
+begin with `^### ` and cannot trigger a false count. This closes the count = 2 self-match
+defect without altering the gate's semantics for correctly authored attestation headings.
+
+**Full replacement literal shell gate** (supersedes §Decision 4 script; incorporates Rulings
+6(a) and 6(b)):
+
+```bash
+#!/usr/bin/env bash
+# POLICY 15 ATTESTATION-LOCATION GATE — ADR-040 §Decision 6 (conditional + line-anchored)
+set -euo pipefail
+FACTORY_ROOT="${1:-.factory}"
+RED_GATE_LOG=$(find "$FACTORY_ROOT" -name "red-gate-log.md" | head -1)
+if [ -z "$RED_GATE_LOG" ]; then
+  echo "SKIP: no red-gate-log.md found — non-S-21.07 push"
+  exit 0
+fi
+
+H=$(git -C "$FACTORY_ROOT" rev-parse HEAD)
+PARENT=$(git -C "$FACTORY_ROOT" rev-parse HEAD^1)
+
+# Step 1: conditional — skip if no assertion-site files changed
+CHANGED_FILES=$(git -C "$FACTORY_ROOT" diff --name-only "${PARENT}" "${H}" \
+  -- '*.rs' '*.bats' 2>/dev/null | wc -l | tr -d ' ')
+if [ "$CHANGED_FILES" -eq 0 ]; then
+  printf 'PASS: POLICY 15 — no assertion-site files changed, gate inapplicable\n'
+  exit 0
+fi
+
+# Step 2: verify attestation section (line-anchored predicate)
+COUNT=$(grep -cE "^### .*assertion-site attestation \\(${PARENT}\\)" \
+  "$RED_GATE_LOG" 2>/dev/null || echo 0)
+if [ "$COUNT" -ne 1 ]; then
+  printf 'FAIL: POLICY 15 HIGH — assertion-site files changed (%s files)\n' "$CHANGED_FILES"
+  printf '  expected: grep -cE "^### .*attestation (%s...)" = 1\n' "${PARENT:0:12}"
+  printf '  actual:   %s\n' "$COUNT"
+  exit 2
+fi
+printf 'PASS: attestation for parent %s found (count=%s, assertion-site files changed: %s)\n' \
+  "${PARENT:0:12}" "$COUNT" "$CHANGED_FILES"
+exit 0
+```
+
+Per D-449(a) / META-LEVEL-24, this gate MUST be invoked as literal shell with captured stdout
+at Commit-E. Pseudocode or narrative attestation is forbidden.
+
+#### Ruling 6(c) — Optional stability-record heading form
+
+Authors MAY write a voluntary stability record in `red-gate-log.md` for commits where no
+assertion-site files were changed:
+
+```
+### Pass-N assertion-site stability-record (<PARENT-SHA>)
+```
+
+This form:
+- Does NOT contain the word "attestation" and is NOT matched by `^### .*attestation \(P\)`
+- Does NOT satisfy the ATTESTATION-LOCATION GATE (gate is inapplicable for no-change commits
+  under Ruling 6(a) anyway)
+- MUST NOT be written in place of a real attestation on commits that DO touch assertion-site
+  files — count = 0 → gate fires correctly → push blocked
+- Purpose: voluntary drift tracking only; records that the assertion name-set was inspected
+  and confirmed stable at this commit without changes; informational, aids post-hoc audit
+
+**POLICY 13 BOUNDARY-POLARITY — excluded region analysis for narrowed detection scope:**
+
+Decision 6(a) narrows the gate's domain from "every commit" to "commits touching *.rs or
+*.bats files." POLICY 13 BOUNDARY-POLARITY requires excluded-region analysis:
+
+| Dimension | Analysis |
+|-----------|----------|
+| **False-positive class** | Any commit whose diff touches only non-*.rs / non-*.bats files: markdown docs, TOML, YAML, shell scripts, state-manager artifacts (*.md), `.factory/` bookkeeping. These were always outside the obligation's scope; the unconditional detection clause was a false-positive generator for them. |
+| **Can harmful content occupy excluded region?** | No. Bats assertion sites are authored in *.bats files; Rust assertion sites are in *.rs files. Any commit that introduces or strengthens an assertion site must modify at least one *.bats or *.rs file, producing non-empty output from the diff check and falling through to the full attestation verification. An assertion-site change cannot be concealed in the excluded file types. |
+| **Mutant** | A commit that adds `assert_eq!(result, expected_name_set)` inside a `#[test]` block in a `*.rs` file: `git diff --name-only H^1 H -- '*.rs' '*.bats'` produces non-empty output → gate active → if no `### Pass-N assertion-site attestation (<PARENT>)` heading present → count = 0 → FAIL: POLICY 15 HIGH. Narrowed scope does not exempt this mutant. |
+
+**Why Option A (conditional detection) over Option B (unconditional + distinct heading forms):**
+
+Option B was considered: keep detection unconditional; require every commit to include either
+an `attestation` entry or a `stability-record` entry; update the predicate to match both
+heading forms. Rejected for three reasons:
+
+1. **Semantic conflation.** An attestation section ("assertion sites changed and reviewed")
+   and a stability-record section ("assertion sites not changed, optionally inspected") carry
+   different semantic weight. A reviewer scanning the log for genuine assertion-site change
+   events cannot quickly filter away stability-record entries. Log signal-to-noise degrades
+   as every bookkeeping commit adds a stability-record.
+2. **Predicate complexity.** Matching two heading forms requires regex alternation, adding
+   edge-case mismatch risk. Option A uses a single anchored string.
+3. **Obligation alignment.** The obligation was written with a conditional for good reason.
+   Making every commit gate-obligated inverts the obligation's own scoping. Option A restores
+   the semantic alignment between obligation and detection that D-912 intended but the
+   unconditional detection clause violated.
+
+This is a scope-precision fix, not a repeal. The gate correctly caught two genuine missing
+attestations during F-S2107-P9-003 (commits that did touch *.rs / *.bats files). Those
+commits are still subject to the gate under Decision 6(a). Only commits that never touched
+assertion-site files are exempted — which was always the obligation's intent.
+
 ---
 
 ## Rationale
@@ -338,35 +493,42 @@ provided verbatim in §Proposed `policies.yaml` Replacement Text below.
 
 The following is the exact string to replace the current ATTESTATION-LOCATION GATE bullet
 in POLICY 15's `verification_steps` array. It replaces the entire bullet starting with
-`"ATTESTATION-LOCATION GATE (v1.4.11;...)`.
+`"ATTESTATION-LOCATION GATE (v1.4.20;...)` (the v1.4.20 text applied from ADR-040 v1.0;
+v1.4.21 applied ADR-041 POLICY 16 ceiling gate).
 
-**Version after replacement: v1.4.20.**
+**Version after replacement: v1.4.22.** (v1.4.20 = ADR-040 §Decision 2 parent-SHA form;
+v1.4.21 = ADR-041 POLICY 16; v1.4.22 = ADR-040 §Decision 6 conditional detection +
+line-anchored predicate.)
 
 ```
-- "ATTESTATION-LOCATION GATE (v1.4.20; ADR-040 §Decision 2; supersedes D-912 HEAD-SHA
-  form; F-S2107-P8-003 resolution): a fix wave that adds or strengthens any bats
-  assertion site MUST NOT be pushed until the matching red-gate-log.md attestation
-  section EXISTS at that commit. Literal shell check: `PARENT=$(git -C
-  <factory-worktree-root> rev-parse HEAD^1) && grep -c \"assertion-site attestation
-  ($PARENT)\" <red-gate-log-path>` → 1 (where HEAD^1 is the parent commit of the
-  commit being pushed, known at authoring time before the commit is finalized). If the
-  count is 0, the push is BLOCKED until the state-manager appends the attestation section
-  and bundles it in the same commit per TD-VSDD-053. The attestation section heading MUST
-  be `### <Pass-N> assertion-site attestation (<PARENT-SHA>)` (where PARENT-SHA =
-  git rev-parse HEAD^1 in the factory-artifacts worktree) so the check is SHA-bound and
-  cannot be satisfied by a prior pass's section — parent SHAs advance monotonically in
-  Git history and each fix burst's parent commit is distinct from all prior fix bursts'
-  parent commits. Detection: adversary verifies that for the reviewed_head SHA H, the
-  parent SHA P = git rev-parse H^1 is computed, and a matching `### *attestation (P)`
-  section (P full 40-char or any unambiguous prefix) exists in red-gate-log.md; if
-  absent, flag as POLICY 15 HIGH (attestation-location violation). Root cause of D-912
-  impossibility (F-S2107-P8-003): HEAD SHA = hash(tree_including_attestation_section) —
-  circular and computationally infeasible to satisfy without brute-force SHA mining;
-  PARENT SHA = hash(prior-commit) — not circular, available before the current commit is
-  finalized. Same-commit bundling (TD-VSDD-053) is retained: assertion-site changes and
-  attestation section land in one commit. The gate MUST be invoked as a literal shell
-  command with captured stdout per D-449(a)/META-LEVEL-24; narrative attestation is
-  forbidden."
+- "ATTESTATION-LOCATION GATE (v1.4.22; ADR-040 §Decision 6; amends v1.4.20 detection
+  clause; F-S2107-P9-003 scope-mismatch + self-match resolution): a fix wave that adds
+  or strengthens any bats assertion site MUST NOT be pushed until the matching
+  red-gate-log.md attestation section EXISTS at that commit. Pre-check (commit-class
+  conditional): `git diff --name-only HEAD^1 HEAD -- '*.rs' '*.bats'`; if EMPTY, gate is
+  INAPPLICABLE for this commit — no attestation required, no flag raised. If NON-EMPTY
+  (assertion-site files changed), literal shell check: `PARENT=$(git -C
+  <factory-worktree-root> rev-parse HEAD^1) && grep -cE '^### .*assertion-site
+  attestation \\($PARENT\\)' <red-gate-log-path>` → 1 (line-anchored to prevent false
+  count from prose that quotes a heading string; PARENT = parent commit SHA, not HEAD
+  itself, removing the D-912 circular dependency). If the count is 0 or ≠ 1, the push is
+  BLOCKED until the state-manager appends the attestation section and bundles it in the
+  same commit per TD-VSDD-053. The attestation section heading MUST be `### <Pass-N>
+  assertion-site attestation (<PARENT-SHA>)` (where PARENT-SHA = git rev-parse HEAD^1 in
+  the factory-artifacts worktree) so the check is SHA-bound and cannot be satisfied by a
+  prior pass's section — parent SHAs advance monotonically in Git history. A voluntary
+  `### <Pass-N> assertion-site stability-record (<PARENT-SHA>)` heading form is permitted
+  for no-change commits (informational only; does NOT contain 'attestation'; does NOT
+  satisfy the gate; MUST NOT substitute for a real attestation on commits with
+  assertion-site changes). Detection: adversary (a) runs `git diff --name-only H^1 H --
+  '*.rs' '*.bats'`; if empty, record 'POLICY 15 INAPPLICABLE at <H>' and skip; (b) if
+  non-empty, compute parent P = git rev-parse H^1 and run `grep -cE '^### .*assertion-site
+  attestation \\(P\\)'` against red-gate-log.md; if count ≠ 1, flag POLICY 15 HIGH. Root
+  cause of D-912 impossibility (F-S2107-P8-003): HEAD SHA is circular; PARENT SHA is
+  available before commit finalization. Same-commit bundling (TD-VSDD-053) retained:
+  assertion-site changes and attestation section land in one commit. The gate MUST be
+  invoked as literal shell with captured stdout per D-449(a)/META-LEVEL-24; narrative
+  attestation is forbidden."
 ```
 
 ---
@@ -411,13 +573,21 @@ natively, is globally unique within the repository, and requires no external ser
 
 ## Status
 
-PROPOSED 2026-08-07; ADR-040 v1.0.
+PROPOSED 2026-08-07; ADR-040 v1.0. AMENDED 2026-08-08; ADR-040 v1.1 (architect):
+§Decision 6 added — detection-scope correction (obligation was commit-class-conditional;
+detection was unconditional — contradiction resolved by propagating applicability condition
+into detection) + self-match prevention (line-anchored predicate `^### .*`) + optional
+stability-record heading form; §Proposed `policies.yaml` Replacement Text updated to v1.4.22.
 
 **HUMAN RATIFICATION REQUIRED** before `policies.yaml` is edited. The exact replacement
-text is in §Proposed `policies.yaml` Replacement Text. No `policies.yaml` edit has been
-made in this burst.
+text is in §Proposed `policies.yaml` Replacement Text (v1.4.22). No `policies.yaml` edit has
+been made in this burst.
 
-Adjudicates F-S2107-P8-003 (HIGH [process-gap]) from adversarial pass-7 of S-21.07.
+Adjudicates:
+- F-S2107-P8-003 (HIGH [process-gap]) from adversarial pass-7 of S-21.07 — POLICY 15
+  ATTESTATION-LOCATION GATE HEAD-SHA predicate is logically unsatisfiable (§Decisions 1–5).
+- F-S2107-P9-003 (detection-scope defect) — obligation vs detection contradiction and
+  self-match vulnerability (§Decision 6).
 
 Supersedes the POLICY 15 ATTESTATION-LOCATION GATE clause added at D-912. D-912's
 POLICY 13 extension (mutant-derived-gate alternation mandate) is unaffected.
@@ -429,10 +599,13 @@ section are the only artifacts requiring amendment before state-manager codifies
 
 Implementation routing (after human ratification):
 - **state-manager:** Edit `policies.yaml` POLICY 15 ATTESTATION-LOCATION GATE bullet per
-  ADR-040 §Decision 2 and the exact text in §Proposed `policies.yaml` Replacement Text;
-  bump `policies.yaml` version v1.4.19 → v1.4.20; advance ARCH-INDEX frontmatter
-  `total_adrs 39 → 40` and version row.
+  ADR-040 §Decision 6 and the exact text in §Proposed `policies.yaml` Replacement Text;
+  bump `policies.yaml` version v1.4.21 → v1.4.22; advance ARCH-INDEX frontmatter if
+  needed (total_adrs unchanged — ADR-040 v1.1 is an amendment, not a new ADR).
 - **state-manager:** In subsequent fix waves with assertion-site changes, include
   `### Pass-N assertion-site attestation (<PARENT-SHA>)` where PARENT-SHA is obtained via
-  `git -C <factory-worktree-root> rev-parse HEAD^1` before staging; invoke gate at
-  Commit-E with captured stdout per D-449(a).
+  `git -C <factory-worktree-root> rev-parse HEAD^1` before staging; invoke the §Decision 6
+  gate script at Commit-E with captured stdout per D-449(a).
+- **state-manager:** For fix waves without assertion-site changes, no attestation is
+  required; optional `### Pass-N assertion-site stability-record (<PARENT-SHA>)` may be
+  included at author's discretion per Ruling 6(c).

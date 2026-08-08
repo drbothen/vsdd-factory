@@ -183,3 +183,4 @@
 {"type":"hook.block","hook":"validate-table-cell-count","reason":"table_cell_count","ts":"2026-08-07T17:01:23-0500","ts_epoch":1786140084,"schema_version":1}
 {"type":"hook.block","hook":"validate-count-propagation","reason":"count_propagation_drift","ts":"2026-08-07T17:01:24-0500","ts_epoch":1786140084,"schema_version":1}
 {"type":"hook.block","hook":"destructive-command-guard","reason":"sot_delete","ts":"2026-08-07T17:07:06-0500","ts_epoch":1786140426,"schema_version":1}
+{"type":"hook.block","hook":"destructive-command-guard","reason":"sot_delete","ts":"2026-08-07T18:17:33-0500","ts_epoch":1786144653,"schema_version":1}

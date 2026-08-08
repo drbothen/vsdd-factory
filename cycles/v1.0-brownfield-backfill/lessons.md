@@ -10489,3 +10489,45 @@ D-442(e) recorded the same class of defect for lessons.md (≤3,500 soft / ≤4,
 **Closes:** D-962
 
 **Cites:** D-962 (codified this burst); F-S2107-P9-001..004; L-BB-gate-narrower-than-its-claim; D-449(a). `[process-gap; attestation-layer; predicate; migration; verbatim; mutant; margin; D-962; codified]`
+
+## L-BB-two-measurements-different-scenarios [process-gap] [D-964]
+
+**Category:** process-gap
+
+**Title:** When Two Measurements of "the Same" Quantity Disagree, First Hypothesis Is Different Scenarios — Not That One Is Falsified
+
+**Lesson:** D-963 evidence (orchestrator error recorded at D-964(g)): perf-fuel-1 measured ~541 fuel/row for the append-to-end scenario; perf-fuel-2 measured ~15,761 fuel/row for the insert-before-row-921 scenario. The orchestrator declared one "falsified" and diagnosed "two compounding errors / ~22× overestimate." Both measurements were correct — they measured structurally different scenarios. The ~29× per-row difference is entirely explained by placement: `extract_bc_index_version_state` early-returns at row 921, so rows appended after position 921 contribute only ~5.9% of their bytes to the scanned prefix, while rows inserted before position 921 are fully scanned. The error propagated into D-963 ERRATUM and BC v1.16 before correction at BC v1.17. **Cure:** before declaring a measurement falsified, identify the independent variable each measurement held fixed. The diagnostic question is not "which number is wrong?" but "which scenario did each measurement operationalize?" A disagreement between two measurements of the same phenomenon is most often a sign that they are measuring different phenomena — and finding that difference is itself a discovery (placement-sensitivity in this case). Declaring one falsified destroys half the information. **Rule:** when two credible measurements disagree, produce a minimal two-row table mapping (measurement source → scenario held fixed → result); if the scenarios differ, both results should be preserved and their ratio explained causally. Only after confirming identical scenarios should one measurement be declared erroneous.
+
+**Anchors:** D-964; D-964(g); D-963; BC-5.39.010; perf-fuel-1; perf-fuel-2; L-BB-attestation-layer-migration.
+
+**Closes:** D-964
+
+**Cites:** D-964 (codified this burst); D-964(g); D-963; BC-5.39.010. `[process-gap; measurement; scenario; falsification; orchestrator-error; placement-sensitivity; D-964; codified]`
+
+## L-BB-orchestrator-stale-read-redispatch [process-gap] [D-964]
+
+**Category:** process-gap
+
+**Title:** Orchestrator Must Re-Verify State Immediately Before Asserting Non-Completion — Not Against a Snapshot That Changed Under It
+
+**Lesson:** D-964 session evidence: three times during this session the orchestrator re-dispatched work that had already been completed, because it verified against a state snapshot that had changed while the session was in progress. Instances: (1) E-22 anchor at line 252→278 (content shifted under a previously-captured line number); (2) BC v1.16→v1.17 (product-owner authored a correction after the orchestrator had captured the v1.16 state); (3) a third re-dispatch of already-delivered specialist work. In each case the orchestrator's implicit assertion "this work is not done" was based on stale information. **Cure:** when preparing to ping a specialist or assert non-completion, re-verify the state immediately before sending — do not rely on a version of the state captured earlier in the session. Prefer asking the agent directly to confirm completion ("report your current HEAD and last commit") over asserting non-completion from an internal snapshot. A one-line git log command costs less than an unnecessary dispatch; a false non-completion assertion costs a specialist dispatch plus context pollution. **Rule:** any orchestrator re-dispatch message that begins "the work is not yet done" MUST include a literal git log / grep / cat output captured within the current turn confirming the state on which the assertion is based.
+
+**Anchors:** D-964; D-964 session; L-BB-orchestrator-branch-base-unverified; POLICY 22.
+
+**Closes:** D-964
+
+**Cites:** D-964 (codified this burst); L-BB-orchestrator-branch-base-unverified; POLICY 22. `[process-gap; orchestrator; stale-read; re-dispatch; verification; D-964; codified]`
+
+## L-BB-fuel-ceiling-masqueraded-as-hook-flake [process-gap] [D-964]
+
+**Category:** process-gap
+
+**Title:** A Permanent Resource-Policy Failure Wearing Transient-Timeout Clothes — Silent Exhaustion as Infrastructure Noise
+
+**Lesson:** D-964 session evidence (D-964(c)): 1138 fuel-exhaustion events across 35 distinct plugins were reported to all agents in the session as `fail-closed: plugin timed out` — a message that is output-identical to a transient infrastructure timeout. Every agent in the session correctly verified that their writes had landed on disk (PostToolUse cannot revert writes) and proceeded. They were correct to proceed — but every agent misdiagnosed a permanent, deterministic resource-policy failure as transient infrastructure flakiness. The root cause was a global fuel ceiling (10M) set too low for the adapter's payload scan of large `.factory/` files; a ceiling, by definition, fires on every invocation above the threshold — not intermittently. The entire hook validation chain was non-functional for the duration. `7cbb9232` distinguishes the `block_reason` (fuel-exhaustion vs epoch-timeout), but the fix is release-gated. **Generalization:** a loud failure with an ambiguous cause is only marginally better than a silent one. When a failure signal is output-identical to a transient condition but the underlying cause is structural (always fires on inputs above threshold X), any agent trained to "retry on transient failure" will suppress the signal permanently. **Rule:** post-commit hook failures that reference timing should be diagnosed with two hypotheses: (H1) transient infrastructure flakiness (non-deterministic); (H2) deterministic resource-policy breach (fires on all inputs above threshold). H2 is confirmed if the failure fires on every write to a certain class of files. When H2 is confirmed, the correct response is not to proceed and note the flake — it is to escalate for resource-policy review before the next write.
+
+**Anchors:** D-964; D-964(c); D-964(h); ADR-042; fix/fuel-cap-raise-20m; 7cbb9232; POLICY 16.
+
+**Closes:** D-964
+
+**Cites:** D-964 (codified this burst); D-964(c); D-964(h); ADR-042. `[process-gap; fuel; hook-flake; resource-policy; exhaustion; deterministic; D-964; codified]`

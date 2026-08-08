@@ -2,7 +2,7 @@
 document_type: architecture-decision-record
 level: L3
 adr_id: ADR-035
-version: "1.0"
+version: "1.1"
 title: "ADR-035: Cross-site correspondence validation — three-tier architecture, fuel error taxonomy, and wasmtime version target"
 status: proposed
 date: 2026-07-30
@@ -17,15 +17,17 @@ related_adrs:
   - ADR-034 (CI gate product-branch operand isolation — §Decision 5 Permitted/Forbidden pattern for cross-branch reads governs Tier 3 placement; this ADR establishes the architecture that §Decision 5's "Spec-validation: Permitted" class belongs to)
   - ADR-027 (factory-artifacts worktree path discipline — canonical .factory/ mount convention referenced by Tier 3)
   - ADR-003 (WASI preview-1 — WASM plugin host function surface referenced by Tier 1/2A)
+  - ADR-042 (fuel budget raise to 20M and loud exhaustion signaling — discharges D-945; raises InvokeLimits::default() fuel_cap 10M→20M; corrects §Decision 5 O(n) confirmation and ~100KB threshold)
 anchors:
   - SS-01
   - SS-05
 subsystems_affected:
   - SS-01
   - SS-05
-last_amended: "2026-07-30 (v1.0) — initial ruling (architect): three-tier cross-site correspondence validation architecture; fuel error taxonomy; wasmtime version target. Addresses 19 production failures across passes 28-30."
+last_amended: "2026-08-08 (v1.1) — AMENDED (architect, ADR-042): §Decision 5 fuel error taxonomy corrected — O(n) linear scan confirmed (R²=0.998790); ~100KB threshold corrected to ~136KB (10M cap) / ~327KB (20M cap); fuel budget raised to 20M per ADR-042 §Decision 1; loud exhaustion signaling mandated per ADR-042 §Decision 3; D-945 discharged. [Prior: 2026-07-30 (v1.0) — initial ruling (architect): three-tier cross-site correspondence validation architecture; fuel error taxonomy; wasmtime version target. Addresses 19 production failures across passes 28-30.]"
 modified:
   - "2026-07-30 (v1.0)"
+  - "2026-08-08 (v1.1)"
 ---
 
 # ADR-035: Cross-site correspondence validation — three-tier architecture, fuel error taxonomy, and wasmtime version target
@@ -183,6 +185,35 @@ fuel without source changes. Route to implementer.
 within the 10M fuel budget. No registry change needed for this new hook; the `fuel_cap` field
 exposure is for future tuning and the existing `on_error = "continue"` handles the fuel-
 exhaustion case correctly.
+
+---
+
+**AMENDED 2026-08-08 (v1.1 — architect, ADR-042):**
+
+Three corrections apply to §Decision 5, based on measured benchmarks from S-21.07 pass-9 (performance-engineer, 2026-08-08):
+
+1. **O(n) confirmed for `validate-cross-site-correspondence`, O(n²) concern resolved.**
+   The O(n²) concern in §Context was about directory enumeration via `fd_readdir` (a rejected
+   alternative). The implemented `read_file` linear scan is confirmed **O(n) in input bytes**:
+   regression `fuel = 2,585,970 + 53.18 × var_bytes`, R²=0.998790 over 24 measured points.
+   Quadratic coefficient 5.42×10⁻⁵ adds only +0.075% R² — fuel cost is linear, not superlinear.
+
+2. **~100KB threshold corrected to ~136KB (10M cap) / ~327KB (20M cap).**
+   At 53.18 fuel/byte marginal, the breakeven (budget consumed at cap): `(cap − 2,585,970) / 53.18`.
+   At 10M: ≈139,388 bytes ≈ 136KB. At 20M: ≈326,782 bytes ≈ 327KB.
+   The measured exhaustion threshold for `validate-cross-site-correspondence` was ~415KB prefix
+   (BC-5.39.010 at BC-INDEX line 1464, ~415,278 byte prefix). The ~100KB guidance understated
+   the risk zone by ~4×. The new ~136KB / ~327KB figures are derived from the measured model.
+
+3. **Fuel budget raised to 20M; exhaustion signaling mandated; D-945 discharged.**
+   `InvokeLimits::default()` `fuel_cap` has been raised from 10,000,000 to 20,000,000 (ADR-042
+   §Decision 1). The "no registry change needed for this new hook" note is superseded: a
+   per-plugin `fuel_cap` SHOULD be set once ADR-039 Phase 1 (registry schema extension) ships
+   (ADR-042 §Decision 2). Loud exhaustion signaling via dispatcher stderr summary line +
+   `advisories[]` payload is mandated (ADR-042 §Decision 3). Standing drift item [D-945]
+   "ADR-035 §Decision 5 fuel budget advisory — OPEN 2026-07-30 — 'May need revision after
+   S-21.07 benchmarks'" is **DISCHARGED** by ADR-042. See ADR-042 §Decision 4 for full
+   corrections and derivation evidence.
 
 **Preferred remedy order (per prior art):** (1) host-side input cap (`max_bytes` in
 `read_file`) — already implemented in BC-5.39.010; (2) epoch deadline as outer bound —

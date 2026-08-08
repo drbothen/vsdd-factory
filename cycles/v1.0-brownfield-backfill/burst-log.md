@@ -24193,3 +24193,130 @@ $ awk '/^## D-963-BC-CORRECTION-BURST/,0' .factory/cycles/v1.0-brownfield-backfi
 
 **factory-artifacts commits (this burst — TD-VSDD-053 single-commit-per-burst):**
 - Commit B (this burst): `e4bc6683` — `factory(D-963/B): D-963 BC-correction burst — BC-5.39.010 erratum (~110 falsified; 4-5 rows SS-05); decision-log D-963; burst-log D-963 8-blocks; STATE.md v7.00; 2 Drift Items`
+
+---
+
+## D-964-PASS-9-CLOSURE-FUEL-REMEDIATION-BURST
+
+### Block 1: Pre-burst context
+
+Pre-burst parent-commit (factory-artifacts): `1659cf08` — `state(D-963/sha-patch): Active Branches factory-artifacts → e4bc6683; burst-log Block 8 SHA patched`. Per D-419(b).
+
+**Dispatch context:** D-964 pass-9 closure + fuel-remediation burst (state-manager; 2026-08-08). All specialists have finished. Finalizing: (1) P9-002 closed (ADR-042 10M→20M; impl `5370db80`; S-21.13 deferral anchor); (2) P9-003 closed (ADR-040 §Decision 6; `5370db80` 3 attestation sections); (3) D-963 ORCHESTRATOR ERROR correction (both measurements valid — different scenarios); (4) platform-wide fuel exhaustion scope documented; (5) S-21.13 registered; (6) D-945 discharged. Single-commit per TD-VSDD-053.
+
+**Product branch context:** `feature/S-21.07` @ `5370db80` (3 commits ahead of origin `37022ecc`; LOCAL ONLY, UNPUSHED). `fix/fuel-cap-raise-20m` @ `7cbb9232` (2 commits; LOCAL ONLY, off develop). No pushes this burst.
+
+### Block 2: Adversary Verdict (D-448(a))
+
+**Not an adversary burst.** D-964 is a pass-9 closure + fuel-remediation burst — all specialist work already committed by prior agents. No `vsdd-factory:adversary` dispatched this burst. Prior adversary-pass-9.md (NOT-CLEAN B0/H3/M3/L1/NIT1; reviewed HEAD `67ffbdcc`) remains the active adversary verdict. Pass-10 adversary dispatch is NEXT.
+
+**D-448(a) SOURCE-ATTESTATION GATE:** N/A — no adversary review file for this closure burst. Gate inapplicable; noted per D-964(a). All 8 pass-9 findings are now CLOSED (P9-002/P9-003 closed this burst; P9-001/004/005/006/007/008 closed at D-962).
+
+### Block 3: Files Touched
+
+**Factory-artifacts files (new/modified this burst):**
+
+- `specs/architecture/ARCH-INDEX.md` — MODIFIED (v3.47→v3.51; ADR-042 row inserted; ADR-035 v1.0→v1.1 amended; ADR-040 v1.1; ADR-038 pipe-fix)
+- `specs/architecture/decisions/ADR-035-cross-site-correspondence-validation-three-tier-architecture.md` — MODIFIED (v1.0→v1.1; §Decision 5 O(n) confirmed; ~100KB figure corrected to ~136KB/~327KB; 20M cap context)
+- `specs/architecture/decisions/ADR-040-policy-15-attestation-gate-parent-sha-predicate.md` — MODIFIED (v1.0→v1.1; §Decision 6 added — conditional pre-check + line-anchored predicate + optional stability-record heading; policies.yaml replacement text → v1.4.22 PROPOSED)
+- `specs/architecture/decisions/ADR-042-validate-cross-site-correspondence-fuel-budget-raise-and-loud-exhaustion-signaling.md` — NEW (v1.2; fuel cap 10M→20M; adapter-class model; platform-wide scope; §Decision 3 3 classes; §Decision 5 deferral)
+- `specs/behavioral-contracts/BC-INDEX.md` — MODIFIED (v4.53→v4.55; BC-5.39.010 erratum-note row; ??? product-owner details)
+- `specs/behavioral-contracts/ss-05/BC-5.39.010.md` — MODIFIED (v1.15-erratum→v1.17; D-963 ORCHESTRATOR ERROR corrected — append vs insert-before scenarios differentiated; ~110 figure restored as valid for append; ~5 rows for insert-before; perf-fuel-2 measurement integrated)
+- `stories/STORY-INDEX.md` — MODIFIED (v4.290→v4.291; S-21.13 registered W7; E-21 story_count 11→12; 83→96 pts; DAG extended to W7)
+- `stories/epics/E-21-factory-state-data-loss-hardening.md` — MODIFIED (v1.9→v1.10; S-21.13 row added W7)
+- `stories/S-21.13-read-file-range-targeted-bc-index-row-lookup.md` — NEW (v1.0 draft; E-21 W7; 13 pts; depends_on S-21.10/S-21.11; input-hash eeca152)
+- `cycles/v1.0-brownfield-backfill/decision-log.md` — MODIFIED (D-964 block appended)
+- `cycles/v1.0-brownfield-backfill/burst-log.md` — MODIFIED (D-964 entry appended)
+- `cycles/v1.0-brownfield-backfill/lessons.md` — MODIFIED (3 D-964 lessons appended)
+- `cycles/v1.0-brownfield-backfill/INDEX.md` — MODIFIED (pass-9 row Notes updated; Convergence Status advanced)
+- `STATE.md` — MODIFIED (v7.00→v7.01; D-945 DISCHARGED; P9-002/P9-003 Drift Items closed; D-964 decision row; Active Branches updated; Session Resume Checkpoint refresh)
+- `logs/dispatcher-internal-2026-08-07.jsonl` — MODIFIED (harness log; appended entries)
+- `logs/events-2026-08-07.jsonl` — MODIFIED (harness events; appended entries)
+- `logs/dispatcher-internal-2026-08-08.jsonl` — NEW (today's dispatcher log; 1138 fuel-exhaustion events recorded)
+- `logs/events-2026-08-08.jsonl` — NEW (today's events log)
+- `regression-state.json` — MODIFIED (harness state)
+- `sidecar-learning.md` — MODIFIED (harness sidecar)
+
+### Block 4: Codifications (D-NNN + Lessons)
+
+**Decision codified:**
+
+- **D-964** — D-964-PASS-9-CLOSURE-FUEL-REMEDIATION-BURST (8 sub-clauses a-h): (a) POLICY 16 GATE PASS; D-964 allocated; parent-commit `1659cf08`; pass-9 8/8 CLOSED; streak 0/3 UNCHANGED; (b) ADR-042 v1.2 ratified — 10M→20M; 20M ≈ 92% margin; adapter-class linear model; ADR-035 v1.1; S-21.13 deferral anchor; (c) platform-wide 1138 fuel-exhaustion events 35 plugins; legacy-bash-adapter.wasm 78 registry refs; hook chain non-functional on large-file writes; (d) ADR-040 v1.1 §Decision 6; scope mismatch adjudicated; policies.yaml v1.4.22 PROPOSED awaits human ratification; (e) S-21.13 registered E-21 W7 13pt input-hash eeca152; E-21 v1.10 12 stories 96 pts; (f) D-945 DISCHARGED by ADR-042 §Decision 4; (g) ORCHESTRATOR ERROR — D-963 "falsified" wrong; two valid measurements two scenarios; ~29× per-row by placement; attributed to orchestrator; (h) fix/fuel-cap-raise-20m 7cbb9232 NOT YET EFFECTIVE — release-gated
+
+**Lessons appended:**
+
+- `L-BB-two-measurements-different-scenarios` [D-964] — when two measurements disagree, first hypothesis is different scenarios not falsification; produce two-row table (source → scenario → result); ~29× per-row difference entirely by placement in this case
+- `L-BB-orchestrator-stale-read-redispatch` [D-964] — re-verify state immediately before asserting non-completion; three stale-read re-dispatches this session; one git log command before sending prevents context pollution
+- `L-BB-fuel-ceiling-masqueraded-as-hook-flake` [D-964] — permanent resource-policy failure wearing transient-timeout clothes; 1138 events all deterministic; `7cbb9232` distinguishes cause; H2 (resource-policy breach) confirmed by always-fires-on-class-above-threshold pattern
+
+### Block 5: Dim-2 Attestation — Literal Shell Gates (D-449(a))
+
+**POLICY 16 GLOBAL-MAX GATE — pre-D-964-allocation (literal shell stdout captured 2026-08-08):**
+
+```
+$ cd /Users/zious/Documents/GITHUB/vsdd-factory && max_d=$({ grep -hE '^#{2,} D-[0-9]+' .factory/cycles/*/decision-log.md 2>/dev/null; grep -hE '^[|] *D-[0-9]+' .factory/cycles/*/decision-log.md 2>/dev/null; } | grep -oE 'D-[0-9]+' | sed 's/D-//' | sort -n | tail -1); if [ -z "$max_d" ]; then printf 'FAIL: D-NNN ceiling gate: zero allocation records found — corpus scan failure; gate fails closed\n'; exit 1; fi; [ "$max_d" -lt 9000 ] && printf 'PASS: global max D-%s < D-9000 ceiling; Next allocation: D-964\n' "$max_d" || { printf 'FAIL: D-NNN allocation ceiling breach: max=D-%s\n' "$max_d"; exit 1; }
+PASS: global max D-963 < D-9000 ceiling; Next allocation: D-964
+```
+
+Gate PASS. D-964 allocated.
+
+**ALLOCATOR-CEILING GATE — fuel-exhaustion events + distinct plugins (literal shell stdout captured 2026-08-08):**
+
+```
+$ cd /Users/zious/Documents/GITHUB/vsdd-factory && fuel_count=$(grep '"type":"plugin.timeout"' .factory/logs/dispatcher-internal-2026-08-08.jsonl 2>/dev/null | grep -c '"cause":"fuel"'); distinct_count=$(grep '"type":"plugin.timeout"' .factory/logs/dispatcher-internal-2026-08-08.jsonl 2>/dev/null | grep '"cause":"fuel"' | grep -o '"plugin_name":"[^"]*"' | sort -u | wc -l | tr -d ' '); printf 'ALLOCATOR-CEILING GATE: fuel-exhaustion events=%s; distinct plugins=%s\n' "$fuel_count" "$distinct_count"
+ALLOCATOR-CEILING GATE: fuel-exhaustion events=1138; distinct plugins=35
+```
+
+1138 fuel-exhaustion events (architect snapshot earlier today: 839; log grew through the day). 35 distinct plugins matches team-lead stated count. Gate confirms platform-wide exhaustion scope. NOTE: gate is informational / scope confirmation for D-964(c) — not an allocation-blocking gate. Primary allocation gate above (POLICY 16) PASSES.
+
+**D-448(a) SOURCE-ATTESTATION GATE:** N/A — closure burst, no adversary review file. Noted in Block 2.
+
+**D-446(a) 8-BLOCK SELF-GATE — verifying this burst-log entry contains all 8 D-444(c) blocks (run after write, before commit):**
+
+```
+$ awk '/^## D-964-PASS-9-CLOSURE-FUEL-REMEDIATION-BURST/,0' .factory/cycles/v1.0-brownfield-backfill/burst-log.md | grep -c "^### Block [1-8]:"
+8
+```
+
+8 blocks confirmed. Gate PASS.
+
+### Block 6: Dim-5 — Convergence Attestation
+
+- **Streak:** 0/3 (UNCHANGED — D-964 is a closure burst, not an adversary pass)
+- **True adversary passes:** 8 (UNCHANGED)
+- **CLEAN verdicts:** 0 (UNCHANGED)
+- **Trajectory (full):** 47→18→25→25→24→20→16→8 (UNCHANGED)
+- **Trajectory-tail (LENGTH=4 per D-433(e)+D-439(c)):** →24→20→16→8 (UNCHANGED)
+- **This burst:** pass-9 closure + fuel-remediation burst; P9-002 CLOSED (ADR-042 + impl); P9-003 CLOSED (ADR-040 §Decision 6 + impl); all 8 pass-9 findings now CLOSED; convergence state UNCHANGED (not an adversary pass)
+- **Convergence status:** NOT CONVERGED — streak 0/3; 8 true adversary passes; 0 CLEAN verdicts; pass-10 adversary NEXT
+
+### Block 7: Dim-6 + Dim-7 — Non-Fabrication + Cross-reference
+
+**Dim-6 — Non-fabrication attestation:** POLICY 16 gate stdout captured from literal shell invocation (2026-08-08; pre-D-964-append to decision-log). ALLOCATOR-CEILING gate stdout captured from literal shell invocation (2026-08-08). Both gate commands and outputs are verbatim from this session. Parent commit `1659cf08` verified by `git -C .factory log --oneline -1` at burst-start. 4-INDEX versions verified from live frontmatter: BC v4.55 (`grep -E "^version:" .factory/specs/behavioral-contracts/BC-INDEX.md`), VP v2.76 (unchanged), STORY v4.291 (`grep -E "^version:" .factory/stories/STORY-INDEX.md`), ARCH v3.51 (`grep -E "^version:" .factory/specs/architecture/ARCH-INDEX.md`). `feature/S-21.07` @ `5370db80` per team-lead message (LOCAL ONLY; 3 commits ahead origin `37022ecc`); `fix/fuel-cap-raise-20m` @ `7cbb9232` per team-lead message (2 commits off develop). Fuel count 1138 and distinct count 35 are literal shell output from `dispatcher-internal-2026-08-08.jsonl`. Lessons titles and key text transcribed verbatim from authored lessons.md entries. D-964(g) orchestrator error attributed to orchestrator per team-lead instruction; faithful recording.
+
+**Dim-7 — Cross-reference:**
+- F-S2107-P9-001: CLOSED D-962 — test-writer `38c70f9e` (bypass mutants corrected; `index_ver_matches_frontmatter` extracted)
+- F-S2107-P9-002: CLOSED D-964 — ADR-042 10M→20M fuel cap; S-21.07 gate impl `5370db80`; S-21.13 W7 deferral anchor
+- F-S2107-P9-003: CLOSED D-964 — ADR-040 §Decision 6; 3 attestation sections added at `5370db80` on feature/S-21.07
+- F-S2107-P9-004: CLOSED D-962 — state-manager; D-961 burst-log Dim-2 relabelled accurate
+- F-S2107-P9-005: CLOSED D-962 — story-writer; E-22 epic v1.1 dissolved
+- F-S2107-P9-006: CLOSED D-962 — product-owner; BC-5.41.004 v1.6
+- F-S2107-P9-007: CLOSED D-962 — state-manager; epic count 20→22
+- F-S2107-P9-008: CLOSED D-962 — implementer `9afc3226`; duplicate doc-comment removed
+- D-945 DISCHARGED: ADR-042 §Decision 4 discharges fuel budget advisory; STATE.md Drift Items updated
+- D-964(g) ORCHESTRATOR ERROR: D-963 "falsified" diagnosis corrected; both measurements valid; BC v1.17 corrects
+- 4-INDEX: BC v4.55 / VP v2.76 (UNCHANGED) / STORY v4.291 / ARCH v3.51
+- policies.yaml v1.4.22 PROPOSED: awaits human ratification; do NOT apply yet
+- fix/fuel-cap-raise-20m `7cbb9232` NOT YET EFFECTIVE: release-gated; 1138-events/day continue until release
+
+### Block 8: Closes + factory-artifacts commits
+
+**Closes (this D-964 closure burst):**
+
+- F-S2107-P9-002: CLOSED D-964 — ADR-042 v1.2 fuel cap 10M→20M ratified; S-21.07 gate impl `5370db80`; S-21.13 as anchor for §Decision 5 deferral (human-directed; all CLAUDE.md Rule 3 conditions satisfied)
+- F-S2107-P9-003: CLOSED D-964 — ADR-040 §Decision 6 adjudicates scope mismatch; 3 attestation sections added to red-gate-log.md on feature/S-21.07 @ `5370db80`
+- D-945 Drift Item: DISCHARGED by ADR-042 §Decision 4
+- D-964(g) ORCHESTRATOR ERROR: corrected in decision-log, burst-log, lessons; BC v1.17 (product-owner); attributed to orchestrator
+
+**factory-artifacts commits (this burst — TD-VSDD-053 single-commit-per-burst):**
+- Commit B (this burst): [SHA pending — STATE.md v7.01 written last; commit to follow]
