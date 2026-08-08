@@ -838,18 +838,6 @@ fn extract_reason_from_outcome(result: &PluginResult) -> Option<String> {
 /// Derive the factory-artifacts directory from the dispatcher's host context CWD.
 ///
 /// Guard (F-S2107-P8-016): when `cwd` basename is already `.factory`
-/// (the factory-artifacts worktree IS the project dir, i.e. `CLAUDE_PROJECT_DIR`
-/// points at `<repo>/.factory`), the cwd IS the factory dir — returning
-/// `cwd.join(".factory")` would produce the nested `<repo>/.factory/.factory`
-/// double-path. Instead, return `cwd` as-is.
-///
-/// This guard mirrors the Level C check in `log_dir::resolve_log_dir_from_params`
-/// (the sibling site that first codified this guard). The helper is extracted so
-/// the logic is testable and the guard is not duplicated
-/// (TD-VSDD-060 sibling-site sweep).
-/// Derive the factory-artifacts directory from the dispatcher's host context CWD.
-///
-/// Guard (F-S2107-P8-016): when `cwd` basename is already `.factory`
 /// (the factory-artifacts worktree IS the project dir — `CLAUDE_PROJECT_DIR`
 /// points at `<repo>/.factory`), return `cwd` unchanged. Re-appending `.factory`
 /// would produce the nested `<repo>/.factory/.factory` double-path.
