@@ -4,7 +4,7 @@ level: ops
 version: "7.00"
 status: draft
 producer: state-manager
-timestamp: 2026-08-08T12:45:00Z
+timestamp: 2026-08-08T12:50:00Z
 phase: D-963-BC-CORRECTION-PIPELINE-PAUSED
 last_amended: "2026-08-08 (v7.00) — D-963-BC-CORRECTION-BURST (state-manager): BC-5.39.010 v1.15 `~110 rows` runway figure FALSIFIED by direct measurement (4 safe, 5th exhausts for SS-05-sized ~486 bytes/row entries; early-return at row 921); ERRATUM block inserted; changelog 1.15-erratum row; input-hash 2db1ebe; v1.16 product-owner pending. Two Drift Items added: (1) ADR-035 §Decision 5 quadratic not observed — linear R²=0.998790 (architect route); (2) live-operation silent exhaustion gap — plugin.timeout exits 0/empty, not covered by bats-only margin gate. D-963 codified (7 sub-clauses a-g). 4-INDEX UNCHANGED: BC v4.53/VP v2.76/STORY v4.290/ARCH v3.47. [Prior: 2026-08-08 (v6.99) — D-962-PASS-9-RECORD-BURST: adversary-pass-9.md persisted (NOT-CLEAN B0/H3/M3/L1/NIT1; HALVING 16→8; first zero-BLOCKER pass); D-962 codified; 3 lessons; BC-INDEX v4.53 (1985); STORY-INDEX v4.290; E-22 epic v1.1; STATE.md v6.98→v6.99; trajectory-tail →24→20→16→8; SHA-patch c4e1e66d DONE. [Prior: E-22-RETENTION-RULING-ERRATUM: file RETAINED per human ruling.]]"
 inputs: []
@@ -13,7 +13,7 @@ traces_to: prd.md
 project: vsdd-factory
 mode: brownfield
 pipeline: PAUSED
-current_step: "D-963-BC-CORRECTION-BURST (state-manager; parent-commit: 710b12e7; trajectory-tail →24→20→16→8). D-963 codified (7 sub-clauses a-g): (a) POLICY 16 GLOBAL-MAX GATE PASS — D-963 allocated (max D-962 < D-9000); parent-commit 710b12e7; (b) BC-5.39.010 v1.15 `~110 rows` FALSIFIED — true 4 safe / 5th exhausts SS-05-sized (~486 bytes/row) entries; early-return at row 921; rows beyond cost nothing; ~17 for shorter entries; (c) linear not O(n²); ADR-035 §Decision 5 quadratic not observed; Drift Item → architect; (d) silent-in-production gap: plugin.timeout exits 0/empty; bats-only margin gate insufficient for live writes; Drift Item; (e) provenance: .worktrees/fuel-loud fbb9dcb6, /tmp/fuel-measure-01/; (f) two compounding errors: total-index vs scan-region; average vs SS-05 row size; (g) BC-5.39.010 erratum inserted; 1.15-erratum changelog row; input-hash 2db1ebe; v1.16 product-owner pending; 4-INDEX UNCHANGED. STATE.md v6.99→v7.00. pass-10 adversary NEXT."
+current_step: "D-963-BC-CORRECTION-BURST (state-manager; parent-commit: 710b12e7; trajectory-tail →24→20→16→8). D-963 codified (7 sub-clauses a-g): (a) POLICY 16 GLOBAL-MAX GATE PASS — D-963 allocated (max D-962 < D-9000); parent-commit 710b12e7; (b) BC-5.39.010 v1.15 `~110 rows` FALSIFIED — true 4 safe / 5th exhausts SS-05-sized (~486 bytes/row) entries; early-return at row 921; rows beyond cost nothing; ~17 for shorter entries; (c) linear not O(n²); ADR-035 §Decision 5 quadratic not observed; Drift Item → architect; (d) silent-in-production gap: plugin.timeout exits 0/empty; bats-only margin gate insufficient for live writes; Drift Item; (e) provenance: .worktrees/fuel-loud fbb9dcb6, /tmp/fuel-measure-01/; (f) two compounding errors: total-index vs scan-region; average vs SS-05 row size; (g) BC-5.39.010 erratum inserted; 1.15-erratum changelog row; input-hash 2db1ebe; v1.16 product-owner pending; 4-INDEX UNCHANGED. STATE.md v6.99→v7.00. SHA-patch e4bc6683. pass-10 adversary NEXT."
 current_cycle: v1.0-brownfield-backfill
 dtu_required: false
 dtu_assessment: 2026-04-25
@@ -47,6 +47,7 @@ dtu_services: []
   336 lines (wc-l post-E-22-RETAINED record correction 2026-08-08; v6.98 UNCHANGED)
   ~400 lines (estimated post-D-962 PASS-9-RECORD-BURST + SHA-patch 2026-08-08; v6.98→v6.99)
   ~415 lines (estimated post-D-963 BC-CORRECTION-BURST 2026-08-08; v6.99→v7.00; at soft-target)
+  ~415 lines (estimated post-D-963 SHA-patch e4bc6683 2026-08-08; v7.00 UNCHANGED)
 -->
 
 # Pipeline State: vsdd-factory
@@ -62,7 +63,7 @@ dtu_services: []
 | **Mode** | brownfield-onboarding |
 | **Language** | Rust + Bash + Markdown |
 | **Started** | 2026-04-25 |
-| **Last Updated** | 2026-08-08 — D-963-BC-CORRECTION-BURST: BC-5.39.010 v1.15 `~110 rows` FALSIFIED (4 safe/5th exhausts SS-05-sized; early-return row 921); ERRATUM inserted; 2 Drift Items; D-963 codified; STATE.md v6.99→v7.00; trajectory-tail →24→20→16→8 UNCHANGED. [Prior: D-962-PASS-9-RECORD-BURST: SHA-patch c4e1e66d DONE.] |
+| **Last Updated** | 2026-08-08 — D-963-BC-CORRECTION-BURST: BC-5.39.010 v1.15 `~110 rows` FALSIFIED (4 safe/5th exhausts SS-05-sized; early-return row 921); ERRATUM inserted; 2 Drift Items; D-963 codified; STATE.md v6.99→v7.00; trajectory-tail →24→20→16→8 UNCHANGED. SHA-patch e4bc6683. [Prior: D-962-PASS-9-RECORD-BURST: SHA-patch c4e1e66d DONE.] |
 | **Current Phase** | **D-963-BC-CORRECTION-BURST (2026-08-08). PIPELINE PAUSED. BC-5.39.010 ~110 figure FALSIFIED; ERRATUM inserted; v1.16 product-owner pending. streak 0/3 (8 true adversary passes; 0 CLEAN); trajectory-tail →24→20→16→8 UNCHANGED; last D-NNN: D-963. develop 700b4dd3. main 80e5cd7b. merged_count 107. 4-INDEX BC v4.53/VP v2.76/STORY v4.290/ARCH v3.47.** |
 | **Current Cycle** | v1.0-brownfield-backfill |
 
@@ -87,7 +88,7 @@ dtu_services: []
 | SESSION-WRAP-2026-08-07 PIPELINE PAUSED 2026-08-07 (SM 9750700d+SHA-patch) | **COMPLETE** | 4-INDEX UNCHANGED BC v4.51/VP v2.76/STORY v4.288/ARCH v3.46; parent-commit: ada929d4. |
 | D-961-RECORDING-BURST 2026-08-07: all pass-8 findings resolved; E-22 DISSOLVED (file RETAINED per human ruling 2026-08-08); ADR-041 sentinel COMPLETE; BC v4.52; STORY v4.289; ARCH v3.47; SHA-patch e2bfec65. | **COMPLETE** | pass-9 adversary dispatch NEXT |
 | D-962-PASS-9-RECORD-BURST 2026-08-08: adversary-pass-9.md persisted (NOT-CLEAN B0/H3/M3/L1/NIT1; HALVING 16→8; first zero-BLOCKER; reviewed HEAD 67ffbdcc). D-962 codified. BC v4.53; STORY v4.290; trajectory-tail →24→20→16→8 ADVANCED. SHA-patch c4e1e66d. | **COMPLETE** | D-963 correction NEXT |
-| D-963-BC-CORRECTION-BURST 2026-08-08: BC-5.39.010 ~110 FALSIFIED (4 safe/5th exhausts SS-05; early-return row 921); ERRATUM inserted; 1.15-erratum changelog; input-hash 2db1ebe; 2 Drift Items; D-963 codified; 4-INDEX UNCHANGED; STATE.md v6.99→v7.00; SHA-patch <SHA-PATCH> | **COMPLETE** | pass-10 adversary NEXT |
+| D-963-BC-CORRECTION-BURST 2026-08-08: BC-5.39.010 ~110 FALSIFIED (4 safe/5th exhausts SS-05; early-return row 921); ERRATUM inserted; 1.15-erratum changelog; input-hash 2db1ebe; 2 Drift Items; D-963 codified; 4-INDEX UNCHANGED; STATE.md v6.99→v7.00; SHA-patch e4bc6683 | **COMPLETE** | pass-10 adversary NEXT |
 | **E-18 EPIC COMPLETE 2026-07-01 D-744** | **EPIC COMPLETE** | Final story S-18.12 MERGED PR #384 ec05606a. |
 
 ## Current Phase Steps
@@ -100,7 +101,7 @@ dtu_services: []
 | D-960 S-21.07-PASS-8 2026-08-07 (SHA-patch 46b7cef2) | state-manager | COMPLETE | NOT-CLEAN B2/H5/M7/L2 (16+9); IMPROVING 20→16; BC v4.51; VP v2.76; STORY v4.288; ARCH v3.46; trajectory-tail →25→24→20→16. |
 | D-961-RECORDING-BURST 2026-08-07 (SHA-patch e2bfec65) | state-manager | COMPLETE | All pass-8 findings resolved; ADR-041 sentinel COMPLETE; E-22 dissolved (file RETAINED); BC v4.52; STORY v4.289; ARCH v3.47; trajectory-tail UNCHANGED. |
 | D-962-PASS-9-RECORD-BURST 2026-08-08 (SHA-patch c4e1e66d) | state-manager | COMPLETE | adversary-pass-9.md persisted (NOT-CLEAN B0/H3/M3/L1/NIT1; HALVING 16→8); BC v4.53; STORY v4.290; trajectory-tail →24→20→16→8; P9-003 OPEN. |
-| D-963-BC-CORRECTION-BURST 2026-08-08 (SHA-patch <SHA-PATCH>) | state-manager | COMPLETE | BC-5.39.010 ~110 FALSIFIED; ERRATUM inserted; 2 Drift Items; D-963 codified; 4-INDEX UNCHANGED; STATE.md v7.00. pass-10 adversary NEXT. |
+| D-963-BC-CORRECTION-BURST 2026-08-08 (SHA-patch e4bc6683) | state-manager | COMPLETE | BC-5.39.010 ~110 FALSIFIED; ERRATUM inserted; 2 Drift Items; D-963 codified; 4-INDEX UNCHANGED; STATE.md v7.00. pass-10 adversary NEXT. |
 
 ## Identifier Conventions
 
@@ -129,7 +130,7 @@ dtu_services: []
 |--------------|-----|-------|
 | main | 80e5cd7b | rc.23 bot binary bundle 2026-07-18 |
 | develop | 700b4dd3 | PR #770 squash-merged 2026-08-07. Local stale at 948f0fb1 — pull on resume. |
-| factory-artifacts | 710b12e7 | D-962/B-sha-patch. D-963/B SHA-patch pending — <SHA-PATCH> |
+| factory-artifacts | e4bc6683 | D-963/B SHA-patch DONE. |
 | feature/S-21.07 | 67ffbdcc | Pass-9+D-963 COMPLETE. LOCAL ONLY — 1 ahead origin 37022ecc. UNPUSHED per D-961(e). MERGE-ORDER: S-21.09 first. |
 | feature/S-21.04 | 323f440f | pass-31 pending; no PR |
 | fix/nested-factory-path-derivation | 09f052a9 | F-S2107-P8-016 CLOSED. LOCAL, not pushed. |
@@ -212,7 +213,7 @@ dtu_services: []
 
 ### §1 Position
 
-Cycle `v1.0-brownfield-backfill`. **D-963 BC-correction burst COMPLETE** (single Commit B `<SHA-PATCH>` + SHA-patch DONE). factory-artifacts tip **`<SHA-PATCH>`** (D-963/B; SHA-patch DONE). 4-INDEX: **BC v4.53 / VP v2.76 / STORY v4.290 / ARCH v3.47** (UNCHANGED from D-962). BC-5.39.010 v1.15 `~110 rows` runway FALSIFIED; ERRATUM inserted; v1.16 product-owner pending. pass-10 adversary dispatch is NEXT.
+Cycle `v1.0-brownfield-backfill`. **D-963 BC-correction burst COMPLETE** (single Commit B `e4bc6683` + SHA-patch DONE). factory-artifacts tip **`e4bc6683`** (D-963/B; SHA-patch DONE). 4-INDEX: **BC v4.53 / VP v2.76 / STORY v4.290 / ARCH v3.47** (UNCHANGED from D-962). BC-5.39.010 v1.15 `~110 rows` runway FALSIFIED; ERRATUM inserted; v1.16 product-owner pending. pass-10 adversary dispatch is NEXT.
 
 ### §2 Convergence
 
@@ -224,7 +225,7 @@ Streak **0/3**. **8 true adversary passes, ZERO CLEAN verdicts.** Trajectory `47
 
 ### §4 Branch States
 
-- `factory-artifacts` @ `<SHA-PATCH>` (D-963/B SHA-patch DONE)
+- `factory-artifacts` @ `e4bc6683` (D-963/B SHA-patch DONE)
 - `feature/S-21.07` @ **`67ffbdcc`** — LOCAL ONLY, 1 ahead of origin `37022ecc` (UNPUSHED per D-961(e); NO REBASE; MERGE-ORDER: S-21.09 first)
 - `feature/S-21.04` @ `323f440f` — pass-31 pending, no PR
 - `fix/nested-factory-path-derivation` @ `09f052a9` — LOCAL, NOT pushed
@@ -265,4 +266,4 @@ Working tree on `fix/wasmtime-wasi-cve-2026-47261` @ `23e307bb` (merged, remote 
 
 ### §11 Resume Command
 
-`/vsdd-factory:next-step`. D-963/B SHA-patch DONE; factory-artifacts pushed. First action on resume: dispatch pass-10 adversary (iron law fresh-context; diff base 67ffbdcc; aware of D-963 Drift Items). BC-5.39.010 v1.16 product-owner PENDING.
+`/vsdd-factory:next-step`. D-963/B SHA-patch e4bc6683 DONE; factory-artifacts pushed. First action on resume: dispatch pass-10 adversary (iron law fresh-context; diff base 67ffbdcc; aware of D-963 Drift Items). BC-5.39.010 v1.16 product-owner PENDING.

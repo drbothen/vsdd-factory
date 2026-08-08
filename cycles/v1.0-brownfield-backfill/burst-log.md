@@ -24192,4 +24192,4 @@ $ awk '/^## D-963-BC-CORRECTION-BURST/,0' .factory/cycles/v1.0-brownfield-backfi
 **Closes (this D-963 correction burst):** No finding closures. Correction burst addresses measurement falsification only.
 
 **factory-artifacts commits (this burst — TD-VSDD-053 single-commit-per-burst):**
-- Commit B (this burst): `<SHA-PATCH>` — `factory(D-963/B): D-963 BC-correction burst — BC-5.39.010 erratum (~110 falsified; 4-5 rows SS-05); decision-log D-963; burst-log D-963 8-blocks; STATE.md v7.00; 2 Drift Items`
+- Commit B (this burst): `e4bc6683` — `factory(D-963/B): D-963 BC-correction burst — BC-5.39.010 erratum (~110 falsified; 4-5 rows SS-05); decision-log D-963; burst-log D-963 8-blocks; STATE.md v7.00; 2 Drift Items`
