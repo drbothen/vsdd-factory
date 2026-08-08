@@ -1612,3 +1612,78 @@ BATS_EXIT:0
 - bats: **46 passed; 0 failed; 5 skipped** of 51 declared; BATS_EXIT=0 — 5 skipped are tests 27–31, all `[DEFERRED v1.6 — Class D]` (AC-012 ×2, AC-013 ×2, AC-014 ×1), preserved per POLICY 1 append-only.
 
 No WASM artifact triangulation recorded in this pass (WASM not rebuilt; last measured triangulation at Pass-7 commit `295585185308629f10ff4333647a15b474192c3f`).
+
+---
+
+### Pass-9 assertion-site attestation (37022ecc5398514744b72660da47bfb2964abb55)
+
+**Commit attested:** `67ffbdccda5302a4e1fbffd8b2f2b8bdd0aed3ce` (2026-08-07; F-S2107-P8-006/007/013 closures)
+**Parent SHA:** `37022ecc5398514744b72660da47bfb2964abb55` (derived: `git rev-parse 67ffbdcc^1`)
+**Context:** Added retroactively during pass-9 closure. POLICY 15 ATTESTATION-LOCATION GATE became satisfiable at v1.4.20 (D-960 PARENT-SHA form); this commit's assertion sites were not attested before push (F-S2107-P9-003).
+
+**Assertion sites added or strengthened in `67ffbdccda5302a4e1fbffd8b2f2b8bdd0aed3ce`:**
+
+`src/lib.rs` — corpus version-sync gate and bypass mutants (F-S2107-P8-006):
+
+| Assertion name | File | What it pins |
+|---|---|---|
+| `test_BC_corpus_version_sync_all_indexed_bcs_match_frontmatter` | src/lib.rs | Comparison predicate at this commit: inline `normalized_fv != index_ver.as_str()`. Helper `bc_index_row_contains_version` deleted. Violation recorded when condition is true. |
+| `test_bypass_1_index_newer_than_primary_detected_as_mismatch` | src/lib.rs | Bypass vector: index row `v1.18 \| v1.19`, frontmatter `1.18`; asserts terminal entry `Version("1.19") != "1.18"` via inline `!=` |
+| `test_bypass_2_annotation_rollback_detected_as_mismatch` | src/lib.rs | Bypass vector: annotation backward-reference row; asserts terminal entry `Version("1.24") != "1.23"` via inline `!=` |
+| `test_bypass_3_chain_rollback_detected_as_mismatch` | src/lib.rs | Bypass vector: four-entry chain; asserts terminal entry `Version("1.13") != "1.10"` via inline `!=` |
+
+`plugins/vsdd-factory/tests/validate-cross-site-correspondence.bats` — structural gates (F-S2107-P8-007/013):
+
+| Assertion name | File | What it pins |
+|---|---|---|
+| `F-P6-016: coverage gate — 5 deferred, 46 dispatcher-gated, structural counts only` | bats | Structural counts: @test declarations, deferred markers, `_require_artifacts` call sites. Echo-based `N passed / M failed` synthesis removed (F-S2107-P8-007). |
+| `F-S2107-P8-013: production-scale BC-INDEX (576KB) — plugin.completed present, plugin.timeout absent` | bats | Fixture `a1-production-scale` (576,396 bytes, byte-identical to live BC-INDEX.md at 1985 rows); asserts `plugin.completed` present and `plugin.timeout` absent in dispatcher output (F-S2107-P8-013). |
+
+The four lib.rs test names and two bats gate labels above form the name-set a reviewer must find present in source to confirm no assertion was dropped. The inline `!=` comparison in the bypass mutants (not a named function) is the load-bearing form at this commit; its encapsulation into `index_ver_matches_frontmatter` is the subject of `38c70f9e`.
+
+---
+
+## Pass-9 Fix Burst — F-S2107-P9-001 Bypass Mutant Correctness (test-writer)
+
+**Date:** 2026-08-08
+**BC:** BC-5.38.001 / BC-5.39.010 v1.14
+**Cycle:** v1.0-brownfield-backfill / S-21.07 test-writer pass-9 (F-S2107-P9-001)
+**Governing spec:** BC-5.39.010 v1.14
+
+---
+
+### Pass-9 assertion-site attestation (67ffbdccda5302a4e1fbffd8b2f2b8bdd0aed3ce)
+
+**Commit attested:** `38c70f9e3cebb57e6de6686588b4ecbc66c88195` (2026-08-08; F-S2107-P9-001 fix)
+**Parent SHA:** `67ffbdccda5302a4e1fbffd8b2f2b8bdd0aed3ce` (derived: `git rev-parse 38c70f9e^1`)
+
+**Assertion sites added or strengthened in `38c70f9e3cebb57e6de6686588b4ecbc66c88195`:**
+
+`src/arm_a1.rs` — named comparison predicate (F-S2107-P9-001):
+
+| Assertion name | File | What it pins |
+|---|---|---|
+| `pub fn index_ver_matches_frontmatter(index_ver: &str, frontmatter_version: &str) -> bool` | src/arm_a1.rs | Named function encapsulating `normalized_fv == index_ver` terminal-value check. Makes the comparison predicate name-addressable for mutation testing. Referenced from corpus gate and all three bypass-mutant (C) assertions. If deleted or renamed, all three bypass-mutant tests and the corpus gate fail to compile. |
+
+`src/lib.rs` — corpus gate and bypass mutants rewired to named comparison (F-S2107-P9-001):
+
+| Assertion name | File | What it pins |
+|---|---|---|
+| `test_BC_corpus_version_sync_all_indexed_bcs_match_frontmatter` | src/lib.rs | Comparison call site changed from inline `!=` to `arm_a1::index_ver_matches_frontmatter(&index_ver, fv)`. Corpus gate fails to compile if function is absent. |
+| `test_bypass_1_index_newer_than_primary_detected_as_mismatch` | src/lib.rs | Assertion (C): `!arm_a1::index_ver_matches_frontmatter(&index_ver, frontmatter_version)` must be true. Assertion (B): whole-row `v{fv}` scan returns true (proves the bypass was real). If `index_ver_matches_frontmatter` uses non-strict equality, (C) goes RED. |
+| `test_bypass_2_annotation_rollback_detected_as_mismatch` | src/lib.rs | Same (C)+(B) pattern; vector: annotation backward-reference row |
+| `test_bypass_3_chain_rollback_detected_as_mismatch` | src/lib.rs | Same (C)+(B) pattern; vector: four-entry chain |
+| `test_corpus_version_sync_gate_teeth` | src/lib.rs | Comment corrected: removed false claim that prior bypass mutants "FAILED against `bc_index_row_contains_version`". Extractor `extract_bc_index_version_state` was byte-identical across F-S2107-P8-006; only the comparison predicate changed. |
+
+The one arm_a1.rs function and five lib.rs test names above form the name-set a reviewer must find in source. The load-bearing assertion class is (C) in each bypass mutant: `!arm_a1::index_ver_matches_frontmatter(&index_ver, frontmatter_version)`. If that function is renamed or deleted, all three bypass-mutant tests fail to compile. If reimplemented with non-strict equality, the three (C) assertions go RED on their respective bypass vectors.
+
+---
+
+### Pass-9 assertion-site attestation (38c70f9e3cebb57e6de6686588b4ecbc66c88195)
+
+**Commit attested:** `6c9a092f8c5c9891b5de0cd20660bef0a835b109` (2026-08-08; F-S2107-P9-003 retroactive attestation — docs-only)
+**Parent SHA:** `38c70f9e3cebb57e6de6686588b4ecbc66c88195` (derived: `git rev-parse 6c9a092f^1`)
+
+**No assertion-site changes in this commit.** `6c9a092f` modifies only `crates/hook-plugins/validate-cross-site-correspondence/docs/red-gate-log.md` (64 lines inserted). No Rust source, no bats tests, no WASM artifact — the plugin hash remains `b0373eb23ccbe71d33f7b9b02155c657b9dc0bcc1662f765704b5ad69edb1134`.
+
+The assertion name-set is unchanged from the immediately preceding attestation (parent `67ffbdccda5302a4e1fbffd8b2f2b8bdd0aed3ce`, above). A reviewer can confirm by running `git diff 38c70f9e 6c9a092f -- '*.rs' '*.bats'` and observing an empty diff.
