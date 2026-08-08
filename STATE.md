@@ -4,7 +4,7 @@ level: ops
 version: "6.98"
 status: draft
 producer: state-manager
-timestamp: 2026-08-08T10:00:00Z
+timestamp: 2026-08-08T11:30:00Z
 phase: D-961-RECORDING-BURST-PIPELINE-PAUSED
 last_amended: "2026-08-08 (v6.98-erratum) — E-22-RETENTION-RULING-ERRATUM (state-manager): E-22 epic file RETAINED per human ruling 2026-08-08 (supersedes D-961(c) deletion ruling); pending-deletion Drift Item removed; deletion language corrected throughout. [Prior: 2026-08-07 (v6.98) — D-961-RECORDING-BURST (state-manager): D-961 codified (8 sub-clauses a-h); 3 lessons; burst-log D-961 8 blocks; ARCH-INDEX v3.47 (ADR-041; total_adrs 40→41; pipe-escape pre-existing defect fixed); policies.yaml v1.4.21 (POLICY 16 ALLOCATOR-CEILING GATE bullet); BC-INDEX v4.52 (product-owner); STORY-INDEX v4.289 (story-writer). SHA-drift corrected: feature/S-21.07 fbb5183c→67ffbdcc LOCAL UNPUSHED (1 ahead of origin 37022ecc). 2 new branches registered: fix/nested-factory-path-derivation @ 09f052a9; fix/d999-sentinel-code-migration @ bf642fd9. ADR-041 sentinel migration COMPLETE (8 code/fixture sites; bf642fd9); POLICY 16 GATE added; D-960(e) SUPERSEDED. E-22 DISSOLVED (S-21.12 re-anchored E-21 W4; epic file RETAINED per human ruling 2026-08-08). F-S2107-P8-006/-007/-013 CLOSED (implementation-verified at 67ffbdcc); -014 GRANDFATHERED; -016 CLOSED (09f052a9). E-22 security scope → Drift Items (SEC-001; RUSTSEC-2026-0222; RUSTSEC-2026-0204; 7 Dependabot alerts; EAC-002; ADR-033 namespace ambiguity). push.default=current SET. sprint-state sync COMPLETE 14/14. 4-INDEX BC v4.52/VP v2.76/STORY v4.289/ARCH v3.47. streak 0/3 UNCHANGED; trajectory-tail →25→24→20→16 UNCHANGED. pass-9 adversary NEXT. [Prior: 2026-08-07 (v6.97) — SESSION-WRAP-2026-08-07 (state-manager): PIPELINE PAUSED per human /wrap directive; D-960 SRC archived; pass-8 fix burst NEXT; 3 OPEN: -006/-007/-013; -014 GRANDFATHERED; streak 0/3; PR #770 MERGED (wasmtime-wasi 44.0.3; develop 700b4dd3); RUSTSEC-2026-0149+RUSTSEC-2026-0182 CLEARED; 4-INDEX UNCHANGED BC v4.51/VP v2.76/STORY v4.288/ARCH v3.46. [Prior: 2026-08-07 (v6.96) — D-960-S-21.07-PASS-8-RECORD-BURST-INDEX-SYNCS (state-manager): adversary pass-7 COMPLETE (NOT-CLEAN B2/H5/M7/L2; 16 findings; IMPROVING 20→16); D-960 codified; 2 lessons; policies.yaml v1.4.19→v1.4.20; BC-INDEX v4.50→v4.51; STORY-INDEX v4.287→v4.288; ARCH-INDEX v3.45→v3.46; VP-INDEX v2.75→v2.76. 4-INDEX BC v4.51/VP v2.76/STORY v4.288/ARCH v3.46. [Prior: see decision-log.md for full chain]]]]"
 inputs: []
@@ -58,7 +58,7 @@ dtu_services: []
   329 lines (wc-l post-D-960 S-21.07-PASS-8-RECORD-BURST-INDEX-SYNCS SHA-patch 2026-08-07; v6.96; Commit E 46b7cef2 pushed; soft-target margin 415-329=+86 UNDER-SOFT-TARGET)
   338 lines (wc-l post-SESSION-WRAP-2026-08-07 PIPELINE PAUSED 2026-08-07; v6.96→v6.97; soft-target margin 415-338=+77 UNDER-SOFT-TARGET)
   337 lines (wc-l post-D-961 RECORDING-BURST SHA-patch 2026-08-07; v6.98; soft-target margin 415-337=+78 UNDER-SOFT-TARGET)
-  ~337 lines (estimated post-E-22-RETENTION-RULING-ERRATUM 2026-08-08; v6.98-erratum; soft-target margin 415-337=+78 UNDER-SOFT-TARGET)
+  336 lines (wc-l post-E-22-RETAINED record correction 2026-08-08; v6.98 UNCHANGED; soft-target margin 415-336=+79 UNDER-SOFT-TARGET)
 -->
 
 # Pipeline State: vsdd-factory
