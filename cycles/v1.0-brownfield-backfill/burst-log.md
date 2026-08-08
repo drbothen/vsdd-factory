@@ -24097,4 +24097,4 @@ $ ls -1 .factory/stories/epics/E-*.md | wc -l
 - F-S2107-P9-008: CLOSED — implementer `9afc3226`; duplicate doc-comment removed from `derive_factory_dir`
 
 **factory-artifacts commits (this burst — TD-VSDD-053 single-commit-per-burst):**
-- Commit B (this burst): `<SHA-PATCH>` — `factory(D-962/B): D-962 pass-9 record burst — adversary-pass-9.md; INDEX.md pass-9 row; D-962 decision-log; 3 lessons; burst-log D-962 8-blocks; BC-INDEX v4.53; BC-5.39.010 v1.15; BC-5.41.004 v1.6; STORY-INDEX v4.290; E-22 epic v1.1; STATE.md v6.99`
+- Commit B (this burst): `c4e1e66d` — `factory(D-962/B): D-962 pass-9 record burst — adversary-pass-9.md; INDEX.md pass-9 row; D-962 decision-log; 3 lessons; burst-log D-962 8-blocks; BC-INDEX v4.53; BC-5.39.010 v1.15; BC-5.41.004 v1.6; STORY-INDEX v4.290; E-22 epic v1.1; STATE.md v6.99`
