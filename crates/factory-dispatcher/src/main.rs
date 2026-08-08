@@ -48,7 +48,7 @@ use factory_dispatcher::internal_log::{
     DEFAULT_RETENTION_DAYS, DISPATCHER_STARTED, INTERNAL_DISPATCHER_ERROR, InternalEvent,
     InternalLog,
 };
-use factory_dispatcher::invoke::PluginResult;
+use factory_dispatcher::invoke::{PluginResult, TimeoutCause};
 use factory_dispatcher::partition::partition_plugins;
 use factory_dispatcher::payload::HookPayload;
 use factory_dispatcher::plugin_loader::PluginCache;
@@ -826,9 +826,25 @@ fn extract_reason_from_outcome(result: &PluginResult) -> Option<String> {
                 .ok()
                 .and_then(|v| v.get("reason").and_then(|r| r.as_str()).map(str::to_owned))
         }
-        // Fail-closed crash/timeout: sentinel reason.
+        // Fail-closed crash/timeout: sentinel reasons distinguished by cause so
+        // operators can choose the right remedy without opening the internal log.
+        // Fuel exhaustion is a permanent resource-policy failure (raise cap or
+        // reduce payload); epoch/wall-clock is a transient compute failure
+        // (investigate slow script). Conflating them forces operators to grep
+        // the internal log for the trace UUID to determine cause — TD #71 pattern.
         PluginResult::Crashed { .. } => Some("fail-closed: plugin crashed".to_owned()),
-        PluginResult::Timeout { .. } => Some("fail-closed: plugin timed out".to_owned()),
+        PluginResult::Timeout {
+            cause: TimeoutCause::Fuel,
+            fuel_consumed,
+            ..
+        } => Some(format!(
+            "fail-closed: fuel exhausted ({fuel_consumed} units consumed; \
+             raise fuel_cap or reduce payload size)"
+        )),
+        PluginResult::Timeout {
+            cause: TimeoutCause::Epoch,
+            ..
+        } => Some("fail-closed: plugin timed out".to_owned()),
     }
 }
 
@@ -1123,6 +1139,90 @@ mod red_gate_s18_14_log_dir {
             Path::new(log_dir_value).is_absolute(),
             "log_dir field value must be an absolute path (BC-1.13.001 PC-10 absolutize-on-emit); \
              got: {log_dir_value:?} (relative path means absolutize-on-emit fix is not applied)"
+        );
+    }
+}
+
+// ---------------------------------------------------------------------------
+// extract_reason_from_outcome — fuel vs epoch distinction
+//
+// Fuel exhaustion and wall-clock (epoch) timeouts need opposite operator
+// responses: fuel is a permanent resource-policy failure requiring a cap
+// raise or payload reduction; epoch is a transient compute failure requiring
+// script investigation. Both previously returned "fail-closed: plugin timed
+// out", making them indistinguishable from the agent-visible block_reason.
+//
+// TDD: `fuel_timeout_reason_identifies_fuel_exhaustion` is RED before the
+// fix (current returns "plugin timed out" for both causes).  The epoch and
+// crash tests confirm those arms are unaffected by the change.
+// ---------------------------------------------------------------------------
+#[cfg(test)]
+mod tests_extract_reason_cause_distinction {
+    #![allow(clippy::expect_used, clippy::unwrap_used)]
+    use factory_dispatcher::invoke::{PluginResult, TimeoutCause};
+
+    // RED before fix: fuel timeout must produce a fuel-specific reason, not "plugin timed out".
+    #[test]
+    fn fuel_timeout_reason_identifies_fuel_exhaustion() {
+        let result = PluginResult::Timeout {
+            cause: TimeoutCause::Fuel,
+            stderr: String::new(),
+            elapsed_ms: 5,
+            fuel_consumed: 10_500_000,
+        };
+        let reason = super::extract_reason_from_outcome(&result);
+        let text = reason
+            .as_deref()
+            .expect("fuel timeout must produce Some reason");
+        assert!(
+            text.contains("fuel exhausted"),
+            "fuel timeout block_reason must contain 'fuel exhausted', got: {text:?}"
+        );
+        assert!(
+            !text.contains("timed out"),
+            "fuel timeout block_reason must NOT say 'timed out' — \
+             operators need distinct messages to choose the right remedy; got: {text:?}"
+        );
+        // Consumed-fuel figure surfaces for scale assessment.
+        assert!(
+            text.contains("10500000"),
+            "fuel timeout block_reason should include the consumed-fuel figure \
+             (10500000) so operators can assess scale without log grep; got: {text:?}"
+        );
+    }
+
+    // Epoch timeout must still produce the original "plugin timed out" sentinel —
+    // changing this arm would break existing operator runbooks for slow scripts.
+    #[test]
+    fn epoch_timeout_reason_is_unaffected() {
+        let result = PluginResult::Timeout {
+            cause: TimeoutCause::Epoch,
+            stderr: String::new(),
+            elapsed_ms: 5_001,
+            fuel_consumed: 2_000_000,
+        };
+        let reason = super::extract_reason_from_outcome(&result);
+        assert_eq!(
+            reason.as_deref(),
+            Some("fail-closed: plugin timed out"),
+            "epoch timeout block_reason must remain 'fail-closed: plugin timed out'"
+        );
+    }
+
+    // Crash arm must be untouched — regression guard.
+    #[test]
+    fn crash_reason_is_unaffected() {
+        let result = PluginResult::Crashed {
+            trap_string: "unreachable".to_owned(),
+            stderr: String::new(),
+            elapsed_ms: 1,
+            fuel_consumed: 50_000,
+        };
+        let reason = super::extract_reason_from_outcome(&result);
+        assert_eq!(
+            reason.as_deref(),
+            Some("fail-closed: plugin crashed"),
+            "crash block_reason must remain 'fail-closed: plugin crashed'"
         );
     }
 }
