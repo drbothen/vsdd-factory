@@ -23814,6 +23814,8 @@ stories/STORY-INDEX.md                                             (story-writer
 STATE.md                                                           (state-manager — v6.97→v6.98; SHA-drift fix feature/S-21.07 fbb5183c→67ffbdcc LOCAL UNPUSHED; 2 new branches registered; D-961 advance; SRC §§1-11 refreshed)
 ```
 
+> **[2026-08-08 Block-3 supersession]:** The `E-22-dependency-security-hardening.md` entry above records "DELETION BLOCKED — team-lead must execute manually." This obligation is SUPERSEDED by human ruling 2026-08-08 — E-22 epic file RETAINED. No team-lead action required.
+
 ### Block 4: Codifications (Dim-3)
 
 D-961 sub-clauses (a)-(h) codified in decision-log.md:
@@ -23821,6 +23823,7 @@ D-961 sub-clauses (a)-(h) codified in decision-log.md:
 - **(a) ADR-041 RATIFIED:** D-999 sentinel MIGRATED to ADR-041 canonical sentinel value; POLICY 16 ALLOCATOR-CEILING GATE added to policies.yaml; D-960(e) SUPERSEDED.
 - **(b) Sentinel migration COMPLETE:** BC-5.39.007 v1.7 (product-owner); S-15.12 v1.5 (story-writer); code/fixtures 8 sites closed in commit bf642fd9 on fix/d999-sentinel-code-migration; ADR-041 authored. All D-999 narrative references are historical-by-construction and not subject to scan.
 - **(c) S-21.12 re-anchored E-22→E-21 W4:** E-21 epic v1.8→v1.9; story_count 6→11; 35→83 story points. E-22 epic DISSOLVED (human-authorized D-961(c)); epic file deletion PENDING operator execution — agent `git rm` blocked by permission classifier; file `.factory/stories/epics/E-22-dependency-security-hardening.md` remains on disk; D-961/B commit proceeds WITHOUT E-22 deletion; operator will execute `git rm` separately.
+  - **(c-supersession) 2026-08-08:** Epic file deletion SUPERSEDED by human ruling 2026-08-08 — file RETAINED. E-22 remains dissolved as an epic (S-21.12 re-anchored to E-21 W4); file kept for historical record. Outstanding deletion obligation cancelled.
 - **(d) push.default=current SET REPO-LOCAL:** 9 branch.*.merge entries audited clean; one dangerous auto-removed entry confirmed; all worktrees inherit.
 - **(e) NO REBASE RULING:** S-21.07 and S-21.04 NOT rebased per explicit human ruling. POLICY 18 SHA citations preserved as-is.
 - **(f) F-S2107-P8-016 CLOSED:** 3 unguarded `.join(".factory")` sites found and fixed (1 diagnosed + 2 silent-failure-mode siblings via sibling sweep); both-polarity tests added; commit 09f052a9 on fix/nested-factory-path-derivation.
@@ -23907,6 +23910,7 @@ fmt/clippy/test all exit 0; 189 ok lines
 - F-S2107-P8-016 CLOSED at fix/nested-factory-path-derivation @ 09f052a9
 - D-999 sentinel migration COMPLETE at fix/d999-sentinel-code-migration @ bf642fd9
 - E-22 file deletion: BLOCKED this session — team-lead must execute `git -C .factory rm stories/epics/E-22-dependency-security-hardening.md` and amend commit
+  - **[2026-08-08 supersession]:** Deletion obligation CANCELLED — E-22 epic file RETAINED per human ruling 2026-08-08 (supersedes D-961(c) deletion ruling). No git rm required.
 - New branches registered in STATE.md Active Branches: fix/nested-factory-path-derivation, fix/d999-sentinel-code-migration
 - SHA-drift corrected: feature/S-21.07 fbb5183c→67ffbdcc LOCAL UNPUSHED (1 ahead of origin 37022ecc)
 - E-22 security scope preserved as Drift Items in STATE.md: SEC-001 sequencing constraint; RUSTSEC-2026-0222; RUSTSEC-2026-0204; 7 batched Dependabot alerts; EAC-002; ADR-033 namespace ambiguity
@@ -23921,6 +23925,7 @@ fmt/clippy/test all exit 0; 189 ok lines
 - F-S2107-P8-014: GRANDFATHERED per human ruling D-960(c) — cosmetic test isolation; no functional regression
 - F-S2107-P8-016: CLOSED — 3 unguarded `.join(".factory")` sites fixed (1 diagnosed + 2 sibling sites); both-polarity guard tests added. (implementer; fix/nested-factory-path-derivation @ 09f052a9)
 - E-22 epic file deletion: BLOCKED (permission classifier); team-lead must complete
+  - **[2026-08-08 supersession]:** Deletion obligation CANCELLED — E-22 epic file RETAINED per human ruling 2026-08-08 (supersedes D-961(c) deletion ruling). No team-lead action required.
 - D-999 sentinel migration: COMPLETE — BC-5.39.007 v1.7 + S-15.12 v1.5 + code/fixtures 8 sites. (fix/d999-sentinel-code-migration @ bf642fd9)
 - S-21.12 E-22→E-21 W4 re-anchor: COMPLETE (story-writer)
 - Sprint-state sync: COMPLETE — 14/14 bats passing
