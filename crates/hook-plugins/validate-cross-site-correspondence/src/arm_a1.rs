@@ -237,6 +237,40 @@ pub(crate) fn extract_bc_index_version_state(
     }
 }
 
+/// Returns `true` when the BC-INDEX terminal chain-entry version equals the normalized
+/// BC frontmatter version; `false` on any mismatch.
+///
+/// This is the terminal-value predicate that replaced the deleted
+/// `bc_index_row_contains_version` whole-row helper (F-S2107-P8-006). `index_ver` is
+/// the value already extracted by `extract_bc_index_version_state`; this function
+/// never inspects the raw index row, so whole-row-search semantics cannot be silently
+/// reintroduced inside it. The corpus gate
+/// (`test_BC_corpus_version_sync_all_indexed_bcs_match_frontmatter`) calls this
+/// function; it is pinned by `test_bypass_1_*`, `test_bypass_2_*`, `test_bypass_3_*`
+/// in `lib.rs`.
+///
+/// # Arguments
+/// * `index_ver` — last-chain-entry version extracted by `extract_bc_index_version_state`,
+///   already stripped of the `v` prefix (e.g., `"1.19"`).
+/// * `frontmatter_version` — BC frontmatter `version:` field value; may carry a leading
+///   `v` (F-P6-019a / BC-5.24.006 pattern), stripped before comparison.
+///
+/// Three bypass vectors that whole-row search admitted are permanently closed:
+///   - **index-newer-than-primary** (`v1.18 \| v1.19`, frontmatter `1.18`):
+///     `"1.19" ≠ "1.18"` → `false` (mismatch detected).
+///   - **annotation-rollback** (`v1.24 (promoted v1.23 …)`, frontmatter `1.23`):
+///     `"1.24" ≠ "1.23"` → `false` (mismatch detected).
+///   - **chain-rollback** (`v1.10 \| v1.11 \| v1.12 \| v1.13`, frontmatter `1.10`):
+///     `"1.13" ≠ "1.10"` → `false` (mismatch detected).
+///
+/// # BC trace
+/// F-S2107-P8-006; F-S2107-P9-001; POLICY 11 `no_test_tautologies`;
+/// POLICY 15 per-guard mutant mandate.
+pub fn index_ver_matches_frontmatter(index_ver: &str, frontmatter_version: &str) -> bool {
+    let normalized_fv = frontmatter_version.trim_start_matches('v');
+    normalized_fv == index_ver
+}
+
 /// Returns `true` if the trimmed first pipe-cell content of a BC-INDEX body-table row
 /// matches the given BC ID under the normative recognition predicate.
 ///

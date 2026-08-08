@@ -1752,10 +1752,12 @@ mod tests {
     //   AFTER perturbation:  row ends with `v1.10 |`
     //     extract_bc_index_version_state → Version("1.10"); "1.10" ≠ "1.11" → RED
     //
-    // The three bypass mutant tests below prove the gate CANNOT be bypassed by
-    // index-newer-than-primary, annotation-rollback, or chain-rollback scenarios.
-    // These all FAILED against the previous bc_index_row_contains_version helper
-    // (demonstrated RED above; helper deleted per F-S2107-P8-006).
+    // The three bypass mutant tests below (test_bypass_1_*, test_bypass_2_*,
+    // test_bypass_3_*) pin that arm_a1::index_ver_matches_frontmatter — the named
+    // comparison function the corpus gate calls — returns false for each bypass vector.
+    // The extractor (extract_bc_index_version_state) was byte-identical before and after
+    // the fix; only the comparison predicate changed (F-S2107-P8-006). The bypass mutants
+    // exercise that predicate, not the extractor. See F-S2107-P9-001.
     // -----------------------------------------------------------------------
 
     /// Teeth proof: Version("1.11") matches frontmatter "1.11" (GREEN path);
@@ -1908,16 +1910,14 @@ active | CAP-123 | S-21.07 | v1.10 |\n";
                     row_malformed_count += 1;
                 }
                 arm_a1::BcIndexVersionState::Version(index_ver) => {
-                    // INDEX has a version chain. Compare the extracted last-chain-entry
-                    // version directly to the normalized frontmatter version.
-                    // F-S2107-P8-006: using the extractor's Version(v) value rather than
-                    // bc_index_row_contains_version() closes three bypass vectors:
-                    //   (1) index-newer-than-primary: extractor returns the last chain entry
-                    //       (e.g. "1.19") which ≠ frontmatter "1.18" → mismatch detected.
-                    //   (2) annotation-rollback: extractor picks first token of last chain
-                    //       entry ("1.24"), not annotation prose "1.23" → mismatch detected.
-                    //   (3) chain-rollback: extractor always returns the last entry ("1.13");
-                    //       frontmatter "1.10" does not match → mismatch detected.
+                    // INDEX has a version chain. Compare via the named predicate
+                    // arm_a1::index_ver_matches_frontmatter, which encapsulates the
+                    // terminal-value comparison that replaced bc_index_row_contains_version()
+                    // (deleted at F-S2107-P8-006). Using the named function ensures this
+                    // comparison is pinned by the three bypass-mutant tests in this module.
+                    //   (1) index-newer-than-primary: terminal entry "1.19" ≠ fv "1.18".
+                    //   (2) annotation-rollback: terminal token "1.24" ≠ fv "1.23".
+                    //   (3) chain-rollback: terminal entry "1.13" ≠ fv "1.10".
                     checked_count += 1;
                     match &frontmatter_version {
                         None => {
@@ -1930,13 +1930,11 @@ active | CAP-123 | S-21.07 | v1.10 |\n";
                             ));
                         }
                         Some(fv) => {
-                            // Normalize: strip leading 'v' from frontmatter version.
-                            // BC-INDEX canonical form is bare "N.M"; some BCs use "vN.M"
-                            // in frontmatter (F-P6-019a pattern — BC-5.24.006).
-                            // arm_a1::extract_bc_index_version_state already strips 'v'
-                            // from the extracted version, so both sides are normalized.
-                            let normalized_fv = fv.trim_start_matches('v');
-                            if normalized_fv != index_ver.as_str() {
+                            // F-S2107-P9-001: use the named comparison function rather than
+                            // an inline expression, so bypass-mutant tests in this module
+                            // directly pin the comparison predicate.
+                            if !arm_a1::index_ver_matches_frontmatter(&index_ver, fv) {
+                                let normalized_fv = fv.trim_start_matches('v');
                                 mismatches.push(format!(
                                     "{bc_id}: BC frontmatter version={fv:?} \
                                     (normalized={normalized_fv:?}) does not match BC-INDEX \
@@ -2263,138 +2261,193 @@ active | CAP-123 | S-21.07 | v1.10 |\n";
     }
 
     // -----------------------------------------------------------------------
-    // BYPASS MUTANT TESTS (F-S2107-P8-006 fix attestation)
+    // BYPASS MUTANT TESTS (F-S2107-P9-001 fix — pinning the corpus gate comparison)
     //
-    // These three tests verify that the direct BcIndexVersionState::Version(v)
-    // comparison closes all three bypass vectors the adversary demonstrated by
-    // execution against the deleted bc_index_row_contains_version() helper.
+    // These three tests verify that arm_a1::index_ver_matches_frontmatter — the named
+    // comparison function called by the corpus gate — returns false for each bypass
+    // vector. The fix at F-S2107-P8-006 deleted bc_index_row_contains_version() (a
+    // whole-row helper) and replaced it with direct terminal-value comparison.
+    // The EXTRACTOR (extract_bc_index_version_state) was byte-identical before and
+    // after the fix. Only the comparison predicate changed.
     //
-    // Each test FAILED against the old weak helper (RED state shown above);
-    // each test PASSES with the extractor-based direct comparison (GREEN).
+    // Each test has three assertions:
+    //   (A) Extractor sanity: confirm the terminal chain-entry value.
+    //   (B) Inline WEAK semantics proof: whole-row `v{fv}` scan with trailing-non-digit
+    //       check returns true for this bypass vector (the old false-pass).
+    //   (C) NAMED FUNCTION assertion: index_ver_matches_frontmatter returns false
+    //       (mismatch detected). This is the load-bearing mutant assertion.
+    //       If index_ver_matches_frontmatter is reimplemented with non-strict-equality
+    //       semantics (e.g., always-true, presence-check, substring), (C) fails and
+    //       the test goes RED.
     //
-    // Bypass 1: index-newer-than-primary
-    //   Row "v1.18 \| v1.19" → extractor returns Version("1.19") ≠ frontmatter "1.18"
-    //   → mismatch detected. Old helper: v1.18 appears in row → false-pass.
-    //
-    // Bypass 2: annotation-rollback (BC-3.08.001 shape)
-    //   Row "v1.24 (promoted v1.23 D-839)" → extractor returns Version("1.24") ≠ "1.23"
-    //   → mismatch detected. Old helper: "v1.23" found in annotation prose → false-pass.
-    //
-    // Bypass 3: chain-rollback
-    //   Row "v1.10 \| v1.11 \| v1.12 \| v1.13" → extractor returns Version("1.13") ≠ "1.10"
-    //   → mismatch detected. Old helper: "v1.10" found in cumulative chain → false-pass.
+    // Bypass vectors (adversary-verified against live BC-INDEX.md @ 67ffbdcc):
+    //   Bypass 1: index-newer-than-primary — row "v1.18 | v1.19", frontmatter "1.18"
+    //     Old helper: finds "v1.18" in row → true (false-pass).
+    //     Named function: "1.19" ≠ "1.18" → false (mismatch detected). ✓
+    //   Bypass 2: annotation-token rollback — row "v1.24 (promoted v1.23 D-839; …)", fv "1.23"
+    //     Old helper: finds "v1.23" in annotation → true (false-pass).
+    //     Named function: "1.24" ≠ "1.23" → false (mismatch detected). ✓
+    //   Bypass 3: chain rollback — row "v1.10 | v1.11 | v1.12 | v1.13", frontmatter "1.10"
+    //     Old helper: finds "v1.10" in cumulative chain → true (false-pass).
+    //     Named function: "1.13" ≠ "1.10" → false (mismatch detected). ✓
     // -----------------------------------------------------------------------
 
-    /// Bypass 1 mutant: index-newer-than-primary is detected as mismatch.
-    /// extract_bc_index_version_state returns Version("1.19") for a row with chain
-    /// "v1.18 \| v1.19"; direct comparison to frontmatter "1.18" finds a mismatch.
-    /// This test was RED against bc_index_row_contains_version (helper returned true).
+    /// Bypass 1 pin: index-newer-than-primary is detected as mismatch.
+    /// Inline proof (B) shows the deleted whole-row helper would have returned true.
+    /// Load-bearing assertion (C): index_ver_matches_frontmatter returns false.
     #[test]
-    #[allow(clippy::panic)] // test mutant: panic! on unexpected variant is intentional
+    #[allow(clippy::panic)]
     fn test_bypass_1_index_newer_than_primary_detected_as_mismatch() {
-        // BC-INDEX row with chain "v1.18 \| v1.19": a bogus newer entry was appended
-        // without updating the BC frontmatter — index-newer-than-primary anomaly.
+        // BC-INDEX row with chain "v1.18 \| v1.19": index advanced past BC frontmatter.
         let row = "| [BC-5.39.010](ss-05/BC-5.39.010.md) | desc | active | CAP | S-21.07 | \
                    v1.18 \\| v1.19 |\n";
         let frontmatter_version = "1.18";
 
+        // (A) Extractor sanity: terminal chain-entry must be "1.19".
         let state = arm_a1::extract_bc_index_version_state("BC-5.39.010", row.as_bytes());
-        match state {
-            arm_a1::BcIndexVersionState::Version(ref index_ver) => {
-                assert_ne!(
-                    index_ver.as_str(),
-                    frontmatter_version,
-                    "BYPASS 1 MUTANT FAILURE: extractor returned version equal to frontmatter \
-                     for an index-newer-than-primary scenario. \
-                     Expected Version(\"1.19\") ≠ \"1.18\" — mismatch must be detected."
-                );
-                assert_eq!(
-                    index_ver.as_str(),
-                    "1.19",
-                    "BYPASS 1 MUTANT FAILURE: extractor must return Version(\"1.19\") \
-                     (last chain entry) for row ending '\\| v1.19'."
-                );
-            }
-            other => panic!(
-                "BYPASS 1 MUTANT FAILURE: expected Version(_) from index row, got {other:?}."
-            ),
-        }
+        let index_ver = match state {
+            arm_a1::BcIndexVersionState::Version(v) => v,
+            other => panic!("BYPASS 1 SETUP: expected Version(_) from index row, got {other:?}."),
+        };
+        assert_eq!(
+            index_ver.as_str(),
+            "1.19",
+            "BYPASS 1 EXTRACTOR: must return Version(\"1.19\") for chain ending '\\| v1.19'."
+        );
+
+        // (B) Inline WEAK semantics proof: whole-row `v{fv}` scan with trailing-non-digit
+        // check returns true — the false-pass the old helper admitted for this vector.
+        let fv_token = format!("v{frontmatter_version}");
+        let weak_result = row
+            .find(&fv_token)
+            .map(|pos| {
+                row[pos + fv_token.len()..]
+                    .chars()
+                    .next()
+                    .is_none_or(|c| !c.is_ascii_digit())
+            })
+            .unwrap_or(false);
+        assert!(
+            weak_result,
+            "BYPASS 1 WEAK PROOF: whole-row scan must find '{fv_token}' with trailing \
+             non-digit — this is the false-pass the fix closes; if this fails the bypass \
+             vector is not structured as expected."
+        );
+
+        // (C) NAMED FUNCTION assertion (load-bearing): index_ver_matches_frontmatter must
+        // return false (mismatch detected). Any non-strict-equality implementation of this
+        // function that returns true here causes this assertion to fail → RED.
+        assert!(
+            !arm_a1::index_ver_matches_frontmatter(&index_ver, frontmatter_version),
+            "BYPASS 1 MUTANT FAILURE: index_ver_matches_frontmatter returned true for \
+             index-newer-than-primary (index_ver={index_ver:?}, fv={frontmatter_version:?}). \
+             Terminal-value comparison must detect this mismatch. A true return means the \
+             comparison predicate was changed to a non-strict form — the bypass vector is live."
+        );
     }
 
-    /// Bypass 2 mutant: annotation-prose rollback is detected as mismatch.
-    /// extract_bc_index_version_state returns Version("1.24") for a row with
-    /// "v1.24 (promoted v1.23 D-839)"; direct comparison to frontmatter "1.23"
-    /// finds a mismatch. Old helper: "v1.23" in annotation prose → false-pass.
+    /// Bypass 2 pin: annotation-token rollback is detected as mismatch.
+    /// Inline proof (B) shows the deleted whole-row helper would have returned true.
+    /// Load-bearing assertion (C): index_ver_matches_frontmatter returns false.
     #[test]
-    #[allow(clippy::panic)] // test mutant: panic! on unexpected variant is intentional
+    #[allow(clippy::panic)]
     fn test_bypass_2_annotation_rollback_detected_as_mismatch() {
-        // BC-3.08.001 shape: last chain entry is "v1.24 (promoted v1.23 D-839)".
-        // Frontmatter was rolled back to "1.23".
-        // Extractor picks first token of last entry: "1.24".
+        // BC-3.08.001 shape: last chain entry "v1.24 (promoted v1.23 D-839; …)".
+        // Frontmatter rolled back to "1.23".
         let row = "| [BC-3.08.001](ss-03/BC-3.08.001.md) | desc | active | CAP-003 | S | \
                    v1.24 (promoted v1.23 D-839; no promotion required) |\n";
         let frontmatter_version = "1.23";
 
+        // (A) Extractor sanity: terminal value is first token of last entry — "1.24".
         let state = arm_a1::extract_bc_index_version_state("BC-3.08.001", row.as_bytes());
-        match state {
-            arm_a1::BcIndexVersionState::Version(ref index_ver) => {
-                assert_ne!(
-                    index_ver.as_str(),
-                    frontmatter_version,
-                    "BYPASS 2 MUTANT FAILURE: extractor returned version equal to frontmatter \
-                     for an annotation-rollback scenario. \
-                     Expected Version(\"1.24\") ≠ \"1.23\" — annotation-prose rollback \
-                     must be detected as a mismatch."
-                );
-                assert_eq!(
-                    index_ver.as_str(),
-                    "1.24",
-                    "BYPASS 2 MUTANT FAILURE: extractor must return Version(\"1.24\") \
-                     (first token of last chain entry, not annotation prose)."
-                );
-            }
-            other => {
-                panic!("BYPASS 2 MUTANT FAILURE: expected Version(_) from row, got {other:?}.")
-            }
-        }
+        let index_ver = match state {
+            arm_a1::BcIndexVersionState::Version(v) => v,
+            other => panic!("BYPASS 2 SETUP: expected Version(_) from index row, got {other:?}."),
+        };
+        assert_eq!(
+            index_ver.as_str(),
+            "1.24",
+            "BYPASS 2 EXTRACTOR: must return Version(\"1.24\") — first token of last chain \
+             entry, not annotation prose."
+        );
+
+        // (B) Inline WEAK semantics proof: whole-row scan finds "v1.23" in annotation prose.
+        let fv_token = format!("v{frontmatter_version}");
+        let weak_result = row
+            .find(&fv_token)
+            .map(|pos| {
+                row[pos + fv_token.len()..]
+                    .chars()
+                    .next()
+                    .is_none_or(|c| !c.is_ascii_digit())
+            })
+            .unwrap_or(false);
+        assert!(
+            weak_result,
+            "BYPASS 2 WEAK PROOF: whole-row scan must find '{fv_token}' in annotation \
+             prose — this is the false-pass the fix closes."
+        );
+
+        // (C) NAMED FUNCTION assertion (load-bearing): must return false (mismatch detected).
+        assert!(
+            !arm_a1::index_ver_matches_frontmatter(&index_ver, frontmatter_version),
+            "BYPASS 2 MUTANT FAILURE: index_ver_matches_frontmatter returned true for \
+             annotation-rollback (index_ver={index_ver:?}, fv={frontmatter_version:?}). \
+             Terminal-value comparison must detect this mismatch."
+        );
     }
 
-    /// Bypass 3 mutant: chain-rollback is detected as mismatch.
-    /// extract_bc_index_version_state returns Version("1.13") for a full chain row
-    /// "v1.10 \| v1.11 \| v1.12 \| v1.13"; direct comparison to frontmatter "1.10"
-    /// finds a mismatch. Old helper: all four versions appear in the row → false-pass
-    /// for any rolled-back frontmatter value.
+    /// Bypass 3 pin: chain-rollback is detected as mismatch.
+    /// Inline proof (B) shows the deleted whole-row helper would have returned true.
+    /// Load-bearing assertion (C): index_ver_matches_frontmatter returns false.
     #[test]
-    #[allow(clippy::panic)] // test mutant: panic! on unexpected variant is intentional
+    #[allow(clippy::panic)]
     fn test_bypass_3_chain_rollback_detected_as_mismatch() {
         // Full chain row: v1.10 \| v1.11 \| v1.12 \| v1.13.
-        // Frontmatter rolled back to "1.10" (any prior entry would also be a rollback).
-        // Extractor returns last entry "1.13".
+        // Frontmatter rolled back to "1.10" — any prior chain entry is a rollback.
         let row = "| [BC-5.39.010](ss-05/BC-5.39.010.md) | desc | active | CAP | S-21.07 | \
                    v1.10 \\| v1.11 \\| v1.12 \\| v1.13 |\n";
         let frontmatter_version = "1.10";
 
+        // (A) Extractor sanity: last chain entry is "1.13".
         let state = arm_a1::extract_bc_index_version_state("BC-5.39.010", row.as_bytes());
-        match state {
-            arm_a1::BcIndexVersionState::Version(ref index_ver) => {
-                assert_ne!(
-                    index_ver.as_str(),
-                    frontmatter_version,
-                    "BYPASS 3 MUTANT FAILURE: extractor returned version equal to frontmatter \
-                     for a chain-rollback scenario. \
-                     Expected Version(\"1.13\") ≠ \"1.10\" — rollback to any prior chain \
-                     entry must be detected as a mismatch."
-                );
-                assert_eq!(
-                    index_ver.as_str(),
-                    "1.13",
-                    "BYPASS 3 MUTANT FAILURE: extractor must return Version(\"1.13\") \
-                     (last chain entry) for a cumulative chain ending '\\| v1.13'."
-                );
-            }
-            other => {
-                panic!("BYPASS 3 MUTANT FAILURE: expected Version(_) from row, got {other:?}.")
-            }
-        }
+        let index_ver = match state {
+            arm_a1::BcIndexVersionState::Version(v) => v,
+            other => panic!("BYPASS 3 SETUP: expected Version(_) from index row, got {other:?}."),
+        };
+        assert_eq!(
+            index_ver.as_str(),
+            "1.13",
+            "BYPASS 3 EXTRACTOR: must return Version(\"1.13\") — last chain entry for \
+             row ending '\\| v1.13'."
+        );
+
+        // (B) Inline WEAK semantics proof: whole-row scan finds "v1.10" in cumulative chain.
+        // Chains are append-only; any prior entry is always present in the raw row.
+        let fv_token = format!("v{frontmatter_version}");
+        let weak_result = row
+            .find(&fv_token)
+            .map(|pos| {
+                row[pos + fv_token.len()..]
+                    .chars()
+                    .next()
+                    .is_none_or(|c| !c.is_ascii_digit())
+            })
+            .unwrap_or(false);
+        assert!(
+            weak_result,
+            "BYPASS 3 WEAK PROOF: whole-row scan must find '{fv_token}' in cumulative \
+             chain — chains are append-only so any prior entry is always present."
+        );
+
+        // (C) NAMED FUNCTION assertion (load-bearing): must return false (rollback detected).
+        // Chains are append-only: the terminal entry is always the maximum version.
+        // A rolled-back frontmatter value ≠ terminal entry → false (mismatch detected).
+        assert!(
+            !arm_a1::index_ver_matches_frontmatter(&index_ver, frontmatter_version),
+            "BYPASS 3 MUTANT FAILURE: index_ver_matches_frontmatter returned true for \
+             chain-rollback (index_ver={index_ver:?}, fv={frontmatter_version:?}). \
+             Terminal-value comparison must detect rollback to any prior chain entry."
+        );
     }
 }
