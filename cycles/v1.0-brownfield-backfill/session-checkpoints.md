@@ -7,7 +7,7 @@ producer: state-manager
 timestamp: 2026-04-26T12:00:00Z
 cycle: v1.0-brownfield-backfill
 inputs: [STATE.md]
-input-hash: "c7687f7"
+input-hash: "5647f9a"
 traces_to: STATE.md
 ---
 
@@ -1740,3 +1740,19 @@ Key state at D-960 archive:
 - develop: 700b4dd3 (remote; local stale at 948f0fb1 — pull on resume); main: 80e5cd7b.
 
 **This checkpoint superseded by SESSION-WRAP-2026-08-07 pause burst 2026-08-07.**
+
+---
+
+## Session Resume Checkpoint (2026-08-08 — D-964-PASS-9-CLOSURE-FUEL-REMEDIATION-BURST — PIPELINE PAUSED; pass-10 adversary NEXT; streak 0/3; trajectory-tail →24→20→16→8)
+
+Archived from STATE.md by SESSION-WRAP-2026-08-09 checkpoint burst (2026-08-09). Full content preserved in git: `git show 0b3c2856:.factory/STATE.md` (factory-artifacts HEAD at D-964/policy22-lesson tip archive time).
+
+Key state at D-964 archive:
+- Pipeline PAUSED. D-964 pass-9 closure + fuel-remediation burst COMPLETE (SHA-patch d8334693). factory-artifacts tip `d8334693`. 4-INDEX: BC v4.55 / VP v2.76 / STORY v4.291 / ARCH v3.51. ALL 8 PASS-9 FINDINGS CLOSED. pass-10 adversary dispatch is NEXT.
+- Streak 0/3 (8 true adversary passes; 0 CLEAN). Trajectory `47→18→25→25→24→20→16→8`; tail `→24→20→16→8`.
+- `feature/S-21.07` @ `5370db80` — LOCAL ONLY (3 ahead origin `37022ecc`); FROZEN per team-lead; MERGE-ORDER: S-21.09 first.
+- `policies.yaml` v1.4.22 PROPOSED per ADR-040 §Decision 6; awaits human ratification.
+- `fix/fuel-cap-raise-20m` @ `7cbb9232` — NOT YET EFFECTIVE (release-gated; 1138 events/day continue).
+- develop: `700b4dd3`; main: `80e5cd7b`.
+
+**This checkpoint superseded by SESSION-WRAP-2026-08-09 checkpoint burst 2026-08-09.**

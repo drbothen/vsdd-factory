@@ -1,19 +1,19 @@
 ---
 document_type: pipeline-state
 level: ops
-version: "7.01"
+version: "7.02"
 status: draft
 producer: state-manager
-timestamp: 2026-08-08T21:18:00Z
+timestamp: 2026-08-09T00:05:00Z
 phase: D-964-PASS-9-CLOSURE-PIPELINE-PAUSED
-last_amended: "2026-08-08 (v7.01) — D-964-PASS-9-CLOSURE-FUEL-REMEDIATION-BURST (state-manager): pass-9 ALL 8 FINDINGS CLOSED — P9-002 CLOSED (ADR-042 10M→20M; gate impl `5370db80`; S-21.13 W7 anchor); P9-003 CLOSED (ADR-040 §Decision 6; `5370db80` 3 attestation sections). ADR-042 v1.2 ratified; S-21.13 registered E-21 W7; D-945 DISCHARGED. ORCHESTRATOR ERROR corrected: D-963 falsified-diagnosis wrong — both measurements valid two scenarios; ~29× by placement; BC v1.17. `fix/fuel-cap-raise-20m` `7cbb9232` NOT YET EFFECTIVE (release-gated). 4-INDEX ADVANCED: BC v4.55/VP v2.76/STORY v4.291/ARCH v3.51. STATE.md v7.00→v7.01. [Prior: 2026-08-08 (v7.00) — D-963-BC-CORRECTION-BURST: BC-5.39.010 ~110 FALSIFIED; ERRATUM; 2 Drift Items; 4-INDEX UNCHANGED; SHA-patch e4bc6683.]"
+last_amended: "2026-08-09 (v7.02) — SESSION-WRAP-2026-08-09 (state-manager): checkpoint burst; human /wrap directive; pass-9 ALL 8 CLOSED; streak 0/3; trajectory-tail →24→20→16→8 UNCHANGED; 5 branches pushed (S-21.07 5370db80 / S-21.04 323f440f / fix/nested 9afc3226 / fix/d999 bf642fd9 / fix/fuel-cap 7cbb9232); drift item added (3 log deletions recurrence); checkpoint refreshed; STATE.md v7.01→v7.02; resume: cut release first. [Prior: 2026-08-08 (v7.01) — D-964-PASS-9-CLOSURE-FUEL-REMEDIATION-BURST: pass-9 ALL 8 FINDINGS CLOSED; ADR-042 v1.2 ratified (10M→20M); S-21.13 registered E-21 W7; D-945 DISCHARGED; ORCHESTRATOR ERROR corrected; 4-INDEX BC v4.55/VP v2.76/STORY v4.291/ARCH v3.51.]"
 inputs: []
 input-hash: "[live-state]"
 traces_to: prd.md
 project: vsdd-factory
 mode: brownfield
 pipeline: PAUSED
-current_step: "D-964-PASS-9-CLOSURE-FUEL-REMEDIATION-BURST (state-manager; parent-commit: 1659cf08; trajectory-tail →24→20→16→8 UNCHANGED). D-964 codified (8 sub-clauses a-h): (a) POLICY 16 GATE PASS — D-964 allocated; parent-commit 1659cf08; pass-9 8/8 CLOSED; P9-002 CLOSED (ADR-042 10M→20M; `5370db80`; S-21.13 anchor); P9-003 CLOSED (ADR-040 §Decision 6; `5370db80` 3 attestation sections); streak 0/3 UNCHANGED; (b) ADR-042 v1.2 ratified — 10M→20M; prod worst-case 10,406,058 fuel; 12M floor; 20M ≈92%; `fuel = 29,452 + 27.514 × payload_bytes` R²=0.9999999; linear not O(n²); ADR-035 v1.1; (c) PLATFORM-WIDE: 1138 fuel-exhaustion events 35 distinct plugins measured 2026-08-08; legacy-bash-adapter.wasm 78 registry refs; exhaustion traps before exec_subprocess; hook chain non-functional on large-file .factory/ writes; (d) ADR-040 v1.1 §Decision 6; scope mismatch adjudicated; policies.yaml v1.4.22 PROPOSED awaits human ratification; (e) S-21.13 registered E-21 W7 13pt input-hash eeca152; E-21 v1.10 12 stories 96 pts W1-W7; (f) D-945 DISCHARGED by ADR-042 §Decision 4; (g) ORCHESTRATOR ERROR — D-963 falsified-diagnosis wrong; both measurements valid two scenarios; ~29× per-row by placement; attributed to orchestrator not PO/SM; BC v1.17; (h) fix/fuel-cap-raise-20m 7cbb9232 NOT YET EFFECTIVE — release-gated; 1138-events/day continue until release. 4-INDEX: BC v4.55/VP v2.76/STORY v4.291/ARCH v3.51. STATE.md v7.00→v7.01. pass-10 adversary NEXT."
+current_step: "SESSION-WRAP-2026-08-09 (state-manager; parent-commit: 0b3c2856; STATE.md v7.01→v7.02; timestamp refreshed 2026-08-09; pass-9 ALL 8 CLOSED D-964; streak 0/3 UNCHANGED; trajectory-tail →24→20→16→8 UNCHANGED; 5 branches pushed (S-21.07 5370db80 / S-21.04 323f440f / fix/nested 9afc3226 / fix/d999 bf642fd9 / fix/fuel-cap 7cbb9232); fix/fuel-exhaustion-fail-loud fbb9dcb6 ABANDONED not pushed; drift item added (3 log deletions recurrence unestablished); checkpoint archived to session-checkpoints.md; new checkpoint written; resume: cut release first then pass-10 adversary)."
 current_cycle: v1.0-brownfield-backfill
 dtu_required: false
 dtu_assessment: 2026-04-25
@@ -50,6 +50,7 @@ dtu_services: []
   ~415 lines (estimated post-D-963 SHA-patch e4bc6683 2026-08-08; v7.00 UNCHANGED)
   281 lines (wc-l post-D-964 PASS-9-CLOSURE-BURST 2026-08-08; v7.00→v7.01)
   282 lines (wc-l post-D-964 SHA-patch d8334693 2026-08-08; v7.01 UNCHANGED)
+  NNN lines (wc-l post-SESSION-WRAP-2026-08-09 2026-08-09; v7.01→v7.02)
 -->
 
 # Pipeline State: vsdd-factory
@@ -65,8 +66,8 @@ dtu_services: []
 | **Mode** | brownfield-onboarding |
 | **Language** | Rust + Bash + Markdown |
 | **Started** | 2026-04-25 |
-| **Last Updated** | 2026-08-08 — D-964-PASS-9-CLOSURE-FUEL-REMEDIATION-BURST: pass-9 ALL 8 FINDINGS CLOSED; ADR-042 v1.2 ratified (10M→20M); S-21.13 registered E-21 W7; D-945 DISCHARGED; ORCHESTRATOR ERROR corrected (D-963 falsified-diagnosis wrong; both measurements valid); STATE.md v7.00→v7.01; 4-INDEX BC v4.55/VP v2.76/STORY v4.291/ARCH v3.51; trajectory-tail →24→20→16→8. [Prior: D-963: BC-5.39.010 ~110 FALSIFIED; SHA-patch e4bc6683.] |
-| **Current Phase** | **D-964-PASS-9-CLOSURE-FUEL-REMEDIATION-BURST (2026-08-08). PIPELINE PAUSED. ALL 8 PASS-9 FINDINGS CLOSED. streak 0/3 (8 true adversary passes; 0 CLEAN); trajectory-tail →24→20→16→8 UNCHANGED; last D-NNN: D-964. develop 700b4dd3. main 80e5cd7b. merged_count 107. 4-INDEX BC v4.55/VP v2.76/STORY v4.291/ARCH v3.51.** |
+| **Last Updated** | 2026-08-09 — SESSION-WRAP-2026-08-09: checkpoint burst; human /wrap directive; pass-9 ALL 8 CLOSED; 5 branches pushed; trajectory-tail →24→20→16→8 UNCHANGED; resume: cut release first; STATE.md v7.01→v7.02. [Prior: 2026-08-08 — D-964: pass-9 ALL 8 FINDINGS CLOSED; ADR-042 v1.2 ratified; S-21.13 registered; D-945 DISCHARGED; 4-INDEX BC v4.55/VP v2.76/STORY v4.291/ARCH v3.51.] |
+| **Current Phase** | **SESSION-WRAP-2026-08-09 (2026-08-09). PIPELINE PAUSED. ALL 8 PASS-9 FINDINGS CLOSED. streak 0/3 (9 adversary passes; 0 CLEAN); trajectory-tail →24→20→16→8 UNCHANGED; last D-NNN: D-964. 5 branches pushed. develop 700b4dd3. main 80e5cd7b. merged_count 107. 4-INDEX BC v4.55/VP v2.76/STORY v4.291/ARCH v3.51.** |
 | **Current Cycle** | v1.0-brownfield-backfill |
 
 ## Phase Progress
@@ -92,6 +93,7 @@ dtu_services: []
 | D-962-PASS-9-RECORD-BURST 2026-08-08: adversary-pass-9.md persisted (NOT-CLEAN B0/H3/M3/L1/NIT1; HALVING 16→8; first zero-BLOCKER; reviewed HEAD 67ffbdcc). D-962 codified. BC v4.53; STORY v4.290; trajectory-tail →24→20→16→8 ADVANCED. SHA-patch c4e1e66d. | **COMPLETE** | D-963 correction NEXT |
 | D-963-BC-CORRECTION-BURST 2026-08-08: BC-5.39.010 ~110 FALSIFIED (4 safe/5th exhausts SS-05; early-return row 921); ERRATUM inserted; 1.15-erratum changelog; input-hash 2db1ebe; 2 Drift Items; D-963 codified; 4-INDEX UNCHANGED; STATE.md v6.99→v7.00; SHA-patch e4bc6683 | **COMPLETE** | pass-10 adversary NEXT |
 | D-964-PASS-9-CLOSURE-FUEL-REMEDIATION-BURST 2026-08-08: pass-9 ALL 8 FINDINGS CLOSED; ADR-042 v1.2 ratified (10M→20M); ADR-040 v1.1 §Decision 6; S-21.13 registered E-21 W7; D-945 DISCHARGED; ORCHESTRATOR ERROR D-963 corrected; BC v4.55; STORY v4.291; ARCH v3.51; STATE.md v7.00→v7.01 | **COMPLETE** | pass-10 adversary NEXT |
+| SESSION-WRAP-2026-08-09 PIPELINE PAUSED 2026-08-09 | **COMPLETE** | 5 branches pushed; checkpoint refreshed; drift item added (log-deletion recurrence); trajectory-tail →24→20→16→8 UNCHANGED; resume: cut release first |
 | **E-18 EPIC COMPLETE 2026-07-01 D-744** | **EPIC COMPLETE** | Final story S-18.12 MERGED PR #384 ec05606a. |
 
 ## Current Phase Steps
@@ -106,6 +108,7 @@ dtu_services: []
 | D-962-PASS-9-RECORD-BURST 2026-08-08 (SHA-patch c4e1e66d) | state-manager | COMPLETE | adversary-pass-9.md persisted (NOT-CLEAN B0/H3/M3/L1/NIT1; HALVING 16→8); BC v4.53; STORY v4.290; trajectory-tail →24→20→16→8; P9-003 OPEN. |
 | D-963-BC-CORRECTION-BURST 2026-08-08 (SHA-patch e4bc6683) | state-manager | COMPLETE | BC-5.39.010 ~110 FALSIFIED; ERRATUM inserted; 2 Drift Items; D-963 codified; 4-INDEX UNCHANGED; STATE.md v7.00. |
 | D-964-PASS-9-CLOSURE-FUEL-REMEDIATION-BURST 2026-08-08 (SHA-patch d8334693) | state-manager | COMPLETE | pass-9 ALL 8 FINDINGS CLOSED; ADR-042 v1.2 ratified; S-21.13 registered; D-945 DISCHARGED; ORCH ERROR corrected; BC v4.55; STORY v4.291; ARCH v3.51; STATE.md v7.01; SHA-patch d8334693. pass-10 adversary NEXT. |
+| SESSION-WRAP-2026-08-09 (session-wrap burst; human /wrap directive) | state-manager | COMPLETE | 5 branches pushed; telemetry committed; checkpoint refreshed; drift item added (log-deletion recurrence); trajectory-tail →24→20→16→8 UNCHANGED; STATE.md v7.01→v7.02. |
 
 ## Identifier Conventions
 
@@ -125,7 +128,7 @@ dtu_services: []
 
 - **Merged (107):** S-19.07 MERGED PR #670 6db4c9fc (E-19 COMPLETE 9/9). Full ledger: `cycles/v1.0-brownfield-backfill/merged-stories-ledger.md`
 - **In-Flight (0):** --
-- **E-21:** S-21.07 (W4; pass-9 ALL CLOSED D-964; BC-5.39.010 v1.17; branch 5370db80 LOCAL ONLY; NO REBASE; S-21.09 MUST land first); S-21.09 (NO branch — MUST land before S-21.07); S-21.10/S-21.11/S-21.12 per D-961; S-21.13 (W7 NEW D-964; depends_on S-21.10/S-21.11; draft).
+- **E-21:** S-21.07 (W4; pass-9 ALL CLOSED D-964; BC-5.39.010 v1.17; branch 5370db80 pushed; NO REBASE; S-21.09 MUST land first); S-21.09 (NO branch — MUST land before S-21.07); S-21.10/S-21.11/S-21.12 per D-961; S-21.13 (W7 NEW D-964; depends_on S-21.10/S-21.11; draft).
 - **Draft (31), Partial (2), Withdrawn (1):** see prior session checkpoints
 
 ## Active Branches
@@ -134,13 +137,13 @@ dtu_services: []
 |--------------|-----|-------|
 | main | 80e5cd7b | rc.23 bot binary bundle 2026-07-18 |
 | develop | 700b4dd3 | PR #770 squash-merged 2026-08-07. Local stale at 948f0fb1 — pull on resume. |
-| factory-artifacts | d8334693 | D-964/B SHA-patch complete. |
-| feature/S-21.07 | 5370db80 | ALL PASS-9 FINDINGS CLOSED D-964. LOCAL ONLY — 3 ahead origin 37022ecc. FROZEN per team-lead; MERGE-ORDER: S-21.09 first. |
-| feature/S-21.04 | 323f440f | pass-31 pending; no PR |
-| fix/nested-factory-path-derivation | 9afc3226 | F-S2107-P8-016 + P9-008 CLOSED. LOCAL, not pushed. |
-| fix/d999-sentinel-code-migration | bf642fd9 | ADR-041 sentinel. LOCAL in .worktrees/d999-migration, not pushed. |
-| fix/fuel-cap-raise-20m | 7cbb9232 | 2 commits (182dfc68 cap raise + 7cbb9232 fuel-vs-epoch disambiguation). NOT YET EFFECTIVE — release-gated. LOCAL, not pushed. |
-| fix/fuel-exhaustion-fail-loud | fbb9dcb6 | ABANDONED — orchestrator dispatch error (87 files duplicating unmerged S-21.07). Measurement artifact only. |
+| factory-artifacts | SHA-patch: this-commit | SESSION-WRAP-2026-08-09 checkpoint burst. |
+| feature/S-21.07 | 5370db80 | ALL PASS-9 FINDINGS CLOSED D-964. Pushed; SHA-equal with origin. FROZEN per team-lead; NO REBASE; MERGE-ORDER: S-21.09 first. |
+| feature/S-21.04 | 323f440f | pass-31 pending; no PR. Pushed; SHA-equal with origin. |
+| fix/nested-factory-path-derivation | 9afc3226 | F-S2107-P8-016 + P9-008 CLOSED. Pushed; SHA-equal with origin. |
+| fix/d999-sentinel-code-migration | bf642fd9 | ADR-041 sentinel. Pushed; SHA-equal with origin. |
+| fix/fuel-cap-raise-20m | 7cbb9232 | 2 commits (182dfc68 cap raise + 7cbb9232 fuel-vs-epoch disambiguation). NOT YET EFFECTIVE — release-gated. Pushed; SHA-equal with origin. |
+| fix/fuel-exhaustion-fail-loud | fbb9dcb6 | ABANDONED — orchestrator dispatch error (87 files duplicating unmerged S-21.07). Local-only; deliberately NOT pushed. |
 | v1.0.0-rc.23 (tag) | 0f8b2a89 | SHIPPED 2026-07-18; FULLY IN OPERATOR MARKETPLACE |
 
 ## Concurrent Cycles
@@ -148,7 +151,7 @@ dtu_services: []
 | Cycle | Type | Status | Notes |
 |-------|------|--------|-------|
 | F-block-ai-attribution-message-file-arm | feature | F3 COMPLETE — F4 READY | E-16 under SS-07/SS-04; milestone v1.0.0-rc.17 |
-| v1.0-brownfield-backfill | brownfield | D-964-PASS-9-CLOSURE PIPELINE PAUSED. develop 700b4dd3; main 80e5cd7b; merged_count 107; BC v4.55; VP v2.76; STORY v4.291; ARCH v3.51; streak 0/3 (8 passes); tail →24→20→16→8 UNCHANGED. ALL PASS-9 FINDINGS CLOSED. pass-10 adversary NEXT. | D-964 2026-08-08; D-963 2026-08-08; D-962 2026-08-08; D-961 2026-08-07. |
+| v1.0-brownfield-backfill | brownfield | SESSION-WRAP-2026-08-09 PIPELINE PAUSED. develop 700b4dd3; main 80e5cd7b; merged_count 107; BC v4.55; VP v2.76; STORY v4.291; ARCH v3.51; streak 0/3 (9 passes); tail →24→20→16→8 UNCHANGED. ALL PASS-9 FINDINGS CLOSED. resume: cut release first, then pass-10 adversary. | SESSION-WRAP 2026-08-09; D-964 2026-08-08; D-963 2026-08-08; D-962 2026-08-08. |
 | v1.0-feature-engine-discipline-pass-1 | feature | PAUSED | F5 pass-75 complete D-510; META-LEVEL-30 CANDIDATE-CONFIRMED; trajectory →9→9→9→11. |
 | v1.0-feature-plugin-async-semantics-pass-1 | feature | CLOSED | All PRs merged; rc.14 shipped |
 
@@ -201,13 +204,14 @@ dtu_services: []
 | **[D-958] 60 of 158 stories lack tdd_mode** | OPEN 2026-08-06 | Anchor: S-15.03 PRIORITY-A. |
 | **[D-958] GATE DEFECT: validate-pr-review-posted + validate-changelog-monotonicity** | OPEN 2026-08-06 | Paper-gate; header-skip misread. |
 | **[D-961] SEC-001 + RUSTSEC-2026-0222/0204 + 7 Dependabot + EAC-002 + ADR-033** | OPEN 2026-08-07 — SECURITY | E-22 scope re-anchored to E-21 W4. |
-| **[D-961] fix/nested-factory-path-derivation + fix/d999-sentinel-code-migration LOCAL ONLY** | OPEN 2026-08-07 | Both branches not pushed; team-lead decides delivery path. |
+| **[D-961] fix/nested-factory-path-derivation + fix/d999-sentinel-code-migration** | RESOLVED 2026-08-09 — both pushed | Both branches pushed to origin (SESSION-WRAP-2026-08-09); team-lead decides PR/delivery path. |
 | **[D-962] F-S2107-P9-002 fuel-exhaustion gate impl** | **CLOSED D-964** | ADR-042 10M→20M cap; gate impl `5370db80`; S-21.13 W7 anchor for §Decision 5. |
 | **[D-962] F-S2107-P9-003 POLICY 15 gate → 0** | **CLOSED D-964** | ADR-040 §Decision 6 conditional pre-check + line-anchored predicate; 3 attestation sections at `5370db80`. |
 | **[D-963] ADR-035 §Decision 5 quadratic not observed** | OPEN 2026-08-08 | Direct measurement linear R²=0.998790. Route: architect at next ADR-035 touch. |
 | **[D-963] BC-5.39.010 live-operation silent exhaustion gap** | OPEN 2026-08-08 | plugin.timeout exits 0/empty; live agents receive no signal. Bats-only margin gate insufficient. Anchor: S-21.07 + margin gate implementation. |
 | **[D-964] policies.yaml v1.4.22 PROPOSED** | OPEN 2026-08-08 — AWAITS HUMAN RATIFICATION | ADR-040 §Decision 6 replacement text; do NOT apply until ratified by human. |
 | **[D-964] fix/fuel-cap-raise-20m NOT YET EFFECTIVE** | OPEN 2026-08-08 — release-gated | `7cbb9232` 10M→20M fix; operator cache `1.0.0-rc.23` still embeds 10M; requires release to take effect; 1138-events/day continue. |
+| **[SESSION-WRAP-2026-08-09] Dispatcher log deletion recurrence — 3 occurrences** | OPEN 2026-08-09 — root cause unestablished | Three unexplained working-tree deletions of tracked dispatcher-internal logs in a single session: logs/dispatcher-internal-2026-07-08.jsonl (earlier this session), logs/dispatcher-internal-2026-06-09.jsonl, logs/dispatcher-internal-2026-07-09.jsonl. Restored each time via `git restore`. No hook, script, or WASM plugin found to account for them. Hypothesis: session-end-telemetry or precompact-flush WASM plugin may have a retention policy; cannot confirm without WASM introspection. Anchor: next maintenance sweep. |
 
 ## Historical Content
 
@@ -215,68 +219,68 @@ dtu_services: []
 - `cycles/v1.0-feature-plugin-async-semantics-pass-1/burst-log.md` | `session-checkpoints.md` | `lessons.md`
 - `cycles/v1.0-feature-engine-discipline-pass-1/burst-log.md`
 
-## Session Resume Checkpoint (2026-08-08 — D-964-PASS-9-CLOSURE-FUEL-REMEDIATION-BURST — PIPELINE PAUSED; pass-10 adversary NEXT; streak 0/3; trajectory-tail →24→20→16→8)
+## Session Resume Checkpoint (2026-08-09 — SESSION-WRAP-2026-08-09 PIPELINE PAUSED; pass-9 ALL 8 CLOSED; streak 0/3; trajectory-tail →24→20→16→8; 5 branches pushed; cut release NEXT)
 
 > **SELF-SUFFICIENT RESUME CONTEXT — ASSUMES ZERO PRIOR CONTEXT. PIPELINE PAUSED.**
 
 ### §1 Position
 
-Cycle `v1.0-brownfield-backfill`. **D-964 pass-9 closure + fuel-remediation burst COMPLETE** (SHA-patch d8334693 complete). factory-artifacts tip **`d8334693`** (D-964/B SHA-patch complete). 4-INDEX: **BC v4.55 / VP v2.76 / STORY v4.291 / ARCH v3.51** (ADVANCED from D-963). ALL 8 PASS-9 FINDINGS CLOSED. pass-10 adversary dispatch is NEXT.
+Cycle `v1.0-brownfield-backfill`. Adversary **pass-9 CLOSED, 8 of 8 findings dispositioned**. Streak **0/3** — nine adversary passes, zero CLEAN verdicts; closure is not convergence. Trajectory `47→18→25→25→24→20→16→8`; tail LENGTH=4 `→24→20→16→8` UNCHANGED. factory-artifacts tip **`SHA-patch: this-commit`**. 4-INDEX: **BC v4.55 / VP v2.76 / STORY v4.291 / ARCH v3.51**. `policies.yaml` v1.4.21.
 
 ### §2 Convergence
 
-Streak **0/3**. **8 true adversary passes, ZERO CLEAN verdicts.** Trajectory `47 → 18 → 25 → 25 → 24 → 20 → 16 → 8`; tail LENGTH=4 → `→24→20→16→8`. UNCHANGED (D-964 is a closure burst, not an adversary pass).
+Streak **0/3**. Nine adversary passes, ZERO CLEAN verdicts. Trajectory `47→18→25→25→24→20→16→8`; tail `→24→20→16→8` UNCHANGED. pass-10 adversary is NEXT on resume.
 
-### §3 Pass-9 Findings (ALL CLOSED D-964)
+### §3 Branch States (ALL NOW PUSHED AND SHA-EQUAL — durability step completed this wrap)
 
-8 findings (B0/H3/M3/L1/NIT1) + 5 obs. **ALL CLOSED:** P9-001 (D-962 test-writer `38c70f9e`), P9-002 (D-964 ADR-042 + `5370db80` + S-21.13), P9-003 (D-964 ADR-040 §Decision 6 + `5370db80`), P9-004 (D-962 state-manager), P9-005 (D-962 story-writer), P9-006 (D-962 product-owner), P9-007 (D-962 state-manager), P9-008 (D-962 implementer `9afc3226`). No open pass-9 findings.
+| Branch | SHA | Note |
+|--------|-----|------|
+| `feature/S-21.07-validate-cross-site-correspondence` | `5370db80` | pushed; pass-8/9 closures + POLICY 15 attestations |
+| `feature/S-21.04-story-worktree-write-path-discipline` | `323f440f` | pushed; 30 passes / 0 CLEAN, pass-31 pending |
+| `fix/nested-factory-path-derivation` | `9afc3226` | pushed; F-S2107-P8-016 (3 sites) + P9-008 |
+| `fix/d999-sentinel-code-migration` | `bf642fd9` | pushed; ADR-041, 8 sites |
+| `fix/fuel-cap-raise-20m` | `7cbb9232` | pushed; ADR-042 cap 10M→20M + fuel-vs-epoch block_reason |
+| `fix/fuel-exhaustion-fail-loud` | `fbb9dcb6` | **ABANDONED, local-only, deliberately NOT pushed** — 87 files duplicating unmerged S-21.07 (orchestrator dispatch error) |
+| `factory-artifacts` | `SHA-patch: this-commit` | SESSION-WRAP-2026-08-09 checkpoint burst |
+| `develop` | `700b4dd3` | remote; local stale at `948f0fb1` — pull on resume |
+| `main` | `80e5cd7b` | rc.23 bot binary bundle 2026-07-18 |
 
-### §4 Branch States
+No PRs open for any of these. CI does not fire on feature-branch pushes (only main/develop and PRs) — **no CI results exist yet** for the four newly-pushed fix/feature branches.
 
-- `factory-artifacts` @ `d8334693` (D-964/B SHA-patch complete)
-- `feature/S-21.07` @ **`5370db80`** — LOCAL ONLY, 3 ahead of origin `37022ecc` (FROZEN per team-lead; NO REBASE; MERGE-ORDER: S-21.09 first)
-- `feature/S-21.04` @ `323f440f` — pass-31 pending, no PR
-- `fix/nested-factory-path-derivation` @ `9afc3226` — LOCAL, NOT pushed
-- `fix/d999-sentinel-code-migration` @ `bf642fd9` — LOCAL in `.worktrees/d999-migration`, NOT pushed
-- `fix/fuel-cap-raise-20m` @ `7cbb9232` — LOCAL, NOT pushed; NOT YET EFFECTIVE (release-gated)
-- `fix/fuel-exhaustion-fail-loud` @ `fbb9dcb6` — ABANDONED (orchestrator dispatch error)
-- `develop` @ **`700b4dd3`** (remote; local stale at `948f0fb1` — pull on resume)
+### §4 CRITICAL — Fuel Fix INERT Until Release
 
-### §5 PR #770 — MERGED
+The fuel-exhaustion remedy is **correct but INERT**. `fix/fuel-cap-raise-20m` raises the cap 10M→20M, but the bundled binaries under `plugins/vsdd-factory/hooks/dispatcher/bin/` and the operator cache at `1.0.0-rc.23` still embed 10M. **The fix takes effect only after a release cross-compiles the bundle.** Meanwhile: fuel-exhaustion events measured **838 → 1,226 during a single session**, across **35 distinct plugins** — an entire hook validation chain silently non-functional on large-file `.factory/` writes, surfaced to agents as an ambiguous `fail-closed: plugin timed out`. Every such block reported today was an instance. **Cut a release first on resume.**
 
-wasmtime-wasi = 44.0.3. CI green. RUSTSEC-2026-0149/0182 CLEARED.
+### §5 Resume Order
 
-### §6 CRITICAL — Main Checkout on Dead Branch
+1. **Cut a release** — makes the fuel fix effective; stops the ~1,200/day validation-skips.
+2. **ADR-042 §Decision 3 class (a)** — silent-exhaustion signalling for the `on_error = "continue"` class, on `feature/S-21.07`. Its commit must carry a POLICY 15 attestation citing parent `5370db80`.
+3. **Pass-10 adversary** — fresh context, Iron Law (D-959). Large new surface: BC-5.39.010 moved v1.14→v1.17 today, plus ADR-041/042/040/035 and S-21.13. Expect findings; the trend `16→8` is real but the denominator grew.
+4. **Human ratification of `policies.yaml` v1.4.21 → v1.4.22** (ADR-040 v1.1 §Decision 6). Until then POLICY 15 remains self-contradictory in the live registry — its obligation is commit-class-conditional while its detection clause is unconditional, so pass-10 may file a false-positive HIGH on a docs-only commit that §Decision 6 exempts.
 
-Working tree on `fix/wasmtime-wasi-cve-2026-47261` @ `23e307bb` (merged, remote deleted). **First action on resume: `git checkout develop && git pull && git branch -d fix/wasmtime-wasi-cve-2026-47261`.** Uncommitted: `.claude/scheduled_tasks.lock` + `plugins/vsdd-factory/tests/report.tap` — harness artifacts, do not commit.
+### §6 Pending Human Decisions
 
-### §7 Recommended Next Actions (team-lead instruction D-964(h))
+1. **`policies.yaml` v1.4.22 ratification** — PROPOSED per ADR-040 §Decision 6; awaits human sign-off. Self-contradictory until ratified.
+2. **Merge sequencing** — recorded order: S-21.12 → S-21.09 → S-21.07. S-21.12 and S-21.09 not yet built.
+3. **E-22 security scope sequencing** — SEC-001, RUSTSEC-0222/0204, 7 Dependabot, EAC-002, ADR-033.
+4. **fix/nested + fix/d999 delivery path** — both pushed to origin; team-lead decides whether to open PRs or merge into develop directly.
 
-**(1) Cut a release** so `fix/fuel-cap-raise-20m` takes effect (1138-events/day until release). **(2) ADR-042 §Decision 3 class (a)** silent-exhaustion work on `feature/S-21.07` (attestation must cite parent `5370db80` per POLICY 15). **(3) pass-10 adversary** (iron law fresh-context; diff base `5370db80`; aware of platform-wide fuel exhaustion + policies.yaml v1.4.22 PROPOSED). **(4) Human ratification of `policies.yaml` v1.4.22.**
+### §7 Open Items
 
-### §8 Pending Human Decisions
+- **S-21.13** (E-21 W7, `depends_on: [S-21.10, S-21.11]`) — human-directed deferral anchor for ADR-042 §Decision 5 `read_file_range`. Do NOT convert to tech-debt-register entry.
+- **`validate-index-cite-refresh`** — cannot use regex even at 20M (structural constraint orthogonal to payload size).
+- **Three unexplained dispatcher-log deletions** this session (logs/dispatcher-internal-2026-07-08.jsonl, logs/dispatcher-internal-2026-06-09.jsonl, logs/dispatcher-internal-2026-07-09.jsonl). Restored each time. Root cause unestablished — see Drift Items. Anchor: next maintenance sweep.
 
-1. **`policies.yaml` v1.4.22 ratification** — PROPOSED per ADR-040 §Decision 6; awaits human sign-off.
-2. **BC-5.39.010 v1.18** — v1.17 corrects D-963 ERRATUM; further normative work if required.
-3. **fix/nested + fix/d999 delivery** — both LOCAL ONLY.
-4. **E-22 security scope sequencing** — SEC-001, RUSTSEC-0222/0204, 7 Dependabot, EAC-002.
-5. **Release: `fix/fuel-cap-raise-20m`** — 1138-events/day hook exhaustion continues until rc.24 (or whatever release includes the cap raise).
+### §8 Cautions
 
-### §9 New Findings This Session
+- Do NOT run `/rehydrate-wave` — wave-state points at a closed epic.
+- Do NOT run `compute-input-hash --scan --update` — 418-file blast radius per D-936; single-file only.
+- Use explicit refspecs for pushes: `git push origin HEAD:<branch>`.
+- Main worktree sits on `fix/wasmtime-wasi-cve-2026-47261` @ `23e307bb` (merged, remote deleted). First action on resume: `git checkout develop && git pull && git branch -d fix/wasmtime-wasi-cve-2026-47261`.
+- `.claude/scheduled_tasks.lock` (M) and `plugins/vsdd-factory/tests/report.tap` (??) are harness artifacts — leave them.
+- `policies.yaml` v1.4.22 PROPOSED — do NOT apply without human ratification.
+- `fix/fuel-cap-raise-20m` NOT YET EFFECTIVE — release-gated.
 
-- D-962: pass-9 RECORD burst COMPLETE (c4e1e66d + SHA-patch 710b12e7).
-- D-963: BC-5.39.010 `~110` diagnosed as FALSIFIED (orchestrator error per D-964(g)).
-- D-964: ALL 8 pass-9 findings CLOSED; ADR-042 ratified; D-963 ERRATUM corrected; 1138 platform-wide exhaustion events documented.
+### §9 Resume Command
 
-### §10 Cautions
-
-- **BC-5.39.010 v1.17** — D-963 ERRATUM corrected; append scenario (~110 figure valid); insert-before-row-921 scenario (~5 rows). v1.18 pending if further normative work required.
-- **E-22 epic file** — RETAINED per human ruling 2026-08-08.
-- **`fix/fuel-cap-raise-20m`** — NOT YET EFFECTIVE; release-gated; 1138 hook exhaustion events/day continue.
-- **`policies.yaml` v1.4.22`** — PROPOSED only; do NOT apply without human ratification.
-- Do NOT run `compute-input-hash --scan --update` — 418-file blast radius per D-936.
-- Use explicit refspecs: `git push origin HEAD:<branch>`.
-
-### §11 Resume Command
-
-`/vsdd-factory:next-step`. D-964/B SHA-patch COMPLETE (`d8334693`). First action on resume: dispatch pass-10 adversary (iron law fresh-context; diff base `5370db80`; aware of platform-wide fuel exhaustion + policies.yaml v1.4.22 PROPOSED).
+`/vsdd-factory:next-step`.
