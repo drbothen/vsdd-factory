@@ -24425,5 +24425,5 @@ $ awk '/^## D-965-POLICY-15-ATTESTATION-GATE-RATIFICATION-BURST/,0' /Users/zious
 - **pipeline PAUSED → ACTIVE:** pipeline unblocked for pass-10 adversary dispatch
 
 **factory-artifacts commits (this burst — TD-VSDD-053 single-commit-per-burst):**
-- Commit B (this burst): PENDING — `state(D-965): POLICY-15-ATTESTATION-GATE-RATIFICATION-BURST`
-- SHA-patch (this burst): PENDING — `state(D-965/SHA-patch): Active Branches + burst-log Block 8 + SIZE BUDGET`
+- Commit B (this burst): `7540c669` — `state(D-965): POLICY-15-ATTESTATION-GATE-RATIFICATION-BURST`
+- SHA-patch (this burst): PENDING — `state(D-965/SHA-patch): Active Branches + burst-log Block 8 + SIZE BUDGET 7540c669`
