@@ -15355,3 +15355,54 @@ D-965-POLICY-15-ATTESTATION-GATE-RATIFICATION-BURST
 ### Date
 
 2026-08-09
+
+## D-966 — D-966-PASS-10-RECORD-BURST
+
+**POLICY 16 ALLOCATOR-CEILING GATE** (pre-allocation, literal shell, D-449(a)):
+
+```
+$ cd /Users/zious/Documents/GITHUB/vsdd-factory && max_d=$({ grep -hE '^#{2,} D-[0-9]+' .factory/cycles/*/decision-log.md 2>/dev/null; grep -hE '^[|] *D-[0-9]+' .factory/cycles/*/decision-log.md 2>/dev/null; } | grep -oE 'D-[0-9]+' | sed 's/D-//' | sort -n | tail -1) && [ "$max_d" -lt 9000 ] && printf 'PASS: global max D-%s < D-9000 ceiling (forms: h2 ^#{2,}, h3 ^#{2,}, table-cell ^[|])\n' "$max_d"
+PASS: global max D-965 < D-9000 ceiling (forms: h2 ^#{2,}, h3 ^#{2,}, table-cell ^[|])
+```
+
+D-966 allocated. parent-commit: `cbff0801` (factory-artifacts HEAD at burst start = `cbff0801262170bcd296afd811ff3cc0a8ec352a`).
+
+**(a) POLICY 16 GATE PASS — D-966 allocated; parent-commit `cbff0801`.** This is the pass-10 adversary RECORD burst — findings persisted, no code fixes. POLICY 22 SELF-APPLICATION: state-manager re-executed all mechanical gate claims independently with own literal shell; results captured in burst-log D-966 Dim-2 per D-449(a). Where re-execution agreed with relayed claims, findings recorded faithfully; no discrepancies found.
+
+**(b) adversary-pass-10.md persisted.** `cycles/v1.0-brownfield-backfill/S-21.07/adversary-pass-10.md` CREATED. Verdict: NOT-CLEAN B2/H4/M2/L1/NIT0 = 9 findings. Reviewed HEAD: `5370db80` (S-21.07); diff base `origin/develop` `700b4dd3`; factory-artifacts `cbff0801`. Novelty: 0.78. INDEX.md pass-10 row added; Convergence Status updated (trajectory `47→18→25→25→24→20→16→8→9`; tail `→20→16→8→9`; streak 0/3).
+
+**(c) Codification 1 — PROPOSED (AWAITING HUMAN RATIFICATION): META-LEVEL-25 — Literal-Shell-Attested Vacuous Gate.** Proposed class: a gate whose PASS is trivially achievable by construction of its domain (empty domain, tautological threshold, or domain that is structurally vacuous relative to the observed context) provides no actual verification even when the gate is executed with literal-shell evidence per D-449(a). The gate executes, the stdout is captured, and the result is PASS — but the PASS is non-evidential because no distinct-from-PASS state is reachable. META-LEVEL-25 extends D-449(a) (which closes META-LEVEL-24 — pseudocode FORBIDDEN) to require: for any gate codified under this project's mechanical-gate discipline, a negative-control demonstration MUST be supplied showing that the gate CAN return a non-trivially-true result on an input that would represent a genuine failure. If no such input exists (because the domain is structurally empty or the threshold is tautologically unreachable), the gate is VACUOUS and MUST be redesigned before ratification. **Status: PROPOSED — not applied to `policies.yaml` until human ratification. Candidate for POLICY 23.**
+
+**(d) Codification 2 — PROPOSED (AWAITING HUMAN RATIFICATION): POLICY 22 Extension — Ratification-Channel Fidelity.** Current POLICY 22 `subagent_report_fidelity_literal_shell` requires literal-shell evidence for mechanical claims presented TO the pipeline. F-003 reveals a gap: the policy did not explicitly cover material presented TO A HUMAN FOR RATIFICATION. ADR-040 §Decision 6's "stability entry with no assertion-site files changed" description of `5370db80` was a narrative characterization, not a shell-verified claim. The proposed extension: any material presented to a human for ratification that includes mechanical claims (SHAs, file counts, line changes, test outcomes) MUST be backed by literal-shell evidence at the time of presentation, with the shell commands and stdout included in the ADR or ratification artifact. The extension applies to both: (i) ratification artifacts authored by AI agents, and (ii) correction of those artifacts in response to adversary findings. **Status: PROPOSED — not applied to `policies.yaml` until human ratification. Candidate for POLICY 22 v1.1.**
+
+**(e) Codification 3 — Candidate (route to architect): Burst-Log Block 8 SHA-patch circular regress.** O-S2107-P10-01 from adversary-pass-10 Part B: each SHA-patch updating Block 8 to cite "actual HEAD" creates a new HEAD, leaving Block 8 stale by one — infinite regress. D-965 burst produced three commits (`7540c669` → `5d2902f5` → `cbff0801`). This parallels the D-912 HEAD-SHA circularity resolved by ADR-040 §Decision 2 via PARENT-SHA. The codification direction: Block 8 should cite PARENT SHA (the SHA the burst was LAUNCHED from) rather than OWN SHA (the SHA the burst PRODUCES). This D-966 burst applies this convention directly: burst-log D-966 Block 8 cites parent SHA `cbff0801`. The convention eliminates the SHA-patch chain for all future bursts. **Routing: architect — formalize in an ADR (ADR-043 candidate). No policies.yaml amendment required until ADR ratification.**
+
+**(f) Codification 4 — Candidate (PLAUSIBLE BUT UNCONFIRMED): Nested `.factory/.factory` path as root cause of log-deletion Drift Items.** O-S2107-P10-02 from adversary-pass-10 Part B: `.factory/.factory/logs/` directory confirmed present with two log files (`dispatcher-internal-2026-07-27.jsonl`, `dispatcher-internal-2026-08-06.jsonl`). `fix/nested-factory-path-derivation` (`9afc3226`) is not yet released. The Drift Items for three unexplained dispatcher-log deletions in STATE.md are PLAUSIBLE but UNCONFIRMED as stemming from inconsistent `factory_dir` derivation. **Status: record only. NOT established as confirmed causation. Routed to architect for root-cause investigation after `fix/nested-factory-path-derivation` merges.**
+
+**(g) Finding routing (all 9 findings — fixes DEFERRED to future bursts).**
+- F-S2107-P10-001 + F-S2107-P10-003 → architect: ADR-040 redesign (gate-domain fix so gate fires in code-repo context; re-ratification required; ADR-040 v1.2; policies.yaml v1.4.23).
+- F-S2107-P10-002 → record only (permanent historical violation; history immutable; ADR-040 v1.2 will note this as context).
+- F-S2107-P10-004 → product-owner: BC-5.39.010 present-perfect "has been raised" claim correction.
+- F-S2107-P10-005 → architect: update ADR-041 + ADR-042 frontmatter `status: proposed → active`; correct STATE.md + burst-log false "ratified" assertions.
+- F-S2107-P10-006 → architect: adjudicate ADR-042 §Decision 1 vs §Decision 2 self-contradiction; supply BOUNDARY-POLARITY mutant; route to human re-ratification.
+- F-S2107-P10-007 → implementer: implement `extract_reason_from_outcome` class (b) fix on new branch; architect: annotate ADR-042 §Decision 3 class (b) as "PENDING implementation".
+- F-S2107-P10-008 → architect: replace line-number pins in ADR-040 + ADR-042 with section-anchor forms; state-manager: correct ARCH-INDEX ADR-042 row.
+- F-S2107-P10-009 → product-owner: add `1.15-erratum` entry to `modified[]` OR codify -erratum parity convention in POLICY 14.
+
+**(h) Streak 0/3 UNCHANGED; trajectory updated `47→18→25→25→24→20→16→8→9` (tail `→20→16→8→9`).** Pass-10 NOT-CLEAN verdict (B2/H4/M2/L1) resets streak to 0/3. Tail advances by one value. This is the 9th adversary review; 0 CLEAN verdicts across all 9 passes. develop UNCHANGED at `700b4dd3`. PR #774 OPEN/CLEAN/MERGEABLE but NOT merged (human merge required).
+
+### Participating agents
+
+- state-manager (D-966): adversary-pass-10.md created; INDEX.md pass-10 row + Convergence Status updated; decision-log D-966 block appended; burst-log D-966 8-block entry appended; lessons.md 2 lessons appended (L-BB-vacuous-gate-meta-level-25 PROPOSED; L-BB-ratification-channel-fidelity-gap PROPOSED); STATE.md v7.03 → v7.04; POLICY 22 self-application: all mechanical claims independently re-executed with own literal shell (no discrepancies)
+
+### 4-INDEX
+
+BC-INDEX v4.55 (UNCHANGED) / VP-INDEX v2.76 (UNCHANGED) / STORY-INDEX v4.291 (UNCHANGED) / ARCH-INDEX v3.52 (UNCHANGED)
+
+### Phase
+
+D-966-PASS-10-RECORD-BURST
+
+### Date
+
+2026-08-09

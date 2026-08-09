@@ -24427,3 +24427,210 @@ $ awk '/^## D-965-POLICY-15-ATTESTATION-GATE-RATIFICATION-BURST/,0' /Users/zious
 **factory-artifacts commits (this burst — TD-VSDD-053 single-commit-per-burst):**
 - Commit B (this burst): `7540c669` — `state(D-965): POLICY-15-ATTESTATION-GATE-RATIFICATION-BURST`
 - SHA-patch (this burst): `5d2902f5` — `state(D-965/SHA-patch): Active Branches + burst-log Block 8 + SIZE BUDGET 7540c669`
+- SHA-patch 2 (this burst): `cbff0801` — `state(D-965/block8-final): burst-log Block 8 SHA-patch 5d2902f5`
+
+## D-966-PASS-10-RECORD-BURST
+
+### Block 1: Parent-commit
+
+- **factory-artifacts HEAD at burst start:** `cbff0801262170bcd296afd811ff3cc0a8ec352a`
+- **factory-artifacts branch:** `factory-artifacts`
+- **code repo HEAD at time of review (S-21.07):** `5370db80e0b7360f5c884f4adf68371fe426ba30`
+- **code repo HEAD (fix/nested-factory-path-derivation):** `9afc3226`
+- **origin/develop (diff base, UNCHANGED):** `700b4dd32251bc9ce40dc59bed8cc7441a9afcb0`
+- **PR #774:** OPEN/CLEAN/MERGEABLE (not merged — human merge required)
+- **burst type:** RECORD — adversary pass-10 findings persisted; NO code fixes this burst
+
+### Block 2: Adversary verdict
+
+**Source file:** `cycles/v1.0-brownfield-backfill/S-21.07/adversary-pass-10.md`
+**Verdict:** NOT-CLEAN — B2/H4/M2/L1/NIT0 = 9 findings
+
+**Part A finding set (faithful transcription of adversary-pass-10.md Part A per D-448(a)):**
+
+| ID | Sev | Title summary |
+|----|-----|---------------|
+| F-S2107-P10-001 | BLOCKER | POLICY 15 ATTESTATION-LOCATION GATE vacuous — factory-artifacts has 0 `*.rs`/`*.bats` files; pre-check always EMPTY → gate INAPPLICABLE on every factory-artifacts commit; `find "$FACTORY_ROOT" -name red-gate-log.md` resolves to wrong cycle |
+| F-S2107-P10-002 | BLOCKER [regression] | Attestation sections added at `5370db80` for `67ffbdcc`+`38c70f9e` retroactively; per-commit heading counts: 0/0/0/3; POLICY 15 "at that commit" violated; history immutable |
+| F-S2107-P10-003 | HIGH | ADR-040 §Decision 6 justifying premise false — `5370db80` is docs commit (changes only red-gate-log.md), not stability-record; INAPPLICABLE branch exempts the very commit that added attestation sections; D-965 ratification PROCURED-ON-MISCHARACTERIZATION |
+| F-S2107-P10-004 | HIGH | BC-5.39.010 present-perfect "has been raised to 20M" false — `registry.rs:187` + `invoke.rs:271` both `fuel_cap: 10_000_000`; margin gate ≤12M tautologically true against 10M cap |
+| F-S2107-P10-005 | HIGH | STATE.md + burst-log assert "ADR-042 v1.2 ratified" but ADR-041 + ADR-042 frontmatter both `status: proposed`; live blocking POLICY 16 gate governed by proposed ADR-041 |
+| F-S2107-P10-006 | HIGH | ADR-042 §Decision 1 row-4 claims independent budgets; §Decision 2 declares global raise — self-contradiction; POLICY 13 BOUNDARY-POLARITY mutant absent; 4 validators timed-out on D-965 burst writes |
+| F-S2107-P10-007 | MEDIUM [process-gap] | ADR-042 §Decision 3 class (b) "dispatched" but no branch; fix/fuel-exhaustion-fail-loud ABANDONED; main.rs `extract_reason_from_outcome` still conflates fuel-exhaustion + epoch-timeout |
+| F-S2107-P10-008 | MEDIUM | 3 TD-VSDD-091 line-number pins: ADR-040 §Context "line 294"; ADR-042 §Empirical "BC-INDEX line 1464"; ARCH-INDEX ADR-042 row "~415KB" (live registry row; TD-VSDD-091 carve-out does not reach it) |
+| F-S2107-P10-009 | LOW | BC-5.39.010 body `1.15-erratum` row has no `modified[]` frontmatter entry; POLICY 14 leg-3 parity gap; codify -erratum convention |
+
+**Observations (Part B):** O-S2107-P10-01 (codification 3: Block 8 parent-SHA convention); O-S2107-P10-02 (codification 4: nested `.factory/.factory` path — PLAUSIBLE BUT UNCONFIRMED link to log deletions).
+
+**Note on D-965:** F-S2107-P10-003 establishes that the D-965 ratification of POLICY 15 v1.4.22 was procured based on a mischaracterization of `5370db80` in ADR-040 §Decision 6. The ratification is recorded as PROCURED-ON-MISCHARACTERIZATION. architect re-ratification required after ADR-040 v1.2 redesign.
+
+### Block 3: Files touched (this burst)
+
+| File | Action | Description |
+|------|--------|-------------|
+| `.factory/cycles/v1.0-brownfield-backfill/S-21.07/adversary-pass-10.md` | CREATED | Full adversary pass-10 report: YAML frontmatter + Part A (9 findings) + Part B (2 observations) + Part C (analysis + POLICY 22 self-application disclosure) |
+| `.factory/cycles/v1.0-brownfield-backfill/INDEX.md` | MODIFIED | Pass-10 table row added; Convergence Status paragraph updated (trajectory `→9` appended; tail `→20→16→8→9`) |
+| `.factory/cycles/v1.0-brownfield-backfill/decision-log.md` | MODIFIED | D-966 block appended (POLICY 16 gate stdout; 4 codifications; finding routing; 4-INDEX UNCHANGED) |
+| `.factory/cycles/v1.0-brownfield-backfill/burst-log.md` | MODIFIED | D-966 8-block entry appended (this file) |
+| `.factory/cycles/v1.0-brownfield-backfill/lessons.md` | MODIFIED | 2 lessons appended: L-BB-vacuous-gate-meta-level-25 (PROPOSED); L-BB-ratification-channel-fidelity-gap (PROPOSED) |
+| `.factory/STATE.md` | MODIFIED | v7.03 → v7.04: Blocking Issue F-001 (P0) added; 7 Drift Items added; Phase Progress row; Current Phase Steps row; Decisions Log D-966 row; Active Branches updated; Session Resume Checkpoint refreshed |
+
+**No code changes this burst.** Zero `*.rs`, `*.bats`, `*.toml` modifications. RECORD burst only.
+
+### Block 4: Codifications
+
+| # | Codification | Status | Applies-to |
+|---|---|---|---|
+| 1 | META-LEVEL-25: Literal-shell-attested vacuous gate — a gate whose PASS is trivially achievable by construction of its domain is non-evidential even when executed per D-449(a); requires negative-control demonstration before ratification | PROPOSED — AWAITING HUMAN RATIFICATION; not applied to policies.yaml | Candidate for POLICY 23 |
+| 2 | POLICY 22 ratification-channel extension: material presented to a human for ratification that includes mechanical claims MUST be backed by literal-shell evidence at time of presentation, included in the ADR or ratification artifact | PROPOSED — AWAITING HUMAN RATIFICATION; not applied to policies.yaml | Candidate for POLICY 22 v1.1 |
+| 3 | Burst-log Block 8 parent-SHA convention: Block 8 MUST cite PARENT SHA (factory-artifacts HEAD at burst start) rather than OWN SHA (the commit being produced), eliminating circular regress; applied to THIS burst (Block 8 cites `cbff0801`) | CANDIDATE — applied by convention this burst; architect ADR-043 to formalize | Applied: burst-log D-966 Block 8 |
+| 4 | Nested `.factory/.factory` path as PLAUSIBLE mechanism for log-deletion Drift Items; confirmed present with 2 log files; link to deletions UNCONFIRMED; route to architect post-release of `fix/nested-factory-path-derivation` | CANDIDATE — record only; not codified in policy | Observation O-S2107-P10-02 |
+
+### Block 5: Dim-2 — Mechanical-Gate Attestations (D-449(a) literal shell)
+
+**POLICY 16 ALLOCATOR-CEILING GATE — literal shell, D-449(a):**
+
+```
+$ cd /Users/zious/Documents/GITHUB/vsdd-factory && max_d=$({ grep -hE '^#{2,} D-[0-9]+' .factory/cycles/*/decision-log.md 2>/dev/null; grep -hE '^[|] *D-[0-9]+' .factory/cycles/*/decision-log.md 2>/dev/null; } | grep -oE 'D-[0-9]+' | sed 's/D-//' | sort -n | tail -1) && [ "$max_d" -lt 9000 ] && printf 'PASS: global max D-%s < D-9000 ceiling (forms: h2 ^#{2,}, h3 ^#{2,}, table-cell ^[|])\n' "$max_d"
+PASS: global max D-965 < D-9000 ceiling (forms: h2 ^#{2,}, h3 ^#{2,}, table-cell ^[|])
+```
+
+Predicate correctly excludes D-99999 sentinel (prose-only; not h2/h3 heading or `| D-NNN` table-cell form). D-966 allocated.
+
+**POLICY 22 SELF-APPLICATION — state-manager re-executed all mechanical claims independently (own first-hand stdout, not relay):**
+
+Claim F-001: factory-artifacts has 0 `*.rs`/`*.bats` files.
+```
+$ git -C /Users/zious/Documents/GITHUB/vsdd-factory/.factory ls-tree -r --name-only HEAD | grep -cE '\.(rs|bats)$'
+0
+$ git -C /Users/zious/Documents/GITHUB/vsdd-factory/.factory ls-tree -r --name-only HEAD | wc -l
+    3742
+```
+COUNT=0 confirmed. 3742 total files, zero assertion-site files.
+
+Claim F-001b: `find "$FACTORY_ROOT" -name red-gate-log.md` resolves to 14 candidates, none is S-21.07 file.
+```
+$ find /Users/zious/Documents/GITHUB/vsdd-factory/.factory -name red-gate-log.md | wc -l
+      14
+```
+14 candidates confirmed. S-21.07 log lives in code repo at `crates/hook-plugins/validate-cross-site-correspondence/docs/red-gate-log.md` (not in factory-artifacts).
+
+Claim F-002: Per-commit heading counts 0/0/0/3 for {37022ecc, 67ffbdcc, 38c70f9e, 5370db80}.
+```
+$ RG="crates/hook-plugins/validate-cross-site-correspondence/docs/red-gate-log.md"
+$ git -C /Users/zious/Documents/GITHUB/vsdd-factory show "37022ecc:${RG}" 2>/dev/null | grep -cE '^### .*assertion-site attestation'
+0
+$ git -C /Users/zious/Documents/GITHUB/vsdd-factory show "67ffbdcc:${RG}" 2>/dev/null | grep -cE '^### .*assertion-site attestation'
+0
+$ git -C /Users/zious/Documents/GITHUB/vsdd-factory show "38c70f9e:${RG}" 2>/dev/null | grep -cE '^### .*assertion-site attestation'
+0
+$ git -C /Users/zious/Documents/GITHUB/vsdd-factory show "5370db80:${RG}" 2>/dev/null | grep -cE '^### .*assertion-site attestation'
+3
+```
+Per-commit counts 0/0/0/3 confirmed.
+
+Claim F-003: `5370db80` is a docs commit changing only red-gate-log.md.
+```
+$ git -C /Users/zious/Documents/GITHUB/vsdd-factory show --no-patch --format="%H %s" 5370db80
+5370db80e0b7360f5c884f4adf68371fe426ba30 docs(S-21.07): add POLICY 15 attestation sections for pass-8, pass-9, and docs commits (F-S2107-P9-003)
+$ git -C /Users/zious/Documents/GITHUB/vsdd-factory diff --name-only 5370db80^1..5370db80
+crates/hook-plugins/validate-cross-site-correspondence/docs/red-gate-log.md
+```
+Confirmed: docs commit; changed only red-gate-log.md; one file touched.
+
+Claim F-004: Both fuel_cap values are 10_000_000 at HEAD.
+```
+$ grep -n "fuel_cap" /Users/zious/Documents/GITHUB/vsdd-factory/crates/factory-dispatcher/src/registry.rs | grep "10_000_000"
+187:            fuel_cap: 10_000_000,
+$ grep -n "fuel_cap" /Users/zious/Documents/GITHUB/vsdd-factory/crates/factory-dispatcher/src/invoke.rs | grep "10_000_000"
+271:            fuel_cap: 10_000_000,
+```
+Both fuel_cap values confirmed 10_000_000 at HEAD. The margin gate `≤12M` is tautologically true.
+
+Claim F-005: ADR-041 + ADR-042 both `status: proposed`.
+```
+$ grep -E "^status:" /Users/zious/Documents/GITHUB/vsdd-factory/.factory/specs/architecture/decisions/ADR-041-*.md
+status: proposed
+$ grep -E "^status:" /Users/zious/Documents/GITHUB/vsdd-factory/.factory/specs/architecture/decisions/ADR-042-*.md
+status: proposed
+```
+Both ADR-041 and ADR-042 confirmed `status: proposed`.
+
+Claim F-009: BC-5.39.010 `modified[]` has no `1.15-erratum` entry.
+```
+$ grep -E "1\.15" /Users/zious/Documents/GITHUB/vsdd-factory/.factory/specs/behavioral-contracts/ss-05/BC-5.39.010.md | head -5
+  - "2026-08-08 (v1.15)"
+```
+modified[] has `v1.15` (no `-erratum`). Body changelog carries `1.15-erratum` per D-963. Parity gap confirmed.
+
+POLICY 22 re-execution summary: all 9 relayed mechanical claims independently confirmed. No discrepancies found.
+
+**D-448(a) SOURCE-ATTESTATION GATE — burst-log Block 2 vs adversary-pass-10.md Part A (literal shell diff):**
+
+```
+$ grep -oE 'F-S2107-P10-[0-9]+' /Users/zious/Documents/GITHUB/vsdd-factory/.factory/cycles/v1.0-brownfield-backfill/S-21.07/adversary-pass-10.md | sort -u
+F-S2107-P10-001
+F-S2107-P10-002
+F-S2107-P10-003
+F-S2107-P10-004
+F-S2107-P10-005
+F-S2107-P10-006
+F-S2107-P10-007
+F-S2107-P10-008
+F-S2107-P10-009
+```
+
+9 unique finding IDs from adversary-pass-10.md Part A. All 9 IDs P10-001..P10-009 present in Block 2 table above. Gate PASS.
+
+**D-446(a) 8-BLOCK SELF-GATE — verifying this burst-log entry contains all 8 D-444(c) blocks:**
+
+```
+$ awk '/^## D-966-PASS-10-RECORD-BURST/,0' /Users/zious/Documents/GITHUB/vsdd-factory/.factory/cycles/v1.0-brownfield-backfill/burst-log.md | grep -c "^### Block [1-8]:"
+8
+```
+
+8 blocks confirmed. Gate PASS.
+
+### Block 6: Dim-5 — Convergence Attestation
+
+- **Streak:** 0/3 — RESET (pass-10 NOT-CLEAN verdict; any finding resets BC-5.39.001 streak to 0/3)
+- **True adversary passes:** 9 (passes 1–9; D-959 corrected pass-7-mislabel; pass-10 is 9th true adversary review)
+- **CLEAN verdicts:** 0 (zero across all 9 passes)
+- **Trajectory (full):** 47→18→25→25→24→20→16→8→9
+- **Trajectory-tail (LENGTH=4 per D-433(e)+D-439(c)):** →20→16→8→9
+- **This burst:** RECORD only — adversary-pass-10.md persisted; no code fixes; no index version changes; STATE.md v7.03 → v7.04
+- **Convergence status:** NOT CONVERGED — streak 0/3; 9 true adversary passes; 0 CLEAN verdicts; dominant pattern this pass: vacuous-gate (gate-domain-mismatch class; F-001 sharpest); pass-11 adversary NEXT
+
+### Block 7: Dim-6 + Dim-7 — Non-Fabrication + Cross-reference
+
+**Dim-6 — Non-fabrication attestation:** All 9 finding descriptions in Block 2 transcribed faithfully from adversary-pass-10.md Part A. POLICY 16 gate stdout captured from own literal shell execution 2026-08-09 post-D-965. POLICY 22 self-execution stouts captured from own literal shell 2026-08-09 at factory-artifacts HEAD `cbff0801`. Parent SHA `cbff0801` confirmed by `git -C .factory log --oneline -1` at burst-start. 4-INDEX versions verified from live frontmatter: BC v4.55 / VP v2.76 / STORY v4.291 / ARCH v3.52 all UNCHANGED this burst. ADR-041/ADR-042 `status: proposed` read verbatim from file frontmatter. Fuel_cap values read verbatim from registry.rs:187 and invoke.rs:271. Nested `.factory/.factory` log files confirmed by own directory listing. All values in Block 2 table derived from first-hand shell execution; no relay accepted as sole evidence.
+
+**Dim-7 — Cross-reference:**
+- D-965 (ratification burst, parent): policies.yaml v1.4.22 ratified; ADR-040 active; ARCH-INDEX v3.52 — THIS burst records pass-10 findings and notes D-965 ratification status as PROCURED-ON-MISCHARACTERIZATION (F-003)
+- F-S2107-P9-003 CLOSED D-965 (gate design); F-S2107-P10-003 reveals CLOSING PREMISE WAS FALSE
+- ADR-040 §Decision 6: needs architect correction + re-ratification (F-003 routing)
+- ADR-041 + ADR-042: needs architect frontmatter update `proposed → active` (F-005 routing)
+- BC-5.39.010: needs product-owner correction (F-004 + F-009 routing)
+- L-BB-vacuous-gate-meta-level-25 [PROPOSED] [D-966]: META-LEVEL-25 codification
+- L-BB-ratification-channel-fidelity-gap [PROPOSED] [D-966]: POLICY 22 ratification-channel extension
+- develop: UNCHANGED at `700b4dd3`; PR #774 OPEN/CLEAN/MERGEABLE (not merged)
+
+### Block 8: Closes + factory-artifacts commits
+
+**Closes (this D-966 record burst):** No findings closed — RECORD-only burst. All 9 findings OPEN, routed per D-966(g).
+
+**Blocking Issues added:**
+- **P0-F-001 (NEW):** POLICY 15 ATTESTATION-LOCATION GATE vacuous — gate domain empty by construction; gate cannot produce non-INAPPLICABLE result for any factory-artifacts commit; architect redesign required before pass-11
+
+**Drift Items added (7):**
+- **[D-966] F-002 retroactive-attestation:** 67ffbdcc+38c70f9e lack "at that commit" attestation — permanent; note in ADR-040 v1.2 redesign context
+- **[D-966] F-005 ADR-041/042 status-field drift:** frontmatter `status: proposed` contradicts pipeline "ratified" assertions in STATE.md + burst-log; architect to update to `active`
+- **[D-966] F-006 ADR-042 excluded-region self-contradiction:** §Decision 1 row-4 vs §Decision 2 global raise; POLICY 13 mutant absent; re-ratification required
+- **[D-966] F-007 class-b unanchored dispatch:** ADR-042 §Decision 3 class (b) implementer "dispatched" but no branch; ABANDONED branch; architect annotation + implementer re-dispatch required
+- **[D-966] F-008 line-number pins:** ADR-040 §Context "line 294" + ADR-042 §Empirical "line 1464" + ARCH-INDEX "~415KB" — TD-VSDD-091 stable-anchor violations; architect correction
+- **[D-966] F-009 modified[]-erratum parity:** BC-5.39.010 body `1.15-erratum` row has no `modified[]` entry; product-owner correction or codify -erratum convention
+- **[D-966] D-965-mischaracterization:** ADR-040 §Decision 6 justifying premise false (5370db80 is docs commit); D-965 ratification status = PROCURED-ON-MISCHARACTERIZATION; architect re-opens ADR-040 for v1.2 redesign; human re-ratification required
+
+**factory-artifacts commits (this burst — TD-VSDD-053 single-commit-per-burst, codification 3 parent-SHA convention):**
+- Target commit (this burst): single commit to be pushed as `git push origin HEAD:factory-artifacts`
+- **Parent SHA (cited per codification 3 — Block 8 cites parent, not own SHA to avoid circular regress):** `cbff0801` — `state(D-965/block8-final): burst-log Block 8 SHA-patch 5d2902f5`

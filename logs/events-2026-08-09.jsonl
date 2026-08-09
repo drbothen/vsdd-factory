@@ -1,1 +1,3 @@
 {"type":"hook.block","hook":"validate-input-hash","reason":"input_hash_drift","ts":"2026-08-09T11:54:08-0500","ts_epoch":1786294448,"schema_version":1}
+{"type":"hook.block","hook":"validate-count-propagation","reason":"count_propagation_drift","ts":"2026-08-09T13:56:48-0500","ts_epoch":1786301808,"schema_version":1}
+{"type":"hook.block","hook":"destructive-command-guard","reason":"sot_clobber_redirect","ts":"2026-08-09T14:23:20-0500","ts_epoch":1786303400,"schema_version":1}
