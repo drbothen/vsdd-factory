@@ -4,7 +4,7 @@ level: ops
 version: "7.02"
 status: draft
 producer: state-manager
-timestamp: 2026-08-09T00:05:00Z
+timestamp: 2026-08-09T00:06:00Z
 phase: D-964-PASS-9-CLOSURE-PIPELINE-PAUSED
 last_amended: "2026-08-09 (v7.02) — SESSION-WRAP-2026-08-09 (state-manager): checkpoint burst; human /wrap directive; pass-9 ALL 8 CLOSED; streak 0/3; trajectory-tail →24→20→16→8 UNCHANGED; 5 branches pushed (S-21.07 5370db80 / S-21.04 323f440f / fix/nested 9afc3226 / fix/d999 bf642fd9 / fix/fuel-cap 7cbb9232); drift item added (3 log deletions recurrence); checkpoint refreshed; STATE.md v7.01→v7.02; resume: cut release first. [Prior: 2026-08-08 (v7.01) — D-964-PASS-9-CLOSURE-FUEL-REMEDIATION-BURST: pass-9 ALL 8 FINDINGS CLOSED; ADR-042 v1.2 ratified (10M→20M); S-21.13 registered E-21 W7; D-945 DISCHARGED; ORCHESTRATOR ERROR corrected; 4-INDEX BC v4.55/VP v2.76/STORY v4.291/ARCH v3.51.]"
 inputs: []
@@ -50,7 +50,7 @@ dtu_services: []
   ~415 lines (estimated post-D-963 SHA-patch e4bc6683 2026-08-08; v7.00 UNCHANGED)
   281 lines (wc-l post-D-964 PASS-9-CLOSURE-BURST 2026-08-08; v7.00→v7.01)
   282 lines (wc-l post-D-964 SHA-patch d8334693 2026-08-08; v7.01 UNCHANGED)
-  NNN lines (wc-l post-SESSION-WRAP-2026-08-09 2026-08-09; v7.01→v7.02)
+  286 lines (wc-l post-SESSION-WRAP-2026-08-09 2026-08-09; v7.01→v7.02)
 -->
 
 # Pipeline State: vsdd-factory
@@ -108,7 +108,7 @@ dtu_services: []
 | D-962-PASS-9-RECORD-BURST 2026-08-08 (SHA-patch c4e1e66d) | state-manager | COMPLETE | adversary-pass-9.md persisted (NOT-CLEAN B0/H3/M3/L1/NIT1; HALVING 16→8); BC v4.53; STORY v4.290; trajectory-tail →24→20→16→8; P9-003 OPEN. |
 | D-963-BC-CORRECTION-BURST 2026-08-08 (SHA-patch e4bc6683) | state-manager | COMPLETE | BC-5.39.010 ~110 FALSIFIED; ERRATUM inserted; 2 Drift Items; D-963 codified; 4-INDEX UNCHANGED; STATE.md v7.00. |
 | D-964-PASS-9-CLOSURE-FUEL-REMEDIATION-BURST 2026-08-08 (SHA-patch d8334693) | state-manager | COMPLETE | pass-9 ALL 8 FINDINGS CLOSED; ADR-042 v1.2 ratified; S-21.13 registered; D-945 DISCHARGED; ORCH ERROR corrected; BC v4.55; STORY v4.291; ARCH v3.51; STATE.md v7.01; SHA-patch d8334693. pass-10 adversary NEXT. |
-| SESSION-WRAP-2026-08-09 (session-wrap burst; human /wrap directive) | state-manager | COMPLETE | 5 branches pushed; telemetry committed; checkpoint refreshed; drift item added (log-deletion recurrence); trajectory-tail →24→20→16→8 UNCHANGED; STATE.md v7.01→v7.02. |
+| SESSION-WRAP-2026-08-09 (session-wrap burst; human /wrap directive) | state-manager | COMPLETE | 5 branches pushed; telemetry committed; checkpoint refreshed; drift item added (log-deletion recurrence); trajectory-tail →24→20→16→8 UNCHANGED; STATE.md v7.01→v7.02. SHA-patch 2fc890e4. |
 
 ## Identifier Conventions
 
@@ -137,7 +137,7 @@ dtu_services: []
 |--------------|-----|-------|
 | main | 80e5cd7b | rc.23 bot binary bundle 2026-07-18 |
 | develop | 700b4dd3 | PR #770 squash-merged 2026-08-07. Local stale at 948f0fb1 — pull on resume. |
-| factory-artifacts | SHA-patch: this-commit | SESSION-WRAP-2026-08-09 checkpoint burst. |
+| factory-artifacts | 2fc890e4 | SESSION-WRAP-2026-08-09 checkpoint burst (SHA-patch). |
 | feature/S-21.07 | 5370db80 | ALL PASS-9 FINDINGS CLOSED D-964. Pushed; SHA-equal with origin. FROZEN per team-lead; NO REBASE; MERGE-ORDER: S-21.09 first. |
 | feature/S-21.04 | 323f440f | pass-31 pending; no PR. Pushed; SHA-equal with origin. |
 | fix/nested-factory-path-derivation | 9afc3226 | F-S2107-P8-016 + P9-008 CLOSED. Pushed; SHA-equal with origin. |
@@ -225,7 +225,7 @@ dtu_services: []
 
 ### §1 Position
 
-Cycle `v1.0-brownfield-backfill`. Adversary **pass-9 CLOSED, 8 of 8 findings dispositioned**. Streak **0/3** — nine adversary passes, zero CLEAN verdicts; closure is not convergence. Trajectory `47→18→25→25→24→20→16→8`; tail LENGTH=4 `→24→20→16→8` UNCHANGED. factory-artifacts tip **`SHA-patch: this-commit`**. 4-INDEX: **BC v4.55 / VP v2.76 / STORY v4.291 / ARCH v3.51**. `policies.yaml` v1.4.21.
+Cycle `v1.0-brownfield-backfill`. Adversary **pass-9 CLOSED, 8 of 8 findings dispositioned**. Streak **0/3** — nine adversary passes, zero CLEAN verdicts; closure is not convergence. Trajectory `47→18→25→25→24→20→16→8`; tail LENGTH=4 `→24→20→16→8` UNCHANGED. factory-artifacts tip **`2fc890e4`**. 4-INDEX: **BC v4.55 / VP v2.76 / STORY v4.291 / ARCH v3.51**. `policies.yaml` v1.4.21.
 
 ### §2 Convergence
 
@@ -241,7 +241,7 @@ Streak **0/3**. Nine adversary passes, ZERO CLEAN verdicts. Trajectory `47→18�
 | `fix/d999-sentinel-code-migration` | `bf642fd9` | pushed; ADR-041, 8 sites |
 | `fix/fuel-cap-raise-20m` | `7cbb9232` | pushed; ADR-042 cap 10M→20M + fuel-vs-epoch block_reason |
 | `fix/fuel-exhaustion-fail-loud` | `fbb9dcb6` | **ABANDONED, local-only, deliberately NOT pushed** — 87 files duplicating unmerged S-21.07 (orchestrator dispatch error) |
-| `factory-artifacts` | `SHA-patch: this-commit` | SESSION-WRAP-2026-08-09 checkpoint burst |
+| `factory-artifacts` | `2fc890e4` | SESSION-WRAP-2026-08-09 checkpoint burst (SHA-patch) |
 | `develop` | `700b4dd3` | remote; local stale at `948f0fb1` — pull on resume |
 | `main` | `80e5cd7b` | rc.23 bot binary bundle 2026-07-18 |
 
