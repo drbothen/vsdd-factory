@@ -4,7 +4,8 @@ level: L3
 adr_id: ADR-040
 version: "1.1"
 title: "ADR-040: POLICY 15 ATTESTATION-LOCATION GATE — parent-SHA predicate replaces self-referential HEAD-SHA (resolves F-S2107-P8-003 logical impossibility)"
-status: proposed
+status: active
+ratified: 2026-08-09
 date: 2026-08-07
 producer: architect
 timestamp: 2026-08-07T00:00:00Z

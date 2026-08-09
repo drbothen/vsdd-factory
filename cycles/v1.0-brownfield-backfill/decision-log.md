@@ -15312,3 +15312,46 @@ D-964-PASS-9-CLOSURE-FUEL-REMEDIATION-BURST
 ### Date
 
 2026-08-08
+
+## D-965 — D-965-POLICY-15-ATTESTATION-GATE-RATIFICATION-BURST
+
+**POLICY 16 ALLOCATOR-CEILING GATE** (pre-allocation, literal shell, D-449(a)):
+
+```
+$ max_d=$({ grep -hE '^#{2,} D-[0-9]+' .factory/cycles/*/decision-log.md 2>/dev/null; grep -hE '^[|] *D-[0-9]+' .factory/cycles/*/decision-log.md 2>/dev/null; } | grep -oE 'D-[0-9]+' | sed 's/D-//' | sort -n | tail -1); [ "$max_d" -lt 9000 ] && printf 'PASS: global max D-%s < D-9000 ceiling\n' "$max_d"
+PASS: global max D-964 < D-9000 ceiling
+```
+
+D-965 allocated. parent-commit: `df35ae51` (factory-artifacts HEAD at burst start = `df35ae512d11abc8262b1ad22ca6e79f56a9808c`).
+
+**(a) POLICY 16 GATE PASS — D-965 allocated; parent-commit `df35ae51`.** Human ratification of `policies.yaml` v1.4.21 → v1.4.22 received 2026-08-09. Authority chain: F-S2107-P9-003 (HIGH [regression], adversary-pass-9) → ADR-040 v1.1 §Decision 6 (architect) → D-964(d) codified as PROPOSED → **human ratification 2026-08-09 (this burst)**. This is the ratification burst — single-commit per TD-VSDD-053.
+
+**(b) `policies.yaml` v1.4.22 applied — ATTESTATION-LOCATION GATE detection clause amended.** Four substantive changes applied verbatim from ADR-040 §Proposed `policies.yaml` Replacement Text: (A) preamble retokened to `v1.4.22; ADR-040 §Decision 6; amends v1.4.20 detection clause; F-S2107-P9-003 scope-mismatch + self-match resolution`; (B) commit-class-conditional pre-check added: `git diff --name-only HEAD^1 HEAD -- '*.rs' '*.bats'`; EMPTY ⇒ INAPPLICABLE — gate raises no flag; (C) line-anchored predicate: `grep -cE '^### .*assertion-site attestation \\($PARENT\\)'` replaces unanchored `grep -c`; closes count=2 self-match where prose quoting a prior attestation heading produced a spurious hit; (D) optional stability-record heading form added: `### <Pass-N> assertion-site stability-record (<PARENT-SHA>)` — does NOT contain 'attestation'; does NOT satisfy the gate; informational only. `policies.yaml` version bumped v1.4.21 → v1.4.22. last_amended prepended.
+
+**(c) Obligation-vs-detection contradiction resolved.** Prior form (v1.4.20): obligation was commit-class-conditional ("a fix wave that **adds or strengthens** any bats assertion site"), detection was unconditional (adversary checked all commits regardless of diff). This produced a false positive at `5370db80` (test-writer commit with stability-record entry but no assertion-site files changed) as documented in ADR-040 v1.1 §Decision 6. The conditional pre-check closes this gap: detection now matches obligation scope. Pass-10 adversary can apply the gate correctly on any commit.
+
+**(d) ADR-040 v1.1 closed to `active`. Frontmatter: `status: proposed` → `status: active`; `ratified: 2026-08-09` added.** ARCH-INDEX ADR-040 row appended: `RATIFIED 2026-08-09 (D-965). Status: active.` ARCH-INDEX frontmatter bumped v3.51 → v3.52.
+
+**(e) D-964(d) ↔ ADR-040 §Decision 6 consistency verified.** D-964(d) states: "ADR-040 v1.1 §Decision 6; policies.yaml v1.4.22 PROPOSED awaits human ratification." ADR-040 §Decision 6 text is the canonical source for the replacement bullet. No discrepancy found between D-964(d) summary and the ADR §Decision 6 ruling. Consistent.
+
+**(f) Blast-radius finding — ATTESTATION-LOCATION GATE is prompt-enforced only.** `hooks-registry.toml` has no entry for an ATTESTATION-LOCATION GATE WASM plugin. ADR-040 §Decision 4 specified a mechanized script but the script was never deployed as a registered hook. Enforcement relies entirely on adversary-prompt + state-manager-prompt review. This is a known gap: the gate exists in `policies.yaml` and is enforced by the adversary, but has no mechanized pre-push hook. No new TD registered (constraint: human direction + future-story anchor + concrete dependency all required per Canonical Principle Rule 3). Noted for pass-10 adversary context.
+
+**(g) pipeline PAUSED → ACTIVE.** Human session resumed with explicit ratification directive. `STATE.md pipeline: PAUSED → ACTIVE`. `STATE.md v7.02 → v7.03`.
+
+**(h) Streak 0/3 UNCHANGED; trajectory-tail →24→20→16→8 UNCHANGED.** No adversary pass occurred in this burst. Streak does not advance. Tail does not change.
+
+### Participating agents
+
+- state-manager: D-965 codification; policies.yaml v1.4.22 applied; ADR-040 v1.1 closed to active; ARCH-INDEX v3.51→v3.52; STATE.md v7.02→v7.03; POLICY 16/ALLOCATOR-CEILING gate run; D-964 drift item resolved; lessons.md L-BB-conditional-vs-unconditional-gate-obligation appended; burst-log D-965 (8 blocks)
+
+### 4-INDEX
+
+BC-INDEX v4.55 (UNCHANGED) / VP-INDEX v2.76 (UNCHANGED) / STORY-INDEX v4.291 (UNCHANGED) / ARCH-INDEX v3.51→v3.52
+
+### Phase
+
+D-965-POLICY-15-ATTESTATION-GATE-RATIFICATION-BURST
+
+### Date
+
+2026-08-09

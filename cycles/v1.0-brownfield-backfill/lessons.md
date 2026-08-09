@@ -10533,3 +10533,17 @@ D-442(e) recorded the same class of defect for lessons.md (≤3,500 soft / ≤4,
 **Closes:** D-964
 
 **Cites:** D-964 (codified this burst); D-964(c); D-964(h); ADR-042. `[process-gap; fuel; hook-flake; resource-policy; exhaustion; deterministic; D-964; codified]`
+
+## L-BB-conditional-obligation-unconditional-detection-contradiction [process-gap] [D-965]
+
+**Category:** process-gap
+
+**Title:** A Policy Whose Obligation Is Conditional But Whose Detection Is Unconditional Manufactures Unfalsifiable False Positives
+
+**Lesson:** ADR-040 §Decision 6 evidence: POLICY 15 ATTESTATION-LOCATION GATE's obligation clause was commit-class-conditional — "a fix wave that **adds or strengthens** any bats assertion site MUST NOT be pushed until..." — but the §Decision 2 detection clause was unconditional: "adversary verifies that a matching section exists in red-gate-log.md; if absent, flag POLICY 15 HIGH." The detection fired even when the obligation did not apply. Consequence: test-writer commit `5370db80` (a red-gate-log.md stability entry with no assertion-site files changed) was flagged as a POLICY 15 HIGH by adversary pass-9, because the detection clause looked for an attestation heading that the obligation never required. The false positive consumed one finding slot per pass without converging — the adversary could not clear it without an architectural ruling (ADR-040 §Decision 6) propagating the applicability condition into the detection. **Generalization:** for any gate with a conditional obligation, the detection MUST be co-scoped: if the obligation begins "when X, MUST do Y," the detection MUST begin "if X is true for this commit, verify Y; if X is false, INAPPLICABLE." An unconditional detection paired with a conditional obligation is a false-positive factory. The false-positives corrupt the convergence signal (they add findings that cannot be closed by the implementer, only by a governance amendment) and obscure genuine findings behind structural noise. **Meta-observation:** this contradiction survived undetected because the ATTESTATION-LOCATION GATE was prompt-enforced only — no mechanized validator ever executed the gate unconditionally and reported the INAPPLICABLE case. Prompt-only enforcement means the scope mismatch cannot surface until an adversary with a fresh context happens to review a commit that triggers the false-positive class. This is a structural detection gap: mechanized gates exercise their own scope on every run; prompt-only gates rely on adversary diligence and fresh context. The gate was satisfiable (ADR-040 §Decision 2 parent-SHA form closed the impossibility), but the detection mismatch meant it still generated findings even on correctly-formed commits.
+
+**Anchors:** D-965; ADR-040 §Decision 6; F-S2107-P9-003; POLICY 15 ATTESTATION-LOCATION GATE; D-964(d); D-912.
+
+**Closes:** D-965
+
+**Cites:** D-965 (codified this burst); ADR-040 §Decision 6; F-S2107-P9-003; D-912; [[L-BB-fuel-ceiling-masqueraded-as-hook-flake]]. `[process-gap; policy; gate; conditional; detection; obligation; false-positive; convergence-corruption; prompt-only; D-965; codified]`

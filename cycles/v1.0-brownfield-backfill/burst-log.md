@@ -24326,3 +24326,104 @@ $ awk '/^## D-964-PASS-9-CLOSURE-FUEL-REMEDIATION-BURST/,0' .factory/cycles/v1.0
 - Commit B (this burst): `d8334693` — `state(D-964): pass-9 closure + fuel-remediation recording burst`
 - SHA-patch (this burst): `5accfc59` — `state(D-964/SHA-patch): Active Branches + burst-log Block 8 + SIZE BUDGET d8334693`
 - Dim-2 evidence correction: `d48ca057` — `state(D-964/dim2-correction): fix POLICY 16 predicate reproducibility + ALLOCATOR-CEILING gate mislabel`
+
+---
+
+## D-965-POLICY-15-ATTESTATION-GATE-RATIFICATION-BURST
+
+### Block 1: Parent Commit + Scope
+
+**Parent commit:** `df35ae51` (factory-artifacts HEAD at burst-start; SESSION-WRAP-2026-08-09 checkpoint burst SHA-patch).
+
+**Scope:** Human ratification of policies.yaml v1.4.22 — POLICY 15 ATTESTATION-LOCATION GATE detection clause amended per ADR-040 §Decision 6 (conditional pre-check + line-anchored predicate). ADR-040 v1.1 proposed → active. ARCH-INDEX v3.51 → v3.52. D-965 allocated. Lesson appended. Drift Item [D-964] resolved. Pipeline PAUSED → ACTIVE. STATE.md v7.02 → v7.03.
+
+**Authority chain:** Human ratification 2026-08-09 → D-964(d) PROPOSED → ADR-040 §Decision 6 conditional pre-check + line-anchored predicate.
+
+### Block 2: Adversary Verdict (D-448(a))
+
+**D-448(a) SOURCE-ATTESTATION GATE: INAPPLICABLE** — this is a ratification burst triggered by human directive, not an adversary pass. No adversary review file (`adv-cycle-pass-N.md`) exists for this burst. D-448(a) does not apply when there is no adversary file whose Part A finding set must be faithfully described.
+
+### Block 3: Files Touched
+
+| File | Change |
+|------|--------|
+| `.factory/policies.yaml` | v1.4.21 → v1.4.22; POLICY 15 ATTESTATION-LOCATION GATE bullet replaced verbatim per ADR-040 §Decision 6; `last_amended` prepended with v1.4.22 entry |
+| `.factory/specs/architecture/decisions/ADR-040-policy-15-attestation-gate-parent-sha-predicate.md` | `status: proposed` → `status: active`; `ratified: 2026-08-09` added (frontmatter only) |
+| `.factory/specs/architecture/ARCH-INDEX.md` | v3.51 → v3.52; ADR-040 row updated: `ADR-040 v1.1. RATIFIED 2026-08-09 (D-965). Status: active.`; `last_amended` prepended with v3.52 entry |
+| `.factory/cycles/v1.0-brownfield-backfill/decision-log.md` | D-965 block appended (sub-clauses a–h; POLICY 16 gate stdout; 4-INDEX; Phase; Date) |
+| `.factory/cycles/v1.0-brownfield-backfill/lessons.md` | `L-BB-conditional-obligation-unconditional-detection-contradiction [process-gap] [D-965]` appended |
+| `.factory/STATE.md` | v7.02 → v7.03; `pipeline: PAUSED` → `ACTIVE`; `current_step:` updated to D-965; all body sections updated (Last Updated, Current Phase, Phase Progress, Current Phase Steps, Decisions Log preamble + D-965 row, Concurrent Cycles, Drift Items resolve, Active Branches placeholder, Session Resume Checkpoint all 9 sections) |
+
+### Block 4: Codifications
+
+- **D-965 allocated** per POLICY 16 ALLOCATOR-CEILING GATE PASS (literal shell; see Block 5); parent-commit `df35ae51`
+- **policies.yaml v1.4.22 RATIFIED** per ADR-040 §Decision 6 + human ratification 2026-08-09; POLICY 15 ATTESTATION-LOCATION GATE detection clause amended: (A) conditional pre-check `git diff --name-only HEAD^1 HEAD -- '*.rs' '*.bats'`; EMPTY ⇒ INAPPLICABLE; (B) line-anchored predicate `grep -cE '^### .*assertion-site attestation \($PARENT\)'`; (C) optional stability-record heading form; (D) parent-SHA-bound check removes D-912 circular dependency
+- **ADR-040 v1.1** status `proposed` → `active`; `ratified: 2026-08-09`
+- **ARCH-INDEX v3.51 → v3.52**; ADR-040 row updated to active + RATIFIED 2026-08-09 (D-965)
+- **L-BB-conditional-obligation-unconditional-detection-contradiction [process-gap] [D-965]** — conditional obligation + unconditional detection = manufactured false positives on every exempted commit class; production-grade gate design requires obligation and detection share identical pre-condition
+- **Drift Item [D-964] policies.yaml v1.4.22 PROPOSED** → **RESOLVED 2026-08-09 (D-965)**; policies.yaml v1.4.22 and ADR-040 v1.1 now active
+- **pipeline PAUSED → ACTIVE**; STATE.md v7.02 → v7.03
+- **4-INDEX: BC v4.55 / VP v2.76 / STORY v4.291 / ARCH v3.52** (BC/VP/STORY UNCHANGED; ARCH v3.51→v3.52)
+
+### Block 5: Dim-2 Attestation — Literal Shell Gates (D-449(a))
+
+**POLICY 16 GLOBAL-MAX GATE / ALLOCATOR-CEILING GATE — post-D-965 allocation confirmation (ADR-041 §Decision 3 canonical predicate; literal shell stdout captured 2026-08-09):**
+
+```
+$ cd /Users/zious/Documents/GITHUB/vsdd-factory && max_d=$({ grep -hE '^#{2,} D-[0-9]+' .factory/cycles/*/decision-log.md 2>/dev/null; grep -hE '^[|] *D-[0-9]+' .factory/cycles/*/decision-log.md 2>/dev/null; } | grep -oE 'D-[0-9]+' | sed 's/D-//' | sort -n | tail -1) && if [ -z "$max_d" ]; then printf 'FAIL: D-NNN ceiling gate: corpus scan found zero allocated D-NNN entries across all structural forms — decision-log path missing or predicate broken; gate fails closed\n'; exit 1; fi && [ "$max_d" -lt 9000 ] && printf 'PASS: global max D-%s < D-9000 ceiling (forms: h2 ^#{2,}, h3 ^#{2,}, table-cell ^[|])\n' "$max_d" || { printf 'FAIL: D-NNN allocation ceiling breach: max=D-%s exceeds D-8999 maximum allocatable\n' "$max_d"; exit 1; }
+PASS: global max D-965 < D-9000 ceiling (forms: h2 ^#{2,}, h3 ^#{2,}, table-cell ^[|])
+```
+
+Gate PASS. D-965 (allocated this burst) is within D-8999 ceiling.
+
+**POLICY 15 ATTESTATION-LOCATION GATE — commit-class pre-check at parent df35ae51 (literal shell stdout captured 2026-08-09):**
+
+```
+$ PARENT=df35ae512d11abc8262b1ad22ca6e79f56a9808c && changed=$(git -C /Users/zious/Documents/GITHUB/vsdd-factory/.factory diff --name-only "${PARENT}^1" "${PARENT}" -- '*.rs' '*.bats' 2>/dev/null) && if [ -z "$changed" ]; then printf 'PASS: POLICY 15 INAPPLICABLE at %s — no assertion-site files changed (*.rs, *.bats EMPTY)\n' "$PARENT"; else printf 'NON-EMPTY: assertion-site files changed at %s — POLICY 15 APPLICABLE; check required\n' "$PARENT"; fi
+PASS: POLICY 15 INAPPLICABLE at df35ae512d11abc8262b1ad22ca6e79f56a9808c — no assertion-site files changed (*.rs, *.bats EMPTY)
+```
+
+Gate PASS (INAPPLICABLE). This burst modifies only `.factory/` yaml/md files; no `*.rs` or `*.bats` assertion-site files changed at parent `df35ae51`. Attestation-location check not required.
+
+**D-448(a) SOURCE-ATTESTATION GATE:** INAPPLICABLE — no adversary review file for this burst (see Block 2). Literal shell diff has no target to run against.
+
+**D-446(a) 8-BLOCK SELF-GATE — verifying this burst-log entry contains all 8 D-444(c) blocks:**
+
+```
+$ awk '/^## D-965-POLICY-15-ATTESTATION-GATE-RATIFICATION-BURST/,0' /Users/zious/Documents/GITHUB/vsdd-factory/.factory/cycles/v1.0-brownfield-backfill/burst-log.md | grep -c "^### Block [1-8]:"
+8
+```
+
+8 blocks confirmed. Gate PASS.
+
+### Block 6: Dim-5 — Convergence Attestation
+
+- **Streak:** 0/3 UNCHANGED — D-965 is a ratification burst, not an adversary pass
+- **True adversary passes:** 9 (UNCHANGED)
+- **CLEAN verdicts:** 0 (UNCHANGED)
+- **Trajectory (full):** 47→18→25→25→24→20→16→8 (UNCHANGED)
+- **Trajectory-tail (LENGTH=4 per D-433(e)+D-439(c)):** →24→20→16→8 (UNCHANGED)
+- **This burst:** policies.yaml v1.4.22 RATIFIED; ADR-040 v1.1 active; ARCH-INDEX v3.52; pipeline PAUSED→ACTIVE; convergence state UNCHANGED (ratification burst, not adversary pass)
+- **Convergence status:** NOT CONVERGED — streak 0/3; 9 true adversary passes; 0 CLEAN verdicts; pass-10 adversary NEXT
+
+### Block 7: Dim-6 + Dim-7 — Non-Fabrication + Cross-reference
+
+**Dim-6 — Non-fabrication attestation:** POLICY 16 gate stdout captured from ADR-041 §Decision 3 canonical predicate run 2026-08-09 post-D-965 allocation (see Block 5). POLICY 15 pre-check stdout captured from literal shell run 2026-08-09 at parent `df35ae51` (see Block 5). Parent commit `df35ae51` verified by `git -C .factory log --oneline -1` at burst-start (SESSION-WRAP-2026-08-09 SHA-patch = `2fc890e4`; prior read confirmed). 4-INDEX versions verified from live frontmatter: ARCH v3.52 (`grep -E "^version:" .factory/specs/architecture/ARCH-INDEX.md` post-edit); BC v4.55 / VP v2.76 / STORY v4.291 UNCHANGED. ADR-040 ratified-status verbatim from file frontmatter after edit (`status: active`, `ratified: 2026-08-09`). POLICY 15 replacement text written verbatim from ADR-040 §Proposed policies.yaml Replacement Text block. Lesson title and content transcribed from lessons.md entry authored this burst.
+
+**Dim-7 — Cross-reference:**
+- D-964(d): policies.yaml v1.4.22 PROPOSED → RATIFIED D-965 (human 2026-08-09)
+- F-S2107-P9-003 CLOSED D-964: ADR-040 §Decision 6 conditional pre-check + line-anchored predicate (gate design ratified here)
+- ADR-040 v1.1 active; ARCH-INDEX v3.52; 4-INDEX BC v4.55/VP v2.76/STORY v4.291/ARCH v3.52
+- L-BB-conditional-obligation-unconditional-detection-contradiction [process-gap] [D-965]: conditional obligation + unconditional detection contradiction class; prevents false positives on exempted commit classes
+- Drift Item [D-964] policies.yaml v1.4.22 PROPOSED: RESOLVED 2026-08-09 (D-965)
+
+### Block 8: Closes + factory-artifacts commits
+
+**Closes (this D-965 ratification burst):**
+
+- **[D-964] Drift Item `policies.yaml v1.4.22 PROPOSED`:** RESOLVED 2026-08-09 — ratified by human; policies.yaml v1.4.22 active; ADR-040 v1.1 active; ARCH-INDEX v3.52
+- **pipeline PAUSED → ACTIVE:** pipeline unblocked for pass-10 adversary dispatch
+
+**factory-artifacts commits (this burst — TD-VSDD-053 single-commit-per-burst):**
+- Commit B (this burst): PENDING — `state(D-965): POLICY-15-ATTESTATION-GATE-RATIFICATION-BURST`
+- SHA-patch (this burst): PENDING — `state(D-965/SHA-patch): Active Branches + burst-log Block 8 + SIZE BUDGET`
