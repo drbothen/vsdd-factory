@@ -576,6 +576,44 @@ extra = { key = "value" }
         assert_eq!(reg.hooks[0].timeout_ms(&reg.defaults), 5_000);
     }
 
+    // Cross-field sync guard for the ADR-042 §Decision 1 fuel cap raise (10M → 20M).
+    //
+    // `RegistryDefaults::default().fuel_cap` is the global fallback applied to every
+    // hook plugin that does not override `fuel_cap` in its registry entry.
+    // `InvokeLimits::default().fuel_cap` is the hard limit used by `invoke_plugin`
+    // when the caller supplies no explicit limits.
+    //
+    // A prose comment in `RegistryDefaults::default()` documents that these must stay
+    // equal, but a comment cannot enforce the invariant: if either value silently drifts
+    // back to 10_000_000, the ~1,200 fuel-exhaustion events/day across 35 plugins that
+    // ADR-042 §Decision 1 eliminates come straight back with no test failure.
+    //
+    // This test pins both values to the ADR-042-settled constant rather than asserting
+    // equality alone. Equality-only would pass if both constants co-drift to the same
+    // wrong value (e.g., both accidentally reset to 10M); pinning makes any unintentional
+    // cap change visible regardless of whether the two constants move together.
+    // Any deliberate future cap change must update this constant, which forces
+    // simultaneous review of both `InvokeLimits` and `RegistryDefaults`.
+    #[test]
+    fn fuel_cap_defaults_stay_in_sync() {
+        use crate::invoke::InvokeLimits;
+
+        const ADR_042_FUEL_CAP: u64 = 20_000_000;
+
+        assert_eq!(
+            InvokeLimits::default().fuel_cap,
+            ADR_042_FUEL_CAP,
+            "InvokeLimits::default().fuel_cap drifted from the ADR-042 §Decision 1 value; \
+             update both InvokeLimits and RegistryDefaults together",
+        );
+        assert_eq!(
+            RegistryDefaults::default().fuel_cap,
+            ADR_042_FUEL_CAP,
+            "RegistryDefaults::default().fuel_cap drifted from the ADR-042 §Decision 1 value; \
+             update both InvokeLimits and RegistryDefaults together",
+        );
+    }
+
     #[test]
     fn rejects_unknown_schema_version() {
         // schema_version=3 is unknown — dispatcher expects 2 (REGISTRY_SCHEMA_VERSION).
