@@ -24811,3 +24811,185 @@ $ awk '/^## D-967-PASS-10-CORRECTION-BURST/,0' .factory/cycles/v1.0-brownfield-b
 **factory-artifacts commits (this burst — TD-VSDD-053 single-commit-per-burst, D-966 codification 3 parent-SHA convention):**
 - Target commit (this burst): single commit to be pushed as `git push origin HEAD:factory-artifacts`
 - **Parent SHA (cited per codification 3 — Block 8 cites parent, not own SHA to avoid circular regress):** `38cd1037` — `state(D-966): persist adversary pass-10 NOT-CLEAN B2/H4/M2/L1 — record burst (single-commit TD-VSDD-053)`
+
+---
+
+## D-968-PR-774-POST-MERGE-RECORD-BURST
+
+### Block 1: Parent Commit + Burst Identity
+
+- **Burst ID:** D-968-PR-774-POST-MERGE-RECORD-BURST
+- **Parent commit (factory-artifacts HEAD at burst-start):** `48cb6862` — `state(D-967): correction burst — F-006 adapter-model attribution fixed, F-010 added, pass-10 9→10 (single-commit TD-VSDD-053)`
+- **Burst type:** post-merge record (not an adversary pass; not a fix burst)
+- **Trigger:** PR #774 (`fix/fuel-cap-raise-20m`) merged by human at 2026-08-10T17:34:37Z
+- **Develop advance:** `700b4dd3` → `62fbcf1a`
+- **main:** `80e5cd7b` (UNCHANGED)
+- **rc.24 tag:** deferred by human decision (gated on F-006 cycle-artifact size budgets)
+
+### Block 2: Adversary Verdict / Finding Status Changes
+
+This is not an adversary pass. Finding status changes for pass-10 findings based on `62fbcf1a` merge:
+
+| Finding | Prior Status | Status After D-968 | Basis |
+|---|---|---|---|
+| F-S2107-P10-001 | OPEN BLOCKER | OPEN BLOCKER | UNCHANGED — architect route, ADR-040 v1.2 |
+| F-S2107-P10-002 | OPEN BLOCKER | OPEN BLOCKER | UNCHANGED — permanent historical violation |
+| F-S2107-P10-003 | OPEN HIGH | OPEN HIGH | UNCHANGED — architect + human re-ratification |
+| F-S2107-P10-004 | OPEN HIGH | OPEN HIGH — SHIFTED | claim now true on develop; ambiguous referent (operator cache still 10M). Route: product-owner |
+| F-S2107-P10-005 | OPEN HIGH | OPEN HIGH | UNCHANGED — ADR-041/042 frontmatter status drift |
+| F-S2107-P10-006 | OPEN HIGH | OPEN HIGH | UNCHANGED — ADR-042 §Decision 1 vs §Decision 2 |
+| F-S2107-P10-007 | OPEN MEDIUM | **CLOSED** by `62fbcf1a` | `extract_reason_from_outcome` now distinguishes fuel/epoch |
+| F-S2107-P10-008 | OPEN MEDIUM | OPEN MEDIUM | UNCHANGED — TD-VSDD-091 line-number pins |
+| F-S2107-P10-009 | OPEN LOW | OPEN LOW | UNCHANGED — modified[] erratum parity |
+| F-S2107-P10-010 | OPEN MEDIUM | OPEN MEDIUM | UNCHANGED — process-gap, corrected in D-967 |
+
+**D-448(a) SOURCE-ATTESTATION GATE — Block 2 vs adversary-pass-10.md Part A:**
+
+The Block 2 finding-status table covers all 10 finding IDs from adversary-pass-10.md. No adversary-pass-10.md Part A findings are unaddressed in this Block. This is a status-update burst, not a fix burst — status changes are recorded here; the adversary-pass-10.md file itself is not modified (Iron Law).
+
+```
+$ grep -oE 'F-S2107-P10-[0-9]+' /Users/zious/Documents/GITHUB/vsdd-factory/.factory/cycles/v1.0-brownfield-backfill/S-21.07/adversary-pass-10.md | sort -u
+F-S2107-P10-001
+F-S2107-P10-002
+F-S2107-P10-003
+F-S2107-P10-004
+F-S2107-P10-005
+F-S2107-P10-006
+F-S2107-P10-007
+F-S2107-P10-008
+F-S2107-P10-009
+F-S2107-P10-010
+```
+
+10 finding IDs. All 10 present in Block 2 table. Gate PASS.
+
+### Block 3: Files Touched
+
+| File | Change |
+|---|---|
+| `cycles/v1.0-brownfield-backfill/decision-log.md` | D-968 block appended |
+| `cycles/v1.0-brownfield-backfill/lessons.md` | L-BB-gate-never-invoked-is-functionally-absent appended |
+| `cycles/v1.0-brownfield-backfill/burst-log.md` | D-968 8-block entry appended (this file) |
+| `STATE.md` | v7.05→v7.06: develop SHA, Active Branches, Drift Items, Phase Progress, Decisions Log, Session Resume Checkpoint |
+
+### Block 4: Codifications
+
+No new codifications this burst. D-966 codifications 1 (META-LEVEL-25) and 2 (POLICY 22 ratification-channel extension) remain PROPOSED — not touched per team-lead hard constraint. D-966 codification 3 (Block 8 parent-SHA convention) applied as before.
+
+### Block 5: Dim-2 — Mechanical Gate Attestations (literal shell, D-449(a))
+
+**POLICY 16 ALLOCATOR-CEILING GATE:**
+
+```
+$ cd /Users/zious/Documents/GITHUB/vsdd-factory && max_d=$({ grep -hE '^#{2,} D-[0-9]+' .factory/cycles/*/decision-log.md 2>/dev/null; grep -hE '^[|] *D-[0-9]+' .factory/cycles/*/decision-log.md 2>/dev/null; } | grep -oE 'D-[0-9]+' | sed 's/D-//' | sort -n | tail -1) && [ "$max_d" -lt 9000 ] && printf 'PASS: global max D-%s < D-9000 ceiling; Next allocation: D-%s\n' "$max_d" "$((max_d + 1))"
+PASS: global max D-967 < D-9000 ceiling; Next allocation: D-968
+```
+
+Gate PASS (executed before D-968 block was appended to decision-log.md; stdout captured).
+
+**Develop advance verification:**
+
+```
+$ git fetch origin && git rev-parse origin/develop
+62fbcf1afffdb530267d2f451840edb46a6347dd
+$ git log --oneline -1 origin/develop
+62fbcf1a fix(dispatcher): raise WASM fuel cap 10M→20M + fuel-vs-epoch block_reason disambiguation (#774)
+```
+
+CONFIRMED: develop at `62fbcf1a`.
+
+**F-S2107-P10-007 CLOSED — fuel/epoch disambiguation on develop:**
+
+```
+$ git show origin/develop:crates/factory-dispatcher/src/main.rs | grep -A3 "TimeoutCause::Fuel"
+        PluginResult::Timeout { cause: TimeoutCause::Fuel { fuel_cap, fuel_consumed }, .. } => {
+            Some(format!(
+                "fail-closed: FUEL_EXHAUSTED: fuel cap of {fuel_cap} units exhausted; \
+```
+
+Fuel arm now emits distinct `FUEL_EXHAUSTED` prefix. Gate PASS.
+
+**F-S2107-P10-004 SHIFTED — fuel cap on develop:**
+
+```
+$ git show origin/develop:crates/factory-dispatcher/src/invoke.rs | grep "^pub const DEFAULT_FUEL_CAP"
+pub const DEFAULT_FUEL_CAP: u64 = 20_000_000;
+```
+
+`DEFAULT_FUEL_CAP = 20_000_000` on develop. BC claim "has been raised to 20M" is true on develop. Operator cache `1.0.0-rc.23` still has 10M (release-gated). Finding SHIFTED to ambiguous referent — OPEN.
+
+**POL-14 determination:**
+
+```
+$ gh pr view 774 --json headRefName --jq '.headRefName'
+fix/fuel-cap-raise-20m
+```
+
+Fix branch (not `feature/S-NN.MM`). No story `behavioral_contracts` frontmatter. POL-14 N/A.
+
+**Fuel-exhaustion timeouts this burst (F-006 live evidence):**
+
+```
+$ python3 -c "
+import json
+count = 0; plugins = set()
+with open('/Users/zious/Documents/GITHUB/vsdd-factory/.factory/logs/dispatcher-internal-2026-08-10.jsonl') as f:
+    for line in f:
+        ev = json.loads(line)
+        if 'timeout' in ev.get('type','').lower():
+            count += 1; plugins.add(ev.get('plugin_name',''))
+print(f'Total: {count}, unique plugins: {len(plugins)}')
+" 2>/dev/null
+Total: 121, unique plugins: 35
+```
+
+121 `plugin.timeout` events / 35 unique plugins (as of burst-log edit; count may grow during STATE.md edit). This is the 4th consecutive burst recording fuel-exhaustion timeout telemetry.
+
+**Nested .factory/.factory hypothesis (O-S2107-P10-02):**
+
+```
+$ ls /Users/zious/Documents/GITHUB/vsdd-factory/.factory/.factory/logs/
+dispatcher-internal-2026-07-27.jsonl  dispatcher-internal-2026-08-06.jsonl
+$ git -C /Users/zious/Documents/GITHUB/vsdd-factory/.factory status --short | grep "\.factory/logs"
+?? .factory/logs/dispatcher-internal-2026-08-06.jsonl
+```
+
+Nested `.factory/.factory/logs/` confirmed present (2 files). `?? .factory/logs/dispatcher-internal-2026-08-06.jsonl` in factory-artifacts working tree confirms the nested path is still active. Hypothesis (plausible, unconfirmed causal link) recorded per O-S2107-P10-02; root cause investigation anchored to post-release of `fix/nested-factory-path-derivation`.
+
+**D-446(a) 8-BLOCK SELF-GATE** (run at Commit E after all 8 blocks written):
+
+```
+$ awk '/^## D-968-PR-774-POST-MERGE-RECORD-BURST/,0' /Users/zious/Documents/GITHUB/vsdd-factory/.factory/cycles/v1.0-brownfield-backfill/burst-log.md | grep -c "^### Block [1-8]:"
+8
+```
+
+8 blocks confirmed. Gate PASS.
+
+### Block 6: Dim-5 — Convergence Attestation
+
+- **Streak:** 0/3 — UNCHANGED (D-968 is a post-merge record burst, not a new adversary pass)
+- **True adversary passes:** 9 (UNCHANGED; pass-10 is the 9th true review; no new pass this burst)
+- **CLEAN verdicts:** 0
+- **Trajectory (full):** 47→18→25→25→24→20→16→8→10 (UNCHANGED)
+- **Trajectory-tail (LENGTH=4):** →20→16→8→10 (UNCHANGED)
+- **This burst:** POST-MERGE RECORD — no code fixes; no adversary pass; 4-INDEX UNCHANGED; STATE.md v7.05→v7.06
+- **Convergence status:** NOT CONVERGED — streak 0/3; pass-11 adversary NEXT
+
+### Block 7: Dim-6 + Dim-7 — Non-Fabrication + Cross-reference
+
+**Dim-6 — Non-fabrication attestation:** develop SHA `62fbcf1a` verified via `git rev-parse origin/develop`. PR merge timestamp verified via `gh pr view 774 --json`. Review IDs and states verified via `gh api repos/drbothen/vsdd-factory/pulls/774/reviews`. Fuel cap constant verified via `git show origin/develop:crates/factory-dispatcher/src/invoke.rs`. All arithmetic derived from own literal-shell execution. No orchestrator figures accepted on trust without independent shell verification. POLICY 22 self-application.
+
+**Dim-7 — Cross-reference:**
+- D-967 (parent burst): pass-10 correction; F-006 model attribution fixed; F-010 added
+- F-S2107-P10-007 CLOSED: `extract_reason_from_outcome` fuel/epoch disambiguation at `62fbcf1a`
+- F-S2107-P10-004 SHIFTED: BC claim now true on develop but ambiguous referent (operator cache 10M)
+- L-BB-gate-never-invoked-is-functionally-absent (new): review currency vs review existence
+- Drift Items updated: [D-964] fix now on develop; [D-966] F-007 CLOSED; [D-968] F-004 SHIFTED
+- develop `700b4dd3` → `62fbcf1a`; fix/fuel-cap-raise-20m merged+deleted
+- rc.24 deferred by human (F-006 size-budget gating)
+
+### Block 8: factory-artifacts commit
+
+**factory-artifacts commits (this burst — TD-VSDD-053 single-commit-per-burst, D-966 codification 3 parent-SHA convention):**
+- Target commit (this burst): single commit to be pushed as `git push origin HEAD:factory-artifacts`
+- **Parent SHA (cited per codification 3 — Block 8 cites parent, not own SHA to avoid circular regress):** `48cb6862` — `state(D-967): correction burst — F-006 adapter-model attribution fixed, F-010 added, pass-10 9→10 (single-commit TD-VSDD-053)`

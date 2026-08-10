@@ -15466,3 +15466,86 @@ D-967-PASS-10-CORRECTION-BURST
 ### Date
 
 2026-08-10
+
+---
+
+## D-968 — D-968-PR-774-POST-MERGE-RECORD-BURST
+
+**POLICY 16 ALLOCATOR-CEILING GATE** (pre-allocation, literal shell, D-449(a)):
+
+```
+$ max_d=$({ grep -hE '^#{2,} D-[0-9]+' .factory/cycles/*/decision-log.md 2>/dev/null; grep -hE '^[|] *D-[0-9]+' .factory/cycles/*/decision-log.md 2>/dev/null; } | grep -oE 'D-[0-9]+' | sed 's/D-//' | sort -n | tail -1) && [ "$max_d" -lt 9000 ] && printf 'PASS: global max D-%s < D-9000 ceiling; Next allocation: D-%s\n' "$max_d" "$((max_d + 1))"
+PASS: global max D-967 < D-9000 ceiling; Next allocation: D-968
+```
+
+D-968 allocated. parent-commit: `48cb6862` (factory-artifacts HEAD at burst start = D-967 commit).
+
+**(a) POLICY 16 GATE PASS — D-968 allocated; parent-commit `48cb6862`.** Post-merge record burst for PR #774 (`fix/fuel-cap-raise-20m`). Merged by human at 2026-08-10T17:34:37Z. Develop advanced `700b4dd3` → `62fbcf1a` (squash merge). Branch `fix/fuel-cap-raise-20m` deleted from origin. main untouched at `80e5cd7b`. No rc.24 tag — release deliberately deferred (human decision, gated on F-006 cycle-artifact size budgets: 20M does not cover decision-log.md / burst-log.md / lessons.md at 1.8–2.6× per D-967).
+
+**Independent verification — literal shell:**
+
+```
+$ git rev-parse origin/develop
+62fbcf1afffdb530267d2f451840edb46a6347dd
+$ git rev-parse origin/main
+80e5cd7ba3f72dc36e0823b65ed020146ea733f0
+$ git log --oneline -1 origin/develop
+62fbcf1a fix(dispatcher): raise WASM fuel cap 10M→20M + fuel-vs-epoch block_reason disambiguation (#774)
+$ gh pr view 774 --json state,mergedAt,headRefName --jq '{state,mergedAt,headRefName}'
+{"headRefName":"fix/fuel-cap-raise-20m","mergedAt":"2026-08-10T17:34:37Z","state":"MERGED"}
+$ gh api repos/drbothen/vsdd-factory/pulls/774/reviews --jq '.[] | {id, state, commit_id}' | tail -5
+{"commit_id":"783b88e68ab2b531daabe7a203f91eb8ee535cc6","id":4898945039,"state":"COMMENTED"}
+```
+
+**(b) Content on develop at `62fbcf1a`.** `pub const DEFAULT_FUEL_CAP: u64 = 20_000_000` (single source of truth); `fuel_cap` field on `PluginResult::Timeout`; `"fail-closed: FUEL_EXHAUSTED: fuel cap of {fuel_cap} units exhausted; …"` for fuel timeouts; epoch timeout still returns `"fail-closed: plugin timed out"` (distinct); `fuel_cap` in the `plugin.timeout` JSONL extras; three guards: `fuel_cap_defaults_stay_in_sync`, `fuel_timeout_with_zero_consumed_still_reports_cap`, `emit_lifecycle_timeout_carries_fuel_cap_and_consumed`.
+
+Independent verification:
+
+```
+$ git show origin/develop:crates/factory-dispatcher/src/invoke.rs | grep -n "^pub const DEFAULT_FUEL_CAP"
+279:pub const DEFAULT_FUEL_CAP: u64 = 20_000_000;
+$ git show origin/develop:crates/factory-dispatcher/src/registry.rs | grep "fuel_cap: crate::invoke"
+            fuel_cap: crate::invoke::DEFAULT_FUEL_CAP,
+```
+
+Both Default impls reference `DEFAULT_FUEL_CAP` — single source of truth confirmed.
+
+**(c) Finding status changes.**
+
+- **F-S2107-P10-007 → CLOSED by `62fbcf1a`.** Finding: ADR-042 §Decision 3 class (b) had no anchor; `main.rs extract_reason_from_outcome` matched `PluginResult::Timeout { .. }` wholesale, emitting identical `block_reason` for fuel and epoch. Fix: `62fbcf1a` introduces fuel-specific `block_reason` (`fail-closed: FUEL_EXHAUSTED: fuel cap of {fuel_cap} units exhausted…`) distinct from epoch (`fail-closed: plugin timed out`). Closure is incidental to a release-gated fuel PR rather than a targeted fix-burst. Confirmed via literal shell: `extract_reason_from_outcome` now pattern-matches `TimeoutCause::Fuel { fuel_cap, fuel_consumed }` separately from `TimeoutCause::Epoch { elapsed_ms }`.
+
+- **F-S2107-P10-004 → OPEN, SHIFTED.** BC-5.39.010 (v1.16/v1.17) present-perfect claim "has been raised to 20,000,000 … satisfiable at HEAD" was FALSE at `5370db80` (cap was 10M). At `62fbcf1a` the claim is TRUE on develop — `DEFAULT_FUEL_CAP = 20_000_000`. However "HEAD" is unqualified; the operator cache at `1.0.0-rc.23` still embeds 10M (release-gated). The defect shifts from **false statement** to **ambiguous referent** — the claim is accurate if "HEAD" means develop-HEAD, but misleading for operators running rc.23. Keep OPEN; route product-owner to clarify referent to "develop HEAD post-`62fbcf1a`; not yet effective in `1.0.0-rc.23` operator cache."
+
+F-001, F-002, F-003, F-005, F-006, F-008, F-009, F-010 — UNCHANGED.
+
+**(d) Drift Items updated.**
+
+- **[D-964] fix/fuel-cap-raise-20m NOT YET EFFECTIVE**: Fix is now **on develop** (`62fbcf1a`), not just a branch. Operator cache `1.0.0-rc.23` still embeds 10M. Not resolved — requires rc.24 release to become effective in hook chain.
+- **[D-966] F-007 ADR-042 §Decision 3 class (b)**: CLOSED by `62fbcf1a`. See (c).
+- **[D-968] F-004 BC-5.39.010 present-perfect shifted**: OPEN SHIFTED. See (c).
+
+**(e) POL-14 determination.** PR #774 is a fix branch merge (`fix/fuel-cap-raise-20m`), not a story delivery. No story `behavioral_contracts` frontmatter in the merged content. **POL-14 does not apply — no BC draft→active promotion triggered.**
+
+**(f) Review state.** 5 posted reviews (all COMMENTED on GitHub — state COMMENTED, not APPROVED): `4897650995` (4bd626c5; 2026-08-10T14:15:41Z), `4897670244` (4bd626c5; 14:17:49Z), `4898375187` (ce0ebef1; 15:28:17Z), `4898416305` (ce0ebef1; 15:33:02Z), `4898945039` (783b88e6; 16:35:56Z). Last review pinned to head `783b88e6`; content verdict: no BLOCKER findings remaining. `check-stale-verdict.sh 774 783b88e6` returned exit 0 (FRESH) pre-merge per team-lead. **Discrepancy from team-lead claim:** team-lead described last review as "verdict APPROVE"; GitHub API returns COMMENTED for all 5. Recorded faithfully as COMMENTED state; "APPROVE" interpreted as content verdict (no blockers), not GitHub review state.
+
+**(g) Fuel-exhaustion telemetry (F-006 live evidence — 4th consecutive burst).** Dispatcher-internal-2026-08-10.jsonl: 121 `plugin.timeout` events across 35 plugins. Same exhaustion class as D-965/D-966/D-967 bursts. Nested `.factory/.factory/logs/` confirmed present at burst-start with 2 files (2026-07-27, 2026-08-06); git status shows `?? .factory/logs/dispatcher-internal-2026-08-06.jsonl` within factory-artifacts worktree (nested path hypothesis active, unconfirmed causal link per O-S2107-P10-02). This is the 4th consecutive burst recording fuel-exhaustion timeout telemetry; confirms rc.24 release remains load-bearing.
+
+**(h) policies.yaml NOT touched** — codifications 1 and 2 remain PROPOSED awaiting human ratification. STATE.md v7.05→v7.06. 4-INDEX BC v4.55/VP v2.76/STORY v4.291/ARCH v3.52 UNCHANGED.
+
+**Disagreements with orchestrator-stated figures:** develop advance `700b4dd3` → `62fbcf1a` CONFIRMED; main `80e5cd7b` CONFIRMED; merge timestamp 2026-08-10T17:34:37Z CONFIRMED; 5 reviews CONFIRMED; last review head `783b88e6` CONFIRMED; `DEFAULT_FUEL_CAP = 20_000_000` CONFIRMED; extract_reason_from_outcome disambiguation CONFIRMED. GitHub review states all COMMENTED (team-lead stated "APPROVE" for last — recorded as content verdict, not state). No arithmetic disagreements.
+
+### Agents
+
+- state-manager (D-968): develop SHA advanced; fix/fuel-cap-raise-20m removed from Active Branches; F-007 CLOSED + F-004 SHIFTED noted; Drift Items updated; L-BB-gate-never-invoked-is-functionally-absent appended to lessons.md; burst-log D-968 8-block entry appended; STATE.md v7.05→v7.06; POLICY 16 gate run with literal shell captured stdout
+
+### 4-INDEX
+
+BC-INDEX v4.55 (UNCHANGED) / VP-INDEX v2.76 (UNCHANGED) / STORY-INDEX v4.291 (UNCHANGED) / ARCH-INDEX v3.52 (UNCHANGED)
+
+### Phase
+
+D-968-PR-774-POST-MERGE-RECORD-BURST
+
+### Date
+
+2026-08-10
