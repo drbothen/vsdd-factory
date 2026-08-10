@@ -383,6 +383,7 @@ async fn test_e2e_BC_4_11_001_sync_hook_blocks_unauthorized_factory_path() {
         PluginResult::Timeout { .. } => {
             panic!("TC-1 FAIL: validate-artifact-path timed out (budget=8s, real WASM issue)");
         }
+        _ => unreachable!("no new PluginResult variants expected"),
     }
 
     // Dispatcher exit_code must be 2 (block intent propagates from sync_group)
@@ -489,6 +490,7 @@ async fn test_e2e_BC_4_11_001_sync_hook_continues_authorized_factory_path() {
         PluginResult::Timeout { .. } => {
             panic!("TC-2 FAIL: plugin timed out");
         }
+        _ => unreachable!("no new PluginResult variants expected"),
     }
 
     assert_eq!(
@@ -581,6 +583,7 @@ async fn test_e2e_BC_4_11_001_sync_hook_continues_non_factory_path() {
             PluginResult::Timeout { .. } => {
                 panic!("TC-3 FAIL: plugin timed out on trivial non-.factory/ path");
             }
+            _ => unreachable!("no new PluginResult variants expected"),
         }
     }
     eprintln!(
@@ -1501,6 +1504,7 @@ async fn test_e2e_BC_3_08_001_sync_hook_internal_log_events() {
         PluginResult::Timeout { .. } => {
             panic!("TC-11 FAIL: plugin timed out");
         }
+        _ => unreachable!("no new PluginResult variants expected"),
     }
 
     // Verify the log directory was created (confirms InternalLog is writing)

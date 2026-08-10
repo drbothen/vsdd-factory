@@ -208,6 +208,12 @@ pub fn dispatch_postcompact() {
 /// and have to re-run with a manual capture to find out why a plugin
 /// exited 1. Field added in v1.0.0-beta.4 after the S-2.7 dogfood loop
 /// ran into exactly that diagnostic gap.
+/// `#[non_exhaustive]` allows adding new variants (e.g. a future `Abandoned`
+/// discriminant for S-1.6 async partition semantics) without a breaking
+/// change for external match sites. Follows the `ResolverError` precedent
+/// in `resolver.rs` (~L78): applied at the enum level so external crates must
+/// include a wildcard arm; in-crate matches are unaffected.
+#[non_exhaustive]
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub enum PluginResult {
     Ok {

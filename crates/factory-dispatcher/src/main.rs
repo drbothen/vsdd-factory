@@ -790,6 +790,8 @@ fn extract_block_info(outcomes: &[PluginOutcome]) -> (String, String) {
             PluginResult::Crashed { .. } | PluginResult::Timeout { .. } => {
                 outcome.on_error == OnError::Block
             }
+            // Future variants are not fail-closed unless explicitly handled.
+            _ => false,
         };
 
         if is_blocking {
@@ -833,12 +835,12 @@ fn extract_reason_from_outcome(result: &PluginResult) -> Option<String> {
         // (investigate slow script). Conflating them forces operators to grep
         // the internal log for the trace UUID to determine cause — TD #71 pattern.
         //
-        // Fuel arm uses the FUEL_EXHAUSTED: stable prefix so consumers can match
-        // a fixed token without breaking when the message wording changes. This
-        // mirrors the pattern used elsewhere in the codebase (e.g.
-        // MULTI_COMMIT_CHAIN_NOT_ALLOWED). The epoch arm string "fail-closed:
-        // plugin timed out" is unchanged — existing operator runbooks match it
-        // and changing it would break them.
+        // All three arms use the "fail-closed:" family prefix, consistent with
+        // the rest of the fail-closed taxonomy. The fuel arm additionally embeds
+        // "FUEL_EXHAUSTED:" as a greppable sub-token so a future consumer can
+        // distinguish fuel from epoch without parsing the trailing prose. The
+        // epoch arm string "fail-closed: plugin timed out" is unchanged —
+        // existing operator runbooks match it.
         //
         // On Trap::OutOfFuel, wasmtime's remaining-fuel counter reaches zero, so
         // fuel_consumed_from_store() == fuel_cap (cap.saturating_sub(0) = cap).
@@ -851,13 +853,15 @@ fn extract_reason_from_outcome(result: &PluginResult) -> Option<String> {
             fuel_cap,
             ..
         } => Some(format!(
-            "FUEL_EXHAUSTED: fuel cap of {fuel_cap} units exhausted; \
+            "fail-closed: FUEL_EXHAUSTED: fuel cap of {fuel_cap} units exhausted; \
              raise fuel_cap or reduce payload size"
         )),
         PluginResult::Timeout {
             cause: TimeoutCause::Epoch,
             ..
         } => Some("fail-closed: plugin timed out".to_owned()),
+        // Future variants: no reason available without opening the internal log.
+        _ => None,
     }
 }
 
@@ -1197,10 +1201,12 @@ mod tests_extract_reason_cause_distinction {
         let text = reason
             .as_deref()
             .expect("fuel timeout must produce Some reason");
-        // Stable prefix: consumers match FUEL_EXHAUSTED: to distinguish fuel from epoch.
+        // Family prefix + greppable sub-token. Both must be present in the
+        // emitted message so operators see the fail-closed taxonomy and can
+        // still grep FUEL_EXHAUSTED: without opening the internal log.
         assert!(
-            text.starts_with("FUEL_EXHAUSTED:"),
-            "fuel timeout block_reason must start with 'FUEL_EXHAUSTED:', got: {text:?}"
+            text.starts_with("fail-closed: FUEL_EXHAUSTED:"),
+            "fuel timeout block_reason must start with 'fail-closed: FUEL_EXHAUSTED:', got: {text:?}"
         );
         assert!(
             text.contains("exhausted"),
@@ -1220,17 +1226,21 @@ mod tests_extract_reason_cause_distinction {
         );
     }
 
-    // Proves the fix is load-bearing, not cosmetic: on the `Err(_)` path of
-    // `fuel_consumed_from_store` (when `store.get_fuel()` returns an error),
-    // `fuel_consumed` is 0 but the cap is still known via `fuel_cap`.  Before
-    // the `fuel_cap` field was added, the operator-facing message read
-    // "fuel cap of 0 units exhausted" — a false statement.  This test asserts
-    // that the correct configured cap is reported regardless of whether
-    // `fuel_consumed` carries a meaningful value.
+    // Decoupling test: the message is a function of `fuel_cap` alone and must
+    // not read `fuel_consumed`.  With `fuel_consumed=0` and
+    // `fuel_cap=DEFAULT_FUEL_CAP`, the message must still cite the configured
+    // cap so operators know which budget to raise — regardless of whatever
+    // value `fuel_consumed` holds.
+    //
+    // Note: `fuel_consumed_from_store` has a dead `Err(_) => 0` arm (it can
+    // only err when fuel is disabled, but `build_engine` enables fuel
+    // unconditionally and `set_fuel` failing aborts in `InvokeError::Setup`
+    // before execution begins).  The `fuel_consumed: 0` input here is simply
+    // a synthetic boundary value, not a claim about the Err(_) path.
     #[test]
     fn fuel_timeout_with_zero_consumed_still_reports_cap() {
         use factory_dispatcher::invoke::DEFAULT_FUEL_CAP;
-        // Simulates the Err(_) arm of fuel_consumed_from_store: consumed=0, cap=DEFAULT.
+        // Synthetic: consumed=0 to verify the message ignores fuel_consumed.
         let result = PluginResult::Timeout {
             cause: TimeoutCause::Fuel,
             stderr: String::new(),
@@ -1243,17 +1253,21 @@ mod tests_extract_reason_cause_distinction {
             .as_deref()
             .expect("fuel timeout must produce Some reason");
         assert!(
-            text.starts_with("FUEL_EXHAUSTED:"),
-            "message must carry FUEL_EXHAUSTED: prefix even when fuel_consumed=0; got: {text:?}"
+            text.starts_with("fail-closed: FUEL_EXHAUSTED:"),
+            "message must carry fail-closed: FUEL_EXHAUSTED: prefix even when fuel_consumed=0; got: {text:?}"
         );
         assert!(
             text.contains(&DEFAULT_FUEL_CAP.to_string()),
             "message must report the configured cap ({DEFAULT_FUEL_CAP}), \
              not fuel_consumed (0); got: {text:?}"
         );
+        // Fails against the pre-fix form "fuel cap of 0 units exhausted":
+        //   pre-fix:  "…fail-closed: FUEL_EXHAUSTED: fuel cap of 0 units exhausted…"  → contains → assertion FAILS  ✓
+        //   post-fix: "…fail-closed: FUEL_EXHAUSTED: fuel cap of 20000000 units …"    → absent   → assertion PASSES ✓
         assert!(
-            !text.contains(": 0 "),
-            "message must NOT interpolate fuel_consumed=0 as the cap; got: {text:?}"
+            !text.contains("of 0 units"),
+            "message must NOT interpolate fuel_consumed=0 as the cap; \
+             pre-fix form contained 'of 0 units'; got: {text:?}"
         );
     }
 
