@@ -4,7 +4,7 @@ level: ops
 version: "7.06"
 status: draft
 producer: state-manager
-timestamp: 2026-08-10T20:30:00Z
+timestamp: 2026-08-10T20:45:00Z
 phase: D-968-PR-774-POST-MERGE-RECORD-BURST
 last_amended: "2026-08-10 (v7.06) — D-968-PR-774-POST-MERGE-RECORD-BURST (state-manager): PR #774 merged (62fbcf1a); develop 700b4dd3→62fbcf1a; fix/fuel-cap-raise-20m MERGED+DELETED; F-S2107-P10-007 CLOSED; F-S2107-P10-004 SHIFTED; Drift Items updated; L-BB-gate-never-invoked-is-functionally-absent appended; D-968 allocated; STATE.md v7.05→v7.06. [Prior: 2026-08-10 (v7.05) — D-967-PASS-10-CORRECTION-BURST (state-manager): orchestrator relay error in D-966 corrected; F-006 precision note attribution fixed (adapter model, not cross-site); F-S2107-P10-010 MEDIUM added; pass-10 count 9→10; trajectory-tail →20→16→8→10; L-BB-correction-same-verification-obligation appended; D-967 allocated; STATE.md v7.04→v7.05. [Prior: 2026-08-09 (v7.04) — D-966-PASS-10-RECORD-BURST (state-manager): adversary pass-10 persisted (NOT-CLEAN B2/H4/M2/L1; 9 findings; streak 0/3 reset); Blocking Issue P0-F-001 added; 7 Drift Items added; trajectory-tail →20→16→8→9; D-966 allocated; STATE.md v7.03→v7.04.]]"
 inputs: []
@@ -55,6 +55,7 @@ dtu_services: []
   ~340 lines (estimated post-D-966 PASS-10-RECORD-BURST 2026-08-09; v7.03→v7.04)
   ~315 lines (estimated post-D-967 PASS-10-CORRECTION-BURST 2026-08-10; v7.04→v7.05)
   ~335 lines (estimated post-D-968 PR-774-POST-MERGE-RECORD-BURST 2026-08-10; v7.05→v7.06)
+  316 lines (wc-l post-D-968 SHA-patch a055459f 2026-08-10; v7.06 UNCHANGED)
 -->
 
 # Pipeline State: vsdd-factory
@@ -120,7 +121,7 @@ dtu_services: []
 | D-965-POLICY-15-ATTESTATION-GATE-RATIFICATION-BURST 2026-08-09 (SHA-patch 7540c669) | state-manager | COMPLETE | policies.yaml v1.4.21→v1.4.22 RATIFIED; ADR-040 v1.1 active; ARCH-INDEX v3.51→v3.52; D-965 allocated; pipeline PAUSED→ACTIVE; STATE.md v7.02→v7.03. |
 | D-966-PASS-10-RECORD-BURST 2026-08-09 (single commit TD-VSDD-053; parent cbff0801) | state-manager | COMPLETE | adversary-pass-10.md created; INDEX.md pass-10 row + Convergence Status updated; decision-log D-966 appended; burst-log D-966 8-block appended; lessons.md 2 PROPOSED lessons; STATE.md v7.03→v7.04; streak 0/3 RESET; trajectory-tail →20→16→8→9. |
 | D-967-PASS-10-CORRECTION-BURST 2026-08-10 (single commit TD-VSDD-053; parent 38cd1037) | state-manager | COMPLETE | adversary-pass-10.md F-006 corrected + F-010 added; INDEX.md pass-10 count 9→10; decision-log D-967 appended; burst-log D-967 8-block appended; lessons.md L-BB-correction lesson appended; STATE.md v7.04→v7.05; streak 0/3 UNCHANGED; trajectory-tail →20→16→8→10. |
-| D-968-PR-774-POST-MERGE-RECORD-BURST 2026-08-10 (single commit TD-VSDD-053; parent 48cb6862) | state-manager | COMPLETE | PR #774 merged (62fbcf1a); develop advanced; fix/fuel-cap-raise-20m removed; F-007 CLOSED; F-004 SHIFTED; Drift Items updated; L-BB-gate-never-invoked lesson appended; STATE.md v7.05→v7.06; streak 0/3 UNCHANGED; trajectory-tail →20→16→8→10 UNCHANGED. |
+| D-968-PR-774-POST-MERGE-RECORD-BURST 2026-08-10 (single commit TD-VSDD-053; parent 48cb6862; SHA-patch a055459f) | state-manager | COMPLETE | PR #774 merged (62fbcf1a); develop advanced; fix/fuel-cap-raise-20m removed; F-007 CLOSED; F-004 SHIFTED; Drift Items updated; L-BB-gate-never-invoked lesson appended; STATE.md v7.05→v7.06; streak 0/3 UNCHANGED; trajectory-tail →20→16→8→10 UNCHANGED. |
 
 ## Identifier Conventions
 
@@ -149,7 +150,7 @@ dtu_services: []
 |--------------|-----|-------|
 | main | 80e5cd7b | rc.23 bot binary bundle 2026-07-18 |
 | develop | 62fbcf1a | PR #774 squash-merged 2026-08-10T17:34:37Z. Pull on next code-worktree resume. |
-| factory-artifacts | 48cb6862 | D-968-PR-774-POST-MERGE-RECORD-BURST parent SHA (D-967 commit; actual D-968 commit SHA post-push per codification 3). |
+| factory-artifacts | a055459f | D-968 Commit E (SHA-patch; pushed 2026-08-10T20:30Z). |
 | feature/S-21.07 | 5370db80 | pass-10 NOT-CLEAN 10 findings D-967 (correction burst complete). Pushed; SHA-equal with origin. FROZEN per team-lead; NO REBASE; MERGE-ORDER: S-21.09 first. |
 | feature/S-21.04 | 323f440f | pass-31 pending; no PR. Pushed; SHA-equal with origin. |
 | fix/nested-factory-path-derivation | 9afc3226 | F-S2107-P8-016 + P9-008 CLOSED. Pushed; SHA-equal with origin. |
@@ -249,7 +250,7 @@ dtu_services: []
 
 ### §1 Position
 
-Cycle `v1.0-brownfield-backfill`. Adversary **pass-10 COMPLETE — NOT-CLEAN (B2/H4/M3/L1; 10 findings).** D-966 record burst, D-967 correction burst, D-968 post-merge burst all persisted. Streak **0/3** (reset by NOT-CLEAN). Nine adversary passes total, zero CLEAN verdicts; pass-11 adversary is NEXT. Trajectory `47→18→25→25→24→20→16→8→10`; tail LENGTH=4 `→20→16→8→10`. factory-artifacts parent `48cb6862` (D-968 single commit pending push). 4-INDEX: **BC v4.55 / VP v2.76 / STORY v4.291 / ARCH v3.52** (UNCHANGED). `policies.yaml` v1.4.22. develop `62fbcf1a` (PR #774 merged).
+Cycle `v1.0-brownfield-backfill`. Adversary **pass-10 COMPLETE — NOT-CLEAN (B2/H4/M3/L1; 10 findings).** D-966 record burst, D-967 correction burst, D-968 post-merge burst all persisted. Streak **0/3** (reset by NOT-CLEAN). Nine adversary passes total, zero CLEAN verdicts; pass-11 adversary is NEXT. Trajectory `47→18→25→25→24→20→16→8→10`; tail LENGTH=4 `→20→16→8→10`. factory-artifacts `a055459f` (D-968 Commit E; pushed 2026-08-10T20:30Z). 4-INDEX: **BC v4.55 / VP v2.76 / STORY v4.291 / ARCH v3.52** (UNCHANGED). `policies.yaml` v1.4.22. develop `62fbcf1a` (PR #774 merged).
 
 **CRITICAL:** D-965 ratification = **PROCURED-ON-MISCHARACTERIZATION** (F-003). ADR-040 §Decision 6 justifying premise false. Architect must re-open ADR-040 for v1.2 redesign before pass-11 adversary reviews POLICY 15 again.
 
@@ -266,7 +267,7 @@ Streak **0/3**. Nine adversary passes, ZERO CLEAN verdicts. Trajectory `47→18�
 | `fix/nested-factory-path-derivation` | `9afc3226` | pushed; F-S2107-P8-016 (3 sites) + P9-008 |
 | `fix/d999-sentinel-code-migration` | `bf642fd9` | pushed; ADR-041, 8 sites |
 | `fix/fuel-exhaustion-fail-loud` | `fbb9dcb6` | **ABANDONED, local-only, deliberately NOT pushed** |
-| `factory-artifacts` | `48cb6862` | D-968-PR-774-POST-MERGE-RECORD-BURST parent SHA (D-967 commit; actual D-968 commit TBD after push) |
+| `factory-artifacts` | `a055459f` | D-968 Commit E (SHA-patch; pushed 2026-08-10T20:30Z). |
 | `develop` | `62fbcf1a` | PR #774 merged 2026-08-10; local main worktree stale — pull on next code resume |
 | `main` | `80e5cd7b` | rc.23 bot binary bundle 2026-07-18 |
 
