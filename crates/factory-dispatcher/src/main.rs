@@ -790,8 +790,6 @@ fn extract_block_info(outcomes: &[PluginOutcome]) -> (String, String) {
             PluginResult::Crashed { .. } | PluginResult::Timeout { .. } => {
                 outcome.on_error == OnError::Block
             }
-            // Future variants are not fail-closed unless explicitly handled.
-            _ => false,
         };
 
         if is_blocking {
@@ -860,8 +858,6 @@ fn extract_reason_from_outcome(result: &PluginResult) -> Option<String> {
             cause: TimeoutCause::Epoch,
             ..
         } => Some("fail-closed: plugin timed out".to_owned()),
-        // Future variants: no reason available without opening the internal log.
-        _ => None,
     }
 }
 
