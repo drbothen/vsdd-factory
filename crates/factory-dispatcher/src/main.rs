@@ -832,14 +832,27 @@ fn extract_reason_from_outcome(result: &PluginResult) -> Option<String> {
         // reduce payload); epoch/wall-clock is a transient compute failure
         // (investigate slow script). Conflating them forces operators to grep
         // the internal log for the trace UUID to determine cause — TD #71 pattern.
+        //
+        // Fuel arm uses the FUEL_EXHAUSTED: stable prefix so consumers can match
+        // a fixed token without breaking when the message wording changes. This
+        // mirrors the pattern used elsewhere in the codebase (e.g.
+        // MULTI_COMMIT_CHAIN_NOT_ALLOWED). The epoch arm string "fail-closed:
+        // plugin timed out" is unchanged — existing operator runbooks match it
+        // and changing it would break them.
+        //
+        // On Trap::OutOfFuel, wasmtime's remaining-fuel counter reaches zero, so
+        // fuel_consumed_from_store() == fuel_cap (cap.saturating_sub(0) = cap).
+        // The interpolated value therefore represents the configured cap, not a
+        // measured cost. The message is framed accordingly ("fuel cap of N units")
+        // rather than "N units consumed" which would imply a metered demand figure.
         PluginResult::Crashed { .. } => Some("fail-closed: plugin crashed".to_owned()),
         PluginResult::Timeout {
             cause: TimeoutCause::Fuel,
             fuel_consumed,
             ..
         } => Some(format!(
-            "fail-closed: fuel exhausted ({fuel_consumed} units consumed; \
-             raise fuel_cap or reduce payload size)"
+            "FUEL_EXHAUSTED: fuel cap of {fuel_consumed} units exhausted; \
+             raise fuel_cap or reduce payload size"
         )),
         PluginResult::Timeout {
             cause: TimeoutCause::Epoch,
@@ -1161,33 +1174,47 @@ mod tests_extract_reason_cause_distinction {
     #![allow(clippy::expect_used, clippy::unwrap_used)]
     use factory_dispatcher::invoke::{PluginResult, TimeoutCause};
 
-    // RED before fix: fuel timeout must produce a fuel-specific reason, not "plugin timed out".
+    // Fuel timeout must produce a fuel-specific reason, not "plugin timed out".
+    //
+    // The test input uses fuel_consumed == 20_000_000 to reflect the real invariant:
+    // on Trap::OutOfFuel, wasmtime's remaining-fuel counter is zero, so
+    // fuel_consumed_from_store() == fuel_cap (cap.saturating_sub(0) = cap).
+    // A value like 10_500_000 that differs from any plausible cap is unreachable
+    // in production and would make assertions on the interpolated value misleading.
     #[test]
     fn fuel_timeout_reason_identifies_fuel_exhaustion() {
+        use factory_dispatcher::invoke::DEFAULT_FUEL_CAP;
         let result = PluginResult::Timeout {
             cause: TimeoutCause::Fuel,
             stderr: String::new(),
             elapsed_ms: 5,
-            fuel_consumed: 10_500_000,
+            // consumed == cap on fuel trap (see invariant comment above).
+            fuel_consumed: DEFAULT_FUEL_CAP,
         };
         let reason = super::extract_reason_from_outcome(&result);
         let text = reason
             .as_deref()
             .expect("fuel timeout must produce Some reason");
+        // Stable prefix: consumers match FUEL_EXHAUSTED: to distinguish fuel from epoch.
         assert!(
-            text.contains("fuel exhausted"),
-            "fuel timeout block_reason must contain 'fuel exhausted', got: {text:?}"
+            text.starts_with("FUEL_EXHAUSTED:"),
+            "fuel timeout block_reason must start with 'FUEL_EXHAUSTED:', got: {text:?}"
+        );
+        assert!(
+            text.contains("exhausted"),
+            "fuel timeout block_reason must contain 'exhausted', got: {text:?}"
         );
         assert!(
             !text.contains("timed out"),
             "fuel timeout block_reason must NOT say 'timed out' — \
              operators need distinct messages to choose the right remedy; got: {text:?}"
         );
-        // Consumed-fuel figure surfaces for scale assessment.
+        // The interpolated value is the cap (consumed == cap on fuel trap).
+        // Assert against the actual cap constant so this tracks deliberate changes.
         assert!(
-            text.contains("10500000"),
-            "fuel timeout block_reason should include the consumed-fuel figure \
-             (10500000) so operators can assess scale without log grep; got: {text:?}"
+            text.contains(&DEFAULT_FUEL_CAP.to_string()),
+            "fuel timeout block_reason should include the cap value ({DEFAULT_FUEL_CAP}) \
+             so operators know which cap to raise; got: {text:?}"
         );
     }
 

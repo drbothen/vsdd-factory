@@ -255,6 +255,18 @@ pub enum TimeoutCause {
     Fuel,
 }
 
+/// ADR-042 §Decision 1: global fuel cap raised 10M → 20M (measurement-validated).
+/// Worst-case legacy-bash-adapter payload consumed 10,406,058 fuel
+/// (ARCH-INDEX + 50 KB last_assistant_message, 377,109 payload bytes),
+/// exhausting the former 10M cap. 20M leaves ~9.6M headroom (92% margin).
+///
+/// This constant is the single source of truth for the ADR-042 fuel cap.
+/// Both `InvokeLimits::default()` and `RegistryDefaults::default()` reference it,
+/// so any future deliberate cap change is made in one place and propagates
+/// atomically to both — structural enforcement rather than test-only enforcement.
+/// Any change to this value requires updating the ADR-042 §Decision 1 rationale.
+pub const DEFAULT_FUEL_CAP: u64 = 20_000_000;
+
 /// Per-invocation budget. Defaults live in
 /// `RegistryDefaults`; callers usually get these from a
 /// `RegistryEntry` with fallback.
@@ -268,11 +280,7 @@ impl Default for InvokeLimits {
     fn default() -> Self {
         Self {
             timeout_ms: 5_000,
-            // ADR-042 §Decision 1: raised 10M → 20M (measurement-validated).
-            // Worst-case legacy-bash-adapter payload consumed 10,406,058 fuel
-            // (ARCH-INDEX + 50 KB last_assistant_message, 377,109 payload bytes),
-            // exhausting the former 10M cap. 20M leaves ~9.6M headroom (92% margin).
-            fuel_cap: 20_000_000,
+            fuel_cap: DEFAULT_FUEL_CAP,
         }
     }
 }
@@ -1066,19 +1074,21 @@ mod tests {
     // worst-case payload (ARCH-INDEX + 50 KB assistant message) measured 10,406,058 fuel.
     #[test]
     fn invoke_limits_default_fuel_cap_is_20m() {
-        assert_eq!(InvokeLimits::default().fuel_cap, 20_000_000);
+        assert_eq!(InvokeLimits::default().fuel_cap, DEFAULT_FUEL_CAP);
     }
 
-    // Demonstrates that the 10M→20M raise resolves the class of exhaustions seen in
-    // production. The WAT loop runs 1,200,000 iterations at ~9 WASM instructions each
-    // (≈10.8M fuel) — above the former 10M cap, below the new 20M cap.
-    // Calibrated against the perf-engineer model:
-    //   fuel = 29,452 + 27.514 × payload_bytes (R²=0.9999999).
-    // At 377,109 bytes (ARCH-INDEX + 50 KB assistant msg): 10,406,058 fuel.
+    // Proves the dispatcher enforces the fuel ceiling at the boundary: a synthetic WAT
+    // workload of ~10.8M fuel crosses from trapped to completing when the ceiling
+    // moves from 10M to 20M. This is a ceiling-enforcement test, not a production
+    // model: the WAT loop runs with an empty payload and no host calls, so it does
+    // not reflect the regression formula measured by the perf-engineer
+    // (fuel = 29,452 + 27.514 × payload_bytes). The ~10.8M estimate is based on
+    // the loop structure (1,200,000 iterations × ~9 WASM instructions each); the
+    // actual observed value is asserted in the 20M branch below.
     #[test]
     fn fuel_workload_exhausts_10m_completes_at_20m() {
         let engine = build_engine().unwrap();
-        // Arithmetic loop: 1,200,000 iterations x ~9 instructions = ~10.8M fuel.
+        // Arithmetic loop: 1,200,000 iterations x ~9 instructions ≈ 10.8M fuel.
         let module = compile(
             &engine,
             r#"
@@ -1126,14 +1136,31 @@ mod tests {
             b"",
             InvokeLimits {
                 timeout_ms: 30_000,
-                fuel_cap: 20_000_000,
+                fuel_cap: DEFAULT_FUEL_CAP,
             },
         )
         .unwrap();
-        assert!(
-            matches!(res_20m, PluginResult::Ok { exit_code: 0, .. }),
-            "expected Ok(exit_code=0) at 20M cap, got {res_20m:?}"
-        );
+        // Assert both the exit code and the observed fuel so a future wasmtime
+        // accounting change fails with a message stating the actual cost rather
+        // than an opaque pattern-match mismatch.
+        match res_20m {
+            PluginResult::Ok {
+                exit_code,
+                fuel_consumed,
+                ..
+            } => {
+                assert_eq!(exit_code, 0, "expected exit_code=0 at 20M cap");
+                assert!(
+                    fuel_consumed > 10_000_000,
+                    "fuel_consumed should be > 10M (workload is ~10.8M), got {fuel_consumed}"
+                );
+                assert!(
+                    fuel_consumed < DEFAULT_FUEL_CAP,
+                    "fuel_consumed should be < cap ({DEFAULT_FUEL_CAP}), got {fuel_consumed}"
+                );
+            }
+            other => panic!("expected Ok(exit_code=0) at 20M cap, got {other:?}"),
+        }
     }
 
     #[test]
