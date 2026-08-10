@@ -848,10 +848,10 @@ fn extract_reason_from_outcome(result: &PluginResult) -> Option<String> {
         PluginResult::Crashed { .. } => Some("fail-closed: plugin crashed".to_owned()),
         PluginResult::Timeout {
             cause: TimeoutCause::Fuel,
-            fuel_consumed,
+            fuel_cap,
             ..
         } => Some(format!(
-            "FUEL_EXHAUSTED: fuel cap of {fuel_consumed} units exhausted; \
+            "FUEL_EXHAUSTED: fuel cap of {fuel_cap} units exhausted; \
              raise fuel_cap or reduce payload size"
         )),
         PluginResult::Timeout {
@@ -1190,6 +1190,8 @@ mod tests_extract_reason_cause_distinction {
             elapsed_ms: 5,
             // consumed == cap on fuel trap (see invariant comment above).
             fuel_consumed: DEFAULT_FUEL_CAP,
+            // fuel_cap is the configured cap; message interpolates this field.
+            fuel_cap: DEFAULT_FUEL_CAP,
         };
         let reason = super::extract_reason_from_outcome(&result);
         let text = reason
@@ -1218,15 +1220,54 @@ mod tests_extract_reason_cause_distinction {
         );
     }
 
+    // Proves the fix is load-bearing, not cosmetic: on the `Err(_)` path of
+    // `fuel_consumed_from_store` (when `store.get_fuel()` returns an error),
+    // `fuel_consumed` is 0 but the cap is still known via `fuel_cap`.  Before
+    // the `fuel_cap` field was added, the operator-facing message read
+    // "fuel cap of 0 units exhausted" — a false statement.  This test asserts
+    // that the correct configured cap is reported regardless of whether
+    // `fuel_consumed` carries a meaningful value.
+    #[test]
+    fn fuel_timeout_with_zero_consumed_still_reports_cap() {
+        use factory_dispatcher::invoke::DEFAULT_FUEL_CAP;
+        // Simulates the Err(_) arm of fuel_consumed_from_store: consumed=0, cap=DEFAULT.
+        let result = PluginResult::Timeout {
+            cause: TimeoutCause::Fuel,
+            stderr: String::new(),
+            elapsed_ms: 0,
+            fuel_consumed: 0,
+            fuel_cap: DEFAULT_FUEL_CAP,
+        };
+        let reason = super::extract_reason_from_outcome(&result);
+        let text = reason
+            .as_deref()
+            .expect("fuel timeout must produce Some reason");
+        assert!(
+            text.starts_with("FUEL_EXHAUSTED:"),
+            "message must carry FUEL_EXHAUSTED: prefix even when fuel_consumed=0; got: {text:?}"
+        );
+        assert!(
+            text.contains(&DEFAULT_FUEL_CAP.to_string()),
+            "message must report the configured cap ({DEFAULT_FUEL_CAP}), \
+             not fuel_consumed (0); got: {text:?}"
+        );
+        assert!(
+            !text.contains(": 0 "),
+            "message must NOT interpolate fuel_consumed=0 as the cap; got: {text:?}"
+        );
+    }
+
     // Epoch timeout must still produce the original "plugin timed out" sentinel —
     // changing this arm would break existing operator runbooks for slow scripts.
     #[test]
     fn epoch_timeout_reason_is_unaffected() {
+        use factory_dispatcher::invoke::DEFAULT_FUEL_CAP;
         let result = PluginResult::Timeout {
             cause: TimeoutCause::Epoch,
             stderr: String::new(),
             elapsed_ms: 5_001,
             fuel_consumed: 2_000_000,
+            fuel_cap: DEFAULT_FUEL_CAP,
         };
         let reason = super::extract_reason_from_outcome(&result);
         assert_eq!(

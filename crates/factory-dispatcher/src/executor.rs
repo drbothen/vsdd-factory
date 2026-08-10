@@ -685,6 +685,7 @@ fn emit_lifecycle(
             stderr,
             elapsed_ms,
             fuel_consumed,
+            fuel_cap: _,
         } => {
             let cause_str = match cause {
                 TimeoutCause::Epoch => "epoch",
@@ -748,6 +749,7 @@ fn emit_lifecycle(
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::invoke::DEFAULT_FUEL_CAP;
 
     // ── CRIT-PR59-001 regression tests: advisory-block gate ──────────────────
 
@@ -840,6 +842,7 @@ mod tests {
             stderr: String::new(),
             elapsed_ms: 5_000,
             fuel_consumed: 0,
+            fuel_cap: DEFAULT_FUEL_CAP,
         };
         assert!(!plugin_requests_block(&r));
     }
@@ -891,6 +894,7 @@ mod tests {
             stderr: String::new(),
             elapsed_ms: 5_000,
             fuel_consumed: 0,
+            fuel_cap: DEFAULT_FUEL_CAP,
         };
         assert!(
             plugin_fail_closed(&r, OnError::Block),
@@ -901,11 +905,13 @@ mod tests {
     /// Timeout + on_error=Continue → NOT fail-closed.
     #[test]
     fn fail_closed_timeout_with_on_error_continue_is_open() {
+        // fuel_consumed == fuel_cap on Trap::OutOfFuel (remaining=0 → cap.saturating_sub(0)=cap).
         let r = PluginResult::Timeout {
             cause: TimeoutCause::Fuel,
             stderr: String::new(),
             elapsed_ms: 5_000,
-            fuel_consumed: 1_000_000_000,
+            fuel_consumed: DEFAULT_FUEL_CAP,
+            fuel_cap: DEFAULT_FUEL_CAP,
         };
         assert!(
             !plugin_fail_closed(&r, OnError::Continue),

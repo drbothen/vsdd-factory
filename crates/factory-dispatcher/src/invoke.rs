@@ -226,7 +226,18 @@ pub enum PluginResult {
         /// a partial message because the plugin was interrupted.
         stderr: String,
         elapsed_ms: u64,
+        /// Instructions executed before the interrupt. Useful telemetry for
+        /// the event log. Note: on `Trap::OutOfFuel`, `fuel_consumed_from_store`
+        /// returns `cap.saturating_sub(remaining)` where `remaining == 0`, so
+        /// `fuel_consumed == fuel_cap` on every fuel trap — it does not convey
+        /// demand independently of the cap. Use `fuel_cap` for the operator
+        /// message when communicating what limit was hit.
         fuel_consumed: u64,
+        /// The configured fuel budget at the time of invocation. Always
+        /// reflects the actual cap set on the wasmtime Store, independent of
+        /// whether `get_fuel()` succeeds. Use this field — not `fuel_consumed`
+        /// — when constructing operator-facing messages about which cap to raise.
+        fuel_cap: u64,
     },
     Crashed {
         trap_string: String,
@@ -409,6 +420,7 @@ pub fn invoke_plugin(
             &stderr,
             elapsed_ms,
             fuel_consumed,
+            limits.fuel_cap,
         ),
     }
 }
@@ -419,6 +431,7 @@ fn classify_trap(
     stderr: &MemoryOutputPipe,
     elapsed_ms: u64,
     fuel_consumed: u64,
+    fuel_cap: u64,
 ) -> Result<PluginResult, InvokeError> {
     let stderr_text = stderr_to_string(stderr);
     // WASI `exit(n)` propagates as an `I32Exit` in wasmtime-wasi's
@@ -441,12 +454,14 @@ fn classify_trap(
                 stderr: stderr_text,
                 elapsed_ms,
                 fuel_consumed,
+                fuel_cap,
             },
             Trap::OutOfFuel => PluginResult::Timeout {
                 cause: TimeoutCause::Fuel,
                 stderr: stderr_text,
                 elapsed_ms,
                 fuel_consumed,
+                fuel_cap,
             },
             other => PluginResult::Crashed {
                 trap_string: other.to_string(),
