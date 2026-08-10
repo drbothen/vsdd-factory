@@ -181,7 +181,16 @@ pub enum GateError {
 /// The stale-pin guard runs **before** the merge-base computation, so when both
 /// the crate is absent *and* the base is unresolvable, `StalePin` is returned.
 pub fn run_gate(repo: &Path, base_branch: &str) -> Result<GateOutcome, GateError> {
-    // Stale-pin guard must precede merge-base: ADR-040 §Decision 10 guard ordering.
+    // Guard 1 — stale-pin check BEFORE the origin/<branch> merge-base lookup.
+    //
+    // This guard is intentionally duplicated from the one in `run_gate_from_merge_base`
+    // (guard 2). The duplication establishes a documented ordering invariant: when the
+    // pinned crate is absent *and* the base branch is unresolvable, the gate reports
+    // `StalePin` (not `EmptyRange`). Without guard 1, a repo where the crate was
+    // renamed/deleted *and* the remote was removed would silently report `EmptyRange`,
+    // masking the more actionable stale-pin diagnosis.
+    //
+    // Pinned by: `test_run_gate_guard1_stale_pin_beats_unresolvable_base`.
     if !tree_path_exists(repo, "HEAD", PLUGIN_CRATE)? {
         return Ok(GateOutcome::EmptyOrUnreachable(UnreachableCause::StalePin));
     }
@@ -735,18 +744,23 @@ mod tests {
     fn test_unresolvable_base_fails_closed() {
         let repo = Repo::new();
 
-        // Seed the crate so the stale-pin guard passes (and we reach the merge-base step).
+        // Seed the crate so guard 1 passes (we reach the merge-base step).
         repo.write_and_commit(
             &format!("{PC}/docs/placeholder.md"),
             "placeholder\n",
             "seed: crate in HEAD tree",
         );
 
-        // No `origin` remote configured — merge-base will fail.
+        // No `origin` remote — merge-base fails → EmptyOrUnreachable(EmptyRange).
+        // Assert the specific variant, not merely !is_pass(): a coarse boolean check
+        // would survive a mutation that changed the outcome identifier (level-5 defect).
         let outcome = run_gate(repo.path(), "nonexistent-branch-xyz").expect("no hard I/O error");
         assert!(
-            !outcome.is_pass(),
-            "expected non-pass for unresolvable base, got: {:?}",
+            matches!(
+                outcome,
+                GateOutcome::EmptyOrUnreachable(UnreachableCause::EmptyRange)
+            ),
+            "expected EmptyOrUnreachable(EmptyRange) for unresolvable base, got: {:?}",
             outcome
         );
     }
@@ -769,6 +783,32 @@ mod tests {
                 GateOutcome::EmptyOrUnreachable(UnreachableCause::StalePin)
             ),
             "expected StalePin to win over EmptyRange, got: {:?}",
+            outcome
+        );
+    }
+
+    /// Guard-1 ordering test (through `run_gate`) — crate absent AND base unresolvable
+    /// → `StalePin`, not `EmptyRange`.
+    ///
+    /// This is the mutation-killing companion to `test_guard_ordering_stale_pin_beats_empty_range`.
+    /// That test exercises guard ordering through `run_gate_from_merge_base` (guard 2).
+    /// This test exercises it through `run_gate` (guard 1), which fires before the
+    /// `git merge-base HEAD origin/<branch>` call. Neutralising guard 1 would cause
+    /// the merge-base failure to be reached first, returning `EmptyOrUnreachable(EmptyRange)`
+    /// rather than `StalePin` — failing this assertion.
+    #[test]
+    fn test_run_gate_guard1_stale_pin_beats_unresolvable_base() {
+        let repo = Repo::new();
+        // Crate is NOT seeded — absent from HEAD tree (StalePin trigger).
+        // No origin remote — merge-base would fail (EmptyRange trigger).
+        // Guard 1 must fire first → outcome must be StalePin, not EmptyRange.
+        let outcome = run_gate(repo.path(), "nonexistent-branch-xyz").expect("no hard I/O error");
+        assert!(
+            matches!(
+                outcome,
+                GateOutcome::EmptyOrUnreachable(UnreachableCause::StalePin)
+            ),
+            "expected StalePin (guard 1 fires before merge-base), got: {:?}",
             outcome
         );
     }
