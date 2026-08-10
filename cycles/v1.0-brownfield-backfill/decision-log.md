@@ -15549,3 +15549,84 @@ D-968-PR-774-POST-MERGE-RECORD-BURST
 ### Date
 
 2026-08-10
+
+---
+
+## D-969 — D-969-ADR-040-V1.12-REDESIGN-RECORD-BURST
+
+**POLICY 16 ALLOCATOR-CEILING GATE** (pre-allocation, literal shell, D-449(a)):
+
+```
+$ max_d=$({ grep -hE '^#{2,} D-[0-9]+' .factory/cycles/*/decision-log.md 2>/dev/null; grep -hE '^[|] *D-[0-9]+' .factory/cycles/*/decision-log.md 2>/dev/null; } | grep -oE 'D-[0-9]+' | sed 's/D-//' | sort -n | tail -1); if [ -z "$max_d" ]; then printf 'FAIL: D-NNN ceiling gate: zero allocation records found — corpus scan failure; gate fails closed\n'; exit 1; fi; [ "$max_d" -lt 9000 ] && printf 'PASS: global max D-%s < D-9000 ceiling\n' "$max_d" || { printf 'FAIL: D-NNN allocation ceiling breach: max=D-%s\n' "$max_d"; exit 1; }
+PASS: global max D-968 < D-9000 ceiling
+```
+
+D-969 allocated. parent-commit: `70b4ecd1` (factory-artifacts HEAD at burst start = D-968 SHA-patch commit).
+
+**(a) POLICY 16 GATE PASS — D-969 allocated; parent-commit `70b4ecd1`.** ADR-040 v1.12 redesign record burst. Purpose: persist ADR-040 v1.12 (already modified in working tree by architect at d2a3176a evidence), record F-001 root-cause analysis, allocate D-969, and update factory artifacts.
+
+**Independent verification — ADR-040 version and policies.yaml untouched:**
+
+```
+$ grep "^version:" .factory/specs/architecture/decisions/ADR-040-policy-15-attestation-gate-parent-sha-predicate.md
+version: "1.12"
+$ grep "^status:" .factory/specs/architecture/decisions/ADR-040-policy-15-attestation-gate-parent-sha-predicate.md
+status: proposed
+$ grep "^version:" .factory/policies.yaml
+version: "1.4.22"
+```
+
+**(b) ADR-040 v1.12 content verified.** ADR-040 is at version 1.12, status `proposed`, reopened from D-965 ratification. Ratification note records: `PROCURED-ON-MISCHARACTERIZATION — D-965 ratification rested on §Decision 6's false characterisation of 5370db80 as a stability entry (F-S2107-P10-003). ADR re-opened to proposed. Human re-ratification required.`
+
+**(c) F-001 root-cause and redesign summary.** F-S2107-P10-001 (BLOCKER) root cause: **category error, not predicate bug**. The gate was evaluated in the `factory-artifacts` worktree, which tracks zero `*.rs`/`*.bats` files by construction — the git diff --name-only pre-check was permanently EMPTY on every factory-artifacts commit; the INAPPLICABLE branch was the only reachable outcome. Two prior bursts (D-965, D-966) and a human ratification refined a predicate that could never fire because the antecedent domain was empty. Redesign in ADR-040 v1.12: obligation is now unconditional and path-pinned (evaluated in the code repository, not factory-artifacts); the INAPPLICABLE branch is retired; four outcomes defined with a control for every outcome. Mechanism moved out of the ADR and into a dedicated Rust workspace crate `crates/policy15-attestation-gate/` on branch `feature/policy15-gate-rust` at `d2a3176a`. POLICY 21 compliant (Rust workspace binary, no new .sh). 16 tests, `GateOutcome` enum, no `#[non_exhaustive]` (so a future outcome is a compile error at every match site), exit codes only at the binary boundary. Mutation-verified: neutralising the `run_gate` stale-pin guard fails `test_run_gate_guard1_stale_pin_beats_unresolvable_base`; disabling the attestation count check fails `test_positive_2_no_attestation_heading`. Neither mutation leaked into the committed crate at `d2a3176a`.
+
+Generation history (seven generations, each found by execution, none by review):
+1. D-912 HEAD-SHA predicate — logically unsatisfiable (git SHA is hash of tree including attestation section)
+2. D-960 parent-SHA form — logically satisfiable, first correct form
+3. D-965 commit-class-conditional pre-check — correct predicate, wrong deployment context
+4–7. Predicate refinements — each addressed a reviewed text defect; none escaped the empty-domain trap
+
+**(d) F-001 status.** F-S2107-P10-001 remains **OPEN — REMEDIATION DESIGNED AND VERIFIED, NOT CLOSED.** Closes only when: (1) human ratifies ADR-040 v1.12; (2) policies.yaml v1.4.23 is applied; (3) the CI job gates the code worktree (not factory-artifacts). Keep P0-class Blocking Issue open.
+
+**(e) F-003 status.** F-S2107-P10-003 (HIGH — D-965 ratification procured on mischaracterisation) remains OPEN. The false-premise erratum is recorded in ADR-040 v1.12. D-965's ratification is not retroactively valid. Re-ratification of v1.12 required.
+
+**(f) F-002 status (permanent historical exception).** F-S2107-P10-002 (BLOCKER [regression]) — retroactive attestation for 67ffbdcc + 38c70f9e — is a permanent historical exception. History is immutable. The owed erratum belongs in `crates/hook-plugins/validate-cross-site-correspondence/docs/red-gate-log.md`, which exists ONLY on the unmerged `feature/S-21.07` branch. Erratum is owed at S-21.07 merge time, not actionable now. Anchored so it cannot be lost.
+
+**(g) F-004, F-005, F-006, F-007, F-008, F-009, F-010 — UNCHANGED.** No status changes this burst.
+
+**(h) Codification 1 (PROPOSED — project-wide gate outcome discipline).** Human decision: upgrade codification 1 to PROJECT-WIDE scope. Every mechanical gate whose PASS is recorded as evidence MUST: (1) report distinct outcomes; (2) ship a control for EVERY outcome (not merely FAIL); (3) assert the outcome identifier rather than the category. Terminology corrected: positive control = the violating fixture the gate must reject; negative control = the compliant fixture it must accept (prior PROPOSED text had this inverted). Recorded as PROPOSED. Do NOT apply to policies.yaml — v1.4.23 stays PROPOSED behind the ADR's do-not-apply guard.
+
+**(i) Codification 2 (PROPOSED — POLICY 22 ratification-channel extension).** Unchanged from D-966. Remains PROPOSED.
+
+**(j) policies.yaml UNCHANGED at v1.4.22.** v1.4.23 stays PROPOSED. Confirmed:
+
+```
+$ grep "^version:" .factory/policies.yaml
+version: "1.4.22"
+```
+
+**(k) SLSA v1.2 Source Track L2 external validation note.** SLSA v1.2 Source Track L2 (APPROVED) states normatively: *"Source Provenance MUST be created contemporaneously with the branch being updated…"* — the premise of the POLICY 15 attestation-location gate was sound (provenance contemporaneity is normative); the implementation was vacuous (gate domain structurally empty in deployment context). Two separable failures recorded: premise sound, implementation vacuous.
+
+**(l) Mutation history record.** Crate first landed at `d5a90e74` with 15 green tests and a surviving mutant. Post-hoc mutation testing found it: neutralising the `run_gate` guard 1 stale-pin check did not fail any test because `test_unresolvable_base_fails_closed` used coarse `!outcome.is_pass()` assertion matching both mutant and non-mutant. Fix followed at `d2a3176a`: added variant-specific `test_run_gate_guard1_stale_pin_beats_unresolvable_base` using `matches!(outcome, GateOutcome::StalePin)`. Both the coarse-assertion gap and the mutant-killer gap are distinct achievements — closing one does not imply closing the other.
+
+**(m) feature/policy15-gate-rust branch.** Branch `feature/policy15-gate-rust` at `d2a3176a` is pushed (no PR). Contains `crates/policy15-attestation-gate/` with 16 tests. Added to Active Branches this burst.
+
+**(n) Fuel-exhaustion telemetry (F-006 live evidence — 5th consecutive burst).** dispatcher-internal-2026-08-10.jsonl (50,471 lines; 16MB): 400 `plugin.timeout` events across 35 plugins. Top by count: validate-table-cell-count (159), validate-state-structure (21), capture-pr-activity (16), capture-commit-activity (12), convergence-tracker (12). PostToolUse hooks for this burst: validate-count-propagation (count drift false-positive on ARCH-INDEX.md); validate-factory-path-root + validate-input-hash + validate-template-compliance + lint-registry-async-invariant (fuel timeout). Writes succeeded (PostToolUse cannot revert). Nested `.factory/.factory` log pattern ongoing — git status shows `?? .factory/logs/dispatcher-internal-2026-08-06.jsonl` (untracked within factory-artifacts; previously tracked, suggesting re-occurrence of deletion pattern; 5th+ observation).
+
+**(o) STATE.md v7.06 → v7.07.** streak 0/3 UNCHANGED. trajectory-tail →20→16→8→10 UNCHANGED. 4-INDEX BC v4.55/VP v2.76/STORY v4.291/ARCH v3.53. feature/policy15-gate-rust d2a3176a added to Active Branches.
+
+### Agents
+
+- state-manager (D-969): ADR-040 v1.12 staged; ARCH-INDEX v3.52→v3.53; 3 L-BB lessons appended; D-969 block persisted; burst-log D-969 8-block appended; STATE.md v7.06→v7.07; POLICY 16 gate run with literal shell captured stdout
+
+### 4-INDEX
+
+BC-INDEX v4.55 (UNCHANGED) / VP-INDEX v2.76 (UNCHANGED) / STORY-INDEX v4.291 (UNCHANGED) / ARCH-INDEX v3.53
+
+### Phase
+
+D-969-ADR-040-V1.12-REDESIGN-RECORD-BURST
+
+### Date
+
+2026-08-10

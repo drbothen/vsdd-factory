@@ -1,1 +1,1 @@
-{"status":"pass","timestamp":"2026-08-09T19:25:09Z","command":"cd /Users/zious/Documents/GITHUB/vsdd-factory/.worktrees/fuel-cap && cargo fmt --check --all && cargo clippy --workspace --all-targets -- -D warnings && cargo test --workspace --all-targets 2>&1 | tail -60"}
+{"status":"pass","timestamp":"2026-08-10T21:36:12Z","command":"cargo test --package policy15-attestation-gate --lib 2>&1 | tail -5"}

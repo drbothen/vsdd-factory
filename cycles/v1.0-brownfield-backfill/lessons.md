@@ -10603,3 +10603,45 @@ D-442(e) recorded the same class of defect for lessons.md (≤3,500 soft / ≤4,
 **Closes:** D-968 (lesson recorded)
 
 **Cites:** D-968 (codified this burst); BC-5.42.001; ADR-030 §Decision 2; D-449(a) (literal-shell-execution obligation); [[L-BB-vacuous-gate-meta-level-25]]; [[L-BB-correction-same-verification-obligation]]; [[L-BB-conditional-obligation-unconditional-detection-contradiction]]. `[process-gap; review-currency; staleness; gate-existence; gate-invocation; check-stale-verdict; meta-level-25; D-968; codified]`
+
+## L-BB-vacuous-antecedent-empty-domain [D-969]
+
+**Category:** process-gap
+
+**Title:** A Check That Reports PASS While Its Domain Is Structurally Empty Is Vacuity/Antecedent Failure — The Cure Is Removing the Antecedent, Not Refining the Predicate
+
+**Lesson:** D-969 F-S2107-P10-001 root-cause analysis: POLICY 15 ATTESTATION-LOCATION GATE v1.4.22 (ADR-040 v1.1, ratified D-965) contained a pre-check `git diff --name-only HEAD^1 HEAD -- '*.rs' '*.bats'` designed to gate the predicate to commits that add or strengthen assertion sites. The gate was redesigned three times (D-912 HEAD-SHA impossibility → D-960 parent-SHA → D-965 commit-class-conditional) — each redesign addressed a different failure class while preserving the conditional structure. The root cause of F-S2107-P10-001 was none of these predicate failures: it was a **category error** in deployment context. The gate was designed for the `feature/S-21.07` code worktree, where `*.rs` and `*.bats` files exist. It was evaluated in the `factory-artifacts` worktree, which tracks zero `*.rs` or `*.bats` files by construction. Every factory-artifacts commit produces EMPTY from the pre-check; the gate's antecedent is never true; the obligation branch never executes; the gate returns INAPPLICABLE on 100% of inputs. Two prior bursts (D-965, D-966) and a human ratification spent effort refining a predicate that was never the wrong element — the antecedent condition was the wrong element, because it was evaluated in the wrong deployment context. **The cure is not refining the predicate. The cure is removing the antecedent** — making the obligation unconditional — **and evaluating the gate in the context where the obligation can be satisfied** (the code worktree). An antecedent that is permanently false in the deployment context is not a scope guard; it is a vacuity generator. **Generalization:** when a mechanical gate reports INAPPLICABLE on every input in production, the correct diagnosis is not "the predicate needs refinement" but rather "the domain of the predicate is empty in this deployment context." Refinement cannot fix an empty domain. The cure is (a) eliminate the antecedent if the obligation is unconditional, OR (b) re-deploy the gate in a context where the antecedent can be satisfied, OR (c) formally retire the gate with documentation that the obligation does not apply in this context. Iterating on predicate form while the domain remains empty is wasted effort that can be formalized as a D-NNN codification and ratified by a human — and still be completely non-functional.
+
+**Anchors:** D-969; F-S2107-P10-001; ADR-040 v1.12; D-965; D-966; D-960; D-912; POLICY 15 ATTESTATION-LOCATION GATE; factory-artifacts worktree.
+
+**Closes:** D-969 (lesson recorded)
+
+**Cites:** D-969 (codified this burst); F-S2107-P10-001; ADR-040 v1.12; D-965; D-966; D-960; D-912; [[L-BB-vacuous-gate-meta-level-25]]; [[L-BB-conditional-obligation-unconditional-detection-contradiction]]; [[L-BB-ratification-channel-fidelity-gap]]. `[process-gap; gate; vacuous; domain; antecedent; deployment-context; category-error; predicate-vs-antecedent; D-969; codified]`
+
+## L-BB-adr-executable-content-manual-extraction-only [D-969]
+
+**Category:** process-gap
+
+**Title:** Executable Content in a Markdown ADR Is Exercised Only on Manual Extraction — Seven Generations of One Defect, Every One Found by Execution, None by Review
+
+**Lesson:** D-969 ADR-040 history: ADR-040 contains shell scripts in fenced code blocks (§Decisions verification scripts) and Rust code in fenced code blocks (§Implementation sketch). None of this content is automatically executed when the ADR is edited. An adversary reviewing the ADR reads the code but cannot run it without manually extracting it. Seven generations of a single defect class (logically impossible predicate → parent-SHA form → conditional detection → empty domain) were each found by execution (literal shell runs, Rust test failures, mutation testing), and none were found by review of the ADR text. The generation-7 defect (surviving mutant: neutralising `run_gate` guard 1 did not fail the expected test) was found only after the crate landed at `d5a90e74` with 15 green tests — execution of the mutant after the fact revealed the gap. **Generalization:** when an ADR contains executable content (shell scripts, code sketches, test vectors, gate predicates), that content exists in two states: (1) as-written prose, which is reviewed; (2) as-executed, which is what actually matters. These states diverge silently whenever the ADR is amended without re-executing the examples. For a gate ADR, the correct discipline is: every amendment that modifies a verification predicate, example invocation, or test vector MUST include literal-shell execution evidence that the examples produce the documented result at the amendment's parent commit. If the content is aspirational (sketch only, not yet executable), mark it explicitly as ASPIRATIONAL — DO NOT EXECUTE. An unmarked executable block in an ADR that has not been run is a liability: it appears verified but is not. **Meta-observation:** this lesson itself describes a structural gap in ADR practice; the cure is the same as for any gap between claimed and actual behavior — run the code, not just read it.
+
+**Anchors:** D-969; ADR-040; feature/policy15-gate-rust; d2a3176a; d5a90e74; mutation testing.
+
+**Closes:** D-969 (lesson recorded)
+
+**Cites:** D-969 (codified this burst); ADR-040; D-449(a) (literal-shell-execution obligation); [[L-BB-vacuous-antecedent-empty-domain]]; [[L-BB-correction-same-verification-obligation]]. `[process-gap; adr; executable-content; manual-extraction; review-vs-execution; seven-generations; D-969; codified]`
+
+## L-BB-mutation-testing-distinguishes-verifying-from-running [D-969]
+
+**Category:** implementation
+
+**Title:** Mutation Testing Is the Only Check Distinguishing a Test That Verifies from a Test That Merely Runs — Closing a Coarse-Assertion Gap and Killing a Mutant Are Different Achievements
+
+**Lesson:** D-969 crates/policy15-attestation-gate/ history: the crate first landed at `d5a90e74` with 15 green tests. All 15 tests passed; the test suite appeared complete. Post-hoc mutation testing found a surviving mutant: neutralising the `run_gate` stale-pin guard (guard 1) — removing the check that a stale pin exists before evaluating the base-resolution outcome — did not cause any test to fail. The surviving test was `test_unresolvable_base_fails_closed` (assertion `!outcome.is_pass()`), which passes in both mutant and non-mutant because it checks only outcome polarity, not which control path produced that polarity. The distinction: the test was running (producing a green result) but not verifying the stale-pin guard specifically. Fixing this required a variant-specific test (`test_run_gate_guard1_stale_pin_beats_unresolvable_base`) that asserts guard 1 fires before the base-resolution path and produces the stale-pin outcome code, not the unresolvable-base outcome code — a `matches!()` assertion rather than `!outcome.is_pass()`. The coarse-assertion gap (`!is_pass()`) and the mutant-killer gap (no test for guard 1's specific outcome path) are distinct gaps: closing the coarse-assertion gap does not kill the mutant if the surviving assertion still matches both the mutant and non-mutant. Only a variant-specific assertion kills the mutant. **Generalization:** the quality of a test suite is not measured by green rate; it is measured by mutation survival rate. A suite with 15 green tests and 1 surviving mutant is missing a variant-specific test. The detection mechanism is: run mutation testing after writing the suite, not only after identifying a specific gap. The correct cadence for safety-critical gate code (POLICY 15, POLICY 13, any gate that gates a commit push) is: write tests → green → run mutations → kill all surviving mutants → only then declare the suite complete.
+
+**Anchors:** D-969; feature/policy15-gate-rust; d2a3176a; d5a90e74; crates/policy15-attestation-gate/; GateOutcome; test_run_gate_guard1_stale_pin_beats_unresolvable_base.
+
+**Closes:** D-969 (lesson recorded)
+
+**Cites:** D-969 (codified this burst); ADR-040 v1.12 §Consequence "Mutation-testing acceptance criterion"; [[L-BB-adr-executable-content-manual-extraction-only]]; [[L-BB-vacuous-antecedent-empty-domain]]. `[implementation; mutation-testing; coarse-assertion; variant-specific; gate; guard; GateOutcome; D-969; codified]`
