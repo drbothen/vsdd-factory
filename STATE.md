@@ -1,19 +1,19 @@
 ---
 document_type: pipeline-state
 level: ops
-version: "7.04"
+version: "7.05"
 status: draft
 producer: state-manager
-timestamp: 2026-08-09T21:45:00Z
-phase: D-966-PASS-10-RECORD-BURST
-last_amended: "2026-08-09 (v7.04) — D-966-PASS-10-RECORD-BURST (state-manager): adversary pass-10 persisted (NOT-CLEAN B2/H4/M2/L1; 9 findings; streak 0/3 reset); Blocking Issue P0-F-001 added (ATTESTATION-LOCATION GATE vacuous); 7 Drift Items added; trajectory-tail →24→20→16→8→9 advanced (tail: →20→16→8→9); D-966 allocated; STATE.md v7.03→v7.04. [Prior: 2026-08-09 (v7.03) — D-965-POLICY-15-ATTESTATION-GATE-RATIFICATION-BURST (state-manager): human ratification of policies.yaml v1.4.22; POLICY 15 ATTESTATION-LOCATION GATE amended; ADR-040 v1.1 active; ARCH-INDEX v3.51→v3.52; pipeline PAUSED→ACTIVE; D-965 allocated; streak 0/3 UNCHANGED; trajectory-tail →24→20→16→8 UNCHANGED; STATE.md v7.02→v7.03. [Prior: 2026-08-09 (v7.02) — SESSION-WRAP-2026-08-09: checkpoint burst; pass-9 ALL 8 CLOSED; trajectory-tail →24→20→16→8 UNCHANGED; 5 branches pushed; STATE.md v7.01→v7.02.]]"
+timestamp: 2026-08-10T08:30:00Z
+phase: D-967-PASS-10-CORRECTION-BURST
+last_amended: "2026-08-10 (v7.05) — D-967-PASS-10-CORRECTION-BURST (state-manager): orchestrator relay error in D-966 corrected; F-006 precision note attribution fixed (adapter model, not cross-site); F-S2107-P10-010 MEDIUM added; pass-10 count 9→10; trajectory-tail →20→16→8→10; L-BB-correction-same-verification-obligation appended; D-967 allocated; STATE.md v7.04→v7.05. [Prior: 2026-08-09 (v7.04) — D-966-PASS-10-RECORD-BURST (state-manager): adversary pass-10 persisted (NOT-CLEAN B2/H4/M2/L1; 9 findings; streak 0/3 reset); Blocking Issue P0-F-001 added (ATTESTATION-LOCATION GATE vacuous); 7 Drift Items added; trajectory-tail →24→20→16→8→9 advanced (tail: →20→16→8→9); D-966 allocated; STATE.md v7.03→v7.04. [Prior: 2026-08-09 (v7.03) — D-965-POLICY-15-ATTESTATION-GATE-RATIFICATION-BURST (state-manager): human ratification of policies.yaml v1.4.22; POLICY 15 ATTESTATION-LOCATION GATE amended; ADR-040 v1.1 active; ARCH-INDEX v3.51→v3.52; pipeline PAUSED→ACTIVE; D-965 allocated; streak 0/3 UNCHANGED; trajectory-tail →24→20→16→8 UNCHANGED; STATE.md v7.02→v7.03.]]"
 inputs: []
 input-hash: "[live-state]"
 traces_to: prd.md
 project: vsdd-factory
 mode: brownfield
 pipeline: ACTIVE
-current_step: "D-966-PASS-10-RECORD-BURST (state-manager; parent-commit: cbff0801; STATE.md v7.03→v7.04; timestamp refreshed 2026-08-09; adversary-pass-10.md persisted NOT-CLEAN B2/H4/M2/L1 9 findings; Blocking Issue P0-F-001 added; 7 Drift Items added; D-966 allocated; streak 0/3 RESET; trajectory-tail advanced tail →20→16→8→9; 4-INDEX BC v4.55/VP v2.76/STORY v4.291/ARCH v3.52 UNCHANGED)."
+current_step: "D-967-PASS-10-CORRECTION-BURST (state-manager; parent-commit: 38cd1037; STATE.md v7.04→v7.05; timestamp refreshed 2026-08-10; orchestrator relay error corrected: F-006 precision note attribution fixed (adapter model 29452+27.514×bytes, not cross-site); F-S2107-P10-010 MEDIUM process-gap added; pass-10 count 9→10; trajectory-tail advanced tail →20→16→8→10; L-BB-correction-same-verification-obligation appended to lessons.md; D-967 allocated; streak 0/3 UNCHANGED; 4-INDEX BC v4.55/VP v2.76/STORY v4.291/ARCH v3.52 UNCHANGED; policies.yaml UNCHANGED)."
 current_cycle: v1.0-brownfield-backfill
 dtu_required: false
 dtu_assessment: 2026-04-25
@@ -53,6 +53,7 @@ dtu_services: []
   286 lines (wc-l post-SESSION-WRAP-2026-08-09 2026-08-09; v7.01→v7.02)
   287 lines (wc-l post-D-965 POLICY-15-ATTESTATION-GATE-RATIFICATION-BURST 2026-08-09; v7.02→v7.03)
   ~340 lines (estimated post-D-966 PASS-10-RECORD-BURST 2026-08-09; v7.03→v7.04)
+  ~315 lines (estimated post-D-967 PASS-10-CORRECTION-BURST 2026-08-10; v7.04→v7.05)
 -->
 
 # Pipeline State: vsdd-factory
@@ -68,8 +69,8 @@ dtu_services: []
 | **Mode** | brownfield-onboarding |
 | **Language** | Rust + Bash + Markdown |
 | **Started** | 2026-04-25 |
-| **Last Updated** | 2026-08-09 — D-966-PASS-10-RECORD-BURST: adversary pass-10 persisted (NOT-CLEAN B2/H4/M2/L1; 9 findings); Blocking Issue P0-F-001 added; 7 Drift Items added; trajectory-tail →20→16→8→9; STATE.md v7.03→v7.04. [Prior: 2026-08-09 — D-965: policies.yaml v1.4.22 RATIFIED; ADR-040 active; trajectory-tail →24→20→16→8 UNCHANGED.] |
-| **Current Phase** | **D-966-PASS-10-RECORD-BURST (2026-08-09). PIPELINE ACTIVE. adversary pass-10 NOT-CLEAN B2/H4/M2/L1 (9 findings); streak 0/3 RESET; trajectory 47→18→25→25→24→20→16→8→9 (tail: →20→16→8→9); 9 adversary passes; 0 CLEAN verdicts; BLOCKER P0-F-001: POLICY 15 gate vacuous (gate domain empty by construction); D-965 ratification PROCURED-ON-MISCHARACTERIZATION (F-003); last D-NNN: D-966. develop 700b4dd3. main 80e5cd7b. merged_count 107. 4-INDEX BC v4.55/VP v2.76/STORY v4.291/ARCH v3.52. pass-11 adversary NEXT.** |
+| **Last Updated** | 2026-08-10 — D-967-PASS-10-CORRECTION-BURST: orchestrator relay error corrected (F-006 precision note; F-S2107-P10-010 MEDIUM added); pass-10 count 9→10 (B2/H4/M3/L1); trajectory-tail →20→16→8→10; STATE.md v7.04→v7.05. [Prior: 2026-08-09 — D-966-PASS-10-RECORD-BURST: adversary pass-10 persisted (NOT-CLEAN B2/H4/M2/L1; 9 findings); trajectory-tail →20→16→8→9; STATE.md v7.03→v7.04.] |
+| **Current Phase** | **D-967-PASS-10-CORRECTION-BURST (2026-08-10). PIPELINE ACTIVE. adversary pass-10 NOT-CLEAN B2/H4/M3/L1 (10 findings; D-967 correction: F-010 added); streak 0/3 RESET; trajectory 47→18→25→25→24→20→16→8→10 (tail: →20→16→8→10); 9 adversary passes; 0 CLEAN verdicts; BLOCKER P0-F-001: POLICY 15 gate vacuous (gate domain empty by construction); D-965 ratification PROCURED-ON-MISCHARACTERIZATION (F-003); last D-NNN: D-967. develop 700b4dd3. main 80e5cd7b. merged_count 107. 4-INDEX BC v4.55/VP v2.76/STORY v4.291/ARCH v3.52. pass-11 adversary NEXT.** |
 | **Current Cycle** | v1.0-brownfield-backfill |
 
 ## Phase Progress
@@ -97,7 +98,8 @@ dtu_services: []
 | D-964-PASS-9-CLOSURE-FUEL-REMEDIATION-BURST 2026-08-08: pass-9 ALL 8 FINDINGS CLOSED; ADR-042 v1.2 ratified (10M→20M); ADR-040 v1.1 §Decision 6; S-21.13 registered E-21 W7; D-945 DISCHARGED; ORCHESTRATOR ERROR D-963 corrected; BC v4.55; STORY v4.291; ARCH v3.51; STATE.md v7.00→v7.01 | **COMPLETE** | pass-11 adversary NEXT |
 | SESSION-WRAP-2026-08-09 PIPELINE PAUSED 2026-08-09 | **COMPLETE** | 5 branches pushed; checkpoint refreshed; drift item added (log-deletion recurrence); trajectory-tail →24→20→16→8 UNCHANGED; resume: cut release first |
 | D-965-POLICY-15-ATTESTATION-GATE-RATIFICATION-BURST 2026-08-09 | **COMPLETE** | policies.yaml v1.4.21→v1.4.22 RATIFIED; ADR-040 v1.1 active; ARCH-INDEX v3.51→v3.52; D-965 allocated; pipeline PAUSED→ACTIVE; STATE.md v7.02→v7.03. |
-| D-966-PASS-10-RECORD-BURST 2026-08-09 | **COMPLETE** | adversary-pass-10.md persisted (NOT-CLEAN B2/H4/M2/L1; 9 findings); Blocking Issue P0-F-001 added; 7 Drift Items added; trajectory-tail →20→16→8→9; D-966 allocated; STATE.md v7.03→v7.04. pass-11 adversary NEXT. |
+| D-966-PASS-10-RECORD-BURST 2026-08-09 | **COMPLETE** | adversary-pass-10.md persisted (NOT-CLEAN B2/H4/M2/L1; 9 findings); Blocking Issue P0-F-001 added; 7 Drift Items added; trajectory-tail →20→16→8→9; D-966 allocated; STATE.md v7.03→v7.04. |
+| D-967-PASS-10-CORRECTION-BURST 2026-08-10 | **COMPLETE** | orchestrator relay error corrected (F-006 precision note attribution: adapter model, not cross-site); F-S2107-P10-010 MEDIUM added; pass-10 count 9→10 (B2/H4/M3/L1); trajectory-tail →20→16→8→10; L-BB lesson appended; D-967 allocated; STATE.md v7.04→v7.05. pass-11 adversary NEXT. |
 | **E-18 EPIC COMPLETE 2026-07-01 D-744** | **EPIC COMPLETE** | Final story S-18.12 MERGED PR #384 ec05606a. |
 
 ## Current Phase Steps
@@ -115,6 +117,7 @@ dtu_services: []
 | SESSION-WRAP-2026-08-09 (session-wrap burst; human /wrap directive) | state-manager | COMPLETE | 5 branches pushed; telemetry committed; checkpoint refreshed; drift item added (log-deletion recurrence); trajectory-tail →24→20→16→8 UNCHANGED; STATE.md v7.01→v7.02. SHA-patch 2fc890e4. |
 | D-965-POLICY-15-ATTESTATION-GATE-RATIFICATION-BURST 2026-08-09 (SHA-patch 7540c669) | state-manager | COMPLETE | policies.yaml v1.4.21→v1.4.22 RATIFIED; ADR-040 v1.1 active; ARCH-INDEX v3.51→v3.52; D-965 allocated; pipeline PAUSED→ACTIVE; STATE.md v7.02→v7.03. |
 | D-966-PASS-10-RECORD-BURST 2026-08-09 (single commit TD-VSDD-053; parent cbff0801) | state-manager | COMPLETE | adversary-pass-10.md created; INDEX.md pass-10 row + Convergence Status updated; decision-log D-966 appended; burst-log D-966 8-block appended; lessons.md 2 PROPOSED lessons; STATE.md v7.03→v7.04; streak 0/3 RESET; trajectory-tail →20→16→8→9. |
+| D-967-PASS-10-CORRECTION-BURST 2026-08-10 (single commit TD-VSDD-053; parent 38cd1037) | state-manager | COMPLETE | adversary-pass-10.md F-006 corrected + F-010 added; INDEX.md pass-10 count 9→10; decision-log D-967 appended; burst-log D-967 8-block appended; lessons.md L-BB-correction lesson appended; STATE.md v7.04→v7.05; streak 0/3 UNCHANGED; trajectory-tail →20→16→8→10. |
 
 ## Identifier Conventions
 
@@ -134,7 +137,7 @@ dtu_services: []
 
 - **Merged (107):** S-19.07 MERGED PR #670 6db4c9fc (E-19 COMPLETE 9/9). Full ledger: `cycles/v1.0-brownfield-backfill/merged-stories-ledger.md`
 - **In-Flight (0):** --
-- **E-21:** S-21.07 (W4; pass-10 NOT-CLEAN 9 findings D-966; BC-5.39.010 v1.17; branch 5370db80 pushed; NO REBASE; S-21.09 MUST land first); S-21.09 (NO branch — MUST land before S-21.07); S-21.10/S-21.11/S-21.12 per D-961; S-21.13 (W7 NEW D-964; depends_on S-21.10/S-21.11; draft).
+- **E-21:** S-21.07 (W4; pass-10 NOT-CLEAN 10 findings D-967 (D-967 correction: F-010 added; MEDIUM 2→3); BC-5.39.010 v1.17; branch 5370db80 pushed; NO REBASE; S-21.09 MUST land first); S-21.09 (NO branch — MUST land before S-21.07); S-21.10/S-21.11/S-21.12 per D-961; S-21.13 (W7 NEW D-964; depends_on S-21.10/S-21.11; draft).
 - **Draft (31), Partial (2), Withdrawn (1):** see prior session checkpoints
 
 ## Active Branches
@@ -143,8 +146,8 @@ dtu_services: []
 |--------------|-----|-------|
 | main | 80e5cd7b | rc.23 bot binary bundle 2026-07-18 |
 | develop | 700b4dd3 | PR #770 squash-merged 2026-08-07. Local stale at 948f0fb1 — pull on resume. |
-| factory-artifacts | cbff0801 | D-966-PASS-10-RECORD-BURST parent SHA (pre-D-966-commit; actual D-966 commit SHA post-push per codification 3). |
-| feature/S-21.07 | 5370db80 | pass-10 NOT-CLEAN 9 findings D-966. Pushed; SHA-equal with origin. FROZEN per team-lead; NO REBASE; MERGE-ORDER: S-21.09 first. |
+| factory-artifacts | 38cd1037 | D-967-PASS-10-CORRECTION-BURST parent SHA (D-966 commit SHA; pre-D-967-commit; actual D-967 commit SHA post-push per codification 3). |
+| feature/S-21.07 | 5370db80 | pass-10 NOT-CLEAN 10 findings D-967 (correction burst complete). Pushed; SHA-equal with origin. FROZEN per team-lead; NO REBASE; MERGE-ORDER: S-21.09 first. |
 | feature/S-21.04 | 323f440f | pass-31 pending; no PR. Pushed; SHA-equal with origin. |
 | fix/nested-factory-path-derivation | 9afc3226 | F-S2107-P8-016 + P9-008 CLOSED. Pushed; SHA-equal with origin. |
 | fix/d999-sentinel-code-migration | bf642fd9 | ADR-041 sentinel. Pushed; SHA-equal with origin. |
@@ -157,17 +160,18 @@ dtu_services: []
 | Cycle | Type | Status | Notes |
 |-------|------|--------|-------|
 | F-block-ai-attribution-message-file-arm | feature | F3 COMPLETE — F4 READY | E-16 under SS-07/SS-04; milestone v1.0.0-rc.17 |
-| v1.0-brownfield-backfill | brownfield | D-966 PASS-10-RECORD-BURST 2026-08-09 PIPELINE ACTIVE. develop 700b4dd3; main 80e5cd7b; merged_count 107; BC v4.55; VP v2.76; STORY v4.291; ARCH v3.52; streak 0/3 (9 passes); trajectory-tail →20→16→8→9. BLOCKER P0-F-001: POLICY 15 gate vacuous; D-965 ratification PROCURED-ON-MISCHARACTERIZATION. pass-11 adversary NEXT. | D-966 2026-08-09; D-965 2026-08-09; SESSION-WRAP 2026-08-09; D-964 2026-08-08. |
+| v1.0-brownfield-backfill | brownfield | D-967 PASS-10-CORRECTION-BURST 2026-08-10 PIPELINE ACTIVE. develop 700b4dd3; main 80e5cd7b; merged_count 107; BC v4.55; VP v2.76; STORY v4.291; ARCH v3.52; streak 0/3 (9 passes); trajectory-tail →20→16→8→10 (pass-10 D-967 corrected: 9→10). BLOCKER P0-F-001: POLICY 15 gate vacuous; D-965 ratification PROCURED-ON-MISCHARACTERIZATION. pass-11 adversary NEXT. | D-967 2026-08-10; D-966 2026-08-09; D-965 2026-08-09; SESSION-WRAP 2026-08-09. |
 | v1.0-feature-engine-discipline-pass-1 | feature | PAUSED | F5 pass-75 complete D-510; META-LEVEL-30 CANDIDATE-CONFIRMED; trajectory →9→9→9→11. |
 | v1.0-feature-plugin-async-semantics-pass-1 | feature | CLOSED | All PRs merged; rc.14 shipped |
 
 ## Decisions Log
 
-> D-001..D-606 (see decision-log.md for full range): `cycles/v1.0-brownfield-backfill/decision-log.md` + `decisions-log-archive.md`. D-379..D-454 (see decision-log.md for full range) (F5): `cycles/v1.0-feature-engine-discipline-pass-1/decision-log.md`. D-607..D-966 (see decision-log.md for full range): this Decisions Log (D-958..D-966 (see decision-log.md for full range) live) + decision-log.md SoT.
+> D-001..D-606 (see decision-log.md for full range): `cycles/v1.0-brownfield-backfill/decision-log.md` + `decisions-log-archive.md`. D-379..D-454 (see decision-log.md for full range) (F5): `cycles/v1.0-feature-engine-discipline-pass-1/decision-log.md`. D-607..D-967 (see decision-log.md for full range): this Decisions Log (D-958..D-967 (see decision-log.md for full range) live) + decision-log.md SoT.
 
 | ID | Decision | Summary | Phase | Date |
 |----|----------|---------|-------|------|
-| D-966 | D-966-PASS-10-RECORD-BURST (state-manager; single-commit TD-VSDD-053 2026-08-09). (a) POLICY 16 GATE PASS — D-966 allocated; parent-commit cbff0801; (b) adversary-pass-10.md persisted NOT-CLEAN B2/H4/M2/L1 9 findings; (c) Codification 1 PROPOSED: META-LEVEL-25 vacuous gate; (d) Codification 2 PROPOSED: POLICY 22 ratification-channel extension; (e) Codification 3 applied: Block 8 parent-SHA convention; (f) Codification 4 candidate: nested .factory/.factory plausible link; (g) 9 findings routed — F-001/003/005/006/007/008 → architect; F-004/009 → product-owner; (h) streak 0/3 RESET; trajectory-tail →20→16→8→9. 4-INDEX UNCHANGED BC v4.55/VP v2.76/STORY v4.291/ARCH v3.52. STATE.md v7.03→v7.04. | adversary pass-10 persisted; 9 findings; 2 PROPOSED codifications; 7 Drift Items; Blocking Issue P0-F-001; streak 0/3 reset | D-966-PASS-10-RECORD-BURST | 2026-08-09 |
+| D-967 | D-967-PASS-10-CORRECTION-BURST (state-manager; single-commit TD-VSDD-053 2026-08-10). (a) POLICY 16 GATE PASS — D-967 allocated; parent-commit 38cd1037; (b) orchestrator relay error corrected: F-006 precision note attribution fixed — `725,832 bytes` is adapter-class model threshold (`29,452 + 27.514 × payload_bytes`) NOT cross-site model (`2,585,970 + 53.18 × var_bytes`); (c) F-S2107-P10-010 MEDIUM [process-gap] added; pass-10 count 9→10; MEDIUM 2→3; (d) adversary-pass-10.md + INDEX.md + trajectory-tail corrected →20→16→8→10; (e) L-BB-correction-same-verification-obligation appended: enforcer not exempt from POLICY 22; (f) streak 0/3 UNCHANGED; 4-INDEX UNCHANGED; policies.yaml UNCHANGED; STATE.md v7.04→v7.05. | orchestrator relay error corrected; F-010 added; pass-10 9→10; lesson appended; streak UNCHANGED | D-967-PASS-10-CORRECTION-BURST | 2026-08-10 |
+| D-966 | D-966-PASS-10-RECORD-BURST (state-manager; single-commit TD-VSDD-053 2026-08-09). (a) POLICY 16 GATE PASS — D-966 allocated; parent-commit cbff0801; (b) adversary-pass-10.md persisted NOT-CLEAN B2/H4/M2/L1 9 findings; (c) Codification 1 PROPOSED: META-LEVEL-25 vacuous gate; (d) Codification 2 PROPOSED: POLICY 22 ratification-channel extension; (e) Codification 3 applied: Block 8 parent-SHA convention; (f) Codification 4 candidate: nested .factory/.factory plausible link; (g) 9 findings routed — F-001/003/005/006/007/008 → architect; F-004/009 → product-owner; (h) streak 0/3 RESET; trajectory-tail →20→16→8→9. 4-INDEX UNCHANGED BC v4.55/VP v2.76/STORY v4.291/ARCH v3.52. STATE.md v7.03→v7.04. NOTE: F-006 precision note had wrong model attribution — corrected by D-967; F-S2107-P10-010 MEDIUM added retroactively. | adversary pass-10 persisted; 9 findings (D-967 corrected to 10; F-010 added); 2 PROPOSED codifications; 7 Drift Items; Blocking Issue P0-F-001; streak 0/3 reset | D-966-PASS-10-RECORD-BURST | 2026-08-09 |
 | D-965 | D-965-POLICY-15-ATTESTATION-GATE-RATIFICATION-BURST (state-manager; single-commit TD-VSDD-053 2026-08-09). (a) POLICY 16 GATE PASS — D-965 allocated; parent-commit df35ae51; (b) policies.yaml v1.4.21→v1.4.22 RATIFIED per ADR-040 §Decision 6 + human ratification 2026-08-09; ATTESTATION-LOCATION GATE detection clause amended (conditional pre-check + line-anchored predicate); (c) ADR-040 v1.1 status proposed→active; ratified 2026-08-09; (d) ARCH-INDEX v3.51→v3.52; ADR-040 row updated; (e) D-965 lesson appended to lessons.md (conditional-obligation vs unconditional-detection contradiction); (f) Drift Item [D-964] policies.yaml v1.4.22 PROPOSED RESOLVED 2026-08-09; (g) pipeline PAUSED→ACTIVE; STATE.md v7.02→v7.03. 4-INDEX: BC v4.55/VP v2.76/STORY v4.291/ARCH v3.52. | policies.yaml v1.4.22 RATIFIED; ADR-040 active; ARCH-INDEX v3.52; D-965 codified; pipeline ACTIVE | D-965-POLICY-15-ATTESTATION-GATE-RATIFICATION | 2026-08-09 |
 | D-964 | D-964-PASS-9-CLOSURE-FUEL-REMEDIATION-BURST (state-manager; single-commit TD-VSDD-053 2026-08-08). (a) POLICY 16 GATE PASS — D-964 allocated; parent-commit `1659cf08`; pass-9 8/8 CLOSED; P9-002 CLOSED (ADR-042 + `5370db80` + S-21.13); P9-003 CLOSED (ADR-040 §Decision 6 + `5370db80`); streak 0/3 UNCHANGED; (b) ADR-042 v1.2 ratified — 10M→20M; (c) PLATFORM-WIDE 1138 fuel events 35 plugins; legacy-bash-adapter.wasm 78 refs; hook chain non-functional on large-file writes; (d) ADR-040 v1.1 §Decision 6; policies.yaml v1.4.22 PROPOSED awaits human ratification; (e) S-21.13 E-21 W7 registered; E-21 v1.10 12 stories 96 pts; (f) D-945 DISCHARGED; (g) ORCHESTRATOR ERROR — D-963 falsified-diagnosis wrong; both measurements valid; attributed orchestrator; (h) fix/fuel-cap-raise-20m NOT YET EFFECTIVE. 4-INDEX: BC v4.55/VP v2.76/STORY v4.291/ARCH v3.51; STATE.md v7.00→v7.01. | pass-9 ALL 8 CLOSED; ADR-042 ratified; ORCH ERROR corrected; 4-INDEX ADVANCED | D-964-PASS-9-CLOSURE-FUEL-REMEDIATION | 2026-08-08 |
 | D-963 | D-963-BC-CORRECTION-BURST (state-manager; single-commit TD-VSDD-053 2026-08-08). (a) POLICY 16 GATE PASS — D-963 allocated; parent-commit `710b12e7`; (b) BC-5.39.010 `~110` FALSIFIED — 4 safe/5th exhausts SS-05-sized (~486 bytes/row); early-return row 921; ~17 for shorter; (c) linear not O(n²); ADR-035 §Decision 5 quadratic not observed; Drift Item → architect; (d) silent-in-production: `plugin.timeout` exits 0/empty; live-operation gap Drift Item; (e) provenance: `.worktrees/fuel-loud` `fbb9dcb6`, `/tmp/fuel-measure-01/`; (f) two compounding errors; (g) BC-5.39.010 erratum; input-hash `2db1ebe`; v1.16 product-owner pending; 4-INDEX UNCHANGED; STATE.md v6.99→v7.00. NOTE: D-963(g) was an orchestrator error — see D-964(g). | ~110 falsified [orchestrator error per D-964(g)]; 4 safe/5th exhausts SS-05; 2 Drift Items; 4-INDEX UNCHANGED | D-963-BC-CORRECTION-BURST | 2026-08-08 |
@@ -223,7 +227,7 @@ dtu_services: []
 | **[SESSION-WRAP-2026-08-09] Dispatcher log deletion recurrence — 3 occurrences** | OPEN 2026-08-09 — root cause unestablished | Three unexplained working-tree deletions of tracked dispatcher-internal logs in a single session. Restored each time via `git restore`. Nested `.factory/.factory` confirmed (2 log files); plausible mechanism per O-S2107-P10-02; causal link unconfirmed. Anchor: next maintenance sweep + post-release of fix/nested-factory-path-derivation. |
 | **[D-966] F-002 retroactive-attestation (permanent)** | OPEN 2026-08-09 — permanent historical violation | 67ffbdcc + 38c70f9e lack "at that commit" attestation (retroactively added at 5370db80); history immutable; note in ADR-040 v1.2 redesign context. Route: architect. |
 | **[D-966] F-005 ADR-041/ADR-042 status-field drift** | OPEN 2026-08-09 | ADR-041 + ADR-042 frontmatter `status: proposed`; pipeline assets assert "ratified"; POLICY 16 gate governed by proposed ADR-041. Route: architect. |
-| **[D-966] F-006 ADR-042 §Decision 1 vs §Decision 2 self-contradiction** | OPEN 2026-08-09 | §Decision 1 row-4 claims independent per-plugin budgets; §Decision 2 declares global raise only; POLICY 13 BOUNDARY-POLARITY mutant absent; re-ratification required. Route: architect. |
+| **[D-966] F-006 ADR-042 §Decision 1 vs §Decision 2 self-contradiction** | OPEN 2026-08-09 (D-967 correction: adapter threshold `725,832` confirmed; rc.24 fuel-cap raise INSUFFICIENT for large cycle artifacts; size budgets + compaction are load-bearing fix) | §Decision 1 row-4 claims independent per-plugin budgets; §Decision 2 declares global raise only; POLICY 13 BOUNDARY-POLARITY mutant absent; re-ratification required. D-967: `725,832` is adapter-class model threshold (29,452 + 27.514 × bytes), NOT cross-site; 3 cycle artifacts exhaust 20M at 1.8–2.6×. Route: architect. |
 | **[D-966] F-007 ADR-042 §Decision 3 class (b) unanchored dispatch** | OPEN 2026-08-09 | "implementer dispatched" but no branch produced; fix/fuel-exhaustion-fail-loud ABANDONED; main.rs `extract_reason_from_outcome` conflates fuel+epoch. Route: implementer + architect. |
 | **[D-966] F-008 TD-VSDD-091 line-number pins** | OPEN 2026-08-09 | ADR-040 §Context "line 294"; ADR-042 §Empirical "BC-INDEX line 1464"; ARCH-INDEX ADR-042 row "~415KB". Route: architect. |
 | **[D-966] F-009 BC-5.39.010 modified[]-erratum parity** | OPEN 2026-08-09 | Body `1.15-erratum` row has no `modified[]` entry; POLICY 14 leg-3 gap. Route: product-owner. |
@@ -235,31 +239,31 @@ dtu_services: []
 - `cycles/v1.0-feature-plugin-async-semantics-pass-1/burst-log.md` | `session-checkpoints.md` | `lessons.md`
 - `cycles/v1.0-feature-engine-discipline-pass-1/burst-log.md`
 
-## Session Resume Checkpoint (2026-08-09 — D-966-PASS-10-RECORD-BURST COMPLETE; trajectory-tail →20→16→8→9; pass-11 adversary NEXT; PIPELINE ACTIVE)
+## Session Resume Checkpoint (2026-08-10 — D-967-PASS-10-CORRECTION-BURST COMPLETE; trajectory-tail →20→16→8→10; pass-11 adversary NEXT; PIPELINE ACTIVE)
 
 > **SELF-SUFFICIENT RESUME CONTEXT — ASSUMES ZERO PRIOR CONTEXT. PIPELINE ACTIVE.**
 
 ### §1 Position
 
-Cycle `v1.0-brownfield-backfill`. Adversary **pass-10 COMPLETE — NOT-CLEAN (B2/H4/M2/L1; 9 findings).** D-966 record burst persisted. Streak **0/3** (reset by NOT-CLEAN). Nine adversary passes total, zero CLEAN verdicts; pass-11 adversary is NEXT. Trajectory `47→18→25→25→24→20→16→8→9`; tail LENGTH=4 `→20→16→8→9`. factory-artifacts parent `cbff0801` (D-966 single commit pending push). 4-INDEX: **BC v4.55 / VP v2.76 / STORY v4.291 / ARCH v3.52** (UNCHANGED this burst). `policies.yaml` v1.4.22.
+Cycle `v1.0-brownfield-backfill`. Adversary **pass-10 COMPLETE — NOT-CLEAN (B2/H4/M3/L1; 10 findings; D-967 correction: F-010 added).** D-966 record burst persisted; D-967 correction burst persisted. Streak **0/3** (reset by NOT-CLEAN). Nine adversary passes total, zero CLEAN verdicts; pass-11 adversary is NEXT. Trajectory `47→18→25→25→24→20→16→8→10`; tail LENGTH=4 `→20→16→8→10`. factory-artifacts parent `38cd1037` (D-967 single commit pending push). 4-INDEX: **BC v4.55 / VP v2.76 / STORY v4.291 / ARCH v3.52** (UNCHANGED). `policies.yaml` v1.4.22.
 
 **CRITICAL:** D-965 ratification = **PROCURED-ON-MISCHARACTERIZATION** (F-003). ADR-040 §Decision 6 justifying premise false. Architect must re-open ADR-040 for v1.2 redesign before pass-11 adversary reviews POLICY 15 again.
 
 ### §2 Convergence
 
-Streak **0/3**. Nine adversary passes, ZERO CLEAN verdicts. Trajectory `47→18→25→25→24→20→16→8→9`; trajectory-tail →20→16→8→9. Dominant pattern: **vacuous-gate** — 2 BLOCKERs are gate-domain-mismatch class (gate fires in wrong context; domain permanently empty). pass-11 adversary NEXT on resume.
+Streak **0/3**. Nine adversary passes, ZERO CLEAN verdicts. Trajectory `47→18→25→25→24→20→16→8→10`; trajectory-tail →20→16→8→10 (pass-10 D-967 corrected: 9→10; F-010 added). Dominant pattern: **vacuous-gate** — 2 BLOCKERs are gate-domain-mismatch class (gate fires in wrong context; domain permanently empty). pass-11 adversary NEXT on resume.
 
 ### §3 Branch States (ALL PUSHED — durability completed 2026-08-09 session wrap)
 
 | Branch | SHA | Note |
 |--------|-----|------|
-| `feature/S-21.07-validate-cross-site-correspondence` | `5370db80` | pushed; pass-10 NOT-CLEAN 9 findings D-966 |
+| `feature/S-21.07-validate-cross-site-correspondence` | `5370db80` | pushed; pass-10 NOT-CLEAN 10 findings D-967 (correction burst complete; F-010 added) |
 | `feature/S-21.04-story-worktree-write-path-discipline` | `323f440f` | pushed; 30 passes / 0 CLEAN, pass-31 pending |
 | `fix/nested-factory-path-derivation` | `9afc3226` | pushed; F-S2107-P8-016 (3 sites) + P9-008 |
 | `fix/d999-sentinel-code-migration` | `bf642fd9` | pushed; ADR-041, 8 sites |
 | `fix/fuel-cap-raise-20m` | `7cbb9232` | pushed; ADR-042 cap 10M→20M + fuel-vs-epoch block_reason |
 | `fix/fuel-exhaustion-fail-loud` | `fbb9dcb6` | **ABANDONED, local-only, deliberately NOT pushed** |
-| `factory-artifacts` | `cbff0801` | D-966-PASS-10-RECORD-BURST parent SHA (actual commit TBD after push) |
+| `factory-artifacts` | `38cd1037` | D-967-PASS-10-CORRECTION-BURST parent SHA (D-966 commit; actual D-967 commit TBD after push) |
 | `develop` | `700b4dd3` | remote; local stale at `948f0fb1` — pull on resume |
 | `main` | `80e5cd7b` | rc.23 bot binary bundle 2026-07-18 |
 
@@ -267,7 +271,7 @@ No PRs open for any of these. CI does not fire on feature-branch pushes.
 
 ### §4 CRITICAL — Fuel Fix INERT Until Release
 
-The fuel-exhaustion remedy is **correct but INERT**. `fix/fuel-cap-raise-20m` raises the cap 10M→20M, but the bundled binaries under `plugins/vsdd-factory/hooks/dispatcher/bin/` and the operator cache at `1.0.0-rc.23` still embed 10M. **The fix takes effect only after a release cross-compiles the bundle.** Meanwhile ~1,226 fuel-exhaustion events/day across 35 plugins — hook validation chain silently non-functional on large-file `.factory/` writes. Every PostToolUse `fail-closed: plugin timed out` during D-966 burst is an instance. **Cut a release first on resume.**
+The fuel-exhaustion remedy is **correct but INERT**. `fix/fuel-cap-raise-20m` raises the cap 10M→20M, but the bundled binaries under `plugins/vsdd-factory/hooks/dispatcher/bin/` and the operator cache at `1.0.0-rc.23` still embed 10M. **The fix takes effect only after a release cross-compiles the bundle.** Meanwhile ~1,226 fuel-exhaustion events/day across 35 plugins — hook validation chain silently non-functional on large-file `.factory/` writes. Every PostToolUse `fail-closed: plugin timed out` during D-966/D-967 burst is an instance. **Cut a release first on resume.**
 
 ### §5 Resume Order
 

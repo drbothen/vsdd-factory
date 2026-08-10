@@ -24634,3 +24634,180 @@ $ awk '/^## D-966-PASS-10-RECORD-BURST/,0' /Users/zious/Documents/GITHUB/vsdd-fa
 **factory-artifacts commits (this burst — TD-VSDD-053 single-commit-per-burst, codification 3 parent-SHA convention):**
 - Target commit (this burst): single commit to be pushed as `git push origin HEAD:factory-artifacts`
 - **Parent SHA (cited per codification 3 — Block 8 cites parent, not own SHA to avoid circular regress):** `cbff0801` — `state(D-965/block8-final): burst-log Block 8 SHA-patch 5d2902f5`
+
+---
+
+## D-967-PASS-10-CORRECTION-BURST
+
+### Block 1: Parent-commit + burst metadata
+
+- **Parent-commit SHA:** `38cd1037` (`state(D-966): persist adversary pass-10 NOT-CLEAN B2/H4/M2/L1 — record burst (single-commit TD-VSDD-053)`)
+- **factory-artifacts branch:** `factory-artifacts`
+- **code repo HEAD at time of correction (S-21.07):** `5370db80e0b7360f5c884f4adf68371fe426ba30`
+- **origin/develop (diff base, UNCHANGED):** `700b4dd32251bc9ce40dc59bed8cc7441a9afcb0`
+- **PR #774:** OPEN — two COMMENTED reviews observed (id=4897650995 user=Zious11 2026-08-10T14:15:41Z; id=4897670244 user=Zious11 2026-08-10T14:17:49Z; no CHANGES_REQUESTED)
+- **burst type:** CORRECTION — D-966 orchestrator relay error in F-006 precision note; F-S2107-P10-010 added; no code fixes
+
+### Block 2: Adversary verdict
+
+**Source file:** `cycles/v1.0-brownfield-backfill/S-21.07/adversary-pass-10.md` (corrected by D-967)
+**Verdict:** NOT-CLEAN — B2/H4/M3/L1/NIT0 = 10 findings (D-967 correction: MEDIUM 2→3; total 9→10)
+
+**D-967 correction to D-966 Part A finding set (D-448(a) source-attestation parity with corrected adversary-pass-10.md):**
+
+| ID | Sev | Title summary |
+|----|-----|---------------|
+| F-S2107-P10-001 | BLOCKER | POLICY 15 ATTESTATION-LOCATION GATE vacuous (UNCHANGED) |
+| F-S2107-P10-002 | BLOCKER [regression] | Attestation sections added retroactively (UNCHANGED) |
+| F-S2107-P10-003 | HIGH | ADR-040 §Decision 6 justifying premise false (UNCHANGED) |
+| F-S2107-P10-004 | HIGH | BC-5.39.010 present-perfect fuel claim false (UNCHANGED) |
+| F-S2107-P10-005 | HIGH | ADR-041/ADR-042 status: proposed vs pipeline assertion ratified (UNCHANGED) |
+| F-S2107-P10-006 | HIGH | ADR-042 §Decision 1 vs §Decision 2 self-contradiction; BOUNDARY-POLARITY mutant absent (CORRECTED — precision note replaced; adapter model 725,832 confirmed; corrected analysis strengthens finding; rc.24 insufficient; 3 cycle artifacts exhaust 20M at 1.8–2.6×) |
+| F-S2107-P10-007 | MEDIUM [process-gap] | ADR-042 §Decision 3 class (b) unanchored dispatch (UNCHANGED) |
+| F-S2107-P10-008 | MEDIUM | TD-VSDD-091 line-number pins (UNCHANGED) |
+| F-S2107-P10-009 | LOW | BC-5.39.010 modified[] -erratum parity (UNCHANGED) |
+| F-S2107-P10-010 | MEDIUM [process-gap] | POLICY 22: D-966 orchestrator relay attributed ADR-042 `725,832 bytes` figure to cross-site model; correct provenance is adapter-class model (`29,452 + 27.514 × payload_bytes`); "apples-to-oranges" dismissal incorrectly weakened F-006 in permanent record; caught and corrected within same cycle before any downstream decision relied on it; demonstrates PROPOSED POLICY 22 ratification-channel extension (Codification 2 D-966) is insufficiently scoped — orchestrator corrections are load-bearing and require same literal-shell backing (**NEW — added by D-967**) |
+
+### Block 3: Files touched (this burst)
+
+| File | Action | Description |
+|------|--------|-------------|
+| `.factory/cycles/v1.0-brownfield-backfill/S-21.07/adversary-pass-10.md` | MODIFIED | F-006 precision note replaced with corrected analysis + table; F-S2107-P10-010 MEDIUM finding added; summary count 9→10; Part C trajectory + counts corrected |
+| `.factory/cycles/v1.0-brownfield-backfill/INDEX.md` | MODIFIED | Pass-10 row: count 9→10 (B2/H4/M2→M3/L1); F-010 appended; Convergence Status trajectory `→9`→`→10` |
+| `.factory/cycles/v1.0-brownfield-backfill/decision-log.md` | MODIFIED | D-967 block appended |
+| `.factory/cycles/v1.0-brownfield-backfill/burst-log.md` | MODIFIED | D-967 8-block entry appended (this file) |
+| `.factory/cycles/v1.0-brownfield-backfill/lessons.md` | MODIFIED | L-BB-correction-same-verification-obligation appended |
+| `.factory/STATE.md` | MODIFIED | v7.04 → v7.05: Decisions Log D-967 row; Drift Items F-006 updated; Phase Progress + Current Phase Steps rows; Session Resume Checkpoint refreshed |
+
+**No code changes this burst.** CORRECTION burst only.
+
+### Block 4: Codifications
+
+| # | Codification | Status | Applies-to |
+|---|---|---|---|
+| D-967 lesson | A correction issued under POLICY 22 is itself load-bearing material subject to the same literal-shell verification requirement. The enforcer is not exempt from the policy being enforced. Cheap-to-check claims (one arithmetic division) must be executed, not inferred from pattern similarity to previously-seen figures. | Applied — see L-BB-correction-same-verification-obligation | lessons.md |
+
+### Block 5: Dim-2 — Mechanical-Gate Attestations (D-449(a) literal shell)
+
+**POLICY 16 ALLOCATOR-CEILING GATE — literal shell, D-449(a):**
+
+```
+$ max_d=$({ grep -hE '^#{2,} D-[0-9]+' .factory/cycles/*/decision-log.md 2>/dev/null; grep -hE '^[|] *D-[0-9]+' .factory/cycles/*/decision-log.md 2>/dev/null; } | grep -oE 'D-[0-9]+' | sed 's/D-//' | sort -n | tail -1) && [ "$max_d" -lt 9000 ] && printf 'PASS: global max D-%s < D-9000 ceiling (forms: h2 ^#{2,}, h3 ^#{2,}, table-cell ^[|])\n' "$max_d"
+PASS: global max D-966 < D-9000 ceiling (forms: h2 ^#{2,}, h3 ^#{2,}, table-cell ^[|])
+```
+
+D-967 allocated.
+
+**POLICY 22 SELF-APPLICATION — two-model arithmetic re-derived from first principles:**
+
+```
+$ python3 -c "
+budget = 20_000_000
+adapter_max = (budget - 29_452) / 27.514
+cross_max = (budget - 2_585_970) / 53.18
+print(f'Adapter model max: (20000000 - 29452) / 27.514 = {adapter_max:.1f}')
+print(f'Cross-site model max: (20000000 - 2585970) / 53.18 = {cross_max:.1f}')
+"
+Adapter model max: (20000000 - 29452) / 27.514 = 725832.2
+Cross-site model max: (20000000 - 2585970) / 53.18 = 327454.5
+```
+
+Adapter model gives 725,832 ✓ (matches ADR-042 §Decision 1). Cross-site gives 327,454. D-966 attribution was wrong.
+
+**Per-artifact fuel — own wc -c + python3 (D-967 burst-start measurements):**
+
+```
+$ wc -c .factory/cycles/v1.0-brownfield-backfill/decision-log.md \
+        .factory/cycles/v1.0-brownfield-backfill/burst-log.md \
+        .factory/cycles/v1.0-brownfield-backfill/lessons.md \
+        .factory/specs/behavioral-contracts/BC-INDEX.md \
+        .factory/stories/STORY-INDEX.md \
+        .factory/specs/architecture/ARCH-INDEX.md
+ 1870808 decision-log.md
+ 1800373 burst-log.md
+ 1272854 lessons.md
+  577860 BC-INDEX.md
+  508006 STORY-INDEX.md
+  327690 ARCH-INDEX.md
+
+$ python3 -c "
+budget=20_000_000; overhead=51_200; i=29_452; s=27.514
+artifacts=[('decision-log.md',1_870_808),('burst-log.md',1_800_373),('lessons.md',1_272_854),('BC-INDEX.md',577_860),('STORY-INDEX.md',508_006),('ARCH-INDEX.md',327_690)]
+for n,fb in artifacts:
+    fuel=i+s*(fb+overhead); print(f'{n}: {fb:,} -> {fuel/1e6:.2f}M ({\"EXHAUSTS\" if fuel>budget else \"ok\"})')
+"
+decision-log.md: 1,870,808 -> 52.91M (EXHAUSTS)
+burst-log.md: 1,800,373 -> 50.97M (EXHAUSTS)
+lessons.md: 1,272,854 -> 36.46M (EXHAUSTS)
+BC-INDEX.md: 577,860 -> 17.34M (ok)
+STORY-INDEX.md: 508,006 -> 15.42M (ok)
+ARCH-INDEX.md: 327,690 -> 10.45M (ok)
+```
+
+ARCH-INDEX corroboration: `29452 + 27.514*(327690+51200) = 10,454,231`; ADR-042 measured `10,406,058`; diff 48,173 (0.46%) ✓
+
+**Observed PostToolUse fuel-exhaustion timeouts during D-967 burst (F-006 live evidence):**
+
+| Plugin timed out | File edited | Trace |
+|---|---|---|
+| lint-registry-async-invariant | decision-log.md (D-967 block append) | 7dfad9af-9c76-43b0-a42d-5379e62e5ec7 |
+| validate-factory-path-root | decision-log.md (D-967 block append) | 7dfad9af-9c76-43b0-a42d-5379e62e5ec7 |
+| validate-input-hash | decision-log.md (D-967 block append) | 7dfad9af-9c76-43b0-a42d-5379e62e5ec7 |
+| validate-template-compliance | decision-log.md (D-967 block append) | 7dfad9af-9c76-43b0-a42d-5379e62e5ec7 |
+
+All PostToolUse (writes succeeded; advisory). Same exhaustion class as D-965 + D-966 burst timeouts cited in F-S2107-P10-006 evidence.
+
+**D-448(a) SOURCE-ATTESTATION GATE — Block 2 vs corrected adversary-pass-10.md Part A:**
+
+```
+$ grep -oE 'F-S2107-P10-[0-9]+' .factory/cycles/v1.0-brownfield-backfill/S-21.07/adversary-pass-10.md | sort -u
+F-S2107-P10-001
+F-S2107-P10-002
+F-S2107-P10-003
+F-S2107-P10-004
+F-S2107-P10-005
+F-S2107-P10-006
+F-S2107-P10-007
+F-S2107-P10-008
+F-S2107-P10-009
+F-S2107-P10-010
+```
+
+10 unique finding IDs P10-001..P10-010. All present in Block 2 table. Gate PASS.
+
+**D-446(a) 8-BLOCK SELF-GATE:**
+
+```
+$ awk '/^## D-967-PASS-10-CORRECTION-BURST/,0' .factory/cycles/v1.0-brownfield-backfill/burst-log.md | grep -c "^### Block [1-8]:"
+8
+```
+
+8 blocks confirmed. Gate PASS.
+
+### Block 6: Dim-5 — Convergence Attestation
+
+- **Streak:** 0/3 — UNCHANGED (D-967 is a correction burst, not a new adversary pass)
+- **True adversary passes:** 9 (same; pass-10 is 9th true review; D-967 corrects its record)
+- **CLEAN verdicts:** 0
+- **Trajectory (full):** 47→18→25→25→24→20→16→8→10 (D-967 correction: pass-10 count 9→10)
+- **Trajectory-tail (LENGTH=4):** →20→16→8→10
+- **This burst:** CORRECTION — no code fixes; 4-INDEX UNCHANGED; STATE.md v7.04→v7.05
+- **Convergence status:** NOT CONVERGED — streak 0/3; pass-11 adversary NEXT
+
+### Block 7: Dim-6 + Dim-7 — Non-Fabrication + Cross-reference
+
+**Dim-6 — Non-fabrication attestation:** All arithmetic derived from own literal-shell execution (python3). File sizes from own `wc -c` at burst-start. PR #774 review state from own `gh api` call — two COMMENTED reviews observed; orchestrator mentioned one; second (4897670244) recorded faithfully. Parent SHA `38cd1037` from `git -C .factory log --oneline -1` at burst-start. No orchestrator figures accepted on trust without independent shell verification — POLICY 22 self-application.
+
+**Dim-7 — Cross-reference:**
+- D-966 (parent burst): adversary pass-10 record; F-006 precision note WRONG
+- F-S2107-P10-006 (corrected): adapter-class model confirmed; corrected analysis strengthens finding
+- F-S2107-P10-010 (new MEDIUM): POLICY 22 gap at orchestrator→state-manager channel
+- L-BB-correction-same-verification-obligation (new): enforcer not exempt from policy being enforced
+- Drift Items [D-966] F-006 (STATE.md updated): rc.24 insufficient; size budgets load-bearing
+- develop UNCHANGED at `700b4dd3`; PR #774 OPEN
+
+### Block 8: factory-artifacts commit
+
+**factory-artifacts commits (this burst — TD-VSDD-053 single-commit-per-burst, D-966 codification 3 parent-SHA convention):**
+- Target commit (this burst): single commit to be pushed as `git push origin HEAD:factory-artifacts`
+- **Parent SHA (cited per codification 3 — Block 8 cites parent, not own SHA to avoid circular regress):** `38cd1037` — `state(D-966): persist adversary pass-10 NOT-CLEAN B2/H4/M2/L1 — record burst (single-commit TD-VSDD-053)`

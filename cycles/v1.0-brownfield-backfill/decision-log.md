@@ -15406,3 +15406,63 @@ D-966-PASS-10-RECORD-BURST
 ### Date
 
 2026-08-09
+
+---
+
+## D-967 — D-967-PASS-10-CORRECTION-BURST
+
+**POLICY 16 GATE PASS:**
+
+```
+PASS: global max D-966 < D-9000 ceiling (forms: h2 ^#{2,}, h3 ^#{2,}, table-cell ^[|])
+```
+
+D-967 allocated. parent-commit: `38cd1037` (factory-artifacts HEAD at burst start = `38cd1037`; D-966 commit).
+
+**(a) POLICY 16 GATE PASS — D-967 allocated; parent-commit `38cd1037`.** This is a CORRECTION burst for D-966. The orchestrator introduced a wrong model attribution into the D-966 record via the relay mechanism that D-966 codification 2 PROPOSED to close. POLICY 22 SELF-APPLICATION: state-manager re-derived all arithmetic independently with own literal shell before persisting any changes.
+
+**(b) Root error.** D-966 relay instruction stated that ADR-042's `725,832 bytes` re-exhaustion figure is specific to `validate-cross-site-correspondence`'s cost model (`2,585,970 + 53.18 × bytes`). Own literal-shell verification:
+
+- Adapter model: `(20,000,000 − 29,452) / 27.514 = 725,832` ✓ — MATCHES ADR-042 §Decision 1
+- Cross-site model: `(20,000,000 − 2,585,970) / 53.18 = 327,454` — DOES NOT MATCH
+
+The 725,832 figure derives from the adapter-class model, not the cross-site model. The D-966 attribution was wrong.
+
+**(c) Corrected fuel analysis — own measurements at D-967 burst.** Adapter-class model (`fuel = 29,452 + 27.514 × payload_bytes`; payload = file_bytes + ~51,200-byte overhead per ADR-042 §Context):
+
+| artifact | file bytes | fuel | vs 20M |
+|---|---|---|---|
+| decision-log.md | 1,870,808 | 52.91M | EXHAUSTS ~2.6× |
+| burst-log.md | 1,800,373 | 50.97M | EXHAUSTS ~2.5× |
+| lessons.md | 1,272,854 | 36.46M | EXHAUSTS ~1.8× |
+| BC-INDEX.md | 577,860 | 17.34M | ok (~87%) |
+| STORY-INDEX.md | 508,006 | 15.42M | ok (~77%) |
+| ARCH-INDEX.md | 327,690 | 10.45M | ok at 20M; exceeds old 10M cap |
+
+ARCH-INDEX corroboration: computed 10,454,231 matches ADR-042's measured 10,406,058 to within 0.46%. rc.24 alone does not remediate: three cycle artifacts already exhaust 20M at 1.8–2.6×; size budgets and compaction are the load-bearing fix.
+
+**(d) New finding F-S2107-P10-010 [MEDIUM process-gap].** Orchestrator relay introduced wrong model attribution into a permanent record. The erroneous "apples-to-oranges" dismissal incorrectly weakened F-006. Finding caught and corrected within the same cycle (D-967) before any downstream decision relied on the wrong attribution; F-006 finding logic (§Decision 1 vs §Decision 2 self-contradiction) remains valid and is STRENGTHENED by the corrected arithmetic. Severity MEDIUM (not HIGH): no downstream decision relied on the wrong attribution.
+
+**(e) Corrections applied.** adversary-pass-10.md F-S2107-P10-006 precision note replaced with corrected analysis + table; F-S2107-P10-010 finding added; summary and Part C counts updated (9→10; B2/H4/M2/L1 → B2/H4/M3/L1); trajectory corrected `→9` → `→10` at all sweep sites (adversary-pass-10.md, INDEX.md, burst-log, STATE.md).
+
+**(f) PR #774 review state.** Own observation via `gh api repos/drbothen/vsdd-factory/pulls/774/reviews`: two COMMENTED reviews posted — id=4897650995 user=Zious11 submitted=2026-08-10T14:15:41Z; id=4897670244 user=Zious11 submitted=2026-08-10T14:17:49Z. Both COMMENTED state; no CHANGES_REQUESTED. Two reviews observed (orchestrator mentioned one).
+
+**(g) policies.yaml NOT touched** — codifications 1 and 2 remain PROPOSED awaiting human ratification (per D-966 scope).
+
+**Disagreements with orchestrator-stated figures:** File sizes for the three cycle artifacts match orchestrator's stated values (decision-log.md 1,870,808; burst-log.md 1,800,373; lessons.md 1,272,854). Fuel ratios computed independently agree: 2.6×/2.5×/1.8×. No arithmetic disagreements found.
+
+### Agents
+
+- state-manager (D-967): adversary-pass-10.md F-006 corrected + F-010 added; INDEX.md pass-10 row + Convergence Status updated; decision-log D-967 block appended; burst-log D-967 8-block entry appended; lessons.md L-BB-correction-same-verification-obligation appended; STATE.md v7.04 → v7.05; POLICY 22 self-application: arithmetic re-derived from first principles with own literal shell
+
+### 4-INDEX
+
+BC-INDEX v4.55 (UNCHANGED) / VP-INDEX v2.76 (UNCHANGED) / STORY-INDEX v4.291 (UNCHANGED) / ARCH-INDEX v3.52 (UNCHANGED)
+
+### Phase
+
+D-967-PASS-10-CORRECTION-BURST
+
+### Date
+
+2026-08-10

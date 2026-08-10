@@ -10,7 +10,7 @@ previous_review: "cycles/v1.0-brownfield-backfill/S-21.07/adversary-pass-9.md"
 
 ## Summary
 
-Pass-10 fresh-context adversarial review. **9 findings: B2 / H4 / M2 / L1 / NIT0.** Trajectory `47→18→25→25→24→20→16→8→9`. Streak: **0/3** (BC-5.39.001 reset — NOT-CLEAN).
+Pass-10 fresh-context adversarial review. **10 findings: B2 / H4 / M3 / L1 / NIT0** (D-967 correction: F-S2107-P10-010 added; MEDIUM 2→3; total 9→10). Trajectory `47→18→25→25→24→20→16→8→10`. Streak: **0/3** (BC-5.39.001 reset — NOT-CLEAN).
 
 **Reviewed SHAs (stated explicitly):**
 
@@ -202,7 +202,27 @@ $ wc -c .factory/cycles/v1.0-brownfield-backfill/burst-log.md \
   327690 ARCH-INDEX.md
 ```
 
-**Precision note**: ADR-042's `725,832 bytes` re-exhaustion figure is specific to `validate-cross-site-correspondence`'s adapter-class cost model (`2,585,970 + 53.18 × bytes`). It is NOT a universal exhaustion threshold. Comparing arbitrary file sizes against it is apples-to-oranges. This finding rests on the internal ADR self-contradiction (global raise declared alongside per-plugin exclusion claims) plus the observed timeouts at the D-965 burst (four validator plugins timed out on burst-log.md and STATE.md writes), not on that arithmetic.
+**[D-966 precision note CORRECTED by D-967]** ADR-042's `725,832 bytes` re-exhaustion figure derives from the **adapter-class model** (`fuel = 29,452 + 27.514 × payload_bytes`; R² = 0.9999999, `legacy-bash-adapter.wasm`, 78 refs per D-964(c)) — NOT from the `validate-cross-site-correspondence` cross-site model as incorrectly stated in the D-966 relay. Literal-shell arithmetic (D-967 independent derivation, two models):
+
+- Adapter model max: `(20,000,000 − 29,452) / 27.514 = 725,832` ✓ — matches ADR-042 §Decision 1
+- Cross-site model max: `(20,000,000 − 2,585,970) / 53.18 = 327,454` — different threshold; does NOT match
+
+Applying the adapter-class model to current cycle-artifact sizes (D-967 measurement; file_bytes + ~51,200-byte `last_assistant_message` overhead per ADR-042 §Context worst-case payload construction):
+
+| artifact | file bytes | fuel (adapter model) | vs 20M |
+|---|---|---|---|
+| decision-log.md | 1,870,808 | 52.91M | EXHAUSTS ~2.6× |
+| burst-log.md | 1,800,373 | 50.97M | EXHAUSTS ~2.5× |
+| lessons.md | 1,272,854 | 36.46M | EXHAUSTS ~1.8× |
+| BC-INDEX.md | 577,860 | 17.34M | ok (~87%) |
+| STORY-INDEX.md | 508,006 | 15.42M | ok (~77%) |
+| ARCH-INDEX.md | 327,690 | 10.45M | ok at 20M; **exceeds old 10M cap** |
+
+Corroboration: ARCH-INDEX computed fuel 10,454,231 matches ADR-042's measured 10,406,058 to within 0.46%, independently validating the adapter-class model. **rc.24 alone does not remediate the exhaustion class** — decision-log.md, burst-log.md, and lessons.md already exhaust 20M by 1.8–2.6×; size budgets and compaction for the three cycle artifacts are the load-bearing fix. This confirms the human's decision to defer the release.
+
+**Genuine residual caveat (per ADR-042 §Context platform-wide note):** The four validators that actually timed out at D-965 (`validate-factory-path-root`, `validate-input-hash`, `validate-template-compliance`, plus one additional) are NOT the adapter class — each has different WASM bytecode and per-byte cost coefficients; their exact fuel figures remain unmeasured; §Decision 5 / S-21.13 defers per-plugin calibration. The corrected claim: under the adapter-class model (highest measured event count, 838 events), the three cycle artifacts exhaust 20M by 1.8–2.6×, confirming the excluded region (row 4) is NOT safe under a global cap.
+
+This finding rests on the internal ADR self-contradiction (global raise declared alongside per-plugin exclusion claims) plus the observed timeouts at the D-965 burst (four validator plugins timed out on burst-log.md and STATE.md writes), with the corrected arithmetic corroborating the finding rather than dismissing it.
 
 The self-contradiction: §Decision 2 states the raise is global (single default value); §Decision 1 claims other plugins have "independent budgets." If the raise is truly global, all plugins share the same 20M budget (after release) — there are no independent budgets. The excluded region (row 4) cannot be independently calibrated under a global-only raise mechanism. The mandate requires a mutant showing the excluded region can produce a harmful outcome; none is supplied.
 
@@ -273,6 +293,22 @@ modified:
 
 ---
 
+#### F-S2107-P10-010 — MEDIUM — POLICY 22 + `[process-gap]`. Orchestrator relay introduced wrong model attribution into a permanent record. The D-966 precision note added to F-S2107-P10-006 stated that ADR-042's `725,832 bytes` re-exhaustion figure is specific to `validate-cross-site-correspondence`'s cost model (`2,585,970 + 53.18 × bytes`). This attribution is wrong. The correct provenance is the **adapter-class model** (`fuel = 29,452 + 27.514 × payload_bytes`). `(20,000,000 − 29,452) / 27.514 = 725,832`; the cross-site model gives `(20,000,000 − 2,585,970) / 53.18 = 327,454` — a different threshold. The erroneous note also dismissed size-based reasoning as "apples-to-oranges," incorrectly weakening F-006 in the D-966 permanent record.
+
+**Location:** `cycles/v1.0-brownfield-backfill/S-21.07/adversary-pass-10.md` F-S2107-P10-006 body "Precision note" paragraph (added by D-966 state-manager dispatch); `cycles/v1.0-brownfield-backfill/decision-log.md` D-966 block codification language.
+
+**Clause violated:** POLICY 22 — a correction issued under a verification policy is itself load-bearing material subject to that policy. The enforcer is not exempt. The orchestrator invoked POLICY 22 to discipline a subagent's relay and then issued a wrong model attribution without performing a one-line division. This demonstrates that the PROPOSED POLICY 22 ratification-channel extension (Codification 2, D-966) is insufficiently scoped: an orchestrator *correction* carries the same load-bearing character as an original claim and requires literal-shell backing before entering a permanent record.
+
+**Structural class:** F-S2107-P10-003 (false premise reaching ratification, one rung higher) one rung down the chain — F-003 was an adversary finding relayed to a human; F-010 is an orchestrator correction relayed to the state-manager. The relay-channel verification gap existed at the orchestrator→state-manager level at the time of D-966, structurally identical to the adversary→human channel gap that D-966 codification 2 PROPOSED to close.
+
+**Severity rationale:** MEDIUM (not HIGH). Caught and corrected within the same cycle (D-967) before any downstream decision relied on the wrong attribution. The finding logic in F-006 — structural self-contradiction in ADR-042 §Decision 1 vs §Decision 2 — remains valid regardless of which model produced `725,832`. The corrected analysis using the adapter model STRENGTHENS F-006.
+
+**Fix:** D-967 correction burst — F-006 precision note corrected; STATE.md v7.04→v7.05; trajectory count 9→10 swept at all sites.
+
+**Routing.** State-manager self-closes in-burst (D-967). No additional routing required.
+
+---
+
 ## Part B — Observations
 
 **O-S2107-P10-01 — Codification 3 (team-lead): Burst-log Block 8 SHA-patch circular regress.** Each SHA-patch updating Block 8 to cite "actual HEAD" creates a new HEAD, leaving Block 8 stale by one — infinite regress terminated only by fiat. The D-965 burst produced three commits (`7540c669` → `5d2902f5` → `cbff0801`). This is structurally identical to the D-912 HEAD-SHA circularity that ADR-040 §Decision 2 cured for POLICY 15 via PARENT-SHA. Architectural observation routed to architect per CLAUDE.md Agent Routing Table; not a finding because the current per-burst SHA-patch approach is functioning as designed (terminated by convention). Codification candidate per team-lead.
@@ -285,12 +321,14 @@ modified:
 
 **POLICY 22 relay discipline.** These findings were relayed through the team-lead for state-manager recording. Per POLICY 22, state-manager re-executed all mechanical gate claims independently and recorded first-hand stdout in burst-log D-966 Dim-2. For F-001: COUNT=0 confirmed. For F-002: per-commit counts 0/0/0/3 confirmed. For F-003: commit message and diff confirmed. For F-004: fuel_cap values confirmed. For F-005: ADR frontmatter status fields confirmed. For F-009: modified[] entries confirmed. My re-execution agreed with all relayed mechanical claims; no discrepancies found.
 
+**D-967 correction — F-S2107-P10-006 model attribution error.** The D-966 precision note appended to F-006 by the orchestrator relay incorrectly attributed ADR-042's `725,832 bytes` figure to the `validate-cross-site-correspondence` cross-site model. The correct provenance is the adapter-class model (`fuel = 29,452 + 27.514 × payload_bytes`). The error demonstrates a POLICY 22 gap at the orchestrator→state-manager channel (F-S2107-P10-010). F-006 body corrected in D-967; finding count advanced 9→10; trajectory corrected 9→10.
+
 **Gates re-verified CLEAN (my own re-execution).** POLICY 16 ALLOCATOR-CEILING: `PASS: global max D-965 < D-9000 ceiling; Next allocation: D-966`. POLICY 14 leg-4 four-index: BC v4.55 / VP v2.76 / STORY v4.291 / ARCH v3.52 — frontmatter confirmed from live files. POLICY 21 no-new-.sh: `git diff --name-status origin/develop...5370db80 -- '*.sh'` returns `M plugins/vsdd-factory/tests/run-all.sh` only (modified, not new; pre-existing grandfathered file). D-963/964/965 h2 allocation records: present at decision-log.md lines 15219/15272/15316.
 
 **On codifications 1 and 2.** Both META-LEVEL-25 and the ratification-channel gap are PROPOSED codifications, not ratified. Codification 1 (META-LEVEL-25: literal-shell-attested vacuous gate) extends D-449(a)'s gate-execution requirement to include negative-control verification — a gate whose PASS is always trivially achievable (empty domain, tautological threshold) is non-evidential even if executed. Codification 2 (POLICY 22 ratification-channel extension) addresses the gap whereby POLICY 22's relay-chain discipline did not cover material presented to a human for ratification. Both require negative-control demonstration before presentation for ratification — this is the new discipline applying to itself on first outing.
 
 **Dominant pattern.** Six of nine findings involve a mechanism that appears to function (the gate runs, the BC has a margin assertion, the ADR records ratification) but whose functional premise is vacuous (empty domain, tautological threshold, status field not updated, gate fires in wrong context). This is the next layer of the attestation-migration pattern observed at pass-9: predicates are now asserting the correct *form* but the *domain* or *threshold* is vacuous. F-001 is the sharpest instance: the gate fires in a context where it can never be non-trivially true.
 
-**On the streak.** Streak remains **0/3** — this pass is NOT-CLEAN, reset to 0/3. Trajectory `47→18→25→25→24→20→16→8→9`. Full trajectory: 9 adversary passes, 0 CLEAN verdicts. Findings by severity: **BLOCKER 2, HIGH 4, MEDIUM 2, LOW 1, NITPICK 0 = 9.**
+**On the streak.** Streak remains **0/3** — this pass is NOT-CLEAN, reset to 0/3. Trajectory `47→18→25→25→24→20→16→8→10` (D-967 correction: 9→10). Full trajectory: 9 adversary passes, 0 CLEAN verdicts. Findings by severity: **BLOCKER 2, HIGH 4, MEDIUM 3, LOW 1, NITPICK 0 = 10** (D-967 correction: MEDIUM 2→3; total 9→10; F-S2107-P10-010 added).
 
 **Verdict: NOT-CLEAN.**
