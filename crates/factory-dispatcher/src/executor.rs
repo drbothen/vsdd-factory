@@ -685,6 +685,7 @@ fn emit_lifecycle(
             stderr,
             elapsed_ms,
             fuel_consumed,
+            fuel_cap,
         } => {
             let cause_str = match cause {
                 TimeoutCause::Epoch => "epoch",
@@ -703,6 +704,7 @@ fn emit_lifecycle(
                         "stderr".to_string(),
                         serde_json::Value::String(stderr.clone()),
                     ),
+                    ("fuel_cap".to_string(), serde_json::Value::from(*fuel_cap)),
                 ],
             )
         }
@@ -748,6 +750,7 @@ fn emit_lifecycle(
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::invoke::DEFAULT_FUEL_CAP;
 
     // ── CRIT-PR59-001 regression tests: advisory-block gate ──────────────────
 
@@ -840,6 +843,7 @@ mod tests {
             stderr: String::new(),
             elapsed_ms: 5_000,
             fuel_consumed: 0,
+            fuel_cap: DEFAULT_FUEL_CAP,
         };
         assert!(!plugin_requests_block(&r));
     }
@@ -891,6 +895,7 @@ mod tests {
             stderr: String::new(),
             elapsed_ms: 5_000,
             fuel_consumed: 0,
+            fuel_cap: DEFAULT_FUEL_CAP,
         };
         assert!(
             plugin_fail_closed(&r, OnError::Block),
@@ -901,11 +906,13 @@ mod tests {
     /// Timeout + on_error=Continue → NOT fail-closed.
     #[test]
     fn fail_closed_timeout_with_on_error_continue_is_open() {
+        // fuel_consumed == fuel_cap on Trap::OutOfFuel (remaining=0 → cap.saturating_sub(0)=cap).
         let r = PluginResult::Timeout {
             cause: TimeoutCause::Fuel,
             stderr: String::new(),
             elapsed_ms: 5_000,
-            fuel_consumed: 1_000_000_000,
+            fuel_consumed: DEFAULT_FUEL_CAP,
+            fuel_cap: DEFAULT_FUEL_CAP,
         };
         assert!(
             !plugin_fail_closed(&r, OnError::Continue),
@@ -926,6 +933,70 @@ mod tests {
         assert!(
             !plugin_fail_closed(&r, OnError::Block),
             "Ok result + on_error=Block must NOT trigger fail-closed (advisory path handles Ok)"
+        );
+    }
+
+    // ── emit_lifecycle telemetry field coverage ────────────────────────────
+
+    /// `plugin.timeout` events must carry both `fuel_cap` and `fuel_consumed`
+    /// so operators can see which budget was hit without opening the full trace.
+    /// CLAUDE.md Factory Hook Diagnostics Step 2 sends operators to grep
+    /// `.factory/logs/dispatcher-internal-*.jsonl` for exactly these fields.
+    #[test]
+    fn emit_lifecycle_timeout_carries_fuel_cap_and_consumed() {
+        let dir = tempfile::tempdir().expect("tempdir");
+        let log = InternalLog::new(dir.path().join("logs"));
+        let base_ctx = crate::host::HostContext::new("test-plugin", "0.1.0", "sess-1", "trace-1");
+        let entry = RegistryEntry {
+            name: "test-plugin".to_string(),
+            event: "PreToolUse".to_string(),
+            tool: None,
+            plugin: std::path::PathBuf::from("test.wasm"),
+            priority: None,
+            enabled: true,
+            timeout_ms: None,
+            fuel_cap: None,
+            on_error: None,
+            capabilities: None,
+            config: toml::Value::Table(toml::Table::new()),
+            async_flag: false,
+            needs_context: vec![],
+        };
+        let cap: u64 = DEFAULT_FUEL_CAP;
+        let consumed: u64 = 12_345_678;
+        let result = PluginResult::Timeout {
+            cause: TimeoutCause::Fuel,
+            stderr: String::new(),
+            elapsed_ms: 10,
+            fuel_consumed: consumed,
+            fuel_cap: cap,
+        };
+        emit_lifecycle(&log, &base_ctx, &entry, &result);
+
+        // Read back the JSONL and verify both fields are present.
+        let log_dir = dir.path().join("logs");
+        let files: Vec<_> = std::fs::read_dir(&log_dir)
+            .expect("log dir must exist after write")
+            .map(|e| e.expect("dir entry").path())
+            .collect();
+        assert_eq!(files.len(), 1, "expected exactly one log file");
+        let content = std::fs::read_to_string(&files[0]).expect("read log file");
+        let event: serde_json::Value =
+            serde_json::from_str(content.trim_end()).expect("log line must be valid JSON");
+        assert_eq!(
+            event["type"].as_str(),
+            Some(PLUGIN_TIMEOUT),
+            "event type must be plugin.timeout"
+        );
+        assert_eq!(
+            event["fuel_consumed"].as_u64(),
+            Some(consumed),
+            "plugin.timeout event must carry fuel_consumed"
+        );
+        assert_eq!(
+            event["fuel_cap"].as_u64(),
+            Some(cap),
+            "plugin.timeout event must carry fuel_cap (CLAUDE.md Diagnostics Step 2)"
         );
     }
 }

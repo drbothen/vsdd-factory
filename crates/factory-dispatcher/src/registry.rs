@@ -184,7 +184,10 @@ impl Default for RegistryDefaults {
     fn default() -> Self {
         Self {
             timeout_ms: 5_000,
-            fuel_cap: 10_000_000,
+            // ADR-042 §Decision 1: raised 10M → 20M (measurement-validated).
+            // Uses DEFAULT_FUEL_CAP — the single source of truth — so any future
+            // cap change propagates atomically to both Default impls.
+            fuel_cap: crate::invoke::DEFAULT_FUEL_CAP,
             on_error: OnError::Continue,
             priority: 500,
         }
@@ -565,13 +568,47 @@ extra = { key = "value" }
 
     #[test]
     fn defaults_applied_when_missing() {
+        use crate::invoke::DEFAULT_FUEL_CAP;
         let reg = Registry::parse_str(minimal_toml()).unwrap();
         assert_eq!(reg.defaults.timeout_ms, 5_000);
-        assert_eq!(reg.defaults.fuel_cap, 10_000_000);
+        assert_eq!(reg.defaults.fuel_cap, DEFAULT_FUEL_CAP);
         assert_eq!(reg.defaults.priority, 500);
         assert_eq!(reg.defaults.on_error, OnError::Continue);
         assert_eq!(reg.hooks[0].priority(&reg.defaults), 500);
         assert_eq!(reg.hooks[0].timeout_ms(&reg.defaults), 5_000);
+        // Close the chain: accessor resolves to DEFAULT_FUEL_CAP for entries that
+        // don't override fuel_cap in their registry entry (production path via executor.rs).
+        assert_eq!(reg.hooks[0].fuel_cap(&reg.defaults), DEFAULT_FUEL_CAP);
+    }
+
+    // Cross-field sync guard for the ADR-042 §Decision 1 fuel cap raise (10M → 20M).
+    //
+    // `RegistryDefaults::default().fuel_cap` is the global fallback applied to every
+    // hook plugin that does not override `fuel_cap` in its registry entry.
+    // `InvokeLimits::default().fuel_cap` is the hard limit used by `invoke_plugin`
+    // when the caller supplies no explicit limits.
+    //
+    // Both Default impls now reference `DEFAULT_FUEL_CAP` — the single source of truth
+    // in invoke.rs — making drift structurally impossible (a re-introduced literal would
+    // not compile unless it also matched DEFAULT_FUEL_CAP). This test is retained as an
+    // explicit cross-module guard: if either Default impl is refactored to bypass
+    // DEFAULT_FUEL_CAP, this test fails with a message naming which one drifted.
+    #[test]
+    fn fuel_cap_defaults_stay_in_sync() {
+        use crate::invoke::{DEFAULT_FUEL_CAP, InvokeLimits};
+
+        assert_eq!(
+            InvokeLimits::default().fuel_cap,
+            DEFAULT_FUEL_CAP,
+            "InvokeLimits::default().fuel_cap drifted from DEFAULT_FUEL_CAP; \
+             update InvokeLimits::default() to reference invoke::DEFAULT_FUEL_CAP",
+        );
+        assert_eq!(
+            RegistryDefaults::default().fuel_cap,
+            DEFAULT_FUEL_CAP,
+            "RegistryDefaults::default().fuel_cap drifted from DEFAULT_FUEL_CAP; \
+             update RegistryDefaults::default() to reference crate::invoke::DEFAULT_FUEL_CAP",
+        );
     }
 
     #[test]

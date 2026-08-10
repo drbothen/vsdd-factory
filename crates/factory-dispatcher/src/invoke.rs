@@ -226,7 +226,18 @@ pub enum PluginResult {
         /// a partial message because the plugin was interrupted.
         stderr: String,
         elapsed_ms: u64,
+        /// Instructions executed before the interrupt. Useful telemetry for
+        /// the event log. Note: on `Trap::OutOfFuel`, `fuel_consumed_from_store`
+        /// returns `cap.saturating_sub(remaining)` where `remaining == 0`, so
+        /// `fuel_consumed == fuel_cap` on every fuel trap — it does not convey
+        /// demand independently of the cap. Use `fuel_cap` for the operator
+        /// message when communicating what limit was hit.
         fuel_consumed: u64,
+        /// The configured fuel budget at the time of invocation. Always
+        /// reflects the actual cap set on the wasmtime Store, independent of
+        /// whether `get_fuel()` succeeds. Use this field — not `fuel_consumed`
+        /// — when constructing operator-facing messages about which cap to raise.
+        fuel_cap: u64,
     },
     Crashed {
         trap_string: String,
@@ -255,6 +266,18 @@ pub enum TimeoutCause {
     Fuel,
 }
 
+/// ADR-042 §Decision 1: global fuel cap raised 10M → 20M (measurement-validated).
+/// Worst-case legacy-bash-adapter payload consumed 10,406,058 fuel
+/// (ARCH-INDEX + 50 KB last_assistant_message, 377,109 payload bytes),
+/// exhausting the former 10M cap. 20M leaves ~9.6M headroom (92% margin).
+///
+/// This constant is the single source of truth for the ADR-042 fuel cap.
+/// Both `InvokeLimits::default()` and `RegistryDefaults::default()` reference it,
+/// so any future deliberate cap change is made in one place and propagates
+/// atomically to both — structural enforcement rather than test-only enforcement.
+/// Any change to this value requires updating the ADR-042 §Decision 1 rationale.
+pub const DEFAULT_FUEL_CAP: u64 = 20_000_000;
+
 /// Per-invocation budget. Defaults live in
 /// `RegistryDefaults`; callers usually get these from a
 /// `RegistryEntry` with fallback.
@@ -268,7 +291,7 @@ impl Default for InvokeLimits {
     fn default() -> Self {
         Self {
             timeout_ms: 5_000,
-            fuel_cap: 10_000_000,
+            fuel_cap: DEFAULT_FUEL_CAP,
         }
     }
 }
@@ -397,6 +420,7 @@ pub fn invoke_plugin(
             &stderr,
             elapsed_ms,
             fuel_consumed,
+            limits.fuel_cap,
         ),
     }
 }
@@ -407,6 +431,7 @@ fn classify_trap(
     stderr: &MemoryOutputPipe,
     elapsed_ms: u64,
     fuel_consumed: u64,
+    fuel_cap: u64,
 ) -> Result<PluginResult, InvokeError> {
     let stderr_text = stderr_to_string(stderr);
     // WASI `exit(n)` propagates as an `I32Exit` in wasmtime-wasi's
@@ -429,12 +454,14 @@ fn classify_trap(
                 stderr: stderr_text,
                 elapsed_ms,
                 fuel_consumed,
+                fuel_cap,
             },
             Trap::OutOfFuel => PluginResult::Timeout {
                 cause: TimeoutCause::Fuel,
                 stderr: stderr_text,
                 elapsed_ms,
                 fuel_consumed,
+                fuel_cap,
             },
             other => PluginResult::Crashed {
                 trap_string: other.to_string(),
@@ -1055,6 +1082,100 @@ mod tests {
 
     fn bare_ctx() -> HostContext {
         HostContext::new("plugin", "0.0.1", "sess", "trace")
+    }
+
+    // ADR-042 §Decision 1: global fuel cap raised 10M → 20M (measurement-validated).
+    // 838 fuel-exhaustion events across 35 plugins confirmed by perf-engineer;
+    // worst-case payload (ARCH-INDEX + 50 KB assistant message) measured 10,406,058 fuel.
+    #[test]
+    fn invoke_limits_default_fuel_cap_is_20m() {
+        assert_eq!(InvokeLimits::default().fuel_cap, DEFAULT_FUEL_CAP);
+    }
+
+    // Proves the dispatcher enforces the fuel ceiling at the boundary: a synthetic WAT
+    // workload of ~10.8M fuel crosses from trapped to completing when the ceiling
+    // moves from 10M to 20M. This is a ceiling-enforcement test, not a production
+    // model: the WAT loop runs with an empty payload and no host calls, so it does
+    // not reflect the regression formula measured by the perf-engineer
+    // (fuel = 29,452 + 27.514 × payload_bytes). The ~10.8M estimate is based on
+    // the loop structure (1,200,000 iterations × ~9 WASM instructions each); the
+    // actual observed value is asserted in the 20M branch below.
+    #[test]
+    fn fuel_workload_exhausts_10m_completes_at_20m() {
+        let engine = build_engine().unwrap();
+        // Arithmetic loop: 1,200,000 iterations x ~9 instructions ≈ 10.8M fuel.
+        let module = compile(
+            &engine,
+            r#"
+            (module
+              (memory (export "memory") 1)
+              (func (export "_start")
+                (local $i i32)
+                (local.set $i (i32.const 0))
+                (block $done
+                  (loop $l
+                    (local.set $i (i32.add (local.get $i) (i32.const 1)))
+                    (br_if $done (i32.ge_u (local.get $i) (i32.const 1200000)))
+                    (br $l)))))
+            "#,
+        );
+
+        // At the former 10M cap: fuel exhaustion.
+        let res_10m = invoke_plugin(
+            &engine,
+            &module,
+            bare_ctx(),
+            b"",
+            InvokeLimits {
+                timeout_ms: 30_000,
+                fuel_cap: 10_000_000,
+            },
+        )
+        .unwrap();
+        assert!(
+            matches!(
+                res_10m,
+                PluginResult::Timeout {
+                    cause: TimeoutCause::Fuel,
+                    ..
+                }
+            ),
+            "expected Timeout{{Fuel}} at 10M cap, got {res_10m:?}"
+        );
+
+        // At the new 20M cap: completes successfully.
+        let res_20m = invoke_plugin(
+            &engine,
+            &module,
+            bare_ctx(),
+            b"",
+            InvokeLimits {
+                timeout_ms: 30_000,
+                fuel_cap: DEFAULT_FUEL_CAP,
+            },
+        )
+        .unwrap();
+        // Assert both the exit code and the observed fuel so a future wasmtime
+        // accounting change fails with a message stating the actual cost rather
+        // than an opaque pattern-match mismatch.
+        match res_20m {
+            PluginResult::Ok {
+                exit_code,
+                fuel_consumed,
+                ..
+            } => {
+                assert_eq!(exit_code, 0, "expected exit_code=0 at 20M cap");
+                assert!(
+                    fuel_consumed > 10_000_000,
+                    "fuel_consumed should be > 10M (workload is ~10.8M), got {fuel_consumed}"
+                );
+                assert!(
+                    fuel_consumed < DEFAULT_FUEL_CAP,
+                    "fuel_consumed should be < cap ({DEFAULT_FUEL_CAP}), got {fuel_consumed}"
+                );
+            }
+            other => panic!("expected Ok(exit_code=0) at 20M cap, got {other:?}"),
+        }
     }
 
     #[test]
