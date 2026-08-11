@@ -18,11 +18,12 @@
 //! | T-009 | AC-006   | GREEN†   | Hermetic real-bundle gate: enumerates GIT-TRACKED set (`git ls-files`) against both real registries; asserts zero tracked orphans (EAC-005 standing regression gate) |
 //! | T-010 | AC-007   | GREEN    | Bundle-simulation: stages fixture with underscore-named WASMs through `stage_release_bundle`; asserts staged artifact has zero orphans per real registries and proves underscore-glob semantics (RED at 298389b0 via todo!(); GREEN since d9502701) |
 //! | T-011 | AC-007   | GREEN    | POLICY 20 defense proof: read-prefix-fixture.wasm (hyphen-named) passes the *_*.wasm staging glob and is an orphan per both registries; proves `--exclude read-prefix-fixture` in release.yml is the governing defense (S-19.06) |
-//! | T-012 | AC-006 S-21.09 | RED†† | Declared-set ⊆ tracked-set gate (inverse of T-009): asserts every WASM declared in hooks-registry or resolvers-registry is tracked in git; RED pre-fix (validate-factory-path-staging.wasm declared but not tracked); GREEN after AC-001 fix |
+//! | T-012 | AC-006 S-21.09 | RED†† | Declared-set ⊆ tracked-set gate (step 1: registry inventory = {hooks-registry.toml, resolvers-registry.toml}; step 2: declared.len() >= 30; step 3: every declared WASM is git-tracked); RED pre-fix; GREEN after AC-001 fix |
 //! | T-013 | AC-006 S-21.09 | GREEN | BLOCKER-1 nospace control: `plugin="hook-plugins/ghost-guard-nospace.wasm"` (no spaces around =) is parsed as declared by toml-crate parser; proves false-negative gap closed |
 //! | T-014 | AC-006 S-21.09 | GREEN | BLOCKER-1 dotslash control: `plugin = "./hook-plugins/ghost-guard-dotslash.wasm"` (leading ./) is parsed as declared by toml-crate parser after ./ normalization |
 //! | T-015 | AC-006 S-21.09 | GREEN | Declared-but-untracked fixture control: synthetic empty tracked set → missing set contains declared artifact; outcome identifier "MISSING: hooks-only.wasm" confirmed in failure message |
 //! | T-016 | AC-006 S-21.09 | GREEN | PASS arm fixture control: when tracked set equals declared set, declared − tracked is empty (no false positives) |
+//! | T-017 | AC-006 S-21.09 | GREEN | Registry-inventory control: unexpected `metrics-registry.toml` in plugins/vsdd-factory/ triggers "UNEXPECTED: metrics-registry.toml" outcome identifier; proves inventory gate catches new registry files |
 //!
 //! † T-009 is a STANDING GREEN GATE — passes immediately on any clean checkout where no
 //! orphan WASMs are tracked in git, and remains green on contaminated worktrees because
@@ -188,6 +189,85 @@ fn parse_plugin_refs(registry: &Path) -> HashSet<String> {
     }
 
     refs
+}
+
+/// Verify the set of `*-registry.toml` files under `plugins_vsdd_factory_dir` equals
+/// exactly `{"hooks-registry.toml", "resolvers-registry.toml"}`.
+///
+/// Returns `Ok(())` when the inventory matches exactly.
+/// Returns `Err(message)` containing outcome identifier lines when the set differs:
+/// `UNEXPECTED: <name>` for each file beyond the expected pair,
+/// `MISSING: <name>` for each expected file absent from the directory.
+///
+/// ## Why this check runs first (AC-006 step 1)
+///
+/// T-012's declared-set aggregation is hardcoded to `hooks-registry.toml` +
+/// `resolvers-registry.toml`.  If a third registry (e.g., `metrics-registry.toml`)
+/// were added, its declared names would never enter `declared`, the
+/// `declared − tracked` difference would be unaffected, and T-012 would stay GREEN
+/// while that registry's artifacts were entirely ungated.  By asserting the inventory
+/// first, anyone who adds a third registry is forced to update T-012's registry list
+/// before T-012 will pass, rather than silently bypassing the gate.
+///
+/// ## Determinism
+///
+/// Unexpected and missing lists are sorted before inclusion in the error message so
+/// output is stable across runs regardless of `fs::read_dir` ordering.
+fn check_registry_inventory(plugins_vsdd_factory_dir: &Path) -> Result<(), String> {
+    const EXPECTED: [&str; 2] = ["hooks-registry.toml", "resolvers-registry.toml"];
+    let expected: HashSet<&str> = EXPECTED.iter().copied().collect();
+
+    let entries = fs::read_dir(plugins_vsdd_factory_dir).unwrap_or_else(|e| {
+        panic!(
+            "failed to read plugins/vsdd-factory dir {}: {}",
+            plugins_vsdd_factory_dir.display(),
+            e
+        )
+    });
+
+    let mut found: Vec<String> = entries
+        .filter_map(|e| e.ok())
+        .map(|e| e.file_name().to_string_lossy().into_owned())
+        .filter(|name| name.ends_with("-registry.toml"))
+        .collect();
+    found.sort(); // deterministic
+
+    let found_set: HashSet<&str> = found.iter().map(String::as_str).collect();
+
+    let mut unexpected: Vec<String> = found
+        .iter()
+        .filter(|name| !expected.contains(name.as_str()))
+        .cloned()
+        .collect();
+    unexpected.sort();
+
+    let mut missing: Vec<String> = EXPECTED
+        .iter()
+        .filter(|name| !found_set.contains(*name))
+        .map(|s| s.to_string())
+        .collect();
+    missing.sort();
+
+    if unexpected.is_empty() && missing.is_empty() {
+        return Ok(());
+    }
+
+    let mut lines = Vec::new();
+    for name in &unexpected {
+        lines.push(format!("  UNEXPECTED: {}", name));
+    }
+    for name in &missing {
+        lines.push(format!("  MISSING: {}", name));
+    }
+
+    Err(format!(
+        "T-012 AC-006 step 1 registry-inventory: {} must contain exactly \
+         {{hooks-registry.toml, resolvers-registry.toml}} — adding a registry file \
+         expands the declared-artifact scope that T-012 covers; update T-012's \
+         registry list or remove the file:\n{}",
+        plugins_vsdd_factory_dir.display(),
+        lines.join("\n")
+    ))
 }
 
 /// Enumerate orphan WASMs from `hook_plugins_dir` using DUAL-registry detection.
@@ -844,6 +924,15 @@ fn test_S_19_06_policy20_T011_read_prefix_fixture_passes_staging_and_is_orphan()
 #[test]
 fn test_S_21_09_ac006_T012_declared_set_subset_of_tracked_set() {
     let root = workspace_root();
+
+    // Step 1 (AC-006 step 1): registry-inventory gate.
+    // Assert plugins/vsdd-factory/ contains exactly {hooks-registry.toml,
+    // resolvers-registry.toml}.  Must run BEFORE the declared-set aggregation so
+    // that adding a third registry fires here and forces the caller to update T-012's
+    // registry list, rather than silently leaving the new registry's artifacts ungated.
+    let plugins_vsdd_factory = root.join("plugins/vsdd-factory");
+    check_registry_inventory(&plugins_vsdd_factory).unwrap_or_else(|msg| panic!("{}", msg));
+
     let hooks_registry = root.join("plugins/vsdd-factory/hooks-registry.toml");
     let resolvers_registry = root.join("plugins/vsdd-factory/resolvers-registry.toml");
 
@@ -1133,5 +1222,80 @@ fn test_S_21_09_ac006_T016_pass_arm_empty_diff_when_all_declared_are_tracked() {
          is also in the tracked set (no false positives in PASS arm); \
          got missing: {:?}",
         missing
+    );
+}
+
+// ---------------------------------------------------------------------------
+// T-017 — Registry-inventory fixture control: unexpected third registry names artifact
+//
+// Fixture-driven control for the AC-006 step 1 registry-inventory assertion in T-012.
+//
+// T-012's declared-set aggregation is hardcoded to hooks-registry.toml +
+// resolvers-registry.toml.  The design flaw it guards against is direction-blindness:
+// if someone adds `plugins/vsdd-factory/metrics-registry.toml`, that file's declared
+// plugin names never enter `declared`, the declared − tracked difference is unaffected,
+// and T-012 stays GREEN while metrics-registry artifacts are entirely ungated.
+//
+// check_registry_inventory() catches this by asserting the directory contains EXACTLY
+// the expected pair before the declared-set check runs.  This test proves it:
+//
+//   Scenario: tmpdir contains hooks-registry.toml + resolvers-registry.toml +
+//             metrics-registry.toml (the unexpected extra file).
+//
+//   Expected:
+//     (a) check_registry_inventory returns Err (not Ok).
+//     (b) The error message contains "UNEXPECTED: metrics-registry.toml" —
+//         the outcome identifier naming the specific file per D-970 Codification 1.
+//
+// This test always GREEN (fixture-driven; does not touch the real filesystem).
+//
+// Story: S-21.09
+// ---------------------------------------------------------------------------
+#[test]
+fn test_S_21_09_ac006_T017_registry_inventory_names_unexpected_file() {
+    let tmp = tempdir().expect("tempdir must create successfully");
+
+    // Write the two expected registry files (minimal content — the inventory
+    // check only inspects filenames, not file content).
+    fs::write(
+        tmp.path().join("hooks-registry.toml"),
+        "schema_version = 2\n",
+    )
+    .expect("hooks-registry.toml must be written to tempdir");
+    fs::write(
+        tmp.path().join("resolvers-registry.toml"),
+        "schema_version = 1\n",
+    )
+    .expect("resolvers-registry.toml must be written to tempdir");
+
+    // Write an unexpected third registry — simulates someone adding a new
+    // registry file to plugins/vsdd-factory/ without updating T-012.
+    fs::write(
+        tmp.path().join("metrics-registry.toml"),
+        "schema_version = 1\n",
+    )
+    .expect("metrics-registry.toml must be written to tempdir");
+
+    let result = check_registry_inventory(tmp.path());
+
+    // (a) Must return Err when an unexpected registry is present.
+    assert!(
+        result.is_err(),
+        "T-017 AC-006 step 1: check_registry_inventory must return Err when \
+         metrics-registry.toml is present alongside the expected pair; got Ok"
+    );
+
+    let msg = result.unwrap_err();
+
+    // (b) The outcome identifier must name the unexpected file explicitly.
+    // Per D-970 Codification 1: a bare "unexpected file found" without the name
+    // is insufficient — the identifier must be actionable without opening a log.
+    assert!(
+        msg.contains("UNEXPECTED: metrics-registry.toml"),
+        "T-017 AC-006 step 1 D-970 Codification 1: error message must contain \
+         'UNEXPECTED: metrics-registry.toml' — the outcome identifier must name the \
+         specific unexpected registry file so the remediation path is unambiguous; \
+         got message: {}",
+        msg
     );
 }
