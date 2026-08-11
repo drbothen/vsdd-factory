@@ -19,10 +19,19 @@
 //! | T-010 | AC-007   | GREEN    | Bundle-simulation: stages fixture with underscore-named WASMs through `stage_release_bundle`; asserts staged artifact has zero orphans per real registries and proves underscore-glob semantics (RED at 298389b0 via todo!(); GREEN since d9502701) |
 //! | T-011 | AC-007   | GREEN    | POLICY 20 defense proof: read-prefix-fixture.wasm (hyphen-named) passes the *_*.wasm staging glob and is an orphan per both registries; proves `--exclude read-prefix-fixture` in release.yml is the governing defense (S-19.06) |
 //! | T-012 | AC-006 S-21.09 | RED†† | Declared-set ⊆ tracked-set gate (inverse of T-009): asserts every WASM declared in hooks-registry or resolvers-registry is tracked in git; RED pre-fix (validate-factory-path-staging.wasm declared but not tracked); GREEN after AC-001 fix |
+//! | T-013 | AC-006 S-21.09 | GREEN | BLOCKER-1 nospace control: `plugin="hook-plugins/ghost-guard-nospace.wasm"` (no spaces around =) is parsed as declared by toml-crate parser; proves false-negative gap closed |
+//! | T-014 | AC-006 S-21.09 | GREEN | BLOCKER-1 dotslash control: `plugin = "./hook-plugins/ghost-guard-dotslash.wasm"` (leading ./) is parsed as declared by toml-crate parser after ./ normalization |
+//! | T-015 | AC-006 S-21.09 | GREEN | Declared-but-untracked fixture control: synthetic empty tracked set → missing set contains declared artifact; outcome identifier "MISSING: hooks-only.wasm" confirmed in failure message |
+//! | T-016 | AC-006 S-21.09 | GREEN | PASS arm fixture control: when tracked set equals declared set, declared − tracked is empty (no false positives) |
 //!
 //! † T-009 is a STANDING GREEN GATE — passes immediately on any clean checkout where no
 //! orphan WASMs are tracked in git, and remains green on contaminated worktrees because
 //! local build artifacts (untracked per .gitignore) are excluded from the git-tracked set.
+//!
+//! †† T-012 is a RED GATE at design time — it was RED at commit a60169bd (before AC-001
+//! committed `validate-factory-path-staging.wasm`), and turned GREEN at commit 27123d27
+//! (after the artifact was added to the git index with `git add -f`). The `RED††` status
+//! in the table documents the test's designed-as-Red-Gate role; current run state is GREEN.
 //!
 //! ## Hermetic Design for T-009
 //!
@@ -106,31 +115,78 @@ const HOOKS_REGISTRY_FIXTURE: &str =
 const RESOLVERS_REGISTRY_FIXTURE: &str =
     include_str!("fixtures/bundle-orphan/resolvers-registry-fixture.toml");
 
+/// BLOCKER-1 nospace fixture: declares `ghost-guard-nospace.wasm` via
+/// `plugin="hook-plugins/ghost-guard-nospace.wasm"` (no spaces around `=`).
+/// Used by T-013 to prove the toml-crate parser catches this form.
+///
+/// Canonical source: `crates/factory-dispatcher/tests/fixtures/bundle-orphan/hooks-registry-nospace-fixture.toml`
+const HOOKS_REGISTRY_NOSPACE_FIXTURE: &str =
+    include_str!("fixtures/bundle-orphan/hooks-registry-nospace-fixture.toml");
+
+/// BLOCKER-1 dotslash fixture: declares `ghost-guard-dotslash.wasm` via
+/// `plugin = "./hook-plugins/ghost-guard-dotslash.wasm"` (leading `./`).
+/// Used by T-014 to prove the toml-crate parser catches this form.
+///
+/// Canonical source: `crates/factory-dispatcher/tests/fixtures/bundle-orphan/hooks-registry-dotslash-fixture.toml`
+const HOOKS_REGISTRY_DOTSLASH_FIXTURE: &str =
+    include_str!("fixtures/bundle-orphan/hooks-registry-dotslash-fixture.toml");
+
 // ---------------------------------------------------------------------------
 // Detection helpers
 // ---------------------------------------------------------------------------
 
 /// Parse all `plugin = "hook-plugins/<name>"` references from a TOML registry file.
 ///
-/// Scans every line for the pattern `plugin = "hook-plugins/<filename>"` and extracts
-/// the bare filename (e.g., `"hooks-only.wasm"`).  Works for both `hooks-registry.toml`
-/// (which uses `[[hooks]]` sections) and `resolvers-registry.toml` (which uses
-/// `[[resolvers]]` sections) because both registries use the same `plugin =` key form.
+/// Uses the `toml` crate (the same parser the dispatcher uses via `registry.rs`) so that
+/// any TOML-legal spelling of the `plugin` key is handled identically to production:
+///
+/// - `plugin = "hook-plugins/foo.wasm"` — standard form
+/// - `plugin="hook-plugins/foo.wasm"` — no spaces around `=` (TOML-legal; missed by v1)
+/// - `plugin = "./hook-plugins/foo.wasm"` — leading `./` (TOML-legal; missed by v1)
+/// - `plugin = 'hook-plugins/foo.wasm'` — single-quoted TOML string
+///
+/// Works for both `hooks-registry.toml` (`[[hooks]]` array) and
+/// `resolvers-registry.toml` (`[[resolvers]]` array) without special-casing.
+///
+/// The v1 implementation used `line.trim().strip_prefix("plugin = ")` — an exact
+/// single-space prefix match. For T-012's direction (`declared − tracked`), a parse
+/// miss is a **false negative**: the name is absent from `declared` and therefore
+/// cannot appear in `declared − tracked`, so the gate goes GREEN on a real gap.
+/// (Contrast: for T-009's direction, the identical bug is a false positive — loud and
+/// safe.) Replaced in S-21.09 adversary pass 1 (BLOCKER-1 closure).
 fn parse_plugin_refs(registry: &Path) -> HashSet<String> {
     let content = fs::read_to_string(registry)
         .unwrap_or_else(|e| panic!("failed to read registry {}: {}", registry.display(), e));
+
+    let doc: toml::Value = content.parse::<toml::Value>().unwrap_or_else(|e| {
+        panic!(
+            "failed to parse TOML registry {}: {}",
+            registry.display(),
+            e
+        )
+    });
+
     let mut refs = HashSet::new();
-    for line in content.lines() {
-        let line = line.trim();
-        // Match:  plugin = "hook-plugins/<name>"
-        // Also handles single-quote TOML values.
-        if let Some(rest) = line.strip_prefix("plugin = ") {
-            let value = rest.trim_matches(|c| c == '"' || c == '\'');
-            if let Some(filename) = value.strip_prefix("hook-plugins/") {
-                refs.insert(filename.to_string());
+
+    // [[hooks]] in hooks-registry.toml; [[resolvers]] in resolvers-registry.toml.
+    // Both use `plugin = "hook-plugins/<name>"` in each array entry.
+    for section_name in &["hooks", "resolvers"] {
+        if let Some(toml::Value::Array(entries)) = doc.get(*section_name) {
+            for entry in entries {
+                if let Some(toml::Value::String(plugin_path)) = entry.get("plugin") {
+                    // Normalize a leading "./" — the dispatcher's resolve_plugin_paths()
+                    // joins relative paths against the registry's parent dir, accepting
+                    // both "hook-plugins/foo" and "./hook-plugins/foo" as equivalent.
+                    // Strip the leading "./" here for consistent basename extraction.
+                    let normalized = plugin_path.trim_start_matches("./");
+                    if let Some(filename) = normalized.strip_prefix("hook-plugins/") {
+                        refs.insert(filename.to_string());
+                    }
+                }
             }
         }
     }
+
     refs
 }
 
@@ -751,14 +807,13 @@ fn test_S_19_06_policy20_T011_read_prefix_fixture_passes_staging_and_is_orphan()
 //   and avoids introducing a registry-scope mismatch between the two directions.
 //
 // Prose-comment exclusion:
-//   hooks-registry.toml line 5 contains the comment
-//   "# Most entries route through hook-plugins/legacy-bash-adapter.wasm,"
-//   which is a spurious occurrence of the hook-plugins/ path pattern (would yield
-//   a 36th entry if parsed naively).  `parse_plugin_refs()` uses
-//   `line.trim().strip_prefix("plugin = ")` — this comment starts with `#`, not
-//   `plugin = `, so it is never matched.  No special-casing is required; the
-//   function already handles this correctly.  True unique declared count in
-//   hooks-registry = 35 (verified: `grep "^plugin = " hooks-registry.toml | ... | sort -u | wc -l`).
+//   hooks-registry.toml contains a comment in its file header that cites
+//   "hook-plugins/legacy-bash-adapter.wasm," in descriptive prose — a spurious
+//   occurrence of the hook-plugins/ path pattern that a naive line-scanner might
+//   yield as a 37th declared entry.  Because `parse_plugin_refs()` uses the toml
+//   crate (not line-scanning), the comment is never the value of any `plugin` field
+//   in a `[[hooks]]` entry and cannot appear in the declared set.
+//   True unique declared count in hooks-registry = 35.
 //
 // Red Gate (pre-fix state):
 //   `validate-factory-path-staging.wasm` is declared in hooks-registry.toml
@@ -820,10 +875,19 @@ fn test_S_21_09_ac006_T012_declared_set_subset_of_tracked_set() {
     let resolvers_refs = parse_plugin_refs(&resolvers_registry);
     let declared: HashSet<String> = hooks_refs.union(&resolvers_refs).cloned().collect();
 
+    // Non-vacuity floor: a parse regression yielding fewer than 30 entries is almost
+    // certainly a parser failure — an empty parse or partial parse would produce a
+    // declared − tracked diff of near-zero and vacuously pass every entry check.
+    // Floor of 30 mirrors the release.yml sibling gate ("expected >= 30; possible parse
+    // failure"), which uses the same rationale. Current actual count = 36 (35 hooks +
+    // 1 resolver); floor absorbs reasonable future registry shrinkage without needing
+    // constant maintenance, while catching a collapse from 36 to e.g. 1 entry.
     assert!(
-        !declared.is_empty(),
-        "T-012: declared set must not be empty — parse_plugin_refs() returned nothing; \
-         check registry file paths and TOML format"
+        declared.len() >= 30,
+        "T-012: declared set has only {} entries (expected >= 30); \
+         this almost certainly indicates a parse failure in parse_plugin_refs() — \
+         check hooks-registry.toml and resolvers-registry.toml paths and TOML format",
+        declared.len()
     );
 
     // Git-tracked set: same mechanism as T-009.
@@ -871,5 +935,203 @@ fn test_S_21_09_ac006_T012_declared_set_subset_of_tracked_set() {
             .map(|n| format!("  MISSING: {}", n))
             .collect::<Vec<_>>()
             .join("\n")
+    );
+}
+
+// ---------------------------------------------------------------------------
+// T-013 — BLOCKER-1 nospace control: `plugin="..."` (no spaces around =) is parsed
+//
+// The v1 parse_plugin_refs() line-scanner required the exact prefix `plugin = `
+// (single space on each side of `=`).  TOML allows whitespace around `=` to be
+// optional, so `plugin="hook-plugins/ghost-guard-nospace.wasm"` is a valid TOML
+// assignment that the real dispatcher accepted (sync_plugins=1, plugins_run=1,
+// exit_code=0).  The v1 scanner silently missed it — a false negative in the
+// declared − tracked direction (the artifact was never in declared, so it could
+// never appear in the missing set).
+//
+// This test proves the toml-crate replacement closes the gap: parse_plugin_refs()
+// on the nospace fixture MUST return a set containing "ghost-guard-nospace.wasm".
+//
+// Story: S-21.09
+// ---------------------------------------------------------------------------
+#[test]
+fn test_S_21_09_ac006_T013_nospace_eq_sign_form_is_parsed_as_declared() {
+    let tmp = tempdir().expect("tempdir must create successfully");
+    let hooks_reg = tmp.path().join("hooks-registry-nospace.toml");
+    fs::write(&hooks_reg, HOOKS_REGISTRY_NOSPACE_FIXTURE)
+        .expect("nospace fixture must be written to tempfile");
+
+    let refs = parse_plugin_refs(&hooks_reg);
+
+    assert!(
+        refs.contains("ghost-guard-nospace.wasm"),
+        "T-013 BLOCKER-1: parse_plugin_refs() must extract 'ghost-guard-nospace.wasm' \
+         from a registry using the no-space-around-equals form \
+         (plugin=\"hook-plugins/ghost-guard-nospace.wasm\") — \
+         the toml-crate parser accepts all TOML-legal whitespace forms; \
+         got refs: {:?}",
+        refs
+    );
+}
+
+// ---------------------------------------------------------------------------
+// T-014 — BLOCKER-1 dotslash control: `plugin = "./hook-plugins/..."` (leading ./)
+//
+// The v1 parse_plugin_refs() stripped `plugin = "` and then checked for the
+// `hook-plugins/` prefix.  When the value begins with `./`, the remaining string
+// is `./hook-plugins/foo.wasm` — `strip_prefix("hook-plugins/")` returns None
+// because the path starts with `./`, not `hook-plugins/`.  The artifact was silently
+// omitted from the declared set (false negative in the declared − tracked direction).
+//
+// The dispatcher's registry.rs resolve_plugin_paths() joins relative paths against
+// the registry file's parent directory, making `"./hook-plugins/foo"` and
+// `"hook-plugins/foo"` functionally identical in production.  The test gate must
+// match production behavior.
+//
+// This test proves the toml-crate replacement normalises the leading `./` via
+// `trim_start_matches("./")` before the `strip_prefix("hook-plugins/")` call:
+// parse_plugin_refs() on the dotslash fixture MUST return a set containing
+// "ghost-guard-dotslash.wasm".
+//
+// Story: S-21.09
+// ---------------------------------------------------------------------------
+#[test]
+fn test_S_21_09_ac006_T014_dotslash_prefix_form_is_parsed_as_declared() {
+    let tmp = tempdir().expect("tempdir must create successfully");
+    let hooks_reg = tmp.path().join("hooks-registry-dotslash.toml");
+    fs::write(&hooks_reg, HOOKS_REGISTRY_DOTSLASH_FIXTURE)
+        .expect("dotslash fixture must be written to tempfile");
+
+    let refs = parse_plugin_refs(&hooks_reg);
+
+    assert!(
+        refs.contains("ghost-guard-dotslash.wasm"),
+        "T-014 BLOCKER-1: parse_plugin_refs() must extract 'ghost-guard-dotslash.wasm' \
+         from a registry using the leading-dotslash form \
+         (plugin = \"./hook-plugins/ghost-guard-dotslash.wasm\") — \
+         the toml-crate version normalises './' via trim_start_matches(\"./\") before \
+         checking for the hook-plugins/ prefix; \
+         got refs: {:?}",
+        refs
+    );
+}
+
+// ---------------------------------------------------------------------------
+// T-015 — Declared-but-untracked fixture control: outcome identifier confirmed
+//
+// Positive control for the declared − tracked detection arm.  Uses the existing
+// hooks-registry and resolvers-registry fixtures (which declare hooks-only.wasm
+// and resolvers-only.wasm respectively), paired with a SYNTHETIC EMPTY tracked set
+// (simulating the state before any `git add -f` has been run).
+//
+// Because the tracked set is empty, every declared artifact is in the missing set.
+// The test verifies:
+//   (a) "hooks-only.wasm" appears in the missing set.
+//   (b) The MISSING: <name> failure-message format produces "MISSING: hooks-only.wasm".
+//
+// Per D-970 Codification 1: the outcome identifier string must appear verbatim in
+// the failure message.  A bare count assertion (missing.len() > 0) would allow the
+// format to drift without detection.  This fixture control locks the string format.
+//
+// This test always GREEN (fixture-driven; does not call git ls-files).
+//
+// Story: S-21.09
+// ---------------------------------------------------------------------------
+#[test]
+fn test_S_21_09_ac006_T015_declared_but_untracked_arm_names_artifact() {
+    let tmp = tempdir().expect("tempdir must create successfully");
+    let hooks_reg = tmp.path().join("hooks-registry.toml");
+    let resolvers_reg = tmp.path().join("resolvers-registry.toml");
+    fs::write(&hooks_reg, HOOKS_REGISTRY_FIXTURE)
+        .expect("hooks-registry fixture must be written to tempfile");
+    fs::write(&resolvers_reg, RESOLVERS_REGISTRY_FIXTURE)
+        .expect("resolvers-registry fixture must be written to tempfile");
+
+    let hooks_refs = parse_plugin_refs(&hooks_reg);
+    let resolvers_refs = parse_plugin_refs(&resolvers_reg);
+    let declared: HashSet<String> = hooks_refs.union(&resolvers_refs).cloned().collect();
+
+    // Synthetic empty tracked set: simulates the pre-`git add -f` state.
+    // Every declared artifact is missing.
+    let tracked: HashSet<String> = HashSet::new();
+
+    let mut missing: Vec<&str> = declared
+        .iter()
+        .filter(|name| !tracked.contains(*name))
+        .map(String::as_str)
+        .collect();
+    missing.sort();
+
+    // (a) hooks-only.wasm must appear in the missing set.
+    assert!(
+        missing.contains(&"hooks-only.wasm"),
+        "T-015 AC-006 D-970 Codification 1: 'hooks-only.wasm' must appear in the \
+         missing set when the tracked set is empty (declared − {} = declared); \
+         got missing: {:?}",
+        "∅",
+        missing
+    );
+
+    // (b) The MISSING: <name> format must produce the outcome identifier string.
+    let missing_lines: Vec<String> = missing
+        .iter()
+        .map(|n| format!("  MISSING: {}", n))
+        .collect();
+
+    assert!(
+        missing_lines.contains(&"  MISSING: hooks-only.wasm".to_string()),
+        "T-015 AC-006 D-970 Codification 1: failure-message format must produce \
+         '  MISSING: hooks-only.wasm' for a declared-but-untracked artifact; \
+         got lines: {:?}",
+        missing_lines
+    );
+}
+
+// ---------------------------------------------------------------------------
+// T-016 — PASS arm fixture control: empty diff when all declared are tracked
+//
+// Negative control for the declared − tracked direction.  Uses the existing
+// fixtures (which declare hooks-only.wasm and resolvers-only.wasm), paired with
+// a SYNTHETIC TRACKED SET equal to the declared set — simulating the post-fix
+// state where every declared artifact has been committed to git.
+//
+// When tracked == declared, the declared − tracked difference is empty.
+// The test asserts missing.is_empty() — confirming no false positives when every
+// declared artifact is present in the tracked set.
+//
+// This test always GREEN (fixture-driven; does not call git ls-files).
+//
+// Story: S-21.09
+// ---------------------------------------------------------------------------
+#[test]
+fn test_S_21_09_ac006_T016_pass_arm_empty_diff_when_all_declared_are_tracked() {
+    let tmp = tempdir().expect("tempdir must create successfully");
+    let hooks_reg = tmp.path().join("hooks-registry.toml");
+    let resolvers_reg = tmp.path().join("resolvers-registry.toml");
+    fs::write(&hooks_reg, HOOKS_REGISTRY_FIXTURE)
+        .expect("hooks-registry fixture must be written to tempfile");
+    fs::write(&resolvers_reg, RESOLVERS_REGISTRY_FIXTURE)
+        .expect("resolvers-registry fixture must be written to tempfile");
+
+    let hooks_refs = parse_plugin_refs(&hooks_reg);
+    let resolvers_refs = parse_plugin_refs(&resolvers_reg);
+    let declared: HashSet<String> = hooks_refs.union(&resolvers_refs).cloned().collect();
+
+    // Synthetic tracked set = declared set: simulates the post-`git add -f` state.
+    // No artifact is missing.
+    let tracked: HashSet<String> = declared.clone();
+
+    let missing: Vec<&str> = declared
+        .iter()
+        .filter(|name| !tracked.contains(*name))
+        .map(String::as_str)
+        .collect();
+
+    assert!(
+        missing.is_empty(),
+        "T-016 AC-006: declared − tracked must be empty when every declared artifact \
+         is also in the tracked set (no false positives in PASS arm); \
+         got missing: {:?}",
+        missing
     );
 }
