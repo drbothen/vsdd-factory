@@ -1,6 +1,7 @@
 // Test files use .expect()/.unwrap()/.panic!() for failure reporting.
 #![allow(clippy::expect_used, clippy::unwrap_used, clippy::panic)]
-//! AC-006 + AC-007 Rust workspace tests for S-19.04 bundle hygiene story.
+//! AC-006 + AC-007 Rust workspace tests for S-19.04 + S-21.09 bundle hygiene and
+//! declared-set gate stories.
 //!
 //! Verifies the dual-registry orphan detection invariant (EC-003): a WASM present
 //! under `hook-plugins/` is considered non-orphan if referenced by EITHER
@@ -18,16 +19,19 @@
 //! | T-009 | AC-006   | GREEN†   | Hermetic real-bundle gate: enumerates GIT-TRACKED set (`git ls-files`) against both real registries; asserts zero tracked orphans (EAC-005 standing regression gate) |
 //! | T-010 | AC-007   | GREEN    | Bundle-simulation: stages fixture with underscore-named WASMs through `stage_release_bundle`; asserts staged artifact has zero orphans per real registries and proves underscore-glob semantics (RED at 298389b0 via todo!(); GREEN since d9502701) |
 //! | T-011 | AC-007   | GREEN    | POLICY 20 defense proof: read-prefix-fixture.wasm (hyphen-named) passes the *_*.wasm staging glob and is an orphan per both registries; proves `--exclude read-prefix-fixture` in release.yml is the governing defense (S-19.06) |
-//! | T-012 | AC-006 S-21.09 | RED†† | Declared-set ⊆ tracked-set gate (step 1: registry inventory; step 2: non-vacuity floor ≥ 30; step 3: declared − tracked = ∅; step 4: no STAGED-NOT-COMMITTED); RED pre-fix; GREEN after AC-001 fix |
+//! | T-012 | AC-006 S-21.09 | RED†† | Declared-set ⊆ tracked-set gate via `check_declared_subset_tracked()`; step 1: registry inventory; step 2: per-registry floors (hooks ≥ 30, resolvers ≥ 1); step 3: declared − tracked = ∅; step 4: no STAGED-NOT-COMMITTED |
 //! | T-013 | AC-006 S-21.09 | GREEN | BLOCKER-1 nospace control: `plugin="hook-plugins/ghost-guard-nospace.wasm"` (no spaces around =) is parsed as declared by toml-crate parser; proves false-negative gap closed |
 //! | T-014 | AC-006 S-21.09 | GREEN | BLOCKER-1 dotslash control: `plugin = "./hook-plugins/ghost-guard-dotslash.wasm"` (leading ./) is parsed as declared by toml-crate parser after ./ normalization |
-//! | T-015 | AC-006 S-21.09 | GREEN | Declared-but-untracked fixture control: synthetic empty tracked set → missing set contains declared artifact; outcome identifier "MISSING: hooks-only.wasm" confirmed in failure message |
-//! | T-016 | AC-006 S-21.09 | GREEN | PASS arm fixture control: when tracked set equals declared set, declared − tracked is empty (no false positives) |
-//! | T-017 | AC-006 S-21.09 | GREEN | Registry-inventory UNEXPECTED arm: tmpdir with extra `metrics-registry.toml` → "UNEXPECTED: metrics-registry.toml" outcome identifier confirmed |
-//! | T-018 | AC-006 S-21.09 | GREEN | Registry-inventory MISSING arm: empty tmpdir → "MISSING: hooks-registry.toml" and "MISSING: resolvers-registry.toml" outcome identifiers confirmed |
-//! | T-019 | AC-006 S-21.09 | GREEN | Non-vacuity floor control: 1-entry declared set → `#[should_panic]` proves floor fires with "T-012: declared set has only 1 entries" |
-//! | T-020 | AC-006 S-21.09 | GREEN | EC-005 control: empty tracked set → `#[should_panic]` proves assertion fires with "T-012 EC-005" identifier |
-//! | T-021 | AC-006 S-21.09 | GREEN | Staged-not-committed control: index has artifact absent from HEAD tree → "STAGED-NOT-COMMITTED: staged-plugin.wasm" outcome identifier confirmed |
+//! | T-015 | AC-006 S-21.09 | GREEN | Declared-but-untracked: calls `check_declared_subset_tracked()` with synthetic fixtures (30 hooks + 1 resolver, missing one); asserts "MISSING: hooks-only.wasm" identifier |
+//! | T-016 | AC-006 S-21.09 | GREEN | PASS arm: calls `check_declared_subset_tracked()` with all declared tracked → Ok (no false positives) |
+//! | T-017 | AC-006 S-21.09 | GREEN | Registry-inventory UNEXPECTED arm (hyphen form): tmpdir + `metrics-registry.toml` → "UNEXPECTED: metrics-registry.toml" outcome identifier confirmed |
+//! | T-018 | AC-006 S-21.09 | GREEN | Registry-inventory MISSING arm: empty tmpdir → "MISSING: hooks-registry.toml" and "MISSING: resolvers-registry.toml" identifiers confirmed |
+//! | T-019 | AC-006 S-21.09 | GREEN | Hooks floor control: calls `check_declared_subset_tracked()` with 1-entry hooks; `#[should_panic]` locks "T-012: hooks registry declared set has only 1 entries" |
+//! | T-020 | AC-006 S-21.09 | GREEN | EC-005 control: calls `check_declared_subset_tracked()` with empty tracked; `#[should_panic]` locks "T-012 EC-005" identifier |
+//! | T-021 | AC-006 S-21.09 | GREEN | Staged-not-committed: calls `check_declared_subset_tracked()` with staged artifact → Err containing "STAGED-NOT-COMMITTED: staged-plugin.wasm" identifier |
+//! | T-022 | AC-006 S-21.09 | GREEN | Resolvers floor control: calls `check_declared_subset_tracked()` with empty resolvers; `#[should_panic]` locks "T-012: resolvers registry declared set is empty" |
+//! | T-023 | AC-006 S-21.09 | GREEN | MEDIUM-1 boundary polarity: bare plugin path `ghost-bare.wasm` (no `hook-plugins/` prefix) → excluded from declared; documents narrowing scope and false-positive class |
+//! | T-024 | AC-006 S-21.09 | GREEN | BLOCKER-2 underscore mutant: `metrics_registry.toml` (underscore, previously missed by `-registry.toml` filter) caught by fail-closed `*.toml` inventory → "UNEXPECTED: metrics_registry.toml" |
 //!
 //! † T-009 is a STANDING GREEN GATE — passes immediately on any clean checkout where no
 //! orphan WASMs are tracked in git, and remains green on contaminated worktrees because
@@ -93,7 +97,7 @@
 //! Embedded at compile time via `include_str!()` — the .toml files are the single source
 //! of truth; edits must be made there, not to the constants.
 //!
-//! Story: S-19.04
+//! Stories: S-19.04 (T-006..T-011), S-21.09 (T-012..T-024)
 //! VP Trace: — (AC-006 wires EAC-005 as load-bearing leg; no BC mapping)
 
 use std::collections::HashSet;
@@ -195,7 +199,7 @@ fn parse_plugin_refs(registry: &Path) -> HashSet<String> {
     refs
 }
 
-/// Verify the set of `*-registry.toml` files under `plugins_vsdd_factory_dir` equals
+/// Verify the set of `*.toml` files under `plugins_vsdd_factory_dir` equals
 /// exactly `{"hooks-registry.toml", "resolvers-registry.toml"}`.
 ///
 /// Returns `Ok(())` when the inventory matches exactly.
@@ -206,12 +210,21 @@ fn parse_plugin_refs(registry: &Path) -> HashSet<String> {
 /// ## Why this check runs first (AC-006 step 1)
 ///
 /// T-012's declared-set aggregation is hardcoded to `hooks-registry.toml` +
-/// `resolvers-registry.toml`.  If a third registry (e.g., `metrics-registry.toml`)
-/// were added, its declared names would never enter `declared`, the
-/// `declared − tracked` difference would be unaffected, and T-012 would stay GREEN
-/// while that registry's artifacts were entirely ungated.  By asserting the inventory
-/// first, anyone who adds a third registry is forced to update T-012's registry list
-/// before T-012 will pass, rather than silently bypassing the gate.
+/// `resolvers-registry.toml`.  If a third registry were added, its declared names
+/// would never enter `declared`, the `declared − tracked` difference would be
+/// unaffected, and T-012 would stay GREEN while that registry's artifacts were
+/// entirely ungated.  By asserting the inventory first, anyone who adds a registry
+/// is forced to update T-012's registry list before T-012 will pass.
+///
+/// ## Fail-closed filter (`*.toml`, not `*-registry.toml`)
+///
+/// The filter enumerates ALL `.toml` files, not just files ending in
+/// `-registry.toml`.  The open-ended form (`*-registry.toml`) is an open
+/// enumeration over a naming convention — `metrics_registry.toml` (underscore)
+/// or `metrics.registry.toml` (dot) would slip through and bypass detection.
+/// `plugins/vsdd-factory/` currently contains exactly two `.toml` files; the
+/// fail-closed form asserts exact set equality, so any addition fires.
+/// T-024 proves the underscore form is caught; T-017 proves the hyphen form.
 ///
 /// ## Determinism
 ///
@@ -232,7 +245,7 @@ fn check_registry_inventory(plugins_vsdd_factory_dir: &Path) -> Result<(), Strin
     let mut found: Vec<String> = entries
         .filter_map(|e| e.ok())
         .map(|e| e.file_name().to_string_lossy().into_owned())
-        .filter(|name| name.ends_with("-registry.toml"))
+        .filter(|name| name.ends_with(".toml"))
         .collect();
     found.sort(); // deterministic
 
@@ -272,6 +285,125 @@ fn check_registry_inventory(plugins_vsdd_factory_dir: &Path) -> Result<(), Strin
         plugins_vsdd_factory_dir.display(),
         lines.join("\n")
     ))
+}
+
+/// Verify T-012 steps 2–4 over caller-supplied per-registry declared sets, git-tracked
+/// set, and git-committed set.
+///
+/// Extracted from the T-012 `#[test]` body so that fixture-driven controls
+/// (T-015/T-016/T-019/T-020/T-021/T-022) call the REAL gate function rather than
+/// logic replicas — replicas cannot detect the defect they purport to guard
+/// (TD-VSDD-059 paper-fix detection).
+///
+/// Returns `Ok(())` when all checks pass. Returns `Err(message)` containing
+/// a D-970 Codification 1 outcome identifier on the FIRST failure:
+///
+/// | Check | Outcome identifier prefix |
+/// |-------|--------------------------|
+/// | Step 2a: hooks floor | `T-012: hooks registry declared set has only N entries` |
+/// | Step 2b: resolvers floor | `T-012: resolvers registry declared set is empty` |
+/// | EC-005: tracked empty | `T-012 EC-005` |
+/// | Step 3: declared − tracked | `  MISSING: <name>` per artifact |
+/// | Step 4: staged-not-committed | `  STAGED-NOT-COMMITTED: <name>` per artifact |
+fn check_declared_subset_tracked(
+    hooks_declared: &HashSet<String>,
+    resolvers_declared: &HashSet<String>,
+    tracked: &HashSet<String>,
+    committed: &HashSet<String>,
+) -> Result<(), String> {
+    // Step 2a: hooks registry non-vacuity floor.
+    // A hooks parse collapse from 35 to e.g. 1 entry would vacuously pass step 3;
+    // the floor catches it.  Floor of 30 mirrors the release.yml sibling gate.
+    if hooks_declared.len() < 30 {
+        return Err(format!(
+            "T-012: hooks registry declared set has only {} entries (expected >= 30); \
+             this almost certainly indicates a parse failure in parse_plugin_refs() — \
+             check hooks-registry.toml path and TOML format",
+            hooks_declared.len()
+        ));
+    }
+
+    // Step 2b: resolvers registry non-vacuity floor.
+    // The resolvers registry currently contributes exactly 1 entry
+    // (vsdd-context-resolvers.wasm).  An empty resolvers parse is a parse failure;
+    // a union floor of >= 30 cannot distinguish this from a valid state where the
+    // hooks registry alone contributes 30+.
+    if resolvers_declared.is_empty() {
+        return Err(
+            "T-012: resolvers registry declared set is empty (expected >= 1); \
+             this almost certainly indicates a parse failure in parse_plugin_refs() — \
+             check resolvers-registry.toml path and TOML format"
+                .to_string(),
+        );
+    }
+
+    // Build union for step 3.
+    let declared: HashSet<String> = hooks_declared
+        .iter()
+        .chain(resolvers_declared.iter())
+        .cloned()
+        .collect();
+
+    // EC-005: an empty tracked set would make every declared artifact appear "missing",
+    // producing noisy false failures.  Convert this scenario into a clearly-named error.
+    if tracked.is_empty() {
+        return Err(
+            "T-012 EC-005: git ls-files returned no tracked WASMs under \
+             plugins/vsdd-factory/hook-plugins/ — verify git is on PATH, workspace_root() \
+             resolves correctly, and the test is run inside a git repository"
+                .to_string(),
+        );
+    }
+
+    // Step 3: declared − tracked.
+    let mut missing: Vec<&str> = declared
+        .iter()
+        .filter(|name| !tracked.contains(*name))
+        .map(String::as_str)
+        .collect();
+    missing.sort();
+
+    if !missing.is_empty() {
+        return Err(format!(
+            "T-012 AC-006 S-21.09 BC-4.16.001 Precondition 3: every WASM artifact \
+             declared in hooks-registry.toml or resolvers-registry.toml MUST be tracked \
+             in git (declared_set ⊆ tracked_set); {} artifact(s) declared but NOT \
+             tracked — commit each with `git add -f` before the guard can load in \
+             production sessions:\n{}",
+            missing.len(),
+            missing
+                .iter()
+                .map(|n| format!("  MISSING: {}", n))
+                .collect::<Vec<_>>()
+                .join("\n")
+        ));
+    }
+
+    // Step 4: staged-not-committed supplementary check.
+    // A file staged (`git add -f`) but not yet committed passes the index check above
+    // yet is absent from a fresh CI checkout.
+    let mut staged_not_committed: Vec<&str> = tracked
+        .iter()
+        .filter(|name| !committed.contains(*name))
+        .map(String::as_str)
+        .collect();
+    staged_not_committed.sort();
+
+    if !staged_not_committed.is_empty() {
+        return Err(format!(
+            "T-012 AC-006 S-21.09 BC-4.16.001 Precondition 3 (supplementary): {} WASM \
+             artifact(s) are in the git index but NOT committed to HEAD — absent on a \
+             fresh CI checkout; commit each before pushing:\n{}",
+            staged_not_committed.len(),
+            staged_not_committed
+                .iter()
+                .map(|n| format!("  STAGED-NOT-COMMITTED: {}", n))
+                .collect::<Vec<_>>()
+                .join("\n")
+        ));
+    }
+
+    Ok(())
 }
 
 /// Enumerate orphan WASMs from `hook_plugins_dir` using DUAL-registry detection.
@@ -1004,111 +1136,25 @@ fn test_S_21_09_ac006_T012_declared_set_subset_of_tracked_set() {
         root.display()
     );
 
-    // Aggregate declared set: union of both registries.
-    // `parse_plugin_refs()` is called on each registry file; results are unioned
-    // into a HashSet so every declared name appears exactly once regardless of
-    // how many registry entries reference the same WASM.
+    // Parse per-registry refs separately so check_declared_subset_tracked() can apply
+    // per-registry floors (HIGH-2: a union floor cannot detect a resolvers-only collapse).
     //
     // vsdd-context-resolvers.wasm: declared in resolvers-registry, also tracked in git.
-    // Using both registries places it in the declared set — present in tracked set too,
-    // so it contributes no false-positive to the declared − tracked difference.
+    // Using both registries matches the dual-registry scope of T-009 and avoids a
+    // registry-scope mismatch between the two directions.
     let hooks_refs = parse_plugin_refs(&hooks_registry);
     let resolvers_refs = parse_plugin_refs(&resolvers_registry);
-    let declared: HashSet<String> = hooks_refs.union(&resolvers_refs).cloned().collect();
 
-    // Non-vacuity floor: a parse regression yielding fewer than 30 entries is almost
-    // certainly a parser failure — an empty parse or partial parse would produce a
-    // declared − tracked diff of near-zero and vacuously pass every entry check.
-    // Floor of 30 mirrors the release.yml sibling gate ("expected >= 30; possible parse
-    // failure"), which uses the same rationale. Current actual count = 36 (35 hooks +
-    // 1 resolver); floor absorbs reasonable future registry shrinkage without needing
-    // constant maintenance, while catching a collapse from 36 to e.g. 1 entry.
-    assert!(
-        declared.len() >= 30,
-        "T-012: declared set has only {} entries (expected >= 30); \
-         this almost certainly indicates a parse failure in parse_plugin_refs() — \
-         check hooks-registry.toml and resolvers-registry.toml paths and TOML format",
-        declared.len()
-    );
-
-    // Git-tracked set: same mechanism as T-009.
-    // EC-005: git ls-files failure is an explicit error, not a silent pass.
-    // `git_tracked_wasm_names()` panics on non-zero exit, which surfaces as a test
-    // failure with an explicit message rather than a silent skip or vacuous pass.
+    // Git-tracked set (index) and committed set (HEAD tree).
+    // `git_tracked_wasm_names()` panics on non-zero exit so failure is explicit, not silent.
     let tracked: HashSet<String> = git_tracked_wasm_names(&root).into_iter().collect();
-
-    assert!(
-        !tracked.is_empty(),
-        "T-012 EC-005: git ls-files returned no tracked WASMs under \
-         plugins/vsdd-factory/hook-plugins/ — verify git is on PATH, workspace_root() \
-         resolves correctly, and the test is run inside a git repository"
-    );
-
-    // declared − tracked: names present in a registry but absent from the git index.
-    //
-    // Pre-fix: {"validate-factory-path-staging.wasm"} — the artifact is declared
-    //   in hooks-registry.toml but was never committed (no `git add -f` in S-21.01).
-    //   This set is non-empty; the assertion below FAILS (RED Gate).
-    //
-    // Post-fix: {} — after AC-001 commits the artifact, git_tracked_wasm_names()
-    //   returns it, the difference is empty, the assertion PASSES (Green Gate).
-    let mut missing: Vec<&str> = declared
-        .iter()
-        .filter(|name| !tracked.contains(*name))
-        .map(String::as_str)
-        .collect();
-    missing.sort(); // deterministic order for reproducible failure messages
-
-    // Per D-970 Codification 1: name each missing artifact explicitly in the failure
-    // message.  "MISSING: validate-factory-path-staging.wasm" must appear when the
-    // defect is present.  A bare `assert_eq!(missing.len(), 0)` is the pattern that
-    // allowed the original defect to survive undetected.
-    assert!(
-        missing.is_empty(),
-        "T-012 AC-006 S-21.09 BC-4.16.001 Precondition 3: every WASM artifact \
-         declared in hooks-registry.toml or resolvers-registry.toml MUST be tracked \
-         in git (declared_set ⊆ tracked_set); {} artifact(s) declared but NOT \
-         tracked — commit each with `git add -f` before the guard can load in \
-         production sessions:\n{}",
-        missing.len(),
-        missing
-            .iter()
-            .map(|n| format!("  MISSING: {}", n))
-            .collect::<Vec<_>>()
-            .join("\n")
-    );
-
-    // Step 4 (LOW-1 supplementary): staged-not-committed check.
-    //
-    // AC-001 says "present in the git index" — the primary check above is
-    // spec-faithful.  This supplementary check adds a stronger guarantee:
-    // a file staged (`git add -f`) but not yet committed would pass the index
-    // check above yet be absent from a fresh CI checkout.  On CI (clean
-    // `git checkout`), index = HEAD tree and the two checks are equivalent.
-    //
-    // Failure message outcome identifier: "STAGED-NOT-COMMITTED: <name>"
-    // Control: T-021.
     let committed: HashSet<String> = git_committed_wasm_names(&root).into_iter().collect();
 
-    let mut staged_not_committed: Vec<&str> = tracked
-        .iter()
-        .filter(|name| !committed.contains(*name))
-        .map(String::as_str)
-        .collect();
-    staged_not_committed.sort();
-
-    assert!(
-        staged_not_committed.is_empty(),
-        "T-012 AC-006 S-21.09 BC-4.16.001 Precondition 3 (supplementary): {} WASM \
-         artifact(s) are in the git index but NOT committed to HEAD — absent on a \
-         fresh CI checkout; commit each before pushing:\n{}",
-        staged_not_committed.len(),
-        staged_not_committed
-            .iter()
-            .map(|n| format!("  STAGED-NOT-COMMITTED: {}", n))
-            .collect::<Vec<_>>()
-            .join("\n")
-    );
+    // Steps 2-4: per-registry floors, declared⊆tracked, staged-not-committed.
+    // Delegated to check_declared_subset_tracked() so fixture-driven controls
+    // (T-015/T-016/T-019/T-020/T-021/T-022) call the real gate, not logic replicas.
+    check_declared_subset_tracked(&hooks_refs, &resolvers_refs, &tracked, &committed)
+        .unwrap_or_else(|msg| panic!("{}", msg));
 }
 
 // ---------------------------------------------------------------------------
@@ -1212,51 +1258,44 @@ fn test_S_21_09_ac006_T014_dotslash_prefix_form_is_parsed_as_declared() {
 // ---------------------------------------------------------------------------
 #[test]
 fn test_S_21_09_ac006_T015_declared_but_untracked_arm_names_artifact() {
-    let tmp = tempdir().expect("tempdir must create successfully");
-    let hooks_reg = tmp.path().join("hooks-registry.toml");
-    let resolvers_reg = tmp.path().join("resolvers-registry.toml");
-    fs::write(&hooks_reg, HOOKS_REGISTRY_FIXTURE)
-        .expect("hooks-registry fixture must be written to tempfile");
-    fs::write(&resolvers_reg, RESOLVERS_REGISTRY_FIXTURE)
-        .expect("resolvers-registry fixture must be written to tempfile");
+    // Synthetic fixture: 29 filler hooks + "hooks-only.wasm" (30 total, passes hooks
+    // floor), plus one resolver (passes resolvers floor).  The tracked set contains
+    // the 29 fillers and the resolver but NOT "hooks-only.wasm" — simulating the
+    // pre-`git add -f` state where that artifact was never committed.
+    //
+    // Calls check_declared_subset_tracked() directly so that a mutation to the real
+    // "  MISSING: {}" format string breaks this test, not merely a replica.
+    let mut hooks_declared: HashSet<String> =
+        (0..29).map(|i| format!("filler-{:02}.wasm", i)).collect();
+    hooks_declared.insert("hooks-only.wasm".to_string()); // 30 total
 
-    let hooks_refs = parse_plugin_refs(&hooks_reg);
-    let resolvers_refs = parse_plugin_refs(&resolvers_reg);
-    let declared: HashSet<String> = hooks_refs.union(&resolvers_refs).cloned().collect();
+    let resolvers_declared: HashSet<String> = ["resolver.wasm".to_string()].into_iter().collect();
 
-    // Synthetic empty tracked set: simulates the pre-`git add -f` state.
-    // Every declared artifact is missing.
-    let tracked: HashSet<String> = HashSet::new();
-
-    let mut missing: Vec<&str> = declared
-        .iter()
-        .filter(|name| !tracked.contains(*name))
-        .map(String::as_str)
+    // tracked = all 29 fillers + resolver, NOT "hooks-only.wasm"
+    let tracked: HashSet<String> = (0..29)
+        .map(|i| format!("filler-{:02}.wasm", i))
+        .chain(["resolver.wasm".to_string()])
         .collect();
-    missing.sort();
+    let committed = tracked.clone(); // same as tracked: no staged-not-committed noise
 
-    // (a) hooks-only.wasm must appear in the missing set.
+    let result =
+        check_declared_subset_tracked(&hooks_declared, &resolvers_declared, &tracked, &committed);
+
+    // (a) Must return Err when hooks-only.wasm is declared but not tracked.
     assert!(
-        missing.contains(&"hooks-only.wasm"),
-        "T-015 AC-006 D-970 Codification 1: 'hooks-only.wasm' must appear in the \
-         missing set when the tracked set is empty (declared − {} = declared); \
-         got missing: {:?}",
-        "∅",
-        missing
+        result.is_err(),
+        "T-015 AC-006: check_declared_subset_tracked must return Err when a declared \
+         artifact is absent from the tracked set; got Ok"
     );
 
-    // (b) The MISSING: <name> format must produce the outcome identifier string.
-    let missing_lines: Vec<String> = missing
-        .iter()
-        .map(|n| format!("  MISSING: {}", n))
-        .collect();
+    let msg = result.unwrap_err();
 
+    // (b) Outcome identifier per D-970 Codification 1 — must name the artifact.
     assert!(
-        missing_lines.contains(&"  MISSING: hooks-only.wasm".to_string()),
-        "T-015 AC-006 D-970 Codification 1: failure-message format must produce \
-         '  MISSING: hooks-only.wasm' for a declared-but-untracked artifact; \
-         got lines: {:?}",
-        missing_lines
+        msg.contains("MISSING: hooks-only.wasm"),
+        "T-015 AC-006 D-970 Codification 1: error message must contain \
+         'MISSING: hooks-only.wasm'; got: {}",
+        msg
     );
 }
 
@@ -1278,35 +1317,33 @@ fn test_S_21_09_ac006_T015_declared_but_untracked_arm_names_artifact() {
 // ---------------------------------------------------------------------------
 #[test]
 fn test_S_21_09_ac006_T016_pass_arm_empty_diff_when_all_declared_are_tracked() {
-    let tmp = tempdir().expect("tempdir must create successfully");
-    let hooks_reg = tmp.path().join("hooks-registry.toml");
-    let resolvers_reg = tmp.path().join("resolvers-registry.toml");
-    fs::write(&hooks_reg, HOOKS_REGISTRY_FIXTURE)
-        .expect("hooks-registry fixture must be written to tempfile");
-    fs::write(&resolvers_reg, RESOLVERS_REGISTRY_FIXTURE)
-        .expect("resolvers-registry fixture must be written to tempfile");
-
-    let hooks_refs = parse_plugin_refs(&hooks_reg);
-    let resolvers_refs = parse_plugin_refs(&resolvers_reg);
-    let declared: HashSet<String> = hooks_refs.union(&resolvers_refs).cloned().collect();
-
-    // Synthetic tracked set = declared set: simulates the post-`git add -f` state.
-    // No artifact is missing.
-    let tracked: HashSet<String> = declared.clone();
-
-    let missing: Vec<&str> = declared
+    // Synthetic fixture: 30 hooks + 1 resolver (passes both floors).  tracked = declared
+    // union — simulates the post-fix state where every declared artifact is committed.
+    //
+    // Calls check_declared_subset_tracked() directly so that a mutation that widens the
+    // declared − tracked step (always returns Ok) would still be caught if a missing
+    // control were removed.  The PASS arm proves no false-positives.
+    let hooks_declared: HashSet<String> =
+        (0..30).map(|i| format!("filler-{:02}.wasm", i)).collect();
+    let resolvers_declared: HashSet<String> = ["resolver.wasm".to_string()].into_iter().collect();
+    let tracked: HashSet<String> = hooks_declared
         .iter()
-        .filter(|name| !tracked.contains(*name))
-        .map(String::as_str)
+        .cloned()
+        .chain(resolvers_declared.iter().cloned())
         .collect();
+    let committed = tracked.clone();
 
-    assert!(
-        missing.is_empty(),
-        "T-016 AC-006: declared − tracked must be empty when every declared artifact \
-         is also in the tracked set (no false positives in PASS arm); \
-         got missing: {:?}",
-        missing
-    );
+    let result =
+        check_declared_subset_tracked(&hooks_declared, &resolvers_declared, &tracked, &committed);
+
+    result.unwrap_or_else(|e| {
+        panic!(
+            "T-016 AC-006: check_declared_subset_tracked must return Ok when every \
+             declared artifact is also in the tracked set (no false positives in PASS arm); \
+             got Err: {}",
+            e
+        )
+    });
 }
 
 // ---------------------------------------------------------------------------
@@ -1439,111 +1476,253 @@ fn test_S_21_09_ac006_T018_registry_inventory_both_missing() {
 }
 
 // ---------------------------------------------------------------------------
-// T-019 — Non-vacuity floor control: proves floor assertion FIRES on 1-entry set
+// T-019 — Hooks floor control: proves hooks floor fires when hooks set has 1 entry
 //
-// The non-vacuity floor at T-012 step 2 asserts `declared.len() >= 30`.  A floor
-// with no control proving it fires is indistinguishable from a dead assertion —
-// the "paper-fix" shape that TD-VSDD-059 detects.
+// step 2a of check_declared_subset_tracked() asserts `hooks_declared.len() >= 30`.
+// A floor with no control is indistinguishable from a dead assertion (TD-VSDD-059).
+// This test calls the REAL function (not a replica) with a 1-entry hooks set and uses
+// `#[should_panic]` to verify it fires.  The `expected=` parameter locks the hooks-
+// floor outcome identifier.
 //
-// This test replicates the step 2 assertion in isolation with a 1-entry `declared`
-// set and uses `#[should_panic]` to verify the assertion fires.  The `expected=`
-// parameter locks the outcome identifier — if the assertion message changes, this
-// test fails loudly rather than silently passing with a different string.
+// Mutation-proof: neutralising the hooks floor (`< 30` → `false`) causes
+// check_declared_subset_tracked() to return Ok; unwrap_or_else() never panics;
+// `#[should_panic]` FAILS — the mutation is detected.
 //
 // Story: S-21.09
 // ---------------------------------------------------------------------------
 #[test]
-#[should_panic(expected = "T-012: declared set has only 1 entries")]
-fn test_S_21_09_ac006_T019_non_vacuity_floor_fires_on_one_entry_set() {
-    let mut declared: HashSet<String> = HashSet::new();
-    declared.insert("single-plugin.wasm".to_string());
-
-    // Replicate T-012 step 2 floor assertion verbatim.
-    assert!(
-        declared.len() >= 30,
-        "T-012: declared set has only {} entries (expected >= 30); \
-         this almost certainly indicates a parse failure in parse_plugin_refs() — \
-         check hooks-registry.toml and resolvers-registry.toml paths and TOML format",
-        declared.len()
-    );
+#[should_panic(expected = "T-012: hooks registry declared set has only 1 entries")]
+fn test_S_21_09_ac006_T019_hooks_floor_fires_on_one_entry_hooks_set() {
+    let hooks_declared: HashSet<String> = ["single-plugin.wasm".to_string()].into_iter().collect(); // 1 entry < 30
+    let resolvers_declared: HashSet<String> = ["resolver.wasm".to_string()].into_iter().collect();
+    let tracked: HashSet<String> = HashSet::new();
+    let committed: HashSet<String> = HashSet::new();
+    // Calls the real function; unwrap panics with the Err message.
+    check_declared_subset_tracked(&hooks_declared, &resolvers_declared, &tracked, &committed)
+        .unwrap_or_else(|e| panic!("{}", e));
 }
 
 // ---------------------------------------------------------------------------
-// T-020 — EC-005 control: proves EC-005 assertion FIRES on empty tracked set
+// T-020 — EC-005 control: proves EC-005 fires when tracked set is empty
 //
-// T-012 step 3 guards against an empty git-tracked set with an explicit assertion
-// (EC-005).  An empty `tracked` set would cause `declared − tracked` to include
-// every declared artifact, producing noisy false failures.  The EC-005 guard
-// converts that scenario into a clearly-named error.
+// check_declared_subset_tracked() step EC-005 asserts the tracked set is non-empty.
+// An empty tracked set would produce noisy false failures on every declared artifact;
+// EC-005 converts this into a clearly-named error.
 //
-// This test replicates the EC-005 assertion in isolation with an empty `tracked`
-// set and uses `#[should_panic]` to verify the assertion fires.  The `expected=`
-// parameter locks the "T-012 EC-005" outcome identifier.
+// This test calls the REAL function with 30 hooks + 1 resolver (passes floors) but
+// an empty tracked set.  `#[should_panic]` locks the "T-012 EC-005" identifier.
+//
+// Mutation-proof: removing EC-005 causes the function to proceed to step 3, where
+// every declared artifact is "missing".  The panic message becomes a MISSING: chain,
+// NOT "T-012 EC-005", so `#[should_panic(expected = "T-012 EC-005")]` FAILS.
 //
 // Story: S-21.09
 // ---------------------------------------------------------------------------
 #[test]
 #[should_panic(expected = "T-012 EC-005")]
-fn test_S_21_09_ac006_T020_ec005_assertion_fires_on_empty_tracked_set() {
-    let tracked: HashSet<String> = HashSet::new();
-
-    // Replicate T-012 EC-005 assertion verbatim.
-    assert!(
-        !tracked.is_empty(),
-        "T-012 EC-005: git ls-files returned no tracked WASMs under \
-         plugins/vsdd-factory/hook-plugins/ — verify git is on PATH, workspace_root() \
-         resolves correctly, and the test is run inside a git repository"
-    );
+fn test_S_21_09_ac006_T020_ec005_fires_on_empty_tracked_set() {
+    let hooks_declared: HashSet<String> =
+        (0..30).map(|i| format!("filler-{:02}.wasm", i)).collect();
+    let resolvers_declared: HashSet<String> = ["resolver.wasm".to_string()].into_iter().collect();
+    let tracked: HashSet<String> = HashSet::new(); // empty → EC-005 fires
+    let committed: HashSet<String> = HashSet::new();
+    check_declared_subset_tracked(&hooks_declared, &resolvers_declared, &tracked, &committed)
+        .unwrap_or_else(|e| panic!("{}", e));
 }
 
 // ---------------------------------------------------------------------------
 // T-021 — Staged-not-committed control: "STAGED-NOT-COMMITTED: <name>" identifier
 //
-// T-012 step 4 computes `staged_not_committed = tracked − committed` and formats
-// each entry as "  STAGED-NOT-COMMITTED: <name>".  This test proves the outcome
-// identifier is correct by constructing synthetic `tracked` and `committed` sets
-// where one artifact is in `tracked` but absent from `committed`, then asserting
-// the formatted message contains the expected identifier.
+// check_declared_subset_tracked() step 4 computes `staged_not_committed = tracked − committed`
+// and returns Err with "  STAGED-NOT-COMMITTED: <name>" per artifact.
 //
-// Unlike T-019/T-020, this is NOT `#[should_panic]` — it replicates the message
-// generation logic and asserts on the produced string, staying GREEN throughout
-// (fixture-driven; no filesystem or git access).
+// This test calls the REAL function with 30 hooks + 1 resolver (passes floors), all in
+// tracked (passes steps 2-3), plus "staged-plugin.wasm" in tracked but absent from
+// committed.  Asserts the returned Err contains the outcome identifier.
+//
+// Mutation-proof: neutralising step 4 (`!staged_not_committed.is_empty()` → `false`)
+// causes the function to return Ok; result.is_err() assertion FAILS.
 //
 // Story: S-21.09
 // ---------------------------------------------------------------------------
 #[test]
 fn test_S_21_09_ac006_T021_staged_not_committed_outcome_identifier() {
-    // Synthetic sets: staged-plugin.wasm is in the git index but not in HEAD.
-    let tracked: HashSet<String> = ["staged-plugin.wasm".to_string()].into_iter().collect();
-    let committed: HashSet<String> = HashSet::new();
+    // Base sets: 30 hooks + 1 resolver, all tracked and committed.
+    let hooks_declared: HashSet<String> =
+        (0..30).map(|i| format!("filler-{:02}.wasm", i)).collect();
+    let resolvers_declared: HashSet<String> = ["resolver.wasm".to_string()].into_iter().collect();
 
-    // Replicate T-012 step 4 logic verbatim.
-    let mut staged_not_committed: Vec<&str> = tracked
+    // tracked includes staged-plugin.wasm; committed does NOT (simulates `git add -f`
+    // without a subsequent commit).
+    let mut tracked: HashSet<String> = hooks_declared
         .iter()
-        .filter(|name| !committed.contains(*name))
-        .map(String::as_str)
+        .cloned()
+        .chain(resolvers_declared.iter().cloned())
         .collect();
-    staged_not_committed.sort();
+    tracked.insert("staged-plugin.wasm".to_string());
+    let committed: HashSet<String> = tracked
+        .iter()
+        .filter(|n| *n != "staged-plugin.wasm")
+        .cloned()
+        .collect();
 
-    // Verify the control scenario: exactly one staged-not-committed artifact.
+    let result =
+        check_declared_subset_tracked(&hooks_declared, &resolvers_declared, &tracked, &committed);
+
+    // (a) Must return Err for the staged-not-committed scenario.
     assert!(
-        !staged_not_committed.is_empty(),
-        "T-021 AC-006 S-21.09: synthetic staged_not_committed must be non-empty \
-         when tracked contains a name absent from committed"
+        result.is_err(),
+        "T-021 AC-006 S-21.09: check_declared_subset_tracked must return Err when \
+         a tracked artifact is absent from committed; got Ok"
     );
 
-    // Build the failure message lines the same way T-012 step 4 would.
-    let lines: Vec<String> = staged_not_committed
-        .iter()
-        .map(|n| format!("  STAGED-NOT-COMMITTED: {}", n))
-        .collect();
-    let message = lines.join("\n");
+    let msg = result.unwrap_err();
 
-    // Verify the outcome identifier per D-970 Codification 1.
+    // (b) Outcome identifier per D-970 Codification 1.
     assert!(
-        message.contains("  STAGED-NOT-COMMITTED: staged-plugin.wasm"),
-        "T-021 AC-006 S-21.09 D-970 Codification 1: outcome identifier must be \
+        msg.contains("  STAGED-NOT-COMMITTED: staged-plugin.wasm"),
+        "T-021 AC-006 S-21.09 D-970 Codification 1: error message must contain \
          '  STAGED-NOT-COMMITTED: staged-plugin.wasm'; got: {}",
-        message
+        msg
+    );
+}
+
+// ---------------------------------------------------------------------------
+// T-022 — Resolvers floor control: proves resolvers floor fires on empty resolvers set
+//
+// check_declared_subset_tracked() step 2b asserts resolvers_declared is non-empty.
+// A union floor of >= 30 cannot detect a resolvers-only collapse: 35 hooks alone
+// clears 30, so a resolvers parse failure would go undetected.  The per-registry
+// floor converts this scenario into a clearly-named error.
+//
+// This test calls the REAL function with 30 hooks (passes hooks floor) but empty
+// resolvers.  `#[should_panic]` locks the resolvers-floor outcome identifier.
+//
+// Mutation-proof: removing the resolvers floor causes the function to proceed to
+// EC-005; the panic message becomes "T-012 EC-005", NOT "T-012: resolvers registry
+// declared set is empty", so `#[should_panic]` FAILS.
+//
+// Story: S-21.09
+// ---------------------------------------------------------------------------
+#[test]
+#[should_panic(expected = "T-012: resolvers registry declared set is empty")]
+fn test_S_21_09_ac006_T022_resolvers_floor_fires_on_empty_resolvers_set() {
+    let hooks_declared: HashSet<String> =
+        (0..30).map(|i| format!("filler-{:02}.wasm", i)).collect(); // passes hooks floor
+    let resolvers_declared: HashSet<String> = HashSet::new(); // empty → resolvers floor fires
+    let tracked: HashSet<String> = HashSet::new();
+    let committed: HashSet<String> = HashSet::new();
+    check_declared_subset_tracked(&hooks_declared, &resolvers_declared, &tracked, &committed)
+        .unwrap_or_else(|e| panic!("{}", e));
+}
+
+// ---------------------------------------------------------------------------
+// T-023 — MEDIUM-1 boundary polarity: bare plugin path excluded from declared set
+//
+// parse_plugin_refs() includes ONLY names reachable via `strip_prefix("hook-plugins/")`.
+// A plugin declared as `plugin = "ghost-bare.wasm"` (no `hook-plugins/` prefix) is
+// excluded from `declared` — it cannot appear in `declared − tracked`.
+//
+// ## Boundary-polarity record (POLICY 13)
+//
+// False-positive class suppressed: artifacts declared outside `hook-plugins/` (bare
+// names, other-dir paths, absolute paths) are invisible to the declared − tracked gate.
+//
+// Can harmful content occupy the excluded region?  Non-`hook-plugins/` paths are NOT
+// gitignored (`hook-plugins/` is the only WASM gitignore entry), so any untracked
+// artifact there is visible in plain `git status`.  The S-21.09 defect class
+// (`hook-plugins/`-scoped artifact missing from the git index) is entirely within the
+// included region.  The excluded region adds no new stealth path.
+//
+// Mutant: `plugin = "ghost-bare.wasm"` → refs is empty → T-012 returns GREEN.
+// This is the correct narrowing: the gate is scoped to `hook-plugins/` artifacts,
+// which matches production deployment expectations.
+//
+// Story: S-21.09
+// ---------------------------------------------------------------------------
+#[test]
+fn test_S_21_09_ac006_T023_medium1_bare_plugin_path_excluded_from_declared() {
+    let tmp = tempdir().expect("tempdir must create successfully");
+    let registry = tmp.path().join("registry.toml");
+    fs::write(
+        &registry,
+        concat!(
+            "schema_version = 2\n",
+            "[[hooks]]\n",
+            "name = \"ghost\"\n",
+            "event = \"PreToolUse\"\n",
+            "tool = \"^Bash$\"\n",
+            "plugin = \"ghost-bare.wasm\"\n",
+            "timeout_ms = 5000\n",
+            "on_error = \"continue\"\n"
+        ),
+    )
+    .expect("bare-path registry must be written to tempfile");
+
+    let refs = parse_plugin_refs(&registry);
+
+    assert!(
+        refs.is_empty(),
+        "T-023 MEDIUM-1 boundary-polarity: parse_plugin_refs must exclude plugin paths \
+         not under 'hook-plugins/' — 'ghost-bare.wasm' has no 'hook-plugins/' prefix; \
+         got refs: {:?}",
+        refs
+    );
+}
+
+// ---------------------------------------------------------------------------
+// T-024 — BLOCKER-2 underscore mutant: `metrics_registry.toml` caught by fail-closed
+//
+// Before the fail-closed fix, check_registry_inventory() filtered with
+// `ends_with("-registry.toml")`.  A file named `metrics_registry.toml` (underscore)
+// does NOT end with "-registry.toml", so it slipped through — the directory appeared
+// to contain only the expected pair, and the inventory check returned Ok even though
+// an ungated registry was present.
+//
+// The fail-closed fix enumerates ALL `*.toml` files.  Any file ending in `.toml` that
+// is not in the expected pair fires UNEXPECTED.  This test proves the underscore form
+// is now caught; T-017 proves the hyphen form (was already caught by the old filter).
+//
+// Story: S-21.09
+// ---------------------------------------------------------------------------
+#[test]
+fn test_S_21_09_ac006_T024_registry_inventory_underscore_form_caught() {
+    let tmp = tempdir().expect("tempdir must create successfully");
+
+    fs::write(
+        tmp.path().join("hooks-registry.toml"),
+        "schema_version = 2\n",
+    )
+    .expect("hooks-registry.toml must be written to tempdir");
+    fs::write(
+        tmp.path().join("resolvers-registry.toml"),
+        "schema_version = 1\n",
+    )
+    .expect("resolvers-registry.toml must be written to tempdir");
+    // Underscore form: previously invisible to the -registry.toml filter.
+    fs::write(
+        tmp.path().join("metrics_registry.toml"),
+        "schema_version = 1\n",
+    )
+    .expect("metrics_registry.toml must be written to tempdir");
+
+    let result = check_registry_inventory(tmp.path());
+
+    // (a) Must return Err — the underscore form must not slip through.
+    assert!(
+        result.is_err(),
+        "T-024 BLOCKER-2 fail-closed: check_registry_inventory must return Err when \
+         metrics_registry.toml (underscore) is present; got Ok — \
+         the *.toml filter must catch all .toml files, not just *-registry.toml"
+    );
+
+    let msg = result.unwrap_err();
+
+    // (b) Outcome identifier names the specific file per D-970 Codification 1.
+    assert!(
+        msg.contains("UNEXPECTED: metrics_registry.toml"),
+        "T-024 BLOCKER-2 D-970 Codification 1: error message must contain \
+         'UNEXPECTED: metrics_registry.toml'; got: {}",
+        msg
     );
 }
