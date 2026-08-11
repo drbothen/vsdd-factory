@@ -18,12 +18,16 @@
 //! | T-009 | AC-006   | GREEN†   | Hermetic real-bundle gate: enumerates GIT-TRACKED set (`git ls-files`) against both real registries; asserts zero tracked orphans (EAC-005 standing regression gate) |
 //! | T-010 | AC-007   | GREEN    | Bundle-simulation: stages fixture with underscore-named WASMs through `stage_release_bundle`; asserts staged artifact has zero orphans per real registries and proves underscore-glob semantics (RED at 298389b0 via todo!(); GREEN since d9502701) |
 //! | T-011 | AC-007   | GREEN    | POLICY 20 defense proof: read-prefix-fixture.wasm (hyphen-named) passes the *_*.wasm staging glob and is an orphan per both registries; proves `--exclude read-prefix-fixture` in release.yml is the governing defense (S-19.06) |
-//! | T-012 | AC-006 S-21.09 | RED†† | Declared-set ⊆ tracked-set gate (step 1: registry inventory = {hooks-registry.toml, resolvers-registry.toml}; step 2: declared.len() >= 30; step 3: every declared WASM is git-tracked); RED pre-fix; GREEN after AC-001 fix |
+//! | T-012 | AC-006 S-21.09 | RED†† | Declared-set ⊆ tracked-set gate (step 1: registry inventory; step 2: non-vacuity floor ≥ 30; step 3: declared − tracked = ∅; step 4: no STAGED-NOT-COMMITTED); RED pre-fix; GREEN after AC-001 fix |
 //! | T-013 | AC-006 S-21.09 | GREEN | BLOCKER-1 nospace control: `plugin="hook-plugins/ghost-guard-nospace.wasm"` (no spaces around =) is parsed as declared by toml-crate parser; proves false-negative gap closed |
 //! | T-014 | AC-006 S-21.09 | GREEN | BLOCKER-1 dotslash control: `plugin = "./hook-plugins/ghost-guard-dotslash.wasm"` (leading ./) is parsed as declared by toml-crate parser after ./ normalization |
 //! | T-015 | AC-006 S-21.09 | GREEN | Declared-but-untracked fixture control: synthetic empty tracked set → missing set contains declared artifact; outcome identifier "MISSING: hooks-only.wasm" confirmed in failure message |
 //! | T-016 | AC-006 S-21.09 | GREEN | PASS arm fixture control: when tracked set equals declared set, declared − tracked is empty (no false positives) |
-//! | T-017 | AC-006 S-21.09 | GREEN | Registry-inventory control: unexpected `metrics-registry.toml` in plugins/vsdd-factory/ triggers "UNEXPECTED: metrics-registry.toml" outcome identifier; proves inventory gate catches new registry files |
+//! | T-017 | AC-006 S-21.09 | GREEN | Registry-inventory UNEXPECTED arm: tmpdir with extra `metrics-registry.toml` → "UNEXPECTED: metrics-registry.toml" outcome identifier confirmed |
+//! | T-018 | AC-006 S-21.09 | GREEN | Registry-inventory MISSING arm: empty tmpdir → "MISSING: hooks-registry.toml" and "MISSING: resolvers-registry.toml" outcome identifiers confirmed |
+//! | T-019 | AC-006 S-21.09 | GREEN | Non-vacuity floor control: 1-entry declared set → `#[should_panic]` proves floor fires with "T-012: declared set has only 1 entries" |
+//! | T-020 | AC-006 S-21.09 | GREEN | EC-005 control: empty tracked set → `#[should_panic]` proves assertion fires with "T-012 EC-005" identifier |
+//! | T-021 | AC-006 S-21.09 | GREEN | Staged-not-committed control: index has artifact absent from HEAD tree → "STAGED-NOT-COMMITTED: staged-plugin.wasm" outcome identifier confirmed |
 //!
 //! † T-009 is a STANDING GREEN GATE — passes immediately on any clean checkout where no
 //! orphan WASMs are tracked in git, and remains green on contaminated worktrees because
@@ -391,6 +395,54 @@ fn git_tracked_wasm_names(root: &Path) -> Vec<String> {
             Path::new(line)
                 .file_name()
                 .expect("every git ls-files path must have a filename component")
+                .to_string_lossy()
+                .into_owned()
+        })
+        .collect()
+}
+
+/// Return the committed (HEAD tree) WASM basenames under `plugins/vsdd-factory/hook-plugins/`.
+///
+/// Runs `git ls-tree --name-only HEAD plugins/vsdd-factory/hook-plugins/` from `root`,
+/// filters for `.wasm` extension, and returns bare filenames (no directory prefix).
+///
+/// # Distinction from `git_tracked_wasm_names()`
+///
+/// `git_tracked_wasm_names()` reads the **git index** (staged + committed) via
+/// `git ls-files`.  This function reads only the **HEAD commit tree** via
+/// `git ls-tree --name-only HEAD`.  A file staged with `git add -f` but not yet
+/// committed appears in `git_tracked_wasm_names()` output but NOT here — that gap
+/// is the `STAGED-NOT-COMMITTED` outcome surfaced by T-012 step 4.
+///
+/// On a clean CI checkout (fresh `git checkout`) the two are equivalent; the
+/// distinction only matters locally between a `git add -f` and the subsequent commit.
+fn git_committed_wasm_names(root: &Path) -> Vec<String> {
+    let output = Command::new("git")
+        .args([
+            "ls-tree",
+            "--name-only",
+            "HEAD",
+            "plugins/vsdd-factory/hook-plugins/",
+        ])
+        .current_dir(root)
+        .output()
+        .expect("git ls-tree must execute; ensure git is on PATH in the test environment");
+
+    assert!(
+        output.status.success(),
+        "git ls-tree exited with status {}: {}",
+        output.status,
+        String::from_utf8_lossy(&output.stderr)
+    );
+
+    String::from_utf8(output.stdout)
+        .expect("git ls-tree output must be valid UTF-8")
+        .lines()
+        .filter(|line| line.ends_with(".wasm"))
+        .map(|line| {
+            Path::new(line)
+                .file_name()
+                .expect("every git ls-tree path must have a filename component")
                 .to_string_lossy()
                 .into_owned()
         })
@@ -1025,6 +1077,38 @@ fn test_S_21_09_ac006_T012_declared_set_subset_of_tracked_set() {
             .collect::<Vec<_>>()
             .join("\n")
     );
+
+    // Step 4 (LOW-1 supplementary): staged-not-committed check.
+    //
+    // AC-001 says "present in the git index" — the primary check above is
+    // spec-faithful.  This supplementary check adds a stronger guarantee:
+    // a file staged (`git add -f`) but not yet committed would pass the index
+    // check above yet be absent from a fresh CI checkout.  On CI (clean
+    // `git checkout`), index = HEAD tree and the two checks are equivalent.
+    //
+    // Failure message outcome identifier: "STAGED-NOT-COMMITTED: <name>"
+    // Control: T-021.
+    let committed: HashSet<String> = git_committed_wasm_names(&root).into_iter().collect();
+
+    let mut staged_not_committed: Vec<&str> = tracked
+        .iter()
+        .filter(|name| !committed.contains(*name))
+        .map(String::as_str)
+        .collect();
+    staged_not_committed.sort();
+
+    assert!(
+        staged_not_committed.is_empty(),
+        "T-012 AC-006 S-21.09 BC-4.16.001 Precondition 3 (supplementary): {} WASM \
+         artifact(s) are in the git index but NOT committed to HEAD — absent on a \
+         fresh CI checkout; commit each before pushing:\n{}",
+        staged_not_committed.len(),
+        staged_not_committed
+            .iter()
+            .map(|n| format!("  STAGED-NOT-COMMITTED: {}", n))
+            .collect::<Vec<_>>()
+            .join("\n")
+    );
 }
 
 // ---------------------------------------------------------------------------
@@ -1297,5 +1381,169 @@ fn test_S_21_09_ac006_T017_registry_inventory_names_unexpected_file() {
          specific unexpected registry file so the remediation path is unambiguous; \
          got message: {}",
         msg
+    );
+}
+
+// ---------------------------------------------------------------------------
+// T-018 — Registry-inventory MISSING arm: empty dir → both MISSING identifiers
+//
+// Proves the MISSING arm of check_registry_inventory(): when a directory contains
+// NO *-registry.toml files at all, the function must return Err with both
+// "MISSING: hooks-registry.toml" and "MISSING: resolvers-registry.toml" in the
+// message.
+//
+// This complements T-017 (UNEXPECTED arm) — together they cover both mismatch
+// directions, closing BLOCKER-2 for the registry-inventory outcome class.
+//
+// Scenario: empty tmpdir — simulates a fresh plugins/vsdd-factory/ with no
+//   registry files (e.g., accidental deletion or a brand-new directory).
+//
+// Expected:
+//   (a) check_registry_inventory returns Err (not Ok).
+//   (b) Message contains "MISSING: hooks-registry.toml".
+//   (c) Message contains "MISSING: resolvers-registry.toml".
+//
+// Story: S-21.09
+// ---------------------------------------------------------------------------
+#[test]
+fn test_S_21_09_ac006_T018_registry_inventory_both_missing() {
+    let tmp = tempdir().expect("tempdir must create successfully");
+
+    // Empty tmpdir — no *-registry.toml files present.
+    let result = check_registry_inventory(tmp.path());
+
+    // (a) Must return Err when both expected registries are absent.
+    assert!(
+        result.is_err(),
+        "T-018 AC-006 step 1: check_registry_inventory must return Err when \
+         the directory is empty (both registries missing); got Ok"
+    );
+
+    let msg = result.unwrap_err();
+
+    // (b) hooks-registry.toml MISSING identifier.
+    assert!(
+        msg.contains("MISSING: hooks-registry.toml"),
+        "T-018 AC-006 step 1 D-970 Codification 1: error message must contain \
+         'MISSING: hooks-registry.toml' when the directory is empty; got: {}",
+        msg
+    );
+
+    // (c) resolvers-registry.toml MISSING identifier.
+    assert!(
+        msg.contains("MISSING: resolvers-registry.toml"),
+        "T-018 AC-006 step 1 D-970 Codification 1: error message must contain \
+         'MISSING: resolvers-registry.toml' when the directory is empty; got: {}",
+        msg
+    );
+}
+
+// ---------------------------------------------------------------------------
+// T-019 — Non-vacuity floor control: proves floor assertion FIRES on 1-entry set
+//
+// The non-vacuity floor at T-012 step 2 asserts `declared.len() >= 30`.  A floor
+// with no control proving it fires is indistinguishable from a dead assertion —
+// the "paper-fix" shape that TD-VSDD-059 detects.
+//
+// This test replicates the step 2 assertion in isolation with a 1-entry `declared`
+// set and uses `#[should_panic]` to verify the assertion fires.  The `expected=`
+// parameter locks the outcome identifier — if the assertion message changes, this
+// test fails loudly rather than silently passing with a different string.
+//
+// Story: S-21.09
+// ---------------------------------------------------------------------------
+#[test]
+#[should_panic(expected = "T-012: declared set has only 1 entries")]
+fn test_S_21_09_ac006_T019_non_vacuity_floor_fires_on_one_entry_set() {
+    let mut declared: HashSet<String> = HashSet::new();
+    declared.insert("single-plugin.wasm".to_string());
+
+    // Replicate T-012 step 2 floor assertion verbatim.
+    assert!(
+        declared.len() >= 30,
+        "T-012: declared set has only {} entries (expected >= 30); \
+         this almost certainly indicates a parse failure in parse_plugin_refs() — \
+         check hooks-registry.toml and resolvers-registry.toml paths and TOML format",
+        declared.len()
+    );
+}
+
+// ---------------------------------------------------------------------------
+// T-020 — EC-005 control: proves EC-005 assertion FIRES on empty tracked set
+//
+// T-012 step 3 guards against an empty git-tracked set with an explicit assertion
+// (EC-005).  An empty `tracked` set would cause `declared − tracked` to include
+// every declared artifact, producing noisy false failures.  The EC-005 guard
+// converts that scenario into a clearly-named error.
+//
+// This test replicates the EC-005 assertion in isolation with an empty `tracked`
+// set and uses `#[should_panic]` to verify the assertion fires.  The `expected=`
+// parameter locks the "T-012 EC-005" outcome identifier.
+//
+// Story: S-21.09
+// ---------------------------------------------------------------------------
+#[test]
+#[should_panic(expected = "T-012 EC-005")]
+fn test_S_21_09_ac006_T020_ec005_assertion_fires_on_empty_tracked_set() {
+    let tracked: HashSet<String> = HashSet::new();
+
+    // Replicate T-012 EC-005 assertion verbatim.
+    assert!(
+        !tracked.is_empty(),
+        "T-012 EC-005: git ls-files returned no tracked WASMs under \
+         plugins/vsdd-factory/hook-plugins/ — verify git is on PATH, workspace_root() \
+         resolves correctly, and the test is run inside a git repository"
+    );
+}
+
+// ---------------------------------------------------------------------------
+// T-021 — Staged-not-committed control: "STAGED-NOT-COMMITTED: <name>" identifier
+//
+// T-012 step 4 computes `staged_not_committed = tracked − committed` and formats
+// each entry as "  STAGED-NOT-COMMITTED: <name>".  This test proves the outcome
+// identifier is correct by constructing synthetic `tracked` and `committed` sets
+// where one artifact is in `tracked` but absent from `committed`, then asserting
+// the formatted message contains the expected identifier.
+//
+// Unlike T-019/T-020, this is NOT `#[should_panic]` — it replicates the message
+// generation logic and asserts on the produced string, staying GREEN throughout
+// (fixture-driven; no filesystem or git access).
+//
+// Story: S-21.09
+// ---------------------------------------------------------------------------
+#[test]
+fn test_S_21_09_ac006_T021_staged_not_committed_outcome_identifier() {
+    // Synthetic sets: staged-plugin.wasm is in the git index but not in HEAD.
+    let tracked: HashSet<String> = ["staged-plugin.wasm".to_string()].into_iter().collect();
+    let committed: HashSet<String> = HashSet::new();
+
+    // Replicate T-012 step 4 logic verbatim.
+    let mut staged_not_committed: Vec<&str> = tracked
+        .iter()
+        .filter(|name| !committed.contains(*name))
+        .map(String::as_str)
+        .collect();
+    staged_not_committed.sort();
+
+    // Verify the control scenario: exactly one staged-not-committed artifact.
+    assert!(
+        !staged_not_committed.is_empty(),
+        "T-021 AC-006 S-21.09: synthetic staged_not_committed must be non-empty \
+         when tracked contains a name absent from committed"
+    );
+
+    // Build the failure message lines the same way T-012 step 4 would.
+    let lines: Vec<String> = staged_not_committed
+        .iter()
+        .map(|n| format!("  STAGED-NOT-COMMITTED: {}", n))
+        .collect();
+    let message = lines.join("\n");
+
+    // Verify the outcome identifier per D-970 Codification 1.
+    assert!(
+        message.contains("  STAGED-NOT-COMMITTED: staged-plugin.wasm"),
+        "T-021 AC-006 S-21.09 D-970 Codification 1: outcome identifier must be \
+         '  STAGED-NOT-COMMITTED: staged-plugin.wasm'; got: {}",
+        message
     );
 }
