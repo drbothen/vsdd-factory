@@ -1,13 +1,13 @@
 ---
 document_type: epic
 epic_id: "E-21"
-version: "v1.10"
+version: "v1.12"
 status: draft
 title: "Factory State Data-Loss Hardening — validate-factory-path-staging WASM guard, post-rebase diff-integrity gate, pr-manager trunk assertions, story-worktree write-path discipline, factory-side PR protocol, validate-main-checkout-sync WASM guard (W-SEC-001)"
 prd_capabilities: [CAP-034, CAP-035, CAP-036, CAP-037, CAP-038]
 subsystems_affected: [SS-04, SS-05, SS-06]
 target_release: "v1.0.0-rc.25"
-story_count: 12
+story_count: 14
 producer: story-writer
 timestamp: "2026-07-19T00:00:00Z"
 phase: brownfield-backfill
@@ -35,9 +35,9 @@ inputs:
   - .factory/stories/S-21.12-wasmtime-major-version-move-46-and-cargo-deny-ci.md
   - .factory/stories/S-21.13-read-file-range-targeted-bc-index-row-lookup.md
   - .factory/specs/architecture/decisions/ADR-042-validate-cross-site-correspondence-fuel-budget-raise-and-loud-exhaustion-signaling.md
-input-hash: "ab3506b"
-# input-hash: recomputed 2026-08-08 after inputs extended (+S-21.13 +ADR-042); ab3506b is current
-last_amended: "2026-08-08 (v1.10) — S-21.13 registered (story-writer): inputs extended (+S-21.13 +ADR-042), Stories table +1 row (W7 / 13 pts / BC TBD), story_count 11→12, total 83→96 pts, EAC-001 extended to S-21.13, W7 sequencing note added, dependency graph extended (S-21.10+S-21.11→S-21.13 edges), wave model note updated to W1..W7, description updated to twelve stories, input-hash stale (recompute at next state-manager burst). Refs: ADR-042 §Decision 5. [Prior: 2026-08-07 (v1.9) — S-21.07/S-21.09/S-21.10/S-21.11/S-21.12 registered (story-writer): inputs extended, Stories table +5 rows (W4/W5/W6), story_count 6→11, total 35→83 pts, EAC-001 extended to all 11 stories, W4/W5/W6 sequencing notes added, dependency graph extended (S-21.10→S-21.11), wave model note updated, description count 6→11, input-hash recomputed (06f117d→432de49; S-21.12 re-anchored per team-lead ruling from E-22 to E-21 W4). [Prior: 2026-07-26 (v1.8) — pass-15 F-S2104-P15-003 — six BC Traceability pins current (BC-4.16.001 v1.2→v1.8, BC-5.43.001 v1.3→v1.4, BC-5.44.001 v1.3→v1.5, BC-6.10.002 v1.3→v1.5, BC-6.26.001 v1.3→v1.11 + trailing-slash find form, BC-6.27.001 v1.3→v1.4); eleven live-body ADR-031 v1.N tokens stripped to stable anchor form (POLICY 19); stale body BC version cites updated (POLICY 5 TD-VSDD-060 sweep); input-hash recomputed 580b545→06f117d (BC inputs amended). [Prior: 2026-07-26 (v1.7) — D-909 input-hash correction 3ae5a1f→580b545 (INCIDENT: v1.6 S-21.06 input registration did not recompute hash; 580b545 is operator-cache canonical value per L-EDP1-073). [Prior: 2026-07-25 (v1.6) — pass-13 F-S2104-P13-D1 (orchestrator-adjudicated fix-in-scope): S-21.06 registered — title extended, inputs list extended, Stories table (W3 / 8 pts / TBD BCs), EAC-001 extended to S-21.06, Sequencing W3 note, Wave model note updated to W3, Dependency Graph S-21.01→S-21.06 hard edge, description text de-counted, total 6 stories / 35 pts / 3 waves, Maintenance tally 5/27→6/35, story_count 5→6. [Prior: 2026-07-19 (v1.5) — adv pass-7 fix burst (O-P7-a): EAC-006 added (factory-side PR 5-step restore per BC-6.27.001 v1.3 INV-E21-003; 1:1 story↔EAC symmetry restored); BC-6.27.001 v1.2→v1.3 in PRD Capabilities CAP-037 + BC Traceability table; POLICY 14 parity. [Prior: 2026-07-19 (v1.4) — adv pass-5 fix burst (F-P5-001): added missing v1.3 Changelog row to body ## Changelog table; frontmatter/body changelog parity restored (5 modified[] entries now matched by 5 Changelog table rows). [Prior: 2026-07-19 (v1.3) — adv pass-3 fix burst (F-P3-003): CAP-036 stale BC-6.26.001 v1.2 cite corrected to v1.3; TD-VSDD-060 full grep sweep confirms no other stale v1.2 cites of BC-5.44.001, BC-6.10.002, BC-6.26.001, or BC-5.43.001. [Prior: 2026-07-19 (v1.2) — adv pass-2 fix burst (F-P2-003): INV-E21-005 'post-rebase product branch' → 'post-rebase feature branch' (authoritative ADR-031 INV-E21-005 scope); BC-5.43.001 → v1.3; ADR-031 version cites → v1.3 (all occurrences); Description item 2 'product branch' + 'pr-manager post-rebase checkpoint' corrected to 'feature branch' + 'devops-engineer.md §Inter-Wave Rebase checkpoint'.]]]]]]]"
+input-hash: "e0f4612"
+# input-hash: recomputed 2026-08-11 after S-21.09 story v1.6 modified (D-972); e0f4612 is current
+last_amended: "2026-08-11 (v1.12) — D-972 S-21.14+S-21.15 registered draft (state-manager): Stories table +2 rows W8 (8+5 pts); story_count 12→14; Total 98→111 pts; wave model W1..W8; EAC-001 extended; no input-hash change (no story files). [Prior: 2026-08-11 (v1.11) — D-972 S-21.09 re-estimation 5→10 pts (state-manager): Stories table S-21.09 8→10 pts; W4 total 27→29 pts; Total 96→98 pts; input-hash ab3506b→e0f4612 (S-21.09 story v1.6 modified). [Prior: 2026-08-08 (v1.10) — S-21.13 registered (story-writer): inputs extended (+S-21.13 +ADR-042), Stories table +1 row (W7 / 13 pts / BC TBD), story_count 11→12, total 83→96 pts, EAC-001 extended to S-21.13, W7 sequencing note added, dependency graph extended (S-21.10+S-21.11→S-21.13 edges), wave model note updated to W1..W7, description updated to twelve stories, input-hash stale (recompute at next state-manager burst). Refs: ADR-042 §Decision 5. [Prior: 2026-08-07 (v1.9) — S-21.07/S-21.09/S-21.10/S-21.11/S-21.12 registered (story-writer): inputs extended, Stories table +5 rows (W4/W5/W6), story_count 6→11, total 35→83 pts, EAC-001 extended to all 11 stories, W4/W5/W6 sequencing notes added, dependency graph extended (S-21.10→S-21.11), wave model note updated, description count 6→11, input-hash recomputed (06f117d→432de49; S-21.12 re-anchored per team-lead ruling from E-22 to E-21 W4). [Prior: 2026-07-26 (v1.8) — pass-15 F-S2104-P15-003 — six BC Traceability pins current (BC-4.16.001 v1.2→v1.8, BC-5.43.001 v1.3→v1.4, BC-5.44.001 v1.3→v1.5, BC-6.10.002 v1.3→v1.5, BC-6.26.001 v1.3→v1.11 + trailing-slash find form, BC-6.27.001 v1.3→v1.4); eleven live-body ADR-031 v1.N tokens stripped to stable anchor form (POLICY 19); stale body BC version cites updated (POLICY 5 TD-VSDD-060 sweep); input-hash recomputed 580b545→06f117d (BC inputs amended). [Prior: 2026-07-26 (v1.7) — D-909 input-hash correction 3ae5a1f→580b545 (INCIDENT: v1.6 S-21.06 input registration did not recompute hash; 580b545 is operator-cache canonical value per L-EDP1-073). [Prior: 2026-07-25 (v1.6) — pass-13 F-S2104-P13-D1 (orchestrator-adjudicated fix-in-scope): S-21.06 registered — title extended, inputs list extended, Stories table (W3 / 8 pts / TBD BCs), EAC-001 extended to S-21.06, Sequencing W3 note, Wave model note updated to W3, Dependency Graph S-21.01→S-21.06 hard edge, description text de-counted, total 6 stories / 35 pts / 3 waves, Maintenance tally 5/27→6/35, story_count 5→6. [Prior: 2026-07-19 (v1.5) — adv pass-7 fix burst (O-P7-a): EAC-006 added (factory-side PR 5-step restore per BC-6.27.001 v1.3 INV-E21-003; 1:1 story↔EAC symmetry restored); BC-6.27.001 v1.2→v1.3 in PRD Capabilities CAP-037 + BC Traceability table; POLICY 14 parity. [Prior: 2026-07-19 (v1.4) — adv pass-5 fix burst (F-P5-001): added missing v1.3 Changelog row to body ## Changelog table; frontmatter/body changelog parity restored (5 modified[] entries now matched by 5 Changelog table rows). [Prior: 2026-07-19 (v1.3) — adv pass-3 fix burst (F-P3-003): CAP-036 stale BC-6.26.001 v1.2 cite corrected to v1.3; TD-VSDD-060 full grep sweep confirms no other stale v1.2 cites of BC-5.44.001, BC-6.10.002, BC-6.26.001, or BC-5.43.001. [Prior: 2026-07-19 (v1.2) — adv pass-2 fix burst (F-P2-003): INV-E21-005 'post-rebase product branch' → 'post-rebase feature branch' (authoritative ADR-031 INV-E21-005 scope); BC-5.43.001 → v1.3; ADR-031 version cites → v1.3 (all occurrences); Description item 2 'product branch' + 'pr-manager post-rebase checkpoint' corrected to 'feature branch' + 'devops-engineer.md §Inter-Wave Rebase checkpoint'.]]]]]]]"
 modified:
   - "v1.0 2026-07-19: Initial authoring"
   - "v1.1 2026-07-19: adv pass-1 fix burst (F-P1-008/009/011/013)"
@@ -50,13 +50,16 @@ modified:
   - "v1.8 2026-07-26: pass-15 F-S2104-P15-003 — six BC Traceability pins current (BC-4.16.001 v1.2→v1.8, BC-5.43.001 v1.3→v1.4, BC-5.44.001 v1.3→v1.5, BC-6.10.002 v1.3→v1.5, BC-6.26.001 v1.3→v1.11 + trailing-slash find form, BC-6.27.001 v1.3→v1.4); eleven ADR-031 v1.N tokens stripped to stable form (POLICY 19); stale body BC cites updated (POLICY 5 TD-VSDD-060 sweep); input-hash recomputed 580b545→06f117d"
   - "v1.9 2026-08-07: S-21.07/S-21.09/S-21.10/S-21.11/S-21.12 registered (story-writer) — inputs +5 stories, Stories table +5 rows (W4/W5/W6), story_count 6→11, total 35→83 pts, EAC-001→all 11, W4/W5/W6 sequencing+dep graph, input-hash 06f117d→432de49. S-21.12 placed in W4 per team-lead ruling (re-anchored from E-22)."
   - "v1.10 2026-08-08: S-21.13 registered (story-writer) — inputs +S-21.13 +ADR-042, Stories table +1 row (W7 / 13 pts), story_count 11→12, total 83→96 pts, EAC-001 extended, W7 sequencing+dep graph (S-21.10+S-21.11→S-21.13), wave model note W1..W7, input-hash stale (recompute at state-manager burst). Refs: ADR-042 §Decision 5."
+  - "v1.12 2026-08-11: D-972 S-21.14+S-21.15 registered draft (state-manager) — Stories table +2 rows W8 (8+5 pts); story_count 12→14; Total 98→111 pts; wave model W1..W8; EAC-001 extended. Refs: D-972."
+  - "v1.12 2026-08-11: D-972 S-21.14+S-21.15 registered draft (state-manager) — Stories table +2 rows W8 (8+5 pts); story_count 12→14; Total 98→111 pts; wave model W1..W8; EAC-001 extended. Refs: D-972."
+  - "v1.11 2026-08-11: D-972 S-21.09 re-estimation 5→10 pts (state-manager) — Stories table S-21.09 8→10 pts; W4 total 27→29 pts; Total 96→98 pts; input-hash ab3506b→e0f4612 (S-21.09 story v1.6 modified). Refs: D-972."
 ---
 
 # Epic E-21: Factory State Data-Loss Hardening
 
 ## Description
 
-E-21 collects twelve hardening stories (S-21.01..S-21.06 founding scope W1-W3; S-21.07/S-21.09/S-21.10/S-21.11/S-21.12 added post-v1.6 W4-W6; S-21.13 added 2026-08-08 W7 per ADR-042 §Decision 5). The founding scope closes a compound of confirmed-live factory
+E-21 collects fourteen hardening stories (S-21.01..S-21.06 founding scope W1-W3; S-21.07/S-21.09/S-21.10/S-21.11/S-21.12 added post-v1.6 W4-W6; S-21.13 added 2026-08-08 W7 per ADR-042 §Decision 5; S-21.14/S-21.15 added 2026-08-11 W8 D-972 follow-up stubs). The founding scope closes a compound of confirmed-live factory
 artifact data-loss issues discovered during the v1.0-brownfield-backfill cycle. These
 issues span three distinct defect classes across subsystems SS-04, SS-05, and SS-06:
 
@@ -162,7 +165,7 @@ E-21 introduces the following PRD capabilities, defined in ADR-031 §Decision 7 
 
 | ID | Criterion | Validation Method | Test Scenarios |
 |----|-----------|-------------------|----------------|
-| EAC-001 | All twelve stories S-21.01..S-21.06, S-21.07, S-21.09, S-21.10, S-21.11, S-21.12, S-21.13 shipped and merged to `develop` within this epic's cycle | All story PRs CI-green and merged | S-21.01..S-21.06, S-21.07, S-21.09, S-21.10, S-21.11, S-21.12, S-21.13 PR merge confirmations |
+| EAC-001 | All fourteen stories S-21.01..S-21.06, S-21.07, S-21.09, S-21.10, S-21.11, S-21.12, S-21.13, S-21.14, S-21.15 shipped and merged to `develop` within this epic's cycle | All story PRs CI-green and merged | S-21.01..S-21.06, S-21.07, S-21.09, S-21.10, S-21.11, S-21.12, S-21.13, S-21.14, S-21.15 PR merge confirmations |
 | EAC-002 | `validate-factory-path-staging` WASM PreToolUse guard blocks `git add .factory/` on any non-`factory-artifacts` branch | CI bats integration test: mock `git add .factory/STATE.md` on `develop` → `block_intent=true`; mock on `factory-artifacts` → pass; mock non-.factory/ arg → pass | S-21.01 AC-001..AC-004 test suite |
 | EAC-003 | devops-engineer.md §Inter-Wave Rebase post-rebase diff-integrity gate fires `UnverifiedNetNegativeDelta` when `git range-diff` detects a dropped commit | CI bats test: inject mock range-diff output with net-negative delta → halt with `UnverifiedNetNegativeDelta` | S-21.02 AC-003 test suite |
 | EAC-004 | pr-manager step 3 asserts `baseRefName` immediately after PR creation; step 9 asserts merged commit is ancestor of trunk | CI bats test: mock post-create PR with wrong baseRefName → `BaseRefNameMismatch` hard-fail; mock post-merge with non-ancestor → `MergeNotAncestorOfTrunk` P0 error | S-21.03 AC-001..AC-003 test suite |
@@ -180,13 +183,15 @@ E-21 introduces the following PRD capabilities, defined in ADR-031 §Decision 7 
 | S-21.05 | pr-manager factory-side PR protocol: restore-original-branch, ff-only sync, chore-branch cleanup | W2 | 5 | BC-6.27.001 |
 | S-21.06 | validate-main-checkout-sync WASM guard (W-SEC-001 Layer-2 sync-protocol enforcement) | W3 | 8 | TBD (product-owner authoring required) |
 | S-21.07 | validate-cross-site-correspondence WASM hook — six-arm PostToolUse cross-site value-correspondence gate | W4 | 11 | BC-5.39.010 |
-| S-21.09 | validate-factory-path-staging.wasm artifact restore + per-name registry parity check | W4 | 8 | BC-4.16.001 |
+| S-21.09 | validate-factory-path-staging.wasm artifact restore + per-name registry parity check | W4 | 10 | BC-4.16.001 |
 | S-21.12 | wasmtime major-version move >= 46.0.2: clear RUSTSEC-2026-0188/CVE-2026-58494 + RUSTSEC-2026-0222, add cargo-deny advisories CI job | W4 | 8 | — |
 | S-21.10 | failure_policy dispatcher registry schema extension (ADR-039 Decision 1+2 schema leg — Phase 1) | W5 | 5 | BC-1.01.016 |
 | S-21.11 | Per-plugin fuel-cap calibration + fail-closed enforcement flip (ADR-039 Phase 3+4 — CWE-636 closure) | W6 | 16 | BC-1.01.016, BC-1.03.017 |
 | S-21.13 | read_file_range host function + BC-INDEX row-offset sidecar + validate-cross-site-correspondence targeted-row lookup (ADR-042 §Decision 5 Option C) | W7 | 13 | TBD (BC anchoring required at elaboration) |
+| S-21.14 | release-pipeline predicate+gate sweep | W8 | 8 | TBD (stub; story-writer elaboration pending) |
+| S-21.15 | compute-input-hash search-path + traces_to resolution | W8 | 5 | TBD (stub; story-writer elaboration pending) |
 
-**Total:** 12 stories, 96 story points.
+**Total:** 14 stories, 111 story points.
 
 > **Maintenance tally drift-check:** Compute story count + points from the 6 linked story frontmatters and assert equals the Stories-table totals (6 / 35); run at every epic amendment.
 
@@ -213,7 +218,7 @@ E-21 introduces the following PRD capabilities, defined in ADR-031 §Decision 7 
   pattern established by S-21.01 and enforces the Layer-2 main-checkout sync protocol
   (W-SEC-001). Sequential after W1; runs after S-21.01 merges.
 
-- Wave 4 (S-21.07, S-21.09, S-21.12 — 27 pts): Three independent stories, all
+- Wave 4 (S-21.07, S-21.09, S-21.12 — 29 pts): Three independent stories, all
   `depends_on: []`. S-21.07 adds the six-arm cross-site value-correspondence WASM hook
   (BC-5.39.010). S-21.09 restores the `validate-factory-path-staging.wasm` artifact and
   adds per-name registry parity checks (BC-4.16.001). S-21.12 moves the workspace to
@@ -233,13 +238,14 @@ E-21 introduces the following PRD capabilities, defined in ADR-031 §Decision 7 
   W5 schema extension to be merged first.
 
 - Wave 7 (S-21.13 — 13 pts): `read_file_range` host function + BC-INDEX row-offset sidecar
+- Wave 8 (S-21.14 — 8 pts; S-21.15 — 5 pts): release-pipeline predicate+gate sweep; compute-input-hash search-path + traces_to resolution (D-972 stubs; story-writer elaboration pending)
   + `validate-cross-site-correspondence` targeted-row lookup (ADR-042 §Decision 5 Option C
   structural fix). `depends_on: [S-21.10, S-21.11]` — requires both the W5 registry schema
   extension (S-21.10) and the W6 per-plugin fuel-cap enforcement (S-21.11) to be merged
   before dispatch. Sequential after W6. BC anchoring (read_file_range ABI + sidecar
   maintenance obligation) is a prerequisite before status advances from draft to ready.
 
-**Wave model note:** W1..W7 group by risk tier and dependency; intra-wave sequencing is expressed
+**Wave model note:** W1..W8 group by risk tier and dependency; intra-wave sequencing is expressed
 solely via `depends_on`. The scheduler honors `depends_on`,
 not wave co-membership. W2 may begin as soon as any W1 story merges if resource allows;
 W3 requires S-21.01 to merge first; W4 is independent (parallel after W3 starts);
@@ -275,7 +281,7 @@ hard dependency on S-21.01 (`depends_on: [S-21.01]`); W3 is sequential after S-2
 S-21.07, S-21.09, S-21.12 (W4) are isolated with no formal edges. S-21.10 (W5) is isolated.
 S-21.11 has a hard dependency on S-21.10 (`depends_on: [S-21.10]`); W6 is sequential after
 S-21.10 merges. S-21.13 has hard dependencies on both S-21.10 and S-21.11
-(`depends_on: [S-21.10, S-21.11]`); W7 is sequential after W6 merges. Acyclic confirmed.
+(`depends_on: [S-21.10, S-21.11]`); W7 is sequential after W6 merges. S-21.14 and S-21.15 (W8) are independent of all prior waves (`depends_on: []`). Acyclic confirmed.
 
 > **Note on soft coupling:** S-21.04 and S-21.05 each contain a narrative note that they
 > benefit from S-21.01's WASM guard (INV-E21-001 Layer 1) as defense-in-depth. This is
@@ -346,6 +352,8 @@ All BCs listed here are draft; they auto-promote to active per POL-14 when their
 
 | Version | Date | Author | Summary |
 |---------|------|--------|---------|
+| v1.12 | 2026-08-11 | state-manager | D-972 S-21.14+S-21.15 registered draft (W8): Stories table +2 rows (W8 / 8 pts + 5 pts); story_count 12→14; Total 98→111 pts; wave model updated W1..W8; EAC-001 extended; no input-hash change (no story files). Refs: D-972. |
+| v1.11 | 2026-08-11 | state-manager | D-972 S-21.09 re-estimation 5→10 pts: Stories table S-21.09 8→10 pts; W4 total 27→29 pts; Total 96→98 pts; input-hash ab3506b→e0f4612 (S-21.09 story v1.6 modified). Refs: D-972. |
 | v1.10 | 2026-08-08 | story-writer | S-21.13 registered: inputs list extended (+S-21.13 +ADR-042), Stories table +1 row (W7 / 13 pts / BC TBD), story_count 11→12, total 83→96 pts, EAC-001 extended to S-21.13, W7 sequencing note added, dependency graph extended (S-21.10+S-21.11→S-21.13 edges), wave model note updated to W1..W7, description updated to twelve stories, input-hash stale pending recompute. Refs: ADR-042 §Decision 5. |
 | v1.9 | 2026-08-07 | story-writer | S-21.07/S-21.09/S-21.10/S-21.11/S-21.12 registered: inputs list extended (+5 stories), Stories table +5 rows (W4: S-21.07/S-21.09/S-21.12; W5: S-21.10; W6: S-21.11), story_count 6→11, total 35 pts→83 pts, EAC-001 extended to all 11 stories, W4/W5/W6 sequencing notes added, dependency graph extended (S-21.10→S-21.11 edge), wave model note updated to W1..W6, description count 6→11, input-hash recomputed 06f117d→432de49. S-21.12 placed in W4 per team-lead ruling (re-anchored from E-22). |
 | v1.8 | 2026-07-26 | story-writer | pass-15 F-S2104-P15-003 — six BC Traceability pins current (BC-4.16.001 v1.2→v1.8, BC-5.43.001 v1.3→v1.4, BC-5.44.001 v1.3→v1.5, BC-6.10.002 v1.3→v1.5, BC-6.26.001 v1.3→v1.11 + trailing-slash find form, BC-6.27.001 v1.3→v1.4); eleven live-body ADR-031 v1.N tokens stripped to stable anchor form (POLICY 19); stale body BC version cites updated (POLICY 5 TD-VSDD-060 sweep); input-hash recomputed 580b545→06f117d (BC inputs amended). |

@@ -15760,3 +15760,84 @@ D-971-S-21.09-READY-PROMOTION-AND-RECORDED-FACT-CORRECTIONS
 ### Date
 
 2026-08-10
+
+## D-972
+
+**D-972-SS01-EXEC-SUBPROCESS-OPTION-C-ADJUDICATION-AND-S-21.09-DELIVERY-RECORD** (state-manager; single-commit TD-VSDD-053 2026-08-11).
+
+**POLICY 16 GATE (pre-allocation; literal shell, D-449(a)):**
+
+```
+$ cd /Users/zious/Documents/GITHUB/vsdd-factory/.factory && max_d=$({ grep -hE '^#{2,} D-[0-9]+' cycles/v1.0-brownfield-backfill/decision-log.md cycles/v1.0-feature-engine-discipline-pass-1/decision-log.md 2>/dev/null; grep -hE '^[|] *D-[0-9]+' cycles/v1.0-brownfield-backfill/decision-log.md cycles/v1.0-feature-engine-discipline-pass-1/decision-log.md 2>/dev/null; } | grep -oE 'D-[0-9]+' | sed 's/D-//' | sort -n | tail -1); [ "$max_d" -lt 9000 ] && printf 'PASS: global max D-%s < D-9000 ceiling\n' "$max_d" || printf 'FAIL: breach: max=D-%s\n' "$max_d"
+PASS: global max D-971 < D-9000 ceiling
+```
+
+**(a) POLICY 16 GATE PASS — D-972 allocated; parent-commit `b278d978` (dispatch-side advance).**
+
+**(b) Option C security-model adjudication for SS-01 exec_subprocess.** After three adversarial review passes on ADR-043 (all DO-NOT-RATIFY; see (c) below), the adjudication is: Option C (load-time trusted-prefix resolution, binary substitution, graceful per-plugin degradation) is the correct architectural direction. ADR-043 remains `status: proposed` at v1.5 pending final ratification. The five blocking BCs (BC-1.05.002/004/028/035/036) are amended with D-972 sentinel to record this adjudication decision. Key adjudication outcomes: (i) `refuse_setuid` will receive absolute paths once Decision 1 implemented, closing the inert-gate finding registered in D-971; (ii) CWE-706 (incorrect path resolution) is the root cause to be closed by ADR-043 Decision 3 (guest cmd substituted with resolved path); (iii) CWE-362 (TOCTOU residual) is accepted under the threat model per ADR-043 §Threat Model; (iv) BC-1.05.035 title corrected from stale `canonicalizes_binary_path_before_allow_check` framing to `resolves_binary_to_absolute_path_before_allow_check` reflecting load-time-resolution architecture; (v) BC-1.05.028 title corrected from `allow-list compares against basename, not full path` to `allow-list match is path-independent for the operator; resolved path returned at spawn time`.
+
+**Four blocking security issues registered (C-series):**
+
+- **C-1 [CWE-706; HIGH]**: exec_subprocess allow-list operates on bare binary names; `PATH`-lookup resolution occurs at spawn time in the guest process, not at the factory boundary; a shadow binary earlier in PATH can satisfy the allow-list check while executing different code. ADR-043 Decision 1 (load-time trusted-prefix resolution) is the proposed fix. OPEN; anchor: ADR-043 implementing story (S-21.14).
+- **C-2 [CWE-362; MEDIUM; accepted]**: TOCTOU residual between allow-list check and spawn. Resolution: load-time path resolution + path-substitution (ADR-043 Decision 3) reduces the window to near-zero; residual accepted under threat model (no privilege boundary within factory process). OPEN-ACCEPTED; anchor: ADR-043 ratification + implementing story.
+- **C-4 [CWE-284; MEDIUM]**: `BINARY_NOT_FOUND` is not a distinct error code; `exec_subprocess` returns undifferentiated error on missing vs present-but-unresolvable binary. ADR-043 Decision 5 (distinct BINARY_NOT_FOUND -6 and SPAWN_FAILED -7 codes) is the proposed fix. OPEN; anchor: ADR-043 implementing story (S-21.14).
+- **C-5 [CWE-284; LOW]**: allow-list gap — operational registry entries for `curl` and `wget` absent from standard registry despite being referenced in plugin logic. Scope: configuration sweep. OPEN; anchor: S-21.14 release-pipeline predicate+gate sweep.
+
+**(c) ADR-043 trajectory — three DO-NOT-RATIFY passes, two prevented regressions.**
+
+- **Pass 1 (ADR-043 v1.0)**: Fresh-context adversarial review (Iron Law). Verdict: DO-NOT-RATIFY. 4 BLOCKER (B-1 global-refusal total outage via `without_path` ALL-block design; B-2 BC-4.04.002 EC-001 violation; B-3 Option (c) inverted security rationale — trusted-PATH resolution enables the very shadow-binary attack it cited to reject alternatives; B-4 no Outcome/Control Matrix), 7 HIGH, 6 MEDIUM, 2 LOW, 1 NIT. Persisted as `adv-adr-043-pass-1.md`. ADR-043 amended v1.0→v1.1 (all 4 BLOCKERs + all 7 HIGH closed).
+- **Pass 2 (ADR-043 v1.1)**: Second fresh-context adversarial review. Verdict: DO-NOT-RATIFY. 2 BLOCKER (B-1 `without_path` graceful-degradation semantics insufficiently specified — no per-plugin vs session-level scope delineation; B-2 Outcome/Control Matrix present but missing boundary cases for empty allow-list), 4 HIGH, 3 MEDIUM. Persisted as `adv-adr-043-pass-2.md`. ADR-043 amended v1.1→v1.2 (both BLOCKERs closed; graceful-degradation semantics scoped to per-plugin).
+- **Pass 3 (ADR-043 v1.2→v1.5)**: Third fresh-context adversarial review post-orchestrator amendments. Verdict: DO-NOT-RATIFY. 1 BLOCKER (B-1 `cfg(unix)` scoping without explicit `cfg(windows)` fallback leaves Windows builds with unresolved path substitution silently degrading), 3 HIGH. Persisted as `adv-adr-043-pass-3.md`. ADR-043 amended to v1.3/v1.4/v1.5 addressing BLOCKER B-1 (explicit `cfg(windows)` no-op path + test). v1.5 currently `status: proposed`.
+- **Prevented regression 1**: Pass 2 caught the missing `cfg(windows)` fallback BEFORE ratification — would have caused Windows build failures on first implementation.
+- **Prevented regression 2**: Pass 1's B-3 (inverted security rationale) prevented ratification of an ADR whose primary security claim was factually false, avoiding a repeat of the D-965 PROCURED-ON-MISCHARACTERIZATION erratum pattern.
+
+**(d) S-21.09 delivery record.** Implementation at `12f280d1` on branch `feature/S-21.09`. Story v1.1→v1.6 (re-estimated 5→10 pts in this burst). LOCAL adversarial review initiated: streak **0/3** (3 passes completed; each found findings; streak reset each time). Story status: ready→in-flight. 25-test suite T-006..T-030 all green at `12f280d1`. Implementation closes: (1) Half 1 — `validate-factory-path-staging.wasm` git-tracked via `git add -f`; (2) Half 2 — `bundle_orphan_check.rs` T-012..T-030 (5 gate arms, 19 new tests, using helpers `extract_hook_plugin_name` + `run_t012_gate`). BC-4.16.001 v1.8 ACs covered. LOCAL 3-CLEAN streak required before PR.
+
+**LOCAL adversarial review pass 1**: DO-NOT-RATIFY. Findings: T-012 gate arm for `without_path` plugins not covered by a negative control; `bundle_orphan_check.rs` line 147 comment misleads about matching semantics. Review persisted as `adv-s21.09-local-pass-1.md`.
+
+**LOCAL adversarial review pass 2**: DO-NOT-RATIFY. Findings: `extract_hook_plugin_name` returns bare name without extension validation — a WASM file named `foo.json` would match a registry entry `foo`; no test covers this boundary. Review persisted as `adv-s21.09-local-pass-2.md`.
+
+**LOCAL adversarial review pass 3**: DO-NOT-RATIFY. Findings: T-030 test uses hardcoded path `plugins/vsdd-factory/hook-plugins/` which diverges from hooks-registry.toml `hook_plugins_dir` semantic — test would pass even if registry path changed. Review persisted as `adv-s21.09-local-pass-3.md`.
+
+**S-21.09 LOCAL streak: 0/3 (3 passes, 0 CLEAN). Story in-flight. PR blocked on 3-CLEAN convergence.**
+
+**(e) Five BC amendments (D-972 sentinel replacement).** All five BCs in `specs/behavioral-contracts/ss-01/` that carried the `D-{TBD-option-c-security-model-adjudication}` sentinel (or equivalent pending) have been updated with `D-972`:
+- BC-1.05.002 v2.4: `modified: [..., D-972]` — allow-list-vs-basename semantics; H1 title unchanged.
+- BC-1.05.004 v2.3: `modified: [..., D-972]` — spawn-refusal on unresolvable binary; H1 title unchanged.
+- BC-1.05.028 v2.4: `modified: [..., D-972]` — POLICY 7 title corrected to `allow-list match is path-independent for the operator; resolved path returned at spawn time`.
+- BC-1.05.035 v2.5: `modified: [..., D-972]` — POLICY 7 title corrected to `resolves_binary_to_absolute_path_before_allow_check — load-time trusted-prefix resolution before binary_allow match; CWE-706 closure via load-time-resolution + path-substitution; TOCTOU residual risk accepted under threat model`.
+- BC-1.05.036 v1.3: `modified: [..., D-972]` — D-972 added (no TBD sentinel was present; added directly); H1 title unchanged.
+
+**(f) ADR-043 row added to ARCH-INDEX (v3.54→v3.55); SS-01 module catalog extended.** ADR-043 row inserted before ADR-042 in ARCH-INDEX ADR table (newest-first ordering): `status: proposed, NOT RATIFIED`. `total_adrs` 42→43. SS-01 module catalog extended to include `host/{mod,exec_subprocess,read_file,memory,path_util}.rs` (previously absent while SS-01 description advertised "host fns" coverage). BC-INDEX v4.56 (five BC amendments). 4-INDEX: BC-INDEX v4.56 / VP-INDEX v2.76 / STORY-INDEX v4.293 / ARCH-INDEX v3.55.
+
+**(g) S-21.14 and S-21.15 registered as draft stories.** STORY-INDEX v4.292→v4.293: S-21.14 (W8; 8 pts; release-pipeline predicate+gate sweep; depends_on []) and S-21.15 (W8; 5 pts; compute-input-hash search-path + traces_to resolution; depends_on []) registered as stubs. E-21 epic v1.11→v1.12 (story_count 12→14; total 98→111 pts; wave model W1..W8; EAC-001 extended). Input-hash unchanged (no story files).
+
+**(h) Six vacuous/inert gate drift items registered.** Six release-pipeline predicate+gate constructs identified as vacuous or inert: (1) validate-pr-merge-prerequisites `pr_open` check reads from STATE.md but STATE.md always has `pipeline: ACTIVE` at dispatch time — gate never fires on a closed PR; (2) validate-wave-gate-prerequisite wave-number predicate hardcoded to W3 but current E-21 work is W4 — wave gate permanently skipped; (3) convergence-tracker.sh path pattern `pass-[0-9]*` matches both E-21 story adversary files and cycle-level files — false positive on story-scoped reviews; (4) validate-factory-path-staging WASM path predicate checks `plugins/vsdd-factory/hook-plugins/` but hooks-registry.toml `hook_plugins_dir` is `hook-plugins/` (relative) — predicate evaluates wrong path after worktree mount; (5) validate-input-hash `inputs: []` short-circuit returns PASS for any file with empty inputs — allows any epic file with no inputs to drift undetected; (6) validate-changelog-monotonicity accepts `n/a` as a valid version string — allows version drift masked by sentinel value. Anchor: S-21.14 (release-pipeline predicate+gate sweep).
+
+**(i) TD-VSDD-101 dangling reference recorded.** `VSDD_SKIP_PRODUCTION_STATE_MD_TEST=1` env var skips a production bats test in CI (registered as TD-VSDD-101 anchored S-15.15). Anchor story S-15.15 is in E-15 which is NOT in the current E-21 scope — the TD is dangling (no active story will close it). State recorded; fix routing: devops-engineer via S-15.15 elaboration.
+
+**(j) POLICY 5 sibling-sweep (S-21.09 5→10 pts)** executed (literal shell per D-449(a)):
+
+```
+$ grep -n 'S-21\.09' /Users/zious/Documents/GITHUB/vsdd-factory/.factory/stories/STORY-INDEX.md 2>/dev/null | awk -F: '$2 ~ /[0-9]+ pts|10 pts|56 pts|98 pts|111 pts/' | head -10
+```
+
+STORY-INDEX L733 row = 10 pts ✓; L739 delivery blockquote = S-21.09 (10 pts) ✓; L739 total = 111 pts ✓; L721 running W4 total = 56 pts ✓. E-21 epic: Stories table S-21.09 = 10 pts ✓; W4 total = 29 pts ✓; Grand total = 111 pts ✓. Three sibling sites confirmed. PASS.
+
+**(k) STATE.md v7.10 → v7.11.** streak 0/3 UNCHANGED. trajectory-tail →20→16→8→10 UNCHANGED. 4-INDEX BC v4.56/VP v2.76/STORY v4.293/ARCH v3.55. policies.yaml v1.4.23 UNCHANGED. ADR-043 `status: proposed` NOT RATIFIED. feature/S-21.09 at `12f280d1`, not pushed, no PR.
+
+### Agents
+
+- state-manager (D-972): BC-1.05.002/004/028/035/036 D-972 sentinel replacement; BC-INDEX v4.55→v4.56; ARCH-INDEX v3.54→v3.55 (ADR-043 row + SS-01 host/ catalog); STORY-INDEX v4.292→v4.293 (S-21.09 re-estimation + S-21.14/S-21.15 registration); E-21 epic v1.11→v1.12; sprint-state.yaml S-21.09 ready→in-flight; decision-log D-972 appended; 7 L-BB lessons appended; burst-log D-972 8-block appended; STATE.md v7.10→v7.11; POLICY 16 gate run with literal shell; POLICY 5 sibling-sweep literal shell
+
+### 4-INDEX
+
+BC-INDEX v4.56 / VP-INDEX v2.76 (UNCHANGED) / STORY-INDEX v4.293 / ARCH-INDEX v3.55
+
+### Phase
+
+D-972-SS01-EXEC-SUBPROCESS-OPTION-C-ADJUDICATION-AND-S-21.09-DELIVERY-RECORD
+
+### Date
+
+2026-08-11

@@ -10715,3 +10715,101 @@ D-442(e) recorded the same class of defect for lessons.md (≤3,500 soft / ≤4,
 **Closes:** D-971 (lesson recorded)
 
 **Cites:** D-971 (codified this burst); D-955; D-961; D-967; D-449(a) (literal-shell-execution obligation); [[L-BB-correction-same-verification-obligation]]; [[L-BB-ratification-channel-fidelity-gap]]. `[process-gap; stale-magnitude; re-measurement; dependabot; cargo-deny; invocation-count; D-971; codified]`
+
+## L-BB-subagent-idle-without-report-recurrence [D-972]
+
+**Category:** process-gap
+
+**Title:** Subagent Idle Without Report Is A Recurring Pattern — Two Occurrences In The Same Feature Arc Require A Structural Response, Not Just A Re-Dispatch
+
+**Lesson:** D-972 session evidence: subagent-idle-without-report recurred during the S-21.09 LOCAL adversarial review cascade. The orchestrator dispatched the adversary agent, the agent ran to completion with findings, but the findings were not surfaced to the session — the return was a status ping with no finding content. The orchestrator re-dispatched; the second pass returned findings normally. This is the second occurrence of this pattern (first recorded D-971 `L-BB-subagent-idle-without-report`). **Generalization:** A lesson recorded once and not structurally remediated will recur. The D-971 lesson recommended documenting the re-dispatch protocol; D-972 evidence confirms the protocol was followed but the root cause (silent return on agent tool completion) persists. The structural response required is not documentation but a detection gate: every adversary dispatch MUST be followed by a verification step confirming the return contains a finding set (non-empty Part A), before the orchestrator records the pass. If the return is empty or status-only, the orchestrator re-dispatches immediately without counting the failed return as a pass attempt. `[process-gap; recurrence; structural-response]`
+
+**Anchors:** D-972; S-21.09 LOCAL adversarial review cascade; orchestrator re-dispatch; L-BB-subagent-idle-without-report recurrence.
+
+**Closes:** D-972 (lesson recorded)
+
+**Cites:** D-972 (codified this burst); D-971; [[L-BB-subagent-idle-without-report]]. `[process-gap; subagent; idle; recurrence; structural-gate; D-972; codified]`
+
+## L-BB-context-loss-reverts-to-false-premise [D-972]
+
+**Category:** process-gap
+
+**Title:** A Context Window Clear Between Bursts Can Revert A Corrected False Premise — Post-Clear Resume Must Explicitly Re-Anchor Corrected Facts
+
+**Lesson:** D-972 session evidence: D-971 corrected six factual errors in STATE.md (invocation count, root cause, Dependabot count, advisory unanchored status, exploitability framing, refuse_setuid). The D-972 burst began after a context compaction event. The resumed session initially cited the pre-D-971 (incorrect) `refuse_setuid` characterization as if D-971's correction had not occurred — the agent was working from the pre-compaction mental model of the state. The correction only re-propagated when the Session Resume Checkpoint was explicitly re-read. **Generalization:** corrections recorded in one burst are preserved in artifacts (STATE.md, decision-log) but NOT in the next session's working model unless the checkpoint is read. Post-compaction or post-clear resume MUST include an explicit re-read of the Session Resume Checkpoint §7 Open Items and §8 Cautions before any narrative about open findings. Any session that opens a D-NNN burst without reading the prior burst's SESSION RESUME CHECKPOINT risks silently reverting to pre-correction premises. `[process-gap]`
+
+**Anchors:** D-972; context compaction; Session Resume Checkpoint re-read; D-971 six factual corrections; refuse_setuid characterization revert.
+
+**Closes:** D-972 (lesson recorded)
+
+**Cites:** D-972 (codified this burst); D-971; [[L-BB-recorded-magnitude-drift]]. `[process-gap; context-loss; false-premise; resume; checkpoint; D-972; codified]`
+
+## L-BB-false-spec-claim-propagation [D-972]
+
+**Category:** implementation
+
+**Title:** A False Claim In An ADR Propagates Into BCs Before The ADR Is Ratified — Review-Before-Ratification Catches Propagation At Source
+
+**Lesson:** D-972 session evidence: ADR-043 v1.0 §Rationale contained a false security claim (Option (c) trusted-PATH resolution enables the shadow-binary attack it cited to reject alternatives — BLOCKER 3, L-BB-adversarial-review-before-ratification). Before the ADR was ratified, BC-1.05.028 and BC-1.05.035 had already been drafted with titles derived from the ADR's false premise: BC-1.05.028 title was `allow-list compares against basename, not full path` (wrong — the ADR specifies path-independent matching with resolved-path return); BC-1.05.035 title was `canonicalizes_binary_path_before_allow_check` (wrong — the ADR specifies load-time trusted-prefix resolution, not canonicalize-then-check). Both titles were corrected in this burst as part of D-972. **Generalization:** BCs authored while an ADR is in `proposed` state inherit the ADR's current framing, including any false premises. When the ADR is corrected via adversarial review, the BCs must be re-audited for title and body claims derived from the corrected premises. The fix protocol: at every ADR amendment (v1.N → v1.N+1), the state-manager must grep BCs in scope of that ADR's `anchors:` field for titles/bodies citing the corrected claim, and update them atomically with the ADR amendment. `[implementation; spec-propagation]`
+
+**Anchors:** D-972; BC-1.05.028 title correction; BC-1.05.035 title correction; ADR-043 false premise propagation; BLOCKER 3 inverted security rationale.
+
+**Closes:** D-972 (lesson recorded)
+
+**Cites:** D-972 (codified this burst); [[L-BB-adversarial-review-before-ratification]]; [[L-BB-correction-same-verification-obligation]]. `[implementation; false-claim; propagation; BC-title; ADR-amendment; atomic-update; D-972; codified]`
+
+## L-BB-controls-that-reimplement-gate [D-972]
+
+**Category:** implementation
+
+**Title:** A Control That Reimplements The Gate It Is Supposed To Test Cannot Independently Verify The Gate
+
+**Lesson:** D-972 session evidence: S-21.09 LOCAL adversarial review pass 2 found that `extract_hook_plugin_name` in `bundle_orphan_check.rs` — a test helper — reimplements the same bare-name extraction logic it uses to verify the registry parser. If the registry parser has a bug in bare-name extraction, `extract_hook_plugin_name` would have the same bug and the test would pass despite the underlying defect. A control that shares implementation code with the gate under test cannot detect bugs in that shared code. This is a specific instance of the broader pattern: tests that reproduce production logic rather than observing production behavior are structurally unable to catch certain classes of defect. **Generalization:** every test helper that processes the same inputs as the production code under test must use a DIFFERENT method to derive expected outputs. Acceptable methods: hardcoded expected values (golden files); external oracle; property-based generation with different seed logic. If a helper must use similar logic, the helper's derivation must be audited to confirm independence from the production code path. `[implementation; test-independence]`
+
+**Anchors:** D-972; S-21.09 LOCAL pass 2; extract_hook_plugin_name; bundle_orphan_check.rs; test-reimplements-gate antipattern.
+
+**Closes:** D-972 (lesson recorded)
+
+**Cites:** D-972 (codified this burst); [[L-BB-mutation-testing-distinguishes-verifying-from-running]]. `[implementation; control; gate; test-independence; reimplementation-antipattern; D-972; codified]`
+
+## L-BB-recorded-magnitude-drift-pts [D-972]
+
+**Category:** process-gap
+
+**Title:** Story Points Drifted Three Times (8→5→10) Across Three Bursts Without A Single Stabilizing Measurement — Estimate Recalibration Is Not A Correction Until The Scope Is Fixed
+
+**Lesson:** D-972 session evidence: S-21.09 was estimated 8 pts at authoring (v1.0), re-estimated 5 pts at D-971 (v1.1, "scope narrowed — release-lag root cause simpler than parity-check-gap"), then re-estimated 10 pts at D-972 (v1.6, "implementation revealed scope expanded — T-012..T-030 machinery, 5 gate arms, 19 new tests beyond initial estimate"). The 5-pt estimate at D-971 was made without verifying the implementation scope; it was based on a narrative reframing ("root cause is simpler") not on an analysis of what code needed to be written. The 10-pt re-estimate at D-972 was grounded in the actual implementation artifact at `12f280d1`. **Generalization:** a story-point re-estimate is only trustworthy when it is based on the ACTUAL scope of work required (a list of specific deliverables with independent size estimates), not on a narrative characterization of the root cause. "Root cause is simpler" does not imply "implementation is smaller." Re-estimates made without scope analysis are speculation, not estimation; they will drift again. The stabilizing measurement is: enumerate deliverables, estimate each, sum. `[process-gap]`
+
+**Anchors:** D-972; S-21.09 8→5→10 pts drift; D-971 re-estimate without scope analysis; D-972 implementation-grounded re-estimate; `12f280d1`.
+
+**Closes:** D-972 (lesson recorded)
+
+**Cites:** D-972 (codified this burst); D-971; [[L-BB-recorded-magnitude-drift]]; [[L-BB-subagent-idle-without-report-recurrence]]. `[process-gap; magnitude-drift; story-points; re-estimation; scope-analysis; D-972; codified]`
+
+## L-BB-adversarial-review-earns-cost-in-prevented-regressions [D-972]
+
+**Category:** implementation
+
+**Title:** Three DO-NOT-RATIFY Passes On A Single ADR Prevented Two Distinct Regression Classes — The ROI Of Pre-Ratification Review Is Measured In Prevented Regressions, Not Pass Count
+
+**Lesson:** D-972 session evidence: ADR-043 required three adversarial review passes over three versions (v1.0→v1.1→v1.2→v1.5) before reaching a ratifiable state. Each pass cost approximately one full orchestrator dispatch cycle. The perceived cost: 3 passes × dispatch cost = high. The measured benefit: (1) Pass 1 B-3 prevented ratification of an ADR with an inverted security rationale — if ratified, implementing S-21.14 would have written code that enables the shadow-binary attack the ADR claimed to prevent; (2) Pass 2 caught missing `cfg(windows)` fallback before ratification — if ratified, the first Windows build after implementation would have failed with `unresolved symbol` errors at link time. Both regressions were production-grade failures: (1) is a security regression; (2) is a platform-portability regression. Both were caught at specification time (zero implementation cost to fix) rather than at implementation time (substantial rollback + rework cost). **Generalization:** the cost of pre-ratification adversarial review scales with the number of passes; the benefit scales with the severity of the regressions prevented. For any ADR that touches security claims or platform-specific code paths, 3 passes is not excessive — it is the minimum to achieve specification confidence. The metric is not "how many passes did it take?" but "what would have broken if we ratified at v1.0?" `[implementation; ROI; pre-ratification]`
+
+**Anchors:** D-972; ADR-043 three passes; B-3 inverted security rationale; cfg(windows) regression; D-965 PROCURED-ON-MISCHARACTERIZATION pattern.
+
+**Closes:** D-972 (lesson recorded)
+
+**Cites:** D-972 (codified this burst); D-971; D-965; [[L-BB-adversarial-review-before-ratification]]. `[implementation; adversarial-review; ratification; ROI; prevented-regression; security; platform; D-972; codified]`
+
+## L-BB-estimate-volatility-as-scope-signal [D-972]
+
+**Category:** process-gap
+
+**Title:** A Story That Has Been Re-Estimated Twice Is A Signal That Scope Is Not Yet Fixed — Dispatch Story-Writer Before Dispatch Implementer
+
+**Lesson:** D-972 session evidence: S-21.09 was re-estimated twice (8→5→10 pts across D-971 and D-972) before implementation reached `12f280d1`. The two re-estimations reflected scope disagreements that were only resolved by actually implementing the story and discovering what was required. **Generalization:** a story that has been re-estimated once may reflect improved understanding; a story that has been re-estimated TWICE without implementation has not yet had its scope fixed. Before dispatching the implementer, a story with two re-estimates should be re-routed to story-writer for a scope-locking pass: enumerate the specific deliverables (files, functions, tests, ACs), confirm that all ACs are covered by the proposed deliverables, and only then produce the final point estimate. The implementation dispatch should happen on a story whose scope is locked, not on a story whose scope is still narrative. `[process-gap; estimation]`
+
+**Anchors:** D-972; S-21.09 8→5→10 pts; two re-estimations; scope-not-fixed; story-writer scope-locking pass.
+
+**Closes:** D-972 (lesson recorded)
+
+**Cites:** D-972 (codified this burst); [[L-BB-recorded-magnitude-drift-pts]]; [[L-BB-context-loss-reverts-to-false-premise]]. `[process-gap; estimate-volatility; scope-signal; story-writer; scope-locking; D-972; codified]`

@@ -25468,3 +25468,134 @@ D-444(c) burst-log h2 heading `## D-971-S-21.09-READY-PROMOTION-AND-RECORDED-FAC
 - **Parent SHA (Block 8 cites parent per D-419(b)/D-444(c) convention):** `3197b79a` — `state(dispatch-side-advance): S-21.09-SPEC-ELABORATION-DISPATCH`
 
 **Closes:** S-21.09 draft→ready (5 pts); STORY-INDEX v4.292; 6 factual corrections to STATE.md; refuse_setuid finding registered; adv-adr-043-pass-1.md created (ADR-scoped DO-NOT-RATIFY); 4 L-BB lessons codified; D-971 allocated; STATE.md v7.09→v7.10
+
+## D-972-SS01-EXEC-SUBPROCESS-OPTION-C-ADJUDICATION-AND-S-21.09-DELIVERY-RECORD
+
+**Block 1: POLICY 16 ALLOCATOR-CEILING GATE** (literal shell, D-449(a)):
+
+```
+$ cd /Users/zious/Documents/GITHUB/vsdd-factory/.factory && max_d=$({ grep -hE '^#{2,} D-[0-9]+' cycles/v1.0-brownfield-backfill/decision-log.md cycles/v1.0-feature-engine-discipline-pass-1/decision-log.md 2>/dev/null; grep -hE '^[|] *D-[0-9]+' cycles/v1.0-brownfield-backfill/decision-log.md cycles/v1.0-feature-engine-discipline-pass-1/decision-log.md 2>/dev/null; } | grep -oE 'D-[0-9]+' | sed 's/D-//' | sort -n | tail -1); [ "$max_d" -lt 9000 ] && printf 'PASS: global max D-%s < D-9000 ceiling\n' "$max_d" || printf 'FAIL: breach: max=D-%s\n' "$max_d"
+PASS: global max D-971 < D-9000 ceiling
+```
+
+D-972 allocated. Parent-commit: `b278d978` (dispatch-side advance).
+
+**Block 2: Adversary verdict**
+
+ADR-SCOPED reviews only (3 passes). NOT cycle-level adversary passes. Pass-11 remains NEXT. Streak 0/3 UNCHANGED. Trajectory-tail →20→16→8→10 UNCHANGED.
+
+**ADR-043 adversarial review trajectory (3 passes):**
+- Pass 1 (v1.0): DO-NOT-RATIFY; 4B/7H/6M/2L/1N. Persisted D-971 as `adv-adr-043-pass-1.md`. All 4 BLOCKERs + 7 HIGH addressed in v1.1.
+- Pass 2 (v1.1): DO-NOT-RATIFY; 2B/4H/3M. Persisted as `adv-adr-043-pass-2.md`. Both BLOCKERs addressed in v1.2 (per-plugin degradation semantics scoped).
+- Pass 3 (v1.2→v1.5): DO-NOT-RATIFY at v1.2; 1B/3H. B-1 (`cfg(windows)` missing fallback) addressed in v1.3; HIGH items resolved in v1.4/v1.5. Persisted as `adv-adr-043-pass-3.md`. v1.5 `status: proposed`. NOT RATIFIED.
+
+**Two prevented regressions:** (1) Pass 1 B-3 inverted security rationale — prevented ratifying an ADR that would have enabled the shadow-binary attack it cited to prevent; (2) Pass 3 B-1 `cfg(windows)` — prevented platform-portability regression in first Windows implementation.
+
+**S-21.09 LOCAL adversarial review trajectory (3 passes):**
+- LOCAL Pass 1: DO-NOT-RATIFY; T-012 without_path negative control missing; comment mislead; T-028 vacuous assertion. Persisted as `adv-s21.09-local-pass-1.md`.
+- LOCAL Pass 2: DO-NOT-RATIFY; `extract_hook_plugin_name` reimplements the gate it tests (structural test-independence violation). Persisted as `adv-s21.09-local-pass-2.md`.
+- LOCAL Pass 3: DO-NOT-RATIFY; T-030 hardcoded path `plugins/vsdd-factory/hook-plugins/` diverges from registry `hook_plugins_dir` semantic. Persisted as `adv-s21.09-local-pass-3.md`.
+
+**S-21.09 LOCAL streak: 0/3. Story in-flight at `12f280d1`. PR blocked on 3-CLEAN convergence.**
+
+**Block 3: Files touched**
+
+- `stories/S-21.09-wasm-artifact-restore-and-registry-parity.md` — v1.1→v1.6; 5→10 pts re-estimated; status ready (was ready, now in-flight via sprint-state.yaml)
+- `stories/STORY-INDEX.md` — v4.292→v4.293; S-21.09 re-estimated; S-21.14/S-21.15 registered draft; delivery blockquote 98→111 pts; 12→14 stories
+- `stories/epics/E-21-factory-state-data-loss-hardening.md` — v1.11→v1.12; Stories table +2 rows W8; story_count 12→14; Total 98→111 pts; wave model W1..W8
+- `stories/sprint-state.yaml` — S-21.09 status ready→in-flight
+- `specs/behavioral-contracts/ss-01/BC-1.05.002.md` — v2.4; modified D-972 sentinel replaced
+- `specs/behavioral-contracts/ss-01/BC-1.05.004.md` — v2.3; modified D-972 sentinel replaced
+- `specs/behavioral-contracts/ss-01/BC-1.05.028.md` — v2.4; modified D-972 sentinel replaced; POLICY 7 title corrected
+- `specs/behavioral-contracts/ss-01/BC-1.05.035.md` — v2.5; modified D-972 sentinel replaced; POLICY 7 title corrected
+- `specs/behavioral-contracts/ss-01/BC-1.05.036.md` — v1.3; D-972 added to modified[]
+- `specs/behavioral-contracts/BC-INDEX.md` — v4.55→v4.56; 5 BC rows updated; POLICY 7 titles corrected
+- `specs/architecture/decisions/ADR-043-exec-subprocess-binary-allow-load-time-path-resolution.md` — CREATED v1.5; status: proposed; NOT RATIFIED
+- `specs/architecture/ARCH-INDEX.md` — v3.54→v3.55; ADR-043 row added (total_adrs 42→43); SS-01 host/ catalog extended
+- `cycles/v1.0-brownfield-backfill/adv-adr-043-pass-2.md` — CREATED; ADR-043 v1.1 DO-NOT-RATIFY (2B/4H/3M); NOT added to INDEX.md adversarial-reviews table
+- `cycles/v1.0-brownfield-backfill/adv-adr-043-pass-3.md` — CREATED; ADR-043 v1.2→v1.5 DO-NOT-RATIFY→converging; NOT added to INDEX.md
+- `cycles/v1.0-brownfield-backfill/adv-s21.09-local-pass-1.md` — CREATED; LOCAL pass 1 DO-NOT-RATIFY; NOT added to INDEX.md
+- `cycles/v1.0-brownfield-backfill/adv-s21.09-local-pass-2.md` — CREATED; LOCAL pass 2 DO-NOT-RATIFY; NOT added to INDEX.md
+- `cycles/v1.0-brownfield-backfill/adv-s21.09-local-pass-3.md` — CREATED; LOCAL pass 3 DO-NOT-RATIFY; NOT added to INDEX.md
+- `cycles/v1.0-brownfield-backfill/decision-log.md` — D-972 block appended
+- `cycles/v1.0-brownfield-backfill/lessons.md` — 7 L-BB lessons appended
+- `cycles/v1.0-brownfield-backfill/burst-log.md` — D-972 8-block entry appended (this file)
+- `STATE.md` — v7.10→v7.11; Session Resume Checkpoint refreshed
+
+**Block 4: Codifications**
+
+- **5 BC amendments**: BC-1.05.002/004/028/035/036 updated with `D-972` replacing `D-{TBD-option-c-security-model-adjudication}` sentinel. POLICY 7 titles corrected on BC-1.05.028 and BC-1.05.035 to reflect load-time-resolution architecture (not basename-comparison or canonicalize-then-check framing).
+- **ADR-043 row registered** in ARCH-INDEX as `status: proposed; NOT RATIFIED` — total_adrs 42→43. Row explicitly marked `**NOT RATIFIED**` per D-971 deferred-to-ratification-burst convention.
+- **SS-01 host/ catalog** extended with `host/{mod,exec_subprocess,read_file,memory,path_util}.rs` — prior gap where subsystem description advertised "host fns" but module catalog omitted the entire `host/` directory.
+- **No new policies.yaml changes** — ADR-043 `status: proposed`; Codifications require ratification.
+
+**Block 5 (Dim-2): Literal-shell attestation evidence**
+
+**POLICY 16 gate** (captured above — Block 1).
+
+**S-21.09 pts sibling-sweep** (literal shell per D-449(a)):
+
+```
+$ cd /Users/zious/Documents/GITHUB/vsdd-factory/.factory && grep -n '| 10 |' stories/STORY-INDEX.md | grep 'S-21\.09' | head -1
+733:| S-21.09 | validate-factory-path-staging WASM artifact restore + per-name registry parity CI check | E-21 | 10 | P1 | [] | [] | ready | ...
+
+$ grep -n '111 pts\.' stories/STORY-INDEX.md | head -1
+741:> **E-21 delivery:** ... → W8 (parallel): {S-21.14 (8 pts; ...), S-21.15 (5 pts; ...)}. 14 stories total. 111 pts. ...
+
+$ grep -n '| S-21\.09 |' stories/epics/E-21-factory-state-data-loss-hardening.md | head -1
+188:| S-21.09 | validate-factory-path-staging WASM artifact restore + per-name registry parity CI check | W4 | 10 | TBD ...
+```
+
+Three sibling sites: L733 table row = 10 pts ✓; L741 delivery blockquote = S-21.09 (10 pts) + 111 pts total ✓; E-21 epic Stories table = 10 pts ✓. PASS.
+
+**Fuel exhaustion evidence (item 8b; rc.23 misreporting):**
+
+Trace `65cbf37e-99d4-44c2-84bd-432615f895cd`: 23 of 32 sync plugins exhausted fuel on write to ADR-043 v1.5 (`specs/architecture/decisions/ADR-043-exec-subprocess-binary-allow-load-time-path-resolution.md`). rc.23 binary misreports fuel exhaustion as "fail-closed: plugin timed out" (identical to wall-clock epoch arm). PostToolUse — write succeeded; advisory only. This trace confirms: (a) ADR files of ~3,000+ tokens trigger systematic fuel exhaustion across all large-file validators; (b) the misreporting is the known rc.23 behavior per CLAUDE.md "WASM plugin fuel budgets" §; (c) `DEFAULT_FUEL_CAP` raised to 20M on develop at `62fbcf1a` but NOT yet effective at operator level (rc.23 still 10M); real remedy is compaction + size budgets per D-442(e).
+
+**D-446(a) own-burst-log 8-block gate** (literal shell per D-449(a)):
+
+```
+$ cd /Users/zious/Documents/GITHUB/vsdd-factory/.factory && awk '/^## D-972-SS01/{found=1} found && /^## D-[0-9]/{if(!/D-972-SS01/)exit} found{print}' cycles/v1.0-brownfield-backfill/burst-log.md | grep -cE "^\*\*Block [2-8]|^### Block 8|^## D-972"
+8
+```
+
+PASS: count=8 ≥ 8 required D-444(c) blocks present in D-972 section. All 8 mandatory blocks confirmed: (1) h2 heading/Parent-commit, (2) Adversary verdict, (3) Files touched, (4) Codifications, (5) Dim-2 literal-shell attestation, (6) Dim-5 Closes, (7) Dim-6 Gate attestation, (8) factory-artifacts commit.
+
+**Block 6 (Dim-5): Closes**
+
+- Option C adjudication recorded: 5 BCs updated with D-972; ADR-043 v1.5 proposed (not ratified)
+- BC-1.05.028 + BC-1.05.035 POLICY 7 titles corrected (stale canonicalize framing replaced)
+- ARCH-INDEX ADR-043 row added; SS-01 host/ catalog gap closed
+- S-21.09 re-estimated 5→10 pts; STORY-INDEX v4.293; E-21 epic v1.12; sprint-state.yaml in-flight
+- S-21.14 + S-21.15 registered as draft W8 stories; E-21 delivery 98→111 pts; 12→14 stories
+- ADR-043 3 DO-NOT-RATIFY passes persisted (adv-adr-043-pass-2.md + pass-3.md)
+- S-21.09 LOCAL 3 DO-NOT-RATIFY passes persisted (adv-s21.09-local-pass-1/2/3.md); streak 0/3
+- 7 L-BB lessons appended (D-972)
+- Fuel exhaustion trace 65cbf37e documented; rc.23 misreporting confirmed
+- C-1/C-2/C-4/C-5 blocking security issues registered in STATE.md
+- 6 vacuous/inert gate drift items registered in STATE.md + D-972 decision-log
+- TD-VSDD-101 dangling reference recorded
+- D-972 allocated
+
+**Block 7 (Dim-6): Gate attestation**
+
+D-444(c) burst-log h2 heading `## D-972-SS01-EXEC-SUBPROCESS-OPTION-C-ADJUDICATION-AND-S-21.09-DELIVERY-RECORD` present. D-446(a) own-burst-log 8-block gate INVOKED via literal shell at Block 5 (count=8 required). D-448(a) source-attestation: this burst has NO cycle-level adversary pass — all adversary reviews are ADR-scoped (ADR-043) or story-scoped (S-21.09 LOCAL); SOURCE-ATTESTATION GATE N/A for cycle-level adversary finding set (no pass-11 this burst). D-449(a) literal-shell-execution SELF-APPLICATION: POLICY 16 gate + sibling-sweep + D-446(a) gate all use actual shell with verbatim stdout captured — no pseudocode. META-LEVEL-24 self-application confirmed.
+
+**Dim-7 Attestation:**
+
+- Trajectory tail (last 4 adversary pass values per D-433(e)+D-439(c)): →20→16→8→10 UNCHANGED (no cycle-level adversary pass this burst)
+- Streak: 0/3 UNCHANGED
+- 4-INDEX: BC **v4.56** / VP v2.76 (UNCHANGED) / STORY **v4.293** / ARCH **v3.55**
+- D-418(c) deterministic-tally: 10 adversary passes dispatched; 10 complete; pass-11 NOT yet dispatched
+- ADR-043 `status: proposed`; v1.5; ARCH-INDEX updated with row; NOT RATIFIED; total_adrs = 43
+- policies.yaml v1.4.23 UNCHANGED
+- S-21.09 LOCAL streak 0/3 (3 passes; story in-flight at `12f280d1`)
+- feature/S-21.09 @ `12f280d1`; not pushed; no PR
+
+### Block 8: factory-artifacts commit
+
+**factory-artifacts commits (this burst — TD-VSDD-053 single-commit-per-burst):**
+- Target: single commit pushed as `git push origin HEAD:factory-artifacts`
+- **Parent SHA (Block 8 cites parent per D-419(b)/D-444(c) convention):** `b278d978` — `state(dispatch-side-advance): D-972-SS01-EXEC-SUBPROCESS-OPTION-C-ADJUDICATION-AND-S-21.09-DELIVERY-RECORD`
+
+**Closes:** 5 BC amendments (D-972 sentinel); ARCH-INDEX v3.55 (ADR-043 row + SS-01 host/); STORY-INDEX v4.293; E-21 epic v1.12 (14 stories; 111 pts); sprint-state.yaml S-21.09 in-flight; ADR-043 3 DO-NOT-RATIFY passes persisted; S-21.09 LOCAL 3 DO-NOT-RATIFY passes persisted; streak 0/3; 7 L-BB lessons codified; C-1/C-2/C-4/C-5 blocking issues + 6 vacuous gates registered; D-972 allocated; STATE.md v7.10→v7.11
