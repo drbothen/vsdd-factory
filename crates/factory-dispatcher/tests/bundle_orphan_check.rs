@@ -30,17 +30,24 @@
 //! | T-020 | AC-006 S-21.09 | GREEN | EC-005 control: calls `check_declared_subset_tracked()` with empty tracked; `#[should_panic]` locks "T-012 EC-005" identifier |
 //! | T-021 | AC-006 S-21.09 | GREEN | Staged-not-committed: calls `check_declared_subset_tracked()` with staged artifact → Err containing "STAGED-NOT-COMMITTED: staged-plugin.wasm" identifier |
 //! | T-022 | AC-006 S-21.09 | GREEN | Resolvers floor control: calls `check_declared_subset_tracked()` with empty resolvers; `#[should_panic]` locks "T-012: resolvers registry declared set is empty" |
-//! | T-023 | AC-006 S-21.09 | GREEN | MEDIUM-1 boundary polarity: bare plugin path `ghost-bare.wasm` (no `hook-plugins/` prefix) → excluded from declared; documents narrowing scope and false-positive class |
+//! | T-023 | AC-006 S-21.09 | GREEN | MEDIUM-1 boundary polarity (corrected pass 4): bare plugin path `ghost-bare.wasm` (no `hook-plugins` component after normalization) → excluded from declared; traversal/absolute forms now INCLUDED via lexical normalisation |
 //! | T-024 | AC-006 S-21.09 | GREEN | BLOCKER-2 underscore mutant: `metrics_registry.toml` (underscore, previously missed by `-registry.toml` filter) caught by fail-closed `*.toml` inventory → "UNEXPECTED: metrics_registry.toml" |
+//! | T-025 | AC-006 S-21.09 | GREEN | F-1 traversal control: `plugin = "hooks/../hook-plugins/ghost-traversal.wasm"` is parsed as declared after lexical normalisation (resolves `..`) |
+//! | T-026 | AC-006 S-21.09 | GREEN | F-1 absolute-form control: `plugin = "/abs/hook-plugins/ghost-absolute.wasm"` is parsed as declared after root-clearing normalisation |
+//! | T-027 | AC-006 S-21.09 | GREEN | F-2 floor boundary (29 fires): 29-entry hooks set fires hooks floor — `#[should_panic]` locks "T-012: hooks registry declared set has only 29 entries"; pins the threshold so mutating `< 30` to `< 2` is caught |
+//! | T-028 | AC-006 S-21.09 | GREEN | F-3a narrowing proof (non-recursive): subdirectory `config/hooks-registry.toml` is invisible to `fs::read_dir`; documents intentional non-recursive scope |
+//! | T-029 | AC-006 S-21.09 | GREEN | F-3b narrowing proof (case-sensitive): `metrics-registry.TOML` (uppercase) is invisible to `.ends_with(".toml")`; documents intentional case-sensitive scope |
+//! | T-030 | AC-006 S-21.09 | GREEN | F-9 wiring control: `run_t012_gate` integrates both `check_registry_inventory` (phase A) and `check_declared_subset_tracked` (phase B via git fixture); removing either call breaks a phase |
 //!
 //! † T-009 is a STANDING GREEN GATE — passes immediately on any clean checkout where no
 //! orphan WASMs are tracked in git, and remains green on contaminated worktrees because
 //! local build artifacts (untracked per .gitignore) are excluded from the git-tracked set.
 //!
-//! †† T-012 is a RED GATE at design time — it was RED at commit a60169bd (before AC-001
-//! committed `validate-factory-path-staging.wasm`), and turned GREEN at commit 27123d27
-//! (after the artifact was added to the git index with `git add -f`). The `RED††` status
-//! in the table documents the test's designed-as-Red-Gate role; current run state is GREEN.
+//! †† T-012 is a RED GATE at design time — before the S-21.09 AC-001 fix committed
+//! `validate-factory-path-staging.wasm`, `declared − tracked` was non-empty and the test
+//! failed; after the artifact was committed, `declared − tracked` became empty and the test
+//! turned GREEN. The `RED††` status in the table documents the test's designed-as-Red-Gate
+//! role; current run state is GREEN.
 //!
 //! ## Hermetic Design for T-009
 //!
@@ -97,7 +104,7 @@
 //! Embedded at compile time via `include_str!()` — the .toml files are the single source
 //! of truth; edits must be made there, not to the constants.
 //!
-//! Stories: S-19.04 (T-006..T-011), S-21.09 (T-012..T-024)
+//! Stories: S-19.04 (T-006..T-011), S-21.09 (T-012..T-030)
 //! VP Trace: — (AC-006 wires EAC-005 as load-bearing leg; no BC mapping)
 
 use std::collections::HashSet;
@@ -144,6 +151,61 @@ const HOOKS_REGISTRY_DOTSLASH_FIXTURE: &str =
 // Detection helpers
 // ---------------------------------------------------------------------------
 
+/// Lexically normalise `plugin_path` and return the bare WASM filename if the
+/// normalised path has `hook-plugins` as a component.
+///
+/// Handles four forms accepted by the production dispatcher's `resolve_plugin_paths()`:
+///
+/// | Input form | Example | After normalization | Result |
+/// |-----------|---------|---------------------|--------|
+/// | Standard | `hook-plugins/foo.wasm` | `[hook-plugins, foo.wasm]` | `foo.wasm` |
+/// | Leading `./` | `./hook-plugins/foo.wasm` | `[hook-plugins, foo.wasm]` | `foo.wasm` |
+/// | Traversal | `hooks/../hook-plugins/foo.wasm` | `[hook-plugins, foo.wasm]` | `foo.wasm` |
+/// | Absolute | `/abs/hook-plugins/foo.wasm` | `[abs, hook-plugins, foo.wasm]` | `foo.wasm` |
+/// | Bare | `foo.wasm` | `[foo.wasm]` | `None` |
+///
+/// Normalisation algorithm: walk `Path::components()`, push `Normal` components,
+/// pop on `ParentDir` (`..`), skip `CurDir` (`.`), clear on `RootDir`/`Prefix`
+/// (absolute path prefix — treat remainder as relative after root, making absolute
+/// paths portable for the purposes of declared-set membership).
+///
+/// Returns `None` when no `hook-plugins` component appears after normalisation.
+/// This is the correct boundary: the S-21.09 defect class is artifacts declared at
+/// `hook-plugins/<name>` that are absent from the git index, and the gate's scope
+/// is `hook-plugins/`-scoped artifacts by design. Bare names (e.g., `foo.wasm`) and
+/// paths resolving outside `hook-plugins/` are not in the gitignored artifact dir
+/// and are therefore outside the gate's scope.
+///
+/// See T-025 (traversal proof) and T-026 (absolute-path proof) for boundary polarity.
+fn extract_hook_plugin_name(plugin_path: &str) -> Option<String> {
+    use std::path::Component;
+    let mut normalized: Vec<String> = Vec::new();
+    for comp in Path::new(plugin_path).components() {
+        match comp {
+            Component::Normal(c) => {
+                if let Some(s) = c.to_str() {
+                    normalized.push(s.to_owned());
+                }
+            }
+            Component::ParentDir => {
+                normalized.pop();
+            }
+            Component::CurDir => {}
+            Component::RootDir | Component::Prefix(_) => {
+                // Absolute path prefix: clear accumulated components and treat
+                // the remainder as relative.  This makes `/abs/hook-plugins/foo.wasm`
+                // normalise to `[abs, hook-plugins, foo.wasm]` so the hook-plugins
+                // component is still detectable.
+                normalized.clear();
+            }
+        }
+    }
+    // Find "hook-plugins" as a component and return the immediately following
+    // component (the filename directly under hook-plugins/).
+    let pos = normalized.iter().position(|c| c == "hook-plugins")?;
+    normalized.get(pos + 1).cloned()
+}
+
 /// Parse all `plugin = "hook-plugins/<name>"` references from a TOML registry file.
 ///
 /// Uses the `toml` crate (the same parser the dispatcher uses via `registry.rs`) so that
@@ -152,6 +214,8 @@ const HOOKS_REGISTRY_DOTSLASH_FIXTURE: &str =
 /// - `plugin = "hook-plugins/foo.wasm"` — standard form
 /// - `plugin="hook-plugins/foo.wasm"` — no spaces around `=` (TOML-legal; missed by v1)
 /// - `plugin = "./hook-plugins/foo.wasm"` — leading `./` (TOML-legal; missed by v1)
+/// - `plugin = "hooks/../hook-plugins/foo.wasm"` — traversal form (missed by v2; F-1)
+/// - `plugin = "/abs/hook-plugins/foo.wasm"` — absolute form (missed by v2; F-1)
 /// - `plugin = 'hook-plugins/foo.wasm'` — single-quoted TOML string
 ///
 /// Works for both `hooks-registry.toml` (`[[hooks]]` array) and
@@ -163,6 +227,11 @@ const HOOKS_REGISTRY_DOTSLASH_FIXTURE: &str =
 /// cannot appear in `declared − tracked`, so the gate goes GREEN on a real gap.
 /// (Contrast: for T-009's direction, the identical bug is a false positive — loud and
 /// safe.) Replaced in S-21.09 adversary pass 1 (BLOCKER-1 closure).
+///
+/// The v2 implementation used `trim_start_matches("./").strip_prefix("hook-plugins/")`,
+/// which missed traversal forms (`hooks/../hook-plugins/foo`) and absolute forms
+/// (`/abs/hook-plugins/foo`). Replaced in S-21.09 adversary pass 4 (F-1 closure)
+/// by component-based lexical normalisation via `extract_hook_plugin_name()`.
 fn parse_plugin_refs(registry: &Path) -> HashSet<String> {
     let content = fs::read_to_string(registry)
         .unwrap_or_else(|e| panic!("failed to read registry {}: {}", registry.display(), e));
@@ -183,13 +252,12 @@ fn parse_plugin_refs(registry: &Path) -> HashSet<String> {
         if let Some(toml::Value::Array(entries)) = doc.get(*section_name) {
             for entry in entries {
                 if let Some(toml::Value::String(plugin_path)) = entry.get("plugin") {
-                    // Normalize a leading "./" — the dispatcher's resolve_plugin_paths()
-                    // joins relative paths against the registry's parent dir, accepting
-                    // both "hook-plugins/foo" and "./hook-plugins/foo" as equivalent.
-                    // Strip the leading "./" here for consistent basename extraction.
-                    let normalized = plugin_path.trim_start_matches("./");
-                    if let Some(filename) = normalized.strip_prefix("hook-plugins/") {
-                        refs.insert(filename.to_string());
+                    // Lexically normalise the path (resolves `..`, `.`, and absolute
+                    // prefixes) then extract the filename if `hook-plugins` is a
+                    // component.  See `extract_hook_plugin_name()` for the full
+                    // normalisation table and boundary-polarity record.
+                    if let Some(name) = extract_hook_plugin_name(plugin_path) {
+                        refs.insert(name);
                     }
                 }
             }
@@ -225,6 +293,32 @@ fn parse_plugin_refs(registry: &Path) -> HashSet<String> {
 /// `plugins/vsdd-factory/` currently contains exactly two `.toml` files; the
 /// fail-closed form asserts exact set equality, so any addition fires.
 /// T-024 proves the underscore form is caught; T-017 proves the hyphen form.
+///
+/// ## Narrowing: non-recursive (`fs::read_dir`)
+///
+/// `fs::read_dir` is non-recursive; only top-level `.toml` files in
+/// `plugins_vsdd_factory_dir` are enumerated.  This is intentional: the
+/// `plugins/vsdd-factory/config/` subdirectory holds pipeline-artifact `.toml`
+/// files (e.g., `artifact-path-registry.yaml`, pipeline configs) that are NOT
+/// plugin registries.  Three of those subdirectory files are named
+/// `hooks-registry.toml`; a recursive walk would misclassify them as UNEXPECTED.
+/// The intentional scope is: plugin registries live at the top level; pipeline
+/// artifacts live in subdirectories.
+///
+/// Boundary-polarity proof: T-028 shows that `config/hooks-registry.toml` is
+/// invisible to the non-recursive enumeration.  The false-negative class is
+/// a registry added under a subdirectory — prevented by convention, not by this
+/// gate.
+///
+/// ## Narrowing: case-sensitive extension filter
+///
+/// `.ends_with(".toml")` is a Rust string comparison — case-sensitive on all
+/// platforms.  A file named `metrics-registry.TOML` (uppercase extension) would
+/// not be caught.  This is acceptable: all production registries use lowercase
+/// filenames by convention, and CI runs on a case-sensitive filesystem (Linux).
+///
+/// Boundary-polarity proof: T-029 shows that `metrics-registry.TOML` is invisible
+/// to the `.ends_with(".toml")` filter even when the file exists in the directory.
 ///
 /// ## Determinism
 ///
@@ -279,9 +373,11 @@ fn check_registry_inventory(plugins_vsdd_factory_dir: &Path) -> Result<(), Strin
 
     Err(format!(
         "T-012 AC-006 step 1 registry-inventory: {} must contain exactly \
-         {{hooks-registry.toml, resolvers-registry.toml}} — adding a registry file \
-         expands the declared-artifact scope that T-012 covers; update T-012's \
-         registry list or remove the file:\n{}",
+         {{hooks-registry.toml, resolvers-registry.toml}} — any other .toml file is \
+         either an ungated plugin registry (its declared artifacts bypass T-012's \
+         declared−tracked gate) or an unintended tooling configuration file \
+         (rustfmt.toml, taplo.toml, etc.); to resolve: if it is a new registry, \
+         add it to T-012's registry list; otherwise remove it:\n{}",
         plugins_vsdd_factory_dir.display(),
         lines.join("\n")
     ))
@@ -404,6 +500,76 @@ fn check_declared_subset_tracked(
     }
 
     Ok(())
+}
+
+/// T-012 gate sequence: all four declared-set ⊆ tracked-set checks against a
+/// given workspace `root`.
+///
+/// Extracted from the `#[test]` body so T-030 can call it against a fixture root,
+/// pinning the wiring for BOTH `check_registry_inventory` and
+/// `check_declared_subset_tracked` (F-9 wiring control):
+///
+/// - Phase A (T-030): a fixture root with an unexpected `.toml` proves
+///   `check_registry_inventory` is called — removing the call changes the error
+///   from "UNEXPECTED: taplo.toml" to a hooks-floor error.
+/// - Phase B (T-030): a git fixture root with a missing declared WASM proves
+///   `check_declared_subset_tracked` is called — removing the call causes
+///   `run_t012_gate` to return `Ok` where `Err` is expected.
+///
+/// Steps:
+///   1. Registry inventory (`check_registry_inventory`): asserts `plugins/vsdd-factory/`
+///      contains exactly `{hooks-registry.toml, resolvers-registry.toml}`.
+///   2. EC-004: hard-fail on missing registry file.
+///   3. Parse per-registry refs via `parse_plugin_refs()`.
+///   4-6. Per-registry floors, declared−tracked, staged-not-committed via
+///      `check_declared_subset_tracked()`.
+///
+/// Returns `Ok(())` when all checks pass. Returns `Err(message)` on inventory or
+/// declared-subset failure. Panics on git command failure or EC-004.
+fn run_t012_gate(root: &Path) -> Result<(), String> {
+    // Step 1 (AC-006 step 1): registry-inventory gate.
+    // Assert plugins/vsdd-factory/ contains exactly {hooks-registry.toml,
+    // resolvers-registry.toml}.  Must run BEFORE declared-set aggregation so
+    // that adding a third registry fires here, forcing the caller to update T-012's
+    // registry list rather than silently leaving the new registry's artifacts ungated.
+    let plugins_vsdd_factory = root.join("plugins/vsdd-factory");
+    check_registry_inventory(&plugins_vsdd_factory)?;
+
+    let hooks_registry = root.join("plugins/vsdd-factory/hooks-registry.toml");
+    let resolvers_registry = root.join("plugins/vsdd-factory/resolvers-registry.toml");
+
+    // EC-004: hard-fail on missing registry file — never silently pass.
+    if !hooks_registry.exists() {
+        panic!(
+            "T-012 EC-004: plugins/vsdd-factory/hooks-registry.toml not found under \
+             workspace root {}; registry file is mandatory — test must fail explicitly, \
+             not silently pass",
+            root.display()
+        );
+    }
+    if !resolvers_registry.exists() {
+        panic!(
+            "T-012 EC-004: plugins/vsdd-factory/resolvers-registry.toml not found under \
+             workspace root {}; registry file is mandatory — test must fail explicitly, \
+             not silently pass",
+            root.display()
+        );
+    }
+
+    // Parse per-registry refs separately so check_declared_subset_tracked() can apply
+    // per-registry floors (HIGH-2: a union floor cannot detect a resolvers-only collapse).
+    let hooks_refs = parse_plugin_refs(&hooks_registry);
+    let resolvers_refs = parse_plugin_refs(&resolvers_registry);
+
+    // Git-tracked set (index) and committed set (HEAD tree).
+    // `git_tracked_wasm_names()` panics on non-zero exit so failure is explicit, not silent.
+    let tracked: HashSet<String> = git_tracked_wasm_names(root).into_iter().collect();
+    let committed: HashSet<String> = git_committed_wasm_names(root).into_iter().collect();
+
+    // Steps 2-4: per-registry floors, declared⊆tracked, staged-not-committed.
+    // Delegated to check_declared_subset_tracked() so fixture-driven controls
+    // (T-015/T-016/T-019/T-020/T-021/T-022) call the real gate, not logic replicas.
+    check_declared_subset_tracked(&hooks_refs, &resolvers_refs, &tracked, &committed)
 }
 
 /// Enumerate orphan WASMs from `hook_plugins_dir` using DUAL-registry detection.
@@ -1107,54 +1273,15 @@ fn test_S_19_06_policy20_T011_read_prefix_fixture_passes_staging_and_is_orphan()
 // ---------------------------------------------------------------------------
 #[test]
 fn test_S_21_09_ac006_T012_declared_set_subset_of_tracked_set() {
-    let root = workspace_root();
-
-    // Step 1 (AC-006 step 1): registry-inventory gate.
-    // Assert plugins/vsdd-factory/ contains exactly {hooks-registry.toml,
-    // resolvers-registry.toml}.  Must run BEFORE the declared-set aggregation so
-    // that adding a third registry fires here and forces the caller to update T-012's
-    // registry list, rather than silently leaving the new registry's artifacts ungated.
-    let plugins_vsdd_factory = root.join("plugins/vsdd-factory");
-    check_registry_inventory(&plugins_vsdd_factory).unwrap_or_else(|msg| panic!("{}", msg));
-
-    let hooks_registry = root.join("plugins/vsdd-factory/hooks-registry.toml");
-    let resolvers_registry = root.join("plugins/vsdd-factory/resolvers-registry.toml");
-
-    // EC-004: hard-fail on missing registry file — never silently pass.
-    assert!(
-        hooks_registry.exists(),
-        "T-012 EC-004: plugins/vsdd-factory/hooks-registry.toml not found under \
-         workspace root {}; registry file is mandatory — test must fail explicitly, \
-         not silently pass",
-        root.display()
-    );
-    assert!(
-        resolvers_registry.exists(),
-        "T-012 EC-004: plugins/vsdd-factory/resolvers-registry.toml not found under \
-         workspace root {}; registry file is mandatory — test must fail explicitly, \
-         not silently pass",
-        root.display()
-    );
-
-    // Parse per-registry refs separately so check_declared_subset_tracked() can apply
-    // per-registry floors (HIGH-2: a union floor cannot detect a resolvers-only collapse).
+    // Full gate sequence is delegated to run_t012_gate() so that T-030 can call
+    // the same function against a fixture workspace root, pinning both
+    // check_registry_inventory (phase A) and check_declared_subset_tracked (phase B)
+    // as load-bearing wiring (F-9 wiring control).
     //
     // vsdd-context-resolvers.wasm: declared in resolvers-registry, also tracked in git.
     // Using both registries matches the dual-registry scope of T-009 and avoids a
     // registry-scope mismatch between the two directions.
-    let hooks_refs = parse_plugin_refs(&hooks_registry);
-    let resolvers_refs = parse_plugin_refs(&resolvers_registry);
-
-    // Git-tracked set (index) and committed set (HEAD tree).
-    // `git_tracked_wasm_names()` panics on non-zero exit so failure is explicit, not silent.
-    let tracked: HashSet<String> = git_tracked_wasm_names(&root).into_iter().collect();
-    let committed: HashSet<String> = git_committed_wasm_names(&root).into_iter().collect();
-
-    // Steps 2-4: per-registry floors, declared⊆tracked, staged-not-committed.
-    // Delegated to check_declared_subset_tracked() so fixture-driven controls
-    // (T-015/T-016/T-019/T-020/T-021/T-022) call the real gate, not logic replicas.
-    check_declared_subset_tracked(&hooks_refs, &resolvers_refs, &tracked, &committed)
-        .unwrap_or_else(|msg| panic!("{}", msg));
+    run_t012_gate(&workspace_root()).unwrap_or_else(|msg| panic!("{}", msg));
 }
 
 // ---------------------------------------------------------------------------
@@ -1207,10 +1334,9 @@ fn test_S_21_09_ac006_T013_nospace_eq_sign_form_is_parsed_as_declared() {
 // `"hook-plugins/foo"` functionally identical in production.  The test gate must
 // match production behavior.
 //
-// This test proves the toml-crate replacement normalises the leading `./` via
-// `trim_start_matches("./")` before the `strip_prefix("hook-plugins/")` call:
-// parse_plugin_refs() on the dotslash fixture MUST return a set containing
-// "ghost-guard-dotslash.wasm".
+// This test proves extract_hook_plugin_name() normalises the leading `./`
+// (CurDir component → skipped) so that `parse_plugin_refs()` on the dotslash fixture
+// MUST return a set containing "ghost-guard-dotslash.wasm".
 //
 // Story: S-21.09
 // ---------------------------------------------------------------------------
@@ -1311,14 +1437,22 @@ fn test_S_21_09_ac006_T015_declared_but_untracked_arm_names_artifact() {
 // The test asserts missing.is_empty() — confirming no false positives when every
 // declared artifact is present in the tracked set.
 //
+// F-2 floor boundary (high end): this fixture uses exactly 30 hooks (passes the
+// `hooks_declared.len() >= 30` floor at the boundary value).  T-027 covers the
+// complementary case (29 hooks → floor fires).  Together T-016 and T-027 form the
+// floor boundary pair that constrains the constant `30`.  Mutating `< 30` to `< 2`
+// causes T-027 to pass incorrectly (29 >= 2 → floor does not fire → #[should_panic]
+// fails), while this test continues to pass — catching the mutation.
+//
 // This test always GREEN (fixture-driven; does not call git ls-files).
 //
 // Story: S-21.09
 // ---------------------------------------------------------------------------
 #[test]
 fn test_S_21_09_ac006_T016_pass_arm_empty_diff_when_all_declared_are_tracked() {
-    // Synthetic fixture: 30 hooks + 1 resolver (passes both floors).  tracked = declared
-    // union — simulates the post-fix state where every declared artifact is committed.
+    // Synthetic fixture: EXACTLY 30 hooks + 1 resolver (passes both floors AT the
+    // floor boundary).  tracked = declared union — simulates the post-fix state where
+    // every declared artifact is committed.
     //
     // Calls check_declared_subset_tracked() directly so that a mutation that widens the
     // declared − tracked step (always returns Ok) would still be caught if a missing
@@ -1617,26 +1751,44 @@ fn test_S_21_09_ac006_T022_resolvers_floor_fires_on_empty_resolvers_set() {
 }
 
 // ---------------------------------------------------------------------------
-// T-023 — MEDIUM-1 boundary polarity: bare plugin path excluded from declared set
+// T-023 — MEDIUM-1 boundary polarity (corrected pass 4): bare plugin path excluded
 //
-// parse_plugin_refs() includes ONLY names reachable via `strip_prefix("hook-plugins/")`.
-// A plugin declared as `plugin = "ghost-bare.wasm"` (no `hook-plugins/` prefix) is
-// excluded from `declared` — it cannot appear in `declared − tracked`.
+// parse_plugin_refs() includes ONLY names where `extract_hook_plugin_name()` finds
+// `hook-plugins` as a component after lexical normalisation.
+// A plugin declared as `plugin = "ghost-bare.wasm"` (no `hook-plugins` component)
+// is excluded from `declared` — it cannot appear in `declared − tracked`.
 //
-// ## Boundary-polarity record (POLICY 13)
+// ## Boundary-polarity record (POLICY 13) — corrected
 //
-// False-positive class suppressed: artifacts declared outside `hook-plugins/` (bare
-// names, other-dir paths, absolute paths) are invisible to the declared − tracked gate.
+// **Included region (post-pass-4 normalisation):**
+//   - Standard: `hook-plugins/foo.wasm`
+//   - Dotslash: `./hook-plugins/foo.wasm`
+//   - Traversal: `hooks/../hook-plugins/foo.wasm` (resolves to `hook-plugins/foo.wasm`)
+//   - Absolute with hook-plugins component: `/abs/hook-plugins/foo.wasm`
+//   T-025 proves traversal forms; T-026 proves absolute forms.
 //
-// Can harmful content occupy the excluded region?  Non-`hook-plugins/` paths are NOT
-// gitignored (`hook-plugins/` is the only WASM gitignore entry), so any untracked
-// artifact there is visible in plain `git status`.  The S-21.09 defect class
-// (`hook-plugins/`-scoped artifact missing from the git index) is entirely within the
-// included region.  The excluded region adds no new stealth path.
+// **Excluded region:**
+//   Paths that, after lexical normalisation (resolving `..`, stripping root prefix),
+//   contain NO `hook-plugins` component: bare names (`ghost-bare.wasm`), other-dir
+//   paths (`other/ghost.wasm`), and traversal forms that cancel out `hook-plugins`
+//   (e.g., `hook-plugins/../ghost.wasm` → `[ghost.wasm]` — no `hook-plugins` after pop).
+//
+// **Can harmful content occupy the excluded region?**
+//   An artifact excluded here is either (a) not under `hook-plugins/` (not in the
+//   gitignored dir — visible in plain `git status`), or (b) its path cancels the
+//   `hook-plugins` component via `..` (so production resolve_plugin_paths would place
+//   it OUTSIDE `hook-plugins/`, also not gitignored).  The S-21.09 defect class —
+//   a `hook-plugins/`-scoped artifact missing from the git index — is entirely within
+//   the included region (a traversal form resolving INTO `hook-plugins/` is NOW caught;
+//   see T-025).  The excluded region adds no new stealth path.
+//
+// **Pass-2 error correction:**  The pass-2 boundary-polarity record incorrectly stated
+//   "traversal forms add no new stealth path" — this was wrong for traversal forms that
+//   resolve INTO `hook-plugins/` (e.g., `hooks/../hook-plugins/ghost.wasm`).  Pass-4
+//   fixes the gate via lexical normalisation; T-025 confirms the fix.
 //
 // Mutant: `plugin = "ghost-bare.wasm"` → refs is empty → T-012 returns GREEN.
-// This is the correct narrowing: the gate is scoped to `hook-plugins/` artifacts,
-// which matches production deployment expectations.
+// This is the correct narrowing: bare names are not in the gitignored artifact dir.
 //
 // Story: S-21.09
 // ---------------------------------------------------------------------------
@@ -1725,4 +1877,420 @@ fn test_S_21_09_ac006_T024_registry_inventory_underscore_form_caught() {
          'UNEXPECTED: metrics_registry.toml'; got: {}",
         msg
     );
+}
+
+// ---------------------------------------------------------------------------
+// T-025 — F-1 traversal form: `hooks/../hook-plugins/foo.wasm` is parsed as declared
+//
+// Before pass-4, parse_plugin_refs() used `trim_start_matches("./")` followed by
+// `strip_prefix("hook-plugins/")`.  The traversal form `hooks/../hook-plugins/foo.wasm`
+// does NOT start with `./` and does NOT start with `hook-plugins/` after stripping `./`,
+// so the v2 gate silently excluded it from `declared` — a false negative.
+//
+// The production dispatcher's resolve_plugin_paths() joins relative paths against the
+// registry parent.  `hooks/../hook-plugins/foo.wasm` resolves (via OS path resolution)
+// to `hook-plugins/foo.wasm` relative to the registry parent — i.e., the same gitignored
+// artifact directory as `hook-plugins/foo.wasm`.  The gate must detect it.
+//
+// Pass-4 fix: `extract_hook_plugin_name()` lexically normalises via `Path::components()`,
+// resolving `..` (ParentDir → pop) before looking for the `hook-plugins` component.
+// `hooks/../hook-plugins/ghost-traversal.wasm` → pop `hooks`, push `hook-plugins`,
+// push `ghost-traversal.wasm` → position found → `ghost-traversal.wasm` in declared.
+//
+// This test proves the fix: parse_plugin_refs() on the traversal-form registry MUST
+// return a set containing "ghost-traversal.wasm".
+//
+// Mutation-proof: reverting to `strip_prefix("hook-plugins/")` without normalisation
+// would exclude the traversal form; `refs.contains(...)` assertion FAILS.
+//
+// Story: S-21.09
+// ---------------------------------------------------------------------------
+#[test]
+fn test_S_21_09_ac006_T025_traversal_form_is_parsed_as_declared() {
+    let tmp = tempdir().expect("tempdir must create successfully");
+    let registry = tmp.path().join("registry.toml");
+    fs::write(
+        &registry,
+        concat!(
+            "schema_version = 2\n",
+            "[[hooks]]\n",
+            "name = \"ghost-traversal\"\n",
+            "event = \"PreToolUse\"\n",
+            "tool = \"^Bash$\"\n",
+            "plugin = \"hooks/../hook-plugins/ghost-traversal.wasm\"\n",
+            "timeout_ms = 5000\n",
+            "on_error = \"continue\"\n"
+        ),
+    )
+    .expect("traversal-form registry must be written to tempfile");
+
+    let refs = parse_plugin_refs(&registry);
+
+    assert!(
+        refs.contains("ghost-traversal.wasm"),
+        "T-025 F-1: parse_plugin_refs must extract 'ghost-traversal.wasm' from a \
+         registry using the traversal form \
+         (plugin = \"hooks/../hook-plugins/ghost-traversal.wasm\") — \
+         extract_hook_plugin_name() resolves '..' via ParentDir pop before testing \
+         for the hook-plugins component; got refs: {:?}",
+        refs
+    );
+}
+
+// ---------------------------------------------------------------------------
+// T-026 — F-1 absolute-form control: `/abs/hook-plugins/foo.wasm` is parsed as declared
+//
+// An absolute path like `plugin = "/abs/hook-plugins/ghost-absolute.wasm"` was excluded
+// by the v2 gate: after `trim_start_matches("./")` (no-op for absolute), the path does
+// not start with `hook-plugins/`, so `strip_prefix` returned None.
+//
+// Pass-4 fix: `extract_hook_plugin_name()` handles `RootDir`/`Prefix` components by
+// clearing the accumulator (treating the remainder as relative).  For
+// `/abs/hook-plugins/ghost-absolute.wasm`, the components are:
+//   RootDir → clear; Normal("abs") → push; Normal("hook-plugins") → push;
+//   Normal("ghost-absolute.wasm") → push.
+// Normalized: `[abs, hook-plugins, ghost-absolute.wasm]`.
+// `hook-plugins` found at position 1 → returns `ghost-absolute.wasm`.
+//
+// Boundary: an absolute path that does NOT contain a `hook-plugins` component (e.g.,
+// `/tmp/ghost.wasm`) resolves to `[tmp, ghost.wasm]` — no `hook-plugins` → None.
+//
+// Story: S-21.09
+// ---------------------------------------------------------------------------
+#[test]
+fn test_S_21_09_ac006_T026_absolute_form_is_parsed_as_declared() {
+    let tmp = tempdir().expect("tempdir must create successfully");
+    let registry = tmp.path().join("registry.toml");
+    fs::write(
+        &registry,
+        concat!(
+            "schema_version = 2\n",
+            "[[hooks]]\n",
+            "name = \"ghost-absolute\"\n",
+            "event = \"PreToolUse\"\n",
+            "tool = \"^Bash$\"\n",
+            "plugin = \"/abs/hook-plugins/ghost-absolute.wasm\"\n",
+            "timeout_ms = 5000\n",
+            "on_error = \"continue\"\n"
+        ),
+    )
+    .expect("absolute-form registry must be written to tempfile");
+
+    let refs = parse_plugin_refs(&registry);
+
+    assert!(
+        refs.contains("ghost-absolute.wasm"),
+        "T-026 F-1: parse_plugin_refs must extract 'ghost-absolute.wasm' from a \
+         registry using the absolute form \
+         (plugin = \"/abs/hook-plugins/ghost-absolute.wasm\") — \
+         extract_hook_plugin_name() clears on RootDir, then finds hook-plugins at \
+         position 1 in [abs, hook-plugins, ghost-absolute.wasm]; got refs: {:?}",
+        refs
+    );
+}
+
+// ---------------------------------------------------------------------------
+// T-027 — F-2 floor boundary (29 fires): hooks floor fires on 29-entry set
+//
+// The non-vacuity floor asserts `hooks_declared.len() >= 30`.  T-019 proves it fires
+// for a 1-entry set.  A floor constant without a boundary-pair control is indistinguishable
+// from a weaker constant — mutating `< 30` to `< 2` leaves T-019 green (1 < 2 is true).
+//
+// This test provides the complementary boundary case: 29 entries (= threshold − 1)
+// MUST fire the floor.  T-016 provides the other side: exactly 30 entries passes.
+// Together they form the floor boundary pair that constrains the constant `30`.
+//
+// Mutation-proof: mutating `< 30` to `< 2` makes 29 pass the floor (29 >= 2 is true);
+// check_declared_subset_tracked proceeds to EC-005 (empty tracked → different error);
+// `#[should_panic(expected = "... has only 29 entries")]` FAILS — mutation detected.
+//
+// Story: S-21.09
+// ---------------------------------------------------------------------------
+#[test]
+#[should_panic(expected = "T-012: hooks registry declared set has only 29 entries")]
+fn test_S_21_09_ac006_T027_hooks_floor_fires_on_29_entry_set() {
+    let hooks_declared: HashSet<String> =
+        (0..29).map(|i| format!("filler-{:02}.wasm", i)).collect(); // 29 < 30 → floor fires
+    let resolvers_declared: HashSet<String> = ["resolver.wasm".to_string()].into_iter().collect();
+    let tracked: HashSet<String> = HashSet::new();
+    let committed: HashSet<String> = HashSet::new();
+    // Calls the real function; unwrap panics with the Err message.
+    check_declared_subset_tracked(&hooks_declared, &resolvers_declared, &tracked, &committed)
+        .unwrap_or_else(|e| panic!("{}", e));
+}
+
+// ---------------------------------------------------------------------------
+// T-028 — F-3a narrowing proof (non-recursive): subdirectory .toml not caught
+//
+// check_registry_inventory() uses `fs::read_dir` (non-recursive).  This is intentional:
+// `plugins/vsdd-factory/config/` holds pipeline-artifact files, including three files
+// named `hooks-registry.toml` in subdirectories.  A recursive walk would classify them
+// as UNEXPECTED top-level registries, breaking T-012 on the real workspace.
+//
+// Documented narrowing scope:
+//   - The gate checks ONLY top-level `.toml` files in `plugins_vsdd_factory_dir`.
+//   - Pipeline-artifact `.toml` files under subdirectories are outside the gate's scope.
+//   - A registry added under a subdirectory would bypass this check; convention (and
+//     code review) is the defence for subdirectory placement.
+//
+// This test proves the narrowing: a `config/hooks-registry.toml` file is invisible
+// to the non-recursive enumeration when the top-level pair is correct.
+//
+// Story: S-21.09
+// ---------------------------------------------------------------------------
+#[test]
+fn test_S_21_09_ac006_T028_subdirectory_toml_not_caught_narrowing_proof() {
+    let tmp = tempdir().expect("tempdir must create successfully");
+
+    // Expected top-level pair: inventory should return Ok.
+    fs::write(
+        tmp.path().join("hooks-registry.toml"),
+        "schema_version = 2\n",
+    )
+    .expect("hooks-registry.toml must be written");
+    fs::write(
+        tmp.path().join("resolvers-registry.toml"),
+        "schema_version = 1\n",
+    )
+    .expect("resolvers-registry.toml must be written");
+
+    // Subdirectory file: invisible to non-recursive fs::read_dir.
+    // In the real workspace, plugins/vsdd-factory/config/ holds files like this.
+    let config_dir = tmp.path().join("config");
+    fs::create_dir_all(&config_dir).expect("config dir must be created");
+    fs::write(
+        config_dir.join("hooks-registry.toml"),
+        "schema_version = 2\n",
+    )
+    .expect("config/hooks-registry.toml must be written");
+
+    // Non-recursive: subdirectory file is invisible → inventory is Ok.
+    let result = check_registry_inventory(tmp.path());
+
+    assert!(
+        result.is_ok(),
+        "T-028 F-3a narrowing (non-recursive): check_registry_inventory must return Ok \
+         when only the top-level pair exists; config/hooks-registry.toml is in a \
+         subdirectory and must NOT be detected by the non-recursive fs::read_dir; \
+         got Err: {}",
+        result.unwrap_err()
+    );
+}
+
+// ---------------------------------------------------------------------------
+// T-029 — F-3b narrowing proof (case-sensitive): uppercase .TOML extension not caught
+//
+// check_registry_inventory() uses `.ends_with(".toml")` — a Rust string comparison
+// that is case-sensitive on all platforms (the comparison is on the string content,
+// not the filesystem).  A file named `metrics-registry.TOML` fails the filter.
+//
+// Documented narrowing scope:
+//   - All production registries use lowercase filenames by convention.
+//   - CI runs on a case-sensitive filesystem (Linux); macOS HFS+ preserves case in
+//     directory listings, so ".ends_with(\".toml\")" still returns false for ".TOML"
+//     even on macOS.
+//   - An adversarially-placed `ghost_REGISTRY.TOML` would bypass this check; the
+//     production defence is code review (no such file convention exists in the plugin).
+//
+// This test proves the narrowing: a `metrics-registry.TOML` file is invisible to the
+// case-sensitive filter even when it exists in the directory.
+//
+// Story: S-21.09
+// ---------------------------------------------------------------------------
+#[test]
+fn test_S_21_09_ac006_T029_uppercase_extension_not_caught_narrowing_proof() {
+    let tmp = tempdir().expect("tempdir must create successfully");
+
+    // Expected top-level pair: inventory should return Ok.
+    fs::write(
+        tmp.path().join("hooks-registry.toml"),
+        "schema_version = 2\n",
+    )
+    .expect("hooks-registry.toml must be written");
+    fs::write(
+        tmp.path().join("resolvers-registry.toml"),
+        "schema_version = 1\n",
+    )
+    .expect("resolvers-registry.toml must be written");
+
+    // Uppercase extension: "metrics-registry.TOML".ends_with(".toml") == false.
+    // The file is visible in the directory listing but invisible to the string filter.
+    fs::write(
+        tmp.path().join("metrics-registry.TOML"),
+        "schema_version = 1\n",
+    )
+    .expect("metrics-registry.TOML must be written");
+
+    // Case-sensitive filter: uppercase file is invisible → inventory is Ok.
+    let result = check_registry_inventory(tmp.path());
+
+    assert!(
+        result.is_ok(),
+        "T-029 F-3b narrowing (case-sensitive): check_registry_inventory must return Ok \
+         when only the top-level pair is present at the .toml extension level; \
+         metrics-registry.TOML has an uppercase extension and must NOT be caught by \
+         .ends_with(\".toml\"); got Err: {}",
+        result.unwrap_err()
+    );
+}
+
+// ---------------------------------------------------------------------------
+// T-030 — F-9 wiring control: run_t012_gate integrates both check calls
+//
+// check_registry_inventory and check_declared_subset_tracked are each tested by
+// dedicated unit controls (T-017/T-018 and T-015/T-016/T-019..T-022 respectively).
+// However, deleting either call from run_t012_gate's body leaves all prior tests
+// green (the real workspace is clean; T-012 still passes).  This test pins both
+// call sites by running run_t012_gate against fixture workspace roots designed to
+// fail at a specific call:
+//
+//   Phase A — inventory wiring:
+//     tmpdir with {hooks-registry.toml, resolvers-registry.toml, taplo.toml}.
+//     run_t012_gate must return Err with "UNEXPECTED: taplo.toml".
+//     If check_registry_inventory were removed: parse_plugin_refs on a minimal
+//     registry (0 hooks) → hooks floor fires → error is "has only 0 entries", NOT
+//     "UNEXPECTED: taplo.toml" → msg.contains assertion FAILS.
+//
+//   Phase B — declared-subset wiring (git fixture):
+//     git-initialized tmpdir with valid inventory; hooks-registry declares 30 WASMs
+//     (all committed); resolvers-registry declares ctx.wasm (NOT committed).
+//     run_t012_gate must return Err with "MISSING: ctx.wasm".
+//     If check_declared_subset_tracked were removed: run_t012_gate returns Ok →
+//     result.is_err() assertion FAILS.
+//
+// Story: S-21.09
+// ---------------------------------------------------------------------------
+#[test]
+fn test_S_21_09_ac006_T030_wiring_control_both_check_calls_are_active() {
+    // ---- Phase A: inventory wiring ----
+    {
+        let tmp = tempdir().expect("tempdir must create successfully");
+        let root = tmp.path();
+        let plugins_dir = root.join("plugins/vsdd-factory");
+        fs::create_dir_all(&plugins_dir).expect("plugins dir must be created");
+
+        // Minimal registries (no [[hooks]] entries → 0 declared hooks).
+        fs::write(
+            plugins_dir.join("hooks-registry.toml"),
+            "schema_version = 2\n",
+        )
+        .expect("hooks-registry.toml must be written");
+        fs::write(
+            plugins_dir.join("resolvers-registry.toml"),
+            "schema_version = 1\n",
+        )
+        .expect("resolvers-registry.toml must be written");
+
+        // Unexpected file — what check_registry_inventory must catch BEFORE the floor.
+        fs::write(plugins_dir.join("taplo.toml"), "").expect("taplo.toml must be written");
+
+        let result = run_t012_gate(root);
+
+        assert!(
+            result.is_err(),
+            "T-030 phase A (inventory wiring): run_t012_gate must return Err when \
+             taplo.toml is present in plugins/vsdd-factory/; if check_registry_inventory \
+             were removed from run_t012_gate, the hooks floor would fire instead (0 hooks); \
+             got Ok"
+        );
+
+        // The outcome identifier must be the INVENTORY error, not the floor error.
+        // This distinguishes the two call sites: inventory fires first and names the file.
+        assert!(
+            result.unwrap_err().contains("UNEXPECTED: taplo.toml"),
+            "T-030 phase A (inventory wiring): error must contain 'UNEXPECTED: taplo.toml' \
+             (inventory outcome) — if check_registry_inventory were removed, the error would \
+             be 'hooks registry declared set has only 0 entries' (floor outcome) and this \
+             assertion would FAIL"
+        );
+    }
+
+    // ---- Phase B: declared-subset wiring (git fixture) ----
+    {
+        let tmp = tempdir().expect("tempdir must create successfully");
+        let root = tmp.path();
+
+        // Initialise a git repo.
+        let status = Command::new("git")
+            .args(["init"])
+            .current_dir(root)
+            .status()
+            .expect("git init must succeed for T-030 phase B fixture");
+        assert!(status.success(), "T-030 phase B: git init failed");
+
+        Command::new("git")
+            .args(["config", "user.email", "test@example.com"])
+            .current_dir(root)
+            .status()
+            .expect("git config user.email must succeed");
+        Command::new("git")
+            .args(["config", "user.name", "Test"])
+            .current_dir(root)
+            .status()
+            .expect("git config user.name must succeed");
+
+        let plugins_dir = root.join("plugins/vsdd-factory");
+        let hook_plugins_dir = plugins_dir.join("hook-plugins");
+        fs::create_dir_all(&hook_plugins_dir).expect("hook-plugins dir must be created");
+
+        // Valid inventory: exactly the expected pair, no extra files.
+        // hooks-registry: 30 entries (all declaring h{:02}.wasm → committed below).
+        let mut hooks_content = String::from("schema_version = 2\n");
+        for i in 0..30_u32 {
+            hooks_content.push_str(&format!(
+                "[[hooks]]\nname = \"h{i:02}\"\nplugin = \"hook-plugins/h{i:02}.wasm\"\n\
+                 event = \"PreToolUse\"\ntool = \"^Bash$\"\ntimeout_ms = 5000\n\
+                 on_error = \"continue\"\n",
+            ));
+        }
+        fs::write(plugins_dir.join("hooks-registry.toml"), &hooks_content)
+            .expect("hooks-registry.toml must be written");
+
+        // resolvers-registry: 1 entry — ctx.wasm will NOT be committed (triggers MISSING).
+        fs::write(
+            plugins_dir.join("resolvers-registry.toml"),
+            "schema_version = 1\n[[resolvers]]\nname = \"ctx\"\n\
+             plugin = \"hook-plugins/ctx.wasm\"\n",
+        )
+        .expect("resolvers-registry.toml must be written");
+
+        // Commit the 30 hook WASMs but NOT ctx.wasm.
+        for i in 0..30_u32 {
+            fs::write(hook_plugins_dir.join(format!("h{i:02}.wasm")), b"wasm")
+                .expect("hook wasm fixture must be written");
+        }
+
+        let status = Command::new("git")
+            .args(["add", "."])
+            .current_dir(root)
+            .status()
+            .expect("git add must succeed for T-030 phase B fixture");
+        assert!(status.success(), "T-030 phase B: git add failed");
+
+        let status = Command::new("git")
+            .args(["commit", "-m", "T-030 phase B fixture"])
+            .current_dir(root)
+            .status()
+            .expect("git commit must succeed for T-030 phase B fixture");
+        assert!(status.success(), "T-030 phase B: git commit failed");
+
+        // Inventory passes (exact pair); hooks floor passes (30 entries);
+        // resolvers floor passes (1 entry); declared − tracked fires on ctx.wasm.
+        // If check_declared_subset_tracked were removed: run_t012_gate returns Ok →
+        // result.is_err() FAILS.
+        let result = run_t012_gate(root);
+
+        assert!(
+            result.is_err(),
+            "T-030 phase B (declared-subset wiring): run_t012_gate must return Err \
+             with MISSING: ctx.wasm when ctx.wasm is declared but not committed; \
+             if check_declared_subset_tracked were removed from run_t012_gate, \
+             run_t012_gate would return Ok and this assertion would FAIL"
+        );
+
+        assert!(
+            result.unwrap_err().contains("MISSING: ctx.wasm"),
+            "T-030 phase B D-970 Codification 1: error must contain 'MISSING: ctx.wasm'"
+        );
+    }
 }

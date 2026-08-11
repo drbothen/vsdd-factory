@@ -6,7 +6,7 @@
 # This is TOML-legal (the spec allows whitespace around `=` to be optional)
 # and was accepted by the real dispatcher (sync_plugins=1, plugins_run=1,
 # exit_code=0) but missed by the v1 parse_plugin_refs() line-scanner, which
-# required the exact literal `plugin = ` (two spaces).
+# required the exact literal `plugin = ` (one space on each side of `=`).
 #
 # Used by T-013 to prove that parse_plugin_refs() (toml-crate version) extracts
 # ghost-guard-nospace.wasm into the declared set, closing BLOCKER-1 false-negative.
