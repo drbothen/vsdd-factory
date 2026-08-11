@@ -4,16 +4,16 @@ level: ops
 version: "7.09"
 status: draft
 producer: state-manager
-timestamp: 2026-08-10T08:04:00Z
-phase: SESSION-WRAP-2026-08-10
+timestamp: 2026-08-11T01:43:28Z
+phase: S-21.09-SPEC-ELABORATION-DISPATCH
 last_amended: "2026-08-10 (v7.09) — SESSION-WRAP-2026-08-10 (state-manager): pipeline ACTIVE→PAUSED; telemetry committed; checkpoint archived + refreshed; STATE.md v7.08→v7.09. [Prior: 2026-08-10 (v7.08) — D-970-ADR-040-V1.12-RATIFICATION-BURST (state-manager): ADR-040 v1.12 RATIFIED by human 2026-08-10 per D-970; policies.yaml v1.4.22→v1.4.23 applied; Codifications 1+2 APPLIED; ARCH-INDEX v3.53→v3.54; 1 L-BB lesson appended; CI-wiring dependency chain recorded; F-001 updated (redesign RATIFIED — not yet in force); D-970 allocated; STATE.md v7.07→v7.08. [Prior: 2026-08-10 (v7.07) — D-969-ADR-040-V1.12-REDESIGN-RECORD-BURST (state-manager): ADR-040 v1.12 AMENDED + REOPENED (proposed); D-965 ratification PROCURED-ON-MISCHARACTERIZATION erratum recorded; F-001 root-cause: category error (empty domain in factory-artifacts); redesign at d2a3176a; ARCH-INDEX v3.52→v3.53; 3 L-BB lessons appended; feature/policy15-gate-rust d2a3176a added; D-969 allocated; STATE.md v7.06→v7.07. [Prior: 2026-08-10 (v7.06) — D-968-PR-774-POST-MERGE-RECORD-BURST (state-manager): PR #774 merged (62fbcf1a); develop 700b4dd3→62fbcf1a; fix/fuel-cap-raise-20m MERGED+DELETED; F-S2107-P10-007 CLOSED; F-S2107-P10-004 SHIFTED; Drift Items updated; L-BB-gate-never-invoked-is-functionally-absent appended; D-968 allocated; STATE.md v7.05→v7.06. [Prior: 2026-08-10 (v7.05) — D-967-PASS-10-CORRECTION-BURST (state-manager): orchestrator relay error in D-966 corrected; F-006 precision note attribution fixed (adapter model, not cross-site); F-S2107-P10-010 MEDIUM added; pass-10 count 9→10; trajectory-tail →20→16→8→10; L-BB-correction-same-verification-obligation appended; D-967 allocated; STATE.md v7.04→v7.05.]]]"
 inputs: []
 input-hash: "[live-state]"
 traces_to: prd.md
 project: vsdd-factory
 mode: brownfield
-pipeline: PAUSED
-current_step: "SESSION-WRAP-2026-08-10 (state-manager; human /wrap directive; parent-commit: 43337a44; D-chain cite D-970 latest brownfield; STATE.md v7.08→v7.09; pipeline ACTIVE→PAUSED; telemetry committed; checkpoint archived + refreshed; streak 0/3 UNCHANGED; trajectory-tail →20→16→8→10 UNCHANGED; 4-INDEX BC v4.55/VP v2.76/STORY v4.291/ARCH v3.54; policies.yaml v1.4.23 ACTIVE)."
+pipeline: ACTIVE
+current_step: "S-21.09-SPEC-ELABORATION-DISPATCH (orchestrator; human resume directive 2026-08-10; parent-commit: 43337a44; D-chain cite D-970 latest brownfield; pipeline PAUSED→ACTIVE; human sequencing ruling: W3 wave gate WAIVED for S-21.09 on P0 grounds, S-21.12 RETAINED ahead of S-21.09 in W4 merge order (S-21.12→S-21.09→S-21.07); story-writer elaboration pass dispatched on S-21.09 draft→ready; streak 0/3 UNCHANGED; trajectory-tail →20→16→8→10 UNCHANGED; 4-INDEX BC v4.55/VP v2.76/STORY v4.291/ARCH v3.54; policies.yaml v1.4.23 ACTIVE)."
 current_cycle: v1.0-brownfield-backfill
 dtu_required: false
 dtu_assessment: 2026-04-25
