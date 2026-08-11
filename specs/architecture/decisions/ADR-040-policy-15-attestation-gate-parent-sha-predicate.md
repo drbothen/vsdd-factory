@@ -4,9 +4,9 @@ level: L3
 adr_id: ADR-040
 version: "1.12"
 title: "ADR-040: POLICY 15 ATTESTATION-LOCATION GATE — parent-SHA predicate replaces self-referential HEAD-SHA (resolves F-S2107-P8-003 logical impossibility)"
-status: proposed
-ratified: 2026-08-09
-ratification_note: "PROCURED-ON-MISCHARACTERIZATION — D-965 ratification rested on §Decision 6's false characterisation of 5370db80 as a stability entry (F-S2107-P10-003). ADR re-opened to proposed. Human re-ratification required for v1.10 before policies.yaml v1.4.23 is applied."
+status: active
+ratified: 2026-08-10
+ratification_note: "D-965 ratification was PROCURED-ON-MISCHARACTERIZATION and remains historically invalid; v1.12 is ratified on its own merits with mutation-verified evidence per D-970. D-965 erratum preserved in §Status."
 date: 2026-08-07
 producer: architect
 timestamp: 2026-08-07T00:00:00Z

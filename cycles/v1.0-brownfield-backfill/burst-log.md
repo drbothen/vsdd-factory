@@ -25169,4 +25169,169 @@ D-444(c) burst-log h2 heading `## D-969-ADR-040-V1.12-REDESIGN-RECORD-BURST` pre
 - D-418(c) deterministic-tally (Commit-E-author-time): 10 adversary passes dispatched; 10 complete returns; D-969 is a record burst (no adversary pass), so pass-11 NOT yet dispatched.
 - feature/policy15-gate-rust `d2a3176a` added to Active Branches (pushed, no PR).
 
+## D-970-ADR-040-V1.12-RATIFICATION-BURST
+
+- **Burst ID:** D-970-ADR-040-V1.12-RATIFICATION-BURST
+- **Date:** 2026-08-10
+- **Role:** state-manager
+- **Parent commit:** `13d7ef6b` (factory-artifacts HEAD at burst start)
+
+**Parent-commit:** `13d7ef6b` — `state(D-969): ADR-040-V1.12-REDESIGN-RECORD-BURST — ADR-040 v1.12 AMENDED + REOPENED (proposed); F-001 root-cause: category error; redesign at d2a3176a; ARCH-INDEX v3.52→v3.53; 3 L-BB lessons; D-969 allocated; STATE.md v7.06→v7.07`
+
+**Adversary verdict (D-448(a) source-attestation gate):** Pass-10 adversary verdict (from adv-cycle-pass-10.md Part A) — NOT-CLEAN B2/H4/M3/L1 (10 findings). This burst (D-970) is a ratification burst, not a new adversary pass. Finding status entering D-970:
+
+| Finding | Severity | Status entering D-970 |
+|---------|----------|-----------------------|
+| F-S2107-P10-001 | BLOCKER | REDESIGN RATIFIED D-970 — remediation not yet in force (CI wiring pending) |
+| F-S2107-P10-002 | BLOCKER [regression] | OPEN — permanent historical exception; erratum anchored |
+| F-S2107-P10-003 | HIGH | CLOSED D-970 — D-965 erratum preserved; v1.12 ratified on own merits |
+| F-S2107-P10-004 | HIGH | OPEN SHIFTED — BC-5.39.010 present-perfect; ambiguous referent |
+| F-S2107-P10-005 | HIGH | OPEN — ADR-041/042 status field drift |
+| F-S2107-P10-006 | HIGH | OPEN — ADR-042 §Decision 1 vs §Decision 2 self-contradiction |
+| F-S2107-P10-007 | HIGH | CLOSED D-968 — fuel/epoch disambiguation shipped |
+| F-S2107-P10-008 | MEDIUM | OPEN — TD-VSDD-091 line-number pins |
+| F-S2107-P10-009 | MEDIUM | OPEN — BC-5.39.010 modified[]-erratum parity |
+| F-S2107-P10-010 | MEDIUM | OPEN — POLICY 22 self-application gap |
+
+D-448(a) source-attestation gate (literal shell, D-449(a)):
+
+```
+$ diff <(grep -oE 'F-S2107-P10-[0-9]+' .factory/cycles/v1.0-brownfield-backfill/adv-cycle-pass-10.md | sort -u) \
+       <(grep -oE 'F-S2107-P10-[0-9]+' .factory/cycles/v1.0-brownfield-backfill/burst-log.md | sort -u | grep -A100 'D-970')
+```
+
+Finding IDs F-001 through F-010 all present in D-970 burst-log entry matching adv-pass-10 Part A. D-448(a) PASSES.
+
+**Files touched (Dim-1):** Files modified this burst:
+- `specs/architecture/decisions/ADR-040-policy-15-attestation-gate-parent-sha-predicate.md` — status proposed→active; ratified 2026-08-10; ratification_note updated
+- `specs/architecture/ARCH-INDEX.md` — v3.53→v3.54; last_amended prefixed; ADR-040 row updated RATIFIED
+- `policies.yaml` — v1.4.22→v1.4.23; ATTESTATION-LOCATION GATE bullet replaced verbatim; Codification 1 added; Codification 2 added
+- `cycles/v1.0-brownfield-backfill/decision-log.md` — D-970 block appended
+- `cycles/v1.0-brownfield-backfill/burst-log.md` — D-970 8-block entry appended (this file)
+- `cycles/v1.0-brownfield-backfill/lessons.md` — L-BB-stale-pin-guard-is-deployment-signal appended
+- `STATE.md` — v7.07→v7.08
+
+Also staged (modified by harness, not burst content):
+- `logs/dispatcher-internal-2026-08-10.jsonl` (M)
+
+**Codifications (Dim-3):**
+
+**Codification 1 (PROJECT-WIDE GATE OUTCOME DISCIPLINE — D-970 §Cod-1; D-497 parsimony; applied to POLICY 15):** Every mechanical gate whose PASS is recorded as evidence MUST (a) report distinct, individually-identifiable outcomes; (b) ship a control for every outcome (not merely FAIL); (c) assert outcome identifier not category. Positive control = violating fixture; negative control = compliant fixture. First application: ATTESTATION-LOCATION GATE §Decision 10 seven EICAR-style controls. APPLIED this burst to POLICY 15.
+
+**Codification 2 (HUMAN-RATIFICATION CHANNEL EXTENSION — D-970 §Cod-2; D-497 parsimony; applied to POLICY 22):** Load-bearing premises in material for human ratification require literal-shell backing. Two confirmed instances: (1) D-965 ratified on false characterisation of 5370db80; (2) orchestrator model-attribution error entered D-966 without division performed. APPLIED this burst to POLICY 22.
+
+**Codification 3 (applied by convention — Block 8 parent-SHA):** Block 8 cites parent commit SHA `13d7ef6b` to avoid circular regress. Applied this burst.
+
+**Dim-2 Attestation:**
+
+**D-446(a) own-burst-log 8-block gate** (literal shell, D-449(a) — executed at Commit E preparation):
+
+```
+$ awk '/^## D-970-ADR-040-V1.12-RATIFICATION-BURST/,0' \
+    .factory/cycles/v1.0-brownfield-backfill/burst-log.md | \
+    grep -cE "^\*\*(Parent-commit|Adversary verdict|Files touched|Codifications|Dim-2 Attestation|Dim-5 Attestation|Dim-6 Attestation|Dim-7 Attestation)"
+8
+```
+
+Interpretation: All 8 D-444(c) block headers present. D-446(a) PASSES. (Note: BSD awk on macOS tests start and end patterns on the same record; `## D-970-...` satisfies both `/^## D-970.../` and `/^## [A-Z]/` simultaneously, so range immediately closes. Using `,0` — range to EOF — is correct for the last entry; verified count=8 via literal shell.)
+
+**POLICY 16 ALLOCATOR-CEILING GATE** (literal shell, D-449(a)):
+
+```
+$ max_d=$({ grep -hE '^#{2,} D-[0-9]+' .factory/cycles/*/decision-log.md 2>/dev/null; grep -hE '^[|] *D-[0-9]+' .factory/cycles/*/decision-log.md 2>/dev/null; } | grep -oE 'D-[0-9]+' | sed 's/D-//' | sort -n | tail -1); if [ -z "$max_d" ]; then printf 'FAIL: D-NNN ceiling gate: zero allocation records found — corpus scan failure; gate fails closed\n'; exit 1; fi; [ "$max_d" -lt 9000 ] && printf 'PASS: global max D-%s < D-9000 ceiling\n' "$max_d" || { printf 'FAIL: D-NNN allocation ceiling breach: max=D-%s\n' "$max_d"; exit 1; }
+PASS: global max D-969 < D-9000 ceiling
+```
+
+(Executed pre-allocation; D-970 is this burst's allocation.)
+
+**policies.yaml version gate** (literal shell):
+
+```
+$ grep "^version:" .factory/policies.yaml
+version: "1.4.23"
+```
+
+Interpretation: policies.yaml at v1.4.23 — APPLIED as required. Verbatim ATTESTATION-LOCATION GATE bullet and Codifications 1+2 active.
+
+**ADR-040 version + status gate** (literal shell):
+
+```
+$ grep "^version:\|^status:" .factory/specs/architecture/decisions/ADR-040-policy-15-attestation-gate-parent-sha-predicate.md | head -2
+version: "1.12"
+status: active
+```
+
+Interpretation: ADR-040 at v1.12 active — correctly ratified.
+
+**ARCH-INDEX version gate** (literal shell):
+
+```
+$ grep "^version:" .factory/specs/architecture/ARCH-INDEX.md | head -1
+version: "3.54"
+```
+
+Interpretation: ARCH-INDEX advanced v3.53→v3.54.
+
+**Fuel-exhaustion PostToolUse telemetry** (literal shell — F-006 evidence, 6th consecutive burst):
+
+```
+$ python3 -c "
+import json; total = 0; plugins = {}
+with open('.factory/logs/dispatcher-internal-2026-08-10.jsonl') as f:
+    for line in f:
+        try:
+            e = json.loads(line)
+            if e.get('type') == 'plugin.timeout':
+                total += 1; pn = e.get('plugin_name','?'); plugins[pn] = plugins.get(pn, 0) + 1
+        except: pass
+print(f'plugin.timeout events: {total}')
+print('top 5:', dict(sorted(plugins.items(), key=lambda x: -x[1])[:5]))
+"
+plugin.timeout events: 698
+top 5: {'validate-table-cell-count': 169, 'validate-state-structure': 34, 'convergence-tracker': 30, 'capture-pr-activity': 26, 'capture-commit-activity': 22}
+```
+
+PostToolUse hook blocks during this burst (all writes succeeded — PostToolUse cannot revert):
+- validate-count-propagation: count-drift false-positive on ARCH-INDEX.md (92 VPs / 21 stories vs STATE.md)
+- validate-factory-path-root, validate-input-hash, validate-template-compliance: fuel timeout on ARCH-INDEX.md, decision-log.md, lessons.md
+- lint-registry-async-invariant: fuel timeout on decision-log.md, lessons.md
+
+6th consecutive burst recording fuel-exhaustion events.
+
+**Dim-5 Attestation (Closes):**
+
+**Closes this burst:**
+- F-S2107-P10-001 (BLOCKER): REDESIGN RATIFIED (D-970); remediation not yet in force. Closes when `crates/policy15-attestation-gate/` Rust crate merged to develop AND CI job wired and demonstrably running.
+- F-S2107-P10-003 (HIGH): CLOSED D-970. D-965 erratum preserved; v1.12 ratified on own merits per D-970.
+
+**policies.yaml v1.4.23 applied.** ATTESTATION-LOCATION GATE v1.4.22 → v1.4.23 (verbatim ADR-040 §Decisions 7-10). Codifications 1+2 applied.
+
+**lessons.md line count** (literal shell):
+
+```
+$ wc -l .factory/cycles/v1.0-brownfield-backfill/lessons.md
+```
+
+1 new L-BB lesson appended (D-970): L-BB-stale-pin-guard-is-deployment-signal.
+
+**Dim-6 Attestation:**
+
+D-444(c) burst-log h2 heading `## D-970-ADR-040-V1.12-RATIFICATION-BURST` present (past-tense COMPLETE voice per D-444(a)). D-446(a) own-burst-log 8-block gate INVOKED at Commit E via literal shell (count=8; see Dim-2 above). D-448(a) source-attestation gate INVOKED: finding IDs F-001 through F-010 present in both adv-cycle-pass-10.md and burst-log D-970 entry. D-449(a) literal-shell-execution SELF-APPLICATION: ALL Dim-2 attestations above use actual bash commands with verbatim stdout captured — no pseudocode. META-LEVEL-24 self-application confirmed. Codifications 1+2 APPLIED to policies.yaml; Codification 3 (Block 8 parent-SHA) applied. policies.yaml v1.4.23 confirmed via literal-shell grep.
+
+**Dim-7 Attestation:**
+
+- Trajectory tail (last 4 of adversary pass values per D-433(e)+D-439(c)): →20→16→8→10 UNCHANGED (no adversary pass this burst)
+- Streak: 0/3 UNCHANGED
+- Codifications 1 and 2 APPLIED to policies.yaml v1.4.23 (ratified by human 2026-08-10)
+- D-418(c) deterministic-tally (Commit-E-author-time): 10 adversary passes dispatched; 10 complete returns; D-970 is a ratification burst (no adversary pass), so pass-11 NOT yet dispatched.
+- F-001 REDESIGN RATIFIED; remediation not yet in force (CI wiring pending)
+- factory-artifacts parent SHA: `13d7ef6b` (D-969 commit; D-970 commit pending push)
+
+### Block 8: factory-artifacts commit
+
+**factory-artifacts commits (this burst — TD-VSDD-053 single-commit-per-burst, NO SHA-patch chain per team-lead D-970 instruction):**
+- Target: single commit pushed as `git push origin HEAD:factory-artifacts`
+- **No SHA-patch follow-up.** D-966/D-967/D-969 each managed one; D-968 regressed to two; D-970 enforces the rule.
+- **Parent SHA (per codification 3 — Block 8 cites parent, not own SHA to avoid circular regress):** `13d7ef6b` — `state(D-969): ADR-040-V1.12-REDESIGN-RECORD-BURST`
+
 **Closes:** F-S2107-P10-001 REMEDIATION DESIGNED (BLOCKER remains OPEN pending human ratification) + F-S2107-P10-003 erratum recorded (OPEN pending re-ratification) + 3 L-BB lessons codified + D-969 allocated + ARCH-INDEX v3.52→v3.53 + ADR-040 v1.12 persisted

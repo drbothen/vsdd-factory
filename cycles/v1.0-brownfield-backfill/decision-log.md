@@ -15630,3 +15630,54 @@ D-969-ADR-040-V1.12-REDESIGN-RECORD-BURST
 ### Date
 
 2026-08-10
+
+---
+
+## D-970
+
+**D-970-ADR-040-V1.12-RATIFICATION-BURST** (state-manager; single-commit TD-VSDD-053 2026-08-10).
+
+**POLICY 16 GATE (pre-allocation; literal shell, D-449(a)):**
+
+```
+$ max_d=$({ grep -hE '^#{2,} D-[0-9]+' .factory/cycles/*/decision-log.md 2>/dev/null; grep -hE '^[|] *D-[0-9]+' .factory/cycles/*/decision-log.md 2>/dev/null; } | grep -oE 'D-[0-9]+' | sed 's/D-//' | sort -n | tail -1); if [ -z "$max_d" ]; then printf 'FAIL: D-NNN ceiling gate: zero allocation records found — corpus scan failure; gate fails closed\n'; exit 1; fi; [ "$max_d" -lt 9000 ] && printf 'PASS: global max D-%s < D-9000 ceiling\n' "$max_d" || { printf 'FAIL: D-NNN allocation ceiling breach: max=D-%s\n' "$max_d"; exit 1; }
+PASS: global max D-969 < D-9000 ceiling
+```
+
+**(a) POLICY 16 GATE PASS — D-970 allocated; parent-commit `13d7ef6b`.**
+
+**(b) ADR-040 v1.12 RATIFIED** by human 2026-08-10 on own merits (D-965 ratification was PROCURED-ON-MISCHARACTERIZATION and remains historically invalid). ADR-040 `status: proposed` → `status: active`. `ratified: 2026-08-10`. `ratification_note` updated. D-965 erratum preserved in §Status — NOT deleted.
+
+**(c) policies.yaml v1.4.22 → v1.4.23 applied**: ATTESTATION-LOCATION GATE bullet replaced with verbatim text from ADR-040 §Proposed policies.yaml Replacement Text (ADR-040 §Decisions 7-10). Gate now runs as required-check CI job in code repo (NOT factory-artifacts worktree); obligation unconditional + path-pinned; four-outcome verdict.
+
+**(d) Codification 1 applied** (D-497 parsimony — extension to POLICY 15): PROJECT-WIDE GATE OUTCOME DISCIPLINE — every mechanical gate whose PASS is recorded as evidence MUST (i) report distinct, individually-identifiable outcomes; (ii) ship a control for every outcome (not merely FAIL); (iii) assert outcome identifier not category. Positive control = violating fixture; negative control = compliant fixture. Added as new POLICY 15 verification_step bullet.
+
+**(e) Codification 2 applied** (D-497 parsimony — extension to POLICY 22): HUMAN-RATIFICATION CHANNEL EXTENSION — load-bearing premises in material for human ratification require literal-shell backing. Two demonstrations recorded: (1) D-965 ratified on false characterisation of 5370db80 as stability entry; (2) orchestrator model-attribution error entered D-966 without division performed. Added as new POLICY 22 verification_step bullet.
+
+**(f) DEPLOYMENT BLOCKER recorded**: `crates/hook-plugins/validate-cross-site-correspondence` does NOT exist on `origin/develop` (only on unmerged `feature/S-21.07-validate-cross-site-correspondence`). Stale-pin guard behavior is CORRECT — it reveals the obligation's subject is not yet on trunk; an unguarded gate would return PASS-zero-activations indefinitely concealing this. Dependency chain: S-21.09 → S-21.07 → wire CI job. CI job NOT wired in this burst.
+
+**(g) F-001 status updated**: redesign RATIFIED (D-970); remediation not yet in force. Closes when `crates/policy15-attestation-gate/` Rust crate merged to develop AND CI job wired and demonstrably running.
+
+**(h) ARCH-INDEX v3.53 → v3.54**: ADR-040 row updated; last_amended prefixed.
+
+**(i) 1 L-BB lesson appended**: `L-BB-stale-pin-guard-is-deployment-signal` [D-970].
+
+**(j) Fuel-exhaustion telemetry (F-006 evidence — 6th consecutive burst)**: PostToolUse hook timeouts during this burst: validate-factory-path-root (ARCH-INDEX.md); validate-input-hash (ARCH-INDEX.md); validate-template-compliance (ARCH-INDEX.md); validate-count-propagation count-drift false-positive (ARCH-INDEX.md). All writes succeeded (PostToolUse cannot revert).
+
+**(k) STATE.md v7.07 → v7.08.** streak 0/3 UNCHANGED. trajectory-tail →20→16→8→10 UNCHANGED. 4-INDEX BC v4.55/VP v2.76/STORY v4.291/ARCH v3.54. policies.yaml v1.4.23.
+
+### Agents
+
+- state-manager (D-970): ADR-040 v1.12 activated; policies.yaml v1.4.22→v1.4.23 applied; ARCH-INDEX v3.53→v3.54; 1 L-BB lesson appended; D-970 block persisted; burst-log D-970 8-block appended; STATE.md v7.07→v7.08; POLICY 16 gate run with literal shell captured stdout
+
+### 4-INDEX
+
+BC-INDEX v4.55 (UNCHANGED) / VP-INDEX v2.76 (UNCHANGED) / STORY-INDEX v4.291 (UNCHANGED) / ARCH-INDEX v3.54
+
+### Phase
+
+D-970-ADR-040-V1.12-RATIFICATION-BURST
+
+### Date
+
+2026-08-10

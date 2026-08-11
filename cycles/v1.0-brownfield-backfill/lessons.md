@@ -10645,3 +10645,17 @@ D-442(e) recorded the same class of defect for lessons.md (≤3,500 soft / ≤4,
 **Closes:** D-969 (lesson recorded)
 
 **Cites:** D-969 (codified this burst); ADR-040 v1.12 §Consequence "Mutation-testing acceptance criterion"; [[L-BB-adr-executable-content-manual-extraction-only]]; [[L-BB-vacuous-antecedent-empty-domain]]. `[implementation; mutation-testing; coarse-assertion; variant-specific; gate; guard; GateOutcome; D-969; codified]`
+
+## L-BB-stale-pin-guard-is-deployment-signal [process-gap] [D-970]
+
+**Category:** process-gap — deployment-signal vs defect confusion
+
+**Title:** A Gate Correctly Refusing to Run Is a Deployment Signal, Not a Defect — The Stale-Pin Guard Makes Unmerged Dependencies Auditable
+
+**Lesson:** When the POLICY 15 ATTESTATION-LOCATION GATE ran against `origin/develop` (which lacks `crates/hook-plugins/validate-cross-site-correspondence`), it returned `EMPTY-or-UNREACHABLE (exit 2, stale pin — crate renamed or moved)` and refused to evaluate. This is the CORRECT behavior. An unguarded gate would have silently returned `PASS-zero-activations` indefinitely, concealing that no crate content had ever been evaluated. The stale-pin guard made the deployment dependency chain explicit: S-21.09 → S-21.07 → wire CI job. Without the guard, the CI job would report GREEN on every push to develop until S-21.07 was merged — at which point the gate would become active and might immediately FAIL on backdated commits. Recording this refusal as a "deployment blocker" (the CI job cannot be wired before its subject exists on trunk) is the correct classification. Recording it as a "gate defect" would be wrong. The lesson: a guard that correctly detects "my subject does not exist here" and refuses to run is evidence of correct design. The remediation is to complete the dependency chain (merge the crate to trunk), not to bypass or weaken the guard.
+
+**Anchors:** D-970; ADR-040 v1.12; policies.yaml v1.4.23; crates/hook-plugins/validate-cross-site-correspondence; EMPTY-or-UNREACHABLE; stale-pin guard; S-21.09; S-21.07.
+
+**Closes:** D-970 (lesson recorded)
+
+**Cites:** D-970 (codified this burst); ADR-040 v1.12 §Decision 8 (stale-pin guard); [[L-BB-vacuous-antecedent-empty-domain]]; [[L-BB-gate-never-invoked-is-functionally-absent]]. `[process-gap; stale-pin; deployment-signal; dependency-chain; gate-refuses-correctly; EMPTY-or-UNREACHABLE; D-970; codified]`
