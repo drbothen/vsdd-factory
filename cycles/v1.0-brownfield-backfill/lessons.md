@@ -10813,3 +10813,17 @@ D-442(e) recorded the same class of defect for lessons.md (≤3,500 soft / ≤4,
 **Closes:** D-972 (lesson recorded)
 
 **Cites:** D-972 (codified this burst); [[L-BB-recorded-magnitude-drift-pts]]; [[L-BB-context-loss-reverts-to-false-premise]]. `[process-gap; estimate-volatility; scope-signal; story-writer; scope-locking; D-972; codified]`
+
+## L-BB-relay-merges-composite-facts [process-gap]
+
+**Category:** process-gap
+
+**Title:** Orchestrator Relay Corrupts Composite Factual Claims Across Two Agent Hops — Relay Composite Facts As Separate Enumerated Statements With Verifying Commands
+
+**Lesson:** Session evidence 2026-08-11: the human gave the orchestrator two accurate, distinct facts — (1) `plugins/vsdd-factory/config/` exists holding `artifact-path-registry.yaml`, and (2) nine `.toml` files sit under subdirectories with three named `hooks-registry.toml`. The orchestrator relayed both facts to the test-writer in a single composite claim. Test-writer merged them into "config/ holds three hooks-registry.toml files" — combining fact-1's location with fact-2's count and noun. Both the location and the count were wrong in the merged form; neither error was flagged by test-writer because the composite claim sounded plausible. **Root cause:** Composite factual claims (A at location X, B with count N) merge by proximity when relayed as natural-language prose. The receiver has no way to distinguish "three hooks-registry.toml files" (wrong merge) from "three hooks-registry.toml files" (hypothetically correct) without re-verifying. **Mitigation:** When relaying composite facts across an agent hop, separate them into explicitly enumerated statements: (1) "plugins/vsdd-factory/config/ contains artifact-path-registry.yaml — verify: `ls plugins/vsdd-factory/config/`" and (2) "nine .toml files exist under subdirectories, three named hooks-registry.toml — verify: `find plugins/vsdd-factory -name '*.toml' | wc -l` + `find plugins/vsdd-factory -name 'hooks-registry.toml' | wc -l`". The verifying command is the anti-merge: it cannot be satisfied by a wrong merge because it would produce a different output. `[process-gap; relay; composite-facts; enumeration; verifying-commands; agent-hop]`
+
+**Anchors:** 2026-08-11 relay incident; config/ fact + .toml count fact; test-writer merge error; plugins/vsdd-factory/config/artifact-path-registry.yaml.
+
+**Closes:** LOG-DELETION-RECURRENCE-4 telemetry commit (lesson recorded)
+
+**Cites:** [[L-BB-context-loss-reverts-to-false-premise]]; [[L-BB-false-spec-claim-propagation]]. `[process-gap; relay; multi-hop; composite-facts; verifying-command; anti-merge; codified]`
