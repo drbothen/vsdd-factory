@@ -6,6 +6,10 @@
      ### Fixed. Drained into the next `## <version>` section at release time
      (RELEASING.md Step 2). Keep this heading in place and empty after a drain. -->
 
+### Fixed
+
+- **S-21.09 — WASM artifact restore + registry parity gate** (BC-4.16.001, PR pending): Commits `validate-factory-path-staging.wasm` to `plugins/vsdd-factory/hook-plugins/` via `git add -f` (directory is gitignored; consistent with the `validate-heavy-op-delegation.wasm` precedent at `a85e6e05`). Adds T-012 to `crates/factory-dispatcher/tests/bundle_orphan_check.rs`: asserts every WASM declared in either registry is also tracked in git (declared-set ⊆ tracked-set, the inverse direction of the existing T-009 standing gate). Post-fix: declared count = tracked count = 36; `declared − tracked` = empty.
+
 ## 1.0.0-rc.23 — E-19 operator hardening — host ABI fixes + read_prefix FFI (2026-07-18)
 
 Ships the complete E-19 post-rc.22 operator-hardening epic (9 stories, 55 story points, 3 waves): pr-manager stale-verdict pinning and merge-strategy enforcement, `verify-factory-lock` and `verify-state-timestamp-refresh` 256 KiB cap raise, `read_file NOT_FOUND(-5)` host ABI constant and `file_not_found` telemetry, registry and bundle hygiene, async plugin completion telemetry with `VSDD_SINK_FILE` release-mode opt-in, the new `host::read_prefix` bounded partial-read FFI entry point, Phase-B migration of `verify-factory-lock` to `read_prefix`, and four CRITICAL host ABI production-path gap fixes (D19–D22). All 5 platform dispatcher binaries (darwin-arm64, darwin-x86_64, linux-x86_64, linux-musl, windows-x86_64) are rebuilt from source this release, closing the rc.22-era stale-binary gap where linux/windows binaries pre-dated the S-19.06 hook-sdk changes.
