@@ -19,7 +19,7 @@
 //! | T-009 | AC-006   | GREEN†   | Hermetic real-bundle gate: enumerates GIT-TRACKED set (`git ls-files`) against both real registries; asserts zero tracked orphans (EAC-005 standing regression gate) |
 //! | T-010 | AC-007   | GREEN    | Bundle-simulation: stages fixture with underscore-named WASMs through `stage_release_bundle`; asserts staged artifact has zero orphans per real registries and proves underscore-glob semantics (RED at 298389b0 via todo!(); GREEN since d9502701) |
 //! | T-011 | AC-007   | GREEN    | POLICY 20 defense proof: read-prefix-fixture.wasm (hyphen-named) passes the *_*.wasm staging glob and is an orphan per both registries; proves `--exclude read-prefix-fixture` in release.yml is the governing defense (S-19.06) |
-//! | T-012 | AC-006 S-21.09 | RED†† | Declared-set ⊆ tracked-set gate via `check_declared_subset_tracked()`; step 1: registry inventory; step 2: per-registry floors (hooks ≥ 30, resolvers ≥ 1); step 3: declared − tracked = ∅; step 4: no STAGED-NOT-COMMITTED |
+//! | T-012 | AC-006 S-21.09 | GREEN (Red-Gate-by-design) | Declared-set ⊆ tracked-set gate via `check_declared_subset_tracked()`; step 1: registry inventory; step 2: per-registry floors (hooks ≥ 30, resolvers ≥ 1); step 3: declared − tracked = ∅; step 4: no STAGED-NOT-COMMITTED |
 //! | T-013 | AC-006 S-21.09 | GREEN | BLOCKER-1 nospace control: `plugin="hook-plugins/ghost-guard-nospace.wasm"` (no spaces around =) is parsed as declared by toml-crate parser; proves false-negative gap closed |
 //! | T-014 | AC-006 S-21.09 | GREEN | BLOCKER-1 dotslash control: `plugin = "./hook-plugins/ghost-guard-dotslash.wasm"` (leading ./) is parsed as declared by toml-crate parser after ./ normalization |
 //! | T-015 | AC-006 S-21.09 | GREEN | Declared-but-untracked: calls `check_declared_subset_tracked()` with synthetic fixtures (30 hooks + 1 resolver, missing one); asserts "MISSING: hooks-only.wasm" identifier |
@@ -32,12 +32,14 @@
 //! | T-022 | AC-006 S-21.09 | GREEN | Resolvers floor control: calls `check_declared_subset_tracked()` with empty resolvers; `#[should_panic]` locks "T-012: resolvers registry declared set is empty" |
 //! | T-023 | AC-006 S-21.09 | GREEN | MEDIUM-1 boundary polarity (corrected pass 4): bare plugin path `ghost-bare.wasm` (no `hook-plugins` component after normalization) → excluded from declared; traversal/absolute forms now INCLUDED via lexical normalisation |
 //! | T-024 | AC-006 S-21.09 | GREEN | BLOCKER-2 underscore mutant: `metrics_registry.toml` (underscore, previously missed by `-registry.toml` filter) caught by fail-closed `*.toml` inventory → "UNEXPECTED: metrics_registry.toml" |
-//! | T-025 | AC-006 S-21.09 | GREEN | F-1 traversal control: `plugin = "hooks/../hook-plugins/ghost-traversal.wasm"` is parsed as declared after lexical normalisation (resolves `..`) |
-//! | T-026 | AC-006 S-21.09 | GREEN | F-1 absolute-form control: `plugin = "/abs/hook-plugins/ghost-absolute.wasm"` is parsed as declared after root-clearing normalisation |
+//! | T-025 | AC-006 S-21.09 | GREEN | F-1 traversal control: `plugin = "hooks/../hook-plugins/ghost-traversal.wasm"` is parsed as declared (resolves `..` relative to registry parent, lands inside `hook-plugins/`) |
+//! | T-026 | AC-006 S-21.09 | GREEN | MEDIUM-2 (revised): absolute-form plugin `/abs/hook-plugins/ghost-absolute.wasm` is EXCLUDED — production passes absolute paths unchanged; artifact lives outside repo |
 //! | T-027 | AC-006 S-21.09 | GREEN | F-2 floor boundary (29 fires): 29-entry hooks set fires hooks floor — `#[should_panic]` locks "T-012: hooks registry declared set has only 29 entries"; pins the threshold so mutating `< 30` to `< 2` is caught |
-//! | T-028 | AC-006 S-21.09 | GREEN | F-3a narrowing proof (non-recursive): subdirectory `config/hooks-registry.toml` is invisible to `fs::read_dir`; documents intentional non-recursive scope |
-//! | T-029 | AC-006 S-21.09 | GREEN | F-3b narrowing proof (case-sensitive): `metrics-registry.TOML` (uppercase) is invisible to `.ends_with(".toml")`; documents intentional case-sensitive scope |
+//! | T-028 | AC-006 S-21.09 | GREEN | F-3a narrowing proof (non-recursive, SAFE): subdirectory `config/hooks-registry.toml` invisible to `fs::read_dir`; safe because production only loads top-level registries |
+//! | T-029 | AC-006 S-21.09 | GREEN | F-3b narrowing proof (case-sensitive): `metrics-registry.TOML` (uppercase) invisible to `.ends_with(".toml")`; safe because production loads lowercase-named registries |
 //! | T-030 | AC-006 S-21.09 | GREEN | F-9 wiring control: `run_t012_gate` integrates both `check_registry_inventory` (phase A) and `check_declared_subset_tracked` (phase B via git fixture); removing either call breaks a phase |
+//! | T-031 | AC-006 S-21.09 | GREEN | MEDIUM-4(a) case-variant control: `plugin = "Hook-Plugins/foo.wasm"` is parsed as declared (case-insensitive `hook-plugins` component match) |
+//! | T-032 | AC-006 S-21.09 | GREEN | MEDIUM-1 nested-subdir control: `plugin = "hook-plugins/sub/nested.wasm"` yields `nested.wasm` (last component); proves non-flat declarations are not silently mis-named |
 //!
 //! † T-009 is a STANDING GREEN GATE — passes immediately on any clean checkout where no
 //! orphan WASMs are tracked in git, and remains green on contaminated worktrees because
@@ -46,12 +48,12 @@
 //! †† T-012 is a RED GATE at design time — before the S-21.09 AC-001 fix committed
 //! `validate-factory-path-staging.wasm`, `declared − tracked` was non-empty and the test
 //! failed; after the artifact was committed, `declared − tracked` became empty and the test
-//! turned GREEN. The `RED††` status in the table documents the test's designed-as-Red-Gate
-//! role; current run state is GREEN.
+//! turned GREEN. The `GREEN (Red-Gate-by-design)` status documents the test's
+//! designed-as-Red-Gate role while making the current GREEN run state unambiguous.
 //!
 //! ## Hermetic Design for T-009
 //!
-//! `plugins/vsdd-factory/hook-plugins/` is listed in `.gitignore` (~L64). Running
+//! `plugins/vsdd-factory/hook-plugins/` is listed in `.gitignore`. Running
 //! `cargo build --target wasm32-wasip1 --workspace` deposits underscore-named lib-target
 //! stub WASMs there as untracked files. A raw `fs::read_dir` enumeration would find
 //! these build artifacts and false-fail the orphan assertion on any post-build dev machine,
@@ -104,7 +106,7 @@
 //! Embedded at compile time via `include_str!()` — the .toml files are the single source
 //! of truth; edits must be made there, not to the constants.
 //!
-//! Stories: S-19.04 (T-006..T-011), S-21.09 (T-012..T-030)
+//! Stories: S-19.04 (T-006..T-011), S-21.09 (T-012..T-032)
 //! VP Trace: — (AC-006 wires EAC-005 as load-bearing leg; no BC mapping)
 
 use std::collections::HashSet;
@@ -151,62 +153,116 @@ const HOOKS_REGISTRY_DOTSLASH_FIXTURE: &str =
 // Detection helpers
 // ---------------------------------------------------------------------------
 
-/// Lexically normalise `plugin_path` and return the bare WASM filename if the
-/// normalised path has `hook-plugins` as a component.
+/// Resolve `plugin_path` relative to the registry file's parent directory and
+/// return the bare WASM filename if the result lands inside the sibling
+/// `hook-plugins/` directory.
 ///
-/// Handles four forms accepted by the production dispatcher's `resolve_plugin_paths()`:
+/// This function mirrors the production dispatcher's `resolve_plugin_paths()` semantics:
+/// relative paths are joined to the registry parent directory; absolute paths replace the
+/// base entirely (Rust `Path::join` / POSIX resolution — confirmed by
+/// `resolve_plugin_paths_is_idempotent_for_absolute_paths` in `registry.rs` tests).
+/// After joining, the path is lexically normalised (`..` pops, `.` skips, root prefix
+/// clears the accumulator), and the result is checked for a `hook-plugins` component
+/// case-insensitively immediately after the registry-parent prefix.
 ///
-/// | Input form | Example | After normalization | Result |
-/// |-----------|---------|---------------------|--------|
-/// | Standard | `hook-plugins/foo.wasm` | `[hook-plugins, foo.wasm]` | `foo.wasm` |
-/// | Leading `./` | `./hook-plugins/foo.wasm` | `[hook-plugins, foo.wasm]` | `foo.wasm` |
-/// | Traversal | `hooks/../hook-plugins/foo.wasm` | `[hook-plugins, foo.wasm]` | `foo.wasm` |
-/// | Absolute | `/abs/hook-plugins/foo.wasm` | `[abs, hook-plugins, foo.wasm]` | `foo.wasm` |
-/// | Bare | `foo.wasm` | `[foo.wasm]` | `None` |
+/// | Input form | Resolution | Result |
+/// |-----------|------------|--------|
+/// | Standard | `registry_parent/hook-plugins/foo.wasm` | `foo.wasm` |
+/// | Leading `./` | `registry_parent/hook-plugins/foo.wasm` | `foo.wasm` |
+/// | Traversal (into hook-plugins) | `registry_parent/hook-plugins/foo.wasm` | `foo.wasm` |
+/// | Case variant | `registry_parent/Hook-Plugins/foo.wasm` | `foo.wasm` |
+/// | Nested subdir | `registry_parent/hook-plugins/sub/nested.wasm` | `nested.wasm` |
+/// | Absolute path | `/abs/hook-plugins/foo.wasm` (stays absolute, ≠ registry_parent) | `None` |
+/// | Traversal (cancels hook-plugins) | `registry_parent/ghost.wasm` | `None` |
+/// | `../` prefix | `parent(registry_parent)/hook-plugins/foo.wasm` | `None` |
+/// | Bare | `registry_parent/ghost-bare.wasm` | `None` |
 ///
-/// Normalisation algorithm: walk `Path::components()`, push `Normal` components,
-/// pop on `ParentDir` (`..`), skip `CurDir` (`.`), clear on `RootDir`/`Prefix`
-/// (absolute path prefix — treat remainder as relative after root, making absolute
-/// paths portable for the purposes of declared-set membership).
+/// **Why absolute paths are excluded:** production's `resolve_plugin_paths()` passes
+/// absolute plugin paths through unchanged, so they load from outside the repo.
+/// Including them in `declared` would demand git-tracking for a file that lives
+/// outside the repository — a false-positive MISSING outcome.  Excluding them is
+/// consistent with the gate's scope (artifacts under `plugins/vsdd-factory/hook-plugins/`).
 ///
-/// Returns `None` when no `hook-plugins` component appears after normalisation.
-/// This is the correct boundary: the S-21.09 defect class is artifacts declared at
-/// `hook-plugins/<name>` that are absent from the git index, and the gate's scope
-/// is `hook-plugins/`-scoped artifacts by design. Bare names (e.g., `foo.wasm`) and
-/// paths resolving outside `hook-plugins/` are not in the gitignored artifact dir
-/// and are therefore outside the gate's scope.
+/// **Case-insensitive `hook-plugins` match:** on macOS's case-insensitive default
+/// filesystem, `Hook-Plugins/x.wasm` and `hook-plugins/x.wasm` are the same directory.
+/// Using `eq_ignore_ascii_case` prevents a case-variant declaration from silently
+/// escaping the declared-set gate (MEDIUM-4(a)).
 ///
-/// See T-025 (traversal proof) and T-026 (absolute-path proof) for boundary polarity.
-fn extract_hook_plugin_name(plugin_path: &str) -> Option<String> {
+/// **Last component as filename:** `joined_parts.last()` is returned rather than
+/// `joined_parts[hook-plugins_pos + 1]`.  For nested declarations
+/// (`hook-plugins/sub/nested.wasm`), `pos + 1` would yield `sub` — not the artifact
+/// filename — causing a false MISSING identifier (MEDIUM-1).  `git ls-files` is
+/// recursive, so the tracked-set contains filenames; using `last()` keeps parity.
+///
+/// See T-025 (traversal-into proof), T-026 (absolute exclusion), T-023 (traversal-
+/// cancels + bare exclusion), T-031 (case-variant), T-032 (nested-subdir).
+fn extract_hook_plugin_name(registry_path: &Path, plugin_path: &str) -> Option<String> {
     use std::path::Component;
-    let mut normalized: Vec<String> = Vec::new();
-    for comp in Path::new(plugin_path).components() {
-        match comp {
-            Component::Normal(c) => {
-                if let Some(s) = c.to_str() {
-                    normalized.push(s.to_owned());
+
+    // Lexically normalise `path`: resolve `..` (pop), skip `.`, clear on root prefix.
+    fn lex_norm(path: &Path) -> Vec<String> {
+        let mut parts: Vec<String> = Vec::new();
+        for comp in path.components() {
+            match comp {
+                Component::Normal(c) => {
+                    if let Some(s) = c.to_str() {
+                        parts.push(s.to_owned());
+                    }
+                }
+                Component::ParentDir => {
+                    parts.pop();
+                }
+                Component::CurDir => {}
+                Component::RootDir | Component::Prefix(_) => {
+                    parts.clear();
                 }
             }
-            Component::ParentDir => {
-                normalized.pop();
-            }
-            Component::CurDir => {}
-            Component::RootDir | Component::Prefix(_) => {
-                // Absolute path prefix: clear accumulated components and treat
-                // the remainder as relative.  This makes `/abs/hook-plugins/foo.wasm`
-                // normalise to `[abs, hook-plugins, foo.wasm]` so the hook-plugins
-                // component is still detectable.
-                normalized.clear();
-            }
+        }
+        parts
+    }
+
+    let registry_parent = registry_path.parent()?;
+
+    // Join registry_parent with plugin_path.
+    // If plugin_path is absolute, Rust's Path::join replaces the base entirely —
+    // matching POSIX resolution semantics and the production dispatcher's
+    // resolve_plugin_paths() behaviour (absolute paths pass through unchanged).
+    let joined = registry_parent.join(plugin_path);
+
+    let joined_parts = lex_norm(&joined);
+    let parent_parts = lex_norm(registry_parent);
+
+    // The resolved path must land at registry_parent/hook-plugins/<...>/filename:
+    //   joined_parts == [parent_parts..., "hook-plugins" (case-insensitive), ..., filename]
+    // Minimum length: parent_parts.len() + 2 (hook-plugins component + at least one filename).
+    let expected_depth = parent_parts.len();
+    if joined_parts.len() < expected_depth + 2 {
+        return None;
+    }
+
+    // Verify the registry_parent prefix matches exactly.
+    for (i, p) in parent_parts.iter().enumerate() {
+        if joined_parts.get(i)? != p {
+            return None;
         }
     }
-    // Find "hook-plugins" as a component and return the immediately following
-    // component (the filename directly under hook-plugins/).
-    let pos = normalized.iter().position(|c| c == "hook-plugins")?;
-    normalized.get(pos + 1).cloned()
+
+    // Verify the component immediately after registry_parent is `hook-plugins`.
+    // Case-insensitive: handles `Hook-Plugins/x.wasm` on macOS case-insensitive FS.
+    let hook_comp = joined_parts.get(expected_depth)?;
+    if !hook_comp.eq_ignore_ascii_case("hook-plugins") {
+        return None;
+    }
+
+    // Return the LAST component (the filename).
+    // For flat declarations (`hook-plugins/foo.wasm`) this is `foo.wasm`.
+    // For nested declarations (`hook-plugins/sub/nested.wasm`) this is `nested.wasm`,
+    // matching `git ls-files` basename output (git ls-files is recursive).
+    joined_parts.last().cloned()
 }
 
-/// Parse all `plugin = "hook-plugins/<name>"` references from a TOML registry file.
+/// Parse all `plugin = "hook-plugins/<name>"` references from a TOML registry file,
+/// resolving each plugin path relative to the registry file's parent directory.
 ///
 /// Uses the `toml` crate (the same parser the dispatcher uses via `registry.rs`) so that
 /// any TOML-legal spelling of the `plugin` key is handled identically to production:
@@ -214,8 +270,8 @@ fn extract_hook_plugin_name(plugin_path: &str) -> Option<String> {
 /// - `plugin = "hook-plugins/foo.wasm"` — standard form
 /// - `plugin="hook-plugins/foo.wasm"` — no spaces around `=` (TOML-legal; missed by v1)
 /// - `plugin = "./hook-plugins/foo.wasm"` — leading `./` (TOML-legal; missed by v1)
-/// - `plugin = "hooks/../hook-plugins/foo.wasm"` — traversal form (missed by v2; F-1)
-/// - `plugin = "/abs/hook-plugins/foo.wasm"` — absolute form (missed by v2; F-1)
+/// - `plugin = "hooks/../hook-plugins/foo.wasm"` — traversal into hook-plugins (F-1; T-025)
+/// - `plugin = "/abs/hook-plugins/foo.wasm"` — absolute path, excluded (MEDIUM-2; T-026)
 /// - `plugin = 'hook-plugins/foo.wasm'` — single-quoted TOML string
 ///
 /// Works for both `hooks-registry.toml` (`[[hooks]]` array) and
@@ -229,9 +285,13 @@ fn extract_hook_plugin_name(plugin_path: &str) -> Option<String> {
 /// safe.) Replaced in S-21.09 adversary pass 1 (BLOCKER-1 closure).
 ///
 /// The v2 implementation used `trim_start_matches("./").strip_prefix("hook-plugins/")`,
-/// which missed traversal forms (`hooks/../hook-plugins/foo`) and absolute forms
-/// (`/abs/hook-plugins/foo`). Replaced in S-21.09 adversary pass 4 (F-1 closure)
-/// by component-based lexical normalisation via `extract_hook_plugin_name()`.
+/// which missed traversal forms (`hooks/../hook-plugins/foo`). Replaced in pass 4 (F-1).
+///
+/// The v3 (pass-4) implementation used a root-clearing lexical normalisation on the raw
+/// plugin path, which incorrectly included absolute paths and returned only the component
+/// immediately after `hook-plugins` (incorrect for nested subdirs). Replaced in pass 5
+/// (MEDIUM-1/MEDIUM-2/MEDIUM-4(a)) by `extract_hook_plugin_name(registry, plugin_path)`
+/// which resolves relative to the registry parent and uses `last()` as the filename.
 fn parse_plugin_refs(registry: &Path) -> HashSet<String> {
     let content = fs::read_to_string(registry)
         .unwrap_or_else(|e| panic!("failed to read registry {}: {}", registry.display(), e));
@@ -252,11 +312,12 @@ fn parse_plugin_refs(registry: &Path) -> HashSet<String> {
         if let Some(toml::Value::Array(entries)) = doc.get(*section_name) {
             for entry in entries {
                 if let Some(toml::Value::String(plugin_path)) = entry.get("plugin") {
-                    // Lexically normalise the path (resolves `..`, `.`, and absolute
-                    // prefixes) then extract the filename if `hook-plugins` is a
-                    // component.  See `extract_hook_plugin_name()` for the full
-                    // normalisation table and boundary-polarity record.
-                    if let Some(name) = extract_hook_plugin_name(plugin_path) {
+                    // Resolve plugin_path relative to the registry file's parent
+                    // directory; include it only if the result lands inside the
+                    // sibling hook-plugins/ directory.  Absolute paths are excluded
+                    // (they don't resolve to hook-plugins/ relative to registry_parent).
+                    // See `extract_hook_plugin_name()` for the full resolution table.
+                    if let Some(name) = extract_hook_plugin_name(registry, plugin_path) {
                         refs.insert(name);
                     }
                 }
@@ -297,18 +358,41 @@ fn parse_plugin_refs(registry: &Path) -> HashSet<String> {
 /// ## Narrowing: non-recursive (`fs::read_dir`)
 ///
 /// `fs::read_dir` is non-recursive; only top-level `.toml` files in
-/// `plugins_vsdd_factory_dir` are enumerated.  This is intentional: the
-/// `plugins/vsdd-factory/config/` subdirectory holds pipeline-artifact `.toml`
-/// files (e.g., `artifact-path-registry.yaml`, pipeline configs) that are NOT
-/// plugin registries.  Three of those subdirectory files are named
-/// `hooks-registry.toml`; a recursive walk would misclassify them as UNEXPECTED.
-/// The intentional scope is: plugin registries live at the top level; pipeline
-/// artifacts live in subdirectories.
+/// `plugins_vsdd_factory_dir` are enumerated.  This is intentional and PROVABLY SAFE:
+/// the production dispatcher resolves registries exclusively at the plugin root level —
+/// `${CLAUDE_PLUGIN_ROOT}/hooks-registry.toml` and
+/// `${CLAUDE_PLUGIN_ROOT}/resolvers-registry.toml` (see `resolve_registry_path()` in
+/// `main.rs` and `resolve_plugin_paths()` in `registry.rs`).  A registry placed under a
+/// subdirectory is never loaded by production; its declared artifacts are architecturally
+/// inert and never required to be git-tracked.
 ///
-/// Boundary-polarity proof: T-028 shows that `config/hooks-registry.toml` is
-/// invisible to the non-recursive enumeration.  The false-negative class is
-/// a registry added under a subdirectory — prevented by convention, not by this
-/// gate.
+/// Subdirectory `.toml` files do exist in the workspace.  As of S-21.09 (grounded by
+/// literal `find` output):
+///
+/// ```text
+/// $ find plugins/vsdd-factory -mindepth 2 -name '*.toml'
+/// plugins/vsdd-factory/fixtures/smoke-project/Cargo.toml
+/// plugins/vsdd-factory/tests/fixtures/registry-tool-filter/anchored.toml
+/// plugins/vsdd-factory/tests/fixtures/registry-tool-filter/comment-inject.toml
+/// plugins/vsdd-factory/tests/fixtures/registry-tool-filter/intent-comment.toml
+/// plugins/vsdd-factory/tests/fixtures/registry-tool-filter/prefix-only-anchor.toml
+/// plugins/vsdd-factory/tests/fixtures/registry-tool-filter/unanchored.toml
+/// plugins/vsdd-factory/tests/fixtures/validate-policies-schema/fail-nonexistent-plugin/hooks-registry.toml
+/// plugins/vsdd-factory/tests/fixtures/validate-policies-schema/pass-namespaced-lint-hook/hooks-registry.toml
+/// plugins/vsdd-factory/tests/fixtures/validate-policies-schema/pass-valid-lint-hook/hooks-registry.toml
+/// $ find plugins/vsdd-factory -mindepth 1 -maxdepth 1 -name '*.toml'
+/// plugins/vsdd-factory/hooks-registry.toml
+/// plugins/vsdd-factory/resolvers-registry.toml
+/// ```
+///
+/// `plugins/vsdd-factory/config/` holds `artifact-path-registry.yaml` (a YAML file —
+/// no `.toml` files).  The three `hooks-registry.toml` files visible to a recursive walk
+/// are test fixtures under `tests/fixtures/`, not production registries.
+///
+/// Boundary-polarity proof: T-028 shows that `config/hooks-registry.toml` (a subdirectory
+/// file) is invisible to the non-recursive enumeration.  The false-negative class (a new
+/// plugin registry placed in a subdirectory) is SAFE: production never loads it, so its
+/// artifacts are never executed and never require git tracking — no security gap exists.
 ///
 /// ## Narrowing: case-sensitive extension filter
 ///
@@ -666,7 +750,7 @@ fn workspace_root() -> PathBuf {
 ///
 /// # Hermetic contract
 ///
-/// `plugins/vsdd-factory/hook-plugins/` is gitignored (.gitignore ~L64). Local cargo
+/// `plugins/vsdd-factory/hook-plugins/` is gitignored. Local cargo
 /// builds deposit underscore-named lib-target stub WASMs there as untracked files.
 /// Using `git ls-files` instead of `fs::read_dir` ensures only the committed, versioned
 /// set is examined — identical to what `release.yml` stages from a clean `git checkout`.
@@ -719,6 +803,7 @@ fn git_committed_wasm_names(root: &Path) -> Vec<String> {
         .args([
             "ls-tree",
             "--name-only",
+            "-r",
             "HEAD",
             "plugins/vsdd-factory/hook-plugins/",
         ])
@@ -1335,8 +1420,9 @@ fn test_S_21_09_ac006_T013_nospace_eq_sign_form_is_parsed_as_declared() {
 // match production behavior.
 //
 // This test proves extract_hook_plugin_name() normalises the leading `./`
-// (CurDir component → skipped) so that `parse_plugin_refs()` on the dotslash fixture
-// MUST return a set containing "ghost-guard-dotslash.wasm".
+// (CurDir component → no-op in lex_norm) by resolving the path relative to the
+// registry parent so that `parse_plugin_refs()` on the dotslash fixture MUST return
+// a set containing "ghost-guard-dotslash.wasm".
 //
 // Story: S-21.09
 // ---------------------------------------------------------------------------
@@ -1354,8 +1440,8 @@ fn test_S_21_09_ac006_T014_dotslash_prefix_form_is_parsed_as_declared() {
         "T-014 BLOCKER-1: parse_plugin_refs() must extract 'ghost-guard-dotslash.wasm' \
          from a registry using the leading-dotslash form \
          (plugin = \"./hook-plugins/ghost-guard-dotslash.wasm\") — \
-         the toml-crate version normalises './' via trim_start_matches(\"./\") before \
-         checking for the hook-plugins/ prefix; \
+         extract_hook_plugin_name() resolves the path relative to the registry parent, \
+         so CurDir ('.') is a no-op and the path lands at registry_parent/hook-plugins/...; \
          got refs: {:?}",
         refs
     );
@@ -1364,14 +1450,13 @@ fn test_S_21_09_ac006_T014_dotslash_prefix_form_is_parsed_as_declared() {
 // ---------------------------------------------------------------------------
 // T-015 — Declared-but-untracked fixture control: outcome identifier confirmed
 //
-// Positive control for the declared − tracked detection arm.  Uses the existing
-// hooks-registry and resolvers-registry fixtures (which declare hooks-only.wasm
-// and resolvers-only.wasm respectively), paired with a SYNTHETIC EMPTY tracked set
-// (simulating the state before any `git add -f` has been run).
+// Positive control for the declared − tracked detection arm.  Uses SYNTHETIC fixtures:
+// 29 filler hooks + "hooks-only.wasm" (30 total, passes hooks floor), plus one resolver.
+// The tracked set contains the 29 fillers and the resolver but NOT "hooks-only.wasm",
+// simulating the pre-`git add -f` state where that artifact was never committed.
 //
-// Because the tracked set is empty, every declared artifact is in the missing set.
 // The test verifies:
-//   (a) "hooks-only.wasm" appears in the missing set.
+//   (a) "hooks-only.wasm" is absent from tracked → declared − tracked is non-empty.
 //   (b) The MISSING: <name> failure-message format produces "MISSING: hooks-only.wasm".
 //
 // Per D-970 Codification 1: the outcome identifier string must appear verbatim in
@@ -1428,14 +1513,14 @@ fn test_S_21_09_ac006_T015_declared_but_untracked_arm_names_artifact() {
 // ---------------------------------------------------------------------------
 // T-016 — PASS arm fixture control: empty diff when all declared are tracked
 //
-// Negative control for the declared − tracked direction.  Uses the existing
-// fixtures (which declare hooks-only.wasm and resolvers-only.wasm), paired with
-// a SYNTHETIC TRACKED SET equal to the declared set — simulating the post-fix
-// state where every declared artifact has been committed to git.
+// Negative control for the declared − tracked direction.  Uses SYNTHETIC fixtures:
+// exactly 30 hooks (filler-00..filler-29) + 1 resolver, with tracked set equal to
+// the declared union — simulating the post-fix state where every declared artifact
+// has been committed to git.
 //
 // When tracked == declared, the declared − tracked difference is empty.
-// The test asserts missing.is_empty() — confirming no false positives when every
-// declared artifact is present in the tracked set.
+// The test asserts Ok — confirming no false positives when every declared artifact
+// is present in the tracked set.
 //
 // F-2 floor boundary (high end): this fixture uses exactly 30 hooks (passes the
 // `hooks_declared.len() >= 30` floor at the boundary value).  T-027 covers the
@@ -1751,53 +1836,62 @@ fn test_S_21_09_ac006_T022_resolvers_floor_fires_on_empty_resolvers_set() {
 }
 
 // ---------------------------------------------------------------------------
-// T-023 — MEDIUM-1 boundary polarity (corrected pass 4): bare plugin path excluded
+// T-023 — Boundary polarity: bare path excluded + traversal-that-cancels excluded
 //
-// parse_plugin_refs() includes ONLY names where `extract_hook_plugin_name()` finds
-// `hook-plugins` as a component after lexical normalisation.
-// A plugin declared as `plugin = "ghost-bare.wasm"` (no `hook-plugins` component)
-// is excluded from `declared` — it cannot appear in `declared − tracked`.
+// parse_plugin_refs() includes ONLY names where `extract_hook_plugin_name()` resolves
+// the path relative to the registry parent and finds a `hook-plugins` component
+// (case-insensitive) immediately after the parent prefix.
 //
-// ## Boundary-polarity record (POLICY 13) — corrected
+// This test exercises two excluded forms:
 //
-// **Included region (post-pass-4 normalisation):**
+//   (a) Bare name: `plugin = "ghost-bare.wasm"` → resolves to registry_parent/ghost-bare.wasm
+//       — no hook-plugins component → excluded.
+//
+//   (b) Traversal-cancels: `plugin = "hook-plugins/../ghost-cancels.wasm"` → resolves to
+//       registry_parent/ghost-cancels.wasm (hook-plugins pushed, then popped by `..`)
+//       — no hook-plugins component after registry_parent → excluded.
+//
+// ## Boundary-polarity record (POLICY 13) — pass-5
+//
+// **Included region:**
+//   Paths that, after resolving relative to registry_parent, have `hook-plugins`
+//   (case-insensitive) as the component immediately after registry_parent:
 //   - Standard: `hook-plugins/foo.wasm`
 //   - Dotslash: `./hook-plugins/foo.wasm`
-//   - Traversal: `hooks/../hook-plugins/foo.wasm` (resolves to `hook-plugins/foo.wasm`)
-//   - Absolute with hook-plugins component: `/abs/hook-plugins/foo.wasm`
-//   T-025 proves traversal forms; T-026 proves absolute forms.
+//   - Traversal INTO hook-plugins: `hooks/../hook-plugins/foo.wasm` (T-025)
+//   - Case variant: `Hook-Plugins/foo.wasm` (T-031)
+//   - Nested subdir: `hook-plugins/sub/nested.wasm` → `nested.wasm` (T-032)
 //
 // **Excluded region:**
-//   Paths that, after lexical normalisation (resolving `..`, stripping root prefix),
-//   contain NO `hook-plugins` component: bare names (`ghost-bare.wasm`), other-dir
-//   paths (`other/ghost.wasm`), and traversal forms that cancel out `hook-plugins`
-//   (e.g., `hook-plugins/../ghost.wasm` → `[ghost.wasm]` — no `hook-plugins` after pop).
+//   Paths that resolve to a location outside registry_parent/hook-plugins/:
+//   - Bare names: `ghost-bare.wasm` → registry_parent/ghost-bare.wasm
+//   - Traversal-cancels: `hook-plugins/../ghost.wasm` → registry_parent/ghost.wasm
+//   - Absolute paths: `/abs/hook-plugins/foo.wasm` (T-026)
+//   - `../` prefix: `../hook-plugins/foo.wasm` → parent(registry_parent)/hook-plugins/foo.wasm
 //
 // **Can harmful content occupy the excluded region?**
-//   An artifact excluded here is either (a) not under `hook-plugins/` (not in the
-//   gitignored dir — visible in plain `git status`), or (b) its path cancels the
-//   `hook-plugins` component via `..` (so production resolve_plugin_paths would place
-//   it OUTSIDE `hook-plugins/`, also not gitignored).  The S-21.09 defect class —
-//   a `hook-plugins/`-scoped artifact missing from the git index — is entirely within
-//   the included region (a traversal form resolving INTO `hook-plugins/` is NOW caught;
-//   see T-025).  The excluded region adds no new stealth path.
+//   Excluded paths resolve outside `registry_parent/hook-plugins/`, which is the
+//   gitignored artifact directory.  An artifact at such a path is either not in the
+//   gitignored dir (visible to `git status`) or loads from outside the repo entirely
+//   (absolute / `../` prefix).  No stealth path exists in the excluded region.
 //
-// **Pass-2 error correction:**  The pass-2 boundary-polarity record incorrectly stated
-//   "traversal forms add no new stealth path" — this was wrong for traversal forms that
-//   resolve INTO `hook-plugins/` (e.g., `hooks/../hook-plugins/ghost.wasm`).  Pass-4
-//   fixes the gate via lexical normalisation; T-025 confirms the fix.
-//
-// Mutant: `plugin = "ghost-bare.wasm"` → refs is empty → T-012 returns GREEN.
-// This is the correct narrowing: bare names are not in the gitignored artifact dir.
+// **Traversal-cancels mutation proof (POLICY 13, MEDIUM-4(b)):**
+//   If `ParentDir` were NOT popped (bug: `ParentDir => {}` instead of `ParentDir => { pop }`),
+//   `hook-plugins/../ghost-cancels.wasm` would normalise to
+//   `[..., registry_parent, hook-plugins, ghost-cancels.wasm]` — the `hook-plugins`
+//   component survives, and `ghost-cancels.wasm` is falsely admitted.  T-023(b) detects
+//   this mutation: `refs_cancels.is_empty()` fails if `..` is ignored.
 //
 // Story: S-21.09
 // ---------------------------------------------------------------------------
 #[test]
-fn test_S_21_09_ac006_T023_medium1_bare_plugin_path_excluded_from_declared() {
+fn test_S_21_09_ac006_T023_boundary_polarity_bare_and_traversal_cancels_excluded() {
     let tmp = tempdir().expect("tempdir must create successfully");
-    let registry = tmp.path().join("registry.toml");
+
+    // (a) Bare name: no hook-plugins component → excluded.
+    let registry_bare = tmp.path().join("registry-bare.toml");
     fs::write(
-        &registry,
+        &registry_bare,
         concat!(
             "schema_version = 2\n",
             "[[hooks]]\n",
@@ -1811,14 +1905,46 @@ fn test_S_21_09_ac006_T023_medium1_bare_plugin_path_excluded_from_declared() {
     )
     .expect("bare-path registry must be written to tempfile");
 
-    let refs = parse_plugin_refs(&registry);
+    let refs_bare = parse_plugin_refs(&registry_bare);
 
     assert!(
-        refs.is_empty(),
-        "T-023 MEDIUM-1 boundary-polarity: parse_plugin_refs must exclude plugin paths \
-         not under 'hook-plugins/' — 'ghost-bare.wasm' has no 'hook-plugins/' prefix; \
-         got refs: {:?}",
-        refs
+        refs_bare.is_empty(),
+        "T-023(a) boundary-polarity: parse_plugin_refs must exclude bare plugin paths \
+         ('ghost-bare.wasm' has no hook-plugins component after resolving relative to \
+         the registry parent); got refs: {:?}",
+        refs_bare
+    );
+
+    // (b) Traversal-cancels: hook-plugins/../ghost-cancels.wasm resolves to
+    //     registry_parent/ghost-cancels.wasm (hook-plugins popped by ..) → excluded.
+    // Mutation proof: if ParentDir were ignored (not popped), hook-plugins would survive
+    // in the component list and ghost-cancels.wasm would be falsely admitted.
+    let registry_cancels = tmp.path().join("registry-cancels.toml");
+    fs::write(
+        &registry_cancels,
+        concat!(
+            "schema_version = 2\n",
+            "[[hooks]]\n",
+            "name = \"ghost-cancels\"\n",
+            "event = \"PreToolUse\"\n",
+            "tool = \"^Bash$\"\n",
+            "plugin = \"hook-plugins/../ghost-cancels.wasm\"\n",
+            "timeout_ms = 5000\n",
+            "on_error = \"continue\"\n"
+        ),
+    )
+    .expect("traversal-cancels registry must be written to tempfile");
+
+    let refs_cancels = parse_plugin_refs(&registry_cancels);
+
+    assert!(
+        refs_cancels.is_empty(),
+        "T-023(b) MEDIUM-4(b) traversal-cancels: `hook-plugins/../ghost-cancels.wasm` \
+         resolves to registry_parent/ghost-cancels.wasm (the `..` pops `hook-plugins`); \
+         no hook-plugins component remains → excluded from declared; \
+         mutation proof: if ParentDir were not popped, hook-plugins would survive and \
+         ghost-cancels.wasm would be falsely admitted; got refs: {:?}",
+        refs_cancels
     );
 }
 
@@ -1892,10 +2018,11 @@ fn test_S_21_09_ac006_T024_registry_inventory_underscore_form_caught() {
 // to `hook-plugins/foo.wasm` relative to the registry parent — i.e., the same gitignored
 // artifact directory as `hook-plugins/foo.wasm`.  The gate must detect it.
 //
-// Pass-4 fix: `extract_hook_plugin_name()` lexically normalises via `Path::components()`,
-// resolving `..` (ParentDir → pop) before looking for the `hook-plugins` component.
-// `hooks/../hook-plugins/ghost-traversal.wasm` → pop `hooks`, push `hook-plugins`,
-// push `ghost-traversal.wasm` → position found → `ghost-traversal.wasm` in declared.
+// Pass-4/pass-5 fix: `extract_hook_plugin_name(registry, plugin_path)` resolves
+// plugin_path relative to registry_parent, then lexically normalises:
+// `hooks/../hook-plugins/ghost-traversal.wasm` joined with registry_parent →
+// pop `hooks`, push `hook-plugins`, push `ghost-traversal.wasm` → the component
+// immediately after registry_parent is `hook-plugins` → `ghost-traversal.wasm` returned.
 //
 // This test proves the fix: parse_plugin_refs() on the traversal-form registry MUST
 // return a set containing "ghost-traversal.wasm".
@@ -1938,27 +2065,36 @@ fn test_S_21_09_ac006_T025_traversal_form_is_parsed_as_declared() {
 }
 
 // ---------------------------------------------------------------------------
-// T-026 — F-1 absolute-form control: `/abs/hook-plugins/foo.wasm` is parsed as declared
+// T-026 — MEDIUM-2 (pass-5 correction): absolute-form plugin path is EXCLUDED
 //
-// An absolute path like `plugin = "/abs/hook-plugins/ghost-absolute.wasm"` was excluded
-// by the v2 gate: after `trim_start_matches("./")` (no-op for absolute), the path does
-// not start with `hook-plugins/`, so `strip_prefix` returned None.
+// The pass-4 implementation (root-clearing lexical normalisation on the raw plugin path)
+// treated `/abs/hook-plugins/ghost-absolute.wasm` as equivalent to
+// `hook-plugins/ghost-absolute.wasm` inside the repo.  This was wrong:
 //
-// Pass-4 fix: `extract_hook_plugin_name()` handles `RootDir`/`Prefix` components by
-// clearing the accumulator (treating the remainder as relative).  For
-// `/abs/hook-plugins/ghost-absolute.wasm`, the components are:
-//   RootDir → clear; Normal("abs") → push; Normal("hook-plugins") → push;
-//   Normal("ghost-absolute.wasm") → push.
-// Normalized: `[abs, hook-plugins, ghost-absolute.wasm]`.
-// `hook-plugins` found at position 1 → returns `ghost-absolute.wasm`.
+//   - Production dispatcher's `resolve_plugin_paths()` passes absolute plugin paths
+//     through UNCHANGED (see `resolve_plugin_paths_is_idempotent_for_absolute_paths`
+//     in `registry.rs` tests and `resolve_plugin_paths()` source which only calls
+//     `base.join(&entry.plugin)` for RELATIVE paths).
+//   - An absolute path like `/abs/hook-plugins/ghost-absolute.wasm` loads from
+//     that absolute filesystem location — NOT from `${PLUGIN_ROOT}/hook-plugins/`.
+//   - Demanding `ghost-absolute.wasm` be git-tracked inside the repo when production
+//     loads it from outside the repo produces a false-positive MISSING outcome.
 //
-// Boundary: an absolute path that does NOT contain a `hook-plugins` component (e.g.,
-// `/tmp/ghost.wasm`) resolves to `[tmp, ghost.wasm]` — no `hook-plugins` → None.
+// Pass-5 fix: `extract_hook_plugin_name(registry, plugin_path)` resolves plugin_path
+// relative to the registry's parent directory using Rust Path::join semantics:
+// if plugin_path is absolute, it REPLACES the base (registry_parent is discarded).
+// `/abs/hook-plugins/ghost-absolute.wasm` does not start with registry_parent's
+// prefix, so the component match fails → returns None.
+//
+// The EXCLUSION is correct and safe: T-025 continues to prove that traversal forms
+// that resolve INTO `hook-plugins/` relative to the registry parent ARE included.
+// Absolute paths that resolve outside the repo simply escape the gate (fail closed —
+// no security consequence, and no false-positive MISSING outcome).
 //
 // Story: S-21.09
 // ---------------------------------------------------------------------------
 #[test]
-fn test_S_21_09_ac006_T026_absolute_form_is_parsed_as_declared() {
+fn test_S_21_09_ac006_T026_absolute_form_excluded_from_declared() {
     let tmp = tempdir().expect("tempdir must create successfully");
     let registry = tmp.path().join("registry.toml");
     fs::write(
@@ -1978,13 +2114,19 @@ fn test_S_21_09_ac006_T026_absolute_form_is_parsed_as_declared() {
 
     let refs = parse_plugin_refs(&registry);
 
+    // Absolute paths must NOT enter declared: they resolve outside the registry parent
+    // and production loads them from that external location, not from hook-plugins/.
     assert!(
-        refs.contains("ghost-absolute.wasm"),
-        "T-026 F-1: parse_plugin_refs must extract 'ghost-absolute.wasm' from a \
-         registry using the absolute form \
-         (plugin = \"/abs/hook-plugins/ghost-absolute.wasm\") — \
-         extract_hook_plugin_name() clears on RootDir, then finds hook-plugins at \
-         position 1 in [abs, hook-plugins, ghost-absolute.wasm]; got refs: {:?}",
+        !refs.contains("ghost-absolute.wasm"),
+        "T-026 MEDIUM-2 (pass-5): absolute-path plugin declarations must NOT be included \
+         in declared — production resolve_plugin_paths() passes absolute paths unchanged \
+         (loads from /abs/hook-plugins/..., not from registry_parent/hook-plugins/); \
+         including them produces false-positive MISSING outcomes; got refs: {:?}",
+        refs
+    );
+    assert!(
+        refs.is_empty(),
+        "T-026: expected empty refs for absolute-path declaration; got: {:?}",
         refs
     );
 }
@@ -2020,18 +2162,36 @@ fn test_S_21_09_ac006_T027_hooks_floor_fires_on_29_entry_set() {
 }
 
 // ---------------------------------------------------------------------------
-// T-028 — F-3a narrowing proof (non-recursive): subdirectory .toml not caught
+// T-028 — F-3a narrowing proof (non-recursive, SAFE): subdirectory .toml invisible
 //
-// check_registry_inventory() uses `fs::read_dir` (non-recursive).  This is intentional:
-// `plugins/vsdd-factory/config/` holds pipeline-artifact files, including three files
-// named `hooks-registry.toml` in subdirectories.  A recursive walk would classify them
-// as UNEXPECTED top-level registries, breaking T-012 on the real workspace.
+// check_registry_inventory() uses `fs::read_dir` (non-recursive).  This is intentional
+// and PROVABLY SAFE:
+//
+//   The production dispatcher resolves registries exclusively at the plugin root level:
+//     - `${CLAUDE_PLUGIN_ROOT}/hooks-registry.toml` (via resolve_registry_path() in main.rs)
+//     - `${CLAUDE_PLUGIN_ROOT}/resolvers-registry.toml` (via plugin_root.join(...) in main.rs)
+//   A registry placed in a subdirectory is NEVER loaded by production.  Its declared
+//   artifacts are architecturally inert: they are never executed, never checked against
+//   the git index, and never required to exist.  The false-negative class is safe.
 //
 // Documented narrowing scope:
-//   - The gate checks ONLY top-level `.toml` files in `plugins_vsdd_factory_dir`.
-//   - Pipeline-artifact `.toml` files under subdirectories are outside the gate's scope.
-//   - A registry added under a subdirectory would bypass this check; convention (and
-//     code review) is the defence for subdirectory placement.
+//   - Gate checks ONLY top-level `.toml` files in `plugins_vsdd_factory_dir`.
+//   - Subdirectory `.toml` files are outside the gate's scope.
+//   - A registry added under a subdirectory bypasses the inventory check; this is SAFE
+//     (not a convention-dependency) because production never loads subdirectory registries.
+//
+// Literal-shell grounding (from workspace root):
+//   $ find plugins/vsdd-factory -mindepth 2 -name '*.toml'
+//   plugins/vsdd-factory/fixtures/smoke-project/Cargo.toml
+//   plugins/vsdd-factory/tests/fixtures/registry-tool-filter/anchored.toml
+//   plugins/vsdd-factory/tests/fixtures/registry-tool-filter/comment-inject.toml
+//   plugins/vsdd-factory/tests/fixtures/registry-tool-filter/intent-comment.toml
+//   plugins/vsdd-factory/tests/fixtures/registry-tool-filter/prefix-only-anchor.toml
+//   plugins/vsdd-factory/tests/fixtures/registry-tool-filter/unanchored.toml
+//   plugins/vsdd-factory/tests/fixtures/validate-policies-schema/fail-nonexistent-plugin/hooks-registry.toml
+//   plugins/vsdd-factory/tests/fixtures/validate-policies-schema/pass-namespaced-lint-hook/hooks-registry.toml
+//   plugins/vsdd-factory/tests/fixtures/validate-policies-schema/pass-valid-lint-hook/hooks-registry.toml
+//   (plugins/vsdd-factory/config/ contains artifact-path-registry.yaml — no .toml files)
 //
 // This test proves the narrowing: a `config/hooks-registry.toml` file is invisible
 // to the non-recursive enumeration when the top-level pair is correct.
@@ -2055,7 +2215,8 @@ fn test_S_21_09_ac006_T028_subdirectory_toml_not_caught_narrowing_proof() {
     .expect("resolvers-registry.toml must be written");
 
     // Subdirectory file: invisible to non-recursive fs::read_dir.
-    // In the real workspace, plugins/vsdd-factory/config/ holds files like this.
+    // Mirrors the real workspace where tests/fixtures/ holds hooks-registry.toml files
+    // in subdirectories that must NOT trigger the inventory check.
     let config_dir = tmp.path().join("config");
     fs::create_dir_all(&config_dir).expect("config dir must be created");
     fs::write(
@@ -2069,16 +2230,17 @@ fn test_S_21_09_ac006_T028_subdirectory_toml_not_caught_narrowing_proof() {
 
     assert!(
         result.is_ok(),
-        "T-028 F-3a narrowing (non-recursive): check_registry_inventory must return Ok \
-         when only the top-level pair exists; config/hooks-registry.toml is in a \
+        "T-028 F-3a narrowing (non-recursive, SAFE): check_registry_inventory must return \
+         Ok when only the top-level pair exists; config/hooks-registry.toml is in a \
          subdirectory and must NOT be detected by the non-recursive fs::read_dir; \
+         narrowing is safe because production only loads top-level registries; \
          got Err: {}",
         result.unwrap_err()
     );
 }
 
 // ---------------------------------------------------------------------------
-// T-029 — F-3b narrowing proof (case-sensitive): uppercase .TOML extension not caught
+// T-029 — F-3b narrowing proof (case-sensitive, SAFE): uppercase .TOML not caught
 //
 // check_registry_inventory() uses `.ends_with(".toml")` — a Rust string comparison
 // that is case-sensitive on all platforms (the comparison is on the string content,
@@ -2086,11 +2248,15 @@ fn test_S_21_09_ac006_T028_subdirectory_toml_not_caught_narrowing_proof() {
 //
 // Documented narrowing scope:
 //   - All production registries use lowercase filenames by convention.
+//   - The production dispatcher resolves registries using the literal names
+//     `hooks-registry.toml` and `resolvers-registry.toml` (lowercase); a file named
+//     `hooks-registry.TOML` would not be loaded by production at runtime, so
+//     excluding it from the inventory check is safe (same load-path argument as T-028).
 //   - CI runs on a case-sensitive filesystem (Linux); macOS HFS+ preserves case in
 //     directory listings, so ".ends_with(\".toml\")" still returns false for ".TOML"
 //     even on macOS.
-//   - An adversarially-placed `ghost_REGISTRY.TOML` would bypass this check; the
-//     production defence is code review (no such file convention exists in the plugin).
+//   - An adversarially-placed `ghost_REGISTRY.TOML` would bypass this check; this is
+//     safe (production would not load it) and code review is the additional defence.
 //
 // This test proves the narrowing: a `metrics-registry.TOML` file is invisible to the
 // case-sensitive filter even when it exists in the directory.
@@ -2211,8 +2377,23 @@ fn test_S_21_09_ac006_T030_wiring_control_both_check_calls_are_active() {
         let root = tmp.path();
 
         // Initialise a git repo.
+        // -c overrides prevent interference from global git config:
+        //   core.excludesFile=/dev/null — prevents a global gitignore from hiding *.wasm
+        //   commit.gpgsign=false       — prevents gpg-sign failures if globally enabled
+        //   core.hooksPath=/dev/null   — prevents global hooks from rejecting the commit
+        //   init.templateDir=          — prevents template-installed hooks
         let status = Command::new("git")
-            .args(["init"])
+            .args([
+                "-c",
+                "core.excludesFile=/dev/null",
+                "-c",
+                "commit.gpgsign=false",
+                "-c",
+                "core.hooksPath=/dev/null",
+                "-c",
+                "init.templateDir=",
+                "init",
+            ])
             .current_dir(root)
             .status()
             .expect("git init must succeed for T-030 phase B fixture");
@@ -2261,14 +2442,24 @@ fn test_S_21_09_ac006_T030_wiring_control_both_check_calls_are_active() {
         }
 
         let status = Command::new("git")
-            .args(["add", "."])
+            .args(["-c", "core.excludesFile=/dev/null", "add", "."])
             .current_dir(root)
             .status()
             .expect("git add must succeed for T-030 phase B fixture");
         assert!(status.success(), "T-030 phase B: git add failed");
 
         let status = Command::new("git")
-            .args(["commit", "-m", "T-030 phase B fixture"])
+            .args([
+                "-c",
+                "core.excludesFile=/dev/null",
+                "-c",
+                "commit.gpgsign=false",
+                "-c",
+                "core.hooksPath=/dev/null",
+                "commit",
+                "-m",
+                "T-030 phase B fixture",
+            ])
             .current_dir(root)
             .status()
             .expect("git commit must succeed for T-030 phase B fixture");
@@ -2293,4 +2484,111 @@ fn test_S_21_09_ac006_T030_wiring_control_both_check_calls_are_active() {
             "T-030 phase B D-970 Codification 1: error must contain 'MISSING: ctx.wasm'"
         );
     }
+}
+
+// ---------------------------------------------------------------------------
+// T-031 — MEDIUM-4(a) case-variant control: `Hook-Plugins/x.wasm` is parsed as declared
+//
+// On macOS's case-insensitive default filesystem, `Hook-Plugins/x.wasm` and
+// `hook-plugins/x.wasm` refer to the same directory.  The pass-4 implementation used
+// `c == "hook-plugins"` — a case-sensitive string comparison — so `Hook-Plugins/x.wasm`
+// would fail the check and escape the declared-set gate entirely.
+//
+// Pass-5 fix: `extract_hook_plugin_name()` uses `eq_ignore_ascii_case("hook-plugins")`
+// when checking the component after registry_parent.  This handles case variants while
+// remaining deterministic on case-sensitive Linux CI.
+//
+// Mutation-proof: reverting to `c == "hook-plugins"` (case-sensitive) causes
+// `Hook-Plugins/x.wasm` to return None; `refs.contains("ghost-case.wasm")` FAILS.
+//
+// Story: S-21.09
+// ---------------------------------------------------------------------------
+#[test]
+fn test_S_21_09_ac006_T031_case_variant_hook_plugins_included() {
+    let tmp = tempdir().expect("tempdir must create successfully");
+    let registry = tmp.path().join("registry.toml");
+    fs::write(
+        &registry,
+        concat!(
+            "schema_version = 2\n",
+            "[[hooks]]\n",
+            "name = \"ghost-case\"\n",
+            "event = \"PreToolUse\"\n",
+            "tool = \"^Bash$\"\n",
+            "plugin = \"Hook-Plugins/ghost-case.wasm\"\n",
+            "timeout_ms = 5000\n",
+            "on_error = \"continue\"\n"
+        ),
+    )
+    .expect("case-variant registry must be written to tempfile");
+
+    let refs = parse_plugin_refs(&registry);
+
+    assert!(
+        refs.contains("ghost-case.wasm"),
+        "T-031 MEDIUM-4(a): parse_plugin_refs must include 'ghost-case.wasm' from a \
+         registry using the case-variant form (plugin = \"Hook-Plugins/ghost-case.wasm\") \
+         — extract_hook_plugin_name() uses eq_ignore_ascii_case for the hook-plugins \
+         component; on macOS case-insensitive FS this is the same directory; \
+         mutation-proof: c == \"hook-plugins\" (case-sensitive) would return None here; \
+         got refs: {:?}",
+        refs
+    );
+}
+
+// ---------------------------------------------------------------------------
+// T-032 — MEDIUM-1 nested-subdir control: `hook-plugins/sub/nested.wasm` yields filename
+//
+// The pass-4 implementation returned `normalized.get(pos + 1)` — the component
+// IMMEDIATELY after `hook-plugins`.  For `hook-plugins/sub/nested.wasm` this returns
+// `sub`, not `nested.wasm`.  `git ls-files` is recursive and returns full paths; the
+// gate compares basenames, so the declared set would contain `sub` and `nested.wasm`
+// would never match any tracked artifact — a MISSING: sub identifier instead of the
+// correct artifact name.
+//
+// Pass-5 fix: `extract_hook_plugin_name()` returns `joined_parts.last()` (the final
+// component of the normalised resolved path), which is the filename regardless of depth.
+//
+// Mutation-proof: reverting to `normalized.get(pos + 1)` would return `Some("sub")`
+// for this input; `refs.contains("nested.wasm")` assertion FAILS.
+//
+// Story: S-21.09
+// ---------------------------------------------------------------------------
+#[test]
+fn test_S_21_09_ac006_T032_nested_subdir_yields_filename() {
+    let tmp = tempdir().expect("tempdir must create successfully");
+    let registry = tmp.path().join("registry.toml");
+    fs::write(
+        &registry,
+        concat!(
+            "schema_version = 2\n",
+            "[[hooks]]\n",
+            "name = \"nested\"\n",
+            "event = \"PreToolUse\"\n",
+            "tool = \"^Bash$\"\n",
+            "plugin = \"hook-plugins/sub/nested.wasm\"\n",
+            "timeout_ms = 5000\n",
+            "on_error = \"continue\"\n"
+        ),
+    )
+    .expect("nested-subdir registry must be written to tempfile");
+
+    let refs = parse_plugin_refs(&registry);
+
+    assert!(
+        refs.contains("nested.wasm"),
+        "T-032 MEDIUM-1: parse_plugin_refs must extract 'nested.wasm' (last component) \
+         from a nested declaration (plugin = \"hook-plugins/sub/nested.wasm\") — \
+         extract_hook_plugin_name() returns joined_parts.last(), not pos+1; \
+         mutation-proof: reverting to pos+1 returns 'sub' and this assertion FAILS; \
+         got refs: {:?}",
+        refs
+    );
+    // Also assert 'sub' is NOT in refs (wrong component from the pos+1 bug).
+    assert!(
+        !refs.contains("sub"),
+        "T-032 MEDIUM-1: 'sub' must NOT appear in refs — it is a directory component, \
+         not the artifact filename; got refs: {:?}",
+        refs
+    );
 }
