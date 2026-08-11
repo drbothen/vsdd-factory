@@ -18,6 +18,7 @@
 //! | T-009 | AC-006   | GREEN†   | Hermetic real-bundle gate: enumerates GIT-TRACKED set (`git ls-files`) against both real registries; asserts zero tracked orphans (EAC-005 standing regression gate) |
 //! | T-010 | AC-007   | GREEN    | Bundle-simulation: stages fixture with underscore-named WASMs through `stage_release_bundle`; asserts staged artifact has zero orphans per real registries and proves underscore-glob semantics (RED at 298389b0 via todo!(); GREEN since d9502701) |
 //! | T-011 | AC-007   | GREEN    | POLICY 20 defense proof: read-prefix-fixture.wasm (hyphen-named) passes the *_*.wasm staging glob and is an orphan per both registries; proves `--exclude read-prefix-fixture` in release.yml is the governing defense (S-19.06) |
+//! | T-012 | AC-006 S-21.09 | RED†† | Declared-set ⊆ tracked-set gate (inverse of T-009): asserts every WASM declared in hooks-registry or resolvers-registry is tracked in git; RED pre-fix (validate-factory-path-staging.wasm declared but not tracked); GREEN after AC-001 fix |
 //!
 //! † T-009 is a STANDING GREEN GATE — passes immediately on any clean checkout where no
 //! orphan WASMs are tracked in git, and remains green on contaminated worktrees because
@@ -730,5 +731,145 @@ fn test_S_19_06_policy20_T011_read_prefix_fixture_passes_staging_and_is_orphan()
          without --exclude it would ship as a POLICY 20 violation; \
          got orphans: {:?}",
         orphans
+    );
+}
+
+// ---------------------------------------------------------------------------
+// T-012 — AC-006 S-21.09: declared-set ⊆ tracked-set (declared→tracked direction)
+//
+// Asserts every WASM artifact declared in EITHER registry is present in the
+// git-tracked set.  This is the INVERSE of T-009, which asserts the
+// tracked-set ⊆ declared-set direction (zero tracked orphans).
+//
+// Why both registries are consulted:
+//   `vsdd-context-resolvers.wasm` is declared only in resolvers-registry.toml and
+//   is also tracked in git.  Using only hooks-registry.toml for the declared set
+//   would leave it out of `declared`, but it IS tracked — the direction here
+//   (declared − tracked) is unaffected, because a name absent from declared cannot
+//   appear in the difference.  Using both registries is nonetheless correct: it
+//   reflects the full declared contract, matches the dual-registry scope of T-009,
+//   and avoids introducing a registry-scope mismatch between the two directions.
+//
+// Prose-comment exclusion:
+//   hooks-registry.toml line 5 contains the comment
+//   "# Most entries route through hook-plugins/legacy-bash-adapter.wasm,"
+//   which is a spurious occurrence of the hook-plugins/ path pattern (would yield
+//   a 36th entry if parsed naively).  `parse_plugin_refs()` uses
+//   `line.trim().strip_prefix("plugin = ")` — this comment starts with `#`, not
+//   `plugin = `, so it is never matched.  No special-casing is required; the
+//   function already handles this correctly.  True unique declared count in
+//   hooks-registry = 35 (verified: `grep "^plugin = " hooks-registry.toml | ... | sort -u | wc -l`).
+//
+// Red Gate (pre-fix state):
+//   `validate-factory-path-staging.wasm` is declared in hooks-registry.toml
+//   (entry at `name = "validate-factory-path-staging"`, `plugin =
+//   "hook-plugins/validate-factory-path-staging.wasm"`) but is NOT returned by
+//   `git ls-files plugins/vsdd-factory/hook-plugins/` because no `git add -f`
+//   has been run.  `declared − tracked` = {"validate-factory-path-staging.wasm"}.
+//   Test FAILS with "MISSING: validate-factory-path-staging.wasm".
+//
+// Green Gate (post-fix state):
+//   After `git add -f plugins/vsdd-factory/hook-plugins/validate-factory-path-staging.wasm`
+//   the artifact enters the git index.  `git_tracked_wasm_names()` returns it.
+//   `declared − tracked` = {} (empty).  Test PASSES.
+//
+// Class coverage:
+//   The assertion checks ALL declared artifacts, not only this instance.
+//   A future story that adds a hooks-registry.toml entry without committing the
+//   WASM would also fail T-012 — the test catches the defect class, not merely
+//   this one artifact.
+//
+// Per D-970 Codification 1: the failure message names each MISSING artifact
+// explicitly so the outcome identifier is unambiguous (bare count assertion
+// is the weakness that let this defect survive AC-001 registry-comment claim).
+//
+// Story: S-21.09
+// BC Trace: BC-4.16.001 Precondition 3
+// ---------------------------------------------------------------------------
+#[test]
+fn test_S_21_09_ac006_T012_declared_set_subset_of_tracked_set() {
+    let root = workspace_root();
+    let hooks_registry = root.join("plugins/vsdd-factory/hooks-registry.toml");
+    let resolvers_registry = root.join("plugins/vsdd-factory/resolvers-registry.toml");
+
+    // EC-004: hard-fail on missing registry file — never silently pass.
+    assert!(
+        hooks_registry.exists(),
+        "T-012 EC-004: plugins/vsdd-factory/hooks-registry.toml not found under \
+         workspace root {}; registry file is mandatory — test must fail explicitly, \
+         not silently pass",
+        root.display()
+    );
+    assert!(
+        resolvers_registry.exists(),
+        "T-012 EC-004: plugins/vsdd-factory/resolvers-registry.toml not found under \
+         workspace root {}; registry file is mandatory — test must fail explicitly, \
+         not silently pass",
+        root.display()
+    );
+
+    // Aggregate declared set: union of both registries.
+    // `parse_plugin_refs()` is called on each registry file; results are unioned
+    // into a HashSet so every declared name appears exactly once regardless of
+    // how many registry entries reference the same WASM.
+    //
+    // vsdd-context-resolvers.wasm: declared in resolvers-registry, also tracked in git.
+    // Using both registries places it in the declared set — present in tracked set too,
+    // so it contributes no false-positive to the declared − tracked difference.
+    let hooks_refs = parse_plugin_refs(&hooks_registry);
+    let resolvers_refs = parse_plugin_refs(&resolvers_registry);
+    let declared: HashSet<String> = hooks_refs.union(&resolvers_refs).cloned().collect();
+
+    assert!(
+        !declared.is_empty(),
+        "T-012: declared set must not be empty — parse_plugin_refs() returned nothing; \
+         check registry file paths and TOML format"
+    );
+
+    // Git-tracked set: same mechanism as T-009.
+    // EC-005: git ls-files failure is an explicit error, not a silent pass.
+    // `git_tracked_wasm_names()` panics on non-zero exit, which surfaces as a test
+    // failure with an explicit message rather than a silent skip or vacuous pass.
+    let tracked: HashSet<String> = git_tracked_wasm_names(&root).into_iter().collect();
+
+    assert!(
+        !tracked.is_empty(),
+        "T-012 EC-005: git ls-files returned no tracked WASMs under \
+         plugins/vsdd-factory/hook-plugins/ — verify git is on PATH, workspace_root() \
+         resolves correctly, and the test is run inside a git repository"
+    );
+
+    // declared − tracked: names present in a registry but absent from the git index.
+    //
+    // Pre-fix: {"validate-factory-path-staging.wasm"} — the artifact is declared
+    //   in hooks-registry.toml but was never committed (no `git add -f` in S-21.01).
+    //   This set is non-empty; the assertion below FAILS (RED Gate).
+    //
+    // Post-fix: {} — after AC-001 commits the artifact, git_tracked_wasm_names()
+    //   returns it, the difference is empty, the assertion PASSES (Green Gate).
+    let mut missing: Vec<&str> = declared
+        .iter()
+        .filter(|name| !tracked.contains(*name))
+        .map(String::as_str)
+        .collect();
+    missing.sort(); // deterministic order for reproducible failure messages
+
+    // Per D-970 Codification 1: name each missing artifact explicitly in the failure
+    // message.  "MISSING: validate-factory-path-staging.wasm" must appear when the
+    // defect is present.  A bare `assert_eq!(missing.len(), 0)` is the pattern that
+    // allowed the original defect to survive undetected.
+    assert!(
+        missing.is_empty(),
+        "T-012 AC-006 S-21.09 BC-4.16.001 Precondition 3: every WASM artifact \
+         declared in hooks-registry.toml or resolvers-registry.toml MUST be tracked \
+         in git (declared_set ⊆ tracked_set); {} artifact(s) declared but NOT \
+         tracked — commit each with `git add -f` before the guard can load in \
+         production sessions:\n{}",
+        missing.len(),
+        missing
+            .iter()
+            .map(|n| format!("  MISSING: {}", n))
+            .collect::<Vec<_>>()
+            .join("\n")
     );
 }
