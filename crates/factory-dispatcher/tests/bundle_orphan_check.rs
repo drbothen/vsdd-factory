@@ -33,13 +33,15 @@
 //! | T-023 | AC-006 S-21.09 | GREEN | MEDIUM-1 boundary polarity (corrected pass 4): bare plugin path `ghost-bare.wasm` (no `hook-plugins` component after normalization) → excluded from declared; traversal/absolute forms now INCLUDED via lexical normalisation |
 //! | T-024 | AC-006 S-21.09 | GREEN | BLOCKER-2 underscore mutant: `metrics_registry.toml` (underscore, previously missed by `-registry.toml` filter) caught by fail-closed `*.toml` inventory → "UNEXPECTED: metrics_registry.toml" |
 //! | T-025 | AC-006 S-21.09 | GREEN | F-1 traversal control: `plugin = "hooks/../hook-plugins/ghost-traversal.wasm"` is parsed as declared (resolves `..` relative to registry parent, lands inside `hook-plugins/`) |
-//! | T-026 | AC-006 S-21.09 | GREEN | MEDIUM-2 (revised): absolute-form plugin `/abs/hook-plugins/ghost-absolute.wasm` is EXCLUDED — production passes absolute paths unchanged; artifact lives outside repo |
+//! | T-026 | AC-006 S-21.09 | GREEN | MEDIUM-2 + HIGH-1 pass-6: absolute-form excluded; depth-matched sub-test proves prefix-verification loop is load-bearing (not just the length check) |
 //! | T-027 | AC-006 S-21.09 | GREEN | F-2 floor boundary (29 fires): 29-entry hooks set fires hooks floor — `#[should_panic]` locks "T-012: hooks registry declared set has only 29 entries"; pins the threshold so mutating `< 30` to `< 2` is caught |
 //! | T-028 | AC-006 S-21.09 | GREEN | F-3a narrowing proof (non-recursive, SAFE): subdirectory `config/hooks-registry.toml` invisible to `fs::read_dir`; safe because production only loads top-level registries |
 //! | T-029 | AC-006 S-21.09 | GREEN | F-3b narrowing proof (case-sensitive): `metrics-registry.TOML` (uppercase) invisible to `.ends_with(".toml")`; safe because production loads lowercase-named registries |
 //! | T-030 | AC-006 S-21.09 | GREEN | F-9 wiring control: `run_t012_gate` integrates both `check_registry_inventory` (phase A) and `check_declared_subset_tracked` (phase B via git fixture); removing either call breaks a phase |
 //! | T-031 | AC-006 S-21.09 | GREEN | MEDIUM-4(a) case-variant control: `plugin = "Hook-Plugins/foo.wasm"` is parsed as declared (case-insensitive `hook-plugins` component match) |
 //! | T-032 | AC-006 S-21.09 | GREEN | MEDIUM-1 nested-subdir control: `plugin = "hook-plugins/sub/nested.wasm"` yields `nested.wasm` (last component); proves non-flat declarations are not silently mis-named |
+//! | T-033 | AC-006 S-21.09 | GREEN | MEDIUM-3 minimum-length lower boundary: `plugin = "hook-plugins"` (directory path, no filename) is excluded; pins `expected_depth + 2` constant |
+//! | T-034 | AC-006 S-21.09 | GREEN | MEDIUM-4 `-r` flag control: `git ls-tree -r` finds a WASM committed under `hook-plugins/sub/`; dropping `-r` misses nested files |
 //!
 //! † T-009 is a STANDING GREEN GATE — passes immediately on any clean checkout where no
 //! orphan WASMs are tracked in git, and remains green on contaminated worktrees because
@@ -106,7 +108,7 @@
 //! Embedded at compile time via `include_str!()` — the .toml files are the single source
 //! of truth; edits must be made there, not to the constants.
 //!
-//! Stories: S-19.04 (T-006..T-011), S-21.09 (T-012..T-032)
+//! Stories: S-19.04 (T-006..T-011), S-21.09 (T-012..T-034)
 //! VP Trace: — (AC-006 wires EAC-005 as load-bearing leg; no BC mapping)
 
 use std::collections::HashSet;
@@ -194,8 +196,29 @@ const HOOKS_REGISTRY_DOTSLASH_FIXTURE: &str =
 /// filename — causing a false MISSING identifier (MEDIUM-1).  `git ls-files` is
 /// recursive, so the tracked-set contains filenames; using `last()` keeps parity.
 ///
-/// See T-025 (traversal-into proof), T-026 (absolute exclusion), T-023 (traversal-
-/// cancels + bare exclusion), T-031 (case-variant), T-032 (nested-subdir).
+/// **Basename-collision design choice (LOW-4):** `last()` reduces all declared paths to
+/// their basename. Two distinct nested paths (`hook-plugins/a/x.wasm` and
+/// `hook-plugins/b/x.wasm`) collapse to the single declared name `x.wasm`; either
+/// tracked path satisfies both. This is deliberate and documented: `git ls-files`
+/// (used by `git_tracked_wasm_names`) returns full paths whose basenames are compared.
+/// Changing this would require full-path tracking throughout — a scope-expanding
+/// redesign. Recorded per POLICY 13.
+///
+/// **Known false-negative class for repo-internal non-`hook-plugins/` declarations (LOW-1):**
+/// A declaration resolving to a path within the repository but outside `hook-plugins/`
+/// (e.g., bare `plugin = "plugin.wasm"` → `plugins/vsdd-factory/plugin.wasm`;
+/// `../`-prefixed `plugin = "../plugin.wasm"` → `plugins/plugin.wasm`) is outside this
+/// gate's scope and will NOT appear in `declared`. Production's `resolve_plugin_paths()`
+/// DOES load such relative paths (joining against the registry parent), so a
+/// declared-but-untracked artifact at such a path would reproduce the S-21.09 failure
+/// scenario within the repo. These paths are visible to `git status` (not gitignored)
+/// — not a stealth path, but not gated. Gate domain is intentionally limited to
+/// `hook-plugins/`; widening is deferred pending a follow-up story. Recorded per
+/// POLICY 13.
+///
+/// See T-025 (traversal-into proof), T-026 (absolute exclusion + depth-matched), T-023
+/// (traversal-cancels + bare exclusion + LOW-1 record), T-031 (case-variant), T-032
+/// (nested-subdir), T-033 (min-length lower boundary).
 fn extract_hook_plugin_name(registry_path: &Path, plugin_path: &str) -> Option<String> {
     use std::path::Component;
 
@@ -485,6 +508,17 @@ fn check_registry_inventory(plugins_vsdd_factory_dir: &Path) -> Result<(), Strin
 /// | EC-005: tracked empty | `T-012 EC-005` |
 /// | Step 3: declared − tracked | `  MISSING: <name>` per artifact |
 /// | Step 4: staged-not-committed | `  STAGED-NOT-COMMITTED: <name>` per artifact |
+///
+/// **Known false-positive class — `enabled = false` entries (LOW-3):** `RegistryEntry`
+/// carries an `enabled: bool` field. `parse_plugin_refs()` extracts all `plugin` values
+/// from the TOML array regardless of `enabled` state — the `toml` crate sees all array
+/// entries equally, and the extraction loop does not filter on `enabled`. A deliberately-
+/// disabled entry (`enabled = false`) still contributes its artifact name to `declared`,
+/// so the artifact is required to be git-tracked even if production never loads it.
+/// Result: a disabled-but-untracked plugin produces a false-positive
+/// `MISSING: <name>` outcome. Latent today (`grep -c 'enabled *= *false'
+/// plugins/vsdd-factory/hooks-registry.toml` → 0); fail-loud (explicit MISSING
+/// identifier), so the outcome is immediately actionable. Recorded per POLICY 13.
 fn check_declared_subset_tracked(
     hooks_declared: &HashSet<String>,
     resolvers_declared: &HashSet<String>,
@@ -603,13 +637,17 @@ fn check_declared_subset_tracked(
 /// Steps:
 ///   1. Registry inventory (`check_registry_inventory`): asserts `plugins/vsdd-factory/`
 ///      contains exactly `{hooks-registry.toml, resolvers-registry.toml}`.
-///   2. EC-004: hard-fail on missing registry file.
-///   3. Parse per-registry refs via `parse_plugin_refs()`.
-///   4-6. Per-registry floors, declared−tracked, staged-not-committed via
+///      **EC-004 obligation:** a missing registry file yields `MISSING: <name>` via the
+///      inventory step's `?`-propagated `Err` — no separate hard-fail is needed.  The
+///      dead-code EC-004 panic blocks that appeared after the inventory call in passes 1–5
+///      were unreachable (inventory's `?` always fires first for a missing file) and were
+///      removed in pass-6 (MEDIUM-1 closure).
+///   2. Parse per-registry refs via `parse_plugin_refs()`.
+///   3-5. Per-registry floors, declared−tracked, staged-not-committed via
 ///      `check_declared_subset_tracked()`.
 ///
 /// Returns `Ok(())` when all checks pass. Returns `Err(message)` on inventory or
-/// declared-subset failure. Panics on git command failure or EC-004.
+/// declared-subset failure. Panics on git command failure.
 fn run_t012_gate(root: &Path) -> Result<(), String> {
     // Step 1 (AC-006 step 1): registry-inventory gate.
     // Assert plugins/vsdd-factory/ contains exactly {hooks-registry.toml,
@@ -622,23 +660,11 @@ fn run_t012_gate(root: &Path) -> Result<(), String> {
     let hooks_registry = root.join("plugins/vsdd-factory/hooks-registry.toml");
     let resolvers_registry = root.join("plugins/vsdd-factory/resolvers-registry.toml");
 
-    // EC-004: hard-fail on missing registry file — never silently pass.
-    if !hooks_registry.exists() {
-        panic!(
-            "T-012 EC-004: plugins/vsdd-factory/hooks-registry.toml not found under \
-             workspace root {}; registry file is mandatory — test must fail explicitly, \
-             not silently pass",
-            root.display()
-        );
-    }
-    if !resolvers_registry.exists() {
-        panic!(
-            "T-012 EC-004: plugins/vsdd-factory/resolvers-registry.toml not found under \
-             workspace root {}; registry file is mandatory — test must fail explicitly, \
-             not silently pass",
-            root.display()
-        );
-    }
+    // EC-004 obligation fulfilled: a missing registry yields Err("...MISSING: hooks-registry.toml"
+    // / "...MISSING: resolvers-registry.toml") from step 1 above (propagated by `?`).
+    // No separate hard-fail is required — the inventory check fires before parse_plugin_refs
+    // is reached. The EC-004 panic blocks present in passes 1–5 were unreachable dead code
+    // (removed in pass-6 MEDIUM-1 closure).
 
     // Parse per-registry refs separately so check_declared_subset_tracked() can apply
     // per-registry floors (HIGH-2: a union floor cannot detect a resolvers-only collapse).
@@ -1869,11 +1895,22 @@ fn test_S_21_09_ac006_T022_resolvers_floor_fires_on_empty_resolvers_set() {
 //   - Absolute paths: `/abs/hook-plugins/foo.wasm` (T-026)
 //   - `../` prefix: `../hook-plugins/foo.wasm` → parent(registry_parent)/hook-plugins/foo.wasm
 //
-// **Can harmful content occupy the excluded region?**
-//   Excluded paths resolve outside `registry_parent/hook-plugins/`, which is the
-//   gitignored artifact directory.  An artifact at such a path is either not in the
-//   gitignored dir (visible to `git status`) or loads from outside the repo entirely
-//   (absolute / `../` prefix).  No stealth path exists in the excluded region.
+// **Can harmful content occupy the excluded region? (LOW-1 honest record)**
+//   Excluded paths resolve outside `registry_parent/hook-plugins/`.
+//   - Bare names (`ghost-bare.wasm` → `plugins/vsdd-factory/ghost-bare.wasm`) and
+//     traversal-cancels (`hook-plugins/../ghost.wasm` → `plugins/vsdd-factory/ghost.wasm`)
+//     resolve WITHIN the repo but outside `hook-plugins/`.  Production's
+//     `resolve_plugin_paths()` DOES load such relative paths (joining against the registry
+//     parent directory), so a declared-but-untracked artifact at such a path would
+//     reproduce the S-21.09 failure scenario within the repo.  These paths are visible
+//     to `git status` (not gitignored) — not a stealth path, but the gate DOES NOT
+//     cover them.  This is a **known false-negative class**: gate scope is
+//     `hook-plugins/` only; domain widening deferred pending a follow-up story.
+//     Recorded per POLICY 13.
+//   - `../`-prefix (`../hook-plugins/foo.wasm` → `plugins/hook-plugins/foo.wasm`) has
+//     the same false-negative class.
+//   - Absolute paths load from outside the repo entirely (different class).
+//   No covert path exists (all excluded forms are `git status`-visible or out-of-repo).
 //
 // **Traversal-cancels mutation proof (POLICY 13, MEDIUM-4(b)):**
 //   If `ParentDir` were NOT popped (bug: `ParentDir => {}` instead of `ParentDir => { pop }`),
@@ -2065,7 +2102,8 @@ fn test_S_21_09_ac006_T025_traversal_form_is_parsed_as_declared() {
 }
 
 // ---------------------------------------------------------------------------
-// T-026 — MEDIUM-2 (pass-5 correction): absolute-form plugin path is EXCLUDED
+// T-026 — MEDIUM-2 + HIGH-1 pass-6: absolute-form plugin path is EXCLUDED; depth-matched
+//         sub-test proves prefix-verification loop is load-bearing (not just length check)
 //
 // The pass-4 implementation (root-clearing lexical normalisation on the raw plugin path)
 // treated `/abs/hook-plugins/ghost-absolute.wasm` as equivalent to
@@ -2091,11 +2129,26 @@ fn test_S_21_09_ac006_T025_traversal_form_is_parsed_as_declared() {
 // Absolute paths that resolve outside the repo simply escape the gate (fail closed —
 // no security consequence, and no false-positive MISSING outcome).
 //
+// ## Pass-6 HIGH-1: depth-matched fixture proves prefix loop is load-bearing
+//
+// Sub-test (a) uses `/abs/hook-plugins/ghost-absolute.wasm` — only 2 Normal components
+// before `hook-plugins`.  When `expected_depth` is the tempdir depth (≥ 5 on macOS),
+// the minimum-length check `joined_parts.len() < expected_depth + 2` rejects this path
+// BEFORE the prefix loop runs — the exclusion is depth-coincidental.
+//
+// Sub-test (b) constructs an absolute path with EXACTLY `expected_depth` Normal
+// components before `hook-plugins`, so `len == expected_depth + 2` passes the length
+// check.  The PREFIX-VERIFICATION LOOP (comparing `joined_parts[0..expected_depth]`
+// against `parent_parts`) is now the operative gate.  Deleting the prefix loop would
+// admit this path → `refs_depth.contains("evil.wasm")` fires RED.
+//
 // Story: S-21.09
 // ---------------------------------------------------------------------------
 #[test]
 fn test_S_21_09_ac006_T026_absolute_form_excluded_from_declared() {
     let tmp = tempdir().expect("tempdir must create successfully");
+
+    // ---- (a) Short absolute path — excluded by minimum-length check ----
     let registry = tmp.path().join("registry.toml");
     fs::write(
         &registry,
@@ -2118,7 +2171,7 @@ fn test_S_21_09_ac006_T026_absolute_form_excluded_from_declared() {
     // and production loads them from that external location, not from hook-plugins/.
     assert!(
         !refs.contains("ghost-absolute.wasm"),
-        "T-026 MEDIUM-2 (pass-5): absolute-path plugin declarations must NOT be included \
+        "T-026(a) MEDIUM-2: absolute-path plugin declarations must NOT be included \
          in declared — production resolve_plugin_paths() passes absolute paths unchanged \
          (loads from /abs/hook-plugins/..., not from registry_parent/hook-plugins/); \
          including them produces false-positive MISSING outcomes; got refs: {:?}",
@@ -2126,8 +2179,59 @@ fn test_S_21_09_ac006_T026_absolute_form_excluded_from_declared() {
     );
     assert!(
         refs.is_empty(),
-        "T-026: expected empty refs for absolute-path declaration; got: {:?}",
+        "T-026(a): expected empty refs for short absolute-path declaration; got: {:?}",
         refs
+    );
+
+    // ---- (b) Depth-matched absolute path — prefix loop is the operative gate ----
+    //
+    // Build /seg0/seg1/.../seg_{N-1}/hook-plugins/evil.wasm where N == expected_depth.
+    // All seg* components differ from the real tempdir components, so the prefix-
+    // verification loop rejects them even though len == expected_depth + 2 passes the
+    // minimum-length check.  Mutation proof: deleting the prefix loop in
+    // extract_hook_plugin_name() admits "evil.wasm" (refs_depth becomes {"evil.wasm"}).
+    let expected_depth = tmp
+        .path()
+        .components()
+        .filter(|c| matches!(c, std::path::Component::Normal(_)))
+        .count();
+
+    let mut abs_depth = PathBuf::from("/");
+    for i in 0..expected_depth {
+        abs_depth.push(format!("seg{}", i));
+    }
+    abs_depth.push("hook-plugins");
+    abs_depth.push("evil.wasm");
+
+    let abs_depth_str = abs_depth
+        .to_str()
+        .expect("depth-matched absolute path must be valid UTF-8");
+
+    let registry_depth = tmp.path().join("registry-depth.toml");
+    let depth_content = format!(
+        "schema_version = 2\n[[hooks]]\nname = \"evil\"\nevent = \"PreToolUse\"\n\
+         tool = \"^Bash$\"\nplugin = \"{}\"\ntimeout_ms = 5000\non_error = \"continue\"\n",
+        abs_depth_str
+    );
+    fs::write(&registry_depth, &depth_content)
+        .expect("depth-matched absolute registry must be written to tempfile");
+
+    let refs_depth = parse_plugin_refs(&registry_depth);
+
+    assert!(
+        !refs_depth.contains("evil.wasm"),
+        "T-026(b) HIGH-1 depth-matched: absolute path /seg0/.../seg{}/hook-plugins/evil.wasm \
+         has len == expected_depth + 2, passing the minimum-length check; the \
+         prefix-verification loop is the operative gate (joined_parts[0..expected_depth] \
+         are seg* components, not the real tempdir components); deleting the prefix loop \
+         admits evil.wasm; got refs_depth: {:?}",
+        expected_depth - 1,
+        refs_depth
+    );
+    assert!(
+        refs_depth.is_empty(),
+        "T-026(b): expected empty refs for depth-matched absolute path; got: {:?}",
+        refs_depth
     );
 }
 
@@ -2382,7 +2486,7 @@ fn test_S_21_09_ac006_T030_wiring_control_both_check_calls_are_active() {
         //   commit.gpgsign=false       — prevents gpg-sign failures if globally enabled
         //   core.hooksPath=/dev/null   — prevents global hooks from rejecting the commit
         //   init.templateDir=          — prevents template-installed hooks
-        let status = Command::new("git")
+        let init_out = Command::new("git")
             .args([
                 "-c",
                 "core.excludesFile=/dev/null",
@@ -2395,20 +2499,24 @@ fn test_S_21_09_ac006_T030_wiring_control_both_check_calls_are_active() {
                 "init",
             ])
             .current_dir(root)
-            .status()
-            .expect("git init must succeed for T-030 phase B fixture");
-        assert!(status.success(), "T-030 phase B: git init failed");
+            .output()
+            .expect("git init must execute for T-030 phase B fixture");
+        assert!(
+            init_out.status.success(),
+            "T-030 phase B: git init failed: {}",
+            String::from_utf8_lossy(&init_out.stderr)
+        );
 
         Command::new("git")
             .args(["config", "user.email", "test@example.com"])
             .current_dir(root)
-            .status()
-            .expect("git config user.email must succeed");
+            .output()
+            .expect("git config user.email must execute");
         Command::new("git")
             .args(["config", "user.name", "Test"])
             .current_dir(root)
-            .status()
-            .expect("git config user.name must succeed");
+            .output()
+            .expect("git config user.name must execute");
 
         let plugins_dir = root.join("plugins/vsdd-factory");
         let hook_plugins_dir = plugins_dir.join("hook-plugins");
@@ -2441,14 +2549,18 @@ fn test_S_21_09_ac006_T030_wiring_control_both_check_calls_are_active() {
                 .expect("hook wasm fixture must be written");
         }
 
-        let status = Command::new("git")
+        let add_out = Command::new("git")
             .args(["-c", "core.excludesFile=/dev/null", "add", "."])
             .current_dir(root)
-            .status()
-            .expect("git add must succeed for T-030 phase B fixture");
-        assert!(status.success(), "T-030 phase B: git add failed");
+            .output()
+            .expect("git add must execute for T-030 phase B fixture");
+        assert!(
+            add_out.status.success(),
+            "T-030 phase B: git add failed: {}",
+            String::from_utf8_lossy(&add_out.stderr)
+        );
 
-        let status = Command::new("git")
+        let commit_out = Command::new("git")
             .args([
                 "-c",
                 "core.excludesFile=/dev/null",
@@ -2461,9 +2573,13 @@ fn test_S_21_09_ac006_T030_wiring_control_both_check_calls_are_active() {
                 "T-030 phase B fixture",
             ])
             .current_dir(root)
-            .status()
-            .expect("git commit must succeed for T-030 phase B fixture");
-        assert!(status.success(), "T-030 phase B: git commit failed");
+            .output()
+            .expect("git commit must execute for T-030 phase B fixture");
+        assert!(
+            commit_out.status.success(),
+            "T-030 phase B: git commit failed: {}",
+            String::from_utf8_lossy(&commit_out.stderr)
+        );
 
         // Inventory passes (exact pair); hooks floor passes (30 entries);
         // resolvers floor passes (1 entry); declared − tracked fires on ctx.wasm.
@@ -2590,5 +2706,186 @@ fn test_S_21_09_ac006_T032_nested_subdir_yields_filename() {
         "T-032 MEDIUM-1: 'sub' must NOT appear in refs — it is a directory component, \
          not the artifact filename; got refs: {:?}",
         refs
+    );
+}
+
+// ---------------------------------------------------------------------------
+// T-033 — MEDIUM-3 minimum-length lower boundary: `hook-plugins` (no filename) excluded
+//
+// The minimum-length check in `extract_hook_plugin_name()`:
+//
+//   if joined_parts.len() < expected_depth + 2 { return None; }
+//
+// requires at least TWO components after registry_parent:
+//   [registry_parent_parts..., "hook-plugins", "<filename>"]
+//
+// For `plugin = "hook-plugins"` (the directory itself — no trailing filename):
+//   joined_parts = [registry_parent_parts..., "hook-plugins"]
+//   len = expected_depth + 1 < expected_depth + 2 → excluded (correct)
+//
+// The + 3 direction is already caught by T-013/T-014/T-025/T-031:
+//   `hook-plugins/foo.wasm` has len = expected_depth + 2, which is NOT < expected_depth + 3,
+//   so weakening to `< expected_depth + 3` would exclude those fixtures → those tests fail.
+//
+// Together this test (lower boundary) + T-013/014/025/031 (upper direction) form the
+// boundary pair that constrains the `+ 2` constant per POLICY 13.
+//
+// Mutation-proof: weakening to `< expected_depth + 1` allows len = expected_depth + 1
+// through; the hook-plugins component check passes (component at expected_depth is
+// "hook-plugins"); `last()` returns "hook-plugins" as the filename → declared contains
+// "hook-plugins" → false `MISSING: hook-plugins`.  Strengthening to
+// `< expected_depth + 3` would exclude T-013/014/025/031 (len = expected_depth + 2
+// < expected_depth + 3 → all those tests fail).
+//
+// Story: S-21.09
+// ---------------------------------------------------------------------------
+#[test]
+fn test_S_21_09_ac006_T033_minimum_length_hookplugins_dir_only_excluded() {
+    let tmp = tempdir().expect("tempdir must create successfully");
+    let registry = tmp.path().join("registry.toml");
+    fs::write(
+        &registry,
+        concat!(
+            "schema_version = 2\n",
+            "[[hooks]]\n",
+            "name = \"ghost-dir\"\n",
+            "event = \"PreToolUse\"\n",
+            "tool = \"^Bash$\"\n",
+            "plugin = \"hook-plugins\"\n",
+            "timeout_ms = 5000\n",
+            "on_error = \"continue\"\n"
+        ),
+    )
+    .expect("directory-only registry must be written to tempfile");
+
+    let refs = parse_plugin_refs(&registry);
+
+    assert!(
+        refs.is_empty(),
+        "T-033 MEDIUM-3: parse_plugin_refs must exclude a plugin path of exactly \
+         'hook-plugins' (directory only, no filename component) — after resolving \
+         relative to registry_parent, joined_parts.len() == expected_depth + 1, which \
+         is < expected_depth + 2, so the minimum-length check returns None; \
+         mutation-proof: 'len < expected_depth + 1' (weaker) passes this through, \
+         last() returns 'hook-plugins' as the filename producing a false \
+         MISSING: hook-plugins; the + 3 direction is caught by T-013/014/025/031; \
+         got refs: {:?}",
+        refs
+    );
+}
+
+// ---------------------------------------------------------------------------
+// T-034 — MEDIUM-4 `-r` flag control: git ls-tree -r finds nested committed WASMs
+//
+// `git_committed_wasm_names()` runs `git ls-tree --name-only -r HEAD
+// plugins/vsdd-factory/hook-plugins/` to list committed artifacts.  Without `-r`,
+// `git ls-tree` is non-recursive: subdirectory entries appear as tree objects
+// (`040000 tree ...`), not as file paths, so they are filtered out by the
+// `.ends_with(".wasm")` check.  A nested WASM at `hook-plugins/sub/nested.wasm`
+// would be invisible to a non-recursive `ls-tree`.
+//
+// T-032 proves the DECLARED side: `hook-plugins/sub/nested.wasm` in a registry yields
+// `nested.wasm` as the declared artifact name.  This test proves the COMMITTED side:
+// a WASM committed at `hook-plugins/sub/nested.wasm` IS visible to
+// `git_committed_wasm_names()` (because `-r` is present), making end-to-end
+// cross-checking between declared and committed correct for nested declarations.
+//
+// Mutation-proof: dropping `-r` from `git ls-tree` causes the subdirectory entry
+// (`hook-plugins/sub`) to appear as a tree line rather than a file path; the
+// `.ends_with(".wasm")` filter excludes it; `committed` is empty;
+// `assert!(committed.contains("nested.wasm"))` FAILS.
+//
+// Story: S-21.09
+// ---------------------------------------------------------------------------
+#[test]
+fn test_S_21_09_ac006_T034_git_ls_tree_r_finds_nested_committed_wasm() {
+    let tmp = tempdir().expect("tempdir must create successfully");
+    let root = tmp.path();
+
+    // Initialise a git repo with -c overrides to prevent global config interference
+    // (same discipline as T-030 Phase B).
+    let init_out = Command::new("git")
+        .args([
+            "-c",
+            "core.excludesFile=/dev/null",
+            "-c",
+            "commit.gpgsign=false",
+            "-c",
+            "core.hooksPath=/dev/null",
+            "-c",
+            "init.templateDir=",
+            "init",
+        ])
+        .current_dir(root)
+        .output()
+        .expect("git init must execute for T-034 fixture");
+    assert!(
+        init_out.status.success(),
+        "T-034: git init failed: {}",
+        String::from_utf8_lossy(&init_out.stderr)
+    );
+
+    Command::new("git")
+        .args(["config", "user.email", "test@example.com"])
+        .current_dir(root)
+        .output()
+        .expect("git config user.email must execute");
+    Command::new("git")
+        .args(["config", "user.name", "Test"])
+        .current_dir(root)
+        .output()
+        .expect("git config user.name must execute");
+
+    // Create nested hook-plugins/sub/nested.wasm (simulates a real nested artifact).
+    let hook_plugins_sub = root.join("plugins/vsdd-factory/hook-plugins/sub");
+    fs::create_dir_all(&hook_plugins_sub).expect("hook-plugins/sub dir must be created");
+    fs::write(hook_plugins_sub.join("nested.wasm"), b"wasm")
+        .expect("nested.wasm fixture must be written");
+
+    let add_out = Command::new("git")
+        .args(["-c", "core.excludesFile=/dev/null", "add", "."])
+        .current_dir(root)
+        .output()
+        .expect("git add must execute for T-034 fixture");
+    assert!(
+        add_out.status.success(),
+        "T-034: git add failed: {}",
+        String::from_utf8_lossy(&add_out.stderr)
+    );
+
+    let commit_out = Command::new("git")
+        .args([
+            "-c",
+            "core.excludesFile=/dev/null",
+            "-c",
+            "commit.gpgsign=false",
+            "-c",
+            "core.hooksPath=/dev/null",
+            "commit",
+            "-m",
+            "T-034 fixture: nested WASM",
+        ])
+        .current_dir(root)
+        .output()
+        .expect("git commit must execute for T-034 fixture");
+    assert!(
+        commit_out.status.success(),
+        "T-034: git commit failed: {}",
+        String::from_utf8_lossy(&commit_out.stderr)
+    );
+
+    // git_committed_wasm_names() uses `git ls-tree -r HEAD` → must surface nested.wasm.
+    // Without -r, the subdirectory appears as a tree object and .ends_with(".wasm")
+    // excludes it — committed would be empty and the assertion below would FAIL.
+    let committed = git_committed_wasm_names(root);
+
+    assert!(
+        committed.contains(&"nested.wasm".to_string()),
+        "T-034 MEDIUM-4: git_committed_wasm_names must return 'nested.wasm' for a WASM \
+         committed at hook-plugins/sub/nested.wasm — the -r flag makes ls-tree recursive; \
+         mutation-proof: dropping -r causes nested.wasm to be absent from committed, \
+         producing a false MISSING: nested.wasm even though the artifact IS committed; \
+         got committed: {:?}",
+        committed
     );
 }
