@@ -5,3 +5,4 @@
 {"type":"hook.block","hook":"destructive-command-guard","reason":"git_worktree_force","ts":"2026-08-10T16:30:16-0500","ts_epoch":1786397416,"schema_version":1}
 {"type":"hook.block","hook":"validate-count-propagation","reason":"count_propagation_drift","ts":"2026-08-10T17:25:05-0500","ts_epoch":1786400705,"schema_version":1}
 {"type":"hook.block","hook":"validate-count-propagation","reason":"count_propagation_drift","ts":"2026-08-10T18:51:04-0500","ts_epoch":1786405864,"schema_version":1}
+{"type":"hook.block","hook":"validate-input-hash","reason":"input_hash_drift","ts":"2026-08-10T19:39:44-0500","ts_epoch":1786408784,"schema_version":1}

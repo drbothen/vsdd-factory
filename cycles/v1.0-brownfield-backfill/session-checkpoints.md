@@ -7,7 +7,7 @@ producer: state-manager
 timestamp: 2026-04-26T12:00:00Z
 cycle: v1.0-brownfield-backfill
 inputs: [STATE.md]
-input-hash: "5647f9a"
+input-hash: "94835ec"
 traces_to: STATE.md
 ---
 
@@ -1756,3 +1756,18 @@ Key state at D-964 archive:
 - develop: `700b4dd3`; main: `80e5cd7b`.
 
 **This checkpoint superseded by SESSION-WRAP-2026-08-09 checkpoint burst 2026-08-09.**
+
+## Session Resume Checkpoint (2026-08-10 — D-970-ADR-040-V1.12-RATIFICATION-BURST COMPLETE; trajectory-tail →20→16→8→10; pass-11 adversary NEXT; PIPELINE ACTIVE)
+
+Archived from STATE.md by SESSION-WRAP-2026-08-10 checkpoint burst (2026-08-10). Full content preserved in git: `git show 43337a44:.factory/STATE.md` (factory-artifacts HEAD at D-970 tip archive time).
+
+Key state at D-970 archive:
+- Pipeline ACTIVE. D-970 ADR-040 v1.12 ratification burst COMPLETE (factory-artifacts `43337a44`). 4-INDEX: BC v4.55 / VP v2.76 / STORY v4.291 / ARCH v3.54. policies.yaml v1.4.23 ACTIVE. Codifications 1+2 APPLIED.
+- F-001 REDESIGN RATIFIED (ADR-040 v1.12; D-970). NOT YET IN FORCE. Dependency chain: S-21.09→S-21.07→wire CI job. Gate evaluates in factory-artifacts worktree (0 *.rs/*.bats); stale-pin guard correctly EMPTY-or-UNREACHABLE.
+- Streak 0/3 (10 adversary passes; 0 CLEAN). Trajectory `47→18→25→25→24→20→16→8→10`; tail `→20→16→8→10`.
+- develop: `62fbcf1a` (PR #774 merged 2026-08-10). main: `80e5cd7b`. merged_count: 107.
+- PR #774 shipped: DEFAULT_FUEL_CAP 10M→20M, fuel-vs-epoch block_reason split, fuel_cap on PluginResult::Timeout. On develop; NOT yet in operator cache (rc.23 still 10M).
+- 9 pass-10 findings still OPEN (F-002 permanent historical; F-004 SHIFTED; F-005/F-006/F-008 architect; F-009 product-owner; F-010 process-gap); pass-11 adversary NEXT.
+- `feature/policy15-gate-rust` at `d2a3176a`: gate crate; 16 tests; mutation-verified; no PR. Tip `f81ab5a6` bundles unrelated CLAUDE.md docs commit.
+
+**This checkpoint superseded by SESSION-WRAP-2026-08-10 checkpoint burst 2026-08-10.**
