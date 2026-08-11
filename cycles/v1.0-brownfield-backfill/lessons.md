@@ -10827,3 +10827,17 @@ D-442(e) recorded the same class of defect for lessons.md (≤3,500 soft / ≤4,
 **Closes:** LOG-DELETION-RECURRENCE-4 telemetry commit (lesson recorded)
 
 **Cites:** [[L-BB-context-loss-reverts-to-false-premise]]; [[L-BB-false-spec-claim-propagation]]. `[process-gap; relay; multi-hop; composite-facts; verifying-command; anti-merge; codified]`
+
+## L-BB-column-count-constraint-not-durably-internalized [process-gap]
+
+**Category:** process-gap
+
+**Title:** A Correction That Holds For Eight Iterations Then Lapses Is Not a Slip — It Indicates the Constraint Was Locally Satisfied Rather Than Durably Internalised
+
+**Lesson:** Session evidence 2026-08-11 (S-21.09 story version-parity burst): the story-writer was corrected early in the session on the STORY-INDEX nine-column row format (`| Story ID | Title | Epic | Points | Priority | Depends-On | Blocks | Status | BCs |`). It then produced eight correctly-formed nine-column rows. At v1.9 it reverted to a five-column malformed row (`| S-21.09 | title | epic | pts | BCs |`). The eight-iteration streak made the lapse invisible at handoff — the orchestrator accepted the row without verifying column count because the preceding rows had been correct. **Root cause:** a correction that is applied consistently for N iterations then reverts indicates the constraint was satisfied locally (within the context window of the correction) rather than durably internalised as a structural rule. When the session advanced to the v1.9 authoring pass, the agent reproduced the row from memory of a "reasonable shape" rather than re-deriving from the live table header. A five-column row looks plausible in isolation; it is only wrong against the live header. **Mitigation (two parts):** (1) Index rows MUST be re-derived from the live table header at authoring time — never reproduced from memory of what a "reasonable row shape" looks like. (2) The orchestrator MUST verify column count on every STORY-INDEX row handoff, not just on the first row of a session or after an explicit correction. **Near-miss:** had the malformed five-column row been applied to STORY-INDEX.md, it would have corrupted the table at the point of insertion — the same defect class as `validate-table-cell-count` found in BC-1.05.036 earlier in the session. The defect was caught before commit only because the orchestrator applied the column-count check at handoff.
+
+**Anchors:** S-21.09 story v1.9 delivery blockquote burst 2026-08-11; story-writer nine-column reversion; validate-table-cell-count defect class; BC-1.05.036.
+
+**Closes:** D-972-S-21.09-STORY-VERSION-PARITY (lesson recorded)
+
+**Cites:** [[L-BB-relay-merges-composite-facts]]; [[L-BB-context-loss-reverts-to-false-premise]]. `[process-gap; column-count; constraint-satisfaction; local-vs-durable; index-row; live-header; orchestrator-verification; near-miss; validate-table-cell-count; codified]`
