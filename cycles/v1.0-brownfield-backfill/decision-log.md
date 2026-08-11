@@ -15681,3 +15681,82 @@ D-970-ADR-040-V1.12-RATIFICATION-BURST
 ### Date
 
 2026-08-10
+
+---
+
+## D-971
+
+**D-971-S-21.09-READY-PROMOTION-AND-RECORDED-FACT-CORRECTIONS** (state-manager; single-commit TD-VSDD-053 2026-08-10).
+
+**POLICY 16 GATE (pre-allocation; literal shell, D-449(a)):**
+
+```
+$ cd /Users/zious/Documents/GITHUB/vsdd-factory/.factory && max_d=$({ grep -hE '^#{2,} D-[0-9]+' cycles/v1.0-brownfield-backfill/decision-log.md cycles/v1.0-feature-engine-discipline-pass-1/decision-log.md 2>/dev/null; grep -hE '^[|] *D-[0-9]+' cycles/v1.0-brownfield-backfill/decision-log.md cycles/v1.0-feature-engine-discipline-pass-1/decision-log.md 2>/dev/null; } | grep -oE 'D-[0-9]+' | sed 's/D-//' | sort -n | tail -1); [ "$max_d" -lt 9000 ] && printf 'PASS: global max D-%s < D-9000 ceiling\n' "$max_d" || printf 'FAIL: breach: max=D-%s\n' "$max_d"
+PASS: global max D-970 < D-9000 ceiling
+```
+
+**(a) POLICY 16 GATE PASS — D-971 allocated; parent-commit `3197b79a` (dispatch-side advance).**
+
+**(b) Human resume directive** 2026-08-10: pipeline ACTIVE; S-21.09 spec elaboration dispatch ordered; W3 wave gate WAIVED for S-21.09 on P0 grounds (MUST land before S-21.07); human sequencing ruling revised: **S-21.09 FIRST** (revised from S-21.12→S-21.09→S-21.07 after R-S2112-03's ci.yml-conflict premise was falsified — `stories/S-21.07-validate-cross-site-correspondence.md` contains ZERO occurrences of `ci.yml`, `.github`, or `workflow`; ci.yml conflict premise for R-S2112-03 does not hold). New effective order: S-21.09 → S-21.07 (S-21.12 independent, can merge in any relative order).
+
+**(c) S-21.09 draft → ready** at 5 pts (re-estimated from 8 pts). Story v1.0 → v1.1 (elaboration pass by story-writer, human-directed). STORY-INDEX v4.291 → v4.292: catalog row updated (8→5 pts, draft→ready, v1.0→v1.1, corrected root-cause narrative — release-lag not parity-check gap, 0 events vs 14,151 for sibling guards, POLICY 20 IS registered at id:20 D-753 — count-based-masking claim retracted); E-21 delivery blockquote 96→93 pts; running W4 total 54→51 pts.
+
+**(d) sprint-state.yaml** S-21.09 `status: draft` → `ready`.
+
+**(e) Six factual corrections to STATE.md** (independent fresh-context investigation results):
+
+1. **P0 blocker invocation count corrected**: `validate-factory-path-staging` P0 blocker row cited "0 fires vs 889 sibling invocations". Verified across `logs/dispatcher-internal-*.jsonl` (2026-07-23→2026-08-10): records with `plugin_name == "validate-factory-path-staging"` = **0** (all event types, every file). Three same-matcher `PreToolUse`/`^Bash$` siblings each show **14,151** `plugin.invoked` + 14,151 `plugin.completed` (`verify-git-push`, `verify-factory-lock-bash`, `validate-heavy-op-delegation`). Correct ratio: **0 vs 14,151**.
+
+2. **Root cause reattributed to release lag**: Operative cause is RELEASE LAG, not a parity-check gap. `v1.0.0-rc.23` tagged 2026-07-18; S-21.01 (which introduced the registry entry) merged `7bb0e797` on 2026-07-23 — five days AFTER the tag. rc.23's registry contains ZERO occurrences of `validate-factory-path-staging`. Guard inert for 100% of its existence at the operator level. develop is 44 commits unreleased. Missing committed WASM is a self-hosting defect on develop; self-heals at rc.24 (release.yml `commit-binaries` job stages, verifies dual-registry parity, `git add -f`s past gitignore — `origin/main` has 34-tracked/34-declared parity).
+
+3. **Dependabot count corrected**: STATE.md recorded 7 (D-961) / 8 (D-955). `gh api dependabot/alerts` returns **18 open**: 17 npm in `plugins/vsdd-factory/skills/visual-companion` (nanoid ×5, mermaid ×5, lodash-es ×3, postcss ×2, dompurify ×1) plus **1 Rust: alert #39 `opentelemetry_sdk` CVE-2026-48504 (medium)**. `cargo deny check advisories` does NOT surface the opentelemetry_sdk advisory.
+
+4. **RUSTSEC-2026-0204 is NOT anchored by any story**: D-961 drift row folds it into "E-22 scope re-anchored to E-21 W4" but S-21.12 §Scope says verbatim "distinct advisory; out of scope". No story anchors it. Fix is `cargo update -p crossbeam-epoch` (→0.9.20).
+
+5. **Two further advisories anchored by NO story**: RUSTSEC-2026-0190 (`anyhow` 1.0.102, unsound, →1.0.103+) and RUSTSEC-2025-0052 (`async-std` 1.13.2, unmaintained, dev-only via `httpmock` → `async-object-pool`, no safe upgrade). `cargo deny check advisories` at HEAD FAILS with **five findings** total (not two as previously recorded).
+
+6. **Exploitability framing corrected for RUSTSEC-2026-0188 (CVE-2026-58494)**: Bypass is of a read-only `FilePerms` restriction that this codebase does NOT currently impose — `invoke_plugin` in `crates/factory-dispatcher/src/invoke.rs` grants `DirPerms::all(), FilePerms::all()`. "P0 live CVE" is accurate as an advisory-database classification and as a red-gate predicate, but current exploitability is NONE (the restricted operation is unrestricted here). Prospective blocker for SEC-001. S-21.12 story is honest about this; drift-item framing was not.
+
+**(f) New finding — refuse_setuid inert in production [HIGH; SECURITY]**: `refuse_setuid` in `crates/factory-dispatcher/src/host/exec_subprocess.rs` is 100% inert. It calls `std::fs::metadata(PathBuf::from(cmd))` where `cmd` is the bare binary name as received from the guest; for any bare name, `PathBuf::from(cmd)` is a relative path, `fs::metadata` attempts to stat `<cwd>/<cmd>`, which always returns `Err`, so `refuse_setuid` always returns `false`. Verified inert for `git`, `bash`, `jq`, `factory-health`; works only for absolute-path cmd values (`/usr/bin/sudo` → correctly refused). Every registry entry declares bare names. The module doc's claim "Setuid / setgid binaries are refused categorically on Unix" has never been true. This is a shipped security gate that has never functioned. Remediation: ADR-043 Decision 1 (absolute-path resolution at registry-load time) incidentally repairs this as a side-effect — `refuse_setuid` would receive the resolved absolute path after Decision 1 is implemented. Closure route: architect/implementer via ADR-043 implementing story (S-21.14, not yet authored). Do NOT anchor to ADR-043 until ratified.
+
+**(g) ADR-043 v1.0 adversarial review conducted** (fresh-context, Iron Law): DO-NOT-RATIFY; 4 BLOCKER, 7 HIGH, 6 MEDIUM, 2 LOW, 1 NIT. Persisted as `cycles/v1.0-brownfield-backfill/adv-adr-043-pass-1.md`. NOT a cycle-level pass; pass-11 remains NEXT. ADR-043 subsequently amended to v1.1 (all 4 BLOCKERs + all 7 HIGH closed) then to v1.2 (3 additional items from orchestrator review). v1.2 currently `status: proposed`.
+
+**(h) ADR-043 v1.0 reviewed DO-NOT-RATIFY; ARCH-INDEX NOT updated** (ADR-043 still `status: proposed`; ARCH-INDEX v3.54 UNCHANGED; total_adrs = 42 UNCHANGED; ADR-043 row deferred to ratification burst). ARCH-INDEX stays v3.54.
+
+**(i) POLICY 5 sibling-sweep (S-21.09 pts)** executed (literal shell per D-449(a)):
+
+```
+$ python3 -c "
+with open('stories/STORY-INDEX.md', 'r') as f:
+    lines = f.readlines()
+for i, line in enumerate(lines[20:], start=21):
+    if 'S-21.09' in line:
+        idx = line.find('S-21.09')
+        print(f'L{i}: {line[idx:idx+35]}')
+" 2>/dev/null
+L721: S-21.09 added 2026-08-04 (story-
+L722: S-21.09, S-21.12; W5: S-21.10; W
+L733: S-21.09 | validate-factory-path-s
+L739: S-21.09 (5 pts; depends_on [])
+L740: S-21.09; validate-factory-path-st
+```
+
+All S-21.09 pts citations updated: L733 row = 5, L739 delivery blockquote = 5 pts, L739 total = 93 pts, L721 running W4 total = 51 pts. No stale "8 pts" for S-21.09 in body (L739 "8 pts" belongs to S-21.12).
+
+**(j) STATE.md v7.09 → v7.10.** streak 0/3 UNCHANGED. trajectory-tail →20→16→8→10 UNCHANGED. 4-INDEX BC v4.55/VP v2.76/STORY **v4.292**/ARCH v3.54. policies.yaml v1.4.23 UNCHANGED.
+
+### Agents
+
+- state-manager (D-971): S-21.09 story v1.1 committed; STORY-INDEX v4.291→v4.292; sprint-state.yaml updated; adv-adr-043-pass-1.md created; decision-log D-971 appended; lessons.md 4 L-BB lessons appended; burst-log D-971 8-block appended; STATE.md v7.09→v7.10; POLICY 16 gate run with literal shell captured stdout; sibling-sweep literal shell captured stdout
+
+### 4-INDEX
+
+BC-INDEX v4.55 (UNCHANGED) / VP-INDEX v2.76 (UNCHANGED) / STORY-INDEX v4.292 / ARCH-INDEX v3.54 (UNCHANGED)
+
+### Phase
+
+D-971-S-21.09-READY-PROMOTION-AND-RECORDED-FACT-CORRECTIONS
+
+### Date
+
+2026-08-10

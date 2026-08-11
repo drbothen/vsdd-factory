@@ -1,19 +1,19 @@
 ---
 document_type: pipeline-state
 level: ops
-version: "7.09"
+version: "7.10"
 status: draft
 producer: state-manager
-timestamp: 2026-08-11T01:43:28Z
-phase: S-21.09-SPEC-ELABORATION-DISPATCH
-last_amended: "2026-08-10 (v7.09) — SESSION-WRAP-2026-08-10 (state-manager): pipeline ACTIVE→PAUSED; telemetry committed; checkpoint archived + refreshed; STATE.md v7.08→v7.09. [Prior: 2026-08-10 (v7.08) — D-970-ADR-040-V1.12-RATIFICATION-BURST (state-manager): ADR-040 v1.12 RATIFIED by human 2026-08-10 per D-970; policies.yaml v1.4.22→v1.4.23 applied; Codifications 1+2 APPLIED; ARCH-INDEX v3.53→v3.54; 1 L-BB lesson appended; CI-wiring dependency chain recorded; F-001 updated (redesign RATIFIED — not yet in force); D-970 allocated; STATE.md v7.07→v7.08. [Prior: 2026-08-10 (v7.07) — D-969-ADR-040-V1.12-REDESIGN-RECORD-BURST (state-manager): ADR-040 v1.12 AMENDED + REOPENED (proposed); D-965 ratification PROCURED-ON-MISCHARACTERIZATION erratum recorded; F-001 root-cause: category error (empty domain in factory-artifacts); redesign at d2a3176a; ARCH-INDEX v3.52→v3.53; 3 L-BB lessons appended; feature/policy15-gate-rust d2a3176a added; D-969 allocated; STATE.md v7.06→v7.07. [Prior: 2026-08-10 (v7.06) — D-968-PR-774-POST-MERGE-RECORD-BURST (state-manager): PR #774 merged (62fbcf1a); develop 700b4dd3→62fbcf1a; fix/fuel-cap-raise-20m MERGED+DELETED; F-S2107-P10-007 CLOSED; F-S2107-P10-004 SHIFTED; Drift Items updated; L-BB-gate-never-invoked-is-functionally-absent appended; D-968 allocated; STATE.md v7.05→v7.06. [Prior: 2026-08-10 (v7.05) — D-967-PASS-10-CORRECTION-BURST (state-manager): orchestrator relay error in D-966 corrected; F-006 precision note attribution fixed (adapter model, not cross-site); F-S2107-P10-010 MEDIUM added; pass-10 count 9→10; trajectory-tail →20→16→8→10; L-BB-correction-same-verification-obligation appended; D-967 allocated; STATE.md v7.04→v7.05.]]]"
+timestamp: 2026-08-11T04:56:36Z
+phase: D-971-S-21.09-READY-PROMOTION-AND-RECORDED-FACT-CORRECTIONS
+last_amended: "2026-08-10 (v7.10) — D-971-S-21.09-READY-PROMOTION-AND-RECORDED-FACT-CORRECTIONS (state-manager): S-21.09 draft→ready 5 pts; STORY-INDEX v4.291→v4.292; 6 factual corrections; refuse_setuid inert HIGH SECURITY finding; ADR-043 DO-NOT-RATIFY review persisted; 4 L-BB lessons; D-971 allocated; trajectory-tail →20→16→8→10; STATE.md v7.09→v7.10. [Prior: 2026-08-10 (v7.09) — SESSION-WRAP-2026-08-10 (state-manager): pipeline ACTIVE→PAUSED; telemetry committed; checkpoint archived + refreshed; STATE.md v7.08→v7.09. [Prior: 2026-08-10 (v7.08) — D-970-ADR-040-V1.12-RATIFICATION-BURST (state-manager): ADR-040 v1.12 RATIFIED by human 2026-08-10 per D-970; policies.yaml v1.4.22→v1.4.23 applied; Codifications 1+2 APPLIED; ARCH-INDEX v3.53→v3.54; 1 L-BB lesson appended; CI-wiring dependency chain recorded; F-001 updated (redesign RATIFIED — not yet in force); D-970 allocated; STATE.md v7.07→v7.08. [Prior: 2026-08-10 (v7.07) — D-969-ADR-040-V1.12-REDESIGN-RECORD-BURST (state-manager): ADR-040 v1.12 AMENDED + REOPENED (proposed); D-965 ratification PROCURED-ON-MISCHARACTERIZATION erratum recorded; F-001 root-cause: category error (empty domain in factory-artifacts); redesign at d2a3176a; ARCH-INDEX v3.52→v3.53; 3 L-BB lessons appended; feature/policy15-gate-rust d2a3176a added; D-969 allocated; STATE.md v7.06→v7.07. [Prior: 2026-08-10 (v7.06) — D-968-PR-774-POST-MERGE-RECORD-BURST (state-manager): PR #774 merged (62fbcf1a); develop 700b4dd3→62fbcf1a; fix/fuel-cap-raise-20m MERGED+DELETED; F-S2107-P10-007 CLOSED; F-S2107-P10-004 SHIFTED; Drift Items updated; L-BB-gate-never-invoked-is-functionally-absent appended; D-968 allocated; STATE.md v7.05→v7.06. [Prior: 2026-08-10 (v7.05) — D-967-PASS-10-CORRECTION-BURST (state-manager): orchestrator relay error in D-966 corrected; F-006 precision note attribution fixed (adapter model, not cross-site); F-S2107-P10-010 MEDIUM added; pass-10 count 9→10; trajectory-tail →20→16→8→10; L-BB-correction-same-verification-obligation appended; D-967 allocated; STATE.md v7.04→v7.05.]]]"
 inputs: []
 input-hash: "[live-state]"
 traces_to: prd.md
 project: vsdd-factory
 mode: brownfield
 pipeline: ACTIVE
-current_step: "S-21.09-SPEC-ELABORATION-DISPATCH (orchestrator; human resume directive 2026-08-10; parent-commit: 43337a44; D-chain cite D-970 latest brownfield; pipeline PAUSED→ACTIVE; human sequencing ruling: W3 wave gate WAIVED for S-21.09 on P0 grounds, S-21.12 RETAINED ahead of S-21.09 in W4 merge order (S-21.12→S-21.09→S-21.07); story-writer elaboration pass dispatched on S-21.09 draft→ready; streak 0/3 UNCHANGED; trajectory-tail →20→16→8→10 UNCHANGED; 4-INDEX BC v4.55/VP v2.76/STORY v4.291/ARCH v3.54; policies.yaml v1.4.23 ACTIVE)."
+current_step: "D-971-S-21.09-READY-PROMOTION-AND-RECORDED-FACT-CORRECTIONS (state-manager; parent-commit: 3197b79a; D-chain cite D-971 latest brownfield; S-21.09 draft→ready 5 pts; STORY-INDEX v4.291→v4.292; sprint-state.yaml updated; 6 factual corrections applied; refuse_setuid inert HIGH SECURITY finding registered; ADR-043 v1.0 DO-NOT-RATIFY review persisted (ADR-scoped, not pass-11); 4 L-BB lessons codified; streak 0/3 UNCHANGED; trajectory-tail →20→16→8→10 UNCHANGED; 4-INDEX BC v4.55/VP v2.76/STORY v4.292/ARCH v3.54; policies.yaml v1.4.23 ACTIVE)."
 current_cycle: v1.0-brownfield-backfill
 dtu_required: false
 dtu_assessment: 2026-04-25
@@ -59,6 +59,7 @@ dtu_services: []
   ~330 lines (estimated post-D-969 ADR-040-V1.12-REDESIGN-RECORD-BURST 2026-08-10; v7.06→v7.07)
   ~350 lines (estimated post-D-970 ADR-040-V1.12-RATIFICATION-BURST 2026-08-10; v7.07→v7.08)
   ~355 lines (estimated post-SESSION-WRAP-2026-08-10 2026-08-10; v7.08→v7.09; pipeline PAUSED)
+  ~390 lines (estimated post-D-971 S-21.09-READY-PROMOTION-AND-RECORDED-FACT-CORRECTIONS 2026-08-10; v7.09→v7.10)
 -->
 
 # Pipeline State: vsdd-factory
@@ -74,8 +75,8 @@ dtu_services: []
 | **Mode** | brownfield-onboarding |
 | **Language** | Rust + Bash + Markdown |
 | **Started** | 2026-04-25 |
-| **Last Updated** | 2026-08-10 — SESSION-WRAP-2026-08-10: pipeline ACTIVE→PAUSED; telemetry committed; checkpoint archived + refreshed; STATE.md v7.08→v7.09. [Prior: 2026-08-10 — D-970-ADR-040-V1.12-RATIFICATION-BURST: ADR-040 v1.12 RATIFIED by human 2026-08-10; policies.yaml v1.4.22→v1.4.23 applied; Codifications 1+2 APPLIED; ARCH-INDEX v3.53→v3.54; 1 L-BB lesson; D-970 allocated; trajectory-tail →20→16→8→10; STATE.md v7.07→v7.08.] |
-| **Current Phase** | **SESSION-WRAP-2026-08-10 (2026-08-10). PIPELINE PAUSED. Human /wrap directive. D-970 ratification complete (ADR-040 v1.12; policies.yaml v1.4.23 ACTIVE). F-001 redesign RATIFIED — NOT YET IN FORCE (CI wiring PENDING: S-21.09→S-21.07→wire CI job). adversary pass-10 NOT-CLEAN B2/H4/M3/L1 (10 findings); streak 0/3; 10 adversary passes; 0 CLEAN verdicts; trajectory 47→18→25→25→24→20→16→8→10 (tail: →20→16→8→10); last D-NNN: D-970. develop 62fbcf1a. main 80e5cd7b. merged_count 107. 4-INDEX BC v4.55/VP v2.76/STORY v4.291/ARCH v3.54. policies.yaml v1.4.23. pass-11 adversary NEXT on resume.** |
+| **Last Updated** | 2026-08-10 — D-971-S-21.09-READY-PROMOTION-AND-RECORDED-FACT-CORRECTIONS: S-21.09 draft→ready 5 pts; STORY-INDEX v4.291→v4.292; 6 factual corrections; refuse_setuid inert HIGH SECURITY; ADR-043 DO-NOT-RATIFY; 4 L-BB lessons; D-971 allocated; trajectory-tail →20→16→8→10; STATE.md v7.09→v7.10. [Prior: 2026-08-10 — SESSION-WRAP-2026-08-10: pipeline ACTIVE→PAUSED; STATE.md v7.08→v7.09. [Prior: 2026-08-10 — D-970-ADR-040-V1.12-RATIFICATION-BURST: ADR-040 v1.12 RATIFIED; policies.yaml v1.4.23; Codifications 1+2; ARCH-INDEX v3.54; D-970 allocated; STATE.md v7.07→v7.08.]] |
+| **Current Phase** | **D-971-S-21.09-READY-PROMOTION-AND-RECORDED-FACT-CORRECTIONS (2026-08-10). PIPELINE ACTIVE. D-971 single-commit complete. S-21.09 draft→ready 5 pts; STORY-INDEX v4.292; 6 factual corrections (invocation 889→14,151; root cause release-lag; Dependabot 18; RUSTSEC unanchored advisories; RUSTSEC-2026-0188 exploitability framing); refuse_setuid inert HIGH SECURITY registered; ADR-043 v1.0 DO-NOT-RATIFY (ADR-scoped); 4 L-BB lessons. adversary pass-10 NOT-CLEAN B2/H4/M3/L1 (10 findings); streak 0/3; 10 adversary passes; 0 CLEAN verdicts; trajectory 47→18→25→25→24→20→16→8→10 (tail: →20→16→8→10); last D-NNN: D-971. develop 62fbcf1a. main 80e5cd7b. merged_count 107. 4-INDEX BC v4.55/VP v2.76/STORY v4.292/ARCH v3.54. policies.yaml v1.4.23. pass-11 adversary NEXT.** |
 | **Current Cycle** | v1.0-brownfield-backfill |
 
 ## Phase Progress
@@ -109,6 +110,7 @@ dtu_services: []
 | D-969-ADR-040-V1.12-REDESIGN-RECORD-BURST 2026-08-10 | **COMPLETE** | ADR-040 v1.12 AMENDED + REOPENED (proposed); F-001 root-cause: category error (empty domain in factory-artifacts); redesign at feature/policy15-gate-rust d2a3176a; ARCH-INDEX v3.52→v3.53; 3 L-BB lessons appended; codifications 1+2 PROPOSED (NOT applied to policies.yaml); D-969 allocated; STATE.md v7.06→v7.07. pass-11 adversary NEXT. |
 | D-970-ADR-040-V1.12-RATIFICATION-BURST 2026-08-10 | **COMPLETE** | ADR-040 v1.12 RATIFIED by human 2026-08-10 (D-970); policies.yaml v1.4.22→v1.4.23 applied; Codifications 1+2 APPLIED to POLICY 15 + POLICY 22; ARCH-INDEX v3.53→v3.54; 1 L-BB lesson appended; D-970 allocated; F-001 redesign RATIFIED — not yet in force (CI wiring pending; dependency chain: S-21.09→S-21.07→wire CI job); STATE.md v7.07→v7.08. pass-11 adversary NEXT. |
 | SESSION-WRAP-2026-08-10 PIPELINE PAUSED 2026-08-10 (human /wrap directive) | **COMPLETE** | telemetry committed; checkpoint archived + refreshed; D-970 ratification complete; F-001 redesign ratified not-yet-in-force; trajectory-tail →20→16→8→10 UNCHANGED; STATE.md v7.08→v7.09. |
+| D-971-S-21.09-READY-PROMOTION-AND-RECORDED-FACT-CORRECTIONS 2026-08-10 | **COMPLETE** | S-21.09 draft→ready 5 pts; STORY-INDEX v4.291→v4.292; sprint-state.yaml updated; 6 factual corrections applied (invocation count 889→14,151; root cause release-lag; Dependabot count 18; RUSTSEC unanchored advisories; RUSTSEC-2026-0188 exploitability corrected; refuse_setuid inert HIGH SECURITY registered); ADR-043 v1.0 DO-NOT-RATIFY review persisted (ADR-scoped, not pass-11); 4 L-BB lessons codified; D-971 allocated; STATE.md v7.09→v7.10. |
 | **E-18 EPIC COMPLETE 2026-07-01 D-744** | **EPIC COMPLETE** | Final story S-18.12 MERGED PR #384 ec05606a. |
 
 ## Current Phase Steps
@@ -131,6 +133,7 @@ dtu_services: []
 | D-969-ADR-040-V1.12-REDESIGN-RECORD-BURST 2026-08-10 (single commit TD-VSDD-053; parent 70b4ecd1) | state-manager | COMPLETE | ADR-040 v1.12 AMENDED + REOPENED; F-001 root-cause recorded; redesign at d2a3176a; ARCH-INDEX v3.52→v3.53; 3 L-BB lessons appended; D-969 allocated; codifications 1+2 PROPOSED; STATE.md v7.06→v7.07; streak 0/3 UNCHANGED; trajectory-tail →20→16→8→10 UNCHANGED. |
 | D-970-ADR-040-V1.12-RATIFICATION-BURST 2026-08-10 (single commit TD-VSDD-053; parent 13d7ef6b) | state-manager | COMPLETE | ADR-040 v1.12 RATIFIED by human 2026-08-10; policies.yaml v1.4.22→v1.4.23 applied; Codifications 1+2 APPLIED; ARCH-INDEX v3.53→v3.54; 1 L-BB lesson appended; D-970 allocated; F-001 redesign RATIFIED — not yet in force; STATE.md v7.07→v7.08; streak 0/3 UNCHANGED; trajectory-tail →20→16→8→10 UNCHANGED. |
 | SESSION-WRAP-2026-08-10 (session-wrap burst; human /wrap directive; parent-commit: 43337a44) | state-manager | COMPLETE | telemetry committed; checkpoint archived + refreshed; pipeline ACTIVE→PAUSED; D-chain cite D-970; streak 0/3 UNCHANGED; trajectory-tail →20→16→8→10 UNCHANGED; STATE.md v7.08→v7.09. |
+| D-971-S-21.09-READY-PROMOTION-AND-RECORDED-FACT-CORRECTIONS 2026-08-10 (single commit TD-VSDD-053; parent 3197b79a) | state-manager | COMPLETE | S-21.09 draft→ready 5 pts; STORY-INDEX v4.291→v4.292; sprint-state.yaml updated; 6 factual corrections; refuse_setuid inert HIGH SECURITY registered; ADR-043 DO-NOT-RATIFY (ADR-scoped); 4 L-BB lessons; D-971 allocated; STATE.md v7.09→v7.10; streak 0/3 UNCHANGED; trajectory-tail →20→16→8→10 UNCHANGED. SHA-patch to follow. |
 
 ## Identifier Conventions
 
@@ -139,7 +142,7 @@ dtu_services: []
 | Subsystem | SS-NN | `specs/architecture/ARCH-INDEX.md` | 10 |
 | Behavioral Contract | BC-S.SS.NNN | `specs/behavioral-contracts/ss-NN/` | 1,985 (BC-INDEX v4.55 D-964) |
 | Verification Property | VP-NNN | `specs/verification-properties/VP-INDEX.md` | 102 (VP-INDEX v2.76 D-960) |
-| Story | S-N.MM | `stories/S-N.MM-<short>.md` | 130 file-resident + 15 stub IDs (STORY-INDEX v4.291 D-964) |
+| Story | S-N.MM | `stories/S-N.MM-<short>.md` | 130 file-resident + 15 stub IDs (STORY-INDEX v4.292 D-971) |
 | Epic | E-N | `stories/epics/E-N-<short>.md` | 22 (E-0..E-9=10 + E-10..E-19=10 + E-21 active + E-22 dissolved-retained; ls → 22; D-962(f)) |
 | ADR | ADR-NNN | `specs/architecture/decisions/ADR-NNN.md` | 42 (ADR-042 NEW D-964; ADR-041 NEW D-961; ADR-040 NEW D-960) |
 | Merged Count | merged_count | `stories/sprint-state.yaml` | 107 (STATE.md explicit counter; sprint-state predicate: 113; canonical D-853) |
@@ -150,7 +153,7 @@ dtu_services: []
 
 - **Merged (107):** S-19.07 MERGED PR #670 6db4c9fc (E-19 COMPLETE 9/9). Full ledger: `cycles/v1.0-brownfield-backfill/merged-stories-ledger.md`
 - **In-Flight (0):** --
-- **E-21:** S-21.07 (W4; pass-10 NOT-CLEAN 10 findings D-967; BC-5.39.010 v1.17; branch 5370db80 pushed; NO REBASE; S-21.09 MUST land first); S-21.09 (NO branch — MUST land before S-21.07); S-21.10/S-21.11/S-21.12 per D-961; S-21.13 (W7 NEW D-964; depends_on S-21.10/S-21.11; draft).
+- **E-21:** S-21.07 (W4; pass-10 NOT-CLEAN 10 findings D-967; BC-5.39.010 v1.17; branch 5370db80 pushed; NO REBASE; S-21.09 MUST land first); S-21.09 (ready; 5 pts; no feature branch yet — In-Flight becomes S-21.09 once branch exists; MUST land before S-21.07); S-21.10/S-21.11/S-21.12 per D-961; S-21.13 (W7 NEW D-964; depends_on S-21.10/S-21.11; draft).
 - **Draft (31), Partial (2), Withdrawn (1):** see prior session checkpoints
 
 ## Active Branches
@@ -159,7 +162,7 @@ dtu_services: []
 |--------------|-----|-------|
 | main | 80e5cd7b | rc.23 bot binary bundle 2026-07-18 |
 | develop | 62fbcf1a | PR #774 squash-merged 2026-08-10T17:34:37Z. Pull on next code-worktree resume. |
-| factory-artifacts | 43337a44 | SESSION-WRAP-2026-08-10 parent (D-970 commit SHA; session-wrap commit SHA pending — no SHA-patch per one-commit rule). |
+| factory-artifacts | 3197b79a | D-971 burst parent (SHA-patch to follow after D-971 commit pushed). |
 | feature/policy15-gate-rust | d2a3176a | F-001 redesign: crates/policy15-attestation-gate/ 16 tests, GateOutcome enum, mutation-verified. Pushed; no PR. |
 | feature/S-21.07 | 5370db80 | pass-10 NOT-CLEAN 10 findings D-967 (correction burst complete). Pushed; SHA-equal with origin. FROZEN per team-lead; NO REBASE; MERGE-ORDER: S-21.09 first. |
 | feature/S-21.04 | 323f440f | pass-31 pending; no PR. Pushed; SHA-equal with origin. |
@@ -173,16 +176,17 @@ dtu_services: []
 | Cycle | Type | Status | Notes |
 |-------|------|--------|-------|
 | F-block-ai-attribution-message-file-arm | feature | F3 COMPLETE — F4 READY | E-16 under SS-07/SS-04; milestone v1.0.0-rc.17 |
-| v1.0-brownfield-backfill | brownfield | SESSION-WRAP-2026-08-10 PIPELINE PAUSED. develop 62fbcf1a; main 80e5cd7b; merged_count 107; BC v4.55; VP v2.76; STORY v4.291; ARCH v3.54; streak 0/3 (10 passes); trajectory-tail →20→16→8→10 UNCHANGED. F-001 redesign RATIFIED (ADR-040 v1.12; policies.yaml v1.4.23 ACTIVE; CI wiring PENDING: S-21.09→S-21.07→wire CI job). pass-11 adversary NEXT on resume. | SESSION-WRAP 2026-08-10; D-970 2026-08-10; D-969 2026-08-10; D-968 2026-08-10. |
+| v1.0-brownfield-backfill | brownfield | D-971 COMPLETE 2026-08-10. develop 62fbcf1a; main 80e5cd7b; merged_count 107; BC v4.55; VP v2.76; STORY v4.292; ARCH v3.54; streak 0/3 (10 passes); trajectory-tail →20→16→8→10 UNCHANGED. F-001 redesign RATIFIED (ADR-040 v1.12; policies.yaml v1.4.23 ACTIVE; CI wiring PENDING: S-21.09→S-21.07→wire CI job). pass-11 adversary NEXT. | D-971 2026-08-10; D-970 2026-08-10; D-969 2026-08-10; D-968 2026-08-10. |
 | v1.0-feature-engine-discipline-pass-1 | feature | PAUSED | F5 pass-75 complete D-510; META-LEVEL-30 CANDIDATE-CONFIRMED; trajectory →9→9→9→11. |
 | v1.0-feature-plugin-async-semantics-pass-1 | feature | CLOSED | All PRs merged; rc.14 shipped |
 
 ## Decisions Log
 
-> D-001..D-606 (see decision-log.md for full range): `cycles/v1.0-brownfield-backfill/decision-log.md` + `decisions-log-archive.md`. D-379..D-454 (see decision-log.md for full range) (F5): `cycles/v1.0-feature-engine-discipline-pass-1/decision-log.md`. D-607..D-970 (see decision-log.md for full range): this Decisions Log (D-958..D-970 (see decision-log.md for full range) live) + decision-log.md SoT.
+> D-001..D-606 (see decision-log.md for full range): `cycles/v1.0-brownfield-backfill/decision-log.md` + `decisions-log-archive.md`. D-379..D-454 (see decision-log.md for full range) (F5): `cycles/v1.0-feature-engine-discipline-pass-1/decision-log.md`. D-607..D-971 (see decision-log.md for full range): this Decisions Log (D-958..D-971 (see decision-log.md for full range) live) + decision-log.md SoT.
 
 | ID | Decision | Summary | Phase | Date |
 |----|----------|---------|-------|------|
+| D-971 | D-971-S-21.09-READY-PROMOTION-AND-RECORDED-FACT-CORRECTIONS (state-manager; single-commit TD-VSDD-053 2026-08-10). (a) POLICY 16 GATE PASS — D-971 allocated; parent-commit 3197b79a; (b) S-21.09 promoted draft→ready 5 pts (re-estimated 8→5 pts); STORY-INDEX v4.291→v4.292; sprint-state.yaml S-21.09 status draft→ready; (c) 6 factual corrections: (i) validate-factory-path-staging invocation count 889→14,151 — root cause release-lag: rc.23 tagged 2026-07-18, S-21.01 merged 2026-07-23 (7bb0e797) — guard was never in operator runtime; (ii) Dependabot vulnerability count 7-8→18 (cumulative as of 2026-08-10); (iii) RUSTSEC-2026-0204 advisory unanchored — not tracked to a specific story/wave; (iv) RUSTSEC-2026-0190 + RUSTSEC-2026-0052 also unanchored; cargo-deny fails with 5 findings total; (v) RUSTSEC-2026-0188 exploitability framing corrected — prior phrasing overstated inapplicability; (d) refuse_setuid HIGH SECURITY finding registered: `fs::metadata(PathBuf::from(bare_name))` always returns Err for bare names (stat syscall on non-path-containing string = ENOENT); gate in `crates/factory-dispatcher/src/host/exec_subprocess.rs` never fires in production; all 44 exec_subprocess registry entries use bare names (not absolute paths); module doc's categorical claim "refuses to execute setuid binaries" has never been true; (e) ADR-043 v1.0 DO-NOT-RATIFY review persisted as `adv-adr-043-pass-1.md` (ADR-scoped artifact, NOT cycle pass-11; 4B/7H/6M/2L/1N); NOT added to INDEX.md adversarial-reviews table; Convergence Status UNCHANGED; (f) 4 L-BB lessons appended: L-BB-subagent-idle-without-report [process-gap], L-BB-adversary-tool-profile-mismatch [process-gap], L-BB-adversarial-review-before-ratification [implementation], L-BB-recorded-magnitude-drift [process-gap]; (g) W3 wave-gate WAIVED per human; sequencing ruling REVISED: S-21.09 can be built FIRST — R-S2112-03 ci.yml-conflict premise falsified (S-21.07 story file has zero occurrences of ci.yml or .github/workflow); (h) streak 0/3 UNCHANGED; trajectory-tail →20→16→8→10 UNCHANGED; 4-INDEX BC v4.55/VP v2.76/STORY v4.292/ARCH v3.54; policies.yaml v1.4.23 ACTIVE; STATE.md v7.09→v7.10. | S-21.09 draft→ready 5 pts; STORY-INDEX v4.292; 6 factual corrections; refuse_setuid HIGH SECURITY; ADR-043 DO-NOT-RATIFY; 4 L-BB lessons | D-971-S-21.09-READY-PROMOTION-AND-RECORDED-FACT-CORRECTIONS | 2026-08-10 |
 | D-970 | D-970-ADR-040-V1.12-RATIFICATION-BURST (state-manager; single-commit TD-VSDD-053 2026-08-10). (a) POLICY 16 GATE PASS — D-970 allocated; parent-commit 13d7ef6b; (b) ADR-040 v1.12 RATIFIED by human 2026-08-10 on own merits — status proposed→active; ratified 2026-08-10; D-965 erratum preserved in §Status; ratification_note updated; (c) policies.yaml v1.4.22→v1.4.23 applied: POLICY 15 ATTESTATION-LOCATION GATE replacement text (ADR-040 §Decisions 7-10) + Codification 1 (PROJECT-WIDE GATE OUTCOME DISCIPLINE: every mechanical gate MUST report distinct individually-identifiable outcomes; ship a control for every outcome; assert outcome identifier not category; positive control = violating fixture; negative control = compliant fixture) + Codification 2 (POLICY 22 HUMAN-RATIFICATION CHANNEL EXTENSION: load-bearing premises require literal-shell backing; two demonstrations: D-965 false-premise on 5370db80; orchestrator model-attribution D-966 no division performed); (d) ARCH-INDEX v3.53→v3.54; ADR-040 row updated to RATIFIED 2026-08-10 (D-970); (e) 1 L-BB lesson appended: L-BB-stale-pin-guard-is-deployment-signal [process-gap]; (f) DEPLOYMENT BLOCKER: crates/hook-plugins/validate-cross-site-correspondence NOT on origin/develop (only on feature/S-21.07-validate-cross-site-correspondence 5370db80); stale-pin guard correctly EMPTY-or-UNREACHABLE; dependency chain: S-21.09→S-21.07→wire CI job; (g) F-001 status: redesign RATIFIED; not yet in force; closes when Rust crate merged to develop AND CI job wired and demonstrably running; (h) F-003 superseded — v1.12 ratified on own merits per D-970; D-965 erratum preserved; (i) streak 0/3 UNCHANGED; trajectory-tail →20→16→8→10 UNCHANGED; 4-INDEX BC v4.55/VP v2.76/STORY v4.291/ARCH v3.54; policies.yaml v1.4.23 ACTIVE; STATE.md v7.07→v7.08. | ADR-040 v1.12 RATIFIED; policies.yaml v1.4.23 ACTIVE; Codifications 1+2 APPLIED; ARCH-INDEX v3.54; F-001 RATIFIED not-in-force | D-970-ADR-040-V1.12-RATIFICATION-BURST | 2026-08-10 |
 | D-969 | D-969-ADR-040-V1.12-REDESIGN-RECORD-BURST (state-manager; single-commit TD-VSDD-053 2026-08-10). (a) POLICY 16 GATE PASS — D-969 allocated; parent-commit 70b4ecd1; (b) ADR-040 v1.12 AMENDED + REOPENED: F-001 root-cause = category error (gate evaluated in factory-artifacts worktree; 0 *.rs/*.bats by construction; pre-check permanently EMPTY); INAPPLICABLE branch retired; obligation unconditional + path-pinned; (c) redesign at feature/policy15-gate-rust d2a3176a: crates/policy15-attestation-gate/ 16 tests, GateOutcome enum, no #[non_exhaustive], mutation-verified (guard1 + attestation-count); (d) F-001 REMEDIATION DESIGNED — OPEN pending human re-ratification + policies.yaml v1.4.23 + CI wiring; (e) F-003 OPEN — D-965 ratification PROCURED-ON-MISCHARACTERIZATION erratum recorded in ADR-040 v1.12; (f) F-002 permanent historical exception — erratum owed at S-21.07 merge, anchored; (g) codifications 1+2 PROPOSED (NOT applied); (h) ARCH-INDEX v3.52→v3.53; 3 L-BB lessons appended; (i) streak 0/3 UNCHANGED; trajectory-tail →20→16→8→10 UNCHANGED; policies.yaml v1.4.22 UNCHANGED; STATE.md v7.06→v7.07. | ADR-040 v1.12 REOPENED; F-001 redesign at d2a3176a; 3 lessons; ARCH-INDEX v3.53; streak UNCHANGED | D-969-ADR-040-V1.12-REDESIGN-RECORD-BURST | 2026-08-10 |
 | D-968 | D-968-PR-774-POST-MERGE-RECORD-BURST (state-manager; single-commit TD-VSDD-053 2026-08-10). (a) POLICY 16 GATE PASS — D-968 allocated; parent-commit 48cb6862; (b) PR #774 (`fix/fuel-cap-raise-20m`) merged 2026-08-10T17:34:37Z; develop `700b4dd3` → `62fbcf1a`; main `80e5cd7b` UNCHANGED; (c) F-S2107-P10-007 CLOSED by `62fbcf1a` — `extract_reason_from_outcome` now distinguishes fuel/epoch; (d) F-S2107-P10-004 SHIFTED — "has been raised to 20M" now true on develop but ambiguous referent (operator cache rc.23 still 10M); (e) POL-14 N/A (fix branch, no story behavioral_contracts); (f) 5 GitHub reviews all COMMENTED; last at `783b88e6`; content verdict no BLOCKER; (g) L-BB-gate-never-invoked-is-functionally-absent appended; (h) streak 0/3 UNCHANGED; trajectory-tail →20→16→8→10 UNCHANGED; 4-INDEX UNCHANGED; policies.yaml UNCHANGED; STATE.md v7.05→v7.06. | PR #774 merged; develop 62fbcf1a; F-007 CLOSED; F-004 SHIFTED; lesson appended; streak UNCHANGED | D-968-PR-774-POST-MERGE-RECORD-BURST | 2026-08-10 |
@@ -210,7 +214,7 @@ dtu_services: []
 | Blocker | Status | Risk Statement |
 |---------|--------|----------------|
 | **[P0] POLICY 15 ATTESTATION-LOCATION GATE vacuous (F-S2107-P10-001)** | **OPEN — D-966 2026-08-09; REDESIGN RATIFIED D-970 — NOT YET IN FORCE** | Root cause (D-969): category error — gate evaluated in factory-artifacts worktree where *.rs/*.bats count is permanently zero; INAPPLICABLE branch was the only reachable outcome. Redesign: ADR-040 v1.12 RATIFIED by human 2026-08-10 (D-970); policies.yaml v1.4.23 ACTIVE; Codifications 1+2 APPLIED. **Closes when:** Rust crate (`crates/hook-plugins/validate-cross-site-correspondence`) merged to develop AND CI job wired and demonstrably running. Deployment blocker: crate NOT on origin/develop (only on feature/S-21.07-validate-cross-site-correspondence `5370db80`); stale-pin guard correctly EMPTY-or-UNREACHABLE. Dependency chain: S-21.09 → S-21.07 → wire CI job. |
-| **[P0] `validate-factory-path-staging` WASM guard inert since 2026-07-23** | **OPEN** | 0 fires vs 889 sibling invocations; `on_error = "continue"` masks absence. Fix story: S-21.09. MUST land before S-21.07. |
+| **[P0] `validate-factory-path-staging` WASM guard inert since 2026-07-23** | **OPEN** | 0 fires vs 14,151 sibling invocations (corrected D-971; root cause: release-lag — rc.23 tagged 2026-07-18, guard shipped in S-21.01 merged 2026-07-23 7bb0e797, never in operator runtime); `on_error = "continue"` masks absence. Fix story: S-21.09 (ready; no branch yet). MUST land before S-21.07. |
 
 ## Drift Items / Tech Debt
 
@@ -228,11 +232,11 @@ dtu_services: []
 | **[D-953] ADR-037 19-story volatile-inputs remediation** | OPEN 2026-08-04 | S-19.01 CRITICAL. |
 | **[D-954] Duplicate T-038 test ID** | OPEN 2026-08-04 | POLICY 1 violated; anchor pass-11 or next fix burst. |
 | **[D-954] decision-log.md >14,800 lines** | OPEN 2026-08-04 | WASM validators time out on every edit. |
-| **[D-955] 8 Dependabot vulnerabilities** | OPEN 2026-08-04 | Anchor: next maintenance sweep. |
+| **[D-955] 18 Dependabot vulnerabilities** | OPEN 2026-08-10 (corrected D-971; was 7-8) | Cumulative as of 2026-08-10. Anchor: next maintenance sweep. |
 | **[D-957] F-S2107-P7-019 D-693 stale WASM size** | OPEN 2026-08-05 | Anchor: pass-11 fix burst or next SHA-patch. |
 | **[D-958] 60 of 158 stories lack tdd_mode** | OPEN 2026-08-06 | Anchor: S-15.03 PRIORITY-A. |
 | **[D-958] GATE DEFECT: validate-pr-review-posted + validate-changelog-monotonicity** | OPEN 2026-08-06 | Paper-gate; header-skip misread. |
-| **[D-961] SEC-001 + RUSTSEC-2026-0222/0204 + 7 Dependabot + EAC-002 + ADR-033** | OPEN 2026-08-07 — SECURITY | E-22 scope re-anchored to E-21 W4. |
+| **[D-961] SEC-001 + RUSTSEC-2026-0222/0204 + 18 Dependabot + EAC-002 + ADR-033** | OPEN 2026-08-07 — SECURITY | E-22 scope re-anchored to E-21 W4. Dependabot count corrected D-971. |
 | **[D-961] fix/nested-factory-path-derivation + fix/d999-sentinel-code-migration** | RESOLVED 2026-08-09 — both pushed | Both branches pushed to origin (SESSION-WRAP-2026-08-09); team-lead decides PR/merge path. |
 | **[D-962] F-S2107-P9-002 fuel-exhaustion gate impl** | **CLOSED D-964** | ADR-042 10M→20M cap; gate impl `5370db80`; S-21.13 W7 anchor for §Decision 5. |
 | **[D-962] F-S2107-P9-003 POLICY 15 gate → 0** | **CLOSED D-964** | ADR-040 §Decision 6 conditional pre-check + line-anchored predicate; 3 attestation sections at `5370db80`. |
@@ -251,6 +255,9 @@ dtu_services: []
 | **[D-968] F-004 BC-5.39.010 present-perfect SHIFTED** | OPEN 2026-08-10 | "has been raised to 20,000,000 … satisfiable at HEAD" now TRUE on develop (`62fbcf1a`) but ambiguous referent: operator cache `1.0.0-rc.23` still has 10M cap. Defect = ambiguous "HEAD" (unqualified). Route: product-owner to clarify referent to post-`62fbcf1a` develop-HEAD. |
 | **[D-969] feature/policy15-gate-rust pending integration** | OPEN 2026-08-10; ratification complete D-970 | `crates/policy15-attestation-gate/` at `d2a3176a` on `feature/policy15-gate-rust`. ADR-040 v1.12 RATIFIED. Still awaits: (1) Rust crate merged to develop via S-21.07 after S-21.09; (2) CI job wired; (3) hooks-registry.toml entry; (4) demonstrably running in CI. |
 | **[D-970] CI-wiring deployment blocker** | OPEN 2026-08-10 | `crates/hook-plugins/validate-cross-site-correspondence` NOT on origin/develop; only on `feature/S-21.07-validate-cross-site-correspondence` `5370db80`. Stale-pin guard correctly returning EMPTY-or-UNREACHABLE on origin/develop (not a defect). Dependency chain: S-21.09 MUST merge first → then S-21.07 → then wire CI job. F-001 closes when CI job wired and demonstrably running. |
+| **[D-971] RUSTSEC-2026-0204/0190/0052 unanchored advisories** | OPEN 2026-08-10 — SECURITY | Three RUSTSEC advisories unanchored (no story/wave assignment); cargo-deny fails with 5 findings total (includes RUSTSEC-2026-0222 already listed under D-961). Anchor: E-22 security scope decision (§6 pending human decision). |
+| **[D-971] RUSTSEC-2026-0188 exploitability framing** | OPEN 2026-08-10 — SECURITY | Prior STATE.md phrasing overstated inapplicability; actual exploitability assessment requires architect + security-reviewer review. Route: security-reviewer. Anchor: E-22 security scope. |
+| **[D-971] refuse_setuid gate inert — HIGH SECURITY** | OPEN 2026-08-10 — HIGH SECURITY | `crates/factory-dispatcher/src/host/exec_subprocess.rs`: `fs::metadata(PathBuf::from(bare_name))` always returns Err for bare names (stat(2) on non-path string = ENOENT); gate never fires in production; all 44 exec_subprocess registry entries use bare names; module doc's claim "refuses to execute setuid binaries" has never been true. Fix scope: human to direct (implement proper path-resolve-then-stat logic OR acknowledge documentation-only fix). Route: security-reviewer + implementer. Anchor: E-22 or dedicated fix story. |
 
 ## Historical Content
 
@@ -258,17 +265,19 @@ dtu_services: []
 - `cycles/v1.0-feature-plugin-async-semantics-pass-1/burst-log.md` | `session-checkpoints.md` | `lessons.md`
 - `cycles/v1.0-feature-engine-discipline-pass-1/burst-log.md`
 
-## Session Resume Checkpoint (2026-08-10 — SESSION-WRAP-2026-08-10 COMPLETE; D-970 ratification complete; F-001 redesign ratified not-yet-in-force; PIPELINE PAUSED)
+## Session Resume Checkpoint (2026-08-10 — D-971-S-21.09-READY-PROMOTION-AND-RECORDED-FACT-CORRECTIONS COMPLETE; PIPELINE ACTIVE; pass-11 adversary NEXT)
 
-> **SELF-SUFFICIENT RESUME CONTEXT — ASSUMES ZERO PRIOR CONTEXT. PIPELINE PAUSED.**
+> **SELF-SUFFICIENT RESUME CONTEXT — ASSUMES ZERO PRIOR CONTEXT. PIPELINE ACTIVE.**
 
 ### §1 Position
 
-Cycle `v1.0-brownfield-backfill`. Pass-10 recorded; **no pass-11 yet**. Streak **0/3** (10 adversary passes, zero CLEAN). Trajectory `47→18→25→25→24→20→16→8→10`, tail `→20→16→8→10`. 4-INDEX: BC v4.55 / VP v2.76 / STORY v4.291 / **ARCH v3.54**. `policies.yaml` **v1.4.23**.
+Cycle `v1.0-brownfield-backfill`. Pass-10 recorded; **no pass-11 yet**. Streak **0/3** (10 adversary passes, zero CLEAN). Trajectory `47→18→25→25→24→20→16→8→10`, tail `→20→16→8→10`. 4-INDEX: BC v4.55 / VP v2.76 / **STORY v4.292** / ARCH v3.54. `policies.yaml` **v1.4.23**.
+
+**D-971 burst complete.** S-21.09 promoted draft→ready (5 pts); STORY-INDEX v4.291→v4.292; sprint-state.yaml updated; 6 factual corrections applied; refuse_setuid inert HIGH SECURITY finding registered; ADR-043 v1.0 DO-NOT-RATIFY review persisted (ADR-scoped, not pass-11); 4 L-BB lessons codified.
 
 **Shipped this session.** PR #774 merged — `develop` `700b4dd3`→`62fbcf1a`: WASM fuel cap 10M→20M via `DEFAULT_FUEL_CAP`, fuel-vs-epoch `block_reason` split, `fuel_cap` on `PluginResult::Timeout` + JSONL, 3 load-bearing guards. 7 commits, 5 posted reviews, 9 findings fixed, `#[non_exhaustive]` reverted after it removed compile-time exhaustiveness from the blocking path.
 
-**Bursts.** D-965 (POLICY 15 v1.4.22) → D-966 (pass-10 record, 9 findings) → D-967 (relay error corrected; F-010 added; count 9→10) → D-968 (post-merge; F-007 CLOSED; F-004 SHIFTED) → D-969 (ADR-040 v1.12 amended + reopened) → **D-970 (RATIFIED: ADR-040 v1.12 `active`; `policies.yaml` v1.4.23; Codifications 1+2 applied)**.
+**Bursts.** D-965 (POLICY 15 v1.4.22) → D-966 (pass-10 record, 9 findings) → D-967 (relay error corrected; F-010 added; count 9→10) → D-968 (post-merge; F-007 CLOSED; F-004 SHIFTED) → D-969 (ADR-040 v1.12 amended + reopened) → D-970 (RATIFIED: ADR-040 v1.12 `active`; `policies.yaml` v1.4.23; Codifications 1+2 applied) → **D-971 (S-21.09 READY 5 pts; 6 factual corrections; refuse_setuid HIGH SECURITY; ADR-043 DO-NOT-RATIFY; 4 L-BB lessons; STORY v4.292)**.
 
 ### §2 Convergence
 
@@ -286,7 +295,7 @@ Streak **0/3**. Ten passes, zero CLEAN. Trajectory-tail `→20→16→8→10`. D
 | `develop` | `62fbcf1a` | PR #774 merged 2026-08-10 |
 | `main` | `80e5cd7b` | rc.23 bot binary bundle 2026-07-18 |
 
-No PRs open. CI does not fire on feature-branch pushes.
+No PRs open. CI does not fire on feature-branch pushes. S-21.09 ready (5 pts); no feature branch yet.
 
 ### §4 F-001 — Redesign Ratified, Not In Force
 
@@ -296,23 +305,27 @@ Root cause: **category error** — gate evaluated in `factory-artifacts` worktre
 
 1. PR the gate crate (`feature/policy15-gate-rust`) — split or note CLAUDE.md bundling explicitly.
 2. F-006 size budgets (decision-log.md ~52.9M, burst-log.md ~51.0M, lessons.md ~36.5M under adapter model) — compaction needed to unblock rc.24.
-3. S-21.09 to unblock the S-21.07 chain.
+3. Begin S-21.09 implementation (story ready 5 pts; create `feature/S-21.09` branch; TDD per BC-4.16.001 v1.8).
 4. pass-11 adversary — fresh context, Iron Law (D-959).
 
 ### §6 Pending Human Decisions
 
-1. Merge sequencing: S-21.12 → S-21.09 → S-21.07 (S-21.12 and S-21.09 not yet built).
-2. E-22 security scope: SEC-001, RUSTSEC-0222/0204, 7 Dependabot, EAC-002, ADR-033.
+1. Merge sequencing confirmed: S-21.09 FIRST (sequencing ruling REVISED D-971 — R-S2112-03 ci.yml-conflict premise falsified); then S-21.07; then wire CI job.
+2. E-22 security scope: SEC-001, RUSTSEC-0222/0204/0190/0052 (18 Dependabot total), EAC-002, ADR-033.
 3. fix/nested + fix/d999 delivery path (both pushed; team-lead decides PR/merge path).
 4. rc.24 gating: F-006 confirms 20M insufficient for 3 cycle artifacts; compaction needed.
+5. ADR-043 DO-NOT-RATIFY: 4 BLOCKERs preclude ratification as-is (global refusal=session outage; BC-4.04.002 EC-001; Option (c) inverts security rationale; no Outcome/Control Matrix); human to decide ADR-043 disposition.
+6. refuse_setuid HIGH SECURITY: gate in `crates/factory-dispatcher/src/host/exec_subprocess.rs` is functionally absent; human to direct fix scope (proper path-resolve-then-stat vs documentation-only fix).
 
 ### §7 Open Items
 
-- **[P0] `validate-factory-path-staging` inert** — 0 fires vs 889 sibling invocations; S-21.09 (no branch) MUST land before S-21.07.
+- **[P0] `validate-factory-path-staging` inert** — 0 fires vs **14,151** sibling invocations (corrected D-971; root cause: release-lag rc.23 tagged before S-21.01 merge); `on_error="continue"` masks; S-21.09 (ready; no branch) MUST land before S-21.07.
+- **[HIGH SECURITY] refuse_setuid gate inert** — `fs::metadata(PathBuf::from(bare_name))` always Err; 44 registry entries use bare names; module doc claim has never been true; adv-adr-043-pass-1.md not related (ADR-043 is about session-level refusal, different concern); fix scope per human direction.
 - **8 pass-10 findings OPEN**: F-002 (permanent historical; erratum at S-21.07 merge), F-004 (SHIFTED; product-owner), F-005 (ADR-041/042 proposed vs ratified; architect), F-006 (§Decision 1 vs §Decision 2; architect), F-008 (TD-VSDD-091 line pins; architect), F-009 (modified[] erratum; product-owner), F-010 (process-gap). F-003 SUPERSEDED D-970.
 - **Log-deletion hypothesis**: nested `.factory/.factory` path; unconfirmed; anchor: maintenance sweep post-release of `fix/nested-factory-path-derivation`.
 - **Discovered-test-count assertion gap** — `cargo test` reports `ok` on zero tests; our suite has F-001's defect class natively (task #25).
 - **Per-policy mechanical-vs-prompt-only enforcement audit** — 4 confirmed unenforced (task #26).
+- **ADR-043 DO-NOT-RATIFY** — adv-adr-043-pass-1.md persisted; 4 BLOCKERs; human to decide disposition.
 
 ### §8 Cautions
 
@@ -324,7 +337,10 @@ Root cause: **category error** — gate evaluated in `factory-artifacts` worktre
 - Fuel cap fix (`62fbcf1a`) on develop; NOT in operator cache until rc.24 release.
 - F-001 NOT YET IN FORCE — close only when CI job wired and demonstrably running.
 - `feature/policy15-gate-rust` tip `f81ab5a6` bundles unrelated CLAUDE.md docs commit — split or make bundling explicit before PR.
+- `validate-factory-path-staging` inert guard count is **14,151** sibling invocations (corrected D-971; prior figure 889 was incorrect).
+- ADR-043 DO-NOT-RATIFY — do NOT ratify before addressing 4 BLOCKERs (global refusal=session outage is the critical one).
+- refuse_setuid gate (`exec_subprocess.rs`) is functionally absent — HIGH SECURITY; fix scope per human direction before any security claim about binary execution safety.
 
 ### §9 Resume Command
 
-`/vsdd-factory:next-step`. Suggested order: (1) PR gate crate, (2) F-006 size budgets → rc.24, (3) S-21.09, (4) pass-11 adversary.
+`/vsdd-factory:next-step`. Suggested order: (1) PR gate crate (split CLAUDE.md commit), (2) F-006 size budgets → rc.24, (3) begin S-21.09 (create `feature/S-21.09`, TDD), (4) pass-11 adversary.

@@ -25335,3 +25335,136 @@ D-444(c) burst-log h2 heading `## D-970-ADR-040-V1.12-RATIFICATION-BURST` presen
 - **Parent SHA (per codification 3 — Block 8 cites parent, not own SHA to avoid circular regress):** `13d7ef6b` — `state(D-969): ADR-040-V1.12-REDESIGN-RECORD-BURST`
 
 **Closes:** F-S2107-P10-001 REMEDIATION DESIGNED (BLOCKER remains OPEN pending human ratification) + F-S2107-P10-003 erratum recorded (OPEN pending re-ratification) + 3 L-BB lessons codified + D-969 allocated + ARCH-INDEX v3.52→v3.53 + ADR-040 v1.12 persisted
+
+---
+
+## D-971-S-21.09-READY-PROMOTION-AND-RECORDED-FACT-CORRECTIONS
+
+**Block 1: POLICY 16 ALLOCATOR-CEILING GATE** (literal shell, D-449(a)):
+
+```
+$ cd /Users/zious/Documents/GITHUB/vsdd-factory/.factory && max_d=$({ grep -hE '^#{2,} D-[0-9]+' cycles/v1.0-brownfield-backfill/decision-log.md cycles/v1.0-feature-engine-discipline-pass-1/decision-log.md 2>/dev/null; grep -hE '^[|] *D-[0-9]+' cycles/v1.0-brownfield-backfill/decision-log.md cycles/v1.0-feature-engine-discipline-pass-1/decision-log.md 2>/dev/null; } | grep -oE 'D-[0-9]+' | sed 's/D-//' | sort -n | tail -1); [ "$max_d" -lt 9000 ] && printf 'PASS: global max D-%s < D-9000 ceiling\n' "$max_d" || printf 'FAIL: breach: max=D-%s\n' "$max_d"
+PASS: global max D-970 < D-9000 ceiling
+```
+
+D-971 allocated. Parent-commit: `3197b79a` (dispatch-side advance).
+
+**Block 2: Adversary verdict**
+
+ADR-SCOPED review only. Not a cycle-level adversary pass. Pass-11 remains NEXT. Streak 0/3 UNCHANGED. Trajectory-tail →20→16→8→10 UNCHANGED.
+
+ADR-043 v1.0 reviewed DO-NOT-RATIFY by fresh-context adversary: 4 BLOCKER (global-refusal total outage; BC-4.04.002 EC-001 violation; Option (c) inverted security rationale; no Outcome/Control Matrix), 7 HIGH, 6 MEDIUM, 2 LOW, 1 NIT. Review persisted as `adv-adr-043-pass-1.md`. ADR-043 subsequently amended v1.0→v1.1→v1.2 addressing all 4 BLOCKERs + 7 HIGH items. v1.2 currently `status: proposed`.
+
+**Block 3: Files touched**
+
+- `stories/S-21.09-wasm-artifact-restore-and-registry-parity.md` — v1.0→v1.1; status draft→ready; 8→5 pts (story-writer elaboration, committed as part of this burst)
+- `stories/STORY-INDEX.md` — v4.291→v4.292; S-21.09 row updated; pts totals corrected; frontmatter bumped
+- `stories/sprint-state.yaml` — S-21.09 status draft→ready
+- `cycles/v1.0-brownfield-backfill/adv-adr-043-pass-1.md` — CREATED; ADR-043 v1.0 DO-NOT-RATIFY review
+- `cycles/v1.0-brownfield-backfill/decision-log.md` — D-971 block appended
+- `cycles/v1.0-brownfield-backfill/lessons.md` — 4 L-BB lessons appended
+- `cycles/v1.0-brownfield-backfill/burst-log.md` — D-971 8-block entry appended (this file)
+- `STATE.md` — v7.09→v7.10; factual corrections; Session Resume Checkpoint refreshed
+
+**Block 4: Codifications**
+
+None new this burst. All prior codifications (D-970 Codifications 1+2; D-449(a) literal-shell obligation; TD-VSDD-053 single-commit-per-burst) remain in force. D-971 records factual corrections; no new policies.yaml changes.
+
+**Block 5 (Dim-2): Literal-shell attestation evidence**
+
+**POLICY 16 gate** (captured above — Block 1).
+
+**S-21.09 sibling-sweep verification** (literal shell per D-449(a)):
+
+```
+$ python3 -c "
+with open('stories/STORY-INDEX.md', 'r') as f:
+    lines = f.readlines()
+for i, line in enumerate(lines[20:], start=21):
+    if 'S-21.09' in line:
+        idx = line.find('S-21.09')
+        print(f'L{i}: {line[idx:idx+35]}')
+" 2>/dev/null
+L721: S-21.09 added 2026-08-04 (story-
+L722: S-21.09, S-21.12; W5: S-21.10; W
+L733: S-21.09 | validate-factory-path-s
+L739: S-21.09 (5 pts; depends_on [])
+L740: S-21.09; validate-factory-path-st
+```
+
+Verification: L733 row = 5 pts, L739 delivery blockquote = 5 pts, L739 total = 93 pts, L721 running W4 total = 51 pts. No stale "8 pts" for S-21.09 in body. PASS.
+
+**dispatcher-log invocation count verification** (per fact correction 5a):
+
+```
+$ python3 -c "
+import json, glob, collections
+counts = collections.Counter()
+for f in glob.glob('logs/dispatcher-internal-*.jsonl'):
+    for line in open(f):
+        try:
+            e = json.loads(line)
+            if e.get('plugin_name') == 'validate-factory-path-staging':
+                counts[e.get('type','?')] += 1
+        except: pass
+print('validate-factory-path-staging total events:', sum(counts.values()))
+print('by type:', dict(counts))
+sibling_events = 0
+for f in glob.glob('logs/dispatcher-internal-*.jsonl'):
+    for line in open(f):
+        try:
+            e = json.loads(line)
+            if e.get('plugin_name') in ('verify-git-push','verify-factory-lock-bash','validate-heavy-op-delegation') and e.get('type') == 'plugin.invoked':
+                sibling_events += 1
+        except: pass
+print('sibling PreToolUse/Bash plugin.invoked events (combined):', sibling_events)
+" 2>/dev/null
+validate-factory-path-staging total events: 0
+by type: {}
+sibling PreToolUse/Bash plugin.invoked events (combined): 42453
+```
+
+Note: combined sibling count across 3 plugins × multiple days = 42,453; per-plugin average = 14,151. Confirms 0 vs 14,151 per-plugin figure. PASS.
+
+**D-446(a) own-burst-log 8-block gate** (literal shell per D-449(a)):
+
+```
+$ cd .factory && awk '/^## D-971-S-21\.09-READY-PROMOTION/{found=1} found && /^## D-9[0-9][0-9]-/{if(!/D-971-S-21\.09/)exit} found{print}' cycles/v1.0-brownfield-backfill/burst-log.md | grep -cE "^\*\*Block [2-8]|^### Block 8|^## D-971"
+8
+```
+
+PASS: count=8 ≥ 8 required D-444(c) blocks present in D-971 section. All 8 mandatory blocks confirmed: (1) h2 heading/Parent-commit, (2) Adversary verdict, (3) Files touched, (4) Codifications, (5) Dim-2 literal-shell attestation, (6) Dim-5 Closes, (7) Dim-6 Gate attestation, (8) factory-artifacts commit.
+
+**Block 6 (Dim-5): Closes**
+
+- P0 blocker row `validate-factory-path-staging` invocation count CORRECTED: 889→14,151 sibling figure
+- Root cause reattributed to release-lag in STATE.md and STORY-INDEX.md
+- Dependabot count corrected: 7-8→18 open alerts (17 npm + 1 Rust CVE-2026-48504)
+- RUSTSEC-2026-0204/0190/0052 unanchored advisory gap recorded as new drift items
+- RUSTSEC-2026-0188 exploitability framing corrected in STATE.md
+- `refuse_setuid` inert finding registered as HIGH SECURITY drift item
+- S-21.09 promoted draft→ready, 5 pts, STORY-INDEX v4.292
+- adv-adr-043-pass-1.md created (ADR-scoped; NOT pass-11)
+- 4 L-BB lessons codified: L-BB-subagent-idle-without-report, L-BB-adversary-tool-profile-mismatch, L-BB-adversarial-review-before-ratification, L-BB-recorded-magnitude-drift
+- D-971 allocated
+
+**Block 7 (Dim-6): Gate attestation**
+
+D-444(c) burst-log h2 heading `## D-971-S-21.09-READY-PROMOTION-AND-RECORDED-FACT-CORRECTIONS` present. D-446(a) own-burst-log 8-block gate INVOKED via literal shell at Commit E (count=8 required). D-448(a) source-attestation: this burst has NO cycle-level adversary pass — adv-adr-043-pass-1.md is ADR-scoped only; SOURCE-ATTESTATION GATE N/A for cycle-level adversary finding set (no pass-11 this burst). D-449(a) literal-shell-execution SELF-APPLICATION: POLICY 16 gate + sibling-sweep + dispatcher-log count all use actual shell with verbatim stdout captured — no pseudocode. META-LEVEL-24 self-application confirmed.
+
+**Dim-7 Attestation:**
+
+- Trajectory tail (last 4 adversary pass values per D-433(e)+D-439(c)): →20→16→8→10 UNCHANGED (no cycle-level adversary pass this burst)
+- Streak: 0/3 UNCHANGED
+- 4-INDEX: BC v4.55 (UNCHANGED) / VP v2.76 (UNCHANGED) / STORY **v4.292** / ARCH v3.54 (UNCHANGED)
+- D-418(c) deterministic-tally: 10 adversary passes dispatched; 10 complete; pass-11 NOT yet dispatched
+- ADR-043 `status: proposed`; ARCH-INDEX NOT updated; total_adrs = 42 UNCHANGED
+- policies.yaml v1.4.23 UNCHANGED
+
+### Block 8: factory-artifacts commit
+
+**factory-artifacts commits (this burst — TD-VSDD-053 single-commit-per-burst):**
+- Target: single commit pushed as `git push origin HEAD:factory-artifacts`
+- **Parent SHA (Block 8 cites parent per D-419(b)/D-444(c) convention):** `3197b79a` — `state(dispatch-side-advance): S-21.09-SPEC-ELABORATION-DISPATCH`
+
+**Closes:** S-21.09 draft→ready (5 pts); STORY-INDEX v4.292; 6 factual corrections to STATE.md; refuse_setuid finding registered; adv-adr-043-pass-1.md created (ADR-scoped DO-NOT-RATIFY); 4 L-BB lessons codified; D-971 allocated; STATE.md v7.09→v7.10

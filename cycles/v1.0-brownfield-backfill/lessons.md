@@ -10659,3 +10659,59 @@ D-442(e) recorded the same class of defect for lessons.md (≤3,500 soft / ≤4,
 **Closes:** D-970 (lesson recorded)
 
 **Cites:** D-970 (codified this burst); ADR-040 v1.12 §Decision 8 (stale-pin guard); [[L-BB-vacuous-antecedent-empty-domain]]; [[L-BB-gate-never-invoked-is-functionally-absent]]. `[process-gap; stale-pin; deployment-signal; dependency-chain; gate-refuses-correctly; EMPTY-or-UNREACHABLE; D-970; codified]`
+
+## L-BB-subagent-idle-without-report [D-971]
+
+**Category:** process-gap
+
+**Title:** An Idle-Without-Report Signal From a Subagent Is Not Completion Evidence — Explicit Findings Request Required Before Advancing Any Gate
+
+**Lesson:** D-971 session evidence: five of six subagents this session signalled idle-available WITHOUT delivering their findings; every one had completed the work, and all reported fully when explicitly asked. An orchestrator following the recorded protocol would read idle-without-findings as completion and advance a gate on nothing. This is directly adjacent to the cycle's dominant failure pattern — gates reporting success while observing nothing. The adversary review, the architectural investigation, the dispatcher-log scan, the Dependabot audit, and the refuse_setuid analysis were all completed by subagents before their first outbound message; none volunteered findings unprompted. The orchestrator's gate-advance predicate must be: subagent has transmitted a findings report, not merely that the subagent is idle. An idle subagent in a fresh context that has not reported is ambiguous: it could mean (a) no findings (truly clean), or (b) findings complete but not yet transmitted. Only an explicit findings-delivery message resolves the ambiguity. Advancing a gate on (a) when the actual state is (b) is a completeness failure indistinguishable from the vacuous-gate class. **Generalization:** any protocol that accepts subagent availability as a proxy for subagent completeness has a structural gap. The protocol must require explicit findings delivery, not merely idle status, before any gate is advanced. `[process-gap]`
+
+**Anchors:** D-971; subagent idle-without-report; orchestrator gate-advance protocol; META-LEVEL-25 class.
+
+**Closes:** D-971 (lesson recorded)
+
+**Cites:** D-971 (codified this burst); [[L-BB-vacuous-gate-meta-level-25]]; [[L-BB-gate-never-invoked-is-functionally-absent]]; [[L-BB-stale-pin-guard-is-deployment-signal]]. `[process-gap; subagent; idle; report; gate-advance; orchestrator; findings-delivery; D-971; codified]`
+
+## L-BB-adversary-tool-profile-mismatch [D-971]
+
+**Category:** process-gap
+
+**Title:** An Adversary Agent With Undeclared Tool Access Can Produce Stronger Evidence Than the Protocol Expects — Make the Grant Deliberate, Not Accidental
+
+**Lesson:** D-971 session evidence: the `adversary` agent definition grants Read/Grep/Glob, but `Bash` was in fact available (accidental grant via capability inheritance or environment configuration). The reviewer disclosed the availability and used it to compile two programs reproducing `execute_bounded` logic — converting static argument analysis into empirical proof by execution. This is why the ADR-043 v1.0 review found four blockers: the inverted security rationale (BLOCKER 3) and the total-outage design (BLOCKER 1) were confirmed by running the code, not just reading it. If the adversary had been held to Read/Grep/Glob only, BLOCKER 3's "inverted rationale" claim would have been an argument, not a measurement. The accidental `Bash` grant made the review stronger. **Generalization:** the current adversary agent definition grants less than the agent actually received. This could equally go the other direction — accidental grants could also permit adversary contamination of the artifact under review. Both risks (underpower and overreach) are resolved by making the tool grant deliberate rather than accidental: the adversary definition should explicitly grant or deny `Bash` with documented rationale. Recommend making the grant deliberate. `[process-gap]`
+
+**Anchors:** D-971; adversary tool-profile; Bash availability; ADR-043 v1.0 review; empirical proof vs static argument.
+
+**Closes:** D-971 (lesson recorded)
+
+**Cites:** D-971 (codified this burst); [[L-BB-adr-executable-content-manual-extraction-only]]; [[L-BB-mutation-testing-distinguishes-verifying-from-running]]. `[process-gap; adversary; tool-profile; bash; accidental-grant; deliberate; D-971; codified]`
+
+## L-BB-adversarial-review-before-ratification [D-971]
+
+**Category:** implementation
+
+**Title:** Adversarial Review Before Human Ratification Prevents Procured-On-Mischaracterization Errors — One Review Prevented a Repeat of the D-965 Erratum
+
+**Lesson:** D-971 session evidence: routing ADR-043 to fresh-context adversarial review before the human ratification gate caught an INVERTED security rationale (the proposed Option (c) trusted-PATH resolution enabled the very shadow-binary attack it cited to reject an alternative — BLOCKER 3), a total-outage design defect (BLOCKER 1/2), a contradiction with an active BC (BLOCKER 2: BC-4.04.002 EC-001), and two false premises embedded in the ADR text. Directly prevented a repeat of the D-965 PROCURED-ON-MISCHARACTERIZATION erratum where ADR-040 was ratified on a false justifying premise. The D-965 pattern: human-ratified content contained a claim the adversary would have caught if consulted before ratification. The D-971 pattern: adversary consulted before ratification; four blockers found; human not asked to ratify v1.0. v1.1 and v1.2 amendments addressed all blockers before the next human decision point. **Generalization:** for any ADR whose §Rationale includes security claims, empirical measurements, or architectural trade-off analyses, fresh-context adversarial review BEFORE the human ratification request is a stronger protocol than ratification followed by post-hoc correction. The asymmetry: an erratum can correct the historical record but cannot un-ratify a decision that has been applied to `policies.yaml` or deployed to the operator cache.
+
+**Anchors:** D-971; ADR-043 v1.0; DO-NOT-RATIFY verdict; D-965 PROCURED-ON-MISCHARACTERIZATION erratum; BLOCKER 3 inverted rationale; BLOCKER 1 total outage.
+
+**Closes:** D-971 (lesson recorded)
+
+**Cites:** D-971 (codified this burst); D-965; D-970 Codification 2 (POLICY 22 ratification-channel extension); [[L-BB-ratification-channel-fidelity-gap]]; [[L-BB-adr-executable-content-manual-extraction-only]]. `[implementation; adversarial-review; pre-ratification; procured-on-mischaracterization; D-965-erratum; security-rationale; D-971; codified]`
+
+## L-BB-recorded-magnitude-drift [D-971]
+
+**Category:** process-gap
+
+**Title:** Three Recorded Figures Were Wrong Simultaneously — Stale Magnitudes in State Carry Forward Silently Across Bursts Without Re-Measurement
+
+**Lesson:** D-971 session evidence: three recorded figures were found wrong simultaneously in a single fresh-context investigation pass: (1) 889 vs 14,151 invocations for sibling guards (carried stale from a prior estimate that was never verified against the actual log files); (2) 7-8 vs 18 Dependabot alerts (D-955 estimated 7, D-961 adjusted to 8 — neither was verified against `gh api dependabot/alerts`; the actual count grew to 18 over the intervening weeks); (3) 2 vs 5 `cargo deny check advisories` findings (the 2-finding claim was never run; prior bursts cited it as a known fact). Each of the three wrong values had been carried forward across multiple bursts without re-measurement. The common pattern: a magnitude was recorded at one burst from a count that was either estimated or measured at an earlier point in time, then cited in subsequent bursts as if it were a persistent invariant. Magnitudes that change over time (dependency alert counts, log event counts, advisory finding counts) are not invariants — they decay against the current state of the repository and external services. **Generalization:** any quantity that depends on external state (alerts from GitHub, advisories from RustSec/Dependabot, log counts from dispatcher files) must be re-measured immediately before being cited in a permanent record. Citing a previously-recorded value as if it were current, without re-measurement, produces a stale-magnitude record that will be wrong by the time it is next consulted. The protocol implication: before any drift-item or blocking-issue row that includes a count is written or carried forward, run the measurement command and use the live result. `[process-gap]`
+
+**Anchors:** D-971; 889→14,151 invocations; 7-8→18 Dependabot; 2→5 cargo-deny advisories; stale magnitude; re-measurement discipline.
+
+**Closes:** D-971 (lesson recorded)
+
+**Cites:** D-971 (codified this burst); D-955; D-961; D-967; D-449(a) (literal-shell-execution obligation); [[L-BB-correction-same-verification-obligation]]; [[L-BB-ratification-channel-fidelity-gap]]. `[process-gap; stale-magnitude; re-measurement; dependabot; cargo-deny; invocation-count; D-971; codified]`

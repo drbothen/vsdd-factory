@@ -272,7 +272,7 @@ stories:
   - id: S-21.07
     status: draft
   - id: S-21.09
-    status: draft
+    status: ready
   - id: S-21.10
     status: draft
   - id: S-21.12
