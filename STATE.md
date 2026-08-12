@@ -4,16 +4,16 @@ level: ops
 version: "7.19"
 status: draft
 producer: state-manager
-timestamp: 2026-08-12T14:20:00Z
+timestamp: 2026-08-12T14:35:00Z
 phase: SESSION-WRAP-2026-08-12
-last_amended: "2026-08-12 (v7.19) — SESSION-WRAP-2026-08-12 (state-manager): pipeline ACTIVE→PAUSED; S-21.09 LOCAL cascade 10 passes streak 0/3; story spec v1.20 (uncommitted at wrap); implementation 1c59a669 44 tests T-006..T-049 all green NOT pushed; pass-10 review persisted NOT-CLEAN 2B/3H/6M/3L/1N; STORY-INDEX v4.299 POLICY 14 leg-4 sealed; checkpoint written; STATE.md v7.18→v7.19. [Prior v7.14..v7.18: S-21.09 LOCAL passes 6-9 record bursts (story spec v1.11→v1.19; all NOT-CLEAN; streak 0/3); STATE.md narrative uneditable (last_amended stale at v7.14 per infrastructure blocker); commits 7f44df85/e8b38e12/90984d7e/fe43ac33; full prior chain: git show fe43ac33:.factory/STATE.md per D-430(a) compaction precedent.]"
+last_amended: "2026-08-12 (v7.19) — SHA-PATCH-2026-08-12 (state-manager): adv-s21.09-local-pass-10.md replaced with verbatim adversary content (input-hash 0fb0e79); story v1.20 lag noted in §2 checkpoint (lags impl by T-048/T-049; v1.21 FIRST before pass-11); Active Branches SHA-patched factory-artifacts fe43ac33→d36c5844; v7.19 UNCHANGED. [Prior (v7.19): SESSION-WRAP-2026-08-12 pipeline ACTIVE→PAUSED; S-21.09 LOCAL 10 passes streak 0/3; pass-10 review persisted NOT-CLEAN 2B/3H/6M/3L/1N; STORY-INDEX v4.299 POLICY 14 leg-4 sealed; STATE.md v7.18→v7.19; full prior chain: git show d36c5844:.factory/STATE.md per D-430(a) compaction precedent.]"
 inputs: []
 input-hash: "[live-state]"
 traces_to: prd.md
 project: vsdd-factory
 mode: brownfield
 pipeline: PAUSED
-current_step: "SESSION-WRAP-2026-08-12 (state-manager; parent-commit: fe43ac33; D-chain cite D-972; human /wrap directive; pipeline ACTIVE→PAUSED; S-21.09 LOCAL 10 passes streak 0/3; story spec v1.20; implementation 1c59a669 44 tests T-006..T-049 all green NOT pushed; pass-10 persisted NOT-CLEAN 2B/3H/6M/3L/1N; ADR-043 proposed NOT RATIFIED; STORY-INDEX v4.299 leg-4 sealed; 4-INDEX BC v4.56/VP v2.76/STORY v4.299/ARCH v3.55; policies.yaml v1.4.23 UNCHANGED; trajectory-tail →20→16→8→10 UNCHANGED). parent-commit fe43ac33 2026-08-12."
+current_step: "SESSION-WRAP-2026-08-12 (state-manager; parent-commit: fe43ac33; D-chain cite D-972; human /wrap directive; pipeline ACTIVE→PAUSED; S-21.09 LOCAL 10 passes streak 0/3; story spec v1.20; implementation 1c59a669 44 tests T-006..T-049 all green NOT pushed; pass-10 persisted NOT-CLEAN 2B/3H/6M/3L/1N; ADR-043 proposed NOT RATIFIED; STORY-INDEX v4.299 leg-4 sealed; 4-INDEX BC v4.56/VP v2.76/STORY v4.299/ARCH v3.55; policies.yaml v1.4.23 UNCHANGED; trajectory-tail →20→16→8→10 UNCHANGED). SHA-patch d36c5844 done 2026-08-12: adv-s21.09-local-pass-10.md verbatim replaced (0fb0e79); story v1.20 lags impl by T-048/T-049; v1.21 FIRST before pass-11; trajectory-tail →20→16→8→10 UNCHANGED."
 current_cycle: v1.0-brownfield-backfill
 dtu_required: false
 dtu_assessment: 2026-04-25
@@ -70,6 +70,7 @@ dtu_services: []
   ~392 lines (estimated post-D-972-S-21.09-LOCAL-PASS-5-RECORD 2026-08-11; v7.13→v7.14)
   ~395 lines (estimated post-D-972 passes 6-9 + narrative uneditable 2026-08-11..12; v7.14→v7.18)
   ~265 lines (wc-l post-SESSION-WRAP-2026-08-12 2026-08-12; v7.18→v7.19; pipeline PAUSED; last_amended compacted)
+  ~280 lines (estimated post-SHA-PATCH-2026-08-12; adv-s21.09-local-pass-10.md verbatim replaced; story lag noted in checkpoint; Active Branches SHA-patched fe43ac33→d36c5844; v7.19 UNCHANGED)
 -->
 
 # Pipeline State: vsdd-factory
@@ -85,8 +86,8 @@ dtu_services: []
 | **Mode** | brownfield-onboarding |
 | **Language** | Rust + Bash + Markdown |
 | **Started** | 2026-04-25 |
-| **Last Updated** | 2026-08-12 — SESSION-WRAP-2026-08-12: pipeline ACTIVE→PAUSED; S-21.09 LOCAL 10 passes streak 0/3; story spec v1.20; impl 1c59a669 44 tests T-006..T-049 NOT pushed; pass-10 persisted NOT-CLEAN 2B/3H/6M/3L/1N; STORY-INDEX v4.299 POLICY 14 leg-4 sealed; STATE.md v7.18→v7.19; trajectory-tail →20→16→8→10 UNCHANGED. [Prior v7.14..v7.18: S-21.09 LOCAL passes 5-9 NOT-CLEAN; narrative uneditable; see git show fe43ac33:.factory/STATE.md] |
-| **Current Phase** | **SESSION-WRAP-2026-08-12 (parent fe43ac33; D-chain cite D-972; PIPELINE PAUSED). S-21.09 LOCAL cascade 10 passes streak 0/3 — story spec v1.20; impl 1c59a669 44 tests T-006..T-049 all green; feature/S-21.09 NOT PUSHED (explicit human auth required). Pass-10 NOT-CLEAN 2B/3H/6M/3L/1N (persisted). ADR-043 v1.5 proposed NOT RATIFIED. Pass-11 adversary NEXT. 4-INDEX BC v4.56/VP v2.76/STORY v4.299/ARCH v3.55. policies.yaml v1.4.23. trajectory-tail →20→16→8→10 UNCHANGED.** |
+| **Last Updated** | 2026-08-12 — SHA-PATCH-2026-08-12: adv-s21.09-local-pass-10.md verbatim replaced (0fb0e79); story v1.20 lag noted (T-048/T-049 undocumented; v1.21 FIRST before pass-11); Active Branches SHA-patched fe43ac33→d36c5844; v7.19 UNCHANGED; trajectory-tail →20→16→8→10 UNCHANGED. [Prior 2026-08-12: SESSION-WRAP-2026-08-12 pipeline ACTIVE→PAUSED; S-21.09 LOCAL 10 passes streak 0/3; story spec v1.20; impl 1c59a669 44 tests NOT pushed; see git show d36c5844:.factory/STATE.md] |
+| **Current Phase** | **SESSION-WRAP-2026-08-12 (parent fe43ac33; D-chain cite D-972; PIPELINE PAUSED). S-21.09 LOCAL cascade 10 passes streak 0/3 — story spec v1.20 [lags impl by T-048/T-049; story v1.21 FIRST before pass-11]; impl 1c59a669 44 tests T-006..T-049 all green; feature/S-21.09 NOT PUSHED (explicit human auth required). Pass-10 NOT-CLEAN 2B/3H/6M/3L/1N (persisted verbatim 0fb0e79). ADR-043 v1.5 proposed NOT RATIFIED. 4-INDEX BC v4.56/VP v2.76/STORY v4.299/ARCH v3.55. policies.yaml v1.4.23. trajectory-tail →20→16→8→10 UNCHANGED.** |
 | **Current Cycle** | v1.0-brownfield-backfill |
 
 ## Phase Progress
@@ -129,8 +130,8 @@ dtu_services: []
 | D-972-S-21.09-LOCAL-PASS-7-RECORD 2026-08-12 (commit e8b38e12; under D-972 umbrella; STATE.md v7.15→v7.16) | **COMPLETE** | S-21.09 LOCAL pass-7 NOT-CLEAN (0B/3H/3M/2L/1N; adv-s21.09-local-pass-7.md persisted; streak 0/3 after 7 passes); STORY-INDEX v4.296→v4.297; story v1.15/e0cc5480; 33 tests T-006..T-038 all green; POLICY 5 sweep 111→113 pts. |
 | D-972-S-21.09-LOCAL-PASS-8-RECORD 2026-08-12 (commit 90984d7e; under D-972 umbrella; STATE.md v7.16→v7.17) | **COMPLETE** | S-21.09 LOCAL pass-8 NOT-CLEAN (0B/2H/3M/2L/1N; adv-s21.09-local-pass-8.md persisted; streak 0/3 after 8 passes); STORY-INDEX v4.297→v4.298; story v1.17/c05a926b; 37 tests T-006..T-042 all green; E-21 113→115 pts. |
 | D-972-S-21.09-LOCAL-PASS-9-RECORD 2026-08-12 (commit fe43ac33; under D-972 umbrella; STATE.md v7.17→v7.18) | **COMPLETE** | S-21.09 LOCAL pass-9 NOT-CLEAN (1B/1H/3M/2L/1N; BLOCKER CLOSED this pass; adv-s21.09-local-pass-9.md persisted; streak 0/3 after 9 passes); STORY-INDEX v4.298→v4.299; story v1.19/b951461a; 42 tests T-006..T-047 all green; E-21 115→117 pts. |
-| D-972-S-21.09-LOCAL-PASS-10-RECORD 2026-08-12 (pass-10 review done by adv-s2109-p10; fixes in 1c59a669; persisted in SESSION-WRAP-2026-08-12 burst) | **COMPLETE** | S-21.09 LOCAL pass-10 NOT-CLEAN (2B/3H/6M/3L/1N; adv-s21.09-local-pass-10.md persisted; streak 0/3 after 10 passes; both BLOCKERs closed in 1c59a669); story spec v1.20; impl 1c59a669; 44 tests T-006..T-049 all green. |
-| SESSION-WRAP-2026-08-12 PIPELINE PAUSED 2026-08-12 (human /wrap directive; parent-commit: fe43ac33; D-chain cite D-972) | **COMPLETE** | pipeline ACTIVE→PAUSED; S-21.09 LOCAL 10 passes streak 0/3; story spec v1.20 at wrap; impl 1c59a669 NOT pushed; pass-10 review persisted; STORY-INDEX v4.299 leg-4 sealed; checkpoint written; trajectory-tail →20→16→8→10 UNCHANGED; STATE.md v7.18→v7.19. |
+| D-972-S-21.09-LOCAL-PASS-10-RECORD 2026-08-12 (pass-10 review done by adv-s2109-p10; fixes in 1c59a669; persisted in SESSION-WRAP-2026-08-12 burst) | **COMPLETE** | S-21.09 LOCAL pass-10 NOT-CLEAN (2B/3H/6M/3L/1N; adv-s21.09-local-pass-10.md persisted verbatim 0fb0e79; streak 0/3 after 10 passes; both BLOCKERs closed in 1c59a669); story spec v1.20; impl 1c59a669; 44 tests T-006..T-049 all green. |
+| SESSION-WRAP-2026-08-12 PIPELINE PAUSED 2026-08-12 (human /wrap directive; parent-commit: fe43ac33; D-chain cite D-972; SHA-patch d36c5844 done) | **COMPLETE** | pipeline ACTIVE→PAUSED; S-21.09 LOCAL pass-10 persisted verbatim (2B/3H/6M/3L/1N; both BLOCKERs closed in 1c59a669); story spec v1.20 [lags impl by T-048/T-049; v1.21 FIRST before pass-11]; impl 1c59a669 44 tests NOT pushed; STORY-INDEX v4.299 leg-4 sealed; Active Branches SHA-patched fe43ac33→d36c5844; trajectory-tail →20→16→8→10 UNCHANGED; STATE.md v7.18→v7.19; v7.19 UNCHANGED at SHA-patch. |
 | **E-18 EPIC COMPLETE 2026-07-01 D-744** | **EPIC COMPLETE** | Final story S-18.12 MERGED PR #384 ec05606a. |
 
 ## Current Phase Steps
@@ -158,7 +159,7 @@ dtu_services: []
 | LOG-DELETION-RECURRENCE-4 + S-21.09-LOCAL-PASS-4 2026-08-11 (single commit TD-VSDD-053; parent 5a8321e4; commit aea03f55; pushed; SHA-patch done 2026-08-11) | state-manager | COMPLETE | dispatcher-internal-2026-07-11/12.jsonl restored (recurrence #4); S-21.09 LOCAL pass-4 NOT-CLEAN (0B/2H/5M/5L/1N; streak 0/3; 4 DO-NOT-RATIFY passes); 1 [process-gap] lesson; runtime churn committed; STATE.md v7.11→v7.12. |
 | D-972-S-21.09-STORY-VERSION-PARITY 2026-08-11 (single commit TD-VSDD-053; parent af3f1252; commit 043eae59; pushed; SHA-patch done 2026-08-11) | state-manager | COMPLETE | STORY-INDEX v4.293→v4.294 (S-21.09 catalog row v1.6→v1.9 parity sync); POLICY 5 delivery-blockquote sweep; 1 L-BB lesson (L-BB-column-count-constraint-not-durably-internalized); nested-path drift item strengthened; S-21.09 checkpoint refreshed (story v1.9; a054513b; 27 tests; LOCAL streak 0/3 after 4 passes; pass 5 NEXT); STATE.md v7.12→v7.13. |
 | D-972-S-21.09-LOCAL-PASSES-5-9-RECORD 2026-08-11..12 (commits 7f44df85/e8b38e12/90984d7e/fe43ac33; under D-972 umbrella; STATE.md v7.14→v7.18; narrative uneditable per infrastructure blocker) | state-manager | COMPLETE | passes 5-9 NOT-CLEAN (streak 0/3); story spec v1.11→v1.19; impl 54ab6802→b951461a; tests 29→42; STORY-INDEX v4.295→v4.299; E-21 111→117 pts; adv-s21.09-local-pass-5/6/7/8/9.md persisted; BLOCKER closed pass-9 (worktree-root containment predicate). |
-| SESSION-WRAP-2026-08-12 (session-wrap burst; human /wrap directive; parent-commit: fe43ac33; D-chain cite D-972) | state-manager | COMPLETE | pipeline ACTIVE→PAUSED; S-21.09 LOCAL pass-10 persisted (2B/3H/6M/3L/1N; both BLOCKERs closed in 1c59a669); story spec v1.20; impl 1c59a669 44 tests NOT pushed; STORY-INDEX v4.299 leg-4 sealed; trajectory-tail →20→16→8→10 UNCHANGED; STATE.md v7.18→v7.19; no new D-NNN allocated. |
+| SESSION-WRAP-2026-08-12 (session-wrap burst; human /wrap directive; parent-commit: fe43ac33; D-chain cite D-972; SHA-patch d36c5844 done) | state-manager | COMPLETE | pipeline ACTIVE→PAUSED; S-21.09 LOCAL pass-10 persisted verbatim (2B/3H/6M/3L/1N; both BLOCKERs closed in 1c59a669); story spec v1.20 [lags impl by T-048/T-049; v1.21 FIRST before pass-11]; impl 1c59a669 44 tests NOT pushed; STORY-INDEX v4.299 leg-4 sealed; Active Branches SHA-patched fe43ac33→d36c5844; trajectory-tail →20→16→8→10 UNCHANGED; STATE.md v7.18→v7.19; v7.19 UNCHANGED at SHA-patch. |
 
 ## Identifier Conventions
 
@@ -177,7 +178,7 @@ dtu_services: []
 130 file-resident + 17 stub IDs = 147 stories. E-18 EPIC COMPLETE D-744. E-22 DISSOLVED D-961 (file RETAINED per human ruling 2026-08-08).
 
 - **Merged (107):** S-19.07 MERGED PR #670 6db4c9fc (E-19 COMPLETE 9/9). Full ledger: `cycles/v1.0-brownfield-backfill/merged-stories-ledger.md`
-- **In-Flight (1):** S-21.09 (feature/S-21.09 @ 1c59a669; story spec v1.20; 44 tests T-006..T-049 all green; 16 pts; BC-5.39.001 LOCAL streak 0/3 after 10 passes; pass 11 NEXT; human ruling: true 3-CLEAN required; adv-s21.09-local-pass-1..10.md; C-1/C-2/C-4/C-5 blocking issues open; **NOT PUSHED**)
+- **In-Flight (1):** S-21.09 (feature/S-21.09 @ 1c59a669; story spec v1.20 [lags impl by T-048/T-049; v1.21 FIRST]; 44 tests T-006..T-049 all green; 16 pts; BC-5.39.001 LOCAL streak 0/3 after 10 passes; pass 11 NEXT; human ruling: true 3-CLEAN required; adv-s21.09-local-pass-1..10.md; C-1/C-2/C-4/C-5 blocking issues open; **NOT PUSHED**)
 - **E-21:** S-21.07 (W4; pass-10 NOT-CLEAN 10 findings D-967; branch 5370db80 pushed; FROZEN; NO REBASE; MERGE-ORDER: S-21.09 first); S-21.09 (in-flight; 16 pts; feature/S-21.09 @ 1c59a669; story spec v1.20; MUST land before S-21.07); S-21.10/S-21.11/S-21.12 per D-961; S-21.13 (W7 NEW D-964; depends_on S-21.10/S-21.11; draft); S-21.14 (W8 NEW D-972; 8 pts; release-pipeline predicate+gate sweep; draft); S-21.15 (W8 NEW D-972; 5 pts; compute-input-hash search-path + traces_to; draft).
 - **Draft (31), Partial (2), Withdrawn (1):** see prior session checkpoints
 
@@ -187,9 +188,9 @@ dtu_services: []
 |--------------|-----|-------|
 | main | 80e5cd7b | rc.23 bot binary bundle 2026-07-18 |
 | develop | 62fbcf1a | PR #774 squash-merged 2026-08-10T17:34:37Z. Pull on next code-worktree resume. |
-| factory-artifacts | fe43ac33 | Parent; SESSION-WRAP-2026-08-12 wrap-commit SHA-patch pending. |
+| factory-artifacts | d36c5844 | SESSION-WRAP-2026-08-12 wrap-commit. SHA-patch done 2026-08-12. |
 | feature/policy15-gate-rust | d2a3176a | F-001 redesign: crates/policy15-attestation-gate/ 16 tests, GateOutcome enum, mutation-verified. Pushed; no PR. |
-| feature/S-21.09 | 1c59a669 | S-21.09 in-flight (story spec v1.20; 44 tests T-006..T-049 all green; 16 pts; LOCAL streak 0/3 after 10 passes; pass 11 NEXT; human ruling: true 3-CLEAN required; C-1/C-2/C-4/C-5 open). **NOT PUSHED.** Requires explicit human auth: `git -C .worktrees/S-21.09 push -u origin feature/S-21.09`. |
+| feature/S-21.09 | 1c59a669 | S-21.09 in-flight (story spec v1.20 [lags impl by T-048/T-049; v1.21 FIRST]; 44 tests T-006..T-049 all green; 16 pts; LOCAL streak 0/3 after 10 passes; pass 11 NEXT; human ruling: true 3-CLEAN required; C-1/C-2/C-4/C-5 open). **NOT PUSHED.** Requires explicit human auth: `git -C .worktrees/S-21.09 push -u origin feature/S-21.09`. |
 | feature/S-21.07 | 5370db80 | pass-10 NOT-CLEAN 10 findings D-967 (correction burst complete). Pushed; SHA-equal with origin. FROZEN per team-lead; NO REBASE; MERGE-ORDER: S-21.09 first. |
 | feature/S-21.04 | 323f440f | pass-31 pending; no PR. Pushed; SHA-equal with origin. |
 | fix/nested-factory-path-derivation | 9afc3226 | F-S2107-P8-016 + P9-008 CLOSED. Pushed; SHA-equal with origin. |
@@ -202,7 +203,7 @@ dtu_services: []
 | Cycle | Type | Status | Notes |
 |-------|------|--------|-------|
 | F-block-ai-attribution-message-file-arm | feature | F3 COMPLETE — F4 READY | E-16 under SS-07/SS-04; milestone v1.0.0-rc.17 |
-| v1.0-brownfield-backfill | brownfield | SESSION-WRAP-2026-08-12 PAUSED. S-21.09 LOCAL pass-10 persisted (2B/3H/6M/3L/1N; streak 0/3 after 10 passes; 1c59a669 closes both BLOCKERs; pass-11 NEXT). story spec v1.20; impl 1c59a669 NOT PUSHED. develop 62fbcf1a; main 80e5cd7b; merged_count 107; BC v4.56; VP v2.76; STORY v4.299; ARCH v3.55; ADR-043 proposed NOT RATIFIED; streak 0/3; trajectory-tail →20→16→8→10 UNCHANGED. F-001 redesign RATIFIED (ADR-040 v1.12; policies.yaml v1.4.23 ACTIVE; CI wiring PENDING). pass-11 adversary NEXT. | SESSION-WRAP-2026-08-12 D-972 2026-08-12; D-972 2026-08-11; D-971 2026-08-10; D-970 2026-08-10. |
+| v1.0-brownfield-backfill | brownfield | SESSION-WRAP-2026-08-12 PAUSED. S-21.09 LOCAL pass-10 persisted verbatim (2B/3H/6M/3L/1N; streak 0/3 after 10 passes; 1c59a669 closes both BLOCKERs; pass-11 NEXT). story spec v1.20 [lags impl by T-048/T-049; v1.21 FIRST before pass-11]; impl 1c59a669 NOT PUSHED. develop 62fbcf1a; main 80e5cd7b; merged_count 107; BC v4.56; VP v2.76; STORY v4.299; ARCH v3.55; ADR-043 proposed NOT RATIFIED; streak 0/3; trajectory-tail →20→16→8→10 UNCHANGED. F-001 redesign RATIFIED (ADR-040 v1.12; policies.yaml v1.4.23 ACTIVE; CI wiring PENDING). pass-11 adversary NEXT (after story v1.21). | SESSION-WRAP-2026-08-12 D-972 2026-08-12; D-972 2026-08-11; D-971 2026-08-10; D-970 2026-08-10. |
 | v1.0-feature-engine-discipline-pass-1 | feature | PAUSED | F5 pass-75 complete D-510; META-LEVEL-30 CANDIDATE-CONFIRMED; trajectory →9→9→9→11. |
 | v1.0-feature-plugin-async-semantics-pass-1 | feature | CLOSED | All PRs merged; rc.14 shipped |
 
@@ -289,13 +290,13 @@ dtu_services: []
 - `cycles/v1.0-feature-plugin-async-semantics-pass-1/burst-log.md` | `session-checkpoints.md` | `lessons.md`
 - `cycles/v1.0-feature-engine-discipline-pass-1/burst-log.md`
 
-## Session Resume Checkpoint (2026-08-12 — SESSION-WRAP-2026-08-12; parent fe43ac33; PIPELINE PAUSED; S-21.09 LOCAL 10 passes streak 0/3; story spec v1.20; impl 1c59a669 44 tests T-006..T-049; NOT PUSHED)
+## Session Resume Checkpoint (2026-08-12 — SHA-patch done; parent d36c5844; PIPELINE PAUSED; S-21.09 LOCAL 10 passes streak 0/3; story spec v1.20 [lags impl by T-048/T-049; v1.21 FIRST]; impl 1c59a669 44 tests T-006..T-049; NOT PUSHED)
 
 > **SELF-SUFFICIENT RESUME CONTEXT — ASSUMES ZERO PRIOR CONTEXT. PIPELINE PAUSED.**
 
 ### §1 Position
 
-Cycle `v1.0-brownfield-backfill`. Pass count **10**, streak **0/3** (10 adversary passes, zero CLEAN). Trajectory `47→18→25→25→24→20→16→8→10`, tail `→20→16→8→10`. 4-INDEX: BC v4.56 / VP v2.76 / **STORY v4.299** / ARCH v3.55. `policies.yaml` **v1.4.23**. factory-artifacts parent `fe43ac33` (wrap-commit SHA-patch pending).
+Cycle `v1.0-brownfield-backfill`. Pass count **10**, streak **0/3** (10 adversary passes, zero CLEAN). Trajectory `47→18→25→25→24→20→16→8→10`, tail `→20→16→8→10`. 4-INDEX: BC v4.56 / VP v2.76 / **STORY v4.299** / ARCH v3.55. `policies.yaml` **v1.4.23**. factory-artifacts parent `d36c5844` (wrap-commit + SHA-patch done).
 
 **Last decisions: D-971, D-972.** Pass-11 cycle adversary still NEXT (untouched this session).
 
@@ -309,22 +310,24 @@ In-flight. Branch `feature/S-21.09` at **`1c59a669`**, **44 tests T-006..T-049**
 > git -C .worktrees/S-21.09 push -u origin feature/S-21.09
 > ```
 
+> **NOTE (team-lead addendum): Story v1.20 lags implementation by 2 tests.** Story v1.20 documents a 42-test suite T-006..T-047 at `b951461a` (36 owned). Implementation is at `1c59a669` with 44 tests T-006..T-049 (38 owned). T-048 (18-candidate property test asserting `extract.is_some()` ⟺ `detect.is_empty()`) and T-049 (EC-005a `#[should_panic(expected = "T-012 EC-005a")]` control) are undocumented in story v1.20. **Story v1.21 pass is required BEFORE pass-11 adversary dispatch.** Additional undocumented changes: `single-copy detect gate` refactor (`detect_ungated_declarations` now calls `extract_hook_plugin_name`), `Registry::parse_str` production-validation in `run_t012_gate`, T-013/T-014 comment-line filtering, T-008 NOT-orphan assertion.
+
 ### §3 S-21.09 LOCAL 3-CLEAN Cascade
 
 **10 passes, all NOT-CLEAN, streak 0/3.** Human ruling (twice): **true 3-CLEAN required**, not D-386 Option C asymptotic acceptance.
 
 Severity by pass — BLOCKER: 2→2→0→0→0→0→0→0→1→2; HIGH: 3→2→3→2→1→1→3→2→1→3.
 
-All ten review files persisted as `cycles/v1.0-brownfield-backfill/adv-s21.09-local-pass-{1..10}.md`. Both pass-10 BLOCKERs closed in `1c59a669` (collapsing duplicated gates into single call + 18-candidate property test).
+All ten review files persisted as `cycles/v1.0-brownfield-backfill/adv-s21.09-local-pass-{1..10}.md`. Pass-10 verbatim content replaced in SHA-patch (input-hash 0fb0e79). Both pass-10 BLOCKERs: (1) `detect_ungated_declarations` containment predicate has four conjuncts — three survive mutation independently; M1+M4 composed re-opens silent-drop class (closed in `1c59a669` by single-copy detect refactor calling `extract_hook_plugin_name`); (2) totality invariant (`extract.is_some()` ⟺ `detect.is_empty()`) asserted by no test (closed in `1c59a669` by T-048 property assertion over 18 candidates).
 
 **Open after `1c59a669`:**
-- MEDIUM-1: directory-only control
-- MEDIUM-4: prefix-conjunct isolating control
-- LOW-1: NUL/trailing-space names
+- MEDIUM-1: directory-only control (`hook-plugins/sub/` admitted)
+- MEDIUM-4: T-047 boundary proof over-determined (prefix-conjunct not isolated)
+- LOW-1: NUL/trailing-space names admitted verbatim
 - LOW-2: fail-open arms guarded only by unasserted call ordering
 - LOW-3: `workspace_root()` untested directly
 
-**Pass 11 is next.**
+**Pass 11 is next (after story v1.21).**
 
 ### §4 ADR-043
 
@@ -344,9 +347,9 @@ BC-1.05.002 v2.4, .004 v2.3, .028 v2.4, .035 v2.5, .036 v1.3 under D-972 Option 
 
 ### §7 Infrastructure Blockers
 
-(a) **STATE.md narrative sections uneditable** for v7.14..v7.18 — this burst compacted `last_amended` via full-file Write; **compaction SUCCEEDED** (file written, PostToolUse advisory expected).
+(a) **STATE.md narrative sections uneditable** for v7.14..v7.18 — prior burst compacted `last_amended` via full-file Write; **compaction SUCCEEDED**. SHA-patch burst also used full-file Write.
 (b) **`STORY-INDEX.md`** triggers advisory PostToolUse fuel timeouts (confirmed this burst).
-(c) **POLICY 14 leg-4 sealed this burst** — `STORY-INDEX.md` `version: 4.299` vs `last_amended (v4.295)` gap closed via Edit (v4.296..v4.299 retrospective entries added).
+(c) **POLICY 14 leg-4 sealed prior burst** — `STORY-INDEX.md` `version: 4.299` vs `last_amended (v4.295)` gap closed (v4.296..v4.299 retrospective entries added).
 (d) **`decision-log.md` >14,800 lines and `lessons.md` >3,000** exhaust WASM validator fuel — F-006 compaction gates rc.24.
 
 ### §8 Pending Human Decisions
@@ -366,4 +369,4 @@ BC-1.05.002 v2.4, .004 v2.3, .028 v2.4, .035 v2.5, .036 v1.3 under D-972 Option 
 
 `/vsdd-factory:next-step`
 
-**Suggested order:** (1) LOCAL adversary pass-11 on S-21.09 (impl 1c59a669; 44 tests; MEDIUM-1/MEDIUM-4/LOW-1/LOW-2/LOW-3 open); (2) Decide §8 human items (authorize push, ADR-043 disposition, 3-CLEAN ruling); (3) Pass-11 cycle adversary (untouched this session); (4) F-006 size budgets → rc.24.
+**Suggested order:** (1) Story v1.21 pass to document T-048/T-049, single-copy detect refactor, `Registry::parse_str` production validation, T-013/T-014 comment-line filtering, T-008 NOT-orphan assertion, and pass-10 BLOCKER closures (**MUST precede pass-11 — dispatching a review against a story that under-describes its suite by 2 tests is itself a finding**); (2) STORY-INDEX catalog row v1.21 sync (44 tests, T-006..T-049, 38 owned, `1c59a669`); (3) LOCAL adversary pass-11 on S-21.09 (impl 1c59a669; 44 tests; MEDIUM-1/MEDIUM-4/LOW-1/LOW-2/LOW-3 open); (4) Decide §8 human items (authorize push, ADR-043 disposition, 3-CLEAN ruling); (5) Pass-11 cycle adversary (untouched this session); (6) F-006 size budgets → rc.24.

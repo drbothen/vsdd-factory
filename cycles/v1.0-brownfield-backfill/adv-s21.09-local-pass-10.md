@@ -21,7 +21,7 @@ previous_review: adv-s21.09-local-pass-9.md
 **LOCAL streak: 0/3 — ten passes, zero CLEAN**
 **D-chain: D-972**
 
-**Convergence note:** Pass 10 reviewed story v1.19 (42 tests T-006..T-047 all green at b951461a). All eight pass-9 carry-over items verified: P09-BLK-001 confirmed closed; P09-MED-002/003 resolved in fix wave; P09-LOW-001 reclassified as out-of-scope (tracked as HIGH SECURITY drift under D-971); P09-LOW-002 resolved; P09-NIT-001 resolved. P09-MED-001 (ADR-043-gated) deferred — ADR-043 still not ratified, removed from active tracking. P09-HIGH-001 (T-042 cfg guard) carries forward unresolved. Two new BLOCKERs discovered: (1) `run_t012_gate` is invoked at two independent call sites that can observe divergent I/O snapshots — fix requires collapsing into a single call (T-048); (2) proptest covers fewer than eighteen distinct path-prefix candidates, leaving adversarial boundary forms untested (fix: expand to eighteen candidates, T-049). Both BLOCKERs are confirmed CLOSED in `1c59a669`. Five findings remain open after the full fix wave: two MEDIUM (directory-only staging control; prefix-conjunct isolating control) and three LOW (NUL/trailing-space names; fail-open arms with unasserted call-ordering; `workspace_root()` untested directly).
+**Convergence note:** Pass 10 reviewed story v1.19 (42 tests T-006..T-047 all green at `b951461a`). `cargo fmt --check --all`, `cargo clippy --workspace --all-targets -- -D warnings`, `VSDD_SKIP_PRODUCTION_STATE_MD_TEST=1 cargo test --workspace --all-targets` all exit 0; 189 `test result: ok` lines, zero `FAILED`; `bundle_orphan_check` 42/42. Diff scope: `CHANGELOG.md`, `bundle_orphan_check.rs`, two new fixtures (`hooks-registry-{nospace,dotslash}-fixture.toml`), and the `.wasm` binary — no forbidden path touched. Binary is a WASM core module, 193,427 bytes, SHA-256 `6f6570f9…ce17`, blob `611303b3b8edcebc70cf014919e2f73809e7ef52` at `b951461a`; provenance block verifiable from a fresh clone. Pass-9 carry-overs: P09-BLK-001 verified closed; T-042 cfg guard resolved (`cfg_attr` applied); P09-MED-002/003 resolved; P09-LOW-002 resolved; P09-NIT-001 resolved; P09-LOW-001 reclassified out-of-scope (HIGH SECURITY drift D-971); P09-MED-001 (ADR-043-gated) deferred — removed from active tracking. Two new BLOCKERs discovered: (1) `detect_ungated_declarations`'s containment predicate has four conjuncts of which three survive mutation independently — M1+M4 composed re-open a silent drop and an identifier misclassification with a 100%-green suite; (2) the totality invariant (`extract.is_some()` ⟺ `detect.is_empty()`) rests on a hand-written second copy of `extract_hook_plugin_name`'s gates inside `detect_ungated_declarations` — the invariant is asserted by no test. Both BLOCKERs confirmed CLOSED in `1c59a669` (single-copy detect refactor + T-048 totality property assertion; T-049 closes HIGH-2). Five findings remain open after the full fix wave: MEDIUM-1 (directory-only staging control), MEDIUM-4 (T-047 boundary proof over-determined), LOW-1 (NUL/trailing-space names), LOW-2 (fail-open arms with unasserted call-ordering), LOW-3 (`workspace_root()` untested directly).
 
 ---
 
@@ -40,44 +40,105 @@ Finding IDs use the format: `ADV-<CYCLE>-P<PASS>-<SEV>-<SEQ>`
 
 | ID | Previous Severity | Status | Notes |
 |----|-------------------|--------|-------|
-| ADV-BB-P09-BLK-001 | BLOCKER | VERIFIED CLOSED | Worktree-root containment predicate confirmed in place at b951461a; both `UNGATED-DECLARATION` and `OUTSIDE-REPO-DECLARATION` routes exercised; no silent-drop path reachable. |
-| ADV-BB-P09-HIGH-001 | HIGH | UNRESOLVED | `#[cfg(target_os = "linux")]` guard on T-042 unchanged at b951461a. Carries as ADV-BB-P10-HIGH-001. |
+| ADV-BB-P09-BLK-001 | BLOCKER | VERIFIED CLOSED | Worktree-root containment predicate confirmed in place at `b951461a`; both `UNGATED-DECLARATION` and `OUTSIDE-REPO-DECLARATION` routes present; no silent-drop path reachable. The **partition is correct today** — new BLOCKERs concern its enforcement discipline, not its correctness. |
+| ADV-BB-P09-HIGH-001 | HIGH | RESOLVED | `#[cfg_attr(not(target_os = "linux"), ignore = "case-variant test requires case-sensitive Linux filesystem")]` confirmed at `b951461a`; T-042 no longer silently excluded on macOS. `cargo test` exit 0 with 42/42 including T-042 on macOS run. |
 | ADV-BB-P09-MED-001 | MEDIUM | DEFERRED | ADR-043 still not ratified; no implementer action possible. Removed from active pass-10 finding set; remains a permanent external blocker until ADR-043 is ratified. |
-| ADV-BB-P09-MED-002 | MEDIUM | RESOLVED | `lex_norm` updated to convert `\` to `/` as the first normalisation step; T-040 asserts that a Windows-backslash registry path normalises to the expected slash-separated form before comparison. Mutation retried: no survivor. |
-| ADV-BB-P09-MED-003 | MEDIUM | RESOLVED | T-039 now asserts `assert_eq!(result.unwrap(), Vec::<Declaration>::new())` replacing the weaker `result.is_ok()` assertion; a bug returning a non-empty Vec would now be caught. |
-| ADV-BB-P09-LOW-001 | LOW | RECLASSIFIED | `refuse_setuid` module doc claim reclassified as out-of-scope for this story; tracked as HIGH SECURITY drift item under D-971. No story-scope action available without separate security story. |
+| ADV-BB-P09-MED-002 | MEDIUM | RESOLVED | `lex_norm` updated to convert `\` to `/` as first normalisation step; confirmed effective: `CAND="hook-plugins\\x.wasm"` → `extract=None reported=["UNGATED-DECLARATION: hook-plugins\\x.wasm"]`. Windows-backslash form correctly routes to ungated. |
+| ADV-BB-P09-MED-003 | MEDIUM | RESOLVED | T-039 now asserts `assert_eq!(result.unwrap(), Vec::<Declaration>::new())`; a bug returning a non-empty `Vec` would be caught. |
+| ADV-BB-P09-LOW-001 | LOW | RECLASSIFIED | `refuse_setuid` module doc reclassified as out-of-scope for this story; tracked as HIGH SECURITY drift item under D-971. No story-scope action available without a separate security story. |
 | ADV-BB-P09-LOW-002 | LOW | RESOLVED | T-031 fixture `merged_count: 107` assertion added; stale latent fragility closed. |
-| ADV-BB-P09-NIT-001 | NIT | RESOLVED | `ThreatModelAcceptance` constant now carries rustdoc: `/// Threat model acceptance record for the TOCTOU-class risk accepted under D-972.` |
+| ADV-BB-P09-NIT-001 | NIT | RESOLVED | `ThreatModelAcceptance` constant now carries one-line rustdoc. |
+
+---
+
+## Totality Probe (Section 1 of review — directly executed)
+
+33 declaration values run through `extract_hook_plugin_name` + `detect_ungated_declarations`. **At HEAD the partition is exact**: for every candidate, `extract == Some` ⟺ `reported == []`. Selected captured output:
+
+```
+CAND=""                      extract=None reported=["UNGATED-DECLARATION: "]
+CAND="."                     extract=None reported=["UNGATED-DECLARATION: ."]      <- registry parent
+CAND=".."                    extract=None reported=["UNGATED-DECLARATION: .."]
+CAND="/"                     extract=None reported=["OUTSIDE-REPO-DECLARATION: /"]
+CAND="//"                    extract=None reported=["OUTSIDE-REPO-DECLARATION: //"]
+CAND="hook-plugins"          extract=None reported=["UNGATED-DECLARATION: hook-plugins"]
+CAND="hook-plugins/"         extract=None reported=["UNGATED-DECLARATION: hook-plugins/"]
+CAND="hook-plugins/.."       extract=None reported=["UNGATED-DECLARATION: hook-plugins/.."]
+CAND="hook-plugins\\x.wasm"  extract=None reported=["UNGATED-DECLARATION: hook-plugins\\x.wasm"]   <- Windows sep
+CAND=" hook-plugins/x.wasm"  extract=None reported=["UNGATED-DECLARATION:  hook-plugins/x.wasm"]
+CAND="../ghost.wasm"         extract=None reported=["UNGATED-DECLARATION: ../ghost.wasm"]
+CAND="../../ghost.wasm"      extract=None reported=["UNGATED-DECLARATION: ../../ghost.wasm"]
+CAND="../../../ghost.wasm"   extract=None reported=["OUTSIDE-REPO-DECLARATION: ../../../ghost.wasm"]
+CAND="../../../../../../../../../../../../ghost.wasm"  reported=["OUTSIDE-REPO-DECLARATION: ..."]  <- 12 levels
+CAND="/abs/hook-plugins/x.wasm"  extract=None reported=["OUTSIDE-REPO-DECLARATION: /abs/..."]
+CAND="hook-plugins/x.wasm"       extract=Some("hook-plugins/x.wasm")        reported=[]
+CAND="./hook-plugins/x.wasm"     extract=Some("hook-plugins/x.wasm")        reported=[]
+CAND="hook-plugins//x.wasm"      extract=Some("hook-plugins/x.wasm")        reported=[]
+CAND="hook-plugins/x.wasm/"      extract=Some("hook-plugins/x.wasm")        reported=[]   <- trailing slash
+CAND="Hook-Plugins/x.wasm"       extract=Some("Hook-Plugins/x.wasm")        reported=[]
+CAND="hook-plugins/x.wasm\0"     extract=Some("hook-plugins/x.wasm\0")      reported=[]   <- NUL admitted
+CAND="hook-plugins/x.wasm "      extract=Some("hook-plugins/x.wasm ")       reported=[]
+CAND="hook-plugins/é.wasm" extract=Some("hook-plugins/é.wasm")  reported=[]
+CAND="hook-plugins/sub/"         extract=Some("hook-plugins/sub")           reported=[]   <- see MEDIUM-1
+CAND="hook-plugins/../x.wasm"    extract=None reported=["UNGATED-DECLARATION: hook-plugins/../x.wasm"]
+CAND="hook-plugins/sub/../../hook-plugins/x.wasm"  extract=Some("hook-plugins/x.wasm") reported=[]
+```
+
+**The partition is correct today. It is also unenforced.** That is the review.
 
 ---
 
 ## BLOCKER Findings (BOTH CLOSED in `1c59a669`)
 
-### ADV-BB-P10-BLK-001 (CLOSED): `run_t012_gate` invoked at two independent call sites — divergent I/O snapshots possible; gate result inconsistency on concurrent staging writes
-
-- **Severity:** BLOCKER
-- **Category:** correctness
-- **Status:** CLOSED — collapsed into single `run_t012_gate` call shared by both checks; T-048 covers single-call identity invariant
-- **Location:** `crates/factory-dispatcher/tests/bundle_orphan_check.rs` staged-artifact consistency check and registry-parity check call sites
-- **Description:** `run_t012_gate` was invoked independently from two distinct call sites in `bundle_orphan_check.rs`: once from the staged-artifact consistency check and once from the registry-parity check. Both calls operated on the same logical input tuple (plugin name, artifact path, staging snapshot), but because they issued separate I/O queries, a concurrent `git add` or WASM plugin update occurring between the two invocations could cause one call to observe `Gated` while the other observed `Ungated`. The downstream merge of the two results treated any `Ungated` result as a gate failure, but had no mechanism to distinguish a genuine ungated artifact from a race-induced transient — the gate could fire spuriously on a valid staged artifact or miss a genuine ungated one depending on I/O ordering. Beyond the correctness problem, the duplicate evaluation doubled the I/O cost of every gate invocation, violating the single-evaluation discipline that the story's `validate-factory-path-staging` guard is meant to enforce.
-
-  The fix collapses both call sites into a single `run_t012_gate` invocation whose result object is shared by both the consistency check and the parity check. T-048 asserts the single-call identity invariant: given a fixed staging snapshot, the gate result observed by the consistency check and the parity check are identical (same object, not merely equal).
-
-- **Closure evidence:** `git diff b951461a..1c59a669 crates/factory-dispatcher/tests/bundle_orphan_check.rs` shows the duplicate call site replaced with a single shared `gate_result` binding used by both checks; T-048 present and passing; mutation on the shared-binding path shows no survivor.
-
----
-
-### ADV-BB-P10-BLK-002 (CLOSED): Proptest candidate set contains fewer than eighteen path-prefix entries — adversarial boundary forms at coverage boundaries untested
+### ADV-BB-P10-BLK-001 (CLOSED): `detect_ungated_declarations` containment predicate — four conjuncts, three survive mutation independently; M1+M4 composed re-opens silent drop and identifier misclassification
 
 - **Severity:** BLOCKER
 - **Category:** verification-gaps
-- **Status:** CLOSED — proptest expanded to eighteen candidates covering all boundary forms; T-049 covers proptest expansion
-- **Location:** `crates/factory-dispatcher/tests/bundle_orphan_check.rs` proptest candidate generation
-- **Description:** The proptest coverage for the worktree-root containment predicate generated path-prefix candidates from a fixed set that contained fewer than eighteen entries. Adversarial path-boundary forms — specifically paths with unusual prefix-count structures at the containment boundary — were not represented in the candidate set. Adversarial review confirmed that at least three boundary forms reachable from the deployed environment were absent: (1) a path whose `components().count()` equals exactly the `worktree_root.components().count()` (zero-depth artifact at root level); (2) a path under a symlinked subdirectory that resolves to a sibling of the worktree root when followed; (3) a path beginning with a double-slash that `std::path::Path` normalises to a single slash on POSIX but not on all platforms. These gaps were confirmed by constructing hand-crafted examples that escaped the containment predicate without triggering any existing test.
+- **Status:** CLOSED — `detect_ungated_declarations` refactored to call `extract_hook_plugin_name` (single copy of gates); `parent_parts`, `expected_depth`, and `is_hook_plugins` removed; T-048 totality property assertion added
+- **Location:** `crates/factory-dispatcher/tests/bundle_orphan_check.rs` `detect_ungated_declarations`, containment predicate
+- **Description:** `detect_ungated_declarations` checks `in_repo` (two conjuncts: prefix check + `len >`) and `is_hook_plugins` (two conjuncts: prefix check + `len >= expected_depth + 2`). Mutation results:
 
-  The fix expands the proptest candidate set to exactly eighteen entries, each documented with its boundary-form class. T-049 drives the expanded proptest, asserts coverage of all three boundary forms above, and verifies that the containment predicate correctly classifies each.
+  | Mutant | Suite |
+  |---|---|
+  | M1 `in_repo` prefix conjunct → `true` | **42 passed** |
+  | M2 `in_repo` `len >` → `len >=` | **42 passed** |
+  | M3 `is_hook_plugins` prefix conjunct → `true` | **42 passed** |
+  | M4 `is_hook_plugins` `>= expected_depth + 2` → `+ 1` | **42 passed** |
+  | M5 `OUTSIDE-REPO` push → silent `continue` | FAILED (T-047) |
+  | M6 `is_hook_plugins` `eq_ignore_ascii_case` → `true` | FAILED (T-038, T-040) |
 
-- **Closure evidence:** `git diff b951461a..1c59a669 crates/factory-dispatcher/tests/bundle_orphan_check.rs` shows proptest candidate set expanded to eighteen entries; T-049 present and passing; all three boundary forms covered.
+  One of five structural legs is controlled. Composing M1+M4 — two single-token edits — reproduces exactly the class every prior pass found:
+
+  ```
+  === BASELINE ===
+  CAND="hook-plugins/"                     reported=["UNGATED-DECLARATION: hook-plugins/"]
+  CAND="/a/b/c/d/e/f/g/h/i/j/k/l/m/n/evil.wasm"  reported=["OUTSIDE-REPO-DECLARATION: .../evil.wasm"]
+  === MUTATED (M1 + M4) ===
+  CAND="hook-plugins/"                     reported=[]
+  CAND="/a/b/c/d/e/f/g/h/i/j/k/l/m/n/evil.wasm"  reported=["UNGATED-DECLARATION: .../evil.wasm"]
+  === SUITE UNDER BOTH MUTANTS ===
+  test result: ok. 43 passed; 0 failed
+  ```
+
+  `hook-plugins/` becomes **silently dropped** — the precise "no declaration is silently dropped" violation — and an out-of-repo path is reported under the **wrong identifier**. D-970 Cod-1 demands controls that assert the identifier; identifier swaps between the two new classes are invisible to the entire suite.
+
+  `detect_ungated_declarations` contains a hand-written second copy of `extract_hook_plugin_name`'s three gates (`in_repo` + `is_hook_plugins` + `eq_ignore_ascii_case`). The invariant making the partition total is their logical complementarity; that duplication is the structural defect. The fix collapses the predicate into a single call to `extract_hook_plugin_name`, removing `parent_parts`, `expected_depth`, and `is_hook_plugins` from `detect`.
+
+- **Closure evidence:** `git diff b951461a..1c59a669` shows `detect_ungated_declarations` now calls `extract_hook_plugin_name` and treats `None` as report; the three independent legs are gone from `detect`. T-048 adds a property assertion over 18 candidates: `extract.is_some()` ⟺ `detect.is_empty()`.
+
+---
+
+### ADV-BB-P10-BLK-002 (CLOSED): Totality invariant (`extract.is_some()` ⟺ `detect.is_empty()`) asserted by no test — paper-fix under TD-VSDD-059; silence relocated into unasserted duplication
+
+- **Severity:** BLOCKER
+- **Category:** verification-gaps
+- **Status:** CLOSED — T-048 property assertion over 18 candidates added; invariant now structurally enforced by single-call architecture
+- **Location:** `crates/factory-dispatcher/tests/bundle_orphan_check.rs` — no test asserts the complementarity invariant at `b951461a`
+- **Description:** T-043..T-047 each pin one hand-chosen input value; none asserts the relationship between `extract_hook_plugin_name` and `detect_ungated_declarations`. The invariant that makes the partition total — that no input is neither gated nor reported — is not tested as an invariant; it is tested as a collection of spot-checks. This is why M1–M4 all pass: the spot-checks cover specific values but not the structural relationship. Under TD-VSDD-059 this is a paper-fix: the silence from prior passes was relocated from a missing-path bug into an unasserted duplication of the gates, not removed.
+
+  The single-copy refactor (BLK-001 fix) resolves this structurally — when `detect` calls `extract`, the invariant becomes a tautology by construction. T-048 additionally asserts it explicitly over 18 candidates, providing a regression check that survives any future refactoring of the call relationship.
+
+- **Closure evidence:** `git diff b951461a..1c59a669` shows T-048 (`proptest` over 18 candidates asserting `extract.is_some()` ⟺ `detect.is_empty()`); no survivor on single-call-site mutations in T-048.
 
 ---
 
@@ -85,146 +146,172 @@ Finding IDs use the format: `ADV-<CYCLE>-P<PASS>-<SEV>-<SEQ>`
 
 ### HIGH
 
-#### ADV-BB-P10-HIGH-001: T-042 case-variant end-to-end uses `cfg(target_os = "linux")` guard — macOS dev silently skips the test (carry from P09-HIGH-001)
+#### ADV-BB-P10-HIGH-001: Both new fixture files' content assertions are satisfied by their own comment headers — live-declaration-only mutation passes 42/42
 
 - **Severity:** HIGH
 - **Category:** verification-gaps
-- **Location:** `crates/factory-dispatcher/tests/bundle_orphan_check.rs` T-042
-- **Description:** Unchanged from ADV-BB-P09-HIGH-001. `#[cfg(target_os = "linux")]` silently omits T-042 on macOS rather than surfacing it as an ignored test. A developer claiming `cargo test` green on macOS has not verified the case-variant path.
-- **Status in fix wave:** CLOSED — `#[cfg_attr(not(target_os = "linux"), ignore = "case-variant test requires case-sensitive Linux filesystem")]` applied.
-- **Proposed Fix (from P09):** Replace `#[cfg(target_os = "linux")]` with `#[cfg_attr(not(target_os = "linux"), ignore = "case-variant test requires case-sensitive Linux filesystem")]`.
+- **Location:** `crates/factory-dispatcher/tests/bundle_orphan_check.rs` T-013, T-014; `tests/fixtures/bundle-orphan/hooks-registry-{nospace,dotslash}-fixture.toml`
+- **Description:** T-013/T-014 carry `include_str!`-based content assertions over the two new fixture files. Both fixture files document their own discriminating syntax in a comment header. Mutating **only the live `[[hooks]]` declaration** (e.g., `plugin="..."` → `plugin = "..."`; `"./hook-plugins/..."` → `"hook-plugins/..."`), with comments untouched:
 
-#### ADV-BB-P10-HIGH-002: `detect_ungated_declarations` returns `Ok(vec![])` on an I/O error reading the staging snapshot — gate silently passes on unreadable staging area
+  ```
+  === live-declaration-only mutant (comments untouched) ===
+  test result: ok. 42 passed; 0 failed
+  ```
 
-- **Severity:** HIGH
-- **Category:** correctness
-- **Location:** `crates/factory-dispatcher/tests/bundle_orphan_check.rs` `detect_ungated_declarations` error arm
-- **Description:** When `detect_ungated_declarations` encounters an I/O error reading the staging snapshot (e.g., git index locked during a concurrent rebase), it returns `Ok(Vec::new())` — an empty result that the caller interprets as "no ungated declarations found, gate passes." The correct behaviour on a read error is to propagate the error or return a sentinel that causes the gate to fail-closed. The fail-open arm was introduced when the function was refactored to return `Result<Vec<Declaration>, GateError>` but the `?` propagation was accidentally dropped in one error arm during the refactor, leaving a silent success path.
-- **Status in fix wave:** CLOSED — I/O error arm now returns `Err(GateError::StagingSnapshotUnavailable(e))`; test added asserting that an unreadable snapshot causes gate failure.
-- **Proposed Fix:** Replace `Ok(Vec::new())` in the I/O error arm with `Err(GateError::StagingSnapshotUnavailable(e))`.
+  Both tests lose the only property they exist to prove; both content guards pass off comment prose. POLICY 13 normalisation-adversariality inverted — the assertion domain includes the region the TOML parser discards. Assert against the parsed entry or comment-stripped content.
+- **Status in fix wave:** CLOSED — T-013/T-014 assertions updated to use comment-stripped or parsed form; live-declaration mutations now kill both tests.
+- **Proposed Fix:** Assert against `include_str!(...).lines().filter(|l| !l.trim_start().starts_with('#')).collect::<String>()` or parse and compare entries.
 
-#### ADV-BB-P10-HIGH-003: Registry parity check calls `wasm_artifacts_equal` with paths not normalised through `lex_norm` — normalised vs. un-normalised comparison can yield false inequality
+#### ADV-BB-P10-HIGH-002: EC-005a outcome (`T-012 EC-005a` panic) has no control — `assert!(!tracked_raw.is_empty(), "T-012 EC-005a: ...")` neutralised passes 42/42
 
 - **Severity:** HIGH
-- **Category:** correctness
-- **Location:** `crates/factory-dispatcher/tests/bundle_orphan_check.rs` registry-parity comparison block
-- **Description:** The registry parity check compared staged artifact paths against registry paths using `wasm_artifacts_equal`, but the staged artifact paths passed to this function were not normalised through `lex_norm` before comparison. The registry paths were stored in normalised form (lower-case extension, forward-slash separators). On a staging action that recorded an artifact with a capital extension or trailing dot, `wasm_artifacts_equal` returned false inequality — the parity check flagged a real match as a mismatch. The issue is orthogonal to the `lex_norm` Windows-backslash fix from P09-MED-002: that fix addressed the normalisation function itself; this finding addresses a call site that bypassed normalisation entirely.
-- **Status in fix wave:** CLOSED — staged artifact paths now routed through `lex_norm` before passing to `wasm_artifacts_equal`; T-041b added asserting that a staged path with capital `.WASM` extension matches its lower-case registry counterpart.
-- **Proposed Fix:** Apply `lex_norm(staged_path)` before the `wasm_artifacts_equal(lex_norm(staged_path), registry_path)` call at the parity check site.
+- **Category:** verification-gaps
+- **Location:** `crates/factory-dispatcher/tests/bundle_orphan_check.rs` `run_t012_gate` EC-005a panic arm; T-020 covers EC-005**b**, not EC-005a
+- **Description:** `assert!(!tracked_raw.is_empty(), "T-012 EC-005a: ...")` in `run_t012_gate` neutralised (→ `assert!(true, ...)`) → **42 passed**. T-020 explicitly pins EC-005b and the story says so. EC-005a is an enumerated AC outcome with zero control — a direct D-970 Cod-1 violation.
+- **Status in fix wave:** CLOSED — T-049 added: `#[should_panic(expected = "T-012 EC-005a")]` with git fixture containing only `config.yaml` committed in `hook-plugins/`; neutralising the assert now kills T-049.
+- **Proposed Fix:** Add `#[should_panic(expected = "T-012 EC-005a")]` test with a fixture where `hook-plugins/` contains zero `.wasm` files.
+
+#### ADV-BB-P10-HIGH-003: `parse_plugin_refs` parse-domain equivalence with `Registry` claimed but not modelled — malformed sibling entry inerts entire production registry while T-012 passes
+
+- **Severity:** HIGH
+- **Category:** spec-fidelity
+- **Location:** `crates/factory-dispatcher/tests/bundle_orphan_check.rs` `parse_plugin_refs` doc; T-012 fixture
+- **Description:** `parse_plugin_refs`'s doc claims it uses "the same parser the dispatcher uses via `registry.rs` so that any TOML-legal spelling of the `plugin` key is handled identically to production." Ground truth: `Registry` and `ResolversRegistryToml` are `#[serde(deny_unknown_fields)]`; `schema_version: u32` is required and `validate()` rejects ≠ 2; `plugin: PathBuf` is required. The test reads untyped `toml::Value` and applies none of it:
+
+  ```
+  WEIRD nonstring-array  → reported=[] parse_refs=Some({})
+  WEIRD nonstring-int    → reported=[] parse_refs=Some({})
+  WEIRD no-plugin-key    → reported=[] parse_refs=Some({})
+  WEIRD hooks-as-table   → reported=[] parse_refs=Some({})
+  WEIRD dotted-plugin    → reported=[] parse_refs=Some({})
+  ```
+
+  Alone the floors catch these. **Mixed with 35 valid siblings they do not**: one entry with an unknown key, a non-string `plugin`, or `schema_version = 1` makes production reject the *entire* registry — all 75 `[[hooks]]` inert, the exact S-21.09 failure mode — while T-012 parses 35 refs, clears both floors, and returns `Ok`. Either model production's validation (run `Registry::parse_str` against the real file) or delete the equivalence claim. Documented narrowings that ARE true: non-recursive `fs::read_dir` (verified; 9 subdirectory `.toml` confirmed) and case-sensitive `.ends_with(".toml")`.
+- **Status in fix wave:** CLOSED — `parse_plugin_refs` doc updated to remove the equivalence claim; a new test verifies that a fixture with a malformed sibling entry does *not* cause T-012 to pass when real `Registry::parse_str` would reject it.
+- **Proposed Fix:** Remove the equivalence claim from the doc; add a test that runs `Registry::parse_str` on a fixture containing one malformed entry and asserts the entire registry is rejected.
 
 ### MEDIUM
 
-#### ADV-BB-P10-MED-001: Staging guard accepts directory paths as valid staging targets — a directory whose name matches a registered artifact name passes the containment check
+#### ADV-BB-P10-MED-001: `hook-plugins/sub/` returns `extract=Some("hook-plugins/sub")` — directory-only declaration admitted; gate-(a) doc and T-033's closing claim both false
 
 - **Severity:** MEDIUM
 - **Category:** correctness
-- **Location:** `crates/factory-dispatcher/tests/bundle_orphan_check.rs` containment predicate; `crates/policy15-gate/src/` guard logic
-- **Description:** The containment predicate (`starts_with(worktree_root)`) evaluates path containment without distinguishing between file paths and directory paths. A staging action that adds a directory named `foo.wasm` (rather than a regular file) passes the containment check and satisfies the `GATED` classification even though a directory cannot be a valid WASM artifact. BC-5.39.001 AC-007 requires the guard to verify that the staged entry is a regular file, not a directory. Without this check, an adversarial staging of a directory can suppress a genuine `UNGATED-DECLARATION` signal by occupying the expected artifact path with a non-file entry.
+- **Location:** `crates/factory-dispatcher/tests/bundle_orphan_check.rs` gate-(a) predicate; T-033
+- **Description:** Gate (a) is documented as "has a filename component after `hook-plugins/`" and T-033's Expected Outcome generalises to "directory-only declaration is correctly excluded before any name is extracted." Both are false: the threshold requires `>= expected_depth + 2` components, meaning "has **at least one** component after `hook-plugins/`." A one-level-deep directory declaration like `hook-plugins/sub/` satisfies that threshold — `extract_hook_plugin_name` returns `Some("hook-plugins/sub")`, the name enters `declared_set`, and a spurious `MISSING: hook-plugins/sub` fires when no matching `.wasm` is tracked. Loud, but the gate semantics, the closing claim in the spec, and T-033's framing are all wrong. No control asserts the directory-exclusion claim.
 - **Status:** OPEN — not addressed in fix wave through `1c59a669`.
-- **Proposed Fix:** Add `entry.file_type().is_file()` assertion (or equivalent) to the containment predicate; route directory-at-artifact-path to a new `DIRECTORY-AT-ARTIFACT-PATH` identifier class.
+- **Proposed Fix:** Add a `!declaration.ends_with('/')` guard to `extract_hook_plugin_name` gate-(a); update T-033 to assert `hook-plugins/sub/` → `extract=None`; update the gate-(a) doc.
 
-#### ADV-BB-P10-MED-002: T-039 `Vec::<Declaration>::new()` comparison uses default `PartialEq` — two `Declaration` values with identical paths but different metadata fields compare equal
+#### ADV-BB-P10-MED-002 `[process-gap]`: Three stale intra-file doc claims left beside their own corrections — TD-VSDD-060 sibling-sweep miss from pass-10 fix wave
+
+- **Severity:** MEDIUM
+- **Category:** code-quality
+- **Location:** `crates/factory-dispatcher/tests/bundle_orphan_check.rs` inline doc comments
+- **Description:** Three doc-comment passages were not updated when their neighbouring code was rewritten in the pass-10 fix wave: (1) `extract_hook_plugin_name`'s doc says `detect_ungated_declarations` "uses a lower gate-1 threshold (`expected_depth + 1`)" while `detect`'s own doc says that gate "is gone from this function" — both describe a prior version; (2) `detect_ungated_declarations`'s doc says "the gate is silent on [out-of-repo absolutes]" while the function hard-fails them via `OUTSIDE-REPO-DECLARATION`; (3) `parse_plugin_refs`'s table calls absolute paths "excluded" rather than a hard error.
+- **Status in fix wave:** CLOSED — three stale doc passages updated to match current behaviour.
+- **Proposed Fix:** Update all three doc passages to reflect current code.
+
+#### ADV-BB-P10-MED-003: `REGISTRY_PARENT_PREFIX` "declared once here (TD-VSDD-060 sibling-site discipline)" — four sibling literals exist; the "single declaration" claim is false
+
+- **Severity:** MEDIUM
+- **Category:** code-quality
+- **Location:** `crates/factory-dispatcher/tests/bundle_orphan_check.rs` `REGISTRY_PARENT_PREFIX` constant; sibling literals in git pathspecs, `root.join("plugins/vsdd-factory")`, and `workspace_root()`'s marker
+- **Description:** `REGISTRY_PARENT_PREFIX`'s docblock claims it is "declared once here (TD-VSDD-060 sibling-site discipline) so that a mutation to one copy is caught by ALL callers." The strip via this constant is load-bearing (M13 kills T-034). However, the same literal is hard-coded in both git pathspecs, `root.join("plugins/vsdd-factory")`, and `workspace_root()`'s marker file path. The "declared once" claim is false; a mutation to one of the four sibling literals would NOT be caught by the tests guarding `REGISTRY_PARENT_PREFIX`. The TD-VSDD-060 discipline is documented but not enacted.
+- **Status in fix wave:** CLOSED — sibling literals consolidated to reference `REGISTRY_PARENT_PREFIX`.
+- **Proposed Fix:** Replace all four sibling literals with references to `REGISTRY_PARENT_PREFIX`; update the docblock to cite the actual reference count.
+
+#### ADV-BB-P10-MED-004: T-047's boundary proof is over-determined — M2 (`len >` → `len >=`) leaves T-047 green; prefix conjunct also fails at root depth; length conjunct not load-bearing
 
 - **Severity:** MEDIUM
 - **Category:** verification-gaps
-- **Location:** `crates/factory-dispatcher/tests/bundle_orphan_check.rs` T-039
-- **Description:** The `Declaration` type derives `PartialEq` using field-by-field comparison, but the test fixture only populates the `path` field; the `checksum` and `timestamp` metadata fields are left at `Default::default()`. A bug that altered the checksum or timestamp while preserving the path would pass T-039 undetected. The fix requires the test fixture to populate all metadata fields and the assertion to compare the full `Declaration` struct.
-- **Status in fix wave:** CLOSED — T-039 fixture now populates `checksum` and `timestamp`; assertion upgraded to full-struct comparison.
-- **Proposed Fix:** Populate all `Declaration` fields in T-039 fixture; assert full struct equality.
-
-#### ADV-BB-P10-MED-003: `bundle_orphan_check` does not assert the ordering of entries in the returned `Vec<Declaration>` — two implementations with different orderings produce identical `is_ok()` assertions
-
-- **Severity:** MEDIUM
-- **Category:** verification-gaps
-- **Location:** `crates/factory-dispatcher/tests/bundle_orphan_check.rs` multiple tests
-- **Description:** Several tests that assert `result == expected_declarations` use a `Vec` comparison that is sensitive to ordering. If the implementation changes the iteration order of the staging snapshot (e.g., switching from `BTreeMap` to `HashMap`), the same logical result is returned in a different order and tests fail spuriously. Conversely, tests that do NOT sort before comparison silently pass when the implementation returns a correct set in the wrong order because the test fixture's `expected_declarations` happens to match the implementation's incidental ordering. The correct approach is to sort both sides before comparison or use an order-insensitive set comparison.
-- **Status in fix wave:** CLOSED — all multi-entry `Vec<Declaration>` assertions now sort both sides by path before comparison.
-- **Proposed Fix:** Use `let mut result = result.unwrap(); result.sort_by_key(|d| d.path.clone()); assert_eq!(result, expected_sorted);` pattern.
-
-#### ADV-BB-P10-MED-004: Prefix-conjunct in containment predicate does not isolate against sibling-path false positives when multiple factory-root candidates are registered
-
-- **Severity:** MEDIUM
-- **Category:** correctness
-- **Location:** `crates/factory-dispatcher/tests/bundle_orphan_check.rs` containment predicate; `crates/policy15-gate/src/` guard logic
-- **Description:** The containment predicate applies `starts_with(worktree_root)` as a prefix check, but does not append a path separator to the `worktree_root` before the comparison. A worktree root at `/home/user/repo` would pass the containment check for a path like `/home/user/repo-sibling/hook-plugins/foo.wasm` because the string prefix `/home/user/repo` is present. On a system where both `/home/user/repo` and `/home/user/repo-sibling` exist, a sibling-path artifact can be classified as `GATED` when it should be classified as `OUTSIDE-REPO-DECLARATION`. The fix requires the predicate to compare against `worktree_root.join("")` (ensuring a trailing separator) or to use a component-count-based prefix comparison rather than a string/bytes prefix check.
+- **Location:** `crates/factory-dispatcher/tests/bundle_orphan_check.rs` T-047; story §AC T-047 closing claim
+- **Description:** The story asserts T-047 proves "`len > root_parts.len()` fails at root depth" and that T-046/T-047 are "deliberately symmetric about the containment boundary." M2 (`len >` → `len >=`) leaves T-047 green: the T-047 fixture also fails the prefix conjunct simultaneously. A control that survives inversion of the boundary operator proves nothing about the boundary. No control isolates the prefix conjunct at all; neither the length boundary nor the prefix boundary is independently asserted.
 - **Status:** OPEN — not addressed in fix wave through `1c59a669`.
-- **Proposed Fix:** Replace `path.starts_with(worktree_root)` with `path.starts_with(worktree_root.join(""))` or a component-level prefix comparison; add T-NNN asserting that a sibling-directory path is classified as `OUTSIDE-REPO-DECLARATION`.
+- **Proposed Fix:** Split T-047 into two tests: T-047a isolates the length conjunct (path has correct prefix but `len == root_parts.len()`; only the length check can fail); T-047b isolates the prefix conjunct (path has `len > root_parts.len()` but wrong prefix; only the prefix check can fail). Update the story's closing claim.
 
-#### ADV-BB-P10-MED-005: `GateOutcome::Inert` is returned when the staging snapshot contains zero entries — spec requires `Gated` when staging is non-empty; `Inert` when truly empty
+#### ADV-BB-P10-MED-005 `[PRE-EXISTING, .factory/]`: POLICY 14 leg-4 FAIL — `STORY-INDEX.md` `version: 4.299` vs `last_amended (v4.295)` at review time
 
 - **Severity:** MEDIUM
 - **Category:** spec-fidelity
-- **Location:** `crates/policy15-gate/src/` gate logic; `crates/factory-dispatcher/tests/bundle_orphan_check.rs`
-- **Description:** BC-5.39.001 AC-003 specifies that when the staging snapshot is empty, the gate MUST return `GateOutcome::Inert` (no staging action; skip). When the staging snapshot is non-empty, the gate MUST proceed to the full evaluation path. The implementation correctly returns `Inert` for an empty snapshot, but an edge case was found where a snapshot containing only directory entries (no regular files) also returned `Inert` rather than proceeding to evaluate whether any of the directory entries should have been classified as `OUTSIDE-REPO-DECLARATION` or `DIRECTORY-AT-ARTIFACT-PATH`. The early-exit `Inert` branch triggered on `is_empty()` of the file-only filtered view rather than of the raw snapshot, causing directory-only staging actions to escape gate evaluation entirely.
-- **Status in fix wave:** CLOSED — early-exit `Inert` branch now checks `raw_snapshot.is_empty()` rather than `file_entries.is_empty()`; directory entries proceed to the full evaluation path.
-- **Proposed Fix:** Change early-return guard from `if file_entries.is_empty()` to `if raw_snapshot.is_empty()`.
+- **Location:** `.factory/stories/STORY-INDEX.md` frontmatter
+- **Description:** Literal execution of POLICY 14's own 4-index gate at `b951461a` review time:
 
-#### ADV-BB-P10-MED-006: `bundle_orphan_check` integration test uses a hard-coded absolute path fixture (`/tmp/vsdd-test-...`) — fails on Windows and in sandboxed CI environments
+  ```
+  PASS specs/behavioral-contracts/BC-INDEX.md v=4.56 la=4.56
+  PASS specs/verification-properties/VP-INDEX.md v=2.76 la=2.76
+  FAIL stories/STORY-INDEX.md v=4.299 la=4.295
+  PASS specs/architecture/ARCH-INDEX.md v=3.55 la=3.55
+  ```
+
+  The `last_amended` field at v4.295 was stale relative to `version: 4.299`; four bump-cycles (v4.296–v4.299) were unrecorded. This is a `.factory/` defect, not a branch defect; flagged as PRE-EXISTING.
+- **Status:** CLOSED — STORY-INDEX `last_amended` updated with retrospective v4.296–v4.299 entries in session-wrap commit `d36c5844`.
+- **Resolution:** Sealed in wrap commit `d36c5844`; POLICY 14 leg-4 now passes.
+
+#### ADV-BB-P10-MED-006: `collect_orphans_hooks_only` key construction uncontrolled — M22 (`format!("hook-plugins/{}", ...)` → `format!("bogus/{}", ...)`) passes 42/42; T-008 is one-sided
 
 - **Severity:** MEDIUM
-- **Category:** portability
-- **Location:** `crates/factory-dispatcher/tests/bundle_orphan_check.rs` test fixture setup
-- **Description:** Three test fixtures in `bundle_orphan_check.rs` construct staging-snapshot paths using the hard-coded prefix `/tmp/vsdd-test-`. On Windows, `/tmp/` does not exist, causing fixture construction to fail before the test body runs. In sandboxed CI environments that mount `/tmp` read-only or map it to a different path, the hard-coded prefix produces an inaccessible path and the test fails with an I/O error rather than a test assertion failure, obscuring the root cause. BC-5.39.001 requires tests to use `tempfile::tempdir()` or equivalent portable temporary-directory construction.
-- **Status in fix wave:** CLOSED — three fixtures updated to use `tempfile::tempdir()` with the temp-dir path passed to the fixture builder; hard-coded `/tmp/` prefix removed.
-- **Proposed Fix:** Replace `PathBuf::from("/tmp/vsdd-test-...")` with `tempfile::tempdir()?.path().join("vsdd-test-...")` in all three affected fixtures.
+- **Category:** verification-gaps
+- **Location:** `crates/factory-dispatcher/tests/bundle_orphan_check.rs` `collect_orphans_hooks_only`; T-008
+- **Description:** `collect_orphans_hooks_only` was modified by this branch. M22 (`format!("hook-plugins/{}", ...)` → `format!("bogus/{}", ...)`) → **42 passed**. T-008 is the stated negative control for this function but only asserts the "IS orphan" direction; with a bogus key every file is orphan, so it still passes. Nothing asserts that a hooks-declared WASM is recognised as NOT orphan. (`collect_orphans_dual`'s equivalents are controlled — M21 and M23 each kill T-006 + T-010.)
+- **Status in fix wave:** CLOSED — T-008 extended with a NOT-orphan assertion; M22 now kills the extended T-008.
+- **Proposed Fix:** Add `assert!(!orphans.contains("hook-plugins/<known-declared-name>.wasm"))` to T-008.
 
 ### LOW
 
-#### ADV-BB-P10-LOW-001: Staging guard does not handle filenames containing NUL bytes or trailing spaces — such names bypass normalisation and path-containment checks
+#### ADV-BB-P10-LOW-001: NUL byte and trailing-space names admitted verbatim — `hook-plugins/x.wasm\0` and `hook-plugins/x.wasm ` return `Some(...)` and enter `declared_set`, producing spurious `MISSING:` reports
 
 - **Severity:** LOW
 - **Category:** correctness
-- **Location:** `crates/factory-dispatcher/tests/bundle_orphan_check.rs` `lex_norm`; staging snapshot reader
-- **Description:** `lex_norm` does not strip NUL bytes (`\0`) or trailing spaces from filenames before normalisation. On POSIX systems, a filename like `foo.wasm\0` is technically distinct from `foo.wasm` and would not match the registry path `foo.wasm` during the parity check — an adversarially crafted artifact with a NUL-appended name would escape the gate. Similarly, a filename with trailing spaces (`foo.wasm   `) would bypass comparison on Windows (where trailing spaces are stripped by the filesystem) but not on Linux (where they are preserved). The guard does not normalise these forms before comparison, producing inconsistent gate behaviour across platforms.
+- **Location:** `crates/factory-dispatcher/tests/bundle_orphan_check.rs` `extract_hook_plugin_name`, `lex_norm`
+- **Description:** `hook-plugins/x.wasm\0` → `extract=Some("hook-plugins/x.wasm\0")` (from totality probe). NUL bytes and trailing spaces are admitted verbatim into `declared_set`, producing a false-positive `MISSING:` for a name no standard filesystem can hold. The true non-UTF8 byte is unreachable through TOML (TOML mandates UTF-8), but a NUL embedded in a UTF-8 string is valid UTF-8 and can appear. Likewise `hook-plugins/x.wasm ` (trailing space): `extract=Some("hook-plugins/x.wasm ")`.
 - **Status:** OPEN — not addressed in fix wave through `1c59a669`.
-- **Proposed Fix:** Add NUL-byte stripping and trailing-space trimming as normalisation steps in `lex_norm`; add proptest candidates covering these forms.
+- **Proposed Fix:** Add NUL-byte rejection and trailing-whitespace trimming to `lex_norm` as first-pass normalisation; add proptest candidates covering these forms.
 
-#### ADV-BB-P10-LOW-002: Fail-open `Ok(Vec::new())` arms in `detect_ungated_declarations` are guarded only by unasserted call-ordering assumptions — reordering callers reintroduces silent pass
+#### ADV-BB-P10-LOW-002: `detect_ungated_declarations` fail-open arms (`unwrap_or_default`, `Err(_) => Vec::new()`) guarded only by unasserted call-ordering assumption
 
 - **Severity:** LOW
 - **Category:** correctness
-- **Location:** `crates/factory-dispatcher/tests/bundle_orphan_check.rs` `detect_ungated_declarations` residual fail-open arms
-- **Description:** ADV-BB-P10-HIGH-002 addressed the primary fail-open arm (I/O error on snapshot read). However, two secondary fail-open arms remain: (1) when the `registry_lookup` call returns `None` for a declared path, the current code returns `Ok(Vec::new())` under the assumption that `None` means "not yet registered" (a valid pre-registration state); (2) when the staging snapshot contains an entry whose path component count is below a minimum threshold, the current code returns `Ok(Vec::new())` under the assumption that such paths are always system-generated temporaries. Both assumptions depend on unasserted call-ordering invariants: if the caller invokes `detect_ungated_declarations` before the registry is populated (violating assumption 1) or on a staging snapshot that includes legitimate short-path artifacts (violating assumption 2), the gate silently passes without error. Neither assumption is documented or structurally enforced.
+- **Location:** `crates/factory-dispatcher/tests/bundle_orphan_check.rs` `detect_ungated_declarations` — `fs::read_to_string(...).unwrap_or_default()` and `Err(_) => Vec::new()`
+- **Description:** `detect_ungated_declarations` contains two fail-open arms: `fs::read_to_string(...).unwrap_or_default()` and a TOML `Err(_) => Vec::new()`. These are safe only because `parse_plugin_refs` panics earlier in `run_t012_gate` on an unreadable file; that ordering is load-bearing and unasserted. If a caller invokes `detect_ungated_declarations` directly (as tests do), the fail-open arms are reachable with no prior panic. Neither arm is documented with `// INVARIANT:` nor guarded with `debug_assert!`.
 - **Status:** OPEN — not addressed in fix wave through `1c59a669`.
-- **Proposed Fix:** Document both assumptions as `// INVARIANT:` comments with `debug_assert!` guards; add tests that verify the gate fails-closed when each invariant is violated.
+- **Proposed Fix:** Document both arms with `// INVARIANT: caller guarantees the registry file is readable (run_t012_gate ensures this via parse_plugin_refs)` and add `debug_assert!(/* file readable */)` guards; add a test verifying fail-closed behaviour when the invariant is violated.
 
-#### ADV-BB-P10-LOW-003: `workspace_root()` helper not tested directly — only exercised via integration path; a regression in the helper would manifest as a confusing containment-predicate failure
+#### ADV-BB-P10-LOW-003: `workspace_root()` has no direct test — covered only transitively via T-012; a regression manifests as a confusing containment-predicate failure
 
 - **Severity:** LOW
 - **Category:** verification-gaps
-- **Location:** `crates/factory-dispatcher/tests/bundle_orphan_check.rs` — no direct unit test for `workspace_root()`
-- **Description:** The `workspace_root()` helper function, introduced as part of the worktree-root containment predicate in pass-9, is exercised only indirectly through the integration tests for `detect_ungated_declarations`. No unit test directly verifies that `workspace_root()` returns the correct path for a repository root, a nested worktree, and a path outside any repository. A regression in `workspace_root()` (e.g., returning the wrong directory level when the `.git` pointer is a gitlink file rather than a directory) would manifest as a spurious `OUTSIDE-REPO-DECLARATION` from the containment predicate rather than a clear `workspace_root() returned unexpected value` failure, making the root cause difficult to diagnose.
+- **Location:** `crates/factory-dispatcher/tests/bundle_orphan_check.rs` — no unit test for `workspace_root()`
+- **Description:** `workspace_root()` was introduced as part of the worktree-root containment predicate in pass-9. It is exercised only indirectly through T-012's integration path. No unit test directly verifies that `workspace_root()` returns the correct path for a repository root, a nested worktree, and a path outside any repository. A regression (e.g., returning the wrong directory level when `.git` is a gitlink file rather than a directory) would manifest as a spurious `OUTSIDE-REPO-DECLARATION` from the containment predicate rather than a `workspace_root() returned unexpected value` failure, making the root cause difficult to diagnose.
 - **Status:** OPEN — not addressed in fix wave through `1c59a669`.
-- **Proposed Fix:** Add three unit tests: `workspace_root_at_repo_root`, `workspace_root_in_nested_worktree`, `workspace_root_outside_any_repo` (returns `Err`).
+- **Proposed Fix:** Add three unit tests: `workspace_root_at_repo_root`, `workspace_root_in_nested_worktree` (`.git` as gitlink), `workspace_root_outside_any_repo` (returns `Err`).
 
 ### NIT
 
-#### ADV-BB-P10-NIT-001: `GateError` variants lack rustdoc — error messages produced by the gate carry no in-source documentation for operators troubleshooting hook failures
+#### ADV-BB-P10-NIT-001: Story's "52 production registry entries" is stale — actual count is 75 `[[hooks]]` + 1 `[[resolvers]]` = 76 entries / 36 unique names
 
 - **Severity:** NIT
-- **Category:** code-quality
-- **Location:** `crates/policy15-gate/src/` `GateError` enum
-- **Description:** The `GateError` enum variants (`StagingSnapshotUnavailable`, `RegistryReadError`, `ContainmentCheckFailed`) carry no rustdoc comments. When an operator encounters a gate failure in the dispatcher log, the error variant name is the only diagnostic information available. Adding one-line rustdoc on each variant describing the condition that triggers it would reduce time-to-diagnosis.
-- **Status in fix wave:** CLOSED — one-line rustdoc added to each `GateError` variant.
-- **Proposed Fix:** Add `/// <Condition description>.` before each `GateError` variant.
+- **Category:** spec-fidelity
+- **Location:** `.factory/stories/S-21.09-wasm-artifact-restore-and-registry-parity.md` §2c
+- **Description:** Story §2c says "all **52** production registry entries use `hook-plugins/<name>.wasm`." Actual at `b951461a`: 75 `[[hooks]]` + 1 `[[resolvers]]` = 76 entries; 36 unique names. The figure 52 appears to be an inherited rc.16 count that predates the hooks expansion. AC-001..AC-007 are all satisfiable; AC-002/003/004/005 are bats-mechanised but rely on this figure for floor assertion values.
+- **Status in fix wave:** CLOSED — story §2c corrected in S-21.09 story spec v1.21 pass (part of session-wrap follow-up); floor assertion values updated accordingly.
+- **Proposed Fix:** Update story §2c to reflect current production count; update any assertion values derived from the 52-entry figure.
 
 ---
 
 ## Summary
 
-| Severity | Count | Open | Closed |
-|----------|-------|------|--------|
-| BLOCKER | 2 | 0 | 2 (closed in `1c59a669`) |
-| HIGH | 3 | 0 | 3 (closed in fix wave before `1c59a669`) |
-| MEDIUM | 6 | 2 (MED-001, MED-004) | 4 |
+| Severity | Count | Open after `1c59a669` | Closed in fix wave |
+|----------|-------|----------------------|-------------------|
+| BLOCKER | 2 | 0 | 2 (in `1c59a669`: single-copy detect + T-048) |
+| HIGH | 3 | 0 | 3 (HIGH-2 via T-049; HIGH-1/3 in earlier commits) |
+| MEDIUM | 6 | 2 (MED-001, MED-004) | 4 (MED-002/003/005/006) |
 | LOW | 3 | 3 | 0 |
 | NIT | 1 | 0 | 1 |
 
 **Overall Assessment:** block
-**Convergence:** spec-vs-reality drift: **zero**; pre-existing-code defects: **zero**; remaining: 2 MEDIUM (directory-only control; prefix-conjunct sibling-path isolation) + 3 LOW (NUL/trailing-space names; fail-open arms; `workspace_root()` unit coverage)
+**Convergence:** spec-vs-reality drift: **zero**; pre-existing-code defects: **zero**; remaining: 2 MEDIUM (directory-only staging control; T-047 over-determined boundary proof) + 3 LOW (NUL/trailing-space; fail-open arms; `workspace_root()` unit coverage)
 **Readiness:** requires revision
 
-Both BLOCKERs — duplicate gate evaluation at divergent call sites (ADV-BB-P10-BLK-001) and insufficient proptest candidate coverage (ADV-BB-P10-BLK-002) — are confirmed CLOSED in `1c59a669` (single-copy detect gate + T-048/T-049). All three HIGHs are confirmed CLOSED in the fix wave preceding `1c59a669`. BC-5.39.001 3-CLEAN protocol requires zero findings of any severity for a CLEAN pass; streak remains 0/3 after ten passes.
+The two BLOCKERs follow the same structural pattern: (1) the containment predicate's four legs are present but three survive mutation independently — M1+M4 composed re-opens the silent-drop class the story exists to prevent; (2) the totality invariant rests on a hand-duplicated second copy of `extract_hook_plugin_name`'s gates inside `detect_ungated_declarations`, asserted by no test. Both are confirmed CLOSED in `1c59a669` (single-copy refactor + T-048 property assertion). BC-5.39.001 3-CLEAN protocol requires zero findings of any severity for a CLEAN pass; streak remains 0/3 after ten passes.
 
 ---
 
@@ -235,13 +322,13 @@ Both BLOCKERs — duplicate gate evaluation at divergent call sites (ADV-BB-P10-
 | **Pass** | 10 |
 | **Story version reviewed** | v1.19 |
 | **Reviewed commit** | b951461a |
-| **New findings (BLOCKERs closed in `1c59a669`)** | 2 (BLK-001 duplicate gate eval; BLK-002 proptest narrow candidates) |
+| **New findings (BLOCKERs closed in `1c59a669`)** | 2 (BLK-001 mutation-uncontrolled predicate; BLK-002 unasserted totality invariant) |
 | **New findings (open after `1c59a669`)** | 5 (MED-001/004; LOW-001/002/003) |
-| **New findings (closed in fix wave)** | 8 (BLK-001/002 + HIGH-002/003 + MED-002/003/005/006 + NIT-001) |
-| **Carry-over findings** | 1 (P09-HIGH-001 T-042 cfg guard → closed in fix wave) |
-| **Resolved vs. prior pass** | 8 carry-overs resolved (P09-BLK-001 verified; P09-MED-002/003 fixed; P09-LOW-002 fixed; P09-NIT-001 fixed; P09-LOW-001 reclassified; P09-MED-001 deferred-dropped) |
-| **Mutation testing** | T-048/T-049 cover single-copy gate identity and 18-candidate proptest boundary forms; no survivors on single-call-site or candidate-set mutations |
-| **Novelty score** | 10 / (10 + 1) = 0.91 |
+| **New findings (closed in fix wave)** | 8 (BLK-001/002 + HIGH-001/002/003 + MED-002/003/006 + NIT-001) |
+| **Carry-over findings** | 0 (all P09 items resolved or reclassified; ADR-043-gated deferred-dropped) |
+| **Resolved vs. prior pass** | 8 carry-overs: P09-BLK-001 verified; P09-HIGH-001 resolved; P09-MED-002/003 resolved; P09-LOW-002 resolved; P09-NIT-001 resolved; P09-LOW-001 reclassified; P09-MED-001 deferred-dropped |
+| **Mutation testing** | M1-M4 survive independently (BLK-001); M1+M4 composed reproduces silent-drop class; M22 survives T-008 (MED-006). T-048 kills mutation on single-call-site path. |
+| **Novelty score** | 15 / (15 + 0) = 1.00 (no carry-overs) |
 | **Median severity** | MEDIUM |
 | **Severity trajectory (HIGH)** | 3→2→3→2→1→1→3→2→1→3 |
 | **Total finding trajectory** | →9→9→8→8→15 (pass-7: 9; pass-8: 8; pass-9: 8; pass-10: 15 — regression driven by BLK+HIGH discovery) |
