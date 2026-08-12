@@ -125,7 +125,7 @@
 //! Embedded at compile time via `include_str!()` — the .toml files are the single source
 //! of truth; edits must be made there, not to the constants.
 //!
-//! Stories: S-19.04 (T-006..T-011), S-21.09 (T-012..T-050)
+//! Stories: S-19.04 (T-006..T-011), S-21.09 (T-012..T-051)
 //! VP Trace: — (AC-006 wires EAC-005 as load-bearing leg; no BC mapping)
 
 use factory_dispatcher::Registry;
