@@ -1,1 +1,1 @@
-{"status":"pass","timestamp":"2026-08-12T07:49:19Z","command":"cd /Users/zious/Documents/GITHUB/vsdd-factory/.worktrees/S-21.09 && cargo test --test bundle_orphan_check test_S_21_09_ac006_T047 -- --nocapture 2>&1 | tail -10"}
+{"status":"pass","timestamp":"2026-08-12T09:18:30Z","command":"cd /Users/zious/Documents/GITHUB/vsdd-factory/.worktrees/S-21.09 && cargo test --workspace --all-targets 2>&1 | grep \"FAILED\" | head -10"}
