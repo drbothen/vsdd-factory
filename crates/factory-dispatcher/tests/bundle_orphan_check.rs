@@ -43,6 +43,9 @@
 //! | T-033 | AC-006 S-21.09 | GREEN | MEDIUM-3 minimum-length lower boundary: `plugin = "hook-plugins"` (directory path, no filename) is excluded; pins `expected_depth + 2` constant |
 //! | T-034 | AC-006 S-21.09 | GREEN | MEDIUM-4 `-r` flag control: `git ls-tree -r` finds a WASM committed under `hook-plugins/sub/`; dropping `-r` misses nested files |
 //! | T-035 | AC-006 S-21.09 | GREEN | HIGH-1 pass-7: gate-3 (hook-plugins component check) isolated control: `plugin = "other-dir/evil-probe.wasm"` passes gates 1+2 (depth+2 length, parent prefix matches) but is excluded by gate 3 (`other-dir` ≠ `hook-plugins`) |
+//! | T-036 | AC-006 S-21.09 | GREEN | HIGH-1 pass-8 M15 killer: git fixture with `.gitignore` excluding `hook-plugins/`, 30 hooks force-committed, `gitignored-probe.wasm` declared AND on disk but NOT force-added; `MISSING: gitignored-probe.wasm` via `run_t012_gate` |
+//! | T-037 | AC-006 S-21.09 | GREEN | HIGH-2 pass-8 M18+M16 killer: git fixture — `git add -f` `staged-probe.wasm` (declared, on disk) without committing; `STAGED-NOT-COMMITTED: staged-probe.wasm` via `run_t012_gate` |
+//! | T-038 | AC-006 S-21.09 | GREEN | HIGH-3 pass-8 UNGATED-DECLARATION: `other-dir/evil-probe.wasm` passes gates 1+2 but fails gate 3; `run_t012_gate` emits `UNGATED-DECLARATION: other-dir/evil-probe.wasm` before reaching git calls |
 //!
 //! † T-009 is a STANDING GREEN GATE — passes immediately on any clean checkout where no
 //! orphan WASMs are tracked in git, and remains green on contaminated worktrees because
@@ -109,12 +112,12 @@
 //! Embedded at compile time via `include_str!()` — the .toml files are the single source
 //! of truth; edits must be made there, not to the constants.
 //!
-//! Stories: S-19.04 (T-006..T-011), S-21.09 (T-012..T-035)
+//! Stories: S-19.04 (T-006..T-011), S-21.09 (T-012..T-038)
 //! VP Trace: — (AC-006 wires EAC-005 as load-bearing leg; no BC mapping)
 
 use std::collections::HashSet;
 use std::fs;
-use std::path::{Path, PathBuf};
+use std::path::{Component, Path, PathBuf};
 use std::process::Command;
 use tempfile::tempdir;
 
@@ -155,6 +158,30 @@ const HOOKS_REGISTRY_DOTSLASH_FIXTURE: &str =
 // ---------------------------------------------------------------------------
 // Detection helpers
 // ---------------------------------------------------------------------------
+
+/// Lexically normalise `path`: resolve `..` (pop), skip `.`, clear on root prefix.
+///
+/// Shared by `extract_hook_plugin_name` and `detect_ungated_declarations`.
+fn lex_norm(path: &Path) -> Vec<String> {
+    let mut parts: Vec<String> = Vec::new();
+    for comp in path.components() {
+        match comp {
+            Component::Normal(c) => {
+                if let Some(s) = c.to_str() {
+                    parts.push(s.to_owned());
+                }
+            }
+            Component::ParentDir => {
+                parts.pop();
+            }
+            Component::CurDir => {}
+            Component::RootDir | Component::Prefix(_) => {
+                parts.clear();
+            }
+        }
+    }
+    parts
+}
 
 /// Resolve `plugin_path` relative to the registry file's parent directory and
 /// return the bare WASM filename if the result lands inside the sibling
@@ -205,46 +232,31 @@ const HOOKS_REGISTRY_DOTSLASH_FIXTURE: &str =
 /// Changing this would require full-path tracking throughout — a scope-expanding
 /// redesign. Recorded per POLICY 13.
 ///
+/// **Gate structure:** three reachable exclusion gates plus three defensive unreachable
+/// `?` exits. Reachable gates: (1) minimum-length (`joined_parts.len() < expected_depth + 2`
+/// → `return None`); (2) registry-parent prefix loop (`joined_parts[i] != parent_parts[i]`
+/// → `return None`); (3) `hook-plugins` component check
+/// (`!hook_comp.eq_ignore_ascii_case("hook-plugins")` → `return None`). Defensive
+/// unreachable `?` exits: `registry_path.parent()`, `joined_parts.get(i)` (inside the
+/// gate-2 loop), and `joined_parts.get(expected_depth)` (before gate-3) — the latter two
+/// are unreachable because gate-1 establishes `len >= expected_depth + 2`.
+///
 /// **Known false-negative class for repo-internal non-`hook-plugins/` declarations (LOW-1):**
-/// A declaration resolving to a path within the repository but outside `hook-plugins/`
-/// (e.g., bare `plugin = "plugin.wasm"` → `plugins/vsdd-factory/plugin.wasm`;
-/// `../`-prefixed `plugin = "../plugin.wasm"` → `plugins/plugin.wasm`) is outside this
-/// gate's scope and will NOT appear in `declared`. Production's `resolve_plugin_paths()`
-/// DOES load such relative paths (joining against the registry parent), so a
+/// Declarations that fail gate 1 (bare names, `../`-prefix forms — insufficient depth)
+/// are silent: they return `None` and never appear in `declared`. Gate-3 failures
+/// (declarations that pass gates 1+2 but whose next component is not `hook-plugins/`,
+/// e.g., `other-dir/evil-probe.wasm`) are now detected by `detect_ungated_declarations()`
+/// and surface as `UNGATED-DECLARATION: <path>` in `run_t012_gate()`. Bare names and
+/// `../`-prefix forms remain outside this gate's scope (they fail gate 1 before reaching
+/// gate 3). Production's `resolve_plugin_paths()` DOES load such relative paths, so a
 /// declared-but-untracked artifact at such a path would reproduce the S-21.09 failure
-/// scenario within the repo. These paths are visible to `git status` (not gitignored)
-/// — not a stealth path, but not gated. Gate domain is intentionally limited to
-/// `hook-plugins/`; widening is deferred pending a follow-up story. Recorded per
-/// POLICY 13.
+/// scenario within the repo. These paths are `git status`-visible (not gitignored) —
+/// not a stealth path, but gate-1 failures are not covered here. Recorded per POLICY 13.
 ///
 /// See T-025 (traversal-into proof), T-026 (absolute exclusion + depth-matched), T-023
 /// (traversal-cancels + bare exclusion + LOW-1 record), T-031 (case-variant), T-032
-/// (nested-subdir), T-033 (min-length lower boundary).
+/// (nested-subdir), T-033 (min-length lower boundary), T-038 (ungated-declaration).
 fn extract_hook_plugin_name(registry_path: &Path, plugin_path: &str) -> Option<String> {
-    use std::path::Component;
-
-    // Lexically normalise `path`: resolve `..` (pop), skip `.`, clear on root prefix.
-    fn lex_norm(path: &Path) -> Vec<String> {
-        let mut parts: Vec<String> = Vec::new();
-        for comp in path.components() {
-            match comp {
-                Component::Normal(c) => {
-                    if let Some(s) = c.to_str() {
-                        parts.push(s.to_owned());
-                    }
-                }
-                Component::ParentDir => {
-                    parts.pop();
-                }
-                Component::CurDir => {}
-                Component::RootDir | Component::Prefix(_) => {
-                    parts.clear();
-                }
-            }
-        }
-        parts
-    }
-
     let registry_parent = registry_path.parent()?;
 
     // Join registry_parent with plugin_path.
@@ -283,6 +295,64 @@ fn extract_hook_plugin_name(registry_path: &Path, plugin_path: &str) -> Option<S
     // For nested declarations (`hook-plugins/sub/nested.wasm`) this is `nested.wasm`,
     // matching `git ls-files` basename output (git ls-files is recursive).
     joined_parts.last().cloned()
+}
+
+/// Return raw `plugin = "..."` path strings from `registry_path` whose resolved paths
+/// pass gates 1 and 2 (registry-internal, correct depth + parent prefix) but fail gate 3
+/// (the component after registry_parent is NOT `hook-plugins`).
+///
+/// Such declarations resolve INSIDE the repo but OUTSIDE `hook-plugins/` — they escape the
+/// `hook-plugins/` declared-set gate and may reproduce the S-21.09 failure scenario for
+/// non-standard paths. Returns an empty Vec when every declaration either (a) resolves
+/// outside the repo (absolute paths — gate 2 fails), (b) lacks sufficient depth (gate 1
+/// fires), or (c) correctly targets `hook-plugins/` (gate 3 passes).
+///
+/// Used by `run_t012_gate()` to emit `UNGATED-DECLARATION: <path>` before the git calls.
+///
+/// See T-038 (ungated-declaration control), T-035 (gate-3 isolation proof).
+fn detect_ungated_declarations(registry_path: &Path) -> Vec<String> {
+    let registry_parent = match registry_path.parent() {
+        Some(p) => p,
+        None => return Vec::new(),
+    };
+    let parent_parts = lex_norm(registry_parent);
+    let expected_depth = parent_parts.len();
+
+    let content = fs::read_to_string(registry_path).unwrap_or_default();
+    let doc: toml::Value = match content.parse::<toml::Value>() {
+        Ok(v) => v,
+        Err(_) => return Vec::new(),
+    };
+    let mut ungated = Vec::new();
+    for section in &["hooks", "resolvers"] {
+        if let Some(toml::Value::Array(entries)) = doc.get(*section) {
+            for entry in entries {
+                if let Some(toml::Value::String(plugin_path)) = entry.get("plugin") {
+                    let joined_parts = lex_norm(&registry_parent.join(plugin_path.as_str()));
+                    // Gate 1: must have enough components to contain a dir + filename.
+                    if joined_parts.len() < expected_depth + 2 {
+                        continue;
+                    }
+                    // Gate 2: registry-parent prefix must match exactly.
+                    let prefix_ok = parent_parts
+                        .iter()
+                        .enumerate()
+                        .all(|(i, p)| joined_parts.get(i) == Some(p));
+                    if !prefix_ok {
+                        continue;
+                    }
+                    // Gate 3 INVERTED: if next component != "hook-plugins", this is an
+                    // ungated declaration — passes gates 1+2 but escapes the hook-plugins gate.
+                    let hook_comp = &joined_parts[expected_depth];
+                    if !hook_comp.eq_ignore_ascii_case("hook-plugins") {
+                        ungated.push(plugin_path.clone());
+                    }
+                }
+            }
+        }
+    }
+    ungated.sort();
+    ungated
 }
 
 /// Parse all `plugin = "hook-plugins/<name>"` references from a TOML registry file,
@@ -672,6 +742,27 @@ fn run_t012_gate(root: &Path) -> Result<(), String> {
     // per-registry floors (HIGH-2: a union floor cannot detect a resolvers-only collapse).
     let hooks_refs = parse_plugin_refs(&hooks_registry);
     let resolvers_refs = parse_plugin_refs(&resolvers_registry);
+
+    // Check for ungated declarations BEFORE calling git (no git required for this step).
+    // A declaration that passes gates 1+2 (repo-internal, correct depth + parent prefix) but
+    // fails gate 3 (next component != "hook-plugins") resolves inside the repo but escapes
+    // the declared-set gate — a potential reproduction of the S-21.09 failure scenario.
+    // Fires first so T-038 does not need a git fixture.
+    let mut ungated: Vec<String> = detect_ungated_declarations(&hooks_registry);
+    ungated.extend(detect_ungated_declarations(&resolvers_registry));
+    ungated.sort();
+    if !ungated.is_empty() {
+        return Err(format!(
+            "T-012 AC-006 S-21.09: {} declaration(s) resolve inside the repo but outside \
+             hook-plugins/ — these escape the declared-set gate and require investigation:\n{}",
+            ungated.len(),
+            ungated
+                .iter()
+                .map(|p| format!("  UNGATED-DECLARATION: {}", p))
+                .collect::<Vec<_>>()
+                .join("\n")
+        ));
+    }
 
     // Git-tracked set (index) and committed set (HEAD tree).
     // `git_tracked_wasm_names()` panics on non-zero exit so failure is explicit, not silent.
@@ -1988,6 +2079,38 @@ fn test_S_21_09_ac006_T023_boundary_polarity_bare_and_traversal_cancels_excluded
          gate 1 passes, gate 3 admits ghost-cancels.wasm); got refs: {:?}",
         refs_cancels
     );
+
+    // (c) `../`-prefix form (LOW-2 execution): `plugin = "../hook-plugins/evil.wasm"` — resolves
+    //     to parent(registry_parent)/hook-plugins/evil.wasm, OUTSIDE registry_parent.
+    //     lex_norm: RootDir clears, then builds ["tmp", "hook-plugins", "evil.wasm"] (3 components).
+    //     parent_parts for registry_parent = ["tmp", "<tmpdir>"] (expected_depth = 2).
+    //     Gate 1: len=3 < expected_depth+2=4 → fires, returns None; EXCLUDED.
+    let registry_dotdot = tmp.path().join("registry-dotdot.toml");
+    fs::write(
+        &registry_dotdot,
+        concat!(
+            "schema_version = 2\n",
+            "[[hooks]]\n",
+            "name = \"evil\"\n",
+            "event = \"PreToolUse\"\n",
+            "tool = \"^Bash$\"\n",
+            "plugin = \"../hook-plugins/evil.wasm\"\n",
+            "timeout_ms = 5000\n",
+            "on_error = \"continue\"\n",
+        ),
+    )
+    .expect("../hook-plugins/ registry must be written to tempfile");
+
+    let refs_dotdot = parse_plugin_refs(&registry_dotdot);
+
+    assert!(
+        refs_dotdot.is_empty(),
+        "T-023(c) LOW-2 `../`-prefix EXCLUDED: `../hook-plugins/evil.wasm` resolves to \
+         parent(registry_parent)/hook-plugins/evil.wasm; lex_norm gives depth+1 components \
+         (path escapes registry_parent via `..`) — gate 1 minimum-length check fires before \
+         any hook-plugins component can be inspected; got refs: {:?}",
+        refs_dotdot
+    );
 }
 
 // ---------------------------------------------------------------------------
@@ -2954,5 +3077,470 @@ fn test_S_21_09_ac006_T035_gate3_hookplugins_component_check_isolated_control() 
          mutation proof: deleting gate 3 admits evil-probe.wasm into declared; \
          got refs: {:?}",
         refs
+    );
+}
+
+// ---------------------------------------------------------------------------
+// T-036 — HIGH-1 pass-8 M15 killer: gitignored probe not force-added
+//
+// `git_tracked_wasm_names()` calls `git ls-files plugins/vsdd-factory/hook-plugins/`.
+// M15 mutant replaces this with an `fs::read_dir` filesystem scan.
+//
+// This fixture mirrors production: `plugins/vsdd-factory/hook-plugins/` is gitignored.
+// The 30 hook WASMs are force-added (`git add -f`) and committed. `gitignored-probe.wasm`
+// is declared in the registry AND written to disk AFTER the commit, but is never
+// force-added — it stays in the gitignored directory, invisible to `git ls-files`.
+//
+// Correct behaviour (`git ls-files`): tracked = {h00..h29, ctx.wasm}
+//   → declared − tracked = {gitignored-probe.wasm} → MISSING: gitignored-probe.wasm.
+//
+// Captured M15 mutation proof (pass-8):
+//   Mutant: git_tracked_wasm_names() replaced with fs::read_dir filesystem scan.
+//   $ cargo test --package factory-dispatcher --test bundle_orphan_check \
+//         -- test_S_21_09_ac006_T036
+//   FAILED: T-036 M15 killer: error must contain 'MISSING: gitignored-probe.wasm';
+//   got: "...STAGED-NOT-COMMITTED: gitignored-probe.wasm"
+//   → M15 scan includes gitignored-probe.wasm in tracked; declared−tracked is empty;
+//     committed (git ls-tree HEAD) lacks it → tracked−committed fires STAGED-NOT-COMMITTED
+//     instead; second assertion fails with unexpected outcome identifier.
+//
+// Story: S-21.09
+// ---------------------------------------------------------------------------
+#[test]
+fn test_S_21_09_ac006_T036_gitignored_probe_not_force_added_fires_missing() {
+    let tmp = tempdir().expect("tempdir must create successfully");
+    let root = tmp.path();
+
+    // Initialise a git repo with -c overrides (same discipline as T-030 Phase B).
+    let init_out = Command::new("git")
+        .args([
+            "-c",
+            "core.excludesFile=/dev/null",
+            "-c",
+            "commit.gpgsign=false",
+            "-c",
+            "core.hooksPath=/dev/null",
+            "-c",
+            "init.templateDir=",
+            "init",
+        ])
+        .current_dir(root)
+        .output()
+        .expect("git init must execute for T-036 fixture");
+    assert!(
+        init_out.status.success(),
+        "T-036: git init failed: {}",
+        String::from_utf8_lossy(&init_out.stderr)
+    );
+
+    Command::new("git")
+        .args(["config", "user.email", "test@example.com"])
+        .current_dir(root)
+        .output()
+        .expect("git config user.email must execute");
+    Command::new("git")
+        .args(["config", "user.name", "Test"])
+        .current_dir(root)
+        .output()
+        .expect("git config user.name must execute");
+
+    let plugins_dir = root.join("plugins/vsdd-factory");
+    let hook_plugins_dir = plugins_dir.join("hook-plugins");
+    fs::create_dir_all(&hook_plugins_dir).expect("hook-plugins dir must be created");
+
+    // Write .gitignore that mirrors production: hook-plugins/ is gitignored.
+    fs::write(
+        root.join(".gitignore"),
+        "plugins/vsdd-factory/hook-plugins/\n",
+    )
+    .expect(".gitignore must be written");
+
+    // hooks-registry: 30 hooks h00..h29 (all committed) + gitignored-probe.wasm (declared only).
+    let mut hooks_content = String::from("schema_version = 2\n");
+    for i in 0..30_u32 {
+        hooks_content.push_str(&format!(
+            "[[hooks]]\nname = \"h{i:02}\"\nplugin = \"hook-plugins/h{i:02}.wasm\"\n\
+             event = \"PreToolUse\"\ntool = \"^Bash$\"\ntimeout_ms = 5000\n\
+             on_error = \"continue\"\n",
+        ));
+    }
+    hooks_content.push_str(
+        "[[hooks]]\nname = \"gitignored-probe\"\nplugin = \"hook-plugins/gitignored-probe.wasm\"\n\
+         event = \"PreToolUse\"\ntool = \"^Bash$\"\ntimeout_ms = 5000\n\
+         on_error = \"continue\"\n",
+    );
+    fs::write(plugins_dir.join("hooks-registry.toml"), &hooks_content)
+        .expect("hooks-registry.toml must be written");
+
+    // resolvers-registry: 1 entry (ctx.wasm — also committed).
+    fs::write(
+        plugins_dir.join("resolvers-registry.toml"),
+        "schema_version = 1\n[[resolvers]]\nname = \"ctx\"\n\
+         plugin = \"hook-plugins/ctx.wasm\"\n",
+    )
+    .expect("resolvers-registry.toml must be written");
+
+    // Write h00..h29.wasm + ctx.wasm (NOT gitignored-probe.wasm yet — written after commit).
+    for i in 0..30_u32 {
+        fs::write(hook_plugins_dir.join(format!("h{i:02}.wasm")), b"wasm")
+            .expect("hook wasm must be written");
+    }
+    fs::write(hook_plugins_dir.join("ctx.wasm"), b"wasm").expect("ctx.wasm must be written");
+
+    // Stage .gitignore and registries (these are outside hook-plugins/ and not gitignored).
+    let add_root_out = Command::new("git")
+        .args([
+            "-c",
+            "core.excludesFile=/dev/null",
+            "add",
+            ".gitignore",
+            "plugins/vsdd-factory/hooks-registry.toml",
+            "plugins/vsdd-factory/resolvers-registry.toml",
+        ])
+        .current_dir(root)
+        .output()
+        .expect("git add registries must execute for T-036 fixture");
+    assert!(
+        add_root_out.status.success(),
+        "T-036: git add registries failed: {}",
+        String::from_utf8_lossy(&add_root_out.stderr)
+    );
+
+    // Force-add all WASMs currently in hook-plugins/ (only h00..h29 + ctx.wasm exist now).
+    // -f bypasses the .gitignore that covers this directory.
+    let add_wasm_out = Command::new("git")
+        .args([
+            "-c",
+            "core.excludesFile=/dev/null",
+            "add",
+            "-f",
+            "plugins/vsdd-factory/hook-plugins/",
+        ])
+        .current_dir(root)
+        .output()
+        .expect("git add -f hook-plugins/ must execute for T-036 fixture");
+    assert!(
+        add_wasm_out.status.success(),
+        "T-036: git add -f hook-plugins/ failed: {}",
+        String::from_utf8_lossy(&add_wasm_out.stderr)
+    );
+
+    let commit_out = Command::new("git")
+        .args([
+            "-c",
+            "core.excludesFile=/dev/null",
+            "-c",
+            "commit.gpgsign=false",
+            "-c",
+            "core.hooksPath=/dev/null",
+            "commit",
+            "-m",
+            "T-036 fixture: 30 hooks committed; gitignored-probe not force-added",
+        ])
+        .current_dir(root)
+        .output()
+        .expect("git commit must execute for T-036 fixture");
+    assert!(
+        commit_out.status.success(),
+        "T-036: git commit failed: {}",
+        String::from_utf8_lossy(&commit_out.stderr)
+    );
+
+    // Write gitignored-probe.wasm to disk AFTER the commit — it now exists on the filesystem
+    // but was never staged or committed. git ls-files will not see it (gitignored + not forced);
+    // M15 (ls-based scan) would see it on disk and falsely suppress the MISSING outcome.
+    fs::write(hook_plugins_dir.join("gitignored-probe.wasm"), b"wasm")
+        .expect("gitignored-probe.wasm must be written to disk");
+
+    // gitignored-probe.wasm: on disk, declared, but NOT in git index.
+    // git ls-files does not see it; M15 (`ls`) would see it and suppress the MISSING.
+    let result = run_t012_gate(root);
+
+    assert!(
+        result.is_err(),
+        "T-036 M15 killer: run_t012_gate must return Err with MISSING: gitignored-probe.wasm; \
+         git ls-files excludes gitignored files even when on disk; \
+         M15 mutant (ls instead of git ls-files) would include gitignored-probe.wasm in tracked \
+         and suppress the MISSING, returning Ok — this assertion would FAIL"
+    );
+
+    let err = result.unwrap_err();
+    assert!(
+        err.contains("MISSING: gitignored-probe.wasm"),
+        "T-036 M15 killer: error must contain 'MISSING: gitignored-probe.wasm'; got: {:?}",
+        err
+    );
+}
+
+// ---------------------------------------------------------------------------
+// T-037 — HIGH-2 pass-8 M18+M16 killer: staged but not committed
+//
+// Phase C of the T-030 wiring control series.
+//
+// `check_declared_subset_tracked()` distinguishes:
+//   - `tracked` (git index, `git ls-files`) — includes staged files
+//   - `committed` (HEAD tree, `git ls-tree -r HEAD`) — excludes staged-only files
+// Step 4: `tracked − committed ≠ ∅` → STAGED-NOT-COMMITTED fires.
+//
+// Captured M18 mutation proof (pass-8):
+//   Mutant: git_committed_wasm_names() uses `git ls-files` instead of `git ls-tree -r HEAD`.
+//   $ cargo test --package factory-dispatcher --test bundle_orphan_check \
+//         -- test_S_21_09_ac006_T037
+//   FAILED: T-037 M18+M16 killer: run_t012_gate must return Err with
+//   STAGED-NOT-COMMITTED: staged-probe.wasm; …
+//   → M18 makes committed==tracked (ls-files includes staged file); tracked−committed={}
+//     → run_t012_gate returns Ok; result.is_err() assertion FAILS.
+//
+// Captured M16 mutation proof (pass-8):
+//   Mutant: check_declared_subset_tracked args swapped: (&committed, &tracked).
+//   $ cargo test --package factory-dispatcher --test bundle_orphan_check \
+//         -- test_S_21_09_ac006_T037
+//   FAILED: T-037 M18+M16 killer: error must contain 'STAGED-NOT-COMMITTED:
+//   staged-probe.wasm'; M16 mutant would produce 'MISSING: staged-probe.wasm' instead;
+//   got: "...MISSING: staged-probe.wasm"
+//   → M16 passes committed (HEAD — no staged-probe) as "tracked"; declared−committed fires
+//     MISSING: staged-probe.wasm; second assertion fails with wrong outcome identifier.
+//
+// Story: S-21.09
+// ---------------------------------------------------------------------------
+#[test]
+fn test_S_21_09_ac006_T037_staged_not_committed_fires_staged_not_committed() {
+    let tmp = tempdir().expect("tempdir must create successfully");
+    let root = tmp.path();
+
+    let init_out = Command::new("git")
+        .args([
+            "-c",
+            "core.excludesFile=/dev/null",
+            "-c",
+            "commit.gpgsign=false",
+            "-c",
+            "core.hooksPath=/dev/null",
+            "-c",
+            "init.templateDir=",
+            "init",
+        ])
+        .current_dir(root)
+        .output()
+        .expect("git init must execute for T-037 fixture");
+    assert!(
+        init_out.status.success(),
+        "T-037: git init failed: {}",
+        String::from_utf8_lossy(&init_out.stderr)
+    );
+
+    Command::new("git")
+        .args(["config", "user.email", "test@example.com"])
+        .current_dir(root)
+        .output()
+        .expect("git config user.email must execute");
+    Command::new("git")
+        .args(["config", "user.name", "Test"])
+        .current_dir(root)
+        .output()
+        .expect("git config user.name must execute");
+
+    let plugins_dir = root.join("plugins/vsdd-factory");
+    let hook_plugins_dir = plugins_dir.join("hook-plugins");
+    fs::create_dir_all(&hook_plugins_dir).expect("hook-plugins dir must be created");
+
+    // hooks-registry: 30 hooks h00..h29 + staged-probe.wasm (all declared).
+    let mut hooks_content = String::from("schema_version = 2\n");
+    for i in 0..30_u32 {
+        hooks_content.push_str(&format!(
+            "[[hooks]]\nname = \"h{i:02}\"\nplugin = \"hook-plugins/h{i:02}.wasm\"\n\
+             event = \"PreToolUse\"\ntool = \"^Bash$\"\ntimeout_ms = 5000\n\
+             on_error = \"continue\"\n",
+        ));
+    }
+    hooks_content.push_str(
+        "[[hooks]]\nname = \"staged-probe\"\nplugin = \"hook-plugins/staged-probe.wasm\"\n\
+         event = \"PreToolUse\"\ntool = \"^Bash$\"\ntimeout_ms = 5000\n\
+         on_error = \"continue\"\n",
+    );
+    fs::write(plugins_dir.join("hooks-registry.toml"), &hooks_content)
+        .expect("hooks-registry.toml must be written");
+
+    // resolvers-registry: 1 entry (ctx.wasm — committed).
+    fs::write(
+        plugins_dir.join("resolvers-registry.toml"),
+        "schema_version = 1\n[[resolvers]]\nname = \"ctx\"\n\
+         plugin = \"hook-plugins/ctx.wasm\"\n",
+    )
+    .expect("resolvers-registry.toml must be written");
+
+    // Write all 30 hooks + ctx.wasm + staged-probe.wasm on disk.
+    for i in 0..30_u32 {
+        fs::write(hook_plugins_dir.join(format!("h{i:02}.wasm")), b"wasm")
+            .expect("hook wasm must be written");
+    }
+    fs::write(hook_plugins_dir.join("ctx.wasm"), b"wasm").expect("ctx.wasm must be written");
+    fs::write(hook_plugins_dir.join("staged-probe.wasm"), b"wasm")
+        .expect("staged-probe.wasm must be written");
+
+    // Add and commit h00..h29 + ctx.wasm (everything EXCEPT staged-probe.wasm).
+    let add_out = Command::new("git")
+        .args(["-c", "core.excludesFile=/dev/null", "add", "."])
+        .current_dir(root)
+        .output()
+        .expect("git add must execute for T-037 phase-1 fixture");
+    assert!(
+        add_out.status.success(),
+        "T-037: git add failed: {}",
+        String::from_utf8_lossy(&add_out.stderr)
+    );
+
+    // Remove staged-probe.wasm from the index before committing (unstage it).
+    let rm_out = Command::new("git")
+        .args([
+            "rm",
+            "--cached",
+            "plugins/vsdd-factory/hook-plugins/staged-probe.wasm",
+        ])
+        .current_dir(root)
+        .output()
+        .expect("git rm --cached must execute for T-037 fixture");
+    assert!(
+        rm_out.status.success(),
+        "T-037: git rm --cached failed: {}",
+        String::from_utf8_lossy(&rm_out.stderr)
+    );
+
+    let commit_out = Command::new("git")
+        .args([
+            "-c",
+            "core.excludesFile=/dev/null",
+            "-c",
+            "commit.gpgsign=false",
+            "-c",
+            "core.hooksPath=/dev/null",
+            "commit",
+            "-m",
+            "T-037 fixture: 30 hooks + ctx committed; staged-probe excluded",
+        ])
+        .current_dir(root)
+        .output()
+        .expect("git commit must execute for T-037 fixture");
+    assert!(
+        commit_out.status.success(),
+        "T-037: git commit failed: {}",
+        String::from_utf8_lossy(&commit_out.stderr)
+    );
+
+    // Now stage staged-probe.wasm (force-add) WITHOUT committing.
+    // After this: git ls-files sees staged-probe.wasm; git ls-tree HEAD does NOT.
+    let stage_out = Command::new("git")
+        .args([
+            "-c",
+            "core.excludesFile=/dev/null",
+            "add",
+            "-f",
+            "plugins/vsdd-factory/hook-plugins/staged-probe.wasm",
+        ])
+        .current_dir(root)
+        .output()
+        .expect("git add -f staged-probe must execute for T-037 fixture");
+    assert!(
+        stage_out.status.success(),
+        "T-037: git add -f staged-probe failed: {}",
+        String::from_utf8_lossy(&stage_out.stderr)
+    );
+
+    // git ls-files includes staged-probe (in index); git ls-tree HEAD does NOT (not committed).
+    // Step 4: tracked − committed = {staged-probe.wasm} → STAGED-NOT-COMMITTED.
+    // M18 (ls-files instead of ls-tree in committed): committed == tracked → no outcome → Ok.
+    // M16 (swap args): step 3 uses committed (HEAD — no staged-probe) → MISSING fires instead.
+    let result = run_t012_gate(root);
+
+    assert!(
+        result.is_err(),
+        "T-037 M18+M16 killer: run_t012_gate must return Err with STAGED-NOT-COMMITTED: \
+         staged-probe.wasm; staged file is in git index but not in HEAD tree; \
+         M18 (ls-files in committed) would suppress this, returning Ok; \
+         M16 (swapped args) would produce MISSING instead of STAGED-NOT-COMMITTED"
+    );
+
+    let err = result.unwrap_err();
+    assert!(
+        err.contains("STAGED-NOT-COMMITTED: staged-probe.wasm"),
+        "T-037 M18+M16 killer: error must contain 'STAGED-NOT-COMMITTED: staged-probe.wasm'; \
+         M16 mutant would produce 'MISSING: staged-probe.wasm' instead; got: {:?}",
+        err
+    );
+}
+
+// ---------------------------------------------------------------------------
+// T-038 — HIGH-3 pass-8 UNGATED-DECLARATION control
+//
+// A declaration whose resolved path passes gates 1+2 (repo-internal, depth+prefix)
+// but fails gate 3 (next component != "hook-plugins") is now detected by
+// `detect_ungated_declarations()` and surfaces as `UNGATED-DECLARATION: <path>`
+// in `run_t012_gate()` BEFORE git commands are invoked.
+//
+// This test does NOT require a git fixture: the ungated check fires in `run_t012_gate()`
+// before `git_tracked_wasm_names()` / `git_committed_wasm_names()` are called.
+// Only registry files in `plugins/vsdd-factory/` are needed.
+//
+// Fixture: hooks-registry declares 30 valid h00..h29 hooks + 1 ungated entry
+// (`other-dir/evil-probe.wasm`). resolvers-registry declares 1 valid ctx.wasm.
+// Inventory passes (exactly the expected pair); ungated check fires before git.
+//
+// Gate-by-gate for `other-dir/evil-probe.wasm` (same analysis as T-035):
+//   Gate 1: joined_parts.len() == expected_depth + 2  → PASSES
+//   Gate 2: joined_parts[0..expected_depth] == parent_parts  → PASSES
+//   Gate 3: hook_comp == "other-dir" ≠ "hook-plugins"  → UNGATED (not EXCLUDED here)
+//
+// Story: S-21.09
+// ---------------------------------------------------------------------------
+#[test]
+fn test_S_21_09_ac006_T038_ungated_declaration_fires_before_git() {
+    let tmp = tempdir().expect("tempdir must create successfully");
+    let root = tmp.path();
+
+    let plugins_dir = root.join("plugins/vsdd-factory");
+    fs::create_dir_all(&plugins_dir).expect("plugins/vsdd-factory dir must be created");
+
+    // hooks-registry: 30 valid hooks + 1 ungated declaration (other-dir/evil-probe.wasm).
+    let mut hooks_content = String::from("schema_version = 2\n");
+    for i in 0..30_u32 {
+        hooks_content.push_str(&format!(
+            "[[hooks]]\nname = \"h{i:02}\"\nplugin = \"hook-plugins/h{i:02}.wasm\"\n\
+             event = \"PreToolUse\"\ntool = \"^Bash$\"\ntimeout_ms = 5000\n\
+             on_error = \"continue\"\n",
+        ));
+    }
+    hooks_content.push_str(
+        "[[hooks]]\nname = \"evil-probe\"\nplugin = \"other-dir/evil-probe.wasm\"\n\
+         event = \"PreToolUse\"\ntool = \"^Bash$\"\ntimeout_ms = 5000\n\
+         on_error = \"continue\"\n",
+    );
+    fs::write(plugins_dir.join("hooks-registry.toml"), &hooks_content)
+        .expect("hooks-registry.toml must be written");
+
+    // resolvers-registry: 1 valid entry (ctx.wasm).
+    fs::write(
+        plugins_dir.join("resolvers-registry.toml"),
+        "schema_version = 1\n[[resolvers]]\nname = \"ctx\"\n\
+         plugin = \"hook-plugins/ctx.wasm\"\n",
+    )
+    .expect("resolvers-registry.toml must be written");
+
+    // No git init required: detect_ungated_declarations fires before git calls.
+    let result = run_t012_gate(root);
+
+    assert!(
+        result.is_err(),
+        "T-038 UNGATED-DECLARATION: run_t012_gate must return Err when a declaration passes \
+         gates 1+2 but fails gate 3; detect_ungated_declarations fires before git calls; \
+         removing the ungated check from run_t012_gate would cause run_t012_gate to panic \
+         on git commands (no git repo) or return Ok — this assertion would FAIL"
+    );
+
+    let err = result.unwrap_err();
+    assert!(
+        err.contains("UNGATED-DECLARATION: other-dir/evil-probe.wasm"),
+        "T-038 UNGATED-DECLARATION: error must contain \
+         'UNGATED-DECLARATION: other-dir/evil-probe.wasm'; got: {:?}",
+        err
     );
 }

@@ -8,7 +8,7 @@
 
 ### Fixed
 
-- **S-21.09 — WASM artifact restore + registry parity gate** (BC-4.16.001, PR pending): Commits `validate-factory-path-staging.wasm` to `plugins/vsdd-factory/hook-plugins/` via `git add -f` (directory is gitignored; consistent with the `validate-heavy-op-delegation.wasm` precedent at `a85e6e05`). Adds T-012..T-035 plus two fixtures and four helpers to `crates/factory-dispatcher/tests/bundle_orphan_check.rs`: asserts every WASM declared in either registry is also tracked in git (declared-set ⊆ tracked-set, the inverse direction of the existing T-009 standing gate). Post-fix: declared count = tracked count = 36; `declared − tracked` = empty.
+- **S-21.09 — WASM artifact restore + registry parity gate** (BC-4.16.001, PR pending): Commits `validate-factory-path-staging.wasm` to `plugins/vsdd-factory/hook-plugins/` via `git add -f` (directory is gitignored; consistent with the `validate-heavy-op-delegation.wasm` precedent at `a85e6e05`). Adds T-012..T-038 plus two fixtures, four helpers, `detect_ungated_declarations`, and module-level `lex_norm` to `crates/factory-dispatcher/tests/bundle_orphan_check.rs`: asserts every WASM declared in either registry is also tracked in git (declared-set ⊆ tracked-set, the inverse direction of the existing T-009 standing gate); detects gate-3-escaped declarations (UNGATED-DECLARATION outcome); adds git-fixture controls killing mutants M15 (git ls-files → fs scan), M18 (ls-tree HEAD → ls-files), and M16 (tracked/committed arg swap). Post-fix: declared count = tracked count = 36; `declared − tracked` = empty.
 
 ## 1.0.0-rc.23 — E-19 operator hardening — host ABI fixes + read_prefix FFI (2026-07-18)
 
