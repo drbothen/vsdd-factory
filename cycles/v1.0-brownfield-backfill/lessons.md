@@ -10841,3 +10841,17 @@ D-442(e) recorded the same class of defect for lessons.md (≤3,500 soft / ≤4,
 **Closes:** D-972-S-21.09-STORY-VERSION-PARITY (lesson recorded)
 
 **Cites:** [[L-BB-relay-merges-composite-facts]]; [[L-BB-context-loss-reverts-to-false-premise]]. `[process-gap; column-count; constraint-satisfaction; local-vs-durable; index-row; live-header; orchestrator-verification; near-miss; validate-table-cell-count; codified]`
+
+## L-BB-remediation-round-generates-next-finding [process-gap]
+
+**Category:** process-gap
+
+**Title:** Each Remediation Round Adds Reviewable Surface — Re-Verify All Dependent Assertions When Inverting a Claim
+
+**Lesson:** For three consecutive S-21.09 LOCAL passes (passes 3, 4, 5), the highest-severity finding was introduced by the *previous* pass's remediation. Pass 3 required boundary-polarity documentation; the record written to satisfy it contained a fabricated directory state (pass 4 HIGH-1). Pass 4 required inverting T-026's semantics; the inversion propagated the direction correctly to four sites but carried over a mutation-proof sentence that became false (pass 5 HIGH-1). Each remediation adds reviewable surface, so under a literal 3-CLEAN bar the streak is a race between fix quality and surface growth. Mitigation: when a fix inverts or replaces a claim, the burst must re-verify every *dependent* assertion in the same artifact — not merely the claim being changed — and mutation-proof sentences must be re-executed rather than carried forward. Directly relevant to why BC-5.39.001's 3-CLEAN has never been achieved in this cycle across 75 F5 passes.
+
+**Anchors:** S-21.09 LOCAL passes 3/4/5; T-026 semantics inversion; mutation-proof sentence; fabricated directory state; BC-5.39.001 3-CLEAN.
+
+**Closes:** D-972-S-21.09-V1.11-PASS-5-RECORD (lesson recorded)
+
+**Cites:** [[L-BB-column-count-constraint-not-durably-internalized]]; [[L-BB-relay-merges-composite-facts]]. `[process-gap; remediation; surface-growth; mutation-proof; inversion; 3-CLEAN; S-21.09; codified]`
