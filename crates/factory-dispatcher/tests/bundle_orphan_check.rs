@@ -27,7 +27,7 @@
 //! | T-017 | AC-006 S-21.09 | GREEN | Registry-inventory UNEXPECTED arm (hyphen form): tmpdir + `metrics-registry.toml` → "UNEXPECTED: metrics-registry.toml" outcome identifier confirmed |
 //! | T-018 | AC-006 S-21.09 | GREEN | Registry-inventory MISSING arm: empty tmpdir → "MISSING: hooks-registry.toml" and "MISSING: resolvers-registry.toml" identifiers confirmed |
 //! | T-019 | AC-006 S-21.09 | GREEN | Hooks floor control: calls `check_declared_subset_tracked()` with 1-entry hooks; `#[should_panic]` locks "T-012: hooks registry declared set has only 1 entries" |
-//! | T-020 | AC-006 S-21.09 | GREEN | EC-005 control: calls `check_declared_subset_tracked()` with empty tracked; `#[should_panic]` locks "T-012 EC-005" identifier |
+//! | T-020 | AC-006 S-21.09 | GREEN | EC-005b control: calls `check_declared_subset_tracked()` with empty tracked; `#[should_panic]` locks "T-012 EC-005b" identifier |
 //! | T-021 | AC-006 S-21.09 | GREEN | Staged-not-committed: calls `check_declared_subset_tracked()` with staged artifact → Err containing "STAGED-NOT-COMMITTED: staged-plugin.wasm" identifier |
 //! | T-022 | AC-006 S-21.09 | GREEN | Resolvers floor control: calls `check_declared_subset_tracked()` with empty resolvers; `#[should_panic]` locks "T-012: resolvers registry declared set is empty" |
 //! | T-023 | AC-006 S-21.09 | GREEN | MEDIUM-1 boundary polarity (corrected pass 4): bare plugin path `ghost-bare.wasm` (no `hook-plugins` component after normalization) → excluded from declared; traversal/absolute forms now INCLUDED via lexical normalisation |
@@ -50,6 +50,8 @@
 //! | T-040 | AC-006 S-21.09 | GREEN | MEDIUM-1 pass-9 resolvers arm: ungated declaration in `resolvers-registry.toml` fires `UNGATED-DECLARATION: other-dir/evil-resolver.wasm` |
 //! | T-041 | AC-006 S-21.09 | GREEN | MEDIUM-3 pass-9 git failure path: valid-inventory non-git dir; `run_t012_gate` panics with `git ls-files exited with status` |
 //! | T-042 | AC-006 S-21.09 | GREEN | pass-9.1 case-variant MISSING outcome: `Hook-Plugins/ghost-missing.wasm` declared verbatim, lowercase `hook-plugins/ghost-missing.wasm` tracked; `check_declared_subset_tracked` returns `MISSING: Hook-Plugins/ghost-missing.wasm` (pins end-to-end Linux-CI behavior) |
+//! | T-043 | AC-006 S-21.09 | GREEN | pass-10 bare-name UNGATED control: `ghost-bare.wasm` resolves to `registry_parent/ghost-bare.wasm` (len=expected_depth+1); passes `detect_ungated_declarations` gate-1 (lowered to `< expected_depth+1`); fires `UNGATED-DECLARATION: ghost-bare.wasm` |
+//! | T-044 | AC-006 S-21.09 | GREEN | pass-10 `../registry-parent/` UNGATED control: `../vsdd-factory/ghost-updir.wasm` resolves back to `registry_parent/ghost-updir.wasm` (len=expected_depth+1); passes gate-1; fires `UNGATED-DECLARATION: ../vsdd-factory/ghost-updir.wasm` |
 //!
 //! † T-009 is a STANDING GREEN GATE — passes immediately on any clean checkout where no
 //! orphan WASMs are tracked in git, and remains green on contaminated worktrees because
@@ -124,6 +126,24 @@ use std::fs;
 use std::path::{Component, Path, PathBuf};
 use std::process::Command;
 use tempfile::tempdir;
+
+// ---------------------------------------------------------------------------
+// Module-level constants
+// ---------------------------------------------------------------------------
+
+/// Git-root-relative prefix stripped from `git ls-files` / `git ls-tree` paths to
+/// produce registry-parent-relative declared-set identifiers.
+///
+/// `git_tracked_wasm_names()` and `git_committed_wasm_names()` return paths like
+/// `"plugins/vsdd-factory/hook-plugins/foo.wasm"`.  `run_t012_gate()` and T-009 strip
+/// this prefix to get `"hook-plugins/foo.wasm"` — matching what `parse_plugin_refs()`
+/// returns via `extract_hook_plugin_name()`.
+///
+/// The constant is declared once here (TD-VSDD-060 sibling-site discipline) so that
+/// a mutation to one copy is caught by ALL callers.  A wrong value (e.g.,
+/// `"nonexistent-prefix/"`) causes every `strip_prefix` call to fail loud via
+/// `.expect()`, rather than silently shrinking the domain.
+const REGISTRY_PARENT_PREFIX: &str = "plugins/vsdd-factory/";
 
 // ---------------------------------------------------------------------------
 // Fixture TOML content (canonical source: fixtures/bundle-orphan/*.toml)
@@ -218,11 +238,18 @@ fn lex_norm(path: &Path) -> Vec<String> {
 /// | `../` prefix | `parent(registry_parent)/hook-plugins/foo.wasm` | `None` |
 /// | Bare | `registry_parent/ghost-bare.wasm` | `None` |
 ///
-/// **Why absolute paths are excluded:** production's `resolve_plugin_paths()` passes
-/// absolute plugin paths through unchanged, so they load from outside the repo.
-/// Including them in `declared` would demand git-tracking for a file that lives
-/// outside the repository — a false-positive MISSING outcome.  Excluding them is
-/// consistent with the gate's scope (artifacts under `plugins/vsdd-factory/hook-plugins/`).
+/// **Why divergent-prefix absolute paths are excluded by gate-2:** `lex_norm`'s
+/// `RootDir` arm clears `parts` (a provable no-op since `parts` is always empty when
+/// root fires), then builds from the normal components as usual.  An absolute path
+/// `/plugins/vsdd-factory/hook-plugins/foo.wasm` therefore has the same `lex_norm`
+/// output as the relative path `plugins/vsdd-factory/hook-plugins/foo.wasm` and
+/// IS admitted past gate-2.  In contrast, an absolute path whose first component
+/// differs from the registry parent (e.g., `/usr/local/lib/evil.wasm`) fails gate-2
+/// because `joined_parts[0]` = `"usr"` ≠ `parent_parts[0]` = `"plugins"`.
+/// Production's `resolve_plugin_paths()` passes absolute plugin paths through
+/// unchanged, so they load from outside the repo; the gate is silent on them only
+/// if they have a divergent prefix.  Absolute paths matching the registry parent
+/// prefix are admitted into `declared` and compared against the git-tracked set.
 ///
 /// **Case-insensitive `hook-plugins` match (gate 3):** `eq_ignore_ascii_case` accepts
 /// `Hook-Plugins/x.wasm` past gate 3, admitting it into `declared` as `"Hook-Plugins/x.wasm"`
@@ -263,21 +290,22 @@ fn lex_norm(path: &Path) -> Vec<String> {
 /// and the `RootDir | Prefix(_) => parts.clear()` arm in `lex_norm` (provably a no-op:
 /// `parts` is always empty when a root component fires; see `lex_norm` doc).
 ///
-/// **Known false-negative class for repo-internal non-`hook-plugins/` declarations (LOW-1):**
-/// Declarations that fail gate 1 (bare names, `../`-prefix forms — insufficient depth)
-/// are silent: they return `None` and never appear in `declared`. Gate-3 failures
-/// (declarations that pass gates 1+2 but whose next component is not `hook-plugins/`,
-/// e.g., `other-dir/evil-probe.wasm`) are now detected by `detect_ungated_declarations()`
-/// and surface as `UNGATED-DECLARATION: <path>` in `run_t012_gate()`. Bare names and
-/// `../`-prefix forms remain outside this gate's scope (they fail gate 1 before reaching
-/// gate 3). Production's `resolve_plugin_paths()` DOES load such relative paths, so a
-/// declared-but-untracked artifact at such a path would reproduce the S-21.09 failure
-/// scenario within the repo. These paths are `git status`-visible (not gitignored) —
-/// not a stealth path, but gate-1 failures are not covered here. Recorded per POLICY 13.
+/// **Repo-internal non-`hook-plugins/` declarations are detected by `detect_ungated_declarations`:**
+/// `extract_hook_plugin_name` (this function) returns `None` for declarations that fail
+/// gate 1 (bare names, `../`-prefix forms that cancel to `registry_parent`) or gate 2
+/// (divergent prefix), and `None` for gate-3 failures — so they do not appear in
+/// `declared`.  For gate-3 failures (`other-dir/evil-probe.wasm`) this was a silent
+/// false-negative before pass-10.  Starting pass-10, `detect_ungated_declarations()` uses
+/// a lower gate-1 threshold (`expected_depth + 1`) to catch ALL declarations that resolve
+/// inside the registry parent but outside `hook-plugins/`, including bare names and
+/// `../registry_parent/` forms.  They surface as `UNGATED-DECLARATION: <path>` in
+/// `run_t012_gate()` before any git calls.  See T-038 (gate-3 escape), T-043 (bare-name),
+/// T-044 (`../registry-parent/` prefix).
 ///
-/// See T-025 (traversal-into proof), T-026 (absolute exclusion + depth-matched), T-023
-/// (traversal-cancels + bare exclusion + LOW-1 record), T-031 (case-variant), T-032
-/// (nested-subdir), T-033 (min-length lower boundary), T-038 (ungated-declaration).
+/// See T-025 (traversal-into proof), T-026 (depth-matched absolute + divergent-prefix),
+/// T-023 (traversal-cancels + bare forms), T-031 (case-variant), T-032 (nested-subdir),
+/// T-033 (min-length lower boundary), T-038 (ungated-declaration), T-043 (bare-name
+/// UNGATED), T-044 (`../registry-parent/` UNGATED).
 fn extract_hook_plugin_name(registry_path: &Path, plugin_path: &str) -> Option<String> {
     let registry_parent = registry_path.parent()?;
 
@@ -326,18 +354,30 @@ fn extract_hook_plugin_name(registry_path: &Path, plugin_path: &str) -> Option<S
 }
 
 /// Return raw `plugin = "..."` path strings from `registry_path` whose resolved paths
-/// pass gates 1 and 2 (registry-internal, correct depth + parent prefix) but fail gate 3
-/// (the component after registry_parent is NOT `hook-plugins`).
+/// land **inside the registry parent** (gate 2 passes) but **NOT under `hook-plugins/`**
+/// (gate 3 fails).
 ///
-/// Such declarations resolve INSIDE the repo but OUTSIDE `hook-plugins/` — they escape the
-/// `hook-plugins/` declared-set gate and may reproduce the S-21.09 failure scenario for
-/// non-standard paths. Returns an empty Vec when every declaration either (a) resolves
-/// outside the repo (absolute paths — gate 2 fails), (b) lacks sufficient depth (gate 1
-/// fires), or (c) correctly targets `hook-plugins/` (gate 3 passes).
+/// Gate-1 in this function requires only one component after the parent prefix
+/// (`joined_parts.len() >= expected_depth + 1`), so it catches:
+/// - Bare names (`ghost-bare.wasm` → `registry_parent/ghost-bare.wasm`) — gate-3 fails
+/// - `../registry-parent/` escapes (`../vsdd-factory/ghost.wasm` → same parent directory)
+/// - Standard gate-3 escapes (`other-dir/evil-probe.wasm` — already caught before pass-10)
+///
+/// Returns an empty Vec when every declaration either (a) resolves outside the registry
+/// parent (absolute paths with divergent prefixes, `../`-prefix forms that escape to a
+/// different parent — gate 2 fails), or (b) correctly targets `hook-plugins/` (gate 3
+/// passes, i.e., `eq_ignore_ascii_case("hook-plugins")` succeeds).
+///
+/// NOTE: the gate-1 threshold here (`< expected_depth + 1`) is intentionally different
+/// from `extract_hook_plugin_name()`'s gate-1 (`< expected_depth + 2`).
+/// `extract_hook_plugin_name` needs a filename component BEYOND `hook-plugins/`, so it
+/// requires `expected_depth + 2`.  This function only needs one component after the
+/// parent to identify whether it is `hook-plugins` or not, so `expected_depth + 1` suffices.
 ///
 /// Used by `run_t012_gate()` to emit `UNGATED-DECLARATION: <path>` before the git calls.
 ///
-/// See T-038 (ungated-declaration control), T-035 (gate-3 isolation proof).
+/// See T-038 (gate-3 escape), T-040 (resolvers arm), T-043 (bare-name gate-1 escape),
+/// T-044 (`../registry-parent/` gate-1 escape).
 fn detect_ungated_declarations(registry_path: &Path) -> Vec<String> {
     let registry_parent = match registry_path.parent() {
         Some(p) => p,
@@ -357,8 +397,14 @@ fn detect_ungated_declarations(registry_path: &Path) -> Vec<String> {
             for entry in entries {
                 if let Some(toml::Value::String(plugin_path)) = entry.get("plugin") {
                     let joined_parts = lex_norm(&registry_parent.join(plugin_path.as_str()));
-                    // Gate 1: must have enough components to contain a dir + filename.
-                    if joined_parts.len() < expected_depth + 2 {
+                    // Gate 1: must have at least one component after the registry parent.
+                    // Threshold is `expected_depth + 1` (not +2 as in extract_hook_plugin_name)
+                    // because we only need to inspect the *first* component after the parent
+                    // (to check whether it is "hook-plugins").  Bare names and traversal-cancels
+                    // that resolve to exactly `registry_parent/foo.wasm` have
+                    // `len == expected_depth + 1` and therefore pass this gate — they then fail
+                    // gate 3 because "foo.wasm" != "hook-plugins", and are caught as UNGATED.
+                    if joined_parts.len() < expected_depth + 1 {
                         continue;
                     }
                     // Gate 2: registry-parent prefix must match exactly.
@@ -605,7 +651,7 @@ fn check_registry_inventory(plugins_vsdd_factory_dir: &Path) -> Result<(), Strin
 /// |-------|--------------------------|
 /// | Step 2a: hooks floor | `T-012: hooks registry declared set has only N entries` |
 /// | Step 2b: resolvers floor | `T-012: resolvers registry declared set is empty` |
-/// | EC-005: tracked empty | `T-012 EC-005` |
+/// | EC-005b: tracked empty (fixture path) | `T-012 EC-005b` |
 /// | Step 3: declared − tracked | `  MISSING: <name>` per artifact |
 /// | Step 4: staged-not-committed | `  STAGED-NOT-COMMITTED: <name>` per artifact |
 ///
@@ -658,13 +704,19 @@ fn check_declared_subset_tracked(
         .cloned()
         .collect();
 
-    // EC-005: an empty tracked set would make every declared artifact appear "missing",
+    // EC-005b: an empty tracked set would make every declared artifact appear "missing",
     // producing noisy false failures.  Convert this scenario into a clearly-named error.
+    //
+    // In the real gate path (`run_t012_gate`), EC-005a fires first (assert on raw git output)
+    // before the tracked set is constructed, so this branch is reachable only in test fixtures
+    // that pass an explicitly empty tracked set (e.g., T-020).
+    // EC-005a covers the "pathspec returned zero paths" failure; EC-005b covers the fixture path.
     if tracked.is_empty() {
         return Err(
-            "T-012 EC-005: git ls-files returned no tracked WASMs under \
-             plugins/vsdd-factory/hook-plugins/ — verify git is on PATH, workspace_root() \
-             resolves correctly, and the test is run inside a git repository"
+            "T-012 EC-005b: tracked set passed to check_declared_subset_tracked is empty; \
+             in the real gate path this is preceded by EC-005a in run_t012_gate; \
+             in test fixtures this fires directly when an empty tracked set is passed \
+             (e.g., T-020)"
                 .to_string(),
         );
     }
@@ -798,14 +850,44 @@ fn run_t012_gate(root: &Path) -> Result<(), String> {
     // Strip the "plugins/vsdd-factory/" prefix from raw git paths to obtain
     // registry-parent-relative paths ("hook-plugins/foo.wasm") that match the declared-set
     // identifiers produced by extract_hook_plugin_name() (HIGH-1 correctness fix, pass-9).
-    const REGISTRY_PARENT_PREFIX: &str = "plugins/vsdd-factory/";
-    let tracked: HashSet<String> = git_tracked_wasm_names(root)
+    //
+    // EC-005a: assert git returned at least one path.  An empty raw set means git ls-files
+    // found nothing matching the pathspec 'plugins/vsdd-factory/hook-plugins/' — most likely
+    // a case-variant path was force-added under a different capitalisation (e.g., Hook-Plugins/)
+    // which silently empties the pathspec on case-sensitive CI.
+    // Remedy: git rm -r --cached plugins/vsdd-factory/hook-plugins/ &&
+    //         git add -f plugins/vsdd-factory/hook-plugins/
+    let tracked_raw = git_tracked_wasm_names(root);
+    assert!(
+        !tracked_raw.is_empty(),
+        "T-012 EC-005a: git ls-files returned no paths matching the pathspec \
+         'plugins/vsdd-factory/hook-plugins/' — pathspec is case-sensitive on Linux CI; \
+         if a 'git add -f Hook-Plugins/…' re-spelled the index directory, fix with: \
+         git rm -r --cached plugins/vsdd-factory/hook-plugins/ && \
+         git add -f plugins/vsdd-factory/hook-plugins/"
+    );
+    let tracked: HashSet<String> = tracked_raw
         .into_iter()
-        .filter_map(|p| p.strip_prefix(REGISTRY_PARENT_PREFIX).map(str::to_owned))
+        .map(|p| {
+            p.strip_prefix(REGISTRY_PARENT_PREFIX)
+                .expect(
+                    "T-012: every git-tracked WASM path must start with REGISTRY_PARENT_PREFIX; \
+                     a wrong prefix here means git_tracked_wasm_names() returned an unexpected path",
+                )
+                .to_owned()
+        })
         .collect();
-    let committed: HashSet<String> = git_committed_wasm_names(root)
+    let committed_raw = git_committed_wasm_names(root);
+    let committed: HashSet<String> = committed_raw
         .into_iter()
-        .filter_map(|p| p.strip_prefix(REGISTRY_PARENT_PREFIX).map(str::to_owned))
+        .map(|p| {
+            p.strip_prefix(REGISTRY_PARENT_PREFIX)
+                .expect(
+                    "T-012: every git-committed WASM path must start with REGISTRY_PARENT_PREFIX; \
+                     a wrong prefix here means git_committed_wasm_names() returned an unexpected path",
+                )
+                .to_owned()
+        })
         .collect();
 
     // Steps 2-4: per-registry floors, declared⊆tracked, staged-not-committed.
@@ -823,6 +905,16 @@ fn run_t012_gate(root: &Path) -> Result<(), String> {
 /// Returns a `Vec<String>` of orphan WASM base-names (e.g., `"neither-registry.wasm"`).
 /// Returns an empty Vec when every WASM in the directory is referenced by at least one
 /// registry (EAC-005: zero-orphan assertion passes).
+///
+/// **F8 — Non-recursive `fs::read_dir` (NIT, pre-existing):** `fs::read_dir` is
+/// non-recursive; it enumerates only the top-level entries in `hook_plugins_dir`.
+/// WASMs in staged bundles that live in subdirectories (e.g., a nested
+/// `hook-plugins/sub/nested.wasm`) are invisible to this function and appear as
+/// neither orphan nor referenced.  This asymmetry affects only T-010 and T-011
+/// (staging simulation using fixture directories) — git-based controls (T-009, T-012)
+/// compare registry-parent-relative paths and correctly distinguish flat vs. nested.
+/// Scope to fix: S-21.14 (future story); non-recursive enumeration is a known
+/// pre-existing limitation on the staging-simulation path only.
 fn collect_orphans_dual(
     hook_plugins_dir: &Path,
     hooks_registry: &Path,
@@ -1269,13 +1361,28 @@ fn test_S_19_04_ac006_T009_hermetic_tracked_bundle_zero_orphans() {
     // git_tracked_wasm_names() returns full git-root-relative paths (e.g.,
     // "plugins/vsdd-factory/hook-plugins/foo.wasm").  parse_plugin_refs() returns
     // registry-parent-relative paths ("hook-plugins/foo.wasm").  Strip the
-    // "plugins/vsdd-factory/" prefix before looking up in refs.
-    const REGISTRY_PARENT_PREFIX: &str = "plugins/vsdd-factory/";
+    // module-level REGISTRY_PARENT_PREFIX before looking up in refs.
+    //
+    // Bypass-mutant proof: changing REGISTRY_PARENT_PREFIX to "nonexistent-prefix/"
+    // (or any string that does not match the actual paths) causes every `.strip_prefix()`
+    // to return `None`.  With `filter_map` that silently empties the domain so `orphans`
+    // is always `[]`, and the assert always passes — the gate is invisible.
+    // With `.map(|p| p.strip_prefix(…).expect(…))` the mutant panics immediately on the
+    // first path, making the bypass loud and detectable.
     let mut orphans: Vec<String> = tracked_names
         .iter()
-        .filter_map(|p| p.strip_prefix(REGISTRY_PARENT_PREFIX))
-        .filter(|name| !hooks_refs.contains(*name) && !resolvers_refs.contains(*name))
-        .map(str::to_owned)
+        .map(|p| {
+            p.strip_prefix(REGISTRY_PARENT_PREFIX)
+                .expect(
+                    "T-009: every git-tracked WASM path must start with REGISTRY_PARENT_PREFIX; \
+                     mutate REGISTRY_PARENT_PREFIX to 'nonexistent-prefix/' to verify this \
+                     assertion fires — filter_map would have silently emptied the orphan domain",
+                )
+                .to_owned()
+        })
+        .filter(|name| {
+            !hooks_refs.contains(name.as_str()) && !resolvers_refs.contains(name.as_str())
+        })
         .collect();
     orphans.sort();
 
@@ -1922,23 +2029,27 @@ fn test_S_21_09_ac006_T019_hooks_floor_fires_on_one_entry_hooks_set() {
 }
 
 // ---------------------------------------------------------------------------
-// T-020 — EC-005 control: proves EC-005 fires when tracked set is empty
+// T-020 — EC-005b control: proves EC-005b fires when tracked set is empty
 //
-// check_declared_subset_tracked() step EC-005 asserts the tracked set is non-empty.
+// check_declared_subset_tracked() step EC-005b asserts the tracked set is non-empty.
 // An empty tracked set would produce noisy false failures on every declared artifact;
-// EC-005 converts this into a clearly-named error.
+// EC-005b converts this into a clearly-named error.
+//
+// In the real gate path, EC-005a in run_t012_gate fires first (assert on raw git
+// output before the set is built).  EC-005b is reachable only via fixture-empty sets
+// (as in this test) or when check_declared_subset_tracked is called directly.
 //
 // This test calls the REAL function with 30 hooks + 1 resolver (passes floors) but
-// an empty tracked set.  `#[should_panic]` locks the "T-012 EC-005" identifier.
+// an empty tracked set.  `#[should_panic]` locks the "T-012 EC-005b" identifier.
 //
-// Mutation-proof: removing EC-005 causes the function to proceed to step 3, where
+// Mutation-proof: removing EC-005b causes the function to proceed to step 3, where
 // every declared artifact is "missing".  The panic message becomes a MISSING: chain,
-// NOT "T-012 EC-005", so `#[should_panic(expected = "T-012 EC-005")]` FAILS.
+// NOT "T-012 EC-005b", so `#[should_panic(expected = "T-012 EC-005b")]` FAILS.
 //
 // Story: S-21.09
 // ---------------------------------------------------------------------------
 #[test]
-#[should_panic(expected = "T-012 EC-005")]
+#[should_panic(expected = "T-012 EC-005b")]
 fn test_S_21_09_ac006_T020_ec005_fires_on_empty_tracked_set() {
     let hooks_declared: HashSet<String> = (0..30)
         .map(|i| format!("hook-plugins/filler-{:02}.wasm", i))
@@ -1946,7 +2057,7 @@ fn test_S_21_09_ac006_T020_ec005_fires_on_empty_tracked_set() {
     let resolvers_declared: HashSet<String> = ["hook-plugins/resolver.wasm".to_string()]
         .into_iter()
         .collect();
-    let tracked: HashSet<String> = HashSet::new(); // empty → EC-005 fires
+    let tracked: HashSet<String> = HashSet::new(); // empty → EC-005b fires
     let committed: HashSet<String> = HashSet::new();
     check_declared_subset_tracked(&hooks_declared, &resolvers_declared, &tracked, &committed)
         .unwrap_or_else(|e| panic!("{}", e));
@@ -2026,7 +2137,7 @@ fn test_S_21_09_ac006_T021_staged_not_committed_outcome_identifier() {
 // resolvers.  `#[should_panic]` locks the resolvers-floor outcome identifier.
 //
 // Mutation-proof: removing the resolvers floor causes the function to proceed to
-// EC-005; the panic message becomes "T-012 EC-005", NOT "T-012: resolvers registry
+// EC-005b; the panic message becomes "T-012 EC-005b", NOT "T-012: resolvers registry
 // declared set is empty", so `#[should_panic]` FAILS.
 //
 // Story: S-21.09
@@ -2071,29 +2182,33 @@ fn test_S_21_09_ac006_T022_resolvers_floor_fires_on_empty_resolvers_set() {
 //   - Case variant: `Hook-Plugins/foo.wasm` (T-031)
 //   - Nested subdir: `hook-plugins/sub/nested.wasm` → `nested.wasm` (T-032)
 //
-// **Excluded region:**
-//   Paths that resolve to a location outside registry_parent/hook-plugins/:
-//   - Bare names: `ghost-bare.wasm` → registry_parent/ghost-bare.wasm
-//   - Traversal-cancels: `hook-plugins/../ghost.wasm` → registry_parent/ghost.wasm
-//   - Absolute paths: `/abs/hook-plugins/foo.wasm` (T-026)
-//   - `../` prefix: `../hook-plugins/foo.wasm` → parent(registry_parent)/hook-plugins/foo.wasm
+// **Excluded region (from `declared`; now caught by `detect_ungated_declarations`):**
+//   Paths that resolve to a location outside registry_parent/hook-plugins/ —
+//   `extract_hook_plugin_name` returns `None`; but `detect_ungated_declarations` catches
+//   those that still resolve inside registry_parent:
+//   - Bare names: `ghost-bare.wasm` → registry_parent/ghost-bare.wasm (T-043)
+//   - Traversal-cancels: `hook-plugins/../ghost.wasm` → registry_parent/ghost.wasm (T-043 class)
+//   - `../registry-parent/` prefix: `../vsdd-factory/ghost.wasm` → same (T-044)
+//   - Divergent-prefix absolute paths: `/abs/hook-plugins/foo.wasm` (T-026) — fail gate-2,
+//     not caught by detect_ungated_declarations (load from outside repo)
+//   - `../` prefix escaping registry_parent: `../hook-plugins/foo.wasm` → parent(registry_parent)/hook-plugins/foo.wasm — fail gate-2 in both functions
 //
-// **Can harmful content occupy the excluded region? (LOW-1 honest record)**
-//   Excluded paths resolve outside `registry_parent/hook-plugins/`.
-//   - Bare names (`ghost-bare.wasm` → `plugins/vsdd-factory/ghost-bare.wasm`) and
-//     traversal-cancels (`hook-plugins/../ghost.wasm` → `plugins/vsdd-factory/ghost.wasm`)
-//     resolve WITHIN the repo but outside `hook-plugins/`.  Production's
-//     `resolve_plugin_paths()` DOES load such relative paths (joining against the registry
-//     parent directory), so a declared-but-untracked artifact at such a path would
-//     reproduce the S-21.09 failure scenario within the repo.  These paths are visible
-//     to `git status` (not gitignored) — not a stealth path, but the gate DOES NOT
-//     cover them.  This is a **known false-negative class**: gate scope is
-//     `hook-plugins/` only; domain widening deferred pending a follow-up story.
-//     Recorded per POLICY 13.
-//   - `../`-prefix (`../hook-plugins/foo.wasm` → `plugins/hook-plugins/foo.wasm`) has
-//     the same false-negative class.
-//   - Absolute paths load from outside the repo entirely (different class).
-//   No covert path exists (all excluded forms are `git status`-visible or out-of-repo).
+// **Can harmful content occupy the excluded region? (LOW-1 — CLOSED pass-10)**
+//   Bare names, traversal-cancels, and `../`-prefix forms resolve WITHIN the repo but
+//   outside `hook-plugins/`.  `extract_hook_plugin_name` still returns `None` for them
+//   (gate-1 threshold `< expected_depth + 2` unchanged) so they do not appear in
+//   `declared`.  But starting pass-10, `detect_ungated_declarations()` uses
+//   gate-1 threshold `< expected_depth + 1` to catch ALL declarations whose resolved
+//   path lands inside `registry_parent` but outside `registry_parent/hook-plugins/` —
+//   covering bare names (T-043), `../registry_parent/` forms (T-044), and gate-3
+//   escapes (T-038).  They surface as `UNGATED-DECLARATION: <path>` in `run_t012_gate()`
+//   before any git calls.
+//   Divergent-prefix absolute paths (`/abs/path/foo.wasm`) fail gate-2 in both
+//   `extract_hook_plugin_name` and `detect_ungated_declarations` and remain outside
+//   scope (they load from outside the repo).  Absolute paths whose lex_norm components
+//   match the registry parent prefix ARE admitted by gate-2; they compare against git
+//   the same as relative paths (see updated "Why divergent-prefix absolute paths are
+//   excluded" doc).  No covert path class remains after pass-10.
 //
 // **Traversal-cancels mutation proof (POLICY 13, MEDIUM-4(b)):**
 //   If `ParentDir` were NOT popped (bug: `ParentDir => {}` instead of `ParentDir => { pop }`),
@@ -2465,7 +2580,7 @@ fn test_S_21_09_ac006_T026_absolute_form_excluded_from_declared() {
 // Together they form the floor boundary pair that constrains the constant `30`.
 //
 // Mutation-proof: mutating `< 30` to `< 2` makes 29 pass the floor (29 >= 2 is true);
-// check_declared_subset_tracked proceeds to EC-005 (empty tracked → different error);
+// check_declared_subset_tracked proceeds to EC-005b (empty tracked → different error);
 // `#[should_panic(expected = "... has only 29 entries")]` FAILS — mutation detected.
 //
 // Story: S-21.09
@@ -3943,9 +4058,9 @@ fn test_S_21_09_ac006_T040_ungated_declaration_in_resolvers_fires() {
 //
 // Mutation-proof: removing the `assert!(output.status.success(), ...)` in
 // git_tracked_wasm_names() causes the function to silently return an empty vec
-// (or garbage); EC-005 fires instead of the git-error panic.  The
+// (or garbage); EC-005a fires instead of the git-error panic.  The
 // `#[should_panic(expected = "git ls-files exited with status")]` FAILS because
-// EC-005 produces "T-012 EC-005", not the git error prefix.
+// EC-005a produces "T-012 EC-005a", not the git error prefix.
 //
 // Story: S-21.09
 // ---------------------------------------------------------------------------
@@ -4055,5 +4170,174 @@ fn test_S_21_09_ac006_T042_case_variant_declared_fires_missing_against_lowercase
          'hook-plugins/ghost-missing.wasm' which IS in tracked → Ok → this assertion \
          is never reached; got: {}",
         msg
+    );
+}
+
+// ---------------------------------------------------------------------------
+// T-043 — pass-10 UNGATED-DECLARATION: bare-name form (gate-1 escape)
+//
+// A bare plugin path (`ghost-bare.wasm`) resolves to `registry_parent/ghost-bare.wasm`
+// when joined.  Before pass-10, `detect_ungated_declarations` used gate-1 threshold
+// `< expected_depth + 2`, so len == expected_depth + 1 was silently skipped —
+// bare names never appeared in `ungated`.  Pass-10 lowers the threshold to
+// `< expected_depth + 1`, so len == expected_depth + 1 now PASSES gate-1.
+//
+// Gate-by-gate for `ghost-bare.wasm`:
+//   joined = registry_parent.join("ghost-bare.wasm")
+//          = plugins/vsdd-factory/ghost-bare.wasm
+//   lex_norm → ["plugins", "vsdd-factory", "ghost-bare.wasm"], len = 3
+//   expected_depth = 2 (lex_norm("plugins/vsdd-factory") has 2 components)
+//   Gate 1: len < expected_depth + 1  →  3 < 3  →  FALSE → PASSES (len ≥ 3)
+//   Gate 2: prefix_ok: joined_parts[0..2] == ["plugins", "vsdd-factory"] → PASSES
+//   Gate 3: hook_comp = joined_parts[2] = "ghost-bare.wasm" ≠ "hook-plugins" → UNGATED
+//
+// Fixture: 30 valid hooks + bare-name declaration. No git init needed.
+//
+// Mutation-proof: reverting gate-1 to `< expected_depth + 2` (old threshold) causes
+// the bare path to be silently skipped (len == expected_depth + 1 < expected_depth + 2
+// is true → `continue`); the ungated Vec is empty; run_t012_gate proceeds to git
+// calls and panics on the non-git tmpdir — the `result.is_err()` assertion passes but
+// with a different error message, causing `err.contains("UNGATED-DECLARATION")` to FAIL.
+//
+// Story: S-21.09
+// ---------------------------------------------------------------------------
+#[test]
+fn test_S_21_09_ac006_T043_bare_name_ungated_declaration_fires() {
+    let tmp = tempdir().expect("tempdir must create successfully");
+    let root = tmp.path();
+
+    let plugins_dir = root.join("plugins/vsdd-factory");
+    fs::create_dir_all(&plugins_dir).expect("plugins/vsdd-factory dir must be created");
+
+    // hooks-registry: 30 valid hooks + 1 bare-name declaration (ghost-bare.wasm).
+    let mut hooks_content = String::from("schema_version = 2\n");
+    for i in 0..30_u32 {
+        hooks_content.push_str(&format!(
+            "[[hooks]]\nname = \"h{i:02}\"\nplugin = \"hook-plugins/h{i:02}.wasm\"\n\
+             event = \"PreToolUse\"\ntool = \"^Bash$\"\ntimeout_ms = 5000\n\
+             on_error = \"continue\"\n",
+        ));
+    }
+    hooks_content.push_str(
+        "[[hooks]]\nname = \"ghost-bare\"\nplugin = \"ghost-bare.wasm\"\n\
+         event = \"PreToolUse\"\ntool = \"^Bash$\"\ntimeout_ms = 5000\n\
+         on_error = \"continue\"\n",
+    );
+    fs::write(plugins_dir.join("hooks-registry.toml"), &hooks_content)
+        .expect("hooks-registry.toml must be written");
+
+    // resolvers-registry: 1 valid entry.
+    fs::write(
+        plugins_dir.join("resolvers-registry.toml"),
+        "schema_version = 1\n[[resolvers]]\nname = \"ctx\"\n\
+         plugin = \"hook-plugins/ctx.wasm\"\n",
+    )
+    .expect("resolvers-registry.toml must be written");
+
+    // No git init required: detect_ungated_declarations fires before git calls.
+    let result = run_t012_gate(root);
+
+    assert!(
+        result.is_err(),
+        "T-043 UNGATED-DECLARATION: run_t012_gate must return Err when a bare-name \
+         declaration ('ghost-bare.wasm') passes gate-1 (len >= expected_depth+1) and \
+         gate-2 (prefix matches) but fails gate-3 (not 'hook-plugins'); detect_ungated_declarations \
+         fires before git calls; reverting gate-1 to expected_depth+2 would cause git panic \
+         on non-git tmpdir — UNGATED-DECLARATION would NOT appear in error; got Ok"
+    );
+
+    let err = result.unwrap_err();
+    assert!(
+        err.contains("UNGATED-DECLARATION: ghost-bare.wasm"),
+        "T-043 UNGATED-DECLARATION: error must contain \
+         'UNGATED-DECLARATION: ghost-bare.wasm'; \
+         mutation-proof: reverting gate-1 to expected_depth+2 causes git panic — \
+         error contains git message not UNGATED-DECLARATION; got: {:?}",
+        err
+    );
+}
+
+// ---------------------------------------------------------------------------
+// T-044 — pass-10 UNGATED-DECLARATION: `../registry-parent/` prefix form (gate-1 escape)
+//
+// A plugin path `../vsdd-factory/ghost-updir.wasm` joined to registry_parent
+// `plugins/vsdd-factory` resolves to `plugins/vsdd-factory/../vsdd-factory/ghost-updir.wasm`.
+// `lex_norm` pops `vsdd-factory` (ParentDir), then pushes `vsdd-factory` and
+// `ghost-updir.wasm`, yielding `["plugins", "vsdd-factory", "ghost-updir.wasm"]`.
+//
+// Before pass-10, this path had len == expected_depth + 1 < expected_depth + 2 → silently
+// skipped by detect_ungated_declarations.  Pass-10 lowers gate-1 to `< expected_depth + 1`,
+// so len == expected_depth + 1 now PASSES gate-1.
+//
+// Gate-by-gate for `../vsdd-factory/ghost-updir.wasm`:
+//   joined = registry_parent.join("../vsdd-factory/ghost-updir.wasm")
+//          = plugins/vsdd-factory/../vsdd-factory/ghost-updir.wasm
+//   lex_norm: ["plugins", "vsdd-factory"] ← ParentDir pops → ["plugins"] → push "vsdd-factory"
+//             → push "ghost-updir.wasm" → ["plugins", "vsdd-factory", "ghost-updir.wasm"], len=3
+//   expected_depth = 2
+//   Gate 1: len < expected_depth + 1  →  3 < 3  →  FALSE → PASSES
+//   Gate 2: prefix_ok: joined_parts[0..2] == ["plugins", "vsdd-factory"] → PASSES
+//   Gate 3: hook_comp = joined_parts[2] = "ghost-updir.wasm" ≠ "hook-plugins" → UNGATED
+//
+// Fixture: 30 valid hooks + `../vsdd-factory/` prefix declaration. No git init needed.
+//
+// Mutation-proof: reverting gate-1 to `< expected_depth + 2` (old threshold) causes
+// the path to be silently skipped; git panic fires instead; UNGATED-DECLARATION does
+// not appear → err.contains("UNGATED-DECLARATION: ../vsdd-factory/ghost-updir.wasm")
+// FAILS.
+//
+// Story: S-21.09
+// ---------------------------------------------------------------------------
+#[test]
+fn test_S_21_09_ac006_T044_traversal_cancel_registry_parent_prefix_fires_ungated() {
+    let tmp = tempdir().expect("tempdir must create successfully");
+    let root = tmp.path();
+
+    let plugins_dir = root.join("plugins/vsdd-factory");
+    fs::create_dir_all(&plugins_dir).expect("plugins/vsdd-factory dir must be created");
+
+    // hooks-registry: 30 valid hooks + 1 `../vsdd-factory/` prefix declaration.
+    let mut hooks_content = String::from("schema_version = 2\n");
+    for i in 0..30_u32 {
+        hooks_content.push_str(&format!(
+            "[[hooks]]\nname = \"h{i:02}\"\nplugin = \"hook-plugins/h{i:02}.wasm\"\n\
+             event = \"PreToolUse\"\ntool = \"^Bash$\"\ntimeout_ms = 5000\n\
+             on_error = \"continue\"\n",
+        ));
+    }
+    hooks_content.push_str(
+        "[[hooks]]\nname = \"ghost-updir\"\nplugin = \"../vsdd-factory/ghost-updir.wasm\"\n\
+         event = \"PreToolUse\"\ntool = \"^Bash$\"\ntimeout_ms = 5000\n\
+         on_error = \"continue\"\n",
+    );
+    fs::write(plugins_dir.join("hooks-registry.toml"), &hooks_content)
+        .expect("hooks-registry.toml must be written");
+
+    // resolvers-registry: 1 valid entry.
+    fs::write(
+        plugins_dir.join("resolvers-registry.toml"),
+        "schema_version = 1\n[[resolvers]]\nname = \"ctx\"\n\
+         plugin = \"hook-plugins/ctx.wasm\"\n",
+    )
+    .expect("resolvers-registry.toml must be written");
+
+    // No git init required: detect_ungated_declarations fires before git calls.
+    let result = run_t012_gate(root);
+
+    assert!(
+        result.is_err(),
+        "T-044 UNGATED-DECLARATION: run_t012_gate must return Err when '../vsdd-factory/ghost-updir.wasm' \
+         resolves inside registry_parent (len >= expected_depth+1) and passes gate-2 but fails gate-3; \
+         reverting gate-1 to expected_depth+2 causes git panic instead — got Ok"
+    );
+
+    let err = result.unwrap_err();
+    assert!(
+        err.contains("UNGATED-DECLARATION: ../vsdd-factory/ghost-updir.wasm"),
+        "T-044 UNGATED-DECLARATION: error must contain \
+         'UNGATED-DECLARATION: ../vsdd-factory/ghost-updir.wasm'; \
+         mutation-proof: reverting gate-1 to expected_depth+2 causes git panic — \
+         error contains git message not UNGATED-DECLARATION; got: {:?}",
+        err
     );
 }
