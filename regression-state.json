@@ -1,1 +1,1 @@
-{"status":"pass","timestamp":"2026-08-12T17:46:05Z","command":"cd /Users/zious/Documents/GITHUB/vsdd-factory/.worktrees/S-21.09 && cargo test --workspace --all-targets 2>&1 | grep -c 'FAILED\\|failures:'; echo \"exit_check_done\""}
+{"status":"pass","timestamp":"2026-08-12T18:34:34Z","command":"cd /Users/zious/Documents/GITHUB/vsdd-factory\nF=.factory/stories/S-21.09-wasm-artifact-restore-and-registry-parity.md\ngrep -n \"T-012\\.\\.T-051\\|registry-parity Cargo tests\\|now 46 tests\\|Adds T-012\\.\\.T-051\\|T-012\\.\\.T-039, T-041, and T-049\" \"$F\""}

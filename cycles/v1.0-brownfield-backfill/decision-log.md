@@ -16029,3 +16029,66 @@ D-975-S-21.09-LOCAL-PASS-13-RECORD-AND-FIX-BURST
 2026-08-12
 
 ---
+
+## D-976 — D-976-S-21.09-LOCAL-PASS-14-RECORD-AND-FIX-BURST
+
+**POLICY 16 ALLOCATOR-CEILING GATE** (pre-allocation, literal shell, D-449(a)):
+
+```
+$ cd /Users/zious/Documents/GITHUB/vsdd-factory/.factory && max_d=$({ grep -hE '^#{2,} D-[0-9]+' cycles/v1.0-brownfield-backfill/decision-log.md cycles/v1.0-feature-engine-discipline-pass-1/decision-log.md 2>/dev/null; grep -hE '^[|] *D-[0-9]+' cycles/v1.0-brownfield-backfill/decision-log.md cycles/v1.0-feature-engine-discipline-pass-1/decision-log.md 2>/dev/null; } | grep -oE 'D-[0-9]+' | sed 's/D-//' | sort -n | tail -1); [ "$max_d" -lt 9000 ] && printf 'PASS: global max D-%s < D-9000 ceiling\n' "$max_d" || printf 'FAIL: breach: max=D-%s\n' "$max_d"
+PASS: global max D-975 < D-9000 ceiling
+```
+
+D-976 allocated. Parent-commit: `0ef5d724` (factory-artifacts HEAD at burst start — the pass-13 SHA-patch commit).
+
+**(a) POLICY 16 GATE PASS — D-976 allocated; parent-commit `0ef5d724`.** This is the S-21.09 LOCAL cascade pass-14 RECORD burst combined with its same-session fix burst (two parallel commits: test-writer commit `7f540ddc` on `feature/S-21.09`, NOT pushed — push held per standing human ruling; story-writer story v1.25, staged into this same factory-artifacts commit per TD-VSDD-053 single-commit-per-burst).
+
+**(b) `adv-s21.09-local-pass-14.md` persisted.** `cycles/v1.0-brownfield-backfill/adv-s21.09-local-pass-14.md` CREATED. Verdict: **NOT CLEAN — 1 MEDIUM + 1 LOW (2 findings).** Reviewed HEAD: `46e334da` (feature/S-21.09) against story v1.24. Fresh-context review (Iron Law: read only prior-pass Part A — `adv-s21.09-local-pass-13.md`). LOCAL streak: **0/3 — fourteen passes, zero CLEAN.** `INDEX.md` `S-21.09 LOCAL Adversary Reviews` table extended with the pass-14 row and Convergence Status paragraph updated (14 passes; trajectory `3→3→2→13→11→9→9→8→8→15→2→1→1→2`, tail `→2→1→1→2`).
+
+**(c) MEDIUM [POLICY 13 mutation-completeness] — two production-validation determinants in `run_t012_gate` survive whole-suite deletion.** The hooks `Registry::parse_str(&hooks_content)` block and the resolvers `assert_eq!(resolvers_schema_version, 1, …)` block are each sole-determinant deletion mutants with no isolating control: every fixture through T-051 wrote production-valid `schema_version` values on both registries (`schema_version = 2` hooks, `schema_version = 1` resolvers), so deleting either block changed no observable outcome for the existing 46-test suite. The story's AC-006 §2d self-disclosure ("No single test ID owns this gate in isolation … every T-012..T-051 test … implicitly exercises it") does not discharge the gap — per CLAUDE.md Standing Rule 3 §1, implementer self-disclosure is not authoritative, and implicit exercise on a production-valid fixture does not kill a deletion mutant. This is the same "claimed gate, un-isolated determinant" lineage the project closed for the containment predicate via T-050 (length conjunct, pass-11) and T-051 (prefix conjunct, pass-12), now reaching two determinants those passes did not touch.
+
+**(d) LOW [spec↔impl drift, self-contradictory] — story RG-plan T-020 row + EC-005b row cite the stale `#[should_panic]` literal.** Story Red Gate Test Plan row T-020 (line 694) and edge-case EC-005b (line 736) both state T-020 uses `#[should_panic(expected = "T-012 EC-005")]`; actual code (and the module docstring) correctly use `#[should_panic(expected = "T-012 EC-005b")]`. The stale truncated literal is a substring of both `EC-005a` and `EC-005b`, directly contradicting the story's own guarantee that T-020 "specifically pins EC-005b (not EC-005a)." The code is correct and more precise; the story's SoT literal was the stale outlier.
+
+**(e) Adversary independently confirmed the gate/mutation machinery otherwise exceptionally well-hardened.** Pass-14's Axes-verified-CLEAN section covers count parity, the T-050/T-051 mutation-isolation arithmetic, BC traceability, and every `check_declared_subset_tracked` determinant — no BLOCKER/HIGH, no surviving-mutant on the containment predicate, no fail-open, no path-normalization edge gap. Pass-13's F-1 (cross-file stale test-range cite) independently re-verified CLOSED this pass via the same count-parity re-derivation ("Matches AC-006 'Tests:' bullet … module docstring test-plan").
+
+**(f) Both findings CLOSED this burst — two parallel commits, same session.** test-writer committed `7f540ddc` on `feature/S-21.09` (NOT pushed): adds **T-052** (`test_S_21_09_ac006_T052_hooks_production_validation_isolation_kills_parse_str_deletion`, `#[should_panic(expected = "T-012: hooks-registry.toml fails production validation")]`, fixture `hooks-registry.toml` `schema_version = 3` against production-required 2, `resolvers-registry.toml` fully production-valid) and **T-053** (`test_S_21_09_ac006_T053_resolvers_schema_version_isolation_kills_assert_deletion`, `#[should_panic(expected = "T-012: resolvers-registry.toml schema_version=2 but production requires 1")]`, `hooks-registry.toml` fully production-valid, `resolvers-registry.toml` `schema_version = 2` against production-required 1) — both fixtures full production-valid git fixtures (30 hooks + 1 resolver, all 31 WASMs committed), each isolating one determinant from the other. Empirically verified: deleting the `Registry::parse_str(&hooks_content)` block sends only T-052 RED (47/48 stay GREEN); deleting the resolvers `assert_eq!` block sends only T-053 RED (47/48 stay GREEN); both green live at HEAD. Suite now 48 tests T-006..T-053, 42 S-21.09-owned; `cargo fmt`/`clippy`/`cargo test --workspace --all-targets` all clean. This is now the `feature/S-21.09` HEAD. story-writer produced story v1.25 (uncommitted until this factory-artifacts burst): AC-006 §2d narrative rewritten to name T-052/T-053 as the isolation controls (replacing the prior self-disclosure); T-052/T-053 Red Gate Test Plan rows added; T-020 Red Gate row + EC-005b Edge Cases row corrected `"T-012 EC-005"`→`"T-012 EC-005b"` at both sites; POLICY 5/TD-VSDD-060 sibling-sweep applied across Architecture Mapping, Purity Classification, Architecture Compliance Rules, File Structure Requirements, and Token Budget Estimate — all current-state test-count/range references updated from 46/T-006..T-051/40-owned/`a922ad82` to 48/T-006..T-053/42-owned/`7f540ddc`.
+
+**(g) Four pass-10 carry-over findings remain OPEN — not addressed this pass.** ADV-BB-P10-MED-001 (directory-only `hook-plugins/sub/` staging control), ADV-BB-P10-LOW-001 (NUL/trailing-space names admitted verbatim), ADV-BB-P10-LOW-002 (fail-open arms guarded only by unasserted call ordering), ADV-BB-P10-LOW-003 (`workspace_root()` untested directly). None were re-verified or addressed in this pass's dispatch scope or this burst's fix scope. Carried to pass-15.
+
+**(h) Suite state.** 48 tests T-006..T-053, 42 S-21.09-owned (T-012..T-053); test-file HEAD `7f540ddc`; `cargo fmt --check --all`, `cargo clippy --workspace --all-targets -- -D warnings`, `cargo test --workspace --all-targets` all clean. Story spec v1.25 (story-writer). Points UNCHANGED at 16 — test-hardening pass closing two already-scoped adversary findings via two new isolation controls plus a doc-fidelity correction, not new AC scope.
+
+**(i) `feature/S-21.09` push status UNCHANGED — NOT PUSHED.** Standing human ruling holds (per D-971/D-972/D-973/D-974/D-975/prior session-wrap checkpoints): explicit human authorization required via `git -C .worktrees/S-21.09 push -u origin feature/S-21.09`.
+
+**(j) Streak 0/3 UNCHANGED (14 passes, zero CLEAN).** Total finding-count trajectory `3→3→2→13→11→9→9→8→8→15→2→1→1→2` (tail `→2→1→1→2`). Severity(HIGH) trajectory `3→2→3→2→1→1→3→2→1→3→1→1→1→0`. Human ruling (twice): true 3-CLEAN required, not D-386 Option C asymptotic acceptance. **Pass-15 adversary is the immediate NEXT step.**
+
+**(k) 4-INDEX: STORY-INDEX only bump.** BC-INDEX v4.56 UNCHANGED. VP-INDEX v2.76 UNCHANGED. ARCH-INDEX v3.55 UNCHANGED. STORY-INDEX v4.303→v4.304 (S-21.09 catalog row v1.24→v1.25; 48 tests T-006..T-053, 42 owned; commit `7f540ddc`; 16 pts UNCHANGED). policies.yaml v1.4.23 UNCHANGED.
+
+**Closes:**
+- MEDIUM (pass-14) — CLOSED this burst via T-052 + T-053 isolation controls (`7f540ddc` + story v1.25).
+- LOW (pass-14) — CLOSED this burst via T-020/EC-005b two-site literal correction (`7f540ddc` + story v1.25).
+- STORY-INDEX v1.24→v1.25 S-21.09 catalog-row lag — CLOSED this burst.
+
+**Remains OPEN (not this burst's scope):**
+- ADV-BB-P10-MED-001, LOW-001, LOW-002, LOW-003 (pass-10 carry-overs) — anchor: pass-15.
+- `feature/S-21.09` NOT PUSHED — anchor: explicit human authorization.
+- C-1/C-2/C-4/C-5 blocking security issues (D-972) — UNCHANGED, out of this burst's scope.
+
+### Agents
+
+- state-manager (D-976): `adv-s21.09-local-pass-14.md` created; `INDEX.md` S-21.09 LOCAL Adversary Reviews section extended (pass-14 row + Convergence Status update); decision-log D-976 block appended; burst-log D-976 8-block entry appended; lessons.md L-BB lesson appended (a production-validation gate only "implicitly exercised" by valid-input fixtures has an un-isolated deletion determinant; every such gate needs a dedicated firing fixture); STORY-INDEX v4.303→v4.304 (S-21.09 v1.24→v1.25 catalog-row sync); STATE.md v7.23→v7.24; story v1.25 (staged by story-writer this session) + test-writer commit `7f540ddc` (staged on `feature/S-21.09`, not committed to factory-artifacts — code branch, separate from this factory-artifacts commit) committed as part of this single factory-artifacts burst per TD-VSDD-053.
+- test-writer (prior to this burst, same session): `7f540ddc` — adds T-052 (hooks `Registry::parse_str` isolation control) and T-053 (resolvers `schema_version == 1` isolation control); 48 tests green; empirically verified deletion-mutant kills for both.
+- story-writer (prior to this burst, same session): story v1.25 (AC-006 §2d narrative rewrite naming T-052/T-053; T-020/EC-005b literal correction; POLICY 5 sibling-sweep).
+
+### 4-INDEX
+
+BC-INDEX v4.56 (UNCHANGED) / VP-INDEX v2.76 (UNCHANGED) / STORY-INDEX v4.304 / ARCH-INDEX v3.55 (UNCHANGED)
+
+### Phase
+
+D-976-S-21.09-LOCAL-PASS-14-RECORD-AND-FIX-BURST
+
+### Date
+
+2026-08-12
+
+---

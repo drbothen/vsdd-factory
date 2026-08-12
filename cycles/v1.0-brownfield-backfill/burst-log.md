@@ -25920,3 +25920,113 @@ D-444(c) burst-log h2 heading `## D-975-S-21.09-LOCAL-PASS-13-RECORD-AND-FIX-BUR
 - **Parent SHA (Block 8 cites parent per D-419(b)/D-444(c) convention):** `3a7378b3` — `state(sha-patch): D-974 commit 768de245 factory-artifacts SHA — Active Branches + checkpoint updated`
 
 **Closes:** `adv-s21.09-local-pass-13.md` persisted; INDEX.md S-21.09 LOCAL section extended; F-1 CLOSED via story line-475 + test-file line-128 correction; STORY-INDEX v4.303 (S-21.09 v1.24); story v1.24 committed; 1 L-BB lesson; D-975 allocated; STATE.md v7.22→v7.23; streak 0/3; pass-14 NEXT
+
+## D-976-S-21.09-LOCAL-PASS-14-RECORD-AND-FIX-BURST
+
+**Block 1: POLICY 16 ALLOCATOR-CEILING GATE** (literal shell, D-449(a)):
+
+```
+$ cd /Users/zious/Documents/GITHUB/vsdd-factory/.factory && max_d=$({ grep -hE '^#{2,} D-[0-9]+' cycles/v1.0-brownfield-backfill/decision-log.md cycles/v1.0-feature-engine-discipline-pass-1/decision-log.md 2>/dev/null; grep -hE '^[|] *D-[0-9]+' cycles/v1.0-brownfield-backfill/decision-log.md cycles/v1.0-feature-engine-discipline-pass-1/decision-log.md 2>/dev/null; } | grep -oE 'D-[0-9]+' | sed 's/D-//' | sort -n | tail -1); [ "$max_d" -lt 9000 ] && printf 'PASS: global max D-%s < D-9000 ceiling\n' "$max_d" || printf 'FAIL: breach: max=D-%s\n' "$max_d"
+PASS: global max D-975 < D-9000 ceiling
+```
+
+D-976 allocated. Parent-commit: `0ef5d724` (factory-artifacts HEAD at burst start).
+
+**Block 2: Adversary verdict**
+
+S-21.09 LOCAL cascade pass-14 (fresh-context, Iron Law — read only `adv-s21.09-local-pass-13.md` Part A). Verdict: **NOT CLEAN — 1 MEDIUM + 1 LOW (2 findings).** Reviewed `46e334da` (feature/S-21.09) against story v1.24. LOCAL streak: **0/3 — fourteen passes, zero CLEAN.**
+
+- **MEDIUM [POLICY 13 mutation-completeness]**: two production-validation determinants in `run_t012_gate` — the hooks `Registry::parse_str(&hooks_content)` block and the resolvers `assert_eq!(resolvers_schema_version, 1, …)` block — survive whole-suite deletion; every fixture through T-051 wrote production-valid `schema_version` values on both registries, so the story's self-disclosure ("no single test ID owns this gate in isolation") did not discharge the deletion-mutant per CLAUDE.md Standing Rule 3 §1. Same lineage as T-048→T-050→T-051, reaching two determinants those passes did not touch.
+- **LOW [spec↔impl drift, self-contradictory]**: story RG-plan T-020 row + EC-005b row both cite the stale `#[should_panic(expected = "T-012 EC-005")]` literal; actual code (and module docstring) correctly use `"T-012 EC-005b"` — contradicts the story's own guarantee that T-020 pins EC-005b specifically.
+
+Adversary independently confirmed the gate/mutation machinery otherwise exceptionally well-hardened — no BLOCKER/HIGH, no surviving-mutant on the containment predicate, no fail-open, no path-normalization edge gap. Pass-13's F-1 independently re-verified CLOSED this pass (count-parity re-derivation in Axes-verified-CLEAN section).
+
+**Fix-burst (same session, prior to this factory-artifacts commit — two parallel commits):** test-writer committed `7f540ddc` on `feature/S-21.09` (NOT pushed) — adds T-052 (hooks `Registry::parse_str` isolation control) and T-053 (resolvers `schema_version == 1` isolation control); 48 tests T-006..T-053 green, 42 S-21.09-owned; empirically verified each deletion mutant kills its own dedicated test while all other 47 stay GREEN. This is now the `feature/S-21.09` HEAD. story-writer produced story v1.25 (AC-006 §2d narrative rewritten naming T-052/T-053; T-020/EC-005b literal corrected at both sites; POLICY 5 sibling-sweep across 5 narrative sites). Both findings CLOSED this burst.
+
+**Four pass-10 carry-over findings remain OPEN — not addressed this pass:** ADV-BB-P10-MED-001 (directory-only staging control), ADV-BB-P10-LOW-001 (NUL/trailing-space names), ADV-BB-P10-LOW-002 (fail-open arms), ADV-BB-P10-LOW-003 (`workspace_root()` untested). Carried to pass-15.
+
+**Block 3: Files touched**
+
+- `stories/S-21.09-wasm-artifact-restore-and-registry-parity.md` — v1.24→v1.25; AC-006 §2d narrative rewritten to name T-052/T-053 as the isolation controls; T-020/EC-005b literal corrected `"T-012 EC-005"`→`"T-012 EC-005b"` (2 sites); T-052/T-053 Red Gate Test Plan rows added; POLICY 5 sibling-sweep confirmed zero further stale sites; points UNCHANGED 16
+- `stories/STORY-INDEX.md` — v4.303→v4.304; S-21.09 catalog row v1.24→v1.25 sync (48 tests, 42 owned, `7f540ddc`, 16 pts UNCHANGED); POLICY 14 last_amended-parity leg applied
+- `cycles/v1.0-brownfield-backfill/adv-s21.09-local-pass-14.md` — CREATED; pass-14 NOT CLEAN (1M/1L) persisted verbatim per D-448(a)
+- `cycles/v1.0-brownfield-backfill/INDEX.md` — S-21.09 LOCAL Adversary Reviews section extended (pass-14 row); Convergence Status paragraph updated (14 passes; trajectory `3→3→2→13→11→9→9→8→8→15→2→1→1→2`)
+- `cycles/v1.0-brownfield-backfill/decision-log.md` — D-976 block appended
+- `cycles/v1.0-brownfield-backfill/lessons.md` — 1 L-BB lesson appended (L-BB-production-validation-gate-implicit-exercise-not-isolation)
+- `cycles/v1.0-brownfield-backfill/burst-log.md` — D-976 8-block entry appended (this file)
+- `STATE.md` — v7.23→v7.24; Session Resume Checkpoint refreshed (pass count 14, streak 0/3; test-file HEAD `7f540ddc`; 48 tests; story v1.25; pass-15 NEXT)
+
+(Code-side, on `feature/S-21.09`, NOT part of this factory-artifacts commit: `crates/factory-dispatcher/tests/bundle_orphan_check.rs` extended with T-052/T-053, commit `7f540ddc`, NOT pushed.)
+
+**Block 4: Codifications**
+
+- **No new policies.yaml changes.** This burst extends POLICY 13's mutation-completeness discipline with one new L-BB lesson identifying that a production-validation gate exercised only incidentally by valid-input fixtures needs a dedicated firing fixture — no policy amendment required (POLICY 13 already covers the general mutation-completeness obligation; this lesson records a recurring instantiation pattern).
+- **INDEX.md structural extension**: `S-21.09 LOCAL Adversary Reviews` table extended with the pass-14 row; no new structural addition this burst.
+
+**Block 5 (Dim-2): Literal-shell attestation evidence**
+
+**POLICY 16 gate** (captured above — Block 1).
+
+**Input-hash computation for `adv-s21.09-local-pass-14.md`** (literal shell; guard-computed value, D-449(a)):
+
+```
+$ cd /Users/zious/Documents/GITHUB/vsdd-factory/.factory && /Users/zious/.claude/plugins/cache/claude-mp/vsdd-factory/1.0.0-rc.23/bin/compute-input-hash cycles/v1.0-brownfield-backfill/adv-s21.09-local-pass-14.md
+0d4859c
+```
+
+Guard `validate-input-hash` confirmed PASS at `input-hash: "0d4859c"`.
+
+**D-446(a) own-burst-log 8-block gate** (literal shell per D-449(a)):
+
+```
+$ cd /Users/zious/Documents/GITHUB/vsdd-factory/.factory && awk '/^## D-976-S-21\.09-LOCAL-PASS-14/{found=1} found && /^## D-[0-9]/{if(!/D-976-S-21\.09-LOCAL-PASS-14/)exit} found{print}' cycles/v1.0-brownfield-backfill/burst-log.md | grep -cE "^\*\*Block [2-8]|^### Block 8|^## D-976"
+8
+```
+
+PASS: count=8 ≥ 8 required D-444(c) blocks present in D-976 section.
+
+**D-448(a) source-attestation gate** (literal shell; verifies this burst-log's Block 2 finding summary faithfully describes `adv-s21.09-local-pass-14.md`'s Part A/B finding set, D-449(a)):
+
+```
+$ cd /Users/zious/Documents/GITHUB/vsdd-factory/.factory && grep -c '^## MEDIUM — Two production-validation determinants' cycles/v1.0-brownfield-backfill/adv-s21.09-local-pass-14.md
+1
+$ grep -c '^## LOW — Story RG-plan' cycles/v1.0-brownfield-backfill/adv-s21.09-local-pass-14.md
+1
+```
+
+PASS: MEDIUM and LOW finding headers each present exactly once in the persisted review file, matching Block 2's finding summary.
+
+**Block 6 (Dim-5): Closes**
+
+- `adv-s21.09-local-pass-14.md` persisted (NOT CLEAN 1M/1L; streak 0/3; 14 passes)
+- INDEX.md S-21.09 LOCAL Adversary Reviews section extended + Convergence Status paragraph updated
+- MEDIUM CLOSED — T-052 + T-053 isolation controls (`7f540ddc` + story v1.25)
+- LOW CLOSED — T-020/EC-005b two-site literal correction (`7f540ddc` + story v1.25)
+- Pass-13's F-1 independently re-verified CLOSED; gate/mutation machinery confirmed exceptionally well-hardened
+- STORY-INDEX v4.303→v4.304 (S-21.09 v1.24→v1.25 catalog-row sync)
+- Story v1.25 committed (staged by story-writer, landed this burst)
+- 1 L-BB lesson appended (production-validation-gate-implicit-exercise-not-isolation)
+- D-976 allocated
+- 4 pass-10 carry-over findings (MED-001, LOW-001/002/003) remain OPEN — anchor: pass-15
+
+**Block 7 (Dim-6): Gate attestation**
+
+D-444(c) burst-log h2 heading `## D-976-S-21.09-LOCAL-PASS-14-RECORD-AND-FIX-BURST` present. D-446(a) own-burst-log 8-block gate INVOKED via literal shell at Block 5 (count=8 required). D-448(a) source-attestation INVOKED via literal shell at Block 5 (MEDIUM/LOW presence each confirmed exactly once in the persisted review file). D-449(a) literal-shell-execution SELF-APPLICATION: POLICY 16 gate + input-hash computation + D-446(a) gate + D-448(a) gate all use actual shell with verbatim stdout captured — no pseudocode. META-LEVEL-24 self-application confirmed.
+
+**Dim-7 Attestation:**
+
+- Trajectory (S-21.09 LOCAL cascade, total findings per pass): `3→3→2→13→11→9→9→8→8→15→2→1→1→2` (tail per D-433(e)+D-439(c) form: `→2→1→1→2`)
+- Streak: 0/3 (14 passes, zero CLEAN)
+- 4-INDEX: BC v4.56 (UNCHANGED) / VP v2.76 (UNCHANGED) / STORY **v4.304** / ARCH v3.55 (UNCHANGED)
+- Story v1.25; test-file HEAD `7f540ddc`; 48 tests T-006..T-053 all green; 42 S-21.09-owned; 16 pts UNCHANGED
+- policies.yaml v1.4.23 UNCHANGED
+- `feature/S-21.09` @ `7f540ddc`; NOT PUSHED (standing human ruling holds)
+- Pass-15 adversary is the immediate NEXT step
+
+### Block 8: factory-artifacts commit
+
+**factory-artifacts commits (this burst — TD-VSDD-053 single-commit-per-burst):**
+- Target: single commit pushed as `git push origin HEAD:factory-artifacts`
+- **Parent SHA (Block 8 cites parent per D-419(b)/D-444(c) convention):** `0ef5d724` — `state(sha-patch): D-975 commit 528f0f68 factory-artifacts SHA — Active Branches + checkpoint updated`
+
+**Closes:** `adv-s21.09-local-pass-14.md` persisted; INDEX.md S-21.09 LOCAL section extended; MEDIUM+LOW CLOSED via T-052/T-053 + T-020/EC-005b correction; STORY-INDEX v4.304 (S-21.09 v1.25); story v1.25 committed; 1 L-BB lesson; D-976 allocated; STATE.md v7.23→v7.24; streak 0/3; pass-15 NEXT
