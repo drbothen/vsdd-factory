@@ -58,6 +58,7 @@
 //! | T-048 | AC-006 S-21.09 | GREEN | pass-11 totality property: 18-candidate table asserting `extract.is_some() iff detect=[]`; correct identifier per class; OTHER identifier absent; kills M4 (>=+2→+1) and the M1+M4 composite, and any identifier swap among its 18 candidates. Does NOT isolate M2 (len>→>=): every OUTSIDE-REPO-DECLARATION candidate in this table is over-determined — it fails the containment predicate's length conjunct AND its prefix conjunct simultaneously, so relaxing `>` to `>=` alone does not flip any candidate's classification. See T-050 for the dedicated M2 control |
 //! | T-049 | AC-006 S-21.09 | GREEN | pass-11 EC-005a control: git fixture with non-WASM-only hook-plugins/ → git ls-files returns zero WASM paths → `#[should_panic(expected = "T-012 EC-005a")]` |
 //! | T-050 | AC-006 S-21.09 | GREEN | pass-11 fix-burst length-conjunct isolation control (kills M2, len>→>=): `plugin = "../.."` resolves to EXACTLY `root_parts` (`joined_parts == root_parts`, not just equal length) — the only candidate in the suite where the prefix conjunct is satisfied while the length conjunct is the sole distinguishing factor; under live `>` code, `joined_parts.len() == root_parts.len()` fails the length conjunct → `OUTSIDE-REPO-DECLARATION: ../..`; under mutant `>=`, the length conjunct passes and (since the prefix is an exact self-match) `in_repo` flips true → delegates to `extract_hook_plugin_name`, which fails its own gate-1 (length too short) → `None` → `UNGATED-DECLARATION: ../..` instead. T-047 and T-048's OUTSIDE candidates are all over-determined (fail both conjuncts at once) and therefore do NOT kill M2; T-050 is the sole isolating control |
+//! | T-051 | AC-006 S-21.09 | GREEN | pass-12 fix-burst prefix-conjunct isolation control (kills `.all(...)`→`.any(...)` and `.all(...)`→`true`): `plugin = "../../../sib/ghost.wasm"` resolves to `root_parts[0..N-1] + ["sib", "ghost.wasm"]` — length `N+1 > N` so the length conjunct is TRUE, but index `N-1` diverges from `root_parts`'s last component so the prefix `.all(...)` conjunct is FALSE — the sole determinant. Under live code `in_repo = false` → `OUTSIDE-REPO-DECLARATION: ../../../sib/ghost.wasm`; under either `.all→.any` or `.all→true` mutant the prefix conjunct flips true, `in_repo` flips true, and the path delegates to `extract_hook_plugin_name`, which fails its own gates → `None` → `UNGATED-DECLARATION: ../../../sib/ghost.wasm` instead — a genuine classification flip. Orthogonal to T-050 (which isolates the length conjunct); does NOT kill M2 |
 //!
 //! † T-009 is a STANDING GREEN GATE — passes immediately on any clean checkout where no
 //! orphan WASMs are tracked in git, and remains green on contaminated worktrees because
@@ -5076,6 +5077,153 @@ fn test_S_21_09_ac006_T050_length_conjunct_isolation_kills_m2() {
          passes AND the prefix conjunct is trivially true (joined_parts == root_parts is a \
          self-match), so in_repo flips true and the path is misclassified as \
          UNGATED-DECLARATION via extract_hook_plugin_name's own gate-1 fallthrough; \
+         got: {:?}",
+        err
+    );
+}
+
+// ---------------------------------------------------------------------------
+// T-051 — pass-12 fix-burst F-1 closure: prefix-conjunct isolation control
+//
+// Adversary pass-12 F-1 (HIGH, POLICY 13 mutation-completeness) observed that the
+// `detect_ungated_declarations` containment predicate is a two-conjunct AND:
+//
+//   let in_repo = joined_parts.len() > root_parts.len()
+//       && root_parts.iter().enumerate().all(|(i, p)| joined_parts.get(i) == Some(p));
+//
+// T-050 (pass-11) isolates the LENGTH conjunct (`>` → `>=`) with `../..`, a candidate
+// where `joined_parts == root_parts` exactly — the prefix conjunct is trivially
+// satisfied (self-match) so length alone determines the outcome. But no existing
+// candidate isolates the PREFIX conjunct (`.all(...)`): every OUTSIDE-REPO-DECLARATION
+// candidate in T-047/T-048 (`../../../ghost.wasm`, absolute paths, `/tmp/ghost.wasm`,
+// etc.) is over-determined — each ALSO fails the length conjunct, so mutating
+// `.all(...)` → `.any(...)` or `.all(...)` → `true` currently survives the entire
+// suite undetected: with the length conjunct already false on every candidate,
+// `false && (whatever .all/.any/true evaluates to)` stays false regardless of the
+// prefix conjunct's mutant behaviour.
+//
+// This test isolates the prefix conjunct with a candidate whose length conjunct is
+// TRUE (so the prefix conjunct is the sole remaining determinant of `in_repo`):
+//
+//   plugin = "../../../sib/ghost.wasm"  from  plugins/vsdd-factory/hooks-registry.toml
+//   registry_parent = <root>/plugins/vsdd-factory
+//   lex_norm(registry_parent.join("../../../sib/ghost.wasm")):
+//     start = [root_parts..., "plugins", "vsdd-factory"]   (root_parts.len() = N, so N+2)
+//     ".."  pops "vsdd-factory"                              → N+1
+//     ".."  pops "plugins"                                   → N
+//     ".."  pops root_parts' LAST component                  → N-1  (root_parts[0..N-1])
+//     push "sib"                                              → N   (root_parts[0..N-1] + ["sib"])
+//     push "ghost.wasm"                                       → N+1
+//   joined_parts = root_parts[0..N-1] + ["sib", "ghost.wasm"], length N+1
+//
+// Length conjunct: joined_parts.len() (N+1) > root_parts.len() (N) → TRUE.
+// Prefix conjunct: for i in 0..N-1, joined_parts[i] == root_parts[i] (matches — both
+// share the root_parts[0..N-1] prefix); at i = N-1, joined_parts[N-1] == "sib" but
+// root_parts[N-1] is the worktree root's actual last path component ("sib" is a
+// deliberately non-existent, non-matching sibling name) → mismatch → `.all(...)`
+// returns FALSE at the first divergent index.
+//
+// Under live `.all(...)` code: length TRUE && prefix FALSE → in_repo = false →
+// OUTSIDE-REPO-DECLARATION: ../../../sib/ghost.wasm.
+//
+// Under mutant `.all(...)` → `.any(...)`: `.any()` over an iterator containing at
+// least one TRUE element (indices 0..N-2 all match) returns TRUE → in_repo flips
+// true → delegates to extract_hook_plugin_name("../../../sib/ghost.wasm"), which
+// independently fails its own gate 2 (registry_parent prefix mismatch at the same
+// diverging index) → None → UNGATED-DECLARATION: ../../../sib/ghost.wasm instead —
+// a genuine classification flip.
+//
+// Under mutant `.all(...)` → `true`: the prefix conjunct is unconditionally TRUE →
+// in_repo flips true → same downstream flip to UNGATED-DECLARATION.
+//
+// This is the sibling of T-050's length-conjunct isolation: T-050 isolates length
+// (prefix trivially true via exact self-match); T-051 isolates prefix (length
+// unambiguously true via one extra pushed component). The two controls are
+// orthogonal — T-051 does NOT kill M2 (len>→>=, T-050's mutant): under M2 with this
+// candidate, the length conjunct (already true under live code) stays true, and the
+// prefix conjunct (already false under live code) stays false — no observable change
+// in behaviour, so T-051 cannot detect M2. That is T-050's job, not T-051's.
+//
+// Mutation-proof (empirically verified, fix-burst pass-12 F-1 closure): applying
+// `.all(...)` → `.any(...)` locally and running the suite turns this test RED
+// (asserts OUTSIDE-REPO-DECLARATION, observes UNGATED-DECLARATION instead) while
+// T-047, T-048, and T-050 remain GREEN. Applying `.all(...)` → `true` produces the
+// identical RED/GREEN pattern. Reverting either mutant restores GREEN.
+//
+// No git init required; detect_ungated_declarations fires before git calls.
+//
+// Story: S-21.09
+// ---------------------------------------------------------------------------
+#[test]
+fn test_S_21_09_ac006_T051_prefix_conjunct_isolation_kills_all_mutants() {
+    let tmp = tempdir().expect("tempdir must create successfully");
+    let root = tmp.path();
+
+    let plugins_dir = root.join("plugins/vsdd-factory");
+    fs::create_dir_all(&plugins_dir).expect("plugins/vsdd-factory dir must be created");
+
+    // hooks-registry: 30 valid hooks + 1 sibling-escaping declaration
+    // ("../../../sib/ghost.wasm"). Three ParentDir hops from plugins/vsdd-factory land
+    // at root's parent, then "sib" re-descends into a non-existent sibling of root —
+    // length conjunct TRUE (one component longer than root_parts), prefix conjunct
+    // FALSE (diverges from root_parts at the last index). This is the only candidate
+    // in the suite where the prefix conjunct is the sole determinant.
+    let mut hooks_content = String::from("schema_version = 2\n");
+    for i in 0..30_u32 {
+        hooks_content.push_str(&format!(
+            "[[hooks]]\nname = \"h{i:02}\"\nplugin = \"hook-plugins/h{i:02}.wasm\"\n\
+             event = \"PreToolUse\"\ntool = \"^Bash$\"\ntimeout_ms = 5000\n\
+             on_error = \"continue\"\n",
+        ));
+    }
+    hooks_content.push_str(
+        "[[hooks]]\nname = \"ghost-sibling\"\nplugin = \"../../../sib/ghost.wasm\"\n\
+         event = \"PreToolUse\"\ntool = \"^Bash$\"\ntimeout_ms = 5000\n\
+         on_error = \"continue\"\n",
+    );
+    fs::write(plugins_dir.join("hooks-registry.toml"), &hooks_content)
+        .expect("hooks-registry.toml must be written");
+
+    fs::write(
+        plugins_dir.join("resolvers-registry.toml"),
+        "schema_version = 1\n[[resolvers]]\nname = \"ctx\"\n\
+         plugin = \"hook-plugins/ctx.wasm\"\n",
+    )
+    .expect("resolvers-registry.toml must be written");
+
+    // No git init required: detect_ungated_declarations fires before git calls.
+    let result = run_t012_gate(root);
+
+    assert!(
+        result.is_err(),
+        "T-051 OUTSIDE-REPO-DECLARATION: run_t012_gate must return Err when \
+         '../../../sib/ghost.wasm' resolves to a sibling of the worktree root \
+         (length conjunct TRUE, prefix conjunct FALSE — containment fails); got Ok"
+    );
+
+    let err = result.unwrap_err();
+    assert!(
+        err.contains("OUTSIDE-REPO-DECLARATION: ../../../sib/ghost.wasm"),
+        "T-051: error must contain 'OUTSIDE-REPO-DECLARATION: ../../../sib/ghost.wasm'; \
+         under mutant `.all→.any` or `.all→true` this would instead read \
+         'UNGATED-DECLARATION: ../../../sib/ghost.wasm' — the prefix conjunct alone \
+         determines this candidate's classification since the length conjunct is \
+         unambiguously true; got: {:?}",
+        err
+    );
+    // Negative-identifier: the isolating property. If either prefix mutant is live,
+    // this fires UNGATED-DECLARATION instead of OUTSIDE-REPO-DECLARATION — the
+    // assertion that actually kills `.all→.any` and `.all→true` (T-047/T-048/T-050's
+    // candidates cannot, since all of them are over-determined or length-isolating).
+    assert!(
+        !err.contains("UNGATED-DECLARATION: "),
+        "T-051 prefix-conjunct kill assertion: error must NOT contain \
+         'UNGATED-DECLARATION: <path>' for '../../../sib/ghost.wasm' — under live \
+         `.all(...)` code the prefix conjunct fails at the index diverging from \
+         root_parts' last component, so classification is OUTSIDE-REPO-DECLARATION; \
+         under mutant `.all→.any` or `.all→true` the prefix conjunct flips true and \
+         (length already true) in_repo flips true, misclassifying via \
+         extract_hook_plugin_name's own gate fallthrough as UNGATED-DECLARATION; \
          got: {:?}",
         err
     );
