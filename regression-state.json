@@ -1,1 +1,1 @@
-{"status":"pass","timestamp":"2026-08-12T20:27:11Z","command":"cd /Users/zious/Documents/GITHUB/vsdd-factory/.worktrees/S-21.09 && cargo test --workspace --all-targets 2>&1 | tail -80"}
+{"status":"pass","timestamp":"2026-08-12T21:18:56Z","command":"cd /Users/zious/Documents/GITHUB/vsdd-factory/.worktrees/S-21.09 && cargo test --workspace --test bundle_orphan_check 2>&1 | tail -20"}

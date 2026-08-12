@@ -16222,3 +16222,72 @@ D-978-S-21.09-LOCAL-PASS-15-RECORD-AND-FIX-BURST
 2026-08-12
 
 ---
+
+## D-979 — D-979-S-21.09-LOCAL-PASS-16-RECORD-AND-COMPREHENSIVE-DOC-SWEEP-BURST
+
+**POLICY 16 ALLOCATOR-CEILING GATE** (pre-allocation, literal shell, D-449(a)):
+
+```
+$ cd /Users/zious/Documents/GITHUB/vsdd-factory/.factory && max_d=$({ grep -hE '^#{2,} D-[0-9]+' cycles/v1.0-brownfield-backfill/decision-log.md cycles/v1.0-feature-engine-discipline-pass-1/decision-log.md 2>/dev/null; grep -hE '^[|] *D-[0-9]+' cycles/v1.0-brownfield-backfill/decision-log.md cycles/v1.0-feature-engine-discipline-pass-1/decision-log.md 2>/dev/null; } | grep -oE 'D-[0-9]+' | sed 's/D-//' | sort -n | tail -1); [ "$max_d" -lt 9000 ] && printf 'PASS: global max D-%s < D-9000 ceiling\n' "$max_d" || printf 'FAIL: breach: max=D-%s\n' "$max_d"
+PASS: global max D-978 < D-9000 ceiling
+```
+
+D-979 allocated. Parent-commit: `152b00d4` (factory-artifacts HEAD at burst start — the D-978 SHA-patch commit).
+
+**(a) POLICY 16 GATE PASS — D-979 allocated; parent-commit `152b00d4`.** This is the S-21.09 LOCAL cascade pass-16 RECORD burst combined with its same-session comprehensive-doc-sweep fix burst (test-writer commits `23af4ab7`+`12d0fe98` on `feature/S-21.09`, NOT pushed — push held per standing human ruling; story-writer story v1.28, staged into this same factory-artifacts commit per TD-VSDD-053 single-commit-per-burst).
+
+**(b) `adv-s21.09-local-pass-16.md` persisted.** `cycles/v1.0-brownfield-backfill/adv-s21.09-local-pass-16.md` CREATED. Verdict: **NOT CLEAN — 1 LOW (F-L-01) + 1 NIT (F-N-01), 0 BLOCKER/HIGH/MEDIUM.** Reviewed HEAD: `05480619` (feature/S-21.09) against story v1.27. Fresh-context review (Iron Law: read only prior-pass Part A — `adv-s21.09-local-pass-15.md`). LOCAL streak: **0/3 — sixteen passes, zero CLEAN.** `INDEX.md` `S-21.09 LOCAL Adversary Reviews` table extended with the pass-16 row and Convergence Status paragraph updated (16 passes; trajectory `3→3→2→13→11→9→9→8→8→15→2→1→1→2→1→2`, tail `→1→2→1→2`).
+
+**(c) IMPORTANT — the adversary independently reconstructed and confirmed the gate logic, determinant isolation, mutation-completeness closure, count parity, and SHA currency ALL sound.** Pass-16's Coverage section re-verified, from fresh context, every determinant closed across passes 9-15 plus the D-977 hardening burst: the containment predicate's two conjuncts (T-050/T-051), both production-validation determinants (T-052/T-053), the four mutation-audit hardening controls (T-054/T-055/T-056 + registry.rs on_error test), the SURV-01 accepted-residual rationale, and full count parity (51 tests T-006..T-056, 45 owned + 1 registry test). Both findings this pass are pure test-file documentation micro-inconsistencies, not logic gaps — continuing the pattern pass-15 established once the D-977 hardening burst converged the mutation-completeness axis.
+
+**(d) LOW [POLICY 4 semantic-anchoring / provenance] — module docstring "Stories:" line mis-attributes T-011 to S-19.04.** `crates/factory-dispatcher/tests/bundle_orphan_check.rs` module docstring closing line reads `//! Stories: S-19.04 (T-006..T-011), S-21.09 (T-012..T-056)`. T-011 is an S-19.06 test — the function `test_S_19_06_policy20_T011_read_prefix_fixture_passes_staging_and_is_orphan` is self-named for S-19.06, the same file's Test-Plan row for T-011 labels it `(S-19.06)`, and the story's own Previous Story Intelligence table attributes T-006..T-010 to S-19.04 and T-011 to S-19.06. The line was edited during S-21.09 (its endpoint is the newly-added T-056), so the boundary should have been corrected in the same sibling-sweep that extended it. Documentation-only; no effect on gate correctness, test execution, AC coverage, or count parity.
+
+**(e) NIT [POLICY 4] — T-056 doc-comment calls a leading `./` `CurDir` component "interior".** Same file, the `test_...T056_lex_norm_curdir_arm_direct_contract_pin` doc-comment describes the fixture `Path::new("./a/b")` as having "a literal interior `.` component." The `.` is a LEADING component — `Path::components()` preserves leading `./`, which is precisely why the `CurDir` arm is reachable at all — not an interior one (an interior `a/./b` form is normalized away by `std`, as the same comment correctly states elsewhere). The word "interior" contradicts the mechanism the comment itself relies on. The test logic is correct; only the wording is imprecise.
+
+**(f) Both findings CLOSED this burst — comprehensive comment-vs-code consistency sweep, not a two-site point-fix.** test-writer committed `23af4ab7` on `feature/S-21.09` (NOT pushed): fixes F-L-01 (module docstring `Stories:` line re-attributed `T-011 S-19.04`→`S-19.06`; now `S-19.04 (T-006..T-010), S-19.06 (T-011), S-21.09 (T-012..T-056)`) and F-N-01 ("interior"→"leading" in the T-056 doc-comment prose), **plus** — per the mandatory POLICY 5/TD-VSDD-060 sibling-sweep discipline, extended per the L-BB-return-contract-sweep-must-cover-preamble-and-pseudocode-comments lesson (pass-15) — a **comprehensive** comment-vs-code consistency sweep of the entire test file that found and fixed **~15 more instances of the same pass-9 basename→full-path drift class** beyond the three sites pass-15 already closed (T-023, T-034 preamble, T-034 pseudocode): the T-012/013/014/015/021/025/030/035/036/037 preamble and inline comments, plus two docstring Test-Plan rows (T-015, T-021), all still described the closed basename-collapse form as current. A second test-writer commit `12d0fe98` (now `feature/S-21.09` HEAD) then corrects the T-056 **assert-message string itself** ("interior"→"leading") — a site the first (prose-focused) sweep pass missed because it is executable test code, not comment prose; the `#[should_panic]` matcher safety was verified to still pass. All corrections across both commits are COMMENTS/STRING-LITERAL ONLY — no test body, assertion logic, fixture, count, or range changed. Suite unchanged at 51 tests T-006..T-056, 45 S-21.09-owned plus 1 `registry.rs` unit test, all green.
+
+story-writer produced story v1.28 (uncommitted until this factory-artifacts burst): a **parallel comprehensive story-vs-code sweep** — found and fixed 1 parallel drift (the story's own T-056 Red-Gate Test Plan row repeated the identical "interior `.` segments" mis-description as the test file's pre-fix comment; corrected to "leading `.` segments" with rationale, and the row now quotes the corrected assert-message wording); verified T-011 provenance was already correct on the story side (no story-side fix needed for F-L-01); verified all 45 test names map 1:1 against the test file; verified all `MISSING:`/`STAGED-NOT-COMMITTED:`/`UNGATED-DECLARATION:`/`OUTSIDE-REPO-DECLARATION:` identifier strings carry the `hook-plugins/` prefix consistently. SHA-cite sweep `05480619`→`12d0fe98` across all current-state sites (AC-006 Tests bullet, Mutation-Completeness Audit heading, Architecture Compliance Rules SURV-01 row, two Token Budget Estimate rows — `bundle_orphan_check.rs` line count 5,797→5,803 reflecting the two comment-only commits); no count/range change; points UNCHANGED at 16.
+
+**(g) L-BB lesson — the documentation-drift asymptote parallels the mutation asymptote.** Appended to `lessons.md`: after a mutation-completeness audit (D-977) converges the logic axis, fresh-context adversary passes converge on finding one doc micro-inconsistency per pass (pass-15: 2-site + 1-sibling-caught comment drift; pass-16: provenance-line + wording drift). The cure is the same shape that worked for the mutation asymptote (D-977) — a COMPREHENSIVE comment-vs-code + story-vs-code consistency sweep (audit every comment/docstring/Red-Gate-row/provenance/cite against the code in one burst) drains the doc-drift class in a single bounded burst, rather than one-fix-per-pass indefinitely.
+
+**(h) Four pass-10 carry-over findings remain OPEN — not addressed this pass.** ADV-BB-P10-MED-001 (directory-only `hook-plugins/sub/` staging control), ADV-BB-P10-LOW-001 (NUL/trailing-space names admitted verbatim), ADV-BB-P10-LOW-002 (fail-open arms guarded only by unasserted call ordering), ADV-BB-P10-LOW-003 (`workspace_root()` untested directly). None were re-verified or addressed in this pass's dispatch scope or this burst's fix scope. Carried to pass-17.
+
+**(i) Suite state.** 51 tests T-006..T-056, 45 S-21.09-owned (T-012..T-056) plus 1 `registry.rs` unit test; test-file HEAD `12d0fe98`; `cargo fmt --check --all`, `cargo clippy --workspace --all-targets -- -D warnings`, `cargo test --workspace --all-targets` all clean (suite unchanged; comments/string-literal-only burst). Story spec v1.28 (story-writer). Points UNCHANGED at 16.
+
+**(j) `feature/S-21.09` push status UNCHANGED — NOT PUSHED.** Standing human ruling holds (per D-971 through D-978 and prior session-wrap checkpoints): explicit human authorization required via `git -C .worktrees/S-21.09 push -u origin feature/S-21.09`.
+
+**(k) Streak 0/3 UNCHANGED (16 passes, zero CLEAN).** Total finding-count trajectory `3→3→2→13→11→9→9→8→8→15→2→1→1→2→1→2` (tail `→1→2→1→2`). Severity(HIGH) trajectory `3→2→3→2→1→1→3→2→1→3→1→1→1→0→0→0` (pass-16 contributes a HIGH count of 0 — both findings were LOW/NIT). Human ruling (twice): true 3-CLEAN required, not D-386 Option C asymptotic acceptance. **Pass-17 adversary is the immediate NEXT step.**
+
+**(l) 4-INDEX: STORY-INDEX only bump.** BC-INDEX v4.56 UNCHANGED. VP-INDEX v2.76 UNCHANGED. ARCH-INDEX v3.55 UNCHANGED. STORY-INDEX v4.306→v4.307 (S-21.09 catalog row v1.27→v1.28; 51 tests T-006..T-056, 45 owned + 1 registry test; commit `12d0fe98`; 16 pts UNCHANGED). policies.yaml v1.4.23 UNCHANGED.
+
+**Closes:**
+- LOW F-L-01 (pass-16) — CLOSED this burst via docstring `Stories:` line re-attribution (`23af4ab7`).
+- NIT F-N-01 (pass-16) — CLOSED this burst via comment-prose correction (`23af4ab7`) + assert-message string correction (`12d0fe98`).
+- STORY-INDEX v1.27→v1.28 S-21.09 catalog-row lag — CLOSED this burst.
+- Comprehensive comment-vs-code + story-vs-code doc-drift class — drained this burst (both sides).
+
+**Remains OPEN (not this burst's scope):**
+- ADV-BB-P10-MED-001, LOW-001, LOW-002, LOW-003 (pass-10 carry-overs) — anchor: pass-17.
+- `feature/S-21.09` NOT PUSHED — anchor: explicit human authorization.
+- C-1/C-2/C-4/C-5 blocking security issues (D-972) — UNCHANGED, out of this burst's scope.
+
+### Agents
+
+- state-manager (D-979): `adv-s21.09-local-pass-16.md` created; `INDEX.md` S-21.09 LOCAL Adversary Reviews section extended (pass-16 row + Convergence Status update); decision-log D-979 block appended; burst-log D-979 8-block entry appended; lessons.md L-BB lesson appended (the documentation-drift asymptote parallels the mutation asymptote — a comprehensive comment-vs-code + story-vs-code consistency sweep drains the class in one burst, same shape as the D-977 mutation-audit cure); STORY-INDEX v4.306→v4.307 (S-21.09 v1.27→v1.28 catalog-row sync); STATE.md v7.26→v7.27; story v1.28 (staged by story-writer this session) + test-writer commits `23af4ab7`+`12d0fe98` (staged on `feature/S-21.09`, not committed to factory-artifacts — code branch, separate from this factory-artifacts commit) + the incidental uncommitted telemetry log line (`logs/dispatcher-internal-2026-08-12.jsonl`) all committed as part of this single factory-artifacts burst per TD-VSDD-053.
+- vsdd-factory:adversary (prior to this burst, same session): fresh-context pass-16 review — independently reconstructed and confirmed the gate logic, determinant isolation, mutation-completeness closure, count parity, and SHA currency ALL sound; found 1 LOW (F-L-01) + 1 NIT (F-N-01), both doc/comment micro-inconsistencies.
+- test-writer (prior to this burst, same session): `23af4ab7` — fixes F-L-01/F-N-01 plus a comprehensive comment-vs-code consistency sweep (~15 more instances of the pass-9 basename→full-path drift class beyond pass-15's three sites); `12d0fe98` — fixes the T-056 assert-message string itself ("interior"→"leading"), the site the first commit's prose-only sweep missed. This is `feature/S-21.09` HEAD.
+- story-writer (prior to this burst, same session): story v1.28 (comprehensive story-vs-code sweep — 1 parallel drift found+fixed at the T-056 Red-Gate row; T-011 provenance already correct story-side; all 45 test names 1:1; SHA-cite sweep `05480619`→`12d0fe98`; no count/range change).
+
+### 4-INDEX
+
+BC-INDEX v4.56 (UNCHANGED) / VP-INDEX v2.76 (UNCHANGED) / STORY-INDEX v4.307 / ARCH-INDEX v3.55 (UNCHANGED)
+
+### Phase
+
+D-979-S-21.09-LOCAL-PASS-16-RECORD-AND-COMPREHENSIVE-DOC-SWEEP-BURST
+
+### Date
+
+2026-08-13
+
+---
