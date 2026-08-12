@@ -30,7 +30,7 @@
 //! | T-020 | AC-006 S-21.09 | GREEN | EC-005b control: calls `check_declared_subset_tracked()` with empty tracked; `#[should_panic]` locks "T-012 EC-005b" identifier |
 //! | T-021 | AC-006 S-21.09 | GREEN | Staged-not-committed: calls `check_declared_subset_tracked()` with staged artifact → Err containing "STAGED-NOT-COMMITTED: staged-plugin.wasm" identifier |
 //! | T-022 | AC-006 S-21.09 | GREEN | Resolvers floor control: calls `check_declared_subset_tracked()` with empty resolvers; `#[should_panic]` locks "T-012: resolvers registry declared set is empty" |
-//! | T-023 | AC-006 S-21.09 | GREEN | MEDIUM-1 boundary polarity (corrected pass 4): bare plugin path `ghost-bare.wasm` (no `hook-plugins` component after normalization) → excluded from declared; traversal/absolute forms now INCLUDED via lexical normalisation |
+//! | T-023 | AC-006 S-21.09 | GREEN | MEDIUM-1 boundary polarity (corrected pass 4): three EXCLUDED-from-declared controls — (a) bare `ghost-bare.wasm` (no `hook-plugins` component after normalization), (b) traversal-cancels `hook-plugins/../ghost-cancels.wasm` (`..` pops `hook-plugins`), (c) `../`-prefix `../hook-plugins/evil.wasm` (escapes registry_parent); all three fail gate 1 (minimum-length) and are excluded — absolute forms are excluded separately, see T-026/T-047/T-048 |
 //! | T-024 | AC-006 S-21.09 | GREEN | BLOCKER-2 underscore mutant: `metrics_registry.toml` (underscore, previously missed by `-registry.toml` filter) caught by fail-closed `*.toml` inventory → "UNEXPECTED: metrics_registry.toml" |
 //! | T-025 | AC-006 S-21.09 | GREEN | F-1 traversal control: `plugin = "hooks/../hook-plugins/ghost-traversal.wasm"` is parsed as declared (resolves `..` relative to registry parent, lands inside `hook-plugins/`) |
 //! | T-026 | AC-006 S-21.09 | GREEN | MEDIUM-2 + HIGH-1 pass-6: absolute-form excluded; depth-matched sub-test proves prefix-verification loop is load-bearing (not just the length check) |
@@ -39,7 +39,7 @@
 //! | T-029 | AC-006 S-21.09 | GREEN | F-3b narrowing proof (case-sensitive): `metrics-registry.TOML` (uppercase) invisible to `.ends_with(".toml")`; safe because production loads lowercase-named registries |
 //! | T-030 | AC-006 S-21.09 | GREEN | F-9 wiring control: `run_t012_gate` integrates both `check_registry_inventory` (phase A) and `check_declared_subset_tracked` (phase B via git fixture); removing either call breaks a phase |
 //! | T-031 | AC-006 S-21.09 | GREEN | MEDIUM-4(a) case-variant admission control: `plugin = "Hook-Plugins/foo.wasm"` enters declared as `"Hook-Plugins/foo.wasm"` (verbatim; gate-3 eq_ignore_ascii_case admits; no lowercasing, per pass-9.1) |
-//! | T-032 | AC-006 S-21.09 | GREEN | MEDIUM-1 nested-subdir control: `plugin = "hook-plugins/sub/nested.wasm"` yields `nested.wasm` (last component); proves non-flat declarations are not silently mis-named |
+//! | T-032 | AC-006 S-21.09 | GREEN | MEDIUM-1 nested-subdir control: `plugin = "hook-plugins/sub/nested.wasm"` yields the FULL path `hook-plugins/sub/nested.wasm` (not the bare `nested.wasm` last-component form); proves non-flat declarations are not silently collapsed to a flat-committed same-basename artifact (HIGH-1, pass-9) |
 //! | T-033 | AC-006 S-21.09 | GREEN | MEDIUM-3 minimum-length lower boundary: `plugin = "hook-plugins"` (directory path, no filename) is excluded; pins `expected_depth + 2` constant |
 //! | T-034 | AC-006 S-21.09 | GREEN | MEDIUM-4 `-r` flag control: `git ls-tree -r` finds a WASM committed under `hook-plugins/sub/`; dropping `-r` misses nested files |
 //! | T-035 | AC-006 S-21.09 | GREEN | HIGH-1 pass-7: gate-3 (hook-plugins component check) isolated control: `plugin = "other-dir/evil-probe.wasm"` passes gates 1+2 (depth+2 length, parent prefix matches) but is excluded by gate 3 (`other-dir` ≠ `hook-plugins`) |
@@ -55,8 +55,9 @@
 //! | T-045 | AC-006 S-21.09 | GREEN | pass-10.1 one-level-up UNGATED: `../ghost.wasm` resolves to `plugins/ghost.wasm` inside root; containment passes, NOT under hook-plugins/; fires `UNGATED-DECLARATION: ../ghost.wasm` |
 //! | T-046 | AC-006 S-21.09 | GREEN | pass-10.1 two-levels-up UNGATED: `../../ghost.wasm` resolves to `<root>/ghost.wasm` inside root; containment passes (root_parts.len()+1 > root_parts.len()); fires `UNGATED-DECLARATION: ../../ghost.wasm` |
 //! | T-047 | AC-006 S-21.09 | GREEN | pass-10.2 tightest-margin OUTSIDE-REPO: `../../../ghost.wasm` resolves one level above root (len==root_parts.len(), containment fails); fires `OUTSIDE-REPO-DECLARATION: ../../../ghost.wasm` |
-//! | T-048 | AC-006 S-21.09 | GREEN | pass-11 totality property: 18-candidate table asserting `extract.is_some() iff detect=[]`; correct identifier per class; OTHER identifier absent; kills M2 (len>→>=), M4 (>=+2→+1), M1+M4 composite, identifier swap |
+//! | T-048 | AC-006 S-21.09 | GREEN | pass-11 totality property: 18-candidate table asserting `extract.is_some() iff detect=[]`; correct identifier per class; OTHER identifier absent; kills M4 (>=+2→+1) and the M1+M4 composite, and any identifier swap among its 18 candidates. Does NOT isolate M2 (len>→>=): every OUTSIDE-REPO-DECLARATION candidate in this table is over-determined — it fails the containment predicate's length conjunct AND its prefix conjunct simultaneously, so relaxing `>` to `>=` alone does not flip any candidate's classification. See T-050 for the dedicated M2 control |
 //! | T-049 | AC-006 S-21.09 | GREEN | pass-11 EC-005a control: git fixture with non-WASM-only hook-plugins/ → git ls-files returns zero WASM paths → `#[should_panic(expected = "T-012 EC-005a")]` |
+//! | T-050 | AC-006 S-21.09 | GREEN | pass-11 fix-burst length-conjunct isolation control (kills M2, len>→>=): `plugin = "../.."` resolves to EXACTLY `root_parts` (`joined_parts == root_parts`, not just equal length) — the only candidate in the suite where the prefix conjunct is satisfied while the length conjunct is the sole distinguishing factor; under live `>` code, `joined_parts.len() == root_parts.len()` fails the length conjunct → `OUTSIDE-REPO-DECLARATION: ../..`; under mutant `>=`, the length conjunct passes and (since the prefix is an exact self-match) `in_repo` flips true → delegates to `extract_hook_plugin_name`, which fails its own gate-1 (length too short) → `None` → `UNGATED-DECLARATION: ../..` instead. T-047 and T-048's OUTSIDE candidates are all over-determined (fail both conjuncts at once) and therefore do NOT kill M2; T-050 is the sole isolating control |
 //!
 //! † T-009 is a STANDING GREEN GATE — passes immediately on any clean checkout where no
 //! orphan WASMs are tracked in git, and remains green on contaminated worktrees because
@@ -123,7 +124,7 @@
 //! Embedded at compile time via `include_str!()` — the .toml files are the single source
 //! of truth; edits must be made there, not to the constants.
 //!
-//! Stories: S-19.04 (T-006..T-011), S-21.09 (T-012..T-049)
+//! Stories: S-19.04 (T-006..T-011), S-21.09 (T-012..T-050)
 //! VP Trace: — (AC-006 wires EAC-005 as load-bearing leg; no BC mapping)
 
 use factory_dispatcher::Registry;
@@ -412,14 +413,18 @@ fn extract_hook_plugin_name(registry_path: &Path, plugin_path: &str) -> Option<S
 /// `extract_hook_plugin_name(registry_path, plugin_path)`.  This eliminates the M1/M2/M3/M4
 /// mutation surface where the duplicate could drift from the original; after the refactor
 /// all mutations propagate through a single code path, and T-048's property table directly
-/// kills M2 (len>→>=), M4 (>=+2→+1), and the M1+M4 composite.
+/// kills M4 (>=+2→+1) and the M1+M4 composite.  T-048's OUTSIDE-REPO-DECLARATION candidates
+/// are all over-determined with respect to the containment predicate's `>` conjunct (they
+/// also fail the prefix conjunct), so T-048 does NOT kill M2 (len>→>=) — T-050 is the
+/// dedicated length-conjunct isolation control for M2 (fix-burst pass-11).
 ///
 /// Used by `run_t012_gate()` to emit `UNGATED-DECLARATION: <path>` or
 /// `OUTSIDE-REPO-DECLARATION: <path>` before git calls.
 ///
 /// See T-038, T-040 (resolvers arm), T-043 (bare-name), T-044 (`../registry-parent/`),
 /// T-045 (`../` one level up), T-046 (`../../` two levels up),
-/// T-047 (`../../../` outside repo), T-048 (totality property partition).
+/// T-047 (`../../../` outside repo), T-048 (totality property partition),
+/// T-050 (M2 length-conjunct isolation control).
 fn detect_ungated_declarations(registry_path: &Path, root: &Path) -> Vec<String> {
     let registry_parent = match registry_path.parent() {
         Some(p) => p,
@@ -503,7 +508,14 @@ fn detect_ungated_declarations(registry_path: &Path, root: &Path) -> Vec<String>
 /// plugin path, which incorrectly included absolute paths and returned only the component
 /// immediately after `hook-plugins` (incorrect for nested subdirs). Replaced in pass 5
 /// (MEDIUM-1/MEDIUM-2/MEDIUM-4(a)) by `extract_hook_plugin_name(registry, plugin_path)`
-/// which resolves relative to the registry parent and uses `last()` as the filename.
+/// which resolves relative to the registry parent and used `last()` as the filename —
+/// returning only the bare filename regardless of subdirectory depth, which collapsed
+/// `hook-plugins/sub/nested.wasm` and a flat `hook-plugins/nested.wasm` to the same
+/// identifier (HIGH-1, pass-9).
+///
+/// The current (pass-9+) implementation returns `joined_parts[expected_depth..].join("/")`
+/// — the full registry-parent-relative path, e.g. `"hook-plugins/sub/nested.wasm"` — rather
+/// than the bare filename, preserving subdirectory structure. See T-032.
 fn parse_plugin_refs(registry: &Path) -> HashSet<String> {
     let content = fs::read_to_string(registry)
         .unwrap_or_else(|e| panic!("failed to read registry {}: {}", registry.display(), e));
@@ -3139,7 +3151,11 @@ fn test_S_21_09_ac006_T031_case_variant_hook_plugins_included() {
 // Story: S-21.09
 // ---------------------------------------------------------------------------
 #[test]
-fn test_S_21_09_ac006_T032_nested_subdir_yields_filename() {
+// Rename note (fix-burst pass-11 F-2 item 2): this function was previously named
+// `..._yields_filename`, encoding stale pass-5 basename-only semantics.  Renamed to
+// `..._yields_full_path` to match the pass-9 full-path return.  T-032's numeric ID is
+// preserved (POLICY 1 append-only applies to test IDs, not to function name text).
+fn test_S_21_09_ac006_T032_nested_subdir_yields_full_path() {
     let tmp = tempdir().expect("tempdir must create successfully");
     let registry = tmp.path().join("registry.toml");
     fs::write(
@@ -4670,11 +4686,20 @@ fn test_S_21_09_ac006_T047_outside_repo_declaration_tightest_margin_fires() {
     // The error header always prints both identifier *definitions* (as explanatory text);
     // check for the "UNGATED-DECLARATION: <path>" prefixed form to distinguish a real
     // finding from the header prose.
+    // Negative-identifier assertion: pins the correct classification but does NOT isolate
+    // M2 (len>→>=).  For '../../../ghost.wasm', joined_parts resolves to
+    // [root_parts[0..N-1]..., "ghost.wasm"] — its length equals root_parts.len() (fails the
+    // length conjunct) AND it independently mismatches root_parts at the last index (fails
+    // the prefix conjunct too).  Both conjuncts fail simultaneously (over-determined), so
+    // relaxing `>` to `>=` alone does not flip this candidate's classification — the prefix
+    // conjunct still fails and in_repo remains false.  This assertion instead guards against
+    // identifier-swap mutations in detect_ungated_declarations' branch bodies.
+    // The dedicated M2 length-conjunct isolation control is T-050 ('../..', which resolves
+    // to exactly root_parts — length conjunct is the sole distinguishing factor there).
     assert!(
         !err.contains("UNGATED-DECLARATION: "),
         "T-047 negative-identifier: error must NOT contain 'UNGATED-DECLARATION: <path>' for \
          an outside-repo path — ../../../ghost.wasm resolves outside the worktree root; \
-         M2 (len>→>=) would cause it to pass containment and fire UNGATED instead; \
          got: {:?}",
         err
     );
@@ -4690,13 +4715,18 @@ fn test_S_21_09_ac006_T047_outside_repo_declaration_tightest_margin_fires() {
 // After the pass-11 single-copy refactor, `detect_ungated_declarations` calls
 // `extract_hook_plugin_name` for the correctness gate — mutations in `extract` propagate
 // to both functions simultaneously.  This test kills:
-//   M2 (len>→>=): outside paths satisfy the relaxed containment check → fire UNGATED
-//                  instead of OUTSIDE; the negative-identifier assertion catches the swap.
 //   M4 (>=+2→+1): hook-plugins/ (directory path, no filename) passes the weakened gate
 //                  and enters gated; the GATED assertion for "hook-plugins" catches it.
 //   M1+M4 composite: silent drop re-opens when M1 removes containment check AND M4 relaxes
 //                    gate-1; property table assertion on GATED cases catches the missing
 //                    UNGATED emission.
+//
+// Does NOT kill M2 (len>→>=): every OUTSIDE-REPO-DECLARATION candidate in this table is
+// over-determined with respect to the containment predicate — each fails both the length
+// conjunct AND the prefix conjunct simultaneously, so relaxing `>` to `>=` alone does not
+// flip any candidate's classification here.  T-050 is the dedicated M2 length-conjunct
+// isolation control ('../..', which resolves to exactly `root_parts` — an exact prefix
+// self-match — making the length conjunct the sole distinguishing factor).
 //
 // Story: S-21.09
 // ---------------------------------------------------------------------------
@@ -4787,9 +4817,13 @@ fn test_S_21_09_ac006_T048_totality_property_partition() {
                     expected_entry,
                     detected
                 );
-                // Negative-identifier: assert the OTHER class is absent.
-                // Kills M2 (len>→>=): outside-repo paths satisfy the relaxed containment
-                // check and would fire UNGATED instead of OUTSIDE.
+                // Negative-identifier: assert the OTHER class is absent. Guards against
+                // identifier-swap mutations in detect_ungated_declarations' branch bodies.
+                // NOTE: this table's OUTSIDE-REPO-DECLARATION candidates are all
+                // over-determined with respect to the containment predicate's length
+                // conjunct (they also independently fail the prefix conjunct), so this
+                // assertion does NOT kill M2 (len>→>=) — see T-050 for the dedicated M2
+                // length-conjunct isolation control.
                 let other_ident = if ident == "UNGATED-DECLARATION" {
                     "OUTSIDE-REPO-DECLARATION"
                 } else {
@@ -4797,9 +4831,7 @@ fn test_S_21_09_ac006_T048_totality_property_partition() {
                 };
                 assert!(
                     !detected.iter().any(|s| s.starts_with(other_ident)),
-                    "T-048 property[{:?}]: identifier swap — detected {:?} but expected {}; \
-                     M2 (len>→>=) causes OUTSIDE paths to pass containment and get UNGATED \
-                     instead of OUTSIDE — this assertion kills that mutant",
+                    "T-048 property[{:?}]: identifier swap — detected {:?} but expected {}",
                     path,
                     detected,
                     ident
@@ -4933,4 +4965,118 @@ fn test_S_21_09_ac006_T049_ec005a_fires_on_empty_wasm_tracked_set() {
     // run_t012_gate passes inventory, Registry::parse_str, and detect_ungated_declarations,
     // then reaches git_tracked_wasm_names → tracked_raw.is_empty() → EC-005a panic.
     run_t012_gate(root).unwrap_or_else(|e| panic!("{}", e));
+}
+
+// ---------------------------------------------------------------------------
+// T-050 — pass-11 fix-burst F-1 closure: M2 length-conjunct isolation control
+//
+// T-047 and T-048 both claimed to kill mutant M2 (the `detect_ungated_declarations`
+// containment predicate's length conjunct `joined_parts.len() > root_parts.len()`
+// relaxed to `>=`) using OUTSIDE-REPO-DECLARATION probes such as `../../../ghost.wasm`.
+// That claim was FALSE: those probes are over-determined — resolved from
+// `registry_parent = root/plugins/vsdd-factory`, they land at a path whose length equals
+// `root_parts.len()` (failing the length conjunct) AND whose content mismatches
+// `root_parts` at the last index (failing the prefix `.all()` conjunct too). Under M2 the
+// length conjunct flips true, but the prefix conjunct independently stays false, so
+// `in_repo` remains false and the classification is UNCHANGED — M2 survives T-047 and
+// T-048 undetected.
+//
+// This test isolates the length conjunct with a candidate that resolves to EXACTLY
+// `root_parts` (`joined_parts == root_parts`, not merely equal length), so the prefix
+// conjunct is trivially satisfied (a path is always a prefix of itself) and the length
+// conjunct alone determines the outcome:
+//
+//   plugin = "../.."  from  plugins/vsdd-factory/hooks-registry.toml
+//   registry_parent = <root>/plugins/vsdd-factory
+//   lex_norm(registry_parent.join("../..")):
+//     parts after registry_parent components = [root_parts..., "plugins", "vsdd-factory"]
+//     two ParentDir pops remove "vsdd-factory" then "plugins" → parts = root_parts exactly
+//   joined_parts == root_parts  (both length AND content match)
+//
+// Under live `>` code: joined_parts.len() > root_parts.len() is FALSE (equal, not
+// greater) → length conjunct fails → in_repo = false → OUTSIDE-REPO-DECLARATION: ../..
+//
+// Under mutant M2 (`>=`): joined_parts.len() >= root_parts.len() is TRUE (equal) AND the
+// prefix conjunct is TRUE (joined_parts == root_parts is an exact self-match) →
+// in_repo = true → delegates to extract_hook_plugin_name(registry_path, "../.."), which
+// independently fails its own gate-1 minimum-length check (joined_parts.len() == N <
+// expected_depth+2 == N+4) → returns None → UNGATED-DECLARATION: ../.. instead of
+// OUTSIDE-REPO-DECLARATION: ../.. — a genuine classification flip.
+//
+// Mutation-proof (empirically verified, fix-burst pass-11 F-1 closure): applying M2
+// locally (`>` → `>=` in `detect_ungated_declarations`) and running the suite turns this
+// test RED (asserts OUTSIDE-REPO-DECLARATION, observes UNGATED-DECLARATION instead) while
+// T-047 and T-048 remain GREEN — confirming T-050, not T-047/T-048, is the true M2 kill.
+//
+// No git init required; detect_ungated_declarations fires before git calls.
+//
+// Story: S-21.09
+// ---------------------------------------------------------------------------
+#[test]
+fn test_S_21_09_ac006_T050_length_conjunct_isolation_kills_m2() {
+    let tmp = tempdir().expect("tempdir must create successfully");
+    let root = tmp.path();
+
+    let plugins_dir = root.join("plugins/vsdd-factory");
+    fs::create_dir_all(&plugins_dir).expect("plugins/vsdd-factory dir must be created");
+
+    // hooks-registry: 30 valid hooks + 1 root-resolving declaration ("../..").
+    // "../.." from plugins/vsdd-factory resolves to exactly the worktree root — the
+    // unique candidate where joined_parts == root_parts (not just equal length).
+    let mut hooks_content = String::from("schema_version = 2\n");
+    for i in 0..30_u32 {
+        hooks_content.push_str(&format!(
+            "[[hooks]]\nname = \"h{i:02}\"\nplugin = \"hook-plugins/h{i:02}.wasm\"\n\
+             event = \"PreToolUse\"\ntool = \"^Bash$\"\ntimeout_ms = 5000\n\
+             on_error = \"continue\"\n",
+        ));
+    }
+    hooks_content.push_str(
+        "[[hooks]]\nname = \"ghost-root-exact\"\nplugin = \"../..\"\n\
+         event = \"PreToolUse\"\ntool = \"^Bash$\"\ntimeout_ms = 5000\n\
+         on_error = \"continue\"\n",
+    );
+    fs::write(plugins_dir.join("hooks-registry.toml"), &hooks_content)
+        .expect("hooks-registry.toml must be written");
+
+    fs::write(
+        plugins_dir.join("resolvers-registry.toml"),
+        "schema_version = 1\n[[resolvers]]\nname = \"ctx\"\n\
+         plugin = \"hook-plugins/ctx.wasm\"\n",
+    )
+    .expect("resolvers-registry.toml must be written");
+
+    // No git init required: detect_ungated_declarations fires before git calls.
+    let result = run_t012_gate(root);
+
+    assert!(
+        result.is_err(),
+        "T-050 OUTSIDE-REPO-DECLARATION: run_t012_gate must return Err when '../..' \
+         resolves to exactly the worktree root (joined_parts == root_parts; length \
+         conjunct fails under live `>` code since lengths are equal, not greater); got Ok"
+    );
+
+    let err = result.unwrap_err();
+    assert!(
+        err.contains("OUTSIDE-REPO-DECLARATION: ../.."),
+        "T-050: error must contain 'OUTSIDE-REPO-DECLARATION: ../..'; under mutant M2 \
+         (len>→>=) this would instead read 'UNGATED-DECLARATION: ../..' — the length \
+         conjunct alone determines this candidate's classification since the prefix \
+         conjunct is an exact self-match; got: {:?}",
+        err
+    );
+    // Negative-identifier: the isolating property. If M2 is live, this fires
+    // UNGATED-DECLARATION instead of OUTSIDE-REPO-DECLARATION — the assertion that
+    // actually kills M2 (unlike T-047/T-048's over-determined equivalents).
+    assert!(
+        !err.contains("UNGATED-DECLARATION: "),
+        "T-050 M2 kill assertion: error must NOT contain 'UNGATED-DECLARATION: <path>' for \
+         '../..' — under live `>` code the length conjunct fails (equal, not greater) so \
+         classification is OUTSIDE-REPO-DECLARATION; under mutant `>=` the length conjunct \
+         passes AND the prefix conjunct is trivially true (joined_parts == root_parts is a \
+         self-match), so in_repo flips true and the path is misclassified as \
+         UNGATED-DECLARATION via extract_hook_plugin_name's own gate-1 fallthrough; \
+         got: {:?}",
+        err
+    );
 }
