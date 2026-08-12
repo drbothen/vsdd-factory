@@ -183,7 +183,7 @@ E-21 introduces the following PRD capabilities, defined in ADR-031 §Decision 7 
 | S-21.05 | pr-manager factory-side PR protocol: restore-original-branch, ff-only sync, chore-branch cleanup | W2 | 5 | BC-6.27.001 |
 | S-21.06 | validate-main-checkout-sync WASM guard (W-SEC-001 Layer-2 sync-protocol enforcement) | W3 | 8 | TBD (product-owner authoring required) |
 | S-21.07 | validate-cross-site-correspondence WASM hook — six-arm PostToolUse cross-site value-correspondence gate | W4 | 11 | BC-5.39.010 |
-| S-21.09 | validate-factory-path-staging.wasm artifact restore + per-name registry parity check | W4 | 14 | BC-4.16.001 |
+| S-21.09 | validate-factory-path-staging.wasm artifact restore + per-name registry parity check | W4 | 16 | BC-4.16.001 |
 | S-21.12 | wasmtime major-version move >= 46.0.2: clear RUSTSEC-2026-0188/CVE-2026-58494 + RUSTSEC-2026-0222, add cargo-deny advisories CI job | W4 | 8 | — |
 | S-21.10 | failure_policy dispatcher registry schema extension (ADR-039 Decision 1+2 schema leg — Phase 1) | W5 | 5 | BC-1.01.016 |
 | S-21.11 | Per-plugin fuel-cap calibration + fail-closed enforcement flip (ADR-039 Phase 3+4 — CWE-636 closure) | W6 | 16 | BC-1.01.016, BC-1.03.017 |
@@ -191,7 +191,7 @@ E-21 introduces the following PRD capabilities, defined in ADR-031 §Decision 7 
 | S-21.14 | release-pipeline predicate+gate sweep | W8 | 8 | TBD (stub; story-writer elaboration pending) |
 | S-21.15 | compute-input-hash search-path + traces_to resolution | W8 | 5 | TBD (stub; story-writer elaboration pending) |
 
-**Total:** 14 stories, 115 story points.
+**Total:** 14 stories, 117 story points.
 
 > **Maintenance tally drift-check:** Compute story count + points from the 6 linked story frontmatters and assert equals the Stories-table totals (6 / 35); run at every epic amendment.
 
@@ -218,7 +218,7 @@ E-21 introduces the following PRD capabilities, defined in ADR-031 §Decision 7 
   pattern established by S-21.01 and enforces the Layer-2 main-checkout sync protocol
   (W-SEC-001). Sequential after W1; runs after S-21.01 merges.
 
-- Wave 4 (S-21.07, S-21.09, S-21.12 — 33 pts): Three independent stories, all
+- Wave 4 (S-21.07, S-21.09, S-21.12 — 35 pts): Three independent stories, all
   `depends_on: []`. S-21.07 adds the six-arm cross-site value-correspondence WASM hook
   (BC-5.39.010). S-21.09 restores the `validate-factory-path-staging.wasm` artifact and
   adds per-name registry parity checks (BC-4.16.001). S-21.12 moves the workspace to
