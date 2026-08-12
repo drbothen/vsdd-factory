@@ -42,6 +42,7 @@
 //! | T-032 | AC-006 S-21.09 | GREEN | MEDIUM-1 nested-subdir control: `plugin = "hook-plugins/sub/nested.wasm"` yields `nested.wasm` (last component); proves non-flat declarations are not silently mis-named |
 //! | T-033 | AC-006 S-21.09 | GREEN | MEDIUM-3 minimum-length lower boundary: `plugin = "hook-plugins"` (directory path, no filename) is excluded; pins `expected_depth + 2` constant |
 //! | T-034 | AC-006 S-21.09 | GREEN | MEDIUM-4 `-r` flag control: `git ls-tree -r` finds a WASM committed under `hook-plugins/sub/`; dropping `-r` misses nested files |
+//! | T-035 | AC-006 S-21.09 | GREEN | HIGH-1 pass-7: gate-3 (hook-plugins component check) isolated control: `plugin = "other-dir/evil-probe.wasm"` passes gates 1+2 (depth+2 length, parent prefix matches) but is excluded by gate 3 (`other-dir` ≠ `hook-plugins`) |
 //!
 //! † T-009 is a STANDING GREEN GATE — passes immediately on any clean checkout where no
 //! orphan WASMs are tracked in git, and remains green on contaminated worktrees because
@@ -108,7 +109,7 @@
 //! Embedded at compile time via `include_str!()` — the .toml files are the single source
 //! of truth; edits must be made there, not to the constants.
 //!
-//! Stories: S-19.04 (T-006..T-011), S-21.09 (T-012..T-034)
+//! Stories: S-19.04 (T-006..T-011), S-21.09 (T-012..T-035)
 //! VP Trace: — (AC-006 wires EAC-005 as load-bearing leg; no BC mapping)
 
 use std::collections::HashSet;
@@ -412,8 +413,9 @@ fn parse_plugin_refs(registry: &Path) -> HashSet<String> {
 /// no `.toml` files).  The three `hooks-registry.toml` files visible to a recursive walk
 /// are test fixtures under `tests/fixtures/`, not production registries.
 ///
-/// Boundary-polarity proof: T-028 shows that `config/hooks-registry.toml` (a subdirectory
-/// file) is invisible to the non-recursive enumeration.  The false-negative class (a new
+/// Boundary-polarity proof: T-028 uses a synthetic tempdir fixture with a subdirectory
+/// `config/hooks-registry.toml`; that file is invisible to the non-recursive enumeration.
+/// The false-negative class (a new
 /// plugin registry placed in a subdirectory) is SAFE: production never loads it, so its
 /// artifacts are never executed and never require git tracking — no security gap exists.
 ///
@@ -643,7 +645,7 @@ fn check_declared_subset_tracked(
 ///      were unreachable (inventory's `?` always fires first for a missing file) and were
 ///      removed in pass-6 (MEDIUM-1 closure).
 ///   2. Parse per-registry refs via `parse_plugin_refs()`.
-///   3-5. Per-registry floors, declared−tracked, staged-not-committed via
+///   2a/2b/3/4. Per-registry floors, declared−tracked, staged-not-committed via
 ///      `check_declared_subset_tracked()`.
 ///
 /// Returns `Ok(())` when all checks pass. Returns `Err(message)` on inventory or
@@ -1947,8 +1949,9 @@ fn test_S_21_09_ac006_T023_boundary_polarity_bare_and_traversal_cancels_excluded
     assert!(
         refs_bare.is_empty(),
         "T-023(a) boundary-polarity: parse_plugin_refs must exclude bare plugin paths \
-         ('ghost-bare.wasm' has no hook-plugins component after resolving relative to \
-         the registry parent); got refs: {:?}",
+         ('ghost-bare.wasm' resolves to expected_depth+1 components — gate 1 \
+         minimum-length check fires before a hook-plugins component can be inspected); \
+         got refs: {:?}",
         refs_bare
     );
 
@@ -1978,9 +1981,10 @@ fn test_S_21_09_ac006_T023_boundary_polarity_bare_and_traversal_cancels_excluded
         refs_cancels.is_empty(),
         "T-023(b) MEDIUM-4(b) traversal-cancels: `hook-plugins/../ghost-cancels.wasm` \
          resolves to registry_parent/ghost-cancels.wasm (the `..` pops `hook-plugins`); \
-         no hook-plugins component remains → excluded from declared; \
-         mutation proof: if ParentDir were not popped, hook-plugins would survive and \
-         ghost-cancels.wasm would be falsely admitted; got refs: {:?}",
+         normalises to expected_depth+1 components — gate 1 minimum-length check fires; \
+         mutation proof: if ParentDir were not popped, hook-plugins would survive at \
+         depth position (depth+2 components, gate 1 passes, gate 3 would admit \
+         ghost-cancels.wasm); got refs: {:?}",
         refs_cancels
     );
 }
@@ -2887,5 +2891,60 @@ fn test_S_21_09_ac006_T034_git_ls_tree_r_finds_nested_committed_wasm() {
          producing a false MISSING: nested.wasm even though the artifact IS committed; \
          got committed: {:?}",
         committed
+    );
+}
+
+// ---------------------------------------------------------------------------
+// T-035 — HIGH-1 pass-7: gate-3 (hook-plugins component check) isolated control
+//
+// `plugin = "other-dir/evil-probe.wasm"` resolves relative to registry_parent to
+// [registry_parent_parts..., "other-dir", "evil-probe.wasm"].
+//
+// Gate-by-gate traversal:
+//
+//   Gate 1 (minimum-length): joined_parts.len() == expected_depth + 2  → PASSES
+//     (len == expected_depth + 2 ≥ expected_depth + 2; the `<` check is false)
+//   Gate 2 (prefix loop): joined_parts[0..expected_depth] == parent_parts → PASSES
+//     ("other-dir" sits at index expected_depth, outside [0..expected_depth])
+//   Gate 3 (hook-plugins component): joined_parts[expected_depth] == "other-dir"
+//     ≠ "hook-plugins" → EXCLUDED (sole reason for exclusion)
+//
+// Mutation proof: deleting `!hook_comp.eq_ignore_ascii_case("hook-plugins")` (gate 3)
+// admits "evil-probe.wasm" into declared (refs: {"evil-probe.wasm"}).
+// Neither gate 1 nor gate 2 catches this path — gate 3 is the load-bearing check.
+//
+// Story: S-21.09
+// ---------------------------------------------------------------------------
+#[test]
+fn test_S_21_09_ac006_T035_gate3_hookplugins_component_check_isolated_control() {
+    let tmp = tempdir().expect("tempdir must create successfully");
+
+    let registry = tmp.path().join("hooks-registry.toml");
+    fs::write(
+        &registry,
+        concat!(
+            "schema_version = 2\n",
+            "[[hooks]]\n",
+            "name = \"evil-probe\"\n",
+            "event = \"PreToolUse\"\n",
+            "tool = \"^Bash$\"\n",
+            "plugin = \"other-dir/evil-probe.wasm\"\n",
+            "timeout_ms = 5000\n",
+            "on_error = \"continue\"\n",
+        ),
+    )
+    .expect("gate-3 control registry must be written to tempfile");
+
+    let refs = parse_plugin_refs(&registry);
+
+    assert!(
+        refs.is_empty(),
+        "T-035 HIGH-1 gate-3 isolated control: parse_plugin_refs must exclude \
+         'other-dir/evil-probe.wasm' — path normalises to expected_depth+2 components \
+         (passes gate 1) with parent prefix intact (passes gate 2) but \
+         'other-dir' != 'hook-plugins' (gate 3 fires); \
+         mutation proof: deleting gate 3 admits evil-probe.wasm into declared; \
+         got refs: {:?}",
+        refs
     );
 }
