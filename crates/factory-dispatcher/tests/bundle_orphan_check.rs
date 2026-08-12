@@ -61,6 +61,9 @@
 //! | T-051 | AC-006 S-21.09 | GREEN | pass-12 fix-burst prefix-conjunct isolation control (kills `.all(...)`→`.any(...)` and `.all(...)`→`true`): `plugin = "../../../sib/ghost.wasm"` resolves to `root_parts[0..N-1] + ["sib", "ghost.wasm"]` — length `N+1 > N` so the length conjunct is TRUE, but index `N-1` diverges from `root_parts`'s last component so the prefix `.all(...)` conjunct is FALSE — the sole determinant. Under live code `in_repo = false` → `OUTSIDE-REPO-DECLARATION: ../../../sib/ghost.wasm`; under either `.all→.any` or `.all→true` mutant the prefix conjunct flips true, `in_repo` flips true, and the path delegates to `extract_hook_plugin_name`, which fails its own gates → `None` → `UNGATED-DECLARATION: ../../../sib/ghost.wasm` instead — a genuine classification flip. Orthogonal to T-050 (which isolates the length conjunct); does NOT kill M2 |
 //! | T-052 | AC-006 S-21.09 | GREEN | pass-14 fix-burst hooks production-validation isolation control (kills deletion of the `Registry::parse_str(&hooks_content)` block in `run_t012_gate`): full valid git fixture (30 hooks + 1 resolver, all WASMs committed, all other fields production-valid) except `hooks-registry.toml`'s top-level `schema_version = 3` (unsupported; `REGISTRY_SCHEMA_VERSION` is 2) — every other gate (inventory, ungated-declaration, floors, declared ⊆ tracked) would pass. Under live code `Registry::parse_str` returns `Err(RegistryError::SchemaVersion{got:3,expected:2})`, causing `run_t012_gate` to panic with "T-012: hooks-registry.toml fails production validation (...)"; under the deletion mutant no production check runs, `hooks_refs`/`resolvers_refs` parse the same 30+1 declarations via the schema-version-agnostic `parse_plugin_refs`, and every subsequent gate passes against the fully-committed fixture — `run_t012_gate` returns `Ok(())` and the `#[should_panic]` assertion fails to fire (test goes RED), proving the block is load-bearing |
 //! | T-053 | AC-006 S-21.09 | GREEN | pass-14 fix-burst resolvers schema-version isolation control (kills deletion of the `assert_eq!(resolvers_schema_version, 1, ...)` block in `run_t012_gate`): same full valid git fixture shape as T-052 (30 hooks + 1 resolver, all WASMs committed) except `resolvers-registry.toml`'s top-level `schema_version = 2` (production requires 1) — `hooks-registry.toml` is fully production-valid (`schema_version = 2`) so `Registry::parse_str` passes, isolating this determinant from T-052's. Under live code the `assert_eq!` panics with "T-012: resolvers-registry.toml schema_version=2 but production requires 1"; under the deletion mutant no resolvers-schema check runs and every subsequent gate passes against the fully-committed fixture — `run_t012_gate` returns `Ok(())` and the `#[should_panic]` assertion fails to fire (test goes RED), proving the block is load-bearing and distinct from T-052's hooks-side check |
+//! | T-054 | AC-006 S-21.09 | GREEN | mutation-audit hardening SURV-04 (CORRECTNESS / fail-closed) control: isolates `resolvers_schema_version`'s `.unwrap_or(-1)` sentinel — same full valid git fixture shape as T-052/T-053 but `resolvers-registry.toml` OMITS `schema_version` entirely (absent-key path, distinct from T-053's explicit-wrong-integer fixture). Under live code `.unwrap_or(-1)` fires (fail-closed) → `assert_eq!(-1, 1, ...)` panics; under the `.unwrap_or(-1)`→`.unwrap_or(1)` mutant the absent key silently coerces to the production-required value and every gate passes — `run_t012_gate` returns `Ok(())` and the `#[should_panic]` fails to fire (test goes RED), proving the `-1` sentinel (not just the assert, which T-053 already isolates) is load-bearing |
+//! | T-055 | AC-006 S-21.09 | GREEN | mutation-audit hardening SURV-03 control: direct unit test of `detect_ungated_declarations`'s fail-open `content.parse::<toml::Value>()` `Err(_) => return Vec::new()` arm — unreachable via `run_t012_gate` (upstream `Registry::parse_str` / resolvers TOML parse panic first on malformed input). Calls `detect_ungated_declarations` directly with malformed TOML; asserts the result `.is_empty()`. A fail-open mutant that returns a spurious non-empty finding from the `Err(_)` arm fails this assertion (test goes RED) |
+//! | T-056 | AC-006 S-21.09 | GREEN | mutation-audit hardening SURV-02 control: direct unit test pinning `lex_norm`'s `Component::CurDir => {}` arm contract — dead in every gate call path (all call sites use absolute roots; std pre-normalizes interior `.`). Asserts `lex_norm(Path::new("./a/b")) == ["a", "b"]`; a mutant that pushes `"."` onto `parts` for the CurDir arm yields `[".", "a", "b"]` instead (test goes RED) |
 //!
 //! † T-009 is a STANDING GREEN GATE — passes immediately on any clean checkout where no
 //! orphan WASMs are tracked in git, and remains green on contaminated worktrees because
@@ -127,7 +130,7 @@
 //! Embedded at compile time via `include_str!()` — the .toml files are the single source
 //! of truth; edits must be made there, not to the constants.
 //!
-//! Stories: S-19.04 (T-006..T-011), S-21.09 (T-012..T-053)
+//! Stories: S-19.04 (T-006..T-011), S-21.09 (T-012..T-056)
 //! VP Trace: — (AC-006 wires EAC-005 as load-bearing leg; no BC mapping)
 
 use factory_dispatcher::Registry;
@@ -204,6 +207,13 @@ const HOOKS_REGISTRY_DOTSLASH_FIXTURE: &str =
 /// when this arm executes.  The `clear()` has no observable effect.  Recorded as the
 /// same defensive category as the three unreachable `?` exits in
 /// `extract_hook_plugin_name`.
+///
+/// **Mutation-audit accepted-residual (SURV-01):** an exhaustive mutation audit of this
+/// arm (mutating `parts.clear()` to a no-op, or the arm to a spurious push) confirmed no
+/// fixture — synthetic or gate-integration — can isolate a mutant here: `parts` is
+/// provably empty at every call site that reaches this arm (see above), so any mutation
+/// of the arm's body is behaviorally unobservable. This is an audited, deliberately
+/// un-isolatable accepted-residual, not a coverage gap; no test targets it.
 fn lex_norm(path: &Path) -> Vec<String> {
     let mut parts: Vec<String> = Vec::new();
     for comp in path.components() {
@@ -5508,4 +5518,280 @@ fn test_S_21_09_ac006_T053_resolvers_schema_version_isolation_kills_assert_delet
     // resolvers-registry.toml schema_version=2 but production requires 1; ..." —
     // before any ungated-declaration check or floor check is reached.
     let _ = run_t012_gate(root);
+}
+
+// ---------------------------------------------------------------------------
+// T-054 — mutation-audit hardening SURV-04 (CORRECTNESS / fail-closed):
+// resolvers_schema_version's `.unwrap_or(-1)` fail-closed sentinel isolation
+//
+// Exhaustive mutation audit of run_t012_gate's resolvers-schema-version block
+// (HIGH-3, pass-11) found the ABSENT-KEY / non-integer path un-isolated:
+//
+//   let resolvers_schema_version = resolvers_doc
+//       .get("schema_version")
+//       .and_then(|v| v.as_integer())
+//       .unwrap_or(-1);
+//
+// Every fixture that reaches this line (T-012's own fixtures, T-052, T-053)
+// writes an explicit integer `schema_version` in resolvers-registry.toml, so
+// the `.unwrap_or(-1)` sentinel arm never fires in the existing suite — a
+// `.unwrap_or(-1)` → `.unwrap_or(1)` mutation survives undetected, because a
+// resolvers registry with a MISSING (or non-integer) schema_version would
+// silently coerce to the production-required value 1 and PASS the
+// `assert_eq!(resolvers_schema_version, 1, ...)` check that immediately
+// follows, instead of fail-closed panicking as production correctness
+// requires.
+//
+// Same full-valid-git-fixture shape as T-052/T-053 (30 hooks + 1 resolver,
+// all 31 WASMs committed): hooks-registry.toml is fully production-valid
+// (`schema_version = 2`) so `Registry::parse_str` passes, isolating this
+// determinant from T-052's hooks-side check. resolvers-registry.toml OMITS
+// the `schema_version` key entirely — valid TOML, valid resolver entry,
+// sole defect is the missing top-level key.
+//
+// Under live code: `resolvers_doc.get("schema_version")` returns `None` →
+// `.and_then(...)` short-circuits to `None` → `.unwrap_or(-1)` yields the
+// fail-closed sentinel `-1` → `assert_eq!(-1, 1, ...)` panics with "T-012:
+// resolvers-registry.toml schema_version=-1 but production requires 1; ...".
+//
+// Under the `.unwrap_or(-1)` → `.unwrap_or(1)` mutant: the same `None` path
+// now yields `1` → `assert_eq!(1, 1, ...)` passes silently → every subsequent
+// gate (ungated-declaration, floors, declared ⊆ tracked) also passes against
+// this fully-committed fixture → `run_t012_gate` returns `Ok(())` → the
+// `#[should_panic]` assertion below does not fire → T-054 goes RED, proving
+// the `-1` fail-closed sentinel (not the assert alone, which T-053 already
+// isolates) is load-bearing.
+//
+// Mutation-proof (empirically verified, mutation-hardening burst): applying
+// `.unwrap_or(-1)` → `.unwrap_or(1)` locally and running the suite turns this
+// test RED (no panic fires; `run_t012_gate` returns `Ok(())`) while T-052 and
+// T-053 (and all other tests) remain GREEN. Reverting the mutant restores
+// GREEN.
+//
+// No fixture in T-006..T-053 omits resolvers-registry.toml's `schema_version`
+// key — this is the sole isolating control for the sentinel arm.
+//
+// Story: S-21.09
+// ---------------------------------------------------------------------------
+#[test]
+#[should_panic(expected = "but production requires 1")]
+fn test_S_21_09_ac006_T054_resolvers_schema_version_absent_key_fail_closed_sentinel() {
+    let tmp = tempdir().expect("tempdir must create successfully");
+    let root = tmp.path();
+
+    let init_out = Command::new("git")
+        .args([
+            "-c",
+            "core.excludesFile=/dev/null",
+            "-c",
+            "commit.gpgsign=false",
+            "-c",
+            "core.hooksPath=/dev/null",
+            "-c",
+            "init.templateDir=",
+            "init",
+        ])
+        .current_dir(root)
+        .output()
+        .expect("git init must execute for T-054 fixture");
+    assert!(
+        init_out.status.success(),
+        "T-054: git init failed: {}",
+        String::from_utf8_lossy(&init_out.stderr)
+    );
+    Command::new("git")
+        .args(["config", "user.email", "test@example.com"])
+        .current_dir(root)
+        .output()
+        .expect("git config user.email must execute");
+    Command::new("git")
+        .args(["config", "user.name", "Test"])
+        .current_dir(root)
+        .output()
+        .expect("git config user.name must execute");
+
+    let plugins_dir = root.join("plugins/vsdd-factory");
+    let hook_plugins_dir = plugins_dir.join("hook-plugins");
+    fs::create_dir_all(&hook_plugins_dir).expect("hook-plugins dir must be created");
+
+    // hooks-registry.toml: fully production-valid (schema_version = 2, 30
+    // entries) — Registry::parse_str passes, isolating this determinant from
+    // T-052's hooks-side one.
+    let mut hooks_content = String::from("schema_version = 2\n");
+    for i in 0..30_u32 {
+        hooks_content.push_str(&format!(
+            "[[hooks]]\nname = \"h{i:02}\"\nplugin = \"hook-plugins/h{i:02}.wasm\"\n\
+             event = \"PreToolUse\"\ntool = \"^Bash$\"\ntimeout_ms = 5000\n\
+             on_error = \"continue\"\n",
+        ));
+    }
+    fs::write(plugins_dir.join("hooks-registry.toml"), &hooks_content)
+        .expect("hooks-registry.toml must be written");
+
+    // resolvers-registry.toml: OMITS `schema_version` entirely — the sole
+    // defect. Valid TOML, valid resolver entry otherwise. This is the
+    // absent-key path that isolates the `.unwrap_or(-1)` fail-closed sentinel
+    // from T-053's explicit-wrong-integer (`schema_version = 2`) fixture.
+    fs::write(
+        plugins_dir.join("resolvers-registry.toml"),
+        "[[resolvers]]\nname = \"ctx\"\nplugin = \"hook-plugins/ctx.wasm\"\n",
+    )
+    .expect("resolvers-registry.toml must be written");
+
+    // Commit all 30 hook WASMs + the resolver WASM so that, absent the
+    // fail-closed sentinel, EVERY subsequent gate (ungated-declaration,
+    // floors, declared ⊆ tracked) also passes — proving the `.unwrap_or(1)`
+    // mutant produces a clean Ok(()), not an incidental panic from a
+    // downstream gate.
+    for i in 0..30_u32 {
+        fs::write(hook_plugins_dir.join(format!("h{i:02}.wasm")), b"wasm")
+            .expect("hook wasm fixture must be written");
+    }
+    fs::write(hook_plugins_dir.join("ctx.wasm"), b"wasm")
+        .expect("resolver wasm fixture must be written");
+
+    let add_out = Command::new("git")
+        .args(["-c", "core.excludesFile=/dev/null", "add", "."])
+        .current_dir(root)
+        .output()
+        .expect("git add must execute for T-054 fixture");
+    assert!(
+        add_out.status.success(),
+        "T-054: git add failed: {}",
+        String::from_utf8_lossy(&add_out.stderr)
+    );
+
+    let commit_out = Command::new("git")
+        .args([
+            "-c",
+            "core.excludesFile=/dev/null",
+            "-c",
+            "commit.gpgsign=false",
+            "-c",
+            "core.hooksPath=/dev/null",
+            "commit",
+            "-m",
+            "T-054 fixture: resolvers-registry.toml omits schema_version",
+        ])
+        .current_dir(root)
+        .output()
+        .expect("git commit must execute for T-054 fixture");
+    assert!(
+        commit_out.status.success(),
+        "T-054: git commit failed: {}",
+        String::from_utf8_lossy(&commit_out.stderr)
+    );
+
+    // `.unwrap_or(-1)` fail-closed sentinel fires (key absent) →
+    // `assert_eq!(-1, 1, ...)` panics with "T-012: resolvers-registry.toml
+    // schema_version=-1 but production requires 1; ..." — before any
+    // ungated-declaration check or floor check is reached.
+    let _ = run_t012_gate(root);
+}
+
+// ---------------------------------------------------------------------------
+// T-055 — mutation-audit hardening SURV-03: detect_ungated_declarations
+// fail-open `Err(_) => Vec::new()` arm, direct unit test
+//
+// `detect_ungated_declarations`'s `content.parse::<toml::Value>()` `Err(_)`
+// arm (fail-open: return `Vec::new()` on unparseable TOML) is unreachable in
+// the `run_t012_gate` call path — `Registry::parse_str(&hooks_content)`
+// (HIGH-3, pass-11) panics on malformed hooks-registry.toml TOML before
+// `detect_ungated_declarations` is ever called, and resolvers-registry.toml
+// is parsed generically earlier in `run_t012_gate` too, via the
+// `resolvers_content.parse::<toml::Value>()` call that itself panics on
+// malformed TOML. This makes the fail-open arm inside
+// `detect_ungated_declarations` unobservable through any `run_t012_gate`
+// fixture — no gate-integration control can isolate it.
+//
+// This test calls `detect_ungated_declarations` DIRECTLY (bypassing
+// `run_t012_gate` entirely) with a registry file containing malformed TOML
+// (an unterminated `[[hooks]` array-of-tables header — missing the closing
+// `]]`), which fails `content.parse::<toml::Value>()`.
+//
+// Under live code: `Err(_) => return Vec::new()` → the function returns an
+// empty vec.
+//
+// Under the fail-open mutant (`Err(_) =>` returns a spurious non-empty
+// finding, e.g. `vec!["UNGATED-DECLARATION: mutant-injected".to_string()]`):
+// the result is non-empty → `.is_empty()` assertion fails → T-055 goes RED.
+//
+// Mutation-proof (empirically verified, mutation-hardening burst): replacing
+// the `Err(_) => return Vec::new()` arm's body with a spurious
+// `vec!["UNGATED-DECLARATION: mutant".to_string()]` locally and running the
+// suite turns this test RED while all other tests remain GREEN. Reverting
+// the mutant restores GREEN.
+//
+// Story: S-21.09
+// ---------------------------------------------------------------------------
+#[test]
+fn test_S_21_09_ac006_T055_detect_ungated_declarations_malformed_toml_fail_open_arm() {
+    let tmp = tempdir().expect("tempdir must create successfully");
+    let root = tmp.path();
+
+    let plugins_dir = root.join("plugins/vsdd-factory");
+    fs::create_dir_all(&plugins_dir).expect("plugins/vsdd-factory dir must be created");
+
+    // Malformed TOML: unterminated array-of-tables header (missing closing `]]`).
+    // `content.parse::<toml::Value>()` returns `Err(_)` on this input.
+    let registry_path = plugins_dir.join("hooks-registry.toml");
+    fs::write(
+        &registry_path,
+        "schema_version = 2\n[[hooks\nname = \"broken\"\nplugin = \"hook-plugins/broken.wasm\"\n",
+    )
+    .expect("malformed hooks-registry.toml fixture must be written");
+
+    let result = detect_ungated_declarations(&registry_path, root);
+
+    assert!(
+        result.is_empty(),
+        "T-055: detect_ungated_declarations must return an empty Vec on unparseable TOML \
+         (fail-open Err(_) arm); under a mutant that returns a spurious non-empty finding \
+         from the Err(_) arm this assertion fails; got: {:?}",
+        result
+    );
+}
+
+// ---------------------------------------------------------------------------
+// T-056 — mutation-audit hardening SURV-02: lex_norm's `Component::CurDir`
+// arm, direct unit test pinning the function contract
+//
+// `lex_norm`'s `Component::CurDir => {}` arm (skip `.` components) is dead in
+// every `run_t012_gate` call path: every registry-relative plugin-path join
+// site uses absolute worktree roots joined with registry-relative paths, and
+// `std::path::Path::components()` does not synthesize `CurDir` components for
+// interior `.` segments unless the path literally spells them out AND they
+// are not pre-normalized away — no fixture in the existing suite constructs
+// a raw path containing a literal `./` interior segment before it reaches
+// `lex_norm`.
+//
+// This test calls `lex_norm` DIRECTLY (no fixture, no filesystem, no git)
+// with a path that has a literal interior `.` component, pinning the
+// function's own contract rather than an integration side-effect.
+//
+// Under live code: `Component::CurDir => {}` — the `.` component is skipped,
+// contributing nothing to `parts` — so `lex_norm(Path::new("./a/b"))` yields
+// `["a", "b"]`.
+//
+// Under the CurDir-push mutant (`Component::CurDir => parts.push(".".to_owned())`):
+// the `.` component is pushed to `parts` — `lex_norm(Path::new("./a/b"))`
+// yields `[".", "a", "b"]` instead — `assert_eq!` fails → T-056 goes RED.
+//
+// Mutation-proof (empirically verified, mutation-hardening burst): applying
+// the CurDir-push mutation locally and running the suite turns this test RED
+// (`[".", "a", "b"]` != `["a", "b"]`) while all other tests remain GREEN.
+// Reverting the mutant restores GREEN.
+//
+// Story: S-21.09
+// ---------------------------------------------------------------------------
+#[test]
+fn test_S_21_09_ac006_T056_lex_norm_curdir_arm_direct_contract_pin() {
+    assert_eq!(
+        lex_norm(Path::new("./a/b")),
+        vec!["a".to_string(), "b".to_string()],
+        "T-056: lex_norm must skip a literal interior `.` (CurDir) component, contributing \
+         nothing to the accumulated parts; under the CurDir-push mutant \
+         (`Component::CurDir => parts.push(\".\".to_owned())`) this would instead yield \
+         [\".\", \"a\", \"b\"]"
+    );
 }
