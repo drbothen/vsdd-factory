@@ -15906,3 +15906,63 @@ D-973-S-21.09-LOCAL-PASS-11-RECORD-AND-FIX-BURST
 2026-08-12
 
 ---
+
+## D-974 — D-974-S-21.09-LOCAL-PASS-12-RECORD-AND-FIX-BURST
+
+**POLICY 16 ALLOCATOR-CEILING GATE** (pre-allocation, literal shell, D-449(a)):
+
+```
+$ cd /Users/zious/Documents/GITHUB/vsdd-factory/.factory && max_d=$({ grep -hE '^#{2,} D-[0-9]+' cycles/v1.0-brownfield-backfill/decision-log.md cycles/v1.0-feature-engine-discipline-pass-1/decision-log.md 2>/dev/null; grep -hE '^[|] *D-[0-9]+' cycles/v1.0-brownfield-backfill/decision-log.md cycles/v1.0-feature-engine-discipline-pass-1/decision-log.md 2>/dev/null; } | grep -oE 'D-[0-9]+' | sed 's/D-//' | sort -n | tail -1); [ "$max_d" -lt 9000 ] && printf 'PASS: global max D-%s < D-9000 ceiling\n' "$max_d" || printf 'FAIL: breach: max=D-%s\n' "$max_d"
+PASS: global max D-973 < D-9000 ceiling
+```
+
+D-974 allocated. Parent-commit: `cd090a5b` (factory-artifacts HEAD at burst start — the pass-11 SHA-patch commit).
+
+**(a) POLICY 16 GATE PASS — D-974 allocated; parent-commit `cd090a5b`.** This is the S-21.09 LOCAL cascade pass-12 RECORD burst combined with its same-session fix burst (test-writer commit `a922ad82` on `feature/S-21.09`, NOT pushed — push held per standing human ruling; story-writer story v1.23, staged into this same factory-artifacts commit per TD-VSDD-053 single-commit-per-burst).
+
+**(b) `adv-s21.09-local-pass-12.md` persisted.** `cycles/v1.0-brownfield-backfill/adv-s21.09-local-pass-12.md` CREATED. Verdict: **NOT CLEAN — 1 HIGH (1 finding).** Reviewed HEAD: `69663255` (feature/S-21.09) against story v1.22. Fresh-context review (Iron Law: read only prior-pass Part A — `adv-s21.09-local-pass-11.md`). LOCAL streak: **0/3 — twelve passes, zero CLEAN.** `INDEX.md` `S-21.09 LOCAL Adversary Reviews` table extended with the pass-12 row and Convergence Status paragraph updated (12 passes; trajectory `3→3→2→13→11→9→9→8→8→15→2→1`, tail `→8→15→2→1`).
+
+**(c) F-1 [HIGH; POLICY 13 mutation-completeness] — the containment predicate's PREFIX conjunct is un-isolated; the un-audited sibling of pass-11's LENGTH conjunct.** `detect_ungated_declarations`'s containment predicate is a two-conjunct AND: `in_repo = joined_parts.len() > root_parts.len() && root_parts.iter().enumerate().all(|(i, p)| joined_parts.get(i) == Some(p))`. Pass-11's T-050 isolates the LENGTH conjunct (mutant M2, `len >`→`len >=`) — but does NOT isolate the PREFIX conjunct (mutants `.all(...)`→`.any(...)` or `.all(...)`→`true`). Every OUTSIDE-REPO-DECLARATION candidate available prior to this pass (T-047, T-048's OUTSIDE rows, T-050 itself) is over-determined against the prefix mutant: each either fails the length conjunct too (T-047, T-048) or trivially satisfies the prefix conjunct via exact self-match (T-050) — so mutating `.all(...)` survives the full 45-test suite undetected. This is the identical over-determination pattern pass-11 found and fixed for the length conjunct, recurring one conjunct later — the claimed-total predicate (story §2c totality-invariant prose) had a second un-isolated conjunct. Blast-radius note (non-blocking, per adversary's own transparency disclosure): the surviving mutant flips only the diagnostic identifier (UNGATED-DECLARATION ↔ OUTSIDE-REPO-DECLARATION); both branches still return Err — not a fail-open.
+
+**(d) F-1 CLOSED this burst.** test-writer added **T-051** (`test_S_21_09_ac006_T051_prefix_conjunct_isolation_kills_all_mutants`, commit `a922ad82`, NOT pushed): the orthogonal sibling of T-050. Fixture `plugin = "../../../sib/ghost.wasm"` resolves to `root_parts[0..N-1] + ["sib", "ghost.wasm"]` — length conjunct TRUE (`N+1 > N`), prefix conjunct FALSE (diverges from `root_parts` at the last index) — the sole determinant of `in_repo` for this candidate. Empirically verified (fix-burst pass-12): under mutant `.all(...)`→`.any(...)` AND under mutant `.all(...)`→`true` applied locally, ONLY T-051 goes RED (observes `UNGATED-DECLARATION` instead of the asserted `OUTSIDE-REPO-DECLARATION`); T-047, T-048, and T-050 all stay GREEN under both mutants. Orthogonality vs T-050 confirmed empirically: under mutant M2 (`len >`→`len >=`) applied to T-051's candidate, no observable behaviour change occurs (T-051 stays GREEN under M2 while T-050 goes RED); conversely T-050 stays GREEN under the `.all`-mutants while T-051 goes RED — the two isolation controls are independent. No production code changed by T-051 — test-only mutation-completeness control.
+
+**(e) Both pass-11 findings independently re-verified CLOSED.** Pass-12's Part A fix-verification confirms T-050 genuinely isolates the LENGTH conjunct (no residual finding there) and that the 5 F-2 drift sites remain corrected (no regression). This pass's F-1 is a NEW finding on a DIFFERENT conjunct of the same predicate, not a reopening of pass-11's finding.
+
+**(f) Four pass-10 carry-over findings remain OPEN — not addressed this pass.** ADV-BB-P10-MED-001 (directory-only `hook-plugins/sub/` staging control), ADV-BB-P10-LOW-001 (NUL/trailing-space names admitted verbatim), ADV-BB-P10-LOW-002 (fail-open arms guarded only by unasserted call ordering), ADV-BB-P10-LOW-003 (`workspace_root()` untested directly). None were re-verified or addressed in this pass's dispatch scope or this burst's fix scope. Carried to pass-13.
+
+**(g) Suite state at `a922ad82`.** 46 tests T-006..T-051, 40 S-21.09-owned (T-012..T-051); `cargo fmt --check --all`, `cargo clippy --workspace --all-targets -- -D warnings`, `cargo test --workspace --all-targets` all clean; test-file-only, append-only diff. Story spec v1.23 (story-writer; documents T-051 in AC-006 §2c — both conjuncts of the two-conjunct `in_repo` predicate now independently isolated; T-051 Red-Gate row added; all count/range/commit-SHA references swept 45→46 tests / T-006..T-050→T-051 / 39→40 owned / `69663255`→`a922ad82` across the AC-006 Tests bullet, Architecture Mapping, Purity Classification, Architecture Compliance Rules, File Structure Requirements, Token Budget Estimate). Points UNCHANGED at 16 — test-hardening pass closing an already-scoped adversary finding via a new orthogonal isolation control, not new AC scope.
+
+**(h) `feature/S-21.09` push status UNCHANGED — NOT PUSHED.** Standing human ruling holds (per D-971/D-972/D-973/prior session-wrap checkpoints): explicit human authorization required via `git -C .worktrees/S-21.09 push -u origin feature/S-21.09`.
+
+**(i) Streak 0/3 UNCHANGED (12 passes, zero CLEAN).** Total finding-count trajectory `3→3→2→13→11→9→9→8→8→15→2→1` (tail `→8→15→2→1`). Severity(HIGH) trajectory `3→2→3→2→1→1→3→2→1→3→1→1`. Human ruling (twice): true 3-CLEAN required, not D-386 Option C asymptotic acceptance. **Pass-13 adversary is the immediate NEXT step.**
+
+**(j) 4-INDEX: STORY-INDEX only bump.** BC-INDEX v4.56 UNCHANGED. VP-INDEX v2.76 UNCHANGED. ARCH-INDEX v3.55 UNCHANGED. STORY-INDEX v4.301→v4.302 (S-21.09 catalog row v1.22→v1.23; 46 tests T-006..T-051, 40 owned; commit `a922ad82`; 16 pts UNCHANGED). policies.yaml v1.4.23 UNCHANGED.
+
+**Closes:**
+- F-1 HIGH (pass-12) — CLOSED this burst via T-051 (`a922ad82`), orthogonal sibling of pass-11's T-050.
+- STORY-INDEX v1.22→v1.23 S-21.09 catalog-row lag — CLOSED this burst.
+
+**Remains OPEN (not this burst's scope):**
+- ADV-BB-P10-MED-001, LOW-001, LOW-002, LOW-003 (pass-10 carry-overs) — anchor: pass-13.
+- `feature/S-21.09` NOT PUSHED — anchor: explicit human authorization.
+- C-1/C-2/C-4/C-5 blocking security issues (D-972) — UNCHANGED, out of this burst's scope.
+
+### Agents
+
+- state-manager (D-974): `adv-s21.09-local-pass-12.md` created; `INDEX.md` S-21.09 LOCAL Adversary Reviews section extended (pass-12 row + Convergence Status update); decision-log D-974 block appended; burst-log D-974 8-block entry appended; lessons.md L-BB lesson appended (single-conjunct-isolation-does-not-close-multi-conjunct-gate); STORY-INDEX v4.301→v4.302 (S-21.09 v1.22→v1.23 catalog-row sync); STATE.md v7.21→v7.22; story v1.23 (staged by story-writer this session) + test-writer commit `a922ad82` (staged on `feature/S-21.09`, not committed to factory-artifacts — code branch, separate from this factory-artifacts commit) committed as part of this single factory-artifacts burst per TD-VSDD-053.
+- test-writer (prior to this burst, same session): T-051 added at `a922ad82`, orthogonal sibling of T-050, test-file-only append-only diff.
+- story-writer (prior to this burst, same session): story v1.23 (T-051 documentation + count sweep).
+
+### 4-INDEX
+
+BC-INDEX v4.56 (UNCHANGED) / VP-INDEX v2.76 (UNCHANGED) / STORY-INDEX v4.302 / ARCH-INDEX v3.55 (UNCHANGED)
+
+### Phase
+
+D-974-S-21.09-LOCAL-PASS-12-RECORD-AND-FIX-BURST
+
+### Date
+
+2026-08-12
+
+---
