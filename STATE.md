@@ -1,19 +1,19 @@
 ---
 document_type: pipeline-state
 level: ops
-version: "7.20"
+version: "7.21"
 status: draft
 producer: state-manager
-timestamp: 2026-08-12T15:23:00Z
-phase: D-972-S-21.09-V1.21-STORY-LAG-CLOSURE-RECORD
-last_amended: "2026-08-12 (v7.20) — SHA-PATCH-2026-08-12 (state-manager): Active Branches SHA-patched factory-artifacts 44fb01d5→1d2d2ff1 (actual commit HEAD); Session Resume Checkpoint header + §1 parent-citation updated 44fb01d5→1d2d2ff1; v7.20 UNCHANGED. [Prior: 2026-08-12 (v7.20) — D-972-S-21.09-V1.21-STORY-LAG-CLOSURE-RECORD (state-manager): pipeline PAUSED→ACTIVE (human-authorized session resume); STORY-INDEX v4.299→v4.300 (S-21.09 catalog row v1.19→v1.21; 44 tests T-006..T-049, 38 owned; commit 1c59a669; 16 pts UNCHANGED); POLICY 14 last_amended-parity leg applied; story-vs-impl lag CLOSED — LOCAL adversary pass-11 now immediate NEXT step; feature/S-21.09 push status UNCHANGED (NOT PUSHED; human ruling holds); trajectory-tail →20→16→8→10 UNCHANGED; streak 0/3 UNCHANGED; STATE.md v7.19→v7.20. [Prior: 2026-08-12 (v7.19) — SHA-PATCH-2026-08-12 (state-manager): adv-s21.09-local-pass-10.md replaced with verbatim adversary content (input-hash 0fb0e79); story v1.20 lag noted in §2 checkpoint (lags impl by T-048/T-049; v1.21 FIRST before pass-11); Active Branches SHA-patched factory-artifacts fe43ac33→d36c5844; v7.19 UNCHANGED. [Prior (v7.19): SESSION-WRAP-2026-08-12 pipeline ACTIVE→PAUSED; S-21.09 LOCAL 10 passes streak 0/3; pass-10 review persisted NOT-CLEAN 2B/3H/6M/3L/1N; STORY-INDEX v4.299 POLICY 14 leg-4 sealed; STATE.md v7.18→v7.19; full prior chain: git show d36c5844:.factory/STATE.md per D-430(a) compaction precedent.]]]"
+timestamp: 2026-08-12T17:30:00Z
+phase: D-973-S-21.09-LOCAL-PASS-11-RECORD-AND-FIX-BURST
+last_amended: "2026-08-12 (v7.21) — D-973-S-21.09-LOCAL-PASS-11-RECORD-AND-FIX-BURST (state-manager; single-commit TD-VSDD-053; parent-commit 424f59a4): S-21.09 LOCAL cascade pass-11 persisted (NOT CLEAN 1H/1M; streak 0/3 after 11 passes); INDEX.md S-21.09 LOCAL Adversary Reviews section created (backfilled passes 1-10 + pass-11 row; Convergence Status appended); F-1 HIGH (false M2 mutation-kill attestation on T-047/T-048/story lines 645) CLOSED via T-050 length-conjunct isolation control (commit 69663255, NOT pushed); F-2 MEDIUM (5-site docstring/test-name/story-row drift) CLOSED; STORY-INDEX v4.300→v4.301 (S-21.09 catalog row v1.21→v1.22; 45 tests T-006..T-050, 39 owned; commit 69663255; 16 pts UNCHANGED); story v1.22 committed; 1 L-BB lesson appended; D-973 allocated; 4 pass-10 carry-over findings (MED-001, LOW-001/002/003) remain OPEN — anchor pass-12; trajectory-tail →20→16→8→10 UNCHANGED; feature/S-21.09 push status UNCHANGED (NOT PUSHED; human ruling holds); pass-12 adversary is the immediate NEXT step; STATE.md v7.20→v7.21. [Prior: 2026-08-12 (v7.20) — SHA-PATCH-2026-08-12 (state-manager): Active Branches SHA-patched factory-artifacts 44fb01d5→1d2d2ff1 (actual commit HEAD); Session Resume Checkpoint header + §1 parent-citation updated 44fb01d5→1d2d2ff1; v7.20 UNCHANGED. [Prior: 2026-08-12 (v7.20) — D-972-S-21.09-V1.21-STORY-LAG-CLOSURE-RECORD (state-manager): pipeline PAUSED→ACTIVE (human-authorized session resume); STORY-INDEX v4.299→v4.300 (S-21.09 catalog row v1.19→v1.21; 44 tests T-006..T-049, 38 owned; commit 1c59a669; 16 pts UNCHANGED); POLICY 14 last_amended-parity leg applied; story-vs-impl lag CLOSED — LOCAL adversary pass-11 now immediate NEXT step; feature/S-21.09 push status UNCHANGED (NOT PUSHED; human ruling holds); trajectory-tail →20→16→8→10 UNCHANGED; streak 0/3 UNCHANGED; STATE.md v7.19→v7.20. [Prior: 2026-08-12 (v7.19) — SHA-PATCH-2026-08-12 (state-manager): adv-s21.09-local-pass-10.md replaced with verbatim adversary content (input-hash 0fb0e79); story v1.20 lag noted in §2 checkpoint (lags impl by T-048/T-049; v1.21 FIRST before pass-11); Active Branches SHA-patched factory-artifacts fe43ac33→d36c5844; v7.19 UNCHANGED. [Prior (v7.19): SESSION-WRAP-2026-08-12 pipeline ACTIVE→PAUSED; S-21.09 LOCAL 10 passes streak 0/3; pass-10 review persisted NOT-CLEAN 2B/3H/6M/3L/1N; STORY-INDEX v4.299 POLICY 14 leg-4 sealed; STATE.md v7.18→v7.19; full prior chain: git show d36c5844:.factory/STATE.md per D-430(a) compaction precedent.]]]]"
 inputs: []
 input-hash: "[live-state]"
 traces_to: prd.md
 project: vsdd-factory
 mode: brownfield
 pipeline: ACTIVE
-current_step: "D-972-S-21.09-V1.21-STORY-LAG-CLOSURE-RECORD (state-manager; parent-commit: 44fb01d5; D-chain cite D-972; human-authorized session resume; pipeline PAUSED→ACTIVE; STORY-INDEX v4.299→v4.300 — S-21.09 catalog row v1.19→v1.21 (44 tests T-006..T-049, 38 owned; commit 1c59a669; 16 pts UNCHANGED; documents pass-10 BLOCKER-1/BLOCKER-2 closure + T-049 EC-005a control + Registry::parse_str production validation + T-013/T-014 comment filtering + T-008 NOT-orphan assertion); POLICY 14 last_amended-parity leg applied; story-vs-impl lag CLOSED — LOCAL adversary pass-11 now immediate NEXT step; feature/S-21.09 still NOT PUSHED (human ruling this session — hold); 4-INDEX BC v4.56/VP v2.76/STORY v4.300/ARCH v3.55; policies.yaml v1.4.23 UNCHANGED; trajectory-tail →20→16→8→10 UNCHANGED; streak 0/3 UNCHANGED). SHA-patch 1d2d2ff1 done 2026-08-12: Active Branches factory-artifacts updated 44fb01d5→1d2d2ff1 (actual commit HEAD)."
+current_step: "D-973-S-21.09-LOCAL-PASS-11-RECORD-AND-FIX-BURST (state-manager; parent-commit: 424f59a4; D-chain cite D-973; S-21.09 LOCAL cascade pass-11 dispatched fresh-context per Iron Law — read only adv-s21.09-local-pass-10.md Part A; verdict NOT CLEAN 1H/1M; streak 0/3 after 11 passes; F-1 HIGH (false M2 mutation-kill attestation on T-047/T-048/story lines 645, escalates pass-10 MED-004) CLOSED via T-050 length-conjunct isolation control (test-writer commit 69663255 on feature/S-21.09, NOT pushed); F-2 MEDIUM (5-site docstring/test-name/story-row drift from pass-9/pass-11 refactors) CLOSED; story v1.22 (story-writer) reconciles self-contradiction + sweeps counts 44→45 tests/T-006..T-049→T-050/38→39 owned/1c59a669→69663255; points UNCHANGED 16; STORY-INDEX v4.300→v4.301; INDEX.md S-21.09 LOCAL Adversary Reviews section created (backfilled 1-10 + pass-11); 4 pass-10 carry-over findings (MED-001/LOW-001/LOW-002/LOW-003) remain OPEN, anchor pass-12; 4-INDEX BC v4.56/VP v2.76/STORY v4.301/ARCH v3.55; policies.yaml v1.4.23 UNCHANGED; trajectory-tail →20→16→8→10 UNCHANGED (S-21.07 cycle-level tail; unrelated to this LOCAL-cascade burst); feature/S-21.09 still NOT PUSHED (human ruling this session — hold); pass-12 adversary is the immediate NEXT step)."
 current_cycle: v1.0-brownfield-backfill
 dtu_required: false
 dtu_assessment: 2026-04-25
@@ -73,6 +73,7 @@ dtu_services: []
   ~280 lines (estimated post-SHA-PATCH-2026-08-12; adv-s21.09-local-pass-10.md verbatim replaced; story lag noted in checkpoint; Active Branches SHA-patched fe43ac33→d36c5844; v7.19 UNCHANGED)
   371 lines (wc-l post-D-972-S-21.09-V1.21-STORY-LAG-CLOSURE-RECORD 2026-08-12; pipeline PAUSED→ACTIVE; STORY-INDEX v4.300; story-vs-impl lag CLOSED; v7.19→v7.20)
   371 lines (wc-l post-SHA-patch 1d2d2ff1 2026-08-12; Active Branches factory-artifacts 44fb01d5→1d2d2ff1; v7.20 UNCHANGED)
+  ~380 lines (estimated post-D-973-S-21.09-LOCAL-PASS-11-RECORD-AND-FIX-BURST 2026-08-12; pass-11 persisted NOT CLEAN 1H/1M; F-1/F-2 CLOSED; STORY-INDEX v4.301; story v1.22; v7.20→v7.21)
 -->
 
 # Pipeline State: vsdd-factory
@@ -88,8 +89,8 @@ dtu_services: []
 | **Mode** | brownfield-onboarding |
 | **Language** | Rust + Bash + Markdown |
 | **Started** | 2026-04-25 |
-| **Last Updated** | 2026-08-12 — SHA-patch 1d2d2ff1: Active Branches factory-artifacts updated 44fb01d5→1d2d2ff1 (actual commit HEAD); Session Resume Checkpoint + §1 parent-citation updated. [Prior 2026-08-12: D-972-S-21.09-V1.21-STORY-LAG-CLOSURE-RECORD — pipeline PAUSED→ACTIVE (human-authorized session resume); STORY-INDEX v4.299→v4.300 (S-21.09 catalog row v1.19→v1.21; 44 tests T-006..T-049, 38 owned; commit 1c59a669; 16 pts UNCHANGED); story-vs-impl lag CLOSED — LOCAL adversary pass-11 now immediate NEXT step; feature/S-21.09 push status UNCHANGED (NOT PUSHED; human ruling holds); trajectory-tail →20→16→8→10 UNCHANGED] |
-| **Current Phase** | **D-972-S-21.09-V1.21-STORY-LAG-CLOSURE-RECORD (HEAD 1d2d2ff1; D-chain cite D-972; PIPELINE ACTIVE). S-21.09 LOCAL cascade 10 passes streak 0/3 — story spec v1.21 (lag closed); impl 1c59a669 44 tests T-006..T-049 all green; feature/S-21.09 NOT PUSHED (explicit human auth required). Pass-10 NOT-CLEAN 2B/3H/6M/3L/1N (persisted verbatim 0fb0e79). ADR-043 v1.5 proposed NOT RATIFIED. 4-INDEX BC v4.56/VP v2.76/STORY v4.300/ARCH v3.55. policies.yaml v1.4.23. trajectory-tail →20→16→8→10 UNCHANGED. LOCAL adversary pass-11 is the immediate NEXT step.** |
+| **Last Updated** | 2026-08-12 — D-973-S-21.09-LOCAL-PASS-11-RECORD-AND-FIX-BURST: S-21.09 LOCAL cascade pass-11 persisted (NOT CLEAN 1H/1M; streak 0/3 after 11 passes; trajectory-tail →20→16→8→10 UNCHANGED [S-21.07 cycle-level]); F-1 HIGH (false M2 mutation-kill attestation) + F-2 MEDIUM (docstring/test-name/story-row drift) both CLOSED this burst (T-050 control + narrative corrections; commit 69663255, NOT pushed); story v1.22; STORY-INDEX v4.300→v4.301; INDEX.md S-21.09 LOCAL Adversary Reviews section created; pass-12 adversary is the immediate NEXT step. [Prior 2026-08-12: SHA-patch 1d2d2ff1: Active Branches factory-artifacts updated 44fb01d5→1d2d2ff1; D-972-S-21.09-V1.21-STORY-LAG-CLOSURE-RECORD — pipeline PAUSED→ACTIVE; STORY-INDEX v4.299→v4.300 (S-21.09 catalog row v1.19→v1.21)] |
+| **Current Phase** | **D-973-S-21.09-LOCAL-PASS-11-RECORD-AND-FIX-BURST (parent-commit 424f59a4; D-chain cite D-973; PIPELINE ACTIVE). S-21.09 LOCAL cascade 11 passes streak 0/3 — story spec v1.22; impl 69663255 45 tests T-006..T-050 all green; feature/S-21.09 NOT PUSHED (explicit human auth required). Pass-11 NOT CLEAN 1H/1M — BOTH findings CLOSED this burst (F-1 via T-050; F-2 via 5-site narrative correction). 4 pass-10 carry-over findings (MED-001/LOW-001/LOW-002/LOW-003) remain OPEN — anchor pass-12. 4-INDEX BC v4.56/VP v2.76/STORY v4.301/ARCH v3.55. policies.yaml v1.4.23. LOCAL adversary pass-12 is the immediate NEXT step.** |
 | **Current Cycle** | v1.0-brownfield-backfill |
 
 ## Phase Progress
@@ -135,6 +136,7 @@ dtu_services: []
 | D-972-S-21.09-LOCAL-PASS-10-RECORD 2026-08-12 (pass-10 review done by adv-s2109-p10; fixes in 1c59a669; persisted in SESSION-WRAP-2026-08-12 burst) | **COMPLETE** | S-21.09 LOCAL pass-10 NOT-CLEAN (2B/3H/6M/3L/1N; adv-s21.09-local-pass-10.md persisted verbatim 0fb0e79; streak 0/3 after 10 passes; both BLOCKERs closed in 1c59a669); story spec v1.20; impl 1c59a669; 44 tests T-006..T-049 all green. |
 | SESSION-WRAP-2026-08-12 PIPELINE PAUSED 2026-08-12 (human /wrap directive; parent-commit: fe43ac33; D-chain cite D-972; SHA-patch d36c5844 done) | **COMPLETE** | pipeline ACTIVE→PAUSED; S-21.09 LOCAL pass-10 persisted verbatim (2B/3H/6M/3L/1N; both BLOCKERs closed in 1c59a669); story spec v1.20 [lags impl by T-048/T-049; v1.21 FIRST before pass-11]; impl 1c59a669 44 tests NOT pushed; STORY-INDEX v4.299 leg-4 sealed; Active Branches SHA-patched fe43ac33→d36c5844; trajectory-tail →20→16→8→10 UNCHANGED; STATE.md v7.18→v7.19; v7.19 UNCHANGED at SHA-patch. |
 | D-972-S-21.09-V1.21-STORY-LAG-CLOSURE-RECORD 2026-08-12 (single commit TD-VSDD-053; parent 44fb01d5; commit 1d2d2ff1; pushed; SHA-patch done) | **COMPLETE** | pipeline PAUSED→ACTIVE (human-authorized session resume); STORY-INDEX v4.299→v4.300 (S-21.09 catalog row v1.19→v1.21; 44 tests T-006..T-049, 38 owned; commit 1c59a669; 16 pts UNCHANGED; documents pass-10 BLOCKER-1/BLOCKER-2 closure + T-049 EC-005a control + Registry::parse_str production validation + T-013/T-014 comment filtering + T-008 NOT-orphan assertion); POLICY 14 last_amended-parity leg applied; story-vs-impl lag CLOSED; LOCAL adversary pass-11 now immediate NEXT step; feature/S-21.09 push status UNCHANGED (NOT PUSHED; human ruling holds); STATE.md v7.19→v7.20; trajectory-tail →20→16→8→10 UNCHANGED; streak 0/3 UNCHANGED. |
+| D-973-S-21.09-LOCAL-PASS-11-RECORD-AND-FIX-BURST 2026-08-12 (single commit TD-VSDD-053; parent 424f59a4; D-973 allocated) | **COMPLETE** | S-21.09 LOCAL pass-11 NOT CLEAN (1H/1M; adv-s21.09-local-pass-11.md persisted; streak 0/3 after 11 passes); F-1 HIGH (false M2 mutation-kill attestation on T-047/T-048/story lines 645) CLOSED via T-050 length-conjunct isolation control (commit 69663255, NOT pushed); F-2 MEDIUM (5-site docstring/test-name/story-row drift) CLOSED; story v1.22; STORY-INDEX v4.300→v4.301; INDEX.md S-21.09 LOCAL Adversary Reviews section created; 4 pass-10 carry-over findings remain OPEN (anchor pass-12); STATE.md v7.20→v7.21; pass-12 adversary NEXT. |
 | **E-18 EPIC COMPLETE 2026-07-01 D-744** | **EPIC COMPLETE** | Final story S-18.12 MERGED PR #384 ec05606a. |
 
 ## Current Phase Steps
@@ -164,6 +166,7 @@ dtu_services: []
 | D-972-S-21.09-LOCAL-PASSES-5-9-RECORD 2026-08-11..12 (commits 7f44df85/e8b38e12/90984d7e/fe43ac33; under D-972 umbrella; STATE.md v7.14→v7.18; narrative uneditable per infrastructure blocker) | state-manager | COMPLETE | passes 5-9 NOT-CLEAN (streak 0/3); story spec v1.11→v1.19; impl 54ab6802→b951461a; tests 29→42; STORY-INDEX v4.295→v4.299; E-21 111→117 pts; adv-s21.09-local-pass-5/6/7/8/9.md persisted; BLOCKER closed pass-9 (worktree-root containment predicate). |
 | SESSION-WRAP-2026-08-12 (session-wrap burst; human /wrap directive; parent-commit: fe43ac33; D-chain cite D-972; SHA-patch d36c5844 done) | state-manager | COMPLETE | pipeline ACTIVE→PAUSED; S-21.09 LOCAL pass-10 persisted verbatim (2B/3H/6M/3L/1N; both BLOCKERs closed in 1c59a669); story spec v1.20 [lags impl by T-048/T-049; v1.21 FIRST before pass-11]; impl 1c59a669 44 tests NOT pushed; STORY-INDEX v4.299 leg-4 sealed; Active Branches SHA-patched fe43ac33→d36c5844; trajectory-tail →20→16→8→10 UNCHANGED; STATE.md v7.18→v7.19; v7.19 UNCHANGED at SHA-patch. |
 | D-972-S-21.09-V1.21-STORY-LAG-CLOSURE-RECORD 2026-08-12 (single commit TD-VSDD-053; parent 44fb01d5; commit 1d2d2ff1; pushed; SHA-patch done) | state-manager | COMPLETE | STORY-INDEX v4.299→v4.300 (S-21.09 catalog row v1.19→v1.21; 44 tests T-006..T-049, 38 owned; commit 1c59a669; 16 pts UNCHANGED); POLICY 14 last_amended-parity leg applied; pipeline PAUSED→ACTIVE (human-authorized); story-vs-impl lag CLOSED — LOCAL adversary pass-11 now immediate NEXT step; feature/S-21.09 push status UNCHANGED (NOT PUSHED); STATE.md v7.19→v7.20; trajectory-tail →20→16→8→10 UNCHANGED; streak 0/3 UNCHANGED. |
+| D-973-S-21.09-LOCAL-PASS-11-RECORD-AND-FIX-BURST 2026-08-12 (single commit TD-VSDD-053; parent 424f59a4; D-973 allocated) | state-manager | COMPLETE | adv-s21.09-local-pass-11.md persisted (NOT CLEAN 1H/1M; streak 0/3 after 11 passes); INDEX.md S-21.09 LOCAL Adversary Reviews section created (backfilled 1-10 + pass-11); F-1 HIGH CLOSED (T-050, commit 69663255, NOT pushed); F-2 MEDIUM CLOSED (5-site narrative correction); story v1.22; STORY-INDEX v4.300→v4.301; 1 L-BB lesson appended; 4 pass-10 carry-over findings remain OPEN (anchor pass-12); STATE.md v7.20→v7.21; pass-12 adversary NEXT. |
 
 ## Identifier Conventions
 
@@ -172,7 +175,7 @@ dtu_services: []
 | Subsystem | SS-NN | `specs/architecture/ARCH-INDEX.md` | 10 |
 | Behavioral Contract | BC-S.SS.NNN | `specs/behavioral-contracts/ss-NN/` | 1,985 (BC-INDEX v4.56 D-972) |
 | Verification Property | VP-NNN | `specs/verification-properties/VP-INDEX.md` | 102 (VP-INDEX v2.76 D-960) |
-| Story | S-N.MM | `stories/S-N.MM-<short>.md` | 130 file-resident + 17 stub IDs (STORY-INDEX v4.300 D-972-S-21.09-V1.21-STORY-LAG-CLOSURE-RECORD 2026-08-12) |
+| Story | S-N.MM | `stories/S-N.MM-<short>.md` | 130 file-resident + 17 stub IDs (STORY-INDEX v4.301 D-973-S-21.09-LOCAL-PASS-11-RECORD-AND-FIX-BURST 2026-08-12) |
 | Epic | E-N | `stories/epics/E-N-<short>.md` | 22 (E-0..E-9=10 + E-10..E-19=10 + E-21 active + E-22 dissolved-retained; ls → 22; D-962(f)) |
 | ADR | ADR-NNN | `specs/architecture/decisions/ADR-NNN.md` | 43 (ADR-043 NEW D-972 proposed NOT RATIFIED; ADR-042 NEW D-964; ADR-041 NEW D-961) |
 | Merged Count | merged_count | `stories/sprint-state.yaml` | 107 (STATE.md explicit counter; sprint-state predicate: 113; canonical D-853) |
@@ -182,8 +185,8 @@ dtu_services: []
 130 file-resident + 17 stub IDs = 147 stories. E-18 EPIC COMPLETE D-744. E-22 DISSOLVED D-961 (file RETAINED per human ruling 2026-08-08).
 
 - **Merged (107):** S-19.07 MERGED PR #670 6db4c9fc (E-19 COMPLETE 9/9). Full ledger: `cycles/v1.0-brownfield-backfill/merged-stories-ledger.md`
-- **In-Flight (1):** S-21.09 (feature/S-21.09 @ 1c59a669; story spec v1.21 (lag closed); 44 tests T-006..T-049 all green; 16 pts; BC-5.39.001 LOCAL streak 0/3 after 10 passes; pass 11 NEXT; human ruling: true 3-CLEAN required; adv-s21.09-local-pass-1..10.md; C-1/C-2/C-4/C-5 blocking issues open; **NOT PUSHED**)
-- **E-21:** S-21.07 (W4; pass-10 NOT-CLEAN 10 findings D-967; branch 5370db80 pushed; FROZEN; NO REBASE; MERGE-ORDER: S-21.09 first); S-21.09 (in-flight; 16 pts; feature/S-21.09 @ 1c59a669; story spec v1.21; MUST land before S-21.07); S-21.10/S-21.11/S-21.12 per D-961; S-21.13 (W7 NEW D-964; depends_on S-21.10/S-21.11; draft); S-21.14 (W8 NEW D-972; 8 pts; release-pipeline predicate+gate sweep; draft); S-21.15 (W8 NEW D-972; 5 pts; compute-input-hash search-path + traces_to; draft).
+- **In-Flight (1):** S-21.09 (feature/S-21.09 @ 69663255; story spec v1.22; 45 tests T-006..T-050 all green; 16 pts; BC-5.39.001 LOCAL streak 0/3 after 11 passes; pass 12 NEXT; human ruling: true 3-CLEAN required; adv-s21.09-local-pass-1..11.md; C-1/C-2/C-4/C-5 blocking issues open; 4 pass-10 carry-over findings open (MED-001, LOW-001/002/003); **NOT PUSHED**)
+- **E-21:** S-21.07 (W4; pass-10 NOT-CLEAN 10 findings D-967; branch 5370db80 pushed; FROZEN; NO REBASE; MERGE-ORDER: S-21.09 first); S-21.09 (in-flight; 16 pts; feature/S-21.09 @ 69663255; story spec v1.22; MUST land before S-21.07); S-21.10/S-21.11/S-21.12 per D-961; S-21.13 (W7 NEW D-964; depends_on S-21.10/S-21.11; draft); S-21.14 (W8 NEW D-972; 8 pts; release-pipeline predicate+gate sweep; draft); S-21.15 (W8 NEW D-972; 5 pts; compute-input-hash search-path + traces_to; draft).
 - **Draft (31), Partial (2), Withdrawn (1):** see prior session checkpoints
 
 ## Active Branches
@@ -192,9 +195,9 @@ dtu_services: []
 |--------------|-----|-------|
 | main | 80e5cd7b | rc.23 bot binary bundle 2026-07-18 |
 | develop | 62fbcf1a | PR #774 squash-merged 2026-08-10T17:34:37Z. Pull on next code-worktree resume. |
-| factory-artifacts | 1d2d2ff1 | D-972-S-21.09-V1.21-STORY-LAG-CLOSURE-RECORD burst. SHA-patch done 2026-08-12. |
+| factory-artifacts | 424f59a4 | D-973-S-21.09-LOCAL-PASS-11-RECORD-AND-FIX-BURST commit pending — parent cited; SHA-patch to follow once actual commit HEAD is known. |
 | feature/policy15-gate-rust | d2a3176a | F-001 redesign: crates/policy15-attestation-gate/ 16 tests, GateOutcome enum, mutation-verified. Pushed; no PR. |
-| feature/S-21.09 | 1c59a669 | S-21.09 in-flight (story spec v1.21 (lag closed); 44 tests T-006..T-049 all green; 16 pts; LOCAL streak 0/3 after 10 passes; pass 11 NEXT; human ruling: true 3-CLEAN required; C-1/C-2/C-4/C-5 open). **NOT PUSHED.** Requires explicit human auth: `git -C .worktrees/S-21.09 push -u origin feature/S-21.09`. |
+| feature/S-21.09 | 69663255 | S-21.09 in-flight (story spec v1.22; 45 tests T-006..T-050 all green; 16 pts; LOCAL streak 0/3 after 11 passes; pass 12 NEXT; human ruling: true 3-CLEAN required; C-1/C-2/C-4/C-5 open; 4 pass-10 carry-over findings open). **NOT PUSHED.** Requires explicit human auth: `git -C .worktrees/S-21.09 push -u origin feature/S-21.09`. |
 | feature/S-21.07 | 5370db80 | pass-10 NOT-CLEAN 10 findings D-967 (correction burst complete). Pushed; SHA-equal with origin. FROZEN per team-lead; NO REBASE; MERGE-ORDER: S-21.09 first. |
 | feature/S-21.04 | 323f440f | pass-31 pending; no PR. Pushed; SHA-equal with origin. |
 | fix/nested-factory-path-derivation | 9afc3226 | F-S2107-P8-016 + P9-008 CLOSED. Pushed; SHA-equal with origin. |
@@ -207,16 +210,17 @@ dtu_services: []
 | Cycle | Type | Status | Notes |
 |-------|------|--------|-------|
 | F-block-ai-attribution-message-file-arm | feature | F3 COMPLETE — F4 READY | E-16 under SS-07/SS-04; milestone v1.0.0-rc.17 |
-| v1.0-brownfield-backfill | brownfield | D-972-S-21.09-V1.21-STORY-LAG-CLOSURE-RECORD ACTIVE. S-21.09 LOCAL pass-10 persisted verbatim (2B/3H/6M/3L/1N; streak 0/3 after 10 passes; 1c59a669 closes both BLOCKERs; pass-11 NEXT). story spec v1.21 (lag closed); impl 1c59a669 NOT PUSHED. develop 62fbcf1a; main 80e5cd7b; merged_count 107; BC v4.56; VP v2.76; STORY v4.300; ARCH v3.55; ADR-043 proposed NOT RATIFIED; streak 0/3; trajectory-tail →20→16→8→10 UNCHANGED. F-001 redesign RATIFIED (ADR-040 v1.12; policies.yaml v1.4.23 ACTIVE; CI wiring PENDING). pass-11 adversary NEXT (story-lag precondition satisfied). | D-972-S-21.09-V1.21-STORY-LAG-CLOSURE-RECORD 2026-08-12; SESSION-WRAP-2026-08-12 D-972 2026-08-12; D-972 2026-08-11; D-971 2026-08-10; D-970 2026-08-10. |
+| v1.0-brownfield-backfill | brownfield | D-973-S-21.09-LOCAL-PASS-11-RECORD-AND-FIX-BURST ACTIVE. S-21.09 LOCAL pass-11 persisted NOT CLEAN (1H/1M; streak 0/3 after 11 passes); F-1/F-2 CLOSED this burst (T-050 + narrative corrections; commit 69663255). story spec v1.22; impl 69663255 NOT PUSHED. develop 62fbcf1a; main 80e5cd7b; merged_count 107; BC v4.56; VP v2.76; STORY v4.301; ARCH v3.55; ADR-043 proposed NOT RATIFIED; streak 0/3; total finding trajectory 3→3→2→13→11→9→9→8→8→15→2. F-001 redesign RATIFIED (ADR-040 v1.12; policies.yaml v1.4.23 ACTIVE; CI wiring PENDING). pass-12 adversary NEXT (4 pass-10 carry-over findings open — MED-001, LOW-001/002/003). | D-973-S-21.09-LOCAL-PASS-11-RECORD-AND-FIX-BURST 2026-08-12; D-972-S-21.09-V1.21-STORY-LAG-CLOSURE-RECORD 2026-08-12; SESSION-WRAP-2026-08-12 D-972 2026-08-12; D-972 2026-08-11; D-971 2026-08-10. |
 | v1.0-feature-engine-discipline-pass-1 | feature | PAUSED | F5 pass-75 complete D-510; META-LEVEL-30 CANDIDATE-CONFIRMED; trajectory →9→9→9→11. |
 | v1.0-feature-plugin-async-semantics-pass-1 | feature | CLOSED | All PRs merged; rc.14 shipped |
 
 ## Decisions Log
 
-> D-001..D-606 (see decision-log.md for full range): `cycles/v1.0-brownfield-backfill/decision-log.md` + `decisions-log-archive.md`. D-379..D-454 (see decision-log.md for full range) (F5): `cycles/v1.0-feature-engine-discipline-pass-1/decision-log.md`. D-607..D-972 (see decision-log.md for full range): this Decisions Log (D-958..D-972 (see decision-log.md for full range) live) + decision-log.md SoT.
+> D-001..D-606 (see decision-log.md for full range): `cycles/v1.0-brownfield-backfill/decision-log.md` + `decisions-log-archive.md`. D-379..D-454 (see decision-log.md for full range) (F5): `cycles/v1.0-feature-engine-discipline-pass-1/decision-log.md`. D-607..D-973 (see decision-log.md for full range): this Decisions Log (D-960..D-973 (see decision-log.md for full range) live) + decision-log.md SoT.
 
 | ID | Decision | Summary | Phase | Date |
 |----|----------|---------|-------|------|
+| D-973 | D-973-S-21.09-LOCAL-PASS-11-RECORD-AND-FIX-BURST (state-manager; single-commit TD-VSDD-053 2026-08-12; parent-commit 424f59a4). S-21.09 LOCAL cascade pass-11 persisted (NOT CLEAN 1H/1M; streak 0/3 after 11 passes); INDEX.md S-21.09 LOCAL Adversary Reviews section created (backfilled passes 1-10 + pass-11 row; Convergence Status appended); F-1 HIGH (false M2 mutation-kill attestation on T-047/T-048/story lines 645, escalates pass-10 MED-004) CLOSED via T-050 length-conjunct isolation control (test-writer commit 69663255, NOT pushed); F-2 MEDIUM (5-site docstring/test-name/story-row drift) CLOSED; story v1.22 (story-writer); STORY-INDEX v4.300→v4.301 (S-21.09 catalog row v1.21→v1.22; 45 tests T-006..T-050, 39 owned; 16 pts UNCHANGED); 1 L-BB lesson appended (mutation-kill-attestation-requires-empirical-verification); 4 pass-10 carry-over findings (MED-001, LOW-001/002/003) remain OPEN — anchor pass-12; feature/S-21.09 push status UNCHANGED (NOT PUSHED); STATE.md v7.20→v7.21. | S-21.09 LOCAL pass-11 NOT CLEAN 1H/1M; F-1/F-2 CLOSED (T-050 + narrative correction); STORY-INDEX v4.301; INDEX.md section created; 4 carry-overs OPEN | D-973-S-21.09-LOCAL-PASS-11-RECORD-AND-FIX-BURST | 2026-08-12 |
 | D-972 | D-972-SS01-EXEC-SUBPROCESS-OPTION-C-ADJUDICATION-AND-S-21.09-DELIVERY-RECORD (state-manager; single-commit TD-VSDD-053 2026-08-11; commit 98eb90d8; SHA-patch done 2026-08-11; parent b278d978). (a) POLICY 16 GATE PASS — D-972 allocated; parent-commit b278d978; (b) Option C security-model adjudication complete; 5 BC amendments (BC-1.05.002/004/028/035/036 D-{TBD-option-c-security-model-adjudication} sentinel replaced with D-972); POLICY 7 titles corrected on BC-1.05.028 + BC-1.05.035 (stale canonicalize framing); (c) ADR-043 v1.5 status: proposed; NOT RATIFIED; 3-pass DO-NOT-RATIFY trajectory (adv-adr-043-pass-1/2/3.md persisted; NOT added to INDEX.md); two prevented regressions: (1) pass-1 B-3 inverted security rationale; (2) pass-3 B-1 cfg(windows) missing fallback; (d) ARCH-INDEX v3.54→v3.55: ADR-043 row added (total_adrs 42→43); SS-01 host/ catalog extended with host/{mod,exec_subprocess,read_file,memory,path_util}.rs; (e) S-21.09 delivery record: re-estimated 5→10 pts (correct scope); STORY-INDEX v4.292→v4.293; sprint-state.yaml S-21.09 in-flight at 12f280d1; BC-5.39.001 LOCAL 3 DO-NOT-RATIFY passes persisted (adv-s21.09-local-pass-1/2/3.md); streak 0/3; (f) S-21.14 + S-21.15 registered draft W8 in STORY-INDEX + E-21 epic; E-21 v1.12 14 stories 111 pts; (g) 7 L-BB lessons appended; (h) C-1/C-2/C-4/C-5 registered as blocking security issues; (i) 6 vacuous/inert gate drift items registered; TD-VSDD-101 dangling reference recorded; (j) fuel exhaustion trace documented; (k) streak 0/3 UNCHANGED; trajectory-tail →20→16→8→10 UNCHANGED; 4-INDEX BC v4.56/VP v2.76/STORY v4.293/ARCH v3.55; policies.yaml v1.4.23 UNCHANGED; STATE.md v7.10→v7.11. | Option C adjudication; 5 BC amendments; ADR-043 proposed NOT RATIFIED; ARCH-INDEX v3.55; STORY-INDEX v4.293 (S-21.09 10 pts; S-21.14/S-21.15 draft W8 111 pts); C-1/C-2/C-4/C-5 blocking; 7 L-BB lessons | D-972-SS01-EXEC-SUBPROCESS-OPTION-C-ADJUDICATION | 2026-08-11 |
 | D-971 | D-971-S-21.09-READY-PROMOTION-AND-RECORDED-FACT-CORRECTIONS (state-manager; single-commit TD-VSDD-053 2026-08-10; commit a06fae30; SHA-patch done 2026-08-11). S-21.09 promoted draft→ready 5 pts; STORY-INDEX v4.291→v4.292; 6 factual corrections; refuse_setuid HIGH SECURITY registered; ADR-043 DO-NOT-RATIFY; 4 L-BB lessons; STATE.md v7.09→v7.10. | S-21.09 draft→ready 5 pts; STORY-INDEX v4.292; 6 factual corrections; refuse_setuid HIGH SECURITY; ADR-043 DO-NOT-RATIFY; 4 L-BB lessons | D-971-S-21.09-READY-PROMOTION-AND-RECORDED-FACT-CORRECTIONS | 2026-08-10 |
 | D-970 | D-970-ADR-040-V1.12-RATIFICATION-BURST. ADR-040 v1.12 RATIFIED by human 2026-08-10; policies.yaml v1.4.22→v1.4.23; Codifications 1+2 APPLIED; ARCH-INDEX v3.53→v3.54; F-001 RATIFIED not-in-force; STATE.md v7.07→v7.08. | ADR-040 v1.12 RATIFIED; policies.yaml v1.4.23; ARCH-INDEX v3.54; F-001 RATIFIED not-in-force | D-970-ADR-040-V1.12-RATIFICATION-BURST | 2026-08-10 |
@@ -244,11 +248,13 @@ dtu_services: []
 | Blocker | Status | Risk Statement |
 |---------|--------|----------------|
 | **[P0] POLICY 15 ATTESTATION-LOCATION GATE vacuous (F-S2107-P10-001)** | **OPEN — D-966 2026-08-09; REDESIGN RATIFIED D-970 — NOT YET IN FORCE** | Root cause (D-969): category error — gate evaluated in factory-artifacts worktree where *.rs/*.bats count is permanently zero; INAPPLICABLE branch was the only reachable outcome. ADR-040 v1.12 RATIFIED by human 2026-08-10 (D-970); policies.yaml v1.4.23 ACTIVE; Codifications 1+2 APPLIED. **Closes when:** Rust crate merged to develop AND CI job wired. Dependency chain: S-21.09 → S-21.07 → wire CI job. |
-| **[P0] `validate-factory-path-staging` WASM guard inert since 2026-07-23** | **OPEN** | 0 fires vs ≥14,000 sibling invocations; `on_error = "continue"` masks absence. Fix story: S-21.09 (1c59a669; story spec v1.21; 44 tests; LOCAL streak 0/3 after 10 passes; pass 11 NEXT). MUST land before S-21.07. |
+| **[P0] `validate-factory-path-staging` WASM guard inert since 2026-07-23** | **OPEN** | 0 fires vs ≥14,000 sibling invocations; `on_error = "continue"` masks absence. Fix story: S-21.09 (69663255; story spec v1.22; 45 tests; LOCAL streak 0/3 after 11 passes; pass 12 NEXT). MUST land before S-21.07. |
 | **[C-1] CWE-706 incorrect path resolution — exec_subprocess binary_allow load-time prefix check** | **OPEN 2026-08-11 — HIGH SECURITY (D-972)** | `binary_allow` entries are bare names; prefix list inert. ADR-043 v1.5 NOT RATIFIED. **Standing guardrail: no story introducing a plugin that derives `cmd` from runtime data may merge before C-1 is fixed.** Route: implementer + security-reviewer after ADR-043 ratification. |
 | **[C-2] CWE-362 TOCTOU — resolve-then-check window in exec_subprocess** | **OPEN 2026-08-11 — HIGH SECURITY (D-972)** | Race between resolution and spawn; threat model boundary not formally specified. Route: security-reviewer before ADR-043 ratification. |
 | **[C-4] CWE-284 access control — arbitrary binary execution via misconfigured prefix list** | **OPEN 2026-08-11 — HIGH SECURITY (D-972)** | No validation of prefix list entries at load time. Route: product-owner (BC amendment) + implementer. |
 | **[C-5] CWE-284 no per-entry resource limit isolation** | **OPEN 2026-08-11 — MEDIUM SECURITY (D-972)** | No per-`binary_allow` resource limits. Route: product-owner + story-writer. |
+| **[pass-10 carry-over] ADV-BB-P10-MED-001 directory-only `hook-plugins/sub/` staging control** | **OPEN — carried through pass-11 2026-08-12** | Gate (a)'s ">= 1 component after hook-plugins/" threshold admits directory-only declarations; spurious MISSING report possible. Anchor: pass-12. |
+| **[pass-10 carry-over] ADV-BB-P10-LOW-001/002/003 (NUL/trailing-space names; fail-open arms; `workspace_root()` untested)** | **OPEN — carried through pass-11 2026-08-12** | Low-severity residuals from pass-10; not addressed in pass-11 dispatch scope. Anchor: pass-12. |
 
 ## Drift Items / Tech Debt
 
@@ -294,19 +300,19 @@ dtu_services: []
 - `cycles/v1.0-feature-plugin-async-semantics-pass-1/burst-log.md` | `session-checkpoints.md` | `lessons.md`
 - `cycles/v1.0-feature-engine-discipline-pass-1/burst-log.md`
 
-## Session Resume Checkpoint (2026-08-12 — SHA-patch done; HEAD 1d2d2ff1; PIPELINE ACTIVE; S-21.09 LOCAL 10 passes streak 0/3; story spec v1.21 (lag closed); impl 1c59a669 44 tests T-006..T-049; NOT PUSHED)
+## Session Resume Checkpoint (2026-08-12 — HEAD 424f59a4 (parent, pre-SHA-patch); PIPELINE ACTIVE; S-21.09 LOCAL 11 passes streak 0/3; story spec v1.22; impl 69663255 45 tests T-006..T-050; NOT PUSHED)
 
 > **SELF-SUFFICIENT RESUME CONTEXT — ASSUMES ZERO PRIOR CONTEXT. PIPELINE ACTIVE.**
 
 ### §1 Position
 
-Cycle `v1.0-brownfield-backfill`. Pass count **10**, streak **0/3** (10 adversary passes, zero CLEAN). Trajectory `47→18→25→25→24→20→16→8→10`, tail `→20→16→8→10`. 4-INDEX: BC v4.56 / VP v2.76 / **STORY v4.300** / ARCH v3.55. `policies.yaml` **v1.4.23**. factory-artifacts HEAD `1d2d2ff1` (D-972-S-21.09-V1.21-STORY-LAG-CLOSURE-RECORD commit + SHA-patch done).
+Cycle `v1.0-brownfield-backfill`. Pass count **11**, streak **0/3** (11 adversary passes, zero CLEAN). Total finding-count trajectory `3→3→2→13→11→9→9→8→8→15→2`, tail `→8→8→15→2`. 4-INDEX: BC v4.56 / VP v2.76 / **STORY v4.301** / ARCH v3.55. `policies.yaml` **v1.4.23**. factory-artifacts HEAD (parent, pre-SHA-patch) `424f59a4` (D-973-S-21.09-LOCAL-PASS-11-RECORD-AND-FIX-BURST commit pending; SHA-patch to follow once actual commit HEAD is known).
 
-**Last decisions: D-971, D-972.** Story-vs-impl lag CLOSED this burst. Pass-11 cycle adversary is now the immediate NEXT step — no longer blocked by story lag.
+**Last decisions: D-972, D-973.** Pass-11 CLOSED this burst (both F-1 and F-2 resolved same-session). Pass-12 LOCAL adversary is now the immediate NEXT step.
 
 ### §2 S-21.09 (Session's Main Work)
 
-In-flight. Branch `feature/S-21.09` at **`1c59a669`**, **44 tests T-006..T-049** all green, `cargo fmt`/`clippy`/`cargo test --workspace --all-targets` all clean. Story spec **v1.21** (lag closed — committed this burst; documents pass-10 BLOCKER-1 single-copy detect gate refactor, BLOCKER-2 T-048 totality property, T-049 EC-005a control, `Registry::parse_str` production validation, T-013/T-014 comment filtering, T-008 NOT-orphan assertion). Points **16** (from original 5, UNCHANGED — documentation-fidelity pass, no new AC scope).
+In-flight. Branch `feature/S-21.09` at **`69663255`**, **45 tests T-006..T-050** all green, `cargo fmt`/`clippy`/`cargo test --workspace --all-targets` all clean. Story spec **v1.22** (reconciles pass-11 F-1's line-644/645 self-contradiction; T-050 Red-Gate row added; sweeps 44→45 tests / T-006..T-049→T-050 / 38→39 owned / `1c59a669`→`69663255` across AC-006 Tests bullet, Architecture Mapping, Purity Classification, Architecture Compliance Rules, File Structure Requirements, Token Budget Estimate). Points **16** (UNCHANGED — test-hardening + doc-fidelity pass, no new AC scope).
 
 > **THE BRANCH IS NOT PUSHED** — push status UNCHANGED this session (human ruling holds). Requires explicit human authorization:
 >
@@ -316,20 +322,21 @@ In-flight. Branch `feature/S-21.09` at **`1c59a669`**, **44 tests T-006..T-049**
 
 ### §3 S-21.09 LOCAL 3-CLEAN Cascade
 
-**10 passes, all NOT-CLEAN, streak 0/3.** Human ruling (twice): **true 3-CLEAN required**, not D-386 Option C asymptotic acceptance.
+**11 passes, all NOT CLEAN, streak 0/3.** Human ruling (twice): **true 3-CLEAN required**, not D-386 Option C asymptotic acceptance.
 
-Severity by pass — BLOCKER: 2→2→0→0→0→0→0→0→1→2; HIGH: 3→2→3→2→1→1→3→2→1→3.
+Total finding-count trajectory: `3→3→2→13→11→9→9→8→8→15→2`. Severity(HIGH) trajectory: `3→2→3→2→1→1→3→2→1→3→1`. All eleven review files persisted as `cycles/v1.0-brownfield-backfill/adv-s21.09-local-pass-{1..11}.md`. `INDEX.md` `S-21.09 LOCAL Adversary Reviews` table created this burst (backfilled passes 1–10 from each persisted file's own header/finding-summary line, plus pass-11's row and a Convergence Status paragraph).
 
-All ten review files persisted as `cycles/v1.0-brownfield-backfill/adv-s21.09-local-pass-{1..10}.md`. Pass-10 verbatim content replaced in SHA-patch (input-hash 0fb0e79). Both pass-10 BLOCKERs: (1) `detect_ungated_declarations` containment predicate has four conjuncts — three survive mutation independently; M1+M4 composed re-opens silent-drop class (closed in `1c59a669` by single-copy detect refactor calling `extract_hook_plugin_name`); (2) totality invariant (`extract.is_some()` ⟺ `detect.is_empty()`) asserted by no test (closed in `1c59a669` by T-048 property assertion over 18 candidates).
+**Pass-11 (this burst): NOT CLEAN — F-1 HIGH + F-2 MEDIUM, both CLOSED same-burst.**
+- **F-1 [HIGH]**: `detect_ungated_declarations` containment predicate's length conjunct (mutant M2, `len >`→`len >=`) was falsely attested as killed by T-047/T-048/story lines 645 — the sole OUTSIDE probe used (`../../../ghost.wasm`) fails both conjuncts simultaneously, so it isolates neither. Story line 644 honestly admitted this and line 645 contradicted it. Escalates pass-10's MED-004. **CLOSED**: T-050 added (`test_S_21_09_ac006_T050_length_conjunct_isolation_kills_m2`) — a root-resolving, filename-less `../..` candidate; empirically verified under M2 applied locally, only T-050 goes RED (44/45), T-047/T-048 stay GREEN.
+- **F-2 [MEDIUM]**: 5 sibling sites (T-032 docstring + fn name, T-023 docstring, `parse_plugin_refs` doc, story T-043 row) left unswept by the pass-9/pass-11 refactors (full-path return; `is_hook_plugins` removal), describing obsolete/false semantics. **CLOSED**: all 5 sites corrected; T-032 renamed to `..._yields_full_path` (numeric ID preserved).
 
-**Open after `1c59a669`:**
-- MEDIUM-1: directory-only control (`hook-plugins/sub/` admitted)
-- MEDIUM-4: T-047 boundary proof over-determined (prefix-conjunct not isolated)
-- LOW-1: NUL/trailing-space names admitted verbatim
-- LOW-2: fail-open arms guarded only by unasserted call ordering
-- LOW-3: `workspace_root()` untested directly
+**Open after `69663255` (4 pass-10 carry-overs, NOT addressed this pass):**
+- ADV-BB-P10-MED-001: directory-only control (`hook-plugins/sub/` admitted)
+- ADV-BB-P10-LOW-001: NUL/trailing-space names admitted verbatim
+- ADV-BB-P10-LOW-002: fail-open arms guarded only by unasserted call ordering
+- ADV-BB-P10-LOW-003: `workspace_root()` untested directly
 
-**Pass 11 is next.** Story-lag precondition satisfied (story spec v1.21 committed this burst) — no further precondition blocks dispatch.
+**Pass 12 is next.**
 
 ### §4 ADR-043
 
@@ -346,20 +353,21 @@ BC-1.05.002 v2.4, .004 v2.3, .028 v2.4, .035 v2.5, .036 v1.3 under D-972 Option 
 - **C-4 CWE-284** — prefix list empty/writable fallthrough; BC amendment pending.
 - **C-5 CWE-284** — no per-entry resource limits; anchor S-21.14.
 - **`validate-factory-path-staging` inert** — 0 fires vs ≥14,000 sibling invocations; inert at operator runtime until **rc.24**.
+- **4 pass-10 carry-over findings** (MED-001, LOW-001/002/003) — anchor: pass-12.
 
 ### §7 Infrastructure Blockers
 
-(a) **STATE.md narrative sections uneditable** for v7.14..v7.18 — prior burst compacted `last_amended` via full-file Write; **compaction SUCCEEDED**. SHA-patch burst also used full-file Write. This burst also used full-file Write (verify-state-timestamp-refresh guard requires timestamp advance per individual Edit call; full-file Write with single timestamp bump is the reliable path for multi-section STATE.md updates).
+(a) **STATE.md narrative sections** — this burst continues the full-file Write convention (verify-state-timestamp-refresh guard requires timestamp advance per individual Edit call; full-file Write with single timestamp bump is the reliable path for multi-section STATE.md updates).
 (b) **`STORY-INDEX.md`** triggers advisory PostToolUse fuel timeouts (confirmed again this burst — writes still land; PostToolUse fires post-write).
-(c) **POLICY 14 leg-4 sealed prior burst; leg-5 applied this burst** — `STORY-INDEX.md` `version: 4.300` vs `last_amended (v4.300)` kept in parity this burst.
-(d) **`decision-log.md` >14,800 lines and `lessons.md` >3,000** exhaust WASM validator fuel — F-006 compaction gates rc.24.
+(c) **`decision-log.md`/`burst-log.md`/`lessons.md` >14,800/25,600/10,850 lines respectively** exhaust WASM validator fuel on every edit — confirmed again this burst (advisory only; writes land). Compaction gates rc.24 fuel-cap effectiveness + S-15.03 PRIORITY-A automation.
+(d) **`adv-s21.09-local-pass-N.md` input-hash convention**: `compute-input-hash` resolves the review file's `inputs:` reference RELATIVE TO THE CURRENT WORKING-TREE STATE, not the state at review time. A manually-derived hash against a `/tmp`-staged historical copy of the reviewed content will NOT match the live `validate-input-hash` guard; always let the guard's own rejection message supply the correct value, or run `compute-input-hash` against the in-repo path after the referenced file's final committed state for this burst is in place.
 
 ### §8 Pending Human Decisions
 
 1. **ADR-043 ratification** — v1.5 converged (no BLOCKERs per pass-3); human to decide: ratify v1.5 / request pass-4 / redirect design.
 2. **S-21.12 blocker B1** — `cargo deny` has 5 advisories (not 2); `deny.toml` read-only; `async-std` no upgrade path; AC-004 unsatisfiable; story would land CI permanently red.
 3. **Four orphan advisories + 18 Dependabot alerts** — scope assignment pending (E-22 or dedicated fix).
-4. **True 3-CLEAN ruling for S-21.09** — 10 passes, 0 clean, 44 tests, 16 pts; maintain true 3-CLEAN or accept D-386 asymptotic?
+4. **True 3-CLEAN ruling for S-21.09** — 11 passes, 0 clean, 45 tests, 16 pts; maintain true 3-CLEAN or accept D-386 asymptotic?
 5. **Authorize `feature/S-21.09` push** — `git -C .worktrees/S-21.09 push -u origin feature/S-21.09`.
 
 ### §9 Two Follow-up Stories Registered This Session
@@ -369,4 +377,4 @@ BC-1.05.002 v2.4, .004 v2.3, .028 v2.4, .035 v2.5, .036 v1.3 under D-972 Option 
 
 ### §10 Resume Command
 
-`/vsdd-factory:next-step` — LOCAL adversary pass-11 dispatch is the next substantive action (story-lag precondition satisfied).
+`/vsdd-factory:next-step` — LOCAL adversary pass-12 dispatch is the next substantive action (pass-11 CLOSED this burst; no precondition blocks dispatch). SHA-patch follow-up still owed: Active Branches `factory-artifacts` row + this checkpoint's header currently cite the PARENT commit `424f59a4`; patch to the actual D-973 commit HEAD once known.

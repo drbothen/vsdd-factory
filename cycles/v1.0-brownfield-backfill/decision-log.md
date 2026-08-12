@@ -15841,3 +15841,68 @@ D-972-SS01-EXEC-SUBPROCESS-OPTION-C-ADJUDICATION-AND-S-21.09-DELIVERY-RECORD
 ### Date
 
 2026-08-11
+
+---
+
+## D-973 — D-973-S-21.09-LOCAL-PASS-11-RECORD-AND-FIX-BURST
+
+**POLICY 16 ALLOCATOR-CEILING GATE** (pre-allocation, literal shell, D-449(a)):
+
+```
+$ cd /Users/zious/Documents/GITHUB/vsdd-factory/.factory && max_d=$({ grep -hE '^#{2,} D-[0-9]+' cycles/v1.0-brownfield-backfill/decision-log.md cycles/v1.0-feature-engine-discipline-pass-1/decision-log.md 2>/dev/null; grep -hE '^[|] *D-[0-9]+' cycles/v1.0-brownfield-backfill/decision-log.md cycles/v1.0-feature-engine-discipline-pass-1/decision-log.md 2>/dev/null; } | grep -oE 'D-[0-9]+' | sed 's/D-//' | sort -n | tail -1); [ "$max_d" -lt 9000 ] && printf 'PASS: global max D-%s < D-9000 ceiling\n' "$max_d" || printf 'FAIL: breach: max=D-%s\n' "$max_d"
+PASS: global max D-972 < D-9000 ceiling
+```
+
+D-973 allocated. Parent-commit: `424f59a4` (factory-artifacts HEAD at burst start).
+
+**(a) POLICY 16 GATE PASS — D-973 allocated; parent-commit `424f59a4`.** This is the S-21.09 LOCAL cascade pass-11 RECORD burst combined with its same-session fix burst (test-writer commit `69663255` on `feature/S-21.09`, NOT pushed — push held per standing human ruling; story-writer story v1.22, staged into this same factory-artifacts commit per TD-VSDD-053 single-commit-per-burst).
+
+**(b) `adv-s21.09-local-pass-11.md` persisted.** `cycles/v1.0-brownfield-backfill/adv-s21.09-local-pass-11.md` CREATED. Verdict: **NOT CLEAN — 1 HIGH + 1 MEDIUM (2 findings)**. Reviewed HEAD: `1c59a669` (feature/S-21.09) against story v1.21. Fresh-context review (Iron Law: read only prior-pass Part A — `adv-s21.09-local-pass-10.md`). LOCAL streak: **0/3 — eleven passes, zero CLEAN.** `S-21.09 LOCAL Adversary Reviews` section added to INDEX.md (backfilled table for passes 1–10 from each persisted review file's own header/finding-summary line, plus this pass's row) and Convergence Status paragraph appended/updated (11 passes; trajectory `3→3→2→13→11→9→9→8→8→15→2`, tail `→8→8→15→2`).
+
+**(c) F-1 [HIGH; POLICY 13 mutation-completeness / TD-VSDD-059 paper-claim] — false mutation-kill attestation on the containment predicate's length conjunct.** `detect_ungated_declarations`'s containment predicate (`in_repo = joined_parts.len() > root_parts.len() && <prefix-match>`) has mutant M2 (`len >` → `len >=`). T-047, T-048, and story narrative lines 528–529/644/645 all claimed the negative-identifier assertion kills M2. False: the sole OUTSIDE probe used (`../../../ghost.wasm`) fails BOTH conjuncts simultaneously at `joined_parts.len() == root_parts.len()`, so M2's length-conjunct relaxation alone cannot flip the outcome — no candidate in the 18-case T-048 partition, or anywhere else in the 44-test suite at `1c59a669`, isolates the length conjunct. The story itself admitted this at line 644 and then contradicted itself at line 645 by asserting the kill claim anyway — a direct self-contradiction inside a 3-CLEAN cascade whose purpose is precisely to catch this defect class. This F-1 is an escalation-with-new-evidence of pass-10's MED-004 (T-047 boundary proof over-determined), now compounded by the false attestation across three shipped locations (T-047 comment, T-048 comment + module docstring, story lines 645). Escalated MEDIUM → HIGH.
+
+**(d) F-1 CLOSED this burst.** test-writer added **T-050** (`test_S_21_09_ac006_T050_length_conjunct_isolation_kills_m2`, commit `69663255`, NOT pushed): a root-resolving, filename-less OUTSIDE candidate (`plugin = "../.."`) resolving to exactly `root_parts` — an exact prefix self-match, making the length conjunct the sole determinant. Empirically verified (fix-burst pass-11): with mutant M2 applied locally, only T-050 goes RED (44/45 pass); T-047 and T-048 stay GREEN — confirming T-050, not T-047/T-048, is the true M2-isolating control. Corrected the three false kill-claims: T-047 comment, T-048 comment + module-header docstring, and story narrative (v1.22, lines around 340/357–364/548–556/561, reconciling the self-contradiction at old line 644/645).
+
+**(e) F-2 [MEDIUM; POLICY 4 semantic-anchoring / S-7.01 partial-fix propagation] — pass-9/pass-11 refactors did not propagate to 5 sibling sites.** Module-header T-032 docstring described obsolete basename-extraction semantics (contradicted by the live `test_S_21_09_ac006_T032_nested_subdir_yields_filename` assertion, which is full-path); T-032 test-function name itself encoded the obsolete "yields_filename" semantics; module-header T-023 docstring claimed absolute/traversal forms are INCLUDED (they are EXCLUDED); `parse_plugin_refs` doc comment claimed `last()` basename extraction (current function returns the full registry-relative path); story Red-Gate row T-043 (line 640) referenced the `is_hook_plugins` symbol, removed in the pass-11 single-copy refactor and no longer present. No verification hole — the actual tests are correct — but a reader consulting the module-header test-plan or the story would be misled about shipped behavior, and would search for a deleted symbol.
+
+**(f) F-2 CLOSED this burst.** test-writer corrected the T-032/T-023 module-header docstring rows and the `parse_plugin_refs` doc comment to describe full-path-return / absolute-exclusion accurately; renamed the T-032 test function to `test_S_21_09_ac006_T032_nested_subdir_yields_full_path` (numeric ID preserved per POLICY 1 append-only — only the function-name text changed). story-writer corrected story v1.22 T-043/T-046 Red-Gate rows to describe delegation to `extract_hook_plugin_name(...).is_none()` instead of the removed `is_hook_plugins` symbol.
+
+**(g) Four pass-10 carry-over findings remain OPEN — not addressed this pass.** ADV-BB-P10-MED-001 (directory-only `hook-plugins/sub/` staging control), ADV-BB-P10-LOW-001 (NUL/trailing-space names admitted verbatim), ADV-BB-P10-LOW-002 (fail-open arms guarded only by unasserted call ordering), ADV-BB-P10-LOW-003 (`workspace_root()` untested directly). None were re-verified or addressed in this pass's dispatch scope or this burst's fix scope. Carried to pass-12.
+
+**(h) Suite state at `69663255`.** 45 tests T-006..T-050, 39 S-21.09-owned (T-012..T-050); `cargo fmt --check --all`, `cargo clippy --workspace --all-targets -- -D warnings`, `cargo test --workspace --all-targets` all clean. Story spec v1.22 (story-writer; reconciles the line-644/645 self-contradiction; T-050 Red-Gate row added; all count/range/commit-SHA references swept 44→45 tests / T-006..T-049→T-050 / 38→39 owned / `1c59a669`→`69663255` across AC-006 Tests bullet, Architecture Mapping, Purity Classification, Architecture Compliance Rules, File Structure Requirements, Token Budget Estimate). Points UNCHANGED at 16 — test-hardening + doc-fidelity pass correcting two already-scoped adversary findings, not new AC scope.
+
+**(i) `feature/S-21.09` push status UNCHANGED — NOT PUSHED.** Standing human ruling holds (per D-971/D-972/prior session-wrap checkpoints): explicit human authorization required via `git -C .worktrees/S-21.09 push -u origin feature/S-21.09`.
+
+**(j) Streak 0/3 UNCHANGED (11 passes, zero CLEAN).** Total finding-count trajectory `3→3→2→13→11→9→9→8→8→15→2` (tail `→8→8→15→2`). Severity(HIGH) trajectory `3→2→3→2→1→1→3→2→1→3→1`. Human ruling (twice): true 3-CLEAN required, not D-386 Option C asymptotic acceptance. **Pass-12 adversary is the immediate NEXT step.**
+
+**(k) 4-INDEX: STORY-INDEX only bump.** BC-INDEX v4.56 UNCHANGED. VP-INDEX v2.76 UNCHANGED. ARCH-INDEX v3.55 UNCHANGED. STORY-INDEX v4.300→v4.301 (S-21.09 catalog row v1.21→v1.22; 45 tests T-006..T-050, 39 owned; commit `69663255`; 16 pts UNCHANGED). policies.yaml v1.4.23 UNCHANGED.
+
+**Closes:**
+- F-1 HIGH (pass-11) — CLOSED this burst via T-050 (`69663255`) + 3-site narrative correction.
+- F-2 MEDIUM (pass-11) — CLOSED this burst via story v1.22 + module-header/doc-comment corrections + T-032 rename.
+- STORY-INDEX v1.21→v1.22 S-21.09 catalog-row lag — CLOSED this burst.
+
+**Remains OPEN (not this burst's scope):**
+- ADV-BB-P10-MED-001, LOW-001, LOW-002, LOW-003 (pass-10 carry-overs) — anchor: pass-12.
+- `feature/S-21.09` NOT PUSHED — anchor: explicit human authorization.
+- C-1/C-2/C-4/C-5 blocking security issues (D-972) — UNCHANGED, out of this burst's scope.
+
+### Agents
+
+- state-manager (D-973): `adv-s21.09-local-pass-11.md` created; `INDEX.md` S-21.09 LOCAL Adversary Reviews section created (backfilled passes 1–10 + pass-11 row) + Convergence Status paragraph; decision-log D-973 block appended; burst-log D-973 8-block entry appended; lessons.md L-BB lesson appended (mutation-kill-attestation-requires-empirical-verification); STORY-INDEX v4.300→v4.301 (S-21.09 v1.21→v1.22 catalog-row sync); STATE.md v7.20→v7.21; story v1.22 (staged by story-writer this session) + test-writer commit `69663255` (staged on `feature/S-21.09`, not committed to factory-artifacts — code branch, separate from this factory-artifacts commit) committed as part of this single factory-artifacts burst per TD-VSDD-053.
+- test-writer (prior to this burst, same session): T-050 added at `69663255`; T-013/T-014 comment-filtering; T-047/T-048/module-docstring/`parse_plugin_refs` doc corrections; T-032 rename; T-008 NOT-orphan assertion (S-19.04-inherited).
+- story-writer (prior to this burst, same session): story v1.22 (F-1/F-2 narrative reconciliation + count sweep).
+
+### 4-INDEX
+
+BC-INDEX v4.56 (UNCHANGED) / VP-INDEX v2.76 (UNCHANGED) / STORY-INDEX v4.301 / ARCH-INDEX v3.55 (UNCHANGED)
+
+### Phase
+
+D-973-S-21.09-LOCAL-PASS-11-RECORD-AND-FIX-BURST
+
+### Date
+
+2026-08-12
+
+---
