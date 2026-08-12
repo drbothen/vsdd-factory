@@ -50,8 +50,10 @@
 //! | T-040 | AC-006 S-21.09 | GREEN | MEDIUM-1 pass-9 resolvers arm: ungated declaration in `resolvers-registry.toml` fires `UNGATED-DECLARATION: other-dir/evil-resolver.wasm` |
 //! | T-041 | AC-006 S-21.09 | GREEN | MEDIUM-3 pass-9 git failure path: valid-inventory non-git dir; `run_t012_gate` panics with `git ls-files exited with status` |
 //! | T-042 | AC-006 S-21.09 | GREEN | pass-9.1 case-variant MISSING outcome: `Hook-Plugins/ghost-missing.wasm` declared verbatim, lowercase `hook-plugins/ghost-missing.wasm` tracked; `check_declared_subset_tracked` returns `MISSING: Hook-Plugins/ghost-missing.wasm` (pins end-to-end Linux-CI behavior) |
-//! | T-043 | AC-006 S-21.09 | GREEN | pass-10 bare-name UNGATED control: `ghost-bare.wasm` resolves to `registry_parent/ghost-bare.wasm` (len=expected_depth+1); passes `detect_ungated_declarations` gate-1 (lowered to `< expected_depth+1`); fires `UNGATED-DECLARATION: ghost-bare.wasm` |
-//! | T-044 | AC-006 S-21.09 | GREEN | pass-10 `../registry-parent/` UNGATED control: `../vsdd-factory/ghost-updir.wasm` resolves back to `registry_parent/ghost-updir.wasm` (len=expected_depth+1); passes gate-1; fires `UNGATED-DECLARATION: ../vsdd-factory/ghost-updir.wasm` |
+//! | T-043 | AC-006 S-21.09 | GREEN | pass-10 bare-name UNGATED control: `ghost-bare.wasm` resolves to `registry_parent/ghost-bare.wasm`; passes containment check (inside worktree root); NOT correctly under hook-plugins/; fires `UNGATED-DECLARATION: ghost-bare.wasm` |
+//! | T-044 | AC-006 S-21.09 | GREEN | pass-10 `../registry-parent/` UNGATED control: `../vsdd-factory/ghost-updir.wasm` resolves back to `registry_parent/ghost-updir.wasm`; inside root; fires `UNGATED-DECLARATION: ../vsdd-factory/ghost-updir.wasm` |
+//! | T-045 | AC-006 S-21.09 | GREEN | pass-10.1 one-level-up UNGATED: `../ghost.wasm` resolves to `plugins/ghost.wasm` inside root; containment passes, NOT under hook-plugins/; fires `UNGATED-DECLARATION: ../ghost.wasm` |
+//! | T-046 | AC-006 S-21.09 | GREEN | pass-10.1 two-levels-up UNGATED: `../../ghost.wasm` resolves to `<root>/ghost.wasm` inside root; containment passes (root_parts.len()+1 > root_parts.len()); fires `UNGATED-DECLARATION: ../../ghost.wasm` |
 //!
 //! † T-009 is a STANDING GREEN GATE — passes immediately on any clean checkout where no
 //! orphan WASMs are tracked in git, and remains green on contaminated worktrees because
@@ -353,38 +355,59 @@ fn extract_hook_plugin_name(registry_path: &Path, plugin_path: &str) -> Option<S
     Some(joined_parts[expected_depth..].join("/"))
 }
 
-/// Return raw `plugin = "..."` path strings from `registry_path` whose resolved paths
-/// land **inside the registry parent** (gate 2 passes) but **NOT under `hook-plugins/`**
-/// (gate 3 fails).
+/// Return raw `plugin = "..."` path strings from `registry_path` that resolve **inside
+/// the worktree `root`** but **NOT correctly under `registry_parent/hook-plugins/`**.
 ///
-/// Gate-1 in this function requires only one component after the parent prefix
-/// (`joined_parts.len() >= expected_depth + 1`), so it catches:
-/// - Bare names (`ghost-bare.wasm` → `registry_parent/ghost-bare.wasm`) — gate-3 fails
-/// - `../registry-parent/` escapes (`../vsdd-factory/ghost.wasm` → same parent directory)
-/// - Standard gate-3 escapes (`other-dir/evil-probe.wasm` — already caught before pass-10)
+/// ## Detection algorithm (pass-10.1 — containment-based)
 ///
-/// Returns an empty Vec when every declaration either (a) resolves outside the registry
-/// parent (absolute paths with divergent prefixes, `../`-prefix forms that escape to a
-/// different parent — gate 2 fails), or (b) correctly targets `hook-plugins/` (gate 3
-/// passes, i.e., `eq_ignore_ascii_case("hook-plugins")` succeeds).
+/// For each `plugin = "..."` value, compute `joined = lex_norm(registry_parent.join(path))`.
 ///
-/// NOTE: the gate-1 threshold here (`< expected_depth + 1`) is intentionally different
-/// from `extract_hook_plugin_name()`'s gate-1 (`< expected_depth + 2`).
-/// `extract_hook_plugin_name` needs a filename component BEYOND `hook-plugins/`, so it
-/// requires `expected_depth + 2`.  This function only needs one component after the
-/// parent to identify whether it is `hook-plugins` or not, so `expected_depth + 1` suffices.
+/// **Containment check (replaces the pass-10 length-based gate-1):**
+/// If `joined.len() <= root_parts.len()` OR `joined[0..root_parts.len()] ≠ root_parts`,
+/// the resolved path is outside the worktree root — silently skipped.  Production loads
+/// these from outside the repo (e.g., absolute paths with a divergent prefix, or `../`
+/// chains deep enough to escape the worktree).  This gate does not report them.
 ///
-/// Used by `run_t012_gate()` to emit `UNGATED-DECLARATION: <path>` before the git calls.
+/// **Correctness check:**
+/// A declaration is "correctly targeted" when ALL three hold:
+///   (a) `joined.len() >= expected_depth + 2` — has a filename component after `hook-plugins/`
+///   (b) `joined[0..expected_depth] == parent_parts` — registry-parent prefix intact
+///   (c) `joined[expected_depth].eq_ignore_ascii_case("hook-plugins")` — lands under hook-plugins
 ///
-/// See T-038 (gate-3 escape), T-040 (resolvers arm), T-043 (bare-name gate-1 escape),
-/// T-044 (`../registry-parent/` gate-1 escape).
-fn detect_ungated_declarations(registry_path: &Path) -> Vec<String> {
+/// Any in-repo declaration that does NOT satisfy (a)+(b)+(c) is pushed to `ungated`.
+///
+/// ## What this catches
+/// - Gate-3 escapes: `other-dir/evil-probe.wasm` (T-038) — in-repo, wrong subdir
+/// - Bare names: `ghost-bare.wasm` → `registry_parent/ghost-bare.wasm` (T-043)
+/// - `../registry-parent/` forms: `../vsdd-factory/ghost.wasm` (T-044)
+/// - One-level-up: `../ghost.wasm` → `plugins/ghost.wasm` (T-045)
+/// - Two-levels-up: `../../ghost.wasm` → `<root>/ghost.wasm` (T-046)
+///
+/// ## What this does NOT catch
+/// Declarations that resolve OUTSIDE the worktree root (deeper `../` chains, absolute
+/// paths with divergent prefixes).  Those escape the containment check and are silently
+/// dropped.  Production would attempt to load them from outside the repo — that is a
+/// separate concern outside this gate's scope.  See T-047 (out-of-repo probe).
+///
+/// ## Threshold note
+/// The old length-based gate-1 (`< expected_depth + 1`) is gone from this function —
+/// the containment check subsumes it.  The `expected_depth + 2` that appears in the
+/// `is_hook_plugins` positive check (condition a) has the same semantics as the gate-1
+/// in `extract_hook_plugin_name`: "the path must have a filename component after
+/// `hook-plugins/`".  Both thresholds are now `expected_depth + 2` for the same reason.
+///
+/// Used by `run_t012_gate()` to emit `UNGATED-DECLARATION: <path>` before git calls.
+///
+/// See T-038, T-040 (resolvers arm), T-043 (bare-name), T-044 (`../registry-parent/`),
+/// T-045 (`../` one level up), T-046 (`../../` two levels up).
+fn detect_ungated_declarations(registry_path: &Path, root: &Path) -> Vec<String> {
     let registry_parent = match registry_path.parent() {
         Some(p) => p,
         None => return Vec::new(),
     };
     let parent_parts = lex_norm(registry_parent);
     let expected_depth = parent_parts.len();
+    let root_parts = lex_norm(root);
 
     let content = fs::read_to_string(registry_path).unwrap_or_default();
     let doc: toml::Value = match content.parse::<toml::Value>() {
@@ -397,28 +420,32 @@ fn detect_ungated_declarations(registry_path: &Path) -> Vec<String> {
             for entry in entries {
                 if let Some(toml::Value::String(plugin_path)) = entry.get("plugin") {
                     let joined_parts = lex_norm(&registry_parent.join(plugin_path.as_str()));
-                    // Gate 1: must have at least one component after the registry parent.
-                    // Threshold is `expected_depth + 1` (not +2 as in extract_hook_plugin_name)
-                    // because we only need to inspect the *first* component after the parent
-                    // (to check whether it is "hook-plugins").  Bare names and traversal-cancels
-                    // that resolve to exactly `registry_parent/foo.wasm` have
-                    // `len == expected_depth + 1` and therefore pass this gate — they then fail
-                    // gate 3 because "foo.wasm" != "hook-plugins", and are caught as UNGATED.
-                    if joined_parts.len() < expected_depth + 1 {
+
+                    // Containment check: the resolved path must land inside the worktree root.
+                    // Paths that resolve outside the worktree (deep `../` chains, absolute paths
+                    // with a divergent prefix) are silently skipped — not this gate's concern.
+                    if joined_parts.len() <= root_parts.len() {
                         continue;
                     }
-                    // Gate 2: registry-parent prefix must match exactly.
-                    let prefix_ok = parent_parts
+                    let in_repo = root_parts
                         .iter()
                         .enumerate()
                         .all(|(i, p)| joined_parts.get(i) == Some(p));
-                    if !prefix_ok {
+                    if !in_repo {
                         continue;
                     }
-                    // Gate 3 INVERTED: if next component != "hook-plugins", this is an
-                    // ungated declaration — passes gates 1+2 but escapes the hook-plugins gate.
-                    let hook_comp = &joined_parts[expected_depth];
-                    if !hook_comp.eq_ignore_ascii_case("hook-plugins") {
+
+                    // Correctness check: is this declaration correctly targeting hook-plugins/?
+                    // Requires: (a) filename component after hook-plugins/, (b) registry-parent
+                    // prefix intact, (c) first component after parent is "hook-plugins".
+                    let is_hook_plugins = joined_parts.len() >= expected_depth + 2
+                        && parent_parts
+                            .iter()
+                            .enumerate()
+                            .all(|(i, p)| joined_parts.get(i) == Some(p))
+                        && joined_parts[expected_depth].eq_ignore_ascii_case("hook-plugins");
+
+                    if !is_hook_plugins {
                         ungated.push(plugin_path.clone());
                     }
                 }
@@ -824,12 +851,12 @@ fn run_t012_gate(root: &Path) -> Result<(), String> {
     let resolvers_refs = parse_plugin_refs(&resolvers_registry);
 
     // Check for ungated declarations BEFORE calling git (no git required for this step).
-    // A declaration that passes gates 1+2 (repo-internal, correct depth + parent prefix) but
-    // fails gate 3 (next component != "hook-plugins") resolves inside the repo but escapes
-    // the declared-set gate — a potential reproduction of the S-21.09 failure scenario.
-    // Fires first so T-038 does not need a git fixture.
-    let mut ungated: Vec<String> = detect_ungated_declarations(&hooks_registry);
-    ungated.extend(detect_ungated_declarations(&resolvers_registry));
+    // Any declaration that resolves inside the worktree root but NOT under
+    // registry_parent/hook-plugins/ escapes the declared-set gate — a potential
+    // reproduction of the S-21.09 failure scenario.
+    // Fires first so T-038/T-043/T-044/T-045/T-046 do not need a git fixture.
+    let mut ungated: Vec<String> = detect_ungated_declarations(&hooks_registry, root);
+    ungated.extend(detect_ungated_declarations(&resolvers_registry, root));
     ungated.sort();
     if !ungated.is_empty() {
         return Err(format!(
@@ -4174,30 +4201,21 @@ fn test_S_21_09_ac006_T042_case_variant_declared_fires_missing_against_lowercase
 }
 
 // ---------------------------------------------------------------------------
-// T-043 — pass-10 UNGATED-DECLARATION: bare-name form (gate-1 escape)
+// T-043 — pass-10 UNGATED-DECLARATION: bare-name form (containment-based catch)
 //
-// A bare plugin path (`ghost-bare.wasm`) resolves to `registry_parent/ghost-bare.wasm`
-// when joined.  Before pass-10, `detect_ungated_declarations` used gate-1 threshold
-// `< expected_depth + 2`, so len == expected_depth + 1 was silently skipped —
-// bare names never appeared in `ungated`.  Pass-10 lowers the threshold to
-// `< expected_depth + 1`, so len == expected_depth + 1 now PASSES gate-1.
-//
-// Gate-by-gate for `ghost-bare.wasm`:
-//   joined = registry_parent.join("ghost-bare.wasm")
-//          = plugins/vsdd-factory/ghost-bare.wasm
-//   lex_norm → ["plugins", "vsdd-factory", "ghost-bare.wasm"], len = 3
-//   expected_depth = 2 (lex_norm("plugins/vsdd-factory") has 2 components)
-//   Gate 1: len < expected_depth + 1  →  3 < 3  →  FALSE → PASSES (len ≥ 3)
-//   Gate 2: prefix_ok: joined_parts[0..2] == ["plugins", "vsdd-factory"] → PASSES
-//   Gate 3: hook_comp = joined_parts[2] = "ghost-bare.wasm" ≠ "hook-plugins" → UNGATED
+// A bare plugin path (`ghost-bare.wasm`) resolves to `registry_parent/ghost-bare.wasm`.
+// With the pass-10.1 containment-based algorithm:
+//   joined = lex_norm(registry_parent.join("ghost-bare.wasm"))
+//          = [...root_components..., "plugins", "vsdd-factory", "ghost-bare.wasm"]
+//   Containment: len = root_parts.len()+3 > root_parts.len() ✓
+//                joined[0..root_parts.len()] == root_parts ✓  → in-repo
+//   is_hook_plugins: joined[expected_depth] = "ghost-bare.wasm" ≠ "hook-plugins" → UNGATED
 //
 // Fixture: 30 valid hooks + bare-name declaration. No git init needed.
 //
-// Mutation-proof: reverting gate-1 to `< expected_depth + 2` (old threshold) causes
-// the bare path to be silently skipped (len == expected_depth + 1 < expected_depth + 2
-// is true → `continue`); the ungated Vec is empty; run_t012_gate proceeds to git
-// calls and panics on the non-git tmpdir — the `result.is_err()` assertion passes but
-// with a different error message, causing `err.contains("UNGATED-DECLARATION")` to FAIL.
+// Mutation-proof: if containment check is removed (or the is_hook_plugins check is
+// removed), the ungated Vec is empty; run_t012_gate proceeds to git calls and panics
+// on the non-git tmpdir — `err.contains("UNGATED-DECLARATION")` FAILS.
 //
 // Story: S-21.09
 // ---------------------------------------------------------------------------
@@ -4240,10 +4258,10 @@ fn test_S_21_09_ac006_T043_bare_name_ungated_declaration_fires() {
     assert!(
         result.is_err(),
         "T-043 UNGATED-DECLARATION: run_t012_gate must return Err when a bare-name \
-         declaration ('ghost-bare.wasm') passes gate-1 (len >= expected_depth+1) and \
-         gate-2 (prefix matches) but fails gate-3 (not 'hook-plugins'); detect_ungated_declarations \
-         fires before git calls; reverting gate-1 to expected_depth+2 would cause git panic \
-         on non-git tmpdir — UNGATED-DECLARATION would NOT appear in error; got Ok"
+         declaration ('ghost-bare.wasm') passes containment check (inside worktree root) \
+         but is NOT correctly under hook-plugins/; detect_ungated_declarations fires \
+         before git calls; removing the containment check would cause git panic on \
+         non-git tmpdir — UNGATED-DECLARATION would NOT appear in error; got Ok"
     );
 
     let err = result.unwrap_err();
@@ -4258,33 +4276,23 @@ fn test_S_21_09_ac006_T043_bare_name_ungated_declaration_fires() {
 }
 
 // ---------------------------------------------------------------------------
-// T-044 — pass-10 UNGATED-DECLARATION: `../registry-parent/` prefix form (gate-1 escape)
+// T-044 — pass-10 UNGATED-DECLARATION: `../registry-parent/` prefix form (containment)
 //
-// A plugin path `../vsdd-factory/ghost-updir.wasm` joined to registry_parent
-// `plugins/vsdd-factory` resolves to `plugins/vsdd-factory/../vsdd-factory/ghost-updir.wasm`.
-// `lex_norm` pops `vsdd-factory` (ParentDir), then pushes `vsdd-factory` and
-// `ghost-updir.wasm`, yielding `["plugins", "vsdd-factory", "ghost-updir.wasm"]`.
+// `../vsdd-factory/ghost-updir.wasm` joined to registry_parent resolves back to
+// `registry_parent/ghost-updir.wasm` (the ParentDir pops vsdd-factory, then it is
+// pushed again).  Containment check passes (still inside root); is_hook_plugins fails
+// (no hook-plugins component) → UNGATED.
 //
-// Before pass-10, this path had len == expected_depth + 1 < expected_depth + 2 → silently
-// skipped by detect_ungated_declarations.  Pass-10 lowers gate-1 to `< expected_depth + 1`,
-// so len == expected_depth + 1 now PASSES gate-1.
-//
-// Gate-by-gate for `../vsdd-factory/ghost-updir.wasm`:
-//   joined = registry_parent.join("../vsdd-factory/ghost-updir.wasm")
-//          = plugins/vsdd-factory/../vsdd-factory/ghost-updir.wasm
-//   lex_norm: ["plugins", "vsdd-factory"] ← ParentDir pops → ["plugins"] → push "vsdd-factory"
-//             → push "ghost-updir.wasm" → ["plugins", "vsdd-factory", "ghost-updir.wasm"], len=3
-//   expected_depth = 2
-//   Gate 1: len < expected_depth + 1  →  3 < 3  →  FALSE → PASSES
-//   Gate 2: prefix_ok: joined_parts[0..2] == ["plugins", "vsdd-factory"] → PASSES
-//   Gate 3: hook_comp = joined_parts[2] = "ghost-updir.wasm" ≠ "hook-plugins" → UNGATED
+// Gate-by-gate (pass-10.1 containment algorithm) for `../vsdd-factory/ghost-updir.wasm`:
+//   joined = [...root_components..., "plugins", "vsdd-factory", "ghost-updir.wasm"]
+//   Containment: len = root_parts.len()+3 > root_parts.len() ✓
+//                joined[0..root_parts.len()] == root_parts ✓  → in-repo
+//   is_hook_plugins: joined[expected_depth] = "ghost-updir.wasm" ≠ "hook-plugins" → UNGATED
 //
 // Fixture: 30 valid hooks + `../vsdd-factory/` prefix declaration. No git init needed.
 //
-// Mutation-proof: reverting gate-1 to `< expected_depth + 2` (old threshold) causes
-// the path to be silently skipped; git panic fires instead; UNGATED-DECLARATION does
-// not appear → err.contains("UNGATED-DECLARATION: ../vsdd-factory/ghost-updir.wasm")
-// FAILS.
+// Mutation-proof: removing the containment check or is_hook_plugins check causes
+// git panic instead → UNGATED-DECLARATION not in error → assertion FAILS.
 //
 // Story: S-21.09
 // ---------------------------------------------------------------------------
@@ -4326,9 +4334,10 @@ fn test_S_21_09_ac006_T044_traversal_cancel_registry_parent_prefix_fires_ungated
 
     assert!(
         result.is_err(),
-        "T-044 UNGATED-DECLARATION: run_t012_gate must return Err when '../vsdd-factory/ghost-updir.wasm' \
-         resolves inside registry_parent (len >= expected_depth+1) and passes gate-2 but fails gate-3; \
-         reverting gate-1 to expected_depth+2 causes git panic instead — got Ok"
+        "T-044 UNGATED-DECLARATION: run_t012_gate must return Err when \
+         '../vsdd-factory/ghost-updir.wasm' resolves inside worktree root but \
+         NOT under hook-plugins/; detect_ungated_declarations fires before git calls; \
+         removing the containment check would cause git panic instead — got Ok"
     );
 
     let err = result.unwrap_err();
@@ -4336,8 +4345,151 @@ fn test_S_21_09_ac006_T044_traversal_cancel_registry_parent_prefix_fires_ungated
         err.contains("UNGATED-DECLARATION: ../vsdd-factory/ghost-updir.wasm"),
         "T-044 UNGATED-DECLARATION: error must contain \
          'UNGATED-DECLARATION: ../vsdd-factory/ghost-updir.wasm'; \
-         mutation-proof: reverting gate-1 to expected_depth+2 causes git panic — \
+         mutation-proof: removing containment check causes git panic — \
          error contains git message not UNGATED-DECLARATION; got: {:?}",
+        err
+    );
+}
+
+// ---------------------------------------------------------------------------
+// T-045 — pass-10.1 UNGATED-DECLARATION: one-level-up `../ghost.wasm`
+//
+// `../ghost.wasm` resolves to `plugins/ghost.wasm` — one level above registry_parent
+// but still inside the worktree root.  Before pass-10.1, this silently escaped:
+// the old pass-10 length-based gate-1 (`< expected_depth+1`) was:
+//   joined = [...root, "plugins", "ghost.wasm"], len = root_parts.len()+2
+//   expected_depth = root_parts.len()+2 (absolute path components)
+//   gate: len < expected_depth+1 = root_parts.len()+3 → root_parts.len()+2 < root_parts.len()+3
+//         → TRUE → silently skipped
+// Probe confirmed (pass-10.1 run): run_t012_gate panicked at git step, not UNGATED step.
+//
+// Pass-10.1 containment-based algorithm:
+//   joined = [...root_components..., "plugins", "ghost.wasm"]
+//   len = root_parts.len()+2 > root_parts.len() ✓
+//   joined[0..root_parts.len()] == root_parts ✓  → in-repo
+//   is_hook_plugins: joined.len()=root_parts.len()+2 < expected_depth+2=root_parts.len()+4
+//                    → FALSE → UNGATED
+//
+// No git init needed; detect_ungated_declarations fires before git calls.
+//
+// Story: S-21.09
+// ---------------------------------------------------------------------------
+#[test]
+fn test_S_21_09_ac006_T045_one_level_up_ungated_declaration_fires() {
+    let tmp = tempdir().expect("tempdir must create successfully");
+    let root = tmp.path();
+
+    let plugins_dir = root.join("plugins/vsdd-factory");
+    fs::create_dir_all(&plugins_dir).expect("plugins/vsdd-factory dir must be created");
+
+    // hooks-registry: 30 valid hooks + 1 one-level-up declaration (../ghost.wasm).
+    let mut hooks_content = String::from("schema_version = 2\n");
+    for i in 0..30_u32 {
+        hooks_content.push_str(&format!(
+            "[[hooks]]\nname = \"h{i:02}\"\nplugin = \"hook-plugins/h{i:02}.wasm\"\n\
+             event = \"PreToolUse\"\ntool = \"^Bash$\"\ntimeout_ms = 5000\n\
+             on_error = \"continue\"\n",
+        ));
+    }
+    hooks_content.push_str(
+        "[[hooks]]\nname = \"ghost-up\"\nplugin = \"../ghost.wasm\"\n\
+         event = \"PreToolUse\"\ntool = \"^Bash$\"\ntimeout_ms = 5000\n\
+         on_error = \"continue\"\n",
+    );
+    fs::write(plugins_dir.join("hooks-registry.toml"), &hooks_content)
+        .expect("hooks-registry.toml must be written");
+
+    fs::write(
+        plugins_dir.join("resolvers-registry.toml"),
+        "schema_version = 1\n[[resolvers]]\nname = \"ctx\"\n\
+         plugin = \"hook-plugins/ctx.wasm\"\n",
+    )
+    .expect("resolvers-registry.toml must be written");
+
+    let result = run_t012_gate(root);
+
+    assert!(
+        result.is_err(),
+        "T-045 UNGATED-DECLARATION: run_t012_gate must return Err when '../ghost.wasm' \
+         resolves to plugins/ghost.wasm inside worktree root; containment passes, \
+         is_hook_plugins fails; probe confirmed escape before pass-10.1; got Ok"
+    );
+
+    let err = result.unwrap_err();
+    assert!(
+        err.contains("UNGATED-DECLARATION: ../ghost.wasm"),
+        "T-045: error must contain 'UNGATED-DECLARATION: ../ghost.wasm'; got: {:?}",
+        err
+    );
+}
+
+// ---------------------------------------------------------------------------
+// T-046 — pass-10.1 UNGATED-DECLARATION: two-levels-up `../../ghost.wasm`
+//
+// `../../ghost.wasm` resolves to `<root>/ghost.wasm` — at the worktree root level,
+// still inside the root (by exactly one component).
+// Before pass-10.1, the old gate-1:
+//   joined = [...root_components..., "ghost.wasm"], len = root_parts.len()+1
+//   expected_depth = root_parts.len()+2
+//   gate: len < expected_depth+1 = root_parts.len()+3 → root_parts.len()+1 < root_parts.len()+3
+//         → TRUE → silently skipped
+// Probe confirmed: run_t012_gate panicked at git step.
+//
+// Pass-10.1 containment-based algorithm:
+//   len = root_parts.len()+1 > root_parts.len() ✓ (margin of exactly 1)
+//   joined[0..root_parts.len()] == root_parts ✓  → in-repo
+//   is_hook_plugins: len = root_parts.len()+1 < expected_depth+2 = root_parts.len()+4 → UNGATED
+//
+// No git init needed.
+//
+// Story: S-21.09
+// ---------------------------------------------------------------------------
+#[test]
+fn test_S_21_09_ac006_T046_two_levels_up_ungated_declaration_fires() {
+    let tmp = tempdir().expect("tempdir must create successfully");
+    let root = tmp.path();
+
+    let plugins_dir = root.join("plugins/vsdd-factory");
+    fs::create_dir_all(&plugins_dir).expect("plugins/vsdd-factory dir must be created");
+
+    // hooks-registry: 30 valid hooks + 1 two-levels-up declaration (../../ghost.wasm).
+    let mut hooks_content = String::from("schema_version = 2\n");
+    for i in 0..30_u32 {
+        hooks_content.push_str(&format!(
+            "[[hooks]]\nname = \"h{i:02}\"\nplugin = \"hook-plugins/h{i:02}.wasm\"\n\
+             event = \"PreToolUse\"\ntool = \"^Bash$\"\ntimeout_ms = 5000\n\
+             on_error = \"continue\"\n",
+        ));
+    }
+    hooks_content.push_str(
+        "[[hooks]]\nname = \"ghost-root\"\nplugin = \"../../ghost.wasm\"\n\
+         event = \"PreToolUse\"\ntool = \"^Bash$\"\ntimeout_ms = 5000\n\
+         on_error = \"continue\"\n",
+    );
+    fs::write(plugins_dir.join("hooks-registry.toml"), &hooks_content)
+        .expect("hooks-registry.toml must be written");
+
+    fs::write(
+        plugins_dir.join("resolvers-registry.toml"),
+        "schema_version = 1\n[[resolvers]]\nname = \"ctx\"\n\
+         plugin = \"hook-plugins/ctx.wasm\"\n",
+    )
+    .expect("resolvers-registry.toml must be written");
+
+    let result = run_t012_gate(root);
+
+    assert!(
+        result.is_err(),
+        "T-046 UNGATED-DECLARATION: run_t012_gate must return Err when '../../ghost.wasm' \
+         resolves to <root>/ghost.wasm (margin of 1 inside root); containment: \
+         len=root_parts.len()+1 > root_parts.len() ✓; probe confirmed escape before \
+         pass-10.1; got Ok"
+    );
+
+    let err = result.unwrap_err();
+    assert!(
+        err.contains("UNGATED-DECLARATION: ../../ghost.wasm"),
+        "T-046: error must contain 'UNGATED-DECLARATION: ../../ghost.wasm'; got: {:?}",
         err
     );
 }
