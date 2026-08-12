@@ -5795,7 +5795,7 @@ fn test_S_21_09_ac006_T056_lex_norm_curdir_arm_direct_contract_pin() {
     assert_eq!(
         lex_norm(Path::new("./a/b")),
         vec!["a".to_string(), "b".to_string()],
-        "T-056: lex_norm must skip a literal interior `.` (CurDir) component, contributing \
+        "T-056: lex_norm must skip a literal leading `.` (CurDir) component, contributing \
          nothing to the accumulated parts; under the CurDir-push mutant \
          (`Component::CurDir => parts.push(\".\".to_owned())`) this would instead yield \
          [\".\", \"a\", \"b\"]"
