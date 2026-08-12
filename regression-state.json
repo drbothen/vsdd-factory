@@ -1,1 +1,1 @@
-{"status":"pass","timestamp":"2026-08-12T03:46:46Z","command":"cd /Users/zious/Documents/GITHUB/vsdd-factory/.worktrees/S-21.09 && cargo test --package factory-dispatcher --test bundle_orphan_check 2>&1 | tail -8"}
+{"status":"pass","timestamp":"2026-08-12T04:42:04Z","command":"cd /Users/zious/Documents/GITHUB/vsdd-factory/.worktrees/S-21.09 && \\\ncargo fmt --check --all && \\\ncargo clippy --workspace --all-targets -- -D warnings && \\\ncargo test --package factory-dispatcher --test bundle_orphan_check 2>&1"}

@@ -35,7 +35,7 @@ inputs:
   - .factory/stories/S-21.12-wasmtime-major-version-move-46-and-cargo-deny-ci.md
   - .factory/stories/S-21.13-read-file-range-targeted-bc-index-row-lookup.md
   - .factory/specs/architecture/decisions/ADR-042-validate-cross-site-correspondence-fuel-budget-raise-and-loud-exhaustion-signaling.md
-input-hash: "e0f4612"
+input-hash: "5193c43"
 # input-hash: recomputed 2026-08-11 after S-21.09 story v1.6 modified (D-972); e0f4612 is current
 last_amended: "2026-08-11 (v1.12) — D-972 S-21.14+S-21.15 registered draft (state-manager): Stories table +2 rows W8 (8+5 pts); story_count 12→14; Total 98→111 pts; wave model W1..W8; EAC-001 extended; no input-hash change (no story files). [Prior: 2026-08-11 (v1.11) — D-972 S-21.09 re-estimation 5→10 pts (state-manager): Stories table S-21.09 8→10 pts; W4 total 27→29 pts; Total 96→98 pts; input-hash ab3506b→e0f4612 (S-21.09 story v1.6 modified). [Prior: 2026-08-08 (v1.10) — S-21.13 registered (story-writer): inputs extended (+S-21.13 +ADR-042), Stories table +1 row (W7 / 13 pts / BC TBD), story_count 11→12, total 83→96 pts, EAC-001 extended to S-21.13, W7 sequencing note added, dependency graph extended (S-21.10+S-21.11→S-21.13 edges), wave model note updated to W1..W7, description updated to twelve stories, input-hash stale (recompute at next state-manager burst). Refs: ADR-042 §Decision 5. [Prior: 2026-08-07 (v1.9) — S-21.07/S-21.09/S-21.10/S-21.11/S-21.12 registered (story-writer): inputs extended, Stories table +5 rows (W4/W5/W6), story_count 6→11, total 35→83 pts, EAC-001 extended to all 11 stories, W4/W5/W6 sequencing notes added, dependency graph extended (S-21.10→S-21.11), wave model note updated, description count 6→11, input-hash recomputed (06f117d→432de49; S-21.12 re-anchored per team-lead ruling from E-22 to E-21 W4). [Prior: 2026-07-26 (v1.8) — pass-15 F-S2104-P15-003 — six BC Traceability pins current (BC-4.16.001 v1.2→v1.8, BC-5.43.001 v1.3→v1.4, BC-5.44.001 v1.3→v1.5, BC-6.10.002 v1.3→v1.5, BC-6.26.001 v1.3→v1.11 + trailing-slash find form, BC-6.27.001 v1.3→v1.4); eleven live-body ADR-031 v1.N tokens stripped to stable anchor form (POLICY 19); stale body BC version cites updated (POLICY 5 TD-VSDD-060 sweep); input-hash recomputed 580b545→06f117d (BC inputs amended). [Prior: 2026-07-26 (v1.7) — D-909 input-hash correction 3ae5a1f→580b545 (INCIDENT: v1.6 S-21.06 input registration did not recompute hash; 580b545 is operator-cache canonical value per L-EDP1-073). [Prior: 2026-07-25 (v1.6) — pass-13 F-S2104-P13-D1 (orchestrator-adjudicated fix-in-scope): S-21.06 registered — title extended, inputs list extended, Stories table (W3 / 8 pts / TBD BCs), EAC-001 extended to S-21.06, Sequencing W3 note, Wave model note updated to W3, Dependency Graph S-21.01→S-21.06 hard edge, description text de-counted, total 6 stories / 35 pts / 3 waves, Maintenance tally 5/27→6/35, story_count 5→6. [Prior: 2026-07-19 (v1.5) — adv pass-7 fix burst (O-P7-a): EAC-006 added (factory-side PR 5-step restore per BC-6.27.001 v1.3 INV-E21-003; 1:1 story↔EAC symmetry restored); BC-6.27.001 v1.2→v1.3 in PRD Capabilities CAP-037 + BC Traceability table; POLICY 14 parity. [Prior: 2026-07-19 (v1.4) — adv pass-5 fix burst (F-P5-001): added missing v1.3 Changelog row to body ## Changelog table; frontmatter/body changelog parity restored (5 modified[] entries now matched by 5 Changelog table rows). [Prior: 2026-07-19 (v1.3) — adv pass-3 fix burst (F-P3-003): CAP-036 stale BC-6.26.001 v1.2 cite corrected to v1.3; TD-VSDD-060 full grep sweep confirms no other stale v1.2 cites of BC-5.44.001, BC-6.10.002, BC-6.26.001, or BC-5.43.001. [Prior: 2026-07-19 (v1.2) — adv pass-2 fix burst (F-P2-003): INV-E21-005 'post-rebase product branch' → 'post-rebase feature branch' (authoritative ADR-031 INV-E21-005 scope); BC-5.43.001 → v1.3; ADR-031 version cites → v1.3 (all occurrences); Description item 2 'product branch' + 'pr-manager post-rebase checkpoint' corrected to 'feature branch' + 'devops-engineer.md §Inter-Wave Rebase checkpoint'.]]]]]]]"
 modified:
@@ -183,7 +183,7 @@ E-21 introduces the following PRD capabilities, defined in ADR-031 §Decision 7 
 | S-21.05 | pr-manager factory-side PR protocol: restore-original-branch, ff-only sync, chore-branch cleanup | W2 | 5 | BC-6.27.001 |
 | S-21.06 | validate-main-checkout-sync WASM guard (W-SEC-001 Layer-2 sync-protocol enforcement) | W3 | 8 | TBD (product-owner authoring required) |
 | S-21.07 | validate-cross-site-correspondence WASM hook — six-arm PostToolUse cross-site value-correspondence gate | W4 | 11 | BC-5.39.010 |
-| S-21.09 | validate-factory-path-staging.wasm artifact restore + per-name registry parity check | W4 | 10 | BC-4.16.001 |
+| S-21.09 | validate-factory-path-staging.wasm artifact restore + per-name registry parity check | W4 | 12 | BC-4.16.001 |
 | S-21.12 | wasmtime major-version move >= 46.0.2: clear RUSTSEC-2026-0188/CVE-2026-58494 + RUSTSEC-2026-0222, add cargo-deny advisories CI job | W4 | 8 | — |
 | S-21.10 | failure_policy dispatcher registry schema extension (ADR-039 Decision 1+2 schema leg — Phase 1) | W5 | 5 | BC-1.01.016 |
 | S-21.11 | Per-plugin fuel-cap calibration + fail-closed enforcement flip (ADR-039 Phase 3+4 — CWE-636 closure) | W6 | 16 | BC-1.01.016, BC-1.03.017 |
@@ -191,7 +191,7 @@ E-21 introduces the following PRD capabilities, defined in ADR-031 §Decision 7 
 | S-21.14 | release-pipeline predicate+gate sweep | W8 | 8 | TBD (stub; story-writer elaboration pending) |
 | S-21.15 | compute-input-hash search-path + traces_to resolution | W8 | 5 | TBD (stub; story-writer elaboration pending) |
 
-**Total:** 14 stories, 111 story points.
+**Total:** 14 stories, 113 story points.
 
 > **Maintenance tally drift-check:** Compute story count + points from the 6 linked story frontmatters and assert equals the Stories-table totals (6 / 35); run at every epic amendment.
 
@@ -218,7 +218,7 @@ E-21 introduces the following PRD capabilities, defined in ADR-031 §Decision 7 
   pattern established by S-21.01 and enforces the Layer-2 main-checkout sync protocol
   (W-SEC-001). Sequential after W1; runs after S-21.01 merges.
 
-- Wave 4 (S-21.07, S-21.09, S-21.12 — 29 pts): Three independent stories, all
+- Wave 4 (S-21.07, S-21.09, S-21.12 — 31 pts): Three independent stories, all
   `depends_on: []`. S-21.07 adds the six-arm cross-site value-correspondence WASM hook
   (BC-5.39.010). S-21.09 restores the `validate-factory-path-staging.wasm` artifact and
   adds per-name registry parity checks (BC-4.16.001). S-21.12 moves the workspace to
