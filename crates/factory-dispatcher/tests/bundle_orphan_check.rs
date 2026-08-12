@@ -1982,9 +1982,10 @@ fn test_S_21_09_ac006_T023_boundary_polarity_bare_and_traversal_cancels_excluded
         "T-023(b) MEDIUM-4(b) traversal-cancels: `hook-plugins/../ghost-cancels.wasm` \
          resolves to registry_parent/ghost-cancels.wasm (the `..` pops `hook-plugins`); \
          normalises to expected_depth+1 components — gate 1 minimum-length check fires; \
-         mutation proof: if ParentDir were not popped, hook-plugins would survive at \
-         depth position (depth+2 components, gate 1 passes, gate 3 would admit \
-         ghost-cancels.wasm); got refs: {:?}",
+         demonstrated: ParentDir pop is load-bearing — with the pop active, hook-plugins \
+         is removed and path has depth+1 components; refs_cancels is empty here; \
+         removing the pop retains hook-plugins at depth position (depth+2 components, \
+         gate 1 passes, gate 3 admits ghost-cancels.wasm); got refs: {:?}",
         refs_cancels
     );
 }
@@ -2909,9 +2910,16 @@ fn test_S_21_09_ac006_T034_git_ls_tree_r_finds_nested_committed_wasm() {
 //   Gate 3 (hook-plugins component): joined_parts[expected_depth] == "other-dir"
 //     ≠ "hook-plugins" → EXCLUDED (sole reason for exclusion)
 //
-// Mutation proof: deleting `!hook_comp.eq_ignore_ascii_case("hook-plugins")` (gate 3)
-// admits "evil-probe.wasm" into declared (refs: {"evil-probe.wasm"}).
-// Neither gate 1 nor gate 2 catches this path — gate 3 is the load-bearing check.
+// Captured mutation proof (pass-7):
+//   Mutant: `if !hook_comp.eq_ignore_ascii_case("hook-plugins") { return None; }` deleted.
+//   $ cargo test --package factory-dispatcher --test bundle_orphan_check \
+//         -- test_S_21_09_ac006_T035
+//   FAILED: T-035 HIGH-1 gate-3 isolated control: parse_plugin_refs must exclude
+//   'other-dir/evil-probe.wasm' — path normalises to expected_depth+2 components
+//   (passes gate 1) with parent prefix intact (passes gate 2) but
+//   'other-dir' != 'hook-plugins' (gate 3 fires); mutation proof: deleting gate 3
+//   admits evil-probe.wasm into declared; got refs: {"evil-probe.wasm"}
+//   → gate 3 deletion admits evil-probe.wasm; gates 1+2 alone cannot reject it.
 //
 // Story: S-21.09
 // ---------------------------------------------------------------------------
