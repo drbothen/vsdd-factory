@@ -22,13 +22,13 @@
 //! | T-012 | AC-006 S-21.09 | GREEN (Red-Gate-by-design) | Declared-set ⊆ tracked-set gate via `check_declared_subset_tracked()`; step 1: registry inventory; step 2: per-registry floors (hooks ≥ 30, resolvers ≥ 1); step 3: declared − tracked = ∅; step 4: no STAGED-NOT-COMMITTED |
 //! | T-013 | AC-006 S-21.09 | GREEN | BLOCKER-1 nospace control: `plugin="hook-plugins/ghost-guard-nospace.wasm"` (no spaces around =) is parsed as declared by toml-crate parser; proves false-negative gap closed |
 //! | T-014 | AC-006 S-21.09 | GREEN | BLOCKER-1 dotslash control: `plugin = "./hook-plugins/ghost-guard-dotslash.wasm"` (leading ./) is parsed as declared by toml-crate parser after ./ normalization |
-//! | T-015 | AC-006 S-21.09 | GREEN | Declared-but-untracked: calls `check_declared_subset_tracked()` with synthetic fixtures (30 hooks + 1 resolver, missing one); asserts "MISSING: hooks-only.wasm" identifier |
+//! | T-015 | AC-006 S-21.09 | GREEN | Declared-but-untracked: calls `check_declared_subset_tracked()` with synthetic fixtures (30 hooks + 1 resolver, missing one); asserts "MISSING: hook-plugins/hooks-only.wasm" identifier |
 //! | T-016 | AC-006 S-21.09 | GREEN | PASS arm: calls `check_declared_subset_tracked()` with all declared tracked → Ok (no false positives) |
 //! | T-017 | AC-006 S-21.09 | GREEN | Registry-inventory UNEXPECTED arm (hyphen form): tmpdir + `metrics-registry.toml` → "UNEXPECTED: metrics-registry.toml" outcome identifier confirmed |
 //! | T-018 | AC-006 S-21.09 | GREEN | Registry-inventory MISSING arm: empty tmpdir → "MISSING: hooks-registry.toml" and "MISSING: resolvers-registry.toml" identifiers confirmed |
 //! | T-019 | AC-006 S-21.09 | GREEN | Hooks floor control: calls `check_declared_subset_tracked()` with 1-entry hooks; `#[should_panic]` locks "T-012: hooks registry declared set has only 1 entries" |
 //! | T-020 | AC-006 S-21.09 | GREEN | EC-005b control: calls `check_declared_subset_tracked()` with empty tracked; `#[should_panic]` locks "T-012 EC-005b" identifier |
-//! | T-021 | AC-006 S-21.09 | GREEN | Staged-not-committed: calls `check_declared_subset_tracked()` with staged artifact → Err containing "STAGED-NOT-COMMITTED: staged-plugin.wasm" identifier |
+//! | T-021 | AC-006 S-21.09 | GREEN | Staged-not-committed: calls `check_declared_subset_tracked()` with staged artifact → Err containing "STAGED-NOT-COMMITTED: hook-plugins/staged-plugin.wasm" identifier |
 //! | T-022 | AC-006 S-21.09 | GREEN | Resolvers floor control: calls `check_declared_subset_tracked()` with empty resolvers; `#[should_panic]` locks "T-012: resolvers registry declared set is empty" |
 //! | T-023 | AC-006 S-21.09 | GREEN | MEDIUM-1 boundary polarity (corrected pass 4): three EXCLUDED-from-declared controls — (a) bare `ghost-bare.wasm` (no `hook-plugins` component after normalization), (b) traversal-cancels `hook-plugins/../ghost-cancels.wasm` (`..` pops `hook-plugins`), (c) `../`-prefix `../hook-plugins/evil.wasm` (escapes registry_parent); all three fail gate 1 (minimum-length) and are excluded — absolute forms are excluded separately, see T-026/T-047/T-048 |
 //! | T-024 | AC-006 S-21.09 | GREEN | BLOCKER-2 underscore mutant: `metrics_registry.toml` (underscore, previously missed by `-registry.toml` filter) caught by fail-closed `*.toml` inventory → "UNEXPECTED: metrics_registry.toml" |
@@ -130,7 +130,7 @@
 //! Embedded at compile time via `include_str!()` — the .toml files are the single source
 //! of truth; edits must be made there, not to the constants.
 //!
-//! Stories: S-19.04 (T-006..T-011), S-21.09 (T-012..T-056)
+//! Stories: S-19.04 (T-006..T-010), S-19.06 (T-011), S-21.09 (T-012..T-056)
 //! VP Trace: — (AC-006 wires EAC-005 as load-bearing leg; no BC mapping)
 
 use factory_dispatcher::Registry;
@@ -1733,8 +1733,8 @@ fn test_S_19_06_policy20_T011_read_prefix_fixture_passes_staging_and_is_orphan()
 //   (entry at `name = "validate-factory-path-staging"`, `plugin =
 //   "hook-plugins/validate-factory-path-staging.wasm"`) but is NOT returned by
 //   `git ls-files plugins/vsdd-factory/hook-plugins/` because no `git add -f`
-//   has been run.  `declared − tracked` = {"validate-factory-path-staging.wasm"}.
-//   Test FAILS with "MISSING: validate-factory-path-staging.wasm".
+//   has been run.  `declared − tracked` = {"hook-plugins/validate-factory-path-staging.wasm"}.
+//   Test FAILS with "MISSING: hook-plugins/validate-factory-path-staging.wasm".
 //
 // Green Gate (post-fix state):
 //   After `git add -f plugins/vsdd-factory/hook-plugins/validate-factory-path-staging.wasm`
@@ -1779,7 +1779,7 @@ fn test_S_21_09_ac006_T012_declared_set_subset_of_tracked_set() {
 // never appear in the missing set).
 //
 // This test proves the toml-crate replacement closes the gap: parse_plugin_refs()
-// on the nospace fixture MUST return a set containing "ghost-guard-nospace.wasm".
+// on the nospace fixture MUST return a set containing "hook-plugins/ghost-guard-nospace.wasm".
 //
 // Story: S-21.09
 // ---------------------------------------------------------------------------
@@ -1837,7 +1837,7 @@ fn test_S_21_09_ac006_T013_nospace_eq_sign_form_is_parsed_as_declared() {
 // This test proves extract_hook_plugin_name() normalises the leading `./`
 // (CurDir component → no-op in lex_norm) by resolving the path relative to the
 // registry parent so that `parse_plugin_refs()` on the dotslash fixture MUST return
-// a set containing "ghost-guard-dotslash.wasm".
+// a set containing "hook-plugins/ghost-guard-dotslash.wasm".
 //
 // Story: S-21.09
 // ---------------------------------------------------------------------------
@@ -1886,7 +1886,7 @@ fn test_S_21_09_ac006_T014_dotslash_prefix_form_is_parsed_as_declared() {
 //
 // The test verifies:
 //   (a) "hooks-only.wasm" is absent from tracked → declared − tracked is non-empty.
-//   (b) The MISSING: <name> failure-message format produces "MISSING: hooks-only.wasm".
+//   (b) The MISSING: <name> failure-message format produces "MISSING: hook-plugins/hooks-only.wasm".
 //
 // Per D-970 Codification 1: the outcome identifier string must appear verbatim in
 // the failure message.  A bare count assertion (missing.len() > 0) would allow the
@@ -2529,10 +2529,12 @@ fn test_S_21_09_ac006_T024_registry_inventory_underscore_form_caught() {
 // plugin_path relative to registry_parent, then lexically normalises:
 // `hooks/../hook-plugins/ghost-traversal.wasm` joined with registry_parent →
 // pop `hooks`, push `hook-plugins`, push `ghost-traversal.wasm` → the component
-// immediately after registry_parent is `hook-plugins` → `ghost-traversal.wasm` returned.
+// immediately after registry_parent is `hook-plugins` → the registry-parent-relative
+// path `hook-plugins/ghost-traversal.wasm` returned (pass-9+: full path, not bare
+// filename — see T-032).
 //
 // This test proves the fix: parse_plugin_refs() on the traversal-form registry MUST
-// return a set containing "ghost-traversal.wasm".
+// return a set containing "hook-plugins/ghost-traversal.wasm".
 //
 // Mutation-proof: reverting to `strip_prefix("hook-plugins/")` without normalisation
 // would exclude the traversal form; `refs.contains(...)` assertion FAILS.
@@ -2897,7 +2899,7 @@ fn test_S_21_09_ac006_T029_uppercase_extension_not_caught_narrowing_proof() {
 //   Phase B — declared-subset wiring (git fixture):
 //     git-initialized tmpdir with valid inventory; hooks-registry declares 30 WASMs
 //     (all committed); resolvers-registry declares ctx.wasm (NOT committed).
-//     run_t012_gate must return Err with "MISSING: ctx.wasm".
+//     run_t012_gate must return Err with "MISSING: hook-plugins/ctx.wasm".
 //     If check_declared_subset_tracked were removed: run_t012_gate returns Ok →
 //     result.is_err() assertion FAILS.
 //
@@ -3424,7 +3426,7 @@ fn test_S_21_09_ac006_T034_git_ls_tree_r_finds_nested_committed_wasm() {
 //   'other-dir/evil-probe.wasm' — path normalises to expected_depth+2 components
 //   (passes gate 1) with parent prefix intact (passes gate 2) but
 //   'other-dir' != 'hook-plugins' (gate 3 fires); mutation proof: deleting gate 3
-//   admits evil-probe.wasm into declared; got refs: {"evil-probe.wasm"}
+//   admits evil-probe.wasm into declared; got refs: {"other-dir/evil-probe.wasm"}
 //   → gate 3 deletion admits evil-probe.wasm; gates 1+2 alone cannot reject it.
 //
 // Story: S-21.09
@@ -3475,14 +3477,14 @@ fn test_S_21_09_ac006_T035_gate3_hookplugins_component_check_isolated_control() 
 // force-added — it stays in the gitignored directory, invisible to `git ls-files`.
 //
 // Correct behaviour (`git ls-files`): tracked = {h00..h29, ctx.wasm}
-//   → declared − tracked = {gitignored-probe.wasm} → MISSING: gitignored-probe.wasm.
+//   → declared − tracked = {gitignored-probe.wasm} → MISSING: hook-plugins/gitignored-probe.wasm.
 //
 // Captured M15 mutation proof (pass-8):
 //   Mutant: git_tracked_wasm_names() replaced with fs::read_dir filesystem scan.
 //   $ cargo test --package factory-dispatcher --test bundle_orphan_check \
 //         -- test_S_21_09_ac006_T036
-//   FAILED: T-036 M15 killer: error must contain 'MISSING: gitignored-probe.wasm';
-//   got: "...STAGED-NOT-COMMITTED: gitignored-probe.wasm"
+//   FAILED: T-036 M15 killer: error must contain 'MISSING: hook-plugins/gitignored-probe.wasm';
+//   got: "...STAGED-NOT-COMMITTED: hook-plugins/gitignored-probe.wasm"
 //   → M15 scan includes gitignored-probe.wasm in tracked; declared−tracked is empty;
 //     committed (git ls-tree HEAD) lacks it → tracked−committed fires STAGED-NOT-COMMITTED
 //     instead; second assertion fails with unexpected outcome identifier.
@@ -3709,7 +3711,7 @@ fn test_S_21_09_ac006_T036_gitignored_probe_not_force_added_fires_missing() {
 //   $ cargo test --package factory-dispatcher --test bundle_orphan_check \
 //         -- test_S_21_09_ac006_T037
 //   FAILED: T-037 M18+M16 killer: run_t012_gate must return Err with
-//   STAGED-NOT-COMMITTED: staged-probe.wasm; …
+//   STAGED-NOT-COMMITTED: hook-plugins/staged-probe.wasm; …
 //   → M18 makes committed==tracked (ls-files includes staged file); tracked−committed={}
 //     → run_t012_gate returns Ok; result.is_err() assertion FAILS.
 //
@@ -3718,10 +3720,12 @@ fn test_S_21_09_ac006_T036_gitignored_probe_not_force_added_fires_missing() {
 //   $ cargo test --package factory-dispatcher --test bundle_orphan_check \
 //         -- test_S_21_09_ac006_T037
 //   FAILED: T-037 M18+M16 killer: error must contain 'STAGED-NOT-COMMITTED:
-//   staged-probe.wasm'; M16 mutant would produce 'MISSING: staged-probe.wasm' instead;
-//   got: "...MISSING: staged-probe.wasm"
+//   hook-plugins/staged-probe.wasm'; M16 mutant would produce 'MISSING:
+//   hook-plugins/staged-probe.wasm' instead;
+//   got: "...MISSING: hook-plugins/staged-probe.wasm"
 //   → M16 passes committed (HEAD — no staged-probe) as "tracked"; declared−committed fires
-//     MISSING: staged-probe.wasm; second assertion fails with wrong outcome identifier.
+//     MISSING: hook-plugins/staged-probe.wasm; second assertion fails with wrong outcome
+//     identifier.
 //
 // Story: S-21.09
 // ---------------------------------------------------------------------------
@@ -5768,7 +5772,7 @@ fn test_S_21_09_ac006_T055_detect_ungated_declarations_malformed_toml_fail_open_
 // `lex_norm`.
 //
 // This test calls `lex_norm` DIRECTLY (no fixture, no filesystem, no git)
-// with a path that has a literal interior `.` component, pinning the
+// with a path that has a literal leading `.` component, pinning the
 // function's own contract rather than an integration side-effect.
 //
 // Under live code: `Component::CurDir => {}` — the `.` component is skipped,
