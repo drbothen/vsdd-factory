@@ -16291,3 +16291,61 @@ D-979-S-21.09-LOCAL-PASS-16-RECORD-AND-COMPREHENSIVE-DOC-SWEEP-BURST
 2026-08-13
 
 ---
+
+## D-980 — D-980-S-21.09-LOCAL-PASS-17-CLEAN-RECORD-BURST
+
+**POLICY 16 ALLOCATOR-CEILING GATE** (pre-allocation, literal shell, D-449(a)):
+
+```
+$ cd /Users/zious/Documents/GITHUB/vsdd-factory/.factory && max_d=$({ grep -hE '^#{2,} D-[0-9]+' cycles/v1.0-brownfield-backfill/decision-log.md cycles/v1.0-feature-engine-discipline-pass-1/decision-log.md 2>/dev/null; grep -hE '^[|] *D-[0-9]+' cycles/v1.0-brownfield-backfill/decision-log.md cycles/v1.0-feature-engine-discipline-pass-1/decision-log.md 2>/dev/null; } | grep -oE 'D-[0-9]+' | sed 's/D-//' | sort -n | tail -1); [ "$max_d" -lt 9000 ] && printf 'PASS: global max D-%s < D-9000 ceiling\n' "$max_d" || printf 'FAIL: breach: max=D-%s\n' "$max_d"
+PASS: global max D-979 < D-9000 ceiling
+```
+
+D-980 allocated. Parent-commit: `96918214` (factory-artifacts HEAD at burst start — the D-979 SHA-patch commit).
+
+**(a) POLICY 16 GATE PASS — D-980 allocated; parent-commit `96918214`.** This is the S-21.09 LOCAL cascade pass-17 RECORD burst — a **CLEAN-verdict record only**. No fix burst: no test-writer/story-writer dispatch, no code change, no story change. Story spec stays v1.28; impl stays `12d0fe98` (`feature/S-21.09` HEAD, NOT PUSHED). The only state change is the cascade record itself plus the LOCAL BC-5.39.001 streak advance.
+
+**(b) `adv-s21.09-local-pass-17.md` persisted.** `cycles/v1.0-brownfield-backfill/adv-s21.09-local-pass-17.md` CREATED. Verdict: **CLEAN — zero findings at any severity (0 BLOCKER / 0 HIGH / 0 MEDIUM / 0 LOW / 0 NIT).** Reviewed HEAD: `12d0fe98` (`feature/S-21.09`) against story v1.28, BC-4.16.001 v1.8. Fresh-context review (Iron Law: read only prior-pass Part A — `adv-s21.09-local-pass-16.md`). LOCAL streak: **ADVANCES 0/3 → 1/3 — the FIRST CLEAN pass of the S-21.09 LOCAL cascade, after 16 consecutive NOT-CLEAN passes.** `INDEX.md` `S-21.09 LOCAL Adversary Reviews` table extended with the pass-17 row (Verdict **CLEAN**, Streak **1/3**) and the Convergence Status paragraph updated (17 passes; streak 1/3; total finding-count trajectory `3→3→2→13→11→9→9→8→8→15→2→1→1→2→1→2→0`, tail `→2→1→2→0`).
+
+**(c) IMPORTANT — the adversary independently re-derived the entire gate structure, mutation-completeness closure, count parity, artifact delivery, and BC traceability, and surfaced ZERO findings.** Pass-17's "What I independently verified" section re-confirmed, from fresh context: the three-gate `extract_hook_plugin_name` boundary structure with dedicated isolation controls (T-033/T-026(b)/T-035); the two-conjunct containment predicate's orthogonal isolation (T-050 length, T-051 prefix) and the three-class totality invariant (gated / UNGATED / OUTSIDE-REPO, mutually exclusive and exhaustive); that fail-open arms are pinned rather than silently admitted (T-055 malformed-TOML direct-call, T-056 `lex_norm` CurDir direct-call, SURV-01's provable-unreachability argument for the `RootDir|Prefix` arm, T-054's fail-closed sentinel distinguished from T-053's assert block); full count parity (51 tests T-006..T-056, 45 S-21.09-owned plus 1 `registry.rs` unit test, matching story lines 689–691 and the AC-006/AC-007 traceability exactly); AC-001 artifact delivery (36 WASMs under `plugins/vsdd-factory/hook-plugins/` including `validate-factory-path-staging.wasm`, declared=tracked=36, `check_registry_inventory` step-1 passing); and BC-4.16.001 v1.8 traceability integrity (H1 title match, AC 001–007 → PC/Precondition/Invariant trace, `subsystems: [SS-04]` parity, SHA cite match). One item was considered and explicitly dismissed as transparency-only, not a finding: the T-052/T-053 empirical mutation-kill doc comments cite "47 others" (a pass-14-era baseline of 48 pre-existing tests before T-054/T-055/T-056 were added), which the adversary confirmed is internally consistent with the §Mutation-Completeness Audit's own stated baseline and is excepted from volatile-count strictness per TD-VSDD-091's empirical-changelog carve-out — not a POLICY-5 drift.
+
+**(d) No fix burst — nothing to fix.** This is a pure CLEAN-verdict record. No test-writer or story-writer dispatched. Story spec **v1.28 UNCHANGED**; impl **`12d0fe98` UNCHANGED**; suite **51 tests T-006..T-056 UNCHANGED**, 45 S-21.09-owned plus 1 `registry.rs` unit test, all green; `cargo fmt`/`clippy`/`cargo test --workspace --all-targets` all clean (state carried over from D-979, not re-run this burst — no code touched). Points UNCHANGED at 16.
+
+**(e) Four pass-10 carry-over findings remain OPEN — not addressed this pass (by construction of a CLEAN pass).** ADV-BB-P10-MED-001 (directory-only `hook-plugins/sub/` staging control), ADV-BB-P10-LOW-001 (NUL/trailing-space names admitted verbatim), ADV-BB-P10-LOW-002 (fail-open arms guarded only by unasserted call ordering), ADV-BB-P10-LOW-003 (`workspace_root()` untested directly). A CLEAN verdict on pass-17's own fresh-context review does not retroactively close pre-existing carried-over findings from pass-10 that this pass's scope did not re-surface or re-verify. Carried to pass-18.
+
+**(f) `feature/S-21.09` push status UNCHANGED — NOT PUSHED.** Standing human ruling holds (per D-971 through D-979 and prior session-wrap checkpoints): explicit human authorization required via `git -C .worktrees/S-21.09 push -u origin feature/S-21.09`.
+
+**(g) L-BB lesson — the audit-then-sweep pattern converts an asymptote into convergence.** Appended to `lessons.md`: the first CLEAN pass (pass-17) arrived immediately after the two comprehensive audits — the D-977 exhaustive mutation-completeness audit closing all killable determinants, then the D-978/D-979 comprehensive comment-vs-code + story-vs-code doc-consistency sweeps. The pattern that converted the 16-pass one-finding-per-pass asymptote into convergence is: run BOTH comprehensive audits (mutation-completeness AND doc-consistency) as bounded bursts BEFORE relying on further fresh-context sampling, rather than discovering each remaining determinant or doc-drift site one pass at a time. Recommendation: run both comprehensive audits EARLY in future LOCAL cascades.
+
+**(h) Streak ADVANCES 0/3 → 1/3 (17 passes, first CLEAN).** Total finding-count trajectory `3→3→2→13→11→9→9→8→8→15→2→1→1→2→1→2→0` (tail `→2→1→2→0`). Severity(HIGH) trajectory `3→2→3→2→1→1→3→2→1→3→1→1→1→0→0→0→0` (pass-17 contributes 0 across every severity). Human ruling (twice): true 3-CLEAN required, not D-386 Option C asymptotic acceptance — **pass-18 AND pass-19 must ALSO be CLEAN for BC-5.39.001 convergence.** **Pass-18 adversary is the immediate NEXT step.**
+
+**(i) 4-INDEX: UNCHANGED.** BC-INDEX v4.56 UNCHANGED. VP-INDEX v2.76 UNCHANGED. STORY-INDEX v4.307→v4.308 (S-21.09 catalog row annotation-only update: streak 0/3→1/3, pass-17 CLEAN, pass-18 NEXT; story version v1.28 and impl SHA `12d0fe98` UNCHANGED — no content change, POLICY 14 annotation-parity leg only). ARCH-INDEX v3.55 UNCHANGED. policies.yaml v1.4.23 UNCHANGED.
+
+**Closes:**
+- Pass-17 CLEAN verdict recorded; LOCAL BC-5.39.001 streak advanced 0/3→1/3 — CLOSED this burst.
+- STORY-INDEX v4.307→v4.308 annotation-only sync — CLOSED this burst.
+
+**Remains OPEN (not this burst's scope):**
+- ADV-BB-P10-MED-001, LOW-001, LOW-002, LOW-003 (pass-10 carry-overs) — anchor: pass-18.
+- `feature/S-21.09` NOT PUSHED — anchor: explicit human authorization.
+- C-1/C-2/C-4/C-5 blocking security issues (D-972) — UNCHANGED, out of this burst's scope.
+- True 3-CLEAN convergence — requires pass-18 AND pass-19 also CLEAN.
+
+### Agents
+
+- state-manager (D-980): `adv-s21.09-local-pass-17.md` created; `INDEX.md` S-21.09 LOCAL Adversary Reviews section extended (pass-17 row, Verdict CLEAN, Streak 1/3 + Convergence Status update); decision-log D-980 block appended; burst-log D-980 8-block entry appended; lessons.md L-BB lesson appended (the audit-then-sweep pattern — running both the mutation-completeness audit and the doc-consistency sweep as comprehensive bursts, rather than one-finding-per-pass point-fixes — converted the 16-pass asymptote into the cascade's first CLEAN pass; recommend running both comprehensive audits EARLY in future LOCAL cascades); STORY-INDEX v4.307→v4.308 (S-21.09 annotation-only sync: streak 1/3, pass-17 CLEAN, pass-18 NEXT); STATE.md v7.27→v7.28.
+- vsdd-factory:adversary (prior to this burst, same session): fresh-context pass-17 review — independently re-derived the entire gate structure, mutation-completeness closure, count parity, artifact delivery, and BC traceability; found **zero findings at any severity**. CLEAN verdict.
+
+### 4-INDEX
+
+BC-INDEX v4.56 (UNCHANGED) / VP-INDEX v2.76 (UNCHANGED) / STORY-INDEX v4.308 / ARCH-INDEX v3.55 (UNCHANGED)
+
+### Phase
+
+D-980-S-21.09-LOCAL-PASS-17-CLEAN-RECORD-BURST
+
+### Date
+
+2026-08-13
+
+---
