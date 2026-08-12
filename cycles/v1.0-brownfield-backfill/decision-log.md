@@ -16092,3 +16092,72 @@ D-976-S-21.09-LOCAL-PASS-14-RECORD-AND-FIX-BURST
 2026-08-12
 
 ---
+
+## D-977 — D-977-S-21.09-EXHAUSTIVE-MUTATION-AUDIT-HARDENING-BURST
+
+**POLICY 16 ALLOCATOR-CEILING GATE** (pre-allocation, literal shell, D-449(a)):
+
+```
+$ cd /Users/zious/Documents/GITHUB/vsdd-factory/.factory && max_d=$({ grep -hE '^#{2,} D-[0-9]+' cycles/v1.0-brownfield-backfill/decision-log.md cycles/v1.0-feature-engine-discipline-pass-1/decision-log.md 2>/dev/null; grep -hE '^[|] *D-[0-9]+' cycles/v1.0-brownfield-backfill/decision-log.md cycles/v1.0-feature-engine-discipline-pass-1/decision-log.md 2>/dev/null; } | grep -oE 'D-[0-9]+' | sed 's/D-//' | sort -n | tail -1); [ "$max_d" -lt 9000 ] && printf 'PASS: global max D-%s < D-9000 ceiling\n' "$max_d" || printf 'FAIL: breach: max=D-%s\n' "$max_d"
+PASS: global max D-976 < D-9000 ceiling
+```
+
+D-977 allocated. Parent-commit: `115b4556` (factory-artifacts HEAD at burst start — the pass-14 SHA-patch commit).
+
+**(a) POLICY 16 GATE PASS — D-977 allocated; parent-commit `115b4556`.** **This is NOT an adversary pass.** It is a formal-verifier-driven exhaustive mutation-completeness audit (POLICY 13) plus a single hardening burst that closed all killable surviving mutants, human-directed this session to break the one-finding-per-pass cascade pattern that had produced T-048→T-050→T-051→T-052/T-053 across four consecutive adversary passes (pass-11 through pass-14, each surfacing exactly one un-isolated determinant). The LOCAL BC-5.39.001 3-CLEAN streak stays **0/3 UNCHANGED** — no `vsdd-factory:adversary` review ran this burst; the pass count remains 14.
+
+**(b) `mutation-audit-s21.09.md` persisted.** `cycles/v1.0-brownfield-backfill/mutation-audit-s21.09.md` CREATED — the formal-verification artifact of record, persisted verbatim per the same source-attestation discipline D-448(a) applies to adversary review files. formal-verifier ran **68 manual determinant mutations** against the test-file gate functions in `crates/factory-dispatcher/tests/bundle_orphan_check.rs` (comparison/boundary operators, boolean structure, boundary constants, early-return/panic arms, classification-literal swaps, collection/string operations) plus `cargo-mutants` against the production `crates/factory-dispatcher/src/registry.rs` module (23 mutants). Combined result: **64/68 manual KILLED + 18/23 cargo-mutants caught** by the pre-existing T-006..T-053 suite (48 tests); **5 combined survivors** (SURV-01..05) fully catalogued with locus, mutation, why-it-survives analysis, and kill-spec.
+
+**(c) SURV-04 [CORRECTNESS / fail-closed — the one that matters] CLOSED.** `run_t012_gate`'s resolvers schema-version read `resolvers_doc.get("schema_version").and_then(|v| v.as_integer()).unwrap_or(-1)` feeding `assert_eq!(resolvers_schema_version, 1, …)`: the `.unwrap_or(-1)` sentinel exists precisely to fail-closed when `schema_version` is absent/malformed, but every fixture through T-053 wrote an explicit integer `schema_version`, so the sentinel default path was never exercised — mutating `.unwrap_or(-1)` → `.unwrap_or(1)` is unobservable, meaning a resolvers registry with a MISSING `schema_version` would silently PASS under the mutant even though production requires it. This is the highest-priority survivor of the four: a genuine correctness gap, not a dead-code artifact. **CLOSED**: test-writer commit `b761477f` adds **T-054** (`test_S_21_09_ac006_T054_resolvers_schema_version_absent_key_fail_closed_sentinel`, `#[should_panic(expected = "but production requires 1")]`), a full production-valid git fixture (mirroring T-052/T-053's shape) where `resolvers-registry.toml` OMITS `schema_version` entirely; empirically verified the sentinel-mutant test goes RED while all others stay GREEN.
+
+**(d) SURV-03 [structural, fail-open dead arm] CLOSED.** `detect_ungated_declarations`'s TOML-parse-error arm `Err(_) => return Vec::new()` is dominated by upstream panics — both `Registry::parse_str(&hooks_content)` and `parse_plugin_refs()` parse the same file with the same `toml` crate and panic on malformed TOML BEFORE this arm is reached, so its fail-open return value is unreachable via `run_t012_gate`. **CLOSED**: `b761477f` adds **T-055** (`test_S_21_09_ac006_T055_detect_ungated_declarations_malformed_toml_fail_open_arm`), a direct unit test calling `detect_ungated_declarations` with malformed TOML, asserting `.is_empty()`.
+
+**(e) SURV-02 [structural, dead-arm contract] CLOSED.** `lex_norm`'s `Component::CurDir => {}` arm never fires in the gate path — `std::path::Components` normalizes interior `.` away before `lex_norm`'s match sees it, and every `lex_norm` call site in the gate passes an absolute path, so any relative-leading `./` is pre-stripped. **CLOSED**: `b761477f` adds **T-056** (`test_S_21_09_ac006_T056_lex_norm_curdir_arm_direct_contract_pin`), a direct unit test pinning the dead-in-gate contract: `lex_norm(Path::new("./a/b")) == ["a", "b"]`.
+
+**(f) SURV-05 [production, out-of-gate accessor] CLOSED.** cargo-mutants MISSED mutant on `RegistryEntry::on_error` (production `registry.rs`, out of the S-21.09 T-012 gate's own scope): replacing the accessor body `self.on_error.unwrap_or(defaults.on_error)` with `Default::default()` survived because no `registry.rs` unit test asserted the defaults-fallback value distinguishably from `OnError`'s own `#[default]` variant. **CLOSED**: a new `registry.rs` unit test `on_error_falls_back_to_registry_defaults_when_entry_omits_it` pairs an omitted entry-level `on_error` with a `RegistryDefaults` explicitly set to the non-default `OnError::Block`, so the accessor and the mutant diverge observably.
+
+**(g) SURV-01 [structural, dead-arm no-op] ACCEPTED-RESIDUAL — genuinely un-isolatable, not deferred.** `lex_norm`'s `Component::RootDir | Component::Prefix(_) => { parts.clear(); }` arm: a root/prefix path component always fires FIRST in `Path::components()` for any well-formed absolute path, so `parts` is provably empty every time this arm fires — `clear()` on an empty `Vec` is a no-op. No fixture can construct a `Normal`-component-before-`RootDir` path (a `std::path` invariant, not a gate-specific limitation), so mutating `parts.clear()` is behaviorally unobservable under any possible input. **Disposition**: strengthened doc comment on `lex_norm` recording the provable-no-op rationale — deliberately WITHOUT a test, since a non-behavior assertion would itself be vacuous. This is the fourth of `lex_norm`'s defensive-unreachable arms.
+
+**(h) Each of the four killable controls empirically verified.** Standard protocol: mutant applied to a scratch copy of the target file → suite run to completion → new test alone goes RED while every other test stays GREEN → mutant reverted, file restored clean. No fixture-shape reuse across controls — T-054/T-055/T-056 each isolate exactly one determinant.
+
+**(i) Suite state — `feature/S-21.09` HEAD now `b761477f`.** 51 tests T-006..T-056 (45 S-21.09-owned, T-012..T-056) plus 1 `registry.rs` unit test, all green; `cargo fmt --check --all`, `cargo clippy --workspace --all-targets -- -D warnings`, `cargo test --workspace --all-targets` (189 workspace tests) all clean. Story spec **v1.26** (story-writer) adds a new "Mutation Completeness Audit" AC-006 subsection recording the full survivor-disposition table (mirroring `mutation-audit-s21.09.md`), three new Red Gate Test Plan rows (T-054, T-055, T-056), the SURV-01 accepted-residual no-test-required Architecture Compliance Rules entry, a new `registry.rs` File Structure Requirements row for the SURV-05 control, and a full POLICY 5/TD-VSDD-060 sibling-sweep of all current-state test-count/range references (48/T-006..T-053/42-owned/`7f540ddc` → 51/T-006..T-056/45-owned/`b761477f`) across the AC-006 Tests bullet, Architecture Mapping, Purity Classification, Architecture Compliance Rules, File Structure Requirements, and Token Budget Estimate. Points UNCHANGED at 16 — mutation-completeness hardening pass closing an already-implicit POLICY 13 obligation within existing AC-006 scope, not new AC scope. No production behavior changed: the gate logic was already correct; all four new controls (T-054/T-055/T-056 + registry.rs unit test) are append-only test-side isolation controls.
+
+**(j) `feature/S-21.09` push status UNCHANGED — NOT PUSHED.** Standing human ruling holds: explicit human authorization required via `git -C .worktrees/S-21.09 push -u origin feature/S-21.09`.
+
+**(k) Streak 0/3 UNCHANGED — 14 adversary passes, zero CLEAN; this burst is NOT a 15th pass.** Total finding-count trajectory `3→3→2→13→11→9→9→8→8→15→2→1→1→2` (tail `→2→1→1→2`) is UNCHANGED by this burst — it contributes no adversary-pass finding count. Human ruling (twice): true 3-CLEAN required, not D-386 Option C asymptotic acceptance. **Pass-15 adversary is the immediate NEXT step**, now dispatched against a suite with zero killable surviving mutants in the audited scope — expected to have a materially improved chance of a CLEAN verdict on the mutation-completeness axis specifically. Four pass-10 carry-over findings (MED-001, LOW-001/002/003) remain OPEN, NOT addressed by this burst (out of its scope) — anchor: pass-15.
+
+**(l) 4-INDEX: STORY-INDEX only bump.** BC-INDEX v4.56 UNCHANGED. VP-INDEX v2.76 UNCHANGED. ARCH-INDEX v3.55 UNCHANGED. STORY-INDEX v4.304→v4.305 (S-21.09 catalog row v1.25→v1.26; 51 tests T-006..T-056, 45 owned + 1 registry test; commit `b761477f`; 16 pts UNCHANGED). policies.yaml v1.4.23 UNCHANGED.
+
+**Closes:**
+- SURV-04 (CORRECTNESS/fail-closed, highest-priority) — CLOSED via T-054 (`b761477f` + story v1.26).
+- SURV-03 (fail-open dead arm) — CLOSED via T-055 (`b761477f` + story v1.26).
+- SURV-02 (dead-arm contract) — CLOSED via T-056 (`b761477f` + story v1.26).
+- SURV-05 (production out-of-gate accessor) — CLOSED via `registry.rs` unit test `on_error_falls_back_to_registry_defaults_when_entry_omits_it` (`b761477f` + story v1.26).
+- SURV-01 (dead-arm no-op) — ACCEPTED-RESIDUAL via strengthened doc comment (`b761477f` + story v1.26), not a deferral.
+- STORY-INDEX v1.25→v1.26 S-21.09 catalog-row lag — CLOSED this burst.
+
+**Remains OPEN (not this burst's scope):**
+- ADV-BB-P10-MED-001, LOW-001, LOW-002, LOW-003 (pass-10 carry-overs) — anchor: pass-15.
+- `feature/S-21.09` NOT PUSHED — anchor: explicit human authorization.
+- C-1/C-2/C-4/C-5 blocking security issues (D-972) — UNCHANGED, out of this burst's scope.
+
+### Agents
+
+- state-manager (D-977): `mutation-audit-s21.09.md` created (verbatim survivor catalog persisted); `INDEX.md` S-21.09 LOCAL Adversary Reviews section extended (HARDENING-BURST row, not a numbered adversary pass, + Convergence Status update); decision-log D-977 block appended; burst-log D-977 8-block entry appended; lessons.md L-BB lesson appended (an exhaustive mutation-completeness audit run during a 3-CLEAN cascade converts an unbounded one-finding-per-pass asymptote into a single bounded hardening burst); STORY-INDEX v4.304→v4.305 (S-21.09 v1.25→v1.26 catalog-row sync); STATE.md v7.24→v7.25; story v1.26 (staged by story-writer this session) + test-writer commit `b761477f` (staged on `feature/S-21.09`, not committed to factory-artifacts — code branch, separate from this factory-artifacts commit) committed as part of this single factory-artifacts burst per TD-VSDD-053.
+- formal-verifier (this session, prior to this burst): ran the exhaustive mutation-completeness audit — 68 manual determinant mutations on `bundle_orphan_check.rs` test-file gate functions + `cargo-mutants` on production `registry.rs` (23 mutants); catalogued 5 survivors (SURV-01..05) with full kill-spec disposition; persisted as the audit content now recorded in `mutation-audit-s21.09.md`.
+- test-writer (prior to this burst, same session): `b761477f` — adds T-054 (resolvers absent-key fail-closed sentinel isolation), T-055 (detect_ungated_declarations malformed-TOML fail-open isolation), T-056 (lex_norm CurDir arm direct contract pin), plus a `registry.rs` unit test (`on_error_falls_back_to_registry_defaults_when_entry_omits_it`); 51 tests T-006..T-056 green (45 owned) plus 1 registry.rs unit test; empirically verified deletion/mutation-mutant kills for all four.
+- story-writer (prior to this burst, same session): story v1.26 (new Mutation Completeness Audit AC-006 subsection; T-054/T-055/T-056 Red Gate rows; SURV-01 accepted-residual entry; registry.rs test entry; counts swept to 51/T-006..T-056/45-owned+1-registry-test/`b761477f`).
+
+### 4-INDEX
+
+BC-INDEX v4.56 (UNCHANGED) / VP-INDEX v2.76 (UNCHANGED) / STORY-INDEX v4.305 / ARCH-INDEX v3.55 (UNCHANGED)
+
+### Phase
+
+D-977-S-21.09-EXHAUSTIVE-MUTATION-AUDIT-HARDENING-BURST
+
+### Date
+
+2026-08-12
+
+---

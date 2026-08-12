@@ -26030,3 +26030,107 @@ D-444(c) burst-log h2 heading `## D-976-S-21.09-LOCAL-PASS-14-RECORD-AND-FIX-BUR
 - **Parent SHA (Block 8 cites parent per D-419(b)/D-444(c) convention):** `0ef5d724` — `state(sha-patch): D-975 commit 528f0f68 factory-artifacts SHA — Active Branches + checkpoint updated`
 
 **Closes:** `adv-s21.09-local-pass-14.md` persisted; INDEX.md S-21.09 LOCAL section extended; MEDIUM+LOW CLOSED via T-052/T-053 + T-020/EC-005b correction; STORY-INDEX v4.304 (S-21.09 v1.25); story v1.25 committed; 1 L-BB lesson; D-976 allocated; STATE.md v7.23→v7.24; streak 0/3; pass-15 NEXT
+
+## D-977-S-21.09-EXHAUSTIVE-MUTATION-AUDIT-HARDENING-BURST
+
+**Block 1: POLICY 16 ALLOCATOR-CEILING GATE** (literal shell, D-449(a)):
+
+```
+$ cd /Users/zious/Documents/GITHUB/vsdd-factory/.factory && max_d=$({ grep -hE '^#{2,} D-[0-9]+' cycles/v1.0-brownfield-backfill/decision-log.md cycles/v1.0-feature-engine-discipline-pass-1/decision-log.md 2>/dev/null; grep -hE '^[|] *D-[0-9]+' cycles/v1.0-brownfield-backfill/decision-log.md cycles/v1.0-feature-engine-discipline-pass-1/decision-log.md 2>/dev/null; } | grep -oE 'D-[0-9]+' | sed 's/D-//' | sort -n | tail -1); [ "$max_d" -lt 9000 ] && printf 'PASS: global max D-%s < D-9000 ceiling\n' "$max_d" || printf 'FAIL: breach: max=D-%s\n' "$max_d"
+PASS: global max D-976 < D-9000 ceiling
+```
+
+D-977 allocated. Parent-commit: `115b4556` (factory-artifacts HEAD at burst start).
+
+**Block 2: Adversary verdict**
+
+**NOT AN ADVERSARY PASS.** This is a formal-verifier-driven exhaustive mutation-completeness audit (POLICY 13) plus a single hardening burst that closed all killable surviving mutants, human-directed this session to break the one-finding-per-pass cascade pattern (T-048→T-050→T-051→T-052/T-053 across passes 11-14, each surfacing exactly one un-isolated determinant). No `vsdd-factory:adversary` review ran this burst. LOCAL streak: **0/3 UNCHANGED — pass count remains 14**.
+
+formal-verifier ran **68 manual determinant mutations** against `bundle_orphan_check.rs` gate functions (comparison/boundary operators, boolean structure, boundary constants, early-return/panic arms, classification-literal swaps, collection/string operations) plus `cargo-mutants` against production `registry.rs` (23 mutants). Result: **64/68 manual KILLED + 18/23 cargo-mutants caught**; **5 combined survivors** (SURV-01..05):
+
+- **SURV-04 [CORRECTNESS/fail-closed, highest-priority]**: `run_t012_gate`'s resolvers `schema_version` `.unwrap_or(-1)` sentinel — every fixture through T-053 wrote an explicit `schema_version`, so the absent-key sentinel path was never exercised; a missing `schema_version` would silently PASS under the `.unwrap_or(1)` mutant. **Closed via T-054.**
+- **SURV-03 [structural, fail-open dead arm]**: `detect_ungated_declarations`'s `Err(_) => Vec::new()` TOML-parse-error arm, unreachable via `run_t012_gate` because upstream `Registry::parse_str`/resolvers parsing panics first on malformed TOML. **Closed via T-055.**
+- **SURV-02 [structural, dead-arm contract]**: `lex_norm`'s `Component::CurDir => {}` arm, dead in the gate path (std normalization + absolute-only call sites). **Closed via T-056.**
+- **SURV-05 [production, out-of-gate accessor]**: `RegistryEntry::on_error` defaults-fallback (`registry.rs`), MISSED by cargo-mutants because no unit test distinguished the defaults-supplied value from `OnError`'s own default. **Closed via a new registry.rs unit test** `on_error_falls_back_to_registry_defaults_when_entry_omits_it`.
+- **SURV-01 [structural, dead-arm no-op] ACCEPTED-RESIDUAL**: `lex_norm`'s `RootDir | Prefix(_) => parts.clear()` arm — a root/prefix component always fires FIRST in `Path::components()`, so `parts` is provably empty every time; no fixture can construct a `Normal`-before-`RootDir` path. Documented via strengthened doc comment, deliberately no test (a non-behavior assertion would be vacuous).
+
+**Fix-burst (same session, prior to this factory-artifacts commit):** test-writer committed `b761477f` on `feature/S-21.09` (NOT pushed) — adds T-054/T-055/T-056 plus the registry.rs unit test; 51 tests T-006..T-056 green, 45 S-21.09-owned, plus 1 registry.rs unit test; each control empirically verified (mutant applied to scratch copy → new test alone RED, all others GREEN → mutant reverted). This is now the `feature/S-21.09` HEAD. story-writer produced story v1.26 (new "Mutation Completeness Audit" AC-006 subsection with full survivor-disposition table; T-054/T-055/T-056 Red Gate rows; SURV-01 accepted-residual entry; registry.rs File Structure Requirements row; POLICY 5/TD-VSDD-060 sibling-sweep). All 4 killable survivors CLOSED this burst; 1 accepted-residual documented.
+
+**Four pass-10 carry-over findings remain OPEN — NOT addressed by this burst (out of scope):** ADV-BB-P10-MED-001 (directory-only staging control), ADV-BB-P10-LOW-001 (NUL/trailing-space names), ADV-BB-P10-LOW-002 (fail-open arms), ADV-BB-P10-LOW-003 (`workspace_root()` untested). Carried to pass-15.
+
+**Block 3: Files touched**
+
+- `stories/S-21.09-wasm-artifact-restore-and-registry-parity.md` — v1.25→v1.26; new "Mutation Completeness Audit" AC-006 subsection (full survivor-disposition table); T-054/T-055/T-056 Red Gate Test Plan rows added; SURV-01 accepted-residual Architecture Compliance Rules entry; new registry.rs File Structure Requirements row; POLICY 5 sibling-sweep across AC-006 Tests bullet, Architecture Mapping, Purity Classification, Architecture Compliance Rules, File Structure Requirements, Token Budget Estimate (48/T-006..T-053/42-owned/`7f540ddc` → 51/T-006..T-056/45-owned/`b761477f`); points UNCHANGED 16
+- `stories/STORY-INDEX.md` — v4.304→v4.305; S-21.09 catalog row v1.25→v1.26 sync (51 tests, 45 owned + 1 registry test, `b761477f`, 16 pts UNCHANGED); POLICY 14 last_amended-parity leg applied
+- `cycles/v1.0-brownfield-backfill/mutation-audit-s21.09.md` — CREATED; formal-verification artifact of record, survivor catalog persisted verbatim per D-448(a)-analogous source-attestation discipline
+- `cycles/v1.0-brownfield-backfill/INDEX.md` — S-21.09 LOCAL Adversary Reviews section extended (HARDENING-BURST row, NOT a numbered pass); Convergence Status paragraph updated
+- `cycles/v1.0-brownfield-backfill/decision-log.md` — D-977 block appended
+- `cycles/v1.0-brownfield-backfill/lessons.md` — 1 L-BB lesson appended (L-BB-exhaustive-mutation-audit-bounds-one-finding-per-pass-asymptote)
+- `cycles/v1.0-brownfield-backfill/burst-log.md` — D-977 8-block entry appended (this file)
+- `STATE.md` — v7.24→v7.25; Session Resume Checkpoint refreshed (pass count remains 14, streak 0/3 UNCHANGED; test-file HEAD `b761477f`; 51 tests; story v1.26; pass-15 NEXT, now against zero killable surviving mutants)
+
+(Code-side, on `feature/S-21.09`, NOT part of this factory-artifacts commit: `crates/factory-dispatcher/tests/bundle_orphan_check.rs` extended with T-054/T-055/T-056; `crates/factory-dispatcher/src/registry.rs` extended with `on_error_falls_back_to_registry_defaults_when_entry_omits_it`; commit `b761477f`, NOT pushed.)
+
+**Block 4: Codifications**
+
+- **No new policies.yaml changes.** This burst extends POLICY 13's mutation-completeness discipline with one new L-BB lesson identifying that an exhaustive mutation audit, dispatched once a cascade's finding pattern shows the same gap-class recurring pass after pass, converts an unbounded one-finding-per-pass asymptote into a single bounded hardening burst — no policy amendment required.
+- **INDEX.md structural extension**: `S-21.09 LOCAL Adversary Reviews` table extended with a HARDENING-BURST row (distinct from the numbered `Pass` rows) — establishes the convention that non-adversary formal-verification bursts are recorded in the same table without incrementing the pass counter or the streak.
+
+**Block 5 (Dim-2): Literal-shell attestation evidence**
+
+**POLICY 16 gate** (captured above — Block 1).
+
+**D-446(a) own-burst-log 8-block gate** (literal shell per D-449(a)):
+
+```
+$ cd /Users/zious/Documents/GITHUB/vsdd-factory/.factory && awk '/^## D-977-S-21\.09-EXHAUSTIVE-MUTATION-AUDIT-HARDENING-BURST/{found=1} found && /^## D-[0-9]/{if(!/D-977-S-21\.09-EXHAUSTIVE-MUTATION-AUDIT-HARDENING-BURST/)exit} found{print}' cycles/v1.0-brownfield-backfill/burst-log.md | grep -cE "^\*\*Block [2-8]|^### Block 8|^## D-977"
+8
+```
+
+PASS: count=8 ≥ 8 required D-444(c) blocks present in D-977 section.
+
+**D-448(a)-analogous source-attestation gate** (literal shell; verifies this burst-log's Block 2 finding summary faithfully describes `mutation-audit-s21.09.md`'s survivor set, D-449(a)):
+
+```
+$ cd /Users/zious/Documents/GITHUB/vsdd-factory/.factory && grep -cE '^### SURV-0[1-5]' cycles/v1.0-brownfield-backfill/mutation-audit-s21.09.md
+5
+```
+
+PASS: exactly 5 SURV-NN survivor headers present in the persisted audit file, matching Block 2's 5-survivor finding summary.
+
+**Block 6 (Dim-5): Closes**
+
+- `mutation-audit-s21.09.md` persisted (formal-verification artifact of record; 68 manual + 23 cargo-mutants determinants; 5 survivors)
+- INDEX.md S-21.09 LOCAL Adversary Reviews section extended (HARDENING-BURST row) + Convergence Status paragraph updated
+- SURV-04 CLOSED — T-054 (`b761477f` + story v1.26)
+- SURV-03 CLOSED — T-055 (`b761477f` + story v1.26)
+- SURV-02 CLOSED — T-056 (`b761477f` + story v1.26)
+- SURV-05 CLOSED — registry.rs `on_error_falls_back_to_registry_defaults_when_entry_omits_it` (`b761477f` + story v1.26)
+- SURV-01 ACCEPTED-RESIDUAL — strengthened doc comment, not a deferral
+- STORY-INDEX v4.304→v4.305 (S-21.09 v1.25→v1.26 catalog-row sync)
+- Story v1.26 committed (staged by story-writer, landed this burst)
+- 1 L-BB lesson appended (exhaustive-mutation-audit-bounds-one-finding-per-pass-asymptote)
+- D-977 allocated
+- 4 pass-10 carry-over findings (MED-001, LOW-001/002/003) remain OPEN — anchor: pass-15
+
+**Block 7 (Dim-6): Gate attestation**
+
+D-444(c) burst-log h2 heading `## D-977-S-21.09-EXHAUSTIVE-MUTATION-AUDIT-HARDENING-BURST` present. D-446(a) own-burst-log 8-block gate INVOKED via literal shell at Block 5 (count=8 required). D-448(a)-analogous source-attestation INVOKED via literal shell at Block 5 (5 SURV-NN headers confirmed present exactly once each in the persisted audit file). D-449(a) literal-shell-execution SELF-APPLICATION: POLICY 16 gate + D-446(a) gate + D-448(a)-analogous gate all use actual shell with verbatim stdout captured — no pseudocode. META-LEVEL-24 self-application confirmed.
+
+**Dim-7 Attestation:**
+
+- Trajectory (S-21.09 LOCAL cascade, total findings per pass): `3→3→2→13→11→9→9→8→8→15→2→1→1→2` (tail per D-433(e)+D-439(c) form: `→2→1→1→2`) — UNCHANGED, this burst contributes no adversary-pass finding count
+- Streak: 0/3 UNCHANGED (14 adversary passes, zero CLEAN; this burst is not a 15th pass)
+- 4-INDEX: BC v4.56 (UNCHANGED) / VP v2.76 (UNCHANGED) / STORY **v4.305** / ARCH v3.55 (UNCHANGED)
+- Story v1.26; test-file HEAD `b761477f`; 51 tests T-006..T-056 all green; 45 S-21.09-owned plus 1 registry.rs unit test; 16 pts UNCHANGED
+- policies.yaml v1.4.23 UNCHANGED
+- `feature/S-21.09` @ `b761477f`; NOT PUSHED (standing human ruling holds)
+- Pass-15 adversary is the immediate NEXT step, now against a suite with zero killable surviving mutants in the audited scope
+
+### Block 8: factory-artifacts commit
+
+**factory-artifacts commits (this burst — TD-VSDD-053 single-commit-per-burst):**
+- Target: single commit pushed as `git push origin HEAD:factory-artifacts`
+- **Parent SHA (Block 8 cites parent per D-419(b)/D-444(c) convention):** `115b4556` — `state(sha-patch): D-976 commit 115b4556 factory-artifacts SHA — Active Branches + checkpoint updated`
+
+**Closes:** `mutation-audit-s21.09.md` persisted; INDEX.md S-21.09 LOCAL section extended (HARDENING-BURST row); 4 killable survivors CLOSED via T-054/T-055/T-056 + registry.rs on_error test; SURV-01 ACCEPTED-RESIDUAL; STORY-INDEX v4.305 (S-21.09 v1.26); story v1.26 committed; 1 L-BB lesson; D-977 allocated; STATE.md v7.24→v7.25; streak 0/3 UNCHANGED; pass-15 NEXT
