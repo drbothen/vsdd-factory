@@ -2317,7 +2317,7 @@ fn test_S_21_09_ac006_T022_resolvers_floor_fires_on_empty_resolvers_set() {
 //   - Dotslash: `./hook-plugins/foo.wasm`
 //   - Traversal INTO hook-plugins: `hooks/../hook-plugins/foo.wasm` (T-025)
 //   - Case variant: `Hook-Plugins/foo.wasm` (T-031)
-//   - Nested subdir: `hook-plugins/sub/nested.wasm` → `nested.wasm` (T-032)
+//   - Nested subdir: `hook-plugins/sub/nested.wasm` → `hook-plugins/sub/nested.wasm` (full path; T-032)
 //
 // **Excluded region (from `declared`; now caught by `detect_ungated_declarations`):**
 //   Paths that resolve to a location outside registry_parent/hook-plugins/ —
@@ -3292,7 +3292,9 @@ fn test_S_21_09_ac006_T033_minimum_length_hookplugins_dir_only_excluded() {
 // would be invisible to a non-recursive `ls-tree`.
 //
 // T-032 proves the DECLARED side: `hook-plugins/sub/nested.wasm` in a registry yields
-// `nested.wasm` as the declared artifact name.  This test proves the COMMITTED side:
+// `hook-plugins/sub/nested.wasm` (the full path, not the bare basename — T-032 explicitly
+// asserts the bare `nested.wasm` form is absent from `refs`) as the declared artifact name.
+// This test proves the COMMITTED side:
 // a WASM committed at `hook-plugins/sub/nested.wasm` IS visible to
 // `git_committed_wasm_names()` (because `-r` is present), making end-to-end
 // cross-checking between declared and committed correct for nested declarations.
@@ -3300,7 +3302,7 @@ fn test_S_21_09_ac006_T033_minimum_length_hookplugins_dir_only_excluded() {
 // Mutation-proof: dropping `-r` from `git ls-tree` causes the subdirectory entry
 // (`hook-plugins/sub`) to appear as a tree line rather than a file path; the
 // `.ends_with(".wasm")` filter excludes it; `committed` is empty;
-// `assert!(committed.contains("nested.wasm"))` FAILS.
+// `assert!(committed.contains("plugins/vsdd-factory/hook-plugins/sub/nested.wasm"))` FAILS.
 //
 // Story: S-21.09
 // ---------------------------------------------------------------------------
