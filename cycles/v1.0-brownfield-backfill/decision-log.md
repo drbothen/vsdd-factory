@@ -16161,3 +16161,64 @@ D-977-S-21.09-EXHAUSTIVE-MUTATION-AUDIT-HARDENING-BURST
 2026-08-12
 
 ---
+
+## D-978 — D-978-S-21.09-LOCAL-PASS-15-RECORD-AND-FIX-BURST
+
+**POLICY 16 ALLOCATOR-CEILING GATE** (pre-allocation, literal shell, D-449(a)):
+
+```
+$ cd /Users/zious/Documents/GITHUB/vsdd-factory/.factory && max_d=$({ grep -hE '^#{2,} D-[0-9]+' cycles/v1.0-brownfield-backfill/decision-log.md cycles/v1.0-feature-engine-discipline-pass-1/decision-log.md 2>/dev/null; grep -hE '^[|] *D-[0-9]+' cycles/v1.0-brownfield-backfill/decision-log.md cycles/v1.0-feature-engine-discipline-pass-1/decision-log.md 2>/dev/null; } | grep -oE 'D-[0-9]+' | sed 's/D-//' | sort -n | tail -1); [ "$max_d" -lt 9000 ] && printf 'PASS: global max D-%s < D-9000 ceiling\n' "$max_d" || printf 'FAIL: breach: max=D-%s\n' "$max_d"
+PASS: global max D-977 < D-9000 ceiling
+```
+
+D-978 allocated. Parent-commit: `0d1f18b5` (factory-artifacts HEAD at burst start — the D-977 SHA-patch commit).
+
+**(a) POLICY 16 GATE PASS — D-978 allocated; parent-commit `0d1f18b5`.** This is the S-21.09 LOCAL cascade pass-15 RECORD burst combined with its same-session fix burst (test-writer commit `05480619` on `feature/S-21.09`, NOT pushed — push held per standing human ruling; story-writer story v1.27, staged into this same factory-artifacts commit per TD-VSDD-053 single-commit-per-burst).
+
+**(b) `adv-s21.09-local-pass-15.md` persisted.** `cycles/v1.0-brownfield-backfill/adv-s21.09-local-pass-15.md` CREATED. Verdict: **NOT CLEAN — 1 MEDIUM (1 finding).** Reviewed HEAD: `b761477f` (feature/S-21.09) against story v1.26. Fresh-context review (Iron Law: read only prior-pass Part A — `adv-s21.09-local-pass-14.md`). LOCAL streak: **0/3 — fifteen passes, zero CLEAN.** `INDEX.md` `S-21.09 LOCAL Adversary Reviews` table extended with the pass-15 row and Convergence Status paragraph updated (15 passes; trajectory `3→3→2→13→11→9→9→8→8→15→2→1→1→2→1`, tail `→1→1→2→1`).
+
+**(c) IMPORTANT — the adversary independently re-derived the ENTIRE gate + mutation coverage and found ZERO logic-level gaps.** Pass-15's Coverage/Axes-verified-CLEAN section re-verified, from fresh context, every determinant closed across passes 9-14 plus the D-977 hardening burst: the containment predicate's LENGTH (T-050) and PREFIX (T-051) conjuncts, both production-validation determinants (T-052 hooks `Registry::parse_str`, T-053 resolvers `schema_version == 1`), the four mutation-audit hardening controls (T-054 resolvers absent-key fail-closed sentinel, T-055 `detect_ungated_declarations` fail-open arm, T-056 `lex_norm` CurDir arm, and the `registry.rs` `on_error` accessor test), and the SURV-01 accepted-residual rationale. The adversary explicitly stated: **"the gate logic and mutation coverage themselves are converged — no logic-level gaps remain after independent re-derivation."** This confirms the D-977 exhaustive mutation-audit hardening burst achieved its objective: the sole finding this pass is doc/comment drift, not logic.
+
+**(d) MEDIUM [POLICY 4 semantic-anchoring / TD-VSDD-060 sibling-sweep gap] — two stale comments describe the closed HIGH-1/pass-9 basename-collapse form as the current T-032 contract.** `crates/factory-dispatcher/tests/bundle_orphan_check.rs`: (i) the T-023 (`test_S_21_09_ac006_T023_boundary_polarity_bare_and_traversal_cancels_excluded`) preamble "**Included region:**" bullet reads "Nested subdir: hook-plugins/sub/nested.wasm → nested.wasm (T-032)"; (ii) the T-034 (`test_S_21_09_ac006_T034_git_ls_tree_r_finds_nested_committed_wasm`) preamble reads "T-032 proves the DECLARED side: hook-plugins/sub/nested.wasm in a registry yields nested.wasm as the declared artifact name." Both assert the bare-basename form, which is precisely the HIGH-1/pass-9 correctness bug (nested declarations silently collapsing to the same basename as a flat-committed file, producing a false negative) — explicitly closed by the worktree-root containment predicate rewrite. `extract_hook_plugin_name` actually returns the full registry-relative path (`"hook-plugins/sub/nested.wasm"`), verified against three authoritative sibling sites in the same file: the module docstring Test-Plan row for T-032, `extract_hook_plugin_name`'s own doc/body + resolution table, and T-032's own assertions (`assert!(refs.contains("hook-plugins/sub/nested.wasm"))` + `assert!(!refs.contains("nested.wasm"))`). No test-logic impact (comments only, no false GREEN), but a maintainer consulting either preamble would be misled into believing the closed bug is still live behavior. Root cause: the HIGH-1/pass-9 return-contract change (basename → full path) swept the function body, function docs, the T-032 row, and T-032's own assertions, but not these two explanatory preamble comment blocks belonging to sibling tests T-023 and T-034.
+
+**(e) MEDIUM CLOSED this burst — comments-only fix, sibling sweep catches a third site beyond the adversary's two.** test-writer committed `05480619` on `feature/S-21.09` (NOT pushed): corrects the T-023 preamble "Included region:" bullet and the T-034 preamble declared-side sentence to state the full registry-relative path, **and** — per the mandatory POLICY 5/TD-VSDD-060 sibling-sweep — a **third** stale site the adversary did not flag: the T-034 preamble's "Mutation-proof" committed-side pseudocode block, which likewise implied the basename form. All three corrections are COMMENTS ONLY — no change to any test body, assertion, fixture, count, or range. Suite unchanged at 51 tests T-006..T-056, 45 S-21.09-owned plus 1 `registry.rs` unit test, all green; `cargo fmt`/`clippy`/`cargo test --workspace --all-targets` all clean. This is now the `feature/S-21.09` HEAD. story-writer produced story v1.27 (uncommitted until this factory-artifacts burst): SHA-cite sweep `b761477f`→`05480619` across 5 current-state sites (AC-006 Tests bullet SHA line, Mutation-Completeness Audit subsection heading, Architecture Compliance Rules SURV-01 accepted-residual row, and the two Token Budget Estimate rows for `bundle_orphan_check.rs`/`registry.rs`) plus a v1.27 changelog row; historical SHA/count citations in prior Changelog rows and the legitimately-historical S-19.04 Previous Story Intelligence citation preserved as historical, not rewritten. No production behavior changed; no AC scope change; points UNCHANGED at 16.
+
+**(f) Four pass-10 carry-over findings remain OPEN — not addressed this pass.** ADV-BB-P10-MED-001 (directory-only `hook-plugins/sub/` staging control), ADV-BB-P10-LOW-001 (NUL/trailing-space names admitted verbatim), ADV-BB-P10-LOW-002 (fail-open arms guarded only by unasserted call ordering), ADV-BB-P10-LOW-003 (`workspace_root()` untested directly). None were re-verified or addressed in this pass's dispatch scope or this burst's fix scope. Carried to pass-16.
+
+**(g) Suite state.** 51 tests T-006..T-056, 45 S-21.09-owned (T-012..T-056) plus 1 `registry.rs` unit test; test-file HEAD `05480619`; `cargo fmt --check --all`, `cargo clippy --workspace --all-targets -- -D warnings`, `cargo test --workspace --all-targets` (189 workspace tests) all clean. Story spec v1.27 (story-writer). Points UNCHANGED at 16 — comment-only drift fix closing an adversary pass-15 finding, not new AC scope.
+
+**(h) `feature/S-21.09` push status UNCHANGED — NOT PUSHED.** Standing human ruling holds (per D-971 through D-977 and prior session-wrap checkpoints): explicit human authorization required via `git -C .worktrees/S-21.09 push -u origin feature/S-21.09`.
+
+**(i) Streak 0/3 UNCHANGED (15 passes, zero CLEAN).** Total finding-count trajectory `3→3→2→13→11→9→9→8→8→15→2→1→1→2→1` (tail `→1→1→2→1`). Severity(HIGH) trajectory `3→2→3→2→1→1→3→2→1→3→1→1→1→0→0` (pass-15 contributes a HIGH count of 0 — its sole finding was MEDIUM). Human ruling (twice): true 3-CLEAN required, not D-386 Option C asymptotic acceptance. **Pass-16 adversary is the immediate NEXT step.**
+
+**(j) 4-INDEX: STORY-INDEX only bump.** BC-INDEX v4.56 UNCHANGED. VP-INDEX v2.76 UNCHANGED. ARCH-INDEX v3.55 UNCHANGED. STORY-INDEX v4.305→v4.306 (S-21.09 catalog row v1.26→v1.27; 51 tests T-006..T-056, 45 owned + 1 registry test; commit `05480619`; 16 pts UNCHANGED). policies.yaml v1.4.23 UNCHANGED.
+
+**Closes:**
+- MEDIUM (pass-15, F-1) — CLOSED this burst via three-site comments-only correction (`05480619` + story v1.27).
+- STORY-INDEX v1.26→v1.27 S-21.09 catalog-row lag — CLOSED this burst.
+
+**Remains OPEN (not this burst's scope):**
+- ADV-BB-P10-MED-001, LOW-001, LOW-002, LOW-003 (pass-10 carry-overs) — anchor: pass-16.
+- `feature/S-21.09` NOT PUSHED — anchor: explicit human authorization.
+- C-1/C-2/C-4/C-5 blocking security issues (D-972) — UNCHANGED, out of this burst's scope.
+
+### Agents
+
+- state-manager (D-978): `adv-s21.09-local-pass-15.md` created; `INDEX.md` S-21.09 LOCAL Adversary Reviews section extended (pass-15 row + Convergence Status update); decision-log D-978 block appended; burst-log D-978 8-block entry appended; lessons.md L-BB lesson appended (a mutation-completeness hardening burst that converges gate/mutation logic leaves doc/comment drift as the residual finding class; a return-contract change's sibling sweep must extend to preamble/pseudocode explanatory comments, not just function docs and the directly-changed test's own row); STORY-INDEX v4.305→v4.306 (S-21.09 v1.26→v1.27 catalog-row sync); STATE.md v7.25→v7.26; story v1.27 (staged by story-writer this session) + test-writer commit `05480619` (staged on `feature/S-21.09`, not committed to factory-artifacts — code branch, separate from this factory-artifacts commit) committed as part of this single factory-artifacts burst per TD-VSDD-053.
+- vsdd-factory:adversary (prior to this burst, same session): fresh-context pass-15 review — independently re-derived the entire gate + mutation coverage, confirmed ZERO logic-level gaps, found 1 MEDIUM doc/comment-drift finding (F-1).
+- test-writer (prior to this burst, same session): `05480619` — corrects T-023 preamble bullet, T-034 preamble declared-side sentence, and (sibling-sweep catch) T-034 "Mutation-proof" pseudocode — all comments-only, no test/assertion/fixture/count/range change.
+- story-writer (prior to this burst, same session): story v1.27 (SHA-cite sweep `b761477f`→`05480619` across 5 current-state sites; v1.27 changelog row; no count/range change).
+
+### 4-INDEX
+
+BC-INDEX v4.56 (UNCHANGED) / VP-INDEX v2.76 (UNCHANGED) / STORY-INDEX v4.306 / ARCH-INDEX v3.55 (UNCHANGED)
+
+### Phase
+
+D-978-S-21.09-LOCAL-PASS-15-RECORD-AND-FIX-BURST
+
+### Date
+
+2026-08-12
+
+---
