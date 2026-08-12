@@ -59,6 +59,8 @@
 //! | T-049 | AC-006 S-21.09 | GREEN | pass-11 EC-005a control: git fixture with non-WASM-only hook-plugins/ → git ls-files returns zero WASM paths → `#[should_panic(expected = "T-012 EC-005a")]` |
 //! | T-050 | AC-006 S-21.09 | GREEN | pass-11 fix-burst length-conjunct isolation control (kills M2, len>→>=): `plugin = "../.."` resolves to EXACTLY `root_parts` (`joined_parts == root_parts`, not just equal length) — the only candidate in the suite where the prefix conjunct is satisfied while the length conjunct is the sole distinguishing factor; under live `>` code, `joined_parts.len() == root_parts.len()` fails the length conjunct → `OUTSIDE-REPO-DECLARATION: ../..`; under mutant `>=`, the length conjunct passes and (since the prefix is an exact self-match) `in_repo` flips true → delegates to `extract_hook_plugin_name`, which fails its own gate-1 (length too short) → `None` → `UNGATED-DECLARATION: ../..` instead. T-047 and T-048's OUTSIDE candidates are all over-determined (fail both conjuncts at once) and therefore do NOT kill M2; T-050 is the sole isolating control |
 //! | T-051 | AC-006 S-21.09 | GREEN | pass-12 fix-burst prefix-conjunct isolation control (kills `.all(...)`→`.any(...)` and `.all(...)`→`true`): `plugin = "../../../sib/ghost.wasm"` resolves to `root_parts[0..N-1] + ["sib", "ghost.wasm"]` — length `N+1 > N` so the length conjunct is TRUE, but index `N-1` diverges from `root_parts`'s last component so the prefix `.all(...)` conjunct is FALSE — the sole determinant. Under live code `in_repo = false` → `OUTSIDE-REPO-DECLARATION: ../../../sib/ghost.wasm`; under either `.all→.any` or `.all→true` mutant the prefix conjunct flips true, `in_repo` flips true, and the path delegates to `extract_hook_plugin_name`, which fails its own gates → `None` → `UNGATED-DECLARATION: ../../../sib/ghost.wasm` instead — a genuine classification flip. Orthogonal to T-050 (which isolates the length conjunct); does NOT kill M2 |
+//! | T-052 | AC-006 S-21.09 | GREEN | pass-14 fix-burst hooks production-validation isolation control (kills deletion of the `Registry::parse_str(&hooks_content)` block in `run_t012_gate`): full valid git fixture (30 hooks + 1 resolver, all WASMs committed, all other fields production-valid) except `hooks-registry.toml`'s top-level `schema_version = 3` (unsupported; `REGISTRY_SCHEMA_VERSION` is 2) — every other gate (inventory, ungated-declaration, floors, declared ⊆ tracked) would pass. Under live code `Registry::parse_str` returns `Err(RegistryError::SchemaVersion{got:3,expected:2})`, causing `run_t012_gate` to panic with "T-012: hooks-registry.toml fails production validation (...)"; under the deletion mutant no production check runs, `hooks_refs`/`resolvers_refs` parse the same 30+1 declarations via the schema-version-agnostic `parse_plugin_refs`, and every subsequent gate passes against the fully-committed fixture — `run_t012_gate` returns `Ok(())` and the `#[should_panic]` assertion fails to fire (test goes RED), proving the block is load-bearing |
+//! | T-053 | AC-006 S-21.09 | GREEN | pass-14 fix-burst resolvers schema-version isolation control (kills deletion of the `assert_eq!(resolvers_schema_version, 1, ...)` block in `run_t012_gate`): same full valid git fixture shape as T-052 (30 hooks + 1 resolver, all WASMs committed) except `resolvers-registry.toml`'s top-level `schema_version = 2` (production requires 1) — `hooks-registry.toml` is fully production-valid (`schema_version = 2`) so `Registry::parse_str` passes, isolating this determinant from T-052's. Under live code the `assert_eq!` panics with "T-012: resolvers-registry.toml schema_version=2 but production requires 1"; under the deletion mutant no resolvers-schema check runs and every subsequent gate passes against the fully-committed fixture — `run_t012_gate` returns `Ok(())` and the `#[should_panic]` assertion fails to fire (test goes RED), proving the block is load-bearing and distinct from T-052's hooks-side check |
 //!
 //! † T-009 is a STANDING GREEN GATE — passes immediately on any clean checkout where no
 //! orphan WASMs are tracked in git, and remains green on contaminated worktrees because
@@ -125,7 +127,7 @@
 //! Embedded at compile time via `include_str!()` — the .toml files are the single source
 //! of truth; edits must be made there, not to the constants.
 //!
-//! Stories: S-19.04 (T-006..T-011), S-21.09 (T-012..T-051)
+//! Stories: S-19.04 (T-006..T-011), S-21.09 (T-012..T-053)
 //! VP Trace: — (AC-006 wires EAC-005 as load-bearing leg; no BC mapping)
 
 use factory_dispatcher::Registry;
@@ -5227,4 +5229,283 @@ fn test_S_21_09_ac006_T051_prefix_conjunct_isolation_kills_all_mutants() {
          got: {:?}",
         err
     );
+}
+
+// ---------------------------------------------------------------------------
+// T-052 — pass-14 fix-burst hooks production-validation isolation control
+//
+// adv-cycle-pass-14 MEDIUM: the `Registry::parse_str(&hooks_content)` production-
+// validation block in `run_t012_gate` (HIGH-3, pass-11) is a sole-determinant
+// deletion mutant. Every existing fixture that reaches `run_t012_gate` writes
+// `schema_version = 2` in hooks-registry.toml, so `Registry::parse_str` always
+// succeeds and deleting the call changes no observable outcome for T-006..T-051.
+//
+// This fixture is a FULL, otherwise-production-valid git fixture — 30 hooks +
+// 1 resolver, all 31 WASMs committed, matching the T-030 phase-B / T-050 / T-051
+// pattern exactly — with exactly one defect: hooks-registry.toml declares
+// `schema_version = 3`. `REGISTRY_SCHEMA_VERSION` (crates/factory-dispatcher/src/
+// registry.rs) is 2, so `Registry::parse_str` returns
+// `Err(RegistryError::SchemaVersion { got: 3, expected: 2 })` — a REAL production-
+// validation rejection (E-REG-001), not a TOML syntax error: the file parses fine
+// as TOML, only `Registry::validate()`'s schema_version check fails.
+//
+// Because every other gate in `run_t012_gate` (registry inventory,
+// `detect_ungated_declarations`, the per-registry floors inside
+// `check_declared_subset_tracked`, and declared ⊆ tracked) would PASS against this
+// fixture, this test isolates the production-validation block as the sole
+// determinant: with the block present, `run_t012_gate` panics before reaching any
+// other gate; with the block deleted (empirically verified — see task report),
+// `run_t012_gate` runs to completion and returns `Ok(())`, so the
+// `#[should_panic]` assertion below does not fire and the test goes RED.
+#[test]
+#[should_panic(expected = "T-012: hooks-registry.toml fails production validation")]
+fn test_S_21_09_ac006_T052_hooks_production_validation_isolation_kills_parse_str_deletion() {
+    let tmp = tempdir().expect("tempdir must create successfully");
+    let root = tmp.path();
+
+    let init_out = Command::new("git")
+        .args([
+            "-c",
+            "core.excludesFile=/dev/null",
+            "-c",
+            "commit.gpgsign=false",
+            "-c",
+            "core.hooksPath=/dev/null",
+            "-c",
+            "init.templateDir=",
+            "init",
+        ])
+        .current_dir(root)
+        .output()
+        .expect("git init must execute for T-052 fixture");
+    assert!(
+        init_out.status.success(),
+        "T-052: git init failed: {}",
+        String::from_utf8_lossy(&init_out.stderr)
+    );
+    Command::new("git")
+        .args(["config", "user.email", "test@example.com"])
+        .current_dir(root)
+        .output()
+        .expect("git config user.email must execute");
+    Command::new("git")
+        .args(["config", "user.name", "Test"])
+        .current_dir(root)
+        .output()
+        .expect("git config user.name must execute");
+
+    let plugins_dir = root.join("plugins/vsdd-factory");
+    let hook_plugins_dir = plugins_dir.join("hook-plugins");
+    fs::create_dir_all(&hook_plugins_dir).expect("hook-plugins dir must be created");
+
+    // hooks-registry.toml: 30 otherwise-valid entries, but schema_version = 3
+    // (REGISTRY_SCHEMA_VERSION is 2) — the sole defect. Registry::parse_str
+    // rejects the whole registry on this alone; every entry, tool regex, and
+    // on_error/async combination below is individually valid.
+    let mut hooks_content = String::from("schema_version = 3\n");
+    for i in 0..30_u32 {
+        hooks_content.push_str(&format!(
+            "[[hooks]]\nname = \"h{i:02}\"\nplugin = \"hook-plugins/h{i:02}.wasm\"\n\
+             event = \"PreToolUse\"\ntool = \"^Bash$\"\ntimeout_ms = 5000\n\
+             on_error = \"continue\"\n",
+        ));
+    }
+    fs::write(plugins_dir.join("hooks-registry.toml"), &hooks_content)
+        .expect("hooks-registry.toml must be written");
+
+    // resolvers-registry.toml: fully production-valid (schema_version = 1, 1
+    // entry) — isolates the hooks-side determinant from T-053's resolvers-side one.
+    fs::write(
+        plugins_dir.join("resolvers-registry.toml"),
+        "schema_version = 1\n[[resolvers]]\nname = \"ctx\"\n\
+         plugin = \"hook-plugins/ctx.wasm\"\n",
+    )
+    .expect("resolvers-registry.toml must be written");
+
+    // Commit all 30 hook WASMs + the resolver WASM so that, absent the
+    // production-validation block, EVERY subsequent gate (ungated-declaration,
+    // floors, declared ⊆ tracked) also passes — proving the deletion mutant
+    // produces a clean Ok(()), not an incidental panic from a downstream gate.
+    for i in 0..30_u32 {
+        fs::write(hook_plugins_dir.join(format!("h{i:02}.wasm")), b"wasm")
+            .expect("hook wasm fixture must be written");
+    }
+    fs::write(hook_plugins_dir.join("ctx.wasm"), b"wasm")
+        .expect("resolver wasm fixture must be written");
+
+    let add_out = Command::new("git")
+        .args(["-c", "core.excludesFile=/dev/null", "add", "."])
+        .current_dir(root)
+        .output()
+        .expect("git add must execute for T-052 fixture");
+    assert!(
+        add_out.status.success(),
+        "T-052: git add failed: {}",
+        String::from_utf8_lossy(&add_out.stderr)
+    );
+
+    let commit_out = Command::new("git")
+        .args([
+            "-c",
+            "core.excludesFile=/dev/null",
+            "-c",
+            "commit.gpgsign=false",
+            "-c",
+            "core.hooksPath=/dev/null",
+            "commit",
+            "-m",
+            "T-052 fixture: hooks-registry.toml schema_version=3",
+        ])
+        .current_dir(root)
+        .output()
+        .expect("git commit must execute for T-052 fixture");
+    assert!(
+        commit_out.status.success(),
+        "T-052: git commit failed: {}",
+        String::from_utf8_lossy(&commit_out.stderr)
+    );
+
+    // Registry::parse_str(&hooks_content) panics with "T-012: hooks-registry.toml
+    // fails production validation (registry schema_version = 3, dispatcher expects
+    // 2. ... [E-REG-001])" — before any git call, any ungated-declaration check,
+    // or any floor check is reached.
+    let _ = run_t012_gate(root);
+}
+
+// ---------------------------------------------------------------------------
+// T-053 — pass-14 fix-burst resolvers schema-version isolation control
+//
+// adv-cycle-pass-14 MEDIUM: the `assert_eq!(resolvers_schema_version, 1, ...)`
+// block in `run_t012_gate` (HIGH-3, pass-11) is a sole-determinant deletion
+// mutant. Every existing fixture that reaches `run_t012_gate` writes
+// `schema_version = 1` in resolvers-registry.toml, so the assert always passes
+// and deleting it changes no observable outcome for T-006..T-051.
+//
+// Same full-valid-git-fixture shape as T-052 (30 hooks + 1 resolver, all 31
+// WASMs committed) but with the defect on the OTHER registry: hooks-registry.toml
+// is fully production-valid (`schema_version = 2`, so `Registry::parse_str`
+// passes) and resolvers-registry.toml declares `schema_version = 2` instead of
+// the production-required 1. resolvers-registry.toml is never passed through
+// `Registry::parse_str` — it is parsed generically as `toml::Value` and its
+// `schema_version` integer is checked directly by the `assert_eq!` block — so
+// this isolates the resolvers-side determinant from T-052's hooks-side one.
+//
+// With the assert present, `run_t012_gate` panics before reaching any
+// declared-set gate. With the assert deleted (empirically verified — see task
+// report), `run_t012_gate` runs to completion and returns `Ok(())` against this
+// fully-committed fixture, so the `#[should_panic]` assertion below does not
+// fire and the test goes RED.
+#[test]
+#[should_panic(
+    expected = "T-012: resolvers-registry.toml schema_version=2 but production requires 1"
+)]
+fn test_S_21_09_ac006_T053_resolvers_schema_version_isolation_kills_assert_deletion() {
+    let tmp = tempdir().expect("tempdir must create successfully");
+    let root = tmp.path();
+
+    let init_out = Command::new("git")
+        .args([
+            "-c",
+            "core.excludesFile=/dev/null",
+            "-c",
+            "commit.gpgsign=false",
+            "-c",
+            "core.hooksPath=/dev/null",
+            "-c",
+            "init.templateDir=",
+            "init",
+        ])
+        .current_dir(root)
+        .output()
+        .expect("git init must execute for T-053 fixture");
+    assert!(
+        init_out.status.success(),
+        "T-053: git init failed: {}",
+        String::from_utf8_lossy(&init_out.stderr)
+    );
+    Command::new("git")
+        .args(["config", "user.email", "test@example.com"])
+        .current_dir(root)
+        .output()
+        .expect("git config user.email must execute");
+    Command::new("git")
+        .args(["config", "user.name", "Test"])
+        .current_dir(root)
+        .output()
+        .expect("git config user.name must execute");
+
+    let plugins_dir = root.join("plugins/vsdd-factory");
+    let hook_plugins_dir = plugins_dir.join("hook-plugins");
+    fs::create_dir_all(&hook_plugins_dir).expect("hook-plugins dir must be created");
+
+    // hooks-registry.toml: fully production-valid (schema_version = 2, 30
+    // entries) — Registry::parse_str passes, isolating this determinant from
+    // T-052's hooks-side one.
+    let mut hooks_content = String::from("schema_version = 2\n");
+    for i in 0..30_u32 {
+        hooks_content.push_str(&format!(
+            "[[hooks]]\nname = \"h{i:02}\"\nplugin = \"hook-plugins/h{i:02}.wasm\"\n\
+             event = \"PreToolUse\"\ntool = \"^Bash$\"\ntimeout_ms = 5000\n\
+             on_error = \"continue\"\n",
+        ));
+    }
+    fs::write(plugins_dir.join("hooks-registry.toml"), &hooks_content)
+        .expect("hooks-registry.toml must be written");
+
+    // resolvers-registry.toml: schema_version = 2 (production requires 1) — the
+    // sole defect. Valid TOML, valid resolver entry otherwise.
+    fs::write(
+        plugins_dir.join("resolvers-registry.toml"),
+        "schema_version = 2\n[[resolvers]]\nname = \"ctx\"\n\
+         plugin = \"hook-plugins/ctx.wasm\"\n",
+    )
+    .expect("resolvers-registry.toml must be written");
+
+    // Commit all 30 hook WASMs + the resolver WASM so that, absent the
+    // resolvers schema-version assert, EVERY subsequent gate (ungated-declaration,
+    // floors, declared ⊆ tracked) also passes — proving the deletion mutant
+    // produces a clean Ok(()), not an incidental panic from a downstream gate.
+    for i in 0..30_u32 {
+        fs::write(hook_plugins_dir.join(format!("h{i:02}.wasm")), b"wasm")
+            .expect("hook wasm fixture must be written");
+    }
+    fs::write(hook_plugins_dir.join("ctx.wasm"), b"wasm")
+        .expect("resolver wasm fixture must be written");
+
+    let add_out = Command::new("git")
+        .args(["-c", "core.excludesFile=/dev/null", "add", "."])
+        .current_dir(root)
+        .output()
+        .expect("git add must execute for T-053 fixture");
+    assert!(
+        add_out.status.success(),
+        "T-053: git add failed: {}",
+        String::from_utf8_lossy(&add_out.stderr)
+    );
+
+    let commit_out = Command::new("git")
+        .args([
+            "-c",
+            "core.excludesFile=/dev/null",
+            "-c",
+            "commit.gpgsign=false",
+            "-c",
+            "core.hooksPath=/dev/null",
+            "commit",
+            "-m",
+            "T-053 fixture: resolvers-registry.toml schema_version=2",
+        ])
+        .current_dir(root)
+        .output()
+        .expect("git commit must execute for T-053 fixture");
+    assert!(
+        commit_out.status.success(),
+        "T-053: git commit failed: {}",
+        String::from_utf8_lossy(&commit_out.stderr)
+    );
+
+    // assert_eq!(resolvers_schema_version, 1, ...) panics with "T-012:
+    // resolvers-registry.toml schema_version=2 but production requires 1; ..." —
+    // before any ungated-declaration check or floor check is reached.
+    let _ = run_t012_gate(root);
 }
