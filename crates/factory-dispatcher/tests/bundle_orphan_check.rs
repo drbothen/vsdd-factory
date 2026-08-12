@@ -43,9 +43,12 @@
 //! | T-033 | AC-006 S-21.09 | GREEN | MEDIUM-3 minimum-length lower boundary: `plugin = "hook-plugins"` (directory path, no filename) is excluded; pins `expected_depth + 2` constant |
 //! | T-034 | AC-006 S-21.09 | GREEN | MEDIUM-4 `-r` flag control: `git ls-tree -r` finds a WASM committed under `hook-plugins/sub/`; dropping `-r` misses nested files |
 //! | T-035 | AC-006 S-21.09 | GREEN | HIGH-1 pass-7: gate-3 (hook-plugins component check) isolated control: `plugin = "other-dir/evil-probe.wasm"` passes gates 1+2 (depth+2 length, parent prefix matches) but is excluded by gate 3 (`other-dir` ≠ `hook-plugins`) |
-//! | T-036 | AC-006 S-21.09 | GREEN | HIGH-1 pass-8 M15 killer: git fixture with `.gitignore` excluding `hook-plugins/`, 30 hooks force-committed, `gitignored-probe.wasm` declared AND on disk but NOT force-added; `MISSING: gitignored-probe.wasm` via `run_t012_gate` |
-//! | T-037 | AC-006 S-21.09 | GREEN | HIGH-2 pass-8 M18+M16 killer: git fixture — `git add -f` `staged-probe.wasm` (declared, on disk) without committing; `STAGED-NOT-COMMITTED: staged-probe.wasm` via `run_t012_gate` |
+//! | T-036 | AC-006 S-21.09 | GREEN | HIGH-1 pass-8 M15 killer: git fixture with `.gitignore` excluding `hook-plugins/`, 30 hooks force-committed, `gitignored-probe.wasm` declared AND on disk but NOT force-added; `MISSING: hook-plugins/gitignored-probe.wasm` via `run_t012_gate`; MEDIUM-2 `git check-ignore` load-bearing check; LOW-2 non-WASM filter control |
+//! | T-037 | AC-006 S-21.09 | GREEN | HIGH-2 pass-8 M18+M16 killer: git fixture — `git add -f` `staged-probe.wasm` (declared, on disk) without committing; `STAGED-NOT-COMMITTED: hook-plugins/staged-probe.wasm` via `run_t012_gate` |
 //! | T-038 | AC-006 S-21.09 | GREEN | HIGH-3 pass-8 UNGATED-DECLARATION: `other-dir/evil-probe.wasm` passes gates 1+2 but fails gate 3; `run_t012_gate` emits `UNGATED-DECLARATION: other-dir/evil-probe.wasm` before reaching git calls |
+//! | T-039 | AC-006 S-21.09 | GREEN | HIGH-1 pass-9 probe control: 30 hooks declared at `hook-plugins/sub/hNN.wasm`, committed flat at `hook-plugins/hNN.wasm`; `MISSING: hook-plugins/sub/h00.wasm` (false-negative closed by full-path tracking) |
+//! | T-040 | AC-006 S-21.09 | GREEN | MEDIUM-1 pass-9 resolvers arm: ungated declaration in `resolvers-registry.toml` fires `UNGATED-DECLARATION: other-dir/evil-resolver.wasm` |
+//! | T-041 | AC-006 S-21.09 | GREEN | MEDIUM-3 pass-9 git failure path: valid-inventory non-git dir; `run_t012_gate` panics with `git ls-files exited with status` |
 //!
 //! † T-009 is a STANDING GREEN GATE — passes immediately on any clean checkout where no
 //! orphan WASMs are tracked in git, and remains green on contaminated worktrees because
@@ -112,7 +115,7 @@
 //! Embedded at compile time via `include_str!()` — the .toml files are the single source
 //! of truth; edits must be made there, not to the constants.
 //!
-//! Stories: S-19.04 (T-006..T-011), S-21.09 (T-012..T-038)
+//! Stories: S-19.04 (T-006..T-011), S-21.09 (T-012..T-041)
 //! VP Trace: — (AC-006 wires EAC-005 as load-bearing leg; no BC mapping)
 
 use std::collections::HashSet;
@@ -162,6 +165,13 @@ const HOOKS_REGISTRY_DOTSLASH_FIXTURE: &str =
 /// Lexically normalise `path`: resolve `..` (pop), skip `.`, clear on root prefix.
 ///
 /// Shared by `extract_hook_plugin_name` and `detect_ungated_declarations`.
+///
+/// **`RootDir | Prefix(_) => parts.clear()` is provably a no-op** (4th defensive
+/// unreachable arm): on an absolute path, the root component always fires FIRST,
+/// before any `Normal` component has pushed to `parts`, so `parts` is always empty
+/// when this arm executes.  The `clear()` has no observable effect.  Recorded as the
+/// same defensive category as the three unreachable `?` exits in
+/// `extract_hook_plugin_name`.
 fn lex_norm(path: &Path) -> Vec<String> {
     let mut parts: Vec<String> = Vec::new();
     for comp in path.components() {
@@ -176,7 +186,7 @@ fn lex_norm(path: &Path) -> Vec<String> {
             }
             Component::CurDir => {}
             Component::RootDir | Component::Prefix(_) => {
-                parts.clear();
+                parts.clear(); // defensive no-op: parts always empty when root fires
             }
         }
     }
@@ -197,11 +207,11 @@ fn lex_norm(path: &Path) -> Vec<String> {
 ///
 /// | Input form | Resolution | Result |
 /// |-----------|------------|--------|
-/// | Standard | `registry_parent/hook-plugins/foo.wasm` | `foo.wasm` |
-/// | Leading `./` | `registry_parent/hook-plugins/foo.wasm` | `foo.wasm` |
-/// | Traversal (into hook-plugins) | `registry_parent/hook-plugins/foo.wasm` | `foo.wasm` |
-/// | Case variant | `registry_parent/Hook-Plugins/foo.wasm` | `foo.wasm` |
-/// | Nested subdir | `registry_parent/hook-plugins/sub/nested.wasm` | `nested.wasm` |
+/// | Standard | `registry_parent/hook-plugins/foo.wasm` | `hook-plugins/foo.wasm` |
+/// | Leading `./` | `registry_parent/hook-plugins/foo.wasm` | `hook-plugins/foo.wasm` |
+/// | Traversal (into hook-plugins) | `registry_parent/hook-plugins/foo.wasm` | `hook-plugins/foo.wasm` |
+/// | Case variant | `registry_parent/Hook-Plugins/foo.wasm` | `hook-plugins/foo.wasm` (lowercased) |
+/// | Nested subdir | `registry_parent/hook-plugins/sub/nested.wasm` | `hook-plugins/sub/nested.wasm` |
 /// | Absolute path | `/abs/hook-plugins/foo.wasm` (stays absolute, ≠ registry_parent) | `None` |
 /// | Traversal (cancels hook-plugins) | `registry_parent/ghost.wasm` | `None` |
 /// | `../` prefix | `parent(registry_parent)/hook-plugins/foo.wasm` | `None` |
@@ -218,28 +228,32 @@ fn lex_norm(path: &Path) -> Vec<String> {
 /// Using `eq_ignore_ascii_case` prevents a case-variant declaration from silently
 /// escaping the declared-set gate (MEDIUM-4(a)).
 ///
-/// **Last component as filename:** `joined_parts.last()` is returned rather than
-/// `joined_parts[hook-plugins_pos + 1]`.  For nested declarations
-/// (`hook-plugins/sub/nested.wasm`), `pos + 1` would yield `sub` — not the artifact
-/// filename — causing a false MISSING identifier (MEDIUM-1).  `git ls-files` is
-/// recursive, so the tracked-set contains filenames; using `last()` keeps parity.
+/// **Registry-relative path returned:** `joined_parts[expected_depth..]` is joined and
+/// returned as the declared identifier (e.g., `"hook-plugins/foo.wasm"` or
+/// `"hook-plugins/sub/nested.wasm"`).  This preserves subdirectory structure so that
+/// a declaration at `hook-plugins/sub/h00.wasm` is distinct from a WASM committed flat
+/// at `hook-plugins/h00.wasm` — the basename-only approach was HIGH-1 (pass-9), a
+/// correctness bug where both paths reduced to `h00.wasm` producing a false negative.
+/// The `hook-plugins` component is lowercased to normalise case variants
+/// (e.g., `Hook-Plugins/foo.wasm` → `hook-plugins/foo.wasm`).
 ///
-/// **Basename-collision design choice (LOW-4):** `last()` reduces all declared paths to
-/// their basename. Two distinct nested paths (`hook-plugins/a/x.wasm` and
-/// `hook-plugins/b/x.wasm`) collapse to the single declared name `x.wasm`; either
-/// tracked path satisfies both. This is deliberate and documented: `git ls-files`
-/// (used by `git_tracked_wasm_names`) returns full paths whose basenames are compared.
-/// Changing this would require full-path tracking throughout — a scope-expanding
-/// redesign. Recorded per POLICY 13.
+/// **Diffing against git output:** `git_tracked_wasm_names()` and
+/// `git_committed_wasm_names()` return raw git-root-relative paths (e.g.,
+/// `"plugins/vsdd-factory/hook-plugins/foo.wasm"`).  `run_t012_gate()` strips the
+/// `"plugins/vsdd-factory/"` prefix before calling `check_declared_subset_tracked()`,
+/// producing registry-parent-relative paths (`"hook-plugins/foo.wasm"`) that match the
+/// declared-set identifiers returned here.
 ///
-/// **Gate structure:** three reachable exclusion gates plus three defensive unreachable
-/// `?` exits. Reachable gates: (1) minimum-length (`joined_parts.len() < expected_depth + 2`
+/// **Gate structure:** three reachable exclusion gates plus four defensive unreachable
+/// arms. Reachable gates: (1) minimum-length (`joined_parts.len() < expected_depth + 2`
 /// → `return None`); (2) registry-parent prefix loop (`joined_parts[i] != parent_parts[i]`
 /// → `return None`); (3) `hook-plugins` component check
 /// (`!hook_comp.eq_ignore_ascii_case("hook-plugins")` → `return None`). Defensive
-/// unreachable `?` exits: `registry_path.parent()`, `joined_parts.get(i)` (inside the
-/// gate-2 loop), and `joined_parts.get(expected_depth)` (before gate-3) — the latter two
-/// are unreachable because gate-1 establishes `len >= expected_depth + 2`.
+/// unreachable arms: `registry_path.parent()` `?` exit, `joined_parts.get(i)` (inside the
+/// gate-2 loop) `?` exit, `joined_parts.get(expected_depth)` (before gate-3) `?` exit —
+/// the latter two are unreachable because gate-1 establishes `len >= expected_depth + 2` —
+/// and the `RootDir | Prefix(_) => parts.clear()` arm in `lex_norm` (provably a no-op:
+/// `parts` is always empty when a root component fires; see `lex_norm` doc).
 ///
 /// **Known false-negative class for repo-internal non-`hook-plugins/` declarations (LOW-1):**
 /// Declarations that fail gate 1 (bare names, `../`-prefix forms — insufficient depth)
@@ -290,11 +304,17 @@ fn extract_hook_plugin_name(registry_path: &Path, plugin_path: &str) -> Option<S
         return None;
     }
 
-    // Return the LAST component (the filename).
-    // For flat declarations (`hook-plugins/foo.wasm`) this is `foo.wasm`.
-    // For nested declarations (`hook-plugins/sub/nested.wasm`) this is `nested.wasm`,
-    // matching `git ls-files` basename output (git ls-files is recursive).
-    joined_parts.last().cloned()
+    // Return the registry-parent-relative path starting at the hook-plugins component.
+    // For flat declarations (`hook-plugins/foo.wasm`) this is `"hook-plugins/foo.wasm"`.
+    // For nested declarations (`hook-plugins/sub/nested.wasm`) this is
+    // `"hook-plugins/sub/nested.wasm"` — preserving the subdirectory path so that a
+    // declaration at `hook-plugins/sub/h00.wasm` is distinct from a committed flat
+    // `hook-plugins/h00.wasm` (HIGH-1 correctness fix, pass-9).
+    // The hook-plugins component is lowercased to normalise case variants so that
+    // `Hook-Plugins/foo.wasm` and `hook-plugins/foo.wasm` map to the same identifier.
+    let mut result_parts = joined_parts[expected_depth..].to_vec();
+    result_parts[0] = result_parts[0].to_ascii_lowercase();
+    Some(result_parts.join("/"))
 }
 
 /// Return raw `plugin = "..."` path strings from `registry_path` whose resolved paths
@@ -766,8 +786,19 @@ fn run_t012_gate(root: &Path) -> Result<(), String> {
 
     // Git-tracked set (index) and committed set (HEAD tree).
     // `git_tracked_wasm_names()` panics on non-zero exit so failure is explicit, not silent.
-    let tracked: HashSet<String> = git_tracked_wasm_names(root).into_iter().collect();
-    let committed: HashSet<String> = git_committed_wasm_names(root).into_iter().collect();
+    //
+    // Strip the "plugins/vsdd-factory/" prefix from raw git paths to obtain
+    // registry-parent-relative paths ("hook-plugins/foo.wasm") that match the declared-set
+    // identifiers produced by extract_hook_plugin_name() (HIGH-1 correctness fix, pass-9).
+    const REGISTRY_PARENT_PREFIX: &str = "plugins/vsdd-factory/";
+    let tracked: HashSet<String> = git_tracked_wasm_names(root)
+        .into_iter()
+        .filter_map(|p| p.strip_prefix(REGISTRY_PARENT_PREFIX).map(str::to_owned))
+        .collect();
+    let committed: HashSet<String> = git_committed_wasm_names(root)
+        .into_iter()
+        .filter_map(|p| p.strip_prefix(REGISTRY_PARENT_PREFIX).map(str::to_owned))
+        .collect();
 
     // Steps 2-4: per-registry floors, declared⊆tracked, staged-not-committed.
     // Delegated to check_declared_subset_tracked() so fixture-driven controls
@@ -798,9 +829,11 @@ fn collect_orphans_dual(
     for entry in entries {
         let entry = entry.expect("dir entry must be readable");
         let filename = entry.file_name().to_string_lossy().into_owned();
+        // parse_plugin_refs() now returns registry-parent-relative paths
+        // ("hook-plugins/foo.wasm"); compare using format!() to build the full key.
         if filename.ends_with(".wasm")
-            && !hooks_refs.contains(&filename)
-            && !resolvers_refs.contains(&filename)
+            && !hooks_refs.contains(&format!("hook-plugins/{}", filename))
+            && !resolvers_refs.contains(&format!("hook-plugins/{}", filename))
         {
             orphans.push(filename);
         }
@@ -827,7 +860,10 @@ fn collect_orphans_hooks_only(hook_plugins_dir: &Path, hooks_registry: &Path) ->
     for entry in entries {
         let entry = entry.expect("dir entry must be readable");
         let filename = entry.file_name().to_string_lossy().into_owned();
-        if filename.ends_with(".wasm") && !hooks_refs.contains(&filename) {
+        // parse_plugin_refs() now returns registry-parent-relative paths ("hook-plugins/foo.wasm").
+        if filename.ends_with(".wasm")
+            && !hooks_refs.contains(&format!("hook-plugins/{}", filename))
+        {
             orphans.push(filename);
         }
     }
@@ -862,10 +898,15 @@ fn workspace_root() -> PathBuf {
     }
 }
 
-/// Return the git-tracked WASM basenames under `plugins/vsdd-factory/hook-plugins/`.
+/// Return the git-tracked WASM paths under `plugins/vsdd-factory/hook-plugins/`.
 ///
 /// Runs `git ls-files plugins/vsdd-factory/hook-plugins/` from `root`, filters for
-/// `.wasm` extension, and returns bare filenames (no directory prefix).
+/// `.wasm` extension, and returns full git-root-relative paths (e.g.,
+/// `"plugins/vsdd-factory/hook-plugins/foo.wasm"`).
+///
+/// `run_t012_gate()` strips the `"plugins/vsdd-factory/"` prefix before diffing against
+/// the declared set, producing registry-parent-relative paths (`"hook-plugins/foo.wasm"`)
+/// that match `extract_hook_plugin_name()` output (HIGH-1 correctness fix, pass-9).
 ///
 /// # Hermetic contract
 ///
@@ -892,26 +933,24 @@ fn git_tracked_wasm_names(root: &Path) -> Vec<String> {
         .expect("git ls-files output must be valid UTF-8")
         .lines()
         .filter(|line| line.ends_with(".wasm"))
-        .map(|line| {
-            Path::new(line)
-                .file_name()
-                .expect("every git ls-files path must have a filename component")
-                .to_string_lossy()
-                .into_owned()
-        })
+        .map(str::to_owned)
         .collect()
 }
 
-/// Return the committed (HEAD tree) WASM basenames under `plugins/vsdd-factory/hook-plugins/`.
+/// Return the committed (HEAD tree) WASM paths under `plugins/vsdd-factory/hook-plugins/`.
 ///
-/// Runs `git ls-tree --name-only HEAD plugins/vsdd-factory/hook-plugins/` from `root`,
-/// filters for `.wasm` extension, and returns bare filenames (no directory prefix).
+/// Runs `git ls-tree --name-only -r HEAD plugins/vsdd-factory/hook-plugins/` from `root`,
+/// filters for `.wasm` extension, and returns full git-root-relative paths (e.g.,
+/// `"plugins/vsdd-factory/hook-plugins/foo.wasm"`).
+///
+/// `run_t012_gate()` strips the `"plugins/vsdd-factory/"` prefix before diffing against
+/// the declared set (HIGH-1 correctness fix, pass-9; same as `git_tracked_wasm_names()`).
 ///
 /// # Distinction from `git_tracked_wasm_names()`
 ///
 /// `git_tracked_wasm_names()` reads the **git index** (staged + committed) via
 /// `git ls-files`.  This function reads only the **HEAD commit tree** via
-/// `git ls-tree --name-only HEAD`.  A file staged with `git add -f` but not yet
+/// `git ls-tree --name-only -r HEAD`.  A file staged with `git add -f` but not yet
 /// committed appears in `git_tracked_wasm_names()` output but NOT here — that gap
 /// is the `STAGED-NOT-COMMITTED` outcome surfaced by T-012 step 4.
 ///
@@ -941,13 +980,7 @@ fn git_committed_wasm_names(root: &Path) -> Vec<String> {
         .expect("git ls-tree output must be valid UTF-8")
         .lines()
         .filter(|line| line.ends_with(".wasm"))
-        .map(|line| {
-            Path::new(line)
-                .file_name()
-                .expect("every git ls-tree path must have a filename component")
-                .to_string_lossy()
-                .into_owned()
-        })
+        .map(str::to_owned)
         .collect()
 }
 
@@ -1225,10 +1258,16 @@ fn test_S_19_04_ac006_T009_hermetic_tracked_bundle_zero_orphans() {
     let hooks_refs = parse_plugin_refs(&hooks_registry);
     let resolvers_refs = parse_plugin_refs(&resolvers_registry);
 
-    let mut orphans: Vec<&str> = tracked_names
+    // git_tracked_wasm_names() returns full git-root-relative paths (e.g.,
+    // "plugins/vsdd-factory/hook-plugins/foo.wasm").  parse_plugin_refs() returns
+    // registry-parent-relative paths ("hook-plugins/foo.wasm").  Strip the
+    // "plugins/vsdd-factory/" prefix before looking up in refs.
+    const REGISTRY_PARENT_PREFIX: &str = "plugins/vsdd-factory/";
+    let mut orphans: Vec<String> = tracked_names
         .iter()
+        .filter_map(|p| p.strip_prefix(REGISTRY_PARENT_PREFIX))
         .filter(|name| !hooks_refs.contains(*name) && !resolvers_refs.contains(*name))
-        .map(String::as_str)
+        .map(str::to_owned)
         .collect();
     orphans.sort();
 
@@ -1511,11 +1550,21 @@ fn test_S_21_09_ac006_T013_nospace_eq_sign_form_is_parsed_as_declared() {
     fs::write(&hooks_reg, HOOKS_REGISTRY_NOSPACE_FIXTURE)
         .expect("nospace fixture must be written to tempfile");
 
+    // HIGH-2 fixture-content assertion: verify the distinguishing syntax is present BEFORE
+    // parsing. If the fixture is edited to remove the nospace form, the test becomes trivial
+    // (the standard form would still be parsed, but the nospace coverage disappears silently).
+    assert!(
+        HOOKS_REGISTRY_NOSPACE_FIXTURE.contains("plugin=\"hook-plugins/"),
+        "T-013 HIGH-2: HOOKS_REGISTRY_NOSPACE_FIXTURE must contain the nospace form \
+         'plugin=\"hook-plugins/' — if this syntax is absent, the test no longer proves \
+         the toml-crate handles the no-space-around-equals variant"
+    );
+
     let refs = parse_plugin_refs(&hooks_reg);
 
     assert!(
-        refs.contains("ghost-guard-nospace.wasm"),
-        "T-013 BLOCKER-1: parse_plugin_refs() must extract 'ghost-guard-nospace.wasm' \
+        refs.contains("hook-plugins/ghost-guard-nospace.wasm"),
+        "T-013 BLOCKER-1: parse_plugin_refs() must extract 'hook-plugins/ghost-guard-nospace.wasm' \
          from a registry using the no-space-around-equals form \
          (plugin=\"hook-plugins/ghost-guard-nospace.wasm\") — \
          the toml-crate parser accepts all TOML-legal whitespace forms; \
@@ -1552,11 +1601,20 @@ fn test_S_21_09_ac006_T014_dotslash_prefix_form_is_parsed_as_declared() {
     fs::write(&hooks_reg, HOOKS_REGISTRY_DOTSLASH_FIXTURE)
         .expect("dotslash fixture must be written to tempfile");
 
+    // HIGH-2 fixture-content assertion: verify the distinguishing syntax is present BEFORE
+    // parsing. If the fixture is edited to remove the dotslash form, the test becomes trivial.
+    assert!(
+        HOOKS_REGISTRY_DOTSLASH_FIXTURE.contains("\"./hook-plugins/"),
+        "T-014 HIGH-2: HOOKS_REGISTRY_DOTSLASH_FIXTURE must contain the dotslash form \
+         '\"./hook-plugins/' — if this syntax is absent, the test no longer proves \
+         the parser handles the leading-dotslash variant"
+    );
+
     let refs = parse_plugin_refs(&hooks_reg);
 
     assert!(
-        refs.contains("ghost-guard-dotslash.wasm"),
-        "T-014 BLOCKER-1: parse_plugin_refs() must extract 'ghost-guard-dotslash.wasm' \
+        refs.contains("hook-plugins/ghost-guard-dotslash.wasm"),
+        "T-014 BLOCKER-1: parse_plugin_refs() must extract 'hook-plugins/ghost-guard-dotslash.wasm' \
          from a registry using the leading-dotslash form \
          (plugin = \"./hook-plugins/ghost-guard-dotslash.wasm\") — \
          extract_hook_plugin_name() resolves the path relative to the registry parent, \
@@ -1595,23 +1653,29 @@ fn test_S_21_09_ac006_T015_declared_but_untracked_arm_names_artifact() {
     //
     // Calls check_declared_subset_tracked() directly so that a mutation to the real
     // "  MISSING: {}" format string breaks this test, not merely a replica.
-    let mut hooks_declared: HashSet<String> =
-        (0..29).map(|i| format!("filler-{:02}.wasm", i)).collect();
-    hooks_declared.insert("hooks-only.wasm".to_string()); // 30 total
+    //
+    // Values use registry-parent-relative path format ("hook-plugins/...") to match
+    // the output of parse_plugin_refs() after the HIGH-1 path-based fix (pass-9).
+    let mut hooks_declared: HashSet<String> = (0..29)
+        .map(|i| format!("hook-plugins/filler-{:02}.wasm", i))
+        .collect();
+    hooks_declared.insert("hook-plugins/hooks-only.wasm".to_string()); // 30 total
 
-    let resolvers_declared: HashSet<String> = ["resolver.wasm".to_string()].into_iter().collect();
+    let resolvers_declared: HashSet<String> = ["hook-plugins/resolver.wasm".to_string()]
+        .into_iter()
+        .collect();
 
-    // tracked = all 29 fillers + resolver, NOT "hooks-only.wasm"
+    // tracked = all 29 fillers + resolver, NOT "hook-plugins/hooks-only.wasm"
     let tracked: HashSet<String> = (0..29)
-        .map(|i| format!("filler-{:02}.wasm", i))
-        .chain(["resolver.wasm".to_string()])
+        .map(|i| format!("hook-plugins/filler-{:02}.wasm", i))
+        .chain(["hook-plugins/resolver.wasm".to_string()])
         .collect();
     let committed = tracked.clone(); // same as tracked: no staged-not-committed noise
 
     let result =
         check_declared_subset_tracked(&hooks_declared, &resolvers_declared, &tracked, &committed);
 
-    // (a) Must return Err when hooks-only.wasm is declared but not tracked.
+    // (a) Must return Err when hook-plugins/hooks-only.wasm is declared but not tracked.
     assert!(
         result.is_err(),
         "T-015 AC-006: check_declared_subset_tracked must return Err when a declared \
@@ -1622,9 +1686,9 @@ fn test_S_21_09_ac006_T015_declared_but_untracked_arm_names_artifact() {
 
     // (b) Outcome identifier per D-970 Codification 1 — must name the artifact.
     assert!(
-        msg.contains("MISSING: hooks-only.wasm"),
+        msg.contains("MISSING: hook-plugins/hooks-only.wasm"),
         "T-015 AC-006 D-970 Codification 1: error message must contain \
-         'MISSING: hooks-only.wasm'; got: {}",
+         'MISSING: hook-plugins/hooks-only.wasm'; got: {}",
         msg
     );
 }
@@ -1661,9 +1725,14 @@ fn test_S_21_09_ac006_T016_pass_arm_empty_diff_when_all_declared_are_tracked() {
     // Calls check_declared_subset_tracked() directly so that a mutation that widens the
     // declared − tracked step (always returns Ok) would still be caught if a missing
     // control were removed.  The PASS arm proves no false-positives.
-    let hooks_declared: HashSet<String> =
-        (0..30).map(|i| format!("filler-{:02}.wasm", i)).collect();
-    let resolvers_declared: HashSet<String> = ["resolver.wasm".to_string()].into_iter().collect();
+    // Values use registry-parent-relative path format ("hook-plugins/...") to match
+    // the output of parse_plugin_refs() after the HIGH-1 path-based fix (pass-9).
+    let hooks_declared: HashSet<String> = (0..30)
+        .map(|i| format!("hook-plugins/filler-{:02}.wasm", i))
+        .collect();
+    let resolvers_declared: HashSet<String> = ["hook-plugins/resolver.wasm".to_string()]
+        .into_iter()
+        .collect();
     let tracked: HashSet<String> = hooks_declared
         .iter()
         .cloned()
@@ -1831,8 +1900,12 @@ fn test_S_21_09_ac006_T018_registry_inventory_both_missing() {
 #[test]
 #[should_panic(expected = "T-012: hooks registry declared set has only 1 entries")]
 fn test_S_21_09_ac006_T019_hooks_floor_fires_on_one_entry_hooks_set() {
-    let hooks_declared: HashSet<String> = ["single-plugin.wasm".to_string()].into_iter().collect(); // 1 entry < 30
-    let resolvers_declared: HashSet<String> = ["resolver.wasm".to_string()].into_iter().collect();
+    let hooks_declared: HashSet<String> = ["hook-plugins/single-plugin.wasm".to_string()]
+        .into_iter()
+        .collect(); // 1 entry < 30
+    let resolvers_declared: HashSet<String> = ["hook-plugins/resolver.wasm".to_string()]
+        .into_iter()
+        .collect();
     let tracked: HashSet<String> = HashSet::new();
     let committed: HashSet<String> = HashSet::new();
     // Calls the real function; unwrap panics with the Err message.
@@ -1859,9 +1932,12 @@ fn test_S_21_09_ac006_T019_hooks_floor_fires_on_one_entry_hooks_set() {
 #[test]
 #[should_panic(expected = "T-012 EC-005")]
 fn test_S_21_09_ac006_T020_ec005_fires_on_empty_tracked_set() {
-    let hooks_declared: HashSet<String> =
-        (0..30).map(|i| format!("filler-{:02}.wasm", i)).collect();
-    let resolvers_declared: HashSet<String> = ["resolver.wasm".to_string()].into_iter().collect();
+    let hooks_declared: HashSet<String> = (0..30)
+        .map(|i| format!("hook-plugins/filler-{:02}.wasm", i))
+        .collect();
+    let resolvers_declared: HashSet<String> = ["hook-plugins/resolver.wasm".to_string()]
+        .into_iter()
+        .collect();
     let tracked: HashSet<String> = HashSet::new(); // empty → EC-005 fires
     let committed: HashSet<String> = HashSet::new();
     check_declared_subset_tracked(&hooks_declared, &resolvers_declared, &tracked, &committed)
@@ -1886,21 +1962,26 @@ fn test_S_21_09_ac006_T020_ec005_fires_on_empty_tracked_set() {
 #[test]
 fn test_S_21_09_ac006_T021_staged_not_committed_outcome_identifier() {
     // Base sets: 30 hooks + 1 resolver, all tracked and committed.
-    let hooks_declared: HashSet<String> =
-        (0..30).map(|i| format!("filler-{:02}.wasm", i)).collect();
-    let resolvers_declared: HashSet<String> = ["resolver.wasm".to_string()].into_iter().collect();
+    // Values use registry-parent-relative path format ("hook-plugins/...") to match
+    // the output of parse_plugin_refs() after the HIGH-1 path-based fix (pass-9).
+    let hooks_declared: HashSet<String> = (0..30)
+        .map(|i| format!("hook-plugins/filler-{:02}.wasm", i))
+        .collect();
+    let resolvers_declared: HashSet<String> = ["hook-plugins/resolver.wasm".to_string()]
+        .into_iter()
+        .collect();
 
-    // tracked includes staged-plugin.wasm; committed does NOT (simulates `git add -f`
-    // without a subsequent commit).
+    // tracked includes hook-plugins/staged-plugin.wasm; committed does NOT (simulates
+    // `git add -f` without a subsequent commit).
     let mut tracked: HashSet<String> = hooks_declared
         .iter()
         .cloned()
         .chain(resolvers_declared.iter().cloned())
         .collect();
-    tracked.insert("staged-plugin.wasm".to_string());
+    tracked.insert("hook-plugins/staged-plugin.wasm".to_string());
     let committed: HashSet<String> = tracked
         .iter()
-        .filter(|n| *n != "staged-plugin.wasm")
+        .filter(|n| *n != "hook-plugins/staged-plugin.wasm")
         .cloned()
         .collect();
 
@@ -1918,9 +1999,9 @@ fn test_S_21_09_ac006_T021_staged_not_committed_outcome_identifier() {
 
     // (b) Outcome identifier per D-970 Codification 1.
     assert!(
-        msg.contains("  STAGED-NOT-COMMITTED: staged-plugin.wasm"),
+        msg.contains("  STAGED-NOT-COMMITTED: hook-plugins/staged-plugin.wasm"),
         "T-021 AC-006 S-21.09 D-970 Codification 1: error message must contain \
-         '  STAGED-NOT-COMMITTED: staged-plugin.wasm'; got: {}",
+         '  STAGED-NOT-COMMITTED: hook-plugins/staged-plugin.wasm'; got: {}",
         msg
     );
 }
@@ -1945,8 +2026,9 @@ fn test_S_21_09_ac006_T021_staged_not_committed_outcome_identifier() {
 #[test]
 #[should_panic(expected = "T-012: resolvers registry declared set is empty")]
 fn test_S_21_09_ac006_T022_resolvers_floor_fires_on_empty_resolvers_set() {
-    let hooks_declared: HashSet<String> =
-        (0..30).map(|i| format!("filler-{:02}.wasm", i)).collect(); // passes hooks floor
+    let hooks_declared: HashSet<String> = (0..30)
+        .map(|i| format!("hook-plugins/filler-{:02}.wasm", i))
+        .collect(); // passes hooks floor
     let resolvers_declared: HashSet<String> = HashSet::new(); // empty → resolvers floor fires
     let tracked: HashSet<String> = HashSet::new();
     let committed: HashSet<String> = HashSet::new();
@@ -2219,9 +2301,9 @@ fn test_S_21_09_ac006_T025_traversal_form_is_parsed_as_declared() {
     let refs = parse_plugin_refs(&registry);
 
     assert!(
-        refs.contains("ghost-traversal.wasm"),
-        "T-025 F-1: parse_plugin_refs must extract 'ghost-traversal.wasm' from a \
-         registry using the traversal form \
+        refs.contains("hook-plugins/ghost-traversal.wasm"),
+        "T-025 F-1: parse_plugin_refs must extract 'hook-plugins/ghost-traversal.wasm' \
+         from a registry using the traversal form \
          (plugin = \"hooks/../hook-plugins/ghost-traversal.wasm\") — \
          extract_hook_plugin_name() resolves '..' via ParentDir pop before testing \
          for the hook-plugins component; got refs: {:?}",
@@ -2383,9 +2465,12 @@ fn test_S_21_09_ac006_T026_absolute_form_excluded_from_declared() {
 #[test]
 #[should_panic(expected = "T-012: hooks registry declared set has only 29 entries")]
 fn test_S_21_09_ac006_T027_hooks_floor_fires_on_29_entry_set() {
-    let hooks_declared: HashSet<String> =
-        (0..29).map(|i| format!("filler-{:02}.wasm", i)).collect(); // 29 < 30 → floor fires
-    let resolvers_declared: HashSet<String> = ["resolver.wasm".to_string()].into_iter().collect();
+    let hooks_declared: HashSet<String> = (0..29)
+        .map(|i| format!("hook-plugins/filler-{:02}.wasm", i))
+        .collect(); // 29 < 30 → floor fires
+    let resolvers_declared: HashSet<String> = ["hook-plugins/resolver.wasm".to_string()]
+        .into_iter()
+        .collect();
     let tracked: HashSet<String> = HashSet::new();
     let committed: HashSet<String> = HashSet::new();
     // Calls the real function; unwrap panics with the Err message.
@@ -2724,8 +2809,10 @@ fn test_S_21_09_ac006_T030_wiring_control_both_check_calls_are_active() {
         );
 
         assert!(
-            result.unwrap_err().contains("MISSING: ctx.wasm"),
-            "T-030 phase B D-970 Codification 1: error must contain 'MISSING: ctx.wasm'"
+            result
+                .unwrap_err()
+                .contains("MISSING: hook-plugins/ctx.wasm"),
+            "T-030 phase B D-970 Codification 1: error must contain 'MISSING: hook-plugins/ctx.wasm'"
         );
     }
 }
@@ -2769,11 +2856,12 @@ fn test_S_21_09_ac006_T031_case_variant_hook_plugins_included() {
     let refs = parse_plugin_refs(&registry);
 
     assert!(
-        refs.contains("ghost-case.wasm"),
-        "T-031 MEDIUM-4(a): parse_plugin_refs must include 'ghost-case.wasm' from a \
-         registry using the case-variant form (plugin = \"Hook-Plugins/ghost-case.wasm\") \
+        refs.contains("hook-plugins/ghost-case.wasm"),
+        "T-031 MEDIUM-4(a): parse_plugin_refs must include 'hook-plugins/ghost-case.wasm' \
+         from a registry using the case-variant form (plugin = \"Hook-Plugins/ghost-case.wasm\") \
          — extract_hook_plugin_name() uses eq_ignore_ascii_case for the hook-plugins \
-         component; on macOS case-insensitive FS this is the same directory; \
+         component and lowercases it in the returned path; \
+         on macOS case-insensitive FS this is the same directory; \
          mutation-proof: c == \"hook-plugins\" (case-sensitive) would return None here; \
          got refs: {:?}",
         refs
@@ -2781,20 +2869,24 @@ fn test_S_21_09_ac006_T031_case_variant_hook_plugins_included() {
 }
 
 // ---------------------------------------------------------------------------
-// T-032 — MEDIUM-1 nested-subdir control: `hook-plugins/sub/nested.wasm` yields filename
+// T-032 — MEDIUM-1 nested-subdir control: `hook-plugins/sub/nested.wasm` yields full path
 //
 // The pass-4 implementation returned `normalized.get(pos + 1)` — the component
 // IMMEDIATELY after `hook-plugins`.  For `hook-plugins/sub/nested.wasm` this returns
-// `sub`, not `nested.wasm`.  `git ls-files` is recursive and returns full paths; the
-// gate compares basenames, so the declared set would contain `sub` and `nested.wasm`
-// would never match any tracked artifact — a MISSING: sub identifier instead of the
-// correct artifact name.
+// `sub`, not the artifact filename — causing a false MISSING identifier (MEDIUM-1).
 //
 // Pass-5 fix: `extract_hook_plugin_name()` returns `joined_parts.last()` (the final
 // component of the normalised resolved path), which is the filename regardless of depth.
 //
-// Mutation-proof: reverting to `normalized.get(pos + 1)` would return `Some("sub")`
-// for this input; `refs.contains("nested.wasm")` assertion FAILS.
+// Pass-9 fix (HIGH-1): returns `joined_parts[expected_depth..].join("/")` — the full
+// registry-parent-relative path — preserving subdirectory structure so that a declaration
+// at `hook-plugins/sub/nested.wasm` is distinct from a WASM committed flat at
+// `hook-plugins/nested.wasm`.
+//
+// Mutation-proof (current): reverting to `normalized.get(pos + 1)` would return
+// `Some("sub")`; `refs.contains("hook-plugins/sub/nested.wasm")` FAILS.
+// Reverting to `last()` (pass-5 form) would return `Some("nested.wasm")` (bare);
+// `refs.contains("hook-plugins/sub/nested.wasm")` FAILS — the full-path form is now required.
 //
 // Story: S-21.09
 // ---------------------------------------------------------------------------
@@ -2820,11 +2912,13 @@ fn test_S_21_09_ac006_T032_nested_subdir_yields_filename() {
     let refs = parse_plugin_refs(&registry);
 
     assert!(
-        refs.contains("nested.wasm"),
-        "T-032 MEDIUM-1: parse_plugin_refs must extract 'nested.wasm' (last component) \
-         from a nested declaration (plugin = \"hook-plugins/sub/nested.wasm\") — \
-         extract_hook_plugin_name() returns joined_parts.last(), not pos+1; \
-         mutation-proof: reverting to pos+1 returns 'sub' and this assertion FAILS; \
+        refs.contains("hook-plugins/sub/nested.wasm"),
+        "T-032 MEDIUM-1: parse_plugin_refs must extract 'hook-plugins/sub/nested.wasm' \
+         (full registry-parent-relative path) from a nested declaration \
+         (plugin = \"hook-plugins/sub/nested.wasm\") — \
+         extract_hook_plugin_name() returns joined_parts[expected_depth..].join(\"/\"); \
+         mutation-proof: reverting to pos+1 returns 'sub', reverting to last() returns \
+         bare 'nested.wasm'; both cause this assertion to FAIL; \
          got refs: {:?}",
         refs
     );
@@ -2832,7 +2926,15 @@ fn test_S_21_09_ac006_T032_nested_subdir_yields_filename() {
     assert!(
         !refs.contains("sub"),
         "T-032 MEDIUM-1: 'sub' must NOT appear in refs — it is a directory component, \
-         not the artifact filename; got refs: {:?}",
+         not the artifact path; got refs: {:?}",
+        refs
+    );
+    // Also assert bare 'nested.wasm' is NOT in refs (the pass-5 last() regression).
+    assert!(
+        !refs.contains("nested.wasm"),
+        "T-032 HIGH-1: bare 'nested.wasm' must NOT appear in refs — the full path \
+         'hook-plugins/sub/nested.wasm' must be used (pass-9 path-based fix); \
+         got refs: {:?}",
         refs
     );
 }
@@ -3007,12 +3109,14 @@ fn test_S_21_09_ac006_T034_git_ls_tree_r_finds_nested_committed_wasm() {
     // excludes it — committed would be empty and the assertion below would FAIL.
     let committed = git_committed_wasm_names(root);
 
+    // git_committed_wasm_names() now returns full git-root-relative paths (HIGH-1 fix, pass-9).
+    // The prefix "plugins/vsdd-factory/" is stripped by run_t012_gate(), not here.
     assert!(
-        committed.contains(&"nested.wasm".to_string()),
-        "T-034 MEDIUM-4: git_committed_wasm_names must return 'nested.wasm' for a WASM \
+        committed.contains(&"plugins/vsdd-factory/hook-plugins/sub/nested.wasm".to_string()),
+        "T-034 MEDIUM-4: git_committed_wasm_names must return \
+         'plugins/vsdd-factory/hook-plugins/sub/nested.wasm' (full git path) for a WASM \
          committed at hook-plugins/sub/nested.wasm — the -r flag makes ls-tree recursive; \
-         mutation-proof: dropping -r causes nested.wasm to be absent from committed, \
-         producing a false MISSING: nested.wasm even though the artifact IS committed; \
+         mutation-proof: dropping -r causes the nested WASM to be absent from committed; \
          got committed: {:?}",
         committed
     );
@@ -3181,11 +3285,16 @@ fn test_S_21_09_ac006_T036_gitignored_probe_not_force_added_fires_missing() {
     .expect("resolvers-registry.toml must be written");
 
     // Write h00..h29.wasm + ctx.wasm (NOT gitignored-probe.wasm yet — written after commit).
+    // Also write config.yaml to hook-plugins/ as a non-WASM file (LOW-2 filter control).
     for i in 0..30_u32 {
         fs::write(hook_plugins_dir.join(format!("h{i:02}.wasm")), b"wasm")
             .expect("hook wasm must be written");
     }
     fs::write(hook_plugins_dir.join("ctx.wasm"), b"wasm").expect("ctx.wasm must be written");
+    // LOW-2: force-add a non-WASM file to hook-plugins/; the .ends_with(".wasm") filter
+    // in git_tracked_wasm_names() must exclude it from the tracked set.
+    fs::write(hook_plugins_dir.join("config.yaml"), b"key: value")
+        .expect("config.yaml must be written for LOW-2 filter control");
 
     // Stage .gitignore and registries (these are outside hook-plugins/ and not gitignored).
     let add_root_out = Command::new("git")
@@ -3266,9 +3375,43 @@ fn test_S_21_09_ac006_T036_gitignored_probe_not_force_added_fires_missing() {
 
     let err = result.unwrap_err();
     assert!(
-        err.contains("MISSING: gitignored-probe.wasm"),
-        "T-036 M15 killer: error must contain 'MISSING: gitignored-probe.wasm'; got: {:?}",
+        err.contains("MISSING: hook-plugins/gitignored-probe.wasm"),
+        "T-036 M15 killer: error must contain 'MISSING: hook-plugins/gitignored-probe.wasm'; \
+         got: {:?}",
         err
+    );
+
+    // MEDIUM-2: verify the .gitignore pattern is load-bearing — git must confirm
+    // gitignored-probe.wasm is actually gitignored; if the pattern is wrong the file
+    // would be visible to git ls-files and the MISSING outcome would be suppressed.
+    let check_ignore_out = Command::new("git")
+        .args([
+            "check-ignore",
+            "-q",
+            "plugins/vsdd-factory/hook-plugins/gitignored-probe.wasm",
+        ])
+        .current_dir(root)
+        .output()
+        .expect("git check-ignore must execute for T-036 MEDIUM-2 load-bearing assertion");
+    assert!(
+        check_ignore_out.status.success(),
+        "T-036 MEDIUM-2: git check-ignore must confirm \
+         plugins/vsdd-factory/hook-plugins/gitignored-probe.wasm is gitignored; \
+         if the .gitignore pattern is wrong, the probe would be visible to git ls-files \
+         and the MISSING outcome would be suppressed — making this a false-positive-free test \
+         requires the gitignore pattern to actually work"
+    );
+
+    // LOW-2: verify the .ends_with(".wasm") filter in git_tracked_wasm_names() is
+    // load-bearing — a non-WASM file committed in hook-plugins/ must NOT appear in
+    // the tracked set.  Call git_tracked_wasm_names() directly to inspect the raw result.
+    let tracked_raw = git_tracked_wasm_names(root);
+    assert!(
+        !tracked_raw.iter().any(|p| p.ends_with("config.yaml")),
+        "T-036 LOW-2: git_tracked_wasm_names must NOT include 'config.yaml' — the \
+         .ends_with(\".wasm\") filter must exclude non-WASM files; \
+         got tracked_raw: {:?}",
+        tracked_raw
     );
 }
 
@@ -3462,9 +3605,11 @@ fn test_S_21_09_ac006_T037_staged_not_committed_fires_staged_not_committed() {
 
     let err = result.unwrap_err();
     assert!(
-        err.contains("STAGED-NOT-COMMITTED: staged-probe.wasm"),
-        "T-037 M18+M16 killer: error must contain 'STAGED-NOT-COMMITTED: staged-probe.wasm'; \
-         M16 mutant would produce 'MISSING: staged-probe.wasm' instead; got: {:?}",
+        err.contains("STAGED-NOT-COMMITTED: hook-plugins/staged-probe.wasm"),
+        "T-037 M18+M16 killer: error must contain \
+         'STAGED-NOT-COMMITTED: hook-plugins/staged-probe.wasm'; \
+         M16 mutant would produce 'MISSING: hook-plugins/staged-probe.wasm' instead; \
+         got: {:?}",
         err
     );
 }
@@ -3543,4 +3688,277 @@ fn test_S_21_09_ac006_T038_ungated_declaration_fires_before_git() {
          'UNGATED-DECLARATION: other-dir/evil-probe.wasm'; got: {:?}",
         err
     );
+}
+
+// ---------------------------------------------------------------------------
+// T-039 — HIGH-1 pass-9 probe control: subdirectory-declared vs flat-committed false negative
+//
+// This is the probe that HIGH-1 was designed to close.  Before pass-9, both
+// `extract_hook_plugin_name` and the git functions reduced paths to basenames, so:
+//
+//   Declared: `hook-plugins/sub/hNN.wasm`  → basename `hNN.wasm`
+//   Committed flat: `hook-plugins/hNN.wasm` → basename `hNN.wasm`
+//   declared − tracked = ∅  →  run_t012_gate returned Ok (false negative)
+//
+// After pass-9, `extract_hook_plugin_name` returns the full registry-parent-relative
+// path (`hook-plugins/sub/hNN.wasm`) and the git functions return full paths stripped
+// of the `plugins/vsdd-factory/` prefix (`hook-plugins/hNN.wasm`).  The declared set
+// and tracked set are now distinct → MISSING fires on every `hook-plugins/sub/hNN.wasm`.
+//
+// Fixture: 30 hooks declared at `hook-plugins/sub/hNN.wasm` (nested) but committed
+// flat at `hook-plugins/hNN.wasm`.  The registry also declares ctx.wasm (resolvers)
+// committed flat at `hook-plugins/ctx.wasm`.  All ctx + flat hNN are committed; the
+// declared sub-paths are never committed.
+//
+// Expected before fix: Ok (false negative — basename collision).
+// Expected after fix:  Err with "MISSING: hook-plugins/sub/h00.wasm".
+//
+// Story: S-21.09
+// ---------------------------------------------------------------------------
+#[test]
+fn test_S_21_09_ac006_T039_subdir_declared_vs_flat_committed_fires_missing() {
+    let tmp = tempdir().expect("tempdir must create successfully");
+    let root = tmp.path();
+
+    // Initialise a git repo with -c overrides (same discipline as T-030 Phase B).
+    let init_out = Command::new("git")
+        .args([
+            "-c",
+            "core.excludesFile=/dev/null",
+            "-c",
+            "commit.gpgsign=false",
+            "-c",
+            "core.hooksPath=/dev/null",
+            "-c",
+            "init.templateDir=",
+            "init",
+        ])
+        .current_dir(root)
+        .output()
+        .expect("git init must execute for T-039 fixture");
+    assert!(
+        init_out.status.success(),
+        "T-039: git init failed: {}",
+        String::from_utf8_lossy(&init_out.stderr)
+    );
+
+    Command::new("git")
+        .args(["config", "user.email", "test@example.com"])
+        .current_dir(root)
+        .output()
+        .expect("git config user.email must execute");
+    Command::new("git")
+        .args(["config", "user.name", "Test"])
+        .current_dir(root)
+        .output()
+        .expect("git config user.name must execute");
+
+    let plugins_dir = root.join("plugins/vsdd-factory");
+    let hook_plugins_dir = plugins_dir.join("hook-plugins");
+    fs::create_dir_all(&hook_plugins_dir).expect("hook-plugins dir must be created");
+
+    // hooks-registry: 30 hooks declared at hook-plugins/sub/hNN.wasm (nested sub-path).
+    let mut hooks_content = String::from("schema_version = 2\n");
+    for i in 0..30_u32 {
+        hooks_content.push_str(&format!(
+            "[[hooks]]\nname = \"h{i:02}\"\nplugin = \"hook-plugins/sub/h{i:02}.wasm\"\n\
+             event = \"PreToolUse\"\ntool = \"^Bash$\"\ntimeout_ms = 5000\n\
+             on_error = \"continue\"\n",
+        ));
+    }
+    fs::write(plugins_dir.join("hooks-registry.toml"), &hooks_content)
+        .expect("hooks-registry.toml must be written");
+
+    // resolvers-registry: 1 entry (ctx.wasm — committed flat).
+    fs::write(
+        plugins_dir.join("resolvers-registry.toml"),
+        "schema_version = 1\n[[resolvers]]\nname = \"ctx\"\n\
+         plugin = \"hook-plugins/ctx.wasm\"\n",
+    )
+    .expect("resolvers-registry.toml must be written");
+
+    // Commit WASMs FLAT (not in sub/): hook-plugins/hNN.wasm + hook-plugins/ctx.wasm.
+    // These do NOT match the declared sub-paths hook-plugins/sub/hNN.wasm.
+    for i in 0..30_u32 {
+        fs::write(hook_plugins_dir.join(format!("h{i:02}.wasm")), b"wasm")
+            .expect("flat wasm must be written");
+    }
+    fs::write(hook_plugins_dir.join("ctx.wasm"), b"wasm").expect("ctx.wasm must be written");
+
+    let add_out = Command::new("git")
+        .args(["-c", "core.excludesFile=/dev/null", "add", "."])
+        .current_dir(root)
+        .output()
+        .expect("git add must execute for T-039 fixture");
+    assert!(
+        add_out.status.success(),
+        "T-039: git add failed: {}",
+        String::from_utf8_lossy(&add_out.stderr)
+    );
+
+    let commit_out = Command::new("git")
+        .args([
+            "-c",
+            "core.excludesFile=/dev/null",
+            "-c",
+            "commit.gpgsign=false",
+            "-c",
+            "core.hooksPath=/dev/null",
+            "commit",
+            "-m",
+            "T-039 fixture: 30 hooks committed flat; declared at sub/",
+        ])
+        .current_dir(root)
+        .output()
+        .expect("git commit must execute for T-039 fixture");
+    assert!(
+        commit_out.status.success(),
+        "T-039: git commit failed: {}",
+        String::from_utf8_lossy(&commit_out.stderr)
+    );
+
+    // Declared: hook-plugins/sub/hNN.wasm.  Tracked (after prefix strip): hook-plugins/hNN.wasm.
+    // With basename reduction (pre-pass-9): both collapse to hNN.wasm → Ok (false negative).
+    // With full-path tracking (pass-9): hook-plugins/sub/h00.wasm ∉ tracked → MISSING.
+    let result = run_t012_gate(root);
+
+    assert!(
+        result.is_err(),
+        "T-039 HIGH-1 probe: run_t012_gate must return Err when hooks are declared at \
+         hook-plugins/sub/hNN.wasm but committed flat at hook-plugins/hNN.wasm; \
+         before pass-9 (basename reduction) this returned Ok — a false negative; \
+         after pass-9 (full-path tracking) the declared and tracked paths are distinct"
+    );
+
+    let err = result.unwrap_err();
+    assert!(
+        err.contains("MISSING: hook-plugins/sub/h00.wasm"),
+        "T-039 HIGH-1 probe: error must contain 'MISSING: hook-plugins/sub/h00.wasm'; \
+         the full registry-parent-relative path must appear in the MISSING identifier; \
+         got: {:?}",
+        err
+    );
+}
+
+// ---------------------------------------------------------------------------
+// T-040 — MEDIUM-1 resolvers arm: ungated declaration in resolvers-registry fires
+//
+// T-038 proves `detect_ungated_declarations()` fires on an ungated entry in
+// hooks-registry.toml.  This test proves the RESOLVERS arm: `run_t012_gate()` calls
+// `detect_ungated_declarations()` on BOTH registries; an ungated entry in
+// resolvers-registry.toml must also fire `UNGATED-DECLARATION`.
+//
+// Fixture: hooks-registry declares 30 valid h00..h29 hooks.
+//          resolvers-registry declares 1 valid ctx.wasm + 1 ungated entry
+//          (`other-dir/evil-resolver.wasm`).
+// Inventory passes (exactly the expected pair); ungated check fires before git.
+//
+// Mutation-proof: removing the `detect_ungated_declarations(&resolvers_registry)` call
+// in run_t012_gate() means the resolvers arm is unchecked; run_t012_gate panics on
+// git (no repo) or skips the ungated error → result.is_err() FAILS.
+//
+// Story: S-21.09
+// ---------------------------------------------------------------------------
+#[test]
+fn test_S_21_09_ac006_T040_ungated_declaration_in_resolvers_fires() {
+    let tmp = tempdir().expect("tempdir must create successfully");
+    let root = tmp.path();
+
+    let plugins_dir = root.join("plugins/vsdd-factory");
+    fs::create_dir_all(&plugins_dir).expect("plugins/vsdd-factory dir must be created");
+
+    // hooks-registry: 30 valid hooks (no ungated entries).
+    let mut hooks_content = String::from("schema_version = 2\n");
+    for i in 0..30_u32 {
+        hooks_content.push_str(&format!(
+            "[[hooks]]\nname = \"h{i:02}\"\nplugin = \"hook-plugins/h{i:02}.wasm\"\n\
+             event = \"PreToolUse\"\ntool = \"^Bash$\"\ntimeout_ms = 5000\n\
+             on_error = \"continue\"\n",
+        ));
+    }
+    fs::write(plugins_dir.join("hooks-registry.toml"), &hooks_content)
+        .expect("hooks-registry.toml must be written");
+
+    // resolvers-registry: 1 valid ctx.wasm + 1 ungated declaration
+    // (other-dir/evil-resolver.wasm passes gates 1+2 but fails gate 3).
+    fs::write(
+        plugins_dir.join("resolvers-registry.toml"),
+        "schema_version = 1\n\
+         [[resolvers]]\nname = \"ctx\"\nplugin = \"hook-plugins/ctx.wasm\"\n\
+         [[resolvers]]\nname = \"evil-resolver\"\nplugin = \"other-dir/evil-resolver.wasm\"\n",
+    )
+    .expect("resolvers-registry.toml must be written");
+
+    // No git init required: detect_ungated_declarations fires before git calls.
+    let result = run_t012_gate(root);
+
+    assert!(
+        result.is_err(),
+        "T-040 MEDIUM-1 resolvers arm: run_t012_gate must return Err when resolvers-registry \
+         contains an ungated declaration; detect_ungated_declarations is called on BOTH \
+         registries; removing the resolvers call would miss this — result.is_err() FAILS"
+    );
+
+    let err = result.unwrap_err();
+    assert!(
+        err.contains("UNGATED-DECLARATION: other-dir/evil-resolver.wasm"),
+        "T-040 MEDIUM-1 resolvers arm: error must contain \
+         'UNGATED-DECLARATION: other-dir/evil-resolver.wasm'; got: {:?}",
+        err
+    );
+}
+
+// ---------------------------------------------------------------------------
+// T-041 — MEDIUM-3 git failure path: run_t012_gate panics on non-git dir
+//
+// `git_tracked_wasm_names()` and `git_committed_wasm_names()` assert success on their
+// respective git commands.  When called from a directory that is NOT a git repository,
+// these assertions fail with the git error message.  This test proves the panic path
+// is reachable and the assertion message contains the expected prefix.
+//
+// Fixture: a tmpdir with valid inventory + 30 valid hooks + 1 resolver, but NO git
+// init.  The ungated check passes (all declarations are in hook-plugins/).  The git
+// calls fire and panic.
+//
+// Mutation-proof: removing the `assert!(output.status.success(), ...)` in
+// git_tracked_wasm_names() causes the function to silently return an empty vec
+// (or garbage); EC-005 fires instead of the git-error panic.  The
+// `#[should_panic(expected = "git ls-files exited with status")]` FAILS because
+// EC-005 produces "T-012 EC-005", not the git error prefix.
+//
+// Story: S-21.09
+// ---------------------------------------------------------------------------
+#[test]
+#[should_panic(expected = "git ls-files exited with status")]
+fn test_S_21_09_ac006_T041_run_t012_gate_panics_on_non_git_dir() {
+    let tmp = tempdir().expect("tempdir must create successfully");
+    let root = tmp.path();
+
+    let plugins_dir = root.join("plugins/vsdd-factory");
+    fs::create_dir_all(&plugins_dir).expect("plugins/vsdd-factory dir must be created");
+
+    // Valid inventory: exactly the expected pair.
+    // hooks-registry: 30 valid hooks.
+    let mut hooks_content = String::from("schema_version = 2\n");
+    for i in 0..30_u32 {
+        hooks_content.push_str(&format!(
+            "[[hooks]]\nname = \"h{i:02}\"\nplugin = \"hook-plugins/h{i:02}.wasm\"\n\
+             event = \"PreToolUse\"\ntool = \"^Bash$\"\ntimeout_ms = 5000\n\
+             on_error = \"continue\"\n",
+        ));
+    }
+    fs::write(plugins_dir.join("hooks-registry.toml"), &hooks_content)
+        .expect("hooks-registry.toml must be written");
+
+    // resolvers-registry: 1 valid entry.
+    fs::write(
+        plugins_dir.join("resolvers-registry.toml"),
+        "schema_version = 1\n[[resolvers]]\nname = \"ctx\"\n\
+         plugin = \"hook-plugins/ctx.wasm\"\n",
+    )
+    .expect("resolvers-registry.toml must be written");
+
+    // No git init: inventory passes, ungated check passes, then git_tracked_wasm_names()
+    // panics on "git ls-files exited with status".
+    let _ = run_t012_gate(root);
 }
