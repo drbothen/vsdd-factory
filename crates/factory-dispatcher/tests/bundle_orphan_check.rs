@@ -55,6 +55,8 @@
 //! | T-045 | AC-006 S-21.09 | GREEN | pass-10.1 one-level-up UNGATED: `../ghost.wasm` resolves to `plugins/ghost.wasm` inside root; containment passes, NOT under hook-plugins/; fires `UNGATED-DECLARATION: ../ghost.wasm` |
 //! | T-046 | AC-006 S-21.09 | GREEN | pass-10.1 two-levels-up UNGATED: `../../ghost.wasm` resolves to `<root>/ghost.wasm` inside root; containment passes (root_parts.len()+1 > root_parts.len()); fires `UNGATED-DECLARATION: ../../ghost.wasm` |
 //! | T-047 | AC-006 S-21.09 | GREEN | pass-10.2 tightest-margin OUTSIDE-REPO: `../../../ghost.wasm` resolves one level above root (len==root_parts.len(), containment fails); fires `OUTSIDE-REPO-DECLARATION: ../../../ghost.wasm` |
+//! | T-048 | AC-006 S-21.09 | GREEN | pass-11 totality property: 18-candidate table asserting `extract.is_some() iff detect=[]`; correct identifier per class; OTHER identifier absent; kills M2 (len>→>=), M4 (>=+2→+1), M1+M4 composite, identifier swap |
+//! | T-049 | AC-006 S-21.09 | GREEN | pass-11 EC-005a control: git fixture with non-WASM-only hook-plugins/ → git ls-files returns zero WASM paths → `#[should_panic(expected = "T-012 EC-005a")]` |
 //!
 //! † T-009 is a STANDING GREEN GATE — passes immediately on any clean checkout where no
 //! orphan WASMs are tracked in git, and remains green on contaminated worktrees because
@@ -121,9 +123,10 @@
 //! Embedded at compile time via `include_str!()` — the .toml files are the single source
 //! of truth; edits must be made there, not to the constants.
 //!
-//! Stories: S-19.04 (T-006..T-011), S-21.09 (T-012..T-042)
+//! Stories: S-19.04 (T-006..T-011), S-21.09 (T-012..T-049)
 //! VP Trace: — (AC-006 wires EAC-005 as load-bearing leg; no BC mapping)
 
+use factory_dispatcher::Registry;
 use std::collections::HashSet;
 use std::fs;
 use std::path::{Component, Path, PathBuf};
@@ -142,10 +145,11 @@ use tempfile::tempdir;
 /// this prefix to get `"hook-plugins/foo.wasm"` — matching what `parse_plugin_refs()`
 /// returns via `extract_hook_plugin_name()`.
 ///
-/// The constant is declared once here (TD-VSDD-060 sibling-site discipline) so that
-/// a mutation to one copy is caught by ALL callers.  A wrong value (e.g.,
-/// `"nonexistent-prefix/"`) causes every `strip_prefix` call to fail loud via
-/// `.expect()`, rather than silently shrinking the domain.
+/// The strip operation uses this constant; git pathspec strings in `git_tracked_wasm_names()`
+/// and `git_committed_wasm_names()` use a longer literal (`"plugins/vsdd-factory/hook-plugins/"`)
+/// and are independent of this constant by design — the pathspec and the strip have different
+/// suffix requirements.  A wrong value for this constant causes every `strip_prefix` call to
+/// fail loud via `.expect()`, rather than silently shrinking the domain.
 const REGISTRY_PARENT_PREFIX: &str = "plugins/vsdd-factory/";
 
 // ---------------------------------------------------------------------------
@@ -295,20 +299,23 @@ fn lex_norm(path: &Path) -> Vec<String> {
 ///
 /// **Repo-internal non-`hook-plugins/` declarations are detected by `detect_ungated_declarations`:**
 /// `extract_hook_plugin_name` (this function) returns `None` for declarations that fail
-/// gate 1 (bare names, `../`-prefix forms that cancel to `registry_parent`) or gate 2
-/// (divergent prefix), and `None` for gate-3 failures — so they do not appear in
-/// `declared`.  For gate-3 failures (`other-dir/evil-probe.wasm`) this was a silent
-/// false-negative before pass-10.  Starting pass-10, `detect_ungated_declarations()` uses
-/// a lower gate-1 threshold (`expected_depth + 1`) to catch ALL declarations that resolve
-/// inside the registry parent but outside `hook-plugins/`, including bare names and
-/// `../registry_parent/` forms.  They surface as `UNGATED-DECLARATION: <path>` in
-/// `run_t012_gate()` before any git calls.  See T-038 (gate-3 escape), T-043 (bare-name),
-/// T-044 (`../registry-parent/` prefix).
+/// gate 1 (bare names, `../`-prefix forms that cancel to `registry_parent`), gate 2
+/// (divergent prefix), or gate 3 (`other-dir/evil-probe.wasm`) — so they do not appear
+/// in `declared`.  Starting pass-10.1, `detect_ungated_declarations()` uses a
+/// containment-based predicate (rather than a length threshold) to report in-repo
+/// non-`hook-plugins/` declarations as `UNGATED-DECLARATION: <path>`, and starting
+/// pass-10.2 reports out-of-repo paths as `OUTSIDE-REPO-DECLARATION: <path>`.  Starting
+/// pass-11, `detect_ungated_declarations()` delegates its correctness gate entirely to
+/// this function (single-copy design — no duplicate `is_hook_plugins` logic).  All three
+/// outcomes fire in `run_t012_gate()` before any git calls.  See T-038 (gate-3 escape),
+/// T-043 (bare-name UNGATED), T-044 (`../registry-parent/` UNGATED), T-047
+/// (outside-repo OUTSIDE), T-048 (property table covering all classes).
 ///
 /// See T-025 (traversal-into proof), T-026 (depth-matched absolute + divergent-prefix),
 /// T-023 (traversal-cancels + bare forms), T-031 (case-variant), T-032 (nested-subdir),
 /// T-033 (min-length lower boundary), T-038 (ungated-declaration), T-043 (bare-name
-/// UNGATED), T-044 (`../registry-parent/` UNGATED).
+/// UNGATED), T-044 (`../registry-parent/` UNGATED), T-047 (outside-repo OUTSIDE),
+/// T-048 (property partition table).
 fn extract_hook_plugin_name(registry_path: &Path, plugin_path: &str) -> Option<String> {
     let registry_parent = registry_path.parent()?;
 
@@ -359,7 +366,7 @@ fn extract_hook_plugin_name(registry_path: &Path, plugin_path: &str) -> Option<S
 /// Return raw `plugin = "..."` path strings from `registry_path` that resolve **inside
 /// the worktree `root`** but **NOT correctly under `registry_parent/hook-plugins/`**.
 ///
-/// ## Detection algorithm (pass-10.2 — total predicate, no silent drops)
+/// ## Detection algorithm (pass-11 — single-copy gate via extract_hook_plugin_name)
 ///
 /// For each `plugin = "..."` value, compute `joined = lex_norm(registry_parent.join(path))`.
 ///
@@ -374,17 +381,16 @@ fn extract_hook_plugin_name(registry_path: &Path, plugin_path: &str) -> Option<S
 /// `in_repo` is true iff `joined.len() > root_parts.len()` AND
 /// `joined[0..root_parts.len()] == root_parts`.  When false (path escapes the worktree),
 /// `OUTSIDE-REPO-DECLARATION: <path>` is pushed and the entry is skipped for the
-/// `is_hook_plugins` check.  Production would load these from outside the repo
+/// correctness gate.  Production would load these from outside the repo
 /// (absolute paths with a divergent prefix, or `../` chains deep enough to escape).
 ///
-/// **Correctness check:**
-/// A declaration is "correctly targeted" when ALL three hold:
-///   (a) `joined.len() >= expected_depth + 2` — has a filename component after `hook-plugins/`
-///   (b) `joined[0..expected_depth] == parent_parts` — registry-parent prefix intact
-///   (c) `joined[expected_depth].eq_ignore_ascii_case("hook-plugins")` — lands under hook-plugins
-///
-/// Any in-repo declaration that does NOT satisfy (a)+(b)+(c) is pushed as
-/// `UNGATED-DECLARATION: <path>`.
+/// **Correctness gate (pass-11 — single-copy via `extract_hook_plugin_name`):**
+/// Delegates to `extract_hook_plugin_name(registry_path, plugin_path)`.
+///   `Some(_)` → correctly gated (not reported).
+///   `None`    → `UNGATED-DECLARATION: <path>` pushed to results.
+/// This is the **single copy** of the three-gate logic.  The previous hand-written
+/// `is_hook_plugins` block (duplicate of `extract_hook_plugin_name`'s gates) was removed
+/// in pass-11 to eliminate complementarity drift between the two copies.
 ///
 /// ## What this catches (UNGATED-DECLARATION)
 /// - Gate-3 escapes: `other-dir/evil-probe.wasm` (T-038) — in-repo, wrong subdir
@@ -400,26 +406,25 @@ fn extract_hook_plugin_name(registry_path: &Path, plugin_path: &str) -> Option<S
 /// with their own identifier so no class of declaration escapes without trace.
 /// See T-047 (tightest-margin out-of-repo probe: `../../../ghost.wasm`).
 ///
-/// ## Threshold note
-/// The old length-based gate-1 (`< expected_depth + 1`) is gone from this function —
-/// the containment check subsumes it.  The `expected_depth + 2` that appears in the
-/// `is_hook_plugins` positive check (condition a) has the same semantics as the gate-1
-/// in `extract_hook_plugin_name`: "the path must have a filename component after
-/// `hook-plugins/`".  Both thresholds are now `expected_depth + 2` for the same reason.
+/// ## Single-copy design note (pass-11)
+/// The `is_hook_plugins` inline block (which duplicated `extract_hook_plugin_name`'s three
+/// gates) was removed in pass-11.  The correctness gate now delegates entirely to
+/// `extract_hook_plugin_name(registry_path, plugin_path)`.  This eliminates the M1/M2/M3/M4
+/// mutation surface where the duplicate could drift from the original; after the refactor
+/// all mutations propagate through a single code path, and T-048's property table directly
+/// kills M2 (len>→>=), M4 (>=+2→+1), and the M1+M4 composite.
 ///
 /// Used by `run_t012_gate()` to emit `UNGATED-DECLARATION: <path>` or
 /// `OUTSIDE-REPO-DECLARATION: <path>` before git calls.
 ///
 /// See T-038, T-040 (resolvers arm), T-043 (bare-name), T-044 (`../registry-parent/`),
 /// T-045 (`../` one level up), T-046 (`../../` two levels up),
-/// T-047 (`../../../` outside repo).
+/// T-047 (`../../../` outside repo), T-048 (totality property partition).
 fn detect_ungated_declarations(registry_path: &Path, root: &Path) -> Vec<String> {
     let registry_parent = match registry_path.parent() {
         Some(p) => p,
         None => return Vec::new(),
     };
-    let parent_parts = lex_norm(registry_parent);
-    let expected_depth = parent_parts.len();
     let root_parts = lex_norm(root);
 
     let content = fs::read_to_string(registry_path).unwrap_or_default();
@@ -427,7 +432,7 @@ fn detect_ungated_declarations(registry_path: &Path, root: &Path) -> Vec<String>
         Ok(v) => v,
         Err(_) => return Vec::new(),
     };
-    let mut ungated = Vec::new();
+    let mut findings = Vec::new();
     for section in &["hooks", "resolvers"] {
         if let Some(toml::Value::Array(entries)) = doc.get(*section) {
             for entry in entries {
@@ -445,42 +450,40 @@ fn detect_ungated_declarations(registry_path: &Path, root: &Path) -> Vec<String>
                             .enumerate()
                             .all(|(i, p)| joined_parts.get(i) == Some(p));
                     if !in_repo {
-                        ungated.push(format!("OUTSIDE-REPO-DECLARATION: {}", plugin_path));
+                        findings.push(format!("OUTSIDE-REPO-DECLARATION: {}", plugin_path));
                         continue;
                     }
 
-                    // Correctness check: is this declaration correctly targeting hook-plugins/?
-                    // Requires: (a) filename component after hook-plugins/, (b) registry-parent
-                    // prefix intact, (c) first component after parent is "hook-plugins".
-                    let is_hook_plugins = joined_parts.len() >= expected_depth + 2
-                        && parent_parts
-                            .iter()
-                            .enumerate()
-                            .all(|(i, p)| joined_parts.get(i) == Some(p))
-                        && joined_parts[expected_depth].eq_ignore_ascii_case("hook-plugins");
-
-                    if !is_hook_plugins {
-                        ungated.push(format!("UNGATED-DECLARATION: {}", plugin_path));
+                    // Single-copy correctness gate: delegate to extract_hook_plugin_name.
+                    // Returns Some iff the declaration correctly targets registry_parent/hook-plugins/.
+                    // This is the canonical copy of the three-gate check; the previous hand-written
+                    // `is_hook_plugins` block was a duplicate and has been removed (pass-11).
+                    if extract_hook_plugin_name(registry_path, plugin_path.as_str()).is_none() {
+                        findings.push(format!("UNGATED-DECLARATION: {}", plugin_path));
                     }
                 }
             }
         }
     }
-    ungated.sort();
-    ungated
+    findings.sort();
+    findings
 }
 
 /// Parse all `plugin = "hook-plugins/<name>"` references from a TOML registry file,
 /// resolving each plugin path relative to the registry file's parent directory.
 ///
 /// Uses the `toml` crate (the same parser the dispatcher uses via `registry.rs`) so that
-/// any TOML-legal spelling of the `plugin` key is handled identically to production:
+/// any TOML-legal spelling of the `plugin` key is parsed correctly.  Note: production
+/// validation (schema_version enforcement, deny_unknown_fields) is applied separately in
+/// `run_t012_gate` via `Registry::parse_str` before this function is called.
 ///
 /// - `plugin = "hook-plugins/foo.wasm"` — standard form
 /// - `plugin="hook-plugins/foo.wasm"` — no spaces around `=` (TOML-legal; missed by v1)
 /// - `plugin = "./hook-plugins/foo.wasm"` — leading `./` (TOML-legal; missed by v1)
 /// - `plugin = "hooks/../hook-plugins/foo.wasm"` — traversal into hook-plugins (F-1; T-025)
-/// - `plugin = "/abs/hook-plugins/foo.wasm"` — absolute path, excluded (MEDIUM-2; T-026)
+/// - `plugin = "/abs/hook-plugins/foo.wasm"` — absolute path: `extract_hook_plugin_name`
+///   returns `None` (not in declared-set); `detect_ungated_declarations` reports
+///   `OUTSIDE-REPO-DECLARATION` (T-047)
 /// - `plugin = 'hook-plugins/foo.wasm'` — single-quoted TOML string
 ///
 /// Works for both `hooks-registry.toml` (`[[hooks]]` array) and
@@ -858,6 +861,41 @@ fn run_t012_gate(root: &Path) -> Result<(), String> {
     // No separate hard-fail is required — the inventory check fires before parse_plugin_refs
     // is reached. The EC-004 panic blocks present in passes 1–5 were unreachable dead code
     // (removed in pass-6 MEDIUM-1 closure).
+
+    // HIGH-3 (pass-11): Validate hooks-registry against production constraints.
+    // Registry::parse_str enforces schema_version=2 + deny_unknown_fields + tool-pattern
+    // validity.  Production rejects the whole registry (all hooks inert) if this fails.
+    // T-012's declared-set gate would be vacuous on a registry production will never load.
+    let hooks_content = fs::read_to_string(&hooks_registry)
+        .unwrap_or_else(|e| panic!("T-012: cannot read hooks-registry.toml: {}", e));
+    Registry::parse_str(&hooks_content).unwrap_or_else(|e| {
+        panic!(
+            "T-012: hooks-registry.toml fails production validation ({}); \
+             production rejects this registry entirely — T-012's declared-set gate \
+             would be meaningless on a registry production will never load",
+            e
+        )
+    });
+
+    // HIGH-3 (pass-11): Validate resolvers-registry schema_version.
+    // Production requires schema_version=1; rejecting a mis-versioned registry at this
+    // point prevents T-012 from gating against a registry production will never use.
+    let resolvers_content = fs::read_to_string(&resolvers_registry)
+        .unwrap_or_else(|e| panic!("T-012: cannot read resolvers-registry.toml: {}", e));
+    let resolvers_doc: toml::Value = resolvers_content
+        .parse::<toml::Value>()
+        .unwrap_or_else(|e| panic!("T-012: cannot parse resolvers-registry.toml as TOML: {}", e));
+    let resolvers_schema_version = resolvers_doc
+        .get("schema_version")
+        .and_then(|v| v.as_integer())
+        .unwrap_or(-1);
+    assert_eq!(
+        resolvers_schema_version, 1,
+        "T-012: resolvers-registry.toml schema_version={} but production requires 1; \
+         production would reject this registry at load time — T-012 would gate \
+         against a registry production will never use",
+        resolvers_schema_version
+    );
 
     // Parse per-registry refs separately so check_declared_subset_tracked() can apply
     // per-registry floors (HIGH-2: a union floor cannot detect a resolvers-only collapse).
@@ -1333,6 +1371,12 @@ fn test_S_19_04_ac006_T008_negative_control_resolvers_only_is_orphan_with_hooks_
     fs::write(hook_plugins.join("resolvers-only.wasm"), b"")
         .expect("resolvers-only.wasm fixture must be written");
 
+    // MEDIUM-6 M22 control: hooks-only.wasm IS referenced by HOOKS_REGISTRY_FIXTURE
+    // (plugin = "hook-plugins/hooks-only.wasm" in the [[hooks]] entry).
+    // Writing it to disk so collect_orphans_hooks_only sees it in the dirlist.
+    fs::write(hook_plugins.join("hooks-only.wasm"), b"")
+        .expect("hooks-only.wasm fixture must be written for M22 control");
+
     let hooks_reg = tmp.path().join("hooks-registry.toml");
     fs::write(&hooks_reg, HOOKS_REGISTRY_FIXTURE).expect("hooks-registry fixture must be written");
 
@@ -1345,6 +1389,19 @@ fn test_S_19_04_ac006_T008_negative_control_resolvers_only_is_orphan_with_hooks_
         "T-008 AC-006 F-P2-010 negative-control: resolvers-only.wasm MUST be classified \
          as orphan when only hooks-registry is used — confirms dual-registry check in \
          collect_orphans_dual is load-bearing, not advisory (EC-003); \
+         got orphans: {:?}",
+        orphans
+    );
+
+    // NOT-orphan direction: kills M22 ("hook-plugins/{}" → "bogus/{}" mutation in
+    // collect_orphans_hooks_only).  hooks-only.wasm IS referenced by HOOKS_REGISTRY_FIXTURE;
+    // it must NOT be classified as orphan.
+    assert!(
+        !orphans.contains(&"hooks-only.wasm".to_string()),
+        "T-008 MEDIUM-6 M22: hooks-only.wasm is referenced by hooks-registry fixture \
+         (plugin = \"hook-plugins/hooks-only.wasm\") and must NOT be classified as orphan; \
+         mutation-proof: changing 'hook-plugins/{{}}' to 'bogus/{{}}' in collect_orphans_hooks_only \
+         makes all hooks-declared WASMs appear orphaned — this assertion kills that mutant; \
          got orphans: {:?}",
         orphans
     );
@@ -1708,14 +1765,21 @@ fn test_S_21_09_ac006_T013_nospace_eq_sign_form_is_parsed_as_declared() {
     fs::write(&hooks_reg, HOOKS_REGISTRY_NOSPACE_FIXTURE)
         .expect("nospace fixture must be written to tempfile");
 
-    // HIGH-2 fixture-content assertion: verify the distinguishing syntax is present BEFORE
-    // parsing. If the fixture is edited to remove the nospace form, the test becomes trivial
-    // (the standard form would still be parsed, but the nospace coverage disappears silently).
+    // HIGH-1 fixture-content assertion: verify the distinguishing syntax is present in the
+    // TOML body (not just the comment header).  Filter comment lines first so that the
+    // assertion cannot be satisfied by a comment that merely documents the nospace form —
+    // the actual [[hooks]] entry must contain plugin="hook-plugins/..." (no spaces around =).
+    let toml_body_013: String = HOOKS_REGISTRY_NOSPACE_FIXTURE
+        .lines()
+        .filter(|l| !l.trim_start().starts_with('#'))
+        .collect::<Vec<_>>()
+        .join("\n");
     assert!(
-        HOOKS_REGISTRY_NOSPACE_FIXTURE.contains("plugin=\"hook-plugins/"),
-        "T-013 HIGH-2: HOOKS_REGISTRY_NOSPACE_FIXTURE must contain the nospace form \
-         'plugin=\"hook-plugins/' — if this syntax is absent, the test no longer proves \
-         the toml-crate handles the no-space-around-equals variant"
+        toml_body_013.contains("plugin=\"hook-plugins/"),
+        "T-013 HIGH-1: HOOKS_REGISTRY_NOSPACE_FIXTURE must contain the nospace form \
+         'plugin=\"hook-plugins/' in the TOML body (not just the comment header); \
+         mutating the live [[hooks]] entry to use standard form would leave the comment \
+         intact but strip this assertion — comment lines are filtered before the check"
     );
 
     let refs = parse_plugin_refs(&hooks_reg);
@@ -1759,13 +1823,18 @@ fn test_S_21_09_ac006_T014_dotslash_prefix_form_is_parsed_as_declared() {
     fs::write(&hooks_reg, HOOKS_REGISTRY_DOTSLASH_FIXTURE)
         .expect("dotslash fixture must be written to tempfile");
 
-    // HIGH-2 fixture-content assertion: verify the distinguishing syntax is present BEFORE
-    // parsing. If the fixture is edited to remove the dotslash form, the test becomes trivial.
+    // HIGH-1 fixture-content assertion: verify the dotslash form is present in the TOML body,
+    // not just the comment header.  Filter comment lines first.
+    let toml_body_014: String = HOOKS_REGISTRY_DOTSLASH_FIXTURE
+        .lines()
+        .filter(|l| !l.trim_start().starts_with('#'))
+        .collect::<Vec<_>>()
+        .join("\n");
     assert!(
-        HOOKS_REGISTRY_DOTSLASH_FIXTURE.contains("\"./hook-plugins/"),
-        "T-014 HIGH-2: HOOKS_REGISTRY_DOTSLASH_FIXTURE must contain the dotslash form \
-         '\"./hook-plugins/' — if this syntax is absent, the test no longer proves \
-         the parser handles the leading-dotslash variant"
+        toml_body_014.contains("\"./hook-plugins/"),
+        "T-014 HIGH-1: HOOKS_REGISTRY_DOTSLASH_FIXTURE must contain the dotslash form \
+         '\"./hook-plugins/' in the TOML body (not just the comment header); \
+         comment lines are filtered before the check"
     );
 
     let refs = parse_plugin_refs(&hooks_reg);
@@ -4289,6 +4358,17 @@ fn test_S_21_09_ac006_T043_bare_name_ungated_declaration_fires() {
          error contains git message not UNGATED-DECLARATION; got: {:?}",
         err
     );
+    // Negative-identifier assertion: an in-repo bare-name must NOT fire OUTSIDE-REPO-DECLARATION.
+    // The error header always prints both identifier *definitions* (as explanatory text);
+    // check for the "OUTSIDE-REPO-DECLARATION: <path>" prefixed form to distinguish a real
+    // finding from the header prose.
+    assert!(
+        !err.contains("OUTSIDE-REPO-DECLARATION: "),
+        "T-043 negative-identifier: error must NOT contain 'OUTSIDE-REPO-DECLARATION: <path>' \
+         for an in-repo bare-name — ghost-bare.wasm resolves inside the worktree root; \
+         got: {:?}",
+        err
+    );
 }
 
 // ---------------------------------------------------------------------------
@@ -4586,4 +4666,271 @@ fn test_S_21_09_ac006_T047_outside_repo_declaration_tightest_margin_fires() {
          panic — identifier absent from error; got: {:?}",
         err
     );
+    // Negative-identifier assertion: an outside-repo path must NOT fire UNGATED-DECLARATION.
+    // The error header always prints both identifier *definitions* (as explanatory text);
+    // check for the "UNGATED-DECLARATION: <path>" prefixed form to distinguish a real
+    // finding from the header prose.
+    assert!(
+        !err.contains("UNGATED-DECLARATION: "),
+        "T-047 negative-identifier: error must NOT contain 'UNGATED-DECLARATION: <path>' for \
+         an outside-repo path — ../../../ghost.wasm resolves outside the worktree root; \
+         M2 (len>→>=) would cause it to pass containment and fire UNGATED instead; \
+         got: {:?}",
+        err
+    );
+}
+
+// ---------------------------------------------------------------------------
+// T-048 — pass-11 totality property: extract ⟺ ¬detect for 18 declaration candidates
+//
+// Asserts the single-copy invariant over a table of 18 declaration values covering
+// all three classes: GATED (extract=Some, detect=[]), UNGATED-DECLARATION (in-repo
+// but not under hook-plugins/), and OUTSIDE-REPO-DECLARATION (outside worktree root).
+//
+// After the pass-11 single-copy refactor, `detect_ungated_declarations` calls
+// `extract_hook_plugin_name` for the correctness gate — mutations in `extract` propagate
+// to both functions simultaneously.  This test kills:
+//   M2 (len>→>=): outside paths satisfy the relaxed containment check → fire UNGATED
+//                  instead of OUTSIDE; the negative-identifier assertion catches the swap.
+//   M4 (>=+2→+1): hook-plugins/ (directory path, no filename) passes the weakened gate
+//                  and enters gated; the GATED assertion for "hook-plugins" catches it.
+//   M1+M4 composite: silent drop re-opens when M1 removes containment check AND M4 relaxes
+//                    gate-1; property table assertion on GATED cases catches the missing
+//                    UNGATED emission.
+//
+// Story: S-21.09
+// ---------------------------------------------------------------------------
+#[test]
+fn test_S_21_09_ac006_T048_totality_property_partition() {
+    let tmp = tempdir().expect("tempdir must create successfully");
+    let root = tmp.path();
+    let plugins_dir = root.join("plugins/vsdd-factory");
+    fs::create_dir_all(&plugins_dir).expect("plugins/vsdd-factory must be created");
+    let registry = plugins_dir.join("hooks-registry.toml");
+
+    // Each case: (plugin_path, expected_class)
+    // Classes: "gated" | "UNGATED-DECLARATION" | "OUTSIDE-REPO-DECLARATION"
+    let cases: &[(&str, &str)] = &[
+        // --- GATED: extract returns Some, detect returns [] ---
+        ("hook-plugins/foo.wasm", "gated"),
+        ("./hook-plugins/bar.wasm", "gated"),
+        ("hooks/../hook-plugins/foo.wasm", "gated"),
+        ("Hook-Plugins/foo.wasm", "gated"), // gate-3 eq_ignore_ascii_case
+        ("hook-plugins/sub/nested.wasm", "gated"), // nested subdir
+        // --- UNGATED-DECLARATION: in-repo but not under hook-plugins/ ---
+        ("ghost-bare.wasm", "UNGATED-DECLARATION"),
+        ("../vsdd-factory/ghost.wasm", "UNGATED-DECLARATION"),
+        ("../ghost.wasm", "UNGATED-DECLARATION"),
+        ("../../ghost.wasm", "UNGATED-DECLARATION"),
+        ("other-dir/evil.wasm", "UNGATED-DECLARATION"),
+        ("hook-plugins", "UNGATED-DECLARATION"), // directory-only, no filename
+        ("hook-plugins/", "UNGATED-DECLARATION"), // trailing slash → same
+        ("not-hook-plugins/foo.wasm", "UNGATED-DECLARATION"),
+        ("HOOK_PLUGINS/foo.wasm", "UNGATED-DECLARATION"), // underscore ≠ hyphen
+        // --- OUTSIDE-REPO-DECLARATION: resolves outside worktree root ---
+        ("../../../ghost.wasm", "OUTSIDE-REPO-DECLARATION"), // tightest margin (T-047)
+        ("/outside-repo.wasm", "OUTSIDE-REPO-DECLARATION"),  // absolute, short
+        ("/abs/hook-plugins/foo.wasm", "OUTSIDE-REPO-DECLARATION"), // absolute with hook-plugins
+        ("/tmp/ghost.wasm", "OUTSIDE-REPO-DECLARATION"),     // absolute, divergent prefix
+    ];
+
+    for &(path, expected_class) in cases {
+        // Build a minimal registry with a single hooks entry using this plugin path.
+        // The TOML does not need to be Registry::parse_str-valid — this test calls
+        // extract and detect directly, bypassing run_t012_gate's validation step.
+        let toml = format!(
+            "schema_version = 2\n[[hooks]]\nname = \"probe\"\nplugin = {}\n\
+             event = \"PreToolUse\"\ntool = \"^Bash$\"\ntimeout_ms = 5000\n\
+             on_error = \"continue\"\n",
+            toml::Value::String(path.to_owned())
+        );
+        fs::write(&registry, &toml).expect("registry must be written for T-048 property case");
+
+        let extract_result = extract_hook_plugin_name(&registry, path);
+        let detected = detect_ungated_declarations(&registry, root);
+
+        match expected_class {
+            "gated" => {
+                assert!(
+                    extract_result.is_some(),
+                    "T-048 property[{:?}]: expected gated (extract=Some) but got None; \
+                     mutation-proof: M4 (>=+2→+1) causes hook-plugins/ directory-only \
+                     path to return Some when it should be None — catches that mutation on \
+                     the 'hook-plugins' case; got extract=None for {:?}",
+                    path,
+                    path
+                );
+                assert!(
+                    detected.is_empty(),
+                    "T-048 property[{:?}]: expected gated (detect=[]) but got {:?}; \
+                     after single-copy refactor, detect delegates to extract — \
+                     a mutation in extract propagates to detect",
+                    path,
+                    detected
+                );
+            }
+            ident => {
+                let expected_entry = format!("{}: {}", ident, path);
+                assert!(
+                    extract_result.is_none(),
+                    "T-048 property[{:?}]: expected {} but extract returned Some({:?}); \
+                     single-copy refactor means extract drives detect; \
+                     mutations in extract propagate to both functions",
+                    path,
+                    ident,
+                    extract_result
+                );
+                assert!(
+                    detected.contains(&expected_entry),
+                    "T-048 property[{:?}]: expected {:?} in detected but got {:?}",
+                    path,
+                    expected_entry,
+                    detected
+                );
+                // Negative-identifier: assert the OTHER class is absent.
+                // Kills M2 (len>→>=): outside-repo paths satisfy the relaxed containment
+                // check and would fire UNGATED instead of OUTSIDE.
+                let other_ident = if ident == "UNGATED-DECLARATION" {
+                    "OUTSIDE-REPO-DECLARATION"
+                } else {
+                    "UNGATED-DECLARATION"
+                };
+                assert!(
+                    !detected.iter().any(|s| s.starts_with(other_ident)),
+                    "T-048 property[{:?}]: identifier swap — detected {:?} but expected {}; \
+                     M2 (len>→>=) causes OUTSIDE paths to pass containment and get UNGATED \
+                     instead of OUTSIDE — this assertion kills that mutant",
+                    path,
+                    detected,
+                    ident
+                );
+            }
+        }
+    }
+}
+
+// ---------------------------------------------------------------------------
+// T-049 — pass-11 EC-005a control: git fixture with no WASM in hook-plugins/ → panic
+//
+// EC-005a asserts that `git ls-files` returns at least one `.wasm` path matching
+// the pathspec `plugins/vsdd-factory/hook-plugins/`.  If the assertion is removed
+// (→ false), `run_t012_gate` continues with an empty `tracked` set — the declared
+// − tracked gate becomes vacuous (every declared WASM is "missing", but that is caught
+// by T-012 proper; the purpose here is to pin the EC-005a guard itself).
+//
+// Fixture: a git repo with `plugins/vsdd-factory/` structure, valid registries,
+// `hook-plugins/config.yaml` committed but NO WASM files.  git ls-files filters
+// for `.wasm` extension → returns zero paths → EC-005a fires.
+//
+// Story: S-21.09
+// ---------------------------------------------------------------------------
+#[test]
+#[should_panic(expected = "T-012 EC-005a")]
+fn test_S_21_09_ac006_T049_ec005a_fires_on_empty_wasm_tracked_set() {
+    let tmp = tempdir().expect("tempdir must create successfully");
+    let root = tmp.path();
+
+    let init_out = Command::new("git")
+        .args([
+            "-c",
+            "core.excludesFile=/dev/null",
+            "-c",
+            "commit.gpgsign=false",
+            "-c",
+            "core.hooksPath=/dev/null",
+            "-c",
+            "init.templateDir=",
+            "init",
+        ])
+        .current_dir(root)
+        .output()
+        .expect("git init must execute for T-049 fixture");
+    assert!(
+        init_out.status.success(),
+        "T-049: git init failed: {}",
+        String::from_utf8_lossy(&init_out.stderr)
+    );
+    Command::new("git")
+        .args(["config", "user.email", "test@example.com"])
+        .current_dir(root)
+        .output()
+        .expect("git config user.email must execute");
+    Command::new("git")
+        .args(["config", "user.name", "Test"])
+        .current_dir(root)
+        .output()
+        .expect("git config user.name must execute");
+
+    let plugins_dir = root.join("plugins/vsdd-factory");
+    let hook_plugins_dir = plugins_dir.join("hook-plugins");
+    fs::create_dir_all(&hook_plugins_dir).expect("hook-plugins must be created");
+
+    // Valid hooks registry — 30 entries pointing to hook-plugins/h{i:02}.wasm.
+    // Registry::parse_str will pass; detect_ungated_declarations returns [].
+    // The WASMs themselves are NOT committed — only config.yaml is.
+    let mut hooks_content = String::from("schema_version = 2\n");
+    for i in 0..30_u32 {
+        hooks_content.push_str(&format!(
+            "[[hooks]]\nname = \"h{i:02}\"\nplugin = \"hook-plugins/h{i:02}.wasm\"\n\
+             event = \"PreToolUse\"\ntool = \"^Bash$\"\ntimeout_ms = 5000\n\
+             on_error = \"continue\"\n",
+        ));
+    }
+    fs::write(plugins_dir.join("hooks-registry.toml"), &hooks_content)
+        .expect("hooks-registry.toml must be written");
+    fs::write(
+        plugins_dir.join("resolvers-registry.toml"),
+        "schema_version = 1\n[[resolvers]]\nname = \"ctx\"\n\
+         plugin = \"hook-plugins/ctx.wasm\"\n",
+    )
+    .expect("resolvers-registry.toml must be written");
+
+    // hook-plugins/ contains only a non-WASM file — no WASMs committed.
+    // git ls-files will return config.yaml (filtered out by .wasm check) → empty.
+    fs::write(hook_plugins_dir.join("config.yaml"), b"key: value")
+        .expect("config.yaml fixture must be written");
+
+    let add_out = Command::new("git")
+        .args([
+            "-c",
+            "core.excludesFile=/dev/null",
+            "add",
+            "plugins/vsdd-factory/hooks-registry.toml",
+            "plugins/vsdd-factory/resolvers-registry.toml",
+            "plugins/vsdd-factory/hook-plugins/config.yaml",
+        ])
+        .current_dir(root)
+        .output()
+        .expect("git add must execute for T-049 fixture");
+    assert!(
+        add_out.status.success(),
+        "T-049: git add failed: {}",
+        String::from_utf8_lossy(&add_out.stderr)
+    );
+
+    let commit_out = Command::new("git")
+        .args([
+            "-c",
+            "core.excludesFile=/dev/null",
+            "-c",
+            "commit.gpgsign=false",
+            "-c",
+            "core.hooksPath=/dev/null",
+            "commit",
+            "-m",
+            "T-049 fixture: no WASMs committed",
+        ])
+        .current_dir(root)
+        .output()
+        .expect("git commit must execute for T-049 fixture");
+    assert!(
+        commit_out.status.success(),
+        "T-049: git commit failed: {}",
+        String::from_utf8_lossy(&commit_out.stderr)
+    );
+
+    // EC-005a fires: git ls-files returns zero .wasm paths (only config.yaml is tracked).
+    // run_t012_gate passes inventory, Registry::parse_str, and detect_ungated_declarations,
+    // then reaches git_tracked_wasm_names → tracked_raw.is_empty() → EC-005a panic.
+    run_t012_gate(root).unwrap_or_else(|e| panic!("{}", e));
 }
