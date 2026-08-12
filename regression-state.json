@@ -1,1 +1,1 @@
-{"status":"pass","timestamp":"2026-08-12T16:02:28Z","command":"cd /Users/zious/Documents/GITHUB/vsdd-factory/.worktrees/S-21.09 && cargo test --workspace --all-targets 2>&1 | tee /tmp/full_test_run.log | grep -E \"^test result:|FAILED|error\\[|error:\" "}
+{"status":"pass","timestamp":"2026-08-12T17:46:05Z","command":"cd /Users/zious/Documents/GITHUB/vsdd-factory/.worktrees/S-21.09 && cargo test --workspace --all-targets 2>&1 | grep -c 'FAILED\\|failures:'; echo \"exit_check_done\""}

@@ -15966,3 +15966,66 @@ D-974-S-21.09-LOCAL-PASS-12-RECORD-AND-FIX-BURST
 2026-08-12
 
 ---
+
+## D-975 — D-975-S-21.09-LOCAL-PASS-13-RECORD-AND-FIX-BURST
+
+**POLICY 16 ALLOCATOR-CEILING GATE** (pre-allocation, literal shell, D-449(a)):
+
+```
+$ cd /Users/zious/Documents/GITHUB/vsdd-factory/.factory && max_d=$({ grep -hE '^#{2,} D-[0-9]+' cycles/v1.0-brownfield-backfill/decision-log.md cycles/v1.0-feature-engine-discipline-pass-1/decision-log.md 2>/dev/null; grep -hE '^[|] *D-[0-9]+' cycles/v1.0-brownfield-backfill/decision-log.md cycles/v1.0-feature-engine-discipline-pass-1/decision-log.md 2>/dev/null; } | grep -oE 'D-[0-9]+' | sed 's/D-//' | sort -n | tail -1); [ "$max_d" -lt 9000 ] && printf 'PASS: global max D-%s < D-9000 ceiling\n' "$max_d" || printf 'FAIL: breach: max=D-%s\n' "$max_d"
+PASS: global max D-974 < D-9000 ceiling
+```
+
+D-975 allocated. Parent-commit: `3a7378b3` (factory-artifacts HEAD at burst start — the pass-12 SHA-patch commit).
+
+**(a) POLICY 16 GATE PASS — D-975 allocated; parent-commit `3a7378b3`.** This is the S-21.09 LOCAL cascade pass-13 RECORD burst combined with its same-session fix burst (two parallel commits: test-writer commit `46e334da` on `feature/S-21.09`, NOT pushed — push held per standing human ruling; story-writer story v1.24, staged into this same factory-artifacts commit per TD-VSDD-053 single-commit-per-burst).
+
+**(b) `adv-s21.09-local-pass-13.md` persisted.** `cycles/v1.0-brownfield-backfill/adv-s21.09-local-pass-13.md` CREATED. Verdict: **NOT CLEAN — 1 HIGH (1 finding).** Reviewed HEAD: `a922ad82` (feature/S-21.09) against story v1.23. Fresh-context review (Iron Law: read only prior-pass Part A — `adv-s21.09-local-pass-12.md`). LOCAL streak: **0/3 — thirteen passes, zero CLEAN.** `INDEX.md` `S-21.09 LOCAL Adversary Reviews` table extended with the pass-13 row and Convergence Status paragraph updated (13 passes; trajectory `3→3→2→13→11→9→9→8→8→15→2→1→1`, tail `→15→2→1→1`).
+
+**(c) F-1 [HIGH; POLICY 13 / count-parity; Partial-Fix Regression Discipline] — cross-file stale test-range cite omits T-051.** Story line 475 (AC-006 "Tests:" bullet) and test-file `bundle_orphan_check.rs` line 128 (module docstring) both still read `T-012..T-050`/`T-013..T-050`. T-051 (the pass-12 fix-burst's dedicated prefix-conjunct isolation control) propagated correctly to story lines 418, 623, 665, but not to these two sibling sites — the pass-12 fix-burst's 5-site sweep (Architecture Mapping, Purity Classification, Architecture Compliance Rules, File Structure Requirements, Token Budget Estimate) did not include the AC-006 Tests bullet or the test-file module docstring as sweep targets. A reader auditing S-21.09's owned coverage from either site would conclude the suite ends at T-050 and miss the prefix-conjunct isolation control entirely. Impact is documentary — the correct range is present elsewhere in both files, and no code or test-logic defect exists. Per the Partial-Fix Regression Discipline severity table, "fix applied to primary, sibling not updated" with 2-file blast radius is HIGH by the mechanical rule, notwithstanding the documentary impact.
+
+**(d) Adversary independently confirmed the gate/mutation machinery is sound.** Pass-13's Method note traces both T-050 (length conjunct) and T-051 (prefix conjunct) isolation controls and confirms: "no surviving-mutant, no fail-open, no path-normalization edge gap." This is an independent re-verification of pass-11's and pass-12's fix-burst closures — not merely a Part-A carry-forward check, a fresh-context re-derivation. Both pass-12 findings (F-1 prefix-conjunct closure) confirmed CLOSED; no residual or reopened finding.
+
+**(e) F-1 CLOSED this burst — two parallel commits, same session.** test-writer committed `46e334da` on `feature/S-21.09` (NOT pushed): docstring-only fix, `S-21.09 (T-012..T-050)` → `S-21.09 (T-012..T-051)` in the `bundle_orphan_check.rs` module header; sibling-sweep confirmed clean; 46 tests green; test-logic untouched. This is now the `feature/S-21.09` HEAD (docstring-only commit on top of `a922ad82`, where T-051 itself landed in the pass-12 fix-burst). story-writer produced story v1.24 (uncommitted until this factory-artifacts burst): AC-006 "Tests:" bullet `T-013..T-050` → `T-013..T-051`; POLICY 5 sibling-sweep (literal-shell grep of the full story body excluding Changelog rows and the legitimately-historical S-19.04 `1c59a669` citation, for `T-012..T-050`, `T-013..T-050`, `..T-050` as a range terminator, `45 tests`, `45-test`, `39 owned`, `39 S-21.09-owned`, and SHA `69663255` as a current-state cite) confirms exactly one genuine stale site (the fixed line-475 bullet); zero further sibling sites required correction.
+
+**(f) VP-TBD [process-gap] observation maps to existing Drift Item — no new drift item opened.** Pass-13's observation (BC-4.16.001 §Verification Properties carries 4 TBD rows — zero allocated VPs on an active security-boundary BC) is already tracked as **[D-945] VP-102..VP-118 pending allocation (anchored S-21.07 post-merge)** in STATE.md §Drift Items / Tech Debt. This pass's observation is confirmed to map directly onto that existing entry; linkage recorded in `adv-s21.09-local-pass-13.md` §VP-TBD Observation Linkage.
+
+**(g) Four pass-10 carry-over findings remain OPEN — not addressed this pass.** ADV-BB-P10-MED-001 (directory-only `hook-plugins/sub/` staging control), ADV-BB-P10-LOW-001 (NUL/trailing-space names admitted verbatim), ADV-BB-P10-LOW-002 (fail-open arms guarded only by unasserted call ordering), ADV-BB-P10-LOW-003 (`workspace_root()` untested directly). None were re-verified or addressed in this pass's dispatch scope or this burst's fix scope. Carried to pass-14.
+
+**(h) Suite state.** 46 tests T-006..T-051, 40 S-21.09-owned (T-012..T-051); test-file HEAD `46e334da` (docstring-only commit on top of `a922ad82`); `cargo fmt --check --all`, `cargo clippy --workspace --all-targets -- -D warnings`, `cargo test --workspace --all-targets` all clean (test-writer attestation carried forward, no logic change). Story spec v1.24 (story-writer; corrects the sole remaining stale AC-006 Tests-bullet range cite to T-013..T-051, consistent with every other range citation in the story). Points UNCHANGED at 16 — documentary correction, no AC scope change.
+
+**(i) `feature/S-21.09` push status UNCHANGED — NOT PUSHED.** Standing human ruling holds (per D-971/D-972/D-973/D-974/prior session-wrap checkpoints): explicit human authorization required via `git -C .worktrees/S-21.09 push -u origin feature/S-21.09`.
+
+**(j) Streak 0/3 UNCHANGED (13 passes, zero CLEAN).** Total finding-count trajectory `3→3→2→13→11→9→9→8→8→15→2→1→1` (tail `→15→2→1→1`). Severity(HIGH) trajectory `3→2→3→2→1→1→3→2→1→3→1→1→1`. Human ruling (twice): true 3-CLEAN required, not D-386 Option C asymptotic acceptance. **Pass-14 adversary is the immediate NEXT step.**
+
+**(k) 4-INDEX: STORY-INDEX only bump.** BC-INDEX v4.56 UNCHANGED. VP-INDEX v2.76 UNCHANGED. ARCH-INDEX v3.55 UNCHANGED. STORY-INDEX v4.302→v4.303 (S-21.09 catalog row v1.23→v1.24; 46 tests T-006..T-051, 40 owned; commit `46e334da`; 16 pts UNCHANGED). policies.yaml v1.4.23 UNCHANGED.
+
+**Closes:**
+- F-1 HIGH (pass-13) — CLOSED this burst via story line-475 + test-file line-128 range-cite correction (`46e334da` + story v1.24).
+- STORY-INDEX v1.23→v1.24 S-21.09 catalog-row lag — CLOSED this burst.
+- VP-TBD observation — LINKED to existing [D-945] drift item, no new item opened.
+
+**Remains OPEN (not this burst's scope):**
+- ADV-BB-P10-MED-001, LOW-001, LOW-002, LOW-003 (pass-10 carry-overs) — anchor: pass-14.
+- `feature/S-21.09` NOT PUSHED — anchor: explicit human authorization.
+- C-1/C-2/C-4/C-5 blocking security issues (D-972) — UNCHANGED, out of this burst's scope.
+
+### Agents
+
+- state-manager (D-975): `adv-s21.09-local-pass-13.md` created; `INDEX.md` S-21.09 LOCAL Adversary Reviews section extended (pass-13 row + Convergence Status update); decision-log D-975 block appended; burst-log D-975 8-block entry appended; lessons.md L-BB lesson appended (POLICY 5 sibling-sweeps must include AC "Tests:" bullet + test-file module-docstring ownership header as mandatory sweep-target sites); STORY-INDEX v4.302→v4.303 (S-21.09 v1.23→v1.24 catalog-row sync); STATE.md v7.22→v7.23; story v1.24 (staged by story-writer this session) + test-writer commit `46e334da` (staged on `feature/S-21.09`, not committed to factory-artifacts — code branch, separate from this factory-artifacts commit) committed as part of this single factory-artifacts burst per TD-VSDD-053.
+- test-writer (prior to this burst, same session): `46e334da` — docstring-only fix, module docstring `S-21.09 (T-012..T-050)` → `S-21.09 (T-012..T-051)`; sibling-sweep clean; 46 tests green; test-logic untouched.
+- story-writer (prior to this burst, same session): story v1.24 (AC-006 Tests-bullet range-cite correction + POLICY 5 sibling-sweep confirmation).
+
+### 4-INDEX
+
+BC-INDEX v4.56 (UNCHANGED) / VP-INDEX v2.76 (UNCHANGED) / STORY-INDEX v4.303 / ARCH-INDEX v3.55 (UNCHANGED)
+
+### Phase
+
+D-975-S-21.09-LOCAL-PASS-13-RECORD-AND-FIX-BURST
+
+### Date
+
+2026-08-12
+
+---
