@@ -16349,3 +16349,61 @@ D-980-S-21.09-LOCAL-PASS-17-CLEAN-RECORD-BURST
 2026-08-13
 
 ---
+
+## D-981 — D-981-S-21.09-LOCAL-PASS-18-CLEAN-RECORD-BURST
+
+**POLICY 16 ALLOCATOR-CEILING GATE** (pre-allocation, literal shell, D-449(a)):
+
+```
+$ cd /Users/zious/Documents/GITHUB/vsdd-factory/.factory && max_d=$({ grep -hE '^#{2,} D-[0-9]+' cycles/v1.0-brownfield-backfill/decision-log.md cycles/v1.0-feature-engine-discipline-pass-1/decision-log.md 2>/dev/null; grep -hE '^[|] *D-[0-9]+' cycles/v1.0-brownfield-backfill/decision-log.md cycles/v1.0-feature-engine-discipline-pass-1/decision-log.md 2>/dev/null; } | grep -oE 'D-[0-9]+' | sed 's/D-//' | sort -n | tail -1); [ "$max_d" -lt 9000 ] && printf 'PASS: global max D-%s < D-9000 ceiling\n' "$max_d" || printf 'FAIL: breach: max=D-%s\n' "$max_d"
+PASS: global max D-980 < D-9000 ceiling
+```
+
+D-981 allocated. Parent-commit: `505f287d` (factory-artifacts HEAD at burst start — the BURST-LOG-INTEGRITY-BACKFILL-D-979 housekeeping commit).
+
+**(a) POLICY 16 GATE PASS — D-981 allocated; parent-commit `505f287d`.** This is the S-21.09 LOCAL cascade pass-18 RECORD burst — a **CLEAN-verdict record only**. No fix burst: no test-writer/story-writer dispatch, no code change, no story change. Story spec stays v1.28; impl stays `12d0fe98` (`feature/S-21.09` HEAD, NOT PUSHED). The only state change is the cascade record itself plus the LOCAL BC-5.39.001 streak advance.
+
+**(b) `adv-s21.09-local-pass-18.md` persisted.** `cycles/v1.0-brownfield-backfill/adv-s21.09-local-pass-18.md` CREATED. Verdict: **CLEAN — zero findings at any severity (0 BLOCKER / 0 HIGH / 0 MEDIUM / 0 LOW / 0 NIT).** Reviewed HEAD: `12d0fe98` (`feature/S-21.09`) against story v1.28, BC-4.16.001 v1.8. Fresh-context review (Iron Law: read only prior-pass Part A — `adv-s21.09-local-pass-17.md`). LOCAL streak: **ADVANCES 1/3 → 2/3 — the SECOND CONSECUTIVE CLEAN pass of the S-21.09 LOCAL cascade** (pass-17 was the first). `INDEX.md` `S-21.09 LOCAL Adversary Reviews` table extended with the pass-18 row (Verdict **CLEAN**, Streak **2/3**) and the Convergence Status paragraph updated (18 passes; streak 2/3; total finding-count trajectory `3→3→2→13→11→9→9→8→8→15→2→1→1→2→1→2→0→0`, tail `→1→2→0→0`).
+
+**(c) IMPORTANT — the adversary independently re-derived count-parity, live-gate ground truth, mutation/isolation completeness, traceability, the documented VP gap, and production surface, and surfaced ZERO findings.** Pass-18's "What I attacked and found sound" section re-confirmed, from fresh context: count-parity (51 tests T-006..T-056, 45 S-21.09-owned plus 1 `registry.rs` unit test); live-gate ground truth (`plugins/vsdd-factory/` top-level inventory exactly `{hooks-registry.toml, resolvers-registry.toml}`, `hooks-registry.toml` `schema_version = 2` with 75 `[[hooks]]` declaring `hook-plugins/validate-factory-path-staging.wasm`, `resolvers-registry.toml` `schema_version = 1`, the WASM present on disk); mutation/isolation completeness (every gate, conjunct, assert, sentinel, and fail-open arm dedicated-isolated — gate-1 T-033, gate-2 T-026(b), gate-3 T-035, `in_repo` length conjunct T-050 and prefix conjunct T-051, hooks `Registry::parse_str` block T-052, resolvers `assert_eq!` block T-053, resolvers `.unwrap_or(-1)` fail-closed sentinel T-054, `detect_ungated_declarations` fail-open `Err(_)` arm T-055, `lex_norm` `CurDir` arm T-056; SURV-01 honestly characterized as a provably-un-isolatable accepted residual, not a suppressed gap); traceability (BC-4.16.001 v1.8 H1 verbatim match, AC 001–007 bidirectional trace, `subsystems: [SS-04]` parity, `target_module` match); the documented VP gap (POLICY 9 — `verification_properties: []` correct, BC-4.16.001 §Verification Properties genuinely lists all 4 rows as TBD, no orphaned/invented VP IDs); and production surface (`registry.rs` `parse_str`/`validate` return `Result`, no `unwrap`/`expect` in the critical path, fail-closed schema/regex/async-block/uniqueness checks fully covered). SHA cites (`62fbcf1a` develop head, `7bb0e797`/`12f280d1` historical) confirmed current and honestly annotated. Nothing at any severity rose to a genuine defect.
+
+**(d) No fix burst — nothing to fix.** This is a pure CLEAN-verdict record. No test-writer or story-writer dispatched. Story spec **v1.28 UNCHANGED**; impl **`12d0fe98` UNCHANGED**; suite **51 tests T-006..T-056 UNCHANGED**, 45 S-21.09-owned plus 1 `registry.rs` unit test, all green; `cargo fmt`/`clippy`/`cargo test --workspace --all-targets` all clean (state carried over from D-980, not re-run this burst — no code touched). Points UNCHANGED at 16.
+
+**(e) Four pass-10 carry-over findings remain OPEN — not addressed this pass (by construction of a CLEAN pass).** ADV-BB-P10-MED-001 (directory-only `hook-plugins/sub/` staging control), ADV-BB-P10-LOW-001 (NUL/trailing-space names admitted verbatim), ADV-BB-P10-LOW-002 (fail-open arms guarded only by unasserted call ordering), ADV-BB-P10-LOW-003 (`workspace_root()` untested directly). A CLEAN verdict on pass-18's own fresh-context review does not retroactively close pre-existing carried-over findings from pass-10 that this pass's scope did not re-surface or re-verify. Carried to pass-19.
+
+**(f) `feature/S-21.09` push status UNCHANGED — NOT PUSHED.** Standing human ruling holds: explicit human authorization required via `git -C .worktrees/S-21.09 push -u origin feature/S-21.09`.
+
+**(g) No new lesson required.** The pattern this pass confirms — a comprehensive audit-then-sweep converts an asymptote into sustained convergence, not a one-off — was already codified at `L-BB-audit-then-sweep-pattern-converts-asymptote-into-convergence` (D-980). Pass-18 is corroborating evidence for that lesson (second consecutive CLEAN), not a new pattern; no new `L-BB` entry appended this burst per the orchestrator's minimal-record directive.
+
+**(h) Streak ADVANCES 1/3 → 2/3 (18 passes, second consecutive CLEAN).** Total finding-count trajectory `3→3→2→13→11→9→9→8→8→15→2→1→1→2→1→2→0→0` (tail `→1→2→0→0`). Severity(HIGH) trajectory `3→2→3→2→1→1→3→2→1→3→1→1→1→0→0→0→0→0` (pass-18 contributes 0 across every severity, as did pass-17). Human ruling (twice): true 3-CLEAN required, not D-386 Option C asymptotic acceptance — **pass-19 must ALSO be CLEAN for BC-5.39.001 convergence.** **Pass-19 adversary is the immediate NEXT step — if CLEAN, BC-5.39.001 true 3-CLEAN CONVERGENCE is achieved**, and the post-convergence NEXT steps (authorize push of `feature/S-21.09` [human-gated], PR creation, CI wiring, merge-order per S-21.09 → S-21.07) become live.
+
+**(i) 4-INDEX: UNCHANGED.** BC-INDEX v4.56 UNCHANGED. VP-INDEX v2.76 UNCHANGED. STORY-INDEX v4.308→v4.309 (S-21.09 catalog row annotation-only update: streak 1/3→2/3, pass-18 CLEAN, pass-19 NEXT; story version v1.28 and impl SHA `12d0fe98` UNCHANGED — no content change, POLICY 14 annotation-parity leg only). ARCH-INDEX v3.55 UNCHANGED. policies.yaml v1.4.23 UNCHANGED.
+
+**Closes:**
+- Pass-18 CLEAN verdict recorded; LOCAL BC-5.39.001 streak advanced 1/3→2/3 — CLOSED this burst.
+- STORY-INDEX v4.308→v4.309 annotation-only sync — CLOSED this burst.
+
+**Remains OPEN (not this burst's scope):**
+- ADV-BB-P10-MED-001, LOW-001, LOW-002, LOW-003 (pass-10 carry-overs) — anchor: pass-19.
+- `feature/S-21.09` NOT PUSHED — anchor: explicit human authorization.
+- C-1/C-2/C-4/C-5 blocking security issues (D-972) — UNCHANGED, out of this burst's scope.
+- True 3-CLEAN convergence — requires pass-19 also CLEAN.
+
+### Agents
+
+- state-manager (D-981): `adv-s21.09-local-pass-18.md` created; `INDEX.md` S-21.09 LOCAL Adversary Reviews section extended (pass-18 row, Verdict CLEAN, Streak 2/3 + Convergence Status update); decision-log D-981 block appended; burst-log D-981 8-block entry appended; no new lessons.md entry (corroborating evidence for the existing D-980 lesson, not a new pattern); STORY-INDEX v4.308→v4.309 (S-21.09 annotation-only sync: streak 2/3, pass-18 CLEAN, pass-19 NEXT); STATE.md v7.28→v7.29.
+- vsdd-factory:adversary (prior to this burst, same session): fresh-context pass-18 review — independently re-derived count-parity, live-gate ground truth, mutation/isolation completeness, traceability, the documented VP gap, and production surface; found **zero findings at any severity**. CLEAN verdict.
+
+### 4-INDEX
+
+BC-INDEX v4.56 (UNCHANGED) / VP-INDEX v2.76 (UNCHANGED) / STORY-INDEX v4.309 / ARCH-INDEX v3.55 (UNCHANGED)
+
+### Phase
+
+D-981-S-21.09-LOCAL-PASS-18-CLEAN-RECORD-BURST
+
+### Date
+
+2026-08-13
+
+---
