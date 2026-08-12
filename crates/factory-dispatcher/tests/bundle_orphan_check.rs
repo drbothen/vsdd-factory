@@ -38,7 +38,7 @@
 //! | T-028 | AC-006 S-21.09 | GREEN | F-3a narrowing proof (non-recursive, SAFE): subdirectory `config/hooks-registry.toml` invisible to `fs::read_dir`; safe because production only loads top-level registries |
 //! | T-029 | AC-006 S-21.09 | GREEN | F-3b narrowing proof (case-sensitive): `metrics-registry.TOML` (uppercase) invisible to `.ends_with(".toml")`; safe because production loads lowercase-named registries |
 //! | T-030 | AC-006 S-21.09 | GREEN | F-9 wiring control: `run_t012_gate` integrates both `check_registry_inventory` (phase A) and `check_declared_subset_tracked` (phase B via git fixture); removing either call breaks a phase |
-//! | T-031 | AC-006 S-21.09 | GREEN | MEDIUM-4(a) case-variant control: `plugin = "Hook-Plugins/foo.wasm"` is parsed as declared (case-insensitive `hook-plugins` component match) |
+//! | T-031 | AC-006 S-21.09 | GREEN | MEDIUM-4(a) case-variant admission control: `plugin = "Hook-Plugins/foo.wasm"` enters declared as `"Hook-Plugins/foo.wasm"` (verbatim; gate-3 eq_ignore_ascii_case admits; no lowercasing, per pass-9.1) |
 //! | T-032 | AC-006 S-21.09 | GREEN | MEDIUM-1 nested-subdir control: `plugin = "hook-plugins/sub/nested.wasm"` yields `nested.wasm` (last component); proves non-flat declarations are not silently mis-named |
 //! | T-033 | AC-006 S-21.09 | GREEN | MEDIUM-3 minimum-length lower boundary: `plugin = "hook-plugins"` (directory path, no filename) is excluded; pins `expected_depth + 2` constant |
 //! | T-034 | AC-006 S-21.09 | GREEN | MEDIUM-4 `-r` flag control: `git ls-tree -r` finds a WASM committed under `hook-plugins/sub/`; dropping `-r` misses nested files |
@@ -49,6 +49,7 @@
 //! | T-039 | AC-006 S-21.09 | GREEN | HIGH-1 pass-9 probe control: 30 hooks declared at `hook-plugins/sub/hNN.wasm`, committed flat at `hook-plugins/hNN.wasm`; `MISSING: hook-plugins/sub/h00.wasm` (false-negative closed by full-path tracking) |
 //! | T-040 | AC-006 S-21.09 | GREEN | MEDIUM-1 pass-9 resolvers arm: ungated declaration in `resolvers-registry.toml` fires `UNGATED-DECLARATION: other-dir/evil-resolver.wasm` |
 //! | T-041 | AC-006 S-21.09 | GREEN | MEDIUM-3 pass-9 git failure path: valid-inventory non-git dir; `run_t012_gate` panics with `git ls-files exited with status` |
+//! | T-042 | AC-006 S-21.09 | GREEN | pass-9.1 case-variant MISSING outcome: `Hook-Plugins/ghost-missing.wasm` declared verbatim, lowercase `hook-plugins/ghost-missing.wasm` tracked; `check_declared_subset_tracked` returns `MISSING: Hook-Plugins/ghost-missing.wasm` (pins end-to-end Linux-CI behavior) |
 //!
 //! † T-009 is a STANDING GREEN GATE — passes immediately on any clean checkout where no
 //! orphan WASMs are tracked in git, and remains green on contaminated worktrees because
@@ -115,7 +116,7 @@
 //! Embedded at compile time via `include_str!()` — the .toml files are the single source
 //! of truth; edits must be made there, not to the constants.
 //!
-//! Stories: S-19.04 (T-006..T-011), S-21.09 (T-012..T-041)
+//! Stories: S-19.04 (T-006..T-011), S-21.09 (T-012..T-042)
 //! VP Trace: — (AC-006 wires EAC-005 as load-bearing leg; no BC mapping)
 
 use std::collections::HashSet;
@@ -210,7 +211,7 @@ fn lex_norm(path: &Path) -> Vec<String> {
 /// | Standard | `registry_parent/hook-plugins/foo.wasm` | `hook-plugins/foo.wasm` |
 /// | Leading `./` | `registry_parent/hook-plugins/foo.wasm` | `hook-plugins/foo.wasm` |
 /// | Traversal (into hook-plugins) | `registry_parent/hook-plugins/foo.wasm` | `hook-plugins/foo.wasm` |
-/// | Case variant | `registry_parent/Hook-Plugins/foo.wasm` | `hook-plugins/foo.wasm` (lowercased) |
+/// | Case variant | `registry_parent/Hook-Plugins/foo.wasm` | `Hook-Plugins/foo.wasm` (verbatim; MISSING on lowercase git tree) |
 /// | Nested subdir | `registry_parent/hook-plugins/sub/nested.wasm` | `hook-plugins/sub/nested.wasm` |
 /// | Absolute path | `/abs/hook-plugins/foo.wasm` (stays absolute, ≠ registry_parent) | `None` |
 /// | Traversal (cancels hook-plugins) | `registry_parent/ghost.wasm` | `None` |
@@ -223,19 +224,26 @@ fn lex_norm(path: &Path) -> Vec<String> {
 /// outside the repository — a false-positive MISSING outcome.  Excluding them is
 /// consistent with the gate's scope (artifacts under `plugins/vsdd-factory/hook-plugins/`).
 ///
-/// **Case-insensitive `hook-plugins` match:** on macOS's case-insensitive default
-/// filesystem, `Hook-Plugins/x.wasm` and `hook-plugins/x.wasm` are the same directory.
-/// Using `eq_ignore_ascii_case` prevents a case-variant declaration from silently
-/// escaping the declared-set gate (MEDIUM-4(a)).
+/// **Case-insensitive `hook-plugins` match (gate 3):** `eq_ignore_ascii_case` accepts
+/// `Hook-Plugins/x.wasm` past gate 3, admitting it into `declared` as `"Hook-Plugins/x.wasm"`
+/// (verbatim — NOT lowercased).  This is necessary: a case-sensitive check (`c == "hook-plugins"`)
+/// would return `None`, leaving `declared` empty and `declared ⊆ tracked` trivially true — a
+/// silent false negative.  The admitted path is then compared case-sensitively against the
+/// git-tracked set.  On Linux CI (case-sensitive FS), `"Hook-Plugins/x.wasm"` ≠
+/// `"hook-plugins/x.wasm"` → `MISSING: Hook-Plugins/x.wasm` fires.  On macOS
+/// (case-insensitive FS) the same MISSING fires, conservatively flagging a declaration
+/// that does not match the tracked path — operators should use lowercase `hook-plugins/`.
+/// `git ls-files` preserves committed case verbatim on both platforms (confirmed by probe).
 ///
-/// **Registry-relative path returned:** `joined_parts[expected_depth..]` is joined and
-/// returned as the declared identifier (e.g., `"hook-plugins/foo.wasm"` or
-/// `"hook-plugins/sub/nested.wasm"`).  This preserves subdirectory structure so that
-/// a declaration at `hook-plugins/sub/h00.wasm` is distinct from a WASM committed flat
-/// at `hook-plugins/h00.wasm` — the basename-only approach was HIGH-1 (pass-9), a
-/// correctness bug where both paths reduced to `h00.wasm` producing a false negative.
-/// The `hook-plugins` component is lowercased to normalise case variants
-/// (e.g., `Hook-Plugins/foo.wasm` → `hook-plugins/foo.wasm`).
+/// **Registry-relative path returned verbatim:** `joined_parts[expected_depth..].join("/")`
+/// is returned as-is (e.g., `"hook-plugins/foo.wasm"`, `"hook-plugins/sub/nested.wasm"`,
+/// or `"Hook-Plugins/foo.wasm"` for a case-variant declaration).  This preserves
+/// subdirectory structure so that a declaration at `hook-plugins/sub/h00.wasm` is distinct
+/// from a WASM committed flat at `hook-plugins/h00.wasm` — the basename-only approach was
+/// HIGH-1 (pass-9), a correctness bug where both paths reduced to `h00.wasm` producing a
+/// false negative.  The `hook-plugins` component is **NOT** lowercased: lowercasing would
+/// cause `Hook-Plugins/foo.wasm` to map to `hook-plugins/foo.wasm`, masking a case
+/// mismatch on Linux CI where production genuinely cannot load the artifact.
 ///
 /// **Diffing against git output:** `git_tracked_wasm_names()` and
 /// `git_committed_wasm_names()` return raw git-root-relative paths (e.g.,
@@ -304,17 +312,17 @@ fn extract_hook_plugin_name(registry_path: &Path, plugin_path: &str) -> Option<S
         return None;
     }
 
-    // Return the registry-parent-relative path starting at the hook-plugins component.
+    // Return the registry-parent-relative path starting at the hook-plugins component,
+    // verbatim (no case normalisation).
     // For flat declarations (`hook-plugins/foo.wasm`) this is `"hook-plugins/foo.wasm"`.
     // For nested declarations (`hook-plugins/sub/nested.wasm`) this is
     // `"hook-plugins/sub/nested.wasm"` — preserving the subdirectory path so that a
     // declaration at `hook-plugins/sub/h00.wasm` is distinct from a committed flat
     // `hook-plugins/h00.wasm` (HIGH-1 correctness fix, pass-9).
-    // The hook-plugins component is lowercased to normalise case variants so that
-    // `Hook-Plugins/foo.wasm` and `hook-plugins/foo.wasm` map to the same identifier.
-    let mut result_parts = joined_parts[expected_depth..].to_vec();
-    result_parts[0] = result_parts[0].to_ascii_lowercase();
-    Some(result_parts.join("/"))
+    // Case-variant declarations (e.g., `Hook-Plugins/foo.wasm`) are returned verbatim;
+    // they will fire `MISSING:` against a lowercase git tree on both macOS and Linux
+    // (pass-9.1 correctness fix: lowercasing masked Linux-CI false negatives).
+    Some(joined_parts[expected_depth..].join("/"))
 }
 
 /// Return raw `plugin = "..."` path strings from `registry_path` whose resolved paths
@@ -2818,19 +2826,32 @@ fn test_S_21_09_ac006_T030_wiring_control_both_check_calls_are_active() {
 }
 
 // ---------------------------------------------------------------------------
-// T-031 — MEDIUM-4(a) case-variant control: `Hook-Plugins/x.wasm` is parsed as declared
+// T-031 — MEDIUM-4(a) case-variant admission control: `Hook-Plugins/x.wasm` enters declared
 //
 // On macOS's case-insensitive default filesystem, `Hook-Plugins/x.wasm` and
 // `hook-plugins/x.wasm` refer to the same directory.  The pass-4 implementation used
 // `c == "hook-plugins"` — a case-sensitive string comparison — so `Hook-Plugins/x.wasm`
-// would fail the check and escape the declared-set gate entirely.
+// would return None from extract_hook_plugin_name() and not enter `declared` at all,
+// leaving `declared ⊆ tracked` trivially true — a silent false negative.
 //
 // Pass-5 fix: `extract_hook_plugin_name()` uses `eq_ignore_ascii_case("hook-plugins")`
-// when checking the component after registry_parent.  This handles case variants while
-// remaining deterministic on case-sensitive Linux CI.
+// in gate 3, admitting the case variant INTO `declared` as `"Hook-Plugins/ghost-case.wasm"`
+// (verbatim — NOT lowercased, per pass-9.1 correctness fix).
 //
-// Mutation-proof: reverting to `c == "hook-plugins"` (case-sensitive) causes
-// `Hook-Plugins/x.wasm` to return None; `refs.contains("ghost-case.wasm")` FAILS.
+// Pass-9.1 fix (this commit): the hook-plugins component is no longer lowercased on return.
+// The declared identifier is `"Hook-Plugins/ghost-case.wasm"`.  When compared
+// case-sensitively against a lowercase git-tracked set, this fires `MISSING:` — which is
+// correct on both platforms: on Linux CI (case-sensitive FS) production genuinely cannot
+// load `Hook-Plugins/…`; on macOS the gate conservatively rejects the mismatch, requiring
+// operators to use lowercase `hook-plugins/` in declarations.
+//
+// Mutation-proof: reverting gate 3 to `c == "hook-plugins"` (case-sensitive) causes
+// `Hook-Plugins/x.wasm` to return None; `refs.contains("Hook-Plugins/ghost-case.wasm")`
+// FAILS (empty refs).  The old lowercasing mutation would return the lowercase form;
+// `refs.contains("Hook-Plugins/ghost-case.wasm")` FAILS (wrong case in returned path).
+//
+// T-042 is the complementary MISSING-outcome control (end-to-end via
+// check_declared_subset_tracked).
 //
 // Story: S-21.09
 // ---------------------------------------------------------------------------
@@ -2856,14 +2877,14 @@ fn test_S_21_09_ac006_T031_case_variant_hook_plugins_included() {
     let refs = parse_plugin_refs(&registry);
 
     assert!(
-        refs.contains("hook-plugins/ghost-case.wasm"),
-        "T-031 MEDIUM-4(a): parse_plugin_refs must include 'hook-plugins/ghost-case.wasm' \
-         from a registry using the case-variant form (plugin = \"Hook-Plugins/ghost-case.wasm\") \
-         — extract_hook_plugin_name() uses eq_ignore_ascii_case for the hook-plugins \
-         component and lowercases it in the returned path; \
-         on macOS case-insensitive FS this is the same directory; \
-         mutation-proof: c == \"hook-plugins\" (case-sensitive) would return None here; \
-         got refs: {:?}",
+        refs.contains("Hook-Plugins/ghost-case.wasm"),
+        "T-031 MEDIUM-4(a): parse_plugin_refs must include 'Hook-Plugins/ghost-case.wasm' \
+         (verbatim) from a registry using the case-variant form \
+         (plugin = \"Hook-Plugins/ghost-case.wasm\") — extract_hook_plugin_name() uses \
+         eq_ignore_ascii_case for gate-3 to admit the variant, then returns verbatim; \
+         mutation-proof: c == \"hook-plugins\" (case-sensitive gate-3) returns None, \
+         leaving refs empty; lowercasing mutation returns lowercase form, failing this \
+         assertion; got refs: {:?}",
         refs
     );
 }
@@ -3961,4 +3982,78 @@ fn test_S_21_09_ac006_T041_run_t012_gate_panics_on_non_git_dir() {
     // No git init: inventory passes, ungated check passes, then git_tracked_wasm_names()
     // panics on "git ls-files exited with status".
     let _ = run_t012_gate(root);
+}
+
+// ---------------------------------------------------------------------------
+// T-042 — pass-9.1 case-variant MISSING outcome: end-to-end pin
+//
+// T-031 proves that `Hook-Plugins/ghost-case.wasm` ENTERS `declared` verbatim.
+// T-042 proves what happens downstream: when `check_declared_subset_tracked` compares
+// the verbatim declared identifier `"Hook-Plugins/ghost-missing.wasm"` against a
+// lowercase git-tracked set containing `"hook-plugins/ghost-missing.wasm"`, the
+// case-sensitive comparison fails and `MISSING: Hook-Plugins/ghost-missing.wasm` fires.
+//
+// This pins the full chain: gate-3 eq_ignore_ascii_case admittance (T-031) → verbatim
+// identifier in declared → case-sensitive mismatch against tracked → MISSING output.
+// The outcome is correct on both platforms:
+//   - Linux CI (case-sensitive FS): production cannot load `Hook-Plugins/…`;
+//     MISSING is accurate.
+//   - macOS (case-insensitive FS): production could load it, but the gate conservatively
+//     rejects the case mismatch, requiring lowercase `hook-plugins/` in declarations.
+//
+// Mutation-proof: if extract_hook_plugin_name() re-introduces `to_ascii_lowercase()`
+// on result_parts[0], the declared identifier becomes `"hook-plugins/ghost-missing.wasm"`,
+// which IS in the tracked set → check_declared_subset_tracked returns Ok → this test
+// fails because result.is_err() is false.
+//
+// Story: S-21.09
+// ---------------------------------------------------------------------------
+#[test]
+fn test_S_21_09_ac006_T042_case_variant_declared_fires_missing_against_lowercase_tracked() {
+    // Declared: 29 fillers (lowercase) + 1 case-variant hook + 1 resolver (30 hooks total).
+    // Values use registry-parent-relative path format to match parse_plugin_refs() output.
+    let mut hooks_declared: HashSet<String> = (0..29)
+        .map(|i| format!("hook-plugins/filler-{:02}.wasm", i))
+        .collect();
+    hooks_declared.insert("Hook-Plugins/ghost-missing.wasm".to_string()); // 30 total; case variant
+
+    let resolvers_declared: HashSet<String> = ["hook-plugins/resolver.wasm".to_string()]
+        .into_iter()
+        .collect();
+
+    // Tracked: all 29 fillers + resolver + LOWERCASE ghost-missing (not the variant).
+    // Simulates a git tree where the artifact is committed as "hook-plugins/ghost-missing.wasm"
+    // while the registry declares "Hook-Plugins/ghost-missing.wasm" — case mismatch.
+    let tracked: HashSet<String> = (0..29)
+        .map(|i| format!("hook-plugins/filler-{:02}.wasm", i))
+        .chain([
+            "hook-plugins/resolver.wasm".to_string(),
+            "hook-plugins/ghost-missing.wasm".to_string(), // lowercase — does NOT match variant
+        ])
+        .collect();
+    let committed = tracked.clone();
+
+    let result =
+        check_declared_subset_tracked(&hooks_declared, &resolvers_declared, &tracked, &committed);
+
+    // (a) Must return Err: the verbatim declared identifier is not in the tracked set.
+    assert!(
+        result.is_err(),
+        "T-042 pass-9.1: check_declared_subset_tracked must return Err when a case-variant \
+         declared path ('Hook-Plugins/ghost-missing.wasm') is compared case-sensitively \
+         against a lowercase tracked set; got Ok"
+    );
+
+    let msg = result.unwrap_err();
+
+    // (b) MISSING must cite the verbatim declared path, not the lowercase form.
+    assert!(
+        msg.contains("MISSING: Hook-Plugins/ghost-missing.wasm"),
+        "T-042 pass-9.1: error message must contain \
+         'MISSING: Hook-Plugins/ghost-missing.wasm' (verbatim declared form); \
+         mutation-proof: if to_ascii_lowercase() is re-introduced, declared becomes \
+         'hook-plugins/ghost-missing.wasm' which IS in tracked → Ok → this assertion \
+         is never reached; got: {}",
+        msg
+    );
 }
