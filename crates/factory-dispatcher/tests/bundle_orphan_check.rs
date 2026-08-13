@@ -2815,16 +2815,17 @@ fn test_S_21_09_ac006_T026_absolute_form_excluded_from_declared() {
         .filter(|c| matches!(c, std::path::Component::Normal(_)))
         .count();
 
-    let mut abs_depth = PathBuf::from("/");
+    // Built with EXPLICIT forward slashes (not PathBuf::push, which uses the
+    // OS-native separator). Registry `plugin = "..."` values are always
+    // forward-slash, registry-relative TOML string literals regardless of
+    // host OS; on Windows, PathBuf::push renders `\`, which is an invalid
+    // TOML escape sequence and panics `Registry::parse_str` (see toml crate
+    // string-escape rules) when interpolated into a TOML fixture.
+    let mut abs_depth_str = String::from("/");
     for i in 0..expected_depth {
-        abs_depth.push(format!("seg{}", i));
+        abs_depth_str.push_str(&format!("seg{}/", i));
     }
-    abs_depth.push("hook-plugins");
-    abs_depth.push("evil.wasm");
-
-    let abs_depth_str = abs_depth
-        .to_str()
-        .expect("depth-matched absolute path must be valid UTF-8");
+    abs_depth_str.push_str("hook-plugins/evil.wasm");
 
     let registry_depth = tmp.path().join("registry-depth.toml");
     let depth_content = format!(
