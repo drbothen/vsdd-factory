@@ -17763,3 +17763,49 @@ D-1002-STORY-INDEX-FRONTMATTER-VERSION-PARITY-CORRECTION
 2026-08-14
 
 ---
+
+## D-1003 — D-1003-S2107-PASS18-RECORD-AND-FIX-BURST
+
+**POLICY 16 ALLOCATOR-CEILING GATE** (pre-allocation, literal shell, D-449(a)):
+
+```
+$ max_d=$({ grep -hE '^#{2,} D-[0-9]+' cycles/v1.0-brownfield-backfill/decision-log.md cycles/v1.0-feature-engine-discipline-pass-1/decision-log.md 2>/dev/null; grep -hE '^[|] *D-[0-9]+' cycles/v1.0-brownfield-backfill/decision-log.md cycles/v1.0-feature-engine-discipline-pass-1/decision-log.md 2>/dev/null; } | grep -oE 'D-[0-9]+' | sed 's/D-//' | sort -n | tail -1); [ "$max_d" -lt 9000 ] && printf 'PASS: global max D-%s < D-9000 ceiling\n' "$max_d" || printf 'FAIL: breach: max=D-%s\n' "$max_d"
+PASS: global max D-1002 < D-9000 ceiling
+```
+
+D-1003 allocated (D-999 remains permanently skipped per D-1000 preamble; sequence continues D-1000, D-1001, D-1002, D-1003). **Parent-commit:** `445f33b8` — `state(sha-patch): D-1002 commit ebe100d0 factory-artifacts SHA -- Active Branches + checkpoint + decisions-log updated` (factory-artifacts HEAD at burst start).
+
+**(a) Scope.** Fresh-context adversary pass-18 dispatched against `feature/S-21.07-validate-cross-site-correspondence` at `96b4be19` (unchanged; story unbuilt) and `factory-artifacts` at `445f33b8` (the D-1002 SHA-patch HEAD, carrying STORY-INDEX v4.322 as landed). Verdict: **NOT-CLEAN, 1 MEDIUM finding + 2 observations (re-observed unchanged).** Persisted verbatim as `cycles/v1.0-brownfield-backfill/S-21.07/adversary-pass-18.md`.
+
+**(b) F-S2107-P18-001 — MEDIUM — CLOSED THIS BURST.** POLICY 5 category-(i) same-file count-parity sibling-sweep + POLICY 4 semantic-anchoring. Location: `BC-5.39.010.md` §VP Anchors. Defect: §VP Anchors stated "VP-102 through VP-118 (17 VPs) are planned for this story per D-945" while the BC's own §Verification Properties table enumerates 19 rows (Class A: 8; Class B: 4; Class D: 3 DEFERRED; Class E: 4). The count grew 17→19 at BC v1.12, when two advisory-path property rows ("A Arm1 Primary-Newer-than-Index Advisory (PC2a)" and "B Arm1 STORY-INDEX-Consistent Advisory (PC13a)") were added per F-P6-001 Option 1, but §VP Anchors was never swept to match — a TD-VSDD-060 sibling-site gap surviving 6 BC versions (v1.12→v1.18) undetected across 17 prior adversary passes. Cross-checked against S-21.07's own Token Budget row, which already correctly cited "19 VPs" — 19 is the canonical count; §VP Anchors was the sole stale site in either document. In-perimeter: BC-5.39.010 is the governing BC for this story's cascade; the stale reserved-range statement creates a 2-ID shortfall risk at post-merge VP-INDEX allocation time (an allocator reading "17 VPs ... per D-945" as authoritative would under-reserve IDs for the two v1.12 advisory rows).
+
+**(c) Fix.** Product-owner: `BC-5.39.010.md` v1.18→v1.19 — §VP Anchors corrected "VP-102 through VP-118 (17 VPs)" → "VP-102 through VP-120 (19 VPs)"; all 19 enumerated rows, including the two v1.12 advisory-path additions, are first-class verification properties eligible for the same state-manager post-merge VP-INDEX allocation as the original 17. No normative/behavioral change — count-parity reconciliation only. Story-writer: `S-21.07-validate-cross-site-correspondence.md` v1.11→v1.12 — story-wide grep sweep (`grep -niE "BC-5\.39\.010 v1\.18"`) performed for every live cite pattern; all 16 live sites advanced v1.18→v1.19 (title/H1, narrative, BC Status governing-BC statement, AC-001/009/020(×3)/022/023/024 anchors, BC table version cell, Token Budget row, Task 1/Task 10); input-hash `7bc1850`→`93c4a89` (BC-5.39.010.md v1.18→v1.19 propagation).
+
+**(d) §0 pre-bundle verification (two flagged caveats, both resolved with no correction needed).** (i) Input-hash: story-writer manually set frontmatter `input-hash: "93c4a89"` from the hook's reported computed value. Independently re-derived via `plugins/vsdd-factory/bin/compute-input-hash .factory/stories/S-21.07-validate-cross-site-correspondence.md --check` (exit 0, MATCH) and bare invocation (stdout `93c4a89`) — `93c4a89` is the TRUE computed token; used verbatim for all three-way sync sites. (ii) Changelog monotonicity: story frontmatter `version: "1.12"` (L6) and the top Changelog row `| 1.12 | 2026-08-13 | F-S2107-P18-001 close ...` (L1084) independently confirmed consistent — no drift, no correction applied.
+
+**(e) 4-index sync (state-manager, this burst).** `BC-INDEX.md` v4.58→v4.59 — BC-5.39.010 body-table row version-chain cell `| ... v1.17 \| v1.18 |` → `| ... v1.17 \| v1.18 \| v1.19 |` (H1/title/status/epic-column UNCHANGED — E-12 cohort convention stands per O-P17-02). `STORY-INDEX.md` v4.322→v4.323 — S-21.07 catalog row (title clause + bracket annotation `[BC-5.39.010 v1.18]`→`v1.19`, `input-hash 7bc1850`→`93c4a89`, `story v1.11`→`v1.12`); E-21 delivery-aggregation blockquote (`S-21.07=7bc1850 (D-995 propagation)`→`S-21.07=93c4a89 (D-1003 propagation)`); BC-coverage blockquote (`BC-5.39.010 v1.18 (S-21.07; ...)`→`v1.19`). CLASS-COMPLETE literal-shell sweep (`grep -o "BC-5.39.010 v1.18" stories/STORY-INDEX.md | wc -l`) confirms **zero residual live cites** post-fix (all 3 pre-burst occurrences swept). POLICY 18 three-way input-hash parity HOLDS at `93c4a89` (story frontmatter = STORY-INDEX catalog row = delivery blockquote). `VP-INDEX.md` and `ARCH-INDEX.md` UNCHANGED — no VP allocation occurred this burst (§VP Anchors remains a forward reservation at 19; the count value itself did not change, only the stale reserved-range prose describing it).
+
+**(f) Streak.** **BC-5.39.001 LOCAL streak for the S-21.07 cascade RESETS 1/3 → 0/3** — the in-perimeter MEDIUM finding breaks pass-17's fresh CLEAN. 3 fresh consecutive CLEAN passes required from pass-19 onward to converge. Trajectory: `47→18→25→25→24→20→16→8→10→1→1→2→0→1→1→0→1` (tail `→1→1→0→1`, D-433(e)+D-439(c) LENGTH=4). 17 true adversary reviews; 2 CLEAN verdicts (pass-14, pass-17).
+
+**(g) No gate-predicate or ratification-status change.** No `GateOutcome` semantics, POLICY 15 predicate, or ADR `status`/`ratified` field touched. `feature/S-21.07` SHA `96b4be19` UNCHANGED (no code-repo commit this burst — fix is spec-only: BC + story files + factory-artifacts indexes). `policies.yaml` v1.4.24 UNCHANGED (no codification — this closes a pre-existing TD-VSDD-060 class at a specific site, not a new process-gap lesson).
+
+### Agents
+
+- vsdd-factory:adversary (fresh-context, this session): pass-18 review dispatched and relayed — NOT-CLEAN, 1 MEDIUM finding + 2 observations
+- vsdd-factory:product-owner: BC-5.39.010.md v1.18→v1.19 (§VP Anchors count-parity reconciliation)
+- vsdd-factory:story-writer: S-21.07 story v1.11→v1.12 (16-site BC-version-cite propagation, input-hash update)
+- state-manager (D-1003): `adversary-pass-18.md` persisted verbatim; INDEX.md pass-18 row + Convergence Status extended; BC-INDEX v4.59 + STORY-INDEX v4.323 three-way index sync with zero residual sweep; STATE.md full advance; single atomic commit to `factory-artifacts` per TD-VSDD-053; POLICY 16 gate run with literal shell captured stdout
+
+### 4-INDEX
+
+BC-INDEX **v4.59** / VP-INDEX v2.76 (UNCHANGED) / STORY-INDEX **v4.323** / ARCH-INDEX v3.58 (UNCHANGED)
+
+### Phase
+
+D-1003-S2107-PASS18-RECORD-AND-FIX-BURST
+
+### Date
+
+2026-08-14
+
+---

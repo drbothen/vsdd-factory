@@ -28535,3 +28535,106 @@ D-444(c) burst-log h2 heading `## D-1002-STORY-INDEX-FRONTMATTER-VERSION-PARITY-
 - **Parent SHA (Block 8 cites parent per D-419(b)/D-444(c) convention):** `c3ef4b53` — `state(sha-patch): D-1001 commit c7fa6d93 factory-artifacts SHA -- Active Branches + checkpoint + decisions-log updated`
 
 **Closes:** Drift Item `[D-1001]` — STORY-INDEX.md frontmatter version/body-content parity gap. **STREAK EXPLICITLY UNCHANGED 1/3** — NOT a streak event; this is a version-parity CORRECTION completing D-1000's omitted self-bump, not an adversary-pass finding, and not in S-21.07's deliverable. **D-1002 MICRO-FIX BURST COMPLETE; SHA-PATCH FOLLOW-UP NEXT; PASS-18 ADVERSARY DISPATCH REMAINS THE PENDING GATE.**
+
+## D-1003-S2107-PASS18-RECORD-AND-FIX-BURST
+
+**Block 1: Parent-commit**
+
+POLICY 16 allocator-ceiling gate (literal shell, D-449(a)):
+
+```
+$ max_d=$({ grep -hE '^#{2,} D-[0-9]+' cycles/v1.0-brownfield-backfill/decision-log.md cycles/v1.0-feature-engine-discipline-pass-1/decision-log.md 2>/dev/null; grep -hE '^[|] *D-[0-9]+' cycles/v1.0-brownfield-backfill/decision-log.md cycles/v1.0-feature-engine-discipline-pass-1/decision-log.md 2>/dev/null; } | grep -oE 'D-[0-9]+' | sed 's/D-//' | sort -n | tail -1); [ "$max_d" -lt 9000 ] && printf 'PASS: global max D-%s < D-9000 ceiling\n' "$max_d" || printf 'FAIL: breach: max=D-%s\n' "$max_d"
+PASS: global max D-1002 < D-9000 ceiling
+```
+
+D-1003 allocated (D-999 remains permanently skipped). **Parent-commit:** `445f33b8` — `state(sha-patch): D-1002 commit ebe100d0 factory-artifacts SHA -- Active Branches + checkpoint + decisions-log updated` (factory-artifacts HEAD at burst start).
+
+**Block 2: Adversary verdict**
+
+Fresh-context `vsdd-factory:adversary` pass-18 dispatched against `feature/S-21.07-validate-cross-site-correspondence` at `96b4be19` (unchanged; story unbuilt) and `factory-artifacts` at `445f33b8` (D-1002 SHA-patch HEAD). **Verdict: NOT-CLEAN — 1 MEDIUM finding (F-S2107-P18-001) + 2 observations (O-P17-01, O-P17-02, re-observed unchanged).** F-S2107-P18-001 CLOSED THIS BURST. **Streak RESETS 1/3 → 0/3** — pass-17's fresh CLEAN is broken by this pass's in-perimeter MEDIUM. Persisted verbatim as `cycles/v1.0-brownfield-backfill/S-21.07/adversary-pass-18.md`. The finding: BC-5.39.010 §VP Anchors stated "VP-102 through VP-118 (17 VPs)" while the BC's own §Verification Properties table enumerates 19 rows — the count grew 17→19 at BC v1.12 when two advisory-path property rows (PC2a, PC13a) were added per F-P6-001 Option 1, but §VP Anchors was never swept to match (TD-VSDD-060 sibling-site gap surviving 6 BC versions, v1.12→v1.18, undetected across 17 prior adversary passes). Story Token Budget already correctly cited "19 VPs" — 19 is canonical; §VP Anchors was the sole stale site in either document. Pass-19 (fresh-context, reading only `adversary-pass-18.md` Part A per the Iron Law) is the pending gate, dispatched next; 3 fresh consecutive CLEAN passes required from pass-19 to converge.
+
+**Block 3: Files touched**
+
+- `.factory/specs/behavioral-contracts/ss-05/BC-5.39.010.md` — v1.18→v1.19 (product-owner; §VP Anchors "VP-102 through VP-118 (17 VPs)" → "VP-102 through VP-120 (19 VPs)"; count-parity reconciliation only, no normative/behavioral change)
+- `.factory/stories/S-21.07-validate-cross-site-correspondence.md` — v1.11→v1.12 (story-writer; 16 live BC-version cites propagated v1.18→v1.19: title/H1, narrative, BC Status governing-BC statement, AC-001/009/020(×3)/022/023/024 anchors, BC table version cell, Token Budget, Task 1/Task 10; input-hash 7bc1850→93c4a89)
+- `.factory/cycles/v1.0-brownfield-backfill/S-21.07/adversary-pass-18.md` — new (pass-18 record, persisted verbatim)
+- `.factory/cycles/v1.0-brownfield-backfill/INDEX.md` — pass-18 row added; Convergence Status extended (D-1003 summary)
+- `.factory/specs/behavioral-contracts/BC-INDEX.md` — v4.58→v4.59 (BC-5.39.010 body-table row version-chain cell `| v1.18 |` → `| v1.18 | v1.19 |`)
+- `.factory/stories/STORY-INDEX.md` — v4.322→v4.323 (S-21.07 catalog row title/bracket-annotation/input-hash/story-version cells; delivery-aggregation blockquote input-hash cell; BC-coverage blockquote BC-version cell — all three live "BC-5.39.010 v1.18" sites swept to v1.19, zero residuals confirmed)
+- `.factory/cycles/v1.0-brownfield-backfill/decision-log.md` — D-1003 appended
+- `.factory/cycles/v1.0-brownfield-backfill/burst-log.md` — this entry
+- `.factory/STATE.md` — full advance (frontmatter, Phase Progress, Current Phase Steps, Active Branches, Decisions Log, Convergence Status streak reset, Session Resume Checkpoint)
+
+No VP-INDEX or ARCH-INDEX file touched this burst (VP-INDEX confirmed: no VP allocation change — §VP Anchors is a forward reservation, not yet allocated; the 19-count itself did not change, only the stale reserved-range prose).
+
+**Block 4: Codifications**
+
+None new. This closes a pre-existing TD-VSDD-060 sibling-sweep-gap class (already codified) at a specific site (§VP Anchors) that survived 6 prior BC versions undetected; no new lesson or `policies.yaml` text change warranted — the defect class itself (count-bearing prose vs. counted table divergence) is already covered by POLICY 5 category-(i) and TD-VSDD-060. Applies pre-existing disciplines: TD-VSDD-053 single-commit-per-burst; POLICY 5 category-(i) sibling-sweep; POLICY 4 semantic-anchoring; TD-VSDD-060 sibling-sweep on value changes; POLICY 8 BC-version-cite propagation; POLICY 18 three-way input-hash parity; BC-5.39.001 3-CLEAN convergence protocol (streak-reset mechanics on an in-perimeter finding); D-433(e)+D-439(c) trajectory-tail LENGTH=4; POLICY 16 ALLOCATOR-CEILING GATE.
+
+**Block 5 (Dim-2): Literal-shell attestation evidence**
+
+POLICY 16 gate captured above (Block 1).
+
+Input-hash verification gate (literal shell — §0 caveat 1 resolution: confirms story-writer's manually-set `93c4a89` is the TRUE computed token):
+
+```
+$ plugins/vsdd-factory/bin/compute-input-hash .factory/stories/S-21.07-validate-cross-site-correspondence.md --check
+(exit 0 — MATCH)
+$ plugins/vsdd-factory/bin/compute-input-hash .factory/stories/S-21.07-validate-cross-site-correspondence.md
+93c4a89
+```
+
+Changelog-monotonicity verification gate (literal shell — §0 caveat 2 resolution: confirms frontmatter `version:` and top Changelog row agree):
+
+```
+$ grep -n '^version:' stories/S-21.07-validate-cross-site-correspondence.md
+6:version: "1.12"
+$ grep -n '^| 1\.12 |' stories/S-21.07-validate-cross-site-correspondence.md
+1084:| 1.12 | 2026-08-13 | F-S2107-P18-001 close ...
+```
+
+Both caveats VERIFIED CONSISTENT — no correction needed; `93c4a89` and `version: "1.12"` used verbatim for all three-way sync sites.
+
+STORY-INDEX v1.18-residual sweep gate (literal shell, class-complete per D-449(a)):
+
+```
+$ grep -o "BC-5.39.010 v1.18" stories/STORY-INDEX.md | wc -l
+0
+$ grep -o "BC-5.39.010 v1.19" stories/STORY-INDEX.md | wc -l
+3
+```
+
+Zero residual "BC-5.39.010 v1.18" live cites confirmed — all 3 pre-burst occurrences (catalog row title clause, catalog row bracket annotation, BC-coverage blockquote) swept to v1.19.
+
+BC-INDEX version-chain gate (literal shell):
+
+```
+$ sed -n '1464p' specs/behavioral-contracts/BC-INDEX.md | grep -oE 'v1\.1[0-9]( \\\| v1\.1[0-9])*'
+v1.10 \| v1.11 \| v1.12 \| v1.13 \| v1.14 \| v1.15 \| v1.16 \| v1.17 \| v1.18 \| v1.19
+```
+
+**Block 6 (Dim-5): Closes**
+
+- F-S2107-P18-001 CLOSED (product-owner + story-writer + state-manager; BC-5.39.010 v1.19 §VP Anchors reconciliation; S-21.07 v1.12 16-site BC-version-cite propagation; BC-INDEX v4.59 + STORY-INDEX v4.323 three-way index sync; zero v1.18 residuals confirmed)
+- O-P17-01/O-P17-02 (non-findings, carried) — re-observed unchanged this pass, not reopened
+
+**Block 7 (Dim-6): Gate attestation**
+
+D-444(c) burst-log h2 heading `## D-1003-S2107-PASS18-RECORD-AND-FIX-BURST` present. D-446(a) own-burst-log 8-block gate: this section contains Blocks 1-8. D-448(a) source-attestation gate: the F-S2107-P18-001 disposition paragraph in decision-log.md D-1003 faithfully describes `adversary-pass-18.md` Part A's finding set (1 MEDIUM finding, verbatim location/defect text) — verified by direct comparison against the persisted pass-18 file at burst time; the O-P17-01/O-P17-02 dispositions likewise faithfully describe the persisted Observations section. D-449(a) literal-shell-execution SELF-APPLICATION: POLICY 16 gate + input-hash verification gate + changelog-monotonicity gate + STORY-INDEX residual-sweep gate + BC-INDEX version-chain gate all use actual shell with verbatim stdout captured (Block 5) — no pseudocode, no estimated counts.
+
+**Dim-7 Attestation:**
+
+- This burst IS a numbered LOCAL adversary pass (pass-18) — trajectory entry added; trajectory (17 true adversary passes, 2 CLEAN) `47→18→25→25→24→20→16→8→10→1→1→2→0→1→1→0→1` (tail `→1→1→0→1`, D-433(e)+D-439(c) LENGTH=4)
+- Streak: **0/3 — RESET** (in-perimeter MEDIUM breaks pass-17's fresh CLEAN; BC-5.39.001 requires 3 FRESH CONSECUTIVE CLEAN passes from pass-19 onward).
+- 4-INDEX: BC v4.58→**v4.59** / VP v2.76 (UNCHANGED) / STORY v4.322→**v4.323** / ARCH v3.58 (UNCHANGED)
+- policies.yaml v1.4.24 (UNCHANGED — no codification this burst)
+- `feature/S-21.07` SHA `96b4be19` UNCHANGED (no code-repo commit this burst; fix is spec-only: BC-5.39.010.md + story file + factory-artifacts indexes)
+- `pipeline: ACTIVE` UNCHANGED
+
+### Block 8: factory-artifacts commit
+
+**factory-artifacts commits (this burst — TD-VSDD-053 single-commit-per-burst):**
+- Target: single commit pushed as `git push origin HEAD:factory-artifacts`
+- **Parent SHA (Block 8 cites parent per D-419(b)/D-444(c) convention):** `445f33b8` — `state(sha-patch): D-1002 commit ebe100d0 factory-artifacts SHA -- Active Branches + checkpoint + decisions-log updated`
+
+**Closes:** F-S2107-P18-001 CLOSED (BC-5.39.010 v1.19; S-21.07 v1.12; BC-INDEX v4.59; STORY-INDEX v4.323; zero v1.18 residuals confirmed); O-P17-01/O-P17-02 dispositioned (not findings, re-observed unchanged). **STREAK EXPLICITLY RESETS 1/3 → 0/3.** **S-21.07 PASS-18 RECORD + FIX BURST COMPLETE; SHA-PATCH FOLLOW-UP NEXT; PASS-19 ADVERSARY DISPATCH AFTER THAT.**
