@@ -17330,3 +17330,59 @@ D-994-S2107-PASS11-RECORD-AND-FIX-BURST
 2026-08-13
 
 ---
+
+## D-995 — D-995-S2107-PASS12-RECORD-AND-FIX-BURST
+
+**POLICY 16 ALLOCATOR-CEILING GATE** (pre-allocation, literal shell, D-449(a)):
+
+```
+$ max_d=$({ grep -hE '^#{2,} D-[0-9]+' cycles/v1.0-brownfield-backfill/decision-log.md cycles/v1.0-feature-engine-discipline-pass-1/decision-log.md 2>/dev/null; grep -hE '^[|] *D-[0-9]+' cycles/v1.0-brownfield-backfill/decision-log.md cycles/v1.0-feature-engine-discipline-pass-1/decision-log.md 2>/dev/null; } | grep -oE 'D-[0-9]+' | sed 's/D-//' | sort -n | tail -1); [ "$max_d" -lt 9000 ] && printf 'PASS: global max D-%s < D-9000 ceiling\n' "$max_d" || printf 'FAIL: breach: max=D-%s\n' "$max_d"
+PASS: global max D-994 < D-9000 ceiling
+```
+
+D-995 allocated. **Parent-commit:** `1147b554` — `state(sha-patch): D-994 commit 19932766 factory-artifacts SHA -- Active Branches + checkpoint + decisions-log updated` (factory-artifacts HEAD at burst start; the D-994 SHA-patch follow-up commit, itself uncited within STATE.md by design — the SHA-patch commit cannot self-cite its own not-yet-known SHA).
+
+**(a) Scope.** Fresh-context adversary pass-12 dispatched against `feature/S-21.07-validate-cross-site-correspondence` at `96b4be19` (unchanged since D-992) and `factory-artifacts` at `1147b554` (the D-994 SHA-patch HEAD, carrying ADR-040 v1.16 / ARCH-INDEX v3.58). Verdict: **NOT-CLEAN, 1 MEDIUM finding + 3 observations.** LOCAL BC-5.39.001 streak for the S-21.07 cascade **remains 0/3** — a NOT-CLEAN verdict does not advance the streak; a fix burst is not a clean verdict either. Persisted verbatim as `cycles/v1.0-brownfield-backfill/S-21.07/adversary-pass-12.md` per POLICY 22 relay-fidelity (novelty score not disclosed in the relayed summary; recorded as absent, not fabricated).
+
+**(b) Pass-11 defect class and POLICY 15 deferral independently re-verified.** Pass-12 re-examined the pass-11 fix and the standing POLICY 15 deferral against fresh context and found both held: O-P12-01 (verification) — F-S2107-P11-001 confirmed RESOLVED (ADR-040 v1.16, three sibling sites superseded, zero live directives outside labeled-historical blocks) and O-P11-02 confirmed codified as `L-BB-adr-reconciliation-sweep-scope-on-ratification`. O-P12-02 (verification) — the POLICY 15 ATTESTATION-LOCATION GATE `[D-969]` deferral remains honestly anchored (no `policy-15`/attestation CI job wired in `.github/workflows/`, crate exists on `feature/policy15-gate-rust`, disclosed as an anchored deferral rather than a silent gap). Neither is a finding.
+
+**(c) F-S2107-P12-001 — MEDIUM — CLOSED THIS BURST.** POLICY 8 (bc-array/version propagation) + POLICY 4 (semantic-anchoring-integrity). Location: `S-21.07-validate-cross-site-correspondence.md` AC-019 §Build constraints, AC-020 Notes, plus title/frontmatter/body BC-version cites pinned at v1.14. Defect: the story (v1.9, last edited 2026-08-07) still cited governing BC-5.39.010 at v1.14 while the BC advanced four versions (v1.15..v1.18) amending normative §Gate-Spec prose the story had copied verbatim (the "datum-copy" pattern this cascade has used since v1.0) — not merely PC numbering. Three drifts: (1) the story asserted the `max_bytes` caps "are calibrated to keep reads within the 10M fuel budget" — BC v1.15 (F-S2107-P9-002) RETRACTED this verbatim as FALSE (the 1 MiB PC4 cap is ~76% above the ~594 KB point at which the former 10M cap actually exhausted; measured `fuel_consumed = 9,920,913` against the then-operative 10,000,000 cap, 99.21% consumed); the story repeated the exact retracted claim, unconditionally wrong, bordering HIGH on its own. (2) the story instructed "No `fuel_cap` field: MUST NOT include a `fuel_cap` registry field" citing BC v1.14 §Gate Spec + ADR-035 §Decision 5 — BC v1.16 LIFTED this prohibition (ADR-042 §Decision 2); the cited anchors no longer support the instruction, though the registry entry's own omission of `fuel_cap` remains operator-accurate today (ADR-039 Phase 1 unshipped). (3) the story asserted a flat 10M fuel budget per ADR-035 §Decision 5 — ADR-035 v1.1 §Decision 5 documents the 10M→20M raise (`DEFAULT_FUEL_CAP = 20,000,000` at `invoke.rs`); the story lacked the source-HEAD-vs-operator-effective nuance BC v1.18 was corrected (F-S2107-P10-004) to state. Mechanical confirmation: BC-INDEX v4.58 propagated the version-cite leg promptly, but the story was the sole un-propagated downstream site among the cascade's live artifacts. **Fix (story-writer, this burst):** story v1.9→v1.10 — all live BC-version cites advanced to v1.18 (title, H1, Priority, narrative, BC Status governing-BC statement, AC-001/009/018/022/023/024/020 body "Under BC..." anchors, AC-020 §Gate Spec traces, BC table version cell, Token Budget, Task 1/Task 10); PC2/PC13/PC5 substance unchanged since v1.14 so those AC-body cites are annotated "unchanged since v1.14" rather than silently re-pinned; all three §AC-020 Notes drifts corrected in place (retracted-false calibration claim replaced with the measured-exhaustion figure; lifted-prohibition rewritten as a SHOULD-once-ADR-039-Phase-1-ships with the registry's current omission reframed as a "not yet" state rather than a prohibition; flat-10M claim replaced with the explicit source-HEAD (20M, PR #774/`62fbcf1a`) vs. operator-effective (10M through rc.23) framing). No AC scope change; no Red-Gate-anchored AC test assertion changed — purely factual-claim and version-cite propagation. `input-hash: d366da1→7bc1850`.
+
+**(d) O-P12-03 [process-gap] — CODIFIED THIS BURST (lesson + decision-log; no policies.yaml text change).** Observation: no convention gates "a governing-BC bump that amends normative copied-prose → downstream story-propagation obligation." POLICY 8 already covers the bare version-CITE leg (and BC-INDEX v4.58 executed that leg correctly and promptly), but nothing flags when a story that COPIES normative BC prose (rather than merely citing a BC ID + version) falls behind the BC's own content — the version-cite bump alone does not repair stale copied prose. This is exactly the gap that let four BC versions (v1.15..v1.18) elapse against the story with zero drift signal until a fresh-context adversary pass caught it by manual re-reading. Per S-7.02 Cycle-Closing Checklist, this process-gap is codified now, not deferred: lesson `L-BB-story-propagation-obligation-on-governing-bc-normative-prose-amendment` appended to `cycles/v1.0-brownfield-backfill/lessons.md`, carrying the codified obligation verbatim — **when a governing BC's version bump amends normative prose that a downstream story has copied verbatim, the amending agent (product-owner) or the next state-manager burst that observes the gap MUST enqueue a downstream story-propagation task naming the specific story and copied-prose section affected; a story whose governing-BC version-cite lags the BC's current normative-prose version by ≥1 version, where the lagging section is copied prose rather than a bare cite, is a POLICY 8 drift requiring the same propagation treatment as a stale index version-cite.** Routing choice: lessons.md + decision-log codification was selected over a new/extended `policies.yaml` POLICY entry (a POLICY 8 extension) because the obligation is a companion discipline to an existing POLICY (8) scoped to a specific artifact-pair relationship (BC↔story copied-prose currency) rather than a wholly new cross-artifact gate; this mirrors the precedent set by the three prior `L-BB-*` process-gap lessons in this same cascade (`L-BB-state-manager-delegate-death-requires-decision-log-backfill-not-silent-gap`, `L-BB-orchestrator-to-state-manager-relay-verification-gap`, `L-BB-adr-reconciliation-sweep-scope-on-ratification`), none of which required a policies.yaml entry either. `policies.yaml` v1.4.24 is therefore **UNCHANGED** by this burst.
+
+**(e) STORY-INDEX.md.** S-21.07 catalog row: title-embedded BC-version + `[BC-5.39.010 v1.14]` annotation → `v1.18`; `input-hash d366da1` → `7bc1850`; `story v1.9` → `v1.10`. E-21 delivery-summary blockquote: `S-21.07=d366da1` → `S-21.07=7bc1850 (D-995 propagation)`. POLICY 18 three-way input-hash parity ACHIEVED (story frontmatter `7bc1850` = STORY-INDEX catalog `7bc1850` = STORY-INDEX blockquote `7bc1850`). STORY-INDEX v4.318→**v4.319**. Literal-shell confirmation:
+
+```
+$ cd /Users/zious/Documents/GITHUB/vsdd-factory/.factory && grep -n '^input-hash:' stories/S-21.07-validate-cross-site-correspondence.md
+23:input-hash: "7bc1850"
+$ grep -c "input-hash 7bc1850" stories/STORY-INDEX.md
+1
+$ grep -c "S-21.07=7bc1850" stories/STORY-INDEX.md
+1
+```
+
+**(f) INDEX.md.** S-21.07 LOCAL Adversary Reviews table: pass-12 row added (NOT-CLEAN, 1 MEDIUM, 0/3, `96b4be19`/`96b4be19`). Convergence Status narrative extended with the D-995 pass-12 record+fix summary. Trajectory `47→18→25→25→24→20→16→8→10→1→1` (tail `→10→1→1`, D-433(e)+D-439(c) LENGTH=4). 11 true adversary reviews; 0 CLEAN verdicts.
+
+**(g) 4-INDEX.** BC-INDEX v4.58 (UNCHANGED) / VP-INDEX v2.76 (UNCHANGED) / STORY-INDEX v4.318→**v4.319** / ARCH-INDEX v3.58 (UNCHANGED — no ADR or ARCH-INDEX touch this burst). policies.yaml v1.4.24 (UNCHANGED — see (d)).
+
+**(h) No gate-predicate or ratification-status change.** This burst closes a finding and one process-gap observation via story-spec factual-claim + version-cite propagation (already-authored by story-writer, bundled) and a STORY-INDEX registry-row sync — no `GateOutcome` semantics, POLICY 15 predicate, or ADR `status`/`ratified` frontmatter fields were touched. `feature/S-21.07` SHA `96b4be19` UNCHANGED (no code-repo commit this burst — the fix is factory-artifacts-only, story-spec content). **Streak for the S-21.07 cascade EXPLICITLY 0/3** — pass-12 was NOT-CLEAN and this is a fix burst, neither of which advances a BC-5.39.001 streak; **pass-13 adversary (fresh-context, reading only `adversary-pass-12.md` Part A per the Iron Law) is the pending gate.**
+
+### Agents
+
+- story-writer (prior to this burst, same session): S-21.07 v1.9→v1.10 authored (bundled this commit per TD-VSDD-053, not re-authored by state-manager) — BC-5.39.010 v1.14→v1.18 propagation, three fuel-cap drift corrections in §AC-020 Notes, no AC scope/test-behavior change
+- vsdd-factory:adversary (fresh-context, this session): pass-12 review dispatched and relayed (POLICY 22 relay-fidelity; novelty not disclosed, recorded as absent)
+- state-manager (D-995): `adversary-pass-12.md` persisted verbatim; INDEX.md pass-12 row + Convergence Status; STORY-INDEX v4.319 (S-21.07 catalog row + delivery-summary blockquote, POLICY 18 three-way parity); 1 lesson appended (`L-BB-story-propagation-obligation-on-governing-bc-normative-prose-amendment`); STATE.md full advance; single atomic commit to `factory-artifacts` per TD-VSDD-053; POLICY 16 gate run with literal shell captured stdout
+
+### 4-INDEX
+
+BC-INDEX v4.58 (UNCHANGED) / VP-INDEX v2.76 (UNCHANGED) / STORY-INDEX **v4.319** / ARCH-INDEX v3.58 (UNCHANGED)
+
+### Phase
+
+D-995-S2107-PASS12-RECORD-AND-FIX-BURST
+
+### Date
+
+2026-08-13
+
+---

@@ -27819,3 +27819,103 @@ D-444(c) burst-log h2 heading `## D-994-S2107-PASS11-RECORD-AND-FIX-BURST` prese
 - **Parent SHA (Block 8 cites parent per D-419(b)/D-444(c) convention):** `33771c81` — `state(sha-patch): D-993 commit e85ff8cd factory-artifacts SHA -- Active Branches + checkpoint + decisions-log updated`
 
 **Closes:** F-S2107-P11-001 CLOSED (ADR-040 v1.16); O-P11-01 CLOSED-DEFENSIVELY (ARCH-INDEX reframe); O-P11-02 CODIFIED (lesson + D-994(e)); ARCH-INDEX v3.58; streak explicitly UNCHANGED 0/3 — **S-21.07 PASS-11 RECORD + FIX BURST COMPLETE; PASS-12 ADVERSARY DISPATCH NEXT.**
+
+## D-995-S2107-PASS12-RECORD-AND-FIX-BURST
+
+**Block 1: Parent-commit**
+
+POLICY 16 allocator-ceiling gate (literal shell, D-449(a)):
+
+```
+$ max_d=$({ grep -hE '^#{2,} D-[0-9]+' cycles/v1.0-brownfield-backfill/decision-log.md cycles/v1.0-feature-engine-discipline-pass-1/decision-log.md 2>/dev/null; grep -hE '^[|] *D-[0-9]+' cycles/v1.0-brownfield-backfill/decision-log.md cycles/v1.0-feature-engine-discipline-pass-1/decision-log.md 2>/dev/null; } | grep -oE 'D-[0-9]+' | sed 's/D-//' | sort -n | tail -1); [ "$max_d" -lt 9000 ] && printf 'PASS: global max D-%s < D-9000 ceiling\n' "$max_d" || printf 'FAIL: breach: max=D-%s\n' "$max_d"
+PASS: global max D-994 < D-9000 ceiling
+```
+
+D-995 allocated. **Parent-commit:** `1147b554` — `state(sha-patch): D-994 commit 19932766 factory-artifacts SHA -- Active Branches + checkpoint + decisions-log updated` (factory-artifacts HEAD at burst start).
+
+**Block 2: Adversary verdict**
+
+Fresh-context `vsdd-factory:adversary` pass-12 dispatched against `feature/S-21.07-validate-cross-site-correspondence` at `96b4be19` (unchanged since D-992) and `factory-artifacts` at `1147b554` (D-994 SHA-patch HEAD). **Verdict: NOT-CLEAN — 1 MEDIUM finding (F-S2107-P12-001) + 3 observations (O-P12-01, O-P12-02, O-P12-03).** LOCAL BC-5.39.001 streak for the S-21.07 cascade **remains 0/3** — NOT-CLEAN does not advance the streak, and this burst's own fix does not either (a fix burst is not a clean adversary verdict). Persisted verbatim as `cycles/v1.0-brownfield-backfill/S-21.07/adversary-pass-12.md` per POLICY 22 relay-fidelity. Locus moved ADR-layer→story-layer: pass-11's ADR-040 fix held (O-P12-01) and the POLICY 15 deferral remains honestly anchored (O-P12-02); the single new finding is the first in this cascade located purely in the story spec's own BC-version-propagation currency. Pass-13 (fresh-context, reading only `adversary-pass-12.md` Part A per the Iron Law) is the pending gate, dispatched next.
+
+**Block 3: Files touched**
+
+- `.factory/cycles/v1.0-brownfield-backfill/S-21.07/adversary-pass-12.md` — new (pass-12 record, persisted verbatim)
+- `.factory/cycles/v1.0-brownfield-backfill/INDEX.md` — pass-12 row added; Convergence Status extended (D-995 summary)
+- `.factory/stories/S-21.07-validate-cross-site-correspondence.md` — v1.9→v1.10 (story-writer; bundled, not rewritten)
+- `.factory/stories/STORY-INDEX.md` — v4.318→v4.319 (S-21.07 catalog row + delivery-summary blockquote; BC-version-cite v1.14→v1.18; input-hash d366da1→7bc1850, POLICY 18 three-way parity)
+- `.factory/cycles/v1.0-brownfield-backfill/lessons.md` — one lesson appended (`L-BB-story-propagation-obligation-on-governing-bc-normative-prose-amendment`, closes O-P12-03)
+- `.factory/cycles/v1.0-brownfield-backfill/decision-log.md` — D-995 appended
+- `.factory/cycles/v1.0-brownfield-backfill/burst-log.md` — this entry
+- `.factory/STATE.md` — full advance (frontmatter, Phase Progress, Current Phase Steps, Active Branches, Decisions Log, Session Resume Checkpoint)
+
+**Block 4: Codifications**
+
+One new codification: the O-P12-03 [process-gap] obligation, lesson `L-BB-story-propagation-obligation-on-governing-bc-normative-prose-amendment` — when a governing BC's version bump amends normative prose a downstream story has copied verbatim, the amending agent (product-owner) or the next state-manager burst that observes the gap MUST enqueue a downstream story-propagation task naming the specific story and copied-prose section affected; a story whose BC-version-cite lags the BC's current normative-prose version by ≥1 version on a copied-prose section is a POLICY 8 drift. Codified via lessons.md + decision-log D-995 (companion to POLICY 8; not a `policies.yaml` text change — see decision-log D-995(d) for the routing rationale). No other new codifications. Applies pre-existing disciplines: TD-VSDD-053 single-commit-per-burst; POLICY 8 bc-array/version propagation (the fix itself); POLICY 18 three-way input-hash parity (applied to the STORY-INDEX sync).
+
+**Block 5 (Dim-2): Literal-shell attestation evidence**
+
+POLICY 16 gate captured above (Block 1).
+
+Story propagation fix gate (literal shell):
+
+```
+$ cd /Users/zious/Documents/GITHUB/vsdd-factory/.factory && grep -oE 'version: "[0-9.]+"' stories/S-21.07-validate-cross-site-correspondence.md | head -1
+version: "1.10"
+$ grep -c "BC-5.39.010 v1.18" stories/S-21.07-validate-cross-site-correspondence.md
+17
+$ sed -n '105,135p' stories/S-21.07-validate-cross-site-correspondence.md | grep -c '10M fuel budget'
+0
+$ grep -c '10M fuel budget' stories/S-21.07-validate-cross-site-correspondence.md
+2
+(the 2 whole-file occurrences are inside the frontmatter `last_amended`/body Changelog narrative, which quotes the OLD retracted phrase verbatim to document what was retracted — expected and correct; the §AC-020 Notes live prose (lines 105-135) has zero occurrences, confirming the live claim itself was removed, not just annotated)
+```
+
+STORY-INDEX sync gate (literal shell):
+
+```
+$ grep -c 'version: "4.319"' stories/STORY-INDEX.md
+1
+$ grep -c "input-hash 7bc1850" stories/STORY-INDEX.md
+1
+$ grep -c "S-21.07=7bc1850" stories/STORY-INDEX.md
+1
+$ grep -oE 'input-hash: "[a-f0-9]+"' stories/S-21.07-validate-cross-site-correspondence.md
+input-hash: "7bc1850"
+```
+
+(POLICY 18 three-way parity confirmed: story frontmatter `7bc1850` = STORY-INDEX catalog `7bc1850` = STORY-INDEX blockquote `7bc1850`.)
+
+Lesson-persistence gate (literal shell):
+
+```
+$ grep -c "L-BB-story-propagation-obligation-on-governing-bc-normative-prose-amendment" cycles/v1.0-brownfield-backfill/lessons.md
+1
+```
+
+**Block 6 (Dim-5): Closes**
+
+- F-S2107-P12-001 CLOSED (story-writer; S-21.07 v1.9→v1.10, BC-5.39.010 v1.14→v1.18 propagation, three fuel-cap drift corrections, no AC scope/test-behavior change)
+- O-P12-01 (verification, not a finding) — pass-11 F-S2107-P11-001 fix confirmed RESOLVED, O-P11-02 confirmed codified
+- O-P12-02 (verification, not a finding) — POLICY 15 gate `[D-969]` deferral confirmed honestly-anchored
+- O-P12-03 [process-gap] CODIFIED (lesson `L-BB-story-propagation-obligation-on-governing-bc-normative-prose-amendment` + D-995(d))
+
+**Block 7 (Dim-6): Gate attestation**
+
+D-444(c) burst-log h2 heading `## D-995-S2107-PASS12-RECORD-AND-FIX-BURST` present. D-446(a) own-burst-log 8-block gate: this section contains Blocks 1-8. D-448(a) source-attestation gate: the F-S2107-P12-001 disposition paragraph in decision-log.md D-995(c) faithfully describes `adversary-pass-12.md` Part A's finding set (1 MEDIUM finding, verbatim location/defect/blast-radius text) — verified by direct comparison against the persisted pass-12 file at burst time; the O-P12-01/O-P12-02/O-P12-03 dispositions at D-995(b)/(d) likewise faithfully describe the persisted Observations section. D-449(a) literal-shell-execution SELF-APPLICATION: POLICY 16 gate + story propagation fix gate + STORY-INDEX sync gate + lesson-persistence gate all use actual shell with verbatim stdout captured (Block 5) — no pseudocode.
+
+**Dim-7 Attestation:**
+
+- This burst IS a numbered LOCAL adversary pass (pass-12) — trajectory entry added; trajectory (11 true adversary passes) `47→18→25→25→24→20→16→8→10→1→1` (tail `→10→1→1`, D-433(e)+D-439(c) LENGTH=4)
+- Streak: **0/3 — EXPLICITLY UNCHANGED**. Pass-12 was NOT-CLEAN; this fix burst is not a clean verdict either. Pass-13 adversary dispatch is the pending gate.
+- 4-INDEX: BC v4.58 (UNCHANGED) / VP v2.76 (UNCHANGED) / STORY v4.318→**v4.319** / ARCH v3.58 (UNCHANGED)
+- policies.yaml v1.4.24 (UNCHANGED — O-P12-03 routed to lessons.md + decision-log, not a policies.yaml text change)
+- `feature/S-21.07` SHA `96b4be19` UNCHANGED (no code-repo commit this burst; fix is factory-artifacts-only, story-spec content)
+- `pipeline: ACTIVE` UNCHANGED
+
+### Block 8: factory-artifacts commit
+
+**factory-artifacts commits (this burst — TD-VSDD-053 single-commit-per-burst):**
+- Target: single commit pushed as `git push origin HEAD:factory-artifacts`
+- **Parent SHA (Block 8 cites parent per D-419(b)/D-444(c) convention):** `1147b554` — `state(sha-patch): D-994 commit 19932766 factory-artifacts SHA -- Active Branches + checkpoint + decisions-log updated`
+
+**Closes:** F-S2107-P12-001 CLOSED (story-writer; S-21.07 v1.10; STORY-INDEX v4.319); O-P12-01/O-P12-02 verification (not findings); O-P12-03 CODIFIED (lesson + D-995(d)); streak explicitly UNCHANGED 0/3 — **S-21.07 PASS-12 RECORD + FIX BURST COMPLETE; PASS-13 ADVERSARY DISPATCH NEXT.**
