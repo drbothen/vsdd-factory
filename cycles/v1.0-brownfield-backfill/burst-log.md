@@ -28026,3 +28026,92 @@ D-444(c) burst-log h2 heading `## D-996-S2107-PASS13-RECORD-AND-FIX-BURST` prese
 - **Parent SHA (Block 8 cites parent per D-419(b)/D-444(c) convention):** `40e09b5f` — `state(sha-patch): D-995 commit 9c132dd2 factory-artifacts SHA -- Active Branches + checkpoint + decisions-log updated`
 
 **Closes:** F-S2107-P13-001 CLOSED (story-writer; S-21.07 v1.11; class-complete sibling sweep); F-S2107-P13-002 CLOSED (state-manager; STORY-INDEX v4.320; self-discovered BC-4.16.001 sibling also fixed); O-P13-01 CODIFIED (lesson + D-996(e)); O-P13-02/O-P13-03 verification (not findings); streak explicitly UNCHANGED 0/3 — **S-21.07 PASS-13 RECORD + FIX BURST COMPLETE; PASS-14 ADVERSARY DISPATCH NEXT.**
+
+## D-997-S2107-PASS14-RECORD-ONLY-BURST
+
+**Block 1: Parent-commit**
+
+POLICY 16 allocator-ceiling gate (literal shell, D-449(a)):
+
+```
+$ max_d=$({ grep -hE '^#{2,} D-[0-9]+' cycles/v1.0-brownfield-backfill/decision-log.md cycles/v1.0-feature-engine-discipline-pass-1/decision-log.md 2>/dev/null; grep -hE '^[|] *D-[0-9]+' cycles/v1.0-brownfield-backfill/decision-log.md cycles/v1.0-feature-engine-discipline-pass-1/decision-log.md 2>/dev/null; } | grep -oE 'D-[0-9]+' | sed 's/D-//' | sort -n | tail -1); [ "$max_d" -lt 9000 ] && printf 'PASS: global max D-%s < D-9000 ceiling\n' "$max_d" || printf 'FAIL: breach: max=D-%s\n' "$max_d"
+PASS: global max D-996 < D-9000 ceiling
+```
+
+D-997 allocated. **Parent-commit:** `e5a1702b` — `state(sha-patch): D-996 commit 00cbc4ea factory-artifacts SHA -- Active Branches + checkpoint + decisions-log updated` (factory-artifacts HEAD at burst start).
+
+**Block 2: Adversary verdict**
+
+Fresh-context `vsdd-factory:adversary` pass-14 dispatched against `feature/S-21.07-validate-cross-site-correspondence` at `96b4be19` (unchanged since D-992; story unbuilt) and `factory-artifacts` at `e5a1702b` (D-996 SHA-patch HEAD). **Verdict: CLEAN — 0 findings at any severity (BLOCKER 0 / HIGH 0 / MEDIUM 0 / LOW 0 / NIT 0).** LOCAL BC-5.39.001 streak for the S-21.07 cascade **ADVANCES 0/3 → 1/3** — the first CLEAN verdict in this cascade; 2 more CONSECUTIVE CLEAN passes (pass-15, pass-16) are required to converge. Persisted verbatim as `cycles/v1.0-brownfield-backfill/S-21.07/adversary-pass-14.md`. F-S2107-P13-001 and F-S2107-P13-002 (the pass-13 findings) were both independently re-verified RESOLVED by fresh context; 3 non-blocking observations were noted (O-P14-01/02/03), none requiring codification. Pass-15 (fresh-context, reading only `adversary-pass-14.md` Part A per the Iron Law) is the pending gate, dispatched next.
+
+**Block 3: Files touched**
+
+- `.factory/cycles/v1.0-brownfield-backfill/S-21.07/adversary-pass-14.md` — new (pass-14 record, persisted verbatim)
+- `.factory/cycles/v1.0-brownfield-backfill/INDEX.md` — pass-14 row added; Convergence Status extended (D-997 summary)
+- `.factory/cycles/v1.0-brownfield-backfill/decision-log.md` — D-997 appended
+- `.factory/cycles/v1.0-brownfield-backfill/burst-log.md` — this entry
+- `.factory/STATE.md` — full advance (frontmatter, Phase Progress, Current Phase Steps, Active Branches, Decisions Log, Session Resume Checkpoint)
+
+No story, STORY-INDEX, BC-INDEX, VP-INDEX, ARCH-INDEX, or policies.yaml file was touched this burst — RECORD-ONLY, nothing to close.
+
+**Block 4: Codifications**
+
+None. Pass-14 was CLEAN with zero findings; the three observations (O-P14-01 verification, O-P14-02 semantic-anchoring note, O-P14-03 cross-artifact out-of-perimeter note) identify no process gap requiring a lesson or `policies.yaml` change. No new codification this burst. Applies pre-existing disciplines only: TD-VSDD-053 single-commit-per-burst; BC-5.39.001 3-CLEAN convergence protocol (streak mechanics); D-433(e)+D-439(c) trajectory-tail LENGTH=4.
+
+**Block 5 (Dim-2): Literal-shell attestation evidence**
+
+POLICY 16 gate captured above (Block 1).
+
+Streak/version parity gate (literal shell):
+
+```
+$ grep -m1 'version:' stories/S-21.07-validate-cross-site-correspondence.md
+version: "1.11"
+$ grep -m1 'version:' stories/STORY-INDEX.md
+version: "4.320"
+$ grep -m1 'version:' specs/behavioral-contracts/BC-INDEX.md
+version: "4.58"
+```
+
+Confirms the story/STORY-INDEX/BC-INDEX versions cited as "as landed" in `adversary-pass-14.md`'s reviewed-identity match the actual on-disk state at burst time — no drift between the persisted pass-14 record and the artifacts it claims to have reviewed.
+
+`DEFAULT_FUEL_CAP` source-verification gate (literal shell, re-run for this burst's own attestation, mirroring the persisted pass-14 record):
+
+```
+$ cd /Users/zious/Documents/GITHUB/vsdd-factory && grep -n "DEFAULT_FUEL_CAP" crates/factory-dispatcher/src/invoke.rs | head -1
+279:pub const DEFAULT_FUEL_CAP: u64 = 20_000_000;
+```
+
+Pass-14 record persistence gate (literal shell):
+
+```
+$ cd /Users/zious/Documents/GITHUB/vsdd-factory/.factory && grep -c "^verdict: CLEAN" cycles/v1.0-brownfield-backfill/S-21.07/adversary-pass-14.md
+1
+$ grep -c "STREAK ADVANCES 0/3 → 1/3" cycles/v1.0-brownfield-backfill/INDEX.md
+1
+```
+
+**Block 6 (Dim-5): Closes**
+
+None. Pass-14 was CLEAN — there was nothing to close. This is a RECORD-ONLY burst: it persists the pass-14 CLEAN verdict and advances the BC-5.39.001 streak counter (0/3 → 1/3). No findings were open at burst start (F-S2107-P13-001/002 were already CLOSED at D-996) and none were opened by pass-14.
+
+**Block 7 (Dim-6): Gate attestation**
+
+D-444(c) burst-log h2 heading `## D-997-S2107-PASS14-RECORD-ONLY-BURST` present. D-446(a) own-burst-log 8-block gate: this section contains Blocks 1-8. D-448(a) source-attestation gate: the decision-log.md D-997(a)/(b)/(c)/(d) paragraphs faithfully describe `adversary-pass-14.md` Part A's finding set (0 findings, 3 non-blocking observations) — verified by direct comparison against the persisted pass-14 file at burst time. D-449(a) literal-shell-execution SELF-APPLICATION: POLICY 16 gate + streak/version parity gate + `DEFAULT_FUEL_CAP` source gate + pass-14 record persistence gate all use actual shell with verbatim stdout captured (Block 5) — no pseudocode.
+
+**Dim-7 Attestation:**
+
+- This burst IS a numbered LOCAL adversary pass (pass-14) — trajectory entry added; trajectory (13 true adversary passes, 1 CLEAN) `47→18→25→25→24→20→16→8→10→1→1→2→0` (tail `→1→1→2→0`, D-433(e)+D-439(c) LENGTH=4)
+- Streak: **1/3 — ADVANCES from 0/3**. Pass-14 was CLEAN, the first clean verdict in this cascade. 2 more CONSECUTIVE CLEAN passes (pass-15, pass-16) are required to converge per BC-5.39.001. A single finding at pass-15 resets the streak to 0/3.
+- 4-INDEX: BC v4.58 (UNCHANGED) / VP v2.76 (UNCHANGED) / STORY v4.320 (UNCHANGED) / ARCH v3.58 (UNCHANGED)
+- policies.yaml v1.4.24 (UNCHANGED — no codification this burst)
+- `feature/S-21.07` SHA `96b4be19` UNCHANGED (no code-repo commit this burst; RECORD-ONLY, story remains unbuilt)
+- `pipeline: ACTIVE` UNCHANGED
+
+### Block 8: factory-artifacts commit
+
+**factory-artifacts commits (this burst — TD-VSDD-053 single-commit-per-burst):**
+- Target: single commit pushed as `git push origin HEAD:factory-artifacts`
+- **Parent SHA (Block 8 cites parent per D-419(b)/D-444(c) convention):** `e5a1702b` — `state(sha-patch): D-996 commit 00cbc4ea factory-artifacts SHA -- Active Branches + checkpoint + decisions-log updated`
+
+**Closes:** None (pass-14 CLEAN; nothing to close). **STREAK ADVANCES 0/3 → 1/3** — first CLEAN pass this cascade; 2 more CONSECUTIVE CLEAN passes required. **S-21.07 PASS-14 RECORD-ONLY BURST COMPLETE; PASS-15 ADVERSARY DISPATCH NEXT.**

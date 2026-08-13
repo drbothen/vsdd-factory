@@ -17453,3 +17453,56 @@ D-996-S2107-PASS13-RECORD-AND-FIX-BURST
 2026-08-13
 
 ---
+
+## D-997 — D-997-S2107-PASS14-RECORD-ONLY-BURST
+
+**POLICY 16 ALLOCATOR-CEILING GATE** (pre-allocation, literal shell, D-449(a)):
+
+```
+$ max_d=$({ grep -hE '^#{2,} D-[0-9]+' cycles/v1.0-brownfield-backfill/decision-log.md cycles/v1.0-feature-engine-discipline-pass-1/decision-log.md 2>/dev/null; grep -hE '^[|] *D-[0-9]+' cycles/v1.0-brownfield-backfill/decision-log.md cycles/v1.0-feature-engine-discipline-pass-1/decision-log.md 2>/dev/null; } | grep -oE 'D-[0-9]+' | sed 's/D-//' | sort -n | tail -1); [ "$max_d" -lt 9000 ] && printf 'PASS: global max D-%s < D-9000 ceiling\n' "$max_d" || printf 'FAIL: breach: max=D-%s\n' "$max_d"
+PASS: global max D-996 < D-9000 ceiling
+```
+
+D-997 allocated. **Parent-commit:** `e5a1702b` — `state(sha-patch): D-996 commit 00cbc4ea factory-artifacts SHA -- Active Branches + checkpoint + decisions-log updated` (factory-artifacts HEAD at burst start; the D-996 SHA-patch follow-up commit).
+
+**(a) Scope.** Fresh-context adversary pass-14 dispatched against `feature/S-21.07-validate-cross-site-correspondence` at `96b4be19` (unchanged since D-992; story unbuilt) and `factory-artifacts` at `e5a1702b` (the D-996 SHA-patch HEAD, carrying story v1.11, BC-5.39.010 v1.18, BC-INDEX v4.58, STORY-INDEX v4.320 as landed). **Verdict: CLEAN — 0 findings at any severity (BLOCKER 0 / HIGH 0 / MEDIUM 0 / LOW 0 / NIT 0).** Persisted verbatim as `cycles/v1.0-brownfield-backfill/S-21.07/adversary-pass-14.md`. **This is a RECORD-ONLY burst — no fix is owed, because there is nothing to close.**
+
+**(b) Prior-pass findings independently re-verified CLOSED.** F-S2107-P13-001 (retracted-claim class, 2 sites) VERIFIED RESOLVED — Out-of-Scope row retracted premise removed + re-anchored ADR-035 §Decision 5 → ADR-042 §Decision 2; AC-019 flat "10M" replaced with the source-vs-operator qualifier; class-completeness whole-story grep sweep confirms zero live class members survive (backtick-wrapped `` `fuel_cap` `` tokens checked). F-S2107-P13-002 (STORY-INDEX coverage-pin) VERIFIED RESOLVED — coverage blockquote now BC-5.39.010 v1.18 matching the catalog row; sibling BC-4.16.001 v1.9 matches catalog. Same-file disagreement eliminated.
+
+**(c) Independent fresh checks (all pass).** POLICY 18 three-way input-hash parity `7bc1850` identical across story frontmatter / STORY-INDEX catalog row / coverage blockquote — HOLDS. POLICY 7 H1 parity BC-5.39.010 title = BC-INDEX title = story BC-table title, verbatim — HOLDS. POLICY 14 leg-5 BC-INDEX body-row chain terminates …|v1.17|v1.18 synced. Load-bearing code claim ("`DEFAULT_FUEL_CAP` is 20,000,000 at source-HEAD, `crates/factory-dispatcher/src/invoke.rs`") verified against source:
+
+```
+$ cd /Users/zious/Documents/GITHUB/vsdd-factory && grep -n "DEFAULT_FUEL_CAP" crates/factory-dispatcher/src/invoke.rs | head -1
+279:pub const DEFAULT_FUEL_CAP: u64 = 20_000_000;
+```
+
+Accurate. Count parity confirmed (24 ACs, 34 story-side ECs vs 36 BC-side ECs — different artifacts, not contradictory; AC=24, VP=19 consistent). AC-020 `on_error` arithmetic self-consistent (9,920,913/10,000,000=99.21%; headroom 79,087=0.79%; 1,048,576/≈594KB≈+76%).
+
+**(d) O-P14-01/O-P14-02/O-P14-03 (verification/non-blocking observations, not findings — no action owed).** O-P14-01: three-way input-hash + POLICY 7 H1 parity confirmed by literal read, no drift. O-P14-02: AC-019/AC-020's residual ADR-035 §Decision 5 anchors are the legitimate general `on_error`/release-build rationale (fuel-registry specifics already correctly re-anchored to ADR-042 §Decision 2 at the two flagged v1.11 sites) — not a mis-anchor. O-P14-03: BC pass-9 measurement (17.2 fuel/byte) vs ADR-042 regression model (53.18 fuel/byte marginal) derive from different corpora (real BC-INDEX vs synthetic fixtures) and are not reconcilable as a single model; reconciliation belongs to the ADR-042↔BC-5.39.010 architectural boundary, out of this story's diff — noted, not a per-story finding. No policies.yaml text change; no lesson codified — none of the three observations identifies a process gap.
+
+**(e) STREAK ADVANCES 0/3 → 1/3.** This is the first CLEAN adversary verdict in the S-21.07 cascade. BC-5.39.001 requires 3 CONSECUTIVE CLEAN passes to converge — **2 more (pass-15, pass-16) are required.** A single finding at pass-15 resets the streak to 0/3.
+
+**(f) INDEX.md.** S-21.07 LOCAL Adversary Reviews table: pass-14 row added (**CLEAN**, 0 findings, **1/3**, `96b4be19`/`96b4be19`). Convergence Status narrative extended with the D-997 pass-14 record-only summary. Trajectory `47→18→25→25→24→20→16→8→10→1→1→2→0` (tail `→1→1→2→0`, D-433(e)+D-439(c) LENGTH=4). 13 true adversary reviews; 1 CLEAN verdict.
+
+**(g) 4-INDEX.** BC-INDEX v4.58 (UNCHANGED) / VP-INDEX v2.76 (UNCHANGED) / STORY-INDEX v4.320 (UNCHANGED) / ARCH-INDEX v3.58 (UNCHANGED — no artifact touched this burst; RECORD-ONLY). policies.yaml v1.4.24 (UNCHANGED).
+
+**(h) No gate-predicate or ratification-status change.** This burst closes nothing (pass-14 was CLEAN — there was nothing to close) and adds no new spec/code content; it persists the pass-14 record and advances the streak counter only. `feature/S-21.07` SHA `96b4be19` UNCHANGED (no code-repo commit — story remains unbuilt). **Streak for the S-21.07 cascade EXPLICITLY 1/3** — the first CLEAN pass; **pass-15 adversary (fresh-context, reading only `adversary-pass-14.md` Part A per the Iron Law) is the pending gate.**
+
+### Agents
+
+- vsdd-factory:adversary (fresh-context, this session): pass-14 review dispatched and relayed — CLEAN, 0 findings
+- state-manager (D-997): `adversary-pass-14.md` persisted verbatim; INDEX.md pass-14 row + Convergence Status; STATE.md full advance; single atomic commit to `factory-artifacts` per TD-VSDD-053; POLICY 16 gate run with literal shell captured stdout
+
+### 4-INDEX
+
+BC-INDEX v4.58 (UNCHANGED) / VP-INDEX v2.76 (UNCHANGED) / STORY-INDEX v4.320 (UNCHANGED) / ARCH-INDEX v3.58 (UNCHANGED)
+
+### Phase
+
+D-997-S2107-PASS14-RECORD-ONLY-BURST
+
+### Date
+
+2026-08-13
+
+---
