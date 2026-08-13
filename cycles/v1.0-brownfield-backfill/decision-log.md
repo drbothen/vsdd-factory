@@ -16551,3 +16551,72 @@ D-983-CONVERGENCE-RETRACTION-AND-PR775-TEST-QUALITY-FIX-BURST
 2026-08-13
 
 ---
+
+## D-984 — D-984-S-21.09-LOCAL-PASS-20-NOT-CLEAN-RECORD-AND-FORMAT-LOCK-FIX-BURST
+
+**POLICY 16 ALLOCATOR-CEILING GATE** (pre-allocation, literal shell, D-449(a)):
+
+```
+$ cd /Users/zious/Documents/GITHUB/vsdd-factory/.factory && max_d=$({ grep -hE '^#{2,} D-[0-9]+' cycles/v1.0-brownfield-backfill/decision-log.md cycles/v1.0-feature-engine-discipline-pass-1/decision-log.md 2>/dev/null; grep -hE '^[|] *D-[0-9]+' cycles/v1.0-brownfield-backfill/decision-log.md cycles/v1.0-feature-engine-discipline-pass-1/decision-log.md 2>/dev/null; } | grep -oE 'D-[0-9]+' | sed 's/D-//' | sort -n | tail -1); [ "$max_d" -lt 9000 ] && printf 'PASS: global max D-%s < D-9000 ceiling\n' "$max_d" || printf 'FAIL: breach: max=D-%s\n' "$max_d"
+PASS: global max D-983 < D-9000 ceiling
+```
+
+D-984 allocated. **Parent-commit:** `d0dd8002` (factory-artifacts HEAD at burst start — the D-983 SHA-patch commit `state(sha-patch): D-983 commit 25ee25b0 factory-artifacts SHA — Active Branches + checkpoint updated`).
+
+**(a) POLICY 16 GATE PASS — D-984 allocated; parent-commit `d0dd8002`.** This burst records LOCAL adversary pass-20 — the FIRST pass dispatched under the strengthened rubric (vacuity/tautology/mutation-narrative-accuracy/format-lock checks) codified by D-983's `L-BB-pr775-convergence-retraction-rubric-gap` — plus the same-burst format-lock fix that closes its single finding.
+
+**(b) Pass-20 verdict: NOT CLEAN.** 1 MEDIUM (`F-S2109-LOCAL-FMTLOCK-01`), 0 BLOCKER/HIGH/LOW/NIT. Fresh-context review of story v1.29 against impl `c9cccea9`, dispatched under the strengthened rubric for the first time. The adversary independently re-confirmed all 8 PR #775 F1-F8 test-quality findings closed in `c9cccea9` are genuinely, correctly fixed against the actual code — zero regressions, zero new findings against that already-fixed class.
+
+**(c) The one genuine finding: format-lock sibling-sweep miss.** `check_registry_inventory` emits two two-space-indented format strings (`format!("  UNEXPECTED: {}", name)`, `format!("  MISSING: {}", name)`), but every consumer assertion (T-017, T-018, T-024, T-030 phase A) uses an UNINDENTED `.contains()` needle — an indent-dropping mutation on either format string therefore survives the entire 51-test suite undetected. This is the IDENTICAL defect class the same-commit (`c9cccea9`) PR-review fix closed for `check_declared_subset_tracked`'s sibling MISSING/STAGED-NOT-COMMITTED lines (T-015/T-021) — the sweep simply did not propagate to the byte-identical indent pattern in the sibling function `check_registry_inventory`, a classic POLICY 5/TD-VSDD-060 sibling-sweep gap applied one level deeper: to production format-string indent locks, not just identifier/classification literals. The adversary also flagged an adjacent un-swept site of the same class (not a separate finding, folded into the same fix): `run_t012_gate`'s ungated-block wrapper `format!("  {}", p)`, whose consumers (T-038/043/044/045/046/047/050/051) likewise assert only the unindented `<IDENT>: <path>` form. Both sites are real, killable, previously-uncaught surviving mutants in functions the T-012 gate depends on — not contradicted by the D-977 mutation audit's "zero killable survivors" claim, because `check_registry_inventory` was never in that audit's enumerated scope (SURV-01..05 covered only `run_t012_gate`, `detect_ungated_declarations`, `lex_norm`, and `registry.rs`).
+
+**(d) Fix burst — same-commit comprehensive format-lock sweep, all 5 emitters closed.** test-writer commit `fc0e613b` on `feature/S-21.09` (parent `c9cccea9`, NOT pushed): locks the two-space indent across ALL 5 indented production format emitters identified across the adversary's finding + its adjacent-site note — `check_registry_inventory`'s `"  UNEXPECTED: {}"` (T-017/T-024/T-030A) and `"  MISSING: {}"` (T-018); `run_t012_gate`'s ungated wrapper `format!("  {}", p)` (T-038/043/044/045/046/047/050/051); `check_declared_subset_tracked`'s pre-existing T-015/T-021 indent locks (unchanged, confirmed still correct). Each indent-drop mutation empirically verified RED (revert-diff clean — mutation applied locally, only the newly-tightened assertion(s) go RED, all siblings stay GREEN, mutation reverted, per TD-VSDD-059). Negative-identifier assertions (T-043/047/050/051 colon-form vs. equals-form disambiguation) preserved unchanged. Assertion-tightening only — no production code change, no test-logic change, no fixture change. **Suite unchanged: 51 tests T-006..T-056** (45 S-21.09-owned + 1 registry.rs unit test, no IDs added/removed); `cargo fmt --check --all`/`cargo clippy --workspace --all-targets -- -D warnings`/`cargo test --workspace --all-targets` all clean at `feature/S-21.09` HEAD `fc0e613b`.
+
+**(e) story-writer story v1.30.** Documents the format-lock sweep across the 12 affected Red-Gate rows (T-015, T-017, T-018, T-021, T-024, T-030, T-038, T-043, T-044, T-045, T-046, T-047, T-050, T-051 — the full indent-consumer set) plus a Mutation-Completeness Audit scope note clarifying `check_registry_inventory` was outside the D-977 audit's enumerated scope and this pass-20 finding closes that specific gap; SHA cite sweep `c9cccea9`→`fc0e613b` across current-state sites; counts (51 tests, 45 owned + 1 registry, 16 pts) UNCHANGED.
+
+**(f) `INDEX.md` S-21.09 LOCAL Adversary Reviews section extended.** New pass-20 row appended after the PR-REVIEW row (NOT-CLEAN, 0B/0H/1M/0L). Convergence Status paragraph's leading declaration REPLACED with the pass-20/strengthened-rubric record; the prior RETRACTED narrative is preserved verbatim as `[Prior state, superseded 2026-08-13 D-983]`.
+
+**(g) Streak REMAINS 0/3 — pass-21 (strengthened rubric) is NEXT.** Pass-20 does not advance the streak per BC-5.39.001 3-CLEAN (any finding resets/holds at 0/3). This is the first NOT-CLEAN verdict recorded under the strengthened rubric — a genuinely useful outcome: the strengthened rubric immediately proved its value by catching a real surviving mutant that 19 prior LOCAL passes plus the D-977 exhaustive mutation-completeness audit both missed, directly validating the D-983 rubric-gap diagnosis and its codified remedy.
+
+**(h) Lesson codified.** `L-BB-format-lock-sibling-sweep-must-cover-all-same-pattern-emitters` (this burst) — `[process-gap]`, anchored S-15.03 PRIORITY-A per the existing standing anchor: a format-lock/indent-lock fix must sweep ALL sibling emitters that share the format pattern in the SAME burst, not just the one(s) the triggering finding named; extends POLICY 5/TD-VSDD-060 sibling-sweep discipline to production format-string indent locks specifically, distinct from identifier/classification-literal sweeps.
+
+**(i) `feature/S-21.09` push status UNCHANGED — NOT PUSHED.** No push authorization implied; the cascade remains reopened pending true 3-CLEAN under the strengthened rubric.
+
+**(j) 4-INDEX: unchanged.** BC-INDEX v4.56 UNCHANGED. VP-INDEX v2.76 UNCHANGED. STORY-INDEX v4.311→v4.312 (S-21.09 catalog row: story v1.29→v1.30; impl SHA cite `c9cccea9`→`fc0e613b`; annotation streak-note updated to reflect pass-20 NOT-CLEAN/CLOSED, pass-21 NEXT; 16 pts UNCHANGED; POLICY 14 last_amended-parity leg applied). ARCH-INDEX v3.55 UNCHANGED. policies.yaml v1.4.23 UNCHANGED.
+
+**Closes:**
+- `adv-s21.09-local-pass-20.md` persisted (NOT-CLEAN, 1 MEDIUM) — CLOSED this burst.
+- F-S2109-LOCAL-FMTLOCK-01 FIXED via comprehensive format-lock sweep (`fc0e613b`), empirically re-verified — CLOSED this burst.
+- story-writer story v1.30 recorded (12 Red-Gate row + Mutation-Completeness Audit scope-note documentation) — CLOSED this burst.
+- INDEX.md S-21.09 LOCAL Adversary Reviews section extended (pass-20 row) + Convergence Status updated — CLOSED this burst.
+- STORY-INDEX v4.311→v4.312 — CLOSED this burst.
+- `L-BB-format-lock-sibling-sweep-must-cover-all-same-pattern-emitters` lesson appended, anchored S-15.03 PRIORITY-A — CLOSED this burst.
+
+**Remains OPEN (not this burst's scope):**
+- LOCAL adversary pass-21 (strengthened rubric) — NEXT, not yet dispatched. Streak 0/3.
+- ADV-BB-P10-MED-001, LOW-001, LOW-002, LOW-003 (pass-10 carry-overs) — UNCHANGED, anchor: next maintenance sweep / fix-burst prior to PR merge.
+- `feature/S-21.09` NOT PUSHED — UNCHANGED.
+- PR #775 review re-run + description off-by-one fix — anchor: after re-convergence.
+- C-1/C-2/C-4/C-5 blocking security issues (D-972) — UNCHANGED, out of this burst's scope.
+- ADR-043 ratification — UNCHANGED, pending human decision.
+- S-21.12 cargo-deny blocker B1 — UNCHANGED, pending human decision.
+
+### Agents
+
+- state-manager (D-984): `adv-s21.09-local-pass-20.md` persisted; `INDEX.md` S-21.09 LOCAL Adversary Reviews section extended (pass-20 row) + Convergence Status updated; decision-log D-984 block appended; burst-log D-984 8-block entry appended; lessons.md L-BB format-lock-sweep lesson appended; STORY-INDEX v4.311→v4.312 (S-21.09 row: v1.29→v1.30, `c9cccea9`→`fc0e613b`); story v1.30 committed (story-writer's uncommitted work, committed by this burst); STATE.md advanced with pass-20 NOT-CLEAN/CLOSED status + refreshed Session Resume Checkpoint (streak 0/3, pass-21 NEXT).
+- vsdd-factory:adversary (pass-20, prior to this burst, same session): fresh-context LOCAL adversary review under the strengthened (post-D-983) rubric — found 1 MEDIUM (F-S2109-LOCAL-FMTLOCK-01, format-lock sibling-sweep miss); independently re-confirmed all 8 PR #775 F1-F8 fixes genuinely closed.
+- vsdd-factory:test-writer (prior to this burst, same session): commit `fc0e613b` — comprehensive format-lock sweep across all 5 indented production format emitters; every fix empirically re-verified (mutation applied locally → target test(s) alone RED → reverted); suite unchanged 51 tests, fmt/clippy/workspace clean.
+- vsdd-factory:story-writer (prior to this burst, same session): authored story v1.30 — documented the format-lock sweep across 12 Red-Gate rows + Mutation-Completeness Audit scope note; SHA cite sweep `c9cccea9`→`fc0e613b`; counts unchanged.
+
+### 4-INDEX
+
+BC-INDEX v4.56 (UNCHANGED) / VP-INDEX v2.76 (UNCHANGED) / STORY-INDEX v4.312 / ARCH-INDEX v3.55 (UNCHANGED)
+
+### Phase
+
+D-984-S-21.09-LOCAL-PASS-20-NOT-CLEAN-RECORD-AND-FORMAT-LOCK-FIX-BURST
+
+### Date
+
+2026-08-13
+
+---

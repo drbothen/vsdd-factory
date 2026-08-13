@@ -1,1 +1,1 @@
-{"status":"pass","timestamp":"2026-08-13T02:20:24Z","command":"cd /Users/zious/Documents/GITHUB/vsdd-factory/.worktrees/S-21.09 && grep -c \"^fn test_\" crates/factory-dispatcher/tests/bundle_orphan_check.rs\ncargo test -p factory-dispatcher --test bundle_orphan_check -- --list 2>/dev/null | tail -5"}
+{"status":"pass","timestamp":"2026-08-13T03:15:42Z","command":"cd /Users/zious/Documents/GITHUB/vsdd-factory/.worktrees/S-21.09 && cargo test -p factory-dispatcher --test bundle_orphan_check 2>&1 | tail -5"}
