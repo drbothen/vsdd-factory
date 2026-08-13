@@ -16689,3 +16689,69 @@ D-985-S-21.09-LOCAL-PASS-21-NOT-CLEAN-RECORD-AND-FORMAT-LOCK-COMPLETION-FIX-BURS
 2026-08-13
 
 ---
+
+## D-986 — D-986-S-21.09-LOCAL-PASS-22-CLEAN-RECORD-STREAK-ADVANCE
+
+**POLICY 16 ALLOCATOR-CEILING GATE** (pre-allocation, literal shell, D-449(a)):
+
+```
+$ cd /Users/zious/Documents/GITHUB/vsdd-factory/.factory && max_d=$({ grep -hE '^#{2,} D-[0-9]+' cycles/v1.0-brownfield-backfill/decision-log.md cycles/v1.0-feature-engine-discipline-pass-1/decision-log.md 2>/dev/null; grep -hE '^[|] *D-[0-9]+' cycles/v1.0-brownfield-backfill/decision-log.md cycles/v1.0-feature-engine-discipline-pass-1/decision-log.md 2>/dev/null; } | grep -oE 'D-[0-9]+' | sed 's/D-//' | sort -n | tail -1); [ "$max_d" -lt 9000 ] && printf 'PASS: global max D-%s < D-9000 ceiling\n' "$max_d" || printf 'FAIL: breach: max=D-%s\n' "$max_d"
+PASS: global max D-985 < D-9000 ceiling
+```
+
+D-986 allocated. **Parent-commit:** `24d19ffb` (factory-artifacts HEAD at burst start — the D-985 SHA-patch commit `state(sha-patch): D-985 commit b7925258 factory-artifacts SHA -- Active Branches + checkpoint updated`).
+
+**(a) POLICY 16 GATE PASS — D-986 allocated; parent-commit `24d19ffb`.** This burst records LOCAL adversary pass-22 — a CLEAN pass, the THIRD dispatched under the strengthened rubric codified by D-983's `L-BB-pr775-convergence-retraction-rubric-gap` and the FIRST to return CLEAN since the D-983 retraction. **No fix-burst content** — story v1.31 and impl `1c93f499` are UNCHANGED by this burst; this is a pure CLEAN-pass record.
+
+**(b) Pass-22 verdict: CLEAN.** Zero findings at any severity, no process-gap. Fresh-context review of story v1.31 against impl `1c93f499`. The adversary independently confirmed format-lock completeness (grep: 21 indented positive needles + 4 intentional negatives), count-parity, complete determinant isolation, and all owed-items documented+routed.
+
+**(c) The post-retraction LOCAL BC-5.39.001 3-CLEAN streak ADVANCES 0/3 → 1/3.** This is the strengthened rubric's first CLEAN verdict — the prior two dispatches under the same rubric (pass-20, pass-21) each surfaced a real, previously-undetected format-lock-completeness gap. Pass-22's CLEAN verdict is independent confirmation that pass-21's fix burst (`1c93f499`, the completeness-grep-driven 6-site sweep) genuinely closed the class rather than merely narrowing it further — the fresh-context adversary re-ran the same grep-shaped check (21 indented positive needles + 4 intentional negatives) and got the identical zero-remaining-gap result the fix burst itself claimed, this time from an independent fresh-context pass rather than the fix burst's own self-verification.
+
+**(d) No test-writer/story-writer dispatch.** Nothing to fix. Story v1.31 (UNCHANGED) and impl `1c93f499` (UNCHANGED, `feature/S-21.09` still NOT PUSHED) carry forward unmodified from D-985.
+
+**(e) `adv-s21.09-local-pass-22.md` persisted verbatim** (D-448(a) source-attestation parity — this burst's finding-summary in Block 2/§(b) faithfully describes the persisted file's CLEAN verdict and zero-findings content; literal-shell grep evidence captured at burst-log Block 5). Frontmatter added (`document_type: adversarial-review`, `phase: 22`, `pass: 22`, `previous_review: adv-s21.09-local-pass-21.md`, `inputs: [stories/S-21.09-wasm-artifact-restore-and-registry-parity.md]`, `input-hash: "d8e69cf"` via `compute-input-hash --update`); body content is byte-verbatim as supplied — no state-manager edits to the review prose.
+
+**(f) `INDEX.md` S-21.09 LOCAL Adversary Reviews section extended.** New pass-22 row appended after the pass-21 row (CLEAN, 0B/0H/0M/0L/0N, streak 1/3). Convergence Status paragraph's leading declaration REPLACED with the pass-22/streak-1/3 record; the prior pass-21 narrative is preserved verbatim as `[Prior state, superseded 2026-08-13 D-986]`.
+
+**(g) Streak 1/3 — pass-23 (strengthened rubric) is NEXT.** Per standing human ruling (true 3-CLEAN required, not D-386 Option C asymptotic acceptance), pass-23 AND pass-24 must ALSO be CLEAN for re-convergence — a single CLEAN pass does not itself reconstitute 3-CLEAN status; it only restarts the count at 1/3 within the strengthened-rubric era.
+
+**(h) No new lesson required.** This is a CLEAN-pass record with no new defect class surfaced; a one-line streak-progression note is appended to `lessons.md` for continuity of the pass-20/pass-21 lesson chain, not a new full lesson entry.
+
+**(i) `feature/S-21.09` push status UNCHANGED — NOT PUSHED.** No push authorization implied; the cascade remains open pending true 3-CLEAN under the strengthened rubric (pass-23 + pass-24 also CLEAN).
+
+**(j) 4-INDEX: STORY only.** BC-INDEX v4.56 UNCHANGED. VP-INDEX v2.76 UNCHANGED. STORY-INDEX v4.313→v4.314 (S-21.09 catalog row: streak annotation updated to "streak 1/3 (pass-22 CLEAN, strengthened rubric)"; story version v1.31 UNCHANGED; impl SHA `1c93f499` UNCHANGED; POLICY 14 last_amended-parity leg applied). ARCH-INDEX v3.55 UNCHANGED. policies.yaml v1.4.23 UNCHANGED.
+
+**Closes:**
+- `adv-s21.09-local-pass-22.md` persisted (CLEAN, 0 findings) — CLOSED this burst.
+- INDEX.md S-21.09 LOCAL Adversary Reviews section extended (pass-22 row) + Convergence Status updated — CLOSED this burst.
+- STORY-INDEX v4.313→v4.314 (streak annotation only) — CLOSED this burst.
+- One-line streak-progression note appended to `lessons.md` — CLOSED this burst.
+- D-986 allocated — CLOSED this burst.
+
+**Remains OPEN (not this burst's scope):**
+- LOCAL adversary pass-23 (strengthened rubric) — NEXT, not yet dispatched. Streak 1/3.
+- ADV-BB-P10-MED-001, LOW-001, LOW-002, LOW-003 (pass-10 carry-overs) — UNCHANGED, anchor: next maintenance sweep / fix-burst prior to PR merge.
+- `feature/S-21.09` NOT PUSHED — UNCHANGED.
+- PR #775 review re-run + description off-by-one fix — anchor: after re-convergence.
+- C-1/C-2/C-4/C-5 blocking security issues (D-972) — UNCHANGED, out of this burst's scope.
+- ADR-043 ratification — UNCHANGED, pending human decision.
+- S-21.12 cargo-deny blocker B1 — UNCHANGED, pending human decision.
+
+### Agents
+
+- state-manager (D-986): `adv-s21.09-local-pass-22.md` persisted (frontmatter added; body byte-verbatim); `INDEX.md` S-21.09 LOCAL Adversary Reviews section extended (pass-22 row) + Convergence Status updated; decision-log D-986 block appended; burst-log D-986 8-block entry appended; lessons.md one-line streak-progression note appended; STORY-INDEX v4.313→v4.314 (S-21.09 row streak annotation only; story version/impl SHA UNCHANGED); STATE.md advanced with pass-22 CLEAN status + refreshed Session Resume Checkpoint (streak 1/3, pass-23 NEXT).
+- vsdd-factory:adversary (pass-22, prior to this burst, same session): fresh-context LOCAL adversary review under the strengthened (third) rubric pass — CLEAN, zero findings at any severity; independently re-confirmed format-lock completeness, count-parity, determinant isolation, and all owed-items/accepted-residuals.
+
+### 4-INDEX
+
+BC-INDEX v4.56 (UNCHANGED) / VP-INDEX v2.76 (UNCHANGED) / STORY-INDEX v4.314 / ARCH-INDEX v3.55 (UNCHANGED)
+
+### Phase
+
+D-986-S-21.09-LOCAL-PASS-22-CLEAN-RECORD-STREAK-ADVANCE
+
+### Date
+
+2026-08-13
+
+---

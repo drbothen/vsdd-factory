@@ -27001,3 +27001,105 @@ D-444(c) burst-log h2 heading `## D-985-S-21.09-LOCAL-PASS-21-NOT-CLEAN-RECORD-A
 - **Parent SHA (Block 8 cites parent per D-419(b)/D-444(c) convention):** `8a326277` — `state(sha-patch): D-984 commit 22611467 factory-artifacts SHA — Active Branches + checkpoint updated`
 
 **Closes:** `adv-s21.09-local-pass-21.md` persisted (NOT-CLEAN, 1 LOW); INDEX.md S-21.09 LOCAL section extended (pass-21 row) + Convergence Status updated; F-S2109-P21-001 FIXED in `1c93f499`, empirically re-verified; story v1.31 committed; STORY-INDEX v4.313 (S-21.09 annotation: pass-21 CLOSED, streak 0/3, pass-22 NEXT); 1 L-BB sweep-completeness lesson appended, anchored S-15.03 PRIORITY-A; D-985 allocated; STATE.md advanced; LOCAL adversary pass-22 (strengthened rubric) recorded NEXT
+
+## D-986-S-21.09-LOCAL-PASS-22-CLEAN-RECORD-STREAK-ADVANCE
+
+**Block 1: Parent-commit**
+
+POLICY 16 allocator-ceiling gate (literal shell, D-449(a)):
+
+```
+$ cd /Users/zious/Documents/GITHUB/vsdd-factory/.factory && max_d=$({ grep -hE '^#{2,} D-[0-9]+' cycles/v1.0-brownfield-backfill/decision-log.md cycles/v1.0-feature-engine-discipline-pass-1/decision-log.md 2>/dev/null; grep -hE '^[|] *D-[0-9]+' cycles/v1.0-brownfield-backfill/decision-log.md cycles/v1.0-feature-engine-discipline-pass-1/decision-log.md 2>/dev/null; } | grep -oE 'D-[0-9]+' | sed 's/D-//' | sort -n | tail -1); [ "$max_d" -lt 9000 ] && printf 'PASS: global max D-%s < D-9000 ceiling\n' "$max_d" || printf 'FAIL: breach: max=D-%s\n' "$max_d"
+PASS: global max D-985 < D-9000 ceiling
+```
+
+D-986 allocated. **Parent-commit:** `24d19ffb` — `state(sha-patch): D-985 commit b7925258 factory-artifacts SHA -- Active Branches + checkpoint updated` (factory-artifacts HEAD at burst start — the D-985 SHA-patch commit).
+
+**Block 2: Adversary verdict**
+
+LOCAL adversary pass-22 — the THIRD pass dispatched under the strengthened rubric (vacuity/tautology/mutation-narrative-accuracy/format-lock/sweep-completeness checks per `L-BB-pr775-convergence-retraction-rubric-gap` D-983, `L-BB-format-lock-sibling-sweep-must-cover-all-same-pattern-emitters` D-984, `L-BB-sweep-completeness-requires-mechanical-grep-not-manual-enumeration` D-985). Fresh-context review of story v1.31 against impl `1c93f499` (`crates/factory-dispatcher/tests/bundle_orphan_check.rs`, 51 tests T-006..T-056 + registry.rs unit test). **Verdict: CLEAN — 0 findings at any severity, no process-gap.**
+
+The adversary independently re-confirmed: format-lock completeness by grep (21 indented positive needles + 4 intentional negative-identifier assertions — matching the pass-21 fix burst's own completeness-grep claim exactly); count-parity (51 tests T-006..T-056 exact, 45 S-21.09-owned + 1 registry.rs unit test); complete determinant isolation (both `in_repo` conjuncts T-050/T-051, all three `extract_hook_plugin_name` gates T-033/T-026b/T-035, both schema determinants T-052/T-053, mutation-hardening controls T-054/T-055/T-056 all load-bearing); and all five owed-items/accepted-residuals (VP-TBD routing, input-hash POLICY-18 owed-at-first-burst, EC-001 routed to S-21.14, SURV-01 provable un-isolatability, LOW-3 latent fail-loud class) confirmed NOT defects.
+
+**LOCAL BC-5.39.001 streak ADVANCES 0/3 → 1/3** — the strengthened rubric's FIRST CLEAN verdict since the D-983 retraction, following two real findings at pass-20 (MEDIUM) and pass-21 (LOW). No test-writer/story-writer dispatch — nothing to fix; story v1.31 and impl `1c93f499` UNCHANGED.
+
+**Block 3: Files touched**
+
+- `cycles/v1.0-brownfield-backfill/adv-s21.09-local-pass-22.md` — CREATED; CLEAN, 0 findings, verbatim adversary review persisted (frontmatter added by state-manager; body byte-verbatim)
+- `cycles/v1.0-brownfield-backfill/INDEX.md` — S-21.09 LOCAL Adversary Reviews section extended (new pass-22 row); Convergence Status paragraph's leading declaration REPLACED with the pass-22/streak-1/3 record; prior pass-21 narrative preserved verbatim as `[Prior state, superseded 2026-08-13 D-986]`
+- `cycles/v1.0-brownfield-backfill/decision-log.md` — D-986 block appended (10 lettered sub-paragraphs (a)-(j) + Closes/Remains-OPEN/Agents/4-INDEX/Phase/Date)
+- `cycles/v1.0-brownfield-backfill/lessons.md` — one-line streak-progression note appended (no new full lesson entry — CLEAN pass surfaced no new defect class)
+- `cycles/v1.0-brownfield-backfill/burst-log.md` — D-986 8-block entry appended (this file)
+- `stories/STORY-INDEX.md` — v4.313→v4.314; S-21.09 catalog row streak annotation updated to "streak 1/3 (pass-22 CLEAN, strengthened rubric)"; story version v1.31 UNCHANGED; impl SHA `1c93f499` UNCHANGED
+- `STATE.md` — advanced; Session Resume Checkpoint refreshed (streak 1/3, note pass-22 CLEAN record; impl HEAD `1c93f499` UNCHANGED; story v1.31 UNCHANGED; §3 pass-23 NEXT under strengthened rubric)
+
+**Code-side change this burst:** NONE. `feature/S-21.09` remains at `1c93f499` (UNCHANGED). NOT PUSHED.
+
+**Block 4: Codifications**
+
+- **No new policies.yaml changes.** This burst records a CLEAN LOCAL adversary pass; no fix content, no new policy amendment required.
+- **No new lesson class.** Pass-22 is confirmatory, not novel — it independently re-verified the pass-21 fix burst's own completeness-grep claim rather than surfacing a new gap. A one-line streak-progression note (not a full `[process-gap]` entry) is appended to `lessons.md` for continuity of the pass-20/pass-21 lesson chain.
+
+**Block 5 (Dim-2): Literal-shell attestation evidence**
+
+**POLICY 16 gate** (captured above — Block 1).
+
+**`adv-s21.09-local-pass-22.md` input-hash** (`compute-input-hash`, literal shell):
+
+```
+$ ./plugins/vsdd-factory/bin/compute-input-hash .factory/cycles/v1.0-brownfield-backfill/adv-s21.09-local-pass-22.md --update
+d8e69cf
+compute-input-hash: updated /Users/zious/Documents/GITHUB/vsdd-factory/.factory/cycles/v1.0-brownfield-backfill/adv-s21.09-local-pass-22.md input-hash → d8e69cf
+```
+
+**D-446(a) own-burst-log 8-block gate** (literal shell per D-449(a)):
+
+```
+$ cd /Users/zious/Documents/GITHUB/vsdd-factory/.factory && awk '/^## D-986-S-21.09-LOCAL-PASS-22/{found=1} found && /^## D-[0-9]/{if(!/D-986-S-21.09-LOCAL-PASS-22/)exit} found{print}' cycles/v1.0-brownfield-backfill/burst-log.md | grep -cE "^\*\*Block [2-8]|^### Block 8|^## D-986"
+8
+```
+
+PASS: count=8 ≥ 8 required D-444(c) blocks present in D-986 section.
+
+**D-448(a) source-attestation gate** (literal shell; verifies this burst-log's Block 2 finding summary faithfully describes `adv-s21.09-local-pass-22.md`'s finding set, D-449(a)):
+
+```
+$ cd /Users/zious/Documents/GITHUB/vsdd-factory/.factory && grep -c '^## Verdict: CLEAN' cycles/v1.0-brownfield-backfill/adv-s21.09-local-pass-22.md; grep -c 'CLEAN' cycles/v1.0-brownfield-backfill/adv-s21.09-local-pass-22.md; grep -c 'BLOCKER\|HIGH\|MEDIUM\|LOW\|NIT' cycles/v1.0-brownfield-backfill/adv-s21.09-local-pass-22.md
+1
+3
+3
+```
+
+PASS: `## Verdict: CLEAN` heading present exactly once; "CLEAN" string present 3 times (heading + verdict sentence + streak sentence); zero BLOCKER/HIGH/MEDIUM/LOW/NIT severity tokens present as findings (the 3 hits are the "No finding rises to..." disclaimer sentence, not finding headings) — matching Block 2's finding summary (0 findings, CLEAN).
+
+**Block 6 (Dim-5): Closes**
+
+- `adv-s21.09-local-pass-22.md` persisted (CLEAN, 0 findings; streak ADVANCES 0/3→1/3; 22 passes total)
+- INDEX.md S-21.09 LOCAL Adversary Reviews section extended + Convergence Status paragraph updated with pass-22 record
+- STORY-INDEX v4.313→v4.314 (S-21.09 annotation: streak 1/3, pass-22 CLEAN, pass-23 NEXT)
+- D-986 allocated
+- One-line streak-progression note appended to `lessons.md`
+- 4 pass-10 carry-over findings (MED-001, LOW-001/002/003) remain OPEN — anchor: next maintenance sweep / fix-burst prior to PR merge
+
+**Block 7 (Dim-6): Gate attestation**
+
+D-444(c) burst-log h2 heading `## D-986-S-21.09-LOCAL-PASS-22-CLEAN-RECORD-STREAK-ADVANCE` present. D-446(a) own-burst-log 8-block gate INVOKED via literal shell at Block 5 (count=8 required). D-448(a) source-attestation INVOKED via literal shell at Block 5 (Verdict heading + CLEAN string counts confirmed against the persisted review file). D-449(a) literal-shell-execution SELF-APPLICATION: POLICY 16 gate + compute-input-hash + D-446(a) gate + D-448(a) gate all use actual shell with verbatim stdout captured — no pseudocode. META-LEVEL-24 self-application confirmed.
+
+**Dim-7 Attestation:**
+
+- Trajectory (S-21.09 LOCAL cascade, numbered adversary passes only): `3→3→2→13→11→9→9→8→8→15→2→1→1→2→1→2→0→0→0→1→1→0` (tail per D-433(e)+D-439(c) form: `→0→1→1→0`) — pass-22 extends the trajectory with 0 findings (CLEAN)
+- Streak: **1/3 — ADVANCES** (pass-22 is the first CLEAN verdict recorded under the strengthened rubric; pass-23 AND pass-24 must also be CLEAN for true 3-CLEAN re-convergence)
+- 4-INDEX: BC v4.56 (UNCHANGED) / VP v2.76 (UNCHANGED) / STORY **v4.314** / ARCH v3.55 (UNCHANGED)
+- Story v1.31 UNCHANGED; impl HEAD `1c93f499` UNCHANGED; 51 tests T-006..T-056 all green, UNCHANGED count; 45 S-21.09-owned plus 1 registry.rs unit test; 16 pts UNCHANGED
+- policies.yaml v1.4.23 UNCHANGED
+- `feature/S-21.09` @ `1c93f499`; NOT PUSHED
+- Cycle-level trajectory-tail (S-21.07) `→20→16→8→10` UNCHANGED — unrelated to this LOCAL-cascade pass
+- **NEXT: LOCAL adversary pass-23, fresh-context, dispatched against `1c93f499`/story v1.31, under the STRENGTHENED rubric.**
+
+### Block 8: factory-artifacts commit
+
+**factory-artifacts commits (this burst — TD-VSDD-053 single-commit-per-burst):**
+- Target: single commit pushed as `git push origin HEAD:factory-artifacts`
+- **Parent SHA (Block 8 cites parent per D-419(b)/D-444(c) convention):** `24d19ffb` — `state(sha-patch): D-985 commit b7925258 factory-artifacts SHA -- Active Branches + checkpoint updated`
+
+**Closes:** `adv-s21.09-local-pass-22.md` persisted (CLEAN, 0 findings); INDEX.md S-21.09 LOCAL section extended (pass-22 row) + Convergence Status updated; STORY-INDEX v4.314 (S-21.09 annotation: streak 1/3, pass-22 CLEAN, pass-23 NEXT); 1 one-line streak-progression note appended to lessons.md; D-986 allocated; STATE.md advanced; LOCAL adversary pass-23 (strengthened rubric) recorded NEXT
