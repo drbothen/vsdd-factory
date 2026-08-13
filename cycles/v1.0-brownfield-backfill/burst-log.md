@@ -27326,3 +27326,97 @@ D-444(c) burst-log h2 heading `## D-988-S-21.09-LOCAL-PASS-24-CLEAN-RECORD-TRUE-
 - **Parent SHA (Block 8 cites parent per D-419(b)/D-444(c) convention):** `e86c8c92` — `state(sha-patch): D-987 commit 96d2ca8d factory-artifacts SHA -- Active Branches + checkpoint updated`
 
 **Closes:** `adv-s21.09-local-pass-24.md` persisted (CLEAN, 0 findings); INDEX.md S-21.09 LOCAL section extended (pass-24 row) + Convergence Status updated to RE-CONVERGED; STORY-INDEX v4.316 (S-21.09 annotation: LOCAL 3-CLEAN RE-CONVERGED); `L-BB-fold-vacuity-tautology-lens-into-rubric-from-cascade-start` lesson appended to lessons.md; S-7.02 Cycle-Closing Checklist SATISFIED; D-988 allocated; STATE.md advanced; **BC-5.39.001 LOCAL 3-CLEAN RE-CONVERGENCE DECLARED (streak 3/3)** — post-re-convergence human-gated NEXT steps [push 3 local fix commits, fix PR #775 description off-by-one, re-run PR #775 review, request merge authorization] now live
+
+## D-989-S-21.09-POST-RE-CONVERGENCE-WINDOWS-PORTABILITY-CI-FIX-BURST
+
+**Block 1: Parent-commit**
+
+POLICY 16 allocator-ceiling gate (literal shell, D-449(a)):
+
+```
+$ cd /Users/zious/Documents/GITHUB/vsdd-factory/.factory && max_d=$({ grep -hE '^#{2,} D-[0-9]+' cycles/v1.0-brownfield-backfill/decision-log.md cycles/v1.0-feature-engine-discipline-pass-1/decision-log.md 2>/dev/null; grep -hE '^[|] *D-[0-9]+' cycles/v1.0-brownfield-backfill/decision-log.md cycles/v1.0-feature-engine-discipline-pass-1/decision-log.md 2>/dev/null; } | grep -oE 'D-[0-9]+' | sed 's/D-//' | sort -n | tail -1); [ "$max_d" -lt 9000 ] && printf 'PASS: global max D-%s < D-9000 ceiling\n' "$max_d" || printf 'FAIL: breach: max=D-%s\n' "$max_d"
+PASS: global max D-989 < D-9000 ceiling
+```
+
+D-989 allocated. **Parent-commit:** `e541668e` — `state(sha-patch): D-988 commit b31de9e2 factory-artifacts SHA -- Active Branches + checkpoint updated` (factory-artifacts HEAD at burst start — the D-988 SHA-patch commit).
+
+**Block 2: Adversary verdict**
+
+**No adversary dispatch this burst — this is not a numbered LOCAL adversary pass.** After the D-988 BC-5.39.001 TRUE 3-CLEAN RE-CONVERGENCE (verified at impl `1c93f499`), cross-platform CI's `build-dispatcher (windows-x64)` job on PR #775 caught a real defect the all-macOS LOCAL adversary cascade and the exhaustive mutation-completeness audit structurally could not: `test_S_21_09_ac006_T026_absolute_form_excluded_from_declared` sub-test (b) panicked on windows-x64 because its `registry-depth.toml` fixture built the `plugin = "..."` TOML value via `PathBuf::push` + `.to_str()` — OS-native separator, `\` on Windows, an invalid TOML escape sequence. test-writer fixed it in `c20cf2fe` (forward-slash string concatenation; full ~90-site audit confirmed T-026(b) was the sole non-portable site; 51 green on macOS; fmt/clippy clean).
+
+**Convergence disposition: D-988 RE-CONVERGENCE PRESERVED, not reopened.** `c20cf2fe` is a test-FIXTURE-CONSTRUCTION portability change with identical runtime semantics on macOS/Linux — no assertion, logic, mutation-control, or test-set change. **BC-5.39.001 streak REMAINS 3/3 RE-CONVERGED (D-988), impl advanced `1c93f499`→`c20cf2fe`.** Final outstanding gate: PR-level review refresh plus full CI (including windows-x64) now running on PR #775 at `c20cf2fe`.
+
+**Block 3: Files touched**
+
+- `stories/S-21.09-wasm-artifact-restore-and-registry-parity.md` — v1.31→v1.32 (story-writer, prior to this burst, same session); documents the Windows-portability fix + SHA sweep `1c93f499`→`c20cf2fe` across 5 current-state commit cites; new Changelog v1.32 row; counts/points unchanged
+- `cycles/v1.0-brownfield-backfill/INDEX.md` — S-21.09 LOCAL Adversary Reviews table: new POST-RE-CONVERGENCE row appended after the pass-24 row (not a numbered pass); Convergence Status paragraph's leading declaration REPLACED to note the windows-x64 CI fix + convergence-preserved disposition; prior D-988 declaration preserved as `[Prior state, superseded 2026-08-13 D-989]`
+- `cycles/v1.0-brownfield-backfill/decision-log.md` — D-989 block appended (9 lettered sub-paragraphs (a)-(i) + Closes/Remains-OPEN/Agents/4-INDEX/Phase/Date)
+- `cycles/v1.0-brownfield-backfill/lessons.md` — two lessons appended: `L-BB-cross-platform-ci-is-convergence-prerequisite-not-just-merge-prerequisite` [process-gap] + `L-BB-github-ops-push-delegate-non-functional-mid-session` [process-gap]
+- `cycles/v1.0-brownfield-backfill/burst-log.md` — D-989 8-block entry appended (this file)
+- `stories/STORY-INDEX.md` — v4.316→v4.317; S-21.09 catalog row: story v1.31→v1.32, impl SHA cite `1c93f499`→`c20cf2fe`, annotation updated to "LOCAL 3-CLEAN RE-CONVERGED (D-988, preserved); windows-x64 CI fix `c20cf2fe`; PR #775 updated, CI re-running; merge pending human auth"
+- `STATE.md` — advanced; Session Resume Checkpoint refreshed (streak 3/3 RE-CONVERGED preserved; impl HEAD `c20cf2fe`; story v1.32; PR #775 pushed to `c20cf2fe`, CI re-running; Active Branches `feature/S-21.09` row updated to PUSHED)
+- `code-delivery/S-21.09/pr-description.md` / `pr-review.md` — incidental churn from the PR #775 push/description-fix sequence, folded into this single commit per TD-VSDD-053
+
+**Code-side change this burst:** `feature/S-21.09` advances `1c93f499`→`c20cf2fe` (test-writer, prior to this burst, same session; pushed to origin by the orchestrator, human-authorized, per Block 2/decision-log (e)).
+
+**Block 4: Codifications**
+
+- **No policies.yaml changes.** This burst is a portability fix plus its bookkeeping; no new policy amendment required.
+- **Two new lesson classes:** `L-BB-cross-platform-ci-is-convergence-prerequisite-not-just-merge-prerequisite` (the review-method-blind-spot lesson: all-macOS LOCAL cascade + mutation audit cannot catch platform-specific defects; cross-platform CI must be a convergence prerequisite, not just a merge prerequisite) and `L-BB-github-ops-push-delegate-non-functional-mid-session` (operational Drift Item: push-delegate failure this session, direct-orchestrator-push fallback under human authorization). Both anchored S-15.03 PRIORITY-A.
+
+**Block 5 (Dim-2): Literal-shell attestation evidence**
+
+**POLICY 16 gate** (captured above — Block 1).
+
+**D-446(a) own-burst-log 8-block gate** (literal shell per D-449(a)):
+
+```
+$ cd /Users/zious/Documents/GITHUB/vsdd-factory/.factory && awk '/^## D-989-S-21.09-POST-RE-CONVERGENCE/{found=1} found && /^## D-[0-9]/{if(!/D-989-S-21.09-POST-RE-CONVERGENCE/)exit} found{print}' cycles/v1.0-brownfield-backfill/burst-log.md | grep -cE "^\*\*Block [2-8]|^### Block 8|^## D-989"
+8
+```
+
+PASS: count=8 ≥ 8 required D-444(c) blocks present in D-989 section.
+
+**D-448(a) source-attestation gate** (literal shell; verifies this burst-log's Block 2 summary faithfully describes the story v1.32 Changelog entry's characterization of the fix, D-449(a)):
+
+```
+$ cd /Users/zious/Documents/GITHUB/vsdd-factory/.factory && grep -c 'PathBuf::push' stories/S-21.09-wasm-artifact-restore-and-registry-parity.md; grep -c 'c20cf2fe' stories/S-21.09-wasm-artifact-restore-and-registry-parity.md; grep -c 'PRESERVED' stories/S-21.09-wasm-artifact-restore-and-registry-parity.md
+4
+9
+2
+```
+
+PASS: `PathBuf::push` cited 4 times (Red Gate T-026 row, File Structure Requirements row, and Changelog v1.32 row — root cause described consistently at each site); `c20cf2fe` cited 9 times across current-state SHA sweeps (AC-006 Tests bullet, Mutation-Completeness Audit heading, Architecture Compliance Rules SURV-01 row, two Token Budget rows, frontmatter `version` cross-reference context) + Changelog v1.32 narrative; `PRESERVED` cited twice (Changelog v1.32's convergence-disposition sentence + this burst-log's own disposition paragraph) — Block 2's finding summary matches the persisted story's own characterization of the fix and its convergence disposition.
+
+**Block 6 (Dim-5): Closes**
+
+- `test_S_21_09_ac006_T026_absolute_form_excluded_from_declared` sub-test (b) windows-x64 panic — CLOSED, fixed in `c20cf2fe`
+- story v1.32 committed (Windows-portability fix + SHA sweep documented)
+- INDEX.md POST-RE-CONVERGENCE row appended + Convergence Status leading declaration updated
+- STORY-INDEX v4.316→v4.317 (S-21.09 row: story v1.32, impl `c20cf2fe`)
+- D-989 allocated
+- Two lessons appended to `lessons.md`
+- `feature/S-21.09` PUSHED to origin `c20cf2fe`; PR #775 HEAD advanced, CI re-running
+
+**Block 7 (Dim-6): Gate attestation**
+
+D-444(c) burst-log h2 heading `## D-989-S-21.09-POST-RE-CONVERGENCE-WINDOWS-PORTABILITY-CI-FIX-BURST` present. D-446(a) own-burst-log 8-block gate INVOKED via literal shell at Block 5 (count=8 required). D-448(a) source-attestation INVOKED via literal shell at Block 5 (`PathBuf::push`/`c20cf2fe`/`PRESERVED` counts confirmed against the persisted story). D-449(a) literal-shell-execution SELF-APPLICATION: POLICY 16 gate + D-446(a) gate + D-448(a) gate all use actual shell with verbatim stdout captured — no pseudocode.
+
+**Dim-7 Attestation:**
+
+- This burst is NOT a numbered LOCAL adversary pass — no trajectory entry added; trajectory (numbered passes only) remains `3→3→2→13→11→9→9→8→8→15→2→1→1→2→1→2→0→0→0→1→1→0→0→0` (tail `→1→0→0→0`), UNCHANGED
+- Streak: **3/3 — RE-CONVERGED (D-988), PRESERVED by this burst** — not reset, not re-earned; impl advanced `1c93f499`→`c20cf2fe` via a convergence-preserving portability fix
+- 4-INDEX: BC v4.56 (UNCHANGED) / VP v2.76 (UNCHANGED) / STORY **v4.317** / ARCH v3.55 (UNCHANGED)
+- Story v1.31→**v1.32**; impl HEAD `1c93f499`→**`c20cf2fe`**; 51 tests T-006..T-056 all green, UNCHANGED count; 45 S-21.09-owned plus 1 registry.rs unit test; 16 pts UNCHANGED
+- policies.yaml v1.4.23 UNCHANGED
+- `feature/S-21.09` @ `c20cf2fe`; **PUSHED** to origin (direct-orchestrator-push, human-authorized — github-ops delegate non-functional this session)
+- Cycle-level trajectory-tail (S-21.07) `→20→16→8→10` UNCHANGED — unrelated to this burst
+- **NEXT (human-gated): (1) PR #775 review refresh (pr-reviewer + code-reviewer) against `c20cf2fe`; (2) full CI green including windows-x64; (3) merge authorization (merge-order S-21.09 before frozen S-21.07).**
+
+### Block 8: factory-artifacts commit
+
+**factory-artifacts commits (this burst — TD-VSDD-053 single-commit-per-burst):**
+- Target: single commit pushed as `git push origin HEAD:factory-artifacts`
+- **Parent SHA (Block 8 cites parent per D-419(b)/D-444(c) convention):** `e541668e` — `state(sha-patch): D-988 commit b31de9e2 factory-artifacts SHA -- Active Branches + checkpoint updated`
+
+**Closes:** story v1.32 committed; INDEX.md POST-RE-CONVERGENCE row appended + Convergence Status leading declaration updated; STORY-INDEX v4.317 (S-21.09 row: story v1.32, impl `c20cf2fe`); two lessons appended to lessons.md; D-989 allocated; STATE.md advanced; **BC-5.39.001 LOCAL 3-CLEAN RE-CONVERGENCE (D-988) PRESERVED, streak 3/3, impl advanced to `c20cf2fe`** — `feature/S-21.09` PUSHED, PR #775 review refresh + full CI (incl. windows-x64) now the closing-path gate, human-gated

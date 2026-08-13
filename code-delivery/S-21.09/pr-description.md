@@ -2,11 +2,11 @@
 
 **Epic:** E-21 — Factory State Data-Loss Hardening
 **Mode:** feature (brownfield-backfill)
-**Convergence:** CONVERGED after 19 LOCAL adversarial passes (BC-5.39.001 true 3-CLEAN — passes 17/18/19 all CLEAN)
+**Convergence:** CONVERGED after 19 LOCAL adversarial passes (BC-5.39.001 true 3-CLEAN — passes 17/18/19 all CLEAN); RE-CONVERGED after PR-review findings under a strengthened vacuity/tautology/format-lock rubric (3 additional consecutive CLEAN passes 22/23/24) — see "Post-review convergence" below
 
-![Tests](https://img.shields.io/badge/tests-51%2F51-brightgreen)
+![Tests](https://img.shields.io/badge/tests-52%2F52-brightgreen)
 ![Mutation](https://img.shields.io/badge/mutation-exhaustively--hardened-green)
-![Convergence](https://img.shields.io/badge/adversarial--passes-19-blue)
+![Convergence](https://img.shields.io/badge/adversarial--passes-24-blue)
 
 Restores the `validate-factory-path-staging.wasm` artifact (git-tracked but never actually
 committed by S-21.01) and adds a permanent, exhaustive per-name declared↔tracked registry
@@ -119,7 +119,7 @@ flowchart LR
 | Metric | Value | Threshold | Status |
 |--------|-------|-----------|--------|
 | S-21.09-owned tests | 45/45 pass | 100% | PASS |
-| Total suite (T-006..T-056 + registry.rs unit) | 51/51 pass | 100% | PASS |
+| Total suite (51 gate tests T-006..T-056 in `bundle_orphan_check.rs` + 1 `registry.rs` unit test) | 52/52 pass | 100% | PASS |
 | `cargo fmt --check --all` | clean | clean | PASS |
 | `cargo clippy --workspace --all-targets -- -D warnings` | clean | clean | PASS |
 | `cargo test --workspace --all-targets` | clean | clean | PASS |
@@ -129,7 +129,7 @@ flowchart LR
 
 ```mermaid
 graph LR
-    Unit["51 Cargo tests<br/>(bundle_orphan_check.rs + registry.rs)"]
+    Unit["52 Cargo tests<br/>(51 in bundle_orphan_check.rs + 1 in registry.rs)"]
     Bats["36 bats tests<br/>(validate-factory-path-staging.bats)"]
     Adversarial["19 LOCAL adversary passes"]
     Demo["7/7 AC demo recordings"]
@@ -148,7 +148,7 @@ graph LR
 | Metric | Value |
 |--------|-------|
 | **New/modified tests** | T-006..T-056 in `bundle_orphan_check.rs` (45 S-21.09-owned) + 1 `registry.rs` unit test |
-| **Total suite** | 51 tests PASS in `bundle_orphan_check.rs`; 36 bats tests PASS in `validate-factory-path-staging.bats` |
+| **Total suite** | 51 tests PASS in `bundle_orphan_check.rs` + 1 unit test PASS in `registry.rs` = 52/52 PASS; 36 bats tests PASS in `validate-factory-path-staging.bats` |
 | **Mutation kill rate** | Every killable determinant independently isolated per D-977 audit; SURV-01 is a proven-un-isolatable accepted residual (documented, not silently dropped) |
 | **Regressions** | 0 |
 
@@ -171,8 +171,8 @@ graph LR
 
 | Metric | Value |
 |--------|-------|
-| Lines added (production) | 64 (`crates/factory-dispatcher/src/registry.rs`) |
-| Lines added (tests) | 5,135 (`bundle_orphan_check.rs`) |
+| Lines added (production) | 0 — the `registry.rs` hunk is a `#[cfg(test)]` unit test, not production logic |
+| Lines added (tests) | 5,135 (`bundle_orphan_check.rs`) + 64 (`registry.rs` `#[cfg(test)]` unit test) |
 | Lines added (fixtures) | 47 (dotslash/nospace registry fixtures) |
 | Uncovered paths | none — SURV-01 documented as proven-un-isolatable accepted residual, not an uncovered path |
 
@@ -223,6 +223,27 @@ human ruling SATISFIED. Full records: `adv-s21.09-local-pass-1..19.md` +
 - **Test added:** `T-051` — kills both `.all`-mutants while staying orthogonal to T-050.
 
 </details>
+
+### Post-review convergence (PR-level cascade, on top of the LOCAL 3-CLEAN above)
+
+The PR-review pass (pr-reviewer/code-reviewer, distinct from the 19-pass LOCAL adversarial
+cascade above) surfaced **8 test-quality findings** (2 tautological assertions, 3 vacuous
+assertions, 3 fixture/assertion-mismatch findings) plus a **format-lock gap** (files not
+covered by `cargo fmt --check --all` drift protection) against the pre-fix HEAD (`6ae075a6`).
+
+All 9 findings were fixed and empirically re-verified (mutation-killed, not just
+paper-fixed) across three commits:
+
+| Commit | Fix |
+|--------|-----|
+| `c9cccea9` | PR-review test-quality fixes F1–F8 (vacuous/tautological assertion hardening) |
+| `fc0e613b` | format-lock sweep |
+| `1c93f499` | format-lock completion |
+
+Under the strengthened vacuity/tautology/format-lock rubric applied post-review, the LOCAL
+cascade **RE-CONVERGED**: three additional consecutive CLEAN passes (22/23/24) on top of the
+original 17/18/19 streak — BC-5.39.001 3-CLEAN re-satisfied under the tightened rubric. PR
+HEAD is now `1c93f499`.
 
 ---
 
@@ -368,7 +389,7 @@ pipeline-stages:
 convergence-metrics:
   adversarial-passes: 19
   clean-streak: 3/3
-  test-pass-rate: 51/51 (100%)
+  test-pass-rate: 52/52 (100%)
 generated-at: "2026-08-12T00:00:00Z"
 ```
 

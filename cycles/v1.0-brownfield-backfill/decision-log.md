@@ -16906,3 +16906,71 @@ D-988-S-21.09-LOCAL-PASS-24-CLEAN-RECORD-TRUE-3-CLEAN-RE-CONVERGENCE
 2026-08-13
 
 ---
+
+## D-989 — D-989-S-21.09-POST-RE-CONVERGENCE-WINDOWS-PORTABILITY-CI-FIX-BURST
+
+**POLICY 16 ALLOCATOR-CEILING GATE** (pre-allocation, literal shell, D-449(a)):
+
+```
+$ cd /Users/zious/Documents/GITHUB/vsdd-factory/.factory && max_d=$({ grep -hE '^#{2,} D-[0-9]+' cycles/v1.0-brownfield-backfill/decision-log.md cycles/v1.0-feature-engine-discipline-pass-1/decision-log.md 2>/dev/null; grep -hE '^[|] *D-[0-9]+' cycles/v1.0-brownfield-backfill/decision-log.md cycles/v1.0-feature-engine-discipline-pass-1/decision-log.md 2>/dev/null; } | grep -oE 'D-[0-9]+' | sed 's/D-//' | sort -n | tail -1); [ "$max_d" -lt 9000 ] && printf 'PASS: global max D-%s < D-9000 ceiling\n' "$max_d" || printf 'FAIL: breach: max=D-%s\n' "$max_d"
+PASS: global max D-988 < D-9000 ceiling
+```
+
+D-989 allocated. **Parent-commit:** `e541668e` (factory-artifacts HEAD at burst start — the D-988 SHA-patch commit `state(sha-patch): D-988 commit b31de9e2 factory-artifacts SHA -- Active Branches + checkpoint updated`).
+
+**(a) POLICY 16 GATE PASS — D-989 allocated; parent-commit `e541668e`.** This burst records a POST-RE-CONVERGENCE fix: after the D-988 BC-5.39.001 TRUE 3-CLEAN RE-CONVERGENCE (verified at impl `1c93f499`), cross-platform CI (`build-dispatcher (windows-x64)`) on PR #775 surfaced a real Windows-only defect that the all-macOS LOCAL adversary cascade and the exhaustive mutation-completeness audit could not — a class of defect neither is positioned to catch. This is NOT a numbered LOCAL adversary pass and does NOT reset the BC-5.39.001 streak.
+
+**(b) CI failure: `test_S_21_09_ac006_T026_absolute_form_excluded_from_declared` panicked on windows-x64.** Sub-test (b) — the depth-matched absolute-path control that builds the `registry-depth.toml` fixture — constructed its `plugin = "..."` TOML value via `PathBuf::push` + `.to_str()`. `PathBuf::push` renders the OS-native path separator: `/` on macOS/Linux (where all 24 LOCAL passes and the mutation audit ran), `\` on Windows. A `\`-containing string interpolated unescaped into a TOML value is an invalid TOML escape sequence, so `Registry::parse_str` panicked parsing the fixture on windows-x64 — a defect class that is structurally invisible to any all-macOS review, however many passes or however exhaustive the mutation audit.
+
+**(c) Fix: forward-slash string concatenation, `c20cf2fe`.** test-writer rebuilt sub-fixture (b)'s path via explicit forward-slash string concatenation instead of `PathBuf::push` (registry paths are forward-slash by convention on all platforms, matching every other TOML-path-building site in the file). A full audit of all ~90 TOML-path-building sites in `bundle_orphan_check.rs` confirmed T-026(b) was the SOLE non-portable site — no sibling site required a matching fix. 51 tests green on macOS; `cargo fmt --check --all` / `cargo clippy --workspace --all-targets -- -D warnings` clean. Net file size 5,554→5,555 lines (9 insertion / 8 deletion diff).
+
+**(d) Convergence disposition: D-988 RE-CONVERGENCE PRESERVED, not reopened.** The D-988 3-CLEAN re-convergence (assertion-quality / mutation-completeness dimensions, independently re-verified three consecutive times at `1c93f499`) is UNCHANGED by this fix. `c20cf2fe` is a test-FIXTURE-CONSTRUCTION portability change with identical runtime semantics on macOS/Linux (sub-fixture (b) still classifies OUTSIDE via the prefix assertion, `refs_depth.is_empty()` unchanged) — no assertion changed, no logic changed, no mutation-control changed, no test-ID/count/range changed (still 51 tests T-006..T-056, 45 owned + 1 registry.rs unit test). Per the production-grade default (CLAUDE.md Canonical Principle), a fixture-construction fix with zero semantic delta on the platforms the streak was earned on does not consume or reset a 3-CLEAN streak earned on a materially different axis (assertion quality). **The BC-5.39.001 streak REMAINS 3/3 RE-CONVERGED (D-988), impl advanced `1c93f499`→`c20cf2fe`.** The final outstanding gate is the PR-level review refresh plus full CI (including windows-x64) now running on PR #775 at `c20cf2fe` — NOT a fourth LOCAL adversary pass.
+
+**(e) Operational note: direct-orchestrator push, github-ops delegate non-functional this session.** The four fix commits (`c9cccea9`/`fc0e613b`/`1c93f499`/`c20cf2fe`) were pushed to `origin/feature/S-21.09` directly by the orchestrator via `git push` (human-authorized), because the pr-manager→github-ops push delegate was non-functional in this session — it landed the first push hours ago, then failed every subsequent push attempt. PR #775 HEAD is now `c20cf2fe`; a fresh CI run (including the windows-x64 job with the portability fix in place) is in progress. This is an environment/process observation, not a defect in the S-21.09 deliverable — captured as a Drift Item and a lesson (see (g)).
+
+**(f) story-writer produced story v1.32.** Documents the Windows-portability fix and the SHA sweep `1c93f499`→`c20cf2fe` across the 5 current-state commit cites (AC-006 Tests bullet SHA line, Mutation-Completeness Audit subsection heading, Architecture Compliance Rules SURV-01 row, two Token Budget Estimate rows). Counts unchanged: 51 tests T-006..T-056 (45 owned + 1 registry.rs unit test); 16 points unchanged (portability fix within existing AC-006 scope, not new AC scope). New Changelog v1.32 row added. Historical SHA cites in earlier Changelog rows (v1.29/v1.30/v1.31 narrative prose) preserved as historical, not rewritten.
+
+**(g) Two lessons appended to `lessons.md`.** (i) `L-BB-cross-platform-ci-is-convergence-prerequisite-not-just-merge-prerequisite` [process-gap]: an all-macOS LOCAL adversary cascade plus an exhaustive mutation-completeness audit cannot catch platform-specific defects (OS-native path separators embedded in TOML fixtures break on Windows) — this defect class is structurally outside what either review method is positioned to observe; cross-platform CI is the only gate that can catch it. Fold a "would this fixture/path construction be valid on Windows?" check into test-writer discipline for any TOML/path-string fixture, and treat a green cross-platform CI run as a convergence prerequisite for streak-bearing claims, not merely a merge prerequisite that can trail behind. (ii) A Drift Item / operational note: the pr-manager→github-ops git-push delegate was non-functional this session; the orchestrator pushed directly with human authorization. Anchor: investigate github-ops push reliability (S-15.03 PRIORITY-A or a dedicated devops follow-up). Both anchored to S-15.03 PRIORITY-A.
+
+**(h) `feature/S-21.09` push status: PUSHED — origin `c20cf2fe`.** PR #775 HEAD now `c20cf2fe`; CI re-running (windows-x64 fix in place). Post-fix NEXT steps (human-gated, unchanged from D-988's §(j) items 2-4, now re-scoped to `c20cf2fe`): (1) PR #775 review refresh (pr-reviewer + code-reviewer) against `c20cf2fe` under the strengthened lens; (2) full CI green including windows-x64; (3) merge authorization (merge-order: S-21.09 lands before frozen `feature/S-21.07`).
+
+**(i) 4-INDEX: STORY only.** BC-INDEX v4.56 UNCHANGED. VP-INDEX v2.76 UNCHANGED. STORY-INDEX v4.316→v4.317 (S-21.09 catalog row: story v1.31→v1.32; impl SHA cite `1c93f499`→`c20cf2fe`; annotation updated to "LOCAL 3-CLEAN RE-CONVERGED (D-988, preserved); windows-x64 CI fix `c20cf2fe`; PR #775 updated, CI re-running; merge pending human auth"; POLICY 14 last_amended-parity leg applied). ARCH-INDEX v3.55 UNCHANGED. policies.yaml v1.4.23 UNCHANGED.
+
+**Closes:**
+- `test_S_21_09_ac006_T026_absolute_form_excluded_from_declared` sub-test (b) windows-x64 panic — CLOSED this burst, fixed in `c20cf2fe`.
+- story v1.32 committed (Windows-portability fix documented + SHA sweep) — CLOSED this burst.
+- INDEX.md POST-RE-CONVERGENCE row appended + Convergence Status leading declaration updated — CLOSED this burst.
+- STORY-INDEX v4.316→v4.317 (S-21.09 row: story v1.32, impl `c20cf2fe`) — CLOSED this burst.
+- Two lessons appended to `lessons.md` (cross-platform-CI-is-convergence-prerequisite; github-ops push-delegate operational note) — CLOSED this burst.
+- D-989 allocated — CLOSED this burst.
+
+**Remains OPEN (not this burst's scope):**
+- PR #775 review refresh against `c20cf2fe` — human-gated, NEXT.
+- Full CI green (including windows-x64) on `c20cf2fe` — in progress.
+- Merge authorization — human-gated, after review refresh + CI green (merge-order S-21.09 before frozen S-21.07).
+- github-ops push-delegate reliability investigation — anchored S-15.03 PRIORITY-A / dedicated devops follow-up.
+- ADV-BB-P10-MED-001, LOW-001, LOW-002, LOW-003 (pass-10 carry-overs) — UNCHANGED, anchor: next maintenance sweep / fix-burst prior to PR merge.
+- C-1/C-2/C-4/C-5 blocking security issues (D-972) — UNCHANGED, out of this burst's scope.
+- ADR-043 ratification — UNCHANGED, pending human decision.
+- S-21.12 cargo-deny blocker B1 — UNCHANGED, pending human decision.
+
+### Agents
+
+- state-manager (D-989): story v1.32 committed; `INDEX.md` POST-RE-CONVERGENCE row appended (S-21.09 LOCAL Adversary Reviews table) + Convergence Status leading declaration updated (prior D-988 declaration preserved as `[Prior state, superseded 2026-08-13 D-989]`); decision-log D-989 block appended (9 lettered sub-paragraphs (a)-(i)); burst-log D-989 8-block entry appended; lessons.md two lessons appended (cross-platform-CI-convergence-prerequisite [process-gap]; github-ops push-delegate Drift Item); STORY-INDEX v4.316→v4.317 (S-21.09 row: story v1.32, impl `c20cf2fe`); STATE.md advanced with the Windows-fix burst + refreshed Session Resume Checkpoint (streak 3/3 RE-CONVERGED preserved; impl HEAD `c20cf2fe`; PR #775 pushed, CI re-running).
+- test-writer (prior to this burst, same session): fixed the T-026(b) Windows-portability defect in `c20cf2fe` (forward-slash string concatenation replacing `PathBuf::push`); full ~90-site audit confirmed T-026(b) was the sole non-portable site; 51 green on macOS; fmt/clippy clean.
+- story-writer (prior to this burst, same session): produced story v1.32 documenting the fix and the SHA sweep.
+- orchestrator (prior to this burst, same session): pushed the 4 fix commits directly to `origin/feature/S-21.09` (human-authorized), because the pr-manager→github-ops push delegate was non-functional this session.
+
+### 4-INDEX
+
+BC-INDEX v4.56 (UNCHANGED) / VP-INDEX v2.76 (UNCHANGED) / STORY-INDEX v4.317 / ARCH-INDEX v3.55 (UNCHANGED)
+
+### Phase
+
+D-989-S-21.09-POST-RE-CONVERGENCE-WINDOWS-PORTABILITY-CI-FIX-BURST
+
+### Date
+
+2026-08-13
+
+---
