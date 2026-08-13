@@ -3158,8 +3158,8 @@ fn test_S_21_09_ac006_T030_wiring_control_both_check_calls_are_active() {
         assert!(
             result
                 .unwrap_err()
-                .contains("MISSING: hook-plugins/ctx.wasm"),
-            "T-030 phase B D-970 Codification 1: error must contain 'MISSING: hook-plugins/ctx.wasm'"
+                .contains("  MISSING: hook-plugins/ctx.wasm"),
+            "T-030 phase B D-970 Codification 1: error must contain '  MISSING: hook-plugins/ctx.wasm'"
         );
     }
 }
@@ -3637,8 +3637,8 @@ fn test_S_21_09_ac006_T036_gitignored_probe_not_force_added_fires_missing() {
 
     let err = result.unwrap_err();
     assert!(
-        err.contains("MISSING: hook-plugins/gitignored-probe.wasm"),
-        "T-036 M15 killer: error must contain 'MISSING: hook-plugins/gitignored-probe.wasm'; \
+        err.contains("  MISSING: hook-plugins/gitignored-probe.wasm"),
+        "T-036 M15 killer: error must contain '  MISSING: hook-plugins/gitignored-probe.wasm'; \
          got: {:?}",
         err
     );
@@ -3815,9 +3815,9 @@ fn test_S_21_09_ac006_T037_staged_not_committed_fires_staged_not_committed() {
 
     let err = result.unwrap_err();
     assert!(
-        err.contains("STAGED-NOT-COMMITTED: hook-plugins/staged-probe.wasm"),
+        err.contains("  STAGED-NOT-COMMITTED: hook-plugins/staged-probe.wasm"),
         "T-037 M18+M16 killer: error must contain \
-         'STAGED-NOT-COMMITTED: hook-plugins/staged-probe.wasm'; \
+         '  STAGED-NOT-COMMITTED: hook-plugins/staged-probe.wasm'; \
          M16 mutant would produce 'MISSING: hook-plugins/staged-probe.wasm' instead; \
          got: {:?}",
         err
@@ -3993,8 +3993,8 @@ fn test_S_21_09_ac006_T039_subdir_declared_vs_flat_committed_fires_missing() {
 
     let err = result.unwrap_err();
     assert!(
-        err.contains("MISSING: hook-plugins/sub/h00.wasm"),
-        "T-039 HIGH-1 probe: error must contain 'MISSING: hook-plugins/sub/h00.wasm'; \
+        err.contains("  MISSING: hook-plugins/sub/h00.wasm"),
+        "T-039 HIGH-1 probe: error must contain '  MISSING: hook-plugins/sub/h00.wasm'; \
          the full registry-parent-relative path must appear in the MISSING identifier; \
          got: {:?}",
         err
@@ -4062,9 +4062,9 @@ fn test_S_21_09_ac006_T040_ungated_declaration_in_resolvers_fires() {
 
     let err = result.unwrap_err();
     assert!(
-        err.contains("UNGATED-DECLARATION: other-dir/evil-resolver.wasm"),
+        err.contains("  UNGATED-DECLARATION: other-dir/evil-resolver.wasm"),
         "T-040 MEDIUM-1 resolvers arm: error must contain \
-         'UNGATED-DECLARATION: other-dir/evil-resolver.wasm'; got: {:?}",
+         '  UNGATED-DECLARATION: other-dir/evil-resolver.wasm'; got: {:?}",
         err
     );
 }
@@ -4188,9 +4188,9 @@ fn test_S_21_09_ac006_T042_case_variant_declared_fires_missing_against_lowercase
 
     // (b) MISSING must cite the verbatim declared path, not the lowercase form.
     assert!(
-        msg.contains("MISSING: Hook-Plugins/ghost-missing.wasm"),
+        msg.contains("  MISSING: Hook-Plugins/ghost-missing.wasm"),
         "T-042 pass-9.1: error message must contain \
-         'MISSING: Hook-Plugins/ghost-missing.wasm' (verbatim declared form); \
+         '  MISSING: Hook-Plugins/ghost-missing.wasm' (verbatim declared form); \
          mutation-proof: if to_ascii_lowercase() is re-introduced, declared becomes \
          'hook-plugins/ghost-missing.wasm' which IS in tracked → Ok → this assertion \
          is never reached; got: {}",
