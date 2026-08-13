@@ -72,3 +72,6 @@ All Tier A (5), Tier B.0 (1), Tier B.x (8), most Tier C (6 of 7), Tier D (1), pl
 | S-19.02 | #610 | f5ea12e9 | 2026-07-13 |
 | S-19.01 | #613 | 8d1721f7 | 2026-07-13 |
 | S-19.03 | #611 | 091ce499 | 2026-07-13 |
+| S-21.09 | #775 | 2e8087af | 2026-08-13 |
+
+> **Known gap (observed D-991, not remediated this burst):** this ledger has not been appended to between S-19.03 (2026-07-13) and S-21.09 (2026-08-13) — the S-19.04..S-21.08 merges recorded in STATE.md's "Merged (107→108)" running count and cited individually in decision-log.md are not yet backfilled as rows here. Out of scope for the D-991 post-merge burst (single-story scope); flagged for a dedicated maintenance-sweep pass.

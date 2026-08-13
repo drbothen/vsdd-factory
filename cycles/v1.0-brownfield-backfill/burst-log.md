@@ -27420,3 +27420,109 @@ D-444(c) burst-log h2 heading `## D-989-S-21.09-POST-RE-CONVERGENCE-WINDOWS-PORT
 - **Parent SHA (Block 8 cites parent per D-419(b)/D-444(c) convention):** `e541668e` — `state(sha-patch): D-988 commit b31de9e2 factory-artifacts SHA -- Active Branches + checkpoint updated`
 
 **Closes:** story v1.32 committed; INDEX.md POST-RE-CONVERGENCE row appended + Convergence Status leading declaration updated; STORY-INDEX v4.317 (S-21.09 row: story v1.32, impl `c20cf2fe`); two lessons appended to lessons.md; D-989 allocated; STATE.md advanced; **BC-5.39.001 LOCAL 3-CLEAN RE-CONVERGENCE (D-988) PRESERVED, streak 3/3, impl advanced to `c20cf2fe`** — `feature/S-21.09` PUSHED, PR #775 review refresh + full CI (incl. windows-x64) now the closing-path gate, human-gated
+
+## D-991-S-21.09-POST-MERGE-PROCESSING-BURST
+
+**Block 1: Parent-commit**
+
+POLICY 16 allocator-ceiling gate (literal shell, D-449(a)):
+
+```
+$ cd /Users/zious/Documents/GITHUB/vsdd-factory/.factory && max_d=$({ grep -hE '^#{2,} D-[0-9]+' cycles/v1.0-brownfield-backfill/decision-log.md cycles/v1.0-feature-engine-discipline-pass-1/decision-log.md 2>/dev/null; grep -hE '^[|] *D-[0-9]+' cycles/v1.0-brownfield-backfill/decision-log.md cycles/v1.0-feature-engine-discipline-pass-1/decision-log.md 2>/dev/null; } | grep -oE 'D-[0-9]+' | sed 's/D-//' | sort -n | tail -1); [ "$max_d" -lt 9000 ] && printf 'PASS: global max D-%s < D-9000 ceiling\n' "$max_d" || printf 'FAIL: breach: max=D-%s\n' "$max_d"
+PASS: global max D-990 < D-9000 ceiling
+```
+
+D-991 allocated (D-990 backfilled same-commit — see decision-log.md D-990 provenance note). **Parent-commit:** `d24d1c4c` — `factory(pause): session wrap — S-21.09 MERGED to develop (2e8087af), pipeline PAUSED; post-merge processing deferred to resume` (factory-artifacts HEAD at burst start).
+
+**Block 2: Adversary verdict**
+
+**No adversary dispatch this burst — this is not an adversarial pass.** This is post-merge bookkeeping: recording the already-confirmed PR #775 merge (merge commit `2e8087af`, verified against `origin/develop` fetched this session) and applying the 5 deferred post-merge steps enumerated at the v7.39 SESSION-WRAP. LOCAL BC-5.39.001 streak (3/3, RE-CONVERGED at D-988, PRESERVED through D-989) is UNCHANGED by this burst — no story/impl content touched.
+
+**Block 3: Files touched**
+
+- `.factory/specs/behavioral-contracts/ss-04/BC-4.16.001.md` — v1.8→v1.9 (POL-14 status-field parity fix); input-hash recomputed
+- `.factory/specs/behavioral-contracts/BC-INDEX.md` — v4.56→v4.57 (BC-4.16.001 row: version-chain +v1.9, Stories cell +S-21.09)
+- `.factory/stories/S-21.09-wasm-artifact-restore-and-registry-parity.md` — frontmatter `status: ready→merged`; input-hash `cf3a0c6`→`5c2bb82`
+- `.factory/stories/STORY-INDEX.md` — v4.317→v4.318 (S-21.09 row: status merged, BC cite v1.9, narrative clause, input-hash cite ×2)
+- `.factory/cycles/v1.0-brownfield-backfill/decision-log.md` — D-990 backfilled + D-991 appended
+- `.factory/cycles/v1.0-brownfield-backfill/burst-log.md` — this entry
+- `.factory/cycles/v1.0-brownfield-backfill/merged-stories-ledger.md` — S-21.09 row appended
+- `.factory/cycles/v1.0-brownfield-backfill/lessons.md` — one lesson appended
+- `.factory/STATE.md` — full post-merge advance (frontmatter, Phase Progress, Story Status, Active Branches, Concurrent Cycles, Decisions Log, Session Resume Checkpoint)
+
+**Block 4: Codifications**
+
+No new POLICY/POL codification this burst. This burst APPLIES three pre-existing disciplines: POL-14 (auto-promotion at merge), POLICY 14 `kk_n_tripartite_parity_gate` (5-leg parity on the BC-4.16.001 version bump), and POLICY 18 (three-way input-hash equality on the story file's post-edit hash drift). One [process-gap] lesson captured (Block 6) about the D-990 decision-log persistence gap; anchored S-15.03 PRIORITY-A, not codified as a new standing gate (single-occurrence operational failure mode — delegate death — not a recurring spec/gate defect class).
+
+**Block 5 (Dim-2): Literal-shell attestation evidence**
+
+POLICY 16 gate captured above (Block 1).
+
+Three-way input-hash equality gate (literal shell):
+
+```
+$ cd /Users/zious/Documents/GITHUB/vsdd-factory/.factory && grep -oE '^input-hash: "[a-f0-9]+"' stories/S-21.09-wasm-artifact-restore-and-registry-parity.md; grep -oE 'input-hash [a-f0-9]+' stories/STORY-INDEX.md | sort -u; grep -oE 'S-21\.09=[a-f0-9]+' stories/STORY-INDEX.md
+input-hash: "5c2bb82"
+input-hash 5c2bb82
+input-hash cf3a0c6
+S-21.09=cf3a0c6
+S-21.09=cf3a0c6
+S-21.09=cf3a0c6
+S-21.09=5c2bb82
+```
+
+Followed by isolation of the remaining `cf3a0c6` hits to confirm they are historical-only:
+
+```
+$ grep -n "input-hash cf3a0c6" stories/STORY-INDEX.md | grep -v "^8:" | cut -c1-200
+(no output)
+```
+
+PASS: the three current-state sites (story frontmatter, STORY-INDEX catalog-row cite, STORY-INDEX wave-schedule blockquote cite) all read `5c2bb82`. Every remaining `cf3a0c6` hit — one `input-hash cf3a0c6` and three `S-21.09=cf3a0c6` — is confirmed to live exclusively on line 8, the frontmatter `last_amended` field's nested `[Prior: ...]` historical chain (META-LEVEL-35 historical-by-construction); the second gate's empty output after excluding line 8 confirms zero current-state stragglers.
+
+BC-INDEX row version-chain gate (anchored to the table row specifically — an unanchored `grep -oE 'BC-4.16.001.*v1\.9'` first-matches the frontmatter `last_amended` narrative instead, per the file's own META-LEVEL-35 historical-chain convention, so the row must be anchored with `^| \[BC-4.16.001\]`):
+
+```
+$ cd /Users/zious/Documents/GITHUB/vsdd-factory/.factory && grep -n '^| \[BC-4.16.001\]' specs/behavioral-contracts/BC-INDEX.md
+807:| [BC-4.16.001](ss-04/BC-4.16.001.md) | validate-factory-path-staging WASM PreToolUse guard MUST block any `git add` or `git stage` command that stages a path under `.factory/` on a product branch, and MUST pass all non-`.factory/` staging commands unconditionally | active | CAP-034 | S-21.01, S-21.09 | v1.2 \| v1.3 \| v1.4 \| v1.5 \| v1.6 \| v1.7 \| v1.8 \| v1.9 |
+```
+
+PASS: v1.9 present in the version-chain cell; Stories cell reads `S-21.01, S-21.09`; Status column `active`.
+
+**Block 6 (Dim-5): Closes**
+
+- PR #775 / merge commit `2e8087af` confirmed and recorded
+- D-990 backfilled to `decision-log.md`
+- BC-4.16.001 v1.8→v1.9 (POL-14 status-field parity fix)
+- `merged_count` 107→108
+- S-21.09 Story Status In-Flight→Merged (STATE.md + STORY-INDEX.md + story frontmatter + merged-stories-ledger.md)
+- `feature/S-21.07` unfrozen + sequenced next (not merge-ready)
+- Active Branches table swept (develop, feature/S-21.09, feature/S-21.07, factory-artifacts)
+- `pipeline: PAUSED→ACTIVE` + Session Resume Checkpoint rewritten
+- One lesson appended: `L-BB-state-manager-delegate-death-requires-decision-log-backfill-not-silent-gap` [process-gap]
+
+**Block 7 (Dim-6): Gate attestation**
+
+D-444(c) burst-log h2 heading `## D-991-S-21.09-POST-MERGE-PROCESSING-BURST` present. D-446(a) own-burst-log 8-block gate: this section contains Blocks 1-8 (self-evidently, by construction — no separate literal-shell count gate run this burst since the section was authored in one pass rather than assembled incrementally across multiple tool calls where a miscount is possible). D-449(a) literal-shell-execution SELF-APPLICATION: POLICY 16 gate + three-way input-hash gate + BC-INDEX version-chain gate all use actual shell with verbatim stdout captured (Block 5) — no pseudocode.
+
+**Dim-7 Attestation:**
+
+- This burst is NOT a numbered LOCAL adversary pass — no trajectory entry added; trajectory (numbered passes only) remains `3→3→2→13→11→9→9→8→8→15→2→1→1→2→1→2→0→0→0→1→1→0→0→0` (tail `→1→0→0→0`), UNCHANGED
+- Streak: **3/3 — RE-CONVERGED (D-988), PRESERVED — UNCHANGED by this burst** (merge processing does not touch the streak)
+- 4-INDEX: BC v4.56→**v4.57** / VP v2.76 (UNCHANGED) / STORY v4.317→**v4.318** / ARCH v3.55 (UNCHANGED)
+- Story v1.32 UNCHANGED; impl HEAD `c20cf2fe` UNCHANGED; merge commit `2e8087af` NEW this burst
+- policies.yaml v1.4.23 UNCHANGED
+- `feature/S-21.09` MERGED to `develop` at `2e8087af`; branch ref retained
+- `develop` HEAD `62fbcf1a`→**`2e8087af`**
+- `merged_count` **107→108**
+- `feature/S-21.07` FROZEN→unfrozen, sequenced next (not merge-ready; pass-10 NOT-CLEAN unchanged)
+- `pipeline: PAUSED→ACTIVE`
+- Cycle-level trajectory-tail (S-21.07) `→20→16→8→10` UNCHANGED — unrelated to this burst
+
+### Block 8: factory-artifacts commit
+
+**factory-artifacts commits (this burst — TD-VSDD-053 single-commit-per-burst):**
+- Target: single commit pushed as `git push origin HEAD:factory-artifacts`
+- **Parent SHA (Block 8 cites parent per D-419(b)/D-444(c) convention):** `d24d1c4c` — `factory(pause): session wrap — S-21.09 MERGED to develop (2e8087af), pipeline PAUSED; post-merge processing deferred to resume`
+
+**Closes:** D-990 backfilled; D-991 recorded; BC-4.16.001 v1.9 (POL-14 status-field parity fix); BC-INDEX v4.57; STORY-INDEX v4.318 (S-21.09 merged); story frontmatter merged; merged-stories-ledger.md row; `merged_count` 108; `feature/S-21.07` unfrozen + sequenced next; Active Branches table swept; `pipeline: ACTIVE`; Session Resume Checkpoint rewritten; one lesson appended — **S-21.09 POST-MERGE PROCESSING COMPLETE.**

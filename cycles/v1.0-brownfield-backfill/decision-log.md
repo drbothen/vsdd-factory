@@ -16974,3 +16974,127 @@ D-989-S-21.09-POST-RE-CONVERGENCE-WINDOWS-PORTABILITY-CI-FIX-BURST
 2026-08-13
 
 ---
+
+## D-990 — D-990-S-21.09-MERGE-GATE-CLEARED (RETROACTIVE BACKFILL)
+
+**PROVENANCE NOTE (read first):** This decision was originally surfaced ONLY as STATE.md v7.38 narrative (`current_step` + `last_amended` text) during the 2026-08-13 session. The `vsdd-factory:state-manager` delegate died mid-burst — 3 consecutive API-connection-loss failures — before the D-990 `decision-log.md` entry, `burst-log.md` entry, and STATE.md Decisions Log table row could be persisted. The orchestrator finalized only a v7.39 SESSION-WRAP DIRECT-COMMIT capturing the actual subsequent PR merge and pausing the pipeline, folding the never-persisted v7.38 content into a `[Prior: ...]` clause rather than committing it standalone. This burst (D-991) backfills the missing D-990 `decision-log.md` entry from that v7.38 narrative, in the SAME commit as D-991 — this is a single-commit backfill, not a separate Stage-2 commit (TD-VSDD-053 compliant: one burst, one commit, the backfill is content within that one commit rather than a prior "Stage 1" commit being patched by a later "Stage 2" commit).
+
+**POLICY 16 ALLOCATOR-CEILING GATE** (literal shell, D-449(a)):
+
+```
+$ cd /Users/zious/Documents/GITHUB/vsdd-factory/.factory && max_d=$({ grep -hE '^#{2,} D-[0-9]+' cycles/v1.0-brownfield-backfill/decision-log.md cycles/v1.0-feature-engine-discipline-pass-1/decision-log.md 2>/dev/null; grep -hE '^[|] *D-[0-9]+' cycles/v1.0-brownfield-backfill/decision-log.md cycles/v1.0-feature-engine-discipline-pass-1/decision-log.md 2>/dev/null; } | grep -oE 'D-[0-9]+' | sed 's/D-//' | sort -n | tail -1); [ "$max_d" -lt 9000 ] && printf 'PASS: global max D-%s < D-9000 ceiling\n' "$max_d" || printf 'FAIL: breach: max=D-%s\n' "$max_d"
+PASS: global max D-989 < D-9000 ceiling
+```
+
+D-990 allocated (retroactively, matching the ID already surfaced to the human session in v7.38/v7.39 STATE.md narrative — preserving that ID rather than skipping it avoids a confusing renumbering of a decision the human already saw referenced by name).
+
+**(a) PR #775 MERGE GATE CLEARED at `c20cf2fe`.** `mergeable=MERGEABLE`, `mergeStateStatus=CLEAN`. CI fully green on `c20cf2fe`: 13 checks pass + 1 correctly-skipped (`release-branch-guardrail`); `build-dispatcher (windows-x64)` PASS (D-989 portability fix confirmed effective) plus all other platform builds, `bats-full-suite`, `cargo-host` (macos+ubuntu), SAST, validate, platforms-drift. security-reviewer: CLEAR — no findings; C-1 (CWE-706) explicitly non-implicated; sole production diff is one `#[cfg(test)]` unit test in `registry.rs`. pr-reviewer: APPROVE, merge-ready — verified against actual head `c20cf2fe`.
+
+**(b) LOCAL BC-5.39.001 streak 3/3 RE-CONVERGED (D-988), PRESERVED through D-989 — UNCHANGED by this decision.** No story/impl content change: story spec v1.32 UNCHANGED, impl `c20cf2fe` UNCHANGED, STORY-INDEX v4.317 UNCHANGED at the time this decision was made.
+
+**(c) Human decision: HOLD.** Human elected to merge PR #775 via the GitHub UI directly (not an in-session merge tool call).
+
+**(d) Blocking Issues transition.** `[D-989]` PR #775 review refresh + full CI green row CLOSED, archived to `cycles/v1.0-brownfield-backfill/blocking-issues-resolved.md`; superseded by `[D-990]` PR #775 MERGEABLE/CLEAN, awaiting human merge via GitHub UI, enumerating 4 PENDING POST-MERGE steps: (1) state-manager post-merge burst — POL-14 BC auto-promotion (`behavioral_contracts` draft→active) + `merged_count` increment 107→108; (2) worktree cleanup of `.worktrees/S-21.09`; (3) pull `develop` on next code-worktree resume; (4) unfreeze + sequence `feature/S-21.07` (merge-order S-21.09 first, now satisfied pending the human merge).
+
+**(e) 4-INDEX: none this decision (gate-clearance record only, no content bump).** BC-INDEX v4.56 UNCHANGED. VP-INDEX v2.76 UNCHANGED. STORY-INDEX v4.317 UNCHANGED. ARCH-INDEX v3.55 UNCHANGED.
+
+**Closes:**
+- PR #775 merge-gate verification (CI + security + pr-reviewer) — CLOSED this decision.
+- `[D-989]` Blocking Issue row — CLOSED, archived.
+
+**Remains OPEN (superseded by the actual merge, recorded at D-991):**
+- Human merge of PR #775 via GitHub UI — subsequently completed 2026-08-13T14:16:26Z, merge commit `2e8087af`; see D-991.
+- The 4 post-merge steps enumerated in (d) — completed at D-991.
+
+### Agents
+
+- state-manager (D-990, backfilled at D-991): PR #775 merge-gate verification recorded (CI green, security CLEAR, pr-reviewer APPROVE); Blocking Issues D-989→D-990 transition recorded.
+- human (2026-08-13, same session): elected external merge via GitHub UI (HOLD decision, sub-paragraph (c)).
+
+### 4-INDEX
+
+BC-INDEX v4.56 (UNCHANGED) / VP-INDEX v2.76 (UNCHANGED) / STORY-INDEX v4.317 (UNCHANGED) / ARCH-INDEX v3.55 (UNCHANGED)
+
+### Phase
+
+D-990-S-21.09-MERGE-GATE-CLEARED
+
+### Date
+
+2026-08-13
+
+---
+
+## D-991 — D-991-S-21.09-POST-MERGE-PROCESSING-BURST
+
+**POLICY 16 ALLOCATOR-CEILING GATE** (literal shell, D-449(a)):
+
+```
+$ cd /Users/zious/Documents/GITHUB/vsdd-factory/.factory && max_d=$({ grep -hE '^#{2,} D-[0-9]+' cycles/v1.0-brownfield-backfill/decision-log.md cycles/v1.0-feature-engine-discipline-pass-1/decision-log.md 2>/dev/null; grep -hE '^[|] *D-[0-9]+' cycles/v1.0-brownfield-backfill/decision-log.md cycles/v1.0-feature-engine-discipline-pass-1/decision-log.md 2>/dev/null; } | grep -oE 'D-[0-9]+' | sed 's/D-//' | sort -n | tail -1); [ "$max_d" -lt 9000 ] && printf 'PASS: global max D-%s < D-9000 ceiling\n' "$max_d" || printf 'FAIL: breach: max=D-%s\n' "$max_d"
+PASS: global max D-990 < D-9000 ceiling
+```
+
+D-991 allocated. **Parent-commit:** `d24d1c4c` (factory-artifacts HEAD at burst start — `factory(pause): session wrap — S-21.09 MERGED to develop (2e8087af), pipeline PAUSED; post-merge processing deferred to resume`).
+
+**(a) PR #775 confirmed MERGED.** `feature/S-21.09` → `develop`, merge commit `2e8087af0d27d0df679c050c4cb1ea64f663f12b`, 2026-08-13T14:16:26Z. `origin/develop` fetched this session and confirmed at `2e8087af`. `validate-factory-path-staging.wasm` is git-tracked on `develop` as of this merge — closing the `[P0] validate-factory-path-staging WASM guard inert since 2026-07-23` Blocking Issue's fix-story dependency. `.worktrees/S-21.09` already removed (devops-engineer, this session); `feature/S-21.09` branch ref retained per standard post-merge branch retention.
+
+**(b) D-990 backfilled into `decision-log.md` in this same commit** (see D-990 above and its provenance note) — closes the gap left by the state-manager delegate's mid-burst API-connection-loss deaths during the original session-wrap.
+
+**(c) POL-14 BC auto-promotion completion: BC-4.16.001 v1.8→v1.9.** The v1.8 burst (2026-07-23, S-21.01 PR #759 merge) promoted `lifecycle_status: draft→active` but left the sibling top-level `status:` frontmatter field at `draft` — a parity gap between the two status fields that persisted undetected for 21 days. This burst closes it: `status: draft→active`, matching `lifecycle_status: active` (UNCHANGED since v1.8). No behavioral/content change (Description/Preconditions/Postconditions/Invariants/Edge Cases/Canonical Test Vectors byte-identical to v1.8). BC-INDEX row already showed `active` in its Status column (reading from `lifecycle_status`) — file↔index now fully reconciled at both fields. BC-INDEX Stories cell `S-21.01`→`S-21.01, S-21.09` (S-21.09 is BC-4.16.001's second governing story; this was a pre-existing gap unrelated to the status-field drift, closed opportunistically same-burst since the row was already being touched). BC-INDEX v4.56→v4.57.
+
+**(d) `merged_count` 107→108.** STATE.md Identifier Conventions explicit counter incremented. `sprint-state.yaml` predicate count is tracked separately per canonical D-853 and is NOT touched by this leg (it is a derived/computed value, not a hand-maintained counter).
+
+**(e) Story status transition: S-21.09 In-Flight → Merged.** STATE.md Story Status section: In-Flight list now empty (S-21.09 was the sole entry); Merged count 107→108 with a new ledger row. STORY-INDEX.md: S-21.09 catalog row Status column `ready`→`merged`; BC cell annotation `[BC-4.16.001 v1.8]`→`[BC-4.16.001 v1.9]`; trailing narrative clause updated to reflect the actual merge (superseding the pre-merge "CI re-running; merge pending human auth" text). `merged-stories-ledger.md`: row appended (`S-21.09 | #775 | 2e8087af | 2026-08-13`). Story file frontmatter `status: ready`→`merged` (mechanical field flip, not a spec-content change — no story-writer dispatch required, consistent with the state-manager-direct-edit precedent already established for BC `lifecycle_status` promotions). Story file input-hash recomputed post-edit (`cf3a0c6`→`5c2bb82`, `compute-input-hash --update`); POLICY 18 three-way input-hash equality swept to current-state citations only: story frontmatter, STORY-INDEX catalog row, STORY-INDEX wave-schedule blockquote `Input-hashes:` line. Historical citations of `cf3a0c6` in `decision-log.md`, `burst-log.md`, `INDEX.md`, `adv-s21.09-local-pass-{9,22}.md`, and `session-checkpoints.md` are historical-by-construction (META-LEVEL-35) and were left UNCHANGED — those artifacts correctly document the input-hash value AT THE TIME each was written.
+
+**(f) `feature/S-21.07` unfrozen and sequenced next.** Its FREEZE condition was "MERGE-ORDER: S-21.09 first" — now satisfied. STATE.md updated to reflect `feature/S-21.07` as the next sequenced story for E-21 W4, NOT as merge-ready: it remains at pass-10 NOT-CLEAN (10 findings, D-967), branch `5370db80`, and requires its own adversarial correction cascade before convergence. Unfreezing removes the merge-order blocker; it does not change the branch's own convergence state.
+
+**(g) Active Branches table sweep.** `develop` row SHA `62fbcf1a`→`2e8087af` (PR #775 merge, annotation updated: "PR #775 merged 2026-08-13T14:16:26Z; validate-factory-path-staging.wasm git-tracked. Pull on next code-worktree resume."). `feature/S-21.09` row annotated MERGED (PR #775, `2e8087af`) — branch ref retained, not deleted. `factory-artifacts` row → this burst's commit SHA (SHA-patch follow-up after push, per standing convention). `feature/S-21.07` annotation updated: FROZEN condition lifted, "MERGE-ORDER: S-21.09 first" struck through as SATISFIED, story marked next-sequenced-not-merge-ready.
+
+**(h) Pipeline: `PAUSED`→`ACTIVE` (resuming).** Frontmatter `pipeline:`, `phase:`, `current_step:`, `timestamp:` all advanced. Project Metadata `Last Updated` + `Current Phase` cells reconciled to post-merge truth (the v7.39 SESSION-WRAP note flagged Phase / Active-Branches / §2 / §10 as still reading pre-merge in places — all four reconciled in this burst). Session Resume Checkpoint fully rewritten for post-merge, pipeline-ACTIVE state, current HEAD SHA cited (pending this commit's own SHA — SHA-patch follow-up standard).
+
+**(i) S-7.02 Cycle-Closing Checklist — confirmed, carry-overs preserved.** The S-21.09 LOCAL adversary sub-cycle closed at D-988 (TRUE 3-CLEAN RE-CONVERGENCE); D-989 preserved it through a convergence-preserving portability fix; this burst's merge does not reopen it. The 4 pass-10 carry-over findings (ADV-BB-P10-MED-001, LOW-001/002/003) remain OPEN and are explicitly NOT closed or dropped by the merge — they stay anchored to the next maintenance sweep / fix-burst, per their original anchoring at D-989 and earlier. No new unaddressed `[process-gap]` finding was identified during this post-merge burst that would require a new follow-up story beyond what is already tracked (the D-990 backfill gap itself is captured as a lesson, see (j)).
+
+**(j) One lesson appended to `lessons.md`.** `L-BB-state-manager-delegate-death-requires-decision-log-backfill-not-silent-gap` [process-gap]: when a state-manager delegate dies mid-burst (API-connection-loss or similar) after a decision has already been surfaced in STATE.md narrative (current_step / last_amended) but before the corresponding `decision-log.md` entry and `burst-log.md` 8-block entry are persisted, the next state-manager burst MUST backfill the missing entry (preserving the D-NNN ID already surfaced to the human) rather than silently skipping the ID or treating the STATE.md narrative as a sufficient historical record on its own. `decision-log.md` is the SoT per CLAUDE.md's Architectural Authority table; STATE.md narrative is a summary. A gap between the two is a defect, not an acceptable steady state. Anchored S-15.03 PRIORITY-A.
+
+**(k) 4-INDEX: BC + STORY.** BC-INDEX v4.56→**v4.57** (BC-4.16.001 row: v1.8→v1.9, Stories cell +S-21.09). VP-INDEX v2.76 UNCHANGED. STORY-INDEX v4.317→**v4.318** (S-21.09 row: status merged, BC cite v1.9, narrative clause updated). ARCH-INDEX v3.55 UNCHANGED. `policies.yaml` v1.4.23 UNCHANGED (no new policy — this burst applies existing POL-14 + POLICY 14 kk_n_tripartite_parity_gate + POLICY 18 three-way input-hash equality, all pre-existing).
+
+**Closes:**
+- D-990 backfilled to `decision-log.md` — CLOSED this burst.
+- PR #775 / merge commit `2e8087af` confirmed and recorded — CLOSED this burst.
+- BC-4.16.001 v1.8→v1.9 (POL-14 status-field parity fix) — CLOSED this burst.
+- `merged_count` 107→108 — CLOSED this burst.
+- S-21.09 Story Status In-Flight→Merged (STATE.md + STORY-INDEX.md + story frontmatter + merged-stories-ledger.md) — CLOSED this burst.
+- `feature/S-21.07` unfrozen + sequenced next (not merge-ready) — CLOSED this burst.
+- Active Branches table sweep (develop, feature/S-21.09, feature/S-21.07, factory-artifacts) — CLOSED this burst.
+- `pipeline: PAUSED→ACTIVE` + Session Resume Checkpoint rewrite — CLOSED this burst.
+- One lesson appended (`L-BB-state-manager-delegate-death-requires-decision-log-backfill-not-silent-gap`) — CLOSED this burst.
+- D-991 allocated — CLOSED this burst.
+
+**Remains OPEN (not this burst's scope):**
+- `feature/S-21.07` pass-10 NOT-CLEAN (10 findings, D-967) — its own adversarial correction cascade, UNCHANGED by this burst.
+- 4 pass-10 carry-over findings from the S-21.09 cascade (MED-001, LOW-001/002/003) — anchored to next maintenance sweep, UNCHANGED, NOT dropped.
+- C-1/C-2/C-4/C-5 blocking security issues (D-972) — UNCHANGED.
+- ADR-043 ratification — UNCHANGED, pending human decision.
+- S-21.12 cargo-deny blocker B1 — UNCHANGED, pending human decision.
+- github-ops push-delegate reliability investigation (D-989 lesson) — UNCHANGED, anchored S-15.03 PRIORITY-A.
+- POLICY 15 ATTESTATION-LOCATION GATE (F-S2107-P10-001) — dependency chain now S-21.09 (merged) → `feature/S-21.07` → wire CI job; S-21.09 leg of the dependency chain now satisfied, `feature/S-21.07` leg remains OPEN.
+
+### Agents
+
+- state-manager (D-991): D-990 backfilled to `decision-log.md`; PR #775 merge confirmed; BC-4.16.001 v1.9 (POL-14 status-field parity fix, file + BC-INDEX); `merged_count` 108; S-21.09 In-Flight→Merged (STATE.md + STORY-INDEX + story frontmatter + merged-stories-ledger.md); `feature/S-21.07` unfrozen + sequenced next; Active Branches table swept; `pipeline: ACTIVE`; Session Resume Checkpoint rewritten; one lesson appended; single atomic commit to `factory-artifacts` per TD-VSDD-053.
+- devops-engineer (prior to this burst, same session): removed `.worktrees/S-21.09`.
+- human (prior to this burst, same session): merged PR #775 via GitHub UI; ran `/wrap`.
+
+### 4-INDEX
+
+BC-INDEX **v4.57** / VP-INDEX v2.76 (UNCHANGED) / STORY-INDEX **v4.318** / ARCH-INDEX v3.55 (UNCHANGED)
+
+### Phase
+
+D-991-S-21.09-POST-MERGE-PROCESSING-BURST
+
+### Date
+
+2026-08-13
+
+---
