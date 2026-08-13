@@ -26892,3 +26892,112 @@ D-444(c) burst-log h2 heading `## D-984-S-21.09-LOCAL-PASS-20-NOT-CLEAN-RECORD-A
 - **Parent SHA (Block 8 cites parent per D-419(b)/D-444(c) convention):** `d0dd8002` — `state(sha-patch): D-983 commit 25ee25b0 factory-artifacts SHA — Active Branches + checkpoint updated`
 
 **Closes:** `adv-s21.09-local-pass-20.md` persisted (NOT-CLEAN, 1 MEDIUM); INDEX.md S-21.09 LOCAL section extended (pass-20 row) + Convergence Status updated; F-S2109-LOCAL-FMTLOCK-01 FIXED in `fc0e613b`, empirically re-verified; story v1.30 committed; STORY-INDEX v4.312 (S-21.09 annotation: pass-20 CLOSED, streak 0/3, pass-21 NEXT); 1 L-BB format-lock-sweep lesson appended, anchored S-15.03 PRIORITY-A; D-984 allocated; STATE.md advanced; LOCAL adversary pass-21 (strengthened rubric) recorded NEXT
+
+---
+
+## D-985-S-21.09-LOCAL-PASS-21-NOT-CLEAN-RECORD-AND-FORMAT-LOCK-COMPLETION-FIX-BURST
+
+**Block 1: Parent-commit**
+
+POLICY 16 allocator-ceiling gate (literal shell, D-449(a)):
+
+```
+$ cd /Users/zious/Documents/GITHUB/vsdd-factory/.factory && max_d=$({ grep -hE '^#{2,} D-[0-9]+' cycles/v1.0-brownfield-backfill/decision-log.md cycles/v1.0-feature-engine-discipline-pass-1/decision-log.md 2>/dev/null; grep -hE '^[|] *D-[0-9]+' cycles/v1.0-brownfield-backfill/decision-log.md cycles/v1.0-feature-engine-discipline-pass-1/decision-log.md 2>/dev/null; } | grep -oE 'D-[0-9]+' | sed 's/D-//' | sort -n | tail -1); [ "$max_d" -lt 9000 ] && printf 'PASS: global max D-%s < D-9000 ceiling\n' "$max_d" || printf 'FAIL: breach: max=D-%s\n' "$max_d"
+PASS: global max D-984 < D-9000 ceiling
+```
+
+D-985 allocated. **Parent-commit:** `8a326277` — `state(sha-patch): D-984 commit 22611467 factory-artifacts SHA — Active Branches + checkpoint updated` (factory-artifacts HEAD at burst start — the D-984 SHA-patch commit).
+
+**Block 2: Adversary verdict**
+
+LOCAL adversary pass-21 — the SECOND pass dispatched under the strengthened rubric (vacuity/tautology/mutation-narrative-accuracy/format-lock checks per `L-BB-pr775-convergence-retraction-rubric-gap`, D-983). Fresh-context review of story v1.30 against impl `fc0e613b` (`crates/factory-dispatcher/tests/bundle_orphan_check.rs`, 51 tests T-006..T-056 + registry.rs unit test). **Verdict: NOT CLEAN — 1 LOW (`F-S2109-P21-001`), 0 BLOCKER/HIGH/MEDIUM/NIT.**
+
+The finding: pass-20's own format-lock sweep (`fc0e613b`) — which tightened positive-identifier `.contains()` needles to the two-space-indented production form across 12 named sites — was itself incomplete. 4 more consumer assertions sharing the identical indented production format strings (T-030 phase B, T-037, T-039, T-040) were left unindented; T-038's own comment names this a "sibling gap." Impact is honestly NIL — each affected format is already redundantly locked by a swept sibling (T-015/T-021/T-038), so no mutant escapes; a consistency gap, not a coverage hole. The adversary independently confirmed everything else clean: no vacuous/tautological assertions, tight `should_panic` substrings, all F1-F8 findings plus pass-20's format-locks genuinely closed.
+
+**LOCAL BC-5.39.001 streak REMAINS 0/3** (second consecutive NOT-CLEAN verdict under the strengthened rubric; streak was already 0/3, this pass does not further regress it).
+
+All findings **FIXED** in test-writer commit `1c93f499` on `feature/S-21.09` (parent `fc0e613b`) — a completeness-grep-driven format-lock sweep tightening the 4 named needles plus **2 more** (T-036, T-042) caught by the fix burst's own mandatory completeness grep (checking every `.contains()` needle against its indented production format string and asserting zero unindented positive needles remain), 6 total, each empirically mutation-verified per TD-VSDD-059. Suite unchanged: 51 tests T-006..T-056 (45 owned + 1 registry test), no IDs added/removed; `cargo fmt`/`clippy`/`cargo test --workspace --all-targets` all clean. story-writer story v1.30→v1.31 documents the 6-test completion sweep plus the Mutation-Completeness Audit section; SHA cite sweep `fc0e613b`→`1c93f499`; counts unchanged.
+
+**Block 3: Files touched**
+
+- `stories/S-21.09-wasm-artifact-restore-and-registry-parity.md` — v1.30→v1.31 (story-writer, committed by this burst); documents the 6-test format-lock completion sweep (T-030/T-036/T-037/T-039/T-040/T-042) + Mutation-Completeness Audit update; SHA cite sweep `fc0e613b`→`1c93f499`
+- `stories/STORY-INDEX.md` — v4.312→v4.313; S-21.09 catalog row: story v1.30→v1.31; impl SHA cite `fc0e613b`→`1c93f499`; annotation streak-note updated (pass-21 NOT-CLEAN/CLOSED D-985, streak REMAINS 0/3, pass-22 NEXT); 16 pts UNCHANGED; POLICY 14 last_amended-parity leg applied
+- `cycles/v1.0-brownfield-backfill/adv-s21.09-local-pass-21.md` — CREATED; NOT-CLEAN, 1 LOW (F-S2109-P21-001), verbatim adversary review persisted (finding ID `F-S2109-LOCAL-P?-001` placeholder replaced with allocated `F-S2109-P21-001` per this burst's allocation)
+- `cycles/v1.0-brownfield-backfill/INDEX.md` — S-21.09 LOCAL Adversary Reviews section extended (new pass-21 row); Convergence Status paragraph's leading declaration REPLACED with the pass-21/second-strengthened-rubric record; prior pass-20 narrative preserved verbatim as `[Prior state, superseded 2026-08-13 D-985]`
+- `cycles/v1.0-brownfield-backfill/decision-log.md` — D-985 block appended (10 lettered sub-paragraphs (a)-(j) + Closes/Remains-OPEN/Agents/4-INDEX/Phase/Date)
+- `cycles/v1.0-brownfield-backfill/lessons.md` — `L-BB-sweep-completeness-requires-mechanical-grep-not-manual-enumeration` appended (`[process-gap]`, anchored S-15.03 PRIORITY-A)
+- `cycles/v1.0-brownfield-backfill/burst-log.md` — D-985 8-block entry appended (this file)
+- `STATE.md` — advanced; Session Resume Checkpoint refreshed (streak REMAINS 0/3, note pass-21 finding+fix; impl HEAD `1c93f499`; story v1.31; §3 pass-22 NEXT under strengthened rubric)
+
+**Code-side change this burst:** `feature/S-21.09` remains at `1c93f499` (test-writer commit, pre-existing in this session prior to this state-manager dispatch — this burst is the record/commit of that fix, not the fix itself). NOT PUSHED.
+
+**Block 4: Codifications**
+
+- **No new policies.yaml changes.** This burst records a LOCAL adversary pass and its same-burst fix; no new policy amendment required.
+- **Sweep-completeness precedent established**: the third instance (after D-983's vacuity/tautology/narrative-accuracy codification and D-984's format-lock sibling-sweep codification) of the strengthened rubric directly catching a defect class it was designed to catch — and, notably, this pass caught the PRIOR pass's own fix-completeness gap, one level deeper than a first-order sibling-sweep miss.
+- **Mechanical-completeness-grep remedy codified in decision-log D-985(h) + `L-BB-sweep-completeness-requires-mechanical-grep-not-manual-enumeration`**: any "sweep all sites of pattern X" fix must close with a grep enumerating ALL of X and asserting zero remain, in the SAME burst as the sweep — not manual enumeration by either the triggering finding or the fix, anchored S-15.03 PRIORITY-A.
+
+**Block 5 (Dim-2): Literal-shell attestation evidence**
+
+**POLICY 16 gate** (captured above — Block 1).
+
+**`adv-s21.09-local-pass-21.md` input-hash** (`compute-input-hash`, literal shell):
+
+```
+$ ./plugins/vsdd-factory/bin/compute-input-hash .factory/cycles/v1.0-brownfield-backfill/adv-s21.09-local-pass-21.md --update
+d8e69cf
+compute-input-hash: updated /Users/zious/Documents/GITHUB/vsdd-factory/.factory/cycles/v1.0-brownfield-backfill/adv-s21.09-local-pass-21.md input-hash → d8e69cf
+```
+
+**D-446(a) own-burst-log 8-block gate** (literal shell per D-449(a)):
+
+```
+$ cd /Users/zious/Documents/GITHUB/vsdd-factory/.factory && awk '/^## D-985-S-21.09-LOCAL-PASS-21/{found=1} found && /^## D-[0-9]/{if(!/D-985-S-21.09-LOCAL-PASS-21/)exit} found{print}' cycles/v1.0-brownfield-backfill/burst-log.md | grep -cE "^\*\*Block [2-8]|^### Block 8|^## D-985"
+8
+```
+
+PASS: count=8 ≥ 8 required D-444(c) blocks present in D-985 section.
+
+**D-448(a) source-attestation gate** (literal shell; verifies this burst-log's Block 2 finding summary faithfully describes `adv-s21.09-local-pass-21.md`'s finding set, D-449(a)):
+
+```
+$ cd /Users/zious/Documents/GITHUB/vsdd-factory/.factory && grep -c '^### F-S2109-P21-001' cycles/v1.0-brownfield-backfill/adv-s21.09-local-pass-21.md; grep -c '^## Verdict' cycles/v1.0-brownfield-backfill/adv-s21.09-local-pass-21.md; grep -c 'NOT-CLEAN' cycles/v1.0-brownfield-backfill/adv-s21.09-local-pass-21.md
+1
+1
+1
+```
+
+PASS: F-S2109-P21-001 finding heading, the Verdict heading, and the "NOT-CLEAN" verdict string each present exactly once in the persisted review file, matching Block 2's finding summary (1 LOW, NOT CLEAN).
+
+**Block 6 (Dim-5): Closes**
+
+- `adv-s21.09-local-pass-21.md` persisted (NOT-CLEAN, 1 LOW; streak REMAINS 0/3; 21 passes total)
+- INDEX.md S-21.09 LOCAL Adversary Reviews section extended + Convergence Status paragraph updated with pass-21 record
+- F-S2109-P21-001 FIXED in `1c93f499`, empirically re-verified
+- STORY-INDEX v4.312→v4.313 (S-21.09 annotation: pass-21 NOT-CLEAN/CLOSED, streak 0/3, pass-22 NEXT)
+- D-985 allocated
+- `L-BB-sweep-completeness-requires-mechanical-grep-not-manual-enumeration` appended, anchored S-15.03 PRIORITY-A
+- 4 pass-10 carry-over findings (MED-001, LOW-001/002/003) remain OPEN — anchor: next maintenance sweep / fix-burst prior to PR merge
+
+**Block 7 (Dim-6): Gate attestation**
+
+D-444(c) burst-log h2 heading `## D-985-S-21.09-LOCAL-PASS-21-NOT-CLEAN-RECORD-AND-FORMAT-LOCK-COMPLETION-FIX-BURST` present. D-446(a) own-burst-log 8-block gate INVOKED via literal shell at Block 5 (count=8 required). D-448(a) source-attestation INVOKED via literal shell at Block 5 (F-S2109-P21-001 heading + Verdict heading + NOT-CLEAN string each confirmed exactly once in the persisted review file). D-449(a) literal-shell-execution SELF-APPLICATION: POLICY 16 gate + compute-input-hash + D-446(a) gate + D-448(a) gate all use actual shell with verbatim stdout captured — no pseudocode. META-LEVEL-24 self-application confirmed.
+
+**Dim-7 Attestation:**
+
+- Trajectory (S-21.09 LOCAL cascade, numbered adversary passes only): `3→3→2→13→11→9→9→8→8→15→2→1→1→2→1→2→0→0→0→1→1` (tail per D-433(e)+D-439(c) form: `→0→0→1→1`) — pass-21 extends the trajectory with 1 finding
+- Streak: **0/3 — REMAINS OPEN** (pass-21 is the second NOT-CLEAN verdict recorded under the strengthened rubric; streak was already 0/3 post-pass-20, this pass does not further regress it)
+- 4-INDEX: BC v4.56 (UNCHANGED) / VP v2.76 (UNCHANGED) / STORY **v4.313** / ARCH v3.55 (UNCHANGED)
+- Story v1.31 (was v1.30); impl HEAD `1c93f499` (was `fc0e613b`); 51 tests T-006..T-056 all green, UNCHANGED count; 45 S-21.09-owned plus 1 registry.rs unit test; 16 pts UNCHANGED
+- policies.yaml v1.4.23 UNCHANGED
+- `feature/S-21.09` @ `1c93f499`; NOT PUSHED
+- Cycle-level trajectory-tail (S-21.07) `→20→16→8→10` UNCHANGED — unrelated to this LOCAL-cascade pass
+- **NEXT: LOCAL adversary pass-22, fresh-context, dispatched against `1c93f499`/story v1.31, under the STRENGTHENED rubric.**
+
+### Block 8: factory-artifacts commit
+
+**factory-artifacts commits (this burst — TD-VSDD-053 single-commit-per-burst):**
+- Target: single commit pushed as `git push origin HEAD:factory-artifacts`
+- **Parent SHA (Block 8 cites parent per D-419(b)/D-444(c) convention):** `8a326277` — `state(sha-patch): D-984 commit 22611467 factory-artifacts SHA — Active Branches + checkpoint updated`
+
+**Closes:** `adv-s21.09-local-pass-21.md` persisted (NOT-CLEAN, 1 LOW); INDEX.md S-21.09 LOCAL section extended (pass-21 row) + Convergence Status updated; F-S2109-P21-001 FIXED in `1c93f499`, empirically re-verified; story v1.31 committed; STORY-INDEX v4.313 (S-21.09 annotation: pass-21 CLOSED, streak 0/3, pass-22 NEXT); 1 L-BB sweep-completeness lesson appended, anchored S-15.03 PRIORITY-A; D-985 allocated; STATE.md advanced; LOCAL adversary pass-22 (strengthened rubric) recorded NEXT

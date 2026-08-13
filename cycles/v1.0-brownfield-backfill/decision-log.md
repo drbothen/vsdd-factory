@@ -16620,3 +16620,72 @@ D-984-S-21.09-LOCAL-PASS-20-NOT-CLEAN-RECORD-AND-FORMAT-LOCK-FIX-BURST
 2026-08-13
 
 ---
+
+## D-985 — D-985-S-21.09-LOCAL-PASS-21-NOT-CLEAN-RECORD-AND-FORMAT-LOCK-COMPLETION-FIX-BURST
+
+**POLICY 16 ALLOCATOR-CEILING GATE** (pre-allocation, literal shell, D-449(a)):
+
+```
+$ cd /Users/zious/Documents/GITHUB/vsdd-factory/.factory && max_d=$({ grep -hE '^#{2,} D-[0-9]+' cycles/v1.0-brownfield-backfill/decision-log.md cycles/v1.0-feature-engine-discipline-pass-1/decision-log.md 2>/dev/null; grep -hE '^[|] *D-[0-9]+' cycles/v1.0-brownfield-backfill/decision-log.md cycles/v1.0-feature-engine-discipline-pass-1/decision-log.md 2>/dev/null; } | grep -oE 'D-[0-9]+' | sed 's/D-//' | sort -n | tail -1); [ "$max_d" -lt 9000 ] && printf 'PASS: global max D-%s < D-9000 ceiling\n' "$max_d" || printf 'FAIL: breach: max=D-%s\n' "$max_d"
+PASS: global max D-984 < D-9000 ceiling
+```
+
+D-985 allocated. **Parent-commit:** `8a326277` (factory-artifacts HEAD at burst start — the D-984 SHA-patch commit `state(sha-patch): D-984 commit 22611467 factory-artifacts SHA — Active Branches + checkpoint updated`).
+
+**(a) POLICY 16 GATE PASS — D-985 allocated; parent-commit `8a326277`.** This burst records LOCAL adversary pass-21 — the SECOND pass dispatched under the strengthened rubric (vacuity/tautology/mutation-narrative-accuracy/format-lock checks) codified by D-983's `L-BB-pr775-convergence-retraction-rubric-gap` — plus the same-burst format-lock-completion fix that closes its single finding.
+
+**(b) Pass-21 verdict: NOT CLEAN.** 1 LOW (`F-S2109-P21-001`), 0 BLOCKER/HIGH/MEDIUM/NIT. Fresh-context review of story v1.30 against impl `fc0e613b`, dispatched under the strengthened rubric for the second time. The adversary independently re-confirmed everything else clean — no vacuous or tautological assertions, tight `should_panic` substrings, all F1-F8 findings plus pass-20's format-locks genuinely closed.
+
+**(c) The one genuine finding: pass-20's own format-lock sibling-sweep was itself incomplete.** Pass-20's fix burst (`fc0e613b`) tightened positive-identifier `.contains()` needles to the two-space-indented production form across 12 named sites, on the stated principle that an unindented needle can never catch an indent-dropping mutation on an indented production line. That same principle applies verbatim to 4 more consumer assertions the pass-20 sweep did not touch: T-030 phase B (`"MISSING: hook-plugins/ctx.wasm"`), T-037 (`"STAGED-NOT-COMMITTED: hook-plugins/staged-probe.wasm"`), T-039 (`"MISSING: hook-plugins/sub/h00.wasm"`), and T-040 (`"UNGATED-DECLARATION: other-dir/evil-resolver.wasm"`) — all unindented needles against the identical indented production format strings. T-038's own comment names this a "sibling gap." Impact is honestly NIL: each affected format is already redundantly locked by a swept sibling (`"  MISSING:"` by T-015, `"  STAGED-NOT-COMMITTED:"` by T-021, `"  UNGATED-DECLARATION:"`/`"  {ungated}"` by T-038), so no mutant escapes; this is a documented-hardening-sweep consistency gap, not a coverage hole. The adversary explicitly declined to adjudicate whether the 4 sites were deliberately left redundant or simply missed, surfacing the difference rather than suppressing it per the intent-adjudication rule.
+
+**(d) Fix burst — same-commit completeness-grep-driven sweep, 6 sites closed (2 beyond the adversary's 4).** test-writer commit `1c93f499` on `feature/S-21.09` (parent `fc0e613b`, NOT pushed): tightens the 4 adversary-named needles (T-030 phase B, T-037, T-039, T-040) to the two-space-indented form. Per the fix burst's OWN mandatory completeness grep (run to verify zero unindented positive needles remain against indented emitters — the exact discipline the pass-20 sweep should have applied but did not), 2 MORE sibling sites were caught that the adversary's fresh-context pass did not individually name: T-036 and T-042. All 6 needles tightened in one pass. The completeness grep now confirms **ZERO unindented positive needles remain against indented emitters** — only intentional `!contains` negative-identifier sites remain unindented, which is correct (a negative assertion should not carry the exact indented form, or it would fail to distinguish "absent" from "present-but-differently-formatted"). Each of the 6 indent-drop mutations was empirically re-verified RED (indent-drop mutation applied locally → T-015/T-030/T-036/T-039/T-042 alone go RED for MISSING; T-038/T-040/T-043-T-047/T-050/T-051 alone go RED for the ungated wrapper; mutation reverted), per TD-VSDD-059. Assertion-tightening only — no production/test-logic/fixture change. **Suite unchanged: 51 tests T-006..T-056** (45 S-21.09-owned + 1 registry.rs unit test, no IDs added/removed); `cargo fmt --check --all`/`cargo clippy --workspace --all-targets -- -D warnings`/`cargo test --workspace --all-targets` all clean at `feature/S-21.09` HEAD `1c93f499`.
+
+**(e) story-writer story v1.31.** Documents the 6-test completion sweep across the affected Red-Gate rows plus the Mutation-Completeness Audit section, recording that the completeness grep is now the authoritative closure evidence for the format-lock class (rather than manual site enumeration); SHA cite sweep `fc0e613b`→`1c93f499` across current-state sites; counts (51 tests, 45 owned + 1 registry, 16 pts) UNCHANGED.
+
+**(f) `INDEX.md` S-21.09 LOCAL Adversary Reviews section extended.** New pass-21 row appended after the pass-20 row (NOT-CLEAN, 0B/0H/0M/1L). Convergence Status paragraph's leading declaration REPLACED with the pass-21/second-strengthened-rubric-pass record; the prior pass-20 narrative is preserved verbatim as `[Prior state, superseded 2026-08-13 D-985]`.
+
+**(g) Streak REMAINS 0/3 — pass-22 (strengthened rubric) is NEXT.** Pass-21 does not advance the streak per BC-5.39.001 3-CLEAN (any finding resets/holds at 0/3). This is the second consecutive NOT-CLEAN verdict recorded under the strengthened rubric — again genuinely useful evidence: the strengthened rubric's format-lock check caught not just the original sibling gap (pass-20) but the INCOMPLETENESS of that gap's own fix (pass-21), demonstrating that a sweep claimed complete must itself be verified by mechanical completeness tooling, not narrative self-attestation.
+
+**(h) Lesson codified.** `L-BB-sweep-completeness-requires-mechanical-grep-not-manual-enumeration` (this burst) — `[process-gap]`, anchored S-15.03 PRIORITY-A: a sweep class ("close every site of pattern X") must be closed by a MECHANICAL completeness grep enumerating ALL instances of X and asserting zero remain, in the SAME burst as the sweep — not by manually enumerating the sites a finding happened to name. Pass-20's format-lock sweep manually enumerated sites and missed 6 sibling consumers (4 surfaced by pass-21's format-lock-fidelity check, plus 2 more caught only by pass-21's OWN fix-burst mandatory completeness grep — meaning even the adversary's fresh-context enumeration was incomplete relative to a mechanical grep). This is the third consecutive instance of the same general shape (`L-BB-exhaustive-mutation-audit-bounds-one-finding-per-pass-asymptote`, `L-BB-documentation-drift-asymptote-parallels-mutation-asymptote`, `L-BB-format-lock-sibling-sweep-must-cover-all-same-pattern-emitters`) now sharpened to a specific actionable rule: for any "sweep all sites of pattern X" fix, run a grep that enumerates ALL of X and assert zero remain, same-burst, rather than trusting manual enumeration (by either the finding or the fix).
+
+**(i) `feature/S-21.09` push status UNCHANGED — NOT PUSHED.** No push authorization implied; the cascade remains reopened pending true 3-CLEAN under the strengthened rubric.
+
+**(j) 4-INDEX: unchanged.** BC-INDEX v4.56 UNCHANGED. VP-INDEX v2.76 UNCHANGED. STORY-INDEX v4.312→v4.313 (S-21.09 catalog row: story v1.30→v1.31; impl SHA cite `fc0e613b`→`1c93f499`; annotation streak-note updated to reflect pass-21 NOT-CLEAN/CLOSED, pass-22 NEXT; 16 pts UNCHANGED; POLICY 14 last_amended-parity leg applied). ARCH-INDEX v3.55 UNCHANGED. policies.yaml v1.4.23 UNCHANGED.
+
+**Closes:**
+- `adv-s21.09-local-pass-21.md` persisted (NOT-CLEAN, 1 LOW) — CLOSED this burst.
+- F-S2109-P21-001 FIXED via completeness-grep-driven format-lock sweep (`1c93f499`, 6 sites), empirically re-verified — CLOSED this burst.
+- story-writer story v1.31 recorded (6-test completion documentation) — CLOSED this burst.
+- INDEX.md S-21.09 LOCAL Adversary Reviews section extended (pass-21 row) + Convergence Status updated — CLOSED this burst.
+- STORY-INDEX v4.312→v4.313 — CLOSED this burst.
+- `L-BB-sweep-completeness-requires-mechanical-grep-not-manual-enumeration` lesson appended, anchored S-15.03 PRIORITY-A — CLOSED this burst.
+
+**Remains OPEN (not this burst's scope):**
+- LOCAL adversary pass-22 (strengthened rubric) — NEXT, not yet dispatched. Streak 0/3.
+- ADV-BB-P10-MED-001, LOW-001, LOW-002, LOW-003 (pass-10 carry-overs) — UNCHANGED, anchor: next maintenance sweep / fix-burst prior to PR merge.
+- `feature/S-21.09` NOT PUSHED — UNCHANGED.
+- PR #775 review re-run + description off-by-one fix — anchor: after re-convergence.
+- C-1/C-2/C-4/C-5 blocking security issues (D-972) — UNCHANGED, out of this burst's scope.
+- ADR-043 ratification — UNCHANGED, pending human decision.
+- S-21.12 cargo-deny blocker B1 — UNCHANGED, pending human decision.
+
+### Agents
+
+- state-manager (D-985): `adv-s21.09-local-pass-21.md` persisted; `INDEX.md` S-21.09 LOCAL Adversary Reviews section extended (pass-21 row) + Convergence Status updated; decision-log D-985 block appended; burst-log D-985 8-block entry appended; lessons.md L-BB sweep-completeness lesson appended; STORY-INDEX v4.312→v4.313 (S-21.09 row: v1.30→v1.31, `fc0e613b`→`1c93f499`); story v1.31 committed (story-writer's uncommitted work, committed by this burst); STATE.md advanced with pass-21 NOT-CLEAN/CLOSED status + refreshed Session Resume Checkpoint (streak 0/3, pass-22 NEXT).
+- vsdd-factory:adversary (pass-21, prior to this burst, same session): fresh-context LOCAL adversary review under the strengthened (second) rubric pass — found 1 LOW (F-S2109-P21-001, pass-20's own format-lock sweep incomplete); independently re-confirmed everything else clean.
+- vsdd-factory:test-writer (prior to this burst, same session): commit `1c93f499` — completeness-grep-driven format-lock sweep tightening 6 needles (4 named + 2 caught by the mandatory grep); every fix empirically re-verified (mutation applied locally → target test(s) alone RED → reverted); suite unchanged 51 tests, fmt/clippy/workspace clean.
+- vsdd-factory:story-writer (prior to this burst, same session): authored story v1.31 — documented the 6-test completion sweep across Red-Gate rows + Mutation-Completeness Audit; SHA cite sweep `fc0e613b`→`1c93f499`; counts unchanged.
+
+### 4-INDEX
+
+BC-INDEX v4.56 (UNCHANGED) / VP-INDEX v2.76 (UNCHANGED) / STORY-INDEX v4.313 / ARCH-INDEX v3.55 (UNCHANGED)
+
+### Phase
+
+D-985-S-21.09-LOCAL-PASS-21-NOT-CLEAN-RECORD-AND-FORMAT-LOCK-COMPLETION-FIX-BURST
+
+### Date
+
+2026-08-13
+
+---
