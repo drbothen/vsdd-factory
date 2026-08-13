@@ -17724,3 +17724,42 @@ D-1001-S2107-PASS17-RECORD-ONLY-BURST
 2026-08-13
 
 ---
+
+## D-1002 — D-1002-STORY-INDEX-FRONTMATTER-VERSION-PARITY-CORRECTION
+
+**POLICY 16 ALLOCATOR-CEILING GATE** (pre-allocation, literal shell, D-449(a)):
+
+```
+$ max_d=$({ grep -hE '^#{2,} D-[0-9]+' cycles/v1.0-brownfield-backfill/decision-log.md cycles/v1.0-feature-engine-discipline-pass-1/decision-log.md 2>/dev/null; grep -hE '^[|] *D-[0-9]+' cycles/v1.0-brownfield-backfill/decision-log.md cycles/v1.0-feature-engine-discipline-pass-1/decision-log.md 2>/dev/null; } | grep -oE 'D-[0-9]+' | sed 's/D-//' | sort -n | tail -1); [ "$max_d" -lt 9000 ] && printf 'PASS: global max D-%s < D-9000 ceiling\n' "$max_d" || printf 'FAIL: breach: max=D-%s\n' "$max_d"
+PASS: global max D-1001 < D-9000 ceiling
+```
+
+D-1002 allocated (D-999 remains permanently skipped per D-1000 preamble; sequence continues D-1000, D-1001, D-1002). **Parent-commit:** `c3ef4b53` — `state(sha-patch): D-1001 commit c7fa6d93 factory-artifacts SHA -- Active Branches + checkpoint + decisions-log updated` (factory-artifacts HEAD at burst start; the D-1001 SHA-patch follow-up commit).
+
+**(a) Scope — micro-fix burst, NOT an adversary pass.** This burst is a state-manager bookkeeping discovery (per D-1001(h) routing), not the output of a dispatched `vsdd-factory:adversary` review, and it is not part of `S-21.07`'s deliverable. It exists solely to close **Drift Item `[D-1001]`**: `stories/STORY-INDEX.md`'s own top-level frontmatter `version:`/`last_amended:` fields were never bumped past `"4.321"`/D-998 by the D-1000 commit (`ddc07cf5`), even though that commit's body-content aggregation-hygiene corrections (L722/L763/L776/L777) landed correctly and every downstream artifact (STATE.md, this decision-log's own D-1000/D-1001 entries, burst-log.md, `cycles/v1.0-brownfield-backfill/INDEX.md`) has asserted `STORY-INDEX v4.322` as the D-1000-landed state ever since. The defect is purely a same-document frontmatter-vs-body version-parity gap (POLICY 8/17 class) — the body content itself was already correct; only the document's own version header lagged its own content.
+
+**(b) Fix.** `stories/STORY-INDEX.md` frontmatter `version:` bumped `"4.321"` → `"4.322"`. `last_amended:` narrative prepended with a new entry (POLICY 1 append-only — entire prior chain preserved, wrapped as `[Prior: ...]`) explaining: D-1000's body fixes landed but the frontmatter self-bump was omitted from that commit; this corrects the frontmatter to v4.322 to match the already-correct body content and every downstream cite; FRONTMATTER-ONLY — zero body content touched; Refs D-1000, D-1002; resolves Drift Item `[D-1001]`. **Zero body-content lines changed** — `git diff --stat stories/STORY-INDEX.md` shows exactly 2 insertions / 2 deletions (the `version:` line and the `last_amended:` line only), confirmed via literal-shell diff (Block 5 below).
+
+**(c) Verification — frontmatter now parity-matches every downstream cite.** Literal-shell grep confirms `stories/STORY-INDEX.md` frontmatter `version: "4.322"` agrees with STATE.md ("STORY v4.322" / "STORY-INDEX v4.322"), this decision-log.md (5 occurrences of `STORY-INDEX v4.322`), `cycles/v1.0-brownfield-backfill/burst-log.md` (2 occurrences), and `cycles/v1.0-brownfield-backfill/INDEX.md` (multiple occurrences in the D-1000/D-1001 Convergence Status narrative rows). See Block 5 for captured stdout.
+
+**(d) NOT a streak event.** This burst is a state-manager bookkeeping correction, not an adversary-pass finding closure — it does not touch `feature/S-21.07`'s branch, story spec, or any adversary-pass record. **BC-5.39.001 LOCAL streak for the S-21.07 cascade EXPLICITLY REMAINS 1/3 (UNCHANGED)** — this burst neither advances nor resets it. **pass-18 adversary dispatch remains the pending gate**, unaffected by this micro-fix.
+
+**(e) No gate-predicate or ratification-status change.** No `GateOutcome` semantics, POLICY 15 predicate, or ADR `status`/`ratified` field touched. `feature/S-21.07` SHA `96b4be19` UNCHANGED (no code-repo commit — unrelated branch). BC-INDEX v4.58 UNCHANGED; VP-INDEX v2.76 UNCHANGED; ARCH-INDEX v3.58 UNCHANGED; `policies.yaml` v1.4.24 UNCHANGED (no codification — this is a mechanical parity fix, not a process-gap lesson). **Drift Item `[D-1001]` RESOLVED.**
+
+### Agents
+
+- state-manager (D-1002): `stories/STORY-INDEX.md` frontmatter `version:`/`last_amended:` corrected 4.321→4.322 (frontmatter-only, POLICY 1 append-only wrap); decision-log.md D-1002 appended; burst-log.md 8-block entry appended; STATE.md advanced (Drift Item `[D-1001]` resolved, Blocking Issues row closed, streak explicitly UNCHANGED 1/3); single atomic commit to `factory-artifacts` per TD-VSDD-053; POLICY 16 gate run with literal shell captured stdout
+
+### 4-INDEX
+
+BC-INDEX v4.58 (UNCHANGED) / VP-INDEX v2.76 (UNCHANGED) / STORY-INDEX **v4.322** (frontmatter now parity-matches body content and all downstream cites) / ARCH-INDEX v3.58 (UNCHANGED)
+
+### Phase
+
+D-1002-STORY-INDEX-FRONTMATTER-VERSION-PARITY-CORRECTION
+
+### Date
+
+2026-08-14
+
+---

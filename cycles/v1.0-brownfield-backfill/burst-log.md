@@ -28445,3 +28445,93 @@ D-444(c) burst-log h2 heading `## D-1001-S2107-PASS17-RECORD-ONLY-BURST` present
 - **Parent SHA (Block 8 cites parent per D-419(b)/D-444(c) convention):** `e811cd15` — `state(sha-patch): D-1000 commit ddc07cf5 factory-artifacts SHA -- Active Branches + checkpoint + decisions-log updated`
 
 **Closes:** None (pass-17 CLEAN; nothing to close). **STREAK ADVANCES 0/3 → 1/3** — first fresh CLEAN since the pass-15 reset; 2 more CONSECUTIVE CLEAN passes required. O-P17-01/O-P17-02 tracked (STATE.md §8), not fixed. STORY-INDEX.md frontmatter-version drift discovered and logged as a new Drift Item, not fixed this burst. **S-21.07 PASS-17 RECORD-ONLY BURST COMPLETE; SHA-PATCH FOLLOW-UP NEXT; PASS-18 ADVERSARY DISPATCH AFTER THAT.**
+
+---
+
+## D-1002-STORY-INDEX-FRONTMATTER-VERSION-PARITY-CORRECTION
+
+**Block 1: Parent-commit**
+
+**POLICY 16 ALLOCATOR-CEILING GATE** (literal shell):
+
+```
+$ max_d=$({ grep -hE '^#{2,} D-[0-9]+' cycles/v1.0-brownfield-backfill/decision-log.md cycles/v1.0-feature-engine-discipline-pass-1/decision-log.md 2>/dev/null; grep -hE '^[|] *D-[0-9]+' cycles/v1.0-brownfield-backfill/decision-log.md cycles/v1.0-feature-engine-discipline-pass-1/decision-log.md 2>/dev/null; } | grep -oE 'D-[0-9]+' | sed 's/D-//' | sort -n | tail -1); [ "$max_d" -lt 9000 ] && printf 'PASS: global max D-%s < D-9000 ceiling\n' "$max_d" || printf 'FAIL: breach: max=D-%s\n' "$max_d"
+PASS: global max D-1001 < D-9000 ceiling
+```
+
+D-1002 allocated (D-999 remains permanently skipped). **Parent-commit:** `c3ef4b53` — `state(sha-patch): D-1001 commit c7fa6d93 factory-artifacts SHA -- Active Branches + checkpoint + decisions-log updated` (factory-artifacts HEAD at burst start; the D-1001 SHA-patch follow-up commit).
+
+**Block 2: Adversary verdict**
+
+**N/A — this burst does not dispatch or relay an adversary review.** It is a state-manager bookkeeping micro-fix burst, routed per D-1001(h), closing Drift Item `[D-1001]`: `stories/STORY-INDEX.md`'s own top-level frontmatter `version:`/`last_amended:` fields were never bumped past `"4.321"`/D-998 by the D-1000 commit (`ddc07cf5`), despite that commit's body-content aggregation-hygiene corrections (L722/L763/L776/L777) landing correctly and every downstream artifact asserting `STORY-INDEX v4.322` ever since. **This is explicitly NOT a BC-5.39.001 streak event** — it is a version-parity correction discovered by state-manager bookkeeping, not an adversary-pass finding, and it is not in `S-21.07`'s deliverable. The LOCAL BC-5.39.001 streak for the S-21.07 cascade **REMAINS 1/3, UNCHANGED** by this burst; pass-18 adversary dispatch remains the pending gate.
+
+**Block 3: Files touched**
+
+- `.factory/stories/STORY-INDEX.md` — frontmatter-only: `version:` `"4.321"` → `"4.322"`; `last_amended:` new entry prepended (POLICY 1 append-only, entire prior chain wrapped `[Prior: ...]`). **Zero body content lines touched** — `git diff --stat` confirms exactly 2 insertions / 2 deletions.
+- `.factory/cycles/v1.0-brownfield-backfill/decision-log.md` — D-1002 appended
+- `.factory/cycles/v1.0-brownfield-backfill/burst-log.md` — this entry
+- `.factory/STATE.md` — full advance (frontmatter, Phase Progress row, Current Phase Steps, Decisions Log D-1002 row, Blocking Issues — `[D-1001]` row resolved/removed, Drift Items — `[D-1001]` row resolved, Session Resume Checkpoint refresh; streak explicitly UNCHANGED 1/3)
+
+No story file, BC-INDEX, VP-INDEX, or ARCH-INDEX touched this burst.
+
+**Block 4: Codifications**
+
+None. This is a mechanical frontmatter-version-parity fix, not a process-gap discovery — the process-gap class this belongs to (same-document frontmatter-vs-body version drift) was already codified as Drift Item `[D-1001]` at D-1001; this burst closes that item, it does not codify a new lesson or `policies.yaml` text change.
+
+**Block 5 (Dim-2): Literal-shell attestation evidence**
+
+POLICY 16 gate captured above (Block 1).
+
+Frontmatter-version-parity fix verification gate (literal shell):
+
+```
+$ grep -m1 'version:' stories/STORY-INDEX.md
+version: "4.322"
+$ git diff --stat stories/STORY-INDEX.md
+ stories/STORY-INDEX.md | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+```
+
+Downstream-cite parity gate (literal shell — confirms the fixed frontmatter agrees with every artifact that already asserted v4.322):
+
+```
+$ grep -o "STORY.\{0,10\}v4\.322\|STORY-INDEX v4\.322" STATE.md | sort -u
+STORY v4.322
+STORY-INDEX v4.322
+$ grep -c "STORY-INDEX v4\.322" cycles/v1.0-brownfield-backfill/decision-log.md
+5
+$ grep -c "STORY-INDEX v4\.322" cycles/v1.0-brownfield-backfill/burst-log.md
+2
+```
+
+Body-content-untouched gate (literal shell — confirms the diff hunk covers only frontmatter lines 1-11, not any body line):
+
+```
+$ git diff stories/STORY-INDEX.md | grep -E "^@@"
+@@ -1,11 +1,11 @@
+```
+
+**Block 6 (Dim-5): Closes**
+
+**Drift Item `[D-1001]` — STORY-INDEX.md frontmatter version/body-content parity gap — CLOSED THIS BURST.** The document's own top-level `version:` field now reads `"4.322"`, matching its already-correct body content (landed D-1000) and every downstream artifact's cite. No other finding, blocking issue, or drift item closed this burst.
+
+**Block 7 (Dim-6): Gate attestation**
+
+D-444(c) burst-log h2 heading `## D-1002-STORY-INDEX-FRONTMATTER-VERSION-PARITY-CORRECTION` present. D-446(a) own-burst-log 8-block gate: this section contains Blocks 1-8. D-448(a) source-attestation gate: N/A this burst (no adversary review dispatched or relayed — Block 2 explicitly documents the N/A). D-449(a) literal-shell-execution SELF-APPLICATION: POLICY 16 gate + frontmatter-version-parity fix verification gate + downstream-cite parity gate + body-content-untouched gate all use actual shell with verbatim stdout captured (Block 5) — no pseudocode.
+
+**Dim-7 Attestation:**
+
+- This burst is NOT a numbered LOCAL adversary pass — no trajectory entry added; trajectory UNCHANGED `47→18→25→25→24→20→16→8→10→1→1→2→0→1→1→0` (tail `→2→0→1→0`, D-433(e)+D-439(c) LENGTH=4)
+- Streak: **1/3 — EXPLICITLY UNCHANGED.** This burst is a version-parity correction, not an adversary-pass finding closure; it neither advances nor resets BC-5.39.001. Pass-18 adversary dispatch remains the pending gate.
+- 4-INDEX: BC v4.58 (UNCHANGED) / VP v2.76 (UNCHANGED) / STORY **v4.322** (frontmatter now parity-matches body + downstream cites) / ARCH v3.58 (UNCHANGED)
+- policies.yaml v1.4.24 (UNCHANGED — no codification this burst)
+- `feature/S-21.07` SHA `96b4be19` UNCHANGED (no code-repo commit this burst; unrelated branch)
+- `pipeline: ACTIVE` UNCHANGED
+
+### Block 8: factory-artifacts commit
+
+**factory-artifacts commits (this burst — TD-VSDD-053 single-commit-per-burst):**
+- Target: single commit pushed as `git push origin HEAD:factory-artifacts`
+- **Parent SHA (Block 8 cites parent per D-419(b)/D-444(c) convention):** `c3ef4b53` — `state(sha-patch): D-1001 commit c7fa6d93 factory-artifacts SHA -- Active Branches + checkpoint + decisions-log updated`
+
+**Closes:** Drift Item `[D-1001]` — STORY-INDEX.md frontmatter version/body-content parity gap. **STREAK EXPLICITLY UNCHANGED 1/3** — NOT a streak event; this is a version-parity CORRECTION completing D-1000's omitted self-bump, not an adversary-pass finding, and not in S-21.07's deliverable. **D-1002 MICRO-FIX BURST COMPLETE; SHA-PATCH FOLLOW-UP NEXT; PASS-18 ADVERSARY DISPATCH REMAINS THE PENDING GATE.**
