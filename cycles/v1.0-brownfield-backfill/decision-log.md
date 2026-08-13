@@ -16821,3 +16821,88 @@ D-987-S-21.09-LOCAL-PASS-23-CLEAN-RECORD-STREAK-ADVANCE
 2026-08-13
 
 ---
+
+## D-988 — D-988-S-21.09-LOCAL-PASS-24-CLEAN-RECORD-TRUE-3-CLEAN-RE-CONVERGENCE
+
+**POLICY 16 ALLOCATOR-CEILING GATE** (pre-allocation, literal shell, D-449(a)):
+
+```
+$ cd /Users/zious/Documents/GITHUB/vsdd-factory/.factory && max_d=$({ grep -hE '^#{2,} D-[0-9]+' cycles/v1.0-brownfield-backfill/decision-log.md cycles/v1.0-feature-engine-discipline-pass-1/decision-log.md 2>/dev/null; grep -hE '^[|] *D-[0-9]+' cycles/v1.0-brownfield-backfill/decision-log.md cycles/v1.0-feature-engine-discipline-pass-1/decision-log.md 2>/dev/null; } | grep -oE 'D-[0-9]+' | sed 's/D-//' | sort -n | tail -1); [ "$max_d" -lt 9000 ] && printf 'PASS: global max D-%s < D-9000 ceiling\n' "$max_d" || printf 'FAIL: breach: max=D-%s\n' "$max_d"
+PASS: global max D-987 < D-9000 ceiling
+```
+
+D-988 allocated. **Parent-commit:** `e86c8c92` (factory-artifacts HEAD at burst start — the D-987 SHA-patch commit `state(sha-patch): D-987 commit 96d2ca8d factory-artifacts SHA -- Active Branches + checkpoint updated`).
+
+**(a) POLICY 16 GATE PASS — D-988 allocated; parent-commit `e86c8c92`.** This burst records LOCAL adversary pass-24 — a CLEAN pass, the FIFTH dispatched under the strengthened rubric codified by D-983's `L-BB-pr775-convergence-retraction-rubric-gap`, and declares **BC-5.39.001 TRUE 3-CLEAN RE-CONVERGENCE** under that strengthened post-retraction rubric. **No fix-burst content** — story v1.31 and impl `1c93f499` are UNCHANGED by this burst; this is a pure CLEAN-pass record plus a convergence declaration.
+
+**(b) Pass-24 verdict: CLEAN.** Zero findings at any severity, no process-gap. Fresh-context review of story v1.31 against impl `1c93f499`. The adversary independently re-derived the entire gate structure and the assertion-quality lens (vacuity/tautology/mutation-narrative-accuracy/should_panic-precision/format-lock), confirmed count/SHA/BC parity, and confirmed every mutation-isolation control traces correctly to real code behavior. Surfaced one transparency note (S-21.09 frontmatter lacks last_amended/modified fields while carrying a body Changelog — a cross-cohort S-21.09/10/11/12/13 convention, consistent with the CLAUDE.md changelog-migration-deferred-to-S-15.03 note and the story's own POLICY 18 seal-owed-at-first-burst flag) explicitly ruled NOT a finding.
+
+**(c) BC-5.39.001 TRUE 3-CLEAN RE-CONVERGENCE DECLARED.** The post-retraction LOCAL BC-5.39.001 3-CLEAN streak **ADVANCES 2/3 → 3/3** — passes 22, 23, and 24 are ALL CLEAN under the strengthened rubric (vacuity/tautology/mutation-narrative-accuracy/format-lock/sweep-completeness checks), against the identical `1c93f499`/v1.31 target. This is a **STRONGER convergence than the retracted D-982**: D-982's convergence (passes 17/18/19) was earned under the ORIGINAL rubric — the rubric that the D-983 PR-review retraction proved blind to vacuity/tautology/false-mutation-narrative defects in the test suite's OWN assertions. This D-988 re-convergence is earned under the rubric that FAILED the first time, now strengthened and independently re-validated three consecutive times (pass-20/21 caught real, previously-undetected defects under the new rubric; pass-22/23/24 then found the suite genuinely clean under that same sharpened lens). The re-convergence therefore carries higher evidentiary weight than the original, not merely equal weight.
+
+**(d) No test-writer/story-writer dispatch.** Nothing to fix. Story v1.31 (UNCHANGED) and impl `1c93f499` (UNCHANGED, `feature/S-21.09` still NOT PUSHED) carry forward unmodified from D-987.
+
+**(e) `adv-s21.09-local-pass-24.md` persisted verbatim** (D-448(a) source-attestation parity — this burst's finding-summary in §(b) faithfully describes the persisted file's CLEAN verdict and zero-findings content; literal-shell grep evidence below at Block 5 of the burst-log entry confirms `## Verdict: CLEAN` heading present exactly once). Frontmatter added (`document_type: adversarial-review`, `phase: 24`, `pass: 24`, `previous_review: adv-s21.09-local-pass-23.md`, `inputs: [stories/S-21.09-wasm-artifact-restore-and-registry-parity.md]`, `input-hash: "d8e69cf"` via `compute-input-hash --update` — byte-identical to pass-23's hash because the story input is unchanged); body content is byte-verbatim as supplied — no state-manager edits to the review prose.
+
+**(f) `INDEX.md` S-21.09 LOCAL Adversary Reviews section extended.** New pass-24 row appended after the pass-23 row (CLEAN, 0B/0H/0M/0L/0N, streak 3/3 RE-CONVERGED). Convergence Status paragraph's leading declaration REPLACED with the RE-CONVERGED record; the prior pass-23 narrative (and the full historical chain beneath it) is preserved verbatim (minus the redundant "Convergence Status" header restatement) as `[Prior state, superseded 2026-08-13 D-988]`.
+
+**(g) S-7.02 CYCLE-CLOSING CHECKLIST — SATISFIED.** Per the S-7.02 discipline (defensive sweep before declaring any count/status-changing update complete), every [process-gap] lesson from the reopened cascade is confirmed anchored before this burst declares RE-CONVERGED:
+
+| Item | Anchor | Status |
+|------|--------|--------|
+| Pass-20 `L-BB-format-lock-sibling-sweep-must-cover-all-same-pattern-emitters` (D-984) | S-15.03 PRIORITY-A | ANCHORED |
+| Pass-21 `L-BB-sweep-completeness-requires-mechanical-grep-not-manual-enumeration` (D-985) | S-15.03 PRIORITY-A | ANCHORED |
+| D-983 `L-BB-pr775-convergence-retraction-rubric-gap` (rubric gap that caused the retraction) | S-15.03 PRIORITY-A | ANCHORED |
+| This re-convergence's `L-BB-fold-vacuity-tautology-lens-into-rubric-from-cascade-start` (D-988, appended `lessons.md` this burst) | S-15.03 PRIORITY-A | ANCHORED |
+| Pass-24 transparency note (S-21.09 frontmatter body-changelog-only convention, no last_amended/modified fields) | S-15.03 changelog-migration item | ANCHORED as owed item, not a defect |
+| 4 pass-10 carry-over findings (MED-001, LOW-001/002/003) | next maintenance sweep / fix-burst prior to `feature/S-21.09` PR merge | ANCHORED (pre-existing, UNCHANGED — not a convergence blocker per the same S-7.02 precedent D-982 established) |
+
+**Cycle-Closing Checklist: SATISFIED** — all six items listed above→anchor. RE-CONVERGENCE declared on this basis.
+
+**(h) One new lesson: `L-BB-fold-vacuity-tautology-lens-into-rubric-from-cascade-start`.** Appended to `lessons.md` this burst (full text there). Net lesson: the retracted D-982 convergence plus the PR-review reopening produced a strengthened adversary rubric (vacuity/tautology/mutation-narrative/should_panic/format-lock); the reopened cascade re-converged in 5 passes (20 MEDIUM, 21 LOW, 22/23/24 CLEAN) — fold the vacuity/tautology/format-lock lens into the adversary rubric from the START of every LOCAL cascade, not after a PR-review catches it. Anchored S-15.03 PRIORITY-A (adversary-rubric strengthening should apply the lens ab initio, not only post-hoc after a PR-review gap).
+
+**(i) `feature/S-21.09` push status UNCHANGED — NOT PUSHED.** RE-CONVERGENCE is declared; push/merge authorization is NOT implied by convergence alone and remains human-gated per §(j).
+
+**(j) Post-re-convergence NEXT steps (human-gated, all four items live as of this burst):**
+1. Push the 3 local fix commits (`c9cccea9`/`fc0e613b`/`1c93f499`) to update PR #775 (`git -C .worktrees/S-21.09 push origin feature/S-21.09`) — re-triggers CI + review.
+2. Fix the PR #775 description off-by-one (51 gate + 1 registry = 52 total, currently misstated).
+3. Re-run/refresh the PR #775 review (pr-reviewer + code-reviewer) against the converged HEAD `1c93f499` under the strengthened lens.
+4. Merge authorization (merge-order: S-21.09 lands before frozen `feature/S-21.07`, per the standing MERGE-ORDER note).
+
+**(k) 4-INDEX: STORY only.** BC-INDEX v4.56 UNCHANGED. VP-INDEX v2.76 UNCHANGED. STORY-INDEX v4.315→v4.316 (S-21.09 catalog row annotation → "LOCAL 3-CLEAN RE-CONVERGED (strengthened rubric; passes 22/23/24 CLEAN); ready for PR #775 update + merge pending human auth"; story version v1.31 UNCHANGED; impl SHA `1c93f499` UNCHANGED; POLICY 14 last_amended-parity leg applied). ARCH-INDEX v3.55 UNCHANGED. policies.yaml v1.4.23 UNCHANGED.
+
+**Closes:**
+- `adv-s21.09-local-pass-24.md` persisted (CLEAN, 0 findings) — CLOSED this burst.
+- INDEX.md S-21.09 LOCAL Adversary Reviews section extended (pass-24 row) + Convergence Status updated to RE-CONVERGED — CLOSED this burst.
+- STORY-INDEX v4.315→v4.316 (RE-CONVERGED annotation) — CLOSED this burst.
+- `L-BB-fold-vacuity-tautology-lens-into-rubric-from-cascade-start` lesson appended to `lessons.md` — CLOSED this burst.
+- S-7.02 Cycle-Closing Checklist — SATISFIED this burst (see (g)).
+- **BC-5.39.001 LOCAL 3-CLEAN RE-CONVERGENCE (streak 3/3) DECLARED** — CLOSED this burst.
+- D-988 allocated — CLOSED this burst.
+
+**Remains OPEN (not this burst's scope):**
+- `feature/S-21.09` push (3 local fix commits) — human-gated, NEXT.
+- PR #775 description off-by-one fix + review re-run — human-gated, after push.
+- Merge authorization — human-gated, after review re-run (merge-order S-21.09 before frozen S-21.07).
+- ADV-BB-P10-MED-001, LOW-001, LOW-002, LOW-003 (pass-10 carry-overs) — UNCHANGED, anchor: next maintenance sweep / fix-burst prior to PR merge.
+- C-1/C-2/C-4/C-5 blocking security issues (D-972) — UNCHANGED, out of this burst's scope.
+- ADR-043 ratification — UNCHANGED, pending human decision.
+- S-21.12 cargo-deny blocker B1 — UNCHANGED, pending human decision.
+
+### Agents
+
+- state-manager (D-988): `adv-s21.09-local-pass-24.md` persisted (frontmatter added; body byte-verbatim); `INDEX.md` S-21.09 LOCAL Adversary Reviews section extended (pass-24 row) + Convergence Status updated to RE-CONVERGED; decision-log D-988 block appended (11 lettered sub-paragraphs (a)-(k) + S-7.02 Cycle-Closing Checklist table); burst-log D-988 8-block entry appended; lessons.md `L-BB-fold-vacuity-tautology-lens-into-rubric-from-cascade-start` lesson appended; STORY-INDEX v4.315→v4.316 (S-21.09 row RE-CONVERGED annotation; story version/impl SHA UNCHANGED); STATE.md advanced with pass-24 CLEAN + RE-CONVERGENCE + refreshed Session Resume Checkpoint (streak 3/3 RE-CONVERGED, post-re-convergence human-gated NEXT steps).
+- vsdd-factory:adversary (pass-24, prior to this burst, same session): fresh-context LOCAL adversary review under the strengthened (fifth) rubric pass — CLEAN, zero findings at any severity; independently re-confirmed count/SHA/BC parity, gate-function correctness, assertion quality, format-lock completeness, and mutation-audit disposition; explicitly ruled the frontmatter-changelog transparency note NOT a finding.
+
+### 4-INDEX
+
+BC-INDEX v4.56 (UNCHANGED) / VP-INDEX v2.76 (UNCHANGED) / STORY-INDEX v4.316 / ARCH-INDEX v3.55 (UNCHANGED)
+
+### Phase
+
+D-988-S-21.09-LOCAL-PASS-24-CLEAN-RECORD-TRUE-3-CLEAN-RE-CONVERGENCE
+
+### Date
+
+2026-08-13
+
+---
