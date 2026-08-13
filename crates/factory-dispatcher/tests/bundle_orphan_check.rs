@@ -55,14 +55,14 @@
 //! | T-045 | AC-006 S-21.09 | GREEN | pass-10.1 one-level-up UNGATED: `../ghost.wasm` resolves to `plugins/ghost.wasm` inside root; containment passes, NOT under hook-plugins/; fires `UNGATED-DECLARATION: ../ghost.wasm` |
 //! | T-046 | AC-006 S-21.09 | GREEN | pass-10.1 two-levels-up UNGATED: `../../ghost.wasm` resolves to `<root>/ghost.wasm` inside root; containment passes (root_parts.len()+1 > root_parts.len()); fires `UNGATED-DECLARATION: ../../ghost.wasm` |
 //! | T-047 | AC-006 S-21.09 | GREEN | pass-10.2 tightest-margin OUTSIDE-REPO: `../../../ghost.wasm` resolves one level above root (len==root_parts.len(), containment fails); fires `OUTSIDE-REPO-DECLARATION: ../../../ghost.wasm` |
-//! | T-048 | AC-006 S-21.09 | GREEN | pass-11 totality property: 18-candidate table asserting `extract.is_some() iff detect=[]`; correct identifier per class; OTHER identifier absent; kills M4 (>=+2→+1) and the M1+M4 composite, and any identifier swap among its 18 candidates. Does NOT isolate M2 (len>→>=): every OUTSIDE-REPO-DECLARATION candidate in this table is over-determined — it fails the containment predicate's length conjunct AND its prefix conjunct simultaneously, so relaxing `>` to `>=` alone does not flip any candidate's classification. See T-050 for the dedicated M2 control |
+//! | T-048 | AC-006 S-21.09 | GREEN | pass-11 totality property: 18-candidate table asserting `detect_ungated_declarations()`'s full output equals the expected classification exactly (single canonical assertion per case — PR-review fix removed a tautological paired `extract_hook_plugin_name.is_none()`/`is_some()` check, since detect delegates to extract internally); kills M4 (>=+2→+1, caught on the "hook-plugins" UNGATED-DECLARATION row) and the M1+M4 composite, and any identifier swap among its 18 candidates via exact-vec equality. Does NOT isolate M2 (len>→>=): every OUTSIDE-REPO-DECLARATION candidate in this table is over-determined — it fails the containment predicate's length conjunct AND its prefix conjunct simultaneously, so relaxing `>` to `>=` alone does not flip any candidate's classification. See T-050 for the dedicated M2 control |
 //! | T-049 | AC-006 S-21.09 | GREEN | pass-11 EC-005a control: git fixture with non-WASM-only hook-plugins/ → git ls-files returns zero WASM paths → `#[should_panic(expected = "T-012 EC-005a")]` |
 //! | T-050 | AC-006 S-21.09 | GREEN | pass-11 fix-burst length-conjunct isolation control (kills M2, len>→>=): `plugin = "../.."` resolves to EXACTLY `root_parts` (`joined_parts == root_parts`, not just equal length) — the only candidate in the suite where the prefix conjunct is satisfied while the length conjunct is the sole distinguishing factor; under live `>` code, `joined_parts.len() == root_parts.len()` fails the length conjunct → `OUTSIDE-REPO-DECLARATION: ../..`; under mutant `>=`, the length conjunct passes and (since the prefix is an exact self-match) `in_repo` flips true → delegates to `extract_hook_plugin_name`, which fails its own gate-1 (length too short) → `None` → `UNGATED-DECLARATION: ../..` instead. T-047 and T-048's OUTSIDE candidates are all over-determined (fail both conjuncts at once) and therefore do NOT kill M2; T-050 is the sole isolating control |
 //! | T-051 | AC-006 S-21.09 | GREEN | pass-12 fix-burst prefix-conjunct isolation control (kills `.all(...)`→`.any(...)` and `.all(...)`→`true`): `plugin = "../../../sib/ghost.wasm"` resolves to `root_parts[0..N-1] + ["sib", "ghost.wasm"]` — length `N+1 > N` so the length conjunct is TRUE, but index `N-1` diverges from `root_parts`'s last component so the prefix `.all(...)` conjunct is FALSE — the sole determinant. Under live code `in_repo = false` → `OUTSIDE-REPO-DECLARATION: ../../../sib/ghost.wasm`; under either `.all→.any` or `.all→true` mutant the prefix conjunct flips true, `in_repo` flips true, and the path delegates to `extract_hook_plugin_name`, which fails its own gates → `None` → `UNGATED-DECLARATION: ../../../sib/ghost.wasm` instead — a genuine classification flip. Orthogonal to T-050 (which isolates the length conjunct); does NOT kill M2 |
 //! | T-052 | AC-006 S-21.09 | GREEN | pass-14 fix-burst hooks production-validation isolation control (kills deletion of the `Registry::parse_str(&hooks_content)` block in `run_t012_gate`): full valid git fixture (30 hooks + 1 resolver, all WASMs committed, all other fields production-valid) except `hooks-registry.toml`'s top-level `schema_version = 3` (unsupported; `REGISTRY_SCHEMA_VERSION` is 2) — every other gate (inventory, ungated-declaration, floors, declared ⊆ tracked) would pass. Under live code `Registry::parse_str` returns `Err(RegistryError::SchemaVersion{got:3,expected:2})`, causing `run_t012_gate` to panic with "T-012: hooks-registry.toml fails production validation (...)"; under the deletion mutant no production check runs, `hooks_refs`/`resolvers_refs` parse the same 30+1 declarations via the schema-version-agnostic `parse_plugin_refs`, and every subsequent gate passes against the fully-committed fixture — `run_t012_gate` returns `Ok(())` and the `#[should_panic]` assertion fails to fire (test goes RED), proving the block is load-bearing |
 //! | T-053 | AC-006 S-21.09 | GREEN | pass-14 fix-burst resolvers schema-version isolation control (kills deletion of the `assert_eq!(resolvers_schema_version, 1, ...)` block in `run_t012_gate`): same full valid git fixture shape as T-052 (30 hooks + 1 resolver, all WASMs committed) except `resolvers-registry.toml`'s top-level `schema_version = 2` (production requires 1) — `hooks-registry.toml` is fully production-valid (`schema_version = 2`) so `Registry::parse_str` passes, isolating this determinant from T-052's. Under live code the `assert_eq!` panics with "T-012: resolvers-registry.toml schema_version=2 but production requires 1"; under the deletion mutant no resolvers-schema check runs and every subsequent gate passes against the fully-committed fixture — `run_t012_gate` returns `Ok(())` and the `#[should_panic]` assertion fails to fire (test goes RED), proving the block is load-bearing and distinct from T-052's hooks-side check |
 //! | T-054 | AC-006 S-21.09 | GREEN | mutation-audit hardening SURV-04 (CORRECTNESS / fail-closed) control: isolates `resolvers_schema_version`'s `.unwrap_or(-1)` sentinel — same full valid git fixture shape as T-052/T-053 but `resolvers-registry.toml` OMITS `schema_version` entirely (absent-key path, distinct from T-053's explicit-wrong-integer fixture). Under live code `.unwrap_or(-1)` fires (fail-closed) → `assert_eq!(-1, 1, ...)` panics; under the `.unwrap_or(-1)`→`.unwrap_or(1)` mutant the absent key silently coerces to the production-required value and every gate passes — `run_t012_gate` returns `Ok(())` and the `#[should_panic]` fails to fire (test goes RED), proving the `-1` sentinel (not just the assert, which T-053 already isolates) is load-bearing |
-//! | T-055 | AC-006 S-21.09 | GREEN | mutation-audit hardening SURV-03 control: direct unit test of `detect_ungated_declarations`'s fail-open `content.parse::<toml::Value>()` `Err(_) => return Vec::new()` arm — unreachable via `run_t012_gate` (upstream `Registry::parse_str` / resolvers TOML parse panic first on malformed input). Calls `detect_ungated_declarations` directly with malformed TOML; asserts the result `.is_empty()`. A fail-open mutant that returns a spurious non-empty finding from the `Err(_)` arm fails this assertion (test goes RED) |
+//! | T-055 | AC-006 S-21.09 | GREEN | mutation-audit hardening SURV-03 control: direct unit test of `detect_ungated_declarations`'s fail-open `content.parse::<toml::Value>()` `Err(_) => return Vec::new()` arm — unreachable via `run_t012_gate` (upstream `Registry::parse_str` / resolvers TOML parse panic first on malformed input). Calls `detect_ungated_declarations` directly with malformed TOML; asserts the result `.is_empty()`. A fail-open mutant that returns a spurious non-empty finding from the `Err(_)` arm fails this assertion (test goes RED). Paired with a positive control in the same test: calls the same function with VALID TOML containing a genuine ungated declaration and asserts a non-empty result — closes the whole-function `Vec::new()` (inert-function) gap that the malformed-TOML case alone cannot distinguish (PR-review pass) |
 //! | T-056 | AC-006 S-21.09 | GREEN | mutation-audit hardening SURV-02 control: direct unit test pinning `lex_norm`'s `Component::CurDir => {}` arm contract — dead in every gate call path (all call sites use absolute roots; std pre-normalizes interior `.`). Asserts `lex_norm(Path::new("./a/b")) == ["a", "b"]`; a mutant that pushes `"."` onto `parts` for the CurDir arm yields `[".", "a", "b"]` instead (test goes RED) |
 //!
 //! † T-009 is a STANDING GREEN GATE — passes immediately on any clean checkout where no
@@ -1270,6 +1270,124 @@ fn stage_release_bundle(src_dir: &Path, dst_dir: &Path) {
 }
 
 // ---------------------------------------------------------------------------
+// Git fixture bootstrap helpers
+//
+// Every git-backed T-0NN fixture (T-030 phase B, T-034, T-036, T-037, T-039,
+// T-049, T-052, T-053, T-054) repeats the same `git init` + `git config` +
+// `git commit` boilerplate — byte-for-byte identical apart from the label used
+// in failure messages and (for commit) the commit message. Extracted here to
+// remove the duplication (PR-review MAJOR finding); purely mechanical — no
+// test's fixture semantics change. Call sites that stage a targeted subset of
+// files (T-036, T-037's second stage, T-049) keep their `git add` call inline
+// since the args differ per fixture; `git_add_all_fixture` below covers only
+// the plain `add .` form shared by the rest.
+// ---------------------------------------------------------------------------
+
+/// Run `git init` (with global-config-isolating `-c` overrides) followed by
+/// `git config user.email` / `user.name`, inside `root`. Panics with a
+/// message naming `label` if `git init` does not exit successfully.
+///
+/// `-c` overrides:
+///   `core.excludesFile=/dev/null` — prevents a global gitignore from hiding `*.wasm`
+///   `commit.gpgsign=false`        — prevents gpg-sign failures if globally enabled
+///   `core.hooksPath=/dev/null`    — prevents global hooks from rejecting the commit
+///   `init.templateDir=`           — prevents template-installed hooks
+fn git_init_fixture(root: &Path, label: &str) {
+    let init_out = Command::new("git")
+        .args([
+            "-c",
+            "core.excludesFile=/dev/null",
+            "-c",
+            "commit.gpgsign=false",
+            "-c",
+            "core.hooksPath=/dev/null",
+            "-c",
+            "init.templateDir=",
+            "init",
+        ])
+        .current_dir(root)
+        .output()
+        .unwrap_or_else(|e| panic!("git init must execute for {} fixture: {}", label, e));
+    assert!(
+        init_out.status.success(),
+        "{}: git init failed: {}",
+        label,
+        String::from_utf8_lossy(&init_out.stderr)
+    );
+
+    Command::new("git")
+        .args(["config", "user.email", "test@example.com"])
+        .current_dir(root)
+        .output()
+        .expect("git config user.email must execute");
+    Command::new("git")
+        .args(["config", "user.name", "Test"])
+        .current_dir(root)
+        .output()
+        .expect("git config user.name must execute");
+}
+
+/// Run `git -c core.excludesFile=/dev/null add .` inside `root` — stages every
+/// file in the worktree. Panics with a message naming `label` if `git add`
+/// does not exit successfully.
+fn git_add_all_fixture(root: &Path, label: &str) {
+    let add_out = Command::new("git")
+        .args(["-c", "core.excludesFile=/dev/null", "add", "."])
+        .current_dir(root)
+        .output()
+        .unwrap_or_else(|e| panic!("git add must execute for {} fixture: {}", label, e));
+    assert!(
+        add_out.status.success(),
+        "{}: git add failed: {}",
+        label,
+        String::from_utf8_lossy(&add_out.stderr)
+    );
+}
+
+/// Return `fixture` with every comment line (`#...`) removed and the remaining
+/// lines rejoined with `\n`.
+///
+/// Shared by T-013 and T-014's HIGH-1 fixture-content assertions: both must
+/// verify their distinguishing syntax appears in the live `[[hooks]]` entry,
+/// not merely in the fixture's comment header — a mutation that reverted the
+/// live entry to standard form while leaving the descriptive comment intact
+/// must NOT be masked by matching against the comment text.
+fn fixture_body_without_comments(fixture: &str) -> String {
+    fixture
+        .lines()
+        .filter(|l| !l.trim_start().starts_with('#'))
+        .collect::<Vec<_>>()
+        .join("\n")
+}
+
+/// Run `git commit -m <message>` (with commit-isolating `-c` overrides) inside
+/// `root`. Panics with a message naming `label` if the commit does not exit
+/// successfully.
+fn git_commit_fixture(root: &Path, label: &str, message: &str) {
+    let commit_out = Command::new("git")
+        .args([
+            "-c",
+            "core.excludesFile=/dev/null",
+            "-c",
+            "commit.gpgsign=false",
+            "-c",
+            "core.hooksPath=/dev/null",
+            "commit",
+            "-m",
+            message,
+        ])
+        .current_dir(root)
+        .output()
+        .unwrap_or_else(|e| panic!("git commit must execute for {} fixture: {}", label, e));
+    assert!(
+        commit_out.status.success(),
+        "{}: git commit failed: {}",
+        label,
+        String::from_utf8_lossy(&commit_out.stderr)
+    );
+}
+
+// ---------------------------------------------------------------------------
 // T-006 — AC-006 fixture-a: resolvers-registry-only WASM is non-orphan (EC-003 regression gate)
 //
 // Scenario:
@@ -1329,8 +1447,17 @@ fn test_S_19_04_ac006_T006_resolvers_registry_only_wasm_is_non_orphan() {
 //   resolvers-registry.toml    — references resolvers-only.wasm (absent from hook-plugins)
 //
 // Expected:
-//   collect_orphans_dual returns ["neither-registry.wasm"].
-//   Test verifies the orphan is present AND the ORPHAN: <name> format matches AC-006.
+//   collect_orphans_dual returns ["neither-registry.wasm"] (a bare filename —
+//   collect_orphans_dual has no ORPHAN: formatting of its own; AC-006 spec
+//   clause (d)'s "ORPHAN: <name>" panic-message format is produced by
+//   collect_orphans_dual's CALLERS when the orphan set is non-empty (see
+//   T-009's and T-010's assert! failure messages, which literally build
+//   `format!("  ORPHAN: {}", n)` from this same return value). PR-review
+//   finding: a prior version of this test additionally re-derived
+//   `format!("ORPHAN: {}", name)` from `orphans` and asserted the derived
+//   string round-trips — tautological, since it can only ever restate
+//   whatever the line above it already established. Removed; the exact-set
+//   assertion below is the sole, load-bearing check.
 // ---------------------------------------------------------------------------
 #[test]
 fn test_S_19_04_ac006_T007_neither_registry_wasm_is_orphan_with_orphan_line() {
@@ -1351,25 +1478,17 @@ fn test_S_19_04_ac006_T007_neither_registry_wasm_is_orphan_with_orphan_line() {
     // Dual-registry detection: neither-registry.wasm is in neither registry → orphan
     let orphans = collect_orphans_dual(&hook_plugins, &hooks_reg, &resolvers_reg);
 
-    assert!(
-        orphans.contains(&"neither-registry.wasm".to_string()),
-        "T-007 AC-006: neither-registry.wasm must be classified as orphan \
+    // Exact-set assertion (not merely `.contains()`): pins collect_orphans_dual's
+    // actual production return value against the real fixture, so the failure
+    // message a caller would produce is `ORPHAN: neither-registry.wasm` (AC-006
+    // clause (d)) and nothing else spurious is also flagged.
+    assert_eq!(
+        orphans,
+        vec!["neither-registry.wasm".to_string()],
+        "T-007 AC-006: neither-registry.wasm must be the sole orphan \
          (referenced by neither hooks-registry.toml nor resolvers-registry.toml); \
          got orphans: {:?}",
         orphans
-    );
-
-    // Verify the ORPHAN: <name> format required by AC-006 spec clause (d)
-    let orphan_lines: Vec<String> = orphans
-        .iter()
-        .map(|name| format!("ORPHAN: {}", name))
-        .collect();
-
-    assert!(
-        orphan_lines.contains(&"ORPHAN: neither-registry.wasm".to_string()),
-        "T-007 AC-006: ORPHAN: format must produce 'ORPHAN: neither-registry.wasm'; \
-         got lines: {:?}",
-        orphan_lines
     );
 }
 
@@ -1794,11 +1913,7 @@ fn test_S_21_09_ac006_T013_nospace_eq_sign_form_is_parsed_as_declared() {
     // TOML body (not just the comment header).  Filter comment lines first so that the
     // assertion cannot be satisfied by a comment that merely documents the nospace form —
     // the actual [[hooks]] entry must contain plugin="hook-plugins/..." (no spaces around =).
-    let toml_body_013: String = HOOKS_REGISTRY_NOSPACE_FIXTURE
-        .lines()
-        .filter(|l| !l.trim_start().starts_with('#'))
-        .collect::<Vec<_>>()
-        .join("\n");
+    let toml_body_013 = fixture_body_without_comments(HOOKS_REGISTRY_NOSPACE_FIXTURE);
     assert!(
         toml_body_013.contains("plugin=\"hook-plugins/"),
         "T-013 HIGH-1: HOOKS_REGISTRY_NOSPACE_FIXTURE must contain the nospace form \
@@ -1850,11 +1965,7 @@ fn test_S_21_09_ac006_T014_dotslash_prefix_form_is_parsed_as_declared() {
 
     // HIGH-1 fixture-content assertion: verify the dotslash form is present in the TOML body,
     // not just the comment header.  Filter comment lines first.
-    let toml_body_014: String = HOOKS_REGISTRY_DOTSLASH_FIXTURE
-        .lines()
-        .filter(|l| !l.trim_start().starts_with('#'))
-        .collect::<Vec<_>>()
-        .join("\n");
+    let toml_body_014 = fixture_body_without_comments(HOOKS_REGISTRY_DOTSLASH_FIXTURE);
     assert!(
         toml_body_014.contains("\"./hook-plugins/"),
         "T-014 HIGH-1: HOOKS_REGISTRY_DOTSLASH_FIXTURE must contain the dotslash form \
@@ -1936,11 +2047,19 @@ fn test_S_21_09_ac006_T015_declared_but_untracked_arm_names_artifact() {
 
     let msg = result.unwrap_err();
 
-    // (b) Outcome identifier per D-970 Codification 1 — must name the artifact.
+    // (b) Outcome identifier per D-970 Codification 1 — must name the artifact,
+    // in the EXACT format production emits (two-space indent — see the
+    // `"  MISSING: {}"` format string at check_declared_subset_tracked's
+    // declared-minus-tracked line list). PR-review finding: a prior version of
+    // this test asserted the unindented substring "MISSING: hook-plugins/..." —
+    // `.contains()` on an unindented needle also matches inside the real
+    // indented "  MISSING: ..." line, so that assertion could never catch an
+    // indent-dropping mutation. Asserting the indented form here closes that gap.
     assert!(
-        msg.contains("MISSING: hook-plugins/hooks-only.wasm"),
+        msg.contains("  MISSING: hook-plugins/hooks-only.wasm"),
         "T-015 AC-006 D-970 Codification 1: error message must contain \
-         'MISSING: hook-plugins/hooks-only.wasm'; got: {}",
+         '  MISSING: hook-plugins/hooks-only.wasm' (two-space indent, matching the \
+         real production format string); got: {}",
         msg
     );
 }
@@ -2641,17 +2760,21 @@ fn test_S_21_09_ac006_T026_absolute_form_excluded_from_declared() {
 
     // Absolute paths must NOT enter declared: they resolve outside the registry parent
     // and production loads them from that external location, not from hook-plugins/.
+    //
+    // PR-review finding: a prior version of this test additionally asserted
+    // `!refs.contains("ghost-absolute.wasm")` (the BARE basename). That
+    // assertion is vacuous — extract_hook_plugin_name() never returns a bare
+    // basename for a gated entry; a gated absolute path would return the
+    // FULL registry-parent-relative form "hook-plugins/ghost-absolute.wasm"
+    // (see T-026(b) below, which empirically confirms this exact form).
+    // `refs.is_empty()` below is the sole, load-bearing check: it fails
+    // regardless of which form a defect admits.
     assert!(
-        !refs.contains("ghost-absolute.wasm"),
+        refs.is_empty(),
         "T-026(a) MEDIUM-2: absolute-path plugin declarations must NOT be included \
          in declared — production resolve_plugin_paths() passes absolute paths unchanged \
          (loads from /abs/hook-plugins/..., not from registry_parent/hook-plugins/); \
          including them produces false-positive MISSING outcomes; got refs: {:?}",
-        refs
-    );
-    assert!(
-        refs.is_empty(),
-        "T-026(a): expected empty refs for short absolute-path declaration; got: {:?}",
         refs
     );
 
@@ -2660,8 +2783,16 @@ fn test_S_21_09_ac006_T026_absolute_form_excluded_from_declared() {
     // Build /seg0/seg1/.../seg_{N-1}/hook-plugins/evil.wasm where N == expected_depth.
     // All seg* components differ from the real tempdir components, so the prefix-
     // verification loop rejects them even though len == expected_depth + 2 passes the
-    // minimum-length check.  Mutation proof: deleting the prefix loop in
-    // extract_hook_plugin_name() admits "evil.wasm" (refs_depth becomes {"evil.wasm"}).
+    // minimum-length check.  Mutation proof (empirically verified — deleted the gate-2
+    // prefix loop in extract_hook_plugin_name() and ran this test): the mutant admits
+    // the entry and `parse_plugin_refs` returns the FULL registry-parent-relative form
+    // `refs_depth == {"hook-plugins/evil.wasm"}` — NOT the bare basename `{"evil.wasm"}`
+    // (extract_hook_plugin_name always returns `joined_parts[expected_depth..].join("/")`,
+    // which for this fixture is "hook-plugins/evil.wasm"). A prior version of this test
+    // additionally asserted `!refs_depth.contains("evil.wasm")` (the bare basename) and
+    // claimed that string was the mutant's output — that assertion was vacuous (it never
+    // fails, under live code OR the mutant) and the claimed mutant output was wrong.
+    // `refs_depth.is_empty()` below is the sole, load-bearing check.
     let expected_depth = tmp
         .path()
         .components()
@@ -2691,18 +2822,14 @@ fn test_S_21_09_ac006_T026_absolute_form_excluded_from_declared() {
     let refs_depth = parse_plugin_refs(&registry_depth);
 
     assert!(
-        !refs_depth.contains("evil.wasm"),
+        refs_depth.is_empty(),
         "T-026(b) HIGH-1 depth-matched: absolute path /seg0/.../seg{}/hook-plugins/evil.wasm \
          has len == expected_depth + 2, passing the minimum-length check; the \
          prefix-verification loop is the operative gate (joined_parts[0..expected_depth] \
          are seg* components, not the real tempdir components); deleting the prefix loop \
-         admits evil.wasm; got refs_depth: {:?}",
+         admits 'hook-plugins/evil.wasm' (the full registry-parent-relative form, not the \
+         bare basename); got refs_depth: {:?}",
         expected_depth - 1,
-        refs_depth
-    );
-    assert!(
-        refs_depth.is_empty(),
-        "T-026(b): expected empty refs for depth-matched absolute path; got: {:?}",
         refs_depth
     );
 }
@@ -2955,43 +3082,9 @@ fn test_S_21_09_ac006_T030_wiring_control_both_check_calls_are_active() {
         let tmp = tempdir().expect("tempdir must create successfully");
         let root = tmp.path();
 
-        // Initialise a git repo.
-        // -c overrides prevent interference from global git config:
-        //   core.excludesFile=/dev/null — prevents a global gitignore from hiding *.wasm
-        //   commit.gpgsign=false       — prevents gpg-sign failures if globally enabled
-        //   core.hooksPath=/dev/null   — prevents global hooks from rejecting the commit
-        //   init.templateDir=          — prevents template-installed hooks
-        let init_out = Command::new("git")
-            .args([
-                "-c",
-                "core.excludesFile=/dev/null",
-                "-c",
-                "commit.gpgsign=false",
-                "-c",
-                "core.hooksPath=/dev/null",
-                "-c",
-                "init.templateDir=",
-                "init",
-            ])
-            .current_dir(root)
-            .output()
-            .expect("git init must execute for T-030 phase B fixture");
-        assert!(
-            init_out.status.success(),
-            "T-030 phase B: git init failed: {}",
-            String::from_utf8_lossy(&init_out.stderr)
-        );
-
-        Command::new("git")
-            .args(["config", "user.email", "test@example.com"])
-            .current_dir(root)
-            .output()
-            .expect("git config user.email must execute");
-        Command::new("git")
-            .args(["config", "user.name", "Test"])
-            .current_dir(root)
-            .output()
-            .expect("git config user.name must execute");
+        // Initialise a git repo (same discipline as every other git-backed T-0NN
+        // fixture; see git_init_fixture doc for the -c override rationale).
+        git_init_fixture(root, "T-030 phase B");
 
         let plugins_dir = root.join("plugins/vsdd-factory");
         let hook_plugins_dir = plugins_dir.join("hook-plugins");
@@ -3024,37 +3117,8 @@ fn test_S_21_09_ac006_T030_wiring_control_both_check_calls_are_active() {
                 .expect("hook wasm fixture must be written");
         }
 
-        let add_out = Command::new("git")
-            .args(["-c", "core.excludesFile=/dev/null", "add", "."])
-            .current_dir(root)
-            .output()
-            .expect("git add must execute for T-030 phase B fixture");
-        assert!(
-            add_out.status.success(),
-            "T-030 phase B: git add failed: {}",
-            String::from_utf8_lossy(&add_out.stderr)
-        );
-
-        let commit_out = Command::new("git")
-            .args([
-                "-c",
-                "core.excludesFile=/dev/null",
-                "-c",
-                "commit.gpgsign=false",
-                "-c",
-                "core.hooksPath=/dev/null",
-                "commit",
-                "-m",
-                "T-030 phase B fixture",
-            ])
-            .current_dir(root)
-            .output()
-            .expect("git commit must execute for T-030 phase B fixture");
-        assert!(
-            commit_out.status.success(),
-            "T-030 phase B: git commit failed: {}",
-            String::from_utf8_lossy(&commit_out.stderr)
-        );
+        git_add_all_fixture(root, "T-030 phase B");
+        git_commit_fixture(root, "T-030 phase B", "T-030 phase B fixture");
 
         // Inventory passes (exact pair); hooks floor passes (30 entries);
         // resolvers floor passes (1 entry); declared − tracked fires on ctx.wasm.
@@ -3315,37 +3379,7 @@ fn test_S_21_09_ac006_T034_git_ls_tree_r_finds_nested_committed_wasm() {
 
     // Initialise a git repo with -c overrides to prevent global config interference
     // (same discipline as T-030 Phase B).
-    let init_out = Command::new("git")
-        .args([
-            "-c",
-            "core.excludesFile=/dev/null",
-            "-c",
-            "commit.gpgsign=false",
-            "-c",
-            "core.hooksPath=/dev/null",
-            "-c",
-            "init.templateDir=",
-            "init",
-        ])
-        .current_dir(root)
-        .output()
-        .expect("git init must execute for T-034 fixture");
-    assert!(
-        init_out.status.success(),
-        "T-034: git init failed: {}",
-        String::from_utf8_lossy(&init_out.stderr)
-    );
-
-    Command::new("git")
-        .args(["config", "user.email", "test@example.com"])
-        .current_dir(root)
-        .output()
-        .expect("git config user.email must execute");
-    Command::new("git")
-        .args(["config", "user.name", "Test"])
-        .current_dir(root)
-        .output()
-        .expect("git config user.name must execute");
+    git_init_fixture(root, "T-034");
 
     // Create nested hook-plugins/sub/nested.wasm (simulates a real nested artifact).
     let hook_plugins_sub = root.join("plugins/vsdd-factory/hook-plugins/sub");
@@ -3353,37 +3387,8 @@ fn test_S_21_09_ac006_T034_git_ls_tree_r_finds_nested_committed_wasm() {
     fs::write(hook_plugins_sub.join("nested.wasm"), b"wasm")
         .expect("nested.wasm fixture must be written");
 
-    let add_out = Command::new("git")
-        .args(["-c", "core.excludesFile=/dev/null", "add", "."])
-        .current_dir(root)
-        .output()
-        .expect("git add must execute for T-034 fixture");
-    assert!(
-        add_out.status.success(),
-        "T-034: git add failed: {}",
-        String::from_utf8_lossy(&add_out.stderr)
-    );
-
-    let commit_out = Command::new("git")
-        .args([
-            "-c",
-            "core.excludesFile=/dev/null",
-            "-c",
-            "commit.gpgsign=false",
-            "-c",
-            "core.hooksPath=/dev/null",
-            "commit",
-            "-m",
-            "T-034 fixture: nested WASM",
-        ])
-        .current_dir(root)
-        .output()
-        .expect("git commit must execute for T-034 fixture");
-    assert!(
-        commit_out.status.success(),
-        "T-034: git commit failed: {}",
-        String::from_utf8_lossy(&commit_out.stderr)
-    );
+    git_add_all_fixture(root, "T-034");
+    git_commit_fixture(root, "T-034", "T-034 fixture: nested WASM");
 
     // git_committed_wasm_names() uses `git ls-tree -r HEAD` → must surface nested.wasm.
     // Without -r, the subdirectory appears as a tree object and .ends_with(".wasm")
@@ -3497,37 +3502,7 @@ fn test_S_21_09_ac006_T036_gitignored_probe_not_force_added_fires_missing() {
     let root = tmp.path();
 
     // Initialise a git repo with -c overrides (same discipline as T-030 Phase B).
-    let init_out = Command::new("git")
-        .args([
-            "-c",
-            "core.excludesFile=/dev/null",
-            "-c",
-            "commit.gpgsign=false",
-            "-c",
-            "core.hooksPath=/dev/null",
-            "-c",
-            "init.templateDir=",
-            "init",
-        ])
-        .current_dir(root)
-        .output()
-        .expect("git init must execute for T-036 fixture");
-    assert!(
-        init_out.status.success(),
-        "T-036: git init failed: {}",
-        String::from_utf8_lossy(&init_out.stderr)
-    );
-
-    Command::new("git")
-        .args(["config", "user.email", "test@example.com"])
-        .current_dir(root)
-        .output()
-        .expect("git config user.email must execute");
-    Command::new("git")
-        .args(["config", "user.name", "Test"])
-        .current_dir(root)
-        .output()
-        .expect("git config user.name must execute");
+    git_init_fixture(root, "T-036");
 
     let plugins_dir = root.join("plugins/vsdd-factory");
     let hook_plugins_dir = plugins_dir.join("hook-plugins");
@@ -3615,25 +3590,10 @@ fn test_S_21_09_ac006_T036_gitignored_probe_not_force_added_fires_missing() {
         String::from_utf8_lossy(&add_wasm_out.stderr)
     );
 
-    let commit_out = Command::new("git")
-        .args([
-            "-c",
-            "core.excludesFile=/dev/null",
-            "-c",
-            "commit.gpgsign=false",
-            "-c",
-            "core.hooksPath=/dev/null",
-            "commit",
-            "-m",
-            "T-036 fixture: 30 hooks committed; gitignored-probe not force-added",
-        ])
-        .current_dir(root)
-        .output()
-        .expect("git commit must execute for T-036 fixture");
-    assert!(
-        commit_out.status.success(),
-        "T-036: git commit failed: {}",
-        String::from_utf8_lossy(&commit_out.stderr)
+    git_commit_fixture(
+        root,
+        "T-036",
+        "T-036 fixture: 30 hooks committed; gitignored-probe not force-added",
     );
 
     // Write gitignored-probe.wasm to disk AFTER the commit — it now exists on the filesystem
@@ -3734,37 +3694,7 @@ fn test_S_21_09_ac006_T037_staged_not_committed_fires_staged_not_committed() {
     let tmp = tempdir().expect("tempdir must create successfully");
     let root = tmp.path();
 
-    let init_out = Command::new("git")
-        .args([
-            "-c",
-            "core.excludesFile=/dev/null",
-            "-c",
-            "commit.gpgsign=false",
-            "-c",
-            "core.hooksPath=/dev/null",
-            "-c",
-            "init.templateDir=",
-            "init",
-        ])
-        .current_dir(root)
-        .output()
-        .expect("git init must execute for T-037 fixture");
-    assert!(
-        init_out.status.success(),
-        "T-037: git init failed: {}",
-        String::from_utf8_lossy(&init_out.stderr)
-    );
-
-    Command::new("git")
-        .args(["config", "user.email", "test@example.com"])
-        .current_dir(root)
-        .output()
-        .expect("git config user.email must execute");
-    Command::new("git")
-        .args(["config", "user.name", "Test"])
-        .current_dir(root)
-        .output()
-        .expect("git config user.name must execute");
+    git_init_fixture(root, "T-037");
 
     let plugins_dir = root.join("plugins/vsdd-factory");
     let hook_plugins_dir = plugins_dir.join("hook-plugins");
@@ -3805,16 +3735,7 @@ fn test_S_21_09_ac006_T037_staged_not_committed_fires_staged_not_committed() {
         .expect("staged-probe.wasm must be written");
 
     // Add and commit h00..h29 + ctx.wasm (everything EXCEPT staged-probe.wasm).
-    let add_out = Command::new("git")
-        .args(["-c", "core.excludesFile=/dev/null", "add", "."])
-        .current_dir(root)
-        .output()
-        .expect("git add must execute for T-037 phase-1 fixture");
-    assert!(
-        add_out.status.success(),
-        "T-037: git add failed: {}",
-        String::from_utf8_lossy(&add_out.stderr)
-    );
+    git_add_all_fixture(root, "T-037");
 
     // Remove staged-probe.wasm from the index before committing (unstage it).
     let rm_out = Command::new("git")
@@ -3832,25 +3753,10 @@ fn test_S_21_09_ac006_T037_staged_not_committed_fires_staged_not_committed() {
         String::from_utf8_lossy(&rm_out.stderr)
     );
 
-    let commit_out = Command::new("git")
-        .args([
-            "-c",
-            "core.excludesFile=/dev/null",
-            "-c",
-            "commit.gpgsign=false",
-            "-c",
-            "core.hooksPath=/dev/null",
-            "commit",
-            "-m",
-            "T-037 fixture: 30 hooks + ctx committed; staged-probe excluded",
-        ])
-        .current_dir(root)
-        .output()
-        .expect("git commit must execute for T-037 fixture");
-    assert!(
-        commit_out.status.success(),
-        "T-037: git commit failed: {}",
-        String::from_utf8_lossy(&commit_out.stderr)
+    git_commit_fixture(
+        root,
+        "T-037",
+        "T-037 fixture: 30 hooks + ctx committed; staged-probe excluded",
     );
 
     // Now stage staged-probe.wasm (force-add) WITHOUT committing.
@@ -4004,37 +3910,7 @@ fn test_S_21_09_ac006_T039_subdir_declared_vs_flat_committed_fires_missing() {
     let root = tmp.path();
 
     // Initialise a git repo with -c overrides (same discipline as T-030 Phase B).
-    let init_out = Command::new("git")
-        .args([
-            "-c",
-            "core.excludesFile=/dev/null",
-            "-c",
-            "commit.gpgsign=false",
-            "-c",
-            "core.hooksPath=/dev/null",
-            "-c",
-            "init.templateDir=",
-            "init",
-        ])
-        .current_dir(root)
-        .output()
-        .expect("git init must execute for T-039 fixture");
-    assert!(
-        init_out.status.success(),
-        "T-039: git init failed: {}",
-        String::from_utf8_lossy(&init_out.stderr)
-    );
-
-    Command::new("git")
-        .args(["config", "user.email", "test@example.com"])
-        .current_dir(root)
-        .output()
-        .expect("git config user.email must execute");
-    Command::new("git")
-        .args(["config", "user.name", "Test"])
-        .current_dir(root)
-        .output()
-        .expect("git config user.name must execute");
+    git_init_fixture(root, "T-039");
 
     let plugins_dir = root.join("plugins/vsdd-factory");
     let hook_plugins_dir = plugins_dir.join("hook-plugins");
@@ -4068,36 +3944,11 @@ fn test_S_21_09_ac006_T039_subdir_declared_vs_flat_committed_fires_missing() {
     }
     fs::write(hook_plugins_dir.join("ctx.wasm"), b"wasm").expect("ctx.wasm must be written");
 
-    let add_out = Command::new("git")
-        .args(["-c", "core.excludesFile=/dev/null", "add", "."])
-        .current_dir(root)
-        .output()
-        .expect("git add must execute for T-039 fixture");
-    assert!(
-        add_out.status.success(),
-        "T-039: git add failed: {}",
-        String::from_utf8_lossy(&add_out.stderr)
-    );
-
-    let commit_out = Command::new("git")
-        .args([
-            "-c",
-            "core.excludesFile=/dev/null",
-            "-c",
-            "commit.gpgsign=false",
-            "-c",
-            "core.hooksPath=/dev/null",
-            "commit",
-            "-m",
-            "T-039 fixture: 30 hooks committed flat; declared at sub/",
-        ])
-        .current_dir(root)
-        .output()
-        .expect("git commit must execute for T-039 fixture");
-    assert!(
-        commit_out.status.success(),
-        "T-039: git commit failed: {}",
-        String::from_utf8_lossy(&commit_out.stderr)
+    git_add_all_fixture(root, "T-039");
+    git_commit_fixture(
+        root,
+        "T-039",
+        "T-039 fixture: 30 hooks committed flat; declared at sub/",
     );
 
     // Declared: hook-plugins/sub/hNN.wasm.  Tracked (after prefix strip): hook-plugins/hNN.wasm.
@@ -4734,11 +4585,36 @@ fn test_S_21_09_ac006_T047_outside_repo_declaration_tightest_margin_fires() {
 // After the pass-11 single-copy refactor, `detect_ungated_declarations` calls
 // `extract_hook_plugin_name` for the correctness gate — mutations in `extract` propagate
 // to both functions simultaneously.  This test kills:
-//   M4 (>=+2→+1): hook-plugins/ (directory path, no filename) passes the weakened gate
-//                  and enters gated; the GATED assertion for "hook-plugins" catches it.
+//   M4 (>=+2→+1): the "hook-plugins" bare directory-only path (no filename) is classified
+//                  UNGATED-DECLARATION in this table; under M4, extract_hook_plugin_name
+//                  wrongly returns Some("hook-plugins") for it (the weakened length gate
+//                  admits a directory-only declaration), so detect_ungated_declarations
+//                  no longer emits its UNGATED-DECLARATION finding — the exact-match
+//                  assertion on the "hook-plugins" row (expects
+//                  ["UNGATED-DECLARATION: hook-plugins"], gets []) catches it.
+//                  (Corrected pass-11 attribution: an earlier version of this test's
+//                  comment mistakenly credited a "GATED" branch assertion with catching
+//                  M4 via the "hook-plugins" case — but "hook-plugins" is classified
+//                  UNGATED-DECLARATION in the table above, never exercised by the GATED
+//                  branch. The catch happens on the UNGATED-DECLARATION row, as above.)
 //   M1+M4 composite: silent drop re-opens when M1 removes containment check AND M4 relaxes
-//                    gate-1; property table assertion on GATED cases catches the missing
+//                    gate-1; the exact-match assertion on GATED cases catches the missing
 //                    UNGATED emission.
+//
+// Single canonical assertion per case (PR-review fix): earlier versions of this test
+// additionally called extract_hook_plugin_name directly and asserted
+// extract_result.is_none()/is_some() alongside the detect_ungated_declarations-based
+// checks. That was a tautological restatement, not an independent check:
+// detect_ungated_declarations decides its own UNGATED-DECLARATION emission by calling
+// `extract_hook_plugin_name(registry_path, plugin_path).is_none()` internally (pass-11
+// single-copy design; see its doc comment) — so pairing a direct extract_hook_plugin_name
+// call with a detect_ungated_declarations-based check exercises the identical
+// extract_hook_plugin_name(registry, path) computation twice over identical inputs. The
+// single exact-vec-equality assertion below (against detect_ungated_declarations' full
+// output, the function actually wired into run_t012_gate) is the sole information-bearing
+// check per case; it also subsumes the former separate "other identifier absent" check via
+// exact-set equality (an identifier swap changes the vec's content, so exact equality
+// catches it without a second assertion).
 //
 // Does NOT kill M2 (len>→>=): every OUTSIDE-REPO-DECLARATION candidate in this table is
 // over-determined with respect to the containment predicate — each fails both the length
@@ -4795,20 +4671,14 @@ fn test_S_21_09_ac006_T048_totality_property_partition() {
         );
         fs::write(&registry, &toml).expect("registry must be written for T-048 property case");
 
-        let extract_result = extract_hook_plugin_name(&registry, path);
+        // Single canonical assertion per case: exercise detect_ungated_declarations()
+        // itself (the function actually wired into run_t012_gate) rather than pairing
+        // it with a separate direct extract_hook_plugin_name() call — see the module
+        // doc comment above for why the paired form was a tautological restatement.
         let detected = detect_ungated_declarations(&registry, root);
 
         match expected_class {
             "gated" => {
-                assert!(
-                    extract_result.is_some(),
-                    "T-048 property[{:?}]: expected gated (extract=Some) but got None; \
-                     mutation-proof: M4 (>=+2→+1) causes hook-plugins/ directory-only \
-                     path to return Some when it should be None — catches that mutation on \
-                     the 'hook-plugins' case; got extract=None for {:?}",
-                    path,
-                    path
-                );
                 assert!(
                     detected.is_empty(),
                     "T-048 property[{:?}]: expected gated (detect=[]) but got {:?}; \
@@ -4819,41 +4689,24 @@ fn test_S_21_09_ac006_T048_totality_property_partition() {
                 );
             }
             ident => {
-                let expected_entry = format!("{}: {}", ident, path);
-                assert!(
-                    extract_result.is_none(),
-                    "T-048 property[{:?}]: expected {} but extract returned Some({:?}); \
-                     single-copy refactor means extract drives detect; \
-                     mutations in extract propagate to both functions",
-                    path,
-                    ident,
-                    extract_result
-                );
-                assert!(
-                    detected.contains(&expected_entry),
-                    "T-048 property[{:?}]: expected {:?} in detected but got {:?}",
-                    path,
-                    expected_entry,
-                    detected
-                );
-                // Negative-identifier: assert the OTHER class is absent. Guards against
-                // identifier-swap mutations in detect_ungated_declarations' branch bodies.
+                // Exact-vec-equality: this is the sole information-bearing check per
+                // case. It pins (a) the correct classification identifier fires (no
+                // identifier swap between UNGATED-DECLARATION / OUTSIDE-REPO-DECLARATION),
+                // (b) the emitted path matches verbatim, and (c) nothing extraneous is
+                // also emitted for this single-entry registry — all in one assertion.
                 // NOTE: this table's OUTSIDE-REPO-DECLARATION candidates are all
                 // over-determined with respect to the containment predicate's length
                 // conjunct (they also independently fail the prefix conjunct), so this
                 // assertion does NOT kill M2 (len>→>=) — see T-050 for the dedicated M2
                 // length-conjunct isolation control.
-                let other_ident = if ident == "UNGATED-DECLARATION" {
-                    "OUTSIDE-REPO-DECLARATION"
-                } else {
-                    "UNGATED-DECLARATION"
-                };
-                assert!(
-                    !detected.iter().any(|s| s.starts_with(other_ident)),
-                    "T-048 property[{:?}]: identifier swap — detected {:?} but expected {}",
-                    path,
+                let expected_entry = format!("{}: {}", ident, path);
+                assert_eq!(
                     detected,
-                    ident
+                    vec![expected_entry.clone()],
+                    "T-048 property[{:?}]: expected exactly [{:?}] but got {:?}",
+                    path,
+                    expected_entry,
+                    detected
                 );
             }
         }
@@ -4881,36 +4734,7 @@ fn test_S_21_09_ac006_T049_ec005a_fires_on_empty_wasm_tracked_set() {
     let tmp = tempdir().expect("tempdir must create successfully");
     let root = tmp.path();
 
-    let init_out = Command::new("git")
-        .args([
-            "-c",
-            "core.excludesFile=/dev/null",
-            "-c",
-            "commit.gpgsign=false",
-            "-c",
-            "core.hooksPath=/dev/null",
-            "-c",
-            "init.templateDir=",
-            "init",
-        ])
-        .current_dir(root)
-        .output()
-        .expect("git init must execute for T-049 fixture");
-    assert!(
-        init_out.status.success(),
-        "T-049: git init failed: {}",
-        String::from_utf8_lossy(&init_out.stderr)
-    );
-    Command::new("git")
-        .args(["config", "user.email", "test@example.com"])
-        .current_dir(root)
-        .output()
-        .expect("git config user.email must execute");
-    Command::new("git")
-        .args(["config", "user.name", "Test"])
-        .current_dir(root)
-        .output()
-        .expect("git config user.name must execute");
+    git_init_fixture(root, "T-049");
 
     let plugins_dir = root.join("plugins/vsdd-factory");
     let hook_plugins_dir = plugins_dir.join("hook-plugins");
@@ -4959,26 +4783,7 @@ fn test_S_21_09_ac006_T049_ec005a_fires_on_empty_wasm_tracked_set() {
         String::from_utf8_lossy(&add_out.stderr)
     );
 
-    let commit_out = Command::new("git")
-        .args([
-            "-c",
-            "core.excludesFile=/dev/null",
-            "-c",
-            "commit.gpgsign=false",
-            "-c",
-            "core.hooksPath=/dev/null",
-            "commit",
-            "-m",
-            "T-049 fixture: no WASMs committed",
-        ])
-        .current_dir(root)
-        .output()
-        .expect("git commit must execute for T-049 fixture");
-    assert!(
-        commit_out.status.success(),
-        "T-049: git commit failed: {}",
-        String::from_utf8_lossy(&commit_out.stderr)
-    );
+    git_commit_fixture(root, "T-049", "T-049 fixture: no WASMs committed");
 
     // EC-005a fires: git ls-files returns zero .wasm paths (only config.yaml is tracked).
     // run_t012_gate passes inventory, Registry::parse_str, and detect_ungated_declarations,
@@ -5279,36 +5084,7 @@ fn test_S_21_09_ac006_T052_hooks_production_validation_isolation_kills_parse_str
     let tmp = tempdir().expect("tempdir must create successfully");
     let root = tmp.path();
 
-    let init_out = Command::new("git")
-        .args([
-            "-c",
-            "core.excludesFile=/dev/null",
-            "-c",
-            "commit.gpgsign=false",
-            "-c",
-            "core.hooksPath=/dev/null",
-            "-c",
-            "init.templateDir=",
-            "init",
-        ])
-        .current_dir(root)
-        .output()
-        .expect("git init must execute for T-052 fixture");
-    assert!(
-        init_out.status.success(),
-        "T-052: git init failed: {}",
-        String::from_utf8_lossy(&init_out.stderr)
-    );
-    Command::new("git")
-        .args(["config", "user.email", "test@example.com"])
-        .current_dir(root)
-        .output()
-        .expect("git config user.email must execute");
-    Command::new("git")
-        .args(["config", "user.name", "Test"])
-        .current_dir(root)
-        .output()
-        .expect("git config user.name must execute");
+    git_init_fixture(root, "T-052");
 
     let plugins_dir = root.join("plugins/vsdd-factory");
     let hook_plugins_dir = plugins_dir.join("hook-plugins");
@@ -5349,36 +5125,11 @@ fn test_S_21_09_ac006_T052_hooks_production_validation_isolation_kills_parse_str
     fs::write(hook_plugins_dir.join("ctx.wasm"), b"wasm")
         .expect("resolver wasm fixture must be written");
 
-    let add_out = Command::new("git")
-        .args(["-c", "core.excludesFile=/dev/null", "add", "."])
-        .current_dir(root)
-        .output()
-        .expect("git add must execute for T-052 fixture");
-    assert!(
-        add_out.status.success(),
-        "T-052: git add failed: {}",
-        String::from_utf8_lossy(&add_out.stderr)
-    );
-
-    let commit_out = Command::new("git")
-        .args([
-            "-c",
-            "core.excludesFile=/dev/null",
-            "-c",
-            "commit.gpgsign=false",
-            "-c",
-            "core.hooksPath=/dev/null",
-            "commit",
-            "-m",
-            "T-052 fixture: hooks-registry.toml schema_version=3",
-        ])
-        .current_dir(root)
-        .output()
-        .expect("git commit must execute for T-052 fixture");
-    assert!(
-        commit_out.status.success(),
-        "T-052: git commit failed: {}",
-        String::from_utf8_lossy(&commit_out.stderr)
+    git_add_all_fixture(root, "T-052");
+    git_commit_fixture(
+        root,
+        "T-052",
+        "T-052 fixture: hooks-registry.toml schema_version=3",
     );
 
     // Registry::parse_str(&hooks_content) panics with "T-012: hooks-registry.toml
@@ -5419,36 +5170,7 @@ fn test_S_21_09_ac006_T053_resolvers_schema_version_isolation_kills_assert_delet
     let tmp = tempdir().expect("tempdir must create successfully");
     let root = tmp.path();
 
-    let init_out = Command::new("git")
-        .args([
-            "-c",
-            "core.excludesFile=/dev/null",
-            "-c",
-            "commit.gpgsign=false",
-            "-c",
-            "core.hooksPath=/dev/null",
-            "-c",
-            "init.templateDir=",
-            "init",
-        ])
-        .current_dir(root)
-        .output()
-        .expect("git init must execute for T-053 fixture");
-    assert!(
-        init_out.status.success(),
-        "T-053: git init failed: {}",
-        String::from_utf8_lossy(&init_out.stderr)
-    );
-    Command::new("git")
-        .args(["config", "user.email", "test@example.com"])
-        .current_dir(root)
-        .output()
-        .expect("git config user.email must execute");
-    Command::new("git")
-        .args(["config", "user.name", "Test"])
-        .current_dir(root)
-        .output()
-        .expect("git config user.name must execute");
+    git_init_fixture(root, "T-053");
 
     let plugins_dir = root.join("plugins/vsdd-factory");
     let hook_plugins_dir = plugins_dir.join("hook-plugins");
@@ -5488,36 +5210,11 @@ fn test_S_21_09_ac006_T053_resolvers_schema_version_isolation_kills_assert_delet
     fs::write(hook_plugins_dir.join("ctx.wasm"), b"wasm")
         .expect("resolver wasm fixture must be written");
 
-    let add_out = Command::new("git")
-        .args(["-c", "core.excludesFile=/dev/null", "add", "."])
-        .current_dir(root)
-        .output()
-        .expect("git add must execute for T-053 fixture");
-    assert!(
-        add_out.status.success(),
-        "T-053: git add failed: {}",
-        String::from_utf8_lossy(&add_out.stderr)
-    );
-
-    let commit_out = Command::new("git")
-        .args([
-            "-c",
-            "core.excludesFile=/dev/null",
-            "-c",
-            "commit.gpgsign=false",
-            "-c",
-            "core.hooksPath=/dev/null",
-            "commit",
-            "-m",
-            "T-053 fixture: resolvers-registry.toml schema_version=2",
-        ])
-        .current_dir(root)
-        .output()
-        .expect("git commit must execute for T-053 fixture");
-    assert!(
-        commit_out.status.success(),
-        "T-053: git commit failed: {}",
-        String::from_utf8_lossy(&commit_out.stderr)
+    git_add_all_fixture(root, "T-053");
+    git_commit_fixture(
+        root,
+        "T-053",
+        "T-053 fixture: resolvers-registry.toml schema_version=2",
     );
 
     // assert_eq!(resolvers_schema_version, 1, ...) panics with "T-012:
@@ -5580,41 +5277,12 @@ fn test_S_21_09_ac006_T053_resolvers_schema_version_isolation_kills_assert_delet
 // Story: S-21.09
 // ---------------------------------------------------------------------------
 #[test]
-#[should_panic(expected = "but production requires 1")]
+#[should_panic(expected = "schema_version=-1 but production requires 1")]
 fn test_S_21_09_ac006_T054_resolvers_schema_version_absent_key_fail_closed_sentinel() {
     let tmp = tempdir().expect("tempdir must create successfully");
     let root = tmp.path();
 
-    let init_out = Command::new("git")
-        .args([
-            "-c",
-            "core.excludesFile=/dev/null",
-            "-c",
-            "commit.gpgsign=false",
-            "-c",
-            "core.hooksPath=/dev/null",
-            "-c",
-            "init.templateDir=",
-            "init",
-        ])
-        .current_dir(root)
-        .output()
-        .expect("git init must execute for T-054 fixture");
-    assert!(
-        init_out.status.success(),
-        "T-054: git init failed: {}",
-        String::from_utf8_lossy(&init_out.stderr)
-    );
-    Command::new("git")
-        .args(["config", "user.email", "test@example.com"])
-        .current_dir(root)
-        .output()
-        .expect("git config user.email must execute");
-    Command::new("git")
-        .args(["config", "user.name", "Test"])
-        .current_dir(root)
-        .output()
-        .expect("git config user.name must execute");
+    git_init_fixture(root, "T-054");
 
     let plugins_dir = root.join("plugins/vsdd-factory");
     let hook_plugins_dir = plugins_dir.join("hook-plugins");
@@ -5656,36 +5324,11 @@ fn test_S_21_09_ac006_T054_resolvers_schema_version_absent_key_fail_closed_senti
     fs::write(hook_plugins_dir.join("ctx.wasm"), b"wasm")
         .expect("resolver wasm fixture must be written");
 
-    let add_out = Command::new("git")
-        .args(["-c", "core.excludesFile=/dev/null", "add", "."])
-        .current_dir(root)
-        .output()
-        .expect("git add must execute for T-054 fixture");
-    assert!(
-        add_out.status.success(),
-        "T-054: git add failed: {}",
-        String::from_utf8_lossy(&add_out.stderr)
-    );
-
-    let commit_out = Command::new("git")
-        .args([
-            "-c",
-            "core.excludesFile=/dev/null",
-            "-c",
-            "commit.gpgsign=false",
-            "-c",
-            "core.hooksPath=/dev/null",
-            "commit",
-            "-m",
-            "T-054 fixture: resolvers-registry.toml omits schema_version",
-        ])
-        .current_dir(root)
-        .output()
-        .expect("git commit must execute for T-054 fixture");
-    assert!(
-        commit_out.status.success(),
-        "T-054: git commit failed: {}",
-        String::from_utf8_lossy(&commit_out.stderr)
+    git_add_all_fixture(root, "T-054");
+    git_commit_fixture(
+        root,
+        "T-054",
+        "T-054 fixture: resolvers-registry.toml omits schema_version",
     );
 
     // `.unwrap_or(-1)` fail-closed sentinel fires (key absent) →
@@ -5728,6 +5371,19 @@ fn test_S_21_09_ac006_T054_resolvers_schema_version_absent_key_fail_closed_senti
 // suite turns this test RED while all other tests remain GREEN. Reverting
 // the mutant restores GREEN.
 //
+// PR-review finding: the malformed-TOML case alone is vacuous against a much
+// coarser mutant — a whole-function `detect_ungated_declarations` body
+// replaced with `Vec::new()` (dead/inert function) would ALSO pass the
+// malformed-TOML assertion below, since malformed input is empty BY
+// CONSTRUCTION under both the live fail-open arm and a globally-inert
+// function. The malformed-TOML case in isolation cannot distinguish "the
+// Err(_) arm specifically returns empty" from "this function always returns
+// empty." The second block below closes that gap: it calls the SAME function
+// with VALID TOML containing a genuine ungated declaration and asserts the
+// result is non-empty — a whole-function `Vec::new()` mutant fails THIS
+// assertion (empirically verified below), while the malformed-TOML assertion
+// above isolates the fail-open arm specifically once paired with it.
+//
 // Story: S-21.09
 // ---------------------------------------------------------------------------
 #[test]
@@ -5755,6 +5411,32 @@ fn test_S_21_09_ac006_T055_detect_ungated_declarations_malformed_toml_fail_open_
          (fail-open Err(_) arm); under a mutant that returns a spurious non-empty finding \
          from the Err(_) arm this assertion fails; got: {:?}",
         result
+    );
+
+    // Positive control (closes the whole-function-Vec::new() gap): call the same
+    // function with VALID TOML declaring a genuine ungated entry (bare name,
+    // outside hook-plugins/). Under live code this produces a non-empty finding;
+    // under a mutant that collapses the entire function to `Vec::new()`, this
+    // assertion fails — proving T-055's malformed-TOML assertion above isolates
+    // the Err(_) arm specifically, not a globally-inert function.
+    let valid_registry_path = plugins_dir.join("hooks-registry-valid.toml");
+    fs::write(
+        &valid_registry_path,
+        "schema_version = 2\n[[hooks]]\nname = \"ghost\"\nplugin = \"ghost-bare.wasm\"\n\
+         event = \"PreToolUse\"\ntool = \"^Bash$\"\ntimeout_ms = 5000\non_error = \"continue\"\n",
+    )
+    .expect("valid hooks-registry.toml fixture must be written");
+
+    let valid_result = detect_ungated_declarations(&valid_registry_path, root);
+
+    assert!(
+        !valid_result.is_empty(),
+        "T-055 positive control: detect_ungated_declarations must return a non-empty \
+         finding for a VALID registry containing a genuine ungated declaration \
+         ('ghost-bare.wasm'); an empty result here (while the malformed-TOML case above \
+         is also empty) would indicate the function is inert/always-empty, not that the \
+         fail-open Err(_) arm specifically was exercised; got: {:?}",
+        valid_result
     );
 }
 
