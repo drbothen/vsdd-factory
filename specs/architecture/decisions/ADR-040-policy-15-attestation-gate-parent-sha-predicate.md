@@ -2,7 +2,7 @@
 document_type: architecture-decision-record
 level: L3
 adr_id: ADR-040
-version: "1.13"
+version: "1.15"
 title: "ADR-040: POLICY 15 ATTESTATION-LOCATION GATE — parent-SHA predicate replaces self-referential HEAD-SHA (resolves F-S2107-P8-003 logical impossibility)"
 status: active
 ratified: 2026-08-10
@@ -18,7 +18,28 @@ supersedes: "POLICY 15 ATTESTATION-LOCATION GATE clause codified at D-912 (D-912
 superseded_by: null
 traces_to: .factory/specs/architecture/ARCH-INDEX.md
 last_amended: |-
-  2026-08-13 (v1.13) — AMENDED (architect; S-21.07 pass-10 ADR-anchored fix cascade): stale
+  2026-08-13 (v1.15) — AMENDED (architect; S-21.07 pass-10 fix cascade, second
+  BODY-vs-COMMITTED-STATE reconciliation pass, pre-adversary-pass-11): Implementation
+  routing's remaining "state-manager — OUTSTANDING" item (D-965 row annotation) corrected to
+  DONE — `decision-log.md` (`.factory/cycles/v1.0-brownfield-backfill/decision-log.md`)
+  confirms the annotation was applied in the D-992 burst (2026-08-13): both the D-965 h2
+  entry's own footer AND the D-992 h2 entry body (item (g)) carry the verbatim text "This
+  ratification was PROCURED-ON-MISCHARACTERIZATION ... Forward pointer: D-970." Routing-list
+  header count corrected from "two items outstanding" to "one item outstanding" — only the
+  devops-engineer CI wiring item (tracked STATE.md Drift Item [D-969], blocked on
+  `feature/policy15-gate-rust` merging to `develop`) remains genuinely open. No gate
+  predicate or `GateOutcome` semantics changed.
+  [Prior: 2026-08-13 (v1.14) — AMENDED (architect; S-21.07 pass-10 fix cascade, BODY-vs-
+  COMMITTED-STATE reconciliation pass, pre-adversary-pass-11): Implementation routing's
+  F-S2107-P10-002 erratum-note item corrected from OUTSTANDING to DONE — commit `96b4be19` on
+  `feature/S-21.07-validate-cross-site-correspondence` (`docs(S-21.07): add permanent
+  POLICY 15 erratum note for retroactive attestations (F-S2107-P10-002)`) added the erratum
+  note to `crates/hook-plugins/validate-cross-site-correspondence/docs/red-gate-log.md` per
+  this ADR's own routing instruction. Two items in that same routing list remain genuinely
+  outstanding (devops-engineer CI wiring tracked at STATE.md Drift Item [D-969];
+  state-manager D-965 PROCURED-ON-MISCHARACTERIZATION annotation) — those are unchanged by
+  this amendment. No gate predicate or `GateOutcome` semantics changed.
+  [Prior: 2026-08-13 (v1.13) — AMENDED (architect; S-21.07 pass-10 ADR-anchored fix cascade): stale
   post-ratification content corrected — three defects found during independent re-verification
   against current develop/factory-artifacts state, none load-bearing on the gate's semantics
   (all corrections are documentary/routing, not predicate changes). (1) §Decision 5 line-number
@@ -182,7 +203,7 @@ last_amended: |-
   self-referential SHA predicate in POLICY 15 ATTESTATION-LOCATION GATE (D-912) is logically
   unsatisfiable; parent-SHA predicate preserves all three of D-912's original goals while
   removing the impossibility. policies.yaml NOT yet edited — human ratification required per
-  §Status. ADR-040 PROPOSED 2026-08-07.]]
+  §Status. ADR-040 PROPOSED 2026-08-07.]]]]
 modified:
   - "2026-08-07 (v1.0)"
   - "2026-08-08 (v1.1)"
@@ -198,6 +219,8 @@ modified:
   - "2026-08-10 (v1.11)"
   - "2026-08-10 (v1.12)"
   - "2026-08-13 (v1.13)"
+  - "2026-08-13 (v1.14)"
+  - "2026-08-13 (v1.15)"
 ---
 
 # ADR-040: POLICY 15 ATTESTATION-LOCATION GATE — parent-SHA predicate replaces self-referential HEAD-SHA
@@ -1784,7 +1807,19 @@ routing re-verified item-by-item via literal shell — 1 of 4 DONE (state-manage
 `policies.yaml` v1.4.23), 3 outstanding (devops-engineer CI wiring tracked [D-969];
 red-gate-log.md erratum note re-routed state-manager→implementer per code-repo/`.factory/`
 boundary; D-965 PROCURED-ON-MISCHARACTERIZATION annotation, state-manager). No gate
-predicate or `GateOutcome` semantics changed. §Status v1.13 added.
+predicate or `GateOutcome` semantics changed. §Status v1.13 added. AMENDED 2026-08-13;
+ADR-040 v1.14 (architect; S-21.07 pass-10 fix cascade, BODY-vs-COMMITTED-STATE
+reconciliation pass): Implementation routing's F-S2107-P10-002 erratum-note item corrected
+OUTSTANDING → DONE — commit `96b4be19` on `feature/S-21.07-validate-cross-site-correspondence`
+added the erratum note to `red-gate-log.md`. §Status v1.14 added. AMENDED 2026-08-13;
+ADR-040 v1.15 (architect; S-21.07 pass-10 fix cascade, second BODY-vs-COMMITTED-STATE
+reconciliation pass, pre-adversary-pass-11): Implementation routing's remaining
+"state-manager — OUTSTANDING" item (D-965 row annotation) corrected OUTSTANDING → DONE —
+`decision-log.md` confirms the annotation was applied in the D-992 burst (both the D-965
+entry's own footer and the D-992 entry body item (g) carry the PROCURED-ON-MISCHARACTERIZATION
+text with forward pointer to D-970). Routing-list header count corrected "two items
+outstanding" → "one item outstanding" — only devops-engineer CI wiring [D-969] remains
+open. §Status v1.15 added.
 
 **AMENDED 2026-08-13 (v1.13 — architect): stale re-ratification notice corrected.** The
 paragraph immediately below this note previously read "HUMAN RE-RATIFICATION REQUIRED...
@@ -1821,10 +1856,23 @@ extension (mutant-derived-gate alternation mandate) is unaffected and unchanged.
 scope is confirmed: supersede only the ATTESTATION-LOCATION GATE clause; D-912's POLICY 13
 extension is not in scope.
 
-Implementation routing (AMENDED 2026-08-13 v1.13 — status per item, human ratification of
+Implementation routing (AMENDED 2026-08-13 v1.15 — status per item, human ratification of
+v1.12 COMPLETE at D-970; ONE item below remains genuinely outstanding as of this amendment
+— devops-engineer CI wiring, tracked STATE.md Drift Item [D-969], blocked on
+`feature/policy15-gate-rust` merging to `develop`. Both other items are DONE: the
+F-S2107-P10-002 erratum-note item (commit `96b4be19` on
+`feature/S-21.07-validate-cross-site-correspondence`) and the D-965 row annotation (applied
+in the D-992 burst, 2026-08-13 — confirmed present in `decision-log.md` at both the D-965
+entry's own footer and the D-992 entry body item (g))):
+[Prior: 2026-08-13 v1.14 — status per item, human ratification of
+v1.12 COMPLETE at D-970; two items below remain genuinely outstanding as of this amendment;
+the F-S2107-P10-002 erratum-note item is DONE — commit `96b4be19` on
+`feature/S-21.07-validate-cross-site-correspondence` added the erratum note to
+`red-gate-log.md`.
+[Prior: 2026-08-13 v1.13 — status per item, human ratification of
 v1.12 COMPLETE at D-970; three items below remain genuinely outstanding as of this amendment,
 verified by literal-shell check against `origin/develop` and `origin/feature/S-21.07-...` —
-neither branch's `red-gate-log.md` contains an "erratum"/"PROCURED"/"F-S2107-P10-002" token):
+neither branch's `red-gate-log.md` contains an "erratum"/"PROCURED"/"F-S2107-P10-002" token.]]
 - **devops-engineer — OUTSTANDING (tracked: STATE.md Drift Item [D-969]).** Add two jobs to
   `.github/workflows/ci.yml` (or a dedicated `policy-15-attestation.yml`): (1)
   `policy-15-attestation-location` — required check, unconditional (no `paths:` filter),
@@ -1836,17 +1884,24 @@ neither branch's `red-gate-log.md` contains an "erratum"/"PROCURED"/"F-S2107-P10
 - **state-manager — DONE (D-970).** `policies.yaml` POLICY 15 ATTESTATION-LOCATION GATE
   bullet replaced verbatim per §Proposed `policies.yaml` Replacement Text; version
   v1.4.22 → v1.4.23 applied; ARCH-INDEX v3.53 → v3.54.
-- **implementer — OUTSTANDING (code-repo file; NOT a `.factory/` artifact, so NOT
-  state-manager scope per CLAUDE.md Agent Routing Table).** Add erratum note to
+- **implementer — DONE (commit `96b4be19`).** Erratum note added to
   `crates/hook-plugins/validate-cross-site-correspondence/docs/red-gate-log.md` on
-  `feature/S-21.07-validate-cross-site-correspondence` documenting the permanent
-  F-S2107-P10-002 historical violation at `67ffbdcc`/`38c70f9e` (retroactive attestation;
-  "at that commit" obligation was not met; per-commit iteration in
-  `crates/policy15-attestation-gate/` closes the class going forward but cannot cure the
-  two historical commits — history is immutable).
-- **state-manager — OUTSTANDING.** Annotate the D-965 row in `decision-log.md` as
+  `feature/S-21.07-validate-cross-site-correspondence` (commit `96b4be19`,
+  `docs(S-21.07): add permanent POLICY 15 erratum note for retroactive attestations
+  (F-S2107-P10-002)`), documenting the permanent F-S2107-P10-002 historical violation at
+  `67ffbdcc`/`38c70f9e` (retroactive attestation; "at that commit" obligation was not met;
+  per-commit iteration in `crates/policy15-attestation-gate/` closes the class going forward
+  but cannot cure the two historical commits — history is immutable). This item is no longer
+  routed to a specialist; it is a closed record of completed work (code-repo file; was NOT a
+  `.factory/` artifact, so was NOT state-manager scope per CLAUDE.md Agent Routing Table).
+- **state-manager — DONE (D-992).** The D-965 row in `decision-log.md`
+  (`.factory/cycles/v1.0-brownfield-backfill/decision-log.md`) is annotated
   PROCURED-ON-MISCHARACTERIZATION with a forward pointer to D-970 (the v1.12 re-ratification
-  row that superseded it on independent merits).
+  row that superseded it on independent merits). Applied in the D-992 burst (2026-08-13):
+  the D-965 entry's own footer carries "ANNOTATION (D-992, 2026-08-13): This ratification
+  was PROCURED-ON-MISCHARACTERIZATION ... Forward pointer: D-970"; the D-992 entry body
+  item (g) records the same annotation as the action taken and cites this ADR's own
+  (then-v1.13) routing item as the trigger.
 - **state-manager:** For future assertion-site commits in the code repo, include
   `### Pass-N assertion-site attestation (<PARENT-SHA>)` in the same commit, where
   PARENT-SHA is `git rev-parse HEAD^1` in the code repo before staging. The §Decision 6

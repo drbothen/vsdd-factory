@@ -2,7 +2,7 @@
 document_type: architecture-decision-record
 level: L3
 adr_id: ADR-042
-version: "1.3"
+version: "1.4"
 title: "ADR-042: validate-cross-site-correspondence fuel budget raise to 20M and loud fuel-exhaustion signaling"
 status: active
 ratified: "2026-08-13"
@@ -25,7 +25,16 @@ anchors:
 subsystems_affected:
   - SS-01
   - SS-05
-last_amended: "2026-08-13 (v1.3) — AMENDED (architect; S-21.07 pass-10 ADR-anchored fix
+last_amended: "2026-08-13 (v1.4) — AMENDED (architect; S-21.07 pass-10 fix cascade, BODY-
+  vs-FRONTMATTER reconciliation pass, pre-adversary-pass-11): §Status section's
+  'RATIFICATION STATUS — NEEDS HUMAN ADJUDICATION (F-S2107-P10-005)' paragraph and
+  'Recommendation to human' paragraph reconciled to present-tense — human ratification
+  OCCURRED 2026-08-13 (D-992; see frontmatter `status: active` / `ratified: '2026-08-13'` /
+  `ratification_note` above). The NEEDS-HUMAN framing is now historical, not current; the
+  §Status prose is corrected in place (superseded, not deleted) so body agrees with
+  frontmatter. No change to §Decision 1's fuel-budget arithmetic or §Decision 2's
+  global-raise mechanism.
+  [Prior: 2026-08-13 (v1.3) — AMENDED (architect; S-21.07 pass-10 ADR-anchored fix
   cascade): §Decision 1 Erratum added closing F-S2107-P10-006 (self-contradiction between
   §Decision 1 row 4 'independent budgets' claim and §Decision 2's global-raise-only
   mechanism) — corrected with POLICY 13 BOUNDARY-POLARITY mandatory mutant table and fresh
@@ -64,6 +73,7 @@ modified:
   - "2026-08-08 (v1.1)"
   - "2026-08-08 (v1.2)"
   - "2026-08-13 (v1.3)"
+  - "2026-08-13 (v1.4)"
 ---
 
 # ADR-042: validate-cross-site-correspondence fuel budget raise to 20M and loud fuel-exhaustion signaling
@@ -528,9 +538,25 @@ Would surface exhaustion as `block_intent=true exit_code=2`, making it visible. 
 
 ## Status
 
-PROPOSED 2026-08-08; ADR-042 v1.0 (architect; human ruling 2026-08-08 authorized the substance: raise fuel budget + make exhaustion loud + deferred structural fix). AMENDED 2026-08-08; ADR-042 v1.1 (architect): E-22→E-21 W4 re-anchor; platform-wide fuel exhaustion scope documented. AMENDED 2026-08-08; ADR-042 v1.2 (architect): perf-fuel-2 adapter-class measurement integrated; §Decision 1 12M floor + 92% margin stated; §Decision 3 re-scoped into three problem classes. AMENDED 2026-08-13; ADR-042 v1.3 (architect; S-21.07 pass-10 ADR-anchored fix cascade): §Decision 1 Erratum added — corrects the row-4/§Decision-2 self-contradiction (F-S2107-P10-006) with a POLICY 13 BOUNDARY-POLARITY mandatory mutant table and fresh literal-shell corroboration (burst-log.md/decision-log.md/lessons.md at 289%/297%/198% of the 20M cap under this ADR's own adapter-class model); five volatile `BC-INDEX.md` line-number pins replaced with stable body-table-row anchors per TD-VSDD-091 (F-S2107-P10-008 ADR-042 leg). No change to §Decision 1's fuel-budget arithmetic (12M floor / 20M chosen / 92% margin, all `validate-cross-site-correspondence`-specific) or §Decision 2's global-raise mechanism — only the excluded-region characterization in row 4 was factually wrong and is corrected.
+PROPOSED 2026-08-08; ADR-042 v1.0 (architect; human ruling 2026-08-08 authorized the substance: raise fuel budget + make exhaustion loud + deferred structural fix). AMENDED 2026-08-08; ADR-042 v1.1 (architect): E-22→E-21 W4 re-anchor; platform-wide fuel exhaustion scope documented. AMENDED 2026-08-08; ADR-042 v1.2 (architect): perf-fuel-2 adapter-class measurement integrated; §Decision 1 12M floor + 92% margin stated; §Decision 3 re-scoped into three problem classes. AMENDED 2026-08-13; ADR-042 v1.3 (architect; S-21.07 pass-10 ADR-anchored fix cascade): §Decision 1 Erratum added — corrects the row-4/§Decision-2 self-contradiction (F-S2107-P10-006) with a POLICY 13 BOUNDARY-POLARITY mandatory mutant table and fresh literal-shell corroboration (burst-log.md/decision-log.md/lessons.md at 289%/297%/198% of the 20M cap under this ADR's own adapter-class model); five volatile `BC-INDEX.md` line-number pins replaced with stable body-table-row anchors per TD-VSDD-091 (F-S2107-P10-008 ADR-042 leg). No change to §Decision 1's fuel-budget arithmetic (12M floor / 20M chosen / 92% margin, all `validate-cross-site-correspondence`-specific) or §Decision 2's global-raise mechanism — only the excluded-region characterization in row 4 was factually wrong and is corrected. AMENDED 2026-08-13; ADR-042 v1.4 (architect; S-21.07 pass-10 fix cascade, body-vs-frontmatter reconciliation pass, pre-adversary-pass-11): `## Status` section's "RATIFICATION STATUS — NEEDS HUMAN ADJUDICATION" and "Recommendation to human" paragraphs reconciled to present-tense — human ratification OCCURRED 2026-08-13 (D-992); frontmatter now carries `status: active`/`ratified: "2026-08-13"`. Historical text preserved with a superseding note, not deleted.
 
-**RATIFICATION STATUS — NEEDS HUMAN ADJUDICATION (F-S2107-P10-005).** Frontmatter `status:
+> **SUPERSEDED 2026-08-13 (v1.4 amendment, body-vs-frontmatter reconciliation, S-21.07
+> pass-10 fix cascade):** the two paragraphs immediately below this note ("RATIFICATION
+> STATUS — NEEDS HUMAN ADJUDICATION" and "Recommendation to human") described the state as
+> of v1.3 authoring (2026-08-13, earlier same day) and were not revisited when ratification
+> occurred later the same day. **Human ratification HAS NOW OCCURRED**: D-992 (S-21.07
+> pass-10 fix burst, 2026-08-13) — the human answered "Ratify both now" for ADR-041 and
+> ADR-042 together, exactly the disposition the v1.3 §Status recommendation proposed.
+> Frontmatter now carries `status: active`, `ratified: "2026-08-13"`, and a
+> `ratification_note` recording the D-992 event. The proposed-ADR-governing-live-gate
+> contradiction the v1.3 paragraphs flagged is RESOLVED — `InvokeLimits::default() fuel_cap`
+> and the §Decision 3 loud-exhaustion signaling now run under a ratified, `status: active`
+> ADR, not a `proposed` one. The v1.3 text is preserved below verbatim for historical
+> continuity (it accurately reflects the ADR's pre-ratification state and the reasoning that
+> led to ratification).
+
+**RATIFICATION STATUS AS OF v1.3 AUTHORING (2026-08-13, HISTORICAL — F-S2107-P10-005,
+RESOLVED BY D-992 LATER THE SAME DAY).** Frontmatter `status:
 proposed`, no `ratified:` field, despite `decision-log.md` D-964(b) narrative stating "ADR-042
 v1.2 ratified" and STATE.md/burst-log echoing that language in six subsequent bursts
 (D-965/966/967/968/969/970 fuel-exhaustion-telemetry notes). Architect does not have
@@ -545,7 +571,7 @@ the fuel budget AND make exhaustion loud"). What is missing is the explicit, dat
 ratification of the ADR *document* — the `status: proposed → active` / `ratified: <date>`
 frontmatter transition with a `ratification_note` comparable to ADR-040 v1.12's.
 
-**Recommendation to human:** ratify ADR-042 v1.3 (frontmatter `status: proposed → active`,
+**Recommendation to human (as of v1.3, historical — ACTED ON at D-992):** ratify ADR-042 v1.3 (frontmatter `status: proposed → active`,
 `ratified: <date-of-explicit-confirmation>`) now that F-S2107-P10-006's self-contradiction is
 corrected, since (a) the underlying 2026-08-08 ruling on substance is already genuine and
 on record, (b) the fuel-budget arithmetic (§Decision 1) has not changed, only the row-4
@@ -557,3 +583,8 @@ instead determines the 2026-08-08 substance ruling did NOT constitute ADR-level 
 intent, the alternative disposition is: keep `status: proposed`, and route to devops-engineer/
 state-manager to gate `InvokeLimits::default() fuel_cap` and POLICY 16's ALLOCATOR-CEILING
 enforcement on explicit ratification before further reliance is placed on either.
+
+**Disposition (v1.4): the human chose the recommended disposition.** D-992 (2026-08-13)
+ratified ADR-042 and ADR-041 together in one pass, per the recommendation above. This ADR's
+ratification status is CLOSED — see frontmatter and the superseding note at the top of this
+`## Status` section.

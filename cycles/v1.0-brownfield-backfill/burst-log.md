@@ -27646,3 +27646,83 @@ D-444(c) burst-log h2 heading `## D-992-S2107-PASS10-FIX-BURST` present. D-446(a
 - **Parent SHA (Block 8 cites parent per D-419(b)/D-444(c) convention):** `0b350501` — `state(sha-patch): D-991 commit 2e4c0a7f factory-artifacts SHA -- Active Branches + checkpoint updated`
 
 **Closes:** F-001 (ALREADY-RESOLVED, residual anchored); F-002 CLOSED; F-003 (ALREADY-RESOLVED, D-965 annotation CLOSED); F-004 CLOSED; F-005 CLOSED; F-006 CLOSED; F-007 CLOSED; F-008 CLOSED; F-009 CLOSED; F-010 CLOSED-with-codification; ADR-041 v1.1 RATIFIED; ADR-042 v1.3 RATIFIED; BC-5.39.010 v1.18; BC-INDEX v4.58; ARCH-INDEX v3.56; policies.yaml v1.4.24; `feature/S-21.07` SHA advanced to `96b4be19`; streak explicitly UNCHANGED 0/3 — **S-21.07 PASS-10 FIX BURST COMPLETE; PASS-11 ADVERSARY DISPATCH NEXT.**
+
+## D-993-ADR-BODY-RECONCILIATION-BATCH
+
+**Block 1: Parent-commit**
+
+POLICY 16 allocator-ceiling gate (literal shell, D-449(a)):
+
+```
+$ max_d=$({ grep -hE '^#{2,} D-[0-9]+' cycles/v1.0-brownfield-backfill/decision-log.md cycles/v1.0-feature-engine-discipline-pass-1/decision-log.md 2>/dev/null; grep -hE '^[|] *D-[0-9]+' cycles/v1.0-brownfield-backfill/decision-log.md cycles/v1.0-feature-engine-discipline-pass-1/decision-log.md 2>/dev/null; } | grep -oE 'D-[0-9]+' | sed 's/D-//' | sort -n | tail -1); [ "$max_d" -lt 9000 ] && printf 'PASS: global max D-%s < D-9000 ceiling\n' "$max_d" || printf 'FAIL: breach: max=D-%s\n' "$max_d"
+PASS: global max D-992 < D-9000 ceiling
+```
+
+D-993 allocated. **Parent-commit:** `f672b582` — `state(sha-patch): D-992 commit b046531d factory-artifacts SHA -- Active Branches + checkpoint updated` (factory-artifacts HEAD at burst start).
+
+**Block 2: Adversary verdict**
+
+**No adversary dispatch this burst — this is a small consistency follow-on, not an adversarial pass.** LOCAL BC-5.39.001 streak for the S-21.07 cascade remains **0/3, UNCHANGED** — a documentary reconciliation burst does not advance the streak; only a CLEAN adversary verdict does. Pass-11 (fresh-context `vsdd-factory:adversary`, reading only `adversary-pass-10.md` Part A per the Iron Law) is the pending gate, dispatched next after this burst's SHA-patch follow-up.
+
+**Block 3: Files touched**
+
+- `.factory/specs/architecture/decisions/ADR-040-policy-15-attestation-gate-parent-sha-predicate.md` — v1.13→v1.15 (architect; bundled, not rewritten)
+- `.factory/specs/architecture/decisions/ADR-041-d-999-sentinel-migration-allocator-ceiling-gate-and-d-99999-replacement-sentinel.md` — v1.1→v1.2 (architect; bundled, not rewritten)
+- `.factory/specs/architecture/decisions/ADR-042-validate-cross-site-correspondence-fuel-budget-raise-and-loud-exhaustion-signaling.md` — v1.3→v1.4 (architect; bundled, not rewritten)
+- `.factory/specs/architecture/ARCH-INDEX.md` — v3.56→v3.57 (ADR-040 row: v1.15 note appended, also backfills the uncaptured v1.14 note; ADR-041 row: v1.2 note; ADR-042 row: v1.4 note)
+- `.factory/cycles/v1.0-brownfield-backfill/decision-log.md` — D-993 appended
+- `.factory/cycles/v1.0-brownfield-backfill/burst-log.md` — this entry
+- `.factory/STATE.md` — full advance (frontmatter, Phase Progress, Active Branches, Concurrent Cycles, Decisions Log, Drift Items, Session Resume Checkpoint)
+
+**Block 4: Codifications**
+
+No new codifications this burst. Applies pre-existing disciplines: TD-VSDD-091 stable-anchor discipline (N/A — no volatile pins touched this burst), TD-VSDD-053 single-commit-per-burst, S-7.02 defensive-sweep discipline (applied to the ARCH-INDEX ADR-040 row, closing the propagation gap where the row had stopped at bare "ADR-040 v1.12." despite two subsequent body amendments).
+
+**Block 5 (Dim-2): Literal-shell attestation evidence**
+
+POLICY 16 gate captured above (Block 1).
+
+ARCH-INDEX row-note gate (literal shell):
+
+```
+$ cd /Users/zious/Documents/GITHUB/vsdd-factory/.factory && grep -c "ADR-040 v1.15" specs/architecture/ARCH-INDEX.md; grep -c "ADR-041 v1.2\." specs/architecture/ARCH-INDEX.md; grep -c "ADR-042 v1.4\." specs/architecture/ARCH-INDEX.md
+1
+1
+2
+```
+
+ADR body version gate (literal shell):
+
+```
+$ grep -E "^version:" specs/architecture/decisions/ADR-040-policy-15-attestation-gate-parent-sha-predicate.md specs/architecture/decisions/ADR-041-d-999-sentinel-migration-allocator-ceiling-gate-and-d-99999-replacement-sentinel.md specs/architecture/decisions/ADR-042-validate-cross-site-correspondence-fuel-budget-raise-and-loud-exhaustion-signaling.md
+specs/architecture/decisions/ADR-040-...:version: "1.15"
+specs/architecture/decisions/ADR-041-...:version: "1.2"
+specs/architecture/decisions/ADR-042-...:version: "1.4"
+```
+
+**Block 6 (Dim-5): Closes**
+
+- Drift Item `[D-992]` "ADR-040 v1.13 §Implementation-routing 'implementer — OUTSTANDING' line stale re F-002" — **RESOLVED** this burst (ADR-040 v1.14 corrects it verbatim)
+- No adversary findings closed this burst (documentary reconciliation, not a fix burst against a finding set)
+
+**Block 7 (Dim-6): Gate attestation**
+
+D-444(c) burst-log h2 heading `## D-993-ADR-BODY-RECONCILIATION-BATCH` present. D-446(a) own-burst-log 8-block gate: this section contains Blocks 1-8. D-448(a) source-attestation gate: N/A this burst — no adversary pass dispatched, so there is no Part-A finding set to attest against; the burst's own claims (ADR body version bumps, ARCH-INDEX row notes, Drift Item closure) are independently verified via literal shell in Block 5. D-449(a) literal-shell-execution SELF-APPLICATION: POLICY 16 gate + ARCH-INDEX row-note gate + ADR body version gate all use actual shell with verbatim stdout captured (Block 5) — no pseudocode.
+
+**Dim-7 Attestation:**
+
+- This burst is NOT a numbered LOCAL adversary pass — no trajectory entry added; trajectory (10 numbered passes) `47→18→25→25→24→20→16→8→10` (tail `→20→16→8→10`), UNCHANGED
+- Streak: **0/3 — UNCHANGED (documentary reconciliation, NOT a clean adversary verdict)**. Pass-11 adversary dispatch is the pending gate.
+- 4-INDEX: BC v4.58 (UNCHANGED) / VP v2.76 (UNCHANGED) / STORY v4.318 (UNCHANGED) / ARCH v3.56→**v3.57**
+- policies.yaml v1.4.24 (UNCHANGED)
+- `feature/S-21.07` SHA `96b4be19` UNCHANGED (no code-repo commit this burst); UNFROZEN + sequenced-next UNCHANGED
+- ADR-040 v1.13→v1.15 (architect, bundled); ADR-041 v1.1→v1.2 (architect, bundled); ADR-042 v1.3→v1.4 (architect, bundled) — no ratification-status change, all three ADRs already `status: active` since D-970/D-992
+- `pipeline: ACTIVE` UNCHANGED
+
+### Block 8: factory-artifacts commit
+
+**factory-artifacts commits (this burst — TD-VSDD-053 single-commit-per-burst):**
+- Target: single commit pushed as `git push origin HEAD:factory-artifacts`
+- **Parent SHA (Block 8 cites parent per D-419(b)/D-444(c) convention):** `f672b582` — `state(sha-patch): D-992 commit b046531d factory-artifacts SHA -- Active Branches + checkpoint updated`
+
+**Closes:** Drift Item `[D-992]` RESOLVED; ADR-040 v1.15, ADR-041 v1.2, ADR-042 v1.4 bundled and reflected in ARCH-INDEX v3.57; streak explicitly UNCHANGED 0/3 — **D-993 ADR BODY RECONCILIATION BATCH COMPLETE; SHA-PATCH FOLLOW-UP THEN PASS-11 ADVERSARY DISPATCH NEXT.**

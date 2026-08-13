@@ -17218,3 +17218,57 @@ D-992-S2107-PASS10-FIX-BURST
 2026-08-13
 
 ---
+
+## D-993 — D-993-ADR-BODY-RECONCILIATION-BATCH
+
+**POLICY 16 ALLOCATOR-CEILING GATE** (pre-allocation, literal shell, D-449(a)):
+
+```
+$ max_d=$({ grep -hE '^#{2,} D-[0-9]+' cycles/v1.0-brownfield-backfill/decision-log.md cycles/v1.0-feature-engine-discipline-pass-1/decision-log.md 2>/dev/null; grep -hE '^[|] *D-[0-9]+' cycles/v1.0-brownfield-backfill/decision-log.md cycles/v1.0-feature-engine-discipline-pass-1/decision-log.md 2>/dev/null; } | grep -oE 'D-[0-9]+' | sed 's/D-//' | sort -n | tail -1); [ "$max_d" -lt 9000 ] && printf 'PASS: global max D-%s < D-9000 ceiling\n' "$max_d" || printf 'FAIL: breach: max=D-%s\n' "$max_d"
+PASS: global max D-992 < D-9000 ceiling
+```
+
+D-993 allocated. **Parent-commit:** `f672b582` — `state(sha-patch): D-992 commit b046531d factory-artifacts SHA -- Active Branches + checkpoint updated` (factory-artifacts HEAD at burst start).
+
+**(a) Scope.** Small consistency follow-on to the D-992 S-21.07 pass-10 fix burst, preparing for fresh-context adversary pass-11. This is NOT a new adversary finding and NOT a fix burst against a finding set — it is a documentary frontmatter-vs-body reconciliation pass. LOCAL BC-5.39.001 streak for the S-21.07 cascade is **explicitly UNCHANGED at 0/3** — no clean adversary verdict has occurred this burst; pass-11 remains the pending gate.
+
+**(b) Already-authored architect edits bundled verbatim (NOT rewritten by state-manager).** Verified via `git -C .factory status --porcelain` at burst start:
+- `specs/architecture/decisions/ADR-040-policy-15-attestation-gate-parent-sha-predicate.md` v1.13→v1.15 (architect): §Implementation routing list — F-002 erratum item OUTSTANDING→DONE (v1.14, commit `96b4be19`); D-965-annotation item OUTSTANDING→DONE (v1.15, D-992); header count "two items outstanding"→"one item outstanding" (only devops-engineer CI wiring `[D-969]` remains open); body §Status chronological log gained its missing v1.14/v1.15 entries.
+- `specs/architecture/decisions/ADR-041-d-999-sentinel-migration-allocator-ceiling-gate-and-d-99999-replacement-sentinel.md` v1.1→v1.2 (architect): §Status body reconciled from NEEDS-HUMAN/proposed framing to RATIFIED (human, 2026-08-13, D-992); body chronological log gained v1.2 entry.
+- `specs/architecture/decisions/ADR-042-validate-cross-site-correspondence-fuel-budget-raise-and-loud-exhaustion-signaling.md` v1.3→v1.4 (architect): §Status body reconciled from NEEDS-HUMAN/proposed framing to RATIFIED (human, 2026-08-13, D-992); body chronological log gained v1.4 entry.
+
+**(c) ARCH-INDEX.md — row notes appended, one propagation gap closed.** ADR-040 row: v1.15 note appended. This edit also backfills the previously-uncaptured v1.14 note — a defensive sweep (S-7.02) found the row had stopped at bare "ADR-040 v1.12." despite the D-992 decision-log entry ((c)) already flagging ADR-040 v1.13's body as stale; the row is now brought current through v1.15 in one edit. ADR-041 row: v1.2 note appended. ADR-042 row: v1.4 note appended. ARCH-INDEX v3.56→**v3.57**. `total_adrs` UNCHANGED (43). Literal-shell confirmation:
+
+```
+$ grep -c "ADR-040 v1.15" specs/architecture/ARCH-INDEX.md
+1
+$ grep -c "ADR-041 v1.2\." specs/architecture/ARCH-INDEX.md
+1
+$ grep -c "ADR-042 v1.4\." specs/architecture/ARCH-INDEX.md
+2
+```
+
+**(d) Drift Item closed — STATE.md `[D-992] ADR-040 v1.13 §Implementation-routing "implementer — OUTSTANDING" line stale re F-002` (OPEN 2026-08-13, LOW documentary residual).** This is exactly the defect ADR-040 v1.14 (bundled per (b)) corrects. Recorded **RESOLVED** in STATE.md Drift Items this burst.
+
+**(e) 4-INDEX.** BC-INDEX v4.58 (UNCHANGED) / VP-INDEX v2.76 (UNCHANGED) / STORY-INDEX v4.318 (UNCHANGED) / ARCH-INDEX v3.56→**v3.57**. policies.yaml v1.4.24 (UNCHANGED).
+
+**(f) No gate-predicate or ratification-status change.** This burst is documentary only — no `GateOutcome` semantics, POLICY 15 predicate, or ADR `status`/`ratified` frontmatter fields were touched (those were already applied at D-992). Streak, trajectory, and Active Branches SHAs for `feature/S-21.07` are UNCHANGED except the `factory-artifacts` branch itself.
+
+### Agents
+
+- architect (prior to this burst, same session): ADR-040 v1.13→v1.15, ADR-041 v1.1→v1.2, ADR-042 v1.3→v1.4 authored (bundled this commit per TD-VSDD-053, not re-authored by state-manager)
+- state-manager (D-993): ARCH-INDEX v3.57 (3 row notes appended, 1 propagation gap closed); Drift Item `[D-992]` closure; STATE.md full advance; single atomic commit to `factory-artifacts` per TD-VSDD-053; POLICY 16 gate run with literal shell captured stdout
+
+### 4-INDEX
+
+BC-INDEX v4.58 (UNCHANGED) / VP-INDEX v2.76 (UNCHANGED) / STORY-INDEX v4.318 (UNCHANGED) / ARCH-INDEX **v3.57**
+
+### Phase
+
+D-993-ADR-BODY-RECONCILIATION-BATCH
+
+### Date
+
+2026-08-13
+
+---

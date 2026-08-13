@@ -1,12 +1,20 @@
 ---
 document_type: adr
 adr_id: ADR-041
-version: "1.1"
+version: "1.2"
 status: active
 ratified: "2026-08-13"
 ratification_note: "Human ratification 2026-08-13 (S-21.07 pass-10 fix burst, D-992): the D-960 SRC ruling ('migrate the sentinel, not merely reserve it') already authorized this ADR's substance; the sentinel migration and POLICY 16 ALLOCATOR-CEILING GATE (§Decision 3) have been running as a live blocking pre-allocation gate since D-961 with zero adverse findings across 10+ bursts. This ratification closes the F-S2107-P10-005 ADR-041 leg — the frontmatter status/decision-log-narrative gap the v1.1 §Status section flagged NEEDS-HUMAN. Ratified alongside ADR-042 in the same human decision, per v1.1 §Status recommendation (c)."
 date: 2026-08-07
-last_amended: "2026-08-13 (v1.1) — AMENDED (architect; S-21.07 pass-10 ADR-anchored fix
+last_amended: "2026-08-13 (v1.2) — AMENDED (architect; S-21.07 pass-10 fix cascade, BODY-
+  vs-FRONTMATTER reconciliation pass, pre-adversary-pass-11): §Status section's
+  'RATIFICATION STATUS — NEEDS HUMAN ADJUDICATION (F-S2107-P10-005)' paragraph and
+  'Recommendation to human' paragraph reconciled to present-tense — human ratification
+  OCCURRED 2026-08-13 (D-992; see frontmatter `status: active` / `ratified: '2026-08-13'` /
+  `ratification_note` above). The NEEDS-HUMAN framing is now historical, not current; the
+  §Status prose is corrected in place (superseded, not deleted) so body agrees with
+  frontmatter. No change to §Decision 1-4 substance.
+  [Prior: 2026-08-13 (v1.1) — AMENDED (architect; S-21.07 pass-10 ADR-anchored fix
   cascade, closes F-S2107-P10-005 ADR-041 leg): added `version`/`last_amended`/`modified`
   frontmatter fields (absent since v1.0 authoring — this ADR predates the version-tracking
   convention other ADR-04x documents use); §Consequences 'Status as of 2026-08-07' subsection
@@ -19,10 +27,11 @@ last_amended: "2026-08-13 (v1.1) — AMENDED (architect; S-21.07 pass-10 ADR-anc
   not claim unilateral ratification authority (ADR-040/D-965 precedent: narrative 'ratified'
   language in a burst summary is not equivalent to a genuine, dated human ratification event).
   No change to §Decision 1-4 substance (sentinel value, ceiling, gate predicate, authoring
-  discipline) — this amendment is documentary/status-tracking only."
+  discipline) — this amendment is documentary/status-tracking only.]"
 modified:
   - "2026-08-07 (v1.0)"
   - "2026-08-13 (v1.1)"
+  - "2026-08-13 (v1.2)"
 subsystems_affected:
   - SS-05
   - SS-01
@@ -421,9 +430,29 @@ allocation; confirmed passing in every burst from D-961 through the current HEAD
 S-21.07 pass-10 ADR-anchored fix cascade, closes F-S2107-P10-005 ADR-041 leg): added
 version-tracking frontmatter (absent at v1.0); corrected the stale "Status as of 2026-08-07"
 subsection under §Consequences (superseded in place, not deleted); this `## Status` section
-added.
+added. AMENDED 2026-08-13; ADR-041 v1.2 (architect; S-21.07 pass-10 fix cascade, body-vs-
+frontmatter reconciliation pass, pre-adversary-pass-11): `## Status` section's
+"RATIFICATION STATUS — NEEDS HUMAN ADJUDICATION" and "Recommendation to human" paragraphs
+reconciled to present-tense — human ratification OCCURRED 2026-08-13 (D-992); frontmatter
+now carries `status: active`/`ratified: "2026-08-13"`. Historical text preserved with a
+superseding note, not deleted.
 
-**RATIFICATION STATUS — NEEDS HUMAN ADJUDICATION (F-S2107-P10-005).** Frontmatter `status:
+> **SUPERSEDED 2026-08-13 (v1.2 amendment, body-vs-frontmatter reconciliation, S-21.07
+> pass-10 fix cascade):** the two paragraphs immediately below this note ("RATIFICATION
+> STATUS — NEEDS HUMAN ADJUDICATION" and "Recommendation to human") described the state as
+> of v1.1 authoring (2026-08-13, earlier same day) and were not revisited when ratification
+> occurred later the same day. **Human ratification HAS NOW OCCURRED**: D-992 (S-21.07
+> pass-10 fix burst, 2026-08-13) — the human answered "Ratify both now" for ADR-041 and
+> ADR-042 together, exactly the disposition (c) the v1.1 §Status recommendation proposed.
+> Frontmatter now carries `status: active`, `ratified: "2026-08-13"`, and a
+> `ratification_note` recording the D-992 event. The live-gate/ungoverned-ADR contradiction
+> the v1.1 paragraphs flagged is RESOLVED — POLICY 16 ALLOCATOR-CEILING GATE (§Decision 3)
+> now runs under a ratified, `status: active` ADR, not a `proposed` one. The v1.1 text is
+> preserved below verbatim for historical continuity (it accurately reflects the ADR's
+> pre-ratification state and the reasoning that led to ratification).
+
+**RATIFICATION STATUS AS OF v1.1 AUTHORING (2026-08-13, HISTORICAL — F-S2107-P10-005,
+RESOLVED BY D-992 LATER THE SAME DAY).** Frontmatter `status:
 proposed`, no `ratified:` field, despite `decision-log.md` D-961(a) stating "ADR-041
 ratified" in a state-manager multi-specialist recording-burst summary — narrative language,
 not an explicit dated human ratification event with a `ratification_note` comparable to
@@ -432,7 +461,7 @@ human-authorized and on record (§Context / §Source-Origin). What is missing is
 of the ADR *document*. Architect does not claim authority to self-declare this ratified —
 same ADR-040/D-965 precedent cited in ADR-042 v1.3 §Status.
 
-**Live-gate contradiction, concretely:** the POLICY 16 ALLOCATOR-CEILING GATE (this ADR
+**Live-gate contradiction, concretely (as of v1.1, historical):** the POLICY 16 ALLOCATOR-CEILING GATE (this ADR
 §Decision 3) has executed as a blocking pre-allocation gate in every single burst since
 D-961 — at least 10 confirmed PASS invocations through the current HEAD — while its
 governing ADR has never carried a `status: active`/`ratified:` frontmatter pair. The gate's
@@ -440,7 +469,7 @@ design has never produced an adverse finding in ~10 live invocations, which is e
 design is sound, but soundness-in-practice is not a substitute for the ratification record
 the project's own governance model requires for a document whose rulings gate every burst.
 
-**Recommendation to human:** ratify ADR-041 v1.1 now (`status: proposed → active`,
+**Recommendation to human (as of v1.1, historical — ACTED ON at D-992):** ratify ADR-041 v1.1 now (`status: proposed → active`,
 `ratified: <date-of-explicit-confirmation>`), on the basis that (a) the D-960 SRC ruling
 already authorizes the substance, (b) the mechanism has been running correctly in production
 for ~6 days across 10+ bursts with zero adverse findings, and (c) ADR-042 carries the
@@ -448,3 +477,8 @@ identical F-005 gap and both should be resolved together in one human ratificati
 rather than staggered. If the human prefers a different disposition (e.g., a fresh review of
 the gate's three structural-anchor forms before ratifying), that is also a legitimate
 outcome — this section flags the decision point; it does not presume the answer.
+
+**Disposition (v1.2): the human chose recommendation (c).** D-992 (2026-08-13) ratified
+ADR-041 and ADR-042 together in one pass, per the recommendation above. This ADR's
+ratification status is CLOSED — see frontmatter and the superseding note at the top of this
+`## Status` section.
