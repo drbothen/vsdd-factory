@@ -17386,3 +17386,70 @@ D-995-S2107-PASS12-RECORD-AND-FIX-BURST
 2026-08-13
 
 ---
+
+## D-996 — D-996-S2107-PASS13-RECORD-AND-FIX-BURST
+
+**POLICY 16 ALLOCATOR-CEILING GATE** (pre-allocation, literal shell, D-449(a)):
+
+```
+$ max_d=$({ grep -hE '^#{2,} D-[0-9]+' cycles/v1.0-brownfield-backfill/decision-log.md cycles/v1.0-feature-engine-discipline-pass-1/decision-log.md 2>/dev/null; grep -hE '^[|] *D-[0-9]+' cycles/v1.0-brownfield-backfill/decision-log.md cycles/v1.0-feature-engine-discipline-pass-1/decision-log.md 2>/dev/null; } | grep -oE 'D-[0-9]+' | sed 's/D-//' | sort -n | tail -1); [ "$max_d" -lt 9000 ] && printf 'PASS: global max D-%s < D-9000 ceiling\n' "$max_d" || printf 'FAIL: breach: max=D-%s\n' "$max_d"
+PASS: global max D-995 < D-9000 ceiling
+```
+
+D-996 allocated. **Parent-commit:** `40e09b5f` — `state(sha-patch): D-995 commit 9c132dd2 factory-artifacts SHA -- Active Branches + checkpoint + decisions-log updated` (factory-artifacts HEAD at burst start; the D-995 SHA-patch follow-up commit).
+
+**(a) Scope.** Fresh-context adversary pass-13 dispatched against `feature/S-21.07-validate-cross-site-correspondence` at `96b4be19` (unchanged since D-992) and `factory-artifacts` at `40e09b5f` (the D-995 SHA-patch HEAD, carrying story v1.10 and STORY-INDEX v4.319 as landed). Verdict: **NOT-CLEAN, 2 MEDIUM findings + 3 observations.** LOCAL BC-5.39.001 streak for the S-21.07 cascade **remains 0/3** — a NOT-CLEAN verdict does not advance the streak; a fix burst is not a clean verdict either. Persisted verbatim as `cycles/v1.0-brownfield-backfill/S-21.07/adversary-pass-13.md`.
+
+**(b) Root pattern: D-995's fix was site-scoped, not class-scoped.** Pass-13 confirmed the primary D-995 fix site (§AC-020 Notes) correctly propagated (false calibration retracted, fuel_cap prohibition lifted, source-vs-operator framing all landed) and that three-way input-hash parity holds at `7bc1850`. But D-995's own `last_amended` entry self-scoped the fix to "AC-020 Notes" — the retracted-claim defect class was never a single-site problem, and two un-swept siblings survived: an S-7.01 partial-fix regression, the same shape D-994 codified one pass earlier for ADR bodies (`L-BB-adr-reconciliation-sweep-scope-on-ratification`).
+
+**(c) F-S2107-P13-001 — MEDIUM — CLOSED THIS BURST.** POLICY 8 + POLICY 5 (sibling-sweep) + POLICY 4 (semantic-anchoring). Location: S-21.07 story — (a) Out-of-Scope table "Per-plugin `fuel_cap` registry field extension" row, (b) AC-019 §Build constraints. Defect: (a) the row justified deferring per-plugin `fuel_cap` with the retracted premise "this hook uses `on_error = \"continue\"` and needs no `fuel_cap` override" — contradicted by AC-020's own SHOULD-set-once-ADR-039-Phase-1-ships language, and the underlying premise is measurement-falsified per BC-5.39.010 v1.15/v1.16 (F-S2107-P9-002/F-S2107-P12-001); also anchored to the superseded ADR-035 §Decision 5 rather than the re-anchored ADR-042 §Decision 2. (b) AC-019 cited a flat "10M-instruction fuel cap" with no source-vs-operator qualifier, violating the rule AC-020 already establishes. **Fix (story-writer, bundled this burst per TD-VSDD-053):** story v1.10→**v1.11**. Out-of-Scope row rewritten — retracted premise removed, reason restated as "out of THIS story's scope because it depends on ADR-039 Phase 1 (S-21.10) shipping first," anchor re-pointed ADR-035 §Decision 5 → ADR-042 §Decision 2. AC-019 corrected to state both the operator-effective 10,000,000 cap (through v1.0.0-rc.23) and the source-HEAD 20,000,000 cap (ADR-042 §Decision 1 / PR #774) explicitly. A class-complete story-wide `grep -niE` sweep over 6 defect-class patterns (retracted-false "calibrated" claims; active fuel_cap-prohibition phrasing; on_error=continue-implies-no-fuel_cap-needed rationale; unqualified flat 10M/20M cap figures; live BC-version cites below v1.18; fuel_cap-related ADR-035 §Decision 5 anchors) confirmed zero further live sibling sites — all remaining hits are either already-correct v1.10-fixed text, correctly-qualified historical measurement statements, legitimate non-fuel-cap-value ADR-035 §Decision 5 anchors, historical version-of-record citations, or append-only `modified[]`/Changelog/`[Prior:]` chain entries (POLICY 1). No AC scope or Red-Gate-anchored test assertion changed. `input-hash: UNCHANGED (7bc1850)` — the `inputs:` files were not themselves modified, only this story's own documentary prose.
+
+**(d) F-S2107-P13-002 — MEDIUM — CLOSED THIS BURST.** POLICY 8 + POLICY 4 + POLICY 14/17 parity + POLICY 5 (sibling-sweep, same-file aggregation cell). Location: `STORY-INDEX.md` §Epic E-21 "BC coverage" blockquote (line 742). Defect: the coverage blockquote cited BC-5.39.010 at v1.14 while the S-21.07 catalog row (same file, line 732) already read v1.18 and BC frontmatter is v1.18 — a same-file version disagreement on a surface `STORY-INDEX.md`'s own §Traceability note classifies as live, not frozen-historical. D-995 bumped the catalog row + delivery-summary blockquote but did not sweep the coverage-blockquote BC pin. **Fix (state-manager, this burst):** `STORY-INDEX.md` v4.319→**v4.320** — coverage blockquote BC-5.39.010 v1.14→v1.18. Per the TD-VSDD-060 class-complete sweep mandate, a full-file grep of the ENTIRE `STORY-INDEX.md` for stale BC/version pins in aggregation cells was executed (not just the named finding site); this self-discovered one further live sibling of the identical defect class in the SAME blockquote cell — `BC-4.16.001 v1.8` (S-21.09), stale since POL-14 auto-promotion at D-991 synced only the catalog row (`[BC-4.16.001 v1.9]`) and not this blockquote — and fixed it too, before it could recur as a pass-14 finding. Literal-shell confirmation:
+
+```
+$ cd /Users/zious/Documents/GITHUB/vsdd-factory/.factory && sed -n '732p' stories/STORY-INDEX.md | grep -o "story v1\.[0-9]*"
+story v1.11
+$ sed -n '742p' stories/STORY-INDEX.md | grep -noE "BC-[0-9.]+ v[0-9.]+"
+1:BC-5.39.010 v1.18
+1:BC-4.16.001 v1.9
+$ grep -noE "BC-5\.39\.010 v1\.(1[0-7]|[0-9])\b" stories/STORY-INDEX.md
+8:BC-5.39.010 v1.14
+8:BC-5.39.010 v1.9
+8:BC-5.39.010 v1.9
+8:BC-5.39.010 v1.4
+8:BC-5.39.010 v1.3
+8:BC-5.39.010 v1.1
+721:BC-5.39.010 v1.4
+```
+
+(All remaining sub-v1.18 hits are line 8 — the frontmatter `last_amended` append-only provenance chain, POLICY 1 frozen-historical — and line 721, the E-21 epic-authored historical narrative documenting the story's state at 2026-07-30 authoring time, not a live-tracking surface. Zero remaining stale LIVE pins confirmed. The E-18/E-19 "BC coverage" blockquotes (lines 691, 717) were separately checked and are frozen-historical records of COMPLETE epics (E-19 `status: complete`, all 9 stories merged, D-853) — out of the live-tracking class this sweep targets, and out of scope for this S-21.07-anchored fix burst.)
+
+**(e) O-P13-01 [process-gap] — CODIFIED THIS BURST (lesson + decision-log; no policies.yaml text change).** Observation: D-995's `last_amended` self-scoped its fix to "AC-020 Notes" though the retracted-claim class is story-wide, recurring at ≥3 sites; a "retracted-claim grep gate" (grep the whole story for the retracted phrase-class after any fuel-claim amendment) would close it — companion to POLICY 8. This is the THIRD instance within this cascade of a fix scoped to the finding's named site rather than the defect's actual class-extent (after `L-BB-adr-reconciliation-sweep-scope-on-ratification` for ADR bodies at D-994, and D-995's own fix being the direct cause of this pass's findings) — establishing a structural pattern, not a one-off. Story-writer's own sweep additionally flagged a sweep-pattern hardening gap: markdown backtick-wrapping (e.g. `` `fuel_cap` ``) defeats naive literal-string grep patterns unless the pattern tolerates backtick-wrapped tokens. Per S-7.02 Cycle-Closing Checklist, codified now: lesson `L-BB-retracted-claim-class-complete-sibling-sweep-on-fuel-claim-amendment` appended to `cycles/v1.0-brownfield-backfill/lessons.md`, carrying the codified obligation — **after any fix that retracts, supersedes, or corrects a previously-stated claim/prohibition/figure, the fixing agent MUST grep the ENTIRE affected artifact (not just the section the finding named) for the retracted phrase-class, tolerant of backtick-wrapping and paraphrase, and fix EVERY live site found; for index files, the sweep additionally covers every aggregation cell referencing the amended artifact, not only its own catalog row.** Routing choice: lessons.md + decision-log codification, companion to POLICY 8 and TD-VSDD-060, not a new/extended `policies.yaml` entry — same rationale precedent as the three prior `L-BB-*` process-gap lessons in this cascade. `policies.yaml` v1.4.24 is therefore **UNCHANGED** by this burst.
+
+**(f) O-P13-02/O-P13-03 (verification observations, not findings).** O-P13-02: three-way input-hash parity `7bc1850` re-confirmed. O-P13-03: STORY-INDEX "34 ECs" (story EC count) vs. Token Budget "36 ECs" (BC EC count) confirmed NOT contradictory — different artifacts, different denominators; AC=24, VP=19 consistent.
+
+**(g) INDEX.md.** S-21.07 LOCAL Adversary Reviews table: pass-13 row added (NOT-CLEAN, 2 MEDIUM, 0/3, `96b4be19`/`40e09b5f`). Convergence Status narrative extended with the D-996 pass-13 record+fix summary. Trajectory `47→18→25→25→24→20→16→8→10→1→1→2` (tail `→10→1→1→2`, D-433(e)+D-439(c) LENGTH=4). 12 true adversary reviews; 0 CLEAN verdicts.
+
+**(h) 4-INDEX.** BC-INDEX v4.58 (UNCHANGED) / VP-INDEX v2.76 (UNCHANGED) / STORY-INDEX v4.319→**v4.320** / ARCH-INDEX v3.58 (UNCHANGED — no ADR or ARCH-INDEX touch this burst). policies.yaml v1.4.24 (UNCHANGED — see (e)).
+
+**(i) No gate-predicate or ratification-status change.** This burst closes two findings and one process-gap observation via story-spec factual-claim propagation (already-authored by story-writer, bundled) and a STORY-INDEX registry-cell sync — no `GateOutcome` semantics, POLICY 15 predicate, or ADR `status`/`ratified` frontmatter fields were touched. `feature/S-21.07` SHA `96b4be19` UNCHANGED (no code-repo commit this burst — the fix is factory-artifacts-only, story-spec + index content). **Streak for the S-21.07 cascade EXPLICITLY 0/3** — pass-13 was NOT-CLEAN and this is a fix burst, neither of which advances a BC-5.39.001 streak; **pass-14 adversary (fresh-context, reading only `adversary-pass-13.md` Part A per the Iron Law) is the pending gate.**
+
+### Agents
+
+- story-writer (prior to this burst, same session): S-21.07 v1.10→v1.11 authored (bundled this commit per TD-VSDD-053, not re-authored by state-manager) — Out-of-Scope row retracted-premise fix + re-anchoring, AC-019 source-vs-operator qualifier, class-complete grep sweep confirming zero further siblings
+- vsdd-factory:adversary (fresh-context, this session): pass-13 review dispatched and relayed
+- state-manager (D-996): `adversary-pass-13.md` persisted verbatim; INDEX.md pass-13 row + Convergence Status; STORY-INDEX v4.320 (coverage blockquote BC-5.39.010 fix + self-discovered BC-4.16.001 sibling fix, TD-VSDD-060 full-file sweep); 1 lesson appended (`L-BB-retracted-claim-class-complete-sibling-sweep-on-fuel-claim-amendment`); STATE.md full advance; single atomic commit to `factory-artifacts` per TD-VSDD-053; POLICY 16 gate run with literal shell captured stdout
+
+### 4-INDEX
+
+BC-INDEX v4.58 (UNCHANGED) / VP-INDEX v2.76 (UNCHANGED) / STORY-INDEX **v4.320** / ARCH-INDEX v3.58 (UNCHANGED)
+
+### Phase
+
+D-996-S2107-PASS13-RECORD-AND-FIX-BURST
+
+### Date
+
+2026-08-13
+
+---
