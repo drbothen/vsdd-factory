@@ -17506,3 +17506,69 @@ D-997-S2107-PASS14-RECORD-ONLY-BURST
 2026-08-13
 
 ---
+
+## D-998 — D-998-S2107-PASS15-RECORD-AND-FIX-BURST
+
+**POLICY 16 ALLOCATOR-CEILING GATE** (pre-allocation, literal shell, D-449(a)):
+
+```
+$ max_d=$({ grep -hE '^#{2,} D-[0-9]+' cycles/v1.0-brownfield-backfill/decision-log.md cycles/v1.0-feature-engine-discipline-pass-1/decision-log.md 2>/dev/null; grep -hE '^[|] *D-[0-9]+' cycles/v1.0-brownfield-backfill/decision-log.md cycles/v1.0-feature-engine-discipline-pass-1/decision-log.md 2>/dev/null; } | grep -oE 'D-[0-9]+' | sed 's/D-//' | sort -n | tail -1); [ "$max_d" -lt 9000 ] && printf 'PASS: global max D-%s < D-9000 ceiling\n' "$max_d" || printf 'FAIL: breach: max=D-%s\n' "$max_d"
+PASS: global max D-997 < D-9000 ceiling
+```
+
+D-998 allocated. **Parent-commit:** `1199aae3` — `state(sha-patch): D-997 commit 8e5c7344 factory-artifacts SHA -- Active Branches + checkpoint + decisions-log updated` (factory-artifacts HEAD at burst start; the D-997 SHA-patch follow-up commit).
+
+**(a) Scope.** Fresh-context adversary pass-15 dispatched against `feature/S-21.07-validate-cross-site-correspondence` at `96b4be19` (unchanged since D-992; story unbuilt) and `factory-artifacts` at `1199aae3` (the D-997 SHA-patch HEAD, carrying story v1.11, BC-5.39.010 v1.18, BC-INDEX v4.58, STORY-INDEX v4.320 as landed). Verdict: **NOT-CLEAN, 1 MEDIUM finding + 3 observations.** Persisted verbatim as `cycles/v1.0-brownfield-backfill/S-21.07/adversary-pass-15.md`.
+
+**(b) F-S2107-P15-001 — MEDIUM — CLOSED THIS BURST.** POLICY 5 v1.3.7 sibling-sweep category (i) same-file aggregation cells + TD-VSDD-060. Location: `STORY-INDEX.md` §Epic E-21. Defect: the E-21 authored-provenance blockquote tail (line 721) stated "14 stories; **111** pts; 8 waves." while the E-21 delivery blockquote (line 741) states "14 stories total. **117** pts." for the IDENTICAL 14-story set, and the catalog rows (lines 726-739) independently sum to 117 (S-21.01=11, .02=3, .03=3, .04=5, .05=5, .06=8, .07=11, .09=16, .10=5, .11=16, .12=8, .13=13, .14=8, .15=5). L741's self-enumeration is authoritative; L721's "111" reconciles to no plausible historical subset — it is the FINAL tail value of a correctly-incremental blockquote (35→46→62 pts are genuinely-frozen intermediate totals for smaller subsets, preserved), computed once the full 14-story set already existed, and is simply arithmetically wrong by 6. **Fix (state-manager, this burst):** `STORY-INDEX.md` v4.320→**v4.321** — L721 tail "111 pts"→"117 pts".
+
+**(c) Perimeter classification — HUMAN DECISION, not automatic.** The adversary flagged that the orchestrator/state-manager might reasonably reclassify this finding as cross-story/system-level (E-21 epic aggregation spanning S-21.10 through S-21.15's points, not S-21.07's own datum — S-21.07's own points figure, 11, is correct at every site in the file), which would NOT reset the S-21.07 LOCAL BC-5.39.001 streak under the cascade's standing perimeter convention. **The human explicitly ruled this session: F-S2107-P15-001 is classified IN-PERIMETER.** Per BC-5.39.001, an IN-PERIMETER NOT-CLEAN verdict resets the streak. **STREAK RESETS 1/3 → 0/3 — recorded here as human-directed, not an automatic state-manager classification.**
+
+**(d) TD-VSDD-060 class-complete sweep (mandatory, per O-P13-01/O-P15-01 precedent).** A literal-shell sweep was executed across the ENTIRE `STORY-INDEX.md` for every epic blockquote carrying a stated points/story-count/wave-count total, to confirm F-S2107-P15-001 does not recur as a sibling elsewhere — the exact failure mode the adversary named: "the 111-vs-117 class survived passes 13-14 because prior passes checked the delivery blockquote but not the sibling authored-provenance blockquote." Method: `grep -n "stories total\."` across the whole file for every terminal "N stories total. M pts" cell, plus per-epic catalog-row point sums via `awk -F'|'` keyed on the Epic column, diffed against each located total.
+
+```
+$ grep -n "stories total\." stories/STORY-INDEX.md
+690:> **E-18 delivery:** ... 17 stories total. 107 pts. ...
+716:> **E-19 delivery:** ... 9 stories total. 55 pts. ...
+741:> **E-21 delivery:** ... 14 stories total. 117 pts. ...
+$ grep "^| S-19\." stories/STORY-INDEX.md | awk -F'|' '{p=$5; gsub(/^[ \t]+|[ \t]+$/,"",p); s+=p} END{print s}'
+55
+$ grep "^| S-21\." stories/STORY-INDEX.md | awk -F'|' '{e=$4;p=$5; gsub(/^[ \t]+|[ \t]+$/,"",e); gsub(/^[ \t]+|[ \t]+$/,"",p); if(e=="E-21") s+=p} END{print s}'
+117
+$ grep "^| S-18\." stories/STORY-INDEX.md | awk -F'|' '{p=$5; gsub(/^[ \t]+|[ \t]+$/,"",p); if(p ~ /^[0-9]+$/){s+=p;n++}} END{print n, s}'
+18 125
+$ sed -n '721p' stories/STORY-INDEX.md | grep -oE "[0-9]+ stories; [0-9]+ pts; [0-9]+ waves\.$"
+14 stories; 117 pts; 8 waves.
+```
+
+Result: E-19's total (55) matches its catalog sum (55) — CORRECT, no action. E-21's delivery total (117, L741) matches its catalog sum (117) — CORRECT, no action; E-21's sibling authored-provenance tail (L721) was the sole disagreement — now fixed and confirmed reading 117 above (see (b)). E-18's delivery total (107, L690) does NOT match its current catalog sum (18 rows, 125 pts) — but per the D-996(d) precedent recorded one pass earlier in this cascade ("the E-18/E-19 ... blockquotes ... are frozen-historical records of COMPLETE epics ... out of scope for this S-21.07-anchored fix burst"), E-18 is a fully MERGED, already-shipped epic entirely outside this cascade's perimeter. Applying that same precedent, E-18's discrepancy is left UNTOUCHED this burst and recorded transparently as an observation — not silently ignored, and not a new ad hoc deferral, but a direct application of established in-cascade precedent. No other epic blockquote in the file (E-0..E-17, E-22) carries a live "N stories total. M pts"-class aggregation claim of this kind; the remaining prose hits are dated, historical batch-authoring narratives (e.g., E-8's 2026-04-30 snapshot), frozen-historical per POLICY 1. **Zero further live disagreements confirmed.**
+
+**(e) O-P15-01 [process-gap] — CODIFIED THIS BURST (lesson + decision-log; no policies.yaml text change).** Observation: the 111-vs-117 defect class survived two full adversary passes (13, 14) because those passes' STORY-INDEX checks were scoped to the delivery blockquote and the coverage blockquote, never the sibling authored-provenance blockquote carrying its own independent running tally. A single-cell spot-check of "the" epic total is insufficient when an epic has multiple blockquotes each computing a total over the same story set. Codified: lesson `L-BB-epic-total-aggregation-sweep-on-any-epic-blockquote-edit` appended to `cycles/v1.0-brownfield-backfill/lessons.md` — **whenever any epic aggregation cell (points, story-count, wave-count) in an INDEX file is edited or reviewed, the agent MUST sum every points/count/wave total across ALL of that epic's blockquotes (authored-provenance, delivery, coverage) against the catalog-row sums, not spot-check a single cell.** Routing: lessons.md + decision-log codification, companion to POLICY 5 and TD-VSDD-060, not a new/extended `policies.yaml` entry — consistent with the prior `L-BB-*` process-gap lesson precedents in this cascade. `policies.yaml` v1.4.24 is therefore **UNCHANGED**.
+
+**(f) O-P15-02/O-P15-03 dispositioned (not findings, no story edit).** O-P15-02: AC-020 Notes L596 illustrative `grep -c 'fuel_cap|failure_policy' hooks-registry.toml` lacks `-E`, making the literal-pipe pattern vacuous as written — but this is illustrative prose, not a POLICY-15 load-bearing attestation. **ACCEPTED-OBSERVATION-WITH-RATIONALE: NOT fixed this burst**, to keep the story file (which has passed CLEAN twice on its own content, at pass-14 and previously) stable and aid convergence, per explicit human instruction this session. Trigger for future action: if this illustrative text is ever promoted to a load-bearing POLICY-15 attestation, it MUST become `grep -cE`. O-P15-03: BC-5.39.010 EC-034/EC-035 (BC v1.12) are not mirrored to the story's own EC table (story runs EC-033→EC-036) — but POLICY 8's EC-mirror obligation is story→BC directional (the story's ECs must map to BC ECs, not the reverse), and coverage is independently carried by story AC-022/023. Dispositioned as out-of-perimeter, not a violation. Neither observation required a story-file edit — the story file was NOT touched this burst, per explicit instruction.
+
+**(g) INDEX.md.** S-21.07 LOCAL Adversary Reviews table: pass-15 row added (NOT-CLEAN, 1 MEDIUM, 0/3 [RESET], `96b4be19`/`1199aae3`). Convergence Status narrative extended with the D-998 pass-15 record+fix summary. Trajectory `47→18→25→25→24→20→16→8→10→1→1→2→0→1` (tail `→1→2→0→1`, D-433(e)+D-439(c) LENGTH=4). 14 true adversary reviews; 1 CLEAN verdict (unchanged — pass-15 was NOT-CLEAN).
+
+**(h) 4-INDEX.** BC-INDEX v4.58 (UNCHANGED) / VP-INDEX v2.76 (UNCHANGED) / STORY-INDEX v4.320→**v4.321** / ARCH-INDEX v3.58 (UNCHANGED — no ADR or ARCH-INDEX touch this burst). policies.yaml v1.4.24 (UNCHANGED — see (e)).
+
+**(i) No gate-predicate or ratification-status change.** This burst closes one finding via a STORY-INDEX registry-cell arithmetic correction and dispositions one process-gap observation — no `GateOutcome` semantics, POLICY 15 predicate, or ADR `status`/`ratified` frontmatter fields were touched. `feature/S-21.07` SHA `96b4be19` UNCHANGED (no code-repo commit this burst — the fix is factory-artifacts-only, STORY-INDEX content; the story file itself was explicitly NOT touched per instruction, to preserve its twice-CLEAN stability). **Streak for the S-21.07 cascade EXPLICITLY RESET 1/3 → 0/3 — human-directed (IN-PERIMETER classification), not an automatic state-manager classification.** BC-5.39.001 now requires 3 FRESH CONSECUTIVE CLEAN passes from pass-16 onward. **Pass-16 adversary (fresh-context, reading only `adversary-pass-15.md` Part A per the Iron Law) is the pending gate.**
+
+### Agents
+
+- vsdd-factory:adversary (fresh-context, this session): pass-15 review dispatched and relayed — NOT-CLEAN, 1 MEDIUM finding + 3 observations
+- state-manager (D-998): `adversary-pass-15.md` persisted verbatim; INDEX.md pass-15 row + Convergence Status; STORY-INDEX v4.321 (E-21 authored-provenance blockquote arithmetic fix + whole-file TD-VSDD-060 class-complete aggregation sweep); 1 lesson appended (`L-BB-epic-total-aggregation-sweep-on-any-epic-blockquote-edit`); STATE.md full advance; single atomic commit to `factory-artifacts` per TD-VSDD-053; POLICY 16 gate run with literal shell captured stdout
+- human (this session): explicit perimeter ruling — F-S2107-P15-001 classified IN-PERIMETER, streak reset 1/3→0/3 recorded as human-directed
+
+### 4-INDEX
+
+BC-INDEX v4.58 (UNCHANGED) / VP-INDEX v2.76 (UNCHANGED) / STORY-INDEX **v4.321** / ARCH-INDEX v3.58 (UNCHANGED)
+
+### Phase
+
+D-998-S2107-PASS15-RECORD-AND-FIX-BURST
+
+### Date
+
+2026-08-13
+
+---

@@ -28115,3 +28115,107 @@ D-444(c) burst-log h2 heading `## D-997-S2107-PASS14-RECORD-ONLY-BURST` present.
 - **Parent SHA (Block 8 cites parent per D-419(b)/D-444(c) convention):** `e5a1702b` — `state(sha-patch): D-996 commit 00cbc4ea factory-artifacts SHA -- Active Branches + checkpoint + decisions-log updated`
 
 **Closes:** None (pass-14 CLEAN; nothing to close). **STREAK ADVANCES 0/3 → 1/3** — first CLEAN pass this cascade; 2 more CONSECUTIVE CLEAN passes required. **S-21.07 PASS-14 RECORD-ONLY BURST COMPLETE; PASS-15 ADVERSARY DISPATCH NEXT.**
+
+## D-998-S2107-PASS15-RECORD-AND-FIX-BURST
+
+**Block 1: Parent-commit**
+
+POLICY 16 allocator-ceiling gate (literal shell, D-449(a)):
+
+```
+$ max_d=$({ grep -hE '^#{2,} D-[0-9]+' cycles/v1.0-brownfield-backfill/decision-log.md cycles/v1.0-feature-engine-discipline-pass-1/decision-log.md 2>/dev/null; grep -hE '^[|] *D-[0-9]+' cycles/v1.0-brownfield-backfill/decision-log.md cycles/v1.0-feature-engine-discipline-pass-1/decision-log.md 2>/dev/null; } | grep -oE 'D-[0-9]+' | sed 's/D-//' | sort -n | tail -1); [ "$max_d" -lt 9000 ] && printf 'PASS: global max D-%s < D-9000 ceiling\n' "$max_d" || printf 'FAIL: breach: max=D-%s\n' "$max_d"
+PASS: global max D-997 < D-9000 ceiling
+```
+
+D-998 allocated. **Parent-commit:** `1199aae3` — `state(sha-patch): D-997 commit 8e5c7344 factory-artifacts SHA -- Active Branches + checkpoint + decisions-log updated` (factory-artifacts HEAD at burst start).
+
+**Block 2: Adversary verdict**
+
+Fresh-context `vsdd-factory:adversary` pass-15 dispatched against `feature/S-21.07-validate-cross-site-correspondence` at `96b4be19` (unchanged since D-992; story unbuilt) and `factory-artifacts` at `1199aae3` (D-997 SHA-patch HEAD). **Verdict: NOT-CLEAN — 1 MEDIUM finding (F-S2107-P15-001) + 3 observations (O-P15-01, O-P15-02, O-P15-03).** F-S2107-P15-001 CLOSED THIS BURST. **HUMAN PERIMETER DECISION this session: F-S2107-P15-001 classified IN-PERIMETER — LOCAL BC-5.39.001 streak for the S-21.07 cascade EXPLICITLY RESET 1/3 → 0/3, recorded as human-directed, not an automatic state-manager classification.** Persisted verbatim as `cycles/v1.0-brownfield-backfill/S-21.07/adversary-pass-15.md`. The finding is a same-file two-cell arithmetic disagreement: STORY-INDEX §Epic E-21's authored-provenance blockquote (line 721) carried a stale tail total ("111 pts") that survived two prior passes (13, 14) because those passes' STORY-INDEX checks were scoped to a different cell (the coverage blockquote's BC-version pin at D-996), never this sibling blockquote's own points total. Pass-16 (fresh-context, reading only `adversary-pass-15.md` Part A per the Iron Law) is the pending gate, dispatched next.
+
+**Block 3: Files touched**
+
+- `.factory/cycles/v1.0-brownfield-backfill/S-21.07/adversary-pass-15.md` — new (pass-15 record, persisted verbatim)
+- `.factory/cycles/v1.0-brownfield-backfill/INDEX.md` — pass-15 row added; Convergence Status extended (D-998 summary)
+- `.factory/stories/STORY-INDEX.md` — v4.320→v4.321 (E-21 authored-provenance blockquote L721 arithmetic fix 111→117 pts; whole-file TD-VSDD-060 class-complete epic-total aggregation sweep)
+- `.factory/cycles/v1.0-brownfield-backfill/lessons.md` — one lesson appended (`L-BB-epic-total-aggregation-sweep-on-any-epic-blockquote-edit`, closes O-P15-01)
+- `.factory/cycles/v1.0-brownfield-backfill/decision-log.md` — D-998 appended
+- `.factory/cycles/v1.0-brownfield-backfill/burst-log.md` — this entry
+- `.factory/STATE.md` — full advance (frontmatter, Phase Progress, Current Phase Steps, Active Branches, Decisions Log, Blocking Issues, Session Resume Checkpoint)
+
+The story file `stories/S-21.07-validate-cross-site-correspondence.md` was explicitly NOT touched this burst, per instruction, to preserve its twice-CLEAN content stability. No BC-INDEX, VP-INDEX, or ARCH-INDEX file was touched this burst.
+
+**Block 4: Codifications**
+
+One new codification: the O-P15-01 [process-gap] obligation, lesson `L-BB-epic-total-aggregation-sweep-on-any-epic-blockquote-edit` — whenever any epic aggregation cell (points, story-count, wave-count) in an INDEX file is edited or reviewed, the agent MUST sum every points/count/wave total across ALL of that epic's blockquotes (authored-provenance, delivery, coverage) against the catalog-row sums, not spot-check a single cell. Codified via lessons.md + decision-log D-998 (companion to POLICY 5 and TD-VSDD-060; not a `policies.yaml` text change — see decision-log D-998(e) for the routing rationale). No other new codifications. Applies pre-existing disciplines: TD-VSDD-053 single-commit-per-burst; POLICY 5 v1.3.7 sibling-sweep category (i); TD-VSDD-060 sibling-sweep on value changes; BC-5.39.001 3-CLEAN convergence protocol (streak reset mechanics); D-433(e)+D-439(c) trajectory-tail LENGTH=4.
+
+**Block 5 (Dim-2): Literal-shell attestation evidence**
+
+POLICY 16 gate captured above (Block 1).
+
+TD-VSDD-060 class-complete epic-total aggregation sweep (literal shell, mandatory per O-P13-01/O-P15-01 precedent):
+
+```
+$ grep -n "stories total\." stories/STORY-INDEX.md
+690:> **E-18 delivery:** ... 17 stories total. 107 pts. ...
+716:> **E-19 delivery:** ... 9 stories total. 55 pts. ...
+741:> **E-21 delivery:** ... 14 stories total. 117 pts. ...
+$ grep "^| S-19\." stories/STORY-INDEX.md | awk -F'|' '{p=$5; gsub(/^[ \t]+|[ \t]+$/,"",p); s+=p} END{print s}'
+55
+$ grep "^| S-21\." stories/STORY-INDEX.md | awk -F'|' '{e=$4;p=$5; gsub(/^[ \t]+|[ \t]+$/,"",e); gsub(/^[ \t]+|[ \t]+$/,"",p); if(e=="E-21") s+=p} END{print s}'
+117
+$ grep "^| S-18\." stories/STORY-INDEX.md | awk -F'|' '{p=$5; gsub(/^[ \t]+|[ \t]+$/,"",p); if(p ~ /^[0-9]+$/){s+=p;n++}} END{print n, s}'
+18 125
+$ sed -n '721p' stories/STORY-INDEX.md | grep -oE "[0-9]+ stories; [0-9]+ pts; [0-9]+ waves\.$"
+14 stories; 117 pts; 8 waves.
+```
+
+(E-19 catalog sum 55 matches its stated total 55 — CORRECT, no action. E-21 catalog sum 117 matches its delivery-blockquote total 117 — CORRECT, no action; its sibling authored-provenance blockquote (L721) is confirmed fixed and now also reads 117. E-18 catalog sum 125 does NOT match its stated total 107 — left untouched, out-of-perimeter per the D-996(d) frozen-historical-COMPLETE-epic precedent; recorded as a Blocking Issue observation, not silently dropped.)
+
+Version/story-file-untouched gate (literal shell):
+
+```
+$ grep -m1 'version:' stories/STORY-INDEX.md
+version: "4.321"
+$ git status --porcelain stories/S-21.07-validate-cross-site-correspondence.md
+(empty — confirms the story file was NOT touched this burst)
+```
+
+Lesson-persistence and pass-15 record-persistence gate (literal shell):
+
+```
+$ grep -c "L-BB-epic-total-aggregation-sweep-on-any-epic-blockquote-edit" cycles/v1.0-brownfield-backfill/lessons.md
+1
+$ grep -c "^verdict: NOT-CLEAN" cycles/v1.0-brownfield-backfill/S-21.07/adversary-pass-15.md
+1
+$ grep -c "RESETS 1/3 → 0/3" cycles/v1.0-brownfield-backfill/S-21.07/adversary-pass-15.md
+1
+```
+
+**Block 6 (Dim-5): Closes**
+
+- F-S2107-P15-001 CLOSED (state-manager; STORY-INDEX v4.320→v4.321 — E-21 authored-provenance blockquote L721 111→117 pts arithmetic fix; TD-VSDD-060 class-complete sweep across ALL epic blockquotes confirmed zero further live disagreements)
+- O-P15-01 [process-gap] CODIFIED (lesson `L-BB-epic-total-aggregation-sweep-on-any-epic-blockquote-edit` + D-998(e))
+- O-P15-02 (non-finding, ACCEPTED-OBSERVATION-WITH-RATIONALE) — AC-020 Notes illustrative grep missing `-E`, non-load-bearing, NOT fixed this burst to keep the twice-CLEAN story stable
+- O-P15-03 (non-finding, out-of-perimeter) — POLICY 8 EC-mirror is story→BC directional, not a violation
+
+**Block 7 (Dim-6): Gate attestation**
+
+D-444(c) burst-log h2 heading `## D-998-S2107-PASS15-RECORD-AND-FIX-BURST` present. D-446(a) own-burst-log 8-block gate: this section contains Blocks 1-8. D-448(a) source-attestation gate: the F-S2107-P15-001 disposition paragraph in decision-log.md D-998(b)/(c)/(d) faithfully describes `adversary-pass-15.md` Part A's finding set (1 MEDIUM finding, verbatim location/defect text) — verified by direct comparison against the persisted pass-15 file at burst time; the O-P15-01/O-P15-02/O-P15-03 dispositions at D-998(e)/(f) likewise faithfully describe the persisted Observations section. D-449(a) literal-shell-execution SELF-APPLICATION: POLICY 16 gate + TD-VSDD-060 class-complete sweep gate + version/story-file-untouched gate + lesson-persistence/record-persistence gate all use actual shell with verbatim stdout captured (Block 5) — no pseudocode.
+
+**Dim-7 Attestation:**
+
+- This burst IS a numbered LOCAL adversary pass (pass-15) — trajectory entry added; trajectory (14 true adversary passes, 1 CLEAN) `47→18→25→25→24→20→16→8→10→1→1→2→0→1` (tail `→1→2→0→1`, D-433(e)+D-439(c) LENGTH=4)
+- Streak: **0/3 — EXPLICITLY RESET from 1/3 by human perimeter decision** (F-S2107-P15-001 classified IN-PERIMETER). BC-5.39.001 now requires 3 FRESH CONSECUTIVE CLEAN passes from pass-16 onward.
+- 4-INDEX: BC v4.58 (UNCHANGED) / VP v2.76 (UNCHANGED) / STORY v4.320→**v4.321** / ARCH v3.58 (UNCHANGED)
+- policies.yaml v1.4.24 (UNCHANGED — O-P15-01 routed to lessons.md + decision-log, not a policies.yaml text change)
+- `feature/S-21.07` SHA `96b4be19` UNCHANGED (no code-repo commit this burst; fix is STORY-INDEX-only; story file itself deliberately NOT touched)
+- `pipeline: ACTIVE` UNCHANGED
+
+### Block 8: factory-artifacts commit
+
+**factory-artifacts commits (this burst — TD-VSDD-053 single-commit-per-burst):**
+- Target: single commit pushed as `git push origin HEAD:factory-artifacts`
+- **Parent SHA (Block 8 cites parent per D-419(b)/D-444(c) convention):** `1199aae3` — `state(sha-patch): D-997 commit 8e5c7344 factory-artifacts SHA -- Active Branches + checkpoint + decisions-log updated`
+
+**Closes:** F-S2107-P15-001 CLOSED (state-manager; STORY-INDEX v4.321; L721 111→117 pts; TD-VSDD-060 class-complete epic-total aggregation sweep, zero further live disagreements found — E-18's own frozen-historical variance noted out-of-perimeter, not fixed); O-P15-01 CODIFIED (lesson + D-998(e)); O-P15-02/O-P15-03 dispositioned (not findings, no story edit). **HUMAN PERIMETER DECISION: F-S2107-P15-001 IN-PERIMETER — STREAK EXPLICITLY RESET 1/3 → 0/3, human-directed.** **S-21.07 PASS-15 RECORD + FIX BURST COMPLETE; SHA-PATCH FOLLOW-UP NEXT; PASS-16 ADVERSARY DISPATCH AFTER THAT.**
