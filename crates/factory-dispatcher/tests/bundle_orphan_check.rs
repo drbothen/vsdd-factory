@@ -2189,11 +2189,16 @@ fn test_S_21_09_ac006_T017_registry_inventory_names_unexpected_file() {
     // (b) The outcome identifier must name the unexpected file explicitly.
     // Per D-970 Codification 1: a bare "unexpected file found" without the name
     // is insufficient — the identifier must be actionable without opening a log.
+    // Asserts the two-space-indented form (matching the real `"  UNEXPECTED: {}"`
+    // format string in check_registry_inventory) — an unindented needle would also
+    // match inside the indented production line via `.contains()`, so it could never
+    // catch an indent-dropping mutation (pass-20 F-S2109-LOCAL-FMTLOCK-01 sibling gap).
     assert!(
-        msg.contains("UNEXPECTED: metrics-registry.toml"),
+        msg.contains("  UNEXPECTED: metrics-registry.toml"),
         "T-017 AC-006 step 1 D-970 Codification 1: error message must contain \
-         'UNEXPECTED: metrics-registry.toml' — the outcome identifier must name the \
-         specific unexpected registry file so the remediation path is unambiguous; \
+         '  UNEXPECTED: metrics-registry.toml' (two-space indent, matching the real \
+         production format string) — the outcome identifier must name the specific \
+         unexpected registry file so the remediation path is unambiguous; \
          got message: {}",
         msg
     );
@@ -2237,18 +2242,24 @@ fn test_S_21_09_ac006_T018_registry_inventory_both_missing() {
     let msg = result.unwrap_err();
 
     // (b) hooks-registry.toml MISSING identifier.
+    // Asserts the two-space-indented form (matching the real `"  MISSING: {}"` format
+    // string in check_registry_inventory) — an unindented needle would also match
+    // inside the indented production line via `.contains()`, so it could never catch
+    // an indent-dropping mutation (pass-20 F-S2109-LOCAL-FMTLOCK-01 sibling gap).
     assert!(
-        msg.contains("MISSING: hooks-registry.toml"),
+        msg.contains("  MISSING: hooks-registry.toml"),
         "T-018 AC-006 step 1 D-970 Codification 1: error message must contain \
-         'MISSING: hooks-registry.toml' when the directory is empty; got: {}",
+         '  MISSING: hooks-registry.toml' (two-space indent, matching the real \
+         production format string) when the directory is empty; got: {}",
         msg
     );
 
     // (c) resolvers-registry.toml MISSING identifier.
     assert!(
-        msg.contains("MISSING: resolvers-registry.toml"),
+        msg.contains("  MISSING: resolvers-registry.toml"),
         "T-018 AC-006 step 1 D-970 Codification 1: error message must contain \
-         'MISSING: resolvers-registry.toml' when the directory is empty; got: {}",
+         '  MISSING: resolvers-registry.toml' (two-space indent, matching the real \
+         production format string) when the directory is empty; got: {}",
         msg
     );
 }
@@ -2623,10 +2634,15 @@ fn test_S_21_09_ac006_T024_registry_inventory_underscore_form_caught() {
     let msg = result.unwrap_err();
 
     // (b) Outcome identifier names the specific file per D-970 Codification 1.
+    // Asserts the two-space-indented form (matching the real `"  UNEXPECTED: {}"`
+    // format string in check_registry_inventory) — an unindented needle would also
+    // match inside the indented production line via `.contains()`, so it could never
+    // catch an indent-dropping mutation (pass-20 F-S2109-LOCAL-FMTLOCK-01 sibling gap).
     assert!(
-        msg.contains("UNEXPECTED: metrics_registry.toml"),
+        msg.contains("  UNEXPECTED: metrics_registry.toml"),
         "T-024 BLOCKER-2 D-970 Codification 1: error message must contain \
-         'UNEXPECTED: metrics_registry.toml'; got: {}",
+         '  UNEXPECTED: metrics_registry.toml' (two-space indent, matching the real \
+         production format string); got: {}",
         msg
     );
 }
@@ -3068,10 +3084,15 @@ fn test_S_21_09_ac006_T030_wiring_control_both_check_calls_are_active() {
 
         // The outcome identifier must be the INVENTORY error, not the floor error.
         // This distinguishes the two call sites: inventory fires first and names the file.
+        // Asserts the two-space-indented form (matching the real `"  UNEXPECTED: {}"`
+        // format string in check_registry_inventory) — an unindented needle would also
+        // match inside the indented production line via `.contains()`, so it could never
+        // catch an indent-dropping mutation (pass-20 F-S2109-LOCAL-FMTLOCK-01 sibling gap).
         assert!(
-            result.unwrap_err().contains("UNEXPECTED: taplo.toml"),
-            "T-030 phase A (inventory wiring): error must contain 'UNEXPECTED: taplo.toml' \
-             (inventory outcome) — if check_registry_inventory were removed, the error would \
+            result.unwrap_err().contains("  UNEXPECTED: taplo.toml"),
+            "T-030 phase A (inventory wiring): error must contain '  UNEXPECTED: taplo.toml' \
+             (two-space indent, matching the real production format string; inventory \
+             outcome) — if check_registry_inventory were removed, the error would \
              be 'hooks registry declared set has only 0 entries' (floor outcome) and this \
              assertion would FAIL"
         );
@@ -3871,10 +3892,16 @@ fn test_S_21_09_ac006_T038_ungated_declaration_fires_before_git() {
     );
 
     let err = result.unwrap_err();
+    // Asserts the two-space-indented form (matching the real `format!("  {}", p)`
+    // wrapping in run_t012_gate's ungated-findings block) — an unindented needle would
+    // also match inside the indented production line via `.contains()`, so it could
+    // never catch an indent-dropping mutation (pass-20 F-S2109-LOCAL-FMTLOCK-01 sibling
+    // gap).
     assert!(
-        err.contains("UNGATED-DECLARATION: other-dir/evil-probe.wasm"),
+        err.contains("  UNGATED-DECLARATION: other-dir/evil-probe.wasm"),
         "T-038 UNGATED-DECLARATION: error must contain \
-         'UNGATED-DECLARATION: other-dir/evil-probe.wasm'; got: {:?}",
+         '  UNGATED-DECLARATION: other-dir/evil-probe.wasm' (two-space indent, matching \
+         the real production format string); got: {:?}",
         err
     );
 }
@@ -4236,10 +4263,16 @@ fn test_S_21_09_ac006_T043_bare_name_ungated_declaration_fires() {
     );
 
     let err = result.unwrap_err();
+    // Asserts the two-space-indented form (matching the real `format!("  {}", p)`
+    // wrapping in run_t012_gate's ungated-findings block) — an unindented needle would
+    // also match inside the indented production line via `.contains()`, so it could
+    // never catch an indent-dropping mutation (pass-20 F-S2109-LOCAL-FMTLOCK-01 sibling
+    // gap).
     assert!(
-        err.contains("UNGATED-DECLARATION: ghost-bare.wasm"),
+        err.contains("  UNGATED-DECLARATION: ghost-bare.wasm"),
         "T-043 UNGATED-DECLARATION: error must contain \
-         'UNGATED-DECLARATION: ghost-bare.wasm'; \
+         '  UNGATED-DECLARATION: ghost-bare.wasm' (two-space indent, matching the real \
+         production format string); \
          mutation-proof: reverting gate-1 to expected_depth+2 causes git panic — \
          error contains git message not UNGATED-DECLARATION; got: {:?}",
         err
@@ -4323,10 +4356,16 @@ fn test_S_21_09_ac006_T044_traversal_cancel_registry_parent_prefix_fires_ungated
     );
 
     let err = result.unwrap_err();
+    // Asserts the two-space-indented form (matching the real `format!("  {}", p)`
+    // wrapping in run_t012_gate's ungated-findings block) — an unindented needle would
+    // also match inside the indented production line via `.contains()`, so it could
+    // never catch an indent-dropping mutation (pass-20 F-S2109-LOCAL-FMTLOCK-01 sibling
+    // gap).
     assert!(
-        err.contains("UNGATED-DECLARATION: ../vsdd-factory/ghost-updir.wasm"),
+        err.contains("  UNGATED-DECLARATION: ../vsdd-factory/ghost-updir.wasm"),
         "T-044 UNGATED-DECLARATION: error must contain \
-         'UNGATED-DECLARATION: ../vsdd-factory/ghost-updir.wasm'; \
+         '  UNGATED-DECLARATION: ../vsdd-factory/ghost-updir.wasm' (two-space indent, \
+         matching the real production format string); \
          mutation-proof: removing containment check causes git panic — \
          error contains git message not UNGATED-DECLARATION; got: {:?}",
         err
@@ -4398,9 +4437,15 @@ fn test_S_21_09_ac006_T045_one_level_up_ungated_declaration_fires() {
     );
 
     let err = result.unwrap_err();
+    // Asserts the two-space-indented form (matching the real `format!("  {}", p)`
+    // wrapping in run_t012_gate's ungated-findings block) — an unindented needle would
+    // also match inside the indented production line via `.contains()`, so it could
+    // never catch an indent-dropping mutation (pass-20 F-S2109-LOCAL-FMTLOCK-01 sibling
+    // gap).
     assert!(
-        err.contains("UNGATED-DECLARATION: ../ghost.wasm"),
-        "T-045: error must contain 'UNGATED-DECLARATION: ../ghost.wasm'; got: {:?}",
+        err.contains("  UNGATED-DECLARATION: ../ghost.wasm"),
+        "T-045: error must contain '  UNGATED-DECLARATION: ../ghost.wasm' (two-space \
+         indent, matching the real production format string); got: {:?}",
         err
     );
 }
@@ -4469,9 +4514,15 @@ fn test_S_21_09_ac006_T046_two_levels_up_ungated_declaration_fires() {
     );
 
     let err = result.unwrap_err();
+    // Asserts the two-space-indented form (matching the real `format!("  {}", p)`
+    // wrapping in run_t012_gate's ungated-findings block) — an unindented needle would
+    // also match inside the indented production line via `.contains()`, so it could
+    // never catch an indent-dropping mutation (pass-20 F-S2109-LOCAL-FMTLOCK-01 sibling
+    // gap).
     assert!(
-        err.contains("UNGATED-DECLARATION: ../../ghost.wasm"),
-        "T-046: error must contain 'UNGATED-DECLARATION: ../../ghost.wasm'; got: {:?}",
+        err.contains("  UNGATED-DECLARATION: ../../ghost.wasm"),
+        "T-046: error must contain '  UNGATED-DECLARATION: ../../ghost.wasm' (two-space \
+         indent, matching the real production format string); got: {:?}",
         err
     );
 }
@@ -4545,9 +4596,15 @@ fn test_S_21_09_ac006_T047_outside_repo_declaration_tightest_margin_fires() {
     );
 
     let err = result.unwrap_err();
+    // Asserts the two-space-indented form (matching the real `format!("  {}", p)`
+    // wrapping in run_t012_gate's ungated-findings block) — an unindented needle would
+    // also match inside the indented production line via `.contains()`, so it could
+    // never catch an indent-dropping mutation (pass-20 F-S2109-LOCAL-FMTLOCK-01 sibling
+    // gap).
     assert!(
-        err.contains("OUTSIDE-REPO-DECLARATION: ../../../ghost.wasm"),
-        "T-047: error must contain 'OUTSIDE-REPO-DECLARATION: ../../../ghost.wasm'; \
+        err.contains("  OUTSIDE-REPO-DECLARATION: ../../../ghost.wasm"),
+        "T-047: error must contain '  OUTSIDE-REPO-DECLARATION: ../../../ghost.wasm' \
+         (two-space indent, matching the real production format string); \
          mutation-proof: reverting to silent continue skips OUTSIDE push, proceeds to git \
          panic — identifier absent from error; got: {:?}",
         err
@@ -4881,9 +4938,15 @@ fn test_S_21_09_ac006_T050_length_conjunct_isolation_kills_m2() {
     );
 
     let err = result.unwrap_err();
+    // Asserts the two-space-indented form (matching the real `format!("  {}", p)`
+    // wrapping in run_t012_gate's ungated-findings block) — an unindented needle would
+    // also match inside the indented production line via `.contains()`, so it could
+    // never catch an indent-dropping mutation (pass-20 F-S2109-LOCAL-FMTLOCK-01 sibling
+    // gap).
     assert!(
-        err.contains("OUTSIDE-REPO-DECLARATION: ../.."),
-        "T-050: error must contain 'OUTSIDE-REPO-DECLARATION: ../..'; under mutant M2 \
+        err.contains("  OUTSIDE-REPO-DECLARATION: ../.."),
+        "T-050: error must contain '  OUTSIDE-REPO-DECLARATION: ../..' (two-space \
+         indent, matching the real production format string); under mutant M2 \
          (len>→>=) this would instead read 'UNGATED-DECLARATION: ../..' — the length \
          conjunct alone determines this candidate's classification since the prefix \
          conjunct is an exact self-match; got: {:?}",
@@ -5025,9 +5088,15 @@ fn test_S_21_09_ac006_T051_prefix_conjunct_isolation_kills_all_mutants() {
     );
 
     let err = result.unwrap_err();
+    // Asserts the two-space-indented form (matching the real `format!("  {}", p)`
+    // wrapping in run_t012_gate's ungated-findings block) — an unindented needle would
+    // also match inside the indented production line via `.contains()`, so it could
+    // never catch an indent-dropping mutation (pass-20 F-S2109-LOCAL-FMTLOCK-01 sibling
+    // gap).
     assert!(
-        err.contains("OUTSIDE-REPO-DECLARATION: ../../../sib/ghost.wasm"),
-        "T-051: error must contain 'OUTSIDE-REPO-DECLARATION: ../../../sib/ghost.wasm'; \
+        err.contains("  OUTSIDE-REPO-DECLARATION: ../../../sib/ghost.wasm"),
+        "T-051: error must contain '  OUTSIDE-REPO-DECLARATION: ../../../sib/ghost.wasm' \
+         (two-space indent, matching the real production format string); \
          under mutant `.all→.any` or `.all→true` this would instead read \
          'UNGATED-DECLARATION: ../../../sib/ghost.wasm' — the prefix conjunct alone \
          determines this candidate's classification since the length conjunct is \
