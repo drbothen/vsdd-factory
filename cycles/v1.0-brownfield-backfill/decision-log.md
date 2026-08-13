@@ -16480,3 +16480,74 @@ D-982-S-21.09-LOCAL-PASS-19-CLEAN-RECORD-AND-BC-5.39.001-3-CLEAN-CONVERGENCE-BUR
 2026-08-13
 
 ---
+
+## D-983 — D-983-CONVERGENCE-RETRACTION-AND-PR775-TEST-QUALITY-FIX-BURST
+
+**POLICY 16 ALLOCATOR-CEILING GATE** (pre-allocation, literal shell, D-449(a)):
+
+```
+$ cd /Users/zious/Documents/GITHUB/vsdd-factory/.factory && max_d=$({ grep -hE '^#{2,} D-[0-9]+' cycles/v1.0-brownfield-backfill/decision-log.md cycles/v1.0-feature-engine-discipline-pass-1/decision-log.md 2>/dev/null; grep -hE '^[|] *D-[0-9]+' cycles/v1.0-brownfield-backfill/decision-log.md cycles/v1.0-feature-engine-discipline-pass-1/decision-log.md 2>/dev/null; } | grep -oE 'D-[0-9]+' | sed 's/D-//' | sort -n | tail -1); [ "$max_d" -lt 9000 ] && printf 'PASS: global max D-%s < D-9000 ceiling\n' "$max_d" || printf 'FAIL: breach: max=D-%s\n' "$max_d"
+PASS: global max D-982 < D-9000 ceiling
+```
+
+D-983 allocated. Parent-commit: `e40f8c28` (factory-artifacts HEAD at burst start — the D-982 SHA-patch commit `state(sha-patch): D-982 commit cf010b27 factory-artifacts SHA — Active Branches + checkpoint updated`).
+
+**(a) POLICY 16 GATE PASS — D-983 allocated; parent-commit `e40f8c28`.** This burst RETRACTS D-982's BC-5.39.001 TRUE 3-CLEAN CONVERGED declaration and records a PR-review-driven test-quality fix burst. This is a fix burst: story-writer (story v1.29) and test-writer (commit `c9cccea9` on `feature/S-21.09`, pre-existing in this session, now committed to the record by this burst) both dispatched. The state change is the D-982 retraction, the LOCAL BC-5.39.001 streak reset to 0/3, the PR-review finding-set persistence, and the cascade reopening with pass-20 recorded NEXT.
+
+**(b) CONVERGENCE RETRACTED — D-982 SUPERSEDED, not deleted.** D-982 declared BC-5.39.001 3-CLEAN CONVERGED at streak 3/3 (passes 17, 18, 19, all CLEAN against the identical unchanged artifacts `12d0fe98`/story v1.28). That declaration was **correct on its own terms** — three independent fresh-context adversary passes plus the D-977 exhaustive mutation-completeness audit all genuinely verified the gate/production logic sound (determinant isolation POLICY 13, fail-open arm pinning, count parity, SHA currency, traceability, disclosed-residual honesty). What D-982 did NOT verify — because none of the 19 LOCAL passes, nor the mutation audit, applied this specific lens — is whether each INDIVIDUAL test assertion in the 51-test suite is itself falsifiable (vacuity), exercises a code path independent of what it asserts about (tautology), and is attached to an accurate mutation narrative (narrative-accuracy). pr-manager's pr-reviewer + code-reviewer chain on PR #775 (a fresh-eyes PR diff review, NOT a numbered LOCAL adversary pass — different dispatch mechanism, different rubric) applied exactly that lens and found 8 test-quality findings (F1-F8) plus 1 MAJOR code-quality finding (git-fixture duplication) the 19-pass cascade and the mutation audit missed. **A whole-suite 3-CLEAN convergence claim cannot stand once a materially different, valid rubric finds real defects in that same suite — the D-982 record is therefore marked SUPERSEDED/RETRACTED, not deleted (the historical record of what D-982's rubric DID verify remains true and remains in decision-log.md/INDEX.md/burst-log.md unmodified).** **LOCAL BC-5.39.001 streak RESETS 3/3 → 0/3. The LOCAL cascade REOPENS.**
+
+**(c) PR-review finding-set persisted.** `cycles/v1.0-brownfield-backfill/pr775-review-findings.md` CREATED — the artifact of record for the 8 F1-F8 weak-assertion findings (vacuous `.contains()` checks in T-026(a)/(b) post-pass-9 full-path-not-basename blind spot; tautological T-007 self-built `ORPHAN:` string re-derivation; tautological T-048 `extract.is_some() ⟺ detect.is_empty()` biconditional partly definitional for UNGATED rows, plus a wrong M4 mutation-kill attribution to the GATED branch when `"hook-plugins"` is UNGATED; empty-by-construction T-055 malformed-TOML-only assertion vulnerable to a whole-function `Vec::new()` mutant; over-broad T-054 `should_panic` substring matching any value ≠ 1 rather than the specific `-1` sentinel; T-015 NIT indent mismatch) plus the MAJOR code-quality finding (~800 lines of byte-for-byte duplicated git-fixture bootstrap across T-013/T-014 and 9 git-backed tests) plus 3 minors (T-013/T-014 dup — subsumed by the same fix; PR-description off-by-one 51+1=52; module-docstring table duplication), each with location, class, description, and disposition. Reviewed HEAD: `6ae075a6` (`feature/S-21.09`, the PR #775 HEAD at review time) against story v1.28.
+
+**(d) Fix burst — all findings FIXED and empirically re-verified.** test-writer commit `c9cccea9` on `feature/S-21.09` (parent `6ae075a6`) fixes all 8 F1-F8 findings plus the MAJOR code-quality finding: T-007 tightened to exact-set `assert_eq!` against `collect_orphans_dual`'s real return value; T-026(a)/(b) vacuous `.contains()` checks removed, `.is_empty()` retained as the (already load-bearing) sole assertion, T-026(b)'s comment corrected to state the true mutant output (`hook-plugins/evil.wasm`, not a bare basename); T-048 collapsed to a single exact-vec-equality check against `detect_ungated_declarations`'s own output (the function `run_t012_gate` actually calls), M4 attribution corrected to the UNGATED-arm assertion; T-055 gained a positive control (valid TOML with a genuine ungated declaration asserted non-empty), closing the whole-function `Vec::new()` blind spot; T-054 tightened to `schema_version=-1 but production requires 1`; T-015 now pins the two-space `  MISSING:` indent. The MAJOR git-fixture duplication is closed by extracting `git_init_fixture`/`git_add_all_fixture`/`git_commit_fixture` + `fixture_body_without_comments` helpers, applied across T-013/T-014 and the 9 git-backed tests (T-030, T-034, T-036, T-037, T-039, T-049, T-052, T-053, T-054) — net **-318 lines** (926 changed: 304 insertions, 622 deletions). Every fix empirically re-verified per TD-VSDD-059 (the same discipline the D-977 mutation audit established): the specific mutation each finding describes was applied locally, the corrected test alone confirmed to go RED, mutation reverted. **Suite unchanged at 51 tests T-006..T-056** (45 S-21.09-owned + 1 `registry.rs` unit test, no IDs added or removed); `cargo fmt --check --all`/`cargo clippy --workspace --all-targets -- -D warnings`/`cargo test --workspace --all-targets` all clean at `feature/S-21.09` HEAD `c9cccea9`. story-writer story v1.29 (corrected the wrong T-048 M4 narrative attribution + T-054/T-015/T-055/T-026 Red-Gate rows + Mutation-Completeness Audit section to match `c9cccea9`; convergence-reopened note added; SHA cite sweep `12d0fe98`→`c9cccea9` across current-state sites; test/point counts UNCHANGED).
+
+**(e) `INDEX.md` S-21.09 LOCAL Adversary Reviews section extended.** A new `PR-REVIEW` row appended after pass-19 (not a numbered adversary pass — distinct dispatch mechanism and rubric, per the established `HARDENING-BURST` precedent for non-adversary-pass artifacts in this same table). Convergence Status paragraph's leading declaration REPLACED with the RETRACTED record; the prior CONVERGED narrative is preserved verbatim as `[Prior state, superseded 2026-08-13 D-983]` per the table's existing supersession convention (see the pass-19 row's own `[Prior state, superseded]` chain for precedent).
+
+**(f) Rubric gap codified.** The root cause is a genuine gap in the LOCAL adversary rubric and the D-977 mutation-audit rubric, both of which verified the SUITE's aggregate determinant-isolation soundness (every gate/production-code determinant IS isolated by SOME assertion) without a dedicated pass asking, for each INDIVIDUAL assertion: is this specific assertion falsifiable by a plausible mutant (vacuity)? does it exercise the SAME code path it asserts about, i.e., is it independent of the implementation it verifies (tautology)? does its attached comment/narrative accurately describe what a mutation to it actually produces (narrative-accuracy)? A suite can be holistically sound (every determinant covered) while containing individually vacuous/tautological/mis-narrated assertions, because aggregate coverage was verified, not per-assertion falsifiability. `L-BB-pr775-convergence-retraction-rubric-gap` appended to `lessons.md` (this burst) codifies this as a `[process-gap]`, anchored to S-15.03 PRIORITY-A (the existing standing anchor for adversary-rubric/audit-tooling process-discipline lessons per D-958/D-963/D-982(g) precedent) — folding vacuity/tautology/narrative-accuracy checks into the adversary dispatch rubric for all future LOCAL cascades.
+
+**(g) LOCAL adversary pass-20 is NEXT — STRENGTHENED rubric.** Dispatched fresh-context against `feature/S-21.09` HEAD `c9cccea9` (story v1.29), pass-20's rubric now explicitly includes the three checks from (f) in addition to the full standing POLICY 1-22 rubric the cascade has always applied. Streak resets: pass-20 is effectively "pass 1 of a new 3/3" for the true-3-CLEAN requirement — the standing human ruling (true 3-CLEAN required, not D-386 Option C asymptotic acceptance) is UNCHANGED and now applies to the reopened cascade.
+
+**(h) `feature/S-21.09` push status UNCHANGED — NOT PUSHED.** PR #775 is OPEN — it was created and reviewed prior to this burst's discovery of the F1-F8 + MAJOR findings; it will need its review re-run (and the PR description's off-by-one, "51/51" → "52", corrected) after re-convergence. No new push authorization implied by this burst; the retraction is a REGRESSION relative to D-982's post-convergence NEXT-steps framing, not an advance.
+
+**(i) Streak RESETS 3/3 → 0/3 — RETRACTED/REOPENED.** This is not itself a new adversary-pass finding-count entry in the trajectory (the PR-review is not one of the numbered 19 LOCAL passes) — the trajectory tail as recorded through pass-19 (`...→2→0→0→0`) remains the historical record of the numbered-pass sequence; pass-20 will be the 20th numbered LOCAL pass and its finding count will extend that trajectory. Cycle-level trajectory-tail (S-21.07, `→20→16→8→10`) is UNRELATED and UNCHANGED.
+
+**(j) 4-INDEX: STORY bump only.** BC-INDEX v4.56 UNCHANGED. VP-INDEX v2.76 UNCHANGED. STORY-INDEX v4.310→v4.311 (S-21.09 catalog row: story v1.28→v1.29; impl SHA cite `12d0fe98`→`c9cccea9`; annotation replaced to "LOCAL 3-CLEAN REOPENED — streak 0/3 (D-982 convergence retracted per PR-review)"; 16 pts UNCHANGED; POLICY 14 last_amended-parity leg applied). ARCH-INDEX v3.55 UNCHANGED. policies.yaml v1.4.23 UNCHANGED.
+
+**Closes:**
+- D-982 marked SUPERSEDED/RETRACTED (not deleted) — CLOSED this burst.
+- `pr775-review-findings.md` persisted (8 F1-F8 + MAJOR + 3 minor findings, each with disposition) — CLOSED this burst.
+- test-writer commit `c9cccea9` recorded (all findings fixed + empirically re-verified) — CLOSED this burst.
+- story-writer story v1.29 recorded (M4/T-054/T-015/T-055/T-026 narrative corrections + convergence-reopened note) — CLOSED this burst.
+- INDEX.md S-21.09 LOCAL Adversary Reviews section extended (PR-REVIEW row) + Convergence Status RETRACTED — CLOSED this burst.
+- LOCAL BC-5.39.001 streak RESET 3/3→0/3; cascade REOPENED — CLOSED this burst.
+- STORY-INDEX v4.310→v4.311 — CLOSED this burst.
+- L-BB rubric-gap lesson appended, anchored S-15.03 PRIORITY-A — CLOSED this burst.
+
+**Remains OPEN (not this burst's scope):**
+- LOCAL adversary pass-20 (strengthened rubric) — NEXT, not yet dispatched.
+- ADV-BB-P10-MED-001, LOW-001, LOW-002, LOW-003 (pass-10 carry-overs) — UNCHANGED, anchor: next maintenance sweep / fix-burst prior to PR merge.
+- `feature/S-21.09` NOT PUSHED — UNCHANGED.
+- PR #775 review re-run + description off-by-one fix — anchor: after re-convergence.
+- C-1/C-2/C-4/C-5 blocking security issues (D-972) — UNCHANGED, out of this burst's scope.
+- ADR-043 ratification — UNCHANGED, pending human decision.
+- S-21.12 cargo-deny blocker B1 — UNCHANGED, pending human decision.
+
+### Agents
+
+- state-manager (D-983): `pr775-review-findings.md` created; `INDEX.md` S-21.09 LOCAL Adversary Reviews section extended (PR-REVIEW row) + Convergence Status RETRACTED (D-982 marked superseded, prior narrative preserved verbatim); decision-log D-983 block appended; burst-log D-983 8-block entry appended; lessons.md L-BB rubric-gap lesson appended; STORY-INDEX v4.310→v4.311 (S-21.09 row: v1.28→v1.29, `12d0fe98`→`c9cccea9`, annotation REOPENED); story v1.29 committed (story-writer's uncommitted work, committed by this burst); STATE.md advanced with RETRACTED status + refreshed Session Resume Checkpoint (streak 0/3 REOPENED, pass-20 NEXT).
+- vsdd-factory:story-writer (prior to this burst, same session): authored story v1.29 — corrected the T-048 M4 narrative attribution + T-054/T-015/T-055/T-026 Red-Gate rows + Mutation-Completeness Audit section to describe `c9cccea9`; added a convergence-reopened note; swept SHA cites `12d0fe98`→`c9cccea9`; counts unchanged.
+- vsdd-factory:pr-manager (pr-reviewer + code-reviewer chain, prior to this burst, same session): fresh-eyes PR #775 diff review — found 8 test-quality findings (F1-F8) plus 1 MAJOR code-quality finding (git-fixture duplication) plus 3 minors; none of the 19-pass LOCAL cascade or the D-977 mutation audit had surfaced these.
+- vsdd-factory:test-writer (prior to this burst, same session): commit `c9cccea9` — fixed all F1-F8 + MAJOR findings; every fix empirically re-verified (mutation applied locally → target test alone RED → reverted); suite unchanged 51 tests, fmt/clippy/workspace clean.
+
+### 4-INDEX
+
+BC-INDEX v4.56 (UNCHANGED) / VP-INDEX v2.76 (UNCHANGED) / STORY-INDEX v4.311 / ARCH-INDEX v3.55 (UNCHANGED)
+
+### Phase
+
+D-983-CONVERGENCE-RETRACTION-AND-PR775-TEST-QUALITY-FIX-BURST
+
+### Date
+
+2026-08-13
+
+---

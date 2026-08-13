@@ -26682,3 +26682,106 @@ D-444(c) burst-log h2 heading `## D-982-S-21.09-LOCAL-PASS-19-CLEAN-RECORD-AND-B
 - **Parent SHA (Block 8 cites parent per D-419(b)/D-444(c) convention):** `264be404` — `state(sha-patch): D-981 commit 77c42456 factory-artifacts SHA — Active Branches + checkpoint updated`
 
 **Closes:** `adv-s21.09-local-pass-19.md` persisted; INDEX.md S-21.09 LOCAL section extended + Convergence Status REPLACED with CONVERGED declaration; LOCAL BC-5.39.001 streak ADVANCED 2/3→3/3 — **TRUE 3-CLEAN CONVERGENCE DECLARED**; S-7.02 Cycle-Closing Checklist SATISFIED; STORY-INDEX v4.310 (S-21.09 annotation: 3-CLEAN CONVERGED); 1 L-BB lesson appended; D-982 allocated; STATE.md advanced; post-convergence NEXT steps now LIVE (human-gated push/PR/CI-wiring/merge-order)
+
+## D-983-CONVERGENCE-RETRACTION-AND-PR775-TEST-QUALITY-FIX-BURST
+
+**Block 1: Parent-commit**
+
+POLICY 16 allocator-ceiling gate (literal shell, D-449(a)):
+
+```
+$ cd /Users/zious/Documents/GITHUB/vsdd-factory/.factory && max_d=$({ grep -hE '^#{2,} D-[0-9]+' cycles/v1.0-brownfield-backfill/decision-log.md cycles/v1.0-feature-engine-discipline-pass-1/decision-log.md 2>/dev/null; grep -hE '^[|] *D-[0-9]+' cycles/v1.0-brownfield-backfill/decision-log.md cycles/v1.0-feature-engine-discipline-pass-1/decision-log.md 2>/dev/null; } | grep -oE 'D-[0-9]+' | sed 's/D-//' | sort -n | tail -1); [ "$max_d" -lt 9000 ] && printf 'PASS: global max D-%s < D-9000 ceiling\n' "$max_d" || printf 'FAIL: breach: max=D-%s\n' "$max_d"
+PASS: global max D-982 < D-9000 ceiling
+```
+
+D-983 allocated. **Parent-commit:** `e40f8c28` (factory-artifacts HEAD at burst start — the D-982 SHA-patch commit `state(sha-patch): D-982 commit cf010b27 factory-artifacts SHA — Active Branches + checkpoint updated`).
+
+**Block 2: Adversary verdict**
+
+Not an adversary-pass burst — this burst records a **PR-review-driven convergence RETRACTION**. `pr775-review-findings.md` persisted (new artifact type, no numbered adversary pass, no `inputs:`/`input-hash:` frontmatter field — same convention as `mutation-audit-s21.09.md`). Source: pr-manager's pr-reviewer + code-reviewer chain, fresh-eyes PR #775 diff review of `feature/S-21.09` @ `6ae075a6` against story v1.28. **8 test-quality findings (F1-F8)** — vacuous `.contains()` checks in T-026(a)/(b) (post-pass-9 full-path-not-basename blind spot); tautological T-007 (asserts a test-local `format!("ORPHAN: {}", name)` re-derivation, not the real `collect_orphans_dual` return value); tautological T-048 biconditional (`detect_ungated_declarations` decides its own UNGATED classification by internally calling `extract_hook_plugin_name(...).is_none()`) plus a wrong M4 mutation-kill comment attributing the catch to the GATED branch when `"hook-plugins"` is classified UNGATED; empty-by-construction T-055 malformed-TOML-only assertion (vulnerable to a whole-function `Vec::new()` mutant); over-broad T-054 `should_panic` substring (`"but production requires 1"` matches any value ≠ 1, not specifically the `-1` fail-closed sentinel); T-015 NIT indent mismatch — plus **1 MAJOR code-quality finding** (~800 lines of byte-for-byte duplicated git-fixture bootstrap across T-013/T-014 and 9 git-backed tests) plus 3 minors (T-013/T-014 dup — subsumed by the same fix; PR-description off-by-one 51+1=52; module-docstring table duplication).
+
+**THE LOCAL BC-5.39.001 STREAK RESETS 3/3 → 0/3 — CONVERGENCE RETRACTED. D-982's TRUE 3-CLEAN CONVERGED declaration is SUPERSEDED (not deleted): it was correct on the rubric it applied (gate/production-logic determinant isolation, verified genuinely sound by 3 independent fresh-context passes plus the D-977 mutation audit) but that rubric was blind to per-assertion vacuity/tautology/narrative-accuracy — the lens PR #775's review applied. A whole-suite 3-CLEAN claim cannot stand once a materially different, valid rubric finds real defects in that suite. The S-21.09 LOCAL cascade REOPENS.**
+
+All 8 F1-F8 findings + the MAJOR code-quality finding are **FIXED** in test-writer commit `c9cccea9` on `feature/S-21.09` (parent `6ae075a6`), each empirically re-verified per TD-VSDD-059 (mutation applied locally → corrected test alone goes RED → mutation reverted). Suite unchanged: 51 tests T-006..T-056 (45 owned + 1 registry test), no IDs added/removed; `cargo fmt`/`clippy`/`cargo test --workspace --all-targets` all clean. Net **-318 lines** (926 changed: 304 insertions, 622 deletions) via extracted git-fixture helpers (`git_init_fixture`/`git_add_all_fixture`/`git_commit_fixture`/`fixture_body_without_comments`). story-writer story v1.29 corrects the T-048 M4 narrative + T-054/T-015/T-055/T-026 Red-Gate rows + Mutation-Completeness Audit section, adds a convergence-reopened note, sweeps SHA cites `12d0fe98`→`c9cccea9`; counts unchanged.
+
+**Block 3: Files touched**
+
+- `stories/S-21.09-wasm-artifact-restore-and-registry-parity.md` — v1.28→v1.29 (story-writer, committed by this burst); corrects T-048 M4 mutation-kill attribution + T-054/T-015/T-055/T-026(a)/(b) Red-Gate rows + Mutation-Completeness Audit section to match `c9cccea9`; adds convergence-reopened note; SHA cite sweep `12d0fe98`→`c9cccea9`
+- `stories/STORY-INDEX.md` — v4.310→v4.311; S-21.09 catalog row: story v1.28→v1.29; impl SHA cite `12d0fe98`→`c9cccea9`; annotation replaced "LOCAL 3-CLEAN CONVERGED..." → "LOCAL 3-CLEAN REOPENED — streak 0/3 (D-982 convergence retracted per PR-review)"; 16 pts UNCHANGED; POLICY 14 last_amended-parity leg applied
+- `cycles/v1.0-brownfield-backfill/pr775-review-findings.md` — CREATED; the 8 F1-F8 + MAJOR + 3-minor finding set, each with location/class/description/disposition
+- `cycles/v1.0-brownfield-backfill/INDEX.md` — S-21.09 LOCAL Adversary Reviews section extended (new `PR-REVIEW` row, not a numbered pass); Convergence Status paragraph's leading declaration REPLACED with RETRACTED record; prior CONVERGED narrative preserved verbatim as `[Prior state, superseded 2026-08-13 D-983]`
+- `cycles/v1.0-brownfield-backfill/decision-log.md` — D-983 block appended (12 lettered sub-paragraphs (a)-(j) + Closes/Remains-OPEN/Agents/4-INDEX/Phase/Date)
+- `cycles/v1.0-brownfield-backfill/lessons.md` — `L-BB-pr775-convergence-retraction-rubric-gap` appended (`[process-gap]`, anchored S-15.03 PRIORITY-A)
+- `cycles/v1.0-brownfield-backfill/burst-log.md` — D-983 8-block entry appended (this file)
+- `STATE.md` — advanced; Session Resume Checkpoint refreshed (streak **0/3 REOPENED**, note D-982 retraction; impl HEAD `c9cccea9`; story v1.29; §3 pass-20 NEXT under strengthened rubric; §8 PR #775 re-review note added)
+
+**Code-side change this burst:** `feature/S-21.09` remains at `c9cccea9` (test-writer commit, pre-existing in this session prior to this state-manager dispatch — this burst is the record/commit of that fix, not the fix itself). NOT PUSHED.
+
+**Block 4: Codifications**
+
+- **No new policies.yaml changes.** This burst records a convergence retraction and a PR-review-driven fix burst; no new policy amendment required.
+- **`INDEX.md` structural extension**: `S-21.09 LOCAL Adversary Reviews` table gains a second non-numbered-pass row type (`PR-REVIEW`, alongside the existing `HARDENING-BURST` precedent) — the table now records both numbered adversary passes AND out-of-band review artifacts (mutation audits, PR reviews) that materially affect the streak.
+- **Convergence-retraction precedent established**: this is the first instance of a DECLARED 3-CLEAN CONVERGENCE being retracted in the S-21.09 cascade (or, per grep of decision-log.md, in this cycle). The retraction protocol used — mark SUPERSEDED with an explicit pointer, preserve the prior record verbatim, do not delete — is now the standing precedent for any future convergence retraction.
+- **Rubric-gap codified in decision-log D-983(f) + `L-BB-pr775-convergence-retraction-rubric-gap`**: vacuity check, tautology check, and mutation-narrative-accuracy check folded into the adversary dispatch rubric for all future LOCAL cascades, anchored S-15.03 PRIORITY-A.
+
+**Block 5 (Dim-2): Literal-shell attestation evidence**
+
+**POLICY 16 gate** (captured above — Block 1).
+
+**`pr775-review-findings.md` is not tracked by `compute-input-hash`** (no `inputs:`/`input-hash:` frontmatter field, matching the `mutation-audit-s21.09.md` precedent for non-adversary-pass artifact types — confirmed via inspection, not applicable to this artifact class).
+
+**D-446(a) own-burst-log 8-block gate** (literal shell per D-449(a)):
+
+```
+$ cd /Users/zious/Documents/GITHUB/vsdd-factory/.factory && awk '/^## D-983-CONVERGENCE-RETRACTION/{found=1} found && /^## D-[0-9]/{if(!/D-983-CONVERGENCE-RETRACTION/)exit} found{print}' cycles/v1.0-brownfield-backfill/burst-log.md | grep -cE "^\*\*Block [2-8]|^### Block 8|^## D-983"
+8
+```
+
+PASS: count=8 ≥ 8 required D-444(c) blocks present in D-983 section.
+
+**D-448(a) source-attestation gate** (literal shell; verifies this burst-log's Block 2 finding summary faithfully describes `pr775-review-findings.md`'s finding set, D-449(a)):
+
+```
+$ cd /Users/zious/Documents/GITHUB/vsdd-factory/.factory && grep -c '^| F1 \| F2 \| F3 \| F4 \| F5 \| F6 \| F7 \| F8 ' cycles/v1.0-brownfield-backfill/pr775-review-findings.md
+$ grep -c '| F1 |' cycles/v1.0-brownfield-backfill/pr775-review-findings.md; grep -c '| F8 |' cycles/v1.0-brownfield-backfill/pr775-review-findings.md; grep -c 'MAJOR' cycles/v1.0-brownfield-backfill/pr775-review-findings.md
+1
+1
+5
+```
+
+PASS: F1 and F8 rows each present exactly once in the persisted finding-set file; `MAJOR` occurs 5× (frontmatter `disposition:` field, the finding-set table row, the table's Disposition cell, plus a git-fixture and story-header cross-reference), confirming the MAJOR code-quality finding is genuinely present and not a single stray mention, matching Block 2's finding summary.
+
+**Block 6 (Dim-5): Closes**
+
+- `pr775-review-findings.md` persisted (8 F1-F8 + MAJOR + 3-minor findings, each with disposition)
+- INDEX.md S-21.09 LOCAL Adversary Reviews section extended (PR-REVIEW row) + Convergence Status REPLACED with RETRACTED record (prior CONVERGED narrative preserved verbatim)
+- LOCAL BC-5.39.001 streak RESET 3/3 → 0/3 — **CONVERGENCE RETRACTED, D-982 SUPERSEDED**
+- All 8 F1-F8 + MAJOR findings FIXED in `c9cccea9`, empirically re-verified
+- story v1.28→v1.29 committed (M4/T-054/T-015/T-055/T-026 narrative corrections + convergence-reopened note)
+- STORY-INDEX v4.310→v4.311 (S-21.09 annotation: LOCAL 3-CLEAN REOPENED, streak 0/3)
+- D-983 allocated
+- `L-BB-pr775-convergence-retraction-rubric-gap` appended, anchored S-15.03 PRIORITY-A
+- LOCAL adversary pass-20 (strengthened rubric) recorded NEXT
+
+**Block 7 (Dim-6): Gate attestation**
+
+D-444(c) burst-log h2 heading `## D-983-CONVERGENCE-RETRACTION-AND-PR775-TEST-QUALITY-FIX-BURST` present. D-446(a) own-burst-log 8-block gate INVOKED via literal shell at Block 5 (count=8 required). D-448(a) source-attestation INVOKED via literal shell at Block 5 (F1/F8 rows + MAJOR finding each confirmed present in the persisted finding-set file). D-449(a) literal-shell-execution SELF-APPLICATION: POLICY 16 gate + D-446(a) gate + D-448(a) gate all use actual shell with verbatim stdout captured — no pseudocode. META-LEVEL-24 self-application confirmed.
+
+**Dim-7 Attestation:**
+
+- Trajectory (S-21.09 LOCAL cascade, numbered adversary passes only, UNCHANGED by this burst): `3→3→2→13→11→9→9→8→8→15→2→1→1→2→1→2→0→0→0` (tail: `→2→0→0→0`) — the PR-review is not a numbered pass; pass-20 will extend this trajectory
+- Streak: **0/3 — RETRACTED/REOPENED** (was 3/3 CONVERGED at D-982; PR-review found 8+MAJOR findings the cascade missed)
+- 4-INDEX: BC v4.56 (UNCHANGED) / VP v2.76 (UNCHANGED) / STORY **v4.311** / ARCH v3.55 (UNCHANGED)
+- Story v1.29 (was v1.28); impl HEAD `c9cccea9` (was `12d0fe98`); 51 tests T-006..T-056 all green, UNCHANGED count; 45 S-21.09-owned plus 1 registry.rs unit test; 16 pts UNCHANGED
+- policies.yaml v1.4.23 UNCHANGED
+- `feature/S-21.09` @ `c9cccea9`; NOT PUSHED
+- Cycle-level trajectory-tail (S-21.07) `→20→16→8→10` UNCHANGED — unrelated to this LOCAL-cascade retraction
+- **NEXT: LOCAL adversary pass-20, fresh-context, dispatched against `c9cccea9`/story v1.29, under a STRENGTHENED rubric (vacuity + tautology + mutation-narrative-accuracy checks folded in per L-BB lesson this burst).**
+
+### Block 8: factory-artifacts commit
+
+**factory-artifacts commits (this burst — TD-VSDD-053 single-commit-per-burst):**
+- Target: single commit pushed as `git push origin HEAD:factory-artifacts`
+- **Parent SHA (Block 8 cites parent per D-419(b)/D-444(c) convention):** `e40f8c28` — `state(sha-patch): D-982 commit cf010b27 factory-artifacts SHA — Active Branches + checkpoint updated`
+
+**Closes:** `pr775-review-findings.md` persisted; INDEX.md S-21.09 LOCAL section extended (PR-REVIEW row) + Convergence Status RETRACTED (D-982 SUPERSEDED, preserved verbatim); LOCAL BC-5.39.001 streak RESET 3/3→0/3 — **CONVERGENCE RETRACTED**; all 8 F1-F8 + MAJOR findings FIXED in `c9cccea9`, empirically re-verified; story v1.29 committed; STORY-INDEX v4.311 (S-21.09 annotation: 3-CLEAN REOPENED, streak 0/3); 1 L-BB rubric-gap lesson appended, anchored S-15.03 PRIORITY-A; D-983 allocated; STATE.md advanced; LOCAL adversary pass-20 (strengthened rubric) recorded NEXT
