@@ -28338,3 +28338,110 @@ D-444(c) burst-log h2 heading `## D-1000-S2107-PASS16-RECORD-AND-FIX-BURST` pres
 - **Parent SHA (Block 8 cites parent per D-419(b)/D-444(c) convention):** `1750bd56` — `state(sha-patch): D-998 commit 1750bd56 factory-artifacts SHA -- Active Branches + checkpoint + decisions-log updated`
 
 **Closes:** F-S2107-P16-001 CLOSED (state-manager; STORY-INDEX v4.322; L722/L763/L776/L777 corrections; file-wide TD-VSDD-060 class-complete semantic-role aggregation sweep, zero further live disagreements found); O-P16-01 CODIFIED (lesson strengthened + D-1000(e)); O-P16-02/O-P16-03 dispositioned (not findings, no story edit); STATE.md §8 E-18 pending item partially resolved (master-line layer). **STREAK EXPLICITLY HOLDS 0/3 — second consecutive NOT-CLEAN, does not advance.** **S-21.07 PASS-16 RECORD + FIX BURST COMPLETE; SHA-PATCH FOLLOW-UP NEXT; PASS-17 ADVERSARY DISPATCH AFTER THAT.**
+
+## D-1001-S2107-PASS17-RECORD-ONLY-BURST
+
+**Block 1: Parent-commit**
+
+POLICY 16 allocator-ceiling gate (literal shell, D-449(a)):
+
+```
+$ max_d=$({ grep -hE '^#{2,} D-[0-9]+' cycles/v1.0-brownfield-backfill/decision-log.md cycles/v1.0-feature-engine-discipline-pass-1/decision-log.md 2>/dev/null; grep -hE '^[|] *D-[0-9]+' cycles/v1.0-brownfield-backfill/decision-log.md cycles/v1.0-feature-engine-discipline-pass-1/decision-log.md 2>/dev/null; } | grep -oE 'D-[0-9]+' | sed 's/D-//' | sort -n | tail -1); [ "$max_d" -lt 9000 ] && printf 'PASS: global max D-%s < D-9000 ceiling\n' "$max_d" || printf 'FAIL: breach: max=D-%s\n' "$max_d"
+PASS: global max D-1000 < D-9000 ceiling
+```
+
+D-1001 allocated (D-999 remains permanently skipped per D-1000 preamble). **Parent-commit:** `e811cd15` — `state(sha-patch): D-1000 commit ddc07cf5 factory-artifacts SHA -- Active Branches + checkpoint + decisions-log updated` (factory-artifacts HEAD at burst start).
+
+**Block 2: Adversary verdict**
+
+Fresh-context `vsdd-factory:adversary` pass-17 dispatched against `feature/S-21.07-validate-cross-site-correspondence` at `96b4be19` (unchanged since D-992; story unbuilt) and `factory-artifacts` at `e811cd15` (D-1000 SHA-patch HEAD, carrying STORY-INDEX v4.322 content as landed). **Verdict: CLEAN — 0 findings at any severity (BLOCKER 0 / HIGH 0 / MEDIUM 0 / LOW 0 / NIT 0).** LOCAL BC-5.39.001 streak for the S-21.07 cascade **ADVANCES 0/3 → 1/3** — the first fresh CLEAN since the pass-15 reset; 2 more CONSECUTIVE CLEAN passes (pass-18, pass-19) are required to converge. Persisted verbatim as `cycles/v1.0-brownfield-backfill/S-21.07/adversary-pass-17.md`. F-S2107-P16-001's closure was independently re-verified across all five live E-21 aggregation cells by fresh context; 2 non-blocking observations were noted (O-P17-01/O-P17-02), neither requiring codification. Pass-18 (fresh-context, reading only `adversary-pass-17.md` Part A per the Iron Law) is the pending gate, dispatched next.
+
+**Block 3: Files touched**
+
+- `.factory/cycles/v1.0-brownfield-backfill/S-21.07/adversary-pass-17.md` — new (pass-17 record, persisted verbatim)
+- `.factory/cycles/v1.0-brownfield-backfill/INDEX.md` — pass-17 row added; Convergence Status backfilled (D-1000 summary, previously un-appended) and extended (D-1001 summary)
+- `.factory/cycles/v1.0-brownfield-backfill/decision-log.md` — D-1001 appended
+- `.factory/cycles/v1.0-brownfield-backfill/burst-log.md` — this entry
+- `.factory/STATE.md` — full advance (frontmatter, Phase Progress, Current Phase Steps, Active Branches, Decisions Log, Blocking Issues, §8 O-P17-01/O-P17-02 + new STORY-INDEX frontmatter-drift item, Session Resume Checkpoint)
+
+No story, STORY-INDEX, BC-INDEX, VP-INDEX, ARCH-INDEX, or policies.yaml file was touched this burst — RECORD-ONLY, nothing to close. (A STORY-INDEX.md frontmatter-version/body-content drift was discovered during this burst's re-verification pass and is recorded as a new STATE.md Drift Item — see decision-log D-1001(h) — but is explicitly NOT fixed this burst, per TD-VSDD-053 single-commit-per-burst discipline and this burst's directed file-touch scope.)
+
+**Block 4: Codifications**
+
+None. Pass-17 was CLEAN with zero findings; the two observations (O-P17-01 cross-epic master-total hygiene, O-P17-02 BC-INDEX epic-column convention) are tracked as STATE.md §8 dispositioned observations, not codified as `policies.yaml` or `lessons.md` process-gap entries — neither identifies a process gap in this cascade's own discipline. No new codification this burst. Applies pre-existing disciplines only: TD-VSDD-053 single-commit-per-burst; BC-5.39.001 3-CLEAN convergence protocol (streak mechanics); D-433(e)+D-439(c) trajectory-tail LENGTH=4; POLICY 16 ALLOCATOR-CEILING GATE.
+
+**Block 5 (Dim-2): Literal-shell attestation evidence**
+
+POLICY 16 gate captured above (Block 1).
+
+E-21 aggregation-cell re-derivation gate (literal shell, re-run for this burst's own independent verification of F-S2107-P16-001's closure):
+
+```
+$ grep -c "^| S-21\." stories/STORY-INDEX.md ; awk -F'|' '/^\| S-21\./ {gsub(/ /,"",$5); sum+=$5} END{print sum}' stories/STORY-INDEX.md
+14
+117
+$ grep "^| S-21\." stories/STORY-INDEX.md | grep -oE "\(wave [0-9]+" | grep -oE "[0-9]+" | sort -nu | wc -l
+8
+$ awk 'NR==722' stories/STORY-INDEX.md | grep -oE "^> DAG wave schedule \([0-9]+ waves"
+> DAG wave schedule (8 waves
+$ awk 'NR==763' stories/STORY-INDEX.md | grep -oE "[0-9]+ E-21\*+"
+117 E-21*************
+$ awk 'NR==776' stories/STORY-INDEX.md | grep -oE "current: [0-9]+ stories/[0-9]+ pts/[0-9]+ waves"
+current: 14 stories/117 pts/8 waves
+$ awk 'NR>=215' stories/STORY-INDEX.md | grep -c "35 E-21\|6 stories/35 pts/3 waves\|8 stories/50 pts\|99 E-18\|(7 waves; W3"
+0
+```
+
+Frontmatter/version parity gate (literal shell):
+
+```
+$ grep -m1 'version:' stories/S-21.07-validate-cross-site-correspondence.md
+version: "1.11"
+$ grep -m1 'version:' specs/behavioral-contracts/BC-INDEX.md
+version: "4.58"
+```
+
+STORY-INDEX.md own-document frontmatter drift discovery gate (literal shell — this burst's independent finding, see decision-log D-1001(h)):
+
+```
+$ grep -m1 'version:' stories/STORY-INDEX.md
+version: "4.321"
+$ git show ddc07cf5 -- stories/STORY-INDEX.md | grep -c '^-version:\|^+version:'
+0
+```
+
+Confirms: the D-1000 commit's diff to `STORY-INDEX.md` touched only body content (L722/L763/L776/L777) — zero lines matching `version:` were added or removed by that commit, so the document's own top-level frontmatter `version:` field never advanced past `"4.321"`, despite decision-log/burst-log/INDEX.md/STATE.md all asserting `v4.322` as the D-1000-landed state. Logged as a new STATE.md Drift Item this burst; not fixed (out of this RECORD-ONLY burst's scope).
+
+Pass-17 record persistence gate (literal shell):
+
+```
+$ grep -c "^verdict: CLEAN" cycles/v1.0-brownfield-backfill/S-21.07/adversary-pass-17.md
+1
+$ grep -c "STREAK ADVANCES 0/3 → 1/3" cycles/v1.0-brownfield-backfill/INDEX.md
+1
+```
+
+**Block 6 (Dim-5): Closes**
+
+None. Pass-17 was CLEAN — there was nothing to close. This is a RECORD-ONLY burst: it persists the pass-17 CLEAN verdict, advances the BC-5.39.001 streak counter (0/3 → 1/3), and tracks two non-blocking observations (O-P17-01, O-P17-02) plus one newly-discovered unrelated frontmatter-drift item in STATE.md, none of which were fixed this burst.
+
+**Block 7 (Dim-6): Gate attestation**
+
+D-444(c) burst-log h2 heading `## D-1001-S2107-PASS17-RECORD-ONLY-BURST` present. D-446(a) own-burst-log 8-block gate: this section contains Blocks 1-8. D-448(a) source-attestation gate: the decision-log.md D-1001(a)/(b)/(c)/(d) paragraphs faithfully describe `adversary-pass-17.md` Part A's finding set (0 findings, 2 non-blocking observations) — verified by direct comparison against the persisted pass-17 file at burst time. D-449(a) literal-shell-execution SELF-APPLICATION: POLICY 16 gate + E-21 aggregation-cell re-derivation gate + frontmatter/version parity gate + STORY-INDEX drift-discovery gate + pass-17 record persistence gate all use actual shell with verbatim stdout captured (Block 5) — no pseudocode.
+
+**Dim-7 Attestation:**
+
+- This burst IS a numbered LOCAL adversary pass (pass-17) — trajectory entry added; trajectory (16 true adversary passes, 2 CLEAN) `47→18→25→25→24→20→16→8→10→1→1→2→0→1→1→0` (tail `→2→0→1→0`, D-433(e)+D-439(c) LENGTH=4)
+- Streak: **1/3 — ADVANCES from 0/3**. Pass-17 was CLEAN, the first fresh clean verdict since the pass-15 reset. 2 more CONSECUTIVE CLEAN passes (pass-18, pass-19) are required to converge per BC-5.39.001. A single finding at pass-18 resets the streak to 0/3.
+- 4-INDEX: BC v4.58 (UNCHANGED) / VP v2.76 (UNCHANGED) / STORY v4.322 (UNCHANGED) / ARCH v3.58 (UNCHANGED)
+- policies.yaml v1.4.24 (UNCHANGED — no codification this burst)
+- `feature/S-21.07` SHA `96b4be19` UNCHANGED (no code-repo commit this burst; RECORD-ONLY, story remains unbuilt)
+- `pipeline: ACTIVE` UNCHANGED
+
+### Block 8: factory-artifacts commit
+
+**factory-artifacts commits (this burst — TD-VSDD-053 single-commit-per-burst):**
+- Target: single commit pushed as `git push origin HEAD:factory-artifacts`
+- **Parent SHA (Block 8 cites parent per D-419(b)/D-444(c) convention):** `e811cd15` — `state(sha-patch): D-1000 commit ddc07cf5 factory-artifacts SHA -- Active Branches + checkpoint + decisions-log updated`
+
+**Closes:** None (pass-17 CLEAN; nothing to close). **STREAK ADVANCES 0/3 → 1/3** — first fresh CLEAN since the pass-15 reset; 2 more CONSECUTIVE CLEAN passes required. O-P17-01/O-P17-02 tracked (STATE.md §8), not fixed. STORY-INDEX.md frontmatter-version drift discovered and logged as a new Drift Item, not fixed this burst. **S-21.07 PASS-17 RECORD-ONLY BURST COMPLETE; SHA-PATCH FOLLOW-UP NEXT; PASS-18 ADVERSARY DISPATCH AFTER THAT.**
