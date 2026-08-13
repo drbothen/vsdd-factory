@@ -1687,3 +1687,52 @@ The one arm_a1.rs function and five lib.rs test names above form the name-set a 
 **No assertion-site changes in this commit.** `6c9a092f` modifies only `crates/hook-plugins/validate-cross-site-correspondence/docs/red-gate-log.md` (64 lines inserted). No Rust source, no bats tests, no WASM artifact — the plugin hash remains `b0373eb23ccbe71d33f7b9b02155c657b9dc0bcc1662f765704b5ad69edb1134`.
 
 The assertion name-set is unchanged from the immediately preceding attestation (parent `67ffbdccda5302a4e1fbffd8b2f2b8bdd0aed3ce`, above). A reviewer can confirm by running `git diff 38c70f9e 6c9a092f -- '*.rs' '*.bats'` and observing an empty diff.
+
+---
+
+## Erratum — F-S2107-P10-002: permanent POLICY 15 historical violation (`67ffbdcc`, `38c70f9e`)
+
+**Recorded:** 2026-08-13 (S-21.07 pass-10 fix cascade)
+**Governing ruling:** ADR-040 §Decision 9 (Ruling 9(a)) and Implementation routing, ratified under decision-log D-970.
+**Finding:** F-S2107-P10-002 (BLOCKER [regression])
+
+The POLICY 15 ATTESTATION-LOCATION GATE obligation (D-912, carried forward by ADR-040
+§Decisions 2, 3, and 9) requires that a commit which adds or strengthens a `*.rs`/`*.bats`
+assertion site include, **in that same commit**, a `### ... assertion-site attestation
+(<PARENT-SHA>)` section in this file.
+
+Commits `67ffbdcc` (2026-08-07; `test(S-21.07): close F-S2107-P8-006/007/013 — corpus
+gate, coverage gate, fuel-scale gate`) and `38c70f9e` (2026-08-08; `fix(S-21.07): close
+F-S2107-P9-001 — extract comparison predicate, rewrite non-vacuous bypass mutants`) each
+added or strengthened assertion sites in `src/lib.rs` / `src/arm_a1.rs` without a matching
+attestation section present in this file **at that commit**. Per-commit literal-shell
+evidence (ADR-040 §Decision 9) confirms zero attestation headings existed in this file's
+tree state at either `67ffbdcc` or `38c70f9e`. The attestation sections covering both
+commits' assertion-site changes were instead authored later, in the separate docs-only
+commit `5370db80` (`docs(S-21.07): add POLICY 15 attestation sections for pass-8, pass-9,
+and docs commits (F-S2107-P9-003)`) — i.e., backfilled retroactively rather than bundled
+same-commit per the TD-VSDD-053 requirement the obligation restates.
+
+**This is a permanent, immutable historical violation.** Git history is append-only and
+this project operates under NO-REBASE; the tree state of `67ffbdcc` and `38c70f9e` cannot
+be retroactively amended to contain their own attestation sections without rewriting
+published history. No future action can cause the attestation to have existed in the same
+commit as the assertion-site change it covers, for these two commits specifically. This
+erratum note is the permanent record of that fact — it documents that the violation at
+these two commits is uncurable, not that it has been fixed.
+
+**The violation class is closed going forward.** ADR-040 §Decision 9 replaces push-tip-only
+verification with unconditional per-commit iteration over the full PR branch history,
+implemented in the Rust crate `crates/policy15-attestation-gate/` (landing commit
+`d2a3176a`, branch `feature/policy15-gate-rust`), exercised by
+`cargo test --workspace --all-targets` and — once the devops-engineer CI wiring lands
+(tracked as STATE.md Drift Item [D-969]) — by the required `policy-15-attestation-location`
+CI check on every future PR commit. Any future commit that repeats this same-commit-
+bundling gap will be caught by that gate before merge. `67ffbdcc` and `38c70f9e` are
+exempted from that gate only because they predate the gate's existence and cannot be
+re-evaluated without rewriting history.
+
+**Disposition:** ACCEPTED (immutable historical violation), per ADR-040 (v1.12,
+`.factory/specs/architecture/decisions/ADR-040-policy-15-attestation-gate-parent-sha-predicate.md`)
+§Decision 9 and Implementation routing, ratified at decision-log D-970. See that ADR for the
+full ruling and `decision-log.md` D-970 for the ratification record.
