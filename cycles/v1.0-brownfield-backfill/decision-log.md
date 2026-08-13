@@ -17572,3 +17572,107 @@ D-998-S2107-PASS15-RECORD-AND-FIX-BURST
 2026-08-13
 
 ---
+
+## D-1000 — D-1000-S2107-PASS16-RECORD-AND-FIX-BURST
+
+**POLICY 16 ALLOCATOR-CEILING GATE** (pre-allocation, literal shell, D-449(a)):
+
+```
+$ max_d=$({ grep -hE '^#{2,} D-[0-9]+' cycles/v1.0-brownfield-backfill/decision-log.md cycles/v1.0-feature-engine-discipline-pass-1/decision-log.md 2>/dev/null; grep -hE '^[|] *D-[0-9]+' cycles/v1.0-brownfield-backfill/decision-log.md cycles/v1.0-feature-engine-discipline-pass-1/decision-log.md 2>/dev/null; } | grep -oE 'D-[0-9]+' | sed 's/D-//' | sort -n | tail -1); [ "$max_d" -lt 9000 ] && printf 'PASS: global max D-%s < D-9000 ceiling\n' "$max_d" || printf 'FAIL: breach: max=D-%s\n' "$max_d"
+PASS: global max D-998 < D-9000 ceiling
+```
+
+**D-999 SENTINEL — SKIPPED (human directive this session).** Per ADR-041 §Decision 1, the fixture-sentinel value was structurally MIGRATED from `D-999` to `D-99999` (BC-5.39.007 EC-010, S-15.12 AC-18), and the mechanical ALLOCATOR-CEILING GATE above governs only the `D-9000..D-99999` reserved range — under the gate's literal predicate, `D-999` is not itself excluded from allocation (`999 < 9000` passes). Nonetheless, the human explicitly directed this session that `D-999` remain treated as never-allocatable, out of caution: `D-999` retains residual "reserved sentinel" branding from the pre-ADR-041 D-960(e) prose reservation, and reintroducing it as a live decision ID risks confusing any tooling or reviewer still keying off the original (superseded) reservation. **D-999 is therefore SKIPPED this burst; D-1000 is allocated instead** — confirmed via `grep -c "^## D-999\b" cycles/v1.0-brownfield-backfill/decision-log.md` → `0` (never used) immediately before this allocation.
+
+D-1000 allocated. **Parent-commit:** `1750bd56` — `state(sha-patch): D-998 commit 1750bd56 factory-artifacts SHA -- Active Branches + checkpoint + decisions-log updated` (factory-artifacts HEAD at burst start; the D-998 SHA-patch follow-up commit).
+
+**(a) Scope.** Fresh-context adversary pass-16 dispatched against `feature/S-21.07-validate-cross-site-correspondence` at `96b4be19` (unchanged since D-992; story unbuilt) and `factory-artifacts` at `1750bd56` (the D-998 SHA-patch HEAD, carrying STORY-INDEX v4.321 as landed). Verdict: **NOT-CLEAN, 1 MEDIUM finding + 3 observations.** Persisted verbatim as `cycles/v1.0-brownfield-backfill/S-21.07/adversary-pass-16.md`.
+
+**(b) F-S2107-P16-001 — MEDIUM — CLOSED THIS BURST.** POLICY 5 category-(i) same-file aggregation-cell sibling-sweep + TD-VSDD-060 + S-7.01 partial-fix regression. Location: `STORY-INDEX.md` §Epic E-21 (and, per the file-wide sweep this burst performed, §Epic E-19/E-18/master-line). Defect: the D-998 aggregation sweep that closed F-S2107-P15-001 was **NOT class-complete** — its predicate (`grep -n "stories total\."`) was FORM-SPECIFIC and located only the three cells using the literal phrase "N stories total. M pts.", missing E-21 aggregation cells using other phrasings for the identical points/story/wave total. Three stale E-21 cells confirmed at `1750bd56`:
+
+1. L722 (E-21 DAG wave-schedule blockquote header): read `(7 waves; W3 sequential: ...)` while the same blockquote's own body enumerates W1 through W8 (its final clause: "W8 (parallel): S-21.14 (depends_on []), S-21.15 (depends_on [])"). Header undercounted its own enumeration by one wave.
+2. L776 (E-21 per-epic footnote bracket, under the master line): `[Historical v1.0 tally; current: 6 stories/35 pts/3 waves — see row summary]` — same defect shape as the just-closed L721, differing from the authoritative L741 delivery-blockquote total (14 stories/117 pts/8 waves) by the same magnitude class.
+3. L763 (master "Total story points" line, asterisk-footnoted form): the E-21 term read `35 E-21*************`.
+
+**(c) File-wide semantic-role sweep (human-directed this session, exceeding this finding's own E-21 perimeter).** Per explicit human instruction, a TRUE file-wide aggregation sweep was executed — every epic (E-0..E-22), every cell TYPE (authored-provenance blockquote, delivery blockquote, coverage blockquote, DAG wave-schedule blockquote header+body, per-epic footnote, master line), reconciled by SEMANTIC ROLE, not by the D-998 sweep's single grep phrasing. Literal-shell evidence (captured stdout, this burst):
+
+```
+$ grep -n "current:" stories/STORY-INDEX.md
+776: ... [Historical v1.0 tally; current: 6 stories/35 pts/3 waves — see row summary]   (E-21, STALE)
+777: ... [Historical v1.0 tally; current: 8 stories/50 pts — see row summary]           (E-19, STALE — newly discovered)
+
+$ awk 'NR==722' stories/STORY-INDEX.md | grep -oE "^> DAG wave schedule \([0-9]+ waves"
+> DAG wave schedule (7 waves                                                            (STALE — body enumerates W1..W8)
+
+$ awk 'NR==763' stories/STORY-INDEX.md | grep -oE "[0-9]+ E-1[89]\*+|[0-9]+ E-21\*+"
+99 E-18***********    (STALE vs canonical 107)
+50 E-19************   (STALE vs canonical 55)
+35 E-21*************  (STALE vs canonical 117)
+
+$ grep -c "^| S-21\." stories/STORY-INDEX.md ; awk -F'|' '/^\| S-21\./ {gsub(/ /,"",$5); sum+=$5} END{print sum}' stories/STORY-INDEX.md
+14
+117
+
+$ grep "^| S-21\." stories/STORY-INDEX.md | grep -oE "\(wave [0-9]+" | grep -oE "[0-9]+" | sort -nu | wc -l
+8
+
+$ awk 'NR==716' stories/STORY-INDEX.md | grep -oE "[0-9]+ stories total\. [0-9]+ pts\."
+9 stories total. 55 pts.     (E-19 canonical delivery blockquote — catalog-verified correct, 9 rows sum to 55)
+
+$ awk 'NR==690' stories/STORY-INDEX.md | grep -oE "[0-9]+ stories total\. [0-9]+ pt"
+17 stories total. 107 pt     (E-18 canonical delivery blockquote — treated as canonical per D-996(d)/D-998 out-of-perimeter precedent; NOT re-summed from current 18-row/125-pt catalog)
+
+$ awk 'NR==741' stories/STORY-INDEX.md | grep -oE "[0-9]+ stories total\. [0-9]+ pts\."
+14 stories total. 117 pts.   (E-21 delivery blockquote — already correct, unchanged)
+```
+
+**Per-epic disposition:**
+
+- **E-21 (IN-PERIMETER):** canonical = catalog-row literal-shell sum = 14 stories / 117 pts / 8 distinct waves (W1{01,02,03} W2{04,05} W3{06} W4{07,09,12} W5{10} W6{11} W7{13} W8{14,15}). Fixed: L722 header 7→8 waves (+W8 clause appended); L763 master term 35→117; L776 footnote 6/35/3→14/117/8. L721 (already 117, D-998) and L741 (always 117) reconfirmed unchanged.
+- **E-19 (OUT-OF-PERIMETER, COMPLETE/MERGED):** canonical = its own delivery blockquote, L716 = 9 stories/55 pts (catalog-verified correct). Fixed: L763 master term 50→55; L777 footnote `current: 8 stories/50 pts`→`current: 9 stories/55 pts` — a **genuinely new finding**, discovered only because this burst's method checks by semantic role (any "current:"-tagged live claim) rather than by the D-998 sweep's phrasing-specific predicate.
+- **E-18 (OUT-OF-PERIMETER, COMPLETE/MERGED):** canonical = its own delivery blockquote, L690 = 17 stories/107 pts. Fixed: L763 master term 99→107. E-18's DAG-header (L667, "9 waves + prereq") and footnote (L775, "104 pts total ... 15 stories ... 9-wave DAG") carry **no "current:" tag** — both are dated 2026-06-16 authoring-time snapshots ("all 15 stories registered", pre-dating S-18.13/S-18.14) and are correctly preserved as frozen-historical, per the standing D-996(d)/D-998 precedent (a cell is in-scope for correction only if it makes a CURRENT-TENSE total claim). E-18's deeper catalog-vs-blockquote disagreement (18-row current catalog sum = 125 pts vs the blockquote's 107) remains explicitly OUT-OF-PERIMETER and untouched this burst — this pass does not reopen that question, it only corrects the master-line arithmetic that referenced E-18's OWN already-canonical 107 figure.
+- **E-6, E-7, E-8, E-10, E-15, E-16, E-17 (OUT-OF-PERIMETER):** E-10 carries a self-checking total ("Total E-10 points: 45 (2+5+8+5+8+5+2+5+5)") independently summing to 45, matching L763 — no action. E-6 is a single-row table (3 pts) with no separate blockquote to disagree — no action. The whole-file `grep -n "current:"` sweep returns EXACTLY two matches in the entire document (L776, L777, both now fixed) — no other epic carries a live "current:"-tagged claim; E-7/E-8/E-15/E-16/E-17's L763 terms have no independent canonical comparator cell and no live disagreement was found — left untouched, not a deferral (no comparator exists to disagree with).
+- **E-0..E-5 (190, combined), E-9/E-11/E-12/E-13/E-14/E-12-F3-amendment (TBD, non-numeric):** no single canonical blockquote exists for a 6-epic combined figure or a TBD placeholder — explicitly out of this pass's "CURRENT-tense numeric claim with a canonical comparator" scope, not a live disagreement.
+
+**Residual sweep (post-fix, captured stdout):**
+
+```
+$ awk 'NR>=215' stories/STORY-INDEX.md | grep -c "35 E-21\|6 stories/35 pts/3 waves\|8 stories/50 pts\|50 E-19\|99 E-18\|(7 waves; W3"
+0
+```
+
+Zero remaining live disagreements confirmed, whole-file, post-fix.
+
+**Fix (state-manager, this burst):** `STORY-INDEX.md` v4.321→**v4.322** — L722 "7 waves"→"8 waves" (+W8 clause); L763 master line E-18 "99"→"107", E-19 "50"→"55", E-21 "35"→"117"; L776 E-21 footnote "6 stories/35 pts/3 waves"→"14 stories/117 pts/8 waves"; L777 E-19 footnote "8 stories/50 pts"→"9 stories/55 pts".
+
+**(d) STATE.md §8 pending E-18 item — RESOLVED (partially).** The STATE.md §8 pending-decision item #7 ("E-18 STORY-INDEX total drift (107 vs 125 pts) — scope a dedicated maintenance sweep...") is resolved AT THE MASTER-LINE-ARITHMETIC LAYER this burst: L763's E-18 term now correctly reads 107, matching E-18's own canonical delivery-blockquote total — there is no longer a live disagreement between the master line and E-18's canonical figure. The DEEPER question this §8 item also gestures at — whether E-18's canonical delivery-blockquote total (107) should itself be reconciled against its current 18-row/125-pt catalog sum — is explicitly NOT resolved by this burst, remains open, out-of-perimeter, and is re-tracked verbatim (see STATE.md Blocking Issues and (h) below).
+
+**(e) O-P16-01 [process-gap] — CODIFIED THIS BURST (lesson strengthened + decision-log; no policies.yaml text change).** The D-998 lesson `L-BB-epic-total-aggregation-sweep-on-any-epic-blockquote-edit` enumerated only provenance/delivery/coverage blockquotes and operationalized the sweep via one grep phrasing (`grep "stories total\."`) — it would not have caught the DAG-header wave-count, the master-total line, or the per-epic footnote bracket, all three demonstrated-live this pass. **Strengthened** (see `lessons.md` for full text): the sweep obligation is now stated by SEMANTIC ROLE — any cell asserting a points/story/wave/EC/AC total for an epic, any surface form — reconciled against the epic's canonical total (catalog-row sum for in-perimeter epics; the epic's own delivery blockquote for out-of-perimeter/COMPLETE epics, never a naive re-sum that would mishandle withdrawn/deprecated/stub/prereq rows). Detection command class widened to four: `grep -n "current:"`, `grep -n "^> DAG wave schedule ("`, `grep -n "Total story points:"`, and the pre-existing `grep -n "stories total\."` — run all four, not any one alone.
+
+**(f) O-P16-02/O-P16-03 dispositioned (not findings, no story edit).** O-P16-02 (transparency, not a finding): this pass's file-wide method re-confirmed the standing E-18 catalog-vs-blockquote disagreement (107 vs 125), already tracked as a STATE.md Blocking Issue and §8 item (D-998) — not re-litigated or reopened; see (d) above for the narrower resolution this burst DOES make. O-P16-03 (carried, non-finding): the pass-15 O-P15-02 disposition (AC-020 Notes L596 illustrative `grep -c` missing `-E`) remains ACCEPTED-OBSERVATION-WITH-RATIONALE, unexamined this pass since the story file was not touched. Neither observation required a story-file edit — the story file (`S-21.07-validate-cross-site-correspondence.md`) was NOT touched this burst, consistent with the D-998 precedent of preserving its twice-CLEAN stability.
+
+**(g) INDEX.md.** S-21.07 LOCAL Adversary Reviews table: pass-16 row added (NOT-CLEAN, 1 MEDIUM, 0/3 HOLDS, `96b4be19`/`1750bd56`). Convergence Status narrative extended with the D-1000 pass-16 record+fix summary. Trajectory `47→18→25→25→24→20→16→8→10→1→1→2→0→1→1` (tail `→2→0→1→1`, D-433(e)+D-439(c) LENGTH=4). 15 true adversary reviews; 1 CLEAN verdict (unchanged — pass-16 was NOT-CLEAN).
+
+**(h) 4-INDEX.** BC-INDEX v4.58 (UNCHANGED) / VP-INDEX v2.76 (UNCHANGED) / STORY-INDEX v4.321→**v4.322** / ARCH-INDEX v3.58 (UNCHANGED — no ADR or ARCH-INDEX touch this burst). policies.yaml v1.4.24 (UNCHANGED — see (e)).
+
+**(i) No gate-predicate or ratification-status change.** This burst closes one finding via five STORY-INDEX registry-cell arithmetic corrections (one E-21 wave-header, three master-line terms, two footnote brackets) — no `GateOutcome` semantics, POLICY 15 predicate, or ADR `status`/`ratified` frontmatter fields were touched. `feature/S-21.07` SHA `96b4be19` UNCHANGED (no code-repo commit this burst — the fix is factory-artifacts-only, STORY-INDEX content; the story file itself was explicitly NOT touched, to preserve its twice-CLEAN stability). **Streak for the S-21.07 cascade EXPLICITLY HOLDS 0/3 — a second consecutive NOT-CLEAN following the pass-15 reset does not advance the streak; the count of fresh consecutive CLEAN verdicts required (3) restarts at pass-17.** BC-5.39.001 now requires 3 FRESH CONSECUTIVE CLEAN passes from pass-17 onward. **Pass-17 adversary (fresh-context, reading only `adversary-pass-16.md` Part A per the Iron Law) is the pending gate.**
+
+### Agents
+
+- vsdd-factory:adversary (fresh-context, this session): pass-16 review dispatched and relayed — NOT-CLEAN, 1 MEDIUM finding + 3 observations
+- state-manager (D-1000): `adversary-pass-16.md` persisted verbatim; INDEX.md pass-16 row + Convergence Status; STORY-INDEX v4.322 (file-wide semantic-role aggregation sweep: E-21 DAG-header + master-line + footnote, E-19 master-line + footnote, E-18 master-line); 1 lesson strengthened (`L-BB-epic-total-aggregation-sweep-on-any-epic-blockquote-edit`); STATE.md §8 E-18 item partially resolved (master-line layer only); STATE.md full advance; single atomic commit to `factory-artifacts` per TD-VSDD-053; POLICY 16 gate run with literal shell captured stdout; D-999 sentinel explicitly skipped per human directive
+- human (this session): explicit directive to perform a TRUE file-wide aggregation sweep (all epics, all cell types), not limited to E-21; explicit directive to skip D-999 and allocate D-1000
+
+### 4-INDEX
+
+BC-INDEX v4.58 (UNCHANGED) / VP-INDEX v2.76 (UNCHANGED) / STORY-INDEX **v4.322** / ARCH-INDEX v3.58 (UNCHANGED)
+
+### Phase
+
+D-1000-S2107-PASS16-RECORD-AND-FIX-BURST
+
+### Date
+
+2026-08-13
+
+---

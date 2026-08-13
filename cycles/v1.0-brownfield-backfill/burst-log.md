@@ -28219,3 +28219,122 @@ D-444(c) burst-log h2 heading `## D-998-S2107-PASS15-RECORD-AND-FIX-BURST` prese
 - **Parent SHA (Block 8 cites parent per D-419(b)/D-444(c) convention):** `1199aae3` — `state(sha-patch): D-997 commit 8e5c7344 factory-artifacts SHA -- Active Branches + checkpoint + decisions-log updated`
 
 **Closes:** F-S2107-P15-001 CLOSED (state-manager; STORY-INDEX v4.321; L721 111→117 pts; TD-VSDD-060 class-complete epic-total aggregation sweep, zero further live disagreements found — E-18's own frozen-historical variance noted out-of-perimeter, not fixed); O-P15-01 CODIFIED (lesson + D-998(e)); O-P15-02/O-P15-03 dispositioned (not findings, no story edit). **HUMAN PERIMETER DECISION: F-S2107-P15-001 IN-PERIMETER — STREAK EXPLICITLY RESET 1/3 → 0/3, human-directed.** **S-21.07 PASS-15 RECORD + FIX BURST COMPLETE; SHA-PATCH FOLLOW-UP NEXT; PASS-16 ADVERSARY DISPATCH AFTER THAT.**
+
+## D-1000-S2107-PASS16-RECORD-AND-FIX-BURST
+
+**Block 1: Parent-commit**
+
+POLICY 16 allocator-ceiling gate (literal shell, D-449(a)):
+
+```
+$ max_d=$({ grep -hE '^#{2,} D-[0-9]+' cycles/v1.0-brownfield-backfill/decision-log.md cycles/v1.0-feature-engine-discipline-pass-1/decision-log.md 2>/dev/null; grep -hE '^[|] *D-[0-9]+' cycles/v1.0-brownfield-backfill/decision-log.md cycles/v1.0-feature-engine-discipline-pass-1/decision-log.md 2>/dev/null; } | grep -oE 'D-[0-9]+' | sed 's/D-//' | sort -n | tail -1); [ "$max_d" -lt 9000 ] && printf 'PASS: global max D-%s < D-9000 ceiling\n' "$max_d" || printf 'FAIL: breach: max=D-%s\n' "$max_d"
+PASS: global max D-998 < D-9000 ceiling
+$ grep -c "^## D-999\b" cycles/v1.0-brownfield-backfill/decision-log.md
+0
+```
+
+D-999 confirmed unused; SKIPPED per human directive this session (ADR-041 migrated the fixture-sentinel to D-99999, so D-999 is not structurally excluded by the gate, but the human directed continued caution — see decision-log D-1000 preamble for the full rationale). **D-1000 allocated** (not D-999). **Parent-commit:** `1750bd56` — `state(sha-patch): D-998 commit 1750bd56 factory-artifacts SHA -- Active Branches + checkpoint + decisions-log updated` (factory-artifacts HEAD at burst start).
+
+**Block 2: Adversary verdict**
+
+Fresh-context `vsdd-factory:adversary` pass-16 dispatched against `feature/S-21.07-validate-cross-site-correspondence` at `96b4be19` (unchanged since D-992; story unbuilt) and `factory-artifacts` at `1750bd56` (D-998 SHA-patch HEAD). **Verdict: NOT-CLEAN — 1 MEDIUM finding (F-S2107-P16-001) + 3 observations (O-P16-01, O-P16-02, O-P16-03).** F-S2107-P16-001 CLOSED THIS BURST. **Streak HOLDS 0/3** — a second consecutive NOT-CLEAN following the pass-15 reset does not advance the streak. Persisted verbatim as `cycles/v1.0-brownfield-backfill/S-21.07/adversary-pass-16.md`. The finding is a meta-level recurrence: the D-998 fix that closed F-S2107-P15-001 (STORY-INDEX aggregation sweep) was itself scoped to one grep phrasing and missed three sibling E-21 aggregation cells (DAG-header wave-count, per-epic footnote, master-total line) using different surface forms for the same total. Pass-17 (fresh-context, reading only `adversary-pass-16.md` Part A per the Iron Law) is the pending gate, dispatched next.
+
+**Block 3: Files touched**
+
+- `.factory/cycles/v1.0-brownfield-backfill/S-21.07/adversary-pass-16.md` — new (pass-16 record, persisted verbatim)
+- `.factory/cycles/v1.0-brownfield-backfill/INDEX.md` — pass-16 row added; Convergence Status extended (D-1000 summary)
+- `.factory/stories/STORY-INDEX.md` — v4.321→v4.322 (file-wide semantic-role aggregation sweep: E-21 DAG-header L722 7→8 waves, master-line L763 E-18/E-19/E-21 corrections, E-21 footnote L776, E-19 footnote L777)
+- `.factory/cycles/v1.0-brownfield-backfill/lessons.md` — one lesson strengthened (`L-BB-epic-total-aggregation-sweep-on-any-epic-blockquote-edit`, closes O-P16-01)
+- `.factory/cycles/v1.0-brownfield-backfill/decision-log.md` — D-1000 appended
+- `.factory/cycles/v1.0-brownfield-backfill/burst-log.md` — this entry
+- `.factory/STATE.md` — full advance (frontmatter, Phase Progress, Current Phase Steps, Active Branches, Decisions Log, Blocking Issues, §8 E-18 item partially resolved, Session Resume Checkpoint)
+
+The story file `stories/S-21.07-validate-cross-site-correspondence.md` was explicitly NOT touched this burst, per instruction, to preserve its twice-CLEAN content stability. No BC-INDEX, VP-INDEX, or ARCH-INDEX file was touched this burst.
+
+**Block 4: Codifications**
+
+One codification, STRENGTHENED (not newly created): the O-P16-01 [process-gap] obligation extends the D-998 lesson `L-BB-epic-total-aggregation-sweep-on-any-epic-blockquote-edit` from a single grep-phrasing predicate (`grep "stories total\."`) to a SEMANTIC-ROLE enumeration (any cell asserting a points/story/wave/EC/AC total, any surface form — authored-provenance blockquote, delivery blockquote, coverage blockquote, DAG-header, footnote bracket, master line), reconciled against the epic's canonical total (catalog-row sum for in-perimeter epics; the epic's own delivery blockquote for out-of-perimeter/COMPLETE epics). Codified via lessons.md + decision-log D-1000 (companion to POLICY 5, POLICY 8, TD-VSDD-060, S-7.01; not a `policies.yaml` text change — see decision-log D-1000(e) for the routing rationale). No other new codifications. Applies pre-existing disciplines: TD-VSDD-053 single-commit-per-burst; POLICY 5 category-(i) sibling-sweep; TD-VSDD-060 sibling-sweep on value changes; BC-5.39.001 3-CLEAN convergence protocol (streak-hold mechanics on a second consecutive NOT-CLEAN); D-433(e)+D-439(c) trajectory-tail LENGTH=4; POLICY 16 ALLOCATOR-CEILING GATE + ADR-041 D-999 sentinel caution.
+
+**Block 5 (Dim-2): Literal-shell attestation evidence**
+
+POLICY 16 gate + D-999 skip-check captured above (Block 1).
+
+File-wide semantic-role aggregation sweep (literal shell, mandatory per O-P16-01/human-directed file-wide scope):
+
+```
+$ grep -n "current:" stories/STORY-INDEX.md
+776: ... [Historical v1.0 tally; current: 6 stories/35 pts/3 waves — see row summary]   (E-21, STALE)
+777: ... [Historical v1.0 tally; current: 8 stories/50 pts — see row summary]           (E-19, STALE — newly discovered)
+$ awk 'NR==722' stories/STORY-INDEX.md | grep -oE "^> DAG wave schedule \([0-9]+ waves"
+> DAG wave schedule (7 waves                                                            (STALE — body enumerates W1..W8)
+$ awk 'NR==763' stories/STORY-INDEX.md | grep -oE "[0-9]+ E-1[89]\*+|[0-9]+ E-21\*+"
+99 E-18***********    (STALE vs canonical 107)
+50 E-19************   (STALE vs canonical 55)
+35 E-21*************  (STALE vs canonical 117)
+$ grep -c "^| S-21\." stories/STORY-INDEX.md ; awk -F'|' '/^\| S-21\./ {gsub(/ /,"",$5); sum+=$5} END{print sum}' stories/STORY-INDEX.md
+14
+117
+$ grep "^| S-21\." stories/STORY-INDEX.md | grep -oE "\(wave [0-9]+" | grep -oE "[0-9]+" | sort -nu | wc -l
+8
+$ awk 'NR==716' stories/STORY-INDEX.md | grep -oE "[0-9]+ stories total\. [0-9]+ pts\."
+9 stories total. 55 pts.
+$ awk 'NR==690' stories/STORY-INDEX.md | grep -oE "[0-9]+ stories total\. [0-9]+ pt"
+17 stories total. 107 pt
+$ awk 'NR==741' stories/STORY-INDEX.md | grep -oE "[0-9]+ stories total\. [0-9]+ pts\."
+14 stories total. 117 pts.
+```
+
+Post-fix residual sweep (literal shell, captured stdout):
+
+```
+$ awk 'NR>=215' stories/STORY-INDEX.md | grep -c "35 E-21\|6 stories/35 pts/3 waves\|8 stories/50 pts\|50 E-19\|99 E-18\|(7 waves; W3"
+0
+```
+
+Version/story-file-untouched gate (literal shell):
+
+```
+$ grep -m1 'version:' stories/STORY-INDEX.md
+version: "4.322"
+$ git status --porcelain stories/S-21.07-validate-cross-site-correspondence.md
+(empty — confirms the story file was NOT touched this burst)
+```
+
+Lesson-strengthening and pass-16 record-persistence gate (literal shell):
+
+```
+$ grep -c "STRENGTHENED (D-1000" cycles/v1.0-brownfield-backfill/lessons.md
+1
+$ grep -c "^verdict: NOT-CLEAN" cycles/v1.0-brownfield-backfill/S-21.07/adversary-pass-16.md
+1
+$ grep -c "HOLDS 0/3" cycles/v1.0-brownfield-backfill/S-21.07/adversary-pass-16.md
+1
+```
+
+**Block 6 (Dim-5): Closes**
+
+- F-S2107-P16-001 CLOSED (state-manager; STORY-INDEX v4.321→v4.322 — L722 7→8 waves, L763 master-line E-18/E-19/E-21 corrections, L776/L777 footnote corrections; file-wide TD-VSDD-060 class-complete semantic-role sweep confirmed zero further live disagreements)
+- O-P16-01 [process-gap] CODIFIED (lesson `L-BB-epic-total-aggregation-sweep-on-any-epic-blockquote-edit` STRENGTHENED + D-1000(e))
+- O-P16-02 (non-finding, transparency) — E-18 107-vs-125 catalog disagreement re-confirmed out-of-perimeter, not reopened
+- O-P16-03 (non-finding, carried) — O-P15-02 disposition unchanged, story file not touched
+
+**Block 7 (Dim-6): Gate attestation**
+
+D-444(c) burst-log h2 heading `## D-1000-S2107-PASS16-RECORD-AND-FIX-BURST` present. D-446(a) own-burst-log 8-block gate: this section contains Blocks 1-8. D-448(a) source-attestation gate: the F-S2107-P16-001 disposition paragraph in decision-log.md D-1000(b)/(c) faithfully describes `adversary-pass-16.md` Part A's finding set (1 MEDIUM finding, verbatim location/defect text) — verified by direct comparison against the persisted pass-16 file at burst time; the O-P16-01/O-P16-02/O-P16-03 dispositions at D-1000(e)/(f) likewise faithfully describe the persisted Observations section. D-449(a) literal-shell-execution SELF-APPLICATION: POLICY 16 gate + D-999 skip-check + file-wide semantic-role sweep + residual sweep + version/story-file-untouched gate + lesson-strengthening/record-persistence gate all use actual shell with verbatim stdout captured (Block 5) — no pseudocode, no estimated counts.
+
+**Dim-7 Attestation:**
+
+- This burst IS a numbered LOCAL adversary pass (pass-16) — trajectory entry added; trajectory (15 true adversary passes, 1 CLEAN) `47→18→25→25→24→20→16→8→10→1→1→2→0→1→1` (tail `→2→0→1→1`, D-433(e)+D-439(c) LENGTH=4)
+- Streak: **0/3 — HOLDS** (second consecutive NOT-CLEAN following the pass-15 human-directed reset; does not further decrement, does not advance). BC-5.39.001 requires 3 FRESH CONSECUTIVE CLEAN passes from pass-17 onward.
+- 4-INDEX: BC v4.58 (UNCHANGED) / VP v2.76 (UNCHANGED) / STORY v4.321→**v4.322** / ARCH v3.58 (UNCHANGED)
+- policies.yaml v1.4.24 (UNCHANGED — O-P16-01 routed to lessons.md + decision-log, not a policies.yaml text change)
+- `feature/S-21.07` SHA `96b4be19` UNCHANGED (no code-repo commit this burst; fix is STORY-INDEX-only; story file itself deliberately NOT touched)
+- `pipeline: ACTIVE` UNCHANGED
+
+### Block 8: factory-artifacts commit
+
+**factory-artifacts commits (this burst — TD-VSDD-053 single-commit-per-burst):**
+- Target: single commit pushed as `git push origin HEAD:factory-artifacts`
+- **Parent SHA (Block 8 cites parent per D-419(b)/D-444(c) convention):** `1750bd56` — `state(sha-patch): D-998 commit 1750bd56 factory-artifacts SHA -- Active Branches + checkpoint + decisions-log updated`
+
+**Closes:** F-S2107-P16-001 CLOSED (state-manager; STORY-INDEX v4.322; L722/L763/L776/L777 corrections; file-wide TD-VSDD-060 class-complete semantic-role aggregation sweep, zero further live disagreements found); O-P16-01 CODIFIED (lesson strengthened + D-1000(e)); O-P16-02/O-P16-03 dispositioned (not findings, no story edit); STATE.md §8 E-18 pending item partially resolved (master-line layer). **STREAK EXPLICITLY HOLDS 0/3 — second consecutive NOT-CLEAN, does not advance.** **S-21.07 PASS-16 RECORD + FIX BURST COMPLETE; SHA-PATCH FOLLOW-UP NEXT; PASS-17 ADVERSARY DISPATCH AFTER THAT.**
